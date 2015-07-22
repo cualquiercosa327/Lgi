@@ -9,115 +9,24 @@
 #include "GUndo.h"
 #include "GDragAndDrop.h"
 
-// use CRLF as opposed to just LF
-// internally it uses LF only... this is just to remember what to
-// save out as.
-#define TEXTED_USES_CR				0x00000001
-#define TAB_SIZE					4
-#define DEBUG_TIMES_MSG				8000 // a=0 b=(char*)Str
-
-#define M_TEXTVIEW_DEBUG_TEXT		(M_USER+0x3421)
-
 extern char Delimiters[];
 
-class GTextView4;
-
-/// Unicode text editor control.
-class
 #if defined(MAC) || defined(__GTK_H__)
-LgiClass
+#define DefClass class LgiClass
+#else
+#define DefClass class
 #endif
+
+/// Styled unicode text editor control.
+DefClass
 	GTextView4 :
 	public GDocView,
 	public ResObject,
 	public GDragDropTarget
 {
-	friend class GUrl;
-	friend class GTextView4Undo;
-	friend bool Text_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User);
+	friend bool Text4_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User);
 
 public:
-	class
-	#if defined(MAC) || defined(__GTK_H__)
-	LgiClass
-	#endif
-	GStyle
-	{
-		friend class GUrl;
-
-	protected:
-		void RefreshLayout(int Start, int Len);
-
-	public:
-		enum StyleDecor
-		{
-			DecorNone,
-			DecorSquiggle,
-		};
-
-		/// The view the style is for
-		GTextView4 *View;
-		/// When you write several bits of code to do styling assign them
-		/// different owner id's so that they can manage the lifespan of their
-		/// own styles. GTextView4::PourStyle is owner '0', anything else it
-		/// will leave alone.
-		int Owner;
-		/// The start index into the text buffer of the region to style.
-		int Start;
-		/// The length of the styled region
-		int Len;
-		/// The font to draw the styled text in
-		GFont *Font;
-		/// The colour to draw with. If transparent, then the default 
-		/// line colour is used.
-		GColour c;
-		/// Optional extra decor not supported by the fonts
-		StyleDecor Decor;
-		/// Colour for the optional decor.
-		GColour DecorColour;
-
-		/// Application base data
-		char *Data;
-
-		GStyle(int owner)
-		{
-			Owner = owner;
-			View = 0;
-			Font = 0;
-			Start = -1;
-			Len = 0;
-			Decor = DecorNone;
-			Data = 0;
-		}
-		
-		virtual ~GStyle() {}
-
-		virtual bool OnMouseClick(GMouse *m) { return false; }
-		virtual bool OnMenu(GSubMenu *m) { return false; }
-		virtual void OnMenuClick(int i) {}
-		virtual TCHAR *GetCursor() { return 0; }
-
-		/// Returns true if this style overlaps the position of 's'
-		bool Overlap(GStyle *s)
-		{
-			return Overlap(s->Start, s->Len);
-		}
-
-		/// Returns true if this style overlaps the position of 's'
-		bool Overlap(int sStart, int sLen)
-		{
-			if (sStart + sLen < Start ||
-				sStart >= Start + Len)
-				return false;
-
-			return true;
-		}
-	};
-
-	friend class GTextView4::GStyle;
-
-protected:
-	// Internal classes
 	enum GTextViewSeek
 	{
 		PrevLine,
@@ -126,77 +35,9 @@ protected:
  		EndLine
 	};
 
-	class GTextLine
-	{
-	public:
-		int Start;		// Start offset
-		int Len;		// length of text
-		GRect r;		// Screen location
-		GColour c;		// Colour of line... transparent = default colour
-		GColour Back;	// Background colour or transparent
-
-		GTextLine()
-		{
-			Start = -1;
-			Len = 0;
-			r.ZOff(-1, -1);
-		}
-		virtual ~GTextLine() {}
-		bool Overlap(int i)
-		{
-			return i>=Start && i<=Start+Len;
-		}
-	};
-	
-	class GTextView4Private *d;
-	friend class GTextView4Private;
-
-	// Options
-	bool Dirty;
-	bool CanScrollX;
-
-	// Display
-	GFont *Font;
-	GFont *FixedFont;
-	GFont *Underline;	// URL display
-	int LineY;
-	int SelStart, SelEnd;
-	int DocOffset;
-	int MaxX;
-	bool Blink;
-	int ScrollX;
-	GRect CursorPos;
-
-	List<GTextLine> Line;
-	List<GStyle> Style;		// sorted in 'Start' order
-
-	// For ::Name(...)
-	char *TextCache;
-
-	// Data
-	char16 *Text;
-	int Cursor;
-	int Size;
-	int Alloc;
-
-	// Undo stuff
-	bool UndoOn;
-	GUndo UndoQue;
-
-	// private methods
-	GTextLine *GetTextLine(int Offset, int *Index = 0);
-	int SeekLine(int Start, GTextViewSeek Where);
-	int TextWidth(GFont *f, char16 *s, int Len, int x, int Origin);
-	int ScrollYLine();
-	int ScrollYPixel();
-	int MatchText(char16 *Text, bool MatchWord, bool MatchCase, bool SelectionOnly);
-	
-	// styles
-	bool InsertStyle(GAutoPtr<GStyle> s);
-	GStyle *GetNextStyle(int Where = -1);
-	GStyle *HitStyle(int i);
-	int GetColumn();
-	int SpaceDepth(char16 *Start, char16 *End);
+protected:
+	class GTv4Priv *d;
+	friend class GTv4Priv;
 
 	// Overridables
 	virtual void PourText(int Start, int Length);
@@ -204,13 +45,6 @@ protected:
 	virtual void OnFontChange();
 	virtual void OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour);
 	virtual char16 *MapText(char16 *Str, int Len, bool RtlTrailingSpace = false);
-
-	#ifdef _DEBUG
-	// debug
-	uint64 _PourTime;
-	uint64 _StyleTime;
-	uint64 _PaintTime;
-	#endif
 
 public:
 	// Construction
@@ -231,8 +65,8 @@ public:
 	bool NameW(const char16 *s);
 	int64 Value();
 	void Value(int64 i);
-	const char *GetMimeType() { return "text/plain"; }
-	int GetSize() { return Size; }
+	const char *GetMimeType() { return "text/html"; }
+	int GetSize();
 
 	int HitText(int x, int y);
 	void DeleteSelection(char16 **Cut = 0);
@@ -253,8 +87,8 @@ public:
 	// State / Selection
 	void SetCursor(int i, bool Select, bool ForceFullUpdate = false);
 	int IndexAt(int x, int y);
-	bool IsDirty() { return Dirty; }
-	void IsDirty(bool d) { Dirty = d; }
+	bool IsDirty();
+	void IsDirty(bool d);
 	bool HasSelection();
 	void UnSelectAll();
 	void SelectWord(int From);
@@ -277,8 +111,8 @@ public:
 	// Undo/Redo
 	void Undo();
 	void Redo();
-	bool GetUndoOn() { return UndoOn; }
-	void SetUndoOn(bool b) { UndoOn = b; }
+	bool GetUndoOn();
+	void SetUndoOn(bool b);
 
 	// Action UI
 	virtual bool DoGoto();
