@@ -135,6 +135,8 @@ GRect GCssTools::PaintBorderAndPadding(GSurface *pDC, GRect &in)
 			pDC->Rectangle(r.x1, Content.y1, r.x2, r.y1 - 1);
 		if (r.y2 < Content.y2)
 			pDC->Rectangle(r.x1, r.y2 + 1, r.x2, Content.y2);
+		
+		Content = r;
 	}
 	
 	return Content;

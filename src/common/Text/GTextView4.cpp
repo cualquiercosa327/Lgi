@@ -76,6 +76,37 @@
 static char SelectWordDelim[] = " \t\n.,()[]<>=?/\\{}\"\';:+=-|!@#$%^&*";
 
 //////////////////////////////////////////////////////////////////////
+class GText4Elem : public GHtmlElement
+{
+	GString Style;
+
+public:
+	GText4Elem(GHtmlElement *parent) : GHtmlElement(parent)
+	{
+	}
+
+	bool Get(const char *attr, const char *&val)
+	{
+		if (attr && !stricmp(attr, "style") && Style)
+		{
+			val = Style;
+			return true;
+		}
+		return false;
+	}
+	
+	void Set(const char *attr, const char *val)
+	{
+		if (attr && !stricmp(attr, "style"))
+			Style = val;
+	}
+	
+	void SetStyle()
+	{
+		int asd = 0;
+	}
+};
+
 class GDocFindReplaceParams3 : public GDocFindReplaceParams
 {
 public:
@@ -261,12 +292,47 @@ public:
 	struct Text : GArray<char16>
 	{
 		GCss *Style; // owned by the CSS cache
+		GColour Fore, Back;
 		
 		Text(const char16 *t = NULL, int Chars = -1)
 		{
 			Style = NULL;
 			if (t)
 				Add((char16*)t, Chars >= 0 ? Chars : StrlenW(t));
+		}
+	};
+
+	enum SelectModeType
+	{
+		Unselected = 0,
+		Selected = 1,
+	};
+
+	struct ColourPair
+	{
+		GColour Fore, Back;
+	};
+
+	struct PaintContext
+	{
+		GSurface *pDC;
+		SelectModeType Type;
+		ColourPair Colours[2];
+		
+		PaintContext()
+		{
+			pDC = NULL;
+			Type = Unselected;
+		}
+		
+		GColour &Fore()
+		{
+			return Colours[Type].Fore;
+		}
+
+		GColour &Back()
+		{
+			return Colours[Type].Back;
 		}
 	};
 
@@ -278,7 +344,7 @@ public:
 		
 		virtual int Length() = 0;
 		virtual bool OnLayout(Flow &f) = 0;
-		virtual void OnPaint(GSurface *pDC) = 0;
+		virtual void OnPaint(PaintContext &Ctx) = 0;
 		virtual bool OnKey(GKey &k) = 0;
 	};
 
@@ -364,7 +430,7 @@ public:
 			return Len;
 		}
 
-		void OnPaint(GSurface *pDC)
+		void OnPaint(PaintContext &Ctx)
 		{
 			int FixX = IntToFixed(Pos.x1);
 			int CurY = Pos.y1;
@@ -372,10 +438,33 @@ public:
 			for (unsigned i=0; i<Layout.Length(); i++)
 			{
 				TextLine *Line = Layout[i];
+
+				if (Line->Pos.X() < Pos.X())
+				{
+					Ctx.pDC->Colour(Ctx.Back());
+					Ctx.pDC->Rectangle(Line->Pos.x2, Line->Pos.y1, Pos.x2, Line->Pos.y2);
+				}
+
 				for (unsigned n=0; n<Line->Strs.Length(); n++)
 				{
 					DisplayStr *Ds = Line->Strs[n];
-					Ds->FDraw(pDC, FixX, IntToFixed(CurY));
+					Ds->FDraw(Ctx.pDC, FixX, IntToFixed(CurY + Ds->OffsetY));
+					
+					// If the current text part doesn't cover the full line height we have to
+					// fill in the rest here...
+					int CurX = FixedToInt(FixX);
+					if (Ds->OffsetY > 0)
+					{
+						Ctx.pDC->Colour(Ctx.Back());
+						Ctx.pDC->Rectangle(CurX, CurY, CurX+Ds->X(), CurY+Ds->OffsetY-1);
+					}
+					int DsY2 = Ds->OffsetY + Ds->Y();
+					if (DsY2 < Pos.Y())
+					{
+						Ctx.pDC->Colour(Ctx.Back());
+						Ctx.pDC->Rectangle(CurX, CurY+DsY2, CurX+Ds->X(), Pos.y2);
+					}
+					
 					FixX += Ds->FX();
 				}
 				CurY += Line->Pos.Y();
@@ -384,11 +473,14 @@ public:
 		
 		bool OnLayout(Flow &flow)
 		{
-			if (Pos.X() != flow.X() || LayoutDirty)
+			if (Pos.X() == flow.X() && !LayoutDirty)
 			{
-				LayoutDirty = false;
-				Layout.DeleteObjects();
+				flow.CurY = Pos.y2 + 1;
+				return true;
 			}
+
+			LayoutDirty = false;
+			Layout.DeleteObjects();
 			
 			Pos.x1 = flow.Left;
 			Pos.y1 = flow.CurY;
@@ -455,6 +547,7 @@ public:
 					
 					if (!Ds)
 						break;
+					CurLine->Pos.x2 = FixedToInt(FixX);
 					CurLine->Strs.Add(Ds.Release());
 					Off += Chars;
 				}
@@ -532,7 +625,7 @@ public:
 			return false;
 		}
 		
-		void OnPaint(GSurface *pDC)
+		void OnPaint(PaintContext &Ctx)
 		{
 		}
 	};
@@ -570,15 +663,32 @@ public:
 	
 	void Paint(GSurface *pDC)
 	{
+		PaintContext Ctx;
+		Ctx.pDC = pDC;
+		Ctx.Colours[Unselected].Fore.Set(LC_TEXT, 24);
+		Ctx.Colours[Unselected].Back.Set(LC_WORKSPACE, 24);
+		if (View->Focus())
+		{
+			Ctx.Colours[Selected].Fore.Set(LC_FOCUS_SEL_FORE, 24);
+			Ctx.Colours[Selected].Back.Set(LC_FOCUS_SEL_BACK, 24);
+		}
+		else
+		{
+			Ctx.Colours[Selected].Fore.Set(LC_NON_FOCUS_SEL_FORE, 24);
+			Ctx.Colours[Selected].Back.Set(LC_NON_FOCUS_SEL_BACK, 24);
+		}
+		
 		for (unsigned i=0; i<Blocks.Length(); i++)
 		{
-			Blocks[i]->OnPaint(pDC);
+			Block *b = Blocks[i];
+			if (b)
+				b->OnPaint(Ctx);
 		}
 	}
 	
 	GHtmlElement *CreateElement(GHtmlElement *Parent)
 	{
-		return new GHtmlElement(Parent);
+		return new GText4Elem(Parent);
 	}
 	
 	struct CreateContext
@@ -633,6 +743,7 @@ public:
 		{
 			GHtmlElement *c = e->Children[i];
 			GAutoPtr<GCss> Style;
+
 			switch (c->TagId)
 			{
 				case TAG_B:
@@ -669,6 +780,15 @@ public:
 				{
 					break;
 				}
+			}
+			
+			const char *Css;
+			if (c->Get("style", Css))
+			{
+				if (!Style)
+					Style.Reset(new GCss);
+				if (Style)
+					Style->Parse(Css);
 			}
 
 			if (c->GetText())
@@ -746,13 +866,14 @@ GTextView4::GTextView4(	int Id,
 	CrLf = false;
 	#endif
 	BackColour = LC_WORKSPACE;
-	d->Padding(GCss::Len(GCss::LenPx, 2));
+	d->Padding(GCss::Len(GCss::LenPx, 4));
+	d->BackgroundColor(GCss::ColorDef(GCss::ColorRgb, Rgb24To32(LC_WORKSPACE)));
 	SetFont(SysFont);
 
 	#ifdef _DEBUG
 	Name("<html>\n"
 		"<body>\n"
-		"	This is some <b>bold text</b> to test with.\n"
+		"	This is some <b style='font-size: 20pt;'>bold text</b> to test with.\n"
 		"</body>\n"
 		"</html>\n");
 	#endif
@@ -2503,7 +2624,16 @@ void GTextView4::OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour)
 
 void GTextView4::OnPaint(GSurface *pDC)
 {
-	d->Layout(GetClient());
+	#if 1
+	pDC->Colour(GColour(255, 222, 255));
+	pDC->Rectangle();
+	#endif
+	
+	GRect r = GetClient();
+	GCssTools ct(d, d->Font);
+	r = ct.PaintBorderAndPadding(pDC, r);
+
+	d->Layout(r);
 	d->Paint(pDC);
 }
 
