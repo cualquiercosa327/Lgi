@@ -158,7 +158,8 @@ public:
 	{
 		if (!s)
 			return NULL;
-			
+
+		// Look through existing styles for a match...			
 		for (unsigned i=0; i<Styles.Length(); i++)
 		{
 			GNamedStyle *ns = Styles[i];
@@ -289,9 +290,23 @@ public:
 		}
 	};
 
-	struct Text : GArray<char16>
+	struct ColourPair
+	{
+		GColour Fore, Back;
+		
+		void Empty()
+		{
+			Fore.Empty();
+			Back.Empty();
+		}
+	};
+
+	class Text : public GArray<char16>
 	{
 		GCss *Style; // owned by the CSS cache
+	
+	public:
+		ColourPair Colours;
 		GColour Fore, Back;
 		
 		Text(const char16 *t = NULL, int Chars = -1)
@@ -300,17 +315,36 @@ public:
 			if (t)
 				Add((char16*)t, Chars >= 0 ? Chars : StrlenW(t));
 		}
+		
+		GCss *GetStyle()
+		{
+			return Style;
+		}
+				
+		void SetStyle(GCss *s)
+		{
+			if (Style != s)
+			{
+				Style = s;
+				Colours.Empty();
+				
+				if (Style)
+				{			
+					GCss::ColorDef c = Style->Color();
+					if (c.Type == GCss::ColorRgb)
+						Colours.Fore.Set(c.Rgb32, 32);
+					c = Style->BackgroundColor();
+					if (c.Type == GCss::ColorRgb)
+						Colours.Back.Set(c.Rgb32, 32);
+				}				
+			}
+		}
 	};
-
+	
 	enum SelectModeType
 	{
 		Unselected = 0,
 		Selected = 1,
-	};
-
-	struct ColourPair
-	{
-		GColour Fore, Back;
 	};
 
 	struct PaintContext
@@ -340,13 +374,67 @@ public:
 				// always starts and ends on a whole line.
 	{
 	public:
-		virtual ~Block() {}
+		int8 Cursors;
+		
+		Block()
+		{
+			Cursors = 0;
+		}
+		
+		virtual ~Block()
+		{
+			// We must have removed cursors by the time we are deleted
+			// otherwise there will be a hanging pointer in the cursor
+			// object.
+			LgiAssert(Cursors == 0);
+		}
 		
 		virtual int Length() = 0;
 		virtual bool OnLayout(Flow &f) = 0;
 		virtual void OnPaint(PaintContext &Ctx) = 0;
 		virtual bool OnKey(GKey &k) = 0;
 	};
+
+	struct BlockCursor
+	{
+		Block *Blk;
+		int Offset;
+		GRect Pos;
+		
+		BlockCursor(Block *b, int off)
+		{
+			Blk = NULL;
+			Offset = -1;
+			Pos.ZOff(-1, -1);
+
+			if (b)
+				Set(b, off);
+		}
+		
+		~BlockCursor()
+		{
+			Set(NULL, 0);
+		}
+		
+		void Set(Block *b, int off)
+		{
+			if (Blk)
+			{
+				LgiAssert(Blk->Cursors > 0);
+				Blk->Cursors--;
+				Blk = NULL;
+			}
+			if (b)
+			{
+				Blk = b;
+				LgiAssert(Blk->Cursors < 0x7f);
+				Blk->Cursors++;
+			}
+			Offset = off;
+		}
+	};
+	
+	GAutoPtr<BlockCursor> Cursor, Selection;
 
 	/// This is part or all of a Text run
 	struct DisplayStr : public GDisplayString
@@ -362,18 +450,25 @@ public:
 		}
 	};
 
+	/// This structure is a layout of a full line of text. Made up of one or more
+	/// display string objects.
 	struct TextLine
 	{
-		GRect Pos;
+		/// This is a position relative to the parent Block
+		GRect PosOff;
+		
+		/// The array of display strings
 		GArray<DisplayStr*> Strs;
 		
-		TextLine(GRect &p, int CurY)
+		TextLine(GRect &BlockPos)
 		{
-			Pos = p;
-			Pos.y1 += CurY;
-			Pos.y2 = Pos.y1;
+			PosOff.ZOff(BlockPos.X()-1, 0);
+			PosOff.Offset(0, BlockPos.Y());
 		}
 		
+		/// This runs after the layout line has been filled with display strings.
+		/// It measures the line and works out the right offsets for each strings
+		/// so that their baselines all match up correctly.
 		void LayoutOffsets()
 		{
 			double BaseLine = 0.0;
@@ -400,7 +495,7 @@ public:
 				LgiAssert(ds->OffsetY >= 0);
 			}
 			
-			Pos.y2 = Pos.y1 + HtPx - 1;
+			PosOff.y2 = PosOff.y1 + HtPx - 1;
 		}
 	};
 	
@@ -432,22 +527,36 @@ public:
 
 		void OnPaint(PaintContext &Ctx)
 		{
-			int FixX = IntToFixed(Pos.x1);
-			int CurY = Pos.y1;
-
 			for (unsigned i=0; i<Layout.Length(); i++)
 			{
 				TextLine *Line = Layout[i];
 
-				if (Line->Pos.X() < Pos.X())
+				GRect LinePos = Line->PosOff;
+				LinePos.Offset(Pos.x1, Pos.y1);
+				if (Line->PosOff.X() < Pos.X())
 				{
 					Ctx.pDC->Colour(Ctx.Back());
-					Ctx.pDC->Rectangle(Line->Pos.x2, Line->Pos.y1, Pos.x2, Line->Pos.y2);
+					Ctx.pDC->Rectangle(LinePos.x2, LinePos.y1, Pos.x2, LinePos.y2);
 				}
+
+				int FixX = IntToFixed(LinePos.x1);
+				int CurY = LinePos.y1;
+				GFont *Fnt = NULL;
 
 				for (unsigned n=0; n<Line->Strs.Length(); n++)
 				{
 					DisplayStr *Ds = Line->Strs[n];
+					GFont *f = Ds->GetFont();
+					if (f != Fnt)
+					{
+						f->Transparent(false);
+						Fnt = f;
+					}
+
+					ColourPair &Cols = Ds->Src->Colours;
+					f->Colour(	Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
+								Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
+					
 					Ds->FDraw(Ctx.pDC, FixX, IntToFixed(CurY + Ds->OffsetY));
 					
 					// If the current text part doesn't cover the full line height we have to
@@ -467,7 +576,6 @@ public:
 					
 					FixX += Ds->FX();
 				}
-				CurY += Line->Pos.Y();
 			}
 		}
 		
@@ -485,11 +593,10 @@ public:
 			Pos.x1 = flow.Left;
 			Pos.y1 = flow.CurY;
 			Pos.x2 = flow.Right;
-			Pos.y2 = flow.CurY;
+			Pos.y2 = flow.CurY-1; // Start with a 0px height.
 			
 			int FixX = 0; // Current x offset (fixed point) on the current line
-			int CurY = 0; // Current y offset into our box
-			GAutoPtr<TextLine> CurLine(new TextLine(Pos, CurY));
+			GAutoPtr<TextLine> CurLine(new TextLine(Pos));
 			if (!CurLine)
 				return flow.d->Error(_FL, "alloc failed.");
 
@@ -498,7 +605,7 @@ public:
 				Text *t = Txt[i];
 				
 				// Get the font for 't'
-				GFont *f = flow.d->GetFont(t->Style);
+				GFont *f = flow.d->GetFont(t->GetStyle());
 				if (!f)
 					return flow.d->Error(_FL, "font creation failed.");
 				
@@ -508,6 +615,20 @@ public:
 				{					
 					// How much of 't' is on the same line?
 					char16 *s = sStart + Off;
+					if (*s == '\n')
+					{
+						// New line handling...
+						Off++;
+						CurLine->PosOff.x2 = FixedToInt(FixX);
+						FixX = 0;
+						CurLine->LayoutOffsets();
+						Pos.y2 = max(Pos.y2, Pos.y1 + CurLine->PosOff.y2);
+						Layout.Add(CurLine.Release());
+						
+						CurLine.Reset(new TextLine(Pos));
+						continue;
+					}
+
 					char16 *e = s;
 					while (*e != '\n' && e < sEnd)
 						e++;
@@ -547,7 +668,8 @@ public:
 					
 					if (!Ds)
 						break;
-					CurLine->Pos.x2 = FixedToInt(FixX);
+					
+					CurLine->PosOff.x2 = FixedToInt(FixX);
 					CurLine->Strs.Add(Ds.Release());
 					Off += Chars;
 				}
@@ -556,7 +678,7 @@ public:
 			if (CurLine)
 			{
 				CurLine->LayoutOffsets();
-				Pos.y2 = max(Pos.y2, CurLine->Pos.y2);
+				Pos.y2 = max(Pos.y2, Pos.y1 + CurLine->PosOff.y2);
 				Layout.Add(CurLine.Release());
 			}
 			
@@ -585,7 +707,11 @@ public:
 		
 		bool AddText(GNamedStyle *Style, char16 *Str, int Chars = -1)
 		{
-			bool StyleDiff = (Style != NULL) ^ ((Txt.Length() ? Txt.Last()->Style : NULL) != NULL);
+			if (!Str)
+				return false;
+			if (Chars < 0)
+				Chars = StrlenW(Str);
+			bool StyleDiff = (Style != NULL) ^ ((Txt.Length() ? Txt.Last()->GetStyle() : NULL) != NULL);
 			Text *t = !StyleDiff && Txt.Length() ? Txt.Last() : NULL;
 			if (t)
 			{
@@ -594,13 +720,12 @@ public:
 			}
 			else if (t = new Text(Str, Chars))
 			{
-				t->Style = Style;
 				Len += t->Length();
 				Txt.Add(t);
 			}
 			else return false;
 
-			t->Style = Style;
+			t->SetStyle(Style);
 			return true;
 		}
 	};
@@ -873,7 +998,8 @@ GTextView4::GTextView4(	int Id,
 	#ifdef _DEBUG
 	Name("<html>\n"
 		"<body>\n"
-		"	This is some <b style='font-size: 20pt;'>bold text</b> to test with.\n"
+		"	This is some <b style='font-size: 20pt; color: green;'>bold text</b> to test with.<br>\n"
+		"   A second line of text for testing.\n"
 		"</body>\n"
 		"</html>\n");
 	#endif
