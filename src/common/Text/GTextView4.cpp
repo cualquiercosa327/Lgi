@@ -20,7 +20,8 @@
 #define FixedToInt(fixed)			((fixed)>>GDisplayString::FShift)
 #define IntToFixed(val)				((val)<<GDisplayString::FShift)
 #define DefaultCharset              "utf-8"
-#define SubtractPtr(a, b)			((a) - (b))
+#define PtrCheckBreak(ptr)			if (!ptr) { LgiAssert(!"Invalid ptr"); break; }
+#define CursorColour				GColour(0, 0, 0)
 
 #define GDCF_UTF8					-1
 #define LUIS_DEBUG					0
@@ -239,6 +240,7 @@ class GTv4Priv :
 public:
 	GTextView4 *View;
 	GAutoPtr<GFont> Font;
+	bool WordSelectMode;
 
 	bool Error(const char *file, int line, const char *fmt, ...)
 	{
@@ -347,16 +349,21 @@ public:
 		Selected = 1,
 	};
 
+	struct DisplayStr;
+	struct BlockCursor;
 	struct PaintContext
 	{
 		GSurface *pDC;
 		SelectModeType Type;
 		ColourPair Colours[2];
+		BlockCursor *Cursor, *Select;
 		
 		PaintContext()
 		{
 			pDC = NULL;
 			Type = Unselected;
+			Cursor = NULL;
+			Select = NULL;
 		}
 		
 		GColour &Fore()
@@ -375,6 +382,24 @@ public:
 	{
 	public:
 		int8 Cursors;
+
+		struct HitTestResult
+		{
+			GdcPt2 In;
+			Block *Blk;
+			DisplayStr *Ds;
+			int Idx;
+			
+			HitTestResult(int x, int y)
+			{
+				In.x = x;
+				In.y = y;
+				Blk = NULL;
+				Ds = NULL;
+				Idx = -1;
+			}
+		};
+
 		
 		Block()
 		{
@@ -390,6 +415,8 @@ public:
 		}
 		
 		virtual int Length() = 0;
+		virtual bool HitTest(HitTestResult &htr) = 0;
+		virtual GRect GetPosFromIndex(int Index) = 0;
 		virtual bool OnLayout(Flow &f) = 0;
 		virtual void OnPaint(PaintContext &Ctx) = 0;
 		virtual bool OnKey(GKey &k) = 0;
@@ -525,6 +552,105 @@ public:
 			return Len;
 		}
 
+		GRect GetPosFromIndex(int Index)
+		{
+			int CharPos = 0;
+			for (unsigned i=0; i<Layout.Length(); i++)
+			{
+				TextLine *tl = Layout[i];
+				PtrCheckBreak(tl);
+
+				GRect r = tl->PosOff;
+				r.Offset(Pos.x1, Pos.y1);
+				
+				int FixX = 0;
+				for (unsigned n=0; n<tl->Strs.Length(); n++)
+				{
+					DisplayStr *ds = tl->Strs[n];
+					int dsChars = ds->Length();
+					
+					if (Index >= CharPos &&
+						Index <= CharPos + dsChars)
+					{
+						GRect IdxPos;
+						
+						int CharOffset = Index - CharPos;
+						if (CharOffset == 0)
+						{
+							// First char
+							IdxPos.x1 = r.x1 + IntToFixed(FixX);
+						}
+						else if (CharOffset == dsChars)
+						{
+							// Last char
+							IdxPos.x1 = r.x1 + IntToFixed(FixX + ds->FX());
+						}
+						else
+						{
+							// In the middle somewhere...
+							GDisplayString Tmp(ds->GetFont(), *ds, CharOffset);
+							IdxPos.x1 = r.x1 + IntToFixed(FixX + Tmp.FX());
+						}
+
+						IdxPos.y1 = r.y1 + ds->OffsetY;
+						IdxPos.y2 = IdxPos.y1 + ds->Y();
+						IdxPos.x2 = IdxPos.x1 + 1;
+						return IdxPos;
+					}					
+					
+					FixX += ds->FX();
+					CharPos += ds->Length();
+				}
+			}
+			
+			return GRect(0, 0, -1, -1);
+		}
+		
+		bool HitTest(HitTestResult &htr)
+		{
+			if (!Pos.Overlap(htr.In.x, htr.In.y))
+				return false;
+
+			int CharPos = 0;
+			for (unsigned i=0; i<Layout.Length(); i++)
+			{
+				TextLine *tl = Layout[i];
+				PtrCheckBreak(tl);
+
+				GRect r = tl->PosOff;
+				r.Offset(Pos.x1, Pos.y1);
+				bool Over = r.Overlap(htr.In.x, htr.In.y);
+				
+				int FixX = 0;
+				int InputX = IntToFixed(htr.In.x - Pos.x1);
+				for (unsigned n=0; n<tl->Strs.Length(); n++)
+				{
+					DisplayStr *ds = tl->Strs[n];
+					int dsFixX = ds->FX();
+					
+					if (Over &&
+						InputX >= FixX &&
+						InputX < FixX + dsFixX)
+					{
+						int OffFix = InputX - FixX;
+						int OffPx = FixedToInt(OffFix);
+						int OffChar = ds->CharAt(OffPx);
+						
+						htr.Blk = this;
+						htr.Ds = ds;
+						htr.Idx = CharPos + OffChar;
+						return true;
+					}
+					
+					FixX += ds->FX();
+
+					CharPos += ds->Length();
+				}
+			}
+
+			return false;
+		}
+
 		void OnPaint(PaintContext &Ctx)
 		{
 			for (unsigned i=0; i<Layout.Length(); i++)
@@ -577,6 +703,13 @@ public:
 					FixX += Ds->FX();
 				}
 			}
+
+			if (Ctx.Cursor &&
+				Ctx.Cursor->Blk == this)
+			{
+				Ctx.pDC->Colour(CursorColour);
+				Ctx.pDC->Rectangle(&Ctx.Cursor->Pos);
+			}			
 		}
 		
 		bool OnLayout(Flow &flow)
@@ -665,6 +798,10 @@ public:
 							FixX = Ds->FX();
 						}
 					}
+					else
+					{
+						FixX += Ds->FX();
+					}
 					
 					if (!Ds)
 						break;
@@ -730,36 +867,12 @@ public:
 		}
 	};
 	
-	struct ImageBlock : public Block
-	{
-		GString Src;
-		GAutoPtr<GSurface> Img;
-		
-		int Length()
-		{
-			return 2; // one 'image' and a virtual new line
-		}
-
-		bool OnLayout(Flow &f)
-		{
-			return true;
-		}
-		
-		bool OnKey(GKey &k)
-		{
-			return false;
-		}
-		
-		void OnPaint(PaintContext &Ctx)
-		{
-		}
-	};
-	
 	GArray<Block*> Blocks;
 
 	GTv4Priv(GTextView4 *view) : GHtmlParser(view)
 	{
 		View = view;
+		WordSelectMode = false;
 	}
 	
 	~GTv4Priv()
@@ -769,7 +882,50 @@ public:
 	
 	void Empty()
 	{
+		// Delete cursors first to avoid hanging references
+		Cursor.Reset();
+		Selection.Reset();
+		
+		// Clear the block list..
 		Blocks.DeleteObjects();
+	}
+	
+	int HitTest(int x, int y)
+	{
+		int CharPos = 0;
+		Block::HitTestResult r(x, y);
+		
+		for (unsigned i=0; i<Blocks.Length(); i++)
+		{
+			Block *b = Blocks[i];
+			if (b->HitTest(r))
+				return CharPos + r.Idx;
+			
+			CharPos += b->Length();
+		}
+		
+		return -1;
+	}
+
+	Block *GetBlockByIndex(int Index, int *Offset = NULL)
+	{
+		int CharPos = 0;
+		
+		for (unsigned i=0; i<Blocks.Length(); i++)
+		{
+			Block *b = Blocks[i];
+			if (Index >= CharPos &&
+				Index < CharPos + b->Length())
+			{
+				if (Offset)
+					*Offset = Index - CharPos;
+				return b;
+			}
+			
+			CharPos += b->Length();
+		}
+		
+		return NULL;
 	}
 	
 	void Layout(GRect &Client)
@@ -789,9 +945,12 @@ public:
 	void Paint(GSurface *pDC)
 	{
 		PaintContext Ctx;
+		
 		Ctx.pDC = pDC;
+		Ctx.Cursor = Cursor;
 		Ctx.Colours[Unselected].Fore.Set(LC_TEXT, 24);
-		Ctx.Colours[Unselected].Back.Set(LC_WORKSPACE, 24);
+		Ctx.Colours[Unselected].Back.Set(LC_WORKSPACE, 24);		
+		
 		if (View->Focus())
 		{
 			Ctx.Colours[Selected].Fore.Set(LC_FOCUS_SEL_FORE, 24);
@@ -892,12 +1051,14 @@ public:
 					const char *Src = NULL;
 					if (e->Get("src", Src))
 					{
+						/*
 						ImageBlock *Ib = new ImageBlock;
 						if (Ib)
 						{
 							Ib->Src = Src;
 							Blocks.Add(Ib);
 						}
+						*/
 					}
 					break;
 				}
@@ -1234,6 +1395,18 @@ int GTextView4::IndexAt(int x, int y)
 
 void GTextView4::SetCursor(int i, bool Select, bool ForceFullUpdate)
 {
+	if (d->Cursor)
+	{
+		Invalidate(&d->Cursor->Pos);
+	}
+
+	int Offset = -1;
+	GTv4Priv::Block *Blk = d->GetBlockByIndex(i, &Offset);
+	if (d->Cursor.Reset(new GTv4Priv::BlockCursor(Blk, Offset)))
+	{
+		d->Cursor->Pos = d->Cursor->Blk->GetPosFromIndex(Offset);
+		Invalidate(&d->Cursor->Pos);
+	}
 }
 
 void GTextView4::SetBorder(int b)
@@ -1549,7 +1722,7 @@ void GTextView4::OnFocus(bool f)
 
 int GTextView4::HitText(int x, int y)
 {
-	return 0;
+	return d->HitTest(x, y);
 }
 
 void GTextView4::Undo()
@@ -1562,6 +1735,7 @@ void GTextView4::Redo()
 
 void GTextView4::DoContextMenu(GMouse &m)
 {
+	GMenuItem *i;
 	GSubMenu RClick;
 	GAutoString ClipText;
 	{
@@ -1590,12 +1764,14 @@ void GTextView4::DoContextMenu(GMouse &m)
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_PASTE, "Paste"), IDM_PASTE, ClipText != 0);
 	RClick.AppendSeparator();
 
+	#if 0
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_UNDO, "Undo"), IDM_UNDO, false /* UndoQue.CanUndo() */);
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_REDO, "Redo"), IDM_REDO, false /* UndoQue.CanRedo() */);
 	RClick.AppendSeparator();
 
-	GMenuItem *i = RClick.AppendItem(LgiLoadString(L_TEXTCTRL_FIXED, "Fixed Width Font"), IDM_FIXED, true);
+	i = RClick.AppendItem(LgiLoadString(L_TEXTCTRL_FIXED, "Fixed Width Font"), IDM_FIXED, true);
 	if (i) i->Checked(GetFixedWidthFont());
+	#endif
 
 	i = RClick.AppendItem(LgiLoadString(L_TEXTCTRL_AUTO_INDENT, "Auto Indent"), IDM_AUTO_INDENT, true);
 	if (i) i->Checked(AutoIndent);
@@ -1725,44 +1901,30 @@ void GTextView4::OnMouseClick(GMouse &m)
 {
 	bool Processed = false;
 
-	/*
-	m.x += ScrollX;
-
 	if (m.Down())
 	{
-		if (!m.IsContextMenu())
-		{
-			Focus(true);
-
-			int Hit = HitText(m.x, m.y);
-			if (Hit >= 0)
-			{
-				SetCursor(Hit, m.Shift());
-
-				GStyle *s = HitStyle(Hit);
-				if (s)
-				{
-					Processed = s->OnMouseClick(&m);
-				}
-			}
-
-			if (!Processed && m.Double())
-			{
-				d->WordSelectMode = Cursor;
-				SelectWord(Cursor);
-			}
-			else
-			{
-				d->WordSelectMode = -1;
-			}
-		}
-		else
+		if (m.IsContextMenu())
 		{
 			DoContextMenu(m);
 			return;
 		}
+		else
+		{
+			Focus(true);
+
+			int Hit = HitText(m.x, m.y);
+			d->WordSelectMode = !Processed && m.Double();
+
+			if (Hit >= 0)
+			{
+				SetCursor(Hit, m.Shift());
+				if (d->WordSelectMode)
+					SelectWord(Hit);
+				
+				LgiTrace("Hit=%i\n", Hit);
+			}
+		}
 	}
-	*/
 
 	if (!Processed)
 	{
