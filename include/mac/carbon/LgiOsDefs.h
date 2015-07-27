@@ -129,7 +129,7 @@ LgiFunc void LgiSleep(int i);
 #define sprintf_s					snprintf
 #define vsprintf_s					vsnprintf
 #define swprintf_s					swprintf
-#define LGI_IllegalFileNameChars	"/" // FIXME: what other characters should be in here?
+#define LGI_IllegalFileNameChars	"/:" // FIXME: what other characters should be in here?
 
 // Window flags
 #define GWF_VISIBLE					0x00000001
