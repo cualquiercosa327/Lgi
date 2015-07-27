@@ -242,6 +242,16 @@ public:
 	GAutoPtr<GFont> Font;
 	bool WordSelectMode;
 
+	enum SelectModeType
+	{
+		Unselected = 0,
+		Selected = 1,
+	};
+
+	struct DisplayStr;
+	struct BlockCursor;
+	class Block;
+
 	bool Error(const char *file, int line, const char *fmt, ...)
 	{
 		LgiAssert(0);
@@ -343,14 +353,6 @@ public:
 		}
 	};
 	
-	enum SelectModeType
-	{
-		Unselected = 0,
-		Selected = 1,
-	};
-
-	struct DisplayStr;
-	struct BlockCursor;
 	struct PaintContext
 	{
 		GSurface *pDC;
@@ -377,28 +379,28 @@ public:
 		}
 	};
 
+	struct HitTestResult
+	{
+		GdcPt2 In;
+		Block *Blk;
+		DisplayStr *Ds;
+		int Idx;
+		
+		HitTestResult(int x, int y)
+		{
+			In.x = x;
+			In.y = y;
+			Blk = NULL;
+			Ds = NULL;
+			Idx = -1;
+		}
+	};
+
 	class Block // is like a DIV in HTML, it's as wide as the page and
 				// always starts and ends on a whole line.
 	{
 	public:
 		int8 Cursors;
-
-		struct HitTestResult
-		{
-			GdcPt2 In;
-			Block *Blk;
-			DisplayStr *Ds;
-			int Idx;
-			
-			HitTestResult(int x, int y)
-			{
-				In.x = x;
-				In.y = y;
-				Blk = NULL;
-				Ds = NULL;
-				Idx = -1;
-			}
-		};
 
 		
 		Block()
@@ -593,7 +595,7 @@ public:
 						}
 
 						IdxPos.y1 = r.y1 + ds->OffsetY;
-						IdxPos.y2 = IdxPos.y1 + ds->Y();
+						IdxPos.y2 = IdxPos.y1 + ds->Y() - 1;
 						IdxPos.x2 = IdxPos.x1 + 1;
 						return IdxPos;
 					}					
@@ -653,6 +655,29 @@ public:
 
 		void OnPaint(PaintContext &Ctx)
 		{
+			int CharPos = 0;
+			int EndPoints = 0;
+			int EndPoint[2] = {-1, -1};
+			int CurEndPoint = 0;
+
+			if (Cursors > 0 && Ctx.Select)
+			{
+				// Selection end point checks...
+				if (Ctx.Cursor && Ctx.Cursor->Blk == this)
+					EndPoint[EndPoints++] = Ctx.Cursor->Offset;
+				if (Ctx.Select && Ctx.Select->Blk == this)
+					EndPoint[EndPoints++] = Ctx.Select->Offset;
+				
+				// Sort the end points
+				if (EndPoints > 1 &&
+					EndPoint[0] > EndPoint[1])
+				{
+					int ep = EndPoint[0];
+					EndPoint[0] = EndPoint[1];
+					EndPoint[1] = ep;
+				}
+			}
+			
 			for (unsigned i=0; i<Layout.Length(); i++)
 			{
 				TextLine *Line = Layout[i];
@@ -673,34 +698,97 @@ public:
 				{
 					DisplayStr *Ds = Line->Strs[n];
 					GFont *f = Ds->GetFont();
+					ColourPair &Cols = Ds->Src->Colours;
 					if (f != Fnt)
 					{
 						f->Transparent(false);
 						Fnt = f;
 					}
 
-					ColourPair &Cols = Ds->Src->Colours;
-					f->Colour(	Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
-								Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
-					
-					Ds->FDraw(Ctx.pDC, FixX, IntToFixed(CurY + Ds->OffsetY));
-					
 					// If the current text part doesn't cover the full line height we have to
 					// fill in the rest here...
-					int CurX = FixedToInt(FixX);
-					if (Ds->OffsetY > 0)
+					if (Ds->Y() < Line->PosOff.Y())
 					{
-						Ctx.pDC->Colour(Ctx.Back());
-						Ctx.pDC->Rectangle(CurX, CurY, CurX+Ds->X(), CurY+Ds->OffsetY-1);
+						Ctx.pDC->Colour(Ctx.Colours[Unselected].Back);
+						int CurX = FixedToInt(FixX);
+						if (Ds->OffsetY > 0)
+							Ctx.pDC->Rectangle(CurX, CurY, CurX+Ds->X(), CurY+Ds->OffsetY-1);
+
+						int DsY2 = Ds->OffsetY + Ds->Y();
+						if (DsY2 < Pos.Y())
+							Ctx.pDC->Rectangle(CurX, CurY+DsY2, CurX+Ds->X(), Pos.y2);
 					}
-					int DsY2 = Ds->OffsetY + Ds->Y();
-					if (DsY2 < Pos.Y())
+
+					// Check for selection changes...
+					int FixY = IntToFixed(CurY + Ds->OffsetY);
+					if (CurEndPoint < EndPoints &&
+						EndPoint[CurEndPoint] >= CharPos &&
+						EndPoint[CurEndPoint] < CharPos + Ds->Length())
 					{
-						Ctx.pDC->Colour(Ctx.Back());
-						Ctx.pDC->Rectangle(CurX, CurY+DsY2, CurX+Ds->X(), Pos.y2);
+						// Process string into parts based on the selection boundaries
+						const char16 *s = *(GDisplayString*)Ds;
+						int Ch = EndPoint[CurEndPoint] - CharPos;
+						GDisplayString ds1(f, s, Ch);
+						
+						// First part...
+						f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
+									Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
+						ds1.FDraw(Ctx.pDC, FixX, FixY);
+						FixX += ds1.FX();
+						Ctx.Type = Ctx.Type == Selected ? Unselected : Selected;
+						CurEndPoint++;
+						
+						// Is there 3 parts?
+						//
+						// This happens when the selection starts and end in the one string.
+						//
+						// The alternative is that it starts or ends in the strings but the other
+						// end point is in a different string. In which case there is only 2 strings
+						// to draw.
+						if (CurEndPoint < EndPoints &&
+							EndPoint[CurEndPoint] >= CharPos &&
+							EndPoint[CurEndPoint] < CharPos + Ds->Length())
+						{
+							// Yes..
+							int Ch2 = EndPoint[CurEndPoint];
+
+							// Part 2
+							GDisplayString ds2(f, s + Ch, Ch2 - Ch);
+							f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
+										Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
+							ds2.FDraw(Ctx.pDC, FixX, FixY);
+							FixX += ds2.FX();
+							Ctx.Type = Ctx.Type == Selected ? Unselected : Selected;
+							CurEndPoint++;
+
+							// Part 3
+							GDisplayString ds3(f, s + Ch2);
+							f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
+										Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
+							ds3.FDraw(Ctx.pDC, FixX, FixY);
+							FixX += ds3.FX();
+						}
+						else
+						{
+							// No... draw 2nd part
+							GDisplayString ds2(f, s + Ch);
+							f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
+										Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
+							ds2.FDraw(Ctx.pDC, FixX, FixY);
+							FixX += ds2.FX();
+						}
+					}
+					else
+					{
+						// No selection changes... draw the whole string
+						f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
+									Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
+						
+						Ds->FDraw(Ctx.pDC, FixX, FixY);
+						FixX += Ds->FX();
 					}
 					
-					FixX += Ds->FX();
+					CharPos += Ds->Length();
 				}
 			}
 
@@ -709,7 +797,15 @@ public:
 			{
 				Ctx.pDC->Colour(CursorColour);
 				Ctx.pDC->Rectangle(&Ctx.Cursor->Pos);
-			}			
+			}
+			#ifdef _DEBUG
+			if (Ctx.Select &&
+				Ctx.Select->Blk == this)
+			{
+				Ctx.pDC->Colour(GColour(255, 0, 0));
+				Ctx.pDC->Rectangle(&Ctx.Select->Pos);
+			}
+			#endif
 		}
 		
 		bool OnLayout(Flow &flow)
@@ -889,11 +985,45 @@ public:
 		// Clear the block list..
 		Blocks.DeleteObjects();
 	}
+
+	GRect SelectionRect()
+	{
+		GRect SelRc;
+		if (Cursor)
+		{
+			SelRc = Cursor->Pos;
+			if (Selection)
+				SelRc.Union(&Selection->Pos);
+		}
+		else if (Selection)
+		{
+			SelRc = Selection->Pos;
+		}
+		return SelRc;
+	}
+
+	int IndexOfCursor(BlockCursor *c)
+	{
+		if (!c)
+			return -1;
+
+		int CharPos = 0;
+		for (unsigned i=0; i<Blocks.Length(); i++)
+		{
+			Block *b = Blocks[i];
+			if (c->Blk == b)
+				return CharPos + c->Offset;			
+			CharPos += b->Length();
+		}
+		
+		LgiAssert(0);
+		return -1;
+	}
 	
 	int HitTest(int x, int y)
 	{
 		int CharPos = 0;
-		Block::HitTestResult r(x, y);
+		HitTestResult r(x, y);
 		
 		for (unsigned i=0; i<Blocks.Length(); i++)
 		{
@@ -948,6 +1078,7 @@ public:
 		
 		Ctx.pDC = pDC;
 		Ctx.Cursor = Cursor;
+		Ctx.Select = Selection;
 		Ctx.Colours[Unselected].Fore.Set(LC_TEXT, 24);
 		Ctx.Colours[Unselected].Back.Set(LC_WORKSPACE, 24);		
 		
@@ -1352,7 +1483,7 @@ char *GTextView4::GetSelection()
 
 bool GTextView4::HasSelection()
 {
-	return false;
+	return d->Selection.Get() != NULL;
 }
 
 void GTextView4::SelectAll()
@@ -1385,28 +1516,92 @@ void GTextView4::PositionAt(int &x, int &y, int Index)
 
 int GTextView4::GetCursor(bool Cur)
 {
-	return 0;
+	if (!d->Cursor)
+		return -1;
+		
+	int CharPos = 0;
+	for (unsigned i=0; i<d->Blocks.Length(); i++)
+	{
+		GTv4Priv::Block *b = d->Blocks[i];
+		if (d->Cursor->Blk == b)
+			return CharPos + d->Cursor->Offset;
+		CharPos += b->Length();
+	}
+	
+	LgiAssert(!"Cursor block not found.");
+	return -1;
 }
 
 int GTextView4::IndexAt(int x, int y)
 {
-	return 0;
+	return d->HitTest(x, y);
 }
 
 void GTextView4::SetCursor(int i, bool Select, bool ForceFullUpdate)
 {
-	if (d->Cursor)
+	GRect InvalidRc(0, 0, -1, -1);
+
+	int CurIdx = d->IndexOfCursor(d->Cursor);
+	if (CurIdx == i)
+		return;
+
+	if (Select && !d->Selection)
 	{
-		Invalidate(&d->Cursor->Pos);
+		// Selection starting... save cursor as selection end point
+		if (d->Cursor)
+			InvalidRc = d->Cursor->Pos;
+		d->Selection = d->Cursor;
+		
+		// LgiTrace("Starting selection cur->sel Idx=%i\n", i);
+	}
+	else if (!Select && d->Selection)
+	{
+		// Selection ending... invalidate selection region and delete 
+		// selection end point
+		GRect r = d->SelectionRect();
+		Invalidate(&r);
+		d->Selection.Reset();
+
+		// LgiTrace("Ending selection delete(sel) Idx=%i\n", i);
+	}
+	else if (Select && d->Cursor)
+	{
+		// Changing selection...
+		InvalidRc = d->Cursor->Pos;
+
+		// LgiTrace("Changing selection region: %i\n", i);
+	}
+
+	GAutoPtr<GTv4Priv::BlockCursor> &c = d->Cursor;
+	if (c && !Select)
+	{
+		// Just moving cursor
+		Invalidate(&c->Pos);
 	}
 
 	int Offset = -1;
 	GTv4Priv::Block *Blk = d->GetBlockByIndex(i, &Offset);
-	if (d->Cursor.Reset(new GTv4Priv::BlockCursor(Blk, Offset)))
+	if (c.Reset(new GTv4Priv::BlockCursor(Blk, Offset)))
 	{
-		d->Cursor->Pos = d->Cursor->Blk->GetPosFromIndex(Offset);
-		Invalidate(&d->Cursor->Pos);
+		c->Pos = c->Blk->GetPosFromIndex(Offset);
+		if (Select)
+			InvalidRc.Union(&c->Pos);
+		else
+			Invalidate(&c->Pos);
 	}
+	
+	if (InvalidRc.Valid())
+	{
+		// Widen the region to the whole page...
+		GRect c = GetClient();
+		InvalidRc.x1 = c.x1;
+		InvalidRc.x2 = c.x2;
+		
+		// Update the screen
+		Invalidate(&InvalidRc);
+	}
+
+	// LgiTrace("SetCursor end %p, %p \n", d->Cursor.Get(), d->Selection.Get());
 }
 
 void GTextView4::SetBorder(int b)
@@ -1920,8 +2115,6 @@ void GTextView4::OnMouseClick(GMouse &m)
 				SetCursor(Hit, m.Shift());
 				if (d->WordSelectMode)
 					SelectWord(Hit);
-				
-				LgiTrace("Hit=%i\n", Hit);
 			}
 		}
 	}
@@ -1945,18 +2138,16 @@ int GTextView4::OnHitTest(int x, int y)
 
 void GTextView4::OnMouseMove(GMouse &m)
 {
-	/*
-	m.x += ScrollX;
-
-	int Hit = HitText(m.x, m.y);
+	int Hit = d->HitTest(m.x, m.y);
 	if (IsCapturing())
 	{
-		if (d->WordSelectMode < 0)
+		if (!d->WordSelectMode)
 		{
 			SetCursor(Hit, m.Left());
 		}
 		else
 		{
+			/*
 			int Min = Hit < d->WordSelectMode ? Hit : d->WordSelectMode;
 			int Max = Hit > d->WordSelectMode ? Hit : d->WordSelectMode;
 
@@ -1979,6 +2170,7 @@ void GTextView4::OnMouseMove(GMouse &m)
 
 			Cursor = SelEnd;
 			Invalidate();
+			*/
 		}
 	}
 
@@ -1987,13 +2179,14 @@ void GTextView4::OnMouseMove(GMouse &m)
 	c.Offset(-c.x1, -c.y1);
 	if (c.Overlap(m.x, m.y))
 	{
+		/*
 		GStyle *s = HitStyle(Hit);
 		TCHAR *c = (s) ? s->GetCursor() : 0;
 		if (!c) c = IDC_IBEAM;
 		::SetCursor(LoadCursor(0, MAKEINTRESOURCE(c)));
+		*/
 	}
 	#endif
-	*/
 }
 
 bool GTextView4::OnKey(GKey &k)
