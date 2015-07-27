@@ -385,6 +385,7 @@ public:
 		Block *Blk;
 		DisplayStr *Ds;
 		int Idx;
+		bool Near;
 		
 		HitTestResult(int x, int y)
 		{
@@ -393,6 +394,7 @@ public:
 			Blk = NULL;
 			Ds = NULL;
 			Idx = -1;
+			Near = false;
 		}
 	};
 
@@ -418,7 +420,7 @@ public:
 		
 		virtual int Length() = 0;
 		virtual bool HitTest(HitTestResult &htr) = 0;
-		virtual GRect GetPosFromIndex(int Index) = 0;
+		virtual bool GetPosFromIndex(GRect *CursorPos, GRect *LinePos, int Index) = 0;
 		virtual bool OnLayout(Flow &f) = 0;
 		virtual void OnPaint(PaintContext &Ctx) = 0;
 		virtual bool OnKey(GKey &k) = 0;
@@ -426,15 +428,26 @@ public:
 
 	struct BlockCursor
 	{
+		// The block the cursor is in.
 		Block *Blk;
+
+		// This is the character offset of the cursor relative to
+		// the start of 'Blk'.
 		int Offset;
+		
+		// This is the position on the screen in doc coords.
 		GRect Pos;
+		
+		// This is the position line that the cursor is on. This is
+		// used to calculate the bounds for screen updates.
+		GRect Line;
 		
 		BlockCursor(Block *b, int off)
 		{
 			Blk = NULL;
 			Offset = -1;
 			Pos.ZOff(-1, -1);
+			Line.ZOff(-1, -1);
 
 			if (b)
 				Set(b, off);
@@ -554,8 +567,14 @@ public:
 			return Len;
 		}
 
-		GRect GetPosFromIndex(int Index)
+		bool GetPosFromIndex(GRect *CursorPos, GRect *LinePos, int Index)
 		{
+			if (!CursorPos || !LinePos)
+			{
+				LgiAssert(0);
+				return false;
+			}
+		
 			int CharPos = 0;
 			for (unsigned i=0; i<Layout.Length(); i++)
 			{
@@ -574,30 +593,30 @@ public:
 					if (Index >= CharPos &&
 						Index <= CharPos + dsChars)
 					{
-						GRect IdxPos;
-						
 						int CharOffset = Index - CharPos;
 						if (CharOffset == 0)
 						{
 							// First char
-							IdxPos.x1 = r.x1 + IntToFixed(FixX);
+							CursorPos->x1 = r.x1 + IntToFixed(FixX);
 						}
 						else if (CharOffset == dsChars)
 						{
 							// Last char
-							IdxPos.x1 = r.x1 + IntToFixed(FixX + ds->FX());
+							CursorPos->x1 = r.x1 + IntToFixed(FixX + ds->FX());
 						}
 						else
 						{
 							// In the middle somewhere...
 							GDisplayString Tmp(ds->GetFont(), *ds, CharOffset);
-							IdxPos.x1 = r.x1 + IntToFixed(FixX + Tmp.FX());
+							CursorPos->x1 = r.x1 + IntToFixed(FixX + Tmp.FX());
 						}
 
-						IdxPos.y1 = r.y1 + ds->OffsetY;
-						IdxPos.y2 = IdxPos.y1 + ds->Y() - 1;
-						IdxPos.x2 = IdxPos.x1 + 1;
-						return IdxPos;
+						CursorPos->y1 = r.y1 + ds->OffsetY;
+						CursorPos->y2 = CursorPos->y1 + ds->Y() - 1;
+						CursorPos->x2 = CursorPos->x1 + 1;
+
+						*LinePos = r;
+						return true;
 					}					
 					
 					FixX += ds->FX();
@@ -605,7 +624,7 @@ public:
 				}
 			}
 			
-			return GRect(0, 0, -1, -1);
+			return false;
 		}
 		
 		bool HitTest(HitTestResult &htr)
@@ -622,6 +641,14 @@ public:
 				GRect r = tl->PosOff;
 				r.Offset(Pos.x1, Pos.y1);
 				bool Over = r.Overlap(htr.In.x, htr.In.y);
+				bool OnThisLine =	htr.In.y >= r.y1 &&
+									htr.In.y <= r.y2;
+				if (OnThisLine && htr.In.x < r.x1)
+				{
+					htr.Near = true;
+					htr.Idx = CharPos;
+					return true;
+				}
 				
 				int FixX = 0;
 				int InputX = IntToFixed(htr.In.x - Pos.x1);
@@ -647,6 +674,13 @@ public:
 					FixX += ds->FX();
 
 					CharPos += ds->Length();
+				}
+
+				if (OnThisLine && htr.In.x > r.x2)
+				{
+					htr.Near = true;
+					htr.Idx = CharPos;
+					return true;
 				}
 			}
 
@@ -686,7 +720,7 @@ public:
 				LinePos.Offset(Pos.x1, Pos.y1);
 				if (Line->PosOff.X() < Pos.X())
 				{
-					Ctx.pDC->Colour(Ctx.Back());
+					Ctx.pDC->Colour(Ctx.Colours[Unselected].Back);
 					Ctx.pDC->Rectangle(LinePos.x2, LinePos.y1, Pos.x2, LinePos.y2);
 				}
 
@@ -750,7 +784,7 @@ public:
 							EndPoint[CurEndPoint] < CharPos + Ds->Length())
 						{
 							// Yes..
-							int Ch2 = EndPoint[CurEndPoint];
+							int Ch2 = EndPoint[CurEndPoint] - CharPos;
 
 							// Part 2
 							GDisplayString ds2(f, s + Ch, Ch2 - Ch);
@@ -991,13 +1025,13 @@ public:
 		GRect SelRc;
 		if (Cursor)
 		{
-			SelRc = Cursor->Pos;
+			SelRc = Cursor->Line;
 			if (Selection)
-				SelRc.Union(&Selection->Pos);
+				SelRc.Union(&Selection->Line);
 		}
 		else if (Selection)
 		{
-			SelRc = Selection->Pos;
+			SelRc = Selection->Line;
 		}
 		return SelRc;
 	}
@@ -1541,6 +1575,8 @@ void GTextView4::SetCursor(int i, bool Select, bool ForceFullUpdate)
 {
 	GRect InvalidRc(0, 0, -1, -1);
 
+	if (i < 0)
+		return;	
 	int CurIdx = d->IndexOfCursor(d->Cursor);
 	if (CurIdx == i)
 		return;
@@ -1549,7 +1585,7 @@ void GTextView4::SetCursor(int i, bool Select, bool ForceFullUpdate)
 	{
 		// Selection starting... save cursor as selection end point
 		if (d->Cursor)
-			InvalidRc = d->Cursor->Pos;
+			InvalidRc = d->Cursor->Line;
 		d->Selection = d->Cursor;
 		
 		// LgiTrace("Starting selection cur->sel Idx=%i\n", i);
@@ -1567,7 +1603,7 @@ void GTextView4::SetCursor(int i, bool Select, bool ForceFullUpdate)
 	else if (Select && d->Cursor)
 	{
 		// Changing selection...
-		InvalidRc = d->Cursor->Pos;
+		InvalidRc = d->Cursor->Line;
 
 		// LgiTrace("Changing selection region: %i\n", i);
 	}
@@ -1583,19 +1619,21 @@ void GTextView4::SetCursor(int i, bool Select, bool ForceFullUpdate)
 	GTv4Priv::Block *Blk = d->GetBlockByIndex(i, &Offset);
 	if (c.Reset(new GTv4Priv::BlockCursor(Blk, Offset)))
 	{
-		c->Pos = c->Blk->GetPosFromIndex(Offset);
+		c->Blk->GetPosFromIndex(&c->Pos, &c->Line, Offset);
 		if (Select)
-			InvalidRc.Union(&c->Pos);
+			InvalidRc.Union(&c->Line);
 		else
 			Invalidate(&c->Pos);
 	}
 	
 	if (InvalidRc.Valid())
 	{
+		/*
 		// Widen the region to the whole page...
 		GRect c = GetClient();
 		InvalidRc.x1 = c.x1;
 		InvalidRc.x2 = c.x2;
+		*/
 		
 		// Update the screen
 		Invalidate(&InvalidRc);
