@@ -62,7 +62,12 @@ GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc)
 	pDC = pdc;
 	Font = f;
 	
-	#if defined(MAC) || WINNATIVE
+	#if defined(MAC)
+	
+		StrCache.Reset(LgiNewUtf8To16(s, l));
+		StringConvert(Str, &len, s, l);
+	
+	#elif defined(WINNATIVE)
 
 		StringConvert(Str, &len, s, l);
 

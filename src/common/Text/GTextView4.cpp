@@ -17,7 +17,9 @@
 #include "GHtmlCommon.h"
 #include "GHtmlParser.h"
 
+#undef FixedToInt
 #define FixedToInt(fixed)			((fixed)>>GDisplayString::FShift)
+#undef IntToFixed
 #define IntToFixed(val)				((val)<<GDisplayString::FShift)
 #define DefaultCharset              "utf-8"
 #define PtrCheckBreak(ptr)			if (!ptr) { LgiAssert(!"Invalid ptr"); break; }
@@ -1049,7 +1051,7 @@ public:
 			return NULL;
 		}
 		
-		bool AddText(GNamedStyle *Style, char16 *Str, int Chars = -1)
+		bool AddText(GNamedStyle *Style, const char16 *Str, int Chars = -1)
 		{
 			if (!Str)
 				return false;
@@ -1059,10 +1061,10 @@ public:
 			Text *t = !StyleDiff && Txt.Length() ? Txt.Last() : NULL;
 			if (t)
 			{
-				t->Add(Str, Chars);
+				t->Add((char16*)Str, Chars);
 				Len += Chars;
 			}
-			else if (t = new Text(Str, Chars))
+			else if ((t = new Text(Str, Chars)))
 			{
 				Len += t->Length();
 				Txt.Add(t);
@@ -1136,6 +1138,11 @@ public:
 					Line = Layout[++CurLine];
 					if (!Line)
 						return -1;
+					break;
+				}
+				default:
+				{
+					return false;
 					break;
 				}
 			}
@@ -2203,7 +2210,7 @@ bool GTextView4::DoFindNext()
 	return false;
 }
 
-static bool
+bool
 Text4_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User)
 {
 	return true;
@@ -2946,7 +2953,8 @@ bool GTextView4::OnKey(GKey &k)
 				{
 					if (HasSelection() && !k.Shift())
 					{
-						Invalidate(&d->SelectionRect());
+						GRect r = d->SelectionRect();
+						Invalidate(&r);
 						d->SetCursor(d->CursorFirst() ? d->Cursor : d->Selection);
 					}
 					else
@@ -2974,7 +2982,8 @@ bool GTextView4::OnKey(GKey &k)
 				{
 					if (HasSelection() && !k.Shift())
 					{
-						Invalidate(&d->SelectionRect());
+						GRect r = d->SelectionRect();
+						Invalidate(&r);
 						d->SetCursor(d->CursorFirst() ? d->Selection : d->Cursor);
 					}
 					else

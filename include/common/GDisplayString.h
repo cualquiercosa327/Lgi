@@ -37,6 +37,9 @@ class LgiClass GDisplayString
 	uint8 VisibleTab : 1;
 	
 	#if defined MAC
+
+	// Wide char cache
+	GAutoWString StrCache;
 	
 	#ifdef COCOA
 	#else
@@ -132,7 +135,14 @@ public:
 	void Length(int NewLen);
 
 	/// Returns the pointer to the native string
-	operator const OsChar*() { return Str; }
+	operator const char16*()
+	{
+		#ifdef MAC
+		return StrCache;
+		#else
+		return Str;
+		#endif
+	}
 
 	// API that use full pixel sizes:
 
