@@ -832,7 +832,7 @@ public:
 				Ctx.pDC->Colour(CursorColour);
 				Ctx.pDC->Rectangle(&Ctx.Cursor->Pos);
 			}
-			#ifdef _DEBUG
+			#if 0 // def _DEBUG
 			if (Ctx.Select &&
 				Ctx.Select->Blk == this)
 			{
@@ -1020,6 +1020,236 @@ public:
 		Blocks.DeleteObjects();
 	}
 
+	enum SeekType
+	{
+		SkUnknown,
+		
+		SkLineStart,
+		SkLineEnd,
+		
+		SkDocStart,
+		SkDocEnd,
+		
+		SkLeftChar,
+		SkLeftWord,
+		
+		SkUpLine,
+		SkUpPage,
+		
+		SkRightChar,
+		SkRightWord,
+		
+		SkDownLine,
+		SkDownPage,
+	};
+
+	bool Seek(BlockCursor *c, SeekType Dir, bool Select)
+	{
+		switch (Dir)
+		{
+			case SkLineStart:
+			{
+				break;
+			}
+			case SkLineEnd:
+			{
+				break;
+			}
+			case SkDocStart:
+			{
+				break;
+			}
+			case SkDocEnd:
+			{
+				break;
+			}
+			case SkLeftChar:
+			{
+				break;
+			}
+			case SkLeftWord:
+			{
+				/*
+				bool StartWhiteSpace = IsWhiteSpace(Text[n]);
+				bool LeftWhiteSpace = n > 0 && IsWhiteSpace(Text[n-1]);
+
+				if (!StartWhiteSpace ||
+					Text[n] == '\n')
+				{
+					n--;
+				}
+				
+				// Skip ws
+				for (; n > 0 && strchr(" \t", Text[n]); n--)
+					;
+				
+				if (Text[n] == '\n')
+				{
+					n--;
+				}
+				else if (!StartWhiteSpace || !LeftWhiteSpace)
+				{
+					if (IsDelimiter(Text[n]))
+					{
+						for (; n > 0 && IsDelimiter(Text[n]); n--);
+					}
+					else
+					{
+						for (; n > 0; n--)
+						{
+							//IsWordBoundry(Text[n])
+							if (IsWhiteSpace(Text[n]) ||
+								IsDelimiter(Text[n]))
+							{
+								break;
+							}
+						}
+					}
+				}
+				if (n > 0) n++;
+				*/
+				break;
+			}
+			case SkUpLine:
+			{
+				break;
+			}
+			case SkUpPage:
+			{
+				break;
+			}
+			case SkRightChar:
+			{
+				break;
+			}
+			case SkRightWord:
+			{
+				/*
+				if (IsWhiteSpace(Text[n]))
+				{
+					for (; n<Size && IsWhiteSpace(Text[n]); n++);
+				}
+				else
+				{
+					if (IsDelimiter(Text[n]))
+					{
+						while (IsDelimiter(Text[n]))
+						{
+							n++;
+						}
+					}
+					else
+					{
+						for (; n<Size; n++)
+						{
+							if (IsWhiteSpace(Text[n]) ||
+								IsDelimiter(Text[n]))
+							{
+								break;
+							}
+						}
+					}
+
+					if (n < Size &&
+						Text[n] != '\n')
+					{
+						if (IsWhiteSpace(Text[n]))
+						{
+							n++;
+						}
+					}
+				}
+				*/
+				break;
+			}
+			case SkDownLine:
+			{
+				break;
+			}
+			case SkDownPage:
+			{
+				break;
+			}
+			default:
+			{
+				LgiAssert(!"Unknown seek type.");
+				return false;
+			}
+		}
+		
+		return true;
+	}
+	
+	bool CursorFirst()
+	{
+		if (!Cursor || !Selection)
+			return true;
+		
+		int CIdx = Blocks.IndexOf(Cursor->Blk);
+		int SIdx = Blocks.IndexOf(Selection->Blk);
+		if (CIdx != SIdx)
+			return CIdx < SIdx;
+		
+		return Cursor->Offset < Selection->Offset;
+	}
+	
+	bool SetCursor(GAutoPtr<BlockCursor> c, bool Select = false)
+	{
+		GRect InvalidRc(0, 0, -1, -1);
+
+		if (!c || !c->Blk)
+		{
+			LgiAssert(0);
+			return false;
+		}
+
+		if (Select && !Selection)
+		{
+			// Selection starting... save cursor as selection end point
+			if (Cursor)
+				InvalidRc = Cursor->Line;
+			Selection = Cursor;
+		}
+		else if (!Select && Selection)
+		{
+			// Selection ending... invalidate selection region and delete 
+			// selection end point
+			GRect r = SelectionRect();
+			View->Invalidate(&r);
+			Selection.Reset();
+
+			// LgiTrace("Ending selection delete(sel) Idx=%i\n", i);
+		}
+		else if (Select && Cursor)
+		{
+			// Changing selection...
+			InvalidRc = Cursor->Line;
+
+			// LgiTrace("Changing selection region: %i\n", i);
+		}
+
+		if (Cursor && !Select)
+		{
+			// Just moving cursor
+			View->Invalidate(&Cursor->Pos);
+		}
+
+		Cursor = c;
+		Cursor->Blk->GetPosFromIndex(&Cursor->Pos, &Cursor->Line, Cursor->Offset);
+		if (Select)
+			InvalidRc.Union(&Cursor->Line);
+		else
+			View->Invalidate(&Cursor->Pos);
+		
+		if (InvalidRc.Valid())
+		{
+			// Update the screen
+			View->Invalidate(&InvalidRc);
+		}
+
+		return true;
+	}
+
 	GRect SelectionRect()
 	{
 		GRect SelRc;
@@ -1103,6 +1333,15 @@ public:
 		for (unsigned i=0; i<Blocks.Length(); i++)
 		{
 			Blocks[i]->OnLayout(f);
+		}
+		
+		if (Cursor)
+		{
+			LgiAssert(Cursor->Blk);
+			if (Cursor->Blk)
+				Cursor->Blk->GetPosFromIndex(&Cursor->Pos,
+											 &Cursor->Line,
+											 Cursor->Offset);
 		}
 	}
 	
@@ -1484,6 +1723,8 @@ static GHtmlElement *FindElement(GHtmlElement *e, HtmlTag TagId)
 
 bool GTextView4::Name(const char *s)
 {
+	d->Empty();
+	
 	GHtmlElement Root(NULL);
 	if (!d->GHtmlParser::Parse(&Root, s))
 		return d->Error(_FL, "Failed to parse HTML.");
@@ -1493,7 +1734,13 @@ bool GTextView4::Name(const char *s)
 		Body = &Root;
 
 	GTv4Priv::CreateContext Ctx;
-	return d->CreateFromHtml(Body, Ctx);
+	bool Status = d->CreateFromHtml(Body, Ctx);
+	if (Status)
+	{
+		SetCursor(0, false);
+	}
+	
+	return Status;
 }
 
 char16 *GTextView4::NameW()
@@ -1573,73 +1820,17 @@ int GTextView4::IndexAt(int x, int y)
 
 void GTextView4::SetCursor(int i, bool Select, bool ForceFullUpdate)
 {
-	GRect InvalidRc(0, 0, -1, -1);
-
-	if (i < 0)
-		return;	
-	int CurIdx = d->IndexOfCursor(d->Cursor);
-	if (CurIdx == i)
-		return;
-
-	if (Select && !d->Selection)
-	{
-		// Selection starting... save cursor as selection end point
-		if (d->Cursor)
-			InvalidRc = d->Cursor->Line;
-		d->Selection = d->Cursor;
-		
-		// LgiTrace("Starting selection cur->sel Idx=%i\n", i);
-	}
-	else if (!Select && d->Selection)
-	{
-		// Selection ending... invalidate selection region and delete 
-		// selection end point
-		GRect r = d->SelectionRect();
-		Invalidate(&r);
-		d->Selection.Reset();
-
-		// LgiTrace("Ending selection delete(sel) Idx=%i\n", i);
-	}
-	else if (Select && d->Cursor)
-	{
-		// Changing selection...
-		InvalidRc = d->Cursor->Line;
-
-		// LgiTrace("Changing selection region: %i\n", i);
-	}
-
-	GAutoPtr<GTv4Priv::BlockCursor> &c = d->Cursor;
-	if (c && !Select)
-	{
-		// Just moving cursor
-		Invalidate(&c->Pos);
-	}
-
 	int Offset = -1;
 	GTv4Priv::Block *Blk = d->GetBlockByIndex(i, &Offset);
-	if (c.Reset(new GTv4Priv::BlockCursor(Blk, Offset)))
+	if (Blk)
 	{
-		c->Blk->GetPosFromIndex(&c->Pos, &c->Line, Offset);
-		if (Select)
-			InvalidRc.Union(&c->Line);
-		else
-			Invalidate(&c->Pos);
+		GAutoPtr<GTv4Priv::BlockCursor> c(new GTv4Priv::BlockCursor(Blk, Offset));
+		if (c)
+		{
+			c->Blk->GetPosFromIndex(&c->Pos, &c->Line, Offset);
+			d->SetCursor(c, Select);
+		}
 	}
-	
-	if (InvalidRc.Valid())
-	{
-		/*
-		// Widen the region to the whole page...
-		GRect c = GetClient();
-		InvalidRc.x1 = c.x1;
-		InvalidRc.x2 = c.x2;
-		*/
-		
-		// Update the screen
-		Invalidate(&InvalidRc);
-	}
-
-	// LgiTrace("SetCursor end %p, %p \n", d->Cursor.Get(), d->Selection.Get());
 }
 
 void GTextView4::SetBorder(int b)
@@ -2544,73 +2735,22 @@ bool GTextView4::OnKey(GKey &k)
 
 				if (k.Down())
 				{
-					/*
-					if (SelStart >= 0 &&
-						!k.Shift())
+					if (HasSelection() && !k.Shift())
 					{
-						SetCursor(min(SelStart, SelEnd), false);
+						d->SetCursor(d->CursorFirst() ? d->Cursor : d->Selection);
 					}
-					else if (Cursor > 0)
+					else
 					{
-						int n = Cursor;
-
 						#ifdef MAC
 						if (k.System())
-						{
 							goto Jump_StartOfLine;
-						}
 						else
 						#endif
-						if (k.Ctrl())
-						{
-							// word move/select
-							bool StartWhiteSpace = IsWhiteSpace(Text[n]);
-							bool LeftWhiteSpace = n > 0 && IsWhiteSpace(Text[n-1]);
 
-							if (!StartWhiteSpace ||
-								Text[n] == '\n')
-							{
-								n--;
-							}
-							
-							// Skip ws
-							for (; n > 0 && strchr(" \t", Text[n]); n--)
-								;
-							
-							if (Text[n] == '\n')
-							{
-								n--;
-							}
-							else if (!StartWhiteSpace || !LeftWhiteSpace)
-							{
-								if (IsDelimiter(Text[n]))
-								{
-									for (; n > 0 && IsDelimiter(Text[n]); n--);
-								}
-								else
-								{
-									for (; n > 0; n--)
-									{
-										//IsWordBoundry(Text[n])
-										if (IsWhiteSpace(Text[n]) ||
-											IsDelimiter(Text[n]))
-										{
-											break;
-										}
-									}
-								}
-							}
-							if (n > 0) n++;
-						}
-						else
-						{
-							// single char
-							n--;
-						}
-
-						SetCursor(n, k.Shift());
+						d->Seek(d->Cursor,
+								k.Ctrl() ? GTv4Priv::SkLeftWord : GTv4Priv::SkLeftChar,
+								k.Shift());
 					}
-					*/
 				}
 				return true;
 				break;
@@ -2622,70 +2762,21 @@ bool GTextView4::OnKey(GKey &k)
 
 				if (k.Down())
 				{
-					/*
-					if (SelStart >= 0 &&
-						!k.Shift())
+					if (HasSelection() && !k.Shift())
 					{
-						SetCursor(max(SelStart, SelEnd), false);
+						d->SetCursor(d->CursorFirst() ? d->Selection : d->Cursor);
 					}
-					else if (Cursor < Size)
+					else
 					{
-						int n = Cursor;
-
 						#ifdef MAC
 						if (k.System())
-						{
 							goto Jump_EndOfLine;
-						}
-						else
 						#endif
-						if (k.Ctrl())
-						{
-							// word move/select
-							if (IsWhiteSpace(Text[n]))
-							{
-								for (; n<Size && IsWhiteSpace(Text[n]); n++);
-							}
-							else
-							{
-								if (IsDelimiter(Text[n]))
-								{
-									while (IsDelimiter(Text[n]))
-									{
-										n++;
-									}
-								}
-								else
-								{
-									for (; n<Size; n++)
-									{
-										if (IsWhiteSpace(Text[n]) ||
-											IsDelimiter(Text[n]))
-										{
-											break;
-										}
-									}
-								}
 
-								if (n < Size &&
-									Text[n] != '\n')
-								{
-									if (IsWhiteSpace(Text[n]))
-									{
-										n++;
-									}
-								}
-							}
-						}
-						else
-						{
-							// single char
-							n++;
-						}
-
-						SetCursor(n, k.Shift());
+						d->Seek(d->Cursor,
+								k.Ctrl() ? GTv4Priv::SkRightWord : GTv4Priv::SkRightChar,
+								k.Shift());
 					}
-					*/
 				}
 				return true;
 				break;
@@ -2697,28 +2788,14 @@ bool GTextView4::OnKey(GKey &k)
 
 				if (k.Down())
 				{
-					/*
 					#ifdef MAC
 					if (k.Ctrl())
 						goto GTextView4_PageUp;
 					#endif
-					
-					GTextLine *l = GetTextLine(Cursor);
-					if (l)
-					{
-						GTextLine *Prev = Line.Prev();
-						if (Prev)
-						{
-							GDisplayString CurLine(Font, Text + l->Start, Cursor-l->Start);
-							int ScreenX = CurLine.X();
 
-							GDisplayString PrevLine(Font, Text + Prev->Start, Prev->Len);
-							int CharX = PrevLine.CharAt(ScreenX);
-
-							SetCursor(Prev->Start + min(CharX, Prev->Len), k.Shift());
-						}
-					}
-					*/
+					d->Seek(d->Cursor,
+							GTv4Priv::SkUpLine,
+							k.Shift());
 				}
 				return true;
 				break;
@@ -2730,28 +2807,14 @@ bool GTextView4::OnKey(GKey &k)
 
 				if (k.Down())
 				{
-					/*
 					#ifdef MAC
 					if (k.Ctrl())
 						goto GTextView4_PageDown;
 					#endif
 
-					GTextLine *l = GetTextLine(Cursor);
-					if (l)
-					{
-						GTextLine *Next = Line.Next();
-						if (Next)
-						{
-							GDisplayString CurLine(Font, Text + l->Start, Cursor-l->Start);
-							int ScreenX = CurLine.X();
-							
-							GDisplayString NextLine(Font, Text + Next->Start, Next->Len);
-							int CharX = NextLine.CharAt(ScreenX);
-
-							SetCursor(Next->Start + min(CharX, Next->Len), k.Shift());
-						}
-					}
-					*/
+					d->Seek(d->Cursor,
+							GTv4Priv::SkDownLine,
+							k.Shift());
 				}
 				return true;
 				break;
@@ -2760,23 +2823,14 @@ bool GTextView4::OnKey(GKey &k)
 			{
 				if (k.Down())
 				{
-					if (k.Ctrl())
-					{
-						// SetCursor(Size, k.Shift());
-					}
-					else
-					{
-						/*
-						#ifdef MAC
+					#ifdef MAC
+					if (!k.Ctrl())
 						Jump_EndOfLine:
-						#endif
-						GTextLine *l = GetTextLine(Cursor);
-						if (l)
-						{
-							SetCursor(l->Start + l->Len, k.Shift());
-						}
-						*/
-					}
+					#endif
+
+					d->Seek(d->Cursor,
+							k.Ctrl() ? GTv4Priv::SkDocEnd : GTv4Priv::SkLineEnd,
+							k.Shift());
 				}
 				return true;
 				break;
@@ -2785,36 +2839,31 @@ bool GTextView4::OnKey(GKey &k)
 			{
 				if (k.Down())
 				{
-					if (k.Ctrl())
+					#ifdef MAC
+					if (!k.Ctrl())
+						Jump_StartOfLine:
+					#endif
+
+					d->Seek(d->Cursor,
+							k.Ctrl() ? GTv4Priv::SkDocStart : GTv4Priv::SkLineStart,
+							k.Shift());
+
+					/*
+					char16 *Line = Text + l->Start;
+					char16 *s;
+					char16 SpTab[] = {' ', '\t', 0};
+					for (s = Line; (SubtractPtr(s,Line) < l->Len) && StrchrW(SpTab, *s); s++);
+					int Whitespace = SubtractPtr(s, Line);
+
+					if (l->Start + Whitespace == Cursor)
 					{
-						SetCursor(0, k.Shift());
+						SetCursor(l->Start, k.Shift());
 					}
 					else
 					{
-						/*
-						#ifdef MAC
-						Jump_StartOfLine:
-						#endif
-						GTextLine *l = GetTextLine(Cursor);
-						if (l)
-						{
-							char16 *Line = Text + l->Start;
-							char16 *s;
-							char16 SpTab[] = {' ', '\t', 0};
-							for (s = Line; (SubtractPtr(s,Line) < l->Len) && StrchrW(SpTab, *s); s++);
-							int Whitespace = SubtractPtr(s, Line);
-
-							if (l->Start + Whitespace == Cursor)
-							{
-								SetCursor(l->Start, k.Shift());
-							}
-							else
-							{
-								SetCursor(l->Start + Whitespace, k.Shift());
-							}
-						}
-						*/
+						SetCursor(l->Start + Whitespace, k.Shift());
 					}
+					*/
 				}
 				return true;
 				break;
@@ -2826,20 +2875,9 @@ bool GTextView4::OnKey(GKey &k)
 				#endif
 				if (k.Down())
 				{
-					/*
-					GTextLine *l = GetTextLine(Cursor);
-					if (l)
-					{
-						int DisplayLines = Y() / LineY;
-						int CurLine = Line.IndexOf(l);
-
-						GTextLine *New = Line.ItemAt(max(CurLine - DisplayLines, 0));
-						if (New)
-						{
-							SetCursor(New->Start + min(Cursor - l->Start, New->Len), k.Shift());
-						}
-					}
-					*/
+					d->Seek(d->Cursor,
+							GTv4Priv::SkUpPage,
+							k.Shift());
 				}
 				return true;
 				break;
@@ -2851,20 +2889,9 @@ bool GTextView4::OnKey(GKey &k)
 				#endif
 				if (k.Down())
 				{
-					/*
-					GTextLine *l = GetTextLine(Cursor);
-					if (l)
-					{
-						int DisplayLines = Y() / LineY;
-						int CurLine = Line.IndexOf(l);
-
-						GTextLine *New = Line.ItemAt(min(CurLine + DisplayLines, GetLines()-1));
-						if (New)
-						{
-							SetCursor(New->Start + min(Cursor - l->Start, New->Len), k.Shift());
-						}
-					}
-					*/
+					d->Seek(d->Cursor,
+							GTv4Priv::SkDownPage,
+							k.Shift());
 				}
 				return true;
 				break;
