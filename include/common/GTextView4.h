@@ -49,10 +49,10 @@ protected:
 public:
 	// Construction
 	GTextView4(	int Id,
-				int x,
-				int y,
-				int cx,
-				int cy,
+				int x = 0,
+				int y = 0,
+				int cx = 100,
+				int cy = 100,
 				GFontType *FontInfo = 0);
 	~GTextView4();
 

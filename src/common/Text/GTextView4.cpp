@@ -88,7 +88,7 @@ public:
 
 	bool Get(const char *attr, const char *&val)
 	{
-		if (attr && !stricmp(attr, "style") && Style)
+		if (attr && !_stricmp(attr, "style") && Style)
 		{
 			val = Style;
 			return true;
@@ -98,7 +98,7 @@ public:
 	
 	void Set(const char *attr, const char *val)
 	{
-		if (attr && !stricmp(attr, "style"))
+		if (attr && !_stricmp(attr, "style"))
 			Style = val;
 	}
 	
@@ -204,7 +204,9 @@ public:
 			GFont *f = Fonts[i];
 			if
 			(
-				!stricmp(f->Face(), Face) &&
+				f->Face() &&
+				Face &&
+				!_stricmp(f->Face(), Face) &&
 				f->PointSize() == PtSize &&
 				f->Bold() == (Weight == GCss::FontWeightBold)
 			)
@@ -582,7 +584,7 @@ public:
 		/// This runs after the layout line has been filled with display strings.
 		/// It measures the line and works out the right offsets for each strings
 		/// so that their baselines all match up correctly.
-		void LayoutOffsets()
+		void LayoutOffsets(int DefaultFontHt)
 		{
 			double BaseLine = 0.0;
 			int HtPx = 0;
@@ -597,7 +599,10 @@ public:
 				HtPx = max(HtPx, ds->Y());
 			}
 			
-			LgiAssert(HtPx > 0);
+			if (Strs.Length() == 0)
+				HtPx = DefaultFontHt;
+			else
+				LgiAssert(HtPx > 0);
 			
 			for (unsigned i=0; i<Strs.Length(); i++)
 			{
@@ -959,7 +964,7 @@ public:
 						Off++;
 						CurLine->PosOff.x2 = FixedToInt(FixX);
 						FixX = 0;
-						CurLine->LayoutOffsets();
+						CurLine->LayoutOffsets(f->GetHeight());
 						Pos.y2 = max(Pos.y2, Pos.y1 + CurLine->PosOff.y2);
 
 						CurLine->NewLine = 1;
@@ -1019,9 +1024,9 @@ public:
 				}
 			}
 			
-			if (CurLine)
+			if (CurLine && CurLine->Strs.Length() > 0)
 			{
-				CurLine->LayoutOffsets();
+				CurLine->LayoutOffsets(CurLine->Strs.Last()->GetFont()->GetHeight());
 				Pos.y2 = max(Pos.y2, Pos.y1 + CurLine->PosOff.y2);
 				Layout.Add(CurLine.Release());
 			}
@@ -1031,7 +1036,7 @@ public:
 			return true;
 		}
 		
-		Text *GetTextAt(int Offset)
+		Text *GetTextAt(uint32 Offset)
 		{
 			Text **t = &Txt[0];
 			Text **e = t + Txt.Length();
@@ -1076,7 +1081,7 @@ public:
 			GArray<int> LineLen;
 			int CurLine = -1;
 			
-			for (int i=0; i<Layout.Length(); i++)
+			for (unsigned i=0; i<Layout.Length(); i++)
 			{
 				TextLine *Line = Layout[i];
 				PtrCheckBreak(Line);
@@ -1126,7 +1131,7 @@ public:
 				case SkDownLine:
 				{
 					// Get next line...
-					if (CurLine >= Layout.Length() - 1)
+					if (CurLine >= (int)Layout.Length() - 1)
 						return -1;
 					Line = Layout[++CurLine];
 					if (!Line)
@@ -1309,7 +1314,7 @@ public:
 				else // Seek to next block
 				{
 					int Idx = Blocks.IndexOf(c->Blk);
-					if (Idx < Blocks.Length() - 1)
+					if (Idx < (int)Blocks.Length() - 1)
 					{
 						c->Blk = Blocks[++Idx];
 						if (c->Blk)
@@ -1541,7 +1546,7 @@ public:
 		
 		if (Cursor)
 		{
-			LgiAssert(Cursor->Blk);
+			LgiAssert(Cursor->Blk != NULL);
 			if (Cursor->Blk)
 				Cursor->Blk->GetPosFromIndex(&Cursor->Pos,
 											 &Cursor->Line,
