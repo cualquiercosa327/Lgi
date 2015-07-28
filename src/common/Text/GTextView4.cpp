@@ -248,6 +248,29 @@ public:
 		Selected = 1,
 	};
 
+	enum SeekType
+	{
+		SkUnknown,
+		
+		SkLineStart,
+		SkLineEnd,		
+		SkDocStart,
+		SkDocEnd,
+
+		// Horizontal navigation		
+		SkLeftChar,
+		SkLeftWord,
+		SkRightChar,
+		SkRightWord,
+		
+		// Vertical navigation
+		SkUpPage,
+		SkUpLine,
+		SkCurrentLine,		
+		SkDownLine,
+		SkDownPage,
+	};
+
 	struct DisplayStr;
 	struct BlockCursor;
 	class Block;
@@ -402,8 +425,8 @@ public:
 				// always starts and ends on a whole line.
 	{
 	public:
+		/// This is the number of cursors current referencing this Block.
 		int8 Cursors;
-
 		
 		Block()
 		{
@@ -423,7 +446,18 @@ public:
 		virtual bool GetPosFromIndex(GRect *CursorPos, GRect *LinePos, int Index) = 0;
 		virtual bool OnLayout(Flow &f) = 0;
 		virtual void OnPaint(PaintContext &Ctx) = 0;
-		virtual bool OnKey(GKey &k) = 0;
+		
+		/// This method moves a cursor index.
+		/// \returns the new cursor index or -1 on error.
+		virtual int Seek
+		(
+			/// [In] true if the next line is needed, false for the previous line
+			SeekType To,
+			/// [In] The inital offset.
+			int Offset,
+			/// [In] The x position hint
+			int XPos
+		) = 0;
 	};
 
 	struct BlockCursor
@@ -441,6 +475,12 @@ public:
 		// This is the position line that the cursor is on. This is
 		// used to calculate the bounds for screen updates.
 		GRect Line;
+
+		BlockCursor(const BlockCursor &c)
+		{
+			Blk = NULL;
+			*this = c;
+		}
 		
 		BlockCursor(Block *b, int off)
 		{
@@ -456,6 +496,25 @@ public:
 		~BlockCursor()
 		{
 			Set(NULL, 0);
+		}
+		
+		BlockCursor &operator =(const BlockCursor &c)
+		{
+			if (Blk)
+			{
+				LgiAssert(Blk->Cursors > 0);
+				Blk->Cursors--;
+			}
+			Blk = c.Blk;
+			if (Blk)
+			{
+				LgiAssert(Blk->Cursors < 0x7f);
+				Blk->Cursors++;
+			}
+			Offset = c.Offset;
+			Pos = c.Pos;
+			Line = c.Line;
+			return *this;
 		}
 		
 		void Set(Block *b, int off)
@@ -498,14 +557,26 @@ public:
 	{
 		/// This is a position relative to the parent Block
 		GRect PosOff;
-		
+
 		/// The array of display strings
 		GArray<DisplayStr*> Strs;
+
+		/// Is '1' for lines that have a new line character at the end.
+		uint8 NewLine;
 		
 		TextLine(GRect &BlockPos)
 		{
+			NewLine = 0;
 			PosOff.ZOff(BlockPos.X()-1, 0);
 			PosOff.Offset(0, BlockPos.Y());
+		}
+
+		int Length()
+		{
+			int Len = NewLine;
+			for (unsigned i=0; i<Strs.Length(); i++)
+				Len += Strs[i]->Length();
+			return Len;
 		}
 		
 		/// This runs after the layout line has been filled with display strings.
@@ -622,6 +693,8 @@ public:
 					FixX += ds->FX();
 					CharPos += ds->Length();
 				}
+				
+				CharPos += tl->NewLine;
 			}
 			
 			return false;
@@ -824,6 +897,8 @@ public:
 					
 					CharPos += Ds->Length();
 				}
+				
+				CharPos += Line->NewLine;
 			}
 
 			if (Ctx.Cursor &&
@@ -886,6 +961,8 @@ public:
 						FixX = 0;
 						CurLine->LayoutOffsets();
 						Pos.y2 = max(Pos.y2, Pos.y1 + CurLine->PosOff.y2);
+
+						CurLine->NewLine = 1;
 						Layout.Add(CurLine.Release());
 						
 						CurLine.Reset(new TextLine(Pos));
@@ -954,11 +1031,6 @@ public:
 			return true;
 		}
 		
-		bool OnKey(GKey &k)
-		{
-			return false;
-		}
-		
 		Text *GetTextAt(int Offset)
 		{
 			Text **t = &Txt[0];
@@ -995,6 +1067,105 @@ public:
 			t->SetStyle(Style);
 			return true;
 		}
+
+		int Seek(SeekType To, int Offset, int XPos)
+		{
+			int XOffset = XPos - Pos.x1;
+			int CharPos = 0;
+			GArray<int> LineOffset;
+			GArray<int> LineLen;
+			int CurLine = -1;
+			
+			for (int i=0; i<Layout.Length(); i++)
+			{
+				TextLine *Line = Layout[i];
+				PtrCheckBreak(Line);
+				int Len = Line->Length();				
+				
+				LineOffset[i] = CharPos;
+				LineLen[i] = Len;
+				
+				if (Offset >= CharPos &&
+					Offset <= CharPos + Len - Line->NewLine)
+				{
+					CurLine = i;
+				}				
+				
+				CharPos += Len;
+			}
+			
+			if (CurLine < 0)
+			{
+				LgiAssert(!"Index not in layout lines.");
+				return -1;
+			}
+				
+			TextLine *Line = NULL;
+			switch (To)
+			{
+				case SkLineStart:
+				{
+					return LineOffset[CurLine];
+				}
+				case SkLineEnd:
+				{
+					return	LineOffset[CurLine] +
+							LineLen[CurLine] -
+							Layout[CurLine]->NewLine;
+				}
+				case SkUpLine:
+				{
+					// Get previous line...
+					if (CurLine == 0)
+						return -1;
+					Line = Layout[--CurLine];
+					if (!Line)
+						return -1;
+					break;
+				}				
+				case SkDownLine:
+				{
+					// Get next line...
+					if (CurLine >= Layout.Length() - 1)
+						return -1;
+					Line = Layout[++CurLine];
+					if (!Line)
+						return -1;
+					break;
+				}
+			}
+			
+			if (Line)
+			{
+				// Work out where the cursor should be based on the 'XOffset'
+				int FixX = 0;
+				int CharOffset = 0;
+				for (unsigned i=0; i<Line->Strs.Length(); i++)
+				{
+					DisplayStr *Ds = Line->Strs[i];
+					PtrCheckBreak(Ds);
+					
+					if (XOffset >= FixedToInt(FixX) &&
+						XOffset <= FixedToInt(FixX + Ds->FX()))
+					{
+						// This is the matching string...
+						int Px = XOffset - FixedToInt(FixX);
+						int Char = Ds->CharAt(Px + 3);
+						if (Char > 0)
+						{
+							return	LineOffset[CurLine] +	// Character offset of line
+									CharOffset +			// Character offset of current string
+									Char;					// Offset into current string for 'XOffset'
+						}
+					}
+					
+					FixX += Ds->FX();
+					CharOffset += Ds->Length();
+				}
+			}
+			
+			return -1;
+		}
 	};
 	
 	GArray<Block*> Blocks;
@@ -1020,51 +1191,65 @@ public:
 		Blocks.DeleteObjects();
 	}
 
-	enum SeekType
+	bool Seek(BlockCursor *In, SeekType Dir, bool Select)
 	{
-		SkUnknown,
+		if (!In || !In->Blk || Blocks.Length() == 0)
+			return false;
 		
-		SkLineStart,
-		SkLineEnd,
-		
-		SkDocStart,
-		SkDocEnd,
-		
-		SkLeftChar,
-		SkLeftWord,
-		
-		SkUpLine,
-		SkUpPage,
-		
-		SkRightChar,
-		SkRightWord,
-		
-		SkDownLine,
-		SkDownPage,
-	};
+		GAutoPtr<BlockCursor> c(new BlockCursor(*In));
+		if (!c)
+			return false;
 
-	bool Seek(BlockCursor *c, SeekType Dir, bool Select)
-	{
+		bool Status = false;
 		switch (Dir)
 		{
-			case SkLineStart:
-			{
-				break;
-			}
 			case SkLineEnd:
+			case SkLineStart:
+			case SkUpLine:
+			case SkDownLine:
 			{
+				int Off = c->Blk->Seek(Dir, c->Offset, c->Pos.x1);
+				if (Off >= 0)
+				{
+					c->Offset = Off;
+					Status = true;
+				}
 				break;
 			}
 			case SkDocStart:
 			{
+				c->Blk = Blocks[0];
+				c->Offset = 0;
+				Status = true;
 				break;
 			}
 			case SkDocEnd:
 			{
+				c->Blk = Blocks.Last();
+				c->Offset = c->Blk->Length();
+				Status = true;
 				break;
 			}
 			case SkLeftChar:
 			{
+				if (c->Offset > 0)
+				{
+					c->Offset--;
+					Status = true;
+				}
+				else // Seek to previous block
+				{
+					int Idx = Blocks.IndexOf(c->Blk);
+					if (Idx > 0)
+					{
+						c->Blk = Blocks[--Idx];
+						if (c->Blk)
+						{
+							c->Offset = 0;
+							Status = true;
+						}
+					}
+				}
 				break;
 			}
 			case SkLeftWord:
@@ -1110,16 +1295,30 @@ public:
 				*/
 				break;
 			}
-			case SkUpLine:
-			{
-				break;
-			}
 			case SkUpPage:
 			{
 				break;
 			}
 			case SkRightChar:
 			{
+				if (c->Offset < c->Blk->Length())
+				{
+					c->Offset++;
+					Status = true;
+				}
+				else // Seek to next block
+				{
+					int Idx = Blocks.IndexOf(c->Blk);
+					if (Idx < Blocks.Length() - 1)
+					{
+						c->Blk = Blocks[++Idx];
+						if (c->Blk)
+						{
+							c->Offset = 0;
+							Status = true;
+						}
+					}
+				}
 				break;
 			}
 			case SkRightWord:
@@ -1162,10 +1361,6 @@ public:
 				*/
 				break;
 			}
-			case SkDownLine:
-			{
-				break;
-			}
 			case SkDownPage:
 			{
 				break;
@@ -1177,7 +1372,13 @@ public:
 			}
 		}
 		
-		return true;
+		if (Status)
+		{
+			c->Blk->GetPosFromIndex(&c->Pos, &c->Line, c->Offset);
+			SetCursor(c, Select);
+		}
+		
+		return Status;
 	}
 	
 	bool CursorFirst()
@@ -1234,7 +1435,10 @@ public:
 			View->Invalidate(&Cursor->Pos);
 		}
 
-		Cursor = c;
+		if (!Cursor)
+			Cursor.Reset(new BlockCursor(*c));
+		else
+			*Cursor = *c;
 		Cursor->Blk->GetPosFromIndex(&Cursor->Pos, &Cursor->Line, Cursor->Offset);
 		if (Select)
 			InvalidRc.Union(&Cursor->Line);
@@ -2737,6 +2941,7 @@ bool GTextView4::OnKey(GKey &k)
 				{
 					if (HasSelection() && !k.Shift())
 					{
+						Invalidate(&d->SelectionRect());
 						d->SetCursor(d->CursorFirst() ? d->Cursor : d->Selection);
 					}
 					else
@@ -2764,6 +2969,7 @@ bool GTextView4::OnKey(GKey &k)
 				{
 					if (HasSelection() && !k.Shift())
 					{
+						Invalidate(&d->SelectionRect());
 						d->SetCursor(d->CursorFirst() ? d->Selection : d->Cursor);
 					}
 					else
