@@ -2323,8 +2323,8 @@ bool GTextView3::DoFindNext()
 	return false;
 }
 
-static bool
-Text_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User)
+bool
+Text3_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User)
 {
 	GTextView3 *v = (GTextView3*) User;
 
@@ -2366,7 +2366,7 @@ bool GTextView3::DoFind()
 		u = LgiNewUtf16To8(d->FindReplaceParams->LastFind);
 	}
 
-	GFindDlg Dlg(this, u, Text_FindCallback, this);
+	GFindDlg Dlg(this, u, Text3_FindCallback, this);
 	Dlg.DoModal();
 	DeleteArray(u);
 	

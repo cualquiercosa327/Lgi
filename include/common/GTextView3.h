@@ -34,7 +34,7 @@ LgiClass
 {
 	friend class GUrl;
 	friend class GTextView3Undo;
-	friend bool Text_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User);
+	friend bool Text3_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User);
 
 public:
 	class
