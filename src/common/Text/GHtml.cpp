@@ -1265,9 +1265,6 @@ GTag::GTag(GHtml *h, GHtmlElement *p) :
 	TipId = 0;
 	Display(DispInline);
 	Html = h;
-	Parent = ToTag(p);
-	if (Parent)
-		Parent->Children.Add(this);
 	
 	ImageResized = false;
 	Cursor = -1;

@@ -63,7 +63,7 @@ char16 *WcharToChar16(const wchar_t *i)
 	return Buf;
 }
 
-GHtmlStatic *GHtmlStatic::Inst = 0;
+GHtmlStatic *GHtmlStatic::Inst = NULL;
 
 GHtmlStatic::GHtmlStatic() :
 	VarMap(8, true),
@@ -561,9 +561,11 @@ GHtmlElemInfo *GHtmlStatic::GetTagInfo(const char *Tag)
 GHtmlElement::GHtmlElement(GHtmlElement *parent)
 {
 	TagId = CONTENT;
-	Parent = parent;
 	Info = NULL;
 	WasClosed = false;
+	Parent = parent;
+	if (Parent)
+		Parent->Children.Add(this);
 }
 
 GHtmlElement::~GHtmlElement()

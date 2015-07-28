@@ -14,8 +14,14 @@
 #include "GViewPriv.h"
 #include "GCssTools.h"
 
+#include "GHtmlCommon.h"
+#include "GHtmlParser.h"
+
+#define FixedToInt(fixed)			((fixed)>>GDisplayString::FShift)
+#define IntToFixed(val)				((val)<<GDisplayString::FShift)
 #define DefaultCharset              "utf-8"
-#define SubtractPtr(a, b)			((a) - (b))
+#define PtrCheckBreak(ptr)			if (!ptr) { LgiAssert(!"Invalid ptr"); break; }
+#define CursorColour				GColour(0, 0, 0)
 
 #define GDCF_UTF8					-1
 #define LUIS_DEBUG					0
@@ -71,6 +77,37 @@
 static char SelectWordDelim[] = " \t\n.,()[]<>=?/\\{}\"\';:+=-|!@#$%^&*";
 
 //////////////////////////////////////////////////////////////////////
+class GText4Elem : public GHtmlElement
+{
+	GString Style;
+
+public:
+	GText4Elem(GHtmlElement *parent) : GHtmlElement(parent)
+	{
+	}
+
+	bool Get(const char *attr, const char *&val)
+	{
+		if (attr && !_stricmp(attr, "style") && Style)
+		{
+			val = Style;
+			return true;
+		}
+		return false;
+	}
+	
+	void Set(const char *attr, const char *val)
+	{
+		if (attr && !_stricmp(attr, "style"))
+			Style = val;
+	}
+	
+	void SetStyle()
+	{
+		int asd = 0;
+	}
+};
+
 class GDocFindReplaceParams3 : public GDocFindReplaceParams
 {
 public:
@@ -97,80 +134,1574 @@ public:
 	}
 };
 
-class GTextView4Private : public GCss
+struct GNamedStyle : public GCss
+{
+	GString Name;
+};
+
+class GCssCache
+{
+	int Idx;
+	GArray<GNamedStyle*> Styles;
+
+public:
+	GCssCache()
+	{
+		Idx = 1;
+	}
+	
+	~GCssCache()
+	{
+		Styles.DeleteObjects();
+	}
+
+	GNamedStyle *AddStyleToCache(GAutoPtr<GCss> &s)
+	{
+		if (!s)
+			return NULL;
+
+		// Look through existing styles for a match...			
+		for (unsigned i=0; i<Styles.Length(); i++)
+		{
+			GNamedStyle *ns = Styles[i];
+			if (*ns == *s)
+				return ns;
+		}
+		
+		// Not found... create new...
+		GNamedStyle *ns = new GNamedStyle;
+		if (ns)
+		{
+			ns->Name.Printf("style%i", Idx++);
+			*(GCss*)ns = *s.Get();
+		}
+		
+		return ns;
+	}
+};
+
+class GFontCache
+{
+	GArray<GFont*> Fonts;
+	
+public:
+	GFontCache()
+	{
+	}
+	
+	~GFontCache()
+	{
+		Fonts.DeleteObjects();
+	}
+	
+	GFont *AddFont(	const char *Face,
+					int PtSize,
+					GCss::FontWeightType Weight)
+	{
+		// Matching existing fonts...
+		for (unsigned i=0; i<Fonts.Length(); i++)
+		{
+			GFont *f = Fonts[i];
+			if
+			(
+				f->Face() &&
+				Face &&
+				!_stricmp(f->Face(), Face) &&
+				f->PointSize() == PtSize &&
+				f->Bold() == (Weight == GCss::FontWeightBold)
+			)
+				return f;
+		}
+		
+		// No matching font... create a new one
+		GFont *f = new GFont;
+		if (f)
+		{
+			f->Bold(Weight == GCss::FontWeightBold);
+			if (!f->Create(Face, PtSize))
+			{
+				LgiAssert(0);
+				DeleteObj(f);
+				return NULL;
+			}
+			
+			Fonts.Add(f);
+		}
+		
+		return f;
+	}
+};
+
+class GTv4Priv :
+	public GCss,
+	public GHtmlParser,
+	public GHtmlStaticInst,
+	public GCssCache,
+	public GFontCache
 {
 public:
 	GTextView4 *View;
-	GRect rPadding;
-	int PourX;
-	bool LayoutDirty;
-	int DirtyStart, DirtyLen;
-	bool SimpleDelete;
-	GColour UrlColour;
-	bool CenterCursor;
-	int WordSelectMode;
+	GAutoPtr<GFont> Font;
+	bool WordSelectMode;
 
-	// Find/Replace Params
-	bool OwnFindReplaceParams;
-	GDocFindReplaceParams3 *FindReplaceParams;
+	enum SelectModeType
+	{
+		Unselected = 0,
+		Selected = 1,
+	};
 
-	// Map buffer
-	int MapLen;
-	char16 *MapBuf;
+	enum SeekType
+	{
+		SkUnknown,
+		
+		SkLineStart,
+		SkLineEnd,		
+		SkDocStart,
+		SkDocEnd,
 
-	GTextView4Private(GTextView4 *view)
+		// Horizontal navigation		
+		SkLeftChar,
+		SkLeftWord,
+		SkRightChar,
+		SkRightWord,
+		
+		// Vertical navigation
+		SkUpPage,
+		SkUpLine,
+		SkCurrentLine,		
+		SkDownLine,
+		SkDownPage,
+	};
+
+	struct DisplayStr;
+	struct BlockCursor;
+	class Block;
+
+	bool Error(const char *file, int line, const char *fmt, ...)
+	{
+		LgiAssert(0);
+		return false;
+	}
+
+	GFont *GetFont(GCss *Style)
+	{
+		GFont *Default = View->GetFont();
+		if (!Style)
+			return Default;
+		
+		// Look through all the existing fonts for a match:
+		GCss::StringsDef Face = Style->FontFamily();
+		GCss::Len Size = Style->FontSize();
+		GCss::FontWeightType Weight = Style->FontWeight();
+		
+		return AddFont(	Face.Length() ? Face[0] : Default->Face(),
+						Size.Type == GCss::LenPt ? (int)Size.Value : Default->PointSize(),
+						Weight);
+	}	
+
+	struct Flow
+	{
+		GTv4Priv *d;
+		GSurface *pDC;	// Used for printing.
+
+		int Left, Right;// Left and right margin positions as measured in px
+						// from the left of the page (controls client area).
+		int CurY;		// Current y position down the page in document co-ords
+		bool Visible;	// true if the current block overlaps the visible page
+						// If false, the implementation can take short cuts and
+						// guess various dimensions.
+	
+		Flow(GTv4Priv *priv)
+		{
+			d = priv;
+			pDC = NULL;
+			Left = 0;
+			Right = 1000;
+			CurY = 0;
+			Visible = true;
+		}
+		
+		int X()
+		{
+			return Right - Left + 1;
+		}
+	};
+
+	struct ColourPair
+	{
+		GColour Fore, Back;
+		
+		void Empty()
+		{
+			Fore.Empty();
+			Back.Empty();
+		}
+	};
+
+	class Text : public GArray<char16>
+	{
+		GCss *Style; // owned by the CSS cache
+	
+	public:
+		ColourPair Colours;
+		GColour Fore, Back;
+		
+		Text(const char16 *t = NULL, int Chars = -1)
+		{
+			Style = NULL;
+			if (t)
+				Add((char16*)t, Chars >= 0 ? Chars : StrlenW(t));
+		}
+		
+		GCss *GetStyle()
+		{
+			return Style;
+		}
+				
+		void SetStyle(GCss *s)
+		{
+			if (Style != s)
+			{
+				Style = s;
+				Colours.Empty();
+				
+				if (Style)
+				{			
+					GCss::ColorDef c = Style->Color();
+					if (c.Type == GCss::ColorRgb)
+						Colours.Fore.Set(c.Rgb32, 32);
+					c = Style->BackgroundColor();
+					if (c.Type == GCss::ColorRgb)
+						Colours.Back.Set(c.Rgb32, 32);
+				}				
+			}
+		}
+	};
+	
+	struct PaintContext
+	{
+		GSurface *pDC;
+		SelectModeType Type;
+		ColourPair Colours[2];
+		BlockCursor *Cursor, *Select;
+		
+		PaintContext()
+		{
+			pDC = NULL;
+			Type = Unselected;
+			Cursor = NULL;
+			Select = NULL;
+		}
+		
+		GColour &Fore()
+		{
+			return Colours[Type].Fore;
+		}
+
+		GColour &Back()
+		{
+			return Colours[Type].Back;
+		}
+	};
+
+	struct HitTestResult
+	{
+		GdcPt2 In;
+		Block *Blk;
+		DisplayStr *Ds;
+		int Idx;
+		bool Near;
+		
+		HitTestResult(int x, int y)
+		{
+			In.x = x;
+			In.y = y;
+			Blk = NULL;
+			Ds = NULL;
+			Idx = -1;
+			Near = false;
+		}
+	};
+
+	class Block // is like a DIV in HTML, it's as wide as the page and
+				// always starts and ends on a whole line.
+	{
+	public:
+		/// This is the number of cursors current referencing this Block.
+		int8 Cursors;
+		
+		Block()
+		{
+			Cursors = 0;
+		}
+		
+		virtual ~Block()
+		{
+			// We must have removed cursors by the time we are deleted
+			// otherwise there will be a hanging pointer in the cursor
+			// object.
+			LgiAssert(Cursors == 0);
+		}
+		
+		virtual int Length() = 0;
+		virtual bool HitTest(HitTestResult &htr) = 0;
+		virtual bool GetPosFromIndex(GRect *CursorPos, GRect *LinePos, int Index) = 0;
+		virtual bool OnLayout(Flow &f) = 0;
+		virtual void OnPaint(PaintContext &Ctx) = 0;
+		
+		/// This method moves a cursor index.
+		/// \returns the new cursor index or -1 on error.
+		virtual int Seek
+		(
+			/// [In] true if the next line is needed, false for the previous line
+			SeekType To,
+			/// [In] The inital offset.
+			int Offset,
+			/// [In] The x position hint
+			int XPos
+		) = 0;
+	};
+
+	struct BlockCursor
+	{
+		// The block the cursor is in.
+		Block *Blk;
+
+		// This is the character offset of the cursor relative to
+		// the start of 'Blk'.
+		int Offset;
+		
+		// This is the position on the screen in doc coords.
+		GRect Pos;
+		
+		// This is the position line that the cursor is on. This is
+		// used to calculate the bounds for screen updates.
+		GRect Line;
+
+		BlockCursor(const BlockCursor &c)
+		{
+			Blk = NULL;
+			*this = c;
+		}
+		
+		BlockCursor(Block *b, int off)
+		{
+			Blk = NULL;
+			Offset = -1;
+			Pos.ZOff(-1, -1);
+			Line.ZOff(-1, -1);
+
+			if (b)
+				Set(b, off);
+		}
+		
+		~BlockCursor()
+		{
+			Set(NULL, 0);
+		}
+		
+		BlockCursor &operator =(const BlockCursor &c)
+		{
+			if (Blk)
+			{
+				LgiAssert(Blk->Cursors > 0);
+				Blk->Cursors--;
+			}
+			Blk = c.Blk;
+			if (Blk)
+			{
+				LgiAssert(Blk->Cursors < 0x7f);
+				Blk->Cursors++;
+			}
+			Offset = c.Offset;
+			Pos = c.Pos;
+			Line = c.Line;
+			return *this;
+		}
+		
+		void Set(Block *b, int off)
+		{
+			if (Blk)
+			{
+				LgiAssert(Blk->Cursors > 0);
+				Blk->Cursors--;
+				Blk = NULL;
+			}
+			if (b)
+			{
+				Blk = b;
+				LgiAssert(Blk->Cursors < 0x7f);
+				Blk->Cursors++;
+			}
+			Offset = off;
+		}
+	};
+	
+	GAutoPtr<BlockCursor> Cursor, Selection;
+
+	/// This is part or all of a Text run
+	struct DisplayStr : public GDisplayString
+	{
+		Text *Src;
+		int OffsetY; // Offset of this string from the TextLine's box in the Y axis
+		
+		DisplayStr(Text *src, GFont *f, const char16 *s, int l = -1, GSurface *pdc = NULL) :
+			GDisplayString(f, s, l, pdc)
+		{
+			Src = src;
+			OffsetY = 0;
+		}
+	};
+
+	/// This structure is a layout of a full line of text. Made up of one or more
+	/// display string objects.
+	struct TextLine
+	{
+		/// This is a position relative to the parent Block
+		GRect PosOff;
+
+		/// The array of display strings
+		GArray<DisplayStr*> Strs;
+
+		/// Is '1' for lines that have a new line character at the end.
+		uint8 NewLine;
+		
+		TextLine(GRect &BlockPos)
+		{
+			NewLine = 0;
+			PosOff.ZOff(BlockPos.X()-1, 0);
+			PosOff.Offset(0, BlockPos.Y());
+		}
+
+		int Length()
+		{
+			int Len = NewLine;
+			for (unsigned i=0; i<Strs.Length(); i++)
+				Len += Strs[i]->Length();
+			return Len;
+		}
+		
+		/// This runs after the layout line has been filled with display strings.
+		/// It measures the line and works out the right offsets for each strings
+		/// so that their baselines all match up correctly.
+		void LayoutOffsets(int DefaultFontHt)
+		{
+			double BaseLine = 0.0;
+			int HtPx = 0;
+			
+			for (unsigned i=0; i<Strs.Length(); i++)
+			{
+				DisplayStr *ds = Strs[i];
+				GFont *f = ds->GetFont();
+				double FontBase = f->Ascent();
+				
+				BaseLine = max(BaseLine, FontBase);
+				HtPx = max(HtPx, ds->Y());
+			}
+			
+			if (Strs.Length() == 0)
+				HtPx = DefaultFontHt;
+			else
+				LgiAssert(HtPx > 0);
+			
+			for (unsigned i=0; i<Strs.Length(); i++)
+			{
+				DisplayStr *ds = Strs[i];
+				GFont *f = ds->GetFont();
+				double FontBase = f->Ascent();
+				ds->OffsetY = (int)(BaseLine - FontBase);
+				LgiAssert(ds->OffsetY >= 0);
+			}
+			
+			PosOff.y2 = PosOff.y1 + HtPx - 1;
+		}
+	};
+	
+	struct TextBlock : public Block
+	{
+		GArray<Text*> Txt;
+		GArray<TextLine*> Layout;
+		
+		bool LayoutDirty;
+		int Len; // chars in the whole block (sum of all Text lengths)
+		GRect Pos; // position in document co-ordinates
+		
+		TextBlock()
+		{
+			LayoutDirty = false;
+			Len = 0;
+			Pos.ZOff(-1, -1);
+		}
+		
+		~TextBlock()
+		{
+			Txt.DeleteObjects();
+		}
+
+		int Length()
+		{
+			return Len;
+		}
+
+		bool GetPosFromIndex(GRect *CursorPos, GRect *LinePos, int Index)
+		{
+			if (!CursorPos || !LinePos)
+			{
+				LgiAssert(0);
+				return false;
+			}
+		
+			int CharPos = 0;
+			for (unsigned i=0; i<Layout.Length(); i++)
+			{
+				TextLine *tl = Layout[i];
+				PtrCheckBreak(tl);
+
+				GRect r = tl->PosOff;
+				r.Offset(Pos.x1, Pos.y1);
+				
+				int FixX = 0;
+				for (unsigned n=0; n<tl->Strs.Length(); n++)
+				{
+					DisplayStr *ds = tl->Strs[n];
+					int dsChars = ds->Length();
+					
+					if (Index >= CharPos &&
+						Index <= CharPos + dsChars)
+					{
+						int CharOffset = Index - CharPos;
+						if (CharOffset == 0)
+						{
+							// First char
+							CursorPos->x1 = r.x1 + IntToFixed(FixX);
+						}
+						else if (CharOffset == dsChars)
+						{
+							// Last char
+							CursorPos->x1 = r.x1 + IntToFixed(FixX + ds->FX());
+						}
+						else
+						{
+							// In the middle somewhere...
+							GDisplayString Tmp(ds->GetFont(), *ds, CharOffset);
+							CursorPos->x1 = r.x1 + IntToFixed(FixX + Tmp.FX());
+						}
+
+						CursorPos->y1 = r.y1 + ds->OffsetY;
+						CursorPos->y2 = CursorPos->y1 + ds->Y() - 1;
+						CursorPos->x2 = CursorPos->x1 + 1;
+
+						*LinePos = r;
+						return true;
+					}					
+					
+					FixX += ds->FX();
+					CharPos += ds->Length();
+				}
+				
+				CharPos += tl->NewLine;
+			}
+			
+			return false;
+		}
+		
+		bool HitTest(HitTestResult &htr)
+		{
+			if (!Pos.Overlap(htr.In.x, htr.In.y))
+				return false;
+
+			int CharPos = 0;
+			for (unsigned i=0; i<Layout.Length(); i++)
+			{
+				TextLine *tl = Layout[i];
+				PtrCheckBreak(tl);
+
+				GRect r = tl->PosOff;
+				r.Offset(Pos.x1, Pos.y1);
+				bool Over = r.Overlap(htr.In.x, htr.In.y);
+				bool OnThisLine =	htr.In.y >= r.y1 &&
+									htr.In.y <= r.y2;
+				if (OnThisLine && htr.In.x < r.x1)
+				{
+					htr.Near = true;
+					htr.Idx = CharPos;
+					return true;
+				}
+				
+				int FixX = 0;
+				int InputX = IntToFixed(htr.In.x - Pos.x1);
+				for (unsigned n=0; n<tl->Strs.Length(); n++)
+				{
+					DisplayStr *ds = tl->Strs[n];
+					int dsFixX = ds->FX();
+					
+					if (Over &&
+						InputX >= FixX &&
+						InputX < FixX + dsFixX)
+					{
+						int OffFix = InputX - FixX;
+						int OffPx = FixedToInt(OffFix);
+						int OffChar = ds->CharAt(OffPx);
+						
+						htr.Blk = this;
+						htr.Ds = ds;
+						htr.Idx = CharPos + OffChar;
+						return true;
+					}
+					
+					FixX += ds->FX();
+
+					CharPos += ds->Length();
+				}
+
+				if (OnThisLine && htr.In.x > r.x2)
+				{
+					htr.Near = true;
+					htr.Idx = CharPos;
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		void OnPaint(PaintContext &Ctx)
+		{
+			int CharPos = 0;
+			int EndPoints = 0;
+			int EndPoint[2] = {-1, -1};
+			int CurEndPoint = 0;
+
+			if (Cursors > 0 && Ctx.Select)
+			{
+				// Selection end point checks...
+				if (Ctx.Cursor && Ctx.Cursor->Blk == this)
+					EndPoint[EndPoints++] = Ctx.Cursor->Offset;
+				if (Ctx.Select && Ctx.Select->Blk == this)
+					EndPoint[EndPoints++] = Ctx.Select->Offset;
+				
+				// Sort the end points
+				if (EndPoints > 1 &&
+					EndPoint[0] > EndPoint[1])
+				{
+					int ep = EndPoint[0];
+					EndPoint[0] = EndPoint[1];
+					EndPoint[1] = ep;
+				}
+			}
+			
+			for (unsigned i=0; i<Layout.Length(); i++)
+			{
+				TextLine *Line = Layout[i];
+
+				GRect LinePos = Line->PosOff;
+				LinePos.Offset(Pos.x1, Pos.y1);
+				if (Line->PosOff.X() < Pos.X())
+				{
+					Ctx.pDC->Colour(Ctx.Colours[Unselected].Back);
+					Ctx.pDC->Rectangle(LinePos.x2, LinePos.y1, Pos.x2, LinePos.y2);
+				}
+
+				int FixX = IntToFixed(LinePos.x1);
+				int CurY = LinePos.y1;
+				GFont *Fnt = NULL;
+
+				for (unsigned n=0; n<Line->Strs.Length(); n++)
+				{
+					DisplayStr *Ds = Line->Strs[n];
+					GFont *f = Ds->GetFont();
+					ColourPair &Cols = Ds->Src->Colours;
+					if (f != Fnt)
+					{
+						f->Transparent(false);
+						Fnt = f;
+					}
+
+					// If the current text part doesn't cover the full line height we have to
+					// fill in the rest here...
+					if (Ds->Y() < Line->PosOff.Y())
+					{
+						Ctx.pDC->Colour(Ctx.Colours[Unselected].Back);
+						int CurX = FixedToInt(FixX);
+						if (Ds->OffsetY > 0)
+							Ctx.pDC->Rectangle(CurX, CurY, CurX+Ds->X(), CurY+Ds->OffsetY-1);
+
+						int DsY2 = Ds->OffsetY + Ds->Y();
+						if (DsY2 < Pos.Y())
+							Ctx.pDC->Rectangle(CurX, CurY+DsY2, CurX+Ds->X(), Pos.y2);
+					}
+
+					// Check for selection changes...
+					int FixY = IntToFixed(CurY + Ds->OffsetY);
+					if (CurEndPoint < EndPoints &&
+						EndPoint[CurEndPoint] >= CharPos &&
+						EndPoint[CurEndPoint] < CharPos + Ds->Length())
+					{
+						// Process string into parts based on the selection boundaries
+						const char16 *s = *(GDisplayString*)Ds;
+						int Ch = EndPoint[CurEndPoint] - CharPos;
+						GDisplayString ds1(f, s, Ch);
+						
+						// First part...
+						f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
+									Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
+						ds1.FDraw(Ctx.pDC, FixX, FixY);
+						FixX += ds1.FX();
+						Ctx.Type = Ctx.Type == Selected ? Unselected : Selected;
+						CurEndPoint++;
+						
+						// Is there 3 parts?
+						//
+						// This happens when the selection starts and end in the one string.
+						//
+						// The alternative is that it starts or ends in the strings but the other
+						// end point is in a different string. In which case there is only 2 strings
+						// to draw.
+						if (CurEndPoint < EndPoints &&
+							EndPoint[CurEndPoint] >= CharPos &&
+							EndPoint[CurEndPoint] < CharPos + Ds->Length())
+						{
+							// Yes..
+							int Ch2 = EndPoint[CurEndPoint] - CharPos;
+
+							// Part 2
+							GDisplayString ds2(f, s + Ch, Ch2 - Ch);
+							f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
+										Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
+							ds2.FDraw(Ctx.pDC, FixX, FixY);
+							FixX += ds2.FX();
+							Ctx.Type = Ctx.Type == Selected ? Unselected : Selected;
+							CurEndPoint++;
+
+							// Part 3
+							GDisplayString ds3(f, s + Ch2);
+							f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
+										Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
+							ds3.FDraw(Ctx.pDC, FixX, FixY);
+							FixX += ds3.FX();
+						}
+						else
+						{
+							// No... draw 2nd part
+							GDisplayString ds2(f, s + Ch);
+							f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
+										Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
+							ds2.FDraw(Ctx.pDC, FixX, FixY);
+							FixX += ds2.FX();
+						}
+					}
+					else
+					{
+						// No selection changes... draw the whole string
+						f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
+									Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
+						
+						Ds->FDraw(Ctx.pDC, FixX, FixY);
+						FixX += Ds->FX();
+					}
+					
+					CharPos += Ds->Length();
+				}
+				
+				CharPos += Line->NewLine;
+			}
+
+			if (Ctx.Cursor &&
+				Ctx.Cursor->Blk == this)
+			{
+				Ctx.pDC->Colour(CursorColour);
+				Ctx.pDC->Rectangle(&Ctx.Cursor->Pos);
+			}
+			#if 0 // def _DEBUG
+			if (Ctx.Select &&
+				Ctx.Select->Blk == this)
+			{
+				Ctx.pDC->Colour(GColour(255, 0, 0));
+				Ctx.pDC->Rectangle(&Ctx.Select->Pos);
+			}
+			#endif
+		}
+		
+		bool OnLayout(Flow &flow)
+		{
+			if (Pos.X() == flow.X() && !LayoutDirty)
+			{
+				flow.CurY = Pos.y2 + 1;
+				return true;
+			}
+
+			LayoutDirty = false;
+			Layout.DeleteObjects();
+			
+			Pos.x1 = flow.Left;
+			Pos.y1 = flow.CurY;
+			Pos.x2 = flow.Right;
+			Pos.y2 = flow.CurY-1; // Start with a 0px height.
+			
+			int FixX = 0; // Current x offset (fixed point) on the current line
+			GAutoPtr<TextLine> CurLine(new TextLine(Pos));
+			if (!CurLine)
+				return flow.d->Error(_FL, "alloc failed.");
+
+			for (unsigned i=0; i<Txt.Length(); i++)
+			{
+				Text *t = Txt[i];
+				
+				// Get the font for 't'
+				GFont *f = flow.d->GetFont(t->GetStyle());
+				if (!f)
+					return flow.d->Error(_FL, "font creation failed.");
+				
+				char16 *sStart = &(*t)[0];
+				char16 *sEnd = sStart + t->Length();
+				for (unsigned Off = 0; Off < t->Length(); )
+				{					
+					// How much of 't' is on the same line?
+					char16 *s = sStart + Off;
+					if (*s == '\n')
+					{
+						// New line handling...
+						Off++;
+						CurLine->PosOff.x2 = FixedToInt(FixX);
+						FixX = 0;
+						CurLine->LayoutOffsets(f->GetHeight());
+						Pos.y2 = max(Pos.y2, Pos.y1 + CurLine->PosOff.y2);
+
+						CurLine->NewLine = 1;
+						Layout.Add(CurLine.Release());
+						
+						CurLine.Reset(new TextLine(Pos));
+						continue;
+					}
+
+					char16 *e = s;
+					while (*e != '\n' && e < sEnd)
+						e++;
+					
+					// Add 't' to current line
+					int Chars = min(1024, e - s);
+					GAutoPtr<DisplayStr> Ds(new DisplayStr(t, f, s, Chars, flow.pDC));
+					if (!Ds)
+						return flow.d->Error(_FL, "display str creation failed.");
+
+					if (FixedToInt(FixX) + Ds->X() > Pos.X())
+					{
+						// Wrap the string onto the line...
+						int AvailablePx = Pos.X() - FixedToInt(FixX);
+						int FitChars = Ds->CharAt(AvailablePx);
+						if (FitChars < 0)
+							flow.d->Error(_FL, "CharAt(%i) failed.", AvailablePx);
+						else
+						{
+							// Wind back to the last break opportunity
+							int ch;
+							for (ch = FitChars-1; ch > 0; ch--)
+							{
+								if ((*t)[ch] == ' ') // FIXME: use better breaking ops
+									break;
+							}
+							if (ch > FitChars >> 2)
+								Chars = FitChars;
+							
+							// Create a new display string of the right size...
+							if (!Ds.Reset(new DisplayStr(t, f, s, Chars, flow.pDC)))
+								return flow.d->Error(_FL, "failed to create wrapped display str.");
+							
+							FixX = Ds->FX();
+						}
+					}
+					else
+					{
+						FixX += Ds->FX();
+					}
+					
+					if (!Ds)
+						break;
+					
+					CurLine->PosOff.x2 = FixedToInt(FixX);
+					CurLine->Strs.Add(Ds.Release());
+					Off += Chars;
+				}
+			}
+			
+			if (CurLine && CurLine->Strs.Length() > 0)
+			{
+				CurLine->LayoutOffsets(CurLine->Strs.Last()->GetFont()->GetHeight());
+				Pos.y2 = max(Pos.y2, Pos.y1 + CurLine->PosOff.y2);
+				Layout.Add(CurLine.Release());
+			}
+			
+			flow.CurY = Pos.y2 + 1;
+			
+			return true;
+		}
+		
+		Text *GetTextAt(uint32 Offset)
+		{
+			Text **t = &Txt[0];
+			Text **e = t + Txt.Length();
+			while (Offset > 0 && t < e)
+			{
+				if (Offset < (*t)->Length())
+					return *t;
+				Offset -= (*t)->Length();
+			}
+			return NULL;
+		}
+		
+		bool AddText(GNamedStyle *Style, char16 *Str, int Chars = -1)
+		{
+			if (!Str)
+				return false;
+			if (Chars < 0)
+				Chars = StrlenW(Str);
+			bool StyleDiff = (Style != NULL) ^ ((Txt.Length() ? Txt.Last()->GetStyle() : NULL) != NULL);
+			Text *t = !StyleDiff && Txt.Length() ? Txt.Last() : NULL;
+			if (t)
+			{
+				t->Add(Str, Chars);
+				Len += Chars;
+			}
+			else if (t = new Text(Str, Chars))
+			{
+				Len += t->Length();
+				Txt.Add(t);
+			}
+			else return false;
+
+			t->SetStyle(Style);
+			return true;
+		}
+
+		int Seek(SeekType To, int Offset, int XPos)
+		{
+			int XOffset = XPos - Pos.x1;
+			int CharPos = 0;
+			GArray<int> LineOffset;
+			GArray<int> LineLen;
+			int CurLine = -1;
+			
+			for (unsigned i=0; i<Layout.Length(); i++)
+			{
+				TextLine *Line = Layout[i];
+				PtrCheckBreak(Line);
+				int Len = Line->Length();				
+				
+				LineOffset[i] = CharPos;
+				LineLen[i] = Len;
+				
+				if (Offset >= CharPos &&
+					Offset <= CharPos + Len - Line->NewLine)
+				{
+					CurLine = i;
+				}				
+				
+				CharPos += Len;
+			}
+			
+			if (CurLine < 0)
+			{
+				LgiAssert(!"Index not in layout lines.");
+				return -1;
+			}
+				
+			TextLine *Line = NULL;
+			switch (To)
+			{
+				case SkLineStart:
+				{
+					return LineOffset[CurLine];
+				}
+				case SkLineEnd:
+				{
+					return	LineOffset[CurLine] +
+							LineLen[CurLine] -
+							Layout[CurLine]->NewLine;
+				}
+				case SkUpLine:
+				{
+					// Get previous line...
+					if (CurLine == 0)
+						return -1;
+					Line = Layout[--CurLine];
+					if (!Line)
+						return -1;
+					break;
+				}				
+				case SkDownLine:
+				{
+					// Get next line...
+					if (CurLine >= (int)Layout.Length() - 1)
+						return -1;
+					Line = Layout[++CurLine];
+					if (!Line)
+						return -1;
+					break;
+				}
+			}
+			
+			if (Line)
+			{
+				// Work out where the cursor should be based on the 'XOffset'
+				int FixX = 0;
+				int CharOffset = 0;
+				for (unsigned i=0; i<Line->Strs.Length(); i++)
+				{
+					DisplayStr *Ds = Line->Strs[i];
+					PtrCheckBreak(Ds);
+					
+					if (XOffset >= FixedToInt(FixX) &&
+						XOffset <= FixedToInt(FixX + Ds->FX()))
+					{
+						// This is the matching string...
+						int Px = XOffset - FixedToInt(FixX);
+						int Char = Ds->CharAt(Px + 3);
+						if (Char > 0)
+						{
+							return	LineOffset[CurLine] +	// Character offset of line
+									CharOffset +			// Character offset of current string
+									Char;					// Offset into current string for 'XOffset'
+						}
+					}
+					
+					FixX += Ds->FX();
+					CharOffset += Ds->Length();
+				}
+			}
+			
+			return -1;
+		}
+	};
+	
+	GArray<Block*> Blocks;
+
+	GTv4Priv(GTextView4 *view) : GHtmlParser(view)
 	{
 		View = view;
-		SimpleDelete = false;
-		WordSelectMode = -1;
-		PourX = -1;
-		DirtyStart = DirtyLen = 0;
-		UrlColour.Rgb(0, 0, 255);
-		
-		uint32 c24 = 0;
-		if (_lgi_read_colour_config("colour.LC_URL", &c24))
-			UrlColour.c24(c24);
-
-		CenterCursor = false;
-		
-		LayoutDirty = true;
-		rPadding.ZOff(0, 0);
-		MapBuf = 0;
-		MapLen = 0;
-		
-		OwnFindReplaceParams = true;
-		FindReplaceParams = new GDocFindReplaceParams3;
+		WordSelectMode = false;
 	}
 	
-	~GTextView4Private()
+	~GTv4Priv()
 	{
-		if (OwnFindReplaceParams)
-		{
-			DeleteObj(FindReplaceParams);
-		}
-		
-		DeleteArray(MapBuf);
+		Empty();
 	}
 	
-	void SetDirty(int Start, int Len = 0)
+	void Empty()
 	{
-		LayoutDirty = true;
-		DirtyStart = Start;
-		DirtyLen = Len;
+		// Delete cursors first to avoid hanging references
+		Cursor.Reset();
+		Selection.Reset();
+		
+		// Clear the block list..
+		Blocks.DeleteObjects();
 	}
 
-	void OnChange(PropType Prop)
+	bool Seek(BlockCursor *In, SeekType Dir, bool Select)
 	{
-		if (Prop == GCss::PropPadding ||
-			Prop == GCss::PropPaddingLeft ||
-			Prop == GCss::PropPaddingRight ||
-			Prop == GCss::PropPaddingTop ||
-			Prop == GCss::PropPaddingBottom)
+		if (!In || !In->Blk || Blocks.Length() == 0)
+			return false;
+		
+		GAutoPtr<BlockCursor> c(new BlockCursor(*In));
+		if (!c)
+			return false;
+
+		bool Status = false;
+		switch (Dir)
 		{
-			GCssTools t(this, View->GetFont());
-			rPadding.ZOff(0, 0);
-			rPadding = t.ApplyPadding(rPadding);
+			case SkLineEnd:
+			case SkLineStart:
+			case SkUpLine:
+			case SkDownLine:
+			{
+				int Off = c->Blk->Seek(Dir, c->Offset, c->Pos.x1);
+				if (Off >= 0)
+				{
+					c->Offset = Off;
+					Status = true;
+				}
+				break;
+			}
+			case SkDocStart:
+			{
+				c->Blk = Blocks[0];
+				c->Offset = 0;
+				Status = true;
+				break;
+			}
+			case SkDocEnd:
+			{
+				c->Blk = Blocks.Last();
+				c->Offset = c->Blk->Length();
+				Status = true;
+				break;
+			}
+			case SkLeftChar:
+			{
+				if (c->Offset > 0)
+				{
+					c->Offset--;
+					Status = true;
+				}
+				else // Seek to previous block
+				{
+					int Idx = Blocks.IndexOf(c->Blk);
+					if (Idx > 0)
+					{
+						c->Blk = Blocks[--Idx];
+						if (c->Blk)
+						{
+							c->Offset = 0;
+							Status = true;
+						}
+					}
+				}
+				break;
+			}
+			case SkLeftWord:
+			{
+				/*
+				bool StartWhiteSpace = IsWhiteSpace(Text[n]);
+				bool LeftWhiteSpace = n > 0 && IsWhiteSpace(Text[n-1]);
+
+				if (!StartWhiteSpace ||
+					Text[n] == '\n')
+				{
+					n--;
+				}
+				
+				// Skip ws
+				for (; n > 0 && strchr(" \t", Text[n]); n--)
+					;
+				
+				if (Text[n] == '\n')
+				{
+					n--;
+				}
+				else if (!StartWhiteSpace || !LeftWhiteSpace)
+				{
+					if (IsDelimiter(Text[n]))
+					{
+						for (; n > 0 && IsDelimiter(Text[n]); n--);
+					}
+					else
+					{
+						for (; n > 0; n--)
+						{
+							//IsWordBoundry(Text[n])
+							if (IsWhiteSpace(Text[n]) ||
+								IsDelimiter(Text[n]))
+							{
+								break;
+							}
+						}
+					}
+				}
+				if (n > 0) n++;
+				*/
+				break;
+			}
+			case SkUpPage:
+			{
+				break;
+			}
+			case SkRightChar:
+			{
+				if (c->Offset < c->Blk->Length())
+				{
+					c->Offset++;
+					Status = true;
+				}
+				else // Seek to next block
+				{
+					int Idx = Blocks.IndexOf(c->Blk);
+					if (Idx < (int)Blocks.Length() - 1)
+					{
+						c->Blk = Blocks[++Idx];
+						if (c->Blk)
+						{
+							c->Offset = 0;
+							Status = true;
+						}
+					}
+				}
+				break;
+			}
+			case SkRightWord:
+			{
+				/*
+				if (IsWhiteSpace(Text[n]))
+				{
+					for (; n<Size && IsWhiteSpace(Text[n]); n++);
+				}
+				else
+				{
+					if (IsDelimiter(Text[n]))
+					{
+						while (IsDelimiter(Text[n]))
+						{
+							n++;
+						}
+					}
+					else
+					{
+						for (; n<Size; n++)
+						{
+							if (IsWhiteSpace(Text[n]) ||
+								IsDelimiter(Text[n]))
+							{
+								break;
+							}
+						}
+					}
+
+					if (n < Size &&
+						Text[n] != '\n')
+					{
+						if (IsWhiteSpace(Text[n]))
+						{
+							n++;
+						}
+					}
+				}
+				*/
+				break;
+			}
+			case SkDownPage:
+			{
+				break;
+			}
+			default:
+			{
+				LgiAssert(!"Unknown seek type.");
+				return false;
+			}
 		}
+		
+		if (Status)
+		{
+			c->Blk->GetPosFromIndex(&c->Pos, &c->Line, c->Offset);
+			SetCursor(c, Select);
+		}
+		
+		return Status;
+	}
+	
+	bool CursorFirst()
+	{
+		if (!Cursor || !Selection)
+			return true;
+		
+		int CIdx = Blocks.IndexOf(Cursor->Blk);
+		int SIdx = Blocks.IndexOf(Selection->Blk);
+		if (CIdx != SIdx)
+			return CIdx < SIdx;
+		
+		return Cursor->Offset < Selection->Offset;
+	}
+	
+	bool SetCursor(GAutoPtr<BlockCursor> c, bool Select = false)
+	{
+		GRect InvalidRc(0, 0, -1, -1);
+
+		if (!c || !c->Blk)
+		{
+			LgiAssert(0);
+			return false;
+		}
+
+		if (Select && !Selection)
+		{
+			// Selection starting... save cursor as selection end point
+			if (Cursor)
+				InvalidRc = Cursor->Line;
+			Selection = Cursor;
+		}
+		else if (!Select && Selection)
+		{
+			// Selection ending... invalidate selection region and delete 
+			// selection end point
+			GRect r = SelectionRect();
+			View->Invalidate(&r);
+			Selection.Reset();
+
+			// LgiTrace("Ending selection delete(sel) Idx=%i\n", i);
+		}
+		else if (Select && Cursor)
+		{
+			// Changing selection...
+			InvalidRc = Cursor->Line;
+
+			// LgiTrace("Changing selection region: %i\n", i);
+		}
+
+		if (Cursor && !Select)
+		{
+			// Just moving cursor
+			View->Invalidate(&Cursor->Pos);
+		}
+
+		if (!Cursor)
+			Cursor.Reset(new BlockCursor(*c));
+		else
+			*Cursor = *c;
+		Cursor->Blk->GetPosFromIndex(&Cursor->Pos, &Cursor->Line, Cursor->Offset);
+		if (Select)
+			InvalidRc.Union(&Cursor->Line);
+		else
+			View->Invalidate(&Cursor->Pos);
+		
+		if (InvalidRc.Valid())
+		{
+			// Update the screen
+			View->Invalidate(&InvalidRc);
+		}
+
+		return true;
+	}
+
+	GRect SelectionRect()
+	{
+		GRect SelRc;
+		if (Cursor)
+		{
+			SelRc = Cursor->Line;
+			if (Selection)
+				SelRc.Union(&Selection->Line);
+		}
+		else if (Selection)
+		{
+			SelRc = Selection->Line;
+		}
+		return SelRc;
+	}
+
+	int IndexOfCursor(BlockCursor *c)
+	{
+		if (!c)
+			return -1;
+
+		int CharPos = 0;
+		for (unsigned i=0; i<Blocks.Length(); i++)
+		{
+			Block *b = Blocks[i];
+			if (c->Blk == b)
+				return CharPos + c->Offset;			
+			CharPos += b->Length();
+		}
+		
+		LgiAssert(0);
+		return -1;
+	}
+	
+	int HitTest(int x, int y)
+	{
+		int CharPos = 0;
+		HitTestResult r(x, y);
+		
+		for (unsigned i=0; i<Blocks.Length(); i++)
+		{
+			Block *b = Blocks[i];
+			if (b->HitTest(r))
+				return CharPos + r.Idx;
+			
+			CharPos += b->Length();
+		}
+		
+		return -1;
+	}
+
+	Block *GetBlockByIndex(int Index, int *Offset = NULL)
+	{
+		int CharPos = 0;
+		
+		for (unsigned i=0; i<Blocks.Length(); i++)
+		{
+			Block *b = Blocks[i];
+			if (Index >= CharPos &&
+				Index < CharPos + b->Length())
+			{
+				if (Offset)
+					*Offset = Index - CharPos;
+				return b;
+			}
+			
+			CharPos += b->Length();
+		}
+		
+		return NULL;
+	}
+	
+	void Layout(GRect &Client)
+	{
+		Flow f(this);
+		
+		f.Left = Client.x1;
+		f.Right = Client.x2;
+		f.CurY = Client.y1;
+		
+		for (unsigned i=0; i<Blocks.Length(); i++)
+		{
+			Blocks[i]->OnLayout(f);
+		}
+		
+		if (Cursor)
+		{
+			LgiAssert(Cursor->Blk != NULL);
+			if (Cursor->Blk)
+				Cursor->Blk->GetPosFromIndex(&Cursor->Pos,
+											 &Cursor->Line,
+											 Cursor->Offset);
+		}
+	}
+	
+	void Paint(GSurface *pDC)
+	{
+		PaintContext Ctx;
+		
+		Ctx.pDC = pDC;
+		Ctx.Cursor = Cursor;
+		Ctx.Select = Selection;
+		Ctx.Colours[Unselected].Fore.Set(LC_TEXT, 24);
+		Ctx.Colours[Unselected].Back.Set(LC_WORKSPACE, 24);		
+		
+		if (View->Focus())
+		{
+			Ctx.Colours[Selected].Fore.Set(LC_FOCUS_SEL_FORE, 24);
+			Ctx.Colours[Selected].Back.Set(LC_FOCUS_SEL_BACK, 24);
+		}
+		else
+		{
+			Ctx.Colours[Selected].Fore.Set(LC_NON_FOCUS_SEL_FORE, 24);
+			Ctx.Colours[Selected].Back.Set(LC_NON_FOCUS_SEL_BACK, 24);
+		}
+		
+		for (unsigned i=0; i<Blocks.Length(); i++)
+		{
+			Block *b = Blocks[i];
+			if (b)
+				b->OnPaint(Ctx);
+		}
+	}
+	
+	GHtmlElement *CreateElement(GHtmlElement *Parent)
+	{
+		return new GText4Elem(Parent);
+	}
+	
+	struct CreateContext
+	{
+		TextBlock *Tb;
+		GArray<char16> Buf;
+		
+		CreateContext()
+		{
+			Tb = NULL;
+		}
+		
+		void AddText(GNamedStyle *Style, char16 *Str)
+		{
+			if (!Str || !Tb)
+				return;
+			
+			int Used = 0;
+			char16 *s = Str;
+			char16 *e = s + StrlenW(s);
+			while (s < e)
+			{
+				if (*s == '\r')
+				{
+					s++;
+					continue;
+				}
+				
+				if (IsWhiteSpace(*s))
+				{
+					Buf[Used++] = ' ';
+					while (s < e && IsWhiteSpace(*s))
+						s++;
+				}
+				else
+				{
+					Buf[Used++] = *s++;
+					while (s < e && !IsWhiteSpace(*s))
+					{
+						Buf[Used++] = *s++;
+					}
+				}
+			}
+			
+			Tb->AddText(Style, &Buf[0], Used);
+		}
+	};
+
+	bool CreateFromHtml(GHtmlElement *e, CreateContext &ctx)
+	{
+		for (unsigned i = 0; i < e->Children.Length(); i++)
+		{
+			GHtmlElement *c = e->Children[i];
+			GAutoPtr<GCss> Style;
+
+			switch (c->TagId)
+			{
+				case TAG_B:
+				{
+					if (Style.Reset(new GCss))
+						Style->FontWeight(GCss::FontWeightBold);
+					break;
+				}
+				case TAG_BR:
+				{
+					if (!ctx.Tb)
+						Blocks.Add(ctx.Tb = new TextBlock);
+					if (ctx.Tb)
+						ctx.Tb->AddText(NULL, L"\n");
+					break;
+				}
+				case TAG_IMG:
+				{
+					ctx.Tb = NULL;
+					
+					const char *Src = NULL;
+					if (e->Get("src", Src))
+					{
+						/*
+						ImageBlock *Ib = new ImageBlock;
+						if (Ib)
+						{
+							Ib->Src = Src;
+							Blocks.Add(Ib);
+						}
+						*/
+					}
+					break;
+				}
+				default:
+				{
+					break;
+				}
+			}
+			
+			const char *Css;
+			if (c->Get("style", Css))
+			{
+				if (!Style)
+					Style.Reset(new GCss);
+				if (Style)
+					Style->Parse(Css);
+			}
+
+			if (c->GetText())
+			{
+				if (!ctx.Tb)
+					Blocks.Add(ctx.Tb = new TextBlock);
+				ctx.AddText(AddStyleToCache(Style), c->GetText());
+			}
+			
+			if (!CreateFromHtml(c, ctx))
+				return false;
+		}
+		
+		return true;
 	}
 };
 
@@ -184,8 +1715,6 @@ class GTextView4Undo : public GUndoEvent
 {
 	GTextView4 *View;
 	UndoType Type;
-	int At;
-	char16 *Text;
 
 public:
 	GTextView4Undo(	GTextView4 *view,
@@ -196,97 +1725,25 @@ public:
 	{
 		View = view;
 		Type = type;
-		At = at;
-		Text = NewStrW(t, len);
 	}
 
 	~GTextView4Undo()
 	{
-		DeleteArray(Text);
 	}
 
 	void OnChange()
 	{
-		int Len = StrlenW(Text);
-		if (View->Text)
-		{
-			char16 *t = View->Text + At;
-			for (int i=0; i<Len; i++)
-			{
-				char16 n = Text[i];
-				Text[i] = t[i];
-				t[i] = n;
-			}
-		}
-
-		View->d->SetDirty(At, Len);
 	}
 
 	// GUndoEvent
     void ApplyChange()
 	{
-		View->UndoOn = false;
-
-		switch (Type)
-		{
-			case UndoInsert:
-			{
-				int Len = StrlenW(Text);
-				View->Insert(At, Text, Len);
-				View->Cursor = At + Len;
-				break;
-			}
-			case UndoDelete:
-			{
-				View->Delete(At, StrlenW(Text));
-				View->Cursor = At;
-				break;
-			}
-			case UndoChange:
-			{
-				OnChange();
-				break;
-			}
-		}
-
-		View->UndoOn = true;
-		View->Invalidate();
 	}
 
     void RemoveChange()
 	{
-		View->UndoOn = false;
-
-		switch (Type)
-		{
-			case UndoInsert:
-			{
-				View->Delete(At, StrlenW(Text));
-				break;
-			}
-			case UndoDelete:
-			{
-				View->Insert(At, Text, StrlenW(Text));
-				break;
-			}
-			case UndoChange:
-			{
-				OnChange();				
-				break;
-			}
-		}
-
-		View->Cursor = At;
-		View->UndoOn = true;
-		View->Invalidate();
 	}
 };
-
-void GTextView4::GStyle::RefreshLayout(int Start, int Len)
-{
-	View->PourText(Start, Len);
-	View->PourStyle(Start, Len);
-}
 
 //////////////////////////////////////////////////////////////////////
 GTextView4::GTextView4(	int Id,
@@ -295,166 +1752,51 @@ GTextView4::GTextView4(	int Id,
 	: ResObject(Res_Custom)
 {
 	// init vars
-	GView::d->Css.Reset(d = new GTextView4Private(this));
+	GView::d->Css.Reset(d = new GTv4Priv(this));
 	
-	LineY = 1;
-	MaxX = 0;
-	Blink = true;
-	TextCache = 0;
-	UndoOn = true;
-	Font = 0;
-	FixedWidthFont = false;
-	FixedFont = 0;
-	ShowWhiteSpace = false;
-	ObscurePassword = false;
-	TabSize = TAB_SIZE;
-	IndentSize = TAB_SIZE;
-	HardTabs = true;
-	CanScrollX = false;
-
 	// setup window
 	SetId(Id);
 
 	// default options
-	Dirty = false;
 	#if WINNATIVE
 	CrLf = true;
 	SetDlgCode(DLGC_WANTALLKEYS);
 	#else
 	CrLf = false;
 	#endif
-	Underline = 0;
 	BackColour = LC_WORKSPACE;
-	d->Padding(GCss::Len(GCss::LenPx, 2));
+	d->Padding(GCss::Len(GCss::LenPx, 4));
+	d->BackgroundColor(GCss::ColorDef(GCss::ColorRgb, Rgb24To32(LC_WORKSPACE)));
+	SetFont(SysFont);
 
 	#ifdef _DEBUG
-	// debug times
-	_PourTime = 0;
-	_StyleTime = 0;
-	_PaintTime = 0;
+	Name("<html>\n"
+		"<body>\n"
+		"	This is some <b style='font-size: 20pt; color: green;'>bold text</b> to test with.<br>\n"
+		"   A second line of text for testing.\n"
+		"</body>\n"
+		"</html>\n");
 	#endif
-
-	// Data
-	Alloc = ALLOC_BLOCK;
-	Text = new char16[Alloc];
-	if (Text) *Text = 0;
-	Cursor = 0;
-	Size = 0;
-
-	// Display
-	SelStart = SelEnd = -1;
-	DocOffset = 0;
-	ScrollX = 0;
-
-	if (FontType)
-	{
-		Font = FontType->Create();
-	}
-	else
-	{
-		GFontType Type;
-		if (Type.GetSystemFont("Fixed"))
-			Font = Type.Create();
-		else
-			printf("%s:%i - failed to create font.\n", _FL);
-	}
-
-	if (Font)
-	{
-		SetTabStop(true);
-
-		Underline = new GFont;
-		if (Underline)
-		{
-			*Underline = *Font;
-			Underline->Underline(true);
-			if (d->UrlColour.IsValid())
-				Underline->Fore(d->UrlColour.c24());
-			Underline->Create();
-		}
-
-		OnFontChange();
-	}
-	else
-	{
-		LgiTrace("%s:%i - Failed to create font, FontType=%p\n", _FL, FontType);
-		Font = SysFont;
-	}
-
-	CursorPos.ZOff(1, LineY-1);
-	CursorPos.Offset(d->rPadding.x1, d->rPadding.y1);
-
-	GRect r;
-	r.ZOff(cx-1, cy-1);
-	r.Offset(x, y);
-	SetPos(r);
 }
 
 GTextView4::~GTextView4()
 {
-	Line.DeleteObjects();
-	Style.DeleteObjects();
+	// 'd' is owned by the GView CSS autoptr.
+}
 
-	DeleteArray(TextCache);
-	DeleteArray(Text);
+bool GTextView4::IsDirty()
+{
+	return false;
+}
 
-	if (Font != SysFont) DeleteObj(Font);
-	DeleteObj(FixedFont);
-	DeleteObj(Underline);
-	// 'd' is owned by the GView::Css auto ptr
+void GTextView4::IsDirty(bool d)
+{
 }
 
 char16 *GTextView4::MapText(char16 *Str, int Len, bool RtlTrailingSpace)
 {
 	if (ObscurePassword || ShowWhiteSpace || RtlTrailingSpace)
 	{
-		if (Len > d->MapLen)
-		{
-			DeleteArray(d->MapBuf);
-			d->MapBuf = new char16[Len + RtlTrailingSpace];
-			d->MapLen = Len;
-		}
-
-		if (d->MapBuf)
-		{
-			int n = 0;
-
-			if (RtlTrailingSpace)
-			{
-				d->MapBuf[n++] = ' ';
-				for (int i=0; i<Len; i++)
-				{
-					d->MapBuf[n++] = Str[i];
-				}
-			}
-			else if (ObscurePassword)
-			{
-				for (int i=0; i<Len; i++)
-				{
-					d->MapBuf[n++] = '*';
-				}
-			}
-			else if (ShowWhiteSpace)
-			{
-				for (int i=0; i<Len; i++)
-				{
-					if (Str[i] == ' ')
-					{
-						d->MapBuf[n++] = 0xb7;
-					}
-					else if (Str[i] == '\t')
-					{
-						d->MapBuf[n++] = 0x2192;
-					}
-					else
-					{
-						d->MapBuf[n++] = Str[i];
-					}
-				}
-			}
-
-			return d->MapBuf;
-		}
 	}
 
 	return Str;
@@ -469,28 +1811,8 @@ void GTextView4::SetFixedWidthFont(bool i)
 			GFontType Type;
 			if (Type.GetSystemFont("Fixed"))
 			{
-				GFont *f = FixedFont;
-				FixedFont = Font;
-				Font = f;
-
-				if (!Font)
-				{
-					Font = Type.Create();
-					if (Font)
-					{
-						Font->PointSize(FixedFont->PointSize());
-					}
-				}
-
 				GDocView::SetFixedWidthFont(i);
 			}
-		}
-		else if (FixedFont)
-		{
-			GFont *f = FixedFont;
-			FixedFont = Font;
-			Font = f;
-			GDocView::SetFixedWidthFont(i);
 		}
 
 		OnFontChange();
@@ -518,7 +1840,6 @@ void GTextView4::SetTabSize(uint8 i)
 void GTextView4::SetWrapType(uint8 i)
 {
 	GDocView::SetWrapType(i);
-	CanScrollX = i != TEXTED_WRAP_REFLOW;
 
 	OnPosChange();
 	Invalidate();
@@ -526,7 +1847,7 @@ void GTextView4::SetWrapType(uint8 i)
 
 GFont *GTextView4::GetFont()
 {
-	return Font;
+	return d->Font;
 }
 
 void GTextView4::SetFont(GFont *f, bool OwnIt)
@@ -536,982 +1857,41 @@ void GTextView4::SetFont(GFont *f, bool OwnIt)
 	
 	if (OwnIt)
 	{
-		DeleteObj(Font);
-		Font = f;
+		d->Font.Reset(f);
 	}
-	else if (!Font || Font == SysFont)
-	{
-		Font = new GFont(*f);
+	else if (d->Font.Reset(new GFont))
+	{		
+		*d->Font = *f;
+		d->Font->Create(NULL, 0, 0);
 	}
-	else
-	{
-		*Font = *f;
-	}
-
-	if (Font)
-	{
-		if (!Underline)
-			Underline = new GFont;
-		*Underline = *Font;
-		Underline->Underline(true);
-		
-		if (d->UrlColour.IsValid())
-			Underline->Fore(d->UrlColour.c24());
-	}
-
+	
 	OnFontChange();
 }
 
 void GTextView4::OnFontChange()
 {
-	if (Font)
-	{
-		// get line height
-		// int OldLineY = LineY;
-		if (!Font->Handle())
-			Font->Create();
-		LineY = Font->GetHeight();
-		if (LineY < 1) LineY = 1;
-
-		// get tab size
-		char Spaces[32];
-		memset(Spaces, 'A', TabSize);
-		Spaces[TabSize] = 0;
-		GDisplayString ds(Font, Spaces);
-		Font->TabSize(ds.X());
-
-		// repour doc
-		d->SetDirty(0, Size);
-
-		// validate blue underline font
-		if (Underline)
-		{
-			*Underline = *Font;
-			Underline->Underline(true);
-			Underline->Create();
-		}
-
-		#if WINNATIVE // Set the IME font.
-		HIMC hIMC = ImmGetContext(Handle());
-		if (hIMC)
-		{
-			COMPOSITIONFORM Cf;						
-			Cf.dwStyle = CFS_POINT;
-			Cf.ptCurrentPos.x = CursorPos.x1;
-			Cf.ptCurrentPos.y = CursorPos.y1;
-
-			LOGFONT FontInfo;
-			GetObject(Font->Handle(), sizeof(FontInfo), &FontInfo);
-			ImmSetCompositionFont(hIMC, &FontInfo);
-
-			ImmReleaseContext(Handle(), hIMC);
-		}
-		#endif
-
-	}
 }
 
 void GTextView4::PourText(int Start, int Length /* == 0 means it's a delete */)
 {
-	#if PROFILE_POUR
-	int StartTime = LgiCurrentTime();
-	#endif
-
-	GRect Client = GetClient();
-	int Mx = Client.X() - d->rPadding.x1 - d->rPadding.x2;
-
-	MaxX = 0;
-
-	int Cx = 0, Cy = 0;
-	bool SimplePour = d->SimpleDelete; // One line change
-	int CurrentLine = -1;
-	if (d->SimpleDelete || Start)
-	{
-		d->SimpleDelete = false;
-		if (!SimplePour &&
-			WrapType == TEXTED_WRAP_NONE &&
-			Length > 0 &&
-			Length < 100)
-		{
-			SimplePour = true;
-			for (int i=0; i<Length; i++)
-			{
-				if (Text[Start + i] == '\n')
-				{
-					SimplePour = false;
-					break;
-				}
-			}
-		}
-		
-		// Get the line of the change
-		GTextLine *Current = GetTextLine(Start, &CurrentLine);
-		
-		LgiAssert(Current != 0);
-		LgiAssert(CurrentLine >= 0);
-		
-		if (!Current)
-		{
-			SimplePour = false;
-		}
-		else
-		{		
-			Start = Current->Start;
-			Cy = Current->r.y1;
-			
-			if (SimplePour)
-			{
-				#if POUR_DEBUG
-				printf("SimplePour Start=%i Length=%i CurrentLine=%i\n", Start, Length, CurrentLine);
-				#endif
-				Line.Delete(Current);
-				DeleteObj(Current);
-			}
-			else
-			{
-				#if POUR_DEBUG
-				printf("PartialPour Start=%i Length=%i\n", Start, Length);
-				#endif
-				bool Done = false;
-				for (GTextLine *l=Line.Last(); l && !Done; l=Line.Last())
-				{
-					Done = l == Current;
-					Line.Delete(l);
-					DeleteObj(l);
-				}
-			}
-		}
-	}
-	else
-	{
-		// Whole doc is dirty
-		#if POUR_DEBUG
-		printf("WholePour Start=%i Length=%i\n", Start, Length);
-		#endif
-		Start = 0;
-		Line.DeleteObjects();
-	}
-
-	if (Text && Font && Mx > 0)
-	{
-		// break array, break out of loop when we hit these chars
-		#define ExitLoop(c)	(	(c) == 0 ||								\
-								(c) == '\n' ||							\
-								(c) == ' ' ||							\
-								(c) == '\t'								\
-							)
-
-		// extra breaking oportunities
-		#define ExtraBreak(c) (	( (c) >= 0x3040 && (c) <= 0x30FF ) ||	\
-								( (c) >= 0x3300 && (c) <= 0x9FAF )		\
-							)
-
-		// tracking vars
-		int e;
-		int LastX = 0;
-		int LastChar = Start;
-		int WrapCol = GetWrapAtCol();
-
-		GDisplayString Sp(Font, " ", 1);
-		int WidthOfSpace = Sp.X();
-		if (WidthOfSpace < 1)
-		{
-			printf("%s:%i - WidthOfSpace test failed.\n", _FL);
-			return;
-		}
-
-		// alright... lets pour!
-		for (int i=Start; i<Size; i = e)
-		{
-			// seek till next char of interest
-			if (WrapType == TEXTED_WRAP_NONE)
-			{
-				// Seek line/doc end
-				char16 *End;
-				for (End = Text + i; *End && *End != '\n'; End++);
-				e = (int)SubtractPtr(End, Text);
-				GDisplayString ds(Font, Text + i, e - i);
-				Cx = ds.X();
-
-				// Alloc line
-				GTextLine *l = new GTextLine;
-				if (l)
-				{
-					l->Start = LastChar;
-					l->r.x1 = d->rPadding.x1;
-					l->Len = e - LastChar;
-					l->r.x2 = l->r.x1 + Cx;
-					LastChar = ++e;
-
-					l->r.y1 = Cy;
-					l->r.y2 = l->r.y1 + LineY - 1;
-
-					Line.Insert(l, SimplePour ? CurrentLine : -1);
-
-					MaxX = max(MaxX, l->r.X());
-					LastX = Cx = 0;
-					Cy += LineY;
-				}
-				else break;
-				
-				if (SimplePour)
-				{
-					for (l=Line[++CurrentLine]; l; l=Line.Next())
-					{
-						l->Start += Length;
-					}
-					break;
-				}
-			}
-			else
-			{
-				e = i;
-				int	Width = 0;
-
-				// Find break point
-				if (WrapCol)
-				{
-					// Wrap at column
-					
-					// Find the end of line
-					while (true)
-					{
-						if (e >= Size ||
-							Text[e] == '\n' ||
-							(e-i) >= WrapCol)
-						{
-							break;
-						}
-
-						e++;
-					}
-
-					// Seek back some characters if we are mid word
-					int OldE = e;
-					if (e < Size &&
-						Text[e] != '\n')
-					{
-						while (e > i)
-						{
-							if (ExitLoop(Text[e]) ||
-								ExtraBreak(Text[e]))
-							{
-								break;
-							}
-
-							e--;
-						}
-					}
-
-					if (e == i)
-					{
-						// No line break at all, so seek forward instead
-						for (e=OldE; e < Size && Text[e] != '\n'; e++)
-						{
-							if (ExitLoop(Text[e]) ||
-								ExtraBreak(Text[e]))
-								break;
-						}
-					}
-
-					// Calc the width
-					GDisplayString ds(Font, Text + i, e - i);
-					Width = ds.X();
-				}
-				else
-				{
-					// Wrap to edge of screen
-					int PrevExitChar = -1;
-					int PrevX = -1;
-
-					while (true)
-					{
-						if (e >= Size ||
-							ExitLoop(Text[e]) ||
-							ExtraBreak(Text[e]))
-						{
-							GDisplayString ds(Font, Text + i, e - i);
-							if (ds.X() + Cx > Mx)
-							{
-								if (PrevExitChar > 0)
-								{
-									e = PrevExitChar;
-									Width = PrevX;
-								}
-								else
-								{
-									Width = ds.X();
-								}
-								break;
-							}
-							else if (e >= Size ||
-									Text[e] == '\n')							
-							{
-								Width = ds.X();
-								break;
-							}
-							
-							PrevExitChar = e;
-							PrevX = ds.X();
-						}
-						
-						e++;
-					}
-				}
-
-				// Create layout line
-				GTextLine *l = new GTextLine;
-				if (l)
-				{
-					l->Start = i;
-					l->Len = e - i;
-					l->r.x1 = d->rPadding.x1;
-					l->r.x2 = l->r.x1 + Width - 1;
-
-					l->r.y1 = Cy;
-					l->r.y2 = l->r.y1 + LineY - 1;
-
-					Line.Insert(l);
-					
-					MaxX = max(MaxX, l->r.X());
-					Cy += LineY;
-					
-					if (e < Size)
-						e++;
-				}
-			}
-		}
-	}
-
-	GTextLine *Last = Line.Length() ? Line.Last() : 0;
-	if (!Last ||
-		Last->Start + Last->Len < Size)
-	{
-		GTextLine *l = new GTextLine;
-		if (l)
-		{
-			l->Start = Size;
-			l->Len = 0;
-			l->r.x1 = l->r.x2 = d->rPadding.x1;
-			l->r.y1 = Cy;
-			l->r.y2 = l->r.y1 + LineY - 1;
-
-			Line.Insert(l);
-			
-			MaxX = max(MaxX, l->r.X());
-			Cy += LineY;
-		}
-	}
-
-	bool ScrollYNeeded = Client.Y() < (Line.Length() * LineY);
-	bool ScrollChange = ScrollYNeeded ^ (VScroll != NULL);
-	d->LayoutDirty = ScrollChange;
-	if (ScrollChange)
-	{
-		// printf("%s:%i - SetScrollBars(%i)\n", _FL, ScrollYNeeded);
-		SetScrollBars(false, ScrollYNeeded);
-	}
-	UpdateScrollBars();
-	
-	#if PROFILE_POUR
-	int _PourTime = LgiCurrentTime() - StartTime;
-	printf("TextPour: %i ms, %i lines\n", _PourTime, Line.Length());
-	#endif
-	#ifdef _DEBUG
-	if (GetWindow())
-	{
-		static char s[256];
-		sprintf_s(s, sizeof(s), "Pour: %.2f sec", (double)_PourTime / 1000);
-		GetWindow()->PostEvent(M_TEXTVIEW_DEBUG_TEXT, (GMessage::Param)s);
-	}
-	#endif
-//	printf("PourTime=%ims\n", _PourTime);
-
-	#if POUR_DEBUG
-	printf("Lines=%i\n", Line.Length());
-	int Index = 0;
-	for (GTextLine *l=Line.First(); l; l=Line.Next(), Index++)
-	{
-		printf("\t[%i] %i,%i (%s)\n", Index, l->Start, l->Len, l->r.Describe());
-	}
-	#endif
-}
-
-bool GTextView4::InsertStyle(GAutoPtr<GStyle> s)
-{
-	if (!s)
-		return false;
-
-	LgiAssert(s->Start >= 0);
-	LgiAssert(s->Len > 0);
-	int Last = 0;
-	int n = 0;
-
-	for (GStyle *i=Style.First(); i; i=Style.Next(), n++)
-	{
-		if (s->Overlap(i))
-		{
-			if (s->Owner > i->Owner)
-			{
-				// Fail the insert
-				return false;
-			}
-			else
-			{
-				// Replace mode...
-				Style.Delete(i);
-				Style.Insert(s.Release(), n);
-				return true;
-			}
-		}
-
-		if (s->Start >= Last && s->Start < i->Start)
-		{
-			Style.Insert(s.Release(), n);
-			return true;
-		}
-
-		Last = i->Start;
-	}
-
-	Style.Insert(s.Release());
-	return true;
-}
-
-GTextView4::GStyle *GTextView4::GetNextStyle(int Where)
-{
-	GStyle *s = (Where >= 0) ? Style.First() : Style.Next();
-	while (s)
-	{
-		// determin whether style is relevent..
-		// styles in the selected region are ignored
-		int Min = min(SelStart, SelEnd);
-		int Max = max(SelStart, SelEnd);
-		if (SelStart >= 0 &&
-			s->Start >= Min &&
-			s->Start+s->Len < Max)
-		{
-			// style is completely inside selection: ignore
-			s = Style.Next();
-		}
-		else if (Where >= 0 &&
-			s->Start+s->Len < Where)
-		{
-			s = Style.Next();
-		}
-		else
-		{
-			return s;
-		}
-	}
-
-	return 0;
-}
-
-class GUrl : public GTextView4::GStyle
-{
-public:
-	bool Email;
-
-	GUrl(int own) : GStyle(own)
-	{
-		Email = false;
-	}
-
-	bool OnMouseClick(GMouse *m)
-	{
-		if (View)
-		{
-			if ( (m && m->Left() && m->Double()) || (!m) )
-			{
-				char *Utf8 = LgiNewUtf16To8(View->NameW() + Start, Len * sizeof(char16));
-				if (Utf8)
-				{
-					View->OnUrl(Utf8);
-					DeleteArray(Utf8);
-				}
-				
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	bool OnMenu(GSubMenu *m)
-	{
-		if (m)
-		{
-			if (Email)
-			{
-				m->AppendItem(LgiLoadString(L_TEXTCTRL_EMAIL_TO, "New Email to..."), IDM_NEW, true);
-			}
-			else
-			{
-				m->AppendItem(LgiLoadString(L_TEXTCTRL_OPENURL, "Open URL"), IDM_OPEN, true);
-			}
-
-			m->AppendItem(LgiLoadString(L_TEXTCTRL_COPYLINK, "Copy link location"), IDM_COPY_URL, true);
-
-			return true;
-		}
-
-		return false;
-	}
-
-	void OnMenuClick(int i)
-	{
-		switch (i)
-		{
-			case IDM_NEW:
-			case IDM_OPEN:
-			{
-				OnMouseClick(0);
-				break;
-			}
-			case IDM_COPY_URL:
-			{
-				char *Url = LgiNewUtf16To8(View->NameW() + Start, Len * sizeof(char16));
-				if (Url)
-				{
-					GClipBoard Clip(View);
-					Clip.Text(Url);
-					DeleteArray(Url);
-				}
-				break;
-			}
-		}
-	}
-
-	TCHAR *GetCursor()
-	{
-		#ifdef WIN32
-		GArray<int> Ver;
-		int Os = LgiGetOs(&Ver);
-		if ((Os == LGI_OS_WIN32 || Os == LGI_OS_WIN64) &&
-			Ver[0] >= 5)
-		{
-			return MAKEINTRESOURCE(32649); // hand
-		}
-		else
-		{
-			return IDC_ARROW;
-		}
-		#endif
-		return 0;
-	}
-};
-
-GTextView4::GStyle *GTextView4::HitStyle(int i)
-{
-	for (GStyle *s=Style.First(); s; s=Style.Next())
-	{
-		if (i >= s->Start && i < s->Start+s->Len)
-		{
-			return s;
-		}
-	}
-
-	return 0;	
 }
 
 void GTextView4::PourStyle(int Start, int EditSize)
 {
-	#ifdef _DEBUG
-	int64 StartTime = LgiCurrentTime();
-	#endif
-
-	if (!Text || Size < 1)
-		return;
-
-	int Length = max(EditSize, 0);
-
-	// Expand re-style are to word boundaries before and after the area of change
-	while (Start > 0 && UrlChar(Text[Start-1]))
-	{
-		// Move the start back
-		Start--;
-		Length++;
-	}
-	while (Start + Length < Size && UrlChar(Text[Start+Length]))
-	{
-		// Move the end back
-		Length++;
-	}
-
-	// Delete all the styles that we own inside the changed area
-	for (GStyle *s = Style.First(); s; )
-	{
-		if (s->Owner == 0)
-		{
-			if (EditSize > 0)
-			{
-				if (s->Start > Start)
-				{
-					s->Start += EditSize;
-				}
-
-				if (s->Overlap(Start, abs(EditSize)))
-				{
-					Style.Delete();
-					DeleteObj(s);
-					s = Style.Current();
-					continue;
-				}
-			}
-			else
-			{
-				if (s->Overlap(Start, -EditSize))
-				{
-					Style.Delete();
-					DeleteObj(s);
-					s = Style.Current();
-					continue;
-				}
-				
-				if (s->Start > Start)
-				{
-					s->Start += EditSize;
-				}
-			}
-		}
-		
-		s = Style.Next();
-	}
-
-	if (UrlDetect)
-	{
-		#if 1
-		
-		GArray<GLinkInfo> Links;
-		if (LgiDetectLinks(Links, Text + Start, Length))
-		{
-			for (uint32 i=0; i<Links.Length(); i++)
-			{
-				GLinkInfo &Inf = Links[i];
-				GUrl *Url;
-                GAutoPtr<GTextView4::GStyle> a(Url = new GUrl(0));
-				if (Url)
-				{
-					Url->View = this;
-					Url->Start = (int) (Inf.Start + Start);
-					Url->Len = Inf.Len;
-					Url->Email = Inf.Email;
-					Url->Font = Underline;
-					Url->c = d->UrlColour;
-
-					InsertStyle(a);
-				}
-			}
-		}
-
-		#else
-
-		char16 Http[] = {'h', 't', 't', 'p', ':', '/', '/', 0 };
-		char16 Https[] = {'h', 't', 't', 'p', 's', ':', '/', '/', 0};
-
-		for (int i=0; i<Size; i++)
-		{
-			switch (Text[i])
-			{
-				case 'h':
-				case 'H':
-				{
-					if (StrnicmpW(Text+i, Http, 6) == 0 ||
-						StrnicmpW(Text+i, Https, 7) == 0)
-					{
-						// find end
-						char16 *s = Text + i;
-						char16 *e = s + 6;
-						for ( ; (SubtractPtr(e, Text) < Size) && 
-								UrlChar(*e); e++);
-						
-						while
-						(
-							e > s &&
-							!
-							(
-								IsAlpha(e[-1]) ||
-								IsDigit(e[-1]) ||
-								e[-1] == '/'
-							)
-						)
-							e--;
-
-						GUrl *Url = new GUrl(0);
-						if (Url)
-						{
-							Url->Email = false;
-							Url->View = this;
-							Url->Start = SubtractPtr(s, Text);
-							Url->Len = SubtractPtr(e, s);
-							Url->Font = Underline;
-							Url->c = d->UrlColour;
-
-							InsertStyle(Url);
-						}
-						i = SubtractPtr(e, Text);
-					}
-					break;
-				}
-				case '@':
-				{
-					// find start
-					char16 *s = Text + (max(i, 1) - 1);
-					
-					for ( ; s > Text && EmailChar(*s); s--)
-						;
-
-					if (s < Text + i)
-					{
-						if (!EmailChar(*s))
-							s++;
-
-						bool FoundDot = false;
-						char16 *Start = Text + i + 1;
-						char16 *e = Start;
-						for ( ; (SubtractPtr(e, Text) < Size) && 
-								EmailChar(*e); e++)
-						{
-							if (*e == '.') FoundDot = true;
-						}
-						while (e > Start && e[-1] == '.') e--;
-
-						if (FoundDot)
-						{
-							GUrl *Url = new GUrl(0);
-							if (Url)
-							{
-								Url->Email = true;
-								Url->View = this;
-								Url->Start = SubtractPtr(s, Text);
-								Url->Len = SubtractPtr(e, s);
-								Url->Font = Underline;
-								Url->c = d->UrlColour;
-
-								InsertStyle(Url);
-							}
-							i = SubtractPtr(e, Text);
-						}
-					}
-					break;
-				}
-			}
-		}
-
-		#endif
-	}
-
-	#ifdef _DEBUG
-	_StyleTime = LgiCurrentTime() - StartTime;
-	#endif
 }
 
 bool GTextView4::Insert(int At, char16 *Data, int Len)
 {
-	if (!ReadOnly && Len > 0)
-	{
-		// limit input to valid data
-		At = min(Size, At);
-
-		// make sure we have enough memory
-		int NewAlloc = Size + Len + 1;
-		NewAlloc += ALLOC_BLOCK - (NewAlloc % ALLOC_BLOCK);
-		if (NewAlloc != Alloc)
-		{
-			char16 *NewText = new char16[NewAlloc];
-			if (NewText)
-			{
-				if (Text)
-				{
-					// copy any existing data across
-					memcpy(NewText, Text, (Size + 1) * sizeof(char16));
-				}
-
-				DeleteArray(Text);
-				Text = NewText;
-				Alloc = NewAlloc;
-			}
-			else
-			{
-				// memory allocation error
-				return false;
-			}
-		}
-
-		if (Text)
-		{
-			// insert the data
-			// move the section after the insert
-			memmove(Text+(At+Len), Text+At, (Size-At) * sizeof(char16));
-
-			if (Data)
-			{
-				// copy new data in
-				if (UndoOn)
-				{
-					UndoQue += new GTextView4Undo(this, Data, Len, At, UndoInsert);
-				}
-
-				memcpy(Text+At, Data, Len * sizeof(char16));
-				Size += Len;
-			}
-			else
-			{
-				return false;
-			}
-
-			Text[Size] = 0;
-			Dirty = true;
-			PourText(At, Len);
-			PourStyle(At, Len);
-			SendNotify(GNotifyDocChanged);
-
-			return true;
-		}
-	}
-
 	return false;
 }
 
 bool GTextView4::Delete(int At, int Len)
 {
-	bool Status = false;
-
-	if (!ReadOnly)
-	{
-		// limit input
-		At = max(At, 0);
-		At = min(At, Size);
-		Len = min(Size-At, Len);
-
-		if (Len > 0)
-		{
-			bool HasNewLine = false;
-			for (int i=0; i<Len; i++)
-			{
-				if (Text[At + i] == '\n')
-				{
-					HasNewLine = true;
-					break;
-				}
-			}
-
-			int PrevLineStart = -1;
-			int NextLineStart = -1;
-			if (WrapType == TEXTED_WRAP_NONE)
-			{
-				d->SimpleDelete = !HasNewLine;
-			}
-			else
-			{
-				int Index;
-				GTextLine *Cur = GetTextLine(At, &Index);
-				if (Cur)
-				{
-					GTextLine *Prev = Line[Index-1];
-					PrevLineStart = Prev ? Prev->Start : -1;
-					GTextLine *Next = Line[Index+1];
-					NextLineStart = Next ? Next->Start : -1;
-				}
-			}
-			
-			// do delete
-			if (UndoOn)
-			{
-				UndoQue += new GTextView4Undo(this, Text+At, Len, At, UndoDelete);
-			}
-
-			memmove(Text+At, Text+(At+Len), (Size-At-Len) * sizeof(char16));
-			Size -= Len;
-			Text[Size] = 0;
-
-			Dirty = true;
-			Status = true;
-			PourText(At, -Len);
-			PourStyle(At, -Len);
-			
-			if (Cursor >= At && Cursor <= At + Len)
-			{
-				SetCursor(At, false, HasNewLine);
-			}
-
-			// Handle repainting in flowed mode, when the line starts change
-			if (WrapType == TEXTED_WRAP_REFLOW)
-			{
-				int Index;
-				GTextLine *Cur = GetTextLine(At, &Index);
-				if (Cur)
-				{
-					GTextLine *Repaint = 0;
-					GTextLine *Prev = Line[Index-1];
-					if (Prev && PrevLineStart != Prev->Start)
-					{
-						// Paint previous line down
-						Repaint = Prev;
-					}
-					else
-					{
-						GTextLine *Next = Line[Index+1];
-						if (Next && NextLineStart != Next->Start)
-						{
-							// Paint next line down
-							Repaint = Next;
-						}
-					}
-					
-					if (Repaint)
-					{
-						GRect r = Repaint->r;
-						r.x2 = GetClient().x2;
-						r.y2 = GetClient().y2;
-						Invalidate(&r);
-					}
-				}
-			}
-
-			SendNotify(GNotifyDocChanged);
-			Status = true;
-		}
-	}
-
-	return Status;
+	return false;
 }
 
 void GTextView4::DeleteSelection(char16 **Cut)
 {
-	if (SelStart >= 0)
-	{
-		int Min = min(SelStart, SelEnd);
-		int Max = max(SelStart, SelEnd);
-
-		if (Cut)
-		{
-			*Cut = NewStrW(Text + Min, Max - Min);
-		}
-
-		Delete(Min, Max - Min);
-		SetCursor(Min, false, true);
-	}
-}
-
-GTextView4::GTextLine *GTextView4::GetTextLine(int Offset, int *Index)
-{
-	int i = 0;
-	for (GTextLine *l=Line.First(); l; l=Line.Next(), i++)
-	{
-		if (Offset >= l->Start && Offset <= l->Start+l->Len)
-		{
-			if (Index)
-			{
-				*Index = i;
-			}
-
-			return l;
-		}
-	}
-
-	return 0;
 }
 
 int64 GTextView4::Value()
@@ -1533,105 +1913,59 @@ void GTextView4::Value(int64 i)
 
 char *GTextView4::Name()
 {
-	UndoQue.Empty();
-	DeleteArray(TextCache);
-	TextCache = LgiNewUtf16To8(Text);
+	return NULL;
+}
 
-	return TextCache;
+static GHtmlElement *FindElement(GHtmlElement *e, HtmlTag TagId)
+{
+	if (e->TagId == TagId)
+		return e;
+		
+	for (unsigned i = 0; i < e->Children.Length(); i++)
+	{
+		GHtmlElement *c = FindElement(e->Children[i], TagId);
+		if (c)
+			return c;
+	}
+	return NULL;
 }
 
 bool GTextView4::Name(const char *s)
 {
-	UndoQue.Empty();
-	DeleteArray(TextCache);
-	DeleteArray(Text);
+	d->Empty();
+	
+	GHtmlElement Root(NULL);
+	if (!d->GHtmlParser::Parse(&Root, s))
+		return d->Error(_FL, "Failed to parse HTML.");
+	
+	GHtmlElement *Body = FindElement(&Root, TAG_BODY);
+	if (!Body)
+		Body = &Root;
 
-	LgiAssert(LgiIsUtf8(s));
-	Text = LgiNewUtf8To16(s);
-	if (!Text)
+	GTv4Priv::CreateContext Ctx;
+	bool Status = d->CreateFromHtml(Body, Ctx);
+	if (Status)
 	{
-		Text = new char16[1];
-		if (Text) *Text = 0;
+		SetCursor(0, false);
 	}
-
-	Size = Text ? StrlenW(Text) : 0;
-	Alloc = Size + 1;
-	Cursor = min(Cursor, Size);
-	if (Text)
-	{
-		// Remove '\r's
-		char16 *o = Text;
-		for (char16 *i=Text; *i; i++)
-		{
-			if (*i != '\r')
-			{
-				*o++ = *i;
-			}
-			else Size--;
-		}
-		*o++ = 0;
-	}
-
-	// update everything else
-	PourText(0, Size);
-	PourStyle(0, Size);
-	UpdateScrollBars();
-	Invalidate();
-
-	return true;
+	
+	return Status;
 }
 
 char16 *GTextView4::NameW()
 {
-	return Text;
+	return NULL;
 }
 
 bool GTextView4::NameW(const char16 *s)
 {
-	DeleteArray(Text);
-	Size = s ? StrlenW(s) : 0;
-	Alloc = Size + 1;
-	Text = new char16[Alloc];
-	Cursor = min(Cursor, Size);
-	if (Text)
-	{
-		memcpy(Text, s, Size * sizeof(char16));
-
-		// remove LF's
-		int In = 0, Out = 0;
-		CrLf = false;
-		for (; In<Size; In++)
-		{
-			if (Text[In] != '\r')
-			{
-				Text[Out++] = Text[In];
-			}
-			else
-			{
-				CrLf = true;
-			}
-		}
-		Size = Out;
-		Text[Size] = 0;
-
-	}
-
-	// update everything else
-	PourText(0, Size);
-	PourStyle(0, Size);
-	UpdateScrollBars();
-	Invalidate();
-
-	return true;
+	return false;
 }
 
 char *GTextView4::GetSelection()
 {
 	if (HasSelection())
 	{
-		int Start = min(SelStart, SelEnd);
-		int End = max(SelStart, SelEnd);
-		return (char*)LgiNewConvertCp("utf-8", Text + Start, LGI_WideCharset, (End-Start)*sizeof(Text[0]) );
 	}
 
 	return 0;
@@ -1639,22 +1973,17 @@ char *GTextView4::GetSelection()
 
 bool GTextView4::HasSelection()
 {
-	return (SelStart >= 0) && (SelStart != SelEnd);
+	return d->Selection.Get() != NULL;
 }
 
 void GTextView4::SelectAll()
 {
-	SelStart = 0;
-	SelEnd = Size;
 	Invalidate();
 }
 
 void GTextView4::UnSelectAll()
 {
 	bool Update = HasSelection();
-
-	SelStart = -1;
-	SelEnd = -1;
 
 	if (Update)
 	{
@@ -1664,220 +1993,53 @@ void GTextView4::UnSelectAll()
 
 int GTextView4::GetLines()
 {
-	return Line.Length();
+	return 0;
 }
 
 void GTextView4::GetTextExtent(int &x, int &y)
 {
-	PourText(0, Size);
-
-	x = MaxX + d->rPadding.x1;
-	y = Line.Length() * LineY;
 }
 
 void GTextView4::PositionAt(int &x, int &y, int Index)
 {
-	int FromIndex = 0;
-	GTextLine *From = GetTextLine(Index < 0 ? Cursor : Index, &FromIndex);
-	if (From)
-	{
-		x = Cursor - From->Start;
-		y = FromIndex;
-	}
 }
 
 int GTextView4::GetCursor(bool Cur)
 {
-	if (Cur)
+	if (!d->Cursor)
+		return -1;
+		
+	int CharPos = 0;
+	for (unsigned i=0; i<d->Blocks.Length(); i++)
 	{
-		return Cursor;
+		GTv4Priv::Block *b = d->Blocks[i];
+		if (d->Cursor->Blk == b)
+			return CharPos + d->Cursor->Offset;
+		CharPos += b->Length();
 	}
-
-	return 0;
+	
+	LgiAssert(!"Cursor block not found.");
+	return -1;
 }
 
 int GTextView4::IndexAt(int x, int y)
 {
-	GTextLine *l = Line.ItemAt(y);
-	if (l)
-	{
-		return l->Start + min(x, l->Len);
-	}
-
-	return 0;
+	return d->HitTest(x, y);
 }
 
 void GTextView4::SetCursor(int i, bool Select, bool ForceFullUpdate)
 {
-    // int _Start = LgiCurrentTime();
-	Blink = true;
-
-	// Bound the new cursor position to the document
-	if (i < 0) i = 0;
-	if (i > Size) i = Size;
-
-	// Store the old selection and cursor
-	int s = SelStart, e = SelEnd, c = Cursor;
-	
-	// If there is going to be a selected area
-	if (Select && i != SelStart)
+	int Offset = -1;
+	GTv4Priv::Block *Blk = d->GetBlockByIndex(i, &Offset);
+	if (Blk)
 	{
-		// Then set the start
-		if (SelStart < 0)
+		GAutoPtr<GTv4Priv::BlockCursor> c(new GTv4Priv::BlockCursor(Blk, Offset));
+		if (c)
 		{
-			// We are starting a new selection
-			SelStart = Cursor;
-		}
-
-		// And end
-		SelEnd = i;
-	}
-	else
-	{
-		// Clear the selection
-		SelStart = SelEnd = -1;
-	}
-
-	int FromIndex = 0;
-	GTextLine *From = GetTextLine(Cursor, &FromIndex);
-
-	Cursor = i;
-
-	// check the cursor is on the screen
-	int ToIndex = 0;
-	GTextLine *To = GetTextLine(Cursor, &ToIndex);
-	if (VScroll && To)
-	{
-		GRect Client = GetClient();
-		int DisplayLines = Client.Y() / LineY;
-
-		if (ToIndex < VScroll->Value())
-		{
-			// Above the visible region...
-			if (d->CenterCursor)
-			{
-				int i = ToIndex - (DisplayLines >> 1);
-				VScroll->Value(max(0, i));
-			}
-			else
-			{
-				VScroll->Value(ToIndex);
-			}
-			ForceFullUpdate = true;
-		}
-
-		if (ToIndex >= VScroll->Value() + DisplayLines)
-		{
-			int YOff = d->CenterCursor ? DisplayLines >> 1 : DisplayLines;
-			
-			int v = min(ToIndex - YOff + 1, Line.Length() - DisplayLines);
-			if (v != VScroll->Value())
-			{
-				// Below the visible region
-				VScroll->Value(v);
-				ForceFullUpdate = true;
-			}
+			c->Blk->GetPosFromIndex(&c->Pos, &c->Line, Offset);
+			d->SetCursor(c, Select);
 		}
 	}
-
-	// check whether we need to update the screen
-	if (ForceFullUpdate ||
-		!To ||
-		!From)
-	{
-		// need full update
-		Invalidate();
-	}
-	else if (	SelStart != s ||
-				SelEnd != e)
-	{
-		// Update just the selection bounds
-		GRect Client = GetClient();
-		int Start, End;
-		if (SelStart >= 0 && s >= 0)
-		{
-			// Selection has changed, union the before and after regions
-			Start = min(Cursor, c);
-			End = max(Cursor, c);
-		}
-		else if (SelStart >= 0)
-		{
-			// Selection created...
-			Start = min(SelStart, SelEnd);
-			End = max(SelStart, SelEnd);
-		}
-		else if (s >= 0)
-		{
-			// Selection removed...
-			Start = min(s, e);
-			End = max(s, e);
-		}
-
-		GTextLine *SLine = GetTextLine(Start);
-		GTextLine *ELine = GetTextLine(End);
-		GRect u;
-		if (SLine && ELine)
-		{
-			if (SLine->r.Valid())
-			{
-				u = SLine->r;
-				u.Offset(0, d->rPadding.y1-ScrollYPixel());
-			}
-			else
-				u.Set(0, 0, Client.X()-1, 1); // Start of visible page 
-			
-			GRect b(0, Client.Y()-1, Client.X()-1, Client.Y()-1);
-			if (ELine->r.Valid())
-			{
-				b = ELine->r;
-				b.Offset(0, d->rPadding.y1-ScrollYPixel());
-			}
-			else
-			{
-				b.Set(0, Client.Y()-1, Client.X()-1, Client.Y()-1);
-			}
-			u.Union(&b);
-			
-			u.x1 = 0;
-			u.x2 = X();
-		}
-		else
-		{
-			printf("%s,%i - Couldn't get SLine and ELine (%i, %i)\n", _FL, Start, End);
-			u = Client;
-		}
-
-		Invalidate(&u);			
-	}
-	else if (Cursor != c)
-	{
-		// just the cursor has moved
-
-		// update the line the cursor moved to
-		GRect r = To->r;
-		r.Offset(-ScrollX, d->rPadding.y1-DocOffset);
-		r.x2 = X();
-		Invalidate(&r);
-
-		if (To != From)
-		{
-			// update the line the cursor came from,
-			// if it's a different line from the "to"
-			r = From->r;
-			r.Offset(-ScrollX, d->rPadding.y1-DocOffset);
-			r.x2 = X();
-			Invalidate(&r);
-		}
-	}
-
-	if (c != Cursor)
-	{
-		// Send off notify
-		SendNotify(GNotifyCursorChanged);
-	}
-
-//int _Time = LgiCurrentTime() - _Start;
-//printf("Setcursor=%ims\n", _Time);
 }
 
 void GTextView4::SetBorder(int b)
@@ -1886,54 +2048,12 @@ void GTextView4::SetBorder(int b)
 
 bool GTextView4::Cut()
 {
-	bool Status = false;
-	char16 *Txt16 = 0;
-	
-	DeleteSelection(&Txt16);
-	if (Txt16)
-	{
-		#ifdef WIN32
-		Txt16 = ConvertToCrLf(Txt16);
-		#endif
-		char *Txt8 = (char*)LgiNewConvertCp(LgiAnsiToLgiCp(), Txt16, LGI_WideCharset);
-
-		GClipBoard Clip(this);
-
-		Clip.Text(Txt8);
-		Status = Clip.TextW(Txt16, false);
-		
-		DeleteArray(Txt8);
-		DeleteArray(Txt16);
-	}
-
-	return Status;
+	return false;
 }
 
 bool GTextView4::Copy()
 {
 	bool Status = true;
-
-	if (SelStart >= 0)
-	{
-		int Min = min(SelStart, SelEnd);
-		int Max = max(SelStart, SelEnd);
-
-		char16 *Txt16 = NewStrW(Text+Min, Max-Min);
-		#ifdef WIN32
-		Txt16 = ConvertToCrLf(Txt16);
-		#endif
-		char *Txt8 = (char*)LgiNewConvertCp(LgiAnsiToLgiCp(), Txt16, LGI_WideCharset);
-
-		GClipBoard Clip(this);
-		
-		printf("%s:%i - text view copy -> clip\n", _FL);
-		Clip.Text(Txt8);
-		Clip.TextW(Txt16, false);
-		
-		DeleteArray(Txt8);
-		DeleteArray(Txt16);
-	}
-	else LgiTrace("%s:%i - No selection.\n", _FL);
 
 	return Status;
 }
@@ -1941,49 +2061,13 @@ bool GTextView4::Copy()
 bool GTextView4::Paste()
 {
 	GClipBoard Clip(this);
-
-	GAutoWString Mem;
-	char16 *t = Clip.TextW();
-	if (!t) // ala Win9x
-	{
-		char *s = Clip.Text();
-		if (s)
-		{
-			Mem.Reset(LgiNewUtf8To16(s));
-			t = Mem;
-		}
-	}
 	
-	if (!t)
-		return false;
-
-	if (SelStart >= 0)
-	{
-		DeleteSelection();
-	}
-
-	// remove '\r's
-	char16 *s = t, *d = t;
-	for (; *s; s++)
-	{
-		if (*s != '\r')
-		{
-			*d++ = *s;
-		}
-	}
-	*d++ = 0;
-
-	// insert text
-	int Len = StrlenW(t);
-	Insert(Cursor, t, Len);
-	SetCursor(Cursor+Len, false, true); // Multiline
-	
-	return true;
+	return false;
 }
 
 bool GTextView4::ClearDirty(bool Ask, char *FileName)
 {
-	if (Dirty)
+	if (1 /*dirty*/)
 	{
 		int Answer = (Ask) ? LgiMsg(this,
 									LgiLoadString(L_TEXTCTRL_ASK_SAVE, "Do you want to save your changes to this document?"),
@@ -2017,7 +2101,6 @@ bool GTextView4::Open(const char *Name, const char *CharSet)
 
 	if (f.Open(Name, O_READ|O_SHARE))
 	{
-		DeleteArray(Text);
 		size_t Bytes = (size_t)f.GetSize();
 		SetCursor(0, false);
 		
@@ -2043,63 +2126,12 @@ bool GTextView4::Open(const char *Name, const char *CharSet)
 					}
 				}
 				
-				// Convert to unicode first....
-				if (Bytes == 0)
-				{
-					Text = new char16[1];
-					if (Text) Text[0] = 0;
-				}
-				else
-				{
-					Text = (char16*)LgiNewConvertCp(LGI_WideCharset, DataStart, CharSet ? CharSet : DefaultCharset);
-				}
-				
-				if (Text)
-				{
-					// Remove LF's
-					char16 *In = Text, *Out = Text;
-					CrLf = false;
-					Size = 0;
-					while (*In)
-					{
-						if (*In >= ' ' ||
-							*In == '\t' ||
-							*In == '\n')
-						{
-							*Out++ = *In;
-							Size++;
-						}
-						else if (*In == '\r')
-						{
-							CrLf = true;
-						}
-						In++;
-					}
-					Size = (int) (Out - Text);
-					*Out = 0;
-
-					Alloc = Size + 1;
-					Dirty = false;
-					
-					if (Text && Text[0] == 0xfeff) // unicode byte order mark
-					{
-						memmove(Text, Text+1, Size * sizeof(*Text));
-						Size--;
-					}
-
-					PourText(0, Size);
-					PourStyle(0, Size);
-					UpdateScrollBars(true);
-					
-					Status = true;
-				}
 			}
 
 			DeleteArray(c8);
 		}
 		else
 		{
-			Alloc = Size = 0;
 		}
 
 		Invalidate();
@@ -2114,65 +2146,6 @@ bool GTextView4::Save(const char *Name, const char *CharSet)
 	if (f.Open(Name, O_WRITE))
 	{
 		f.SetSize(0);
-		if (Text)
-		{
-			bool Status = false;
-			
-			char *c8 = (char*)LgiNewConvertCp(CharSet ? CharSet : DefaultCharset, Text, LGI_WideCharset, Size * sizeof(char16));
-			if (c8)
-			{
-				int Len = (int)strlen(c8);
-				if (CrLf)
-				{
-					Status = true;
-
-					int BufLen = 1 << 20;
-					GAutoString Buf(new char[BufLen]);
-					char *b = Buf;
-					char *e = Buf + BufLen;
-					char *c = c8;
-					
-					while (*c)
-					{
-					    if (b > e - 10)
-					    {
-					        int Bytes = b - Buf;
-					        if (f.Write(Buf, Bytes) != Bytes)
-					        {
-					            Status = false;
-					            break;
-					        }
-					        
-					        b = Buf;
-					    }
-					    
-					    if (*c == '\n')
-					    {
-					        *b++ = '\r';
-					        *b++ = '\n';
-					    }
-					    else
-					    {
-					        *b++ = *c;
-					    }
-					    c++;
-					}
-
-			        int Bytes = b - Buf;
-			        if (f.Write(Buf, Bytes) != Bytes)
-			            Status = false;
-				}
-				else
-				{
-					Status = f.Write(c8, Len) == Len;
-				}
-
-				DeleteArray(c8);
-			}
-
-			Dirty = false;
-			return Status;
-		}
 	}
 	return false;
 }
@@ -2183,100 +2156,22 @@ void GTextView4::UpdateScrollBars(bool Reset)
 	{
 		GRect Before = GetClient();
 
-		int DisplayLines = Y() / LineY;
-		int Lines = GetLines();
-		VScroll->SetLimits(0, Lines);
-		if (VScroll)
-		{
-			VScroll->SetPage(DisplayLines);
-			
-			int Max = Lines - DisplayLines + 1;
-			bool Inval = false;
-			if (VScroll->Value() > Max)
-			{
-
-				VScroll->Value(Max);
-				Inval = true;
-			}
-
-			if (Reset)
-			{
-				VScroll->Value(0);
-				SelStart = SelEnd = -1;
-			}
-
-			GRect After = GetClient();
-
-			if (Before != After && GetWrapType())
-			{
-				d->SetDirty(0, Size);
-				Inval = true;
-			}
-			
-			if (Inval)
-			{
-				Invalidate();
-			}
-		}
 	}
 }
 
 bool GTextView4::DoCase(bool Upper)
 {
-	if (Text)
-	{
-		int Min = min(SelStart, SelEnd);
-		int Max = max(SelStart, SelEnd);
-
-		if (Min < Max)
-		{
-			UndoQue += new GTextView4Undo(this, Text + Min, Max-Min, Min, UndoChange);
-
-			for (int i=Min; i<Max; i++)
-			{
-				if (Upper)
-				{
-					if (Text[i] >= 'a' && Text[i] <= 'z')
-					{
-						Text[i] = Text[i] - 'a' + 'A';
-					}
-				}
-				else
-				{
-					if (Text[i] >= 'A' && Text[i] <= 'Z')
-					{
-						Text[i] = Text[i] - 'A' + 'a';
-					}
-				}
-			}
-
-			Dirty = true;
-			d->SetDirty(Min, 0);
-			Invalidate();
-
-			SendNotify(GNotifyDocChanged);
-		}
-	}
-	
 	return true;
 }
 
 int GTextView4::GetLine()
 {
 	int Idx = 0;
-	GTextLine *t = GetTextLine(Cursor, &Idx);
 	return Idx + 1;
 }
 
 void GTextView4::SetLine(int i)
 {
-	GTextLine *l = Line.ItemAt(i - 1);
-	if (l)
-	{
-		d->CenterCursor = true;
-		SetCursor(l->Start, false);
-		d->CenterCursor = false;
-	}
 }
 
 bool GTextView4::DoGoto()
@@ -2300,54 +2195,17 @@ void GTextView4::SetFindReplaceParams(GDocFindReplaceParams *Params)
 {
 	if (Params)
 	{
-		if (d->OwnFindReplaceParams)
-		{
-			DeleteObj(d->FindReplaceParams);
-		}
-		
-		d->OwnFindReplaceParams = false;
-		d->FindReplaceParams = (GDocFindReplaceParams3*) Params;
 	}
 }
 
 bool GTextView4::DoFindNext()
 {
-	if (d->FindReplaceParams->LastFind)
-	{
-		return OnFind(	d->FindReplaceParams->LastFind,
-						d->FindReplaceParams->MatchWord,
-						d->FindReplaceParams->MatchCase,
-						d->FindReplaceParams->SelectionOnly);
-	}
-	
 	return false;
 }
 
 static bool
-Text_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User)
+Text4_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User)
 {
-	GTextView4 *v = (GTextView4*) User;
-
-	Dlg->MatchWord = v->d->FindReplaceParams->MatchWord;
-	Dlg->MatchCase = v->d->FindReplaceParams->MatchCase;
-
-	DeleteArray(v->d->FindReplaceParams->LastFind);
-	v->d->FindReplaceParams->MatchWord = Dlg->MatchWord;
-	v->d->FindReplaceParams->MatchCase = Dlg->MatchCase;
-
-	v->d->FindReplaceParams->LastFind = LgiNewUtf8To16(Dlg->Find);
-
-	if (v->HasSelection() &&
-		v->SelEnd < v->SelStart)
-	{
-		v->Cursor = v->SelStart;
-	}
-
-	v->OnFind(	v->d->FindReplaceParams->LastFind,
-				v->d->FindReplaceParams->MatchWord,
-				v->d->FindReplaceParams->MatchCase,
-				v->d->FindReplaceParams->SelectionOnly);
-
 	return true;
 }
 
@@ -2356,17 +2214,12 @@ bool GTextView4::DoFind()
 	char *u = 0;
 	if (HasSelection())
 	{
-		int Min = min(SelStart, SelEnd);
-		int Max = max(SelStart, SelEnd);
-
-		u = LgiNewUtf16To8(Text + Min, (Max - Min) * sizeof(char16));
 	}
 	else
 	{
-		u = LgiNewUtf16To8(d->FindReplaceParams->LastFind);
 	}
 
-	GFindDlg Dlg(this, u, Text_FindCallback, this);
+	GFindDlg Dlg(this, u, Text4_FindCallback, this);
 	Dlg.DoModal();
 	DeleteArray(u);
 	
@@ -2377,226 +2230,16 @@ bool GTextView4::DoFind()
 
 bool GTextView4::DoReplace()
 {
-	char *LastFind8 = HasSelection() ? GetSelection() : LgiNewUtf16To8(d->FindReplaceParams->LastFind);
-	char *LastReplace8 = LgiNewUtf16To8(d->FindReplaceParams->LastReplace);
-	
-	GReplaceDlg Dlg(this, LastFind8, LastReplace8);
-
-	Dlg.MatchWord = d->FindReplaceParams->MatchWord;
-	Dlg.MatchCase = d->FindReplaceParams->MatchCase;
-	Dlg.SelectionOnly = HasSelection();
-
-	int Action = Dlg.DoModal();
-
-	DeleteArray(LastFind8);
-	DeleteArray(LastReplace8);
-
-	if (Action != IDCANCEL)
-	{
-		DeleteArray(d->FindReplaceParams->LastFind);
-		d->FindReplaceParams->LastFind = LgiNewUtf8To16(Dlg.Find);
-
-		DeleteArray(d->FindReplaceParams->LastReplace);
-		d->FindReplaceParams->LastReplace = LgiNewUtf8To16(Dlg.Replace);
-
-		d->FindReplaceParams->MatchWord = Dlg.MatchWord;
-		d->FindReplaceParams->MatchCase = Dlg.MatchCase;
-		d->FindReplaceParams->SelectionOnly = Dlg.SelectionOnly;
-		
-		/*
-		printf("DoReplace '%S'->'%S' %i,%i,%i\n",
-			d->FindReplaceParams->LastFind,
-			d->FindReplaceParams->LastReplace,
-			d->FindReplaceParams->MatchWord,
-			d->FindReplaceParams->MatchCase,
-			d->FindReplaceParams->SelectionOnly);
-		*/
-	}
-
-	switch (Action)
-	{
-		case IDC_FR_FIND:
-		{
-			OnFind(	d->FindReplaceParams->LastFind,
-					d->FindReplaceParams->MatchWord,
-					d->FindReplaceParams->MatchCase,
-					d->FindReplaceParams->SelectionOnly);
-			break;
-		}
-		case IDOK:
-		case IDC_FR_REPLACE:
-		{
-			OnReplace(	d->FindReplaceParams->LastFind,
-						d->FindReplaceParams->LastReplace,
-						Action == IDOK,
-						d->FindReplaceParams->MatchWord,
-						d->FindReplaceParams->MatchCase,
-						d->FindReplaceParams->SelectionOnly);
-			break;
-		}
-	}
-
 	return false;
 }
 
 void GTextView4::SelectWord(int From)
 {
-	for (SelStart = From; SelStart > 0; SelStart--)
-	{
-		if (strchr(SelectWordDelim, Text[SelStart]))
-		{
-			SelStart++;
-			break;
-		}
-	}
-
-	for (SelEnd = From; SelEnd < Size; SelEnd++)
-	{
-		if (strchr(SelectWordDelim, Text[SelEnd]))
-		{
-			break;
-		}
-	}
-
 	Invalidate();
-}
-
-int GTextView4::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly)
-{
-	if (ValidStrW(Find))
-	{
-		int FindLen = StrlenW(Find);
-		
-		// Setup range to search
-		int Begin, End;
-		if (SelectionOnly && HasSelection())
-		{
-			Begin = min(SelStart, SelEnd);
-			End = max(SelStart, SelEnd);
-		}
-		else
-		{
-			Begin = 0;
-			End = Size;
-		}
-
-		// Look through text...
-		int i;
-		bool Wrap = false;
-		if (Cursor > End - FindLen)
-		{
-			Wrap = true;
-			i = Begin;
-		}
-		else
-		{
-			i = Cursor;
-		}
-		
-		if (i < Begin) i = Begin;
-		if (i > End) i = End;
-		
-		if (MatchCase)
-		{
-			for (; i<=End-FindLen; i++)
-			{
-				if (Text[i] == Find[0])
-				{
-					char16 *Possible = Text + i;;
-					if (StrncmpW(Possible, Find, FindLen) == 0)
-					{
-						if (MatchWord)
-						{
-							// Check boundaries
-							
-							if (Possible > Text) // Check off the start
-							{
-								if (!IsWordBoundry(Possible[-1]))
-								{
-									continue;
-								}
-							}
-							if (i + FindLen < Size) // Check off the end
-							{
-								if (!IsWordBoundry(Possible[FindLen]))
-								{
-									continue;
-								}
-							}
-						}
-						
-						return SubtractPtr(Possible, Text);
-						break;
-					}
-				}
-				
-				if (!Wrap && (i + 1 > End - FindLen))
-				{
-					Wrap = true;
-					i = Begin;
-					End = Cursor;
-				}
-			}
-		}
-		else
-		{
-			// printf("i=%i s=%i e=%i c=%i flen=%i sz=%i\n", i, Begin, End, Cursor, FindLen, Size);
-			for (; i<=End-FindLen; i++)
-			{
-				if (toupper(Text[i]) == toupper(Find[0]))
-				{
-					char16 *Possible = Text + i;
-					if (StrnicmpW(Possible, Find, FindLen) == 0)
-					{
-						if (MatchWord)
-						{
-							// Check boundaries
-							
-							if (Possible > Text) // Check off the start
-							{
-								if (!IsWordBoundry(Possible[-1]))
-								{
-									continue;
-								}
-							}
-							if (i + FindLen < Size) // Check off the end
-							{
-								if (!IsWordBoundry(Possible[FindLen]))
-								{
-									continue;
-								}
-							}
-						}
-						
-						return SubtractPtr(Possible, Text);
-						break;
-					}
-				}
-			
-				if (!Wrap && (i + 1 > End - FindLen))
-				{
-					Wrap = true;
-					i = Begin;
-					End = Cursor;
-				}
-			}
-		}
-	}
-	
-	return -1;
 }
 
 bool GTextView4::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly)
 {
-	printf("%s:%i - OnFind(%S, %i, %i, %i)\n", _FL, Find, MatchWord, MatchCase, SelectionOnly);
-	int Loc = MatchText(Find, MatchWord, MatchCase, SelectionOnly);
-	if (Loc >= 0)
-	{
-		SetCursor(Loc, false);
-		SetCursor(Loc + StrlenW(Find), true);
-		return true;
-	}
-
 	return false;
 }
 
@@ -2604,178 +2247,14 @@ bool GTextView4::OnReplace(char16 *Find, char16 *Replace, bool All, bool MatchWo
 {
 	if (ValidStrW(Find))
 	{
-		// int Max = -1;
-		int FindLen = StrlenW(Find);
-		int ReplaceLen = StrlenW(Replace);
-		int OldCursor = Cursor;
-		int First = -1;
-
-		while (true)
-		{
-			int Loc = MatchText(Find, MatchWord, MatchCase, SelectionOnly);
-			if (First < 0)
-			{
-				First = Loc;
-			}
-			else if (Loc == First)
-			{
-				break;
-			}
-			
-			if (Loc >= 0)
-			{
-				int OldSelStart = SelStart;
-				int OldSelEnd = SelEnd;
-				
-				Delete(Loc, FindLen);
-				Insert(Loc, Replace, ReplaceLen);
-				
-				SelStart = OldSelStart;
-				SelEnd = OldSelEnd - FindLen + ReplaceLen;
-				Cursor = Loc + ReplaceLen;
-			}
-			if (!All)
-			{
-				return Loc >= 0;
-			}
-			if (Loc < 0) break;
-		}
-		
-		// SetCursor(OldCursor, false);
 	}	
 	
 	return false;
 }
 
-int GTextView4::SeekLine(int i, GTextViewSeek Where)
-{
-	switch (Where)
-	{
-		case PrevLine:
-		{
-			for (; i > 0 && Text[i] != '\n'; i--);
-			if (i > 0) i--;
-			for (; i > 0 && Text[i] != '\n'; i--);
-			if (i > 0) i++;
-			break;
-		}
-		case NextLine:
-		{
-			for (; i < Size && Text[i] != '\n'; i++);
-			i++;
-			break;
-		}
-		case StartLine:
-		{
-			for (; i > 0 && Text[i] != '\n'; i--);
-			if (i > 0) i++;
-			break;
-		}
- 		case EndLine:
-		{
-			for (; i < Size && Text[i] != '\n'; i++);
-			break;
-		}
-		default:
-		{
-			LgiAssert(false);
-			break;
-		}
-	}
-
-	return i;
-}
-
 bool GTextView4::OnMultiLineTab(bool In)
 {
-	bool Status = false;
-	int Min = min(SelStart, SelEnd);
-	int Max = max(SelStart, SelEnd);
-
-	Min = SeekLine(Min, StartLine);
-
-	GMemQueue p;
-	int Ls = 0, i;
-	for (i=Min; i<Max && i<Size; i=SeekLine(i, NextLine))
-	{
-		p.Write((uchar*)&i, sizeof(i));
-		Ls++;
-	}
-	if (Max < i)
-	{
-		Max = SeekLine(Max, EndLine);
-	}
-
-	int *Indexes = new int[Ls];
-	if (Indexes)
-	{
-		p.Read((uchar*)Indexes, Ls*sizeof(int));
-
-		for (i=Ls-1; i>=0; i--)
-		{
-			if (In)
-			{
-				// <-
-				int n = Indexes[i], Space = 0;
-				for (; Space<IndentSize && n<Size; n++)
-				{
-					if (Text[n] == 9)
-					{
-						Space += IndentSize;
-					}
-					else if (Text[n] == ' ')
-					{
-						Space += 1;
-					}
-					else
-					{
-						break;
-					}
-				}
-
-				int Chs = n-Indexes[i];
-				Delete(Indexes[i], Chs);
-				Max -= Chs;
-			}
-			else
-			{
-				// ->
-				int Len = Indexes[i];
-				for (; Text[Len] != '\n' && Len<Size; Len++);
-				if (Len > Indexes[i])
-				{
-					if (HardTabs)
-					{
-						char16 Tab[] = {'\t', 0};
-						Insert(Indexes[i], Tab, 1);
-						Max++;
-					}
-					else
-					{
-						char16 *Sp = new char16[IndentSize];
-						if (Sp)
-						{
-							for (int n=0; n<IndentSize; n++)
-								Sp[n] = ' ';
-							Insert(Indexes[i], Sp, IndentSize);
-							Max += IndentSize;
-						}
-					}
-				}
-			}
-		}
-
-		SelStart = Min;
-		SelEnd = Cursor = Max;
-
-		DeleteArray(Indexes);
-	}
-
-	d->SetDirty(Min, Max-Min);
-	Invalidate();
-	Status = true;
-
-	return Status;
+	return false;
 }
 
 void GTextView4::OnSetHidden(int Hidden)
@@ -2792,20 +2271,6 @@ void GTextView4::OnPosChange()
 		GLayout::OnPosChange();
 
 		GRect c = GetClient();
-		bool ScrollYNeeded = c.Y() < (Line.Length() * LineY);
-		bool ScrollChange = ScrollYNeeded ^ (VScroll != NULL);
-		if (ScrollChange)
-		{
-			// printf("%s:%i - SetScrollBars(%i)\n", _FL, ScrollYNeeded);
-			SetScrollBars(false, ScrollYNeeded);
-		}
-		UpdateScrollBars();
-
-		if (GetWrapType() && d->PourX != X())
-		{
-			d->PourX = X();
-			d->SetDirty(0, Size);
-		}
 		Processing = false;
 	}
 }
@@ -2847,7 +2312,7 @@ int GTextView4::OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState)
 			{
 				len++;
 			}
-			Insert(Cursor, s, len);
+			// Insert(Cursor, s, len);
 			Invalidate();
 			return DROPEFFECT_COPY;
 		}
@@ -2890,72 +2355,20 @@ void GTextView4::OnFocus(bool f)
 
 int GTextView4::HitText(int x, int y)
 {
-	if (Text)
-	{
-		bool Down = y >= 0;
-		int Y = (VScroll) ? (int)VScroll->Value() : 0;
-		GTextLine *l = Line.ItemAt(Y);
-		y += (l) ? l->r.y1 : 0;
-
-		while (l)
-		{
-			if (l->r.Overlap(x, y))
-			{
-				// Over a line
-				int At = x - l->r.x1;
-				int Char = 0;
-				
-				GDisplayString Ds(Font, MapText(Text + l->Start, l->Len), l->Len, 0);
-				Char = Ds.CharAt(At);
-
-				return l->Start + Char;
-			}
-			else if (y >= l->r.y1 && y <= l->r.y2)
-			{
-				// Click horizontally before of after line
-				if (x < l->r.x1)
-				{
-					return l->Start;
-				}
-				else if (x > l->r.x2)
-				{
-					return l->Start + l->Len;
-				}
-			}
-			
-			l = (Down) ? Line.Next() : Line.Prev();
-		}
-
-		// outside text area
-		if (Down)
-		{
-			l = Line.Last();
-			if (l)
-			{
-				if (y > l->r.y2)
-				{
-					// end of document
-					return Size;
-				}
-			}
-		}
-	}
-
-	return 0;
+	return d->HitTest(x, y);
 }
 
 void GTextView4::Undo()
 {
-	UndoQue.Undo();
 }
 
 void GTextView4::Redo()
 {
-	UndoQue.Redo();
 }
 
 void GTextView4::DoContextMenu(GMouse &m)
 {
+	GMenuItem *i;
 	GSubMenu RClick;
 	GAutoString ClipText;
 	{
@@ -2968,6 +2381,7 @@ void GTextView4::DoContextMenu(GMouse &m)
 	RClick.AppendSeparator();
 	#endif
 
+	/*
 	GStyle *s = HitStyle(HitText(m.x, m.y));
 	if (s)
 	{
@@ -2976,18 +2390,21 @@ void GTextView4::DoContextMenu(GMouse &m)
 			RClick.AppendSeparator();
 		}
 	}
+	*/
 
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_CUT, "Cut"), IDM_CUT, HasSelection());
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_COPY, "Copy"), IDM_COPY, HasSelection());
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_PASTE, "Paste"), IDM_PASTE, ClipText != 0);
 	RClick.AppendSeparator();
 
-	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_UNDO, "Undo"), IDM_UNDO, UndoQue.CanUndo());
-	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_REDO, "Redo"), IDM_REDO, UndoQue.CanRedo());
+	#if 0
+	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_UNDO, "Undo"), IDM_UNDO, false /* UndoQue.CanUndo() */);
+	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_REDO, "Redo"), IDM_REDO, false /* UndoQue.CanRedo() */);
 	RClick.AppendSeparator();
 
-	GMenuItem *i = RClick.AppendItem(LgiLoadString(L_TEXTCTRL_FIXED, "Fixed Width Font"), IDM_FIXED, true);
+	i = RClick.AppendItem(LgiLoadString(L_TEXTCTRL_FIXED, "Fixed Width Font"), IDM_FIXED, true);
 	if (i) i->Checked(GetFixedWidthFont());
+	#endif
 
 	i = RClick.AppendItem(LgiLoadString(L_TEXTCTRL_AUTO_INDENT, "Auto Indent"), IDM_AUTO_INDENT, true);
 	if (i) i->Checked(AutoIndent);
@@ -3097,10 +2514,12 @@ void GTextView4::DoContextMenu(GMouse &m)
 		}
 		default:
 		{
+			/*
 			if (s)
 			{
 				s->OnMenuClick(Id);
 			}
+			*/
 
 			if (Environment)
 			{
@@ -3115,40 +2534,26 @@ void GTextView4::OnMouseClick(GMouse &m)
 {
 	bool Processed = false;
 
-	m.x += ScrollX;
-
 	if (m.Down())
 	{
-		if (!m.IsContextMenu())
+		if (m.IsContextMenu())
+		{
+			DoContextMenu(m);
+			return;
+		}
+		else
 		{
 			Focus(true);
 
 			int Hit = HitText(m.x, m.y);
+			d->WordSelectMode = !Processed && m.Double();
+
 			if (Hit >= 0)
 			{
 				SetCursor(Hit, m.Shift());
-
-				GStyle *s = HitStyle(Hit);
-				if (s)
-				{
-					Processed = s->OnMouseClick(&m);
-				}
+				if (d->WordSelectMode)
+					SelectWord(Hit);
 			}
-
-			if (!Processed && m.Double())
-			{
-				d->WordSelectMode = Cursor;
-				SelectWord(Cursor);
-			}
-			else
-			{
-				d->WordSelectMode = -1;
-			}
-		}
-		else
-		{
-			DoContextMenu(m);
-			return;
 		}
 	}
 
@@ -3171,17 +2576,16 @@ int GTextView4::OnHitTest(int x, int y)
 
 void GTextView4::OnMouseMove(GMouse &m)
 {
-	m.x += ScrollX;
-
-	int Hit = HitText(m.x, m.y);
+	int Hit = d->HitTest(m.x, m.y);
 	if (IsCapturing())
 	{
-		if (d->WordSelectMode < 0)
+		if (!d->WordSelectMode)
 		{
 			SetCursor(Hit, m.Left());
 		}
 		else
 		{
+			/*
 			int Min = Hit < d->WordSelectMode ? Hit : d->WordSelectMode;
 			int Max = Hit > d->WordSelectMode ? Hit : d->WordSelectMode;
 
@@ -3204,6 +2608,7 @@ void GTextView4::OnMouseMove(GMouse &m)
 
 			Cursor = SelEnd;
 			Invalidate();
+			*/
 		}
 	}
 
@@ -3212,55 +2617,21 @@ void GTextView4::OnMouseMove(GMouse &m)
 	c.Offset(-c.x1, -c.y1);
 	if (c.Overlap(m.x, m.y))
 	{
+		/*
 		GStyle *s = HitStyle(Hit);
 		TCHAR *c = (s) ? s->GetCursor() : 0;
 		if (!c) c = IDC_IBEAM;
 		::SetCursor(LoadCursor(0, MAKEINTRESOURCE(c)));
+		*/
 	}
 	#endif
-}
-
-int GTextView4::GetColumn()
-{
-	int x = 0;
-	GTextLine *l = GetTextLine(Cursor);
-	if (l)
-	{
-		for (int i=l->Start; i<Cursor; i++)
-		{
-			if (Text[i] == '\t')
-			{
-				x += TabSize - (x % TabSize);
-			}
-			else
-			{
-				x++;
-			}
-		}
-	}
-	return x;
-}
-
-int GTextView4::SpaceDepth(char16 *Start, char16 *End)
-{
-	int Depth = 0;
-	while (Start < End)
-	{
-		if (*Start == '\t')
-			Depth += IndentSize - (Depth % IndentSize);
-		else if (*Start == ' ')
-			Depth ++;
-		else break;
-		Start++;
-	}
-	return Depth;
 }
 
 bool GTextView4::OnKey(GKey &k)
 {
 	if (k.Down())
 	{
-		Blink = true;
+		// Blink = true;
 	}
 
 	// k.Trace("GTextView4::OnKey");
@@ -3268,9 +2639,11 @@ bool GTextView4::OnKey(GKey &k)
 	if (k.IsContextMenu())
 	{
 		GMouse m;
+		/*
 		m.x = CursorPos.x1;
 		m.y = CursorPos.y1 + (CursorPos.Y() >> 1);
 		m.Target = this;
+		*/
 		DoContextMenu(m);
 	}
 	else if (k.IsChar)
@@ -3294,6 +2667,7 @@ bool GTextView4::OnKey(GKey &k)
 					if (k.Down())
 					{
 						// letter/number etc
+						/*
 						if (SelStart >= 0)
 						{
 							bool MultiLine = false;
@@ -3398,6 +2772,7 @@ bool GTextView4::OnKey(GKey &k)
 								SetCursor(Cursor + 1, false, Len != NewLen - 1);
 							}
 						}
+						*/
 					}
 					return true;
 				}
@@ -3427,6 +2802,7 @@ bool GTextView4::OnKey(GKey &k)
 				}
 				else if (k.Down())
 				{
+					/*
 					if (SelStart >= 0)
 					{
 						// delete selection
@@ -3495,6 +2871,7 @@ bool GTextView4::OnKey(GKey &k)
 							Delete(Cursor - 1, 1);
 						}
 					}
+					*/
 				}
 				return true;
 				break;
@@ -3533,6 +2910,7 @@ bool GTextView4::OnKey(GKey &k)
 					{
 						if (k.Down())
 						{
+							/*
 							int Start = Cursor;
 							while (IsWhiteSpace(Text[Cursor-1]) && Cursor > 0)
 								Cursor--;
@@ -3542,6 +2920,7 @@ bool GTextView4::OnKey(GKey &k)
 
 							Delete(Cursor, Start - Cursor);
 							Invalidate();
+							*/
 						}
 					}
 
@@ -3565,70 +2944,22 @@ bool GTextView4::OnKey(GKey &k)
 
 				if (k.Down())
 				{
-					if (SelStart >= 0 &&
-						!k.Shift())
+					if (HasSelection() && !k.Shift())
 					{
-						SetCursor(min(SelStart, SelEnd), false);
+						Invalidate(&d->SelectionRect());
+						d->SetCursor(d->CursorFirst() ? d->Cursor : d->Selection);
 					}
-					else if (Cursor > 0)
+					else
 					{
-						int n = Cursor;
-
 						#ifdef MAC
 						if (k.System())
-						{
 							goto Jump_StartOfLine;
-						}
 						else
 						#endif
-						if (k.Ctrl())
-						{
-							// word move/select
-							bool StartWhiteSpace = IsWhiteSpace(Text[n]);
-							bool LeftWhiteSpace = n > 0 && IsWhiteSpace(Text[n-1]);
 
-							if (!StartWhiteSpace ||
-								Text[n] == '\n')
-							{
-								n--;
-							}
-							
-							// Skip ws
-							for (; n > 0 && strchr(" \t", Text[n]); n--)
-								;
-							
-							if (Text[n] == '\n')
-							{
-								n--;
-							}
-							else if (!StartWhiteSpace || !LeftWhiteSpace)
-							{
-								if (IsDelimiter(Text[n]))
-								{
-									for (; n > 0 && IsDelimiter(Text[n]); n--);
-								}
-								else
-								{
-									for (; n > 0; n--)
-									{
-										//IsWordBoundry(Text[n])
-										if (IsWhiteSpace(Text[n]) ||
-											IsDelimiter(Text[n]))
-										{
-											break;
-										}
-									}
-								}
-							}
-							if (n > 0) n++;
-						}
-						else
-						{
-							// single char
-							n--;
-						}
-
-						SetCursor(n, k.Shift());
+						d->Seek(d->Cursor,
+								k.Ctrl() ? GTv4Priv::SkLeftWord : GTv4Priv::SkLeftChar,
+								k.Shift());
 					}
 				}
 				return true;
@@ -3641,67 +2972,21 @@ bool GTextView4::OnKey(GKey &k)
 
 				if (k.Down())
 				{
-					if (SelStart >= 0 &&
-						!k.Shift())
+					if (HasSelection() && !k.Shift())
 					{
-						SetCursor(max(SelStart, SelEnd), false);
+						Invalidate(&d->SelectionRect());
+						d->SetCursor(d->CursorFirst() ? d->Selection : d->Cursor);
 					}
-					else if (Cursor < Size)
+					else
 					{
-						int n = Cursor;
-
 						#ifdef MAC
 						if (k.System())
-						{
 							goto Jump_EndOfLine;
-						}
-						else
 						#endif
-						if (k.Ctrl())
-						{
-							// word move/select
-							if (IsWhiteSpace(Text[n]))
-							{
-								for (; n<Size && IsWhiteSpace(Text[n]); n++);
-							}
-							else
-							{
-								if (IsDelimiter(Text[n]))
-								{
-									while (IsDelimiter(Text[n]))
-									{
-										n++;
-									}
-								}
-								else
-								{
-									for (; n<Size; n++)
-									{
-										if (IsWhiteSpace(Text[n]) ||
-											IsDelimiter(Text[n]))
-										{
-											break;
-										}
-									}
-								}
 
-								if (n < Size &&
-									Text[n] != '\n')
-								{
-									if (IsWhiteSpace(Text[n]))
-									{
-										n++;
-									}
-								}
-							}
-						}
-						else
-						{
-							// single char
-							n++;
-						}
-
-						SetCursor(n, k.Shift());
+						d->Seek(d->Cursor,
+								k.Ctrl() ? GTv4Priv::SkRightWord : GTv4Priv::SkRightChar,
+								k.Shift());
 					}
 				}
 				return true;
@@ -3718,22 +3003,10 @@ bool GTextView4::OnKey(GKey &k)
 					if (k.Ctrl())
 						goto GTextView4_PageUp;
 					#endif
-					
-					GTextLine *l = GetTextLine(Cursor);
-					if (l)
-					{
-						GTextLine *Prev = Line.Prev();
-						if (Prev)
-						{
-							GDisplayString CurLine(Font, Text + l->Start, Cursor-l->Start);
-							int ScreenX = CurLine.X();
 
-							GDisplayString PrevLine(Font, Text + Prev->Start, Prev->Len);
-							int CharX = PrevLine.CharAt(ScreenX);
-
-							SetCursor(Prev->Start + min(CharX, Prev->Len), k.Shift());
-						}
-					}
+					d->Seek(d->Cursor,
+							GTv4Priv::SkUpLine,
+							k.Shift());
 				}
 				return true;
 				break;
@@ -3750,21 +3023,9 @@ bool GTextView4::OnKey(GKey &k)
 						goto GTextView4_PageDown;
 					#endif
 
-					GTextLine *l = GetTextLine(Cursor);
-					if (l)
-					{
-						GTextLine *Next = Line.Next();
-						if (Next)
-						{
-							GDisplayString CurLine(Font, Text + l->Start, Cursor-l->Start);
-							int ScreenX = CurLine.X();
-							
-							GDisplayString NextLine(Font, Text + Next->Start, Next->Len);
-							int CharX = NextLine.CharAt(ScreenX);
-
-							SetCursor(Next->Start + min(CharX, Next->Len), k.Shift());
-						}
-					}
+					d->Seek(d->Cursor,
+							GTv4Priv::SkDownLine,
+							k.Shift());
 				}
 				return true;
 				break;
@@ -3773,21 +3034,14 @@ bool GTextView4::OnKey(GKey &k)
 			{
 				if (k.Down())
 				{
-					if (k.Ctrl())
-					{
-						SetCursor(Size, k.Shift());
-					}
-					else
-					{
-						#ifdef MAC
+					#ifdef MAC
+					if (!k.Ctrl())
 						Jump_EndOfLine:
-						#endif
-						GTextLine *l = GetTextLine(Cursor);
-						if (l)
-						{
-							SetCursor(l->Start + l->Len, k.Shift());
-						}
-					}
+					#endif
+
+					d->Seek(d->Cursor,
+							k.Ctrl() ? GTv4Priv::SkDocEnd : GTv4Priv::SkLineEnd,
+							k.Shift());
 				}
 				return true;
 				break;
@@ -3796,34 +3050,31 @@ bool GTextView4::OnKey(GKey &k)
 			{
 				if (k.Down())
 				{
-					if (k.Ctrl())
+					#ifdef MAC
+					if (!k.Ctrl())
+						Jump_StartOfLine:
+					#endif
+
+					d->Seek(d->Cursor,
+							k.Ctrl() ? GTv4Priv::SkDocStart : GTv4Priv::SkLineStart,
+							k.Shift());
+
+					/*
+					char16 *Line = Text + l->Start;
+					char16 *s;
+					char16 SpTab[] = {' ', '\t', 0};
+					for (s = Line; (SubtractPtr(s,Line) < l->Len) && StrchrW(SpTab, *s); s++);
+					int Whitespace = SubtractPtr(s, Line);
+
+					if (l->Start + Whitespace == Cursor)
 					{
-						SetCursor(0, k.Shift());
+						SetCursor(l->Start, k.Shift());
 					}
 					else
 					{
-						#ifdef MAC
-						Jump_StartOfLine:
-						#endif
-						GTextLine *l = GetTextLine(Cursor);
-						if (l)
-						{
-							char16 *Line = Text + l->Start;
-							char16 *s;
-							char16 SpTab[] = {' ', '\t', 0};
-							for (s = Line; (SubtractPtr(s,Line) < l->Len) && StrchrW(SpTab, *s); s++);
-							int Whitespace = SubtractPtr(s, Line);
-
-							if (l->Start + Whitespace == Cursor)
-							{
-								SetCursor(l->Start, k.Shift());
-							}
-							else
-							{
-								SetCursor(l->Start + Whitespace, k.Shift());
-							}
-						}
+						SetCursor(l->Start + Whitespace, k.Shift());
 					}
+					*/
 				}
 				return true;
 				break;
@@ -3835,18 +3086,9 @@ bool GTextView4::OnKey(GKey &k)
 				#endif
 				if (k.Down())
 				{
-					GTextLine *l = GetTextLine(Cursor);
-					if (l)
-					{
-						int DisplayLines = Y() / LineY;
-						int CurLine = Line.IndexOf(l);
-
-						GTextLine *New = Line.ItemAt(max(CurLine - DisplayLines, 0));
-						if (New)
-						{
-							SetCursor(New->Start + min(Cursor - l->Start, New->Len), k.Shift());
-						}
-					}
+					d->Seek(d->Cursor,
+							GTv4Priv::SkUpPage,
+							k.Shift());
 				}
 				return true;
 				break;
@@ -3858,18 +3100,9 @@ bool GTextView4::OnKey(GKey &k)
 				#endif
 				if (k.Down())
 				{
-					GTextLine *l = GetTextLine(Cursor);
-					if (l)
-					{
-						int DisplayLines = Y() / LineY;
-						int CurLine = Line.IndexOf(l);
-
-						GTextLine *New = Line.ItemAt(min(CurLine + DisplayLines, GetLines()-1));
-						if (New)
-						{
-							SetCursor(New->Start + min(Cursor - l->Start, New->Len), k.Shift());
-						}
-					}
+					d->Seek(d->Cursor,
+							GTv4Priv::SkDownPage,
+							k.Shift());
 				}
 				return true;
 				break;
@@ -3899,6 +3132,7 @@ bool GTextView4::OnKey(GKey &k)
 				{
 					if (k.Down())
 					{
+						/*
 						if (SelStart >= 0)
 						{
 							if (k.Shift())
@@ -3915,6 +3149,7 @@ bool GTextView4::OnKey(GKey &k)
 						{
 							Invalidate();
 						}
+						*/
 					}
 					return true;
 				}
@@ -3931,6 +3166,7 @@ bool GTextView4::OnKey(GKey &k)
 					{
 						case 0xbd: // Ctrl+'-'
 						{
+							/*
 							if (k.Down() &&
 								Font->PointSize() > 1)
 							{
@@ -3938,10 +3174,12 @@ bool GTextView4::OnKey(GKey &k)
 								OnFontChange();
 								Invalidate();
 							}
+							*/
 							break;
 						}
 						case 0xbb: // Ctrl+'+'
 						{
+							/*
 							if (k.Down() &&
 								Font->PointSize() < 100)
 							{
@@ -3949,6 +3187,7 @@ bool GTextView4::OnKey(GKey &k)
 								OnFontChange();
 								Invalidate();
 							}
+							*/
 							break;
 						}
 						case 'a':
@@ -3957,9 +3196,11 @@ bool GTextView4::OnKey(GKey &k)
 							if (k.Down())
 							{
 								// select all
+								/*
 								SelStart = 0;
 								SelEnd = Size;
 								Invalidate();
+								*/
 							}
 							return true;
 							break;
@@ -4102,6 +3343,7 @@ bool GTextView4::OnKey(GKey &k)
 void GTextView4::OnEnter(GKey &k)
 {
 	// enter
+	/*
 	if (SelStart >= 0)
 	{
 		DeleteSelection();
@@ -4127,447 +3369,29 @@ void GTextView4::OnEnter(GKey &k)
 	{
 		SetCursor(Cursor + StrlenW(InsertStr), false, true);
 	}
-}
-
-int GTextView4::TextWidth(GFont *f, char16 *s, int Len, int x, int Origin)
-{
-	int w = x;
-	int Size = f->TabSize();
-
-	for (char16 *c = s; SubtractPtr(c, s) < Len; )
-	{
-		if (*c == 9)
-		{			
-			w = ((((w-Origin) + Size) / Size) * Size) + Origin;
-			c++;
-		}
-		else
-		{
-			char16 *e;
-			for (e = c; SubtractPtr(e, s) < Len && *e != 9; e++);
-			
-			GDisplayString ds(f, c, SubtractPtr(e, c));
-			w += ds.X();
-			c = e;
-		}
-	}
-
-	return w - x;
-}
-
-int GTextView4::ScrollYLine()
-{
-	return (VScroll) ? (int)VScroll->Value() : 0;
-}
-
-int GTextView4::ScrollYPixel()
-{
-	return ScrollYLine() * LineY;
+	*/
 }
 
 void GTextView4::OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour)
 {
 	pDC->Colour(colour);
 	pDC->Rectangle(&r);
+
 }
 
 void GTextView4::OnPaint(GSurface *pDC)
 {
-	#if LGI_EXCEPTIONS
-	try
-	{
+	#if 1
+	pDC->Colour(GColour(255, 222, 255));
+	pDC->Rectangle();
 	#endif
-		if (d->LayoutDirty)
-		{
-			PourText(d->DirtyStart, d->DirtyLen);
-		}
-		
-		GRect r = GetClient();
-		r.x2 += ScrollX;
-
-		int Ox, Oy;
-		pDC->GetOrigin(Ox, Oy);
-		pDC->SetOrigin(Ox+ScrollX, Oy);
-		
-		#if 0
-		// Coverage testing...
-		pDC->Colour(Rgb24(255, 0, 255), 24);
-		pDC->Rectangle();
-		#endif
-
-		GSurface *pOut = pDC;
-		bool DrawSel = false;
-		
-		bool HasFocus = Focus();
-		GColour SelectedText(HasFocus ? LC_FOCUS_SEL_FORE : LC_NON_FOCUS_SEL_FORE, 24);
-		GColour SelectedBack(HasFocus ? LC_FOCUS_SEL_BACK : LC_NON_FOCUS_SEL_BACK, 24);
-
-		GCss::ColorDef ForeDef, BkDef;
-		if (GetCss())
-		{
-			ForeDef = GetCss()->Color();
-			BkDef = GetCss()->BackgroundColor();
-		}
-		
-		GColour Fore(ForeDef.Type ==  GCss::ColorRgb ? Rgb32To24(ForeDef.Rgb32) : LC_TEXT, 24);
-		GColour Back(!ReadOnly ? (BkDef.Type == GCss::ColorRgb ? Rgb32To24(BkDef.Rgb32) : LC_WORKSPACE) : BackColour, 24);
-
-		GColour Whitespace = Fore.Mix(Back, 0.85f);
-
-		if (!Enabled())
-		{
-			Fore.Set(LC_LOW, 24);
-			Back.Set(LC_MED, 24);
-		}
-
-		#ifdef DOUBLE_BUFFER_PAINT
-		GMemDC *pMem = new GMemDC;
-		pOut = pMem;
-		#endif
-		if (Text &&
-			Font
-			#ifdef DOUBLE_BUFFER_PAINT
-			&&
-			pMem &&
-			pMem->Create(r.X()-d->rPadding.x1, LineY, GdcD->GetBits())
-			#endif
-			)
-		{
-			int SelMin = min(SelStart, SelEnd);
-			int SelMax = max(SelStart, SelEnd);
-
-			// font properties
-			Font->Colour(Fore, Back);
-			Font->WhitespaceColour(Whitespace);
-			Font->Transparent(false);
-
-			// draw margins
-			pDC->Colour(PAINT_BORDER);
-			// top margin
-			pDC->Rectangle(0, 0, r.x2, d->rPadding.y1-1);
-			// left margin
-			{
-				GRect LeftMargin(0, d->rPadding.y1, d->rPadding.x1-1, r.y2);
-				OnPaintLeftMargin(pDC, LeftMargin, PAINT_BORDER);
-			}
-		
-			// draw lines of text
-			int k = ScrollYLine();
-			GTextLine *l=Line.ItemAt(k);
-			int Dy = (l) ? -l->r.y1 : 0;
-			int NextSelection = (SelStart != SelEnd) ? SelMin : -1; // offset where selection next changes
-			if (l &&
-				SelStart >= 0 &&
-				SelStart < l->Start &&
-				SelEnd > l->Start)
-			{
-				// start of visible area is in selection
-				// init to selection colour
-				DrawSel = true;
-				Font->Colour(SelectedText, SelectedBack);
-				NextSelection = SelMax;
-			}
-
-			GStyle *NextStyle = GetNextStyle((l) ? l->Start : 0);
-
-			DocOffset = (l) ? l->r.y1 : 0;
-
-			// loop through all visible lines
-			int y = d->rPadding.y1;
-			for (; l && l->r.y1+Dy < r.Y(); l=Line.Next())
-			{
-				GRect Tr = l->r;
-				#ifdef DOUBLE_BUFFER_PAINT
-				Tr.Offset(-Tr.x1, -Tr.y1);
-				#else
-				Tr.Offset(0, y - Tr.y1);
-				#endif
-
-				// deal with selection change on beginning of line
-				if (NextSelection == l->Start)
-				{
-					// selection change
-					DrawSel = !DrawSel;
-					NextSelection = (NextSelection == SelMin) ? SelMax : -1;
-				}
-				if (DrawSel)
-				{
-					Font->Colour(SelectedText, SelectedBack);
-				}
-				else
-				{
-					GColour fore = l->c.IsValid() ? l->c : Fore;
-					GColour back = l->Back.IsValid() ? l->Back : Back;
-					Font->Colour(fore, back);
-				}
-
-				// How many chars on this line have we
-				// processed so far:
-				int Done = 0;
-				bool LineHasSelection =	NextSelection >= l->Start &&
-										NextSelection < l->Start + l->Len;
-
-				// Fractional pixels we have moved so far:
-				int MarginF = d->rPadding.x1 << GDisplayString::FShift;
-				int FX = MarginF;
-				int FY = Tr.y1 << GDisplayString::FShift;
-				
-				// loop through all sections of similar text on a line
-				while (Done < l->Len)
-				{
-					// decide how big this block is
-					int RtlTrailingSpace = 0;
-					int Cur = l->Start + Done;
-					int Block = l->Len - Done;
-					
-					// check for style change
-					if (NextStyle)
-					{
-						// start
-						if (l->Overlap(NextStyle->Start) &&
-							NextStyle->Start > Cur &&
-							NextStyle->Start - Cur < Block)
-						{
-							Block = NextStyle->Start - Cur;
-						}
-
-						// end
-						int StyleEnd = NextStyle->Start + NextStyle->Len;
-						if (l->Overlap(StyleEnd) &&
-							StyleEnd > Cur &&
-							StyleEnd - Cur < Block)
-						{
-							Block = StyleEnd - Cur;
-						}
-					}
-
-					// check for next selection change
-					// this may truncate the style
-					if (NextSelection > Cur &&
-						NextSelection - Cur < Block)
-					{
-						Block = NextSelection - Cur;
-					}
-
-					LgiAssert(Block != 0);	// sanity check
-					
-					if (LineHasSelection)
-					{
-						int asd=0;
-					}
-
-					if (NextStyle &&							// There is a style
-						(Cur < SelMin || Cur >= SelMax) &&		// && we're not drawing a selection block
-						Cur >= NextStyle->Start &&				// && we're inside the styled area
-						Cur < NextStyle->Start+NextStyle->Len)
-					{
-						if (NextStyle->Font)
-						{
-							// draw styled text
-							if (NextStyle->c.IsValid())
-							{
-								NextStyle->Font->Colour(NextStyle->c, l->Back.IsValid() ? l->Back : Back);
-							}
-							NextStyle->Font->Transparent(false);
-
-							LgiAssert(l->Start + Done >= 0);
-
-							GDisplayString Ds(	NextStyle->Font,
-												MapText(Text + (l->Start + Done),
-														Block,
-														RtlTrailingSpace != 0),
-												Block + RtlTrailingSpace);
-							Ds.SetDrawOffsetF(FX - MarginF);
-							Ds.ShowVisibleTab(ShowWhiteSpace);
-							Ds.FDraw(pOut, FX, FY, 0, LineHasSelection);
-
-							if (NextStyle->Decor == GStyle::DecorSquiggle)
-							{
-								pOut->Colour(NextStyle->DecorColour.c24(), 24);
-								int x = FX >> GDisplayString::FShift;
-								int End = x + Ds.X();
-								while (x < End)
-								{
-									pOut->Set(x, Tr.y2-(x%2));
-									x++;
-								}
-							}
-
-							FX += Ds.FX();
-
-							GColour fore = l->c.IsValid() ? l->c : Fore;
-							GColour back = l->Back.IsValid() ? l->Back : Back;
-							NextStyle->Font->Colour(fore, back);
-						}
-					}
-					else
-					{
-						// draw a block of normal text
-						LgiAssert(l->Start + Done >= 0);
-						
-						GDisplayString Ds(	Font,
-											MapText(Text + (l->Start + Done),
-													Block,
-													RtlTrailingSpace != 0),
-											Block + RtlTrailingSpace);
-						Ds.SetDrawOffsetF(FX - MarginF);
-						Ds.ShowVisibleTab(ShowWhiteSpace);
-						Ds.FDraw(pOut, FX, FY, 0, LineHasSelection);
-						FX += Ds.FX();
-					}
-
-					if (NextStyle &&
-						Cur+Block >= NextStyle->Start+NextStyle->Len)
-					{
-						// end of this styled block
-						NextStyle = GetNextStyle();
-					}
-
-					if (NextSelection == Cur+Block)
-					{
-						// selection change
-						DrawSel = !DrawSel;
-						if (DrawSel)
-						{
-							Font->Colour(SelectedText, SelectedBack);
-						}
-						else
-						{
-							GColour fore = l->c.IsValid() ? l->c : Fore;
-							GColour back = l->Back.IsValid() ? l->Back : Back;
-							Font->Colour(fore, back);
-						}
-						NextSelection = (NextSelection == SelMin) ? SelMax : -1;
-					}
-
-					Done += Block + RtlTrailingSpace;
-				
-				} // end block loop
-
-				Tr.x1 = FX >> GDisplayString::FShift;
-
-				// eol processing
-				int EndOfLine = l->Start+l->Len;
-				if (EndOfLine >= SelMin && EndOfLine < SelMax)
-				{
-					// draw the '\n' at the end of the line as selected
-					GColour bk = Font->Back();
-					pOut->Colour(Font->Back());
-					pOut->Rectangle(Tr.x2, Tr.y1, Tr.x2+7, Tr.y2);
-					Tr.x2 += 7;
-				}
-				else Tr.x2 = Tr.x1;
-
-				// draw any space after text
-				pOut->Colour(PAINT_AFTER_LINE);
-				pOut->Rectangle(Tr.x2, Tr.y1, r.x2, Tr.y2);
-
-				// cursor?
-				if (HasFocus)
-				{
-					// draw the cursor if on this line
-					if (Cursor >= l->Start && Cursor <= l->Start+l->Len)
-					{
-						CursorPos.ZOff(1, LineY-1);
-
-						int At = Cursor-l->Start;
-						
-						GDisplayString Ds(Font, MapText(Text+l->Start, At), At);
-						Ds.ShowVisibleTab(ShowWhiteSpace);
-						int CursorX = Ds.X();
-						CursorPos.Offset(d->rPadding.x1 + CursorX, Tr.y1);
-						
-						if (CanScrollX)
-						{
-							// Cursor on screen check
-							GRect Scr = GetClient();
-							Scr.Offset(ScrollX, 0);
-							GRect Cur = CursorPos;
-							if (Cur.x2 > Scr.x2 - 5) // right edge check
-							{
-								ScrollX = ScrollX + Cur.x2 - Scr.x2 + 40;
-								Invalidate();
-							}
-							else if (Cur.x1 < Scr.x1 && ScrollX > 0)
-							{
-								ScrollX = max(0, Cur.x1 - 40);
-								Invalidate();
-							}
-						}
-
-						if (Blink)
-						{
-							GRect c = CursorPos;
-							#ifdef DOUBLE_BUFFER_PAINT
-							c.Offset(-d->rPadding.x1, -y);
-							#endif
-
-							pOut->Colour((!ReadOnly) ? Fore : GColour(192, 192, 192));
-							pOut->Rectangle(&c);
-						}
-
-						#if WINNATIVE
-						HIMC hIMC = ImmGetContext(Handle());
-						if (hIMC)
-						{
-							COMPOSITIONFORM Cf;						
-							Cf.dwStyle = CFS_POINT;
-							Cf.ptCurrentPos.x = CursorPos.x1;
-							Cf.ptCurrentPos.y = CursorPos.y1;
-							ImmSetCompositionWindow(hIMC, &Cf);
-							ImmReleaseContext(Handle(), hIMC);
-						}
-						#endif
-					}
-				}
-
-				#ifdef DOUBLE_BUFFER_PAINT
-				// dump to screen
-				pDC->Blt(d->rPadding.x1, y, pOut);
-				#endif
-				y += LineY;
-
-			} // end of line loop
-
-			// draw any space under the lines
-			if (y <= r.y2)
-			{
-				// printf("White %i, k=%i Lines=%i\n", r.y2 - y, k, Line.Length());
-
-				pDC->Colour(Back);
-				pDC->Rectangle(d->rPadding.x1, y, r.x2, r.y2);
-			}
-
-			#ifdef DOUBLE_BUFFER_PAINT
-			DeleteObj(pMem);
-			#endif
-		}
-		else
-		{
-			// default drawing: nothing
-			pDC->Colour(Back);
-			pDC->Rectangle(&r);
-		}
-
-		// _PaintTime = LgiCurrentTime() - StartTime;
-		#ifdef PAINT_DEBUG
-		if (GetNotify())
-		{
-			char s[256];
-			sprintf_s(s, sizeof(s), "Pour:%i Style:%i Paint:%i ms", _PourTime, _StyleTime, _PaintTime);
-			GMessage m = CreateMsg(DEBUG_TIMES_MSG, 0, (int)s);
-			GetNotify()->OnEvent(&m);
-		}
-		#endif
-		// printf("PaintTime: %ims\n", _PaintTime);
 	
-	#if LGI_EXCEPTIONS
-	}
-	catch (...)
-	{
-		LgiMsg(this, "GTextView4::OnPaint crashed.", "Lgi");
-	}
-	#endif
+	GRect r = GetClient();
+	GCssTools ct(d, d->Font);
+	r = ct.PaintBorderAndPadding(pDC, r);
+
+	d->Layout(r);
+	d->Paint(pDC);
 }
 
 GMessage::Result GTextView4::OnEvent(GMessage *Msg)
@@ -4593,7 +3417,7 @@ GMessage::Result GTextView4::OnEvent(GMessage *Msg)
 		#if defined WIN32
 		case WM_GETTEXTLENGTH:
 		{
-			return Size;
+			return 0 /*Size*/;
 		}
 		case WM_GETTEXT:
 		{
@@ -4664,11 +3488,13 @@ void GTextView4::OnPulse()
 {
 	if (!ReadOnly)
 	{
+		/*
 		Blink = !Blink;
 
 		GRect p = CursorPos;
 		p.Offset(-ScrollX, 0);
 		Invalidate(&p);
+		*/
 	}
 }
 
@@ -4685,7 +3511,7 @@ bool GTextView4::OnLayout(GViewLayoutInfo &Inf)
 	Inf.Width.Min = 32;
 	Inf.Width.Max = -1;
 
-	Inf.Height.Min = (Font ? Font->GetHeight() : 18) + 4;
+	// Inf.Height.Min = (Font ? Font->GetHeight() : 18) + 4;
 	Inf.Height.Max = -1;
 
 	return true;
