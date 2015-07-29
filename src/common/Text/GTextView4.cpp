@@ -65,6 +65,7 @@
 #define IDM_TAB_SIZE				16
 #define IDM_DUMP					17
 #define IDM_RTL						18
+#define IDM_COPY_ORIGINAL			19
 
 #define PAINT_BORDER				Back
 #define PAINT_AFTER_LINE			Back
@@ -157,6 +158,34 @@ public:
 		Styles.DeleteObjects();
 	}
 
+	bool OutputStyles(GStream &s, int TabDepth)
+	{
+		char Tabs[64];
+		memset(Tabs, '\t', TabDepth);
+		Tabs[TabDepth] = 0;
+		
+		for (unsigned i=0; i<Styles.Length(); i++)
+		{
+			GNamedStyle *ns = Styles[i];
+			if (ns)
+			{
+				s.Print("%s.%s {\n", Tabs, ns->Name.Get());
+				
+				GAutoString a = ns->ToString();
+				GString all = a;
+				GString::Array lines = all.Split("\n");
+				for (unsigned n=0; n<lines.Length(); n++)
+				{
+					s.Print("%s%s\n", Tabs, lines[n].Get());
+				}
+				
+				s.Print("%s}\n\n", Tabs);
+			}
+		}
+		
+		return true;
+	}
+
 	GNamedStyle *AddStyleToCache(GAutoPtr<GCss> &s)
 	{
 		if (!s)
@@ -243,6 +272,9 @@ class GTv4Priv :
 {
 public:
 	GTextView4 *View;
+	GString OriginalText;
+	GAutoWString WideNameCache;
+	GAutoString UtfNameCache;
 	GAutoPtr<GFont> Font;
 	bool WordSelectMode;
 
@@ -342,7 +374,7 @@ public:
 
 	class Text : public GArray<char16>
 	{
-		GCss *Style; // owned by the CSS cache
+		GNamedStyle *Style; // owned by the CSS cache
 	
 	public:
 		ColourPair Colours;
@@ -355,12 +387,12 @@ public:
 				Add((char16*)t, Chars >= 0 ? Chars : StrlenW(t));
 		}
 		
-		GCss *GetStyle()
+		GNamedStyle *GetStyle()
 		{
 			return Style;
 		}
 				
-		void SetStyle(GCss *s)
+		void SetStyle(GNamedStyle *s)
 		{
 			if (Style != s)
 			{
@@ -450,6 +482,7 @@ public:
 		virtual bool GetPosFromIndex(GRect *CursorPos, GRect *LinePos, int Index) = 0;
 		virtual bool OnLayout(Flow &f) = 0;
 		virtual void OnPaint(PaintContext &Ctx) = 0;
+		virtual bool ToHtml(GStream &s) = 0;
 		
 		/// This method moves a cursor index.
 		/// \returns the new cursor index or -1 on error.
@@ -645,6 +678,26 @@ public:
 			return Len;
 		}
 
+		bool ToHtml(GStream &s)
+		{
+			s.Print("<p>");
+			for (unsigned i=0; i<Txt.Length(); i++)
+			{
+				Text *t = Txt[i];
+				GNamedStyle *style = t->GetStyle();
+				if (style)
+				{
+					s.Print("<span class='%s'>%.*S</span>", style->Name.Get(), t->Length(), &t[0]);
+				}
+				else
+				{
+					s.Print("%.*S", t->Length(), &t[0]);
+				}
+			}
+			s.Print("</p>\n");
+			return true;
+		}		
+
 		bool GetPosFromIndex(GRect *CursorPos, GRect *LinePos, int Index)
 		{
 			if (!CursorPos || !LinePos)
@@ -699,6 +752,17 @@ public:
 					
 					FixX += ds->FX();
 					CharPos += ds->Length();
+				}
+				
+				if (tl->Strs.Length() == 0 && Index == CharPos)
+				{
+					// Cursor at the start of empty line.
+					CursorPos->x1 = r.x1;
+					CursorPos->x2 = CursorPos->x1 + 1;
+					CursorPos->y1 = r.y1;
+					CursorPos->y2 = r.y2;
+					*LinePos = r;
+					return true;
 				}
 				
 				CharPos += tl->NewLine;
@@ -762,6 +826,8 @@ public:
 					htr.Idx = CharPos;
 					return true;
 				}
+				
+				CharPos += tl->NewLine;
 			}
 
 			return false;
@@ -837,7 +903,7 @@ public:
 					int FixY = IntToFixed(CurY + Ds->OffsetY);
 					if (CurEndPoint < EndPoints &&
 						EndPoint[CurEndPoint] >= CharPos &&
-						EndPoint[CurEndPoint] < CharPos + Ds->Length())
+						EndPoint[CurEndPoint] <= CharPos + Ds->Length())
 					{
 						// Process string into parts based on the selection boundaries
 						const char16 *s = *(GDisplayString*)Ds;
@@ -1150,29 +1216,39 @@ public:
 			if (Line)
 			{
 				// Work out where the cursor should be based on the 'XOffset'
-				int FixX = 0;
-				int CharOffset = 0;
-				for (unsigned i=0; i<Line->Strs.Length(); i++)
+				if (Line->Strs.Length() > 0)
 				{
-					DisplayStr *Ds = Line->Strs[i];
-					PtrCheckBreak(Ds);
-					
-					if (XOffset >= FixedToInt(FixX) &&
-						XOffset <= FixedToInt(FixX + Ds->FX()))
+					int FixX = 0;
+					int CharOffset = 0;
+					for (unsigned i=0; i<Line->Strs.Length(); i++)
 					{
-						// This is the matching string...
-						int Px = XOffset - FixedToInt(FixX);
-						int Char = Ds->CharAt(Px + 3);
-						if (Char > 0)
+						DisplayStr *Ds = Line->Strs[i];
+						PtrCheckBreak(Ds);
+						
+						if (XOffset >= FixedToInt(FixX) &&
+							XOffset <= FixedToInt(FixX + Ds->FX()))
 						{
-							return	LineOffset[CurLine] +	// Character offset of line
-									CharOffset +			// Character offset of current string
-									Char;					// Offset into current string for 'XOffset'
+							// This is the matching string...
+							int Px = XOffset - FixedToInt(FixX);
+							int Char = Ds->CharAt(Px);
+							if (Char >= 0)
+							{
+								return	LineOffset[CurLine] +	// Character offset of line
+										CharOffset +			// Character offset of current string
+										Char;					// Offset into current string for 'XOffset'
+							}
 						}
+						
+						FixX += Ds->FX();
+						CharOffset += Ds->Length();
 					}
 					
-					FixX += Ds->FX();
-					CharOffset += Ds->Length();
+					// Cursor is nearest the end of the string...?
+					return LineOffset[CurLine] + Line->Length() - 1;
+				}
+				else if (Line->NewLine)
+				{
+					return LineOffset[CurLine];
 				}
 			}
 			
@@ -1599,10 +1675,12 @@ public:
 	{
 		TextBlock *Tb;
 		GArray<char16> Buf;
+		char16 LastChar;
 		
 		CreateContext()
 		{
 			Tb = NULL;
+			LastChar = '\n';
 		}
 		
 		void AddText(GNamedStyle *Style, char16 *Str)
@@ -1637,16 +1715,64 @@ public:
 				}
 			}
 			
-			Tb->AddText(Style, &Buf[0], Used);
+			if (Used > 0)
+			{
+				Tb->AddText(Style, &Buf[0], Used);
+				LastChar = Buf[Used-1];
+			}
 		}
 	};
 
-	bool CreateFromHtml(GHtmlElement *e, CreateContext &ctx)
+	bool ToHtml()		
+	{
+		GStringPipe p(256);
+		
+		p.Print("<html>\n"
+				"<head>\n"
+				"\t<style>\n");		
+		OutputStyles(p, 1);		
+		p.Print("\t</style>\n"
+				"</head>\n"
+				"<body>\n");
+		
+		for (unsigned i=0; i<Blocks.Length(); i++)
+		{
+			Blocks[i]->ToHtml(p);
+		}
+		
+		p.Print("</body>\n");
+		return UtfNameCache.Reset(p.NewStr());
+	}
+	
+	bool FromHtml(GHtmlElement *e, CreateContext &ctx)
 	{
 		for (unsigned i = 0; i < e->Children.Length(); i++)
 		{
 			GHtmlElement *c = e->Children[i];
 			GAutoPtr<GCss> Style;
+			
+			c->Info = c->Tag ? GHtmlStatic::Inst->GetTagInfo(c->Tag) : NULL;
+			if
+			(
+				(
+					c->Info != NULL
+					&&
+					c->Info->Block()
+					&& 
+					ctx.LastChar != '\n'
+				)
+				||
+				c->TagId == TAG_BR
+			)
+			{
+				if (!ctx.Tb)
+					Blocks.Add(ctx.Tb = new TextBlock);
+				if (ctx.Tb)
+				{
+					ctx.Tb->AddText(NULL, L"\n");
+					ctx.LastChar = '\n';
+				}
+			}
 
 			switch (c->TagId)
 			{
@@ -1654,14 +1780,6 @@ public:
 				{
 					if (Style.Reset(new GCss))
 						Style->FontWeight(GCss::FontWeightBold);
-					break;
-				}
-				case TAG_BR:
-				{
-					if (!ctx.Tb)
-						Blocks.Add(ctx.Tb = new TextBlock);
-					if (ctx.Tb)
-						ctx.Tb->AddText(NULL, L"\n");
 					break;
 				}
 				case TAG_IMG:
@@ -1704,7 +1822,7 @@ public:
 				ctx.AddText(AddStyleToCache(Style), c->GetText());
 			}
 			
-			if (!CreateFromHtml(c, ctx))
+			if (!FromHtml(c, ctx))
 				return false;
 		}
 		
@@ -1776,7 +1894,7 @@ GTextView4::GTextView4(	int Id,
 	d->BackgroundColor(GCss::ColorDef(GCss::ColorRgb, Rgb24To32(LC_WORKSPACE)));
 	SetFont(SysFont);
 
-	#ifdef _DEBUG
+	#if 0 // def _DEBUG
 	Name("<html>\n"
 		"<body>\n"
 		"	This is some <b style='font-size: 20pt; color: green;'>bold text</b> to test with.<br>\n"
@@ -1920,7 +2038,8 @@ void GTextView4::Value(int64 i)
 
 char *GTextView4::Name()
 {
-	return NULL;
+	d->ToHtml();
+	return d->UtfNameCache;
 }
 
 static GHtmlElement *FindElement(GHtmlElement *e, HtmlTag TagId)
@@ -1934,12 +2053,14 @@ static GHtmlElement *FindElement(GHtmlElement *e, HtmlTag TagId)
 		if (c)
 			return c;
 	}
+	
 	return NULL;
 }
 
 bool GTextView4::Name(const char *s)
 {
 	d->Empty();
+	d->OriginalText = s;
 	
 	GHtmlElement Root(NULL);
 	if (!d->GHtmlParser::Parse(&Root, s))
@@ -1950,23 +2071,23 @@ bool GTextView4::Name(const char *s)
 		Body = &Root;
 
 	GTv4Priv::CreateContext Ctx;
-	bool Status = d->CreateFromHtml(Body, Ctx);
+	bool Status = d->FromHtml(Body, Ctx);
 	if (Status)
-	{
 		SetCursor(0, false);
-	}
 	
 	return Status;
 }
 
 char16 *GTextView4::NameW()
 {
-	return NULL;
+	d->WideNameCache.Reset(LgiNewUtf8To16(Name()));
+	return d->WideNameCache;
 }
 
 bool GTextView4::NameW(const char16 *s)
 {
-	return false;
+	GAutoString a(LgiNewUtf16To8(s));
+	return Name(a);
 }
 
 char *GTextView4::GetSelection()
@@ -2424,6 +2545,7 @@ void GTextView4::DoContextMenu(GMouse &m)
 	
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_INDENT_SIZE, "Indent Size"), IDM_INDENT_SIZE, true);
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_TAB_SIZE, "Tab Size"), IDM_TAB_SIZE, true);
+	RClick.AppendItem("Copy Original", IDM_COPY_ORIGINAL, d->OriginalText.Get() != NULL);
 
 	if (Environment)
 		Environment->AppendItems(&RClick);
@@ -2517,6 +2639,12 @@ void GTextView4::DoContextMenu(GMouse &m)
 			{
 				SetTabSize(atoi(i.Str));
 			}
+			break;
+		}
+		case IDM_COPY_ORIGINAL:
+		{
+			GClipBoard c(this);
+			c.Text(d->OriginalText);
 			break;
 		}
 		default:
