@@ -474,11 +474,18 @@ extern GDataStoreI *OpenImap
 	/// Various flags that control the type of connection made:
 	/// \sa #MAIL_SSL, #MAIL_SECURE_AUTH
 	int ConnectFlags,
+	/// Callback interface for various events...
 	GDataEventsI *Callback,
+	/// This allows the IMAP client to request SSL support from the
+	/// parent applications.
 	GCapabilityClient *caps,
+	/// Pointers to the progress info bars, or NULL if not needed.
 	MailProtocolProgress *prog[2],
+	/// The logging stream.
 	GStream *Log,
+	/// The identifier for the account
 	int AccoundId,
+	/// An interface into the persistant storage area.
 	GAutoPtr<class ProtocolSettingStore> store
 );
 
