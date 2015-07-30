@@ -83,6 +83,7 @@ static char SelectWordDelim[] = " \t\n.,()[]<>=?/\\{}\"\';:+=-|!@#$%^&*";
 class GText4Elem : public GHtmlElement
 {
 	GString Style;
+	GString Classes;
 
 public:
 	GText4Elem(GHtmlElement *parent) : GHtmlElement(parent)
@@ -91,9 +92,16 @@ public:
 
 	bool Get(const char *attr, const char *&val)
 	{
-		if (attr && !_stricmp(attr, "style") && Style)
+		if (!attr)
+			return false;
+		if (!_stricmp(attr, "style") && Style)
 		{
 			val = Style;
+			return true;
+		}
+		else if (!_stricmp(attr, "class") && Classes)
+		{
+			val = Classes;
 			return true;
 		}
 		return false;
@@ -101,13 +109,63 @@ public:
 	
 	void Set(const char *attr, const char *val)
 	{
-		if (attr && !_stricmp(attr, "style"))
+		if (!attr)
+			return;
+		if (!_stricmp(attr, "style"))
 			Style = val;
+		else if (!_stricmp(attr, "class"))
+			Classes = val;		
 	}
 	
 	void SetStyle()
 	{
 		int asd = 0;
+	}
+};
+
+struct GText4ElemContext : public GCss::ElementCallback<GText4Elem>
+{
+	/// Returns the element name
+	const char *GetElement(GText4Elem *obj)
+	{
+		return obj->Tag;
+	}
+	
+	/// Returns the document unque element ID
+	const char *GetAttr(GText4Elem *obj, const char *Attr)
+	{
+		const char *a = NULL;
+		obj->Get(Attr, a);
+		return a;
+	}
+	
+	/// Returns the class
+	bool GetClasses(GArray<const char *> &Classes, GText4Elem *obj)
+	{
+		const char *c;
+		if (!obj->Get("class", c))
+			return false;
+		
+		GString cls = c;
+		GString::Array classes = cls.Split(" ");
+		for (unsigned i=0; i<classes.Length(); i++)
+			Classes.Add(NewStr(classes[i]));
+		return true;
+	}
+
+	/// Returns the parent object
+	GText4Elem *GetParent(GText4Elem *obj)
+	{
+		return dynamic_cast<GText4Elem*>(obj->Parent);
+	}
+
+	/// Returns an array of child objects
+	GArray<GText4Elem*> GetChildren(GText4Elem *obj)
+	{
+		GArray<GText4Elem*> a;
+		for (unsigned i=0; i<obj->Children.Length(); i++)
+			a.Add(dynamic_cast<GText4Elem*>(obj->Children[i]));
+		return a;
 	}
 };
 
@@ -205,6 +263,7 @@ public:
 		{
 			ns->Name.Printf("style%i", Idx++);
 			*(GCss*)ns = *s.Get();
+			Styles.Add(ns);
 		}
 		
 		return ns;
@@ -213,11 +272,13 @@ public:
 
 class GFontCache
 {
+	GView *View;
 	GArray<GFont*> Fonts;
 	
 public:
-	GFontCache()
+	GFontCache(GView *v)
 	{
+		View = v;
 	}
 	
 	~GFontCache()
@@ -260,6 +321,22 @@ public:
 		}
 		
 		return f;
+	}
+
+	GFont *GetFont(GCss *Style)
+	{
+		GFont *DefaultFont = View->GetFont();
+		if (!Style)
+			return DefaultFont;
+		
+		GCss::StringsDef Fam = Style->FontFamily();
+		GCss::Len Sz = Style->FontSize();
+		GCss::FontWeightType Weight = Style->FontWeight();
+		GCss::FontWeightType DefaultWeight = DefaultFont->Bold() ? GCss::FontWeightBold : GCss::FontWeightNormal;
+		
+		return AddFont(	Fam.Length() ? Fam[0] : DefaultFont->Face(),
+						(int) (Sz.Type == GCss::LenPt ? Sz.Value : (float)DefaultFont->PointSize()),
+						Weight != GCss::FontWeightInherit ? Weight : DefaultWeight);
 	}
 };
 
@@ -317,22 +394,6 @@ public:
 		return false;
 	}
 
-	GFont *GetFont(GCss *Style)
-	{
-		GFont *Default = View->GetFont();
-		if (!Style)
-			return Default;
-		
-		// Look through all the existing fonts for a match:
-		GCss::StringsDef Face = Style->FontFamily();
-		GCss::Len Size = Style->FontSize();
-		GCss::FontWeightType Weight = Style->FontWeight();
-		
-		return AddFont(	Face.Length() ? Face[0] : Default->Face(),
-						Size.Type == GCss::LenPt ? (int)Size.Value : Default->PointSize(),
-						Weight);
-	}	
-
 	struct Flow
 	{
 		GTv4Priv *d;
@@ -358,6 +419,13 @@ public:
 		int X()
 		{
 			return Right - Left + 1;
+		}
+		
+		GString Describe()
+		{
+			GString s;
+			s.Printf("Left=%i Right=%i CurY=%i", Left, Right, CurY);
+			return s;
 		}
 	};
 
@@ -436,6 +504,37 @@ public:
 		{
 			return Colours[Type].Back;
 		}
+
+		void DrawBox(GRect &r, GRect &Edge, GColour &c)
+		{
+			if (Edge.x1 > 0 ||
+				Edge.x2 > 0 ||
+				Edge.y1 > 0 ||
+				Edge.y2 > 0)
+			{
+				pDC->Colour(c);
+				if (Edge.x1)
+				{
+					pDC->Rectangle(r.x1, r.y1, r.x1 + Edge.x1 - 1, r.y2);
+					r.x1 += Edge.x1;
+				}
+				if (Edge.y1)
+				{
+					pDC->Rectangle(r.x1, r.y1, r.x2, r.y1 + Edge.y1 - 1);
+					r.y1 += Edge.y1;
+				}
+				if (Edge.y2)
+				{
+					pDC->Rectangle(r.x1, r.y2 - Edge.y2 + 1, r.x2, r.y2);
+					r.y2 -= Edge.y2;
+				}
+				if (Edge.x2)
+				{
+					pDC->Rectangle(r.x2 - Edge.x2 + 1, r.y1, r.x2, r.y2);
+					r.x2 -= Edge.x2;
+				}
+			}
+		}
 	};
 
 	struct HitTestResult
@@ -495,6 +594,9 @@ public:
 			/// [In] The x position hint
 			int XPos
 		) = 0;
+
+		virtual void Dump() {}
+		virtual GNamedStyle *GetStyle() = 0;
 	};
 
 	struct BlockCursor
@@ -551,6 +653,9 @@ public:
 			Offset = c.Offset;
 			Pos = c.Pos;
 			Line = c.Line;
+			
+			LgiAssert(Offset >= 0);
+			
 			return *this;
 		}
 		
@@ -569,6 +674,7 @@ public:
 				Blk->Cursors++;
 			}
 			Offset = off;
+			LgiAssert(Offset >= 0);
 		}
 	};
 	
@@ -601,11 +707,11 @@ public:
 		/// Is '1' for lines that have a new line character at the end.
 		uint8 NewLine;
 		
-		TextLine(GRect &BlockPos)
+		TextLine(int XOffsetPx, int WidthPx, int YOffsetPx)
 		{
 			NewLine = 0;
-			PosOff.ZOff(BlockPos.X()-1, 0);
-			PosOff.Offset(0, BlockPos.Y());
+			PosOff.ZOff(WidthPx-1, 0);
+			PosOff.Offset(XOffsetPx, YOffsetPx);
 		}
 
 		int Length()
@@ -652,10 +758,15 @@ public:
 		}
 	};
 	
-	struct TextBlock : public Block
+	class TextBlock : public Block
 	{
+		GNamedStyle *Style;
+
+	public:
 		GArray<Text*> Txt;
 		GArray<TextLine*> Layout;
+		GRect Margin, Border, Padding;
+		GFont *Fnt;
 		
 		bool LayoutDirty;
 		int Len; // chars in the whole block (sum of all Text lengths)
@@ -666,11 +777,66 @@ public:
 			LayoutDirty = false;
 			Len = 0;
 			Pos.ZOff(-1, -1);
+			Style = NULL;
+			Fnt = NULL;
+			
+			Margin.ZOff(0, 0);
+			Border.ZOff(0, 0);
+			Padding.ZOff(0, 0);
 		}
 		
 		~TextBlock()
 		{
 			Txt.DeleteObjects();
+		}
+
+		void Dump()
+		{
+			LgiTrace("    margin=%s, border=%s, padding=%s\n",
+				Margin.GetStr(),
+				Border.GetStr(),
+				Padding.GetStr());
+			for (unsigned i=0; i<Txt.Length(); i++)
+			{
+				Text *t = Txt[i];
+				GString s(t->Length() ? &t->First() : NULL);
+				s = s.Strip();
+				
+				LgiTrace("    %p: style=%p/%s, txt(%i)=%s\n",
+					t,
+					t->GetStyle(),
+					t->GetStyle() ? t->GetStyle()->Name.Get() : NULL,
+					t->Length(),
+					s.Get());
+			}
+		}
+		
+		GNamedStyle *GetStyle()
+		{
+			return Style;
+		}
+		
+		void SetStyle(GNamedStyle *s)
+		{
+			if ((Style = s))
+			{
+				LgiAssert(Fnt);
+
+				Margin.x1 = Style->MarginLeft().ToPx(Pos.X(), Fnt);
+				Margin.y1 = Style->MarginTop().ToPx(Pos.Y(), Fnt);
+				Margin.x2 = Style->MarginRight().ToPx(Pos.X(), Fnt);
+				Margin.y2 = Style->MarginBottom().ToPx(Pos.Y(), Fnt);
+
+				Border.x1 = Style->BorderLeft().ToPx(Pos.X(), Fnt);
+				Border.y1 = Style->BorderTop().ToPx(Pos.Y(), Fnt);
+				Border.x2 = Style->BorderRight().ToPx(Pos.X(), Fnt);
+				Border.y2 = Style->BorderBottom().ToPx(Pos.Y(), Fnt);
+
+				Padding.x1 = Style->PaddingLeft().ToPx(Pos.X(), Fnt);
+				Padding.y1 = Style->PaddingTop().ToPx(Pos.Y(), Fnt);
+				Padding.x2 = Style->PaddingRight().ToPx(Pos.X(), Fnt);
+				Padding.y2 = Style->PaddingBottom().ToPx(Pos.Y(), Fnt);
+			}
 		}
 
 		int Length()
@@ -832,7 +998,7 @@ public:
 
 			return false;
 		}
-
+		
 		void OnPaint(PaintContext &Ctx)
 		{
 			int CharPos = 0;
@@ -857,6 +1023,20 @@ public:
 					EndPoint[1] = ep;
 				}
 			}
+			
+			// Paint margins, borders and padding...
+			GRect r = Pos;
+			r.x1 -= Margin.x1;
+			r.y1 -= Margin.y1;
+			r.x2 -= Margin.x2;
+			r.y2 -= Margin.y2;
+			GCss::ColorDef BorderCol;
+			if (Style)
+				BorderCol = Style->BorderLeft().Color;
+			
+			Ctx.DrawBox(r, Margin, Ctx.Colours[Unselected].Back);
+			Ctx.DrawBox(r, Border, BorderCol.Type == GCss::ColorRgb ? GColour(BorderCol.Rgb32, 32) : GColour(222, 222, 222));
+			Ctx.DrawBox(r, Padding, Ctx.Colours[Unselected].Back);
 			
 			for (unsigned i=0; i<Layout.Length(); i++)
 			{
@@ -1001,13 +1181,37 @@ public:
 			LayoutDirty = false;
 			Layout.DeleteObjects();
 			
+			/*
+			GString Str = flow.Describe();
+			LgiTrace("%p::OnLayout Flow: %s Style: %s, %s, %s, %s\n",
+				this,
+				Str.Get(),
+				Style?Style->Name.Get():0,
+				Margin.GetStr(),
+				Border.GetStr(),
+				Padding.GetStr());
+			*/
+			
+			flow.Left += Margin.x1;
+			flow.Right -= Margin.x2;
+			flow.CurY += Margin.y1;
+			
 			Pos.x1 = flow.Left;
 			Pos.y1 = flow.CurY;
 			Pos.x2 = flow.Right;
 			Pos.y2 = flow.CurY-1; // Start with a 0px height.
 			
+			flow.Left += Border.x1 + Padding.x1;
+			flow.Right -= Border.x2 + Padding.x2;
+			flow.CurY += Border.y1 + Padding.y1;
+
+			/*
+			Str = flow.Describe();
+			LgiTrace("    Pos: %s Flow: %s\n", Pos.GetStr(), Str.Get());
+			*/
+			
 			int FixX = 0; // Current x offset (fixed point) on the current line
-			GAutoPtr<TextLine> CurLine(new TextLine(Pos));
+			GAutoPtr<TextLine> CurLine(new TextLine(flow.Left - Pos.x1, flow.X(), flow.CurY - Pos.y1));
 			if (!CurLine)
 				return flow.d->Error(_FL, "alloc failed.");
 
@@ -1030,15 +1234,16 @@ public:
 					{
 						// New line handling...
 						Off++;
-						CurLine->PosOff.x2 = FixedToInt(FixX);
+						CurLine->PosOff.x2 = CurLine->PosOff.x1 + FixedToInt(FixX);
 						FixX = 0;
 						CurLine->LayoutOffsets(f->GetHeight());
 						Pos.y2 = max(Pos.y2, Pos.y1 + CurLine->PosOff.y2);
-
 						CurLine->NewLine = 1;
-						Layout.Add(CurLine.Release());
 						
-						CurLine.Reset(new TextLine(Pos));
+						// LgiTrace("        [%i] = %s\n", Layout.Length(), CurLine->PosOff.GetStr());
+						
+						Layout.Add(CurLine.Release());
+						CurLine.Reset(new TextLine(flow.Left - Pos.x1, flow.X(), Pos.Y()));
 						continue;
 					}
 
@@ -1099,8 +1304,15 @@ public:
 				Layout.Add(CurLine.Release());
 			}
 			
-			flow.CurY = Pos.y2 + 1;
+			flow.CurY = Pos.y2 + 1 + Margin.y2 + Border.y2 + Padding.y2;
+			flow.Left -= Margin.x1 + Border.x1 + Padding.x1;
+			flow.Right += Margin.x2 + Border.x2 + Padding.x2;
 			
+			/*
+			Str = flow.Describe();
+			LgiTrace("    Pos: %s Flow: %s\n", Pos.GetStr(), Str.Get());
+			*/
+
 			return true;
 		}
 		
@@ -1159,7 +1371,7 @@ public:
 				LineLen[i] = Len;
 				
 				if (Offset >= CharPos &&
-					Offset <= CharPos + Len - Line->NewLine)
+					Offset <= CharPos + Len) // - Line->NewLine
 				{
 					CurLine = i;
 				}				
@@ -1258,7 +1470,9 @@ public:
 	
 	GArray<Block*> Blocks;
 
-	GTv4Priv(GTextView4 *view) : GHtmlParser(view)
+	GTv4Priv(GTextView4 *view) :
+		GHtmlParser(view),
+		GFontCache(view)
 	{
 		View = view;
 		WordSelectMode = false;
@@ -1299,8 +1513,28 @@ public:
 				int Off = c->Blk->Seek(Dir, c->Offset, c->Pos.x1);
 				if (Off >= 0)
 				{
+					// Got the next line in the current block.
 					c->Offset = Off;
 					Status = true;
+				}
+				else if (Dir == SkUpLine || Dir == SkDownLine)
+				{
+					// No more lines in the current block...
+					// Move to the next block.
+					bool Up = Dir == SkUpLine;
+					int CurIdx = Blocks.IndexOf(c->Blk);
+					int NewIdx = CurIdx + (Up ? -1 : 1);
+					if (NewIdx >= 0 && NewIdx < Blocks.Length())
+					{
+						Block *b = Blocks[NewIdx];
+						if (!b)
+							return false;
+						
+						c->Blk = b;
+						c->Offset = Up ? b->Length() : 0;
+						LgiAssert(c->Offset >= 0);
+						Status = true;							
+					}
 				}
 				break;
 			}
@@ -1315,6 +1549,7 @@ public:
 			{
 				c->Blk = Blocks.Last();
 				c->Offset = c->Blk->Length();
+				LgiAssert(c->Offset >= 0);
 				Status = true;
 				break;
 			}
@@ -1676,11 +1911,14 @@ public:
 		TextBlock *Tb;
 		GArray<char16> Buf;
 		char16 LastChar;
+		GFontCache *FontCache;
+		GCss::Store StyleStore;
 		
-		CreateContext()
+		CreateContext(GFontCache *fc)
 		{
 			Tb = NULL;
 			LastChar = '\n';
+			FontCache = fc;
 		}
 		
 		void AddText(GNamedStyle *Style, char16 *Str)
@@ -1722,6 +1960,8 @@ public:
 			}
 		}
 	};
+	
+	GAutoPtr<CreateContext> CreationCtx;
 
 	bool ToHtml()		
 	{
@@ -1744,44 +1984,56 @@ public:
 		return UtfNameCache.Reset(p.NewStr());
 	}
 	
-	bool FromHtml(GHtmlElement *e, CreateContext &ctx)
+	void DumpBlocks()
 	{
+		for (unsigned i=0; i<Blocks.Length(); i++)
+		{
+			Block *b = Blocks[i];
+			LgiTrace("%p: style=%p/%s {\n",
+				b,
+				b->GetStyle(),
+				b->GetStyle() ? b->GetStyle()->Name.Get() : NULL);
+			b->Dump();
+			LgiTrace("}\n");
+		}
+	}
+	
+	bool FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentStyle = NULL, int Depth = 0)
+	{
+		char Sp[256];
+		int SpLen = Depth << 1;
+		memset(Sp, ' ', SpLen);
+		Sp[SpLen] = 0;
+		
 		for (unsigned i = 0; i < e->Children.Length(); i++)
 		{
 			GHtmlElement *c = e->Children[i];
 			GAutoPtr<GCss> Style;
+			if (ParentStyle)
+				Style.Reset(new GCss(*ParentStyle));
 			
+			// Check to see if the element is block level and end the previous
+			// paragraph if so.
 			c->Info = c->Tag ? GHtmlStatic::Inst->GetTagInfo(c->Tag) : NULL;
-			if
-			(
-				(
-					c->Info != NULL
-					&&
-					c->Info->Block()
-					&& 
-					ctx.LastChar != '\n'
-				)
-				||
-				c->TagId == TAG_BR
-			)
-			{
-				if (!ctx.Tb)
-					Blocks.Add(ctx.Tb = new TextBlock);
-				if (ctx.Tb)
-				{
-					ctx.Tb->AddText(NULL, L"\n");
-					ctx.LastChar = '\n';
-				}
-			}
+			bool IsBlock =	c->Info != NULL && c->Info->Block();
 
 			switch (c->TagId)
 			{
+				case TAG_STYLE:
+				{
+					char16 *Style = e->GetText();
+					if (Style)
+						LgiAssert(!"Impl me.");
+					continue;
+					break;
+				}
 				case TAG_B:
 				{
 					if (Style.Reset(new GCss))
 						Style->FontWeight(GCss::FontWeightBold);
 					break;
 				}
+				/*
 				case TAG_IMG:
 				{
 					ctx.Tb = NULL;
@@ -1789,24 +2041,23 @@ public:
 					const char *Src = NULL;
 					if (e->Get("src", Src))
 					{
-						/*
 						ImageBlock *Ib = new ImageBlock;
 						if (Ib)
 						{
 							Ib->Src = Src;
 							Blocks.Add(Ib);
 						}
-						*/
 					}
 					break;
 				}
+				*/
 				default:
 				{
 					break;
 				}
 			}
 			
-			const char *Css;
+			const char *Css, *Class;
 			if (c->Get("style", Css))
 			{
 				if (!Style)
@@ -1814,16 +2065,76 @@ public:
 				if (Style)
 					Style->Parse(Css);
 			}
+			if (c->Get("class", Class))
+			{
+				GCss::SelArray Selectors;
+				GText4ElemContext StyleCtx;
+				if (ctx.StyleStore.Match(Selectors, &StyleCtx, dynamic_cast<GText4Elem*>(c)))
+				{
+					for (unsigned n=0; n<Selectors.Length(); n++)
+					{
+						GCss::Selector *sel = Selectors[n];
+						if (sel)
+						{
+							const char *s = sel->Style;
+							if (s)
+							{
+								if (!Style)
+									Style.Reset(new GCss);
+								if (Style)
+								{
+									LgiTrace("class style: %s\n", s);
+									Style->Parse(s);
+								}
+							}
+						}
+					}
+				}
+			}
+
+			GNamedStyle *CachedStyle = AddStyleToCache(Style);
+			LgiTrace("%s%s IsBlock=%i CachedStyle=%p\n", Sp, c->Tag, IsBlock, CachedStyle);
+
+			if ((IsBlock && ctx.LastChar != '\n') || c->TagId == TAG_BR)
+			{
+				if (!ctx.Tb)
+					Blocks.Add(ctx.Tb = new TextBlock);
+				if (ctx.Tb)
+				{
+					ctx.Tb->AddText(CachedStyle, L"\n");
+					ctx.LastChar = '\n';
+				}
+			}
+
+			bool EndStyleChange = false;
+			if (IsBlock && ctx.Tb != NULL)
+			{
+				if (CachedStyle != ctx.Tb->GetStyle())
+				{
+					// Start a new block because the styles are different...
+					EndStyleChange = true;
+					Blocks.Add(ctx.Tb = new TextBlock);
+					
+					if (CachedStyle)
+					{
+						ctx.Tb->Fnt = ctx.FontCache->GetFont(CachedStyle);
+						ctx.Tb->SetStyle(CachedStyle);
+					}
+				}
+			}
 
 			if (c->GetText())
 			{
 				if (!ctx.Tb)
 					Blocks.Add(ctx.Tb = new TextBlock);
-				ctx.AddText(AddStyleToCache(Style), c->GetText());
+				ctx.AddText(CachedStyle, c->GetText());
 			}
 			
-			if (!FromHtml(c, ctx))
+			if (!FromHtml(c, ctx, Style, Depth + 1))
 				return false;
+			
+			if (EndStyleChange)
+				ctx.Tb = NULL;
 		}
 		
 		return true;
@@ -2057,23 +2368,36 @@ static GHtmlElement *FindElement(GHtmlElement *e, HtmlTag TagId)
 	return NULL;
 }
 
+void GTextView4::OnAddStyle(const char *MimeType, const char *Styles)
+{
+	if (d->CreationCtx)
+	{
+		d->CreationCtx->StyleStore.Parse(Styles);
+	}
+}
+
 bool GTextView4::Name(const char *s)
 {
 	d->Empty();
 	d->OriginalText = s;
 	
 	GHtmlElement Root(NULL);
+
+	if (!d->CreationCtx.Reset(new GTv4Priv::CreateContext(d)))
+		return false;
+
 	if (!d->GHtmlParser::Parse(&Root, s))
 		return d->Error(_FL, "Failed to parse HTML.");
-	
+
 	GHtmlElement *Body = FindElement(&Root, TAG_BODY);
 	if (!Body)
 		Body = &Root;
 
-	GTv4Priv::CreateContext Ctx;
-	bool Status = d->FromHtml(Body, Ctx);
+	bool Status = d->FromHtml(Body, *d->CreationCtx);
 	if (Status)
 		SetCursor(0, false);
+	
+	d->DumpBlocks();
 	
 	return Status;
 }
