@@ -1812,7 +1812,7 @@ public:
 				if (!Style)
 					Style.Reset(new GCss);
 				if (Style)
-					Style->Parse(Css);
+					Style->Parse(Css, ParseRelaxed);
 			}
 
 			if (c->GetText())

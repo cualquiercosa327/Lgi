@@ -17,6 +17,8 @@
 #define GXT_KEEP_WHITESPACE					0x0008
 /// Runtime option: Don't create DOM heirarchy, just a list of tags
 #define GXT_NO_DOM							0x0010
+/// Don't print <?xml ... ?> header
+#define GXT_NO_HEADER						0x0020
 
 class GXmlTree;
 class GXmlTreePrivate;

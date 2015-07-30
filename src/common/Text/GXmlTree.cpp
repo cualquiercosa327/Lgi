@@ -1485,11 +1485,10 @@ bool GXmlTree::Write(GXmlTag *Root, GStreamI *File)
 		File->SetSize(0);
 		d->File = File;
 
-		File->Write(GXmlHeader, strlen(GXmlHeader));
+		if (!TestFlag(d->Flags, GXT_NO_HEADER))
+			File->Write(GXmlHeader, strlen(GXmlHeader));
 		if (d->StyleFile && d->StyleType)
-		{
 			GStreamPrint(d->File, "<?xml-stylesheet href=\"%s\" type=\"%s\"?>\n", d->StyleFile, d->StyleType);
-		}
 
 		Output(Root, 0);
 		d->File = 0;
