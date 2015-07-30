@@ -20,6 +20,7 @@
 #endif
 #include "GUtf8.h"
 #include "GString.h"
+#include "LgiCommon.h"
 
 LgiExtern int LgiPrintf(class GString &Str, const char *Format, va_list &Arg);
 
@@ -101,6 +102,18 @@ public:
 	{
 		Str = NULL;
 		Set(str);
+	}
+
+	/// const char16* constructor
+	GString(const char16 *str)
+	{
+		Str = NULL;
+		char *Utf = LgiNewUtf16To8(str);
+		if (Utf)
+		{
+			Set(Utf);
+			DeleteArray(Utf);
+		}
 	}
 
 	/// GString constructor

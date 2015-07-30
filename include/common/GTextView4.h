@@ -128,6 +128,7 @@ public:
 	void SetLine(int Line);
 	GDocFindReplaceParams *CreateFindReplaceParams();
 	void SetFindReplaceParams(GDocFindReplaceParams *Params);
+	void OnAddStyle(const char *MimeType, const char *Styles);
 
 	// Object Events
 	bool OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly);
