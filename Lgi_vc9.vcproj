@@ -1190,6 +1190,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\common\Text\GUnicode.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\include\common\GUnicode.h"
+					>
+				</File>
+				<File
 					RelativePath=".\src\common\Text\GUtf8.cpp"
 					>
 				</File>

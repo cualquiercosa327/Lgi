@@ -45,10 +45,97 @@ struct GLinkInfo
 	NativeInt Start;
 	NativeInt Len;
 	bool Email;
+	
+	void Set(NativeInt start, NativeInt len, bool email)
+	{
+		Start = start;
+		Len = len;
+		Email = email;
+	}
 };
 
 /// Detects links in text, returning their location and type
-extern bool LgiDetectLinks(GArray<GLinkInfo> &Links, char16 *Text, int TextCharLen = -1);
+template<typename T>
+bool LgiDetectLinks(GArray<GLinkInfo> &Links, T *Text, int TextCharLen = -1)
+{
+	if (!Text)
+		return false;
+
+	if (TextCharLen < 0)
+		TextCharLen = Strlen(Text);
+
+	static T Http[] = {'h', 't', 't', 'p', ':', '/', '/', 0 };
+	static T Https[] = {'h', 't', 't', 'p', 's', ':', '/', '/', 0};
+
+	for (int64 i=0; i<TextCharLen; i++)
+	{
+		switch (Text[i])
+		{
+			case 'h':
+			case 'H':
+			{
+				if (Strnicmp(Text+i, Http, 6) == 0 ||
+					Strnicmp(Text+i, Https, 7) == 0)
+				{
+					// find end
+					T *s = Text + i;
+					T *e = s + 6;
+					for ( ; ((e - Text) < TextCharLen) && UrlChar(*e); e++)
+						;
+					
+					while
+					(
+						e > s &&
+						!
+						(
+							IsAlpha(e[-1]) ||
+							IsDigit(e[-1]) ||
+							e[-1] == '/'
+						)
+					)
+						e--;
+
+					Links.New().Set(s - Text, e - s, false);
+					i = e - Text;
+				}
+				break;
+			}
+			case '@':
+			{
+				// find start
+				T *s = Text + (max(i, 1) - 1);
+				
+				for ( ; s > Text && EmailChar(*s); s--)
+					;
+
+				if (s < Text + i)
+				{
+					if (!EmailChar(*s))
+						s++;
+
+					bool FoundDot = false;
+					T *Start = Text + i + 1;
+					T *e = Start;
+					for ( ; ((e - Text) < TextCharLen) && 
+							EmailChar(*e); e++)
+					{
+						if (*e == '.') FoundDot = true;
+					}
+					while (e > Start && e[-1] == '.') e--;
+
+					if (FoundDot)
+					{
+						Links.New().Set(s - Text, e - s, true);
+						i = e - Text;
+					}
+				}
+				break;
+			}
+		}
+	}
+
+	return true;
+}
 
 // Call back class to handle viewer events
 class GDocView;

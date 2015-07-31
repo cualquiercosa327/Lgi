@@ -9,6 +9,8 @@
 #ifndef LgiCarbon_GUnicode_h
 #define LgiCarbon_GUnicode_h
 
+#include "LgiInc.h"
+
 // Converts character to lower case
 template<typename T>
 T Tolower(T ch)
