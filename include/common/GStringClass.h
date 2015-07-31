@@ -20,6 +20,7 @@
 #endif
 #include "GUtf8.h"
 #include "GString.h"
+#include "LgiCommon.h"
 
 LgiExtern int LgiPrintf(class GString &Str, const char *Format, va_list &Arg);
 
@@ -88,6 +89,13 @@ public:
 	{
 		Str = NULL;
 	}
+
+	// This odd looking constructor allows the object to be used as the value type
+	// in a GHashTable, where the initialiser is '0', an integer.
+	GString(int i)
+	{
+		Str = NULL;
+	}
 	
 	/// String constructor
 	GString(const char *str, int len)
@@ -101,6 +109,18 @@ public:
 	{
 		Str = NULL;
 		Set(str);
+	}
+
+	/// const char16* constructor
+	GString(const char16 *str)
+	{
+		Str = NULL;
+		char *Utf = LgiNewUtf16To8(str);
+		if (Utf)
+		{
+			Set(Utf);
+			DeleteArray(Utf);
+		}
 	}
 
 	/// GString constructor
@@ -172,6 +192,18 @@ public:
 		
 		Str->Str[len] = 0;
 		return true;
+	}
+
+	/// Equality operator
+	bool operator ==(const GString &s)
+	{
+		const char *a = Get();
+		const char *b = s.Get();
+		if (!a && !b)
+			return true;
+		if (!a || !b)
+			return false;
+		return !strcmp(a, b);
 	}
 	
 	/// Assignment operator to copy one string to another

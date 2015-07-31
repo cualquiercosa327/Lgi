@@ -1926,6 +1926,7 @@ bool GTextView3::Copy()
 
 		GClipBoard Clip(this);
 		
+		printf("%s:%i - text view copy -> clip\n", _FL);
 		Clip.Text(Txt8);
 		Clip.TextW(Txt16, false);
 		
@@ -2126,7 +2127,7 @@ bool GTextView3::Save(const char *Name, const char *CharSet)
 					Status = true;
 
 					int BufLen = 1 << 20;
-					GAutoPtr<char> Buf(new char[BufLen]);
+					GAutoString Buf(new char[BufLen]);
 					char *b = Buf;
 					char *e = Buf + BufLen;
 					char *c = c8;
@@ -2322,7 +2323,8 @@ bool GTextView3::DoFindNext()
 	return false;
 }
 
-bool Text_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User)
+bool
+Text3_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User)
 {
 	GTextView3 *v = (GTextView3*) User;
 
@@ -2364,7 +2366,7 @@ bool GTextView3::DoFind()
 		u = LgiNewUtf16To8(d->FindReplaceParams->LastFind);
 	}
 
-	GFindDlg Dlg(this, u, Text_FindCallback, this);
+	GFindDlg Dlg(this, u, Text3_FindCallback, this);
 	Dlg.DoModal();
 	DeleteArray(u);
 	
@@ -2586,6 +2588,7 @@ int GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bool Sel
 
 bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly)
 {
+	printf("%s:%i - OnFind(%S, %i, %i, %i)\n", _FL, Find, MatchWord, MatchCase, SelectionOnly);
 	int Loc = MatchText(Find, MatchWord, MatchCase, SelectionOnly);
 	if (Loc >= 0)
 	{
@@ -4578,6 +4581,7 @@ GMessage::Result GTextView3::OnEvent(GMessage *Msg)
 		}
 		case M_COPY:
 		{
+			printf("M_COPY received.\n");
 			Copy();
 			break;
 		}

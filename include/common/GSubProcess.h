@@ -26,8 +26,10 @@ class GSubProcess : public GStreamI
 public:
 	#if defined(WIN32)
 	typedef HANDLE PipeHandle;
+	typedef DWORD ProcessId;
 	#else
 	typedef int PipeHandle;
+	typedef pid_t ProcessId;
 	#endif
 
 	union Pipe
@@ -68,13 +70,12 @@ protected:
 	
 	Variable *GetEnvVar(const char *Var, bool Create = false);
 
+	ProcessId ChildPid;
 	#if defined(POSIX)
-	pid_t ChildPid;
 	Pipe Io;
 	int ExitValue; // was uint32
 	bool Dupe(PipeHandle Old, PipeHandle New);
 	#elif defined(WIN32)
-	DWORD ChildPid;
 	HANDLE ChildHnd;
 	DWORD ExitValue;
 	Pipe ChildOutput, ChildInput;
@@ -93,7 +94,8 @@ public:
 	const char *GetEnvironment(const char *Var);	
 	bool SetEnvironment(const char *Var, const char *Value);
 
-	// Process lifecycle	
+	// Process lifecycle
+	ProcessId Handle() { return ChildPid; }
 	bool IsRunning();
 	uint32 GetErrorCode();
 	uint32 GetExitValue();

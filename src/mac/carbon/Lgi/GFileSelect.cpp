@@ -234,7 +234,16 @@ bool GFileSelect::Name(const char *n)
 	d->Files.DeleteArrays();
 	if (n)
 	{
-		d->Files.Insert(NewStr(n));
+		char *ns = NewStr(n);
+		if (ns)
+		{
+			for (char *c = ns; *c; c++)
+			{
+				if (strchr(LGI_IllegalFileNameChars, *c))
+					*c = '_';
+			}
+			d->Files.Insert(ns);
+		}
 	}
 
 	return true;

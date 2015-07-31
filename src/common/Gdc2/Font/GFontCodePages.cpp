@@ -1034,92 +1034,111 @@ T *DupeString(T *s, int Len = -1)
 
 void *LgiNewConvertCp(const char *OutCp, const void *In, const char *InCp, int InLen)
 {
+	if (!OutCp || !In || !InCp)
+		return NULL;
+
+	GCharset *InInfo = LgiGetCpInfo(InCp);
+	GCharset *OutInfo = LgiGetCpInfo(OutCp);
+	if (!InInfo || !OutInfo)
+		return NULL;
+
 	GMemQueue b;
-
-	if (OutCp && In && InCp)
+	if (InLen < 0)
 	{
-		GCharset *InInfo = LgiGetCpInfo(InCp);
-		GCharset *OutInfo = LgiGetCpInfo(OutCp);
-		if (InInfo && OutInfo)
+		switch (InInfo->Type)
 		{
-			if (InLen < 0)
-			{
-				switch (InInfo->Type)
-				{
-					case CpMapped:
-					case CpUtf8:
-					case CpIconv:
-						InLen = strlen((char*)In);
-						break;
-					case CpUtf16:
-					case CpWindowsDb:
-						InLen = StringLen((uint16*)In) << 1;
-						break;
-					case CpUtf32:
-						InLen = StringLen((uint32*)In) << 2;
-						break;
-					default:
-						LgiAssert(0);
-						return NULL;
-				}
-			}
+			case CpMapped:
+			case CpUtf8:
+			case CpIconv:
+				InLen = strlen((char*)In);
+				break;
+			case CpUtf16:
+			case CpWindowsDb:
+				InLen = StringLen((uint16*)In) << 1;
+				break;
+			case CpUtf32:
+				InLen = StringLen((uint32*)In) << 2;
+				break;
+			default:
+				LgiAssert(0);
+				return NULL;
+		}
+	}
 
-			if (!stricmp(InCp, OutCp))
-			{
-				if (InInfo->Type == CpUtf16)
-				{
-					return DupeString((uint16*)In, InLen/sizeof(uint16));
-				}
-				else if (InInfo->Type == CpUtf32)
-				{
-					return DupeString((uint32*)In, InLen/sizeof(uint32));
-				}
-				else
-				{
-					return NewStr((char*)In, InLen);
-				}
-			}
+	int NullSize;
+	switch (OutInfo->Type)
+	{
+		case CpMapped:
+		case CpUtf8:
+		case CpIconv:
+			NullSize = 1;
+			break;
+		case CpUtf16:
+		case CpWindowsDb:
+			NullSize = 2;
+			break;
+		case CpUtf32:
+			NullSize = 4;
+			break;
+		default:
+			LgiAssert(0);
+			return NULL;
+	}
 
-			if (InInfo->Type == CpIconv ||
-				OutInfo->Type == CpIconv)
+	if (!stricmp(InCp, OutCp))
+	{
+		if (InInfo->Type == CpUtf16)
+		{
+			return DupeString((uint16*)In, InLen/sizeof(uint16));
+		}
+		else if (InInfo->Type == CpUtf32)
+		{
+			return DupeString((uint32*)In, InLen/sizeof(uint32));
+		}
+		else
+		{
+			return NewStr((char*)In, InLen);
+		}
+	}
+
+	if (InInfo->Type == CpIconv ||
+		OutInfo->Type == CpIconv)
+	{
+		#ifndef LGI_STATIC
+		GFontSystem *Fs = GFontSystem::Inst();
+		if (Fs)
+		{
+			const char *InCs = InInfo->GetIconvName();
+			const char *OutCs = OutInfo->GetIconvName();
+			if (!Fs->IconvConvert(OutCs, &b, InCs, (const char*&)In, InLen))
 			{
-				#ifndef LGI_STATIC
-				GFontSystem *Fs = GFontSystem::Inst();
-				if (Fs)
-				{
-					const char *InCs = InInfo->GetIconvName();
-					const char *OutCs = OutInfo->GetIconvName();
-					if (!Fs->IconvConvert(OutCs, &b, InCs, (const char*&)In, InLen))
-					{
-						InCp = "iso-8859-1";
-						goto BufConvert;
-					}
-				}
-				#else
-				LgiAssert(!"No inconv in static build");
-				#endif
+				InCp = "iso-8859-1";
+				goto BufConvert;
+			}
+		}
+		#else
+		LgiAssert(!"No inconv in static build");
+		#endif
+	}
+	else
+	{
+		BufConvert:
+		char Buf[2 << 10];
+		while (InLen > 0)
+		{
+			int Bytes = LgiBufConvertCp(Buf, OutCp, sizeof(Buf), In, InCp, InLen);
+			if (Bytes > 0)
+			{
+				b.Write((uchar*)Buf, Bytes);
 			}
 			else
 			{
-				BufConvert:
-				char Buf[2 << 10];
-				while (InLen > 0)
-				{
-					int Bytes = LgiBufConvertCp(Buf, OutCp, sizeof(Buf), In, InCp, InLen);
-					if (Bytes > 0)
-					{
-						b.Write((uchar*)Buf, Bytes);
-					}
-					else
-					{
-						break;
-					}
-				}
+				break;
 			}
 		}
 	}
 
-	return b.GetSize() ? b.New(sizeof(char16)) : 0;
+	return b.GetSize() ? b.New(NullSize) : 0;
 }
 
 char16 *LgiNewUtf8To16(const char *In, int InLen)

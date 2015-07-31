@@ -248,7 +248,7 @@ void EditTray::OnMouseClick(GMouse &m)
 			}
 			else
 			{
-				printf("%s:%i - No include paths set.\n", __FILE__, __LINE__);
+				LgiTrace("%s:%i - No include paths set.\n", _FL);
 			}
 		}
 		else if (FuncBtn.Overlap(m.x, m.y))
@@ -311,7 +311,7 @@ void EditTray::OnMouseClick(GMouse &m)
 			}
 			else
 			{
-				printf("%s:%i - No functions in input.\n", __FILE__, __LINE__);
+				LgiTrace("%s:%i - No functions in input.\n", _FL);
 			}
 		}
 		else if (SymBtn.Overlap(m.x, m.y))
@@ -386,12 +386,12 @@ void EditTray::OnMouseClick(GMouse &m)
 									else
 									{
 										char *f = Def->File;
-										printf("%s:%i - Couldn't open doc '%s'\n", _FL, f);
+										LgiTrace("%s:%i - Couldn't open doc '%s'\n", _FL, f);
 									}
 								}
 								else
 								{
-									printf("%s:%i - No project / app ptr.\n", _FL);
+									LgiTrace("%s:%i - No project / app ptr.\n", _FL);
 								}
 							}
 						}
@@ -446,8 +446,11 @@ class DocEdit : public GTextView3, public GDocumentEnv
 {
 	IdeDoc *Doc;
 	int CurLine;
+	GdcPt2 MsClick;
 
 public:
+	static int LeftMarginPx;
+
 	DocEdit(IdeDoc *d, GFontType *f) : GTextView3(IDC_EDIT, 0, 0, 100, 100, f)
 	{
 		Doc = d;
@@ -459,7 +462,7 @@ public:
 		SetFindReplaceParams(GlobalFindReplace);
 		
 		CanScrollX = true;
-		GetCss(true)->PaddingLeft(GCss::Len(GCss::LenPx, 16 + 2));
+		GetCss(true)->PaddingLeft(GCss::Len(GCss::LenPx, LeftMarginPx + 2));
 		
 		if (!f)
 		{
@@ -502,12 +505,20 @@ public:
 		SetEnv(0);
 	}
 
+	int GetTopPaddingPx()
+	{
+		return GetCss(true)->PaddingTop().ToPx(GetClient().Y(), GetFont());
+	}
+
 	void InvalidateLine(int Idx)
 	{
 		GTextLine *Ln = GTextView3::Line[Idx];
 		if (Ln)
 		{
-			Invalidate(&Ln->r);
+			int PadPx = GetTopPaddingPx();
+			GRect r = Ln->r;
+			r.Offset(0, -ScrollYPixel() + PadPx);
+			Invalidate(&r);
 		}
 	}
 	
@@ -516,7 +527,7 @@ public:
 		GTextView3::OnPaintLeftMargin(pDC, r, colour);
 		int Y = ScrollYLine();
 		
-		int TopPaddingPx = GetCss(true)->PaddingTop().ToPx(GetClient().Y(), GetFont());
+		int TopPaddingPx = GetTopPaddingPx();
 
 		pDC->Colour(GColour(200, 0, 0));
 		List<GTextLine>::I it = GTextView3::Line.Start(Y);
@@ -551,21 +562,36 @@ public:
 
 	void OnMouseClick(GMouse &m)
 	{
-		if (m.x < 10)
+		if (m.Down())
 		{
-			if (m.Down())
+			if (HasSelection())
 			{
-				// Margin click... work out the line
-				int Y = (VScroll) ? (int)VScroll->Value() : 0;
-				GFont *f = GetFont();
-				if (!f) return;
-				GCss::Len PaddingTop = GetCss(true)->PaddingTop();
-				int TopPx = PaddingTop.ToPx(GetClient().Y(), f);
-				int Idx = ((m.y - TopPx) / f->GetHeight()) + Y + 1;
-				if (Idx > 0 && Idx <= GTextView3::Line.Length())
-				{
-					Doc->OnMarginClick(Idx);
-				}
+				MsClick.x = -100;
+				MsClick.y = -100;
+			}
+			else
+			{
+				MsClick.x = m.x;
+				MsClick.y = m.y;
+			}
+		}
+		else if
+		(
+			m.x < LeftMarginPx &&
+			abs(m.x - MsClick.x) < 5 &&
+			abs(m.y - MsClick.y) < 5
+		)
+		{
+			// Margin click... work out the line
+			int Y = (VScroll) ? (int)VScroll->Value() : 0;
+			GFont *f = GetFont();
+			if (!f) return;
+			GCss::Len PaddingTop = GetCss(true)->PaddingTop();
+			int TopPx = PaddingTop.ToPx(GetClient().Y(), f);
+			int Idx = ((m.y - TopPx) / f->GetHeight()) + Y + 1;
+			if (Idx > 0 && Idx <= GTextView3::Line.Length())
+			{
+				Doc->OnMarginClick(Idx);
 			}
 		}
 
@@ -706,6 +732,8 @@ public:
 	}
 };
 
+int DocEdit::LeftMarginPx = 16;
+
 bool DocEdit::OnMenu(GDocView *View, int Id)
 {
 	if (View)
@@ -808,24 +836,24 @@ bool DocEdit::OnMenu(GDocView *View, int Id)
 							}
 							else
 							{
-								printf("%s:%i - No function name.\n", __FILE__, __LINE__);
+								LgiTrace("%s:%i - No function name.\n", _FL);
 							}
 						}
 						else
 						{
-							printf("%s:%i - OpenBracketIndex not found.\n", __FILE__, __LINE__);
+							LgiTrace("%s:%i - OpenBracketIndex not found.\n", _FL);
 						}
 						
 						Tokens.DeleteArrays();
 					}
 					else
 					{
-						printf("%s:%i - No input text.\n", __FILE__, __LINE__);
+						LgiTrace("%s:%i - No input text.\n", _FL);
 					}
 				}
 				else
 				{
-					printf("%s:%i - No template.\n", __FILE__, __LINE__);
+					LgiTrace("%s:%i - No template.\n", _FL);
 				}
 				break;
 			}
@@ -966,7 +994,9 @@ char *IdeDocPrivate::GetLocalFile()
 		if (nSrc->IsWeb())
 			return nSrc->GetLocalCache();
 		
-		Buffer = nSrc->GetFullPath();
+		GAutoString fp = nSrc->GetFullPath();
+		if (_stricmp(fp?fp:"", Buffer?Buffer:""))
+			Buffer = fp;
 		return Buffer;
 	}
 	
@@ -1198,14 +1228,26 @@ void IdeDoc::SetLine(int Line, bool CurIp)
 {
 	if (CurIp)
 	{
-		if (d->Edit && IsCurrentIp() && CurIpLine >= 0)
-		{
-			// Invalidate the old IP location
-			d->Edit->InvalidateLine(CurIpLine);
-		}
+		GString CurDoc = GetFileName();
 		
-		CurIpLine = Line;
-		CurIpDoc = GetFileName();
+		if (ValidStr(CurIpDoc) ^ ValidStr(CurDoc)
+			||
+			(CurIpDoc && CurDoc && strcmp(CurDoc, CurIpDoc) != 0)
+			||
+			Line != CurIpLine)
+		{
+			bool Cur = IsCurrentIp();
+			if (d->Edit && Cur && CurIpLine >= 0)
+			{
+				// Invalidate the old IP location
+				d->Edit->InvalidateLine(CurIpLine - 1);
+			}
+			
+			CurIpLine = Line;
+			CurIpDoc = CurDoc;
+			
+			d->Edit->InvalidateLine(CurIpLine - 1);
+		}
 	}
 	
 	if (d->Edit)
@@ -1364,7 +1406,7 @@ bool IdeDoc::BuildIncludePaths(GArray<char*> &Paths, IdePlatform Platform, bool 
 {
 	if (!GetProject())
 	{
-		printf("%s:%i - GetProject failed.\n", _FL);
+		LgiTrace("%s:%i - GetProject failed.\n", _FL);
 		return false;
 	}
 
@@ -1376,7 +1418,7 @@ bool IdeDoc::BuildIncludePaths(GArray<char*> &Paths, IdePlatform Platform, bool 
 	}
 	else
 	{
-		printf("%s:%i - GetProject()->BuildIncludePaths failed.\n", _FL);
+		LgiTrace("%s:%i - GetProject()->BuildIncludePaths failed.\n", _FL);
 	}
 	
 	return Status;
@@ -1903,7 +1945,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 	{
 		for (DefnInfo *def = Defns.First(); def; def = Defns.Next())
 		{
-			printf("    def=%s:%i %s\n", def->File, def->Line, def->Name);
+			LgiTrace("    def=%s:%i %s\n", def->File, def->Line, def->Name);
 		}
 	}
 	
@@ -1953,7 +1995,7 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 
 	#if DEBUG_FIND_DEFN
 	GStringPipe Dbg;
-	printf("FindDefn(%S)\n", Symbol);
+	LgiTrace("FindDefn(%S)\n", Symbol);
 	#endif
 
 	GArray<char*> Paths;
@@ -1961,7 +2003,7 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 
 	if (!BuildIncludePaths(Paths, PlatformCurrent, true))
 	{
-		printf("%s:%i - BuildIncludePaths failed.\n", _FL);
+		LgiTrace("%s:%i - BuildIncludePaths failed.\n", _FL);
 		// return false;
 	}
 
@@ -1972,7 +2014,7 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 
 	if (!BuildHeaderList(Source, Headers, Paths))
 	{
-		printf("%s:%i - BuildHeaderList failed.\n", _FL);
+		LgiTrace("%s:%i - BuildHeaderList failed.\n", _FL);
 		// return false;
 	}
 
@@ -2027,7 +2069,7 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 			bool Found = false;
 			for (DefnInfo *Def=Defns.First(); Def; )
 			{
-				// printf("Def = %s,%i %s\n", Def->File, Def->Line, Def->Name);
+				// LgiTrace("Def = %s,%i %s\n", Def->File, Def->Line, Def->Name);
 				
 				if (MatchSymbol(Def, Symbol))
 				{
@@ -2055,7 +2097,7 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 	#if DEBUG_FIND_DEFN
 	{
 		GAutoString a(Dbg.NewStr());
-		if (a) printf("%s", a.Get());
+		if (a) LgiTrace("%s", a.Get());
 	}
 	#endif
 	

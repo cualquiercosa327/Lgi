@@ -39,12 +39,12 @@
 		<Node File="./Code/SpaceTabConv.h" Type="3" Platforms="15" />
 		<Node File="./Code/GHistory.cpp" Type="2" Platforms="15" />
 	</Node>
-	<Node Name="Lgi" Type="1" Platforms="15" Open="0">
-		<Node File="..\src\common\Text\GDocView.cpp" Type="2" Platforms="15" />
-		<Node File="..\src\common\Lgi\GMdi.cpp" Type="2" Platforms="15" />
-		<Node File="..\src\common\Text\GTextView3.cpp" Type="2" Platforms="15" />
-		<Node File="..\src\common\Lgi\LgiMain.cpp" Type="2" Platforms="15" />
-		<Node File="..\src\common\Gdc2\Filters\Png.cpp" Type="2" Platforms="15" />
+	<Node Name="Lgi" Type="1" Platforms="15" Open="1">
+		<Node File="../src/common/Text/GDocView.cpp" Type="2" Platforms="15" />
+		<Node File="../src/common/Lgi/GMdi.cpp" Type="2" Platforms="15" />
+		<Node File="../src/common/Text/GTextView3.cpp" Type="2" Platforms="15" />
+		<Node File="../src/common/Lgi/LgiMain.cpp" Type="2" Platforms="15" />
+		<Node File="../src/common/Gdc2/Filters/Png.cpp" Type="2" Platforms="15" />
 	</Node>
 	<Node Name="Resources" Type="1" Platforms="15" Open="0">
 		<Node File=".\Code\resource.h" Type="3" Platforms="15" />

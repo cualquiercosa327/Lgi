@@ -18,6 +18,7 @@ static GHtmlElemInfo TagInfo[] =
 	{TAG_TABLE,			"table",		0,			GHtmlElemInfo::TI_BLOCK | GHtmlElemInfo::TI_NO_TEXT | GHtmlElemInfo::TI_TABLE},
 	{TAG_TR,			"tr",			"table",	GHtmlElemInfo::TI_BLOCK | GHtmlElemInfo::TI_NO_TEXT | GHtmlElemInfo::TI_TABLE},
 	{TAG_TD,			"td",			"tr",		GHtmlElemInfo::TI_BLOCK | GHtmlElemInfo::TI_TABLE},
+	{TAG_TH,			"th",			"tr",		GHtmlElemInfo::TI_BLOCK | GHtmlElemInfo::TI_TABLE},
 	{TAG_HEAD,			"head",			"html",		GHtmlElemInfo::TI_NONE | GHtmlElemInfo::TI_SINGLETON},
 	{TAG_BODY,			"body",			0,			GHtmlElemInfo::TI_BLOCK | GHtmlElemInfo::TI_NO_TEXT | GHtmlElemInfo::TI_SINGLETON},
 	{TAG_IMG,			"img",			0,			GHtmlElemInfo::TI_NEVER_CLOSES},
@@ -62,7 +63,7 @@ char16 *WcharToChar16(const wchar_t *i)
 	return Buf;
 }
 
-GHtmlStatic *GHtmlStatic::Inst = 0;
+GHtmlStatic *GHtmlStatic::Inst = NULL;
 
 GHtmlStatic::GHtmlStatic() :
 	VarMap(8, true),
@@ -560,9 +561,11 @@ GHtmlElemInfo *GHtmlStatic::GetTagInfo(const char *Tag)
 GHtmlElement::GHtmlElement(GHtmlElement *parent)
 {
 	TagId = CONTENT;
-	Parent = parent;
 	Info = NULL;
 	WasClosed = false;
+	Parent = parent;
+	if (Parent)
+		Parent->Children.Add(this);
 }
 
 GHtmlElement::~GHtmlElement()

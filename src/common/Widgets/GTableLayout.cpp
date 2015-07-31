@@ -609,6 +609,7 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 			}
 			else if (Izza(GCombo))
 			{
+				int PadX = GCombo::Pad.x1 + GCombo::Pad.x2;
 				GCombo *Cbo = Izza(GCombo);
 				GFont *f = Cbo->GetFont();
 				int min_x = -1, max_x = 0;
@@ -620,8 +621,8 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 					max_x = max(ds.X() + 4, max_x);
 				}				
 				
-				Min = max(Min, min_x + 32);
-				Max = max(Max, max_x + 32);
+				Min = max(Min, min_x + PadX);
+				Max = max(Max, max_x + PadX);
 				if (Flag < SizeGrow)
 					Flag = SizeGrow;
 			}

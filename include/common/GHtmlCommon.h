@@ -30,6 +30,7 @@ enum HtmlTag
 	TAG_TABLE,
 		TAG_TR,
 		TAG_TD,
+		TAG_TH,
 	TAG_IMG,
 	TAG_DIV,
 	TAG_SPAN,
@@ -158,6 +159,9 @@ public:
 	GHtmlElement(GHtmlElement *parent);
 	~GHtmlElement();
 	
+	// Methods
+	char16 *GetText() { return Txt; }
+	
 	// Heirarchy
 	bool Attach(GHtmlElement *Child, int Idx = -1);
 	void Detach();
@@ -167,7 +171,7 @@ public:
 	virtual bool Get(const char *attr, const char *&val) { return false; }
 	virtual void Set(const char *attr, const char *val) {}
 	virtual void SetStyle() {}
-	virtual GAutoString DescribeElement() = 0;
+	virtual GAutoString DescribeElement() { return GAutoString(); }
 
 	// Helper
 	void Set(const char *attr, const char16 *val)

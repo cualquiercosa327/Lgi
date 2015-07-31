@@ -2,6 +2,11 @@
 #include "GDebugger.h"
 #include "GSubProcess.h"
 #include "GToken.h"
+#ifdef POSIX
+#include <sys/types.h>
+#include <signal.h>
+#include <errno.h>
+#endif
 
 #define DEBUG_SHOW_GDB_IO		0
 
@@ -23,6 +28,7 @@ class Gdb : public GDebugger, public GThread
 	bool SetPendingOn;
 	GArray<BreakPoint> BreakPoints;
 	int BreakPointIdx;
+	int ProcessId;
 
 	// Current location tracking
 	GString CurFile;
@@ -143,17 +149,17 @@ class Gdb : public GDebugger, public GThread
 			{
 				Events->OnFileLine(NativePath(ref[0]), ref[1].Int(), true);
 			}
-			else printf("%s:%i - Not the right arg count.\n", _FL);
+			else LgiTrace("%s:%i - Not the right arg count.\n", _FL);
 			
 			BreakPointIdx = -1;
 		}
-		else printf("Not end of breakpoint.\n");
+		else LgiTrace("Not end of breakpoint.\n");
 	}
 	
 	void OnLine(const char *Start, int Length)
 	{
 		#if DEBUG_SHOW_GDB_IO
-		printf("Receive: '%.*s'\n", Length-1, Start);
+		LgiTrace("Receive: '%.*s'\n", Length-1, Start);
 		#endif
 
 		// Send output
@@ -162,10 +168,9 @@ class Gdb : public GDebugger, public GThread
 		else if (OutStream)
 			OutStream->Write(Start, Length);
 		else
-		{
 			Untagged.New().Reset(NewStr(Start, Length));
-			Events->Write(Start, Length);
-		}	
+
+		Events->Write(Start, Length);
 
 		if (BreakPointIdx > 0)
 		{
@@ -175,10 +180,43 @@ class Gdb : public GDebugger, public GThread
 		{
 			Events->OnCrash(0);
 		}
-		else if (stristr(Start, "[Inferior") &&
-				 stristr(Start, "exited"))
+		else if (*Start == '[')
 		{
-			OnExit();
+			if (stristr(Start, "Inferior") && stristr(Start, "exited"))
+			{
+				OnExit();
+			}
+			else if (stristr(Start, "New Thread"))
+			{
+				GString s(Start, Length);
+				GString::Array a = s.SplitDelimit("[] ()");
+				int ThreadId = -1;
+				for (unsigned i=0; i<a.Length(); i++)
+				{
+					if (a[i] == GString("LWP") && i < a.Length() - 1)
+					{
+						ThreadId = a[i+1].Int();
+						break;
+					}
+				}
+				if (ThreadId > 0)
+				{
+					// Ok so whats the process ID?
+					#ifdef POSIX
+					int Pid = Gtk::getpgid(ThreadId);
+					if (Pid > 0 && ProcessId < 0)
+					{
+						LgiTrace("Got the thread id: %i, and pid: %i\n", ThreadId, Pid);
+						ProcessId = Pid;
+					}
+					else
+						printf("Not setting pid: %i && %i\n", Pid > 0, ProcessId < 0);
+					#else
+					LgiAssert(!"Impl me.");
+					#endif
+				}
+				else LgiTrace("%s:%i - No thread id?\n", _FL);
+			}
 		}
 		else if (BreakPointIdx < 0 &&
 				strncmp(Start, "Breakpoint ", 11) == 0 &&
@@ -269,7 +307,7 @@ class Gdb : public GDebugger, public GThread
 		if (InitDir)
 			Sp->SetInitFolder(InitDir);
 		
-		printf("Starting gdb subprocess...\n");
+		LgiTrace("Starting gdb subprocess...\n");
 		if (!Sp->Start(true, true, false))
 		{
 			State = ProcessError;
@@ -280,7 +318,7 @@ class Gdb : public GDebugger, public GThread
 			return -1;
 		}
 
-		printf("Entering gdb loop...\n");
+		LgiTrace("Entering gdb loop...\n");
 		State = Looping;
 
 		char Buf[513];
@@ -299,7 +337,7 @@ class Gdb : public GDebugger, public GThread
 			}			
 		}
 
-		printf("Exiting gdb loop...\n");
+		LgiTrace("Exiting gdb loop...\n");
 		if (Events)
 		{
 			DebuggingProcess = false;
@@ -325,7 +363,7 @@ class Gdb : public GDebugger, public GThread
 				}
 				else
 				{
-					printf("%s:%i - WaitPrompt init wait failed.\n", _FL);
+					LgiTrace("%s:%i - WaitPrompt init wait failed.\n", _FL);
 					return false;
 				}
 			}
@@ -352,7 +390,7 @@ class Gdb : public GDebugger, public GThread
 	{
 		if (!ValidStr(c))
 		{
-			printf("%s:%i - Not a valid command.\n", _FL);
+			LgiTrace("%s:%i - Not a valid command.\n", _FL);
 			LgiAssert(!"Not a valid command.");
 			return false;
 		}
@@ -366,7 +404,7 @@ class Gdb : public GDebugger, public GThread
 		int ch = sprintf_s(str, sizeof(str), "%s\n", c);
 
 		#if DEBUG_SHOW_GDB_IO
-		printf("Send: '%s'\n", c);
+		LgiTrace("Send: '%s'\n", c);
 		#endif
 		Events->Write(str, ch);
 		LinePtr = Line;
@@ -380,11 +418,15 @@ class Gdb : public GDebugger, public GThread
 			return false;
 
 		if (OutStream || OutLines)
-		{		
+		{	
+			/*	
 			uint64 Wait0 = LgiCurrentTime();
+			*/
 			WaitPrompt();
+			/*
 			uint64 Wait1 = LgiCurrentTime();
 			LgiTrace("Cmd timing "LGI_PrintfInt64" "LGI_PrintfInt64"\n", Wait0-Start, Wait1-Wait0);
+			*/
 			LgiAssert(OutStream == NULL && OutLines == NULL);
 		}
 		
@@ -405,6 +447,7 @@ public:
 		SetPendingOn = false;
 		DebuggingProcess = false;
 		BreakPointIdx = -1;
+		ProcessId = -1;
 	}
 	
 	~Gdb()
@@ -519,7 +562,7 @@ public:
 		return Running;
 	}
 	
-	bool SetRuning(bool Run)
+	bool SetRunning(bool Run)
 	{
 		if (Run)
 		{
@@ -570,9 +613,29 @@ public:
 			char *File = bp.File.Get();
 			char *Last = strrchr(File, DIR_CHAR);
 			sprintf_s(cmd, sizeof(cmd), "break %s:%i", Last ? Last + 1 : File, bp.Line);
+			
 			BreakPointIdx = 0;
-			Ret = Cmd(cmd);
+			
+			StrArray Lines;
+			Ret = Cmd(cmd, NULL, &Lines);
 			WaitPrompt();
+			
+			for (unsigned i=0; i<Lines.Length(); i++)
+			{
+				GString s;
+				s = Lines[i];
+				GString::Array p = s.Split(" ");
+				if (p.Length() >= 2 &&
+					!_stricmp(p[0], "breakpoint"))
+				{
+					int Idx = p[1].Int();
+					if (Idx)
+					{
+						bp.Index = Idx;
+					}
+				}
+			}
+			
 			BreakPointIdx = -1;
 			if (Ret)
 				bp.Added = true;
@@ -583,11 +646,10 @@ public:
 	bool SetBreakPoint(BreakPoint *bp)
 	{
 		if (!bp)
+		{
+			LgiTrace("%s:%i - SetBreakPoint failed, param error.\n", _FL);
 			return false;
-		
-		BreakPoint &n = BreakPoints.New();
-		n = *bp;
-		n.Added = false;
+		}
 		
 		// Make sure the child 'gdb' is running...
 		uint64 Start = LgiCurrentTime();
@@ -596,15 +658,86 @@ public:
 			LgiSleep(5);
 			if (LgiCurrentTime()-Start > 3000)
 			{
-				printf("%s:%i - SetBreakPoint init wait failed...\n", _FL);
+				LgiTrace("%s:%i - SetBreakPoint init wait failed...\n", _FL);
 				return false;
 			}
 		}
-		
+
+		bp->Added = false;
 		if (Running)
-			printf("Can't add break point while running.\n");
+		{
+			LgiTrace("%s:%i - Can't add break point while running.\n", _FL);
+			return false;
+		}
 		else
-			AddBp(*bp);
+		{
+			if (AddBp(*bp))
+			{
+				BreakPoint &n = BreakPoints.New();
+				n = *bp;
+			}
+		}
+		
+		return true;
+	}
+
+	bool RemoveBreakPoint(BreakPoint *bp)
+	{
+		if (!bp)
+			return false;
+
+		// Make sure the child 'gdb' is running...
+		uint64 Start = LgiCurrentTime();
+		while (State == Init)
+		{
+			LgiSleep(5);
+			if (LgiCurrentTime()-Start > 3000)
+			{
+				LgiTrace("%s:%i - SetBreakPoint init wait failed...\n", _FL);
+				return false;
+			}
+		}
+
+		if (Running)
+		{
+			LgiTrace("%s:%i - Can't add break point while running.\n", _FL);
+			return false;
+		}
+		else
+		{
+			unsigned i;
+			for (i=0; i<BreakPoints.Length(); i++)
+			{
+				if (*bp == BreakPoints[i])
+				{
+					break;
+				}
+			}
+			
+			if (i < BreakPoints.Length())
+			{
+				char c[256];
+				sprintf_s(c, sizeof(c), "delete %i", BreakPoints[i].Index);
+				bool Status = Cmd(c);
+				if (Status)
+				{				
+					BreakPoints.DeleteAt(i);
+				}
+				else
+				{
+					LgiTrace("%s:%i - The cmd '%s' failed.\n", _FL, c);
+					return false;
+				}
+			}
+			else
+			{
+				LgiTrace("%s:%i - Failed to find break point '%s:%i'\n",
+					_FL,
+					bp->File.Get(),
+					bp->Line);
+				return false;
+			}
+		}
 		
 		return true;
 	}
@@ -852,12 +985,27 @@ public:
 
 	bool Break()
 	{
-		if (Cmd("\x03"))
+		#ifdef POSIX
+		if (ProcessId < 0)
 		{
-			Running = false;
-			return true;
+			LgiTrace("%s:%i - No process ID (yet?).\n", _FL);
+			return false;
 		}
+		
+		LgiTrace("%s:%i - sending SIGINT to %i(0x%x)...\n", _FL, ProcessId, ProcessId);
+		int result = Gtk::kill(ProcessId, SIGINT);
+		if (!result)
+		{
+			LgiTrace("%s:%i - success... waiting prompt\n", _FL);
+			return WaitPrompt();
+		}
+		
+		LgiTrace("%s:%i - kill failed with %i(0x%x)\n", _FL, errno, errno);
 		return false;
+		#else
+		LgiAssert(!"Impl me");
+		return false;
+		#endif		
 	}
 
 	bool UserCommand(const char *cmd)

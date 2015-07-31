@@ -314,6 +314,7 @@ char *GHtmlParser::ParsePropList(char *s, GHtmlElement *Obj, bool &Closed)
 
 GHtmlElemInfo *GHtmlParser::GetTagInfo(const char *Tag)
 {
+	LgiAssert(GHtmlStatic::Inst != NULL);
 	return GHtmlStatic::Inst->GetTagInfo(Tag);
 }
 
@@ -557,10 +558,12 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 					}
 					#endif
 
+					/*
 					if (_stricmp("th", Elem->Tag) == 0)
 					{
 						Elem->Tag.Reset(NewStr("td"));
 					}
+					*/
 					
 					bool AlreadyOpen = false;
 					Elem->Info = GetTagInfo(Elem->Tag);
@@ -898,11 +901,8 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 					char *e = EndBracket;
 					while (e > s && strchr(WhiteSpace, e[-1]))
 						e--;
-					char Prev = *e;
-					*e = 0;
-					GHtmlElement *Open = GetOpenTag(s);
-					*e = Prev;
-					
+					GAutoString Name(NewStr(s, e - s));
+					GHtmlElement *Open = GetOpenTag(Name);					
 					if (Open)
 					{
 						Open->WasClosed = true;

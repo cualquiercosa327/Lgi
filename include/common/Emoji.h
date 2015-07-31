@@ -6,11 +6,6 @@
 #ifndef _EMOJI_H_
 #define _EMOJI_H_
 
-/// Start of the emoji character range
-#define EMOJI_START				0xe001
-/// End of the emoji character range
-#define EMOJI_END				0xe537
-
 /// Size of the graphics cells
 #define EMOJI_CELL_SIZE			20
 
@@ -23,6 +18,7 @@
 /// So we group them and chop out the whitespace in the glyph image. The rc parameter
 /// is a rectangle struct with x1, y1, x2, y2 parameters. If using Lgi then GRect is
 /// suitable, otherwise create your own class or struct with those members.
+/*
 #define EMOJI_GROUP(i)			(((i)-EMOJI_START) / 256)
 #define EMOJI_CH2LOC(i, rc)		{ int g = EMOJI_GROUP(i);							\
 								int idx = (i) - EMOJI_START;						\
@@ -32,6 +28,6 @@
 								rc.y1 = (y + ((idx % 256) / 16)) * EMOJI_CELL_SIZE;	\
 								rc.y2 = rc.y1 + EMOJI_CELL_SIZE - 1;				\
 								}
-
+*/
 
 #endif

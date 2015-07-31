@@ -14,6 +14,8 @@ private:
 	class GComboPrivate *d;
 
 public:
+	static GRect Pad;
+
 	/// Constructor
 	GCombo
 	(

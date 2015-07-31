@@ -873,132 +873,167 @@ bool LgiGetUri(GStream *Out, GAutoString *OutError, const char *InUri, const cha
 	}
 
 	IHttp Http;
+	int RedirectLimit = 10;
+	GAutoString Location;
 
-	GUri u(InUri);
-	bool IsHTTPS = u.Protocol && !_stricmp(u.Protocol, "https");
-
-	if (InProxy)
+	for (int i=0; i<RedirectLimit; i++)
 	{
-		int DefaultPort = IsHTTPS ? HTTPS_PORT : HTTP_PORT;
-		Http.SetProxy(InProxy->Host, InProxy->Port ? InProxy->Port : DefaultPort);
-	}
+		GUri u(InUri);
+		bool IsHTTPS = u.Protocol && !_stricmp(u.Protocol, "https");
 
-	GAutoPtr<GSocketI> s;
-	
-	if (IsHTTPS)
-	{
-		SslSocket *ssl;
-		s.Reset(ssl = new SslSocket);
-		ssl->SetSslOnConnect(false);
-	}
-	else
-	{
-		s.Reset(new GSocket);
-	}
-	
-	if (!s)
-	{
-		if (OutError)
-			OutError->Reset(NewStr("Alloc Failed"));
-		return false;
-	}
-
-	s->SetTimeout(10 * 1000);
-
-	if (!Http.Open(s, InUri))
-	{
-		if (OutError)
-			OutError->Reset(NewStr("Http open failed"));
-		return false;
-	}
-
-	const char DefaultHeaders[] =	"User-Agent: Lgi.IHTTP\r\n"
-									"Accept: text/html,application/xhtml+xml,application/xml,image/png,image/*;q=0.9,*/*;q=0.8\r\n"
-									"Accept-Encoding: gzip, deflate\r\n";
-
-	int Status = 0;
-	IHttp::ContentEncoding Enc;
-	GStringPipe TmpFile(4 << 10);
-	Http.Get(InUri, InHeaders ? InHeaders : DefaultHeaders, &Status, &TmpFile, &Enc);
-	if (Status / 100 != 2)
-	{
-		Enc = IHttp::EncodeRaw;
-
-		char m[256];
-		sprintf_s(m, sizeof(m), "Got %i for '%.200s'", Status, InUri);
-		if (OutError)
-			OutError->Reset(NewStr(m));
-		return false;
-	}
-
-	Http.Close();
-	
-	if (Enc == IHttp::EncodeRaw)
-	{
-		// Copy TmpFile to Out
-		GCopyStreamer Cp;
-		if (!Cp.Copy(&TmpFile, Out))
+		if (InProxy)
 		{
-			if (OutError)
-				OutError->Reset(NewStr("Stream copy failed."));
-			return false;
-		}
-	}
-	else if (Enc == IHttp::EncodeGZip)
-	{
-		int64 Len = TmpFile.GetSize();
-		if (Len <= 0)
-		{
-			if (OutError)
-				OutError->Reset(NewStr("No data to ungzip."));
-			return false;
+			int DefaultPort = IsHTTPS ? HTTPS_PORT : HTTP_PORT;
+			Http.SetProxy(InProxy->Host, InProxy->Port ? InProxy->Port : DefaultPort);
 		}
 
-		GAutoPtr<uchar,true> Data(new uchar[(size_t)Len]);
-		if (!Data)
+		GAutoPtr<GSocketI> s;
+		
+		if (IsHTTPS)
+		{
+			SslSocket *ssl;
+			s.Reset(ssl = new SslSocket);
+			ssl->SetSslOnConnect(false);
+		}
+		else
+		{
+			s.Reset(new GSocket);
+		}
+		
+		if (!s)
 		{
 			if (OutError)
 				OutError->Reset(NewStr("Alloc Failed"));
 			return false;
 		}
 
-		int Used = TmpFile.Read(Data, (int)Len);
-		
-		GAutoPtr<Zlib> z;
-		if (!z)
-			z.Reset(new Zlib);
-		else if (!z->IsLoaded())
-			z->Reload();								
-		if (z && z->IsLoaded())
+		s->SetTimeout(10 * 1000);
+
+		if (!Http.Open(s, InUri))
 		{
-			z_stream Stream;
-			ZeroObj(Stream);
-			Stream.next_in = Data;
-			Stream.avail_in = (uInt) Len;
-			Stream.zfree = ZLibFree;
-			
-			int r = z->inflateInit2_(&Stream, 16+MAX_WBITS, ZLIB_VERSION, sizeof(z_stream));
-			
-			uchar Buf[4 << 10];
-			Stream.next_out = Buf;
-			Stream.avail_out = sizeof(Buf);
-			while (	Stream.avail_in > 0 &&
-					(r = z->inflate(&Stream, Z_NO_FLUSH)) >= 0)
-			{
-				Out->Write(Buf, sizeof(Buf) - Stream.avail_out);
-				Stream.next_out = Buf;
-				Stream.avail_out = sizeof(Buf);
-			}
-			
-			r = z->inflateEnd(&Stream);
-		}
-		else
-		{
-			GdcD->NeedsCapability("zlib");
 			if (OutError)
-				OutError->Reset(NewStr("Gzip decompression not available"));
+				OutError->Reset(NewStr("Http open failed"));
 			return false;
 		}
+
+		const char DefaultHeaders[] =	"User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:39.0) Gecko/20100101 Firefox/39.0\r\n"
+										"Accept: text/html,application/xhtml+xml,application/xml,image/png,image/*;q=0.9,*/*;q=0.8\r\n"
+										"Accept-Language: en-US,en;q=0.5\r\n"
+										"Accept-Encoding: gzip, deflate\r\n"
+										"Connection: keep-alive\r\n";
+
+		int Status = 0;
+		IHttp::ContentEncoding Enc;
+		GStringPipe OutHeaders;
+		GStringPipe TmpFile(4 << 10);
+		Http.Get(InUri, /*InHeaders ? InHeaders : */DefaultHeaders, &Status, &TmpFile, &Enc, &OutHeaders);
+		
+		int StatusCatagory = Status / 100;
+		if (StatusCatagory == 3)
+		{
+			GAutoString Headers(OutHeaders.NewStr());			
+			GAutoString Loc(InetGetHeaderField(Headers, "Location", -1));
+			if (!Loc)
+			{
+				if (OutError)
+					OutError->Reset(NewStr("HTTP redirect doesn't have a location header."));
+				return false;
+			}
+			
+			if (!_stricmp(Loc, InUri))
+			{
+				if (OutError)
+					OutError->Reset(NewStr("HTTP redirect to same URI."));
+				return false;
+			}
+
+			LgiTrace("HTTP redir(%i) from '%s' to '%s'\n", i, InUri, Loc.Get());
+			Location = Loc;
+			InUri = Location;
+			continue;
+		}		
+		else if (StatusCatagory != 2)
+		{
+			Enc = IHttp::EncodeRaw;
+
+			char m[256];
+			sprintf_s(m, sizeof(m), "Got %i for '%.200s'", Status, InUri);
+			if (OutError)
+				OutError->Reset(NewStr(m));
+			return false;
+		}
+
+		Http.Close();
+		
+		if (Enc == IHttp::EncodeRaw)
+		{
+			// Copy TmpFile to Out
+			GCopyStreamer Cp;
+			if (!Cp.Copy(&TmpFile, Out))
+			{
+				if (OutError)
+					OutError->Reset(NewStr("Stream copy failed."));
+				return false;
+			}
+		}
+		else if (Enc == IHttp::EncodeGZip)
+		{
+			int64 Len = TmpFile.GetSize();
+			if (Len <= 0)
+			{
+				if (OutError)
+					OutError->Reset(NewStr("No data to ungzip."));
+				return false;
+			}
+
+			GAutoPtr<uchar,true> Data(new uchar[(size_t)Len]);
+			if (!Data)
+			{
+				if (OutError)
+					OutError->Reset(NewStr("Alloc Failed"));
+				return false;
+			}
+
+			int Used = TmpFile.Read(Data, (int)Len);
+			
+			GAutoPtr<Zlib> z;
+			if (!z)
+				z.Reset(new Zlib);
+			else if (!z->IsLoaded())
+				z->Reload();								
+			if (z && z->IsLoaded())
+			{
+				z_stream Stream;
+				ZeroObj(Stream);
+				Stream.next_in = Data;
+				Stream.avail_in = (uInt) Len;
+				Stream.zfree = ZLibFree;
+				
+				int r = z->inflateInit2_(&Stream, 16+MAX_WBITS, ZLIB_VERSION, sizeof(z_stream));
+				
+				uchar Buf[4 << 10];
+				Stream.next_out = Buf;
+				Stream.avail_out = sizeof(Buf);
+				while (	Stream.avail_in > 0 &&
+						(r = z->inflate(&Stream, Z_NO_FLUSH)) >= 0)
+				{
+					Out->Write(Buf, sizeof(Buf) - Stream.avail_out);
+					Stream.next_out = Buf;
+					Stream.avail_out = sizeof(Buf);
+				}
+				
+				r = z->inflateEnd(&Stream);
+			}
+			else
+			{
+				GdcD->NeedsCapability("zlib");
+				if (OutError)
+					OutError->Reset(NewStr("Gzip decompression not available"));
+				return false;
+			}
+		}
+		
+		break;
 	}
 	
 	return true;

@@ -20,15 +20,33 @@ class GDebugger
 public:
 	struct BreakPoint
 	{
+		int Index;
 		GString File;
 		int Line;
 		bool Added;
 		
+		BreakPoint()
+		{
+			Index = 0;
+			Line = 0;
+			Added = false;
+		}
+		
 		BreakPoint &operator =(const BreakPoint &b)
 		{
+			Index = b.Index;
 			File = b.File;
 			Line = b.Line;
 			return *this;
+		}
+		
+		bool operator ==(const BreakPoint &b)
+		{
+			if (File == b.File &&
+				Line == b.Line)
+				return true;
+			
+			return false;
 		}
 	};
 
@@ -57,6 +75,7 @@ public:
 	virtual bool SetFrame(int Frame) = 0;
 
 	virtual bool SetBreakPoint(BreakPoint *bp) = 0;
+	virtual bool RemoveBreakPoint(BreakPoint *bp) = 0;
 	virtual bool GetBreakPoints(GArray<BreakPoint> &bps) = 0;
 
 	virtual bool GetVariables(bool Locals, GArray<Variable> &vars, bool Detailed) = 0;
@@ -68,7 +87,7 @@ public:
 	virtual bool SetLocation(const char *File, int Line) = 0;
 
 	virtual bool GetRunning() = 0;
-	virtual bool SetRuning(bool Run) = 0;
+	virtual bool SetRunning(bool Run) = 0;
 	virtual bool StepInto() = 0;
 	virtual bool StepOver() = 0;
 	virtual bool StepOut() = 0;

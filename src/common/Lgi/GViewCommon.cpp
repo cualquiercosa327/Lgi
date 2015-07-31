@@ -1344,12 +1344,16 @@ void GView::SetTabStop(bool b)
 int64 GView::GetCtrlValue(int Id)
 {
 	GViewI *w = FindControl(Id);
+	if (!w)
+		printf("%s:%i - Ctrl %i not found.\n", _FL, Id);
 	return (w) ? w->Value() : 0;
 }
 
 void GView::SetCtrlValue(int Id, int64 i)
 {
 	GViewI *w = FindControl(Id);
+	if (!w)
+		printf("%s:%i - Ctrl %i not found.\n", _FL, Id);
 	if (w)
 		w->Value(i);
 }
@@ -1357,12 +1361,16 @@ void GView::SetCtrlValue(int Id, int64 i)
 char *GView::GetCtrlName(int Id)
 {
 	GViewI *w = FindControl(Id);
+	if (!w)
+		printf("%s:%i - Ctrl %i not found.\n", _FL, Id);
 	return (w) ? w->Name() : 0;
 }
 
 void GView::SetCtrlName(int Id, const char *s)
 {
 	GViewI *w = FindControl(Id);
+	if (!w)
+		printf("%s:%i - Ctrl %i not found.\n", _FL, Id);
 	if (w)
 		w->Name(s);
 }
@@ -1370,12 +1378,16 @@ void GView::SetCtrlName(int Id, const char *s)
 bool GView::GetCtrlEnabled(int Id)
 {
 	GViewI *w = FindControl(Id);
+	if (!w)
+		printf("%s:%i - Ctrl %i not found.\n", _FL, Id);
 	return (w) ? w->Enabled() : 0;
 }
 
 void GView::SetCtrlEnabled(int Id, bool Enabled)
 {
 	GViewI *w = FindControl(Id);
+	if (!w)
+		printf("%s:%i - Ctrl %i not found.\n", _FL, Id);
 	if (w)
 		w->Enabled(Enabled);
 }
@@ -1383,16 +1395,18 @@ void GView::SetCtrlEnabled(int Id, bool Enabled)
 bool GView::GetCtrlVisible(int Id)
 {
 	GViewI *w = FindControl(Id);
+	if (!w)
+		printf("%s:%i - Ctrl %i not found.\n", _FL, Id);
 	return (w) ? w->Visible() : 0;
 }
 
 void GView::SetCtrlVisible(int Id, bool v)
 {
 	GViewI *w = FindControl(Id);
-	if (w)
-	{
+	if (!w)
+		printf("%s:%i - Ctrl %i not found.\n", _FL, Id);
+	else
 		w->Visible(v);
-	}
 }
 
 bool GView::AttachChildren()

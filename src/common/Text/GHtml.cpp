@@ -70,6 +70,8 @@
 #define DefaultTableBorder			GT_TRANSPARENT
 #endif
 
+#define IsTableCell(id)				( ((id) == TAG_TD) || ((id) == TAG_TH) )
+
 static char WordDelim[]	=			".,<>/?[]{}()*&^%$#@!+|\'\"";
 static char16 WhiteW[] =			{' ', '\t', '\r', '\n', 0};
 
@@ -1143,7 +1145,7 @@ GCss::LengthType GTag::GetAlign(bool x)
 		
 		if (x)
 		{
-			if (TagId == TAG_TD && Cell && Cell->XAlign)
+			if (IsTableCell(TagId) && Cell && Cell->XAlign)
 				l.Type = Cell->XAlign;
 			else
 				l = TextAlign();
@@ -1263,9 +1265,6 @@ GTag::GTag(GHtml *h, GHtmlElement *p) :
 	TipId = 0;
 	Display(DispInline);
 	Html = h;
-	Parent = ToTag(p);
-	if (Parent)
-		Parent->Children.Add(this);
 	
 	ImageResized = false;
 	Cursor = -1;
@@ -1293,10 +1292,6 @@ GTag::~GTag()
 	if (Html->Selection == this)
 	{
 		Html->Selection = 0;
-	}
-	if (Html->PrevTip == this)
-	{
-		Html->PrevTip = 0;
 	}
 
 	DeleteObj(Ctrl);
@@ -2815,6 +2810,7 @@ void GTag::SetStyle()
 			break;
 		}
 		case TAG_TD:
+		case TAG_TH:
 		{
 			if (!Cell)
 				Cell = new TblCell;
@@ -3005,6 +3001,7 @@ void GTag::SetStyle()
 		case TAG_TR:
 			break;
 		case TAG_TD:
+		case TAG_TH:
 		{
 			LgiAssert(Cell != NULL);
 			
@@ -3635,7 +3632,7 @@ void GTag::ZeroTableElements()
 {
 	if (TagId == TAG_TABLE ||
 		TagId == TAG_TR ||
-		TagId == TAG_TD)
+		IsTableCell(TagId))
 	{
 		Size.x = 0;
 		Size.y = 0;
@@ -3760,6 +3757,7 @@ bool GTag::GetWidthMetrics(GTag *Table, uint16 &Min, uint16 &Max)
 			break;
 		}
 		case TAG_TD:
+		case TAG_TH:
 		{
 			Len w = Width();
 			if (w.IsValid())
@@ -4106,7 +4104,7 @@ void GHtmlTableLayout::DeallocatePx(int StartCol, int Cols, int MaxPx)
 		if (DropPx < MinCol[ci.Idx])
 			MinCol[ci.Idx] -= DropPx;
 		else
-			LgiAssert(0);
+			break;
 	}
 }
 
@@ -5212,7 +5210,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 		// Set the width if any
 		if (Disp == DispBlock)
 		{
-			if (TagId != TAG_TD && Width().IsValid())
+			if (!IsTableCell(TagId) && Width().IsValid())
 				Size.x = Flow->ResolveX(Width(), f, false);
 			else
 				Size.x = Flow->X();
@@ -5400,7 +5398,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 	{		
 		GCss::Len Ht = Height();
 		GCss::Len MaxHt = MaxHeight();
-		bool AcceptHt = TagId != TAG_TD || Ht.Type != LenPercent;
+		bool AcceptHt = !IsTableCell(TagId) || Ht.Type != LenPercent;
 		if (Ht.IsValid())
 		{
 			int HtPx = Flow->ResolveY(Ht, GetFont(), false);
@@ -5421,6 +5419,9 @@ void GTag::OnFlow(GFlowRegion *Flow)
 			int OldFlowSize = Flow->x2 - Flow->x1 + 1;
 			Flow->Outdent(f, PaddingLeft(), PaddingTop(), PaddingRight(), PaddingBottom(), false);
 			Flow->Outdent(f, GCss::BorderLeft(), GCss::BorderTop(), GCss::BorderRight(), GCss::BorderBottom(), false);
+
+			Size.y = Flow->y2 > 0 ? Flow->y2 : 0;
+
 			Flow->Outdent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
 			
 			int NewFlowSize = Flow->x2 - Flow->x1 + 1;
@@ -5428,7 +5429,6 @@ void GTag::OnFlow(GFlowRegion *Flow)
 			if (Diff)
 				Flow->max_cx += Diff;
 			
-			Size.y = Flow->y2 > 0 ? Flow->y2 : 0;
 			Flow->y1 = Flow->y2;
 			Flow->x2 = Flow->x1 + BlockFlowWidth;
 
@@ -6269,7 +6269,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 	}
 	
 	#if DEBUG_TABLE_LAYOUT && 0
-	if (TagId == TAG_TD)
+	if (IsTableCell(TagId))
 	{
 		GTag *Tbl = this;
 		while (Tbl->TagId != TAG_TABLE && Tbl->Parent)
@@ -6292,8 +6292,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 }
 
 //////////////////////////////////////////////////////////////////////
-GHtml::GHtml(int id, int x, int y, int cx, int cy, GDocumentEnv *e)
-	:
+GHtml::GHtml(int id, int x, int y, int cx, int cy, GDocumentEnv *e) :
 	GDocView(e),
 	ResObject(Res_Custom),
 	GHtmlParser(NULL)
@@ -6308,7 +6307,6 @@ GHtml::GHtml(int id, int x, int y, int cx, int cy, GDocumentEnv *e)
 	Cursor = 0;
 	Selection = 0;
 	SetBackColour(Rgb24To32(LC_WORKSPACE));
-	PrevTip = 0;
 	DocumentUid = 0;
 
 	_New();
@@ -7860,33 +7858,25 @@ void GHtml::OnMouseMove(GMouse &m)
 	Tag->GetTagByPos(Hit, m.x, m.y + Offset, 0, false);
 	if (!Hit.Direct && !Hit.NearestText)
 		return;
-		
-	if (PrevTip &&
-		PrevTip != Tag)
-	{
-		Tip.DeleteTip(PrevTip->TipId);
-		PrevTip->TipId = 0;
-		PrevTip = 0;
-	}
 
 	GAutoString Uri;
 	GTag *HitTag = Hit.NearestText && Hit.Near == 0 ? Hit.NearestText : Hit.Direct;
-	if (Hit.LocalCoords.x >= 0 &&
+	if (HitTag &&
+		HitTag->TipId == 0 &&
+		Hit.LocalCoords.x >= 0 &&
 		Hit.LocalCoords.y >= 0 &&
-		HitTag->IsAnchor(&Uri))
+		HitTag->IsAnchor(&Uri) &&
+		Uri)
 	{
-		if (Uri)
+		if (!Tip.GetParent())
 		{
-			if (!Tip.GetParent())
-			{
-				Tip.Attach(this);
-			}
-
-			GRect r = Tag->GetRect(false);
-			r.Offset(0, -Offset);
-			PrevTip = Tag;
-			PrevTip->TipId = Tip.NewTip(Uri, r);
+			Tip.Attach(this);
 		}
+
+		GRect r = HitTag->GetRect(false);
+		r.Offset(0, -Offset);
+		HitTag->TipId = Tip.NewTip(Uri, r);
+		// LgiTrace("NewTip: %s @ %s, ID=%i\n", Uri.Get(), r.GetStr(), HitTag->TipId);
 	}
 
 	if (IsCapturing() &&
@@ -8133,7 +8123,9 @@ bool GHtml::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
 	if (!_stricmp(Name, "supportLists"))
 		Value = false;
-	else if (!_stricmp(Name, "vml"))
+	else if (!_stricmp(Name, "vml")) // Vector Markup Language
+		Value = false;
+	else if (!_stricmp(Name, "mso")) // mso = Microsoft Office
 		Value = false;
 	else
 		return false;
@@ -8191,7 +8183,11 @@ bool GHtml::EvaluateCondition(const char *Cond)
 				Result = v.CastInt32() != 0;
 				if (Not) Result = !Result;
 			}
-			else LgiTrace("%s:%i - Unsupported variable '%s'\n", _FL, s);
+			else
+			{
+				// If this fires: update GHtml::GetVariant with the variable.
+				LgiTrace("%s:%i - Unsupported variable '%s'\n", _FL, s);
+			}
 			Not = false;
 		}
 	}
@@ -8298,7 +8294,7 @@ GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 			}
 			if (FakeRow)
 			{
-				if (r->TagId != TAG_TD && !FakeCell)
+				if (!IsTableCell(r->TagId) && !FakeCell)
 				{
 					if ((FakeCell = new GTag(Table->Html, FakeRow)))
 					{
@@ -8315,7 +8311,7 @@ GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 				int Idx = Table->Children.IndexOf(r);
 				r->Detach();
 
-				if (r->TagId == TAG_TD)
+				if (IsTableCell(r->TagId))
 				{
 					FakeRow->Attach(r);
 				}
@@ -8339,7 +8335,7 @@ GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 			for (unsigned i=0; i<r->Children.Length(); i++)
 			{
 				GTag *cell = ToTag(r->Children[i]);
-				if (cell->TagId != TAG_TD)
+				if (!IsTableCell(cell->TagId))
 				{
 					if (!FakeCell)
 					{
@@ -8374,7 +8370,7 @@ GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 					FakeCell = NULL;
 				}
 				
-				if (cell->TagId == TAG_TD)
+				if (IsTableCell(cell->TagId))
 				{
 					if (cell->Display() == GCss::DispNone)
 						continue;

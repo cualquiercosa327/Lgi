@@ -91,6 +91,8 @@ public:
 	}
 };
 
+GRect GCombo::Pad(8, 4, 24, 4);
+
 GCombo::GCombo(int id, int x, int y, int cx, int cy, const char *name) :
 	ResObject(Res_ComboBox)
 {

@@ -101,7 +101,7 @@ public:
 		#endif
 
 		#if defined(LINUX)
-		LgiTrace("Mouse hook thread not running! (FIXME)\n");
+		// LgiTrace("Mouse hook thread not running! (FIXME)\n");
 		#else
 		Loop = true;
 		Run();
@@ -158,7 +158,7 @@ public:
 				Cur.SetButton(GetCurrentEventButtonState());
 				Cur.Down(Cur.Left() || Cur.Right() || Cur.Middle());
 				
-				// Cur.Trace("Cur");
+				// Cur.Trace("MouseHook");
 				
 				if (!Cur.Down() && Prev.Down())
 				{
@@ -426,8 +426,16 @@ GMouseHook::~GMouseHook()
 void GMouseHook::TrackClick(GView *v)
 {
 	#ifdef MAC
-	d->ViewHandle = v ? v->Handle() : NULL;
-	d->Event.Signal();
+	if (v)
+	{
+		d->ViewHandle = v->Handle();
+		if (d->ViewHandle)
+		{
+			d->Event.Signal();
+		}
+		else printf("%s:%i - No view handle.\n", _FL);
+	}
+	else printf("%s:%i - No view ptr.\n", _FL);
 	#endif
 }
 

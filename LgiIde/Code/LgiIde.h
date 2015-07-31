@@ -86,6 +86,11 @@ enum IdeControls
 	IDC_REGISTERS
 };
 
+enum IdeMenuCmds
+{
+	IDM_CONTINUE = 900
+};
+
 #define BUILD_TYPE_DEBUG		0
 #define BUILD_TYPE_RELEASE		1
 
