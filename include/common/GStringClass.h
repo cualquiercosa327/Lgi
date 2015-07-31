@@ -89,6 +89,13 @@ public:
 	{
 		Str = NULL;
 	}
+
+	// This odd looking constructor allows the object to be used as the value type
+	// in a GHashTable, where the initialiser is '0', an integer.
+	GString(int i)
+	{
+		Str = NULL;
+	}
 	
 	/// String constructor
 	GString(const char *str, int len)
