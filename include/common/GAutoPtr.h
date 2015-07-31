@@ -40,8 +40,6 @@ public:
 		Ptr = apr.Ptr;
 	}
 
-	// template<class Y> GAutoPtr(GAutoPtr<Y>&)
-
 	GAutoPtr& operator=(GAutoPtr ap)
 	{
 		Reset(ap.Release());
@@ -57,8 +55,6 @@ public:
 		return *this;
 	}
 
-	// template<class Y> GAutoPtr& operator=(GAutoPtr<Y>&) throw();
-
 	~GAutoPtr()
 	{
 		if (Arr)
@@ -69,14 +65,6 @@ public:
 		// This is needed to be able to use GAutoPtr inside GArray's.
 		Ptr = 0;
 	}
-
-	/*
-	X& operator*() const
-	{
-		LgiAssert(Ptr); 
-		return Ptr;
-	}
-	*/
 
 	operator X*() const
 	{

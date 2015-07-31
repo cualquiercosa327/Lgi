@@ -171,6 +171,8 @@
 		34F2E65A0E1849D300E8DA6A /* GTree.h in Headers */ = {isa = PBXBuildFile; fileRef = 34F2E6590E1849D300E8DA6A /* GTree.h */; };
 		34F45B9E18C161E40040FD99 /* GPixelRops.h in Headers */ = {isa = PBXBuildFile; fileRef = 34F45B9D18C161E40040FD99 /* GPixelRops.h */; };
 		34F96DAA0DB9B82B009C64B8 /* GDragAndDrop.h in Headers */ = {isa = PBXBuildFile; fileRef = 34F96DA90DB9B82B009C64B8 /* GDragAndDrop.h */; };
+		34FB3A761B6C37FD00B32A56 /* GStringClass.h in Headers */ = {isa = PBXBuildFile; fileRef = 34FB3A751B6C37FD00B32A56 /* GStringClass.h */; };
+		34FB3A791B6C3A8800B32A56 /* GUnicode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34FB3A781B6C3A8800B32A56 /* GUnicode.cpp */; };
 		8DC2EF530486A6940098B216 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C1666FE841158C02AAC07 /* InfoPlist.strings */; };
 /* End PBXBuildFile section */
 
@@ -341,6 +343,9 @@
 		34F2E6590E1849D300E8DA6A /* GTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GTree.h; path = ../../../include/common/GTree.h; sourceTree = "<group>"; };
 		34F45B9D18C161E40040FD99 /* GPixelRops.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GPixelRops.h; path = ../../../include/common/GPixelRops.h; sourceTree = "<group>"; };
 		34F96DA90DB9B82B009C64B8 /* GDragAndDrop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GDragAndDrop.h; path = ../../../include/common/GDragAndDrop.h; sourceTree = "<group>"; };
+		34FB3A751B6C37FD00B32A56 /* GStringClass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GStringClass.h; path = ../../../include/common/GStringClass.h; sourceTree = "<group>"; };
+		34FB3A771B6C389100B32A56 /* GUnicode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = GUnicode.h; path = ../../../include/common/GUnicode.h; sourceTree = "<group>"; };
+		34FB3A781B6C3A8800B32A56 /* GUnicode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GUnicode.cpp; path = ../../common/Text/GUnicode.cpp; sourceTree = "<group>"; };
 		8DC2EF5A0486A6940098B216 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8DC2EF5B0486A6940098B216 /* Lgi.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Lgi.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -588,6 +593,9 @@
 		344B738308D8409900D49457 /* Text */ = {
 			isa = PBXGroup;
 			children = (
+				34FB3A771B6C389100B32A56 /* GUnicode.h */,
+				34FB3A751B6C37FD00B32A56 /* GStringClass.h */,
+				34FB3A781B6C3A8800B32A56 /* GUnicode.cpp */,
 				34661C7813C7407000B4C2A7 /* GUtf8.h */,
 				3413BBC11349EC6900AE15B0 /* GXmlTree.h */,
 				34B4A52F0C059A2100CDD0D1 /* GUtf8.cpp */,
@@ -858,6 +866,7 @@
 				34A671970F3725860073A86C /* GContainers.h in Headers */,
 				34ADC9E10F4CC395009C6B75 /* GAutoPtr.h in Headers */,
 				3493304C0F60CE690092EAE8 /* GViewPriv.h in Headers */,
+				34FB3A761B6C37FD00B32A56 /* GStringClass.h in Headers */,
 				34637EBA0F876EB1005A9B80 /* GDateTime.h in Headers */,
 				3429212E1087D58100578ECC /* GCss.h in Headers */,
 				342D78F111FAD1AF005BADBD /* GStream.h in Headers */,
@@ -911,7 +920,7 @@
 		0867D690FE84028FC02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0620;
+				LastUpgradeCheck = 0510;
 			};
 			buildConfigurationList = 34BA94DB0B33ADB400493CD3 /* Build configuration list for PBXProject "LgiCarbon" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -1002,6 +1011,7 @@
 				344D1B2B08F4A36300228075 /* GList.cpp in Sources */,
 				344D1B2C08F4A36300228075 /* GPanel.cpp in Sources */,
 				344D1B2D08F4A36300228075 /* GProgress.cpp in Sources */,
+				34FB3A791B6C3A8800B32A56 /* GUnicode.cpp in Sources */,
 				344D1B2E08F4A36300228075 /* GProgressDlg.cpp in Sources */,
 				344D1B2F08F4A36300228075 /* GSplitter.cpp in Sources */,
 				344D1B3008F4A36300228075 /* GStatusBar.cpp in Sources */,

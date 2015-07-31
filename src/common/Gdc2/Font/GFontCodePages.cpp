@@ -1141,22 +1141,6 @@ void *LgiNewConvertCp(const char *OutCp, const void *In, const char *InCp, int I
 	return b.GetSize() ? b.New(NullSize) : 0;
 }
 
-char16 *LgiNewUtf8To16(const char *In, int InLen)
-{
-	if (!In)
-		return NULL;
-
-	return (char16*) LgiNewConvertCp(LGI_WideCharset, In, "utf-8", InLen);
-}
-
-char *LgiNewUtf16To8(const char16 *In, int InLen)
-{
-	if (!In)
-		return NULL;
-
-	return (char*) LgiNewConvertCp("utf-8", In, LGI_WideCharset, InLen);
-}
-
 int LgiCharLen(const void *Str, const char *Cp, int Bytes)
 {
 	if (Str && Cp)

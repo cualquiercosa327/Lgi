@@ -20,7 +20,7 @@
 #endif
 #include "GUtf8.h"
 #include "GString.h"
-#include "LgiCommon.h"
+#include "GUnicode.h"
 
 LgiExtern int LgiPrintf(class GString &Str, const char *Format, va_list &Arg);
 
