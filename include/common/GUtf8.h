@@ -159,6 +159,10 @@ inline bool LgiUtf32To8(uint32 c, uint8 *&i, int &Len)
 	return false;
 }
 
+// Defined for decoding UTF16
+#define IsUtf16_Lead(c)		( ((uint16)(c) & 0xfc00) == 0xD800 )
+#define IsUtf16_Trail(c)	( ((uint16)(c) & 0xfc00) == 0xDc00 )
+
 /// Convert a single utf-16 char to utf-32
 inline uint32 LgiUtf16To32(uint16 *&i, int &Len)
 {

@@ -820,7 +820,7 @@ public:
 		{
 			if ((Style = s))
 			{
-				LgiAssert(Fnt);
+				LgiAssert(Fnt != NULL);
 
 				Margin.x1 = Style->MarginLeft().ToPx(Pos.X(), Fnt);
 				Margin.y1 = Style->MarginTop().ToPx(Pos.Y(), Fnt);
@@ -1524,7 +1524,7 @@ public:
 					bool Up = Dir == SkUpLine;
 					int CurIdx = Blocks.IndexOf(c->Blk);
 					int NewIdx = CurIdx + (Up ? -1 : 1);
-					if (NewIdx >= 0 && NewIdx < Blocks.Length())
+					if (NewIdx >= 0 && (unsigned)NewIdx < Blocks.Length())
 					{
 						Block *b = Blocks[NewIdx];
 						if (!b)
