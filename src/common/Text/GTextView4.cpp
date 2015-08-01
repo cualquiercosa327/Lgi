@@ -230,7 +230,7 @@ public:
 				s.Print("%s.%s {\n", Tabs, ns->Name.Get());
 				
 				GAutoString a = ns->ToString();
-				GString all = a;
+				GString all = a.Get();
 				GString::Array lines = all.Split("\n");
 				for (unsigned n=0; n<lines.Length(); n++)
 				{
@@ -1030,12 +1030,15 @@ public:
 			r.y1 -= Margin.y1;
 			r.x2 -= Margin.x2;
 			r.y2 -= Margin.y2;
-			GCss::ColorDef BorderCol;
+			GCss::ColorDef BorderStyle;
 			if (Style)
-				BorderCol = Style->BorderLeft().Color;
-			
+				BorderStyle = Style->BorderLeft().Color;
+			GColour BorderCol(222, 222, 222);
+			if (BorderStyle.Type == GCss::ColorRgb)
+				BorderCol.Set(BorderStyle.Rgb32, 32);
+
 			Ctx.DrawBox(r, Margin, Ctx.Colours[Unselected].Back);
-			Ctx.DrawBox(r, Border, BorderCol.Type == GCss::ColorRgb ? GColour(BorderCol.Rgb32, 32) : GColour(222, 222, 222));
+			Ctx.DrawBox(r, Border, BorderCol);
 			Ctx.DrawBox(r, Padding, Ctx.Colours[Unselected].Back);
 			
 			for (unsigned i=0; i<Layout.Length(); i++)
@@ -2093,7 +2096,7 @@ public:
 			}
 
 			GNamedStyle *CachedStyle = AddStyleToCache(Style);
-			LgiTrace("%s%s IsBlock=%i CachedStyle=%p\n", Sp, c->Tag, IsBlock, CachedStyle);
+			LgiTrace("%s%s IsBlock=%i CachedStyle=%p\n", Sp, c->Tag.Get(), IsBlock, CachedStyle);
 
 			if ((IsBlock && ctx.LastChar != '\n') || c->TagId == TAG_BR)
 			{

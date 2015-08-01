@@ -63,20 +63,6 @@ LgiFunc void *LgiNewConvertCp
 	int InLen = -1
 );
 
-/// Converts a utf-8 string into a wide character string
-/// \ingroup Text
-LgiFunc char16 *LgiNewUtf8To16(const char *In, int InLen = -1);
-
-/// Converts a wide character string into a utf-8 string
-/// \ingroup Text
-LgiFunc char *LgiNewUtf16To8
-(
-	/// Input string
-	const char16 *In,
-	/// Number of bytes in the input or -1 for NULL terminated
-	int InLen = -1
-);
-
 /// Return true if Lgi support the charset
 /// \ingroup Text
 LgiFunc bool LgiIsCpImplemented(const char *Cp);
