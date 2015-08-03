@@ -1126,12 +1126,13 @@ char16 *GHtmlParser::CleanText(const char *s, int Len, bool ConversionAllowed, b
 		}
 		
 		bool DocAndCsTheSame = false;
-		if (DocCharSet && View->GetCharset())
+		if (DocCharSet && View && View->GetCharset())
 		{
 			DocAndCsTheSame = _stricmp(DocCharSet, View->GetCharset()) == 0;
 		}
 
 		if (DocCharSet &&
+			View &&
 			View->GetCharset() &&
 			!View->GetOverideDocCharset())
 		{

@@ -100,7 +100,7 @@ public:
 bool LgiGetUri
 (
 	/// The output stream to put the data
-	GStream *Out,
+	GStreamI *Out,
 	/// Any error message
 	GAutoString *OutError,
 	/// The input URI to retreive

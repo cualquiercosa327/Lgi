@@ -863,7 +863,7 @@ void ZLibFree(voidpf opaque, voidpf address)
 	// Do nothing... the memory is owned by an autoptr
 }
 
-bool LgiGetUri(GStream *Out, GAutoString *OutError, const char *InUri, const char *InHeaders, GUri *InProxy)
+bool LgiGetUri(GStreamI *Out, GAutoString *OutError, const char *InUri, const char *InHeaders, GUri *InProxy)
 {
 	if (!InUri || !Out)
 	{
@@ -994,7 +994,7 @@ bool LgiGetUri(GStream *Out, GAutoString *OutError, const char *InUri, const cha
 				return false;
 			}
 
-			int Used = TmpFile.Read(Data, (int)Len);
+			TmpFile.Read(Data, (int)Len);
 			
 			GAutoPtr<Zlib> z;
 			if (!z)

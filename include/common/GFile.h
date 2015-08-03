@@ -496,14 +496,22 @@ public:
 		operator const char *()
 		{
 			GString Sep(DIR_STR);
+			#ifdef WINDOWS
 			Full = Sep.Join(*this);
+			#else
+			Full = Sep + Sep.Join(*this);
+			#endif
 			return Full;
 		}
 
 		GString GetFull()
 		{
 			GString Sep(DIR_STR);
+			#ifdef WINDOWS
 			Full = Sep.Join(*this);
+			#else
+			Full = Sep + Sep.Join(*this);
+			#endif
 			return Full;
 		}
 

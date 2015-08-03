@@ -1073,3 +1073,8 @@ bool GApp::IsElevated()
 {
 	return geteuid() == 0;
 }
+
+int GApp::GetCpuCount()
+{
+	return 1;
+}
