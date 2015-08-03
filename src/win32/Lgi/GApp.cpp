@@ -505,7 +505,7 @@ int GApp::GetCpuCount()
 	SYSTEM_INFO si;
 	ZeroObj(si);
 	GetSystemInfo(&si);
-	return si.dwNumberOfProcessors;
+	return si.dwNumberOfProcessors ? si.dwNumberOfProcessors : -1;
 }
 
 OsThreadId GApp::GetGuiThread()

@@ -305,6 +305,9 @@ public:
 
 	/// Get the mouse hook instance
 	virtual GMouseHook *GetMouseHook() = 0;
+
+	/// Returns the number of cpu cores or -1 if unknown.
+	virtual int GetCpuCount() { return -1; }
 };
 
 class GEventsI

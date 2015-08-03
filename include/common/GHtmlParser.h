@@ -1,6 +1,9 @@
 #ifndef _GHTMLPARSER_H_
 #define _GHTMLPARSER_H_
 
+#include "GDocView.h"
+#include "GHtmlCommon.h"
+
 class GHtmlParser
 {
 	GStringPipe SourceData;
