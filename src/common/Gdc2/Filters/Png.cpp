@@ -906,7 +906,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 
 						if (Lib->png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
 						{
-						    png_bytep trans_alpha;
+						    png_bytep trans_alpha = NULL;
 						    png_color_16p trans_color;
 						    int num_trans;
                             if (Lib->png_get_tRNS(png_ptr, info_ptr, &trans_alpha, &num_trans, &trans_color))
@@ -915,31 +915,46 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 								GSurface *Alpha = pDC->AlphaDC();
 								if (Alpha)
 								{
-									for (int y=0; y<Alpha->Y(); y++)
+									if (trans_alpha)
 									{
-										uchar *a = (*Alpha)[y];
-										uchar *p = (*pDC)[y];
-										for (int x=0; x<Alpha->X(); x++)
+										for (int y=0; y<Alpha->Y(); y++)
 										{
-											if (p[x] < num_trans)
+											uchar *a = (*Alpha)[y];
+											uchar *p = (*pDC)[y];
+											for (int x=0; x<Alpha->X(); x++)
 											{
-												a[x] = trans_alpha[p[x]];
+												if (p[x] < num_trans)
+												{
+													a[x] = trans_alpha[p[x]];
+												}
+												else
+												{
+													a[x] = 0xff;
+												}
 											}
-											else
+										}
+									}
+									else if (trans_color)
+									{
+										for (int y=0; y<Alpha->Y(); y++)
+										{
+											uchar *a = (*Alpha)[y];
+											uchar *p = (*pDC)[y];
+											for (int x=0; x<Alpha->X(); x++)
 											{
-												a[x] = 0xff;
+												a[x] = p[x] == trans_color->index ? 0x00 : 0xff;
 											}
 										}
 									}
 								}
 								else
 								{
-									printf("%s:%i - No alpha channel.\n", __FILE__, __LINE__);
+									printf("%s:%i - No alpha channel.\n", _FL);
 								}
 							}
 							else
 							{
-								printf("%s:%i - Bad trans ptr.\n", __FILE__, __LINE__);
+								printf("%s:%i - Bad trans ptr.\n", _FL);
 							}
 						}
 					}
