@@ -276,7 +276,23 @@ public:
 	*/
 };
 
-static GAutoPtr<LibPng> CurrentLibPng;
+class InitLibPng : public GMutex
+{
+	GAutoPtr<LibPng> Png;
+
+public:
+	LibPng *Get()
+	{
+		if (Lock(_FL))
+		{
+			if (!Png)
+				Png.Reset(new LibPng);
+			Unlock();
+		}
+		return Png;
+	}
+
+} CurrentLibPng;
 
 class GdcPng : public GFilter
 {
@@ -338,9 +354,7 @@ class GdcPngFactory : public GFilterFactory
 
 	GFilter *NewObject()
 	{
-		if (!CurrentLibPng)
-			CurrentLibPng.Reset(new LibPng);
-		return new GdcPng(CurrentLibPng);
+		return new GdcPng(CurrentLibPng.Get());
 	}
 	
 } PngFactory;
@@ -363,7 +377,7 @@ GdcPng::~GdcPng()
 
 void PNGAPI LibPngError(png_structp Png, png_const_charp Msg)
 {
-	GdcPng *This = (GdcPng*)CurrentLibPng->png_get_error_ptr(Png);
+	GdcPng *This = (GdcPng*)CurrentLibPng.Get()->png_get_error_ptr(Png);
 	if (This)
 	{
 		printf("Libpng Error Message='%s'\n", Msg);
@@ -386,7 +400,7 @@ void PNGAPI LibPngWarning(png_structp Png, png_const_charp Msg)
 
 void PNGAPI LibPngRead(png_structp Png, png_bytep Ptr, png_size_t Size)
 {
-	GStream *s = (GStream*)CurrentLibPng->png_get_io_ptr(Png);
+	GStream *s = (GStream*)CurrentLibPng.Get()->png_get_io_ptr(Png);
 	if (s)
 	{
 		s->Read(Ptr, Size);
@@ -406,7 +420,7 @@ struct PngWriteInfo
 
 void PNGAPI LibPngWrite(png_structp Png, png_bytep Ptr, png_size_t Size)
 {
-	PngWriteInfo *i = (PngWriteInfo*)CurrentLibPng->png_get_io_ptr(Png);
+	PngWriteInfo *i = (PngWriteInfo*)CurrentLibPng.Get()->png_get_io_ptr(Png);
 	if (i)
 	{
 		i->s->Write(Ptr, Size);

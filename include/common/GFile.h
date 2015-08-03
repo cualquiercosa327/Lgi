@@ -509,7 +509,7 @@ public:
 
 		bool IsFile();
 		bool IsFolder();
-		GString GetSystem(LgiSystemPath Which);
+		static GString GetSystem(LgiSystemPath Which);
 	};
 
 	/// Read the whole file into a string
