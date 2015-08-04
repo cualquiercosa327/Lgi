@@ -465,9 +465,16 @@ public:
 	}
 
 	/// Convert to integer
-	int Int()
+	int Int(int Base = 10)
 	{
-		return Str ? atoi(Str->Str) : -1;
+		if (Str)
+		{
+			if (Base == 10)
+				return atoi(Str->Str);
+			else if (Base == 16)
+				return htoi(Str->Str);
+		}
+		return -1;
 	}
 
 	/// Find a sub-string	

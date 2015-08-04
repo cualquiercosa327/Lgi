@@ -55,6 +55,18 @@ public:
 
 	bool CreateTag(const char *Name);
 	bool DeleteTag(const char *Name);
+	
+	/** This call locks the object and returns the tag if available.
+	 If the return value is not NULL you have to Unlock the object
+	 when you're done with the tag. e.g:
+	 
+		GXmlTag *t = Options.LockTag("MyTagName");
+		if (t)
+		{
+			// Doing something with tag here...
+			Options.Unlock();
+		}
+	*/
 	GXmlTag *LockTag(const char *Name, const char *File, int Line);
 };
 
