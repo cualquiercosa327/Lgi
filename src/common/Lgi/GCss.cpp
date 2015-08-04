@@ -161,7 +161,7 @@ static char *ParseString(const char *&s)
 }
 
 /////////////////////////////////////////////////////////////////////////////
-GCss::GCss() : Props(0, false, PropNull)
+GCss::GCss() : Props(32, false, PropNull)
 {
 	if (Lut.Length() == 0)
 	{
