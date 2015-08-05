@@ -1205,6 +1205,8 @@ bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 					Position.x1 >= 0 &&
 					Position.y1 >= 0)
 				    Pos = Position;
+				else
+					Pos.ZOff(800, 600);
 				Wp->rcNormalPosition = Pos;
 				#if DEBUG_SERIALIZE_STATE
 				LgiTrace("%s:%i - SetWindowPlacement, pos=%s, show=%i\n", __FILE__, __LINE__, Pos.GetStr(), Wp->showCmd);
