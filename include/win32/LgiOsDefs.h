@@ -156,6 +156,7 @@ typedef SOCKET							OsSocket;
 #define LGI_StreamDropFormat			CFSTR_FILEDESCRIPTORW
 #define LGI_WideCharset					"ucs-2"
 #define LGI_PrintfInt64					"%I64i"
+#define LGI_PrintfHex64					"%I64x"
 #define LGI_IllegalFileNameChars		"\t\r\n/\\:*?\"<>|"
 
 #define MK_LEFT							MK_LBUTTON
