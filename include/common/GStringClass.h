@@ -465,14 +465,14 @@ public:
 	}
 
 	/// Convert to integer
-	int Int(int Base = 10)
+	int64 Int(int Base = 10)
 	{
 		if (Str)
 		{
 			if (Base == 10)
-				return atoi(Str->Str);
+				return atoi64(Str->Str);
 			else if (Base == 16)
-				return htoi(Str->Str);
+				return htoi64(Str->Str);
 		}
 		return -1;
 	}

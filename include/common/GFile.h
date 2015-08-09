@@ -448,6 +448,12 @@ public:
 				*this = init;
 		}
 		
+		Path(LgiSystemPath Which)
+		{
+			SetFixedLength(false);
+			*this = GetSystem(Which);
+		}
+
 		Path &operator =(const char *p)
 		{
 			GString s(p);
