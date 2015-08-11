@@ -609,7 +609,7 @@ GAutoString GCss::ToString()
 			{
 				GRect *r = (GRect*)v;
 				const char *Name = PropName(Prop);
-				p.Print("%s: rect(%ipx,%ipx,%ipx,%ipx);\n", Name, r->y1, r->x2, r->y2, r->x1);
+				p.Print("%s: rect(%s);\n", Name, r->GetStr());
 				break;
 			}
 			case TypeColor:
@@ -1792,25 +1792,20 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 					SkipWhite(s);
 					if (*s == '(')
 					{
-						s++;
-						r.y1 = ParseComponent(s);
-						if (*s == ',') s++;
-						else break;
-						r.x2 = ParseComponent(s);
-						if (*s == ',') s++;
-						else break;
-						r.y2 = ParseComponent(s);
-						if (*s == ',') s++;
-						else break;
-						r.x1 = ParseComponent(s);
+						const char *Start = ++s;
+						while (*s && *s != ')' && *s != ';')
+							s++;
 						if (*s == ')')
 						{
+							GString tmp(Start, s - Start);
+							r.SetStr(tmp);
 							s++;
 
 							GRect *e = (GRect*)Props.Find(PropId);
 							if (e) *e = r;
 							else Props.Add(PropId, new GRect(r));
 						}
+						return false;
 					}
 				}
 				break;
