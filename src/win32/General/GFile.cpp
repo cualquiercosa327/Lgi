@@ -26,6 +26,7 @@
 #include <ctype.h>
 #ifdef _MSC_VER
 #include <direct.h>
+#include <tchar.h>
 #endif
 
 #include "GFile.h"

@@ -51,7 +51,7 @@ bool ScreenToClient(OsView Wnd, GdcPt2 &p)
 	return false;
 }
 
-#else
+#elif !defined(WINNATIVE)
 
 bool IsWindow(OsView v)
 {

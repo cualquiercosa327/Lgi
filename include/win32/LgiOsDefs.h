@@ -52,6 +52,7 @@ typedef HANDLE				OsProcess;
 typedef char16				OsChar;
 typedef HBITMAP				OsBitmap;
 typedef HDC					OsPainter;
+typedef HFONT				OsFont;
 #if _MSC_VER <= 1200 //vc6
 typedef unsigned long		ULONG_PTR, *PULONG_PTR;
 #define sprintf_s			_snprintf
