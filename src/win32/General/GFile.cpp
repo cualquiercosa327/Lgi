@@ -125,7 +125,7 @@ const char *GetErrorName(int e)
 						NULL, 
 						e,
 						MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ),
-						(LPTSTR)Buf, 
+						(LPSTR)Buf, 
 						sizeof(Buf), 
 						NULL);
 
@@ -139,7 +139,13 @@ const char *GetErrorName(int e)
 	return Buf[0] ? Buf : 0;
 }
 
-int _GetLongPathName(char *Short, char *Long, int Buf)
+template<typename T>
+int _GetLongPathName
+(
+	T *Short,
+	T *Long,
+	int LongLen
+)
 {
 	bool Status = false;
 	int Len = 0;
@@ -148,15 +154,20 @@ int _GetLongPathName(char *Short, char *Long, int Buf)
 	{
 		HMODULE hDll = 0;
 
-		hDll = LoadLibrary("kernel32.dll");
+		hDll = LoadLibrary(_T("kernel32.dll"));
 		if (hDll)
 		{
 			// Win98/ME/2K... short->long conversion supported
+			#ifdef UNICODE
+			typedef DWORD (__stdcall *Proc_GetLongPathName)(LPCWSTR, LPWSTR, DWORD cchBuffer);
+			Proc_GetLongPathName Proc = (Proc_GetLongPathName)GetProcAddress(hDll, "GetLongPathNameW");
+			#else
 			typedef DWORD (__stdcall *Proc_GetLongPathName)(LPCSTR, LPSTR, DWORD);
 			Proc_GetLongPathName Proc = (Proc_GetLongPathName)GetProcAddress(hDll, "GetLongPathNameA");
+			#endif
 			if (Proc)
 			{
-				Len = Proc(Short, Long, Buf);
+				Len = Proc(Short, Long, LongLen);
 				Status = true;
 			}
 			FreeLibrary(hDll);
@@ -165,30 +176,31 @@ int _GetLongPathName(char *Short, char *Long, int Buf)
 		if (!Status)
 		{
 			// Win95/NT4 doesn't support this function... so we do the conversion ourselves
-			char *In = Short;
-			char *Out = Long;
+			TCHAR *In = Short;
+			TCHAR *Out = Long;
 
 			*Out = 0;
 
 			while (*In)
 			{
 				// find end of segment
-				char *e = strchr(In, DIR_CHAR);
-				if (!e) e = In + strlen(In);
+				TCHAR *e = Strchr(In, DIR_CHAR);
+				if (!e) e = In + Strlen(In);
 
 				// process segment
 				char Old = *e;
 				*e = 0;
-				if (strchr(In, ':'))
+				if (Strchr(In, ':'))
 				{
 					// drive specification
-					strcat(Out, In); // just copy over
+					Strcat(Long, LongLen, In); // just copy over
 				}
 				else
 				{
-					strcat(Out, DIR_STR);
+					TCHAR Sep[] = {DIR_CHAR, 0};
+					Strcat(Out, LongLen, Sep);
 
-					if (strlen(In) > 0)
+					if (Strlen(In) > 0)
 					{
 						// has segment to work on
 						WIN32_FIND_DATA Info;
@@ -196,20 +208,20 @@ int _GetLongPathName(char *Short, char *Long, int Buf)
 						if (Search != INVALID_HANDLE_VALUE)
 						{
 							// have long name segment, copy over
-							strcat(Out, Info.cFileName);
+							Strcat(Long, LongLen, Info.cFileName);
 							FindClose(Search);
 						}
 						else
 						{
 							// no long name segment... copy over short segment :(
-							strcat(Out, In);
+							Strcat(Long, LongLen, In);
 						}
 					}
 					// else is a double path char... i.e. as in a M$ network path
 				}
 
 				In = (Old) ? e + 1 : e;
-				Out += strlen(Out);
+				Out += Strlen(Out);
 				*e = Old;
 			}
 		}
@@ -225,7 +237,7 @@ bool ResolveShortcut(const char *LinkFile, char *Path, int Len)
 	HWND hwnd = NULL;
 	HRESULT hres;
 	IShellLink* psl;
-	char szGotPath[DIR_PATH_SIZE] = "";
+	TCHAR szGotPath[DIR_PATH_SIZE] = {0};
 	WIN32_FIND_DATA wfd;
 
 	CoInitialize(0);
@@ -256,10 +268,16 @@ bool ResolveShortcut(const char *LinkFile, char *Path, int Len)
 				{
 					hres = psl->GetPath(szGotPath, DIR_PATH_SIZE, (WIN32_FIND_DATA *)&wfd, SLGP_SHORTPATH );
 
-					if (SUCCEEDED(hres) && strlen(szGotPath) > 0)
+					if (SUCCEEDED(hres) && Strlen(szGotPath) > 0)
 					{
-						// lstrcpy(Path, szGotPath);
+						#ifdef UNICODE
+						TCHAR TmpPath[MAX_PATH];
+						int TpLen = _GetLongPathName(szGotPath, TmpPath, CountOf(TmpPath));
+						const void *Tp = TmpPath;
+						LgiBufConvertCp(Path, "utf-8", Len, Tp, LGI_WideCharset, TpLen);
+						#else
 						_GetLongPathName(szGotPath, Path, Len);
+						#endif
 						Status = true;
 					}
 				}
@@ -426,7 +444,7 @@ public:
 		DWORD MaxPath;
 
 		IsRoot = false;
-		int type = GetDriveType(Drive);
+		int type = GetDriveTypeA(Drive);
 		if (type != DRIVE_UNKNOWN &&
 			type != DRIVE_NO_ROOT_DIR)
 		{
@@ -438,7 +456,7 @@ public:
 				{
 					_Type = VT_REMOVABLE;
 
-					if (GetVolumeInformation(Drive, Buf, sizeof(Buf), 0, 0, 0, 0, 0) &&
+					if (GetVolumeInformationA(Drive, Buf, sizeof(Buf), 0, 0, 0, 0, 0) &&
 						ValidStr(Buf))
 					{
 						Desc = Buf;
@@ -460,7 +478,7 @@ public:
 				case DRIVE_FIXED:
 				default:
 				{
-					if (GetVolumeInformation(Drive, Buf, sizeof(Buf), 0, 0, 0, 0, 0) &&
+					if (GetVolumeInformationA(Drive, Buf, sizeof(Buf), 0, 0, 0, 0, 0) &&
 						ValidStr(Buf))
 					{
 						Desc = Buf;
@@ -513,7 +531,7 @@ public:
 			IsRoot = false;
 			
 			char Str[512];
-			if (GetLogicalDriveStrings(sizeof(Str), Str) > 0)
+			if (GetLogicalDriveStringsA(sizeof(Str), Str) > 0)
 			{
 				for (char *d = Str; *d; d += strlen(d) + 1)
 				{
@@ -847,7 +865,12 @@ bool GFileSystem::RemoveFolder(char *PathName, bool Recurse)
 		}
 	}
 
+	#ifdef UNICODE
+	GAutoWString w(LgiNewUtf8To16(PathName));
+	if (!::RemoveDirectory(w))
+	#else
 	if (!::RemoveDirectory(PathName))
+	#endif
 	{
 		#ifdef _DEBUG
 		DWORD e = GetLastError();
@@ -1371,17 +1394,20 @@ int GFile::GetBlockSize()
 	DWORD NumberOfFreeClusters;
 	DWORD TotalNumberOfClusters;
 	
-	char *n = NewStr(GetName());
+	#ifdef UNICODE
+	GAutoWString n(LgiNewUtf8To16(GetName()));
+	#else
+	GAutoString n(NewStr(GetName()));
+	#endif
 	if (n)
 	{
-		char *dir = n ? strchr(n, '\\') : 0;
+		TCHAR *dir = n ? Strchr(n.Get(), '\\') : 0;
 		if (dir) dir[1] = 0;
 		GetDiskFreeSpace(	n,
 							&SectorsPerCluster,
 							&BytesPerSector,
 							&NumberOfFreeClusters,
 							&TotalNumberOfClusters);
-		DeleteArray(n);
 	}
 
 	return BytesPerSector;

@@ -414,7 +414,7 @@ public:
 	/// Gets the drawable size, regardless of clipping or client rect
 	virtual GdcPt2 GetSize() = 0;
 
-	#elif defined(WIN32)
+	#elif defined(WINNATIVE)
 
 	virtual HDC StartDC() { return hDC; }
 	virtual void EndDC() {}

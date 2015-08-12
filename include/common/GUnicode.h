@@ -193,6 +193,33 @@ T *Strrchr(T *str, int ch)
 	return last;
 }
 
+/// Finds the first instance of a character in the string
+template<typename T>
+T *Strcat(T *dst, int dst_len, T *postfix)
+{
+	if (!dst || !postfix || dst_len < 1)
+		return NULL;
+	
+	// Find the end of the string to append to
+	while (*dst)
+	{
+		dst++;
+		dst_len--;
+	}
+	
+	// Copy the postfix...
+	register T *s = postfix;
+	for (; *s && dst_len > 1; s++)
+	{
+		*dst++ = *s++;
+	}
+	
+	if (dst_len > 0)
+		*s = 0;
+	
+	return NULL;
+}
+
 /// Converts a utf-8 string into a wide character string
 /// \ingroup Text
 LgiFunc char16 *LgiNewUtf8To16(const char *In, int InLen = -1);

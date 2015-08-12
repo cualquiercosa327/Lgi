@@ -57,7 +57,6 @@
 
 #elif defined(WIN32)
 
-	typedef HFONT OsFont;
 	#define PrevOsChar(Ptr)	Ptr--
 	#define NextOsChar(Ptr)	Ptr++
 
