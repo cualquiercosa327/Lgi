@@ -8,7 +8,7 @@
 #include <ctype.h>
 #include <fcntl.h>
 
-#ifdef WIN32
+#ifdef WINDOWS
 #include <winsock2.h>
 #include <shlobj.h>
 #include "GRegKey.h"
