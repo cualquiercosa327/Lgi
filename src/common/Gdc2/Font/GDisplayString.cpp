@@ -67,7 +67,7 @@ GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc)
 		StrCache.Reset(LgiNewUtf8To16(s, l));
 		StringConvert(Str, &len, s, l);
 	
-	#elif defined(WINNATIVE)
+	#elif defined(WINNATIVE) || defined(LGI_SDL)
 
 		StringConvert(Str, &len, s, l);
 
@@ -123,7 +123,7 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
 	pDC = pdc;
 	Font = f;
 
-    #if defined(MAC) || WINNATIVE	
+    #if defined(MAC) || WINNATIVE || defined(LGI_SDL)
 
 		StringConvert(Str, &len, s, l);
 
@@ -655,6 +655,8 @@ void GDisplayString::TruncateWithDots(int Width)
 		}
 	}
 	
+	#elif  defined(LGI_SDL)
+	
 	#else
 	
 		#if USE_CORETEXT
@@ -759,6 +761,8 @@ int GDisplayString::CharAt(int Px)
 		}
 		else Status = 0;
 	}
+	
+	#elif defined(LGI_SDL)
 	
 	#else // This case is for Win32 and Haiku.
 	

@@ -13,12 +13,17 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+#define LGI_SDL				1
+
 #ifdef WIN32
+	#define LGI_SDL_WIN		1
 	#define WIN32_LEAN_AND_MEAN
 	#include "windows.h"
 	#include "winsock2.h"
 	#include "ShellAPI.h"
 #else
+	#define LGI_SDL_POSIX	1
 	#define _MULTI_THREADED
 	#include <pthread.h>
 	#define XP_CTRLS					1
@@ -49,7 +54,7 @@ public:
 };
 
 // Process
-#ifdef WIN32
+#ifdef WINNATIVE
 typedef HANDLE							OsProcess;
 #else
 typedef int								OsProcess;
@@ -57,7 +62,7 @@ typedef int								OsProcess;
 typedef int								OsProcessId;
 typedef void							*OsView;
 typedef void							*OsWindow;
-typedef char							OsChar;
+typedef char16							OsChar;
 typedef void							*OsPainter;
 typedef void							*OsFont;
 typedef void							*OsBitmap;
@@ -84,32 +89,44 @@ typedef DWORD						OsThreadId;
 typedef CRITICAL_SECTION			OsSemaphore;
 #define LgiGetCurrentThread()		GetCurrentThreadId()
 
-#else
+#elif defined LGI_SDL
+
+typedef void						*OsThread;
+typedef int							OsThreadId;
+typedef void						*OsSemaphore;
+#define LgiGetCurrentThread()		(0)
+
+#elif defined POSIX
 
 typedef pthread_t					OsThread;
 typedef pthread_t					OsThreadId;
 typedef pthread_mutex_t				OsSemaphore;
 #define LgiGetCurrentThread()		pthread_self()
 
+#else
+
+#error "No impl"
+
 #endif
 
 class LgiClass GMessage
 {
+	int msg, a, b;
+
 public:
     typedef NativeInt Param;
     typedef NativeInt Result;
 
-	bool OwnEvent;
-
-	GMessage(int m, Param a = 0, Param b = 0);
+	GMessage(int m, Param pa = 0, Param pb = 0);
 	~GMessage();
 
 	int Msg();
 	Param A();
 	Param B();
-	void Set(int m, Param a, Param b);
+	void Set(int m, Param pa, Param pb);
 	bool Send(OsView Wnd);
 };
+
 
 #define MsgCode(m)					m->Msg()
 #define MsgA(m)						m->A()
@@ -277,6 +294,7 @@ LgiFunc void _lgi_sleep(int i);
 /// Implemented to handle timer events in the GUI thread.
 #define M_PULSE						(M_USER+114)
 #define M_SET_VISIBLE				(M_USER+115)
+
 
 /// Standard ID for an "Ok" button.
 /// \sa LgiMsg
@@ -530,14 +548,17 @@ LgiFunc int stricmp(const char *a, const char *b);
 #else
 LgiFunc class GViewI *GWindowFromHandle(OsView hWnd);
 LgiFunc int GetMouseWheelLines();
+#ifdef WINNATIVE
 LgiFunc int WinPointToHeight(int Pt, HDC hDC = NULL);
 LgiFunc int WinHeightToPoint(int Ht, HDC hDC = NULL);
-LgiExtern class GString WinGetSpecialFolderPath(int Id);
+#endif
 
 typedef BOOL (__stdcall *pSHGetSpecialFolderPathA)(HWND hwndOwner, LPSTR lpszPath, int nFolder, BOOL fCreate);
 typedef BOOL (__stdcall *pSHGetSpecialFolderPathW)(HWND hwndOwner, LPWSTR lpszPath, int nFolder, BOOL fCreate);
 typedef int (__stdcall *pSHFileOperationA)(LPSHFILEOPSTRUCTA lpFileOp);
 typedef int (__stdcall *pSHFileOperationW)(LPSHFILEOPSTRUCTW lpFileOp);
+LgiExtern class GString WinGetSpecialFolderPath(int Id);
+
 typedef int (__stdcall *p_vscprintf)(const char *format, va_list argptr);
 
 #if _MSC_VER >= 1400

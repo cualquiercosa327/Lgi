@@ -1869,29 +1869,16 @@ void GView::_Dump(int Depth)
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-#if defined(MAC) || defined(LINUX) || defined(BEOS)
-static char FactoryFile[MAX_PATH];
-#elif defined(WINDOWS)
+#if defined(WINNATIVE)
 static HANDLE FactoryEvent;
 #else
-#error "Not impl"
+static char FactoryFile[MAX_PATH];
 #endif
 static GArray<GViewFactory*> *AllFactories = NULL;
 
 GViewFactory::GViewFactory()
 {
-	#if defined(MAC) || defined(LINUX) || defined(BEOS)
-	// This is a terrible way of doing it... but I don't have a better solution ATM. :(
-	LgiGetTempPath(FactoryFile, sizeof(FactoryFile));
-	int len = strlen(FactoryFile);
-	sprintf_s(FactoryFile+len, sizeof(FactoryFile)-len, "/LgiFactoryFile.%i", getpid());
-	if (!FileExists(FactoryFile))
-	{
-		GFile file;
-		file.Open(FactoryFile, O_WRITE);
-		AllFactories = new GArray<GViewFactory*>;
-	}
-	#elif defined(WINDOWS)
+	#if defined(WINDOWS)
 	char Name[256];
 	sprintf_s(Name, sizeof(Name), "LgiFactoryEvent.%i", GetCurrentProcessId());
 	HANDLE h = CreateEvent(NULL, false, false, Name);
@@ -1906,8 +1893,20 @@ GViewFactory::GViewFactory()
 		LgiAssert(AllFactories);
 	}
 	#else
-	#error "Not impl"
-	AllFactories = 0;
+	// This is a terrible way of doing it... but I don't have a better solution ATM. :(
+	LgiGetTempPath(FactoryFile, sizeof(FactoryFile));
+	int len = strlen(FactoryFile);
+	#ifdef POSIX
+	sprintf_s(FactoryFile+len, sizeof(FactoryFile)-len, "/LgiFactoryFile.%i", getpid());
+	#else
+	sprintf_s(FactoryFile+len, sizeof(FactoryFile)-len, "/LgiFactoryFile");
+	#endif
+	if (!FileExists(FactoryFile))
+	{
+		GFile file;
+		file.Open(FactoryFile, O_WRITE);
+		AllFactories = new GArray<GViewFactory*>;
+	}
 	#endif
 
 	if (AllFactories)

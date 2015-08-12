@@ -247,7 +247,7 @@ class LgiClass GFontType
 	friend class GTypeFace;
 
 protected:
-	#if defined WIN32
+	#if defined WINNATIVE
 	LOGFONT Info;
 	#else
 	GTypeFace Info;
@@ -257,7 +257,7 @@ public:
 	GFontType(const char *face = 0, int pointsize = 0);
 	virtual ~GFontType();
 
-	#ifdef WIN32
+	#ifdef WINNATIVE
 	LOGFONT *Handle() { return &Info; }
 	#else
 	GTypeFace *Handle() { return &Info; }

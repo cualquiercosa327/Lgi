@@ -39,7 +39,7 @@ public:
 
 	GMessage::Result OnEvent(GMessage *Msg);
 	
-	#if defined(__GTK_H__) || defined(MAC) || defined(BEOS)
+	#if !defined(WINNATIVE)
 	void OnPaint(GSurface *pDC);
 	void OnMouseClick(GMouse &m);
 	void OnMouseMove(GMouse &m);

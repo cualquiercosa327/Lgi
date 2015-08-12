@@ -8,7 +8,7 @@
     #include <errno.h>
 #endif
 
-#ifndef WINDOWS
+#if POSIX
     
     #include <sys/time.h>
 
@@ -119,6 +119,10 @@ bool GThreadEvent::IsOk()
 	#elif defined(POSIX)
 
         return true;
+
+	#else
+	
+		return false;
 
 	#endif
 }

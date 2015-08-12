@@ -9,7 +9,7 @@
 #if defined __GTK_H__
 	typedef Gtk::GtkMenuShell *OsSubMenu;
 	typedef Gtk::GtkMenuItem *OsMenuItem;
-#elif defined WIN32
+#elif defined WINNATIVE
 	typedef HMENU OsSubMenu;
 	typedef MENUITEMINFO OsMenuItem;
 
@@ -35,7 +35,9 @@
 	typedef MenuItemIndex OsMenuItem;
 	#endif
 #else
-	#error "Not impl."
+	#include "GMenuImpl.h"
+	typedef class MenuClickImpl *OsSubMenu;
+	typedef class MenuItemImpl *OsMenuItem;
 #endif
 
 #include "GXmlTree.h"
@@ -261,7 +263,7 @@ private:
 	bool			Insert(int Pos);
 	bool			Update();
 	#endif
-	#if defined(__GTK_H__) || defined(BEOS)
+	#if defined(__GTK_H__) || defined(BEOS) || defined(LGI_SDL)
 	GAutoString		ShortCut;
 	#endif
 

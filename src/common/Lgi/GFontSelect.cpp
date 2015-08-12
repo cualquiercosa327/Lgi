@@ -260,7 +260,7 @@ bool GFontSelect::Serialize(void *Data, int DataLen, bool Write)
 {
 	if (Write) // Dialog -> Data
 	{
-		#ifdef WIN32
+		#ifdef WINNATIVE
 
 		LOGFONT *Fnt = (LOGFONT*) Data;
 
@@ -288,7 +288,7 @@ bool GFontSelect::Serialize(void *Data, int DataLen, bool Write)
 	}
 	else // Data -> Dialog
 	{
-		#ifdef WIN32
+		#ifdef WINNATIVE
 
 		LOGFONT *Fnt = (LOGFONT*) Data;
 		Face = NewStr(Fnt->lfFaceName);

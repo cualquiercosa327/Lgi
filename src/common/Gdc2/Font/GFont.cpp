@@ -1163,7 +1163,7 @@ char16 *GFont::_ToUnicode(char *In, int &Len)
 	return WStr;
 }
 
-#if defined WIN32
+#if defined WINNATIVE
 
 bool GFont::Create(GFontType *LogFont, NativeInt Param)
 {
@@ -1240,7 +1240,7 @@ GFont &GFont::operator =(GFont &f)
 ///////////////////////////////////////////////////////////////////////
 GFontType::GFontType(const char *face, int pointsize)
 {
-	#if defined WIN32
+	#if defined WINNATIVE
 
 	ZeroObj(Info);
 	if (face)
@@ -1266,7 +1266,7 @@ GFontType::~GFontType()
 
 char *GFontType::GetFace()
 {
-	#ifdef WIN32
+	#ifdef WINNATIVE
 	return Info.lfFaceName;
 	#else
 	return Info.Face();
@@ -1275,7 +1275,7 @@ char *GFontType::GetFace()
 
 void GFontType::SetFace(const char *Face)
 {
-	#ifdef WIN32
+	#ifdef WINNATIVE
 	if (Face) strcpy(Info.lfFaceName, Face);
 	else Info.lfFaceName[0] = 0;
 	#else
@@ -1285,7 +1285,7 @@ void GFontType::SetFace(const char *Face)
 
 int GFontType::GetPointSize()
 {
-	#ifdef WIN32
+	#ifdef WINNATIVE
 	return WinHeightToPoint(Info.lfHeight);
 	#else
 	return Info.PointSize();
@@ -1294,7 +1294,7 @@ int GFontType::GetPointSize()
 
 void GFontType::SetPointSize(int PointSize)
 {
-	#ifdef WIN32
+	#ifdef WINNATIVE
 	Info.lfHeight = WinPointToHeight(PointSize);
 	#else
 	Info.PointSize(PointSize);
@@ -1533,7 +1533,7 @@ bool GFontType::GetSystemFont(const char *Which)
 		return false;
 	}
 	
-	#if defined WIN32
+	#if defined WINNATIVE
 
 	// Get the system settings
 	NONCLIENTMETRICS info;
@@ -1641,7 +1641,7 @@ bool GFontType::GetSystemFont(const char *Which)
 		if (!Status)
 		{
 			// read from system
-			#if defined WIN32
+			#if defined WINNATIVE
 
 				if (InfoOk)
 				{
@@ -1716,7 +1716,7 @@ bool GFontType::GetSystemFont(const char *Which)
 		Status = GetConfigFont("Font-Menu");
 		if (!Status)
 		{
-			#if defined WIN32
+			#if defined WINNATIVE
 
 			if (InfoOk)
 			{
@@ -1772,7 +1772,7 @@ bool GFontType::GetSystemFont(const char *Which)
 		Status = GetConfigFont("Font-Caption");
 		if (!Status)
 		{
-			#if defined WIN32
+			#if defined WINNATIVE
 
 				if (InfoOk)
 				{
@@ -1830,7 +1830,7 @@ bool GFontType::GetSystemFont(const char *Which)
 		Status = GetConfigFont("Font-Status");
 		if (!Status)
 		{
-			#if defined WIN32
+			#if defined WINNATIVE
 			
 			if (InfoOk)
 			{
@@ -1886,7 +1886,7 @@ bool GFontType::GetSystemFont(const char *Which)
 		Status = GetConfigFont("Font-Small");
 		if (!Status)
 		{
-			#if defined WIN32
+			#if defined WINNATIVE
 
 			if (InfoOk)
 			{
@@ -1951,7 +1951,7 @@ bool GFontType::GetSystemFont(const char *Which)
 		Status = GetConfigFont("Font-Fixed");
 		if (!Status)
 		{
-			#if defined WIN32
+			#if defined WINNATIVE
 
 			strcpy(Info.lfFaceName, "Courier New");
 			Info.lfHeight = WinPointToHeight(9);

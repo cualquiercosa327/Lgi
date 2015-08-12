@@ -385,7 +385,7 @@ protected:
 	static GViewI		*_Capturing;
 	static GViewI		*_Over;
 	
-	#if defined WIN32
+	#if defined WINNATIVE
 
 	uint32 GetStyle();
 	void SetStyle(uint32 i);
@@ -1055,7 +1055,7 @@ public:
 	bool Pour(GRegion &r);
 
 	// Impl
-	#if defined(__GTK_H__) || defined(MAC) || defined(BEOS)
+	#if defined(__GTK_H__) || !defined(WINNATIVE)
 
 	bool Attach(GViewI *p);
 	bool Detach();

@@ -51,16 +51,9 @@ bool ScreenToClient(OsView Wnd, GdcPt2 &p)
 	return false;
 }
 
-#elif defined MAC
+#else
 
 bool IsWindow(OsView v)
-{
-	return true;
-}
-
-#elif defined BEOS
-
-static bool IsWindow(OsView Wnd)
 {
 	return true;
 }
@@ -323,14 +316,12 @@ public:
 					// LgiTrace("No hOver\n");
 				}
 				
-				#elif defined(MAC) || defined(BEOS)
+				#else
 				
 				// Not implemented.
+				GdcPt2 p;
+				GRect rc;
 				
-				#else
-
-				#error "Not Impl."
-
 				#endif
 
 				// is the mouse inside the client area?
@@ -856,7 +847,7 @@ void GPopup::Visible(bool i)
 	
 	AttachChildren();
 
-	#ifdef WIN32
+	#ifdef WINNATIVE
 	// See if we or a child window has the focus...
 	for (HWND hWnd = GetFocus(); hWnd; hWnd = ::GetParent(hWnd))
 	{

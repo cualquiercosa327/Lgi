@@ -8,9 +8,10 @@
 #include <ctype.h>
 #include <fcntl.h>
 
-#ifdef WINDOWS
+#ifdef WIN32
 #include <winsock2.h>
 #include <shlobj.h>
+#include "GRegKey.h"
 #else
 #include <unistd.h>
 #endif
@@ -35,7 +36,7 @@
 #include <Path.h>
 #endif
 
-#if defined(WIN32) && defined(__GTK_H__)
+#if defined(WIN32) && (defined(__GTK_H__) || defined(LGI_SDL))
 #include "../win32/GSymLookup.h"
 #else
 #include "GSymLookup.h"

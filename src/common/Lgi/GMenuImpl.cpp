@@ -39,7 +39,7 @@ public:
 	void Select(int Inc)
 	{
 		MenuItemImpl *NewOver = 0;
-		if (Over AND
+		if (Over &&
 			Over->Item())
 		{
 			GSubMenu *s = Over->Item()->GetParent();
@@ -47,7 +47,7 @@ public:
 			{
 				int Index = s->Items.IndexOf(Over->Item());
 				int NewIdx = Index + Inc;
-				while (NewIdx >= 0 AND NewIdx < s->Items.Length())
+				while (NewIdx >= 0 && NewIdx < s->Items.Length())
 				{
 					GMenuItem *Sel = s->Items[NewIdx];
 					if (Sel)
@@ -132,7 +132,7 @@ bool SubMenuImpl::OnKey(GKey &k)
 			case ' ':
 			case VK_RETURN:
 			{
-				if (k.Down() AND Over)
+				if (k.Down() && Over)
 				{
 					Over->Activate();
 				}
@@ -141,7 +141,7 @@ bool SubMenuImpl::OnKey(GKey &k)
 			default:
 			{
 				int c = tolower(k.c16);
-				if (c >= 'a' AND c <= 'z')
+				if (c >= 'a' && c <= 'z')
 				{
 					if (k.Down())
 					{
@@ -189,7 +189,7 @@ bool SubMenuImpl::OnKey(GKey &k)
 		{
 			case ' ':
 			{
-				if (k.Down() AND Over)
+				if (k.Down() && Over)
 				{
 					Over->Activate();
 				}
@@ -231,7 +231,7 @@ bool SubMenuImpl::OnKey(GKey &k)
 			{
 				if (k.Down())
 				{
-					if (Over AND Over->Item()->Sub())
+					if (Over && Over->Item()->Sub())
 					{
 						Over->ShowSub();
 					}
@@ -255,7 +255,7 @@ bool SubMenuImpl::OnKey(GKey &k)
 void SubMenuImpl::OnPaint(GSurface *pDC)
 {
 	GRect c = GetClient();
-    LgiWideBorder(pDC, c, RAISED);
+    LgiWideBorder(pDC, c, EdgeXpRaised);
     pDC->Colour(LC_MED, 24);
     pDC->Rectangle(&c);
 }
@@ -347,7 +347,7 @@ void SubMenuImpl::Visible(bool b)
 		{
 			for (GMenuItem *i = Parent->Items.First(); i; i = Parent->Items.Next())
 			{
-				if (i->Child AND
+				if (i->Child &&
 					i->Child->Info != this)
 				{
 					GView *v = i->Child->Info->View();
@@ -369,7 +369,7 @@ void SubMenuImpl::Visible(bool b)
 		{
 			for (GMenuItem *i = s->Items.First(); i; i = s->Items.Next())
 			{
-				if (i->Child AND
+				if (i->Child &&
 					i->Child->Info != this)
 				{
 					GView *v = i->Child->Info->View();
@@ -407,19 +407,10 @@ MenuImpl::MenuImpl(GMenu *Menu)
 	SetPos(r);
 }
 
-using namespace Gtk;
-
 MenuImpl::~MenuImpl()
 {
 	if (_View)
 	{
-		GtkWidget *par = gtk_widget_get_parent(_View);
-		if (par)
-		{
-			bool b = g_type_check_instance_is_a ((GTypeInstance*) par, GTK_TYPE_CONTAINER);
-			
-			printf("%p is container = %i (view=%p)\n", par, b, _View);
-		}
 	}
 
 	DeleteObj(d);
@@ -446,7 +437,7 @@ void MenuImpl::OnPaint(GSurface *pDC)
 {
 	GRect c = GetClient();
 	
-	LgiThinBorder(pDC, c, RAISED);
+	LgiThinBorder(pDC, c, EdgeXpRaised);
     pDC->Colour(LC_MED, 24);
     pDC->Rectangle(&c);
 }
@@ -690,7 +681,7 @@ void MenuItemImpl::OnMouseClick(GMouse &m)
 
 void MenuItemImpl::OnMouseEnter(GMouse &m)
 {
-	if (d->Item->Enabled() AND !d->Item->Separator())
+	if (d->Item->Enabled() && !d->Item->Separator())
 	{
 		if (Over)
 		{
@@ -702,8 +693,8 @@ void MenuItemImpl::OnMouseEnter(GMouse &m)
 			Over->Invalidate();
 			
 			bool HasOpen = false;
-			if (d->Item AND
-				d->Item->GetParent() AND
+			if (d->Item &&
+				d->Item->GetParent() &&
 				d->Item->GetParent()->Info)
 			{
 				GSubMenu *Sub = d->Item->GetParent();
@@ -714,7 +705,7 @@ void MenuItemImpl::OnMouseEnter(GMouse &m)
 				}
 			}
 			
-			if ((IsOnSubMenu() || HasOpen) AND d->Item->Child)
+			if ((IsOnSubMenu() || HasOpen) && d->Item->Child)
 			{
 				ShowSub();
 			}

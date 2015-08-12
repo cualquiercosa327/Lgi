@@ -26,7 +26,7 @@
 //
 #include "iconv.h"
 
-#if defined(WINDOWS)
+#if defined(WIN32)
 typedef const char IconvChar;
 #else
 typedef char IconvChar;
@@ -61,7 +61,7 @@ public:
 	#endif
 
 	#if HAS_ICONV
-	#ifdef WINDOWS
+	#ifdef WIN32
 
 	DynFunc2(iconv_t,	libiconv_open, const char*, tocode, const char*, fromcode);
 	DynFunc5(size_t,	libiconv, iconv_t, cd, IconvChar**, inbuf, size_t*, inbytesleft, char**, outbuf, size_t*, outbytesleft);

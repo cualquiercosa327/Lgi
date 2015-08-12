@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "Lgi.h"
 
-#if defined(__GTK_H__) || defined(MAC)
+#if defined(__GTK_H__) || defined(MAC) || defined(LGI_SDL)
 #include "GTextLabel.h"
 #include "GButton.h"
 

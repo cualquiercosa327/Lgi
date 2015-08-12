@@ -846,7 +846,7 @@ class LgiClass GMemDC : public GSurface
 protected:
 	class GMemDCPrivate *d;
 
-	#if defined WIN32
+	#if defined WINNATIVE
 	PBITMAPINFO	GetInfo();
 	#endif
 	
@@ -903,10 +903,11 @@ public:
 		Gtk::cairo_surface_t *GetSurface(GRect &r);
 		GColourSpace GetCreateCs();
 
-		#elif defined(BEOS)
+		#elif defined(BEOS) || defined(LGI_SDL)
 
 		OsBitmap GetBitmap();
 		OsPainter Handle();
+		GRect ClipRgn(GRect *Rgn);
 
 		#endif
 		
