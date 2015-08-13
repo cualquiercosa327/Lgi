@@ -67,6 +67,13 @@ public:
 		b = B;
 	}
 
+	void Set(int M, Param A = 0, Param B = 0)
+	{
+		m = M;
+		a = A;
+		b = B;
+	}
+	
 	int Msg() { return m; }	
 	Param A() { return a; }
 	Param B() { return b; }
