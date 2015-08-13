@@ -114,6 +114,7 @@ Depends =	GDateTime.o \
 			LgiRand.o \
 			GString.o \
 			GToken.o \
+			GUnicode.o \
 			GUtf8.o \
 			GXmlTree.o \
 			GBitmap.o \
@@ -141,8 +142,8 @@ Depends =	GDateTime.o \
 			GLayout.o \
 			GWidgets.o \
 			GBox.o \
-			GTableLayout.o \
 			GSplitter.o \
+			GTableLayout.o \
 			INet.o \
 			INetTools.o \
 			md5.o
@@ -413,11 +414,11 @@ GTrayIcon.o : ./src/common/Lgi/GTrayIcon.cpp ./include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-Lgi.o : ./src/common/Lgi/Lgi.cpp ./include/common/Lgi.h \
+Lgi.o : ./src/common/Lgi/Lgi.cpp ./include/common/GRegKey.h \
+	./include/common/Lgi.h \
 	./include/common/GToken.h \
 	./include/common/GCapabilities.h \
 	./include/linux/Gtk/LgiWinManGlue.h \
-	./include/common/GRegKey.h \
 	./include/common/GProcess.h \
 	./include/win32/GSymLookup.h \
 	./include/linux/GSymLookup.h \
@@ -687,6 +688,10 @@ GToken.o : ./src/common/Text/GToken.cpp ./include/common/GMem.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
+GUnicode.o : ./src/common/Text/GUnicode.cpp ./include/common/Lgi.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
 GUtf8.o : ./src/common/Text/GUtf8.cpp ./include/common/Lgi.h \
 	./include/common/GUtf8.h
 	@echo $(<F) [$(Build)]
@@ -878,6 +883,10 @@ GBox.o : ./src/common/Widgets/GBox.cpp ./include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
+GSplitter.o : ./src/common/Widgets/GSplitter.cpp ./include/common/Lgi.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
 GTableLayout.o : ./src/common/Widgets/GTableLayout.cpp ./include/common/Lgi.h \
 	./include/common/GTableLayout.h \
 	./include/common/GCssTools.h \
@@ -897,10 +906,6 @@ GTableLayout.o : ./src/common/Widgets/GTableLayout.cpp ./include/common/Lgi.h \
 	./include/common/GUtf8.h \
 	./include/common/GScrollBar.h \
 	./include/common/GCss.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-GSplitter.o : ./src/common/Widgets/GSplitter.cpp ./include/common/Lgi.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -2008,7 +2013,10 @@ md5.o : ./src/common/Hash/md5/md5.c
 ../../../../../usr/include/glib-2.0/gio/gsimpleasyncresult.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ./include/common/GStringClass.h : ./include/common/GUtf8.h \
-	./include/common/GString.h
+	./include/common/GString.h \
+	./include/common/GUnicode.h
+
+./include/common/GUnicode.h : ./include/common/LgiInc.h
 
 ./include/common/GMem.h : ./include/common/LgiInc.h \
 	./include/linux/Gtk/LgiOsDefs.h
@@ -2103,11 +2111,14 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ./include/common/GScrollBar.h : 
 
-./include/common/GMenu.h : ./include/common/GXmlTree.h \
+./include/common/GMenu.h : ./include/common/GMenuImpl.h \
+	./include/common/GXmlTree.h \
 	./include/common/Res.h \
 	./include/common/GImageList.h
 
 ./include/common/Res.h : ./include/common/GXmlTree.h
+
+./include/common/GMenuImpl.h : ./include/common/GPopup.h
 
 ../../../../../usr/include/pango-1.0/pango/pango-language.h : /usr/include/glib-2.0/glib.h \
 	/usr/include/glib-2.0/glib-object.h \
@@ -2181,9 +2192,6 @@ md5.o : ./src/common/Hash/md5/md5.c
 	./include/common/GDragAndDrop.h
 
 ./include/common/GUndo.h : 
-
-./include/common/GDocView.h : ./include/common/GVariant.h \
-	./include/common/GNotifications.h
 
 ./include/common/GMem.h : ./include/common/LgiInc.h \
 	./include/linux/Gtk/LgiOsDefs.h
@@ -2719,7 +2727,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 ./include/common/GUtf8.h : 
 
 ./include/common/GStringClass.h : ./include/common/GUtf8.h \
-	./include/common/GString.h
+	./include/common/GString.h \
+	./include/common/GUnicode.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkcelllayout.h : /usr/include/gtk-2.0/gtk/gtkcellrenderer.h \
 	/usr/include/gtk-2.0/gtk/gtktreeviewcolumn.h \

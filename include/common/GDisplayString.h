@@ -8,6 +8,13 @@ namespace Pango
 #include "pango/pangocairo.h"
 }
 #endif
+
+#if (defined(MAC) || defined(LINUX)) && !defined(LGI_SDL)
+#define LGI_DSP_STR_CACHE		1
+#endif
+
+
+
 /// \brief Cache for text measuring, glyph substitution and painting
 ///
 /// To paint text onto the screen several stages need to be implemented to
@@ -35,11 +42,13 @@ class LgiClass GDisplayString
 	uint8 LaidOut : 1;
 	uint8 AppendDots : 1;
 	uint8 VisibleTab : 1;
-	
-	#if defined MAC
 
+	#if LGI_DSP_STR_CACHE
 	// Wide char cache
 	GAutoWString StrCache;
+	#endif
+	
+	#if defined MAC
 	
 	#ifdef COCOA
 	#else
@@ -137,7 +146,7 @@ public:
 	/// Returns the pointer to the native string
 	operator const char16*()
 	{
-		#ifdef MAC
+		#ifdef LGI_DSP_STR_CACHE
 		return StrCache;
 		#else
 		return Str;

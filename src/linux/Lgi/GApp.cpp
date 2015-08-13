@@ -889,6 +889,11 @@ bool GApp::IsElevated()
 	#endif
 }
 
+int GApp::GetCpuCount()
+{
+	return 1;
+}
+
 using namespace Gtk;
 
 ////////////////////////////////////////////////////////////////
