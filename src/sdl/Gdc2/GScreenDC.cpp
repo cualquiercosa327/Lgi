@@ -17,76 +17,9 @@
 class GScreenPrivate
 {
 public:
-	#if defined WIN32
-
 	GRect		Client;
-
-	int			Mode;
-	COLOUR		Col;
-	int			Sx, Sy;
-	GGlobalColour *Gc;
-	NativeInt	ConstAlpha;
-	
-	class NullObjects
-	{
-		friend class GScreenDC;
-		HPEN Pen;
-		HBRUSH Brush;
-
-	public:
-		NullObjects()
-		{
-			LOGBRUSH LogBrush;
-			LogBrush.lbStyle = BS_NULL;
-			LogBrush.lbColor = 0;
-			LogBrush.lbHatch = 0;
-			Brush = CreateBrushIndirect(&LogBrush);
-			Pen = CreatePen(PS_NULL, 1, 0);
-		}
-
-		~NullObjects()
-		{
-			DeleteObject(Pen);
-			DeleteObject(Brush);
-		}
-	};
-
-	static GPalette *LastRealized;
-	static NullObjects Null;
-
-	GScreenPrivate()
-	{
-		Gc = 0;
-		Mode = GDC_SET;
-		Col = 0;
-		Sx = Sy = 0;
-		Client.ZOff(-1, -1);
-		ConstAlpha = -1;
-	}
-
-	#else
-
-		OsView		View;
-		int			BitDepth;
-
-		bool		_ClientClip;
-		GRect		_Client;
-		void		_SetClient(GRect *c);
-
-		#ifdef LINUX
-		friend class GFont;
-		friend class GView;
-		
-		COLOUR		Col;
-		QPainter	p;
-		#endif
-
-	#endif
+	uint32		Col;
 };
-
-GScreenPrivate::NullObjects GScreenPrivate::Null;
-GPalette *GScreenPrivate::LastRealized = 0;
-
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 GScreenDC::GScreenDC()
@@ -193,7 +126,7 @@ GRect GScreenDC::ClipRgn(GRect *Rgn)
 
 	if (Rgn)
 	{
-		POINT Origin;
+		GdcPt2 Origin;
 		/*
 		GetWindowOrgEx(hDC, &Origin);
 
@@ -244,42 +177,7 @@ GColour GScreenDC::Colour(GColour c)
 
 int GScreenDC::Op(int Op, NativeInt Param)
 {
-	int Prev = d->Mode;
-	int Rop;
-
-	switch (Op)
-	{
-		case GDC_ALPHA:
-		case GDC_SET:
-		{
-			Rop = R2_COPYPEN;
-			break;
-		}
-		case GDC_AND:
-		{
-			Rop = R2_MASKPEN;
-			break;
-		}
-		case GDC_OR:
-		{
-			Rop = R2_MERGEPEN;
-			break;
-		}
-		case GDC_XOR:
-		{
-			Rop = R2_XORPEN;
-			break;
-		}
-		default:
-		{
-			return Prev;
-		}
-	}
-
-	d->Mode = Op;
-	d->ConstAlpha = Param;
-
-	return Prev;
+	return 0;
 }
 
 COLOUR GScreenDC::Colour()
@@ -289,7 +187,7 @@ COLOUR GScreenDC::Colour()
 
 int GScreenDC::Op()
 {
-	return d->Mode;
+	return 0;
 }
 
 int GScreenDC::X()
@@ -297,7 +195,7 @@ int GScreenDC::X()
 	if (d->Client.Valid())
 		return d->Client.X();
 
-	return d->Sx;
+	return 0;
 }
 
 int GScreenDC::Y()
@@ -305,7 +203,7 @@ int GScreenDC::Y()
 	if (d->Client.Valid())
 		return d->Client.Y();
 
-	return d->Sy;
+	return 0;
 }
 
 int GScreenDC::GetBits()
@@ -321,7 +219,7 @@ bool GScreenDC::SupportsAlphaCompositing()
 
 void GScreenDC::Set(int x, int y)
 {
-	uint32 WinCol = RGB( R24(d->Col), G24(d->Col), B24(d->Col) );
+	
 }
 
 COLOUR GScreenDC::Get(int x, int y)
@@ -517,23 +415,6 @@ void GScreenDC::StretchBlt(GRect *dst, GSurface *Src, GRect *s)
 
 void GScreenDC::Polygon(int Points, GdcPt2 *Data)
 {
-	if (Points > 0 && Data)
-	{
-		PPOINT pt = new POINT[Points];
-		if (pt)
-		{
-			int *d = (int*)Data;
-
-			for (int i=0; i<Points; i++)
-			{
-				pt[i].x = *d++;
-				pt[i].y = *d++;
-			}
-
-			// ::Polygon(hDC, pt, Points);
-			DeleteArray(pt);
-		}
-	}
 }
 
 void GScreenDC::Bezier(int Threshold, GdcPt2 *Pt)

@@ -45,7 +45,7 @@ public:
 		Sx = Sy = 0;
 		Dynamic = true;
 		SnapToEdge = false;
-		ZeroObj(LastKey);		
+		// ZeroObj(LastKey);
 	}
 	
 	int GetHookIndex(GView *Target, bool Create = false)

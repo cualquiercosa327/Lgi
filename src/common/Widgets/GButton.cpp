@@ -267,7 +267,7 @@ void GButton::OnFocus(bool f)
 
 void GButton::OnPaint(GSurface *pDC)
 {
-	#if defined MAC && !defined COCOA
+	#if defined(MAC) && !defined(COCOA) && !defined(LGI_SDL)
 
 	GColour Background(LC_MED, 24);
 	if (GetCss())

@@ -88,7 +88,7 @@ GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc)
 	AppendDots = 0;
 	VisibleTab = 0;
 	
-	#if defined MAC && !defined COCOA
+	#if defined MAC && !defined COCOA && !defined(LGI_SDL)
 	
 		Hnd = 0;
 		if (Font && Str)
@@ -142,7 +142,7 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
 	AppendDots = 0;
 	VisibleTab = 0;
 
-	#if defined MAC && !defined COCOA
+	#if defined MAC && !defined COCOA && !defined(LGI_SDL)
 	
 		Hnd = 0;
 		if (Font && Str && len > 0)
@@ -172,7 +172,7 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
 
 GDisplayString::~GDisplayString()
 {
-	#if defined MAC && !defined COCOA
+	#if defined MAC && !defined COCOA && !defined(LGI_SDL)
 
 		#if USE_CORETEXT
 
@@ -283,7 +283,7 @@ void GDisplayString::Layout(bool Debug)
 		x = (xf + PANGO_SCALE - 1) / PANGO_SCALE;
 		y = (yf + PANGO_SCALE - 1) / PANGO_SCALE;
 	
-	#elif defined MAC && !defined COCOA
+	#elif defined MAC && !defined COCOA && !defined(LGI_SDL)
 	
 		if (!Hnd || !Str)
 			return;
@@ -713,7 +713,7 @@ int GDisplayString::CharAt(int Px)
 		#endif
 	}
 
-	#if defined MAC && !defined COCOA
+	#if defined MAC && !defined COCOA && !defined(LGI_SDL)
 
 	if (Hnd && Str)
 	{
@@ -1305,7 +1305,7 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc, bool Debug
 		Gtk::cairo_reset_clip(cr);
 	}
 	
-	#elif defined MAC && !defined COCOA
+	#elif defined MAC && !defined COCOA && !defined(LGI_SDL)
 
 	int Ox = 0, Oy = 0;
 	int px = fx >> FShift;

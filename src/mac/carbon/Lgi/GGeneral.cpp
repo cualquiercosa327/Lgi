@@ -159,10 +159,8 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 // Implementations
 GMessage CreateMsg(int m, int a, int b)
 {
-	static GMessage Msg;
-	Msg.m = m;
-	Msg.a = a;
-	Msg.b = b;
+	static GMessage Msg(0);
+	Msg.Set(m, a, b);
 	return Msg;
 }
 

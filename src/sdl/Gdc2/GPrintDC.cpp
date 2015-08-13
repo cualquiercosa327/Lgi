@@ -14,12 +14,6 @@ public:
 	}
 };
 
-BOOL CALLBACK LgiAbortProc(HDC hdc, int iError)
-{
-	LgiYield();
-	return true;
-}
-
 GPrintDC::GPrintDC(void *Handle, const char *PrintJobName)
 {
 	d = new GPrintDCPrivate;

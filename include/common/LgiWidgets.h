@@ -259,7 +259,7 @@ public:
     void Pour() {}
 	void Quit(bool DontDelete = false);
 	
-	#if defined(MAC)
+	#if defined(MAC) && !defined(LGI_SDL)
 	void OnPaint(GSurface *pDC);
 	#elif defined(__GTK_H__)
     bool IsResizeable();

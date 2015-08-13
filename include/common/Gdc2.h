@@ -889,7 +889,7 @@ public:
 				
 		OsPainter Handle();
 		OsBitmap GetBitmap();
-		#ifndef COCOA
+		#if !defined(COCOA) && !defined(LGI_SDL)
 		CGColorSpaceRef GetColourSpaceRef();
 		CGImg *GetImg(GRect *Sub = 0);
 		#endif

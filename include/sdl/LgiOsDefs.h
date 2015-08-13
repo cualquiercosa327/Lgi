@@ -26,8 +26,8 @@
 	#define LGI_SDL_POSIX	1
 	#define _MULTI_THREADED
 	#include <pthread.h>
-	#define XP_CTRLS					1
-	#define POSIX						1
+	#define XP_CTRLS		1
+	#define POSIX			1
 #endif
 
 #ifdef _MSC_VER
@@ -88,13 +88,6 @@ typedef HANDLE  					OsThread;
 typedef DWORD						OsThreadId;
 typedef CRITICAL_SECTION			OsSemaphore;
 #define LgiGetCurrentThread()		GetCurrentThreadId()
-
-#elif defined LGI_SDL
-
-typedef void						*OsThread;
-typedef int							OsThreadId;
-typedef void						*OsSemaphore;
-#define LgiGetCurrentThread()		(0)
 
 #elif defined POSIX
 
@@ -169,7 +162,11 @@ LgiFunc void _lgi_sleep(int i);
 #else
 #define LGI_WideCharset				"utf-32"
 #endif
-#define LGI_PrintfInt64				"%Li"
+#ifdef _MSC_VER
+#define LGI_PrintfInt64				"%I64i"
+#else
+#define LGI_PrintfInt64				"%lli"
+#endif
 
 #ifndef SND_ASYNC
 #define SND_ASYNC					0x0001

@@ -441,7 +441,9 @@ bool GFont::Destroy()
 	
 	if (d->hFont)
 	{
-		#ifdef WIN32
+		#if LGI_SDL
+			LgiAssert(!"Impl me.");
+		#elif defined(WIN32)
 			DeleteObject(d->hFont);
 		#elif defined MAC && !defined COCOA
 			#if USE_CORETEXT
@@ -753,7 +755,11 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 		printf("Setting sysfont up '%s' %i\n", Face(), PointSize());
 	}
 
-	#if WINNATIVE
+	#if LGI_SDL
+	
+	LgiAssert(!"Impl me.");
+
+	#elif WINNATIVE
 
 	if (d->hFont)
 	{
@@ -1533,7 +1539,11 @@ bool GFontType::GetSystemFont(const char *Which)
 		return false;
 	}
 	
-	#if defined WINNATIVE
+	#if LGI_SDL
+
+		LgiAssert(!"Impl me.");
+
+	#elif defined WINNATIVE
 
 	// Get the system settings
 	NONCLIENTMETRICS info;
@@ -1641,7 +1651,11 @@ bool GFontType::GetSystemFont(const char *Which)
 		if (!Status)
 		{
 			// read from system
-			#if defined WINNATIVE
+			#if LGI_SDL
+			
+				LgiAssert(!"Impl me.");
+			
+			#elif defined WINNATIVE
 
 				if (InfoOk)
 				{
@@ -1716,7 +1730,11 @@ bool GFontType::GetSystemFont(const char *Which)
 		Status = GetConfigFont("Font-Menu");
 		if (!Status)
 		{
-			#if defined WINNATIVE
+			#if LGI_SDL
+			
+				LgiAssert(!"Impl me.");
+			
+			#elif defined WINNATIVE
 
 			if (InfoOk)
 			{
@@ -1772,7 +1790,11 @@ bool GFontType::GetSystemFont(const char *Which)
 		Status = GetConfigFont("Font-Caption");
 		if (!Status)
 		{
-			#if defined WINNATIVE
+			#if LGI_SDL
+			
+				LgiAssert(!"Impl me.");
+			
+			#elif defined WINNATIVE
 
 				if (InfoOk)
 				{
@@ -1830,7 +1852,11 @@ bool GFontType::GetSystemFont(const char *Which)
 		Status = GetConfigFont("Font-Status");
 		if (!Status)
 		{
-			#if defined WINNATIVE
+			#if LGI_SDL
+			
+				LgiAssert(!"Impl me.");
+			
+			#elif defined WINNATIVE
 			
 			if (InfoOk)
 			{
@@ -1886,7 +1912,11 @@ bool GFontType::GetSystemFont(const char *Which)
 		Status = GetConfigFont("Font-Small");
 		if (!Status)
 		{
-			#if defined WINNATIVE
+			#if LGI_SDL
+			
+				LgiAssert(!"Impl me.");
+			
+			#elif defined WINNATIVE
 
 			if (InfoOk)
 			{
@@ -1951,7 +1981,11 @@ bool GFontType::GetSystemFont(const char *Which)
 		Status = GetConfigFont("Font-Fixed");
 		if (!Status)
 		{
-			#if defined WINNATIVE
+			#if LGI_SDL
+			
+				LgiAssert(!"Impl me.");
+			
+			#elif defined WINNATIVE
 
 			strcpy(Info.lfFaceName, "Courier New");
 			Info.lfHeight = WinPointToHeight(9);

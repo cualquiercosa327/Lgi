@@ -26,7 +26,7 @@
 	#include <gui/menu.h>
 	typedef os::Menu *OsSubMenu;
 	typedef os::MenuItem *OsMenuItem;
-#elif defined MAC
+#elif defined(MAC) && !defined(LGI_SDL)
 	#if defined(COCOA)
 	typedef void *OsSubMenu;
 	typedef void *OsMenuItem;

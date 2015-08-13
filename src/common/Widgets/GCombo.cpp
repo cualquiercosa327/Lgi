@@ -532,7 +532,7 @@ void GCombo::OnPaint(GSurface *pDC)
 			d->SetText(new GDisplayString(GetFont(), n), _FL);
 	}
 
-	#if defined MAC && !defined COCOA
+	#if defined MAC && !defined COCOA && !defined(LGI_SDL)
 
 		pDC->Colour(LC_MED, 24);
 		pDC->Rectangle();

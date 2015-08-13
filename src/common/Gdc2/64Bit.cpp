@@ -379,4 +379,4 @@ public:
 		}
 		return 0;
 	}
-} App48Factory;
+} App64Factory;

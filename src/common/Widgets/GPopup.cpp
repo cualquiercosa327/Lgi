@@ -129,7 +129,7 @@ public:
 
 		while (Loop)
 		{
-			#ifdef MAC
+			#if defined(MAC) && !defined(LGI_SDL)
 			
 			// Wait for the down click...
 			GThreadEvent::WaitStatus s = Event.Wait();
@@ -674,7 +674,7 @@ gboolean PopupEvent(GtkWidget *widget, GdkEvent *event, GPopup *This)
 
 bool GPopup::Attach(GViewI *p)
 {
-	#if defined MAC
+	#if defined MAC && !defined(LGI_SDL)
 	
 		#if !defined COCOA
 		if (p)

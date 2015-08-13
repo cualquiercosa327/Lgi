@@ -151,7 +151,7 @@ bool SubMenuImpl::OnKey(GKey &k)
 							if (n)
 							{
 								char *a = n;
-								while (a = strchr(a, '&'))
+								while ((a = strchr(a, '&')))
 								{
 									if (a[1] != '&')
 									{

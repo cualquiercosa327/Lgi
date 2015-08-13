@@ -966,9 +966,9 @@ bool GAccelerator::Match(GKey &k)
 	{
 		if
 		(
-			(TestFlag(Flags, LGI_EF_CTRL) ^ k.Ctrl() == 0) &&
-			(TestFlag(Flags, LGI_EF_ALT) ^ k.Alt() == 0) &&
-			(TestFlag(Flags, LGI_EF_SHIFT) ^ k.Shift() == 0)
+			(TestFlag(Flags, LGI_EF_CTRL) ^ (k.Ctrl() == 0)) &&
+			(TestFlag(Flags, LGI_EF_ALT) ^ (k.Alt() == 0)) &&
+			(TestFlag(Flags, LGI_EF_SHIFT) ^ (k.Shift() == 0))
 		)				
 		{
 			return true;

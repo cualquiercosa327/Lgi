@@ -1896,7 +1896,10 @@ GSurface *GdcDevice::Load(const char *Name, bool UseOSLoader)
 
 		if (UseOSLoader && !pDC)
 		{
-			#if defined MAC && !defined COCOA
+			#if LGI_SDL
+			
+			
+			#elif defined MAC && !defined COCOA
 			
 			CFURLRef FileUrl = CFURLCreateFromFileSystemRepresentation(0, (const UInt8*)Name, strlen(Name), false);
 			if (!FileUrl)

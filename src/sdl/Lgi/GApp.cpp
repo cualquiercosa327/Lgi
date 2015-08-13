@@ -24,13 +24,6 @@
 #define DEBUG_MSG_TYPES				0
 #define DEBUG_HND_WARNINGS			0
 
-#ifndef WIN32
-namespace Gtk {
-#include <gdk/gdkx.h>
-#undef Status
-}
-#endif
-
 ////////////////////////////////////////////////////////////////
 struct OsAppArgumentsPriv
 {
@@ -369,6 +362,11 @@ int GApp::GetMetric(LgiSystemMetric Metric)
 		{
 			return 19;
 		}
+		default:
+		{
+			LgiAssert(0);
+			break;
+		}
 	}
 
 	return 0;
@@ -406,31 +404,6 @@ void GApp::SetAppArgs(OsAppArguments &AppArgs)
 	}
 }
 
-#ifndef WIN32
-bool GApp::InThread()
-{
-	OsThreadId Me = LgiGetCurrentThread();
-	return GetGuiThread() == Me;
-}
-
-void GApp::RegisterHandle(GView *v)
-{
-	LgiAssert(v);
-	if (v)
-		d->Handles.Add(v->Handle(), v);
-}
-
-void GApp::UnregisterHandle(GView *v)
-{
-	LgiAssert(v);
-	if (v)
-		d->Handles.Delete(v->Handle());
-}
-
-void GApp::OnEvents()
-{
-}
-#endif
 
 struct GtkIdle
 {
@@ -763,73 +736,6 @@ bool GApp::GetAppsForMimeType(char *Mime, GArray<GAppInfo*> &Apps)
 	
 	return Apps.Length() > 0;
 }
-
-#ifndef WIN32
-GLibrary *GApp::GetWindowManagerLib()
-{
-	if (this != NULL && !d->WmLib)
-	{
-		char Lib[32];
-		WindowManager Wm = LgiGetWindowManager();
-		switch (Wm)
-		{
-			case WM_Kde:
-				strcpy(Lib, "liblgikde3");
-				break;
-			case WM_Gnome:
-				strcpy(Lib, "liblgignome2");
-				break;
-			default:
-				strcpy(Lib, "liblgiother");
-				break;
-		}
-		#ifdef _DEBUG
-		strcat(Lib, "d");
-		#endif
-		
-		d->WmLib = new GLibrary(Lib);
-		if (d->WmLib)
-		{
-			if (d->WmLib->IsLoaded())
-			{
-				Proc_LgiWmInit WmInit = (Proc_LgiWmInit) d->WmLib->GetAddress("LgiWmInit");
-				if (WmInit)
-				{
-					WmInitParams Params;
-					// Params.Dsp = XObject::XDisplay();
-					Params.Args = d->Args.Args;
-					Params.Arg = d->Args.Arg;
-					
-					// printf("%s:%i - Params = %p, %i, %p\n", _FL, Params.Dsp, Params.Args, Params.Arg);
-					
-					WmInit(&Params);
-				}
-				else printf("%s:%i - Failed to find method 'LgiWmInit' in WmLib.\n", __FILE__, __LINE__);
-			}
-			// else printf("%s:%i - couldn't load '%s.so'\n", __FILE__, __LINE__, Lib);
-		}
-		else printf("%s:%i - alloc error\n", __FILE__, __LINE__);
-	}
-	
-	return d->WmLib && d->WmLib->IsLoaded() ? d->WmLib : 0;
-}
-
-void GApp::DeleteMeLater(GViewI *v)
-{
-	d->DeleteLater.Add(v);
-}
-
-void GApp::SetClipBoardContent(OsView Hnd, GVariant &v)
-{
-	// Store the clipboard data we will serve
-	d->ClipData = v;
-}
-
-bool GApp::GetClipBoardContent(OsView Hnd, GVariant &v, GArray<char*> &Types)
-{
-	return false;
-}
-#endif
 
 GSymLookup *GApp::GetSymLookup()
 {

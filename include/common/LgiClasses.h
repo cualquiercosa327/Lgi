@@ -1157,7 +1157,7 @@ protected:
 
 	#endif
 	
-	#ifdef MAC
+	#if defined(MAC) && !defined(LGI_SDL)
 	void _Delete();
 	#endif
 
@@ -1320,7 +1320,7 @@ public:
 
 	#endif
 	
-	#if defined MAC
+	#if defined(MAC) && !defined(LGI_SDL)
 	
 	bool &CloseRequestDone();
 	bool PostEvent(int Cmd, GMessage::Param a = 0, GMessage::Param b = 0);

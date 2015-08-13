@@ -413,7 +413,8 @@ class GelSkin : public GSkinEngine
 			Low.Set(LC_LOW, 24);
 		}
 
-		GRegion Rgn = rcFill;
+		GRegion Rgn;
+		Rgn = rcFill;
 		GArray<GDisplayString*> *Text = State->AllText();
 		GSurface *pDC = State->pScreen;
 		if (Text && Text->Length() > 0 && rcFill.X() > 3)

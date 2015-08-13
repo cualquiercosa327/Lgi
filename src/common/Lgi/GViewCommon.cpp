@@ -914,7 +914,7 @@ void GView::Enabled(bool i)
 	{
 		#if WINNATIVE
 		EnableWindow(_View, i);
-		#elif defined MAC && !defined COCOA
+		#elif defined MAC && !defined COCOA && !defined(LGI_SDL)
 		if (i)
 		{
 			OSStatus e = EnableControl(_View);
@@ -972,7 +972,7 @@ void GView::Visible(bool v)
 		else
 			Gtk::gtk_widget_hide(_View);
 
-		#elif defined MAC && !defined COCOA
+		#elif defined MAC && !defined COCOA && !defined(LGI_SDL)
 		OSErr e = SetControlVisibility(_View, v, true);
 		if (e) printf("%s:%i - SetControlVisibility(%p,%i,1) failed with %i (class=%s)\n",
 						_FL, _View, v, e, GetClass());
@@ -1016,7 +1016,7 @@ bool GView::Focus()
 		HWND hFocus = GetFocus();
 		Has = hFocus == _View;
 	}
-	#elif defined(MAC)
+	#elif defined(MAC) && !defined(LGI_SDL)
 	if (w)
 	{
 		ControlRef Cur;
@@ -1079,7 +1079,7 @@ void GView::Focus(bool i)
 
 		#elif defined __GTK_H__
 
-		#elif defined MAC
+		#elif defined MAC && !defined(LGI_SDL)
 
 			#if !defined COCOA
 				GViewI *Wnd = GetWindow();
@@ -1146,7 +1146,7 @@ bool GView::DropTarget(bool t)
 	}
 	else LgiAssert(!"No window handle");
 
-	#elif defined MAC
+	#elif defined MAC && !defined(LGI_SDL)
 
 	GWindow *Wnd = dynamic_cast<GWindow*>(GetWindow());
 	if (Wnd)

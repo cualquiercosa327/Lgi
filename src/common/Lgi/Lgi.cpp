@@ -92,7 +92,11 @@ GAutoString FSRefPath(FSRef &fs)
 
 bool LgiPostEvent(OsView Wnd, int Event, GMessage::Param a, GMessage::Param b)
 {
-	#if WINNATIVE
+	#if LGI_SDL
+
+	LgiAssert(!"Impl me.");
+
+	#elif WINNATIVE
 
 	return PostMessage(Wnd, Event, a, b);
 

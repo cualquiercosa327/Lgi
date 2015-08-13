@@ -595,7 +595,7 @@ void GRadioButton::OnPaint(GSurface *pDC)
 			}
 		}
 
-        #if defined MAC && !defined COCOA
+        #if defined MAC && !defined COCOA && !defined(LGI_SDL)
 
         #if 1
         GColour Background(LC_MED, 24);

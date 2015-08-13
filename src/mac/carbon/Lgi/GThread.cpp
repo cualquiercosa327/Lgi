@@ -1,6 +1,11 @@
 #include "Lgi.h"
 #include <errno.h>
 
+#include <pthread.h>
+#ifndef _PTHREAD_H
+#error asd
+#endif
+
 ////////////////////////////////////////////////////////////////////////////
 void *ThreadEntryPoint(void *i)
 {
