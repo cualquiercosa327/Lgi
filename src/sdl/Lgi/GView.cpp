@@ -219,8 +219,7 @@ GRect &GView::GetClient(bool InClientSpace)
 	static GRect Client;
 
 	Client = Pos;
-	if (InClientSpace)
-		Client.Offset(-Client.x1, -Client.y1);
+	Client.Offset(-Client.x1, -Client.y1);
 
 	return Client;
 }
@@ -275,66 +274,43 @@ bool GView::SetPos(GRect &p, bool Repaint)
 
 bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 {
-	if (_View)
+	GRect Up;
+	GViewI *p = this;
+
+	if (r)
 	{
-		bool Status = false;
-
-		if (Frame)
-		{
-		}
-		else
-		{
-			if (r)
-			{
-				// Status = InvalidateRect(_View, &((RECT)*r), false);
-			}
-			else
-			{
-				// RECT c = GetClient();
-				// Status = InvalidateRect(_View, &c, false);
-			}
-		}
-
-		if (Repaint)
-		{
-			// UpdateWindow(_View);
-		}
-
-		return Status;
+		Up = *r;
 	}
 	else
 	{
-		GRect Up;
-		GViewI *p = this;
+		Up.Set(0, 0, Pos.X()-1, Pos.Y()-1);
+	}
 
-		if (r)
-		{
-			Up = *r;
-		}
-		else
-		{
-			Up.Set(0, 0, Pos.X()-1, Pos.Y()-1);
-		}
+	while (p && !dynamic_cast<GWindow*>(p))
+	{
+		GViewI *Par = p->GetParent();
+		GView *VPar = Par ? Par->GetGView() : 0;
+		GRect w = p->GetPos();
+		GRect c = p->GetClient(false);
+		
+		if (Frame && p == this)
+			Up.Offset(w.x1, w.y1);
+		else				
+			Up.Offset(w.x1 + c.x1, w.y1 + c.y1);
+		
+		p = Par;
+	}
 
-		if (dynamic_cast<GWindow*>(this))
-			return true;
-
-		while (p && !p->Handle())
+	if (p)
+	{
+		SDL_Surface *Screen = GdcD->Handle();
+		if (Screen)
 		{
-			GViewI *Par = p->GetParent();
-			GView *VPar = Par?Par->GetGView():0;
-			GRect w = p->GetPos();
-			GRect c = p->GetClient(false);
-			if (Frame && p == this)
-				Up.Offset(w.x1, w.y1);
-			else				
-				Up.Offset(w.x1 + c.x1, w.y1 + c.y1);
-			p = Par;
-		}
-
-		if (p && p->Handle())
-		{
-			return p->Invalidate(&Up, Repaint);
+			SDL_Event e;
+			e.type = SDL_USEREVENT;
+			e.user.code = M_INVALIDATE;
+			SDL_PushEvent(&e);
+			// LgiTrace("Push M_INVALIDATE\n");
 		}
 	}
 
@@ -427,7 +403,79 @@ GView *&GView::PopupChild()
 
 bool GView::_Mouse(GMouse &m, bool Move)
 {
-	return false;
+	if
+	(
+		GetWindow()
+		&&
+		!GetWindow()->HandleViewMouse(this, m)
+	)
+	{
+		return false;
+	}
+
+	GViewI *cap = _Capturing;
+	if (_Capturing)
+	{
+		if (Move)
+		{
+			GMouse Local = lgi_adjust_click(m, _Capturing);
+			// LgiToGtkCursor(_Capturing, _Capturing->GetCursor(Local.x, Local.y));
+			_Capturing->OnMouseMove(Local); // This can set _Capturing to NULL
+		}
+		else
+		{
+			_Capturing->OnMouseClick(lgi_adjust_click(m, _Capturing));
+		}
+	}
+	else
+	{
+		if (Move)
+		{
+			bool Change = false;
+			GViewI *o = WindowFromPoint(m.x, m.y);
+			if (_Over != o)
+			{
+				if (_Over)
+					_Over->OnMouseExit(lgi_adjust_click(m, _Over));
+				_Over = o;
+				if (_Over)
+					_Over->OnMouseEnter(lgi_adjust_click(m, _Over));
+			}
+		}
+			
+		GView *Target = dynamic_cast<GView*>(_Over ? _Over : this);
+
+		GRect Client = Target->GView::GetClient(false);
+		
+		m = lgi_adjust_click(m, Target, !Move);
+		if (!Client.Valid() || Client.Overlap(m.x, m.y))
+		{
+			// LgiToGtkCursor(Target, Target->GetCursor(m.x, m.y));
+
+			if (Move)
+			{
+				Target->OnMouseMove(m);
+			}
+			else
+			{
+				#if 0
+				if (!Move)
+				{
+					char Msg[256];
+					sprintf(Msg, "_Mouse Target %s", Target->GetClass());
+					m.Trace(Msg);
+				}
+				#endif
+				Target->OnMouseClick(m);
+			}
+		}
+		else if (!Move)
+		{
+			printf("%s:%i - Click outside %s %s %i,%i\n", _FL, Target->GetClass(), Client.GetStr(), m.x, m.y);
+		}
+	}
+	
+	return true;
 }
 
 void GView::_Focus(bool f)

@@ -688,20 +688,8 @@ public:
 	#endif
 
 	// Properties
-	void GetOrigin(int &x, int &y);
-	void SetOrigin(int x, int y);
-
-	GRect ClipRgn();
-	GRect ClipRgn(GRect *Rgn);
 	bool GetClient(GRect *c);
 	void SetClient(GRect *c);
-
-	COLOUR Colour();
-	COLOUR Colour(COLOUR c, int Bits = 0);
-	GColour Colour(GColour c);
-
-	int Op();
-	int Op(int Op, NativeInt Param = -1);
 
 	int X();
 	int Y();
@@ -716,6 +704,18 @@ public:
 	GScreenDC *IsScreen() { return this; }
 	bool SupportsAlphaCompositing();
 	uchar *operator[](int y) { return NULL; }
+
+	#ifndef LGI_SDL
+	void GetOrigin(int &x, int &y);
+	void SetOrigin(int x, int y);
+	GRect ClipRgn();
+	GRect ClipRgn(GRect *Rgn);
+	COLOUR Colour();
+	COLOUR Colour(COLOUR c, int Bits = 0);
+	GColour Colour(GColour c);
+
+	int Op();
+	int Op(int Op, NativeInt Param = -1);
 
 	// Primitives
 	void Set(int x, int y);
@@ -738,6 +738,7 @@ public:
 	void Polygon(int Points, GdcPt2 *Data);
 	void Bezier(int Threshold, GdcPt2 *Pt);
 	void FloodFill(int x, int y, int Mode, COLOUR Border = 0, GRect *Bounds = NULL);
+	#endif
 };
 
 /// \brief Blitting region helper class, can calculate the right source and dest rectangles
@@ -1067,6 +1068,7 @@ public:
 	/// Returns the current screen height
 	int Y();
 	/// \returns the current DPI setting
+	GRect Bounds() { return GRect(0, 0, X()-1, Y()-1); }
 
 	GGlobalColour *GetGlobalColour();
 
@@ -1123,6 +1125,10 @@ public:
         /// The pixels to store
         GSurface *pDC
     );
+    
+    #if LGI_SDL
+    SDL_Surface *Handle();
+    #endif
 };
 
 /// \brief Defines a bitmap inline in C++ code.

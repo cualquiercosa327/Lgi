@@ -79,7 +79,7 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
-template<typename Pixel, GColourSpace ColourSpace>
+template<typename Pixel, GColourSpace ColourSpace, bool HAS_ALPHA>
 class App32 : public GApplicator
 {
 	union
@@ -154,22 +154,32 @@ public:
 	
 	void Set()
 	{
-		p->r = p24.r;
-		p->g = p24.g;
-		p->b = p24.b;
+		p->r = p32.r;
+		p->g = p32.g;
+		p->b = p32.b;
+		#if HAS_ALPHA
+		p->a = p32.a;
+		#endif
 	}
 	
 	COLOUR Get()
 	{
-		return Rgb24(p->r, p->g, p->b);
+		#if HAS_ALPHA
+		return Rgba32(p->r, p->g, p->b, p->a);
+		#else
+		return Rgb32(p->r, p->g, p->b);
+		#endif
 	}
 	
 	void VLine(int height)
 	{
 		Pixel cp;
-		cp.r = p24.r;
-		cp.g = p24.g;
-		cp.b = p24.b;
+		cp.r = p32.r;
+		cp.g = p32.g;
+		cp.b = p32.b;
+		#if HAS_ALPHA
+		cp.a = p32.a;
+		#endif
 		
 		while (height-- > 0)
 		{
@@ -180,19 +190,24 @@ public:
 	
 	void Rectangle(int x, int y)
 	{
-		Pixel cp;
-		cp.r = p24.r;
-		cp.g = p24.g;
-		cp.b = p24.b;
+		register Pixel cp;
+		cp.r = p32.r;
+		cp.g = p32.g;
+		cp.b = p32.b;
+		#if HAS_ALPHA
+		cp.a = p32.a;
+		#endif
 		
-		while (y-- > 0)
+		register int lines = y;
+		register int ystep = Dest->Line;
+		while (lines-- > 0)
 		{
-			Pixel *i = p, *e = i + x;
+			register Pixel *i = p, *e = i + x;
 			while (i < e)
 			{
 				*i++ = cp;
 			}
-			u8 += Dest->Line;
+			u8 += ystep;
 		}
 	}
 	
@@ -201,16 +216,18 @@ public:
 	{
 		for (int y=0; y<Src->y; y++)
 		{
-			Pixel *d = p;
-			T *s = (T*) (Src->Base + (y * Src->Line));
-			T *e = s + Src->x;
+			register Pixel *d = p;
+			register T *s = (T*) (Src->Base + (y * Src->Line));
+			register T *e = s + Src->x;
 
 			while (s < e)
 			{
 				d->r = s->r;
 				d->g = s->g;
 				d->b = s->b;
+				#if HAS_ALPHA
 				d->a = 255;
+				#endif
 				s++;
 				d++;
 			}
@@ -226,16 +243,18 @@ public:
 	{
 		for (int y=0; y<Src->y; y++)
 		{
-			Pixel *d = p;
-			T *s = (T*) (Src->Base + (y * Src->Line));
-			T *e = s + Src->x;
+			register Pixel *d = p;
+			register T *s = (T*) (Src->Base + (y * Src->Line));
+			register T *e = s + Src->x;
 
 			while (s < e)
 			{
 				d->r = s->r;
 				d->g = s->g;
 				d->b = s->b;
+				#if HAS_ALPHA
 				d->a = s->a;
+				#endif
 				s++;
 				d++;
 			}
@@ -253,10 +272,10 @@ public:
 
 		for (int y=0; y<Src->y; y++)
 		{
-			Pixel *d = p;
-			T *s = (T*) (Src->Base + (y * Src->Line));
-			T *e = s + Src->x;
-			uint8 *a = Src->Base + (y * SrcAlpha->Line);
+			register Pixel *d = p;
+			register T *s = (T*) (Src->Base + (y * Src->Line));
+			register T *e = s + Src->x;
+			register uint8 *a = Src->Base + (y * SrcAlpha->Line);
 
 			while (s < e)
 			{
@@ -266,17 +285,23 @@ public:
 					d->r = s->r;
 					d->g = s->g;
 					d->b = s->b;
+					#if HAS_ALPHA
 					d->a = 255;
+					#endif
 				}
 				else if (sa > 0)
 				{
 					uint8 o = 255 - sa;
+					#if HAS_ALPHA
 					int da = d->a;
 
 					NonPreMulAlpha;
 					NonPreMulOver32(r);
 					NonPreMulOver32(g);
 					NonPreMulOver32(b);
+					#else
+					LgiAssert(0); // FIXME
+					#endif
 				}
 				
 				s++;
@@ -298,8 +323,8 @@ public:
 		{
 			if (Dest->Cs == Src->Cs)
 			{
-				uchar *s = Src->Base;
-				for (int y=0; y<Src->y; y++)
+				register uchar *s = Src->Base;
+				for (register int y=0; y<Src->y; y++)
 				{
 					MemCpy(p, s, Src->x * 3);
 					s += Src->Line;
@@ -370,13 +395,17 @@ GApplicator *GApp32::Create(GColourSpace Cs, int Op)
 	{
 		switch (Cs)
 		{
-			#define AppCase(name) \
-				case Cs##name: return new App32<G##name, Cs##name>();
+			#define AppCase(name, alpha) \
+				case Cs##name: return new App32<G##name, Cs##name, alpha>();
 			
-			AppCase(Rgba32);
-			AppCase(Bgra32);
-			AppCase(Argb32);
-			AppCase(Abgr32);
+			AppCase(Rgba32, 1);
+			AppCase(Bgra32, 1);
+			AppCase(Argb32, 1);
+			AppCase(Abgr32, 1);
+			AppCase(Xrgb32, 0);
+			AppCase(Rgbx32, 0);
+			AppCase(Xbgr32, 0);
+			AppCase(Bgrx32, 0);
             default: break;
 		}
 	}

@@ -430,7 +430,7 @@ struct PfComponent
 int ComponenetCmp(PfComponent *a, PfComponent *b)
 {
 	if (a->Type == CtPad ^ b->Type == CtPad)
-		return (a->Type == CtPad) - (b->Type == CtPad);
+		return (b->Type == CtPad) - (a->Type == CtPad);
 	return (b->Pos + b->Bits) - (a->Pos + a->Bits);
 }
 
@@ -504,6 +504,7 @@ public:
 		// Get mode stuff
 		ScrX = Screen ? Screen->w : 0;
 		ScrY = Screen ? Screen->h : 0;
+		ScrBits = Screen ? Screen->format->BytesPerPixel : 0;
 		ScrColourSpace = Screen ? PixelFormat2ColourSapce(Screen->format) : System32BitColourSpace;
 		
 		printf("Screen: %i x %i @ %i bpp (%s)\n", ScrX, ScrY, ScrBits, GColourSpaceToString(ScrColourSpace));
@@ -556,6 +557,11 @@ GdcDevice::~GdcDevice()
 	// delete stuff
 	pInstance = NULL;
 	DeleteObj(d);
+}
+
+SDL_Surface *GdcDevice::Handle()
+{
+	return d->Screen;
 }
 
 int GdcDevice::GetOption(int Opt)

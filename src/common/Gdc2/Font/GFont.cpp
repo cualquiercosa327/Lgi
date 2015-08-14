@@ -1541,7 +1541,6 @@ bool GFontType::GetSystemFont(const char *Which)
 	
 	#if LGI_SDL
 
-		LgiAssert(!"Impl me.");
 
 	#elif defined WINNATIVE
 
@@ -1652,8 +1651,6 @@ bool GFontType::GetSystemFont(const char *Which)
 		{
 			// read from system
 			#if LGI_SDL
-			
-				LgiAssert(!"Impl me.");
 			
 			#elif defined WINNATIVE
 

@@ -20,6 +20,7 @@
 #endif
 #include "GToken.h"
 #include "GUtf8.h"
+#include "GViewPriv.h"
 
 #define DEBUG_MSG_TYPES				0
 #define DEBUG_HND_WARNINGS			0
@@ -247,8 +248,8 @@ GApp::GApp(OsAppArguments &AppArgs, const char *name, GAppArguments *Args) :
 	OsApplication(AppArgs.Args, AppArgs.Arg)
 {
 	TheApp = this;
-	SystemNormal = 0;
-	SystemBold = 0;
+	SystemNormal = NULL;
+	SystemBold = NULL;
 	d = new GAppPrivate;
 	Name(name);
 
@@ -290,15 +291,10 @@ GApp::GApp(OsAppArguments &AppArgs, const char *name, GAppArguments *Args) :
 	}
 	else
 	{
-		printf("%s:%i - Couldn't get system font setting.\n", __FILE__, __LINE__);
+		SystemNormal = new GFont;
+		SystemBold = new GFont;
 	}
 
-	if (!SystemNormal)
-	{
-		LgiMsg(0, "Error: Couldn't create system font.", "Lgi Error: GApp::GApp", MB_OK);
-		return;
-	}
-	
 	if (!GetOption("noskin"))
 	{
 		extern GSkinEngine *CreateSkinEngine(GApp *App);
@@ -406,6 +402,24 @@ struct GtkIdle
 	void *param;
 };
 
+template<typename T>
+void SDL_to_Mouse(GMouse &ms, T &ev)
+{
+	ms.x = ev.x;
+	ms.y = ev.y;
+	ms.Down(ev.state == SDL_PRESSED);
+
+	GViewI *Over = ms.Target->WindowFromPoint(ms.x, ms.y);
+	if (Over != ms.Target)
+	{
+		GdcPt2 p;
+		Over->WindowVirtualOffset(&p);
+		ms.Target = Over;
+		ms.x -= p.x;
+		ms.y -= p.y;
+	}
+}
+
 void GApp::OnSDLEvent(GMessage *m)
 {
 	SDL_EventType t = (SDL_EventType) m->Event.type;
@@ -415,9 +429,95 @@ void GApp::OnSDLEvent(GMessage *m)
 		{
 			if (AppWnd)
 			{
-				GScreenDC Dc;
+				GScreenDC Dc(AppWnd, GdcD->Handle());
 				AppWnd->_Paint(&Dc);
 			}
+			break;
+		}
+		case SDL_MOUSEMOTION:
+		{
+			if (AppWnd)
+			{
+				GMouse ms;
+				ms.Target = AppWnd;
+				SDL_to_Mouse(ms, m->Event.motion);
+				AppWnd->_Mouse(ms, true);
+			}
+			break;
+		}
+		case SDL_MOUSEBUTTONUP:
+		case SDL_MOUSEBUTTONDOWN:
+		{
+			if (AppWnd)
+			{
+				GMouse ms;
+				ms.Target = AppWnd;
+				SDL_to_Mouse(ms, m->Event.button);
+				ms.Left(m->Event.button.button == SDL_BUTTON_LEFT);
+				ms.Right(m->Event.button.button == SDL_BUTTON_RIGHT);
+				ms.Middle(m->Event.button.button == SDL_BUTTON_MIDDLE);
+
+				AppWnd->_Mouse(ms, false);
+			}
+			break;
+		}
+		case SDL_KEYDOWN:
+		{
+			if (AppWnd)
+			{
+				GKey k;
+				k.vkey = m->Event.key.keysym.sym;
+				k.c16 = m->Event.key.keysym.unicode;
+				k.Down(true);
+				AppWnd->OnKey(k);
+			}
+			break;
+		}
+		case SDL_KEYUP:
+		{
+			if (AppWnd)
+			{
+				GKey k;
+				k.vkey = m->Event.key.keysym.sym;
+				k.c16 = m->Event.key.keysym.unicode;
+				AppWnd->OnKey(k);
+			}
+			break;
+		}
+		case SDL_VIDEORESIZE:
+		{
+			int asd=0;
+			break;
+		}
+		case SDL_ACTIVEEVENT:
+		{
+			if (AppWnd)
+			{
+				AppWnd->OnFrontSwitch(m->Event.active.gain);
+			}
+			break;
+		}
+		case SDL_USEREVENT:
+		{
+			if (AppWnd)
+			{
+				SDL_Surface *Screen = GdcD->Handle();
+				if (Screen != NULL &&
+					m->Event.user.code == M_INVALIDATE)
+				{
+					// LgiTrace("Got M_INVALIDATE\n");
+					{
+						GScreenDC Dc(AppWnd, Screen);
+						AppWnd->_Paint(&Dc);
+					}
+					SDL_UpdateRect(Screen, 0, 0, 0, 0);
+				}
+			}
+			break;
+		}
+		default:
+		{
+			LgiTrace("%s:%i - Unhandled SDL event: %i\n", _FL , m->Event.type);
 			break;
 		}
 	}
@@ -429,6 +529,12 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 
 	GMessage Msg;
 	int r;
+
+	if (AppWnd)
+	{
+		GRect r(0, 0, GdcD->X()-1, GdcD->Y()-1);
+		AppWnd->SetPos(r);
+	}
 
 	do
 	{

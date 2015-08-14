@@ -342,7 +342,7 @@
 					>
 				</File>
 				<File
-					RelativePath="U:\Code\Lgi\trunk\src\common\General\GDateTime.cpp"
+					RelativePath="..\common\General\GDateTime.cpp"
 					>
 				</File>
 				<File

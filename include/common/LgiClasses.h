@@ -289,22 +289,24 @@ public:
 	bool IsElevated();
 
 	// OS Specific
-	#if defined WIN32
-
-	HINSTANCE GetInstance();
-	int GetShow();
-
-	/// \returns true if the application is running under Wine on Linux. This is useful to know
-	/// if you need to work around missing functionality in the Wine implementation.
-	bool IsWine();
-
-	#endif
+	#if defined(LGI_SDL)
 	
-	#ifdef LINUX
-	class GLibrary *GetWindowManagerLib();
-	void RegisterHandle(GView *v);
-	void UnregisterHandle(GView *v);
-	bool InThread();
+	#elif defined(WIN32)
+
+		HINSTANCE GetInstance();
+		int GetShow();
+
+		/// \returns true if the application is running under Wine on Linux. This is useful to know
+		/// if you need to work around missing functionality in the Wine implementation.
+		bool IsWine();
+
+	#elif defined(LINUX)
+	
+		class GLibrary *GetWindowManagerLib();
+		void RegisterHandle(GView *v);
+		void UnregisterHandle(GView *v);
+		bool InThread();
+		
 	#endif
 };
 
@@ -1322,6 +1324,7 @@ public:
 	// Events
 	void OnChildrenChanged(GViewI *Wnd, bool Attaching);
 	void OnCreate();
+	virtual void OnFrontSwitch(bool b);
 
 	#endif
 	
@@ -1335,7 +1338,6 @@ public:
 	#endif
 	int OnCommand(int Cmd, int Event, OsView Wnd);
 	GViewI *WindowFromPoint(int x, int y, bool Debug = false);
-	virtual void OnFrontSwitch(bool b);
 	
 	#elif defined __GTK_H__
 	

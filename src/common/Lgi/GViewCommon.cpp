@@ -822,67 +822,11 @@ GViewI *GView::FindReal(GdcPt2 *Offset)
 
 bool GView::HandleCapture(GView *Wnd, bool c)
 {
-	bool Status = false;
-
-	if (_View)
-	{
-		if (c)
-		{
-			GView *Cap = dynamic_cast<GView*>(_Capturing);
-			if (Cap)
-			{
-				Cap->HandleCapture(NULL, false);
-			}
-
-			#if defined __GTK_H__
-			ThreadCheck();
-			gtk_grab_add(_View);
-			#elif WINNATIVE
-			d->hPrevCapture = SetCapture(_View);
-			#endif
-
-			Status = true;
-			_Capturing = Wnd;
-			
-			#if DEBUG_CAPTURE
-			LgiTrace("%s::HandleCapture(%i) %s/%p\n",
-				GetClass(),
-				c,
-				Wnd->GetClass(),
-				Wnd);
-			#endif
-		}
-		else
-		{
-			if (_Capturing)
-			{
-				#if defined __GTK_H__
-				ThreadCheck();
-				gtk_grab_remove(_View);
-				#elif defined WIN32
-				ReleaseCapture();
-				#endif
-
-				#if DEBUG_CAPTURE
-				LgiTrace("%s::HandleCapture(%i) %s/%p\n",
-					GetClass(),
-					c,
-					Wnd?Wnd->GetClass():0,
-					Wnd);
-				#endif
-				_Capturing = 0;
-			}
-		}
-	}
+	if (c)
+		_Capturing = Wnd;
 	else
-	{
-		if (d->GetParent())
-		{			
-			Status = d->GetParent()->HandleCapture(Wnd, c);
-		}
-	}
-
-	return Status;
+		_Capturing = NULL;
+	return true;
 }
 
 bool GView::IsCapturing()

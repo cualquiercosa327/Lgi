@@ -217,30 +217,6 @@ bool GWindow::OnRequestClose(bool OsShuttingDown)
 
 bool GWindow::HandleViewMouse(GView *v, GMouse &m)
 {
-	#ifdef __GTK_H__
-	if (m.Down())
-	{
-		bool InPopup = false;
-		for (GViewI *p = v; p; p = p->GetParent())
-		{
-			if (dynamic_cast<GPopup*>(p))
-			{
-				InPopup = true;
-				break;
-			}
-		}
-		if (!InPopup && GPopup::CurrentPopups.Length())
-		{
-			for (int i=0; i<GPopup::CurrentPopups.Length(); i++)
-			{
-				GPopup *p = GPopup::CurrentPopups[i];
-				if (p->Visible())
-					p->Visible(false);
-			}
-		}
-	}
-	#endif
-
 	for (int i=0; i<d->Hooks.Length(); i++)
 	{
 		if (d->Hooks[i].Flags & GMouseEvents)
@@ -881,6 +857,10 @@ GMessage::Result GWindow::OnEvent(GMessage *m)
 	}
 
 	return GView::OnEvent(m);
+}
+
+void GWindow::OnFrontSwitch(bool b)
+{
 }
 
 bool GWindow::RegisterHook(GView *Target, GWindowHookType EventType, int Priority)

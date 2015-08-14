@@ -292,7 +292,7 @@ LgiFunc void _lgi_sleep(int i);
 /// Implemented to handle timer events in the GUI thread.
 #define M_PULSE						(M_USER+114)
 #define M_SET_VISIBLE				(M_USER+115)
-
+#define M_INVALIDATE				(M_USER+116)
 
 /// Standard ID for an "Ok" button.
 /// \sa LgiMsg

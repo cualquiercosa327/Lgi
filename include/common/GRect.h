@@ -225,6 +225,14 @@ public:
 	}
 	#endif
 	
+	#ifdef LGI_SDL
+	operator SDL_Rect()
+	{
+		SDL_Rect s = {x1, y1, X(), Y()};
+		return s;
+	}
+	#endif
+
 	GRect operator +(const GdcPt2 &p)
 	{
 		GRect r = *this;
