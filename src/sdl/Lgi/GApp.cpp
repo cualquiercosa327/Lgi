@@ -15,6 +15,8 @@
 #include "GVariant.h"
 #if defined(WIN32)
 #include "../win32/GSymLookup.h"
+#elif defined(LINUX) && defined(LGI_SDL)
+#include "../linux/GSymLookup.h"
 #else
 #include "GSymLookup.h"
 #endif

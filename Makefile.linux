@@ -2193,6 +2193,9 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ./include/common/GUndo.h : 
 
+./include/common/GDocView.h : ./include/common/GVariant.h \
+	./include/common/GNotifications.h
+
 ./include/common/GMem.h : ./include/common/LgiInc.h \
 	./include/linux/Gtk/LgiOsDefs.h
 

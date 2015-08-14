@@ -1145,6 +1145,10 @@ bool GWindow::UnregisterHook(GView *Target)
 	return false;
 }
 
+void GWindow::OnFrontSwitch(bool b)
+{
+}
+
 GViewI *GWindow::GetFocus()
 {
 	return d->Focus;

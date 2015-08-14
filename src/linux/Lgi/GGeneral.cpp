@@ -12,7 +12,9 @@
 #include "GProcess.h"
 #include "GTextLabel.h"
 #include "GButton.h"
+#ifndef LGI_SDL
 #include "LgiWinManGlue.h"
+#endif
 #include "GToken.h"
 
 #include <errno.h>
@@ -84,6 +86,9 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 
 		printf("%s:%i - Assert failed:\n%s\n", file, line, test);
 
+		#ifdef LGI_SDL
+		exit(-1);
+		#else
 		Gtk::gint Result = Gtk::GTK_RESPONSE_NO;
 		#if 1
 		Gtk::GtkWidget *dialog = 
@@ -115,6 +120,7 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 				break;
 			}
 		}
+		#endif
 
 		Asserting = false;
 	}
@@ -161,6 +167,7 @@ bool _GetSystemFont(char *FontType, char *Font, int FontBufSize, int &PointSize)
 {
 	bool Status = false;
 
+	#ifndef LGI_SDL
 	GLibrary *WmLib = LgiApp->GetWindowManagerLib();
 	if (WmLib)
 	{
@@ -179,6 +186,7 @@ bool _GetSystemFont(char *FontType, char *Font, int FontBufSize, int &PointSize)
 		}
 	}
 	else
+	#endif
 	{
 		static bool Warn = true;
 		if (Warn)

@@ -2,7 +2,7 @@
 #include "Lgi.h"
 #include "GSkinEngine.h"
 #include "GToken.h"
-#ifdef LINUX
+#if defined(LINUX) && !defined(LGI_SDL)
 #include "LgiWinManGlue.h"
 #endif
 
@@ -269,7 +269,7 @@ void LgiInitColours()
 
 	#else // defaults for non-windows, plain greys
 
-	#ifdef LINUX
+	#if defined(LINUX) && !defined(LGI_SDL)
 	WmColour c;
 	Proc_LgiWmGetColour WmGetColour = 0;
 	GLibrary *WmLib = LgiApp->GetWindowManagerLib();

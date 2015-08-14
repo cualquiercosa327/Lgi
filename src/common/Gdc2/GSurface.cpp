@@ -69,7 +69,7 @@ GSurface::GSurface(GSurface *pDC)
 
 GSurface::~GSurface()
 {
-	#if defined LINUX
+	#if defined(LINUX) && !defined(LGI_SDL)
 	if (Cairo)
 	{
 		Gtk::cairo_destroy(Cairo);

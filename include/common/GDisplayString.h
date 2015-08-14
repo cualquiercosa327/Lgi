@@ -1,7 +1,7 @@
 #ifndef _GDISPLAY_STRING_H_
 #define _GDISPLAY_STRING_H_
 
-#ifdef LINUX
+#if defined(LINUX) && !defined(LGI_SDL)
 namespace Pango
 {
 #include "pango/pango.h"

@@ -3430,7 +3430,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 	{
 		MakeFile.Reset(NewStr("../Makefile"));
 	}
-	RenameMakefileForPlatform(MakeFile, Platform);
+	// RenameMakefileForPlatform(MakeFile, Platform);
 	
 	// LGI_LIBRARY_EXT
 	switch (Platform)

@@ -83,7 +83,7 @@ LgiFunc void LgiExitApp();
 /// This actually causes GApp::Run() to stop processing message and return.
 #define LgiCloseApp()				LgiApp->Exit(false)
 
-#ifdef LINUX
+#if defined(LINUX) && !defined(LGI_SDL)
 #define ThreadCheck()				LgiAssert(InThread())
 #else
 #define ThreadCheck()

@@ -20,7 +20,7 @@
 #include "GToken.h"
 #include "GCapabilities.h"
 
-#if defined(LINUX)
+#if defined(LINUX) && !defined(LGI_SDL)
 #include "LgiWinManGlue.h"
 #elif defined(WINDOWS)
 #include "GRegKey.h"
@@ -36,8 +36,10 @@
 #include <Path.h>
 #endif
 
-#if defined(WIN32) && (defined(__GTK_H__) || defined(LGI_SDL))
+#if defined(WIN32) && defined(__GTK_H__)
 #include "../win32/GSymLookup.h"
+#elif defined(LGI_SDL)
+#include "../linux/GSymLookup.h"
 #else
 #include "GSymLookup.h"
 #endif
@@ -846,7 +848,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 		#endif
 	#endif
 
-	#ifdef LINUX
+	#if defined(LINUX) && !defined(LGI_SDL)
 	// Ask our window manager add-on if it knows the path
 	GLibrary *WmLib = LgiApp ? LgiApp->GetWindowManagerLib() : NULL;
 	if (WmLib)

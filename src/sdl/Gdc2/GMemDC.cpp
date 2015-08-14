@@ -227,10 +227,10 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 
 bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
 {
-	bool Status = FALSE;
+	bool Status = false;
 	GBmpMem *pOldMem = pMem;
 
-	DrawOnAlpha(FALSE);
+	DrawOnAlpha(false);
 	DeleteObj(pAlphaDC);
 
 	pMem = NULL;
@@ -310,7 +310,7 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
 				}
 				else
 				{
-					Status = FALSE;
+					Status = false;
 				}
 			}
 		}

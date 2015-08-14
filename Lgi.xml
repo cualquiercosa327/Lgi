@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project>
 	<Node Name="Source Files" Type="1" Platforms="15" Open="1">
-		<Node Name="Core" Type="1" Platforms="15" Open="1">
+		<Node Name="Core" Type="1" Platforms="15" Open="0">
 			<Node Name="DateTime" Type="1" Platforms="15" Open="0">
 				<Node File=".\src\common\General\GDateTime.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GDateTime.h" Type="3" Platforms="15" />
@@ -260,7 +260,7 @@
 			<Node File="./src/common/Lgi/GOptionsFile.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Lgi/LgiRand.cpp" Type="2" Platforms="15" />
 		</Node>
-		<Node Name="Text" Type="1" Platforms="15" Open="1">
+		<Node Name="Text" Type="1" Platforms="15" Open="0">
 			<Node File="./src/common/Text/GString.cpp" Type="2" Platforms="15" />
 			<Node File="./include/common/GString.h" Type="3" Platforms="15" />
 			<Node File="./src/common/Text/GToken.cpp" Type="2" Platforms="15" />
@@ -390,8 +390,6 @@ WINDOWS</Release>
 			<Compiler>
 				<Windows>MingW</Windows>
 			</Compiler>
-			<Executable />
-			<Arguments />
 		</General>
 		<Build>
 			<IncludePaths>
@@ -471,8 +469,6 @@ textencoding</Release>
 					<Release>lgi</Release>
 				</Linux>
 			</TargetName>
-			<SystemIncludes />
-			<LibraryPaths />
 		</Build>
 		<Editor>
 			<TabSize>
@@ -488,6 +484,5 @@ textencoding</Release>
 				<All>1</All>
 			</UseHardTabs>
 		</Editor>
-		<Advanced />
 	</Settings>
 </Project>

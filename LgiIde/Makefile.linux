@@ -2062,8 +2062,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../../../../../../usr/include/gtk-2.0/gtk/gtkradiobutton.h : /usr/include/gtk-2.0/gtk/gtkcheckbutton.h
 
 ../include/common/GDocView.h : ../include/common/GVariant.h \
-	../include/common/GNotifications.h \
-	../include/common/GDocView.h
+	../include/common/GNotifications.h
 
 ../include/common/Lgi.h : ../include/common/LgiInc.h \
 	../include/linux/Gtk/LgiOsDefs.h \
@@ -4120,8 +4119,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GUtf8.h
 
 ../include/common/GDocView.h : ../include/common/GVariant.h \
-	../include/common/GNotifications.h \
-	../include/common/GDocView.h
+	../include/common/GNotifications.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkitemfactory.h : /usr/include/gtk-2.0/gtk/gtk.h
 

@@ -17,7 +17,7 @@
 #include "GToken.h"
 #include "GList.h"
 #include "GTableLayout.h"
-#ifdef LINUX
+#if defined(LINUX) && !defined(LGI_SDL)
 #include "LgiWinManGlue.h"
 #endif
 #include "GVariant.h"
@@ -1248,7 +1248,7 @@ GLanguage *LgiGetLanguageId()
 			return i;
 	}
 
-	#elif defined LINUX
+	#elif defined(LINUX) && !defined(LGI_SDL)
 
 	GLibrary *WmLib = LgiApp->GetWindowManagerLib();
 	if (WmLib)

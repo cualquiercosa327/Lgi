@@ -7,7 +7,6 @@
 
 #include "GVariant.h"
 #include "GNotifications.h"
-#include "GDocView.h"
 
 // Word wrap
 
