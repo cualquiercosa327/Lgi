@@ -30,6 +30,8 @@
 	#define POSIX			1
 #endif
 
+#include <SDL.h>
+
 #ifdef _MSC_VER
 #pragma warning(disable : 4275 4251)
 #endif
@@ -104,13 +106,12 @@ typedef pthread_mutex_t				OsSemaphore;
 
 class LgiClass GMessage
 {
-	int msg, a, b;
-
 public:
-    typedef NativeInt Param;
+    typedef void *Param;
     typedef NativeInt Result;
+    SDL_Event Event;
 
-	GMessage(int m, Param pa = 0, Param pb = 0);
+	GMessage(int m = 0, Param pa = 0, Param pb = 0);
 	~GMessage();
 
 	int Msg();

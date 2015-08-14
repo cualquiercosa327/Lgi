@@ -66,7 +66,7 @@ int64 GProgress::Value()
 	return Val;
 }
 
-GMessage::Param GProgress::OnEvent(GMessage *Msg)
+GMessage::Result GProgress::OnEvent(GMessage *Msg)
 {
 	return GView::OnEvent(Msg);
 }

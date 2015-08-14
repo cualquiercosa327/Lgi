@@ -609,7 +609,7 @@ bool GBox::SetSize(int ViewIndex, GCss::Len Size)
 	return true;
 }
 
-GMessage::Param GBox::OnEvent(GMessage *Msg)
+GMessage::Result GBox::OnEvent(GMessage *Msg)
 {
 	if (Msg->Msg() == M_CHILDREN_CHANGED)
 	{

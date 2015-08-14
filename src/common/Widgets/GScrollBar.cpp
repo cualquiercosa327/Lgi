@@ -634,7 +634,7 @@ void GScrollBar::SetPage(int i)
 	}
 }
 
-GMessage::Param GScrollBar::OnEvent(GMessage *Msg)
+GMessage::Result GScrollBar::OnEvent(GMessage *Msg)
 {
 	return GView::OnEvent(Msg);
 }

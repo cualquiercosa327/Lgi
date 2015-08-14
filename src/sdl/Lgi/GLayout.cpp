@@ -135,7 +135,7 @@ void GLayout::AttachScrollBars()
 bool GLayout::SetScrollBars(bool x, bool y)
 {
 	#ifdef M_SET_SCROLL
-	PostEvent(M_SET_SCROLL, x, y);
+	PostEvent(M_SET_SCROLL, (GMessage::Param) x, (GMessage::Param) y);
 	#else
 	_SetScrollBars(x, y);
 	#endif
@@ -264,7 +264,7 @@ GRect &GLayout::GetClient(bool ClientSpace)
 	return r;
 }
 
-GMessage::Param GLayout::OnEvent(GMessage *Msg)
+GMessage::Result GLayout::OnEvent(GMessage *Msg)
 {
 	#ifdef M_SET_SCROLL
 	if (MsgCode(Msg) == M_SET_SCROLL)

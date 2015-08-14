@@ -567,7 +567,7 @@ void GView::SendNotify(int Data)
 									// the receiver will never be able to find our object.
             
             printf("Post M_CHANGE %i %i\n", GetId(), Data);
-            n->PostEvent(M_CHANGE, GetId(), Data);
+            n->PostEvent(M_CHANGE, (GMessage::Param) GetId(), (GMessage::Param) Data);
             #endif
 		}
 	}

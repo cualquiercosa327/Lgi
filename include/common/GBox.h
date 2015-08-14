@@ -37,7 +37,7 @@ public:
 	bool OnViewMouse(GView *v, GMouse &m);
 	void OnMouseMove(GMouse &m);
 	void OnChildrenChanged(GViewI *Wnd, bool Attaching);
-	GMessage::Param OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 	bool Pour(GRegion &r);
 	LgiCursor GetCursor(int x, int y);
 	bool OnLayout(GViewLayoutInfo &Inf);

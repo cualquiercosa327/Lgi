@@ -112,7 +112,11 @@ protected:
 	// private member vars
 	class GAppPrivate *d;
 	
-	#if defined WIN32
+	#if defined LGI_SDL
+	
+	void OnSDLEvent(GMessage *m);
+	
+	#elif defined WIN32
 
 	CRITICAL_SECTION StackTraceSync;
 	friend LONG __stdcall _ExceptionFilter_Redir(LPEXCEPTION_POINTERS e);
@@ -1121,6 +1125,7 @@ class LgiClass GWindow :
 	friend class GButton;
 	friend class XWindow;
 	friend class GDialog;
+	friend class GApp;
 	#if defined(MAC) && !defined(COCOA)
 	friend pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, void *inUserData);
 	#endif

@@ -41,7 +41,7 @@ public:
 	bool Attach(GViewI *p);
 	void Visible(bool i);
 	bool Visible();
-	GMessage::Param OnEvent(GMessage *Msg);
+	GMessage::Result OnEvent(GMessage *Msg);
 	
 	#if defined(MAC)
 	bool SetPos(GRect &p, bool Repaint = false);

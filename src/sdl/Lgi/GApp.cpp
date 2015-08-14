@@ -251,7 +251,10 @@ GApp::GApp(OsAppArguments &AppArgs, const char *name, GAppArguments *Args) :
 	SystemBold = 0;
 	d = new GAppPrivate;
 	Name(name);
-	
+
+	if (SDL_Init(SDL_INIT_VIDEO) < 0)
+		LgiTrace("%s:%i - Couldn't initialize SDL: %s\n", _FL, SDL_GetError());
+		
 	// We want our printf's NOW!
 	setvbuf(stdout,(char *)NULL,_IONBF,0); // print mesgs immediately.
 
@@ -266,15 +269,6 @@ GApp::GApp(OsAppArguments &AppArgs, const char *name, GAppArguments *Args) :
 	AppWnd = 0;
 
 	MouseHook = new GMouseHook;
-
-	#if 0
-	// Setup the SIGSEGV signal to call the KDE crash handler
-	if (!GetOption("nch") &&
-		LgiGetWindowManager() == WM_Kde)
-	{
-		signal(SIGSEGV, LgiCrashHandler);
-	}
-	#endif
 
 	// System font setup
 	SystemNormal = 0;
@@ -302,7 +296,7 @@ GApp::GApp(OsAppArguments &AppArgs, const char *name, GAppArguments *Args) :
 	if (!SystemNormal)
 	{
 		LgiMsg(0, "Error: Couldn't create system font.", "Lgi Error: GApp::GApp", MB_OK);
-		LgiExitApp();
+		return;
 	}
 	
 	if (!GetOption("noskin"))
@@ -334,8 +328,9 @@ GApp *GApp::ObjInstance()
 
 bool GApp::IsOk()
 {
-	bool Status = 	(this != 0) &&
-					(d != 0);
+	bool Status = 	(this != NULL) &&
+					(d != NULL) /*&&
+					(SystemNormal != NULL)*/;
 					
 	LgiAssert(Status);
 	return Status;
@@ -411,16 +406,43 @@ struct GtkIdle
 	void *param;
 };
 
+void GApp::OnSDLEvent(GMessage *m)
+{
+	SDL_EventType t = (SDL_EventType) m->Event.type;
+	switch (m->Event.type)
+	{
+		case SDL_VIDEOEXPOSE:
+		{
+			if (AppWnd)
+			{
+				GScreenDC Dc;
+				AppWnd->_Paint(&Dc);
+			}
+			break;
+		}
+	}
+}
+
 bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 {
 	ThreadCheck();
 
-	if (Loop)
+	GMessage Msg;
+	int r;
+
+	do
 	{
+		if (Loop)
+			r = SDL_WaitEvent(&Msg.Event);
+		else
+			r = SDL_PollEvent(&Msg.Event);
+		
+		if (Msg.Event.type == SDL_QUIT)
+			break;
+
+		OnSDLEvent(&Msg);
 	}
-	else
-	{
-	}
+	while (Loop || r > 0);
 
 	return false;
 }
@@ -792,9 +814,10 @@ GMessage::~GMessage()
 
 void GMessage::Set(int m, Param pa, Param pb)
 {
-	msg = m;
-	a = pa;
-	b = pb;
+	Event.type = SDL_USEREVENT;
+	Event.user.code = m;
+	Event.user.data1 = pa;
+	Event.user.data2 = pb;
 }
 
 bool GMessage::Send(OsView Wnd)
@@ -806,16 +829,22 @@ bool GMessage::Send(OsView Wnd)
 
 int GMessage::Msg()
 {
+	if (Event.type >= SDL_USEREVENT && Event.type <= SDL_NUMEVENTS)
+		return Event.user.code;
 	return 0;
 }
 
 GMessage::Param GMessage::A()
 {
+	if (Event.type >= SDL_USEREVENT && Event.type <= SDL_NUMEVENTS)
+		return Event.user.data1;
 	return 0;
 }
 
 GMessage::Param GMessage::B()
 {
+	if (Event.type >= SDL_USEREVENT && Event.type <= SDL_NUMEVENTS)
+		return Event.user.data2;
 	return 0;
 }
 

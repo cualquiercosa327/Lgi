@@ -170,9 +170,9 @@ void GDialog::EndModeless(int Code)
 
 extern GButton *FindDefault(GView *w);
 
-GMessage::Param GDialog::OnEvent(GMessage *Msg)
+GMessage::Result GDialog::OnEvent(GMessage *Msg)
 {
-	switch (MsgCode(Msg))
+	switch (Msg->Msg())
 	{
 	}
 
@@ -190,7 +190,7 @@ GControl::~GControl()
 {
 }
 
-GMessage::Param GControl::OnEvent(GMessage *Msg)
+GMessage::Result GControl::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{
@@ -671,7 +671,7 @@ void GSlider::SetLimits(int64 min, int64 max)
 	Max = max;
 }
 
-GMessage::Param GSlider::OnEvent(GMessage *Msg)
+GMessage::Result GSlider::OnEvent(GMessage *Msg)
 {
 	return 0;
 }

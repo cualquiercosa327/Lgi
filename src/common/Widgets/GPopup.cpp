@@ -119,7 +119,7 @@ public:
 	
 	void PostEvent(OsView h, int c, int a, int b)
 	{
-		LgiPostEvent(h, c, a, b);
+		LgiPostEvent(h, c, (GMessage::Param) a, (GMessage::Param) b);
 	}
 
 	int Main()
@@ -562,9 +562,9 @@ GPopup::~GPopup()
 	DeleteObj(d);
 }
 
-GMessage::Param GPopup::OnEvent(GMessage *Msg)
+GMessage::Result GPopup::OnEvent(GMessage *Msg)
 {
-	switch (MsgCode(Msg))
+	switch (Msg->Msg())
 	{
 		#if WINNATIVE
 		case WM_DESTROY:

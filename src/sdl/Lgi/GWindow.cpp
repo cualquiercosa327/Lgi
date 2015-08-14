@@ -80,6 +80,7 @@ GWindow::GWindow()
 	Menu = NULL;
 	Wnd = NULL;
 	_Window = this;
+	_Default = NULL;
 	WndFlags |= GWND_CREATE;
 	ClearFlag(WndFlags, GWF_VISIBLE);
 
@@ -864,7 +865,7 @@ int GWindow::OnDrop(char *Format, ::GVariant *Data, GdcPt2 Pt, int KeyState)
 	return Status;
 }
 
-GMessage::Param GWindow::OnEvent(GMessage *m)
+GMessage::Result GWindow::OnEvent(GMessage *m)
 {
 	switch (MsgCode(m))
 	{

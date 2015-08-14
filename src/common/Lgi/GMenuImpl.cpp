@@ -264,7 +264,7 @@ void SubMenuImpl::Layout(int Bx, int By)
 {
 	int Ly = SysFont->GetHeight() + 4;
 	int Col = (GdcD->Y() - 32) / Ly;
-	int Cols = ceil((double)d->Sub->Items.Length()/Col);
+	int Cols = (int)ceil((double)d->Sub->Items.Length()/Col);
 	int ColX = 0;
 	int MaxX = 0, MaxY = 0;
 
@@ -558,7 +558,7 @@ void MenuItemImpl::Activate()
 		GWindow *w = Menu->Info->View()->GetWindow();
 		if (w)
 		{
-			LgiPostEvent(w->Handle(), M_COMMAND, d->Item->Id(), 0);
+			LgiPostEvent(w->Handle(), M_COMMAND, (GMessage::Param) d->Item->Id(), 0);
 		}
 		else printf("%s:%i - No Window.\n", _FL);
 	}

@@ -399,13 +399,75 @@ GBmpMem::~GBmpMem()
 	}
 }
 
+struct PfComponent
+{
+	GComponentType Type;
+	int Bits;
+	int Pos;
+	
+	void Set(GComponentType type, uint32 Mask, int Loss)
+	{
+		Type = type;
+		Bits = 0;
+		Pos = 0;
+		while (Mask)
+		{
+			if (Mask & 1)
+				Bits++;
+			else
+				Pos++;
+			Mask >>= 1;
+		}
+		
+		if (Loss > 0)
+		{
+			Type = CtPad;
+			Bits = Loss;
+		}
+	}
+};
 
+int ComponenetCmp(PfComponent *a, PfComponent *b)
+{
+	if (a->Type == CtPad ^ b->Type == CtPad)
+		return (a->Type == CtPad) - (b->Type == CtPad);
+	return (b->Pos + b->Bits) - (a->Pos + a->Bits);
+}
+
+GColourSpace PixelFormat2ColourSapce(SDL_PixelFormat *pf)
+{
+	GColourSpaceBits cs;
+	
+	if (pf->BytesPerPixel <= 1)
+	{
+		cs.Bits[0].Type = CtIndex;
+		cs.Bits[0].Size = pf->BitsPerPixel;
+	}
+	else
+	{	
+		GArray<PfComponent> a;
+		a.New().Set(CtRed, pf->Rmask, pf->Rloss);
+		a.New().Set(CtGreen, pf->Gmask, pf->Gloss);
+		a.New().Set(CtBlue, pf->Bmask, pf->Bloss);
+		a.New().Set(CtAlpha, pf->Amask, pf->Aloss);
+		a.Sort(ComponenetCmp);	
+
+		for (unsigned i=0; i<a.Length(); i++)
+		{
+			cs.Bits[i].Type = a[i].Type;
+			cs.Bits[i].Size = a[i].Bits;
+		}
+	}
+	
+	return (GColourSpace)cs.All;
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 class GdcDevicePrivate
 {
 public:
 	GdcDevice *Device;
+	SDL_Surface *Screen;
 
 	// Current mode info
 	int ScrX;
@@ -427,6 +489,9 @@ public:
 
 	GdcDevicePrivate(GdcDevice *d)
 	{
+		if ((Screen = SDL_SetVideoMode(320, 240, 0, SDL_DOUBLEBUF)) == NULL)
+			LgiTrace("%s:%i - SDL_SetVideoMode failed.\n", _FL);
+
 		Device = d;
 		GlobalColour = 0;
 	    	ZeroObj(OptVal);
@@ -437,6 +502,9 @@ public:
 		GammaCorrection = 1.0;
 
 		// Get mode stuff
+		ScrX = Screen ? Screen->w : 0;
+		ScrY = Screen ? Screen->h : 0;
+		ScrColourSpace = Screen ? PixelFormat2ColourSapce(Screen->format) : System32BitColourSpace;
 		
 		printf("Screen: %i x %i @ %i bpp (%s)\n", ScrX, ScrY, ScrBits, GColourSpaceToString(ScrColourSpace));
 		

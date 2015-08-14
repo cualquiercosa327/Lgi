@@ -253,19 +253,21 @@ struct GCmyk32 {
 	uint8 c, m, y, k;
 };
 
+struct GColourComponent
+{
+	#if BIT_PACK_LSB_FIRST
+	uint8 Size : 4;
+	uint8 Type : 4;
+	#else
+	uint8 Type : 4;
+	uint8 Size : 4;
+	#endif
+};
+
 union GColourSpaceBits
 {
 	uint32 All;
-	struct {
-		uint32 Size4 : 4;
-		GComponentType Type4 : 4;
-		uint32 Size3 : 4;
-		GComponentType Type3 : 4;
-		uint32 Size2 : 4;
-		GComponentType Type2 : 4;
-		uint32 Size1 : 4;
-		GComponentType Type1 : 4;
-	} Bits;
+	GColourComponent Bits[4];
 };
 
 #ifdef WIN32

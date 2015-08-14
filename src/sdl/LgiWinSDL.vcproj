@@ -18,7 +18,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(PlatformName)$(ConfigurationName)"
+			OutputDirectory="..\..\lib"
 			IntermediateDirectory="$(PlatformName)$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\include\common;..\..\include\sdl;..\..\..\..\..\CodeLib\libiconv\include"
+				AdditionalIncludeDirectories="..\..\include\common;..\..\include\sdl;..\..\..\..\..\CodeLib\libiconv\include;&quot;..\..\..\..\..\CodeLib\SDL-1.2.15\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;WINDOWS;_USRDLL;LGI_LIBRARY"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -91,7 +91,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(PlatformName)$(ConfigurationName)"
+			OutputDirectory="..\..\lib"
 			IntermediateDirectory="$(PlatformName)$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
@@ -116,7 +116,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\include\common;..\..\include\sdl;..\..\..\..\..\CodeLib\libiconv\include"
+				AdditionalIncludeDirectories="..\..\include\common;..\..\include\sdl;..\..\..\..\..\CodeLib\libiconv\include;&quot;..\..\..\..\..\CodeLib\SDL-1.2.15\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;WINDOWS;_USRDLL;LGI_LIBRARY"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
