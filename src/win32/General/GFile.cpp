@@ -11,6 +11,7 @@
 #define DIR_PATH_SIZE	512
 
 /****************************** Includes ************************************************************************************/
+#include <tchar.h>
 #include <winsock2.h>
 #include <shlobj.h>
 #include <fcntl.h>

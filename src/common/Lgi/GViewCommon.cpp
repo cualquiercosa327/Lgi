@@ -1878,7 +1878,7 @@ static GArray<GViewFactory*> *AllFactories = NULL;
 
 GViewFactory::GViewFactory()
 {
-	#if defined(WINDOWS)
+	#if defined(WINNATIVE)
 	char Name[256];
 	sprintf_s(Name, sizeof(Name), "LgiFactoryEvent.%i", GetCurrentProcessId());
 	HANDLE h = CreateEvent(NULL, false, false, Name);
@@ -1923,10 +1923,10 @@ GViewFactory::~GViewFactory()
 		if (AllFactories->Length() == 0)
 		{
 			DeleteObj(AllFactories);
-			#if defined(MAC) || defined(LINUX) || defined(BEOS)
-			unlink(FactoryFile);
-			#elif defined(WINDOWS)
+			#if defined(WINNATIVE)
 			CloseHandle(FactoryEvent);
+			#else
+			unlink(FactoryFile);
 			#endif
 		}
 	}

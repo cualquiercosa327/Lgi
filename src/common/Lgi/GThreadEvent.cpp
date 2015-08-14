@@ -36,7 +36,7 @@ GThreadEvent::GThreadEvent(const char *name)
 {
 	Name(name);
 
-	#if defined(WINDOWS)
+	#if WINNATIVE
 	
         Event = CreateEventA(NULL, false, false, name);
         if (Event)
@@ -82,7 +82,7 @@ GThreadEvent::GThreadEvent(const char *name)
 
 GThreadEvent::~GThreadEvent()
 {
-	#if defined(WINDOWS)
+	#if WINNATIVE
 
         CloseHandle(Event);
 
@@ -108,7 +108,7 @@ GThreadEvent::~GThreadEvent()
 
 bool GThreadEvent::IsOk()
 {
-	#if defined(WINDOWS)
+	#if WINNATIVE
 
         return Event != NULL;
 
@@ -129,7 +129,7 @@ bool GThreadEvent::IsOk()
 
 bool GThreadEvent::Signal()
 {
-	#if defined(WINDOWS)
+	#if WINNATIVE
 
         if (Event)
             SetEvent(Event);
@@ -177,7 +177,7 @@ bool GThreadEvent::Signal()
 
 GThreadEvent::WaitStatus GThreadEvent::Wait(int32 Timeout)
 {
-	#if defined(WINDOWS)
+	#if WINNATIVE
 
         DWORD Status = WaitForSingleObject(Event, Timeout < 0 ? INFINITE : Timeout);
         switch (Status)
