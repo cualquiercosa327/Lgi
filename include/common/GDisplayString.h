@@ -1,19 +1,18 @@
 #ifndef _GDISPLAY_STRING_H_
 #define _GDISPLAY_STRING_H_
 
-#if defined(LINUX) && !defined(LGI_SDL)
-namespace Pango
-{
-#include "pango/pango.h"
-#include "pango/pangocairo.h"
-}
+#if defined(LGI_SDL)
+#elif defined(LINUX)
+	namespace Pango
+	{
+	#include "pango/pango.h"
+	#include "pango/pangocairo.h"
+	}
 #endif
 
-#if (defined(MAC) || defined(LINUX)) && !defined(LGI_SDL)
+#if defined(MAC) || defined(LINUX) || defined(LGI_SDL)
 #define LGI_DSP_STR_CACHE		1
 #endif
-
-
 
 /// \brief Cache for text measuring, glyph substitution and painting
 ///
@@ -48,7 +47,11 @@ class LgiClass GDisplayString
 	GAutoWString StrCache;
 	#endif
 	
-	#if defined MAC
+	#if defined(LGI_SDL)
+	
+	GAutoPtr<GMemDC> Img;
+	
+	#elif defined(MAC)
 	
 	#ifdef COCOA
 	#else
@@ -57,7 +60,7 @@ class LgiClass GDisplayString
 	ATSUTextMeasurement fDescent;
 	#endif
 	
-	#elif defined __GTK_H__
+	#elif defined(__GTK_H__)
 	
 	Gtk::PangoLayout *Hnd;
 	int LastTabOffset;
@@ -113,6 +116,12 @@ public:
 		GSurface *pdc = 0
 	);
 	virtual ~GDisplayString();
+	
+	GDisplayString &operator=(const GDisplayString &s)
+	{
+		LgiAssert(0);
+		return *this;
+	}
 	
 	/// \returns the draw offset used to calculate tab spacing (in Px)
 	int GetDrawOffset();
@@ -181,7 +190,10 @@ public:
 		
 		enum
 		{
-			#if defined __GTK_H__
+			#if defined LGI_SDL
+				FShift = 6,
+				FScale = 1 << FShift,
+			#elif defined __GTK_H__
 				/// This is the value for 1 pixel.
 				FScale = PANGO_SCALE,
 				/// This is bitwise shift to convert between integer and fractional

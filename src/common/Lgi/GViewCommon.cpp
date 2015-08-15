@@ -1460,7 +1460,7 @@ bool GView::WindowVirtualOffset(GdcPt2 *Offset)
 	return Status;
 }
 
-int Debug_Depth = 0;
+static int Debug_Depth = 0;
 
 GViewI *GView::WindowFromPoint(int x, int y, bool Debug)
 {
@@ -1488,13 +1488,13 @@ GViewI *GView::WindowFromPoint(int x, int y, bool Debug)
             int Oy = CPos.y1 + CClient.y1;
 			if (Debug)
 			{
-				printf("%s%s Pos=%s Client=%s m(%i,%i)->(%i,%i)\n",
-                    Tabs,
-                    c->GetClass(),
-                    CPos.GetStr(),
-                    CClient.GetStr(),
-                    x, y,
-                    x - Ox, y - Oy);
+				LgiTrace("%s%s Pos=%s Client=%s m(%i,%i)->(%i,%i)\n",
+						Tabs,
+						c->GetClass(),
+						CPos.GetStr(),
+						CClient.GetStr(),
+						x, y,
+						x - Ox, y - Oy);
 			}
 
 			Debug_Depth++;
@@ -1507,7 +1507,7 @@ GViewI *GView::WindowFromPoint(int x, int y, bool Debug)
 		}
 		else if (Debug)
 		{
-			printf("%sMISSED %s Pos=%s m(%i,%i)\n", Tabs, c->GetClass(), CPos.GetStr(), x, y);
+			LgiTrace("%sMISSED %s Pos=%s m(%i,%i)\n", Tabs, c->GetClass(), CPos.GetStr(), x, y);
 		}
 	}
 

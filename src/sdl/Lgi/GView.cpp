@@ -413,6 +413,25 @@ bool GView::_Mouse(GMouse &m, bool Move)
 		return false;
 	}
 
+	if (Move)
+	{
+		GViewI *o = WindowFromPoint(m.x, m.y);
+		if (_Over != o)
+		{
+			if (_Over)
+			{
+				// LgiTrace("From Over %s\n", _Over->GetClass());
+				_Over->OnMouseExit(lgi_adjust_click(m, _Over));
+			}
+			_Over = o;
+			if (_Over)
+			{
+				_Over->OnMouseEnter(lgi_adjust_click(m, _Over));
+				// LgiTrace("To Over %s\n", _Over->GetClass());
+			}
+		}
+	}
+
 	GViewI *cap = _Capturing;
 	if (_Capturing)
 	{
@@ -429,20 +448,6 @@ bool GView::_Mouse(GMouse &m, bool Move)
 	}
 	else
 	{
-		if (Move)
-		{
-			bool Change = false;
-			GViewI *o = WindowFromPoint(m.x, m.y);
-			if (_Over != o)
-			{
-				if (_Over)
-					_Over->OnMouseExit(lgi_adjust_click(m, _Over));
-				_Over = o;
-				if (_Over)
-					_Over->OnMouseEnter(lgi_adjust_click(m, _Over));
-			}
-		}
-			
 		GView *Target = dynamic_cast<GView*>(_Over ? _Over : this);
 
 		GRect Client = Target->GView::GetClient(false);

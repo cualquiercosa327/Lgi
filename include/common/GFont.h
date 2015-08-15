@@ -49,7 +49,12 @@
 #endif
 
 // OS specific font type
-#if defined __GTK_H__
+#if defined(LGI_SDL)
+
+	#define PrevOsChar(Ptr)	Ptr--
+	#define NextOsChar(Ptr)	Ptr++
+
+#elif defined __GTK_H__
 
 	#include "LgiOsClasses.h"
 	#define PrevOsChar(Ptr)	Ptr--
@@ -62,7 +67,6 @@
 
 #elif defined(BEOS)
 
-	typedef BFont *OsFont;
 	#define PrevOsChar(Ptr)	LgiPrevUtf8((char*&)Ptr)
 	#define NextOsChar(Ptr)	LgiNextUtf8((char*&)Ptr)
 

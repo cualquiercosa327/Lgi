@@ -411,6 +411,7 @@ void SDL_to_Mouse(GMouse &ms, T &ev)
 	ms.y = ev.y;
 	ms.Down(ev.state == SDL_PRESSED);
 
+	/*
 	GViewI *Over = ms.Target->WindowFromPoint(ms.x, ms.y);
 	if (Over != ms.Target)
 	{
@@ -420,6 +421,7 @@ void SDL_to_Mouse(GMouse &ms, T &ev)
 		ms.x -= p.x;
 		ms.y -= p.y;
 	}
+	*/
 }
 
 void GApp::OnSDLEvent(GMessage *m)

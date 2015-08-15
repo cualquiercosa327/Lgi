@@ -30,7 +30,12 @@
 	#define POSIX			1
 #endif
 
+// Include SDL
 #include <SDL.h>
+
+// Include Freetype2
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 #ifdef _MSC_VER
 #pragma warning(disable : 4275 4251)
@@ -64,9 +69,9 @@ typedef int								OsProcess;
 typedef int								OsProcessId;
 typedef void							*OsView;
 typedef void							*OsWindow;
-typedef char16							OsChar;
+typedef uint32							OsChar;
 typedef void							*OsPainter;
-typedef void							*OsFont;
+typedef FT_Face							OsFont;
 typedef void							*OsBitmap;
 
 class OsApplication

@@ -31,7 +31,39 @@
 
 //////////////////////////////////////////////////////////////////////
 // Helpers
-#ifdef WIN32
+
+#if defined(LGI_SDL)
+
+class FreetypeLib
+{
+	FT_Library  lib;
+	FT_Error	err;
+	
+public:
+	FreetypeLib()
+	{
+		err = FT_Init_FreeType(&lib);
+		if (err)
+		{
+			LgiAssert(0);
+		}
+	}
+	
+	~FreetypeLib()
+	{
+		if (!err)
+		{
+			FT_Done_FreeType(lib);
+		}
+	}
+	
+	FT_Library Handle()
+	{
+		return lib;
+	}
+} Freetype2;
+
+#elif defined(WIN32)
 
 #ifndef __GNUC__
 #include <mbctype.h>
@@ -70,6 +102,7 @@ int WinHeightToPoint(int Ht, HDC hDC)
 
 	return Pt;
 }
+
 #endif
 
 //////////////////////////////////////////////////////////////////////
@@ -442,7 +475,7 @@ bool GFont::Destroy()
 	if (d->hFont)
 	{
 		#if LGI_SDL
-			LgiAssert(!"Impl me.");
+			FT_Done_Face(d->hFont);
 		#elif defined(WIN32)
 			DeleteObject(d->hFont);
 		#elif defined MAC && !defined COCOA
@@ -757,7 +790,42 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 
 	#if LGI_SDL
 	
-	LgiAssert(!"Impl me.");
+	GString FaceName;
+	#if defined(WIN32)
+	GString FontPath = "c:\\Windows\\Fonts";
+	#elif defined(LINUX)
+	GString FontPath = "/usr/share/fonts/truetype";
+	#else
+	#error "Put your font path here"
+	#endif
+	GFile::Path p = FontPath;
+	FaceName.Printf("%s.ttf", Face());
+	p += FaceName;
+	GString Full = p.GetFull();
+	
+	FT_Error error = FT_New_Face(Freetype2.Handle(),
+								 Full,
+								 0,
+								 &d->hFont);
+	if (error)
+	{
+		LgiTrace("%s:%i - FT_New_Face failed with %i\n", _FL, error);
+	}
+	else
+	{
+		int Dpi = LgiScreenDpi();
+		error = FT_Set_Char_Size(	d->hFont,		/* handle to face object           */
+									0,				/* char_width in 1/64th of points  */
+									PointSize()*64,	/* char_height in 1/64th of points */
+									Dpi,			/* horizontal device resolution    */
+									Dpi);
+		if (error)
+		{
+			LgiTrace("%s:%i - FT_Set_Char_Size failed with %i\n", _FL, error);
+		}
+		
+		return true;
+	}
 
 	#elif WINNATIVE
 
@@ -1541,7 +1609,6 @@ bool GFontType::GetSystemFont(const char *Which)
 	
 	#if LGI_SDL
 
-
 	#elif defined WINNATIVE
 
 	// Get the system settings
@@ -1651,6 +1718,14 @@ bool GFontType::GetSystemFont(const char *Which)
 		{
 			// read from system
 			#if LGI_SDL
+
+				#if defined(WIN32)
+				Info.Face("Tahoma");
+				Info.PointSize(11);
+				Status = true;
+				#else
+				#error fix me
+				#endif
 			
 			#elif defined WINNATIVE
 

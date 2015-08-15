@@ -1067,7 +1067,7 @@ public:
 	int X();
 	/// Returns the current screen height
 	int Y();
-	/// \returns the current DPI setting
+	/// Returns the size of the screen as a rectangle.
 	GRect Bounds() { return GRect(0, 0, X()-1, Y()-1); }
 
 	GGlobalColour *GetGlobalColour();

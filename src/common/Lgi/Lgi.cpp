@@ -36,9 +36,9 @@
 #include <Path.h>
 #endif
 
-#if defined(WIN32) && defined(__GTK_H__)
+#if defined(WIN32)
 #include "../win32/GSymLookup.h"
-#elif defined(LGI_SDL)
+#elif defined(LINUX)
 #include "../linux/GSymLookup.h"
 #else
 #include "GSymLookup.h"
