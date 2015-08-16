@@ -653,7 +653,7 @@ public:
 		/// Construct a wrapper to draw on a window
 		GScreenDC(GView *view, void *Param = 0);
 		
-		#if defined MAC
+		#if defined MAC && !defined(LGI_SDL)
 		
 		GScreenDC(GWindow *wnd, void *Param = 0);
 		GRect GetPos();

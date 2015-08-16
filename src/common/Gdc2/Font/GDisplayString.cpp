@@ -21,7 +21,7 @@
 
 #define DEBUG_CHAR_AT				0
 
-#if (__GTK_H__) || (defined(MAC) && !defined(COCOA))
+#if (__GTK_H__) || (defined(MAC) && !defined(COCOA) && !defined(LGI_SDL))
 #define DISPLAY_STRING_FRACTIONAL_NATIVE	1
 #else
 #define DISPLAY_STRING_FRACTIONAL_NATIVE	0
@@ -1051,7 +1051,11 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 	
 	#elif defined LGI_SDL
 	
+	#ifdef MAC
+	typedef GXrgb32 OutPx;
+	#else
 	typedef GRgb24 OutPx;
+	#endif
 	
 	if (Img && pDC && pDC->Y() > 0 && (*pDC)[0])
 	{

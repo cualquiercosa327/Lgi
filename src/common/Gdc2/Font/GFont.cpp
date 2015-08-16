@@ -795,11 +795,13 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 	GString FontPath = "c:\\Windows\\Fonts";
 	#elif defined(LINUX)
 	GString FontPath = "/usr/share/fonts/truetype";
+	#elif defined(MAC)
+	GString FontPath = "/System/Library/Fonts";
 	#else
 	#error "Put your font path here"
 	#endif
-	GFile::Path p = FontPath;
-	FaceName.Printf("%s.ttf", Face());
+	GFile::Path p = FontPath.Get();
+	FaceName.Printf("%s.ttc", Face());
 	p += FaceName;
 	GString Full = p.GetFull();
 	
@@ -1721,6 +1723,10 @@ bool GFontType::GetSystemFont(const char *Which)
 
 				#if defined(WIN32)
 				Info.Face("Tahoma");
+				Info.PointSize(11);
+				Status = true;
+				#elif defined(MAC)
+				Info.Face("LucidaGrande");
 				Info.PointSize(11);
 				Status = true;
 				#else

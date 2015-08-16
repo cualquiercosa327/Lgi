@@ -4,6 +4,9 @@
 
 #include "Lgi.h"
 #include "GToken.h"
+#ifdef LGI_SDL
+#include <SDL.h>
+#endif
 
 /** \brief The main entry point of a Lgi program
 
@@ -66,7 +69,7 @@ bool _BuildCheck()
 
 int
 #if _CONSOLE
-main(int args, char **arg)
+main(int args, char *arg[])
 #else
 WINAPI
 WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)

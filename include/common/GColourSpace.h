@@ -255,12 +255,13 @@ struct GCmyk32 {
 
 struct GColourComponent
 {
+	// ((type << 4) | (size))
 	#if BIT_PACK_LSB_FIRST
-	uint8 Size : 4;
 	uint8 Type : 4;
+	uint8 Size : 4;
 	#else
-	uint8 Type : 4;
 	uint8 Size : 4;
+	uint8 Type : 4;
 	#endif
 };
 

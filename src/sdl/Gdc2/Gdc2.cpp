@@ -438,6 +438,13 @@ GColourSpace PixelFormat2ColourSapce(SDL_PixelFormat *pf)
 {
 	GColourSpaceBits cs;
 	
+	cs.All = 0;
+	cs.Bits[0].Type = 1;
+	cs.Bits[0].Size = 2;
+	cs.Bits[1].Type = 3;
+	cs.Bits[1].Size = 4;
+	bool Reverse = cs.All == 0x00003412;
+	
 	if (pf->BytesPerPixel <= 1)
 	{
 		cs.Bits[0].Type = CtIndex;
@@ -454,8 +461,9 @@ GColourSpace PixelFormat2ColourSapce(SDL_PixelFormat *pf)
 
 		for (unsigned i=0; i<a.Length(); i++)
 		{
-			cs.Bits[i].Type = a[i].Type;
-			cs.Bits[i].Size = a[i].Bits;
+			int idx = Reverse ? 3 - i : i;
+			cs.Bits[idx].Type = a[i].Type;
+			cs.Bits[idx].Size = a[i].Bits;
 		}
 	}
 	
@@ -489,6 +497,8 @@ public:
 
 	GdcDevicePrivate(GdcDevice *d)
 	{
+		const SDL_VideoInfo *vi = SDL_GetVideoInfo();
+		
 		if ((Screen = SDL_SetVideoMode(320, 240, 0, SDL_DOUBLEBUF)) == NULL)
 			LgiTrace("%s:%i - SDL_SetVideoMode failed.\n", _FL);
 
