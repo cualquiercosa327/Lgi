@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project>
 	<Node Name="Source Files" Type="1" Platforms="15" Open="1">
-		<Node Name="Core" Type="1" Platforms="15" Open="1">
+		<Node Name="Core" Type="1" Platforms="15" Open="0">
 			<Node Name="DateTime" Type="1" Platforms="15" Open="0">
 				<Node File="../common/General/GDateTime.cpp" Type="2" Platforms="15" />
 				<Node File="../../include/common/GDateTime.h" Type="3" Platforms="15" />
@@ -269,6 +269,7 @@
 				<Windows>.\Makefile.windows</Windows>
 				<Linux>./Makefile.sdl</Linux>
 				<Haiku>Makefile.beos</Haiku>
+				<Mac>Makefile.macosx</Mac>
 			</Makefile>
 			<Defines>
 				<All>
@@ -283,14 +284,14 @@ WINDOWS</Debug>
 					<Release>WINNATIVE
 WINDOWS</Release>
 				</Windows>
-				<Linux />
+				<Mac />
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
 				<Linux>gcc</Linux>
 			</Compiler>
 			<Executable>
-				<Linux />
+				<Mac />
 			</Executable>
 			<Arguments>
 				<All />
@@ -322,6 +323,7 @@ WINDOWS</Release>
 					<Release>include/beos
 /boot/develop/headers/os/app</Release>
 				</Haiku>
+				<Mac />
 			</IncludePaths>
 			<Libraries>
 				<Windows>
@@ -360,6 +362,7 @@ freetype</Debug>
 					<Release>SDL
 freetype</Release>
 				</All>
+				<Mac />
 			</Libraries>
 			<TargetType>
 				<All>DynamicLibrary</All>
@@ -377,13 +380,14 @@ freetype</Release>
 					<Debug>lgi_sdl</Debug>
 					<Release>lgi_sdl</Release>
 				</Linux>
+				<Mac />
 			</TargetName>
 			<SystemIncludes>
-				<Linux />
+				<Mac />
 			</SystemIncludes>
 			<LibraryPaths>
 				<All />
-				<Linux />
+				<Mac />
 			</LibraryPaths>
 		</Build>
 		<Editor>

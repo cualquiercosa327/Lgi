@@ -26,7 +26,7 @@
 		349A251C1A5E3D1D00F4263E /* SpaceTabConv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A250C1A5E3D1D00F4263E /* SpaceTabConv.cpp */; };
 		349A251D1A5E3D1D00F4263E /* SysCharSupport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A250E1A5E3D1D00F4263E /* SysCharSupport.cpp */; };
 		349A25201A5E3FE000F4263E /* Lgi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 349A24F61A5E3C5D00F4263E /* Lgi.framework */; };
-		349A25211A5E3FE300F4263E /* Lgi.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 349A24F61A5E3C5D00F4263E /* Lgi.framework */; };
+		349A25211A5E3FE300F4263E /* Lgi.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 349A24F61A5E3C5D00F4263E /* Lgi.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		349A25241A5E401100F4263E /* GLexCpp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A25231A5E401100F4263E /* GLexCpp.cpp */; };
 		349A25281A5E408D00F4263E /* GParseCpp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A25271A5E408D00F4263E /* GParseCpp.cpp */; };
 		349A252B1A5E431F00F4263E /* GMdi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A252A1A5E431F00F4263E /* GMdi.cpp */; };
@@ -277,7 +277,7 @@
 		20286C28FDCF999611CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0450;
+				LastUpgradeCheck = 0620;
 			};
 			buildConfigurationList = 34BA95070B33B2BB00493CD3 /* Build configuration list for PBXProject "LgiIde" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -384,7 +384,6 @@
 		34BA95040B33B2BB00493CD3 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = ../../src/mac/carbon/build/Debug;
@@ -399,7 +398,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = LgiIde;
-				SDKROOT = macosx10.7;
+				SDKROOT = macosx;
 				VALID_ARCHS = i386;
 				WRAPPER_EXTENSION = app;
 			};
@@ -408,7 +407,6 @@
 		34BA95050B33B2BB00493CD3 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
 				FRAMEWORK_SEARCH_PATHS = ../../src/mac/carbon/build/Release;
@@ -421,7 +419,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = LgiIde;
-				SDKROOT = macosx10.7;
+				SDKROOT = macosx;
 				VALID_ARCHS = i386;
 				WRAPPER_EXTENSION = app;
 			};
@@ -430,6 +428,7 @@
 		34BA95080B33B2BB00493CD3 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				FRAMEWORK_SEARCH_PATHS = ../../src/mac/carbon/build/Debug;
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_CFLAGS = (
@@ -445,6 +444,7 @@
 		34BA95090B33B2BB00493CD3 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				FRAMEWORK_SEARCH_PATHS = ../../src/mac/carbon/build/Release;
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_CFLAGS = "-DMAC";

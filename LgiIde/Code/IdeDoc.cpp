@@ -995,7 +995,7 @@ char *IdeDocPrivate::GetLocalFile()
 			return nSrc->GetLocalCache();
 		
 		GAutoString fp = nSrc->GetFullPath();
-		if (_stricmp(fp?fp:"", Buffer?Buffer:""))
+		if (_stricmp(fp.Get()?fp.Get():"", Buffer.Get()?Buffer.Get():""))
 			Buffer = fp;
 		return Buffer;
 	}
