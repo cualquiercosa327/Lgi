@@ -1041,7 +1041,7 @@ GdcPt2 GDisplayString::Size()
 
 #if defined LGI_SDL
 
-template<typename OutPx>
+template<typename OutPx, bool HAS_ALPHA>
 bool CompositeText(GSurface *Out, GSurface *In, GFont *Font, int px, int py)
 {
 	OutPx map[256];
@@ -1064,6 +1064,9 @@ bool CompositeText(GSurface *Out, GSurface *In, GFont *Font, int px, int py)
 			map[a].r = (a * fore_px.r) / 255;
 			map[a].g = (a * fore_px.g) / 255;
 			map[a].b = (a * fore_px.b) / 255;
+			#if HAS_ALPHA
+			map[a].a = a;
+			#endif
 		}
 	}
 	else
@@ -1080,15 +1083,19 @@ bool CompositeText(GSurface *Out, GSurface *In, GFont *Font, int px, int py)
 			map[a].r = (oma * back_px.r) + (a * fore_px.r) / 255;
 			map[a].g = (oma * back_px.g) + (a * fore_px.g) / 255;
 			map[a].b = (oma * back_px.b) + (a * fore_px.b) / 255;
+			#if HAS_ALPHA
+			map[a].a = 255;
+			#endif
 		}
 	}
 
+	register uint8 *Div255 = Div255Lut;
 	for (unsigned y=0; y<In->Y(); y++)
 	{
-		OutPx *o = ((OutPx*) (*Out)[py + y]) + px;
-		uint8 *i = (*In)[y];
+		register OutPx *o = ((OutPx*) (*Out)[py + y]) + px;
+		register uint8 *i = (*In)[y];
 		if (!i) return false;
-		uint8 *e = i + In->X();
+		register uint8 *e = i + In->X();
 		
 		if (Font->Transparent())
 		{
@@ -1111,9 +1118,12 @@ bool CompositeText(GSurface *Out, GSurface *In, GFont *Font, int px, int py)
 						// Blend
 						oma = 255 - a;
 						m = map + a;
-						o->r = ((oma * o->r) + (a * m->r)) / 255;
-						o->g = ((oma * o->g) + (a * m->g)) / 255;
-						o->b = ((oma * o->b) + (a * m->b)) / 255;
+						o->r = Div255[(oma * o->r) + (a * m->r)];
+						o->g = Div255[(oma * o->g) + (a * m->g)];
+						o->b = Div255[(oma * o->b) + (a * m->b)];
+						#if HAS_ALPHA
+						o->a = (o->a + m->a) + Div255[o->a * m->a];
+						#endif
 						break;
 				}
 				o++;
@@ -1155,17 +1165,42 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 	
 	#elif defined LGI_SDL
 	
-	#if defined(MAC) || defined(LINUX)
+	/* This is what the colour spaces should be by default:
+	#if defined(LINUX)
 	typedef GRgbx32 OutPx;
 	#elif defined(MAC)
 	typedef GXrgb32 OutPx;
 	#else
 	typedef GRgb24 OutPx;
 	#endif
+	*/
 	
 	if (Img && pDC && pDC->Y() > 0 && (*pDC)[0])
 	{
-		CompositeText<OutPx>(pDC, Img, Font, px, py);
+		GColourSpace DstCs = pDC->GetColourSpace();
+		switch (DstCs)
+		{
+			#define DspStrCase(px_fmt, has_alpha)								\
+				case Cs##px_fmt:												\
+					CompositeText<G##px_fmt,has_alpha>(pDC, Img, Font, px, py);	\
+					break;
+			
+			DspStrCase(Rgb24, 0)
+			DspStrCase(Bgr24, 0)
+			DspStrCase(Rgbx32, 0)
+			DspStrCase(Bgrx32, 0)
+			DspStrCase(Xrgb32, 0)
+			DspStrCase(Xbgr32, 0)
+			DspStrCase(Rgba32, 1)
+			DspStrCase(Bgra32, 1)
+			DspStrCase(Argb32, 1)
+			DspStrCase(Abgr32, 1)
+			default:
+				LgiAssert(!"Unsupported colour space.");
+				break;
+			
+			#undef DspStrCase
+		}
 	}
 	
 	#elif defined WINNATIVE

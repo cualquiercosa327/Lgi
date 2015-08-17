@@ -431,7 +431,7 @@ int ComponenetCmp(PfComponent *a, PfComponent *b)
 {
 	if (a->Type == CtPad ^ b->Type == CtPad)
 		return (a->Type == CtPad) - (b->Type == CtPad);
-	return (b->Pos + b->Bits) - (a->Pos + a->Bits);
+	return (a->Pos + a->Bits) - (b->Pos + b->Bits);
 }
 
 GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
