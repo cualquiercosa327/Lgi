@@ -792,18 +792,43 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 	
 	GString FaceName;
 	#if defined(WIN32)
+	const char *Ext = "ttf";
 	GString FontPath = "c:\\Windows\\Fonts";
 	#elif defined(LINUX)
+	const char *Ext = "ttf";
 	GString FontPath = "/usr/share/fonts/truetype";
 	#elif defined(MAC)
+	const char *Ext = "ttc";
 	GString FontPath = "/System/Library/Fonts";
 	#else
 	#error "Put your font path here"
 	#endif
 	GFile::Path p = FontPath.Get();
-	FaceName.Printf("%s.ttc", Face());
+	FaceName.Printf("%s.%s", Face(), Ext);
 	p += FaceName;
 	GString Full = p.GetFull();
+	
+	if (!FileExists(Full))
+	{
+		GArray<char*> Files;
+		GArray<const char*> Extensions;
+		GString Pattern;
+		Pattern.Printf("*.%s", Ext);
+		Extensions.Add(Pattern.Get());
+		LgiRecursiveFileSearch(FontPath, &Extensions, &Files, NULL, NULL, NULL, NULL);
+		char *Match = NULL;
+		for (unsigned i=0; i<Files.Length(); i++)
+		{
+			if (stristr(Files[i], FaceName))
+				Match = Files[i];
+		}
+		
+		if (Match)
+			Full = Match;
+		else
+			LgiTrace("%s:%i - The file '%s' doesn't exist.\n", _FL, Full.Get());
+		Files.DeleteArrays();
+	}
 	
 	FT_Error error = FT_New_Face(Freetype2.Handle(),
 								 Full,
@@ -1727,6 +1752,10 @@ bool GFontType::GetSystemFont(const char *Which)
 				Status = true;
 				#elif defined(MAC)
 				Info.Face("LucidaGrande");
+				Info.PointSize(11);
+				Status = true;
+				#elif defined(LINUX)
+				Info.Face("Sans");
 				Info.PointSize(11);
 				Status = true;
 				#else

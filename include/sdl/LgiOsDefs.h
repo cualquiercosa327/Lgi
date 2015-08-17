@@ -30,10 +30,12 @@
 	#define POSIX			1
 #endif
 
-// Include SDL
+// Include SDL, if it's missing:
+// sudo apt-get install libsdl1.2-dev
 #include <SDL.h>
 
-// Include Freetype2
+// Include Freetype2, if it's missing:
+// sudo apt-get install libfreetype6-dev
 #include <ft2build.h>
 #include FT_FREETYPE_H
 

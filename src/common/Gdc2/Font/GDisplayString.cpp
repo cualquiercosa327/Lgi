@@ -21,7 +21,7 @@
 
 #define DEBUG_CHAR_AT				0
 
-#if (__GTK_H__) || (defined(MAC) && !defined(COCOA) && !defined(LGI_SDL))
+#if defined(__GTK_H__) || (defined(MAC) && !defined(COCOA) && !defined(LGI_SDL))
 #define DISPLAY_STRING_FRACTIONAL_NATIVE	1
 #else
 #define DISPLAY_STRING_FRACTIONAL_NATIVE	0
@@ -239,6 +239,9 @@ void GDisplayString::Layout(bool Debug)
     
 		FT_Face Fnt = Font->Handle();
 		FT_Error error;
+		
+		if (!Fnt)
+			return;
 		
 		// Create an array of glyph indexes
 		GArray<uint32> Glyphs;
@@ -1051,7 +1054,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 	
 	#elif defined LGI_SDL
 	
-	#ifdef MAC
+	#if defined(MAC) || defined(LINUX)
 	typedef GXrgb32 OutPx;
 	#else
 	typedef GRgb24 OutPx;

@@ -514,7 +514,7 @@ public:
 		// Get mode stuff
 		ScrX = Screen ? Screen->w : 0;
 		ScrY = Screen ? Screen->h : 0;
-		ScrBits = Screen ? Screen->format->BytesPerPixel : 0;
+		ScrBits = Screen ? Screen->format->BitsPerPixel : 0;
 		ScrColourSpace = Screen ? PixelFormat2ColourSapce(Screen->format) : System32BitColourSpace;
 		
 		printf("Screen: %i x %i @ %i bpp (%s)\n", ScrX, ScrY, ScrBits, GColourSpaceToString(ScrColourSpace));

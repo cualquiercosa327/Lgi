@@ -3783,7 +3783,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 												Rel);
 
 									GAutoString Mk = Dep->GetMakefile();
-									RenameMakefileForPlatform(Mk, Platform);
+									// RenameMakefileForPlatform(Mk, Platform);
 
 									char *DepMakefile = strrchr(Mk, DIR_CHAR);
 									if (DepMakefile)

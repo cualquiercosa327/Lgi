@@ -291,11 +291,11 @@ GApp::GApp(OsAppArguments &AppArgs, const char *name, GAppArguments *Args) :
 			SystemBold->Create();
 		}
 	}
-	else
-	{
+	
+	if (!SystemNormal)
 		SystemNormal = new GFont;
+	if (!SystemBold)
 		SystemBold = new GFont;
-	}
 
 	if (!GetOption("noskin"))
 	{

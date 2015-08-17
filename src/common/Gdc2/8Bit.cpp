@@ -216,13 +216,13 @@ void GdcApp8Set::Rectangle(int x, int y)
 #else
 
 	int x4, n;
-	ulong *p;
+	uint32 *p;
 	uchar *cp;
 
 	while (y--)
 	{	
 		x4 = x >> 2;
-		p = (ulong*) Ptr;
+		p = (uint32*) Ptr;
 
 		for (n=0; n<x4; n++)
 		{

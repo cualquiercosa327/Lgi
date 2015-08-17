@@ -27,12 +27,15 @@ endif
 
 # Libraries
 Libs = \
+	-lSDL \
+	-lfreetype \
 	-static-libgcc
 
 # Includes
 Inc = \
 	-I../../include/common \
 	-I../../include/sdl \
+	-I/usr/include/freetype2 \
 	-I/usr/include/SDL
 
 # Dependencies
@@ -51,6 +54,8 @@ Depends =	GDateTime.o \
 			GLibrary.o \
 			GMem.o \
 			GContainers.o \
+			GMenu.o \
+			GMenuImpl.o \
 			GProcess.o \
 			LgiRes.o \
 			Res.o \
@@ -265,6 +270,18 @@ GContainers.o : ../common/General/GContainers.cpp ../../include/common/GMem.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
+GMenu.o : ./Lgi/GMenu.cpp ../../include/common/Lgi.h \
+	../../include/common/GToken.h \
+	../../include/common/GUtf8.h \
+	../../include/common/GDisplayString.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GMenuImpl.o : ../common/Lgi/GMenuImpl.cpp ../../include/common/Lgi.h \
+	../../include/common/GMenu.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
 GProcess.o : ../common/Lgi/GProcess.cpp ../../include/common/Lgi.h \
 	../../include/common/GProcess.h \
 	../../include/common/GToken.h
@@ -376,6 +393,7 @@ Lgi.o : ../common/Lgi/Lgi.cpp ../../include/common/GRegKey.h \
 	../../include/common/GCapabilities.h \
 	../../include/common/GProcess.h \
 	../../include/win32/GSymLookup.h \
+	../../include/linux/GSymLookup.h \
 	../../include/common/GLibrary.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -966,6 +984,11 @@ md5.o : ../common/Hash/md5/md5.c
 
 ../../include/common/GThreadEvent.h : 
 
+../../include/common/GMenu.h : ../../include/common/GMenuImpl.h \
+	../../include/common/GXmlTree.h \
+	../../include/common/Res.h \
+	../../include/common/GImageList.h
+
 ../../include/common/GOptionsFile.h : ../../include/common/GVariant.h \
 	../../include/common/GXmlTree.h \
 	../../include/common/GMutex.h
@@ -978,6 +1001,8 @@ md5.o : ../common/Hash/md5/md5.c
 ../../include/common/GContainers.h : ../../include/common/LgiInc.h \
 	../../include/sdl/LgiOsDefs.h \
 	../../include/common/GStream.h
+
+../../include/common/Res.h : ../../include/common/GXmlTree.h
 
 ../../include/common/GHashTable.h : ../../include/common/GMem.h \
 	../../include/common/GArray.h \
@@ -1038,6 +1063,8 @@ md5.o : ../common/Hash/md5/md5.c
 	../../include/common/GDom.h
 
 ../../include/common/GColourSpace.h : 
+
+../../include/common/GMenuImpl.h : ../../include/common/GPopup.h
 
 ../../include/common/GBox.h : 
 
@@ -1136,10 +1163,6 @@ md5.o : ../common/Hash/md5/md5.c
 	../../include/common/Res.h \
 	../../include/common/GImageList.h
 
-../../include/common/Res.h : ../../include/common/GXmlTree.h
-
-../../include/common/GMenuImpl.h : ../../include/common/GPopup.h
-
 ../../include/common/GFindReplaceDlg.h : 
 
 ../../include/common/GMru.h : ../../include/common/GProperties.h
@@ -1219,11 +1242,11 @@ md5.o : ../common/Hash/md5/md5.c
 ../../include/common/GDocView.h : ../../include/common/GVariant.h \
 	../../include/common/GNotifications.h
 
+../../include/common/GImageList.h : 
+
 ../../include/common/LgiRes.h : ../../include/common/Res.h \
 	../../include/common/GContainers.h \
 	../../include/common/GCss.h
-
-../../include/common/GImageList.h : 
 
 ../../include/common/GInput.h : 
 
@@ -1312,6 +1335,7 @@ md5.o : ../common/Hash/md5/md5.c
 
 ../../include/sdl/LgiOsDefs.h : ../../include/common/LgiDefs.h \
 	/usr/include/SDL/SDL.h \
+	/usr/include/freetype2/ft2build.h \
 	../../include/common/LgiInc.h
 
 ../../../../../../../usr/include/SDL/SDL.h : /usr/include/SDL/SDL_main.h \
@@ -1438,6 +1462,10 @@ md5.o : ../common/Hash/md5/md5.c
 	/usr/include/SDL/begin_code.h \
 	/usr/include/SDL/close_code.h
 
+../../../../../../../usr/include/freetype2/ft2build.h : /usr/include/freetype2/config/ftheader.h
+
+../../../../../../../usr/include/freetype2/config/ftheader.h : 
+
 ../../../../../../../usr/include/SDL/SDL_audio.h : /usr/include/SDL/SDL_stdinc.h \
 	/usr/include/SDL/SDL_error.h \
 	/usr/include/SDL/SDL_endian.h \
@@ -1475,11 +1503,13 @@ md5.o : ../common/Hash/md5/md5.c
 
 ../../include/sdl/LgiOsDefs.h : ../../include/common/LgiDefs.h \
 	/usr/include/SDL/SDL.h \
+	/usr/include/freetype2/ft2build.h \
 	../../include/common/LgiInc.h
 
 VPATH=%.cpp \
 	../../include/common \
 	../../include/sdl \
 	../../../../../../../usr/include/SDL \
+	../../../../../../../usr/include/freetype2 \
 	$(BuildDir)
 
