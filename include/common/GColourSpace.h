@@ -259,13 +259,12 @@ struct GCmyk32 {
 struct GColourComponent
 {
 	// ((type << 4) | (size))
-	#if _MSC_VER
-	uint8 Size : 4;
-	uint8 Type : 4;
-	#else
-	uint8 Size : 4;
-	uint8 Type : 4;
-	#endif
+	uint8 Bits;
+	
+	uint8 Type() { return (Bits >> 4) & 0xf; }
+	void Type(uint8 t) { Bits = (Bits & 0xf) | (t << 4); }
+	uint8 Size() { return Bits & 0xf; }
+	void Size(uint8 t) { Bits = (Bits & 0xf0) | (t & 0xf); }
 };
 
 union GColourSpaceBits

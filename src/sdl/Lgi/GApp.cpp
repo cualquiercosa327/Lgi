@@ -246,6 +246,15 @@ GSkinEngine *GApp::SkinEngine = 0;
 GApp *TheApp = 0;
 GMouseHook *GApp::MouseHook = 0;
 
+#ifdef LINUX
+void sighandler(int signum)
+{
+	SDL_Quit();
+	signal(signum, SIG_DFL);
+    kill(getpid(), signum);
+}
+#endif
+
 GApp::GApp(OsAppArguments &AppArgs, const char *name, GAppArguments *Args) :
 	OsApplication(AppArgs.Args, AppArgs.Arg)
 {
@@ -257,6 +266,10 @@ GApp::GApp(OsAppArguments &AppArgs, const char *name, GAppArguments *Args) :
 
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 		LgiTrace("%s:%i - Couldn't initialize SDL: %s\n", _FL, SDL_GetError());
+
+	#ifdef LINUX
+	signal(SIGSEGV, sighandler);
+	#endif
 		
 	// We want our printf's NOW!
 	setvbuf(stdout,(char *)NULL,_IONBF,0); // print mesgs immediately.

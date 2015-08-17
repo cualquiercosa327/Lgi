@@ -765,51 +765,54 @@ GColourSpace GStringToColourSpace(const char *c)
 			ZeroObj(a);
 			if (Comp.Length() == 3)
 			{
-				a.Bits[0].Type = Comp[0];
-				a.Bits[1].Type = Comp[1];
-				a.Bits[2].Type = Comp[2];
+				a.Bits[0].Type(Comp[0]);
+				a.Bits[1].Type(Comp[1]);
+				a.Bits[2].Type(Comp[2]);
 				if (Depth == 24)
 				{
-					a.Bits[0].Size = 
-						a.Bits[1].Size = 
-						a.Bits[2].Size = 8;
+					a.Bits[0].Size(8);
+					a.Bits[1].Size(8);
+					a.Bits[2].Size(8);
 				}
 				else if (Depth == 16)
 				{
-					a.Bits[0].Size = 5;
-					a.Bits[1].Size = 6;
-					a.Bits[2].Size = 5;
+					a.Bits[0].Size(5);
+					a.Bits[1].Size(6);
+					a.Bits[2].Size(5);
 				}
 				else if (Depth == 15)
 				{
-					a.Bits[0].Size = 5;
-					a.Bits[0].Size = 5;
-					a.Bits[0].Size = 5;
+					a.Bits[0].Size(5);
+					a.Bits[0].Size(5);
+					a.Bits[0].Size(5);
 				}
 				else if (Depth == 48)
 				{
+					a.Bits[0].Size(0);
+					a.Bits[1].Size(0);
+					a.Bits[2].Size(0);
 				}
 				else return CsNone;
 			}
 			else if (Comp.Length() == 4)
 			{
-				a.Bits[0].Type = Comp[0];
-				a.Bits[1].Type = Comp[1];
-				a.Bits[2].Type = Comp[2];
-				a.Bits[3].Type = Comp[3];
+				a.Bits[0].Type(Comp[0]);
+				a.Bits[1].Type(Comp[1]);
+				a.Bits[2].Type(Comp[2]);
+				a.Bits[3].Type(Comp[3]);
 				if (Depth == 32)
 				{
-					a.Bits[0].Size = 
-						a.Bits[1].Size = 
-						a.Bits[2].Size = 
-						a.Bits[3].Size = 8;
+					a.Bits[0].Size(8);
+					a.Bits[1].Size(8);
+					a.Bits[2].Size(8);
+					a.Bits[3].Size(8);
 				}
 				else if (Depth == 64)
 				{
-					a.Bits[0].Size = 
-						a.Bits[1].Size = 
-						a.Bits[2].Size = 
-						a.Bits[3].Size = 0;
+					a.Bits[0].Size(0);
+					a.Bits[1].Size(0);
+					a.Bits[2].Size(0);
+					a.Bits[3].Size(0);
 				}
 				else return CsNone;
 			}

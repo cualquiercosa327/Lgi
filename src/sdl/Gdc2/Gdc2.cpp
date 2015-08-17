@@ -429,9 +429,14 @@ struct PfComponent
 
 int ComponenetCmp(PfComponent *a, PfComponent *b)
 {
-	if (a->Type == CtPad ^ b->Type == CtPad)
+	if ((a->Type == CtPad) ^ (b->Type == CtPad))
+	#if _MSC_VER
 		return (a->Type == CtPad) - (b->Type == CtPad);
-	return (a->Pos + a->Bits) - (b->Pos + b->Bits);
+	#else
+		return (b->Type == CtPad) - (a->Type == CtPad);
+	#endif
+	int i = (a->Pos + a->Bits) - (b->Pos + b->Bits);
+	return i;
 }
 
 GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
@@ -440,7 +445,12 @@ GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
 	
 	bool Reverse = false;
 	cs.All = 0;
-	cs.Bits[0].Type = 1;
+	cs.Bits[0].Type(1);
+	LgiTrace("PixelFormat2ColourSpace cs=%08x\n", cs.All);
+	/*
+	SDL_Quit();
+	exit(0);
+	*/
 	if (cs.All == (0x10 << 24))
 		Reverse = false;
 	else if (cs.All == 0x10)
@@ -453,8 +463,8 @@ GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
 	
 	if (pf->BytesPerPixel <= 1)
 	{
-		cs.Bits[0].Type = CtIndex;
-		cs.Bits[0].Size = pf->BitsPerPixel;
+		cs.Bits[0].Type(CtIndex);
+		cs.Bits[0].Size(pf->BitsPerPixel);
 	}
 	else
 	{	
@@ -468,8 +478,8 @@ GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
 		for (unsigned i=0; i<a.Length(); i++)
 		{
 			int idx = Reverse ? 3 - i : i;
-			cs.Bits[idx].Type = a[i].Type;
-			cs.Bits[idx].Size = a[i].Bits;
+			cs.Bits[idx].Type(a[i].Type);
+			cs.Bits[idx].Size(a[i].Bits);
 		}
 	}
 	
@@ -505,7 +515,7 @@ public:
 	{
 		const SDL_VideoInfo *vi = SDL_GetVideoInfo();
 		
-		if ((Screen = SDL_SetVideoMode(320, 240, 0, SDL_DOUBLEBUF)) == NULL)
+		if ((Screen = SDL_SetVideoMode(320, 240, 0, SDL_SWSURFACE)) == NULL)
 			LgiTrace("%s:%i - SDL_SetVideoMode failed.\n", _FL);
 
 		Device = d;
@@ -523,7 +533,7 @@ public:
 		ScrBits = Screen ? Screen->format->BitsPerPixel : 0;
 		ScrColourSpace = Screen ? PixelFormat2ColourSpace(Screen->format) : System32BitColourSpace;
 		
-		printf("Screen: %i x %i @ %i bpp (%s)\n", ScrX, ScrY, ScrBits, GColourSpaceToString(ScrColourSpace));
+		LgiTrace("Screen: %i x %i @ %i bpp (%s)\n", ScrX, ScrY, ScrBits, GColourSpaceToString(ScrColourSpace));
 		
 		// printf("Pixel24Size=%i\n", Pixel24Size);
 		OptVal[GDC_PROMOTE_ON_LOAD] = ScrBits;
