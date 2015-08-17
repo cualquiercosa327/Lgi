@@ -88,6 +88,9 @@ enum GColourSpace
 #ifdef WIN32
 #pragma pack(push, before_pack)
 #pragma pack(1)
+#endif
+
+#ifdef _MSC_VER
 #define BIT_PACK_LSB_FIRST	1
 #else
 #define BIT_PACK_LSB_FIRST	0
@@ -256,9 +259,9 @@ struct GCmyk32 {
 struct GColourComponent
 {
 	// ((type << 4) | (size))
-	#if BIT_PACK_LSB_FIRST
-	uint8 Type : 4;
+	#if _MSC_VER
 	uint8 Size : 4;
+	uint8 Type : 4;
 	#else
 	uint8 Size : 4;
 	uint8 Type : 4;

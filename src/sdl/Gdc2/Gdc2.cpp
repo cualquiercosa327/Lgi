@@ -430,20 +430,26 @@ struct PfComponent
 int ComponenetCmp(PfComponent *a, PfComponent *b)
 {
 	if (a->Type == CtPad ^ b->Type == CtPad)
-		return (b->Type == CtPad) - (a->Type == CtPad);
+		return (a->Type == CtPad) - (b->Type == CtPad);
 	return (b->Pos + b->Bits) - (a->Pos + a->Bits);
 }
 
-GColourSpace PixelFormat2ColourSapce(SDL_PixelFormat *pf)
+GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
 {
 	GColourSpaceBits cs;
 	
+	bool Reverse = false;
 	cs.All = 0;
 	cs.Bits[0].Type = 1;
-	cs.Bits[0].Size = 2;
-	cs.Bits[1].Type = 3;
-	cs.Bits[1].Size = 4;
-	bool Reverse = cs.All == 0x00003412;
+	if (cs.All == (0x10 << 24))
+		Reverse = false;
+	else if (cs.All == 0x10)
+		Reverse = true;
+	else
+	{
+		LgiAssert(!"Invalid type order.");
+		return CsNone;
+	}
 	
 	if (pf->BytesPerPixel <= 1)
 	{
@@ -515,7 +521,7 @@ public:
 		ScrX = Screen ? Screen->w : 0;
 		ScrY = Screen ? Screen->h : 0;
 		ScrBits = Screen ? Screen->format->BitsPerPixel : 0;
-		ScrColourSpace = Screen ? PixelFormat2ColourSapce(Screen->format) : System32BitColourSpace;
+		ScrColourSpace = Screen ? PixelFormat2ColourSpace(Screen->format) : System32BitColourSpace;
 		
 		printf("Screen: %i x %i @ %i bpp (%s)\n", ScrX, ScrY, ScrBits, GColourSpaceToString(ScrColourSpace));
 		

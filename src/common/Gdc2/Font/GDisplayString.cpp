@@ -298,10 +298,16 @@ void GDisplayString::Layout(bool Debug)
 							for (int y=0; y<bmp.rows; y++)
 							{
 								uint8 *in = bmp.buffer + (y * bmp.pitch);
-								uint8 *out = (*Img)[Py+y] + Px;
+								uint8 *out = (*Img)[Py+y];
 								if (out)
 								{
+									out += Px;
 									memcpy(out, in, bmp.width);
+								}
+								else
+								{
+									LgiAssert(!"No scanline?");
+									break;
 								}
 							}
 						}
@@ -1033,6 +1039,101 @@ GdcPt2 GDisplayString::Size()
 	return GdcPt2(x, y);
 }
 
+#if defined LGI_SDL
+
+template<typename OutPx>
+bool CompositeText(GSurface *Out, GSurface *In, GFont *Font, int px, int py)
+{
+	OutPx map[256];
+
+	if (!Out || !In || !Font)
+		return false;
+
+	// FIXME, do blt clipping here...
+
+	// Create colour map of the foreground/background colours		
+	GColour fore = Font->Fore();
+	OutPx fore_px;
+	fore_px.r = fore.r();
+	fore_px.g = fore.g();
+	fore_px.b = fore.b();
+	if (Font->Transparent())
+	{
+		for (int a=0; a<256; a++)
+		{
+			map[a].r = (a * fore_px.r) / 255;
+			map[a].g = (a * fore_px.g) / 255;
+			map[a].b = (a * fore_px.b) / 255;
+		}
+	}
+	else
+	{
+		GColour back = Font->Back();
+		OutPx back_px;
+		back_px.r = back.r();
+		back_px.g = back.g();
+		back_px.b = back.b();
+
+		for (int a=0; a<256; a++)
+		{
+			int oma = 255 - a;
+			map[a].r = (oma * back_px.r) + (a * fore_px.r) / 255;
+			map[a].g = (oma * back_px.g) + (a * fore_px.g) / 255;
+			map[a].b = (oma * back_px.b) + (a * fore_px.b) / 255;
+		}
+	}
+
+	for (unsigned y=0; y<In->Y(); y++)
+	{
+		OutPx *o = ((OutPx*) (*Out)[py + y]) + px;
+		uint8 *i = (*In)[y];
+		if (!i) return false;
+		uint8 *e = i + In->X();
+		
+		if (Font->Transparent())
+		{
+			register uint8 a, oma;
+			register OutPx *m;
+			
+			while (i < e)
+			{
+				// Alpha blend map and output pixel
+				a = *i++;
+				switch (a)
+				{
+					case 0:
+						break;
+					case 255:
+						// Copy
+						*o = map[a];
+						break;
+					default:
+						// Blend
+						oma = 255 - a;
+						m = map + a;
+						o->r = ((oma * o->r) + (a * m->r)) / 255;
+						o->g = ((oma * o->g) + (a * m->g)) / 255;
+						o->b = ((oma * o->b) + (a * m->b)) / 255;
+						break;
+				}
+				o++;
+			}
+		}
+		else
+		{
+			while (i < e)
+			{
+				// Copy rop
+				*o++ = map[*i++];
+			}
+		}
+	}
+	
+	return true;
+}
+
+#endif
+
 void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 {
     Layout();
@@ -1062,86 +1163,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 	
 	if (Img && pDC && pDC->Y() > 0 && (*pDC)[0])
 	{
-		OutPx map[256];
-
-		// Create colour map of the foreground/background colours		
-		GColour fore = Font->Fore();
-		OutPx fore_px;
-		fore_px.r = fore.r();
-		fore_px.g = fore.g();
-		fore_px.b = fore.b();
-		if (Font->Transparent())
-		{
-			for (int a=0; a<256; a++)
-			{
-				map[a].r = (a * fore_px.r) / 255;
-				map[a].g = (a * fore_px.g) / 255;
-				map[a].b = (a * fore_px.b) / 255;
-			}
-		}
-		else
-		{
-			GColour back = Font->Back();
-			OutPx back_px;
-			back_px.r = back.r();
-			back_px.g = back.g();
-			back_px.b = back.b();
-
-			for (int a=0; a<256; a++)
-			{
-				int oma = 255 - a;
-				map[a].r = (oma * back_px.r) + (a * fore_px.r) / 255;
-				map[a].g = (oma * back_px.g) + (a * fore_px.g) / 255;
-				map[a].b = (oma * back_px.b) + (a * fore_px.b) / 255;
-			}
-		}
-
-		#if 1
-		for (unsigned y=0; y<Img->Y(); y++)
-		{
-			OutPx *o = ((OutPx*) (*pDC)[py + y]) + px;
-			uint8 *i = (*Img)[y];
-			uint8 *e = i + Img->X();
-			
-			if (Font->Transparent())
-			{
-				register uint8 a, oma;
-				register OutPx *m;
-				
-				while (i < e)
-				{
-					// Alpha blend map and output pixel
-					a = *i++;
-					switch (a)
-					{
-						case 0:
-							break;
-						case 255:
-							// Copy
-							*o = map[a];
-							break;
-						default:
-							// Blend
-							oma = 255 - a;
-							m = map + a;
-							o->r = ((oma * o->r) + (a * m->r)) / 255;
-							o->g = ((oma * o->g) + (a * m->g)) / 255;
-							o->b = ((oma * o->b) + (a * m->b)) / 255;
-							break;
-					}
-					o++;
-				}
-			}
-			else
-			{
-				while (i < e)
-				{
-					// Copy rop
-					*o++ = map[*i++];
-				}
-			}
-		}
-		#endif
+		CompositeText<OutPx>(pDC, Img, Font, px, py);
 	}
 	
 	#elif defined WINNATIVE
