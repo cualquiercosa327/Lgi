@@ -261,8 +261,8 @@ struct GColourComponent
 	// ((type << 4) | (size))
 	uint8 Bits;
 	
-	uint8 Type() { return (Bits >> 4) & 0xf; }
-	void Type(uint8 t) { Bits = (Bits & 0xf) | (t << 4); }
+	GComponentType Type() { return (GComponentType) ((Bits >> 4) & 0xf); }
+	void Type(GComponentType t) { Bits = (Bits & 0xf) | ((uint8)t << 4); }
 	uint8 Size() { return Bits & 0xf; }
 	void Size(uint8 t) { Bits = (Bits & 0xf0) | (t & 0xf); }
 };
@@ -271,6 +271,26 @@ union GColourSpaceBits
 {
 	uint32 All;
 	GColourComponent Bits[4];
+	
+	GColourComponent &operator[](int i)
+	{
+		static int Reverse = -1;
+		if (Reverse < 0)
+		{
+			GColourSpaceBits t;
+			t.All = 0;
+			t.Bits[0].Type(CtIndex);
+			if (t.All == 0x10)
+				Reverse = 0;
+			else if (t.All = (0x10<<24))
+				Reverse = 1;
+			else
+				LgiAssert(0);
+		}
+		if (Reverse == 1)
+			return Bits[3-i];
+		return Bits[i];
+	}
 };
 
 #ifdef WIN32

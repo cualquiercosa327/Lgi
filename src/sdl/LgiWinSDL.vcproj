@@ -63,6 +63,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="Ws2_32.lib"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories="&quot;c:\Program Files (x86)\Windows Kits\8.1\Lib\winv6.3\um\x86&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"

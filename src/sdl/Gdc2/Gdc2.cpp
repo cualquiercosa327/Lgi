@@ -430,11 +430,7 @@ struct PfComponent
 int ComponenetCmp(PfComponent *a, PfComponent *b)
 {
 	if ((a->Type == CtPad) ^ (b->Type == CtPad))
-	#if _MSC_VER
 		return (a->Type == CtPad) - (b->Type == CtPad);
-	#else
-		return (b->Type == CtPad) - (a->Type == CtPad);
-	#endif
 	int i = (a->Pos + a->Bits) - (b->Pos + b->Bits);
 	return i;
 }
@@ -443,23 +439,11 @@ GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
 {
 	GColourSpaceBits cs;
 	
-	bool Reverse = false;
 	cs.All = 0;
-	cs.Bits[0].Type(1);
+	cs[0].Type(CtIndex);
 	LgiTrace("PixelFormat2ColourSpace cs=%08x\n", cs.All);
-	/*
-	SDL_Quit();
-	exit(0);
-	*/
-	if (cs.All == (0x10 << 24))
-		Reverse = false;
-	else if (cs.All == 0x10)
-		Reverse = true;
-	else
-	{
-		LgiAssert(!"Invalid type order.");
-		return CsNone;
-	}
+	LgiAssert(cs.All == 0x10);
+	cs.All = 0;
 	
 	if (pf->BytesPerPixel <= 1)
 	{
@@ -477,9 +461,8 @@ GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
 
 		for (unsigned i=0; i<a.Length(); i++)
 		{
-			int idx = Reverse ? 3 - i : i;
-			cs.Bits[idx].Type(a[i].Type);
-			cs.Bits[idx].Size(a[i].Bits);
+			cs[i].Type(a[i].Type);
+			cs[i].Size(a[i].Bits);
 		}
 	}
 	
