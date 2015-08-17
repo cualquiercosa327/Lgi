@@ -441,6 +441,10 @@ GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
 	bool Reverse = false;
 	cs.All = 0;
 	cs.Bits[0].Type = 1;
+	cs.Bits[0].Size = 2;
+	LgiTrace("PixelFormat2ColourSpace cs=%08x\n", cs.All);
+	SDL_Quit();
+	exit(0);
 	if (cs.All == (0x10 << 24))
 		Reverse = false;
 	else if (cs.All == 0x10)
@@ -505,7 +509,7 @@ public:
 	{
 		const SDL_VideoInfo *vi = SDL_GetVideoInfo();
 		
-		if ((Screen = SDL_SetVideoMode(320, 240, 0, SDL_DOUBLEBUF)) == NULL)
+		if ((Screen = SDL_SetVideoMode(320, 240, 0, SDL_SWSURFACE)) == NULL)
 			LgiTrace("%s:%i - SDL_SetVideoMode failed.\n", _FL);
 
 		Device = d;
@@ -523,7 +527,7 @@ public:
 		ScrBits = Screen ? Screen->format->BitsPerPixel : 0;
 		ScrColourSpace = Screen ? PixelFormat2ColourSpace(Screen->format) : System32BitColourSpace;
 		
-		printf("Screen: %i x %i @ %i bpp (%s)\n", ScrX, ScrY, ScrBits, GColourSpaceToString(ScrColourSpace));
+		LgiTrace("Screen: %i x %i @ %i bpp (%s)\n", ScrX, ScrY, ScrBits, GColourSpaceToString(ScrColourSpace));
 		
 		// printf("Pixel24Size=%i\n", Pixel24Size);
 		OptVal[GDC_PROMOTE_ON_LOAD] = ScrBits;

@@ -240,6 +240,7 @@ void GDisplayString::Layout(bool Debug)
 		FT_Face Fnt = Font->Handle();
 		FT_Error error;
 		
+		LgiTrace("::Layout Fnt=%p\n", Fnt);
 		if (!Fnt)
 			return;
 		
@@ -248,6 +249,7 @@ void GDisplayString::Layout(bool Debug)
 		for (OsChar *s = Str; *s; s++)
 		{
 			FT_UInt index = FT_Get_Char_Index(Fnt, *s);
+			LgiTrace("::Layout FT_Get_Char_Index=%i\n", index);
 			if (index)
 				Glyphs.Add(index);
 		}
@@ -259,6 +261,7 @@ void GDisplayString::Layout(bool Debug)
 		for (unsigned i=0; i<Glyphs.Length(); i++)
 		{
 			error = FT_Load_Glyph(Fnt, Glyphs[i], LoadMode);
+			LgiTrace("::Layout FT_Load_Glyph=%i\n", error);
 			if (error == 0)
 			{
 				Sz.x += Fnt->glyph->metrics.horiAdvance;
@@ -271,6 +274,7 @@ void GDisplayString::Layout(bool Debug)
 		x = ((Sz.x + FScale - 1) >> FShift) + 1;
 		y = ((Sz.y + FScale - 1) >> FShift) + 1;
 		// len = Glyphs.Length();
+		LgiTrace("::Layout sz=%i,%i\n", x, y);
 		
 		if (Img.Reset(new GMemDC(x, y, CsIndex8)))
 		{
@@ -317,6 +321,10 @@ void GDisplayString::Layout(bool Debug)
 				}
 			}
 		}
+		else LgiTrace("::Layout Create MemDC failed\n");
+		
+		LgiTrace("::Layout finished\n");
+
     
 	#elif defined(__GTK_H__)
 	
@@ -1175,6 +1183,8 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 	#endif
 	*/
 	
+	LgiTrace("::Draw start.\n");
+	
 	if (Img && pDC && pDC->Y() > 0 && (*pDC)[0])
 	{
 		GColourSpace DstCs = pDC->GetColourSpace();
@@ -1196,12 +1206,16 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 			DspStrCase(Argb32, 1)
 			DspStrCase(Abgr32, 1)
 			default:
-				LgiAssert(!"Unsupported colour space.");
+				LgiTrace("::Draw Unsupported colour space.\n");
+				// LgiAssert(!"Unsupported colour space.");
 				break;
 			
 			#undef DspStrCase
 		}
 	}
+	else LgiTrace("::Draw argument error.\n");
+
+	LgiTrace("::Draw end.\n");
 	
 	#elif defined WINNATIVE
 	

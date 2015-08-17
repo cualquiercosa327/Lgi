@@ -20,9 +20,9 @@
 				<Node File="../../include/common/GFile.h" Type="3" Platforms="15" />
 				<Node File="../common/General/GFileCommon.cpp" Type="2" Platforms="15" />
 			</Node>
-			<Node Name="Interface" Type="1" Platforms="15" Open="0">
-				<Node Name="Linux" Type="1" Platforms="15" Open="0">
-					<Node Name="Headers" Type="1" Platforms="15" Open="0">
+			<Node Name="Interface" Type="1" Platforms="15" Open="1">
+				<Node Name="Linux" Type="1" Platforms="15" Open="1">
+					<Node Name="Headers" Type="1" Platforms="15" Open="1">
 						<Node File="../../include/sdl/LgiOsDefs.h" Type="3" Platforms="2" />
 					</Node>
 					<Node File="./Lgi/GApp.cpp" Type="2" Platforms="2" />
@@ -34,7 +34,7 @@
 				<Node File="../common/Lgi/GViewCommon.cpp" Type="2" Platforms="15" />
 				<Node File="../common/Lgi/GWindowCommon.cpp" Type="2" Platforms="15" />
 			</Node>
-			<Node Name="Libraries" Type="1" Platforms="15" Open="0">
+			<Node Name="Libraries" Type="1" Platforms="15" Open="1">
 				<Node File="../common/Lgi/GLibrary.cpp" Type="2" Platforms="15" />
 				<Node File="../../include/common/GLibrary.h" Type="3" Platforms="15" />
 			</Node>
@@ -54,11 +54,14 @@
 				<Node File="../../include/common/GMem.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Menus" Type="1" Platforms="15" Open="0">
-				<Node Name="Win32" Type="1" Platforms="15" Open="1">
-					<Node File="./Lgi/GMenu.cpp" Type="2" Platforms="15" />
+				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
+					<Node File="./Lgi/GMenu.cpp" Type="2" Platforms="8" />
+				</Node>
+				<Node Name="Linux" Type="1" Platforms="15" Open="0" />
+				<Node Name="Win32" Type="1" Platforms="15" Open="0">
+					<Node File="./Lgi/GMenu.cpp" Type="2" Platforms="1" />
 				</Node>
 				<Node File="../../include/common/GMenu.h" Type="3" Platforms="15" />
-				<Node File="../common/Lgi/GMenuImpl.cpp" Type="2" Platforms="15" />
 			</Node>
 			<Node Name="Process" Type="1" Platforms="15" Open="0">
 				<Node File="../common/Lgi/GProcess.cpp" Type="2" Platforms="15" />
@@ -115,9 +118,15 @@
 			<Node File="../common/Lgi/GInput.cpp" Type="2" Platforms="15" />
 		</Node>
 		<Node Name="Graphics" Type="1" Platforms="15" Open="1">
-			<Node Name="_Core" Type="1" Platforms="15" Open="0">
+			<Node Name="_Core" Type="1" Platforms="15" Open="1">
+				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
+					<Node File="./Gdc2/Gdc2.cpp" Type="2" Platforms="8" />
+				</Node>
 				<Node Name="Linux" Type="1" Platforms="15" Open="1">
-					<Node File="./Gdc2/Gdc2.cpp" Type="2" Platforms="15" />
+					<Node File="./Gdc2/Gdc2.cpp" Type="2" Platforms="2" />
+				</Node>
+				<Node Name="Win32" Type="1" Platforms="15" Open="0">
+					<Node File="./Gdc2/Gdc2.cpp" Type="2" Platforms="1" />
 				</Node>
 				<Node File="../common/Gdc2/GColour.cpp" Type="2" Platforms="15" />
 				<Node File="../../include/common/GColour.h" Type="3" Platforms="15" />
@@ -173,7 +182,7 @@
 			</Node>
 			<Node Name="Gdi Leak" Type="1" Platforms="15" Open="0" />
 		</Node>
-		<Node Name="General" Type="1" Platforms="15" Open="0">
+		<Node Name="General" Type="1" Platforms="15" Open="1">
 			<Node Name="Clipboard" Type="1" Platforms="15" Open="0">
 				<Node Name="Win32" Type="1" Platforms="15" Open="0">
 					<Node File="./Lgi/GClipBoard.cpp" Type="2" Platforms="1" />
@@ -269,6 +278,7 @@
 				<Windows>.\Makefile.windows</Windows>
 				<Linux>./Makefile.sdl</Linux>
 				<Haiku>Makefile.beos</Haiku>
+				<Mac>Makefile.macosx</Mac>
 			</Makefile>
 			<Defines>
 				<All>
@@ -283,18 +293,11 @@ WINDOWS</Debug>
 					<Release>WINNATIVE
 WINDOWS</Release>
 				</Windows>
-				<Linux />
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
 				<Linux>gcc</Linux>
 			</Compiler>
-			<Executable>
-				<Linux />
-			</Executable>
-			<Arguments>
-				<All />
-			</Arguments>
 		</General>
 		<Build>
 			<IncludePaths>
@@ -310,11 +313,9 @@ WINDOWS</Release>
 				</Windows>
 				<Linux>
 					<Debug>../../include/sdl
-/usr/include/SDL
-/usr/include/freetype2</Debug>
+/usr/include/SDL</Debug>
 					<Release>../../include/sdl
-/usr/include/SDL
-/usr/include/freetype2</Release>
+/usr/include/SDL</Release>
 				</Linux>
 				<Haiku>
 					<Debug>include/beos
@@ -354,12 +355,6 @@ be
 game
 textencoding</Release>
 				</Haiku>
-				<All>
-					<Debug>SDL
-freetype</Debug>
-					<Release>SDL
-freetype</Release>
-				</All>
 			</Libraries>
 			<TargetType>
 				<All>DynamicLibrary</All>
@@ -378,13 +373,6 @@ freetype</Release>
 					<Release>lgi_sdl</Release>
 				</Linux>
 			</TargetName>
-			<SystemIncludes>
-				<Linux />
-			</SystemIncludes>
-			<LibraryPaths>
-				<All />
-				<Linux />
-			</LibraryPaths>
 		</Build>
 		<Editor>
 			<TabSize>
@@ -399,11 +387,6 @@ freetype</Release>
 			<UseHardTabs>
 				<All>1</All>
 			</UseHardTabs>
-			<CommentFile />
-			<CommentFunction />
 		</Editor>
-		<Advanced>
-			<OtherMakefileRules />
-		</Advanced>
 	</Settings>
 </Project>

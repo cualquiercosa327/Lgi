@@ -1409,7 +1409,8 @@ GApplicator *GSurface::CreateApplicator(int Op, GColourSpace Cs)
 	}
 	else
 	{
-		LgiTrace("Error: GDeviceContext::CreateApplicator(%i, %x) failed.\n", Op, Cs);
+		const char *CsStr = GColourSpaceToString(Cs);
+		LgiTrace("Error: GDeviceContext::CreateApplicator(%i, %x, %s) failed.\n", Op, Cs, CsStr);
 		LgiAssert(!"No applicator");
 	}
 
