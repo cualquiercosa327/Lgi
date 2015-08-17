@@ -129,7 +129,7 @@
 				<Node File="../../include/common/GdcTools.h" Type="3" Platforms="15" />
 				<Node File="../../include/common/GFilter.h" Type="3" Platforms="15" />
 			</Node>
-			<Node Name="Font" Type="1" Platforms="15" Open="0">
+			<Node Name="Font" Type="1" Platforms="15" Open="1">
 				<Node File="../common/Gdc2/Font/GDisplayString.cpp" Type="2" Platforms="15" />
 				<Node File="../common/Gdc2/Font/GFont.cpp" Type="2" Platforms="15" />
 				<Node File="../../include/common/GFont.h" Type="3" Platforms="15" />
@@ -138,7 +138,7 @@
 				<Node File="../common/Gdc2/Font/GFontCodePages.cpp" Type="2" Platforms="15" />
 				<Node File="../common/Gdc2/Font/GFontSystem.cpp" Type="2" Platforms="15" />
 			</Node>
-			<Node Name="Applicators" Type="1" Platforms="15" Open="1">
+			<Node Name="Applicators" Type="1" Platforms="15" Open="0">
 				<Node File="../common/Gdc2/15Bit.cpp" Type="2" Platforms="15" />
 				<Node File="../common/Gdc2/16Bit.cpp" Type="2" Platforms="15" />
 				<Node File="../common/Gdc2/24Bit.cpp" Type="2" Platforms="15" />

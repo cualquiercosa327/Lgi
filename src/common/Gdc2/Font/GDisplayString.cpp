@@ -1156,6 +1156,8 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 	#elif defined LGI_SDL
 	
 	#if defined(MAC) || defined(LINUX)
+	typedef GRgbx32 OutPx;
+	#elif defined(MAC)
 	typedef GXrgb32 OutPx;
 	#else
 	typedef GRgb24 OutPx;
