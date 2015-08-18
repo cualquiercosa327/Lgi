@@ -293,24 +293,18 @@ WINDOWS</Debug>
 					<Release>WINNATIVE
 WINDOWS</Release>
 				</Windows>
-<<<<<<< HEAD
 				<Mac />
-=======
->>>>>>> a1e4ca6be507f76d29756d68840b9b60e4c5655d
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
 				<Linux>gcc</Linux>
 			</Compiler>
-<<<<<<< HEAD
 			<Executable>
 				<Mac />
 			</Executable>
 			<Arguments>
 				<All />
 			</Arguments>
-=======
->>>>>>> a1e4ca6be507f76d29756d68840b9b60e4c5655d
 		</General>
 		<Build>
 			<IncludePaths>
@@ -369,7 +363,6 @@ be
 game
 textencoding</Release>
 				</Haiku>
-<<<<<<< HEAD
 				<All>
 					<Debug>SDL
 freetype</Debug>
@@ -377,8 +370,6 @@ freetype</Debug>
 freetype</Release>
 				</All>
 				<Mac />
-=======
->>>>>>> a1e4ca6be507f76d29756d68840b9b60e4c5655d
 			</Libraries>
 			<TargetType>
 				<All>DynamicLibrary</All>
@@ -398,7 +389,6 @@ freetype</Release>
 				</Linux>
 				<Mac />
 			</TargetName>
-<<<<<<< HEAD
 			<SystemIncludes>
 				<Mac />
 			</SystemIncludes>
@@ -406,8 +396,6 @@ freetype</Release>
 				<All />
 				<Mac />
 			</LibraryPaths>
-=======
->>>>>>> a1e4ca6be507f76d29756d68840b9b60e4c5655d
 		</Build>
 		<Editor>
 			<TabSize>

@@ -405,7 +405,7 @@ struct PfComponent
 	int Bits;
 	int Pos;
 	
-	void Set(GComponentType type, uint32 Mask, int Loss)
+	void Set(GComponentType type, uint32 Mask)
 	{
 		Type = type;
 		Bits = 0;
@@ -419,11 +419,6 @@ struct PfComponent
 			Mask >>= 1;
 		}
 		
-		if (Loss > 0)
-		{
-			Type = CtPad;
-			Bits = Loss;
-		}
 	}
 };
 
@@ -453,10 +448,10 @@ GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
 	else
 	{	
 		GArray<PfComponent> a;
-		a.New().Set(CtRed, pf->Rmask, pf->Rloss);
-		a.New().Set(CtGreen, pf->Gmask, pf->Gloss);
-		a.New().Set(CtBlue, pf->Bmask, pf->Bloss);
-		a.New().Set(CtAlpha, pf->Amask, pf->Aloss);
+		a.New().Set(CtRed, pf->Rmask);
+		a.New().Set(CtGreen, pf->Gmask);
+		a.New().Set(CtBlue, pf->Bmask);
+		// a.New().Set(CtAlpha, pf->Amask, pf->Aloss);
 		a.Sort(ComponenetCmp);	
 
 		for (unsigned i=0; i<a.Length(); i++)
