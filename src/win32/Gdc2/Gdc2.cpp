@@ -1165,6 +1165,23 @@ GApplicatorFactory::~GApplicatorFactory()
 	}
 }
 
+class NullApplicator : public GApplicator
+{
+public:
+	const char *GetClass() { return "NullApplicator"; }
+
+	bool SetSurface(GBmpMem *d, GPalette *p = 0, GBmpMem *a = 0) { return false; }
+	void SetPtr(int x, int y) {}
+	void IncX() {}
+	void IncY() {}
+	void IncPtr(int X, int Y) {}
+	void Set() {}
+	COLOUR Get() { return 0; }
+	void VLine(int height) {}
+	void Rectangle(int x, int y) {}
+	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha = 0) { return false; }
+};
+
 GApplicator *GApplicatorFactory::NewApp(GColourSpace Cs, int Op)
 {
 	LgiAssert(_Factories >= 0 && _Factories < CountOf(_Factory));
@@ -1174,5 +1191,5 @@ GApplicator *GApplicatorFactory::NewApp(GColourSpace Cs, int Op)
 		if (a) return a;
 	}
 
-	return 0;
+	return new NullApplicator;  // At least it won't crash.
 }

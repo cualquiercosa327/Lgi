@@ -79,8 +79,8 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
-template<typename Pixel, GColourSpace ColourSpace, bool HAS_ALPHA>
-class App32 : public GApplicator
+template<typename Pixel, GColourSpace ColourSpace>
+class App32NoAlpha : public GApplicator
 {
 	union
 	{
@@ -92,7 +92,7 @@ class App32 : public GApplicator
 	GPalette *PalAlpha;
 
 public:
-	App32()
+	App32NoAlpha()
 	{
 		p = NULL;
 		ConstAlpha = 255;
@@ -157,18 +157,11 @@ public:
 		p->r = p32.r;
 		p->g = p32.g;
 		p->b = p32.b;
-		#if HAS_ALPHA
-		p->a = p32.a;
-		#endif
 	}
 	
 	COLOUR Get()
 	{
-		#if HAS_ALPHA
-		return Rgba32(p->r, p->g, p->b, p->a);
-		#else
 		return Rgb32(p->r, p->g, p->b);
-		#endif
 	}
 	
 	void VLine(int height)
@@ -177,9 +170,6 @@ public:
 		cp.r = p32.r;
 		cp.g = p32.g;
 		cp.b = p32.b;
-		#if HAS_ALPHA
-		cp.a = p32.a;
-		#endif
 		
 		while (height-- > 0)
 		{
@@ -194,9 +184,6 @@ public:
 		cp.r = p32.r;
 		cp.g = p32.g;
 		cp.b = p32.b;
-		#if HAS_ALPHA
-		cp.a = p32.a;
-		#endif
 		
 		register int lines = y;
 		register int ystep = Dest->Line;
@@ -225,9 +212,6 @@ public:
 				d->r = s->r;
 				d->g = s->g;
 				d->b = s->b;
-				#if HAS_ALPHA
-				d->a = 255;
-				#endif
 				s++;
 				d++;
 			}
@@ -252,9 +236,6 @@ public:
 				d->r = s->r;
 				d->g = s->g;
 				d->b = s->b;
-				#if HAS_ALPHA
-				d->a = s->a;
-				#endif
 				s++;
 				d++;
 			}
@@ -285,23 +266,292 @@ public:
 					d->r = s->r;
 					d->g = s->g;
 					d->b = s->b;
-					#if HAS_ALPHA
-					d->a = 255;
-					#endif
 				}
 				else if (sa > 0)
 				{
 					uint8 o = 255 - sa;
-					#if HAS_ALPHA
+
+					// NonPreMulAlpha;
+					#define NonPreMulOver32NoAlpha(c)		d->c = ((s->c * sa) + (DivLut[d->c * 255] * o)) / 255
+					
+					NonPreMulOver32NoAlpha(r);
+					NonPreMulOver32NoAlpha(g);
+					NonPreMulOver32NoAlpha(b);
+				}
+				
+				s++;
+				d++;
+			}
+
+			u8 += Dest->Line;
+		}
+		
+		return true;
+	}
+	
+	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha = NULL)
+	{
+		if (!Src)
+			return false;
+		
+		if (!SrcAlpha)
+		{
+			if (Dest->Cs == Src->Cs)
+			{
+				register uchar *s = Src->Base;
+				for (register int y=0; y<Src->y; y++)
+				{
+					MemCpy(p, s, Src->x * 3);
+					s += Src->Line;
+					u8 += Dest->Line;
+				}
+			}
+			else
+			{
+				GBmpMem Dst;
+				Dst.Base = u8;
+				Dst.x = Src->x;
+				Dst.y = Src->y;
+				Dst.Cs = Dest->Cs;
+				Dst.Line = Dest->Line;				
+				if (!LgiRopUniversal(&Dst, Src))
+				{
+					return false;
+				}
+			}
+		}
+		else
+		{
+			switch (Src->Cs)
+			{
+				#define AlphaCase(name) \
+					case Cs##name: return AlphaBlt<G##name>(Src, SrcAlpha);
+
+				AlphaCase(Rgb24);
+				AlphaCase(Bgr24);
+				AlphaCase(Xrgb32);
+				AlphaCase(Xbgr32);
+				AlphaCase(Rgbx32);
+				AlphaCase(Bgrx32);
+
+				AlphaCase(Argb32);
+				AlphaCase(Abgr32);
+				AlphaCase(Rgba32);
+				AlphaCase(Bgra32);
+
+				default:
+					LgiAssert(!"Impl me.");
+					break;
+			}
+		}
+		
+		return false;
+	}
+};
+
+template<typename Pixel, GColourSpace ColourSpace>
+class App32Alpha : public GApplicator
+{
+	union
+	{
+		uint8 *u8;
+		Pixel *p;
+	};
+	
+	int ConstAlpha;
+	GPalette *PalAlpha;
+
+public:
+	App32Alpha()
+	{
+		p = NULL;
+		ConstAlpha = 255;
+		PalAlpha = NULL;
+	}
+
+	int GetVar(int Var) { LgiAssert(0); return 0; }
+	int SetVar(int Var, NativeInt Value)
+	{
+		switch (Var)
+		{
+			case GAPP_ALPHA_A:
+			{
+				ConstAlpha = Value;
+				break;
+			}
+			case GAPP_ALPHA_PAL:
+			{
+				PalAlpha = (GPalette*)Value;
+				break;
+			}
+		}
+		return 0;
+	}
+
+	bool SetSurface(GBmpMem *d, GPalette *pal = NULL, GBmpMem *a = NULL)
+	{
+		if (d && d->Cs == ColourSpace)
+		{
+			Dest = d;
+			Pal = pal;
+			p = (Pixel*) d->Base;
+			Alpha = 0;
+			return true;
+		}
+		return false;
+	}
+
+	void SetPtr(int x, int y)
+	{
+		p = (Pixel*) (Dest->Base + (y * Dest->Line) + (x * sizeof(Pixel)));
+	}
+	
+	void IncX()
+	{
+		p++;
+	}
+	
+	void IncY()
+	{
+		u8 += Dest->Line;
+	}
+	
+	void IncPtr(int X, int Y)
+	{
+		p += X;
+		u8 += Y * Dest->Line;
+	}
+	
+	void Set()
+	{
+		p->r = p32.r;
+		p->g = p32.g;
+		p->b = p32.b;
+		p->a = p32.a;
+	}
+	
+	COLOUR Get()
+	{
+		return Rgba32(p->r, p->g, p->b, p->a);
+	}
+	
+	void VLine(int height)
+	{
+		Pixel cp;
+		cp.r = p32.r;
+		cp.g = p32.g;
+		cp.b = p32.b;
+		cp.a = p32.a;
+		
+		while (height-- > 0)
+		{
+			*p = cp;
+			u8 += Dest->Line;
+		}
+	}
+	
+	void Rectangle(int x, int y)
+	{
+		register Pixel cp;
+		cp.r = p32.r;
+		cp.g = p32.g;
+		cp.b = p32.b;
+		cp.a = p32.a;
+		
+		register int lines = y;
+		register int ystep = Dest->Line;
+		while (lines-- > 0)
+		{
+			register Pixel *i = p, *e = i + x;
+			while (i < e)
+			{
+				*i++ = cp;
+			}
+			u8 += ystep;
+		}
+	}
+	
+	template<typename T>
+	bool CopyBlt24(GBmpMem *Src)
+	{
+		for (int y=0; y<Src->y; y++)
+		{
+			register Pixel *d = p;
+			register T *s = (T*) (Src->Base + (y * Src->Line));
+			register T *e = s + Src->x;
+
+			while (s < e)
+			{
+				d->r = s->r;
+				d->g = s->g;
+				d->b = s->b;
+				d->a = 255;
+				s++;
+				d++;
+			}
+
+			u8 += Dest->Line;
+		}
+		
+		return true;
+	}
+
+	template<typename T>
+	bool CopyBlt32(GBmpMem *Src)
+	{
+		for (int y=0; y<Src->y; y++)
+		{
+			register Pixel *d = p;
+			register T *s = (T*) (Src->Base + (y * Src->Line));
+			register T *e = s + Src->x;
+
+			while (s < e)
+			{
+				d->r = s->r;
+				d->g = s->g;
+				d->b = s->b;
+				d->a = s->a;
+				s++;
+				d++;
+			}
+
+			u8 += Dest->Line;
+		}
+		
+		return true;
+	}
+	
+	template<typename T>
+	bool AlphaBlt(GBmpMem *Src, GBmpMem *SrcAlpha)
+	{
+		uchar *DivLut = Div255Lut;
+
+		for (int y=0; y<Src->y; y++)
+		{
+			register Pixel *d = p;
+			register T *s = (T*) (Src->Base + (y * Src->Line));
+			register T *e = s + Src->x;
+			register uint8 *a = Src->Base + (y * SrcAlpha->Line);
+
+			while (s < e)
+			{
+				uint8 sa = *a++;
+				if (sa == 255)
+				{
+					d->r = s->r;
+					d->g = s->g;
+					d->b = s->b;
+					d->a = 255;
+				}
+				else if (sa > 0)
+				{
+					uint8 o = 255 - sa;
 					int da = d->a;
 
 					NonPreMulAlpha;
 					NonPreMulOver32(r);
 					NonPreMulOver32(g);
 					NonPreMulOver32(b);
-					#else
-					LgiAssert(0); // FIXME
-					#endif
 				}
 				
 				s++;
@@ -396,16 +646,16 @@ GApplicator *GApp32::Create(GColourSpace Cs, int Op)
 		switch (Cs)
 		{
 			#define AppCase(name, alpha) \
-				case Cs##name: return new App32<G##name, Cs##name, alpha>();
+				case Cs##name: return new App32##alpha<G##name, Cs##name>();
 			
-			AppCase(Rgba32, 1);
-			AppCase(Bgra32, 1);
-			AppCase(Argb32, 1);
-			AppCase(Abgr32, 1);
-			AppCase(Xrgb32, 0);
-			AppCase(Rgbx32, 0);
-			AppCase(Xbgr32, 0);
-			AppCase(Bgrx32, 0);
+			AppCase(Rgba32, Alpha);
+			AppCase(Bgra32, Alpha);
+			AppCase(Argb32, Alpha);
+			AppCase(Abgr32, Alpha);
+			AppCase(Xrgb32, NoAlpha);
+			AppCase(Rgbx32, NoAlpha);
+			AppCase(Xbgr32, NoAlpha);
+			AppCase(Bgrx32, NoAlpha);
             default: break;
 		}
 	}
