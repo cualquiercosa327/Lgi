@@ -703,9 +703,10 @@ public:
 	int GetBits();
 	GScreenDC *IsScreen() { return this; }
 	bool SupportsAlphaCompositing();
-	uchar *operator[](int y) { return NULL; }
 
 	#ifndef LGI_SDL
+	uchar *operator[](int y) { return NULL; }
+
 	void GetOrigin(int &x, int &y);
 	void SetOrigin(int x, int y);
 	GRect ClipRgn();

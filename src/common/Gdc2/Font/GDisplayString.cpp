@@ -1049,8 +1049,8 @@ GdcPt2 GDisplayString::Size()
 
 #if defined LGI_SDL
 
-template<typename OutPx, bool HAS_ALPHA>
-bool CompositeText(GSurface *Out, GSurface *In, GFont *Font, int px, int py)
+template<typename OutPx>
+bool CompositeText8Alpha(GSurface *Out, GSurface *In, GFont *Font, int px, int py)
 {
 	OutPx map[256];
 
@@ -1060,8 +1060,9 @@ bool CompositeText(GSurface *Out, GSurface *In, GFont *Font, int px, int py)
 	// FIXME, do blt clipping here...
 
 	// Create colour map of the foreground/background colours		
+	register uint8 *Div255 = Div255Lut;
 	GColour fore = Font->Fore();
-	OutPx fore_px;
+	GRgb24 fore_px;
 	fore_px.r = fore.r();
 	fore_px.g = fore.g();
 	fore_px.b = fore.b();
@@ -1069,18 +1070,16 @@ bool CompositeText(GSurface *Out, GSurface *In, GFont *Font, int px, int py)
 	{
 		for (int a=0; a<256; a++)
 		{
-			map[a].r = (a * fore_px.r) / 255;
-			map[a].g = (a * fore_px.g) / 255;
-			map[a].b = (a * fore_px.b) / 255;
-			#if HAS_ALPHA
+			map[a].r = Div255[a * fore_px.r];
+			map[a].g = Div255[a * fore_px.g];
+			map[a].b = Div255[a * fore_px.b];
 			map[a].a = a;
-			#endif
 		}
 	}
 	else
 	{
 		GColour back = Font->Back();
-		OutPx back_px;
+		GRgb24 back_px;
 		back_px.r = back.r();
 		back_px.g = back.g();
 		back_px.b = back.b();
@@ -1091,16 +1090,13 @@ bool CompositeText(GSurface *Out, GSurface *In, GFont *Font, int px, int py)
 			map[a].r = (oma * back_px.r) + (a * fore_px.r) / 255;
 			map[a].g = (oma * back_px.g) + (a * fore_px.g) / 255;
 			map[a].b = (oma * back_px.b) + (a * fore_px.b) / 255;
-			#if HAS_ALPHA
 			map[a].a = 255;
-			#endif
 		}
 	}
 
-	register uint8 *Div255 = Div255Lut;
 	for (unsigned y=0; y<In->Y(); y++)
 	{
-		register OutPx *o = ((OutPx*) (*Out)[py + y]) + px;
+		register OutPx *dst = ((OutPx*) (*Out)[py + y]) + px;
 		register uint8 *i = (*In)[y];
 		if (!i) return false;
 		register uint8 *e = i + In->X();
@@ -1108,7 +1104,7 @@ bool CompositeText(GSurface *Out, GSurface *In, GFont *Font, int px, int py)
 		if (Font->Transparent())
 		{
 			register uint8 a, oma;
-			register OutPx *m;
+			register OutPx *src;
 			
 			while (i < e)
 			{
@@ -1120,21 +1116,19 @@ bool CompositeText(GSurface *Out, GSurface *In, GFont *Font, int px, int py)
 						break;
 					case 255:
 						// Copy
-						*o = map[a];
+						*dst = map[a];
 						break;
 					default:
 						// Blend
 						oma = 255 - a;
-						m = map + a;
-						o->r = Div255[(oma * o->r) + (a * m->r)];
-						o->g = Div255[(oma * o->g) + (a * m->g)];
-						o->b = Div255[(oma * o->b) + (a * m->b)];
-						#if HAS_ALPHA
-						o->a = (o->a + m->a) + Div255[o->a * m->a];
-						#endif
+						src = map + a;
+						dst->r = Div255[(oma * dst->r) + (a * src->r)];
+						dst->g = Div255[(oma * dst->g) + (a * src->g)];
+						dst->b = Div255[(oma * dst->b) + (a * src->b)];
+						dst->a = (dst->a + src->a) + Div255[dst->a * src->a];
 						break;
 				}
-				o++;
+				dst++;
 			}
 		}
 		else
@@ -1142,7 +1136,198 @@ bool CompositeText(GSurface *Out, GSurface *In, GFont *Font, int px, int py)
 			while (i < e)
 			{
 				// Copy rop
-				*o++ = map[*i++];
+				*dst++ = map[*i++];
+			}
+		}
+	}
+	
+	return true;
+}
+
+template<typename OutPx>
+bool CompositeText8NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int py)
+{
+	OutPx map[256];
+
+	if (!Out || !In || !Font)
+		return false;
+
+	// FIXME, do blt clipping here...
+
+	// Create colour map of the foreground/background colours		
+	register uint8 *Div255 = Div255Lut;
+	GColour fore = Font->Fore();
+	GRgb24 fore_px;
+	fore_px.r = fore.r();
+	fore_px.g = fore.g();
+	fore_px.b = fore.b();
+	if (Font->Transparent())
+	{
+		for (int a=0; a<256; a++)
+		{
+			map[a].r = Div255[a * fore_px.r];
+			map[a].g = Div255[a * fore_px.g];
+			map[a].b = Div255[a * fore_px.b];
+		}
+	}
+	else
+	{
+		GColour back = Font->Back();
+		GRgb24 back_px;
+		back_px.r = back.r();
+		back_px.g = back.g();
+		back_px.b = back.b();
+
+		for (int a=0; a<256; a++)
+		{
+			int oma = 255 - a;
+			map[a].r = (oma * back_px.r) + (a * fore_px.r) / 255;
+			map[a].g = (oma * back_px.g) + (a * fore_px.g) / 255;
+			map[a].b = (oma * back_px.b) + (a * fore_px.b) / 255;
+		}
+	}
+
+	for (unsigned y=0; y<In->Y(); y++)
+	{
+		register OutPx *dst = ((OutPx*) (*Out)[py + y]) + px;
+		register uint8 *i = (*In)[y];
+		if (!i) return false;
+		register uint8 *e = i + In->X();
+		
+		if (Font->Transparent())
+		{
+			register uint8 a, oma;
+			register OutPx *src;
+			
+			while (i < e)
+			{
+				// Alpha blend map and output pixel
+				a = *i++;
+				switch (a)
+				{
+					case 0:
+						break;
+					case 255:
+						// Copy
+						*dst = map[a];
+						break;
+					default:
+						// Blend
+						oma = 255 - a;
+						src = map + a;
+						dst->r = Div255[(oma * dst->r) + (a * src->r)];
+						dst->g = Div255[(oma * dst->g) + (a * src->g)];
+						dst->b = Div255[(oma * dst->b) + (a * src->b)];
+						break;
+				}
+				dst++;
+			}
+		}
+		else
+		{
+			while (i < e)
+			{
+				// Copy rop
+				*dst++ = map[*i++];
+			}
+		}
+	}
+	
+	return true;
+}
+
+template<typename OutPx>
+bool CompositeText5NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int py)
+{
+	OutPx map[256];
+
+	if (!Out || !In || !Font)
+		return false;
+
+	// FIXME, do blt clipping here...
+	#define MASK_5BIT 0x1f
+	#define MASK_6BIT 0x3f
+
+	// Create colour map of the foreground/background colours		
+	register uint8 *Div255 = Div255Lut;
+	GColour fore = Font->Fore();
+	GRgb24 fore_px;
+	fore_px.r = fore.r();
+	fore_px.g = fore.g();
+	fore_px.b = fore.b();
+	if (Font->Transparent())
+	{
+		for (int a=0; a<256; a++)
+		{
+			map[a].r = ((a * fore_px.r) / 255) >> 3;
+			map[a].g = ((a * fore_px.g) / 255) >> 2;
+			map[a].b = ((a * fore_px.b) / 255) >> 3;
+		}
+	}
+	else
+	{
+		GColour back = Font->Back();
+		GRgb24 back_px;
+		back_px.r = back.r();
+		back_px.g = back.g();
+		back_px.b = back.b();
+
+		for (int a=0; a<256; a++)
+		{
+			int oma = 255 - a;
+			map[a].r = Div255[(oma * back_px.r) + (a * fore_px.r)] >> 3;
+			map[a].g = Div255[(oma * back_px.g) + (a * fore_px.g)] >> 2;
+			map[a].b = Div255[(oma * back_px.b) + (a * fore_px.b)] >> 3;
+		}
+	}
+
+	for (unsigned y=0; y<In->Y(); y++)
+	{
+		register OutPx *dst = ((OutPx*) (*Out)[py + y]) + px;
+		register uint8 *i = (*In)[y];
+		if (!i) return false;
+		register uint8 *e = i + In->X();
+		
+		if (Font->Transparent())
+		{
+			register uint8 a;
+			register OutPx *src;
+			
+			while (i < e)
+			{
+				// Alpha blend map and output pixel
+				a = *i++;
+				switch (a)
+				{
+					case 0:
+						break;
+					case 255:
+						// Copy
+						*dst = map[a];
+						break;
+					default:
+					{
+						// Blend
+						register uint8 a5 = a >> 3;
+						register uint8 a6 = a >> 2;
+						register uint8 oma5 = MASK_5BIT - a5;
+						register uint8 oma6 = MASK_6BIT - a6;
+						src = map + a;
+						dst->r = ((oma5 * dst->r) + (a5 * src->r)) / MASK_5BIT;
+						dst->g = ((oma6 * dst->g) + (a6 * src->g)) / MASK_6BIT;
+						dst->b = ((oma5 * dst->b) + (a5 * src->b)) / MASK_5BIT;
+						break;
+					}
+				}
+				dst++;
+			}
+		}
+		else
+		{
+			while (i < e)
+			{
+				// Copy rop
+				*dst++ = map[*i++];
 			}
 		}
 	}
@@ -1190,21 +1375,24 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 		GColourSpace DstCs = pDC->GetColourSpace();
 		switch (DstCs)
 		{
-			#define DspStrCase(px_fmt, has_alpha)								\
-				case Cs##px_fmt:												\
-					CompositeText<G##px_fmt,has_alpha>(pDC, Img, Font, px, py);	\
+			#define DspStrCase(px_fmt, comp)											\
+				case Cs##px_fmt:														\
+					CompositeText##comp<G##px_fmt>(pDC, Img, Font, px, py);	\
 					break;
 			
-			DspStrCase(Rgb24, 0)
-			DspStrCase(Bgr24, 0)
-			DspStrCase(Rgbx32, 0)
-			DspStrCase(Bgrx32, 0)
-			DspStrCase(Xrgb32, 0)
-			DspStrCase(Xbgr32, 0)
-			DspStrCase(Rgba32, 1)
-			DspStrCase(Bgra32, 1)
-			DspStrCase(Argb32, 1)
-			DspStrCase(Abgr32, 1)
+			DspStrCase(Rgb16, 5NoAlpha)
+			DspStrCase(Bgr16, 5NoAlpha)
+
+			DspStrCase(Rgb24, 8NoAlpha)
+			DspStrCase(Bgr24, 8NoAlpha)
+			DspStrCase(Rgbx32, 8NoAlpha)
+			DspStrCase(Bgrx32, 8NoAlpha)
+			DspStrCase(Xrgb32, 8NoAlpha)
+			DspStrCase(Xbgr32, 8NoAlpha)
+			DspStrCase(Rgba32, 8Alpha)
+			DspStrCase(Bgra32, 8Alpha)
+			DspStrCase(Argb32, 8Alpha)
+			DspStrCase(Abgr32, 8Alpha)
 			default:
 				LgiTrace("::Draw Unsupported colour space.\n");
 				// LgiAssert(!"Unsupported colour space.");

@@ -226,7 +226,15 @@
 						>
 					</File>
 					<File
+						RelativePath="..\..\include\common\GColourSpace.h"
+						>
+					</File>
+					<File
 						RelativePath=".\Gdc2\Gdc2.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\include\common\Gdc2.h"
 						>
 					</File>
 					<File
