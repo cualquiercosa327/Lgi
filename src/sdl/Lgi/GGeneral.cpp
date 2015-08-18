@@ -1,10 +1,7 @@
-#define _WIN32_WINNT 0x500
-// Win32 Implementation of General LGI functions
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include "Lgi.h"
-#include "GRegKey.h"
 
 ////////////////////////////////////////////////////////////////
 // Local helper functions
