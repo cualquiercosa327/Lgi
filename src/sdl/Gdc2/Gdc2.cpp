@@ -529,8 +529,14 @@ public:
 	{
 		const SDL_VideoInfo *vi = SDL_GetVideoInfo();
 		
-		if ((Screen = SDL_SetVideoMode(320, 240, 0, SDL_SWSURFACE)) == NULL)
-			LgiTrace("%s:%i - SDL_SetVideoMode failed.\n", _FL);
+		Screen = NULL;
+		if (!LgiApp->GetOption("novid"))
+		{
+			printf("Calling SDL_SetVideoMode...\n");
+			if ((Screen = SDL_SetVideoMode(320, 240, 0, SDL_SWSURFACE)) == NULL)
+				LgiTrace("%s:%i - SDL_SetVideoMode failed.\n", _FL);
+		}
+		else printf("Not openning video.\n");
 
 		Device = d;
 		GlobalColour = 0;
