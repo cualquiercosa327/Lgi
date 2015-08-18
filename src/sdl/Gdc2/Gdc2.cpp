@@ -423,10 +423,12 @@ struct PfComponent
 
 int ComponenetCmp(PfComponent *a, PfComponent *b)
 {
-	if ((a->Type == CtPad) ^ (b->Type == CtPad))
-		return (a->Type == CtPad) - (b->Type == CtPad);
-	int i = (a->Pos + a->Bits) - (b->Pos + b->Bits);
-	return i;
+	int Diff = (a->Pos + a->Bits) - (b->Pos + b->Bits);
+	#ifdef WINDOWS
+	return -Diff;
+	#else
+	return Diff;
+	#endif
 }
 
 GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
@@ -450,13 +452,15 @@ GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
 		a.New().Set(CtRed, pf->Rmask);
 		a.New().Set(CtGreen, pf->Gmask);
 		a.New().Set(CtBlue, pf->Bmask);
-		// a.New().Set(CtAlpha, pf->Amask, pf->Aloss);
 		a.Sort(ComponenetCmp);	
+		if (pf->BytesPerPixel == 4)
+			a.New().Set(CtPad, 0xff);
 
+		int k = a.Length()-1;
 		for (unsigned i=0; i<a.Length(); i++)
 		{
-			cs[i].Type(a[i].Type);
-			cs[i].Size(a[i].Bits);
+			cs[k-i].Type(a[i].Type);
+			cs[k-i].Size(a[i].Bits);
 		}
 	}
 	
