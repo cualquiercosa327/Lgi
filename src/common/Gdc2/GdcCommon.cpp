@@ -855,6 +855,61 @@ GColourSpace GBitsToColourSpace(int Bits)
 	return CsNone;
 }
 
+bool GColourSpaceTest()
+{
+	union {
+		uint8 b4[4];
+		uint32 u32;
+		GBgrx32 bgrx32;
+		GXrgb32 xrgb32;
+		GRgba32 rgba32;
+	};
+	
+	bool LeastSigBit = LEAST_SIG_BIT_FIRST;
+	bool LeastSigByte = LEAST_SIG_BYTE_FIRST;
+
+	b4[0] = 1;
+	b4[1] = 2;
+	b4[2] = 3;
+	b4[3] = 4;
+	#if 0 // def LGI_SDL
+	printf("LeastSigBit=%i, LeastSigByte=%i, u32=%08x\n", LeastSigBit, LeastSigByte, u32);
+	printf("bgrx32=%i,%i,%i,%i\n", bgrx32.b, bgrx32.g, bgrx32.r, bgrx32.pad);
+	printf("xrgb32=%i,%i,%i,%i\n", xrgb32.pad, xrgb32.r, xrgb32.g, xrgb32.b);
+	#endif
+	if (bgrx32.b != 1 ||
+		bgrx32.pad != 4 ||
+		xrgb32.pad != 1 ||
+		xrgb32.b != 4)
+	{
+		LgiAssert(!"32bit colour space byte ordering wrong. Flip the value of LEAST_SIG_BYTE_FIRST");
+		return false;
+	}
+	
+	union {
+		uint16 u16;
+		GRgb16 rgb16;
+	};
+	
+	rgba32.r = 0xff;
+	rgba32.g = 0;
+	rgba32.b = 0;
+	rgba32.a = 0;
+	u16 = 0xf800;
+	#if 0 // def LGI_SDL
+	printf("rgba32=%i,%i,%i,%i or %08x\n", rgba32.r, rgba32.g, rgba32.b, rgba32.a, u32);
+	printf("rgb16=%i,%i,%i or %04x\n", rgb16.r, rgb16.g, rgb16.b, u16);
+	#endif
+	if (rgb16.r != 0x1f ||
+		rgb16.b != 0x0)
+	{
+		LgiAssert(!"16bit colour space bit ordering wrong. Flip the value of LEAST_SIG_BIT_FIRST");
+		return false;
+	}
+	
+	return true;
+}
+
 ////////////////////////////////////////////////////////////////////////
 GSurface *GInlineBmp::Create(uint32 TransparentPx)
 {

@@ -56,14 +56,14 @@ OsAppArguments::~OsAppArguments()
 	DeleteObj(d);
 }
 
-void OsAppArguments::Set(char *CmdLine)
+void OsAppArguments::Set(const char *CmdLine)
 {
 	d->Ptr.DeleteArrays();
 	
 	if (!CmdLine)
 		return;
 	
-	for (char *s = CmdLine; *s; )
+	for (const char *s = CmdLine; *s; )
 	{
 		while (*s && strchr(WhiteSpace, *s)) s++;
 		if (*s == '\'' || *s == '\"')
@@ -79,7 +79,7 @@ void OsAppArguments::Set(char *CmdLine)
 		}
 		else
 		{
-			char *e = s;
+			const char *e = s;
 			while (*e && !strchr(WhiteSpace, *e))
 				e++;
 			d->Ptr.Add(NewStr(s, e-s));
@@ -193,6 +193,13 @@ public:
 	GArray<GViewI*> DeleteLater;
 	GMouse LastMove;
 	GAutoString Name;
+	GAutoPtr<GFontCache> FontCache;
+
+	// Update handling
+	GRect DirtyRect;
+
+	// Window stack
+	GArray<GWindow*> Stack;
 	
 	// Clipboard handling
 	int Clipboard, Utf8, Utf8String;
@@ -207,6 +214,7 @@ public:
 
 	GAppPrivate() : Args(0, 0)
 	{
+		DirtyRect.ZOff(-1, -1);
 		CurEvent = 0;
 		GuiThread = LgiGetCurrentThread();
 		FileSystem = 0;
@@ -265,8 +273,9 @@ GApp::GApp(OsAppArguments &AppArgs, const char *name, GAppArguments *Args) :
 	d = new GAppPrivate;
 	Name(name);
 
-	if (SDL_Init(SDL_INIT_VIDEO) < 0)
+	if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) < 0)
 		LgiTrace("%s:%i - Couldn't initialize SDL: %s\n", _FL, SDL_GetError());
+	SDL_EnableUNICODE(true);
 
 	#ifdef LINUX
 	signal(SIGSEGV, sighandler);
@@ -275,15 +284,12 @@ GApp::GApp(OsAppArguments &AppArgs, const char *name, GAppArguments *Args) :
 	// We want our printf's NOW!
 	setvbuf(stdout,(char *)NULL,_IONBF,0); // print mesgs immediately.
 
-printf("Gapp 0\n");
 	// Save the args somewhere
 	SetAppArgs(AppArgs);
 
 	// Setup the file and graphics sub-systems
 	d->FileSystem = new GFileSystem;
-printf("Gapp 1\n");
 	d->GdcSystem = new GdcDevice;
-printf("Gapp 2\n");
 
 	srand(LgiCurrentTime());
 	LgiInitColours();
@@ -295,7 +301,6 @@ printf("Gapp 2\n");
 	SystemNormal = 0;
 	GFontType SysFontType;
 
-printf("Gapp 3\n");
 	if (SysFontType.GetSystemFont("System"))
 	{
 		SystemNormal = SysFontType.Create();
@@ -316,13 +321,11 @@ printf("Gapp 3\n");
 	if (!SystemBold)
 		SystemBold = new GFont;
 
-printf("Gapp 4\n");
 	if (!GetOption("noskin"))
 	{
 		extern GSkinEngine *CreateSkinEngine(GApp *App);
 		SkinEngine = CreateSkinEngine(this);
 	}
-printf("Gapp 5\n");
 }
 
 GApp::~GApp()
@@ -482,30 +485,30 @@ void GApp::OnSDLEvent(GMessage *m)
 				ms.Right(m->Event.button.button == SDL_BUTTON_RIGHT);
 				ms.Middle(m->Event.button.button == SDL_BUTTON_MIDDLE);
 
-				AppWnd->_Mouse(ms, false);
+				GView *gv = ms.Target->GetGView();
+				if (!gv || AppWnd->HandleViewMouse(gv, ms))
+					AppWnd->_Mouse(ms, false);
 			}
 			break;
 		}
 		case SDL_KEYDOWN:
-		{
-			if (AppWnd)
-			{
-				GKey k;
-				k.vkey = m->Event.key.keysym.sym;
-				k.c16 = m->Event.key.keysym.unicode;
-				k.Down(true);
-				AppWnd->OnKey(k);
-			}
-			break;
-		}
 		case SDL_KEYUP:
 		{
+			GKey k;
+			k.vkey = m->Event.key.keysym.sym;
+			k.c16 = m->Event.key.keysym.unicode;
+			if (m->Event.key.state & (KMOD_LSHIFT|KMOD_RSHIFT))
+				k.Shift(true);
+			if (m->Event.key.state & (KMOD_LCTRL|KMOD_RCTRL))
+				k.Ctrl(true);
+			if (m->Event.key.state & (KMOD_LALT|KMOD_RALT))
+				k.Alt(true);
+			k.Down(m->Event.type == SDL_KEYDOWN);
+				
 			if (AppWnd)
 			{
-				GKey k;
-				k.vkey = m->Event.key.keysym.sym;
-				k.c16 = m->Event.key.keysym.unicode;
-				AppWnd->OnKey(k);
+				GViewI *f = AppWnd->GetFocus();
+				AppWnd->HandleViewKey(f ? f->GetGView() : NULL, k);
 			}
 			break;
 		}
@@ -524,18 +527,34 @@ void GApp::OnSDLEvent(GMessage *m)
 		}
 		case SDL_USEREVENT:
 		{
-			if (AppWnd)
+			switch (m->Event.user.code)
 			{
-				SDL_Surface *Screen = GdcD->Handle();
-				if (Screen != NULL &&
-					m->Event.user.code == M_INVALIDATE)
+				case M_PULSE:
 				{
-					// LgiTrace("Got M_INVALIDATE\n");
+					GView *v = (GView*)m->Event.user.data1;
+					if (v)
 					{
-						GScreenDC Dc(AppWnd, Screen);
-						AppWnd->_Paint(&Dc);
+						v->OnPulse();
 					}
-					SDL_UpdateRect(Screen, 0, 0, 0, 0);
+					break;
+				}
+				case M_INVALIDATE:
+				{
+					if (AppWnd)
+					{
+						SDL_Surface *Screen = GdcD->Handle();
+						if (Screen != NULL)
+						{
+							{
+								GScreenDC Dc(AppWnd, Screen);
+								AppWnd->_Paint(&Dc);
+							}
+							SDL_UpdateRect(Screen, 0, 0, 0, 0);
+						}
+					}
+					
+					d->DirtyRect.ZOff(-1, -1);
+					break;
 				}
 			}
 			break;
@@ -554,7 +573,7 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 
 	GMessage Msg;
 	int r;
-
+	
 	if (AppWnd)
 	{
 		GRect r(0, 0, GdcD->X()-1, GdcD->Y()-1);
@@ -569,7 +588,15 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 			r = SDL_PollEvent(&Msg.Event);
 		
 		if (Msg.Event.type == SDL_QUIT)
-			break;
+		{
+			if (!AppWnd)
+				break;
+			
+			bool Close = AppWnd->OnRequestClose(false);
+			if (Close)
+				break;
+			continue;
+		}
 
 		OnSDLEvent(&Msg);
 	}
@@ -772,6 +799,10 @@ void GApp::Exit(int Code)
 	{
 		// soft exit
 		ThreadCheck();
+		
+		SDL_Event e;
+		e.type = SDL_QUIT;
+		SDL_PushEvent(&e);
 	}
 }
 
@@ -905,9 +936,56 @@ bool GApp::IsElevated()
 	#endif
 }
 
+GFontCache *GApp::GetFontCache()
+{
+	if (!d->FontCache)
+		d->FontCache.Reset(new GFontCache(SystemNormal));
+	return d->FontCache;
+}
+
 int GApp::GetCpuCount()
 {
 	return 1;
+}
+
+bool GApp::InvalidateRect(GRect &r)
+{
+	bool HasDirty = d->DirtyRect.Valid();
+	d->DirtyRect.Union(&r);
+	if (!HasDirty)
+	{
+		SDL_Event e;
+		e.type = SDL_USEREVENT;
+		e.user.code = M_INVALIDATE;
+		return SDL_PushEvent(&e) == 0;
+	}
+	
+	return true;
+}
+
+bool GApp::PushWindow(GWindow *w)
+{
+	if (!w)
+		return false;
+
+	if (AppWnd)
+		d->Stack.Add(AppWnd);
+	
+	AppWnd = w;
+	return true;
+}
+
+GWindow *GApp::PopWindow()
+{
+	if (d->Stack.Length() == 0)
+	{
+		LgiAssert(0);
+		return NULL;
+	}
+	
+	AppWnd = d->Stack.Last();
+	d->Stack.Length(d->Stack.Length()-1);
+	return AppWnd;
 }
 
 ////////////////////////////////////////////////////////////////

@@ -16,6 +16,10 @@
 #undef FontChange
 #endif
 
+#ifdef LGI_SDL
+#include "ftsynth.h"
+#endif
+
 //345678123456781234567812345678
 	//	2nd
 
@@ -172,7 +176,11 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
 
 GDisplayString::~GDisplayString()
 {
-	#if defined MAC && !defined COCOA && !defined(LGI_SDL)
+	#if defined(LGI_SDL)
+	
+		Img.Reset();
+	
+	#elif defined MAC && !defined COCOA
 
 		#if USE_CORETEXT
 
@@ -240,7 +248,7 @@ void GDisplayString::Layout(bool Debug)
 		FT_Face Fnt = Font->Handle();
 		FT_Error error;
 		
-		if (!Fnt)
+		if (!Fnt || !Str)
 			return;
 		
 		// Create an array of glyph indexes
@@ -254,29 +262,34 @@ void GDisplayString::Layout(bool Debug)
 		
 		// Measure the string...
 		GdcPt2 Sz;
-		int MaxBearingY = 0;
+		int FontHt = Font->GetHeight();
+		int AscentF = (int) (Font->Ascent() * FScale);
 		int LoadMode = FT_LOAD_FORCE_AUTOHINT;
 		for (unsigned i=0; i<Glyphs.Length(); i++)
 		{
 			error = FT_Load_Glyph(Fnt, Glyphs[i], LoadMode);
 			if (error == 0)
 			{
+				int PyF = AscentF - Fnt->glyph->metrics.horiBearingY;
+
 				Sz.x += Fnt->glyph->metrics.horiAdvance;
-				Sz.y = max(Sz.y, Fnt->glyph->metrics.height);
-				MaxBearingY = max(MaxBearingY, Fnt->glyph->metrics.horiBearingY);
+				Sz.y = max(Sz.y, PyF + Fnt->glyph->metrics.height);
 			}
 		}
 		
 		// Create the memory context to draw into
+		xf = Sz.x;
 		x = ((Sz.x + FScale - 1) >> FShift) + 1;
-		y = ((Sz.y + FScale - 1) >> FShift) + 1;
-		// len = Glyphs.Length();
+		yf = FontHt << FShift;
+		y = FontHt; // ((Sz.y + FScale - 1) >> FShift) + 1;
 		
 		if (Img.Reset(new GMemDC(x, y, CsIndex8)))
 		{
 			// Clear the context to black
 			Img->Colour(0);
 			Img->Rectangle();
+
+			bool IsItalic = Font->Italic();
 			
 			int CurX = 0;
 			int FBaseline = Fnt->size->metrics.ascender;
@@ -285,6 +298,9 @@ void GDisplayString::Layout(bool Debug)
 				error = FT_Load_Glyph(Fnt, Glyphs[i], LoadMode);
 				if (error == 0)
 				{
+					if (IsItalic)
+						FT_GlyphSlot_Oblique(Fnt->glyph);
+
 					error = FT_Render_Glyph(Fnt->glyph, FT_RENDER_MODE_NORMAL);
 					if (error == 0)
 					{
@@ -292,8 +308,18 @@ void GDisplayString::Layout(bool Debug)
 						if (bmp.buffer)
 						{
 							// Copy rendered glyph into our image memory
-							int Px = CurX >> FShift;
-							int Py = (MaxBearingY - Fnt->glyph->metrics.horiBearingY) >> FShift;
+							int Px = (CurX + (FScale >> 1)) >> FShift;
+							int PyF = AscentF - Fnt->glyph->metrics.horiBearingY;
+							int Py = PyF >> FShift;
+							int Skip = 0;
+							
+							if (Fnt->glyph->format == FT_GLYPH_FORMAT_BITMAP)
+							{
+								Px += Fnt->glyph->bitmap_left;
+								Skip = Fnt->glyph->bitmap_left < 0 ? -Fnt->glyph->bitmap_left : 0;
+								Py = (AscentF >> FShift) - Fnt->glyph->bitmap_top;
+							}
+							
 							LgiAssert(Px + bmp.width <= Img->X());
 							for (int y=0; y<bmp.rows; y++)
 							{
@@ -301,18 +327,30 @@ void GDisplayString::Layout(bool Debug)
 								uint8 *out = (*Img)[Py+y];
 								if (out)
 								{
-									out += Px;
-									memcpy(out, in, bmp.width);
+									LgiAssert(Px+Skip >= 0);
+									out += Px+Skip;
+									memcpy(out, in+Skip, bmp.width-Skip);
 								}
+								/*
 								else
 								{
 									LgiAssert(!"No scanline?");
 									break;
 								}
+								*/
 							}
 						}
 						
-						CurX += Fnt->glyph->metrics.horiAdvance;
+						if (i < Glyphs.Length() - 1)
+						{
+							FT_Vector kerning;
+							FT_Get_Kerning(Fnt, Glyphs[i], Glyphs[i+1], FT_KERNING_DEFAULT, &kerning);
+							CurX += Fnt->glyph->metrics.horiAdvance + kerning.x;
+						}
+						else
+						{
+							CurX += Fnt->glyph->metrics.horiAdvance;
+						}
 					}
 				}
 			}
@@ -1087,17 +1125,22 @@ bool CompositeText8Alpha(GSurface *Out, GSurface *In, GFont *Font, int px, int p
 		}
 	}
 
+	uint8 *StartOfBuffer = (*Out)[0];
+	uint8 *EndOfBuffer = StartOfBuffer + (Out->GetRowStep() * Out->Y());
+
 	for (unsigned y=0; y<In->Y(); y++)
 	{
-		register OutPx *dst = ((OutPx*) (*Out)[py + y]) + px;
+		register OutPx *d = ((OutPx*) (*Out)[py + y]) + px;
 		register uint8 *i = (*In)[y];
 		if (!i) return false;
 		register uint8 *e = i + In->X();
+
+		LgiAssert((uint8*)d >= StartOfBuffer);
 		
 		if (Font->Transparent())
 		{
-			register uint8 a, oma;
-			register OutPx *src;
+			register uint8 a, o;
+			register OutPx *s;
 			
 			while (i < e)
 			{
@@ -1109,19 +1152,25 @@ bool CompositeText8Alpha(GSurface *Out, GSurface *In, GFont *Font, int px, int p
 						break;
 					case 255:
 						// Copy
-						*dst = map[a];
+						*d = map[a];
 						break;
 					default:
 						// Blend
-						oma = 255 - a;
-						src = map + a;
+						o = 255 - a;
+						s = map + a;
+						#define NonPreMulOver32NoAlpha(c)		d->c = ((s->c * a) + (Div255[d->c * 255] * o)) / 255
+						NonPreMulOver32NoAlpha(r);
+						NonPreMulOver32NoAlpha(g);
+						NonPreMulOver32NoAlpha(b);
+						/*
 						dst->r = Div255[(oma * dst->r) + (a * src->r)];
 						dst->g = Div255[(oma * dst->g) + (a * src->g)];
 						dst->b = Div255[(oma * dst->b) + (a * src->b)];
 						dst->a = (dst->a + src->a) + Div255[dst->a * src->a];
+						*/
 						break;
 				}
-				dst++;
+				d++;
 			}
 		}
 		else
@@ -1129,9 +1178,11 @@ bool CompositeText8Alpha(GSurface *Out, GSurface *In, GFont *Font, int px, int p
 			while (i < e)
 			{
 				// Copy rop
-				*dst++ = map[*i++];
+				*d++ = map[*i++];
 			}
 		}
+
+		LgiAssert((uint8*)d <= EndOfBuffer);
 	}
 	
 	return true;
@@ -1174,11 +1225,14 @@ bool CompositeText8NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 		for (int a=0; a<256; a++)
 		{
 			int oma = 255 - a;
-			map[a].r = (oma * back_px.r) + (a * fore_px.r) / 255;
-			map[a].g = (oma * back_px.g) + (a * fore_px.g) / 255;
-			map[a].b = (oma * back_px.b) + (a * fore_px.b) / 255;
+			map[a].r = Div255[(oma * back_px.r) + (a * fore_px.r)];
+			map[a].g = Div255[(oma * back_px.g) + (a * fore_px.g)];
+			map[a].b = Div255[(oma * back_px.b) + (a * fore_px.b)];
 		}
 	}
+
+	uint8 *StartOfBuffer = (*Out)[0];
+	uint8 *EndOfBuffer = StartOfBuffer + (Out->GetRowStep() * Out->Y());
 
 	for (unsigned y=0; y<In->Y(); y++)
 	{
@@ -1186,6 +1240,8 @@ bool CompositeText8NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 		register uint8 *i = (*In)[y];
 		if (!i) return false;
 		register uint8 *e = i + In->X();
+
+		LgiAssert((uint8*)dst >= StartOfBuffer);
 		
 		if (Font->Transparent())
 		{
@@ -1224,6 +1280,8 @@ bool CompositeText8NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 				*dst++ = map[*i++];
 			}
 		}
+
+		LgiAssert((uint8*)dst <= EndOfBuffer);
 	}
 	
 	return true;
@@ -1274,12 +1332,20 @@ bool CompositeText5NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 		}
 	}
 
+	uint8 *StartOfBuffer = (*Out)[0];
+	uint8 *EndOfBuffer = StartOfBuffer + (Out->GetRowStep() * Out->Y());
+
 	for (unsigned y=0; y<In->Y(); y++)
 	{
-		register OutPx *dst = ((OutPx*) (*Out)[py + y]) + px;
+		register OutPx *dst = ((OutPx*) (*Out)[py + y]);
+		if (!dst)
+			continue;
+		dst += px;		
 		register uint8 *i = (*In)[y];
 		if (!i) return false;
 		register uint8 *e = i + In->X();
+
+		LgiAssert((uint8*)dst >= StartOfBuffer);
 		
 		if (Font->Transparent())
 		{
@@ -1323,6 +1389,8 @@ bool CompositeText5NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 				*dst++ = map[*i++];
 			}
 		}
+		
+		LgiAssert((uint8*)dst <= EndOfBuffer);
 	}
 	
 	return true;
@@ -1351,24 +1419,32 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 	
 	#elif defined LGI_SDL
 	
-	/* This is what the colour spaces should be by default:
-	#if defined(LINUX)
-	typedef GRgbx32 OutPx;
-	#elif defined(MAC)
-	typedef GXrgb32 OutPx;
-	#else
-	typedef GRgb24 OutPx;
-	#endif
-	*/
-	
 	if (Img && pDC && pDC->Y() > 0 && (*pDC)[0])
 	{
+		int Ox = 0, Oy = 0;
+		pDC->GetOrigin(Ox, Oy);
+
+		/*
+		if (!Font->Transparent())
+		{
+			GRect Fill;
+			if (r)
+				Fill = *r;
+			else
+			{
+				Fill.ZOff(x-1, y-1);
+				Fill.Offset(px, py);
+			}
+			Fill.Offset(-Ox, -Oy);		
+		}
+		*/
+
 		GColourSpace DstCs = pDC->GetColourSpace();
 		switch (DstCs)
 		{
 			#define DspStrCase(px_fmt, comp)											\
 				case Cs##px_fmt:														\
-					CompositeText##comp<G##px_fmt>(pDC, Img, Font, px, py);	\
+					CompositeText##comp<G##px_fmt>(pDC, Img, Font, px-Ox, py-Oy);	\
 					break;
 			
 			DspStrCase(Rgb16, 5NoAlpha)
@@ -1392,7 +1468,8 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 			#undef DspStrCase
 		}
 	}
-	else LgiTrace("::Draw argument error.\n");
+	else
+		LgiTrace("::Draw argument error.\n");
 
 	#elif defined WINNATIVE
 	

@@ -81,6 +81,7 @@ GCheckBox::GCheckBox(int id, int x, int y, int cx, int cy, const char *name, int
 	SetPos(r);
 	SetId(id);
 	SetTabStop(true);
+	LgiResources::StyleElement(this);
 }
 
 GCheckBox::~GCheckBox()
@@ -264,7 +265,7 @@ void GCheckBox::OnPosChange()
 
 void GCheckBox::OnPaint(GSurface *pDC)
 {
-	#if 1
+	#if 0
 	pDC->Colour(GColour(255, 0, 255));
 	pDC->Rectangle();
 	#endif

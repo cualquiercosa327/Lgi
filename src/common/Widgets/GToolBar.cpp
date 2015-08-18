@@ -784,6 +784,7 @@ GToolButton::GToolButton(int Bx, int By)
 	TipId = -1;
 
 	_BorderSize = 0;
+	LgiResources::StyleElement(this);
 }
 
 GToolButton::~GToolButton()
@@ -1268,6 +1269,7 @@ GToolBar::GToolBar()
 	#if defined BEOS
 	Handle()->SetViewColor(B_TRANSPARENT_COLOR);
 	#endif
+	LgiResources::StyleElement(this);
 }
 
 GToolBar::~GToolBar()

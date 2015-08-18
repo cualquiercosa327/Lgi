@@ -58,7 +58,7 @@ bool _lgi_check_file(char *Path)
 	return false;
 }
 
-void _lgi_sleep(int i)
+void LgiSleep(uint32 i)
 {
 	struct timespec request, remain;
 

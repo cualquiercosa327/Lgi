@@ -27,7 +27,7 @@ Char *StrLwr(Char *c)
 {
 	for (Char *s = c; s && *s; s++)
 	{
-		if (*s >= 'A' && *s < 'Z')
+		if (*s >= 'A' && *s <= 'Z')
 			*s = *s - 'A' + 'a';
 	}
 	return c;
@@ -38,7 +38,7 @@ Char *StrUpr(Char *c)
 {
 	for (Char *s = c; s && *s; s++)
 	{
-		if (*s >= 'a' && *s < 'z')
+		if (*s >= 'a' && *s <= 'z')
 			*s = *s - 'a' + 'A';
 	}
 	return c;

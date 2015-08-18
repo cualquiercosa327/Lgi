@@ -1498,12 +1498,10 @@ int CountNumbers(char *s)
 ResObjectImpl::SStatus ResTableLayout::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 {
 	bool Status = false;
-	if (!Tag)
+
+	if (!Tag || !Tag->IsTag(Res_Table))
 		return SError;
 	
-	if (!Tag->IsTag(Res_Table))
-		return SError;
-
 	Res_SetPos(Tag);
 	if (!Res_SetStrRef(Tag, &Ctx))
 		return SExclude;
@@ -1527,6 +1525,11 @@ ResObjectImpl::SStatus ResTableLayout::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 			v = s;
 			d->SetValue("rows", v);
 			Cy = CountNumbers(s);
+		}
+		v = Tag->GetAttr("style");
+		if (v.Str())
+		{
+			d->SetValue("style", v);
 		}
 
 		GRect Bounds(0, 0, Cx-1, Cy-1);
@@ -1589,6 +1592,8 @@ ResObjectImpl::SStatus ResTableLayout::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 								Cell->SetValue("valign", v = s);
 							if ((s = Td->GetAttr("class")))
 								Cell->SetValue("class", v = s);
+							if ((s = Td->GetAttr("style")))
+								Cell->SetValue("style", v = s);
 
 							if (v.SetList())
 							{
@@ -1699,9 +1704,9 @@ ResObjectImpl::SStatus ResTableLayout::Res_Write(GXmlTag *t)
 											Td->SetAttr("valign", v.Str());
 										}
 										if (c->GetValue("class", v) && ValidStr(v.Str()))
-										{
 											Td->SetAttr("class", v.Str());
-										}
+										if (c->GetValue("style", v) && ValidStr(v.Str()))
+											Td->SetAttr("style", v.Str());
 
 										if (c->GetValue("children", v) &&
 											v.Type == GV_LIST)

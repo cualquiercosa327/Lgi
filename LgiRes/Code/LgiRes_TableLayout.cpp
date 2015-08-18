@@ -76,6 +76,7 @@ public:
 	TableAlign AlignX;
 	TableAlign AlignY;
 	GAutoString Class; // CSS class for styling
+	GAutoString Style; // CSS styles
 
 	ResTableCell(CtrlTable *table, int cx, int cy)
 	{
@@ -143,11 +144,11 @@ public:
 
 	bool GetVariant(const char *Name, GVariant &Value, char *Array)
 	{
-		if (stricmp(Name, "span") == 0)
+		if (stricmp(Name, VAL_Span) == 0)
 		{
 			Value = Cell.Describe();
 		}
-		else if (stricmp(Name, "children") == 0)
+		else if (stricmp(Name, VAL_Children) == 0)
 		{
 			List<GVariant> c;
 			for (int i=0; i<Ctrls.Length(); i++)
@@ -157,17 +158,21 @@ public:
 			Value.SetList(&c);
 			c.DeleteObjects();
 		}
-		else if (stricmp(Name, "align") == 0)
+		else if (stricmp(Name, VAL_HorizontalAlign) == 0)
 		{
 			Value = TableAlignNames[AlignX];
 		}
-		else if (stricmp(Name, "valign") == 0)
+		else if (stricmp(Name, VAL_VerticalAlign) == 0)
 		{
 			Value = TableAlignNames[AlignY];
 		}
-		else if (stricmp(Name, "class") == 0)
+		else if (stricmp(Name, VAL_Class) == 0)
 		{
 			Value = Class.Get();
+		}
+		else if (stricmp(Name, VAL_Style) == 0)
+		{
+			Value = Style.Get();
 		}
 		else return false;
 
@@ -176,7 +181,7 @@ public:
 
 	bool SetVariant(const char *Name, GVariant &Value, char *Array)
 	{
-		if (stricmp(Name, "span") == 0)
+		if (stricmp(Name, VAL_Span) == 0)
 		{
 			GRect r;
 			if (r.SetStr(Value.Str()))
@@ -185,7 +190,7 @@ public:
 			}
 			else return false;
 		}
-		else if (stricmp(Name, "children") == 0)
+		else if (stricmp(Name, VAL_Children) == 0)
 		{
 			for (GVariant *v = Value.Value.Lst->First(); v; v = Value.Value.Lst->Next())
 			{
@@ -200,7 +205,7 @@ public:
 				}
 			}
 		}
-		else if (stricmp(Name, "align") == 0)
+		else if (stricmp(Name, VAL_HorizontalAlign) == 0)
 		{
 			if (Value.Str())
 			{
@@ -214,7 +219,7 @@ public:
 				}
 			}
 		}
-		else if (stricmp(Name, "valign") == 0)
+		else if (stricmp(Name, VAL_VerticalAlign) == 0)
 		{
 			if (Value.Str())
 			{
@@ -228,9 +233,13 @@ public:
 				}
 			}
 		}
-		else if (stricmp(Name, "class") == 0)
+		else if (stricmp(Name, VAL_Class) == 0)
 		{
 			Class.Reset(Value.ReleaseStr());
+		}
+		else if (stricmp(Name, VAL_Style) == 0)
+		{
+			Style.Reset(Value.ReleaseStr());
 		}
 		else
 		{
@@ -691,6 +700,7 @@ bool CtrlTable::GetFields(FieldTree &Fields)
 	{
 		int Id = 150;
 		Fields.Insert(this, DATA_STR, Id++, VAL_CellClass, "Cell Class");
+		Fields.Insert(this, DATA_STR, Id++, VAL_CellStyle, "Cell Style", -1, true);
 	}
 	
 	return Status;
@@ -701,9 +711,11 @@ bool CtrlTable::Serialize(FieldTree &Fields)
 	bool Status = ResDialogCtrl::Serialize(Fields);
 	
 	GArray<ResTableCell*> s;
-	if (d->GetSelected(s) == 1)
+	ResTableCell *c;
+	if (d->GetSelected(s) == 1 && ((c = s[0])) != NULL)
 	{
-		Fields.Serialize(this, VAL_CellClass, s[0]->Class);
+		Fields.Serialize(this, VAL_CellClass, c->Class);
+		Fields.Serialize(this, VAL_CellStyle, c->Style);
 	}
 	
 	return Status;

@@ -107,6 +107,7 @@ GTabView::GTabView(int id, int x, int y, int cx, int cy, const char *name, int I
 	Handle()->SetFlags(	Handle()->Flags() |
 						B_FULL_UPDATE_ON_RESIZE);
 	#endif
+	LgiResources::StyleElement(this);
 }
 
 GTabView::~GTabView()
@@ -667,6 +668,7 @@ GTabPage::GTabPage(const char *name) : ResObject(Res_Tab)
 	SetStyle(GetStyle() | WS_CLIPCHILDREN);
 	CreateClassW32(GetClass(), 0, CS_HREDRAW | CS_VREDRAW);
 	#endif
+	LgiResources::StyleElement(this);
 }
 
 GTabPage::~GTabPage()

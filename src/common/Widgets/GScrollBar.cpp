@@ -177,7 +177,11 @@ public:
 
 	void CalcRegions()
 	{
+		GRect r = Widget->GetPos();
+		Vertical = r.Y() > r.X();
+
 		int w = GetWidth();
+		int len = GetLength();
 		
 		// Button sizes
 		Sub.ZOff(w-1, w-1);
@@ -195,12 +199,18 @@ public:
 
 		// Slider
 		int Start, End;
+		#if LGI_SDL
+		int MinSize = w; // Touch UI needs large slide....
+		#else
+		int MinSize = 8;
+		#endif
+
 		if (IsValid())
 		{
 			int Range = GetRange();
-			int Size = Range ? min(Page, Range) * GetLength() / Range : GetLength();
-			if (Size < 8) Size = 8;
-			Start = Range > Page ? Value * (GetLength() - Size) / (Range - Page) : 0;
+			int Size = Range ? min(Page, Range) * len / Range : len;
+			if (Size < MinSize) Size = MinSize;
+			Start = Range > Page ? Value * (len - Size) / (Range - Page) : 0;
 			End = Start + Size;
 
 			if (IsVertical())
@@ -234,11 +244,6 @@ public:
 			}
 			else
 			{
-				/*
-				printf("::CalcRgn Vert=%i Value=%i Min=%i Max=%i Page=%i Pos=%s Len=%i Range=%i (f=%i w=%i)\n", IsVertical(), Value, Min, Max, Page, Widget->GetPos().Describe(), GetLength(), GetRange(), IsVertical() ? Widget->Y() : Widget->X(), GetWidth());
-				printf("\tSize=%i Start=%i End=%i Add=%s\n", Size, Start, End, Add.Describe());
-				*/
-
 				Slide.ZOff(End-Start-1, w-1);
 				Slide.Offset(Sub.x2+1+Start, 0);
 				
@@ -265,13 +270,6 @@ public:
 				{
 					PageAdd.ZOff(-1, -1);
 				}
-
-				/*
-				printf("H slide=%s ", Slide.Describe());
-				printf("sub=%s ", Sub.Describe());
-				printf("add=%s ", Add.Describe());
-				printf("GetLength()=%i\n", GetLength());
-				*/
 			}
 		}
 		else
@@ -426,6 +424,7 @@ GScrollBar::GScrollBar(int id, int x, int y, int cx, int cy, const char *name)
 	{
 		SetVertical(false);
 	}
+	LgiResources::StyleElement(this);
 }
 
 GScrollBar::~GScrollBar()
@@ -445,11 +444,6 @@ int GScrollBar::GetScrollSize()
 
 bool GScrollBar::Attach(GViewI *p)
 {
-	if (X() > Y())
-	{
-		SetVertical(false);
-	}
-
 	bool Status = GControl::Attach(p);
 	#if 0
 	printf("%p::Attach scroll bar to %s, Status=%i, _View=%p, Vis=%i\n",
@@ -545,10 +539,12 @@ void GScrollBar::OnMouseMove(GMouse &m)
 		{
 			if (d->GetLength())
 			{
-				int SlideSize = d->IsVertical() ? d->Slide.Y() : d->Slide.X();
+				int Range = d->GetRange();
+				int Len = d->GetLength();
+				int Size = d->IsVertical() ? d->Slide.Y() : d->Slide.X();
 				int Px = (d->IsVertical() ? m.y : m.x) - d->GetWidth() - d->SlideOffset;
-				int Off = Px * d->GetRange() / d->GetLength();
-				d->SetValue(Off);
+				int Value = Px * (Range - d->Page) / (Len - Size);
+				d->SetValue(Value);
 			}
 		}
 		else

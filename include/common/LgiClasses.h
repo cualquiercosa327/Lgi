@@ -288,8 +288,21 @@ public:
 	/// \returns true if the process is running with elevated permissions
 	bool IsElevated();
 
+	/// Gets the font cache
+	class GFontCache *GetFontCache();
+
 	// OS Specific
 	#if defined(LGI_SDL)
+
+		/// This keeps track of the dirty rectangle and issues a M_INVALIDATE
+		/// event when needed to keep the screen up to date.
+		bool InvalidateRect(GRect &r);
+		
+		/// Push a new window to the top of the window stack
+		bool PushWindow(GWindow *w);
+
+		/// Remove the top most window
+		GWindow *PopWindow();
 	
 	#elif defined(WIN32)
 
@@ -372,8 +385,12 @@ class LgiClass GView : virtual public GViewI, virtual public GBase
 	friend		long _lgi_pulse_thread(void *ptr);
 	friend 		GView *_lgi_search_children(GView *v, int &x, int &y);
 
-
 	#endif
+
+	#if defined(LGI_SDL)
+	friend Uint32 SDL_PulseCallback(Uint32 interval, GView *v);
+	#endif
+
 
 	GRect				Pos;
 	int					_InLock;
@@ -459,9 +476,8 @@ protected:
 	virtual void _Delete();
 	GViewI *FindReal(GdcPt2 *Offset = 0);
 	bool HandleCapture(GView *Wnd, bool c);
-	
-	virtual void	_Paint(GSurface *pDC = 0, int Ox = 0, int Oy = 0);
 
+	
 	#if !WINNATIVE
 
 	GView *&PopupChild();
@@ -477,6 +493,12 @@ protected:
 	/// List of children views.
 	friend class GViewIter;
 	List<GViewI>	Children;
+
+#ifdef LGI_SDL
+public:
+#endif
+	virtual void	_Paint(GSurface *pDC = 0, int Ox = 0, int Oy = 0);
+
 
 public:
 	/// \brief Creates a view/window.
@@ -738,6 +760,8 @@ public:
     bool SetCssStyle(const char *CssStyle);
     /// Gets the style of the control
     class GCss *GetCss(bool Create = false);
+    /// Sets the style of the control (will take ownership of 'css')
+    void SetCss(GCss *css);
     /// Sets the CSS foreground or background colour
 	bool SetColour(GColour &c, bool Fore);
 
@@ -1327,21 +1351,26 @@ public:
 	virtual void OnFrontSwitch(bool b);
 
 	#endif
+
+	#if defined(LGI_SDL)
+
+		virtual bool PushWindow(GWindow *v);
+		virtual GWindow *PopWindow();
 	
-	#if defined(MAC) && !defined(LGI_SDL)
+	#elif defined(MAC)
 	
-	bool &CloseRequestDone();
-	bool PostEvent(int Cmd, GMessage::Param a = 0, GMessage::Param b = 0);
-	void Quit(bool DontDelete = false);
-	#ifndef COCOA
-	OSErr HandlerCallback(DragTrackingMessage *tracking, DragRef theDrag);
-	#endif
-	int OnCommand(int Cmd, int Event, OsView Wnd);
-	GViewI *WindowFromPoint(int x, int y, bool Debug = false);
-	
+		bool &CloseRequestDone();
+		bool PostEvent(int Cmd, GMessage::Param a = 0, GMessage::Param b = 0);
+		void Quit(bool DontDelete = false);
+		#ifndef COCOA
+		OSErr HandlerCallback(DragTrackingMessage *tracking, DragRef theDrag);
+		#endif
+		int OnCommand(int Cmd, int Event, OsView Wnd);
+		GViewI *WindowFromPoint(int x, int y, bool Debug = false);
+		
 	#elif defined __GTK_H__
 	
-	void OnMap(bool m);
+		void OnMap(bool m);
 	
 	#endif
 };

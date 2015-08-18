@@ -108,6 +108,7 @@ GCombo::GCombo(int id, int x, int y, int cx, int cy, const char *name) :
 	SetDlgCode(DLGC_WANTARROWS);
 	SetStyle(GetStyle() | WS_CHILD | WS_VISIBLE);
 	#endif
+	LgiResources::StyleElement(this);
 }
 
 GCombo::~GCombo()

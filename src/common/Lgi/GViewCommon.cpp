@@ -21,7 +21,7 @@
 
 //////////////////////////////////////////////////////////////////////////////////////
 // Helper
-GdcPt2 lgi_view_offset(GViewI *v)
+GdcPt2 lgi_view_offset(GViewI *v, bool Debug = false)
 {
 	GdcPt2 Offset;
 	
@@ -31,51 +31,79 @@ GdcPt2 lgi_view_offset(GViewI *v)
 			break;
 		
 		GRect pos = p->GetPos();
-		const char *cls = p->GetClass();
+		GRect cli = p->GetClient(false);
+
+		if (Debug)
+		{
+			const char *cls = p->GetClass();
+			LgiTrace("	Off[%s] += %i,%i = %i,%i (%s)\n",
+					cls,
+					pos.x1, pos.y1,
+					Offset.x + pos.x1, Offset.y + pos.y1,
+					cli.GetStr());
+		}
 		
-		Offset.x += pos.x1;
-		Offset.y += pos.y1;
+		Offset.x += pos.x1 + cli.x1;
+		Offset.y += pos.y1 + cli.y1;
 	}
 	
 	return Offset;
 }
 
-GMouse &lgi_adjust_click(GMouse &Info, GViewI *Wnd, bool Debug)
+GMouse &lgi_adjust_click(GMouse &Info, GViewI *Wnd, bool Capturing, bool Debug)
 {
 	static GMouse Temp;
 	 
 	Temp = Info;
 	if (Wnd)
 	{
-		if (Temp.Target &&
-			Temp.Target != Wnd)
+		if (Debug
+			#if 0
+			|| Capturing
+			#endif
+			)
+			LgiTrace("AdjustClick Target=%s -> Wnd=%s, Info=%i,%i\n",
+				Info.Target?Info.Target->GetClass():"",
+				Wnd?Wnd->GetClass():"",
+				Info.x, Info.y);
+
+		if (Temp.Target != Wnd)
 		{
-			GWindow *TargetWnd = Temp.Target->GetWindow();
-			GWindow *WndWnd = Wnd->GetWindow();
-			if (TargetWnd == WndWnd)
+			if (Temp.Target)
 			{
-				GdcPt2 TargetOff = lgi_view_offset(Temp.Target);
-				GdcPt2 WndOffset = lgi_view_offset(Wnd);
+				GWindow *TargetWnd = Temp.Target->GetWindow();
+				GWindow *WndWnd = Wnd->GetWindow();
+				if (TargetWnd == WndWnd)
+				{
+					GdcPt2 TargetOff = lgi_view_offset(Temp.Target, Debug);
+					if (Debug)
+						LgiTrace("	WndOffset:\n");
+					GdcPt2 WndOffset = lgi_view_offset(Wnd, Debug);
 
-				Temp.x += TargetOff.x - WndOffset.x;
-				Temp.y += TargetOff.y - WndOffset.y;
+					Temp.x += TargetOff.x - WndOffset.x;
+					Temp.y += TargetOff.y - WndOffset.y;
 
-				GRect c = Wnd->GetClient(false);
-				Temp.x -= c.x1;
-				Temp.y -= c.y1;
+					#if 0
+					GRect c = Wnd->GetClient(false);
+					Temp.x -= c.x1;
+					Temp.y -= c.y1;
+					if (Debug)
+						LgiTrace("	CliOff -= %i,%i\n", c.x1, c.y1);
+					#endif
 
-				Temp.Target = Wnd;
+					Temp.Target = Wnd;
+				}
 			}
-		}
-		else
-		{
-			GdcPt2 Offset;
-			Temp.Target = Wnd;
-			if (Wnd->WindowVirtualOffset(&Offset))
+			else
 			{
-				GRect c = Wnd->GetClient(false);
-				Temp.x -= Offset.x + c.x1;
-				Temp.y -= Offset.y + c.y1;
+				GdcPt2 Offset;
+				Temp.Target = Wnd;
+				if (Wnd->WindowVirtualOffset(&Offset))
+				{
+					GRect c = Wnd->GetClient(false);
+					Temp.x -= Offset.x + c.x1;
+					Temp.y -= Offset.y + c.y1;
+				}
 			}
 		}
 	}
@@ -493,10 +521,8 @@ void GView::_Paint(GSurface *pDC, int Ox, int Oy)
 
 	r.Offset(Ox, Oy);
 
-	#ifndef LGI_SDL
 	// Paint this view's contents
 	OnPaint(pDC);
-	#endif
 
 	#if PAINT_VIRTUAL_CHILDREN
 	// Paint any virtual children
@@ -521,11 +547,6 @@ void GView::_Paint(GSurface *pDC, int Ox, int Oy)
 	}
 	#endif
 
-	#ifdef LGI_SDL
-	// Paint this view's contents
-	OnPaint(pDC);
-	#endif
-	
 	if (HasClient)
 		pDC->SetClient(0);
 
@@ -870,9 +891,28 @@ GViewI *GView::FindReal(GdcPt2 *Offset)
 bool GView::HandleCapture(GView *Wnd, bool c)
 {
 	if (c)
+	{
 		_Capturing = Wnd;
+		
+		#ifdef WINNATIVE
+		GdcPt2 Offset;
+		GViewI *v = _Capturing->Handle() ? _Capturing : FindReal(&Offset);
+		HWND h = v ? v->Handle() : NULL;
+		if (h)
+			SetCapture(h);
+		else
+			LgiAssert(0);
+		#endif
+	}
 	else
+	{
 		_Capturing = NULL;
+
+		#ifdef WINNATIVE
+		ReleaseCapture();
+		#endif
+	}
+
 	return true;
 }
 
@@ -1421,6 +1461,26 @@ bool GView::AttachChildren()
 
 GFont *GView::GetFont()
 {
+	const char *Cls = GetClass();
+	
+	if (!d->Font &&
+		d->Css &&
+		LgiResources::GetLoadStyles())
+	{
+		GFontCache *fc = LgiApp->GetFontCache();
+		if (fc)
+		{
+			GFont *f = fc->GetFont(d->Css);
+			if (f)
+			{
+				if (d->FontOwnType == GV_FontOwned)
+					DeleteObj(d->Font);
+				d->Font = f;
+				d->FontOwnType = GV_FontCached;
+			}
+		}
+	}
+	
 	return d->Font ? d->Font : SysFont;
 }
 
@@ -1429,20 +1489,12 @@ void GView::SetFont(GFont *Font, bool OwnIt)
 	bool Change = d->Font != Font;
 	if (Change)
 	{
-		if (d->FontOwn)
+		if (d->FontOwnType == GV_FontOwned)
 		{
 			DeleteObj(d->Font);
 		}
 
-		if (!Font)
-		{
-			Font = SysFont;
-			OwnIt = false;
-		}
-
-		d->FontOwn = OwnIt;
-		
-		GFont *Old = d->Font;
+		d->FontOwnType = OwnIt ? GV_FontOwned : GV_FontPtr;
 		d->Font = Font;
 		#if WINNATIVE
 		if (_View)
@@ -1799,13 +1851,26 @@ bool GView::SetColour(GColour &c, bool Fore)
 	return true;
 }
 
+
 bool GView::SetCssStyle(const char *CssStyle)
 {
     if (!d->Css && !d->Css.Reset(new GCss))
 		return false;
     
     const char *Defs = CssStyle;
-    return d->Css->Parse(Defs, GCss::ParseRelaxed);
+    bool b = d->Css->Parse(Defs, GCss::ParseRelaxed);
+    if (b && d->FontOwnType == GV_FontCached)
+    {
+		d->Font = NULL;
+		d->FontOwnType = GV_FontPtr;
+    }
+    
+    return b;    
+}
+
+void GView::SetCss(GCss *css)
+{
+	d->Css.Reset(css);
 }
 
 GCss *GView::GetCss(bool Create)

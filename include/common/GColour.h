@@ -69,12 +69,27 @@ public:
 	/// without modifying the object.
 	GColour Mix(GColour Tint, float RatioOfTint = 0.5);
 	// Hue Lum Sat methods
+	
+	/// Returns the hue value (0-359)
 	uint32 GetH();
+	/// Returns whether the hue is value or not
 	bool HueIsUndefined();
+	/// Returns the luminance
 	uint32 GetL();
+	/// Returns the saturation
 	uint32 GetS();	
+	/// Converts the colour space to HLS
 	bool ToHLS();	
-	void SetHLS(uint16 h, uint8 l, uint8 s);
+	/// Sets the colour to a HLS value
+	void SetHLS
+	(
+		/// (0-359)
+		uint16 h,
+		/// (0-255)
+		uint8 l,
+		/// (0-255)
+		uint8 s
+	);
 	int GetGray(int BitDepth = 8);
 	uint32 GetNative();
 	char *GetStr();

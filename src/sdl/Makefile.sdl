@@ -322,7 +322,8 @@ Gel.o : ../common/Skins/Gel/Gel.cpp ../../include/common/Lgi.h \
 	../../include/common/GCombo.h \
 	../../include/common/GCheckBox.h \
 	../../include/common/GRadioGroup.h \
-	../../include/common/GDisplayString.h
+	../../include/common/GDisplayString.h \
+	../../include/common/GCssTools.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -496,7 +497,8 @@ GDisplayString.o : ../common/Gdc2/Font/GDisplayString.cpp ../../include/common/L
 	../../include/common/GFontSelect.h \
 	../../include/common/GdiLeak.h \
 	../../include/common/GUtf8.h \
-	../../include/common/GDisplayString.h
+	../../include/common/GDisplayString.h \
+	/usr/include/freetype2/ftsynth.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -681,7 +683,8 @@ GBitmap.o : ../common/Widgets/GBitmap.cpp ../../include/common/Lgi.h \
 GButton.o : ../common/Widgets/GButton.cpp ../../include/common/Lgi.h \
 	../../include/common/GSkinEngine.h \
 	../../include/common/GButton.h \
-	../../include/common/GDisplayString.h
+	../../include/common/GDisplayString.h \
+	../../include/common/GTableLayout.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -1009,6 +1012,8 @@ md5.o : ../common/Hash/md5/md5.c
 	../../include/common/GString.h \
 	../../include/common/LgiClass.h
 
+../../../../../../../usr/include/freetype2/ftsynth.h : /usr/include/freetype2/ft2build.h
+
 ../../include/common/GAutoPtr.h : 
 
 ../../include/common/GDateTime.h : 
@@ -1246,7 +1251,11 @@ md5.o : ../common/Hash/md5/md5.c
 
 ../../include/common/LgiRes.h : ../../include/common/Res.h \
 	../../include/common/GContainers.h \
-	../../include/common/GCss.h
+	../../include/common/GCss.h \
+	../../include/common/GAutoPtr.h \
+	../../include/common/GFontCache.h
+
+../../include/common/GFontCache.h : 
 
 ../../include/common/GInput.h : 
 
@@ -1286,6 +1295,10 @@ md5.o : ../common/Hash/md5/md5.c
 ../../include/linux/GSymLookup.h : ../../include/common/GProcess.h
 
 ../../include/common/GProcess.h : ../../include/common/GStream.h
+
+../../../../../../../usr/include/freetype2/ft2build.h : /usr/include/freetype2/config/ftheader.h
+
+../../../../../../../usr/include/freetype2/config/ftheader.h : 
 
 ../../include/common/GLibrary.h : 
 
@@ -1461,10 +1474,6 @@ md5.o : ../common/Hash/md5/md5.c
 	/usr/include/SDL/SDL_error.h \
 	/usr/include/SDL/begin_code.h \
 	/usr/include/SDL/close_code.h
-
-../../../../../../../usr/include/freetype2/ft2build.h : /usr/include/freetype2/config/ftheader.h
-
-../../../../../../../usr/include/freetype2/config/ftheader.h : 
 
 ../../../../../../../usr/include/SDL/SDL_audio.h : /usr/include/SDL/SDL_stdinc.h \
 	/usr/include/SDL/SDL_error.h \

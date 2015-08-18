@@ -14,7 +14,10 @@
 #define PAINT_VIRTUAL_CHILDREN	1
 
 extern bool In_SetWindowPos;
-extern GMouse &lgi_adjust_click(GMouse &Info, GViewI *Wnd, bool Debug = false);
+extern GMouse &lgi_adjust_click(GMouse &Info,
+								GViewI *Wnd,
+								bool Capturing = false,
+								bool Debug = false);
 
 class GViewIter : public GViewIterator
 {
@@ -84,6 +87,18 @@ public:
 };
 #endif
 
+enum GViewFontType
+{
+	/// The GView has a pointer to an externally owned font.
+	GV_FontPtr,
+	/// The GView owns the font object, and must free it.
+	GV_FontOwned,
+	/// The GApp's font cache owns the object. In this case,
+	/// calling GetCssStyle on the GView will invalidate the
+	/// font ptr causing it to be re-calculated.
+	GV_FontCached,
+};
+
 class GViewPrivate
 {
 public:
@@ -103,7 +118,7 @@ public:
 	
 	// Font
 	GFont			*Font;
-	bool			FontOwn;
+	GViewFontType	FontOwnType;
 	
 	// Style
 	GAutoPtr<GCss>  Css;
@@ -133,10 +148,15 @@ public:
 		#endif
 
 	#endif
-	
-	#ifdef MAC
+
+	#if defined(MAC)
 	EventHandlerRef DndHandler;
 	GAutoString AcceptedDropFormat;
+	#endif
+	
+	#if defined(LGI_SDL)
+	SDL_TimerID PulseId;
+	int PulseLength;
 	#endif
 	
 	GViewPrivate();

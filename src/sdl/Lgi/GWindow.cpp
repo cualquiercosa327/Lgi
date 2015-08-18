@@ -149,6 +149,7 @@ bool GWindow::Visible()
 void GWindow::Visible(bool i)
 {
 	ThreadCheck();
+	GView::Visible(i);
 }
 
 bool GWindow::Obscured()
@@ -893,7 +894,17 @@ bool GWindow::UnregisterHook(GView *Target)
 
 GViewI *GWindow::GetFocus()
 {
-	return d->Focus;
+	return d->Focus ? d->Focus : this;
+}
+
+bool GWindow::PushWindow(GWindow *v)
+{
+	return LgiApp->PushWindow(v);
+}
+
+GWindow *GWindow::PopWindow()
+{
+	return LgiApp->PopWindow();
 }
 
 #if DEBUG_SETFOCUS

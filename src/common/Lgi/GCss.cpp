@@ -166,6 +166,7 @@ GCss::GCss() : Props(32, false, PropNull)
 	if (Lut.Length() == 0)
 	{
 		Lut.Add("border-collapse", PropBorderCollapse);
+		Lut.Add("border-spacing", PropBorderSpacing);
 		Lut.Add("letter-spacing", PropLetterSpacing);
 		Lut.Add("word-wrap", PropWordWrap);
 		Lut.Add("list-style", PropListStyle);
@@ -244,6 +245,7 @@ GCss::GCss() : Props(32, false, PropNull)
 		Lut.Add("clip", PropClip);
 		Lut.Add("x-rect", PropXSubRect);
 		Lut.Add("color", PropColor);
+		Lut.Add("no-paint-color", PropNoPaintColor);
 		Lut.Add("font-family", PropFontFamily);
 	}
 	
@@ -1974,6 +1976,10 @@ bool GCss::ColorDef::Parse(const char *&s)
 			s = e;
 		}
 		else return false;
+	}
+	else if (ParseWord(s, "transparent"))
+	{
+		Type = ColorTransparent;
 	}
 	else if (ParseWord(s, "rgb") && *s == '(')
 	{

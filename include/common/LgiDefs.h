@@ -565,7 +565,7 @@ enum LgiSystemPath
 // Deprecated method defines
 #ifdef __GNUC__
 #define DEPRECATED_PRE
-#define DEPRECATED_POST	__attribute__ ((deprecated))
+#define DEPRECATED_POST	__attribute__((deprecated))
 #elif defined(_MSC_VER)
 #define DEPRECATED_PRE	__declspec(deprecated)
 #define DEPRECATED_POST 

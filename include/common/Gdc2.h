@@ -412,7 +412,7 @@ public:
 	virtual Gtk::cairo_t *GetCairo() { return Cairo; }
 
 	/// Gets the drawable size, regardless of clipping or client rect
-	virtual GdcPt2 GetSize() = 0;
+	virtual GdcPt2 GetSize() { GdcPt2 p; return p; }
 
 	#elif defined(WINNATIVE)
 
@@ -449,6 +449,14 @@ public:
 	bool DrawOnAlpha(bool Draw);
 	/// Returns the surface of the alpha channel.
 	GSurface *AlphaDC() { return pAlphaDC; }
+
+	// Create sub-images (that reference the memory of this object)
+	GSurface *SubImage(GRect r);
+	GSurface *SubImage(int x1, int y1, int x2, int y2)
+	{
+		GRect r(x1, y1, x2, y2);
+		return SubImage(r);
+	}
 
 	// Applicator
 	virtual bool Applicator(GApplicator *pApp);
@@ -490,7 +498,7 @@ public:
 	/// Gets the bounds of the image as a GRect
 	GRect Bounds() { return GRect(0, 0, X()-1, Y()-1); }
 	/// Gets the length of a scanline in bytes
-	virtual int GetLine() { return (pMem) ? pMem->Line : 0; }
+	virtual int GetRowStep() { return (pMem) ? pMem->Line : 0; }
 	/// Returns the horizontal resolution of the device
 	virtual int DpiX() { return 100; }
 	/// Returns the vertical resolution of the device

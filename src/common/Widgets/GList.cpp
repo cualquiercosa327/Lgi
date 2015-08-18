@@ -839,6 +839,7 @@ GList::GList(int id, int x, int y, int cx, int cy, const char *name)
 
 	GRect r(x, y, x+cx, y+cy);
 	SetPos(r);
+	LgiResources::StyleElement(this);
 }
 
 GList::~GList()
@@ -991,8 +992,24 @@ GListItem *GList::HitItem(int x, int y, int *Index)
 	int n=0;
 	ForAllItems(i)
 	{
-		// if (y >= i->Pos.y1 && y <= i->Pos.y2)
-		if (i->Pos.Overlap(x, y))
+		if
+		(
+			(
+				// Is list mode we consider the item to have infinite width.
+				// This helps with multi-selection when the cursor falls outside
+				// the window's bounds but is still receiving mouse move messages
+				// because of mouse capture.
+				d->Mode == GListDetails
+				&&
+				y >= i->Pos.y1
+				&&
+				y <= i->Pos.y2
+			)
+			||
+			(
+				i->Pos.Overlap(x, y)
+			)
+		)
 		{
 			if (Index) *Index = n;
 			return i;

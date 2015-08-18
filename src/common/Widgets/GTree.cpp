@@ -1008,6 +1008,7 @@ GTree::GTree(int id, int x, int y, int cx, int cy, const char *name) :
 	SetStyle(GetStyle() | WS_CHILD | WS_VISIBLE | WS_TABSTOP);
 	#endif
 	SetTabStop(true);
+	LgiResources::StyleElement(this);
 }
 
 GTree::~GTree()

@@ -90,15 +90,12 @@ enum GColourSpace
 #pragma pack(1)
 #endif
 
-#ifdef _MSC_VER
-#define BIT_PACK_LSB_FIRST	1
-#else
-#define BIT_PACK_LSB_FIRST	0
-#endif
+#define LEAST_SIG_BIT_FIRST		1
+#define LEAST_SIG_BYTE_FIRST	1
 
 
 struct GRgb15 {
-	#if BIT_PACK_LSB_FIRST
+	#if LEAST_SIG_BIT_FIRST
 	uint16 b : 5;
 	uint16 g : 5;
 	uint16 r : 5;
@@ -112,7 +109,7 @@ struct GRgb15 {
 };
 
 struct GArgb15 {
-	#if BIT_PACK_LSB_FIRST
+	#if LEAST_SIG_BIT_FIRST
 	uint16 b : 5;
 	uint16 g : 5;
 	uint16 r : 5;
@@ -126,7 +123,7 @@ struct GArgb15 {
 };
 
 struct GBgr15 {
-	#if BIT_PACK_LSB_FIRST
+	#if LEAST_SIG_BIT_FIRST
 	uint16 r : 5;
 	uint16 g : 5;
 	uint16 b : 5;
@@ -140,7 +137,7 @@ struct GBgr15 {
 };
 
 struct GAbgr15 {
-	#if BIT_PACK_LSB_FIRST
+	#if LEAST_SIG_BIT_FIRST
 	uint16 r : 5;
 	uint16 g : 5;
 	uint16 b : 5;
@@ -154,19 +151,19 @@ struct GAbgr15 {
 };
 
 struct GRgb16 {
-	#if !BIT_PACK_LSB_FIRST
-	uint16 r : 5;
-	uint16 g : 6;
+	#if LEAST_SIG_BIT_FIRST
 	uint16 b : 5;
+	uint16 g : 6;
+	uint16 r : 5;
 	#else
-	uint16 b : 5;
-	uint16 g : 6;
 	uint16 r : 5;
+	uint16 g : 6;
+	uint16 b : 5;
 	#endif
 };
 
 struct GBgr16 {
-	#if BIT_PACK_LSB_FIRST
+	#if LEAST_SIG_BIT_FIRST
 	uint16 r : 5;
 	uint16 g : 6;
 	uint16 b : 5;
@@ -178,70 +175,134 @@ struct GBgr16 {
 };
 
 struct GRgb24 {
+	#if LEAST_SIG_BYTE_FIRST
 	uint8 r, g, b;
+	#else
+	uint8 b, g, r;
+	#endif
 };
 
 struct GBgr24 {
+	#if LEAST_SIG_BYTE_FIRST
 	uint8 b, g, r;
+	#else
+	uint8 r, g, b;
+	#endif
 };
 
 struct GRgba32 {
+	#if LEAST_SIG_BYTE_FIRST
 	uint8 r, g, b, a;
+	#else
+	uint8 a, b, g, r;
+	#endif
 };
 
 struct GBgra32 {
+	#if LEAST_SIG_BYTE_FIRST
 	uint8 b, g, r, a;
+	#else
+	uint8 a, r, g, b;
+	#endif
 };
 
 struct GArgb32 {
+	#if LEAST_SIG_BYTE_FIRST
 	uint8 a, r, g, b;
+	#else
+	uint8 b, g, r, a;
+	#endif
 };
 
 struct GAbgr32 {
+	#if LEAST_SIG_BYTE_FIRST
 	uint8 a, b, g, r;
+	#else
+	uint8 r, g, b, a;
+	#endif
 };
 
 struct GXrgb32 {
+	#if LEAST_SIG_BYTE_FIRST
 	uint8 pad, r, g, b;
+	#else
+	uint8 b, g, r, pad;
+	#endif
 };
 
 struct GRgbx32 {
+	#if LEAST_SIG_BYTE_FIRST
 	uint8 r, g, b, pad;
+	#else
+	uint8 pad, b, g, r;
+	#endif
 };
 
 struct GXbgr32 {
+	#if LEAST_SIG_BYTE_FIRST
 	uint8 pad, b, g, r;
+	#else
+	uint8 r, g, b, pad;
+	#endif
 };
 
 struct GBgrx32 {
+	#if LEAST_SIG_BYTE_FIRST
 	uint8 b, g, r, pad;
+	#else
+	uint8 pad, r, g, b;
+	#endif
 };
 
 #ifdef WIN32
 #pragma pack(push, 2)
 #endif
 struct GRgb48 {
+	#if LEAST_SIG_BYTE_FIRST
 	uint16 r, g, b;
+	#else
+	uint16 b, g, r;
+	#endif
 };
 
 struct GBgr48 {
+	#if LEAST_SIG_BYTE_FIRST
 	uint16 b, g, r;
+	#else
+	uint16 r, g, b;
+	#endif
 };
 
 struct GRgba64 {
+	#if LEAST_SIG_BYTE_FIRST
 	uint16 r, g, b, a;
+	#else
+	uint16 a, b, g, r;
+	#endif
 };
 
 struct GBgra64 {
+	#if LEAST_SIG_BYTE_FIRST
 	uint16 b, g, r, a;
+	#else
+	uint16 a, r, g, b;
+	#endif
 };
 
 struct GArgb64 {
+	#if LEAST_SIG_BYTE_FIRST
 	uint16 a, r, g, b;
+	#else
+	uint16 b, g, r, a;
+	#endif
 };
 
 struct GAbgr64 {
+	#if LEAST_SIG_BYTE_FIRST
 	uint16 a, b, g, r;
+	#else
+	uint16 r, g, b, a;
+	#endif
 };
 #ifdef WIN32
 #pragma pack(pop)
@@ -253,7 +314,11 @@ struct GHls32 {
 };
 
 struct GCmyk32 {
+	#if LEAST_SIG_BYTE_FIRST
 	uint8 c, m, y, k;
+	#else
+	uint8 k, y, m, c;
+	#endif
 };
 
 struct GColourComponent
@@ -315,6 +380,10 @@ LgiFunc GColourSpace GBitsToColourSpace(int Bits);
 
 /// Converts a string representation into a colour space.
 LgiFunc GColourSpace GStringToColourSpace(const char *c);
+
+/// Tests that the bit and byte ordering of the pixel structures are compiled correctly.
+/// \return true if #LEAST_SIG_BIT_FIRST and #LEAST_SIG_BYTE_FIRST are correct for this platform.
+LgiFunc bool GColourSpaceTest();
 
 #ifdef __GTK_H__
 /// Converts a GTK visual to a Lgi colour space.

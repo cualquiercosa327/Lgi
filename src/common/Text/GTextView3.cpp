@@ -388,6 +388,7 @@ GTextView3::GTextView3(	int Id,
 	r.ZOff(cx-1, cy-1);
 	r.Offset(x, y);
 	SetPos(r);
+	LgiResources::StyleElement(this);
 }
 
 GTextView3::~GTextView3()
@@ -536,7 +537,8 @@ void GTextView3::SetFont(GFont *f, bool OwnIt)
 	
 	if (OwnIt)
 	{
-		DeleteObj(Font);
+		if (Font != SysFont)
+			DeleteObj(Font);
 		Font = f;
 	}
 	else if (!Font || Font == SysFont)

@@ -743,6 +743,7 @@ GdcDevice *GdcDevice::pInstance = 0;
 GdcDevice::GdcDevice()
 {
 	LgiAssert(pInstance == 0);
+	GColourSpaceTest();
 
 	pInstance = this;
 	d = new GdcDevicePrivate(this);

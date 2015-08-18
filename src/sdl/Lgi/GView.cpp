@@ -24,7 +24,7 @@
 GViewPrivate::GViewPrivate()
 {
 	Font = 0;
-	FontOwn = false;
+	FontOwnType = GV_FontPtr;
 	CtrlId = -1;
 	DropTarget = NULL;
 	DropSource = NULL;
@@ -32,11 +32,12 @@ GViewPrivate::GViewPrivate()
 	ParentI = 0;
 	Notify = 0;
 	IsThemed = true;
+	PulseId = NULL;
 }
 
 GViewPrivate::~GViewPrivate()
 {
-	if (FontOwn)
+	if (FontOwnType == GV_FontOwned)
 	{
 		DeleteObj(Font);
 	}
@@ -68,6 +69,8 @@ GViewI *GWindowFromHandle(OsView Wnd)
 //////////////////////////////////////////////////////////////////////////////
 void GView::_Delete()
 {
+	SetPulse();
+	
 	GViewI *c;
 	#ifdef _DEBUG
 	// Sanity check..
@@ -289,6 +292,12 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 	while (p && !dynamic_cast<GWindow*>(p))
 	{
 		GViewI *Par = p->GetParent();
+		if (Par == p)
+		{
+			LgiAssert(!"Window can't be parent of itself.");
+			break;
+		}
+		
 		GView *VPar = Par ? Par->GetGView() : 0;
 		GRect w = p->GetPos();
 		GRect c = p->GetClient(false);
@@ -301,32 +310,31 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 		p = Par;
 	}
 
-	if (p)
-	{
-		SDL_Surface *Screen = GdcD->Handle();
-		if (Screen)
-		{
-			SDL_Event e;
-			e.type = SDL_USEREVENT;
-			e.user.code = M_INVALIDATE;
-			SDL_PushEvent(&e);
-			// LgiTrace("Push M_INVALIDATE\n");
-		}
-	}
+	return LgiApp->InvalidateRect(Up);
+}
 
-	return false;
+Uint32 SDL_PulseCallback(Uint32 interval, GView *v)
+{
+	SDL_Event e;
+	e.type = SDL_USEREVENT;
+	e.user.code = M_PULSE;
+	e.user.data1 = v;
+	SDL_PushEvent(&e);
+	return v->d->PulseLength;
 }
 
 void GView::SetPulse(int Length)
 {
-	if (_View)
+	if (d->PulseId > 0)
 	{
-		if (Length > 0)
-		{
-		}
-		else
-		{
-		}
+		SDL_RemoveTimer(d->PulseId);
+		d->PulseId = 0;
+	}
+	
+	if (Length > 0)
+	{
+		d->PulseLength = Length;
+		d->PulseId = SDL_AddTimer(Length, (SDL_NewTimerCallback)SDL_PulseCallback, this);
 	}
 }
 
@@ -413,22 +421,19 @@ bool GView::_Mouse(GMouse &m, bool Move)
 		return false;
 	}
 
-	if (Move)
+	GViewI *o = WindowFromPoint(m.x, m.y);
+	if (_Over != o)
 	{
-		GViewI *o = WindowFromPoint(m.x, m.y);
-		if (_Over != o)
+		if (_Over)
 		{
-			if (_Over)
-			{
-				// LgiTrace("From Over %s\n", _Over->GetClass());
-				_Over->OnMouseExit(lgi_adjust_click(m, _Over));
-			}
-			_Over = o;
-			if (_Over)
-			{
-				_Over->OnMouseEnter(lgi_adjust_click(m, _Over));
-				// LgiTrace("To Over %s\n", _Over->GetClass());
-			}
+			// LgiTrace("From Over %s\n", _Over->GetClass());
+			_Over->OnMouseExit(lgi_adjust_click(m, _Over));
+		}
+		_Over = o;
+		if (_Over)
+		{
+			_Over->OnMouseEnter(lgi_adjust_click(m, _Over));
+			// LgiTrace("To Over %s\n", _Over->GetClass());
 		}
 	}
 
@@ -438,7 +443,6 @@ bool GView::_Mouse(GMouse &m, bool Move)
 		if (Move)
 		{
 			GMouse Local = lgi_adjust_click(m, _Capturing);
-			// LgiToGtkCursor(_Capturing, _Capturing->GetCursor(Local.x, Local.y));
 			_Capturing->OnMouseMove(Local); // This can set _Capturing to NULL
 		}
 		else
@@ -452,11 +456,9 @@ bool GView::_Mouse(GMouse &m, bool Move)
 
 		GRect Client = Target->GView::GetClient(false);
 		
-		m = lgi_adjust_click(m, Target, !Move);
+		m = lgi_adjust_click(m, Target);
 		if (!Client.Valid() || Client.Overlap(m.x, m.y))
 		{
-			// LgiToGtkCursor(Target, Target->GetCursor(m.x, m.y));
-
 			if (Move)
 			{
 				Target->OnMouseMove(m);
@@ -464,13 +466,11 @@ bool GView::_Mouse(GMouse &m, bool Move)
 			else
 			{
 				#if 0
-				if (!Move)
-				{
-					char Msg[256];
-					sprintf(Msg, "_Mouse Target %s", Target->GetClass());
-					m.Trace(Msg);
-				}
+				char Msg[256];
+				sprintf_s(Msg, sizeof(Msg), "%s::OnMouseClick", Target->GetClass());
+				m.Trace(Msg);
 				#endif
+				
 				Target->OnMouseClick(m);
 			}
 		}

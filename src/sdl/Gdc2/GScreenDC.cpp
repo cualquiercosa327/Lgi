@@ -107,15 +107,20 @@ void GScreenDC::SetClient(GRect *c)
 {
 	if (c)
 	{
-		ClipRgn(c);
-		SetOrigin(-c->x1, -c->y1);
-		d->Client = *c;
+		GRect Doc(0, 0, pMem->x-1, pMem->y-1);
+		Clip = *c;
+		Clip.Bound(&Doc);
+		
+		OriginX = -c->x1;
+		OriginY = -c->y1;
 	}
 	else
 	{
 		d->Client.ZOff(-1, -1);
-		SetOrigin(0, 0);
-		ClipRgn(NULL);
+
+		OriginX = 0;
+		OriginY = 0;
+		Clip.ZOff(pMem->x-1, pMem->y-1);
 	}
 }
 

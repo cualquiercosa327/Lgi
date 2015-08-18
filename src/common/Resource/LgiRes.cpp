@@ -266,6 +266,7 @@ public:
 };
 
 GResourceContainer _ResourceOwner;
+bool LgiResources::LoadStyles = false;
 
 LgiResources::LgiResources(const char *FileName, bool Warn)
 {
@@ -415,6 +416,38 @@ LgiResources::~LgiResources()
 	Dialogs.DeleteObjects();
 	Menus.DeleteObjects();
 	DeleteObj(d);
+}
+
+bool LgiResources::StyleElement(GViewI *v)
+{
+	if (!v) return false;
+	if (!LoadStyles) return true;
+
+	for (int i=0; i<_ResourceOwner.Length(); i++)
+	{
+		LgiResources *r = _ResourceOwner[i];
+		if (r)
+		{
+			#ifdef _DEBUG
+			const char *Cls = v->GetClass();
+			#endif
+			GCss::SelArray Selectors;
+			GViewCssCb Ctx;
+			r->CssStore.Match(Selectors, &Ctx, v);
+
+			for (unsigned i=0; i<Selectors.Length(); i++)
+			{
+				const char *Defs = Selectors[i]->Style;
+				GCss *Css = v->GetCss(true);
+				if (Css && Defs)
+				{
+					Css->Parse(Defs, GCss::ParseRelaxed);
+				}
+			}
+		}
+	}
+	
+	return true;
 }
 
 ResFileFormat LgiResources::GetFormat()

@@ -424,11 +424,7 @@ struct PfComponent
 int ComponenetCmp(PfComponent *a, PfComponent *b)
 {
 	int Diff = (a->Pos + a->Bits) - (b->Pos + b->Bits);
-	#ifdef WINDOWS
-	return -Diff;
-	#else
 	return Diff;
-	#endif
 }
 
 GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
@@ -455,7 +451,11 @@ GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
 		for (int i=0; i<pf->BitsPerPixel; i++)
 		{
 			int b = 1<<i;
-			int idx = pf->BitsPerPixel - 1 - i;
+			int idx;
+			if (pf->BitsPerPixel == 16)
+				idx = pf->BitsPerPixel - 1 - i;
+			else
+				idx = i;
 			if (pf->Rmask & b)
 			{
 				LgiAssert(Bits[idx] == 'x');
@@ -472,6 +472,7 @@ GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
 				Bits[idx] = 'b';
 			}
 		}
+		// printf("Bits='%s'\n", &Bits[0]);
 
 		char Cur = 0;
 		int Idx = 0;
@@ -498,12 +499,16 @@ GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
 		}
 	}
 	
-	#ifdef _MSC_VER
-	if (pf->BytesPerPixel == 4)
-		return (GColourSpace)LgiSwap32(cs.All);
+	GColourSpace Ret = (GColourSpace)cs.All;
+	#if 0
+	printf("PixelFormat2ColourSpace sdl=%08x,%08x,%08x,%08x lgi=%s\n",
+		pf->Rmask,
+		pf->Gmask,
+		pf->Bmask,
+		pf->Amask,
+		GColourSpaceToString(Ret));
 	#endif
-	
-	return (GColourSpace)cs.All;
+	return Ret;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -612,6 +617,7 @@ public:
 GdcDevice *GdcDevice::pInstance = 0;
 GdcDevice::GdcDevice()
 {
+	GColourSpaceTest();
 	d = new GdcDevicePrivate(this);
 	pInstance = this;
 }

@@ -84,6 +84,9 @@ public:
 	GAutoString Mime, ProductId;
 	bool ThemeAware;
 
+	/// Any fonts needed for styling the elements
+	GAutoPtr<GFontCache> FontCache;
+
 	// Win32
 	bool QuitReceived;
 	List<GWin32Class> Classes;
@@ -230,6 +233,8 @@ typedef HRESULT (CALLBACK *fDllGetVersion)(DLLVERSIONINFO *);
 GApp::GApp(OsAppArguments &AppArgs, const char *AppName, GAppArguments *ObjArgs)
 {
 	// GApp instance
+	SystemNormal = 0;
+	SystemBold = 0;
 	LgiAssert(TheApp == 0);
 	TheApp = this;
 	LgiAssert(AppName);
@@ -356,8 +361,6 @@ DumpTime("gdc");
 DumpTime("vars");
 
 	// System font
-	SystemNormal = 0;
-	SystemBold = 0;
 	GFontType SysFontType;
 	if (SysFontType.GetSystemFont("System"))
 	{
@@ -1019,4 +1022,11 @@ bool GApp::IsElevated()
         CloseHandle(hToken);
 
     return fRet;
+}
+
+GFontCache *GApp::GetFontCache()
+{
+	if (!d->FontCache)
+		d->FontCache.Reset(new GFontCache(SystemNormal));
+	return d->FontCache;
 }

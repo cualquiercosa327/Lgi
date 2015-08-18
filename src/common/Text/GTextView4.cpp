@@ -13,6 +13,7 @@
 #include "GDisplayString.h"
 #include "GViewPriv.h"
 #include "GCssTools.h"
+#include "GFontCache.h"
 
 #include "GHtmlCommon.h"
 #include "GHtmlParser.h"
@@ -267,76 +268,6 @@ public:
 		}
 		
 		return ns;
-	}
-};
-
-class GFontCache
-{
-	GView *View;
-	GArray<GFont*> Fonts;
-	
-public:
-	GFontCache(GView *v)
-	{
-		View = v;
-	}
-	
-	~GFontCache()
-	{
-		Fonts.DeleteObjects();
-	}
-	
-	GFont *AddFont(	const char *Face,
-					int PtSize,
-					GCss::FontWeightType Weight)
-	{
-		// Matching existing fonts...
-		for (unsigned i=0; i<Fonts.Length(); i++)
-		{
-			GFont *f = Fonts[i];
-			if
-			(
-				f->Face() &&
-				Face &&
-				!_stricmp(f->Face(), Face) &&
-				f->PointSize() == PtSize &&
-				f->Bold() == (Weight == GCss::FontWeightBold)
-			)
-				return f;
-		}
-		
-		// No matching font... create a new one
-		GFont *f = new GFont;
-		if (f)
-		{
-			f->Bold(Weight == GCss::FontWeightBold);
-			if (!f->Create(Face, PtSize))
-			{
-				LgiAssert(0);
-				DeleteObj(f);
-				return NULL;
-			}
-			
-			Fonts.Add(f);
-		}
-		
-		return f;
-	}
-
-	GFont *GetFont(GCss *Style)
-	{
-		GFont *DefaultFont = View->GetFont();
-		if (!Style)
-			return DefaultFont;
-		
-		GCss::StringsDef Fam = Style->FontFamily();
-		GCss::Len Sz = Style->FontSize();
-		GCss::FontWeightType Weight = Style->FontWeight();
-		GCss::FontWeightType DefaultWeight = DefaultFont->Bold() ? GCss::FontWeightBold : GCss::FontWeightNormal;
-		
-		return AddFont(	Fam.Length() ? Fam[0] : DefaultFont->Face(),
-						(int) (Sz.Type == GCss::LenPt ? Sz.Value : (float)DefaultFont->PointSize()),
-						Weight != GCss::FontWeightInherit ? Weight : DefaultWeight);
 	}
 };
 
@@ -1475,7 +1406,7 @@ public:
 
 	GTv4Priv(GTextView4 *view) :
 		GHtmlParser(view),
-		GFontCache(view)
+		GFontCache(SysFont)
 	{
 		View = view;
 		WordSelectMode = false;
@@ -2752,8 +2683,9 @@ int GTextView4::WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState)
 	return Formats.Length() ? DROPEFFECT_COPY : DROPEFFECT_NONE;
 }
 
-int GTextView4::OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState)
+int GTextView4::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 {
+	/* FIXME
 	if (!_stricmp(Format, "text/uri-list") ||
 		!_stricmp(Format, "text/html") ||
 		!_stricmp(Format, "UniformResourceLocatorW"))
@@ -2772,6 +2704,7 @@ int GTextView4::OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState)
 			return DROPEFFECT_COPY;
 		}
 	}
+	*/
 
 	return DROPEFFECT_NONE;
 }

@@ -203,7 +203,11 @@ class Gdb : public GDebugger, public GThread
 				{
 					// Ok so whats the process ID?
 					#ifdef POSIX
-					int Pid = /*Gtk::*/getpgid(ThreadId);
+					int Pid = 
+					#ifdef __GTK_H__
+					Gtk::
+					#endif
+					getpgid(ThreadId);
 					if (Pid > 0 && ProcessId < 0)
 					{
 						LgiTrace("Got the thread id: %i, and pid: %i\n", ThreadId, Pid);
@@ -993,7 +997,11 @@ public:
 		}
 		
 		LgiTrace("%s:%i - sending SIGINT to %i(0x%x)...\n", _FL, ProcessId, ProcessId);
-		int result = /*Gtk::*/kill(ProcessId, SIGINT);
+		int result = 
+			#ifdef __GTK_H__
+			Gtk::
+			#endif
+			kill(ProcessId, SIGINT);
 		if (!result)
 		{
 			LgiTrace("%s:%i - success... waiting prompt\n", _FL);

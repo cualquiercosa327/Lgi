@@ -27,6 +27,7 @@ class GWindow;
 class GViewFill;
 class GView;
 class GVariant;
+class GCss;
 
 // Classes
 class GDomI
@@ -308,6 +309,9 @@ public:
 
 	/// Returns the number of cpu cores or -1 if unknown.
 	virtual int GetCpuCount() { return -1; }
+
+	/// Gets the font cache
+	virtual class GFontCache *GetFontCache() = 0;
 };
 
 class GEventsI
@@ -420,7 +424,8 @@ public:
 	virtual void SetTabStop(bool b) = 0;
 
 	// Style
-    virtual class GCss *GetCss(bool Create = false) = 0;
+    virtual GCss *GetCss(bool Create = false) = 0;
+    virtual void SetCss(GCss *css) = 0;
     virtual bool SetCssStyle(const char *CssStyle) = 0;
     virtual bool SetColour(GColour &c, bool Fore) = 0;
 	virtual GFont *GetFont() = 0;

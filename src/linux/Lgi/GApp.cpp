@@ -199,6 +199,9 @@ public:
 	GArray<GViewI*> DeleteLater;
 	GMouse LastMove;
 	GAutoString Name;
+
+	/// Any fonts needed for styling the elements
+	GAutoPtr<GFontCache> FontCache;
 	
 	// Clipboard handling
 	int Clipboard, Utf8, Utf8String;
@@ -892,6 +895,13 @@ bool GApp::IsElevated()
 int GApp::GetCpuCount()
 {
 	return 1;
+}
+
+GFontCache *GApp::GetFontCache()
+{
+	if (!d->FontCache)
+		d->FontCache.Reset(new GFontCache(SystemNormal));
+	return d->FontCache;
 }
 
 using namespace Gtk;

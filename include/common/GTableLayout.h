@@ -14,6 +14,7 @@ public:
 	GLayoutCell() {}
 	virtual ~GLayoutCell() {}
 	
+	virtual class GTableLayout *GetTable() = 0;
 	virtual bool Add(GView *v) = 0;
 	virtual bool Remove(GView *v) = 0;
 };
@@ -31,6 +32,8 @@ class LgiClass GTableLayout :
 	class GTableLayoutPrivate *d;
 
 public:
+	/// The system default cell spacing for all tables. Individual tables can have their own
+	/// cell spacing by setting the CSS property 'border-spacing'.
     static int CellSpacing;
 
 	GTableLayout(int id = -1);

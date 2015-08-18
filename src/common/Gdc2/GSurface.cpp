@@ -99,6 +99,37 @@ GSurface::~GSurface()
 	}
 }
 
+GSurface *GSurface::SubImage(GRect r)
+{
+	if (!pMem || !pMem->Base)
+		return NULL;
+		
+	GRect clip = r;
+	GRect bounds = Bounds();
+	clip.Intersection(&bounds);
+	if (!clip.Valid())
+		return false;
+
+	GAutoPtr<GSurface> s(new GSurface);
+	if (!s)
+		return NULL;
+	
+	int BytePx = pMem->GetBits() >> 3;
+	s->pMem = new GBmpMem;
+	s->pMem->Base = pMem->Base + (pMem->Line * clip.y1) + (BytePx * clip.x1);
+	s->pMem->x = clip.X();
+	s->pMem->y = clip.Y();
+	s->pMem->Line = pMem->Line;
+	s->pMem->Cs = pMem->Cs;
+	s->pMem->Flags = 0; // Don't own memory.
+	
+	s->Clip = s->Bounds();
+	s->ColourSpace = pMem->Cs;
+	s->Op(GDC_SET);
+	
+	return s.Release();
+}
+
 OsBitmap GSurface::GetBitmap()
 {
 	#if WINNATIVE

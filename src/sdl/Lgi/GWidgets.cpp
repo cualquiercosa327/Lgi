@@ -18,16 +18,16 @@
 #include "GDisplayString.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-#define GreyBackground()
-
 struct GDialogPriv
 {
 	int ModalStatus;
 	bool IsModal;
 	bool Resizable;
+	GWindow *PrevWindow;
 	
 	GDialogPriv()
 	{
+		PrevWindow = NULL;
 		IsModal = true;
 		Resizable = true;
 		ModalStatus = 0;
@@ -37,9 +37,6 @@ struct GDialogPriv
 ///////////////////////////////////////////////////////////////////////////////////////////
 GDialog::GDialog()
 	: ResObject(Res_Dialog)
-	#ifdef __GTK_H__
-	, GWindow(gtk_dialog_new())
-	#endif
 {
 	d = new GDialogPriv();
 	Name("Dialog");
@@ -100,48 +97,23 @@ bool GDialog::OnRequestClose(bool OsClose)
 	return true;
 }
 
-#define MWM_DECOR_ALL						(1L << 0)
-#define MWM_HINTS_INPUT_MODE				(1L << 2)
-#define MWM_INPUT_FULL_APPLICATION_MODAL	3L
-#define XA_ATOM								((xcb_atom_t) 4)
-
-class MotifWmHints
-{
-public:
-	ulong Flags, Functions, Decorations;
-	long InputMode;
-	ulong Status;
-	
-	MotifWmHints()
-	{
-		Flags = Functions = Status = 0;
-		Decorations = MWM_DECOR_ALL;
-		InputMode = 0;
-	}
-};
-
 int GDialog::DoModal(OsView OverrideParent)
 {
 	d->ModalStatus = -1;
-
-
 	d->IsModal = true;
-	
-	return d->ModalStatus;
-}
-
-void _Dump(GViewI *v, int Depth = 0)
-{
-	for (int i=0; i<Depth*4; i++)
-		printf(" ");
-
-	GViewIterator *it = v->IterateViews();
-	if (it)
+	d->PrevWindow = LgiApp->AppWnd;	
+	if (d->PrevWindow)
+		d->PrevWindow->PushWindow(this);
+	else
+		LgiApp->PushWindow(this);
+	LgiApp->Run();
+	if (d->IsModal)
 	{
-		for (GViewI *c=it->First(); c; c=it->Next())
-			_Dump(c, Depth+1);
-		DeleteObj(it);
-	}					
+		d->IsModal = false;
+		d->ModalStatus = 0;
+		d->PrevWindow->PopWindow();
+	}
+	return d->ModalStatus;
 }
 
 void GDialog::EndModal(int Code)
@@ -150,10 +122,12 @@ void GDialog::EndModal(int Code)
 	{
 		d->IsModal = false;
 		d->ModalStatus = Code;
+		LgiApp->Exit();
+		d->PrevWindow->PopWindow();
 	}
 	else
 	{
-		// LgiAssert(0);
+		LgiAssert(!"Not a modal dialog");
 	}
 }
 
@@ -167,8 +141,6 @@ void GDialog::EndModeless(int Code)
 {
 	Quit(Code);
 }
-
-extern GButton *FindDefault(GView *w);
 
 GMessage::Result GDialog::OnEvent(GMessage *Msg)
 {
@@ -219,402 +191,6 @@ GdcPt2 GControl::SizeOfStr(const char *Str)
 
 	return Pt;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////////////
-// Text
-/*
-GText::GText(int id, int x, int y, int cx, int cy, char *name) :
-	GControl( new DefaultOsView(this) ),
-	ResObject(Res_StaticText)
-{
-	GdcPt2 Size = SizeOfStr(name);
-	if (cx < 0) cx = Size.x;
-	if (cy < 0) cy = Size.y;
-
-	Name(name);
-	GRect r(x, y, x+cx, y+cy);
-	SetPos(r);
-	SetId(id);
-
-	GreyBackground();
-}
-
-GText::~GText()
-{
-}
-
-int GText::Value()
-{
-	int Status = 0;
-	char *n = Name();
-	if (n)
-	{
-		Status = atoi(n);
-	}
-	return Status;
-}
-
-void GText::Value(int i)
-{
-	char n[32];
-	sprintf(n, "%i", i);
-	Name(n);
-}
-
-void GText::OnPaint(GSurface *pDC)
-{
-	pDC->Colour(LC_MED, 24);
-	pDC->Rectangle();
-
-	int Ly = SysFont->Y("A");
-	int y = 0;
-	char *e = 0;
-	for (char *s = Name(); s && *s; s = e?e+1:0)
-	{
-		e = strchr(s, '\n');
-		
-		int l = e ? (int)e - (int)s : strlen(s);
-
-		SysFont->Transparent(true);
-		
-		if (Enabled())
-		{
-			SysFont->Colour(LC_TEXT, LC_MED);
-			SysFont->Text(pDC, 0, y, s, l);
-		}
-		else
-		{
-			SysFont->Colour(LC_LIGHT, LC_MED);
-			SysFont->Text(pDC, 1, y+1, s, l);
-			
-			SysFont->Colour(LC_LOW, LC_MED);
-			SysFont->Text(pDC, 0, y, s, l);
-		}
-		
-		y += Ly;
-	}
-}
-
-int GText::OnEvent(GMessage *Msg)
-{
-	return 0;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////
-// Radio group
-int GRadioGroup::NextId = 20000;
-
-GRadioGroup::GRadioGroup(int id, int x, int y, int cx, int cy, char *name, int Init)
-	: ResObject(Res_Group)
-{
-	Name(name);
-	GRect r(x, y, x+cx, y+cy);
-	SetPos(r);
-	SetId(id);
-	Val = Init;
-
-	GreyBackground();
-}
-
-GRadioGroup::~GRadioGroup()
-{
-}
-
-void GRadioGroup::OnCreate()
-{
-	AttachChildren();
-	Value(Val);
-}
-
-int GRadioGroup::Value()
-{
-	int i=0;
-	for (	GView *w = Children.First();
-			w;
-			w = Children.Next())
-	{
-		GRadioButton *But = dynamic_cast<GRadioButton*>(w);
-		if (But)
-		{
-			if (But->Value())
-			{
-				Val = i;
-				break;
-			}
-			i++;
-		}
-	}
-
-	return Val;
-}
-
-void GRadioGroup::Value(int Which)
-{
-	Val = Which;
-
-	int i=0;
-	for (	GView *w = Children.First();
-			w;
-			w = Children.Next())
-	{
-		GRadioButton *But = dynamic_cast<GRadioButton*>(w);
-		if (But)
-		{
-			if (i == Which)
-			{
-				But->Value(true);
-				break;
-			}
-			i++;
-		}
-	}
-}
-
-int GRadioGroup::OnNotify(GViewI *Ctrl, int Flags)
-{
-	GView *n = GetNotify() ? GetNotify() : GetParent();
-	if (n)
-	{
-		if (dynamic_cast<GRadioButton*>(Ctrl))
-		{
-			return n->OnNotify(this, Flags);
-		}
-		else
-		{
-			return n->OnNotify(Ctrl, Flags);
-		}
-	}
-	return 0;
-}
-
-int GRadioGroup::OnEvent(GMessage *Msg)
-{
-	return 0;
-}
-
-void GRadioGroup::OnPaint(GSurface *pDC)
-{
-	pDC->Colour(LC_MED, 24);
-	pDC->Rectangle();
-
-	int y = SysFont->Y("A");
-	GRect b(0, y/2, X()-1, Y()-1);
-	LgiWideBorder(pDC, b, CHISEL);
-
-	char *n = Name();
-	if (n)
-	{
-		int x;
-		SysFont->Size(&x, &y, n);
-		GRect t;
-		t.ZOff(x, y);
-		t.Offset(6, 0);
-		SysFont->Colour(LC_TEXT, LC_MED);
-		SysFont->Transparent(false);
-		SysFont->Text(pDC, t.x1, t.y1, n, -1, &t);
-	}
-}
-
-GRadioButton *GRadioGroup::Append(int x, int y, char *name)
-{
-	GRadioButton *But = new GRadioButton(NextId++, x, y, -1, -1, name, Children.GetItems() == 0);
-	if (But)
-	{
-		Children.Insert(But);
-	}
-
-	return But;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////
-// Radio button
-GRadioButton::GRadioButton(int id, int x, int y, int cx, int cy, char *name, bool first) :
-	GControl( new DefaultOsView(this) ),
-	ResObject(Res_RadioBox)
-{
-	GdcPt2 Size = SizeOfStr(name);
-	if (cx < 0) cx = Size.x + 26;
-	if (cy < 0) cy = Size.y + 6;
-
-	Name(name);
-	GRect r(x, y, x+cx, y+cy);
-	SetPos(r);
-	SetId(id);
-	Val = false;
-	Over = false;
-	Handle()->isTabStop(true);
-
-	GreyBackground();
-}
-
-GRadioButton::~GRadioButton()
-{
-}
-
-int GRadioButton::Value()
-{
-	return Val;
-}
-
-void GRadioButton::Value(int i)
-{
-	if (Val != i)
-	{
-		if (i)
-		{
-			// remove the value from the currenly selected radio value
-			GView *p = GetParent();
-			if (p)
-			{
-				Iterator<GViewI> l(&p->Children);
-				for (GViewI *c=l.First(); c; c=l.Next())
-				{
-					if (c != this)
-					{
-						GRadioButton *b = dynamic_cast<GRadioButton*>(c);
-						if (b && b->Val)
-						{
-							b->Val = false;
-							b->Invalidate();
-						}
-					}
-				}
-			}
-		}
-
-		Val = i;
-		Invalidate();
-
-		if (i)
-		{
-			GView *n = GetNotify() ? GetNotify() : GetParent();
-			if (n)
-			{
-				n->OnNotify(this, 0);
-			}
-		}
-	}
-}
-
-int GRadioButton::OnEvent(GMessage *Msg)
-{
-	return 0;
-}
-
-void GRadioButton::OnMouseClick(GMouse &m)
-{
-	if (Enabled())
-	{
-		Capture(m.Down());
-		Over = m.Down();
-	
-		GRect r(0, 0, X()-1, Y()-1);
-		if (!m.Down() &&
-			r.Overlap(m.x, m.y))
-		{
-			Value(true);
-		}
-		else
-		{
-			Invalidate();
-		}
-	}
-}
-
-void GRadioButton::OnMouseEnter(GMouse &m)
-{
-	if (Enabled() && IsCapturing())
-	{
-		Over = true;
-		Invalidate();
-	}
-}
-
-void GRadioButton::OnMouseExit(GMouse &m)
-{
-	if (Enabled() && IsCapturing())
-	{
-		Over = false;
-		Invalidate();
-	}
-}
-
-void GRadioButton::OnKey(GKey &k)
-{
-}
-
-void GRadioButton::OnFocus(bool f)
-{
-	Invalidate();
-}
-
-void GRadioButton::OnPaint(GSurface *pDC)
-{
-	GRect r(0, 0, X()-1, Y()-1);
-	GRect c(0, 0, 12, 12);
-	pDC->Colour(LC_MED, 24);
-	pDC->Rectangle();
-
-	bool e = Enabled();
-	char *n = Name();
-	if (n)
-	{
-		GRect t = r;
-		t.x1 = c.x2 + 1;
-		
-		int Off = e ? 0 : 1;
-		SysFont->Colour(e ? LC_TEXT : LC_LIGHT, LC_MED);
-		SysFont->Transparent(false);
-		SysFont->Text(pDC, t.x1 + 5 + Off, t.y1 + Off, n, -1, &t);
-
-		if (!e)
-		{
-			SysFont->Transparent(true);
-			SysFont->Colour(LC_LOW, LC_MED);
-			SysFont->Text(pDC, t.x1 + 5, t.y1, n, -1, &t);
-		}
-	}
-
-	// Draw border
-	pDC->Colour(LC_LOW, 24);
-	pDC->Line(c.x1+1, c.y1+9, c.x1+1, c.y1+10);
-	pDC->Line(c.x1, c.y1+4, c.x1, c.y1+8);
-	pDC->Line(c.x1+1, c.y1+2, c.x1+1, c.y1+3);
-	pDC->Line(c.x1+2, c.y1+1, c.x1+3, c.y1+1);
-	pDC->Line(c.x1+4, c.y1, c.x1+8, c.y1);
-	pDC->Line(c.x1+9, c.y1+1, c.x1+10, c.y1+1);
-
-	pDC->Colour(LC_SHADOW, 24);
-	pDC->Set(c.x1+2, c.y1+9);
-	pDC->Line(c.x1+1, c.y1+4, c.x1+1, c.y1+8);
-	pDC->Line(c.x1+2, c.y1+2, c.x1+2, c.y1+3);
-	pDC->Set(c.x1+3, c.y1+2);
-	pDC->Line(c.x1+4, c.y1+1, c.x1+8, c.y1+1);
-	pDC->Set(c.x1+9, c.y1+2);
-
-	pDC->Colour(LC_LIGHT, 24);
-	pDC->Line(c.x1+11, c.y1+2, c.x1+11, c.y1+3);
-	pDC->Line(c.x1+12, c.y1+4, c.x1+12, c.y1+8);
-	pDC->Line(c.x1+11, c.y1+9, c.x1+11, c.y1+10);
-	pDC->Line(c.x1+9, c.y1+11, c.x1+10, c.y1+11);
-	pDC->Line(c.x1+4, c.y1+12, c.x1+8, c.y1+12);
-	pDC->Line(c.x1+2, c.y1+11, c.x1+3, c.y1+11);
-
-	/// Draw center
-	pDC->Colour(Over || !e ? LC_MED : LC_WORKSPACE, 24);
-	pDC->Rectangle(c.x1+2, c.y1+4, c.x1+10, c.y1+8);
-	pDC->Box(c.x1+3, c.y1+3, c.x1+9, c.y1+9);
-	pDC->Box(c.x1+4, c.y1+2, c.x1+8, c.y1+10);
-
-	// Draw value
-	if (Val)
-	{
-		pDC->Colour(e ? LC_TEXT : LC_LOW, 24);
-		pDC->Rectangle(c.x1+4, c.y1+5, c.x1+8, c.y1+7);
-		pDC->Rectangle(c.x1+5, c.y1+4, c.x1+7, c.y1+8);
-	}
-}
-*/
 
 //////////////////////////////////////////////////////////////////////////////////
 // Slider control

@@ -51,6 +51,7 @@ GText::GText(int id, int x, int y, int cx, int cy, const char *name) :
 	GRect r(x, y, x+cx, y+cy);
 	SetPos(r);
 	SetId(id);
+	LgiResources::StyleElement(this);
 }
 
 GText::~GText()
@@ -140,21 +141,23 @@ void GText::OnPaint(GSurface *pDC)
 	bool Status = false;
 
 	GColour Fore, Back;
+	Fore.Set(LC_TEXT, 24);
+	Back.Set(LC_MED, 24);
+
 	if (GetCss())
 	{
 		GCss::ColorDef Fill = GetCss()->Color();
 		if (Fill.Type == GCss::ColorRgb)
 			Fore.Set(Fill.Rgb32, 32);
+		else if (Fill.Type == GCss::ColorTransparent)
+			Fore.Empty();
 			
 		Fill = GetCss()->BackgroundColor();
 		if (Fill.Type == GCss::ColorRgb)
 			Back.Set(Fill.Rgb32, 32);
+		else if (Fill.Type == GCss::ColorTransparent)
+			Back.Empty();
 	}
-	
-	if (!Fore.IsValid())
-		Fore.Set(LC_TEXT, 24);
-	if (!Back.IsValid())
-		Back.Set(LC_MED, 24);
 	
 	GFont *f = GetFont();
 	if (d->Lock(_FL))
@@ -163,7 +166,7 @@ void GText::OnPaint(GSurface *pDC)
 		d->Paint(pDC, f, c, Fore, Back, Enabled());
 		d->Unlock();
 	}
-	else
+	else if (!Back.Transparent())
 	{
 		pDC->Colour(Back);
 		pDC->Rectangle();

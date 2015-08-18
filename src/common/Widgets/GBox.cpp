@@ -62,6 +62,7 @@ GBox::GBox(int Id)
 {
 	d = new GBoxPriv;
 	SetId(Id);
+	LgiResources::StyleElement(this);
 }
 
 GBox::~GBox()

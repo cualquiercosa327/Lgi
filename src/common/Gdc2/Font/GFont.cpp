@@ -300,9 +300,10 @@ void GTypeFace::Colour(COLOUR Fore, COLOUR Back)
 
 void GTypeFace::Colour(GColour Fore, GColour Back)
 {
-	LgiAssert(Fore.IsValid() && Back.IsValid());	
+	LgiAssert(Fore.IsValid());
 	d->_Fore = Fore;
 	d->_Back = Back;
+	// Transparent(Back.Transparent());
 	_OnPropChange(false);
 }
 
@@ -425,7 +426,7 @@ public:
 
 		GlyphMap = 0;
 		Dirty = true;
-		Height = 10;
+		Height = 0;
 		Cp = 0;
 		Param = 0;
 	}
@@ -841,15 +842,23 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 	else
 	{
 		int Dpi = LgiScreenDpi();
+		int PtSize = PointSize();
+		int PxSize = (int) (PtSize * Dpi / 72.0);
+		
 		error = FT_Set_Char_Size(	d->hFont,		/* handle to face object           */
 									0,				/* char_width in 1/64th of points  */
-									PointSize()*64,	/* char_height in 1/64th of points */
+									PtSize*64,		/* char_height in 1/64th of points */
 									Dpi,			/* horizontal device resolution    */
 									Dpi);
 		if (error)
 		{
 			LgiTrace("%s:%i - FT_Set_Char_Size failed with %i\n", _FL, error);
 		}
+		
+		d->Height = (int) (ceil((double)d->hFont->height * PxSize / d->hFont->units_per_EM) + 0.0001);
+		GTypeFace::d->_Ascent = (double)d->hFont->ascender * PxSize / d->hFont->units_per_EM;
+		LgiAssert(d->Height > GTypeFace::d->_Ascent);
+		GTypeFace::d->_Descent = d->Height - GTypeFace::d->_Ascent;
 		
 		return true;
 	}

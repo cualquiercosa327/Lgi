@@ -7,6 +7,12 @@
 #include "GCheckBox.h"
 #include "GDisplayString.h"
 
+#ifdef MAC
+#define RADIO_GRID  0
+#else
+#define RADIO_GRID  2
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Radio group
 class GRadioGroupPrivate
@@ -47,6 +53,7 @@ GRadioGroup::GRadioGroup(int id, int x, int y, int cx, int cy, const char *name,
 	SetPos(r);
 	SetId(id);
 	d->Val = Init;
+	LgiResources::StyleElement(this);
 }
 
 GRadioGroup::~GRadioGroup()
@@ -54,15 +61,10 @@ GRadioGroup::~GRadioGroup()
 	DeleteObj(d);
 }
 
-#ifdef MAC
-#define RADIO_GRID  0
-#else
-#define RADIO_GRID  2
-#endif
-
 bool GRadioGroup::OnLayout(GViewLayoutInfo &Inf)
 {
     GViewIterator *it = IterateViews();
+    const int BORDER_PX = 2;
 
     if (!Inf.Width.Max)
     {
@@ -70,7 +72,7 @@ bool GRadioGroup::OnLayout(GViewLayoutInfo &Inf)
         d->Info.DeleteObjects();
         Inf.Width.Min = 16 + (d->Txt ? d->Txt->X() : 16);
         
-        Inf.Width.Max = RADIO_GRID;
+        Inf.Width.Max = (BORDER_PX << 1) + RADIO_GRID;
 	    for (GViewI *w = it->First(); w; w = it->Next())
 	    {
 	        GAutoPtr<GViewLayoutInfo> c(new GViewLayoutInfo);
@@ -97,7 +99,7 @@ bool GRadioGroup::OnLayout(GViewLayoutInfo &Inf)
         Inf.Height.Min = d->Txt ? d->Txt->Y() : 16;
         
         bool Horiz = d->MaxLayoutWidth <= Inf.Width.Max;
-        int Cx = RADIO_GRID, Cy = GetFont()->GetHeight();
+        int Cx = (BORDER_PX << 1) + RADIO_GRID, Cy = GetFont()->GetHeight();
         int LastY = 0;
 	    for (GViewI *w = it->First(); w; w = it->Next())
 	    {
@@ -138,7 +140,7 @@ bool GRadioGroup::OnLayout(GViewLayoutInfo &Inf)
             }
 	    }
 	    
-	    Inf.Height.Min = Inf.Height.Max = LastY + RADIO_GRID;
+	    Inf.Height.Min = Inf.Height.Max = LastY + RADIO_GRID + BORDER_PX;
     }
     
     DeleteObj(it);
@@ -255,8 +257,30 @@ void GRadioGroup::OnPaint(GSurface *pDC)
 	}
 	else
 	{
-		pDC->Colour(LC_MED, 24);
-		pDC->Rectangle();
+		GColour Fore, Back;
+		Fore.Set(LC_TEXT, 24);
+		Back.Set(LC_MED, 24);
+
+		if (GetCss())
+		{
+			GCss::ColorDef Fill = GetCss()->Color();
+			if (Fill.Type == GCss::ColorRgb)
+				Fore.Set(Fill.Rgb32, 32);
+			else if (Fill.Type == GCss::ColorTransparent)
+				Fore.Empty();
+				
+			Fill = GetCss()->BackgroundColor();
+			if (Fill.Type == GCss::ColorRgb)
+				Back.Set(Fill.Rgb32, 32);
+			else if (Fill.Type == GCss::ColorTransparent)
+				Back.Empty();
+		}
+
+		if (Back.IsValid())
+		{
+			pDC->Colour(Back);
+			pDC->Rectangle();
+		}
 
 		int y = d->Txt ? d->Txt->Y() : 12;
 		GRect b(0, y/2, X()-1, Y()-1);
@@ -267,8 +291,8 @@ void GRadioGroup::OnPaint(GSurface *pDC)
 			GRect t;
 			t.ZOff(d->Txt->X(), d->Txt->Y());
 			t.Offset(6, 0);
-			SysFont->Colour(LC_TEXT, LC_MED);
-			SysFont->Transparent(false);
+			d->Txt->GetFont()->Colour(Fore, Back);
+			d->Txt->GetFont()->Transparent(!Back.IsValid());
 			d->Txt->Draw(pDC, t.x1, t.y1, &t);
 		}
 	}
@@ -336,6 +360,7 @@ GRadioButton::GRadioButton(int id, int x, int y, int cx, int cy, const char *nam
 	#if WINNATIVE
 	SetDlgCode(GetDlgCode() | DLGC_WANTARROWS);
 	#endif
+	LgiResources::StyleElement(this);
 }
 
 GRadioButton::~GRadioButton()
@@ -565,14 +590,30 @@ void GRadioButton::OnPaint(GSurface *pDC)
 	{
 		GRect r(0, 0, X()-1, Y()-1);
 		GRect c(0, 0, 12, 12);
-		pDC->Colour(LC_MED, 24);
-		pDC->Rectangle();
+		GColour Fore, Back;
+		Fore.Set(LC_TEXT, 24);
+		Back.Set(LC_MED, 24);
 
+		if (GetCss())
+		{
+			GCss::ColorDef Fill = GetCss()->Color();
+			if (Fill.Type == GCss::ColorRgb)
+				Fore.Set(Fill.Rgb32, 32);
+			else if (Fill.Type == GCss::ColorTransparent)
+				Fore.Empty();
+				
+			Fill = GetCss()->BackgroundColor();
+			if (Fill.Type == GCss::ColorRgb)
+				Back.Set(Fill.Rgb32, 32);
+			else if (Fill.Type == GCss::ColorTransparent)
+				Back.Empty();
+		}
+		
 		bool e = Enabled();
 		if (d->Txt)
 		{
 			int Off = e ? 0 : 1;
-			SysFont->Colour(e ? LC_TEXT : LC_LIGHT, LC_MED);
+			SysFont->Colour(e ? Fore : GColour(LC_LIGHT, 24), Back);
             
             GRect p;
             p.ZOff(d->Txt->X()-1, d->Txt->Y()-1);
@@ -590,7 +631,7 @@ void GRadioButton::OnPaint(GSurface *pDC)
 
 			if (!e)
 			{
-				SysFont->Colour(LC_LOW, LC_MED);
+				SysFont->Colour(GColour(LC_LOW, 24), Back);
 				d->Txt->Draw(pDC, p.x1, p.y1);
 			}
 		}

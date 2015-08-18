@@ -58,7 +58,7 @@ public:
 	OsAppArguments(int args, char **arg);
 	~OsAppArguments();
 
-	void Set(char *CmdLine);
+	void Set(const char *CmdLine);
 	OsAppArguments &operator =(OsAppArguments &a);
 };
 
@@ -240,7 +240,11 @@ LgiFunc void _lgi_sleep(int i);
 	/// The pattern that matches all files in Linux
 	#define LGI_ALL_FILES			"*"
 	/// The stardard extension for dynamically linked code
+	#if defined MAC
+	#define LGI_LIBRARY_EXT			"dylib"
+	#else
 	#define LGI_LIBRARY_EXT			"so"
+	#endif
 	/// The standard executable extension
 	#define LGI_EXECUTABLE_EXT		""
 #endif

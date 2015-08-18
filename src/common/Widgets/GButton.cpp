@@ -5,6 +5,7 @@
 #include "GSkinEngine.h"
 #include "GButton.h"
 #include "GDisplayString.h"
+#include "GTableLayout.h"
 
 #define DOWN_MOUSE		0x1
 #define DOWN_KEY		0x2
@@ -13,7 +14,7 @@
 GdcPt2 GButton::Overhead =
     GdcPt2(
         // Extra width needed
-        #ifdef MAC
+        #if defined(MAC) && !defined(LGI_SDL)
         28,
         #else
         16,
@@ -29,26 +30,36 @@ public:
 	bool KeyDown;
 	bool Over;
 	bool WantsDefault;
+	bool Toggle;
+	
 	GDisplayString *Txt;
+	GSurface *Image;
+	bool OwnImage;
 	
 	GButtonPrivate()
 	{
 		Pressed = 0;
 		KeyDown = false;
+		Toggle = false;
 		Over = 0;
 		Txt = 0;
 		WantsDefault = false;
+		Image = NULL;
+		OwnImage = false;
 	}
 
 	~GButtonPrivate()
 	{
 		DeleteObj(Txt);
+		if (OwnImage)
+			DeleteObj(Image);
 	}
 
 	void Layout(GFont *f, char *s)
 	{
 		DeleteObj(Txt);
-		Txt = new GDisplayString(f, s);
+		if (ValidStr(s))
+			Txt = new GDisplayString(f, s);
 	}
 };
 
@@ -58,16 +69,18 @@ GButton::GButton(int id, int x, int y, int cx, int cy, const char *name) :
 	d = new GButtonPrivate;
 	Name(name);
 	
+	int Tx = d->Txt ? d->Txt->X() : 0;
+	int Ty = d->Txt ? d->Txt->Y() : 0;
 	GRect r(x,
 			y,
-			x + (cx < 0 ? d->Txt->X() + Overhead.x : cx),
-			y + (cy < 0 ? d->Txt->Y() + Overhead.y : cy)
-			);
+			x + (cx < 0 ? Tx + Overhead.x : cx) - 1,
+			y + (cy < 0 ? Ty + Overhead.y : cy) - 1);
 	LgiAssert(r.Valid());
 	SetPos(r);
 	SetId(id);
 	SetTabStop(true);
 	SetFont(SysBold, false);
+	LgiResources::StyleElement(this);
 	
 	if (LgiApp->SkinEngine)
 	{
@@ -113,6 +126,40 @@ void GButton::Default(bool b)
 	}
 }
 
+bool GButton::GetIsToggle()
+{
+	return d->Toggle;
+}
+
+void GButton::SetIsToggle(bool toggle)
+{
+	d->Toggle = toggle;
+}
+
+GSurface *GButton::GetImage()
+{
+	return d->Image;
+}
+
+bool GButton::SetImage(const char *FileName)
+{
+	if (d->OwnImage)
+		DeleteObj(d->Image);
+	d->Image = LoadDC(FileName);
+	Invalidate();
+	return d->OwnImage = d->Image != NULL;
+}
+
+bool GButton::SetImage(GSurface *Img, bool OwnIt)
+{
+	if (d->OwnImage)
+		DeleteObj(d->Image);
+	d->Image = Img;
+	d->OwnImage = d->Image != NULL && OwnIt;
+	Invalidate();
+	return d->OwnImage;
+}
+
 bool GButton::Name(const char *n)
 {
 	bool Status = GView::Name(n);
@@ -144,29 +191,40 @@ void GButton::OnMouseClick(GMouse &m)
 	if (!Enabled())
 		return;
 
-	bool Click = IsCapturing();
-	Capture(m.Down());
-	if (Click ^ m.Down())
+	if (d->Toggle)
 	{
-		if (d->Over)
+		if (m.Down())
 		{
-			if (m.Down())
+			Value(!Value());
+			OnClick();
+		}
+	}
+	else
+	{
+		bool Click = IsCapturing();
+		Capture(m.Down());
+		if (Click ^ m.Down())
+		{
+			if (d->Over)
 			{
-				d->Pressed++;
-				Focus(true);
-			}
-			else
-			{
-				d->Pressed--;
-			}
+				if (m.Down())
+				{
+					d->Pressed++;
+					Focus(true);
+				}
+				else
+				{
+					d->Pressed--;
+				}
+				
+				Invalidate();
 
-			Invalidate();
-
-			if (!m.Down() &&
-				d->Pressed == 0)
-			{
-				// This may delete ourself, so do it last.
-				OnClick();
+				if (!m.Down() &&
+					d->Pressed == 0)
+				{
+					// This may delete ourself, so do it last.
+					OnClick();
+				}
 			}
 		}
 	}
@@ -269,14 +327,14 @@ void GButton::OnPaint(GSurface *pDC)
 {
 	#if defined(MAC) && !defined(COCOA) && !defined(LGI_SDL)
 
-	GColour Background(LC_MED, 24);
+	GColour NoPaintColour(LC_MED, 24);
 	if (GetCss())
 	{
-		GCss::ColorDef Bk = GetCss()->BackgroundColor();
-		if (Bk.Type == GCss::ColorRgb)
-			Background.Set(Bk.Rgb32, 32);
+		GCss::ColorDef NoPaint = GetCss()->NoPaintColor();
+		if (NoPaint.Type == GCss::ColorRgb)
+			NoPaintColour.Set(NoPaint.Rgb32, 32);
 	}
-	pDC->Colour(Background);
+	pDC->Colour(NoPaintColour);
 	pDC->Rectangle();
 
 	GRect c = GetClient();
@@ -330,6 +388,7 @@ void GButton::OnPaint(GSurface *pDC)
 		State.pScreen = pDC;
 		State.MouseOver = d->Over;
 		State.ptrText = &d->Txt;
+		State.Image = d->Image;
 		GApp::SkinEngine->OnPaint_GButton(this, &State);
 	}
 	else
@@ -406,10 +465,19 @@ void GButton::OnAttach()
 	}
 }
 
-void GButton::SetPreferredSize()
+void GButton::SetPreferredSize(int x, int y)
 {
 	GRect r = GetPos();
-	r.x2 = r.x1 + d->Txt->X() + Overhead.x - 1;
-	r.y2 = r.y1 + d->Txt->Y() + Overhead.y - 1;
+
+	int Tx = d->Txt ? d->Txt->X() : 0;
+	int Ty = d->Txt ? d->Txt->Y() : 0;
+	int Ix = d->Image ? d->Image->X() : 0;
+	int Iy = d->Image ? d->Image->Y() : 0;
+	int Cx = Tx + Ix + (d->Txt && d->Image ? GTableLayout::CellSpacing : 0);
+	int Cy = max(Ty, Iy);
+	
+	r.Dimension((x > 0 ? x : Cx + Overhead.x) - 1,
+				(y > 0 ? y : Cy + Overhead.y) - 1);
+
 	SetPos(r);
 }
