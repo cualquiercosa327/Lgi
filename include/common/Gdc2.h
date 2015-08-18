@@ -1276,4 +1276,8 @@ LgiFunc bool LgiRopUniversal(GBmpMem *Dst, GBmpMem *Src);
 
 LgiFunc int LgiScreenDpi();
 
+#if defined(LGI_SDL)
+LgiFunc GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf);
+#endif
+
 #endif

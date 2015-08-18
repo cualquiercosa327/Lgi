@@ -39,12 +39,14 @@ GScreenDC::GScreenDC()
 GScreenDC::GScreenDC(GView *view, void *Param)
 {
 	d = new GScreenPrivate;
-	ColourSpace = GdcD->GetColourSpace();
+	ColourSpace = CsNone;
 	
 	d->Screen = (SDL_Surface*)Param;
 	LgiAssert(d->Screen);
 	if (d->Screen)
 	{
+		ColourSpace = PixelFormat2ColourSpace(d->Screen->format);
+		
 		SDL_LockSurface(d->Screen);
 
 		pMem = new GBmpMem;
@@ -86,7 +88,7 @@ GScreenDC::~GScreenDC()
 
 OsPainter GScreenDC::Handle()
 {
-	return NULL;
+	return d->Screen;
 }
 
 int GScreenDC::GetFlags()

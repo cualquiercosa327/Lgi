@@ -493,8 +493,10 @@ void GView::_Paint(GSurface *pDC, int Ox, int Oy)
 
 	r.Offset(Ox, Oy);
 
+	#ifndef LGI_SDL
 	// Paint this view's contents
 	OnPaint(pDC);
+	#endif
 
 	#if PAINT_VIRTUAL_CHILDREN
 	// Paint any virtual children
@@ -517,6 +519,11 @@ void GView::_Paint(GSurface *pDC, int Ox, int Oy)
 			pDC->SetClient(0);
 		}
 	}
+	#endif
+
+	#ifdef LGI_SDL
+	// Paint this view's contents
+	OnPaint(pDC);
 	#endif
 	
 	if (HasClient)
