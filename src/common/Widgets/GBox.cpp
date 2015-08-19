@@ -441,89 +441,94 @@ void GBox::OnMouseClick(GMouse &m)
 
 void GBox::OnMouseMove(GMouse &m)
 {
-	if (d->Dragging && IsCapturing())
+	if (!d->Dragging || !IsCapturing())
+		return;
+
+	if (!m.Down())
 	{
-		int DragIndex = d->Dragging - &d->Spacers[0];
-		if (DragIndex < 0 || DragIndex >= d->Spacers.Length())
+		// Something else got the up click?
+		Capture(false);
+		return;
+	}
+
+	int DragIndex = d->Dragging - &d->Spacers[0];
+	if (DragIndex < 0 || DragIndex >= d->Spacers.Length())
+	{
+		LgiAssert(0);
+		return;
+	}
+
+	GViewI *c = Children[DragIndex];
+	if (!c)
+	{
+		LgiAssert(0);
+		return;
+	}
+
+	GCssTools tools(GetCss(), GetFont());
+	GRect Content = tools.ApplyMargin(GetClient());
+	int ContentPx = d->GetBox(Content);
+
+	GCss *css = c->GetCss(true);
+	GRect SplitPos = d->Dragging->Pos;
+	GRect ViewPos = c->GetPos();
+	if (d->Vertical)
+	{
+		// Work out the minimum height of the view
+		GCss::Len MinHeight = css->MinHeight();
+		int MinPx = MinHeight.IsValid() ? MinHeight.ToPx(ViewPos.Y(), c->GetFont()) : DEFAULT_MINIMUM_SIZE_PX;
+
+		// Slide up and down the Y axis
+		SplitPos.Offset(0, m.y - d->DragOffset.y - SplitPos.y1);
+
+		// Limit to the min size
+		int MinY = ViewPos.y1 + MinPx;
+		if (SplitPos.y1 < ViewPos.y1 + MinY)
+			SplitPos.Offset(ViewPos.y1 + MinY - SplitPos.y1, 0);
+		
+		// Save the new height of the view
+		GCss::Len Ht = css->Height();
+		if (Ht.Type == GCss::LenPercent)
 		{
-			LgiAssert(0);
+			Ht.Value = (float) ((SplitPos.y1 - ViewPos.y1) * 100 / ContentPx);
 		}
 		else
 		{
-			GViewI *c = Children[DragIndex];
-			if (!c)
-			{
-				LgiAssert(0);
-			}
-			else
-			{
-				GCssTools tools(GetCss(), GetFont());
-				GRect Content = tools.ApplyMargin(GetClient());
-				int ContentPx = d->GetBox(Content);
-
-				GCss *css = c->GetCss(true);
-				GRect SplitPos = d->Dragging->Pos;
-				GRect ViewPos = c->GetPos();
-				if (d->Vertical)
-				{
-					// Work out the minimum height of the view
-					GCss::Len MinHeight = css->MinHeight();
-					int MinPx = MinHeight.IsValid() ? MinHeight.ToPx(ViewPos.Y(), c->GetFont()) : DEFAULT_MINIMUM_SIZE_PX;
-
-					// Slide up and down the Y axis
-					SplitPos.Offset(0, m.y - d->DragOffset.y - SplitPos.y1);
-
-					// Limit to the min size
-					int MinY = ViewPos.y1 + MinPx;
-					if (SplitPos.y1 < ViewPos.y1 + MinY)
-						SplitPos.Offset(ViewPos.y1 + MinY - SplitPos.y1, 0);
-					
-					// Save the new height of the view
-					GCss::Len Ht = css->Height();
-					if (Ht.Type == GCss::LenPercent)
-					{
-						Ht.Value = (float) ((SplitPos.y1 - ViewPos.y1) * 100 / ContentPx);
-					}
-					else
-					{
-						Ht.Type = GCss::LenPx;
-						Ht.Value = (float) (SplitPos.y1 - ViewPos.y1);
-					}
-					css->Height(Ht);
-				}
-				else
-				{
-					// Work out the minimum width of the view
-					GCss::Len MinWidth = css->MinWidth();
-					int MinPx = MinWidth.IsValid() ? MinWidth.ToPx(ViewPos.X(), c->GetFont()) : DEFAULT_MINIMUM_SIZE_PX;
-
-					// Slide along the X axis
-					SplitPos.Offset(m.x - d->DragOffset.x - SplitPos.x1, 0);
-
-					// Limit to the min size
-					int MinX = ViewPos.x1 + MinPx;
-					if (SplitPos.x1 < ViewPos.x1 + MinX)
-						SplitPos.Offset(ViewPos.x1 + MinX - SplitPos.x1, 0);
-					
-					// Save the new height of the view
-					GCss::Len Wd = css->Width();
-					if (Wd.Type == GCss::LenPercent)
-					{
-						Wd.Value = (float) ((SplitPos.x1 - ViewPos.x1) * 100 / ContentPx);
-					}
-					else
-					{
-						Wd.Type = GCss::LenPx;
-						Wd.Value = (float) (SplitPos.x1 - ViewPos.x1);
-					}
-					css->Width(Wd);
-				}
-				
-				OnPosChange();
-				Invalidate((GRect*)NULL, true);
-			}
+			Ht.Type = GCss::LenPx;
+			Ht.Value = (float) (SplitPos.y1 - ViewPos.y1);
 		}
+		css->Height(Ht);
 	}
+	else
+	{
+		// Work out the minimum width of the view
+		GCss::Len MinWidth = css->MinWidth();
+		int MinPx = MinWidth.IsValid() ? MinWidth.ToPx(ViewPos.X(), c->GetFont()) : DEFAULT_MINIMUM_SIZE_PX;
+
+		// Slide along the X axis
+		SplitPos.Offset(m.x - d->DragOffset.x - SplitPos.x1, 0);
+
+		// Limit to the min size
+		int MinX = ViewPos.x1 + MinPx;
+		if (SplitPos.x1 < ViewPos.x1 + MinX)
+			SplitPos.Offset(ViewPos.x1 + MinX - SplitPos.x1, 0);
+		
+		// Save the new height of the view
+		GCss::Len Wd = css->Width();
+		if (Wd.Type == GCss::LenPercent)
+		{
+			Wd.Value = (float) ((SplitPos.x1 - ViewPos.x1) * 100 / ContentPx);
+		}
+		else
+		{
+			Wd.Type = GCss::LenPx;
+			Wd.Value = (float) (SplitPos.x1 - ViewPos.x1);
+		}
+		css->Width(Wd);
+	}
+	
+	OnPosChange();
+	Invalidate((GRect*)NULL, true);
 }
 
 void GBox::OnChildrenChanged(GViewI *Wnd, bool Attaching)

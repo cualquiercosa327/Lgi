@@ -21,6 +21,25 @@
 
 //////////////////////////////////////////////////////////////////////////////////////
 // Helper
+GdcPt2 lgi_view_offset(GViewI *v)
+{
+	GdcPt2 Offset;
+	
+	for (GViewI *p = v; p; p = p->GetParent())
+	{
+		if (dynamic_cast<GWindow*>(p))
+			break;
+		
+		GRect pos = p->GetPos();
+		const char *cls = p->GetClass();
+		
+		Offset.x += pos.x1;
+		Offset.y += pos.y1;
+	}
+	
+	return Offset;
+}
+
 GMouse &lgi_adjust_click(GMouse &Info, GViewI *Wnd, bool Debug)
 {
 	static GMouse Temp;
@@ -28,19 +47,37 @@ GMouse &lgi_adjust_click(GMouse &Info, GViewI *Wnd, bool Debug)
 	Temp = Info;
 	if (Wnd)
 	{
-		GdcPt2 Offset(0, 0);
-		
-		Temp.Target = Wnd;
-		if (Wnd->WindowVirtualOffset(&Offset))
-		{
+		if (Temp.Target &&
+			Temp.Target != Wnd)
+		{		
+			GdcPt2 TargetOff = lgi_view_offset(Temp.Target);
+			GdcPt2 WndOffset = lgi_view_offset(Wnd);
+
+			Temp.x += TargetOff.x - WndOffset.x;
+			Temp.y += TargetOff.y - WndOffset.y;
+
 			GRect c = Wnd->GetClient(false);
-			Temp.x -= Offset.x + c.x1;
-			Temp.y -= Offset.y + c.y1;
-			
-			// LgiTrace("_lgi_adjust_click_for_window -= (%i+%i),(%i+%i)\n", Offset.x , c.x1, Offset.y , c.y1);
+			Temp.x -= c.x1;
+			Temp.y -= c.y1;
+
+			Temp.Target = Wnd;
+		}
+		else
+		{
+			GdcPt2 Offset;
+			Temp.Target = Wnd;
+			if (Wnd->WindowVirtualOffset(&Offset))
+			{
+				GRect c = Wnd->GetClient(false);
+				Temp.x -= Offset.x + c.x1;
+				Temp.y -= Offset.y + c.y1;
+				
+				// LgiTrace("_lgi_adjust_click_for_window -= (%i+%i),(%i+%i)\n", Offset.x , c.x1, Offset.y , c.y1);
+			}
 		}
 	}
-	else LgiAssert(!"No handle?");
+	
+	LgiAssert(Temp.Target != NULL);
 	
 	return Temp;
 }
