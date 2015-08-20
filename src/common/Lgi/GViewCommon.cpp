@@ -49,18 +49,23 @@ GMouse &lgi_adjust_click(GMouse &Info, GViewI *Wnd, bool Debug)
 	{
 		if (Temp.Target &&
 			Temp.Target != Wnd)
-		{		
-			GdcPt2 TargetOff = lgi_view_offset(Temp.Target);
-			GdcPt2 WndOffset = lgi_view_offset(Wnd);
+		{
+			GWindow *TargetWnd = Temp.Target->GetWindow();
+			GWindow *WndWnd = Wnd->GetWindow();
+			if (TargetWnd == WndWnd)
+			{
+				GdcPt2 TargetOff = lgi_view_offset(Temp.Target);
+				GdcPt2 WndOffset = lgi_view_offset(Wnd);
 
-			Temp.x += TargetOff.x - WndOffset.x;
-			Temp.y += TargetOff.y - WndOffset.y;
+				Temp.x += TargetOff.x - WndOffset.x;
+				Temp.y += TargetOff.y - WndOffset.y;
 
-			GRect c = Wnd->GetClient(false);
-			Temp.x -= c.x1;
-			Temp.y -= c.y1;
+				GRect c = Wnd->GetClient(false);
+				Temp.x -= c.x1;
+				Temp.y -= c.y1;
 
-			Temp.Target = Wnd;
+				Temp.Target = Wnd;
+			}
 		}
 		else
 		{
@@ -71,8 +76,6 @@ GMouse &lgi_adjust_click(GMouse &Info, GViewI *Wnd, bool Debug)
 				GRect c = Wnd->GetClient(false);
 				Temp.x -= Offset.x + c.x1;
 				Temp.y -= Offset.y + c.y1;
-				
-				// LgiTrace("_lgi_adjust_click_for_window -= (%i+%i),(%i+%i)\n", Offset.x , c.x1, Offset.y , c.y1);
 			}
 		}
 	}
