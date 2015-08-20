@@ -437,7 +437,6 @@ GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
 	
 	cs.All = 0;
 	cs[0].Type(CtIndex);
-	LgiTrace("PixelFormat2ColourSpace cs=%08x\n", cs.All);
 	LgiAssert(cs.All == 0x10);
 	cs.All = 0;
 	
@@ -447,20 +446,54 @@ GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
 		cs.Bits[0].Size(pf->BitsPerPixel);
 	}
 	else
-	{	
-		GArray<PfComponent> a;
-		a.New().Set(CtRed, pf->Rmask);
-		a.New().Set(CtGreen, pf->Gmask);
-		a.New().Set(CtBlue, pf->Bmask);
-		a.Sort(ComponenetCmp);	
-		if (pf->BytesPerPixel == 4)
-			a.New().Set(CtPad, 0xff);
+	{
+		GArray<char> Bits;
+		Bits.Length(pf->BitsPerPixel + 1);
+		Bits[pf->BitsPerPixel] = 0;
+		memset(&Bits[0], 'x', pf->BitsPerPixel);
 
-		int k = a.Length()-1;
-		for (unsigned i=0; i<a.Length(); i++)
+		for (int i=0; i<pf->BitsPerPixel; i++)
 		{
-			cs[k-i].Type(a[i].Type);
-			cs[k-i].Size(a[i].Bits);
+			int b = 1<<i;
+			int idx = pf->BitsPerPixel - 1 - i;
+			if (pf->Rmask & b)
+			{
+				LgiAssert(Bits[idx] == 'x');
+				Bits[idx] = 'r';
+			}
+			if (pf->Gmask & b)
+			{
+				LgiAssert(Bits[idx] == 'x');
+				Bits[idx] = 'g';
+			}
+			if (pf->Bmask & b)
+			{
+				LgiAssert(Bits[idx] == 'x');
+				Bits[idx] = 'b';
+			}
+		}
+
+		char Cur = 0;
+		for (int i=pf->BitsPerPixel-1; i>=0; i--)
+		{
+			if (Cur != Bits[i])
+			{
+				int Len = 0;
+				Cur = Bits[i];
+				for (int n=i; n>=0 && Bits[n] == Cur; n--)
+					Len++;
+				
+				cs.All <<= 8;
+				if (Cur == 'r')
+					cs[0].Type(CtRed);
+				else if (Cur == 'g')
+					cs[0].Type(CtGreen);
+				else if (Cur == 'b')
+					cs[0].Type(CtBlue);
+				else
+					cs[0].Type(CtPad);
+				cs[0].Size(Len);
+			}
 		}
 	}
 	

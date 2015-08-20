@@ -372,6 +372,7 @@ int GFontSystem::IconvConvert(const char *OutCs, GStreamI *Out, const char *InCs
 			CFIndex ret;
 			while ((ret = CFStringGetBytes(r, g, OutEnc, '?', false, (UInt8*)Buf, sizeof(Buf), &used)) > 0 && g.length > 0)
 			{
+				char16 *b = (char16*)Buf;
 				Out->Write(Buf, used);
 				g.location += ret;
 				g.length -= ret;

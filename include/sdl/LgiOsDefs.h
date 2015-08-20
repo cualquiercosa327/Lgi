@@ -133,6 +133,8 @@ public:
 #define MsgA(m)						m->A()
 #define MsgB(m)						m->B()
 
+#pragma clang diagnostic ignored "-Wtautological-undefined-compare"
+
 // Sockets
 #define ValidSocket(s)				((s)>=0)
 #ifndef WIN32
