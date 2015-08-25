@@ -72,9 +72,9 @@ typedef int								OsProcessId;
 typedef void							*OsView;
 typedef void							*OsWindow;
 typedef uint32							OsChar;
-typedef void							*OsPainter;
+typedef SDL_Surface						*OsPainter;
 typedef FT_Face							OsFont;
-typedef void							*OsBitmap;
+typedef SDL_Surface						*OsBitmap;
 
 class OsApplication
 {
@@ -133,7 +133,9 @@ public:
 #define MsgA(m)						m->A()
 #define MsgB(m)						m->B()
 
+#ifndef _MSC_VER
 #pragma clang diagnostic ignored "-Wtautological-undefined-compare"
+#endif
 
 // Sockets
 #define ValidSocket(s)				((s)>=0)

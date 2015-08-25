@@ -274,11 +274,12 @@ GApp::GApp(OsAppArguments &AppArgs, const char *name, GAppArguments *Args) :
 	// We want our printf's NOW!
 	setvbuf(stdout,(char *)NULL,_IONBF,0); // print mesgs immediately.
 
+	// Save the args somewhere
+	SetAppArgs(AppArgs);
+
 	// Setup the file and graphics sub-systems
 	d->FileSystem = new GFileSystem;
 	d->GdcSystem = new GdcDevice;
-
-	SetAppArgs(AppArgs);
 
 	srand(LgiCurrentTime());
 	LgiInitColours();

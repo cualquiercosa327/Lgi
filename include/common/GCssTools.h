@@ -6,6 +6,8 @@ class LgiClass GCssTools
 	GCss *Css;
 	GFont *Font;
 	
+	bool SetLineStyle(GSurface *pDC, GCss::BorderDef &d);
+	
 public:
 	GCssTools(GCss *css, GFont *font)
 	{

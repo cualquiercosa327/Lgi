@@ -1769,17 +1769,7 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 					GAutoPtr<BorderDef> t(new BorderDef);
 					if (t->Parse(this, s))
 					{
-						if (PropId == PropBorder)
-						{
-							CopyPropOnSave(BorderDef, PropBorderLeft);
-							CopyPropOnSave(BorderDef, PropBorderRight);
-							CopyPropOnSave(BorderDef, PropBorderTop);
-							ReleasePropOnSave(BorderDef, PropBorderBottom);
-						}
-						else
-						{
-							ReleasePropOnSave(BorderDef, PropId);
-						}
+						ReleasePropOnSave(BorderDef, PropId);
 					}
 				}
 				break;

@@ -474,6 +474,7 @@ GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
 		}
 
 		char Cur = 0;
+		int Idx = 0;
 		for (int i=pf->BitsPerPixel-1; i>=0; i--)
 		{
 			if (Cur != Bits[i])
@@ -483,19 +484,24 @@ GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
 				for (int n=i; n>=0 && Bits[n] == Cur; n--)
 					Len++;
 				
-				cs.All <<= 8;
 				if (Cur == 'r')
-					cs[0].Type(CtRed);
+					cs[Idx].Type(CtRed);
 				else if (Cur == 'g')
-					cs[0].Type(CtGreen);
+					cs[Idx].Type(CtGreen);
 				else if (Cur == 'b')
-					cs[0].Type(CtBlue);
+					cs[Idx].Type(CtBlue);
 				else
-					cs[0].Type(CtPad);
-				cs[0].Size(Len);
+					cs[Idx].Type(CtPad);
+				cs[Idx].Size(Len);
+				Idx++;
 			}
 		}
 	}
+	
+	#ifdef _MSC_VER
+	if (pf->BytesPerPixel == 4)
+		return (GColourSpace)LgiSwap32(cs.All);
+	#endif
 	
 	return (GColourSpace)cs.All;
 }
@@ -528,8 +534,20 @@ public:
 	GdcDevicePrivate(GdcDevice *d)
 	{
 		const SDL_VideoInfo *vi = SDL_GetVideoInfo();
+		GdcPt2 ScreenSz(320, 240);
+		GAutoString ScrOpt;
+		if (LgiApp->GetOption("screen", ScrOpt))
+		{
+			GString s = ScrOpt.Get();
+			GString::Array a = s.Split("x");
+			if (a.Length() == 2)
+			{
+				ScreenSz.x = a[0].Int();
+				ScreenSz.y = a[1].Int();
+			}
+		}
 		
-		if ((Screen = SDL_SetVideoMode(320, 240, 0, SDL_SWSURFACE)) == NULL)
+		if ((Screen = SDL_SetVideoMode(ScreenSz.x, ScreenSz.y, 0, SDL_SWSURFACE)) == NULL)
 			LgiTrace("%s:%i - SDL_SetVideoMode failed.\n", _FL);
 
 		Device = d;
