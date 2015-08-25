@@ -42,9 +42,9 @@ bool LgiCheckFile(char *Path, int PathSize)
 
 ////////////////////////////////////////////////////////////////
 // Implementations
-void LgiSleep(DWORD i)
+void LgiSleep(uint32 i)
 {
-	::Sleep(i);
+	SDL_Delay(i);
 }
 
 bool LgiGetMimeTypeExtensions(const char *Mime, GArray<char*> &Ext)
