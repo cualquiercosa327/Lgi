@@ -1521,13 +1521,21 @@ void GTableLayout::OnPaint(GSurface *pDC)
 		OnPosChange();
 	}
 
-	GCss::ColorDef fill;
-	if (GetCss() &&
-		(fill = GetCss()->BackgroundColor()).Type == GCss::ColorRgb)
-		pDC->Colour(fill.Rgb32, 32);
-	else
-		pDC->Colour(LC_MED, 24);
-	pDC->Rectangle();
+	GColour Back;
+	Back.Set(LC_MED, 24);
+	if (GetCss())
+	{		
+		GCss::ColorDef fill = GetCss()->BackgroundColor();
+		if (fill.Type == GCss::ColorRgb)
+			Back.Set(fill.Rgb32, 32);
+		else if (fill.Type == GCss::ColorTransparent)
+			Back.Empty();
+	}
+	if (!Back.Transparent())
+	{
+		pDC->Colour(Back);
+		pDC->Rectangle();
+	}
 
 	#if DEBUG_DRAW_CELLS
 	pDC->Colour(Rgb24(255, 0, 0), 24);

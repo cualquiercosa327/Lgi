@@ -27,6 +27,7 @@ class GWindow;
 class GViewFill;
 class GView;
 class GVariant;
+class GCss;
 
 // Classes
 class GDomI
@@ -420,7 +421,8 @@ public:
 	virtual void SetTabStop(bool b) = 0;
 
 	// Style
-    virtual class GCss *GetCss(bool Create = false) = 0;
+    virtual GCss *GetCss(bool Create = false) = 0;
+    virtual void SetCss(GAutoPtr<GCss> css) = 0;
     virtual bool SetCssStyle(const char *CssStyle) = 0;
     virtual bool SetColour(GColour &c, bool Fore) = 0;
 	virtual GFont *GetFont() = 0;

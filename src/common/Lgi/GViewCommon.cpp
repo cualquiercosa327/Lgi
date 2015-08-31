@@ -515,10 +515,8 @@ void GView::_Paint(GSurface *pDC, int Ox, int Oy)
 
 	r.Offset(Ox, Oy);
 
-	#ifndef LGI_SDL
 	// Paint this view's contents
 	OnPaint(pDC);
-	#endif
 
 	#if PAINT_VIRTUAL_CHILDREN
 	// Paint any virtual children
@@ -543,11 +541,6 @@ void GView::_Paint(GSurface *pDC, int Ox, int Oy)
 	}
 	#endif
 
-	#ifdef LGI_SDL
-	// Paint this view's contents
-	OnPaint(pDC);
-	#endif
-	
 	if (HasClient)
 		pDC->SetClient(0);
 
@@ -1819,6 +1812,11 @@ bool GView::SetColour(GColour &c, bool Fore)
 	}
 	
 	return true;
+}
+
+void GView::SetCss(GAutoPtr<GCss> css)
+{
+	d->Css = css;
 }
 
 bool GView::SetCssStyle(const char *CssStyle)

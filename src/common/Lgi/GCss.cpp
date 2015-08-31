@@ -1975,6 +1975,10 @@ bool GCss::ColorDef::Parse(const char *&s)
 		}
 		else return false;
 	}
+	else if (ParseWord(s, "transparent"))
+	{
+		Type = ColorTransparent;
+	}
 	else if (ParseWord(s, "rgb") && *s == '(')
 	{
 		s++;
