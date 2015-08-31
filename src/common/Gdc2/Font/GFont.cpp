@@ -303,7 +303,7 @@ void GTypeFace::Colour(GColour Fore, GColour Back)
 	LgiAssert(Fore.IsValid());
 	d->_Fore = Fore;
 	d->_Back = Back;
-	Transparent(Back.Transparent());
+	// Transparent(Back.Transparent());
 	_OnPropChange(false);
 }
 

@@ -167,6 +167,7 @@
 		34D4D55B1250AF98000DA1FD /* GHashTable.h in Headers */ = {isa = PBXBuildFile; fileRef = 34D4D55A1250AF98000DA1FD /* GHashTable.h */; };
 		34D979D11150F0E100CE462B /* GLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D979D01150F0E100CE462B /* GLayout.cpp */; };
 		34DA5CB70DE0DE930050C7E4 /* GScrollBar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34DA5CB60DE0DE930050C7E4 /* GScrollBar.cpp */; };
+		34DE4D381B945D980061E722 /* GDisplayStringLayout.h in Headers */ = {isa = PBXBuildFile; fileRef = 34DE4D371B945D980061E722 /* GDisplayStringLayout.h */; };
 		34E51DB00D2EFCCB0021AA08 /* GList.h in Headers */ = {isa = PBXBuildFile; fileRef = 34E51DAF0D2EFCCB0021AA08 /* GList.h */; };
 		34F2E65A0E1849D300E8DA6A /* GTree.h in Headers */ = {isa = PBXBuildFile; fileRef = 34F2E6590E1849D300E8DA6A /* GTree.h */; };
 		34F45B9E18C161E40040FD99 /* GPixelRops.h in Headers */ = {isa = PBXBuildFile; fileRef = 34F45B9D18C161E40040FD99 /* GPixelRops.h */; };
@@ -339,6 +340,7 @@
 		34D4D55A1250AF98000DA1FD /* GHashTable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GHashTable.h; path = ../../../include/common/GHashTable.h; sourceTree = "<group>"; };
 		34D979D01150F0E100CE462B /* GLayout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GLayout.cpp; path = ../../common/Lgi/GLayout.cpp; sourceTree = "<group>"; };
 		34DA5CB60DE0DE930050C7E4 /* GScrollBar.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GScrollBar.cpp; path = ../../common/Widgets/GScrollBar.cpp; sourceTree = "<group>"; };
+		34DE4D371B945D980061E722 /* GDisplayStringLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GDisplayStringLayout.h; path = ../../../include/common/GDisplayStringLayout.h; sourceTree = "<group>"; };
 		34E51DAF0D2EFCCB0021AA08 /* GList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GList.h; path = ../../../include/common/GList.h; sourceTree = "<group>"; };
 		34F2E6590E1849D300E8DA6A /* GTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GTree.h; path = ../../../include/common/GTree.h; sourceTree = "<group>"; };
 		34F45B9D18C161E40040FD99 /* GPixelRops.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GPixelRops.h; path = ../../../include/common/GPixelRops.h; sourceTree = "<group>"; };
@@ -746,6 +748,7 @@
 		34D2CC5008F0FB510009968C /* Widgets */ = {
 			isa = PBXGroup;
 			children = (
+				34DE4D371B945D980061E722 /* GDisplayStringLayout.h */,
 				345303751A688B90004EC2A8 /* Containers */,
 				3429212A1087D55900578ECC /* Css */,
 				344D1B1608F4A36300228075 /* GBitmap.cpp */,
@@ -842,6 +845,7 @@
 				34B954880939DCDD00477A2D /* INet.h in Headers */,
 				34B954890939DCDD00477A2D /* INetTools.h in Headers */,
 				3476680F093F1FD400623A44 /* LgiInterfaces.h in Headers */,
+				34DE4D381B945D980061E722 /* GDisplayStringLayout.h in Headers */,
 				34766828093F207D00623A44 /* GFile.h in Headers */,
 				34766832093F20EE00623A44 /* GThread.h in Headers */,
 				3416C27B096775AF00DD79DC /* GRect.h in Headers */,

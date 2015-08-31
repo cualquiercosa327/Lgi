@@ -184,7 +184,10 @@ struct GDisplayStringLayout
 			return;
 		
 		if (Enabled)
+		{
+			f->Transparent(Back.Transparent());
 			f->Colour(Fore, Back);
+		}
 
 		// Draw all the text
 		int y = rc.y1;
