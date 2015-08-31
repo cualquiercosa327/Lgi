@@ -21,7 +21,7 @@
 
 //////////////////////////////////////////////////////////////////////////////////////
 // Helper
-GdcPt2 lgi_view_offset(GViewI *v)
+GdcPt2 lgi_view_offset(GViewI *v, bool Debug = false)
 {
 	GdcPt2 Offset;
 	
@@ -31,10 +31,20 @@ GdcPt2 lgi_view_offset(GViewI *v)
 			break;
 		
 		GRect pos = p->GetPos();
-		const char *cls = p->GetClass();
+		GRect cli = p->GetClient(false);
+
+		if (Debug)
+		{
+			const char *cls = p->GetClass();
+			LgiTrace("	Off[%s] += %i,%i = %i,%i (%s)\n",
+					cls,
+					pos.x1, pos.y1,
+					Offset.x + pos.x1, Offset.y + pos.y1,
+					cli.GetStr());
+		}
 		
-		Offset.x += pos.x1;
-		Offset.y += pos.y1;
+		Offset.x += pos.x1 + cli.x1;
+		Offset.y += pos.y1 + cli.y1;
 	}
 	
 	return Offset;
@@ -47,6 +57,12 @@ GMouse &lgi_adjust_click(GMouse &Info, GViewI *Wnd, bool Debug)
 	Temp = Info;
 	if (Wnd)
 	{
+		if (Debug)
+			LgiTrace("AdjustClick Target=%s -> Wnd=%s, Info=%i,%i\n",
+				Info.Target?Info.Target->GetClass():"",
+				Wnd?Wnd->GetClass():"",
+				Info.x, Info.y);
+
 		if (Temp.Target &&
 			Temp.Target != Wnd)
 		{
@@ -54,15 +70,21 @@ GMouse &lgi_adjust_click(GMouse &Info, GViewI *Wnd, bool Debug)
 			GWindow *WndWnd = Wnd->GetWindow();
 			if (TargetWnd == WndWnd)
 			{
-				GdcPt2 TargetOff = lgi_view_offset(Temp.Target);
-				GdcPt2 WndOffset = lgi_view_offset(Wnd);
+				GdcPt2 TargetOff = lgi_view_offset(Temp.Target, Debug);
+				if (Debug)
+					LgiTrace("	WndOffset:\n");
+				GdcPt2 WndOffset = lgi_view_offset(Wnd, Debug);
 
 				Temp.x += TargetOff.x - WndOffset.x;
 				Temp.y += TargetOff.y - WndOffset.y;
 
+				#if 0
 				GRect c = Wnd->GetClient(false);
 				Temp.x -= c.x1;
 				Temp.y -= c.y1;
+				if (Debug)
+					LgiTrace("	CliOff -= %i,%i\n", c.x1, c.y1);
+				#endif
 
 				Temp.Target = Wnd;
 			}
