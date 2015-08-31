@@ -282,7 +282,7 @@ union GColourSpaceBits
 			t.Bits[0].Type(CtIndex);
 			if (t.All == 0x10)
 				Reverse = 0;
-			else if (t.All = (0x10<<24))
+			else if (t.All == (0x10<<24))
 				Reverse = 1;
 			else
 				LgiAssert(0);

@@ -399,6 +399,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = LgiIde;
 				SDKROOT = macosx;
+				USER_HEADER_SEARCH_PATHS = "../../include/mac/carbon ../../include/common ../Code /opt/local/include";
 				VALID_ARCHS = i386;
 				WRAPPER_EXTENSION = app;
 			};
@@ -420,6 +421,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = LgiIde;
 				SDKROOT = macosx;
+				USER_HEADER_SEARCH_PATHS = "../../include/mac/carbon ../../include/common ../Code /opt/local/include";
 				VALID_ARCHS = i386;
 				WRAPPER_EXTENSION = app;
 			};

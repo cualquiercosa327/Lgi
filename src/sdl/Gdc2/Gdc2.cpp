@@ -433,7 +433,6 @@ GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
 	
 	cs.All = 0;
 	cs[0].Type(CtIndex);
-	LgiTrace("PixelFormat2ColourSpace cs=%08x\n", cs.All);
 	LgiAssert(cs.All == 0x10);
 	cs.All = 0;
 	
@@ -443,22 +442,62 @@ GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
 		cs.Bits[0].Size(pf->BitsPerPixel);
 	}
 	else
-	{	
-		GArray<PfComponent> a;
-		a.New().Set(CtRed, pf->Rmask);
-		a.New().Set(CtGreen, pf->Gmask);
-		a.New().Set(CtBlue, pf->Bmask);
-		a.Sort(ComponenetCmp);	
-		if (pf->BytesPerPixel == 4)
-			a.New().Set(CtPad, 0xff);
+	{
+		GArray<char> Bits;
+		Bits.Length(pf->BitsPerPixel + 1);
+		Bits[pf->BitsPerPixel] = 0;
+		memset(&Bits[0], 'x', pf->BitsPerPixel);
 
-		int k = a.Length()-1;
-		for (unsigned i=0; i<a.Length(); i++)
+		for (int i=0; i<pf->BitsPerPixel; i++)
 		{
-			cs[k-i].Type(a[i].Type);
-			cs[k-i].Size(a[i].Bits);
+			int b = 1<<i;
+			int idx = pf->BitsPerPixel - 1 - i;
+			if (pf->Rmask & b)
+			{
+				LgiAssert(Bits[idx] == 'x');
+				Bits[idx] = 'r';
+			}
+			if (pf->Gmask & b)
+			{
+				LgiAssert(Bits[idx] == 'x');
+				Bits[idx] = 'g';
+			}
+			if (pf->Bmask & b)
+			{
+				LgiAssert(Bits[idx] == 'x');
+				Bits[idx] = 'b';
+			}
+		}
+
+		char Cur = 0;
+		int Idx = 0;
+		for (int i=pf->BitsPerPixel-1; i>=0; i--)
+		{
+			if (Cur != Bits[i])
+			{
+				int Len = 0;
+				Cur = Bits[i];
+				for (int n=i; n>=0 && Bits[n] == Cur; n--)
+					Len++;
+				
+				if (Cur == 'r')
+					cs[Idx].Type(CtRed);
+				else if (Cur == 'g')
+					cs[Idx].Type(CtGreen);
+				else if (Cur == 'b')
+					cs[Idx].Type(CtBlue);
+				else
+					cs[Idx].Type(CtPad);
+				cs[Idx].Size(Len);
+				Idx++;
+			}
 		}
 	}
+	
+	#ifdef _MSC_VER
+	if (pf->BytesPerPixel == 4)
+		return (GColourSpace)LgiSwap32(cs.All);
+	#endif
 	
 	return (GColourSpace)cs.All;
 }
@@ -491,9 +530,27 @@ public:
 	GdcDevicePrivate(GdcDevice *d)
 	{
 		const SDL_VideoInfo *vi = SDL_GetVideoInfo();
+		GdcPt2 ScreenSz(320, 240);
+		GAutoString ScrOpt;
+		if (LgiApp->GetOption("screen", ScrOpt))
+		{
+			GString s = ScrOpt.Get();
+			GString::Array a = s.Split("x");
+			if (a.Length() == 2)
+			{
+				ScreenSz.x = a[0].Int();
+				ScreenSz.y = a[1].Int();
+			}
+		}
 		
-		if ((Screen = SDL_SetVideoMode(320, 240, 0, SDL_SWSURFACE)) == NULL)
-			LgiTrace("%s:%i - SDL_SetVideoMode failed.\n", _FL);
+		Screen = NULL;
+		if (!LgiApp->GetOption("novid"))
+		{
+			printf("Calling SDL_SetVideoMode...\n");
+			if ((Screen = SDL_SetVideoMode(ScreenSz.x, ScreenSz.y, 0, SDL_SWSURFACE)) == NULL)
+				LgiTrace("%s:%i - SDL_SetVideoMode failed.\n", _FL);
+		}
+		else printf("Not openning video.\n");
 
 		Device = d;
 		GlobalColour = 0;

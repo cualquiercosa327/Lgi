@@ -184,10 +184,7 @@ struct GDisplayStringLayout
 			return;
 		
 		if (Enabled)
-		{
-			f->Transparent(Back.Transparent());
 			f->Colour(Fore, Back);
-		}
 
 		// Draw all the text
 		int y = rc.y1;
@@ -216,10 +213,13 @@ struct GDisplayStringLayout
 		}
 
 		// Fill any remaining area with background...
-		pDC->Colour(Back);
-		for (GRect *r=Rgn.First(); r; r=Rgn.Next())
+		if (!Back.Transparent())
 		{
-			pDC->Rectangle(r);
+			pDC->Colour(Back);
+			for (GRect *r=Rgn.First(); r; r=Rgn.Next())
+			{
+				pDC->Rectangle(r);
+			}
 		}
 	}
 };

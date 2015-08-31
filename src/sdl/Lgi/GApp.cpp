@@ -251,6 +251,7 @@ void sighandler(int signum)
 {
 	SDL_Quit();
 	signal(signum, SIG_DFL);
+	printf("sighandler called.\n");
     kill(getpid(), signum);
 }
 #endif
@@ -274,11 +275,15 @@ GApp::GApp(OsAppArguments &AppArgs, const char *name, GAppArguments *Args) :
 	// We want our printf's NOW!
 	setvbuf(stdout,(char *)NULL,_IONBF,0); // print mesgs immediately.
 
+printf("Gapp 0\n");
+	// Save the args somewhere
+	SetAppArgs(AppArgs);
+
 	// Setup the file and graphics sub-systems
 	d->FileSystem = new GFileSystem;
+printf("Gapp 1\n");
 	d->GdcSystem = new GdcDevice;
-
-	SetAppArgs(AppArgs);
+printf("Gapp 2\n");
 
 	srand(LgiCurrentTime());
 	LgiInitColours();
@@ -290,6 +295,7 @@ GApp::GApp(OsAppArguments &AppArgs, const char *name, GAppArguments *Args) :
 	SystemNormal = 0;
 	GFontType SysFontType;
 
+printf("Gapp 3\n");
 	if (SysFontType.GetSystemFont("System"))
 	{
 		SystemNormal = SysFontType.Create();
@@ -310,11 +316,13 @@ GApp::GApp(OsAppArguments &AppArgs, const char *name, GAppArguments *Args) :
 	if (!SystemBold)
 		SystemBold = new GFont;
 
+printf("Gapp 4\n");
 	if (!GetOption("noskin"))
 	{
 		extern GSkinEngine *CreateSkinEngine(GApp *App);
 		SkinEngine = CreateSkinEngine(this);
 	}
+printf("Gapp 5\n");
 }
 
 GApp::~GApp()

@@ -300,9 +300,10 @@ void GTypeFace::Colour(COLOUR Fore, COLOUR Back)
 
 void GTypeFace::Colour(GColour Fore, GColour Back)
 {
-	LgiAssert(Fore.IsValid() && Back.IsValid());	
+	LgiAssert(Fore.IsValid());
 	d->_Fore = Fore;
 	d->_Back = Back;
+	Transparent(Back.Transparent());
 	_OnPropChange(false);
 }
 

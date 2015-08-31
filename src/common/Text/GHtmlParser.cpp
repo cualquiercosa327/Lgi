@@ -1131,7 +1131,8 @@ char16 *GHtmlParser::CleanText(const char *s, int Len, bool ConversionAllowed, b
 			DocAndCsTheSame = _stricmp(DocCharSet, View->GetCharset()) == 0;
 		}
 
-		if (DocCharSet &&
+		if (!DocAndCsTheSame &&
+			DocCharSet &&
 			View &&
 			View->GetCharset() &&
 			!View->GetOverideDocCharset())
@@ -1147,8 +1148,8 @@ char16 *GHtmlParser::CleanText(const char *s, int Len, bool ConversionAllowed, b
 		}
 		else
 		{
-			const char *ViewCs = View ? View->GetCharset() : NULL;
-			t = (char16*) LgiNewConvertCp(LGI_WideCharset, s, ViewCs ? ViewCs : DefaultCs, Len);
+			const char *ViewCs = View ? View->GetCharset() : DefaultCs;
+			t = (char16*) LgiNewConvertCp(LGI_WideCharset, s, ViewCs, Len);
 		}
 
 		if (t && ConversionAllowed)

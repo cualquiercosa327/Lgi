@@ -72,9 +72,9 @@ typedef int								OsProcessId;
 typedef void							*OsView;
 typedef void							*OsWindow;
 typedef uint32							OsChar;
-typedef void							*OsPainter;
+typedef SDL_Surface						*OsPainter;
 typedef FT_Face							OsFont;
-typedef void							*OsBitmap;
+typedef SDL_Surface						*OsBitmap;
 
 class OsApplication
 {
@@ -133,6 +133,10 @@ public:
 #define MsgA(m)						m->A()
 #define MsgB(m)						m->B()
 
+#ifndef _MSC_VER
+#pragma clang diagnostic ignored "-Wtautological-undefined-compare"
+#endif
+
 // Sockets
 #define ValidSocket(s)				((s)>=0)
 #ifndef WIN32
@@ -141,12 +145,7 @@ public:
 typedef int OsSocket;
 
 /// Sleep the current thread for i milliseconds.
-#ifdef WIN32
-LgiFunc void LgiSleep(DWORD i);
-#else
-#define LgiSleep(i)					_lgi_sleep(i)
-LgiFunc void _lgi_sleep(int i);
-#endif
+LgiFunc void LgiSleep(uint32 i);
 
 #ifndef WIN32
 #define atoi64						atoll

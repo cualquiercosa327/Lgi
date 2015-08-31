@@ -1174,9 +1174,9 @@ bool CompositeText8NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 		for (int a=0; a<256; a++)
 		{
 			int oma = 255 - a;
-			map[a].r = (oma * back_px.r) + (a * fore_px.r) / 255;
-			map[a].g = (oma * back_px.g) + (a * fore_px.g) / 255;
-			map[a].b = (oma * back_px.b) + (a * fore_px.b) / 255;
+			map[a].r = Div255[(oma * back_px.r) + (a * fore_px.r)];
+			map[a].g = Div255[(oma * back_px.g) + (a * fore_px.g)];
+			map[a].b = Div255[(oma * back_px.b) + (a * fore_px.b)];
 		}
 	}
 
@@ -1351,24 +1351,32 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 	
 	#elif defined LGI_SDL
 	
-	/* This is what the colour spaces should be by default:
-	#if defined(LINUX)
-	typedef GRgbx32 OutPx;
-	#elif defined(MAC)
-	typedef GXrgb32 OutPx;
-	#else
-	typedef GRgb24 OutPx;
-	#endif
-	*/
-	
 	if (Img && pDC && pDC->Y() > 0 && (*pDC)[0])
 	{
+		int Ox = 0, Oy = 0;
+		pDC->GetOrigin(Ox, Oy);
+
+		/*
+		if (!Font->Transparent())
+		{
+			GRect Fill;
+			if (r)
+				Fill = *r;
+			else
+			{
+				Fill.ZOff(x-1, y-1);
+				Fill.Offset(px, py);
+			}
+			Fill.Offset(-Ox, -Oy);		
+		}
+		*/
+
 		GColourSpace DstCs = pDC->GetColourSpace();
 		switch (DstCs)
 		{
 			#define DspStrCase(px_fmt, comp)											\
 				case Cs##px_fmt:														\
-					CompositeText##comp<G##px_fmt>(pDC, Img, Font, px, py);	\
+					CompositeText##comp<G##px_fmt>(pDC, Img, Font, px-Ox, py-Oy);	\
 					break;
 			
 			DspStrCase(Rgb16, 5NoAlpha)
