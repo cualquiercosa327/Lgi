@@ -424,11 +424,7 @@ struct PfComponent
 int ComponenetCmp(PfComponent *a, PfComponent *b)
 {
 	int Diff = (a->Pos + a->Bits) - (b->Pos + b->Bits);
-	#ifdef WINDOWS
-	return -Diff;
-	#else
 	return Diff;
-	#endif
 }
 
 GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
