@@ -422,7 +422,7 @@ public:
 
 	// Style
     virtual GCss *GetCss(bool Create = false) = 0;
-    virtual void SetCss(GAutoPtr<GCss> css) = 0;
+    virtual void SetCss(GCss *css) = 0;
     virtual bool SetCssStyle(const char *CssStyle) = 0;
     virtual bool SetColour(GColour &c, bool Fore) = 0;
 	virtual GFont *GetFont() = 0;

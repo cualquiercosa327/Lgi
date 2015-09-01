@@ -1814,10 +1814,6 @@ bool GView::SetColour(GColour &c, bool Fore)
 	return true;
 }
 
-void GView::SetCss(GAutoPtr<GCss> css)
-{
-	d->Css = css;
-}
 
 bool GView::SetCssStyle(const char *CssStyle)
 {
@@ -1826,6 +1822,11 @@ bool GView::SetCssStyle(const char *CssStyle)
     
     const char *Defs = CssStyle;
     return d->Css->Parse(Defs, GCss::ParseRelaxed);
+}
+
+void GView::SetCss(GCss *css)
+{
+	d->Css.Reset(css);
 }
 
 GCss *GView::GetCss(bool Create)

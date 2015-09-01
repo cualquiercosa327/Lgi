@@ -29,6 +29,11 @@ LgiFunc Gtk::GdkDragAction DropEffectToAction(int DropEffect);
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
+struct LgiClass GDragData
+{
+	GString Format;
+	GArray<GVariant> Data;
+};
 
 /// A drag source class
 class LgiClass GDragDropSource
@@ -91,9 +96,18 @@ public:
 	/// and return it via the GVariant.
 	virtual bool GetData
 	(
-		/// Provide your data in this class
+		/// Fill out as many GDragData structures as you need.
+		GArray<GDragData> &Data
+	);
+
+	/// [Deprecated] This is the old API for compatibility.
+	/// The new GDragData version by default will call this
+	/// method.
+	virtual bool GetData
+	(
+		/// [out] the data retreived
 		GVariant *Data,
-		/// The format of the data to be provided
+		/// [in] the format to get
 		char *Format
 	)
 	{ return false; }
@@ -134,8 +148,6 @@ class LgiClass GDragDropTarget
 {
 private:
 	GView *To;
-	uchar *DragDropData;
-	int DragDropLength;
 	List<char> Formats;
 
 	#ifdef WIN32
@@ -203,6 +215,18 @@ public:
 	/// your window. The data is going to be a binary GVariant
 	/// in the format you accepted earlier.
 	/// \returns #DROPEFFECT_NONE for failure or #DROPEFFECT_COPY, #DROPEFFECT_MOVE, #DROPEFFECT_LINK
+	virtual int OnDrop
+	(
+		/// All the available data formats for this drop
+		GArray<GDragData> &Data,
+		/// The mouse coords
+		GdcPt2 Pt,
+		/// The keyboard modifiers
+		/// \sa #LGI_EF_CTRL, #LGI_EF_ALT, #LGI_EF_SHIFT
+		int KeyState
+	);
+
+	/// [Depcrecated] Old version of the drop handler.
 	virtual int OnDrop
 	(
 		/// The selected format

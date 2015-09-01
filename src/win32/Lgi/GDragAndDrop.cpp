@@ -18,7 +18,7 @@
 class GDndSourcePriv
 {
 public:
-	GAutoString CurrentFormat;
+	GArray<GDragData> CurData;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -96,7 +96,7 @@ HRESULT GDataObject::GetData(FORMATETC *pFormatEtc, STGMEDIUM *PMedium)
 
 	int CurFormat = 0;
 	List<char> Formats;
-	Source->d->CurrentFormat.Reset();
+	Source->d->CurData.Length(0);
 	Source->GetFormats(Formats);
 	for (char *f=Formats.First(); f; f=Formats.Next())
 	{
@@ -105,8 +105,8 @@ HRESULT GDataObject::GetData(FORMATETC *pFormatEtc, STGMEDIUM *PMedium)
 		if (n == pFormatEtc->cfFormat)
 		{
 			CurFormat = n;
-			Source->d->CurrentFormat.Reset(NewStr(f));
-			break;
+			GDragData &CurData = Source->d->CurData.New();
+			CurData.Format = f;
 		}
 	}
 	Formats.DeleteArrays();
@@ -124,60 +124,63 @@ HRESULT GDataObject::GetData(FORMATETC *pFormatEtc, STGMEDIUM *PMedium)
 
 	if (pFormatEtc &&
 		PMedium &&
-		Source->d->CurrentFormat)
+		Source->d->CurData.Length())
 	{
-		GVariant Data;
-
 		// the users don't HAVE to use this...
-		Source->GetData(&Data, Source->d->CurrentFormat);
+		Source->GetData(Source->d->CurData);
 
 		ZeroObj(*PMedium);
 		PMedium->tymed = TYMED_HGLOBAL;
 
 		uchar *Ptr = 0;
 		int Size = 0;
-		switch (Data.Type)
+		GDragData &CurData = Source->d->CurData[0];
+		if (CurData.Data.Length() > 0)
 		{
-			case GV_NULL:
-				break;
-			case GV_BINARY:
+			GVariant &Data = CurData.Data[0];
+			switch (Data.Type)
 			{
-				Ptr = (uchar*)Data.Value.Binary.Data;
-				Size = Data.Value.Binary.Length;
-				break;
-			}
-			case GV_STRING:
-			{
-				Ptr = (uchar*)Data.Value.String;
-				Size = Ptr ? strlen((char*)Ptr) + 1 : 0;
-				break;
-			}
-			default:
-			{
-				// Unsupported format...
-				LgiAssert(0);
-				break;
-			}
-		}
-
-		if (Ptr && Size > 0)
-		{
-			PMedium->hGlobal = GlobalAlloc(GHND, Size);
-			if (PMedium->hGlobal)
-			{
-				void *g = GlobalLock(PMedium->hGlobal);
-				if (g)
+				case GV_NULL:
+					break;
+				case GV_BINARY:
 				{
-					memcpy(g, Ptr, Size);
-					GlobalUnlock(PMedium->hGlobal);
-					Ret = S_OK;
+					Ptr = (uchar*)Data.Value.Binary.Data;
+					Size = Data.Value.Binary.Length;
+					break;
+				}
+				case GV_STRING:
+				{
+					Ptr = (uchar*)Data.Value.String;
+					Size = Ptr ? strlen((char*)Ptr) + 1 : 0;
+					break;
+				}
+				default:
+				{
+					// Unsupported format...
+					LgiAssert(0);
+					break;
 				}
 			}
-		}
 
-		#ifdef DND_DEBUG_TRACE
-		LgiTrace("GetData 2, Ret=%i", Ret);
-		#endif
+			if (Ptr && Size > 0)
+			{
+				PMedium->hGlobal = GlobalAlloc(GHND, Size);
+				if (PMedium->hGlobal)
+				{
+					void *g = GlobalLock(PMedium->hGlobal);
+					if (g)
+					{
+						memcpy(g, Ptr, Size);
+						GlobalUnlock(PMedium->hGlobal);
+						Ret = S_OK;
+					}
+				}
+			}
+
+			#ifdef DND_DEBUG_TRACE
+			LgiTrace("GetData 2, Ret=%i", Ret);
+			#endif
+		}
 	}
 
 	return Ret;
@@ -235,6 +238,17 @@ GDragDropSource::GDragDropSource()
 GDragDropSource::~GDragDropSource()
 {
 	DeleteObj(d);
+}
+
+bool GDragDropSource::GetData(GArray<GDragData> &DragData)
+{
+	if (DragData.Length() == 0)
+		return false;
+
+	// Call the deprecated version of 'GetData'
+	GVariant *v = &DragData[0].Data[0];
+	char *fmt = DragData[0].Format;
+	return GetData(v, fmt);
 }
 
 bool GDragDropSource::CreateFileDrop(GVariant *OutputData, GMouse &m, List<char> &Files)
@@ -481,8 +495,6 @@ GDragDropSource::GiveFeedback(DWORD dwEffect)
 ////////////////////////////////////////////////////////////////////////////////////////////
 GDragDropTarget::GDragDropTarget()
 {
-	DragDropData = 0;
-	DragDropLength = 0;
 	To = 0;
 
 	#if WINNATIVE
@@ -493,8 +505,6 @@ GDragDropTarget::GDragDropTarget()
 
 GDragDropTarget::~GDragDropTarget()
 {
-	DragDropLength = 0;
-	DeleteArray(DragDropData);
 	Formats.DeleteArrays();
 }
 
@@ -559,8 +569,6 @@ HRESULT STDMETHODCALLTYPE GDragDropTarget::DragEnter(IDataObject *pDataObject, D
 {
 	HRESULT Result = E_UNEXPECTED;
 
-	DragDropLength = 0;
-	DeleteArray(DragDropData);
 	*pdwEffect = DROPEFFECT_NONE;
 
 	POINT p;
@@ -588,9 +596,7 @@ HRESULT STDMETHODCALLTYPE GDragDropTarget::DragEnter(IDataObject *pDataObject, D
 			{
 				char *s = FormatToStr(Format.cfFormat);
 				if (s)
-				{
 					Formats.Insert(NewStr(s));
-				}
 			}
 		}
 		FormatETC->Release();
@@ -630,6 +636,19 @@ HRESULT STDMETHODCALLTYPE GDragDropTarget::DragLeave()
 	return S_OK;
 }
 
+int GDragDropTarget::OnDrop(GArray<GDragData> &DropData,
+							GdcPt2 Pt,
+							int KeyState)
+{
+	if (DropData.Length() == 0 ||
+		DropData[0].Data.Length() == 0)
+		return DROPEFFECT_NONE;
+	
+	char *Fmt = DropData[0].Format;
+	GVariant *Var = &DropData[0].Data[0];
+	return OnDrop(Fmt, Var, Pt, KeyState);
+}
+
 HRESULT STDMETHODCALLTYPE GDragDropTarget::Drop(IDataObject *pDataObject, DWORD grfKeyState, POINTL pt, DWORD *pdwEffect)
 {
 	HRESULT Result = E_UNEXPECTED;
@@ -644,11 +663,13 @@ HRESULT STDMETHODCALLTYPE GDragDropTarget::Drop(IDataObject *pDataObject, DWORD 
 	ScreenToClient(To->Handle(), &p);
 	GdcPt2 Pt(p.x, p.y);
 
-	char *FormatName;
-	if (FormatName = Formats.First())
+	GArray<GDragData> Data;	
+	for (char *FormatName = Formats.First(); FormatName; FormatName = Formats.Next())
 	{
 		bool IsStreamDrop = !_stricmp(FormatName, LGI_StreamDropFormat);
 		bool IsFileContents = !_stricmp(FormatName, CFSTR_FILECONTENTS);
+		GDragData &CurData = Data.New();
+		CurData.Format = FormatName;
 
 		FORMATETC Format;
 		Format.cfFormat = FormatToInt(FormatName);
@@ -671,15 +692,13 @@ HRESULT STDMETHODCALLTYPE GDragDropTarget::Drop(IDataObject *pDataObject, DWORD 
 					int Size = GlobalSize(Medium.hGlobal);
 					void *Ptr = GlobalLock(Medium.hGlobal);
 					if (Ptr)
-					{	
+					{
 						if (IsStreamDrop)
 						{
 							// Do special case handling of CFSTR_FILEDESCRIPTORW here,
 							// because we need to call GetData more times to get the file
 							// contents as well... and the layers after this don't have the
 							// capability to do it.
-							GVariant v;
-							v.SetList();
 							
 							// For each file...
 							LPFILEGROUPDESCRIPTORW Gd = (LPFILEGROUPDESCRIPTORW)Ptr;
@@ -697,37 +716,29 @@ HRESULT STDMETHODCALLTYPE GDragDropTarget::Drop(IDataObject *pDataObject, DWORD 
 								
 								// Get the stream for it...
 								HRESULT res = pDataObject->GetData(&Fmt, &Med);
-								GAutoPtr<GVariant> s;
 								if (SUCCEEDED(res) &&
-									Med.tymed == TYMED_ISTREAM &&
-									s.Reset(new GVariant))
+									Med.tymed == TYMED_ISTREAM)
 								{
 									IStreamWrap *w = new IStreamWrap(Med.pstm);
 									if (w)
 									{
 										// Wrap a GStream around it so we can talk to it...
+										GVariant *s = &CurData.Data.New();
 										s->Type = GV_STREAM;
 										s->Value.Stream.Ptr = w;
 										s->Value.Stream.Own = true;
 
 										// Store the name/size as well...
 										w->Desc.Reset(new FILEDESCRIPTORW(Gd->fgd[i]));
-
-										// Store it in the list of variants for the drop
-										v.Value.Lst->Insert(s.Release());
 									}
 								}
 							}
-							
-							if (v.Value.Lst->Length() > 0)
-								OnDrop(FormatName, &v, Pt, MapW32FlagsToLgi(grfKeyState));
 						}
 						else
 						{
 							// Default handling
-							GVariant v;
-							v.SetBinary(Size, Ptr);
-							OnDrop(FormatName, &v, Pt, MapW32FlagsToLgi(grfKeyState));
+							GVariant *s = &CurData.Data.New();
+							s->SetBinary(Size, Ptr);
 						}
 						
 						GlobalUnlock(Ptr);
@@ -736,11 +747,10 @@ HRESULT STDMETHODCALLTYPE GDragDropTarget::Drop(IDataObject *pDataObject, DWORD 
 				}
 				case TYMED_ISTREAM:
 				{
-					GVariant v;
-					v.Type = GV_STREAM;
-					v.Value.Stream.Own = true;
-					v.Value.Stream.Ptr = new IStreamWrap(Medium.pstm);
-					OnDrop(FormatName, &v, Pt, MapW32FlagsToLgi(grfKeyState));
+					GVariant *s = &CurData.Data.New();
+					s->Type = GV_STREAM;
+					s->Value.Stream.Own = true;
+					s->Value.Stream.Ptr = new IStreamWrap(Medium.pstm);
 					break;
 				}
 				default:
@@ -751,6 +761,11 @@ HRESULT STDMETHODCALLTYPE GDragDropTarget::Drop(IDataObject *pDataObject, DWORD 
 				}
 			}
 		}
+	}
+
+	if (Data.Length() > 0)
+	{
+		OnDrop(Data, Pt, MapW32FlagsToLgi(grfKeyState));
 	}
 
 	OnDragExit();
