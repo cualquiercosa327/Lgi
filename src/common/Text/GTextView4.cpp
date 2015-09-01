@@ -2683,8 +2683,9 @@ int GTextView4::WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState)
 	return Formats.Length() ? DROPEFFECT_COPY : DROPEFFECT_NONE;
 }
 
-int GTextView4::OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState)
+int GTextView4::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 {
+	/* FIXME
 	if (!_stricmp(Format, "text/uri-list") ||
 		!_stricmp(Format, "text/html") ||
 		!_stricmp(Format, "UniformResourceLocatorW"))
@@ -2703,6 +2704,7 @@ int GTextView4::OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState)
 			return DROPEFFECT_COPY;
 		}
 	}
+	*/
 
 	return DROPEFFECT_NONE;
 }

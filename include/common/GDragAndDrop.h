@@ -103,6 +103,7 @@ public:
 	/// [Deprecated] This is the old API for compatibility.
 	/// The new GDragData version by default will call this
 	/// method.
+	DEPRECATED_PRE
 	virtual bool GetData
 	(
 		/// [out] the data retreived
@@ -111,6 +112,7 @@ public:
 		char *Format
 	)
 	{ return false; }
+	DEPRECATED_POST
 
 	/// This is called to see what formats your support
 	/// Insert into the list dynamically allocated strings
@@ -226,7 +228,8 @@ public:
 		int KeyState
 	);
 
-	/// [Depcrecated] Old version of the drop handler.
+	/// [Deprecated] Old version of the drop handler.
+	DEPRECATED_PRE
 	virtual int OnDrop
 	(
 		/// The selected format
@@ -239,6 +242,7 @@ public:
 		/// \sa #LGI_EF_CTRL, #LGI_EF_ALT, #LGI_EF_SHIFT
 		int KeyState
 	) { return DROPEFFECT_NONE; }
+	DEPRECATED_POST
 };
 
 #endif
