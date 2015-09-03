@@ -621,6 +621,11 @@ public:
 	}
 	
 	#if defined(MAC) && __COREFOUNDATION_CFBASE__
+
+	GString(const CFStringRef r)
+	{
+		*this = r;
+	}
 	
 	GString &operator =(CFStringRef r)
 	{
