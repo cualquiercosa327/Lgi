@@ -426,7 +426,7 @@ public:
 
 		GlyphMap = 0;
 		Dirty = true;
-		Height = 10;
+		Height = 0;
 		Cp = 0;
 		Param = 0;
 	}
@@ -842,15 +842,22 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 	else
 	{
 		int Dpi = LgiScreenDpi();
+		int PtSize = PointSize();
+		int PxSize = (int) (PtSize * Dpi / 72.0);
+		
 		error = FT_Set_Char_Size(	d->hFont,		/* handle to face object           */
 									0,				/* char_width in 1/64th of points  */
-									PointSize()*64,	/* char_height in 1/64th of points */
+									PtSize*64,		/* char_height in 1/64th of points */
 									Dpi,			/* horizontal device resolution    */
 									Dpi);
 		if (error)
 		{
 			LgiTrace("%s:%i - FT_Set_Char_Size failed with %i\n", _FL, error);
 		}
+
+		d->Height = d->hFont->height * PtSize / d->hFont->units_per_EM;
+		GTypeFace::d->_Ascent = d->hFont->ascender * PtSize / d->hFont->units_per_EM;
+		GTypeFace::d->_Descent = d->Height - GTypeFace::d->_Ascent;
 		
 		return true;
 	}
