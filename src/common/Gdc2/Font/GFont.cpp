@@ -855,8 +855,9 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 			LgiTrace("%s:%i - FT_Set_Char_Size failed with %i\n", _FL, error);
 		}
 
-		d->Height = d->hFont->height * PtSize / d->hFont->units_per_EM;
-		GTypeFace::d->_Ascent = d->hFont->ascender * PtSize / d->hFont->units_per_EM;
+		d->Height = (int) (ceil((double)d->hFont->height * PxSize / d->hFont->units_per_EM) + 0.0001);
+		GTypeFace::d->_Ascent = (double)d->hFont->ascender * PxSize / d->hFont->units_per_EM;
+		LgiAssert(d->Height > GTypeFace::d->_Ascent);
 		GTypeFace::d->_Descent = d->Height - GTypeFace::d->_Ascent;
 		
 		return true;

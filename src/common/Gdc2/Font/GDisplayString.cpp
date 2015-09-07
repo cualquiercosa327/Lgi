@@ -254,23 +254,24 @@ void GDisplayString::Layout(bool Debug)
 		
 		// Measure the string...
 		GdcPt2 Sz;
-		int MaxBearingY = 0;
+		int FontHt = Font->GetHeight();
+		int AscentF = (int) (Font->Ascent() * FScale);
 		int LoadMode = FT_LOAD_FORCE_AUTOHINT;
 		for (unsigned i=0; i<Glyphs.Length(); i++)
 		{
 			error = FT_Load_Glyph(Fnt, Glyphs[i], LoadMode);
 			if (error == 0)
 			{
+				int PyF = AscentF - Fnt->glyph->metrics.horiBearingY;
+
 				Sz.x += Fnt->glyph->metrics.horiAdvance;
-				Sz.y = max(Sz.y, Fnt->glyph->metrics.height);
-				MaxBearingY = max(MaxBearingY, Fnt->glyph->metrics.horiBearingY);
+				Sz.y = max(Sz.y, PyF + Fnt->glyph->metrics.height);
 			}
 		}
 		
 		// Create the memory context to draw into
 		x = ((Sz.x + FScale - 1) >> FShift) + 1;
-		y = ((Sz.y + FScale - 1) >> FShift) + 1;
-		// len = Glyphs.Length();
+		y = FontHt; // ((Sz.y + FScale - 1) >> FShift) + 1;
 		
 		if (Img.Reset(new GMemDC(x, y, CsIndex8)))
 		{
@@ -292,8 +293,16 @@ void GDisplayString::Layout(bool Debug)
 						if (bmp.buffer)
 						{
 							// Copy rendered glyph into our image memory
-							int Px = CurX >> FShift;
-							int Py = (MaxBearingY - Fnt->glyph->metrics.horiBearingY) >> FShift;
+							int Px = (CurX + (FScale >> 1)) >> FShift;
+							int PyF = AscentF - Fnt->glyph->metrics.horiBearingY;
+							int Py = PyF >> FShift;
+							
+							if (Fnt->glyph->format == FT_GLYPH_FORMAT_BITMAP)
+							{
+								Px += Fnt->glyph->bitmap_left;
+								Py = (AscentF >> FShift) - Fnt->glyph->bitmap_top;
+							}
+							
 							LgiAssert(Px + bmp.width <= Img->X());
 							for (int y=0; y<bmp.rows; y++)
 							{
@@ -312,7 +321,16 @@ void GDisplayString::Layout(bool Debug)
 							}
 						}
 						
-						CurX += Fnt->glyph->metrics.horiAdvance;
+						if (i < Glyphs.Length() - 1)
+						{
+							FT_Vector kerning;
+							FT_Get_Kerning(Fnt, Glyphs[i], Glyphs[i+1], FT_KERNING_DEFAULT, &kerning);
+							CurX += Fnt->glyph->metrics.horiAdvance + kerning.x;
+						}
+						else
+						{
+							CurX += Fnt->glyph->metrics.horiAdvance;
+						}
 					}
 				}
 			}
