@@ -7,6 +7,12 @@
 #include "GCheckBox.h"
 #include "GDisplayString.h"
 
+#ifdef MAC
+#define RADIO_GRID  0
+#else
+#define RADIO_GRID  2
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Radio group
 class GRadioGroupPrivate
@@ -54,15 +60,10 @@ GRadioGroup::~GRadioGroup()
 	DeleteObj(d);
 }
 
-#ifdef MAC
-#define RADIO_GRID  0
-#else
-#define RADIO_GRID  2
-#endif
-
 bool GRadioGroup::OnLayout(GViewLayoutInfo &Inf)
 {
     GViewIterator *it = IterateViews();
+    const int BORDER_PX = 2;
 
     if (!Inf.Width.Max)
     {
@@ -70,7 +71,7 @@ bool GRadioGroup::OnLayout(GViewLayoutInfo &Inf)
         d->Info.DeleteObjects();
         Inf.Width.Min = 16 + (d->Txt ? d->Txt->X() : 16);
         
-        Inf.Width.Max = RADIO_GRID;
+        Inf.Width.Max = (BORDER_PX << 1) + RADIO_GRID;
 	    for (GViewI *w = it->First(); w; w = it->Next())
 	    {
 	        GAutoPtr<GViewLayoutInfo> c(new GViewLayoutInfo);
@@ -97,7 +98,7 @@ bool GRadioGroup::OnLayout(GViewLayoutInfo &Inf)
         Inf.Height.Min = d->Txt ? d->Txt->Y() : 16;
         
         bool Horiz = d->MaxLayoutWidth <= Inf.Width.Max;
-        int Cx = RADIO_GRID, Cy = GetFont()->GetHeight();
+        int Cx = (BORDER_PX << 1) + RADIO_GRID, Cy = GetFont()->GetHeight();
         int LastY = 0;
 	    for (GViewI *w = it->First(); w; w = it->Next())
 	    {
@@ -138,7 +139,7 @@ bool GRadioGroup::OnLayout(GViewLayoutInfo &Inf)
             }
 	    }
 	    
-	    Inf.Height.Min = Inf.Height.Max = LastY + RADIO_GRID;
+	    Inf.Height.Min = Inf.Height.Max = LastY + RADIO_GRID + BORDER_PX;
     }
     
     DeleteObj(it);
