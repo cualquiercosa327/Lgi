@@ -134,6 +134,7 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 		return DROPEFFECT_NONE;
 	}
 
+	/*
 	GDragDropSource *Src = this;
 
 	CFStringRef FlavorType = CFStringCreateWithCString(NULL, LGI_LgiDropFormat, kCFStringEncodingUTF8);
@@ -143,6 +144,7 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 	if (status) printf("%s:%i - PasteboardPutItemFlavor=%li\n", _FL, status);
 	CFRelease(FlavorType);
 	CFRelease(Data);
+	*/
 	
 	int n = 1;
 	for (char *f = Formats.First(); f; f = Formats.Next(), n++)
@@ -188,7 +190,13 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 					CFStringRef FlavorType = CFStringCreateWithCString(NULL, f, kCFStringEncodingUTF8);
 					CFDataRef Data = CFDataCreate(NULL, (const UInt8 *)Ptr, Size);
 					PasteboardFlavorFlags Flags = kPasteboardFlavorNoFlags;
-					status = PasteboardPutItemFlavor(Pb, (PasteboardItemID)n, FlavorType, Data, Flags);
+					
+					
+					printf("PasteboardPutItemFlavor(%i, %s)\n", i+1, f);
+					
+					status = PasteboardPutItemFlavor(Pb, (PasteboardItemID)(i+1), FlavorType, Data, Flags);
+					
+					
 					if (status) printf("%s:%i - PasteboardPutItemFlavor=%li\n", _FL, status);
 					CFRelease(FlavorType);
 					CFRelease(Data);
@@ -260,15 +268,11 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 ////////////////////////////////////////////////////////////////////////////////////////////
 GDragDropTarget::GDragDropTarget()
 {
-	DragDropData = 0;
-	DragDropLength = 0;
 	To = 0;
 }
 
 GDragDropTarget::~GDragDropTarget()
 {
-	DragDropLength = 0;
-	DeleteArray(DragDropData);
 	Formats.DeleteArrays();
 }
 

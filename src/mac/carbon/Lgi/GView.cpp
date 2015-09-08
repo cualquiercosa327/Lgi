@@ -343,9 +343,11 @@ struct DragParams
 			ItemCount Items = 0;
 			PasteboardGetItemCount(Pb, &Items);
 			if (Drop)
-			{
 				printf("Items=%li\n", Items);
-			}
+
+			if (Items > 1)
+				Data.SetList();
+
 			for (CFIndex i=1; i<=Items; i++)
 			{
 				PasteboardItemID Item;
@@ -398,9 +400,6 @@ struct DragParams
 				
 				if (ItemFlavors.Length())
 				{
-					if (ItemFlavors.Length() > 1)
-						Data.SetList();
-					
 					for (unsigned i=0; i<ItemFlavors.Length(); i++)
 					{
 						CFDataRef Ref;
@@ -421,7 +420,7 @@ struct DragParams
 									memcpy(Cp, Ptr, Len);
 									Cp[Len] = 0;
 									
-									if (ItemFlavors.Length() > 1)
+									if (Items > 1)
 									{
 										GVariant *v = new GVariant;
 										if (v)
@@ -552,10 +551,12 @@ pascal OSStatus LgiViewDndHandler(EventHandlerCallRef inHandlerCallRef, EventRef
 				v->d->AcceptedDropFormat.Reset(NewStr(param->Formats.First()));
 				LgiAssert(v->d->AcceptedDropFormat.Get());
 			}
+			/*
 			printf("kEventControlDragWithin %ix%i accept=%i class=%s\n",
 				param->Pt.x, param->Pt.y,
 				Accept,
 				v->GetClass());
+			*/
 			SetDragDropAction(Drag, param->Map(Accept));
 			result = noErr;
 			break;
