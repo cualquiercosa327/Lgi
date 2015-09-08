@@ -862,11 +862,13 @@ public:
 		{
 			// Draw icon
 			GRect ico;
+			GColour Back(LC_MED, 24);
+			
 			ico.ZOff(Mem->X()-1, Mem->Y()-1);
 		    if (ico.Y() < Ctrl->Y())
 		        ico.Offset(0, (Ctrl->Y() - ico.Y()) >> 1);
 			State->pScreen->Blt(ico.x1, ico.y1, Mem);
-			State->pScreen->Colour(LC_MED, 24);
+			State->pScreen->Colour(Back);
 			if (ico.y1 > 0)
 				State->pScreen->Rectangle(0, 0, ico.x2, ico.y1-1);
 			if (ico.y2 < Ctrl->Y())

@@ -365,12 +365,11 @@ char *DecodeRfc2047(char *Str)
 							Temp.Write((uchar*)s, p-s);
 						}
 						
-						char *Utf8 = (char*)LgiNewConvertCp("utf-8", Block, Cp);
+						GAutoString Utf8((char*)LgiNewConvertCp("utf-8", Block, Cp));
 						if (Utf8)
 						{
-							LgiAssert(LgiIsUtf8(Utf8));
-							Temp.Write((uchar*)Utf8, strlen(Utf8));
-							DeleteArray(Utf8);
+							if (LgiIsUtf8(Utf8))
+								Temp.Write((uchar*)Utf8.Get(), strlen(Utf8));
 						}
 						else
 						{

@@ -14,6 +14,7 @@
 #include "GDragAndDrop.h"
 #include "GDisplayString.h"
 #include "INet.h"
+#include "GViewPriv.h"
 
 // #define DND_DEBUG_TRACE
 
@@ -45,6 +46,17 @@ GDragDropSource::GDragDropSource()
 GDragDropSource::~GDragDropSource()
 {
 	DeleteObj(d);
+}
+
+bool GDragDropSource::GetData(GArray<GDragData> &DragData)
+{
+	if (DragData.Length() == 0)
+		return false;
+
+	// Call the deprecated version of 'GetData'
+	GVariant *v = &DragData[0].Data[0];
+	char *fmt = DragData[0].Format;
+	return GetData(v, fmt);
 }
 
 bool GDragDropSource::SetIcon(GSurface *Img, GRect *SubRgn)
@@ -266,6 +278,209 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
+struct DropItemFlavor
+{
+	int					Index;
+	PasteboardItemID	ItemId;
+	CFStringRef			Flavor;
+	GString				FlavorStr;
+};
+
+struct DragParams
+{
+	GdcPt2 Pt;
+	List<char> Formats;
+	GArray<GDragData> Data;
+	int KeyState;
+	
+	DragParams(GViewI *v, DragRef Drag, const char *DropFormat)
+	{
+		KeyState = 0;
+		
+		// Get the mouse position
+		Point mouse;
+		Point globalPinnedMouse;
+		OSErr err = GetDragMouse(Drag, &mouse, &globalPinnedMouse);
+		if (err)
+		{
+			printf("%s:%i - GetDragMouse failed with %i\n", _FL, err);
+		}
+		else
+		{
+			Pt.x = mouse.h;
+			Pt.y = mouse.v;
+			v->PointToView(Pt);
+		}
+		
+		// Get the keyboard state
+		SInt16 modifiers = 0;
+		SInt16 mouseDownModifiers = 0;
+		SInt16 mouseUpModifiers = 0;
+		err = GetDragModifiers(Drag, &modifiers, &mouseDownModifiers, &mouseUpModifiers);
+		if (err)
+		{
+			printf("%s:%i - GetDragModifiers failed with %i\n", _FL, err);
+		}
+		else
+		{
+			if (modifiers & cmdKey)
+				KeyState |= LGI_EF_SYSTEM;
+			if (modifiers & shiftKey)
+				KeyState |= LGI_EF_SHIFT;
+			if (modifiers & optionKey)
+				KeyState |= LGI_EF_ALT;
+			if (modifiers & controlKey)
+				KeyState |= LGI_EF_CTRL;
+		}
+
+		// Get the data formats
+		PasteboardRef Pb;
+		OSStatus e = GetDragPasteboard(Drag, &Pb);
+		GArray<DropItemFlavor> ItemFlavors;
+		if (e)
+		{
+			printf("%s:%i - GetDragPasteboard failed with %li\n", _FL, e);
+		}
+		else
+		{
+			GHashTbl<char*, int> Map(32, false, NULL, -1);
+			ItemCount Items = 0;
+			PasteboardGetItemCount(Pb, &Items);
+			
+			if (DropFormat)
+				printf("Items=%li\n", Items);
+			
+			for (CFIndex i=1; i<=Items; i++)
+			{
+				PasteboardItemID Item;
+				e = PasteboardGetItemIdentifier(Pb, i, &Item);
+				if (e)
+				{
+					printf("%s:%i - PasteboardGetItemIdentifier[%li]=%li\n", _FL, i-1, e);
+					continue;
+				}
+				
+				CFArrayRef FlavorTypes;
+				e = PasteboardCopyItemFlavors(Pb, Item, &FlavorTypes);
+				if (e)
+				{
+					printf("%s:%i - PasteboardCopyItemFlavors[%li]=%li\n", _FL, i-1, e);
+					continue;
+				}
+				
+				CFIndex Types = CFArrayGetCount(FlavorTypes);
+				if (DropFormat)
+					printf("[%li] FlavorTypes=%li\n", i, Types);
+				for (CFIndex t=0; t<Types; t++)
+				{
+					CFStringRef flavor = (CFStringRef)CFArrayGetValueAtIndex(FlavorTypes, t);
+					if (flavor)
+					{
+						GString n = flavor;
+
+						if (DropFormat)
+						{
+							int CurIdx = Map.Find(n);
+							if (CurIdx < 0)
+							{
+								CurIdx = Data.Length();
+								Map.Add(n, CurIdx);
+							}
+							
+							printf("[%li][%li]='%s'\n", i, t, n.Get());
+							DropItemFlavor &Fl = ItemFlavors.New();
+							Fl.Index = CurIdx;
+							Fl.ItemId = Item;
+							Fl.Flavor = flavor;
+							Fl.FlavorStr = n;
+						}
+						else
+						{
+							Formats.Insert(NewStr(n));
+						}
+					}
+				}
+				
+				if (ItemFlavors.Length())
+				{
+					for (unsigned i=0; i<ItemFlavors.Length(); i++)
+					{
+						CFDataRef Ref;
+						DropItemFlavor &Fl = ItemFlavors[i];
+						e = PasteboardCopyItemFlavorData(Pb, Fl.ItemId, Fl.Flavor, &Ref);
+						if (e)
+						{
+							printf("%s:%i - PasteboardCopyItemFlavorData failed with %lu.\n", _FL, e);
+						}
+						else
+						{
+							GDragData &dd = Data[Fl.Index];
+							if (!dd.Format)
+								dd.Format = Fl.FlavorStr;
+							
+							CFIndex Len = CFDataGetLength(Ref);
+							const UInt8 *Ptr = CFDataGetBytePtr(Ref);
+							if (Len > 0 && Ptr != NULL)
+							{
+								uint8 *Cp = new uint8[Len+1];
+								if (Cp)
+								{
+									memcpy(Cp, Ptr, Len);
+									Cp[Len] = 0;
+									
+									GVariant *v = &dd.Data[i];
+									if (!_stricmp(LGI_LgiDropFormat, DropFormat))
+									{
+										GDragDropSource *Src = NULL;
+										if (Len == sizeof(Src))
+										{
+											Src = *((GDragDropSource**)Ptr);
+											v->Empty();
+											v->Type = GV_VOID_PTR;
+											v->Value.Ptr = Src;
+										}
+										else LgiAssert(!"Wrong pointer size");
+									}
+									else
+									{
+										v->SetBinary(Len, Cp, true);
+									}
+								}
+							}
+							else
+							{
+								printf("%s:%i - Pasteboard data error: %p %li.\n", _FL, Ptr, Len);
+							}
+							
+							CFRelease(Ref);
+						}
+					}
+				}
+				ItemFlavors.Length(0);
+				CFRelease(FlavorTypes);
+			}
+		}
+	}
+	
+	~DragParams()
+	{
+		Formats.DeleteArrays();
+	}
+	
+	DragActions Map(int Accept)
+	{
+		DragActions a = 0;
+		if (Accept & DROPEFFECT_COPY)
+			a |= kDragActionCopy;
+		if (Accept & DROPEFFECT_MOVE)
+			a |= kDragActionMove;
+		if (Accept & DROPEFFECT_LINK)
+			a |= kDragActionAlias;
+		return a;
+	}
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////
 GDragDropTarget::GDragDropTarget()
 {
 	To = 0;
@@ -290,9 +505,92 @@ void GDragDropTarget::SetWindow(GView *to)
 		}
 		else
 		{
-			printf("%s:%i - Error\n", __FILE__, __LINE__);
+			printf("%s:%i - Error\n", _FL);
 		}
 	}
 }
 
+int GDragDropTarget::OnDrop(GArray<GDragData> &DropData,
+							GdcPt2 Pt,
+							int KeyState)
+{
+	if (DropData.Length() == 0 ||
+		DropData[0].Data.Length() == 0)
+		return DROPEFFECT_NONE;
+	
+	char *Fmt = DropData[0].Format;
+	GVariant *Var = &DropData[0].Data[0];
+	return OnDrop(Fmt, Var, Pt, KeyState);
+}
+
+OSStatus GDragDropTarget::OnDragWithin(GView *v, DragRef Drag)
+{
+	GDragDropTarget *Target = this;
+	GAutoPtr<DragParams> param(new DragParams(v, Drag, NULL));
+
+	// Call the handler
+	int Accept = Target->WillAccept(param->Formats, param->Pt, param->KeyState);
+	for (GViewI *p = v->GetParent(); param && !Accept && p; p = p->GetParent())
+	{
+		GDragDropTarget *pt = p->DropTarget();
+		if (pt)
+		{
+			param.Reset(new DragParams(p, Drag, NULL));
+			Accept = pt->WillAccept(param->Formats, param->Pt, param->KeyState);
+			if (Accept)
+			{
+				v = p->GetGView();
+				Target = pt;
+				break;
+			}
+		}
+	}
+	if (Accept)
+	{
+		v->d->AcceptedDropFormat.Reset(NewStr(param->Formats.First()));
+		LgiAssert(v->d->AcceptedDropFormat.Get());
+	}
+
+	printf("kEventControlDragWithin %ix%i accept=%i class=%s\n",
+		param->Pt.x, param->Pt.y,
+		Accept,
+		v->GetClass());
+	SetDragDropAction(Drag, param->Map(Accept));
+
+	return noErr;
+}
+
+OSStatus GDragDropTarget::OnDragReceive(GView *v, DragRef Drag)
+{
+	int Accept = 0;
+	GView *DropView = NULL;
+	for (GView *p = v; p; p = p->GetParent() ? p->GetParent()->GetGView() : NULL)
+	{
+		if (p->d->AcceptedDropFormat)
+		{
+			DropView = p;
+			break;
+		}
+	}
+	if (DropView &&
+		DropView->d->AcceptedDropFormat)
+	{
+		GDragDropTarget *pt = DropView->DropTarget();
+		if (pt)
+		{
+			DragParams p(DropView, Drag, DropView->d->AcceptedDropFormat);
+			int Accept = pt->OnDrop(p.Data,
+									p.Pt,
+									p.KeyState);
+			SetDragDropAction(Drag, p.Map(Accept));
+		}
+	}
+	else
+	{
+		printf("%s:%i - No accepted drop format. (view=%s)\n", _FL, v->GetClass());
+		SetDragDropAction(Drag, kDragActionNothing);
+	}
+	
+	return noErr;
+}
 

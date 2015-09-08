@@ -75,6 +75,7 @@ GRect GCssTools::PaintBorderAndPadding(GSurface *pDC, GRect &in)
 	bool Drawn = false;
 	switch (b.Style)
 	{
+		default:
 		case GCss::BorderNone:
 		case GCss::BorderHidden:
 			// Do nothing

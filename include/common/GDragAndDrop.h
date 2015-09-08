@@ -241,8 +241,15 @@ public:
 		/// The keyboard modifiers
 		/// \sa #LGI_EF_CTRL, #LGI_EF_ALT, #LGI_EF_SHIFT
 		int KeyState
-	) { return DROPEFFECT_NONE; }
-	DEPRECATED_POST
+	) DEPRECATED_POST
+	{
+		return DROPEFFECT_NONE;
+	}
+
+	#ifdef MAC
+	OSStatus OnDragWithin(GView *v, DragRef Drag);
+	OSStatus OnDragReceive(GView *v, DragRef Drag);
+	#endif
 };
 
 #endif
