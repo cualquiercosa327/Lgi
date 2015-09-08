@@ -112,10 +112,24 @@ public:
 			if (s)
 			{
 				GUri u(s);
-				if (u.Protocol &&
-					stricmp(u.Protocol, "file") == 0 &&
-					u.Host &&
-					stricmp(u.Host, "localhost") == 0)
+				if
+				(
+					(
+						u.Protocol
+						&&
+						stricmp(u.Protocol, "file") == 0
+					)
+					&&
+					(
+						!u.Host
+						||
+						(
+							ValidStr(u.Host)
+							&&
+							stricmp(u.Host, "localhost") == 0
+						)
+					)
+				)
 				{
 					GAutoString a = u.Decode(u.Path);
 					Add(a.Release());
