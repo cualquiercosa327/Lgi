@@ -77,6 +77,7 @@
 #define VAL_Tag						"Tag"
 #define VAL_Text					"Text"
 #define VAL_CellClass				"CellClass"
+#define VAL_CellStyle				"CellStyle"
 #define VAL_Text					"Text"
 #define VAL_Pos						"Pos"
 #define VAL_x1						"x1"
@@ -87,6 +88,10 @@
 #define VAL_Enabled					"Enabled"
 #define VAL_Class                   "Class"
 #define VAL_Style                   "Style"
+#define VAL_VerticalAlign			"valign"
+#define VAL_HorizontalAlign			"align"
+#define VAL_Children				"children"
+#define VAL_Span					"span"
 
 // Misc
 #define	MainWnd						((AppWnd*)GApp::ObjInstance()->AppWnd)

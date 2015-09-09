@@ -500,6 +500,12 @@ bool TableCell::SetVariant(const char *Name, GVariant &Value, char *Array)
 			}
 		}
 	}
+	else if (stricmp(Name, "style") == 0)
+	{
+		const char *style = Value.Str();
+		if (style)
+			Parse(style, ParseRelaxed);
+	}
 	else return false;
 
 	return true;
