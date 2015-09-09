@@ -33,7 +33,7 @@ enum CellFlag
 
 #define Izza(c)				dynamic_cast<c*>(v)
 // #define DEBUG_LAYOUT		535 // define to ID of control to dump (0 to disable)
-// #define DEBUG_LAYOUT		105
+#define DEBUG_LAYOUT		7
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
@@ -1108,9 +1108,10 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 		Dbg.Print("Layout Id=%i, Size=%i,%i\n", Ctrl->GetId(), Client.X(), Client.Y());
 		for (i=0; i<Cols.Length(); i++)
 		{
-			Dbg.Print("\tLayoutHorizontal.AfterSingle[%i]: min=%i max=%i (%s)\n",
-				i, MinCol[i], MaxCol[i],
-				FlagToString(ColFlags[i]));
+			Dbg.Print(	"\tLayoutHorizontal.AfterSingle[%i]: min=%i max=%i (%s)\n",
+						i,
+						MinCol[i], MaxCol[i],
+						FlagToString(ColFlags[i]));
 		}
 	}
 	#endif
@@ -1182,7 +1183,6 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 					}
 					
 					DistributeSize(MinCol, ColFlags, c->Cell.x1, c->Cell.X(), Min, CellSpacing);
-					// DistributeSize(MaxCol, ColFlags, c->Cell.x1, c->Cell.X(), Max, CellSpacing, DebugLayout?&Dbg:NULL);
 				}
 
 				Cx += c->Cell.X();
@@ -1203,7 +1203,10 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 	{
 		for (i=0; i<Cols.Length(); i++)
 		{
-			Dbg.Print("\tLayoutHorizontal.AfterSpanned[%i]: min=%i max=%i (%s)\n", i, MinCol[i], MaxCol[i], FlagToString(ColFlags[i]));
+			Dbg.Print(	"\tLayoutHorizontal.AfterSpanned[%i]: min=%i max=%i (%s)\n",
+						i,
+						MinCol[i], MaxCol[i],
+						FlagToString(ColFlags[i]));
 		}
 	}
 	#endif
@@ -1216,7 +1219,10 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 	{
 		for (i=0; i<Cols.Length(); i++)
 		{
-			Dbg.Print("\tLayoutHorizontal.AfterDist[%i]: min=%i max=%i (%s)\n", i, MinCol[i], MaxCol[i], FlagToString(ColFlags[i]));
+			Dbg.Print(	"\tLayoutHorizontal.AfterDist[%i]: min=%i max=%i (%s)\n",
+						i,
+						MinCol[i], MaxCol[i],
+						FlagToString(ColFlags[i]));
 		}
 	}
 	#endif
