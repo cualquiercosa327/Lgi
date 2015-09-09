@@ -16,6 +16,10 @@
 #undef FontChange
 #endif
 
+#ifdef LGI_SDL
+#include "ftsynth.h"
+#endif
+
 //345678123456781234567812345678
 	//	2nd
 
@@ -278,6 +282,8 @@ void GDisplayString::Layout(bool Debug)
 			// Clear the context to black
 			Img->Colour(0);
 			Img->Rectangle();
+
+			bool IsItalic = Font->Italic();
 			
 			int CurX = 0;
 			int FBaseline = Fnt->size->metrics.ascender;
@@ -286,6 +292,9 @@ void GDisplayString::Layout(bool Debug)
 				error = FT_Load_Glyph(Fnt, Glyphs[i], LoadMode);
 				if (error == 0)
 				{
+					if (IsItalic)
+						FT_GlyphSlot_Oblique(Fnt->glyph);
+
 					error = FT_Render_Glyph(Fnt->glyph, FT_RENDER_MODE_NORMAL);
 					if (error == 0)
 					{

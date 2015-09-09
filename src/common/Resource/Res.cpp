@@ -1589,6 +1589,8 @@ ResObjectImpl::SStatus ResTableLayout::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 								Cell->SetValue("valign", v = s);
 							if ((s = Td->GetAttr("class")))
 								Cell->SetValue("class", v = s);
+							if ((s = Td->GetAttr("style")))
+								Cell->SetValue("style", v = s);
 
 							if (v.SetList())
 							{
@@ -1699,9 +1701,9 @@ ResObjectImpl::SStatus ResTableLayout::Res_Write(GXmlTag *t)
 											Td->SetAttr("valign", v.Str());
 										}
 										if (c->GetValue("class", v) && ValidStr(v.Str()))
-										{
 											Td->SetAttr("class", v.Str());
-										}
+										if (c->GetValue("style", v) && ValidStr(v.Str()))
+											Td->SetAttr("style", v.Str());
 
 										if (c->GetValue("children", v) &&
 											v.Type == GV_LIST)

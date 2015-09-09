@@ -500,6 +500,12 @@ bool TableCell::SetVariant(const char *Name, GVariant &Value, char *Array)
 			}
 		}
 	}
+	else if (stricmp(Name, "style") == 0)
+	{
+		const char *style = Value.Str();
+		if (style)
+			Parse(style, ParseRelaxed);
+	}
 	else return false;
 
 	return true;
@@ -695,10 +701,19 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 	Len Ht = Height();
 	if (Ht.Type != LenInherit)
 	{
-		Pos.y2 = MinY = MaxY = Ht.ToPx(Table->Y(), Table->GetFont()) - 1;
-		if (Flags < SizeFixed)
-			Flags = SizeFixed;
-		return;
+		if (Ht.IsDynamic())
+		{
+			MaxY = Ht.ToPx(Table->Y(), Table->GetFont());
+			if (Flags < SizeGrow)
+				Flags = SizeGrow;
+		}
+		else
+		{
+			MinY = MaxY = Ht.ToPx(Table->Y(), Table->GetFont());
+			Pos.y2 = MinY - 1;
+			if (Flags < SizeFixed)
+				Flags = SizeFixed;
+		}
 	}
 	
 	int BtnX = 0;
@@ -724,9 +739,11 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 			c->Inf.Width.Max = Width;
 		}
 		
-		const char *Cls = v->GetClass();
 		GTableLayout *Tbl = NULL;
-		GRadioGroup *Grp;
+		GRadioGroup *Grp = NULL;
+
+		const char *Cls = v->GetClass();
+
 		GCss *Css = v->GetCss();
 		GCss::Len Ht;
 		if (Css)
@@ -742,7 +759,15 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 
 		if (Ht.IsValid())
 		{
-			MinY = MaxY = Ht.ToPx(MaxY, v->GetFont());
+			int CtrlHeight = Ht.ToPx(Table->Y(), v->GetFont());
+			if (MaxY < CtrlHeight)
+				MaxY = CtrlHeight;
+			if (!Ht.IsDynamic() && MinY < CtrlHeight)
+				MinY = CtrlHeight;
+			
+			GRect r = v->GetPos();
+			r.y2 = r.y1 + CtrlHeight - 1;
+			v->SetPos(r);
 		}
 		else if (v->OnLayout(c->Inf))
 		{
@@ -883,6 +908,9 @@ void TableCell::PostLayout()
 		if (c->Inf.Height.Max >= HeightPx)
 			c->Inf.Height.Max = HeightPx;
 
+		if (r.Y() > HeightPx)
+			r.y2 = r.y1 + HeightPx - 1;
+
 		if (Tbl)
 		{
 			r.Dimension(Pos.X(), Pos.Y());
@@ -963,13 +991,16 @@ void TableCell::PostLayout()
 	}
 
 	int OffsetY = 0;
-	if (VerticalAlign().Type == VerticalMiddle)
+	GCss::Len VAlign = VerticalAlign();
+	if (VAlign.Type == VerticalMiddle)
 	{
-		OffsetY = (Pos.Y() - MaxY) / 2;
+		int Py = Pos.Y();
+		OffsetY = (Py - MaxY) / 2;
 	}
-	else if (VerticalAlign().Type == VerticalBottom)
+	else if (VAlign.Type == VerticalBottom)
 	{
-		OffsetY = Pos.Y() - MaxY;
+		int Py = Pos.Y();
+		OffsetY = Py - MaxY;
 	}
 	for (n=0; n<Children.Length(); n++)
 	{
