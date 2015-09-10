@@ -32,6 +32,7 @@ GViewPrivate::GViewPrivate()
 	ParentI = 0;
 	Notify = 0;
 	IsThemed = true;
+	PulseId = NULL;
 }
 
 GViewPrivate::~GViewPrivate()
@@ -68,6 +69,8 @@ GViewI *GWindowFromHandle(OsView Wnd)
 //////////////////////////////////////////////////////////////////////////////
 void GView::_Delete()
 {
+	SetPulse();
+	
 	GViewI *c;
 	#ifdef _DEBUG
 	// Sanity check..
@@ -310,23 +313,34 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 			e.type = SDL_USEREVENT;
 			e.user.code = M_INVALIDATE;
 			SDL_PushEvent(&e);
-			// LgiTrace("Push M_INVALIDATE\n");
 		}
 	}
 
 	return false;
 }
 
+Uint32 SDL_PulseCallback(Uint32 interval, GView *v)
+{
+	SDL_Event e;
+	e.type = SDL_USEREVENT;
+	e.user.code = M_PULSE;
+	e.user.data1 = v;
+	SDL_PushEvent(&e);
+	return v->d->PulseLength;
+}
+
 void GView::SetPulse(int Length)
 {
-	if (_View)
+	if (d->PulseId > 0)
 	{
-		if (Length > 0)
-		{
-		}
-		else
-		{
-		}
+		SDL_RemoveTimer(d->PulseId);
+		d->PulseId = 0;
+	}
+	
+	if (Length > 0)
+	{
+		d->PulseLength = Length;
+		d->PulseId = SDL_AddTimer(Length, (SDL_NewTimerCallback)SDL_PulseCallback, this);
 	}
 }
 

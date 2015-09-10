@@ -133,10 +133,15 @@ public:
 		#endif
 
 	#endif
-	
-	#ifdef MAC
+
+	#if defined(MAC)
 	EventHandlerRef DndHandler;
 	GAutoString AcceptedDropFormat;
+	#endif
+	
+	#if defined(LGI_SDL)
+	SDL_TimerID PulseId;
+	int PulseLength;
 	#endif
 	
 	GViewPrivate();

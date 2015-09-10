@@ -567,7 +567,13 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 				
 			if (Wid.IsValid())
 			{
-				Min = Max = Wid.ToPx(Max, v->GetFont());
+				int Px =  Wid.ToPx(Table->X(), v->GetFont());
+				Min = max(Min, Px);
+				Max = max(Max, Px);
+				
+				GRect r = v->GetPos();
+				r.x2 = r.x1 + Px - 1;
+				v->SetPos(r);
 			}
 			else if (v->OnLayout(c->Inf))
 			{

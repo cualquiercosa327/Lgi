@@ -372,8 +372,12 @@ class LgiClass GView : virtual public GViewI, virtual public GBase
 	friend		long _lgi_pulse_thread(void *ptr);
 	friend 		GView *_lgi_search_children(GView *v, int &x, int &y);
 
-
 	#endif
+
+	#if defined(LGI_SDL)
+	friend Uint32 SDL_PulseCallback(Uint32 interval, GView *v);
+	#endif
+
 
 	GRect				Pos;
 	int					_InLock;
