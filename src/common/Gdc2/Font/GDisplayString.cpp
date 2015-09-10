@@ -244,7 +244,7 @@ void GDisplayString::Layout(bool Debug)
 		FT_Face Fnt = Font->Handle();
 		FT_Error error;
 		
-		if (!Fnt)
+		if (!Fnt || !Str)
 			return;
 		
 		// Create an array of glyph indexes

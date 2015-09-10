@@ -265,7 +265,7 @@ GApp::GApp(OsAppArguments &AppArgs, const char *name, GAppArguments *Args) :
 	d = new GAppPrivate;
 	Name(name);
 
-	if (SDL_Init(SDL_INIT_VIDEO) < 0)
+	if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) < 0)
 		LgiTrace("%s:%i - Couldn't initialize SDL: %s\n", _FL, SDL_GetError());
 
 	#ifdef LINUX
@@ -524,18 +524,32 @@ void GApp::OnSDLEvent(GMessage *m)
 		}
 		case SDL_USEREVENT:
 		{
-			if (AppWnd)
+			switch (m->Event.user.code)
 			{
-				SDL_Surface *Screen = GdcD->Handle();
-				if (Screen != NULL &&
-					m->Event.user.code == M_INVALIDATE)
+				case M_PULSE:
 				{
-					// LgiTrace("Got M_INVALIDATE\n");
+					GView *v = (GView*)m->Event.user.data1;
+					if (v)
 					{
-						GScreenDC Dc(AppWnd, Screen);
-						AppWnd->_Paint(&Dc);
+						v->OnPulse();
 					}
-					SDL_UpdateRect(Screen, 0, 0, 0, 0);
+					break;
+				}
+				case M_INVALIDATE:
+				{
+					if (AppWnd)
+					{
+						SDL_Surface *Screen = GdcD->Handle();
+						if (Screen != NULL)
+						{
+							{
+								GScreenDC Dc(AppWnd, Screen);
+								AppWnd->_Paint(&Dc);
+							}
+							SDL_UpdateRect(Screen, 0, 0, 0, 0);
+						}
+					}
+					break;
 				}
 			}
 			break;
