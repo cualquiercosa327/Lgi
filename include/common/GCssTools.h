@@ -23,7 +23,18 @@ public:
 
 	/// Paint the CSS border
 	/// \returns the content area within the borders
-	GRect PaintBorderAndPadding(GSurface *pDC, GRect &in);
+	GRect PaintBorder(GSurface *pDC, GRect &in);
+
+	/// Paint the CSS padding
+	/// \returns the content area within the padding
+	GRect PaintPadding(GSurface *pDC, GRect &in);
+	
+	GRect PaintBorderAndPadding(GSurface *pDC, GRect &in)
+	{
+		GRect r = PaintBorder(pDC, in);
+		r = PaintPadding(pDC, r);
+		return r;
+	}
 	
 	/// Paint the content area
 	void PaintContent(GSurface *pDC, GRect &in, const char *utf8, GSurface *img = NULL);

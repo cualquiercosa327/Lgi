@@ -64,7 +64,7 @@ bool GCssTools::SetLineStyle(GSurface *pDC, GCss::BorderDef &b)
 	return true;
 }
 
-GRect GCssTools::PaintBorderAndPadding(GSurface *pDC, GRect &in)
+GRect GCssTools::PaintBorder(GSurface *pDC, GRect &in)
 {
 	GRect Content = in;
 	if (!Css)
@@ -164,6 +164,15 @@ GRect GCssTools::PaintBorderAndPadding(GSurface *pDC, GRect &in)
 				pDC->VLine(Content.x2--, Content.y1, Content.y2);
 		}
 	}
+
+	return Content;
+}
+
+GRect GCssTools::PaintPadding(GSurface *pDC, GRect &in)
+{
+	GRect Content = in;
+	if (!Css)
+		return Content;
 
 	// Insert by the padding
 	GRect r = ApplyPadding(Content);

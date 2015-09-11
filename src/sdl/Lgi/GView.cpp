@@ -466,7 +466,7 @@ bool GView::_Mouse(GMouse &m, bool Move)
 
 		GRect Client = Target->GView::GetClient(false);
 		
-		m = lgi_adjust_click(m, Target, !Move);
+		m = lgi_adjust_click(m, Target);
 		if (!Client.Valid() || Client.Overlap(m.x, m.y))
 		{
 			// LgiToGtkCursor(Target, Target->GetCursor(m.x, m.y));

@@ -568,7 +568,7 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 
 	GMessage Msg;
 	int r;
-
+	
 	if (AppWnd)
 	{
 		GRect r(0, 0, GdcD->X()-1, GdcD->Y()-1);
@@ -786,6 +786,10 @@ void GApp::Exit(int Code)
 	{
 		// soft exit
 		ThreadCheck();
+		
+		SDL_Event e;
+		e.type = SDL_QUIT;
+		SDL_PushEvent(&e);
 	}
 }
 
