@@ -308,6 +308,7 @@ public:
 	void Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags);
 	/// Called after the layout has been done to move the controls into place
 	void PostLayout();
+	void OnPaint(GSurface *pDC);
 };
 
 class GTableLayoutPrivate
@@ -1020,6 +1021,13 @@ void TableCell::PostLayout()
 	}
 }
 
+void TableCell::OnPaint(GSurface *pDC)
+{
+	GCssTools t(this, Table->GetFont());
+	GRect r = Pos;	
+	t.PaintBorder(pDC, r);
+}
+
 ////////////////////////////////////////////////////////////////////////////
 GTableLayoutPrivate::GTableLayoutPrivate(GTableLayout *ctrl)
 {
@@ -1572,6 +1580,12 @@ void GTableLayout::OnPaint(GSurface *pDC)
 	{
 		pDC->Colour(Back);
 		pDC->Rectangle();
+	}
+
+	for (int i=0; i<d->Cells.Length(); i++)
+	{
+		TableCell *c = d->Cells[i];
+		c->OnPaint(pDC);
 	}
 
 	#if DEBUG_DRAW_CELLS
