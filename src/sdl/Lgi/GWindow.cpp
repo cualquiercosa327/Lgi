@@ -893,7 +893,7 @@ bool GWindow::UnregisterHook(GView *Target)
 
 GViewI *GWindow::GetFocus()
 {
-	return d->Focus;
+	return d->Focus ? d->Focus : this;
 }
 
 #if DEBUG_SETFOCUS

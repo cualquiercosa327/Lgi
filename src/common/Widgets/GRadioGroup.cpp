@@ -256,8 +256,30 @@ void GRadioGroup::OnPaint(GSurface *pDC)
 	}
 	else
 	{
-		pDC->Colour(LC_MED, 24);
-		pDC->Rectangle();
+		GColour Fore, Back;
+		Fore.Set(LC_TEXT, 24);
+		Back.Set(LC_MED, 24);
+
+		if (GetCss())
+		{
+			GCss::ColorDef Fill = GetCss()->Color();
+			if (Fill.Type == GCss::ColorRgb)
+				Fore.Set(Fill.Rgb32, 32);
+			else if (Fill.Type == GCss::ColorTransparent)
+				Fore.Empty();
+				
+			Fill = GetCss()->BackgroundColor();
+			if (Fill.Type == GCss::ColorRgb)
+				Back.Set(Fill.Rgb32, 32);
+			else if (Fill.Type == GCss::ColorTransparent)
+				Back.Empty();
+		}
+
+		if (Back.IsValid())
+		{
+			pDC->Colour(Back);
+			pDC->Rectangle();
+		}
 
 		int y = d->Txt ? d->Txt->Y() : 12;
 		GRect b(0, y/2, X()-1, Y()-1);
@@ -268,8 +290,8 @@ void GRadioGroup::OnPaint(GSurface *pDC)
 			GRect t;
 			t.ZOff(d->Txt->X(), d->Txt->Y());
 			t.Offset(6, 0);
-			SysFont->Colour(LC_TEXT, LC_MED);
-			SysFont->Transparent(false);
+			d->Txt->GetFont()->Colour(Fore, Back);
+			d->Txt->GetFont()->Transparent(!Back.IsValid());
 			d->Txt->Draw(pDC, t.x1, t.y1, &t);
 		}
 	}
@@ -566,14 +588,30 @@ void GRadioButton::OnPaint(GSurface *pDC)
 	{
 		GRect r(0, 0, X()-1, Y()-1);
 		GRect c(0, 0, 12, 12);
-		pDC->Colour(LC_MED, 24);
-		pDC->Rectangle();
+		GColour Fore, Back;
+		Fore.Set(LC_TEXT, 24);
+		Back.Set(LC_MED, 24);
 
+		if (GetCss())
+		{
+			GCss::ColorDef Fill = GetCss()->Color();
+			if (Fill.Type == GCss::ColorRgb)
+				Fore.Set(Fill.Rgb32, 32);
+			else if (Fill.Type == GCss::ColorTransparent)
+				Fore.Empty();
+				
+			Fill = GetCss()->BackgroundColor();
+			if (Fill.Type == GCss::ColorRgb)
+				Back.Set(Fill.Rgb32, 32);
+			else if (Fill.Type == GCss::ColorTransparent)
+				Back.Empty();
+		}
+		
 		bool e = Enabled();
 		if (d->Txt)
 		{
 			int Off = e ? 0 : 1;
-			SysFont->Colour(e ? LC_TEXT : LC_LIGHT, LC_MED);
+			SysFont->Colour(e ? Fore : GColour(LC_LIGHT, 24), Back);
             
             GRect p;
             p.ZOff(d->Txt->X()-1, d->Txt->Y()-1);
@@ -591,7 +629,7 @@ void GRadioButton::OnPaint(GSurface *pDC)
 
 			if (!e)
 			{
-				SysFont->Colour(LC_LOW, LC_MED);
+				SysFont->Colour(GColour(LC_LOW, 24), Back);
 				d->Txt->Draw(pDC, p.x1, p.y1);
 			}
 		}

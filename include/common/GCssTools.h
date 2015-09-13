@@ -6,6 +6,9 @@ class LgiClass GCssTools
 	GCss *Css;
 	GFont *Font;
 	
+	GColour Fore, Back;
+	uint8 ForeInit : 1, BackInit : 1;
+	
 	bool SetLineStyle(GSurface *pDC, GCss::BorderDef &d);
 	
 public:
@@ -13,7 +16,15 @@ public:
 	{
 		Css = css;
 		Font = font;
+		ForeInit = 0;
+		BackInit = 0;
 	}
+	
+	/// Gets the foreground colour for text
+	GColour &GetFore(GColour *Default = NULL);
+	
+	/// Gets the background colour for filling
+	GColour &GetBack(GColour *Default = NULL);
 
 	/// Applies the margin to a rectangle
 	GRect ApplyMargin(GRect &in);

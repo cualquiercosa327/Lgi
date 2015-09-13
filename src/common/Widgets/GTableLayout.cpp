@@ -319,7 +319,7 @@ class GTableLayoutPrivate
 public:
 	GArray<double> Rows, Cols;
 	GArray<TableCell*> Cells;
-	int CellSpacing;
+	int BorderSpacing;
 	bool FirstLayout;
 	GRect LayoutBounds;
 	int LayoutMinX, LayoutMaxX;
@@ -541,7 +541,8 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 	Len Wid = Width();
 	if (Wid.Type != LenInherit)
 	{
-		Min = Max = Wid.ToPx(Table->X(), Table->GetFont());
+		int Tx = Table->X();
+		Min = Max = Wid.ToPx(Tx, Table->GetFont()) - Padding.x1 - Padding.x2;
 		Flag = SizeFixed;
 		if (Padding.x1 + Padding.x2 > Min)
 		{
@@ -741,7 +742,7 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 		{
 			// In the case where the CSS width is set, we need to default the
 			// OnLayout info with valid widths otherwise the OnLayout calls will
-			// not fill out the height, but initialise the width instead.
+			// not fill out the height, but initialize the width instead.
 			c->Inf.Width.Min = Width;
 			c->Inf.Width.Max = Width;
 		}
@@ -757,7 +758,7 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 			Ht = Css->Height();
 
 		if (i)
-			Pos.y2 += GTableLayout::CellSpacing;
+			Pos.y2 += Table->d->BorderSpacing;
 
 		if (c->Inf.Width.Min > Width)
 			c->Inf.Width.Min = Width;
@@ -775,6 +776,8 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 			GRect r = v->GetPos();
 			r.y2 = r.y1 + CtrlHeight - 1;
 			v->SetPos(r);
+			
+			Pos.y2 = max(Pos.y2, r.Y()-1);
 		}
 		else if (v->OnLayout(c->Inf))
 		{
@@ -804,12 +807,12 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 				// Wrap
 				BtnX = v->X();
 				BtnRows++;
-				Pos.y2 += y + GTableLayout::CellSpacing;
+				Pos.y2 += y + Table->d->BorderSpacing;
 			}
 			else
 			{
 				// Don't wrap
-				BtnX += v->X() + GTableLayout::CellSpacing;
+				BtnX += v->X() + Table->d->BorderSpacing;
 			}
 			
 			// Set button height..
@@ -951,10 +954,10 @@ void TableCell::PostLayout()
 
 		New[i] = r;
 		MaxY = max(MaxY, r.y2 - Pos.y1);
-		Cx += r.X() + GTableLayout::CellSpacing;
+		Cx += r.X() + Table->d->BorderSpacing;
 		if (Cx >= Pos.X())
 		{
-			int Wid = Cx - GTableLayout::CellSpacing;
+			int Wid = Cx - Table->d->BorderSpacing;
 			int OffsetX = 0;
 			if (TextAlign().Type == AlignCenter)
 			{
@@ -972,7 +975,7 @@ void TableCell::PostLayout()
 
 			RowStart = i + 1;
 			Cx = Padding.x1;
-			Cy = MaxY + GTableLayout::CellSpacing;
+			Cy = MaxY + Table->d->BorderSpacing;
 		}
 	}
 
@@ -982,7 +985,7 @@ void TableCell::PostLayout()
 	}
 
 	int n;
-	int Wid = Cx - GTableLayout::CellSpacing;
+	int Wid = Cx - Table->d->BorderSpacing;
 	int OffsetX = 0;
 	if (TextAlign().Type == AlignCenter)
 	{
@@ -1035,7 +1038,7 @@ GTableLayoutPrivate::GTableLayoutPrivate(GTableLayout *ctrl)
 	DebugLayout = false;
 	Ctrl = ctrl;
 	FirstLayout = true;
-	CellSpacing = GTableLayout::CellSpacing;
+	BorderSpacing = GTableLayout::CellSpacing;
 	LayoutBounds.ZOff(-1, -1);
 	LayoutMinX = LayoutMaxX = 0;
 }
@@ -1227,7 +1230,7 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 						}
 					}
 					
-					DistributeSize(MinCol, ColFlags, c->Cell.x1, c->Cell.X(), Min, CellSpacing);
+					DistributeSize(MinCol, ColFlags, c->Cell.x1, c->Cell.X(), Min, BorderSpacing);
 				}
 
 				Cx += c->Cell.X();
@@ -1239,8 +1242,8 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 	LayoutMinX = 0;
 	for (i=0; i<Cols.Length(); i++)
 	{
-		LayoutMinX += MinCol[i] + GTableLayout::CellSpacing;
-		LayoutMaxX += MaxCol[i] + GTableLayout::CellSpacing;
+		LayoutMinX += MinCol[i] + BorderSpacing;
+		LayoutMaxX += MaxCol[i] + BorderSpacing;
 	}
 
 	#if DEBUG_LAYOUT
@@ -1257,7 +1260,7 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 	#endif
 
 	// Now allocate unused space
-	DistributeUnusedSpace(MinCol, MaxCol, ColFlags, Client.X(), CellSpacing, DebugLayout?&Dbg:NULL);
+	DistributeUnusedSpace(MinCol, MaxCol, ColFlags, Client.X(), BorderSpacing, DebugLayout?&Dbg:NULL);
 
 	#if DEBUG_LAYOUT
 	if (DebugLayout)
@@ -1308,7 +1311,7 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 				if (c->Cell.x1 == Cx && c->Cell.y1 == Cy && !c->IsSpanned())
 				{
 					int x = CountRange<int>(MinCol, c->Cell.x1, c->Cell.x2) +
-							((c->Cell.X() - 1) * CellSpacing);
+							((c->Cell.X() - 1) * BorderSpacing);
 					c->Layout(x, MinRow[Cy], MaxRow[Cy], RowFlags[Cy]);
 				}
 
@@ -1331,7 +1334,7 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 				if (c->Cell.x1 == Cx && c->Cell.y1 == Cy && c->IsSpanned())
 				{
 					int x = CountRange<int>(MinCol, c->Cell.x1, c->Cell.x2) +
-							((c->Cell.X() - 1) * CellSpacing);
+							((c->Cell.X() - 1) * BorderSpacing);
 					int MaxY = MaxRow[Cy];
 
 					c->Layout(x, MinRow[Cy], MaxY, RowFlags[Cy]);
@@ -1376,7 +1379,7 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 	#endif
 
 	// Allocate remaining vertical space
-	DistributeUnusedSpace(MinRow, MaxRow, RowFlags, Client.Y(), CellSpacing);
+	DistributeUnusedSpace(MinRow, MaxRow, RowFlags, Client.Y(), BorderSpacing);
 	
 	#if DEBUG_LAYOUT
 	if (DebugLayout)
@@ -1431,7 +1434,7 @@ void GTableLayoutPrivate::LayoutPost(GRect &Client)
 					c->Cell.y1 == Cy)
 				{
 					int y = CountRange<int>(MinRow, c->Cell.y1, c->Cell.y2) +
-							((c->Cell.Y() - 1) * CellSpacing);
+							((c->Cell.Y() - 1) * BorderSpacing);
 
 					c->Pos.y2 = c->Pos.y1 + y - 1;					
 					c->Pos.Offset(Client.x1 + Px, Client.y1 + Py);
@@ -1440,14 +1443,14 @@ void GTableLayoutPrivate::LayoutPost(GRect &Client)
 					MaxY = max(MaxY, c->Pos.y2);
 				}
 
-				Px += c->Pos.X() + CellSpacing;
+				Px += c->Pos.X() + BorderSpacing;
 				Cx += c->Cell.X();
 			}
 			else
 				Cx++;
 		}
 
-		Py += MinRow[Cy] + CellSpacing;
+		Py += MinRow[Cy] + BorderSpacing;
 		Px = 0;
 	}
 
@@ -1461,8 +1464,16 @@ void GTableLayoutPrivate::Layout(GRect &Client)
         LgiAssert(!"In layout, no recursion should happen.");
         return;
     }
-        
+
     InLayout = true;
+
+	BorderSpacing = GTableLayout::CellSpacing;
+	if (Ctrl->GetCss())
+	{
+		GCss::Len bs = Ctrl->GetCss()->BorderSpacing();
+		if (bs.Type != GCss::LenInherit)
+			BorderSpacing = bs.ToPx(Ctrl->X(), Ctrl->GetFont());
+	}
     
     #if DEBUG_LAYOUT
     DebugLayout = Ctrl->GetId() == DEBUG_LAYOUT;
@@ -1600,15 +1611,16 @@ void GTableLayout::OnPaint(GSurface *pDC)
 	#endif
 
 	#if DEBUG_DRAW_CELLS
+	pDC->LineStyle(GSurface::LineDot);
 	for (int i=0; i<d->Cells.Length(); i++)
 	{
 		GRect r = d->Cells[i]->Pos;
-		r.Size(-2, -2);
 		pDC->Colour(Rgb24(192, 192, 222), 24);
 		pDC->Box(&r);
 		pDC->Line(r.x1, r.y1, r.x2, r.y2);
 		pDC->Line(r.x2, r.y1, r.x1, r.y2);
 	}
+	pDC->LineStyle(GSurface::LineSolid);
 	#endif
 }
 
@@ -1636,6 +1648,12 @@ bool GTableLayout::SetVariant(const char *Name, GVariant &Value, char *Array)
 	else if (stricmp(Name, "rows") == 0)
 	{
 		return ConvertNumbers(d->Rows, Value.Str());
+	}
+	else if (!stricmp(Name, "style"))
+	{
+		const char *Defs = Value.Str();
+		if (Defs)
+			GetCss(true)->Parse(Defs, GCss::ParseRelaxed);
 	}
 	else if (stricmp(Name, "cell") == 0)
 	{

@@ -267,6 +267,7 @@ GApp::GApp(OsAppArguments &AppArgs, const char *name, GAppArguments *Args) :
 
 	if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) < 0)
 		LgiTrace("%s:%i - Couldn't initialize SDL: %s\n", _FL, SDL_GetError());
+	SDL_EnableUNICODE(true);
 
 	#ifdef LINUX
 	signal(SIGSEGV, sighandler);
@@ -488,24 +489,38 @@ void GApp::OnSDLEvent(GMessage *m)
 		}
 		case SDL_KEYDOWN:
 		{
-			if (AppWnd)
+			GViewI *f = AppWnd ? AppWnd->GetFocus() : NULL;
+			if (f)
 			{
 				GKey k;
 				k.vkey = m->Event.key.keysym.sym;
 				k.c16 = m->Event.key.keysym.unicode;
+				if (m->Event.key.state & (KMOD_LSHIFT|KMOD_RSHIFT))
+					k.Shift(true);
+				if (m->Event.key.state & (KMOD_LCTRL|KMOD_RCTRL))
+					k.Ctrl(true);
+				if (m->Event.key.state & (KMOD_LALT|KMOD_RALT))
+					k.Alt(true);
 				k.Down(true);
-				AppWnd->OnKey(k);
+				f->OnKey(k);
 			}
 			break;
 		}
 		case SDL_KEYUP:
 		{
-			if (AppWnd)
+			GViewI *f = AppWnd ? AppWnd->GetFocus() : NULL;
+			if (f)
 			{
 				GKey k;
 				k.vkey = m->Event.key.keysym.sym;
 				k.c16 = m->Event.key.keysym.unicode;
-				AppWnd->OnKey(k);
+				if (m->Event.key.state & (KMOD_LSHIFT|KMOD_RSHIFT))
+					k.Shift(true);
+				if (m->Event.key.state & (KMOD_LCTRL|KMOD_RCTRL))
+					k.Ctrl(true);
+				if (m->Event.key.state & (KMOD_LALT|KMOD_RALT))
+					k.Alt(true);
+				f->OnKey(k);
 			}
 			break;
 		}

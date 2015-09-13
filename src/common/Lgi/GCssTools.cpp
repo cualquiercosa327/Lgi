@@ -1,6 +1,50 @@
 #include "Lgi.h"
 #include "GCssTools.h"
 
+GColour &GCssTools::GetFore(GColour *Default)
+{
+	if (!ForeInit)
+	{
+		ForeInit = 1;
+		if (Default)
+			Fore = *Default;
+		else
+			Fore.Set(LC_TEXT, 24);
+		if (Css)
+		{
+			GCss::ColorDef Fill = Css->Color();
+			if (Fill.Type == GCss::ColorRgb)
+				Fore.Set(Fill.Rgb32, 32);
+			else if (Fill.Type == GCss::ColorTransparent)
+				Fore.Empty();
+		}
+	}
+	
+	return Fore;
+}
+	
+GColour &GCssTools::GetBack(GColour *Default)
+{
+	if (!BackInit)
+	{
+		BackInit = 1;
+		if (Default)
+			Back = *Default;
+		else
+			Back.Set(LC_MED, 24);
+		if (Css)
+		{
+			GCss::ColorDef Fill = Css->BackgroundColor();
+			if (Fill.Type == GCss::ColorRgb)
+				Back.Set(Fill.Rgb32, 32);
+			else if (Fill.Type == GCss::ColorTransparent)
+				Back.Empty();
+		}
+	}
+	
+	return Back;
+}
+
 GRect GCssTools::ApplyMargin(GRect &in)
 {
 	if (!Css)
@@ -163,6 +207,8 @@ GRect GCssTools::PaintBorder(GSurface *pDC, GRect &in)
 			for (int i=0; i<Px; i++)
 				pDC->VLine(Content.x2--, Content.y1, Content.y2);
 		}
+		
+		pDC->LineStyle(GSurface::LineSolid);
 	}
 
 	return Content;

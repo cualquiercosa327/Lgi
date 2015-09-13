@@ -1528,6 +1528,11 @@ ResObjectImpl::SStatus ResTableLayout::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 			d->SetValue("rows", v);
 			Cy = CountNumbers(s);
 		}
+		v = Tag->GetAttr("style");
+		if (v.Str())
+		{
+			d->SetValue("style", v);
+		}
 
 		GRect Bounds(0, 0, Cx-1, Cy-1);
 		#define UsedCell(x, y) Used[(Cx * y) + x]

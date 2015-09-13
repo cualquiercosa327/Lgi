@@ -166,6 +166,7 @@ GCss::GCss() : Props(32, false, PropNull)
 	if (Lut.Length() == 0)
 	{
 		Lut.Add("border-collapse", PropBorderCollapse);
+		Lut.Add("border-spacing", PropBorderSpacing);
 		Lut.Add("letter-spacing", PropLetterSpacing);
 		Lut.Add("word-wrap", PropWordWrap);
 		Lut.Add("list-style", PropListStyle);
