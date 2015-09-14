@@ -84,6 +84,18 @@ public:
 };
 #endif
 
+enum GViewFontType
+{
+	/// The GView has a pointer to an externally owned font.
+	GV_FontPtr,
+	/// The GView owns the font object, and must free it.
+	GV_FontOwned,
+	/// The GApp's font cache owns the object. In this case,
+	/// calling GetCssStyle on the GView will invalidate the
+	/// font ptr causing it to be re-calculated.
+	GV_FontCached,
+};
+
 class GViewPrivate
 {
 public:
@@ -103,7 +115,7 @@ public:
 	
 	// Font
 	GFont			*Font;
-	bool			FontOwn;
+	GViewFontType	FontOwnType;
 	
 	// Style
 	GAutoPtr<GCss>  Css;

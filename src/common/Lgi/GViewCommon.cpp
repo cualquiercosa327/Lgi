@@ -1436,6 +1436,26 @@ bool GView::AttachChildren()
 
 GFont *GView::GetFont()
 {
+	const char *Cls = GetClass();
+	
+	if (!d->Font &&
+		d->Css &&
+		LgiResources::GetLoadStyles())
+	{
+		GFontCache *fc = LgiApp->GetFontCache();
+		if (fc)
+		{
+			GFont *f = fc->GetFont(d->Css);
+			if (f)
+			{
+				if (d->FontOwnType == GV_FontOwned)
+					DeleteObj(d->Font);
+				d->Font = f;
+				d->FontOwnType = GV_FontCached;
+			}
+		}
+	}
+	
 	return d->Font ? d->Font : SysFont;
 }
 
@@ -1444,20 +1464,12 @@ void GView::SetFont(GFont *Font, bool OwnIt)
 	bool Change = d->Font != Font;
 	if (Change)
 	{
-		if (d->FontOwn)
+		if (d->FontOwnType == GV_FontOwned)
 		{
 			DeleteObj(d->Font);
 		}
 
-		if (!Font)
-		{
-			Font = SysFont;
-			OwnIt = false;
-		}
-
-		d->FontOwn = OwnIt;
-		
-		GFont *Old = d->Font;
+		d->FontOwnType = OwnIt ? GV_FontOwned : GV_FontPtr;
 		d->Font = Font;
 		#if WINNATIVE
 		if (_View)
@@ -1821,7 +1833,14 @@ bool GView::SetCssStyle(const char *CssStyle)
 		return false;
     
     const char *Defs = CssStyle;
-    return d->Css->Parse(Defs, GCss::ParseRelaxed);
+    bool b = d->Css->Parse(Defs, GCss::ParseRelaxed);
+    if (b && d->FontOwnType == GV_FontCached)
+    {
+		d->Font = NULL;
+		d->FontOwnType = GV_FontPtr;
+    }
+    
+    return b;    
 }
 
 void GView::SetCss(GCss *css)

@@ -288,6 +288,9 @@ public:
 	/// \returns true if the process is running with elevated permissions
 	bool IsElevated();
 
+	/// Gets the font cache
+	class GFontCache *GetFontCache();
+
 	// OS Specific
 	#if defined(LGI_SDL)
 	

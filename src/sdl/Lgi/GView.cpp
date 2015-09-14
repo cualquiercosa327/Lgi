@@ -24,7 +24,7 @@
 GViewPrivate::GViewPrivate()
 {
 	Font = 0;
-	FontOwn = false;
+	FontOwnType = GV_FontPtr;
 	CtrlId = -1;
 	DropTarget = NULL;
 	DropSource = NULL;
@@ -37,7 +37,7 @@ GViewPrivate::GViewPrivate()
 
 GViewPrivate::~GViewPrivate()
 {
-	if (FontOwn)
+	if (FontOwnType == GV_FontOwned)
 	{
 		DeleteObj(Font);
 	}

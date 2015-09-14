@@ -193,6 +193,7 @@ public:
 	GArray<GViewI*> DeleteLater;
 	GMouse LastMove;
 	GAutoString Name;
+	GAutoPtr<GFontCache> FontCache;
 	
 	// Clipboard handling
 	int Clipboard, Utf8, Utf8String;
@@ -936,6 +937,13 @@ bool GApp::IsElevated()
 	#else
 	return geteuid() == 0;
 	#endif
+}
+
+GFontCache *GApp::GetFontCache()
+{
+	if (!d->FontCache)
+		d->FontCache.Reset(new GFontCache(SystemNormal));
+	return d->FontCache;
 }
 
 int GApp::GetCpuCount()

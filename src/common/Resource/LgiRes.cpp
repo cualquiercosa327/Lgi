@@ -418,23 +418,6 @@ LgiResources::~LgiResources()
 	DeleteObj(d);
 }
 
-bool LgiResources::SetLoadStyles(GFont *Default)
-{
-	LoadStyles = true;
-
-	for (int i=0; i<_ResourceOwner.Length(); i++)
-	{
-		LgiResources *r = _ResourceOwner[i];
-		if (!r->FontCache)
-		{
-			if (!r->FontCache.Reset(new GFontCache(Default)))
-				return false;
-		}
-	}
-
-	return true;
-}
-
 bool LgiResources::StyleElement(GViewI *v)
 {
 	if (!v) return false;
@@ -460,13 +443,6 @@ bool LgiResources::StyleElement(GViewI *v)
 				{
 					Css->Parse(Defs, GCss::ParseRelaxed);
 				}
-			}
-			
-			if (r->FontCache)
-			{
-				GFont *f = r->FontCache->GetFont(v->GetCss());
-				if (f)
-					v->SetFont(f);
 			}
 		}
 	}

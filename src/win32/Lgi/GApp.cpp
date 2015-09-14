@@ -84,6 +84,9 @@ public:
 	GAutoString Mime, ProductId;
 	bool ThemeAware;
 
+	/// Any fonts needed for styling the elements
+	GAutoPtr<GFontCache> FontCache;
+
 	// Win32
 	bool QuitReceived;
 	List<GWin32Class> Classes;
@@ -1019,4 +1022,11 @@ bool GApp::IsElevated()
         CloseHandle(hToken);
 
     return fRet;
+}
+
+GFontCache *GApp::GetFontCache()
+{
+	if (!d->FontCache)
+		d->FontCache.Reset(new GFontCache(SystemNormal));
+	return d->FontCache;
 }

@@ -1498,12 +1498,10 @@ int CountNumbers(char *s)
 ResObjectImpl::SStatus ResTableLayout::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 {
 	bool Status = false;
-	if (!Tag)
+
+	if (!Tag || !Tag->IsTag(Res_Table))
 		return SError;
 	
-	if (!Tag->IsTag(Res_Table))
-		return SError;
-
 	Res_SetPos(Tag);
 	if (!Res_SetStrRef(Tag, &Ctx))
 		return SExclude;

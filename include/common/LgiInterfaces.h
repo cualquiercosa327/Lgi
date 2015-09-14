@@ -309,6 +309,9 @@ public:
 
 	/// Returns the number of cpu cores or -1 if unknown.
 	virtual int GetCpuCount() { return -1; }
+
+	/// Gets the font cache
+	virtual class GFontCache *GetFontCache() = 0;
 };
 
 class GEventsI

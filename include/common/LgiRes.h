@@ -126,11 +126,11 @@ public:
 	/// This is all the CSS loaded from the lr8 file (and possibly other sources as well)
 	GCss::Store CssStore;
 
-	/// Any fonts needed for styling the elements
-	GAutoPtr<GFontCache> FontCache;
+	/// Get the load styles setting
+	static bool GetLoadStyles() { return LoadStyles; }
 	
 	/// Sets the loading of styles for all UI elements.
-	static bool SetLoadStyles(GFont *Default);
+	static void SetLoadStyles(bool ls) { LoadStyles = ls; }
 
 	/// This is called by UI elements to load styles if necessary.
 	static bool StyleElement(GViewI *v);

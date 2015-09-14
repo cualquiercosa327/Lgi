@@ -1406,7 +1406,7 @@ public:
 
 	GTv4Priv(GTextView4 *view) :
 		GHtmlParser(view),
-		GFontCache(view)
+		GFontCache(SysFont)
 	{
 		View = view;
 		WordSelectMode = false;
