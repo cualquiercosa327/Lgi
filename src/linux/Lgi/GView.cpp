@@ -122,7 +122,7 @@ GViewPrivate::GViewPrivate()
 	CtrlId = -1;
 	DropTarget = 0;
 	Font = 0;
-	FontOwn = false;
+	FontOwnType = GV_FontPtr;
 	Popup = 0;
 	TabStop = 0;
 	Pulse = 0;
