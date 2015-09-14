@@ -722,7 +722,7 @@ public:
 					}
 
 					GFont *f = Text->GetFont();
-					f->Transparent(!Back.IsValid());
+					f->Transparent(true);
 					if (Ctrl->Enabled())
 					{
 						f->Colour(Fore, Back);
