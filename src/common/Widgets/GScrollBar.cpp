@@ -426,6 +426,7 @@ GScrollBar::GScrollBar(int id, int x, int y, int cx, int cy, const char *name)
 	{
 		SetVertical(false);
 	}
+	LgiResources::StyleElement(this);
 }
 
 GScrollBar::~GScrollBar()

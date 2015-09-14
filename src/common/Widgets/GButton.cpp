@@ -68,6 +68,7 @@ GButton::GButton(int id, int x, int y, int cx, int cy, const char *name) :
 	SetId(id);
 	SetTabStop(true);
 	SetFont(SysBold, false);
+	LgiResources::StyleElement(this);
 	
 	if (LgiApp->SkinEngine)
 	{

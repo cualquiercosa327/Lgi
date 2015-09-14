@@ -61,6 +61,7 @@ GEdit::GEdit(int id, int x, int y, int cx, int cy, const char *name) :
 
 	GRect r(x, y, x+max(cx, 10), y+max(cy, 10));
 	SetPos(r);
+	LgiResources::StyleElement(this);
 }
 
 GEdit::~GEdit()

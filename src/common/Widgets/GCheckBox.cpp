@@ -81,6 +81,7 @@ GCheckBox::GCheckBox(int id, int x, int y, int cx, int cy, const char *name, int
 	SetPos(r);
 	SetId(id);
 	SetTabStop(true);
+	LgiResources::StyleElement(this);
 }
 
 GCheckBox::~GCheckBox()

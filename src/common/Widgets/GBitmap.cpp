@@ -96,6 +96,7 @@ GBitmap::GBitmap(int id, int x, int y, char *FileName, bool Async)
 	}
 
 	SetPos(r);
+	LgiResources::StyleElement(this);
 }
 
 GBitmap::~GBitmap()

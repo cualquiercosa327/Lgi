@@ -3,14 +3,20 @@
 
 class GFontCache
 {
-	GView *View;
+	GFont *DefaultFont;
 	GArray<GFont*> Fonts;
 	GHashTbl<const char*, GString> FontName;
 	
 public:
-	GFontCache(GView *v)
+	/// Constructor for font cache
+	GFontCache
+	(
+		/// This is an externally owned default font... or optionally 
+		/// NULL if there is no default.
+		GFont *DefFnt = NULL
+	)
 	{
-		View = v;
+		DefaultFont = DefFnt;
 	}
 	
 	~GFontCache()
@@ -74,7 +80,6 @@ public:
 
 	GFont *GetFont(GCss *Style)
 	{
-		GFont *DefaultFont = View ? View->GetFont() : SysFont;
 		if (!Style)
 			return DefaultFont;
 		

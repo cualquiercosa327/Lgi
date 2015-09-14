@@ -25,6 +25,7 @@ GPanel::GPanel(const char *name, int size, bool open)
 	
 	_BorderSize = 1;
 	Raised(true);
+	LgiResources::StyleElement(this);
 }
 
 GPanel::~GPanel()

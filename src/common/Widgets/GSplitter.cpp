@@ -71,6 +71,7 @@ GSplitter::GSplitter()
 
 	IsVertical(true);
 	Value(0);
+	LgiResources::StyleElement(this);
 }
 
 GSplitter::~GSplitter()

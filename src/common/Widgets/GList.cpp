@@ -839,6 +839,7 @@ GList::GList(int id, int x, int y, int cx, int cy, const char *name)
 
 	GRect r(x, y, x+cx, y+cy);
 	SetPos(r);
+	LgiResources::StyleElement(this);
 }
 
 GList::~GList()

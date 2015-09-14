@@ -53,6 +53,7 @@ GRadioGroup::GRadioGroup(int id, int x, int y, int cx, int cy, const char *name,
 	SetPos(r);
 	SetId(id);
 	d->Val = Init;
+	LgiResources::StyleElement(this);
 }
 
 GRadioGroup::~GRadioGroup()
@@ -359,6 +360,7 @@ GRadioButton::GRadioButton(int id, int x, int y, int cx, int cy, const char *nam
 	#if WINNATIVE
 	SetDlgCode(GetDlgCode() | DLGC_WANTARROWS);
 	#endif
+	LgiResources::StyleElement(this);
 }
 
 GRadioButton::~GRadioButton()

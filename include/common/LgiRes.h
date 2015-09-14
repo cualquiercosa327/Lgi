@@ -28,6 +28,8 @@
 #include "Res.h"
 #include "GContainers.h"
 #include "GCss.h"
+#include "GAutoPtr.h"
+#include "GFontCache.h"
 
 class LgiResources;
 
@@ -113,10 +115,26 @@ class LgiClass LgiResources : public ResFactory
 	/// Add a language to the Languages array
 	void AddLang(GLanguageId id);
 
+	/// If this is true then all UI elements should attempt to load styles from the CSS store
+	/// by calling 'StyleElement'. It will default to false for old applications. Newer apps
+	/// can enable it manually.
+	static bool LoadStyles;
+
 public:
 	GHashTbl<const char*, char*> LanguageNames;
+	
+	/// This is all the CSS loaded from the lr8 file (and possibly other sources as well)
 	GCss::Store CssStore;
 
+	/// Any fonts needed for styling the elements
+	GAutoPtr<GFontCache> FontCache;
+	
+	/// Sets the loading of styles for all UI elements.
+	static bool SetLoadStyles(GFont *Default);
+
+	/// This is called by UI elements to load styles if necessary.
+	static bool StyleElement(GViewI *v);
+	
 	/// The constructor
 	LgiResources
 	(
@@ -243,3 +261,40 @@ LgiExtern GResourceContainer _ResourceOwner;
 /// Loads a resource and returns a pointer to it.
 /// \ingroup Resources
 LgiExtern LgiResources *LgiGetResObj(bool Warn = false, const char *filename = 0);
+
+/// This class is used to style GView controls with CSS
+class LgiClass GViewCssCb : public GCss::ElementCallback<GViewI>
+{
+public:
+	const char *GetElement(GViewI *obj)
+	{
+		return obj->GetClass();
+	}
+	
+	const char *GetAttr(GViewI *obj, const char *Attr)
+	{
+		return NULL;
+	}
+	
+	bool GetClasses(GArray<const char *> &Classes, GViewI *obj)
+	{
+		return false;
+	}
+	
+	GViewI *GetParent(GViewI *obj)
+	{
+		return obj->GetParent();
+	}
+	
+	GArray<GViewI*> GetChildren(GViewI *obj)
+	{
+		GArray<GViewI*> a;
+		GAutoPtr<GViewIterator> it(obj->IterateViews());
+		for (GViewI *i = it->First(); i; i = it->Next())
+		{
+			a.Add(i);
+		}
+		return a;
+	}
+};
+

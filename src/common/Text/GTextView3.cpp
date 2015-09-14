@@ -388,6 +388,7 @@ GTextView3::GTextView3(	int Id,
 	r.ZOff(cx-1, cy-1);
 	r.Offset(x, y);
 	SetPos(r);
+	LgiResources::StyleElement(this);
 }
 
 GTextView3::~GTextView3()
