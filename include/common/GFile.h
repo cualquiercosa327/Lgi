@@ -469,6 +469,14 @@ public:
 			return *this;
 		}
 		
+		Path &operator =(const Path &p)
+		{
+			*((GString::Array*)this) = p;
+			Full = p.Full;
+			SetFixedLength(false);
+			return *this;
+		}
+		
 		Path &operator +=(const char *p)
 		{
 			GString s(p);
