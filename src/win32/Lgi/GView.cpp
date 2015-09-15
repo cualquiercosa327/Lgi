@@ -1,4 +1,3 @@
-
 /*hdr
 **      FILE:           GView.cpp
 **      AUTHOR:         Matthew Allen
@@ -1867,15 +1866,20 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 					}
 				}
 
+				#if 0
+				LgiTrace("WM_MOUSEMOVE %i,%i target=%p/%s, over=%p/%s, cap=%p/%s\n",
+					Ms.x, Ms.y,
+					Ms.Target, Ms.Target?Ms.Target->GetClass():0,
+					_Over, _Over?_Over->GetClass():0,
+					_Capturing, _Capturing?_Capturing->GetClass():0);
+				#endif
+
 				if (_Capturing)
-				{
-					Ms = lgi_adjust_click(Ms, _Capturing);
-				}
+					Ms = lgi_adjust_click(Ms, _Capturing, true);
 				else if (_Over)
-				{
 					Ms = lgi_adjust_click(Ms, _Over);
-				}
-				else return 0;
+				else
+					return 0;
 
 				GWindow *Wnd = GetWindow();
 				if (!Wnd || Wnd->HandleViewMouse(dynamic_cast<GView*>(Ms.Target), Ms))
@@ -1911,23 +1915,15 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				Ms.Double(Msg->m == WM_LBUTTONDBLCLK);
 
 				if (_Capturing)
-				{
-					Ms = lgi_adjust_click(Ms, _Capturing);
-				}
+					Ms = lgi_adjust_click(Ms, _Capturing, true);
 				else if (_Over)
-				{
 					Ms = lgi_adjust_click(Ms, _Over);
-				}
 				else
-				{
 					Ms.Target = this;
-				}
 
 				GWindow *Wnd = GetWindow();
 				if (!Wnd || Wnd->HandleViewMouse(dynamic_cast<GView*>(Ms.Target), Ms))
-				{
 					Ms.Target->OnMouseClick(Ms);
-				}
 				break;
 			}
 			case WM_RBUTTONDBLCLK:
@@ -1942,20 +1938,15 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				Ms.Double(Msg->m == WM_RBUTTONDBLCLK);
 
 				if (_Capturing)
-				{
-					Ms = lgi_adjust_click(Ms, _Capturing);
-					_Capturing->OnMouseClick(Ms);
-				}
+					Ms = lgi_adjust_click(Ms, _Capturing, true);
 				else if (_Over)
-				{
 					Ms = lgi_adjust_click(Ms, _Over);
-					_Over->OnMouseClick(Ms);
-				}
 				else
-				{
 					Ms.Target = this;
-					OnMouseClick(Ms);
-				}
+
+				GWindow *Wnd = GetWindow();
+				if (!Wnd || Wnd->HandleViewMouse(dynamic_cast<GView*>(Ms.Target), Ms))
+					Ms.Target->OnMouseClick(Ms);
 				break;
 			}
 			case WM_MBUTTONDBLCLK:
@@ -1970,20 +1961,15 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				Ms.Double(Msg->m == WM_MBUTTONDBLCLK);
 
 				if (_Capturing)
-				{
-					Ms = lgi_adjust_click(Ms, _Capturing);
-					_Capturing->OnMouseClick(Ms);
-				}
+					Ms = lgi_adjust_click(Ms, _Capturing, true);
 				else if (_Over)
-				{
 					Ms = lgi_adjust_click(Ms, _Over);
-					_Over->OnMouseClick(Ms);
-				}
 				else
-				{
 					Ms.Target = this;
-					OnMouseClick(Ms);
-				}
+
+				GWindow *Wnd = GetWindow();
+				if (!Wnd || Wnd->HandleViewMouse(dynamic_cast<GView*>(Ms.Target), Ms))
+					Ms.Target->OnMouseClick(Ms);
 				break;
 			}
 			case WM_SYSKEYUP:

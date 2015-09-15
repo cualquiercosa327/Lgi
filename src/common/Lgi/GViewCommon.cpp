@@ -50,54 +50,60 @@ GdcPt2 lgi_view_offset(GViewI *v, bool Debug = false)
 	return Offset;
 }
 
-GMouse &lgi_adjust_click(GMouse &Info, GViewI *Wnd, bool Debug)
+GMouse &lgi_adjust_click(GMouse &Info, GViewI *Wnd, bool Capturing, bool Debug)
 {
 	static GMouse Temp;
 	 
 	Temp = Info;
 	if (Wnd)
 	{
-		if (Debug)
+		if (Debug
+			#if 0
+			|| Capturing
+			#endif
+			)
 			LgiTrace("AdjustClick Target=%s -> Wnd=%s, Info=%i,%i\n",
 				Info.Target?Info.Target->GetClass():"",
 				Wnd?Wnd->GetClass():"",
 				Info.x, Info.y);
 
-		if (Temp.Target &&
-			Temp.Target != Wnd)
+		if (Temp.Target != Wnd)
 		{
-			GWindow *TargetWnd = Temp.Target->GetWindow();
-			GWindow *WndWnd = Wnd->GetWindow();
-			if (TargetWnd == WndWnd)
+			if (Temp.Target)
 			{
-				GdcPt2 TargetOff = lgi_view_offset(Temp.Target, Debug);
-				if (Debug)
-					LgiTrace("	WndOffset:\n");
-				GdcPt2 WndOffset = lgi_view_offset(Wnd, Debug);
+				GWindow *TargetWnd = Temp.Target->GetWindow();
+				GWindow *WndWnd = Wnd->GetWindow();
+				if (TargetWnd == WndWnd)
+				{
+					GdcPt2 TargetOff = lgi_view_offset(Temp.Target, Debug);
+					if (Debug)
+						LgiTrace("	WndOffset:\n");
+					GdcPt2 WndOffset = lgi_view_offset(Wnd, Debug);
 
-				Temp.x += TargetOff.x - WndOffset.x;
-				Temp.y += TargetOff.y - WndOffset.y;
+					Temp.x += TargetOff.x - WndOffset.x;
+					Temp.y += TargetOff.y - WndOffset.y;
 
-				#if 0
-				GRect c = Wnd->GetClient(false);
-				Temp.x -= c.x1;
-				Temp.y -= c.y1;
-				if (Debug)
-					LgiTrace("	CliOff -= %i,%i\n", c.x1, c.y1);
-				#endif
+					#if 0
+					GRect c = Wnd->GetClient(false);
+					Temp.x -= c.x1;
+					Temp.y -= c.y1;
+					if (Debug)
+						LgiTrace("	CliOff -= %i,%i\n", c.x1, c.y1);
+					#endif
 
-				Temp.Target = Wnd;
+					Temp.Target = Wnd;
+				}
 			}
-		}
-		else
-		{
-			GdcPt2 Offset;
-			Temp.Target = Wnd;
-			if (Wnd->WindowVirtualOffset(&Offset))
+			else
 			{
-				GRect c = Wnd->GetClient(false);
-				Temp.x -= Offset.x + c.x1;
-				Temp.y -= Offset.y + c.y1;
+				GdcPt2 Offset;
+				Temp.Target = Wnd;
+				if (Wnd->WindowVirtualOffset(&Offset))
+				{
+					GRect c = Wnd->GetClient(false);
+					Temp.x -= Offset.x + c.x1;
+					Temp.y -= Offset.y + c.y1;
+				}
 			}
 		}
 	}
@@ -885,9 +891,28 @@ GViewI *GView::FindReal(GdcPt2 *Offset)
 bool GView::HandleCapture(GView *Wnd, bool c)
 {
 	if (c)
+	{
 		_Capturing = Wnd;
+		
+		#ifdef WINNATIVE
+		GdcPt2 Offset;
+		GViewI *v = _Capturing->Handle() ? _Capturing : FindReal(&Offset);
+		HWND h = v ? v->Handle() : NULL;
+		if (h)
+			SetCapture(h);
+		else
+			LgiAssert(0);
+		#endif
+	}
 	else
+	{
 		_Capturing = NULL;
+
+		#ifdef WINNATIVE
+		ReleaseCapture();
+		#endif
+	}
+
 	return true;
 }
 

@@ -14,7 +14,10 @@
 #define PAINT_VIRTUAL_CHILDREN	1
 
 extern bool In_SetWindowPos;
-extern GMouse &lgi_adjust_click(GMouse &Info, GViewI *Wnd, bool Debug = false);
+extern GMouse &lgi_adjust_click(GMouse &Info,
+								GViewI *Wnd,
+								bool Capturing = false,
+								bool Debug = false);
 
 class GViewIter : public GViewIterator
 {
