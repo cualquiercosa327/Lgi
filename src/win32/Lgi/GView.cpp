@@ -34,7 +34,7 @@ HWND GViewPrivate::hPrevCapture = 0;
 GViewPrivate::GViewPrivate()
 {
 	Font = 0;
-	FontOwn = false;
+	FontOwnType = GV_FontPtr;
 	CtrlId = -1;
 	WndStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN;
 	WndExStyle = 0;
@@ -57,7 +57,7 @@ GViewPrivate::~GViewPrivate()
 		CloseThemeData(hTheme);
 		hTheme = NULL;
 	}
-	if (FontOwn)
+	if (FontOwnType == GV_FontOwned)
 	{
 		DeleteObj(Font);
 	}
