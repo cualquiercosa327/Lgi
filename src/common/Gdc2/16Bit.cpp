@@ -67,7 +67,7 @@ public:
 	void IncPtr(int X, int Y)
 	{
 		Ptr.u16 += X;
-		Ptr.u8 += Y;
+		Ptr.u8 += Y * Dest->Line;
 	}
 	
 	COLOUR Get()

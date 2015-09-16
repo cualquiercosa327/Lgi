@@ -539,18 +539,29 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 	CalcCssPadding(PaddingBottom, Y, y2)
 
 	Len Wid = Width();
-	if (Wid.Type != LenInherit)
+	if (Wid.IsValid())
 	{
 		int Tx = Table->X();
-		Min = Max = Wid.ToPx(Tx, Table->GetFont()) - Padding.x1 - Padding.x2;
-		Flag = SizeFixed;
+		Max = Wid.ToPx(Tx, Table->GetFont()) - Padding.x1 - Padding.x2;
+		
+		if (!Wid.IsDynamic())
+		{
+			Min = Max;
+			Flag = SizeFixed;
+		}
+		else
+		{
+			Flag = SizeGrow;
+		}
+		
 		if (Padding.x1 + Padding.x2 > Min)
 		{
 			// Remove padding as it's going to oversize the cell
 			Padding.x1 = Padding.x2 = 0;
 		}
 	}
-	else
+
+	if (!Wid.IsValid() || Wid.IsDynamic())
 	{
 		Child *c = &Children[0];
 		for (int i=0; i<Children.Length(); i++, c++)
@@ -1136,10 +1147,6 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 					c->Cell.X() == 1 &&
 					c->Cell.Y() == 1)
 				{
-					if (DebugLayout)
-					{
-						int asd=0;
-					}
 					c->PreLayout(MinCol[Cx], MaxCol[Cx], ColFlags[Cx]);
 				}
 
@@ -1179,15 +1186,18 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 					int Min = 0, Max = 0;
 					CellFlag Flag = SizeUnknown;
 
-					if (DebugLayout)
-					{
-						int sd=0;
-					}
-
 					if (c->Width().IsValid())
 					{
 						GCss::Len l = c->Width();
-						Min = l.ToPx(Client.X(), Ctrl->GetFont());
+						int Px = l.ToPx(Client.X(), Ctrl->GetFont());;
+						if (l.IsDynamic())
+						{
+							c->PreLayout(Min, Max, Flag);
+						}
+						else
+						{
+							Min = Max = Px;
+						}
 					}
 					else
 					{
@@ -1231,6 +1241,23 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 					}
 					
 					DistributeSize(MinCol, ColFlags, c->Cell.x1, c->Cell.X(), Min, BorderSpacing);
+					
+					// This is the total size of all the px currently allocated
+					int AllPx = CountRange(MinCol, 0, Cols.Length()-1) + ((Cols.Length() - 1) * BorderSpacing);
+					
+					// This is the minimum size of this cell's cols
+					int MyPx = CountRange(MinCol, c->Cell.x1, c->Cell.x2) + ((c->Cell.X() - 1) * BorderSpacing);
+					
+					// This is the total remaining px we could add...
+					int Remaining = Client.X() - AllPx;
+					if (Remaining > 0)
+					{
+						// Limit the max size of this cell to the existing + remaining px
+						Max = min(Max, MyPx + Remaining);
+						
+						// Distribute the max px across the cell's columns.
+						DistributeSize(MaxCol, ColFlags, c->Cell.x1, c->Cell.X(), Max, BorderSpacing);
+					}
 				}
 
 				Cx += c->Cell.X();
@@ -1239,7 +1266,8 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 		}
 	}
 
-	LayoutMinX = 0;
+	LayoutMinX = -BorderSpacing;
+	LayoutMaxX = -BorderSpacing;
 	for (i=0; i<Cols.Length(); i++)
 	{
 		LayoutMinX += MinCol[i] + BorderSpacing;
