@@ -236,7 +236,7 @@ GViewPrivate::GViewPrivate()
 	CtrlId = -1;
 	DropTarget = 0;
 	Font = NULL;
-	FontOwn = false;
+	FontOwnType = GV_FontPtr;
 	Popup = NULL;
 	Pulse = 0;
 	DndHandler = NULL;
@@ -381,6 +381,11 @@ void GView::_Delete()
 	{
 		CFRelease(_View);
 		_View = 0;
+	}
+
+	if (d->FontOwnType == GV_FontOwned)
+	{
+		DeleteObj(d->Font);
 	}
 }
 

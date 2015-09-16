@@ -253,6 +253,9 @@ public:
 	GAutoString Name;
 	GAutoString UrlArg;
 
+	/// Any fonts needed for styling the elements
+	GAutoPtr<GFontCache> FontCache;
+
 	GAppPrivate()
 	{
 		FileSystem = 0;
@@ -1078,3 +1081,11 @@ int GApp::GetCpuCount()
 {
 	return 1;
 }
+
+GFontCache *GApp::GetFontCache()
+{
+	if (!d->FontCache)
+		d->FontCache.Reset(new GFontCache(SystemNormal));
+	return d->FontCache;
+}
+
