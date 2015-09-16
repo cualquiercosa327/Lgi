@@ -177,6 +177,9 @@ public:
 
 	void CalcRegions()
 	{
+		GRect r = Widget->GetPos();
+		Vertical = r.Y() > r.X();
+
 		int w = GetWidth();
 		
 		// Button sizes
@@ -446,11 +449,6 @@ int GScrollBar::GetScrollSize()
 
 bool GScrollBar::Attach(GViewI *p)
 {
-	if (X() > Y())
-	{
-		SetVertical(false);
-	}
-
 	bool Status = GControl::Attach(p);
 	#if 0
 	printf("%p::Attach scroll bar to %s, Status=%i, _View=%p, Vis=%i\n",

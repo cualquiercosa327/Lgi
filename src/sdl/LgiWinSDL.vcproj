@@ -62,10 +62,12 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="Ws2_32.lib SDL.lib"
+				OutputFile="$(OutDir)\$(ProjectName)d.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;..\..\..\..\..\CodeLib\SDL-1.2.15\VisualC\SDL\Debug&quot;;&quot;c:\Program Files (x86)\Windows Kits\8.1\Lib\winv6.3\um\x86&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
+				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool

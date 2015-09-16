@@ -419,6 +419,25 @@ bool TableCell::IsSpanned()
 
 bool TableCell::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
+	if (stricmp(Name, "children") == 0)
+	{
+		if (Value.SetList())
+		{
+			for (unsigned i=0; i<Children.Length(); i++)
+			{
+				Child &c = Children[i];
+				GVariant *v = new GVariant;
+				if (v)
+				{
+					v->Type = GV_GVIEW;
+					v->Value.View = c.View;
+					Value.Value.Lst->Insert(v);
+				}
+			}
+			return true;
+		}
+	}
+
 	return false;
 }
 
@@ -768,7 +787,7 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 		if (Css)
 			Ht = Css->Height();
 
-		if (i)
+		if (!Izza(GButton) && i)
 			Pos.y2 += Table->d->BorderSpacing;
 
 		if (c->Inf.Width.Min > Width)
@@ -919,9 +938,33 @@ void TableCell::PostLayout()
 			v->Visible(false);
 			continue;
 		}
-		
+
 		GTableLayout *Tbl = Izza(GTableLayout);
 		GRect r = v->GetPos();
+
+		if (Cx + r.X() > Pos.X())
+		{
+			int Wid = Cx - Table->d->BorderSpacing;
+			int OffsetX = 0;
+			if (TextAlign().Type == AlignCenter)
+			{
+				OffsetX = (Pos.X() - Wid) / 2;
+			}
+			else if (TextAlign().Type == AlignRight)
+			{
+				OffsetX = Pos.X() - Wid;
+			}
+
+			for (int n=RowStart; n<=i; n++)
+			{
+				New[n].Offset(OffsetX, 0);
+			}
+
+			RowStart = i + 1;
+			Cx = Padding.x1;
+			Cy = MaxY + Table->d->BorderSpacing;
+		}
+
 		r.Offset(Pos.x1 - r.x1 + Cx, Pos.y1 - r.y1 + Cy);
 
 		if (c->Inf.Width.Max >= WidthPx)
@@ -966,28 +1009,7 @@ void TableCell::PostLayout()
 		New[i] = r;
 		MaxY = max(MaxY, r.y2 - Pos.y1);
 		Cx += r.X() + Table->d->BorderSpacing;
-		if (Cx >= Pos.X())
-		{
-			int Wid = Cx - Table->d->BorderSpacing;
-			int OffsetX = 0;
-			if (TextAlign().Type == AlignCenter)
-			{
-				OffsetX = (Pos.X() - Wid) / 2;
-			}
-			else if (TextAlign().Type == AlignRight)
-			{
-				OffsetX = Pos.X() - Wid;
-			}
 
-			for (int n=RowStart; n<=i; n++)
-			{
-				New[n].Offset(OffsetX, 0);
-			}
-
-			RowStart = i + 1;
-			Cx = Padding.x1;
-			Cy = MaxY + Table->d->BorderSpacing;
-		}
 	}
 
 	if (Disp == DispNone)
