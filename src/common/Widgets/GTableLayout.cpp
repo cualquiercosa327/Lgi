@@ -33,9 +33,9 @@ enum CellFlag
 
 #define Izza(c)				dynamic_cast<c*>(v)
 // #define DEBUG_LAYOUT		535 // define to ID of control to dump (0 to disable)
-// #define DEBUG_LAYOUT		7
+#define DEBUG_LAYOUT		2000
 #define DEBUG_PROFILE		0
-#define DEBUG_DRAW_CELLS	0
+#define DEBUG_DRAW_CELLS	1
 
 int GTableLayout::CellSpacing = 4;
 
@@ -292,8 +292,10 @@ public:
 	GRect Padding;	// Cell padding from CSS styles
 	GArray<Child> Children;
 	GCss::DisplayType Disp;
+	bool Debug;
 
 	TableCell(GTableLayout *t, int Cx, int Cy);
+	GTableLayout *GetTable() { return Table; }
 	bool Add(GView *v);	
 	bool Remove(GView *v);
 	bool RemoveAll();
@@ -313,6 +315,8 @@ public:
 
 class GTableLayoutPrivate
 {
+	friend class TableCell;
+
 	bool InLayout;
 	bool DebugLayout;
 
@@ -356,6 +360,7 @@ TableCell::TableCell(GTableLayout *t, int Cx, int Cy)
 	TextAlign(AlignLeft);
 	VerticalAlign(VerticalTop);
 	Table = t;
+	Debug = false;
 	Cell.ZOff(0, 0);
 	Cell.Offset(Cx, Cy);
 	Padding.ZOff(0, 0);
@@ -525,6 +530,10 @@ bool TableCell::SetVariant(const char *Name, GVariant &Value, char *Array)
 		const char *style = Value.Str();
 		if (style)
 			Parse(style, ParseRelaxed);
+	}
+	else if (stricmp(Name, "debug") == 0)
+	{
+		Debug = Value.CastInt32() != 0;
 	}
 	else return false;
 
@@ -926,6 +935,12 @@ void TableCell::PostLayout()
 	int WidthPx = Pos.X() - Padding.x1 - Padding.x2;
 	int HeightPx = Pos.Y() - Padding.y1 - Padding.y2;
 
+	if (Debug)
+	{
+		int asd=0;
+	}
+
+
 	Child *c = &Children[0];
 	for (int i=0; i<Children.Length(); i++, c++)
 	{
@@ -1028,9 +1043,12 @@ void TableCell::PostLayout()
 	{
 		OffsetX = Pos.X() - Wid;
 	}
-	for (n=RowStart; n<Children.Length(); n++)
+	if (OffsetX)
 	{
-		New[n].Offset(OffsetX, 0);
+		for (n=RowStart; n<Children.Length(); n++)
+		{
+			New[n].Offset(OffsetX, 0);
+		}
 	}
 
 	int OffsetY = 0;
@@ -1052,6 +1070,14 @@ void TableCell::PostLayout()
 			break;
 
 		New[n].Offset(0, OffsetY);
+
+		#if DEBUG_LAYOUT
+		if (Table->d->DebugLayout)
+		{
+			Table->d->Dbg.Print("Cell[%i,%i] View[%i]=%s\n", Cell.x1, Cell.y1, n, New[n].GetStr());
+		}
+		#endif
+
 		v->SetPos(New[n]);		
 		v->Visible(true);
 	}
@@ -1665,8 +1691,9 @@ void GTableLayout::OnPaint(GSurface *pDC)
 	pDC->LineStyle(GSurface::LineDot);
 	for (int i=0; i<d->Cells.Length(); i++)
 	{
-		GRect r = d->Cells[i]->Pos;
-		pDC->Colour(Rgb24(192, 192, 222), 24);
+		TableCell *c = d->Cells[i];
+		GRect r = c->Pos;
+		pDC->Colour(c->Debug ? Rgb24(255, 222, 0) : Rgb24(192, 192, 222), 24);
 		pDC->Box(&r);
 		pDC->Line(r.x1, r.y1, r.x2, r.y2);
 		pDC->Line(r.x2, r.y1, r.x1, r.y2);

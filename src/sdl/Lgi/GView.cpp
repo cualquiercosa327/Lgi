@@ -292,6 +292,12 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 	while (p && !dynamic_cast<GWindow*>(p))
 	{
 		GViewI *Par = p->GetParent();
+		if (Par == p)
+		{
+			LgiAssert(!"Window can't be parent of itself.");
+			break;
+		}
+		
 		GView *VPar = Par ? Par->GetGView() : 0;
 		GRect w = p->GetPos();
 		GRect c = p->GetClient(false);

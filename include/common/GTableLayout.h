@@ -14,6 +14,7 @@ public:
 	GLayoutCell() {}
 	virtual ~GLayoutCell() {}
 	
+	virtual class GTableLayout *GetTable() = 0;
 	virtual bool Add(GView *v) = 0;
 	virtual bool Remove(GView *v) = 0;
 };
