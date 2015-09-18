@@ -337,6 +337,7 @@ public:
 	TableCell *GetCellAt(int cx, int cy);
 	void Empty(GRect *Range = NULL);
     bool CollectRadioButtons(GArray<GRadioButton*> &Btns);
+    void InitBorderSpacing();
 
 	// Layout temporary values
 	GStringPipe Dbg;
@@ -350,8 +351,7 @@ public:
 	void LayoutPost(GRect &Client);
 	
 	// This does the whole layout, basically calling all the stages for you
-	void Layout(GRect &Client);	
-
+	void Layout(GRect &Client);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -910,6 +910,7 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 		{
 			GRect r;
 			r.ZOff(Width-1, Table->Y()-1);
+			Tbl->d->InitBorderSpacing();
 			Tbl->d->LayoutVertical(r, &MinY, &MaxY, &Flags);
 			Pos.y2 += MinY;
 		}
@@ -920,8 +921,8 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 		}
 	}
 	
-	MinY = max(MinY, Pos.Y() + Padding.y1 + Padding.y2);
-	MaxY = max(MaxY, Pos.Y() + Padding.y1 + Padding.y2);
+	MinY = max(MinY, Pos.Y() + Padding.y1 + Padding.y2 - 1);
+	MaxY = max(MaxY, Pos.Y() + Padding.y1 + Padding.y2 - 1);
 }
 
 /// Called after the layout has been done to move the controls into place
@@ -1071,7 +1072,7 @@ void TableCell::PostLayout()
 
 		New[n].Offset(0, OffsetY);
 
-		#if DEBUG_LAYOUT
+		#if 0 // DEBUG_LAYOUT
 		if (Table->d->DebugLayout)
 		{
 			Table->d->Dbg.Print("Cell[%i,%i] View[%i]=%s\n", Cell.x1, Cell.y1, n, New[n].GetStr());
@@ -1384,10 +1385,11 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 			if (c)
 			{
 				// Single cell
-				if (c->Cell.x1 == Cx && c->Cell.y1 == Cy && !c->IsSpanned())
+				if (c->Cell.x1 == Cx &&
+					c->Cell.y1 == Cy &&
+					c->Cell.Y() == 1)
 				{
-					int x = CountRange<int>(MinCol, c->Cell.x1, c->Cell.x2) +
-							((c->Cell.X() - 1) * BorderSpacing);
+					int x = CountRange(MinCol, c->Cell.x1, c->Cell.x2) + ((c->Cell.X() - 1) * BorderSpacing);
 					c->Layout(x, MinRow[Cy], MaxRow[Cy], RowFlags[Cy]);
 				}
 
@@ -1407,28 +1409,68 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 			if (c)
 			{
 				// Spanned cell
-				if (c->Cell.x1 == Cx && c->Cell.y1 == Cy && c->IsSpanned())
+				if (c->Cell.x1 == Cx &&
+					c->Cell.y1 == Cy &&
+					c->Cell.Y() > 1)
 				{
-					int x = CountRange<int>(MinCol, c->Cell.x1, c->Cell.x2) +
-							((c->Cell.X() - 1) * BorderSpacing);
-					int MaxY = MaxRow[Cy];
+					int WidthPx      = CountRange(MinCol, c->Cell.x1, c->Cell.x2) + ((c->Cell.X() - 1)   * BorderSpacing);					
+					int InitMinY     = CountRange(MinRow, c->Cell.y1, c->Cell.y2) + ((c->Cell.Y() - 1)   * BorderSpacing);
+					int InitMaxY     = CountRange(MaxRow, c->Cell.y1, c->Cell.y2) + ((c->Cell.Y() - 1)   * BorderSpacing);
+					int AllocY       = CountRange(MinRow, 0,     Rows.Length()-1) + ((Rows.Length() - 1) * BorderSpacing);
+					int MinY         = InitMinY;
+					int MaxY         = InitMaxY;
+					int RemainingY   = Client.Y() - AllocY;
+					CellFlag RowFlag = SizeUnknown;
 
-					c->Layout(x, MinRow[Cy], MaxY, RowFlags[Cy]);
+					c->Layout(WidthPx, MinY, MaxY, RowFlag);
 
 					// This code stops the max being set on spanned cells.
-					GArray<int> Growable;
-					for (int i=0; i<c->Cell.Y(); i++)
+					GArray<int> AddTo;
+					for (int y=c->Cell.y1; y<=c->Cell.y2; y++)
 					{
-						if (MaxRow[Cy+i] > MinRow[Cy+i])
-							Growable.Add(Cy+i);
+						if
+						(
+							RowFlags[y] != SizeFixed
+							&&
+							(
+								RowFlags[y] != SizeGrow
+								||
+								MaxRow[y] > MinRow[y]
+							)
+						)
+							AddTo.Add(y);
 					}
-					if (Growable.Length())
+					if (AddTo.Length() == 0)
 					{
-						int Amt = MaxY / Growable.Length();
-						for (int i=0; i<Growable.Length(); i++)
+						for (int y=c->Cell.y1; y<=c->Cell.y2; y++)
 						{
-							int Idx = Growable[i];
-							MaxRow[Idx] = max(Amt, MaxRow[Idx]);
+							if (!AddTo.HasItem(y))
+							{
+								if (RowFlags[y] != SizeFixed)
+									AddTo.Add(y);
+							}
+						}
+					}
+
+					if (AddTo.Length())
+					{
+						if (MinY > InitMinY)
+						{
+							int Amt = (MinY - InitMinY) / AddTo.Length();
+							for (int i=0; i<AddTo.Length(); i++)
+							{
+								int Idx = AddTo[i];
+								MinRow[Idx] += Amt;
+							}
+						}
+						if (MaxY > InitMaxY)
+						{
+							int Amt = (MaxY - InitMaxY) / AddTo.Length();
+							for (int i=0; i<AddTo.Length(); i++)
+							{
+								int Idx = AddTo[i];
+								MaxRow[Idx] += Amt;
+							}
 						}
 					}
 					else
@@ -1439,8 +1481,7 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 
 				Cx += c->Cell.X();
 			}
-			else
-				Cx++;
+			else Cx++;
 		}
 	}
 
@@ -1476,12 +1517,12 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 	// Collect together our sizes
 	if (MinY)
 	{
-		int y = CountRange<int>(MinRow, 0, MinRow.Length()-1);
+		int y = CountRange(MinRow, 0, MinRow.Length()-1) + ((MinRow.Length()-1) * BorderSpacing);
 		*MinY = max(*MinY, y);
 	}
 	if (MaxY)
 	{
-		int y = CountRange<int>(MaxRow, 0, MinRow.Length()-1);
+		int y = CountRange(MaxRow, 0, MinRow.Length()-1) + ((MaxRow.Length()-1) * BorderSpacing);
 		*MaxY = max(*MaxY, y);
 	}
 	if (Flag)
@@ -1533,6 +1574,17 @@ void GTableLayoutPrivate::LayoutPost(GRect &Client)
 	LayoutBounds.ZOff(Px-1, Py-1);
 }
 
+void GTableLayoutPrivate::InitBorderSpacing()
+{
+	BorderSpacing = GTableLayout::CellSpacing;
+	if (Ctrl->GetCss())
+	{
+		GCss::Len bs = Ctrl->GetCss()->BorderSpacing();
+		if (bs.Type != GCss::LenInherit)
+			BorderSpacing = bs.ToPx(Ctrl->X(), Ctrl->GetFont());
+	}
+}
+
 void GTableLayoutPrivate::Layout(GRect &Client)
 {
     if (InLayout)
@@ -1542,14 +1594,7 @@ void GTableLayoutPrivate::Layout(GRect &Client)
     }
 
     InLayout = true;
-
-	BorderSpacing = GTableLayout::CellSpacing;
-	if (Ctrl->GetCss())
-	{
-		GCss::Len bs = Ctrl->GetCss()->BorderSpacing();
-		if (bs.Type != GCss::LenInherit)
-			BorderSpacing = bs.ToPx(Ctrl->X(), Ctrl->GetFont());
-	}
+	InitBorderSpacing();
     
     #if DEBUG_LAYOUT
     DebugLayout = Ctrl->GetId() == DEBUG_LAYOUT;
