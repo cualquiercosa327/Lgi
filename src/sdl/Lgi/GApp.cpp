@@ -488,44 +488,30 @@ void GApp::OnSDLEvent(GMessage *m)
 				ms.Right(m->Event.button.button == SDL_BUTTON_RIGHT);
 				ms.Middle(m->Event.button.button == SDL_BUTTON_MIDDLE);
 
-				AppWnd->_Mouse(ms, false);
+				GView *gv = ms.Target->GetGView();
+				if (!gv || AppWnd->HandleViewMouse(gv, ms))
+					AppWnd->_Mouse(ms, false);
 			}
 			break;
 		}
 		case SDL_KEYDOWN:
-		{
-			GViewI *f = AppWnd ? AppWnd->GetFocus() : NULL;
-			if (f)
-			{
-				GKey k;
-				k.vkey = m->Event.key.keysym.sym;
-				k.c16 = m->Event.key.keysym.unicode;
-				if (m->Event.key.state & (KMOD_LSHIFT|KMOD_RSHIFT))
-					k.Shift(true);
-				if (m->Event.key.state & (KMOD_LCTRL|KMOD_RCTRL))
-					k.Ctrl(true);
-				if (m->Event.key.state & (KMOD_LALT|KMOD_RALT))
-					k.Alt(true);
-				k.Down(true);
-				f->OnKey(k);
-			}
-			break;
-		}
 		case SDL_KEYUP:
 		{
-			GViewI *f = AppWnd ? AppWnd->GetFocus() : NULL;
-			if (f)
+			GKey k;
+			k.vkey = m->Event.key.keysym.sym;
+			k.c16 = m->Event.key.keysym.unicode;
+			if (m->Event.key.state & (KMOD_LSHIFT|KMOD_RSHIFT))
+				k.Shift(true);
+			if (m->Event.key.state & (KMOD_LCTRL|KMOD_RCTRL))
+				k.Ctrl(true);
+			if (m->Event.key.state & (KMOD_LALT|KMOD_RALT))
+				k.Alt(true);
+			k.Down(m->Event.type == SDL_KEYDOWN);
+				
+			if (AppWnd)
 			{
-				GKey k;
-				k.vkey = m->Event.key.keysym.sym;
-				k.c16 = m->Event.key.keysym.unicode;
-				if (m->Event.key.state & (KMOD_LSHIFT|KMOD_RSHIFT))
-					k.Shift(true);
-				if (m->Event.key.state & (KMOD_LCTRL|KMOD_RCTRL))
-					k.Ctrl(true);
-				if (m->Event.key.state & (KMOD_LALT|KMOD_RALT))
-					k.Alt(true);
-				f->OnKey(k);
+				GViewI *f = AppWnd->GetFocus();
+				AppWnd->HandleViewKey(f ? f->GetGView() : NULL, k);
 			}
 			break;
 		}

@@ -91,23 +91,6 @@ void GMemDC::SetClient(GRect *c)
 {
 	if (c)
 	{
-		/*
-		if (hDC)
-		{
-			SetWindowOrgEx(hDC, 0, 0, NULL);
-			SelectClipRgn(hDC, 0);
-			
-			HRGN hRgn = CreateRectRgn(c->x1, c->y1, c->x2+1, c->y2+1);
-			if (hRgn)
-			{
-				SelectClipRgn(hDC, hRgn);
-				DeleteObject(hRgn);
-			}
-
-			SetWindowOrgEx(hDC, -c->x1, -c->y1, NULL);
-		}
-		*/
-
 		GRect Doc(0, 0, pMem->x-1, pMem->y-1);
 		Clip = d->Client = *c;
 		Clip.Bound(&Doc);
@@ -119,13 +102,6 @@ void GMemDC::SetClient(GRect *c)
 	{
 		d->Client.ZOff(-1, -1);
 
-		/*
-		if (hDC)
-		{
-			SetWindowOrgEx(hDC, 0, 0, NULL);
-			SelectClipRgn(hDC, 0);
-		}
-		*/
 		OriginX = 0;
 		OriginY = 0;
 		Clip.ZOff(pMem->x-1, pMem->y-1);
