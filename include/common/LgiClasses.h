@@ -293,6 +293,10 @@ public:
 
 	// OS Specific
 	#if defined(LGI_SDL)
+
+		/// This keeps track of the dirty rectangle and issues a M_INVALIDATE
+		/// event when needed to keep the screen up to date.
+		bool InvalidateRect(GRect &r);
 	
 	#elif defined(WIN32)
 

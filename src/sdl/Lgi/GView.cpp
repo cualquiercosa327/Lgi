@@ -310,19 +310,7 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 		p = Par;
 	}
 
-	if (p)
-	{
-		SDL_Surface *Screen = GdcD->Handle();
-		if (Screen)
-		{
-			SDL_Event e;
-			e.type = SDL_USEREVENT;
-			e.user.code = M_INVALIDATE;
-			SDL_PushEvent(&e);
-		}
-	}
-
-	return false;
+	return LgiApp->InvalidateRect(Up);
 }
 
 Uint32 SDL_PulseCallback(Uint32 interval, GView *v)

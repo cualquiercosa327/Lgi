@@ -194,6 +194,9 @@ public:
 	GMouse LastMove;
 	GAutoString Name;
 	GAutoPtr<GFontCache> FontCache;
+
+	// Update handling
+	GRect DirtyRect;
 	
 	// Clipboard handling
 	int Clipboard, Utf8, Utf8String;
@@ -208,6 +211,7 @@ public:
 
 	GAppPrivate() : Args(0, 0)
 	{
+		DirtyRect.ZOff(-1, -1);
 		CurEvent = 0;
 		GuiThread = LgiGetCurrentThread();
 		FileSystem = 0;
@@ -565,6 +569,8 @@ void GApp::OnSDLEvent(GMessage *m)
 							SDL_UpdateRect(Screen, 0, 0, 0, 0);
 						}
 					}
+					
+					d->DirtyRect.ZOff(-1, -1);
 					break;
 				}
 			}
@@ -949,6 +955,21 @@ GFontCache *GApp::GetFontCache()
 int GApp::GetCpuCount()
 {
 	return 1;
+}
+
+bool GApp::InvalidateRect(GRect &r)
+{
+	bool HasDirty = d->DirtyRect.Valid();
+	d->DirtyRect.Union(&r);
+	if (!HasDirty)
+	{
+		SDL_Event e;
+		e.type = SDL_USEREVENT;
+		e.user.code = M_INVALIDATE;
+		return SDL_PushEvent(&e) == 0;
+	}
+	
+	return true;
 }
 
 ////////////////////////////////////////////////////////////////
