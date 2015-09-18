@@ -33,9 +33,9 @@ enum CellFlag
 
 #define Izza(c)				dynamic_cast<c*>(v)
 // #define DEBUG_LAYOUT		535 // define to ID of control to dump (0 to disable)
-#define DEBUG_LAYOUT		2000
+#define DEBUG_LAYOUT		1150
 #define DEBUG_PROFILE		0
-#define DEBUG_DRAW_CELLS	1
+#define DEBUG_DRAW_CELLS	0
 
 int GTableLayout::CellSpacing = 4;
 
@@ -891,7 +891,8 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 				 Izza(GTabView))
 		{
 			Pos.y2 += v->GetFont()->GetHeight() + 8;
-			MaxY = max(MaxY, 1000);
+			// MaxY = max(MaxY, 1000);
+			Flags = SizeFill;
 		}
 		else if (Izza(GBitmap))
 		{
@@ -1456,6 +1457,7 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 					{
 						if (MinY > InitMinY)
 						{
+							// Allocate any extra min px somewhere..
 							int Amt = (MinY - InitMinY) / AddTo.Length();
 							for (int i=0; i<AddTo.Length(); i++)
 							{
@@ -1463,18 +1465,34 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 								MinRow[Idx] += Amt;
 							}
 						}
+						
 						if (MaxY > InitMaxY)
 						{
+							// Allocate any extra max px somewhere..
 							int Amt = (MaxY - InitMaxY) / AddTo.Length();
 							for (int i=0; i<AddTo.Length(); i++)
 							{
 								int Idx = AddTo[i];
 								MaxRow[Idx] += Amt;
 							}
+						}						
+						
+						if (RowFlag > SizeUnknown)
+						{
+							// Apply the size flag somewhere...
+							for (int y=c->Cell.y2; y>=c->Cell.y1; y++)
+							{
+								if (RowFlags[y] == SizeUnknown)
+								{
+									RowFlags[y] = SizeFill;
+									break;
+								}
+							}
 						}
 					}
 					else
 					{
+						// Last chance... stuff extra px in last cell...
 						MaxRow[c->Cell.y2] = max(MaxY, MaxRow[c->Cell.y2]);
 					}
 				}
