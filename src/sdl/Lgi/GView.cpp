@@ -423,7 +423,7 @@ bool GView::_Mouse(GMouse &m, bool Move)
 
 	if (Move)
 	{
-		GViewI *o = WindowFromPoint(m.x, m.y);
+		GViewI *o = WindowFromPoint(m.x, m.y, true);
 		if (_Over != o)
 		{
 			if (_Over)

@@ -270,14 +270,14 @@ void GButton::OnPaint(GSurface *pDC)
 {
 	#if defined(MAC) && !defined(COCOA) && !defined(LGI_SDL)
 
-	GColour Background(LC_MED, 24);
+	GColour NoPaintColour(LC_MED, 24);
 	if (GetCss())
 	{
-		GCss::ColorDef Bk = GetCss()->BackgroundColor();
-		if (Bk.Type == GCss::ColorRgb)
-			Background.Set(Bk.Rgb32, 32);
+		GCss::ColorDef NoPaint = GetCss()->NoPaintColor();
+		if (NoPaint.Type == GCss::ColorRgb)
+			NoPaintColour.Set(NoPaint.Rgb32, 32);
 	}
-	pDC->Colour(Background);
+	pDC->Colour(NoPaintColour);
 	pDC->Rectangle();
 
 	GRect c = GetClient();

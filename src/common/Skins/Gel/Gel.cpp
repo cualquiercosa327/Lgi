@@ -134,7 +134,7 @@ class GelSkin : public GSkinEngine
 		}
 	}
 	
-	void DrawBtn(GSurface *pDC, GRect &r, bool Down, bool Enabled, bool Default = false)
+	void DrawBtn(GSurface *pDC, GRect &r, GColour *Base, bool Down, bool Enabled, bool Default = false)
 	{
 		if (pDC)
 		{
@@ -170,12 +170,22 @@ class GelSkin : public GSkinEngine
 				COLOUR Mid = c232;
 				COLOUR Mid2 = c222;
 				COLOUR Bot = c255;
-				if (!Enabled)
+				if (Base)
 				{
-					Top = LgiDarken(Top, 230);
-					Mid = LgiDarken(Mid, 230);
-					Mid2 = LgiDarken(Mid2, 230);
-					Bot = LgiDarken(Bot, 230);
+					Top = Base->c24();
+					Mid = Base->c24();
+					Mid2 = Base->c24();
+					Bot = Base->c24();
+				}
+				else
+				{
+					if (!Enabled)
+					{
+						Top = LgiDarken(Top, 230);
+						Mid = LgiDarken(Mid, 230);
+						Mid2 = LgiDarken(Mid2, 230);
+						Bot = LgiDarken(Bot, 230);
+					}
 				}
 			
 				GPointF c1(r.x1, r.y1);
@@ -590,15 +600,29 @@ public:
 
 			// Background
 			GCssTools Tools(Ctrl->GetCss(), Ctrl->GetFont());
-			GColour &Fore = Tools.GetFore(), &Back = Tools.GetBack();
-
-			if (Back.IsValid())
+			GColour DefaultBack;
+			GColour &Fore = Tools.GetFore(), &Back = Tools.GetBack(&DefaultBack);
+			GColour NoPaint(LC_MED, 24);			
+			if (Ctrl->GetCss())
 			{
-				Mem.Colour(Back);
-				Mem.Rectangle();
-			}
+				GCss::ColorDef np = Ctrl->GetCss()->NoPaintColor();
+				if (np.Type == GCss::ColorRgb)
+					NoPaint.Set(np.Rgb32, 32);
+				else
+					NoPaint.Empty();
+			}			
+			if (NoPaint.IsValid())
+				Mem.Colour(NoPaint);
+			else
+				Mem.Colour(0, 32);
+			Mem.Rectangle();
 			
-			DrawBtn(&Mem, Ctrl->GetClient(), Ctrl->Value(), Ctrl->Enabled(), Ctrl->Default());
+			DrawBtn(&Mem,
+					Ctrl->GetClient(),
+					Back.IsValid() ? &Back : NULL,
+					Ctrl->Value(),
+					Ctrl->Enabled(),
+					Ctrl->Default());
 			
 			GSurface *Out = &Mem;
 			
@@ -694,7 +718,7 @@ public:
 				Mem.Rectangle();
 			}
 
-			DrawBtn(&Mem, Ctrl->GetClient(), false, State->Enabled);
+			DrawBtn(&Mem, Ctrl->GetClient(), NULL, false, State->Enabled);
 			
 			int n = 22;
 			GColour DkGrey(LC_DKGREY, 24);
