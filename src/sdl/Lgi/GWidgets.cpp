@@ -102,7 +102,10 @@ int GDialog::DoModal(OsView OverrideParent)
 	d->ModalStatus = -1;
 	d->IsModal = true;
 	d->PrevWindow = LgiApp->AppWnd;	
-	d->PrevWindow->PushWindow(this);
+	if (d->PrevWindow)
+		d->PrevWindow->PushWindow(this);
+	else
+		LgiApp->PushWindow(this);
 	LgiApp->Run();	
 	return d->ModalStatus;
 }

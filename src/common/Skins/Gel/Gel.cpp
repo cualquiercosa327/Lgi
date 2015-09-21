@@ -660,7 +660,9 @@ public:
 				}
 			}
 			
-			State->pScreen->Blt(0, 0, &Mem);			
+			int Op = State->pScreen->Op(GDC_ALPHA);
+			State->pScreen->Blt(0, 0, &Mem);	
+			State->pScreen->Op(Op);
 		}
 		else
 		{

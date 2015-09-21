@@ -83,12 +83,15 @@ void GFont::_Draw(GSurface *pDC, int x, int y, OsChar *Str, int Len, GRect *r, G
 	HFONT hOldFont = (HFONT) SelectObject(hDC, Handle());
 	if (hOldFont)
 	{
+		bool IsTransparent = Transparent();
+		
 		SetTextColor(hDC, fore.GetNative());
-		SetBkColor(hDC, Back().GetNative());
+		if (!IsTransparent)
+			SetBkColor(hDC, Back().GetNative());
 		SetBkMode(hDC, Transparent() ? TRANSPARENT : OPAQUE);
 
 		SIZE Size;
-		if ((!Transparent() && !r)
+		if ((!IsTransparent && !r)
 			||
 			(GetOwnerUnderline()))
 		{
