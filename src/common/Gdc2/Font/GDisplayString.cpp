@@ -1436,7 +1436,8 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 			#undef DspStrCase
 		}
 	}
-	else LgiTrace("::Draw argument error.\n");
+	else
+		LgiTrace("::Draw argument error.\n");
 
 	#elif defined WINNATIVE
 	

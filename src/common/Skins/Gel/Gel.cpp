@@ -172,10 +172,10 @@ class GelSkin : public GSkinEngine
 				COLOUR Bot = c255;
 				if (Base)
 				{
-					Top = Base->c24();
-					Mid = Base->c24();
-					Mid2 = Base->c24();
-					Bot = Base->c24();
+					Top = Base->c32();
+					Mid = Base->c32();
+					Mid2 = Base->c32();
+					Bot = Base->c32();
 				}
 				else
 				{
