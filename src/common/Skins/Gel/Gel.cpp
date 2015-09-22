@@ -627,33 +627,50 @@ public:
 			GSurface *Out = &Mem;
 			
 			GDisplayString *Text = State->FirstText();
+
+			int ContentX = 0;
+			int SpacingPx = 4;
+			if (State->Image)
+				ContentX += State->Image->X();
+			if (Text)
+				ContentX += Text->X();
+			if (State->Image && Text)
+				ContentX += SpacingPx;			
+
+			int CurX = (Ctrl->X() - ContentX) >> 1;
+			int Off = Ctrl->Value() ? 1 : 0;
+			if (State->Image)
+			{
+				int CurY = (Ctrl->Y() - State->Image->Y()) >> 1;
+				int Op = Out->Op(GDC_ALPHA);
+				Out->Blt(CurX+Off, CurY+Off, State->Image);
+				Out->Op(Op);
+				CurX += State->Image->X() + SpacingPx;
+			}
 			if (Text)
 			{
 				int sx = Text->X(), sy = Text->Y();
-				int tx = (Ctrl->X()-sx) >> 1;
 				int ty = (Ctrl->Y()-sy) >> 1;
-				
-				int Off = Ctrl->Value() ? 1 : 0;
 
 				GFont *f = Text->GetFont();
 				f->Transparent(true);
 				if (Ctrl->Enabled())
 				{
 					f->Colour(Fore, Back);
-					Text->Draw(Out, tx+Off, ty+Off+BTN_TEXT_OFFSET_Y);
+					Text->Draw(Out, CurX+Off, ty+Off+BTN_TEXT_OFFSET_Y);
 				}
 				else
 				{
 					f->Colour(GColour(LC_LIGHT, 24), Back);
-					Text->Draw(Out, tx+Off+1, ty+Off+1+BTN_TEXT_OFFSET_Y);
+					Text->Draw(Out, CurX+Off+1, ty+Off+1+BTN_TEXT_OFFSET_Y);
 
 					f->Colour(GColour(LC_LOW, 24), Back);
-					Text->Draw(Out, tx+Off, ty+Off+BTN_TEXT_OFFSET_Y);
+					Text->Draw(Out, CurX+Off, ty+Off+BTN_TEXT_OFFSET_Y);
 				}
 				
 				if (Ctrl->Focus())
 				{
-					GRect b(tx-2, ty, tx + sx + 1, ty + sy - 2);
+					GRect b(CurX-2, ty, CurX + sx + 1, ty + sy - 2);
 					b.Offset(Off, Off);
 					Out->Colour(Rgb24(180, 180, 180), 24);
 					Out->Box(&b);

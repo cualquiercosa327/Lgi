@@ -594,7 +594,15 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 			r = SDL_PollEvent(&Msg.Event);
 		
 		if (Msg.Event.type == SDL_QUIT)
-			break;
+		{
+			if (!AppWnd)
+				break;
+			
+			bool Close = AppWnd->OnRequestClose(false);
+			if (Close)
+				break;
+			continue;
+		}
 
 		OnSDLEvent(&Msg);
 	}

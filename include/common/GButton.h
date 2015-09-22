@@ -59,6 +59,18 @@ public:
 	/// Sets the button to down.
 	void Value(int64 i);
 
+	/// Returns true if the button is set to toggle mode
+	bool GetIsToggle();
+	/// Set the button's toggle mode
+	void SetIsToggle(bool toggle);
+
+	/// Returns the icon
+	GSurface *GetImage();
+	/// Sets the icon using a filename
+	bool SetImage(const char *FileName);
+	/// Sets the icon
+	bool SetImage(GSurface *Img, bool OwnIt);
+
     /// Sets the control to it's preferred size for it's text
     void SetPreferredSize();
 

@@ -29,26 +29,36 @@ public:
 	bool KeyDown;
 	bool Over;
 	bool WantsDefault;
+	bool Toggle;
+	
 	GDisplayString *Txt;
+	GSurface *Image;
+	bool OwnImage;
 	
 	GButtonPrivate()
 	{
 		Pressed = 0;
 		KeyDown = false;
+		Toggle = false;
 		Over = 0;
 		Txt = 0;
 		WantsDefault = false;
+		Image = NULL;
+		OwnImage = false;
 	}
 
 	~GButtonPrivate()
 	{
 		DeleteObj(Txt);
+		if (OwnImage)
+			DeleteObj(Image);
 	}
 
 	void Layout(GFont *f, char *s)
 	{
 		DeleteObj(Txt);
-		Txt = new GDisplayString(f, s);
+		if (ValidStr(s))
+			Txt = new GDisplayString(f, s);
 	}
 };
 
@@ -58,11 +68,12 @@ GButton::GButton(int id, int x, int y, int cx, int cy, const char *name) :
 	d = new GButtonPrivate;
 	Name(name);
 	
+	int Tx = d->Txt ? d->Txt->X() : 0;
+	int Ty = d->Txt ? d->Txt->Y() : 0;
 	GRect r(x,
 			y,
-			x + (cx < 0 ? d->Txt->X() + Overhead.x : cx),
-			y + (cy < 0 ? d->Txt->Y() + Overhead.y : cy)
-			);
+			x + (cx < 0 ? Tx + Overhead.x : cx),
+			y + (cy < 0 ? Ty + Overhead.y : cy));
 	LgiAssert(r.Valid());
 	SetPos(r);
 	SetId(id);
@@ -114,6 +125,40 @@ void GButton::Default(bool b)
 	}
 }
 
+bool GButton::GetIsToggle()
+{
+	return d->Toggle;
+}
+
+void GButton::SetIsToggle(bool toggle)
+{
+	d->Toggle = toggle;
+}
+
+GSurface *GButton::GetImage()
+{
+	return d->Image;
+}
+
+bool GButton::SetImage(const char *FileName)
+{
+	if (d->OwnImage)
+		DeleteObj(d->Image);
+	d->Image = LoadDC(FileName);
+	Invalidate();
+	return d->OwnImage = d->Image != NULL;
+}
+
+bool GButton::SetImage(GSurface *Img, bool OwnIt)
+{
+	if (d->OwnImage)
+		DeleteObj(d->Image);
+	d->Image = Img;
+	d->OwnImage = d->Image != NULL && OwnIt;
+	Invalidate();
+	return d->OwnImage;
+}
+
 bool GButton::Name(const char *n)
 {
 	bool Status = GView::Name(n);
@@ -145,29 +190,41 @@ void GButton::OnMouseClick(GMouse &m)
 	if (!Enabled())
 		return;
 
-	bool Click = IsCapturing();
-	Capture(m.Down());
-	if (Click ^ m.Down())
+	m.Trace("GBtn");
+	if (d->Toggle)
 	{
-		if (d->Over)
+		if (m.Down())
 		{
-			if (m.Down())
+			Value(!Value());
+			OnClick();
+		}
+	}
+	else
+	{
+		bool Click = IsCapturing();
+		Capture(m.Down());
+		if (Click ^ m.Down())
+		{
+			if (d->Over)
 			{
-				d->Pressed++;
-				Focus(true);
-			}
-			else
-			{
-				d->Pressed--;
-			}
+				if (m.Down())
+				{
+					d->Pressed++;
+					Focus(true);
+				}
+				else
+				{
+					d->Pressed--;
+				}
+				
+				Invalidate();
 
-			Invalidate();
-
-			if (!m.Down() &&
-				d->Pressed == 0)
-			{
-				// This may delete ourself, so do it last.
-				OnClick();
+				if (!m.Down() &&
+					d->Pressed == 0)
+				{
+					// This may delete ourself, so do it last.
+					OnClick();
+				}
 			}
 		}
 	}
@@ -331,6 +388,7 @@ void GButton::OnPaint(GSurface *pDC)
 		State.pScreen = pDC;
 		State.MouseOver = d->Over;
 		State.ptrText = &d->Txt;
+		State.Image = d->Image;
 		GApp::SkinEngine->OnPaint_GButton(this, &State);
 	}
 	else
