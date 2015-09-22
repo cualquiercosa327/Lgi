@@ -58,10 +58,7 @@ struct GLinkInfo
 class GDocView;
 
 /// An environment class to handle requests from the text view to the outside world.
-class
-#ifdef MAC
-LgiClass
-#endif
+class LgiClass
 GDocumentEnv : public GThreadOwner
 {
 	GArray<GDocView*> Viewers;
@@ -196,7 +193,8 @@ public:
 /// This class defines the default behaviour of the environment,
 /// However you will need to instantiate this yourself and call
 /// SetEnv with your instance. i.e. it's not automatic.
-class GDefaultDocumentEnv : public GDocumentEnv
+class LgiClass GDefaultDocumentEnv :
+	public GDocumentEnv
 {
 public:
 	LoadType GetContent(LoadJob *&j);
@@ -207,11 +205,9 @@ public:
 class GDocFindReplaceParams {};
 
 /// TextView class is a base for all text controls
-class
-#ifdef MAC
-LgiClass
-#endif
-GDocView : public GLayout, virtual public GDom
+class LgiClass GDocView :
+	public GLayout,
+	virtual public GDom
 {
 	friend class GDocumentEnv;
 

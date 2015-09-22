@@ -245,6 +245,7 @@ GCss::GCss() : Props(32, false, PropNull)
 		Lut.Add("clip", PropClip);
 		Lut.Add("x-rect", PropXSubRect);
 		Lut.Add("color", PropColor);
+		Lut.Add("no-paint-color", PropNoPaintColor);
 		Lut.Add("font-family", PropFontFamily);
 	}
 	

@@ -23,10 +23,7 @@ extern char Delimiters[];
 class GTextView3;
 
 /// Unicode text editor control.
-class
-#if defined(MAC) || defined(__GTK_H__)
-LgiClass
-#endif
+class LgiClass
 	GTextView3 :
 	public GDocView,
 	public ResObject,
@@ -37,11 +34,7 @@ LgiClass
 	friend bool Text3_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User);
 
 public:
-	class
-	#if defined(MAC) || defined(__GTK_H__)
-	LgiClass
-	#endif
-	GStyle
+	class LgiClass GStyle
 	{
 		friend class GUrl;
 

@@ -450,6 +450,14 @@ public:
 	/// Returns the surface of the alpha channel.
 	GSurface *AlphaDC() { return pAlphaDC; }
 
+	// Create sub-images (that reference the memory of this object)
+	GSurface *SubImage(GRect r);
+	GSurface *SubImage(int x1, int y1, int x2, int y2)
+	{
+		GRect r(x1, y1, x2, y2);
+		return SubImage(r);
+	}
+
 	// Applicator
 	virtual bool Applicator(GApplicator *pApp);
 	virtual GApplicator *Applicator();

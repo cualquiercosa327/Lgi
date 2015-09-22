@@ -134,7 +134,7 @@ class GelSkin : public GSkinEngine
 		}
 	}
 	
-	void DrawBtn(GSurface *pDC, GRect &r, bool Down, bool Enabled, bool Default = false)
+	void DrawBtn(GSurface *pDC, GRect &r, GColour *Base, bool Down, bool Enabled, bool Default = false)
 	{
 		if (pDC)
 		{
@@ -170,12 +170,22 @@ class GelSkin : public GSkinEngine
 				COLOUR Mid = c232;
 				COLOUR Mid2 = c222;
 				COLOUR Bot = c255;
-				if (!Enabled)
+				if (Base)
 				{
-					Top = LgiDarken(Top, 230);
-					Mid = LgiDarken(Mid, 230);
-					Mid2 = LgiDarken(Mid2, 230);
-					Bot = LgiDarken(Bot, 230);
+					Top = Base->c32();
+					Mid = Base->c32();
+					Mid2 = Base->c32();
+					Bot = Base->c32();
+				}
+				else
+				{
+					if (!Enabled)
+					{
+						Top = LgiDarken(Top, 230);
+						Mid = LgiDarken(Mid, 230);
+						Mid2 = LgiDarken(Mid2, 230);
+						Bot = LgiDarken(Bot, 230);
+					}
 				}
 			
 				GPointF c1(r.x1, r.y1);
@@ -590,53 +600,86 @@ public:
 
 			// Background
 			GCssTools Tools(Ctrl->GetCss(), Ctrl->GetFont());
-			GColour &Fore = Tools.GetFore(), &Back = Tools.GetBack();
-
-			if (Back.IsValid())
+			GColour DefaultBack;
+			GColour &Fore = Tools.GetFore(), &Back = Tools.GetBack(&DefaultBack);
+			GColour NoPaint(LC_MED, 24);			
+			if (Ctrl->GetCss())
 			{
-				Mem.Colour(Back);
-				Mem.Rectangle();
-			}
+				GCss::ColorDef np = Ctrl->GetCss()->NoPaintColor();
+				if (np.Type == GCss::ColorRgb)
+					NoPaint.Set(np.Rgb32, 32);
+				else
+					NoPaint.Empty();
+			}			
+			if (NoPaint.IsValid())
+				Mem.Colour(NoPaint);
+			else
+				Mem.Colour(0, 32);
+			Mem.Rectangle();
 			
-			DrawBtn(&Mem, Ctrl->GetClient(), Ctrl->Value(), Ctrl->Enabled(), Ctrl->Default());
+			DrawBtn(&Mem,
+					Ctrl->GetClient(),
+					Back.IsValid() ? &Back : NULL,
+					Ctrl->Value(),
+					Ctrl->Enabled(),
+					Ctrl->Default());
 			
 			GSurface *Out = &Mem;
 			
 			GDisplayString *Text = State->FirstText();
+
+			int ContentX = 0;
+			int SpacingPx = 4;
+			if (State->Image)
+				ContentX += State->Image->X();
+			if (Text)
+				ContentX += Text->X();
+			if (State->Image && Text)
+				ContentX += SpacingPx;			
+
+			int CurX = (Ctrl->X() - ContentX) >> 1;
+			int Off = Ctrl->Value() ? 1 : 0;
+			if (State->Image)
+			{
+				int CurY = (Ctrl->Y() - State->Image->Y()) >> 1;
+				int Op = Out->Op(GDC_ALPHA);
+				Out->Blt(CurX+Off, CurY+Off, State->Image);
+				Out->Op(Op);
+				CurX += State->Image->X() + SpacingPx;
+			}
 			if (Text)
 			{
 				int sx = Text->X(), sy = Text->Y();
-				int tx = (Ctrl->X()-sx) >> 1;
 				int ty = (Ctrl->Y()-sy) >> 1;
-				
-				int Off = Ctrl->Value() ? 1 : 0;
 
 				GFont *f = Text->GetFont();
 				f->Transparent(true);
 				if (Ctrl->Enabled())
 				{
 					f->Colour(Fore, Back);
-					Text->Draw(Out, tx+Off, ty+Off+BTN_TEXT_OFFSET_Y);
+					Text->Draw(Out, CurX+Off, ty+Off+BTN_TEXT_OFFSET_Y);
 				}
 				else
 				{
 					f->Colour(GColour(LC_LIGHT, 24), Back);
-					Text->Draw(Out, tx+Off+1, ty+Off+1+BTN_TEXT_OFFSET_Y);
+					Text->Draw(Out, CurX+Off+1, ty+Off+1+BTN_TEXT_OFFSET_Y);
 
 					f->Colour(GColour(LC_LOW, 24), Back);
-					Text->Draw(Out, tx+Off, ty+Off+BTN_TEXT_OFFSET_Y);
+					Text->Draw(Out, CurX+Off, ty+Off+BTN_TEXT_OFFSET_Y);
 				}
 				
 				if (Ctrl->Focus())
 				{
-					GRect b(tx-2, ty, tx + sx + 1, ty + sy - 2);
+					GRect b(CurX-2, ty, CurX + sx + 1, ty + sy - 2);
 					b.Offset(Off, Off);
 					Out->Colour(Rgb24(180, 180, 180), 24);
 					Out->Box(&b);
 				}
 			}
 			
-			State->pScreen->Blt(0, 0, &Mem);			
+			int Op = State->pScreen->Op(GDC_ALPHA);
+			State->pScreen->Blt(0, 0, &Mem);	
+			State->pScreen->Op(Op);
 		}
 		else
 		{
@@ -694,7 +737,7 @@ public:
 				Mem.Rectangle();
 			}
 
-			DrawBtn(&Mem, Ctrl->GetClient(), false, State->Enabled);
+			DrawBtn(&Mem, Ctrl->GetClient(), NULL, false, State->Enabled);
 			
 			int n = 22;
 			GColour DkGrey(LC_DKGREY, 24);

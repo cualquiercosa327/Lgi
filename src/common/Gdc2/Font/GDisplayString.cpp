@@ -1116,15 +1116,15 @@ bool CompositeText8Alpha(GSurface *Out, GSurface *In, GFont *Font, int px, int p
 
 	for (unsigned y=0; y<In->Y(); y++)
 	{
-		register OutPx *dst = ((OutPx*) (*Out)[py + y]) + px;
+		register OutPx *d = ((OutPx*) (*Out)[py + y]) + px;
 		register uint8 *i = (*In)[y];
 		if (!i) return false;
 		register uint8 *e = i + In->X();
 		
 		if (Font->Transparent())
 		{
-			register uint8 a, oma;
-			register OutPx *src;
+			register uint8 a, o;
+			register OutPx *s;
 			
 			while (i < e)
 			{
@@ -1136,19 +1136,25 @@ bool CompositeText8Alpha(GSurface *Out, GSurface *In, GFont *Font, int px, int p
 						break;
 					case 255:
 						// Copy
-						*dst = map[a];
+						*d = map[a];
 						break;
 					default:
 						// Blend
-						oma = 255 - a;
-						src = map + a;
+						o = 255 - a;
+						s = map + a;
+						#define NonPreMulOver32NoAlpha(c)		d->c = ((s->c * a) + (Div255[d->c * 255] * o)) / 255
+						NonPreMulOver32NoAlpha(r);
+						NonPreMulOver32NoAlpha(g);
+						NonPreMulOver32NoAlpha(b);
+						/*
 						dst->r = Div255[(oma * dst->r) + (a * src->r)];
 						dst->g = Div255[(oma * dst->g) + (a * src->g)];
 						dst->b = Div255[(oma * dst->b) + (a * src->b)];
 						dst->a = (dst->a + src->a) + Div255[dst->a * src->a];
+						*/
 						break;
 				}
-				dst++;
+				d++;
 			}
 		}
 		else
@@ -1156,7 +1162,7 @@ bool CompositeText8Alpha(GSurface *Out, GSurface *In, GFont *Font, int px, int p
 			while (i < e)
 			{
 				// Copy rop
-				*dst++ = map[*i++];
+				*d++ = map[*i++];
 			}
 		}
 	}
@@ -1430,7 +1436,8 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 			#undef DspStrCase
 		}
 	}
-	else LgiTrace("::Draw argument error.\n");
+	else
+		LgiTrace("::Draw argument error.\n");
 
 	#elif defined WINNATIVE
 	

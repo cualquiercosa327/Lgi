@@ -197,6 +197,9 @@ public:
 
 	// Update handling
 	GRect DirtyRect;
+
+	// Window stack
+	GArray<GWindow*> Stack;
 	
 	// Clipboard handling
 	int Clipboard, Utf8, Utf8String;
@@ -585,7 +588,15 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 			r = SDL_PollEvent(&Msg.Event);
 		
 		if (Msg.Event.type == SDL_QUIT)
-			break;
+		{
+			if (!AppWnd)
+				break;
+			
+			bool Close = AppWnd->OnRequestClose(false);
+			if (Close)
+				break;
+			continue;
+		}
 
 		OnSDLEvent(&Msg);
 	}
@@ -950,6 +961,31 @@ bool GApp::InvalidateRect(GRect &r)
 	}
 	
 	return true;
+}
+
+bool GApp::PushWindow(GWindow *w)
+{
+	if (!w)
+		return false;
+
+	if (AppWnd)
+		d->Stack.Add(AppWnd);
+	
+	AppWnd = w;
+	return true;
+}
+
+GWindow *GApp::PopWindow()
+{
+	if (d->Stack.Length() == 0)
+	{
+		LgiAssert(0);
+		return NULL;
+	}
+	
+	AppWnd = d->Stack.Last();
+	d->Stack.Length(d->Stack.Length()-1);
+	return AppWnd;
 }
 
 ////////////////////////////////////////////////////////////////

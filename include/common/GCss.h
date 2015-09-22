@@ -113,6 +113,7 @@ public:
 		// ColorDef based
 		PropColor = TypeColor << 8,
 		PropBackgroundColor,
+		PropNoPaintColor,
 		PropBorderTopColor,
 		PropBorderRightColor,
 		PropBorderBottomColor,
@@ -1079,6 +1080,7 @@ public:
 	Accessor(TextDecoration, TextDecorType, TextDecorInherit, PropNull);
 
 	Accessor(Color, ColorDef, ColorDef(), PropNull);
+	Accessor(NoPaintColor, ColorDef, ColorDef(), PropNull);
 	Accessor(BackgroundColor, ColorDef, ColorDef(), PropNull);
 	Accessor(BackgroundImage, ImageDef, ImageDef(), PropNull);
 	Accessor(BackgroundRepeat, RepeatType, RepeatInherit, PropNull);
