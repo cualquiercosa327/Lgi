@@ -499,7 +499,8 @@ GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
 		return (GColourSpace)LgiSwap32(cs.All);
 	#endif
 	
-	return (GColourSpace)cs.All;
+	GColourSpace Ret = (GColourSpace)cs.All;
+	return Ret;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
