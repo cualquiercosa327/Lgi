@@ -611,6 +611,18 @@ GdcDevice::GdcDevice()
 {
 	d = new GdcDevicePrivate(this);
 	pInstance = this;
+	
+	
+	union {
+		uint32 u32;
+		GBgrx32 bgrx32;
+	};
+	
+	bool LsbFirst = BIT_PACK_LSB_FIRST;
+	
+	u32 = 0xff000000;
+	LgiAssert(bgrx32.b == 0xff);
+	LgiAssert(bgrx32.r == 0x0);
 }
 
 GdcDevice::~GdcDevice()

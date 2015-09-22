@@ -105,7 +105,8 @@ GSurface *GSurface::SubImage(GRect r)
 		return NULL;
 		
 	GRect clip = r;
-	clip.Intersection(&Bounds());
+	GRect bounds = Bounds();
+	clip.Intersection(&bounds);
 	if (!clip.Valid())
 		return false;
 

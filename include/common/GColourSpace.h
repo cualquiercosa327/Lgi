@@ -178,70 +178,134 @@ struct GBgr16 {
 };
 
 struct GRgb24 {
+	#if BIT_PACK_LSB_FIRST
 	uint8 r, g, b;
+	#else
+	uint8 b, g, r;
+	#endif
 };
 
 struct GBgr24 {
+	#if BIT_PACK_LSB_FIRST
 	uint8 b, g, r;
+	#else
+	uint8 r, g, b;
+	#endif
 };
 
 struct GRgba32 {
+	#if BIT_PACK_LSB_FIRST
 	uint8 r, g, b, a;
+	#else
+	uint8 a, b, g, r;
+	#endif
 };
 
 struct GBgra32 {
+	#if BIT_PACK_LSB_FIRST
 	uint8 b, g, r, a;
+	#else
+	uint8 a, r, g, b;
+	#endif
 };
 
 struct GArgb32 {
+	#if BIT_PACK_LSB_FIRST
 	uint8 a, r, g, b;
+	#else
+	uint8 b, g, r, a;
+	#endif
 };
 
 struct GAbgr32 {
+	#if BIT_PACK_LSB_FIRST
 	uint8 a, b, g, r;
+	#else
+	uint8 r, g, b, a;
+	#endif
 };
 
 struct GXrgb32 {
+	#if BIT_PACK_LSB_FIRST
 	uint8 pad, r, g, b;
+	#else
+	uint8 b, g, r, pad;
+	#endif
 };
 
 struct GRgbx32 {
+	#if BIT_PACK_LSB_FIRST
 	uint8 r, g, b, pad;
+	#else
+	uint8 pad, b, g, r;
+	#endif
 };
 
 struct GXbgr32 {
+	#if BIT_PACK_LSB_FIRST
 	uint8 pad, b, g, r;
+	#else
+	uint8 r, g, b, pad;
+	#endif
 };
 
 struct GBgrx32 {
+	#if BIT_PACK_LSB_FIRST
 	uint8 b, g, r, pad;
+	#else
+	uint8 pad, r, g, b;
+	#endif
 };
 
 #ifdef WIN32
 #pragma pack(push, 2)
 #endif
 struct GRgb48 {
+	#if BIT_PACK_LSB_FIRST
 	uint16 r, g, b;
+	#else
+	uint16 b, g, r;
+	#endif
 };
 
 struct GBgr48 {
+	#if BIT_PACK_LSB_FIRST
 	uint16 b, g, r;
+	#else
+	uint16 r, g, b;
+	#endif
 };
 
 struct GRgba64 {
+	#if BIT_PACK_LSB_FIRST
 	uint16 r, g, b, a;
+	#else
+	uint16 a, b, g, r;
+	#endif
 };
 
 struct GBgra64 {
+	#if BIT_PACK_LSB_FIRST
 	uint16 b, g, r, a;
+	#else
+	uint16 a, r, g, b;
+	#endif
 };
 
 struct GArgb64 {
+	#if BIT_PACK_LSB_FIRST
 	uint16 a, r, g, b;
+	#else
+	uint16 b, g, r, a;
+	#endif
 };
 
 struct GAbgr64 {
+	#if BIT_PACK_LSB_FIRST
 	uint16 a, b, g, r;
+	#else
+	uint16 r, g, b, a;
+	#endif
 };
 #ifdef WIN32
 #pragma pack(pop)
@@ -253,7 +317,11 @@ struct GHls32 {
 };
 
 struct GCmyk32 {
+	#if BIT_PACK_LSB_FIRST
 	uint8 c, m, y, k;
+	#else
+	uint8 k, y, m, c;
+	#endif
 };
 
 struct GColourComponent

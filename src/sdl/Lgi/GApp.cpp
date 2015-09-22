@@ -63,7 +63,7 @@ void OsAppArguments::Set(const char *CmdLine)
 	if (!CmdLine)
 		return;
 	
-	for (char *s = CmdLine; *s; )
+	for (const char *s = CmdLine; *s; )
 	{
 		while (*s && strchr(WhiteSpace, *s)) s++;
 		if (*s == '\'' || *s == '\"')
@@ -79,7 +79,7 @@ void OsAppArguments::Set(const char *CmdLine)
 		}
 		else
 		{
-			char *e = s;
+			const char *e = s;
 			while (*e && !strchr(WhiteSpace, *e))
 				e++;
 			d->Ptr.Add(NewStr(s, e-s));

@@ -322,11 +322,13 @@ void GDisplayString::Layout(bool Debug)
 									out += Px;
 									memcpy(out, in, bmp.width);
 								}
+								/*
 								else
 								{
 									LgiAssert(!"No scanline?");
 									break;
 								}
+								*/
 							}
 						}
 						
