@@ -494,11 +494,6 @@ GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
 		}
 	}
 	
-	#ifdef _MSC_VER
-	if (pf->BytesPerPixel == 4)
-		return (GColourSpace)LgiSwap32(cs.All);
-	#endif
-	
 	GColourSpace Ret = (GColourSpace)cs.All;
 	return Ret;
 }
@@ -618,11 +613,21 @@ GdcDevice::GdcDevice()
 		GBgrx32 bgrx32;
 	};
 	
-	bool LsbFirst = BIT_PACK_LSB_FIRST;
+	bool LeastSigBit = LEAST_SIG_BIT_FIRST;
+	bool LeastSigByte = LEAST_SIG_BYTE_FIRST;
 	
 	u32 = 0xff000000;
 	LgiAssert(bgrx32.b == 0xff);
 	LgiAssert(bgrx32.r == 0x0);
+	
+	union {
+		uint16 u16;
+		GRgb16 rgb16;
+	};
+	
+	u16 = 0x1f << (5+6);
+	LgiAssert(rgb16.r == 0x1f);
+	LgiAssert(rgb16.b == 0x0);
 }
 
 GdcDevice::~GdcDevice()

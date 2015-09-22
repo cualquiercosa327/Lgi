@@ -5,6 +5,7 @@
 #include "GSkinEngine.h"
 #include "GButton.h"
 #include "GDisplayString.h"
+#include "GTableLayout.h"
 
 #define DOWN_MOUSE		0x1
 #define DOWN_KEY		0x2
@@ -465,10 +466,19 @@ void GButton::OnAttach()
 	}
 }
 
-void GButton::SetPreferredSize()
+void GButton::SetPreferredSize(int x, int y)
 {
 	GRect r = GetPos();
-	r.x2 = r.x1 + d->Txt->X() + Overhead.x - 1;
-	r.y2 = r.y1 + d->Txt->Y() + Overhead.y - 1;
+
+	int Tx = d->Txt ? d->Txt->X() : 0;
+	int Ty = d->Txt ? d->Txt->Y() : 0;
+	int Ix = d->Image ? d->Image->X() : 0;
+	int Iy = d->Image ? d->Image->Y() : 0;
+	int Cx = Tx + Ix + (d->Txt && d->Image ? GTableLayout::CellSpacing : 0);
+	int Cy = max(Ty, Iy);
+	
+	r.Dimension((x > 0 ? x : Cx + Overhead.x) - 1,
+				(y > 0 ? y : Cy + Overhead.y) - 1);
+
 	SetPos(r);
 }

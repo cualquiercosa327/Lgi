@@ -121,7 +121,11 @@ GSurface *GSurface::SubImage(GRect r)
 	s->pMem->y = clip.Y();
 	s->pMem->Line = pMem->Line;
 	s->pMem->Cs = pMem->Cs;
-	s->pMem->Flags = 0; // Don't own memory. 
+	s->pMem->Flags = 0; // Don't own memory.
+	
+	s->Clip = s->Bounds();
+	s->ColourSpace = pMem->Cs;
+	s->Op(GDC_SET);
 	
 	return s.Release();
 }

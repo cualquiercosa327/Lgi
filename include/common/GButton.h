@@ -71,8 +71,8 @@ public:
 	/// Sets the icon
 	bool SetImage(GSurface *Img, bool OwnIt);
 
-    /// Sets the control to it's preferred size for it's text
-    void SetPreferredSize();
+    /// Sets the control to it's preferred size for it's text &| image
+    void SetPreferredSize(int x = -1, int y = -1);
 
 	// Events
 	GMessage::Result OnEvent(GMessage *Msg);
