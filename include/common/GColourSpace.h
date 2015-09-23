@@ -90,12 +90,16 @@ enum GColourSpace
 #pragma pack(1)
 #endif
 
-#ifdef _MSC_VER
-#define LEAST_SIG_BIT_FIRST		1
-#define LEAST_SIG_BYTE_FIRST	0
+#if defined(_MSC_VER) || defined(LINUX)
+
+	#define LEAST_SIG_BIT_FIRST		1
+	#define LEAST_SIG_BYTE_FIRST	0
+
 #else
-#define LEAST_SIG_BIT_FIRST		0
-#define LEAST_SIG_BYTE_FIRST	0
+
+	#define LEAST_SIG_BIT_FIRST		0
+	#define LEAST_SIG_BYTE_FIRST	0
+
 #endif
 
 

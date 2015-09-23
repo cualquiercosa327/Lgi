@@ -412,7 +412,7 @@ public:
 	virtual Gtk::cairo_t *GetCairo() { return Cairo; }
 
 	/// Gets the drawable size, regardless of clipping or client rect
-	virtual GdcPt2 GetSize() = 0;
+	virtual GdcPt2 GetSize() { GdcPt2 p; return p; }
 
 	#elif defined(WINNATIVE)
 
