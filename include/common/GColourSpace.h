@@ -98,7 +98,7 @@ enum GColourSpace
 #elif defined(LINUX)
 
 	#define LEAST_SIG_BIT_FIRST		1
-	#define LEAST_SIG_BYTE_FIRST	0
+	#define LEAST_SIG_BYTE_FIRST	1
 
 #else
 
