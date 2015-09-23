@@ -1142,6 +1142,7 @@ GdcDevice *GdcDevice::pInstance = 0;
 
 GdcDevice::GdcDevice()
 {
+	GColourSpaceTest();
 	pInstance = this;
 	d = new GdcDevicePrivate(this);
 }

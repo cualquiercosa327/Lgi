@@ -604,30 +604,9 @@ public:
 GdcDevice *GdcDevice::pInstance = 0;
 GdcDevice::GdcDevice()
 {
+	GColourSpaceTest();
 	d = new GdcDevicePrivate(this);
 	pInstance = this;
-	
-	
-	union {
-		uint32 u32;
-		GBgrx32 bgrx32;
-	};
-	
-	bool LeastSigBit = LEAST_SIG_BIT_FIRST;
-	bool LeastSigByte = LEAST_SIG_BYTE_FIRST;
-	
-	u32 = 0xff000000;
-	LgiAssert(bgrx32.b == 0xff);
-	LgiAssert(bgrx32.r == 0x0);
-	
-	union {
-		uint16 u16;
-		GRgb16 rgb16;
-	};
-	
-	u16 = 0x1f << (5+6);
-	LgiAssert(rgb16.r == 0x1f);
-	LgiAssert(rgb16.b == 0x0);
 }
 
 GdcDevice::~GdcDevice()

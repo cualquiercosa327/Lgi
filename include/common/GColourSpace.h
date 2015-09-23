@@ -90,7 +90,12 @@ enum GColourSpace
 #pragma pack(1)
 #endif
 
-#if defined(_MSC_VER) || defined(LINUX)
+#if defined(_MSC_VER)
+
+	#define LEAST_SIG_BIT_FIRST		1
+	#define LEAST_SIG_BYTE_FIRST	1
+
+#elif defined(LINUX)
 
 	#define LEAST_SIG_BIT_FIRST		1
 	#define LEAST_SIG_BYTE_FIRST	0
@@ -160,14 +165,14 @@ struct GAbgr15 {
 };
 
 struct GRgb16 {
-	#if !LEAST_SIG_BIT_FIRST
-	uint16 r : 5;
-	uint16 g : 6;
+	#if LEAST_SIG_BIT_FIRST
 	uint16 b : 5;
+	uint16 g : 6;
+	uint16 r : 5;
 	#else
-	uint16 b : 5;
-	uint16 g : 6;
 	uint16 r : 5;
+	uint16 g : 6;
+	uint16 b : 5;
 	#endif
 };
 
@@ -389,6 +394,10 @@ LgiFunc GColourSpace GBitsToColourSpace(int Bits);
 
 /// Converts a string representation into a colour space.
 LgiFunc GColourSpace GStringToColourSpace(const char *c);
+
+/// Tests that the bit and byte ordering of the pixel structures are compiled correctly.
+/// \return true if #LEAST_SIG_BIT_FIRST and #LEAST_SIG_BYTE_FIRST are correct for this platform.
+LgiFunc bool GColourSpaceTest();
 
 #ifdef __GTK_H__
 /// Converts a GTK visual to a Lgi colour space.

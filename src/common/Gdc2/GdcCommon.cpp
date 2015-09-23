@@ -855,6 +855,44 @@ GColourSpace GBitsToColourSpace(int Bits)
 	return CsNone;
 }
 
+bool GColourSpaceTest()
+{
+	union {
+		uint8 b4[4];
+		GBgrx32 bgrx32;
+	};
+	
+	bool LeastSigBit = LEAST_SIG_BIT_FIRST;
+	bool LeastSigByte = LEAST_SIG_BYTE_FIRST;
+	// printf("LeastSigBit=%i, LeastSigByte=%i\n", LeastSigBit, LeastSigByte);
+
+	b4[0] = 0xff;
+	b4[1] = b4[2] = b4[3] = 0;
+	// printf("bgrx32=%i,%i,%i,%i\n", bgrx32.b, bgrx32.g, bgrx32.r, bgrx32.pad);
+	if (bgrx32.b != 0xff ||
+		bgrx32.pad != 0x0)
+	{
+		LgiAssert(!"32bit colour space byte ordering wrong. Flip the value of LEAST_SIG_BYTE_FIRST");
+		return false;
+	}
+	
+	union {
+		uint16 u16;
+		GRgb16 rgb16;
+	};
+	
+	u16 = 0xf800;
+	// printf("rgb16=%i,%i,%i\n", rgb16.r, rgb16.g, rgb16.b);
+	if (rgb16.r != 0x1f ||
+		rgb16.b != 0x0)
+	{
+		LgiAssert(!"16bit colour space bit ordering wrong. Flip the value of LEAST_SIG_BIT_FIRST");
+		return false;
+	}
+	
+	return true;
+}
+
 ////////////////////////////////////////////////////////////////////////
 GSurface *GInlineBmp::Create(uint32 TransparentPx)
 {

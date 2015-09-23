@@ -233,6 +233,8 @@ typedef HRESULT (CALLBACK *fDllGetVersion)(DLLVERSIONINFO *);
 GApp::GApp(OsAppArguments &AppArgs, const char *AppName, GAppArguments *ObjArgs)
 {
 	// GApp instance
+	SystemNormal = 0;
+	SystemBold = 0;
 	LgiAssert(TheApp == 0);
 	TheApp = this;
 	LgiAssert(AppName);
@@ -359,8 +361,6 @@ DumpTime("gdc");
 DumpTime("vars");
 
 	// System font
-	SystemNormal = 0;
-	SystemBold = 0;
 	GFontType SysFontType;
 	if (SysFontType.GetSystemFont("System"))
 	{
