@@ -176,7 +176,11 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
 
 GDisplayString::~GDisplayString()
 {
-	#if defined MAC && !defined COCOA && !defined(LGI_SDL)
+	#if defined(LGI_SDL)
+	
+		Img.Reset();
+	
+	#elif defined MAC && !defined COCOA
 
 		#if USE_CORETEXT
 
@@ -305,10 +309,12 @@ void GDisplayString::Layout(bool Debug)
 							int Px = (CurX + (FScale >> 1)) >> FShift;
 							int PyF = AscentF - Fnt->glyph->metrics.horiBearingY;
 							int Py = PyF >> FShift;
+							int Skip = 0;
 							
 							if (Fnt->glyph->format == FT_GLYPH_FORMAT_BITMAP)
 							{
 								Px += Fnt->glyph->bitmap_left;
+								Skip = Fnt->glyph->bitmap_left < 0 ? -Fnt->glyph->bitmap_left : 0;
 								Py = (AscentF >> FShift) - Fnt->glyph->bitmap_top;
 							}
 							
@@ -319,8 +325,9 @@ void GDisplayString::Layout(bool Debug)
 								uint8 *out = (*Img)[Py+y];
 								if (out)
 								{
-									out += Px;
-									memcpy(out, in, bmp.width);
+									LgiAssert(Px+Skip >= 0);
+									out += Px+Skip;
+									memcpy(out, in+Skip, bmp.width-Skip);
 								}
 								/*
 								else
