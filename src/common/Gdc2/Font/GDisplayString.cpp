@@ -1116,12 +1116,17 @@ bool CompositeText8Alpha(GSurface *Out, GSurface *In, GFont *Font, int px, int p
 		}
 	}
 
+	uint8 *StartOfBuffer = (*Out)[0];
+	uint8 *EndOfBuffer = StartOfBuffer + (Out->GetRowStep() * Out->Y());
+
 	for (unsigned y=0; y<In->Y(); y++)
 	{
 		register OutPx *d = ((OutPx*) (*Out)[py + y]) + px;
 		register uint8 *i = (*In)[y];
 		if (!i) return false;
 		register uint8 *e = i + In->X();
+
+		LgiAssert((uint8*)d >= StartOfBuffer);
 		
 		if (Font->Transparent())
 		{
@@ -1167,6 +1172,8 @@ bool CompositeText8Alpha(GSurface *Out, GSurface *In, GFont *Font, int px, int p
 				*d++ = map[*i++];
 			}
 		}
+
+		LgiAssert((uint8*)d <= EndOfBuffer);
 	}
 	
 	return true;
@@ -1215,12 +1222,17 @@ bool CompositeText8NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 		}
 	}
 
+	uint8 *StartOfBuffer = (*Out)[0];
+	uint8 *EndOfBuffer = StartOfBuffer + (Out->GetRowStep() * Out->Y());
+
 	for (unsigned y=0; y<In->Y(); y++)
 	{
 		register OutPx *dst = ((OutPx*) (*Out)[py + y]) + px;
 		register uint8 *i = (*In)[y];
 		if (!i) return false;
 		register uint8 *e = i + In->X();
+
+		LgiAssert((uint8*)dst >= StartOfBuffer);
 		
 		if (Font->Transparent())
 		{
@@ -1259,6 +1271,8 @@ bool CompositeText8NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 				*dst++ = map[*i++];
 			}
 		}
+
+		LgiAssert((uint8*)dst <= EndOfBuffer);
 	}
 	
 	return true;
@@ -1309,6 +1323,9 @@ bool CompositeText5NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 		}
 	}
 
+	uint8 *StartOfBuffer = (*Out)[0];
+	uint8 *EndOfBuffer = StartOfBuffer + (Out->GetRowStep() * Out->Y());
+
 	for (unsigned y=0; y<In->Y(); y++)
 	{
 		register OutPx *dst = ((OutPx*) (*Out)[py + y]);
@@ -1318,6 +1335,8 @@ bool CompositeText5NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 		register uint8 *i = (*In)[y];
 		if (!i) return false;
 		register uint8 *e = i + In->X();
+
+		LgiAssert((uint8*)dst >= StartOfBuffer);
 		
 		if (Font->Transparent())
 		{
@@ -1361,6 +1380,8 @@ bool CompositeText5NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 				*dst++ = map[*i++];
 			}
 		}
+		
+		LgiAssert((uint8*)dst <= EndOfBuffer);
 	}
 	
 	return true;

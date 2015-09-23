@@ -498,7 +498,7 @@ public:
 	/// Gets the bounds of the image as a GRect
 	GRect Bounds() { return GRect(0, 0, X()-1, Y()-1); }
 	/// Gets the length of a scanline in bytes
-	virtual int GetLine() { return (pMem) ? pMem->Line : 0; }
+	virtual int GetRowStep() { return (pMem) ? pMem->Line : 0; }
 	/// Returns the horizontal resolution of the device
 	virtual int DpiX() { return 100; }
 	/// Returns the vertical resolution of the device

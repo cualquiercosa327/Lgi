@@ -191,7 +191,6 @@ void GButton::OnMouseClick(GMouse &m)
 	if (!Enabled())
 		return;
 
-	m.Trace("GBtn");
 	if (d->Toggle)
 	{
 		if (m.Down())

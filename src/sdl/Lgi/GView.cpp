@@ -421,22 +421,19 @@ bool GView::_Mouse(GMouse &m, bool Move)
 		return false;
 	}
 
-	if (Move)
+	GViewI *o = WindowFromPoint(m.x, m.y);
+	if (_Over != o)
 	{
-		GViewI *o = WindowFromPoint(m.x, m.y);
-		if (_Over != o)
+		if (_Over)
 		{
-			if (_Over)
-			{
-				// LgiTrace("From Over %s\n", _Over->GetClass());
-				_Over->OnMouseExit(lgi_adjust_click(m, _Over));
-			}
-			_Over = o;
-			if (_Over)
-			{
-				_Over->OnMouseEnter(lgi_adjust_click(m, _Over));
-				// LgiTrace("To Over %s\n", _Over->GetClass());
-			}
+			// LgiTrace("From Over %s\n", _Over->GetClass());
+			_Over->OnMouseExit(lgi_adjust_click(m, _Over));
+		}
+		_Over = o;
+		if (_Over)
+		{
+			_Over->OnMouseEnter(lgi_adjust_click(m, _Over));
+			// LgiTrace("To Over %s\n", _Over->GetClass());
 		}
 	}
 
@@ -446,7 +443,6 @@ bool GView::_Mouse(GMouse &m, bool Move)
 		if (Move)
 		{
 			GMouse Local = lgi_adjust_click(m, _Capturing);
-			// LgiToGtkCursor(_Capturing, _Capturing->GetCursor(Local.x, Local.y));
 			_Capturing->OnMouseMove(Local); // This can set _Capturing to NULL
 		}
 		else
@@ -463,8 +459,6 @@ bool GView::_Mouse(GMouse &m, bool Move)
 		m = lgi_adjust_click(m, Target);
 		if (!Client.Valid() || Client.Overlap(m.x, m.y))
 		{
-			// LgiToGtkCursor(Target, Target->GetCursor(m.x, m.y));
-
 			if (Move)
 			{
 				Target->OnMouseMove(m);
@@ -472,13 +466,11 @@ bool GView::_Mouse(GMouse &m, bool Move)
 			else
 			{
 				#if 0
-				if (!Move)
-				{
-					char Msg[256];
-					sprintf(Msg, "_Mouse Target %s", Target->GetClass());
-					m.Trace(Msg);
-				}
+				char Msg[256];
+				sprintf_s(Msg, sizeof(Msg), "%s::OnMouseClick", Target->GetClass());
+				m.Trace(Msg);
 				#endif
+				
 				Target->OnMouseClick(m);
 			}
 		}
