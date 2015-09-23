@@ -537,7 +537,8 @@ void GTextView3::SetFont(GFont *f, bool OwnIt)
 	
 	if (OwnIt)
 	{
-		DeleteObj(Font);
+		if (Font != SysFont)
+			DeleteObj(Font);
 		Font = f;
 	}
 	else if (!Font || Font == SysFont)

@@ -278,7 +278,9 @@ void GDisplayString::Layout(bool Debug)
 		}
 		
 		// Create the memory context to draw into
+		xf = Sz.x;
 		x = ((Sz.x + FScale - 1) >> FShift) + 1;
+		yf = FontHt << FShift;
 		y = FontHt; // ((Sz.y + FScale - 1) >> FShift) + 1;
 		
 		if (Img.Reset(new GMemDC(x, y, CsIndex8)))
