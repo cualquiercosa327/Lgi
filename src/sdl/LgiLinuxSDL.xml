@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project>
 	<Node Name="Source Files" Type="1" Platforms="15" Open="1">
-		<Node Name="Core" Type="1" Platforms="15" Open="1">
+		<Node Name="Core" Type="1" Platforms="15" Open="0">
 			<Node Name="DateTime" Type="1" Platforms="15" Open="0">
 				<Node File="../common/General/GDateTime.cpp" Type="2" Platforms="15" />
 				<Node File="../../include/common/GDateTime.h" Type="3" Platforms="15" />
@@ -20,23 +20,20 @@
 				<Node File="../../include/common/GFile.h" Type="3" Platforms="15" />
 				<Node File="../common/General/GFileCommon.cpp" Type="2" Platforms="15" />
 			</Node>
-			<Node Name="Interface" Type="1" Platforms="15" Open="1">
-				<Node Name="Linux" Type="1" Platforms="15" Open="1">
-					<Node Name="Headers" Type="1" Platforms="15" Open="0">
-						<Node File="..\..\include\sdl\LgiOsDefs.h" Type="3" Platforms="2" />
-					</Node>
-					<Node File=".\Lgi\GApp.cpp" Type="2" Platforms="2" />
-					<Node File=".\Lgi\GPrinter.cpp" Type="2" Platforms="2" />
-					<Node File=".\Lgi\GView.cpp" Type="2" Platforms="2" />
-					<Node File=".\Lgi\GWindow.cpp" Type="2" Platforms="2" />
+			<Node Name="Interface" Type="1" Platforms="15" Open="0">
+				<Node Name="Linux" Type="1" Platforms="15" Open="0">
+					<Node File="./Lgi/GApp.cpp" Type="2" Platforms="2" />
+					<Node File="./Lgi/GPrinter.cpp" Type="2" Platforms="2" />
+					<Node File="./Lgi/GView.cpp" Type="2" Platforms="2" />
+					<Node File="./Lgi/GWindow.cpp" Type="2" Platforms="2" />
 				</Node>
-				<Node File="..\linux\Lgi\GGeneral.cpp" Type="2" Platforms="15" />
-				<Node File="..\common\Lgi\GViewCommon.cpp" Type="2" Platforms="15" />
-				<Node File="..\common\Lgi\GWindowCommon.cpp" Type="2" Platforms="15" />
+				<Node File="../linux/Lgi/GGeneral.cpp" Type="2" Platforms="15" />
+				<Node File="../common/Lgi/GViewCommon.cpp" Type="2" Platforms="15" />
+				<Node File="../common/Lgi/GWindowCommon.cpp" Type="2" Platforms="15" />
 			</Node>
-			<Node Name="Libraries" Type="1" Platforms="15" Open="1">
-				<Node File="..\common\Lgi\GLibrary.cpp" Type="2" Platforms="15" />
-				<Node File="..\..\include\common\GLibrary.h" Type="3" Platforms="15" />
+			<Node Name="Libraries" Type="1" Platforms="15" Open="0">
+				<Node File="../common/Lgi/GLibrary.cpp" Type="2" Platforms="15" />
+				<Node File="../../include/common/GLibrary.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Memory Subsystem" Type="1" Platforms="15" Open="0">
 				<Node Name="Haiku" Type="1" Platforms="15" Open="0" />
@@ -59,9 +56,10 @@
 				</Node>
 				<Node Name="Linux" Type="1" Platforms="15" Open="0" />
 				<Node Name="Win32" Type="1" Platforms="15" Open="0">
-					<Node File="./Lgi/GMenu.cpp" Type="2" Platforms="1" />
+					<Node File="./Lgi/GMenu.cpp" Type="2" Platforms="7" />
 				</Node>
 				<Node File="../../include/common/GMenu.h" Type="3" Platforms="15" />
+				<Node File="../common/Lgi/GMenuImpl.cpp" Type="2" Platforms="15" />
 			</Node>
 			<Node Name="Process" Type="1" Platforms="15" Open="0">
 				<Node File="../common/Lgi/GProcess.cpp" Type="2" Platforms="15" />
@@ -100,12 +98,12 @@
 				<Node File="../common/Lgi/GVariant.cpp" Type="2" Platforms="15" />
 				<Node File="../../include/common/GVariant.h" Type="3" Platforms="15" />
 			</Node>
-			<Node File="..\common\Lgi\GGuiUtils.cpp" Type="2" Platforms="15" />
-			<Node File="..\common\Lgi\GObject.cpp" Type="2" Platforms="15" />
-			<Node File="..\common\Lgi\GToolTip.cpp" Type="2" Platforms="15" />
-			<Node File="..\common\Lgi\GTrayIcon.cpp" Type="2" Platforms="15" />
-			<Node File="..\common\Lgi\Lgi.cpp" Type="2" Platforms="15" />
-			<Node File="..\common\Lgi\LgiMsg.cpp" Type="2" Platforms="15" />
+			<Node File="../common/Lgi/GGuiUtils.cpp" Type="2" Platforms="15" />
+			<Node File="../common/Lgi/GObject.cpp" Type="2" Platforms="15" />
+			<Node File="../common/Lgi/GToolTip.cpp" Type="2" Platforms="15" />
+			<Node File="../common/Lgi/GTrayIcon.cpp" Type="2" Platforms="15" />
+			<Node File="../common/Lgi/Lgi.cpp" Type="2" Platforms="15" />
+			<Node File="../common/Lgi/LgiMsg.cpp" Type="2" Platforms="15" />
 		</Node>
 		<Node Name="Dialogs" Type="1" Platforms="15" Open="0">
 			<Node Name="Xp" Type="1" Platforms="15" Open="0">
@@ -123,29 +121,29 @@
 					<Node File="./Gdc2/Gdc2.cpp" Type="2" Platforms="8" />
 				</Node>
 				<Node Name="Linux" Type="1" Platforms="15" Open="1">
-					<Node File=".\Gdc2\Gdc2.cpp" Type="2" Platforms="2" />
+					<Node File="./Gdc2/Gdc2.cpp" Type="2" Platforms="2" />
 				</Node>
 				<Node Name="Win32" Type="1" Platforms="15" Open="0">
 					<Node File="./Gdc2/Gdc2.cpp" Type="2" Platforms="1" />
 				</Node>
-				<Node File="..\common\Gdc2\GColour.cpp" Type="2" Platforms="15" />
-				<Node File="..\..\include\common\GColour.h" Type="3" Platforms="15" />
-				<Node File="..\common\Gdc2\Tools\GColourReduce.cpp" Type="2" Platforms="15" />
-				<Node File="..\..\include\common\GColourSpace.h" Type="3" Platforms="15" />
-				<Node File="..\..\include\common\Gdc2.h" Type="3" Platforms="15" />
-				<Node File="..\common\Gdc2\GdcCommon.cpp" Type="2" Platforms="15" />
-				<Node File="..\common\Gdc2\Tools\GdcTools.cpp" Type="2" Platforms="15" />
-				<Node File="..\..\include\common\GdcTools.h" Type="3" Platforms="15" />
-				<Node File="..\..\include\common\GFilter.h" Type="3" Platforms="15" />
+				<Node File="../common/Gdc2/GColour.cpp" Type="2" Platforms="15" />
+				<Node File="../../include/common/GColour.h" Type="3" Platforms="15" />
+				<Node File="../common/Gdc2/Tools/GColourReduce.cpp" Type="2" Platforms="15" />
+				<Node File="../../include/common/GColourSpace.h" Type="3" Platforms="15" />
+				<Node File="../../include/common/Gdc2.h" Type="3" Platforms="15" />
+				<Node File="../common/Gdc2/GdcCommon.cpp" Type="2" Platforms="15" />
+				<Node File="../common/Gdc2/Tools/GdcTools.cpp" Type="2" Platforms="15" />
+				<Node File="../../include/common/GdcTools.h" Type="3" Platforms="15" />
+				<Node File="../../include/common/GFilter.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Font" Type="1" Platforms="15" Open="1">
-				<Node File="..\common\Gdc2\Font\GDisplayString.cpp" Type="2" Platforms="15" />
-				<Node File="..\common\Gdc2\Font\GFont.cpp" Type="2" Platforms="15" />
-				<Node File="..\..\include\common\GFont.h" Type="3" Platforms="15" />
-				<Node File="..\common\Gdc2\Font\GFont_A.cpp" Type="2" Platforms="15" />
-				<Node File="..\common\Gdc2\Font\GFont_W.cpp" Type="2" Platforms="15" />
-				<Node File="..\common\Gdc2\Font\GFontCodePages.cpp" Type="2" Platforms="15" />
-				<Node File="..\common\Gdc2\Font\GFontSystem.cpp" Type="2" Platforms="15" />
+				<Node File="../common/Gdc2/Font/GDisplayString.cpp" Type="2" Platforms="15" />
+				<Node File="../common/Gdc2/Font/GFont.cpp" Type="2" Platforms="15" />
+				<Node File="../../include/common/GFont.h" Type="3" Platforms="15" />
+				<Node File="../common/Gdc2/Font/GFont_A.cpp" Type="2" Platforms="15" />
+				<Node File="../common/Gdc2/Font/GFont_W.cpp" Type="2" Platforms="15" />
+				<Node File="../common/Gdc2/Font/GFontCodePages.cpp" Type="2" Platforms="15" />
+				<Node File="../common/Gdc2/Font/GFontSystem.cpp" Type="2" Platforms="15" />
 			</Node>
 			<Node Name="Applicators" Type="1" Platforms="15" Open="0">
 				<Node File="../common/Gdc2/15Bit.cpp" Type="2" Platforms="15" />
@@ -182,7 +180,7 @@
 			</Node>
 			<Node Name="Gdi Leak" Type="1" Platforms="15" Open="0" />
 		</Node>
-		<Node Name="General" Type="1" Platforms="15" Open="1">
+		<Node Name="General" Type="1" Platforms="15" Open="0">
 			<Node Name="Clipboard" Type="1" Platforms="15" Open="0">
 				<Node Name="Win32" Type="1" Platforms="15" Open="0">
 					<Node File="./Lgi/GClipBoard.cpp" Type="2" Platforms="1" />
@@ -201,9 +199,9 @@
 			<Node Name="Mru" Type="1" Platforms="15" Open="0">
 				<Node File="../common/Lgi/GMru.cpp" Type="2" Platforms="15" />
 			</Node>
-			<Node File="..\common\INet\Base64.cpp" Type="2" Platforms="15" />
-			<Node File="..\common\Lgi\GOptionsFile.cpp" Type="2" Platforms="15" />
-			<Node File="..\common\Lgi\LgiRand.cpp" Type="2" Platforms="15" />
+			<Node File="../common/INet/Base64.cpp" Type="2" Platforms="15" />
+			<Node File="../common/Lgi/GOptionsFile.cpp" Type="2" Platforms="15" />
+			<Node File="../common/Lgi/LgiRand.cpp" Type="2" Platforms="15" />
 		</Node>
 		<Node Name="Text" Type="1" Platforms="15" Open="0">
 			<Node File="../common/Text/GString.cpp" Type="2" Platforms="15" />
@@ -214,7 +212,7 @@
 			<Node File="../common/Text/GXmlTree.cpp" Type="2" Platforms="15" />
 			<Node File="../../include/common/GXmlTree.h" Type="3" Platforms="15" />
 		</Node>
-		<Node Name="Widgets" Type="1" Platforms="15" Open="1">
+		<Node Name="Widgets" Type="1" Platforms="15" Open="0">
 			<Node Name="Common" Type="1" Platforms="15" Open="0">
 				<Node File="../common/Widgets/GBitmap.cpp" Type="2" Platforms="15" />
 				<Node File="../common/Widgets/GButton.cpp" Type="2" Platforms="15" />
@@ -268,9 +266,9 @@
 		<Node Name="Header" Type="1" Platforms="15" Open="0" />
 		<Node Name="Mime Message" Type="1" Platforms="15" Open="0" />
 	</Node>
-	<Node Name="Headers" Type="1" Platforms="15" Open="0">
-		<Node Name="Linux" Type="1" Platforms="15" Open="0" />
-		<Node Name="Win" Type="1" Platforms="15" Open="0" />
+	<Node Name="Headers" Type="1" Platforms="15" Open="1">
+		<Node File="../../include/sdl/LgiOsClasses.h" Type="3" Platforms="15" />
+		<Node File="../../include/sdl/LgiOsDefs.h" Type="3" Platforms="15" />
 	</Node>
 	<Settings>
 		<General>
@@ -293,13 +291,18 @@ WINDOWS</Debug>
 					<Release>WINNATIVE
 WINDOWS</Release>
 				</Windows>
+				<Linux />
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
 				<Linux>gcc</Linux>
 			</Compiler>
-			<Executable />
-			<Arguments />
+			<Executable>
+				<Linux />
+			</Executable>
+			<Arguments>
+				<All />
+			</Arguments>
 		</General>
 		<Build>
 			<IncludePaths>
@@ -315,9 +318,11 @@ WINDOWS</Release>
 				</Windows>
 				<Linux>
 					<Debug>../../include/sdl
-/usr/include/SDL</Debug>
+/usr/include/SDL
+/usr/include/freetype2</Debug>
 					<Release>../../include/sdl
-/usr/include/SDL</Release>
+/usr/include/SDL
+/usr/include/freetype2</Release>
 				</Linux>
 				<Haiku>
 					<Debug>include/beos
@@ -381,8 +386,13 @@ freetype</Release>
 					<Release>lgi_sdl</Release>
 				</Linux>
 			</TargetName>
-			<SystemIncludes />
-			<LibraryPaths />
+			<SystemIncludes>
+				<Linux />
+			</SystemIncludes>
+			<LibraryPaths>
+				<All />
+				<Linux />
+			</LibraryPaths>
 		</Build>
 		<Editor>
 			<TabSize>
@@ -397,7 +407,11 @@ freetype</Release>
 			<UseHardTabs>
 				<All>1</All>
 			</UseHardTabs>
+			<CommentFile />
+			<CommentFunction />
 		</Editor>
-		<Advanced />
+		<Advanced>
+			<OtherMakefileRules />
+		</Advanced>
 	</Settings>
 </Project>

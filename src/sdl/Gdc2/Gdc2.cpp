@@ -451,7 +451,11 @@ GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
 		for (int i=0; i<pf->BitsPerPixel; i++)
 		{
 			int b = 1<<i;
-			int idx = pf->BitsPerPixel - 1 - i;
+			int idx;
+			if (pf->BitsPerPixel == 16)
+				idx = pf->BitsPerPixel - 1 - i;
+			else
+				idx = i;
 			if (pf->Rmask & b)
 			{
 				LgiAssert(Bits[idx] == 'x');
@@ -468,6 +472,7 @@ GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
 				Bits[idx] = 'b';
 			}
 		}
+		// printf("Bits='%s'\n", &Bits[0]);
 
 		char Cur = 0;
 		int Idx = 0;
@@ -495,6 +500,14 @@ GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
 	}
 	
 	GColourSpace Ret = (GColourSpace)cs.All;
+	#if 0
+	printf("PixelFormat2ColourSpace sdl=%08x,%08x,%08x,%08x lgi=%s\n",
+		pf->Rmask,
+		pf->Gmask,
+		pf->Bmask,
+		pf->Amask,
+		GColourSpaceToString(Ret));
+	#endif
 	return Ret;
 }
 
