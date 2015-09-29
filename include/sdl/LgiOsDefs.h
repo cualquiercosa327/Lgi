@@ -145,12 +145,7 @@ public:
 typedef int OsSocket;
 
 /// Sleep the current thread for i milliseconds.
-#ifdef WIN32
-LgiFunc void LgiSleep(DWORD i);
-#else
-#define LgiSleep(i)					_lgi_sleep(i)
-LgiFunc void _lgi_sleep(int i);
-#endif
+LgiFunc void LgiSleep(uint32 i);
 
 #ifndef WIN32
 #define atoi64						atoll

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "Lgi.h"
+#include "GRegKey.h"
 
 ////////////////////////////////////////////////////////////////
 // Local helper functions
