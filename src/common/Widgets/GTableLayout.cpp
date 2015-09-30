@@ -576,16 +576,16 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 		{
 			Min = Max;
 			Flag = SizeFixed;
+
+			if (Padding.x1 + Padding.x2 > Min)
+			{
+				// Remove padding as it's going to oversize the cell
+				Padding.x1 = Padding.x2 = 0;
+			}
 		}
 		else
 		{
 			Flag = SizeGrow;
-		}
-		
-		if (Padding.x1 + Padding.x2 > Min)
-		{
-			// Remove padding as it's going to oversize the cell
-			Padding.x1 = Padding.x2 = 0;
 		}
 	}
 
