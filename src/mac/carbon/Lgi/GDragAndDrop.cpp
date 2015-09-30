@@ -383,11 +383,11 @@ struct DragParams
 							int CurIdx = Map.Find(n);
 							if (CurIdx < 0)
 							{
-								CurIdx = Data.Length();
+								CurIdx = Map.Length();
 								Map.Add(n, CurIdx);
 							}
 							
-							printf("[%li][%li]='%s'\n", i, t, n.Get());
+							printf("[%li][%li]='%s' = %i\n", i, t, n.Get(), CurIdx);
 							DropItemFlavor &Fl = ItemFlavors.New();
 							Fl.Index = CurIdx;
 							Fl.ItemId = Item;
