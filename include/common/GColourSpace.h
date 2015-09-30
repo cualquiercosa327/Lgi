@@ -90,22 +90,8 @@ enum GColourSpace
 #pragma pack(1)
 #endif
 
-#if defined(_MSC_VER)
-
-	#define LEAST_SIG_BIT_FIRST		1
-	#define LEAST_SIG_BYTE_FIRST	1
-
-#elif defined(LINUX)
-
-	#define LEAST_SIG_BIT_FIRST		1
-	#define LEAST_SIG_BYTE_FIRST	1
-
-#else
-
-	#define LEAST_SIG_BIT_FIRST		0
-	#define LEAST_SIG_BYTE_FIRST	0
-
-#endif
+#define LEAST_SIG_BIT_FIRST		1
+#define LEAST_SIG_BYTE_FIRST	1
 
 
 struct GRgb15 {

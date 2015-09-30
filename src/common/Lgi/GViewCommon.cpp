@@ -894,22 +894,34 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 	{
 		_Capturing = Wnd;
 		
-		#ifdef WINNATIVE
-		GdcPt2 Offset;
-		GViewI *v = _Capturing->Handle() ? _Capturing : FindReal(&Offset);
-		HWND h = v ? v->Handle() : NULL;
-		if (h)
-			SetCapture(h);
-		else
-			LgiAssert(0);
+		#if defined(WINNATIVE)
+			GdcPt2 Offset;
+			GViewI *v = _Capturing->Handle() ? _Capturing : FindReal(&Offset);
+			HWND h = v ? v->Handle() : NULL;
+			if (h)
+				SetCapture(h);
+			else
+				LgiAssert(0);
+		#elif defined(LGI_SDL)
+			#if SDL_VERSION_ATLEAST(2, 0, 4)
+			SDL_CaptureMouse(SDL_TRUE);
+			#else
+			LgiApp->CaptureMouse(true);
+			#endif
 		#endif
 	}
 	else
 	{
 		_Capturing = NULL;
 
-		#ifdef WINNATIVE
-		ReleaseCapture();
+		#if defined(WINNATIVE)
+			ReleaseCapture();
+		#elif defined(LGI_SDL)
+			#if SDL_VERSION_ATLEAST(2, 0, 4)
+			SDL_CaptureMouse(SDL_FALSE);
+			#else
+			LgiApp->CaptureMouse(false);
+			#endif
 		#endif
 	}
 

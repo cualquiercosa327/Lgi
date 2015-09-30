@@ -125,7 +125,7 @@ typedef pthread_mutex_t				OsSemaphore;
 typedef int OsSocket;
 
 // Sleep the current thread
-LgiFunc void LgiSleep(int i);
+LgiFunc void LgiSleep(uint32 i);
 
 // Run the message loop to process any pending messages
 #define LgiYield()					GApp::ObjInstance()->Run(false)
