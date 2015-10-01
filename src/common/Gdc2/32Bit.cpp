@@ -641,7 +641,7 @@ GApplicator *GApp32::Create(GColourSpace Cs, int Op)
 				return new GdcApp32Xor;
 		}
 	}
-	else
+	else if (Op == GDC_SET)
 	{
 		switch (Cs)
 		{

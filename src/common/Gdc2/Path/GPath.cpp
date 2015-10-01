@@ -1444,7 +1444,13 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 		#endif
 
 		GRectF Doc = Bounds;
-		Doc.Offset(Mat[2][0], Mat[2][1]);
+		int Ox = 0, Oy = 0;
+		
+		pDC->GetOrigin(Ox, Oy);
+		double OffsetX = Mat[2][0] - Ox;
+		double OffsetY = Mat[2][1] - Oy;
+		
+		Doc.Offset(OffsetX, OffsetY);
 		GRectF Page(0, 0, pDC->X(), pDC->Y());
 		GRect DcClip = pDC->ClipRgn();
 		if (DcClip.Valid())
@@ -1452,7 +1458,12 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 		GRectF Clip = Doc;
 		Clip.Intersect(Page);
 		
+		// Convert the doc and clip back to path coords.
+		Doc.Offset(-OffsetX, -OffsetY);
+		Clip.Offset(-OffsetX, -OffsetY);
+
 		GBrush::GRopArgs a;
+		a.pDC = pDC;
 		a.Pixels = 0;
 		a.Alpha = 0;
 		a.Cs = pDC->GetColourSpace();
@@ -1720,14 +1731,14 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 							a.y = ((y + SUB_SHIFT - 1) >> SUB_SHIFT) + (int)Mat[2][1] - 1;
 							if (a.y >= floor(Clip.y1) && a.y <= ceil(Clip.y2))
 							{
-								a.Pixels = (*pDC)[a.y];
-								a.pDC = pDC;
+								a.Pixels = (*pDC)[a.y-Oy];
 								if (a.Pixels)
 								{
 									int AddX = DocX + (int)Doc.x1;
 									a.y -= (int)Mat[2][1];
 									a.Len = RopLength;
-									a.Pixels += a.BytesPerPixel * AddX;
+									a.Pixels += a.BytesPerPixel * (AddX - Ox);
+									// memset(a.Pixels, 0xff, 12);
 									a.Alpha = Alpha + DocX;
 									c.Rop(a);
 								}
