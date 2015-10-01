@@ -624,6 +624,7 @@ public:
 
 	GString(const CFStringRef r)
 	{
+		Str = NULL;
 		*this = r;
 	}
 	

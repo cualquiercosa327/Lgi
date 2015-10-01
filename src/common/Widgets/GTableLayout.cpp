@@ -561,6 +561,12 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 	Disp = Display();
 	if (Disp == DispNone)
 		return;
+	
+	if (Debug)
+	{
+		int asd=0;
+	}
+	
 	CalcCssPadding(PaddingLeft, X, x1)
 	CalcCssPadding(PaddingRight, X, x2)
 	CalcCssPadding(PaddingTop, Y, y1)
@@ -942,7 +948,6 @@ void TableCell::PostLayout()
 		int asd=0;
 	}
 
-
 	Child *c = &Children[0];
 	for (int i=0; i<Children.Length(); i++, c++)
 	{
@@ -1026,14 +1031,13 @@ void TableCell::PostLayout()
 		New[i] = r;
 		MaxY = max(MaxY, r.y2 - Pos.y1);
 		Cx += r.X() + Table->d->BorderSpacing;
-
 	}
 
 	if (Disp == DispNone)
 	{
 		return;
 	}
-
+	
 	int n;
 	int Wid = Cx - Table->d->BorderSpacing;
 	int OffsetX = 0;
