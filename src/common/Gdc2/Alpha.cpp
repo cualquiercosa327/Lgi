@@ -265,10 +265,6 @@ public:
 				one_minus_alpha = 0xFF - alpha;
 				return Old;
 			}
-			case GAPP_ALPHA_PAL:
-			{
-
-			}
 		}
 		return 0;
 	}
@@ -325,16 +321,16 @@ public:
 
 	#define InitComposite24() \
 		uchar *DivLut = Div255Lut; \
-		register uint8 a = alpha; \
-		register uint8 oma = one_minus_alpha; \
-		register int r = p24.r * a; \
-		register int g = p24.g * a; \
-		register int b = p24.b * a
+		register uint8 a = this->alpha; \
+		register uint8 oma = this->one_minus_alpha; \
+		register int r = this->p24.r * a; \
+		register int g = this->p24.g * a; \
+		register int b = this->p24.b * a
 	#define InitFlat24() \
 		Pixel px; \
-		px.r = p24.r; \
-		px.g = p24.g; \
-		px.b = p24.b
+		px.r = this->p24.r; \
+		px.g = this->p24.g; \
+		px.b = this->p24.b
 	#define Composite24(ptr) \
 		ptr->r = DivLut[(oma * ptr->r) + r]; \
 		ptr->g = DivLut[(oma * ptr->g) + g]; \
@@ -343,54 +339,54 @@ public:
 	void Set()
 	{
 		InitComposite24();
-		Composite24(p);
+		Composite24(this->p);
 	}
 	
 	void VLine(int height)
 	{
-		if (alpha == 255)
+		if (this->alpha == 255)
 		{
 			InitFlat24();
 			while (height-- > 0)
 			{
-				*p = px;
-				u8 += Dest->Line;
+				*this->p = px;
+				this->u8 += this->Dest->Line;
 			}
 		}
-		else if (alpha > 0)
+		else if (this->alpha > 0)
 		{
 			InitComposite24();
 			while (height-- > 0)
 			{
-				Composite24(p);
-				u8 += Dest->Line;
+				Composite24(this->p);
+				this->u8 += this->Dest->Line;
 			}
 		}
 	}
 	
 	void Rectangle(int x, int y)
 	{
-		if (alpha == 0xff)
+		if (this->alpha == 0xff)
 		{
 			InitFlat24();
 			while (y-- > 0)
 			{
-				register Pixel *s = p;
+				register Pixel *s = this->p;
 				register Pixel *e = s + x;
 				while (s < e)
 				{
-					*p = px;
+					*this->p = px;
 					s++;
 				}
-				u8 += Dest->Line;
+				this->u8 += this->Dest->Line;
 			}
 		}
-		else if (alpha > 0)
+		else if (this->alpha > 0)
 		{
 			InitComposite24();
 			while (y-- > 0)
 			{
-				register Pixel *s = p;
+				register Pixel *s = this->p;
 				register Pixel *e = s + x;
 
 				while (s < e)
@@ -398,7 +394,7 @@ public:
 					Composite24(s);
 					s++;
 				}
-				u8 += Dest->Line;
+				this->u8 += this->Dest->Line;
 			}
 		}
 	}
@@ -407,12 +403,12 @@ public:
 	void CompositeBlt24(GBmpMem *Src)
 	{
 		uchar *Lut = Div255Lut;
-		register uint8 a = alpha;
-		register uint8 oma = one_minus_alpha;
+		register uint8 a = this->alpha;
+		register uint8 oma = this->one_minus_alpha;
 		
 		for (int y=0; y<Src->y; y++)
 		{
-			Pixel *dst = p;
+			Pixel *dst = this->p;
 			Pixel *dst_end = dst + Src->x;
 			SrcPx *src = (SrcPx*)(Src->Base + (y * Src->Line));
 			if (a == 0xff)
@@ -440,7 +436,7 @@ public:
 				}
 			}
 			
-			u8 += Dest->Line;
+			this->u8 += this->Dest->Line;
 		}
 	}
 	
@@ -448,14 +444,14 @@ public:
 	void CompositeBlt32(GBmpMem *Src)
 	{
 		uchar *Lut = Div255Lut;
-		register uint8 a = alpha;
+		register uint8 a = this->alpha;
 		
 		if (a == 0xff)
 		{
 			// Apply the source alpha only
 			for (int y=0; y<Src->y; y++)
 			{
-				Pixel *dst = p;
+				Pixel *dst = this->p;
 				Pixel *dst_end = dst + Src->x;
 				SrcPx *src = (SrcPx*)(Src->Base + (y * Src->Line));
 				while (dst < dst_end)
@@ -469,7 +465,7 @@ public:
 					src++;
 				}
 				
-				u8 += Dest->Line;
+				this->u8 += this->Dest->Line;
 			}
 		}
 		else if (a > 0)
@@ -477,7 +473,7 @@ public:
 			// Apply source alpha AND our local alpha
 			for (int y=0; y<Src->y; y++)
 			{
-				Pixel *dst = p;
+				Pixel *dst = this->p;
 				Pixel *dst_end = dst + Src->x;
 				SrcPx *src = (SrcPx*)(Src->Base + (y * Src->Line));
 				while (dst < dst_end)
@@ -491,7 +487,7 @@ public:
 					src++;
 				}
 				
-				u8 += Dest->Line;
+				this->u8 += this->Dest->Line;
 			}
 		}
 	}
@@ -525,6 +521,9 @@ public:
 				Blt24Case(Bgra32, 32);
 				Blt24Case(Argb32, 32);
 				Blt24Case(Abgr32, 32);
+				#undef Blt24Case
+				default:
+					break;
 			}
 		}
 		
@@ -538,17 +537,17 @@ class GdcAlpha32 : public GdcAlpha<Pixel, ColourSpace>
 public:
 	#define InitComposite32() \
 		uchar *DivLut = Div255Lut; \
-		register int a = DivLut[alpha * p32.a]; \
-		register int r = p32.r * a; \
-		register int g = p32.g * a; \
-		register int b = p32.b * a; \
+		register int a = DivLut[this->alpha * this->p32.a]; \
+		register int r = this->p32.r * a; \
+		register int g = this->p32.g * a; \
+		register int b = this->p32.b * a; \
 		register uint8 oma = 0xff - a
 	#define InitFlat32() \
 		Pixel px; \
-		px.r = p32.r; \
-		px.g = p32.g; \
-		px.b = p32.b; \
-		px.a = p32.a
+		px.r = this->p32.r; \
+		px.g = this->p32.g; \
+		px.b = this->p32.b; \
+		px.a = this->p32.a
 	#define Composite32(ptr) \
 		ptr->r = DivLut[(oma * ptr->r) + r]; \
 		ptr->g = DivLut[(oma * ptr->g) + g]; \
@@ -560,19 +559,19 @@ public:
 	void Set()
 	{
 		InitComposite32();
-		Composite32(p);
+		Composite32(this->p);
 	}
 	
 	void VLine(int height)
 	{
-		int sa = Div255Lut[alpha * p32.a];
+		int sa = Div255Lut[this->alpha * this->p32.a];
 		if (sa == 0xff)
 		{
 			InitFlat32();
 			while (height-- > 0)
 			{
-				*p = px;
-				u8 += Dest->Line;
+				*this->p = px;
+				this->u8 += this->Dest->Line;
 			}
 		}
 		else if (sa > 0)
@@ -580,29 +579,29 @@ public:
 			InitComposite32();
 			while (height-- > 0)
 			{
-				Composite32(p);
-				u8 += Dest->Line;
+				Composite32(this->p);
+				this->u8 += this->Dest->Line;
 			}
 		}
 	}
 	
 	void Rectangle(int x, int y)
 	{
-		int sa = Div255Lut[alpha * p32.a];
+		int sa = Div255Lut[this->alpha * this->p32.a];
 		if (sa == 0xff)
 		{
 			// Fully opaque
 			InitFlat32();
 			while (y--)
 			{
-				Pixel *d = p;
+				Pixel *d = this->p;
 				Pixel *e = d + x;
 				while (d < e)
 				{
 					*d++ = px;
 				}
 
-				u8 += Dest->Line;
+				this->u8 += this->Dest->Line;
 			}
 		}
 		else if (sa > 0)
@@ -611,7 +610,7 @@ public:
 			InitComposite32();
 			while (y--)
 			{
-				Pixel *d = p;
+				Pixel *d = this->p;
 				Pixel *e = d + x;
 				while (d < e)
 				{
@@ -619,7 +618,7 @@ public:
 					d++;
 				}
 
-				u8 += Dest->Line;
+				this->u8 += this->Dest->Line;
 			}
 		}
 	}
@@ -629,11 +628,11 @@ public:
 		if (!Src) return 0;
 		register uchar *DivLut = Div255Lut;
 		uchar lookup[256];
-		register uint8 a = alpha;
-		register uint8 oma = one_minus_alpha;
+		register uint8 a = this->alpha;
+		register uint8 oma = this->one_minus_alpha;
 		for (int i=0; i<256; i++)
 		{
-			lookup[i] = DivLut[i * alpha];
+			lookup[i] = DivLut[i * this->alpha];
 		}
 
 		if (SrcAlpha)
@@ -655,7 +654,7 @@ public:
 						uchar *s = (uchar*) (Src->Base + (y * Src->Line));
 						uchar *sa = (uchar*) (SrcAlpha->Base + (y * SrcAlpha->Line));
 						System24BitPixel *sc;
-						Pixel *d = p;
+						Pixel *d = this->p;
 						uchar a, o;
 
 						for (int x=0; x<Src->x; x++)
@@ -683,7 +682,7 @@ public:
 							d++;
 						}
 
-						u8 += Dest->Line;
+						this->u8 += this->Dest->Line;
 					}
 					break;
 				}
@@ -693,7 +692,7 @@ public:
 					{
 						ushort *s = (ushort*) (Src->Base + (y * Src->Line));
 						uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
-						Pixel *d = p;
+						Pixel *d = this->p;
 
 						for (int x=0; x<Src->x; x++)
 						{
@@ -716,7 +715,7 @@ public:
 							d++;
 						}
 
-						u8 += Dest->Line;
+						this->u8 += this->Dest->Line;
 					}
 					break;
 				}
@@ -726,7 +725,7 @@ public:
 					{
 						ushort *s = (ushort*) (Src->Base + (y * Src->Line));
 						uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
-						Pixel *d = p;
+						Pixel *d = this->p;
 
 						for (int x=0; x<Src->x; x++)
 						{
@@ -749,7 +748,7 @@ public:
 							d++;
 						}
 
-						u8 += Dest->Line;
+						this->u8 += this->Dest->Line;
 					}
 					break;
 				}
@@ -758,7 +757,7 @@ public:
 					for (int y=0; y<Src->y; y++)
 					{
 						uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
-						Pixel *d = p;
+						Pixel *d = this->p;
 						System24BitPixel *s = (System24BitPixel*) (Src->Base + (y * Src->Line));
 
 						for (int x=0; x<Src->x; x++)
@@ -782,7 +781,7 @@ public:
 							s++;
 						}
 
-						u8 += Dest->Line;
+						this->u8 += this->Dest->Line;
 					}
 					break;
 				}
@@ -790,7 +789,7 @@ public:
 				{
 					for (int y=0; y<Src->y; y++)
 					{
-						Pixel *d = p;
+						Pixel *d = this->p;
 						Pixel *s = (Pixel*) (Src->Base + (y * Src->Line));
 						uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
 
@@ -817,7 +816,7 @@ public:
 							s++;
 						}
 
-						u8 += Dest->Line;
+						this->u8 += this->Dest->Line;
 					}
 					break;
 				}
@@ -830,11 +829,11 @@ public:
 				default:
 				{
 					GBmpMem Dst;
-					Dst.Base = u8;
+					Dst.Base = this->u8;
 					Dst.x = Src->x;
 					Dst.y = Src->y;
-					Dst.Cs = Dest->Cs;
-					Dst.Line = Dest->Line;				
+					Dst.Cs = this->Dest->Cs;
+					Dst.Line = this->Dest->Line;
 					if (!LgiRopUniversal(&Dst, Src, true))
 					{
 						return false;
@@ -844,15 +843,15 @@ public:
 				case CsIndex8:
 				{
 					System24BitPixel c[256];
-					CreatePaletteLut(c, SPal, alpha);
+					CreatePaletteLut(c, SPal, this->alpha);
 
 					for (int y=0; y<Src->y; y++)
 					{
 						uchar *s = (uchar*) (Src->Base + (y * Src->Line));
 						System24BitPixel *sc;
-						Pixel *d = p;
+						Pixel *d = this->p;
 
-						if (alpha == 255)
+						if (this->alpha == 255)
 						{
 							for (int x=0; x<Src->x; x++)
 							{
@@ -866,7 +865,7 @@ public:
 								d++;
 							}
 						}
-						else if (alpha)
+						else if (this->alpha)
 						{
 							for (int x=0; x<Src->x; x++)
 							{
@@ -881,7 +880,7 @@ public:
 							}
 						}
 
-						u8 += Dest->Line;
+						this->u8 += this->Dest->Line;
 					}
 					break;
 				}
@@ -891,7 +890,7 @@ public:
 					{
 						ushort *s = (ushort*) (Src->Base + (y * Src->Line));
 						ushort *e = s + Src->x;
-						Pixel *d = p;
+						Pixel *d = this->p;
 
 						while (s < e)
 						{
@@ -903,7 +902,7 @@ public:
 							d++;
 						}
 
-						u8 += Dest->Line;
+						this->u8 += this->Dest->Line;
 					}
 					break;
 				}
@@ -912,7 +911,7 @@ public:
 					for (int y=0; y<Src->y; y++)
 					{
 						ushort *s = (ushort*) (Src->Base + (y * Src->Line));
-						Pixel *d = p;
+						Pixel *d = this->p;
 
 						if (a == 255)
 						{
@@ -941,19 +940,19 @@ public:
 							}
 						}
 
-						u8 += Dest->Line;
+						this->u8 += this->Dest->Line;
 					}
 					break;
 				}
 				case CsBgr16:
 				{
-					register uint8 a = alpha;
-					register uint8 oma = one_minus_alpha;
+					register uint8 a = this->alpha;
+					register uint8 oma = this->one_minus_alpha;
 
 					for (int y=0; y<Src->y; y++)
 					{
 						GBgr16 *s = (GBgr16*) (Src->Base + (y * Src->Line));
-						Pixel *d = p;
+						Pixel *d = this->p;
 
 						#define Comp5BitTo8Bit(c) \
 							(((uint8)(c) << 3) | ((c) >> 2))
@@ -987,7 +986,7 @@ public:
 							}
 						}
 
-						u8 += Dest->Line;
+						this->u8 += this->Dest->Line;
 					}
 					break;
 				}
@@ -996,7 +995,7 @@ public:
 					for (int y=0; y<Src->y; y++)
 					{
 						GBgra64 *s = (GBgra64*) (Src->Base + (y * Src->Line));
-						Pixel *d = p;
+						Pixel *d = this->p;
 
 						if (a == 255)
 						{
@@ -1025,7 +1024,7 @@ public:
 								s++;
 							}
 						}
-						else if (alpha)
+						else if (this->alpha)
 						{
 							// Const alpha + 32bit alpha channel blt
 							LgiAssert(0);
@@ -1044,7 +1043,7 @@ public:
 							*/
 						}
 
-						u8 += Dest->Line;
+						this->u8 += this->Dest->Line;
 					}
 					break;
 				}

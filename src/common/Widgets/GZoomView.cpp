@@ -1174,8 +1174,8 @@ void GZoomView::UpdateScrollBars(GdcPt2 *MaxScroll, bool ResetPos)
 	}
 	
 	GRect c = GetClient();    
-	int Factor = d->Factor();
-	int Fmin1 = Factor - 1;
+	// int Factor = d->Factor();
+	// int Fmin1 = Factor - 1;
 
 	GdcPt2 DocSize(Src->X(), Src->Y());		
 	GdcPt2 DocClientSize(c.X(), c.Y());

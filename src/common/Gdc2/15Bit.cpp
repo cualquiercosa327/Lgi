@@ -259,6 +259,8 @@ GApplicator *GApp15::Create(GColourSpace Cs, int Op)
 			return new GdcApp15Set<GArgb15, CsArgb15>;
 		case CsAbgr15:
 			return new GdcApp15Set<GAbgr15, CsAbgr15>;
+		default:
+			break;
 	}
 	
 	return NULL;
