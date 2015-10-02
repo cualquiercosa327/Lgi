@@ -526,7 +526,7 @@ public:
 	void PixToStr15(char *s, Px *p, GRgba64 *Diff)
 	{
 		sprintf(s, "%i,%i,%i (%x,%x,%x)",
-					G5bitTo8Bit(p->r), G5bitTo8Bit(p->g), G5bitTo8Bit(p->b),
+					G5bitTo8bit(p->r), G5bitTo8bit(p->g), G5bitTo8bit(p->b),
 					p->r, p->g, p->b);
 		Diff->r = p->r;
 		Diff->g = p->g;
@@ -538,7 +538,7 @@ public:
 	void PixToStr16(char *s, Px *p, GRgba64 *Diff)
 	{
 		sprintf(s, "%i,%i,%i (%x,%x,%x)",
-					G5bitTo8Bit(p->r), G6bitTo8Bit(p->g), G5bitTo8Bit(p->b),
+					G5bitTo8bit(p->r), G6bitTo8bit(p->g), G5bitTo8bit(p->b),
 					p->r, p->g, p->b);
 		Diff->r = p->r;
 		Diff->g = p->g;
