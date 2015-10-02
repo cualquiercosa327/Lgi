@@ -1555,7 +1555,7 @@ GColour GSurface::Colour(GColour c)
 			pApp->p24.b = B32(c32);
 			break;
 		default:
-			LgiAssert(0);
+			// LgiAssert(0);
 			break;
 	}
 

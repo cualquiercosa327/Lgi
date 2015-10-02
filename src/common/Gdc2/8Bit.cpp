@@ -424,7 +424,7 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 		{
 			default:
 			{
-				LgiAssert(!"Not impl.");
+				LgiTrace("%s:%i - Not impl.", _FL);
 				break;
 			}
 			case CsIndex8:

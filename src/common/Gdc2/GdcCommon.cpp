@@ -1401,7 +1401,7 @@ bool LgiRopUniversal(GBmpMem *Dst, GBmpMem *Src, bool Composite)
 	{
 	}
 
-	LgiAssert(!"Unsupported pixel conversion.");
+	// LgiAssert(!"Unsupported pixel conversion.");
 	return false;
 }
 

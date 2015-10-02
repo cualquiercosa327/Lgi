@@ -246,37 +246,19 @@ public:
 
 GApplicator *GApp15::Create(GColourSpace Cs, int Op)
 {
-	if (Cs == CsRgb15)
+	if (Op != GDC_SET)
+		return NULL;
+
+	switch (Cs)
 	{
-		switch (Op)
-		{
-			case GDC_SET:
-				return new GdcApp15Set<GRgb15, CsRgb15>;
-				/*
-			case GDC_AND:
-				return new GdcApp15And<GRgb15, CsRgb15>;
-			case GDC_OR:
-				return new GdcApp15Or<GRgb15, CsRgb15>;
-			case GDC_XOR:
-				return new GdcApp15Xor<GRgb15, CsRgb15>;
-				*/
-		}
-	}
-	else if (Cs == CsBgr15)
-	{
-		switch (Op)
-		{
-			case GDC_SET:
-				return new GdcApp15Set<GBgr15, CsBgr15>;
-				/*
-			case GDC_AND:
-				return new GdcApp15And<GBgr15, CsBgr15>;
-			case GDC_OR:
-				return new GdcApp15Or<GBgr15, CsBgr15>;
-			case GDC_XOR:
-				return new GdcApp15Xor<GBgr15, CsBgr15>;
-				*/
-		}
+		case CsRgb15:
+			return new GdcApp15Set<GRgb15, CsRgb15>;
+		case CsBgr15:
+			return new GdcApp15Set<GBgr15, CsBgr15>;
+		case CsArgb15:
+			return new GdcApp15Set<GArgb15, CsArgb15>;
+		case CsAbgr15:
+			return new GdcApp15Set<GAbgr15, CsAbgr15>;
 	}
 	
 	return NULL;

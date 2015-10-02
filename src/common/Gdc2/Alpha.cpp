@@ -1088,7 +1088,7 @@ GApplicator *GAlphaFactory::Create(GColourSpace Cs, int Op)
 					_FL,
 					Cs,
 					GColourSpaceToString(Cs));
-			LgiAssert(0);
+			// LgiAssert(0);
 			break;
 	}
 
@@ -1444,7 +1444,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 		{
 			default:
 			{
-				LgiAssert(!"Not impl.");
+				LgiTrace("%s:%i - Not impl.\n", _FL);
 				break;
 			}
 			case CsIndex8:
@@ -1856,7 +1856,7 @@ bool GdcApp15Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 		{
 			default:
 			{
-				LgiAssert(!"Not impl.");
+				LgiTrace("%s:%i - Not impl.\n", _FL);
 				break;
 			}
 			case CsIndex8:
@@ -1877,7 +1877,7 @@ bool GdcApp15Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						while (d < e)
 						{
 							Src = c + *s++;
-							*d = Rgb15(Src->r, Src->g, Src->b);
+							*d++ = Rgb15(Src->r, Src->g, Src->b);
 						}
 					}
 					else if (alpha)
@@ -2260,7 +2260,7 @@ bool GdcApp16Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 		{
 			default:
 			{
-				LgiAssert(!"Not impl.");
+				LgiTrace("%s:%i - Not impl.\n", _FL);
 				break;
 			}
 			case CsIndex8:
