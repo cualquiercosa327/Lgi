@@ -610,6 +610,7 @@ void GRadioButton::OnPaint(GSurface *pDC)
 		}
 		
 		bool e = Enabled();
+		GRect fill(c.x2 + 1, r.y1, r.x2, r.x2);
 		if (d->Txt)
 		{
 			int Off = e ? 0 : 1;
@@ -618,6 +619,17 @@ void GRadioButton::OnPaint(GSurface *pDC)
             GRect p;
             p.ZOff(d->Txt->X()-1, d->Txt->Y()-1);
             p.Offset(c.x2 + 11, (r.Y() - d->Txt->Y()) >> 1);
+			
+            SysFont->Transparent(false);
+			d->Txt->Draw(pDC, p.x1 + Off, p.y1 + Off, &fill);
+
+			if (!e)
+			{
+				SysFont->Transparent(true);
+				SysFont->Colour(GColour(LC_LOW, 24), Back);
+				d->Txt->Draw(pDC, p.x1, p.y1);
+			}
+
             if (Focus())
             {
                 pDC->Colour(LC_LOW, 24);
@@ -626,29 +638,19 @@ void GRadioButton::OnPaint(GSurface *pDC)
                 pDC->Box(&f);
             }
 
-            SysFont->Transparent(true);
-			d->Txt->Draw(pDC, p.x1 + Off, p.y1 + Off);
-
-			if (!e)
+			if (Back.IsValid())
 			{
-				SysFont->Colour(GColour(LC_LOW, 24), Back);
-				d->Txt->Draw(pDC, p.x1, p.y1);
+				pDC->Colour(Back);
+				pDC->Rectangle(c.x1, r.y1, c.x2, r.y2);
 			}
+		}
+		else if (Back.IsValid())
+		{
+			pDC->Colour(Back);
+			pDC->Rectangle();
 		}
 
         #if defined MAC && !defined COCOA && !defined(LGI_SDL)
-
-        #if 1
-        GColour Background(LC_MED, 24);
-        if (GetCss())
-        {
-            GCss::ColorDef Bk = GetCss()->BackgroundColor();
-            if (Bk.Type == GCss::ColorRgb)
-                Background.Set(Bk.Rgb32, 32);
-        }
-        pDC->Colour(Background);
-        pDC->Rectangle(&c);
-        #endif
 
         GRect cli = GetClient();
         for (GViewI *v = this; v && !v->Handle(); v = v->GetParent())
@@ -673,7 +675,6 @@ void GRadioButton::OnPaint(GSurface *pDC)
 										pDC->Handle(),
 										kHIThemeOrientationNormal,
 										&LabelRect);
-
 		if (err) printf("%s:%i - HIThemeDrawButton failed %li\n", _FL, err);
 		
         #else
