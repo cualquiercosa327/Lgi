@@ -201,7 +201,7 @@ public:
 				Dst.y = Src->y;
 				Dst.Cs = this->Dest->Cs;
 				Dst.Line = this->Dest->Line;				
-				if (!LgiRopUniversal(&Dst, Src))
+				if (!LgiRopUniversal(&Dst, Src, false))
 				{
 					return false;
 				}

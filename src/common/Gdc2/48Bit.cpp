@@ -230,7 +230,7 @@ public:
 			Dst.y = Src->y;
 			Dst.Cs = Dest->Cs;
 			Dst.Line = Dest->Line;				
-			if (!LgiRopUniversal(&Dst, Src))
+			if (!LgiRopUniversal(&Dst, Src, false))
 			{
 				return false;
 			}

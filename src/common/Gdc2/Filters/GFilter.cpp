@@ -547,7 +547,7 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 					
 					if (DstCs != SrcCs)
 					{
-						if (!LgiRopRgb(Ptr, DstCs, Ptr, SrcCs, pMem->x))
+						if (!LgiRopRgb(Ptr, DstCs, Ptr, SrcCs, pMem->x, false))
 						{
 							Status = IoUnsupportedFormat;
 							LgiTrace("%s:%i - Bmp had unsupported bit depth.\n", _FL);

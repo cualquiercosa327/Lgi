@@ -346,9 +346,9 @@ void GConvertRgb24(OutPx *out, InPx *in, int len, GColourSpace inCs, GPalette *p
 			InPx *end = in + len;
 			while (in < end)
 			{
-				out->r = G5bitTo8Bit(in->r);
-				out->g = G5bitTo8Bit(in->g);
-				out->b = G5bitTo8Bit(in->b);
+				out->r = G5bitTo8bit(in->r);
+				out->g = G5bitTo8bit(in->g);
+				out->b = G5bitTo8bit(in->b);
 				in++;
 				out++;
 			}
@@ -361,9 +361,9 @@ void GConvertRgb24(OutPx *out, InPx *in, int len, GColourSpace inCs, GPalette *p
 			InPx *end = in + len;
 			while (in < end)
 			{
-				out->r = G5bitTo8Bit(in->r);
-				out->g = G6bitTo8Bit(in->g);
-				out->b = G5bitTo8Bit(in->b);
+				out->r = G5bitTo8bit(in->r);
+				out->g = G6bitTo8bit(in->g);
+				out->b = G5bitTo8bit(in->b);
 				in++;
 				out++;
 			}

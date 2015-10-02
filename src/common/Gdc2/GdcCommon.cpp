@@ -1044,18 +1044,24 @@ GSurface *GInlineBmp::Create(uint32 TransparentPx)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
+/*
 #include "GPixelRops.h"
 
-bool GUniversalBlt(	GColourSpace OutCs,
-					uint8 *OutPtr,
-					int OutLine,
-					
-					GColourSpace InCs,
-					uint8 *InPtr,
-					int InLine,
-					
-					int width,
-					int height)
+// Use LgiUniversalRop instead
+bool GUniversalBlt
+(
+	GColourSpace OutCs,
+	uint8 *OutPtr,
+	int OutLine,
+	
+	GColourSpace InCs,
+	uint8 *InPtr,
+	int InLine,
+	
+	int width,
+	int height,
+	unsigned flags
+)
 {
 	if (OutCs == CsNone ||
 		OutPtr == NULL ||
@@ -1088,86 +1094,143 @@ bool GUniversalBlt(	GColourSpace OutCs,
 	
 	bool InAlpha = GColourSpaceHasAlpha(InCs);
 	bool OutAlpha = GColourSpaceHasAlpha(OutCs);
-	if (InAlpha && OutAlpha)
+
+	if (InAlpha && (flags & UniBlt_CompositingEnabled) != 0)
 	{
-		// Compositing
-		for (int y=0; y<height; y++)
+		if (OutAlpha)
 		{
-			switch (CsMapping(OutCs, InCs))
+			// Compositing with both source and dest alpha
+			for (int y=0; y<height; y++)
 			{
-				#define CompCase(OutType, InType) \
-					case CsMapping(Cs##OutType, Cs##InType): \
-						CompositeNonPreMul32((G##OutType*)OutPtr, (G##InType*)InPtr, width); \
-						break
+				switch (CsMapping(OutCs, InCs))
+				{
+					#define Case(OutType, InType) \
+						case CsMapping(Cs##OutType, Cs##InType): \
+							CompositeNonPreMul32to32((G##OutType*)OutPtr, (G##InType*)InPtr, width); \
+							break
 
-				CompCase(Rgba32, Bgra32);
-				CompCase(Rgba32, Abgr32);
-				CompCase(Rgba32, Argb32);
+					Case(Rgba32, Bgra32);
+					Case(Rgba32, Abgr32);
+					Case(Rgba32, Argb32);
 
-				CompCase(Bgra32, Rgba32);
-				CompCase(Bgra32, Abgr32);
-				CompCase(Bgra32, Argb32);
+					Case(Bgra32, Rgba32);
+					Case(Bgra32, Abgr32);
+					Case(Bgra32, Argb32);
 
-				CompCase(Argb32, Rgba32);
-				CompCase(Argb32, Bgra32);
-				CompCase(Argb32, Abgr32);
+					Case(Argb32, Rgba32);
+					Case(Argb32, Bgra32);
+					Case(Argb32, Abgr32);
 
-				CompCase(Abgr32, Rgba32);
-				CompCase(Abgr32, Bgra32);
-				CompCase(Abgr32, Argb32);
-				
-				#undef CompCase
+					Case(Abgr32, Rgba32);
+					Case(Abgr32, Bgra32);
+					Case(Abgr32, Argb32);
+					
+					#undef Case
 
-				default:
-					LgiAssert(!"Not impl.");
-					return false;
+					default:
+						LgiAssert(!"Not impl.");
+						return false;
+				}
+
+				OutPtr += OutLine;
+				InPtr += InLine;
 			}
+		}
+		else
+		{
+			// Compositing with source alpha but no destination alpha
+			for (int y=0; y<height; y++)
+			{
+				switch (CsMapping(OutCs, InCs))
+				{
+					#define Case(OutType, InType) \
+						case CsMapping(Cs##OutType, Cs##InType): \
+							CompositeNonPreMul32to24((G##OutType*)OutPtr, (G##InType*)InPtr, width); \
+							break
 
-			OutPtr += OutLine;
-			InPtr += InLine;
+					Case(Rgb24, Rgba32);
+					Case(Rgb24, Bgra32);
+					Case(Rgb24, Argb32);
+					Case(Rgb24, Abgr32);
+
+					Case(Bgr24, Rgba32);
+					Case(Bgr24, Bgra32);
+					Case(Bgr24, Argb32);
+					Case(Bgr24, Abgr32);
+
+					Case(Rgbx32, Rgba32);
+					Case(Rgbx32, Bgra32);
+					Case(Rgbx32, Argb32);
+					Case(Rgbx32, Abgr32);
+
+					Case(Bgrx32, Rgba32);
+					Case(Bgrx32, Bgra32);
+					Case(Bgrx32, Argb32);
+					Case(Bgrx32, Abgr32);
+
+					Case(Xrgb32, Rgba32);
+					Case(Xrgb32, Bgra32);
+					Case(Xrgb32, Argb32);
+					Case(Xrgb32, Abgr32);
+
+					Case(Xbgr32, Rgba32);
+					Case(Xbgr32, Bgra32);
+					Case(Xbgr32, Argb32);
+					Case(Xbgr32, Abgr32);
+					
+					#undef Case
+
+					default:
+						LgiAssert(!"Not impl.");
+						return false;
+				}
+
+				OutPtr += OutLine;
+				InPtr += InLine;
+			}
 		}
 	}
-	else if (OutAlpha)
+	else if (!InAlpha && OutAlpha)
 	{
-		// Dest Alpha
+		// No compositing, just copy Blt. No alpha -> alpha.
 		for (int y=0; y<height; y++)
 		{
 			switch (CsMapping(OutCs, InCs))
 			{
-				#define CopyCase(OutType, InType) \
+				#define Case(OutType, InType) \
 					case CsMapping(Cs##OutType, Cs##InType): \
 						Copy24to32((G##OutType*)OutPtr, (G##InType*)InPtr, width); \
 						break
 
-				CopyCase(Rgba32, Rgb24);
-				CopyCase(Rgba32, Bgr24);
-				CopyCase(Rgba32, Rgbx32);
-				CopyCase(Rgba32, Bgrx32);
-				CopyCase(Rgba32, Xrgb32);
-				CopyCase(Rgba32, Xbgr32);
+				Case(Rgba32, Rgb24);
+				Case(Rgba32, Bgr24);
+				Case(Rgba32, Rgbx32);
+				Case(Rgba32, Bgrx32);
+				Case(Rgba32, Xrgb32);
+				Case(Rgba32, Xbgr32);
 
-				CopyCase(Bgra32, Rgb24);
-				CopyCase(Bgra32, Bgr24);
-				CopyCase(Bgra32, Rgbx32);
-				CopyCase(Bgra32, Bgrx32);
-				CopyCase(Bgra32, Xrgb32);
-				CopyCase(Bgra32, Xbgr32);
+				Case(Bgra32, Rgb24);
+				Case(Bgra32, Bgr24);
+				Case(Bgra32, Rgbx32);
+				Case(Bgra32, Bgrx32);
+				Case(Bgra32, Xrgb32);
+				Case(Bgra32, Xbgr32);
 
-				CopyCase(Argb32, Rgb24);
-				CopyCase(Argb32, Bgr24);
-				CopyCase(Argb32, Rgbx32);
-				CopyCase(Argb32, Bgrx32);
-				CopyCase(Argb32, Xrgb32);
-				CopyCase(Argb32, Xbgr32);
+				Case(Argb32, Rgb24);
+				Case(Argb32, Bgr24);
+				Case(Argb32, Rgbx32);
+				Case(Argb32, Bgrx32);
+				Case(Argb32, Xrgb32);
+				Case(Argb32, Xbgr32);
 
-				CopyCase(Abgr32, Rgb24);
-				CopyCase(Abgr32, Bgr24);
-				CopyCase(Abgr32, Rgbx32);
-				CopyCase(Abgr32, Bgrx32);
-				CopyCase(Abgr32, Xrgb32);
-				CopyCase(Abgr32, Xbgr32);
+				Case(Abgr32, Rgb24);
+				Case(Abgr32, Bgr24);
+				Case(Abgr32, Rgbx32);
+				Case(Abgr32, Bgrx32);
+				Case(Abgr32, Xrgb32);
+				Case(Abgr32, Xbgr32);
 				
-				#undef CopyCase
+				#undef Case
 			
 				default:
 					LgiAssert(!"Not impl.");
@@ -1185,76 +1248,76 @@ bool GUniversalBlt(	GColourSpace OutCs,
 		{
 			switch (CsMapping(OutCs, InCs))
 			{
-				#define CopyCase(OutType, InType) \
+				#define Case(OutType, InType) \
 					case CsMapping(Cs##OutType, Cs##InType): \
 						Copy24((G##OutType*)OutPtr, (G##InType*)InPtr, width); \
 						break
 
-				CopyCase(Rgb24, Bgr24);
-				CopyCase(Rgb24, Rgba32);
-				CopyCase(Rgb24, Bgra32);
-				CopyCase(Rgb24, Argb32);
-				CopyCase(Rgb24, Abgr32);
-				CopyCase(Rgb24, Rgbx32);
-				CopyCase(Rgb24, Bgrx32);
-				CopyCase(Rgb24, Xrgb32);
-				CopyCase(Rgb24, Xbgr32);
+				Case(Rgb24, Bgr24);
+				Case(Rgb24, Rgba32);
+				Case(Rgb24, Bgra32);
+				Case(Rgb24, Argb32);
+				Case(Rgb24, Abgr32);
+				Case(Rgb24, Rgbx32);
+				Case(Rgb24, Bgrx32);
+				Case(Rgb24, Xrgb32);
+				Case(Rgb24, Xbgr32);
 
-				CopyCase(Bgr24, Rgb24);
-				CopyCase(Bgr24, Rgba32);
-				CopyCase(Bgr24, Bgra32);
-				CopyCase(Bgr24, Argb32);
-				CopyCase(Bgr24, Abgr32);
-				CopyCase(Bgr24, Rgbx32);
-				CopyCase(Bgr24, Bgrx32);
-				CopyCase(Bgr24, Xrgb32);
-				CopyCase(Bgr24, Xbgr32);
+				Case(Bgr24, Rgb24);
+				Case(Bgr24, Rgba32);
+				Case(Bgr24, Bgra32);
+				Case(Bgr24, Argb32);
+				Case(Bgr24, Abgr32);
+				Case(Bgr24, Rgbx32);
+				Case(Bgr24, Bgrx32);
+				Case(Bgr24, Xrgb32);
+				Case(Bgr24, Xbgr32);
 
-				CopyCase(Rgbx32, Rgb24);
-				CopyCase(Rgbx32, Bgr24);
-				CopyCase(Rgbx32, Rgba32);
-				CopyCase(Rgbx32, Bgra32);
-				CopyCase(Rgbx32, Argb32);
-				CopyCase(Rgbx32, Abgr32);
-				CopyCase(Rgbx32, Rgbx32);
-				CopyCase(Rgbx32, Bgrx32);
-				CopyCase(Rgbx32, Xrgb32);
-				CopyCase(Rgbx32, Xbgr32);
+				Case(Rgbx32, Rgb24);
+				Case(Rgbx32, Bgr24);
+				Case(Rgbx32, Rgba32);
+				Case(Rgbx32, Bgra32);
+				Case(Rgbx32, Argb32);
+				Case(Rgbx32, Abgr32);
+				Case(Rgbx32, Rgbx32);
+				Case(Rgbx32, Bgrx32);
+				Case(Rgbx32, Xrgb32);
+				Case(Rgbx32, Xbgr32);
 				
-				CopyCase(Bgrx32, Rgb24);
-				CopyCase(Bgrx32, Bgr24);
-				CopyCase(Bgrx32, Rgba32);
-				CopyCase(Bgrx32, Bgra32);
-				CopyCase(Bgrx32, Argb32);
-				CopyCase(Bgrx32, Abgr32);
-				CopyCase(Bgrx32, Rgbx32);
-				CopyCase(Bgrx32, Bgrx32);
-				CopyCase(Bgrx32, Xrgb32);
-				CopyCase(Bgrx32, Xbgr32);
+				Case(Bgrx32, Rgb24);
+				Case(Bgrx32, Bgr24);
+				Case(Bgrx32, Rgba32);
+				Case(Bgrx32, Bgra32);
+				Case(Bgrx32, Argb32);
+				Case(Bgrx32, Abgr32);
+				Case(Bgrx32, Rgbx32);
+				Case(Bgrx32, Bgrx32);
+				Case(Bgrx32, Xrgb32);
+				Case(Bgrx32, Xbgr32);
 
-				CopyCase(Xrgb32, Rgb24);
-				CopyCase(Xrgb32, Bgr24);
-				CopyCase(Xrgb32, Rgba32);
-				CopyCase(Xrgb32, Bgra32);
-				CopyCase(Xrgb32, Argb32);
-				CopyCase(Xrgb32, Abgr32);
-				CopyCase(Xrgb32, Rgbx32);
-				CopyCase(Xrgb32, Bgrx32);
-				CopyCase(Xrgb32, Xrgb32);
-				CopyCase(Xrgb32, Xbgr32);
+				Case(Xrgb32, Rgb24);
+				Case(Xrgb32, Bgr24);
+				Case(Xrgb32, Rgba32);
+				Case(Xrgb32, Bgra32);
+				Case(Xrgb32, Argb32);
+				Case(Xrgb32, Abgr32);
+				Case(Xrgb32, Rgbx32);
+				Case(Xrgb32, Bgrx32);
+				Case(Xrgb32, Xrgb32);
+				Case(Xrgb32, Xbgr32);
 				
-				CopyCase(Xbgr32, Rgb24);
-				CopyCase(Xbgr32, Bgr24);
-				CopyCase(Xbgr32, Rgba32);
-				CopyCase(Xbgr32, Bgra32);
-				CopyCase(Xbgr32, Argb32);
-				CopyCase(Xbgr32, Abgr32);
-				CopyCase(Xbgr32, Rgbx32);
-				CopyCase(Xbgr32, Bgrx32);
-				CopyCase(Xbgr32, Xrgb32);
-				CopyCase(Xbgr32, Xbgr32);
+				Case(Xbgr32, Rgb24);
+				Case(Xbgr32, Bgr24);
+				Case(Xbgr32, Rgba32);
+				Case(Xbgr32, Bgra32);
+				Case(Xbgr32, Argb32);
+				Case(Xbgr32, Abgr32);
+				Case(Xbgr32, Rgbx32);
+				Case(Xbgr32, Bgrx32);
+				Case(Xbgr32, Xrgb32);
+				Case(Xbgr32, Xbgr32);
 				
-				#undef CopyCase
+				#undef Case
 			
 				default:
 					LgiAssert(!"Not impl.");
@@ -1264,16 +1327,16 @@ bool GUniversalBlt(	GColourSpace OutCs,
 			OutPtr += OutLine;
 			InPtr += InLine;
 		}
-	}
-	
+	}	
 	
 	return true;
 }
+*/
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 #include "GRops.h"
 
-bool LgiRopRgb(uint8 *d, GColourSpace DstCs, uint8 *s, GColourSpace SrcCs, int x)
+bool LgiRopRgb(uint8 *d, GColourSpace DstCs, uint8 *s, GColourSpace SrcCs, int x, bool Composite)
 {
 	// This is just a huge switch statement that takes care of all possible combinations
 	// of src and dst RGB colour space formats. The 'GRopsCases.cpp' code is generated
@@ -1290,7 +1353,7 @@ bool LgiRopRgb(uint8 *d, GColourSpace DstCs, uint8 *s, GColourSpace SrcCs, int x
 }
 
 /// Universal bit blt method
-bool LgiRopUniversal(GBmpMem *Dst, GBmpMem *Src)
+bool LgiRopUniversal(GBmpMem *Dst, GBmpMem *Src, bool Composite)
 {
 	if (!Dst || !Src)
 		return false;
@@ -1303,7 +1366,7 @@ bool LgiRopUniversal(GBmpMem *Dst, GBmpMem *Src)
 	int SrcBits = GColourSpaceToBits(Src->Cs);
 	int DstBits = GColourSpaceToBits(Dst->Cs);
 
-	if (Dst->Cs == Src->Cs)
+	if (Dst->Cs == Src->Cs && !Composite)
 	{
 		// No conversion idiom
 		uint8 *d = Dst->Base;
@@ -1326,11 +1389,12 @@ bool LgiRopUniversal(GBmpMem *Dst, GBmpMem *Src)
 
 		for (int y=0; y<Cy; y++)
 		{
-			if (!LgiRopRgb(d, Dst->Cs, s, Src->Cs, Cx))
+			if (!LgiRopRgb(d, Dst->Cs, s, Src->Cs, Cx, Composite))
 				return false;
 			d += Dst->Line;
 			s += Src->Line;
 		}
+		
 		return true;
 	}
 	else

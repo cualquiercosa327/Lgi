@@ -565,35 +565,69 @@ public:
 	
 	void VLine(int height)
 	{
-		InitComposite32();
-		while (height-- > 0)
+		int sa = Div255Lut[alpha * p32.a];
+		if (sa == 0xff)
 		{
-			Composite32(p);
-			u8 += Dest->Line;
+			InitFlat32();
+			while (height-- > 0)
+			{
+				*p = px;
+				u8 += Dest->Line;
+			}
+		}
+		else if (sa > 0)
+		{
+			InitComposite32();
+			while (height-- > 0)
+			{
+				Composite32(p);
+				u8 += Dest->Line;
+			}
 		}
 	}
 	
 	void Rectangle(int x, int y)
 	{
-		InitComposite32();
-		while (y--)
+		int sa = Div255Lut[alpha * p32.a];
+		if (sa == 0xff)
 		{
-			Pixel *d = p;
-			Pixel *e = d + x;
-			while (d < e)
+			// Fully opaque
+			InitFlat32();
+			while (y--)
 			{
-				Composite32(d);
-				d++;
-			}
+				Pixel *d = p;
+				Pixel *e = d + x;
+				while (d < e)
+				{
+					*d++ = px;
+				}
 
-			u8 += Dest->Line;
+				u8 += Dest->Line;
+			}
+		}
+		else if (sa > 0)
+		{
+			// Translucent
+			InitComposite32();
+			while (y--)
+			{
+				Pixel *d = p;
+				Pixel *e = d + x;
+				while (d < e)
+				{
+					Composite32(d);
+					d++;
+				}
+
+				u8 += Dest->Line;
+			}
 		}
 	}
 	
 	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha = 0)
 	{
 		if (!Src) return 0;
-		uchar *DivLut = Div255Lut;
+		register uchar *DivLut = Div255Lut;
 		uchar lookup[256];
 		register uint8 a = alpha;
 		register uint8 oma = one_minus_alpha;
@@ -795,16 +829,16 @@ public:
 			{
 				default:
 				{
-					GUniversalBlt(	ColourSpace,
-									u8,
-									Dest->Line,
-									
-									Src->Cs,
-									Src->Base,
-									Src->Line,
-									
-									Src->x,
-									Src->y);
+					GBmpMem Dst;
+					Dst.Base = u8;
+					Dst.x = Src->x;
+					Dst.y = Src->y;
+					Dst.Cs = Dest->Cs;
+					Dst.Line = Dest->Line;				
+					if (!LgiRopUniversal(&Dst, Src, true))
+					{
+						return false;
+					}
 					break;
 				}
 				case CsIndex8:
@@ -957,99 +991,6 @@ public:
 					}
 					break;
 				}
-				case System24BitColourSpace:
-				{
-					for (int y=0; y<Src->y; y++)
-					{
-						System24BitPixel *s = (System24BitPixel*) (Src->Base + (y * Src->Line));
-						Pixel *d = p;
-
-						if (a == 255)
-						{
-							for (int x=0; x<Src->x; x++)
-							{
-								d->r = s->r;
-								d->g = s->g;
-								d->b = s->b;
-								d->a = 255;
-
-								d++;
-								s++;
-							}
-						}
-						else if (a)
-						{
-							for (int x=0; x<Src->x; x++)
-							{
-								d->r = DivLut[(d->r * oma) + (s->r * a)];
-								d->g = DivLut[(d->g * oma) + (s->g * a)];
-								d->b = DivLut[(d->b * oma) + (s->b * a)];
-								d->a = (d->a * a) - DivLut[d->a * a];
-
-								d++;
-								s++;
-							}
-						}
-
-						u8 += Dest->Line;
-					}
-					break;
-				}
-				case System32BitColourSpace:
-				{
-					for (int y=0; y<Src->y; y++)
-					{
-						System32BitPixel *s = (System32BitPixel*) (Src->Base + (y * Src->Line));
-						Pixel *d = p;
-
-						if (a == 255)
-						{
-							// 32bit alpha channel blt
-							for (int x=0; x<Src->x; x++)
-							{
-								if (s->a == 255)
-								{
-									d->r = s->r;
-									d->g = s->g;
-									d->b = s->b;
-									d->a = s->a;
-								}
-								else if (s->a)
-								{
-									uchar o = 255 - s->a;
-									int ra = (d->a + s->a) - DivLut[d->a * s->a];
-									#define rop(c) d->c = (DivLut[DivLut[d->c * d->a] * o] + DivLut[s->c * s->a]) * 255 / ra;
-									rop(r);
-									rop(g);
-									rop(b);
-									#undef rop
-									d->a = ra;
-								}
-
-								d++;
-								s++;
-							}
-						}
-						else if (alpha)
-						{
-							// Const alpha + 32bit alpha channel blt
-							for (int x=0; x<Src->x; x++)
-							{
-								uchar a = lookup[s->a];
-								uchar o = 255 - a;
-								d->r = lookup[s->r] + DivLut[d->r * o];
-								d->g = lookup[s->g] + DivLut[d->g * o];
-								d->b = lookup[s->b] + DivLut[d->b * o];
-								d->a = (d->a + a) - DivLut[d->a * a];
-								d++;
-								s++;
-							}
-						}
-
-						u8 += Dest->Line;
-					}
-					break;
-				}
 				case CsBgra64:
 				{
 					for (int y=0; y<Src->y; y++)
@@ -1121,35 +1062,20 @@ GApplicator *GAlphaFactory::Create(GColourSpace Cs, int Op)
 
 	switch (Cs)
 	{
-		default:
-		{
-			#if 1
-			switch (Cs)
-			{
-				#define Case(name, px) \
-					case Cs##name: \
-						return new GdcAlpha##px<G##name, Cs##name>()
-				
-				Case(Rgb24, 24);
-				Case(Bgr24, 24);
-				Case(Rgbx32, 24);
-				Case(Bgrx32, 24);
-				Case(Xrgb32, 24);
-				Case(Xbgr32, 24);
-				Case(Rgba32, 32);
-				Case(Bgra32, 32);
-				Case(Argb32, 32);
-				Case(Abgr32, 32);
-			}				
-			#else
-			LgiTrace("%s:%i - Unknown colour space: 0x%x %s\n",
-					_FL,
-					Cs,
-					GColourSpaceToString(Cs));
-			LgiAssert(0);
-			#endif
-			break;
-		}
+		#define Case(name, px) \
+			case Cs##name: \
+				return new GdcAlpha##px<G##name, Cs##name>()
+		Case(Rgb24, 24);
+		Case(Bgr24, 24);
+		Case(Rgbx32, 24);
+		Case(Bgrx32, 24);
+		Case(Xrgb32, 24);
+		Case(Xbgr32, 24);
+		Case(Rgba32, 32);
+		Case(Bgra32, 32);
+		Case(Argb32, 32);
+		Case(Abgr32, 32);
+		#undef Case
 		case CsIndex8:
 			return new GdcApp8Alpha;
 		case CsRgb15:
@@ -1157,6 +1083,13 @@ GApplicator *GAlphaFactory::Create(GColourSpace Cs, int Op)
 		case CsRgb16:
 		case CsBgr16:
 			return new GdcApp16Alpha;
+		default:
+			LgiTrace("%s:%i - Unknown colour space: 0x%x %s\n",
+					_FL,
+					Cs,
+					GColourSpaceToString(Cs));
+			LgiAssert(0);
+			break;
 	}
 
 	return 0;

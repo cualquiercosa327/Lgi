@@ -287,9 +287,9 @@ void GRop15To24(DstPx *dst, SrcPx *src, int px)
 
 	while (Px--)
 	{
-		d->r = G5bitTo8Bit(s->r);
-		d->g = G5bitTo8Bit(s->g);
-		d->b = G5bitTo8Bit(s->b);
+		d->r = G5bitTo8bit(s->r);
+		d->g = G5bitTo8bit(s->g);
+		d->b = G5bitTo8bit(s->b);
 		s++;
 		d++;
 	}
@@ -306,9 +306,9 @@ void GRop16To24(DstPx *dst, SrcPx *src, int px)
 
 	while (Px--)
 	{
-		d->r = G5bitTo8Bit(s->r);
-		d->g = G6bitTo8Bit(s->g);
-		d->b = G5bitTo8Bit(s->b);
+		d->r = G5bitTo8bit(s->r);
+		d->g = G6bitTo8bit(s->g);
+		d->b = G5bitTo8bit(s->b);
 		s++;
 		d++;
 	}
@@ -422,9 +422,9 @@ void GRop15To32(DstPx *dst, SrcPx *src, int px)
 
 	while (Px--)
 	{
-		d->r = G5bitTo8Bit(s->r);
-		d->g = G5bitTo8Bit(s->g);
-		d->b = G5bitTo8Bit(s->b);
+		d->r = G5bitTo8bit(s->r);
+		d->g = G5bitTo8bit(s->g);
+		d->b = G5bitTo8bit(s->b);
 		d->a = 255;
 		s++;
 		d++;
@@ -442,9 +442,9 @@ void GRop16To32(DstPx *dst, SrcPx *src, int px)
 
 	while (Px--)
 	{
-		d->r = G5bitTo8Bit(s->r);
-		d->g = G6bitTo8Bit(s->g);
-		d->b = G5bitTo8Bit(s->b);
+		d->r = G5bitTo8bit(s->r);
+		d->g = G6bitTo8bit(s->g);
+		d->b = G5bitTo8bit(s->b);
 		d->a = 255;
 		s++;
 		d++;
@@ -582,9 +582,9 @@ void GRop15To48(DstPx *dst, SrcPx *src, int px)
 
 	while (Px--)
 	{
-		d->r = (int)G5bitTo8Bit(s->r) << 8;
-		d->g = (int)G5bitTo8Bit(s->g) << 8;
-		d->b = (int)G5bitTo8Bit(s->b) << 8;
+		d->r = (int)G5bitTo8bit(s->r) << 8;
+		d->g = (int)G5bitTo8bit(s->g) << 8;
+		d->b = (int)G5bitTo8bit(s->b) << 8;
 		s++;
 		d++;
 	}
@@ -601,9 +601,9 @@ void GRop16To48(DstPx *dst, SrcPx *src, int px)
 
 	while (Px--)
 	{
-		d->r = (int)G5bitTo8Bit(s->r) << 8;
-		d->g = (int)G6bitTo8Bit(s->g) << 8;
-		d->b = (int)G5bitTo8Bit(s->b) << 8;
+		d->r = (int)G5bitTo8bit(s->r) << 8;
+		d->g = (int)G6bitTo8bit(s->g) << 8;
+		d->b = (int)G5bitTo8bit(s->b) << 8;
 		s++;
 		d++;
 	}
@@ -620,9 +620,9 @@ void GRop24To48(DstPx *dst, SrcPx *src, int px)
 
 	while (Px--)
 	{
-		d->r = G8bitTo16Bit(s->r);
-		d->g = G8bitTo16Bit(s->g);
-		d->b = G8bitTo16Bit(s->b);
+		d->r = G8bitTo16bit(s->r);
+		d->g = G8bitTo16bit(s->g);
+		d->b = G8bitTo16bit(s->b);
 		s++;
 		d++;
 	}
@@ -639,9 +639,9 @@ void GRop32To48(DstPx *dst, SrcPx *src, int px)
 
 	while (Px--)
 	{
-		d->r = G8bitTo16Bit(s->r);
-		d->g = G8bitTo16Bit(s->g);
-		d->b = G8bitTo16Bit(s->b);
+		d->r = G8bitTo16bit(s->r);
+		d->g = G8bitTo16bit(s->g);
+		d->b = G8bitTo16bit(s->b);
 		s++;
 		d++;
 	}
@@ -698,9 +698,9 @@ void GRop15To64(DstPx *dst, SrcPx *src, int px)
 
 	while (Px--)
 	{
-		d->r = (int)G5bitTo8Bit(s->r) << 8;
-		d->g = (int)G5bitTo8Bit(s->g) << 8;
-		d->b = (int)G5bitTo8Bit(s->b) << 8;
+		d->r = (int)G5bitTo8bit(s->r) << 8;
+		d->g = (int)G5bitTo8bit(s->g) << 8;
+		d->b = (int)G5bitTo8bit(s->b) << 8;
 		d->a = 0xffff;
 		s++;
 		d++;
@@ -718,9 +718,9 @@ void GRop16To64(DstPx *dst, SrcPx *src, int px)
 
 	while (Px--)
 	{
-		d->r = (int)G5bitTo8Bit(s->r) << 8;
-		d->g = (int)G6bitTo8Bit(s->g) << 8;
-		d->b = (int)G5bitTo8Bit(s->b) << 8;
+		d->r = (int)G5bitTo8bit(s->r) << 8;
+		d->g = (int)G6bitTo8bit(s->g) << 8;
+		d->b = (int)G5bitTo8bit(s->b) << 8;
 		d->a = 0xffff;
 		s++;
 		d++;
@@ -738,9 +738,9 @@ void GRop24To64(DstPx *dst, SrcPx *src, int px)
 
 	while (Px--)
 	{
-		d->r = G8bitTo16Bit(s->r);
-		d->g = G8bitTo16Bit(s->g);
-		d->b = G8bitTo16Bit(s->b);
+		d->r = G8bitTo16bit(s->r);
+		d->g = G8bitTo16bit(s->g);
+		d->b = G8bitTo16bit(s->b);
 		d->a = 0xffff;
 		s++;
 		d++;
@@ -758,10 +758,10 @@ void GRop32To64(DstPx *dst, SrcPx *src, int px)
 
 	while (Px--)
 	{
-		d->r = G8bitTo16Bit(s->r);
-		d->g = G8bitTo16Bit(s->g);
-		d->b = G8bitTo16Bit(s->b);
-		d->a = G8bitTo16Bit(s->a);
+		d->r = G8bitTo16bit(s->r);
+		d->g = G8bitTo16bit(s->g);
+		d->b = G8bitTo16bit(s->b);
+		d->a = G8bitTo16bit(s->a);
 		s++;
 		d++;
 	}
@@ -806,5 +806,282 @@ void GRop64To64(DstPx *dst, SrcPx *src, int px)
 		d++;
 	}
 }
+
+template<typename OutPx, typename InPx>
+void GComposite32To15(OutPx *d, InPx *s, int Len)
+{
+	InPx *end = s + Len;
+	uint8 *DivLut = Div255Lut;
+	register uint8 sa;
+
+	while (s < end)
+	{
+		sa = s->a;
+		if (sa == 255)
+		{
+			// Copy pixel
+			d->r = G8bitTo5bit(s->r);
+			d->g = G8bitTo5bit(s->g);
+			d->b = G8bitTo5bit(s->b);
+		}
+		else if (sa)
+		{
+			// Composite pixel
+			//		Dc'  = (Sca + Dc.Da.(1 - Sa)) / Da'
+			//		Da'  = Sa + Da.(1 - Sa)
+			register uint8 o = 0xff - sa;
+			register uint8 val;
+			
+			#define NonPreMul(c)	\
+				val = DivLut[(s->c * sa) + (G5bitTo8bit(d->c) * o)]; \
+				d->c = G8bitTo5bit(val)			
+			NonPreMul(r);
+			NonPreMul(g);
+			NonPreMul(b);
+			#undef NonPreMul
+		}
+
+		s++;
+		d++;
+	}
+}
+
+template<typename OutPx, typename InPx>
+void GComposite32To16(OutPx *d, InPx *s, int Len)
+{
+	InPx *end = s + Len;
+	uint8 *DivLut = Div255Lut;
+	register uint8 sa;
+
+	while (s < end)
+	{
+		sa = s->a;
+		if (sa == 255)
+		{
+			// Copy pixel
+			d->r = G8bitTo5bit(s->r);
+			d->g = G8bitTo6bit(s->g);
+			d->b = G8bitTo5bit(s->b);
+		}
+		else if (sa)
+		{
+			// Composite pixel
+			//		Dc'  = (Sca + Dc.Da.(1 - Sa)) / Da'
+			//		Da'  = Sa + Da.(1 - Sa)
+			register uint8 o = 0xff - sa;
+			register uint8 val;
+			
+			#define NonPreMul(c, up, down)	\
+				val = DivLut[(s->c * sa) + (G##up(d->c) * o)]; \
+				d->c = G##down(val)			
+			NonPreMul(r, 5bitTo8bit, 8bitTo5bit);
+			NonPreMul(g, 6bitTo8bit, 8bitTo6bit);
+			NonPreMul(b, 5bitTo8bit, 8bitTo5bit);
+			#undef NonPreMul
+		}
+
+		s++;
+		d++;
+	}
+}
+
+template<typename OutPx, typename InPx>
+void GComposite32To24(OutPx *d, InPx *s, int Len)
+{
+	InPx *end = s + Len;
+	uint8 *DivLut = Div255Lut;
+	register uint8 sa;
+
+	while (s < end)
+	{
+		sa = s->a;
+		if (sa == 255)
+		{
+			// Copy pixel
+			d->r = s->r;
+			d->g = s->g;
+			d->b = s->b;
+		}
+		else if (sa)
+		{
+			// Composite pixel
+			//		Dc'  = (Sca + Dc.Da.(1 - Sa)) / Da'
+			//		Da'  = Sa + Da.(1 - Sa)
+			register uint8 o = 0xff - sa;
+			
+			#define NonPreMul(c)	\
+				d->c = DivLut[(s->c * sa) + (d->c * o)]
+			NonPreMul(r);
+			NonPreMul(g);
+			NonPreMul(b);
+			#undef NonPreMul
+		}
+
+		s++;
+		d++;
+	}
+}
+
+template<typename OutPx, typename InPx>
+void GComposite32To32(OutPx *d, InPx *s, int Len)
+{
+	InPx *end = s + Len;
+	uint8 *DivLut = Div255Lut;
+	register uint8 sa;
+
+	while (s < end)
+	{
+		sa = s->a;
+		if (sa == 255)
+		{
+			// Copy pixel
+			d->r = s->r;
+			d->g = s->g;
+			d->b = s->b;
+			d->a = sa;
+		}
+		else if (sa)
+		{
+			// Composite pixel
+			//		Dc'  = (Sca + Dc.Da.(1 - Sa)) / Da'
+			//		Da'  = Sa + Da.(1 - Sa)
+			register uint8 o = 0xff - sa;
+			register uint8 da = d->a;
+			
+			#define NonPreMul(c)	\
+				d->c = (DivLut[s->c * sa] + (DivLut[d->c * da] * o)) / da			
+			NonPreMul(r);
+			NonPreMul(g);
+			NonPreMul(b);
+			#undef NonPreMul
+			d->a = s->a + DivLut[da * o];
+		}
+
+		s++;
+		d++;
+	}
+}
+
+template<typename OutPx, typename InPx>
+void GComposite32To48(OutPx *d, InPx *s, int Len)
+{
+	InPx *end = s + Len;
+	uint8 *DivLut = Div255Lut;
+	register uint8 sa;
+
+	while (s < end)
+	{
+		sa = s->a;
+		if (sa == 255)
+		{
+			// Copy pixel
+			d->r = G8bitTo16bit(s->r);
+			d->g = G8bitTo16bit(s->g);
+			d->b = G8bitTo16bit(s->b);
+		}
+		else if (sa)
+		{
+			// Composite pixel
+			//		Dc'  = (Sca + Dc.Da.(1 - Sa)) / Da'
+			//		Da'  = Sa + Da.(1 - Sa)
+			register uint8 o = 0xff - sa;
+			register uint16 val;
+			
+			#define NonPreMul(c)	\
+				val = DivLut[(s->c * sa) + (d->c * o)]; \
+				d->c = G8bitTo16bit(val)
+			NonPreMul(r);
+			NonPreMul(g);
+			NonPreMul(b);
+			#undef NonPreMul
+		}
+
+		s++;
+		d++;
+	}
+}
+
+template<typename OutPx, typename InPx>
+void GComposite32To64(OutPx *d, InPx *s, int Len)
+{
+	InPx *end = s + Len;
+	uint8 *DivLut = Div255Lut;
+	register uint8 sa;
+
+	while (s < end)
+	{
+		sa = s->a;
+		if (sa == 255)
+		{
+			// Copy pixel
+			d->r = G8bitTo16bit(s->r);
+			d->g = G8bitTo16bit(s->g);
+			d->b = G8bitTo16bit(s->b);
+			d->a = G8bitTo16bit(sa);
+		}
+		else if (sa)
+		{
+			// Composite pixel
+			//		Dc'  = (Sca + Dc.Da.(1 - Sa)) / Da'
+			//		Da'  = Sa + Da.(1 - Sa)
+			register uint8 o = 0xff - sa;
+			register uint8 da = d->a;
+			register uint16 val;
+			
+			#define NonPreMul(c)	\
+				val = (DivLut[s->c * sa] + (DivLut[d->c * da] * o)) / da; \
+				d->c = G8bitTo16bit(val)
+			NonPreMul(r);
+			NonPreMul(g);
+			NonPreMul(b);
+			#undef NonPreMul
+			d->a = s->a + DivLut[da * o];
+		}
+
+		s++;
+		d++;
+	}
+}
+
+template<typename OutPx, typename InPx>
+void GComposite32to24(OutPx *d, InPx *s, int Len)
+{
+	register OutPx *dst = d;
+	register InPx *src = s;
+	register InPx *end = src + Len;
+	uint8 *DivLut = Div255Lut;
+	register uint8 sa;
+
+	while (src < end)
+	{
+		sa = src->a;
+		if (sa == 255)
+		{
+			// Copy pixel
+			dst->r = src->r;
+			dst->g = src->g;
+			dst->b = src->b;
+		}
+		else if (sa)
+		{
+			// Composite pixel
+			//		Dc'  = (Sc.Sa + Dc.Da.(1 - Sa)) / Da'
+			//		Da'  = Sa + Da.(1 - Sa)
+			register uint8 o = 0xff - sa;
+			
+			#define NonPreMul24(c)	\
+				dst->c = DivLut[(src->c * sa) + (dst->c * o)]
+			
+			NonPreMul24(r);
+			NonPreMul24(g);
+			NonPreMul24(b);
+		}
+
+		src++;
+		dst++;
+	}
+}
+
+
 
 #endif

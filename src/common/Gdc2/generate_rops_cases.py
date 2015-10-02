@@ -10,8 +10,12 @@ def CsToBits(Cs):
 
 def IsRgb(Cs):
 	return Cs.lower().find("rgb") >= 0 or Cs.lower().find("bgr") >= 0
+
 def CsToPx(Cs):
 	return "G" + Cs[2:]
+
+def HasAlpha(Cs):
+	return Cs.lower().find("a") >= 0
 
 txt = open(os.path.join("..", "..", "..", "include", "common", "GColourSpace.h"), "r").read().split("\n")
 in_cs_def = False
@@ -33,5 +37,11 @@ for dst_cs in colourspaces:
 	for src_cs in colourspaces:
 		if IsRgb(dst_cs) and IsRgb(src_cs):
 			print "case JointCs("+dst_cs+", "+src_cs+"):"
-			print "\tGRop" + CsToBits(src_cs) + "To" + CsToBits(dst_cs) + "((" + CsToPx(dst_cs) + "*)d, (" + CsToPx(src_cs) + "*)s, x);"
+			if HasAlpha(src_cs) and int(CsToBits(src_cs)) == 32:
+				print "\tif (Composite)"
+				print "\t\tGComposite" + CsToBits(src_cs) + "To" + CsToBits(dst_cs) + "((" + CsToPx(dst_cs) + "*)d, (" + CsToPx(src_cs) + "*)s, x);"
+				print "\telse";
+				print "\t\tGRop" + CsToBits(src_cs) + "To" + CsToBits(dst_cs) + "((" + CsToPx(dst_cs) + "*)d, (" + CsToPx(src_cs) + "*)s, x);"
+			else:
+				print "\tGRop" + CsToBits(src_cs) + "To" + CsToBits(dst_cs) + "((" + CsToPx(dst_cs) + "*)d, (" + CsToPx(src_cs) + "*)s, x);"
 			print "\tbreak;"

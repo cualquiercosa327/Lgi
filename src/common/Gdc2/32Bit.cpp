@@ -314,7 +314,7 @@ public:
 				Dst.y = Src->y;
 				Dst.Cs = Dest->Cs;
 				Dst.Line = Dest->Line;				
-				if (!LgiRopUniversal(&Dst, Src))
+				if (!LgiRopUniversal(&Dst, Src, false))
 				{
 					return false;
 				}
@@ -589,7 +589,7 @@ public:
 				Dst.y = Src->y;
 				Dst.Cs = Dest->Cs;
 				Dst.Line = Dest->Line;				
-				if (!LgiRopUniversal(&Dst, Src))
+				if (!LgiRopUniversal(&Dst, Src, false))
 				{
 					return false;
 				}
@@ -836,7 +836,7 @@ bool GdcApp32Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				Dst.y = Src->y;
 				Dst.Cs = Dest->Cs;
 				Dst.Line = Dest->Line;				
-				if (!LgiRopUniversal(&Dst, Src))
+				if (!LgiRopUniversal(&Dst, Src, false))
 				{
 					return false;
 				}

@@ -1276,12 +1276,15 @@ LgiFunc bool LgiRopRgb
 	// Source colour space (must be 8bit components)
 	GColourSpace SrcCs,
 	// Number of pixels to convert
-	int Px
+	int Px,
+	// Whether to composite using alpha or copy blt
+	bool Composite
 );
 
 /// Universal bit blt method
-LgiFunc bool LgiRopUniversal(GBmpMem *Dst, GBmpMem *Src);
+LgiFunc bool LgiRopUniversal(GBmpMem *Dst, GBmpMem *Src, bool Composite);
 
+/// Gets the screens DPI
 LgiFunc int LgiScreenDpi();
 
 #if defined(LGI_SDL)

@@ -109,9 +109,9 @@ public:
 	{
 		if (p32.a == 255)
 		{
-			p->r = G8bitTo16Bit(p32.r);
-			p->g = G8bitTo16Bit(p32.g);
-			p->b = G8bitTo16Bit(p32.b);
+			p->r = G8bitTo16bit(p32.r);
+			p->g = G8bitTo16bit(p32.g);
+			p->b = G8bitTo16bit(p32.b);
 			p->a = -1;
 		}
 		else if (p32.a)
@@ -128,10 +128,10 @@ public:
 	void VLine(int height)
 	{
 		Pixel cp;
-		cp.r = G8bitTo16Bit(p32.r);
-		cp.g = G8bitTo16Bit(p32.g);
-		cp.b = G8bitTo16Bit(p32.b);
-		cp.a = G8bitTo16Bit(p32.a);
+		cp.r = G8bitTo16bit(p32.r);
+		cp.g = G8bitTo16bit(p32.g);
+		cp.b = G8bitTo16bit(p32.b);
+		cp.a = G8bitTo16bit(p32.a);
 
 		if (p32.a == 255)
 		{
@@ -150,10 +150,10 @@ public:
 	void Rectangle(int x, int y)
 	{
 		Pixel cp;
-		cp.r = G8bitTo16Bit(p32.r);
-		cp.g = G8bitTo16Bit(p32.g);
-		cp.b = G8bitTo16Bit(p32.b);
-		cp.a = G8bitTo16Bit(p32.a);
+		cp.r = G8bitTo16bit(p32.r);
+		cp.g = G8bitTo16bit(p32.g);
+		cp.b = G8bitTo16bit(p32.b);
+		cp.a = G8bitTo16bit(p32.a);
 		
 		if (p32.a == 255)
 		{
@@ -325,7 +325,7 @@ public:
 			Dst.y = Src->y;
 			Dst.Cs = Dest->Cs;
 			Dst.Line = Dest->Line;				
-			if (!LgiRopUniversal(&Dst, Src))
+			if (!LgiRopUniversal(&Dst, Src, false))
 			{
 				return false;
 			}

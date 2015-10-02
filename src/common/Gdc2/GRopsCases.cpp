@@ -36,16 +36,28 @@ case JointCs(CsArgb15, CsXbgr32):
 	GRop24To15((GArgb15*)d, (GXbgr32*)s, x);
 	break;
 case JointCs(CsArgb15, CsRgba32):
-	GRop32To15((GArgb15*)d, (GRgba32*)s, x);
+	if (Composite)
+		GComposite32To15((GArgb15*)d, (GRgba32*)s, x);
+	else
+		GRop32To15((GArgb15*)d, (GRgba32*)s, x);
 	break;
 case JointCs(CsArgb15, CsBgra32):
-	GRop32To15((GArgb15*)d, (GBgra32*)s, x);
+	if (Composite)
+		GComposite32To15((GArgb15*)d, (GBgra32*)s, x);
+	else
+		GRop32To15((GArgb15*)d, (GBgra32*)s, x);
 	break;
 case JointCs(CsArgb15, CsArgb32):
-	GRop32To15((GArgb15*)d, (GArgb32*)s, x);
+	if (Composite)
+		GComposite32To15((GArgb15*)d, (GArgb32*)s, x);
+	else
+		GRop32To15((GArgb15*)d, (GArgb32*)s, x);
 	break;
 case JointCs(CsArgb15, CsAbgr32):
-	GRop32To15((GArgb15*)d, (GAbgr32*)s, x);
+	if (Composite)
+		GComposite32To15((GArgb15*)d, (GAbgr32*)s, x);
+	else
+		GRop32To15((GArgb15*)d, (GAbgr32*)s, x);
 	break;
 case JointCs(CsArgb15, CsBgr48):
 	GRop48To15((GArgb15*)d, (GBgr48*)s, x);
@@ -102,16 +114,28 @@ case JointCs(CsRgb15, CsXbgr32):
 	GRop24To15((GRgb15*)d, (GXbgr32*)s, x);
 	break;
 case JointCs(CsRgb15, CsRgba32):
-	GRop32To15((GRgb15*)d, (GRgba32*)s, x);
+	if (Composite)
+		GComposite32To15((GRgb15*)d, (GRgba32*)s, x);
+	else
+		GRop32To15((GRgb15*)d, (GRgba32*)s, x);
 	break;
 case JointCs(CsRgb15, CsBgra32):
-	GRop32To15((GRgb15*)d, (GBgra32*)s, x);
+	if (Composite)
+		GComposite32To15((GRgb15*)d, (GBgra32*)s, x);
+	else
+		GRop32To15((GRgb15*)d, (GBgra32*)s, x);
 	break;
 case JointCs(CsRgb15, CsArgb32):
-	GRop32To15((GRgb15*)d, (GArgb32*)s, x);
+	if (Composite)
+		GComposite32To15((GRgb15*)d, (GArgb32*)s, x);
+	else
+		GRop32To15((GRgb15*)d, (GArgb32*)s, x);
 	break;
 case JointCs(CsRgb15, CsAbgr32):
-	GRop32To15((GRgb15*)d, (GAbgr32*)s, x);
+	if (Composite)
+		GComposite32To15((GRgb15*)d, (GAbgr32*)s, x);
+	else
+		GRop32To15((GRgb15*)d, (GAbgr32*)s, x);
 	break;
 case JointCs(CsRgb15, CsBgr48):
 	GRop48To15((GRgb15*)d, (GBgr48*)s, x);
@@ -168,16 +192,28 @@ case JointCs(CsAbgr15, CsXbgr32):
 	GRop24To15((GAbgr15*)d, (GXbgr32*)s, x);
 	break;
 case JointCs(CsAbgr15, CsRgba32):
-	GRop32To15((GAbgr15*)d, (GRgba32*)s, x);
+	if (Composite)
+		GComposite32To15((GAbgr15*)d, (GRgba32*)s, x);
+	else
+		GRop32To15((GAbgr15*)d, (GRgba32*)s, x);
 	break;
 case JointCs(CsAbgr15, CsBgra32):
-	GRop32To15((GAbgr15*)d, (GBgra32*)s, x);
+	if (Composite)
+		GComposite32To15((GAbgr15*)d, (GBgra32*)s, x);
+	else
+		GRop32To15((GAbgr15*)d, (GBgra32*)s, x);
 	break;
 case JointCs(CsAbgr15, CsArgb32):
-	GRop32To15((GAbgr15*)d, (GArgb32*)s, x);
+	if (Composite)
+		GComposite32To15((GAbgr15*)d, (GArgb32*)s, x);
+	else
+		GRop32To15((GAbgr15*)d, (GArgb32*)s, x);
 	break;
 case JointCs(CsAbgr15, CsAbgr32):
-	GRop32To15((GAbgr15*)d, (GAbgr32*)s, x);
+	if (Composite)
+		GComposite32To15((GAbgr15*)d, (GAbgr32*)s, x);
+	else
+		GRop32To15((GAbgr15*)d, (GAbgr32*)s, x);
 	break;
 case JointCs(CsAbgr15, CsBgr48):
 	GRop48To15((GAbgr15*)d, (GBgr48*)s, x);
@@ -234,16 +270,28 @@ case JointCs(CsBgr15, CsXbgr32):
 	GRop24To15((GBgr15*)d, (GXbgr32*)s, x);
 	break;
 case JointCs(CsBgr15, CsRgba32):
-	GRop32To15((GBgr15*)d, (GRgba32*)s, x);
+	if (Composite)
+		GComposite32To15((GBgr15*)d, (GRgba32*)s, x);
+	else
+		GRop32To15((GBgr15*)d, (GRgba32*)s, x);
 	break;
 case JointCs(CsBgr15, CsBgra32):
-	GRop32To15((GBgr15*)d, (GBgra32*)s, x);
+	if (Composite)
+		GComposite32To15((GBgr15*)d, (GBgra32*)s, x);
+	else
+		GRop32To15((GBgr15*)d, (GBgra32*)s, x);
 	break;
 case JointCs(CsBgr15, CsArgb32):
-	GRop32To15((GBgr15*)d, (GArgb32*)s, x);
+	if (Composite)
+		GComposite32To15((GBgr15*)d, (GArgb32*)s, x);
+	else
+		GRop32To15((GBgr15*)d, (GArgb32*)s, x);
 	break;
 case JointCs(CsBgr15, CsAbgr32):
-	GRop32To15((GBgr15*)d, (GAbgr32*)s, x);
+	if (Composite)
+		GComposite32To15((GBgr15*)d, (GAbgr32*)s, x);
+	else
+		GRop32To15((GBgr15*)d, (GAbgr32*)s, x);
 	break;
 case JointCs(CsBgr15, CsBgr48):
 	GRop48To15((GBgr15*)d, (GBgr48*)s, x);
@@ -300,16 +348,28 @@ case JointCs(CsRgb16, CsXbgr32):
 	GRop24To16((GRgb16*)d, (GXbgr32*)s, x);
 	break;
 case JointCs(CsRgb16, CsRgba32):
-	GRop32To16((GRgb16*)d, (GRgba32*)s, x);
+	if (Composite)
+		GComposite32To16((GRgb16*)d, (GRgba32*)s, x);
+	else
+		GRop32To16((GRgb16*)d, (GRgba32*)s, x);
 	break;
 case JointCs(CsRgb16, CsBgra32):
-	GRop32To16((GRgb16*)d, (GBgra32*)s, x);
+	if (Composite)
+		GComposite32To16((GRgb16*)d, (GBgra32*)s, x);
+	else
+		GRop32To16((GRgb16*)d, (GBgra32*)s, x);
 	break;
 case JointCs(CsRgb16, CsArgb32):
-	GRop32To16((GRgb16*)d, (GArgb32*)s, x);
+	if (Composite)
+		GComposite32To16((GRgb16*)d, (GArgb32*)s, x);
+	else
+		GRop32To16((GRgb16*)d, (GArgb32*)s, x);
 	break;
 case JointCs(CsRgb16, CsAbgr32):
-	GRop32To16((GRgb16*)d, (GAbgr32*)s, x);
+	if (Composite)
+		GComposite32To16((GRgb16*)d, (GAbgr32*)s, x);
+	else
+		GRop32To16((GRgb16*)d, (GAbgr32*)s, x);
 	break;
 case JointCs(CsRgb16, CsBgr48):
 	GRop48To16((GRgb16*)d, (GBgr48*)s, x);
@@ -366,16 +426,28 @@ case JointCs(CsBgr16, CsXbgr32):
 	GRop24To16((GBgr16*)d, (GXbgr32*)s, x);
 	break;
 case JointCs(CsBgr16, CsRgba32):
-	GRop32To16((GBgr16*)d, (GRgba32*)s, x);
+	if (Composite)
+		GComposite32To16((GBgr16*)d, (GRgba32*)s, x);
+	else
+		GRop32To16((GBgr16*)d, (GRgba32*)s, x);
 	break;
 case JointCs(CsBgr16, CsBgra32):
-	GRop32To16((GBgr16*)d, (GBgra32*)s, x);
+	if (Composite)
+		GComposite32To16((GBgr16*)d, (GBgra32*)s, x);
+	else
+		GRop32To16((GBgr16*)d, (GBgra32*)s, x);
 	break;
 case JointCs(CsBgr16, CsArgb32):
-	GRop32To16((GBgr16*)d, (GArgb32*)s, x);
+	if (Composite)
+		GComposite32To16((GBgr16*)d, (GArgb32*)s, x);
+	else
+		GRop32To16((GBgr16*)d, (GArgb32*)s, x);
 	break;
 case JointCs(CsBgr16, CsAbgr32):
-	GRop32To16((GBgr16*)d, (GAbgr32*)s, x);
+	if (Composite)
+		GComposite32To16((GBgr16*)d, (GAbgr32*)s, x);
+	else
+		GRop32To16((GBgr16*)d, (GAbgr32*)s, x);
 	break;
 case JointCs(CsBgr16, CsBgr48):
 	GRop48To16((GBgr16*)d, (GBgr48*)s, x);
@@ -432,16 +504,28 @@ case JointCs(CsRgb24, CsXbgr32):
 	GRop24To24((GRgb24*)d, (GXbgr32*)s, x);
 	break;
 case JointCs(CsRgb24, CsRgba32):
-	GRop32To24((GRgb24*)d, (GRgba32*)s, x);
+	if (Composite)
+		GComposite32To24((GRgb24*)d, (GRgba32*)s, x);
+	else
+		GRop32To24((GRgb24*)d, (GRgba32*)s, x);
 	break;
 case JointCs(CsRgb24, CsBgra32):
-	GRop32To24((GRgb24*)d, (GBgra32*)s, x);
+	if (Composite)
+		GComposite32To24((GRgb24*)d, (GBgra32*)s, x);
+	else
+		GRop32To24((GRgb24*)d, (GBgra32*)s, x);
 	break;
 case JointCs(CsRgb24, CsArgb32):
-	GRop32To24((GRgb24*)d, (GArgb32*)s, x);
+	if (Composite)
+		GComposite32To24((GRgb24*)d, (GArgb32*)s, x);
+	else
+		GRop32To24((GRgb24*)d, (GArgb32*)s, x);
 	break;
 case JointCs(CsRgb24, CsAbgr32):
-	GRop32To24((GRgb24*)d, (GAbgr32*)s, x);
+	if (Composite)
+		GComposite32To24((GRgb24*)d, (GAbgr32*)s, x);
+	else
+		GRop32To24((GRgb24*)d, (GAbgr32*)s, x);
 	break;
 case JointCs(CsRgb24, CsBgr48):
 	GRop48To24((GRgb24*)d, (GBgr48*)s, x);
@@ -498,16 +582,28 @@ case JointCs(CsBgr24, CsXbgr32):
 	GRop24To24((GBgr24*)d, (GXbgr32*)s, x);
 	break;
 case JointCs(CsBgr24, CsRgba32):
-	GRop32To24((GBgr24*)d, (GRgba32*)s, x);
+	if (Composite)
+		GComposite32To24((GBgr24*)d, (GRgba32*)s, x);
+	else
+		GRop32To24((GBgr24*)d, (GRgba32*)s, x);
 	break;
 case JointCs(CsBgr24, CsBgra32):
-	GRop32To24((GBgr24*)d, (GBgra32*)s, x);
+	if (Composite)
+		GComposite32To24((GBgr24*)d, (GBgra32*)s, x);
+	else
+		GRop32To24((GBgr24*)d, (GBgra32*)s, x);
 	break;
 case JointCs(CsBgr24, CsArgb32):
-	GRop32To24((GBgr24*)d, (GArgb32*)s, x);
+	if (Composite)
+		GComposite32To24((GBgr24*)d, (GArgb32*)s, x);
+	else
+		GRop32To24((GBgr24*)d, (GArgb32*)s, x);
 	break;
 case JointCs(CsBgr24, CsAbgr32):
-	GRop32To24((GBgr24*)d, (GAbgr32*)s, x);
+	if (Composite)
+		GComposite32To24((GBgr24*)d, (GAbgr32*)s, x);
+	else
+		GRop32To24((GBgr24*)d, (GAbgr32*)s, x);
 	break;
 case JointCs(CsBgr24, CsBgr48):
 	GRop48To24((GBgr24*)d, (GBgr48*)s, x);
@@ -564,16 +660,28 @@ case JointCs(CsRgbx32, CsXbgr32):
 	GRop24To24((GRgbx32*)d, (GXbgr32*)s, x);
 	break;
 case JointCs(CsRgbx32, CsRgba32):
-	GRop32To24((GRgbx32*)d, (GRgba32*)s, x);
+	if (Composite)
+		GComposite32To24((GRgbx32*)d, (GRgba32*)s, x);
+	else
+		GRop32To24((GRgbx32*)d, (GRgba32*)s, x);
 	break;
 case JointCs(CsRgbx32, CsBgra32):
-	GRop32To24((GRgbx32*)d, (GBgra32*)s, x);
+	if (Composite)
+		GComposite32To24((GRgbx32*)d, (GBgra32*)s, x);
+	else
+		GRop32To24((GRgbx32*)d, (GBgra32*)s, x);
 	break;
 case JointCs(CsRgbx32, CsArgb32):
-	GRop32To24((GRgbx32*)d, (GArgb32*)s, x);
+	if (Composite)
+		GComposite32To24((GRgbx32*)d, (GArgb32*)s, x);
+	else
+		GRop32To24((GRgbx32*)d, (GArgb32*)s, x);
 	break;
 case JointCs(CsRgbx32, CsAbgr32):
-	GRop32To24((GRgbx32*)d, (GAbgr32*)s, x);
+	if (Composite)
+		GComposite32To24((GRgbx32*)d, (GAbgr32*)s, x);
+	else
+		GRop32To24((GRgbx32*)d, (GAbgr32*)s, x);
 	break;
 case JointCs(CsRgbx32, CsBgr48):
 	GRop48To24((GRgbx32*)d, (GBgr48*)s, x);
@@ -630,16 +738,28 @@ case JointCs(CsBgrx32, CsXbgr32):
 	GRop24To24((GBgrx32*)d, (GXbgr32*)s, x);
 	break;
 case JointCs(CsBgrx32, CsRgba32):
-	GRop32To24((GBgrx32*)d, (GRgba32*)s, x);
+	if (Composite)
+		GComposite32To24((GBgrx32*)d, (GRgba32*)s, x);
+	else
+		GRop32To24((GBgrx32*)d, (GRgba32*)s, x);
 	break;
 case JointCs(CsBgrx32, CsBgra32):
-	GRop32To24((GBgrx32*)d, (GBgra32*)s, x);
+	if (Composite)
+		GComposite32To24((GBgrx32*)d, (GBgra32*)s, x);
+	else
+		GRop32To24((GBgrx32*)d, (GBgra32*)s, x);
 	break;
 case JointCs(CsBgrx32, CsArgb32):
-	GRop32To24((GBgrx32*)d, (GArgb32*)s, x);
+	if (Composite)
+		GComposite32To24((GBgrx32*)d, (GArgb32*)s, x);
+	else
+		GRop32To24((GBgrx32*)d, (GArgb32*)s, x);
 	break;
 case JointCs(CsBgrx32, CsAbgr32):
-	GRop32To24((GBgrx32*)d, (GAbgr32*)s, x);
+	if (Composite)
+		GComposite32To24((GBgrx32*)d, (GAbgr32*)s, x);
+	else
+		GRop32To24((GBgrx32*)d, (GAbgr32*)s, x);
 	break;
 case JointCs(CsBgrx32, CsBgr48):
 	GRop48To24((GBgrx32*)d, (GBgr48*)s, x);
@@ -696,16 +816,28 @@ case JointCs(CsXrgb32, CsXbgr32):
 	GRop24To24((GXrgb32*)d, (GXbgr32*)s, x);
 	break;
 case JointCs(CsXrgb32, CsRgba32):
-	GRop32To24((GXrgb32*)d, (GRgba32*)s, x);
+	if (Composite)
+		GComposite32To24((GXrgb32*)d, (GRgba32*)s, x);
+	else
+		GRop32To24((GXrgb32*)d, (GRgba32*)s, x);
 	break;
 case JointCs(CsXrgb32, CsBgra32):
-	GRop32To24((GXrgb32*)d, (GBgra32*)s, x);
+	if (Composite)
+		GComposite32To24((GXrgb32*)d, (GBgra32*)s, x);
+	else
+		GRop32To24((GXrgb32*)d, (GBgra32*)s, x);
 	break;
 case JointCs(CsXrgb32, CsArgb32):
-	GRop32To24((GXrgb32*)d, (GArgb32*)s, x);
+	if (Composite)
+		GComposite32To24((GXrgb32*)d, (GArgb32*)s, x);
+	else
+		GRop32To24((GXrgb32*)d, (GArgb32*)s, x);
 	break;
 case JointCs(CsXrgb32, CsAbgr32):
-	GRop32To24((GXrgb32*)d, (GAbgr32*)s, x);
+	if (Composite)
+		GComposite32To24((GXrgb32*)d, (GAbgr32*)s, x);
+	else
+		GRop32To24((GXrgb32*)d, (GAbgr32*)s, x);
 	break;
 case JointCs(CsXrgb32, CsBgr48):
 	GRop48To24((GXrgb32*)d, (GBgr48*)s, x);
@@ -762,16 +894,28 @@ case JointCs(CsXbgr32, CsXbgr32):
 	GRop24To24((GXbgr32*)d, (GXbgr32*)s, x);
 	break;
 case JointCs(CsXbgr32, CsRgba32):
-	GRop32To24((GXbgr32*)d, (GRgba32*)s, x);
+	if (Composite)
+		GComposite32To24((GXbgr32*)d, (GRgba32*)s, x);
+	else
+		GRop32To24((GXbgr32*)d, (GRgba32*)s, x);
 	break;
 case JointCs(CsXbgr32, CsBgra32):
-	GRop32To24((GXbgr32*)d, (GBgra32*)s, x);
+	if (Composite)
+		GComposite32To24((GXbgr32*)d, (GBgra32*)s, x);
+	else
+		GRop32To24((GXbgr32*)d, (GBgra32*)s, x);
 	break;
 case JointCs(CsXbgr32, CsArgb32):
-	GRop32To24((GXbgr32*)d, (GArgb32*)s, x);
+	if (Composite)
+		GComposite32To24((GXbgr32*)d, (GArgb32*)s, x);
+	else
+		GRop32To24((GXbgr32*)d, (GArgb32*)s, x);
 	break;
 case JointCs(CsXbgr32, CsAbgr32):
-	GRop32To24((GXbgr32*)d, (GAbgr32*)s, x);
+	if (Composite)
+		GComposite32To24((GXbgr32*)d, (GAbgr32*)s, x);
+	else
+		GRop32To24((GXbgr32*)d, (GAbgr32*)s, x);
 	break;
 case JointCs(CsXbgr32, CsBgr48):
 	GRop48To24((GXbgr32*)d, (GBgr48*)s, x);
@@ -828,16 +972,28 @@ case JointCs(CsRgba32, CsXbgr32):
 	GRop24To32((GRgba32*)d, (GXbgr32*)s, x);
 	break;
 case JointCs(CsRgba32, CsRgba32):
-	GRop32To32((GRgba32*)d, (GRgba32*)s, x);
+	if (Composite)
+		GComposite32To32((GRgba32*)d, (GRgba32*)s, x);
+	else
+		GRop32To32((GRgba32*)d, (GRgba32*)s, x);
 	break;
 case JointCs(CsRgba32, CsBgra32):
-	GRop32To32((GRgba32*)d, (GBgra32*)s, x);
+	if (Composite)
+		GComposite32To32((GRgba32*)d, (GBgra32*)s, x);
+	else
+		GRop32To32((GRgba32*)d, (GBgra32*)s, x);
 	break;
 case JointCs(CsRgba32, CsArgb32):
-	GRop32To32((GRgba32*)d, (GArgb32*)s, x);
+	if (Composite)
+		GComposite32To32((GRgba32*)d, (GArgb32*)s, x);
+	else
+		GRop32To32((GRgba32*)d, (GArgb32*)s, x);
 	break;
 case JointCs(CsRgba32, CsAbgr32):
-	GRop32To32((GRgba32*)d, (GAbgr32*)s, x);
+	if (Composite)
+		GComposite32To32((GRgba32*)d, (GAbgr32*)s, x);
+	else
+		GRop32To32((GRgba32*)d, (GAbgr32*)s, x);
 	break;
 case JointCs(CsRgba32, CsBgr48):
 	GRop48To32((GRgba32*)d, (GBgr48*)s, x);
@@ -894,16 +1050,28 @@ case JointCs(CsBgra32, CsXbgr32):
 	GRop24To32((GBgra32*)d, (GXbgr32*)s, x);
 	break;
 case JointCs(CsBgra32, CsRgba32):
-	GRop32To32((GBgra32*)d, (GRgba32*)s, x);
+	if (Composite)
+		GComposite32To32((GBgra32*)d, (GRgba32*)s, x);
+	else
+		GRop32To32((GBgra32*)d, (GRgba32*)s, x);
 	break;
 case JointCs(CsBgra32, CsBgra32):
-	GRop32To32((GBgra32*)d, (GBgra32*)s, x);
+	if (Composite)
+		GComposite32To32((GBgra32*)d, (GBgra32*)s, x);
+	else
+		GRop32To32((GBgra32*)d, (GBgra32*)s, x);
 	break;
 case JointCs(CsBgra32, CsArgb32):
-	GRop32To32((GBgra32*)d, (GArgb32*)s, x);
+	if (Composite)
+		GComposite32To32((GBgra32*)d, (GArgb32*)s, x);
+	else
+		GRop32To32((GBgra32*)d, (GArgb32*)s, x);
 	break;
 case JointCs(CsBgra32, CsAbgr32):
-	GRop32To32((GBgra32*)d, (GAbgr32*)s, x);
+	if (Composite)
+		GComposite32To32((GBgra32*)d, (GAbgr32*)s, x);
+	else
+		GRop32To32((GBgra32*)d, (GAbgr32*)s, x);
 	break;
 case JointCs(CsBgra32, CsBgr48):
 	GRop48To32((GBgra32*)d, (GBgr48*)s, x);
@@ -960,16 +1128,28 @@ case JointCs(CsArgb32, CsXbgr32):
 	GRop24To32((GArgb32*)d, (GXbgr32*)s, x);
 	break;
 case JointCs(CsArgb32, CsRgba32):
-	GRop32To32((GArgb32*)d, (GRgba32*)s, x);
+	if (Composite)
+		GComposite32To32((GArgb32*)d, (GRgba32*)s, x);
+	else
+		GRop32To32((GArgb32*)d, (GRgba32*)s, x);
 	break;
 case JointCs(CsArgb32, CsBgra32):
-	GRop32To32((GArgb32*)d, (GBgra32*)s, x);
+	if (Composite)
+		GComposite32To32((GArgb32*)d, (GBgra32*)s, x);
+	else
+		GRop32To32((GArgb32*)d, (GBgra32*)s, x);
 	break;
 case JointCs(CsArgb32, CsArgb32):
-	GRop32To32((GArgb32*)d, (GArgb32*)s, x);
+	if (Composite)
+		GComposite32To32((GArgb32*)d, (GArgb32*)s, x);
+	else
+		GRop32To32((GArgb32*)d, (GArgb32*)s, x);
 	break;
 case JointCs(CsArgb32, CsAbgr32):
-	GRop32To32((GArgb32*)d, (GAbgr32*)s, x);
+	if (Composite)
+		GComposite32To32((GArgb32*)d, (GAbgr32*)s, x);
+	else
+		GRop32To32((GArgb32*)d, (GAbgr32*)s, x);
 	break;
 case JointCs(CsArgb32, CsBgr48):
 	GRop48To32((GArgb32*)d, (GBgr48*)s, x);
@@ -1026,16 +1206,28 @@ case JointCs(CsAbgr32, CsXbgr32):
 	GRop24To32((GAbgr32*)d, (GXbgr32*)s, x);
 	break;
 case JointCs(CsAbgr32, CsRgba32):
-	GRop32To32((GAbgr32*)d, (GRgba32*)s, x);
+	if (Composite)
+		GComposite32To32((GAbgr32*)d, (GRgba32*)s, x);
+	else
+		GRop32To32((GAbgr32*)d, (GRgba32*)s, x);
 	break;
 case JointCs(CsAbgr32, CsBgra32):
-	GRop32To32((GAbgr32*)d, (GBgra32*)s, x);
+	if (Composite)
+		GComposite32To32((GAbgr32*)d, (GBgra32*)s, x);
+	else
+		GRop32To32((GAbgr32*)d, (GBgra32*)s, x);
 	break;
 case JointCs(CsAbgr32, CsArgb32):
-	GRop32To32((GAbgr32*)d, (GArgb32*)s, x);
+	if (Composite)
+		GComposite32To32((GAbgr32*)d, (GArgb32*)s, x);
+	else
+		GRop32To32((GAbgr32*)d, (GArgb32*)s, x);
 	break;
 case JointCs(CsAbgr32, CsAbgr32):
-	GRop32To32((GAbgr32*)d, (GAbgr32*)s, x);
+	if (Composite)
+		GComposite32To32((GAbgr32*)d, (GAbgr32*)s, x);
+	else
+		GRop32To32((GAbgr32*)d, (GAbgr32*)s, x);
 	break;
 case JointCs(CsAbgr32, CsBgr48):
 	GRop48To32((GAbgr32*)d, (GBgr48*)s, x);
@@ -1092,16 +1284,28 @@ case JointCs(CsBgr48, CsXbgr32):
 	GRop24To48((GBgr48*)d, (GXbgr32*)s, x);
 	break;
 case JointCs(CsBgr48, CsRgba32):
-	GRop32To48((GBgr48*)d, (GRgba32*)s, x);
+	if (Composite)
+		GComposite32To48((GBgr48*)d, (GRgba32*)s, x);
+	else
+		GRop32To48((GBgr48*)d, (GRgba32*)s, x);
 	break;
 case JointCs(CsBgr48, CsBgra32):
-	GRop32To48((GBgr48*)d, (GBgra32*)s, x);
+	if (Composite)
+		GComposite32To48((GBgr48*)d, (GBgra32*)s, x);
+	else
+		GRop32To48((GBgr48*)d, (GBgra32*)s, x);
 	break;
 case JointCs(CsBgr48, CsArgb32):
-	GRop32To48((GBgr48*)d, (GArgb32*)s, x);
+	if (Composite)
+		GComposite32To48((GBgr48*)d, (GArgb32*)s, x);
+	else
+		GRop32To48((GBgr48*)d, (GArgb32*)s, x);
 	break;
 case JointCs(CsBgr48, CsAbgr32):
-	GRop32To48((GBgr48*)d, (GAbgr32*)s, x);
+	if (Composite)
+		GComposite32To48((GBgr48*)d, (GAbgr32*)s, x);
+	else
+		GRop32To48((GBgr48*)d, (GAbgr32*)s, x);
 	break;
 case JointCs(CsBgr48, CsBgr48):
 	GRop48To48((GBgr48*)d, (GBgr48*)s, x);
@@ -1158,16 +1362,28 @@ case JointCs(CsRgb48, CsXbgr32):
 	GRop24To48((GRgb48*)d, (GXbgr32*)s, x);
 	break;
 case JointCs(CsRgb48, CsRgba32):
-	GRop32To48((GRgb48*)d, (GRgba32*)s, x);
+	if (Composite)
+		GComposite32To48((GRgb48*)d, (GRgba32*)s, x);
+	else
+		GRop32To48((GRgb48*)d, (GRgba32*)s, x);
 	break;
 case JointCs(CsRgb48, CsBgra32):
-	GRop32To48((GRgb48*)d, (GBgra32*)s, x);
+	if (Composite)
+		GComposite32To48((GRgb48*)d, (GBgra32*)s, x);
+	else
+		GRop32To48((GRgb48*)d, (GBgra32*)s, x);
 	break;
 case JointCs(CsRgb48, CsArgb32):
-	GRop32To48((GRgb48*)d, (GArgb32*)s, x);
+	if (Composite)
+		GComposite32To48((GRgb48*)d, (GArgb32*)s, x);
+	else
+		GRop32To48((GRgb48*)d, (GArgb32*)s, x);
 	break;
 case JointCs(CsRgb48, CsAbgr32):
-	GRop32To48((GRgb48*)d, (GAbgr32*)s, x);
+	if (Composite)
+		GComposite32To48((GRgb48*)d, (GAbgr32*)s, x);
+	else
+		GRop32To48((GRgb48*)d, (GAbgr32*)s, x);
 	break;
 case JointCs(CsRgb48, CsBgr48):
 	GRop48To48((GRgb48*)d, (GBgr48*)s, x);
@@ -1224,16 +1440,28 @@ case JointCs(CsBgra64, CsXbgr32):
 	GRop24To64((GBgra64*)d, (GXbgr32*)s, x);
 	break;
 case JointCs(CsBgra64, CsRgba32):
-	GRop32To64((GBgra64*)d, (GRgba32*)s, x);
+	if (Composite)
+		GComposite32To64((GBgra64*)d, (GRgba32*)s, x);
+	else
+		GRop32To64((GBgra64*)d, (GRgba32*)s, x);
 	break;
 case JointCs(CsBgra64, CsBgra32):
-	GRop32To64((GBgra64*)d, (GBgra32*)s, x);
+	if (Composite)
+		GComposite32To64((GBgra64*)d, (GBgra32*)s, x);
+	else
+		GRop32To64((GBgra64*)d, (GBgra32*)s, x);
 	break;
 case JointCs(CsBgra64, CsArgb32):
-	GRop32To64((GBgra64*)d, (GArgb32*)s, x);
+	if (Composite)
+		GComposite32To64((GBgra64*)d, (GArgb32*)s, x);
+	else
+		GRop32To64((GBgra64*)d, (GArgb32*)s, x);
 	break;
 case JointCs(CsBgra64, CsAbgr32):
-	GRop32To64((GBgra64*)d, (GAbgr32*)s, x);
+	if (Composite)
+		GComposite32To64((GBgra64*)d, (GAbgr32*)s, x);
+	else
+		GRop32To64((GBgra64*)d, (GAbgr32*)s, x);
 	break;
 case JointCs(CsBgra64, CsBgr48):
 	GRop48To64((GBgra64*)d, (GBgr48*)s, x);
@@ -1290,16 +1518,28 @@ case JointCs(CsRgba64, CsXbgr32):
 	GRop24To64((GRgba64*)d, (GXbgr32*)s, x);
 	break;
 case JointCs(CsRgba64, CsRgba32):
-	GRop32To64((GRgba64*)d, (GRgba32*)s, x);
+	if (Composite)
+		GComposite32To64((GRgba64*)d, (GRgba32*)s, x);
+	else
+		GRop32To64((GRgba64*)d, (GRgba32*)s, x);
 	break;
 case JointCs(CsRgba64, CsBgra32):
-	GRop32To64((GRgba64*)d, (GBgra32*)s, x);
+	if (Composite)
+		GComposite32To64((GRgba64*)d, (GBgra32*)s, x);
+	else
+		GRop32To64((GRgba64*)d, (GBgra32*)s, x);
 	break;
 case JointCs(CsRgba64, CsArgb32):
-	GRop32To64((GRgba64*)d, (GArgb32*)s, x);
+	if (Composite)
+		GComposite32To64((GRgba64*)d, (GArgb32*)s, x);
+	else
+		GRop32To64((GRgba64*)d, (GArgb32*)s, x);
 	break;
 case JointCs(CsRgba64, CsAbgr32):
-	GRop32To64((GRgba64*)d, (GAbgr32*)s, x);
+	if (Composite)
+		GComposite32To64((GRgba64*)d, (GAbgr32*)s, x);
+	else
+		GRop32To64((GRgba64*)d, (GAbgr32*)s, x);
 	break;
 case JointCs(CsRgba64, CsBgr48):
 	GRop48To64((GRgba64*)d, (GBgr48*)s, x);
@@ -1356,16 +1596,28 @@ case JointCs(CsAbgr64, CsXbgr32):
 	GRop24To64((GAbgr64*)d, (GXbgr32*)s, x);
 	break;
 case JointCs(CsAbgr64, CsRgba32):
-	GRop32To64((GAbgr64*)d, (GRgba32*)s, x);
+	if (Composite)
+		GComposite32To64((GAbgr64*)d, (GRgba32*)s, x);
+	else
+		GRop32To64((GAbgr64*)d, (GRgba32*)s, x);
 	break;
 case JointCs(CsAbgr64, CsBgra32):
-	GRop32To64((GAbgr64*)d, (GBgra32*)s, x);
+	if (Composite)
+		GComposite32To64((GAbgr64*)d, (GBgra32*)s, x);
+	else
+		GRop32To64((GAbgr64*)d, (GBgra32*)s, x);
 	break;
 case JointCs(CsAbgr64, CsArgb32):
-	GRop32To64((GAbgr64*)d, (GArgb32*)s, x);
+	if (Composite)
+		GComposite32To64((GAbgr64*)d, (GArgb32*)s, x);
+	else
+		GRop32To64((GAbgr64*)d, (GArgb32*)s, x);
 	break;
 case JointCs(CsAbgr64, CsAbgr32):
-	GRop32To64((GAbgr64*)d, (GAbgr32*)s, x);
+	if (Composite)
+		GComposite32To64((GAbgr64*)d, (GAbgr32*)s, x);
+	else
+		GRop32To64((GAbgr64*)d, (GAbgr32*)s, x);
 	break;
 case JointCs(CsAbgr64, CsBgr48):
 	GRop48To64((GAbgr64*)d, (GBgr48*)s, x);
@@ -1422,16 +1674,28 @@ case JointCs(CsArgb64, CsXbgr32):
 	GRop24To64((GArgb64*)d, (GXbgr32*)s, x);
 	break;
 case JointCs(CsArgb64, CsRgba32):
-	GRop32To64((GArgb64*)d, (GRgba32*)s, x);
+	if (Composite)
+		GComposite32To64((GArgb64*)d, (GRgba32*)s, x);
+	else
+		GRop32To64((GArgb64*)d, (GRgba32*)s, x);
 	break;
 case JointCs(CsArgb64, CsBgra32):
-	GRop32To64((GArgb64*)d, (GBgra32*)s, x);
+	if (Composite)
+		GComposite32To64((GArgb64*)d, (GBgra32*)s, x);
+	else
+		GRop32To64((GArgb64*)d, (GBgra32*)s, x);
 	break;
 case JointCs(CsArgb64, CsArgb32):
-	GRop32To64((GArgb64*)d, (GArgb32*)s, x);
+	if (Composite)
+		GComposite32To64((GArgb64*)d, (GArgb32*)s, x);
+	else
+		GRop32To64((GArgb64*)d, (GArgb32*)s, x);
 	break;
 case JointCs(CsArgb64, CsAbgr32):
-	GRop32To64((GArgb64*)d, (GAbgr32*)s, x);
+	if (Composite)
+		GComposite32To64((GArgb64*)d, (GAbgr32*)s, x);
+	else
+		GRop32To64((GArgb64*)d, (GAbgr32*)s, x);
 	break;
 case JointCs(CsArgb64, CsBgr48):
 	GRop48To64((GArgb64*)d, (GBgr48*)s, x);
