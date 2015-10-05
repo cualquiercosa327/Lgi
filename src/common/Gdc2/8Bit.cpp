@@ -511,7 +511,7 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 											ushort *s = (ushort*) (Src->Base + (y * Src->Line));
 											for (int x=0; x<Src->x; x++)
 											{
-												*d++ = Lookup[*s++];
+												*d++ = Lookup[*s++ & 0x7fff];
 											}
 											break;
 										}

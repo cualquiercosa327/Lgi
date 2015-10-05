@@ -761,6 +761,20 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 
 		HDC hDestDC = StartDC();
 		HDC hSrcDC = Src->StartDC();
+		GMemDC Tmp;
+		if (!hSrcDC)
+		{
+			GColourSpace Cs = GdcD->GetColourSpace();
+			if (!Tmp.Create(b.X(), b.Y(), Cs))
+			{
+				return;
+			}
+			
+			Tmp.Blt(0, 0, Src, &b);
+			LgiAssert(Tmp.GetBitmap());
+			Src = &Tmp;
+			hSrcDC = Src->StartDC();
+		}
 
 		GPalette *Pal = Src->DrawOnAlpha() ? NULL : Src->Palette();
 		HPALETTE sPal = 0, dPal = 0;
@@ -775,7 +789,11 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 		int RealX = x - Old.x;
 		int RealY = y - Old.y;
 
-		BitBlt(hDestDC, x, y, b.X(), b.Y(), hSrcDC, b.x1, b.y1, RowOp);
+		BOOL Ret = BitBlt(hDestDC, x, y, b.X(), b.Y(), hSrcDC, b.x1, b.y1, RowOp);
+		if (!Ret)
+		{
+			int asd=0;
+		}
 
 		if (Pal)
 		{

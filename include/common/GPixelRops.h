@@ -32,10 +32,35 @@
 	{ \
 		register uint8 sa = (s)->a; \
 		register uint8 oma = 0xff - sa; \
-		register uint8 da = sa + ((d)->a * oma); \
 		(d)->r = DivLut[((s)->r * sa) + ((d)->r * oma)]; \
 		(d)->g = DivLut[((s)->g * sa) + ((d)->g * oma)]; \
 		(d)->b = DivLut[((s)->b * sa) + ((d)->b * oma)]; \
+	}
+#define NpmOver64to24(s,d)	\
+	{ \
+		register uint8 sa = (s)->a >> 8; \
+		register uint8 oma = 0xff - sa; \
+		(d)->r = DivLut[( ((s)->r >> 8) * sa) + ((d)->r * oma)]; \
+		(d)->g = DivLut[( ((s)->g >> 8) * sa) + ((d)->g * oma)]; \
+		(d)->b = DivLut[( ((s)->b >> 8) * sa) + ((d)->b * oma)]; \
+	}
+#define NpmOver32to48(s,d)	\
+	{ \
+		register uint16 sa = G8bitTo16bit((s)->a); \
+		register uint16 oma = 0xffff - sa; \
+		(d)->r = ( (G8bitTo16bit((s)->r) * sa) + ((d)->r * oma) ) / 0xffff; \
+		(d)->g = ( (G8bitTo16bit((s)->g) * sa) + ((d)->g * oma) ) / 0xffff; \
+		(d)->b = ( (G8bitTo16bit((s)->b) * sa) + ((d)->b * oma) ) / 0xffff; \
+	}
+#define NpmOver32to64(s,d)	\
+	{ \
+		register uint16 sa = G8bitTo16bit((s)->a); \
+		register uint16 oma = 0xffff - sa; \
+		register uint16 da = sa + ((uint32)(d)->a * oma) / 0xffff; \
+		d->r = ( (G8bitTo16bit(s->r) * sa) + ( ((uint32)(d->r * da) / 0xffff) * oma)) / da; \
+		d->g = ( (G8bitTo16bit(s->g) * sa) + ( ((uint32)(d->g * da) / 0xffff) * oma)) / da; \
+		d->b = ( (G8bitTo16bit(s->b) * sa) + ( ((uint32)(d->b * da) / 0xffff) * oma)) / da; \
+		d->a = da; \
 	}
 #define PmOver32to32(s,d)	\
 	{ \

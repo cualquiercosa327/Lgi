@@ -1,6 +1,8 @@
 #ifndef _GROPS_H_
 #define _GROPS_H_
 
+#include "GPixelRops.h"
+
 #define IsOverlapping()	 ((uint8*)dst == (uint8*)src)
 
 #define OverlapCheck()							\
@@ -945,16 +947,7 @@ void GComposite32To32(OutPx *d, InPx *s, int Len)
 			// Composite pixel
 			//		Dc'  = (Sca + Dc.Da.(1 - Sa)) / Da'
 			//		Da'  = Sa + Da.(1 - Sa)
-			register uint8 o = 0xff - sa;
-			register uint8 da = d->a;
-			
-			#define NonPreMul(c)	\
-				d->c = (DivLut[s->c * sa] + (DivLut[d->c * da] * o)) / da			
-			NonPreMul(r);
-			NonPreMul(g);
-			NonPreMul(b);
-			#undef NonPreMul
-			d->a = s->a + DivLut[da * o];
+			NpmOver32to32(s, d);
 		}
 
 		s++;
@@ -984,18 +977,7 @@ void GComposite32To48(OutPx *d, InPx *s, int Len)
 			// Composite pixel
 			//		Da'  = Sa + Da.(1 - Sa)
 			//		Dc'  = (Sc.Sa + Dc.Da.(1 - Sa)) / Da'
-			register uint8 o = 0xff - sa;
-			register uint16 val;
-			
-			#define NonPreMul(c)	\
-				val = (s->c * sa) + ((d->c >> 8) * o); \
-				val = DivLut[val];
-				
-				//d->c = G8bitTo16bit(val)
-			NonPreMul(r);
-			NonPreMul(g);
-			NonPreMul(b);
-			#undef NonPreMul
+			NpmOver32to48(s, d);
 		}
 
 		s++;
@@ -1026,18 +1008,7 @@ void GComposite32To64(OutPx *d, InPx *s, int Len)
 			// Composite pixel
 			//		Dc'  = (Sca + Dc.Da.(1 - Sa)) / Da'
 			//		Da'  = Sa + Da.(1 - Sa)
-			register uint8 o = 0xff - sa;
-			register uint8 da = d->a;
-			register uint16 val;
-			
-			#define NonPreMul(c)	\
-				val = (DivLut[s->c * sa] + (DivLut[d->c * da] * o)) / da; \
-				d->c = G8bitTo16bit(val)
-			NonPreMul(r);
-			NonPreMul(g);
-			NonPreMul(b);
-			#undef NonPreMul
-			d->a = s->a + DivLut[da * o];
+			NpmOver32to64(s, d);
 		}
 
 		s++;

@@ -249,6 +249,8 @@ public:
 				AlphaCase(Abgr32);
 				AlphaCase(Rgba32);
 				AlphaCase(Bgra32);
+				
+				#undef AlphaCase
 
 				default:
 					LgiAssert(!"Impl me.");
@@ -604,6 +606,8 @@ public:
 				AlphaCase(Abgr32, 32);
 				AlphaCase(Rgba32, 32);
 				AlphaCase(Bgra32, 32);
+				
+				#undef AlphaCase
 
 				default:
 					LgiAssert(!"Impl me.");

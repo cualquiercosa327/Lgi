@@ -317,11 +317,36 @@ public:
 
 			while (d < e)
 			{
-				System24BitPixel *dst = dc + *d;
-				int r = dst->r + DivLut[(s->r >> 8) * alpha];
-				int g = dst->g + DivLut[(s->g >> 8) * alpha];
-				int b = dst->b + DivLut[(s->b >> 8) * alpha];
-				*d++ = Lut[Rgb15(r, g, b)];
+				System24BitPixel dst = dc[*d];
+				GRgba32 src = { s->r >> 8, s->g >> 8, s->b >> 8, alpha };
+				NpmOver32to24(&src, &dst);
+				*d++ = Lut[Rgb15(dst.r, dst.g, dst.b)];
+				s++;
+			}
+
+			Ptr += Dest->Line;
+		}
+	}
+
+	template<typename Pixel>
+	void AlphaBlt64(GBmpMem *Src, GPalette *DPal, uchar *Lut)
+	{
+		System24BitPixel dc[256];
+		CreatePaletteLut(dc, DPal, 0xff);
+		
+		if (!Lut) Lut = DPal->MakeLut(15);
+
+		for (int y=0; y<Src->y; y++)
+		{
+			Pixel *s = (Pixel*) (Src->Base + (y * Src->Line));
+			uchar *d = Ptr;
+			uchar *e = d + Src->x;
+
+			while (d < e)
+			{
+				System24BitPixel dst = dc[*d];
+				NpmOver64to24(s, &dst);
+				*d++ = Lut[Rgb15(dst.r, dst.g, dst.b)];
 				s++;						
 			}
 
@@ -846,19 +871,16 @@ public:
 				case CsIndex8:
 				{
 					Pixel map[256];
-					if (SPal)
+					for (int i=0; i<256; i++)
 					{
-						GdcRGB *p = (*SPal)[0];
-						for (int i=0; i<256; i++, p++)
+						GdcRGB *p = (SPal) ? (*SPal)[i] : NULL;
+						if (p)
 						{
 							map[i].r = p->r;
 							map[i].g = p->g;
 							map[i].b = p->b;
 						}
-					}
-					else
-					{
-						for (int i=0; i<256; i++)
+						else
 						{
 							map[i].r = i;
 							map[i].g = i;
@@ -1776,10 +1798,10 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 			Case(Abgr32, 32);
 			Case(Rgb48, 48);
 			Case(Bgr48, 48);
-			Case(Rgba64, 48);
-			Case(Bgra64, 48);
-			Case(Argb64, 48);
-			Case(Abgr64, 48);
+			Case(Rgba64, 64);
+			Case(Bgra64, 64);
+			Case(Argb64, 64);
+			Case(Abgr64, 64);
 			
 			#undef Case
 		}

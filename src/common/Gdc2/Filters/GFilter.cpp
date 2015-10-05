@@ -1984,7 +1984,7 @@ GSurface *GdcDevice::Load(const char *Name, bool UseOSLoader)
 							Size.cy > 0 &&
 							pDC.Reset(new GMemDC))
 						{
-							if (pDC->Create(Size.cx, Size.cy, 24))
+							if (pDC->Create(Size.cx, Size.cy, System24BitColourSpace))
 							{
 								HDC hDC = pDC->StartDC();
 								if (hDC)

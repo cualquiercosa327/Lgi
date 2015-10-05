@@ -145,19 +145,17 @@ public:
 			case CsIndex8:
 			{
 				Pixel map[256];
-				if (SPal)
+				ZeroObj(map);
+				for (int i=0; i<256; i++)
 				{
-					GdcRGB *p = (*SPal)[0];
-					for (int i=0; i<256; i++, p++)
+					GdcRGB *p = SPal ? (*SPal)[i] : NULL;
+					if (p)
 					{
 						map[i].r = G8bitTo5bit(p->r);
 						map[i].g = G8bitTo5bit(p->g);
 						map[i].b = G8bitTo5bit(p->b);
 					}
-				}
-				else
-				{
-					for (int i=0; i<256; i++)
+					else
 					{
 						map[i].r = G8bitTo5bit(i);
 						map[i].g = G8bitTo5bit(i);

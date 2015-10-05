@@ -483,7 +483,7 @@ GFilter::IoStatus GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 				int rowlen = img.width * img.samplesperpixel * img.bitspersample / 8;
 				GArray<uint8> a;
 				if (a.Length(rowlen) &&
-					pDC->Create(img.width, img.height, 32))
+					pDC->Create(img.width, img.height, System32BitColourSpace))
 				{
 				    if (Meter)
 				        Meter->SetLimits(0, img.height);
@@ -522,7 +522,7 @@ GFilter::IoStatus GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 			}
 			else
 			{
-	            if (pDC->Create(img.width, img.height, max(Bits, 8)))
+	            if (pDC->Create(img.width, img.height, GBitsToColourSpace(max(Bits, 8))))
 	            {
 	                if (Meter)
 	                    Meter->SetLimits(0, img.height);

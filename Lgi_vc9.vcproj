@@ -1250,6 +1250,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\common\GPixelRops.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\common\GRops.h"
 					>
 				</File>

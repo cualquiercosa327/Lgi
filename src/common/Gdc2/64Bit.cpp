@@ -24,13 +24,15 @@ class App64 : public GApplicator
 		uint8 *u8;
 		Pixel *p;
 	};
-	
+
+	int Op;	
 	int ConstAlpha;
 	GPalette *PalAlpha;
 
 public:
-	App64()
+	App64(int op)
 	{
+		Op = op;
 		p = NULL;
 		ConstAlpha = 0xffff;
 		PalAlpha = NULL;
@@ -345,7 +347,7 @@ public:
 				Dst.y = Src->y;
 				Dst.Cs = Dest->Cs;
 				Dst.Line = Dest->Line;				
-				if (!LgiRopUniversal(&Dst, Src, false))
+				if (!LgiRopUniversal(&Dst, Src, Op==GDC_ALPHA))
 				{
 					return false;
 				}
@@ -389,7 +391,7 @@ public:
 		{
 			#define Case64(name) \
 				case Cs##name: \
-					return new App64<G##name, Cs##name>();
+					return new App64<G##name, Cs##name>(Op);
 			
 			Case64(Rgba64);
 			Case64(Bgra64);
