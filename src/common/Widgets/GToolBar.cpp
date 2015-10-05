@@ -140,7 +140,7 @@ public:
 		Cache.Add(dc);
 		dc->Disabled = Disabled;
 		dc->Back = Back;
-		bool Status = dc->Create(ImgLst->X(), ImgLst->Y(), GdcD->GetBits());
+		bool Status = dc->Create(ImgLst->X(), ImgLst->Y(), GdcD->GetColourSpace());
 		if (Status)
 		{
 			dc->Colour(dc->Back);

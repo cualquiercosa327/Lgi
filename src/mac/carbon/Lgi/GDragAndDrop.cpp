@@ -240,7 +240,7 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 		SysFont->Transparent(true);
 		GDisplayString s(SysFont, "+");
 
-		if (m.Create(s.X() + 12, s.Y() + 2, 32))
+		if (m.Create(s.X() + 12, s.Y() + 2, System32BitColourSpace))
 		{
 			m.Colour(Rgb32(0x30, 0, 0xff));
 			m.Rectangle();

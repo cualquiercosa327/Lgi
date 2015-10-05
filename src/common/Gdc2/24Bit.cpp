@@ -265,15 +265,48 @@ public:
 		
 		if (!SrcAlpha)
 		{
-			GBmpMem Dst;
-			Dst.Base = u8;
-			Dst.x = Src->x;
-			Dst.y = Src->y;
-			Dst.Cs = Dest->Cs;
-			Dst.Line = Dest->Line;				
-			if (!LgiRopUniversal(&Dst, Src, false))
+			if (Src->Cs == CsIndex8)
 			{
-				return false;
+				Pixel map[256];
+				for (int i=0; i<256; i++)
+				{
+					GdcRGB *rgb = SPal ? (*SPal)[i] : NULL;
+					if (rgb)
+					{
+						map[i].r = rgb->r;
+						map[i].g = rgb->g;
+						map[i].b = rgb->b;
+					}
+					else
+					{
+						map[i].r = i;
+						map[i].g = i;
+						map[i].b = i;
+					}
+				}
+				for (int y=0; y<Src->y; y++)
+				{
+					register uint8 *s = Src->Base + (y * Src->Line);
+					register Pixel *d = p, *e = d + Src->x;
+					while (d < e)
+					{
+						*d++ = map[*s++];
+					}
+					u8 += Dest->Line;
+				}
+			}
+			else
+			{
+				GBmpMem Dst;
+				Dst.Base = u8;
+				Dst.x = Src->x;
+				Dst.y = Src->y;
+				Dst.Cs = Dest->Cs;
+				Dst.Line = Dest->Line;				
+				if (!LgiRopUniversal(&Dst, Src, false))
+				{
+					return false;
+				}
 			}
 		}
 		else
@@ -307,6 +340,9 @@ public:
 
 GApplicator *GApp24::Create(GColourSpace Cs, int Op)
 {
+	if (Op != GDC_SET)
+		return NULL;
+
 	if (Cs == System24BitColourSpace)
 	{
 		switch (Op)
@@ -338,7 +374,10 @@ GApplicator *GApp24::Create(GColourSpace Cs, int Op)
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
-#define GetRGB(c) uchar R = R24(c); uchar G = G24(c); uchar B = B24(c);
+#define GetRGB(c) \
+	register uint8 R = p24.r; \
+	register uint8 G = p24.g; \
+	register uint8 B = p24.b
 
 bool GdcApp24::SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a)
 {

@@ -521,7 +521,7 @@ bool GReduceBitDepth(GSurface *pDC, int Bits, GPalette *Pal, GReduceOptions *Red
 	GSurface *pTemp = new GMemDC;
 	if (pDC &&
 		pTemp &&
-		pTemp->Create(pDC->X(), pDC->Y(), Bits))
+		pTemp->Create(pDC->X(), pDC->Y(), GBitsToColourSpace(Bits)))
 	{
 		if (Bits <= 8 && Pal)
 		{
@@ -596,7 +596,7 @@ bool GReduceBitDepth(GSurface *pDC, int Bits, GPalette *Pal, GReduceOptions *Red
 			pTemp->Blt(0, 0, pDC);
 		}
 
-		if (pDC->Create(pTemp->X(), pTemp->Y(), pTemp->GetBits()))
+		if (pDC->Create(pTemp->X(), pTemp->Y(), pTemp->GetColourSpace()))
 		{
 			if (Pal)
 				pDC->Palette(new GPalette(Pal));

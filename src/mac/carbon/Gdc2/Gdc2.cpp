@@ -404,7 +404,7 @@ GBmpMem::GBmpMem()
 
 GBmpMem::~GBmpMem()
 {
-	if (Base && (Flags & GDC_OWN_MEMORY))
+	if (Base && (Flags & BmpOwnMemory))
 	{
 		delete [] Base;
 	}

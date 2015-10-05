@@ -222,7 +222,7 @@ void GStatusPane::Bitmap(GSurface *pNewDC)
 		pDC = new GMemDC;
 		if (pDC)
 		{
-			if (pDC->Create(pNewDC->X(), pNewDC->Y(), pNewDC->GetBits()))
+			if (pDC->Create(pNewDC->X(), pNewDC->Y(), pNewDC->GetColourSpace()))
 			{
 				pDC->Blt(0, 0, pNewDC);
 			}

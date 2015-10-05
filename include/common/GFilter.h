@@ -172,7 +172,7 @@ public:
 
 	void Move(GdcRleDC *pDC);
 
-	bool Create(int x, int y, int Bits, int LineLen = 0);
+	bool Create(int x, int y, GColourSpace cs, int flags = SurfaceCreateNone);
 	bool CreateInfo(int x, int y, GColourSpace cs);
 	void ReadOnly(bool Read);
 	bool ReadOnly();

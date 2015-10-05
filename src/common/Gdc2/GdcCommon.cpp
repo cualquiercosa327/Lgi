@@ -354,7 +354,7 @@ void LgiFillGradient(GSurface *pDC, GRect &r, bool Vert, GArray<GColourStop> &St
 GSurface *ConvertDC(GSurface *pDC, int Bits)
 {
 	GSurface *pNew = new GMemDC;
-	if (pNew && pNew->Create(pDC->X(), pDC->Y(), Bits))
+	if (pNew && pNew->Create(pDC->X(), pDC->Y(), GBitsToColourSpace(Bits)))
 	{
 		pNew->Blt(0, 0, pDC);
 		DeleteObj(pDC);
@@ -1047,7 +1047,7 @@ GSurface *GInlineBmp::Create(uint32 TransparentPx)
 /*
 #include "GPixelRops.h"
 
-// Use LgiUniversalRop instead
+// Use LgiRopUniversal instead
 bool GUniversalBlt
 (
 	GColourSpace OutCs,
@@ -1371,7 +1371,8 @@ bool LgiRopUniversal(GBmpMem *Dst, GBmpMem *Src, bool Composite)
 		// No conversion idiom
 		uint8 *d = Dst->Base;
 		uint8 *s = Src->Base;
-		int Bytes = (SrcBits * Cx) >> 3;
+		int BytesPerPx = (SrcBits + 7) / 8;
+		int Bytes = BytesPerPx * Cx;
 		for (int y=0; y<Cy; y++)
 		{
 			memcpy(d, s, Bytes);

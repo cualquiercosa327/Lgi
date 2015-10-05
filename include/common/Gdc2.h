@@ -134,7 +134,6 @@
 #define GDC_MAX_OPTION				4
 
 // GSurface Flags
-#define GDC_OWN_MEMORY				0x0001
 #define GDC_ON_SCREEN				0x0002
 #define GDC_ALPHA_CHANNEL			0x0004
 #define GDC_UPDATED_PALETTE			0x0008
@@ -183,6 +182,12 @@ class GSurface;
 class LgiClass GBmpMem
 {
 public:
+	enum GdcMemFlags
+	{
+		BmpOwnMemory = 0x1,
+		BmpPreMulAlpha = 0x2,
+	};
+
 	uchar *Base;
 	int x, y, Line;
 	GColourSpace Cs;
@@ -190,6 +195,11 @@ public:
 
 	GBmpMem();
 	~GBmpMem();
+	
+	bool IsPreMul()
+	{
+		return (Flags & BmpPreMulAlpha) != 0;
+	}
 	
 	int GetBits()
 	{
@@ -434,8 +444,13 @@ public:
 	virtual bool GetClient(GRect *c) { return false; }
 
 	// Creation
-	virtual bool Create(int x, int y, int Bits, int LineLen = 0, bool KeepData = false) { return false; }
-	virtual bool Create(int x, int y, GColourSpace Cs, int LineLen = 0, bool KeepData = false) { return false; }
+	enum SurfaceCreateFlags
+	{
+		SurfaceCreateNone,
+		SurfaceRequireNative,
+		SurfaceRequireExactCs,
+	};
+	virtual bool Create(int x, int y, GColourSpace Cs, int Flags = SurfaceCreateNone) { return false; }
 	virtual void Update(int Flags) {}
 
 	// Alpha channel	
@@ -937,8 +952,7 @@ public:
 	void Empty();
 	bool SupportsAlphaCompositing();
 	
-	bool Create(int x, int y, int Bits, int LineLen = 0, bool KeepData = false);
-	bool Create(int x, int y, GColourSpace Cs, int LineLen = 0, bool KeepData = false);
+	bool Create(int x, int y, GColourSpace Cs, int Flags = SurfaceCreateNone);
 	void Blt(int x, int y, GSurface *Src, GRect *a = NULL);
 	void StretchBlt(GRect *d, GSurface *Src, GRect *s = NULL);
 

@@ -1636,14 +1636,13 @@ void GTree::OnPaint(GSurface *pDC)
 	if (GetImageList() &&
 		!d->IconCache)
 	{
-		int Bits = GdcD->GetBits();
 		int CacheHeight = max(SysFont->GetHeight(), GetImageList()->Y());
 		
 		d->IconCache = new GMemDC;
 		if (d->IconCache &&
-			d->IconCache->Create(GetImageList()->X(), CacheHeight, Bits))
+			d->IconCache->Create(GetImageList()->X(), CacheHeight, GdcD->GetColourSpace()))
 		{
-			if (Bits <= 8)
+			if (d->IconCache->GetColourSpace() == CsIndex8)
 			{
 				d->IconCache->Palette(new GPalette(GdcD->GetGlobalColour()->GetPalette()));
 			}

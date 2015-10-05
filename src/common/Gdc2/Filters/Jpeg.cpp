@@ -572,11 +572,7 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 	}
 
 	int Bits = cinfo.num_components * 8;
-	#ifdef MAC
-	if (Bits == 24)
-		Bits = 32;
-	#endif
-	if (pDC->Create(cinfo.image_width, cinfo.image_height, Bits))
+	if (pDC->Create(cinfo.image_width, cinfo.image_height, GBitsToColourSpace(Bits)))
 	{
 		// zero out bitmap
 		pDC->Colour(0, Bits);

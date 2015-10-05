@@ -54,7 +54,7 @@ GMemDC::GMemDC(GSurface *pDC)
 	pMem = 0;
 
 	if (pDC &&
-		Create(pDC->X(), pDC->Y(), pDC->GetBits()) )
+		Create(pDC->X(), pDC->Y(), pDC->GetColourSpace()) )
 	{
 		if (pDC->Palette())
 		{
@@ -167,41 +167,7 @@ bool GMemDC::SupportsAlphaCompositing()
 	return true;
 }
 
-bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
-{
-	GColourSpace cs = GdcD->GetColourSpace();
-	switch (Bits)
-	{
-		case 8:
-			cs = CsIndex8;
-			break;
-		case 15:
-			cs = System15BitColourSpace;
-			break;
-		case 16:
-			cs = System16BitColourSpace;
-			break;
-		case 24:
-			cs = System24BitColourSpace;
-			break;
-		case 32:
-			cs = System32BitColourSpace;
-			break;
-		case 48:
-			cs = CsRgb48;
-			break;
-		case 64:
-			cs = CsRgba64;
-			break;
-		default:
-			LgiAssert(0);
-			break;
-	}
-
-	return Create(x, y, cs, LineLen, KeepData);
-}
-
-bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
+bool GMemDC::Create(int x, int y, GColourSpace Cs, int Flags)
 {
 	bool Status = false;
 	GBmpMem *pOldMem = pMem;
@@ -266,29 +232,6 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
 			}
 
 			Clip.ZOff(X()-1, Y()-1);
-
-			if (KeepData)
-			{
-				GApplicator *MyApp = CreateApplicator(GDC_SET);
-				if (MyApp)
-				{
-					GBmpMem Temp = *pOldMem;
-					Temp.x = min(pMem->x, pOldMem->x);
-					Temp.y = min(pMem->y, pOldMem->y);
-
-					MyApp->SetSurface(pMem);
-					MyApp->c = 0;
-					MyApp->SetPtr(0, 0);
-					MyApp->Rectangle(pMem->x, pMem->y);
-					// MyApp->Blt(&Temp, pPalette, pPalette);
-
-					DeleteObj(MyApp);
-				}
-				else
-				{
-					Status = false;
-				}
-			}
 		}
 
 		if (!Status)

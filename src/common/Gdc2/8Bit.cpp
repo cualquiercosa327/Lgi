@@ -415,6 +415,41 @@ void Convert(System24BitPixel *Dst, GBmpMem *Src, int Line, GPalette *SPal)
 	}
 }
 
+template<typename Pixel>
+void BltNearest16(uchar *Lookup, uint8 *out, Pixel *p, int x)
+{
+	register Pixel *src = p, *e = src + x;
+	while (src < e)
+	{
+		*out++ = Lookup[Rgb15(src->r<<3, src->g<<2, src->b<<3)];
+		src++;
+	}
+}
+
+template<typename Pixel>
+void BltNearest24(uchar *Lookup, uint8 *out, Pixel *p, int x)
+{
+	register Pixel *src = p, *e = src + x;
+	while (src < e)
+	{
+		*out++ = Lookup[Rgb15(src->r, src->g, src->b)];
+		src++;
+	}
+}
+
+template<typename Pixel>
+void BltNearest48(uchar *Lookup, uint8 *out, Pixel *p, int x)
+{
+	register Pixel *src = p, *e = src + x;
+	while (src < e)
+	{
+		*out++ = Lookup[Rgb15(src->r >> 8, src->g >> 8, src->b >> 8)];
+		src++;
+	}
+}
+
+#define LookupIdx5bit(r, g, b) ( ((int)(r)<<10) | ((int)(g)<<5) | (b) )
+
 bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 {
 	Dest->Flags &= ~GDC_UPDATED_PALETTE;
@@ -422,11 +457,6 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 	{
 		switch (Src->Cs)
 		{
-			default:
-			{
-				LgiTrace("%s:%i - Not impl.", _FL);
-				break;
-			}
 			case CsIndex8:
 			{
 				uchar *s = Src->Base;
@@ -438,10 +468,7 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case System15BitColourSpace:
-			case System16BitColourSpace:
-			case System24BitColourSpace:
-			case System32BitColourSpace:
+			default:
 			{
 				switch (GdcD->GetOption(GDC_REDUCE_TYPE))
 				{
@@ -479,7 +506,7 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 											LgiAssert(!"Not impl.");
 											break;
 										}
-										case System15BitColourSpace:
+										case CsRgb15:
 										{
 											ushort *s = (ushort*) (Src->Base + (y * Src->Line));
 											for (int x=0; x<Src->x; x++)
@@ -488,36 +515,40 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 											}
 											break;
 										}
-										case System16BitColourSpace:
+										case CsBgr15:
 										{
-											ushort *s = (ushort*) (Src->Base + (y * Src->Line));
+											GBgr15 *s = (GBgr15*) (Src->Base + (y * Src->Line));
 											for (int x=0; x<Src->x; x++)
 											{
-												*d++ = Lookup[Rgb16To15(*s)];
+												uint16 u = LookupIdx5bit(s->r, s->g, s->b);
+												*d++ = Lookup[u];
 												s++;
 											}
 											break;
 										}
-										case System24BitColourSpace:
-										{
-											System24BitPixel *s = (System24BitPixel*) (Src->Base + (y * Src->Line));
-											for (int x=0; x<Src->x; x++)
-											{
-												*d++ = Lookup[Rgb15(s->r, s->g, s->b)];
-												s++;
-											}
-											break;
-										}
-										case System32BitColourSpace:
-										{
-											uint32 *s = (uint32*) (Src->Base + (y * Src->Line));
-											for (int x=0; x<Src->x; x++)
-											{
-												*d++ = Lookup[Rgb32To15(*s)];
-												s++;
-											}
-											break;
-										}
+										#define Case(Px, Sz) \
+											case Cs##Px: \
+												BltNearest##Sz(Lookup, d, (G##Px*) (Src->Base + (y * Src->Line)), Src->x); \
+												break
+										Case(Rgb16, 16);
+										Case(Bgr16, 16);
+										Case(Rgb24, 24);
+										Case(Bgr24, 24);
+										Case(Rgbx32, 24);
+										Case(Bgrx32, 24);
+										Case(Xrgb32, 24);
+										Case(Xbgr32, 24);
+										Case(Rgba32, 24);
+										Case(Bgra32, 24);
+										Case(Argb32, 24);
+										Case(Abgr32, 24);
+										Case(Rgb48, 48);
+										Case(Bgr48, 48);
+										Case(Rgba64, 48);
+										Case(Bgra64, 48);
+										Case(Argb64, 48);
+										Case(Abgr64, 48);
+										#undef Case
 									}
 								}
 							}
@@ -613,7 +644,7 @@ bool GdcApp8Set::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 						if (!Pal) break;
 
 						GSurface *pBuf = new GMemDC;
-						if (pBuf && pBuf->Create(Src->x+2, 2, 24))
+						if (pBuf && pBuf->Create(Src->x+2, 2, System24BitColourSpace))
 						{
 							// Clear buffer
 							pBuf->Colour(0, 24);

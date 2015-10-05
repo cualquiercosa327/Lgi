@@ -141,7 +141,7 @@ void CGImg::Create(int x, int y, int Bits, int Line, uchar *data, uchar *palette
 		}
 		else
 		{
-			printf("%s:%i - CGDataProviderCreateWithData failed.\n", _FL);
+			// printf("%s:%i - CGDataProviderCreateWithData failed.\n", _FL);
 		}
 	}
 	else
@@ -172,9 +172,9 @@ public:
 
 	GMemDCPrivate()
 	{
-		Cs = 0;
-		Data = 0;
-		Bmp = 0;
+		Cs = NULL;
+		Data = NULL;
+		Bmp = NULL;
 	}
 	
 	~GMemDCPrivate()
@@ -197,6 +197,7 @@ public:
 		}
 		
 		BitsMem.Reset();
+		Data = NULL;
 	}
 };
 
@@ -217,7 +218,7 @@ GMemDC::GMemDC(GSurface *pDC)
 	pMem = 0;
 
 	if (pDC &&
-		Create(pDC->X(), pDC->Y(), pDC->GetBits()) )
+		Create(pDC->X(), pDC->Y(), pDC->GetColourSpace()) )
 	{
 		if (pDC->Palette())
 		{
@@ -304,12 +305,7 @@ bool GMemDC::Unlock()
 	return true;
 }
 
-bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
-{
-    return Create(x, y, GBitsToColourSpace(Bits), LineLen, KeepData);
-}
-
-bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
+bool GMemDC::Create(int x, int y, GColourSpace Cs, int Flags)
 {
 	bool Status = false;
 
@@ -318,7 +314,8 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
 	if (x > 0 && y > 0 && Cs != CsNone)
 	{
         int Bits = GColourSpaceToBits(Cs);
-		if (Bits > 8)
+		int LineLen = ((Bits * x + 31) / 32) * 4;
+		if (Bits > 16)
 		{
 			d->Cs = CGColorSpaceCreateDeviceRGB();
 			d->Bmp = CGBitmapContextCreate
@@ -326,7 +323,7 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
 					NULL,
 					x,
 					y,
-					Bits == 16 ? 5 : 8,
+					8,
 					0,
 					d->Cs,
 					Bits == 32 ? AlphaType : kCGImageAlphaNoneSkipLast
@@ -362,12 +359,18 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
 								pMem->Cs = CsRgb24;
 								break;
 							case kCGImageAlphaLast:               /* For example, non-premultiplied RGBA */
-							case kCGImageAlphaPremultipliedLast:  /* For example, premultiplied RGBA */
 								pMem->Cs = CsRgba32;
 								break;
+							case kCGImageAlphaPremultipliedLast:  /* For example, premultiplied RGBA */
+								pMem->Cs = CsRgba32;
+								pMem->Flags |= GBmpMem::BmpPreMulAlpha;
+								break;
 							case kCGImageAlphaFirst:              /* For example, non-premultiplied ARGB */
+								pMem->Cs = CsArgb32;
+								break;
 							case kCGImageAlphaPremultipliedFirst: /* For example, premultiplied ARGB */
 								pMem->Cs = CsArgb32;
+								pMem->Flags |= GBmpMem::BmpPreMulAlpha;
 								break;
 							case kCGImageAlphaNoneSkipLast:       /* For example, RGBX. */
 								pMem->Cs = CsRgbx32;
@@ -387,12 +390,22 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
 						break;
 					}
 				}
+				
+				if (pMem->Cs != Cs &&
+					Flags == GSurface::SurfaceRequireExactCs)
+				{
+					// Surface type mismatch... throw away the system bitmap and allocate
+					// the exact type just in our memory.
+					d->Empty();
+					pMem->Base = NULL;
+				}
 			}
-			else
+			
+			if (!pMem->Base)
 			{
 				pMem->Line = ((Bits * x + 31) / 32) * 4;
 				pMem->Base = new uint8[pMem->Line * y];
-				pMem->Flags |= GDC_OWN_MEMORY;
+				pMem->Flags |= GBmpMem::BmpOwnMemory;
 				pMem->Cs = Cs;
 			}
 			
@@ -444,42 +457,10 @@ void GMemDC::Blt(int x, int y, GSurface *Src, GRect *a)
 
 	if (Src->IsScreen())
 	{
-		if (Src)
-		{
-			GRect b;
-			if (a)
-			{
-				b = *a;
-			}
-			else
-			{
-				b.ZOff(Src->X()-1, Src->Y()-1);
-			}
-
-		}
+		LgiAssert(!"Impl me.");
 	}
 	else
 	{
-		/*
-		if (Src->GetBits() == 8)
-		{
-			GPalette *p = Src->Palette();
-			printf("\tpal=%p[%i] ", p, p?p->GetSize():0);
-			if (p)
-			{
-				for (int i=0; i<p->GetSize() AND i<16; i++)
-				{
-					GdcRGB *r = (*p)[i];
-					if (r)
-					{
-						printf("%x,%x,%x ", r->R, r->G, r->B);
-					}
-				}
-			}
-			printf("\n");
-		}
-		*/
-		
 		GSurface::Blt(x, y, Src, a);
 	}
 }

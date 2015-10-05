@@ -982,14 +982,16 @@ void GComposite32To48(OutPx *d, InPx *s, int Len)
 		else if (sa)
 		{
 			// Composite pixel
-			//		Dc'  = (Sca + Dc.Da.(1 - Sa)) / Da'
 			//		Da'  = Sa + Da.(1 - Sa)
+			//		Dc'  = (Sc.Sa + Dc.Da.(1 - Sa)) / Da'
 			register uint8 o = 0xff - sa;
 			register uint16 val;
 			
 			#define NonPreMul(c)	\
-				val = DivLut[(s->c * sa) + (d->c * o)]; \
-				d->c = G8bitTo16bit(val)
+				val = (s->c * sa) + ((d->c >> 8) * o); \
+				val = DivLut[val];
+				
+				//d->c = G8bitTo16bit(val)
 			NonPreMul(r);
 			NonPreMul(g);
 			NonPreMul(b);

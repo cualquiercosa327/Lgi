@@ -684,7 +684,9 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 				
 				if (!pDC->Create(	Lib->png_get_image_width(png_ptr, info_ptr),
 									Lib->png_get_image_height(png_ptr, info_ptr),
-									ColourType == PNG_COLOR_TYPE_GRAY_ALPHA ? 8 : max(RequestBits, 8)))
+									ColourType == PNG_COLOR_TYPE_GRAY_ALPHA ?
+										CsIndex8 :
+										GBitsToColourSpace(max(RequestBits, 8))))
 				{
 					printf("%s:%i - GMemDC::Create(%i, %i, %i) failed.\n",
 							_FL,
