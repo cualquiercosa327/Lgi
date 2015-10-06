@@ -196,11 +196,30 @@ public:
 	GBmpMem();
 	~GBmpMem();
 	
-	bool IsPreMul()
+	bool PreMul()
 	{
 		return (Flags & BmpPreMulAlpha) != 0;
 	}
-	
+
+	bool PreMul(bool set)
+	{
+		if (set) Flags |= BmpPreMulAlpha;
+		else Flags &= ~BmpPreMulAlpha;
+		return PreMul();
+	}
+
+	bool OwnMem()
+	{
+		return (Flags & BmpOwnMemory) != 0;
+	}
+
+	bool OwnMem(bool set)
+	{
+		if (set) Flags |= BmpOwnMemory;
+		else Flags &= ~BmpOwnMemory;
+		return OwnMem();
+	}
+
 	int GetBits()
 	{
 		return GColourSpaceToBits(Cs);

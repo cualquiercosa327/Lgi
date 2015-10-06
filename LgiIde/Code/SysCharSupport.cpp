@@ -85,7 +85,7 @@ public:
 								{
 									char16 Str[] = { c, 0 };
 									GDisplayString d(Fnt, Str);
-									if (pDC->Create(d.X(), d.Y(), 32))
+									if (pDC->Create(d.X(), d.Y(), System32BitColourSpace))
 									{
 										pDC->Colour(LC_WORKSPACE, 24);
 										pDC->Colour(LC_TEXT, 24);

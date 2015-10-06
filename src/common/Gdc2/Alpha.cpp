@@ -1249,7 +1249,7 @@ public:
 			return true;
 		}
 
-		if (this->Dest->IsPreMul() || Src->IsPreMul())
+		if (this->Dest->PreMul() || Src->PreMul())
 		{
 			switch (Src->Cs)
 			{

@@ -648,6 +648,12 @@ GRect *GImageList::GetBounds()
 						}
 					}
 				}
+				
+				if (!d->Bounds[i].Valid())
+				{
+					// No data?
+					d->Bounds[i].ZOff(-1, -1);
+				}
 			}
 		}
 	}

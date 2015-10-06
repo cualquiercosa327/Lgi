@@ -951,7 +951,7 @@ void GSurface::Blt(int x, int y, GSurface *Src, GRect *a)
 				Bits.y = min(SClip.Y(), DClip.Y());
 				Bits.Line = Src->pMem->Line;
 				Bits.Cs = Src->GetColourSpace();
-				Bits.Flags = Src->pMem->IsPreMul() ? GBmpMem::BmpPreMulAlpha : 0;
+				Bits.PreMul(Src->pMem->PreMul());
 
 				if (Src->pAlphaDC && !Src->DrawOnAlpha())
 				{

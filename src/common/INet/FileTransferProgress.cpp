@@ -273,7 +273,7 @@ void GPaneHistory::OnPaint(GSurface *pDC)
 		pMemDC = new GMemDC;
 		if (pMemDC)
 		{
-			if (pMemDC->Create(r.X(), r.Y(), GdcD->GetBits()))
+			if (pMemDC->Create(r.X(), r.Y(), GdcD->GetColourSpace()))
 			{
 				pMemDC->Colour(Rgb24(0, 0, 0), 24);
 				pMemDC->Rectangle();

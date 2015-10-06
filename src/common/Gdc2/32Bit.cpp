@@ -323,7 +323,7 @@ public:
 
 	#define InitColour() \
 		register Pixel cp; \
-		if (Dest->IsPreMul()) \
+		if (Dest->PreMul()) \
 		{ \
 			cp.r = ((int)p32.r * p32.a) / 255; \
 			cp.g = ((int)p32.g * p32.a) / 255; \
@@ -347,7 +347,7 @@ public:
 	
 	COLOUR Get()
 	{
-		return Rgb24(p->r, p->g, p->b);
+		return Rgba32(p->r, p->g, p->b, p->a);
 	}
 	
 	void VLine(int height)
@@ -577,12 +577,12 @@ public:
 				Dst.y = Src->y;
 				Dst.Cs = Dest->Cs;
 				Dst.Line = Dest->Line;
-				Dst.Flags = Dest->IsPreMul() ? GBmpMem::BmpPreMulAlpha : 0;
+				Dst.PreMul(Dest->PreMul());
 				if (!LgiRopUniversal(&Dst, Src, false))
 				{
 					return false;
 				}
-				if (Dest->IsPreMul() && !Src->IsPreMul())
+				if (Dest->PreMul() && !Src->PreMul())
 				{
 					ConvertPreMul(&Dst);
 				}

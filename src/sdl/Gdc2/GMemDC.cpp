@@ -195,7 +195,7 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int Flags)
 					pMem->y = y;
 					pMem->Line = ((x * Bits + 31) / 32) << 2;
 					pMem->Cs = ColourSpace;
-					pMem->Flags = GDC_OWN_MEMORY;
+					pMem->OwnMem(true);
 					pMem->Base = new uchar[pMem->y * pMem->Line];
 					
 					Status = pMem->Base != NULL;
