@@ -37,7 +37,7 @@ for dst_cs in colourspaces:
 	for src_cs in colourspaces:
 		if IsRgb(dst_cs) and IsRgb(src_cs):
 			print "case JointCs("+dst_cs+", "+src_cs+"):"
-			if HasAlpha(src_cs) and int(CsToBits(src_cs)) == 32:
+			if HasAlpha(src_cs):
 				print "\tif (Composite)"
 				print "\t\tGComposite" + CsToBits(src_cs) + "To" + CsToBits(dst_cs) + "((" + CsToPx(dst_cs) + "*)d, (" + CsToPx(src_cs) + "*)s, x);"
 				print "\telse";

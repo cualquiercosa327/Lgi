@@ -928,7 +928,7 @@ public:
 					Dst.y = Src->y;
 					Dst.Cs = this->Dest->Cs;
 					Dst.Line = this->Dest->Line;				
-					return LgiRopUniversal(&Dst, Src, false);
+					return LgiRopUniversal(&Dst, Src, true);
 					break;
 				}
 			}

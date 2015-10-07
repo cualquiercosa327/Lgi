@@ -809,6 +809,145 @@ void GRop64To64(DstPx *dst, SrcPx *src, int px)
 	}
 }
 
+template<typename DstPx, typename SrcPx>
+void GComposite15To24(DstPx *dst, SrcPx *src, int px)
+{
+	register DstPx *d = dst;
+	register SrcPx *s = src;
+	register int Px = px;
+	
+	OverlapCheck()
+	
+	while (Px--)
+	{
+		if (s->a)
+		{
+			d->r = G5bitTo8bit(s->r);
+			d->g = G5bitTo8bit(s->g);
+			d->b = G5bitTo8bit(s->b);
+		}
+		
+		s++;
+		d++;
+	}
+}
+
+template<typename DstPx, typename SrcPx>
+void GComposite15To32(DstPx *dst, SrcPx *src, int px)
+{
+	register DstPx *d = dst;
+	register SrcPx *s = src;
+	register int Px = px;
+	
+	OverlapCheck()
+	
+	while (Px--)
+	{
+		if (s->a)
+		{
+			d->r = G5bitTo8bit(s->r);
+			d->g = G5bitTo8bit(s->g);
+			d->b = G5bitTo8bit(s->b);
+			d->a = 0xff;
+		}
+		
+		s++;
+		d++;
+	}
+}
+
+template<typename DstPx, typename SrcPx>
+void GComposite15To48(DstPx *dst, SrcPx *src, int px)
+{
+	register DstPx *d = dst;
+	register SrcPx *s = src;
+	register int Px = px;
+	
+	OverlapCheck()
+	
+	while (Px--)
+	{
+		if (s->a)
+		{
+			d->r = G5bitTo8bit(s->r)<<8;
+			d->g = G5bitTo8bit(s->g)<<8;
+			d->b = G5bitTo8bit(s->b)<<8;
+		}
+		
+		s++;
+		d++;
+	}
+}
+
+template<typename DstPx, typename SrcPx>
+void GComposite15To15(DstPx *dst, SrcPx *src, int px)
+{
+	register DstPx *d = dst;
+	register SrcPx *s = src;
+	register int Px = px;
+	
+	OverlapCheck()
+	
+	while (Px--)
+	{
+		if (s->a)
+		{
+			d->r = s->r;
+			d->g = s->g;
+			d->b = s->b;
+		}
+		
+		s++;
+		d++;
+	}
+}
+
+template<typename DstPx, typename SrcPx>
+void GComposite15To16(DstPx *dst, SrcPx *src, int px)
+{
+	register DstPx *d = dst;
+	register SrcPx *s = src;
+	register int Px = px;
+	
+	OverlapCheck()
+	
+	while (Px--)
+	{
+		if (s->a)
+		{
+			d->r = s->r;
+			d->g = s->g << 1;
+			d->b = s->b;
+		}
+		
+		s++;
+		d++;
+	}
+}
+
+template<typename DstPx, typename SrcPx>
+void GComposite15To64(DstPx *dst, SrcPx *src, int px)
+{
+	register DstPx *d = dst;
+	register SrcPx *s = src;
+	register int Px = px;
+	
+	OverlapCheck()
+	
+	while (Px--)
+	{
+		if (s->a)
+		{
+			d->r = G5bitTo8bit(s->r) << 8;
+			d->g = G5bitTo8bit(s->g) << 8;
+			d->b = G5bitTo8bit(s->b) << 8;
+		}
+		
+		s++;
+		d++;
+	}
+}
+
 template<typename OutPx, typename InPx>
 void GComposite32To15(OutPx *d, InPx *s, int Len)
 {
@@ -1055,6 +1194,129 @@ void GComposite32to24(OutPx *d, InPx *s, int Len)
 	}
 }
 
+template<typename DstPx, typename SrcPx>
+void GComposite64To15(DstPx *dst, SrcPx *src, int px)
+{
+	register DstPx *d = dst;
+	register SrcPx *s = src;
+	register int Px = px;
+	register uint8 *DivLut = Div255Lut;
+	
+	OverlapCheck()
+	
+	while (Px--)
+	{
+		register GRgb24 dst =
+		{
+			G5bitTo8bit(d->r),
+			G5bitTo8bit(d->g),
+			G5bitTo8bit(d->b)
+		};
+		NpmOver64to24(s, &dst);
+		d->r = dst.r >> 3;
+		d->g = dst.g >> 3;
+		d->b = dst.b >> 3;
+		
+		s++;
+		d++;
+	}
+}
 
+template<typename DstPx, typename SrcPx>
+void GComposite64To16(DstPx *dst, SrcPx *src, int px)
+{
+	register DstPx *d = dst;
+	register SrcPx *s = src;
+	register int Px = px;
+	register uint8 *DivLut = Div255Lut;
+	
+	OverlapCheck()
+	
+	while (Px--)
+	{
+		register GRgb24 dst =
+		{
+			G5bitTo8bit(d->r),
+			G6bitTo8bit(d->g),
+			G5bitTo8bit(d->b)
+		};
+		NpmOver64to24(s, &dst);
+		d->r = dst.r >> 3;
+		d->g = dst.g >> 2;
+		d->b = dst.b >> 3;
+		
+		s++;
+		d++;
+	}
+}
 
+template<typename DstPx, typename SrcPx>
+void GComposite64To24(DstPx *dst, SrcPx *src, int px)
+{
+	register DstPx *d = dst;
+	register SrcPx *s = src;
+	register int Px = px;
+	register uint8 *DivLut = Div255Lut;
+	
+	OverlapCheck()
+	
+	while (Px--)
+	{
+		NpmOver64to24(s, d);
+		s++;
+		d++;
+	}
+}
+
+template<typename DstPx, typename SrcPx>
+void GComposite64To32(DstPx *dst, SrcPx *src, int px)
+{
+	register DstPx *d = dst;
+	register SrcPx *s = src;
+	register int Px = px;
+	register uint8 *DivLut = Div255Lut;
+	
+	OverlapCheck()
+	
+	while (Px--)
+	{
+		NpmOver64to32(s, d);
+		s++;
+		d++;
+	}
+}
+
+template<typename DstPx, typename SrcPx>
+void GComposite64To48(DstPx *dst, SrcPx *src, int px)
+{
+	register DstPx *d = dst;
+	register SrcPx *s = src;
+	register int Px = px;
+	
+	OverlapCheck()
+	
+	while (Px--)
+	{
+		NpmOver64to48(s, d);
+		s++;
+		d++;
+	}
+}
+
+template<typename DstPx, typename SrcPx>
+void GComposite64To64(DstPx *dst, SrcPx *src, int px)
+{
+	register DstPx *d = dst;
+	register SrcPx *s = src;
+	register int Px = px;
+	
+	OverlapCheck()
+	
+	while (Px--)
+	{
+		NpmOver64to64(s, d);
+		s++;
+		d++;
+	}
+}
 #endif
