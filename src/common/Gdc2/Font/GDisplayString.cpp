@@ -11,6 +11,7 @@
 #include "GdiLeak.h"
 #include "GUtf8.h"
 #include "GDisplayString.h"
+#include "GPixelRops.h"
 
 #ifdef FontChange
 #undef FontChange
@@ -1191,7 +1192,7 @@ bool CompositeText8Alpha(GSurface *Out, GSurface *In, GFont *Font, int px, int p
 template<typename OutPx>
 bool CompositeText8NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int py)
 {
-	OutPx map[256];
+	GRgba32 map[256];
 
 	if (!Out || !In || !Font)
 		return false;
@@ -1199,7 +1200,7 @@ bool CompositeText8NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 	// FIXME, do blt clipping here...
 
 	// Create colour map of the foreground/background colours		
-	register uint8 *Div255 = Div255Lut;
+	register uint8 *DivLut = Div255Lut;
 	GColour fore = Font->Fore();
 	GRgb24 fore_px;
 	fore_px.r = fore.r();
@@ -1209,9 +1210,10 @@ bool CompositeText8NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 	{
 		for (int a=0; a<256; a++)
 		{
-			map[a].r = Div255[a * fore_px.r];
-			map[a].g = Div255[a * fore_px.g];
-			map[a].b = Div255[a * fore_px.b];
+			map[a].r = DivLut[a * fore_px.r];
+			map[a].g = DivLut[a * fore_px.g];
+			map[a].b = DivLut[a * fore_px.b];
+			map[a].a = a;
 		}
 	}
 	else
@@ -1225,9 +1227,10 @@ bool CompositeText8NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 		for (int a=0; a<256; a++)
 		{
 			int oma = 255 - a;
-			map[a].r = Div255[(oma * back_px.r) + (a * fore_px.r)];
-			map[a].g = Div255[(oma * back_px.g) + (a * fore_px.g)];
-			map[a].b = Div255[(oma * back_px.b) + (a * fore_px.b)];
+			map[a].r = DivLut[(oma * back_px.r) + (a * fore_px.r)];
+			map[a].g = DivLut[(oma * back_px.g) + (a * fore_px.g)];
+			map[a].b = DivLut[(oma * back_px.b) + (a * fore_px.b)];
+			map[a].a = 255;
 		}
 	}
 
@@ -1240,33 +1243,32 @@ bool CompositeText8NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 		register uint8 *i = (*In)[y];
 		if (!i) return false;
 		register uint8 *e = i + In->X();
+		register GRgba32 *src;
 
 		LgiAssert((uint8*)dst >= StartOfBuffer);
 		
 		if (Font->Transparent())
 		{
 			register uint8 a, oma;
-			register OutPx *src;
 			
 			while (i < e)
 			{
 				// Alpha blend map and output pixel
 				a = *i++;
+				src = map + a;
 				switch (a)
 				{
 					case 0:
 						break;
 					case 255:
 						// Copy
-						*dst = map[a];
+						dst->r = src->r;
+						dst->g = src->g;
+						dst->b = src->b;
 						break;
 					default:
 						// Blend
-						oma = 255 - a;
-						src = map + a;
-						dst->r = Div255[(oma * dst->r) + (a * src->r)];
-						dst->g = Div255[(oma * dst->g) + (a * src->g)];
-						dst->b = Div255[(oma * dst->b) + (a * src->b)];
+						PmOver32to24(src, dst);
 						break;
 				}
 				dst++;
@@ -1277,7 +1279,11 @@ bool CompositeText8NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 			while (i < e)
 			{
 				// Copy rop
-				*dst++ = map[*i++];
+				src = map + *i++;
+				dst->r = src->r;
+				dst->g = src->g;
+				dst->b = src->b;
+				dst++;
 			}
 		}
 

@@ -61,15 +61,22 @@
 		d->b = ( (G8bitTo16bit(s->b) * sa) + ( ((uint32)(d->b * da) / 0xffff) * oma)) / da; \
 		d->a = da; \
 	}
+
+#define PmOver32to24(s,d)	\
+	{ \
+		register uint8 oma = 0xff - s->a; \
+		d->r = s->r + DivLut[d->r * oma]; \
+		d->g = s->g + DivLut[d->g * oma]; \
+		d->b = s->b + DivLut[d->b * oma]; \
+	}
 #define PmOver32to32(s,d)	\
 	{ \
 		register uint8 sa = s->a; \
 		register uint8 oma = 0xff - sa; \
-		register uint8 da = sa + DivLut[d->a * oma]; \
 		d->r = s->r + DivLut[d->r * oma]; \
 		d->g = s->g + DivLut[d->g * oma]; \
 		d->b = s->b + DivLut[d->b * oma]; \
-		d->a = da; \
+		d->a = sa + DivLut[d->a * oma]; \
 	}
 
 //////////////////////////////////////////////////////////////////////////
