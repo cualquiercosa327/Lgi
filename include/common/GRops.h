@@ -1086,7 +1086,7 @@ void GComposite32To32(OutPx *d, InPx *s, int Len)
 			// Composite pixel
 			//		Dc'  = (Sca + Dc.Da.(1 - Sa)) / Da'
 			//		Da'  = Sa + Da.(1 - Sa)
-			NpmOver32to32(s, d);
+			OverNpm32toNpm32(s, d);
 		}
 
 		s++;
@@ -1116,7 +1116,7 @@ void GComposite32To48(OutPx *d, InPx *s, int Len)
 			// Composite pixel
 			//		Da'  = Sa + Da.(1 - Sa)
 			//		Dc'  = (Sc.Sa + Dc.Da.(1 - Sa)) / Da'
-			NpmOver32to48(s, d);
+			OverNpm32toNpm48(s, d);
 		}
 
 		s++;
@@ -1147,7 +1147,7 @@ void GComposite32To64(OutPx *d, InPx *s, int Len)
 			// Composite pixel
 			//		Dc'  = (Sca + Dc.Da.(1 - Sa)) / Da'
 			//		Da'  = Sa + Da.(1 - Sa)
-			NpmOver32to64(s, d);
+			OverNpm32toNpm64(s, d);
 		}
 
 		s++;
@@ -1212,7 +1212,7 @@ void GComposite64To15(DstPx *dst, SrcPx *src, int px)
 			G5bitTo8bit(d->g),
 			G5bitTo8bit(d->b)
 		};
-		NpmOver64to24(s, &dst);
+		OverNpm64toNpm24(s, &dst);
 		d->r = dst.r >> 3;
 		d->g = dst.g >> 3;
 		d->b = dst.b >> 3;
@@ -1240,7 +1240,7 @@ void GComposite64To16(DstPx *dst, SrcPx *src, int px)
 			G6bitTo8bit(d->g),
 			G5bitTo8bit(d->b)
 		};
-		NpmOver64to24(s, &dst);
+		OverNpm64toNpm24(s, &dst);
 		d->r = dst.r >> 3;
 		d->g = dst.g >> 2;
 		d->b = dst.b >> 3;
@@ -1262,7 +1262,7 @@ void GComposite64To24(DstPx *dst, SrcPx *src, int px)
 	
 	while (Px--)
 	{
-		NpmOver64to24(s, d);
+		OverNpm64toNpm24(s, d);
 		s++;
 		d++;
 	}
@@ -1280,7 +1280,7 @@ void GComposite64To32(DstPx *dst, SrcPx *src, int px)
 	
 	while (Px--)
 	{
-		NpmOver64to32(s, d);
+		OverNpm64toNpm32(s, d);
 		s++;
 		d++;
 	}
@@ -1297,7 +1297,7 @@ void GComposite64To48(DstPx *dst, SrcPx *src, int px)
 	
 	while (Px--)
 	{
-		NpmOver64to48(s, d);
+		OverNpm64toNpm48(s, d);
 		s++;
 		d++;
 	}
@@ -1314,7 +1314,7 @@ void GComposite64To64(DstPx *dst, SrcPx *src, int px)
 	
 	while (Px--)
 	{
-		NpmOver64to64(s, d);
+		OverNpm64toNpm64(s, d);
 		s++;
 		d++;
 	}
