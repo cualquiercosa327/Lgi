@@ -292,7 +292,7 @@ public:
 			while (d < e)
 			{
 				GdcRGB dst = dc[*d];
-				NpmOver32to24(s, &dst);
+				OverNpm32toNpm24(s, &dst);
 				*d++ = Lut[Rgb15(dst.r, dst.g, dst.b)];
 				s++;						
 			}
@@ -319,7 +319,7 @@ public:
 			{
 				System24BitPixel dst = dc[*d];
 				GRgba32 src = { s->r >> 8, s->g >> 8, s->b >> 8, alpha };
-				NpmOver32to24(&src, &dst);
+				OverNpm32toNpm24(&src, &dst);
 				*d++ = Lut[Rgb15(dst.r, dst.g, dst.b)];
 				s++;
 			}
@@ -345,7 +345,7 @@ public:
 			while (d < e)
 			{
 				System24BitPixel dst = dc[*d];
-				NpmOver64to24(s, &dst);
+				OverNpm64toNpm24(s, &dst);
 				*d++ = Lut[Rgb15(dst.r, dst.g, dst.b)];
 				s++;						
 			}
@@ -1041,7 +1041,7 @@ public:
 
 			while (d < e)
 			{
-				PmOver32to32(s, d);
+				OverPm32toPm32(s, d);
 				d++;
 				s++;
 			}

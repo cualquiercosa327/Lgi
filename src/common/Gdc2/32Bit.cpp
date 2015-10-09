@@ -452,7 +452,7 @@ public:
 				}
 				else if (sa > 0)
 				{
-					NpmOver24to32(s, d, sa);
+					OverNpm24toNpm32(s, d, sa);
 				}
 				
 				s++;
@@ -468,7 +468,7 @@ public:
 	template<typename T>
 	bool AlphaBlt32(GBmpMem *Src, GBmpMem *SrcAlpha)
 	{
-		uchar *DivLut = Div255Lut;
+		register uchar *DivLut = Div255Lut;
 
 		for (int y=0; y<Src->y; y++)
 		{
@@ -489,7 +489,7 @@ public:
 				}
 				else if (sa > 0)
 				{
-					NpmOver32to32(s, d);
+					OverNpm32toNpm32(s, d);
 				}
 				
 				s++;
@@ -524,7 +524,78 @@ public:
 		if (!Src)
 			return false;
 		
-		if (!SrcAlpha)
+		if (Src->Cs == CsIndex8)
+		{
+			Pixel map[256];
+			for (int i=0; i<256; i++)
+			{
+				GdcRGB *p = SPal ? (*SPal)[i] : NULL;
+				if (p)
+				{
+					map[i].r = p->r;
+					map[i].g = p->g;
+					map[i].b = p->b;
+				}
+				else
+				{
+					map[i].r = map[i].g = map[i].b = i;
+				}
+				map[i].a = 255;
+			}
+			
+			uint8 *in = Src->Base;
+			register uchar *DivLut = Div255Lut;
+			for (int y=0; y<Src->y; y++)
+			{
+				register uint8 *i = in;
+				register Pixel *o = p, *e = p + Src->x;
+				
+				if (SrcAlpha)
+				{
+					register uint8 *alpha = SrcAlpha->Base + (y * SrcAlpha->Line);
+					while (o < e)
+					{
+						register Pixel *src = map + *i++;
+						src->a = *alpha++;
+						if (src->a == 255)
+						{
+							o->r = src->r;
+							o->g = src->g;
+							o->b = src->b;
+							o->a = 255;
+						}
+						else if (src->a > 0)
+						{
+							OverNpm32toNpm32(src, o);
+						}
+						o++;
+					}
+					
+					if (Dest->PreMul())
+					{
+						o = p;
+						while (o < e)
+						{
+							o->r = DivLut[o->r * o->a];
+							o->g = DivLut[o->g * o->a];
+							o->b = DivLut[o->b * o->a];
+							o++;
+						}
+					}
+				}
+				else
+				{
+					while (o < e)
+					{
+						*o++ = map[*i++];
+					}
+				}
+				
+				in += Src->Line;
+				u8 += Dest->Line;
+			}
+		}
+		else if (!SrcAlpha)
 		{
 			if (Dest->Cs == Src->Cs)
 			{
@@ -533,39 +604,6 @@ public:
 				{
 					MemCpy(p, s, Src->x * sizeof(Pixel));
 					s += Src->Line;
-					u8 += Dest->Line;
-				}
-			}
-			else if (Src->Cs == CsIndex8)
-			{
-				Pixel map[256];
-				for (int i=0; i<256; i++)
-				{
-					GdcRGB *p = SPal ? (*SPal)[i] : NULL;
-					if (p)
-					{
-						map[i].r = p->r;
-						map[i].g = p->g;
-						map[i].b = p->b;
-					}
-					else
-					{
-						map[i].r = map[i].g = map[i].b = i;
-					}
-					map[i].a = 255;
-				}
-				
-				uint8 *in = Src->Base;
-				for (int y=0; y<Src->y; y++)
-				{
-					register uint8 *i = in;
-					register Pixel *o = p, *e = p + Src->x;
-					while (o < e)
-					{
-						*o++ = map[*i++];
-					}
-					
-					in += Src->Line;
 					u8 += Dest->Line;
 				}
 			}
