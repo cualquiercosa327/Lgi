@@ -1268,7 +1268,7 @@ bool CompositeText8NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 						break;
 					default:
 						// Blend
-						PmOver32to24(src, dst);
+						OverPm32toPm24(src, dst);
 						break;
 				}
 				dst++;
