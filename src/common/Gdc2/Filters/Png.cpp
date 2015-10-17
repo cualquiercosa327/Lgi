@@ -681,12 +681,14 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 				int ColourType = Lib->png_get_color_type(png_ptr, info_ptr);
 				int Channels = Lib->png_get_channels(png_ptr, info_ptr);
 				int RequestBits = FinalBits * Channels;
+				GColourSpace InCs = ColourType == PNG_COLOR_TYPE_GRAY_ALPHA ?
+										CsIndex8 :
+										GBitsToColourSpace(max(RequestBits, 8));
 				
 				if (!pDC->Create(	Lib->png_get_image_width(png_ptr, info_ptr),
 									Lib->png_get_image_height(png_ptr, info_ptr),
-									ColourType == PNG_COLOR_TYPE_GRAY_ALPHA ?
-										CsIndex8 :
-										GBitsToColourSpace(max(RequestBits, 8))))
+									InCs,
+									GSurface::SurfaceRequireExactCs))
 				{
 					printf("%s:%i - GMemDC::Create(%i, %i, %i) failed.\n",
 							_FL,
@@ -701,6 +703,10 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 					{
 						pDC->HasAlpha(true); // Setup alpha channel
 					}
+					
+					printf("PngRead %s->%s\n",
+						GColourSpaceToString(InCs),
+						GColourSpaceToString(pDC->GetColourSpace()));
 					#endif
 				
 					// Copy in the scanlines

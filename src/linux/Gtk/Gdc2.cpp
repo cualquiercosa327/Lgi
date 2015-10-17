@@ -1,4 +1,3 @@
-
 /// \file
 /// \author Matthew Allen, fret@memecode.com
 #include <stdio.h>
@@ -393,7 +392,7 @@ GBmpMem::GBmpMem()
 
 GBmpMem::~GBmpMem()
 {
-	if (Base && (Flags & GDC_OWN_MEMORY))
+	if (Base && (Flags & BmpOwnMemory))
 	{
 		delete [] Base;
 	}
@@ -921,7 +920,7 @@ GColourSpace GdkVisualToColourSpace(Gtk::GdkVisual *v, int output_bits)
 				int red = (CtRed   << 4) | v->red_prec;
 				int green = (CtGreen << 4) | v->green_prec;
 				int blue = (CtBlue  << 4) | v->blue_prec;
-				if ((v->red_shift < v->blue_shift) ^ LittleEndian)
+				if ((v->red_shift > v->blue_shift) ^ LittleEndian)
 				{
 					c = (red << 16) | (green << 8) | blue;
 				}
