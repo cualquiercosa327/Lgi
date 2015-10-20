@@ -19,8 +19,9 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////
 template<typename Pixel, GColourSpace ColourSpace>
-class App32NoAlpha : public GApplicator
+class App32Base : public GApplicator
 {
+protected:
 	union
 	{
 		uint8 *u8;
@@ -30,21 +31,13 @@ class App32NoAlpha : public GApplicator
 	GPalette *PalAlpha;
 
 public:
-	App32NoAlpha()
+	App32Base()
 	{
 		p = NULL;
 	}
 
-	int GetVar(int Var)
-	{
-		return 0;
-	
-	}
-
-	int SetVar(int Var, NativeInt Value)
-	{
-		return 0;
-	}
+	int GetVar(int Var) { return 0; }
+	int SetVar(int Var, NativeInt Value) { return 0; }
 
 	bool SetSurface(GBmpMem *d, GPalette *pal = NULL, GBmpMem *a = NULL)
 	{
@@ -80,7 +73,12 @@ public:
 		p += X;
 		u8 += Y * Dest->Line;
 	}
-	
+};
+
+template<typename Pixel, GColourSpace ColourSpace>
+class App32NoAlpha : public App32Base<Pixel, ColourSpace>
+{
+public:
 	void Set()
 	{
 		p->r = p32.r;
@@ -263,64 +261,9 @@ public:
 };
 
 template<typename Pixel, GColourSpace ColourSpace>
-class App32Alpha : public GApplicator
+class App32Alpha : public App32Base<Pixel, ColourSpace>
 {
-	union
-	{
-		uint8 *u8;
-		Pixel *p;
-	};
-	
 public:
-	App32Alpha()
-	{
-		p = NULL;
-	}
-
-	int GetVar(int Var)
-	{
-		return 0;
-	}
-	
-	int SetVar(int Var, NativeInt Value)
-	{
-		return 0;
-	}
-
-	bool SetSurface(GBmpMem *d, GPalette *pal = NULL, GBmpMem *a = NULL)
-	{
-		if (d && d->Cs == ColourSpace)
-		{
-			Dest = d;
-			Pal = pal;
-			p = (Pixel*) d->Base;
-			Alpha = 0;
-			return true;
-		}
-		return false;
-	}
-
-	void SetPtr(int x, int y)
-	{
-		p = (Pixel*) (Dest->Base + (y * Dest->Line) + (x * sizeof(Pixel)));
-	}
-	
-	void IncX()
-	{
-		p++;
-	}
-	
-	void IncY()
-	{
-		u8 += Dest->Line;
-	}
-	
-	void IncPtr(int X, int Y)
-	{
-		p += X;
-		u8 += Y * Dest->Line;
-	}
-
 	#define InitColour() \
 		register Pixel cp; \
 		if (Dest->PreMul()) \
@@ -658,6 +601,89 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
+#define CreateOpNoAlpha(name, opcode, alpha)													\
+	template<typename Pixel, GColourSpace ColourSpace>											\
+	class App32##name##alpha : public App32Base<Pixel, ColourSpace>								\
+	{																							\
+	public:																						\
+		void Set() { p->r opcode p32.r; p->g opcode p32.g; p->b opcode p32.b; }					\
+		COLOUR Get() { return Rgb32(p->r, p->g, p->b); }										\
+		void VLine(int height)																	\
+		{																						\
+			register uint8 r = p32.r, g = p32.g, b = p32.b, a = p32.a;							\
+			while (height-- > 0)																\
+			{																					\
+				p->r opcode r; p->g opcode g; p->b opcode b;									\
+				u8 += Dest->Line;																\
+			}																					\
+		}																						\
+		void Rectangle(int x, int y)															\
+		{																						\
+			register uint8 r = p32.r, g = p32.g, b = p32.b, a = p32.a;							\
+			register int lines = y;																\
+			register int ystep = Dest->Line;													\
+			while (lines-- > 0)																	\
+			{																					\
+				register Pixel *i = p, *e = i + x;												\
+				while (i < e)																	\
+				{																				\
+					i->r opcode r; i->g opcode g; i->b opcode b;								\
+					i++;																		\
+				}																				\
+				u8 += ystep;																	\
+			}																					\
+		}																						\
+		bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha = 0) { return false; }			\
+	};
+
+#define CreateOpAlpha(name, opcode, alpha)														\
+	template<typename Pixel, GColourSpace ColourSpace>											\
+	class App32##name##alpha : public App32Base<Pixel, ColourSpace>								\
+	{																							\
+	public:																						\
+		void Set() { p->r opcode p32.r; p->g opcode p32.g; p->b opcode p32.b;					\
+					 p->a opcode p32.a;															\
+					 }																			\
+		COLOUR Get() { return Rgba32(p->r, p->g, p->b, p->a); }									\
+		void VLine(int height)																	\
+		{																						\
+			register uint8 r = p32.r, g = p32.g, b = p32.b, a = p32.a;							\
+			while (height-- > 0)																\
+			{																					\
+				p->r opcode r; p->g opcode g; p->b opcode b;									\
+				p->a opcode a;																	\
+				u8 += Dest->Line;																\
+			}																					\
+		}																						\
+		void Rectangle(int x, int y)															\
+		{																						\
+			register uint8 r = p32.r, g = p32.g, b = p32.b, a = p32.a;							\
+			register int lines = y;																\
+			register int ystep = Dest->Line;													\
+			while (lines-- > 0)																	\
+			{																					\
+				register Pixel *i = p, *e = i + x;												\
+				while (i < e)																	\
+				{																				\
+					i->r opcode r; i->g opcode g; i->b opcode b;								\
+					i->a opcode a;																\
+					i++;																		\
+				}																				\
+				u8 += ystep;																	\
+			}																					\
+		}																						\
+		bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha = 0) { return false; }			\
+	};
+
+
+CreateOpNoAlpha(And, &=, NoAlpha)
+CreateOpAlpha(And, &=, Alpha)
+CreateOpNoAlpha(Or, |=, NoAlpha)
+CreateOpAlpha(Or, |=, Alpha)
+CreateOpNoAlpha(Xor, ^=, NoAlpha)
+CreateOpAlpha(Xor, ^=, Alpha)
+
+/////////////////////////////////////////////////////////////////////////////////////////
 GApplicator *GApp32::Create(GColourSpace Cs, int Op)
 {
 	if (Op == GDC_SET)
@@ -676,6 +702,68 @@ GApplicator *GApp32::Create(GColourSpace Cs, int Op)
 			AppCase(Xbgr32, NoAlpha);
 			AppCase(Bgrx32, NoAlpha);
             default: break;
+            
+            #undef AppCase
+		}
+	}
+	else if (Op == GDC_OR)
+	{
+		switch (Cs)
+		{
+			#define AppCase(name, alpha) \
+				case Cs##name: return new App32Or##alpha<G##name, Cs##name>();
+			
+			AppCase(Rgba32, Alpha);
+			AppCase(Bgra32, Alpha);
+			AppCase(Argb32, Alpha);
+			AppCase(Abgr32, Alpha);
+			AppCase(Xrgb32, NoAlpha);
+			AppCase(Rgbx32, NoAlpha);
+			AppCase(Xbgr32, NoAlpha);
+			AppCase(Bgrx32, NoAlpha);
+            default: break;
+
+            #undef AppCase
+		}
+	}
+	else if (Op == GDC_AND)
+	{
+		switch (Cs)
+		{
+			#define AppCase(name, alpha) \
+				case Cs##name: return new App32And##alpha<G##name, Cs##name>();
+			
+			AppCase(Rgba32, Alpha);
+			AppCase(Bgra32, Alpha);
+			AppCase(Argb32, Alpha);
+			AppCase(Abgr32, Alpha);
+			AppCase(Xrgb32, NoAlpha);
+			AppCase(Rgbx32, NoAlpha);
+			AppCase(Xbgr32, NoAlpha);
+			AppCase(Bgrx32, NoAlpha);
+            default: break;
+
+            #undef AppCase
+		}
+	}
+	else if (Op == GDC_XOR)
+	{
+		switch (Cs)
+		{
+			#define AppCase(name, alpha) \
+				case Cs##name: return new App32Xor##alpha<G##name, Cs##name>();
+			
+			AppCase(Rgba32, Alpha);
+			AppCase(Bgra32, Alpha);
+			AppCase(Argb32, Alpha);
+			AppCase(Abgr32, Alpha);
+			AppCase(Xrgb32, NoAlpha);
+			AppCase(Rgbx32, NoAlpha);
+			AppCase(Xbgr32, NoAlpha);
+			AppCase(Bgrx32, NoAlpha);
+            default: break;
+
+            #undef AppCase
 		}
 	}
 	
