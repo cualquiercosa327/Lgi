@@ -101,6 +101,7 @@ public:
 		PropBorderTopWidth,
 		PropBorderRightWidth,
 		PropBorderBottomWidth,
+		PropBorderRadius,
 		Prop_CellPadding, // not real CSS, but used by GHtml2 to store 'cellpadding'
 
 		// GRect based props
@@ -1063,6 +1064,7 @@ public:
 	Accessor(BorderBottom, BorderDef, BorderDef(), PropBorder);
 	Accessor(BorderLeft, BorderDef, BorderDef(), PropBorder);
 	Accessor(BorderSpacing, Len, Len(), PropNull); // 'cellspacing'
+	Accessor(BorderRadius, Len, Len(), PropNull);
 	Accessor(BorderCollapse, BorderCollapseType, CollapseInherit, PropBorderCollapse);
 	Accessor(_CellPadding, Len, Len(), PropNull); // 'cellpadding' (not CSS)
 

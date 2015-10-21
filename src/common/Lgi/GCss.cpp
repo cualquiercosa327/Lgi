@@ -165,8 +165,6 @@ GCss::GCss() : Props(32, false, PropNull)
 {
 	if (Lut.Length() == 0)
 	{
-		Lut.Add("border-collapse", PropBorderCollapse);
-		Lut.Add("border-spacing", PropBorderSpacing);
 		Lut.Add("letter-spacing", PropLetterSpacing);
 		Lut.Add("word-wrap", PropWordWrap);
 		Lut.Add("list-style", PropListStyle);
@@ -219,6 +217,9 @@ GCss::GCss() : Props(32, false, PropNull)
 		Lut.Add("border", PropBorder);
 		Lut.Add("border-style", PropBorderStyle);
 		Lut.Add("border-color", PropBorderColor);
+		Lut.Add("border-radius", PropBorderRadius);
+		Lut.Add("border-collapse", PropBorderCollapse);
+		Lut.Add("border-spacing", PropBorderSpacing);
 
 		Lut.Add("border-top", PropBorderTop);
 		Lut.Add("border-top-color", PropBorderTopColor);
@@ -247,6 +248,8 @@ GCss::GCss() : Props(32, false, PropNull)
 		Lut.Add("color", PropColor);
 		Lut.Add("no-paint-color", PropNoPaintColor);
 		Lut.Add("font-family", PropFontFamily);
+		
+		Lut.Add("cellpadding", Prop_CellPadding);
 	}
 	
 	if (ParentProp.Length() == 0)

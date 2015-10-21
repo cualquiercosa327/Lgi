@@ -19,6 +19,7 @@
 #include "GdcTools.h"
 #include "GDisplayString.h"
 #include "GPalette.h"
+#include "GPath.h"
 
 #define DEBUG_TABLE_LAYOUT			1
 #define DEBUG_RESTYLE				0
@@ -5690,9 +5691,78 @@ struct DrawBorder
 	}
 };
 
-void GTag::PaintBorder(GSurface *pDC, GRect *Px)
+void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *Px)
 {
 	GArray<GRect> r;
+
+	if (!Back.Transparent())
+	{
+		bool IsAlpha = Back.a() < 0xff;
+		int Op = pDC->Op(GDC_ALPHA);
+
+		if (Display() == DispBlock || Display() == DispInlineBlock)
+		{
+			bool Painted = false;
+			GCss::Len Radius = BorderRadius();
+			float RadPx = Radius.Type == GCss::LenPx ? Radius.Value : Radius.ToPx(Size.x, GetFont());
+			int x2 = Size.x - 1;
+			int y2 = Size.y - 1;
+			if (RadPx > 0.0f)
+			{
+				GAutoPtr<GMemDC> Corners;
+				int Px = (int)ceil(RadPx);
+				int Px2 = Px << 1;
+				if (Corners.Reset(new GMemDC(Px2, Px2, System32BitColourSpace)))
+				{	
+					Corners->Colour(0, 32);
+					Corners->Rectangle();
+					
+					GPath p;
+					GPointF ctr(Px, Px);
+					p.Circle(ctr, Px);
+					GSolidBrush br(Back);
+					p.Fill(Corners, br);
+
+					// top left
+					GRect r(0, 0, Px-1, Px-1);
+					pDC->Blt(0, 0, Corners, &r);
+					
+					// top right
+					r.Set(Px, 0, Px2-1, Px);
+					pDC->Blt(x2-Px+1, 0, Corners, &r);
+					
+					// bottom left
+					r.Set(0, Px, Px-1, Px2-1);
+					pDC->Blt(0, y2-Px+1, Corners, &r);
+					
+					// bottom right
+					r.Set(Px, Px, Px2-1, Px2-1);
+					pDC->Blt(x2-Px+1, y2-Px+1, Corners, &r);
+					
+					pDC->Colour(Back);
+					pDC->Rectangle(0, Px, Px-1, y2-Px);
+					pDC->Rectangle(Px, 0, x2-Px, y2);
+					pDC->Rectangle(x2-Px+1, Px+1, x2, y2-Px);
+					
+					Painted = true;
+				}
+			}
+			
+			if (!Painted)
+			{
+				pDC->Colour(Back);
+				pDC->Rectangle(0, 0, Size.x-1, Size.y-1);
+			}
+		}
+		else
+		{
+			pDC->Colour(Back);
+			for (unsigned i=0; i<TextPos.Length(); i++)
+				pDC->Rectangle(TextPos[i]);
+		}
+
+		pDC->Op(Op);
+	}
 
 	switch (Display())
 	{
@@ -5849,7 +5919,8 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 				Sy *= LineY;
 				
 				GRect r(0, 0, Size.x-1, Size.y-1), Px;
-				PaintBorder(pDC, &Px);
+				GColour back = _Colour(false);
+				PaintBorderAndBackground(pDC, back, &Px);
 				if (!dynamic_cast<GButton*>(Ctrl))
 				{
 					r.x1 += Px.x1;
@@ -5983,7 +6054,6 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 		}
 		default:
 		{
-			// ColorDef _back = BackgroundColor();
 			GColour fore = _Colour(true);
 			GColour back = _Colour(false);
 
@@ -6001,35 +6071,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 				}
 			}
 
-			if (!back.Transparent())
-			{
-				bool IsAlpha = back.a() < 0xff;
-				int Op = GDC_SET;
-				if (IsAlpha)
-				{
-					Op = pDC->Op(GDC_ALPHA);
-				}
-				pDC->Colour(back);
-
-				if (Display() == DispBlock || Display() == DispInlineBlock)
-				{
-					pDC->Rectangle(0, 0, Size.x-1, Size.y-1);
-				}
-				else
-				{
-					for (unsigned i=0; i<TextPos.Length(); i++)
-					{
-						pDC->Rectangle(TextPos[i]);
-					}
-				}
-
-				if (IsAlpha)
-				{
-					pDC->Op(Op);
-				}
-			}
-
-			PaintBorder(pDC);
+			PaintBorderAndBackground(pDC, back, NULL);
 
 			GFont *f = GetFont();
 			#if DEBUG_TEXT_AREA

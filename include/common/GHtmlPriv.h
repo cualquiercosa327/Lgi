@@ -405,10 +405,12 @@ public:
 	void SetCssStyle(const char *Style);
 	/// Positions the tag according to the flow region passed in
 	void OnFlow(GFlowRegion *Flow);
-	/// Paints the border of the tag
-	void PaintBorder(
+	/// Paints the border and background of the tag
+	void PaintBorderAndBackground(
 		/// The surface to paint on
 		GSurface *pDC,
+		/// The background colour (transparent is OK)
+		GColour &Back,
 		/// [Optional] The size of the border painted
 		GRect *Px = NULL);
 	void OnPaint(GSurface *pDC, bool &InSelection);
