@@ -81,47 +81,49 @@ class App32NoAlpha : public App32Base<Pixel, ColourSpace>
 public:
 	void Set()
 	{
-		p->r = p32.r;
-		p->g = p32.g;
-		p->b = p32.b;
+		this->p->r = this->p32.r;
+		this->p->g = this->p32.g;
+		this->p->b = this->p32.b;
 	}
 	
 	COLOUR Get()
 	{
-		return Rgb32(p->r, p->g, p->b);
+		return Rgb32(this->p->r,
+					this->p->g,
+					this->p->b);
 	}
 	
 	void VLine(int height)
 	{
-		Pixel cp;
-		cp.r = p32.r;
-		cp.g = p32.g;
-		cp.b = p32.b;
+		register Pixel cp;
+		cp.r = this->p32.r;
+		cp.g = this->p32.g;
+		cp.b = this->p32.b;
 		
 		while (height-- > 0)
 		{
-			*p = cp;
-			u8 += Dest->Line;
+			*this->p = cp;
+			this->u8 += this->Dest->Line;
 		}
 	}
 	
 	void Rectangle(int x, int y)
 	{
 		register Pixel cp;
-		cp.r = p32.r;
-		cp.g = p32.g;
-		cp.b = p32.b;
+		cp.r = this->p32.r;
+		cp.g = this->p32.g;
+		cp.b = this->p32.b;
 		
 		register int lines = y;
-		register int ystep = Dest->Line;
+		register int ystep = this->Dest->Line;
 		while (lines-- > 0)
 		{
-			register Pixel *i = p, *e = i + x;
+			register Pixel *i = this->p, *e = i + x;
 			while (i < e)
 			{
 				*i++ = cp;
 			}
-			u8 += ystep;
+			this->u8 += ystep;
 		}
 	}
 	
@@ -132,7 +134,7 @@ public:
 
 		for (int y=0; y<Src->y; y++)
 		{
-			register Pixel *d = p;
+			register Pixel *d = this->p;
 			register T *s = (T*) (Src->Base + (y * Src->Line));
 			register T *e = s + Src->x;
 			register uint8 *a = Src->Base + (y * SrcAlpha->Line);
@@ -162,7 +164,7 @@ public:
 				d++;
 			}
 
-			u8 += Dest->Line;
+			this->u8 += this->Dest->Line;
 		}
 		
 		return true;
@@ -175,14 +177,14 @@ public:
 		
 		if (!SrcAlpha)
 		{
-			if (Dest->Cs == Src->Cs)
+			if (this->Dest->Cs == Src->Cs)
 			{
 				register uchar *s = Src->Base;
 				for (register int y=0; y<Src->y; y++)
 				{
-					MemCpy(p, s, Src->x * sizeof(Pixel));
+					MemCpy(this->p, s, Src->x * sizeof(Pixel));
 					s += Src->Line;
-					u8 += Dest->Line;
+					this->u8 += this->Dest->Line;
 				}
 			}
 			else if (Src->Cs == CsIndex8)
@@ -207,22 +209,22 @@ public:
 				for (int y=0; y<Src->y; y++)
 				{
 					register uint8 *s = Src->Base + (y * Src->Line);
-					register Pixel *d = p, *e = d + Src->x;
+					register Pixel *d = this->p, *e = d + Src->x;
 					while (d < e)
 					{
 						*d++ = map[*s++];
 					}
-					u8 += Dest->Line;
+					this->u8 += this->Dest->Line;
 				}
 			}
 			else
 			{
 				GBmpMem Dst;
-				Dst.Base = u8;
+				Dst.Base = this->u8;
 				Dst.x = Src->x;
 				Dst.y = Src->y;
-				Dst.Cs = Dest->Cs;
-				Dst.Line = Dest->Line;				
+				Dst.Cs = this->Dest->Cs;
+				Dst.Line = this->Dest->Line;				
 				if (!LgiRopUniversal(&Dst, Src, false))
 				{
 					return false;
@@ -266,31 +268,31 @@ class App32Alpha : public App32Base<Pixel, ColourSpace>
 public:
 	#define InitColour() \
 		register Pixel cp; \
-		if (Dest->PreMul()) \
+		if (this->Dest->PreMul()) \
 		{ \
-			cp.r = ((int)p32.r * p32.a) / 255; \
-			cp.g = ((int)p32.g * p32.a) / 255; \
-			cp.b = ((int)p32.b * p32.a) / 255; \
-			cp.a = p32.a; \
+			cp.r = ((int)this->p32.r * this->p32.a) / 255; \
+			cp.g = ((int)this->p32.g * this->p32.a) / 255; \
+			cp.b = ((int)this->p32.b * this->p32.a) / 255; \
+			cp.a = this->p32.a; \
 		} \
 		else \
 		{ \
-			cp.r = p32.r; \
-			cp.g = p32.g; \
-			cp.b = p32.b; \
-			cp.a = p32.a; \
+			cp.r = this->p32.r; \
+			cp.g = this->p32.g; \
+			cp.b = this->p32.b; \
+			cp.a = this->p32.a; \
 		}
 
 	
 	void Set()
 	{
 		InitColour();
-		*p = cp;
+		*this->p = cp;
 	}
 	
 	COLOUR Get()
 	{
-		return Rgba32(p->r, p->g, p->b, p->a);
+		return Rgba32(this->p->r, this->p->g, this->p->b, this->p->a);
 	}
 	
 	void VLine(int height)
@@ -299,8 +301,8 @@ public:
 		
 		while (height-- > 0)
 		{
-			*p = cp;
-			u8 += Dest->Line;
+			*this->p = cp;
+			this->u8 += this->Dest->Line;
 		}
 	}
 	
@@ -309,15 +311,15 @@ public:
 		InitColour();
 		
 		register int lines = y;
-		register int ystep = Dest->Line;
+		register int ystep = this->Dest->Line;
 		while (lines-- > 0)
 		{
-			register Pixel *i = p, *e = i + x;
+			register Pixel *i = this->p, *e = i + x;
 			while (i < e)
 			{
 				*i++ = cp;
 			}
-			u8 += ystep;
+			this->u8 += ystep;
 		}
 	}
 	
@@ -326,7 +328,7 @@ public:
 	{
 		for (int y=0; y<Src->y; y++)
 		{
-			register Pixel *d = p;
+			register Pixel *d = this->p;
 			register T *s = (T*) (Src->Base + (y * Src->Line));
 			register T *e = s + Src->x;
 
@@ -340,7 +342,7 @@ public:
 				d++;
 			}
 
-			u8 += Dest->Line;
+			this->u8 += this->Dest->Line;
 		}
 		
 		return true;
@@ -351,7 +353,7 @@ public:
 	{
 		for (int y=0; y<Src->y; y++)
 		{
-			register Pixel *d = p;
+			register Pixel *d = this->p;
 			register T *s = (T*) (Src->Base + (y * Src->Line));
 			register T *e = s + Src->x;
 
@@ -365,7 +367,7 @@ public:
 				d++;
 			}
 
-			u8 += Dest->Line;
+			this->u8 += this->Dest->Line;
 		}
 		
 		return true;
@@ -378,7 +380,7 @@ public:
 
 		for (int y=0; y<Src->y; y++)
 		{
-			register Pixel *d = p;
+			register Pixel *d = this->p;
 			register T *s = (T*) (Src->Base + (y * Src->Line));
 			register T *e = s + Src->x;
 			register uint8 *a = Src->Base + (y * SrcAlpha->Line);
@@ -402,7 +404,7 @@ public:
 				d++;
 			}
 
-			u8 += Dest->Line;
+			this->u8 += this->Dest->Line;
 		}
 		
 		return true;
@@ -415,7 +417,7 @@ public:
 
 		for (int y=0; y<Src->y; y++)
 		{
-			register Pixel *d = p;
+			register Pixel *d = this->p;
 			register T *s = (T*) (Src->Base + (y * Src->Line));
 			register T *e = s + Src->x;
 			register uint8 *a = Src->Base + (y * SrcAlpha->Line);
@@ -439,7 +441,7 @@ public:
 				d++;
 			}
 
-			u8 += Dest->Line;
+			this->u8 += this->Dest->Line;
 		}
 		
 		return true;
@@ -491,7 +493,7 @@ public:
 			for (int y=0; y<Src->y; y++)
 			{
 				register uint8 *i = in;
-				register Pixel *o = p, *e = p + Src->x;
+				register Pixel *o = this->p, *e = this->p + Src->x;
 				
 				if (SrcAlpha)
 				{
@@ -514,9 +516,9 @@ public:
 						o++;
 					}
 					
-					if (Dest->PreMul())
+					if (this->Dest->PreMul())
 					{
-						o = p;
+						o = this->p;
 						while (o < e)
 						{
 							o->r = DivLut[o->r * o->a];
@@ -535,35 +537,35 @@ public:
 				}
 				
 				in += Src->Line;
-				u8 += Dest->Line;
+				this->u8 += this->Dest->Line;
 			}
 		}
 		else if (!SrcAlpha)
 		{
-			if (Dest->Cs == Src->Cs)
+			if (this->Dest->Cs == Src->Cs)
 			{
 				register uchar *s = Src->Base;
 				for (register int y=0; y<Src->y; y++)
 				{
-					MemCpy(p, s, Src->x * sizeof(Pixel));
+					MemCpy(this->p, s, Src->x * sizeof(Pixel));
 					s += Src->Line;
-					u8 += Dest->Line;
+					this->u8 += this->Dest->Line;
 				}
 			}
 			else
 			{
 				GBmpMem Dst;
-				Dst.Base = u8;
+				Dst.Base = this->u8;
 				Dst.x = Src->x;
 				Dst.y = Src->y;
-				Dst.Cs = Dest->Cs;
-				Dst.Line = Dest->Line;
-				Dst.PreMul(Dest->PreMul());
+				Dst.Cs = this->Dest->Cs;
+				Dst.Line = this->Dest->Line;
+				Dst.PreMul(this->Dest->PreMul());
 				if (!LgiRopUniversal(&Dst, Src, false))
 				{
 					return false;
 				}
-				if (Dest->PreMul() && !Src->PreMul())
+				if (this->Dest->PreMul() && !Src->PreMul())
 				{
 					ConvertPreMul(&Dst);
 				}
@@ -606,31 +608,32 @@ public:
 	class App32##name##alpha : public App32Base<Pixel, ColourSpace>								\
 	{																							\
 	public:																						\
-		void Set() { p->r opcode p32.r; p->g opcode p32.g; p->b opcode p32.b; }					\
-		COLOUR Get() { return Rgb32(p->r, p->g, p->b); }										\
+		void Set() { this->p->r opcode this->p32.r; this->p->g opcode this->p32.g; 				\
+					this->p->b opcode this->p32.b; }											\
+		COLOUR Get() { return Rgb32(this->p->r, this->p->g, this->p->b); }						\
 		void VLine(int height)																	\
 		{																						\
-			register uint8 r = p32.r, g = p32.g, b = p32.b, a = p32.a;							\
+			register uint8 r = this->p32.r, g = this->p32.g, b = this->p32.b, a = this->p32.a;	\
 			while (height-- > 0)																\
 			{																					\
-				p->r opcode r; p->g opcode g; p->b opcode b;									\
-				u8 += Dest->Line;																\
+				this->p->r opcode r; this->p->g opcode g; this->p->b opcode b;					\
+				this->u8 += this->Dest->Line;													\
 			}																					\
 		}																						\
 		void Rectangle(int x, int y)															\
 		{																						\
-			register uint8 r = p32.r, g = p32.g, b = p32.b, a = p32.a;							\
+			register uint8 r = this->p32.r, g = this->p32.g, b = this->p32.b, a = this->p32.a;	\
 			register int lines = y;																\
-			register int ystep = Dest->Line;													\
+			register int ystep = this->Dest->Line;												\
 			while (lines-- > 0)																	\
 			{																					\
-				register Pixel *i = p, *e = i + x;												\
+				register Pixel *i = this->p, *e = i + x;										\
 				while (i < e)																	\
 				{																				\
 					i->r opcode r; i->g opcode g; i->b opcode b;								\
 					i++;																		\
 				}																				\
-				u8 += ystep;																	\
+				this->u8 += ystep;																\
 			}																					\
 		}																						\
 		bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha = 0) { return false; }			\
@@ -641,35 +644,34 @@ public:
 	class App32##name##alpha : public App32Base<Pixel, ColourSpace>								\
 	{																							\
 	public:																						\
-		void Set() { p->r opcode p32.r; p->g opcode p32.g; p->b opcode p32.b;					\
-					 p->a opcode p32.a;															\
-					 }																			\
-		COLOUR Get() { return Rgba32(p->r, p->g, p->b, p->a); }									\
+		void Set() { this->p->r opcode this->p32.r; this->p->g opcode this->p32.g; 				\
+					 this->p->b opcode this->p32.b; this->p->a opcode this->p32.a; }			\
+		COLOUR Get() { return Rgba32(this->p->r, this->p->g, this->p->b, this->p->a); }			\
 		void VLine(int height)																	\
 		{																						\
-			register uint8 r = p32.r, g = p32.g, b = p32.b, a = p32.a;							\
+			register uint8 r = this->p32.r, g = this->p32.g, b = this->p32.b, a = this->p32.a;	\
 			while (height-- > 0)																\
 			{																					\
-				p->r opcode r; p->g opcode g; p->b opcode b;									\
-				p->a opcode a;																	\
-				u8 += Dest->Line;																\
+				this->p->r opcode r; this->p->g opcode g; this->p->b opcode b;					\
+				this->p->a opcode a;															\
+				this->u8 += this->Dest->Line;													\
 			}																					\
 		}																						\
 		void Rectangle(int x, int y)															\
 		{																						\
-			register uint8 r = p32.r, g = p32.g, b = p32.b, a = p32.a;							\
+			register uint8 r = this->p32.r, g = this->p32.g, b = this->p32.b, a = this->p32.a;	\
 			register int lines = y;																\
-			register int ystep = Dest->Line;													\
+			register int ystep = this->Dest->Line;												\
 			while (lines-- > 0)																	\
 			{																					\
-				register Pixel *i = p, *e = i + x;												\
+				register Pixel *i = this->p, *e = i + x;										\
 				while (i < e)																	\
 				{																				\
 					i->r opcode r; i->g opcode g; i->b opcode b;								\
 					i->a opcode a;																\
 					i++;																		\
 				}																				\
-				u8 += ystep;																	\
+				this->u8 += ystep;																\
 			}																					\
 		}																						\
 		bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha = 0) { return false; }			\
