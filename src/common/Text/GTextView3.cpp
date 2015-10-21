@@ -2834,24 +2834,38 @@ int GTextView3::WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState)
 	return Formats.Length() ? DROPEFFECT_COPY : DROPEFFECT_NONE;
 }
 
-int GTextView3::OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState)
+int GTextView3::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 {
-	if (!_stricmp(Format, "text/uri-list") ||
-		!_stricmp(Format, "text/html") ||
-		!_stricmp(Format, "UniformResourceLocatorW"))
+	for (unsigned i=0; i<Data.Length(); i++)
 	{
-		if (Data->IsBinary())
+		GDragData &dd = Data[i];
+		const char *Format = dd.Format;
+		if
+		(
+			Format != NULL &&
+			dd.Data.Length() > 0 &&
+			(
+				!_stricmp(Format, "text/uri-list") ||
+				!_stricmp(Format, "text/html") ||
+				!_stricmp(Format, "UniformResourceLocatorW")
+			)
+		)
 		{
-			char16 *e = (char16*) ((char*)Data->Value.Binary.Data + Data->Value.Binary.Length);
-			char16 *s = (char16*)Data->Value.Binary.Data;
-			int len = 0;
-			while (s < e && s[len])
+			GVariant *Data = &dd.Data[0];
+			LgiAssert(dd.Data.Length() == 1); // Impl multiple data entries if this asserts.
+			if (Data->IsBinary())
 			{
-				len++;
+				char16 *e = (char16*) ((char*)Data->Value.Binary.Data + Data->Value.Binary.Length);
+				char16 *s = (char16*)Data->Value.Binary.Data;
+				int len = 0;
+				while (s < e && s[len])
+				{
+					len++;
+				}
+				Insert(Cursor, s, len);
+				Invalidate();
+				return DROPEFFECT_COPY;
 			}
-			Insert(Cursor, s, len);
-			Invalidate();
-			return DROPEFFECT_COPY;
 		}
 	}
 
