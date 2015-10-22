@@ -498,6 +498,7 @@ GDisplayString.o : ../common/Gdc2/Font/GDisplayString.cpp ../../include/common/L
 	../../include/common/GdiLeak.h \
 	../../include/common/GUtf8.h \
 	../../include/common/GDisplayString.h \
+	../../include/common/GPixelRops.h \
 	/usr/include/freetype2/ftsynth.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -553,7 +554,8 @@ GFontSystem.o : ../common/Gdc2/Font/GFontSystem.cpp ../../include/common/Lgi.h \
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 32Bit.o : ../common/Gdc2/32Bit.cpp ../../include/common/Gdc2.h \
-	../../include/common/GPalette.h
+	../../include/common/GPalette.h \
+	../../include/common/GPixelRops.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -1338,7 +1340,9 @@ md5.o : ../common/Hash/md5/md5.c
 ../../include/common/GStream.h : ../../include/common/GDom.h \
 	../../include/common/GStringClass.h
 
-../../include/common/GRops.h : 
+../../include/common/GRops.h : ../../include/common/GPixelRops.h
+
+../../include/common/GPixelRops.h : 
 
 ../../include/common/GXmlTree.h : ../../include/common/GHashTable.h \
 	../../include/common/GRefCount.h \

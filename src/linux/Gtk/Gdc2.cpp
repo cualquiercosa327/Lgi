@@ -398,8 +398,6 @@ GBmpMem::~GBmpMem()
 	}
 }
 
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////
 class GdcDevicePrivate
 {
@@ -456,7 +454,6 @@ public:
 		
 		printf("Screen: %i x %i @ %i bpp (%s)\n", ScrX, ScrY, ScrBits, GColourSpaceToString(ScrColourSpace));
 		
-		// printf("Pixel24Size=%i\n", Pixel24Size);
 		OptVal[GDC_PROMOTE_ON_LOAD] = ScrBits;
 
 		// Calcuate lookups
@@ -920,7 +917,7 @@ GColourSpace GdkVisualToColourSpace(Gtk::GdkVisual *v, int output_bits)
 				int red = (CtRed   << 4) | v->red_prec;
 				int green = (CtGreen << 4) | v->green_prec;
 				int blue = (CtBlue  << 4) | v->blue_prec;
-				if ((v->red_shift > v->blue_shift) ^ LittleEndian)
+				if (v->red_shift > v->blue_shift)
 				{
 					c = (red << 16) | (green << 8) | blue;
 				}
