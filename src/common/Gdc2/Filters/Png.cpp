@@ -704,9 +704,11 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 						pDC->HasAlpha(true); // Setup alpha channel
 					}
 					
+					/*
 					printf("PngRead %s->%s\n",
 						GColourSpaceToString(InCs),
 						GColourSpaceToString(pDC->GetColourSpace()));
+					*/
 					#endif
 				
 					// Copy in the scanlines
