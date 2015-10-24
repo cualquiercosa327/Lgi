@@ -346,7 +346,8 @@ Gel.o : ./src/common/Skins/Gel/Gel.cpp ./include/common/Lgi.h \
 	./include/common/GCombo.h \
 	./include/common/GCheckBox.h \
 	./include/common/GRadioGroup.h \
-	./include/common/GDisplayString.h
+	./include/common/GDisplayString.h \
+	./include/common/GCssTools.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -524,7 +525,9 @@ GDisplayString.o : ./src/common/Gdc2/Font/GDisplayString.cpp ./include/common/Lg
 	./include/common/GFontSelect.h \
 	./include/common/GdiLeak.h \
 	./include/common/GUtf8.h \
-	./include/common/GDisplayString.h
+	./include/common/GDisplayString.h \
+	./include/common/GPixelRops.h \
+	/usr/include/freetype2/ftsynth.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -579,7 +582,8 @@ GFontSystem.o : ./src/common/Gdc2/Font/GFontSystem.cpp ./include/common/Lgi.h \
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 32Bit.o : ./src/common/Gdc2/32Bit.cpp ./include/common/Gdc2.h \
-	./include/common/GPalette.h
+	./include/common/GPalette.h \
+	./include/common/GPixelRops.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -713,7 +717,8 @@ GBitmap.o : ./src/common/Widgets/GBitmap.cpp ./include/common/Lgi.h \
 GButton.o : ./src/common/Widgets/GButton.cpp ./include/common/Lgi.h \
 	./include/common/GSkinEngine.h \
 	./include/common/GButton.h \
-	./include/common/GDisplayString.h
+	./include/common/GDisplayString.h \
+	./include/common/GTableLayout.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -1265,6 +1270,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 ../../../../../usr/include/gtk-2.0/gdk/gdkpixmap.h : /usr/include/gtk-2.0/gdk/gdktypes.h \
 	/usr/include/gtk-2.0/gdk/gdkdrawable.h
 
+../../../../../usr/include/freetype2/ftsynth.h : /usr/include/freetype2/ft2build.h
+
 ../../../../../usr/include/glib-2.0/glib/gatomic.h : /usr/include/glib-2.0/glib/gtypes.h
 
 ../../../../../usr/include/gtk-2.0/gdk/gdkselection.h : /usr/include/gtk-2.0/gdk/gdktypes.h
@@ -1488,7 +1495,9 @@ md5.o : ./src/common/Hash/md5/md5.c
 	/usr/include/pango-1.0/pango/pango-script.h \
 	/usr/include/glib-2.0/gmodule.h
 
-./include/common/GRops.h : 
+./include/common/GRops.h : ./include/common/GPixelRops.h
+
+./include/common/GPixelRops.h : 
 
 ./include/common/Progress.h : ./include/common/GMutex.h
 
@@ -1580,6 +1589,10 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/glib-2.0/gobject/gsourceclosure.h : /usr/include/glib-2.0/gobject/gclosure.h \
 	/usr/include/glib-2.0/gobject/glib-types.h
+
+../../../../../usr/include/freetype2/ft2build.h : /usr/include/freetype2/config/ftheader.h
+
+../../../../../usr/include/freetype2/config/ftheader.h : 
 
 ./include/common/GMru.h : ./include/common/GProperties.h
 
@@ -3207,7 +3220,11 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ./include/common/LgiRes.h : ./include/common/Res.h \
 	./include/common/GContainers.h \
-	./include/common/GCss.h
+	./include/common/GCss.h \
+	./include/common/GAutoPtr.h \
+	./include/common/GFontCache.h
+
+./include/common/GFontCache.h : 
 
 ./include/common/GContainers.h : ./include/common/LgiInc.h \
 	./include/linux/Gtk/LgiOsDefs.h \

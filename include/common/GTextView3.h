@@ -310,7 +310,7 @@ public:
 	int OnHitTest(int x, int y);
 	bool OnLayout(GViewLayoutInfo &Inf);
 	int WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState);
-	int OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState);
+	int OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState);
 
 	// Virtuals
 	virtual bool Insert(int At, char16 *Data, int Len);

@@ -914,130 +914,35 @@ bool GColourSpaceTest()
 GSurface *GInlineBmp::Create(uint32 TransparentPx)
 {
 	GSurface *pDC = new GMemDC;
-	if (pDC->Create(X, Y, System32BitColourSpace))
+	if (pDC->Create(X, Y, GdcD->GetColourSpace()))
 	{
-		int Line = X * Bits / 8;
-		for (int y=0; y<Y; y++)
+		GBmpMem Src, Dst;
+		
+		Src.Base = (uint8*)Data;
+		Src.Line = X * Bits >> 3;
+		Src.x = X;
+		Src.y = Y;
+		switch (Bits)
 		{
-			void *addr = ((uchar*)Data) + (y * Line);
-
-			switch (Bits)
-			{
-				#if defined(MAC)
-				case 16:
-				{
-					uint32 *s = (uint32*)addr;
-					System32BitPixel *d = (System32BitPixel*) (*pDC)[y];
-					System32BitPixel *e = d + X;
-					while (d < e)
-					{
-						uint32 n = LgiSwap32(*s);
-						s++;
-						
-						uint16 a = n >> 16;
-						a = LgiSwap16(a);
-						if (TransparentPx == a)
-						{
-							d->r = 0;
-							d->g = 0;
-							d->b = 0;
-							d->a = 0;
-						}
-						else
-						{
-							d->r = Rc16(a);
-							d->g = Gc16(a);
-							d->b = Bc16(a);
-							d->a = 255;
-						}
-						d++;
-						
-						if (d >= e)
-							break;
-
-						uint16 b = n & 0xffff;
-						b = LgiSwap16(b);
-						if (TransparentPx == b)
-						{
-							d->r = 0;
-							d->g = 0;
-							d->b = 0;
-							d->a = 0;
-						}
-						else
-						{
-							d->r = Rc16(b);
-							d->g = Gc16(b);
-							d->b = Bc16(b);
-							d->a = 255;
-						}
-						d++;
-					}
-					break;
-				}
-				#else
-				case 16:
-				{
-					uint32 *out = (uint32*)(*pDC)[y];
-					uint16 *in = (uint16*)addr;
-					uint16 *end = in + X;
-					while (in < end)
-					{
-						if (*in == TransparentPx)
-							*out = 0;
-						else
-							*out = Rgb16To32(*in);						
-						in++;
-						out++;
-					}
-					break;
-				}
-				#endif
-				case 24:
-				{
-					register uint8 r, g, b;
-					r = R24(TransparentPx);
-					g = R24(TransparentPx);
-					b = B24(TransparentPx);
-					
-					System32BitPixel *out = (System32BitPixel*)(*pDC)[y];
-					System32BitPixel *end = out + X;
-					System24BitPixel *in = (System24BitPixel*)addr;
-					while (out < end)
-					{
-						if (in->r == r &&
-							in->g == g &&
-							in->b == b)
-						{
-							out->r = 0;
-							out->g = 0;
-							out->b = 0;
-							out->a = 0;
-						}
-						else
-						{
-							out->r = in->r;
-							out->g = in->g;
-							out->b = in->b;
-							out->a = 255;
-						}
-						out++;
-						in++;
-					}
-					break;
-				}
-				case 32:
-				{
-					memcpy((*pDC)[y], addr, Line);
-					break;
-				}
-				default:
-				{
-					LgiAssert(!"Not a valid bit depth.");
-					break;
-				}
-			}
+			case 8: Src.Cs = CsIndex8; break;
+			case 15: Src.Cs = CsRgb15; break;
+			case 16: Src.Cs = CsRgb16; break;
+			case 24: Src.Cs = CsRgb24; break;
+			case 32: Src.Cs = CsRgba32; break;
+			default: Src.Cs = CsNone; break;
 		}
+		
+		Dst.Base = (*pDC)[0];
+		Dst.Line = pDC->GetRowStep();
+		Dst.x = pDC->X();
+		Dst.y = pDC->Y();
+		Dst.Cs = pDC->GetColourSpace();
+		
+		LgiRopUniversal(&Dst, &Src, false);
+	}
+	else
+	{
+		DeleteObj(pDC);
 	}
 
 	return pDC;
