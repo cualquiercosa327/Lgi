@@ -910,14 +910,6 @@ md5.o : ../common/Hash/md5/md5.c
 	../../include/common/GCss.h \
 	../../include/common/GItemContainer.h
 
-../../include/common/GCss.h : ../../include/common/LgiInc.h \
-	../../include/sdl/LgiOsDefs.h \
-	../../include/common/GMem.h \
-	../../include/common/Gdc2.h \
-	../../include/common/GAutoPtr.h \
-	../../include/common/GString.h \
-	../../include/common/GHashTable.h
-
 ../../include/common/GToken.h : ../../include/common/GArray.h
 
 ../../include/common/GMutex.h : 
@@ -925,6 +917,9 @@ md5.o : ../common/Hash/md5/md5.c
 ../../include/common/GTextView3.h : ../../include/common/GDocView.h \
 	../../include/common/GUndo.h \
 	../../include/common/GDragAndDrop.h
+
+../../include/common/GDocView.h : ../../include/common/GVariant.h \
+	../../include/common/GNotifications.h
 
 ../../include/common/GVariant.h : ../../include/common/GDom.h \
 	../../include/common/GDateTime.h \
@@ -946,22 +941,29 @@ md5.o : ../common/Hash/md5/md5.c
 
 ../../include/common/GTabView.h : 
 
+../../include/common/GPopup.h : 
+
 ../../include/common/GString.h : ../../include/common/LgiDefs.h \
 	../../include/sdl/LgiOsDefs.h
 
+../../include/sdl/LgiOsDefs.h : ../../include/common/LgiDefs.h \
+	/usr/include/SDL/SDL.h \
+	/usr/include/freetype2/ft2build.h \
+	../../include/common/LgiInc.h
+
+../../include/common/GDisplayString.h : 
+
+../../include/common/GToken.h : ../../include/common/GArray.h
+
 ../../include/common/Base64.h : ../../include/common/LgiDefs.h
-
-../../include/common/GArray.h : ../../include/common/LgiDefs.h
-
-../../include/common/INet.h : ../../include/common/GMem.h \
-	../../include/common/GContainers.h \
-	../../include/common/LgiNetInc.h \
-	../../include/common/GStream.h \
-	../../include/common/LgiInterfaces.h \
-	../../include/common/GString.h
 
 ../../include/common/LgiDefs.h : ../../include/common/LgiInc.h \
 	../../include/common/GAutoPtr.h
+
+../../include/common/GAutoPtr.h : 
+
+../../include/common/GMem.h : ../../include/common/LgiInc.h \
+	../../include/sdl/LgiOsDefs.h
 
 ../../include/common/GCombo.h : 
 
@@ -977,15 +979,9 @@ md5.o : ../common/Hash/md5/md5.c
 
 ../../include/common/GEdit.h : ../../include/common/GTextView3.h
 
+../../include/common/GNotifications.h : 
+
 ../../include/common/GPixelRops.h : 
-
-../../include/common/GDocView.h : ../../include/common/GVariant.h \
-	../../include/common/GNotifications.h
-
-../../include/common/LgiInterfaces.h : ../../include/common/GMem.h \
-	../../include/common/GArray.h \
-	../../include/sdl/LgiOsDefs.h \
-	../../include/common/GColour.h
 
 ../../include/common/GThreadEvent.h : 
 
@@ -994,29 +990,51 @@ md5.o : ../common/Hash/md5/md5.c
 	../../include/common/Res.h \
 	../../include/common/GImageList.h
 
+../../include/common/Res.h : ../../include/common/GXmlTree.h
+
+../../include/common/GXmlTree.h : ../../include/common/GHashTable.h \
+	../../include/common/GRefCount.h \
+	../../include/common/GDom.h
+
+../../include/common/GImageList.h : 
+
+../../include/common/GDom.h : ../../include/common/LgiInterfaces.h \
+	../../include/common/GMem.h \
+	../../include/common/GArray.h
+
 ../../include/common/GOptionsFile.h : ../../include/common/GVariant.h \
 	../../include/common/GXmlTree.h \
 	../../include/common/GMutex.h
 
+../../include/common/GMutex.h : 
+
 ../../include/common/GPalette.h : ../../include/common/GColourSpace.h \
 	../../include/common/GFile.h
 
+../../include/common/GFile.h : ../../include/common/GMem.h \
+	../../include/common/GStream.h \
+	../../include/common/GArray.h \
+	../../include/common/GRefCount.h \
+	../../include/common/GStringClass.h
+
 ../../include/common/GdcTools.h : 
 
-../../include/common/GContainers.h : ../../include/common/LgiInc.h \
-	../../include/sdl/LgiOsDefs.h \
-	../../include/common/GStream.h
+../../include/common/GVariant.h : ../../include/common/GDom.h \
+	../../include/common/GDateTime.h \
+	../../include/common/GContainers.h \
+	../../include/common/GHashTable.h
 
-../../include/common/Res.h : ../../include/common/GXmlTree.h
+../../include/common/GStream.h : ../../include/common/GDom.h \
+	../../include/common/GStringClass.h
 
-../../include/common/GHashTable.h : ../../include/common/GMem.h \
-	../../include/common/GArray.h \
-	../../include/common/GString.h \
-	../../include/common/LgiClass.h
+../../include/common/GArray.h : ../../include/common/LgiDefs.h
+
+../../include/common/GMenuImpl.h : ../../include/common/GPopup.h
 
 ../../../../../../../usr/include/freetype2/ftsynth.h : /usr/include/freetype2/ft2build.h
 
-../../include/common/GAutoPtr.h : 
+../../include/common/GItemContainer.h : ../../include/common/GPopup.h \
+	../../include/common/GNotifications.h
 
 ../../include/common/GDateTime.h : 
 
@@ -1040,18 +1058,22 @@ md5.o : ../common/Hash/md5/md5.c
 	../../include/common/GColour.h \
 	../../include/common/GFilter.h
 
+../../include/common/GPoint.h : 
+
 ../../include/common/GFont.h : ../../include/common/GRect.h \
 	../../include/sdl/LgiOsClasses.h \
 	../../include/common/GColour.h \
 	../../include/common/GCapabilities.h
 
+../../include/common/GFilter.h : ../../include/common/GContainers.h
+
 ../../include/common/GRect.h : ../../include/common/GPoint.h
 
-../../include/common/GColour.h : ../../include/common/GColourSpace.h
-
-../../include/common/Core.h : 
-
 ../../include/common/GCheckBox.h : 
+
+../../include/common/GTextView3.h : ../../include/common/GDocView.h \
+	../../include/common/GUndo.h \
+	../../include/common/GDragAndDrop.h
 
 ../../include/sdl/LgiOsClasses.h : 
 
@@ -1065,20 +1087,23 @@ md5.o : ../common/Hash/md5/md5.c
 
 ../../include/common/GProgress.h : 
 
-../../include/common/GXmlTree.h : ../../include/common/GHashTable.h \
-	../../include/common/GRefCount.h \
-	../../include/common/GDom.h
+../../include/common/GBox.h : 
+
+../../include/common/Progress.h : ../../include/common/GMutex.h
 
 ../../include/common/GColourSpace.h : 
-
-../../include/common/GMenuImpl.h : ../../include/common/GPopup.h
-
-../../include/common/GBox.h : 
 
 ../../include/common/GDragAndDrop.h : ../../include/common/GVariant.h \
 	../../include/common/GCom.h
 
-../../include/common/GDisplayString.h : 
+../../include/common/GStringClass.h : ../../include/common/GUtf8.h \
+	../../include/common/GString.h \
+	../../include/common/GUnicode.h
+
+../../include/common/GString.h : ../../include/common/LgiDefs.h \
+	../../include/sdl/LgiOsDefs.h
+
+../../include/common/GUnicode.h : ../../include/common/LgiInc.h
 
 ../../include/common/GContainers.h : ../../include/common/LgiInc.h \
 	../../include/sdl/LgiOsDefs.h \
@@ -1086,21 +1111,21 @@ md5.o : ../common/Hash/md5/md5.c
 
 ../../include/common/Res.h : ../../include/common/GXmlTree.h
 
-../../include/common/GVariant.h : ../../include/common/GDom.h \
-	../../include/common/GDateTime.h \
-	../../include/common/GContainers.h \
-	../../include/common/GHashTable.h
+../../include/common/GUtf8.h : 
 
 ../../include/common/GTree.h : ../../include/common/GItemContainer.h
 
 ../../include/common/GDisplayString.h : 
 
+../../include/common/LgiDefs.h : ../../include/common/LgiInc.h \
+	../../include/common/GAutoPtr.h
+
 ../../include/common/GSlider.h : 
 
-../../include/common/GDisplayStringLayout.h : ../../include/common/GUtf8.h \
-	../../include/common/GDisplayString.h
+../../include/common/GCapabilities.h : ../../include/common/GHashTable.h
 
-../../include/common/GUtf8.h : 
+../../include/common/GCom.h : ../../include/common/GContainers.h \
+	../../include/common/GVariant.h
 
 ../../include/common/GCss.h : ../../include/common/LgiInc.h \
 	../../include/sdl/LgiOsDefs.h \
@@ -1109,165 +1134,6 @@ md5.o : ../common/Hash/md5/md5.c
 	../../include/common/GAutoPtr.h \
 	../../include/common/GString.h \
 	../../include/common/GHashTable.h
-
-../../include/common/GButton.h : 
-
-../../include/common/GCapabilities.h : ../../include/common/GHashTable.h
-
-../../include/common/GNotifications.h : 
-
-../../include/common/Lgi.h : ../../include/common/LgiInc.h \
-	../../include/sdl/LgiOsDefs.h \
-	../../include/common/LgiMsgs.h \
-	../../include/common/LgiDefs.h \
-	../../include/common/GMem.h \
-	../../include/common/GString.h \
-	../../include/common/LgiClass.h \
-	../../include/common/Progress.h \
-	../../include/common/GFile.h \
-	../../include/common/Gdc2.h \
-	../../include/common/LgiRes.h \
-	../../include/common/LgiClasses.h \
-	../../include/common/LgiCommon.h
-
-../../include/common/LgiClasses.h : ../../include/common/GMutex.h \
-	../../include/sdl/LgiOsClasses.h \
-	../../include/common/GMem.h \
-	../../include/common/GArray.h \
-	../../include/common/LgiCommon.h \
-	../../include/common/GXmlTree.h \
-	../../include/common/GDragAndDrop.h \
-	../../include/common/GMenu.h \
-	../../include/common/LgiWidgets.h \
-	../../include/common/Progress.h \
-	../../include/common/GProgress.h \
-	../../include/common/GFileSelect.h \
-	../../include/common/GFindReplaceDlg.h \
-	../../include/common/GToolBar.h \
-	../../include/common/GThread.h \
-	../../include/common/GInput.h \
-	../../include/common/GPrinter.h
-
-../../include/common/LgiCommon.h : ../../include/common/GMem.h \
-	../../include/common/GArray.h \
-	../../include/common/LgiClass.h \
-	../../include/common/GStringClass.h
-
-../../include/common/GToolBar.h : ../../include/common/GImageList.h
-
-../../include/common/LgiWidgets.h : 
-
-../../include/common/GFileSelect.h : 
-
-../../include/common/GStringClass.h : ../../include/common/GUtf8.h \
-	../../include/common/GString.h \
-	../../include/common/GUnicode.h
-
-../../include/common/LgiMsgs.h : 
-
-../../include/common/GMenu.h : ../../include/common/GMenuImpl.h \
-	../../include/common/GXmlTree.h \
-	../../include/common/Res.h \
-	../../include/common/GImageList.h
-
-../../include/common/GFindReplaceDlg.h : 
-
-../../include/common/GMru.h : ../../include/common/GProperties.h
-
-../../include/common/GClipBoard.h : 
-
-../../include/common/LgiNetInc.h : 
-
-../../include/common/Progress.h : ../../include/common/GMutex.h
-
-../../include/common/GMem.h : ../../include/common/LgiInc.h \
-	../../include/sdl/LgiOsDefs.h
-
-../../include/common/LgiInc.h : 
-
-../../include/common/GPanel.h : ../../include/common/GDisplayString.h
-
-../../include/common/GDateTime.h : 
-
-../../include/common/GTableLayout.h : ../../include/common/GCss.h \
-	../../include/common/GNotifications.h
-
-../../include/common/GTextLabel.h : 
-
-../../include/common/GPrinter.h : 
-
-../../include/common/GUnicode.h : ../../include/common/LgiInc.h
-
-../../include/common/GUndo.h : 
-
-../../include/sdl/LgiOsClasses.h : 
-
-../../include/common/GFile.h : ../../include/common/GMem.h \
-	../../include/common/GStream.h \
-	../../include/common/GArray.h \
-	../../include/common/GRefCount.h \
-	../../include/common/GStringClass.h
-
-../../include/common/GProgress.h : 
-
-../../include/common/LgiInc.h : 
-
-../../include/common/GItemContainer.h : ../../include/common/GPopup.h \
-	../../include/common/GNotifications.h
-
-../../include/common/INet.h : ../../include/common/GMem.h \
-	../../include/common/GContainers.h \
-	../../include/common/LgiNetInc.h \
-	../../include/common/GStream.h \
-	../../include/common/LgiInterfaces.h \
-	../../include/common/GString.h
-
-../../include/common/GProperties.h : ../../include/common/GContainers.h \
-	../../include/common/LgiClass.h \
-	../../include/common/GString.h
-
-../../include/common/GFilter.h : ../../include/common/GContainers.h
-
-../../include/common/GStream.h : ../../include/common/GDom.h \
-	../../include/common/GStringClass.h
-
-../../include/common/GCssTools.h : 
-
-../../include/common/GItemContainer.h : ../../include/common/GPopup.h \
-	../../include/common/GNotifications.h
-
-../../include/common/GProcess.h : ../../include/common/GStream.h
-
-../../include/common/GDom.h : ../../include/common/LgiInterfaces.h \
-	../../include/common/GMem.h \
-	../../include/common/GArray.h
-
-../../include/common/GThread.h : ../../include/common/GMutex.h
-
-../../include/common/GInput.h : 
-
-../../include/common/GDocView.h : ../../include/common/GVariant.h \
-	../../include/common/GNotifications.h
-
-../../include/common/GImageList.h : 
-
-../../include/common/LgiRes.h : ../../include/common/Res.h \
-	../../include/common/GContainers.h \
-	../../include/common/GCss.h \
-	../../include/common/GAutoPtr.h \
-	../../include/common/GFontCache.h
-
-../../include/common/GFontCache.h : 
-
-../../include/common/GInput.h : 
-
-../../include/common/GRadioGroup.h : 
-
-../../include/common/LgiClass.h : ../../include/common/LgiInc.h \
-	../../include/common/LgiDefs.h \
-	../../include/common/GAutoPtr.h
-
-../../include/common/GCapabilities.h : ../../include/common/GHashTable.h
 
 ../../include/common/Gdc2.h : ../../include/sdl/LgiOsDefs.h \
 	../../include/common/LgiInc.h \
@@ -1287,73 +1153,73 @@ md5.o : ../common/Hash/md5/md5.c
 	../../include/common/GColour.h \
 	../../include/common/GFilter.h
 
-../../include/common/GRefCount.h : 
+../../include/common/GDisplayStringLayout.h : ../../include/common/GUtf8.h \
+	../../include/common/GDisplayString.h
+
+../../include/common/GCss.h : ../../include/common/LgiInc.h \
+	../../include/sdl/LgiOsDefs.h \
+	../../include/common/GMem.h \
+	../../include/common/Gdc2.h \
+	../../include/common/GAutoPtr.h \
+	../../include/common/GString.h \
+	../../include/common/GHashTable.h
+
+../../include/common/GButton.h : 
+
+../../include/common/GCapabilities.h : ../../include/common/GHashTable.h
+
+../../include/common/GContainers.h : ../../include/common/LgiInc.h \
+	../../include/sdl/LgiOsDefs.h \
+	../../include/common/GStream.h
+
+../../include/common/GDateTime.h : 
+
+../../include/common/Lgi.h : ../../include/common/LgiInc.h \
+	../../include/sdl/LgiOsDefs.h \
+	../../include/common/LgiMsgs.h \
+	../../include/common/LgiDefs.h \
+	../../include/common/GMem.h \
+	../../include/common/GString.h \
+	../../include/common/LgiClass.h \
+	../../include/common/Progress.h \
+	../../include/common/GFile.h \
+	../../include/common/Gdc2.h \
+	../../include/common/LgiRes.h \
+	../../include/common/LgiClasses.h \
+	../../include/common/LgiCommon.h
+
+../../include/common/LgiMsgs.h : 
 
 ../../include/common/LgiCommon.h : ../../include/common/GMem.h \
 	../../include/common/GArray.h \
 	../../include/common/LgiClass.h \
 	../../include/common/GStringClass.h
 
-../../include/linux/GSymLookup.h : ../../include/common/GProcess.h
-
-../../include/common/GProcess.h : ../../include/common/GStream.h
-
-../../../../../../../usr/include/freetype2/ft2build.h : /usr/include/freetype2/config/ftheader.h
-
-../../../../../../../usr/include/freetype2/config/ftheader.h : 
-
-../../include/common/GLibrary.h : 
-
-../../include/common/GPassword.h : 
-
-../../include/common/GSkinEngine.h : ../../include/common/GList.h
-
-../../include/common/GList.h : ../../include/common/GMem.h \
+../../include/common/LgiClasses.h : ../../include/common/GMutex.h \
+	../../include/sdl/LgiOsClasses.h \
+	../../include/common/GMem.h \
 	../../include/common/GArray.h \
-	../../include/common/GPopup.h \
-	../../include/common/GDisplayString.h \
-	../../include/common/GCss.h \
-	../../include/common/GItemContainer.h
+	../../include/common/LgiCommon.h \
+	../../include/common/GXmlTree.h \
+	../../include/common/GDragAndDrop.h \
+	../../include/common/GMenu.h \
+	../../include/common/LgiWidgets.h \
+	../../include/common/Progress.h \
+	../../include/common/GProgress.h \
+	../../include/common/GFileSelect.h \
+	../../include/common/GFindReplaceDlg.h \
+	../../include/common/GToolBar.h \
+	../../include/common/GThread.h \
+	../../include/common/GInput.h \
+	../../include/common/GPrinter.h
 
-../../include/common/GPath.h : ../../include/common/GMatrix.h
+../../include/common/GThread.h : ../../include/common/GMutex.h
 
-../../include/common/GMatrix.h : 
+../../include/common/GPrinter.h : 
 
-../../include/common/GString.h : ../../include/common/LgiDefs.h \
-	../../include/sdl/LgiOsDefs.h
+../../include/common/GFileSelect.h : 
 
-../../include/common/GdiLeak.h : 
-
-../../include/common/GPoint.h : 
-
-../../include/common/GDragAndDrop.h : ../../include/common/GVariant.h \
-	../../include/common/GCom.h
-
-../../include/common/GBitmap.h : 
-
-../../include/common/GScrollBar.h : 
-
-../../include/common/GViewPriv.h : 
-
-../../include/common/LgiNetInc.h : 
-
-../../include/common/GStream.h : ../../include/common/GDom.h \
-	../../include/common/GStringClass.h
-
-../../include/common/GRops.h : ../../include/common/GPixelRops.h
-
-../../include/common/GPixelRops.h : 
-
-../../include/common/GXmlTree.h : ../../include/common/GHashTable.h \
-	../../include/common/GRefCount.h \
-	../../include/common/GDom.h
-
-../../include/common/GPopup.h : 
-
-../../include/sdl/LgiOsDefs.h : ../../include/common/LgiDefs.h \
-	/usr/include/SDL/SDL.h \
-	/usr/include/freetype2/ft2build.h \
-	../../include/common/LgiInc.h
+../../include/common/LgiWidgets.h : 
 
 ../../../../../../../usr/include/SDL/SDL.h : /usr/include/SDL/SDL_main.h \
 	/usr/include/SDL/SDL_stdinc.h \
@@ -1439,10 +1305,30 @@ md5.o : ../common/Hash/md5/md5.c
 	/usr/include/SDL/begin_code.h \
 	/usr/include/SDL/close_code.h
 
+../../include/common/GFindReplaceDlg.h : 
+
+../../include/sdl/LgiOsClasses.h : 
+
 ../../../../../../../usr/include/SDL/SDL_mutex.h : /usr/include/SDL/SDL_stdinc.h \
 	/usr/include/SDL/SDL_error.h \
 	/usr/include/SDL/begin_code.h \
 	/usr/include/SDL/close_code.h
+
+../../include/common/LgiClass.h : ../../include/common/LgiInc.h \
+	../../include/common/LgiDefs.h \
+	../../include/common/GAutoPtr.h
+
+../../include/common/GProgress.h : 
+
+../../include/common/GMru.h : ../../include/common/GProperties.h
+
+../../include/common/GProperties.h : ../../include/common/GContainers.h \
+	../../include/common/LgiClass.h \
+	../../include/common/GString.h
+
+../../include/common/GLibrary.h : 
+
+../../include/common/GClipBoard.h : 
 
 ../../../../../../../usr/include/SDL/SDL_keyboard.h : /usr/include/SDL/SDL_stdinc.h \
 	/usr/include/SDL/SDL_error.h \
@@ -1450,10 +1336,51 @@ md5.o : ../common/Hash/md5/md5.c
 	/usr/include/SDL/begin_code.h \
 	/usr/include/SDL/close_code.h
 
+../../include/common/LgiNetInc.h : 
+
+../../include/common/GPanel.h : ../../include/common/GDisplayString.h
+
+../../include/common/GTextLabel.h : 
+
+../../include/common/GTableLayout.h : ../../include/common/GCss.h \
+	../../include/common/GNotifications.h
+
+../../include/common/GFile.h : ../../include/common/GMem.h \
+	../../include/common/GStream.h \
+	../../include/common/GArray.h \
+	../../include/common/GRefCount.h \
+	../../include/common/GStringClass.h
+
 ../../../../../../../usr/include/SDL/SDL_joystick.h : /usr/include/SDL/SDL_stdinc.h \
 	/usr/include/SDL/SDL_error.h \
 	/usr/include/SDL/begin_code.h \
 	/usr/include/SDL/close_code.h
+
+../../include/common/INet.h : ../../include/common/GMem.h \
+	../../include/common/GContainers.h \
+	../../include/common/LgiNetInc.h \
+	../../include/common/GStream.h \
+	../../include/common/LgiInterfaces.h \
+	../../include/common/GString.h
+
+../../include/common/LgiInc.h : 
+
+../../include/common/GHashTable.h : ../../include/common/GMem.h \
+	../../include/common/GArray.h \
+	../../include/common/GString.h \
+	../../include/common/LgiClass.h
+
+../../include/common/INet.h : ../../include/common/GMem.h \
+	../../include/common/GContainers.h \
+	../../include/common/LgiNetInc.h \
+	../../include/common/GStream.h \
+	../../include/common/LgiInterfaces.h \
+	../../include/common/GString.h
+
+../../include/common/GMenu.h : ../../include/common/GMenuImpl.h \
+	../../include/common/GXmlTree.h \
+	../../include/common/Res.h \
+	../../include/common/GImageList.h
 
 ../../../../../../../usr/include/SDL/SDL_keysym.h : 
 
@@ -1465,6 +1392,13 @@ md5.o : ../common/Hash/md5/md5.c
 ../../../../../../../usr/include/SDL/SDL_error.h : /usr/include/SDL/SDL_stdinc.h \
 	/usr/include/SDL/begin_code.h \
 	/usr/include/SDL/close_code.h
+
+../../include/common/GCssTools.h : 
+
+../../include/common/GItemContainer.h : ../../include/common/GPopup.h \
+	../../include/common/GNotifications.h
+
+../../include/common/GProcess.h : ../../include/common/GStream.h
 
 ../../../../../../../usr/include/SDL/SDL_stdinc.h : /usr/include/SDL/SDL_config.h \
 	/usr/include/SDL/begin_code.h \
@@ -1479,6 +1413,43 @@ md5.o : ../common/Hash/md5/md5.c
 	/usr/include/SDL/begin_code.h \
 	/usr/include/SDL/close_code.h
 
+../../include/common/GRefCount.h : 
+
+../../include/common/GDocView.h : ../../include/common/GVariant.h \
+	../../include/common/GNotifications.h
+
+../../include/common/GInput.h : 
+
+../../include/common/LgiInc.h : 
+
+../../include/common/GRadioGroup.h : 
+
+../../include/common/GUndo.h : 
+
+../../include/common/LgiNetInc.h : 
+
+../../include/common/LgiCommon.h : ../../include/common/GMem.h \
+	../../include/common/GArray.h \
+	../../include/common/LgiClass.h \
+	../../include/common/GStringClass.h
+
+../../include/linux/GSymLookup.h : ../../include/common/GProcess.h
+
+../../../../../../../usr/include/freetype2/ft2build.h : /usr/include/freetype2/config/ftheader.h
+
+../../../../../../../usr/include/freetype2/config/ftheader.h : 
+
+../../include/common/GPassword.h : 
+
+../../include/common/GSkinEngine.h : ../../include/common/GList.h
+
+../../include/common/GList.h : ../../include/common/GMem.h \
+	../../include/common/GArray.h \
+	../../include/common/GPopup.h \
+	../../include/common/GDisplayString.h \
+	../../include/common/GCss.h \
+	../../include/common/GItemContainer.h
+
 ../../../../../../../usr/include/SDL/SDL_audio.h : /usr/include/SDL/SDL_stdinc.h \
 	/usr/include/SDL/SDL_error.h \
 	/usr/include/SDL/SDL_endian.h \
@@ -1488,31 +1459,60 @@ md5.o : ../common/Hash/md5/md5.c
 	/usr/include/SDL/begin_code.h \
 	/usr/include/SDL/close_code.h
 
-../../include/common/LgiDefs.h : ../../include/common/LgiInc.h \
-	../../include/common/GAutoPtr.h
+../../include/common/GPath.h : ../../include/common/GMatrix.h
 
-../../include/common/GFile.h : ../../include/common/GMem.h \
-	../../include/common/GStream.h \
+../../include/common/GMatrix.h : 
+
+../../include/common/GdiLeak.h : 
+
+../../include/common/Core.h : 
+
+../../include/common/LgiInterfaces.h : ../../include/common/GMem.h \
 	../../include/common/GArray.h \
-	../../include/common/GRefCount.h \
+	../../include/sdl/LgiOsDefs.h \
+	../../include/common/GColour.h
+
+../../include/common/GInput.h : 
+
+../../include/common/GBitmap.h : 
+
+../../include/common/GScrollBar.h : 
+
+../../include/common/GViewPriv.h : 
+
+../../include/common/GDragAndDrop.h : ../../include/common/GVariant.h \
+	../../include/common/GCom.h
+
+../../include/common/GColour.h : ../../include/common/GColourSpace.h
+
+../../include/common/LgiRes.h : ../../include/common/Res.h \
+	../../include/common/GContainers.h \
+	../../include/common/GCss.h \
+	../../include/common/GAutoPtr.h \
+	../../include/common/GFontCache.h
+
+../../include/common/GFontCache.h : 
+
+../../include/common/GToolBar.h : ../../include/common/GImageList.h
+
+../../include/common/GStream.h : ../../include/common/GDom.h \
 	../../include/common/GStringClass.h
 
-../../include/common/GToken.h : ../../include/common/GArray.h
+../../include/common/GRops.h : ../../include/common/GPixelRops.h
+
+../../include/common/GPixelRops.h : 
+
+../../include/common/GXmlTree.h : ../../include/common/GHashTable.h \
+	../../include/common/GRefCount.h \
+	../../include/common/GDom.h
+
+../../include/common/GProcess.h : ../../include/common/GStream.h
 
 ../../include/common/GStringClass.h : ../../include/common/GUtf8.h \
 	../../include/common/GString.h \
 	../../include/common/GUnicode.h
 
-../../include/common/GMutex.h : 
-
 ../../include/common/GPopup.h : 
-
-../../include/common/GTextView3.h : ../../include/common/GDocView.h \
-	../../include/common/GUndo.h \
-	../../include/common/GDragAndDrop.h
-
-../../include/common/GCom.h : ../../include/common/GContainers.h \
-	../../include/common/GVariant.h
 
 ../../include/sdl/LgiOsDefs.h : ../../include/common/LgiDefs.h \
 	/usr/include/SDL/SDL.h \
