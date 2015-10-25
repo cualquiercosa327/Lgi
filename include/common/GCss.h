@@ -676,6 +676,7 @@ public:
 		int GetSimpleIndex() { return Combs.Length() ? Combs[Combs.Length()-1] + 1 : 0; }
 		bool IsAtMedia();
 		bool ToString(GStream &p);
+		uint32 GetSpecificity();
 		
 		Selector &operator =(const Selector &s);
 	};
@@ -926,6 +927,9 @@ public:
 		// may reference this memory.
 		GArray<char*> Styles;
 		
+		// Sort the styles into less specific to more specific order
+		void SortStyles(GCss::SelArray &Styles);
+		
 	public:
 		SelectorMap TypeMap, ClassMap, IdMap;
 		SelArray Other;
@@ -1000,6 +1004,9 @@ public:
 					}
 				}
 			}
+			
+			// Sort the selectors into less specific -> more specific order.
+			SortStyles(Styles);
 
 			return true;
 		}
