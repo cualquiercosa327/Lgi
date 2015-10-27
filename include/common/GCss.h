@@ -665,10 +665,15 @@ public:
 		GArray<Part> Parts;
 		GArray<int> Combs;
 		char *Style;
+		int SourceIndex;
 		GAutoString Raw;
 		GAutoPtr<class Store> Children;
 
-		Selector() { Style = NULL; }
+		Selector()
+		{
+			Style = NULL;
+			SourceIndex = 0;
+		}
 		bool TokString(GAutoString &a, const char *&s);
 		const char *PartTypeToString(PartType p);
 		GAutoString Print();
@@ -997,7 +1002,8 @@ public:
 				{
 					GCss::Selector *Sel = (*s)[i];
 					
-					if (MatchFullSelector(Sel, Context, Obj))
+					if (!Styles.HasItem(Sel) &&
+						MatchFullSelector(Sel, Context, Obj))
 					{
 						// Output the matching selector
 						Styles.Add(Sel);

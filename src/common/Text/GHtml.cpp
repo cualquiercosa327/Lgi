@@ -72,6 +72,7 @@
 #endif
 
 #define IsTableCell(id)				( ((id) == TAG_TD) || ((id) == TAG_TH) )
+#define GetCssLen(a, b)				a().Type == GCss::LenInherit ? b() : a()
 
 static char WordDelim[]	=			".,<>/?[]{}()*&^%$#@!+|\'\"";
 static char16 WhiteW[] =			{' ', '\t', '\r', '\n', 0};
@@ -2060,7 +2061,14 @@ bool GTag::OnMouseClick(GMouse &m)
 			{
 				if (IsAnchor(&Uri))
 				{
-					if (!Html->d->LinkDoubleClick || m.Double())
+					if
+					(
+						Uri &&
+						(
+							!Html->d->LinkDoubleClick ||
+							m.Double()
+						)
+					)
 					{
 						Html->Environment->OnNavigate(Html, Uri);
 						Processed = true;
@@ -2604,6 +2612,13 @@ void GTag::Restyle()
 	GTagElementCallback Context;
 	if (Html->CssStore.Match(Styles, &Context, this))
 	{
+		#ifdef _DEBUG
+		if (Debug)
+		{
+			int asd=0;
+		}
+		#endif
+		
 		for (unsigned i=0; i<Styles.Length(); i++)
 		{
 			GCss::Selector *s = Styles[i];
@@ -2683,47 +2698,45 @@ void GTag::SetStyle()
 			const char *Type, *Href;
 			if (Html->Environment &&
 				Get("type", Type) &&
-				Get("href", Href))
+				Get("href", Href) &&
+				!_stricmp(Type, "text/css") &&
+				!Html->CssHref.Find(Href))
 			{
-				if (!_stricmp(Type, "text/css"))
+				GDocumentEnv::LoadJob *j = Html->Environment->NewJob();
+				if (j)
 				{
-					GDocumentEnv::LoadJob *j = Html->Environment->NewJob();
-					if (j)
+					LgiAssert(Html != NULL);
+					GTag *t = this;
+					
+					j->Uri.Reset(NewStr(Href));
+					j->Env = Html->Environment;
+					j->UserData = t;
+					j->UserUid = Html->GetDocumentUid();
+
+					GDocumentEnv::LoadType Result = Html->Environment->GetContent(j);
+					if (Result == GDocumentEnv::LoadImmediate)
 					{
-						LgiAssert(Html != NULL);
-						GTag *t = this;
-						
-						j->Uri.Reset(NewStr(Href));
-						j->Env = Html->Environment;
-						j->UserData = t;
-						j->UserUid = Html->GetDocumentUid();
-						// j->Pref = GDocumentEnv::LoadJob::FmtFilename;
-
-						GDocumentEnv::LoadType Result = Html->Environment->GetContent(j);
-						if (Result == GDocumentEnv::LoadImmediate)
+						GStreamI *s = j->GetStream();							
+						if (s)
 						{
-							GStreamI *s = j->GetStream();							
-							if (s)
+							int Len = (int)s->GetSize();
+							if (Len > 0)
 							{
-								int Len = (int)s->GetSize();
-								if (Len > 0)
-								{
-									GAutoString a(new char[Len+1]);
-									int r = s->Read(a, Len);
-									a[r] = 0;
+								GAutoString a(new char[Len+1]);
+								int r = s->Read(a, Len);
+								a[r] = 0;
 
-									Html->OnAddStyle("text/css", a);
-								}
+								Html->CssHref.Add(Href, true);
+								Html->OnAddStyle("text/css", a);
 							}
-							else LgiAssert(!"Not impl.");
 						}
-						else if (Result == GDocumentEnv::LoadDeferred)
-						{
-							Html->d->DeferredLoads++;
-						}
-
-						DeleteObj(j);
 					}
+					else if (Result == GDocumentEnv::LoadDeferred)
+					{
+						Html->d->DeferredLoads++;
+					}
+
+					DeleteObj(j);
 				}
 			}
 			break;
@@ -5169,15 +5182,20 @@ void GTag::OnFlow(GFlowRegion *Flow)
 		{
 			Flow->EndBlock();
 			
-			Flow->Indent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
+			GCss::Len left = GetCssLen(MarginLeft, Margin);
+			GCss::Len top = GetCssLen(MarginTop, Margin);
+			GCss::Len right = GetCssLen(MarginRight, Margin);
+			GCss::Len bottom = GetCssLen(MarginBottom, Margin);
+			Flow->Indent(f, left, top, right, bottom, true);
 
 			LayoutTable(Flow);
 
 			Flow->y1 += Size.y;
 			Flow->y2 = Flow->y1;
 			Flow->cx = Flow->x1;
+			Flow->my = 0;
 
-			Flow->Outdent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
+			Flow->Outdent(f, left, top, right, bottom, true);
 			BoundParents();
 			return;
 		}
@@ -5206,7 +5224,11 @@ void GTag::OnFlow(GFlowRegion *Flow)
 		*/
 
 		// Indent the margin...
-		Flow->Indent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
+		GCss::Len left = GetCssLen(MarginLeft, Margin);
+		GCss::Len top = GetCssLen(MarginTop, Margin);
+		GCss::Len right = GetCssLen(MarginRight, Margin);
+		GCss::Len bottom = GetCssLen(MarginBottom, Margin);
+		Flow->Indent(f, left, top, right, bottom, true);
 
 		// Set the width if any
 		if (Disp == DispBlock)
@@ -6476,6 +6498,7 @@ void GHtml::_Delete()
 	SetBackColour(Rgb24To32(LC_WORKSPACE));
 
 	CssStore.Empty();
+	CssHref.Empty();
 	OpenTags.Empty();
 	Source.Reset();
 	DeleteObj(Tag);
@@ -6775,18 +6798,22 @@ GMessage::Result GHtml::OnEvent(GMessage *Msg)
 							}
 							else if (r->TagId == TAG_LINK)
 							{
-								GStreamI *s = j->GetStream();
-								if (s)
+								if (!CssHref.Find(j->Uri))
 								{
-									int Size = (int)s->GetSize();
-									GAutoString Style(new char[Size+1]);
-									int rd = s->Read(Style, Size);
-									if (rd > 0)
+									GStreamI *s = j->GetStream();
+									if (s)
 									{
-										Style[rd] = 0;									
-										OnAddStyle("text/css", Style);									
-										ViewWidth = 0;
-										Update = true;
+										int Size = (int)s->GetSize();
+										GAutoString Style(new char[Size+1]);
+										int rd = s->Read(Style, Size);
+										if (rd > 0)
+										{
+											Style[rd] = 0;
+											CssHref.Add(j->Uri, true);
+											OnAddStyle("text/css", Style);									
+											ViewWidth = 0;
+											Update = true;
+										}
 									}
 								}
 							}

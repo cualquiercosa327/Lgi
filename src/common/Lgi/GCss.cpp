@@ -2628,6 +2628,8 @@ int GCssSelectorCmp(class GCss::Selector **a, GCss::Selector **b)
 {
 	uint32 as = (*a)->GetSpecificity();
 	uint32 bs = (*b)->GetSpecificity();
+	if (as == bs)
+		return (*a)->SourceIndex - (*b)->SourceIndex;
 	return as - bs;
 }
 
@@ -2667,6 +2669,8 @@ bool GCss::Store::ToString(GStream &p)
 
 bool GCss::Store::Parse(const char *&c, int Depth)
 {
+	int SelectorIndex = 1;
+	
 	if (!c)
 		return false;
 
@@ -2696,9 +2700,14 @@ bool GCss::Store::Parse(const char *&c, int Depth)
 		GCss::Selector *Cur = new GCss::Selector;
 		
 		if (Cur->Parse(c))
+		{
+			Cur->SourceIndex = SelectorIndex++;
 			Selectors.Add(Cur);
+		}
 		else
+		{
 			DeleteObj(Cur);
+		}
 
 		while (*c)
 		{
@@ -2708,9 +2717,14 @@ bool GCss::Store::Parse(const char *&c, int Depth)
 				c++;
 				Cur = new GCss::Selector;
 				if (Cur && Cur->Parse(c))
+				{
+					Cur->SourceIndex = SelectorIndex++;
 					Selectors.Add(Cur);
+				}
 				else
+				{
 					DeleteObj(Cur);
+				}
 			}
 			else if (*c == '/')
 			{
