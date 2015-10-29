@@ -183,6 +183,9 @@ public:
 
 	bool OnNavigate(GDocView *Parent, const char *Uri)
 	{
+		if (!Uri)
+			return false;
+
 		GUri u(Uri);
 		char Sep, Buf[MAX_PATH];
 		if (!u.Protocol)

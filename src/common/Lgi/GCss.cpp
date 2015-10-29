@@ -2282,6 +2282,37 @@ bool GCss::Selector::IsAtMedia()
 	return p.Type == SelMedia;
 }
 
+uint32 GCss::Selector::GetSpecificity()
+{
+	uint8 s[4] = {0};
+	
+	for (unsigned i=0; i<Parts.Length(); i++)
+	{
+		Part &p = Parts[i];
+		switch (p.Type)
+		{
+			case SelType:
+			case SelPseudo:
+				s[0]++;
+				break;
+			case SelClass:
+			case SelAttrib:
+				s[1]++;
+				break;
+			case SelID:
+				s[2]++;
+				break;
+			default:
+				break;
+		}
+	}
+	
+	return	((uint32)s[3]<<24) |
+			((uint32)s[2]<<16) |
+			((uint32)s[1]<<8) |
+			((uint32)s[0]);
+}
+
 bool GCss::Selector::ToString(GStream &p)
 {
 	// Output the selector parts...
@@ -2591,6 +2622,23 @@ bool GCss::Store::Dump(GStream &out)
 	return true;
 }
 
+
+
+int GCssSelectorCmp(class GCss::Selector **a, GCss::Selector **b)
+{
+	uint32 as = (*a)->GetSpecificity();
+	uint32 bs = (*b)->GetSpecificity();
+	if (as == bs)
+		return (*a)->SourceIndex - (*b)->SourceIndex;
+	return as - bs;
+}
+
+void GCss::Store::SortStyles(GCss::SelArray &Styles)
+{
+	if (Styles.Length() > 1)
+		Styles.Sort(GCssSelectorCmp);
+}
+
 bool GCss::Store::ToString(GStream &p)
 {
 	SelectorMap *Maps[] = {&TypeMap, &ClassMap, &IdMap, NULL};
@@ -2621,6 +2669,8 @@ bool GCss::Store::ToString(GStream &p)
 
 bool GCss::Store::Parse(const char *&c, int Depth)
 {
+	int SelectorIndex = 1;
+	
 	if (!c)
 		return false;
 
@@ -2650,9 +2700,14 @@ bool GCss::Store::Parse(const char *&c, int Depth)
 		GCss::Selector *Cur = new GCss::Selector;
 		
 		if (Cur->Parse(c))
+		{
+			Cur->SourceIndex = SelectorIndex++;
 			Selectors.Add(Cur);
+		}
 		else
+		{
 			DeleteObj(Cur);
+		}
 
 		while (*c)
 		{
@@ -2662,9 +2717,14 @@ bool GCss::Store::Parse(const char *&c, int Depth)
 				c++;
 				Cur = new GCss::Selector;
 				if (Cur && Cur->Parse(c))
+				{
+					Cur->SourceIndex = SelectorIndex++;
 					Selectors.Add(Cur);
+				}
 				else
+				{
 					DeleteObj(Cur);
+				}
 			}
 			else if (*c == '/')
 			{
@@ -2765,5 +2825,3 @@ bool GCss::Store::Parse(const char *&c, int Depth)
 
 	return true;
 }
-
-
