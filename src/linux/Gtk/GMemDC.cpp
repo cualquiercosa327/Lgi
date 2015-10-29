@@ -169,6 +169,26 @@ GdcPt2 GMemDC::GetSize()
 	return GdcPt2(pMem->x, pMem->y);
 }
 
+GRect GMemDC::ClipRgn(GRect *Rgn)
+{
+	GRect Old = Clip;
+	
+	if (Rgn)
+	{
+		GRect Dc(0, 0, X()-1, Y()-1);
+		
+		Clip = *Rgn;
+		Clip.Offset(-OriginX, -OriginY);
+		Clip.Bound(&Dc);
+	}
+	else
+	{
+		Clip.ZOff(X()-1, Y()-1);
+	}
+	
+	return Old;
+}
+
 void GMemDC::SetClient(GRect *c)
 {
 	if (c)
