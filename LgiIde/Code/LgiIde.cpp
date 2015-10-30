@@ -2168,28 +2168,21 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		{
 			GViewI *v = GetFocus();
 			if (v)
-			{
 				v->PostEvent(M_CUT);
-			}
 			break;
 		}
 		case IDM_COPY:
 		{
 			GViewI *v = GetFocus();
-			printf("IDM_COPY v=%p\n", v);
 			if (v)
-			{
 				v->PostEvent(M_COPY);
-			}
 			break;
 		}
 		case IDM_PASTE:
 		{
 			GViewI *v = GetFocus();
 			if (v)
-			{
 				v->PostEvent(M_PASTE);
-			}
 			break;
 		}
 		case IDM_FIND_IN_FILES:
