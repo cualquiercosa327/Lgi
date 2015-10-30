@@ -1355,7 +1355,7 @@ void AppWnd::UpdateState(int Debugging, int Building)
 	SetCtrlEnabled(IDM_COMPILE, !d->Building);
 	SetCtrlEnabled(IDM_BUILD, !d->Building);
 	SetCtrlEnabled(IDM_STOP_BUILD, d->Building);
-	SetCtrlEnabled(IDM_RUN, !d->Building);
+	// SetCtrlEnabled(IDM_RUN, !d->Building);
 	// SetCtrlEnabled(IDM_TOGGLE_BREAKPOINT, !d->Building);
 	
 	SetCtrlEnabled(IDM_START_DEBUG, !d->Debugging && !d->Building);
@@ -1512,10 +1512,7 @@ bool AppWnd::ToggleBreakpoint(const char *File, int Line)
 void AppWnd::OnLocationChange(const char *File, int Line)
 {
 	if (!File)
-	{
-		LgiAssert(!"No file name.");
 		return;
-	}
 
 	if (!d->InHistorySeek)
 	{

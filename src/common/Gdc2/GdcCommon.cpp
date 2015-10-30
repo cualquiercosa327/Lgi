@@ -948,7 +948,6 @@ GSurface *GInlineBmp::Create(uint32 TransparentPx)
 				s.u8 = (uint8*)Data + (y * Src.Line);
 				uint32 *d = (uint32*)(*pDC)[y];
 				
-				printf("bits=%i\n", Bits >> 3);
 				switch (Bits >> 3)
 				{
 					case 1:
