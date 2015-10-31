@@ -508,7 +508,6 @@ GColourReduce.o : ./src/common/Gdc2/Tools/GColourReduce.cpp ./include/common/Gdc
 
 GdcCommon.o : ./src/common/Gdc2/GdcCommon.cpp ./include/common/Lgi.h \
 	./include/common/GPalette.h \
-	./include/common/GPixelRops.h \
 	./include/common/GRops.h \
 	./src/common/Gdc2/GRopsCases.cpp
 	@echo $(<F) [$(Build)]

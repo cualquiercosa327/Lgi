@@ -1928,7 +1928,6 @@ bool GTextView3::Copy()
 
 		GClipBoard Clip(this);
 		
-		printf("%s:%i - text view copy -> clip\n", _FL);
 		Clip.Text(Txt8);
 		Clip.TextW(Txt16, false);
 		
@@ -4597,7 +4596,6 @@ GMessage::Result GTextView3::OnEvent(GMessage *Msg)
 		}
 		case M_COPY:
 		{
-			printf("M_COPY received.\n");
 			Copy();
 			break;
 		}

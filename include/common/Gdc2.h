@@ -921,10 +921,6 @@ public:
 		void Update(int Flags);
 		void UpsideDown(bool upsidedown);
 		
-		// need this to tell the HDC about the
-		// new clipping region
-		GRect ClipRgn(GRect *Rgn);
-
 	#else
 
 		GRect ClipRgn() { return Clip; }
@@ -937,7 +933,6 @@ public:
 		CGColorSpaceRef GetColourSpaceRef();
 		CGImg *GetImg(GRect *Sub = 0);
 		#endif
-		GRect ClipRgn(GRect *Rgn);
 		
 		#elif defined(__GTK_H__)
 
@@ -951,11 +946,13 @@ public:
 
 		OsBitmap GetBitmap();
 		OsPainter Handle();
-		GRect ClipRgn(GRect *Rgn);
 
 		#endif
 		
 	#endif
+
+	// Set new clipping region
+	GRect ClipRgn(GRect *Rgn);
 
 	void SetClient(GRect *c);
 

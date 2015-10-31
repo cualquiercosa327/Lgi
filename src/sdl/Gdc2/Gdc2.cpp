@@ -472,7 +472,6 @@ GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
 				Bits[idx] = 'b';
 			}
 		}
-		// printf("Bits='%s'\n", &Bits[0]);
 
 		char Cur = 0;
 		int Idx = 0;

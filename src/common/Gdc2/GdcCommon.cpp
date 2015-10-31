@@ -914,7 +914,7 @@ bool GColourSpaceTest()
 GSurface *GInlineBmp::Create(uint32 TransparentPx)
 {
 	GSurface *pDC = new GMemDC;
-	if (pDC->Create(X, Y, GdcD->GetColourSpace()))
+	if (pDC->Create(X, Y, System32BitColourSpace))
 	{
 		GBmpMem Src, Dst;
 		
@@ -939,6 +939,66 @@ GSurface *GInlineBmp::Create(uint32 TransparentPx)
 		Dst.Cs = pDC->GetColourSpace();
 		
 		LgiRopUniversal(&Dst, &Src, false);
+		
+		if (TransparentPx != 0xffffffff)
+		{
+			for (int y=0; y<Y; y++)
+			{
+				GPointer s;
+				s.u8 = (uint8*)Data + (y * Src.Line);
+				uint32 *d = (uint32*)(*pDC)[y];
+				
+				switch (Bits >> 3)
+				{
+					case 1:
+					{
+						for (int x=0; x<X; x++)
+						{
+							if (s.u8[x] == TransparentPx)
+								d[x] = 0;
+						}
+						break;
+					}
+					case 2:
+					{
+						for (int x=0; x<X; x++)
+						{
+							if (s.u16[x] == TransparentPx)
+								d[x] = 0;
+						}
+						break;
+					}
+					case 3:
+					{
+						register uint8 r = R24(TransparentPx);
+						register uint8 g = G24(TransparentPx);
+						register uint8 b = B24(TransparentPx);
+						register GRgb24 *px = (GRgb24*) s.u8;
+						register GRgb24 *e = px + X;
+						while (px < e)
+						{
+							if (px->r == r &&
+								px->g == g &&
+								px->b == b)
+							{
+								*d = 0;
+							}
+							d++;
+						}
+						break;
+					}
+					case 4:
+					{
+						for (int x=0; x<X; x++)
+						{
+							if (s.u32[x] == TransparentPx)
+								d[x] = 0;
+						}
+						break;
+					}
+				}
+			}
+		}
 	}
 	else
 	{
@@ -947,296 +1007,6 @@ GSurface *GInlineBmp::Create(uint32 TransparentPx)
 
 	return pDC;
 }
-
-///////////////////////////////////////////////////////////////////////////////////////
-/*
-#include "GPixelRops.h"
-
-// Use LgiRopUniversal instead
-bool GUniversalBlt
-(
-	GColourSpace OutCs,
-	uint8 *OutPtr,
-	int OutLine,
-	
-	GColourSpace InCs,
-	uint8 *InPtr,
-	int InLine,
-	
-	int width,
-	int height,
-	unsigned flags
-)
-{
-	if (OutCs == CsNone ||
-		OutPtr == NULL ||
-		OutLine == 0 ||
-		InCs == CsNone ||
-		InPtr == NULL ||
-		InLine == 0)
-	{
-		LgiAssert(!"Invalid params");
-		return false;
-	}
-	
-	if (InCs == OutCs)
-	{
-		int Depth = GColourSpaceToBits(InCs);
-		int PixelBytes = Depth >> 3;
-		int ScanBytes = width * PixelBytes;
-		LgiAssert(Depth % 8 == 0);
-		
-		// No conversion so just copy memory
-		for (int y=0; y<height; y++)
-		{
-			memcpy(OutPtr, InPtr, ScanBytes);
-			OutPtr += OutLine;
-			InPtr += InLine;
-		}
-		
-		return true;
-	}
-	
-	bool InAlpha = GColourSpaceHasAlpha(InCs);
-	bool OutAlpha = GColourSpaceHasAlpha(OutCs);
-
-	if (InAlpha && (flags & UniBlt_CompositingEnabled) != 0)
-	{
-		if (OutAlpha)
-		{
-			// Compositing with both source and dest alpha
-			for (int y=0; y<height; y++)
-			{
-				switch (CsMapping(OutCs, InCs))
-				{
-					#define Case(OutType, InType) \
-						case CsMapping(Cs##OutType, Cs##InType): \
-							CompositeNonPreMul32to32((G##OutType*)OutPtr, (G##InType*)InPtr, width); \
-							break
-
-					Case(Rgba32, Bgra32);
-					Case(Rgba32, Abgr32);
-					Case(Rgba32, Argb32);
-
-					Case(Bgra32, Rgba32);
-					Case(Bgra32, Abgr32);
-					Case(Bgra32, Argb32);
-
-					Case(Argb32, Rgba32);
-					Case(Argb32, Bgra32);
-					Case(Argb32, Abgr32);
-
-					Case(Abgr32, Rgba32);
-					Case(Abgr32, Bgra32);
-					Case(Abgr32, Argb32);
-					
-					#undef Case
-
-					default:
-						LgiAssert(!"Not impl.");
-						return false;
-				}
-
-				OutPtr += OutLine;
-				InPtr += InLine;
-			}
-		}
-		else
-		{
-			// Compositing with source alpha but no destination alpha
-			for (int y=0; y<height; y++)
-			{
-				switch (CsMapping(OutCs, InCs))
-				{
-					#define Case(OutType, InType) \
-						case CsMapping(Cs##OutType, Cs##InType): \
-							CompositeNonPreMul32to24((G##OutType*)OutPtr, (G##InType*)InPtr, width); \
-							break
-
-					Case(Rgb24, Rgba32);
-					Case(Rgb24, Bgra32);
-					Case(Rgb24, Argb32);
-					Case(Rgb24, Abgr32);
-
-					Case(Bgr24, Rgba32);
-					Case(Bgr24, Bgra32);
-					Case(Bgr24, Argb32);
-					Case(Bgr24, Abgr32);
-
-					Case(Rgbx32, Rgba32);
-					Case(Rgbx32, Bgra32);
-					Case(Rgbx32, Argb32);
-					Case(Rgbx32, Abgr32);
-
-					Case(Bgrx32, Rgba32);
-					Case(Bgrx32, Bgra32);
-					Case(Bgrx32, Argb32);
-					Case(Bgrx32, Abgr32);
-
-					Case(Xrgb32, Rgba32);
-					Case(Xrgb32, Bgra32);
-					Case(Xrgb32, Argb32);
-					Case(Xrgb32, Abgr32);
-
-					Case(Xbgr32, Rgba32);
-					Case(Xbgr32, Bgra32);
-					Case(Xbgr32, Argb32);
-					Case(Xbgr32, Abgr32);
-					
-					#undef Case
-
-					default:
-						LgiAssert(!"Not impl.");
-						return false;
-				}
-
-				OutPtr += OutLine;
-				InPtr += InLine;
-			}
-		}
-	}
-	else if (!InAlpha && OutAlpha)
-	{
-		// No compositing, just copy Blt. No alpha -> alpha.
-		for (int y=0; y<height; y++)
-		{
-			switch (CsMapping(OutCs, InCs))
-			{
-				#define Case(OutType, InType) \
-					case CsMapping(Cs##OutType, Cs##InType): \
-						Copy24to32((G##OutType*)OutPtr, (G##InType*)InPtr, width); \
-						break
-
-				Case(Rgba32, Rgb24);
-				Case(Rgba32, Bgr24);
-				Case(Rgba32, Rgbx32);
-				Case(Rgba32, Bgrx32);
-				Case(Rgba32, Xrgb32);
-				Case(Rgba32, Xbgr32);
-
-				Case(Bgra32, Rgb24);
-				Case(Bgra32, Bgr24);
-				Case(Bgra32, Rgbx32);
-				Case(Bgra32, Bgrx32);
-				Case(Bgra32, Xrgb32);
-				Case(Bgra32, Xbgr32);
-
-				Case(Argb32, Rgb24);
-				Case(Argb32, Bgr24);
-				Case(Argb32, Rgbx32);
-				Case(Argb32, Bgrx32);
-				Case(Argb32, Xrgb32);
-				Case(Argb32, Xbgr32);
-
-				Case(Abgr32, Rgb24);
-				Case(Abgr32, Bgr24);
-				Case(Abgr32, Rgbx32);
-				Case(Abgr32, Bgrx32);
-				Case(Abgr32, Xrgb32);
-				Case(Abgr32, Xbgr32);
-				
-				#undef Case
-			
-				default:
-					LgiAssert(!"Not impl.");
-					return false;
-			}
-
-			OutPtr += OutLine;
-			InPtr += InLine;
-		}
-	}
-	else
-	{
-		// No Dest Alpha
-		for (int y=0; y<height; y++)
-		{
-			switch (CsMapping(OutCs, InCs))
-			{
-				#define Case(OutType, InType) \
-					case CsMapping(Cs##OutType, Cs##InType): \
-						Copy24((G##OutType*)OutPtr, (G##InType*)InPtr, width); \
-						break
-
-				Case(Rgb24, Bgr24);
-				Case(Rgb24, Rgba32);
-				Case(Rgb24, Bgra32);
-				Case(Rgb24, Argb32);
-				Case(Rgb24, Abgr32);
-				Case(Rgb24, Rgbx32);
-				Case(Rgb24, Bgrx32);
-				Case(Rgb24, Xrgb32);
-				Case(Rgb24, Xbgr32);
-
-				Case(Bgr24, Rgb24);
-				Case(Bgr24, Rgba32);
-				Case(Bgr24, Bgra32);
-				Case(Bgr24, Argb32);
-				Case(Bgr24, Abgr32);
-				Case(Bgr24, Rgbx32);
-				Case(Bgr24, Bgrx32);
-				Case(Bgr24, Xrgb32);
-				Case(Bgr24, Xbgr32);
-
-				Case(Rgbx32, Rgb24);
-				Case(Rgbx32, Bgr24);
-				Case(Rgbx32, Rgba32);
-				Case(Rgbx32, Bgra32);
-				Case(Rgbx32, Argb32);
-				Case(Rgbx32, Abgr32);
-				Case(Rgbx32, Rgbx32);
-				Case(Rgbx32, Bgrx32);
-				Case(Rgbx32, Xrgb32);
-				Case(Rgbx32, Xbgr32);
-				
-				Case(Bgrx32, Rgb24);
-				Case(Bgrx32, Bgr24);
-				Case(Bgrx32, Rgba32);
-				Case(Bgrx32, Bgra32);
-				Case(Bgrx32, Argb32);
-				Case(Bgrx32, Abgr32);
-				Case(Bgrx32, Rgbx32);
-				Case(Bgrx32, Bgrx32);
-				Case(Bgrx32, Xrgb32);
-				Case(Bgrx32, Xbgr32);
-
-				Case(Xrgb32, Rgb24);
-				Case(Xrgb32, Bgr24);
-				Case(Xrgb32, Rgba32);
-				Case(Xrgb32, Bgra32);
-				Case(Xrgb32, Argb32);
-				Case(Xrgb32, Abgr32);
-				Case(Xrgb32, Rgbx32);
-				Case(Xrgb32, Bgrx32);
-				Case(Xrgb32, Xrgb32);
-				Case(Xrgb32, Xbgr32);
-				
-				Case(Xbgr32, Rgb24);
-				Case(Xbgr32, Bgr24);
-				Case(Xbgr32, Rgba32);
-				Case(Xbgr32, Bgra32);
-				Case(Xbgr32, Argb32);
-				Case(Xbgr32, Abgr32);
-				Case(Xbgr32, Rgbx32);
-				Case(Xbgr32, Bgrx32);
-				Case(Xbgr32, Xrgb32);
-				Case(Xbgr32, Xbgr32);
-				
-				#undef Case
-			
-				default:
-					LgiAssert(!"Not impl.");
-					return false;
-			}
-
-			OutPtr += OutLine;
-			InPtr += InLine;
-		}
-	}	
-	
-	return true;
-}
-*/
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 #include "GRops.h"

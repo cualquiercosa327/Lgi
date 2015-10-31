@@ -115,7 +115,7 @@
 			<Node File="../common/Lgi/GFontSelect.cpp" Type="2" Platforms="15" />
 			<Node File="../common/Lgi/GInput.cpp" Type="2" Platforms="15" />
 		</Node>
-		<Node Name="Graphics" Type="1" Platforms="15" Open="0">
+		<Node Name="Graphics" Type="1" Platforms="15" Open="1">
 			<Node Name="_Core" Type="1" Platforms="15" Open="1">
 				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
 					<Node File="./Gdc2/Gdc2.cpp" Type="2" Platforms="8" />
@@ -270,8 +270,8 @@
 		<Node Name="Linux" Type="1" Platforms="15" Open="0" />
 		<Node Name="Win" Type="1" Platforms="15" Open="0" />
 		<Node Name="Sdl" Type="1" Platforms="15" Open="1">
-			<Node File="..\..\include\sdl\LgiOsClasses.h" Type="3" Platforms="15" />
-			<Node File="..\..\include\sdl\LgiOsDefs.h" Type="3" Platforms="2" />
+			<Node File="../../include/sdl/LgiOsClasses.h" Type="3" Platforms="15" />
+			<Node File="../../include/sdl/LgiOsDefs.h" Type="3" Platforms="2" />
 		</Node>
 	</Node>
 	<Settings>

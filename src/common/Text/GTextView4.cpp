@@ -3802,7 +3802,6 @@ GMessage::Result GTextView4::OnEvent(GMessage *Msg)
 		}
 		case M_COPY:
 		{
-			printf("M_COPY received.\n");
 			Copy();
 			break;
 		}
