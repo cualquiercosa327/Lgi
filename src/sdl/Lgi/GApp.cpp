@@ -284,6 +284,7 @@ GApp::GApp(OsAppArguments &AppArgs, const char *name, GAppArguments *Args) :
 
 	#ifdef LINUX
 	signal(SIGSEGV, sighandler);
+	signal(SIGINT, sighandler);
 	#endif
 		
 	// We want our printf's NOW!

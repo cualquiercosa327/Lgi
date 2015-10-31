@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project>
 	<Node Name="Source Files" Type="1" Platforms="15" Open="1">
-		<Node Name="Core" Type="1" Platforms="15" Open="0">
+		<Node Name="Core" Type="1" Platforms="15" Open="1">
 			<Node Name="DateTime" Type="1" Platforms="15" Open="0">
 				<Node File="../common/General/GDateTime.cpp" Type="2" Platforms="15" />
 				<Node File="../../include/common/GDateTime.h" Type="3" Platforms="15" />
@@ -22,10 +22,10 @@
 			</Node>
 			<Node Name="Interface" Type="1" Platforms="15" Open="1">
 				<Node Name="Linux" Type="1" Platforms="15" Open="1">
-					<Node File=".\Lgi\GApp.cpp" Type="2" Platforms="2" />
-					<Node File=".\Lgi\GPrinter.cpp" Type="2" Platforms="2" />
-					<Node File=".\Lgi\GView.cpp" Type="2" Platforms="2" />
-					<Node File=".\Lgi\GWindow.cpp" Type="2" Platforms="2" />
+					<Node File="./Lgi/GApp.cpp" Type="2" Platforms="2" />
+					<Node File="./Lgi/GPrinter.cpp" Type="2" Platforms="2" />
+					<Node File="./Lgi/GView.cpp" Type="2" Platforms="2" />
+					<Node File="./Lgi/GWindow.cpp" Type="2" Platforms="2" />
 				</Node>
 				<Node File="../linux/Lgi/GGeneral.cpp" Type="2" Platforms="15" />
 				<Node File="../common/Lgi/GViewCommon.cpp" Type="2" Platforms="15" />
@@ -115,7 +115,7 @@
 			<Node File="../common/Lgi/GFontSelect.cpp" Type="2" Platforms="15" />
 			<Node File="../common/Lgi/GInput.cpp" Type="2" Platforms="15" />
 		</Node>
-		<Node Name="Graphics" Type="1" Platforms="15" Open="1">
+		<Node Name="Graphics" Type="1" Platforms="15" Open="0">
 			<Node Name="_Core" Type="1" Platforms="15" Open="1">
 				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
 					<Node File="./Gdc2/Gdc2.cpp" Type="2" Platforms="8" />

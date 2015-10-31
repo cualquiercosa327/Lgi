@@ -914,7 +914,7 @@ bool GColourSpaceTest()
 GSurface *GInlineBmp::Create(uint32 TransparentPx)
 {
 	GSurface *pDC = new GMemDC;
-	if (pDC->Create(X, Y, System32BitColourSpace))
+	if (pDC->Create(X, Y, System32BitColourSpace, GSurface::SurfaceRequireExactCs))
 	{
 		GBmpMem Src, Dst;
 		

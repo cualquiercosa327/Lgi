@@ -1057,11 +1057,19 @@ md5.o : ./src/common/Hash/md5/md5.c
 ../../../../../usr/include/glib-2.0/glib/gmappedfile.h : /usr/include/glib-2.0/glib/gbytes.h \
 	/usr/include/glib-2.0/glib/gerror.h
 
+./include/common/GDisplayString.h : /usr/include/pango-1.0/pango/pango.h \
+	/usr/include/pango-1.0/pango/pangocairo.h
+
+../../../../../usr/include/pango-1.0/pango/pangocairo.h : /usr/include/pango-1.0/pango/pango.h \
+	/usr/include/cairo/cairo.h
+
 ./include/common/GProgressDlg.h : ./include/common/GTableLayout.h
 
 ../../../../../usr/include/glib-2.0/glib/gbitlock.h : /usr/include/glib-2.0/glib/gtypes.h
 
 ../../../../../usr/include/glib-2.0/glib/gdatetime.h : /usr/include/glib-2.0/glib/gtimezone.h
+
+./include/common/GMutex.h : 
 
 ./include/common/GRadioGroup.h : 
 
@@ -1070,6 +1078,10 @@ md5.o : ./src/common/Hash/md5/md5.c
 ../../../../../usr/include/glib-2.0/glib/gdir.h : /usr/include/glib-2.0/glib/gerror.h
 
 ./include/common/GInput.h : 
+
+./include/common/GXmlTree.h : ./include/common/GHashTable.h \
+	./include/common/GRefCount.h \
+	./include/common/GDom.h
 
 ./include/common/GCssTools.h : 
 
@@ -1104,14 +1116,27 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ./include/common/GClipBoard.h : 
 
-./include/common/GContainers.h : ./include/common/LgiInc.h \
-	./include/linux/Gtk/LgiOsDefs.h \
-	./include/common/GStream.h
+./include/common/GDom.h : ./include/common/LgiInterfaces.h \
+	./include/common/GMem.h \
+	./include/common/GArray.h
+
+./include/common/GMem.h : ./include/common/LgiInc.h \
+	./include/linux/Gtk/LgiOsDefs.h
 
 ../../../../../usr/include/glib-2.0/glib/gnode.h : /usr/include/glib-2.0/glib/gmem.h
 
 ./include/common/GDocView.h : ./include/common/GVariant.h \
 	./include/common/GNotifications.h
+
+./include/common/GNotifications.h : 
+
+./include/common/GVariant.h : ./include/common/GDom.h \
+	./include/common/GDateTime.h \
+	./include/common/GContainers.h \
+	./include/common/GHashTable.h
+
+./include/common/GStream.h : ./include/common/GDom.h \
+	./include/common/GStringClass.h
 
 ./include/common/GTextLabel.h : 
 
@@ -1120,11 +1145,7 @@ md5.o : ./src/common/Hash/md5/md5.c
 	./include/common/LgiClass.h \
 	./include/common/GStringClass.h
 
-./include/common/GArray.h : ./include/common/LgiDefs.h
-
 ./include/linux/GSymLookup.h : ./include/common/GProcess.h
-
-./include/common/GProcess.h : ./include/common/GStream.h
 
 ./include/linux/Gtk/LgiWidget.h : 
 
@@ -1132,26 +1153,6 @@ md5.o : ./src/common/Hash/md5/md5.c
 	/usr/include/glib-2.0/glib/glist.h
 
 ../../../../../usr/include/glib-2.0/glib/gqsort.h : /usr/include/glib-2.0/glib/gtypes.h
-
-./include/common/GList.h : ./include/common/GMem.h \
-	./include/common/GArray.h \
-	./include/common/GPopup.h \
-	./include/common/GDisplayString.h \
-	./include/common/GCss.h \
-	./include/common/GItemContainer.h
-
-./include/common/GCss.h : ./include/common/LgiInc.h \
-	./include/linux/Gtk/LgiOsDefs.h \
-	./include/common/GMem.h \
-	./include/common/Gdc2.h \
-	./include/common/GAutoPtr.h \
-	./include/common/GString.h \
-	./include/common/GHashTable.h
-
-./include/common/GHashTable.h : ./include/common/GMem.h \
-	./include/common/GArray.h \
-	./include/common/GString.h \
-	./include/common/LgiClass.h
 
 ./include/common/Res.h : ./include/common/GXmlTree.h
 
@@ -1210,9 +1211,6 @@ md5.o : ./src/common/Hash/md5/md5.c
 	/usr/include/gtk-2.0/gdk/gdkpixbuf.h \
 	/usr/include/pango-1.0/pango/pangocairo.h
 
-../../../../../usr/include/pango-1.0/pango/pangocairo.h : /usr/include/pango-1.0/pango/pango.h \
-	/usr/include/cairo/cairo.h
-
 ../../../../../usr/include/gtk-2.0/gdk/gdkinput.h : /usr/include/gtk-2.0/gdk/gdktypes.h
 
 ../../../../../usr/include/gtk-2.0/gdk/gdkdisplaymanager.h : /usr/include/gtk-2.0/gdk/gdktypes.h \
@@ -1259,6 +1257,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/glib-2.0/glib/gasyncqueue.h : /usr/include/glib-2.0/glib/gthread.h
 
+./include/common/GArray.h : ./include/common/LgiDefs.h
+
 ../../../../../usr/include/gtk-2.0/gdk/gdkproperty.h : /usr/include/gtk-2.0/gdk/gdktypes.h
 
 ../../../../../usr/include/glib-2.0/glib/gstrfuncs.h : /usr/include/glib-2.0/glib/gmacros.h \
@@ -1273,13 +1273,16 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/glib-2.0/glib/gatomic.h : /usr/include/glib-2.0/glib/gtypes.h
 
+./include/common/GItemContainer.h : ./include/common/GPopup.h \
+	./include/common/GNotifications.h
+
+./include/common/GPopup.h : 
+
 ../../../../../usr/include/gtk-2.0/gdk/gdkselection.h : /usr/include/gtk-2.0/gdk/gdktypes.h
 
 ./include/common/GViewPriv.h : 
 
 ./include/common/GPopup.h : 
-
-./include/common/GAutoPtr.h : 
 
 ./include/common/GFile.h : ./include/common/GMem.h \
 	./include/common/GStream.h \
@@ -1324,44 +1327,53 @@ md5.o : ./src/common/Hash/md5/md5.c
 	./include/common/LgiClasses.h \
 	./include/common/LgiCommon.h
 
-./include/common/LgiClasses.h : ./include/common/GMutex.h \
-	./include/linux/Gtk/LgiOsClasses.h \
-	./include/common/GMem.h \
-	./include/common/GArray.h \
-	./include/common/LgiCommon.h \
-	./include/common/GXmlTree.h \
-	./include/common/GDragAndDrop.h \
-	./include/common/GMenu.h \
-	./include/common/LgiWidgets.h \
-	./include/common/Progress.h \
-	./include/common/GProgress.h \
-	./include/common/GFileSelect.h \
-	./include/common/GFindReplaceDlg.h \
-	./include/common/GToolBar.h \
-	./include/common/GThread.h \
-	./include/common/GInput.h \
-	./include/common/GPrinter.h
+./include/common/LgiMsgs.h : 
 
 ./include/common/LgiCommon.h : ./include/common/GMem.h \
 	./include/common/GArray.h \
 	./include/common/LgiClass.h \
 	./include/common/GStringClass.h
 
-./include/common/GToolBar.h : ./include/common/GImageList.h
+./include/common/GFile.h : ./include/common/GMem.h \
+	./include/common/GStream.h \
+	./include/common/GArray.h \
+	./include/common/GRefCount.h \
+	./include/common/GStringClass.h
 
-./include/common/LgiWidgets.h : 
+./include/common/Gdc2.h : ./include/linux/Gtk/LgiOsDefs.h \
+	./include/common/LgiInc.h \
+	./include/common/LgiClass.h \
+	./include/common/Progress.h \
+	./include/common/GFile.h \
+	./include/common/GMem.h \
+	./include/common/Core.h \
+	./include/common/GContainers.h \
+	./include/common/GCapabilities.h \
+	./include/common/GRefCount.h \
+	./include/common/GLibrary.h \
+	./include/common/GColourSpace.h \
+	./include/common/GRect.h \
+	./include/common/GFont.h \
+	./include/common/GPoint.h \
+	./include/common/GColour.h \
+	./include/common/GFilter.h
 
-./include/common/GFileSelect.h : 
+./include/common/GPoint.h : 
+
+./include/common/GFont.h : ./include/common/GRect.h \
+	./include/linux/Gtk/LgiOsClasses.h \
+	./include/common/GColour.h \
+	./include/common/GCapabilities.h
+
+./include/common/GFilter.h : ./include/common/GContainers.h
+
+./include/common/GRect.h : ./include/common/GPoint.h
 
 ../../../../../usr/include/cairo/cairo-deprecated.h : 
 
 ./include/common/GMutex.h : 
 
 ../../../../../usr/include/glib-2.0/glib/gtimer.h : /usr/include/glib-2.0/glib/gtypes.h
-
-./include/common/GXmlTree.h : ./include/common/GHashTable.h \
-	./include/common/GRefCount.h \
-	./include/common/GDom.h
 
 ../../../../../usr/include/glib-2.0/glib/gerror.h : /usr/include/glib-2.0/glib/gquark.h
 
@@ -1371,6 +1383,11 @@ md5.o : ./src/common/Hash/md5/md5.c
 ../../../../../usr/include/glib-2.0/glib/gcharset.h : /usr/include/glib-2.0/glib/gtypes.h
 
 ../../../../../usr/include/glib-2.0/glib/gbase64.h : /usr/include/glib-2.0/glib/gtypes.h
+
+./include/common/Progress.h : ./include/common/GMutex.h
+
+./include/common/GString.h : ./include/common/LgiDefs.h \
+	./include/linux/Gtk/LgiOsDefs.h
 
 ../../../../../usr/include/pango-1.0/pango/pango.h : /usr/include/pango-1.0/pango/pango-attributes.h \
 	/usr/include/pango-1.0/pango/pango-bidi-type.h \
@@ -1395,8 +1412,6 @@ md5.o : ./src/common/Hash/md5/md5.c
 	/usr/include/pango-1.0/pango/pango-types.h \
 	/usr/include/pango-1.0/pango/pango-utils.h
 
-./include/common/GThreadEvent.h : 
-
 ../../../../../usr/include/pango-1.0/pango/pango-utils.h : /usr/include/glib-2.0/glib.h \
 	/usr/include/pango-1.0/pango/pango-font.h
 
@@ -1415,22 +1430,22 @@ md5.o : ./src/common/Hash/md5/md5.c
 ../../../../../usr/include/pango-1.0/pango/pango-break.h : /usr/include/glib-2.0/glib.h \
 	/usr/include/pango-1.0/pango/pango-item.h
 
+./include/common/GColourSpace.h : 
+
+./include/common/GList.h : ./include/common/GMem.h \
+	./include/common/GArray.h \
+	./include/common/GPopup.h \
+	./include/common/GDisplayString.h \
+	./include/common/GCss.h \
+	./include/common/GItemContainer.h
+
 ./include/common/GdiLeak.h : 
-
-./include/common/LgiMsgs.h : 
-
-./include/linux/Gtk/LgiOsClasses.h : 
 
 ../../../../../usr/include/glib-2.0/glib/gshell.h : /usr/include/glib-2.0/glib/gerror.h
 
-./include/common/GVariant.h : ./include/common/GDom.h \
-	./include/common/GDateTime.h \
-	./include/common/GContainers.h \
-	./include/common/GHashTable.h
-
 ../../../../../usr/include/glib-2.0/glib/gdataset.h : /usr/include/glib-2.0/glib/gquark.h
 
-../../../../../usr/include/glib-2.0/glib/gtypes.h : /usr/lib/x86_64-linux-gnu/glib-2.0/include/glibconfig.h \
+../../../../../usr/include/glib-2.0/glib/gtypes.h : /usr/lib/arm-linux-gnueabihf/glib-2.0/include/glibconfig.h \
 	/usr/include/glib-2.0/glib/gmacros.h \
 	/usr/include/glib-2.0/glib/gversionmacros.h
 
@@ -1449,6 +1464,12 @@ md5.o : ./src/common/Hash/md5/md5.c
 ../../../../../usr/include/glib-2.0/glib/gscanner.h : /usr/include/glib-2.0/glib/gdataset.h \
 	/usr/include/glib-2.0/glib/ghash.h
 
+./include/linux/Gtk/LgiOsClasses.h : 
+
+./include/common/GContainers.h : ./include/common/LgiInc.h \
+	./include/linux/Gtk/LgiOsDefs.h \
+	./include/common/GStream.h
+
 ./include/common/GArray.h : ./include/common/LgiDefs.h
 
 ./include/common/GTabView.h : 
@@ -1460,6 +1481,10 @@ md5.o : ./src/common/Hash/md5/md5.c
 	/usr/include/cairo/cairo.h
 
 ../../../../../usr/include/glib-2.0/glib/ghmac.h : /usr/include/glib-2.0/glib/gtypes.h
+
+./include/common/LgiClass.h : ./include/common/LgiInc.h \
+	./include/common/LgiDefs.h \
+	./include/common/GAutoPtr.h
 
 ../../../../../usr/include/pango-1.0/pango/pango-tabs.h : /usr/include/pango-1.0/pango/pango-types.h
 
@@ -1481,11 +1506,11 @@ md5.o : ./src/common/Hash/md5/md5.c
 	./include/common/GColour.h \
 	./include/common/GFilter.h
 
-./include/common/GColour.h : ./include/common/GColourSpace.h
-
-./include/common/GColourSpace.h : 
-
 ../../../../../usr/include/glib-2.0/glib/gtimezone.h : /usr/include/glib-2.0/glib/gtypes.h
+
+./include/common/GLibrary.h : 
+
+./include/common/GRops.h : ./include/common/GPixelRops.h
 
 ../../../../../usr/include/pango-1.0/pango/pango-engine.h : /usr/include/pango-1.0/pango/pango-types.h \
 	/usr/include/pango-1.0/pango/pango-item.h \
@@ -1494,11 +1519,7 @@ md5.o : ./src/common/Hash/md5/md5.c
 	/usr/include/pango-1.0/pango/pango-script.h \
 	/usr/include/glib-2.0/gmodule.h
 
-./include/common/GRops.h : ./include/common/GPixelRops.h
-
-./include/common/GPixelRops.h : 
-
-./include/common/Progress.h : ./include/common/GMutex.h
+../../../../../usr/lib/arm-linux-gnueabihf/glib-2.0/include/glibconfig.h : /usr/include/glib-2.0/glib/gmacros.h
 
 ../../../../../usr/include/glib-2.0/glib/gregex.h : /usr/include/glib-2.0/glib/gerror.h \
 	/usr/include/glib-2.0/glib/gstring.h
@@ -1519,15 +1540,10 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/glib-2.0/glib/gversion.h : /usr/include/glib-2.0/glib/gtypes.h
 
-./include/common/GProgress.h : 
-
 ../../../../../usr/include/gtk-2.0/gdk/gdkapplaunchcontext.h : /usr/include/glib-2.0/gio/gio.h \
 	/usr/include/gtk-2.0/gdk/gdkscreen.h
 
 ../../../../../usr/include/pango-1.0/pango/pango-enum-types.h : /usr/include/glib-2.0/glib-object.h
-
-./include/common/GStream.h : ./include/common/GDom.h \
-	./include/common/GStringClass.h
 
 ../../../../../usr/include/glib-2.0/glib/deprecated/gcache.h : /usr/include/glib-2.0/glib/glist.h
 
@@ -1537,16 +1553,12 @@ md5.o : ./src/common/Hash/md5/md5.c
 ../../../../../usr/include/glib-2.0/gobject/gbinding.h : /usr/include/glib-2.0/glib.h \
 	/usr/include/glib-2.0/gobject/gobject.h
 
-./include/common/GThread.h : ./include/common/GMutex.h
-
 ../../../../../usr/include/glib-2.0/gobject/gvaluetypes.h : /usr/include/glib-2.0/gobject/gvalue.h
 
 ./include/common/GdcTools.h : 
 
 ./include/common/GDisplayStringLayout.h : ./include/common/GUtf8.h \
 	./include/common/GDisplayString.h
-
-./include/common/GUtf8.h : 
 
 ../../../../../usr/include/glib-2.0/gobject/gtypeplugin.h : /usr/include/glib-2.0/gobject/gtype.h
 
@@ -1561,26 +1573,6 @@ md5.o : ./src/common/Hash/md5/md5.c
 ../../../../../usr/include/pango-1.0/pango/pango-coverage.h : /usr/include/glib-2.0/glib.h
 
 ../../../../../usr/include/pango-1.0/pango/pango-bidi-type.h : /usr/include/glib-2.0/glib.h
-
-./include/common/Gdc2.h : ./include/linux/Gtk/LgiOsDefs.h \
-	./include/common/LgiInc.h \
-	./include/common/LgiClass.h \
-	./include/common/Progress.h \
-	./include/common/GFile.h \
-	./include/common/GMem.h \
-	./include/common/Core.h \
-	./include/common/GContainers.h \
-	./include/common/GCapabilities.h \
-	./include/common/GRefCount.h \
-	./include/common/GLibrary.h \
-	./include/common/GColourSpace.h \
-	./include/common/GRect.h \
-	./include/common/GFont.h \
-	./include/common/GPoint.h \
-	./include/common/GColour.h \
-	./include/common/GFilter.h
-
-./include/common/GCapabilities.h : ./include/common/GHashTable.h
 
 ./include/common/GProgress.h : 
 
@@ -1604,9 +1596,6 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/gtk-2.0/gdk/gdktestutils.h : /usr/include/gtk-2.0/gdk/gdkwindow.h
 
-./include/common/GString.h : ./include/common/LgiDefs.h \
-	./include/linux/Gtk/LgiOsDefs.h
-
 ./include/common/GLibrary.h : 
 
 ../../../../../usr/include/pango-1.0/pango/pango-types.h : /usr/include/glib-2.0/glib.h \
@@ -1617,8 +1606,12 @@ md5.o : ./src/common/Hash/md5/md5.c
 	/usr/include/pango-1.0/pango/pango-script.h \
 	/usr/include/pango-1.0/pango/pango-bidi-type.h
 
-./include/common/GDragAndDrop.h : ./include/common/GVariant.h \
-	./include/common/GCom.h
+./include/common/Core.h : 
+
+./include/common/LgiInterfaces.h : ./include/common/GMem.h \
+	./include/common/GArray.h \
+	./include/linux/Gtk/LgiOsDefs.h \
+	./include/common/GColour.h
 
 ../../../../../usr/include/glib-2.0/glib/gvariant.h : /usr/include/glib-2.0/glib/gvarianttype.h \
 	/usr/include/glib-2.0/glib/gstring.h \
@@ -1631,6 +1624,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 ../../../../../usr/include/glib-2.0/glib/gmessages.h : /usr/include/glib-2.0/glib/gtypes.h \
 	/usr/include/glib-2.0/glib/gmacros.h
 
+./include/common/GColour.h : ./include/common/GColourSpace.h
+
 ../../../../../usr/include/gtk-2.0/gdk/gdkspawn.h : /usr/include/gtk-2.0/gdk/gdkscreen.h
 
 ./include/common/INet.h : ./include/common/GMem.h \
@@ -1640,11 +1635,6 @@ md5.o : ./src/common/Hash/md5/md5.c
 	./include/common/LgiInterfaces.h \
 	./include/common/GString.h
 
-./include/common/LgiInterfaces.h : ./include/common/GMem.h \
-	./include/common/GArray.h \
-	./include/linux/Gtk/LgiOsDefs.h \
-	./include/common/GColour.h
-
 ../../../../../usr/include/glib-2.0/glib/gtestutils.h : /usr/include/glib-2.0/glib/gmessages.h \
 	/usr/include/glib-2.0/glib/gstring.h \
 	/usr/include/glib-2.0/glib/gerror.h \
@@ -1653,19 +1643,17 @@ md5.o : ./src/common/Hash/md5/md5.c
 ../../../../../usr/include/gtk-2.0/gdk/gdkdisplay.h : /usr/include/gtk-2.0/gdk/gdktypes.h \
 	/usr/include/gtk-2.0/gdk/gdkevents.h
 
-./include/common/LgiDefs.h : ./include/common/LgiInc.h \
-	./include/common/GAutoPtr.h
-
 ../../../../../usr/include/glib-2.0/glib/grand.h : /usr/include/glib-2.0/glib/gtypes.h
+
+./include/common/GProcess.h : ./include/common/GStream.h
 
 ../../../../../usr/include/gtk-2.0/gdk/gdkscreen.h : /usr/include/cairo/cairo.h \
 	/usr/include/gtk-2.0/gdk/gdktypes.h \
 	/usr/include/gtk-2.0/gdk/gdkdisplay.h
 
-./include/common/GFont.h : ./include/common/GRect.h \
-	./include/linux/Gtk/LgiOsClasses.h \
-	./include/common/GColour.h \
-	./include/common/GCapabilities.h
+./include/common/GProperties.h : ./include/common/GContainers.h \
+	./include/common/LgiClass.h \
+	./include/common/GString.h
 
 ../../../../../usr/include/pango-1.0/pango/pango-glyph-item.h : /usr/include/pango-1.0/pango/pango-attributes.h \
 	/usr/include/pango-1.0/pango/pango-break.h \
@@ -1836,9 +1824,9 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/glib-2.0/gio/ginputstream.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../usr/include/glib-2.0/gio/gthemedicon.h : /usr/include/glib-2.0/gio/giotypes.h
-
 ../../../../../usr/include/glib-2.0/gio/gfileicon.h : /usr/include/glib-2.0/gio/giotypes.h
+
+../../../../../usr/include/glib-2.0/gio/gthemedicon.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../usr/include/glib-2.0/gio/gapplication.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -1865,9 +1853,9 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/glib-2.0/gio/gpollableoutputstream.h : /usr/include/glib-2.0/gio/gio.h
 
-../../../../../usr/include/glib-2.0/gio/gdbusobjectmanager.h : /usr/include/glib-2.0/gio/giotypes.h
-
 ../../../../../usr/include/glib-2.0/gio/gtlsdatabase.h : /usr/include/glib-2.0/gio/giotypes.h
+
+../../../../../usr/include/glib-2.0/gio/gdbusobjectmanager.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../usr/include/glib-2.0/gio/gsettings.h : /usr/include/glib-2.0/gio/gsettingsschema.h \
 	/usr/include/glib-2.0/gio/giotypes.h
@@ -1905,14 +1893,14 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/glib-2.0/gio/gdbusutils.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../usr/include/glib-2.0/gio/gmenuexporter.h : /usr/include/glib-2.0/gio/gdbusconnection.h \
-	/usr/include/glib-2.0/gio/gmenumodel.h
-
 ../../../../../usr/include/glib-2.0/gio/gmemoryoutputstream.h : /usr/include/glib-2.0/gio/goutputstream.h
 
 ../../../../../usr/include/glib-2.0/gio/gdbusnameowning.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../usr/include/glib-2.0/gio/gtlsserverconnection.h : /usr/include/glib-2.0/gio/gtlsconnection.h
+
+../../../../../usr/include/glib-2.0/gio/gmenuexporter.h : /usr/include/glib-2.0/gio/gdbusconnection.h \
+	/usr/include/glib-2.0/gio/gmenumodel.h
 
 ../../../../../usr/include/glib-2.0/gio/gsocketservice.h : /usr/include/glib-2.0/gio/gsocketlistener.h
 
@@ -1945,7 +1933,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/glib-2.0/gio/gbufferedoutputstream.h : /usr/include/glib-2.0/gio/gfilteroutputstream.h
 
-../../../../../usr/include/glib-2.0/gio/gnotification.h : /usr/include/glib-2.0/gio/giotypes.h
+../../../../../usr/include/glib-2.0/gio/gnotification.h : /usr/include/glib-2.0/gio/giotypes.h \
+	/usr/include/glib-2.0/gio/gioenums.h
 
 ../../../../../usr/include/glib-2.0/gio/gbufferedinputstream.h : /usr/include/glib-2.0/gio/gfilterinputstream.h
 
@@ -1985,6 +1974,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 	/usr/include/pango-1.0/pango/pango-types.h \
 	/usr/include/glib-2.0/glib-object.h
 
+./include/common/GAutoPtr.h : 
+
 ../../../../../usr/include/glib-2.0/gio/gasyncresult.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../usr/include/glib-2.0/gio/gsimplepermission.h : /usr/include/glib-2.0/gio/giotypes.h
@@ -1992,8 +1983,6 @@ md5.o : ./src/common/Hash/md5/md5.c
 ../../../../../usr/include/glib-2.0/gio/gbytesicon.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../usr/include/glib-2.0/gio/gcharsetconverter.h : /usr/include/glib-2.0/gio/gconverter.h
-
-./include/common/GRect.h : ./include/common/GPoint.h
 
 ../../../../../usr/include/glib-2.0/gio/gsimpleproxyresolver.h : /usr/include/glib-2.0/gio/gproxyresolver.h
 
@@ -2014,8 +2003,6 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/pango-1.0/pango/pango-features.h : 
 
-./include/common/Core.h : 
-
 ../../../../../usr/include/glib-2.0/gio/gfileenumerator.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../usr/include/glib-2.0/gio/gdatainputstream.h : /usr/include/glib-2.0/gio/gbufferedinputstream.h
@@ -2024,11 +2011,7 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/glib-2.0/gio/gsimpleasyncresult.h : /usr/include/glib-2.0/gio/giotypes.h
 
-./include/common/GStringClass.h : ./include/common/GUtf8.h \
-	./include/common/GString.h \
-	./include/common/GUnicode.h
-
-./include/common/GUnicode.h : ./include/common/LgiInc.h
+../../../../../usr/include/glib-2.0/gio/gdbusobjectmanagerserver.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ./include/common/GMem.h : ./include/common/LgiInc.h \
 	./include/linux/Gtk/LgiOsDefs.h
@@ -2074,14 +2057,55 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/glib-2.0/glib/garray.h : /usr/include/glib-2.0/glib/gtypes.h
 
-../../../../../usr/include/glib-2.0/gio/gdbusobjectmanagerserver.h : /usr/include/glib-2.0/gio/giotypes.h
+./include/common/LgiClasses.h : ./include/common/GMutex.h \
+	./include/linux/Gtk/LgiOsClasses.h \
+	./include/common/GMem.h \
+	./include/common/GArray.h \
+	./include/common/LgiCommon.h \
+	./include/common/GXmlTree.h \
+	./include/common/GDragAndDrop.h \
+	./include/common/GMenu.h \
+	./include/common/LgiWidgets.h \
+	./include/common/Progress.h \
+	./include/common/GProgress.h \
+	./include/common/GFileSelect.h \
+	./include/common/GFindReplaceDlg.h \
+	./include/common/GToolBar.h \
+	./include/common/GThread.h \
+	./include/common/GInput.h \
+	./include/common/GPrinter.h
+
+./include/common/GPrinter.h : 
+
+./include/common/GFileSelect.h : 
+
+./include/common/GProgress.h : 
+
+./include/common/GMenu.h : ./include/common/GMenuImpl.h \
+	./include/common/GXmlTree.h \
+	./include/common/Res.h \
+	./include/common/GImageList.h
+
+./include/common/Res.h : ./include/common/GXmlTree.h
+
+./include/common/GDragAndDrop.h : ./include/common/GVariant.h \
+	./include/common/GCom.h
+
+./include/common/GImageList.h : 
+
+./include/common/GThread.h : ./include/common/GMutex.h
+
+./include/common/GMenuImpl.h : ./include/common/GPopup.h
 
 ../../../../../usr/include/glib-2.0/gio/gcredentials.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../usr/include/glib-2.0/gio/gvolumemonitor.h : /usr/include/glib-2.0/gio/giotypes.h
+./include/common/GStringClass.h : ./include/common/GUtf8.h \
+	./include/common/GString.h \
+	./include/common/GUnicode.h
 
-./include/common/GDisplayString.h : /usr/include/pango-1.0/pango/pango.h \
-	/usr/include/pango-1.0/pango/pangocairo.h
+./include/common/GUnicode.h : ./include/common/LgiInc.h
+
+../../../../../usr/include/glib-2.0/gio/gvolumemonitor.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ./include/common/GBitmap.h : 
 
@@ -2089,7 +2113,14 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/glib-2.0/gio/gnativevolumemonitor.h : /usr/include/glib-2.0/gio/gvolumemonitor.h
 
+./include/common/GUtf8.h : 
+
 ../../../../../usr/include/glib-2.0/glib/gquark.h : /usr/include/glib-2.0/glib/gtypes.h
+
+./include/common/LgiDefs.h : ./include/common/LgiInc.h \
+	./include/common/GAutoPtr.h
+
+./include/common/GCapabilities.h : ./include/common/GHashTable.h
 
 ../../../../../usr/include/pango-1.0/pango/pango-matrix.h : /usr/include/glib-2.0/glib.h \
 	/usr/include/glib-2.0/glib-object.h \
@@ -2102,6 +2133,9 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/glib-2.0/glib/gpoll.h : /usr/include/glib-2.0/glib/gtypes.h
 
+./include/common/GCom.h : ./include/common/GContainers.h \
+	./include/common/GVariant.h
+
 ../../../../../usr/include/glib-2.0/glib/gsequence.h : /usr/include/glib-2.0/glib/gtypes.h
 
 ../../../../../usr/include/glib-2.0/glib/gversionmacros.h : 
@@ -2111,10 +2145,18 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/glib-2.0/glib/gurifuncs.h : /usr/include/glib-2.0/glib/gtypes.h
 
-../../../../../usr/include/glib-2.0/gio/gsettingsschema.h : /usr/include/glib-2.0/glib-object.h
+./include/common/GCss.h : ./include/common/LgiInc.h \
+	./include/linux/Gtk/LgiOsDefs.h \
+	./include/common/GMem.h \
+	./include/common/Gdc2.h \
+	./include/common/GAutoPtr.h \
+	./include/common/GString.h \
+	./include/common/GHashTable.h
 
 ../../../../../usr/include/glib-2.0/gio/gconverteroutputstream.h : /usr/include/glib-2.0/gio/gfilteroutputstream.h \
 	/usr/include/glib-2.0/gio/gconverter.h
+
+../../../../../usr/include/glib-2.0/gio/gsettingsschema.h : /usr/include/glib-2.0/glib-object.h
 
 ./include/common/GVariant.h : ./include/common/GDom.h \
 	./include/common/GDateTime.h \
@@ -2122,15 +2164,6 @@ md5.o : ./src/common/Hash/md5/md5.c
 	./include/common/GHashTable.h
 
 ./include/common/GScrollBar.h : 
-
-./include/common/GMenu.h : ./include/common/GMenuImpl.h \
-	./include/common/GXmlTree.h \
-	./include/common/Res.h \
-	./include/common/GImageList.h
-
-./include/common/Res.h : ./include/common/GXmlTree.h
-
-./include/common/GMenuImpl.h : ./include/common/GPopup.h
 
 ../../../../../usr/include/pango-1.0/pango/pango-language.h : /usr/include/glib-2.0/glib.h \
 	/usr/include/glib-2.0/glib-object.h \
@@ -2141,17 +2174,19 @@ md5.o : ./src/common/Hash/md5/md5.c
 	/usr/include/glib-2.0/glib/gbytes.h \
 	/usr/include/glib-2.0/glib/gutils.h
 
-./include/common/GFindReplaceDlg.h : 
-
 ./include/common/GCombo.h : 
 
-./include/common/GNotifications.h : 
-
 ../../../../../usr/include/glib-2.0/glib/gtree.h : /usr/include/glib-2.0/glib/gnode.h
+
+./include/common/GDateTime.h : 
 
 ./include/common/GPath.h : ./include/common/GMatrix.h
 
 ./include/common/GMatrix.h : 
+
+./include/common/GPixelRops.h : 
+
+./include/common/LgiWidgets.h : 
 
 ../../../../../usr/include/glib-2.0/gio/gconverterinputstream.h : /usr/include/glib-2.0/gio/gfilterinputstream.h \
 	/usr/include/glib-2.0/gio/gconverter.h
@@ -2159,6 +2194,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 ../../../../../usr/include/glib-2.0/gio/gdataoutputstream.h : /usr/include/glib-2.0/gio/gfilteroutputstream.h
 
 ../../../../../usr/include/glib-2.0/gio/gfileinfo.h : /usr/include/glib-2.0/gio/giotypes.h
+
+./include/common/GFindReplaceDlg.h : 
 
 ../../../../../usr/include/glib-2.0/gmodule.h : /usr/include/glib-2.0/glib.h
 
@@ -2203,18 +2240,13 @@ md5.o : ./src/common/Hash/md5/md5.c
 	./include/common/GUndo.h \
 	./include/common/GDragAndDrop.h
 
-./include/common/GUndo.h : 
-
 ./include/common/GDocView.h : ./include/common/GVariant.h \
 	./include/common/GNotifications.h
 
-./include/common/GMem.h : ./include/common/LgiInc.h \
-	./include/linux/Gtk/LgiOsDefs.h
+../../../../../usr/include/glib-2.0/gio/gsocketaddressenumerator.h : /usr/include/glib-2.0/gio/giotypes.h
 
-./include/common/LgiInc.h : 
-
-./include/common/GTableLayout.h : ./include/common/GCss.h \
-	./include/common/GNotifications.h
+../../../../../usr/include/glib-2.0/gio/gzlibcompressor.h : /usr/include/glib-2.0/gio/gconverter.h \
+	/usr/include/glib-2.0/gio/gfileinfo.h
 
 ./include/linux/Gtk/LgiOsDefs.h : ./include/common/LgiDefs.h \
 	./include/common/LgiInc.h \
@@ -2447,7 +2479,7 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkradioaction.h : /usr/include/gtk-2.0/gtk/gtktoggleaction.h
 
-../../../../../usr/include/gtk-2.0/gtk/gtkliststore.h : /usr/lib/x86_64-linux-gnu/gtk-2.0/include/gdkconfig.h \
+../../../../../usr/include/gtk-2.0/gtk/gtkliststore.h : /usr/lib/arm-linux-gnueabihf/gtk-2.0/include/gdkconfig.h \
 	/usr/include/gtk-2.0/gtk/gtktreemodel.h \
 	/usr/include/gtk-2.0/gtk/gtktreesortable.h
 
@@ -2514,6 +2546,7 @@ md5.o : ./src/common/Hash/md5/md5.c
 	/usr/include/atk-1.0/atk/atkcomponent.h \
 	/usr/include/atk-1.0/atk/atkdocument.h \
 	/usr/include/atk-1.0/atk/atkeditabletext.h \
+	/usr/include/atk-1.0/atk/atk-enum-types.h \
 	/usr/include/atk-1.0/atk/atkgobjectaccessible.h \
 	/usr/include/atk-1.0/atk/atkhyperlink.h \
 	/usr/include/atk-1.0/atk/atkhyperlinkimpl.h \
@@ -2523,6 +2556,7 @@ md5.o : ./src/common/Hash/md5/md5.c
 	/usr/include/atk-1.0/atk/atknoopobjectfactory.h \
 	/usr/include/atk-1.0/atk/atkobjectfactory.h \
 	/usr/include/atk-1.0/atk/atkplug.h \
+	/usr/include/atk-1.0/atk/atkrange.h \
 	/usr/include/atk-1.0/atk/atkregistry.h \
 	/usr/include/atk-1.0/atk/atkrelation.h \
 	/usr/include/atk-1.0/atk/atkrelationset.h \
@@ -2533,6 +2567,7 @@ md5.o : ./src/common/Hash/md5/md5.c
 	/usr/include/atk-1.0/atk/atkstateset.h \
 	/usr/include/atk-1.0/atk/atkstreamablecontent.h \
 	/usr/include/atk-1.0/atk/atktable.h \
+	/usr/include/atk-1.0/atk/atktablecell.h \
 	/usr/include/atk-1.0/atk/atktext.h \
 	/usr/include/atk-1.0/atk/atkutil.h \
 	/usr/include/atk-1.0/atk/atkmisc.h \
@@ -2547,14 +2582,17 @@ md5.o : ./src/common/Hash/md5/md5.c
 ../../../../../usr/include/atk-1.0/atk/atkobjectfactory.h : /usr/include/glib-2.0/glib-object.h \
 	/usr/include/atk-1.0/atk/atkobject.h
 
-../../../../../usr/include/atk-1.0/atk/atkvalue.h : /usr/include/atk-1.0/atk/atkobject.h
+../../../../../usr/include/atk-1.0/atk/atkvalue.h : /usr/include/atk-1.0/atk/atkobject.h \
+	/usr/include/atk-1.0/atk/atkrange.h
 
 ../../../../../usr/include/atk-1.0/atk/atkcomponent.h : /usr/include/atk-1.0/atk/atkobject.h \
 	/usr/include/atk-1.0/atk/atkutil.h
 
 ../../../../../usr/include/atk-1.0/atk/atkutil.h : /usr/include/atk-1.0/atk/atkobject.h
 
-../../../../../usr/include/atk-1.0/atk/atkversion.h : 
+../../../../../usr/include/atk-1.0/atk/atktablecell.h : /usr/include/atk-1.0/atk/atkobject.h
+
+../../../../../usr/include/atk-1.0/atk/atkversion.h : /usr/include/glib-2.0/glib.h
 
 ../../../../../usr/include/atk-1.0/atk/atkrelationset.h : /usr/include/glib-2.0/glib-object.h \
 	/usr/include/atk-1.0/atk/atkobject.h \
@@ -2610,7 +2648,7 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkhruler.h : /usr/include/gtk-2.0/gtk/gtkruler.h
 
-../../../../../usr/include/atk-1.0/atk/atknoopobject.h : 
+../../../../../usr/include/atk-1.0/atk/atknoopobject.h : /usr/include/atk-1.0/atk/atkversion.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkscrolledwindow.h : /usr/include/gtk-2.0/gtk/gtkhscrollbar.h \
 	/usr/include/gtk-2.0/gtk/gtkvscrollbar.h \
@@ -2625,21 +2663,24 @@ md5.o : ./src/common/Hash/md5/md5.c
 ../../../../../usr/include/gtk-2.0/gtk/gtkactiongroup.h : /usr/include/gtk-2.0/gtk/gtkaction.h \
 	/usr/include/gtk-2.0/gtk/gtktypeutils.h
 
+../../../../../usr/lib/arm-linux-gnueabihf/gtk-2.0/include/gdkconfig.h : 
+
+../../../../../usr/include/gtk-2.0/gtk/gtktextbufferrichtext.h : /usr/include/gtk-2.0/gtk/gtktextbuffer.h
+
+../../../../../usr/include/gtk-2.0/gtk/gtkbuilder.h : /usr/lib/arm-linux-gnueabihf/gtk-2.0/include/gdkconfig.h \
+	/usr/include/glib-2.0/glib-object.h
+
 ../../../../../usr/include/gtk-2.0/gtk/gtkuimanager.h : /usr/include/gtk-2.0/gtk/gtkaccelgroup.h \
 	/usr/include/gtk-2.0/gtk/gtkwidget.h \
 	/usr/include/gtk-2.0/gtk/gtkaction.h \
 	/usr/include/gtk-2.0/gtk/gtkactiongroup.h
 
-../../../../../usr/include/gtk-2.0/gtk/gtktextbufferrichtext.h : /usr/include/gtk-2.0/gtk/gtktextbuffer.h
-
-../../../../../usr/include/gtk-2.0/gtk/gtkbuilder.h : /usr/lib/x86_64-linux-gnu/gtk-2.0/include/gdkconfig.h \
-	/usr/include/glib-2.0/glib-object.h
-
 ../../../../../usr/include/gtk-2.0/gtk/gtkinvisible.h : /usr/include/gtk-2.0/gtk/gtkwidget.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkcheckmenuitem.h : /usr/include/gtk-2.0/gtk/gtkmenuitem.h
 
-../../../../../usr/include/atk-1.0/atk/atkmisc.h : /usr/include/glib-2.0/glib-object.h
+../../../../../usr/include/atk-1.0/atk/atkmisc.h : /usr/include/glib-2.0/glib-object.h \
+	/usr/include/atk-1.0/atk/atkversion.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkfilechooserwidget.h : /usr/include/gtk-2.0/gtk/gtkfilechooser.h \
 	/usr/include/gtk-2.0/gtk/gtkvbox.h
@@ -2660,7 +2701,7 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkcellrenderertoggle.h : /usr/include/gtk-2.0/gtk/gtkcellrenderer.h
 
-../../../../../usr/include/atk-1.0/atk/atkplug.h : 
+../../../../../usr/include/atk-1.0/atk/atkplug.h : /usr/include/atk-1.0/atk/atkversion.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkplug.h : /usr/include/gtk-2.0/gtk/gtksocket.h \
 	/usr/include/gtk-2.0/gtk/gtkwindow.h
@@ -2699,18 +2740,12 @@ md5.o : ./src/common/Hash/md5/md5.c
 	/usr/include/atk-1.0/atk/atkobject.h \
 	/usr/include/atk-1.0/atk/atkstate.h
 
-../../../../../usr/include/atk-1.0/atk/atkstate.h : /usr/include/glib-2.0/glib-object.h
-
-./include/common/GDateTime.h : 
-
-../../../../../usr/include/glib-2.0/gio/gsocketaddressenumerator.h : /usr/include/glib-2.0/gio/giotypes.h
-
-../../../../../usr/include/glib-2.0/gio/gzlibcompressor.h : /usr/include/glib-2.0/gio/gconverter.h \
-	/usr/include/glib-2.0/gio/gfileinfo.h
-
-../../../../../usr/include/gtk-2.0/gtk/gtkimagemenuitem.h : /usr/include/gtk-2.0/gtk/gtkmenuitem.h
+../../../../../usr/include/atk-1.0/atk/atkstate.h : /usr/include/glib-2.0/glib-object.h \
+	/usr/include/atk-1.0/atk/atkversion.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkoffscreenwindow.h : /usr/include/gtk-2.0/gtk/gtkwindow.h
+
+../../../../../usr/include/gtk-2.0/gtk/gtkimagemenuitem.h : /usr/include/gtk-2.0/gtk/gtkmenuitem.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkrc.h : /usr/include/gtk-2.0/gtk/gtkstyle.h
 
@@ -2725,17 +2760,11 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/glib-2.0/gobject/gvaluearray.h : /usr/include/glib-2.0/gobject/gvalue.h
 
-./include/common/GProperties.h : ./include/common/GContainers.h \
-	./include/common/LgiClass.h \
-	./include/common/GString.h
-
 ../../../../../usr/include/glib-2.0/glib/ghook.h : /usr/include/glib-2.0/glib/gmem.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkfontbutton.h : /usr/include/gtk-2.0/gtk/gtkbutton.h
 
 ../../../../../usr/include/glib-2.0/glib/gthreadpool.h : /usr/include/glib-2.0/glib/gthread.h
-
-./include/common/GFilter.h : ./include/common/GContainers.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkframe.h : /usr/include/gtk-2.0/gtk/gtkbin.h
 
@@ -2754,10 +2783,6 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/glib-2.0/gio/gdbusmenumodel.h : /usr/include/glib-2.0/gio/gdbusconnection.h
 
-./include/common/GDom.h : ./include/common/LgiInterfaces.h \
-	./include/common/GMem.h \
-	./include/common/GArray.h
-
 ../../../../../usr/include/glib-2.0/gio/gfilteroutputstream.h : /usr/include/glib-2.0/gio/goutputstream.h
 
 ./include/linux/Gtk/LgiOsClasses.h : 
@@ -2766,8 +2791,6 @@ md5.o : ./src/common/Hash/md5/md5.c
 	/usr/include/gtk-2.0/gtk/gtkdnd.h
 
 ../../../../../usr/include/glib-2.0/glib/gspawn.h : /usr/include/glib-2.0/glib/gerror.h
-
-./include/common/GInput.h : 
 
 ./include/common/GPalette.h : ./include/common/GColourSpace.h \
 	./include/common/GFile.h
@@ -2780,11 +2803,11 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/pango-1.0/pango/pango-item.h : /usr/include/pango-1.0/pango/pango-types.h
 
-./include/common/GImageList.h : 
-
 ../../../../../usr/include/glib-2.0/gio/gsubprocesslauncher.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../usr/include/glib-2.0/glib/gqueue.h : /usr/include/glib-2.0/glib/glist.h
+
+./include/common/LgiInc.h : 
 
 ../../../../../usr/include/glib-2.0/gio/gsocketconnectable.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -2801,7 +2824,9 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/glib-2.0/glib/gmacros.h : 
 
-./include/common/GRefCount.h : 
+./include/common/GUndo.h : 
+
+./include/common/LgiNetInc.h : 
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkrecentmanager.h : /usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf.h \
 	/usr/include/gtk-2.0/gdk/gdk.h
@@ -2815,21 +2840,27 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/glib-2.0/gio/gproxyaddress.h : /usr/include/glib-2.0/gio/ginetsocketaddress.h
 
-../../../../../usr/include/atk-1.0/atk/atksocket.h : 
+../../../../../usr/include/atk-1.0/atk/atksocket.h : /usr/include/atk-1.0/atk/atkversion.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkbox.h : /usr/include/gtk-2.0/gtk/gtkcontainer.h
 
 ../../../../../usr/include/glib-2.0/glib/gslice.h : /usr/include/glib-2.0/glib/gtypes.h
 
+./include/common/LgiRes.h : ./include/common/Res.h \
+	./include/common/GContainers.h \
+	./include/common/GCss.h \
+	./include/common/GAutoPtr.h \
+	./include/common/GFontCache.h
+
 ../../../../../usr/include/glib-2.0/gio/gtlsfiledatabase.h : /usr/include/glib-2.0/gio/giotypes.h
+
+./include/common/GToolBar.h : ./include/common/GImageList.h
 
 ./include/linux/Gtk/LgiOsDefs.h : ./include/common/LgiDefs.h \
 	./include/common/LgiInc.h \
 	/usr/include/gtk-2.0/gtk/gtk.h
 
-./include/common/GPopup.h : 
-
-../../../../../usr/include/gtk-2.0/gtk/gtkobject.h : /usr/lib/x86_64-linux-gnu/gtk-2.0/include/gdkconfig.h \
+../../../../../usr/include/gtk-2.0/gtk/gtkobject.h : /usr/lib/arm-linux-gnueabihf/gtk-2.0/include/gdkconfig.h \
 	/usr/include/gtk-2.0/gtk/gtkenums.h \
 	/usr/include/gtk-2.0/gtk/gtktypeutils.h \
 	/usr/include/gtk-2.0/gtk/gtkdebug.h
@@ -2844,16 +2875,7 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ./include/common/GRegKey.h : ./include/common/GContainers.h
 
-./include/common/GFile.h : ./include/common/GMem.h \
-	./include/common/GStream.h \
-	./include/common/GArray.h \
-	./include/common/GRefCount.h \
-	./include/common/GStringClass.h
-
-./include/common/GMutex.h : 
-
-./include/common/GCom.h : ./include/common/GContainers.h \
-	./include/common/GVariant.h
+./include/common/GThreadEvent.h : 
 
 ../../../../../usr/include/atk-1.0/atk/atkhyperlinkimpl.h : /usr/include/atk-1.0/atk/atkobject.h \
 	/usr/include/atk-1.0/atk/atkhyperlink.h
@@ -2863,6 +2885,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 ../../../../../usr/include/gtk-2.0/gtk/gtkprogressbar.h : /usr/include/gtk-2.0/gtk/gtkprogress.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkbin.h : /usr/include/gtk-2.0/gtk/gtkcontainer.h
+
+./include/common/GTextLabel.h : 
 
 ../../../../../usr/include/gtk-2.0/gtk/gtklinkbutton.h : /usr/include/gtk-2.0/gtk/gtkbutton.h
 
@@ -2878,8 +2902,12 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkpaned.h : /usr/include/gtk-2.0/gtk/gtkcontainer.h
 
+../../../../../usr/include/atk-1.0/atk/atk-enum-types.h : /usr/include/atk-1.0/atk/atkversion.h \
+	/usr/include/glib-2.0/glib-object.h
+
 ../../../../../usr/include/atk-1.0/atk/atkrelation.h : /usr/include/glib-2.0/glib-object.h \
-	/usr/include/atk-1.0/atk/atkrelationtype.h
+	/usr/include/atk-1.0/atk/atkrelationtype.h \
+	/usr/include/atk-1.0/atk/atkversion.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkmountoperation.h : 
 
@@ -2915,7 +2943,7 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkpixmap.h : /usr/include/gtk-2.0/gtk/gtk.h
 
-../../../../../usr/include/gtk-2.0/gtk/gtktreemodelfilter.h : /usr/lib/x86_64-linux-gnu/gtk-2.0/include/gdkconfig.h \
+../../../../../usr/include/gtk-2.0/gtk/gtktreemodelfilter.h : /usr/lib/arm-linux-gnueabihf/gtk-2.0/include/gdkconfig.h \
 	/usr/include/gtk-2.0/gtk/gtktreemodel.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkrecentchooserwidget.h : /usr/include/gtk-2.0/gtk/gtkrecentchooser.h \
@@ -2924,6 +2952,7 @@ md5.o : ./src/common/Hash/md5/md5.c
 ../../../../../usr/include/gtk-2.0/gtk/gtkcomboboxtext.h : /usr/include/gtk-2.0/gtk/gtkcombobox.h
 
 ../../../../../usr/include/atk-1.0/atk/atkobject.h : /usr/include/glib-2.0/glib-object.h \
+	/usr/include/atk-1.0/atk/atkversion.h \
 	/usr/include/atk-1.0/atk/atkstate.h \
 	/usr/include/atk-1.0/atk/atkrelationtype.h
 
@@ -2955,6 +2984,9 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkstatusbar.h : /usr/include/gtk-2.0/gtk/gtkhbox.h
 
+../../../../../usr/include/atk-1.0/atk/atkrange.h : /usr/include/glib-2.0/glib-object.h \
+	/usr/include/atk-1.0/atk/atkversion.h
+
 ../../../../../usr/include/atk-1.0/atk/atkselection.h : /usr/include/atk-1.0/atk/atkobject.h
 
 ../../../../../usr/include/atk-1.0/atk/atkwindow.h : /usr/include/atk-1.0/atk/atkobject.h
@@ -2973,8 +3005,6 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkvbbox.h : /usr/include/gtk-2.0/gtk/gtkbbox.h
 
-../../../../../usr/lib/x86_64-linux-gnu/gtk-2.0/include/gdkconfig.h : 
-
 ../../../../../usr/include/gtk-2.0/gtk/gtkcellview.h : /usr/include/gtk-2.0/gtk/gtkwidget.h \
 	/usr/include/gtk-2.0/gtk/gtkcellrenderer.h \
 	/usr/include/gtk-2.0/gtk/gtktreemodel.h
@@ -2987,13 +3017,11 @@ md5.o : ./src/common/Hash/md5/md5.c
 	/usr/include/gtk-2.0/gtk/gtkimage.h \
 	/usr/include/gtk-2.0/gtk/gtkselection.h
 
-./include/common/GTextLabel.h : 
-
 ../../../../../usr/include/gtk-2.0/gtk/gtkeditable.h : /usr/include/gtk-2.0/gtk/gtkwidget.h
 
 ../../../../../usr/include/atk-1.0/atk/atkhyperlink.h : /usr/include/atk-1.0/atk/atkaction.h
 
-../../../../../usr/include/gtk-2.0/gtk/gtktreestore.h : /usr/lib/x86_64-linux-gnu/gtk-2.0/include/gdkconfig.h \
+../../../../../usr/include/gtk-2.0/gtk/gtktreestore.h : /usr/lib/arm-linux-gnueabihf/gtk-2.0/include/gdkconfig.h \
 	/usr/include/gtk-2.0/gtk/gtktreemodel.h \
 	/usr/include/gtk-2.0/gtk/gtktreesortable.h
 
@@ -3027,14 +3055,14 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkhscale.h : /usr/include/gtk-2.0/gtk/gtkscale.h
 
-../../../../../usr/include/atk-1.0/atk/atkaction.h : /usr/include/atk-1.0/atk/atkobject.h
-
 ../../../../../usr/include/gtk-2.0/gtk/gtktreemodel.h : /usr/include/glib-2.0/glib-object.h \
 	/usr/include/gtk-2.0/gtk/gtkobject.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtktexttag.h : /usr/include/gtk-2.0/gdk/gdk.h \
 	/usr/include/gtk-2.0/gtk/gtkenums.h \
 	/usr/include/gtk-2.0/gtk/gtkobject.h
+
+../../../../../usr/include/atk-1.0/atk/atkaction.h : /usr/include/atk-1.0/atk/atkobject.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkcolorbutton.h : /usr/include/gtk-2.0/gtk/gtkbutton.h
 
@@ -3078,7 +3106,7 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkpapersize.h : /usr/include/gtk-2.0/gtk/gtkenums.h
 
-../../../../../usr/include/gtk-2.0/gtk/gtktextchild.h : /usr/lib/x86_64-linux-gnu/gtk-2.0/include/gdkconfig.h \
+../../../../../usr/include/gtk-2.0/gtk/gtktextchild.h : /usr/lib/arm-linux-gnueabihf/gtk-2.0/include/gdkconfig.h \
 	/usr/include/glib-2.0/glib-object.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkhscrollbar.h : /usr/include/gtk-2.0/gtk/gtkscrollbar.h
@@ -3148,29 +3176,30 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/gtk-2.0/gtk/gtksettings.h : /usr/include/gtk-2.0/gtk/gtkrc.h
 
-./include/common/GPrinter.h : 
-
 ../../../../../usr/include/gtk-2.0/gtk/gtkcombo.h : /usr/include/gtk-2.0/gtk/gtk.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtktreeitem.h : /usr/include/gtk-2.0/gtk/gtkitem.h
 
-../../../../../usr/lib/x86_64-linux-gnu/glib-2.0/include/glibconfig.h : /usr/include/glib-2.0/glib/gmacros.h
+./include/common/GTableLayout.h : ./include/common/GCss.h \
+	./include/common/GNotifications.h
 
 ../../../../../usr/include/gtk-2.0/gdk/gdktypes.h : /usr/include/glib-2.0/glib.h \
 	/usr/include/pango-1.0/pango/pango.h \
 	/usr/include/glib-2.0/glib-object.h \
-	/usr/lib/x86_64-linux-gnu/gtk-2.0/include/gdkconfig.h
+	/usr/lib/arm-linux-gnueabihf/gtk-2.0/include/gdkconfig.h
 
 ../../../../../usr/include/gtk-2.0/gdk/gdkevents.h : /usr/include/gtk-2.0/gdk/gdkcolor.h \
 	/usr/include/gtk-2.0/gdk/gdktypes.h \
 	/usr/include/gtk-2.0/gdk/gdkdnd.h \
 	/usr/include/gtk-2.0/gdk/gdkinput.h
 
+./include/common/GHashTable.h : ./include/common/GMem.h \
+	./include/common/GArray.h \
+	./include/common/GString.h \
+	./include/common/LgiClass.h
+
 ../../../../../usr/include/gtk-2.0/gdk/gdkgc.h : /usr/include/gtk-2.0/gdk/gdkcolor.h \
 	/usr/include/gtk-2.0/gdk/gdktypes.h
-
-./include/common/GItemContainer.h : ./include/common/GPopup.h \
-	./include/common/GNotifications.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkalignment.h : /usr/include/gtk-2.0/gtk/gtkbin.h
 
@@ -3181,7 +3210,7 @@ md5.o : ./src/common/Hash/md5/md5.c
 ../../../../../usr/include/glib-2.0/glib/gmarkup.h : /usr/include/glib-2.0/glib/gerror.h \
 	/usr/include/glib-2.0/glib/gslist.h
 
-../../../../../usr/include/gtk-2.0/gtk/gtktreemodelsort.h : /usr/lib/x86_64-linux-gnu/gtk-2.0/include/gdkconfig.h \
+../../../../../usr/include/gtk-2.0/gtk/gtktreemodelsort.h : /usr/lib/arm-linux-gnueabihf/gtk-2.0/include/gdkconfig.h \
 	/usr/include/gtk-2.0/gtk/gtktreemodel.h \
 	/usr/include/gtk-2.0/gtk/gtktreesortable.h
 
@@ -3194,6 +3223,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 ../../../../../usr/include/glib-2.0/glib/gconvert.h : /usr/include/glib-2.0/glib/gerror.h
 
 ../../../../../usr/include/glib-2.0/glib/gbacktrace.h : /usr/include/glib-2.0/glib/gtypes.h
+
+./include/common/GRefCount.h : 
 
 ../../../../../usr/include/gtk-2.0/gtk/gtktoggletoolbutton.h : /usr/include/gtk-2.0/gtk/gtktoolbutton.h
 
@@ -3217,14 +3248,6 @@ md5.o : ./src/common/Hash/md5/md5.c
 	./include/common/GString.h \
 	./include/common/GHashTable.h
 
-./include/common/LgiRes.h : ./include/common/Res.h \
-	./include/common/GContainers.h \
-	./include/common/GCss.h \
-	./include/common/GAutoPtr.h \
-	./include/common/GFontCache.h
-
-./include/common/GFontCache.h : 
-
 ./include/common/GContainers.h : ./include/common/LgiInc.h \
 	./include/linux/Gtk/LgiOsDefs.h \
 	./include/common/GStream.h
@@ -3245,10 +3268,6 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkhseparator.h : /usr/include/gtk-2.0/gtk/gtkseparator.h
 
-./include/common/LgiClass.h : ./include/common/LgiInc.h \
-	./include/common/LgiDefs.h \
-	./include/common/GAutoPtr.h
-
 ../../../../../usr/include/glib-2.0/gio/gtcpconnection.h : /usr/include/glib-2.0/gio/gsocketconnection.h
 
 ../../../../../usr/include/glib-2.0/gio/gdbusobjectskeleton.h : /usr/include/glib-2.0/gio/giotypes.h
@@ -3262,7 +3281,7 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/gtk-2.0/gtk/gtktoolbutton.h : /usr/include/gtk-2.0/gtk/gtktoolitem.h
 
-./include/common/GLibrary.h : 
+./include/common/GFontCache.h : 
 
 ./src/common/Gdc2/GRopsCases.cpp : 
 
@@ -3281,7 +3300,7 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/gtk-2.0/gdk/gdkvisual.h : /usr/include/gtk-2.0/gdk/gdktypes.h
 
-./include/common/GPoint.h : 
+../../../../../usr/include/glib-2.0/gio/gdbusinterface.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../usr/include/glib-2.0/gio/ginetaddress.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -3291,7 +3310,7 @@ md5.o : ./src/common/Hash/md5/md5.c
 	./include/common/GUndo.h \
 	./include/common/GDragAndDrop.h
 
-../../../../../usr/include/glib-2.0/gio/gdbusinterface.h : /usr/include/glib-2.0/gio/giotypes.h
+./include/common/GInput.h : 
 
 ../../../../../usr/include/glib-2.0/gio/gsocketconnection.h : /usr/include/glib-2.0/glib-object.h \
 	/usr/include/glib-2.0/gio/gsocket.h \
@@ -3315,8 +3334,6 @@ md5.o : ./src/common/Hash/md5/md5.c
 	/usr/include/glib-2.0/gobject/gsignal.h \
 	/usr/include/glib-2.0/gobject/gboxed.h
 
-./include/common/LgiNetInc.h : 
-
 ../../../../../usr/include/gtk-2.0/gtk/gtktoolshell.h : /usr/include/gtk-2.0/gtk/gtkenums.h \
 	/usr/include/pango-1.0/pango/pango.h \
 	/usr/include/gtk-2.0/gtk/gtksizegroup.h
@@ -3335,17 +3352,17 @@ VPATH=%.cpp \
 	./include/linux/Gtk \
 	./thread \
 	../../../../../usr/include/gtk-2.0 \
-	../../../../../usr/lib/x86_64-linux-gnu/gtk-2.0/include \
-	../../../../../usr/include/atk-1.0 \
-	../../../../../usr/include/cairo \
-	../../../../../usr/include/gdk-pixbuf-2.0 \
-	../../../../../usr/include/pango-1.0 \
+	../../../../../usr/lib/arm-linux-gnueabihf/gtk-2.0/include \
 	../../../../../usr/include/gio-unix-2.0 \
-	../../../../../usr/include/freetype2 \
-	../../../../../usr/include/glib-2.0 \
-	../../../../../usr/lib/x86_64-linux-gnu/glib-2.0/include \
+	../../../../../usr/include/cairo \
+	../../../../../usr/include/pango-1.0 \
+	../../../../../usr/include/atk-1.0 \
 	../../../../../usr/include/pixman-1 \
 	../../../../../usr/include/libpng12 \
+	../../../../../usr/include/gdk-pixbuf-2.0 \
 	../../../../../usr/include/harfbuzz \
+	../../../../../usr/include/glib-2.0 \
+	../../../../../usr/lib/arm-linux-gnueabihf/glib-2.0/include \
+	../../../../../usr/include/freetype2 \
 	$(BuildDir)
 
