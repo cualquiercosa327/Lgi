@@ -510,6 +510,7 @@ GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf)
 	return Ret;
 }
 
+#ifdef LINUX
 #include <sys/ioctl.h>
 #include <sys/kd.h>
 void SetTextMode()
@@ -523,6 +524,7 @@ void SetTextMode()
 	ioctl(fd, KDSETMODE, KD_TEXT);
 	close(fd);
 }
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 class GdcDevicePrivate
@@ -568,7 +570,9 @@ public:
 		Screen = NULL;
 		if (!LgiApp->GetOption("novid"))
 		{
+			#ifdef LINUX
 			SetTextMode();
+			#endif
 			printf("Calling SDL_SetVideoMode...\n");
 			if ((Screen = SDL_SetVideoMode(ScreenSz.x, ScreenSz.y, 0, SDL_SWSURFACE)) == NULL)
 				LgiTrace("%s:%i - SDL_SetVideoMode failed.\n", _FL);
