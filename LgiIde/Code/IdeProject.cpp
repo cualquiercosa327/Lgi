@@ -3088,18 +3088,19 @@ bool IdeProject::BuildIncludePaths(GArray<char*> &Paths, bool Recurse, IdePlatfo
 					GStringPipe Out;
 					if (p.Run(a, Args, NULL, true, NULL, &Out))
 					{
-						a.Reset(Out.NewStr());
-						GToken t(a, " ");
+						GAutoString result(Out.NewStr());
+						GToken t(result, " \t\r\n");
 						for (int i=0; i<t.Length(); i++)
 						{
 							char *inc = t[i];
-							if (inc[0] == '-' ||
+							if (inc[0] == '-' &&
 								inc[1] == 'I')
 							{
 								Inc.New().Reset(NewStr(inc + 2));
 							}
 						}
 					}
+					else LgiTrace("%s:%i - Error: failed to run process for '%s'\n", _FL, a.Get());
 				}
 				else
 				{
@@ -3923,12 +3924,17 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 								{
 									for (int i=0; i<SrcDeps.Length(); i++)
 									{
-										if (i) m.Print(" \\\n\t");
-										m.Print("%s", SrcDeps[i]);
-										if (!DepFiles.Find(SrcDeps[i]))
+										const char *SDep = SrcDeps[i];
+										if (stricmp(Src.Get(), SDep) != 0)
 										{
-											DepFiles.Add(SrcDeps[i]);
+											if (i) m.Print(" \\\n\t");
+											m.Print("%s", SDep);
+											if (!DepFiles.Find(SDep))
+											{
+												DepFiles.Add(SDep);
+											}
 										}
+										else printf("%s:%i - not add dep: '%s' '%s'\n", _FL, Src.Get(), SDep);
 									}
 									SrcDeps.DeleteArrays();
 								}
