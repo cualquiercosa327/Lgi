@@ -2000,18 +2000,21 @@ BuildThread::BuildThread(IdeProject *proj, char *mf, const char *args) : GThread
 	Args.Reset(NewStr(args));
 
 	GAutoString Comp(NewStr(Proj->GetSettings()->GetStr(ProjCompiler)));
-	if (!stricmp(Comp, "VisualStudio"))
-		Compiler = VisualStudio;
-	else if (!stricmp(Comp, "MingW"))
-		Compiler = MingW;
-	else
-		Compiler = Gcc;		
-	
-	if (Proj->GetApp())
+	if (Comp)
 	{
-		Proj->GetApp()->PostEvent(M_APPEND_TEXT, 0, 0);
+		if (!stricmp(Comp, "VisualStudio"))
+			Compiler = VisualStudio;
+		else if (!stricmp(Comp, "MingW"))
+			Compiler = MingW;
+		else
+			Compiler = Gcc;		
+		
+		if (Proj->GetApp())
+		{
+			Proj->GetApp()->PostEvent(M_APPEND_TEXT, 0, 0);
+		}
+		Run();
 	}
-	Run();
 }
 
 BuildThread::~BuildThread()
