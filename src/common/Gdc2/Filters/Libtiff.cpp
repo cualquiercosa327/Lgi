@@ -483,7 +483,7 @@ GFilter::IoStatus GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 				int rowlen = img.width * img.samplesperpixel * img.bitspersample / 8;
 				GArray<uint8> a;
 				if (a.Length(rowlen) &&
-					pDC->Create(img.width, img.height, 32))
+					pDC->Create(img.width, img.height, System32BitColourSpace))
 				{
 				    if (Meter)
 				        Meter->SetLimits(0, img.height);
@@ -522,7 +522,7 @@ GFilter::IoStatus GdcLibTiff::ReadImage(GSurface *pDC, GStream *In)
 			}
 			else
 			{
-	            if (pDC->Create(img.width, img.height, max(Bits, 8)))
+	            if (pDC->Create(img.width, img.height, GBitsToColourSpace(max(Bits, 8))))
 	            {
 	                if (Meter)
 	                    Meter->SetLimits(0, img.height);
@@ -855,15 +855,15 @@ GFilter::IoStatus GdcLibTiff::WriteImage(GStream *Out, GSurface *pDC)
 						GdcRGB *rgb = (*p)[i];
 						if (rgb)
 						{
-							rmap[i] = G8bitTo16Bit(rgb->r);
-							gmap[i] = G8bitTo16Bit(rgb->g);
-							bmap[i] = G8bitTo16Bit(rgb->b);
+							rmap[i] = G8bitTo16bit(rgb->r);
+							gmap[i] = G8bitTo16bit(rgb->g);
+							bmap[i] = G8bitTo16bit(rgb->b);
 						}
 						else
 						{
-							rmap[i] = G8bitTo16Bit(i);
-							gmap[i] = G8bitTo16Bit(i);
-							bmap[i] = G8bitTo16Bit(i);
+							rmap[i] = G8bitTo16bit(i);
+							gmap[i] = G8bitTo16bit(i);
+							bmap[i] = G8bitTo16bit(i);
 						}
 					}
 					Lib->TIFFSetField(tif, TIFFTAG_COLORMAP, rmap, gmap, bmap);					

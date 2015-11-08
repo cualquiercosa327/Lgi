@@ -174,9 +174,9 @@ template<typename B>
 uint32 ColourDistance16(ImgColour *a, B *b)
 {
 	// calculate distance
-	int dr = a->c[0] - G5bitTo8Bit(b->r);
-	int dg = a->c[1] - G6bitTo8Bit(b->g);
-	int db = a->c[2] - G5bitTo8Bit(b->b);
+	int dr = a->c[0] - G5bitTo8bit(b->r);
+	int dg = a->c[1] - G6bitTo8bit(b->g);
+	int db = a->c[2] - G5bitTo8bit(b->b);
 
 	// final result
 	return abs(dr) + abs(dg) + abs(db);
@@ -244,9 +244,9 @@ public:
 				if (col->count == 0)
 				{
 					// Create entry for this RGB
-					col->c[0] = G5bitTo8Bit(in->r);
-					col->c[1] = G6bitTo8Bit(in->g);
-					col->c[2] = G5bitTo8Bit(in->b);
+					col->c[0] = G5bitTo8bit(in->r);
+					col->c[1] = G6bitTo8bit(in->g);
+					col->c[2] = G5bitTo8bit(in->b);
 					col->count++;
 					ColUsed++;
 					break;
@@ -521,7 +521,7 @@ bool GReduceBitDepth(GSurface *pDC, int Bits, GPalette *Pal, GReduceOptions *Red
 	GSurface *pTemp = new GMemDC;
 	if (pDC &&
 		pTemp &&
-		pTemp->Create(pDC->X(), pDC->Y(), Bits))
+		pTemp->Create(pDC->X(), pDC->Y(), GBitsToColourSpace(Bits)))
 	{
 		if (Bits <= 8 && Pal)
 		{
@@ -596,7 +596,7 @@ bool GReduceBitDepth(GSurface *pDC, int Bits, GPalette *Pal, GReduceOptions *Red
 			pTemp->Blt(0, 0, pDC);
 		}
 
-		if (pDC->Create(pTemp->X(), pTemp->Y(), pTemp->GetBits()))
+		if (pDC->Create(pTemp->X(), pTemp->Y(), pTemp->GetColourSpace()))
 		{
 			if (Pal)
 				pDC->Palette(new GPalette(Pal));

@@ -53,7 +53,7 @@ GSurface::GSurface()
 GSurface::GSurface(GSurface *pDC)
 {
 	Init();
-	if (pDC && Create(pDC->X(), pDC->Y(), pDC->GetBits()))
+	if (pDC && Create(pDC->X(), pDC->Y(), pDC->GetColourSpace()))
 	{
 		Blt(0, 0, pDC);
 		if (pDC->Palette())
@@ -951,7 +951,7 @@ void GSurface::Blt(int x, int y, GSurface *Src, GRect *a)
 				Bits.y = min(SClip.Y(), DClip.Y());
 				Bits.Line = Src->pMem->Line;
 				Bits.Cs = Src->GetColourSpace();
-				Bits.Flags = 0;
+				Bits.PreMul(Src->pMem->PreMul());
 
 				if (Src->pAlphaDC && !Src->DrawOnAlpha())
 				{
@@ -1333,7 +1333,7 @@ bool GSurface::HasAlpha(bool b)
 
 		if (pAlphaDC && pMem)
 		{
-			if (!pAlphaDC->Create(pMem->x, pMem->y, 8))
+			if (!pAlphaDC->Create(pMem->x, pMem->y, CsIndex8))
 			{
 				DeleteObj(pAlphaDC);
 			}
@@ -1440,6 +1440,7 @@ GApplicator *GSurface::CreateApplicator(int Op, GColourSpace Cs)
 	}
 	else
 	{
+		GApplicatorFactory::NewApp(Cs, Op);
 		const char *CsStr = GColourSpaceToString(Cs);
 		LgiTrace("Error: GDeviceContext::CreateApplicator(%i, %x, %s) failed.\n", Op, Cs, CsStr);
 		LgiAssert(!"No applicator");
@@ -1518,9 +1519,9 @@ GColour GSurface::Colour(GColour c)
 	
 	uint32 c32 = c.c32();
 	GColourSpace Cs = pApp->GetColourSpace();
-	switch (GColourSpaceToBits(Cs))
+	switch (Cs)
 	{
-		case 8:
+		case CsIndex8:
 			if (c.GetColourSpace() == CsIndex8)
 			{
 				pApp->c = c.c8();
@@ -1535,21 +1536,35 @@ GColour GSurface::Colour(GColour c)
 				else LgiAssert(0);
 			}
 			break;
-		case 15:
+		case CsRgb15:
+		case CsBgr15:
 			pApp->c = Rgb32To15(c32);
 			break;
-		case 16:
+		case CsRgb16:
+		case CsBgr16:
 			pApp->c = Rgb32To16(c32);
 			break;
-		case 32:
-		case 64:
+		case CsRgba32:
+		case CsBgra32:
+		case CsArgb32:
+		case CsAbgr32:
+		case CsRgbx32:
+		case CsBgrx32:
+		case CsXrgb32:
+		case CsXbgr32:
+		case CsRgba64:
+		case CsBgra64:
+		case CsArgb64:
+		case CsAbgr64:
 			pApp->p32.r = R32(c32);
 			pApp->p32.g = G32(c32);
 			pApp->p32.b = B32(c32);
 			pApp->p32.a = A32(c32);
 			break;
-		case 24:
-		case 48:
+		case CsRgb24:
+		case CsBgr24:
+		case CsRgb48:
+		case CsBgr48:
 			pApp->p24.r = R32(c32);
 			pApp->p24.g = G32(c32);
 			pApp->p24.b = B32(c32);

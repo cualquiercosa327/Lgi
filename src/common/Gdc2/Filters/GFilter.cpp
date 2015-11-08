@@ -285,7 +285,8 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 
 	ActualBits = Info.Bits;
 	ScanSize = BMPWIDTH(Info.Sx * Info.Bits);
-	if (!pDC->Create(Info.Sx, Info.Sy, max(Info.Bits, 8), ScanSize))
+	int MemBits = max(Info.Bits, 8);
+	if (!pDC->Create(Info.Sx, Info.Sy, GBitsToColourSpace(MemBits), ScanSize))
 	{
 		LgiTrace("%s:%i - MemDC(%i,%i,%i) failed.\n", _FL, Info.Sx, Info.Sy, max(Info.Bits, 8));
 		return GFilter::IoError;
@@ -547,7 +548,7 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 					
 					if (DstCs != SrcCs)
 					{
-						if (!LgiRopRgb(Ptr, DstCs, Ptr, SrcCs, pMem->x))
+						if (!LgiRopRgb(Ptr, DstCs, Ptr, SrcCs, pMem->x, false))
 						{
 							Status = IoUnsupportedFormat;
 							LgiTrace("%s:%i - Bmp had unsupported bit depth.\n", _FL);
@@ -979,7 +980,7 @@ GFilter::IoStatus GdcIco::ReadImage(GSurface *pDC, GStream *In)
 		if (Colours &&
 			XorBytes &&
 			(Header.Bits > MyBits || Width > pDC->X() || Height > pDC->Y()) &&
-			pDC->Create(Width, Height, max(8, Header.Bits) ))
+			pDC->Create(Width, Height, GBitsToColourSpace(max(8, Header.Bits)) ))
 		{
 			MyBits = Header.Bits;
 			pDC->Colour(0, 24);
@@ -1296,9 +1297,9 @@ void GdcRleDC::Empty()
 	DeleteArray(ScanLine);
 }
 
-bool GdcRleDC::Create(int x, int y, int bits, int LineLen)
+bool GdcRleDC::Create(int x, int y, GColourSpace cs, int flags)
 {
-	bool Status = GMemDC::Create(x, y, bits, LineLen);
+	bool Status = GMemDC::Create(x, y, cs, flags);
 	if (Status)
 	{
 		Flags &= ~GDC_RLE_READONLY;
@@ -1349,7 +1350,7 @@ void GdcRleDC::ReadOnly(bool Read)
 			// just in case... shouldn't ever happen
 			// am I paranoid?
 			// 'course :)
-			Create(1, 1, 24);
+			Create(1, 1, System24BitColourSpace);
 		}
 
 		Flags &= ~GDC_RLE_READONLY;
@@ -1921,7 +1922,7 @@ GSurface *GdcDevice::Load(const char *Name, bool UseOSLoader)
 						size_t bits = CGImageGetBitsPerPixel(Img);
 						
 						if (pDC.Reset(new GMemDC) &&
-							pDC->Create(x, y, 32))
+							pDC->Create(x, y, System32BitColourSpace))
 						{
 							pDC->Colour(0);
 							pDC->Rectangle();
@@ -1983,7 +1984,7 @@ GSurface *GdcDevice::Load(const char *Name, bool UseOSLoader)
 							Size.cy > 0 &&
 							pDC.Reset(new GMemDC))
 						{
-							if (pDC->Create(Size.cx, Size.cy, 24))
+							if (pDC->Create(Size.cx, Size.cy, System24BitColourSpace))
 							{
 								HDC hDC = pDC->StartDC();
 								if (hDC)
@@ -2043,7 +2044,7 @@ GSurface *GdcDevice::Load(const char *Name, bool UseOSLoader)
 				pDC.Reset(new GMemDC);
 				if (pOld &&
 					pDC &&
-					pDC->Create(pOld->X(), pOld->Y(), PromoteTo))
+					pDC->Create(pOld->X(), pOld->Y(), GBitsToColourSpace(PromoteTo)))
 				{
 					pDC->Blt(0, 0, pOld);
 					pOld.Reset();

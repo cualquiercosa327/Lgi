@@ -95,7 +95,7 @@ public:
 			if (ImageList)
 			{
 				#ifdef WIN32
-				ImageList->Create(pDC->X(), pDC->Y(), pDC->GetBits());
+				ImageList->Create(pDC->X(), pDC->Y(), pDC->GetColourSpace());
 				#endif
 			}
 		}

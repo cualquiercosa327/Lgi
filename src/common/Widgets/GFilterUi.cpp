@@ -175,7 +175,7 @@ public:
 		for (int i=0; i<IconMax; i++)
 		{
 			Icons[i] = new GMemDC;
-			if (Icons[i] && Icons[i]->Create(IconSize, IconSize, 32))
+			if (Icons[i] && Icons[i]->Create(IconSize, IconSize, System32BitColourSpace))
 			{
 				Draw(Icons[i], IconColour[i], (FilterIcon)i);
 			}

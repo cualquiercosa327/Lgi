@@ -169,6 +169,8 @@
 		34DA5CB70DE0DE930050C7E4 /* GScrollBar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34DA5CB60DE0DE930050C7E4 /* GScrollBar.cpp */; };
 		34DE4D381B945D980061E722 /* GDisplayStringLayout.h in Headers */ = {isa = PBXBuildFile; fileRef = 34DE4D371B945D980061E722 /* GDisplayStringLayout.h */; };
 		34E51DB00D2EFCCB0021AA08 /* GList.h in Headers */ = {isa = PBXBuildFile; fileRef = 34E51DAF0D2EFCCB0021AA08 /* GList.h */; };
+		34ED97481BBF9D1900E2445B /* 48Bit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34ED97461BBF9D1900E2445B /* 48Bit.cpp */; };
+		34ED97491BBF9D1900E2445B /* 64Bit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34ED97471BBF9D1900E2445B /* 64Bit.cpp */; };
 		34F2E65A0E1849D300E8DA6A /* GTree.h in Headers */ = {isa = PBXBuildFile; fileRef = 34F2E6590E1849D300E8DA6A /* GTree.h */; };
 		34F45B9E18C161E40040FD99 /* GPixelRops.h in Headers */ = {isa = PBXBuildFile; fileRef = 34F45B9D18C161E40040FD99 /* GPixelRops.h */; };
 		34F96DAA0DB9B82B009C64B8 /* GDragAndDrop.h in Headers */ = {isa = PBXBuildFile; fileRef = 34F96DA90DB9B82B009C64B8 /* GDragAndDrop.h */; };
@@ -342,6 +344,8 @@
 		34DA5CB60DE0DE930050C7E4 /* GScrollBar.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GScrollBar.cpp; path = ../../common/Widgets/GScrollBar.cpp; sourceTree = "<group>"; };
 		34DE4D371B945D980061E722 /* GDisplayStringLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GDisplayStringLayout.h; path = ../../../include/common/GDisplayStringLayout.h; sourceTree = "<group>"; };
 		34E51DAF0D2EFCCB0021AA08 /* GList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GList.h; path = ../../../include/common/GList.h; sourceTree = "<group>"; };
+		34ED97461BBF9D1900E2445B /* 48Bit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = 48Bit.cpp; path = ../../common/Gdc2/48Bit.cpp; sourceTree = "<group>"; };
+		34ED97471BBF9D1900E2445B /* 64Bit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = 64Bit.cpp; path = ../../common/Gdc2/64Bit.cpp; sourceTree = "<group>"; };
 		34F2E6590E1849D300E8DA6A /* GTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GTree.h; path = ../../../include/common/GTree.h; sourceTree = "<group>"; };
 		34F45B9D18C161E40040FD99 /* GPixelRops.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GPixelRops.h; path = ../../../include/common/GPixelRops.h; sourceTree = "<group>"; };
 		34F96DA90DB9B82B009C64B8 /* GDragAndDrop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GDragAndDrop.h; path = ../../../include/common/GDragAndDrop.h; sourceTree = "<group>"; };
@@ -496,6 +500,8 @@
 		3446E31F08D0E9BB005024EB /* Applicators */ = {
 			isa = PBXGroup;
 			children = (
+				34ED97461BBF9D1900E2445B /* 48Bit.cpp */,
+				34ED97471BBF9D1900E2445B /* 64Bit.cpp */,
 				3446E32A08D0E9E4005024EB /* Alpha.cpp */,
 				3446E32008D0E9D6005024EB /* 8Bit.cpp */,
 				3446E32108D0E9D6005024EB /* 15Bit.cpp */,
@@ -994,6 +1000,7 @@
 				344AF3CC08E04B63004ED88C /* GLibrary.cpp in Sources */,
 				344AF3DD08E04C75004ED88C /* GObject.cpp in Sources */,
 				345F9C2308F0F622007DAFE2 /* GView.cpp in Sources */,
+				34ED97491BBF9D1900E2445B /* 64Bit.cpp in Sources */,
 				34D2CC4F08F0FB490009968C /* GPopup.cpp in Sources */,
 				34D2CC6108F0FC7F0009968C /* GFontSystem.cpp in Sources */,
 				34D2CC6308F0FCA00009968C /* GFont.cpp in Sources */,
@@ -1039,6 +1046,7 @@
 				34983C2E08F5492E0054868C /* GPassword.cpp in Sources */,
 				34B954840939DCC400477A2D /* INet.cpp in Sources */,
 				34B954850939DCC400477A2D /* INetTools.cpp in Sources */,
+				34ED97481BBF9D1900E2445B /* 48Bit.cpp in Sources */,
 				34B4A4FF0C05962100CDD0D1 /* GPrinter.cpp in Sources */,
 				34B4A5010C05966000CDD0D1 /* Base64.cpp in Sources */,
 				34B4A5070C05987F00CDD0D1 /* GMemStream.cpp in Sources */,

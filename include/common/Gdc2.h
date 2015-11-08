@@ -134,7 +134,6 @@
 #define GDC_MAX_OPTION				4
 
 // GSurface Flags
-#define GDC_OWN_MEMORY				0x0001
 #define GDC_ON_SCREEN				0x0002
 #define GDC_ALPHA_CHANNEL			0x0004
 #define GDC_UPDATED_PALETTE			0x0008
@@ -183,6 +182,12 @@ class GSurface;
 class LgiClass GBmpMem
 {
 public:
+	enum GdcMemFlags
+	{
+		BmpOwnMemory = 0x1,
+		BmpPreMulAlpha = 0x2,
+	};
+
 	uchar *Base;
 	int x, y, Line;
 	GColourSpace Cs;
@@ -191,6 +196,30 @@ public:
 	GBmpMem();
 	~GBmpMem();
 	
+	bool PreMul()
+	{
+		return (Flags & BmpPreMulAlpha) != 0;
+	}
+
+	bool PreMul(bool set)
+	{
+		if (set) Flags |= BmpPreMulAlpha;
+		else Flags &= ~BmpPreMulAlpha;
+		return PreMul();
+	}
+
+	bool OwnMem()
+	{
+		return (Flags & BmpOwnMemory) != 0;
+	}
+
+	bool OwnMem(bool set)
+	{
+		if (set) Flags |= BmpOwnMemory;
+		else Flags &= ~BmpOwnMemory;
+		return OwnMem();
+	}
+
 	int GetBits()
 	{
 		return GColourSpaceToBits(Cs);
@@ -434,8 +463,13 @@ public:
 	virtual bool GetClient(GRect *c) { return false; }
 
 	// Creation
-	virtual bool Create(int x, int y, int Bits, int LineLen = 0, bool KeepData = false) { return false; }
-	virtual bool Create(int x, int y, GColourSpace Cs, int LineLen = 0, bool KeepData = false) { return false; }
+	enum SurfaceCreateFlags
+	{
+		SurfaceCreateNone,
+		SurfaceRequireNative,
+		SurfaceRequireExactCs,
+	};
+	virtual bool Create(int x, int y, GColourSpace Cs, int Flags = SurfaceCreateNone) { return false; }
 	virtual void Update(int Flags) {}
 
 	// Alpha channel	
@@ -887,10 +921,6 @@ public:
 		void Update(int Flags);
 		void UpsideDown(bool upsidedown);
 		
-		// need this to tell the HDC about the
-		// new clipping region
-		GRect ClipRgn(GRect *Rgn);
-
 	#else
 
 		GRect ClipRgn() { return Clip; }
@@ -903,7 +933,6 @@ public:
 		CGColorSpaceRef GetColourSpaceRef();
 		CGImg *GetImg(GRect *Sub = 0);
 		#endif
-		GRect ClipRgn(GRect *Rgn);
 		
 		#elif defined(__GTK_H__)
 
@@ -917,11 +946,13 @@ public:
 
 		OsBitmap GetBitmap();
 		OsPainter Handle();
-		GRect ClipRgn(GRect *Rgn);
 
 		#endif
 		
 	#endif
+
+	// Set new clipping region
+	GRect ClipRgn(GRect *Rgn);
 
 	void SetClient(GRect *c);
 
@@ -937,8 +968,7 @@ public:
 	void Empty();
 	bool SupportsAlphaCompositing();
 	
-	bool Create(int x, int y, int Bits, int LineLen = 0, bool KeepData = false);
-	bool Create(int x, int y, GColourSpace Cs, int LineLen = 0, bool KeepData = false);
+	bool Create(int x, int y, GColourSpace Cs, int Flags = SurfaceCreateNone);
 	void Blt(int x, int y, GSurface *Src, GRect *a = NULL);
 	void StretchBlt(GRect *d, GSurface *Src, GRect *s = NULL);
 
@@ -1276,12 +1306,15 @@ LgiFunc bool LgiRopRgb
 	// Source colour space (must be 8bit components)
 	GColourSpace SrcCs,
 	// Number of pixels to convert
-	int Px
+	int Px,
+	// Whether to composite using alpha or copy blt
+	bool Composite
 );
 
 /// Universal bit blt method
-LgiFunc bool LgiRopUniversal(GBmpMem *Dst, GBmpMem *Src);
+LgiFunc bool LgiRopUniversal(GBmpMem *Dst, GBmpMem *Src, bool Composite);
 
+/// Gets the screens DPI
 LgiFunc int LgiScreenDpi();
 
 #if defined(LGI_SDL)

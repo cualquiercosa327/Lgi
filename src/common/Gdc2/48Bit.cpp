@@ -10,6 +10,7 @@
 #include <math.h>
 
 #include "Gdc2.h"
+#include "GPalette.h"
 
 #define BytePtr	((uint8*&)Ptr)
 #undef NonPreMulOver48
@@ -24,12 +25,14 @@ class App48 : public GApplicator
 		Pixel *p;
 	};
 	
+	int Op;
 	int ConstAlpha;
 	GPalette *PalAlpha;
 
 public:
-	App48()
+	App48(int op)
 	{
+		Op = op;
 		p = NULL;
 		ConstAlpha = 0xffff;
 		PalAlpha = NULL;
@@ -224,15 +227,48 @@ public:
 		
 		if (!SrcAlpha)
 		{
-			GBmpMem Dst;
-			Dst.Base = u8;
-			Dst.x = Src->x;
-			Dst.y = Src->y;
-			Dst.Cs = Dest->Cs;
-			Dst.Line = Dest->Line;				
-			if (!LgiRopUniversal(&Dst, Src))
+			if (Src->Cs == CsIndex8)
 			{
-				return false;
+				Pixel map[256];
+				for (int i=0; i<256; i++)
+				{
+					GdcRGB *rgb = SPal ? (*SPal)[i] : NULL;
+					if (rgb)
+					{
+						map[i].r = G8bitTo16bit(rgb->r);
+						map[i].g = G8bitTo16bit(rgb->g);
+						map[i].b = G8bitTo16bit(rgb->b);
+					}
+					else
+					{
+						map[i].r = G8bitTo16bit(i);
+						map[i].g = G8bitTo16bit(i);
+						map[i].b = G8bitTo16bit(i);
+					}
+				}
+				for (int y=0; y<Src->y; y++)
+				{
+					register uint8 *s = Src->Base + (y * Src->Line);
+					register Pixel *d = p, *e = d + Src->x;
+					while (d < e)
+					{
+						*d++ = map[*s++];
+					}
+					u8 += Dest->Line;
+				}
+			}
+			else
+			{
+				GBmpMem Dst;
+				Dst.Base = u8;
+				Dst.x = Src->x;
+				Dst.y = Src->y;
+				Dst.Cs = Dest->Cs;
+				Dst.Line = Dest->Line;				
+				if (!LgiRopUniversal(&Dst, Src, Op==GDC_ALPHA))
+				{
+					return false;
+				}
 			}
 		}
 		else
@@ -273,7 +309,7 @@ public:
 		{
 			#define Case48(name) \
 				case Cs##name: \
-					return new App48<G##name, Cs##name>();
+					return new App48<G##name, Cs##name>(Op);
 			
 			Case48(Rgb48);
 			Case48(Bgr48);

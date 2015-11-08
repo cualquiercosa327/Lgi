@@ -56,7 +56,7 @@ bool GreyScaleDC(GSurface *pDest, GSurface *pSrc)
 			case 8:
 			{
 				// 8 -> 8 greyscale convert
-				if (pDest->Create(pSrc->X(), pSrc->Y(), 8))
+				if (pDest->Create(pSrc->X(), pSrc->Y(), CsIndex8))
 				{
 					GPalette *Pal = pSrc->Palette();
 					if (Pal)
@@ -101,7 +101,7 @@ bool GreyScaleDC(GSurface *pDest, GSurface *pSrc)
 			case 24:
 			case 32:
 			{
-				if (pDest->Create(pSrc->X(), pSrc->Y(), 8))
+				if (pDest->Create(pSrc->X(), pSrc->Y(), CsIndex8))
 				{
 					uchar RMap[256];
 					uchar GMap[256];
@@ -368,7 +368,7 @@ bool RotateDC(GSurface *pDC, double Angle)
 	}
 	else if (Angle == 90 || Angle == 270)
 	{
-		if (!pDC->Create(pOld->Y(), pOld->X(), pOld->GetBits()))
+		if (!pDC->Create(pOld->Y(), pOld->X(), pOld->GetColourSpace()))
 			return false;
 
 		GSurface *pOldAlpha = pOld->AlphaDC();

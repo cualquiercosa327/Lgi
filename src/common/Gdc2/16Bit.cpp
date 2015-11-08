@@ -83,70 +83,57 @@ public:
 	const char *GetClass() { return "GdcApp16Set"; }
 	void Set()
 	{
-		*this->Ptr.u16 = this->c;
+		register union
+		{
+			Pixel Px;
+			uint16 u;
+		};
+		Px.r = R16(this->c);
+		Px.g = G16(this->c);
+		Px.b = B16(this->c);
+		
+		*this->Ptr.u16 = u;
 	}
 	
 	void VLine(int height)
 	{
+		register union
+		{
+			Pixel Px;
+			uint16 u;
+		};
+		Px.r = R16(this->c);
+		Px.g = G16(this->c);
+		Px.b = B16(this->c);
+		
 		while (height--)
 		{
-			*this->Ptr.u16 = this->c;
+			*this->Ptr.u16 = u;
 			this->Ptr.u8 += this->Dest->Line;
 		}
 	}
 
 	void Rectangle(int x, int y)
 	{
-	#if defined(GDC_USE_ASM) && defined(_MSC_VER)
-
-	// this duplicates the colour twice in eax to allow us to fill
-	// two pixels at per write. this means we are using the whole
-	// 32-bit bandwidth to the video card :)
-
-		if (y > 0)
+		register union
 		{
-			if (x > 1)
-			{
-				uchar *p = Ptr.u8;
-				COLOUR fill = c | (c << 16);
-				int Line = Dest->Line;
+			Pixel Px;
+			uint16 u;
+		};
+		Px.r = R16(this->c);
+		Px.g = G16(this->c);
+		Px.b = B16(this->c);
 
-				_asm {
-					mov esi, p
-					mov eax, fill
-					mov edx, Line
-					mov bx, ax
-					shl eax, 16
-					mov ax, bx
-				LoopY:	mov edi, esi
-					add esi, edx
-					mov ecx, x
-					shr ecx, 1
-				LoopX:	mov [edi], eax
-					add edi, 4
-					dec ecx
-					jnz LoopX
-					test x, 1
-					jz Next
-					mov [edi], ax
-				Next:	dec y
-					jnz LoopY
-				}
-			}
-			else if (x == 1)
-			{
-				VLine(y);
-			}
-		}
-	#else
 		while (y--)
 		{
-			for (int n=0; n<x; n++)
-				this->Ptr.u16[n] = this->c;
+			register uint16 *d = this->Ptr.u16;
+			register uint16 *e = d + x;
+			
+			while (d < e)
+				*d++ = u;
 			
 			this->Ptr.u8 += this->Dest->Line;
 		}
-	#endif
 	}
 
 	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
@@ -158,31 +145,35 @@ public:
 		{
 			case CsIndex8:
 			{
-				ushort c[256];
+				Pixel map[256];
 				if (SPal)
 				{
 					GdcRGB *p = (*SPal)[0];
 					for (int i=0; i<256; i++, p++)
 					{
-						c[i] = Rgb24To16(Rgb24(p->r, p->g, p->b));
+						map[i].r = G8bitTo5bit(p->r);
+						map[i].g = G8bitTo6bit(p->g);
+						map[i].b = G8bitTo5bit(p->b);
 					}
 				}
 				else
 				{
 					for (int i=0; i<256; i++)
 					{
-						c[i] = Rgb16(i, i, i);
+						map[i].r = G8bitTo5bit(i);
+						map[i].g = G8bitTo6bit(i);
+						map[i].b = G8bitTo5bit(i);
 					}
 				}
 
 				for (int y=0; y<Src->y; y++)
 				{
 					uchar *s = ((uchar*)Src->Base) + (y * Src->Line);
-					uint16 *d = this->Ptr.u16;
+					Pixel *d = this->Ptr.p;
 
 					for (int x=0; x<Src->x; x++)
 					{
-						*d++ = c[*s++];
+						*d++ = map[*s++];
 					}
 
 					this->Ptr.u8 += this->Dest->Line;
@@ -197,7 +188,7 @@ public:
 				Dst.y = Src->y;
 				Dst.Cs = this->Dest->Cs;
 				Dst.Line = this->Dest->Line;				
-				if (!LgiRopUniversal(&Dst, Src))
+				if (!LgiRopUniversal(&Dst, Src, false))
 				{
 					return false;
 				}

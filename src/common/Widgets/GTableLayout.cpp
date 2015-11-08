@@ -33,7 +33,7 @@ enum CellFlag
 
 #define Izza(c)				dynamic_cast<c*>(v)
 // #define DEBUG_LAYOUT		535 // define to ID of control to dump (0 to disable)
-#define DEBUG_LAYOUT		1150
+// #define DEBUG_LAYOUT		1150
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
@@ -561,6 +561,12 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 	Disp = Display();
 	if (Disp == DispNone)
 		return;
+	
+	if (Debug)
+	{
+		int asd=0;
+	}
+	
 	CalcCssPadding(PaddingLeft, X, x1)
 	CalcCssPadding(PaddingRight, X, x2)
 	CalcCssPadding(PaddingTop, Y, y1)
@@ -576,16 +582,16 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 		{
 			Min = Max;
 			Flag = SizeFixed;
+
+			if (Padding.x1 + Padding.x2 > Min)
+			{
+				// Remove padding as it's going to oversize the cell
+				Padding.x1 = Padding.x2 = 0;
+			}
 		}
 		else
 		{
 			Flag = SizeGrow;
-		}
-		
-		if (Padding.x1 + Padding.x2 > Min)
-		{
-			// Remove padding as it's going to oversize the cell
-			Padding.x1 = Padding.x2 = 0;
 		}
 	}
 
@@ -942,7 +948,6 @@ void TableCell::PostLayout()
 		int asd=0;
 	}
 
-
 	Child *c = &Children[0];
 	for (int i=0; i<Children.Length(); i++, c++)
 	{
@@ -1026,14 +1031,13 @@ void TableCell::PostLayout()
 		New[i] = r;
 		MaxY = max(MaxY, r.y2 - Pos.y1);
 		Cx += r.X() + Table->d->BorderSpacing;
-
 	}
 
 	if (Disp == DispNone)
 	{
 		return;
 	}
-
+	
 	int n;
 	int Wid = Cx - Table->d->BorderSpacing;
 	int OffsetX = 0;

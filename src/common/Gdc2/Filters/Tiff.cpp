@@ -553,7 +553,7 @@ GFilter::IoStatus GdcTiff::ProcessRead(GSurface *pDC)
 	#endif
 
 	if (pDC &&
-		pDC->Create(X, Y, B))
+		pDC->Create(X, Y, CsIndex8))
 	{
 		if (Meter)
 		{

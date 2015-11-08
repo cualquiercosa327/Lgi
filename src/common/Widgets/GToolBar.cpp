@@ -140,7 +140,7 @@ public:
 		Cache.Add(dc);
 		dc->Disabled = Disabled;
 		dc->Back = Back;
-		bool Status = dc->Create(ImgLst->X(), ImgLst->Y(), GdcD->GetBits());
+		bool Status = dc->Create(ImgLst->X(), ImgLst->Y(), GdcD->GetColourSpace());
 		if (Status)
 		{
 			dc->Colour(dc->Back);
@@ -171,7 +171,7 @@ GImageList::GImageList(int x, int y, GSurface *pDC)
 	#endif
 
 	if (pDC &&
-		Create(pDC->X(), pDC->Y(), System32BitColourSpace))
+		Create(pDC->X(), pDC->Y(), System32BitColourSpace, GSurface::SurfaceRequireExactCs))
 	{
 		Colour(0, 32);
 		Rectangle();
@@ -179,6 +179,8 @@ GImageList::GImageList(int x, int y, GSurface *pDC)
 		int Old = Op(GDC_ALPHA);
 		Blt(0, 0, pDC);
 		Op(Old);
+		
+		// printf("Toolbar input image is %s\n", GColourSpaceToString(pDC->GetColourSpace()));
 		
 		if (pDC->GetBits() < 32)
 		{
@@ -261,8 +263,6 @@ void GImageList::Draw(GSurface *pDC, int Dx, int Dy, int Image, GColour Backgrou
 		return;
 	}
 
-	#if 1
-	
 	if (pDC->SupportsAlphaCompositing())
 	{
 		/*
@@ -277,7 +277,7 @@ void GImageList::Draw(GSurface *pDC, int Dx, int Dy, int Image, GColour Backgrou
 		int Old = pDC->Op(GDC_ALPHA, Disabled ? 40 : -1);
 		pDC->Blt(Dx, Dy, this, &rSrc);
 		pDC->Op(Old);
-
+		
 		/*
 		printf("SupportsAlphaCompositing cache %s->%s\n",
 			GColourSpaceToString(GetColourSpace()),
@@ -301,301 +301,12 @@ void GImageList::Draw(GSurface *pDC, int Dx, int Dy, int Image, GColour Backgrou
 				GColourSpaceToString(GetColourSpace()),
 				GColourSpaceToString(Cache->GetColourSpace()));
 			*/
+			
 			Cache->Blt(rSrc.x1, rSrc.y1, this, &rSrc);
 		}	
 		
 		pDC->Blt(Dx, Dy, Cache, &rSrc);
 	}
-	
-	#else
-	
-	if ((*this)[0])
-	{
-		COLOUR Key = Get(0, 0);
-
-		if (Disabled)
-		{
-			COLOUR Low = CBit(pDest->GetBits(), LC_LOW);
-			COLOUR High = CBit(pDest->GetBits(), LC_LIGHT);
-
-			for (int y=0; y<r.Y(); y++)
-			{
-				for (int x=0; x<r.X(); x++)
-				{
-					#ifdef MAC
-					COLOUR c = Get(r.x1 + x, r.y1 + y);
-					if (A32(c))
-					#else
-					if (Get(r.x1 + x, r.y1 + y) != Key)
-					#endif
-					{
-						pDest->Colour(Low);
-						pDest->Set(Dx + x, Dy + y);
-						pDest->Colour(High);
-						pDest->Set(Dx + x + 1, Dy + y + 1);
-					}
-				}
-			}
-		}
-		else
-		{
-			#if WINNATIVE
-
-			BOOL Status = false;
-			
-			if (GetBits() <= 24)
-			{
-				// No source alpha, have to do colour keying manually.
-				GMemDC Tmp;
-				GSurface *Dest = pDest;
-				GRect drc;
-				if (pDest->IsScreen() ||
-					GetColourSpace() != pDest->GetColourSpace())
-				{
-					drc.ZOff(r.X()-1, r.Y()-1);
-					Tmp.Create(r.X(), r.Y(), GetBits());
-					Tmp.Colour(Background);
-					Tmp.Rectangle();
-					Dest = &Tmp;
-				}
-				else
-				{
-					drc.ZOff(r.X()-1, r.Y()-1);
-					drc.Offset(Dx, Dy);
-					Dest->Colour(Background);
-					Dest->Rectangle(&drc);
-				}
-									
-				Status = true;
-				LgiAssert(Dest->GetColourSpace() == GetColourSpace());
-				switch (GetColourSpace())
-				{
-					case CsRgb16:
-					case CsBgr16:
-					{
-						for (int y=0; y<r.Y(); y++)
-						{
-							uint16 *s = ((uint16*)(*this)[r.y1+y]) + r.x1;
-							uint16 *d = ((uint16*)(*Dest)[drc.y1+y]) + drc.x1;
-							uint16 *e = d + drc.X();
-							while (d < e)
-							{
-								if (*s != Key)
-									*d = *s;
-								d++;
-								s++;
-							}
-						}
-						break;
-					}
-					case CsRgba32:
-					case CsBgra32:
-					case CsArgb32:
-					case CsAbgr32:
-					{
-						for (int y=0; y<r.Y(); y++)
-						{
-							uint32 *s = ((uint32*)(*this)[r.y1+y]) + r.x1;
-							uint32 *d = ((uint32*)(*Dest)[drc.y1+y]) + drc.x1;
-							uint32 *e = d + drc.X();
-							while (d < e)
-							{
-								if (*s != Key)
-									*d = *s;
-								d++;
-								s++;
-							}
-						}
-						break;
-					}
-					default:
-					{
-						Status = false;
-						LgiAssert(0);
-						break;
-					}
-				}					
-
-				if (pDest->IsScreen())
-				{
-					pDest->Blt(Dx, Dy, &Tmp);
-				}
-			}
-			else if (GdcD->AlphaBlend &&
-					!LgiApp->IsWine())
-			{
-				HDC hDest = pDest->StartDC();
-				HDC hSrc = StartDC();
-
-				BLENDFUNCTION Blend;
-				Blend.BlendOp = AC_SRC_OVER;
-				Blend.BlendFlags = 0;
-				Blend.AlphaFormat = AC_SRC_ALPHA;
-
-				GApplicator *pApp;
-				if (pDest->Op() == GDC_ALPHA &&
-					(pApp = pDest->Applicator()) != 0)
-				{
-					int Alpha = pApp->GetVar(GAPP_ALPHA_A);
-					Blend.SourceConstantAlpha = Alpha;
-				}
-				else
-				{
-					Blend.SourceConstantAlpha = 255;
-				}
-				
-				Status = GdcD->AlphaBlend(	hDest,
-											Dx, Dy,
-											r.X(), r.Y(),
-											hSrc,
-											r.x1, r.y1,
-											r.X(), r.Y(),
-											Blend);
-				if (!Status)
-				{
-					int ScreenBits = GdcD->GetBits();
-					DWORD err = GetLastError();
-					printf("%s:%i - AlphaBlend failed with %i (0x%x), Screen depth=%i\n", _FL, err, err, ScreenBits);
-				}
-
-				pDest->EndDC();
-				EndDC();
-			}
-
-			if (!Status)
-
-			#elif defined BEOS
-
-			GScreenDC *pViewDC = dynamic_cast<GScreenDC*>(pDest);
-			if (pDest->IsScreen() && pViewDC)
-			{
-				BView *owner = pViewDC->Handle();
-				BBitmap *Bmp = GetBitmap();
-
-				if (owner && Bmp)
-				{
-					int x = Image * d->Sx;
-					BRect S(x, 0, x+d->Sx-1, d->Sy-1);
-					BRect D(Dx, Dy, Dx+(d->Sx-1), Dy+(d->Sx-1));
-
-					drawing_mode Mode = owner->DrawingMode();
-					owner->SetDrawingMode(B_OP_OVER);
-					owner->DrawBitmap(Bmp, S, D);
-					owner->SetDrawingMode(Mode);
-				}
-			}
-			else
-
-			#elif defined __GTK_H__
-
-			printf("ImgListDraw %s->%s\n",
-				GColourSpaceToString(GetColourSpace()),
-				GColourSpaceToString(pDest->GetColourSpace()));
-				
-			if (GetBits() < 32)
-			{
-				// No source alpha, do colour keying
-				GBlitRegions rgn(pDest, Dx, Dy, this, &r);
-				if (rgn.Valid() && GetBits() == 16)
-				{
-					register uint16 *s = (uint16*)(*this)[0], *d;
-					uint16 key = *s;
-					uint16 back = Rgb24To16(Background.c24());
-					
-					for (int y=0; y<rgn.SrcClip.Y(); y++)
-					{
-						s = (uint16*) (*this)[rgn.SrcClip.y1+y] + rgn.SrcClip.x1;
-						d = (uint16*) (*pDest)[rgn.DstClip.y1+y] + rgn.DstClip.x1;
-						uint16 *e = s + rgn.SrcClip.X();
-						while (s < e)
-						{
-							if (*s == key)
-								*d++ = back;
-							else
-								*d++ = *s;
-							s++;
-						}
-					}
-				}
-				else LgiAssert(!"Unsupport bit depth.");
-			}
-			else if (pDest->SupportsAlphaCompositing())
-			{
-				// Src and Dst alpha supported... best case.
-				pDest->Blt(Dx, Dy, this, &r);
-			}
-			else
-			{
-				// Dest doesn't support alpha... do a manual blt
-				GMemDC Buf(d->Sx, d->Sy, System32BitColourSpace);
-				Buf.Colour(Background);
-				Buf.Rectangle();
-				Buf.Op(GDC_ALPHA);
-				Buf.Blt(0, 0, this, &r);					
-				pDest->Blt(Dx, Dy, &Buf);
-			}
-
-			return;
-			
-			#elif defined MAC
-			
-			pDest->Blt(Dx, Dy, this, &r);
-			if (0)
-
-			#endif
-			{
-				COLOUR Map[256];
-				int b = GetBits();
-				if (b == 8)
-				{
-					GPalette *Pal = Palette();
-					if (Pal)
-					{
-						for (int i=0; i<Pal->GetSize(); i++)
-						{
-							Map[i] = CBit(24, i, 8, Pal);
-						}
-					}
-
-					for (int y=0; y<r.Y(); y++)
-					{
-						for (int x=0; x<r.X(); x++)
-						{
-							COLOUR c = Get(r.x1 + x, r.y1 + y);
-							if (c != Key)
-							{
-								pDest->Colour(Map[c], 24);
-								pDest->Set(Dx + x, Dy + y);
-							}
-						}
-					}
-				}
-				else
-				{
-					for (int y=0; y<r.Y(); y++)
-					{
-						// True colour
-						for (int x=0; x<r.X(); x++)
-						{
-							COLOUR c = Get(r.x1 + x, r.y1 + y);
-							
-							if (c != Key)
-							{
-								pDest->Colour(c, b);
-								pDest->Set(Dx + x, Dy + y);
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	else
-	{
-		// Pixmap!
-		pDest->Blt(Dx, Dy, this, &r);
-	}
-	#endif
 }
 
 int GImageList::TileX()
@@ -647,6 +358,12 @@ GRect *GImageList::GetBounds()
 							d->Bounds[i].y2 = max(d->Bounds[i].y2, y);
 						}
 					}
+				}
+				
+				if (!d->Bounds[i].Valid())
+				{
+					// No data?
+					d->Bounds[i].ZOff(-1, -1);
 				}
 			}
 		}

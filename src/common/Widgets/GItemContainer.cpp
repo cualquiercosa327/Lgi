@@ -70,6 +70,7 @@ GItemContainer::GItemContainer()
 	ColClick = -1;
 	ColumnHeaders = true;
 	ColumnHeader.ZOff(-1, -1);
+	Columns.SetFixedLength(true);
 }
 
 GItemContainer::~GItemContainer()
@@ -125,11 +126,15 @@ void GItemContainer::PaintColumnHeadings(GSurface *pDC)
 		for (int i=0; i<Columns.Length(); i++)
 		{
 			GItemColumn *c = Columns[i];
-			cr.x1 = cx;
-			cr.x2 = cr.x1 + c->Width() - 1;
-			c->SetPos(cr);
-			c->OnPaint(ColDC, cr);
-			cx += c->Width();
+			if (c)
+			{
+				cr.x1 = cx;
+				cr.x2 = cr.x1 + c->Width() - 1;
+				c->SetPos(cr);
+				c->OnPaint(ColDC, cr);
+				cx += c->Width();
+			}
+			else LgiAssert(0);
 		}
 
 		// Draw ending peice
@@ -200,7 +205,10 @@ GItemColumn *GItemContainer::AddColumn(const char *Name, int Width, int Where)
 		c = new GItemColumn(this, Name, Width);
 		if (c)
 		{
+			Columns.SetFixedLength(false);
 			Columns.AddAt(Where, c);
+			Columns.SetFixedLength(true);
+
 			UpdateAllItems();
 			SendNotify(GNotifyItem_ColumnsChanged);
 		}
@@ -216,7 +224,10 @@ bool GItemContainer::AddColumn(GItemColumn *Col, int Where)
 
 	if (Col && Lock(_FL))
 	{
+		Columns.SetFixedLength(false);
 		Status = Columns.AddAt(Where, Col);
+		Columns.SetFixedLength(true);
+
 		if (Status)
 		{
 			UpdateAllItems();
@@ -251,23 +262,16 @@ int GItemContainer::ColumnAtX(int x, GItemColumn **Col, int *Offset)
 
 	int Cx = GetImageList() ? 16 : 0;
 	int c;
-	for (c=0; (*Col = Columns[c]); c++)
+	for (c=0; c<Columns.Length(); c++)
 	{
+		*Col = Columns[c];
 		if (x >= Cx && x < Cx + (*Col)->Width())
 		{
-			break;
+			if (Offset)
+				*Offset = Cx;
+			return c;
 		}
 		Cx += (*Col)->Width();
-	}
-
-	if (*Col)
-	{
-		if (Offset)
-		{
-			*Offset = Cx;
-		}
-
-		return c;
 	}
 
 	return -1;

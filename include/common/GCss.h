@@ -101,6 +101,7 @@ public:
 		PropBorderTopWidth,
 		PropBorderRightWidth,
 		PropBorderBottomWidth,
+		PropBorderRadius,
 		Prop_CellPadding, // not real CSS, but used by GHtml2 to store 'cellpadding'
 
 		// GRect based props
@@ -664,10 +665,15 @@ public:
 		GArray<Part> Parts;
 		GArray<int> Combs;
 		char *Style;
+		int SourceIndex;
 		GAutoString Raw;
 		GAutoPtr<class Store> Children;
 
-		Selector() { Style = NULL; }
+		Selector()
+		{
+			Style = NULL;
+			SourceIndex = 0;
+		}
 		bool TokString(GAutoString &a, const char *&s);
 		const char *PartTypeToString(PartType p);
 		GAutoString Print();
@@ -675,6 +681,7 @@ public:
 		int GetSimpleIndex() { return Combs.Length() ? Combs[Combs.Length()-1] + 1 : 0; }
 		bool IsAtMedia();
 		bool ToString(GStream &p);
+		uint32 GetSpecificity();
 		
 		Selector &operator =(const Selector &s);
 	};
@@ -925,6 +932,9 @@ public:
 		// may reference this memory.
 		GArray<char*> Styles;
 		
+		// Sort the styles into less specific to more specific order
+		void SortStyles(GCss::SelArray &Styles);
+		
 	public:
 		SelectorMap TypeMap, ClassMap, IdMap;
 		SelArray Other;
@@ -992,13 +1002,17 @@ public:
 				{
 					GCss::Selector *Sel = (*s)[i];
 					
-					if (MatchFullSelector(Sel, Context, Obj))
+					if (!Styles.HasItem(Sel) &&
+						MatchFullSelector(Sel, Context, Obj))
 					{
 						// Output the matching selector
 						Styles.Add(Sel);
 					}
 				}
 			}
+			
+			// Sort the selectors into less specific -> more specific order.
+			SortStyles(Styles);
 
 			return true;
 		}
@@ -1063,6 +1077,7 @@ public:
 	Accessor(BorderBottom, BorderDef, BorderDef(), PropBorder);
 	Accessor(BorderLeft, BorderDef, BorderDef(), PropBorder);
 	Accessor(BorderSpacing, Len, Len(), PropNull); // 'cellspacing'
+	Accessor(BorderRadius, Len, Len(), PropNull);
 	Accessor(BorderCollapse, BorderCollapseType, CollapseInherit, PropBorderCollapse);
 	Accessor(_CellPadding, Len, Len(), PropNull); // 'cellpadding' (not CSS)
 

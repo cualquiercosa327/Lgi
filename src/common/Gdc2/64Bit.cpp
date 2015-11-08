@@ -10,6 +10,7 @@
 #include <math.h>
 
 #include "Gdc2.h"
+#include "GPalette.h"
 
 #define BytePtr	((uint8*&)Ptr)
 #undef NonPreMulOver64
@@ -23,13 +24,15 @@ class App64 : public GApplicator
 		uint8 *u8;
 		Pixel *p;
 	};
-	
+
+	int Op;	
 	int ConstAlpha;
 	GPalette *PalAlpha;
 
 public:
-	App64()
+	App64(int op)
 	{
+		Op = op;
 		p = NULL;
 		ConstAlpha = 0xffff;
 		PalAlpha = NULL;
@@ -109,9 +112,9 @@ public:
 	{
 		if (p32.a == 255)
 		{
-			p->r = G8bitTo16Bit(p32.r);
-			p->g = G8bitTo16Bit(p32.g);
-			p->b = G8bitTo16Bit(p32.b);
+			p->r = G8bitTo16bit(p32.r);
+			p->g = G8bitTo16bit(p32.g);
+			p->b = G8bitTo16bit(p32.b);
 			p->a = -1;
 		}
 		else if (p32.a)
@@ -128,48 +131,34 @@ public:
 	void VLine(int height)
 	{
 		Pixel cp;
-		cp.r = G8bitTo16Bit(p32.r);
-		cp.g = G8bitTo16Bit(p32.g);
-		cp.b = G8bitTo16Bit(p32.b);
-		cp.a = G8bitTo16Bit(p32.a);
+		cp.r = G8bitTo16bit(p32.r);
+		cp.g = G8bitTo16bit(p32.g);
+		cp.b = G8bitTo16bit(p32.b);
+		cp.a = G8bitTo16bit(p32.a);
 
-		if (p32.a == 255)
+		while (height-- > 0)
 		{
-			while (height-- > 0)
-			{
-				*p = cp;
-				u8 += Dest->Line;
-			}
-		}
-		else if (p32.a)
-		{
-			LgiAssert(0);
+			*p = cp;
+			u8 += Dest->Line;
 		}
 	}
 	
 	void Rectangle(int x, int y)
 	{
 		Pixel cp;
-		cp.r = G8bitTo16Bit(p32.r);
-		cp.g = G8bitTo16Bit(p32.g);
-		cp.b = G8bitTo16Bit(p32.b);
-		cp.a = G8bitTo16Bit(p32.a);
+		cp.r = G8bitTo16bit(p32.r);
+		cp.g = G8bitTo16bit(p32.g);
+		cp.b = G8bitTo16bit(p32.b);
+		cp.a = G8bitTo16bit(p32.a);
 		
-		if (p32.a == 255)
+		while (y-- > 0)
 		{
-			while (y-- > 0)
+			register Pixel *i = p, *e = i + x;
+			while (i < e)
 			{
-				Pixel *i = p, *e = i + x;
-				while (i < e)
-				{
-					*i++ = cp;
-				}
-				u8 += Dest->Line;
+				*i++ = cp;
 			}
-		}
-		else if (p32.a)
-		{
-			LgiAssert(0);
+			u8 += Dest->Line;
 		}
 	}
 	
@@ -319,15 +308,49 @@ public:
 		
 		if (!SrcAlpha)
 		{
-			GBmpMem Dst;
-			Dst.Base = u8;
-			Dst.x = Src->x;
-			Dst.y = Src->y;
-			Dst.Cs = Dest->Cs;
-			Dst.Line = Dest->Line;				
-			if (!LgiRopUniversal(&Dst, Src))
+			if (Src->Cs == CsIndex8)
 			{
-				return false;
+				Pixel map[256];
+				for (int i=0; i<256; i++)
+				{
+					GdcRGB *rgb = SPal ? (*SPal)[i] : NULL;
+					if (rgb)
+					{
+						map[i].r = G8bitTo16bit(rgb->r);
+						map[i].g = G8bitTo16bit(rgb->g);
+						map[i].b = G8bitTo16bit(rgb->b);
+					}
+					else
+					{
+						map[i].r = G8bitTo16bit(i);
+						map[i].g = G8bitTo16bit(i);
+						map[i].b = G8bitTo16bit(i);
+					}
+					map[i].a = 0xffff;
+				}
+				for (int y=0; y<Src->y; y++)
+				{
+					register uint8 *s = Src->Base + (y * Src->Line);
+					register Pixel *d = p, *e = d + Src->x;
+					while (d < e)
+					{
+						*d++ = map[*s++];
+					}
+					u8 += Dest->Line;
+				}
+			}
+			else
+			{
+				GBmpMem Dst;
+				Dst.Base = u8;
+				Dst.x = Src->x;
+				Dst.y = Src->y;
+				Dst.Cs = Dest->Cs;
+				Dst.Line = Dest->Line;				
+				if (!LgiRopUniversal(&Dst, Src, Op==GDC_ALPHA))
+				{
+					return false;
+				}
 			}
 		}
 		else
@@ -368,7 +391,7 @@ public:
 		{
 			#define Case64(name) \
 				case Cs##name: \
-					return new App64<G##name, Cs##name>();
+					return new App64<G##name, Cs##name>(Op);
 			
 			Case64(Rgba64);
 			Case64(Bgra64);

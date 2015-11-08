@@ -169,6 +169,26 @@ GdcPt2 GMemDC::GetSize()
 	return GdcPt2(pMem->x, pMem->y);
 }
 
+GRect GMemDC::ClipRgn(GRect *Rgn)
+{
+	GRect Old = Clip;
+	
+	if (Rgn)
+	{
+		GRect Dc(0, 0, X()-1, Y()-1);
+		
+		Clip = *Rgn;
+		Clip.Offset(-OriginX, -OriginY);
+		Clip.Bound(&Dc);
+	}
+	else
+	{
+		Clip.ZOff(X()-1, Y()-1);
+	}
+	
+	return Old;
+}
+
 void GMemDC::SetClient(GRect *c)
 {
 	if (c)
@@ -219,12 +239,7 @@ GColourSpace GMemDC::GetCreateCs()
 	return d->CreateCs;
 }
 
-bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
-{
-	return Create(x, y, GBitsToColourSpace(Bits), LineLen, KeepData);
-}
-
-bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
+bool GMemDC::Create(int x, int y, GColourSpace Cs, int Flags)
 {
 	int Bits = GColourSpaceToBits(Cs);
 	if (x < 1 || y < 1 || Bits < 1)
@@ -237,6 +252,7 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
 	
 	GdkVisual Fallback;
 	GdkVisual *Vis = gdk_visual_get_system();
+	GColourSpace VisCs = Vis ? GdkVisualToColourSpace(Vis, Bits) : CsNone;
 	if (Bits == 8)
 	{
 		GdkVisual *Vis8 = gdk_visual_get_best_with_depth(8);
@@ -249,6 +265,13 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
 		{
 			Vis = NULL;
 	    }
+	}
+	
+	if (Vis &&
+		VisCs != Cs &&
+		(Flags & SurfaceRequireExactCs) != 0)
+	{
+		Vis = NULL;
 	}
 	
 	if (Vis)
@@ -284,7 +307,7 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
 		pMem->Line = (((pMem->x * Bits) + 31) / 32) << 2;
 		pMem->Base = new uchar[pMem->y * pMem->Line];
 		pMem->Cs = Cs;
-		pMem->Flags |= GDC_OWN_MEMORY;
+		pMem->Flags |= GBmpMem::BmpOwnMemory;
 	}
 	
 	ColourSpace = pMem->Cs;
@@ -339,7 +362,7 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int LineLen, bool KeepData)
 
 	if (!pApp)
 	{
-		printf("GMemDC::Create(%i,%i,%i,%i,%i) No Applicator.\n", x, y, Bits, LineLen, KeepData);
+		printf("GMemDC::Create(%i,%i,%i) No Applicator.\n", x, y, Bits);
 		LgiAssert(0);
 	}
 

@@ -9,127 +9,115 @@
 #ifndef _GPixelRops_h
 #define _GPixelRops_h
 
-template<typename OutPx, typename InPx>
-void Copy15To24(OutPx *out, InPx *in, int Len)
-{
-	InPx *end = in + Len;
-	while (in < end)
-	{
-		out->r = G5bitTo8Bit(in->r);
-		out->g = G5bitTo8Bit(in->g);
-		out->b = G5bitTo8Bit(in->b);
-		out++;
-		in++;
+//////////////////////////////////////////////////////////////////////////
+// 24 bit over
+//////////////////////////////////////////////////////////////////////////
+#define OverNpm24toNpm32(s,d,sa)	\
+	{ \
+		register uint8 oma = 0xff - sa; \
+		register uint8 da = sa + DivLut[d->a * oma]; \
+		d->r = ((s->r * sa) + (DivLut[d->r * da] * oma)) / da; \
+		d->g = ((s->g * sa) + (DivLut[d->g * da] * oma)) / da; \
+		d->b = ((s->b * sa) + (DivLut[d->b * da] * oma)) / da; \
+		d->a = da; \
 	}
-}
 
-template<typename OutPx, typename InPx>
-void Copy16To24(OutPx *out, InPx *in, int Len)
-{
-	InPx *end = in + Len;
-	while (in < end)
-	{
-		out->r = G5bitTo8Bit(in->r);
-		out->g = G6bitTo8Bit(in->g);
-		out->b = G5bitTo8Bit(in->b);
-		out++;
-		in++;
+//////////////////////////////////////////////////////////////////////////
+// 32 bit over
+//////////////////////////////////////////////////////////////////////////
+#define OverNpm32toNpm24(s,d)	\
+	{ \
+		register uint8 sa = (s)->a; \
+		register uint8 oma = 0xff - sa; \
+		(d)->r = DivLut[((s)->r * sa) + ((d)->r * oma)]; \
+		(d)->g = DivLut[((s)->g * sa) + ((d)->g * oma)]; \
+		(d)->b = DivLut[((s)->b * sa) + ((d)->b * oma)]; \
 	}
-}
-
-template<typename OutPx, typename InPx>
-void Copy24(OutPx *out, InPx *in, int Len)
-{
-	InPx *end = in + Len;
-	while (in < end)
-	{
-		out->r = in->r;
-		out->g = in->g;
-		out->b = in->b;
-		out++;
-		in++;
+#define OverNpm32toNpm32(s,d)	\
+	{ \
+		register uint8 sa = s->a; \
+		register uint8 oma = 0xff - sa; \
+		register uint8 da = sa + DivLut[d->a * oma]; \
+		d->r = ((s->r * sa) + (DivLut[d->r * da] * oma)) / da; \
+		d->g = ((s->g * sa) + (DivLut[d->g * da] * oma)) / da; \
+		d->b = ((s->b * sa) + (DivLut[d->b * da] * oma)) / da; \
+		d->a = da; \
 	}
-}
-
-template<typename OutPx, typename InPx>
-void Copy32(OutPx *out, InPx *in, int Len)
-{
-	InPx *end = in + Len;
-	while (in < end)
-	{
-		out->r = in->r;
-		out->g = in->g;
-		out->b = in->b;
-		out->a = in->a;
-		out++;
-		in++;
+#define OverNpm32toNpm48(s,d)	\
+	{ \
+		register uint16 sa = G8bitTo16bit((s)->a); \
+		register uint16 oma = 0xffff - sa; \
+		(d)->r = ( (G8bitTo16bit((s)->r) * sa) + ((d)->r * oma) ) / 0xffff; \
+		(d)->g = ( (G8bitTo16bit((s)->g) * sa) + ((d)->g * oma) ) / 0xffff; \
+		(d)->b = ( (G8bitTo16bit((s)->b) * sa) + ((d)->b * oma) ) / 0xffff; \
 	}
-}
-
-template<typename OutPx, typename InPx>
-void Copy24to32(OutPx *out, InPx *in, int Len)
-{
-	InPx *end = in + Len;
-	while (in < end)
-	{
-		out->r = in->r;
-		out->g = in->g;
-		out->b = in->b;
-		out->a = -1; // resolves to both 0xff and 0xffff
-		out++;
-		in++;
+#define OverNpm32toNpm64(s,d)	\
+	{ \
+		register uint16 sa = G8bitTo16bit((s)->a); \
+		register uint16 oma = 0xffff - sa; \
+		register uint16 da = sa + ((uint32)(d)->a * oma) / 0xffff; \
+		d->r = ( (G8bitTo16bit(s->r) * sa) + ( ((uint32)(d->r * da) / 0xffff) * oma)) / da; \
+		d->g = ( (G8bitTo16bit(s->g) * sa) + ( ((uint32)(d->g * da) / 0xffff) * oma)) / da; \
+		d->b = ( (G8bitTo16bit(s->b) * sa) + ( ((uint32)(d->b * da) / 0xffff) * oma)) / da; \
+		d->a = da; \
 	}
-}
 
-template<typename OutPx, typename InPx>
-void CompositeNonPreMul32(OutPx *d, InPx *s, int Len)
-{
-	InPx *end = s + Len;
-	uint8 *DivLut = Div255Lut;
-
-	while (s < end)
-	{
-		if (s->a == 255)
-		{
-			// Copy pixel
-			d->r = s->r;
-			d->g = s->g;
-			d->b = s->b;
-			d->a = s->a;
-		}
-		else if (d->a && s->a)
-		{
-			// Composite pixel
-			//		Dc'  = (Sca + Dc.Da.(1 - Sa)) / Da'
-			//		Da'  = Sa + Da.(1 - Sa)
-			register int o = 0xff - s->a;
-			
-			#define NonPreMul32(c)	\
-				d->c = (DivLut[s->c * s->a] + (DivLut[d->c * d->a] * o)) / d->a
-			
-			NonPreMul32(r);
-			NonPreMul32(g);
-			NonPreMul32(b);
-			d->a = s->a + DivLut[d->a * o];
-		}
-
-		s++;
-		d++;
+#define OverPm32toPm24(s,d)	\
+	{ \
+		register uint8 oma = 0xff - s->a; \
+		d->r = s->r + DivLut[d->r * oma]; \
+		d->g = s->g + DivLut[d->g * oma]; \
+		d->b = s->b + DivLut[d->b * oma]; \
 	}
-}
+#define OverPm32toPm32(s,d)	\
+	{ \
+		register uint8 sa = s->a; \
+		register uint8 oma = 0xff - sa; \
+		d->r = s->r + DivLut[d->r * oma]; \
+		d->g = s->g + DivLut[d->g * oma]; \
+		d->b = s->b + DivLut[d->b * oma]; \
+		d->a = sa + DivLut[d->a * oma]; \
+	}
 
-#define CsMapping(OutCs, InCs) ( (((uint64)OutCs) << 32) | (InCs) )
+//////////////////////////////////////////////////////////////////////////
+// 64 bit over
+//////////////////////////////////////////////////////////////////////////
+#define OverNpm64toNpm24(s,d)	\
+	{ \
+		register uint8 sa = (s)->a >> 8; \
+		register uint8 oma = 0xff - sa; \
+		(d)->r = DivLut[( ((s)->r >> 8) * sa) + ((d)->r * oma)]; \
+		(d)->g = DivLut[( ((s)->g >> 8) * sa) + ((d)->g * oma)]; \
+		(d)->b = DivLut[( ((s)->b >> 8) * sa) + ((d)->b * oma)]; \
+	}
+#define OverNpm64toNpm32(s,d)	\
+	{ \
+		register uint8 sa = s->a >> 8; \
+		register uint8 oma = 0xff - sa; \
+		register uint8 da = sa + DivLut[d->a * oma]; \
+		d->r = (( (s->r>>8) * sa) + (DivLut[d->r * da] * oma)) / da; \
+		d->g = (( (s->g>>8) * sa) + (DivLut[d->g * da] * oma)) / da; \
+		d->b = (( (s->b>>8) * sa) + (DivLut[d->b * da] * oma)) / da; \
+		d->a = da; \
+	}
+#define OverNpm64toNpm48(s,d)	\
+	{ \
+		register uint16 sa = (s)->a; \
+		register uint16 oma = 0xffff - sa; \
+		(d)->r = ( ((s)->r * sa) + ((d)->r * oma) ) / 0xffff; \
+		(d)->g = ( ((s)->g * sa) + ((d)->g * oma) ) / 0xffff; \
+		(d)->b = ( ((s)->b * sa) + ((d)->b * oma) ) / 0xffff; \
+	}
+#define OverNpm64toNpm64(s,d)	\
+	{ \
+		register uint16 sa = (s)->a; \
+		register uint16 oma = 0xffff - sa; \
+		register uint16 da = sa + ((uint32)(d)->a * oma) / 0xffff; \
+		(d)->r = (( (uint32)(s)->r * sa) + ( ((uint32)d->r * da) / 0xffff * oma)) / da; \
+		(d)->g = (( (uint32)(s)->g * sa) + ( ((uint32)d->g * da) / 0xffff * oma)) / da; \
+		(d)->b = (( (uint32)(s)->b * sa) + ( ((uint32)d->b * da) / 0xffff * oma)) / da; \
+		(d)->a = da; \
+	}
 
-LgiFunc bool GUniversalBlt(	GColourSpace OutCs,
-							uint8 *OutPtr,
-							int OutLine,
-							
-							GColourSpace InCs,
-							uint8 *InPtr,
-							int InLine,
-							
-							int x,
-							int y);
-					
-					
+
 #endif

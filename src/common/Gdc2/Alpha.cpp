@@ -18,6 +18,55 @@
 // #define Div255(a)	DivLut[a]
 #define Div255(a)	((a)/255)
 
+template<typename T>
+void CreatePaletteLut(T *c, GPalette *Pal, int Scale = 255)
+{
+	if (Scale < 255)
+	{
+		uchar *DivLut = Div255Lut;
+
+		for (int i=0; i<256; i++)
+		{
+			GdcRGB *p = (Pal) ? (*Pal)[i] : 0;
+			if (p)
+			{
+				c[i].r = DivLut[p->r * Scale];
+				c[i].g = DivLut[p->g * Scale];
+				c[i].b = DivLut[p->b * Scale];
+			}
+			else
+			{
+				c[i].r = DivLut[i * Scale];
+				c[i].g = c[i].r;
+				c[i].b = c[i].r;
+			}
+		}
+	}
+	else if (Scale)
+	{
+		for (int i=0; i<256; i++)
+		{
+			GdcRGB *p = (Pal) ? (*Pal)[i] : 0;
+			if (p)
+			{
+				c[i].r = p->r;
+				c[i].g = p->g;
+				c[i].b = p->b;
+			}
+			else
+			{
+				c[i].r = i;
+				c[i].g = i;
+				c[i].b = i;
+			}
+		}
+	}
+	else
+	{
+		memset(c, 0, sizeof(*c) * 256);
+	}
+}
+
 /// Alpha blending applicators
 class GAlphaApp : public GApplicator
 {
@@ -28,55 +77,6 @@ protected:
 	uchar *APtr;
 
 	const char *GetClass() { return "GAlphaApp"; }
-
-	template<typename T>
-	void CreatePaletteLut(T *c, GPalette *Pal, int Scale = 255)
-	{
-		if (Scale < 255)
-		{
-			uchar *DivLut = Div255Lut;
-
-			for (int i=0; i<256; i++)
-			{
-				GdcRGB *p = (Pal) ? (*Pal)[i] : 0;
-				if (p)
-				{
-					c[i].r = DivLut[p->r * Scale];
-					c[i].g = DivLut[p->g * Scale];
-					c[i].b = DivLut[p->b * Scale];
-				}
-				else
-				{
-					c[i].r = DivLut[i * Scale];
-					c[i].g = c[i].r;
-					c[i].b = c[i].r;
-				}
-			}
-		}
-		else if (Scale)
-		{
-			for (int i=0; i<256; i++)
-			{
-				GdcRGB *p = (Pal) ? (*Pal)[i] : 0;
-				if (p)
-				{
-					c[i].r = p->r;
-					c[i].g = p->g;
-					c[i].b = p->b;
-				}
-				else
-				{
-					c[i].r = i;
-					c[i].g = i;
-					c[i].b = i;
-				}
-			}
-		}
-		else
-		{
-			memset(c, 0, sizeof(*c) * 256);
-		}
-	}
 
 public:
 	GAlphaApp()
@@ -192,89 +192,1189 @@ public:
 	void VLine(int height);
 	void Rectangle(int x, int y);
 	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha);
-};
 
-class GdcApp15Alpha : public GAlphaApp
-{
-public:
-	GdcApp15Alpha()
+	template<typename Pixel>
+	void AlphaBlt15(GBmpMem *Src, GPalette *DPal, uchar *Lut)
 	{
-		Bits = 15; Bytes = 2;
+		System24BitPixel dc[256];
+		CreatePaletteLut(dc, DPal, oma);
+		
+		if (!Lut) Lut = DPal->MakeLut(15);
+
+		for (int y=0; y<Src->y; y++)
+		{
+			Pixel *s = (Pixel*) (Src->Base + (y * Src->Line));
+			uchar *d = Ptr;
+			uchar *e = d + Src->x;
+
+			while (d < e)
+			{
+				System24BitPixel *dst = dc + *d;
+				int r = dst->r + DivLut[G5bitTo8bit(s->r) * alpha];
+				int g = dst->g + DivLut[G5bitTo8bit(s->g) * alpha];
+				int b = dst->b + DivLut[G5bitTo8bit(s->b) * alpha];
+				*d++ = Lut[Rgb15(r, g, b)];
+				s++;						
+			}
+
+			Ptr += Dest->Line;
+		}
 	}
 
-	void Set();
-	void VLine(int height);
-	void Rectangle(int x, int y);
-	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha);
-};
-
-class GdcApp16Alpha : public GAlphaApp
-{
-public:
-	GdcApp16Alpha()
+	template<typename Pixel>
+	void AlphaBlt16(GBmpMem *Src, GPalette *DPal, uchar *Lut)
 	{
-		Bits = 16; Bytes = 2;
+		System24BitPixel dc[256];
+		CreatePaletteLut(dc, DPal, oma);
+		
+		if (!Lut) Lut = DPal->MakeLut(15);
+
+		for (int y=0; y<Src->y; y++)
+		{
+			Pixel *s = (Pixel*) (Src->Base + (y * Src->Line));
+			uchar *d = Ptr;
+			uchar *e = d + Src->x;
+
+			while (d < e)
+			{
+				System24BitPixel *dst = dc + *d;
+				int r = dst->r + DivLut[G5bitTo8bit(s->r) * alpha];
+				int g = dst->g + DivLut[G6bitTo8bit(s->g) * alpha];
+				int b = dst->b + DivLut[G5bitTo8bit(s->b) * alpha];
+				*d++ = Lut[Rgb15(r, g, b)];
+				s++;						
+			}
+
+			Ptr += Dest->Line;
+		}
 	}
 
-	void Set();
-	void VLine(int height);
-	void Rectangle(int x, int y);
-	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha);
-};
-
-class GdcApp24Alpha : public GAlphaApp
-{
-public:
-	GdcApp24Alpha()
+	template<typename Pixel>
+	void AlphaBlt24(GBmpMem *Src, GPalette *DPal, uchar *Lut)
 	{
-		Bits = 24;
-		Bytes = 3;
+		System24BitPixel dc[256];
+		CreatePaletteLut(dc, DPal, oma);
+		
+		if (!Lut) Lut = DPal->MakeLut(15);
+
+		for (int y=0; y<Src->y; y++)
+		{
+			Pixel *s = (Pixel*) (Src->Base + (y * Src->Line));
+			uchar *d = Ptr;
+			uchar *e = d + Src->x;
+
+			while (d < e)
+			{
+				System24BitPixel *dst = dc + *d;
+				int r = dst->r + DivLut[s->r * alpha];
+				int g = dst->g + DivLut[s->g * alpha];
+				int b = dst->b + DivLut[s->b * alpha];
+				*d++ = Lut[Rgb15(r, g, b)];
+				s++;						
+			}
+
+			Ptr += Dest->Line;
+		}
 	}
 
-	void Set();
-	void VLine(int height);
-	void Rectangle(int x, int y);
-	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha);
-};
-
-class GdcApp32Alpha : public GAlphaApp
-{
-public:
-	GdcApp32Alpha()
+	template<typename Pixel>
+	void AlphaBlt32(GBmpMem *Src, GPalette *DPal, uchar *Lut)
 	{
-		Bits = 32;
-		Bytes = 4;
+		GdcRGB *dc = (*DPal)[0];
+		if (!Lut) Lut = DPal->MakeLut(15);
+
+		for (int y=0; y<Src->y; y++)
+		{
+			Pixel *s = (Pixel*) (Src->Base + (y * Src->Line));
+			uchar *d = Ptr;
+			uchar *e = d + Src->x;
+
+			while (d < e)
+			{
+				GdcRGB dst = dc[*d];
+				OverNpm32toNpm24(s, &dst);
+				*d++ = Lut[Rgb15(dst.r, dst.g, dst.b)];
+				s++;						
+			}
+
+			Ptr += Dest->Line;
+		}
 	}
 
-	void Set();
-	void VLine(int height);
-	void Rectangle(int x, int y);
-	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha);
+	template<typename Pixel>
+	void AlphaBlt48(GBmpMem *Src, GPalette *DPal, uchar *Lut)
+	{
+		System24BitPixel dc[256];
+		CreatePaletteLut(dc, DPal, oma);
+		
+		if (!Lut) Lut = DPal->MakeLut(15);
+
+		for (int y=0; y<Src->y; y++)
+		{
+			Pixel *s = (Pixel*) (Src->Base + (y * Src->Line));
+			uchar *d = Ptr;
+			uchar *e = d + Src->x;
+
+			while (d < e)
+			{
+				System24BitPixel dst = dc[*d];
+				GRgba32 src = { s->r >> 8, s->g >> 8, s->b >> 8, alpha };
+				OverNpm32toNpm24(&src, &dst);
+				*d++ = Lut[Rgb15(dst.r, dst.g, dst.b)];
+				s++;
+			}
+
+			Ptr += Dest->Line;
+		}
+	}
+
+	template<typename Pixel>
+	void AlphaBlt64(GBmpMem *Src, GPalette *DPal, uchar *Lut)
+	{
+		System24BitPixel dc[256];
+		CreatePaletteLut(dc, DPal, 0xff);
+		
+		if (!Lut) Lut = DPal->MakeLut(15);
+
+		for (int y=0; y<Src->y; y++)
+		{
+			Pixel *s = (Pixel*) (Src->Base + (y * Src->Line));
+			uchar *d = Ptr;
+			uchar *e = d + Src->x;
+
+			while (d < e)
+			{
+				System24BitPixel dst = dc[*d];
+				OverNpm64toNpm24(s, &dst);
+				*d++ = Lut[Rgb15(dst.r, dst.g, dst.b)];
+				s++;						
+			}
+
+			Ptr += Dest->Line;
+		}
+	}
+};
+
+template<typename Pixel, GColourSpace ColourSpace>
+class GdcAlpha : public GApplicator
+{
+protected:
+	union {
+		uint8 *u8;
+		uint16 *u16;
+		uint32 *u32;
+		Pixel *p;
+	};
+	
+	uint8 alpha, one_minus_alpha;
+	
+public:
+	GdcAlpha()
+	{
+		p = NULL;
+		alpha = 0xff;
+		one_minus_alpha = 0;
+	}
+
+	const char *GetClass() { return "GdcAlpha"; }
+
+	int GetVar(int Var)
+	{
+		switch (Var)
+		{
+			case GAPP_ALPHA_A: return alpha;
+		}
+		return 0;
+	}
+
+	int SetVar(int Var, NativeInt Value)
+	{
+		switch (Var)
+		{
+			case GAPP_ALPHA_A:
+			{
+				int Old = alpha;
+				alpha = Value;
+				one_minus_alpha = 0xFF - alpha;
+				return Old;
+			}
+		}
+		return 0;
+	}
+
+	bool SetSurface(GBmpMem *d, GPalette *p = 0, GBmpMem *a = 0)
+	{
+		if (d && d->Cs == ColourSpace)
+		{
+			Dest = d;
+			Pal = p;
+			u8 = d->Base;
+			Alpha = a;
+
+			return true;
+		}
+		else LgiAssert(0);
+		
+		return false;
+	}
+	
+	void SetPtr(int x, int y)
+	{
+		u8 = Dest->Base + (Dest->Line * y);
+		p += x;
+	}
+	
+	void IncX()
+	{
+		p++;
+	}
+	
+	void IncY()
+	{
+		u8 += Dest->Line;
+	}
+	
+	void IncPtr(int X, int Y)
+	{
+		p += X;
+		u8 += Dest->Line * Y;
+	}
+
+	COLOUR Get()
+	{
+		return Rgb24(p->r, p->g, p->b);
+	}
+};
+
+template<typename Pixel, GColourSpace ColourSpace>
+class GdcAlpha15 : public GdcAlpha<Pixel, ColourSpace>
+{
+public:
+	const char *GetClass() { return "GdcAlpha15"; }
+
+	#define Div2040(c) ((c) / 2040)
+
+	#define Setup15() \
+		register uint8 r = Rc15(this->c); \
+		register uint8 g = Gc15(this->c); \
+		register uint8 b = Bc15(this->c); \
+		register uint8 a = this->alpha; \
+		register uint8 oma = 255 - a; \
+		register Pixel *d = this->p
+
+	#define Comp15() \
+		d->r = Div2040((G5bitTo8bit(d->r) * oma) + (r * a)); \
+		d->g = Div2040((G5bitTo8bit(d->g) * oma) + (g * a)); \
+		d->b = Div2040((G5bitTo8bit(d->b) * oma) + (b * a))
+
+	void Set()
+	{
+		Setup15();
+		Comp15();
+	}
+
+	void VLine(int height)
+	{
+		Setup15();
+		register int line = this->Dest->Line;
+
+		while (height--)
+		{
+			Comp15();
+			d = (Pixel*)(((uint8*)d) + line);
+		}
+		this->p = d;
+	}
+
+	void Rectangle(int x, int y)
+	{
+		Setup15();
+		register int line = this->Dest->Line;
+
+		while (y--)
+		{
+			d = this->p;
+			register Pixel *e = d + x;
+			while (d < e)
+			{
+				Comp15();
+				d++;
+			}
+
+			this->u8 += line;
+		}
+	}
+
+	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
+	{
+		if (!Src)
+			return false;
+	
+		if (Src->Cs == CsIndex8)
+		{
+			Pixel map[256];
+			if (SPal)
+			{
+				GdcRGB *p = (*SPal)[0];
+				for (int i=0; i<256; i++, p++)
+				{
+					map[i].r = G8bitTo5bit(p->r);
+					map[i].g = G8bitTo5bit(p->g);
+					map[i].b = G8bitTo5bit(p->b);
+				}
+			}
+			else
+			{
+				for (int i=0; i<256; i++)
+				{
+					map[i].r = G8bitTo5bit(i);
+					map[i].g = G8bitTo5bit(i);
+					map[i].b = G8bitTo5bit(i);
+				}
+			}
+
+			for (int y=0; y<Src->y; y++)
+			{
+				uchar *s = ((uchar*)Src->Base) + (y * Src->Line);
+				Pixel *d = this->p;
+
+				for (int x=0; x<Src->x; x++)
+				{
+					*d++ = map[*s++];
+				}
+
+				this->u8 += this->Dest->Line;
+			}
+			return true;
+		}
+		else
+		{
+			GBmpMem Dst;
+			Dst.Base = this->u8;
+			Dst.x = Src->x;
+			Dst.y = Src->y;
+			Dst.Cs = this->Dest->Cs;
+			Dst.Line = this->Dest->Line;
+			return LgiRopUniversal(&Dst, Src, true);
+		}
+	}
+
+};
+
+template<typename Pixel, GColourSpace ColourSpace>
+class GdcAlpha16 : public GdcAlpha<Pixel, ColourSpace>
+{
+public:
+	const char *GetClass() { return "GdcAlpha16"; }
+
+	#define Div2040(c) ((c) / 2040)
+	#define Div1020(c) ((c) / 1020)
+
+	#define Setup16() \
+		register uint8 r = Rc16(this->c); \
+		register uint8 g = Gc16(this->c); \
+		register uint8 b = Bc16(this->c); \
+		register uint8 a = this->alpha; \
+		register uint8 oma = 255 - a; \
+		register Pixel *d = this->p
+
+	#define Comp16() \
+		d->r = Div2040((G5bitTo8bit(d->r) * oma) + (r * a)); \
+		d->g = Div1020((G6bitTo8bit(d->g) * oma) + (g * a)); \
+		d->b = Div2040((G5bitTo8bit(d->b) * oma) + (b * a))
+
+	void Set()
+	{
+		Setup16();
+		Comp16();
+	}
+
+	void VLine(int height)
+	{
+		Setup16();
+		register int line = this->Dest->Line;
+
+		while (height--)
+		{
+			Comp16();
+			d = (Pixel*)(((uint8*)d) + line);
+		}
+		this->p = d;
+	}
+
+	void Rectangle(int x, int y)
+	{
+		Setup16();
+		register int line = this->Dest->Line;
+
+		while (y--)
+		{
+			d = this->p;
+			register Pixel *e = d + x;
+			while (d < e)
+			{
+				Comp16();
+				d++;
+			}
+
+			this->u8 += line;
+		}
+	}
+
+	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
+	{
+		if (!Src)
+			return false;
+	
+		if (Src->Cs == CsIndex8)
+		{
+			Pixel map[256];
+			if (SPal)
+			{
+				GdcRGB *p = (*SPal)[0];
+				for (int i=0; i<256; i++, p++)
+				{
+					map[i].r = G8bitTo5bit(p->r);
+					map[i].g = G8bitTo6bit(p->g);
+					map[i].b = G8bitTo5bit(p->b);
+				}
+			}
+			else
+			{
+				for (int i=0; i<256; i++)
+				{
+					map[i].r = G8bitTo5bit(i);
+					map[i].g = G8bitTo6bit(i);
+					map[i].b = G8bitTo5bit(i);
+				}
+			}
+
+			for (int y=0; y<Src->y; y++)
+			{
+				uchar *s = ((uchar*)Src->Base) + (y * Src->Line);
+				Pixel *d = this->p;
+
+				for (int x=0; x<Src->x; x++)
+				{
+					*d++ = map[*s++];
+				}
+
+				this->u8 += this->Dest->Line;
+			}
+			return true;
+		}
+		else
+		{
+			GBmpMem Dst;
+			Dst.Base = this->u8;
+			Dst.x = Src->x;
+			Dst.y = Src->y;
+			Dst.Cs = this->Dest->Cs;
+			Dst.Line = this->Dest->Line;
+			return LgiRopUniversal(&Dst, Src, true);
+		}
+	}
+};
+
+template<typename Pixel, GColourSpace ColourSpace>
+class GdcAlpha24 : public GdcAlpha<Pixel, ColourSpace>
+{
+public:
+	const char *GetClass() { return "GdcAlpha24"; }
+
+	#define InitComposite24() \
+		uchar *DivLut = Div255Lut; \
+		register uint8 a = this->alpha; \
+		register uint8 oma = this->one_minus_alpha; \
+		register int r = this->p24.r * a; \
+		register int g = this->p24.g * a; \
+		register int b = this->p24.b * a
+	#define InitFlat24() \
+		Pixel px; \
+		px.r = this->p24.r; \
+		px.g = this->p24.g; \
+		px.b = this->p24.b
+	#define Composite24(ptr) \
+		ptr->r = DivLut[(oma * ptr->r) + r]; \
+		ptr->g = DivLut[(oma * ptr->g) + g]; \
+		ptr->b = DivLut[(oma * ptr->b) + b]
+
+	void Set()
+	{
+		InitComposite24();
+		Composite24(this->p);
+	}
+	
+	void VLine(int height)
+	{
+		if (this->alpha == 255)
+		{
+			InitFlat24();
+			while (height-- > 0)
+			{
+				*this->p = px;
+				this->u8 += this->Dest->Line;
+			}
+		}
+		else if (this->alpha > 0)
+		{
+			InitComposite24();
+			while (height-- > 0)
+			{
+				Composite24(this->p);
+				this->u8 += this->Dest->Line;
+			}
+		}
+	}
+	
+	void Rectangle(int x, int y)
+	{
+		if (this->alpha == 0xff)
+		{
+			InitFlat24();
+			while (y-- > 0)
+			{
+				register Pixel *s = this->p;
+				register Pixel *e = s + x;
+				while (s < e)
+				{
+					*this->p = px;
+					s++;
+				}
+				this->u8 += this->Dest->Line;
+			}
+		}
+		else if (this->alpha > 0)
+		{
+			InitComposite24();
+			while (y-- > 0)
+			{
+				register Pixel *s = this->p;
+				register Pixel *e = s + x;
+
+				while (s < e)
+				{
+					Composite24(s);
+					s++;
+				}
+				this->u8 += this->Dest->Line;
+			}
+		}
+	}
+	
+	template<typename SrcPx>
+	void CompositeBlt24(GBmpMem *Src)
+	{
+		uchar *Lut = Div255Lut;
+		register uint8 a = this->alpha;
+		register uint8 oma = this->one_minus_alpha;
+		
+		for (int y=0; y<Src->y; y++)
+		{
+			Pixel *dst = this->p;
+			Pixel *dst_end = dst + Src->x;
+			SrcPx *src = (SrcPx*)(Src->Base + (y * Src->Line));
+			if (a == 0xff)
+			{
+				while (dst < dst_end)
+				{
+					// No source alpha, just copy blt
+					dst->r = src->r;
+					dst->g = src->g;
+					dst->b = src->b;
+					dst++;
+					src++;
+				}
+			}
+			else if (a > 0)
+			{
+				while (dst < dst_end)
+				{
+					// No source alpha, but apply our local alpha
+					dst->r = Lut[(dst->r * oma) + (src->r * a)];
+					dst->g = Lut[(dst->g * oma) + (src->g * a)];
+					dst->b = Lut[(dst->b * oma) + (src->b * a)];
+					dst++;
+					src++;
+				}
+			}
+			
+			this->u8 += this->Dest->Line;
+		}
+	}
+	
+	template<typename SrcPx>
+	void CompositeBlt32(GBmpMem *Src)
+	{
+		uchar *Lut = Div255Lut;
+		register uint8 a = this->alpha;
+		
+		if (a == 0xff)
+		{
+			// Apply the source alpha only
+			for (int y=0; y<Src->y; y++)
+			{
+				Pixel *dst = this->p;
+				Pixel *dst_end = dst + Src->x;
+				SrcPx *src = (SrcPx*)(Src->Base + (y * Src->Line));
+				while (dst < dst_end)
+				{
+					register uint8 sa = src->a;
+					register uint8 soma = 0xff - sa;
+					dst->r = Lut[(dst->r * soma) + (src->r * sa)];
+					dst->g = Lut[(dst->g * soma) + (src->g * sa)];
+					dst->b = Lut[(dst->b * soma) + (src->b * sa)];
+					dst++;
+					src++;
+				}
+				
+				this->u8 += this->Dest->Line;
+			}
+		}
+		else if (a > 0)
+		{
+			// Apply source alpha AND our local alpha
+			for (int y=0; y<Src->y; y++)
+			{
+				Pixel *dst = this->p;
+				Pixel *dst_end = dst + Src->x;
+				SrcPx *src = (SrcPx*)(Src->Base + (y * Src->Line));
+				while (dst < dst_end)
+				{
+					register uint8 sa = Lut[a * src->a];
+					register uint8 soma = 0xff - sa;
+					dst->r = Lut[(dst->r * soma) + (src->r * sa)];
+					dst->g = Lut[(dst->g * soma) + (src->g * sa)];
+					dst->b = Lut[(dst->b * soma) + (src->b * sa)];
+					dst++;
+					src++;
+				}
+				
+				this->u8 += this->Dest->Line;
+			}
+		}
+	}
+
+	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha = 0)
+	{
+		if (!Src)
+			return false;
+
+		if (SrcAlpha)
+		{
+			LgiAssert(!"Impl me.");
+		}
+		else
+		{
+			switch (Src->Cs)
+			{
+				case CsIndex8:
+				{
+					Pixel map[256];
+					for (int i=0; i<256; i++)
+					{
+						GdcRGB *p = (SPal) ? (*SPal)[i] : NULL;
+						if (p)
+						{
+							map[i].r = p->r;
+							map[i].g = p->g;
+							map[i].b = p->b;
+						}
+						else
+						{
+							map[i].r = i;
+							map[i].g = i;
+							map[i].b = i;
+						}
+					}
+
+					for (int y=0; y<Src->y; y++)
+					{
+						uchar *s = ((uchar*)Src->Base) + (y * Src->Line);
+						Pixel *d = this->p;
+
+						for (int x=0; x<Src->x; x++)
+						{
+							*d++ = map[*s++];
+						}
+
+						this->u8 += this->Dest->Line;
+					}
+					return true;
+				}
+				
+				#define Blt24Case(name, size) \
+					case Cs##name: \
+						CompositeBlt##size<G##name>(Src); \
+						break
+				
+				Blt24Case(Rgb24, 24);
+				Blt24Case(Bgr24, 24);
+				Blt24Case(Rgbx32, 24);
+				Blt24Case(Bgrx32, 24);
+				Blt24Case(Xrgb32, 24);
+				Blt24Case(Xbgr32, 24);
+
+				Blt24Case(Rgba32, 32);
+				Blt24Case(Bgra32, 32);
+				Blt24Case(Argb32, 32);
+				Blt24Case(Abgr32, 32);
+				#undef Blt24Case
+				default:
+				{
+					GBmpMem Dst;
+					Dst.Base = this->u8;
+					Dst.x = Src->x;
+					Dst.y = Src->y;
+					Dst.Cs = this->Dest->Cs;
+					Dst.Line = this->Dest->Line;				
+					return LgiRopUniversal(&Dst, Src, true);
+					break;
+				}
+			}
+		}
+		
+		return false;
+	}
+};
+
+template<typename Pixel, GColourSpace ColourSpace>
+class GdcAlpha32 : public GdcAlpha<Pixel, ColourSpace>
+{
+public:
+	#define InitComposite32() \
+		uchar *DivLut = Div255Lut; \
+		register int a = DivLut[this->alpha * this->p32.a]; \
+		register int r = this->p32.r * a; \
+		register int g = this->p32.g * a; \
+		register int b = this->p32.b * a; \
+		register uint8 oma = 0xff - a
+	#define InitFlat32() \
+		Pixel px; \
+		px.r = this->p32.r; \
+		px.g = this->p32.g; \
+		px.b = this->p32.b; \
+		px.a = this->p32.a
+	#define Composite32(ptr) \
+		ptr->r = DivLut[(oma * ptr->r) + r]; \
+		ptr->g = DivLut[(oma * ptr->g) + g]; \
+		ptr->b = DivLut[(oma * ptr->b) + b]; \
+		ptr->a = (a + ptr->a) - DivLut[a * ptr->a]
+
+	const char *GetClass() { return "GdcAlpha32"; }
+
+	void Set()
+	{
+		InitComposite32();
+		Composite32(this->p);
+	}
+	
+	void VLine(int height)
+	{
+		int sa = Div255Lut[this->alpha * this->p32.a];
+		if (sa == 0xff)
+		{
+			InitFlat32();
+			while (height-- > 0)
+			{
+				*this->p = px;
+				this->u8 += this->Dest->Line;
+			}
+		}
+		else if (sa > 0)
+		{
+			InitComposite32();
+			while (height-- > 0)
+			{
+				Composite32(this->p);
+				this->u8 += this->Dest->Line;
+			}
+		}
+	}
+	
+	void Rectangle(int x, int y)
+	{
+		int sa = Div255Lut[this->alpha * this->p32.a];
+		if (sa == 0xff)
+		{
+			// Fully opaque
+			InitFlat32();
+			while (y--)
+			{
+				Pixel *d = this->p;
+				Pixel *e = d + x;
+				while (d < e)
+				{
+					*d++ = px;
+				}
+
+				this->u8 += this->Dest->Line;
+			}
+		}
+		else if (sa > 0)
+		{
+			// Translucent
+			InitComposite32();
+			while (y--)
+			{
+				Pixel *d = this->p;
+				Pixel *e = d + x;
+				while (d < e)
+				{
+					Composite32(d);
+					d++;
+				}
+
+				this->u8 += this->Dest->Line;
+			}
+		}
+	}
+	
+	template<typename SrcPx>
+	void PmBlt32(GBmpMem *Src)
+	{
+		register uchar *DivLut = Div255Lut;
+		for (int y=0; y<Src->y; y++)
+		{
+			register Pixel *d = this->p, *e = d + Src->x;
+			register SrcPx *s = (SrcPx*)(Src->Base + (Src->Line * y));
+
+			while (d < e)
+			{
+				OverPm32toPm32(s, d);
+				d++;
+				s++;
+			}
+			
+			this->u8 += this->Dest->Line;
+		}
+	}
+
+	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha = 0)
+	{
+		if (!Src) return 0;
+		register uchar *DivLut = Div255Lut;
+		uchar lookup[256];
+		register uint8 a = this->alpha;
+		register uint8 oma = this->one_minus_alpha;
+		for (int i=0; i<256; i++)
+		{
+			lookup[i] = DivLut[i * this->alpha];
+		}
+
+		if (SrcAlpha)
+		{
+			switch (Src->Cs)
+			{
+				case CsIndex8:
+				{
+					System24BitPixel c[256];
+					CreatePaletteLut(c, SPal);
+
+					for (int y=0; y<Src->y; y++)
+					{
+						uchar *s = (uchar*) (Src->Base + (y * Src->Line));
+						uchar *sa = (uchar*) (SrcAlpha->Base + (y * SrcAlpha->Line));
+						System24BitPixel *sc;
+						Pixel *d = this->p;
+						uchar a, o;
+
+						for (int x=0; x<Src->x; x++)
+						{
+							a = lookup[*sa++];
+							if (a == 255)
+							{
+								sc = c + *s;
+								d->r = sc->r;
+								d->g = sc->g;
+								d->b = sc->b;
+								d->a = 255;
+							}
+							else if (a)
+							{
+								sc = c + *s;
+								o = 0xff - a;
+								d->r = DivLut[(d->r * o) + (sc->r * a)];
+								d->g = DivLut[(d->g * o) + (sc->g * a)];
+								d->b = DivLut[(d->b * o) + (sc->b * a)];
+								d->a = (a + d->a) - DivLut[a * d->a];
+							}
+
+							s++;
+							d++;
+						}
+
+						this->u8 += this->Dest->Line;
+					}
+					break;
+				}
+				case System15BitColourSpace:
+				{
+					for (int y=0; y<Src->y; y++)
+					{
+						ushort *s = (ushort*) (Src->Base + (y * Src->Line));
+						uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
+						Pixel *d = this->p;
+
+						for (int x=0; x<Src->x; x++)
+						{
+							uchar a = lookup[*sa++];
+							if (a == 255)
+							{
+								d->r = Rc15(*s);
+								d->g = Gc15(*s);
+								d->b = Bc15(*s);
+							}
+							else if (a)
+							{
+								uchar o = 255 - a;
+								d->r = DivLut[(a * Rc15(*s)) + (o * d->r)];
+								d->g = DivLut[(a * Gc15(*s)) + (o * d->g)];
+								d->b = DivLut[(a * Bc15(*s)) + (o * d->b)];
+							}
+
+							s++;
+							d++;
+						}
+
+						this->u8 += this->Dest->Line;
+					}
+					break;
+				}
+				case System16BitColourSpace:
+				{
+					for (int y=0; y<Src->y; y++)
+					{
+						ushort *s = (ushort*) (Src->Base + (y * Src->Line));
+						uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
+						Pixel *d = this->p;
+
+						for (int x=0; x<Src->x; x++)
+						{
+							uchar a = lookup[*sa++];
+							if (a == 255)
+							{
+								d->r = Rc16(*s);
+								d->g = Gc16(*s);
+								d->b = Bc16(*s);
+							}
+							else if (a)
+							{
+								uchar o = 255 - a;
+								d->r = DivLut[(a * Rc16(*s)) + (o * d->r)];
+								d->g = DivLut[(a * Gc16(*s)) + (o * d->g)];
+								d->b = DivLut[(a * Bc16(*s)) + (o * d->b)];
+							}
+
+							s++;
+							d++;
+						}
+
+						this->u8 += this->Dest->Line;
+					}
+					break;
+				}
+				case System24BitColourSpace:
+				{
+					for (int y=0; y<Src->y; y++)
+					{
+						uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
+						Pixel *d = this->p;
+						System24BitPixel *s = (System24BitPixel*) (Src->Base + (y * Src->Line));
+
+						for (int x=0; x<Src->x; x++)
+						{
+							uchar a = lookup[*sa++];
+							if (a == 255)
+							{
+								d->r = s->r;
+								d->g = s->g;
+								d->b = s->b;
+							}
+							else if (a)
+							{
+								uchar o = 255 - a;
+								d->r = DivLut[(a * s->r) + (o * d->r)];
+								d->g = DivLut[(a * s->g) + (o * d->g)];
+								d->b = DivLut[(a * s->b) + (o * d->b)];
+							}
+
+							d++;
+							s++;
+						}
+
+						this->u8 += this->Dest->Line;
+					}
+					break;
+				}
+				case System32BitColourSpace:
+				{
+					for (int y=0; y<Src->y; y++)
+					{
+						Pixel *d = this->p;
+						Pixel *s = (Pixel*) (Src->Base + (y * Src->Line));
+						uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
+
+						for (int x=0; x<Src->x; x++)
+						{
+							uchar a = lookup[*sa++];
+							if (a == 255)
+							{
+								d->r = s->r;
+								d->g = s->g;
+								d->b = s->b;
+								d->a = 255;
+							}
+							else if (a)
+							{
+								uchar o = 255 - a;
+								d->r = DivLut[(a * s->r) + (o * d->r)];
+								d->g = DivLut[(a * s->g) + (o * d->g)];
+								d->b = DivLut[(a * s->b) + (o * d->b)];
+								d->a = (s->a + d->a) - DivLut[s->a * d->a];
+							}
+
+							d++;
+							s++;
+						}
+
+						this->u8 += this->Dest->Line;
+					}
+					break;
+				}
+				default:
+					return false;
+			}
+			
+			return true;
+		}
+
+		if (this->Dest->PreMul() || Src->PreMul())
+		{
+			switch (Src->Cs)
+			{
+				case CsRgba32:
+					PmBlt32<GRgba32>(Src);
+					return true;
+				case CsBgra32:
+					PmBlt32<GBgra32>(Src);
+					return true;
+				case CsArgb32:
+					PmBlt32<GArgb32>(Src);
+					return true;
+				case CsAbgr32:
+					PmBlt32<GAbgr32>(Src);
+					return true;
+				default:
+					break;
+			}
+		}
+
+		switch (Src->Cs)
+		{
+			default:
+			{
+				GBmpMem Dst;
+				Dst.Base = this->u8;
+				Dst.x = Src->x;
+				Dst.y = Src->y;
+				Dst.Cs = this->Dest->Cs;
+				Dst.Line = this->Dest->Line;
+				if (!LgiRopUniversal(&Dst, Src, true))
+				{
+					return false;
+				}
+				break;
+			}
+			case CsIndex8:
+			{
+				System24BitPixel c[256];
+				CreatePaletteLut(c, SPal, this->alpha);
+
+				for (int y=0; y<Src->y; y++)
+				{
+					uchar *s = (uchar*) (Src->Base + (y * Src->Line));
+					System24BitPixel *sc;
+					Pixel *d = this->p;
+
+					if (this->alpha == 255)
+					{
+						for (int x=0; x<Src->x; x++)
+						{
+							sc = c + *s++;
+							
+							d->r = sc->r;
+							d->g = sc->g;
+							d->b = sc->b;
+							d->a = 255;
+
+							d++;
+						}
+					}
+					else if (this->alpha)
+					{
+						for (int x=0; x<Src->x; x++)
+						{
+							sc = c + *s++;
+
+							d->r = sc->r + DivLut[d->r * oma];
+							d->g = sc->g + DivLut[d->g * oma];
+							d->b = sc->b + DivLut[d->b * oma];
+							d->a = (a + d->a) - DivLut[a * d->a];
+
+							d++;
+						}
+					}
+
+					this->u8 += this->Dest->Line;
+				}
+				break;
+			}
+		}
+
+		return true;
+	}
 };
 
 GApplicator *GAlphaFactory::Create(GColourSpace Cs, int Op)
 {
-	if (Op == GDC_ALPHA)
+	if (Op != GDC_ALPHA)
+		return NULL;
+
+	switch (Cs)
 	{
-		switch (Cs)
-		{
-			default:
-				printf("%s:%i - Unknown colour space: 0x%x %s\n",
-					_FL, Cs, GColourSpaceToString(Cs));
-				LgiAssert(0);
-				break;
-			case CsIndex8:
-				return new GdcApp8Alpha;
-			case CsRgb15:
-				return new GdcApp15Alpha;
-			case CsRgb16:
-			case CsBgr16:
-				return new GdcApp16Alpha;
-			case System24BitColourSpace:
-				return new GdcApp24Alpha;
-			case System32BitColourSpace:
-				return new GdcApp32Alpha;
-		}
+		#define Case(name, px) \
+			case Cs##name: \
+				return new GdcAlpha##px<G##name, Cs##name>()
+
+		Case(Rgb15, 15);
+		Case(Bgr15, 15);
+
+		Case(Rgb16, 16);
+		Case(Bgr16, 16);
+
+		Case(Rgb24, 24);
+		Case(Bgr24, 24);
+		Case(Rgbx32, 24);
+		Case(Bgrx32, 24);
+		Case(Xrgb32, 24);
+		Case(Xbgr32, 24);
+
+		Case(Rgba32, 32);
+		Case(Bgra32, 32);
+		Case(Argb32, 32);
+		Case(Abgr32, 32);
+
+		#undef Case
+		case CsIndex8:
+			return new GdcApp8Alpha;
+		default:
+			LgiTrace("%s:%i - Unknown colour space: 0x%x %s\n",
+					_FL,
+					Cs,
+					GColourSpaceToString(Cs));
+			// LgiAssert(0);
+			break;
 	}
 
 	return 0;
@@ -629,7 +1729,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 		{
 			default:
 			{
-				LgiAssert(!"Not impl.");
+				LgiTrace("%s:%i - Not impl.\n", _FL);
 				break;
 			}
 			case CsIndex8:
@@ -676,1945 +1776,37 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 				}
 				break;
 			}
-			case System15BitColourSpace:
-			{
-				System24BitPixel dc[256];
-				CreatePaletteLut(dc, DPal, oma);
-				
-				if (!Lut) Lut = DPal->MakeLut(15);
+			
+			#define Case(Px, Sz) \
+				case Cs##Px: \
+					AlphaBlt##Sz<G##Px>(Src, DPal, Lut); \
+					break
 
-				for (int y=0; y<Src->y; y++)
-				{
-					ushort *s = (ushort*) (Src->Base + (y * Src->Line));
-					uchar *d = Ptr;
-					uchar *e = d + Src->x;
-
-					while (d < e)
-					{
-						System24BitPixel *dst = dc + *d;
-						int r = dst->r + DivLut[Rc15(*s) * alpha];
-						int g = dst->g + DivLut[Gc15(*s) * alpha];
-						int b = dst->b + DivLut[Bc15(*s) * alpha];
-						*d++ = Lut[Rgb15(r, g, b)];
-						s++;						
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case System16BitColourSpace:
-			{
-				System24BitPixel dc[256];
-				CreatePaletteLut(dc, DPal, oma);
-				
-				if (!Lut) Lut = DPal->MakeLut(15);
-
-				for (int y=0; y<Src->y; y++)
-				{
-					ushort *s = (ushort*) (Src->Base + (y * Src->Line));
-					uchar *d = Ptr;
-
-					for (int x=0; x<Src->x; x++, s++, d++)
-					{
-						System24BitPixel *dst = dc + *d;
-						int r = dst->r + DivLut[Rc16(*s) * alpha];
-						int g = dst->g + DivLut[Gc16(*s) * alpha];
-						int b = dst->b + DivLut[Bc16(*s) * alpha];
-						*d = Lut[Rgb15(r, g, b)];
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case CsBgr24:
-			{
-				GBgr24 dc[256];
-				CreatePaletteLut(dc, DPal, oma);
-
-				if (!Lut) Lut = DPal->MakeLut(15);
-
-				for (int y=0; y<Src->y; y++)
-				{
-					GBgr24 *s = (GBgr24*) (Src->Base + (y * Src->Line));
-					uchar *d = Ptr;
-					uchar *e = Ptr + Src->x;
-
-					while (d < e)
-					{
-						GBgr24 *dst = dc + *d;
-						int r = dst->r + DivLut[s->r * alpha];
-						int g = dst->g + DivLut[s->g * alpha];
-						int b = dst->b + DivLut[s->b * alpha];
-
-						s++;
-						*d++ = Lut[Rgb15(r, g, b)];
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case System32BitColourSpace:
-			{
-				System24BitPixel dc[256];
-				CreatePaletteLut(dc, DPal);
-				if (!Lut) Lut = DPal->MakeLut(15);
-
-				for (int y=0; y<Src->y; y++)
-				{
-					System32BitPixel *s = (System32BitPixel*) (Src->Base + (y * Src->Line));
-					uchar *d = Ptr;
-					uchar *end = d + Src->x;
-
-					while (d < end)
-					{
-						uchar a = lookup[s->a];
-						if (a)
-						{
-							System24BitPixel *dst = dc + *d;
-							uchar o = 255 - a;
-							int r = lookup[s->r] + DivLut[dst->r * o];
-							int g = lookup[s->g] + DivLut[dst->g * o];
-							int b = lookup[s->b] + DivLut[dst->b * o];
-							*d = Lut[Rgb15(r, g, b)];
-						}
-
-						s++;
-						d++;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
+			Case(Rgb15, 15);
+			Case(Bgr15, 15);
+			Case(Rgb16, 16);
+			Case(Bgr16, 16);
+			Case(Rgb24, 24);
+			Case(Bgr24, 24);
+			Case(Rgbx32, 24);
+			Case(Bgrx32, 24);
+			Case(Xrgb32, 24);
+			Case(Xbgr32, 24);
+			Case(Rgba32, 32);
+			Case(Bgra32, 32);
+			Case(Argb32, 32);
+			Case(Abgr32, 32);
+			Case(Rgb48, 48);
+			Case(Bgr48, 48);
+			Case(Rgba64, 64);
+			Case(Bgra64, 64);
+			Case(Argb64, 64);
+			Case(Abgr64, 64);
+			
+			#undef Case
 		}
 	}
 
 	return false;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-#define Setup15() \
-	uchar *DivLut = Div255Lut; \
-	int r = DivLut[Rc15(c)]; \
-	int g = DivLut[Gc15(c)]; \
-	int b = DivLut[Bc15(c)];
-
-#define Comp15() \
-	*p = Rgb15(	DivLut[r + (oma * Rc15(*p))], \
-				DivLut[g + (oma * Gc15(*p))], \
-				DivLut[b + (oma * Bc15(*p))] );
-
-void GdcApp15Alpha::Set()
-{
-	ushort *p = (ushort*) Ptr;
-	Setup15();
-	Comp15();
-}
-
-void GdcApp15Alpha::VLine(int height)
-{
-	ushort *p = (ushort*) Ptr;
-	Setup15();
-
-	while (height--)
-	{
-		Comp15();
-		p = (ushort*)(Ptr += Dest->Line);
-	}
-}
-
-void GdcApp15Alpha::Rectangle(int x, int y)
-{
-	ushort *p = (ushort*) Ptr;
-	Setup15();
-
-	while (y--)
-	{
-		for (int n=0; n<x; n++, p++)
-		{
-			Comp15();
-		}
-
-		p = (ushort*)(Ptr += Dest->Line);
-	}
-}
-
-bool GdcApp15Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
-{
-	if (!Src) return 0;
-	uchar *DivLut = Div255Lut;
-
-	if (SrcAlpha)
-	{
-		uchar lookup[256];
-		for (int i=0; i<256; i++)
-		{
-			lookup[i] = (i * (int)alpha) / 255;
-		}
-
-		switch (Src->Cs)
-		{
-			default:
-			{
-				LgiAssert(!"Not impl.");
-				break;
-			}
-			case CsIndex8:
-			{
-				System24BitPixel c[256];
-				CreatePaletteLut(c, SPal, 255);
-				
-				for (int y=0; y<Src->y; y++)
-				{
-					uchar *s = Src->Base + (y * Src->Line);
-					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
-					ushort *d = (ushort*) Ptr;
-					ushort *e = d + Src->x;
-
-					while (d < e)
-					{
-						uchar a = lookup[*sa++];
-						if (a == 255)
-						{
-							System24BitPixel *src = c + *s;
-							*d = Rgb15(src->r, src->g, src->b);
-						}
-						else if (a)
-						{
-							System24BitPixel *src = c + *s;
-							uchar o = 255 - a;
-							*d = Rgb15(	DivLut[(o * Rc15(*d)) + (a * src->r)],
-										DivLut[(o * Gc15(*d)) + (a * src->g)],
-										DivLut[(o * Bc15(*d)) + (a * src->b)]);
-						}
-						
-						d++;
-						s++;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case CsRgb15:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					ushort *s = (ushort*) (Src->Base + (y * Src->Line));
-					uchar *src_a = SrcAlpha->Base + (y * SrcAlpha->Line);
-					ushort *d = (ushort*) Ptr;
-					ushort *e = d + Src->x;
-
-					while (d < e)
-					{
-						uchar a = lookup[*src_a++];
-						uchar oma = 255 - a;
-
-						if (a == 255)
-						{
-							*d = *s;
-						}
-						else if (a)
-						{
-							*d = Rgb15
-							(
-								DivLut[(oma * Rc15(*d)) + (a * Rc15(*s))],
-								DivLut[(oma * Gc15(*d)) + (a * Gc15(*s))],
-								DivLut[(oma * Bc15(*d)) + (a * Bc15(*s))]
-							);
-						}
-
-						d++;
-						s++;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case CsRgb16:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					ushort *s = (ushort*) (Src->Base + (y * Src->Line));
-					uchar *src_a = SrcAlpha->Base + (y * SrcAlpha->Line);
-					ushort *d = (ushort*) Ptr;
-
-					for (int x=0; x<Src->x; x++)
-					{
-						uchar my_a = lookup[*src_a++];
-						uchar my_oma = 255 - my_a;
-
-						if (my_oma == 0)
-						{
-							*d = *s;
-						}
-						else if (my_oma < 255)
-						{
-							*d = Rgb15(	Div255((my_oma * Rc15(*d)) + (my_a * Rc16(*s))),
-										Div255((my_oma * Gc15(*d)) + (my_a * Gc16(*s))),
-										Div255((my_oma * Bc15(*d)) + (my_a * Bc16(*s))));
-						}
-
-						d++;
-						s++;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case CsBgr24:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					GBgr24 *s = (GBgr24*) (Src->Base + (y * Src->Line));
-					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
-					ushort *d = (ushort*) Ptr;
-					ushort *e = d + Src->x;
-
-					while (d < e)
-					{
-						uchar a = lookup[*sa++];
-						uchar o = 255 - a;
-
-						if (a == 255)
-						{
-							*d = Rgb15(s->r, s->g, s->b);
-						}
-						else if (a)
-						{
-							*d = Rgb15(	Div255( (o * Rc15(*d)) + (a * s->r) ),
-										Div255( (o * Gc15(*d)) + (a * s->g) ),
-										Div255( (o * Bc15(*d)) + (a * s->b) ));
-						}
-
-						s++;
-						d++;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case System32BitColourSpace:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					System32BitPixel *s = (System32BitPixel*) (Src->Base + (y * Src->Line));
-					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
-					ushort *d = (ushort*) Ptr;
-					ushort *e = d + Src->x;
-
-					while (d < e)
-					{
-						uchar a = lookup[*sa++];
-						uchar o = 255 - a;
-
-						if (a == 255)
-						{
-							*d = Rgb15(s->r, s->g, s->b);
-						}
-						else if (a)
-						{
-							*d = Rgb15(	Div255( (o * Rc15(*d)) + (a * s->r) ),
-										Div255( (o * Gc15(*d)) + (a * s->g) ),
-										Div255( (o * Bc15(*d)) + (a * s->b) ));
-						}
-
-						d++;
-						s++;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-		}
-	}
-	else
-	{
-		switch (Src->Cs)
-		{
-			default:
-			{
-				LgiAssert(!"Not impl.");
-				break;
-			}
-			case CsIndex8:
-			{
-				System24BitPixel c[256];
-				if (alpha) CreatePaletteLut(c, SPal, alpha);
-				
-				for (int y=0; y<Src->y; y++)
-				{
-					ushort *d = (ushort*) Ptr;
-					ushort *e = d + Src->x;
-					uchar *s = Src->Base + (Src->Line * y);
-
-					System24BitPixel *Src; 
-					if (alpha == 255)
-					{
-						// copy
-						while (d < e)
-						{
-							Src = c + *s++;
-							*d = Rgb15(Src->r, Src->g, Src->b);
-						}
-					}
-					else if (alpha)
-					{
-						// blend
-						while (d < e)
-						{
-							Src = c + *s++;
-							*d = Rgb15
-							(
-								DivLut[oma * Rc15(*d)] + Src->r,
-								DivLut[oma * Gc15(*d)] + Src->g,
-								DivLut[oma * Bc15(*d)] + Src->b
-							);
-							d++;
-						}
-					}
-
-					Ptr += Dest->Line;
-				}
-
-				break;
-			}
-			case CsRgb15:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					ushort *s = (ushort*) (Src->Base + (y * Src->Line));
-					ushort *d = (ushort*) Ptr;
-					ushort *e = d + Src->x;
-
-					if (alpha == 255)
-					{
-						// copy
-						while (d < e)
-						{
-							*d++ = *s++;
-						}
-					}
-					else if (alpha)
-					{
-						// blend
-						while (d < e)
-						{
-							*d = Rgb15
-							(
-								DivLut[(oma * Rc15(*d)) + (alpha * Rc15(*s))],
-								DivLut[(oma * Gc15(*d)) + (alpha * Gc15(*s))],
-								DivLut[(oma * Bc15(*d)) + (alpha * Bc15(*s))]
-							);
-
-							s++;
-							d++;
-						}
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case CsRgb16:
-			{
-				// this code combines the colour bitmap with the destination
-				// bitmap using the given alpha value
-				for (int y=0; y<Src->y; y++)
-				{
-					ushort *s = (ushort*) (Src->Base + (y * Src->Line));
-					ushort *d = (ushort*) Ptr;
-
-					for (int x=0; x<Src->x; x++, d++, s++)
-					{
-						*d = Rgb15(	Div255((oma * Rc15(*d)) + (alpha * Rc16(*s))),
-									Div255((oma * Gc15(*d)) + (alpha * Gc16(*s))),
-									Div255((oma * Bc15(*d)) + (alpha * Bc16(*s))));
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case CsBgr24:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					GBgr24 *s = (GBgr24*) (Src->Base + (y * Src->Line));
-					ushort *d = (ushort*) Ptr;
-					ushort *e = d + Src->x;
-
-					while (d < e)
-					{
-						*d = Rgb15
-						(
-							DivLut[(oma * Rc15(*d)) + (alpha * s->r)],
-							DivLut[(oma * Gc15(*d)) + (alpha * s->g)],
-							DivLut[(oma * Bc15(*d)) + (alpha * s->b)]
-						);
-						
-						s++;
-						d++;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case System32BitColourSpace:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					System32BitPixel *s = (System32BitPixel*) (Src->Base + (y * Src->Line));
-					ushort *d = (ushort*) Ptr;
-					ushort *e = d + Src->x;
-
-					while (d < e)
-					{
-						*d = Rgb15
-						(
-							DivLut[(oma * Rc15(*d)) + (alpha * s->r)],
-							DivLut[(oma * Gc15(*d)) + (alpha * s->g)],
-							DivLut[(oma * Bc15(*d)) + (alpha * s->b)]
-						);
-						
-						s++;
-						d++;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-		}
-	}
-
-	return false;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-#define Setup16()	\
-	uchar *DivLut = Div255Lut; \
-	int r = Rc16(c) * alpha; \
-	int g = Gc16(c) * alpha; \
-	int b = Bc16(c) * alpha;
-
-#define Comp16() \
-	*p = Rgb16(	DivLut[r + (oma * Rc16(*p))], \
-				DivLut[g + (oma * Gc16(*p))], \
-				DivLut[b + (oma * Bc16(*p))]);
-
-void GdcApp16Alpha::Set()
-{
-	ushort *p = (ushort*) Ptr;
-	Setup16();
-	Comp16();
-}
-
-void GdcApp16Alpha::VLine(int height)
-{
-	ushort *p = (ushort*) Ptr;
-	Setup16();
-
-	while (height--)
-	{
-		Comp16();
-		p = (ushort*) (Ptr += Dest->Line);
-	}
-}
-
-void GdcApp16Alpha::Rectangle(int x, int y)
-{
-	ushort *p = (ushort*) Ptr;
-	Setup16();
-
-	while (y--)
-	{
-		for (int n=0; n<x; n++, p++)
-		{
-			Comp16();
-		}
-
-		p = (ushort*) (Ptr += Dest->Line);
-	}
-}
-
-bool GdcApp16Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
-{
-	if (!Src) return 0;
-	uchar *DivLut = Div255Lut;
-	uchar lookup[256];
-	for (int i=0; i<256; i++)
-	{
-		lookup[i] = (i * (int)alpha) / 255;
-	}
-
-	if (SrcAlpha)
-	{
-		switch (Src->Cs)
-		{
-			default:
-			{
-				LgiAssert(!"Not impl.");
-				break;
-			}
-			case CsIndex8:
-			{
-				System24BitPixel c[256];
-				CreatePaletteLut(c, SPal, 255);
-
-				for (int y=0; y<Src->y; y++)
-				{
-					uchar *s = Src->Base + (y * Src->Line);
-					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
-					ushort *d = (ushort*) Ptr;
-					ushort *EndD = d + Src->x;
-
-					while (d < EndD)
-					{
-						uchar a = lookup[*sa++];
-
-						if (a == 255)
-						{
-							System24BitPixel *src = c + *s;
-							*d = Rgb16(src->r, src->g, src->b);
-						}
-						else if (a)
-						{
-							System24BitPixel *src = c + *s;
-							uchar o = 255 - a;
-							int r = DivLut[(Rc16(*d) * o) + (src->r * a)];
-							int g = DivLut[(Gc16(*d) * o) + (src->g * a)];
-							int b = DivLut[(Bc16(*d) * o) + (src->b * a)];
-							*d = Rgb16(r, g, b);
-						}
-
-						d++;
-						s++;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case System15BitColourSpace:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					ushort *s = (ushort*) (Src->Base + (y * Src->Line));
-					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
-					ushort *d = (ushort*) Ptr;
-					ushort *e = d + Src->x;
-
-					while (d < e)
-					{
-						uchar a = lookup[*sa++];
-						uchar o = 255 - a;
-
-						if (a == 255)
-						{
-							*d = Rgb15To16(*s);
-						}
-						else if (a)
-						{
-							*d = Rgb16(	Div255((o * Rc16(*d)) + (a * Rc15(*s))),
-										Div255((o * Gc16(*d)) + (a * Gc15(*s))),
-										Div255((o * Bc16(*d)) + (a * Bc15(*s))));
-						}
-
-						d++;
-						s++;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case System16BitColourSpace:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					ushort *s = (ushort*) ((uchar*)Src->Base + (y * Src->Line));
-					uchar *src_a = SrcAlpha->Base + (y * SrcAlpha->Line);
-					ushort *d = (ushort*) Ptr;
-
-					for (int x=0; x<Src->x; x++)
-					{
-						uchar my_a = lookup[*src_a++];
-						uchar my_oma = 255 - my_a;
-
-						if (my_oma == 0)
-						{
-							*d = *s;
-						}
-						else if (my_oma < 255)
-						{
-							*d = Rgb16(	Div255((my_oma * Rc16(*d)) + (my_a * Rc16(*s))),
-										Div255((my_oma * Gc16(*d)) + (my_a * Gc16(*s))),
-										Div255((my_oma * Bc16(*d)) + (my_a * Bc16(*s))));
-						}
-
-						d++;
-						s++;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case CsBgr24:
-			#ifndef LINUX
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					GBgr24 *s = (GBgr24*) (Src->Base + (y * Src->Line));
-					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
-					ushort *d = (ushort*) Ptr;
-					ushort *end = d + Src->x;
-
-					while (d < end)
-					{
-						uchar a = lookup[*sa++];
-						if (a == 255)
-						{
-							*d = Rgb16(s->r, s->g, s->b);
-						}
-						else if (a)
-						{
-							uchar o = 255 - a;
-							int r = DivLut[(Rc16(*d) * o) + (s->r * a)];
-							int g = DivLut[(Gc16(*d) * o) + (s->g * a)];
-							int b = DivLut[(Bc16(*d) * o) + (s->b * a)];
-							*d = Rgb16(r, g, b);
-						}
-
-						s++;
-						d++;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			#endif
-			case System32BitColourSpace:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					System32BitPixel *s = (System32BitPixel*) (Src->Base + (y * Src->Line));
-					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
-					ushort *d = (ushort*) Ptr;
-					ushort *end = d + Src->x;
-
-					while (d < end)
-					{
-						uchar a = lookup[*sa++];
-						if (a == 255)
-						{
-							*d = Rgb16(s->r, s->g, s->b);
-						}
-						else if (a)
-						{
-							uchar o = 255 - a;
-							int r = DivLut[(Rc16(*d) * o) + (s->r * a)];
-							int g = DivLut[(Gc16(*d) * o) + (s->g * a)];
-							int b = DivLut[(Bc16(*d) * o) + (s->b * a)];
-							*d = Rgb16(r, g, b);
-						}
-
-						d++;
-						s++;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-		}
-	}
-	else
-	{
-		switch (Src->Cs)
-		{
-			default:
-			{
-				LgiAssert(!"Not impl.");
-				break;
-			}
-			case CsIndex8:
-			{
-				// this code uses the input bitmap as a mask to say where
-				// to draw the current colour at the given alpha value
-				System24BitPixel c[256];
-				CreatePaletteLut(c, SPal, alpha);
-
-				for (int y=0; y<Src->y; y++)
-				{
-					ushort *d = (ushort*) Ptr;
-					uchar *s = Src->Base + (Src->Line * y);
-
-					for (int x=0; x<Src->x; x++, d++, s++)
-					{
-						System24BitPixel *src = c + *s;
-						int r = src->r + DivLut[Rc16(*d) * oma];
-						int g = src->g + DivLut[Gc16(*d) * oma];
-						int b = src->b + DivLut[Bc16(*d) * oma];
-						*d = Rgb16(r, g, b);
-					}
-
-					Ptr += Dest->Line;
-				}
-
-				break;
-			}
-			case CsRgb15:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					ushort *s = (ushort*) (Src->Base + (y * Src->Line));
-					ushort *d = (ushort*) Ptr;
-					ushort *e = d + Src->x;
-
-					while (d < e)
-					{
-						*d = Rgb16
-						(
-							DivLut[(oma * Rc16(*d)) + (alpha * Rc15(*s))],
-							DivLut[(oma * Gc16(*d)) + (alpha * Gc15(*s))],
-							DivLut[(oma * Bc16(*d)) + (alpha * Bc15(*s))]
-						);
-						
-						s++;
-						d++;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case CsRgb16:
-			case CsBgr16:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					ushort *s = (ushort*) (Src->Base + (y * Src->Line));
-					ushort *d = (ushort*) Ptr;
-
-					for (int x=0; x<Src->x; x++, d++, s++)
-					{
-						*d = Rgb16(	Div255((oma * Rc16(*d)) + (alpha * Rc16(*s))),
-									Div255((oma * Gc16(*d)) + (alpha * Gc16(*s))),
-									Div255((oma * Bc16(*d)) + (alpha * Bc16(*s))));
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case CsBgr24:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					GBgr24 *s = (GBgr24*) (Src->Base + (y * Src->Line));
-					ushort *d = (ushort*) Ptr;
-					ushort *e = d + Src->x;
-
-					while (d < e)
-					{
-						*d = Rgb16(	Div255((oma * Rc16(*d)) + (alpha * s->r)),
-										Div255((oma * Gc16(*d)) + (alpha * s->g)),
-										Div255((oma * Bc16(*d)) + (alpha * s->b)));
-						d++;
-						s++;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case System32BitColourSpace:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					System32BitPixel *s = (System32BitPixel*) (Src->Base + (y * Src->Line));
-					ushort *d = (ushort*) Ptr;
-					ushort *end = d + Src->x;
-
-					if (alpha == 255)
-					{
-						while (d < end)
-						{
-							if (s->a)
-							{
-								uchar o = 255 - s->a;
-								int r = DivLut[(Rc16(*d) * o) + (s->r * s->a)];
-								int g = DivLut[(Rc16(*d) * o) + (s->g * s->a)];
-								int b = DivLut[(Rc16(*d) * o) + (s->b * s->a)];
-								*d = Rgb16(r, g, b);
-							}
-
-							s++;
-							d++;
-						}
-					}
-					else if (alpha)
-					{
-						while (d < end)
-						{
-							uchar a = lookup[s->a];
-							if (a == 255)
-							{
-								*d = Rgb16(s->r, s->g, s->b);
-							}
-							else if (a)
-							{
-								uchar o = 255 - a;
-								int r = lookup[s->r] + DivLut[o * Rc16(*d)];
-								int g = lookup[s->g] + DivLut[o * Gc16(*d)];
-								int b = lookup[s->b] + DivLut[o * Bc16(*d)];
-								*d = Rgb16(r, g, b);
-							}
-
-							s++;
-							d++;
-						}
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-		}
-	}
-
-	return false;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-#define Setup24()	\
-	System24BitPixel *p = (System24BitPixel*)Ptr; \
-	uchar *DivLut = Div255Lut; \
-	int r = R24(c) * alpha; \
-	int g = G24(c) * alpha; \
-	int b = B24(c) * alpha;
-
-#define Comp24() \
-	p->r = DivLut[(oma * p->r) + r]; \
-	p->g = DivLut[(oma * p->g) + g]; \
-	p->b = DivLut[(oma * p->b) + b]; \
-
-void GdcApp24Alpha::Set()
-{
-	Setup24();
-	Comp24();
-}
-
-void GdcApp24Alpha::VLine(int height)
-{
-	Setup24();
-
-	while (height--)
-	{
-		Comp24();
-		p = (System24BitPixel*) (Ptr += Dest->Line);
-	}
-}
-
-void GdcApp24Alpha::Rectangle(int x, int y)
-{
-	Setup24();
-
-	while (y--)
-	{
-		for (int n=0; n<x; n++)
-		{
-			Comp24();
-			p++;
-		}
-
-		p = (System24BitPixel*) (Ptr += Dest->Line);
-	}
-}
-
-bool GdcApp24Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
-{
-	if (!Src) return false;
-	uchar *DivLut = Div255Lut;
-	uchar lookup[256];
-	for (int i=0; i<256; i++)
-	{
-		lookup[i] = (i * (int)alpha) / 255;
-	}
-
-	if (SrcAlpha)
-	{
-		switch (Src->Cs)
-		{
-			default:
-			{
-				LgiAssert(!"Not impl.");
-				break;
-			}
-			case CsIndex8:
-			{
-				System24BitPixel c[256];
-				CreatePaletteLut(c, SPal, 255);
-
-				for (int y=0; y<Src->y; y++)
-				{
-					uchar *s = Src->Base + (y * Src->Line);
-					uchar *e = s + Src->x;
-					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
-					System24BitPixel *d = (System24BitPixel*) Ptr;
-
-					while (s < e)
-					{
-						uchar a = lookup[*sa++];
-						uchar o = 255 - a;
-
-						if (a == 255)
-						{
-							System24BitPixel *src = c + *s;
-							*d = *src;
-						}
-						else if (a)
-						{
-							System24BitPixel *src = c + *s;
-							d->r = DivLut[(o * d->r) + (a * src->r)];
-							d->g = DivLut[(o * d->g) + (a * src->g)];
-							d->b = DivLut[(o * d->b) + (a * src->b)];
-						}
-
-						s++;
-						d++;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case System15BitColourSpace:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					ushort *s = (ushort*) (Src->Base + (y * Src->Line));
-					ushort *e = s + Src->x;
-					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
-					System24BitPixel *d = (System24BitPixel*) Ptr;
-
-					while (s < e)
-					{
-						uchar a = lookup[*sa++];
-
-						if (a == 255)
-						{
-							d->r = Bc15(*s);
-							d->g = Gc15(*s);
-							d->b = Rc15(*s);
-						}
-						else if (a)
-						{
-							uchar o = 255 - a;
-							d->r = Div255((o * d->r) + (a * Rc15(*s)));
-							d->g = Div255((o * d->g) + (a * Gc15(*s)));
-							d->b = Div255((o * d->b) + (a * Bc15(*s)));
-						}
-
-						s++;
-						d++;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case System16BitColourSpace:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					ushort *s = (ushort*) (Src->Base + (y * Src->Line));
-					ushort *e = s + Src->x;
-					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
-					System24BitPixel *d = (System24BitPixel*) Ptr;
-
-					while (s < e)
-					{
-						uchar a = lookup[*sa++];
-
-						if (a == 255)
-						{
-							d->r = Bc16(*s);
-							d->g = Gc16(*s);
-							d->b = Rc16(*s);
-						}
-						else if (a)
-						{
-							uchar o = 255 - a;
-							d->r = Div255((o * d->r) + (a * Rc16(*s)));
-							d->g = Div255((o * d->g) + (a * Gc16(*s)));
-							d->b = Div255((o * d->b) + (a * Bc16(*s)));
-						}
-
-						s++;
-						d++;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case CsBgr24:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					uchar *s = Src->Base + (y * Src->Line);
-					uchar *src_a = SrcAlpha->Base + (y * SrcAlpha->Line);
-					uchar *d = Ptr;
-
-					for (int x=0; x<Src->x; x++)
-					{
-						uchar my_a = lookup[*src_a++];
-						uchar my_oma = 255 - my_a;
-
-						if (my_oma == 0)
-						{
-							d[0] = s[0];
-							d[1] = s[1];
-							d[2] = s[2];
-						}
-						else if (my_oma < 255)
-						{
-							d[0] = Div255( (my_oma * d[0]) + (my_a * s[0]) );
-							d[1] = Div255( (my_oma * d[1]) + (my_a * s[1]) );
-							d[2] = Div255( (my_oma * d[2]) + (my_a * s[2]) );
-						}
-
-						d += Bytes;
-						s += Bytes;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case System32BitColourSpace:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					System32BitPixel *s = (System32BitPixel*) (Src->Base + (y * Src->Line));
-					System32BitPixel *e = s + Src->x;
-					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
-					System24BitPixel *d = (System24BitPixel*) Ptr;
-
-					while (s < e)
-					{
-						uchar a = lookup[*sa++];
-						if (a == 255)
-						{
-							d->r = s->r;
-							d->g = s->g;
-							d->b = s->b;
-						}
-						else if (a)
-						{
-							uchar o = 255 - a;
-							d->r = DivLut[(d->r * o) + (s->r * a)];
-							d->g = DivLut[(d->g * o) + (s->g * a)];
-							d->b = DivLut[(d->b * o) + (s->b * a)];
-						}
-
-						s++;
-						d++;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-		}
-	}
-	else
-	{
-		switch (Src->Cs)
-		{
-			default:
-			{
-				LgiAssert(!"Not impl.");
-				break;
-			}
-			case CsIndex8:
-			{
-				System24BitPixel c[256];
-				CreatePaletteLut(c, SPal, alpha);
-
-				for (int y=0; y<Src->y; y++)
-				{
-					uchar *s = Src->Base + (y * Src->Line);
-					uchar *e = s + Src->x;
-					System24BitPixel *d = (System24BitPixel*) Ptr;
-
-					while (s < e)
-					{
-						System24BitPixel *src = c + *s++;
-						d->r = src->r + DivLut[d->r * oma];
-						d->g = src->g + DivLut[d->g * oma];
-						d->b = src->b + DivLut[d->b * oma];
-						d++;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case System15BitColourSpace:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					ushort *s = (ushort*) (Src->Base + (y * Src->Line));
-					ushort *e = s + Src->x;
-					System24BitPixel *d = (System24BitPixel*) Ptr;
-
-					while (s < e)
-					{
-						d->r = DivLut[(oma * d->r) + (alpha * Rc15(*s))];
-						d->g = DivLut[(oma * d->g) + (alpha * Gc15(*s))];
-						d->b = DivLut[(oma * d->b) + (alpha * Bc15(*s))];
-						
-						s++;
-						d++;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case System16BitColourSpace:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					ushort *s = (ushort*) (Src->Base + (y * Src->Line));
-					System24BitPixel *d = (System24BitPixel*) Ptr;
-
-					if (alpha == 255)
-					{
-						for (int x=0; x<Src->x; x++)
-						{
-							d->r = Rc16(*s);
-							d->g = Gc16(*s);
-							d->b = Bc16(*s);
-
-							s++;
-							d++;
-						}
-					}
-					else if (alpha)
-					{
-						for (int x=0; x<Src->x; x++)
-						{
-							d->r = DivLut[(oma * d->r) + (alpha * Rc15(*s))];
-							d->g = DivLut[(oma * d->g) + (alpha * Gc16(*s))];
-							d->b = DivLut[(oma * d->b) + (alpha * Bc16(*s))];
-							
-							s++;
-							d++;
-						}
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case CsBgr24:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					GBgr24 *s = (GBgr24*) (Src->Base + (y * Src->Line));
-					System24BitPixel *d = (System24BitPixel*) Ptr;
-
-					if (alpha == 255)
-					{
-						memcpy(d, s, Src->x * 3);
-					}
-					else if (alpha)
-					{
-						for (int x=0; x<Src->x; x++)
-						{
-							d->r = DivLut[(oma * d->r) + (alpha * s->r)];
-							d->g = DivLut[(oma * d->g) + (alpha * s->g)];
-							d->b = DivLut[(oma * d->b) + (alpha * s->b)];
-
-							s++;
-							d++;
-						}
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case CsBgr48:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					GBgr48 *s = (GBgr48*) (Src->Base + (y * Src->Line));
-					System24BitPixel *d = (System24BitPixel*) Ptr;
-
-					if (alpha == 255)
-					{
-						GBgr48 *e = s + Src->x;
-						while (s < e)
-						{
-							d->r = s->r >> 8;
-							d->g = s->g >> 8;
-							d->b = s->b >> 8;
-							d++;
-							s++;
-						}
-					}
-					else if (alpha)
-					{
-						for (int x=0; x<Src->x; x++)
-						{
-							d->r = DivLut[(oma * d->r) + (alpha * (s->r >> 8))];
-							d->g = DivLut[(oma * d->g) + (alpha * (s->g >> 8))];
-							d->b = DivLut[(oma * d->b) + (alpha * (s->b >> 8))];
-
-							s++;
-							d++;
-						}
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case System32BitColourSpace:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					System32BitPixel *s = (System32BitPixel*) (Src->Base + (y * Src->Line));
-					System24BitPixel *d = (System24BitPixel*) Ptr;
-
-					if (alpha == 255)
-					{
-						for (int x=0; x<Src->x; x++)
-						{
-							if (s->a)
-							{
-								uchar o = 255 - s->a;
-								d->r = DivLut[(s->r * s->a) + (d->r * o)];
-								d->g = DivLut[(s->g * s->a) + (d->g * o)];
-								d->b = DivLut[(s->b * s->a) + (d->b * o)];
-							}
-
-							s++;
-							d++;
-						}
-					}
-					else if (alpha)
-					{
-						for (int x=0; x<Src->x; x++)
-						{
-							uchar a = lookup[s->a];
-							if (a == 255)
-							{
-								d->r = s->r;
-								d->g = s->g;
-								d->b = s->b;
-							}
-							else if (a)
-							{
-								uchar o = 255 - a;
-								d->r = lookup[s->r] + DivLut[o * d->r];
-								d->g = lookup[s->g] + DivLut[o * d->g];
-								d->b = lookup[s->b] + DivLut[o * d->b];
-							}
-
-							s++;
-							d++;
-						}
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-		}
-	}
-
-	return false;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-#define Setup32()	\
-	uchar *DivLut = Div255Lut; \
-	int a = DivLut[A32(c) * alpha];	\
-	int oma = 255 - a;	\
-	int r = R32(c) * a; \
-	int g = G32(c) * a; \
-	int b = B32(c) * a;
-
-#define Comp32() \
-	p->r = DivLut[(oma * p->r) + r]; \
-	p->g = DivLut[(oma * p->g) + g]; \
-	p->b = DivLut[(oma * p->b) + b]; \
-	p->a = (p->a + a) - DivLut[p->a * a];
-
-void GdcApp32Alpha::Set()
-{
-	System32BitPixel *p = (System32BitPixel*) Ptr;
-	Setup32();
-	Comp32();
-}
-
-void GdcApp32Alpha::VLine(int height)
-{
-	Setup32();
-
-	while (height--)
-	{
-		System32BitPixel *p = (System32BitPixel*) Ptr;
-		Comp32();
-		Ptr = (((uchar*) Ptr) + Dest->Line);
-	}
-}
-
-void GdcApp32Alpha::Rectangle(int x, int y)
-{
-	Setup32();
-
-	while (y--)
-	{
-		System32BitPixel *p = (System32BitPixel*) Ptr;
-		for (int n=0; n<x; n++, p++)
-		{
-			Comp32();
-		}
-
-		Ptr = (((uchar*) Ptr) + Dest->Line);
-	}
-}
-
-
-bool GdcApp32Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
-{
-	if (!Src) return 0;
-	uchar *DivLut = Div255Lut;
-	uchar lookup[256];
-	for (int i=0; i<256; i++)
-	{
-		lookup[i] = DivLut[i * alpha];
-	}
-
-	if (SrcAlpha)
-	{
-		switch (Src->Cs)
-		{
-			default:
-			{
-				LgiAssert(!"Not impl.");
-				break;
-			}
-			case CsIndex8:
-			{
-				System24BitPixel c[256];
-				CreatePaletteLut(c, SPal);
-
-				for (int y=0; y<Src->y; y++)
-				{
-					uchar *s = (uchar*) (Src->Base + (y * Src->Line));
-					uchar *sa = (uchar*) (SrcAlpha->Base + (y * SrcAlpha->Line));
-					System24BitPixel *sc;
-					System32BitPixel *d = (System32BitPixel*) Ptr;
-					uchar a, o;
-
-					for (int x=0; x<Src->x; x++)
-					{
-						a = lookup[*sa++];
-						if (a == 255)
-						{
-							sc = c + *s;
-							d->r = sc->r;
-							d->g = sc->g;
-							d->b = sc->b;
-							d->a = 255;
-						}
-						else if (a)
-						{
-							sc = c + *s;
-							o = 0xff - a;
-							d->r = DivLut[(d->r * o) + (sc->r * a)];
-							d->g = DivLut[(d->g * o) + (sc->g * a)];
-							d->b = DivLut[(d->b * o) + (sc->b * a)];
-							d->a = (a + d->a) - DivLut[a * d->a];
-						}
-
-						s++;
-						d++;
-					}
-
-					Ptr = (((uchar*) Ptr) + Dest->Line);
-				}
-				break;
-			}
-			case System15BitColourSpace:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					ushort *s = (ushort*) (Src->Base + (y * Src->Line));
-					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
-					System32BitPixel *d = (System32BitPixel*) Ptr;
-
-					for (int x=0; x<Src->x; x++)
-					{
-						uchar a = lookup[*sa++];
-						if (a == 255)
-						{
-							d->r = Rc15(*s);
-							d->g = Gc15(*s);
-							d->b = Bc15(*s);
-						}
-						else if (a)
-						{
-							uchar o = 255 - a;
-							d->r = DivLut[(a * Rc15(*s)) + (o * d->r)];
-							d->g = DivLut[(a * Gc15(*s)) + (o * d->g)];
-							d->b = DivLut[(a * Bc15(*s)) + (o * d->b)];
-						}
-
-						s++;
-						d++;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case System16BitColourSpace:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					ushort *s = (ushort*) (Src->Base + (y * Src->Line));
-					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
-					System32BitPixel *d = (System32BitPixel*) Ptr;
-
-					for (int x=0; x<Src->x; x++)
-					{
-						uchar a = lookup[*sa++];
-						if (a == 255)
-						{
-							d->r = Rc16(*s);
-							d->g = Gc16(*s);
-							d->b = Bc16(*s);
-						}
-						else if (a)
-						{
-							uchar o = 255 - a;
-							d->r = DivLut[(a * Rc16(*s)) + (o * d->r)];
-							d->g = DivLut[(a * Gc16(*s)) + (o * d->g)];
-							d->b = DivLut[(a * Bc16(*s)) + (o * d->b)];
-						}
-
-						s++;
-						d++;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case System24BitColourSpace:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
-					System32BitPixel *d = (System32BitPixel*) Ptr;
-					System24BitPixel *s = (System24BitPixel*) (Src->Base + (y * Src->Line));
-
-					for (int x=0; x<Src->x; x++)
-					{
-						uchar a = lookup[*sa++];
-						if (a == 255)
-						{
-							d->r = s->r;
-							d->g = s->g;
-							d->b = s->b;
-						}
-						else if (a)
-						{
-							uchar o = 255 - a;
-							d->r = DivLut[(a * s->r) + (o * d->r)];
-							d->g = DivLut[(a * s->g) + (o * d->g)];
-							d->b = DivLut[(a * s->b) + (o * d->b)];
-						}
-
-						d++;
-						s++;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case System32BitColourSpace:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					System32BitPixel *d = (System32BitPixel*) Ptr;
-					System32BitPixel *s = (System32BitPixel*) (Src->Base + (y * Src->Line));
-					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
-
-					for (int x=0; x<Src->x; x++)
-					{
-						uchar a = lookup[*sa++];
-						if (a == 255)
-						{
-							d->r = s->r;
-							d->g = s->g;
-							d->b = s->b;
-							d->a = 255;
-						}
-						else if (a)
-						{
-							uchar o = 255 - a;
-							d->r = DivLut[(a * s->r) + (o * d->r)];
-							d->g = DivLut[(a * s->g) + (o * d->g)];
-							d->b = DivLut[(a * s->b) + (o * d->b)];
-							d->a = (s->a + d->a) - DivLut[s->a * d->a];
-						}
-
-						d++;
-						s++;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-		}
-	}
-	else
-	{
-		switch (Src->Cs)
-		{
-			default:
-			{
-				GUniversalBlt(	System32BitColourSpace,
-								Ptr,
-								Dest->Line,
-								
-								Src->Cs,
-								Src->Base,
-								Src->Line,
-								
-								Src->x,
-								Src->y);
-				break;
-			}
-			case CsIndex8:
-			{
-				System24BitPixel c[256];
-				CreatePaletteLut(c, SPal, alpha);
-
-				for (int y=0; y<Src->y; y++)
-				{
-					uchar *s = (uchar*) (Src->Base + (y * Src->Line));
-					System24BitPixel *sc;
-					System32BitPixel *d = (System32BitPixel*) Ptr;
-
-					if (alpha == 255)
-					{
-						for (int x=0; x<Src->x; x++)
-						{
-							sc = c + *s++;
-							
-							d->r = sc->r;
-							d->g = sc->g;
-							d->b = sc->b;
-							d->a = 255;
-
-							d++;
-						}
-					}
-					else if (alpha)
-					{
-						for (int x=0; x<Src->x; x++)
-						{
-							sc = c + *s++;
-
-							d->r = sc->r + DivLut[d->r * oma];
-							d->g = sc->g + DivLut[d->g * oma];
-							d->b = sc->b + DivLut[d->b * oma];
-							d->a = (alpha + d->a) - DivLut[alpha * d->a];
-
-							d++;
-						}
-					}
-
-					Ptr = (((uchar*) Ptr) + Dest->Line);
-				}
-				break;
-			}
-			case CsRgb15:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					ushort *s = (ushort*) (Src->Base + (y * Src->Line));
-					ushort *e = s + Src->x;
-					System32BitPixel *d = (System32BitPixel*) Ptr;
-
-					while (s < e)
-					{
-						d->r = DivLut[(oma * d->r) + (alpha * Rc15(*s))];
-						d->g = DivLut[(oma * d->g) + (alpha * Gc15(*s))];
-						d->b = DivLut[(oma * d->b) + (alpha * Bc15(*s))];
-						
-						s++;
-						d++;
-					}
-
-					Ptr += Dest->Line;
-				}
-				break;
-			}
-			case CsRgb16:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					ushort *s = (ushort*) (Src->Base + (y * Src->Line));
-					System32BitPixel *d = (System32BitPixel*) Ptr;
-
-					if (alpha == 255)
-					{
-						for (int x=0; x<Src->x; x++)
-						{
-							d->r = Rc16(*s);
-							d->g = Gc16(*s);
-							d->b = Bc16(*s);
-							d->a = 255;
-
-							d++;
-							s++;
-						}
-					}
-					else if (alpha)
-					{
-						for (int x=0; x<Src->x; x++)
-						{
-							d->r = DivLut[(d->r * oma) + (Rc16(*s) * alpha)];
-							d->g = DivLut[(d->g * oma) + (Gc16(*s) * alpha)];
-							d->b = DivLut[(d->b * oma) + (Bc16(*s) * alpha)];
-							d->a = (alpha + d->a) - DivLut[alpha * d->a];
-
-							d++;
-							s++;
-						}
-					}
-
-					Ptr = (((uchar*) Ptr) + Dest->Line);
-				}
-				break;
-			}
-			case CsBgr16:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					GBgr16 *s = (GBgr16*) (Src->Base + (y * Src->Line));
-					System32BitPixel *d = (System32BitPixel*) Ptr;
-
-					#define Comp5BitTo8Bit(c) \
-						(((uint8)(c) << 3) | ((c) >> 2))
-					#define Comp6BitTo8Bit(c) \
-						(((uint8)(c) << 2) | ((c) >> 4))
-
-					if (alpha == 255)
-					{
-						for (int x=0; x<Src->x; x++)
-						{
-							d->r = Comp5BitTo8Bit(s->r);
-							d->g = Comp6BitTo8Bit(s->g);
-							d->b = Comp5BitTo8Bit(s->b);
-							d->a = 255;
-
-							d++;
-							s++;
-						}
-					}
-					else if (alpha)
-					{
-						for (int x=0; x<Src->x; x++)
-						{
-							d->r = DivLut[(d->r * oma) + (Comp5BitTo8Bit(s->r) * alpha)];
-							d->g = DivLut[(d->g * oma) + (Comp6BitTo8Bit(s->g) * alpha)];
-							d->b = DivLut[(d->b * oma) + (Comp5BitTo8Bit(s->b) * alpha)];
-							d->a = (alpha + d->a) - DivLut[alpha * d->a];
-
-							d++;
-							s++;
-						}
-					}
-
-					Ptr = (((uchar*) Ptr) + Dest->Line);
-				}
-				break;
-			}
-			case System24BitColourSpace:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					System24BitPixel *s = (System24BitPixel*) (Src->Base + (y * Src->Line));
-					System32BitPixel *d = (System32BitPixel*) Ptr;
-
-					if (alpha == 255)
-					{
-						for (int x=0; x<Src->x; x++)
-						{
-							d->r = s->r;
-							d->g = s->g;
-							d->b = s->b;
-							d->a = 255;
-
-							d++;
-							s++;
-						}
-					}
-					else if (alpha)
-					{
-						for (int x=0; x<Src->x; x++)
-						{
-							d->r = DivLut[(d->r * oma) + (s->r * alpha)];
-							d->g = DivLut[(d->g * oma) + (s->g * alpha)];
-							d->b = DivLut[(d->b * oma) + (s->b * alpha)];
-							d->a = (d->a * alpha) - DivLut[d->a * alpha];
-
-							d++;
-							s++;
-						}
-					}
-
-					Ptr = (((uchar*) Ptr) + Dest->Line);
-				}
-				break;
-			}
-			case System32BitColourSpace:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					System32BitPixel *s = (System32BitPixel*) (Src->Base + (y * Src->Line));
-					System32BitPixel *d = (System32BitPixel*) Ptr;
-
-					if (alpha == 255)
-					{
-						// 32bit alpha channel blt
-						for (int x=0; x<Src->x; x++)
-						{
-							if (s->a == 255)
-							{
-								*d = *s;
-							}
-							else if (s->a)
-							{
-								uchar o = 255 - s->a;
-								int ra = (d->a + s->a) - DivLut[d->a * s->a];
-								#define rop(c) d->c = (DivLut[DivLut[d->c * d->a] * o] + DivLut[s->c * s->a]) * 255 / ra;
-								rop(r);
-								rop(g);
-								rop(b);
-								#undef rop
-								d->a = ra;
-							}
-
-							d++;
-							s++;
-						}
-					}
-					else if (alpha)
-					{
-						// Const alpha + 32bit alpha channel blt
-						for (int x=0; x<Src->x; x++)
-						{
-							uchar a = lookup[s->a];
-							uchar o = 255 - a;
-							d->r = lookup[s->r] + DivLut[d->r * o];
-							d->g = lookup[s->g] + DivLut[d->g * o];
-							d->b = lookup[s->b] + DivLut[d->b * o];
-							d->a = (d->a + a) - DivLut[d->a * a];
-							d++;
-							s++;
-						}
-					}
-
-					Ptr = (((uchar*) Ptr) + Dest->Line);
-				}
-				break;
-			}
-			case CsBgra64:
-			{
-				for (int y=0; y<Src->y; y++)
-				{
-					GBgra64 *s = (GBgra64*) (Src->Base + (y * Src->Line));
-					System32BitPixel *d = (System32BitPixel*) Ptr;
-
-					if (alpha == 255)
-					{
-						// 32bit alpha channel blt
-						GBgra64 *end = s + Src->x;
-						while (s < end)
-						{
-							if (s->a == 0xffff)
-							{
-								d->r = s->r >> 8;
-								d->g = s->g >> 8;
-								d->b = s->b >> 8;
-								d->a = s->a >> 8;
-							}
-							else if (s->a)
-							{
-								uint8 o = (0xffff - s->a) >> 8;
-								uint8 dc, sc;
-								
-								Rgb16to8PreMul(r);
-								Rgb16to8PreMul(g);
-								Rgb16to8PreMul(b);
-							}
-
-							d++;
-							s++;
-						}
-					}
-					else if (alpha)
-					{
-						// Const alpha + 32bit alpha channel blt
-						LgiAssert(0);
-						/*
-						for (int x=0; x<Src->x; x++)
-						{
-							uchar a = lookup[s->a];
-							uchar o = 255 - a;
-							d->r = lookup[s->r] + DivLut[d->r * o];
-							d->g = lookup[s->g] + DivLut[d->g * o];
-							d->b = lookup[s->b] + DivLut[d->b * o];
-							d->a = (d->a + a) - DivLut[d->a * a];
-							d++;
-							s++;
-						}
-						*/
-					}
-
-					Ptr = (((uchar*) Ptr) + Dest->Line);
-				}
-				break;
-			}
-		}
-	}
-
-	return true;
 }
 

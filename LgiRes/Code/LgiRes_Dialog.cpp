@@ -1213,13 +1213,7 @@ CtrlRadio::CtrlRadio(ResDialog *dlg, GXmlTag *load) :
 	ResDialogCtrl(dlg, Res_RadioBox, load)
 {
 	Bmp = new GMemDC;
-	if (Bmp && Bmp->Create(12, 12,
-		#ifdef MAC
-		32
-		#else
-		24
-		#endif
-		))
+	if (Bmp && Bmp->Create(12, 12, GdcD->GetColourSpace()))
 	{
 		int Len = ((Bmp->X()*24)+31)/32*4;
 		for (int y=0; y<Bmp->Y(); y++)
@@ -3434,7 +3428,7 @@ void ResDialog::_Paint(GSurface *pDC, int Ox, int Oy)
 		#else
 		GAutoPtr<GSurface> pMemDC(new GMemDC);
 		if (pMemDC &&
-			pMemDC->Create(c.X(), c.Y(), GdcD->GetBits()))
+			pMemDC->Create(c.X(), c.Y(), GdcD->GetColourSpace()))
 		#endif
 		{
             #ifdef MAC

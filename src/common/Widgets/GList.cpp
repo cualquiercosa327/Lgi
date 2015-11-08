@@ -261,20 +261,8 @@ GItemEdit::~GItemEdit()
 
 void GItemEdit::OnPaint(GSurface *pDC)
 {
-	#if 1
-
-	// pDC->Colour(Rgb24(255, 0, 255), 24);
 	pDC->Colour(LC_BLACK, 24);
 	pDC->Rectangle();
-
-	#else
-
-	GRect r = GetClient();
-	pDC->Colour(LC_BLACK, 24);
-	pDC->Box(&r);
-	r.Size(1, 1);
-
-	#endif
 }
 
 int GItemEdit::OnNotify(GViewI *v, int f)

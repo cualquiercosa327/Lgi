@@ -376,7 +376,7 @@ void GTrayIcon::Value(int64 v)
 
 				GScreenDC Dc((GView*)0, c);
 				GMemDC m;
-				if (m.Create(t->X()*4, t->Y()*4, 32))
+				if (m.Create(t->X()*4, t->Y()*4, System32BitColourSpace))
 				{
 					double Sx = (double) t->X() / m.X();
 					double Sy = (double) t->Y() / m.Y();

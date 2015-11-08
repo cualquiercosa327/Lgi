@@ -190,7 +190,7 @@ void GFontSelect::UpdatePreview()
 	if (f.Create(Face, Size))
 	{
 		GMemDC *Dc = new GMemDC;
-		if (Dc->Create(263, 65, GdcD->GetBits()))
+		if (Dc->Create(263, 65, GdcD->GetColourSpace()))
 		{
 			Dc->Colour(LC_WORKSPACE, 24);
 			Dc->Rectangle();

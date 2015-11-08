@@ -501,12 +501,12 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 		if (a)
 		{
 			b = *a;
-			GRect f(0, 0, Src->X()-1, Src->Y()-1);
-			b.Bound(&f);
+			GRect r = Src->Bounds();
+			b.Bound(&r);
 		}
 		else
 		{
-			b.ZOff(Src->X()-1, Src->Y()-1);
+			b = Src->Bounds();
 		}
 		
 		if (b.Valid())
@@ -518,6 +518,7 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 			else
 			{
 				// Blt mem->screen
+				OSStatus err = noErr;
 				GMemDC *Mem = dynamic_cast<GMemDC*>(Src);
 				if (Mem)
 				{
@@ -531,16 +532,44 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 						r.size.height = b.Y();
 						CGImageRef Img = *i;
 						
-						bool HasConstAlpha = d->ConstAlpha >= 0 && d->ConstAlpha <= 255;
+						bool HasConstAlpha = d->ConstAlpha >= 0 && d->ConstAlpha < 255;
 						if (HasConstAlpha)
 							CGContextSetAlpha(d->Ctx, d->ConstAlpha / 255.0);
 					 
-						HIViewDrawCGImage(d->Ctx, &r, Img);
+						err = HIViewDrawCGImage(d->Ctx, &r, Img);
 
 						if (HasConstAlpha)
 							CGContextSetAlpha(d->Ctx, 1.0);
 						
 						DeleteObj(i);
+					}
+					
+					if (err < 0)
+					{
+						GMemDC Tmp(b.X(), b.Y(), GdcD->GetColourSpace());
+						Tmp.Blt(0, 0, Mem, &b);
+
+						CGImg *i = Tmp.GetImg(a ? &b : 0);
+						if (i)
+						{
+							HIRect r;
+							r.origin.x = x;
+							r.origin.y = y;
+							r.size.width = b.X();
+							r.size.height = b.Y();
+							CGImageRef Img = *i;
+							
+							bool HasConstAlpha = d->ConstAlpha >= 0 && d->ConstAlpha < 255;
+							if (HasConstAlpha)
+								CGContextSetAlpha(d->Ctx, d->ConstAlpha / 255.0);
+						 
+							err = HIViewDrawCGImage(d->Ctx, &r, Img);
+
+							if (HasConstAlpha)
+								CGContextSetAlpha(d->Ctx, 1.0);
+							
+							DeleteObj(i);
+						}
 					}
 				}
 			}

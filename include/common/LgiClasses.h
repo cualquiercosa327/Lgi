@@ -303,6 +303,9 @@ public:
 
 		/// Remove the top most window
 		GWindow *PopWindow();
+
+		/// Sets up mouse tracking beyond the current window...
+		void CaptureMouse(bool capture);
 	
 	#elif defined(WIN32)
 

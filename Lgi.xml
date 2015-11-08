@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project>
-	<Node Name="Source Files" Type="1" Platforms="15" Open="1">
+	<Node Name="Source Files" Type="1" Platforms="15" Open="0">
 		<Node Name="Core" Type="1" Platforms="15" Open="0">
 			<Node Name="DateTime" Type="1" Platforms="15" Open="0">
 				<Node File=".\src\common\General\GDateTime.cpp" Type="2" Platforms="15" />
@@ -154,7 +154,7 @@
 			<Node File="./src/common/Lgi/LgiMsg.cpp" Type="2" Platforms="15" />
 		</Node>
 		<Node Name="Dialogs" Type="1" Platforms="15" Open="0">
-			<Node Name="Xp" Type="1" Platforms="15" Open="0">
+			<Node Name="Xp" Type="1" Platforms="15" Open="1">
 				<Node File="./src/common/Lgi/GFileSelect.cpp" Type="2" Platforms="14" />
 			</Node>
 			<Node Name="Win32" Type="1" Platforms="15" Open="0">
@@ -166,26 +166,26 @@
 			<Node File="./src/common/Lgi/GFontSelect.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Lgi/GInput.cpp" Type="2" Platforms="15" />
 		</Node>
-		<Node Name="Graphics" Type="1" Platforms="15" Open="1">
+		<Node Name="Graphics" Type="1" Platforms="15" Open="0">
 			<Node Name="_Core" Type="1" Platforms="15" Open="1">
 				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
 					<Node File=".\src\beos\Gdc2\Gdc2.cpp" Type="2" Platforms="8" />
 				</Node>
 				<Node Name="Linux" Type="1" Platforms="15" Open="1">
-					<Node File="./src/linux/Gtk/Gdc2.cpp" Type="2" Platforms="2" />
+					<Node File=".\src\linux\Gtk\Gdc2.cpp" Type="2" Platforms="2" />
 				</Node>
 				<Node Name="Win32" Type="1" Platforms="15" Open="0">
 					<Node File="./src/win32/Gdc2/Gdc2.cpp" Type="2" Platforms="1" />
 				</Node>
-				<Node File="./src/common/Gdc2/GColour.cpp" Type="2" Platforms="15" />
-				<Node File="./include/common/GColour.h" Type="3" Platforms="15" />
-				<Node File="./src/common/Gdc2/Tools/GColourReduce.cpp" Type="2" Platforms="15" />
-				<Node File="./include/common/GColourSpace.h" Type="3" Platforms="15" />
-				<Node File="./include/common/Gdc2.h" Type="3" Platforms="15" />
-				<Node File="./src/common/Gdc2/GdcCommon.cpp" Type="2" Platforms="15" />
-				<Node File="./src/common/Gdc2/Tools/GdcTools.cpp" Type="2" Platforms="15" />
-				<Node File="./include/common/GdcTools.h" Type="3" Platforms="15" />
-				<Node File="./include/common/GFilter.h" Type="3" Platforms="15" />
+				<Node File=".\src\common\Gdc2\GColour.cpp" Type="2" Platforms="15" />
+				<Node File=".\include\common\GColour.h" Type="3" Platforms="15" />
+				<Node File=".\src\common\Gdc2\Tools\GColourReduce.cpp" Type="2" Platforms="15" />
+				<Node File=".\include\common\GColourSpace.h" Type="3" Platforms="15" />
+				<Node File=".\include\common\Gdc2.h" Type="3" Platforms="15" />
+				<Node File=".\src\common\Gdc2\GdcCommon.cpp" Type="2" Platforms="15" />
+				<Node File=".\src\common\Gdc2\Tools\GdcTools.cpp" Type="2" Platforms="15" />
+				<Node File=".\include\common\GdcTools.h" Type="3" Platforms="15" />
+				<Node File=".\include\common\GFilter.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Font" Type="1" Platforms="15" Open="0">
 				<Node File="./src/common/Gdc2/Font/GDisplayString.cpp" Type="2" Platforms="15" />
@@ -269,8 +269,8 @@
 			<Node File="./src/common/Text/GXmlTree.cpp" Type="2" Platforms="15" />
 			<Node File="./include/common/GXmlTree.h" Type="3" Platforms="15" />
 		</Node>
-		<Node Name="Widgets" Type="1" Platforms="15" Open="1">
-			<Node Name="Common" Type="1" Platforms="15" Open="0">
+		<Node Name="Widgets" Type="1" Platforms="15" Open="0">
+			<Node Name="Common" Type="1" Platforms="15" Open="1">
 				<Node File="./src/common/Widgets/GBitmap.cpp" Type="2" Platforms="15" />
 				<Node File="./src/common/Widgets/GButton.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GButton.h" Type="3" Platforms="15" />
@@ -330,7 +330,7 @@
 				<Node File="./src/win32/Widgets/GProgress.cpp" Type="2" Platforms="1" />
 				<Node File="./src/win32/Lgi/GScrollBar.cpp" Type="2" Platforms="1" />
 			</Node>
-			<Node Name="Layout" Type="1" Platforms="15" Open="0">
+			<Node Name="Layout" Type="1" Platforms="15" Open="1">
 				<Node File="./src/common/Widgets/GBox.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GBox.h" Type="3" Platforms="15" />
 				<Node File="./include/common/GDisplayStringLayout.h" Type="3" Platforms="15" />
@@ -386,13 +386,12 @@ WINDOWS</Debug>
 					<Release>WINNATIVE
 WINDOWS</Release>
 				</Windows>
-				<Linux />
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
 			</Compiler>
 			<Executable>
-				<Linux />
+				<Windows />
 			</Executable>
 			<Arguments>
 				<All />
@@ -478,11 +477,11 @@ textencoding</Release>
 				</Linux>
 			</TargetName>
 			<SystemIncludes>
-				<Linux />
+				<Windows />
 			</SystemIncludes>
 			<LibraryPaths>
 				<All />
-				<Linux />
+				<Windows />
 			</LibraryPaths>
 		</Build>
 		<Editor>

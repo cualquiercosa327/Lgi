@@ -117,7 +117,7 @@ void GBitmap::SetDC(GSurface *pNewDC)
 	if (pNewDC)
 	{
 		pDC = new GMemDC;
-		if (pDC && pDC->Create(pNewDC->X(), pNewDC->Y(), GdcD->GetBits()))
+		if (pDC && pDC->Create(pNewDC->X(), pNewDC->Y(), GdcD->GetColourSpace()))
 		{
 			pDC->Colour(LC_WORKSPACE, 24);
 			pDC->Rectangle();

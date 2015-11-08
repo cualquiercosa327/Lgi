@@ -354,7 +354,7 @@ void LgiFillGradient(GSurface *pDC, GRect &r, bool Vert, GArray<GColourStop> &St
 GSurface *ConvertDC(GSurface *pDC, int Bits)
 {
 	GSurface *pNew = new GMemDC;
-	if (pNew && pNew->Create(pDC->X(), pDC->Y(), Bits))
+	if (pNew && pNew->Create(pDC->X(), pDC->Y(), GBitsToColourSpace(Bits)))
 	{
 		pNew->Blt(0, 0, pDC);
 		DeleteObj(pDC);
@@ -914,366 +914,104 @@ bool GColourSpaceTest()
 GSurface *GInlineBmp::Create(uint32 TransparentPx)
 {
 	GSurface *pDC = new GMemDC;
-	if (pDC->Create(X, Y, System32BitColourSpace))
+	if (pDC->Create(X, Y, System32BitColourSpace, GSurface::SurfaceRequireExactCs))
 	{
-		int Line = X * Bits / 8;
-		for (int y=0; y<Y; y++)
+		GBmpMem Src, Dst;
+		
+		Src.Base = (uint8*)Data;
+		Src.Line = X * Bits >> 3;
+		Src.x = X;
+		Src.y = Y;
+		switch (Bits)
 		{
-			void *addr = ((uchar*)Data) + (y * Line);
-
-			switch (Bits)
+			case 8: Src.Cs = CsIndex8; break;
+			case 15: Src.Cs = CsRgb15; break;
+			case 16: Src.Cs = CsRgb16; break;
+			case 24: Src.Cs = CsRgb24; break;
+			case 32: Src.Cs = CsRgba32; break;
+			default: Src.Cs = CsNone; break;
+		}
+		
+		Dst.Base = (*pDC)[0];
+		Dst.Line = pDC->GetRowStep();
+		Dst.x = pDC->X();
+		Dst.y = pDC->Y();
+		Dst.Cs = pDC->GetColourSpace();
+		
+		LgiRopUniversal(&Dst, &Src, false);
+		
+		if (TransparentPx != 0xffffffff)
+		{
+			for (int y=0; y<Y; y++)
 			{
-				#if defined(MAC)
-				case 16:
+				GPointer s;
+				s.u8 = (uint8*)Data + (y * Src.Line);
+				uint32 *d = (uint32*)(*pDC)[y];
+				
+				switch (Bits >> 3)
 				{
-					uint32 *s = (uint32*)addr;
-					System32BitPixel *d = (System32BitPixel*) (*pDC)[y];
-					System32BitPixel *e = d + X;
-					while (d < e)
+					case 1:
 					{
-						uint32 n = LgiSwap32(*s);
-						s++;
-						
-						uint16 a = n >> 16;
-						a = LgiSwap16(a);
-						if (TransparentPx == a)
+						for (int x=0; x<X; x++)
 						{
-							d->r = 0;
-							d->g = 0;
-							d->b = 0;
-							d->a = 0;
+							if (s.u8[x] == TransparentPx)
+								d[x] = 0;
 						}
-						else
-						{
-							d->r = Rc16(a);
-							d->g = Gc16(a);
-							d->b = Bc16(a);
-							d->a = 255;
-						}
-						d++;
-						
-						if (d >= e)
-							break;
-
-						uint16 b = n & 0xffff;
-						b = LgiSwap16(b);
-						if (TransparentPx == b)
-						{
-							d->r = 0;
-							d->g = 0;
-							d->b = 0;
-							d->a = 0;
-						}
-						else
-						{
-							d->r = Rc16(b);
-							d->g = Gc16(b);
-							d->b = Bc16(b);
-							d->a = 255;
-						}
-						d++;
+						break;
 					}
-					break;
-				}
-				#else
-				case 16:
-				{
-					uint32 *out = (uint32*)(*pDC)[y];
-					uint16 *in = (uint16*)addr;
-					uint16 *end = in + X;
-					while (in < end)
+					case 2:
 					{
-						if (*in == TransparentPx)
-							*out = 0;
-						else
-							*out = Rgb16To32(*in);						
-						in++;
-						out++;
+						for (int x=0; x<X; x++)
+						{
+							if (s.u16[x] == TransparentPx)
+								d[x] = 0;
+						}
+						break;
 					}
-					break;
-				}
-				#endif
-				case 24:
-				{
-					register uint8 r, g, b;
-					r = R24(TransparentPx);
-					g = R24(TransparentPx);
-					b = B24(TransparentPx);
-					
-					System32BitPixel *out = (System32BitPixel*)(*pDC)[y];
-					System32BitPixel *end = out + X;
-					System24BitPixel *in = (System24BitPixel*)addr;
-					while (out < end)
+					case 3:
 					{
-						if (in->r == r &&
-							in->g == g &&
-							in->b == b)
+						register uint8 r = R24(TransparentPx);
+						register uint8 g = G24(TransparentPx);
+						register uint8 b = B24(TransparentPx);
+						register GRgb24 *px = (GRgb24*) s.u8;
+						register GRgb24 *e = px + X;
+						while (px < e)
 						{
-							out->r = 0;
-							out->g = 0;
-							out->b = 0;
-							out->a = 0;
+							if (px->r == r &&
+								px->g == g &&
+								px->b == b)
+							{
+								*d = 0;
+							}
+							d++;
 						}
-						else
-						{
-							out->r = in->r;
-							out->g = in->g;
-							out->b = in->b;
-							out->a = 255;
-						}
-						out++;
-						in++;
+						break;
 					}
-					break;
-				}
-				case 32:
-				{
-					memcpy((*pDC)[y], addr, Line);
-					break;
-				}
-				default:
-				{
-					LgiAssert(!"Not a valid bit depth.");
-					break;
+					case 4:
+					{
+						for (int x=0; x<X; x++)
+						{
+							if (s.u32[x] == TransparentPx)
+								d[x] = 0;
+						}
+						break;
+					}
 				}
 			}
 		}
+	}
+	else
+	{
+		DeleteObj(pDC);
 	}
 
 	return pDC;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////
-#include "GPixelRops.h"
-
-bool GUniversalBlt(	GColourSpace OutCs,
-					uint8 *OutPtr,
-					int OutLine,
-					
-					GColourSpace InCs,
-					uint8 *InPtr,
-					int InLine,
-					
-					int width,
-					int height)
-{
-	if (OutCs == CsNone ||
-		OutPtr == NULL ||
-		OutLine == 0 ||
-		InCs == CsNone ||
-		InPtr == NULL ||
-		InLine == 0)
-	{
-		LgiAssert(!"Invalid params");
-		return false;
-	}
-	
-	if (InCs == OutCs)
-	{
-		int Depth = GColourSpaceToBits(InCs);
-		int PixelBytes = Depth >> 3;
-		int ScanBytes = width * PixelBytes;
-		LgiAssert(Depth % 8 == 0);
-		
-		// No conversion so just copy memory
-		for (int y=0; y<height; y++)
-		{
-			memcpy(OutPtr, InPtr, ScanBytes);
-			OutPtr += OutLine;
-			InPtr += InLine;
-		}
-		
-		return true;
-	}
-	
-	bool InAlpha = GColourSpaceHasAlpha(InCs);
-	bool OutAlpha = GColourSpaceHasAlpha(OutCs);
-	if (InAlpha && OutAlpha)
-	{
-		// Compositing
-		for (int y=0; y<height; y++)
-		{
-			switch (CsMapping(OutCs, InCs))
-			{
-				#define CompCase(OutType, InType) \
-					case CsMapping(Cs##OutType, Cs##InType): \
-						CompositeNonPreMul32((G##OutType*)OutPtr, (G##InType*)InPtr, width); \
-						break
-
-				CompCase(Rgba32, Bgra32);
-				CompCase(Rgba32, Abgr32);
-				CompCase(Rgba32, Argb32);
-
-				CompCase(Bgra32, Rgba32);
-				CompCase(Bgra32, Abgr32);
-				CompCase(Bgra32, Argb32);
-
-				CompCase(Argb32, Rgba32);
-				CompCase(Argb32, Bgra32);
-				CompCase(Argb32, Abgr32);
-
-				CompCase(Abgr32, Rgba32);
-				CompCase(Abgr32, Bgra32);
-				CompCase(Abgr32, Argb32);
-				
-				#undef CompCase
-
-				default:
-					LgiAssert(!"Not impl.");
-					return false;
-			}
-
-			OutPtr += OutLine;
-			InPtr += InLine;
-		}
-	}
-	else if (OutAlpha)
-	{
-		// Dest Alpha
-		for (int y=0; y<height; y++)
-		{
-			switch (CsMapping(OutCs, InCs))
-			{
-				#define CopyCase(OutType, InType) \
-					case CsMapping(Cs##OutType, Cs##InType): \
-						Copy24to32((G##OutType*)OutPtr, (G##InType*)InPtr, width); \
-						break
-
-				CopyCase(Rgba32, Rgb24);
-				CopyCase(Rgba32, Bgr24);
-				CopyCase(Rgba32, Rgbx32);
-				CopyCase(Rgba32, Bgrx32);
-				CopyCase(Rgba32, Xrgb32);
-				CopyCase(Rgba32, Xbgr32);
-
-				CopyCase(Bgra32, Rgb24);
-				CopyCase(Bgra32, Bgr24);
-				CopyCase(Bgra32, Rgbx32);
-				CopyCase(Bgra32, Bgrx32);
-				CopyCase(Bgra32, Xrgb32);
-				CopyCase(Bgra32, Xbgr32);
-
-				CopyCase(Argb32, Rgb24);
-				CopyCase(Argb32, Bgr24);
-				CopyCase(Argb32, Rgbx32);
-				CopyCase(Argb32, Bgrx32);
-				CopyCase(Argb32, Xrgb32);
-				CopyCase(Argb32, Xbgr32);
-
-				CopyCase(Abgr32, Rgb24);
-				CopyCase(Abgr32, Bgr24);
-				CopyCase(Abgr32, Rgbx32);
-				CopyCase(Abgr32, Bgrx32);
-				CopyCase(Abgr32, Xrgb32);
-				CopyCase(Abgr32, Xbgr32);
-				
-				#undef CopyCase
-			
-				default:
-					LgiAssert(!"Not impl.");
-					return false;
-			}
-
-			OutPtr += OutLine;
-			InPtr += InLine;
-		}
-	}
-	else
-	{
-		// No Dest Alpha
-		for (int y=0; y<height; y++)
-		{
-			switch (CsMapping(OutCs, InCs))
-			{
-				#define CopyCase(OutType, InType) \
-					case CsMapping(Cs##OutType, Cs##InType): \
-						Copy24((G##OutType*)OutPtr, (G##InType*)InPtr, width); \
-						break
-
-				CopyCase(Rgb24, Bgr24);
-				CopyCase(Rgb24, Rgba32);
-				CopyCase(Rgb24, Bgra32);
-				CopyCase(Rgb24, Argb32);
-				CopyCase(Rgb24, Abgr32);
-				CopyCase(Rgb24, Rgbx32);
-				CopyCase(Rgb24, Bgrx32);
-				CopyCase(Rgb24, Xrgb32);
-				CopyCase(Rgb24, Xbgr32);
-
-				CopyCase(Bgr24, Rgb24);
-				CopyCase(Bgr24, Rgba32);
-				CopyCase(Bgr24, Bgra32);
-				CopyCase(Bgr24, Argb32);
-				CopyCase(Bgr24, Abgr32);
-				CopyCase(Bgr24, Rgbx32);
-				CopyCase(Bgr24, Bgrx32);
-				CopyCase(Bgr24, Xrgb32);
-				CopyCase(Bgr24, Xbgr32);
-
-				CopyCase(Rgbx32, Rgb24);
-				CopyCase(Rgbx32, Bgr24);
-				CopyCase(Rgbx32, Rgba32);
-				CopyCase(Rgbx32, Bgra32);
-				CopyCase(Rgbx32, Argb32);
-				CopyCase(Rgbx32, Abgr32);
-				CopyCase(Rgbx32, Rgbx32);
-				CopyCase(Rgbx32, Bgrx32);
-				CopyCase(Rgbx32, Xrgb32);
-				CopyCase(Rgbx32, Xbgr32);
-				
-				CopyCase(Bgrx32, Rgb24);
-				CopyCase(Bgrx32, Bgr24);
-				CopyCase(Bgrx32, Rgba32);
-				CopyCase(Bgrx32, Bgra32);
-				CopyCase(Bgrx32, Argb32);
-				CopyCase(Bgrx32, Abgr32);
-				CopyCase(Bgrx32, Rgbx32);
-				CopyCase(Bgrx32, Bgrx32);
-				CopyCase(Bgrx32, Xrgb32);
-				CopyCase(Bgrx32, Xbgr32);
-
-				CopyCase(Xrgb32, Rgb24);
-				CopyCase(Xrgb32, Bgr24);
-				CopyCase(Xrgb32, Rgba32);
-				CopyCase(Xrgb32, Bgra32);
-				CopyCase(Xrgb32, Argb32);
-				CopyCase(Xrgb32, Abgr32);
-				CopyCase(Xrgb32, Rgbx32);
-				CopyCase(Xrgb32, Bgrx32);
-				CopyCase(Xrgb32, Xrgb32);
-				CopyCase(Xrgb32, Xbgr32);
-				
-				CopyCase(Xbgr32, Rgb24);
-				CopyCase(Xbgr32, Bgr24);
-				CopyCase(Xbgr32, Rgba32);
-				CopyCase(Xbgr32, Bgra32);
-				CopyCase(Xbgr32, Argb32);
-				CopyCase(Xbgr32, Abgr32);
-				CopyCase(Xbgr32, Rgbx32);
-				CopyCase(Xbgr32, Bgrx32);
-				CopyCase(Xbgr32, Xrgb32);
-				CopyCase(Xbgr32, Xbgr32);
-				
-				#undef CopyCase
-			
-				default:
-					LgiAssert(!"Not impl.");
-					return false;
-			}
-
-			OutPtr += OutLine;
-			InPtr += InLine;
-		}
-	}
-	
-	
-	return true;
-}
-
 /////////////////////////////////////////////////////////////////////////////////////////////
 #include "GRops.h"
 
-bool LgiRopRgb(uint8 *d, GColourSpace DstCs, uint8 *s, GColourSpace SrcCs, int x)
+bool LgiRopRgb(uint8 *d, GColourSpace DstCs, uint8 *s, GColourSpace SrcCs, int x, bool Composite)
 {
 	// This is just a huge switch statement that takes care of all possible combinations
 	// of src and dst RGB colour space formats. The 'GRopsCases.cpp' code is generated
@@ -1290,7 +1028,7 @@ bool LgiRopRgb(uint8 *d, GColourSpace DstCs, uint8 *s, GColourSpace SrcCs, int x
 }
 
 /// Universal bit blt method
-bool LgiRopUniversal(GBmpMem *Dst, GBmpMem *Src)
+bool LgiRopUniversal(GBmpMem *Dst, GBmpMem *Src, bool Composite)
 {
 	if (!Dst || !Src)
 		return false;
@@ -1303,12 +1041,13 @@ bool LgiRopUniversal(GBmpMem *Dst, GBmpMem *Src)
 	int SrcBits = GColourSpaceToBits(Src->Cs);
 	int DstBits = GColourSpaceToBits(Dst->Cs);
 
-	if (Dst->Cs == Src->Cs)
+	if (Dst->Cs == Src->Cs && !Composite)
 	{
 		// No conversion idiom
 		uint8 *d = Dst->Base;
 		uint8 *s = Src->Base;
-		int Bytes = (SrcBits * Cx) >> 3;
+		int BytesPerPx = (SrcBits + 7) / 8;
+		int Bytes = BytesPerPx * Cx;
 		for (int y=0; y<Cy; y++)
 		{
 			memcpy(d, s, Bytes);
@@ -1326,18 +1065,19 @@ bool LgiRopUniversal(GBmpMem *Dst, GBmpMem *Src)
 
 		for (int y=0; y<Cy; y++)
 		{
-			if (!LgiRopRgb(d, Dst->Cs, s, Src->Cs, Cx))
+			if (!LgiRopRgb(d, Dst->Cs, s, Src->Cs, Cx, Composite))
 				return false;
 			d += Dst->Line;
 			s += Src->Line;
 		}
+		
 		return true;
 	}
 	else
 	{
 	}
 
-	LgiAssert(!"Unsupported pixel conversion.");
+	// LgiAssert(!"Unsupported pixel conversion.");
 	return false;
 }
 

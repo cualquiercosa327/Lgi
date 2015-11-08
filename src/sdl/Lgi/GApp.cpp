@@ -26,6 +26,7 @@
 
 #define DEBUG_MSG_TYPES				0
 #define DEBUG_HND_WARNINGS			0
+#define MOUSE_CAPTURE_POLL			100
 
 ////////////////////////////////////////////////////////////////
 struct OsAppArgumentsPriv
@@ -197,6 +198,9 @@ public:
 
 	// Update handling
 	GRect DirtyRect;
+	
+	// Mouse capture
+	SDL_TimerID CaptureId;
 
 	// Window stack
 	GArray<GWindow*> Stack;
@@ -214,6 +218,7 @@ public:
 
 	GAppPrivate() : Args(0, 0)
 	{
+		CaptureId = 0;
 		DirtyRect.ZOff(-1, -1);
 		CurEvent = 0;
 		GuiThread = LgiGetCurrentThread();
@@ -279,6 +284,7 @@ GApp::GApp(OsAppArguments &AppArgs, const char *name, GAppArguments *Args) :
 
 	#ifdef LINUX
 	signal(SIGSEGV, sighandler);
+	signal(SIGINT, sighandler);
 	#endif
 		
 	// We want our printf's NOW!
@@ -554,6 +560,12 @@ void GApp::OnSDLEvent(GMessage *m)
 					}
 					
 					d->DirtyRect.ZOff(-1, -1);
+					break;
+				}
+				case M_MOUSE_CAPTURE_POLL:
+				{
+					// Is there any way to get the position of the mouse outside the
+					// main window in SDL v1?
 					break;
 				}
 			}
@@ -986,6 +998,28 @@ GWindow *GApp::PopWindow()
 	AppWnd = d->Stack.Last();
 	d->Stack.Length(d->Stack.Length()-1);
 	return AppWnd;
+}
+
+Uint32 SDL_MouseCapture(Uint32 interval, GView *v)
+{
+	SDL_Event e;
+	e.type = SDL_USEREVENT;
+	e.user.code = M_MOUSE_CAPTURE_POLL;
+	SDL_PushEvent(&e);
+	return MOUSE_CAPTURE_POLL;
+}
+
+void GApp::CaptureMouse(bool capture)
+{
+	if (capture)
+	{
+		if (d->CaptureId == 0)
+			d->CaptureId = SDL_AddTimer(MOUSE_CAPTURE_POLL, (SDL_NewTimerCallback)SDL_MouseCapture, this);
+	}
+	else if (d->CaptureId)
+	{
+		SDL_RemoveTimer(d->CaptureId);
+	}
 }
 
 ////////////////////////////////////////////////////////////////

@@ -2,10 +2,12 @@
 #include "GDataGrid.h"
 #include "GEdit.h"
 #include "GCombo.h"
+#include "GClipBoard.h"
 
 enum Controls
 {
 	IDC_DELETE = 2000,
+	IDC_COPY,
 	IDC_EDIT,
 };
 #define M_DELETE_LATER		(M_USER+2000)
@@ -428,10 +430,30 @@ void GDataGrid::OnItemClick(GListItem *Item, GMouse &m)
 	if (m.IsContextMenu())
 	{
 		GSubMenu s;
+		s.AppendItem("Copy", IDC_COPY);
 		s.AppendItem("Delete", IDC_DELETE);
 		m.ToScreen();
 		switch (s.Float(this, m.x, m.y, m.Left()))
 		{
+			case IDC_COPY:
+			{
+				List<GListItem> Sel;
+				GetSelection(Sel);
+				GStringPipe p(256);
+				int Cols = GetColumns();
+				for (GListItem *i=Sel.First(); i; i=Sel.Next())
+				{
+					for (int c=0; c<Cols; c++)
+					{
+						p.Print("%s%s", c ? ", " : "", i->GetText(c));
+					}
+					p.Print("\n");
+				}
+				GClipBoard cb(this);
+				GAutoString a(p.NewStr());
+				cb.Text(a);
+				break;
+			}
 			case IDC_DELETE:
 			{
 				List<GListItem> Sel;
@@ -453,7 +475,7 @@ void GDataGrid::OnItemClick(GListItem *Item, GMouse &m)
 	else
 	{
 		int ClickCol = ColumnAtX(m.x);
-		if (ClickCol != d->Col)
+		if (ClickCol >= 0 && ClickCol != d->Col)
 		{
 			d->Create(ClickCol);
 		}

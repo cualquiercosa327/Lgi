@@ -240,7 +240,7 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 		SysFont->Transparent(true);
 		GDisplayString s(SysFont, "+");
 
-		if (m.Create(s.X() + 12, s.Y() + 2, 32))
+		if (m.Create(s.X() + 12, s.Y() + 2, System32BitColourSpace))
 		{
 			m.Colour(Rgb32(0x30, 0, 0xff));
 			m.Rectangle();
@@ -383,11 +383,11 @@ struct DragParams
 							int CurIdx = Map.Find(n);
 							if (CurIdx < 0)
 							{
-								CurIdx = Data.Length();
+								CurIdx = Map.Length();
 								Map.Add(n, CurIdx);
 							}
 							
-							printf("[%li][%li]='%s'\n", i, t, n.Get());
+							printf("[%li][%li]='%s' = %i\n", i, t, n.Get(), CurIdx);
 							DropItemFlavor &Fl = ItemFlavors.New();
 							Fl.Index = CurIdx;
 							Fl.ItemId = Item;

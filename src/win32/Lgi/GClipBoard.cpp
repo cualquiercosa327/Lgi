@@ -234,7 +234,7 @@ GSurface *GClipBoard::ConvertFromPtr(void *Ptr)
 			{
 				if (pDC->Create(Info->bmiHeader.biWidth,
 						Info->bmiHeader.biHeight,
-						max(Info->bmiHeader.biPlanes * Info->bmiHeader.biBitCount, 8)))
+						GBitsToColourSpace(max(Info->bmiHeader.biPlanes * Info->bmiHeader.biBitCount, 8))))
 				{
 					int Colours = 0;
 					char *Source = (char*) Info->bmiColors;
