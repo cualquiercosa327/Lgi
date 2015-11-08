@@ -441,6 +441,31 @@ struct DragParams
 										}
 										else LgiAssert(!"Wrong pointer size");
 									}
+									else if (!_stricmp(DropFormat, "public.file-url"))
+									{
+										GUri u((char*) Cp);
+										Boolean ret = false;
+										if (u.Protocol &&
+											!_stricmp(u.Protocol, "file") &&
+											u.Path &&
+											!_strnicmp(u.Path, "/.file/", 7))
+										{
+											// Decode File reference URL
+											CFURLRef url = CFURLCreateWithBytes(NULL, Cp, Len, kCFStringEncodingUTF8, NULL);
+											if (url)
+											{
+												UInt8 buffer[MAX_PATH];
+												ret = CFURLGetFileSystemRepresentation(url, true, buffer, sizeof(buffer));
+												if (ret)
+												{
+													*v = (char*)buffer;
+												}
+											}
+										}
+										
+										if (!ret) // Otherwise just pass the string along...
+											*v = (char*) Cp;
+									}
 									else
 									{
 										v->SetBinary(Len, Cp, true);
@@ -551,10 +576,13 @@ OSStatus GDragDropTarget::OnDragWithin(GView *v, DragRef Drag)
 		LgiAssert(v->d->AcceptedDropFormat.Get());
 	}
 
-	printf("kEventControlDragWithin %ix%i accept=%i class=%s\n",
+	printf("kEventControlDragWithin %ix%i accept=%i class=%s (",
 		param->Pt.x, param->Pt.y,
 		Accept,
 		v->GetClass());
+	for (char *f = param->Formats.First(); f; f = param->Formats.Next())
+		printf("%s ", f);
+	printf(")\n");
 	SetDragDropAction(Drag, param->Map(Accept));
 
 	return noErr;
@@ -587,7 +615,10 @@ OSStatus GDragDropTarget::OnDragReceive(GView *v, DragRef Drag)
 	}
 	else
 	{
-		printf("%s:%i - No accepted drop format. (view=%s)\n", _FL, v->GetClass());
+		printf("%s:%i - No accepted drop format. (view=%s, DropView=%p)\n",
+			_FL,
+			v->GetClass(),
+			DropView);
 		SetDragDropAction(Drag, kDragActionNothing);
 	}
 	
