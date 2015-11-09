@@ -130,6 +130,84 @@ GSurface *GSurface::SubImage(GRect r)
 	return s.Release();
 }
 
+template<typename Px>
+void SetAlphaPm(Px *src, int x, uint8 a)
+{
+	register uint8 *Lut = Div255Lut;
+	register Px *s = src;
+	register Px *e = s + x;
+	while (s < e)
+	{
+		s->r = Lut[s->r * a];
+		s->g = Lut[s->g * a];
+		s->b = Lut[s->b * a];
+		s->a = Lut[s->a * a];
+		s++;
+	}
+}
+
+template<typename Px>
+void SetAlphaNpm(Px *src, int x, uint8 a)
+{
+	register uint8 *Lut = Div255Lut;
+	register Px *s = src;
+	register Px *e = s + x;
+	while (s < e)
+	{
+		s->a = Lut[s->a * a];
+		s++;
+	}
+}
+
+bool GSurface::SetConstantAlpha(uint8 Alpha)
+{
+	bool HasAlpha = GColourSpaceHasAlpha(GetColourSpace());
+	if (!HasAlpha)
+		return false;
+	
+	if (!pMem || !pMem->Base)
+		return false;
+	
+	for (int y=0; y<pMem->y; y++)
+	{
+		uint8 *src = pMem->Base + (y * pMem->Line);
+		if (pMem->PreMul())
+		{
+			switch (pMem->Cs)
+			{
+				#define SetAlphaCase(px) \
+					case Cs##px: SetAlphaPm((G##px*)src, pMem->x, Alpha); break
+				SetAlphaCase(Rgba32);
+				SetAlphaCase(Bgra32);
+				SetAlphaCase(Argb32);
+				SetAlphaCase(Abgr32);
+				#undef SetAlphaCase
+				default:
+					LgiAssert(!"Unknown CS.");
+					break;
+			}
+		}
+		else
+		{
+			switch (pMem->Cs)
+			{
+				#define SetAlphaCase(px) \
+					case Cs##px: SetAlphaNpm((G##px*)src, pMem->x, Alpha); break
+				SetAlphaCase(Rgba32);
+				SetAlphaCase(Bgra32);
+				SetAlphaCase(Argb32);
+				SetAlphaCase(Abgr32);
+				#undef SetAlphaCase
+				default:
+					LgiAssert(!"Unknown CS.");
+					break;
+			}
+		}
+	}
+	
+	return true;	
+}
+
 OsBitmap GSurface::GetBitmap()
 {
 	#if WINNATIVE

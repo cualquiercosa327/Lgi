@@ -484,6 +484,10 @@ public:
 	/// Returns the surface of the alpha channel.
 	GSurface *AlphaDC() { return pAlphaDC; }
 
+	/// Lowers the alpha of the whole image to Alpha/255.0.
+	/// Only works on bitmaps with an alpha channel (i.e. CsRgba32 or it's variants)
+	bool SetConstantAlpha(uint8 Alpha);
+
 	// Create sub-images (that reference the memory of this object)
 	GSurface *SubImage(GRect r);
 	GSurface *SubImage(int x1, int y1, int x2, int y2)

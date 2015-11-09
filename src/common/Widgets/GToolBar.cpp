@@ -120,7 +120,6 @@ public:
 	{
 		bool Disabled;
 		GColour Back;
-		GArray<uint8> Valid;
 	};
 
 	GArray<CacheDC*> Cache;
@@ -137,16 +136,43 @@ public:
 		}
 		
 		CacheDC *dc = new CacheDC;
-		Cache.Add(dc);
-		dc->Disabled = Disabled;
-		dc->Back = Back;
-		bool Status = dc->Create(ImgLst->X(), ImgLst->Y(), GdcD->GetColourSpace());
-		if (Status)
+		if (dc)
 		{
-			dc->Colour(dc->Back);
-			dc->Rectangle();
+			dc->Disabled = Disabled;
+			dc->Back = Back;
+			
+			bool Status = dc->Create(ImgLst->X(), ImgLst->Y(), GdcD->GetColourSpace());
+			if (Status)
+			{
+				dc->Colour(dc->Back);
+				dc->Rectangle();
+				dc->Op(GDC_ALPHA);
+				
+				if (Disabled)
+				{
+					GMemDC tmp(ImgLst->X(), ImgLst->Y(), System32BitColourSpace);
+					tmp.Colour(0, 32);
+					tmp.Rectangle();
+					tmp.Op(GDC_ALPHA);
+					tmp.Blt(0, 0, ImgLst);
+					tmp.SetConstantAlpha(40);
+					
+					dc->Blt(0, 0, &tmp);
+				}
+				else
+				{
+					dc->Blt(0, 0, ImgLst);
+				}
+				
+				Cache.Add(dc);
+			}
+			else
+			{
+				delete dc;
+				LgiAssert(!"Create memdc failed.");
+			}
 		}
-		else LgiAssert(!"Create memdc failed.");
+		
 		return dc;
 	}
 
@@ -265,15 +291,6 @@ void GImageList::Draw(GSurface *pDC, int Dx, int Dy, int Image, GColour Backgrou
 
 	if (pDC->SupportsAlphaCompositing())
 	{
-		/*
-		GRect rDst;
-		rDst.ZOff(d->Sx-1, d->Sy-1);
-		rDst.Offset(Dx, Dy);
-
-		pDC->Colour(Background);
-		pDC->Rectangle(&rDst);
-		*/
-
 		int Old;
 		if (Disabled)
 			Old = pDC->Op(GDC_ALPHA, 40);
@@ -282,39 +299,9 @@ void GImageList::Draw(GSurface *pDC, int Dx, int Dy, int Image, GColour Backgrou
 		
 		pDC->Blt(Dx, Dy, this, &rSrc);
 		pDC->Op(Old);
-		
-		/*
-		printf("SupportsAlphaCompositing cache %s->%s\n",
-			GColourSpaceToString(GetColourSpace()),
-			GColourSpaceToString(pDC->GetColourSpace()));
-		*/
 	}
 	else
 	{
-		if (!Cache->Valid[Image])
-		{
-			// Create cache pixels
-			Cache->Valid[Image] = true;
-			
-			if (Disabled)
-				Cache->Op(GDC_ALPHA, 40);
-			else
-				Cache->Op(GDC_ALPHA);
-			/*
-			GApplicator *pApp = Cache->Applicator();
-			if (pApp)
-				pApp->SetVar(GAPP_ALPHA_A, Disabled ? 40 : 255);
-			*/
-
-			/*
-			printf("Creating cache %s->%s\n",
-				GColourSpaceToString(GetColourSpace()),
-				GColourSpaceToString(Cache->GetColourSpace()));
-			*/
-			
-			Cache->Blt(rSrc.x1, rSrc.y1, this, &rSrc);
-		}	
-		
 		pDC->Blt(Dx, Dy, Cache, &rSrc);
 	}
 }
