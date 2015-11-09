@@ -2615,6 +2615,11 @@ GList *AppWnd::GetFtpLog()
 	return d->Output->FtpLog;
 }
 
+GStream *AppWnd::GetBuildLog()
+{
+	return d->Output->Txt[AppWnd::BuildTab];
+}
+
 bool AppWnd::FindSymbol(const char *Sym, GArray<FindSymResult> &Results)
 {
 	d->FindSym.Search(Sym, Results);

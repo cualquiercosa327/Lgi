@@ -215,6 +215,7 @@ public:
 	GTree *GetTree();
 	GOptionsFile *GetOptions();
 	GList *GetFtpLog();
+	GStream *GetBuildLog();
 	IdeDoc *FindOpenFile(char *FileName);
 	IdeDoc *GotoReference(const char *File, int Line, bool CurIp, bool WithHistory = true);
 	bool FindSymbol(const char *Syn, GArray<FindSymResult> &Results);
