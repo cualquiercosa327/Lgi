@@ -1603,17 +1603,17 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 				}
 				else
 				{
-					printf("%s:%i - FSGetCatalogInfo failed (e=%i).\n", __FILE__, __LINE__, e);
+					printf("%s:%i - FSGetCatalogInfo failed (e=%i).\n", _FL, e);
 				}
 			}
 			else
 			{
-				printf("%s:%i - GetProcessBundleLocation failed (e=%i).\n", __FILE__, __LINE__, (int)s);
+				printf("%s:%i - GetProcessBundleLocation failed (e=%i).\n", _FL, (int)s);
 			}
 		}
 		else
 		{
-			printf("%s:%i - GetCurrentProcess failed (e=%i).\n", __FILE__, __LINE__, e);
+			printf("%s:%i - GetCurrentProcess failed (e=%i).\n", _FL, e);
 		}
 		
 		return Status;

@@ -214,7 +214,9 @@ class Gdb : public GDebugger, public GThread
 						ProcessId = Pid;
 					}
 					else
-						printf("Not setting pid: %i && %i\n", Pid > 0, ProcessId < 0);
+					{
+						printf("Not setting pid: pid=%i, processid=%i\n", Pid, ProcessId);
+					}
 					#else
 					LgiAssert(!"Impl me.");
 					#endif

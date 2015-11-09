@@ -274,7 +274,12 @@ void GImageList::Draw(GSurface *pDC, int Dx, int Dy, int Image, GColour Backgrou
 		pDC->Rectangle(&rDst);
 		*/
 
-		int Old = pDC->Op(GDC_ALPHA, Disabled ? 40 : -1);
+		int Old;
+		if (Disabled)
+			Old = pDC->Op(GDC_ALPHA, 40);
+		else
+			Old = pDC->Op(GDC_ALPHA, -1);
+		
 		pDC->Blt(Dx, Dy, this, &rSrc);
 		pDC->Op(Old);
 		
@@ -291,10 +296,15 @@ void GImageList::Draw(GSurface *pDC, int Dx, int Dy, int Image, GColour Backgrou
 			// Create cache pixels
 			Cache->Valid[Image] = true;
 			
-			Cache->Op(GDC_ALPHA);
+			if (Disabled)
+				Cache->Op(GDC_ALPHA, 40);
+			else
+				Cache->Op(GDC_ALPHA);
+			/*
 			GApplicator *pApp = Cache->Applicator();
 			if (pApp)
 				pApp->SetVar(GAPP_ALPHA_A, Disabled ? 40 : 255);
+			*/
 
 			/*
 			printf("Creating cache %s->%s\n",

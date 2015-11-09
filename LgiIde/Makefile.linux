@@ -4299,7 +4299,6 @@ VPATH=%.cpp \
 	../../../../CodeLib/libpng \
 	../include/linux \
 	../include/linux/Gtk \
-	./thread \
 	../../../../../../usr/include/gtk-2.0 \
 	../../../../../../usr/lib/x86_64-linux-gnu/gtk-2.0/include \
 	../../../../../../usr/include/atk-1.0 \

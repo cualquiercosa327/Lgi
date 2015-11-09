@@ -6,13 +6,13 @@
 #endif
 #include "GToken.h"
 
-GLibrary::GLibrary(const char *File)
+GLibrary::GLibrary(const char *File, bool Quiet)
 {
 	FileName = 0;
 	hLib = 0;
 	if (File)
 	{
-		Load(File);	
+		Load(File, Quiet);	
 	}
 }
 
@@ -21,7 +21,7 @@ GLibrary::~GLibrary()
 	Unload();
 }
 
-bool GLibrary::Load(const char *File)
+bool GLibrary::Load(const char *File, bool Quiet)
 {
 	Unload();
 
@@ -91,7 +91,7 @@ bool GLibrary::Load(const char *File)
 				if (!hLib)
 				{
 					char *e = dlerror();
-					if (!stristr(e, "No such file or directory"))
+					if (!stristr(e, "No such file or directory") && !Quiet)
 						printf("GLibrary::Load(\"%s\") failed.\n\t%s\n", File, e);
 
 					GToken t("/opt/local/lib", ":");
@@ -106,18 +106,19 @@ bool GLibrary::Load(const char *File)
 							#else
 							hLib = dlopen(full, RTLD_NOW);
 							#endif
-							printf("dlopen(%s)=%p\n", full, hLib);
+							if (!Quiet)
+								printf("dlopen(%s)=%p\n", full, hLib);
 							if (hLib)
 								break;
 						}
-						else
+						else if (!Quiet)
 						{
 							printf("%s doesn't exist\n", full);
 						}
 
 					}
 
-					if (!hLib)
+					if (!hLib && !Quiet)
 					{
 						char *e = dlerror();
 						if (!stristr(e, "No such file or directory"))

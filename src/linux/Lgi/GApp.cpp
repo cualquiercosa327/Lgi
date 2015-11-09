@@ -833,7 +833,7 @@ GLibrary *GApp::GetWindowManagerLib()
 		strcat(Lib, "d");
 		#endif
 		
-		d->WmLib = new GLibrary(Lib);
+		d->WmLib = new GLibrary(Lib, true);
 		if (d->WmLib)
 		{
 			if (d->WmLib->IsLoaded())
@@ -846,15 +846,13 @@ GLibrary *GApp::GetWindowManagerLib()
 					Params.Args = d->Args.Args;
 					Params.Arg = d->Args.Arg;
 					
-					// printf("%s:%i - Params = %p, %i, %p\n", _FL, Params.Dsp, Params.Args, Params.Arg);
-					
 					WmInit(&Params);
 				}
-				else printf("%s:%i - Failed to find method 'LgiWmInit' in WmLib.\n", __FILE__, __LINE__);
+				// else printf("%s:%i - Failed to find method 'LgiWmInit' in WmLib.\n", __FILE__, __LINE__);
 			}
 			// else printf("%s:%i - couldn't load '%s.so'\n", __FILE__, __LINE__, Lib);
 		}
-		else printf("%s:%i - alloc error\n", __FILE__, __LINE__);
+		// else printf("%s:%i - alloc error\n", __FILE__, __LINE__);
 	}
 	
 	return d->WmLib && d->WmLib->IsLoaded() ? d->WmLib : 0;

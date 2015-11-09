@@ -19,7 +19,7 @@
 #include "GStringClass.h"
 #include "GDebugger.h"
 
-#define LgiIdeVer				0.0
+#define LgiIdeVer				"1.0.0"
 
 #define DEBUG_FIND_DEFN			0
 
@@ -215,6 +215,7 @@ public:
 	GTree *GetTree();
 	GOptionsFile *GetOptions();
 	GList *GetFtpLog();
+	GStream *GetBuildLog();
 	IdeDoc *FindOpenFile(char *FileName);
 	IdeDoc *GotoReference(const char *File, int Line, bool CurIp, bool WithHistory = true);
 	bool FindSymbol(const char *Syn, GArray<FindSymResult> &Results);
