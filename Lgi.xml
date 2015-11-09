@@ -153,7 +153,7 @@
 			<Node File="./src/common/Lgi/Lgi.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Lgi/LgiMsg.cpp" Type="2" Platforms="15" />
 		</Node>
-		<Node Name="Dialogs" Type="1" Platforms="15" Open="0">
+		<Node Name="Dialogs" Type="1" Platforms="15" Open="1">
 			<Node Name="Xp" Type="1" Platforms="15" Open="1">
 				<Node File="./src/common/Lgi/GFileSelect.cpp" Type="2" Platforms="14" />
 			</Node>
@@ -330,7 +330,7 @@
 				<Node File="./src/win32/Widgets/GProgress.cpp" Type="2" Platforms="1" />
 				<Node File="./src/win32/Lgi/GScrollBar.cpp" Type="2" Platforms="1" />
 			</Node>
-			<Node Name="Layout" Type="1" Platforms="15" Open="1">
+			<Node Name="Layout" Type="1" Platforms="15" Open="0">
 				<Node File="./src/common/Widgets/GBox.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GBox.h" Type="3" Platforms="15" />
 				<Node File="./include/common/GDisplayStringLayout.h" Type="3" Platforms="15" />

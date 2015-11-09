@@ -36,6 +36,7 @@ public:
 	bool			InPour;
 	int64			DropSelectTime;
     int8            IconTextGap;
+    int				LastLayoutPx;
     
     // Visual style
 	GTree::ThumbStyle Btns;
@@ -48,6 +49,7 @@ public:
 
 	GTreePrivate()
 	{
+		LastLayoutPx = -1;
 		DropSelectTime = 0;
 		InPour = false;
 		LastHit = 0;
@@ -583,6 +585,10 @@ void GTreeItem::_Pour(GdcPt2 *Limit, int ColumnPx, int Depth, bool Visible)
 
 		d->Pos.ZOff(ColumnPx - 1, (Ds ? max(Height, Ds->Y()) : Height) - 1);
 		d->Pos.Offset(0, Limit->y);
+		if (!d->Pos.Valid())
+		{
+			printf("Invalid pos: %s, ColumnPx=%i\n", d->Pos.GetStr(), ColumnPx);
+		}
 
 		Limit->x = max(Limit->x, d->Pos.x2 + 1);
 		Limit->y = max(Limit->y, d->Pos.y2 + 1);
@@ -701,7 +707,7 @@ void GTreeItem::OnExpand(bool b)
 	_Visible(b);
 }
 
-GTreeItem *GTreeItem::_HitTest(int x, int y)
+GTreeItem *GTreeItem::_HitTest(int x, int y, bool Debug)
 {
 	GTreeItem *Status = 0;
 
@@ -715,7 +721,7 @@ GTreeItem *GTreeItem::_HitTest(int x, int y)
 	{
 		for (GTreeItem *i=Items.First(); i && !Status; i=Items.Next())
 		{
-			Status = i->_HitTest(x, y);
+			Status = i->_HitTest(x, y, Debug);
 		}
 	}
 
@@ -1155,11 +1161,17 @@ void GTree::_Pour()
 	if (Columns.Length())
 	{
 		for (int i=0; i<Columns.Length(); i++)
-			ColumnPx += Columns[i]->Width();
+		{
+			GItemColumn *c = Columns[i];
+			ColumnPx += c->Width();
+			printf("c->Width()=%i\n", c->Width());
+		}
 	}
 	else
 	{
-		ColumnPx = GetClient().X();
+		ColumnPx = d->LastLayoutPx = GetClient().X();
+		if (ColumnPx < 16)
+			ColumnPx = 16;
 	}
 
 	GTreeItem *n;
@@ -1437,13 +1449,13 @@ bool GTree::OnKey(GKey &k)
 	return Status;
 }
 
-GTreeItem *GTree::ItemAtPoint(int x, int y)
+GTreeItem *GTree::ItemAtPoint(int x, int y, bool Debug)
 {
 	GdcPt2 s = _ScrollPos();
 
 	for (GTreeItem *i = Items.First(); i; i=Items.Next())
 	{
-		GTreeItem *Hit = i->_HitTest(s.x + x, s.y + y);
+		GTreeItem *Hit = i->_HitTest(s.x + x, s.y + y, Debug);
 		if (Hit)
 		{
 			return Hit;
@@ -1514,7 +1526,7 @@ void GTree::OnMouseClick(GMouse &m)
 			d->LastClick.x = m.x;
 			d->LastClick.y = m.y;
 
-			d->LastHit = ItemAtPoint(m.x, m.y);
+			d->LastHit = ItemAtPoint(m.x, m.y, true);
 			if (d->LastHit)
 			{
 				GdcPt2 c = _ScrollPos();
@@ -1606,6 +1618,9 @@ void GTree::OnMouseMove(GMouse &m)
 
 void GTree::OnPosChange()
 {
+	if (Columns.Length() == 0 &&
+		d->LastLayoutPx != GetClient().X())
+		d->LayoutDirty = true;
 	GLayout::OnPosChange();
 	_UpdateScrollBars();
 }

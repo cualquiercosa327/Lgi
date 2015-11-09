@@ -87,7 +87,7 @@ protected:
 	void _Remove();
 	void _MouseClick(GMouse &m);
 	void _SetTreePtr(GTree *t);
-	GTreeItem *_HitTest(int x, int y);
+	GTreeItem *_HitTest(int x, int y, bool Debug = false);
 	GRect *_GetRect(GTreeItemRect Which);
 	GdcPt2 _ScrollPos();
 	GTreeItem *Item() { return this; }
@@ -223,7 +223,7 @@ public:
 	/// Returns the first selected item
 	GTreeItem *Selection();
 	/// Returns the item at an x,y location
-	GTreeItem *ItemAtPoint(int x, int y);
+	GTreeItem *ItemAtPoint(int x, int y, bool Debug = false);
 	/// Temporarily selects one of the items as the drop target during a
 	/// drag and drop operation. Call SelectDropTarget(0) when done.
 	void SelectDropTarget(GTreeItem *Item);
