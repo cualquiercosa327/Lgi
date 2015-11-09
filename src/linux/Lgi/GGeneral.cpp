@@ -97,24 +97,26 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 				NULL,
 				Gtk::GTK_DIALOG_DESTROY_WITH_PARENT,
 				Gtk::GTK_MESSAGE_ERROR,
-				Gtk::GTK_BUTTONS_YES_NO,
-				"%s:%i - Assert failed:\n%s\n\nYes: Break, No: Quit",
+				Gtk::GTK_BUTTONS_NONE,
+				"%s:%i - Assert failed:\n%s",
 				file, line,
 				test
 			);
-		Result = Gtk::gtk_dialog_run(GtkCast(dialog, gtk_dialog, GtkDialog));
+		Gtk::GtkDialog *dlg = GtkCast(dialog, gtk_dialog, GtkDialog);		
+		Gtk::gtk_dialog_add_buttons(dlg, "Break", 1, "Quit", 2, "Ignore", 3, NULL);
+		Result = Gtk::gtk_dialog_run(dlg);
 		Gtk::gtk_widget_destroy(dialog);
 		#endif
 
 		switch (Result)
 		{
-			case Gtk::GTK_RESPONSE_YES:
+			case 1:
 			{
 				int *i = NULL;
 				*i = 0;
 				break;
 			}
-			case Gtk::GTK_RESPONSE_NO:
+			case 2:
 			{
 				exit(-1);
 				break;

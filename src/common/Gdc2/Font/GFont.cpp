@@ -1711,7 +1711,6 @@ bool GFontType::GetSystemFont(const char *Which)
 			}
 			else printf("Can't read '%s'\n", p);
 		}
-		else printf("'%s' doesn't exist\n", p);
 		
 		if (!ConfigFontUsed)
 		{	

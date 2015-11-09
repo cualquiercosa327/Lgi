@@ -1845,7 +1845,10 @@ void GTextView3::SetCursor(int i, bool Select, bool ForceFullUpdate)
 		}
 		else
 		{
-			printf("%s,%i - Couldn't get SLine and ELine (%i, %i)\n", _FL, Start, End);
+			printf("%s,%i - Couldn't get SLine and ELine: %i->%p, %i->%p\n",
+				_FL,
+				Start, SLine,
+				End, ELine);
 			u = Client;
 		}
 
@@ -2589,7 +2592,7 @@ int GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bool Sel
 
 bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly)
 {
-	printf("%s:%i - OnFind(%S, %i, %i, %i)\n", _FL, Find, MatchWord, MatchCase, SelectionOnly);
+	// printf("%s:%i - OnFind(%S, %i, %i, %i)\n", _FL, Find, MatchWord, MatchCase, SelectionOnly);
 	int Loc = MatchText(Find, MatchWord, MatchCase, SelectionOnly);
 	if (Loc >= 0)
 	{

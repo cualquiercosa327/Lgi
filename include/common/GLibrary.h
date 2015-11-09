@@ -28,7 +28,7 @@ class LgiClass GLibrary
 	_SysLibHandle hLib;
 
 public:
-	GLibrary(const char *File = 0);
+	GLibrary(const char *File = 0, bool Quiet = false);
 	virtual ~GLibrary();
 
 	_SysLibHandle Handle() { return hLib; }
@@ -42,7 +42,7 @@ public:
 		#endif
 	}
 
-	bool Load(const char *File);
+	bool Load(const char *File, bool Quiet = false);
 	bool Unload();
 	void *GetAddress(const char *Resource);
 };

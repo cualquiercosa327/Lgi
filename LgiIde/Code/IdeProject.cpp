@@ -1603,7 +1603,7 @@ public:
 		}
 		else if (m.Left())
 		{
-			if (m.Double())
+			if (Type != NodeDir && m.Double())
 			{
 				if
 				(
@@ -1630,7 +1630,7 @@ public:
 				}
 				else
 				{
-					LgiTrace("%s:%i - Unknown file type '%i'\n", _FL, Type);
+					LgiAssert(!"Unknown file type");
 				}
 			}
 		}
@@ -3964,6 +3964,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 								for (int i=0; i<SrcDeps.Length(); i++)
 								{
 									const char *SDep = SrcDeps[i];
+									
 									if (stricmp(Src.Get(), SDep) != 0)
 									{
 										if (i) m.Print(" \\\n\t");
@@ -4043,12 +4044,14 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 									
 									if (n) m.Print(" \\\n\t");
 									
-									char Rel[256];
+									char Rel[MAX_PATH];
 									if (!RelativePath(Rel, i))
 									{
 				 						strcpy(Rel, i);
 									}
-									m.Print("%s", ToUnixPath(Rel));
+
+									if (stricmp(i, Full) != 0)
+										m.Print("%s", ToUnixPath(Rel));
 									
 									if (!DepFiles.Find(i))
 									{

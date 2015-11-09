@@ -1593,6 +1593,7 @@ IdeDoc *AppWnd::GotoReference(const char *File, int Line, bool CurIp, bool WithH
 	{
 		Doc->SetLine(Line, CurIp);
 	}
+	else LgiTrace("%s:%i - No file '%s' found.\n", _FL, File);
 
 	if (!WithHistory)
 		d->InHistorySeek = true;
@@ -2803,7 +2804,7 @@ void Test()
 
 int LgiMain(OsAppArguments &AppArgs)
 {
-	printf("LgiIde v%.2f\n", LgiIdeVer);
+	printf("LgiIde v%s\n", LgiIdeVer);
 	GApp a(AppArgs, "LgiIde");
 	if (a.IsOk())
 	{

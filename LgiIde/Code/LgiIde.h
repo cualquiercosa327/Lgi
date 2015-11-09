@@ -19,7 +19,7 @@
 #include "GStringClass.h"
 #include "GDebugger.h"
 
-#define LgiIdeVer				0.0
+#define LgiIdeVer				"1.0.0"
 
 #define DEBUG_FIND_DEFN			0
 

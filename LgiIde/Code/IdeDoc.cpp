@@ -505,6 +505,33 @@ public:
 		SetEnv(0);
 	}
 
+	bool DoGoto()
+	{
+		GInput Dlg(this, "", LgiLoadString(L_TEXTCTRL_GOTO_LINE, "Goto [file:]line:"), "Text");
+		if (Dlg.DoModal() != IDOK || !ValidStr(Dlg.Str))
+			return false;
+
+		GString s = Dlg.Str.Get();
+		GString::Array p = s.SplitDelimit(":,");
+		if (p.Length() == 2)
+		{
+			GString file = p[0];
+			int line = p[1].Int();
+			Doc->GetApp()->GotoReference(file, line, false, true);
+		}
+		else if (p.Length() == 1)
+		{
+			int line = p[0].Int();
+			if (line > 0)
+			{
+				SetLine(line);
+			}
+			else printf("%s:%i - Error: no line number.\n", _FL);
+		}
+		
+		return true;
+	}
+
 	int GetTopPaddingPx()
 	{
 		return GetCss(true)->PaddingTop().ToPx(GetClient().Y(), GetFont());
