@@ -3963,7 +3963,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 							{
 								for (int i=0; i<SrcDeps.Length(); i++)
 								{
-									const char *SDep = SrcDeps[i];
+									char *SDep = SrcDeps[i];
 									
 									if (stricmp(Src.Get(), SDep) != 0)
 									{
