@@ -1267,17 +1267,20 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 
 			Path = WinGetSpecialFolderPath(CSIDL_DESKTOPDIRECTORY);
 			
-			#elif defined MAC && !defined COCOA
+			#elif defined(MAC)
 			
-			FSRef Ref;
-			OSErr e = FSFindFolder(kOnAppropriateDisk, kDesktopFolderType, kDontCreateFolder, &Ref);
-			if (e) printf("%s:%i - FSFindFolder failed e=%i\n", __FILE__, __LINE__, e);
-			else
-			{
-				GAutoString u = FSRefPath(Ref);
-				if (u)
-					Path = u.Get();
-			}
+				#if defined COCOA
+				#else
+				FSRef Ref;
+				OSErr e = FSFindFolder(kOnAppropriateDisk, kDesktopFolderType, kDontCreateFolder, &Ref);
+				if (e) printf("%s:%i - FSFindFolder failed e=%i\n", __FILE__, __LINE__, e);
+				else
+				{
+					GAutoString u = FSRefPath(Ref);
+					if (u)
+						Path = u.Get();
+				}
+				#endif
 
 			#elif defined POSIX
 
@@ -1287,10 +1290,15 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 				#ifdef LINUX
 				WindowManager wm = LgiGetWindowManager();
 				if (wm == WM_Gnome)
+				{
 					Path.Printf("%s/.gnome-desktop", pw->pw_dir);
-				else
+				}
 				#endif
+
+				if (!DirExists(Path))
+				{
 					Path.Printf("%s/Desktop", pw->pw_dir);
+				}
 			}
 
 			#elif defined BEOS
