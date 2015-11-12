@@ -5798,10 +5798,12 @@ void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderP
 			Corners->Rectangle();
 
 			GPointF ctr(Px, Px);
-			GPointF LeftPt(0.0, Px + BorderPx->y1);
-			GPointF TopPt(Px + BorderPx->x1, 0.0);
-			GPointF RightPt(Corners->X(), Px + BorderPx->y1);
-			GPointF BottomPt(Px + BorderPx->x1, Corners->Y());
+			GPointF LeftPt(0.0, Px);
+			GPointF TopPt(Px, 0.0);
+			GPointF RightPt(Corners->X(), Px);
+			GPointF BottomPt(Px, Corners->Y());
+			int x_px[4] = {BorderPx->x1, BorderPx->x2, BorderPx->x2, BorderPx->x1};
+			int y_px[4] = {BorderPx->y1, BorderPx->y1, BorderPx->y2, BorderPx->y2};
 			GPointF *pts[4] = {&LeftPt, &TopPt, &RightPt, &BottomPt};
 			GCss::BorderDef *defs[4] = {&Left, &Top, &Right, &Bottom};
 			
@@ -5809,8 +5811,6 @@ void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderP
 			for (int i=0; i<4; i++)
 			{
 				int k = (i + 1) % 4;
-				if (!defs[i]->IsValid() && !defs[k]->IsValid())
-					continue;
 
 				// Setup the stops					
 				GBlendStop stops[2] = { {0.0, 0}, {1.0, 0} };
@@ -5842,14 +5842,31 @@ void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderP
 				// Setup the clip
 				GRect clip(	(int)min(pts[i]->x, pts[k]->x),
 							(int)min(pts[i]->y, pts[k]->y),
-							(int)max(pts[i]->x, pts[k]->x),
-							(int)max(pts[i]->y, pts[k]->y));
+							(int)max(pts[i]->x, pts[k]->x)-1,
+							(int)max(pts[i]->y, pts[k]->y)-1);
 				Corners->ClipRgn(&clip);
 				
 				// Draw the arc...
 				GPath p;
-				p.Ellipse(ctr, abs(pts[i]->x-pts[k]->x), abs(pts[i]->y-pts[k]->y));
-				p.Fill(Corners, br);
+				p.Circle(ctr, Px);
+				if (defs[i]->IsValid() || defs[k]->IsValid())
+					p.Fill(Corners, br);
+				
+				// Fill the background
+				p.Empty();
+				p.Ellipse(ctr, Px-x_px[i], Px-y_px[i]);
+				if (DrawBackground)
+				{
+					GSolidBrush br(Back);
+					p.Fill(Corners, br);					
+				}
+				else
+				{
+					GEraseBrush br;
+					p.Fill(Corners, br);
+				}
+				
+				Corners->ClipRgn(NULL);
 			}
 			
 			#if 0
@@ -5858,23 +5875,6 @@ void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderP
 			file.Printf("c:\\temp\\img-%i.bmp", ++count);
 			GdcD->Save(file, Corners);
 			#endif
-			
-			GPath p;
-			p.Circle(ctr, Px);
-			Corners->ClipRgn(NULL);
-
-			if (DrawBackground)
-			{
-				// Draw background
-				GSolidBrush br(Back);
-				p.Fill(Corners, br);
-			}
-			else
-			{
-				// Erase background
-				GEraseBrush br;
-				p.Fill(Corners, br);
-			}
 		}
 	}
 
@@ -5889,38 +5889,33 @@ void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderP
 
 	for (unsigned i=0; i<r.Length(); i++)
 	{
-		GRect rc = r[i];
-		int x[2] = {Px + BorderPx->x1, Px + BorderPx->x2};
-		int y[2] = {Px + BorderPx->y1, Px + BorderPx->y2};
-		
+		GRect rc = r[i];		
 		if (Corners)
 		{
 			// top left
-			GRect r(0, 0, x[0]-1, y[0]-1);
+			GRect r(0, 0, Px-1, Px-1);
 			pDC->Blt(rc.x1, rc.y1, Corners, &r);
 			
 			// top right
-			r.Set(x[0], 0, Corners->X()-1, y[0]-1);
-			pDC->Blt(rc.x2-x[1]+1, rc.y1, Corners, &r);
+			r.Set(Px, 0, Corners->X()-1, Px-1);
+			pDC->Blt(rc.x2-Px+1, rc.y1, Corners, &r);
 			
 			// bottom left
-			r.Set(0, Px+BorderPx->y1, BorderPx->x1+Px-1, Corners->Y()-1);
-			// pDC->Blt(rc.x1, rc.y2-Px+1, Corners, &r);
+			r.Set(0, Px, Px-1, Corners->Y()-1);
+			pDC->Blt(rc.x1, rc.y2-Px+1, Corners, &r);
 			
 			// bottom right
-			r.Set(Px+BorderPx->x1, Px+BorderPx->y1, Corners->X()-1, Corners->Y()-1);
-			// pDC->Blt(rc.x2-Px+1, rc.y2-Px+1, Corners, &r);
+			r.Set(Px, Px, Corners->X()-1, Corners->Y()-1);
+			pDC->Blt(rc.x2-Px+1, rc.y2-Px+1, Corners, &r);
 			
-			#if 0
+			#if 1
 			pDC->Colour(Back);
 			#else
 			pDC->Colour(GColour(255, 0, 0, 40));
 			#endif
-			pDC->Rectangle(rc.x1+x[0], rc.y1+BorderPx->y1, rc.x2-x[1], rc.y2-BorderPx->y2);
-			/*
+			pDC->Rectangle(rc.x1+Px, rc.y1, rc.x2-Px, rc.y2);
 			pDC->Rectangle(rc.x1, rc.y1+Px, rc.x1+Px-1, rc.y2-Px);
-			pDC->Rectangle(rc.x2-Px+1, rc.y1+Px+1, rc.x2, rc.y2-Px);
-			*/
+			pDC->Rectangle(rc.x2-Px+1, rc.y1+Px, rc.x2, rc.y2-Px);
 		}
 		else if (DrawBackground)
 		{
@@ -5929,23 +5924,6 @@ void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderP
 		}
 
 		GCss::BorderDef *b;
-		if ((b = &Top)->IsValid())
-		{
-			#if 0
-			pDC->Colour(b->Color.Rgb32, 32);
-			#else
-			pDC->Colour(GColour(255, 0, 0, 40));
-			#endif
-						
-			DrawBorder db(pDC, *b);
-			for (int i=0; i<b->Value; i++)
-			{
-				pDC->LineStyle(db.LineStyle, db.LineReset);
-				pDC->Line(rc.x1+x[0], rc.y1 + i, rc.x2-x[1], rc.y1 + i);
-			}
-		}
-
-		/*
 		if ((b = &Left)->IsValid())
 		{
 			pDC->Colour(b->Color.Rgb32, 32);
@@ -5953,7 +5931,17 @@ void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderP
 			for (int i=0; i<b->Value; i++)
 			{
 				pDC->LineStyle(db.LineStyle, db.LineReset);
-				pDC->Line(rc.x1 + i, rc.y1+Px, rc.x1 + i, rc.y2-Px);
+				pDC->Line(rc.x1 + i, rc.y1+Px, rc.x1+i, rc.y2-Px);
+			}
+		}
+		if ((b = &Top)->IsValid())
+		{
+			pDC->Colour(b->Color.Rgb32, 32);
+			DrawBorder db(pDC, *b);
+			for (int i=0; i<b->Value; i++)
+			{
+				pDC->LineStyle(db.LineStyle, db.LineReset);
+				pDC->Line(rc.x1+Px, rc.y1+i, rc.x2-Px, rc.y1+i);
 			}
 		}
 		if ((b = &Right)->IsValid())
@@ -5963,7 +5951,7 @@ void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderP
 			for (int i=0; i<b->Value; i++)
 			{
 				pDC->LineStyle(db.LineStyle, db.LineReset);
-				pDC->Line(rc.x2 - i, rc.y1 + Px + 1, rc.x2 - i, rc.y2 - Px - 1);
+				pDC->Line(rc.x2-i, rc.y1+Px, rc.x2-i, rc.y2-Px);
 			}			
 		}
 		if ((b = &Bottom)->IsValid())
@@ -5973,10 +5961,9 @@ void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderP
 			for (int i=0; i<b->Value; i++)
 			{
 				pDC->LineStyle(db.LineStyle, db.LineReset);
-				pDC->Line(rc.x1+Px, rc.y2 - i, rc.x2-Px-1, rc.y2 - i);
+				pDC->Line(rc.x1+Px, rc.y2-i, rc.x2-Px, rc.y2-i);
 			}
 		}
-		*/
 	}
 
 	pDC->Op(Op);
