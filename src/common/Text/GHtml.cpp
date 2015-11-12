@@ -5730,6 +5730,30 @@ struct DrawBorder
 	}
 };
 
+void GTag::GetInlineRegion(GRegion &rgn)
+{
+	if (TagId == TAG_IMG)
+	{
+		GRect rc(0, 0, Size.x-1, Size.y-1);
+		rc.Offset(Pos.x, Pos.y);
+		rgn.Union(&rc);
+	}
+	else
+	{
+		for (unsigned i=0; i<TextPos.Length(); i++)
+		{
+			GRect rc = *(TextPos[i]);
+			rgn.Union(&rc);
+		}
+	}
+	
+	for (unsigned c=0; c<Children.Length(); c++)
+	{
+		GTag *ch = ToTag(Children[c]);
+		ch->GetInlineRegion(rgn);
+	}
+}
+
 void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderPx)
 {
 	GArray<GRect> r;
@@ -5762,13 +5786,23 @@ void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderP
 		}
 		case DispInline:
 		{
-			for (unsigned i=0; i<TextPos.Length(); i++)
+			if (Debug)
 			{
-				GRect rc = *(TextPos[i]);
-				rc.x1 -= BorderPx->x1;
-				rc.y1 -= BorderPx->y1;
-				rc.x2 += BorderPx->x2;
-				rc.y2 += BorderPx->y2;
+				int asd=0;
+			}
+			GRegion rgn;
+			GetInlineRegion(rgn);
+			rgn.Simplify(false);
+			for (unsigned i=0; i<rgn.Length(); i++)
+			{
+				GRect rc = *rgn[i];
+				if (BorderPx)
+				{
+					rc.x1 -= BorderPx->x1;
+					rc.y1 -= BorderPx->y1;
+					rc.x2 += BorderPx->x2;
+					rc.y2 += BorderPx->y2;
+				}
 				r.New() = rc;
 			}
 			break;
@@ -5881,11 +5915,6 @@ void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderP
 	// Loop over the rectangles and draw everything
 	bool IsAlpha = Back.a() < 0xff;
 	int Op = pDC->Op(GDC_ALPHA);
-
-	if (Debug)
-	{
-		int asd=0;
-	}
 
 	for (unsigned i=0; i<r.Length(); i++)
 	{

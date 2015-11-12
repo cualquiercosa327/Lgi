@@ -677,6 +677,59 @@ void GRegion::Subtract(GRect *b)
 	}	
 }
 
+void GRegion::Simplify(bool PerfectlyAlignOnly)
+{
+	int Merges;
+	
+	do
+	{
+		Merges = 0;
+		for (register int i=0; i<Size; i++)
+		{
+			for (register int n=i+1; n<Size; n++)
+			{
+				register GRect *r1 = a + i;
+				register GRect *r2 = a + n;
+				bool Merge = false;
+
+				if (r1->x2 == r2->x1 - 1 ||
+					r1->x1 == r2->x2 + 1)
+				{
+					// vertical edge matches... check y axis
+					if (PerfectlyAlignOnly)
+						Merge = r1->y1 == r2->y1 && r1->y2 == r2->y2;
+					else
+						Merge = !(r1->y2 < r2->y1 || r1->y1 > r2->y2);
+				}
+				else if (r1->y2 == r2->y1 - 1 ||
+						 r1->y1 == r2->y2 + 1)
+				{
+					// Horizontal edge matches... check x axis
+					if (PerfectlyAlignOnly)
+						Merge = r1->x1 == r2->x1 && r1->x2 == r2->x2;
+					else
+						Merge = !(r1->x2 < r2->x1 || r1->x1 > r2->x2);
+				}
+				if (Merge)
+				{
+					// Merge the 2 rects
+					r1->Union(r2);
+					
+					// Delete the 2nd one
+					GRect *Last = a + Size - 1;
+					if (Last != r2)
+						*r2 = *Last;
+					Size--;
+					Merges++;
+					i = Size;
+					n = Size;
+				}
+			}
+		}
+	}
+	while (Merges > 0);
+}
+
 bool operator ==(GRegion &a, GRegion &b)
 {
 	return false;
