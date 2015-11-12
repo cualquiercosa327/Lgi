@@ -399,6 +399,8 @@ public:
 	void SetStyle();
 	/// Called to apply CSS selectors on initialization and also when properties change at runtime.
 	void Restyle();
+	/// Recursively call restyle on all nodes in the doc tree
+	void RestyleAll();
 	
 	/// Takes the CSS styles, parses and stores them in the current object,
 	//// overwriting any duplicate properties.
