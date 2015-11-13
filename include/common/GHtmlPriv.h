@@ -399,6 +399,8 @@ public:
 	void SetStyle();
 	/// Called to apply CSS selectors on initialization and also when properties change at runtime.
 	void Restyle();
+	/// Recursively call restyle on all nodes in the doc tree
+	void RestyleAll();
 	
 	/// Takes the CSS styles, parses and stores them in the current object,
 	//// overwriting any duplicate properties.
@@ -413,6 +415,8 @@ public:
 		GColour &Back,
 		/// [Optional] The size of the border painted
 		GRect *Px = NULL);
+	/// This fills 'rgn' with all the rectangles making up the inline tags region
+	void GetInlineRegion(GRegion &rgn);
 	void OnPaint(GSurface *pDC, bool &InSelection);
 	void SetSize(GdcPt2 &s);
 	void SetTag(const char *Tag);

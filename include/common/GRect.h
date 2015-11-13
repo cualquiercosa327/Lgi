@@ -266,9 +266,13 @@ LgiClass bool operator !=(GRect &a, GRect &b);
 /// A region is a list of non-overlapping rectangles that can describe any shape
 class LgiClass GRegion : public GRect
 {
+	/// Current number of stored rectangles
 	int Size;
+	/// The size of the memory allocated for rectangle
 	int Alloc;
+	/// The current index (must be >= 0 and < Size)
 	int Current;
+	/// The array of rectangles
 	GRect *a;
 
 	bool SetSize(int s);
@@ -308,6 +312,15 @@ public:
 	void Union(GRect *a);
 	void Intersect(GRect *a);
 	void Subtract(GRect *a);
+	
+	/// This joins adjacent blocks into one rect where possible
+	void Simplify
+	(
+		/// If this is set only blocks that are align perfectly will be
+		/// merged. Otherwise any adjacent block will be merged as a union
+		/// of the 2 blocks. Resulting in a larger region than before.
+		bool PerfectlyAlignOnly
+	);
 
 	friend bool operator ==(GRegion &a, GRegion &b);
 	friend bool operator !=(GRegion &a, GRegion &b);
