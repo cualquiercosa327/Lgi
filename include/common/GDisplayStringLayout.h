@@ -176,7 +176,13 @@ struct GDisplayStringLayout
 		return true;
 	}
 	
-	void Paint(GSurface *pDC, GFont *f, GRect &rc, GColour &Fore, GColour &Back, bool Enabled)
+	void Paint(	GSurface *pDC,
+				GFont *f,
+				GdcPt2 pt,
+				GRect &rc,
+				GColour &Fore,
+				GColour &Back,
+				bool Enabled)
 	{
 		GRegion Rgn(rc);
 		
@@ -190,7 +196,7 @@ struct GDisplayStringLayout
 		}
 
 		// Draw all the text
-		int y = rc.y1;
+		int y = pt.y;
 		for (unsigned i=0; i<Strs.Length(); i++)
 		{
 			GDisplayString *s = Strs[i];
@@ -205,11 +211,11 @@ struct GDisplayStringLayout
 			{
 				f->Transparent(Back.Transparent());
 				f->Colour(GColour(LC_LIGHT, 24), Back);
-				s->Draw(pDC, rc.x1+1, y+1, &r);
+				s->Draw(pDC, pt.x+1, y+1, &r);
 				
 				f->Transparent(true);
 				f->Colour(LC_LOW, LC_MED);
-				s->Draw(pDC, rc.x1, y, &r);
+				s->Draw(pDC, pt.x, y, &r);
 			}
 			
 			y += s->Y();

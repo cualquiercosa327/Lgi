@@ -7,11 +7,7 @@
 #include "GCheckBox.h"
 #include "GDisplayString.h"
 
-#ifdef MAC
-#define RADIO_GRID  0
-#else
 #define RADIO_GRID  2
-#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Radio group
@@ -69,17 +65,19 @@ bool GRadioGroup::OnLayout(GViewLayoutInfo &Inf)
     if (!Inf.Width.Max)
     {
         // Work out the width...
+		int TextPx = d->Txt ? d->Txt->X() : 16;
+		int MinPx = (RADIO_GRID + BORDER_PX) * 2;
+		
         d->Info.DeleteObjects();
-        Inf.Width.Min = 16 + (d->Txt ? d->Txt->X() : 16);
-        
-        Inf.Width.Max = (BORDER_PX << 1) + RADIO_GRID;
+        Inf.Width.Min = 16 + TextPx;
+        Inf.Width.Max = RADIO_GRID + BORDER_PX * 2;
 	    for (GViewI *w = it->First(); w; w = it->Next())
 	    {
 	        GAutoPtr<GViewLayoutInfo> c(new GViewLayoutInfo);
             if (w->OnLayout(*c))
             {
                 // Layout enabled control
-                Inf.Width.Min = max(Inf.Width.Min, c->Width.Min + (RADIO_GRID << 1));
+                Inf.Width.Min = max(Inf.Width.Min, c->Width.Min + MinPx);
                 Inf.Width.Max += c->Width.Max + RADIO_GRID;
                 d->Info.Add(w, c.Release());
             }
@@ -91,7 +89,9 @@ bool GRadioGroup::OnLayout(GViewLayoutInfo &Inf)
             }
 	    }
 	    
-	    d->MaxLayoutWidth = Inf.Width.Max;
+		if (Inf.Width.Max < Inf.Width.Min)
+			Inf.Width.Max = Inf.Width.Min;
+		d->MaxLayoutWidth = Inf.Width.Max;
     }
     else
     {
@@ -99,7 +99,7 @@ bool GRadioGroup::OnLayout(GViewLayoutInfo &Inf)
         Inf.Height.Min = d->Txt ? d->Txt->Y() : 16;
         
         bool Horiz = d->MaxLayoutWidth <= Inf.Width.Max;
-        int Cx = (BORDER_PX << 1) + RADIO_GRID, Cy = GetFont()->GetHeight();
+        int Cx = BORDER_PX + RADIO_GRID, Cy = d->Txt ? d->Txt->Y() : 16;
         int LastY = 0;
 	    for (GViewI *w = it->First(); w; w = it->Next())
 	    {
@@ -140,7 +140,7 @@ bool GRadioGroup::OnLayout(GViewLayoutInfo &Inf)
             }
 	    }
 	    
-	    Inf.Height.Min = Inf.Height.Max = LastY + RADIO_GRID + BORDER_PX;
+	    Inf.Height.Min = Inf.Height.Max = LastY + RADIO_GRID * 2 + BORDER_PX;
     }
     
     DeleteObj(it);
@@ -282,7 +282,7 @@ void GRadioGroup::OnPaint(GSurface *pDC)
 			pDC->Rectangle();
 		}
 
-		int y = d->Txt ? d->Txt->Y() : 12;
+		int y = d->Txt ? d->Txt->Y() : 16;
 		GRect b(0, y/2, X()-1, Y()-1);
 		LgiWideBorder(pDC, b, EdgeXpChisel);
 
