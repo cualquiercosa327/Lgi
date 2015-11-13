@@ -2611,7 +2611,7 @@ struct GTagElementCallback : public GCss::ElementCallback<GTag>
 void GTag::RestyleAll()
 {
 	Restyle();
-	for (int i=0; i<Children.Length(); i++)
+	for (unsigned i=0; i<Children.Length(); i++)
 	{
 		GHtmlElement *c = Children[i];
 		GTag *t = ToTag(c);
@@ -5786,14 +5786,10 @@ void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderP
 		}
 		case DispInline:
 		{
-			if (Debug)
-			{
-				int asd=0;
-			}
 			GRegion rgn;
 			GetInlineRegion(rgn);
 			rgn.Simplify(false);
-			for (unsigned i=0; i<rgn.Length(); i++)
+			for (int i=0; i<rgn.Length(); i++)
 			{
 				GRect rc = *rgn[i];
 				if (BorderPx)
