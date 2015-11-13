@@ -77,6 +77,7 @@ static const char **GetIconNames()
 	return IconName;
 }
 
+/*
 void convert_to_nonpremul(GSurface *pDC)
 {
 	if (!pDC)
@@ -110,6 +111,7 @@ void convert_to_nonpremul(GSurface *pDC)
 			break;
 	}
 }
+*/
 
 class GFilterTree : public GTree
 {
@@ -405,6 +407,11 @@ public:
 					break;
 				}
 			}
+		}
+		
+		if (pDC->IsPreMultipliedAlpha())
+		{
+			pDC->ConvertPreMulAlpha(true);
 		}
 	}
 };
