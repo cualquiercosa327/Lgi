@@ -77,40 +77,6 @@ static const char **GetIconNames()
 	return IconName;
 }
 
-void convert_to_nonpremul(GSurface *pDC)
-{
-	if (!pDC)
-		return;
-		
-	switch (pDC->GetColourSpace())
-	{
-		case CsArgb32:
-		{
-			for (int y=0; y<pDC->Y(); y++)
-			{
-				GArgb32 *p = (GArgb32*) (*pDC)[y];
-				GArgb32 *e = p + pDC->X();
-
-				while (p < e)
-				{
-					if (p->a > 0 && p->a < 255)
-					{
-						p->r = (int) p->r * 255 / p->a;
-						p->g = (int) p->g * 255 / p->a;
-						p->b = (int) p->b * 255 / p->a;
-					}
-
-					p++;
-				}
-			}
-			break;
-		}
-		default:
-			LgiAssert(0);
-			break;
-	}
-}
-
 class GFilterTree : public GTree
 {
 	friend class GFilterItem;
@@ -405,6 +371,11 @@ public:
 					break;
 				}
 			}
+		}
+		
+		if (pDC->IsPreMultipliedAlpha())
+		{
+			pDC->ConvertPreMulAlpha(true);
 		}
 	}
 };

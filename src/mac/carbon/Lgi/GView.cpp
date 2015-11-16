@@ -1827,11 +1827,11 @@ bool GView::_Attach(GViewI *parent)
 						if (ViewRef)
 						{
 							e = HIViewFindByID(ViewRef, kHIViewWindowContentID, &Par);
-							if (e) LgiTrace("%s:%i - HIViewFindByID(%p,%p) failed with '%i'.\n", __FILE__, __LINE__, Par, _View, e);
+							if (e) LgiTrace("%s:%i - HIViewFindByID(%p,%p) failed with '%i'.\n", _FL, Par, _View, e);
 						}
-						else LgiTrace("%s:%i - HIViewGetRoot failed.\n", __FILE__, __LINE__);
+						else LgiTrace("%s:%i - HIViewGetRoot failed.\n", _FL);
 					}
-					else LgiTrace("%s:%i - No window handle.\n", __FILE__, __LINE__);
+					else LgiTrace("%s:%i - No window handle.\n", _FL);
 				}
 				
 				if (Par)

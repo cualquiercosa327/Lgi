@@ -1811,3 +1811,86 @@ bool GSurface::CallMethod(const char *Name, GVariant *ReturnValue, GArray<GVaria
 {
 	return false;
 }
+
+bool GSurface::IsPreMultipliedAlpha()
+{
+	return pMem ? pMem->PreMul() : false;
+}
+
+template<typename Px>
+void ConvertToPreMul(Px *src, int x)
+{
+	register uchar *DivLut = Div255Lut;
+	register Px *s = src;
+	register Px *e = s + x;
+	while (s < e)
+	{
+		s->r = DivLut[s->r * s->a];
+		s->g = DivLut[s->g * s->a];
+		s->b = DivLut[s->b * s->a];
+		s++;
+	}
+}
+
+template<typename Px>
+void ConvertFromPreMul(Px *src, int x)
+{
+	register uchar *DivLut = Div255Lut;
+	register Px *s = src;
+	register Px *e = s + x;
+	while (s < e)
+	{
+		if (s->a > 0 && s->a < 255)
+		{
+			s->r = (int) s->r * 255 / s->a;
+			s->g = (int) s->g * 255 / s->a;
+			s->b = (int) s->b * 255 / s->a;
+		}
+		s++;
+	}
+}
+
+bool GSurface::ConvertPreMulAlpha(bool ToPreMul)
+{
+	if (!pMem || !pMem->Base)
+		return false;
+	
+	for (int y=0; y<pMem->y; y++)
+	{
+		uint8 *src = pMem->Base + (y * pMem->Line);
+		if (ToPreMul)
+		{
+			switch (pMem->Cs)
+			{
+				#define ToPreMulCase(px) \
+					case Cs##px: ConvertToPreMul((G##px*)src, pMem->x); break
+				ToPreMulCase(Rgba32);
+				ToPreMulCase(Bgra32);
+				ToPreMulCase(Argb32);
+				ToPreMulCase(Abgr32);
+				#undef ToPreMulCase
+				default:
+					break;
+			}
+		}
+		else
+		{
+			switch (pMem->Cs)
+			{
+				#define FromPreMulCase(px) \
+					case Cs##px: ConvertFromPreMul((G##px*)src, pMem->x); break
+				FromPreMulCase(Rgba32);
+				FromPreMulCase(Bgra32);
+				FromPreMulCase(Argb32);
+				FromPreMulCase(Abgr32);
+				#undef FromPreMulCase
+				default:
+					break;
+			}
+		}
+	}
+
+	pMem->PreMul(false);
+	return true;
+}
+

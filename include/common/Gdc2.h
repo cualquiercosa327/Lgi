@@ -551,10 +551,15 @@ public:
 	virtual class GScreenDC *IsScreen() { return 0; }
 	/// Returns true if the surface is for printing
 	virtual bool IsPrint() { return false; }
-	/// Returns true if this surface supports alpha compositing when using Blt
-	virtual bool SupportsAlphaCompositing() { return false; }
 	/// Returns a pointer to the start of a scanline, or NULL if not available
 	virtual uchar *operator[](int y);
+
+	/// Returns true if this surface supports alpha compositing when using Blt
+	virtual bool SupportsAlphaCompositing() { return false; }
+	/// \returns whether if pixel data is pre-multiplied alpha
+	virtual bool IsPreMultipliedAlpha();
+	/// Converts the pixel data between pre-mul alpha or non-pre-mul alpha
+	virtual bool ConvertPreMulAlpha(bool ToPreMul);
 
 	/// Gets the surface origin
 	virtual void GetOrigin(int &x, int &y) { x = OriginX; y = OriginY; }

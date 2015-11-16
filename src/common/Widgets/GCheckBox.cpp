@@ -7,11 +7,14 @@
 #include "GDisplayString.h"
 #include "GDisplayStringLayout.h"
 
-static int PadXPx = 24;
+static int PadX1Px = 20;
+static int PadX2Px = 6;
 #ifdef MAC
 static int PadYPx = 8;
+static int TextYOffset = 6;
 #else
 static int PadYPx = 0;
+static int TextYOffset = 0;
 #endif
 static int MinYSize = 16;
 
@@ -73,7 +76,7 @@ GCheckBox::GCheckBox(int id, int x, int y, int cx, int cy, const char *name, int
 {
 	d = new GCheckBoxPrivate(this);
     Name(name);
-	if (cx < 0) cx = d->Max.x + PadXPx;
+	if (cx < 0) cx = d->Max.x + PadX1Px + PadX2Px;
 	if (cy < 0) cy = max(d->Max.y, MinYSize) + PadYPx;
 
 	d->Val = InitState;
@@ -87,23 +90,6 @@ GCheckBox::GCheckBox(int id, int x, int y, int cx, int cy, const char *name, int
 GCheckBox::~GCheckBox()
 {
 	DeleteObj(d);
-}
-
-bool GCheckBox::OnLayout(GViewLayoutInfo &Inf)
-{
-	if (!Inf.Width.Max)
-	{
-		d->PreLayout(Inf.Width.Min, Inf.Width.Max);
-		Inf.Width.Min += PadXPx;
-		Inf.Width.Max += PadXPx;
-	}
-	else
-	{
-		d->Layout(Inf.Width.Max);
-		Inf.Height.Min = d->Min.y + PadYPx;
-		Inf.Height.Max = d->Max.y + PadYPx;
-	}
-	return true;    
 }
 
 void GCheckBox::OnAttach()
@@ -263,6 +249,23 @@ void GCheckBox::OnPosChange()
 	d->Layout(X());
 }
 
+bool GCheckBox::OnLayout(GViewLayoutInfo &Inf)
+{
+	if (!Inf.Width.Max)
+	{
+		d->PreLayout(Inf.Width.Min, Inf.Width.Max);
+		Inf.Width.Min += PadX1Px + PadX2Px;
+		Inf.Width.Max += PadX1Px + PadX2Px;
+	}
+	else
+	{
+		d->Layout(Inf.Width.Max);
+		Inf.Height.Min = d->Min.y + PadYPx;
+		Inf.Height.Max = d->Max.y + PadYPx;
+	}
+	return true;    
+}
+
 void GCheckBox::OnPaint(GSurface *pDC)
 {
 	#if 0
@@ -288,7 +291,7 @@ void GCheckBox::OnPaint(GSurface *pDC)
 		GRect r = GetClient();
 		
 		#if defined MAC && !defined COCOA
-		d->ValuePos.Set(0, 0, PadXPx, MinYSize);
+		d->ValuePos.Set(0, 0, PadX1Px, MinYSize);
 		#else
 		d->ValuePos.Set(0, 0, 12, 12);
 		#endif
@@ -306,7 +309,8 @@ void GCheckBox::OnPaint(GSurface *pDC)
 
 		if (d->Lock(_FL))
 		{
-			d->Paint(pDC, GetFont(), t, cFore, cBack, en);
+			GdcPt2 pt(t.x1, t.y1 + TextYOffset);
+			d->Paint(pDC, GetFont(), pt, t, cFore, cBack, en);
 			d->Unlock();
 		}
 
@@ -321,8 +325,15 @@ void GCheckBox::OnPaint(GSurface *pDC)
 			}
 			pDC->Colour(Background);
 			pDC->Rectangle(&d->ValuePos);
-
+		
 			GRect c = GetClient();
+			#if 0
+			pDC->Colour(Rgb24(255, 0, 0), 24);
+			pDC->Box(&c);
+			pDC->Line(c.x1, c.y1, c.x2, c.y2);
+			pDC->Line(c.x2, c.y1, c.x1, c.y2);
+			#endif
+
 			for (GViewI *v = this; v && !v->Handle(); v = v->GetParent())
 			{
 				GRect p = v->GetPos();
