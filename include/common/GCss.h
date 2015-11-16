@@ -478,13 +478,14 @@ public:
 
 		ImageDef()
 		{
+			Img = NULL;
 			Type = ImageInherit;
-			Img = 0;
 		}
 
 		ImageDef(const ImageDef &o)
 		{
 			Img = NULL;
+			Type = ImageInherit;
 			*this = o;
 		}
 
