@@ -47,20 +47,29 @@ class LibSSL : public GLibrary
 public:
 	LibSSL()
 	{
-		#ifdef MAC
-		char Exe[MAX_PATH];
-		if (LgiGetExeFile(Exe, sizeof(Exe)))
+		char p[MAX_PATH];
+		#if defined MAC
+		if (LgiGetExeFile(p, sizeof(p)))
 		{
-			LgiMakePath(Exe, sizeof(Exe), Exe, "Contents/MacOS/libssl.1.0.0.dylib");
-			if (FileExists(Exe))
+			LgiMakePath(p, sizeof(p), p, "Contents/MacOS/libssl.1.0.0.dylib");
+			if (FileExists(p))
 			{
-				Load(Exe);
+				Load(p);
 			}
 		}
 
         if (!IsLoaded())
         {
 			Load("/opt/local/lib/" SSL_LIBRARY);
+		}
+		#elif defined LINUX
+		if (LgiGetExePath(p, sizeof(p)))
+		{
+			LgiMakePath(p, sizeof(p), p, "libssl.so");
+			if (FileExists(p))
+			{
+				Load(p);
+			}
 		}
 		#endif
 
@@ -69,7 +78,6 @@ public:
 
 		if (!IsLoaded())
 		{
-			char p[300];
 			LgiGetExePath(p, sizeof(p));
 			LgiMakePath(p, sizeof(p), p, PATH_OFFSET "../OpenSSL");
 			#ifdef WIN32
