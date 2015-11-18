@@ -13,8 +13,25 @@
 class GDropFiles : public GArray<char*>
 {
 public:
+	GDropFiles(GDragData &dd)
+	{
+		if (_stricmp(dd.Format, LGI_FileDropFormat) == 0 &&
+			dd.Data.Length() > 0)
+			Init(dd.Data[0]);
+	}
+
     GDropFiles(GVariant &v)
     {
+		Init(v);
+    }
+
+    ~GDropFiles()
+    {
+		DeleteArrays();
+    }
+
+	void Init(GVariant &v)
+	{
 		#if WINNATIVE
 		DROPFILES *Df = v.IsBinary() && v.Value.Binary.Length >= sizeof(DROPFILES) ? (DROPFILES*)v.Value.Binary.Data : 0;
 		if (Df)
@@ -137,12 +154,7 @@ public:
 			}
 		}
 		#endif
-    }
-
-    ~GDropFiles()
-    {
-		DeleteArrays();
-    }
+	}
 };
 
 class GDropStreams : public GArray<GStream*>

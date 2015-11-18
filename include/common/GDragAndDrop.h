@@ -139,7 +139,7 @@ public:
 	{ return false; }
 
 	/// Creates a file drop
-	bool CreateFileDrop(GVariant *OutputData, GMouse &m, List<char> &Files);
+	bool CreateFileDrop(GDragData *OutputData, GMouse &m, List<char> &Files);
 };
 
 /// A drag target class

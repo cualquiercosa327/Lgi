@@ -353,6 +353,8 @@ public:
 			MinContent = 0;
 			MaxContent = 0;
 			XAlign = GCss::LenInherit;
+			BorderPx.ZOff(0, 0);
+			PaddingPx.ZOff(0, 0);
 		}
 		
 		~TblCell()

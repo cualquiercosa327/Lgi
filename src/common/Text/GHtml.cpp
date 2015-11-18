@@ -3962,7 +3962,7 @@ void GHtmlTableLayout::AllocatePx(int StartCol, int Cols, int MinPx)
 	int AvailPx = (CurrentSpanX + MaxAdditionalPx) - BorderX1 - BorderX2;
 	
 	// Allocate any remaining space...
-	bool HasToFillAllAvailable = TableWidth.IsValid();
+	bool HasToFillAllAvailable = false; // TableWidth.IsValid();
 	int RemainingPx = MaxAdditionalPx;
 	GArray<int> Growable, NonGrowable, SizeInherit;
 	int GrowablePx = 0;
@@ -3980,7 +3980,7 @@ void GHtmlTableLayout::AllocatePx(int StartCol, int Cols, int MinPx)
 		}
 		else if (MinCol[x] == 0 && CurrentSpanX < AvailPx)
 		{
-			Growable.Add(x);
+			// Growable.Add(x);
 		}
 		
 		if (SizeCol[x].Type == GCss::LenInherit)
@@ -4416,6 +4416,10 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	}
 	else if (TotalX < AvailableX)
 	{
+		if (Table->Debug)
+		{
+			int asd=0;
+		}
 		AllocatePx(0, s.x, AvailableX);
 		DumpCols("AfterRemainingAlloc");
 	}
@@ -4561,10 +4565,16 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 
 					#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 					if (Table->Debug)
+					{
+						if (t->Pos.y > 2000)
+						{
+							int asd=0;
+						}
 						LgiTrace("cell(%i,%i) = pos(%i,%i)+size(%i,%i)\n",
 							t->Cell->Pos.x, t->Cell->Pos.y,
 							t->Pos.x, t->Pos.y,
 							t->Size.x, t->Size.y);
+					}
 					#endif
 				}
 				else

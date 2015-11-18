@@ -248,57 +248,61 @@ bool GDragDropSource::GetData(GArray<GDragData> &DragData)
 	// Call the deprecated version of 'GetData'
 	GVariant *v = &DragData[0].Data[0];
 	char *fmt = DragData[0].Format;
+	if (!v || !fmt)
+		return false;
+
 	return GetData(v, fmt);
 }
 
-bool GDragDropSource::CreateFileDrop(GVariant *OutputData, GMouse &m, List<char> &Files)
+bool GDragDropSource::CreateFileDrop(GDragData *OutputData, GMouse &m, List<char> &Files)
 {
-	if (OutputData && Files.First())
+	if (!OutputData || !Files.First())
+		return false;
+
+	int Size = sizeof(DROPFILES) + sizeof(char16);
+
+	List<char> Native;
+	List<char16> NativeW;
+	for (char *File=Files.First(); File; File=Files.Next())
 	{
-		int Size = sizeof(DROPFILES) + sizeof(char16);
-
-		List<char> Native;
-		List<char16> NativeW;
-		for (char *File=Files.First(); File; File=Files.Next())
+		char16 *f = LgiNewUtf8To16(File);
+		if (f)
 		{
-			char16 *f = LgiNewUtf8To16(File);
-			if (f)
-			{
-				int Len = StrlenW(f) + 1;
-				Size += Len * sizeof(char16);
-				NativeW.Insert(f);
-			}
+			int Len = StrlenW(f) + 1;
+			Size += Len * sizeof(char16);
+			NativeW.Insert(f);
 		}
-
-		DROPFILES *Dp = (DROPFILES*) new char[Size];
-		if (Dp)
-		{
-			Dp->pFiles = sizeof(DROPFILES);
-			Dp->fWide = TRUE;
-			Dp->fNC = true;
-			Dp->pt.x = m.x;
-			Dp->pt.y = m.y;
-
-			char16 *f = (char16*) (((char*)Dp) + Dp->pFiles);
-			for (char16 *File=NativeW.First(); File; File=NativeW.Next())
-			{
-				int Len = StrlenW(File) + 1;
-				StrcpyW(f, File);
-				f += Len;
-			}
-			*f++ = 0;
-
-			OutputData->SetBinary(Size, (uchar*)Dp);
-			DeleteArray((char*&)Dp);
-		}
-
-		Native.DeleteArrays();
-		NativeW.DeleteArrays();
-
-		return Dp != 0;
 	}
 
-	return false;
+	DROPFILES *Dp = (DROPFILES*) new char[Size];
+	bool Status = false;
+	if (Dp)
+	{
+		Dp->pFiles = sizeof(DROPFILES);
+		Dp->fWide = TRUE;
+		Dp->fNC = true;
+		Dp->pt.x = m.x;
+		Dp->pt.y = m.y;
+
+		char16 *f = (char16*) (((char*)Dp) + Dp->pFiles);
+		for (char16 *File=NativeW.First(); File; File=NativeW.Next())
+		{
+			int Len = StrlenW(File) + 1;
+			StrcpyW(f, File);
+			f += Len;
+		}
+		*f++ = 0;
+
+		Status = OutputData->Data[0].SetBinary(Size, (uchar*)Dp);
+		if (Status)
+			OutputData->Format = LGI_FileDropFormat;
+		DeleteArray((char*&)Dp);
+	}
+
+	Native.DeleteArrays();
+	NativeW.DeleteArrays();
+
+	return Status;
 }
 
 bool GDragDropSource::SetIcon(GSurface *Img, GRect *SubRgn)
