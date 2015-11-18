@@ -4416,10 +4416,6 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	}
 	else if (TotalX < AvailableX)
 	{
-		if (Table->Debug)
-		{
-			int asd=0;
-		}
 		AllocatePx(0, s.x, AvailableX);
 		DumpCols("AfterRemainingAlloc");
 	}

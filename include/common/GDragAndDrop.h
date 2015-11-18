@@ -33,6 +33,18 @@ struct LgiClass GDragData
 {
 	GString Format;
 	GArray<GVariant> Data;
+	
+	bool IsFormat(const char *Fmt)
+	{
+		return	Format.Get() != NULL &&
+				Fmt != NULL &&
+				!_stricmp(Format, Fmt);
+	}
+	
+	bool IsFileDrop()
+	{
+		return IsFormat(LGI_FileDropFormat);
+	}
 };
 
 /// A drag source class

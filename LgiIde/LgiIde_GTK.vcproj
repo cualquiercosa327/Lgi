@@ -231,10 +231,6 @@
 				Name="Lgi"
 				>
 				<File
-					RelativePath="..\src\common\Text\GDocView.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\src\common\Lgi\GMdi.cpp"
 					>
 				</File>

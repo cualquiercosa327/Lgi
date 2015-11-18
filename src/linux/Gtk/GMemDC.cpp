@@ -62,7 +62,7 @@ GMemDC::GMemDC(GSurface *pDC)
 	d = new GMemDCPrivate;
 	
 	if (pDC &&
-		Create(pDC->X(), pDC->Y(), pDC->GetBits()))
+		Create(pDC->X(), pDC->Y(), pDC->GetColourSpace()))
 	{
 		Blt(0, 0, pDC);
 	}

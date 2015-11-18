@@ -894,7 +894,7 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 	{
 		_Capturing = Wnd;
 		
-		#if defined(WINNATIVE)
+		#if WINNATIVE
 			GdcPt2 Offset;
 			GViewI *v = _Capturing->Handle() ? _Capturing : FindReal(&Offset);
 			HWND h = v ? v->Handle() : NULL;
@@ -914,7 +914,7 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 	{
 		_Capturing = NULL;
 
-		#if defined(WINNATIVE)
+		#if WINNATIVE
 			ReleaseCapture();
 		#elif defined(LGI_SDL)
 			#if SDL_VERSION_ATLEAST(2, 0, 4)

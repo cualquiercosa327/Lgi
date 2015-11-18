@@ -97,26 +97,25 @@ bool GDragDropSource::SetIcon(GSurface *Img, GRect *SubRgn)
 	return false;
 }
 
-bool GDragDropSource::CreateFileDrop(::GVariant *OutputData, GMouse &m, List<char> &Files)
+bool GDragDropSource::CreateFileDrop(GDragData *OutputData, GMouse &m, List<char> &Files)
 {
-	if (OutputData && Files.First())
-	{
-		GStringPipe p;
-		for (char *f=Files.First(); f; f=Files.Next())
-		{
-			char s[256];
-			sprintf_s(s, sizeof(s), "file:%s", f);
-			if (p.GetSize()) p.Push("\n");
-			p.Push(s);
-		}
+	if (!OutputData || !Files.First())
+		return false;
 
-		char *s = p.NewStr();
-		if (s)
-		{
-			OutputData->SetBinary(strlen(s), s);
-			DeleteArray(s);
-			return true;
-		}
+	GStringPipe p;
+	for (char *f=Files.First(); f; f=Files.Next())
+	{
+		char s[256];
+		sprintf_s(s, sizeof(s), "file:%s", f);
+		if (p.GetSize()) p.Push("\n");
+		p.Push(s);
+	}
+
+	GAutoString s(p.NewStr());
+	if (s)
+	{
+		OutputData->Data[0].SetBinary(strlen(s), s);
+		return true;
 	}
 
 	return false;

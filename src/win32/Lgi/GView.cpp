@@ -638,17 +638,18 @@ bool GView::Attach(GViewI *p)
 								LgiProcessInst(),
 								(GViewI*) this);
 
-		#ifdef _DEBUG
+		#if 1 // def _DEBUG
 		if (!_View)
 		{
 			DWORD e = GetLastError();
+			LgiTrace("%s:%i - CreateWindowExW failed with 0x%x\n", _FL, e);
 			LgiAssert(!"CreateWindowEx failed");
 		}
 		#endif
 
 		if (_View)
 		{
-			Status = (_View != 0);
+			Status = (_View != NULL);
 
 			if (d->Font)
 				SendMessage(_View, WM_SETFONT, (WPARAM) d->Font->Handle(), 0);

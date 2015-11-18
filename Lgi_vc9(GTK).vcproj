@@ -466,6 +466,10 @@
 						RelativePath=".\src\common\General\GFileCommon.cpp"
 						>
 					</File>
+					<File
+						RelativePath=".\src\win32\General\ShowFileProp_Win.cpp"
+						>
+					</File>
 				</Filter>
 				<Filter
 					Name="Process"
@@ -799,6 +803,10 @@
 				</File>
 				<File
 					RelativePath=".\src\common\Text\GToken.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\common\Text\GUnicode.cpp"
 					>
 				</File>
 				<File
