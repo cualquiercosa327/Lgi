@@ -74,6 +74,7 @@ bool GDragDropSource::CreateFileDrop(::GVariant *OutputData, GMouse &m, List<cha
 		char *s = p.NewStr();
 		if (s)
 		{
+			OutputData->Format = LGI_FileDropFormat;
 			OutputData->SetBinary(strlen(s), s);
 			DeleteArray(s);
 			return true;

@@ -70,7 +70,7 @@ bool GDragDropSource::SetIcon(GSurface *Img, GRect *SubRgn)
 	return true;
 }
 
-bool GDragDropSource::CreateFileDrop(GVariant *OutputData, GMouse &m, List<char> &Files)
+bool GDragDropSource::CreateFileDrop(GDragData *OutputData, GMouse &m, List<char> &Files)
 {
 	if (OutputData && Files.First())
 	{
@@ -80,27 +80,10 @@ bool GDragDropSource::CreateFileDrop(GVariant *OutputData, GMouse &m, List<char>
 			u.Protocol = NewStr("file");
 			u.Host = NewStr("localhost");
 			u.Path = NewStr(Files.First());
-			OutputData->OwnStr(u.GetUri().Release());
-		}
-		else
-		{
-			if (!OutputData->SetList())
-				return false;
-
-			for (char *f=Files.First(); f; f=Files.Next())
-			{
-				GUri u;
-				u.Protocol = NewStr("file");
-				u.Host = NewStr("localhost");
-				u.Path = NewStr(f);
-				GVariant *v = new GVariant;
-				if (!v)
-					return false;
-				v->OwnStr(u.GetUri().Release());
-				OutputData->Value.Lst->Insert(v);
-			}
+			OutputData->Data.New().OwnStr(u.GetUri().Release());
 		}
 
+		OutputData->Format = LGI_FileDropFormat;
 		return true;
 	}
 
