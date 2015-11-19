@@ -5082,11 +5082,6 @@ void GTag::OnFlow(GFlowRegion *Flow)
 		{
 			Size.x = Size.y = 0;
 			
-			if (Debug)
-			{
-				int asd=0;
-			}
-
 			GCss::Len w    = Width();
 			GCss::Len h    = Height();
 			GCss::Len MinX = MinWidth();
@@ -5268,7 +5263,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 		{
 			if (!IsTableCell(TagId) && Width().IsValid())
 				Size.x = Flow->ResolveX(Width(), f, false);
-			else
+			else if (TagId != TAG_IMG)
 				Size.x = Flow->X();
 
 			if (MaxWidth().IsValid())
