@@ -58,7 +58,7 @@ bool GDragDropSource::SetIcon(GSurface *Img, GRect *SubRgn)
 	return false;
 }
 
-bool GDragDropSource::CreateFileDrop(::GVariant *OutputData, GMouse &m, List<char> &Files)
+bool GDragDropSource::CreateFileDrop(GDragData *OutputData, GMouse &m, List<char> &Files)
 {
 	if (OutputData && Files.First())
 	{
@@ -71,12 +71,11 @@ bool GDragDropSource::CreateFileDrop(::GVariant *OutputData, GMouse &m, List<cha
 			p.Push(s);
 		}
 
-		char *s = p.NewStr();
+		GAutoString s(p.NewStr());
 		if (s)
 		{
 			OutputData->Format = LGI_FileDropFormat;
-			OutputData->SetBinary(strlen(s), s);
-			DeleteArray(s);
+			OutputData->Data.First().SetBinary(strlen(s), s);
 			return true;
 		}
 	}

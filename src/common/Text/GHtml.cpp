@@ -59,7 +59,7 @@
 
 #define DefaultPointSize			11
 #define DefaultBodyMargin			"5px"
-#define DefaultImgSize				17
+#define DefaultImgSize				16
 #define DefaultMissingCellColour	GT_TRANSPARENT // Rgb32(0xf0,0xf0,0xf0)
 #define ShowNbsp					0
 
@@ -2823,7 +2823,7 @@ void GTag::SetStyle()
 			}
 			else
 			{
-				BorderSpacing(GCss::Len(GCss::LenPx, 2.0f));
+				// BorderSpacing(GCss::Len(GCss::LenPx, 2.0f));
 			}
 
 			if (Get("cellpadding", s) &&
@@ -5081,6 +5081,11 @@ void GTag::OnFlow(GFlowRegion *Flow)
 		case TAG_IMG:
 		{
 			Size.x = Size.y = 0;
+			
+			if (Debug)
+			{
+				int asd=0;
+			}
 
 			GCss::Len w    = Width();
 			GCss::Len h    = Height();
@@ -5121,7 +5126,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 			}
 			XLimit |= Flow->LimitX(Size.x, MinWidth(), MaxWidth(), f);
 
-			if (h.IsValid() && w.Type != LenAuto)
+			if (h.IsValid() && h.Type != LenAuto)
 			{
 				Size.y = Flow->ResolveY(h, GetFont(), false);
 				YLimit = true;
@@ -5132,7 +5137,12 @@ void GTag::OnFlow(GFlowRegion *Flow)
 			}
 			YLimit |= Flow->LimitY(Size.y, MinHeight(), MaxHeight(), f);
 
-			if (XLimit ^ YLimit)
+			if
+			(
+				(XLimit ^ YLimit)
+				&&
+				Image
+			)
 			{
 				if (XLimit)
 				{
