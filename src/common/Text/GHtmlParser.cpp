@@ -795,6 +795,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 
 								if (Last)
 								{
+									LgiTrace("Reattaching '%s'(%p) to '%s'(%p)\n", Elem->Tag, Elem, Last->Tag, Last);
 									Last->Attach(Elem);
 								}
 							}

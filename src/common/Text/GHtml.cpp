@@ -3949,7 +3949,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 		Cell->Cells->LayoutTable(f);
 }
 
-void GHtmlTableLayout::AllocatePx(int StartCol, int Cols, int MinPx)
+void GHtmlTableLayout::AllocatePx(int StartCol, int Cols, int MinPx, bool HasToFillAllAvailable)
 {
 	// Get the existing total size and size of the column set
 	int CurrentTotalX = GetTotalX();
@@ -3962,7 +3962,6 @@ void GHtmlTableLayout::AllocatePx(int StartCol, int Cols, int MinPx)
 	int AvailPx = (CurrentSpanX + MaxAdditionalPx) - BorderX1 - BorderX2;
 	
 	// Allocate any remaining space...
-	bool HasToFillAllAvailable = false; // TableWidth.IsValid();
 	int RemainingPx = MaxAdditionalPx;
 	GArray<int> Growable, NonGrowable, SizeInherit;
 	int GrowablePx = 0;
@@ -4329,7 +4328,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 					#endif
 
 					if (t->Cell->MinContent > ColMin)
-						AllocatePx(t->Cell->Pos.x, t->Cell->Span.x, t->Cell->MinContent);
+						AllocatePx(t->Cell->Pos.x, t->Cell->Span.x, t->Cell->MinContent, false);
 					if (t->Cell->MaxContent > ColMax)
 						DistributeSize(MaxCol, t->Cell->Pos.x, t->Cell->Span.x, t->Cell->MaxContent, CellSpacing);
 				}
@@ -4416,7 +4415,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	}
 	else if (TotalX < AvailableX)
 	{
-		AllocatePx(0, s.x, AvailableX);
+		AllocatePx(0, s.x, AvailableX, TableWidth.IsValid());
 		DumpCols("AfterRemainingAlloc");
 	}
 
@@ -8475,6 +8474,11 @@ GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 	if (!Table)
 		return;
 
+	if (Table->Debug)
+	{
+		int asd=0;
+	}
+
 	int y = 0;
 	GTag *FakeRow = 0;
 	GTag *FakeCell = 0;
@@ -8499,6 +8503,11 @@ GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 				GTag *t = ToTag(r->Children[n]);
 				Table->Children.AddAt(++Index, t);
 				t->Parent = Table;
+				
+				LgiTrace("Moving '%s'(%p) from TBODY(%p) into '%s'(%p)\n",
+					t->Tag, t,
+					r,
+					t->Parent->Tag, t->Parent);
 			}
 			r->Children.Length(0);
 		}
