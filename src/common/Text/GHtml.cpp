@@ -1645,7 +1645,7 @@ GColour GTag::_Colour(bool f)
 			return GColour(c.Rgb32, 32);
 		}
 
-		if (!f && t->TagId == TAG_TABLE)
+		if (!f) //  && t->TagId == TAG_TABLE)
 			break;
 	}
 
@@ -6263,10 +6263,10 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 					else \
 					{ \
 						GColour bk(back.Transparent() ? GColour(LC_WORKSPACE, 24) : back);			\
+						GColour fr(fore.Transparent() ? GColour(DefaultTextColour, 32) : fore);		\
 						if (IsEditor)																\
 							bk = bk.Mix(GColour(0, 0, 0), 0.05f);									\
-						f->Colour(	!fore.Transparent() ? fore : GColour(DefaultTextColour, 32),	\
-									bk);															\
+						f->Colour(fr, bk);															\
 					}
 
 				if (Html->HasSelection() &&
