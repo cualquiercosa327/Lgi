@@ -8468,6 +8468,138 @@ class GHtml_Factory : public GViewFactory
 } GHtml_Factory;
 
 //////////////////////////////////////////////////////////////////////
+struct BuildContext
+{
+	GHtmlTableLayout *Layout;
+	GTag *Table;
+	GTag *TBody;
+	GTag *CurTr;
+	GTag *CurTd;
+	int cx, cy;
+	
+	BuildContext()
+	{
+		Layout = NULL;
+		cx = cy = 0;
+
+		Table = NULL;
+		TBody = NULL;
+		CurTr = NULL;
+		CurTd = NULL;
+	}
+
+	bool Build(GTag *t, int Depth)
+	{
+		bool RetReattach = false;
+		
+		switch (t->TagId)
+		{
+			case TAG_TABLE:
+			{
+				if (!Table)
+					Table = t;
+				else
+					return false;
+				break;
+			}
+			case TAG_TBODY:
+			{
+				if (TBody)
+					return false;
+				TBody = t;
+				if (!Table || t->Parent != Table)
+				{
+					int asd=0;
+				}
+				break;
+			}
+			case TAG_TR:
+			{
+				CurTr = t;
+				if (t->Parent->TagId != TAG_TBODY &&
+					t->Parent->TagId != TAG_TABLE)
+				{
+					int asd=0;
+				}
+				break;
+			}
+			case TAG_TD:
+			{
+				CurTd = t;
+				if (t->Parent != CurTr)
+				{
+					if
+					(
+						!CurTr &&
+						(Table || TBody)
+					)
+					{
+						GTag *p = TBody ? TBody : Table;
+						CurTr = new GTag(p->Html, p);
+						if (CurTr)
+						{
+							CurTr->Tag.Reset(NewStr("tr"));
+							CurTr->TagId = TAG_TR;
+							
+
+							int Idx = t->Parent->Children.IndexOf(t);
+							t->Parent->Attach(CurTr, Idx);
+						}
+					}
+					
+					if (CurTr)
+					{
+						CurTr->Attach(t);
+						RetReattach = true;
+					}
+					else
+					{
+						LgiAssert(0);
+						return false;
+					}
+				}
+				
+				t->Cell->Pos.x = cx;
+				t->Cell->Pos.y = cy;
+				Layout->Set(t);
+				break;
+			}
+			default:
+			{
+				if (CurTd == t->Parent)
+					return false;
+				
+				int asd=0;
+				break;
+			}
+		}
+
+		for (unsigned n=0; n<t->Children.Length(); n++)
+		{
+			GTag *c = ToTag(t->Children[n]);
+			bool Reattached = Build(c, Depth+1);
+			if (Reattached)
+				n--;
+		}
+		
+		if (t->TagId == TAG_TR)
+		{
+			CurTr = NULL;
+			cy++;
+			cx = 0;
+			Layout->s.y = cy;
+		}
+		if (t->TagId == TAG_TD)
+		{
+			CurTd = NULL;
+			cx += t->Cell->Span.x;
+			Layout->s.x = max(cx, Layout->s.x);
+		}
+		
+		return RetReattach;
+	}
+};
+
 GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 {
 	Table = table;
@@ -8478,6 +8610,14 @@ GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 	{
 		int asd=0;
 	}
+
+	#if 0
+
+	BuildContext Ctx;
+	Ctx.Layout = this;
+	Ctx.Build(table, 0);
+
+	#else
 
 	int y = 0;
 	GTag *FakeRow = 0;
@@ -8623,6 +8763,8 @@ GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 			FakeCell = NULL;
 		}
 	}
+	
+	#endif
 }
 
 void GHtmlTableLayout::Dump()

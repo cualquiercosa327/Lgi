@@ -76,7 +76,7 @@ public:
 
 	HtmlTag Id;
 	const char *Tag;
-	const char *ReattachTo;
+	bool Reattach;
 	int Flags;
 
 	bool NeverCloses()	{ return TestFlag(Flags, TI_NEVER_CLOSES); }
