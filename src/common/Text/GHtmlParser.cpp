@@ -790,6 +790,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 								break;
 							}
 							case TAG_TD:
+							case TAG_TH:
 							{
 								ParentTags.Add(TAG_TR);
 								break;
@@ -840,6 +841,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 									switch (Elem->TagId)
 									{
 										case TAG_TD:
+										case TAG_TH:
 										{
 											// Find a TBODY or TABLE to attach a new ROW
 											GHtmlElement *Attach = Elem->Parent;

@@ -338,6 +338,8 @@ GRect *GImageList::GetBounds()
 				d->Bounds[i].Offset(i * d->Sx, 0);
 
 				LgiFindBounds(this, &d->Bounds[i]);
+
+				d->Bounds[i].Offset(-i * d->Sx, 0);
 			}
 		}
 	}

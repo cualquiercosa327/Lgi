@@ -1645,7 +1645,9 @@ GColour GTag::_Colour(bool f)
 			return GColour(c.Rgb32, 32);
 		}
 
-		if (!f) //  && t->TagId == TAG_TABLE)
+		/*	This implements some basic level of colour inheritance for
+			background colours. See test case 'cisra-cqs.html'. */
+		if (!f && t->TagId == TAG_TABLE)
 			break;
 	}
 
@@ -2859,6 +2861,12 @@ void GTag::SetStyle()
 				PaddingRight(l);
 				PaddingTop(l);
 				PaddingBottom(l);
+			}
+			
+			if (TagId == TAG_TH)
+			{
+				BackgroundColor(GCss::ColorDef(ColorRgb, Rgb32(222, 222, 222)));
+				FontWeight(GCss::FontWeightBold);
 			}
 			break;
 		}
@@ -4269,8 +4277,12 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	int TotalX = GetTotalX();
 	if (TotalX > AvailableX)
 	{
+		// This is disabled to make the test case 'cisra-cqs.html' render correctly.
+		// What test case was this implemented to fix?
+		#if 0
 		DeallocatePx(0, MinCol.Length(), AvailableX);
 		TotalX = GetTotalX();
+		#endif
 	}
 
 	#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
