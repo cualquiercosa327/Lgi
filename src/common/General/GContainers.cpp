@@ -1228,8 +1228,8 @@ void *GMemQueue::New(int AddBytes)
 	uchar *Data = Len > 0 ? new uchar[Len+AddBytes] : 0;
 	if (Data)
 	{
-		Read(Data, Len);
-		if (AddBytes)
+		int Rd = Read(Data, Len);
+		if (Rd >= 0 && AddBytes)
 		{
 			memset(Data+Len, 0, AddBytes);
 		}

@@ -8606,11 +8606,6 @@ GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 	if (!Table)
 		return;
 
-	if (Table->Debug)
-	{
-		int asd=0;
-	}
-
 	#if 0
 
 	BuildContext Ctx;
@@ -8644,10 +8639,12 @@ GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 				Table->Children.AddAt(++Index, t);
 				t->Parent = Table;
 				
+				/*
 				LgiTrace("Moving '%s'(%p) from TBODY(%p) into '%s'(%p)\n",
 					t->Tag, t,
 					r,
 					t->Parent->Tag, t->Parent);
+				*/
 			}
 			r->Children.Length(0);
 		}

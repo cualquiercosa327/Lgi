@@ -338,8 +338,7 @@ bool GHtmlParser::Parse(GHtmlElement *Root, const char *Doc)
 	CurrentSrc = Doc;
 	ParseHtml(Root, (char*)Doc, 0);
 	
-	DumpDomTree(Root);
-	
+	// DumpDomTree(Root);
 	
 	if (CurrentSrc)
 		SourceData.Write(CurrentSrc, strlen(CurrentSrc));	
@@ -565,7 +564,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 					bool TagClosed = false;
 					s = ParsePropList(s, Elem, TagClosed);
 					
-					#if _DEBUG
+					#if 0 // _DEBUG
 					int Depth = 0;
 					for (GHtmlElement *ep = Elem; ep; ep=ep->Parent)
 					{
@@ -832,7 +831,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 								if (Parent)
 								{
 									// Reattach to the right parent.
-									LgiTrace("Reattaching '%s'(%p) to '%s'(%p) count=%i\n", Elem->Tag, Elem, Parent->Tag, Parent, ++count);
+									// LgiTrace("Reattaching '%s'(%p) to '%s'(%p) count=%i\n", Elem->Tag, Elem, Parent->Tag, Parent, ++count);
 									Parent->Attach(Elem);
 								}
 								else
