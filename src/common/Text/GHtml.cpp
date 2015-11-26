@@ -4277,8 +4277,9 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	int TotalX = GetTotalX();
 	if (TotalX > AvailableX)
 	{
-		// This is disabled to make the test case 'cisra-cqs.html' render correctly.
-		// What test case was this implemented to fix?
+		// FIXME:
+		// Off -> 'cisra-cqs.html' renders correctly.
+		// On -> 'cisra_outage.html' renders correctly.
 		#if 0
 		DeallocatePx(0, MinCol.Length(), AvailableX);
 		TotalX = GetTotalX();
