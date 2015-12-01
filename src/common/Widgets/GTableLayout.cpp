@@ -32,8 +32,7 @@ enum CellFlag
 #include "GCss.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
-// #define DEBUG_LAYOUT		535 // define to ID of control to dump (0 to disable)
-// #define DEBUG_LAYOUT		1150
+// #define DEBUG_LAYOUT		546
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
@@ -304,6 +303,8 @@ public:
 	bool IsSpanned();
 	bool GetVariant(const char *Name, GVariant &Value, char *Array);
 	bool SetVariant(const char *Name, GVariant &Value, char *Array);
+	int MaxCellWidth();
+
 	/// Calculates the minimum and maximum widths this cell can occupy.
 	void PreLayout(int &MinX, int &MaxX, CellFlag &Flag);
 	/// Calculate the height of the cell based on the given width
@@ -540,6 +541,20 @@ bool TableCell::SetVariant(const char *Name, GVariant &Value, char *Array)
 	return true;
 }
 
+int TableCell::MaxCellWidth()
+{
+	// Table size minus padding
+	GCssTools t(Table->GetCss(), Table->GetFont());
+	GRect cli = Table->GetClient();
+	cli = t.ApplyPadding(cli);
+	
+	// Work out any borders on spanned cells...
+	int BorderPx = Cell.X() > 1 ? (Cell.X() - 1) * Table->d->BorderSpacing : 0;
+	
+	// Return client - padding - border size.
+	return cli.X() - BorderPx;
+}
+
 /// Calculates the minimum and maximum widths this cell can occupy.
 void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 {
@@ -614,7 +629,7 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 				
 			if (Wid.IsValid())
 			{
-				int Px =  Wid.ToPx(Table->X(), v->GetFont());
+				int Px =  Wid.ToPx(MaxCellWidth(), v->GetFont());
 				Min = max(Min, Px);
 				Max = max(Max, Px);
 				
@@ -723,6 +738,7 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 				GTableLayout *Tbl = Izza(GTableLayout);
 				if (Tbl)
 				{
+					Tbl->d->InitBorderSpacing();
 					Tbl->d->LayoutHorizontal(Table->GetClient(), &Min, &Max, &Flag);
 				}
 				else
@@ -920,6 +936,9 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 			Tbl->d->InitBorderSpacing();
 			Tbl->d->LayoutVertical(r, &MinY, &MaxY, &Flags);
 			Pos.y2 += MinY;
+			
+			c->Inf.Height.Min = MinY;
+			c->Inf.Height.Max = MaxY;
 		}
 		else
 		{
@@ -999,7 +1018,8 @@ void TableCell::PostLayout()
 
 		if (Tbl)
 		{
-			r.Dimension(Pos.X(), Pos.Y());
+			int HeightPx = c->Inf.Height.Min < c->Inf.Height.Max ? c->Inf.Height.Min : Pos.Y();
+			r.Dimension(Pos.X(), HeightPx);
 		}
 		else if
 		(
@@ -1358,14 +1378,15 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 	#endif
 	
 	// Collect together our sizes
+	int Spacing = BorderSpacing * (MinCol.Length() - 1);
 	if (MinX)
 	{
-		int x = CountRange<int>(MinCol, 0, MinCol.Length()-1);
+		int x = CountRange<int>(MinCol, 0, MinCol.Length()-1) + Spacing;
 		*MinX = max(*MinX, x);
 	}
 	if (MaxX)
 	{
-		int x = CountRange<int>(MaxCol, 0, MinCol.Length()-1);
+		int x = CountRange<int>(MaxCol, 0, MinCol.Length()-1) + Spacing;
 		*MaxX = max(*MaxX, x);
 	}
 	if (Flag)

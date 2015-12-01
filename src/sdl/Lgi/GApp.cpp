@@ -498,6 +498,19 @@ void GApp::OnSDLEvent(GMessage *m)
 			break;
 		}
 		case SDL_KEYDOWN:
+		{
+			if
+			(
+				m->Event.key.keysym.sym == SDLK_F4 &&
+				(
+					m->Event.key.keysym.mod == KMOD_LALT ||
+					m->Event.key.keysym.mod == KMOD_RALT
+				)
+			)
+				LgiCloseApp();
+			
+			// fall through
+		}
 		case SDL_KEYUP:
 		{
 			GKey k;
@@ -1020,6 +1033,12 @@ void GApp::CaptureMouse(bool capture)
 	{
 		SDL_RemoveTimer(d->CaptureId);
 	}
+}
+
+extern GString GetFreetypeLibraryVersion();
+GString GApp::GetFreetypeVersion()
+{
+	return GetFreetypeLibraryVersion();
 }
 
 ////////////////////////////////////////////////////////////////
