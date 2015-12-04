@@ -123,7 +123,10 @@ public:
 		/// [in] the format to get
 		char *Format
 	)
-	{ return false; }
+	{
+		LgiAssert(!"Impl me.");
+		return false;
+	}
 	DEPRECATED_POST
 
 	/// This is called to see what formats your support
