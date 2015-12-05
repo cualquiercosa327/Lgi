@@ -325,7 +325,7 @@ void DumpDomTree(GHtmlElement *e, int Depth = 0)
 	int d = Depth << 1;
 	memset(Sp, ' ', d);
 	Sp[d] = 0;
-	LgiTrace("%s%s (%p,%p)\n", Sp, e->Tag, e, e->Parent);
+	LgiTrace("%s%s (%p,%p)\n", Sp, e->Tag.Get(), e, e->Parent);
 	for (unsigned i=0; i<e->Children.Length(); i++)
 	{
 		DumpDomTree(e->Children[i], Depth+1);
@@ -795,6 +795,8 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 								ParentTags.Add(TAG_TR);
 								break;
 							}
+							default:
+								break;
 						}
 
 						for (GHtmlElement *p=OpenTags.Last(); p && p->TagId != TAG_TABLE; p=OpenTags.Prev())
