@@ -1003,7 +1003,8 @@ GFilter::IoStatus GdcTiff::ReadImage(GSurface *pDC, GStream *In)
 		// file is big endian so we swap
 		// Intel is little endian (i think)
 		// TODO_PPC: change this
-		LgiAssert(0);
+		LgiTrace("%s:%i - TIFF read failed 'big endian' file.\n", _FL);
+		return IoError;
 	}
 
 	Read(&n16, sizeof(n16));

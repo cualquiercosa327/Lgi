@@ -136,7 +136,7 @@ public:
 		char *Format
 	)
 	{
-		LgiAssert(!"Impl me.");
+		LgiAssert(!"Impl the proper handler.");
 		return false;
 	}
 	DEPRECATED_POST
@@ -270,6 +270,7 @@ public:
 		int KeyState
 	) DEPRECATED_POST
 	{
+		LgiAssert(!"Impl the proper handler.");
 		return DROPEFFECT_NONE;
 	}
 

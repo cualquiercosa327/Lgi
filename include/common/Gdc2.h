@@ -1085,6 +1085,32 @@ public:
 	bool RemapBitmap(GSurface *pDC);
 };
 
+/// This class is useful for double buffering in an OnPaint handler...
+class GDoubleBuffer
+{
+	GSurface *Screen;
+	GMemDC Mem;
+
+public:
+	GDoubleBuffer(GSurface *&pDC)
+	{
+		if (pDC &&
+			Mem.Create(pDC->X(), pDC->Y(), pDC->GetColourSpace()))
+		{
+			Screen = pDC;
+			pDC = &Mem;
+		}
+		else
+			Screen = NULL;		
+	}
+	
+	~GDoubleBuffer()
+	{
+		if (Screen)
+			Screen->Blt(0, 0, &Mem);
+	}
+};
+
 #ifdef WIN32
 typedef int (__stdcall *MsImg32_AlphaBlend)(HDC,int,int,int,int,HDC,int,int,int,int,BLENDFUNCTION);
 #endif

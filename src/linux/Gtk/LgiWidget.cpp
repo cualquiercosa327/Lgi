@@ -145,9 +145,9 @@ static gboolean lgi_widget_motion(GtkWidget *widget, GdkEventMotion *ev)
         m.x = ev->x;
         m.y = ev->y;
         m.Down((ev->state & GDK_BUTTON_PRESS_MASK) != 0);
-        m.Left(ev->state & 0x100);
-        m.Middle(ev->state & 0x200);
-        m.Right(ev->state & 0x400);
+        m.Left(ev->state & GDK_BUTTON1_MASK);
+        m.Middle(ev->state & GDK_BUTTON2_MASK);
+        m.Right(ev->state & GDK_BUTTON3_MASK);
 
 		#if 0
 		char s[256];
@@ -566,11 +566,12 @@ lgi_widget_drag_data_received(GtkWidget        *widget,
 		return;
 	}
 
-	::GVariant Data;
-	Data.SetBinary(Len, (void*)Ptr);		
+	::GArray<GDragData> dd;
+	dd[0].Format = Type;
+	dd[0].Data[0].SetBinary(Len, (void*)Ptr);
 	
 	// Give the data to the App
-	Target->OnDrop(Type, &Data, p, 0);
+	Target->OnDrop(dd, p, 0);
 }
 
 static void

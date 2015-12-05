@@ -1226,7 +1226,6 @@ bool GView::DropTarget(bool t)
 		SetControlDragTrackingEnabled(_View, false);
 	}
 
-
 	#elif defined __GTK_H__
 	if (_View)
 	{
