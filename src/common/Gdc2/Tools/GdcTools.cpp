@@ -638,14 +638,19 @@ bool ResampleDC(GSurface *pDest, GSurface *pSrc, GRect *FromRgn, Progress *Prog)
 			uint64 G = 0;
 			uint64 B = 0;
 			uint64 A = 0;
-			uint64 a;
+			register uint64 a;
 
 			int NextX = (Dx+1)*Sx+Sr.x1;
 			int NextY = (Dy+1)*Sy+Sr.y1;
 			int Nx, Ny;
 			COLOUR c;
+			
+			if (Dx == 0 && Dy == 9)
+			{
+				int asd=0;
+			}
 
-			uint16 *lin = ToLinear.Lut;
+			register uint16 *lin = ToLinear.Lut;
 			switch (pSrc->GetBits())
 			{
 				case 32:
@@ -654,18 +659,26 @@ bool ResampleDC(GSurface *pDest, GSurface *pSrc, GRect *FromRgn, Progress *Prog)
 					{
 						Ny = y + (256 - (y%256));
 
-						for (int x=Dx*Sx+Sr.x1; x<NextX; x=Nx)
+						register System32BitPixel *Src;
+						register uchar *DivLut = Div255Lut;
+						for (register int x=Dx*Sx+Sr.x1; x<NextX; x=Nx)
 						{
 							Nx = x + (256 - (x%256));
 
-							c = pSrc->Get(x >> 8, y >> 8);
+							Src = (System32BitPixel*) (*pSrc)[y >> 8];
+							if (!Src)
+							{
+								LgiAssert(0);
+								break;
+							}
+							Src += x >> 8;
 							a = (Nx - x) * (Ny - y);
 
 							// Add the colour and area to the running total
-							R += a * lin[R32(c)];
-							G += a * lin[G32(c)];
-							B += a * lin[B32(c)];
-							A += a * lin[A32(c)];
+							R += a * lin[Src->r];
+							G += a * lin[Src->g];
+							B += a * lin[Src->b];
+							A += a * lin[Src->a];
 							Area += a;
 						}
 					}
@@ -681,7 +694,7 @@ bool ResampleDC(GSurface *pDest, GSurface *pSrc, GRect *FromRgn, Progress *Prog)
 						{
 							uint8 Alpha;
 							register int SrcX, SrcY;
-							for (int x=Dx*Sx+Sr.x1; x<NextX; x=Nx)
+							for (register int x=Dx*Sx+Sr.x1; x<NextX; x=Nx)
 							{
 								Nx = x + (256 - (x%256));
 
@@ -702,7 +715,7 @@ bool ResampleDC(GSurface *pDest, GSurface *pSrc, GRect *FromRgn, Progress *Prog)
 						}
 						else
 						{
-							for (int x=Dx*Sx+Sr.x1; x<NextX; x=Nx)
+							for (register int x=Dx*Sx+Sr.x1; x<NextX; x=Nx)
 							{
 								Nx = x + (256 - (x%256));
 
@@ -725,7 +738,7 @@ bool ResampleDC(GSurface *pDest, GSurface *pSrc, GRect *FromRgn, Progress *Prog)
 					{
 						Ny = y + (256 - (y%256));
 
-						for (int x=Dx*Sx+Sr.x1; x<NextX; x=Nx)
+						for (register int x=Dx*Sx+Sr.x1; x<NextX; x=Nx)
 						{
 							Nx = x + (256 - (x%256));
 

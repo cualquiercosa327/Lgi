@@ -5,7 +5,8 @@
 #include "GHtmlParser.h"
 #include "GUtf8.h"
 
-#define IsBlock(d)		((d) == GCss::DispBlock)
+#define FEATURE_REATTACH_ELEMENTS		1
+#define IsBlock(d)						((d) == GCss::DispBlock)
 
 char *GHtmlParser::NextTag(char *s)
 {
@@ -318,11 +319,27 @@ GHtmlElemInfo *GHtmlParser::GetTagInfo(const char *Tag)
 	return GHtmlStatic::Inst->GetTagInfo(Tag);
 }
 
+void DumpDomTree(GHtmlElement *e, int Depth = 0)
+{
+	char Sp[256];
+	int d = Depth << 1;
+	memset(Sp, ' ', d);
+	Sp[d] = 0;
+	LgiTrace("%s%s (%p,%p)\n", Sp, e->Tag.Get(), e, e->Parent);
+	for (unsigned i=0; i<e->Children.Length(); i++)
+	{
+		DumpDomTree(e->Children[i], Depth+1);
+	}
+}
+
 bool GHtmlParser::Parse(GHtmlElement *Root, const char *Doc)
 {
 	SourceData.Empty();
 	CurrentSrc = Doc;
 	ParseHtml(Root, (char*)Doc, 0);
+	
+	// DumpDomTree(Root);
+	
 	if (CurrentSrc)
 		SourceData.Write(CurrentSrc, strlen(CurrentSrc));	
 	Source.Reset(SourceData.NewStr());
@@ -547,24 +564,20 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 					bool TagClosed = false;
 					s = ParsePropList(s, Elem, TagClosed);
 					
-					#if 0 // def _DEBUG
-					GVariant vDebug;
-					bool Debug = false;
-					if (Elem->GetValue("debug", vDebug))
-						Debug = vDebug.CastBool();
-					if (Debug)
+					#if 0 // _DEBUG
+					int Depth = 0;
+					for (GHtmlElement *ep = Elem; ep; ep=ep->Parent)
 					{
-						int asd=0;
+						Depth++;
 					}
+					char Sp[256];
+					Depth<<=1;
+					memset(Sp, ' ', Depth);
+					Sp[Depth] = 0;
+					LgiTrace("%s%s (this=%p, parent=%p)\n", Sp, Elem->Tag, Elem, Elem->Parent);
 					#endif
-
-					/*
-					if (_stricmp("th", Elem->Tag) == 0)
-					{
-						Elem->Tag.Reset(NewStr("td"));
-					}
-					*/
 					
+								
 					bool AlreadyOpen = false;
 					Elem->Info = GetTagInfo(Elem->Tag);
 					if (Elem->Info)
@@ -747,20 +760,55 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 						return s;
 					}
 
-					if (Elem->Info->ReattachTo)
+					#if FEATURE_REATTACH_ELEMENTS
+					if (Elem->Info->Reattach)
 					{
-						GToken T(Elem->Info->ReattachTo, ",");
-						const char *Reattach = Elem->Info->ReattachTo;
-						for (unsigned i=0; i<T.Length(); i++)
+						static int count = 0;
+						GArray<int> ParentTags;
+						switch (Elem->TagId)
 						{
-							if (Elem->Parent->Tag &&
-								_stricmp(Elem->Parent->Tag, T[i]) == 0)
+							case TAG_LI:
 							{
-								Reattach = 0;
+								ParentTags.Add(TAG_OL);
+								ParentTags.Add(TAG_UL);
+								break;
+							}
+							case TAG_HEAD:
+							{
+								ParentTags.Add(TAG_HTML);
+								break;
+							}
+							case TAG_TBODY:
+							{
+								ParentTags.Add(TAG_TABLE);
+								break;
+							}
+							case TAG_TR:
+							{
+								ParentTags.Add(TAG_TBODY);
+								ParentTags.Add(TAG_TABLE);
+								break;
+							}
+							case TAG_TD:
+							case TAG_TH:
+							{
+								ParentTags.Add(TAG_TR);
+								break;
+							}
+							default:
+								break;
+						}
+
+						for (GHtmlElement *p=OpenTags.Last(); p && p->TagId != TAG_TABLE; p=OpenTags.Prev())
+						{
+							if (p->TagId == Elem->TagId)
+							{
+								CloseTag(p);
 								break;
 							}
 						}
-
+												
+						bool Reattach = !ParentTags.HasItem(Elem->Parent->TagId);						
 						if (Reattach)
 						{
 							if (Elem->TagId == TAG_HEAD)
@@ -770,36 +818,75 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 							}
 							else
 							{
-								GHtmlElement *Last = 0;
+								GHtmlElement *Parent = NULL;
 								for (GHtmlElement *t=OpenTags.Last(); t; t=OpenTags.Prev())
 								{
-									if (t->Tag)
+									if (t->TagId && ParentTags.HasItem(t->TagId))
 									{
-										if (_stricmp(t->Tag, Elem->Tag) == 0)
-										{
-											CloseTag(t);
-											t = OpenTags.Current();
-											if (!t) t = OpenTags.Last();
-										}
-
-										if (t && t->Tag && _stricmp(t->Tag, Reattach) == 0)
-										{
-											Last = t;
-											break;
-										}
+										Parent = t;
+										break;
 									}
 
-									if (!t || t->TagId == TAG_TABLE)
+									if (t->TagId == TAG_TABLE)
 										break;
 								}
 
-								if (Last)
+								if (Parent)
 								{
-									Last->Attach(Elem);
+									// Reattach to the right parent.
+									// LgiTrace("Reattaching '%s'(%p) to '%s'(%p) count=%i\n", Elem->Tag, Elem, Parent->Tag, Parent, ++count);
+									Parent->Attach(Elem);
+								}
+								else
+								{
+									// Maybe there is no parent tag?
+									switch (Elem->TagId)
+									{
+										case TAG_TD:
+										case TAG_TH:
+										{
+											// Find a TBODY or TABLE to attach a new ROW
+											GHtmlElement *Attach = Elem->Parent;
+											while (Attach)
+											{
+												if (Attach->TagId == TAG_TABLE || Attach->TagId == TAG_TBODY)
+													break;
+												Attach = Attach->Parent;
+											}
+											if (Attach)
+											{
+												// Create a new ROW
+												GHtmlElement *NewRow = CreateElement(Attach);
+												if (NewRow)
+												{
+													NewRow->Tag.Reset(NewStr("tr"));
+													NewRow->TagId = TAG_TR;
+													NewRow->Info = GetTagInfo(NewRow->Tag);
+													
+													bool IsAttach = Attach->Children.HasItem(NewRow);
+													if (IsAttach)
+													{
+														OpenTags.Add(NewRow);
+														NewRow->Attach(Elem);
+														LgiTrace("Inserted new TAG_TR: %p\n", NewRow);
+													}
+												}
+												else LgiAssert(!"Alloc error");
+											}
+											else LgiAssert(!"What now?");											
+											break;
+										}
+										default:
+										{
+											LgiAssert(!"Impl me.");
+											break;
+										}
+									}
 								}
 							}
 						}
 					}
+					#endif
 
 					OpenTags.Insert(Elem);
 					

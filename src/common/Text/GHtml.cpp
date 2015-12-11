@@ -59,7 +59,7 @@
 
 #define DefaultPointSize			11
 #define DefaultBodyMargin			"5px"
-#define DefaultImgSize				17
+#define DefaultImgSize				16
 #define DefaultMissingCellColour	GT_TRANSPARENT // Rgb32(0xf0,0xf0,0xf0)
 #define ShowNbsp					0
 
@@ -1645,6 +1645,8 @@ GColour GTag::_Colour(bool f)
 			return GColour(c.Rgb32, 32);
 		}
 
+		/*	This implements some basic level of colour inheritance for
+			background colours. See test case 'cisra-cqs.html'. */
 		if (!f && t->TagId == TAG_TABLE)
 			break;
 	}
@@ -2823,7 +2825,7 @@ void GTag::SetStyle()
 			}
 			else
 			{
-				BorderSpacing(GCss::Len(GCss::LenPx, 2.0f));
+				// BorderSpacing(GCss::Len(GCss::LenPx, 2.0f));
 			}
 
 			if (Get("cellpadding", s) &&
@@ -2859,6 +2861,12 @@ void GTag::SetStyle()
 				PaddingRight(l);
 				PaddingTop(l);
 				PaddingBottom(l);
+			}
+			
+			if (TagId == TAG_TH)
+			{
+				BackgroundColor(GCss::ColorDef(ColorRgb, Rgb32(222, 222, 222)));
+				FontWeight(GCss::FontWeightBold);
 			}
 			break;
 		}
@@ -3949,7 +3957,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 		Cell->Cells->LayoutTable(f);
 }
 
-void GHtmlTableLayout::AllocatePx(int StartCol, int Cols, int MinPx)
+void GHtmlTableLayout::AllocatePx(int StartCol, int Cols, int MinPx, bool HasToFillAllAvailable)
 {
 	// Get the existing total size and size of the column set
 	int CurrentTotalX = GetTotalX();
@@ -3962,7 +3970,6 @@ void GHtmlTableLayout::AllocatePx(int StartCol, int Cols, int MinPx)
 	int AvailPx = (CurrentSpanX + MaxAdditionalPx) - BorderX1 - BorderX2;
 	
 	// Allocate any remaining space...
-	bool HasToFillAllAvailable = false; // TableWidth.IsValid();
 	int RemainingPx = MaxAdditionalPx;
 	GArray<int> Growable, NonGrowable, SizeInherit;
 	int GrowablePx = 0;
@@ -4270,8 +4277,13 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	int TotalX = GetTotalX();
 	if (TotalX > AvailableX)
 	{
+		// FIXME:
+		// Off -> 'cisra-cqs.html' renders correctly.
+		// On -> 'cisra_outage.html' renders correctly.
+		#if 0
 		DeallocatePx(0, MinCol.Length(), AvailableX);
 		TotalX = GetTotalX();
+		#endif
 	}
 
 	#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
@@ -4329,7 +4341,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 					#endif
 
 					if (t->Cell->MinContent > ColMin)
-						AllocatePx(t->Cell->Pos.x, t->Cell->Span.x, t->Cell->MinContent);
+						AllocatePx(t->Cell->Pos.x, t->Cell->Span.x, t->Cell->MinContent, false);
 					if (t->Cell->MaxContent > ColMax)
 						DistributeSize(MaxCol, t->Cell->Pos.x, t->Cell->Span.x, t->Cell->MaxContent, CellSpacing);
 				}
@@ -4416,11 +4428,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 	}
 	else if (TotalX < AvailableX)
 	{
-		if (Table->Debug)
-		{
-			int asd=0;
-		}
-		AllocatePx(0, s.x, AvailableX);
+		AllocatePx(0, s.x, AvailableX, TableWidth.IsValid());
 		DumpCols("AfterRemainingAlloc");
 	}
 
@@ -5085,7 +5093,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 		case TAG_IMG:
 		{
 			Size.x = Size.y = 0;
-
+			
 			GCss::Len w    = Width();
 			GCss::Len h    = Height();
 			GCss::Len MinX = MinWidth();
@@ -5125,7 +5133,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 			}
 			XLimit |= Flow->LimitX(Size.x, MinWidth(), MaxWidth(), f);
 
-			if (h.IsValid() && w.Type != LenAuto)
+			if (h.IsValid() && h.Type != LenAuto)
 			{
 				Size.y = Flow->ResolveY(h, GetFont(), false);
 				YLimit = true;
@@ -5136,7 +5144,12 @@ void GTag::OnFlow(GFlowRegion *Flow)
 			}
 			YLimit |= Flow->LimitY(Size.y, MinHeight(), MaxHeight(), f);
 
-			if (XLimit ^ YLimit)
+			if
+			(
+				(XLimit ^ YLimit)
+				&&
+				Image
+			)
 			{
 				if (XLimit)
 				{
@@ -5262,7 +5275,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 		{
 			if (!IsTableCell(TagId) && Width().IsValid())
 				Size.x = Flow->ResolveX(Width(), f, false);
-			else
+			else if (TagId != TAG_IMG)
 				Size.x = Flow->X();
 
 			if (MaxWidth().IsValid())
@@ -6262,10 +6275,10 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 					else \
 					{ \
 						GColour bk(back.Transparent() ? GColour(LC_WORKSPACE, 24) : back);			\
+						GColour fr(fore.Transparent() ? GColour(DefaultTextColour, 32) : fore);		\
 						if (IsEditor)																\
 							bk = bk.Mix(GColour(0, 0, 0), 0.05f);									\
-						f->Colour(	!fore.Transparent() ? fore : GColour(DefaultTextColour, 32),	\
-									bk);															\
+						f->Colour(fr, bk);															\
 					}
 
 				if (Html->HasSelection() &&
@@ -8468,11 +8481,151 @@ class GHtml_Factory : public GViewFactory
 } GHtml_Factory;
 
 //////////////////////////////////////////////////////////////////////
+struct BuildContext
+{
+	GHtmlTableLayout *Layout;
+	GTag *Table;
+	GTag *TBody;
+	GTag *CurTr;
+	GTag *CurTd;
+	int cx, cy;
+	
+	BuildContext()
+	{
+		Layout = NULL;
+		cx = cy = 0;
+
+		Table = NULL;
+		TBody = NULL;
+		CurTr = NULL;
+		CurTd = NULL;
+	}
+
+	bool Build(GTag *t, int Depth)
+	{
+		bool RetReattach = false;
+		
+		switch (t->TagId)
+		{
+			case TAG_TABLE:
+			{
+				if (!Table)
+					Table = t;
+				else
+					return false;
+				break;
+			}
+			case TAG_TBODY:
+			{
+				if (TBody)
+					return false;
+				TBody = t;
+				if (!Table || t->Parent != Table)
+				{
+					int asd=0;
+				}
+				break;
+			}
+			case TAG_TR:
+			{
+				CurTr = t;
+				if (t->Parent->TagId != TAG_TBODY &&
+					t->Parent->TagId != TAG_TABLE)
+				{
+					int asd=0;
+				}
+				break;
+			}
+			case TAG_TD:
+			{
+				CurTd = t;
+				if (t->Parent != CurTr)
+				{
+					if
+					(
+						!CurTr &&
+						(Table || TBody)
+					)
+					{
+						GTag *p = TBody ? TBody : Table;
+						CurTr = new GTag(p->Html, p);
+						if (CurTr)
+						{
+							CurTr->Tag.Reset(NewStr("tr"));
+							CurTr->TagId = TAG_TR;
+							
+
+							int Idx = t->Parent->Children.IndexOf(t);
+							t->Parent->Attach(CurTr, Idx);
+						}
+					}
+					
+					if (CurTr)
+					{
+						CurTr->Attach(t);
+						RetReattach = true;
+					}
+					else
+					{
+						LgiAssert(0);
+						return false;
+					}
+				}
+				
+				t->Cell->Pos.x = cx;
+				t->Cell->Pos.y = cy;
+				Layout->Set(t);
+				break;
+			}
+			default:
+			{
+				if (CurTd == t->Parent)
+					return false;
+				
+				int asd=0;
+				break;
+			}
+		}
+
+		for (unsigned n=0; n<t->Children.Length(); n++)
+		{
+			GTag *c = ToTag(t->Children[n]);
+			bool Reattached = Build(c, Depth+1);
+			if (Reattached)
+				n--;
+		}
+		
+		if (t->TagId == TAG_TR)
+		{
+			CurTr = NULL;
+			cy++;
+			cx = 0;
+			Layout->s.y = cy;
+		}
+		if (t->TagId == TAG_TD)
+		{
+			CurTd = NULL;
+			cx += t->Cell->Span.x;
+			Layout->s.x = max(cx, Layout->s.x);
+		}
+		
+		return RetReattach;
+	}
+};
+
 GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 {
 	Table = table;
 	if (!Table)
 		return;
+
+	#if 0
+
+	BuildContext Ctx;
+	Ctx.Layout = this;
+	Ctx.Build(table, 0);
+
+	#else
 
 	int y = 0;
 	GTag *FakeRow = 0;
@@ -8498,6 +8651,13 @@ GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 				GTag *t = ToTag(r->Children[n]);
 				Table->Children.AddAt(++Index, t);
 				t->Parent = Table;
+				
+				/*
+				LgiTrace("Moving '%s'(%p) from TBODY(%p) into '%s'(%p)\n",
+					t->Tag, t,
+					r,
+					t->Parent->Tag, t->Parent);
+				*/
 			}
 			r->Children.Length(0);
 		}
@@ -8613,6 +8773,8 @@ GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 			FakeCell = NULL;
 		}
 	}
+	
+	#endif
 }
 
 void GHtmlTableLayout::Dump()

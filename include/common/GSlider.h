@@ -39,7 +39,7 @@ public:
 
 	GMessage::Result OnEvent(GMessage *Msg);
 	
-	#if !defined(WINNATIVE)
+	#if !WINNATIVE
 	void OnPaint(GSurface *pDC);
 	void OnMouseClick(GMouse &m);
 	void OnMouseMove(GMouse &m);

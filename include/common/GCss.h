@@ -994,6 +994,9 @@ public:
 				if ((s = ClassMap.Find(Classes[i])))
 					Maps.Add(s);
 			}
+			
+			// Add in any other ones
+			Maps.Add(&Other);
 
 			// Now from the list of possibles, do the actual checking of selectors...
 			for (unsigned i=0; i<Maps.Length(); i++)

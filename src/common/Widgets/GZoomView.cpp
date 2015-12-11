@@ -1640,7 +1640,7 @@ int GZoomView::OnNotify(GViewI *v, int f)
 		case IDC_HSCROLL:
 		{
 			Invalidate();
-			#ifdef WIN32
+			#if WINNATIVE
 			UpdateWindow(Handle());
 			#endif
 			SendNotify(GNotifyViewport_Changed);

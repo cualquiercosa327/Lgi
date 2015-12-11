@@ -1085,6 +1085,32 @@ public:
 	bool RemapBitmap(GSurface *pDC);
 };
 
+/// This class is useful for double buffering in an OnPaint handler...
+class GDoubleBuffer
+{
+	GSurface *Screen;
+	GMemDC Mem;
+
+public:
+	GDoubleBuffer(GSurface *&pDC)
+	{
+		if (pDC &&
+			Mem.Create(pDC->X(), pDC->Y(), pDC->GetColourSpace()))
+		{
+			Screen = pDC;
+			pDC = &Mem;
+		}
+		else
+			Screen = NULL;		
+	}
+	
+	~GDoubleBuffer()
+	{
+		if (Screen)
+			Screen->Blt(0, 0, &Mem);
+	}
+};
+
 #ifdef WIN32
 typedef int (__stdcall *MsImg32_AlphaBlend)(HDC,int,int,int,int,HDC,int,int,int,int,BLENDFUNCTION);
 #endif
@@ -1325,6 +1351,17 @@ LgiFunc bool LgiRopUniversal(GBmpMem *Dst, GBmpMem *Src, bool Composite);
 
 /// Gets the screens DPI
 LgiFunc int LgiScreenDpi();
+
+/// Find the bounds of an image.
+/// \return true if there is some non-transparent image	 in 'rc'
+LgiFunc bool LgiFindBounds
+(
+	/// [in] The image
+	GSurface *pDC,
+	/// [in/out] Starts off as the initial bounds to search.
+	/// Returns the non-background area.
+	GRect *rc
+);
 
 #if defined(LGI_SDL)
 LgiFunc GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf);

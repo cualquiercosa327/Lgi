@@ -15,10 +15,22 @@
 #ifndef S_OK
 #define S_OK								0
 #endif
+
+#ifndef DROPEFFECT_NONE
 #define DROPEFFECT_NONE						0x0
+#endif
+
+#ifndef DROPEFFECT_COPY
 #define DROPEFFECT_COPY						0x1
+#endif
+
+#ifndef DROPEFFECT_MOVE
 #define DROPEFFECT_MOVE						0x2
+#endif
+
+#ifndef DROPEFFECT_LINK
 #define DROPEFFECT_LINK						0x4
+#endif
 
 #endif
 
@@ -33,6 +45,18 @@ struct LgiClass GDragData
 {
 	GString Format;
 	GArray<GVariant> Data;
+	
+	bool IsFormat(const char *Fmt)
+	{
+		return	Format.Get() != NULL &&
+				Fmt != NULL &&
+				!_stricmp(Format, Fmt);
+	}
+	
+	bool IsFileDrop()
+	{
+		return IsFormat(LGI_FileDropFormat);
+	}
 };
 
 /// A drag source class
@@ -111,7 +135,10 @@ public:
 		/// [in] the format to get
 		char *Format
 	)
-	{ return false; }
+	{
+		LgiAssert(!"Impl the proper handler.");
+		return false;
+	}
 	DEPRECATED_POST
 
 	/// This is called to see what formats your support
@@ -243,6 +270,7 @@ public:
 		int KeyState
 	) DEPRECATED_POST
 	{
+		LgiAssert(!"Impl the proper handler.");
 		return DROPEFFECT_NONE;
 	}
 

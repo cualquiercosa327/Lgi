@@ -99,24 +99,23 @@ bool GDragDropSource::SetIcon(GSurface *Img, GRect *SubRgn)
 
 bool GDragDropSource::CreateFileDrop(GDragData *OutputData, GMouse &m, List<char> &Files)
 {
-	if (OutputData && Files.First())
-	{
-		GStringPipe p;
-		for (char *f=Files.First(); f; f=Files.Next())
-		{
-			char s[256];
-			sprintf_s(s, sizeof(s), "file:%s", f);
-			if (p.GetSize()) p.Push("\n");
-			p.Push(s);
-		}
+	if (!OutputData || !Files.First())
+		return false;
 
-		char *s = p.NewStr();
-		if (s)
-		{
-			OutputData->Data[0].SetBinary(strlen(s), s);
-			DeleteArray(s);
-			return true;
-		}
+	GStringPipe p;
+	for (char *f=Files.First(); f; f=Files.Next())
+	{
+		char s[256];
+		sprintf_s(s, sizeof(s), "file:%s", f);
+		if (p.GetSize()) p.Push("\n");
+		p.Push(s);
+	}
+
+	GAutoString s(p.NewStr());
+	if (s)
+	{
+		OutputData->Data[0].SetBinary(strlen(s), s);
+		return true;
 	}
 
 	return false;
@@ -136,6 +135,74 @@ static Gtk::GdkDragAction EffectToDragAction(int Effect)
 		case DROPEFFECT_LINK:
 			return Gtk::GDK_ACTION_LINK;
 	}
+}
+
+void 
+LgiDragDataGet(GtkWidget        *widget,
+               GdkDragContext   *context,
+               GtkSelectionData *selection_data,
+               guint             info,
+               guint             time,
+               gpointer          data)
+{
+	GDragDropSource *Src = (GDragDropSource*)data;
+
+	// Iterate over the targets and put their formats into 'dd'
+	Gtk::GList *targets = gdk_drag_context_list_targets(context);
+	Gtk::GList *node;
+	if (targets)
+	{
+		::GArray<GDragData> dd;
+		for (node = g_list_first(targets); node != NULL; node = ((node) ? (((Gtk::GList *)(node))->next) : NULL))
+        {
+			gchar *format = gdk_atom_name((GdkAtom)node->data);
+			dd[dd.Length()].Format = format;
+        }
+		
+		if (Src->GetData(dd))
+		{
+			if (dd.Length() > 0 &&
+				dd[0].Data.Length() > 0)
+			{
+				::GVariant &v = dd[0].Data[0];
+				switch (v.Type)
+				{
+					case GV_STRING:
+					{
+						char *string = v.Str();
+						if (string)
+						{
+							gtk_selection_data_set (selection_data,
+													gtk_selection_data_get_target(selection_data),
+													8,
+													(Gtk::guchar*) string,
+													strlen(string) + 1);
+						}
+						else LgiAssert(0);
+						break;
+					}
+					case GV_BINARY:
+					{
+						if (v.Value.Binary.Data)
+						{
+							gtk_selection_data_set (selection_data,
+													gtk_selection_data_get_target(selection_data),
+													8,
+													(Gtk::guchar*) v.Value.Binary.Data,
+													v.Value.Binary.Length);
+						}
+						else LgiAssert(0);
+						break;
+					}
+					default:
+					{
+						LgiAssert(!"Impl this data type?");
+						break;
+					}
+				}
+			}
+		}
+	}	
 }
 
 int GDragDropSource::Drag(GView *SourceWnd, int Effect)
@@ -173,8 +240,10 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 	Gtk::GdkDragAction Action = EffectToDragAction(Effect);
 	
 	int Button = 1;
+	OsView Wnd = SourceWnd->Handle();
+	gtk_signal_connect(GTK_OBJECT(Wnd), "drag_data_get", GTK_SIGNAL_FUNC(LgiDragDataGet), this);
 
-	d->Ctx = Gtk::gtk_drag_begin(SourceWnd->Handle(),
+	d->Ctx = Gtk::gtk_drag_begin(Wnd,
 								Targets,
 								Action,
 								Button,

@@ -472,7 +472,7 @@ void GScrollBar::OnPaint(GSurface *pDC)
 	Info.kind = kThemeScrollBarMedium;
 	Info.bounds = Rc;
 	Info.min = d->Min;
-	Info.max = d->Max - d->Page;
+	Info.max = d->Max - d->Page + 1;
 	Info.value = d->Value;
 	Info.reserved = 0;
 	Info.attributes =	(Vertical() ? 0 : kThemeTrackHorizontal) |

@@ -61,7 +61,22 @@ public:
 	{
 		return lib;
 	}
+	
+	GString GetVersion()
+	{
+		FT_Int amajor = 0, aminor = 0, apatch = 0;
+		FT_Library_Version(lib, &amajor, &aminor, &apatch);
+		GString s;
+		s.Printf("%i.%i.%i", amajor, aminor, apatch);
+		return s;
+	}
+	
 } Freetype2;
+
+GString GetFreetypeLibraryVersion()
+{
+	return Freetype2.GetVersion();
+}
 
 #elif defined(WIN32)
 

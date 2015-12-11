@@ -59,6 +59,91 @@ void MemOr(void *d, void *s, uint l)
 }
 
 //////////////////////////////////////////////////////////////////////
+bool LgiFindBounds(GSurface *pDC, GRect *rc)
+{
+	if (!pDC || ! rc)
+		return false;
+
+	LgiAssert(pDC->GetColourSpace() == System32BitColourSpace);
+
+	// Move top border down to image
+	while (rc->y1 < rc->y2)
+	{
+		System32BitPixel *p = (System32BitPixel*)(*pDC)[rc->y1];
+		if (!p)
+			return false;
+		p += rc->x1;
+		System32BitPixel *e = p + rc->X();
+		bool IsTrans = true;
+		while (p < e)
+		{
+			if (p->a != 0)
+			{
+				IsTrans = false;
+				break;
+			}			
+			p++;
+		}
+		if (IsTrans)
+			rc->y1++;
+		else
+			break;
+	}
+	
+	// Move bottom border up to image
+	while (rc->y2 >= rc->y1)
+	{
+		System32BitPixel *p = (System32BitPixel*)(*pDC)[rc->y2];
+		if (!p)
+			return false;
+		p += rc->x1;
+		System32BitPixel *e = p + rc->X();
+		bool IsTrans = true;
+		while (p < e)
+		{
+			if (p->a != 0)
+			{
+				IsTrans = false;
+				break;
+			}
+			p++;
+		}
+		if (IsTrans)
+			rc->y2--;
+		else
+			break;
+	}
+
+	// Do the left and right edges too
+	int x1 = rc->x2;
+	int x2 = rc->x1;	
+	for (int y=rc->y1; y<=rc->y2; y++)
+	{
+		System32BitPixel *p = (System32BitPixel*)(*pDC)[y];
+		if (!p)
+			return false;
+		System32BitPixel *px1 = p + rc->x1;
+		System32BitPixel *px2 = p + rc->x2;
+		while (px1 < px2 && px1->a == 0)
+			px1++;
+		x1 = min(x1, px1 - p);
+
+		while (px2 >= px1 && px2->a == 0)
+			px2--;
+		x2 = max(x2, px2 - p);
+	}
+	rc->x1 = x1;
+	rc->x2 = x2;
+	
+	if (rc->Valid())
+		return true;
+
+	// No data?
+	rc->ZOff(-1, -1);
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////
 // Drawing functions
 void LgiDrawBox(GSurface *pDC, GRect &r, bool Sunken, bool Fill)
 {

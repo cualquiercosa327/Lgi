@@ -306,6 +306,9 @@ public:
 
 		/// Sets up mouse tracking beyond the current window...
 		void CaptureMouse(bool capture);
+		
+		/// Returns the freetype version as a string.
+		GString GetFreetypeVersion();
 	
 	#elif defined(WIN32)
 

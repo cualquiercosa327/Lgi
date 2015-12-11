@@ -387,9 +387,12 @@ GAutoString ImapBasicTokenize(char *&s)
 		{
 			char *e = s;
 			while (*e && !strchr(WhiteSpace, *e)) e++;
-			char *n = NewStr(s, e - s);
-			s = e + (*e != 0);
-			return GAutoString(n);
+			if (e > s)
+			{
+				char *n = NewStr(s, e - s);
+				s = e + (*e != 0);
+				return GAutoString(n);
+			}
 		}
 	}
 

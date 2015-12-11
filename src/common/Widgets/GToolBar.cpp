@@ -332,36 +332,14 @@ GRect *GImageList::GetBounds()
 		int Items = GetItems();
 		if (d->Bounds.Length(Items))
 		{
-			// COLOUR Key = Get(0, 0);
-
 			for (int i=0; i<Items; i++)
 			{
-				d->Bounds[i].x1 = d->Sx-1;
-				d->Bounds[i].y1 = d->Sy-1;
-				d->Bounds[i].x2 = 0;
-				d->Bounds[i].y2 = 0;
+				d->Bounds[i].ZOff(d->Sx - 1, d->Sy - 1);
+				d->Bounds[i].Offset(i * d->Sx, 0);
 
-				int Bx = i * d->Sx;
-				for (int y=0; y<d->Sy; y++)
-				{
-					for (int x=0; x<d->Sx; x++)
-					{
-						COLOUR c = Get(Bx+x, y);
-						if (A32(c))
-						{
-							d->Bounds[i].x1 = min(d->Bounds[i].x1, x);
-							d->Bounds[i].y1 = min(d->Bounds[i].y1, y);
-							d->Bounds[i].x2 = max(d->Bounds[i].x2, x);
-							d->Bounds[i].y2 = max(d->Bounds[i].y2, y);
-						}
-					}
-				}
-				
-				if (!d->Bounds[i].Valid())
-				{
-					// No data?
-					d->Bounds[i].ZOff(-1, -1);
-				}
+				LgiFindBounds(this, &d->Bounds[i]);
+
+				d->Bounds[i].Offset(-i * d->Sx, 0);
 			}
 		}
 	}

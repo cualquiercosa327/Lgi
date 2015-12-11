@@ -88,7 +88,7 @@ void GFont::_Draw(GSurface *pDC, int x, int y, OsChar *Str, int Len, GRect *r, G
 		SetTextColor(hDC, fore.GetNative());
 		if (!IsTransparent)
 			SetBkColor(hDC, Back().GetNative());
-		SetBkMode(hDC, Transparent() ? TRANSPARENT : OPAQUE);
+		SetBkMode(hDC, IsTransparent ? TRANSPARENT : OPAQUE);
 
 		SIZE Size;
 		if ((!IsTransparent && !r)
@@ -114,7 +114,7 @@ void GFont::_Draw(GSurface *pDC, int x, int y, OsChar *Str, int Len, GRect *r, G
 				rc.right = x + Size.cx;
 				rc.top = y + Size.cy;
 			}
-
+			
 			ExtTextOutW(hDC, x, y, ETO_CLIPPED | (Transparent()?0:ETO_OPAQUE), &rc, Str, Len, 0);
 		}
 
