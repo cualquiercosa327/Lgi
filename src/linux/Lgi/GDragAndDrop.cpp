@@ -97,7 +97,7 @@ bool GDragDropSource::SetIcon(GSurface *Img, GRect *SubRgn)
 	return false;
 }
 
-bool GDragDropSource::CreateFileDrop(::GVariant *OutputData, GMouse &m, List<char> &Files)
+bool GDragDropSource::CreateFileDrop(GDragData *OutputData, GMouse &m, List<char> &Files)
 {
 	if (OutputData && Files.First())
 	{
@@ -113,7 +113,7 @@ bool GDragDropSource::CreateFileDrop(::GVariant *OutputData, GMouse &m, List<cha
 		char *s = p.NewStr();
 		if (s)
 		{
-			OutputData->SetBinary(strlen(s), s);
+			OutputData->Data[0].SetBinary(strlen(s), s);
 			DeleteArray(s);
 			return true;
 		}
@@ -164,6 +164,8 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 		entry.target = f;
 		entry.flags = 0;
 		entry.info = GtkGetDndType(f);
+		
+		printf("%s:%i - dnd fmt %s %i\n", _FL, f, entry.info);
 	}
 	
 	Gtk::GtkTargetList *Targets = Gtk::gtk_target_list_new(&e[0], e.Length());
@@ -203,16 +205,6 @@ void GDragDropTarget::SetWindow(GView *to)
 		if (To->Handle())
 		{
 			GtkWidget *w = to->Handle();
-			
-			#if 0
-			printf("Installing DND handles on %s, Status=%i\n", to->GetClass(), Status);
-			
-   			g_signal_connect(w, "drag-motion",			G_CALLBACK(GtkOnDragMotion),		this);
-			g_signal_connect(w, "drag-drop",			G_CALLBACK(GtkOnDragDrop),			this);
-			g_signal_connect(w, "drag-data-received",	G_CALLBACK(GtkOnDragDataReceived), 	this);
-			g_signal_connect(w, "drag-leave",			G_CALLBACK(GtkOnDragLeave),		 	this);
-			#endif
-
    			OnDragInit(Status);
 		}
 		else

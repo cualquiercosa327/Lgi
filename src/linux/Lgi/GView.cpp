@@ -646,16 +646,6 @@ GMessage::Param GView::OnEvent(GMessage *Msg)
 	int Id;
 	switch (Id = Msg->Msg())
 	{
-		#if 0 // def M_GTHREADWORK_COMPELTE
-		case M_GTHREADWORK_COMPELTE:
-		{
-			GThreadOwner *Owner = (GThreadOwner*) MsgA(Msg);
-			GThreadWork *WorkUnit = (GThreadWork*) MsgB(Msg);
-			Owner->OnComplete(WorkUnit);
-			DeleteObj(WorkUnit);
-			break;
-		}
-		#endif
 		case M_X11_INVALIDATE:
 		{
 			X11_INVALIDATE_PARAMS *p = (X11_INVALIDATE_PARAMS*)MsgA(Msg);
@@ -684,11 +674,6 @@ GMessage::Param GView::OnEvent(GMessage *Msg)
 		{
 			int32 a=MsgA(Msg);
 			return OnCommand(a&0xFFFF, a>>16, (OsView) MsgB(Msg));
-		}
-		default:
-		{
-			int asd=0;
-			break;
 		}
 	}
 

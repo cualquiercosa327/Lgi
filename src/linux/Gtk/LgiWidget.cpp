@@ -532,13 +532,13 @@ lgi_widget_drag_drop(GtkWidget	       *widget,
 }
 
 static void
-lgi_widget_drag_data_received(GtkWidget        *widget,
-							GdkDragContext     *context,
-							gint                x,
-							gint                y,
-							GtkSelectionData   *data,
-							guint               info,
-							guint               time)
+lgi_widget_drag_data_received(	GtkWidget			*widget,
+								GdkDragContext		*context,
+								gint				x,
+								gint				y,
+								GtkSelectionData	*data,
+								guint				info,
+								guint				time)
 {
 	LgiTrace("lgi_widget_drag_data_received\n");
 
@@ -557,9 +557,13 @@ lgi_widget_drag_data_received(GtkWidget        *widget,
 	}
 	
 	gchar *Type = gdk_atom_name(gtk_selection_data_get_data_type(data));
+	printf("%s:%i - Type=%s\n", _FL, Type);
 	GdcPt2 p(x, y);
 	gint Len = gtk_selection_data_get_length(data);
+	printf("%s:%i - Len=%i\n", _FL, Len);
+
 	const guchar *Ptr = gtk_selection_data_get_data(data);
+	printf("%s:%i - Ptr=%p\n", _FL, Ptr);
 	if (!Ptr || Len <= 0)
 	{
 		printf("%s:%i - gtk_selection_data_get_[data/len] failed.\n", _FL);
