@@ -340,9 +340,6 @@ public:
 
 GApplicator *GApp24::Create(GColourSpace Cs, int Op)
 {
-	if (Op != GDC_SET)
-		return NULL;
-
 	if (Cs == System24BitColourSpace)
 	{
 		switch (Op)
@@ -359,6 +356,9 @@ GApplicator *GApp24::Create(GColourSpace Cs, int Op)
 	}
 	else
 	{
+		if (Op != GDC_SET)
+			return NULL;
+
 		switch (Cs)
 		{
 			#define Case24(name) \

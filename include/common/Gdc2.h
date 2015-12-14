@@ -1190,6 +1190,17 @@ public:
     	/// [Optional] Enable OS based loaders
         bool UseOSLoader = true
     );
+
+	/// The stream version of the file loader...
+    GSurface *Load
+    (
+        /// The full path of the file
+        GStream *In,
+        /// [Optional] File name hint for selecting a filter
+        const char *Name = NULL,
+    	/// [Optional] Enable OS based loaders
+        bool UseOSLoader = true
+    );
     
     /// Save an image to a file.
     bool Save

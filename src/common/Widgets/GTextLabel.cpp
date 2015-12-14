@@ -4,6 +4,7 @@
 #include "Lgi.h"
 #include "GTextLabel.h"
 #include "GDisplayStringLayout.h"
+#include "GVariant.h"
 
 class GTextPrivate : public GDisplayStringLayout, public GMutex
 {
@@ -36,7 +37,6 @@ public:
 		else return false;
 		return true;
 	}
-
 };
 
 GText::GText(int id, int x, int y, int cx, int cy, const char *name) :
@@ -57,6 +57,22 @@ GText::GText(int id, int x, int y, int cx, int cy, const char *name) :
 GText::~GText()
 {
 	DeleteObj(d);
+}
+
+bool GText::SetVariant(const char *Name, GVariant &Value, char *Array)
+{
+	GDomProperty p = GStringToProp(Name);
+	if (p == ObjStyle)
+	{
+		const char *Style = Value.Str();
+		if (Style)
+		{
+			GetCss(true)->Parse(Style, GCss::ParseRelaxed);
+		}
+		return true;
+	}
+	
+	return false;
 }
 
 bool GText::GetWrap()

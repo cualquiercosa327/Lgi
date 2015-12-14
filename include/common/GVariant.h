@@ -59,10 +59,6 @@ enum GVariantType
 	GV_GMOUSE,
 	/// Pointer to GKey
 	GV_GKEY,
-	/*
-	/// Pointer to GFile
-	GV_GFILE
-	*/
 	/// Pointer to GStream
 	GV_STREAM,
 };
@@ -170,14 +166,6 @@ public:
 		    class GSurface *Ptr;
 		    bool Own;
 		} Surface;
-		/*
-		/// Valid when Type == #GV_GFILE
-		struct
-		{
-			class GFile *Ptr;
-			bool Own;
-		} File;
-		*/
 		/// Valid when Type == #GV_STREAM
 		struct
 		{
@@ -276,6 +264,8 @@ public:
 	void OwnStr(char16 *s);
 	/// Sets the variant to NULL
 	void Empty();
+	/// Returns the byte length of the data
+	int64 Length();
 
 	/// True if currently a int
 	bool IsInt();

@@ -256,6 +256,7 @@ enum Store3Fields
 	FIELD_CONTACT_CUST_VAL3 = 105,		// (char*)
 	FIELD_CONTACT_CUST_FLD4 = 106,		// (char*)
 	FIELD_CONTACT_CUST_VAL4 = 107,		// (char*)
+	FIELD_CONTACT_IMAGE	= 108,			// (GSurface*)
 
 	// Misc additional fields
 	FIELD_LABEL = 110,					// (char*) Mail label

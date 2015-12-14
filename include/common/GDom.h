@@ -58,6 +58,7 @@ enum GDomProperty
 	ObjLength,
 	ObjType,
 	ObjName,
+	ObjStyle,
 	
 	// Types
 	TypeList,

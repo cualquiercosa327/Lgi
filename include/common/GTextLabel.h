@@ -8,7 +8,8 @@
 /// A static text label widget
 class LgiClass GText :
 	public GView,
-	public ResObject
+	public ResObject,
+	public GDom
 {
 	class GTextPrivate *d;
 
@@ -57,6 +58,7 @@ public:
 	void OnPaint(GSurface *pDC);
 	void OnPosChange();
 	bool OnLayout(GViewLayoutInfo &Inf);
+	bool SetVariant(const char *Name, GVariant &Value, char *Array = NULL);
 };
 
 #endif

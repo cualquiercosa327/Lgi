@@ -786,6 +786,88 @@ void GVariant::Empty()
 	ZeroObj(Value);
 }
 
+int64 GVariant::Length()
+{
+	switch (Type)
+	{
+		case GV_INT32:
+			return sizeof(Value.Int);
+		case GV_INT64:
+			return sizeof(Value.Int64);
+		case GV_BOOL:
+			return sizeof(Value.Bool);
+		case GV_DOUBLE:
+			return sizeof(Value.Dbl);
+		case GV_STRING:
+			return Value.String ? strlen(Value.String) : 0;
+		case GV_BINARY:
+			return Value.Binary.Length;
+		case GV_LIST:
+		{
+			int64 Sz = 0;
+			if (Value.Lst)
+			{
+				List<GVariant>::I it = Value.Lst->Start();
+				for (GVariant *v=*it; v; v=*++it)
+					Sz += v->Length();
+			}
+			return Sz;
+		}
+		case GV_DOM:
+		{
+			GVariant v;
+			if (Value.Dom)
+				Value.Dom->GetValue("length", v);
+			return v.CastInt32();
+		}
+		case GV_DOMREF:
+			break;
+		case GV_VOID_PTR:
+			return sizeof(Value.Ptr);
+		case GV_DATETIME:
+			return sizeof(*Value.Date);
+		case GV_HASHTABLE:
+		{
+			int64 Sz = 0;
+			if (Value.Hash)
+			{
+				for (GVariant *v=(GVariant*)Value.Hash->First();
+					v;
+					v=(GVariant*)Value.Hash->Next())
+					Sz += v->Length();
+			}
+			return Sz;
+		}
+		case GV_OPERATOR:
+			return sizeof(Value.Op);
+		case GV_CUSTOM:
+			break;
+		case GV_WSTRING:
+			return Value.WString ? StrlenW(Value.WString) * sizeof(char16) : 0;
+		case GV_GSURFACE:
+		{
+			int64 Sz = 0;
+			if (Value.Surface.Ptr)
+			{
+				GRect r = Value.Surface.Ptr->Bounds();
+				int Bytes = Value.Surface.Ptr->GetBits() >> 3;
+				Sz = r.X() * r.Y() * Bytes;
+			}
+			return Sz;
+		}
+		case GV_GVIEW:
+			return sizeof(GView);
+		case GV_GMOUSE:
+			return sizeof(GMouse);
+		case GV_GKEY:
+			return sizeof(GKey);
+		case GV_STREAM:
+			return Value.Stream.Ptr->GetSize();
+	}
+	
+	return 0;
+}
+
 bool GVariant::IsInt()
 {
 	return Type == GV_INT32 || Type == GV_INT64;
@@ -1414,6 +1496,7 @@ struct GDomPropMap : public GHashTbl<const char *, GDomProperty>
 		Define("Length", ObjLength);
 		Define("Type", ObjType);
 		Define("Name", ObjName);
+		Define("Style", ObjStyle);
 
 		Define("List", TypeList);
 		Define("HashTable", TypeHashTable);

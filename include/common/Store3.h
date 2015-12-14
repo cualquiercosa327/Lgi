@@ -170,19 +170,28 @@ public:
 
 	/// Copy all the values from 'p' over to this object
 	virtual GDataPropI &operator =(GDataPropI &p) { LgiAssert(0); return *this; }
+
 	/// Gets a string property
 	virtual char *GetStr(int id) { EmptyVirtual; }
 	/// Sets a string property, it will make a copy of the string, so you
 	/// still retain ownership of the string you're passing in.
 	virtual bool SetStr(int id, const char *str) { EmptyVirtual; }
+
 	/// Gets an integer property.
 	virtual int64 GetInt(int id) { EmptyVirtual; }
 	/// Sets an interger property.
 	virtual bool SetInt(int id, int64 i) { EmptyVirtual; }
+
 	/// Gets a date property
 	virtual GDateTime *GetDate(int id) { EmptyVirtual; }
 	/// Sets a date property
 	virtual bool SetDate(int id, GDateTime *i) { EmptyVirtual; }
+
+	/// Gets a variant
+	virtual GVariant *GetVariant(int id) { EmptyVirtual; }
+	/// Sets a variant property
+	virtual bool SetVariant(int id, GVariant *i) { EmptyVirtual; }
+
 	/// Gets a sub object pointer
 	virtual GDataPropI *GetObj(int id) { EmptyVirtual; }
 	/// Gets an iterator interface to a list of sub-objects.

@@ -623,13 +623,13 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 			
 			const char *Cls = v->GetClass();
 			GCss *Css = v->GetCss();
-			GCss::Len Wid;
+			GCss::Len ChildWid;
 			if (Css)
-				Wid = Css->Width();
+				ChildWid = Css->Width();
 				
-			if (Wid.IsValid())
+			if (ChildWid.IsValid())
 			{
-				int Px =  Wid.ToPx(MaxCellWidth(), v->GetFont());
+				int Px = ChildWid.ToPx(MaxCellWidth(), v->GetFont());
 				Min = max(Min, Px);
 				Max = max(Max, Px);
 				
@@ -740,6 +740,12 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 				{
 					Tbl->d->InitBorderSpacing();
 					Tbl->d->LayoutHorizontal(Table->GetClient(), &Min, &Max, &Flag);
+					
+					if (Wid.IsDynamic())
+					{
+						if (Min > Max)
+							Min = Max;
+					}
 				}
 				else
 				{
@@ -1206,6 +1212,13 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 	MaxRow.Length(0);
 	ColFlags.Length(0);
 	RowFlags.Length(0);
+
+	#if DEBUG_LAYOUT
+	if (DebugLayout)
+	{
+		int asd=0;
+	}
+	#endif
 		
 	// Do pre-layout to determine minimum and maximum column widths
 	for (Cy=0; Cy<Rows.Length(); Cy++)

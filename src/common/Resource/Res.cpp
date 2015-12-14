@@ -1255,6 +1255,15 @@ ResObjectImpl::SStatus ResObjectImpl::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 			return SExclude;
 		Res_SetFlags(Tag);
 
+		const char *Style = Tag->GetAttr("style");
+		if (Style)
+		{
+			GVariant v = Style;
+			GDom *d = Factory->Res_GetDom(Object);
+			if (d)
+				d->SetValue("style", v);
+		}
+
 		return SOk;
 	}
 	else
@@ -1528,9 +1537,7 @@ ResObjectImpl::SStatus ResTableLayout::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 		}
 		v = Tag->GetAttr("style");
 		if (v.Str())
-		{
 			d->SetValue("style", v);
-		}
 
 		GRect Bounds(0, 0, Cx-1, Cy-1);
 		#define UsedCell(x, y) Used[(Cx * y) + x]
