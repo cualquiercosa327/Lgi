@@ -216,7 +216,7 @@ GFileSelect::~GFileSelect()
 
 void GFileSelect::ShowReadOnly(bool b)
 {
-	d->ShowReadOnly = b;;
+	d->ShowReadOnly = b;
 }
 
 bool GFileSelect::ReadOnly()
@@ -234,7 +234,16 @@ bool GFileSelect::Name(const char *n)
 	d->Files.DeleteArrays();
 	if (n)
 	{
-		d->Files.Insert(NewStr(n));
+		char *ns = NewStr(n);
+		if (ns)
+		{
+			for (char *c = ns; *c; c++)
+			{
+				if (strchr(LGI_IllegalFileNameChars, *c))
+					*c = '_';
+			}
+			d->Files.Insert(ns);
+		}
 	}
 
 	return true;
@@ -388,7 +397,7 @@ bool GFileSelect::Open()
 									d,
 									&Dlg);
 		if (e) printf("%s:%i - NavCreateGetFileDialog failed with %i\n", _FL, (int)e);
-		else
+		else if (Dlg)
 		{
 			d->DoTypes(Dlg);
 			
@@ -477,7 +486,7 @@ bool GFileSelect::Save()
 									d,
 									&Dlg);
 		if (e) printf("%s:%i - NavCreatePutFileDialog failed with %i\n", _FL, (int)e);
-		else
+		else if (Dlg)
 		{
 			d->DoTypes(Dlg);
 			
