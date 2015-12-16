@@ -2,7 +2,7 @@
 	    -----------------------
 
 The primary aim of LGI is to abstract away the differences between
-operating system's and provide a consistant API that applications
+operating system's and provide a consistent API that applications
 can target.
 
 As a secondary goal the library should strive to be compact for easy
@@ -12,55 +12,48 @@ to use, without sacrificing functionality on the various platforms
 supported.
 
 The library is not intended to be shared between applications
-as there is too much change in the API and object size to warrent a
+as there is too much change in the API and object size to warrant a
 shared library approach. In the future this may change if compatibility
 can be improved.
 
 Compiling LGI
 -------------
 
-    Open '[Lgi]/include/common/Lgi.h' and check through any compile time
+    Open '[lgi]/include/common/Lgi.h' and check through any compile time
     options there. You may want to switch things on or off to get it to
     compile.
 
     Win32:
-    	Load Lgi/Lgi.dsp into Visual C++ and build it.
+    	Load  [lgi]/Lgi_vc9.sln into Visual C++ 2008 and build it.
     
     Linux:
-    	make -f Lgi/Makefile.linux
+    	make -f [lgi]/Makefile.linux
     		-or-
-    	make -f Lgi/LgiIde/Makefile.linux (builds both Lgi and the IDE)
+    	make -f [lgi]/LgiIde/Makefile.linux (builds both Lgi and the IDE)
     
     Cygwin:
-    	make -f Lgi/Makefile.win32
+    	make -f [lgi]/Makefile.win32
     		-or-
-    	make -f Lgi/LgiIde/Makefile.win32 (builds both Lgi and the IDE)
+    	make -f [lgi]/LgiIde/Makefile.win32 (builds both Lgi and the IDE)
     
     Mac:
-    	Open Lgi.xcode in XCode and run the build command. 
+    	Open [lgi]/src/mac/carbon/Lgi.xcode in XCode and run the build command. 
 
 	
 	Add build folders so the OS can find the shared libraries:
 
 		* For Windows add these to your path:
-			- Lgi/Debug
-			- Lgi/Release
-			- Lgi/Gel/Debug
-			- Lgi/Gel/Release 
+			- [lgi]/lib
 		* For Cygwin add these to your path:
-			- Lgi/DebugX
-			- Lgi/ReleaseX
-			- Lgi/Gel/DebugX
-			- Lgi/Gel/ReleaseX 
+			- [lgi]/DebugX
+			- [lgi]/ReleaseX
 		* On Linux, create symlinks in /usr/lib to the files:
-			- Lgi/DebugX/liblgid.so
-			- Lgi/ReleaseX/liblgi.so
-			- Lgi/Gel/DebugX/liblgiskind.so
-			- Lgi/Gel/ReleaseX/liblgiskin.so 
+			- [lgi]/DebugX/liblgid.so
+			- [lgi]/ReleaseX/liblgi.so
 
 Building Your App
 -----------------
-    Win32: Add the project Lgi/Lgi.dsp to your workspace. Then in your 
+    Win32: Add the project [lgi]/Lgi_vc9.vxproj to your workspace. Then in your 
     new project you'll need to set these settings:
 	    * C/C++ tab
 			- C++ Language
@@ -98,22 +91,6 @@ Usage
     But you can also include "Gdc2.h" for just graphics support without all
     the GUI stuff.
 
-    To utilise the built in memory debugging features, encase all C++ memory
-    allocation with these macros:
-
-	Obj *o = NEW(Obj(a, b, c)); // instead of "new Obj(a, b, c);"
-	DeleteObj(o); // instead of "delete o;"
-
-    And for arrays:
-
-	Obj *o = NEW(Obj[10]);
-	DeleteArray(o);
-
-    The List<T> class has these built in:
-
-	List<char> o;
-	o.DeleteObjects(); // or o.DeleteArrays(); etc...
-
     The naming conventions for container methods are:
 	- "Delete(...)" removes from the container and frees the object.
 	- "Remove(...)" just removes from the container.
@@ -122,4 +99,7 @@ Documentation
 -------------
     
     See: [Lgi]/docs/html/index.html.
+
+	Which you may have to generate with doxygen if you are building from the
+	repository.
 

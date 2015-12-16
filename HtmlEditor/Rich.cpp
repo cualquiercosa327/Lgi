@@ -96,7 +96,7 @@ public:
 
 	int OnNotify(GViewI *c, int f)
 	{
-		if (c->GetId() == IDC_EDITOR AND f == GTVN_DOC_CHANGED)
+		if (c->GetId() == IDC_EDITOR AND f == GNotifyDocChanged)
 		{
 			if (Txt AND Edit)
 			{
