@@ -802,7 +802,7 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 	/* Testing code
 	char *Input[] =
 	{
-	    "\"Sound&Secure@speedytechnical.com\" <soundandsecure@speedytechnical.com>",
+		"\"Sound&Secure@speedytechnical.com\" <soundandsecure@speedytechnical.com>",
 		"\"@MM-Social Mailman List\" <social@cisra.canon.com.au>",
 		"'Matthew Allen (fret)' <fret@memecode.com>",
 		"Matthew Allen (fret) <fret@memecode.com>",
@@ -815,15 +815,18 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 		"\"Matthew, Allen\" (fret@memecode.com)",
 		"Matt'hew Allen <fret@memecode.com>",
 		"john.omalley <john.O'Malley@testing.com>",
-		" Australian Bankers' Association (ABA)<survey@aawp.org.au>",
+		"Bankers' Association (ABA)<survey@aawp.org.au>",
+		"'Amy's Mum' <name@domain.com>",
 		0
 	};
 
 	GAutoString Name, Addr;
 	for (char **i = Input; *i; i++)
 	{
+		Name.Reset();
+		Addr.Reset();
 		DecodeAddrName(*i, Name, Addr, "name.com");
-		LgiTrace("N=%-24s A=%-24s\n", Name, Addr);
+		LgiTrace("N=%-#32s A=%-32s\n", Name, Addr);
 	}
 	*/
 
@@ -837,6 +840,8 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 		{
 			// skip whitespace
 		}
+		/*	This was removed becuase it works better for cases of mismatched single quotes.
+			e.g. 'Amy's Mum' <name@domain.com>
 		else if (strchr("\"'", *c))
 		{
 			// string delim
@@ -850,7 +855,8 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 
 			Parts.New().Reset(new MailAddrPart(s, c - s));
 		}
-		else if (strchr("<", *c))
+		*/
+		else if (strchr("<(", *c))
 		{
 			// brackets
 			char Delim = (*c == '<') ? '>' : ')';
@@ -872,7 +878,7 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 		{
 			// Some string
 			char *s = c;
-			for (; *c && !strchr("<\"", *c); c++);
+			for (; *c && !strchr("<(", *c); c++);
 			LgiAssert(c - s > 0);
 		    Parts.New().Reset(new MailAddrPart(s, c - s));
 			continue;
@@ -897,7 +903,7 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
         MailAddrPart *p = Parts[i];
 	    if
 	    (
-	        // p->ValidEmail &&
+	        p->ValidEmail &&
 	        (
 	            MaxScore < 0
 	            ||
@@ -914,27 +920,6 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 	    Addr = Parts[MaxScore]->Part;
 	    Parts.DeleteAt(MaxScore, true);
 	}
-
-    /*
-	if (!Addr)
-	{
-		// This code checks through the strings again for
-		// something bracketed by <> which would normally
-		// be the address, even if it's not formatted correctly
-		// Scribe uses this to store group names in the email
-		// address part of an address descriptor.
-		for (i=0; i<Parts.Length(); i++)
-		{
-			MailAddrPart *s = Parts[i];
-			if (s->Brackets && !strchr(s, '@'))
-			{
-				Addr = RemovePairs(Str[i], Pairs);
-				DeleteArray(Str[i]);
-				Str.DeleteAt(i, true);
-			}
-		}		
-	}
-	*/
 
 	// Process the remaining parts into the name
 	GStringPipe n(256);
