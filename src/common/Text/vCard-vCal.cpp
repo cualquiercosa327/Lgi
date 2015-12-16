@@ -326,11 +326,6 @@ bool VCard::Import(GDataPropI *c, GStreamI *s)
 
 				if (IsVar(Field, "n"))
 				{
-					if (stristr(Data, "Ollis"))
-					{
-						int asd=0;
-					}
-
 					GToken Name(Data, ";", false);
 					char *First = Name[1];
 					char *Last = Name[0];
@@ -466,6 +461,21 @@ bool VCard::Import(GDataPropI *c, GStreamI *s)
 				else if (IsVar(Field, "nickname"))
 				{
 					c->SetStr(FIELD_NICK, Data);
+				}
+				else if (IsVar(Field, "photo"))
+				{
+					int B64Len = strlen(Data);
+					int BinLen = BufferLen_64ToBin(B64Len);
+					GAutoPtr<uint8> Bin(new uint8[BinLen]);
+					if (Bin)
+					{
+						int Bytes = ConvertBase64ToBinary(Bin.Get(), BinLen, Data, B64Len);
+						GVariant v;
+						if (v.SetBinary(Bytes, Bin.Release(), true))
+						{
+							c->SetVariant(FIELD_CONTACT_IMAGE, &v);
+						}
+					}
 				}
 			}			
 		}

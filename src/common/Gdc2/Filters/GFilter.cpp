@@ -99,7 +99,21 @@ class GdcBmpFactory : public GFilterFactory
 {
 	bool CheckFile(const char *File, int Access, const uchar *Hint)
 	{
-		return (File) ? stristr(File, ".bmp") != 0 : false;
+		if (File)
+		{
+			const char *Ext = LgiGetExtension((char*)File);
+			if (Ext && !_stricmp(Ext, "bmp"))
+				return true;
+		}
+		
+		if (Hint)
+		{
+			if (Hint[0] == 'B' &&
+				Hint[1] == 'M')
+				return true;
+		}
+		
+		return false;
 	}
 
 	GFilter *NewObject()
