@@ -216,7 +216,7 @@ GFileSelect::~GFileSelect()
 
 void GFileSelect::ShowReadOnly(bool b)
 {
-	d->ShowReadOnly = b;;
+	d->ShowReadOnly = b;
 }
 
 bool GFileSelect::ReadOnly()
@@ -397,7 +397,7 @@ bool GFileSelect::Open()
 									d,
 									&Dlg);
 		if (e) printf("%s:%i - NavCreateGetFileDialog failed with %i\n", _FL, (int)e);
-		else
+		else if (Dlg)
 		{
 			d->DoTypes(Dlg);
 			
@@ -486,7 +486,7 @@ bool GFileSelect::Save()
 									d,
 									&Dlg);
 		if (e) printf("%s:%i - NavCreatePutFileDialog failed with %i\n", _FL, (int)e);
-		else
+		else if (Dlg)
 		{
 			d->DoTypes(Dlg);
 			
