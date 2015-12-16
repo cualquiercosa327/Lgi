@@ -25,6 +25,15 @@
 #include "GMem.h"
 #include "GArray.h"
 #include "LgiClass.h"
+#include "GStringClass.h"
+
+// C++ function definitions...
+
+/// Removes escaping from the string
+LgiClass GString LgiUnEscapeString(const char *Chars, const char *In, int Len = -1);
+
+/// Escapes all characters in 'In' specified by the set 'Chars'
+LgiClass GString LgiEscapeString(const char *Chars, const char *In, int Len = -1);
 
 #ifdef __cplusplus
 extern "C"
