@@ -1017,6 +1017,11 @@ GString LgiUnEscapeString(const char *Chars, const char *In, int Len)
 			}
 			Buf[Ch++] = *In++;
 		}
+		if (Ch > 0)
+		{
+			Buf[Ch] = 0;
+			s += Buf;
+		}
 	}
 	
 	return s;
@@ -1045,6 +1050,11 @@ GString LgiEscapeString(const char *Chars, const char *In, int Len)
 			if (strchr(Chars, *In))
 				Buf[Ch++] = '\\';
 			Buf[Ch++] = *In++;
+		}
+		if (Ch > 0)
+		{
+			Buf[Ch] = 0;
+			s += Buf;
 		}
 	}
 	
