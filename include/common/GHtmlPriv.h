@@ -146,7 +146,7 @@ struct GHtmlTableLayout
 	int GetTotalX(int StartCol = 0, int Cols = -1);
 	void AllocatePx(int StartCol, int Cols, int MinPx, bool FillWidth);
 	void DeallocatePx(int StartCol, int Cols, int MaxPx);
-	void LayoutTable(GFlowRegion *f);
+	void LayoutTable(GFlowRegion *f, uint16 Depth);
 	
 	void Dump();
 };
@@ -294,7 +294,7 @@ protected:
 	GTag *PrevTag();
 	GRect ChildBounds();
 	bool GetWidthMetrics(GTag *Table, uint16 &Min, uint16 &Max);
-	void LayoutTable(GFlowRegion *f);
+	void LayoutTable(GFlowRegion *f, uint16 Depth);
 	void BoundParents();
 	bool PeekTag(char *s, char *tag);
 	GTag *GetTable();
@@ -408,7 +408,7 @@ public:
 	//// overwriting any duplicate properties.
 	void SetCssStyle(const char *Style);
 	/// Positions the tag according to the flow region passed in
-	void OnFlow(GFlowRegion *Flow);
+	void OnFlow(GFlowRegion *Flow, uint16 Depth);
 	/// Paints the border and background of the tag
 	void PaintBorderAndBackground(
 		/// The surface to paint on
@@ -419,7 +419,7 @@ public:
 		GRect *Px = NULL);
 	/// This fills 'rgn' with all the rectangles making up the inline tags region
 	void GetInlineRegion(GRegion &rgn);
-	void OnPaint(GSurface *pDC, bool &InSelection);
+	void OnPaint(GSurface *pDC, bool &InSelection, uint16 Depth);
 	void SetSize(GdcPt2 &s);
 	void SetTag(const char *Tag);
 	void GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool InBody, bool DebugLog = false);

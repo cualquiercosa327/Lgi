@@ -698,6 +698,8 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 				}
 				else
 				{
+					bool Error = false;
+					
 					#if 1
 					if (ColourType == PNG_COLOR_TYPE_GRAY_ALPHA)
 					{
@@ -716,7 +718,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 					int ScanLen = Lib->png_get_image_width(png_ptr, info_ptr) * ActualBits / 8;
 
 					GColourSpace OutCs = pDC->GetColourSpace();
-					for (int y=0; y<pDC->Y(); y++)
+					for (int y=0; y<pDC->Y() && !Error; y++)
 					{
 						uchar *Scan = (*pDC)[y];
 						LgiAssert(Scan != NULL);
@@ -784,17 +786,6 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 							}
 							case 24:
 							{
-								#if 0
-								GColourSpace InCs = Lib->png_get_bit_depth(png_ptr, info_ptr) == 16 ? CsRgb48 : CsRgb24;
-								if (!LgiRopRgb(Scan, OutCs, Scan0[y], InCs, pDC->X()))
-								{
-									LgiTrace("%s:%i - Unsupported colour space: 0x%x (%s)\n",
-											_FL,	
-											pDC->GetColourSpace(),
-											GColourSpaceToString(pDC->GetColourSpace()));
-									y = pDC->Y();
-								}
-								#else
 							    switch (OutCs)
 							    {
 									#define Read24Case(name, bits) \
@@ -829,23 +820,11 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 										LgiAssert(!"Not impl.");
 										break;
 								}
-								#endif
 								break;
 							}
 							case 32:
 							{
-								#if 0
-								GColourSpace InCs = Lib->png_get_bit_depth(png_ptr, info_ptr) == 16 ? CsRgba64 : CsRgba32;
-								if (!LgiRopRgb(Scan, OutCs, Scan0[y], InCs, pDC->X()))
-								{
-									LgiTrace("%s:%i - Unsupported colour space: 0x%x (%s)\n",
-											_FL,	
-											pDC->GetColourSpace(),
-											GColourSpaceToString(pDC->GetColourSpace()));
-									y = pDC->Y();
-								}
-								#else
-								switch (pDC->GetColourSpace())
+							    switch (pDC->GetColourSpace())
 							    {
 									#define Read32Case(name, bits) \
 										case Cs##name: \
@@ -877,14 +856,26 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 												pDC->GetColourSpace(),
 												GColourSpaceToString(pDC->GetColourSpace()));
 										LgiAssert(!"Not impl.");
+										if (Props)
+											Props->SetValue(LGI_FILTER_ERROR, v = "Missing scan convertor");
+										Error = true;
 										break;
 								}
-								#endif
 								break;
 							}
 							default:
 							{
-								LgiAssert(0);
+								if (ActualBits == RequestBits)
+								{
+									memcpy(Scan, Scan0[y], ScanLen);
+								}
+								else
+								{
+									LgiAssert(!"Yeah you need to impl a convertor here.");
+									if (Props)
+										Props->SetValue(LGI_FILTER_ERROR, v = "Missing scan convertor");
+									Error = true;
+								}
 								break;
 							}
 						}
@@ -969,13 +960,10 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 						}
 					}
 
-					Status = IoSuccess;
+					Status = Error ? IoError : IoSuccess;
 				}
 			}
-			else
-			{
-				printf("%s:%i - png_get_rows failed.\n", _FL);
-			}
+			else LgiTrace("%s:%i - png_get_rows failed.\n", _FL);
 
 			Lib->png_destroy_info_struct(png_ptr, &info_ptr);
 		}

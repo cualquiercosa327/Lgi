@@ -828,6 +828,8 @@ public:
 						if
 						(
 							(
+								Element != NULL
+								&&
 								!_stricmp(Element, "a")
 								&&
 								p.Value && !_stricmp(p.Value, "link")
