@@ -24,6 +24,7 @@
 #define DEBUG_RESTYLE				0
 #define DEBUG_TAG_BY_POS			0
 #define DEBUG_SELECTION				0
+#define MAX_RECURSION_DEPTH			300
 
 #define LUIS_DEBUG					0
 #define CRASH_TRACE					0
@@ -1568,10 +1569,10 @@ char*
 _DumpColour(GCss::ColorDef c)
 {
 	static char Buf[4][32];
-	static int Cur = 0;
-	char *b = Buf[Cur++];
-	if (Cur == 4) Cur = 0;
-
+	static LONG Cur = 0;
+	LONG Idx = InterlockedIncrement(&Cur);
+	char *b = Buf[Idx % 4];
+	
 	if (c.Type == GCss::ColorInherit)
 		strcpy_s(b, 32, "Inherit");
 	else
@@ -1582,12 +1583,30 @@ _DumpColour(GCss::ColorDef c)
 
 void GTag::_Dump(GStringPipe &Buf, int Depth)
 {
-	char Tab[64];
-	char s[1024];
-	memset(Tab, '\t', Depth);
-	Tab[Depth] = 0;
+	GString Tabs;
+	Tabs.Set(NULL, Depth);
+	memset(Tabs.Get(), '\t', Depth);	
 
-	char Trs[1024] = "";
+	const char *Empty = "";
+	char *ElementName = TagId == CONTENT ? (char*)"Content" :
+				(TagId == ROOT ? (char*)"Root" : Tag);
+
+	Buf.Print(	"%s%s(%p)%s%s%s (%i) Pos=%i,%i Size=%i,%i Color=%s/%s",
+				Tabs.Get(),
+				ElementName,
+				this,
+				HtmlId ? "#" : Empty,
+				HtmlId ? HtmlId : Empty,
+				#ifdef _DEBUG
+				Debug ? " debug" : Empty,
+				#else
+				Empty,
+				#endif
+				WasClosed,
+				Pos.x, Pos.y,
+				Size.x, Size.y,
+				_DumpColour(Color()), _DumpColour(BackgroundColor()));
+
 	for (unsigned i=0; i<TextPos.Length(); i++)
 	{
 		GFlowRect *Tr = TextPos[i];
@@ -1606,33 +1625,11 @@ void GTag::_Dump(GStringPipe &Buf, int Depth)
 			Utf8.Reset(NewStr(""));
 		}
 
-		int Len = strlen(Trs);
-		sprintf_s(Trs+Len, sizeof(Trs)-Len, "Tr(%i,%i %ix%i '%s') ", Tr->x1, Tr->y1, Tr->X(), Tr->Y(), Utf8.Get());
+		Buf.Print("Tr(%i,%i %ix%i '%s') ", Tr->x1, Tr->y1, Tr->X(), Tr->Y(), Utf8.Get());
 	}
 	
-	const char *Empty = "";
-	char *ElementName = TagId == CONTENT ? (char*)"Content" :
-				(TagId == ROOT ? (char*)"Root" : Tag);
-
-	sprintf_s(s, sizeof(s),
-			"%s%s(%p)%s%s%s (%i) Pos=%i,%i Size=%i,%i Color=%s/%s %s\r\n",
-			Tab,
-			ElementName,
-			this,
-			HtmlId ? "#" : Empty,
-			HtmlId ? HtmlId : Empty,
-			#ifdef _DEBUG
-			Debug ? " debug" : Empty,
-			#else
-			Empty,
-			#endif
-			WasClosed,
-			Pos.x, Pos.y,
-			Size.x, Size.y,
-			_DumpColour(Color()), _DumpColour(BackgroundColor()),
-			Trs);
-	Buf.Push(s);
-
+	Buf.Print("\r\n");
+	
 	for (unsigned i=0; i<Children.Length(); i++)
 	{
 		GTag *t = ToTag(Children[i]);
@@ -1641,8 +1638,7 @@ void GTag::_Dump(GStringPipe &Buf, int Depth)
 
 	if (Children.Length())
 	{
-		sprintf_s(s, sizeof(s), "%s/%s\r\n", Tab, ElementName);
-		Buf.Push(s);
+		Buf.Print("%s/%s\r\n", Tabs.Get(), ElementName);
 	}
 }
 
@@ -2076,10 +2072,6 @@ int GTag::NearestChar(GFlowRect *Tr, int x, int y)
 
 void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool DebugLog)
 {
-	char DepthStr[256];
-	memset(DepthStr, ' ', Depth);
-	DepthStr[Depth] = 0;
-
 	if (TagId == TAG_IMG)
 	{
 		GRect img(0, 0, Size.x - 1, Size.y - 1);
@@ -2109,8 +2101,8 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool DebugLog)
 					TagHit.Index = NearestChar(Tr, x, y);
 					
 					if (DebugLog)
-						LgiTrace("%sGetTagByPos HitText %s #%s, idx=%i, near=%i, txt='%S'\n",
-							DepthStr,
+						LgiTrace("%i:GetTagByPos HitText %s #%s, idx=%i, near=%i, txt='%S'\n",
+							Depth,
 							Tag.Get(),
 							HtmlId,
 							TagHit.Index,
@@ -2144,8 +2136,8 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool DebugLog)
 
 		if (DebugLog)
 		{
-			LgiTrace("%sGetTagByPos DirectHit %s #%s, idx=%i, near=%i\n",
-				DepthStr,
+			LgiTrace("%i:GetTagByPos DirectHit %s #%s, idx=%i, near=%i\n",
+				Depth,
 				Tag.Get(),
 				HtmlId,
 				TagHit.Index,
@@ -3713,7 +3705,7 @@ T Sum(GArray<T> &a)
 	return s;
 }
 
-void GTag::LayoutTable(GFlowRegion *f)
+void GTag::LayoutTable(GFlowRegion *f, uint16 Depth)
 {
 	if (!Cells)
 	{
@@ -3730,7 +3722,7 @@ void GTag::LayoutTable(GFlowRegion *f)
 		#endif
 	}
 	if (Cells)
-		Cells->LayoutTable(f);
+		Cells->LayoutTable(f, Depth);
 }
 
 DeclGArrayCompare(GrowableCmp, int, GHtmlTableLayout*)
@@ -3884,7 +3876,7 @@ int GHtmlTableLayout::GetTotalX(int StartCol, int Cols)
 	return TotalX;
 }
 
-void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
+void GHtmlTableLayout::LayoutTable(GFlowRegion *f, uint16 Depth)
 {
 	GetSize(s.x, s.y);
 	if (s.x == 0 || s.y == 0)
@@ -4181,7 +4173,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f)
 					GFlowRegion r(Table->Html, Box);
 					int Rx = r.X();
 					
-					t->OnFlow(&r);
+					t->OnFlow(&r, Depth + 1);
 					
 					if (Ht.IsValid() &&
 						Ht.Type != GCss::LenPercent)
@@ -4544,10 +4536,10 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, int LineHeight, 
 	}
 }
 
-void GTag::OnFlow(GFlowRegion *Flow)
+void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 {
 	DisplayType Disp = Display();
-	if (Disp == DispNone)
+	if (Disp == DispNone || Depth >= MAX_RECURSION_DEPTH)
 		return;
 
 	GFont *f = GetFont();
@@ -4580,7 +4572,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 			for (unsigned i=0; i<Children.Length(); i++)
 			{
 				GTag *t = ToTag(Children[i]);
-				t->OnFlow(&Temp);
+				t->OnFlow(&Temp, Depth + 1);
 
 				if (TagId == TAG_TR)
 				{
@@ -4686,7 +4678,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 
 			Flow->Indent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
 
-			LayoutTable(Flow);
+			LayoutTable(Flow, Depth + 1);
 
 			Flow->y1 += Size.y;
 			Flow->y2 = Flow->y1;
@@ -4878,7 +4870,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 			case PosFixed:
 			{
 				GFlowRegion old = *Flow;
-				t->OnFlow(Flow);
+				t->OnFlow(Flow, Depth + 1);
 				
 				// Try and reset the flow to how it was before...
 				Flow->x1 = old.x1;
@@ -4889,7 +4881,7 @@ void GTag::OnFlow(GFlowRegion *Flow)
 			}
 			default:
 			{
-				t->OnFlow(Flow);
+				t->OnFlow(Flow, Depth + 1);
 				break;
 			}
 		}
@@ -5307,9 +5299,11 @@ static void FillRectWithImage(GSurface *pDC, GRect *r, GSurface *Image, GCss::Re
 	pDC->Op(Old);
 }
 
-void GTag::OnPaint(GSurface *pDC, bool &InSelection)
+void GTag::OnPaint(GSurface *pDC, bool &InSelection, uint16 Depth)
 {
-	if (Display() == DispNone) return;
+	if (Display() == DispNone ||
+		Depth >= MAX_RECURSION_DEPTH)
+		return;
 
 	int Px, Py;
 	pDC->GetOrigin(Px, Py);
@@ -5821,7 +5815,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection)
 	{
 		GTag *t = ToTag(Children[i]);
 		pDC->SetOrigin(Px - t->Pos.x, Py - t->Pos.y);
-		t->OnPaint(pDC, InSelection);
+		t->OnPaint(pDC, InSelection, Depth + 1);
 		pDC->SetOrigin(Px, Py);
 	}
 }
@@ -6254,7 +6248,7 @@ GdcPt2 GHtml::Layout()
 		GFlowRegion f(this, Client);
 
 		// Flow text, width is different
-		Tag->OnFlow(&f);
+		Tag->OnFlow(&f, 0);
 		ViewWidth = Client.X();;
 		d->Content.x = f.max_cx + 1;
 		d->Content.y = f.y2;
@@ -6329,7 +6323,7 @@ void GHtml::OnPaint(GSurface *ScreenDC)
 			}
 
 			bool InSelection = false;
-			Tag->OnPaint(pDC, InSelection);
+			Tag->OnPaint(pDC, InSelection, 0);
 		}
 
 		#if GHTML_USE_DOUBLE_BUFFER

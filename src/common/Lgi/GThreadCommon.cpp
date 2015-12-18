@@ -106,6 +106,8 @@ int GThreadWorker::Main()
 			{
 				j.Reset(Jobs[0]);
 				Jobs.DeleteAt(0, true);
+				
+				// LgiTrace("Jobs=%i\n", Jobs.Length());
 			}
 			Unlock();
 		}
