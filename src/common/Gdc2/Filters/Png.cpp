@@ -691,6 +691,8 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 				}
 				else
 				{
+					bool Error = false;
+					
 					#if 1
 					if (ColourType == PNG_COLOR_TYPE_GRAY_ALPHA)
 					{
@@ -701,7 +703,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 					// Copy in the scanlines
 					int ActualBits = pDC->GetBits();
 					int ScanLen = Lib->png_get_image_width(png_ptr, info_ptr) * ActualBits / 8;
-					for (int y=0; y<pDC->Y(); y++)
+					for (int y=0; y<pDC->Y() && !Error; y++)
 					{
 						uchar *Scan = (*pDC)[y];
 						LgiAssert(Scan != NULL);
@@ -724,6 +726,26 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 									{
 										i++;
 										Mask = 0x80;
+									}
+								}
+								break;
+							}
+							case 4:
+							{
+								uint8 *o = Scan;
+								uint8 *i = Scan0[y];
+								for (int x=0; x<pDC->X(); x++)
+								{
+									if (x & 1)
+									{
+										// 2nd nibble
+										*o++ = *i & 0xf;
+										i++;
+									}
+									else
+									{
+										// 1st nibble
+										*o++ = *i >> 4;
 									}
 								}
 								break;
@@ -822,13 +844,26 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 												pDC->GetColourSpace(),
 												GColourSpaceToString(pDC->GetColourSpace()));
 										LgiAssert(!"Not impl.");
+										if (Props)
+											Props->SetValue(LGI_FILTER_ERROR, v = "Missing scan convertor");
+										Error = true;
 										break;
 								}
 								break;
 							}
 							default:
 							{
-								memcpy(Scan, Scan0[y], ScanLen);
+								if (ActualBits == RequestBits)
+								{
+									memcpy(Scan, Scan0[y], ScanLen);
+								}
+								else
+								{
+									LgiAssert(!"Yeah you need to impl a convertor here.");
+									if (Props)
+										Props->SetValue(LGI_FILTER_ERROR, v = "Missing scan convertor");
+									Error = true;
+								}
 								break;
 							}
 						}
@@ -886,25 +921,16 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 										}
 									}
 								}
-								else
-								{
-									printf("%s:%i - No alpha channel.\n", __FILE__, __LINE__);
-								}
+								else LgiTrace("%s:%i - No alpha channel.\n", _FL);
 							}
-							else
-							{
-								printf("%s:%i - Bad trans ptr.\n", __FILE__, __LINE__);
-							}
+							else LgiTrace("%s:%i - Bad trans ptr.\n", _FL);
 						}
 					}
 
-					Status = IoSuccess;
+					Status = Error ? IoError : IoSuccess;
 				}
 			}
-			else
-			{
-				printf("%s:%i - png_get_rows failed.\n", _FL);
-			}
+			else LgiTrace("%s:%i - png_get_rows failed.\n", _FL);
 
 			Lib->png_destroy_info_struct(png_ptr, &info_ptr);
 		}
