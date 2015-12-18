@@ -28,7 +28,7 @@
 
 // #include "GXml.h"
 
-#define DEBUG_RES_FILE						0
+#define DEBUG_RES_FILE						1
 #define CastToGWnd(RObj)					((RObj != 0) ? dynamic_cast<GView*>(RObj) : 0)
 
 class TagHash : public GHashTable, public ResReadCtx
@@ -383,9 +383,9 @@ LgiTrace("%s:%i - FullPath='%s'\n", _FL, FullPath);
 	}
 	else
 	{
-		char Msg[256];
+		char Msg[MAX_PATH+256];
 
-		char Exe[256] = "(couldn't get exe path)";
+		char Exe[MAX_PATH] = "(couldn't get exe path)";
 		LgiGetExeFile(Exe, sizeof(Exe));
 
 		// Prepare data
