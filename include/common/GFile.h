@@ -322,6 +322,7 @@ public:
 	GFilePre unsigned long GFilePost;	\
 	GFilePre int64 GFilePost;			\
 	GFilePre uint64 GFilePost;			\
+	GFilePre float GFilePost;			\
 	GFilePre double GFilePost
 
 #endif
