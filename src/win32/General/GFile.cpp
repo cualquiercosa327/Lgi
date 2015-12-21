@@ -1624,7 +1624,7 @@ int GFile::SwapRead(uchar *Buf, int Size)
 	{
 		uchar t = *s;
 		*s++ = *e;
-		*e++ = t;
+		*e-- = t;
 	}		
 	return r;
 }
