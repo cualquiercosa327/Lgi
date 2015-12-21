@@ -6,7 +6,7 @@
 				<Node File=".\src\common\General\GDateTime.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GDateTime.h" Type="3" Platforms="15" />
 			</Node>
-			<Node Name="Drag and Drop" Type="1" Platforms="15" Open="1">
+			<Node Name="Drag and Drop" Type="1" Platforms="15" Open="0">
 				<Node File="./include/common/GDragAndDrop.h" Type="3" Platforms="15" />
 				<Node Name="Linux" Type="1" Platforms="15" Open="1">
 					<Node File="./src/linux/Lgi/GDragAndDrop.cpp" Type="2" Platforms="2" />
@@ -16,7 +16,7 @@
 					<Node File="./src/win32/Lgi/GDragAndDrop.cpp" Type="2" Platforms="1" />
 				</Node>
 			</Node>
-			<Node Name="File" Type="1" Platforms="15" Open="1">
+			<Node Name="File" Type="1" Platforms="15" Open="0">
 				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
 					<Node File="./src/beos/General/GFile.cpp" Type="2" Platforms="8" />
 				</Node>
@@ -68,7 +68,7 @@
 				<Node File="./include/common/GViewPriv.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Lgi/GWindowCommon.cpp" Type="2" Platforms="15" />
 			</Node>
-			<Node Name="Libraries" Type="1" Platforms="15" Open="0">
+			<Node Name="Libraries" Type="1" Platforms="15" Open="1">
 				<Node File="./src/common/Lgi/GLibrary.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GLibrary.h" Type="3" Platforms="15" />
 			</Node>
@@ -386,12 +386,17 @@ WINDOWS</Debug>
 					<Release>WINNATIVE
 WINDOWS</Release>
 				</Windows>
+				<Linux />
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
 			</Compiler>
-			<Executable />
-			<Arguments />
+			<Executable>
+				<Linux />
+			</Executable>
+			<Arguments>
+				<All />
+			</Arguments>
 		</General>
 		<Build>
 			<IncludePaths>
@@ -453,6 +458,7 @@ be
 game
 textencoding</Release>
 				</Haiku>
+				<All />
 			</Libraries>
 			<TargetType>
 				<All>DynamicLibrary</All>
@@ -471,8 +477,13 @@ textencoding</Release>
 					<Release>lgi</Release>
 				</Linux>
 			</TargetName>
-			<SystemIncludes />
-			<LibraryPaths />
+			<SystemIncludes>
+				<Linux />
+			</SystemIncludes>
+			<LibraryPaths>
+				<All />
+				<Linux />
+			</LibraryPaths>
 		</Build>
 		<Editor>
 			<TabSize>
@@ -487,7 +498,11 @@ textencoding</Release>
 			<UseHardTabs>
 				<All>1</All>
 			</UseHardTabs>
+			<CommentFile />
+			<CommentFunction />
 		</Editor>
-		<Advanced />
+		<Advanced>
+			<OtherMakefileRules />
+		</Advanced>
 	</Settings>
 </Project>

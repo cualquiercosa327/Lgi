@@ -19,7 +19,7 @@
 
 #include <errno.h>
 
-#define DEBUG_GET_APPS_FOR_MIMETYPE			0
+#define DEBUG_GET_APPS_FOR_MIMETYPE			1
 
 ////////////////////////////////////////////////////////////////
 // Local helper functions
@@ -226,81 +226,84 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 		#if DEBUG_GET_APPS_FOR_MIMETYPE
 		printf("Output:\n%s\n", o.Get());
 		#endif
-
-		char *e = o + strlen(o);
-		while (e > o && strchr(" \t\r\n", e[-1]))
-			*(--e) = 0;
-		
-		char p[MAX_PATH];
-		if (LgiMakePath(p, sizeof(p), "/usr/share/applications", o))
+		if (o)
 		{
-			if (FileExists(p))
+			char *e = o + strlen(o);
+			while (e > o && strchr(" \t\r\n", e[-1]))
+				*(--e) = 0;
+			
+			char p[MAX_PATH];
+			if (LgiMakePath(p, sizeof(p), "/usr/share/applications", o))
 			{
-				GAutoString txt(ReadTextFile(p));
-				GAutoString Section;
-
-				#if DEBUG_GET_APPS_FOR_MIMETYPE
-				printf("Reading '%s', got %i bytes\n", p, strlen(txt));
-				#endif
-
-				if (txt)
+				if (FileExists(p))
 				{
-					GAppInfo *ai = new GAppInfo;
-					Apps.Add(ai);
-					
-					GToken t(txt, "\n");
-					for (int i=0; i<t.Length(); i++)
-					{
-						char *Var = t[i];
+					GAutoString txt(ReadTextFile(p));
+					GAutoString Section;
 
-						#if DEBUG_GET_APPS_FOR_MIMETYPE
-						printf("    '%s'\n", Var);
-						#endif
+					#if DEBUG_GET_APPS_FOR_MIMETYPE
+					printf("Reading '%s', got %i bytes\n", p, strlen(txt));
+					#endif
+
+					if (txt)
+					{
+						GAppInfo *ai = new GAppInfo;
+						Apps.Add(ai);
 						
-						if (*Var == '[')
+						GToken t(txt, "\n");
+						for (int i=0; i<t.Length(); i++)
 						{
-							Var++;
-							char *End = strchr(Var, ']');
-							if (End)
+							char *Var = t[i];
+
+							#if DEBUG_GET_APPS_FOR_MIMETYPE
+							printf("    '%s'\n", Var);
+							#endif
+							
+							if (*Var == '[')
 							{
-								Section.Reset(NewStr(Var, End - Var));
-							}							
-						}
-						else if (!Section || !stricmp(Section, "Desktop Entry"))
-						{
-							char *Value = strchr(Var, '=');
-							if (Value)
+								Var++;
+								char *End = strchr(Var, ']');
+								if (End)
+								{
+									Section.Reset(NewStr(Var, End - Var));
+								}							
+							}
+							else if (!Section || !stricmp(Section, "Desktop Entry"))
 							{
-								*Value++ = 0;
-								if (!stricmp(Var, "Exec"))
+								char *Value = strchr(Var, '=');
+								if (Value)
 								{
-									GAutoString exe(TrimStr(Value));
-									char *sp = strchr(exe, ' ');
-									if (sp)
-										ai->Path.Reset(NewStr(exe, sp-exe));
-									else
-										ai->Path = exe;
-									
-									Status = true;
-								}
-								else if (!stricmp(Var, "Name") ||
-										!stricmp(Var, LangName))
-								{
-									ai->Name.Reset(TrimStr(Value));
+									*Value++ = 0;
+									if (!stricmp(Var, "Exec"))
+									{
+										GAutoString exe(TrimStr(Value));
+										char *sp = strchr(exe, ' ');
+										if (sp)
+											ai->Path.Reset(NewStr(exe, sp-exe));
+										else
+											ai->Path = exe;
+										
+										Status = true;
+									}
+									else if (!stricmp(Var, "Name") ||
+											!stricmp(Var, LangName))
+									{
+										ai->Name.Reset(TrimStr(Value));
+									}
 								}
 							}
 						}
-					}
 
-					#if DEBUG_GET_APPS_FOR_MIMETYPE
-					printf("    ai='%s' '%s'\n", ai->Name.Get(), ai->Path.Get());
-					#endif
+						#if DEBUG_GET_APPS_FOR_MIMETYPE
+						printf("    ai='%s' '%s'\n", ai->Name.Get(), ai->Path.Get());
+						#endif
+					}
+					else LgiTrace("%s:%i - Can't read from '%s'\n", _FL, p);
 				}
-				else LgiTrace("%s:%i - Can't read from '%s'\n", _FL, p);
+				else LgiTrace("%s:%i - '%s' doesn't exist.", _FL, p);
 			}
-			else LgiTrace("%s:%i - '%s' doesn't exist.", _FL, p);
+			else LgiTrace("%s:%i - Failed to create path.\n", _FL);
 		}
-		else LgiTrace("%s:%i - Failed to create path.\n", _FL);
+		else LgiTrace("%s:%i - No output from xdg-mime\n", _FL);
 	}
 	else LgiTrace("%s:%i - Failed to execute xdg-mime\n", _FL);
 
