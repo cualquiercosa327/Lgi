@@ -768,7 +768,16 @@ GAutoString GApp::GetFileMimeType(const char *File)
 				s += 2;
 				
 				char *e = s;
-				while (*e && (isalpha(*e) || strchr("-_/", *e))) e++;
+				while
+				(
+					*e &&
+					(
+						IsAlpha(*e) ||
+						IsDigit(*e) ||
+						strchr(".-_/", *e)
+					)
+				)
+					e++;
 				*e = 0;
 				
 				Status.Reset(NewStr(s));

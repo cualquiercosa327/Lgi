@@ -19,7 +19,7 @@
 
 #include <errno.h>
 
-#define DEBUG_GET_APPS_FOR_MIMETYPE			1
+#define DEBUG_GET_APPS_FOR_MIMETYPE			0
 
 ////////////////////////////////////////////////////////////////
 // Local helper functions
@@ -205,7 +205,7 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 {
 	bool Status = false;
 
-	char Args[256];
+	char Args[MAX_PATH];
 	sprintf(Args, "query default %s", Mime);
 	GProcess p;
 	GStringPipe Output;
