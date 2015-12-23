@@ -29,11 +29,6 @@
 static const char *sRfc822Header	= "RFC822.HEADER";
 static const char *sRfc822Size		= "RFC822.SIZE";
 
-#define Ws(s)			while (*s && strchr(WhiteSpace, *s)) s++
-#define SkipWhite(s)	while ((s - Buffer) < Used && strchr(" \t", *s)) s++;
-#define SkipNonWhite(s) while ((s - Buffer) < Used && !strchr(WhiteSpace, *s)) s++;
-#define ExpectChar(ch)	{ if ((s - Buffer) >= Used || *s != ch) return 0; s++; }
-
 bool Base64Str(GString &s)
 {
 	GString b64;
@@ -106,17 +101,18 @@ struct StrRange
 	int Len() { return End - Start; }
 };
 
-int ParseImapResponse(GArray<char> &Buf, int Used, GArray<StrRange> &Ranges, int Names)
+#define SkipWhite(s)		while (*s && strchr(WhiteSpace, *s)) s++
+#define SkipNonWhite(s)		while (*s && !strchr(WhiteSpace, *s)) s++;
+#define ExpectChar(ch)		if (*s != ch) return 0; s++
+
+unsigned ParseImapResponse(char *Buffer, GArray<StrRange> &Ranges, int Names)
 {
 	Ranges.Length(0);
 
-	if (Used <= 0)
+	if (!*Buffer || *Buffer != '*')
 		return 0;
 
-	char *Buffer = &Buf[0];
-	if (*Buffer != '*')
-		return 0;
-
+	char *End = Buffer + strlen(Buffer);
 	char *s = Buffer + 1;
 	char *Start;
 	for (int n=0; n<Names; n++)
@@ -143,8 +139,10 @@ int ParseImapResponse(GArray<char> &Buf, int Used, GArray<StrRange> &Ranges, int
 
 	// Parse fields
 	int MsgSize = 0;
-	while (s - Buffer < Used)
+	while (*s)
 	{
+		LgiAssert(s < End);
+		
 		// Field name
 		SkipWhite(s);
 		if (*s == ')')
@@ -154,13 +152,12 @@ int ParseImapResponse(GArray<char> &Buf, int Used, GArray<StrRange> &Ranges, int
 			ExpectChar('\n');
 			
 			MsgSize = s - Buffer;
-			LgiAssert(MsgSize <= Used);
 			break;
 		}
 
 		Start = s;
 		SkipNonWhite(s);
-		if (s <= Start)
+		if (!*s || s <= Start)
 			return 0;
 		Ranges.New().Set(Start - Buffer, s - Buffer);
 
@@ -171,13 +168,18 @@ int ParseImapResponse(GArray<char> &Buf, int Used, GArray<StrRange> &Ranges, int
 			// Parse multiline
 			s++;
 			int Size = atoi(s);
-			while ((s - Buffer) < Used && *s != '}') s++;
+			while (*s && *s != '}')
+				s++;
 			ExpectChar('}');
 			ExpectChar('\r');
 			ExpectChar('\n');
 			Start = s;
-			s += Size;
-			if ((s - Buffer) >= Used)
+			while (*s && Size > 0)
+			{
+				s++;
+				Size--;
+			}
+			if (Size > 0)
 				return 0;
 			Ranges.New().Set(Start - Buffer, s - Buffer);				
 		}
@@ -190,17 +192,16 @@ int ParseImapResponse(GArray<char> &Buf, int Used, GArray<StrRange> &Ranges, int
 				Start = s;
 				
 				int Depth = 1;
-				while ((s - Buffer) < Used)
+				while (*s)
 				{
 					if (*s == '\"')
 					{
 						s++;
-						while ((s - Buffer) < Used && *s != '\"')
+						while (*s && *s != '\"')
 						{
 							s++;
 						}
 					}
-
 					if (*s == '(')
 						Depth++;
 					else if (*s == ')')
@@ -209,6 +210,8 @@ int ParseImapResponse(GArray<char> &Buf, int Used, GArray<StrRange> &Ranges, int
 						if (Depth == 0)
 							break;
 					}
+					else if (!*s)
+						break;
 					s++;
 				}			
 				
@@ -224,7 +227,7 @@ int ParseImapResponse(GArray<char> &Buf, int Used, GArray<StrRange> &Ranges, int
 					char *Begin = s;
 					char Delim = *s++;
 					Start = s;
-					while (*s && (s - Buffer) < Used && *s != Delim)
+					while (*s && *s != Delim)
 						s++;
 					if (*s == Delim)
 					{
@@ -240,7 +243,7 @@ int ParseImapResponse(GArray<char> &Buf, int Used, GArray<StrRange> &Ranges, int
 				else
 				{
 					Start = s;
-					while (*s && (s - Buffer) < Used)
+					while (*s)
 					{
 						if (strchr(WhiteSpace, *s) || *s == ')')
 							break;
@@ -253,6 +256,7 @@ int ParseImapResponse(GArray<char> &Buf, int Used, GArray<StrRange> &Ranges, int
 		}
 	}
 
+	LgiAssert(s <= End);
 	return MsgSize;
 }
 
@@ -2063,17 +2067,21 @@ char *MailIMap::SequenceToString(GArray<int> *Seq)
 	return p.NewStr();
 }
 
-static void RemoveBytes(GArray<char> &a, int &Used, int Bytes)
+static void RemoveBytes(GArray<char> &a, unsigned &Used, unsigned Bytes)
 {
-	int Remain = Used - Bytes;
-	if (Remain > 0)
-		memmove(&a[0], &a[Bytes], Remain);
-	Used -= Bytes;
+	if (Used >= Bytes)
+	{
+		unsigned Remain = Used - Bytes;
+		if (Remain > 0)
+			memmove(&a[0], &a[Bytes], Remain);
+		Used -= Bytes;
+	}
+	else LgiAssert(0);
 }
 
-static bool PopLine(GArray<char> &a, int &Used, GAutoString &Line)
+static bool PopLine(GArray<char> &a, unsigned &Used, GAutoString &Line)
 {
-	for (int i=0; i<Used; i++)
+	for (unsigned i=0; i<Used; i++)
 	{
 		if (a[i] == '\n')
 		{
@@ -2108,7 +2116,8 @@ bool MailIMap::Fetch(bool ByUid, const char *Seq, const char *Parts, FetchCallba
 
 			GArray<char> Buf;
 			Buf.Length(1024);
-			int Used = 0, MsgSize;
+			unsigned Used = 0;
+			unsigned MsgSize;
 			int64 Start = LgiCurrentTime();
 			int64 Bytes = 0;
 			bool Done = false;
@@ -2122,9 +2131,17 @@ bool MailIMap::Fetch(bool ByUid, const char *Seq, const char *Parts, FetchCallba
 				}
 
 				// Try and read bytes from server.
-				int r = Socket->Read(&Buf[Used], Buf.Length()-Used);
+				int r = Socket->Read(&Buf[Used], Buf.Length()-Used-1); // -1 for NULL terminator
 				if (r > 0)
 				{
+					for (int k=0; k<r; k++)
+					{
+						if (Buf[Used+k] == 0)
+						{
+							int asd=0;
+						}
+					}
+					
 					if (RawCopy)
 						RawCopy->Write(&Buf[Used], r);
 
@@ -2139,9 +2156,20 @@ bool MailIMap::Fetch(bool ByUid, const char *Seq, const char *Parts, FetchCallba
 
 					// See if we can parse out a single response
 					GArray<StrRange> Ranges;
-					while ((MsgSize = ParseImapResponse(Buf, Used, Ranges, 2)))
+					LgiAssert(Used < Buf.Length());
+					Buf[Used] = 0; // NULL terminate before we parse
+
+					static int Count = 0;
+					Count++;
+
+					while ((MsgSize = ParseImapResponse(&Buf[0], Ranges, 2)))
 					{
 						char *b = &Buf[0];
+						if (MsgSize > Used)
+						{
+							Ranges.Length(0);
+							ParseImapResponse(&Buf[0], Ranges, 2);
+						}
 						LgiAssert(Ranges.Length() >= 2);
 						
 						// Setup strings for callback
@@ -2190,6 +2218,8 @@ bool MailIMap::Fetch(bool ByUid, const char *Seq, const char *Parts, FetchCallba
 
 						// Remove this msg from buffer
 						RemoveBytes(Buf, Used, MsgSize);
+						Buf[Used] = 0; // 'Used' changed... so NULL terminate before we parse
+						Count++;
 					}
 
 					// Look for the end marker
