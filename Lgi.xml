@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project>
-	<Node Name="Source Files" Type="1" Platforms="15" Open="1">
-		<Node Name="Core" Type="1" Platforms="15" Open="1">
+	<Node Name="Source Files" Type="1" Platforms="15" Open="0">
+		<Node Name="Core" Type="1" Platforms="15" Open="0">
 			<Node Name="DateTime" Type="1" Platforms="15" Open="0">
 				<Node File=".\src\common\General\GDateTime.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GDateTime.h" Type="3" Platforms="15" />
@@ -340,12 +340,12 @@
 			</Node>
 		</Node>
 	</Node>
-	<Node Name="LgiNet" Type="1" Platforms="15" Open="0">
-		<Node Name="Source" Type="1" Platforms="15" Open="0">
-			<Node File=".\src\common\INet\INet.cpp" Type="2" Platforms="15" />
-			<Node File=".\src\common\INet\INetTools.cpp" Type="2" Platforms="15" />
-			<Node File=".\src\common\Hash\md5\md5.c" Type="2" Platforms="15" />
-			<Node File=".\src\win32\INet\MibAccess.cpp" Type="2" Platforms="1" />
+	<Node Name="LgiNet" Type="1" Platforms="15" Open="1">
+		<Node Name="Source" Type="1" Platforms="15" Open="1">
+			<Node File="./src/common/INet/INet.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/INet/INetTools.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Hash/md5/md5.c" Type="2" Platforms="15" />
+			<Node File="./src/win32/INet/MibAccess.cpp" Type="2" Platforms="1" />
 		</Node>
 		<Node Name="Header" Type="1" Platforms="15" Open="0">
 			<Node File="./include/common/INet.h" Type="3" Platforms="15" />

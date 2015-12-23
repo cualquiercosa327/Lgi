@@ -646,13 +646,30 @@ int GSocket::Open(const char *HostAddr, int Port)
 					
 					HostEnt *Result = 0;
 					int Err = 0;
-					char Buf[512];
-					if (gethostbyname_r(HostAddr, Host, Buf, sizeof(Buf), &Result, &Err))
+					GArray<char> Buf(512);
+					int Ret;
+					while
+					(
+						(
+							Ret
+							=
+							gethostbyname_r(HostAddr,
+											Host,
+											&Buf[0], Buf.Length(),
+											&Result,
+											&Err)
+						)
+						==
+						ERANGE
+					)
+					{
+						Buf.Length(Buf.Length() << 1);
+					}
+					if (Ret)
 					{
 						char *ErrStr = GetErrorName(Err);
-						printf("%s:%i - gethostbyname_r('%s') failed (%i - %s)\n",
-							__FILE__, __LINE__,
-							HostAddr, Err, ErrStr);
+						printf("%s:%i - gethostbyname_r('%s') returned %i, %i, %s\n",
+							_FL, HostAddr, Ret, Err, ErrStr);
 						DeleteObj(Host);
 					}
 				}
