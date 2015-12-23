@@ -2386,7 +2386,6 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 
 				GMenuItem *Release = GetMenu()->FindItem(IDM_RELEASE_MODE);
 				bool IsRelease = Release ? Release->Checked() : false;
-				printf("IsRelease=%i\n", IsRelease);
 				p->Build(false, IsRelease);
 			}
 			break;			

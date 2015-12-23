@@ -3309,6 +3309,11 @@ struct Dependency
 	}
 };
 
+const char *CastEmpty(char *s)
+{
+	return s ? s : "";
+}
+
 bool IdeProject::GetAllDependencies(GArray<char*> &Files, IdePlatform Platform)
 {
 	GHashTbl<char*, Dependency*> Deps;
@@ -3741,9 +3746,9 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 				"	Defs = -D_DEBUG %s\n"
 				"	Libs = %s\n"
 				"	Inc = %s\n",
-					sDefines[0].Get(),
-					sLibs[0].Get(),
-					sIncludes[0].Get());
+					CastEmpty(sDefines[0].Get()),
+					CastEmpty(sLibs[0].Get()),
+					CastEmpty(sIncludes[0].Get()));
 		
 		// Release specific
 		m.Print("else\n"
@@ -3753,9 +3758,9 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 				"	Inc = %s\n"
 				"endif\n"
 				"\n",
-					sDefines[1].Get(),
-					sLibs[1].Get(),
-					sIncludes[1].Get());
+					CastEmpty(sDefines[1].Get()),
+					CastEmpty(sLibs[1].Get()),
+					CastEmpty(sIncludes[1].Get()));
 		
 		if (Files.First())
 		{
