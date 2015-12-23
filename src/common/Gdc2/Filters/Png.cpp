@@ -635,6 +635,14 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 	{
 		if (Props)
 			Props->SetValue(LGI_FILTER_ERROR, v = "Can't load libpng");
+
+		static bool Warn = true;
+		if (Warn)
+		{
+		    LgiTrace("%s:%i - Unabled to load libpng.\n", _FL);
+		    Warn = false;
+		}
+		
         return GFilter::IoComponentMissing;
 	}
 
@@ -996,7 +1004,16 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 	if (!pDC)
 		return GFilter::IoError;
     if (!Lib->IsLoaded() && !Lib->Load(sLibrary))
+    {
+		static bool Warn = true;
+		if (Warn)
+		{
+		    LgiTrace("%s:%i - Unabled to load libpng.\n", _FL);
+		    Warn = false;
+		}
+		
         return GFilter::IoComponentMissing;	
+    }
 	
 	// Work out whether the image has transparency
 	if (pDC->GetBits() == 32)

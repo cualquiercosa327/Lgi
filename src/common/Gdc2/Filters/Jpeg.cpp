@@ -496,6 +496,14 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 	{
 		if (Props)
 			Props->SetValue(LGI_FILTER_ERROR, v = "libjpeg library isn't installed or wasn't usable.");
+		
+		static bool Warn = true;
+		if (Warn)
+		{
+		    LgiTrace("%s:%i - Unabled to load libjpeg.\n", _FL);
+		    Warn = false;
+		}
+		
 		return GFilter::IoComponentMissing;
 	}
 
@@ -814,6 +822,14 @@ GFilter::IoStatus GdcJpeg::WriteImage(GStream *Out, GSurface *pDC)
 	{
 		if (Props)
 			Props->SetValue(LGI_FILTER_ERROR, v = "libjpeg library isn't installed or wasn't usable.");
+
+		static bool Warn = true;
+		if (Warn)
+		{
+		    LgiTrace("%s:%i - Unabled to load libjpeg.\n", _FL);
+		    Warn = false;
+		}
+		
 		return GFilter::IoComponentMissing;
 	}
 
