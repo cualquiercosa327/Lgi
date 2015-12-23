@@ -2383,7 +2383,11 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			if (p)
 			{
 				UpdateState(-1, true);
-				p->Build(false);
+
+				GMenuItem *Release = GetMenu()->FindItem(IDM_RELEASE_MODE);
+				bool IsRelease = Release ? Release->Checked() : false;
+				printf("IsRelease=%i\n", IsRelease);
+				p->Build(false, IsRelease);
 			}
 			break;			
 		}
@@ -2400,7 +2404,9 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			IdeProject *p = RootProject();
 			if (p)
 			{
-				p->Clean();
+				GMenuItem *Release = GetMenu()->FindItem(IDM_RELEASE_MODE);
+				bool IsRelease = Release ? Release->Checked() : false;
+				p->Clean(IsRelease);
 			}
 			break;
 		}

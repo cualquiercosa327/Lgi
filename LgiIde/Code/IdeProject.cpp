@@ -2423,15 +2423,18 @@ GAutoString IdeProject::GetMakefile()
 	return Path;
 }
 
-void IdeProject::Clean()
+void IdeProject::Clean(bool Release)
 {
 	if (!d->Build &&
 		d->Settings.GetStr(ProjMakefile))
 	{
 		GAutoString m = GetMakefile();
 		if (m)
-		{		
-			d->Build.Reset(new BuildThread(this, m, "clean"));
+		{
+			GString a = "clean";
+			if (Release)
+				a += " Build=Release";
+			d->Build.Reset(new BuildThread(this, m, a));
 		}
 	}
 }
@@ -2601,14 +2604,14 @@ GDebugContext *IdeProject::Execute(ExeAction Act)
 	return NULL;
 }
 
-void IdeProject::Build(bool All)
+void IdeProject::Build(bool All, bool Release)
 {
 	if (!d->Build)
 	{
 		GAutoString m = GetMakefile();
 		if (m)
 		{		
-			d->Build.Reset(new BuildThread(this, m));
+			d->Build.Reset(new BuildThread(this, m, Release?"Build=Release":NULL));
 		}
 	}
 }
@@ -3509,6 +3512,16 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 			"\n"
 			"CC = gcc\n"
 			"CPP = g++\n");
+
+	// Collect all files that require building
+	GArray<ProjectNode*> Files;
+	d->CollectAllFiles
+	(
+		this,
+		Files,
+		false,
+		1 << Platform
+	);
 	
 	GAutoString Target = GetTargetName(Platform);
 	if (Target)
@@ -3523,6 +3536,9 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 				"endif\n",
 				BuildModeName);
 		
+		GString sDefines[2];
+		GString sLibs[2];
+		GString sIncludes[2];
 		const char *ExtraLinkFlags = NULL;
 		const char *ExeFlags = NULL;
 		if (Platform == PlatformWin32)
@@ -3531,8 +3547,11 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 			ExeFlags = " -mwindows";
 			m.Print("BuildDir = $(Build)\n"
 					"\n"
-					"Flags = -fPIC -w -fno-inline -fpermissive\n"
-					"Defs = -DWIN32 -D_REENTRANT");
+					"Flags = -fPIC -w -fno-inline -fpermissive\n");
+			
+			const char *DefDefs = "-DWIN32 -D_REENTRANT";
+			sDefines[0] = DefDefs;
+			sDefines[1] = DefDefs;
 		}
 		else
 		{
@@ -3547,67 +3566,66 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 			m.Print("BuildDir = $(Build)\n"
 					"\n"
 					"Flags = -fPIC -w -fno-inline -fpermissive\n" // -fexceptions
-					"Defs = -D%s -D_REENTRANT",
-					PlatformCap);
+					);
+			sDefines[0].Printf("-D%s -D_REENTRANT", PlatformCap);
 			#ifdef LINUX
-			m.Print(" -D_FILE_OFFSET_BITS=64"); // >:-(
-			m.Print(" -DPOSIX");
+			sDefines[0] += " -D_FILE_OFFSET_BITS=64"; // >:-(
+			sDefines[0] += " -DPOSIX";
 			#endif
-		}
-		
-		const char *PDefs = d->Settings.GetStr(ProjDefines, NULL, Platform);
-		if (ValidStr(PDefs))
-		{
-			GToken Defs(PDefs, " ;,\r\n");
-			for (int i=0; i<Defs.Length(); i++)
-			{
-				m.Print(" -D%s", Defs[i]);
-			}
-		}
-		
-		m.Print("\n"
-				"\n"
-				"ifeq ($(Build),Debug)\n"
-				"	Defs += -D_DEBUG\n"
-				"	Flags += -g\n"
-				"	Tag = d\n"
-				"else\n"
-				"	Flags += -s -Os\n"
-				"endif\n"
-				"\n");
-		
-		// Collect all dependencies, output their lib names and paths
-		m.Print("# Libraries\n"
-				"Libs ="
-				);
-
-		const char *PLibPaths = d->Settings.GetStr(ProjLibraryPaths, NULL, Platform);
-		if (ValidStr(PLibPaths))
-		{
-			GToken LibPaths(PLibPaths, " \r\n");
-			for (int i=0; i<LibPaths.Length(); i++)
-			{
-				m.Print(" \\\n\t-L%s", ToUnixPath(LibPaths[i]));
-			}
-		}
-
-		const char *PLibs = d->Settings.GetStr(ProjLibraries, NULL, Platform);
-		if (ValidStr(PLibs))
-		{
-			GToken Libs(PLibs, "\r\n");
-			for (int i=0; i<Libs.Length(); i++)
-			{
-				char *l = Libs[i];
-				if (*l == '`' || *l == '-')
-					m.Print(" \\\n\t%s", Libs[i]);
-				else
-					m.Print(" \\\n\t-l%s", ToUnixPath(Libs[i]));
-			}
+			sDefines[1] = sDefines[0];
 		}
 
 		List<IdeProject> Deps;
-		if (GetChildProjects(Deps))
+		GetChildProjects(Deps);
+
+		const char *sConfig[] = {"Debug", "Release"};
+		for (int Cfg = 0; Cfg < CountOf(sConfig); Cfg++)
 		{
+			// Set the config
+			d->Settings.SetCurrentConfig(sConfig[Cfg]);
+		
+			// Get the defines setup
+			const char *PDefs = d->Settings.GetStr(ProjDefines, NULL, Platform);
+			if (ValidStr(PDefs))
+			{
+				GToken Defs(PDefs, " ;,\r\n");
+				for (int i=0; i<Defs.Length(); i++)
+				{
+					GString s;
+					s.Printf(" -D%s", Defs[i]);
+					sDefines[Cfg] += s;
+				}
+			}
+		
+			// Collect all dependencies, output their lib names and paths
+			const char *PLibPaths = d->Settings.GetStr(ProjLibraryPaths, NULL, Platform);
+			if (ValidStr(PLibPaths))
+			{
+				GToken LibPaths(PLibPaths, " \r\n");
+				for (int i=0; i<LibPaths.Length(); i++)
+				{
+					GString s;
+					s.Printf(" \\\n\t\t-L%s", ToUnixPath(LibPaths[i]));
+					sLibs[Cfg] += s;
+				}
+			}
+
+			const char *PLibs = d->Settings.GetStr(ProjLibraries, NULL, Platform);
+			if (ValidStr(PLibs))
+			{
+				GToken Libs(PLibs, "\r\n");
+				for (int i=0; i<Libs.Length(); i++)
+				{
+					char *l = Libs[i];
+					GString s;
+					if (*l == '`' || *l == '-')
+						s.Printf(" \\\n\t\t%s", Libs[i]);
+					else
+						s.Printf(" \\\n\t\t-l%s", ToUnixPath(Libs[i]));
+					sLibs[Cfg] += s;
+				}
+			}
+
 			for (IdeProject *d=Deps.First(); d; d=Deps.Next())
 			{
 				GAutoString Target = d->GetTargetName(Platform);
@@ -3621,31 +3639,129 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 					if (dot)
 						*dot = 0;
 													
-					m.Print(" \\\n\t-l%s$(Tag)", ToUnixPath(t));
+					GString s;
+					s.Printf(" \\\n\t\t-l%s$(Tag)", ToUnixPath(t));
+					sLibs[Cfg] += s;
 
 					GAutoString Base = d->GetBasePath();
 					if (Base)
 					{
-						m.Print(" \\\n\t-L%s/$(BuildDir)", ToUnixPath(Base));
+						s.Printf(" \\\n\t\t-L%s/$(BuildDir)", ToUnixPath(Base));
+						sLibs[Cfg] += s;
 					}
 				}
 			}
+			
+			// Includes
+
+			// Do include paths
+			GHashTable Inc;
+			const char *AllIncludes = d->Settings.GetStr(ProjIncludePaths, NULL, Platform);
+			if (ValidStr(AllIncludes))
+			{
+				// Add settings include paths.
+				GToken Paths(AllIncludes, "\r\n", Platform);
+				for (int i=0; i<Paths.Length(); i++)
+				{
+					char *p = Paths[i];
+					GAutoString pn = ToNativePath(p);
+					if (!Inc.Find(pn))
+					{
+						Inc.Add(pn);
+					}
+				}
+			}
+			
+			// Add paths of headers
+			for (int i=0; i<Files.Length(); i++)
+			{
+				ProjectNode *n = Files[i];
+				
+				if (n->GetFileName())
+				{
+					char *e = LgiGetExtension(n->GetFileName());
+					if (e && stricmp(e, "h") == 0)
+					{
+						for (char *Dir=n->GetFileName(); *Dir; Dir++)
+						{
+							if (*Dir == '/' || *Dir == '\\')
+							{
+								*Dir = DIR_CHAR;
+							}
+						}						
+
+						char Path[256];
+						strcpy_s(Path, sizeof(Path), n->GetFileName());
+
+						LgiTrimDir(Path);
+					
+						char Rel[256];
+						if (!RelativePath(Rel, Path))
+						{
+							strcpy(Rel, Path);
+						}
+						
+						if (stricmp(Rel, ".") != 0)
+						{
+							GAutoString RelN = ToNativePath(Rel);
+							if (!Inc.Find(RelN))
+							{
+								Inc.Add(RelN);
+							}
+						}
+					}
+				}
+			}
+
+			List<char> Incs;
+			char *i;
+			for (void *b=Inc.First(&i); b; b=Inc.Next(&i))
+			{
+				Incs.Insert(NewStr(i));
+			}
+			Incs.Sort(StrCmp, 0);
+			for (i = Incs.First(); i; i = Incs.Next())
+			{
+				GString s;
+				if (*i == '`')
+					s.Printf(" \\\n\t\t%s", i);
+				else
+					s.Printf(" \\\n\t\t-I%s", ToUnixPath(i));
+				sIncludes[Cfg] += s;
+			}
 		}
-		m.Print("\n\n");
+
+		// Output the defs section for Debug and Release		
+
+		// Debug specific
+		m.Print("\n"
+				"ifeq ($(Build),Debug)\n"
+				"	Flags += -g\n"
+				"	Tag = d\n"
+				"	Defs = -D_DEBUG %s\n"
+				"	Libs = %s\n"
+				"	Inc = %s\n",
+					sDefines[0].Get(),
+					sLibs[0].Get(),
+					sIncludes[0].Get());
 		
-		// Collect all files that require building
-		GArray<ProjectNode*> Files;
-		d->CollectAllFiles
-		(
-			this,
-			Files,
-			false,
-			1 << Platform
-		);
+		// Release specific
+		m.Print("else\n"
+				"	Flags += -s -Os\n"
+				"	Defs = %s\n"
+				"	Libs = %s\n"
+				"	Inc = %s\n"
+				"endif\n"
+				"\n",
+					sDefines[1].Get(),
+					sLibs[1].Get(),
+					sIncludes[1].Get());
+		
 		if (Files.First())
 		{
 			ProjectNode *n;
 
+			/*
 			// Do include paths
 			GHashTable Inc;
 			const char *AllIncludes = d->Settings.GetStr(ProjIncludePaths, NULL, Platform);
@@ -3725,6 +3841,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 			}
 			
 			m.Print("\n\n");
+			*/
 			
 			GArray<char*> IncPaths;
 			if (BuildIncludePaths(IncPaths, false, Platform))

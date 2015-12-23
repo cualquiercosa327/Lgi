@@ -163,9 +163,9 @@ public:
 	GAutoString GetMakefile();
 	bool GetExePath(char *Path, int Len);
 	bool RelativePath(char *Out, char *In, bool Debug = false);
-	void Build(bool All);
+	void Build(bool All, bool Release);
 	void StopBuild();
-	void Clean();
+	void Clean(bool Release);
 	GDebugContext *Execute(ExeAction Act = ExeRun);
 	char *FindFullPath(const char *File, class ProjectNode **Node = NULL);
 	bool InProject(const char *Path, bool Open, class IdeDoc **Doc = 0);

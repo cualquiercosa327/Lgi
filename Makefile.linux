@@ -15,29 +15,35 @@ endif
 BuildDir = $(Build)
 
 Flags = -fPIC -w -fno-inline -fpermissive
-Defs = -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64 -DPOSIX -DLGI_LIBRARY -DHAS_FILE_CMD=1
 
 ifeq ($(Build),Debug)
-	Defs += -D_DEBUG
 	Flags += -g
 	Tag = d
+	Defs = -D_DEBUG -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64 -DPOSIX -DLGI_LIBRARY -DHAS_FILE_CMD=1
+	Libs =  \
+		-static-libgcc  \
+		`pkg-config --libs gtk+-2.0`
+	Inc =  \
+		-I./include/common \
+		-I./include/linux/Gtk \
+		`pkg-config --cflags gtk+-2.0` \
+		-Iinclude/common \
+		-Iinclude/linux \
+		-Iinclude/linux/Gtk
 else
 	Flags += -s -Os
+	Defs = -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64 -DPOSIX -DLGI_LIBRARY -DHAS_FILE_CMD=1
+	Libs =  \
+		-static-libgcc  \
+		`pkg-config --libs gtk+-2.0`
+	Inc =  \
+		-I./include/common \
+		-I./include/linux/Gtk \
+		`pkg-config --cflags gtk+-2.0` \
+		-Iinclude/common \
+		-Iinclude/linux \
+		-Iinclude/linux/Gtk
 endif
-
-# Libraries
-Libs = \
-	-static-libgcc  \
-	`pkg-config --libs gtk+-2.0`
-
-# Includes
-Inc = \
-	-I./include/common \
-	-I./include/linux/Gtk \
-	`pkg-config --cflags gtk+-2.0` \
-	-Iinclude/common \
-	-Iinclude/linux \
-	-Iinclude/linux/Gtk
 
 # Dependencies
 Depends =	GDateTime.o \
@@ -826,7 +832,8 @@ GTabView.o : ./src/common/Widgets/GTabView.cpp ./include/common/Lgi.h \
 
 GTextLabel.o : ./src/common/Widgets/GTextLabel.cpp ./include/common/Lgi.h \
 	./include/common/GTextLabel.h \
-	./include/common/GDisplayStringLayout.h
+	./include/common/GDisplayStringLayout.h \
+	./include/common/GVariant.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
