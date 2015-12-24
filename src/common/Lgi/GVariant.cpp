@@ -790,6 +790,8 @@ int64 GVariant::Length()
 {
 	switch (Type)
 	{
+		case GV_NULL:
+			return 0;
 		case GV_INT32:
 			return sizeof(Value.Int);
 		case GV_INT64:
