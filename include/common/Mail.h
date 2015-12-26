@@ -93,6 +93,13 @@ public:
 		Value = 0;
 		Range = 0;
 	}
+	
+	void StartTransfer(int Size)
+	{
+		Start = LgiCurrentTime();
+		Value = 0;
+		Range = Size;
+	}
 };
 
 class LogEntry
@@ -869,7 +876,9 @@ public:
 		/// A user defined param to pass back to the 'Callback' function.
 		void *UserData,
 		/// [Optional] The raw data received will be written to this stream if provided, else NULL.
-		GStreamI *RawCopy = 0
+		GStreamI *RawCopy = 0,
+		/// [Optional] The rough size of the fetch... used to pre-allocate a buffer to receive data.
+		int64 SizeHint = -1
 	);
 
 	/// Appends a message to the specified folder

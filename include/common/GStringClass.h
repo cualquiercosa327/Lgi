@@ -9,6 +9,7 @@
 #define _GSTRING_CLASS_H_
 
 #include <stdarg.h>
+#include <stdio.h>
 #ifdef _MSC_VER
 	// This fixes compile errors in VS2008/Gtk
 	#undef _SIGN_DEFINED
@@ -219,11 +220,27 @@ public:
 		return *this;
 	}
 
-	/// Assignment operator for a C string
+	/// Assignment operators
 	GString &operator =(const char *s)
 	{
 		Empty();
 		Set(s);
+		return *this;
+	}
+
+	GString &operator =(int val)
+	{
+		char n[32];
+		sprintf_s(n, sizeof(n), "%i", val);
+		Set(n);
+		return *this;
+	}
+
+	GString &operator =(int64 val)
+	{
+		char n[32];
+		sprintf_s(n, sizeof(n), LGI_PrintfInt64, val);
+		Set(n);
 		return *this;
 	}
 	
