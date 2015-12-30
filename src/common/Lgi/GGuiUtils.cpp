@@ -26,7 +26,7 @@ bool GMouse::IsContextMenu()
 	if (Right())
 		return true;
 	
-	#ifdef MAC
+	#if defined(MAC) || defined(LINUX)
 	if (Left() && Ctrl())
 		return true;
 	#endif

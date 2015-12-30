@@ -15,28 +15,33 @@ endif
 BuildDir = $(Build)
 
 Flags = -fPIC -w -fno-inline -fpermissive
-Defs = -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64 -DPOSIX
 
 ifeq ($(Build),Debug)
-	Defs += -D_DEBUG
 	Flags += -g
 	Tag = d
+	Defs = -D_DEBUG -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64 -DPOSIX
+	Libs =  \
+		-llgi$(Tag) \
+		-L/home/matthew/Code/Lgi/trunk/$(BuildDir)
+	Inc =  \
+		-I../include/common \
+		-I../include/linux \
+		-I../include/linux/Gtk \
+		-I./Code \
+		`pkg-config --cflags gtk+-2.0`
 else
 	Flags += -s -Os
+	Defs = -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64 -DPOSIX
+	Libs =  \
+		-llgi$(Tag) \
+		-L/home/matthew/Code/Lgi/trunk/$(BuildDir)
+	Inc =  \
+		-I../include/common \
+		-I../include/linux \
+		-I../include/linux/Gtk \
+		-I./Code \
+		`pkg-config --cflags gtk+-2.0`
 endif
-
-# Libraries
-Libs = \
-	-llgi$(Tag) \
-	-L/home/matthew/Code/Lgi/trunk/$(BuildDir)
-
-# Includes
-Inc = \
-	-I../include/common \
-	-I../include/linux \
-	-I../include/linux/Gtk \
-	-I./Code \
-	`pkg-config --cflags gtk+-2.0`
 
 # Dependencies
 Depends =	LgiRes_ControlTree.o \
@@ -2819,7 +2824,8 @@ Lzw.o : ../src/common/Gdc2/Filters/Lzw.cpp ../include/common/Lgi.h \
 
 ../src/common/Widgets/GTextLabel.cpp : ../include/common/Lgi.h \
 	../include/common/GTextLabel.h \
-	../include/common/GDisplayStringLayout.h
+	../include/common/GDisplayStringLayout.h \
+	../include/common/GVariant.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkversion.h : 
 

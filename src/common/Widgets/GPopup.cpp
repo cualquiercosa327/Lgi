@@ -730,9 +730,9 @@ bool GPopup::Attach(GViewI *p)
 			GViewI *p = GetParent();
 			GtkWidget *toplevel = gtk_widget_get_toplevel(p->Handle());
 			if (GTK_IS_WINDOW(toplevel))
-			{
 				gtk_window_set_transient_for(GTK_WINDOW(Wnd), GTK_WINDOW(toplevel));
-			}
+			else
+				LgiTrace("%s:%i - toplevel isn't window?\n", _FL);
 			#endif
 
             #if 1
@@ -808,8 +808,6 @@ void GPopup::Visible(bool i)
 	bool HadFocus = false;
 	bool Was = GView::Visible();
 
-	// LgiStackTrace("GPopup::Visible(%i)\n", i);
-
 	#if defined __GTK_H__
 	if (i && !Wnd)
 	{
@@ -824,7 +822,7 @@ void GPopup::Visible(bool i)
 	    {
 	        gtk_widget_show_all(Wnd);
 			gtk_window_move(GTK_WINDOW(Wnd), Pos.x1, Pos.y1);
-			// gtk_window_resize(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
+			gtk_window_resize(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
 	    }
 	    else
 	    {

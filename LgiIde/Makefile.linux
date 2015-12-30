@@ -15,41 +15,32 @@ endif
 BuildDir = $(Build)
 
 Flags = -fPIC -w -fno-inline -fpermissive
+Defs = -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64 -DPOSIX
 
 ifeq ($(Build),Debug)
+	Defs += -D_DEBUG
 	Flags += -g
 	Tag = d
-	Defs = -D_DEBUG -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64 -DPOSIX
-	Libs =  \
-		-L../Debug \
-		`pkg-config --libs gtk+-2.0` \
-		-static-libgcc \
-		-llgi$(Tag) \
-		-L/home/matthew/Code/Lgi/trunk/$(BuildDir)
-	Inc =  \
-		-I../../../../CodeLib/libpng \
-		-I../include/common \
-		-I../include/linux \
-		-I../include/linux/Gtk \
-		-I./Code \
-		`pkg-config --cflags gtk+-2.0`
 else
 	Flags += -s -Os
-	Defs = -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64 -DPOSIX
-	Libs =  \
-		-L../Release \
-		`pkg-config --libs gtk+-2.0` \
-		-static-libgcc \
-		-llgi$(Tag) \
-		-L/home/matthew/Code/Lgi/trunk/$(BuildDir)
-	Inc =  \
-		-I../../../../CodeLib/libpng \
-		-I../include/common \
-		-I../include/linux \
-		-I../include/linux/Gtk \
-		-I./Code \
-		`pkg-config --cflags gtk+-2.0`
 endif
+
+# Libraries
+Libs = \
+	-L../Debug \
+	`pkg-config --libs gtk+-2.0` \
+	-static-libgcc \
+	-llgi$(Tag) \
+	-L/home/matthew/Code/Lgi/trunk/$(BuildDir)
+
+# Includes
+Inc = \
+	-I../../../../CodeLib/libpng \
+	-I../include/common \
+	-I../include/linux \
+	-I../include/linux/Gtk \
+	-I./Code \
+	`pkg-config --cflags gtk+-2.0`
 
 # Dependencies
 Depends =	GDebugContext.o \
@@ -4309,6 +4300,7 @@ VPATH=%.cpp \
 	../../../../CodeLib/libpng \
 	../include/linux \
 	../include/linux/Gtk \
+	./thread \
 	../../../../../../usr/include/gtk-2.0 \
 	../../../../../../usr/lib/x86_64-linux-gnu/gtk-2.0/include \
 	../../../../../../usr/include/atk-1.0 \
