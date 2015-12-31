@@ -277,7 +277,7 @@ public:
 	GTabView *DebugTab;
 	GBox *DebugBox;
 	GBox *DebugLog;
-	GList *Locals, *Watch, *CallStack;
+	GList *Locals, *Watch, *CallStack, *Threads;
 	GTextLog *ObjectDump, *MemoryDump, *Registers;
 	GTableLayout *MemTable;
 	GEdit *DebugEdit;
@@ -298,6 +298,7 @@ public:
 		ObjectDump = NULL;
 		MemoryDump = NULL;
 		MemTable = NULL;
+		Threads = NULL;
 		Registers = NULL;
 
 		Small = *SysFont;
@@ -465,6 +466,20 @@ public:
 								}
 
 								Page->Append(MemTable);
+							}
+						}
+						if ((Page = DebugTab->Append("Threads")))
+						{
+							Page->SetFont(&Small);
+							if ((Threads = new GList(IDC_THREADS, 0, 0, 100, 100, "Threads")))
+							{
+								Threads->SetFont(&Small);
+								Threads->AddColumn("", 20);
+								Threads->AddColumn("Thread", 1000);
+								Threads->SetPourLargest(true);
+								Threads->MultiSelect(false);
+
+								Page->Append(Threads);
 							}
 						}
 						if ((Page = DebugTab->Append("Call Stack")))
@@ -1419,6 +1434,8 @@ void AppWnd::CloseAll()
 	
 	while (d->Projects.First())
 		delete d->Projects.First();	
+
+	DeleteObj(d->DbgContext);
 }
 
 bool AppWnd::OnRequestClose(bool IsClose)
@@ -1946,6 +1963,12 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 						d->DbgContext->UpdateCallStack();
 					break;
 				}
+				case AppWnd::ThreadsTab:
+				{
+					if (d->DbgContext)
+						d->DbgContext->UpdateThreads();
+					break;
+				}
 				default:
 					break;
 			}
@@ -2000,6 +2023,34 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 								if (sFrame && IsDigit(*sFrame))
 									d->DbgContext->SetFrame(atoi(sFrame));
 							}
+						}
+					}
+				}
+			}
+			break;
+		}
+		case IDC_THREADS:
+		{
+			/*
+			if (Flags == M_CHANGE)
+			{
+				if (d->Output->DebugTab)
+					d->Output->DebugTab->Value(AppWnd::CallStackTab);
+			}
+			else */
+			if (Flags == GNotifyItem_Select)
+			{
+				// This takes the user to a given thread
+				if (d->Output->Threads && d->DbgContext)
+				{
+					GListItem *item = d->Output->Threads->GetSelected();
+					if (item)
+					{
+						GString sId = item->GetText(0);
+						int ThreadId = sId.Int();
+						if (ThreadId > 0)
+						{
+							d->DbgContext->SelectThread(ThreadId);
 						}
 					}
 				}
@@ -2089,6 +2140,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 					Top->Quit();
 				}
 			}
+			DeleteObj(d->DbgContext);
 			break;
 		}
 		case IDM_CLOSE_ALL:
@@ -2333,6 +2385,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 				d->DbgContext->Watch = d->Output->Watch;
 				d->DbgContext->Locals = d->Output->Locals;
 				d->DbgContext->CallStack = d->Output->CallStack;
+				d->DbgContext->Threads = d->Output->Threads;
 				d->DbgContext->ObjectDump = d->Output->ObjectDump;
 				d->DbgContext->Registers = d->Output->Registers;
 				d->DbgContext->MemoryDump = d->Output->MemoryDump;

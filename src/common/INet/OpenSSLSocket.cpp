@@ -68,6 +68,7 @@ public:
 			LgiMakePath(p, sizeof(p), p, "libssl.so");
 			if (FileExists(p))
 			{
+			    LgiTrace("%s:%i - loading SSL library '%s'\n", _FL, p);
 				Load(p);
 			}
 		}

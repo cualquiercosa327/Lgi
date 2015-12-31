@@ -83,7 +83,8 @@ enum IdeControls
 	IDC_MEM_SIZE,
 	IDC_MEM_ROW_LEN,
 	IDC_MEM_HEX,
-	IDC_REGISTERS
+	IDC_REGISTERS,
+	IDC_THREADS
 };
 
 enum IdeMenuCmds
@@ -192,6 +193,7 @@ public:
 		ObjectTab,
 		WatchTab,
 		MemoryTab,
+		ThreadsTab,
 		CallStackTab,
 		RegistersTab
 	};
