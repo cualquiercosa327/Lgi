@@ -1143,7 +1143,7 @@ bool GList::OnKey(GKey &k)
 			{
 				case VK_RETURN:
 				{
-					#ifdef WIN32
+					#if WINNATIVE
 					if (!k.IsChar)
 					#endif
 					{

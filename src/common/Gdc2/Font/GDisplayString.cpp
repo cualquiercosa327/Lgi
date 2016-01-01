@@ -372,7 +372,8 @@ void GDisplayString::Layout(bool Debug)
 			return;
 		}
 
-		Gtk::pango_context_set_font_description(GFontSystem::Inst()->GetContext(), Font->Handle());
+		GFontSystem *FSys = GFontSystem::Inst();
+		Gtk::pango_context_set_font_description(FSys->GetContext(), Font->Handle());
 
 		int TabSizePx = Font->TabSize();
 		int TabSizeF = TabSizePx * FScale;
