@@ -1685,6 +1685,18 @@ IdeDoc *AppWnd::OpenFile(const char *FileName, NodeSource *Src)
 
 		if (!Doc)
 		{
+			GString FullPath;
+			if (LgiIsRelativePath(FileName))
+			{
+				IdeProject *Root = RootProject();
+				if (Root)
+				{
+					GAutoString RootPath = Root->GetBasePath();
+					GFile::Path p(RootPath);
+					p = 
+				}
+			}
+			
 			Doc = new IdeDoc(this, 0, File);
 			if (Doc)
 			{

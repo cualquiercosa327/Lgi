@@ -674,6 +674,8 @@ gboolean PopupEvent(GtkWidget *widget, GdkEvent *event, GPopup *This)
 
 bool GPopup::Attach(GViewI *p)
 {
+	printf("GPopup::Attach(%p)\n", p);
+	
 	#if defined MAC && !defined(LGI_SDL)
 	
 		#if !defined COCOA
@@ -740,7 +742,7 @@ bool GPopup::Attach(GViewI *p)
 			#endif
 
             #if 1
-            // printf("Popup connect Wnd=%p, this=%p\n", GTK_WIDGET(Wnd), this);
+            printf("Popup connect Wnd=%p, this=%p\n", GTK_WIDGET(Wnd), this);
             g_signal_connect(	G_OBJECT(Wnd),
 								"button-press-event",
 								G_CALLBACK(PopupEvent),
@@ -812,11 +814,17 @@ void GPopup::Visible(bool i)
 	bool HadFocus = false;
 	bool Was = GView::Visible();
 
+
+printf("%s:%i - GPopup::Visible(%i)\n", _FL, i);
+
 	#if defined __GTK_H__
 	if (i && !Wnd)
 	{
 		if (!Attach(0))
+		{
+			printf("%s:%i - Attach failed.\n", _FL);
 		    return;
+		}
 	}
 	
 	GView::Visible(i);
@@ -827,12 +835,15 @@ void GPopup::Visible(bool i)
 	        gtk_widget_show_all(Wnd);
 			gtk_window_move(GTK_WINDOW(Wnd), Pos.x1, Pos.y1);
 			gtk_window_resize(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
+			printf("%s:%i - Showing Wnd %s.\n", _FL, Pos.GetStr());
 	    }
 	    else
 	    {
 	        gtk_widget_hide(Wnd);
+			printf("%s:%i - Hiding Wnd.\n", _FL);
 	    }
 	}
+	else printf("%s:%i - No Wnd.\n", _FL);
 	#else
 	if (!Handle() && i)
 	{
