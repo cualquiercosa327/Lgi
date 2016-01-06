@@ -1692,8 +1692,18 @@ IdeDoc *AppWnd::OpenFile(const char *FileName, NodeSource *Src)
 				if (Root)
 				{
 					GAutoString RootPath = Root->GetBasePath();
-					GFile::Path p(RootPath);
-					p = 
+					char p[MAX_PATH];
+					LgiMakePath(p, sizeof(p), RootPath, FileName);
+					if (FileExists(p))
+					{
+						FullPath = p;
+						File = FullPath;
+						printf("Converted '%s' to '%s'\n", FileName, p);
+					}
+					else
+					{
+						printf("Rel Path '%s' doesn't exist\n", p);
+					}
 				}
 			}
 			
