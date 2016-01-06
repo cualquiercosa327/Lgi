@@ -151,7 +151,9 @@ public:
 		ItemEdit = i;
 		Sunken(false);
 		
+		#ifndef LINUX
 		SetPos(GetPos());
+		#endif
 	}
 
 	void OnCreate()

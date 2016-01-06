@@ -9,7 +9,7 @@
 using namespace Gtk;
 #include "LgiWidget.h"
 
-#define DEBUG_SETFOCUS			1
+#define DEBUG_SETFOCUS			0
 #define DEBUG_HANDLEVIEWKEY		0
 
 ///////////////////////////////////////////////////////////////////////

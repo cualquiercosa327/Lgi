@@ -92,7 +92,7 @@ bool GLibrary::Load(const char *File, bool Quiet)
 				{
 					char *e = dlerror();
 					if (!stristr(e, "No such file or directory") && !Quiet)
-						printf("GLibrary::Load(\"%s\") failed.\n\t%s\n", File, e);
+						LgiTrace("GLibrary::Load(\"%s\") failed.\n\t%s\n", File, e);
 
 					GToken t("/opt/local/lib", ":");
 					for (int i=0; i<t.Length(); i++)
@@ -107,13 +107,13 @@ bool GLibrary::Load(const char *File, bool Quiet)
 							hLib = dlopen(full, RTLD_NOW);
 							#endif
 							if (!Quiet)
-								printf("dlopen(%s)=%p\n", full, hLib);
+								LgiTrace("dlopen(%s)=%p\n", full, hLib);
 							if (hLib)
 								break;
 						}
 						else if (!Quiet)
 						{
-							printf("%s doesn't exist\n", full);
+							LgiTrace("%s doesn't exist\n", full);
 						}
 
 					}
@@ -122,7 +122,7 @@ bool GLibrary::Load(const char *File, bool Quiet)
 					{
 						char *e = dlerror();
 						if (!stristr(e, "No such file or directory"))
-							printf("GLibrary::Load(\"%s\") failed.\n\t%s\n", File, e);
+							LgiTrace("GLibrary::Load(\"%s\") failed.\n\t%s\n", File, e);
 					}
 				}
 			}

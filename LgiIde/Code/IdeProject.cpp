@@ -21,19 +21,24 @@
 
 extern const char *Untitled;
 
-#define IDM_INSERT					100
-#define IDM_NEW_FOLDER				101
-#define IDM_RENAME					102
-#define IDM_DELETE					103
-#define IDM_SETTINGS				104
-#define IDM_INSERT_DEP				105
-#define IDM_SORT_CHILDREN			106
-#define IDM_PROPERTIES				107
-#define IDM_BROWSE_FOLDER			108
-#define IDM_OPEN_TERM				109
-#define IDM_IMPORT_FOLDER			110
-#define IDM_WEB_FOLDER				111
-#define IDM_INSERT_FTP				113
+enum AppCommands
+{
+	IDM_INSERT = 100,
+	IDM_NEW_FOLDER,
+	IDM_RENAME,
+	IDM_DELETE,
+	IDM_SETTINGS,
+	IDM_INSERT_DEP,
+	IDM_SORT_CHILDREN,
+	IDM_PROPERTIES,
+	IDM_BROWSE_FOLDER,
+	IDM_OPEN_TERM,
+	IDM_IMPORT_FOLDER,
+	IDM_WEB_FOLDER,
+	IDM_INSERT_FTP,
+	IDM_BUILD_PROJECT,
+	IDM_CLEAN_PROJECT
+};
 
 #ifdef WIN32
 #define LGI_STATIC_LIBRARY_EXT		"lib"
@@ -2876,6 +2881,11 @@ void IdeProject::OnMouseClick(GMouse &m)
 		Sub.AppendItem("New Folder", IDM_NEW_FOLDER, true);
 		Sub.AppendItem("New Web Folder", IDM_WEB_FOLDER, true);
 		Sub.AppendSeparator();
+		Sub.AppendItem("Build", IDM_BUILD_PROJECT, true);
+		Sub.AppendItem("Clean", IDM_CLEAN_PROJECT, true);
+		Sub.AppendSeparator();
+		Sub.AppendItem("Sort Children", IDM_SORT_CHILDREN, true);
+		Sub.AppendSeparator();
 		Sub.AppendItem("Settings", IDM_SETTINGS, true);
 		Sub.AppendItem("Insert Dependency", IDM_INSERT_DEP, true);
 
@@ -2909,6 +2919,22 @@ void IdeProject::OnMouseClick(GMouse &m)
 						}
 					}
 				}
+				break;
+			}
+			case IDM_BUILD_PROJECT:
+			{
+				Build(true, d->App->IsReleaseMode());
+				break;
+			}
+			case IDM_CLEAN_PROJECT:
+			{
+				Clean(d->App->IsReleaseMode());
+				break;
+			}
+			case IDM_SORT_CHILDREN:
+			{
+				SortChildren();
+				Project->SetDirty();
 				break;
 			}
 			case IDM_SETTINGS:

@@ -2084,6 +2084,13 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 	return 0;
 }
 
+bool AppWnd::IsReleaseMode()
+{
+	GMenuItem *Release = GetMenu()->FindItem(IDM_RELEASE_MODE);
+	bool IsRelease = Release ? Release->Checked() : false;
+	return IsRelease;
+}
+
 int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 {
 	switch (Cmd)
@@ -2478,9 +2485,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			IdeProject *p = RootProject();
 			if (p)
 			{
-				GMenuItem *Release = GetMenu()->FindItem(IDM_RELEASE_MODE);
-				bool IsRelease = Release ? Release->Checked() : false;
-				p->Clean(IsRelease);
+				p->Clean(IsReleaseMode());
 			}
 			break;
 		}

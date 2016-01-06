@@ -222,6 +222,7 @@ public:
 	IdeDoc *GotoReference(const char *File, int Line, bool CurIp, bool WithHistory = true);
 	bool FindSymbol(const char *Syn, GArray<FindSymResult> &Results);
 	bool GetSystemIncludePaths(GArray<char*> &Paths);
+	bool IsReleaseMode();
 	
 	// Events
 	void OnLocationChange(const char *File, int Line);
