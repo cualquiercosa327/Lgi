@@ -2618,7 +2618,9 @@ void IdeProject::Build(bool All, bool Release)
 		{		
 			d->Build.Reset(new BuildThread(this, m, Release?"Build=Release":NULL));
 		}
+		else d->App->GetBuildLog()->Print("Error: no makefile? (%s:%i)\n", _FL);
 	}
+	else d->App->GetBuildLog()->Print("Error: Already building (%s:%i)\n", _FL);
 }
 
 void IdeProject::StopBuild()
@@ -2923,6 +2925,7 @@ void IdeProject::OnMouseClick(GMouse &m)
 			}
 			case IDM_BUILD_PROJECT:
 			{
+				StopBuild();
 				Build(true, d->App->IsReleaseMode());
 				break;
 			}

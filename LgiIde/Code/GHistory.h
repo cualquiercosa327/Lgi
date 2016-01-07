@@ -19,6 +19,9 @@ public:
 	int GetTargetId();
 	void SetTargetId(int id);
 	
+	int64 Value();
+	void Value(int64 i);
+	
 	/// Call after you change the list of strings
 	void Update();
 	void OnPopupClose();

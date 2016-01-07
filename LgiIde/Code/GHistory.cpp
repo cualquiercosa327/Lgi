@@ -4,6 +4,7 @@
 
 //////////////////////////////////////////////////////////////
 // GHistoryItem
+/*
 class GHistoryItem : public GListItem
 {
 	class GHistoryPopup *p;
@@ -17,6 +18,7 @@ public:
 	
 	void OnMouseClick(GMouse &m);
 };
+*/
 
 //////////////////////////////////////////////////////////////
 // GHistoryPopup
@@ -25,18 +27,21 @@ class GHistoryPopup : public GPopup
 public:
 	GList *Lst;
 	char *Str;
+	int64 Index;
 	bool Ignore;
 
 	GHistoryPopup() : GPopup(0)
 	{
 		Lst = 0;
 		Str = 0;
+		Index = -1;
 		GRect r(0, 0, 300, 300);
 		SetPos(r);
 
 		Children.Insert(Lst = new GList(1, 1, 1, 100, 100));
 		if (Lst)
 		{
+			Lst->MultiSelect(false);
 			Lst->ShowColumnHeader(false);
 			Lst->Sunken(false);
 			Lst->AddColumn("", 1000);
@@ -52,6 +57,8 @@ public:
 	{
 		if (Lst)
 		{
+			if (!Lst->Handle())
+				AttachChildren();
 			Lst->Focus(true);
 		}
 		
@@ -68,8 +75,34 @@ public:
 			Lst->SetPos(r);
 		}
 	}
+	
+	int OnNotify(GViewI *Ctrl, int Flags)
+	{
+		if (Lst && Ctrl->GetId() == 1)
+		{
+			if (Flags == GNotifyItem_Select)
+			{
+				GListItem *li = Lst->GetSelected();
+				if (li)
+				{
+					DeleteArray(Str);
+					Str = NewStr(li->GetText(0));
+					Index = Lst->Value();
+					Visible(false);
+					
+					printf("%s:%i - str=%s idx=%i\n", _FL, Str, (int)Index);
+				}
+				else printf("%s:%i - No selection.\n", _FL);
+			}
+			else printf("%s:%i - Flags=%i\n", _FL, Flags);
+		}
+		else printf("%s:%i - getid=%i\n", _FL, Ctrl->GetId());
+		
+		return 0;
+	} 
 };
 
+/*
 void GHistoryItem::OnMouseClick(GMouse &m)
 {
 	if (!m.Down())
@@ -79,6 +112,7 @@ void GHistoryItem::OnMouseClick(GMouse &m)
 		p->Visible(false);
 	}
 }
+*/
 
 /////////////////////////////////////////////////////////////
 // GHistory
@@ -87,16 +121,18 @@ class GHistoryPrivate
 public:
 	GHistoryPopup *Popup;
 	int TargetId;
+	int64 Value;
 	
 	GHistoryPrivate()
 	{
 		Popup = 0;
 		TargetId = 0;
+		Value = 0;
 	}
 };
 
-GHistory::GHistory()
-	: GDropDown(-1, 0, 0, 10, 10, 0),
+GHistory::GHistory() :
+	GDropDown(-1, 0, 0, 10, 10, 0),
 	ResObject(Res_Custom)
 {
 	d = new GHistoryPrivate;
@@ -119,6 +155,27 @@ void GHistory::SetTargetId(int id)
 	d->TargetId = id;
 }
 
+int64 GHistory::Value()
+{
+	if (d && d->Popup)
+		return d->Popup->Index;
+	
+	return -1;
+}
+
+void GHistory::Value(int64 i)
+{
+	if (d && d->Popup)
+	{
+		d->Popup->Index = i;
+		if (d->Popup->Lst)
+		{
+			d->Popup->Lst->Value(i);
+		}
+		else LgiTrace("%s:%i - No list?\n", _FL);
+	}
+}
+
 void GHistory::Add(char *Str)
 {
 	if (Str)
@@ -137,7 +194,12 @@ void GHistory::Add(char *Str)
 			Insert(NewStr(Str));
 			if (d->Popup && d->Popup->Lst)
 			{
-				d->Popup->Lst->Insert(new GHistoryItem(d->Popup, Str));
+				GListItem *li = new GListItem;
+				if (li)
+				{
+					li->SetText(Str);
+					d->Popup->Lst->Insert(li);
+				}
 			}
 		}
 	}
@@ -151,8 +213,12 @@ void GHistory::Update()
 		Lst->Empty();
 		for (char *s=First(); s; s=Next())
 		{
-			GHistoryItem *i = new GHistoryItem(d->Popup, s);
-			if (i) Lst->Insert(i);
+			GListItem *i = new GListItem;
+			if (i)
+			{
+				i->SetText(s);
+				Lst->Insert(i);
+			}
 		}
 	}
 }

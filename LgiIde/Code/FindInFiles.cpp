@@ -36,20 +36,24 @@ void SerializeHistory(GHistory *h, const char *opt, GOptionsFile *p, bool Write)
 {
 	if (h && p)
 	{
+		GString last;
+		last.Printf("%sSelect", opt);
+		
 		GVariant v;
 		if (Write)
 		{
 			GStringPipe b;
-			char *s;
-			for (s=h->First(); s; s=h->Next())
+			for (char *s=h->First(); s; s=h->Next())
 			{
 				if (b.GetSize()) b.Push("|");
 				b.Push(s);
 			}
-			if ((s = b.NewStr()))
+			GAutoString strs;
+			if (strs.Reset(b.NewStr()))
 			{
-				p->SetValue(opt, v = s);
-				DeleteArray(s);
+				p->SetValue(opt, v = strs.Get());
+				p->SetValue(last, v = h->Value());
+				printf("Setting '%s' to %i\n", last.Get(), (int)h->Value());
 			}
 		}
 		else
@@ -63,6 +67,13 @@ void SerializeHistory(GHistory *h, const char *opt, GOptionsFile *p, bool Write)
 					h->Insert(NewStr(t[i]));
 				}
 				h->Update();
+				
+				if (p->GetValue(last, v))
+				{
+					h->Value(v.CastInt64());
+					printf("Selecting '%s' -> %i\n", last.Get(), v.CastInt32());
+				}
+				else printf("No option '%s'\n", last.Get());
 			}
 		}
 	}
