@@ -136,6 +136,7 @@ LgiFunc void LgiSleep(uint32 i);
 #define LGI_LgiDropFormat			"lgi "
 #define LGI_WideCharset				"utf-32"
 #define LGI_PrintfInt64				"%lli"
+#define LGI_PrintfHex64				"%llx"
 #define atoi64						atoll
 #define sprintf_s					snprintf
 #define vsprintf_s					vsnprintf

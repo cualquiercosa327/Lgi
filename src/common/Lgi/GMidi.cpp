@@ -73,9 +73,9 @@ GAutoString PrintMIDIObjectInfo(MIDIObjectRef o)
 	MIDIObjectGetStringProperty(o, kMIDIPropertyManufacturer, &pManuf);
 	MIDIObjectGetStringProperty(o, kMIDIPropertyModel, &pModel);
 	MIDIObjectGetIntegerProperty(o, kMIDIPropertyUniqueID, &Id);
-	GAutoString Name(CFStringToUtf8(pName));
-	GAutoString Man(CFStringToUtf8(pManuf));
-	GAutoString Mod(CFStringToUtf8(pModel));
+	GString Name = pName;
+	GString Man = pManuf;
+	GString Mod = pModel;
 
 	char s[256];
 	sprintf(s, "%s, %s, %s, %x", Name.Get(), Man.Get(), Mod.Get(), (uint32)Id);
