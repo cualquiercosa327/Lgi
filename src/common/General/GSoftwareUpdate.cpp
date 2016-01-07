@@ -72,6 +72,8 @@ struct GSoftwareUpdatePriv
 
 				GAutoString GetUri = Uri.GetUri();
 				
+				// LgiTrace("UpdateURI=%s\n", GetUri.Get());
+				
 				if (d->Proxy)
 				{
 				    GUri Proxy(d->Proxy);

@@ -1787,10 +1787,10 @@ bool GView::_Attach(GViewI *parent)
 {
 	bool Status = false;
 
-	d->Parent = (d->ParentI = parent) ? parent->GetGView() : 0;
+	d->Parent = (d->ParentI = parent) ? parent->GetGView() : NULL;
 
 	LgiAssert(!_InLock);
-	_Window = d->GetParent() ? d->GetParent()->GetWindow() : 0;
+	_Window = d->Parent ? d->Parent->GetWindow() : NULL;
 	if (_Window)
 		_Lock = _Window->_Lock;
 	
@@ -1842,9 +1842,6 @@ bool GView::_Attach(GViewI *parent)
 									_FL, Par, _View, e, Name());
 					else
 					{
-						OnCreate();
-						OnAttach();
-
 						// Move the view into position
 						// Set flags and show it
 						if (TestFlag(WndFlags, GWF_DISABLED))
@@ -1856,6 +1853,9 @@ bool GView::_Attach(GViewI *parent)
 							OSErr e = HIViewSetVisible(_View, true);
 							if (e) printf("%s:%i - SetControlVisibility failed %i\n", _FL, e);
 						}
+
+						OnCreate();
+						OnAttach();
 
 						Status = true;
 					}

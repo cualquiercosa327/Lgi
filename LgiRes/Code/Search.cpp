@@ -404,12 +404,12 @@ Results::Results(AppWnd *app, Search *params)
 			List<Resource> Res;
 			d->App->ListObjects(Res);
 			d->Searching = true;
-			for (Resource *r=Res.First(); r && d->Searching; r=Res.Next())
+			for (Resource *r=Res.First(); r && d && d->Searching; r=Res.Next())
 			{
 				if (r->IsStringGroup())
 				{
 					List<ResString>::I it = r->IsStringGroup()->GetStrs()->Start();
-					for (ResString *s = *it; s && d->Searching; s = *++it)
+					for (ResString *s = *it; s && d && d->Searching; s = *++it)
 					{
 						Result *Res = d->Test(s);
 						if (Res)

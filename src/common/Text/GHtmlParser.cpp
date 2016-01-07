@@ -763,7 +763,6 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 					#if FEATURE_REATTACH_ELEMENTS
 					if (Elem->Info->Reattach)
 					{
-						static int count = 0;
 						GArray<int> ParentTags;
 						switch (Elem->TagId)
 						{

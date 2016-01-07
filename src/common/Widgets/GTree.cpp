@@ -1164,7 +1164,6 @@ void GTree::_Pour()
 		{
 			GItemColumn *c = Columns[i];
 			ColumnPx += c->Width();
-			printf("c->Width()=%i\n", c->Width());
 		}
 	}
 	else

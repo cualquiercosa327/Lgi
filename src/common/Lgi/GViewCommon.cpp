@@ -239,7 +239,8 @@ GWindow *GView::GetWindow()
 	if (!_Window)
 	{
 		// Walk up parent list and find someone who has a window
-		for (GView *w = d->GetParent(); w; w = w->d ? w->d->GetParent() : NULL)
+		GView *w = d->GetParent();
+		for (; w; w = w->d ? w->d->GetParent() : NULL)
 		{
 			if (w->_Window)
 			{
@@ -1016,9 +1017,11 @@ void GView::Visible(bool v)
 			Gtk::gtk_widget_hide(_View);
 
 		#elif defined MAC && !defined COCOA && !defined(LGI_SDL)
-		OSErr e = SetControlVisibility(_View, v, true);
-		if (e) printf("%s:%i - SetControlVisibility(%p,%i,1) failed with %i (class=%s)\n",
+		
+		OSErr e = HIViewSetVisible(_View, v);
+		if (e) printf("%s:%i - HIViewSetVisible(%p,%i) failed with %i (class=%s)\n",
 						_FL, _View, v, e, GetClass());
+		
 		#endif
 	}
 	else

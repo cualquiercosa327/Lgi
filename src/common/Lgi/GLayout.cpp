@@ -202,12 +202,14 @@ void GLayout::OnPosChange()
 	if (VScroll)
 	{
 		VScroll->SetPos(v, true);
-		if (VScroll) VScroll->Visible(true);
+		if (VScroll)
+			VScroll->Visible(true);
 	}
 	if (HScroll)
 	{
 		HScroll->SetPos(h, true);
-		if (HScroll) HScroll->Visible(true);
+		if (HScroll)
+			HScroll->Visible(true);
 	}
 }
 

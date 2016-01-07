@@ -2629,13 +2629,6 @@ void GTag::Restyle()
 	GTagElementCallback Context;
 	if (Html->CssStore.Match(Styles, &Context, this))
 	{
-		#ifdef _DEBUG
-		if (Debug)
-		{
-			int asd=0;
-		}
-		#endif
-		
 		for (unsigned i=0; i<Styles.Length(); i++)
 		{
 			GCss::Selector *s = Styles[i];
@@ -4572,10 +4565,6 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f, uint16 Depth)
 					#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 					if (Table->Debug)
 					{
-						if (t->Pos.y > 2000)
-						{
-							int asd=0;
-						}
 						LgiTrace("cell(%i,%i) = pos(%i,%i)+size(%i,%i)\n",
 							t->Cell->Pos.x, t->Cell->Pos.y,
 							t->Pos.x, t->Pos.y,
@@ -5052,13 +5041,6 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 	Size.x = 0;
 	Size.y = 0;
 	
-	#ifdef _DEBUG
-	if (Debug)
-	{
-		int asd=0;
-	}
-	#endif
-	
 	switch (TagId)
 	{
 		default:
@@ -5097,8 +5079,8 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			
 			GCss::Len w    = Width();
 			GCss::Len h    = Height();
-			GCss::Len MinX = MinWidth();
-			GCss::Len MaxX = MaxWidth();
+			// GCss::Len MinX = MinWidth();
+			// GCss::Len MaxX = MaxWidth();
 			GCss::Len MinY = MinHeight();
 			GCss::Len MaxY = MaxHeight();
 			GAutoPtr<GDisplayString> a;
@@ -5933,7 +5915,7 @@ void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderP
 	}
 
 	// Loop over the rectangles and draw everything
-	bool IsAlpha = Back.a() < 0xff;
+	// bool IsAlpha = Back.a() < 0xff;
 	int Op = pDC->Op(GDC_ALPHA);
 
 	for (unsigned i=0; i<r.Length(); i++)
@@ -6078,7 +6060,6 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection, uint16 Depth)
 	#ifdef _DEBUG
 	if (Debug)
 	{
-		int asd=0;		
 		LgiTrace("%s::OnPaint - %i,%i\n", Tag.Get(), -Px, -Py);
 	}
 	#endif
@@ -8523,20 +8504,11 @@ struct BuildContext
 				if (TBody)
 					return false;
 				TBody = t;
-				if (!Table || t->Parent != Table)
-				{
-					int asd=0;
-				}
 				break;
 			}
 			case TAG_TR:
 			{
 				CurTr = t;
-				if (t->Parent->TagId != TAG_TBODY &&
-					t->Parent->TagId != TAG_TABLE)
-				{
-					int asd=0;
-				}
 				break;
 			}
 			case TAG_TD:
@@ -8584,8 +8556,6 @@ struct BuildContext
 			{
 				if (CurTd == t->Parent)
 					return false;
-				
-				int asd=0;
 				break;
 			}
 		}

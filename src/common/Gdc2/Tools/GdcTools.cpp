@@ -645,11 +645,6 @@ bool ResampleDC(GSurface *pDest, GSurface *pSrc, GRect *FromRgn, Progress *Prog)
 			int Nx, Ny;
 			COLOUR c;
 			
-			if (Dx == 0 && Dy == 9)
-			{
-				int asd=0;
-			}
-
 			register uint16 *lin = ToLinear.Lut;
 			switch (pSrc->GetBits())
 			{
@@ -660,7 +655,7 @@ bool ResampleDC(GSurface *pDest, GSurface *pSrc, GRect *FromRgn, Progress *Prog)
 						Ny = y + (256 - (y%256));
 
 						register System32BitPixel *Src;
-						register uchar *DivLut = Div255Lut;
+						// register uchar *DivLut = Div255Lut;
 						for (register int x=Dx*Sx+Sr.x1; x<NextX; x=Nx)
 						{
 							Nx = x + (256 - (x%256));
