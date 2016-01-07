@@ -3,6 +3,8 @@
 
 #include "GLibraryUtils.h"
 
+// If you get a compile error on Linux:
+// sudo apt-get install libssl-dev
 #include "openssl/bio.h"
 #include "openssl/ssl.h"
 #include "openssl/err.h"

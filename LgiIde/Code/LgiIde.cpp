@@ -277,7 +277,7 @@ public:
 	GTabView *DebugTab;
 	GBox *DebugBox;
 	GBox *DebugLog;
-	GList *Locals, *Watch, *CallStack;
+	GList *Locals, *Watch, *CallStack, *Threads;
 	GTextLog *ObjectDump, *MemoryDump, *Registers;
 	GTableLayout *MemTable;
 	GEdit *DebugEdit;
@@ -298,6 +298,7 @@ public:
 		ObjectDump = NULL;
 		MemoryDump = NULL;
 		MemTable = NULL;
+		Threads = NULL;
 		Registers = NULL;
 
 		Small = *SysFont;
@@ -465,6 +466,20 @@ public:
 								}
 
 								Page->Append(MemTable);
+							}
+						}
+						if ((Page = DebugTab->Append("Threads")))
+						{
+							Page->SetFont(&Small);
+							if ((Threads = new GList(IDC_THREADS, 0, 0, 100, 100, "Threads")))
+							{
+								Threads->SetFont(&Small);
+								Threads->AddColumn("", 20);
+								Threads->AddColumn("Thread", 1000);
+								Threads->SetPourLargest(true);
+								Threads->MultiSelect(false);
+
+								Page->Append(Threads);
 							}
 						}
 						if ((Page = DebugTab->Append("Call Stack")))
@@ -1419,6 +1434,8 @@ void AppWnd::CloseAll()
 	
 	while (d->Projects.First())
 		delete d->Projects.First();	
+
+	DeleteObj(d->DbgContext);
 }
 
 bool AppWnd::OnRequestClose(bool IsClose)
@@ -1668,6 +1685,28 @@ IdeDoc *AppWnd::OpenFile(const char *FileName, NodeSource *Src)
 
 		if (!Doc)
 		{
+			GString FullPath;
+			if (LgiIsRelativePath(FileName))
+			{
+				IdeProject *Root = RootProject();
+				if (Root)
+				{
+					GAutoString RootPath = Root->GetBasePath();
+					char p[MAX_PATH];
+					LgiMakePath(p, sizeof(p), RootPath, FileName);
+					if (FileExists(p))
+					{
+						FullPath = p;
+						File = FullPath;
+						printf("Converted '%s' to '%s'\n", FileName, p);
+					}
+					else
+					{
+						printf("Rel Path '%s' doesn't exist\n", p);
+					}
+				}
+			}
+			
 			Doc = new IdeDoc(this, 0, File);
 			if (Doc)
 			{
@@ -1946,6 +1985,12 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 						d->DbgContext->UpdateCallStack();
 					break;
 				}
+				case AppWnd::ThreadsTab:
+				{
+					if (d->DbgContext)
+						d->DbgContext->UpdateThreads();
+					break;
+				}
 				default:
 					break;
 			}
@@ -2006,9 +2051,44 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 			}
 			break;
 		}
+		case IDC_THREADS:
+		{
+			/*
+			if (Flags == M_CHANGE)
+			{
+				if (d->Output->DebugTab)
+					d->Output->DebugTab->Value(AppWnd::CallStackTab);
+			}
+			else */
+			if (Flags == GNotifyItem_Select)
+			{
+				// This takes the user to a given thread
+				if (d->Output->Threads && d->DbgContext)
+				{
+					GListItem *item = d->Output->Threads->GetSelected();
+					if (item)
+					{
+						GString sId = item->GetText(0);
+						int ThreadId = sId.Int();
+						if (ThreadId > 0)
+						{
+							d->DbgContext->SelectThread(ThreadId);
+						}
+					}
+				}
+			}
+			break;
+		}
 	}
 	
 	return 0;
+}
+
+bool AppWnd::IsReleaseMode()
+{
+	GMenuItem *Release = GetMenu()->FindItem(IDM_RELEASE_MODE);
+	bool IsRelease = Release ? Release->Checked() : false;
+	return IsRelease;
 }
 
 int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
@@ -2089,6 +2169,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 					Top->Quit();
 				}
 			}
+			DeleteObj(d->DbgContext);
 			break;
 		}
 		case IDM_CLOSE_ALL:
@@ -2333,6 +2414,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 				d->DbgContext->Watch = d->Output->Watch;
 				d->DbgContext->Locals = d->Output->Locals;
 				d->DbgContext->CallStack = d->Output->CallStack;
+				d->DbgContext->Threads = d->Output->Threads;
 				d->DbgContext->ObjectDump = d->Output->ObjectDump;
 				d->DbgContext->Registers = d->Output->Registers;
 				d->DbgContext->MemoryDump = d->Output->MemoryDump;
@@ -2403,9 +2485,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			IdeProject *p = RootProject();
 			if (p)
 			{
-				GMenuItem *Release = GetMenu()->FindItem(IDM_RELEASE_MODE);
-				bool IsRelease = Release ? Release->Checked() : false;
-				p->Clean(IsRelease);
+				p->Clean(IsReleaseMode());
 			}
 			break;
 		}

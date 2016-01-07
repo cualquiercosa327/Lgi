@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project>
-	<Node Name="Source Files" Type="1" Platforms="15" Open="0">
-		<Node Name="Core" Type="1" Platforms="15" Open="0">
+	<Node Name="Source Files" Type="1" Platforms="15" Open="1">
+		<Node Name="Core" Type="1" Platforms="15" Open="1">
 			<Node Name="DateTime" Type="1" Platforms="15" Open="0">
 				<Node File=".\src\common\General\GDateTime.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GDateTime.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Drag and Drop" Type="1" Platforms="15" Open="0">
-				<Node File="./include/common/GDragAndDrop.h" Type="3" Platforms="15" />
-				<Node Name="Linux" Type="1" Platforms="15" Open="1">
+				<Node Name="Linux" Type="1" Platforms="15" Open="0">
 					<Node File="./src/linux/Lgi/GDragAndDrop.cpp" Type="2" Platforms="2" />
 				</Node>
 				<Node Name="Windows" Type="1" Platforms="15" Open="0">
 					<Node File="./include/common/GCom.h" Type="3" Platforms="15" />
 					<Node File="./src/win32/Lgi/GDragAndDrop.cpp" Type="2" Platforms="1" />
 				</Node>
+				<Node File="./include/common/GDragAndDrop.h" Type="3" Platforms="15" />
+				<Node File="./include/common/GDropFiles.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="File" Type="1" Platforms="15" Open="0">
 				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
@@ -68,7 +69,7 @@
 				<Node File="./include/common/GViewPriv.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Lgi/GWindowCommon.cpp" Type="2" Platforms="15" />
 			</Node>
-			<Node Name="Libraries" Type="1" Platforms="15" Open="1">
+			<Node Name="Libraries" Type="1" Platforms="15" Open="0">
 				<Node File="./src/common/Lgi/GLibrary.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GLibrary.h" Type="3" Platforms="15" />
 			</Node>
@@ -83,12 +84,12 @@
 					<Node File=".\src\common\General\GProperties.cpp" Type="2" Platforms="15" />
 					<Node File="./include/common/GProperties.h" Type="3" Platforms="15" />
 				</Node>
-				<Node Name="Win32" Type="1" Platforms="15" Open="1">
-					<Node File=".\src\win32\General\GMem.cpp" Type="2" Platforms="1" />
-					<Node File=".\src\common\General\qsort.cpp" Type="2" Platforms="1" />
+				<Node Name="Win32" Type="1" Platforms="15" Open="0">
+					<Node File="./src/win32/General/GMem.cpp" Type="2" Platforms="1" />
+					<Node File="./src/common/General/qsort.cpp" Type="2" Platforms="1" />
 				</Node>
 				<Node File="./include/common/GArray.h" Type="3" Platforms="15" />
-				<Node File=".\src\common\General\GContainers.cpp" Type="2" Platforms="15" />
+				<Node File="./src/common/General/GContainers.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GContainers.h" Type="3" Platforms="15" />
 				<Node File="./include/common/GHashTable.h" Type="3" Platforms="15" />
 				<Node File="./include/common/GMem.h" Type="3" Platforms="15" />
@@ -153,7 +154,7 @@
 			<Node File="./src/common/Lgi/Lgi.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Lgi/LgiMsg.cpp" Type="2" Platforms="15" />
 		</Node>
-		<Node Name="Dialogs" Type="1" Platforms="15" Open="1">
+		<Node Name="Dialogs" Type="1" Platforms="15" Open="0">
 			<Node Name="Xp" Type="1" Platforms="15" Open="0">
 				<Node File="./src/common/Lgi/GFileSelect.cpp" Type="2" Platforms="14" />
 			</Node>
@@ -317,7 +318,7 @@
 				<Node File="./src/beos/Lgi/GLayout.cpp" Type="2" Platforms="8" />
 				<Node File="./src/beos/Lgi/GWidgets.cpp" Type="2" Platforms="8" />
 			</Node>
-			<Node Name="Linux" Type="1" Platforms="15" Open="0">
+			<Node Name="Linux" Type="1" Platforms="15" Open="1">
 				<Node File="./src/linux/Lgi/GLayout.cpp" Type="2" Platforms="2" />
 				<Node File="./src/linux/Lgi/GWidgets.cpp" Type="2" Platforms="2" />
 				<Node File="./include/common/LgiWidgets.h" Type="3" Platforms="15" />
@@ -330,7 +331,7 @@
 				<Node File="./src/win32/Widgets/GProgress.cpp" Type="2" Platforms="1" />
 				<Node File="./src/win32/Lgi/GScrollBar.cpp" Type="2" Platforms="1" />
 			</Node>
-			<Node Name="Layout" Type="1" Platforms="15" Open="0">
+			<Node Name="Layout" Type="1" Platforms="15" Open="1">
 				<Node File="./src/common/Widgets/GBox.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GBox.h" Type="3" Platforms="15" />
 				<Node File="./include/common/GDisplayStringLayout.h" Type="3" Platforms="15" />

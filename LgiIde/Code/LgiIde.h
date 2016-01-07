@@ -83,7 +83,8 @@ enum IdeControls
 	IDC_MEM_SIZE,
 	IDC_MEM_ROW_LEN,
 	IDC_MEM_HEX,
-	IDC_REGISTERS
+	IDC_REGISTERS,
+	IDC_THREADS
 };
 
 enum IdeMenuCmds
@@ -192,6 +193,7 @@ public:
 		ObjectTab,
 		WatchTab,
 		MemoryTab,
+		ThreadsTab,
 		CallStackTab,
 		RegistersTab
 	};
@@ -220,6 +222,7 @@ public:
 	IdeDoc *GotoReference(const char *File, int Line, bool CurIp, bool WithHistory = true);
 	bool FindSymbol(const char *Syn, GArray<FindSymResult> &Results);
 	bool GetSystemIncludePaths(GArray<char*> &Paths);
+	bool IsReleaseMode();
 	
 	// Events
 	void OnLocationChange(const char *File, int Line);

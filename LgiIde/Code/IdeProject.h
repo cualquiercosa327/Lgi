@@ -103,6 +103,7 @@ public:
 	GList *Watch;
 	GList *Locals;
 	GList *CallStack;
+	GList *Threads;
 	class GTextLog *ObjectDump;
 	class GTextLog *MemoryDump;
 	class GTextLog *DebuggerLog;
@@ -118,6 +119,8 @@ public:
 	bool UpdateLocals();
 	bool UpdateRegisters();
 	void UpdateCallStack();
+	void UpdateThreads();
+	bool SelectThread(int ThreadId);
 	bool DumpObject(const char *Var);
 	bool OnBreakPoint(GDebugger::BreakPoint &b, bool Add);
 	

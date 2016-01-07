@@ -674,6 +674,8 @@ gboolean PopupEvent(GtkWidget *widget, GdkEvent *event, GPopup *This)
 
 bool GPopup::Attach(GViewI *p)
 {
+	printf("GPopup::Attach(%p)\n", p);
+	
 	#if defined MAC && !defined(LGI_SDL)
 	
 		#if !defined COCOA
@@ -720,8 +722,12 @@ bool GPopup::Attach(GViewI *p)
 		
 		if (!Wnd)
 		{
-		    // Wnd = gtk_window_new(GTK_WINDOW_POPUP);
+			#if 1
+		    Wnd = gtk_window_new(GTK_WINDOW_POPUP);
+		    #else
 		    Wnd = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+		    #endif
+		    
 		    gtk_window_set_decorated(GTK_WINDOW(Wnd), FALSE);
 		    // gtk_window_set_type_hint(GTK_WINDOW(Wnd), GDK_WINDOW_TYPE_HINT_COMBO);
     		gtk_widget_add_events(Wnd, GDK_ALL_EVENTS_MASK);
@@ -730,13 +736,13 @@ bool GPopup::Attach(GViewI *p)
 			GViewI *p = GetParent();
 			GtkWidget *toplevel = gtk_widget_get_toplevel(p->Handle());
 			if (GTK_IS_WINDOW(toplevel))
-			{
 				gtk_window_set_transient_for(GTK_WINDOW(Wnd), GTK_WINDOW(toplevel));
-			}
+			else
+				LgiTrace("%s:%i - toplevel isn't window?\n", _FL);
 			#endif
 
             #if 1
-            // printf("Popup connect Wnd=%p, this=%p\n", GTK_WIDGET(Wnd), this);
+            printf("Popup connect Wnd=%p, this=%p\n", GTK_WIDGET(Wnd), this);
             g_signal_connect(	G_OBJECT(Wnd),
 								"button-press-event",
 								G_CALLBACK(PopupEvent),
@@ -808,13 +814,17 @@ void GPopup::Visible(bool i)
 	bool HadFocus = false;
 	bool Was = GView::Visible();
 
-	// LgiStackTrace("GPopup::Visible(%i)\n", i);
+
+printf("%s:%i - GPopup::Visible(%i)\n", _FL, i);
 
 	#if defined __GTK_H__
 	if (i && !Wnd)
 	{
 		if (!Attach(0))
+		{
+			printf("%s:%i - Attach failed.\n", _FL);
 		    return;
+		}
 	}
 	
 	GView::Visible(i);
@@ -824,13 +834,16 @@ void GPopup::Visible(bool i)
 	    {
 	        gtk_widget_show_all(Wnd);
 			gtk_window_move(GTK_WINDOW(Wnd), Pos.x1, Pos.y1);
-			// gtk_window_resize(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
+			gtk_window_resize(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
+			printf("%s:%i - Showing Wnd %s.\n", _FL, Pos.GetStr());
 	    }
 	    else
 	    {
 	        gtk_widget_hide(Wnd);
+			printf("%s:%i - Hiding Wnd.\n", _FL);
 	    }
 	}
+	else printf("%s:%i - No Wnd.\n", _FL);
 	#else
 	if (!Handle() && i)
 	{

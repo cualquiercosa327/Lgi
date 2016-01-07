@@ -71,6 +71,8 @@ public:
 	virtual bool Unload() = 0;
 	
 	virtual bool GetCallStack(GArray<GAutoString> &Stack) = 0;
+	virtual bool GetThreads(GArray<GString> &Threads, int *CurrentThread) = 0;
+	virtual bool SetCurrentThread(int ThreadId) = 0;
 	virtual bool GetFrame(int &Frame, GAutoString &File, int &Line) = 0;
 	virtual bool SetFrame(int Frame) = 0;
 

@@ -113,7 +113,7 @@ bool GLibrary::Load(const char *File, bool Quiet)
 						}
 						else if (!Quiet)
 						{
-							printf("%s doesn't exist\n", full);
+							LgiTrace("%s doesn't exist\n", full);
 						}
 
 					}
@@ -121,7 +121,8 @@ bool GLibrary::Load(const char *File, bool Quiet)
 					if (!hLib && !Quiet)
 					{
 						char *e = dlerror();
-						LgiTrace("%s:%i - dlopen(%s) failed: %s\n", _FL, File, e);
+						if (!stristr(e, "No such file or directory"))
+							LgiTrace("%s:%i - dlopen(%s) failed: %s\n", _FL, File, e);
 					}
 				}
 			}

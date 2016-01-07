@@ -514,7 +514,8 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 	{
 		if (d->Hooks[i].Flags & GKeyEvents)
 		{
-			if (d->Hooks[i].Target->OnViewKey(v, k))
+			GView *Target = d->Hooks[i].Target;
+			if (Target->OnViewKey(v, k))
 			{
 				Status = true;
 				

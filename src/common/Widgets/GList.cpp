@@ -19,6 +19,9 @@
 #include "GScrollBar.h"
 #include "GDisplayString.h"
 
+// Debug defines
+#define DEBUG_EDIT_LABEL				1
+
 // Number of pixels you have to move the mouse until a drag is initiated.
 #define DRAG_THRESHOLD					4
 
@@ -148,7 +151,9 @@ public:
 		ItemEdit = i;
 		Sunken(false);
 		
+		#ifndef LINUX
 		SetPos(GetPos());
+		#endif
 	}
 
 	void OnCreate()
@@ -161,6 +166,9 @@ public:
 	{
 		if (!f && GetParent())
 		{
+			#if DEBUG_EDIT_LABEL
+			LgiTrace("%s:%i - GItemEditBox posting M_LOSING_FOCUS\n", _FL);
+			#endif
 			GetParent()->PostEvent(M_LOSING_FOCUS);
 		}
 		
@@ -211,6 +219,14 @@ GItemEdit::GItemEdit(GView *parent, GItem *item, int index, int SelStart, int Se
 	Sunken(false);
 	Raised(false);
 	
+	#if DEBUG_EDIT_LABEL
+	LgiTrace("%s:%i - GItemEdit(%p/%s, %p, %i, %i, %i)\n",
+		_FL,
+		parent, parent?parent->GetClass():0,
+		index,
+		SelStart, SelEnd);
+	#endif
+	
 	GdcPt2 p;
 	SetParent(parent);
 	GetParent()->PointToScreen(p);
@@ -249,13 +265,25 @@ GItemEdit::~GItemEdit()
 	{
 		if (d->Edit && !d->Esc)
 		{
-			d->Item->SetText(d->Edit->Name(), d->Index);
+			char *Str = d->Edit->Name();
+			#if DEBUG_EDIT_LABEL
+			LgiTrace("%s:%i - ~GItemEdit, updating item(%i) with '%s'\n", _FL,
+				d->Index, Str);
+			#endif
+
+			d->Item->SetText(Str, d->Index);
 			d->Item->Update();
 		}
+		#if DEBUG_EDIT_LABEL
+		else LgiTrace("%s:%i - Edit=%p Esc=%i\n", _FL, d->Edit, d->Esc);
+		#endif
 
 		d->Item->OnEditLabelEnd();
 	}
-	
+	#if DEBUG_EDIT_LABEL
+	else LgiTrace("%s:%i - Error: No item?\n", _FL);
+	#endif
+		
 	DeleteObj(d);
 }
 
@@ -274,10 +302,16 @@ int GItemEdit::OnNotify(GViewI *v, int f)
 			if (f == VK_ESCAPE)
 			{
 				d->Esc = true;
+				#if DEBUG_EDIT_LABEL
+				LgiTrace("%s:%i - GItemEdit got escape\n", _FL);
+				#endif
 			}
 
 			if (f == VK_ESCAPE || f == VK_RETURN)
 			{
+				#if DEBUG_EDIT_LABEL
+				LgiTrace("%s:%i - GItemEdit hiding on esc/enter\n", _FL);
+				#endif
 				Visible(false);
 			}
 
@@ -293,8 +327,24 @@ void GItemEdit::Visible(bool i)
 	GPopup::Visible(i);
 	if (!i)
 	{
+		#if DEBUG_EDIT_LABEL
+		LgiTrace("%s:%i - GItemEdit posting M_END_POPUP\n", _FL);
+		#endif
 		PostEvent(M_END_POPUP);
 	}
+}
+
+bool GItemEdit::OnKey(GKey &k)
+{
+	if (d->Edit)
+		return d->Edit->OnKey(k);
+	return false;
+}
+
+void GItemEdit::OnFocus(bool f)
+{
+	if (f && d->Edit)
+		d->Edit->Focus(true);
 }
 
 GMessage::Result GItemEdit::OnEvent(GMessage *Msg)
@@ -303,13 +353,24 @@ GMessage::Result GItemEdit::OnEvent(GMessage *Msg)
 	{
 		case M_LOSING_FOCUS:
 		{
+			#if DEBUG_EDIT_LABEL
+			LgiTrace("%s:%i - GItemEdit get M_LOSING_FOCUS\n", _FL);
+			#endif
+
 			// One of us has to retain focus... don't care which control.
 			if (Focus() || d->Edit->Focus())
 				break;
+
 			// else fall thru to end the popup
+			#if DEBUG_EDIT_LABEL
+			LgiTrace("%s:%i - GItemEdit falling thru to M_END_POPUP\n", _FL);
+			#endif
 		}
 		case M_END_POPUP:
 		{
+			#if DEBUG_EDIT_LABEL
+			LgiTrace("%s:%i - GItemEdit got M_END_POPUP, quiting\n", _FL);
+			#endif
 			Quit();
 			return 0;
 		}
@@ -1143,7 +1204,7 @@ bool GList::OnKey(GKey &k)
 			{
 				case VK_RETURN:
 				{
-					#ifdef WIN32
+					#if WINNATIVE
 					if (!k.IsChar)
 					#endif
 					{

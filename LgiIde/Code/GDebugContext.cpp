@@ -43,6 +43,49 @@ public:
 	{
 	}
 
+	void UpdateThreads()
+	{
+		if (!Db || !Ctx->Threads)
+		{
+			LgiTrace("%s:%i - No debugger.\n", _FL);
+			return;
+		}
+		
+		GArray<GString> Threads;
+		int CurrentThread = -1;
+		if (!Db->GetThreads(Threads, &CurrentThread))
+		{
+			LgiTrace("%s:%i - Failed to get threads from debugger.\n", _FL);
+			return;
+		}
+		
+		Ctx->Threads->Empty();
+		for (unsigned i=0; i<Threads.Length(); i++)
+		{
+			char *f = Threads[i];
+			if (IsDigit(*f))
+			{
+				char *Sp = f;
+				while (*Sp && IsDigit(*Sp))
+					Sp++;
+				if (*Sp)
+				{
+					*Sp++ = 0;
+					GListItem *it = new GListItem;
+					
+					int ThreadId = atoi(f);
+					it->SetText(f, 0);
+					it->SetText(Sp, 1);
+					
+					Ctx->Threads->Insert(it);
+					it->Select(ThreadId == CurrentThread);
+				}
+			}			
+		}
+		
+		Ctx->Threads->SendNotify();
+	}
+
 	void UpdateCallStack()
 	{
 		if (Db && Ctx->CallStack)
@@ -106,6 +149,7 @@ GDebugContext::GDebugContext(AppWnd *App, IdeProject *Proj, const char *Exe, con
 	DebuggerLog = NULL;
 	ObjectDump = NULL;
 	Registers = NULL;
+	Threads = NULL;
 
 	d = new GDebugContextPriv(this);
 	d->App = App;
@@ -276,6 +320,22 @@ bool GDebugContext::UpdateLocals()
 void GDebugContext::UpdateCallStack()
 {
 	d->UpdateCallStack();
+}
+
+void GDebugContext::UpdateThreads()
+{
+	d->UpdateThreads();
+}
+
+bool GDebugContext::SelectThread(int ThreadId)
+{
+	if (!d->Db)
+	{
+		LgiTrace("%s:%i - No debugger.\n", _FL);
+		return false;
+	}
+	
+	return d->Db->SetCurrentThread(ThreadId);
 }
 
 bool GDebugContext::ParseFrameReference(const char *Frame, GAutoString &File, int &Line)

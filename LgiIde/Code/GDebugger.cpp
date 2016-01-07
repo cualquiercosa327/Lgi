@@ -2,6 +2,7 @@
 #include "GDebugger.h"
 #include "GSubProcess.h"
 #include "GToken.h"
+#include "GDocView.h"
 #ifdef POSIX
 #include <sys/types.h>
 #include <signal.h>
@@ -328,20 +329,25 @@ class Gdb : public GDebugger, public GThread
 		State = Looping;
 
 		char Buf[513];
-		while (State == Looping && Sp->IsRunning())
+		bool IsRun;
+		while (State == Looping && (IsRun = Sp->IsRunning()))
 		{
 			#ifdef _DEBUG
 			ZeroObj(Buf);
 			#endif
-			int Rd = Sp->Read(Buf, sizeof(Buf)-1);
+			// printf("main IsRun=%i reading...\n", IsRun);
+			int Rd = Sp->Read(Buf, sizeof(Buf)-1, 50);
+			// printf("main Rd=%i\n", Rd);
 			if (Rd > 0)
 			{
 				#ifdef _DEBUG
 				// LgiTrace("%I64i: %p,%p Read(%i)='%.*s'\n", LgiCurrentTime(), OutLines, OutStream, Rd, Rd, Buf);
 				#endif
 				OnRead(Buf, Rd);
-			}			
+			}
+			// printf("main calling IsRunning.\n");			
 		}
+		// printf("main exited loop\n");
 
 		LgiTrace("Exiting gdb loop...\n");
 		if (Events)
@@ -479,6 +485,65 @@ public:
 		
 		return true;
 	}
+	
+	bool SetCurrentThread(int ThreadId)
+	{
+		if (ThreadId < 1)
+			return false;
+		
+		GString c;
+		c.Printf("thread %i", ThreadId);
+		if (!Cmd(c))
+			return false;
+		
+		return true;
+	}
+
+	bool GetThreads(GArray<GString> &Threads, int *pCurrentThread)
+	{
+		StrArray t;
+		if (!Cmd("info threads", NULL, &t))
+			return false;
+		
+		GString *Cur = NULL;
+		for (int i=0; i<t.Length(); i++)
+		{
+			char *l = t[i];			
+			if (i == 0)
+				continue;
+			
+			while (*l && IsWhiteSpace(*l))
+				l++;
+			
+			bool Current = *l == '*';
+			if (Current)
+			{
+				l++;
+				while (*l && IsWhiteSpace(*l))
+					l++;
+			}
+			
+			if (IsDigit(*l))
+			{
+				if (Current && pCurrentThread != NULL)
+				{
+					int ThreadId = atoi(l);
+					*pCurrentThread = ThreadId;
+				}
+				
+				Cur = &Threads.New();
+				*Cur = l;
+			}
+			else if (Cur)
+			{
+				GString s;
+				s.Printf("%s %s", Cur->Get(), l);
+				*Cur = s;
+			}
+		}
+		
+		return true;
+	}
 
 	bool GetCallStack(GArray<GAutoString> &Stack)
 	{
@@ -500,8 +565,9 @@ public:
 				char *End = Prev + strlen(Prev);
 				while (End > Prev && strchr(WhiteSpace, End[-1]))
 					*(--End) = 0;
-				char s[512];
-				sprintf_s(s, sizeof(s), "%s%s", Prev.Get(), l);
+				
+				GString s;
+				s.Printf("%s%s", Prev.Get(), l);
 				Prev.Reset(NewStr(s));
 			}
 		}

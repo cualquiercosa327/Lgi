@@ -141,6 +141,9 @@ public:
 	int OnNotify(GViewI *v, int f);
 	void Visible(bool i);
 	GMessage::Result OnEvent(GMessage *Msg);
+
+	bool OnKey(GKey &k);
+	void OnFocus(bool f);
 };
 
 

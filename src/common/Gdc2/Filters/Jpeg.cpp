@@ -16,13 +16,11 @@
 #define XMD_H
 #undef FAR
 
-//
-// 'jpeglib.h' comes from libjpeg available here:
-// http://freshmeat.net/projects/libjpeg
-//
 // If you don't want to build with JPEG support then set
 // the define HAS_LIBJPEG to '0' in Lgi.h
 //
+// Linux:
+// sudo apt-get install libjpeg-dev
 #include "jpeglib.h"
 #include <setjmp.h>
 #include "GLibraryUtils.h"

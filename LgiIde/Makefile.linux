@@ -110,6 +110,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../include/common/GDocView.h \
 	../include/common/GDom.h \
 	../include/common/GDragAndDrop.h \
+	../include/common/GDropFiles.h \
 	../include/common/GEdit.h \
 	../include/common/GFile.h \
 	../include/common/GFileSelect.h \
@@ -878,7 +879,8 @@ GDebugContext.o : ./Code/GDebugContext.cpp ../include/common/Lgi.h \
 GDebugger.o : ./Code/GDebugger.cpp ../include/common/Lgi.h \
 	./Code/GDebugger.h \
 	../include/common/GSubProcess.h \
-	../include/common/GToken.h
+	../include/common/GToken.h \
+	../include/common/GDocView.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 

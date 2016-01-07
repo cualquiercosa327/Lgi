@@ -575,9 +575,35 @@ void GSubProcess::Interrupt()
 	#endif
 }
 
-int GSubProcess::Read(void *Buf, int Size, int Flags)
+int GSubProcess::Read(void *Buf, int Size, int TimeoutMs)
 {
 	#ifdef POSIX
+	bool DoRead = true;
+	if (TimeoutMs)
+	{
+		OsSocket s = Io.Read;
+		if (ValidSocket(s))
+		{
+			struct timeval t = {TimeoutMs / 1000, (TimeoutMs % 1000) * 1000};
+
+			fd_set r;
+			FD_ZERO(&r);
+			FD_SET(s, &r);
+			
+			int v = select((int)s+1, &r, 0, 0, &t);
+			if (v > 0 && FD_ISSET(s, &r))
+			{
+				DoRead = true;
+			}
+			else
+			{
+				// printf("SubProc not readable..\n");
+				return 0;
+			}
+		}
+		else LgiTrace("%s:%i - Invalid socket.\n", _FL);
+	}
+	
 	return read(Io.Read, Buf, Size);
 	#else		
 	DWORD Rd = -1;
