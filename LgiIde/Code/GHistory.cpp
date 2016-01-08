@@ -3,37 +3,18 @@
 #include "GList.h"
 
 //////////////////////////////////////////////////////////////
-// GHistoryItem
-/*
-class GHistoryItem : public GListItem
-{
-	class GHistoryPopup *p;
-
-public:
-	GHistoryItem(GHistoryPopup *popup, char *s)
-	{
-		p = popup;
-		SetText(s);
-	}
-	
-	void OnMouseClick(GMouse &m);
-};
-*/
-
-//////////////////////////////////////////////////////////////
 // GHistoryPopup
 class GHistoryPopup : public GPopup
 {
 public:
 	GList *Lst;
-	char *Str;
+	GString Str;
 	int64 Index;
 	bool Ignore;
 
 	GHistoryPopup() : GPopup(0)
 	{
 		Lst = 0;
-		Str = 0;
 		Index = -1;
 		GRect r(0, 0, 300, 300);
 		SetPos(r);
@@ -46,11 +27,6 @@ public:
 			Lst->Sunken(false);
 			Lst->AddColumn("", 1000);
 		}
-	}
-	
-	~GHistoryPopup()
-	{
-		DeleteArray(Str);
 	}
 	
 	void OnPaint(GSurface *pDC)
@@ -85,12 +61,11 @@ public:
 				GListItem *li = Lst->GetSelected();
 				if (li)
 				{
-					DeleteArray(Str);
-					Str = NewStr(li->GetText(0));
+					Str = li->GetText(0);
 					Index = Lst->Value();
 					Visible(false);
 					
-					printf("%s:%i - str=%s idx=%i\n", _FL, Str, (int)Index);
+					printf("%s:%i - str=%s idx=%i\n", _FL, Str.Get(), (int)Index);
 				}
 				else printf("%s:%i - No selection.\n", _FL);
 			}
@@ -101,18 +76,6 @@ public:
 		return 0;
 	} 
 };
-
-/*
-void GHistoryItem::OnMouseClick(GMouse &m)
-{
-	if (!m.Down())
-	{
-		DeleteArray(p->Str);
-		p->Str = NewStr(GetText(0));
-		p->Visible(false);
-	}
-}
-*/
 
 /////////////////////////////////////////////////////////////
 // GHistory
@@ -165,15 +128,27 @@ int64 GHistory::Value()
 
 void GHistory::Value(int64 i)
 {
-	if (d && d->Popup)
+	if (!d || !d->Popup)
 	{
-		d->Popup->Index = i;
-		if (d->Popup->Lst)
-		{
-			d->Popup->Lst->Value(i);
-		}
-		else LgiTrace("%s:%i - No list?\n", _FL);
+		LgiTrace("%s:%i - Invalid params.\n", _FL);
+		return;
 	}
+	
+	d->Popup->Index = i;
+	if (d->Popup->Lst)
+	{
+		printf("Setting lst value to %i (%i)\n", (int)i,
+			d->Popup->Lst->Length());
+		d->Popup->Lst->Value(i);
+		
+		GListItem *li = d->Popup->Lst->GetSelected();
+		if (li)
+		{
+			d->Popup->Str = li->GetText(0);
+			GetWindow()->SetCtrlName(d->TargetId, d->Popup->Str);
+		}
+	}
+	else LgiTrace("%s:%i - No list?\n", _FL);
 }
 
 void GHistory::Add(char *Str)

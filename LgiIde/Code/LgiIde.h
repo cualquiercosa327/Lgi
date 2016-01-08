@@ -28,6 +28,7 @@ enum IdeMessages
 	M_APPEND_TEXT = M_USER+1,
 	M_BUILD_ERR,
 	M_BUILD_DONE,
+	M_DEBUG_ON_STATE,
 };
 
 #define ICON_PROJECT			0

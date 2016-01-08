@@ -1329,6 +1329,23 @@ void AppWnd::OnReceiveFiles(GArray<char*> &Files)
 
 void AppWnd::OnDebugState(bool Debugging, bool Running)
 {
+	if (!InThread())
+	{
+		PostEvent(M_DEBUG_ON_STATE, Debugging, Running);
+		return;
+	}
+
+
+	if (d->Running != Running)
+	{
+		d->Running = Running;
+		if (!d->Running &&
+			d->Output &&
+			d->Output->DebugTab)
+		{
+			d->Output->DebugTab->SendNotify();
+		}
+	}
 	if (d->Debugging != Debugging)
 	{
 		d->Debugging = Debugging;
@@ -1338,16 +1355,9 @@ void AppWnd::OnDebugState(bool Debugging, bool Running)
 			IdeDoc *c = GetCurrentDoc();
 			if (c && c->GetEdit())
 				c->GetEdit()->Invalidate();
-		}
-	}
-	if (d->Running != Running)
-	{
-		d->Running = Running;
-		if (!d->Running &&
-			d->Output &&
-			d->Output->DebugTab)
-		{
-			d->Output->DebugTab->SendNotify();
+				
+			// Shutdown the debug context and free the memory
+			DeleteObj(d->DbgContext);
 		}
 	}
 	
@@ -1822,6 +1832,11 @@ GMessage::Result AppWnd::OnEvent(GMessage *m)
 			char *Text = (char*) MsgA(m);
 			AppendOutput(Text, MsgB(m));
 			DeleteArray(Text);
+			break;
+		}
+		case M_DEBUG_ON_STATE:
+		{
+			OnDebugState(m->A(), m->B());
 			break;
 		}
 		default:

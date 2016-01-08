@@ -335,19 +335,15 @@ class Gdb : public GDebugger, public GThread
 			#ifdef _DEBUG
 			ZeroObj(Buf);
 			#endif
-			// printf("main IsRun=%i reading...\n", IsRun);
 			int Rd = Sp->Read(Buf, sizeof(Buf)-1, 50);
-			// printf("main Rd=%i\n", Rd);
 			if (Rd > 0)
 			{
 				#ifdef _DEBUG
 				// LgiTrace("%I64i: %p,%p Read(%i)='%.*s'\n", LgiCurrentTime(), OutLines, OutStream, Rd, Rd, Buf);
 				#endif
 				OnRead(Buf, Rd);
-			}
-			// printf("main calling IsRunning.\n");			
+			}			
 		}
-		// printf("main exited loop\n");
 
 		LgiTrace("Exiting gdb loop...\n");
 		if (Events)
