@@ -541,15 +541,17 @@ void GDebugContext::OnMemoryDump(const char *Addr, int WordSize, int Width, bool
 
 void GDebugContext::OnState(bool Debugging, bool Running)
 {
+	if (d->InDebugging != Debugging && d->Db)
+	{
+		d->InDebugging = Debugging;
+	}
+
 	if (d->App)
 	{
 		d->App->OnDebugState(Debugging, Running);
 	}
 	
-	if (d->InDebugging != Debugging && d->Db)
-	{
-		d->InDebugging = Debugging;
-	}
+	// This object may be deleted at this point... don't access anything.
 }
 
 void GDebugContext::OnFileLine(const char *File, int Line, bool CurrentIp)

@@ -11,10 +11,14 @@ void *ThreadEntryPoint(void *i)
 		// Make sure we have finished executing the setup
 		while (Thread->State == GThread::THREAD_INIT)
 		{
-			LgiSleep(5);
+			LgiSleep(1);
 		}
 		
 		pthread_detach(Thread->hThread);
+		
+		GString Nm = Thread->Name;
+		if (Nm)
+			pthread_setname_np(pthread_self(), Nm);
 
 		// Do thread's work
 		Thread->OnBeforeMain();
@@ -34,8 +38,9 @@ void *ThreadEntryPoint(void *i)
 	return 0;
 }
 
-GThread::GThread(const char *Name)
+GThread::GThread(const char *ThreadName)
 {
+	Name = ThreadName;
 	State = GThread::THREAD_ASLEEP;
 	ReturnValue = -1;
 	hThread = 0;

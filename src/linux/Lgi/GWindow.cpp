@@ -227,7 +227,7 @@ gboolean GWindow::OnGtkEvent(GtkWidget *widget, GdkEvent *event)
 		return FALSE;
 	}
 
-	// printf("%p - %s::OnGtkEvent(%i)\n", this, GetClass(), event->type);
+	// printf("%s::OnGtkEvent(%i) name=%s\n", GetClass(), event->type, Name());
 	switch (event->type)
 	{
 		case GDK_DELETE:
@@ -235,6 +235,7 @@ gboolean GWindow::OnGtkEvent(GtkWidget *widget, GdkEvent *event)
 			bool Close = OnRequestClose(false);
 			if (Close)
 				OnGtkDelete();
+			printf("Returning %i from GDK_DELETE\n", !Close);
 			return !Close;
 		}
 		case GDK_DESTROY:

@@ -29,7 +29,7 @@ protected:
 	ThreadState State;
 	int ReturnValue;
 	OsThread hThread;
-	const char *Name;
+	GString Name;
 	ThreadPriority Priority;
 
 	#if defined WIN32
