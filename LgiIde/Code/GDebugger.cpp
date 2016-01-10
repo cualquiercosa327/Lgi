@@ -28,6 +28,7 @@ class Gdb : public GDebugger, public GThread
 	GArray<BreakPoint> BreakPoints;
 	int BreakPointIdx;
 	int ProcessId;
+	bool SuppressNextFileLine;
 
 	GMutex StateMutex;
 	bool DebuggingProcess;
@@ -50,6 +51,14 @@ class Gdb : public GDebugger, public GThread
 		ProcessError
 	}	State;
 
+	void OnFileLine(const char *File, int Line, bool CurrentIp)
+	{
+		if (SuppressNextFileLine)
+			SuppressNextFileLine = false;
+		else if (Events)
+			Events->OnFileLine(File, Line, CurrentIp);
+	}
+
 	bool ParseLocation(StrArray &p)
 	{
 		for (int i=0; i<p.Length(); i++)
@@ -67,7 +76,7 @@ class Gdb : public GDebugger, public GThread
 					GString::Array ref = a[At+1].Split(":");
 					if (ref.Length() == 2)
 					{
-						Events->OnFileLine(NativePath(ref[0]), ref[1].Int(), true);
+						OnFileLine(NativePath(ref[0]), ref[1].Int(), true);
 						return true;
 					}
 				}
@@ -76,7 +85,7 @@ class Gdb : public GDebugger, public GThread
 					int Line = a[0].Int();
 					if (Line)
 					{
-						Events->OnFileLine(NULL, Line, true);
+						OnFileLine(NULL, Line, true);
 						return true;
 					}
 				}
@@ -170,7 +179,7 @@ class Gdb : public GDebugger, public GThread
 			GString::Array ref = a[At+1].SplitDelimit(":");
 			if (ref.Length() == 2)
 			{
-				Events->OnFileLine(NativePath(ref[0]), ref[1].Int(), true);
+				OnFileLine(NativePath(ref[0]), ref[1].Int(), true);
 			}
 			else LgiTrace("%s:%i - Not the right arg count.\n", _FL);
 			
@@ -477,6 +486,7 @@ public:
 		DebuggingProcess = false;
 		BreakPointIdx = -1;
 		ProcessId = -1;
+		SuppressNextFileLine = false;
 	}
 	
 	~Gdb()
@@ -489,7 +499,7 @@ public:
 			State = Exiting;
 			while (!IsExited())
 			{
-				LgiSleep(10);
+				LgiSleep(1);
 			}
 			#if DEBUG_SESSION_LOGGING
 			LgiTrace("Gdb::~Gdb - thread has exited.\n");
@@ -621,7 +631,7 @@ public:
 	bool Restart()
 	{
 		if (Running)
-			Break();
+			Break(true);
 		
 		GString a;
 		if (Args)
@@ -641,7 +651,7 @@ public:
 	bool Unload()
 	{
 		if (Running)
-			Break();
+			Break(true);
 		
 		Cmd("q");
 		SetState(false, false);
@@ -1075,7 +1085,7 @@ public:
 		return Status;
 	}
 
-	bool Break()
+	bool Break(bool SuppressFL = false)
 	{
 		#ifdef POSIX
 		if (ProcessId < 0)
@@ -1084,6 +1094,7 @@ public:
 			return false;
 		}
 		
+		SuppressNextFileLine = SuppressFL;
 		LgiTrace("%s:%i - sending SIGINT to %i(0x%x)...\n", _FL, ProcessId, ProcessId);
 		int result = 
 			#ifdef __GTK_H__

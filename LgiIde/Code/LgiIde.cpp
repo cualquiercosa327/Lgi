@@ -1329,47 +1329,11 @@ void AppWnd::OnReceiveFiles(GArray<char*> &Files)
 
 void AppWnd::OnDebugState(bool Debugging, bool Running)
 {
-	if (!InThread())
-	{
-		PostEvent(M_DEBUG_ON_STATE, Debugging, Running);
-		return;
-	}
-
-
-	if (d->Running != Running)
-	{
-		d->Running = Running;
-		if (!d->Running &&
-			d->Output &&
-			d->Output->DebugTab)
-		{
-			d->Output->DebugTab->SendNotify();
-		}
-	}
-	if (d->Debugging != Debugging)
-	{
-		d->Debugging = Debugging;
-		if (!Debugging)
-		{
-			IdeDoc::ClearCurrentIp();
-			IdeDoc *c = GetCurrentDoc();
-			if (c && c->GetEdit())
-				c->GetEdit()->Invalidate();
-				
-			// Shutdown the debug context and free the memory
-			DeleteObj(d->DbgContext);
-		}
-	}
+	#if DEBUG_SESSION_LOGGING
+	LgiTrace("AppWnd::OnDebugState(%i,%i) InThread=%i\n", Debugging, Running, InThread());
+	#endif
 	
-	SetCtrlEnabled(IDM_START_DEBUG, !Debugging || !Running);
-	SetCtrlEnabled(IDM_PAUSE_DEBUG, Debugging && Running);
-	SetCtrlEnabled(IDM_RESTART_DEBUGGING, Debugging);
-	SetCtrlEnabled(IDM_STOP_DEBUG, Debugging);
-
-	SetCtrlEnabled(IDM_STEP_INTO, Debugging && !Running);
-	SetCtrlEnabled(IDM_STEP_OVER, Debugging && !Running);
-	SetCtrlEnabled(IDM_STEP_OUT, Debugging && !Running);
-	SetCtrlEnabled(IDM_RUN_TO, Debugging && !Running);
+	PostEvent(M_DEBUG_ON_STATE, Debugging, Running);
 }
 
 void AppWnd::UpdateState(int Debugging, int Building)
@@ -1836,7 +1800,43 @@ GMessage::Result AppWnd::OnEvent(GMessage *m)
 		}
 		case M_DEBUG_ON_STATE:
 		{
-			OnDebugState(m->A(), m->B());
+			bool Debugging = m->A();
+			bool Running = m->B();
+
+			if (d->Running != Running)
+			{
+				d->Running = Running;
+				if (!d->Running &&
+					d->Output &&
+					d->Output->DebugTab)
+				{
+					d->Output->DebugTab->SendNotify();
+				}
+			}
+			if (d->Debugging != Debugging)
+			{
+				d->Debugging = Debugging;
+				if (!Debugging)
+				{
+					IdeDoc::ClearCurrentIp();
+					IdeDoc *c = GetCurrentDoc();
+					if (c && c->GetEdit())
+						c->GetEdit()->Invalidate();
+						
+					// Shutdown the debug context and free the memory
+					DeleteObj(d->DbgContext);
+				}
+			}
+			
+			SetCtrlEnabled(IDM_START_DEBUG, !Debugging || !Running);
+			SetCtrlEnabled(IDM_PAUSE_DEBUG, Debugging && Running);
+			SetCtrlEnabled(IDM_RESTART_DEBUGGING, Debugging);
+			SetCtrlEnabled(IDM_STOP_DEBUG, Debugging);
+
+			SetCtrlEnabled(IDM_STEP_INTO, Debugging && !Running);
+			SetCtrlEnabled(IDM_STEP_OVER, Debugging && !Running);
+			SetCtrlEnabled(IDM_STEP_OUT, Debugging && !Running);
+			SetCtrlEnabled(IDM_RUN_TO, Debugging && !Running);
 			break;
 		}
 		default:
