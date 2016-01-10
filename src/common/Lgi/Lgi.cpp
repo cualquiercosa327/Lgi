@@ -532,6 +532,8 @@ bool LgiTraceGetFilePath(char *LogPath, int BufLen)
 	return true;
 }
 
+#define LGI_TRACE_TS	1
+
 void LgiTrace(const char *Msg, ...)
 {
 	#if defined _INC_MALLOC && WINNATIVE
@@ -541,52 +543,63 @@ void LgiTrace(const char *Msg, ...)
 	}
 	#endif
 
-	if (Msg)
+	if (!Msg)
+		return;
+
+	#if LGI_TRACE_TS
+	static uint64 LastTs = 0;
+	uint64 ThisTs = LgiCurrentTime();
+	#endif
+
+	#ifdef WIN32
+	static GMutex Sem;
+	Sem.Lock(_FL);
+	#endif
+
+	char Buffer[2049] = "";
+	#ifdef LGI_TRACE_TO_FILE
+	GFile f;
+	static char LogPath[MAX_PATH] = "";
+	
+	if (!_LgiTraceStream && LogPath[0] == 0)
 	{
-		#ifdef WIN32
-		static GMutex Sem;
-		Sem.Lock(_FL);
-		#endif
-
-		char Buffer[2049] = "";
-		#ifdef LGI_TRACE_TO_FILE
-		GFile f;
-		static char LogPath[MAX_PATH] = "";
-		
-		if (!_LgiTraceStream && LogPath[0] == 0)
-		{
-			LgiTraceGetFilePath(LogPath, sizeof(LogPath));
-		}
-		#endif
-
-		va_list Arg;
-		va_start(Arg, Msg);
-		_vsnprintf(Buffer, sizeof(Buffer)-1, Msg, Arg);
-		va_end(Arg);
-
-		#ifdef LGI_TRACE_TO_FILE
-		GStreamI *Output = NULL;
-		if (_LgiTraceStream)
-			Output = _LgiTraceStream;
-		else if (f.Open(LogPath, O_WRITE))
-		{
-			f.Seek(0, SEEK_END);
-			Output = &f;
-		}
-		if (Output)
-			Output->Write(Buffer, strlen(Buffer));
-		if (!_LgiTraceStream)
-			f.Close();
-		#endif
-
-
-		#if defined WIN32
-		OutputDebugString(Buffer);
-		Sem.Unlock();
-		#else
-		printf("%s", Buffer);
-		#endif
+		LgiTraceGetFilePath(LogPath, sizeof(LogPath));
 	}
+	#endif
+
+	va_list Arg;
+	va_start(Arg, Msg);
+	#if LGI_TRACE_TS
+	int Ch = sprintf_s(Buffer, sizeof(Buffer), LGI_PrintfInt64": ", LastTs?ThisTs-LastTs:0);
+	LastTs = ThisTs;
+	_vsnprintf(Buffer+Ch, sizeof(Buffer)-Ch-1, Msg, Arg);
+	#else
+	_vsnprintf(Buffer, sizeof(Buffer)-1, Msg, Arg);
+	#endif
+	va_end(Arg);
+
+	#ifdef LGI_TRACE_TO_FILE
+	GStreamI *Output = NULL;
+	if (_LgiTraceStream)
+		Output = _LgiTraceStream;
+	else if (f.Open(LogPath, O_WRITE))
+	{
+		f.Seek(0, SEEK_END);
+		Output = &f;
+	}
+	if (Output)
+		Output->Write(Buffer, strlen(Buffer));
+	if (!_LgiTraceStream)
+		f.Close();
+	#endif
+
+
+	#if defined WIN32
+	OutputDebugString(Buffer);
+	Sem.Unlock();
+	#else
+	printf("%s", Buffer);
+	#endif
 }
 
 #ifndef LGI_STATIC

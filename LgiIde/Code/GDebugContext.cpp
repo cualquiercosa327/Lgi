@@ -41,6 +41,13 @@ public:
 	
 	~GDebugContextPriv()
 	{
+		#if DEBUG_SESSION_LOGGING
+		LgiTrace("~GDebugContextPriv freeing debugger...\n");
+		#endif
+		Db.Reset();
+		#if DEBUG_SESSION_LOGGING
+		LgiTrace("...done.\n");
+		#endif
 	}
 
 	void UpdateThreads()
@@ -177,11 +184,17 @@ GMessage::Param GDebugContext::OnEvent(GMessage *m)
 	{
 		case M_ON_CRASH:
 		{
+			#if DEBUG_SESSION_LOGGING
+			LgiTrace("GDebugContext::OnEvent(M_ON_CRASH)\n");
+			#endif
 			d->UpdateCallStack();
 			break;
 		}
 		case M_FILE_LINE:
 		{
+			#if DEBUG_SESSION_LOGGING
+			LgiTrace("GDebugContext::OnEvent(M_FILE_LINE)\n");
+			#endif
 			GString File;
 			{
 				GMutex::Auto a(d, _FL);
@@ -368,6 +381,10 @@ bool GDebugContext::ParseFrameReference(const char *Frame, GAutoString &File, in
 
 bool GDebugContext::OnCommand(int Cmd)
 {
+	#if DEBUG_SESSION_LOGGING
+	LgiTrace("GDebugContext::OnCommand(%i)\n", Cmd);
+	#endif
+	
 	switch (Cmd)
 	{
 		case IDM_START_DEBUG:
@@ -435,8 +452,10 @@ bool GDebugContext::OnCommand(int Cmd)
 		{
 			break;
 		}
+		default:
+			return false;
 	}
-	
+
 	return true;
 }
 
@@ -541,6 +560,10 @@ void GDebugContext::OnMemoryDump(const char *Addr, int WordSize, int Width, bool
 
 void GDebugContext::OnState(bool Debugging, bool Running)
 {
+	#if DEBUG_SESSION_LOGGING
+	LgiTrace("GDebugContext::OnState(%i, %i)\n", Debugging, Running);
+	#endif
+	
 	if (d->InDebugging != Debugging && d->Db)
 	{
 		d->InDebugging = Debugging;

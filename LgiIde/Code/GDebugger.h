@@ -4,6 +4,8 @@
 #include "GVariant.h"
 #include "GStringClass.h"
 
+#define DEBUG_SESSION_LOGGING		1
+
 class GDebugEvents : public GStream
 {
 public:

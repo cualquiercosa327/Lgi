@@ -20,8 +20,6 @@ class Gdb : public GDebugger, public GThread
 	GDebugEvents *Events;
 	GAutoPtr<GSubProcess> Sp;
 	GAutoString Exe, Args, InitDir;
-	bool DebuggingProcess;
-	bool Running;
 	bool AtPrompt;
 	char Line[256], *LinePtr;
 	int CurFrame;
@@ -30,6 +28,10 @@ class Gdb : public GDebugger, public GThread
 	GArray<BreakPoint> BreakPoints;
 	int BreakPointIdx;
 	int ProcessId;
+
+	GMutex StateMutex;
+	bool DebuggingProcess;
+	bool Running;
 
 	// Current location tracking
 	GString CurFile;
@@ -83,12 +85,33 @@ class Gdb : public GDebugger, public GThread
 		return false;
 	}
 	
-	void SetRunState(bool r)
+	void SetState(bool is_debug, bool is_run)
 	{
-		if (r != Running)
+		if (StateMutex.Lock(_FL))
 		{
-			Running = r;
-			Events->OnState(DebuggingProcess, Running);
+			if (is_debug != DebuggingProcess ||
+				is_run != Running)
+			{
+				DebuggingProcess = is_debug;
+				Running = is_run;
+				
+				StateMutex.Unlock();
+
+				if (Events)
+				{
+					#if DEBUG_SESSION_LOGGING
+					LgiTrace("Gdb::SetRunState(%i,%i) calling OnState...\n", is_debug, is_run);
+					#endif
+					Events->OnState(DebuggingProcess, Running);
+					#if DEBUG_SESSION_LOGGING
+					LgiTrace("Gdb::SetRunState(%i,%i) OnState returned.\n", is_debug, is_run);
+					#endif
+				}
+			}
+			else
+			{
+				StateMutex.Unlock();
+			}
 		}
 	}
 
@@ -108,8 +131,7 @@ class Gdb : public GDebugger, public GThread
 	
 	void OnExit()
 	{
-		DebuggingProcess = false;
-		SetRunState(false);
+		SetState(false, false);
 	}
 	
 	char *NativePath(char *p)
@@ -216,7 +238,7 @@ class Gdb : public GDebugger, public GThread
 					}
 					else
 					{
-						printf("Not setting pid: pid=%i, processid=%i\n", Pid, ProcessId);
+						LgiTrace("Not setting pid: pid=%i, processid=%i\n", Pid, ProcessId);
 					}
 					#else
 					LgiAssert(!"Impl me.");
@@ -280,7 +302,7 @@ class Gdb : public GDebugger, public GThread
 				{
 					if (Running ^ !AtPrompt)
 					{
-						SetRunState(!AtPrompt);
+						SetState(DebuggingProcess, !AtPrompt);
 					}
 					
 					if (OutStream)
@@ -325,7 +347,9 @@ class Gdb : public GDebugger, public GThread
 			return -1;
 		}
 
-		LgiTrace("Entering gdb loop...\n");
+		#if DEBUG_SESSION_LOGGING
+		LgiTrace("Gdb::Main - entering loop...\n");
+		#endif
 		State = Looping;
 
 		char Buf[513];
@@ -338,20 +362,17 @@ class Gdb : public GDebugger, public GThread
 			int Rd = Sp->Read(Buf, sizeof(Buf)-1, 50);
 			if (Rd > 0)
 			{
-				#ifdef _DEBUG
+				#if 0 // DEBUG_SESSION_LOGGING
 				// LgiTrace("%I64i: %p,%p Read(%i)='%.*s'\n", LgiCurrentTime(), OutLines, OutStream, Rd, Rd, Buf);
 				#endif
 				OnRead(Buf, Rd);
 			}			
 		}
 
-		LgiTrace("Exiting gdb loop...\n");
-		if (Events)
-		{
-			DebuggingProcess = false;
-			Running = true;
-			SetRunState(false);
-		}
+		#if DEBUG_SESSION_LOGGING
+		LgiTrace("Gdb::Main - exited loop.\n");
+		#endif
+		SetState(false, false);
 
 		Log("Debugger exited.\n");
 		return 0;
@@ -462,11 +483,17 @@ public:
 	{
 		if (State == Looping)
 		{
+			#if DEBUG_SESSION_LOGGING
+			LgiTrace("Gdb::~Gdb - waiting for thread to exit...\n");
+			#endif
 			State = Exiting;
 			while (!IsExited())
 			{
 				LgiSleep(10);
 			}
+			#if DEBUG_SESSION_LOGGING
+			LgiTrace("Gdb::~Gdb - thread has exited.\n");
+			#endif
 		}
 	}
 
@@ -605,9 +632,7 @@ public:
 		bool Status = Cmd(a);
 		if (Status)
 		{
-			DebuggingProcess = true;
-			Running = false;
-			SetRunState(true);
+			SetState(true, false);
 		}
 		
 		return Status;
@@ -615,13 +640,13 @@ public:
 
 	bool Unload()
 	{
+		if (Running)
+			Break();
+		
 		Cmd("q");
-		if (DebuggingProcess)
-		{
-			DebuggingProcess = false;
-			Running = true;
-			SetRunState(false);
-		}
+		SetState(false, false);
+		State = Exiting;
+		
 		return false;
 	}
 	
@@ -650,8 +675,7 @@ public:
 
 			if (Cmd(a))
 			{
-				DebuggingProcess = true;
-				SetRunState(true);
+				SetState(true, true);
 				return true;
 			}
 		}
@@ -1031,7 +1055,7 @@ public:
 	{
 		bool Status = Cmd("step");
 		if (Status)
-			SetRunState(true);
+			SetState(DebuggingProcess, true);
 		return Status;
 	}
 
@@ -1039,7 +1063,7 @@ public:
 	{
 		bool Status = Cmd("next");
 		if (Status)
-			SetRunState(true);
+			SetState(DebuggingProcess, true);
 		return Status;
 	}
 
@@ -1047,7 +1071,7 @@ public:
 	{
 		bool Status = Cmd("finish");
 		if (Status)
-			SetRunState(true);
+			SetState(DebuggingProcess, true);
 		return Status;
 	}
 
