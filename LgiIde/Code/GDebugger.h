@@ -4,7 +4,7 @@
 #include "GVariant.h"
 #include "GStringClass.h"
 
-#define DEBUG_SESSION_LOGGING		1
+#define DEBUG_SESSION_LOGGING		0
 
 class GDebugEvents : public GStream
 {
@@ -95,7 +95,7 @@ public:
 	virtual bool StepInto() = 0;
 	virtual bool StepOver() = 0;
 	virtual bool StepOut() = 0;
-	virtual bool Break() = 0;
+	virtual bool Break(bool SuppressFileLine = false) = 0;
 	
 	virtual bool UserCommand(const char *Cmd) = 0;
 };

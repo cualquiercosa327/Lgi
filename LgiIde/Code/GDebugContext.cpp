@@ -52,7 +52,7 @@ public:
 
 	void UpdateThreads()
 	{
-		if (!Db || !Ctx->Threads)
+		if (!Db || !Ctx->Threads || !InDebugging)
 		{
 			LgiTrace("%s:%i - No debugger.\n", _FL);
 			return;
@@ -95,7 +95,7 @@ public:
 
 	void UpdateCallStack()
 	{
-		if (Db && Ctx->CallStack)
+		if (Db && Ctx->CallStack && InDebugging)
 		{
 			GArray<GAutoString> Stack;
 			if (Db->GetCallStack(Stack))
@@ -215,7 +215,7 @@ bool GDebugContext::SetFrame(int Frame)
 
 bool GDebugContext::DumpObject(const char *Var)
 {
-	if (!d->Db || !Var || !ObjectDump)
+	if (!d->Db || !Var || !ObjectDump || !d->InDebugging)
 		return false;
 	
 	ObjectDump->Name(NULL);
@@ -224,7 +224,7 @@ bool GDebugContext::DumpObject(const char *Var)
 
 bool GDebugContext::UpdateRegisters()
 {
-	if (!d->Db || !Registers)
+	if (!d->Db || !Registers || !d->InDebugging)
 		return false;
 	
 	return d->Db->GetRegisters(Registers);
@@ -232,7 +232,7 @@ bool GDebugContext::UpdateRegisters()
 
 bool GDebugContext::UpdateLocals()
 {
-	if (!Locals || !d->Db)
+	if (!Locals || !d->Db || !d->InDebugging)
 		return false;
 
 	GArray<GDebugger::Variable> Vars;
@@ -572,7 +572,12 @@ void GDebugContext::OnState(bool Debugging, bool Running)
 	if (d->App)
 	{
 		d->App->OnDebugState(Debugging, Running);
+
 	}
+	
+	#if DEBUG_SESSION_LOGGING
+	LgiTrace("GDebugContext::OnState(%i, %i) ###ENDED###\n", Debugging, Running);
+	#endif
 	
 	// This object may be deleted at this point... don't access anything.
 }

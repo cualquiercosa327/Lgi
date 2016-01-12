@@ -599,7 +599,9 @@ void GView::SendNotify(int Data)
 				if (p)
 				{
 					// Give the control a valid ID
-					for (int i=10; i<1000; i++)
+					int i;
+
+					for (i=10; i<1000; i++)
 					{
 						if (!p->FindControl(i))
 						{
@@ -618,26 +620,11 @@ void GView::SendNotify(int Data)
 				}
 			}
 			
-			#if 0 // def BEOS
-			// This is for debugging only
-			static int ChangeId = 1;
-			int Cid = ChangeId++;
-			// printf("**** M_CHANGE sending  **** Ctrl=%i %s, Data=%i, Cid=%i\n", Ptr->GetId(), Ptr->Name(), Data, Cid);
-			
-			BMessage Msg(M_CHANGE);
-			Msg.AddInt32("a", GetId());
-			Msg.AddInt32("b", Data);
-			Msg.AddInt32("cid", Cid);
-	
-			BMessenger m(n->Handle());
-			m.SendMessage(&Msg) == B_OK;			
-			#else
             LgiAssert(GetId() > 0); // We must have a valid ctrl ID at this point, otherwise
 									// the receiver will never be able to find our object.
             
             // printf("Post M_CHANGE %i %i\n", GetId(), Data);
             n->PostEvent(M_CHANGE, (GMessage::Param) GetId(), (GMessage::Param) Data);
-            #endif
 		}
 	}
 }

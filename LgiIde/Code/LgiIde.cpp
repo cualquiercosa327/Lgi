@@ -1330,6 +1330,10 @@ void AppWnd::OnReceiveFiles(GArray<char*> &Files)
 void AppWnd::OnDebugState(bool Debugging, bool Running)
 {
 	// Make sure this event is processed in the GUI thread.
+	#if DEBUG_SESSION_LOGGING
+	LgiTrace("AppWnd::OnDebugState(%i,%i) InThread=%i\n", Debugging, Running, InThread());
+	#endif
+	
 	PostEvent(M_DEBUG_ON_STATE, Debugging, Running);
 }
 
