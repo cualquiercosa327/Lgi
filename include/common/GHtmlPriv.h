@@ -327,6 +327,7 @@ public:
 	GdcPt2 Size;
 	GFont *Font;
 	int LineHeightCache;
+	GRect PadPx;
 	
 	// Images
 	bool ImageResized;
@@ -416,7 +417,8 @@ public:
 		/// The background colour (transparent is OK)
 		GColour &Back,
 		/// [Optional] The size of the border painted
-		GRect *Px = NULL);
+		GRect *Px = NULL,
+		bool Debug = false);
 	/// This fills 'rgn' with all the rectangles making up the inline tags region
 	void GetInlineRegion(GRegion &rgn);
 	void OnPaint(GSurface *pDC, bool &InSelection, uint16 Depth);

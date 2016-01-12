@@ -293,35 +293,47 @@ GCss::~GCss()
 
 int GCss::Len::ToPx(int Box, GFont *Font, int Dpi)
 {
-    switch (Type)
-    {
-        default:
+	switch (Type)
+	{
+		default:
 		case LenInherit:
+		{
 			return 0;
-			
+		}
 		case LenAuto:
 		case LenNormal:
 		case LenPx:
-		    return (int)Value;
-		
+		{
+			return (int) Value;
+		}
 		case LenPt:
-		    return (int) (Value * (Dpi > 0 ? Dpi : LgiScreenDpi()) / 72.0);
-
+		{
+			int EffectiveDpi = Dpi > 0 ? Dpi : LgiScreenDpi();
+			return (int) (Value * EffectiveDpi / 72.0);
+		}
 		case LenCm:
-		    return (int) (Value * (Dpi > 0 ? Dpi : LgiScreenDpi()) / 2.54);
-		    
+		{
+			int EffectiveDpi = Dpi > 0 ? Dpi : LgiScreenDpi();
+			return (int) (Value * EffectiveDpi / 2.54);
+		}
 		case LenEm:
-		    return (int) (Value * (Font ? Font->GetHeight() : 18));
-		    
+		{
+			int FntHt = Font ? Font->GetHeight() : 18;
+			return (int) (Value * FntHt);
+		}
 		case LenEx:
-		    return (int) (Value * (Font ? Font->Ascent() : 18)); // haha I don't care.
-		
+		{
+			double FntAsc = Font ? Font->Ascent() : 18.0;
+			return (int) (Value * FntAsc); // haha I don't care.
+		}		
 		case LenPercent:
+		{
 			if (Box > 0)
 				return (int) (Box * Value / 100.0);
 			else
 				return 0; // No idea...
-    }
+		}
+	}
 }
 
 bool GCss::Len::ToString(GStream &p)

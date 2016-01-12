@@ -765,7 +765,6 @@ public:
 					case GCss::Selector::SelUniversal:
 					{
 						// Match everything
-						return true;
 						break;
 					}
 					case GCss::Selector::SelAttrib:

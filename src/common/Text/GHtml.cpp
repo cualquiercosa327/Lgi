@@ -20,6 +20,7 @@
 #include "GDisplayString.h"
 #include "GPalette.h"
 #include "GPath.h"
+#include "GCssTools.h"
 
 #define DEBUG_TABLE_LAYOUT			1
 #define DEBUG_RESTYLE				0
@@ -614,6 +615,50 @@ public:
 		y2 += Fs.TopAbs;
 		if (IsMargin)
 			my += Fs.TopAbs;
+	}
+
+	void Indent(GRect &Px,
+				bool IsMargin)
+	{
+		GFlowRegion This(*this);
+		GFlowStack &Fs = Stack.New();
+
+		Fs.LeftAbs = Px.x1;
+		Fs.RightAbs = Px.x2;
+		Fs.TopAbs = Px.y1;
+
+		x1 += Fs.LeftAbs;
+		cx += Fs.LeftAbs;
+		x2 -= Fs.RightAbs;
+		y1 += Fs.TopAbs;
+		y2 += Fs.TopAbs;
+		
+		if (IsMargin)
+			my += Fs.TopAbs;
+	}
+
+	void Outdent(GRect &Px,
+				bool IsMargin)
+	{
+		GFlowRegion This = *this;
+
+		int len = Stack.Length();
+		if (len > 0)
+		{
+			GFlowStack &Fs = Stack[len-1];
+
+			int &BottomAbs = Px.y2;
+
+			x1 -= Fs.LeftAbs;
+			cx -= Fs.LeftAbs;
+			x2 += Fs.RightAbs;
+			y2 += BottomAbs;
+			if (IsMargin)
+				my += BottomAbs;
+
+			Stack.Length(len-1);
+		}
+		else LgiAssert(!"Nothing to pop.");
 	}
 
 	void Outdent(GFont *Font,
@@ -1645,10 +1690,15 @@ GColour GTag::_Colour(bool f)
 			return GColour(c.Rgb32, 32);
 		}
 
+		#if 1
+		if (!f || t->TagId == TAG_TABLE)
+			break;
+		#else
 		/*	This implements some basic level of colour inheritance for
 			background colours. See test case 'cisra-cqs.html'. */
 		if (!f && t->TagId == TAG_TABLE)
 			break;
+		#endif
 	}
 
 	return GColour();
@@ -2637,6 +2687,11 @@ void GTag::Restyle()
 		}
 	}
 	
+	// Do the element specific styles
+	const char *s;
+	if (Get("style", s))
+		SetCssStyle(s);
+	
 	#if DEBUG_RESTYLE && defined(_DEBUG)
 	if (Debug)
 	{
@@ -2937,11 +2992,6 @@ void GTag::SetStyle()
 
 	Restyle();
 
-	if (Get("style", s))
-	{
-		SetCssStyle(s);
-	}
-
 	switch (TagId)
 	{
 		default: break;
@@ -3225,6 +3275,12 @@ void GTag::SetStyle()
 		{
 			LoadImage(Img.Uri);
 		}
+	}
+
+	if (Debug)
+	{
+		GCss::ColorDef c = Color();
+		int asd=0;
 	}
 }
 
@@ -5041,6 +5097,9 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 	Size.x = 0;
 	Size.y = 0;
 	
+	GCssTools Tools(this, f);
+	PadPx = Tools.GetPadding(GRect(Flow->X(), Html->Y()));
+	
 	switch (TagId)
 	{
 		default:
@@ -5287,7 +5346,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			Flow->cx -= Pos.x;
 
 			Flow->Indent(f, GCss::BorderLeft(), GCss::BorderTop(), GCss::BorderRight(), GCss::BorderBottom(), false);
-			Flow->Indent(f, PaddingLeft(), PaddingTop(), PaddingRight(), PaddingBottom(), false);
+			Flow->Indent(PadPx, false);
 		}
 		else
 		{
@@ -5304,6 +5363,10 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			Flow->cx += Flow->ResolveX(PaddingLeft(), GetFont(), true);
 			Flow->y1 += Flow->ResolveY(PaddingTop(), GetFont(), true);
 		}
+	}
+	else
+	{
+		Flow->Indent(PadPx, false);
 	}
 
 	if (f)
@@ -5518,6 +5581,8 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 	}
 	else
 	{
+		Flow->Outdent(PadPx, false);
+		
 		switch (TagId)
 		{
 			default: break;
@@ -5760,11 +5825,127 @@ void GTag::GetInlineRegion(GRegion &rgn)
 	}
 }
 
-void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderPx)
+class CornersImg : public GMemDC
+{
+public:
+	int Px, Px2;
+
+	CornersImg(	float RadPx,
+				GRect *BorderPx,
+				GCss::BorderDef **defs,
+				GColour &Back,
+				bool DrawBackground)
+	{
+		Px = 0;
+		Px2 = 0;
+
+		//Radius.Type != GCss::LenInherit &&			
+		if (RadPx > 0.0f)
+		{
+			Px = (int)ceil(RadPx);
+			Px2 = Px << 1;
+			
+			if (Create(Px2, Px2, System32BitColourSpace))
+			{
+				#if 1
+				Colour(0, 32);
+				#else
+				Colour(GColour(255, 0, 255));
+				#endif
+				Rectangle();
+
+				GPointF ctr(Px, Px);
+				GPointF LeftPt(0.0, Px);
+				GPointF TopPt(Px, 0.0);
+				GPointF RightPt(X(), Px);
+				GPointF BottomPt(Px, Y());
+				int x_px[4] = {BorderPx->x1, BorderPx->x2, BorderPx->x2, BorderPx->x1};
+				int y_px[4] = {BorderPx->y1, BorderPx->y1, BorderPx->y2, BorderPx->y2};
+				GPointF *pts[4] = {&LeftPt, &TopPt, &RightPt, &BottomPt};
+				
+				// Draw border parts..
+				for (int i=0; i<4; i++)
+				{
+					int k = (i + 1) % 4;
+
+					// Setup the stops					
+					GBlendStop stops[2] = { {0.0, 0}, {1.0, 0} };
+					uint32 iColour = defs[i]->Color.IsValid() ? defs[i]->Color.Rgb32 : Back.c32();
+					uint32 kColour = defs[k]->Color.IsValid() ? defs[k]->Color.Rgb32 : Back.c32();
+					if (defs[i]->IsValid() && defs[k]->IsValid())
+					{
+						stops[0].c32 = iColour;
+						stops[1].c32 = kColour;
+					}
+					else if (defs[i]->IsValid())
+					{
+						stops[0].c32 = stops[1].c32 = iColour;
+					}
+					else
+					{
+						stops[0].c32 = stops[1].c32 = kColour;
+					}
+					
+					// Create a brush
+					GLinearBlendBrush br
+					(
+						*pts[i],
+						*pts[k],
+						2,
+						stops
+					);
+					
+					// Setup the clip
+					GRect clip(	(int)min(pts[i]->x, pts[k]->x),
+								(int)min(pts[i]->y, pts[k]->y),
+								(int)max(pts[i]->x, pts[k]->x)-1,
+								(int)max(pts[i]->y, pts[k]->y)-1);
+					ClipRgn(&clip);
+					
+					// Draw the arc...
+					GPath p;
+					p.Circle(ctr, Px);
+					if (defs[i]->IsValid() || defs[k]->IsValid())
+						p.Fill(this, br);
+					
+					// Fill the background
+					p.Empty();
+					p.Ellipse(ctr, Px-x_px[i], Px-y_px[i]);
+					if (DrawBackground)
+					{
+						GSolidBrush br(Back);
+						p.Fill(this, br);					
+					}
+					else
+					{
+						GEraseBrush br;
+						p.Fill(this, br);
+					}
+					
+					ClipRgn(NULL);
+				}
+				
+				#if 0
+				static int count = 0;
+				GString file;
+				file.Printf("c:\\temp\\img-%i.bmp", ++count);
+				GdcD->Save(file, Corners);
+				#endif
+			}
+		}
+	}
+};
+
+void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderPx, bool Debug)
 {
 	GArray<GRect> r;
 	GRect BorderPxRc;
 	bool DrawBackground = !Back.Transparent();
+
+	if (Debug)
+	{
+		int asd=0;
+	}
 
 	if (!BorderPx)
 		BorderPx = &BorderPxRc;
@@ -5780,6 +5961,7 @@ void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderP
 	BorderPx->x2 = Right.ToPx(Size.x, f);
 	BorderDef Bottom = BorderBottom();
 	BorderPx->y2 = Bottom.ToPx(Size.x, f);
+	GCss::BorderDef *defs[4] = {&Left, &Top, &Right, &Bottom};
 
 	// Work out the rectangles
 	switch (Display())
@@ -5794,16 +5976,16 @@ void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderP
 		{
 			GRegion rgn;
 			GetInlineRegion(rgn);
-			rgn.Simplify(false);
+			// rgn.Simplify(false);
 			for (int i=0; i<rgn.Length(); i++)
 			{
 				GRect rc = *rgn[i];
 				if (BorderPx)
 				{
-					rc.x1 -= BorderPx->x1;
-					rc.y1 -= BorderPx->y1;
-					rc.x2 += BorderPx->x2;
-					rc.y2 += BorderPx->y2;
+					rc.x1 -= BorderPx->x1 + PadPx.x1;
+					rc.y1 -= BorderPx->y1 + PadPx.y1;
+					rc.x2 += BorderPx->x2 + PadPx.x2;
+					rc.y2 += BorderPx->y2 + PadPx.y2;
 				}
 				r.New() = rc;
 			}
@@ -5814,16 +5996,24 @@ void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderP
 	}
 
 	// If we are drawing rounded corners, draw them into a memory context
-	GAutoPtr<GMemDC> Corners;
+	GAutoPtr<CornersImg> Corners;
 	int Px = 0, Px2 = 0;
 	GCss::Len Radius = BorderRadius();
 	float RadPx = Radius.Type == GCss::LenPx ? Radius.Value : Radius.ToPx(Size.x, GetFont());
+	bool HasRadius = Radius.Type != GCss::LenInherit && RadPx > 0.0f;
 
+	/*
 	if (Radius.Type != GCss::LenInherit &&
 		RadPx > 0.0f)
 	{
 		Px = (int)ceil(RadPx);
 		Px2 = Px << 1;
+		if (Px2 > Size.y)
+		{
+			Px = Size.y / 2;
+			Px2 = Px << 1;
+		}		
+		
 		if (Corners.Reset(new GMemDC(Px2, Px2, System32BitColourSpace)))
 		{
 			#if 1
@@ -5913,6 +6103,7 @@ void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderP
 			#endif
 		}
 	}
+	*/
 
 	// Loop over the rectangles and draw everything
 	// bool IsAlpha = Back.a() < 0xff;
@@ -5920,9 +6111,21 @@ void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderP
 
 	for (unsigned i=0; i<r.Length(); i++)
 	{
-		GRect rc = r[i];		
-		if (Corners)
+		GRect rc = r[i];
+		if (HasRadius)
 		{
+			Px = (int)ceil(RadPx);
+			Px2 = Px << 1;
+			if (Px2 > rc.Y())
+			{
+				Px = rc.Y() / 2;
+				Px2 = Px << 1;
+			}			
+			if (!Corners || Corners->Px2 != Px2)
+			{
+				Corners.Reset(new CornersImg(Px, BorderPx, defs, Back, DrawBackground));
+			}
+			
 			// top left
 			GRect r(0, 0, Px-1, Px-1);
 			pDC->Blt(rc.x1, rc.y1, Corners, &r);
@@ -5941,19 +6144,31 @@ void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderP
 			
 			#if 1
 			pDC->Colour(Back);
-			#else
-			pDC->Colour(GColour(255, 0, 0, 40));
-			#endif
 			pDC->Rectangle(rc.x1+Px, rc.y1, rc.x2-Px, rc.y2);
 			pDC->Rectangle(rc.x1, rc.y1+Px, rc.x1+Px-1, rc.y2-Px);
 			pDC->Rectangle(rc.x2-Px+1, rc.y1+Px, rc.x2, rc.y2-Px);
+			#else
+			pDC->Colour(GColour(255, 0, 0, 0x80));
+			pDC->Rectangle(rc.x1+Px, rc.y1, rc.x2-Px, rc.y2);
+			pDC->Colour(GColour(0, 255, 0, 0x80));
+			pDC->Rectangle(rc.x1, rc.y1+Px, rc.x1+Px-1, rc.y2-Px);
+			pDC->Colour(GColour(0, 0, 255, 0x80));
+			pDC->Rectangle(rc.x2-Px+1, rc.y1+Px, rc.x2, rc.y2-Px);
+			#endif
 		}
 		else if (DrawBackground)
 		{
 			pDC->Colour(Back);
 			pDC->Rectangle(&rc);
+			
+			if (Debug)
+			{
+				pDC->Colour(GColour(255, 0, 0));
+				pDC->Box(&rc);
+			}
 		}
 
+		/*
 		GCss::BorderDef *b;
 		if ((b = &Left)->IsValid())
 		{
@@ -5995,6 +6210,7 @@ void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderP
 				pDC->Line(rc.x1+Px, rc.y2-i, rc.x2-Px, rc.y2-i);
 			}
 		}
+		*/
 	}
 
 	pDC->Op(Op);
@@ -6060,6 +6276,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection, uint16 Depth)
 	#ifdef _DEBUG
 	if (Debug)
 	{
+		GCss::ColorDef c = Color();
 		LgiTrace("%s::OnPaint - %i,%i\n", Tag.Get(), -Px, -Py);
 	}
 	#endif
@@ -6230,7 +6447,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection, uint16 Depth)
 				}
 			}
 
-			PaintBorderAndBackground(pDC, back, NULL);
+			PaintBorderAndBackground(pDC, back, NULL, Debug);
 
 			GFont *f = GetFont();
 			#if DEBUG_TEXT_AREA
@@ -6987,7 +7204,6 @@ void GHtml::OnPaint(GSurface *ScreenDC)
 	try
 	{
 	#endif
-		// GRect p = GetPos();
 
 		#if GHTML_USE_DOUBLE_BUFFER
 		GRect Client = GetClient();
