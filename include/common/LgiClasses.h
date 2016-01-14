@@ -322,8 +322,6 @@ public:
 	#elif defined(LINUX)
 	
 		class GLibrary *GetWindowManagerLib();
-		void RegisterHandle(GView *v);
-		void UnregisterHandle(GView *v);
 		bool InThread();
 		
 	#endif
@@ -457,6 +455,12 @@ protected:
 	virtual bool _OnGetInfo(HISize &size, HISize &line, HIRect &bounds, HIPoint &origin) { return false; }
 	virtual void _OnScroll(HIPoint &origin) {}
 	#endif
+	
+	#elif defined(__GTK_H__)
+	
+public:
+	void OnGtkDelete();
+protected:
 	
 	#endif
 

@@ -190,10 +190,6 @@ void GView::_Delete()
 	// Clean up OS view
 	if (_View)
 	{
-	    #ifdef LINUX
-		LgiApp->UnregisterHandle(this);
-		#endif
-
 		gtk_widget_destroy(_View);
 		_View = 0;
 	}
@@ -436,6 +432,14 @@ bool GView::_Mouse(GMouse &m, bool Move)
 	return true;
 }
 
+struct WidgetDeleteInfo
+{
+	GtkWidget *w;
+	uint64 Ts;
+};
+
+// ::GArray<WidgetDeleteInfo> RecentlyDeletedWidgets;
+
 gboolean GtkViewCallback(GtkWidget *widget, GdkEvent *event, GView *This)
 {
 	#if 0
@@ -445,7 +449,10 @@ gboolean GtkViewCallback(GtkWidget *widget, GdkEvent *event, GView *This)
 	#endif
 	
 	if (event->type < 0 || event->type > 1000)
+	{
+		printf("%s:%i - CORRUPT EVENT %i\n", _FL, event->type);
 		return false;
+	}
 
 	return This->OnGtkEvent(widget, event);
 }
@@ -491,13 +498,7 @@ bool GView::SetPos(GRect &p, bool Repaint)
 {
 	ThreadCheck();
 	
-	/*
-	if (p == Pos)
-		return true;
-	*/
-
 	Pos = p;
-
 	if (_View)
 	{
 		int o = 0;
@@ -919,9 +920,6 @@ bool GView::Detach()
 
 	if (_View)
 	{
-	    #ifdef LINUX
-		LgiApp->UnregisterHandle(this);
-		#endif
 		LgiAssert(_View->object.parent_instance.g_type_instance.g_class);
 		gtk_widget_destroy(_View);
 		_View = 0;
@@ -954,6 +952,20 @@ GViewI *GView::FindControl(OsView hCtrl)
 LgiCursor GView::GetCursor(int x, int y)
 {
 	return LCUR_Normal;
+}
+
+void GView::OnGtkDelete()
+{
+	printf("%s::OnGtkDelete()\n", GetClass());
+	_View = NULL;
+	
+	List<GViewI>::I it = Children.Start();
+	for (GViewI *c = *it; c; c = *++it)
+	{
+		GView *v = c->GetGView();
+		if (v)
+			v->OnGtkDelete();
+	}
 }
 
 ///////////////////////////////////////////////////////////////////

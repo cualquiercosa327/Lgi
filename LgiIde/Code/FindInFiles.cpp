@@ -53,7 +53,7 @@ void SerializeHistory(GHistory *h, const char *opt, GOptionsFile *p, bool Write)
 			{
 				p->SetValue(opt, v = strs.Get());
 				p->SetValue(last, v = h->Value());
-				printf("Setting '%s' to %i\n", last.Get(), (int)h->Value());
+				// printf("Setting '%s' to %i\n", last.Get(), (int)h->Value());
 			}
 		}
 		else
@@ -71,9 +71,9 @@ void SerializeHistory(GHistory *h, const char *opt, GOptionsFile *p, bool Write)
 				if (p->GetValue(last, v))
 				{
 					h->Value(v.CastInt64());
-					printf("Selecting '%s' -> %i\n", last.Get(), v.CastInt32());
+					// printf("Selecting '%s' -> %i\n", last.Get(), v.CastInt32());
 				}
-				else printf("No option '%s'\n", last.Get());
+				else LgiTrace("%s:%i - No option '%s'\n", _FL, last.Get());
 			}
 		}
 	}
