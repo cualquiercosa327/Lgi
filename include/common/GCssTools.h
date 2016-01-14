@@ -20,6 +20,9 @@ public:
 		BackInit = 0;
 	}
 	
+	/// \returns the padding in Px
+	GRect GetPadding(GRect &box);
+	
 	/// Gets the foreground colour for text
 	GColour &GetFore(GColour *Default = NULL);
 	

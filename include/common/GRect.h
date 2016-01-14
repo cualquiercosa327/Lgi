@@ -64,6 +64,14 @@ public:
 		y2 = Y2;
 	}
 
+	GRect(int Width, int Height)
+	{
+		x1 = 0;
+		x2 = Width - 1;
+		y1 = 0;
+		y2 = Height - 1;
+	}
+
 	GRect(GRect *r)
 	{
 		x1 = r->x1;

@@ -532,7 +532,7 @@ bool LgiTraceGetFilePath(char *LogPath, int BufLen)
 	return true;
 }
 
-#define LGI_TRACE_TS	1
+#define LGI_TRACE_TS	0
 
 void LgiTrace(const char *Msg, ...)
 {

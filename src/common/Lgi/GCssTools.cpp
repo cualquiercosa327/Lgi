@@ -65,23 +65,34 @@ GRect GCssTools::ApplyMargin(GRect &in)
 	return r;
 }
 
+GRect GCssTools::GetPadding(GRect &box)
+{
+	GRect r;
+	GCss::Len padding = Css->Padding();
+	#define DoPadding(name, edge, dim) \
+		{ \
+			GCss::Len p = Css->Padding##name(); \
+			r.edge = (p.IsValid() ? p : padding).ToPx(box.dim(), Font); \
+		}
+	DoPadding(Left, x1, X)
+	DoPadding(Top, y1, Y)
+	DoPadding(Right, x2, X)
+	DoPadding(Bottom, y2, Y)
+	#undef DoPadding
+	return r;
+}
+
 GRect GCssTools::ApplyPadding(GRect &in)
 {
 	if (!Css)
 		return in;
 
 	// Insert by the padding
-	GRect r = in;
-	GCss::Len padding = Css->Padding();
-	#define DoPadding(name, edge, box, sign) \
-		{ GCss::Len p = Css->Padding##name(); \
-		r.edge sign (p.IsValid() ? p : padding).ToPx(in.box(), Font); }
-	DoPadding(Left, x1, X, +=)
-	DoPadding(Top, y1, Y, +=)
-	DoPadding(Right, x2, X, -=)
-	DoPadding(Bottom, y2, Y, -=)
-
-	return r;
+	GRect pad = GetPadding(in);
+	return GRect(in.x1 + pad.x1,
+				 in.y1 + pad.y1,
+				 in.x2 - pad.x2,
+				 in.y2 - pad.y2);
 }
 
 bool GCssTools::SetLineStyle(GSurface *pDC, GCss::BorderDef &b)
