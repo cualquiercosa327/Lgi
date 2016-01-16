@@ -256,11 +256,8 @@ typedef SOCKET							OsSocket;
 	// Set the visibility of the window
 	#define M_SET_VISIBLE				(M_USER+0x100d)
 
-	/// GThreadWork object completed
-	///
-	/// MsgA = (GThreadOwner*) Owner;
-	/// MsgB = (GThreadWork*) WorkUnit;
-	// #define M_GTHREADWORK_COMPELTE		(M_USER+0x100c)
+	/// Sent from a worker thread when calling GText::Name
+	#define M_TEXT_UPDATE_NAME			(M_USER+0x100e)
 
 // Directories
 #define DIR_CHAR						'\\'

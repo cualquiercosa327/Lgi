@@ -359,10 +359,13 @@ public:
 
 	/// \returns size of object on disk
 	virtual uint64 Size() = 0;
+	
 	/// Create a new data object that isn't written to disk yet
 	virtual GDataI *Create(int Type) = 0;
+	
 	/// Get the root folder object
 	virtual GDataFolderI *GetRoot(bool create = false) = 0;
+	
 	/// Move objects into a different folder.
 	///
 	/// Success:
@@ -380,6 +383,7 @@ public:
 		/// The object to move
 		GArray<GDataI*> &Items
 	) = 0;
+	
 	/// Deletes items, which results in either the items being moved to the local trash folder 
 	/// or the items being completely deleted if there is no local trash. The items should all
 	/// be in the same folder and of the same type.
@@ -402,6 +406,7 @@ public:
 		/// Send to the trash or not...
 		bool ToTrash
 	) = 0;
+	
 	/// Changes items, which results in either the items properties being adjusted.
 	///
 	/// Success:
@@ -422,6 +427,7 @@ public:
 		/// (GV_INT32/64 -> SetInt, GV_DATETIME -> SetDateTime, GV_STRING -> SetStr)
 		GVariant &Value
 	) = 0;
+	
 	/// Compact the mail store
 	virtual bool Compact
 	(
@@ -430,6 +436,7 @@ public:
 		/// The store should pass information up to the UI via setting various parameters from Store3UiFields
 		GDataPropI *Props
 	) = 0;
+	
 	/// Upgrades the mail store to the current version for this build. You should call this in response
 	/// to getting DsUpgradeRequired back from this->GetInt(FIELD_STATUS).
 	virtual bool Upgrade
@@ -439,6 +446,16 @@ public:
 		/// The store should pass information up to the UI via setting various parameters from Store3UiFields
 		GDataPropI *Props
 	) { return false; }
+
+	/// Tries to repair the database.
+	virtual bool Repair
+	(
+		/// The parent window of the UI
+		GViewI *Parent,
+		/// The store should pass information up to the UI via setting various parameters from Store3UiFields
+		GDataPropI *Props
+	) { return false; }
+	
 	/// Set the sub-format
 	virtual bool SetFormat
 	(
@@ -447,13 +464,17 @@ public:
 		/// The store should pass information up to the UI via setting various parameters from Store3UiFields
 		GDataPropI *Props
 	) { return false; }
+	
 	/// Called when event posted
 	virtual void OnEvent(void *Param) = 0;
+	
 	/// Called when the application is not receiving messages.
 	/// \returns false to wait for more messages.
 	virtual bool OnIdle() = 0;
+	
 	/// Gets the events interface
 	virtual GDataEventsI *GetEvents() = 0;
+	
 	/// Start a scoped transaction
 	virtual StoreTrans StartTransaction() { return StoreTrans(0); }
 };

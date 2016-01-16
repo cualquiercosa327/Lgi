@@ -928,9 +928,10 @@ GFilter::IoStatus GdcIco::ReadImage(GSurface *pDC, GStream *In)
 		uchar *XorBytes = 0;
 		uchar *AndBytes = 0;
 
-		LgiAssert(sizeof(Header) == 40);
-		In->Read(&Header, sizeof(Header));
-		BytesLeft -= sizeof(Header);
+		int64 StartHdrPos = In->GetPos();
+		if (!Header.Read(*In))
+			return GFilter::IoError;
+		BytesLeft -= In->GetPos() - StartHdrPos;
 
 		if (!Header.Sx) Header.Sx = Width;
 		if (!Header.Sy) Header.Sy = Height;

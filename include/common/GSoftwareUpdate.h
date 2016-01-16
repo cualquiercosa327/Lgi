@@ -24,7 +24,7 @@ public:
 		}
 	};
 
-	GSoftwareUpdate(char *SoftwareName, char *UpdateUri, char *ProxyUri, char *OptionalTempPath = 0);
+	GSoftwareUpdate(const char *SoftwareName, const char *UpdateUri, const char *ProxyUri, const char *OptionalTempPath = 0);
 	virtual ~GSoftwareUpdate();
 
 	bool CheckForUpdate(UpdateInfo &Info, GViewI *WithUi, bool IncBetas);

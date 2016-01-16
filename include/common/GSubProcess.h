@@ -67,6 +67,7 @@ protected:
 	bool EnvironmentChanged;
 	GArray<Variable> Environment;
 	uint32 ErrorCode;
+	PipeHandle ExternIn, ExternOut;
 	
 	Variable *GetEnvVar(const char *Var, bool Create = false);
 
@@ -93,6 +94,10 @@ public:
 	void SetInitFolder(const char *f);
 	const char *GetEnvironment(const char *Var);	
 	bool SetEnvironment(const char *Var, const char *Value);
+
+	// Handles
+	void SetStdin(PipeHandle Hnd);
+	void SetStdout(PipeHandle Hnd);
 
 	// Process lifecycle
 	ProcessId Handle() { return ChildPid; }

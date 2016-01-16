@@ -88,6 +88,9 @@ GSubProcess::GSubProcess(const char *exe, const char *args)
 	Exe.Reset(NewStr(exe));
 	Args.Add(Exe);
 	EnvironmentChanged = false;
+
+	ExternIn = NULL_PIPE;
+	ExternOut = NULL_PIPE;
 	
 	char *s;
 	while ((s = LgiTokStr(args)))
@@ -294,6 +297,16 @@ bool GSubProcess::SetEnvironment(const char *Var, const char *Value)
 	return true;
 }	
 
+void GSubProcess::SetStdin(OsFile Hnd)
+{
+	ExternIn = Hnd;
+}
+
+void GSubProcess::SetStdout(OsFile Hnd)
+{
+	ExternOut = Hnd;
+}
+
 void GSubProcess::Connect(GSubProcess *child)
 {
 	Child = child;
@@ -466,18 +479,18 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 	
 	HANDLE OldStdout = GetStdHandle(STD_OUTPUT_HANDLE);
 	HANDLE OldStdin = GetStdHandle(STD_INPUT_HANDLE);
-	HANDLE DupeRd = NULL, DupeWr;
+	bool HasExternIn = ExternIn != NULL_PIPE;
 	
 	if (ChildOutput.Create(&Attr) &&
-		ChildInput.Create(&Attr) &&
-		SetStdHandle(STD_OUTPUT_HANDLE, ChildOutput.Write) && Dupe(ChildOutput.Read, DupeRd) &&
-		SetStdHandle(STD_INPUT_HANDLE,  ChildInput.Read)   && Dupe(ChildInput.Write, DupeWr))
+		(HasExternIn || ChildInput.Create(&Attr)) &&
+		SetStdHandle(STD_OUTPUT_HANDLE, ChildOutput.Write) &&
+		SetStdHandle(STD_INPUT_HANDLE,  HasExternIn ? ExternIn : ChildInput.Read))
 	{
-		CloseHandle(ChildOutput.Read);
-		ChildOutput.Read = DupeRd;
+		if (!SetHandleInformation(ChildOutput.Read, HANDLE_FLAG_INHERIT, 0))
+			LgiTrace("%s:%i - SetHandleInformation failed.\n", _FL);
 		
-		CloseHandle(ChildInput.Write);
-		ChildInput.Write = DupeWr;
+		if (!HasExternIn && !SetHandleInformation(ChildInput.Write, HANDLE_FLAG_INHERIT, 0))
+			LgiTrace("%s:%i - SetHandleInformation failed.\n", _FL);
 
 		STARTUPINFOW Info;
 		ZeroObj(Info);
@@ -488,7 +501,7 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 
 		Info.dwFlags = STARTF_USESTDHANDLES;
 		Info.hStdOutput = ChildOutput.Write;
-		Info.hStdInput = ChildInput.Read;
+		Info.hStdInput = HasExternIn ? ExternIn : ChildInput.Read;
 		if (MapStderrToStdout)
 			Info.hStdError = ChildOutput.Write;
 		GAutoWString WInitialFolder(LgiNewUtf8To16(InitialFolder));

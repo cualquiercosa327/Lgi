@@ -412,7 +412,13 @@ protected:
 	static GViewI		*_Capturing;
 	static GViewI		*_Over;
 	
-	#if defined WINNATIVE
+	#if defined(__GTK_H__)
+	
+public:
+	virtual void OnGtkDelete();
+protected:
+	
+	#elif defined WINNATIVE
 
 	uint32 GetStyle();
 	void SetStyle(uint32 i);
@@ -455,12 +461,6 @@ protected:
 	virtual bool _OnGetInfo(HISize &size, HISize &line, HIRect &bounds, HIPoint &origin) { return false; }
 	virtual void _OnScroll(HIPoint &origin) {}
 	#endif
-	
-	#elif defined(__GTK_H__)
-	
-public:
-	void OnGtkDelete();
-protected:
 	
 	#endif
 

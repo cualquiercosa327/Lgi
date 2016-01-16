@@ -67,11 +67,10 @@ struct GDisplayStringLayout
 				while (*s && strchr(White, *s))
 				{
 					if (*s == '\n')
-					{
 						X = 0;
-					}
 					s++;
 				}
+
 				char *e = s;
 				while (*e)
 				{

@@ -5,12 +5,18 @@
 #include "GTextLabel.h"
 #include "GDisplayStringLayout.h"
 #include "GVariant.h"
+#include "GNotifications.h"
 
 class GTextPrivate : public GDisplayStringLayout, public GMutex
 {
 	GText *Ctrl;
 
 public:
+	/// When GText::Name(W) is called out of thread, the string is put
+	/// here first and then a message is posted over to the GUI thread
+	/// to load it into the ctrl.
+	GAutoString ThreadName;
+
 	GTextPrivate(GText *ctrl) : GMutex("GTextPrivate")
 	{
 		Ctrl = ctrl;
@@ -89,18 +95,56 @@ void GText::SetWrap(bool b)
 
 bool GText::Name(const char *n)
 {
-	bool Status = GView::Name(n);
-	d->Layout(X());
-	Invalidate();
-	return Status;
+	if (InThread())
+	{
+		if (!GView::Name(n))
+			return false;
+		d->Layout(X());
+		Invalidate();
+	}
+	else if (d->Lock(_FL))
+	{
+		d->ThreadName.Reset(NewStr(n));
+		d->Unlock();
+		if (IsAttached())
+			PostEvent(M_TEXT_UPDATE_NAME);
+		else
+		{
+			LgiAssert(!"Can't update name.");
+			if (!GView::Name(n))
+				return false;
+			return false;
+		}
+	}	
+	else return false;
+	
+	return true;
 }
 
 bool GText::NameW(const char16 *n)
 {
-	bool Status = GView::NameW(n);
-	d->Layout(X());
-	Invalidate();
-	return Status;
+	if (InThread())
+	{
+		if (!GView::NameW(n))
+			return false;
+		d->Layout(X());
+		Invalidate();
+	}
+	else if (d->Lock(_FL))
+	{
+		d->ThreadName.Reset(LgiNewUtf16To8(n));
+		d->Unlock();
+		if (IsAttached())
+			PostEvent(M_TEXT_UPDATE_NAME);
+		else
+		{
+			LgiAssert(!"Can't update name.");
+			return false;
+		}
+	}	
+	else return false;
+	
+	return true;
 }
 
 void GText::SetFont(GFont *Fnt, bool OwnIt)
@@ -150,6 +194,30 @@ bool GText::OnLayout(GViewLayoutInfo &Inf)
 	}
 	
 	return true;
+}
+
+GMessage::Param GText::OnEvent(GMessage *Msg)
+{
+	switch (Msg->Msg())
+	{
+		case M_TEXT_UPDATE_NAME:
+		{
+			if (d->Lock(_FL))
+			{
+				GAutoString s = d->ThreadName;
+				d->Unlock();
+				
+				if (s)
+				{
+					Name(s);
+					SendNotify(GNotifyTableLayout_Refresh);
+				}
+			}
+			break;
+		}
+	}
+	
+	return GView::OnEvent(Msg);
 }
 
 void GText::OnPaint(GSurface *pDC)

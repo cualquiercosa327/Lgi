@@ -432,14 +432,6 @@ bool GView::_Mouse(GMouse &m, bool Move)
 	return true;
 }
 
-struct WidgetDeleteInfo
-{
-	GtkWidget *w;
-	uint64 Ts;
-};
-
-// ::GArray<WidgetDeleteInfo> RecentlyDeletedWidgets;
-
 gboolean GtkViewCallback(GtkWidget *widget, GdkEvent *event, GView *This)
 {
 	#if 0

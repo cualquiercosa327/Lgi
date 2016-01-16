@@ -1629,7 +1629,7 @@ bool GView::InThread()
 	}
 	
 	DWORD CurThread = GetCurrentThreadId();
-	DWORD ViewThread = GetWindowThreadProcessId(Hnd, NULL);
+	DWORD ViewThread = Hnd ? GetWindowThreadProcessId(Hnd, NULL) : LgiApp->GetGuiThread();
 	return CurThread == ViewThread;
 	#else
 	OsThreadId Me = LgiGetCurrentThread();
