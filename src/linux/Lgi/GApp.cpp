@@ -343,9 +343,7 @@ GApp::GApp(OsAppArguments &AppArgs, const char *name, GAppArguments *Args) :
 
 GApp::~GApp()
 {
-	printf("~GApp %p\n", AppWnd);
 	DeleteObj(AppWnd);
-	printf("~GApp %p\n", AppWnd);
 	DeleteObj(SystemNormal);
 	DeleteObj(SystemBold);
 	

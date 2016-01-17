@@ -149,11 +149,6 @@ gboolean GDialog::OnGtkEvent(GtkWidget *widget, GdkEvent *event)
 			OnGtkDelete();
 			return false;
 		}
-		case GDK_DESTROY:
-		{
-			_View = NULL;
-			return true;
-		}
 		case GDK_CONFIGURE:
 		{
 			GdkEventConfigure *c = (GdkEventConfigure*)event;
@@ -183,7 +178,11 @@ gboolean GDialog::OnGtkEvent(GtkWidget *widget, GdkEvent *event)
 	return true;
 }
 
-extern gboolean GtkViewDestroy(GtkWidget *widget, void *This);
+gboolean GtkDialogDestroy(GtkWidget *widget, GDialog *This)
+{
+	This->_View = NULL;
+	return true;
+}
 
 bool GDialog::SetupDialog(bool Modal)
 {
@@ -246,8 +245,8 @@ bool GDialog::SetupDialog(bool Modal)
 						gv);
 	g_signal_connect(	G_OBJECT(Wnd),
 						"destroy",
-						G_CALLBACK(GtkViewDestroy),
-						gv);
+						G_CALLBACK(GtkDialogDestroy),
+						this);
 	g_signal_connect(	G_OBJECT(Wnd),
 						"client-event",
 						G_CALLBACK(GtkViewCallback),

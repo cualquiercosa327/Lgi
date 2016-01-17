@@ -262,6 +262,7 @@ public:
 	#if defined(MAC) && !defined(LGI_SDL)
 	void OnPaint(GSurface *pDC);
 	#elif defined(__GTK_H__)
+	friend Gtk::gboolean GtkDialogDestroy(Gtk::GtkWidget *widget, GDialog *This);
     bool IsResizeable();
     void IsResizeable(bool r);
 	Gtk::gboolean OnGtkEvent(Gtk::GtkWidget *widget, Gtk::GdkEvent *event);

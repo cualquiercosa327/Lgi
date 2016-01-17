@@ -98,16 +98,10 @@ GWindow::GWindow(GtkWidget *w) : GView(0)
 GWindow::~GWindow()
 {
 	if (LgiApp->AppWnd == this)
-	{
-		printf("%s:%i - Setting appwnd to NULL.\n", _FL);
 		LgiApp->AppWnd = NULL;
-	}
-	else printf("%s:%i - Not appwnd %p != %p\n", _FL, this, LgiApp->AppWnd);
 
     if (_Root)
-    {
         _Root = NULL;
-    }
 
 	DeleteObj(Menu);
 	DeleteObj(d);
@@ -298,10 +292,10 @@ gboolean GWindow::OnGtkEvent(GtkWidget *widget, GdkEvent *event)
 	return true;
 }
 
-gboolean GtkViewDestroy(GtkWidget *widget, void *This)
+gboolean GtkViewDestroy(GtkWidget *widget, GView *This)
 {
-	GView *v = (GView*) This;
-	delete v;
+	printf("GtkViewDestroy This=%p\n", This);
+	delete This;
 	return true;
 }
 
@@ -350,6 +344,8 @@ bool GWindow::Attach(GViewI *p)
 							"window-state-event",
 							G_CALLBACK(GtkViewCallback),
 							i);
+
+		printf("GWindow g_signal_connect(destroy) %p\n", i);
 
 		gtk_window_set_default_size(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
 		gtk_widget_add_events(GTK_WIDGET(Wnd), GDK_ALL_EVENTS_MASK);

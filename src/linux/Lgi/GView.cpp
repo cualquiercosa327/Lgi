@@ -948,7 +948,6 @@ LgiCursor GView::GetCursor(int x, int y)
 
 void GView::OnGtkDelete()
 {
-	printf("%s::OnGtkDelete()\n", GetClass());
 	_View = NULL;
 	
 	List<GViewI>::I it = Children.Start();
