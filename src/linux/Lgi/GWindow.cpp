@@ -298,11 +298,11 @@ gboolean GWindow::OnGtkEvent(GtkWidget *widget, GdkEvent *event)
 	return true;
 }
 
-extern gboolean GtkWindowOnDestroy(GtkWidget *widget, GdkEvent *event, void *This)
+gboolean GtkViewDestroy(GtkWidget *widget, void *This)
 {
-	GdkEvent e;
-	e.type = GDK_DESTROY;
-	return GtkViewCallback(widget, &e, (GView*) This);
+	GView *v = (GView*) This;
+	delete v;
+	return true;
 }
 
 bool GWindow::Attach(GViewI *p)
@@ -320,7 +320,7 @@ bool GWindow::Attach(GViewI *p)
 		
 		g_signal_connect(	G_OBJECT(Wnd),
 							"destroy",
-							G_CALLBACK(GtkViewCallback),
+							G_CALLBACK(GtkViewDestroy),
 							i);
 		g_signal_connect(	G_OBJECT(Wnd),
 							"delete_event",

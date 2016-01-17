@@ -612,6 +612,12 @@ GRect &GPopup::GetPos()
 #endif
 
 #ifdef __GTK_H__
+gboolean PopupDestroy(GtkWidget *widget, GPopup *This)
+{
+	delete This;
+	return true;
+}
+
 gboolean PopupEvent(GtkWidget *widget, GdkEvent *event, GPopup *This)
 {
 	switch (event->type)
@@ -761,7 +767,7 @@ bool GPopup::Attach(GViewI *p)
 								this);
 			g_signal_connect(	G_OBJECT(Wnd),
 								"destroy",
-								G_CALLBACK(PopupEvent),
+								G_CALLBACK(PopupDestroy),
 								this);
 			g_signal_connect(	G_OBJECT(Wnd),
 								"configure-event",

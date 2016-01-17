@@ -183,6 +183,8 @@ gboolean GDialog::OnGtkEvent(GtkWidget *widget, GdkEvent *event)
 	return true;
 }
 
+extern gboolean GtkViewDestroy(GtkWidget *widget, void *This);
+
 bool GDialog::SetupDialog(bool Modal)
 {
 	if (GBase::Name())
@@ -244,7 +246,7 @@ bool GDialog::SetupDialog(bool Modal)
 						gv);
 	g_signal_connect(	G_OBJECT(Wnd),
 						"destroy",
-						G_CALLBACK(GtkViewCallback),
+						G_CALLBACK(GtkViewDestroy),
 						gv);
 	g_signal_connect(	G_OBJECT(Wnd),
 						"client-event",
