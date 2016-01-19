@@ -471,7 +471,6 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 	}
 	else
 	{
-		printf("LgiYield...\n");
 		int ev = Gtk::gtk_events_pending();
 	    while (ev-- > 0)
 	    {

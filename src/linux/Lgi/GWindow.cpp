@@ -294,7 +294,6 @@ gboolean GWindow::OnGtkEvent(GtkWidget *widget, GdkEvent *event)
 
 gboolean GtkViewDestroy(GtkWidget *widget, GView *This)
 {
-	printf("GtkViewDestroy This=%p\n", This);
 	delete This;
 	return true;
 }
@@ -344,8 +343,6 @@ bool GWindow::Attach(GViewI *p)
 							"window-state-event",
 							G_CALLBACK(GtkViewCallback),
 							i);
-
-		printf("GWindow g_signal_connect(destroy) %p\n", i);
 
 		gtk_window_set_default_size(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
 		gtk_widget_add_events(GTK_WIDGET(Wnd), GDK_ALL_EVENTS_MASK);

@@ -347,7 +347,8 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 	for (int i=1; i<Kids; i++)
 	{
 		Pipes[i].Create(&Attr);
-		// LgiTrace("%i) pipe[%i]=%i,%i\n", i, i, Pipes[i].Read, Pipes[i].Write);
+		
+LgiTrace("%i) pipe[%i]=%i,%i\n", i, i, Pipes[i].Read, Pipes[i].Write);
 		
 		GSubProcess *sp = p[i-1];
 		sp->ChildPid = fork();
@@ -374,7 +375,7 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 			Pipe &in = Pipes[i-1];
 			Pipe &out = Pipes[i];
 
-			// LgiTrace("%i) Child init %i->'%s'->%i\n", i, in.Read, sp->Exe.Get(), out.Write);
+LgiTrace("%i) Child init %i->'%s'->%i\n", i, in.Read, sp->Exe.Get(), out.Write);
 
 			Dupe(in.Read, STDIN_FILENO);
 			close(in.Write);
@@ -387,7 +388,7 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 			sp->Args.Add(NULL);
 			execvp(sp->Exe, &sp->Args[0]);
 		
-			LgiTrace("%s:%i - execvp('%s').\n", _FL, sp->Exe.Get());
+        	LgiTrace("%s:%i - execvp('%s').\n", _FL, sp->Exe.Get());
 			for (int i=0; i<sp->Args.Length(); i++)
 				LgiTrace("%s:%i - Args[%i]='%s'\n", _FL, i, sp->Args[i]);
 			Status = false;
