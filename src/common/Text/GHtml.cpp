@@ -5098,7 +5098,8 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 	Size.y = 0;
 	
 	GCssTools Tools(this, f);
-	PadPx = Tools.GetPadding(GRect(Flow->X(), Html->Y()));
+	GRect rc(Flow->X(), Html->Y());
+	PadPx = Tools.GetPadding(rc);
 	
 	switch (TagId)
 	{
