@@ -322,8 +322,6 @@ public:
 	#elif defined(LINUX)
 	
 		class GLibrary *GetWindowManagerLib();
-		void RegisterHandle(GView *v);
-		void UnregisterHandle(GView *v);
 		bool InThread();
 		
 	#endif
@@ -414,7 +412,13 @@ protected:
 	static GViewI		*_Capturing;
 	static GViewI		*_Over;
 	
-	#if defined WINNATIVE
+	#if defined(__GTK_H__)
+	
+public:
+	virtual void OnGtkDelete();
+protected:
+	
+	#elif defined WINNATIVE
 
 	uint32 GetStyle();
 	void SetStyle(uint32 i);

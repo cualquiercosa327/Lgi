@@ -137,8 +137,6 @@ void GHistory::Value(int64 i)
 	d->Popup->Index = i;
 	if (d->Popup->Lst)
 	{
-		printf("Setting lst value to %i (%i)\n", (int)i,
-			d->Popup->Lst->Length());
 		d->Popup->Lst->Value(i);
 		
 		GListItem *li = d->Popup->Lst->GetSelected();

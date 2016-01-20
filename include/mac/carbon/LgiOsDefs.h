@@ -249,6 +249,7 @@ LgiFunc void LgiSleep(uint32 i);
 /// MsgA = (GThreadOwner*) Owner;
 /// MsgB = (GThreadWork*) WorkUnit;
 #define M_GTHREADWORK_COMPELTE		(M_USER+114)
+#define M_TEXT_UPDATE_NAME			(M_USER+115)
 
 /// Standard ID for an "Ok" button.
 /// \sa LgiMsg

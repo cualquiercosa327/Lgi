@@ -435,20 +435,6 @@ bool GApp::InThread()
 	return GetGuiThread() == Me;
 }
 
-void GApp::RegisterHandle(GView *v)
-{
-	LgiAssert(v);
-	if (v)
-		d->Handles.Add(v->Handle(), v);
-}
-
-void GApp::UnregisterHandle(GView *v)
-{
-	LgiAssert(v);
-	if (v)
-		d->Handles.Delete(v->Handle());
-}
-
 void GApp::OnEvents()
 {
 }
@@ -482,8 +468,6 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 		}
 		
 		Gtk::gtk_main();
-		
-		int asd=0;
 	}
 	else
 	{

@@ -3276,12 +3276,6 @@ void GTag::SetStyle()
 			LoadImage(Img.Uri);
 		}
 	}
-
-	if (Debug)
-	{
-		GCss::ColorDef c = Color();
-		int asd=0;
-	}
 }
 
 void GTag::SetCssStyle(const char *Style)
@@ -5937,16 +5931,18 @@ public:
 	}
 };
 
-void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderPx, bool Debug)
+void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderPx)
 {
 	GArray<GRect> r;
 	GRect BorderPxRc;
 	bool DrawBackground = !Back.Transparent();
 
+	#ifdef _DEBUG
 	if (Debug)
 	{
 		int asd=0;
 	}
+	#endif
 
 	if (!BorderPx)
 		BorderPx = &BorderPxRc;
@@ -6162,14 +6158,15 @@ void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderP
 			pDC->Colour(Back);
 			pDC->Rectangle(&rc);
 			
+			/*
 			if (Debug)
 			{
 				pDC->Colour(GColour(255, 0, 0));
 				pDC->Box(&rc);
 			}
+			*/
 		}
 
-		/*
 		GCss::BorderDef *b;
 		if ((b = &Left)->IsValid())
 		{
@@ -6211,7 +6208,6 @@ void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderP
 				pDC->Line(rc.x1+Px, rc.y2-i, rc.x2-Px, rc.y2-i);
 			}
 		}
-		*/
 	}
 
 	pDC->Op(Op);
@@ -6448,7 +6444,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection, uint16 Depth)
 				}
 			}
 
-			PaintBorderAndBackground(pDC, back, NULL, Debug);
+			PaintBorderAndBackground(pDC, back, NULL);
 
 			GFont *f = GetFont();
 			#if DEBUG_TEXT_AREA

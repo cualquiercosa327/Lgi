@@ -55,6 +55,7 @@ public:
 	void SetWrap(bool b);
 	
 	// Events
+	GMessage::Param OnEvent(GMessage *Msg);
 	void OnPaint(GSurface *pDC);
 	void OnPosChange();
 	bool OnLayout(GViewLayoutInfo &Inf);

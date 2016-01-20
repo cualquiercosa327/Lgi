@@ -3660,9 +3660,9 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 				}
 			}
 
-			for (IdeProject *d=Deps.First(); d; d=Deps.Next())
+			for (IdeProject *dep=Deps.First(); dep; dep=Deps.Next())
 			{
-				GAutoString Target = d->GetTargetName(Platform);
+				GAutoString Target = dep->GetTargetName(Platform);
 				if (Target)
 				{
 					char t[MAX_PATH];
@@ -3677,7 +3677,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 					s.Printf(" \\\n\t\t-l%s$(Tag)", ToUnixPath(t));
 					sLibs[Cfg] += s;
 
-					GAutoString Base = d->GetBasePath();
+					GAutoString Base = dep->GetBasePath();
 					if (Base)
 					{
 						s.Printf(" \\\n\t\t-L%s/$(BuildDir)", ToUnixPath(Base));

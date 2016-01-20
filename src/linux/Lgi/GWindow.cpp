@@ -98,14 +98,10 @@ GWindow::GWindow(GtkWidget *w) : GView(0)
 GWindow::~GWindow()
 {
 	if (LgiApp->AppWnd == this)
-	{
-		LgiApp->AppWnd = 0;
-	}
+		LgiApp->AppWnd = NULL;
 
     if (_Root)
-    {
         _Root = NULL;
-    }
 
 	DeleteObj(Menu);
 	DeleteObj(d);
@@ -207,12 +203,23 @@ void GWindow::_OnViewDelete()
 void GWindow::OnGtkDelete()
 {
 	// Delete everything we own...
-	DeleteObj(Menu);
+	// DeleteObj(Menu);
+
+	#if 0
 	while (Children.Length())
 	{
 		GViewI *c = Children.First();
 		c->Detach();
 	}
+	#else
+	for (unsigned i=0; i<Children.Length(); i++)
+	{
+		GViewI *c = Children[i];
+		GView *v = c->GetGView();
+		if (v)
+			v->OnGtkDelete();
+	}
+	#endif
 	
 	// These will be destroyed by GTK after returning from GWindowCallback
 	Wnd = NULL;
@@ -227,15 +234,17 @@ gboolean GWindow::OnGtkEvent(GtkWidget *widget, GdkEvent *event)
 		return FALSE;
 	}
 
-	// printf("%s::OnGtkEvent(%i) name=%s\n", GetClass(), event->type, Name());
+	#if 0
+	if (event->type != 28)
+		printf("%s::OnGtkEvent(%i) name=%s\n", GetClass(), event->type, Name());
+	#endif
 	switch (event->type)
 	{
 		case GDK_DELETE:
 		{
 			bool Close = OnRequestClose(false);
 			if (Close)
-				OnGtkDelete();
-			printf("Returning %i from GDK_DELETE\n", !Close);
+				OnGtkDelete();     		
 			return !Close;
 		}
 		case GDK_DESTROY:
@@ -283,6 +292,12 @@ gboolean GWindow::OnGtkEvent(GtkWidget *widget, GdkEvent *event)
 	return true;
 }
 
+gboolean GtkViewDestroy(GtkWidget *widget, GView *This)
+{
+	delete This;
+	return true;
+}
+
 bool GWindow::Attach(GViewI *p)
 {
 	bool Status = false;
@@ -297,11 +312,11 @@ bool GWindow::Attach(GViewI *p)
 		GView *i = this;
 		
 		g_signal_connect(	G_OBJECT(Wnd),
-							"delete_event",
-							G_CALLBACK(GtkViewCallback),
+							"destroy",
+							G_CALLBACK(GtkViewDestroy),
 							i);
 		g_signal_connect(	G_OBJECT(Wnd),
-							"destroy",
+							"delete_event",
 							G_CALLBACK(GtkViewCallback),
 							i);
 		g_signal_connect(	G_OBJECT(Wnd),
@@ -329,9 +344,6 @@ bool GWindow::Attach(GViewI *p)
 							G_CALLBACK(GtkViewCallback),
 							i);
 
-		/*
-		printf("GWindow set default size: %i, %i\n", Pos.X(), Pos.Y());
-		*/
 		gtk_window_set_default_size(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
 		gtk_widget_add_events(GTK_WIDGET(Wnd), GDK_ALL_EVENTS_MASK);
 		gtk_window_set_title(Wnd, GBase::Name());

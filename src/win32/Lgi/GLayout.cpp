@@ -145,34 +145,60 @@ void GLayout::SetPourLargest(bool i)
 	_PourLargest = i;
 }
 
+GCss::Len &SelectValid(GCss::Len &a, GCss::Len &b, GCss::Len &c)
+{
+	if (a.IsValid()) return a;
+	if (b.IsValid()) return b;
+	return c;
+}
+
 bool GLayout::Pour(GRegion &r)
 {
+	if (!_PourLargest)
+		return false;
 
-	if (_PourLargest)
+	GRect *Largest = FindLargest(r);
+	if (!Largest)
+		return false;
+
+	GRect p = *Largest;
+	GCss *css = GetCss();
+	if (css)
 	{
-		GRect *Largest = FindLargest(r);
-		if (Largest)
-		{
-			GRect p = *Largest;
-			if (GetCss())
-			{
-				GCss::Len sz = GetCss()->Width();
-				if (sz.IsValid())
-					p.x2 = p.x1 + sz.ToPx(r.X(), GetFont()) - 1;
-				sz = GetCss()->Height();
-				if (sz.IsValid())
-					p.y2 = p.y1 + sz.ToPx(r.Y(), GetFont()) - 1;
-			}
-			if (p.Valid())
-			{	
-				SetPos(p, true);
-				return true;
-			}
-			else LgiAssert(0);
-		}
+		GCss::Len margin = css->Margin();
+		GCss::Len s;
+		GCss::Len zero;
+		GFont *f = GetFont();
+		
+		s = css->MarginTop();
+		p.x1 += SelectValid(s, margin, zero).ToPx(r.X(), f);
+		
+		s = css->MarginTop();
+		p.y1 += SelectValid(s, margin, zero).ToPx(r.Y(), f);
+		
+		s = css->MarginRight();
+		p.x2 -= SelectValid(s, margin, zero).ToPx(r.X(), f);
+		
+		s = css->MarginBottom();
+		p.y2 -= SelectValid(s, margin, zero).ToPx(r.Y(), f);
+	
+		if ((s = css->Width()).IsValid())
+			p.x2 = p.x1 + s.ToPx(r.X(), f) - 1;
+		if ((s = css->Height()).IsValid())
+			p.y2 = p.y1 + s.ToPx(r.Y(), f) - 1;
+	}
+	
+	if (p.Valid())
+	{	
+		SetPos(p, true);
+	}
+	else
+	{
+		LgiAssert(0);
+		return false;
 	}
 
-	return false;
+	return true;
 }
 
 GMessage::Result GLayout::OnEvent(GMessage *Msg)
@@ -188,4 +214,5 @@ GMessage::Result GLayout::OnEvent(GMessage *Msg)
 	}
 	return Status;
 }
+
 

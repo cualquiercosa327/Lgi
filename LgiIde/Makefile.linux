@@ -59,6 +59,7 @@ Depends =	GDebugContext.o \
 			IFtp.o \
 			FindInFiles.o \
 			FindSymbol.o \
+			GHistory.o \
 			GLexCpp.o \
 			GParseCpp.o \
 			SysCharSupport.o \
@@ -69,7 +70,6 @@ Depends =	GDebugContext.o \
 			LgiUtils.o \
 			MemDumpViewer.o \
 			SpaceTabConv.o \
-			GHistory.o \
 			GDocView.o \
 			GMdi.o \
 			LgiMain.o \
@@ -923,6 +923,12 @@ FindSymbol.o : ./Code/FindSymbol.cpp ../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
+GHistory.o : ./Code/GHistory.cpp ../include/common/Lgi.h \
+	./Code/GHistory.h \
+	../include/common/GList.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
 GLexCpp.o : ../src/common/Coding/GLexCpp.cpp ../include/common/GLexCpp.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -1024,12 +1030,6 @@ MemDumpViewer.o : ./Code/MemDumpViewer.cpp ../include/common/Lgi.h \
 
 SpaceTabConv.o : ./Code/SpaceTabConv.cpp ../include/common/GMem.h \
 	../include/common/GContainers.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-GHistory.o : ./Code/GHistory.cpp ../include/common/Lgi.h \
-	./Code/GHistory.h \
-	../include/common/GList.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -2950,7 +2950,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../src/common/Widgets/GTextLabel.cpp : ../include/common/Lgi.h \
 	../include/common/GTextLabel.h \
 	../include/common/GDisplayStringLayout.h \
-	../include/common/GVariant.h
+	../include/common/GVariant.h \
+	../include/common/GNotifications.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkversion.h : 
 

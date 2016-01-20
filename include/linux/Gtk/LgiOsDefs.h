@@ -315,6 +315,8 @@ LgiFunc void LgiSleep(uint32 i);
 /// Implemented to handle timer events in the GUI thread.
 #define M_PULSE						(M_USER+114)
 #define M_SET_VISIBLE				(M_USER+115)
+/// Sent from a worker thread when calling GText::Name
+#define M_TEXT_UPDATE_NAME			(M_USER+116)
 
 /// Standard ID for an "Ok" button.
 /// \sa LgiMsg

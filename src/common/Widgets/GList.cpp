@@ -1814,8 +1814,11 @@ void GList::OnMouseClick(GMouse &m)
 						if (OldIndex != NewIndex &&
 							OnColumnReindex(Col, OldIndex, NewIndex))
 						{
+							Columns.SetFixedLength(false);
 							Columns.Delete(Col);
 							Columns.AddAt(NewIndex, Col);
+							Columns.SetFixedLength(true);
+
 							UpdateAllItems();
 						}
 

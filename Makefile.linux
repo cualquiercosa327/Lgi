@@ -833,7 +833,8 @@ GTabView.o : ./src/common/Widgets/GTabView.cpp ./include/common/Lgi.h \
 GTextLabel.o : ./src/common/Widgets/GTextLabel.cpp ./include/common/Lgi.h \
 	./include/common/GTextLabel.h \
 	./include/common/GDisplayStringLayout.h \
-	./include/common/GVariant.h
+	./include/common/GVariant.h \
+	./include/common/GNotifications.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -2093,6 +2094,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 ./include/common/GBitmap.h : 
 
 ../../../../../usr/include/glib-2.0/gio/gsubprocess.h : /usr/include/glib-2.0/gio/giotypes.h
+
+./include/common/GNotifications.h : 
 
 ../../../../../usr/include/glib-2.0/gio/gnativevolumemonitor.h : /usr/include/glib-2.0/gio/gvolumemonitor.h
 

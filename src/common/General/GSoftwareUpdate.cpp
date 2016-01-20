@@ -256,7 +256,10 @@ struct GSoftwareUpdatePriv
 	};
 };
 
-GSoftwareUpdate::GSoftwareUpdate(char *SoftwareName, char *UpdateUri, char *ProxyUri, char *OptionalTempPath)
+GSoftwareUpdate::GSoftwareUpdate(const char *SoftwareName,
+								const char *UpdateUri,
+								const char *ProxyUri,
+								const char *OptionalTempPath)
 {
 	d = new GSoftwareUpdatePriv;
 	d->Name.Reset(NewStr(SoftwareName));
