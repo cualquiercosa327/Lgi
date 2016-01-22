@@ -464,7 +464,7 @@ bool VCard::Import(GDataPropI *c, GStreamI *s)
 				}
 				else if (IsVar(Field, "photo"))
 				{
-					int B64Len = strlen(Data);
+					int B64Len = strlen(Data);					
 					int BinLen = BufferLen_64ToBin(B64Len);
 					GAutoPtr<uint8> Bin(new uint8[BinLen]);
 					if (Bin)
@@ -526,85 +526,86 @@ bool VIo::ReadField(GStreamI &s, char **Name, TypesList *Type, char **Data)
 		char Temp[256];
 		GArray<char> p;
 		bool Done = false;
+		bool Debug = false;
 
 		while (!Done)
 		{
-			int64 r = d->Buf.GetSize();
-			if (r == 0)
-			{
-				r = s.Read(Temp, sizeof(Temp));
-				if (r > 0)
-				{
-					d->Buf.Write(Temp, (int)r);
-				}
-				else break;
-			}
-
 			bool EatNext = false;
 			ReadNextLine:
-			r = d->Buf.Pop(Temp, sizeof(Temp));
-			while (r > 0 && !ValidStr(Temp))
+			
+			Temp[0] = 0;
+			int64 r = d->Buf.Pop(Temp, sizeof(Temp));
+			if (r <= 0)
 			{
+				// Try reading more data...
+				r = s.Read(Temp, sizeof(Temp));
+				if (r > 0)
+					d->Buf.Write(Temp, (int)r);
+				else
+					break;
+
 				r = d->Buf.Pop(Temp, sizeof(Temp));
 			}
 
-			if (r > 0)
+			if (r <= 0)
+				break;
+
+			// Unfold
+			if (!_strnicmp(Temp, "PHOTO", 5))
+				Debug = true;
+			
+			for (char *c = Temp; *c; c++)
 			{
-				// Unfold
-				for (char *c = Temp; *c; c++)
+				if (*c == '\r')
 				{
-					if (*c == '\r')
+					// do nothing
+				}
+				else if (*c == '\n')
+				{
+					char Next;
+					r = d->Buf.Peek((uchar*) &Next, 1);
+					if (r == 0)
 					{
-						// do nothing
-					}
-					else if (*c == '\n')
-					{
-						TryPeekNext:
-						char Next;
+						r = s.Read(Temp, sizeof(Temp));
+						if (r <= 0)
+							break;
+
+						d->Buf.Write(Temp, (int)r);
 						r = d->Buf.Peek((uchar*) &Next, 1);
-						if (r == 1)
+					}
+					
+					if (r == 1)
+					{
+						if (Next == ' ' || Next == '\t')
 						{
-							if (Next == ' ' || Next == '\t')
-							{
-								// Wrapped, do nothing
-								EatNext = true;
-								goto ReadNextLine;
-							}
-							else
-							{
-								Done = true;
-								break;
-							}
+							// Wrapped, do nothing
+							EatNext = true;
+							goto ReadNextLine;
 						}
 						else
 						{
-							r = s.Read(Temp, sizeof(Temp));
-							if (r > 0)
-							{
-								d->Buf.Write(Temp, (int)r);
-								goto TryPeekNext;
-							}
-							else break;
+							Done = true;
+							break;
 						}
-					}
-					else if (EatNext)
-					{
-						EatNext = false;
 					}
 					else
 					{
-						p.Add(*c);
+						break;
 					}
 				}
-			}
-			else
-			{
-				r = s.Read(Temp, sizeof(Temp));
-				if (r > 0)
+				else if (EatNext)
 				{
-					d->Buf.Write(Temp, (int)r);
+					EatNext = false;
 				}
-				else break;
+				else
+				{
+					if (strchr(" \r\t\n", *c) && Debug)
+					{
+						int asd=0;
+					}
+					
+					p.Add(*c);
+				}
 			}
 		}
 
