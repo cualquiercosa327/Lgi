@@ -196,7 +196,7 @@ bool GText::OnLayout(GViewLayoutInfo &Inf)
 	return true;
 }
 
-GMessage::Param GText::OnEvent(GMessage *Msg)
+GMessage::Result GText::OnEvent(GMessage *Msg)
 {
 	switch (Msg->Msg())
 	{

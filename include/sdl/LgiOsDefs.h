@@ -262,48 +262,23 @@ LgiFunc void LgiSleep(uint32 i);
 /// Minimum value for application defined message ID's
 #define M_USER						0x0400
 
-/// \brief Mouse enter event
-///
-/// a = bool Inside; // is the mouse inside the client area?\n
-/// b = MAKELONG(x, y); // mouse location
-#define M_MOUSEENTER				(M_USER+100)
-
-/// \brief Mouse exit event
-///
-/// a = bool Inside; // is the mouse inside the client area?\n
-/// b = MAKELONG(x, y); // mouse location
-#define M_MOUSEEXIT					(M_USER+101)
-
-/// \brief GView change notification
-///
-/// a = (GView*) Wnd;\n
-/// b = (int) Flags; // Specific to each GView
-#define M_CHANGE					(M_USER+102)
-
-/// \brief Pass a text message up to the UI to descibe whats happening
-///
-/// a = (GView*) Wnd;\n
-/// b = (char*) Text; // description from window
-#define M_DESCRIBE					(M_USER+103)
-
-// return (bool)
-#define M_WANT_DIALOG_PROC			(M_USER+104)
-
-#define M_MENU						(M_USER+105)
-#define M_COMMAND					(M_USER+106)
-#define M_DRAG_DROP					(M_USER+107)
-
-#define M_TRAY_NOTIFY				(M_USER+108)
-#define M_CUT						(M_USER+109)
-#define M_COPY						(M_USER+110)
-#define M_PASTE						(M_USER+111)
-#define M_DELETE					(M_USER+112)
-#define M_GTHREADWORK_COMPELTE		(M_USER+113)
-/// Implemented to handle timer events in the GUI thread.
-#define M_PULSE						(M_USER+114)
-#define M_SET_VISIBLE				(M_USER+115)
-#define M_INVALIDATE				(M_USER+116)
-#define M_MOUSE_CAPTURE_POLL		(M_USER+117)
+enum LgiUserMessages
+{
+	M_MOUSEENTER					= (M_USER+100),
+	M_MOUSEEXIT,
+	M_CHANGE,
+	M_DESCRIBE,
+	M_COMMAND,
+	M_CUT,
+	M_COPY,
+	M_PASTE,
+	M_DELETE,
+	M_PULSE,
+	M_SET_VISIBLE,
+	M_INVALIDATE,
+	M_MOUSE_CAPTURE_POLL,
+	M_TEXT_UPDATE_NAME,
+};
 
 /// Standard ID for an "Ok" button.
 /// \sa LgiMsg
