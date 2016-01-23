@@ -526,7 +526,6 @@ bool VIo::ReadField(GStreamI &s, char **Name, TypesList *Type, char **Data)
 		char Temp[256];
 		GArray<char> p;
 		bool Done = false;
-		bool Debug = false;
 
 		while (!Done)
 		{
@@ -551,9 +550,6 @@ bool VIo::ReadField(GStreamI &s, char **Name, TypesList *Type, char **Data)
 				break;
 
 			// Unfold
-			if (!_strnicmp(Temp, "PHOTO", 5))
-				Debug = true;
-			
 			for (char *c = Temp; *c; c++)
 			{
 				if (*c == '\r')
@@ -599,11 +595,6 @@ bool VIo::ReadField(GStreamI &s, char **Name, TypesList *Type, char **Data)
 				}
 				else
 				{
-					if (strchr(" \r\t\n", *c) && Debug)
-					{
-						int asd=0;
-					}
-					
 					p.Add(*c);
 				}
 			}
@@ -840,6 +831,35 @@ bool VCard::Export(GDataPropI *c, GStreamI *o)
 	if ((Note = c->GetStr(FIELD_NOTE)))
 	{
 		WriteField(*o, "note", 0, Note);
+	}
+	
+	GVariant *Photo = c->GetVariant(FIELD_CONTACT_IMAGE);
+	if (Photo && Photo->Type == GV_BINARY)
+	{
+		int B64Len = BufferLen_BinTo64(Photo->Value.Binary.Length);
+		GAutoPtr<char> B64Buf(new char[B64Len]);
+		if (B64Buf)
+		{
+			int Bytes = ConvertBinaryToBase64(B64Buf, B64Len, (uchar*)Photo->Value.Binary.Data, Photo->Value.Binary.Length);
+			if (Bytes > 0)
+			{
+				GStreamPrint(o, "photo;type=jpeg;encoding=base64:\r\n");
+				
+				int LineChar = 76;
+				for (int i=0; i<Bytes; )
+				{
+					int Remain = Bytes - i;
+					int Wr = Remain > LineChar ? LineChar : Remain;
+
+					o->Write(" ", 1);
+					o->Write(B64Buf + i, Wr);
+					o->Write("\r\n", 2);
+
+					i += Wr;
+				}
+				o->Write("\r\n", 2);
+			}
+		}
 	}
 
 	o->Push("end:vcard\r\n");
