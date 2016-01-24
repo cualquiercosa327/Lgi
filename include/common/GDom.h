@@ -104,6 +104,7 @@ enum GDomProperty
 	ContainerAdd,
 	ContainerDelete,
 	ContainerHasKey,
+	ContainerSort,
 	
 	// GFile
 	FileOpen,

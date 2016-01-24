@@ -31,6 +31,37 @@
 extern "C" uint64 __cdecl CallExtern64(void *FuncAddr, NativeInt *Ret, uint32 Args, void *Arg);
 #endif
 
+int GVariantCmp(GVariant *a, GVariant *b, NativeInt Data)
+{
+	GVariant *Param = (GVariant*) Data;
+	if (!a || !b)
+		return 0;
+		
+	if (a->Type == GV_STRING &&
+		b->Type == GV_STRING)
+	{	
+		const char *Empty = "";
+		const char *as = a->Str();
+		const char *bs = b->Str();
+
+		return _stricmp(as?as:Empty, bs?bs:Empty);
+	}
+	else if (a->Type == GV_DOM &&
+			 b->Type == GV_DOM &&
+			 Param)
+	{
+		const char *Fld = Param->Str();
+		GVariant av, bv;
+		if (a->Value.Dom->GetValue(Fld, av) &&
+			b->Value.Dom->GetValue(Fld, bv))
+		{
+			return GVariantCmp(&av, &bv, 0);
+		}
+	}
+	
+	return 0;
+}
+
 GExecutionStatus GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args)
 {
 	if (!Lib || !Method)

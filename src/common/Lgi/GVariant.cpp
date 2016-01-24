@@ -1537,6 +1537,7 @@ struct GDomPropMap : public GHashTbl<const char *, GDomProperty>
 		Define("Add", ContainerAdd);
 		Define("Delete", ContainerDelete);
 		Define("HasKey", ContainerHasKey);
+		Define("Sort", ContainerSort);
 
 		Define("Open", FileOpen);
 		Define("Read", FileRead);

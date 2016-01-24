@@ -101,6 +101,7 @@
 					<a href="#add">obj.Add</a><br>
 					<a href="#haskey">obj.HasKey</a><br>
 					<a href="#objDelete">obj.Delete</a><br>
+					<a href="#objSort">obj.Sort</a><br>
 				<td>
 					<a href="#open">obj.Open</a><br>
 					<a href="#read">obj.Read</a><br>
@@ -485,6 +486,27 @@ Print(c.Length, "\n");
 1</pre>
 			</div>
 
+		<h4>void <a name="objSort">obj.Sort</a>(key);</h4>
+			<div>
+				Sorts a list. Not relevant for a HashTable.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> None.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> Nothing.
+				</ul>
+				<br>
+				Example:
+				<pre>c = New("list");
+c.Add("first");
+c.Add("second");
+c.Sort();
+</pre>
+			</div>
 		<h4>string <a name="ReadTextFile">ReadTextFile</a>(filename);</h4>
 			<div>
 				Returns the contents of a text file.

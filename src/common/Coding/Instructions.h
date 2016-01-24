@@ -1259,6 +1259,12 @@ case IDomCall:
 					}
 					break;
 				}
+				case ContainerSort:
+				{
+					GVariant *Param = Arg.Length() > 0 ? Arg[0] : NULL;
+					Dom->Value.Lst->Sort(GVariantCmp, (NativeInt)Param);
+					break;
+				}
 				default:
 				{
 					Dst->Empty();
