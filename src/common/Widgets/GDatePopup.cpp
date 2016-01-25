@@ -10,7 +10,10 @@ GDatePopup::GDatePopup(GView *owner) : GPopup(owner)
 	Owner = owner;
 	
 	GDateTime Now;
-	Now.SetNow();
+	if (owner)
+		Now.SetDate(owner->Name());
+	else
+		Now.SetNow();
 	Mv.Set(&Now);
 
 	GRect r(0, 0, 150, 130);

@@ -183,7 +183,10 @@ GTimePopup::GTimePopup(GView *owner) : GPopup(owner)
 	}
 
 	GDateTime Now;
-	Now.SetNow();
+	if (owner)
+		Now.SetTime(owner->Name());
+	else
+		Now.SetNow();
 	SetTime(&Now);
 
 	GRect r(0, 0, 100, 10*16 + 1);

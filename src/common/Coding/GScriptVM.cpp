@@ -58,6 +58,15 @@ int GVariantCmp(GVariant *a, GVariant *b, NativeInt Data)
 			return GVariantCmp(&av, &bv, 0);
 		}
 	}
+	else if (a->Type == GV_INT32 &&
+			 b->Type == GV_INT32)
+	{
+		return a->CastInt32() - b->CastInt32();
+	}
+	else
+	{
+		LgiAssert(!"Impl a handler for this type.");
+	}
 	
 	return 0;
 }
