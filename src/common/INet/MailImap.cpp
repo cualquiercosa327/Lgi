@@ -1915,7 +1915,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 											if (SettingStore)
 											{
 												// Login successful, so persist the AuthCode for next time
-												GVariant v = d->OAuth.AccessToken;
+												GVariant v = d->OAuth.AccessToken.Get();
 												bool b = SettingStore->SetValue(OPT_ImapOAuth2AccessToken, v);
 												if (!b)
 												{

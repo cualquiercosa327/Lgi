@@ -1956,47 +1956,50 @@ GSurface *GdcDevice::Load(GStream *In, const char *Name, bool UseOSLoader)
 		
 		#elif defined MAC && !defined COCOA
 		
-		CFURLRef FileUrl = CFURLCreateFromFileSystemRepresentation(0, (const UInt8*)Name, strlen(Name), false);
-		if (!FileUrl)
-			LgiTrace("%s:%i - CFURLCreateFromFileSystemRepresentation failed.\n", _FL);
-		else
+		if (Name)
 		{
-			CGImageSourceRef Src = CGImageSourceCreateWithURL(FileUrl, 0);
-			if (!Src)
-				LgiTrace("%s:%i - CGImageSourceCreateWithURL failed.\n", _FL);
+			CFURLRef FileUrl = CFURLCreateFromFileSystemRepresentation(0, (const UInt8*)Name, strlen(Name), false);
+			if (!FileUrl)
+				LgiTrace("%s:%i - CFURLCreateFromFileSystemRepresentation failed.\n", _FL);
 			else
 			{
-				CGImageRef Img = CGImageSourceCreateImageAtIndex(Src, 0, 0);
-				if (!Img)
-					LgiTrace("%s:%i - CGImageSourceCreateImageAtIndex failed.\n", _FL);
+				CGImageSourceRef Src = CGImageSourceCreateWithURL(FileUrl, 0);
+				if (!Src)
+					LgiTrace("%s:%i - CGImageSourceCreateWithURL failed.\n", _FL);
 				else
 				{
-					size_t x = CGImageGetWidth(Img);
-					size_t y = CGImageGetHeight(Img);
-					size_t bits = CGImageGetBitsPerPixel(Img);
-					
-					if (pDC.Reset(new GMemDC) &&
-						pDC->Create(x, y, System32BitColourSpace))
-					{
-						pDC->Colour(0);
-						pDC->Rectangle();
-						
-						CGRect r = {{0, 0}, {x, y}};
-						CGContextDrawImage(pDC->Handle(), r, Img);
-					}
+					CGImageRef Img = CGImageSourceCreateImageAtIndex(Src, 0, 0);
+					if (!Img)
+						LgiTrace("%s:%i - CGImageSourceCreateImageAtIndex failed.\n", _FL);
 					else
 					{
-						LgiTrace("%s:%i - pMemDC->Create failed.\n", _FL);
-						pDC.Reset();
+						size_t x = CGImageGetWidth(Img);
+						size_t y = CGImageGetHeight(Img);
+						size_t bits = CGImageGetBitsPerPixel(Img);
+						
+						if (pDC.Reset(new GMemDC) &&
+							pDC->Create(x, y, System32BitColourSpace))
+						{
+							pDC->Colour(0);
+							pDC->Rectangle();
+							
+							CGRect r = {{0, 0}, {x, y}};
+							CGContextDrawImage(pDC->Handle(), r, Img);
+						}
+						else
+						{
+							LgiTrace("%s:%i - pMemDC->Create failed.\n", _FL);
+							pDC.Reset();
+						}
+						
+						CGImageRelease(Img);
 					}
 					
-					CGImageRelease(Img);
+					CFRelease(Src);
 				}
-				
-				CFRelease(Src);
-			}
 
-			CFRelease(FileUrl);
+				CFRelease(FileUrl);
+			}
 		}
 
 		#elif WINNATIVE && defined(_MSC_VER)

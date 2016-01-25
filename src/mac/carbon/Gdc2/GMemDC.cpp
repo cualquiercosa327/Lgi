@@ -359,6 +359,7 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int Flags)
 								pMem->Cs = CsRgb24;
 								break;
 							case kCGImageAlphaLast:               /* For example, non-premultiplied RGBA */
+							case kCGImageAlphaNoneSkipLast:       /* For example, RGBX. */
 								pMem->Cs = CsRgba32;
 								break;
 							case kCGImageAlphaPremultipliedLast:  /* For example, premultiplied RGBA */
@@ -366,17 +367,12 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int Flags)
 								pMem->Flags |= GBmpMem::BmpPreMulAlpha;
 								break;
 							case kCGImageAlphaFirst:              /* For example, non-premultiplied ARGB */
+							case kCGImageAlphaNoneSkipFirst:      /* For example, XRGB. */
 								pMem->Cs = CsArgb32;
 								break;
 							case kCGImageAlphaPremultipliedFirst: /* For example, premultiplied ARGB */
 								pMem->Cs = CsArgb32;
 								pMem->Flags |= GBmpMem::BmpPreMulAlpha;
-								break;
-							case kCGImageAlphaNoneSkipLast:       /* For example, RGBX. */
-								pMem->Cs = CsRgbx32;
-								break;
-							case kCGImageAlphaNoneSkipFirst:      /* For example, XRGB. */
-								pMem->Cs = CsXrgb32;
 								break;
 							default:
 								LgiAssert(0);
