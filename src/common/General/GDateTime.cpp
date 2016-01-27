@@ -689,6 +689,13 @@ void GDateTime::GetTime(char *Str, int SLen)
 	}
 }
 
+uint64 GDateTime::Ts()
+{
+	uint64 ts;
+	Get(ts);
+	return ts;
+}
+
 bool GDateTime::Get(uint64 &s)
 {
 	bool Status = false;

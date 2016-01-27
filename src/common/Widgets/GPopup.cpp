@@ -1010,7 +1010,7 @@ void GDropDown::OnPaint(GSurface *pDC)
 			Mem.Colour(LC_MED, 24);
 		Mem.Rectangle();
 
-		GApp::SkinEngine->DrawBtn(&Mem, r, IsOpen(), Enabled());
+		GApp::SkinEngine->DrawBtn(&Mem, r, NULL, IsOpen(), Enabled());
 		pDC->Blt(0, 0, &Mem);
 		r.Size(2, 2);
 		r.x2 -= 2;

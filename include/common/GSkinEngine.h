@@ -134,7 +134,7 @@ public:
 	virtual void FillPath(class GPath *Path, GSurface *pDC, bool Down, bool Enabled = true) {}
 
 	// Draws a button
-	virtual void DrawBtn(GSurface *pDC, GRect &r, bool Down, bool Enabled, bool Default = false) {}
+	virtual void DrawBtn(GSurface *pDC, GRect &r, GColour *Base, bool Down, bool Enabled, bool Default = false) = 0;
 
 	///////////////////////////////////////////////////////////////////////////////
 	// Add new features down here with an associated feature flag defined above. //

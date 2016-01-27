@@ -193,6 +193,9 @@ public:
 	/// Gets just the time as a string
 	/// \sa GDateTime::GetFormat()
 	void GetTime(char *Str, int SLen);
+	
+	/// Returns the 64bit timestamp.
+	uint64 Ts();
 
 	/// Sets the date and time to the system clock
 	void SetNow();
