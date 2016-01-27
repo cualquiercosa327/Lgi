@@ -55,7 +55,8 @@ public:
 
 	bool IsReadable(int TimeoutMs = 0);
 	bool IsWritable(int TimeoutMs = 0);
-	bool IsBlocking() { return false; }
+	bool IsBlocking();
+	void IsBlocking(bool block);
 
 	bool SetVariant(const char *Name, GVariant &Val, char *Arr = NULL);
 	bool GetVariant(const char *Name, GVariant &Val, char *Arr = NULL);

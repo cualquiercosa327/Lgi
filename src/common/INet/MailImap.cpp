@@ -2222,9 +2222,13 @@ bool MailIMap::Fetch(bool ByUid,
 			
 			uint64 TotalTs = 0;
 
+			bool Blocking = Socket->IsBlocking();
+			Socket->IsBlocking(false);
+
 			while (!Done && Socket->IsOpen())
 			{
-				while (Socket->IsReadable())
+				int r;
+				do				
 				{
 					// Extend the buffer if getting used up
 					if (Buf.Length()-Used <= 256)
@@ -2233,7 +2237,7 @@ bool MailIMap::Fetch(bool ByUid,
 					}
 
 					// Try and read bytes from server.
-					int r = Socket->Read(&Buf[Used], Buf.Length()-Used-1); // -1 for NULL terminator
+					r = Socket->Read(&Buf[Used], Buf.Length()-Used-1); // -1 for NULL terminator
 					if (r > 0)
 					{					
 						if (RawCopy)
@@ -2242,11 +2246,8 @@ bool MailIMap::Fetch(bool ByUid,
 						Used += r;
 						Bytes += r;
 					}
-					else
-					{
-						Done = true;
-					}
 				}
+				while (r > 0);
 				
 				/*
 				if (SizeHint > 0 &&
@@ -2365,6 +2366,8 @@ bool MailIMap::Fetch(bool ByUid,
 					}
 				}
 			}
+
+			Socket->IsBlocking(Blocking);			
 		}
 		
 		Unlock();

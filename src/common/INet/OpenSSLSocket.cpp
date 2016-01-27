@@ -111,6 +111,7 @@ public:
 	DynFunc3(int, SSL_set_bio, SSL*, s, BIO*, rbio, BIO*, wbio);
 	DynFunc3(int, SSL_write, SSL*, ssl, const void*, buf, int, num);
 	DynFunc3(int, SSL_read, SSL*, ssl, const void*, buf, int, num);
+	DynFunc1(int, SSL_pending, SSL*, ssl);
 	DynFunc1(BIO *,	SSL_get_rbio, const SSL *, s);
 	DynFunc1(int, SSL_accept, SSL *, ssl);
 	
@@ -504,6 +505,7 @@ struct SslSocketPriv
 	#ifdef _DEBUG
 	bool LastWasCR;
 	#endif
+	bool IsBlocking;
 
 	// This is just for the UI.
 	GStreamI *Logger;
@@ -537,6 +539,7 @@ SslSocket::SslSocket(GStreamI *logger, GCapabilityClient *caps, bool sslonconnec
 	d->SslOnConnect = sslonconnect;
 	d->Caps = caps;
 	d->Logger = logger;
+	d->IsBlocking = true;
 	
 	GAutoString ErrMsg;
 	if (StartSSL(ErrMsg, this))
@@ -742,7 +745,7 @@ DebugTrace("%s:%i - BIO_get_ssl=%p\n", _FL, Ssl);
 							uint64 Start = LgiCurrentTime();
 							int To = GetTimeout();
 							d->Opening = true;
-							Library->BIO_set_nbio(Bio, true);
+							IsBlocking(false);
 							r = Library->BIO_do_connect(Bio);
 DebugTrace("%s:%i - initial BIO_do_connect=%i\n", _FL, r);
 							while (r != 1 && d->Opening)
@@ -772,6 +775,7 @@ DebugTrace("%s:%i - open loop finished, r=%i, Opening=%i\n", _FL, r, d->Opening)
 
 							if (r == 1)
 							{
+								IsBlocking(true);
 								Library->SSL_set_mode(Ssl, SSL_MODE_AUTO_RETRY);
 								Status = true;
 								
@@ -797,7 +801,7 @@ DebugTrace("%s:%i - BIO_new_connect=%p\n", _FL, Bio);
 			{
 				// Non SSL... go into non-blocking mode so that if ::Close() is called we
 				// can quit out of the connect loop.
-				Library->BIO_set_nbio(Bio, true);
+				IsBlocking(false);
 
 				d->Opening = true;
 				uint64 Start = LgiCurrentTime();
@@ -829,6 +833,7 @@ DebugTrace("%s:%i - open loop finished=%i\n", _FL, r);
 
 				if (r == 1)
 				{
+					IsBlocking(true);
 					Status = true;
 
 					char m[256];
@@ -990,6 +995,20 @@ DebugTrace("%s:%i - BIO_free\n", _FL);
 bool SslSocket::Listen(int Port)
 {
 	return false;
+}
+
+bool SslSocket::IsBlocking()
+{
+	return d->IsBlocking;
+}
+
+void SslSocket::IsBlocking(bool block)
+{
+	d->IsBlocking = block;
+	if (Bio)
+	{
+		Library->BIO_set_nbio(Bio, !d->IsBlocking);
+	}
 }
 
 bool SslSocket::IsReadable(int TimeoutMs)
@@ -1251,7 +1270,12 @@ DebugTrace("%s:%i - SSL_read(%p,%i)=%i\n", _FL, Data, Len, r);
 			{
 				r = Library->BIO_read(Bio, Data, Len);
 				if (r < 0)
-					LgiSleep(10);
+				{
+					if (d->IsBlocking)
+						LgiSleep(10);
+					else
+						break;
+				}
 				else
 				{
 DebugTrace("%s:%i - BIO_read(%p,%i)=%i\n", _FL, Data, Len, r);
@@ -1268,7 +1292,7 @@ DebugTrace("%s:%i - BIO_read(%p,%i)=%i\n", _FL, Data, Len, r);
 				l->Write(Data, r);
 		}
 
-		if (Ssl)
+		if (Ssl && d->IsBlocking)
 		{
 			if (r < 0)
 			{
