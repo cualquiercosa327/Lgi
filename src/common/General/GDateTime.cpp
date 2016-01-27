@@ -545,65 +545,6 @@ int GDateTime::DayOfWeek()
 	return Diff % 7;
 }
 
-bool GDateTime::Set(time_t tt)
-{
-	struct tm *t;
-	#if _MSC_VER < 1400
-	t = localtime(&tt);
-	if (t)
-	#else
-	struct tm tmp;
-	if (_localtime64_s(t = &tmp, &tt) == 0)
-	#endif
-	{
-		_Year = t->tm_year + 1900;
-		_Month = t->tm_mon + 1;
-		_Day = t->tm_mday;
-
-		_Hours = t->tm_hour;
-		_Minutes = t->tm_min;
-		_Seconds = t->tm_sec;
-		_Thousands = 0;
-
-		return true;
-	}
-
-	return false;
-}
-
-bool GDateTime::Set(uint64 s)
-{
-	bool Status = false;
-
-	#if defined WIN32
-	FILETIME Utc, Local;
-	SYSTEMTIME System;
-	Utc.dwHighDateTime = s >> 32;
-	Utc.dwLowDateTime = s & 0xffffffff;
-	if (FileTimeToLocalFileTime(&Utc, &Local) &&
-		FileTimeToSystemTime(&Local, &System))
-	{
-		_Year = System.wYear;
-		_Month = System.wMonth;
-		_Day = System.wDay;
-
-		_Hours = System.wHour;
-		_Minutes = System.wMinute;
-		_Seconds = System.wSecond;
-		_Thousands = System.wMilliseconds;
-
-		Status = true;
-	}
-	#else
-
-	Set((time_t)(s / 1000));
-	_Thousands = s % 1000;
-	
-	#endif
-
-	return Status;
-}
-
 void GDateTime::SetNow()
 {
     #ifdef WIN32
@@ -696,6 +637,67 @@ uint64 GDateTime::Ts()
 	return ts;
 }
 
+bool GDateTime::Set(uint64 s)
+{
+	bool Status = false;
+
+	#if defined WIN32
+	FILETIME Utc, Local;
+	SYSTEMTIME System;
+	Utc.dwHighDateTime = s >> 32;
+	Utc.dwLowDateTime = s & 0xffffffff;
+	if (FileTimeToLocalFileTime(&Utc, &Local) &&
+		FileTimeToSystemTime(&Local, &System))
+	{
+		_Year = System.wYear;
+		_Month = System.wMonth;
+		_Day = System.wDay;
+
+		_Hours = System.wHour;
+		_Minutes = System.wMinute;
+		_Seconds = System.wSecond;
+		_Thousands = System.wMilliseconds;
+
+		Status = true;
+	}
+	#else
+
+	Set((time_t)(s / Second64Bit));
+	_Thousands = s % Second64Bit;
+	
+	#endif
+
+	return Status;
+}
+
+bool GDateTime::Set(time_t tt)
+{
+	struct tm *t;
+	#if _MSC_VER < 1400
+	t = localtime(&tt);
+	if (t)
+	#else
+	struct tm tmp;
+	if (_localtime64_s(t = &tmp, &tt) == 0)
+	#endif
+	{
+		_Year = t->tm_year + 1900;
+		_Month = t->tm_mon + 1;
+		_Day = t->tm_mday;
+
+		_Hours = t->tm_hour;
+		_Minutes = t->tm_min;
+		_Seconds = t->tm_sec;
+		_Thousands = 0;
+		
+		_Tz = SystemTimeZone();
+
+		return true;
+	}
+
+	return false;
+}
+
 bool GDateTime::Get(uint64 &s)
 {
 	bool Status = false;
@@ -738,10 +740,23 @@ bool GDateTime::Get(uint64 &s)
 	t.tm_hour = _Hours;
 	t.tm_min = _Minutes;
 	t.tm_sec = _Seconds;
+	t.tm_isdst = -1;
 	
+	/*
+	mktime assumes input is in localtime. This is fine if CurTz == _Tz but if it's different
+	we need to adjust the output to give the correct value.
+	*/
 	time_t sec = mktime(&t);
 	
-	s = (uint64)sec * 1000 + _Thousands;
+	int CurTz = SystemTimeZone();
+	if (CurTz != _Tz)
+	{
+		// Adjust the output to the correct time zone..
+		int Diff = CurTz - _Tz;
+		sec += Diff * 60;
+	}
+	
+	s = (uint64)sec * Second64Bit + _Thousands;
 	
 	#endif
 

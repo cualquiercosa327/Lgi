@@ -201,7 +201,7 @@ public:
 		GSkinEngine *s = LgiApp->SkinEngine;
 		if (s)
 		{
-			s->DrawBtn(&Mem, Back, Val != 0, Enabled());
+			s->DrawBtn(&Mem, Back, NULL, Val != 0, Enabled());
 		}
 		else
 		{
