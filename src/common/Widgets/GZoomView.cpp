@@ -13,7 +13,8 @@ Notes:
 #include "GThreadEvent.h"
 #include "GPalette.h"
 
-#define MAX_FACTOR		32
+#define MAX_FACTOR				32
+#define DEBUG_TILE_BOUNDARIES	0
 
 enum Messages
 {
@@ -751,7 +752,6 @@ public:
 						pal[i].p32.r = i;
 						pal[i].p32.g = i;
 						pal[i].p32.b = i;
-						printf("Greyscae\n");
 					}
 					pal[i].p32.a = 255;
 				}
@@ -773,7 +773,7 @@ public:
 					s.Offset(Sx, Sy);
 					
 					GdcPt2 off(Sx, Sy);
-					Callback->DrawBackground(TileCache, off, NULL);
+					Callback->DrawBackground(View, TileCache, off, NULL);
 					TileCache->Op(GDC_ALPHA);
 					TileCache->Blt(0, 0, Src, &s);
 				}
@@ -1104,7 +1104,7 @@ public:
             {
                 GRect r = Dst->Bounds();
                 GdcPt2 off(x, y);
-				Callback->DrawBackground(Dst, off, &r);
+				Callback->DrawBackground(View, Dst, off, &r);
             }
 			else
 			{
@@ -1136,6 +1136,14 @@ public:
 				
 				Dst->Op(GDC_ALPHA);
 				Dst->Blt(0, 0, Src, &s);
+			}
+			
+			// Draw any foreground elements
+			if (Callback)
+			{
+                GRect r = Dst->Bounds();
+                GdcPt2 off(x, y);
+				Callback->DrawForeground(View, Dst, off, &r);
 			}
 
 			Dst->Dirty = false;
@@ -1255,7 +1263,9 @@ void GZoomView::Update(GRect *Where)
 			for (int x=w.x1; x<=w.x2; x++)
 			{
 				if (d->Tile[x][y])
+				{
 					d->Tile[x][y]->Dirty = true;
+				}
 			}
 		}
 	}
@@ -1755,7 +1765,7 @@ void GZoomView::OnPaint(GSurface *pDC)
 						// Blt the tile image pixels to the screen
 						pDC->Blt(px, py, d->Tile[x][y], &tile_source);
 
-						#if 0
+						#if DEBUG_TILE_BOUNDARIES
 						pDC->Colour(GColour(0, 0, 255));
 						pDC->Box(&screen_source);
 						#endif
@@ -1768,7 +1778,7 @@ void GZoomView::OnPaint(GSurface *pDC)
 						// Full tile of image data
 						pDC->Blt(px, py, d->Tile[x][y]);
 
-						#if 0
+						#if DEBUG_TILE_BOUNDARIES
 						pDC->Colour(GColour(64, 0, 255));
 						pDC->Box(&r);
 						#endif

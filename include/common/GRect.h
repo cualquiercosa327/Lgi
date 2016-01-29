@@ -266,6 +266,24 @@ public:
 		Offset(-p.x, -p.y);
 		return *this;
 	}
+
+	GRect &operator *=(int factor)
+	{
+		x1 *= factor;
+		y1 *= factor;
+		x2 *= factor;
+		y2 *= factor;
+		return *this;
+	}
+	
+	GRect &operator /=(int factor)
+	{
+		x1 /= factor;
+		y1 /= factor;
+		x2 /= factor;
+		y2 /= factor;
+		return *this;
+	}
 };
 
 LgiClass bool operator ==(GRect &a, GRect &b);

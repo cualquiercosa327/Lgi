@@ -6,6 +6,8 @@
 #include "GPath.h"
 #include "GNotifications.h"
 
+class GZoomView;
+
 class GZoomViewCallback
 {
 public:
@@ -22,7 +24,8 @@ public:
 	
 	#undef DefOption
 	
-	virtual void DrawBackground(GSurface *Dst, GdcPt2 Offset, GRect *Where = NULL) = 0;
+	virtual void DrawBackground(GZoomView *View, GSurface *Dst, GdcPt2 Offset, GRect *Where = NULL) = 0;
+	virtual void DrawForeground(GZoomView *View, GSurface *Dst, GdcPt2 Offset, GRect *Where = NULL) = 0;
 	virtual void SetStatusText(const char *Msg, int Pane = 0) {}
 };
 

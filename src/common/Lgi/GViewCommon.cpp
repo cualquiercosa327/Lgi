@@ -881,6 +881,7 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 	if (c)
 	{
 		_Capturing = Wnd;
+		// LgiTrace("%s:%i _Capturing=%p\n", _FL, _Capturing);
 		
 		#if WINNATIVE
 			GdcPt2 Offset;
@@ -901,6 +902,7 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 	else
 	{
 		_Capturing = NULL;
+		// LgiTrace("%s:%i _Capturing=%p\n", _FL, _Capturing);
 
 		#if WINNATIVE
 			ReleaseCapture();
