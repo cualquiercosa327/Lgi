@@ -32,8 +32,6 @@ public:
 
 	/// Override this event to attach controls to the current view.
 	virtual void OnSelect() {}
-	int64 Value();
-	void Value(int64 i);
 };
 
 class GToolTabBar : public GToolBar
@@ -45,11 +43,12 @@ class GToolTabBar : public GToolBar
 	GToolTab *Current;
 	bool FitToArea;
 	bool Border;
+	bool InOnChangeEvent;
 
 	void _PaintTab(GSurface *pDC, GToolTab *Tab);
 
 public:
-	GToolTabBar();
+	GToolTabBar(int Id = -1);
 	~GToolTabBar();
 
 	const char *GetClass() { return "GToolTabBar"; }
@@ -71,6 +70,7 @@ public:
 	void OnPaint(GSurface *pDC);
 	void OnCreate();
 	void OnMouseClick(GMouse &m);
+	int OnNotify(GViewI *c, int f);
 };
 
 #endif

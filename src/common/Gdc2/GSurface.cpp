@@ -1894,3 +1894,55 @@ bool GSurface::ConvertPreMulAlpha(bool ToPreMul)
 	return true;
 }
 
+template<typename Px>
+void MakeOpaqueRop32(Px *in, int len)
+{
+	register Px *s = in;
+	register Px *e = s + len;
+	while (s < e)
+	{
+		s->a = 0xff;
+		s++;
+	}
+}
+
+template<typename Px>
+void MakeOpaqueRop64(Px *in, int len)
+{
+	register Px *s = in;
+	register Px *e = s + len;
+	while (s < e)
+	{
+		s->a = 0xffff;
+		s++;
+	}
+}
+
+bool GSurface::MakeOpaque()
+{
+	if (!pMem || !pMem->Base)
+		return false;
+	
+	for (int y=0; y<pMem->y; y++)
+	{
+		uint8 *src = pMem->Base + (y * pMem->Line);
+		switch (pMem->Cs)
+		{
+			#define OpaqueCase(px, sz) \
+				case Cs##px: MakeOpaqueRop##sz((G##px*)src, pMem->x); break
+			OpaqueCase(Rgba32, 32);
+			OpaqueCase(Bgra32, 32);
+			OpaqueCase(Argb32, 32);
+			OpaqueCase(Abgr32, 32);
+			OpaqueCase(Rgba64, 64);
+			OpaqueCase(Bgra64, 64);
+			OpaqueCase(Argb64, 64);
+			OpaqueCase(Abgr64, 64);
+			#undef OpaqueCase
+			default:
+				break;
+		}
+	}
+
+	return true;
+}

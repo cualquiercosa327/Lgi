@@ -22,6 +22,9 @@ protected:
 	int HlsValue(double fN1, double fN2, double fHue) const;
 
 public:
+	static const GColour Black;
+	static const GColour White;
+
 	/// Transparent
 	GColour();
 	/// Indexed colour

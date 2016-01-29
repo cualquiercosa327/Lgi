@@ -57,8 +57,6 @@ protected:
 
 	void Layout();
 
-	virtual	void SetDown(bool d);
-
 public:
 	GToolButton(int Bx, int By);
 	~GToolButton();
@@ -76,7 +74,6 @@ public:
 	/// Sets the icon index into the parent GToolBar's image list
 	void Image(int i);
 
-	bool GetDown() { return Down; }
 	int GetType() { return Type; }
 	void SetType(int i) { Type = i; }
 	bool Separator() { return GetId() == IDM_SEPARATOR; }

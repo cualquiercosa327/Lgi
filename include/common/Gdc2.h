@@ -560,6 +560,8 @@ public:
 	virtual bool IsPreMultipliedAlpha();
 	/// Converts the pixel data between pre-mul alpha or non-pre-mul alpha
 	virtual bool ConvertPreMulAlpha(bool ToPreMul);
+	/// Makes the alpha channel opaque
+	virtual bool MakeOpaque();
 
 	/// Gets the surface origin
 	virtual void GetOrigin(int &x, int &y) { x = OriginX; y = OriginY; }
@@ -1119,6 +1121,7 @@ typedef int (__stdcall *MsImg32_AlphaBlend)(HDC,int,int,int,int,HDC,int,int,int,
 class LgiClass GdcDevice : public GCapabilityClient
 {
 	friend class GScreenDC;
+	friend class GMemDC;
 	friend class GImageList;
 
 	static GdcDevice *pInstance;

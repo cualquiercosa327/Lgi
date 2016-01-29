@@ -24,6 +24,7 @@ public:
 	HPALETTE	OldPal;
 	bool		UpsideDown;
 	GRect		Client;
+	int			ConstAlpha;
 
 	GMemDCPrivate()
 	{
@@ -32,6 +33,7 @@ public:
 		OldPal = 0;
 		Client.ZOff(-1, -1);
 		UpsideDown = false;
+		ConstAlpha = 255;
 	}
 	
 	~GMemDCPrivate()
@@ -610,14 +612,14 @@ void GMemDC::Blt(int x, int y, GSurface *Src, GRect *a)
 	}
 }
 
-void GMemDC::StretchBlt(GRect *d, GSurface *Src, GRect *s)
+void GMemDC::StretchBlt(GRect *Dest, GSurface *Src, GRect *s)
 {
 	if (Src)
 	{
 		GRect DestR;
-		if (d)
+		if (Dest)
 		{
-			DestR = *d;
+			DestR = *Dest;
 		}
 		else
 		{
@@ -656,6 +658,48 @@ void GMemDC::StretchBlt(GRect *d, GSurface *Src, GRect *s)
 			case GDC_XOR:
 			{
 				RowOp = SRCINVERT;
+				break;
+			}
+			case GDC_ALPHA:
+			{
+				if (GdcD->AlphaBlend &&
+					Src->GetBits() == 32)
+				{
+					HDC hDestDC = StartDC();
+					HDC hSrcDC = Src->StartDC();
+
+					BLENDFUNCTION Blend;
+					Blend.BlendOp = AC_SRC_OVER;
+					Blend.BlendFlags = 0;
+					Blend.SourceConstantAlpha = d->ConstAlpha >= 0 &&
+												d->ConstAlpha <= 255 ?
+												d->ConstAlpha :
+												255;
+					Blend.AlphaFormat = AC_SRC_ALPHA;
+
+					if (!GdcD->AlphaBlend(	hDestDC,
+											DestR.x1, DestR.y1, DestR.X(), DestR.Y(),
+											hSrcDC,
+											SrcR.x1, SrcR.y1, SrcR.X(), SrcR.Y(),
+											Blend))
+					{
+						static bool First = true;
+						if (First)
+						{
+							First = false;
+							LgiTrace("%s:%i - AlphaBlend(%p, %s, %p, %s) failed.\n",
+								_FL,
+								hDestDC,
+								DestR.GetStr(),
+								hSrcDC,
+								SrcR.GetStr());
+						}
+					}
+
+					Src->EndDC();
+					EndDC();
+					return;
+				}
 				break;
 			}
 			default:

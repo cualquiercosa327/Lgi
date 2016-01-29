@@ -1,6 +1,9 @@
 #include "Lgi.h"
 #include "GPalette.h"
 
+const GColour GColour::Black(0, 0, 0);
+const GColour GColour::White(255, 255, 255);
+
 GColour::GColour()
 {
 	space = CsNone;

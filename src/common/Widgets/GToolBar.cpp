@@ -15,6 +15,7 @@
 #include "GVariant.h"
 #include "GDisplayString.h"
 #include "GPalette.h"
+#include "GNotifications.h"
 
 #define ToolBarHilightColour LC_HIGH
 
@@ -464,7 +465,7 @@ GToolButton::GToolButton(int Bx, int By)
 	d = new GToolButtonPriv;
 	Type = TBT_PUSH;
 	SetId(IDM_NONE);
-	SetDown(false);
+	Down = false;
 	Clicked = false;
 	Over = false;
 	ImgIndex = -1;
@@ -718,8 +719,9 @@ void GToolButton::Value(int64 b)
 		{
 			if (Value() != b)
 			{
-				SetDown(b);
+				Down = b;
 				Invalidate();
+				SendNotify(GNotifyValueChanged);
 			}
 			break;
 		}
@@ -729,41 +731,36 @@ void GToolButton::Value(int64 b)
 			if (GetParent() && b)
 			{
 				// Clear any other radio buttons that are down
-				GToolButton *But;
 				GAutoPtr<GViewIterator> it(GetParent()->IterateViews());
 				if (it)
 				{
-					for (	But = dynamic_cast<GToolButton*>(it->IndexOf(this)>=0?this:0);
-							But && But->GetId() >= 0;
-							But = dynamic_cast<GToolButton*>(it->Next()))
-					{
-						if (But->Type == TBT_RADIO &&
-							But != this &&
-							But->Down)
+					int CurIdx = it->IndexOf(this);
+					if (CurIdx >= 0)
+					{						
+						for (int i=CurIdx-1; i>=0; i--)
 						{
-							But->SetDown(false);
-							But->Invalidate();
+							GToolButton *But = dynamic_cast<GToolButton*>((*it)[i]);
+							if (But->Separator())
+								break;
+							if (But->Type == TBT_RADIO && But->Down)
+								But->Value(false);
 						}
-					}
 
-					int Idx = it->IndexOf(this);
-					for (	But = dynamic_cast<GToolButton*>(Idx>=0?this:0);
-							But && But->GetId() >= 0;
-							But = dynamic_cast<GToolButton*>(it->Prev()))
-					{
-						if (But->Type == TBT_RADIO &&
-							But != this &&
-							But->Down)
+						for (int i=CurIdx+1; i<it->Length(); i++)
 						{
-							But->SetDown(false);
-							But->Invalidate();
+							GToolButton *But = dynamic_cast<GToolButton*>((*it)[i]);
+							if (But->Separator())
+								break;
+							if (But->Type == TBT_RADIO && But->Down)
+								But->Value(false);
 						}
 					}
 				}
 			}
 
-			SetDown(b);
-			Invalidate();
+			Down = b;
+			GetParent()->Invalidate();
+			SendNotify(GNotifyValueChanged);
 			break;
 		}
 	}
@@ -821,7 +818,7 @@ void GToolButton::OnMouseClick(GMouse &m)
 						SendNotify(m.Flags);
 					}
 
-					SetDown(m.Down());
+					Value(m.Down());
 					if (Old != Down)
 					{
 						Invalidate();
@@ -871,7 +868,7 @@ void GToolButton::OnMouseEnter(GMouse &m)
 
 	if (Clicked)
 	{
-		SetDown(true);
+		Value(true);
 		Invalidate();
 	}
 	else
@@ -892,11 +889,6 @@ void GToolButton::OnMouseEnter(GMouse &m)
 			if (ToolBar) ToolBar->PostDescription(this, Name());
 		}
 	}
-}
-
-void GToolButton::SetDown(bool d)
-{
-	Down = d;
 }
 
 void GToolButton::OnMouseMove(GMouse &m)
@@ -921,7 +913,7 @@ void GToolButton::OnMouseExit(GMouse &m)
 
 	if (Clicked)
 	{
-		SetDown(false);
+		Value(false);
 		Invalidate();
 	}
 	else if (GetParent())
