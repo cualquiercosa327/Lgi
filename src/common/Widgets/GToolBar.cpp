@@ -818,7 +818,7 @@ void GToolButton::OnMouseClick(GMouse &m)
 						SendNotify(m.Flags);
 					}
 
-					Value(m.Down());
+					Down = m.Down();
 					if (Old != Down)
 					{
 						Invalidate();
