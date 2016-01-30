@@ -720,16 +720,18 @@ void GSurface::Rectangle(int x1, int y1, int x2, int y2)
 void GSurface::Ellipse(double Cx, double Cy, double a, double b)
 {
 	// TODO: fix this primitive for odd widths and heights
-	int cx = (int)Cx;
-	int cy = (int)Cy;
+	int cx = (int) Cx;
+	int cy = (int) Cy;
+	/*
 	a = floor(a);
 	b = floor(b);
+	*/
 	
-	long aSq = (long) (a*a);
-	long bSq = (long) (b*b);
-	long two_aSq = aSq+aSq;
-	long two_bSq = bSq+bSq;
-	long x=0, y=(long)b, two_xBsq = 0, two_yAsq = y * two_aSq, error = -y * aSq;
+	long aSq = (long) (a * a);
+	long bSq = (long) (b * b);
+	long two_aSq = aSq + aSq;
+	long two_bSq = bSq + bSq;
+	long x = 0, y = (long)b, two_xBsq = 0, two_yAsq = y * two_aSq, error = -y * aSq;
 
 	if (aSq && bSq && error)
 	{
@@ -751,7 +753,11 @@ void GSurface::Ellipse(double Cx, double Cy, double a, double b)
 			}
 		}
 	
-		x=(long)a; y=0; two_xBsq = x * two_bSq; two_yAsq = 0; error = -x * bSq;
+		x = (long)a;
+		y = 0;
+		two_xBsq = x * two_bSq;
+		two_yAsq = 0;
+		error = -x * bSq;
 	
 		while (two_xBsq >= two_yAsq)
 		{
@@ -771,22 +777,45 @@ void GSurface::Ellipse(double Cx, double Cy, double a, double b)
 			}
 		}
 	}
+	
 	Update(GDC_BITS_CHANGE);
 }
 
-void GSurface::FilledEllipse(double Cx, double Cy, double a, double b)
+void GSurface::FilledEllipse(double Cx, double Cy, double Width, double Height)
 {
+	#if 0
+	
+	double Width2 = Width * Width;
+	double Height2 = Height * Height;
+	int end_y = (int) ceil(Cy + Height);
+	for (int y = (int) floor(Cy - Height); y <= end_y; y++)
+	{
+		double Y = (double) y + 0.5;
+		double p2 = (Y - Cy);
+		p2 = (p2 * p2) / Height2;
+		double p3 = Width2 * (1 - p2);
+		if (p3 > 0.0)
+		{
+			double X = sqrt( p3 );
+			Line((int) floor(Cx - x + 0.5), y, (int) ceil(Cx + x - 0.5), y);
+		}
+	}	
+	
+	#else
+
 	// TODO: fix this primitive for odd widths and heights
 	int cx = (int)Cx;
 	int cy = (int)Cy;
+	/*
 	a = floor(a);
 	b = floor(b);
+	*/
 
-	long aSq = (long) (a*a);
-	long bSq = (long) (b*b);
+	long aSq = (long) (Width * Width);
+	long bSq = (long) (Height * Height);
 	long two_aSq = aSq+aSq;
 	long two_bSq = bSq+bSq;
-	long x=0, y=(long)b, two_xBsq = 0, two_yAsq = y * two_aSq, error = -y * aSq;
+	long x=0, y=(long)Height, two_xBsq = 0, two_yAsq = y * two_aSq, error = -y * aSq;
 
 	if (aSq && bSq && error)
 	{
@@ -806,7 +835,7 @@ void GSurface::FilledEllipse(double Cx, double Cy, double a, double b)
 			}
 		}
 	
-		x=(long)a;
+		x=(long)Width;
 		y=0;
 		two_xBsq = x * two_bSq;
 		two_yAsq = 0;
@@ -828,7 +857,9 @@ void GSurface::FilledEllipse(double Cx, double Cy, double a, double b)
 			}
 		}
 	}
-
+	
+	#endif
+	
 	Update(GDC_BITS_CHANGE);
 }
 

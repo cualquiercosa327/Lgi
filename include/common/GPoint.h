@@ -50,6 +50,20 @@ public:
 		y -= p.y;
 		return *this;
 	}
+
+	GdcPt2 &operator *=(int factor)
+	{
+		x *= factor;
+		y *= factor;
+		return *this;
+	}
+
+	GdcPt2 &operator /=(int factor)
+	{
+		x /= factor;
+		y /= factor;
+		return *this;
+	}
 };
 
 /// 3d Point
