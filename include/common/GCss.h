@@ -1112,13 +1112,23 @@ public:
 	void Empty();
 	void DeleteProp(PropType p);
 	virtual void OnChange(PropType Prop);
-	virtual bool Parse(const char *&Defs, ParsingStyle Type = ParseStrict);
 	bool operator ==(GCss &c);
 	bool operator !=(GCss &c) { return !(*this == c); }
 	bool CopyStyle(const GCss &c);
 	GCss &operator =(const GCss &c) { CopyStyle(c); return *this; }
 	void *PropAddress(PropType p) { return Props.Find(p); }
 	GAutoString ToString();
+	const char *ToString(DisplayType dt);
+
+	// Parsing
+	virtual bool Parse(const char *&Defs, ParsingStyle Type = ParseStrict);
+	bool ParseDisplayType(const char *&s);
+	void ParsePositionType(const char *&s);
+	bool ParseFontStyle(PropType p, const char *&s);
+	bool ParseFontVariant(PropType p, const char *&s);
+	bool ParseFontWeight(PropType p, const char *&s);
+	bool ParseBackgroundRepeat(const char *&s);
+
 
 	template<typename T>
 	T *GetOrCreate(T *&ptr, int PropId)
@@ -1163,10 +1173,6 @@ protected:
 
 	static const char *PropName(PropType p);
 
-	bool ParseFontStyle(PropType p, const char *&s);
-	bool ParseFontVariant(PropType p, const char *&s);
-	bool ParseFontWeight(PropType p, const char *&s);
-	bool ParseBackgroundRepeat(const char *&s);
 	virtual bool OnUnhandledColor(ColorDef *def, const char *&s) { return false; }
 
 	template<typename T>

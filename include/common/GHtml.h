@@ -91,7 +91,7 @@ public:
 						GdcPt2 *LocalCoords = NULL,
 						bool DebugLog = false);
 	/// Layout content and return size.
-	GdcPt2 Layout();
+	GdcPt2 Layout(bool ForceLayout = false);
 
 	// Options
 	bool GetLinkDoubleClick();

@@ -577,6 +577,7 @@ GHtmlElemInfo *GHtmlStatic::GetTagInfo(const char *Tag)
 /////////////////////////////////////////////////////////////////////////////
 GHtmlElement::GHtmlElement(GHtmlElement *parent)
 {
+	StyleDom.Css = this;
 	TagId = CONTENT;
 	Info = NULL;
 	WasClosed = false;

@@ -407,6 +407,20 @@ bool GCss::ColorDef::ToString(GStream &p)
 	return true;
 }
 
+const char *GCss::ToString(DisplayType dt)
+{
+	switch (dt)
+	{
+		case DispInherit: return "inherit";
+		case DispBlock: return "block";
+		case DispInline: return "inline";
+		case DispInlineBlock: return "inline-block";
+		case DispListItem: return "list-item";
+		case DispNone: return "none";
+		default: return NULL;
+	}
+}
+
 GAutoString GCss::ToString()
 {
 	GStringPipe p;
@@ -473,15 +487,7 @@ GAutoString GCss::ToString()
 					case PropDisplay:
 					{
 						DisplayType *d = (DisplayType*)v;
-						switch (*d)
-						{
-							case DispInherit: s = "inherit"; break;
-							case DispBlock: s = "block"; break;
-							case DispInline: s = "inline"; break;
-							case DispInlineBlock: s = "inline-block"; break;
-							case DispListItem: s = "list-item"; break;
-							case DispNone: s = "none"; break;
-						}
+						s = ToString(*d);
 						break;
 					}
 					case PropFloat:
@@ -1244,6 +1250,36 @@ bool GCss::ParseBackgroundRepeat(const char *&s)
 	return true;
 }
 
+bool GCss::ParseDisplayType(const char *&s)
+{
+	DisplayType *t = (DisplayType*)Props.Find(PropDisplay);
+	if (!t) Props.Add(PropDisplay, t = new DisplayType);
+	
+	if (ParseWord(s, "block")) *t = DispBlock;
+	else if (ParseWord(s, "inline-block")) *t = DispInlineBlock;
+	else if (ParseWord(s, "inline")) *t = DispInline;
+	else if (ParseWord(s, "list-item")) *t = DispListItem;
+	else if (ParseWord(s, "none")) *t = DispNone;
+	else
+	{
+		*t = DispInherit;
+		return false;
+	}
+	return true;
+}
+
+void GCss::ParsePositionType(const char *&s)
+{
+	PositionType *t = (PositionType*)Props.Find(PropPosition);
+	if (!t) Props.Add(PropPosition, t = new PositionType);
+	
+	if (ParseWord(s, "static")) *t = PosStatic;
+	else if (ParseWord(s, "relative")) *t = PosRelative;
+	else if (ParseWord(s, "absolute")) *t = PosAbsolute;
+	else if (ParseWord(s, "fixed")) *t = PosFixed;
+	else *t = PosInherit;
+}
+
 bool GCss::Parse(const char *&s, ParsingStyle Type)
 {
 	if (!s) return false;
@@ -1282,30 +1318,11 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 				switch (PropId)
 				{
 					case PropDisplay:
-					{
-						DisplayType *t = (DisplayType*)Props.Find(PropId);
-						if (!t) Props.Add(PropId, t = new DisplayType);
-						
-						if (ParseWord(s, "block")) *t = DispBlock;
-						else if (ParseWord(s, "inline-block")) *t = DispInlineBlock;
-						else if (ParseWord(s, "inline")) *t = DispInline;
-						else if (ParseWord(s, "list-item")) *t = DispListItem;
-						else if (ParseWord(s, "none")) *t = DispNone;
-						else *t = DispInherit;
+						ParseDisplayType(s);
 						break;
-					}
 					case PropPosition:
-					{
-						PositionType *t = (PositionType*)Props.Find(PropId);
-						if (!t) Props.Add(PropId, t = new PositionType);
-						
-						if (ParseWord(s, "static")) *t = PosStatic;
-						else if (ParseWord(s, "relative")) *t = PosRelative;
-						else if (ParseWord(s, "absolute")) *t = PosAbsolute;
-						else if (ParseWord(s, "fixed")) *t = PosFixed;
-						else *t = PosInherit;
+						ParsePositionType(s);
 						break;
-					}
 					case PropFloat:
 					{
 						FloatType *t = (FloatType*)Props.Find(PropId);

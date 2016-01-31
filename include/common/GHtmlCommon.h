@@ -137,6 +137,20 @@ public:
 	}
 };
 
+class GCssStyle : public GDom
+{
+public:
+	GCss *Css;
+
+	GCssStyle()
+	{
+		Css = NULL;
+	}
+
+	bool GetVariant(const char *Name, GVariant &Value, char *Array = 0);
+	bool SetVariant(const char *Name, GVariant &Value, char *Array = 0);
+};
+
 /// Common base class for a HTML element
 class GHtmlElement : public GDom, public GCss
 {
@@ -146,6 +160,7 @@ class GHtmlElement : public GDom, public GCss
 protected:
 	GAutoWString Txt;
 	uint8 WasClosed : 1;
+	GCssStyle StyleDom;
 
 public:
 	HtmlTag TagId;

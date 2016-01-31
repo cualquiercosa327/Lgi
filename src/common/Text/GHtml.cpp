@@ -1385,6 +1385,20 @@ void GTag::Set(const char *attr, const char *val)
 
 bool GTag::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
+	if (!Name)
+		return false;
+	
+	if (!_stricmp(Name, "style"))
+	{
+		Value = &StyleDom;
+		return true;
+	}
+	else if (!_strcmpi(Name, "textContent"))
+	{
+		Value = Text();
+		return true;
+	}
+
 	char *a = Attr.Find(Name);
 	if (a)
 	{
@@ -1400,7 +1414,25 @@ bool GTag::SetVariant(const char *Name, GVariant &Value, char *Array)
 	if (!Name)
 		return false;
 
-	if (!_stricmp(Name, "innerHTML"))
+	if (!_stricmp(Name, "style"))
+	{
+		const char *Defs = Value.Str();
+		if (!Defs)
+			return false;
+			
+		return Parse(Defs, ParseRelaxed);
+	}
+	else if (!_strcmpi(Name, "textContent"))
+	{
+		const char *s = Value.Str();
+		if (s)
+		{
+			GAutoWString w(CleanText(s, strlen(s), "utf-8", true, true));
+			Txt = w;
+			return true;
+		}
+	}
+	else if (!_stricmp(Name, "innerHTML"))
 	{
 		// Clear out existing tags..
 		Children.DeleteObjects();
@@ -2118,17 +2150,20 @@ bool GTag::OnMouseClick(GMouse &m)
 			{
 				if (IsAnchor(&Uri))
 				{
-					if
-					(
-						Uri &&
-						(
-							!Html->d->LinkDoubleClick ||
-							m.Double()
-						)
-					)
+					if (Uri)
 					{
-						Html->Environment->OnNavigate(Html, Uri);
-						Processed = true;
+						const char *OnClick = NULL;
+						if (!Html->d->LinkDoubleClick || m.Double())
+						{
+							Html->Environment->OnNavigate(Html, Uri);
+							Processed = true;
+						}
+					}
+					
+					const char *OnClk = NULL;
+					if (!Processed && Get("onclick", OnClk))
+					{
+						Html->Environment->OnExecuteScript(Html, (char*)OnClk);
 					}
 				}
 				else
@@ -6120,7 +6155,7 @@ void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderP
 			}			
 			if (!Corners || Corners->Px2 != Px2)
 			{
-				Corners.Reset(new CornersImg(Px, BorderPx, defs, Back, DrawBackground));
+				Corners.Reset(new CornersImg((float)Px, BorderPx, defs, Back, DrawBackground));
 			}
 			
 			// top left
@@ -7154,10 +7189,10 @@ void GHtml::OnPosChange()
 	}
 }
 
-GdcPt2 GHtml::Layout()
+GdcPt2 GHtml::Layout(bool ForceLayout)
 {
 	GRect Client = GetClient();
-	if (Tag && ViewWidth != Client.X())
+	if (Tag && (ViewWidth != Client.X() || ForceLayout))
 	{
 		GRect Client = GetClient();
 		GFlowRegion f(this, Client, false);
@@ -9083,4 +9118,44 @@ void GTagHit::Dump(const char *Desc)
 		Index,
 		Block ? Block->GetStr() : NULL,
 		Block ? Block->Text + Index : NULL);
+}
+
+////////////////////////////////////////////////////////////////////////
+bool GCssStyle::GetVariant(const char *Name, GVariant &Value, char *Array)
+{
+	if (!Name)
+		return false;
+
+	if (!_stricmp(Name, "display"))
+	{
+		Value = Css->ToString(Css->Display());
+		return Value.Str() != NULL;
+	}
+	else LgiAssert(!"Impl me.");
+	
+	return false;
+}
+
+bool GCssStyle::SetVariant(const char *Name, GVariant &Value, char *Array)
+{
+	if (!Name)
+		return false;
+
+	if (!_stricmp(Name, "display"))
+	{
+		const char *d = Value.Str();
+		if (Css->ParseDisplayType(d))
+		{
+			GTag *t = dynamic_cast<GTag*>(Css);
+			if (t)
+			{
+				t->Html->Layout(true);
+				t->Html->Invalidate();
+			}
+			return true;
+		}
+	}
+	else LgiAssert(!"Impl me.");
+	
+	return false;
 }
