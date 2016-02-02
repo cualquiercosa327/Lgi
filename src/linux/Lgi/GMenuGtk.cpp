@@ -439,8 +439,10 @@ Gtk::gint LgiKeyToGtkKey(int Key, const char *ShortCut)
 	LgiAssert(GDK_A == 'A');
 	#endif
 	
+	/*
 	if (Key >= 'a' && Key <= 'z')
 		return Key;
+	*/
 	if (Key >= 'A' && Key <= 'Z')
 		return Key;
 	if (Key >= '0' && Key <= '9')
@@ -609,7 +611,8 @@ bool LgiMenuItem::ScanForAccel()
 				}
 				else if (k[0] == 'F' && isdigit(k[1]))
 				{
-					Key = VK_F1 + atoi(k+1) - 1;
+					int Idx = atoi(k+1);
+					Key = VK_F1 + Idx - 1;
 				}
 				else if (isalpha(k[0]))
 				{

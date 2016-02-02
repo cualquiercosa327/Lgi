@@ -529,6 +529,8 @@ GPopup::GPopup(GView *owner)
 
 GPopup::~GPopup()
 {
+	LgiTrace("GPopup::~GPopup %p %p\n", this, d);
+
     #if !WINNATIVE
 	CurrentPopups.Delete(this);
 	#endif
@@ -622,43 +624,27 @@ gboolean PopupEvent(GtkWidget *widget, GdkEvent *event, GPopup *This)
 {
 	switch (event->type)
 	{
-		case GDK_DELETE:
-		{
-			// delete This;
-			break;
-		}
-		case GDK_DESTROY:
-		{
-			// LgiTrace("PopupEvent.Destroy\n");
-			delete This;
-			return TRUE;
-		}
 		case GDK_CONFIGURE:
 		{
 			GdkEventConfigure *c = (GdkEventConfigure*)event;
 			This->Pos.Set(c->x, c->y, c->x+c->width-1, c->y+c->height-1);
 			This->OnPosChange();
-			
-			// LgiTrace("PopupEvent.Config\n");
 			return FALSE;
 			break;
 		}
 		case GDK_FOCUS_CHANGE:
 		{
-			// LgiTrace("PopupEvent.Focus(%i)\n", event->focus_change.in);
 			This->OnFocus(event->focus_change.in);
 			break;
 		}
 		case GDK_CLIENT_EVENT:
 		{
 			GMessage m(event);
-			// LgiTrace("PopupEvent.Client\n");
 			This->OnEvent(&m);
 			break;
 		}
 		case GDK_BUTTON_PRESS:
 		{
-			// LgiTrace("PopupEvent.Button\n");
 			break;
 		}
 		case GDK_EXPOSE:
@@ -680,8 +666,6 @@ gboolean PopupEvent(GtkWidget *widget, GdkEvent *event, GPopup *This)
 
 bool GPopup::Attach(GViewI *p)
 {
-	printf("GPopup::Attach(%p)\n", p);
-	
 	#if defined MAC && !defined(LGI_SDL)
 	
 		#if !defined COCOA
@@ -765,10 +749,12 @@ bool GPopup::Attach(GViewI *p)
 								"delete_event",
 								G_CALLBACK(PopupEvent),
 								this);
+			/*
 			g_signal_connect(	G_OBJECT(Wnd),
 								"destroy",
 								G_CALLBACK(PopupDestroy),
 								this);
+			*/
 			g_signal_connect(	G_OBJECT(Wnd),
 								"configure-event",
 								G_CALLBACK(PopupEvent),

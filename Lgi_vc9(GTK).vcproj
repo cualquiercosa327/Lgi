@@ -159,6 +159,7 @@
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 				CompileAs="0"
+				ShowIncludes="false"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -578,14 +579,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\common\Text\GHtmlCommon.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\common\Text\GHtmlParser.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\linux\Lgi\GLayout.cpp"
 					>
 				</File>
@@ -663,10 +656,6 @@
 				</File>
 				<File
 					RelativePath=".\src\common\Text\GTextView3.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\common\Text\GTextView4.cpp"
 					>
 				</File>
 				<File

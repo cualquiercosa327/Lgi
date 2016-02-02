@@ -11,7 +11,7 @@
 
 extern char Delimiters[];
 
-#if defined(MAC) || defined(__GTK_H__)
+#if defined(MAC)
 #define DefClass class LgiClass
 #else
 #define DefClass class
