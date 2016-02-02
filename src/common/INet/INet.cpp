@@ -593,6 +593,8 @@ int GSocket::Open(const char *HostAddr, int Port)
 
 		if (ValidSocket(d->Socket))
 		{
+			GArray<char> Buf(512);
+
 			#if !defined(MAC) && !defined(BEOS)
 			if (d->Flags & TCP_NODELAY)
 			{
@@ -646,7 +648,6 @@ int GSocket::Open(const char *HostAddr, int Port)
 					
 					HostEnt *Result = 0;
 					int Err = 0;
-					GArray<char> Buf(512);
 					int Ret;
 					while
 					(
