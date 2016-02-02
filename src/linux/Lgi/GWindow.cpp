@@ -294,6 +294,7 @@ gboolean GWindow::OnGtkEvent(GtkWidget *widget, GdkEvent *event)
 
 gboolean GtkViewDestroy(GtkWidget *widget, GView *This)
 {
+	printf("GtkViewDestroy %p\n", This);
 	delete This;
 	return true;
 }
@@ -1335,4 +1336,15 @@ void GWindow::OnTrayClick(GMouse &m)
 		}
 	}
 }
+
+void GWindow::Quit(bool DontDelete)
+{
+	ThreadCheck();
+	
+	if (_View)
+	{
+		gtk_widget_destroy(_View);
+	}
+}
+
 

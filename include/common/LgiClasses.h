@@ -1381,6 +1381,7 @@ public:
 	#elif defined __GTK_H__
 	
 		void OnMap(bool m);
+		void Quit(bool DontDelete = false);
 	
 	#endif
 };
