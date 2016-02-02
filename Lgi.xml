@@ -167,7 +167,7 @@
 			<Node File="./src/common/Lgi/GFontSelect.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Lgi/GInput.cpp" Type="2" Platforms="15" />
 		</Node>
-		<Node Name="Graphics" Type="1" Platforms="15" Open="1">
+		<Node Name="Graphics" Type="1" Platforms="15" Open="0">
 			<Node Name="_Core" Type="1" Platforms="15" Open="0">
 				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
 					<Node File=".\src\beos\Gdc2\Gdc2.cpp" Type="2" Platforms="8" />
@@ -188,7 +188,7 @@
 				<Node File="./include/common/GdcTools.h" Type="3" Platforms="15" />
 				<Node File="./include/common/GFilter.h" Type="3" Platforms="15" />
 			</Node>
-			<Node Name="Font" Type="1" Platforms="15" Open="1">
+			<Node Name="Font" Type="1" Platforms="15" Open="0">
 				<Node File="./src/common/Gdc2/Font/GDisplayString.cpp" Type="2" Platforms="15" />
 				<Node File="./src/common/Gdc2/Font/GFont.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GFont.h" Type="3" Platforms="15" />
@@ -261,9 +261,10 @@
 			<Node File="./src/common/Lgi/GOptionsFile.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Lgi/LgiRand.cpp" Type="2" Platforms="15" />
 		</Node>
-		<Node Name="Text" Type="1" Platforms="15" Open="0">
+		<Node Name="Text" Type="1" Platforms="15" Open="1">
 			<Node File="./src/common/Text/GString.cpp" Type="2" Platforms="15" />
 			<Node File="./include/common/GString.h" Type="3" Platforms="15" />
+			<Node File="./include/common/GTextFile.h" Type="3" Platforms="15" />
 			<Node File="./src/common/Text/GToken.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Text/GUnicode.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Text/GUtf8.cpp" Type="2" Platforms="15" />

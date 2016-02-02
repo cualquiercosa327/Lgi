@@ -101,7 +101,7 @@ public:
 					// Check for utf-8 first...
 					GUtf8Ptr utf(buf);
 					bool InvalidUtf = false;
-					while (utf.GetPtr() < end)
+					while (utf.GetPtr() < end - 6) // Leave enough bytes not to run over the end of the buffer
 					{						
 						int32 u = utf;
 						if (u < 0)

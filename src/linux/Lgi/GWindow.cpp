@@ -1337,3 +1337,14 @@ void GWindow::OnTrayClick(GMouse &m)
 	}
 }
 
+void GWindow::Quit(bool DontDelete)
+{
+	ThreadCheck();
+	
+	if (_View)
+	{
+		gtk_widget_destroy(_View);
+	}
+}
+
+
