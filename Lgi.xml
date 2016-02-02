@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project>
-	<Node Name="Source Files" Type="1" Platforms="15" Open="0">
+	<Node Name="Source Files" Type="1" Platforms="15" Open="1">
 		<Node Name="Core" Type="1" Platforms="15" Open="0">
 			<Node Name="DateTime" Type="1" Platforms="15" Open="0">
 				<Node File=".\src\common\General\GDateTime.cpp" Type="2" Platforms="15" />
@@ -167,12 +167,12 @@
 			<Node File="./src/common/Lgi/GFontSelect.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Lgi/GInput.cpp" Type="2" Platforms="15" />
 		</Node>
-		<Node Name="Graphics" Type="1" Platforms="15" Open="0">
-			<Node Name="_Core" Type="1" Platforms="15" Open="1">
+		<Node Name="Graphics" Type="1" Platforms="15" Open="1">
+			<Node Name="_Core" Type="1" Platforms="15" Open="0">
 				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
 					<Node File=".\src\beos\Gdc2\Gdc2.cpp" Type="2" Platforms="8" />
 				</Node>
-				<Node Name="Linux" Type="1" Platforms="15" Open="1">
+				<Node Name="Linux" Type="1" Platforms="15" Open="0">
 					<Node File="./src/linux/Gtk/Gdc2.cpp" Type="2" Platforms="2" />
 				</Node>
 				<Node Name="Win32" Type="1" Platforms="15" Open="0">
@@ -188,7 +188,7 @@
 				<Node File="./include/common/GdcTools.h" Type="3" Platforms="15" />
 				<Node File="./include/common/GFilter.h" Type="3" Platforms="15" />
 			</Node>
-			<Node Name="Font" Type="1" Platforms="15" Open="0">
+			<Node Name="Font" Type="1" Platforms="15" Open="1">
 				<Node File="./src/common/Gdc2/Font/GDisplayString.cpp" Type="2" Platforms="15" />
 				<Node File="./src/common/Gdc2/Font/GFont.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GFont.h" Type="3" Platforms="15" />

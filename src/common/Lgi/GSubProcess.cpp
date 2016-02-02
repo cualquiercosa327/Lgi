@@ -348,7 +348,7 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 	{
 		Pipes[i].Create(&Attr);
 		
-LgiTrace("%i) pipe[%i]=%i,%i\n", i, i, Pipes[i].Read, Pipes[i].Write);
+// LgiTrace("%i) pipe[%i]=%i,%i\n", i, i, Pipes[i].Read, Pipes[i].Write);
 		
 		GSubProcess *sp = p[i-1];
 		sp->ChildPid = fork();
@@ -375,7 +375,7 @@ LgiTrace("%i) pipe[%i]=%i,%i\n", i, i, Pipes[i].Read, Pipes[i].Write);
 			Pipe &in = Pipes[i-1];
 			Pipe &out = Pipes[i];
 
-LgiTrace("%i) Child init %i->'%s'->%i\n", i, in.Read, sp->Exe.Get(), out.Write);
+// LgiTrace("%i) Child init %i->'%s'->%i\n", i, in.Read, sp->Exe.Get(), out.Write);
 
 			Dupe(in.Read, STDIN_FILENO);
 			close(in.Write);

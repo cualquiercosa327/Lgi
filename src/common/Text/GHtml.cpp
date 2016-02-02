@@ -1393,7 +1393,7 @@ bool GTag::GetVariant(const char *Name, GVariant &Value, char *Array)
 		Value = &StyleDom;
 		return true;
 	}
-	else if (!_strcmpi(Name, "textContent"))
+	else if (!_stricmp(Name, "textContent"))
 	{
 		Value = Text();
 		return true;
@@ -1422,7 +1422,7 @@ bool GTag::SetVariant(const char *Name, GVariant &Value, char *Array)
 			
 		return Parse(Defs, ParseRelaxed);
 	}
-	else if (!_strcmpi(Name, "textContent"))
+	else if (!_stricmp(Name, "textContent"))
 	{
 		const char *s = Value.Str();
 		if (s)
