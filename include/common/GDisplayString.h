@@ -53,11 +53,14 @@ class LgiClass GDisplayString
 	
 	#elif defined(MAC)
 	
-	#ifdef COCOA
+	#if USE_CORETEXT
+		CTLineRef Hnd;
+		CFAttributedStringRef AttrStr;
+		void CreateAttrStr();
 	#else
-	ATSUTextLayout Hnd;
-	ATSUTextMeasurement fAscent;
-	ATSUTextMeasurement fDescent;
+		ATSUTextLayout Hnd;
+		ATSUTextMeasurement fAscent;
+		ATSUTextMeasurement fDescent;
 	#endif
 	
 	#elif defined(__GTK_H__)

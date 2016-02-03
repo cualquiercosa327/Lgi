@@ -27,7 +27,11 @@
 
 /// This turns on the Core Text implementation.
 /// If '0' the old ATSUI implementation is used.
+#ifdef __ATSUNICODEOBJECTS__
 #define USE_CORETEXT		0
+#else
+#define USE_CORETEXT		1
+#endif
 
 //////////////////////////////////////////////////////////////////
 // Typedefs

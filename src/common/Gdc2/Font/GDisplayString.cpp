@@ -62,14 +62,51 @@ bool StringConvert(Out *&out, uint32 *OutLen, const In *in, int InLen)
 
 static OsChar GDisplayStringDots[] = {'.', '.', '.', 0};
 
+#if USE_CORETEXT
+#include <CoreFoundation/CFString.h>
+
+void GDisplayString::CreateAttrStr()
+{
+	if (!StrCache.Get())
+		return;
+
+	wchar_t *w = StrCache.Get();
+	CFStringRef string = CFStringCreateWithBytes(kCFAllocatorDefault, (const uint8*)w, StrlenW(w) * sizeof(*w), kCFStringEncodingUTF32LE, false);
+	if (string)
+	{
+		CFStringRef keys[] = { kCTFontAttributeName };
+		CFTypeRef values[] = { Font->Handle() };
+
+		CFDictionaryRef attributes =
+			CFDictionaryCreate(kCFAllocatorDefault, (const void**)&keys,
+				(const void**)&values, sizeof(keys) / sizeof(keys[0]),
+				&kCFTypeDictionaryKeyCallBacks,
+				&kCFTypeDictionaryValueCallBacks);
+		
+		if (attributes)
+		{
+			AttrStr = CFAttributedStringCreate(kCFAllocatorDefault, string, attributes);
+			CFRelease(attributes);
+		}
+		
+		CFRelease(string);
+	}
+}
+#endif
+
 GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc)
 {
 	pDC = pdc;
 	Font = f;
 	
+	#if LGI_DSP_STR_CACHE
+
+		StrCache.Reset(LgiNewUtf8To16(s, l));
+
+	#endif
+
 	#if defined(MAC)
 	
-		StrCache.Reset(LgiNewUtf8To16(s, l));
 		StringConvert(Str, &len, s, l);
 	
 	#elif defined(WINNATIVE) || defined(LGI_SDL)
@@ -96,13 +133,16 @@ GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc)
 	#if defined MAC && !defined COCOA && !defined(LGI_SDL)
 	
 		Hnd = 0;
+		#if USE_CORETEXT
+		AttrStr = NULL;
+		#endif
 		if (Font && Str)
 		{
 			len = l >= 0 ? l : StringLen(Str);
 			if (len > 0)
 			{
 				#if USE_CORETEXT
-					LgiAssert(!"Impl create layout.");
+					CreateAttrStr();
 				#else
 					ATSUCreateTextLayout(&Hnd);
 				#endif
@@ -128,6 +168,12 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
 	pDC = pdc;
 	Font = f;
 
+	#if LGI_DSP_STR_CACHE
+
+		StrCache.Reset(NewStrW(s, l));
+
+	#endif
+
     #if defined(MAC) || WINNATIVE || defined(LGI_SDL)
 
 		StringConvert(Str, &len, s, l);
@@ -149,18 +195,17 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
 
 	#if defined MAC && !defined COCOA && !defined(LGI_SDL)
 	
-		Hnd = 0;
+		Hnd = NULL;
+		#if USE_CORETEXT
+		AttrStr = NULL;
+		#endif
 		if (Font && Str && len > 0)
 		{
 			#if USE_CORETEXT
-
-				LgiAssert(!"Impl create layout.");
-
+				CreateAttrStr();
 			#else
-
 				OSStatus e = ATSUCreateTextLayout(&Hnd);
 				if (e) printf("%s:%i - ATSUCreateTextLayout failed with %i.\n", _FL, (int)e);
-
 			#endif
 		}
 	
@@ -185,7 +230,16 @@ GDisplayString::~GDisplayString()
 
 		#if USE_CORETEXT
 
-			LgiAssert(!"Impl delete text layout.");
+			if (Hnd)
+			{
+				CFRelease(Hnd);
+				Hnd = NULL;
+			}
+			if (AttrStr)
+			{
+				CFRelease(AttrStr);
+				AttrStr = NULL;
+			}
 
 		#else
 
@@ -409,15 +463,27 @@ void GDisplayString::Layout(bool Debug)
 	
 	#elif defined MAC && !defined COCOA && !defined(LGI_SDL)
 	
-		if (!Hnd || !Str)
-			return;
-
 		#if USE_CORETEXT
 
-			LgiAssert(!"Impl text layout.");
+			Hnd = CTLineCreateWithAttributedString(AttrStr);
+			if (Hnd)
+			{
+				CGFloat ascent = 0.0;
+				CGFloat descent = 0.0;
+				CGFloat leading = 0.0;
+				double width = CTLineGetTypographicBounds(Hnd, &ascent, &descent, &leading);
+				double height = ascent + descent;
+				x = ceil(width);
+				y = ceil(height);
+				xf = width * FScale;
+				yf = height * FScale;
+			}
 	
 		#else
 	
+			if (!Hnd || !Str)
+				return;
+
 			OSStatus e = ATSUSetTextPointerLocation(Hnd, Str, 0, len, len);
 			if (e)
 			{
@@ -785,7 +851,7 @@ void GDisplayString::TruncateWithDots(int Width)
 	
 		#if USE_CORETEXT
 
-			LgiAssert(!"Impl truncate text layout.");
+			LgiTrace("%s:%i - Impl truncate text layout.\n", _FL);
 	
 		#else
 	
@@ -846,7 +912,7 @@ int GDisplayString::CharAt(int Px)
 		
 		#if USE_CORETEXT
 
-			LgiAssert(!"Impl get char at position.");
+			LgiTrace("%s:%i - Impl get char at position.\n", _FL);
 
 		#else
 
@@ -1850,7 +1916,8 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc, bool Debug
 
 		#if USE_CORETEXT
 
-			LgiAssert(!"Impl draw layout.");
+			CGContextSetTextPosition(dc, fx / FScale, fy / FScale);
+			CTLineDraw(Hnd, dc);
 
 		#else
 

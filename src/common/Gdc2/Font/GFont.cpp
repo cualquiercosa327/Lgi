@@ -118,6 +118,12 @@ int WinHeightToPoint(int Ht, HDC hDC)
 	return Pt;
 }
 
+#elif defined(MAC)
+
+// CTFontCreateUIFontForLanguage
+// #include <HIToolbox/HITheme.h>
+#include <CoreText/CTFont.h>
+
 #endif
 
 //////////////////////////////////////////////////////////////////////
@@ -1648,6 +1654,35 @@ public:
 	}
 };
 
+#ifdef MAC
+
+bool MacGetSystemFont(GTypeFace &Info, CTFontUIFontType Which)
+{
+	CTFontRef ref = CTFontCreateUIFontForLanguage(Which, 0.0, NULL);
+	if (!ref)
+		return false;
+
+	bool Status = false;
+	CFStringRef name = CTFontCopyFamilyName(ref);
+	if (name)
+	{
+		CGFloat sz = CTFontGetSize(ref);
+		GString face(name);
+
+		Info.Face(face);
+		Info.PointSize((int)sz);
+
+		CFRelease(name);
+		Status = true;
+	}
+
+	CFRelease(ref);
+
+	return Status;
+}
+
+#endif
+
 bool GFontType::GetSystemFont(const char *Which)
 {
 	bool Status = false;
@@ -1812,24 +1847,7 @@ bool GFontType::GetSystemFont(const char *Which)
 
 				#if USE_CORETEXT
 
-				CTFontRef f = CTFontCreateUIFontForLanguage(kCTFontSystemFontType, 0.0f, NULL);
-				if (f)
-				{
-					CFStringRef nm = CTFontCopyFamilyName(f);
-					CGFloat     sz = CTFontGetSize(f);
-					if (nm)
-					{
-						GString name;
-						name = nm;
-						Info.Face(name.Strip("."));
-						Info.PointSize(sz);
-						Status = true;
-						
-						CFRelease(nm);
-					}
-					
-					CFRelease(f);
-				}
+				Status = MacGetSystemFont(Info, kCTFontUIFontSystem);
 
 				#else
 			
@@ -1862,7 +1880,7 @@ bool GFontType::GetSystemFont(const char *Which)
 		{
 			#if LGI_SDL
 			
-				LgiAssert(!"Impl me.");
+			LgiAssert(!"Impl me.");
 			
 			#elif defined WINNATIVE
 
@@ -1890,7 +1908,7 @@ bool GFontType::GetSystemFont(const char *Which)
 			
 				#if USE_CORETEXT
 
-					LgiAssert(!"Impl get font info.");
+					Status = MacGetSystemFont(Info, kCTFontUIFontMenuItem);
 
 				#else
 
@@ -1952,7 +1970,7 @@ bool GFontType::GetSystemFont(const char *Which)
 			
 				#if USE_CORETEXT
 
-				LgiAssert(!"Impl get font info.");
+				Status = MacGetSystemFont(Info, kCTFontUIFontToolbar);
 			
 				#else
 			
@@ -2012,7 +2030,7 @@ bool GFontType::GetSystemFont(const char *Which)
 			
 				#if USE_CORETEXT
 
-				LgiAssert(!"Impl get font info.");
+				Status = MacGetSystemFont(Info, kCTFontUIFontSystemDetail);
 			
 				#else
 			
@@ -2081,7 +2099,7 @@ bool GFontType::GetSystemFont(const char *Which)
 			
 				#if USE_CORETEXT
 
-				LgiAssert(!"Impl get font info.");
+				Status = MacGetSystemFont(Info, kCTFontUIFontSmallSystem);
 			
 				#else
 			
@@ -2135,9 +2153,7 @@ bool GFontType::GetSystemFont(const char *Which)
 			
 			#elif defined MAC
 			
-			Info.Face("Courier");
-			Info.PointSize(11);
-			Status = true;
+			Status = MacGetSystemFont(Info, kCTFontUIFontUserFixedPitch);
 
 			#endif
 		}

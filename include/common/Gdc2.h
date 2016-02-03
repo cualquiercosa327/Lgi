@@ -697,6 +697,7 @@ public:
 		#if defined MAC && !defined(LGI_SDL)
 		
 		GScreenDC(GWindow *wnd, void *Param = 0);
+		OsPainter Handle();
 		GRect GetPos();
         void PushState();
         void PopState();
@@ -925,6 +926,7 @@ public:
 		#if defined MAC
 				
 		OsBitmap GetBitmap();
+		OsPainter Handle();
 		#if !defined(COCOA) && !defined(LGI_SDL)
 		CGColorSpaceRef GetColourSpaceRef();
 		CGImg *GetImg(GRect *Sub = 0);

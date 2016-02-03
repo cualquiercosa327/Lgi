@@ -1,6 +1,7 @@
 #include "Lgi.h"
 #include "GList.h"
 #include "GButton.h"
+#include "GPrinter.h"
 
 ////////////////////////////////////////////////////////////////////
 class GPrinterPrivate
@@ -124,7 +125,7 @@ bool GPrinter::Serialize(char *&Str, bool Write)
 	return true;
 }
 
-GPrintDC *GPrinter::StartDC(const char *PrintJobName, GView *Parent)
+bool GPrinter::Print(GPrintEvents *Events, const char *PrintJobName, int Pages, GView *Parent)
 {
-	return new GPrintDC(d->Printer, PrintJobName);
+	return false;
 }
