@@ -513,15 +513,12 @@ double GPrintDC::Yc(int y)
 
 OsPainter GPrintDC::Handle()
 {
-	/*
-	if (!d->p)
-	{
-		d->p = new PrintPainter(this);
-	}
-	
-	return d->p;
-	*/
-	return 0;
+	return Cairo;
+}
+
+void GPrintDC::Handle(OsPainter Set)
+{
+	Cairo = Set;
 }
 
 int GPrintDC::X()

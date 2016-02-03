@@ -99,7 +99,7 @@ cairo_surface_t *GMemDC::GetSurface(GRect &r)
 												d->Img->bpl);
 }
 
-cairo_t *GMemDC::GetCairo()
+OsPainter GMemDC::Handle()
 {
 	if (!Cairo)
 	{

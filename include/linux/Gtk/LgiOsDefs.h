@@ -74,7 +74,7 @@ typedef int								OsProcessId;
 typedef Gtk::GtkWidget					*OsView;
 typedef Gtk::GtkWindow					*OsWindow;
 typedef char							OsChar;
-typedef Gtk::GdkGC						*OsPainter;
+typedef Gtk::cairo_t					*OsPainter;
 typedef Gtk::PangoFontDescription       *OsFont;
 typedef void							*OsBitmap;
 

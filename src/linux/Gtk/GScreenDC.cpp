@@ -143,7 +143,7 @@ GScreenDC::~GScreenDC()
 	DeleteObj(d);
 }
 
-Gtk::cairo_t *GScreenDC::GetCairo()
+OsPainter GScreenDC::Handle()
 {
 	if (!Cairo)
 	{
@@ -161,11 +161,6 @@ bool GScreenDC::SupportsAlphaCompositing()
 GdcPt2 GScreenDC::GetSize()
 {
 	return GdcPt2(d->x, d->y);
-}
-
-Gtk::GdkDrawable *GScreenDC::GetDrawable()
-{
-  return 0;
 }
 
 bool GScreenDC::GetClient(GRect *c)
@@ -204,11 +199,6 @@ void GScreenDC::SetClient(GRect *c)
 GRect *GScreenDC::GetClient()
 {
 	return &d->Client;
-}
-
-OsPainter GScreenDC::Handle()
-{
-	return 0;
 }
 
 uint GScreenDC::LineStyle()

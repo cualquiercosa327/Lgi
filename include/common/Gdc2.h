@@ -417,8 +417,7 @@ protected:
 	OsPainter	hDC;
 	OsBitmap	hBmp;
 	#elif defined __GTK_H__
-	// Gtk::cairo_surface_t *Surface;
-	Gtk::cairo_t *Cairo;
+	OsPainter	Cairo;
 	#endif
 
 public:
@@ -428,17 +427,6 @@ public:
 
 	// Win32
 	#if defined(__GTK_H__)
-
-	/// Returns the drawable for the surface
-	virtual Gtk::GdkDrawable *GetDrawable() { return 0; }
-
-	// Returns a cairo surface for the drawing context, creating one if required.
-	// The surface is owned by this GSurface and will be free'd when deleted.
-	// virtual Gtk::cairo_surface_t *GetSurface(bool Render) { return 0; }
-	
-	/// Returns the cairo drawing context, creating one if required.
-	/// The context is owned by this GSurface and will be free'd when deleted.
-	virtual Gtk::cairo_t *GetCairo() { return Cairo; }
 
 	/// Gets the drawable size, regardless of clipping or client rect
 	virtual GdcPt2 GetSize() { GdcPt2 p; return p; }
@@ -722,8 +710,7 @@ public:
 		/// Constructs a DC for drawing on a window
 		GScreenDC(OsView View);
 		
-		Gtk::GdkDrawable *GetDrawable();
-		Gtk::cairo_t *GetCairo();
+		OsPainter Handle();
 		// Gtk::cairo_surface_t *GetSurface(bool Render);
 		GdcPt2 GetSize();
 		
@@ -734,7 +721,6 @@ public:
 		#endif
 
 		GView *GetView();
-		OsPainter Handle();
 		int GetFlags();
 		GRect *GetClient();
 
@@ -938,7 +924,6 @@ public:
 
 		#if defined MAC
 				
-		OsPainter Handle();
 		OsBitmap GetBitmap();
 		#if !defined(COCOA) && !defined(LGI_SDL)
 		CGColorSpaceRef GetColourSpaceRef();
@@ -949,14 +934,13 @@ public:
 
 		Gtk::GdkImage *GetImage();
 		GdcPt2 GetSize();
-		Gtk::cairo_t *GetCairo();
+		OsPainter Handle();
 		Gtk::cairo_surface_t *GetSurface(GRect &r);
 		GColourSpace GetCreateCs();
 
 		#elif defined(BEOS) || defined(LGI_SDL)
 
 		OsBitmap GetBitmap();
-		OsPainter Handle();
 
 		#endif
 		
@@ -1031,6 +1015,7 @@ public:
 	#if defined __GTK_H__
 
 	OsPainter Handle();
+	void Handle(OsPainter Set);
 	COLOUR Colour();
 	COLOUR Colour(COLOUR c, int Bits = 0);
 	GColour Colour(GColour c);

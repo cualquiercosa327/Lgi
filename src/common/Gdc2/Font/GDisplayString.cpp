@@ -1743,7 +1743,7 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc, bool Debug
 	#elif defined __GTK_H__
 	
 	Gtk::pango_context_set_font_description(GFontSystem::Inst()->GetContext(), Font->Handle());
-	Gtk::cairo_t *cr = pDC->GetCairo();
+	Gtk::cairo_t *cr = pDC->Handle();
 	if (!cr)
 	{
 		LgiAssert(!"Can't get cairo.");

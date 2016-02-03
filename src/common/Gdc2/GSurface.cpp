@@ -221,6 +221,8 @@ OsPainter GSurface::Handle()
 {
 	#if WINNATIVE
 	return hDC;
+	#elif defined(__GTK_H__)
+	return Cairo;
 	#else
 	return 0;
 	#endif
