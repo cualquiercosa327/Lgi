@@ -11,6 +11,7 @@
 #ifdef LINUX
 #include <netinet/tcp.h>
 #include <unistd.h>
+#include <poll.h>
 #endif
 #include <ctype.h>
 
@@ -409,6 +410,29 @@ bool GSocket::IsReadable(int TimeoutMs)
 	OsSocket s = d->Socket; 
 	if (ValidSocket(s))
 	{
+		#ifdef LINUX
+
+		// Because Linux doesn't return from select() when the socket is
+		// closed elsewhere we have to do something different... damn Linux,
+		// why can't you just like do the right thing?
+		
+		struct pollfd fds;
+		fds.fd = s;
+		fds.events = POLLIN | POLLRDHUP | POLLERR;
+		fds.revents = 0;
+
+		int r = poll(&fds, 1, TimeoutMs);
+		if (r > 0)
+		{
+			return fds.revents != 0;
+		}
+		else if (r < 0)
+		{
+			Error();
+		}
+		
+		#else
+		
 		struct timeval t = {TimeoutMs / 1000, (TimeoutMs % 1000) * 1000};
 
 		fd_set r;
@@ -424,6 +448,8 @@ bool GSocket::IsReadable(int TimeoutMs)
 		{
 			Error();
 		}
+		
+		#endif
 	}
 	else LgiTrace("%s:%i - Not a valid socket.\n", _FL);
 
@@ -936,6 +962,7 @@ int GSocket::Close()
 		#if defined WIN32
 		closesocket(d->Socket);
 		#else
+		printf("closing socket...\n");
 		close(d->Socket);
 		#endif
 		d->Socket = INVALID_SOCKET;

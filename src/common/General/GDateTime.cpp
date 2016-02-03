@@ -393,7 +393,8 @@ bool GDateTime::GetDaylightSavingsInfo(GArray<GDstInfo> &Info, GDateTime &Start,
 		int PrevOff = 0;
 		for (int i=0; i<t.Length(); i++)
 		{
-			GToken l(t[i], " \t");
+			char *Line = t[i];
+			GToken l(Line, " \t");
 			if (l.Length() >= 16 &&
 				!stricmp(l[0], "/etc/localtime"))
 			{
@@ -429,8 +430,16 @@ bool GDateTime::GetDaylightSavingsInfo(GArray<GDstInfo> &Info, GDateTime &Start,
 										Prev < Start &&
 										Start < Utc)
 									{
-										LgiAssert(Info.Length() == 0);
-
+										/*
+										char Tmp[64];
+										Utc.Get(Tmp, sizeof(Tmp));
+										printf("[%i] Utc=%s\n", Info.Length(), Tmp);
+										Prev.Get(Tmp, sizeof(Tmp));
+										printf("[%i] Prev=%s\n", Info.Length(), Tmp);
+										Start.Get(Tmp, sizeof(Tmp));
+										printf("[%i] Start=%s\n", Info.Length(), Tmp);
+										*/
+									
 										// Emit initial entry for 'start'
 										Info[0].UtcTimeStamp = Start;
 										Info[0].Offset = PrevOff;
