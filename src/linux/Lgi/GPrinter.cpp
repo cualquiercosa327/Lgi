@@ -138,6 +138,8 @@ GtkPrintBegin(	GtkPrintOperation	*operation,
 				GtkPrintContext		*context,
 				GPrinterPrivate		*d)
 {
+	printf("GtkPrintBegin\n");
+
 	bool Status = false;
 	cairo_t *ct = gtk_print_context_get_cairo_context(context);
 	if (ct &&
@@ -160,6 +162,8 @@ GtkPrintDrawPage(	GtkPrintOperation	*operation,
 					gint				page_number,
 					GPrinterPrivate		*d)
 {
+	printf("GtkPrintDrawPage\n");
+
 	cairo_t *ct = gtk_print_context_get_cairo_context(context);
 	if (ct && d->PrintDC)
 		d->PrintDC->Handle(ct);
@@ -186,8 +190,8 @@ bool GPrinter::Print(GPrintEvents *Events, const char *PrintJobName, int Pages /
 	d->Events = Events;
 	d->JobName = PrintJobName;
 
-	g_signal_connect(d->Op, "begin-print", G_CALLBACK(GtkPrintBegin), d);
-	g_signal_connect(d->Op, "draw-page", G_CALLBACK(GtkPrintDrawPage), d);
+	g_signal_connect(G_OBJECT(d->Op), "begin-print", G_CALLBACK(GtkPrintBegin), d);
+	g_signal_connect(G_OBJECT(d->Op), "draw-page", G_CALLBACK(GtkPrintDrawPage), d);
 	
 	gtk_print_operation_set_job_name(d->Op, PrintJobName);
 	Result = gtk_print_operation_run(d->Op,
@@ -195,5 +199,5 @@ bool GPrinter::Print(GPrintEvents *Events, const char *PrintJobName, int Pages /
 									Wnd,
 									&Error);    
     
-    return Error == NULL;
+    return Result != GTK_PRINT_OPERATION_RESULT_ERROR;
 }
