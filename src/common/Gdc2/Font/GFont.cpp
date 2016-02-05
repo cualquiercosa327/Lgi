@@ -438,11 +438,18 @@ public:
 	GHashTbl<int,int> UnicodeX; // Widths of any other characters
 	#endif
 
+	#ifdef MAC
+	CFDictionaryRef Attributes;
+	#endif
+
 	GFontPrivate()
 	{
 		hFont = 0;
 		#if defined WIN32
 		OwnerUnderline = false;
+		#endif
+		#if defined(MAC)
+		Attributes = NULL;
 		#endif
 
 		GlyphMap = 0;
@@ -450,6 +457,14 @@ public:
 		Height = 0;
 		Cp = 0;
 		Param = 0;
+	}
+	
+	~GFontPrivate()
+	{
+		#if defined(MAC)
+		if (Attributes)
+			CFRelease(Attributes);
+		#endif
 	}
 };
 
@@ -520,6 +535,13 @@ bool GFont::Destroy()
 	
 	return Status;
 }
+
+#ifdef MAC
+CFDictionaryRef GFont::GetAttributes()
+{
+	return d->Attributes;
+}
+#endif
 
 #ifdef BEOS
 #include "GUtf8.h"
@@ -1198,16 +1220,80 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 
 			if (Face())
 			{
+				if (d->Attributes)
+					CFRelease(d->Attributes);
+
+				CGFloat Size = PointSize();
+				#if 1
+				{
+					GString sFamily(Face());
+					GString sBold("Bold");
+					int keys = 1;
+					CFStringRef key[5] = {	kCTFontFamilyNameAttribute };
+					CFTypeRef values[5] = {	sFamily.CreateStringRef() };
+
+					if (Bold())
+					{
+						key[keys] = kCTFontStyleNameAttribute;
+						values[keys++] = sBold.CreateStringRef();
+					}
+
+					CFDictionaryRef FontAttrD = CFDictionaryCreate(	kCFAllocatorDefault,
+																	(const void**)&key,
+																	(const void**)&values,
+																	keys,
+																	&kCFTypeDictionaryKeyCallBacks,
+																	&kCFTypeDictionaryValueCallBacks);
+					if (FontAttrD)
+					{
+						CTFontDescriptorRef descriptor = CTFontDescriptorCreateWithAttributes(FontAttrD);
+						if (descriptor)
+						{
+							d->hFont = CTFontCreateWithFontDescriptor(descriptor, Size, NULL);
+						}
+						else LgiAssert(0);
+					}
+					else LgiAssert(0);
+				}
+				#else
+
 				CFStringRef nm = CFStringCreateWithCString(kCFAllocatorDefault, Face(), kCFStringEncodingUTF8);
 				CGAffineTransform *matrix = NULL;
-				d->hFont = CTFontCreateWithName(nm, PointSize(), matrix);
+				d->hFont = CTFontCreateWithName(nm, Size, matrix);
 				CFRelease(nm);
+				
+				#endif
 				
 				if (d->hFont)
 				{
 					GTypeFace::d->_Ascent = CTFontGetAscent(d->hFont);
 					GTypeFace::d->_Descent = CTFontGetDescent(d->hFont);
 					GTypeFace::d->_Leading = CTFontGetLeading(d->hFont);
+					d->Height = ceil(GTypeFace::d->_Ascent +
+									 GTypeFace::d->_Descent +
+									 GTypeFace::d->_Leading);
+					
+					
+					int keys = 2;
+					CFStringRef key[5] = {	kCTFontAttributeName,
+											kCTForegroundColorFromContextAttributeName };
+					CFTypeRef values[5] = {	d->hFont,
+											kCFBooleanTrue };
+
+					if (Underline())
+					{
+						key[keys] = kCTUnderlineStyleAttributeName;
+						CTUnderlineStyle u = kCTUnderlineStyleSingle;
+						values[keys++] = CFNumberCreate(NULL, kCFNumberSInt32Type, &u);
+					}
+					
+					d->Attributes = CFDictionaryCreate(	kCFAllocatorDefault,
+														(const void**)&key,
+														(const void**)&values,
+														keys,
+														&kCFTypeDictionaryKeyCallBacks,
+														&kCFTypeDictionaryValueCallBacks);
+					
 					return true;
 				}
 			}
@@ -1670,7 +1756,7 @@ bool MacGetSystemFont(GTypeFace &Info, CTFontUIFontType Which)
 		GString face(name);
 
 		Info.Face(face);
-		Info.PointSize((int)sz);
+		Info.PointSize((int)sz - 1);
 
 		CFRelease(name);
 		Status = true;

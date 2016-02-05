@@ -74,20 +74,11 @@ void GDisplayString::CreateAttrStr()
 	CFStringRef string = CFStringCreateWithBytes(kCFAllocatorDefault, (const uint8*)w, StrlenW(w) * sizeof(*w), kCFStringEncodingUTF32LE, false);
 	if (string)
 	{
-		CFStringRef keys[] = { kCTFontAttributeName };
-		CFTypeRef values[] = { Font->Handle() };
-
-		CFDictionaryRef attributes =
-			CFDictionaryCreate(kCFAllocatorDefault, (const void**)&keys,
-				(const void**)&values, sizeof(keys) / sizeof(keys[0]),
-				&kCFTypeDictionaryKeyCallBacks,
-				&kCFTypeDictionaryValueCallBacks);
-		
+		CFDictionaryRef attributes = Font->GetAttributes();
 		if (attributes)
-		{
 			AttrStr = CFAttributedStringCreate(kCFAllocatorDefault, string, attributes);
-			CFRelease(attributes);
-		}
+		else
+			LgiAssert(0);
 		
 		CFRelease(string);
 	}
@@ -851,7 +842,24 @@ void GDisplayString::TruncateWithDots(int Width)
 	
 		#if USE_CORETEXT
 
-			LgiTrace("%s:%i - Impl truncate text layout.\n", _FL);
+		if (Hnd)
+		{
+			CFAttributedStringRef truncationString = CFAttributedStringCreate(NULL, CFSTR("\u2026"), Font->GetAttributes());
+			if (truncationString)
+			{
+				CTLineRef truncationToken = CTLineCreateWithAttributedString(truncationString);
+				CFRelease(truncationString);
+				if (truncationToken)
+				{
+					CTLineRef TruncatedLine = CTLineCreateTruncatedLine(Hnd, Width, kCTLineTruncationEnd, truncationToken);
+					if (TruncatedLine)
+					{
+						CFRelease(Hnd);
+						Hnd = TruncatedLine;
+					}
+				}
+			}
+		}
 	
 		#else
 	
@@ -912,7 +920,14 @@ int GDisplayString::CharAt(int Px)
 		
 		#if USE_CORETEXT
 
-			LgiTrace("%s:%i - Impl get char at position.\n", _FL);
+			CTTypesetterRef typesetter = CTTypesetterCreateWithAttributedString(AttrStr);
+			if (typesetter)
+			{
+				CFIndex count = CTTypesetterSuggestLineBreak(typesetter, 0, Px);
+				CFRelease(typesetter);
+				// printf("CharAt(%i) = %i\n", Px, (int)count);
+				return count;
+			}
 
 		#else
 
@@ -1916,8 +1931,45 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc, bool Debug
 
 		#if USE_CORETEXT
 
-			CGContextSetTextPosition(dc, fx / FScale, fy / FScale);
+			int y = (pDC->Y() - py + Oy);
+
+			CGContextSaveGState(dc);
+			pDC->Colour(Font->Fore());
+		
+			if (pDC->IsScreen())
+			{
+				if (frc)
+				{
+					CGRect rect = rc;
+					rect.size.width += 1.0;
+					rect.size.height += 1.0;
+					CGContextClipToRect(dc, rect);
+				}
+				CGContextTranslateCTM(dc, 0, pDC->Y()-1);
+				CGContextScaleCTM(dc, 1.0, -1.0);
+			}
+			else
+			{
+				if (frc)
+				{
+					CGContextSaveGState(dc);
+					
+					CGRect rect = rc;
+					rect.origin.x -= Ox;
+					rect.origin.y = pDC->Y() - rect.origin.y + Oy - rect.size.height;
+					rect.size.width += 1.0;
+					rect.size.height += 1.0;
+					CGContextClipToRect(dc, rect);
+				}
+			}
+
+			CGFloat Tx = (CGFloat)fx / FScale - Ox;
+			CGFloat Ty = (CGFloat)y - Font->Ascent();
+			CGContextSetTextPosition(dc, Tx, Ty);
+
 			CTLineDraw(Hnd, dc);
+
+			CGContextRestoreGState(dc);
 
 		#else
 

@@ -674,6 +674,14 @@ public:
 		return *this;
 	}
 	
+	CFStringRef CreateStringRef()
+	{
+		if (!Get())
+			return NULL;
+		
+		return CFStringCreateWithCString(kCFAllocatorDefault, Get(), kCFStringEncodingUTF8);
+	}
+	
 	#endif
 };
 

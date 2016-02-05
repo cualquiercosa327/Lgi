@@ -239,8 +239,10 @@ public:
 	/// Converts printable characters to unicode.
 	GAutoString ConvertToUnicode(char16 *Input, int Len = -1);
 	
-	#ifdef BEOS
+	#if defined(BEOS)
 	GdcPt2 StringBounds(const char *s, int len = -1);
+	#elif defined(MAC)
+	CFDictionaryRef GetAttributes();
 	#endif
 };
 
