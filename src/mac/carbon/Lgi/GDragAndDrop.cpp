@@ -74,14 +74,23 @@ bool GDragDropSource::CreateFileDrop(GDragData *OutputData, GMouse &m, List<char
 {
 	if (OutputData && Files.First())
 	{
+		#if 1
+		for (char *f = Files.First(); f; f = Files.Next())
+		{
+			// GString ef = LgiEscapeString(" ", f, -1);
+			OutputData->Data.New().OwnStr(NewStr(f));
+		}
+		#else
 		if (Files.Length() == 1)
 		{
 			GUri u;
 			u.Protocol = NewStr("file");
 			u.Host = NewStr("localhost");
 			u.Path = NewStr(Files.First());
-			OutputData->Data.New().OwnStr(u.GetUri().Release());
+			GAutoString Uri = u.GetUri();
+			OutputData->Data.New().OwnStr(LgiDecodeUri(Uri));
 		}
+		#endif
 
 		OutputData->Format = LGI_FileDropFormat;
 		return true;
@@ -140,9 +149,11 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 	GetData(Data);
 	
 	// Now push the data into the pasteboard
+	int ItemId = 1;
 	for (unsigned i=0; i<Data.Length(); i++)
 	{
 		GDragData &dd = Data[i];
+		PasteboardFlavorFlags Flags = kPasteboardFlavorNoFlags;
 
 		for (int i=0; i<dd.Data.Length(); i++)
 		{
@@ -150,7 +161,36 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 			int Size = 0;
 			GVariant *v = &dd.Data[i];
 			
-			if (v->Type == GV_STRING)
+			if (dd.IsFileDrop())
+			{
+				// Special handling for file drops...
+				GString sPath = dd.Data[i].Str();
+				if (sPath)
+				{
+					CFStringRef Path = sPath.CreateStringRef();
+					if (Path)
+					{
+						CFURLRef Url = CFURLCreateWithFileSystemPath(NULL, Path, kCFURLPOSIXPathStyle, false);
+						CFRelease(Path);
+						if (Url)
+						{
+							CFDataRef Data = CFURLCreateData(NULL, Url, kCFStringEncodingUTF8, true);
+							CFRelease(Url);
+							if (Data)
+							{
+								printf("PasteboardPutItemFlavor(%i, %s)\n", ItemId, dd.Format.Get());
+								status = PasteboardPutItemFlavor(Pb, (PasteboardItemID)(ItemId++), kUTTypeFileURL, Data, Flags);
+								if (status) printf("%s:%i - PasteboardPutItemFlavor=%li\n", _FL, status);
+							}
+							else LgiTrace("%s:%i - Failed to create Data for file drag.\n", _FL);
+						}
+						else LgiTrace("%s:%i - Failed to create URL for file drag.\n", _FL);
+					}
+					else LgiTrace("%s:%i - Failed to create strref for file drag.\n", _FL);
+				}
+				else LgiTrace("%s:%i - No path for file drag.\n", _FL);
+			}
+			else if (v->Type == GV_STRING)
 			{
 				Ptr = v->Str();
 				if (Ptr)
@@ -169,15 +209,11 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 			
 			if (Ptr)
 			{
-				CFStringRef FlavorType = CFStringCreateWithCString(NULL, dd.Format.Get(), kCFStringEncodingUTF8);
+				CFStringRef FlavorType = dd.Format.CreateStringRef();
 				CFDataRef Data = CFDataCreate(NULL, (const UInt8 *)Ptr, Size);
-				PasteboardFlavorFlags Flags = kPasteboardFlavorNoFlags;
 				
-				
-				printf("PasteboardPutItemFlavor(%i, %s)\n", i+1, dd.Format.Get());
-				
-				status = PasteboardPutItemFlavor(Pb, (PasteboardItemID)(i+1), FlavorType, Data, Flags);
-				
+				printf("PasteboardPutItemFlavor(%i, %s)\n", ItemId, dd.Format.Get());
+				status = PasteboardPutItemFlavor(Pb, (PasteboardItemID)(ItemId++), FlavorType, Data, Flags);
 				
 				if (status) printf("%s:%i - PasteboardPutItemFlavor=%li\n", _FL, status);
 				CFRelease(FlavorType);
@@ -543,7 +579,7 @@ OSStatus GDragDropTarget::OnDragWithin(GView *v, DragRef Drag)
 		LgiAssert(v->d->AcceptedDropFormat.Get());
 	}
 
-	#if 1
+	#if 0
 	printf("kEventControlDragWithin %ix%i accept=%i class=%s (",
 		param->Pt.x, param->Pt.y,
 		Accept,
