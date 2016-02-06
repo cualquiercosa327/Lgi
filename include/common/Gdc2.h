@@ -694,7 +694,11 @@ public:
 		/// Construct a wrapper to draw on a window
 		GScreenDC(GView *view, void *Param = 0);
 		
-		#if defined MAC && !defined(LGI_SDL)
+		#if defined(LGI_SDL)
+
+		OsPainter Handle();
+		
+		#elif defined MAC
 		
 		GScreenDC(GWindow *wnd, void *Param = 0);
 		OsPainter Handle();

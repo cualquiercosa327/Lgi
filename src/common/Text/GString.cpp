@@ -1061,3 +1061,64 @@ GString LgiEscapeString(const char *Chars, const char *In, int Len)
 	return s;
 }
 
+GString LgiUrlEncode(const char *s, const char *delim)
+{
+	if (!s || !*s)
+		return GString();
+
+	char buf[256];
+	int ch = 0;
+	GString out;
+	while (*s)
+	{
+		if (*s == '%' || strchr(delim, *s))
+			ch += sprintf_s(buf+ch, sizeof(buf)-ch, "%%%02.2x", (uint8)*s);
+		else
+			buf[ch++] = *s;
+		s++;
+		if (ch > sizeof(buf) - 6)
+		{
+			buf[ch] = 0;
+			out += buf;
+			ch = 0;
+		}
+	}
+	buf[ch] = 0;
+	if (ch > 0)
+		out += buf;
+	return out;
+}
+
+GString LgiUrlDecode(const char *s)
+{
+	if (!s || !*s)
+		return GString();
+
+	char buf[256];
+	int ch = 0;
+	GString out;
+	while (*s)
+	{
+		if (*s == '%')
+		{
+			s++;
+			if (!s[0] || !s[1])
+				break;
+			char h[3] = {s[0], s[1], 0};
+			buf[ch++] = htoi(h);
+			s++;
+		}
+		else buf[ch++] = *s;
+		s++;
+		if (ch > sizeof(buf) - 6)
+		{
+			buf[ch] = 0;
+			out += buf;
+			ch = 0;
+		}	
+	}
+	buf[ch] = 0;
+	if (ch > 0)
+		out += buf;
+	return out;
+}

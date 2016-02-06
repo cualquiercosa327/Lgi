@@ -40,6 +40,12 @@ LgiClass GString LgiUnEscapeString(const char *Chars, const char *In, int Len = 
 /// Escapes all characters in 'In' specified by the set 'Chars'
 LgiClass GString LgiEscapeString(const char *Chars, const char *In, int Len = -1);
 
+/// URL encode a string
+LgiClass GString LgiUrlEncode(const char *s, const char *delim);
+
+/// URL decode a string
+LgiClass GString LgiUrlDecode(const char *s);
+
 #ifdef __cplusplus
 extern "C"
 {

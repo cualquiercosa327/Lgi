@@ -82,11 +82,6 @@ OsBitmap GMemDC::GetBitmap()
 	return NULL;
 }
 
-OsPainter GMemDC::Handle()
-{
-	return NULL;
-}
-
 void GMemDC::SetClient(GRect *c)
 {
 	if (c)

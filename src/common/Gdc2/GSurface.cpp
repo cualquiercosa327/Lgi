@@ -719,63 +719,69 @@ void GSurface::Rectangle(int x1, int y1, int x2, int y2)
 	Rectangle(&a);
 }
 
-void GSurface::Ellipse(double Cx, double Cy, double a, double b)
+void GSurface::Ellipse(double Cx, double Cy, double A, double B)
 {
-	// TODO: fix this primitive for odd widths and heights
-	int cx = (int) Cx;
-	int cy = (int) Cy;
-	/*
-	a = floor(a);
-	b = floor(b);
-	*/
-	
-	long aSq = (long) (a * a);
-	long bSq = (long) (b * b);
-	long two_aSq = aSq + aSq;
-	long two_bSq = bSq + bSq;
-	long x = 0, y = (long)b, two_xBsq = 0, two_yAsq = y * two_aSq, error = -y * aSq;
+	#define incx() x++, dxt += d2xt, t += dxt
+	#define incy() y--, dyt += d2yt, t += dyt
 
-	if (aSq && bSq && error)
+	int x = 0, y = (int)B;
+	int a = (int)A;
+	if (a % 2 == 0)
+		a--;
+	int b = (int)B;
+	int xc = (int)Cx;
+	int yc = (int)Cy;
+	long a2 = (long)(a*a), b2 = (long)(b*b);
+	long crit1 = -(a2/4 + (int)a%2 + b2);
+	long crit2 = -(b2/4 + b%2 + a2);
+	long crit3 = -(b2/4 + b%2);
+	long t = -a2*y; /* e(x+1/2,y-1/2) - (a^2+b^2)/4 */
+	long dxt = 2*b2*x, dyt = -2*a2*y;
+	long d2xt = 2*b2, d2yt = 2*a2;
+
+	if (a % 2)
 	{
-		while (two_xBsq <= two_yAsq)
+		// Odd version
+		while (y>=0 && x<=a)
 		{
-			if (x) Set(cx+x, cy+y);
-			if (y) Set(cx-x, cy+y);
-			if (x) Set(cx+x, cy-y);
-			if (y) Set(cx-x, cy-y);
-			x++;
-	
-			two_xBsq += two_bSq;
-			error += two_xBsq - bSq;
-			if (error >= 0)
+			Set(xc+x, yc+y);
+			if (x!=0 || y!=0)
+				Set(xc-x, yc-y);
+			if (x!=0 && y!=0)
 			{
-				y--;
-				two_yAsq -= two_aSq;
-				error -= two_yAsq;
+				Set(xc+x, yc-y);
+				Set(xc-x, yc+y);
+			}
+			if (t + b2*x <= crit1 ||   /* e(x+1,y-1/2) <= 0 */
+				t + a2*y <= crit3)     /* e(x+1/2,y) <= 0 */
+				incx();
+			else if (t - a2*y > crit2) /* e(x+1/2,y-1) > 0 */
+				incy();
+			else
+			{
+				incx();
+				incy();
 			}
 		}
-	
-		x = (long)a;
-		y = 0;
-		two_xBsq = x * two_bSq;
-		two_yAsq = 0;
-		error = -x * bSq;
-	
-		while (two_xBsq >= two_yAsq)
+	}
+	else // even version
+	{
+		while (y>=0 && x<=a)
 		{
-			if (x) Set(cx+x, cy+y);
-			if (x) Set(cx-x, cy+y);
-			if (y) Set(cx+x, cy-y);
-			if (y) Set(cx-x, cy-y);
-			y++;
-	
-			two_yAsq += two_aSq;
-			error += two_yAsq - aSq;
-			if (error >= 0)
+			Set(xc+x+1, yc+y);
+			Set(xc+x+1, yc-y);
+			Set(xc-x, yc-y);
+			Set(xc-x, yc+y);
+
+			if (t + b2*x <= crit1 ||   /* e(x+1,y-1/2) <= 0 */
+				t + a2*y <= crit3)     /* e(x+1/2,y) <= 0 */
+				incx();
+			else if (t - a2*y > crit2) /* e(x+1/2,y-1) > 0 */
+				incy();
+			else
 			{
-				x--;
-				two_xBsq -= two_bSq;
-				error -= two_xBsq;
+				incx();
+				incy();
 			}
 		}
 	}

@@ -1,5 +1,6 @@
 #include "Lgi.h"
 #include "Base64.h"
+#include "GPrinter.h"
 
 ////////////////////////////////////////////////////////////////////
 class GPrinterPrivate
@@ -24,38 +25,12 @@ GPrinter::~GPrinter()
 	DeleteObj(d);
 }
 
-void GPrinter::SetPages(int p)
-{
-	d->Pages = p;
-}
-
-int GPrinter::GetPages()
-{
-	return d->Pages;
-}
-
-GPrintDC *GPrinter::StartDC(const char *PrintJobName, GView *Parent)
-{
-	if
-	(
-		Parent
-	)
-	{
-		if (!Browse(Parent))
-		{
-			return 0;
-		}
-	}
-
-	return new GPrintDC(0, 0);
-}
-
-bool GPrinter::Browse(GView *Parent)
+bool GPrinter::Print(GPrintEvents *Events, const char *PrintJobName, int Pages, GView *Parent)
 {
 	return false;
 }
 
-bool GPrinter::GetPageRange(GArray<int> &p)
+bool GPrinter::Browse(GView *Parent)
 {
 	return false;
 }

@@ -1,5 +1,6 @@
 #include "Lgi.h"
 #include "Base64.h"
+#include "GPrinter.h"
 
 ////////////////////////////////////////////////////////////////////
 class GPrinterPrivate
@@ -10,7 +11,7 @@ public:
 
 	GPrinterPrivate()
 	{
-		Pages = 3;
+		Pages = 1;
 		ZeroObj(Info);
 		Info.lStructSize = sizeof(Info);
 	}
@@ -27,16 +28,12 @@ GPrinter::~GPrinter()
 	DeleteObj(d);
 }
 
-void GPrinter::SetPages(int p)
+bool GPrinter::Print(GPrintEvents *Events, const char *PrintJobName, int Pages, GView *Parent)
 {
-	d->Pages = p;
+	return false;
 }
 
-int GPrinter::GetPages()
-{
-	return d->Pages;
-}
-
+/*
 GPrintDC *GPrinter::StartDC(const char *PrintJobName, GView *Parent)
 {
 	if
@@ -68,7 +65,7 @@ GPrintDC *GPrinter::StartDC(const char *PrintJobName, GView *Parent)
 	if ( // (d->Info.hDevMode && d->Info.hDevNames) ||
 		PrintDlg(&d->Info))
 	{
-		/*
+		#if 0
 		if (!d->Info.hDC)
 		{
 			GMem DevMode(d->Info.hDevMode);
@@ -85,7 +82,7 @@ GPrintDC *GPrinter::StartDC(const char *PrintJobName, GView *Parent)
 			DevMode.Detach();
 			DevNames.Detach();
 		}
-		*/
+		#endif
 	}
 	else return 0;
 
@@ -100,6 +97,7 @@ GPrintDC *GPrinter::StartDC(const char *PrintJobName, GView *Parent)
 
 	return new GPrintDC(d->Info.hDC, PrintJobName);
 }
+*/
 
 bool GPrinter::Browse(GView *Parent)
 {
@@ -114,6 +112,7 @@ bool GPrinter::Browse(GView *Parent)
 	return PrintDlg(&d->Info);
 }
 
+/*
 bool GPrinter::GetPageRange(GArray<int> &p)
 {
 	if (d->Info.Flags & PD_PAGENUMS)
@@ -126,6 +125,7 @@ bool GPrinter::GetPageRange(GArray<int> &p)
 
 	return false;
 }
+*/
 
 #define MAGIC_PRINTDLG					0xAAFF0100
 #define MAGIC_DEVMODE					0xAAFF0101
@@ -285,4 +285,3 @@ bool GPrinter::Serialize(char *&Str, bool Write)
 
 	return false;
 }
-
