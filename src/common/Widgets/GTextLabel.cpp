@@ -37,7 +37,12 @@ public:
 	{		
 		if (Lock(_FL))
 		{
-			DoLayout(Ctrl->GetFont(), Ctrl->GBase::Name(), Px);
+			GFont *f = Ctrl->GetFont() &&
+						Ctrl->GetFont()->Handle() ?
+						Ctrl->GetFont() :
+						SysFont;
+				
+			DoLayout(f, Ctrl->GBase::Name(), Px);
 			Unlock();
 		}
 		else return false;

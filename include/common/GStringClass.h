@@ -676,10 +676,10 @@ public:
 	
 	CFStringRef CreateStringRef()
 	{
-		if (!Get())
+		char *s = Get();
+		if (!s)
 			return NULL;
-		
-		return CFStringCreateWithCString(kCFAllocatorDefault, Get(), kCFStringEncodingUTF8);
+		return CFStringCreateWithCString(kCFAllocatorDefault, s, kCFStringEncodingUTF8);
 	}
 	
 	#endif

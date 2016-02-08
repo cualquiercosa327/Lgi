@@ -176,6 +176,9 @@ bool GButton::NameW(const char16 *n)
 
 void GButton::SetFont(GFont *Fnt, bool OwnIt)
 {
+	LgiAssert(Fnt && Fnt->Handle());
+
+
 	GView::SetFont(Fnt, OwnIt);
 	d->Layout(GetFont(), GBase::Name());
 	Invalidate();

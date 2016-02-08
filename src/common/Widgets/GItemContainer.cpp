@@ -602,7 +602,14 @@ void GItemColumn::Name(const char *n)
 	DeleteArray(d->cName);
 	DeleteObj(d->Txt);
 	d->cName = NewStr(n);
-	d->Txt = new GDisplayString(d->Parent ? d->Parent->GetFont() : SysFont, (char*)n);
+	
+	GFont *f =	d->Parent &&
+				d->Parent->GetFont() &&
+				d->Parent->GetFont()->Handle() ?
+				d->Parent->GetFont() :
+				SysFont;
+	
+	d->Txt = new GDisplayString(f, (char*)n);
 	if (d->Parent)
 	{
 		d->Parent->Invalidate(&d->Parent->ColumnHeader);

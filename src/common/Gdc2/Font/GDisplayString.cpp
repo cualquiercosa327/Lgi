@@ -463,9 +463,9 @@ void GDisplayString::Layout(bool Debug)
 				CGFloat descent = 0.0;
 				CGFloat leading = 0.0;
 				double width = CTLineGetTypographicBounds(Hnd, &ascent, &descent, &leading);
-				double height = ascent + descent;
+				int height = Font->GetHeight();
 				x = ceil(width);
-				y = ceil(height);
+				y = height;
 				xf = width * FScale;
 				yf = height * FScale;
 			}
@@ -920,6 +920,14 @@ int GDisplayString::CharAt(int Px)
 		
 		#if USE_CORETEXT
 
+			#if 1
+		
+			CGPoint pos = { Px, 1.0 };
+			CFIndex idx = CTLineGetStringIndexForPosition(Hnd, pos);
+			return idx;
+		
+			#else
+		
 			CTTypesetterRef typesetter = CTTypesetterCreateWithAttributedString(AttrStr);
 			if (typesetter)
 			{
@@ -928,6 +936,8 @@ int GDisplayString::CharAt(int Px)
 				// printf("CharAt(%i) = %i\n", Px, (int)count);
 				return count;
 			}
+		
+			#endif
 
 		#else
 

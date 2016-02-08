@@ -303,7 +303,8 @@ public:
 
 		Small = *SysFont;
 		Small.PointSize(Small.PointSize()-2);
-		Small.Create((GFontType*)0);
+		Small.Create();
+		LgiAssert(Small.Handle());
 		
 		GFontType Type;
 		if (Type.GetSystemFont("Fixed"))

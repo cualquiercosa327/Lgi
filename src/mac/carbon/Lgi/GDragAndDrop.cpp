@@ -171,20 +171,39 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 					if (Path)
 					{
 						CFURLRef Url = CFURLCreateWithFileSystemPath(NULL, Path, kCFURLPOSIXPathStyle, false);
-						CFRelease(Path);
 						if (Url)
 						{
+							#if 1
+							CFErrorRef Err;
+							CFDataRef Data = CFURLCreateBookmarkData(NULL,
+																	Url,
+																	kCFURLBookmarkCreationWithSecurityScope, // CFURLBookmarkCreationOptions,
+																	NULL, // CFArrayRef resourcePropertiesToInclude,
+																	NULL, // CFURLRef relativeToURL,
+																	&Err);
+							#else
 							CFDataRef Data = CFURLCreateData(NULL, Url, kCFStringEncodingUTF8, true);
-							CFRelease(Url);
+							#endif
 							if (Data)
 							{
 								printf("PasteboardPutItemFlavor(%i, %s)\n", ItemId, dd.Format.Get());
 								status = PasteboardPutItemFlavor(Pb, (PasteboardItemID)(ItemId++), kUTTypeFileURL, Data, Flags);
 								if (status) printf("%s:%i - PasteboardPutItemFlavor=%li\n", _FL, status);
 							}
-							else LgiTrace("%s:%i - Failed to create Data for file drag.\n", _FL);
+							else
+							{
+								CFIndex Code = CFErrorGetCode(Err);
+								CFStringRef ErrStr = CFErrorCopyDescription(Err);
+								GString ErrStr2 = ErrStr;
+								CFRelease(ErrStr);
+								LgiTrace("%s:%i - CFURLCreateBookmarkData error: %i, %s\n", _FL, Code, ErrStr2.Get());
+							}
+
+							CFRelease(Url);
 						}
 						else LgiTrace("%s:%i - Failed to create URL for file drag.\n", _FL);
+
+						CFRelease(Path);
 					}
 					else LgiTrace("%s:%i - Failed to create strref for file drag.\n", _FL);
 				}
@@ -210,14 +229,20 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 			if (Ptr)
 			{
 				CFStringRef FlavorType = dd.Format.CreateStringRef();
-				CFDataRef Data = CFDataCreate(NULL, (const UInt8 *)Ptr, Size);
-				
-				printf("PasteboardPutItemFlavor(%i, %s)\n", ItemId, dd.Format.Get());
-				status = PasteboardPutItemFlavor(Pb, (PasteboardItemID)(ItemId++), FlavorType, Data, Flags);
-				
-				if (status) printf("%s:%i - PasteboardPutItemFlavor=%li\n", _FL, status);
-				CFRelease(FlavorType);
-				CFRelease(Data);
+				if (FlavorType)
+				{
+					CFDataRef Data = CFDataCreate(NULL, (const UInt8 *)Ptr, Size);
+					if (Data)
+					{
+						printf("PasteboardPutItemFlavor(%i, %s)\n", ItemId, dd.Format.Get());
+						status = PasteboardPutItemFlavor(Pb, (PasteboardItemID)(ItemId++), FlavorType, Data, Flags);
+						if (status) printf("%s:%i - PasteboardPutItemFlavor=%li\n", _FL, status);
+						CFRelease(Data);
+					}
+					else LgiTrace("%s:%i - Failed to create drop data.\n", _FL);
+					CFRelease(FlavorType);
+				}
+				else LgiTrace("%s:%i - Failed to create flavour type.\n", _FL);
 			}
 		}
 	}

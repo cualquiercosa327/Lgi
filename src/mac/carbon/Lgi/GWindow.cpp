@@ -490,7 +490,7 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 					GetEventParameter(inEvent, kEventParamDirectObject, typeHICommand, NULL, sizeof(command), NULL, &command);
 					if (command.commandID != kHICommandSelectWindow)
 					{	
-						#if 1
+						#if 0
 						uint32 c = command.commandID;
 						#ifndef __BIG_ENDIAN__
 						c = LgiSwap32(c);

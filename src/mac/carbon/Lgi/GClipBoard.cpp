@@ -45,7 +45,7 @@ bool GClipBoard::Empty()
 	if (d->Pb)
 	{
 		OSStatus e = PasteboardClear(d->Pb);
-		if (e) printf("%s:%i - PastbaordClear failed with %i\n", __FILE__, __LINE__, (int)e);
+		if (e) printf("%s:%i - PasteboardClear failed with %i\n", _FL, (int)e);
 		else Status = true;
 	}
 

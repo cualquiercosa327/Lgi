@@ -153,6 +153,8 @@ bool GCheckBox::NameW(const char16 *n)
 
 void GCheckBox::SetFont(GFont *Fnt, bool OwnIt)
 {
+	LgiAssert(Fnt && Fnt->Handle());
+
 	if (d->Lock(_FL))
 	{
 		GView::SetFont(Fnt, OwnIt);

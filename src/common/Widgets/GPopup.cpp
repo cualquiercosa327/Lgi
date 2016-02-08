@@ -529,7 +529,7 @@ GPopup::GPopup(GView *owner)
 
 GPopup::~GPopup()
 {
-	LgiTrace("GPopup::~GPopup %p %p\n", this, d);
+	// LgiTrace("GPopup::~GPopup %p %p\n", this, d);
 
     #if !WINNATIVE
 	CurrentPopups.Delete(this);
