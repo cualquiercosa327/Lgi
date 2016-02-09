@@ -32,64 +32,6 @@ public:
 };
 
 ////////////////////////////////////////////////////////////////////
-#define IDC_PRINTERS				100
-#define IDC_PROPERTIES				101
-
-class GPrinterDlg : public GDialog
-{
-	GView *Parent;
-	int Dests;
-	GPrinterPrivate *Printer;
-	::GList *Lst;
-
-public:
-	GPrinterDlg(GView *parent, int dests, GPrinterPrivate *priv)
-	{
-		Lst = 0;
-		SetParent(parent);
-		Dests = dests;
-		Printer = priv;
-		
-		GRect r(0, 0, 250, 250);
-		Name("Select Printer");
-		Children.Insert(Lst = new ::GList(IDC_PRINTERS, 10, 10, 150, 220));
-		Children.Insert(new GButton(IDOK, 170, 10, 70, 20, "Ok"));
-		Children.Insert(new GButton(IDCANCEL, 170, 35, 70, 20, "Cancel"));
-		Children.Insert(new GButton(IDC_PROPERTIES, 170, 60, 70, 20, "Properties"));
-		SetPos(r);
-		MoveToCenter();
-		
-		SetCtrlEnabled(IDOK, Dests > 0);
-	}	
-	
-	int OnNotify(GViewI *c, int f)
-	{
-		switch (c->GetId())
-		{
-			case IDOK:
-			{
-				if (Lst)
-				{
-					DeleteArray(Printer->Printer);
-					
-					GListItem *l = Lst->GetSelected();
-					if (l)
-					{
-						Printer->Printer = NewStr(l->GetText(0));
-					}
-				}
-			}
-			case IDCANCEL:
-			{
-				EndModal(c->GetId() == IDOK);
-				break;
-			}				
-		}
-		return 0;
-	}
-};
-
-////////////////////////////////////////////////////////////////////
 GPrinter::GPrinter()
 {
 	d = new GPrinterPrivate;
@@ -107,10 +49,6 @@ bool GPrinter::Browse(GView *Parent)
 	
 	return false;
 }
-
-#define MAGIC_PRINTDLG					0xAAFF0100
-#define MAGIC_DEVMODE					0xAAFF0101
-#define MAGIC_DEVNAMES					0xAAFF0102
 
 bool GPrinter::Serialize(char *&Str, bool Write)
 {
@@ -174,7 +112,10 @@ GtkPrintDrawPage(	GtkPrintOperation	*operation,
 bool GPrinter::Print(GPrintEvents *Events, const char *PrintJobName, int Pages /* = -1 */, GView *Parent /* = 0 */)
 {
 	if (!d->Op || !Events)
+	{
+		printf("%s:%i - Error: missing param.\n", _FL);
 		return false;
+	}
 		
 	GError *Error = NULL;
 	GtkPrintOperationResult Result;
