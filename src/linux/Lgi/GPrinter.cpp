@@ -15,13 +15,14 @@ public:
 	::GString Printer;
 	::GString Err;
 	GPrintEvents *Events;
+	
 	GAutoPtr<GPrintDC> PrintDC;
 	
 	GPrinterPrivate()
 	{
 		Settings = NULL;
 		Events = NULL;
-		Op = gtk_print_operation_new();	
+		Op = NULL;
 	}
 	
 	~GPrinterPrivate()
@@ -79,9 +80,8 @@ GtkPrintBegin(	GtkPrintOperation	*operation,
 	printf("GtkPrintBegin\n");
 
 	bool Status = false;
-	cairo_t *ct = gtk_print_context_get_cairo_context(context);
-	if (ct &&
-		d->PrintDC.Reset(new GPrintDC(ct, d->JobName)))
+	// d->Cairo = gtk_print_context_get_cairo_context(context);
+	if (d->PrintDC.Reset(new GPrintDC(context, d->JobName)))
 	{
 		int Pages = d->Events->OnBeginPrint(d->PrintDC);
 		if (Pages > 0)
@@ -104,16 +104,23 @@ GtkPrintDrawPage(	GtkPrintOperation	*operation,
 
 	cairo_t *ct = gtk_print_context_get_cairo_context(context);
 	if (ct && d->PrintDC)
-		d->PrintDC->Handle(ct);
+		LgiAssert(d->PrintDC->Handle() == ct); // Just checking it's the same handle
 	
 	bool r = d->Events->OnPrintPage(d->PrintDC, page_number);
 }
 
 bool GPrinter::Print(GPrintEvents *Events, const char *PrintJobName, int Pages /* = -1 */, GView *Parent /* = 0 */)
 {
-	if (!d->Op || !Events)
+	if (!Events)
 	{
-		printf("%s:%i - Error: missing param.\n", _FL);
+		LgiTrace("%s:%i - Error: missing param.\n", _FL);
+		return false;
+	}
+	
+	d->Op = gtk_print_operation_new();
+	if (!d->Op)
+	{
+		LgiTrace("%s:%i - Error: gtk_print_operation_new failed.\n", _FL);
 		return false;
 	}
 		
@@ -140,5 +147,27 @@ bool GPrinter::Print(GPrintEvents *Events, const char *PrintJobName, int Pages /
 									Wnd,
 									&Error);    
     
-    return Result != GTK_PRINT_OPERATION_RESULT_ERROR;
+    bool Status = Result != GTK_PRINT_OPERATION_RESULT_ERROR;
+    if (!Status)
+    {
+		if (Error)
+		{
+			LgiTrace("%s:%i - gtk_print_operation_run failed with: %i - %s\n",
+					_FL,
+					Error->code,
+					Error->message);
+		}
+		else
+		{
+			LgiTrace("%s:%i - gtk_print_operation_run failed with: unknown error\n", _FL);
+		}
+    }
+
+	if (d->Op)
+	{
+		g_object_unref(d->Op);
+		d->Op = NULL;
+	}
+    
+    return Status;
 }

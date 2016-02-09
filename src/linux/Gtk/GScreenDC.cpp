@@ -90,6 +90,19 @@ GScreenDC::GScreenDC(Gtk::GdkDrawable *Drawable)
 	d = new GScreenPrivate;
 	d->Own = false;
 	d->d = Drawable;
+	if (d->gc = gdk_gc_new(Drawable))
+	{
+	    GdkScreen *s = gdk_gc_get_screen(d->gc);
+	    if (s)
+	    {
+	        GdkVisual *v = gdk_screen_get_system_visual(s);
+	        if (v)
+	        {
+	            d->Bits = v->depth;
+		        ColourSpace = GdkVisualToColourSpace(v, v->depth);
+	        }
+	    }
+	}
 }
 
 GScreenDC::GScreenDC(GView *view, void *param)

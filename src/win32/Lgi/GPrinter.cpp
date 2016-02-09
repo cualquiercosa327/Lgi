@@ -7,11 +7,12 @@ class GPrinterPrivate
 {
 public:
 	PRINTDLG Info;
-	int Pages;
+	GString Err;
+	bool NeedsDC;
 
 	GPrinterPrivate()
 	{
-		Pages = 1;
+		NeedsDC = false;
 		ZeroObj(Info);
 		Info.lStructSize = sizeof(Info);
 	}
@@ -28,14 +29,16 @@ GPrinter::~GPrinter()
 	DeleteObj(d);
 }
 
-bool GPrinter::Print(GPrintEvents *Events, const char *PrintJobName, int Pages, GView *Parent)
+GString GPrinter::GetErrorMsg()
 {
-	return false;
+	return d->Err;
 }
 
-/*
-GPrintDC *GPrinter::StartDC(const char *PrintJobName, GView *Parent)
+bool GPrinter::Print(GPrintEvents *Events, const char *PrintJobName, int Pages, GView *Parent)
 {
+	if (!Events)
+		return false;
+		
 	if
 	(
 		Parent
@@ -47,67 +50,85 @@ GPrintDC *GPrinter::StartDC(const char *PrintJobName, GView *Parent)
 		)
 	)
 	{
-		if (!Browse(Parent))
+		d->NeedsDC = true;
+		bool r = Browse(Parent);
+		d->NeedsDC = false;
+		if (!r)
+			return false;
+	}
+	else
+	{
+		d->Info.hwndOwner = (Parent) ? Parent->Handle() : 0;
+		d->Info.Flags = PD_RETURNDC;
+		d->Info.hDC = 0;
+		/*
+		if (Pages >= 0)
 		{
-			return 0;
+			d->Info.nMinPage = 1;
+			d->Info.nMaxPage = Pages;
+		}
+		*/
+		if (!PrintDlg(&d->Info))
+		{
+			return false;
 		}
 	}
-
-	d->Info.hwndOwner = (Parent) ? Parent->Handle() : 0;
-	d->Info.Flags = PD_RETURNDC;
-	d->Info.hDC = 0;
-	if (d->Pages > 1)
-	{
-		d->Info.nMinPage = 1;
-		d->Info.nMaxPage = d->Pages;
-	}
-
-	if ( // (d->Info.hDevMode && d->Info.hDevNames) ||
-		PrintDlg(&d->Info))
-	{
-		#if 0
-		if (!d->Info.hDC)
-		{
-			GMem DevMode(d->Info.hDevMode);
-			GMem DevNames(d->Info.hDevNames);
-			DEVNAMES *Names = (DEVNAMES*) DevNames.Lock();
-			if (Names)
-			{
-				d->Info.hDC = ::CreateDC(	NULL,
-											((char*) Names) + Names->wDeviceOffset,
-											NULL,
-											(DEVMODE*) DevMode.Lock());
-			}
-
-			DevMode.Detach();
-			DevNames.Detach();
-		}
-		#endif
-	}
-	else return 0;
 
 	if (!d->Info.hDC)
 	{
-		LgiMsg(	Parent,
-				"Couldn't initialize printer output.\n"
-				"No printer defined?",
-				"Print");
-		return 0;
+		return false;
 	}
 
-	return new GPrintDC(d->Info.hDC, PrintJobName);
+	GPrintDC dc(d->Info.hDC, PrintJobName);
+	if (!dc.Handle())
+	{
+		d->Err.Printf("%s:%i - StartDoc failed.\n", _FL);
+		return false;
+	}	
+	
+	int JobPages = Events->OnBeginPrint(&dc);
+	bool Status = false;
+
+	DOCINFO Info;
+
+	ZeroObj(Info);
+	Info.cbSize = sizeof(DOCINFO); 
+	Info.lpszDocName = PrintJobName ? PrintJobName : "Lgi Print Job"; 
+
+	if (Pages > 0)
+		JobPages = min(JobPages, Pages);
+		
+	for (int i=0; i<JobPages; i++)
+	{
+		if (StartPage(dc.Handle()) > 0)
+		{
+			Status |= Events->OnPrintPage(&dc, i);
+			EndPage(dc.Handle());
+		}
+		else
+		{
+			d->Err.Printf("%s:%i - StartPage failed.", _FL);
+			Status = false;
+			break;
+		}
+	}
+	
+	return Status;
 }
-*/
 
 bool GPrinter::Browse(GView *Parent)
 {
 	d->Info.hwndOwner = (Parent) ? Parent->Handle() : 0;
 	d->Info.Flags = PD_PRINTSETUP | PD_PAGENUMS;
+	if (d->NeedsDC)
+		d->Info.Flags |= PD_RETURNDC;
+	/*
 	if (d->Pages > 1)
 	{
 		d->Info.nMinPage = 1;
 		d->Info.nMaxPage = d->Pages;
 	}
+	*/
 
 	return PrintDlg(&d->Info);
 }

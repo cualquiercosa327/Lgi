@@ -41,7 +41,17 @@ public:
 	bool Browse(GView *Parent);
 
 	/// Start a print job
-	bool Print(GPrintEvents *Events, const char *PrintJobName, int Pages = -1, GView *Parent = NULL);
+	bool Print
+	(
+		/// The event callback for pagination and printing of pages
+		GPrintEvents *Events,
+		/// [Optional] The name of the print job
+		const char *PrintJobName = NULL,
+		/// [Optional] The maximum number of pages to print
+		int Pages = -1,
+		/// [Optional] The parent window for the printer selection dialog
+		GView *Parent = NULL
+	);
 	
 	/// Gets any available error message...
 	GString GetErrorMsg();

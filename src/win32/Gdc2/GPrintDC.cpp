@@ -37,12 +37,17 @@ GPrintDC::GPrintDC(void *Handle, const char *PrintJobName)
 		Info.lpszDocName = PrintJobName ? PrintJobName : "Lgi Print Job"; 
 
 		d->DocOpen = StartDoc(hDC, &Info) > 0;
+		if (!d->DocOpen)
+		{
+			DeleteDC(hDC);
+			hDC = 0;
+		}
 	}
 }
 
 GPrintDC::~GPrintDC()
 {
-	EndPage();
+	// EndPage();
 
     if (hDC)
     {
@@ -81,6 +86,7 @@ int GPrintDC::DpiY()
 	return GetDeviceCaps(hDC, LOGPIXELSY);
 }
 
+/*
 bool GPrintDC::StartPage()
 {
 	bool Status = false;
@@ -101,4 +107,5 @@ void GPrintDC::EndPage()
 		d->PageOpen = false;
 	}
 }
+*/
 

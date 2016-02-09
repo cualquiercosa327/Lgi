@@ -25,7 +25,7 @@ void GFont::_Measure(int &x, int &y, OsChar *Str, int Len)
 {
 	LgiAssert(Handle());
 
-	HDC hDC = GetParam() ? (HDC)GetParam() : CreateCompatibleDC(0);
+	HDC hDC = GetSurface() ? GetSurface()->Handle() : CreateCompatibleDC(0);
 	HFONT hOldFont = (HFONT) SelectObject(hDC, Handle());
 
 	SIZE Size;
@@ -40,7 +40,7 @@ void GFont::_Measure(int &x, int &y, OsChar *Str, int Len)
 	}
 
 	SelectObject(hDC, hOldFont);
-	if (!GetParam())
+	if (!GetSurface())
 		DeleteDC(hDC);
 }
 
@@ -49,7 +49,7 @@ int GFont::_CharAt(int x, OsChar *Str, int Len)
 	LgiAssert(Handle());
 
 	INT Fit = 0;
-	HDC hDC = CreateCompatibleDC((HDC)GetParam());
+	HDC hDC = CreateCompatibleDC(GetSurface()?GetSurface()->Handle():0);
 	HFONT hOldFont = (HFONT) SelectObject(hDC, Handle());
 
 	if (hOldFont)

@@ -148,7 +148,13 @@ GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc)
 		{
 			len = l >= 0 ? l : strlen(Str);
 			if (len > 0)
-				Hnd = Gtk::pango_layout_new(GFontSystem::Inst()->GetContext());
+			{
+				Gtk::GtkPrintContext *PrintCtx = pDC ? pDC->GetPrintContext() : NULL;
+				if (PrintCtx)
+					Hnd = Gtk::gtk_print_context_create_pango_layout(PrintCtx);
+				else
+					Hnd = Gtk::pango_layout_new(GFontSystem::Inst()->GetContext());
+			}
 		}
 	
 	#endif
@@ -205,7 +211,11 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
 		Hnd = 0;
 		if (Font && Str && len > 0)
 		{
-			Hnd = Gtk::pango_layout_new(GFontSystem::Inst()->GetContext());
+			Gtk::GtkPrintContext *PrintCtx = pDC ? pDC->GetPrintContext() : NULL;
+			if (PrintCtx)
+				Hnd = Gtk::gtk_print_context_create_pango_layout(PrintCtx);
+			else
+				Hnd = Gtk::pango_layout_new(GFontSystem::Inst()->GetContext());
 		}
 	
 	#endif

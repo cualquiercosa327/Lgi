@@ -425,7 +425,7 @@ public:
 	int				Height;
 	bool			Dirty;
 	char			*Cp;
-	NativeInt		Param;
+	GSurface		*pSurface;
 	bool			OwnerUnderline;
 
 	// Glyph substitution
@@ -442,21 +442,28 @@ public:
 	CFDictionaryRef Attributes;
 	#endif
 
+	#ifdef __GTK_H__
+	Gtk::PangoContext *PangoCtx;
+	#endif
+
 	GFontPrivate()
 	{
 		hFont = 0;
+		pSurface = NULL;
 		#if defined WIN32
 		OwnerUnderline = false;
 		#endif
 		#if defined(MAC)
 		Attributes = NULL;
 		#endif
+		#ifdef __GTK_H__
+		PangoCtx = NULL;
+		#endif
 
 		GlyphMap = 0;
 		Dirty = true;
 		Height = 0;
 		Cp = 0;
-		Param = 0;
 	}
 	
 	~GFontPrivate()
@@ -464,6 +471,10 @@ public:
 		#if defined(MAC)
 		if (Attributes)
 			CFRelease(Attributes);
+		#endif
+		#ifdef __GTK_H__
+		if (PangoCtx)
+			g_object_unref(PangoCtx);
 		#endif
 	}
 };
@@ -522,6 +533,11 @@ bool GFont::Destroy()
 			ATSUDisposeStyle(d->hFont);
 			#endif
 		#elif defined LINUX
+			if (d->PangoCtx)
+			{
+				g_object_unref(d->PangoCtx);
+				d->PangoCtx = NULL;
+			}
 			Gtk::pango_font_description_free(d->hFont);
 		#elif defined BEOS
 			DeleteObj(d->hFont);
@@ -795,12 +811,12 @@ type_4_cmap *GetUnicodeTable(HFONT hFont, uint16 &Length)
 }
 #endif
 
-NativeInt GFont::GetParam()
+GSurface *GFont::GetSurface()
 {
-	return d->Param;
+	return d->pSurface;
 }
 
-bool GFont::Create(const char *face, int height, NativeInt Param)
+bool GFont::Create(const char *face, int height, GSurface *pSurface)
 {
 	bool FaceChanging = false;
 	bool SizeChanging = false;
@@ -914,8 +930,8 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 		d->hFont = 0;
 	}
 	
-	d->Param = Param;
-	HDC hDC = (Param) ? (HDC)Param : GetDC(0);
+	d->pSurface = pSurface;
+	HDC hDC = pSurface ? pSurface->Handle() : GetDC(0);
 	int Win32Height = WinPointToHeight(PointSize(), hDC);
 	
 	GTypeFace::d->IsSymbol = GTypeFace::d->_Face &&
@@ -1120,7 +1136,7 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 		SelectObject(hDC, hFnt);
 	}
 
-	if (!Param) ReleaseDC(0, hDC);
+	if (!pSurface) ReleaseDC(0, hDC);
 
 	return (d->hFont != 0);
 	
@@ -1180,7 +1196,11 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 		// printf("Creating pango font %s, %i\n", Face(), PointSize());
 		
 		// Get metrics for this font...
-		Gtk::PangoFontMetrics *m = Gtk::pango_context_get_metrics(GFontSystem::Inst()->GetContext(), d->hFont, 0);
+		Gtk::GtkPrintContext *PrintCtx = pSurface ? pSurface->GetPrintContext() : NULL;
+		Gtk::PangoContext *SysCtx = GFontSystem::Inst()->GetContext();
+		if (PrintCtx)
+			d->PangoCtx = gtk_print_context_create_pango_context(PrintCtx);
+		Gtk::PangoFontMetrics *m = Gtk::pango_context_get_metrics(d->PangoCtx ? d->PangoCtx : SysCtx, d->hFont, 0);
 		if (!m)
 			printf("pango_font_get_metrics failed.\n");
 		else
@@ -1189,17 +1209,20 @@ bool GFont::Create(const char *face, int height, NativeInt Param)
 			GTypeFace::d->_Descent = (double)Gtk::pango_font_metrics_get_descent(m) / PANGO_SCALE;
 			d->Height = ceil(GTypeFace::d->_Ascent + GTypeFace::d->_Descent);
 
-			/*
-			printf("GFont::Create %s,%f (%i,%i,%i) (%.1f,%.1f,%i)\n",
-				Gtk::pango_font_description_get_family(d->hFont),
-				(double)Gtk::pango_font_description_get_size(d->hFont) / PANGO_SCALE,
-				Gtk::pango_font_metrics_get_ascent(m),
-				Gtk::pango_font_metrics_get_descent(m),
-				PANGO_SCALE,
-				GTypeFace::d->_Ascent,
-				GTypeFace::d->_Descent,
-				d->Height);
-			*/
+			#if 1
+			if (PrintCtx)
+			{
+				LgiTrace("GFont::Create %s,%f (%i,%i,%i) (%.1f,%.1f,%i)\n",
+					Gtk::pango_font_description_get_family(d->hFont),
+					(double)Gtk::pango_font_description_get_size(d->hFont) / PANGO_SCALE,
+					Gtk::pango_font_metrics_get_ascent(m),
+					Gtk::pango_font_metrics_get_descent(m),
+					PANGO_SCALE,
+					GTypeFace::d->_Ascent,
+					GTypeFace::d->_Descent,
+					d->Height);
+			}
+			#endif
 
 			Gtk::pango_font_metrics_unref(m);
 			
@@ -1382,7 +1405,7 @@ char16 *GFont::_ToUnicode(char *In, int &Len)
 
 #if defined WINNATIVE
 
-bool GFont::Create(GFontType *LogFont, NativeInt Param)
+bool GFont::Create(GFontType *LogFont, GSurface *pSurface)
 {
 	if (d->hFont)
 	{
@@ -1401,14 +1424,14 @@ bool GFont::Create(GFontType *LogFont, NativeInt Param)
 		Underline(LogFont->Info.lfUnderline);
 
 		// create the handle
-		Create(0, 0, Param);
+		Create(0, 0, pSurface);
 	}
 
 	return (d->hFont != 0);
 }
 #elif defined BEOS
 
-bool GFont::Create(GFontType *LogFont, NativeInt Param)
+bool GFont::Create(GFontType *LogFont, GSurface *pSurface)
 {
 	bool Status = false;
 
@@ -1427,7 +1450,7 @@ bool GFont::Create(GFontType *LogFont, NativeInt Param)
 }
 
 #else
-bool GFont::Create(GFontType *LogFont, NativeInt Param)
+bool GFont::Create(GFontType *LogFont, GSurface *pSurface)
 {
 	if (LogFont)
 	{
@@ -2263,12 +2286,12 @@ bool GFontType::GetFromRef(OsFont Handle)
 	#endif
 }
 
-GFont *GFontType::Create(NativeInt Param)
+GFont *GFontType::Create(GSurface *pSurface)
 {
 	GFont *New = new GFont;
 	if (New)
 	{
-		if (!New->Create(this, Param))
+		if (!New->Create(this, pSurface))
 		{
 			DeleteObj(New);
 		}

@@ -99,10 +99,10 @@ public:
 	}
 	
 	/// String constructor
-	GString(const char *str, int len)
+	GString(const char *str, int bytes)
 	{
 		Str = NULL;
-		Set(str, len);
+		Set(str, bytes);
 	}
 
 	/// const char* constructor
@@ -113,10 +113,10 @@ public:
 	}
 
 	/// const char16* constructor
-	GString(const char16 *str)
+	GString(const char16 *str, int chars = -1)
 	{
 		Str = NULL;
-		char *Utf = LgiNewUtf16To8(str);
+		char *Utf = LgiNewUtf16To8(str, chars < 0 ? -1 : chars * sizeof(char16));
 		if (Utf)
 		{
 			Set(Utf);
@@ -165,33 +165,33 @@ public:
 		/// Can be a pointer to string data or NULL to create an empty buffer (requires valid length)
 		const char *str,
 		/// Byte length of input string or -1 to copy till the NULL terminator.
-		NativeInt len = -1
+		NativeInt bytes = -1
 	)
 	{
 		Empty();
 
-		if (len < 0)
+		if (bytes < 0)
 		{
 			if (str)
-				len = strlen(str);
+				bytes = strlen(str);
 			else
 				return false;
 		}
 
-		Str = (RefStr*)malloc(sizeof(RefStr) + len);
+		Str = (RefStr*)malloc(sizeof(RefStr) + bytes);
 		if (!Str)
 			return false;
 		
 		Str->Refs = 1;
-		Str->Len = len;
+		Str->Len = bytes;
 		#ifdef LGI_UNIT_TESTS
 		RefStrCount++;
 		#endif
 		
 		if (str)
-			memcpy(Str->Str, str, len);
+			memcpy(Str->Str, str, bytes);
 		
-		Str->Str[len] = 0;
+		Str->Str[bytes] = 0;
 		return true;
 	}
 

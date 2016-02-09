@@ -218,12 +218,11 @@ public:
 		const char *Face = 0,
 		/// The pt size
 		int PtSize = -1,
-		/// An OS specific parameter. This is typically a Win32 HDC when creating a font
-		/// for printing.
-		NativeInt Param = 0
+		/// Creating a font for a particular surface (e.g. printing).
+		GSurface *pSurface = 0
 	);
 	/// Creates a new font from type infomation
-	bool Create(GFontType *Type, NativeInt Param = 0);
+	bool Create(GFontType *Type, GSurface *pSurface = NULL);
 	/// Clears any handles and memory associated with the object.
 	bool Destroy();
 	/// Returns the OS font handle
@@ -233,7 +232,7 @@ public:
 	/// Returns the pixel height of the font
 	int GetHeight();
 	/// Gets the creation parameter passed in (0 by default).
-	NativeInt GetParam();
+	GSurface *GetSurface();
 	/// Get supported glyphs
 	uchar *GetGlyphMap();
 	/// Converts printable characters to unicode.
@@ -302,7 +301,7 @@ public:
 	bool GetFromRef(OsFont Handle);
 
 	/// Create a font based on this font def
-	virtual GFont *Create(NativeInt Param = 0);
+	virtual GFont *Create(GSurface *pSurface = NULL);
 };
 
 /// Charset definitions

@@ -430,6 +430,7 @@ public:
 
 	/// Gets the drawable size, regardless of clipping or client rect
 	virtual GdcPt2 GetSize() { GdcPt2 p; return p; }
+	virtual Gtk::GtkPrintContext *GetPrintContext() { return NULL; }
 
 	#elif defined(WINNATIVE)
 
@@ -983,18 +984,12 @@ public:
 ///
 /// \sa GPrinter
 class LgiClass GPrintDC
-#if defined WIN32
+#if defined(WIN32)
 	: public GScreenDC
 #else
 	: public GSurface
 #endif
 {
-	#ifdef __GTK_H__
-	friend class PrintPainter;
-	double Xc(int x);
-	double Yc(int y);
-	#endif
-
 	class GPrintDCPrivate *d;
 
 public:
@@ -1002,54 +997,52 @@ public:
 	~GPrintDC();
 
 	bool IsPrint() { return true; }
-
 	int X();
 	int Y();
 	int GetBits();
 
 	/// Returns the horizontal DPI of the printer or 0 on error
 	int DpiX();
-
 	/// Returns the vertical DPI of the printer or 0 on error
 	int DpiY();
 
-	/// Call before any graphics commands to start a page.
-	bool StartPage();
-	/// Call to finish a page after drawing some graphics.
-	void EndPage();
-
 	#if defined __GTK_H__
+	
+	Gtk::GtkPrintContext *GetPrintContext();
 
-	OsPainter Handle();
-	void Handle(OsPainter Set);
+	int Op() { return GDC_SET; }
+	int Op(int Op, NativeInt Param = -1) { return GDC_SET; }
+
+	GRect ClipRgn(GRect *Rgn);
+	GRect ClipRgn();
 	COLOUR Colour();
 	COLOUR Colour(COLOUR c, int Bits = 0);
 	GColour Colour(GColour c);
-	GdcPt2 GetSize() { return GdcPt2(X(), Y()); }
 
 	void Set(int x, int y);
-	COLOUR Get(int x, int y);
+
 	void HLine(int x1, int x2, int y);
 	void VLine(int x, int y1, int y2);
 	void Line(int x1, int y1, int x2, int y2);
+
 	void Circle(double cx, double cy, double radius);
 	void FilledCircle(double cx, double cy, double radius);
 	void Arc(double cx, double cy, double radius, double start, double end);
 	void FilledArc(double cx, double cy, double radius, double start, double end);
 	void Ellipse(double cx, double cy, double x, double y);
 	void FilledEllipse(double cx, double cy, double x, double y);
+
 	void Box(int x1, int y1, int x2, int y2);
 	void Box(GRect *a = NULL);
 	void Rectangle(int x1, int y1, int x2, int y2);
 	void Rectangle(GRect *a = NULL);
 	void Blt(int x, int y, GSurface *Src, GRect *a = NULL);
 	void StretchBlt(GRect *d, GSurface *Src, GRect *s);
+
 	void Polygon(int Points, GdcPt2 *Data);
 	void Bezier(int Threshold, GdcPt2 *Pt);
-	void FloodFill(int x, int y, int Mode, COLOUR Border = 0, GRect *Bounds = NULL);
-	
-	#endif
 
+	#endif
 };
 
 //////////////////////////////////////////////////////////////////////////////
