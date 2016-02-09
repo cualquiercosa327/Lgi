@@ -280,6 +280,8 @@ GApp::GApp(OsAppArguments &AppArgs, const char *name, GAppArguments *Args) :
 	SystemBold = 0;
 	d = new GAppPrivate;
 	Name(name);
+
+	Gtk::gdk_threads_init();	
 	
 	// We want our printf's NOW!
 	setvbuf(stdout,(char *)NULL,_IONBF,0); // print mesgs immediately.
@@ -448,6 +450,18 @@ struct GtkIdle
 
 Gtk::gboolean IdleWrapper(Gtk::gpointer data)
 {
+	static int64 ts = LgiCurrentTime();
+	static int count = 0;
+	int64 now = LgiCurrentTime();
+	if (now - ts > 300)
+	{
+		printf("IdleWrapper = %i\n", count);
+		count = 0;
+		ts = now;
+	}
+	else count++;
+
+
 	GtkIdle *i = (GtkIdle*) data;
 	i->cb(i->param);
 	return TRUE;
@@ -464,7 +478,15 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 		{
 			idle.cb = IdleCallback;
 			idle.param = IdleParam;
+			
+			#if 1
+			Gtk::guint Id = Gtk::gdk_threads_add_idle_full(	G_PRIORITY_DEFAULT_IDLE,
+															IdleWrapper,
+															&idle,
+															NULL);
+			#else
 			Gtk::g_idle_add(IdleWrapper, &idle);
+			#endif
 		}
 		
 		Gtk::gtk_main();
