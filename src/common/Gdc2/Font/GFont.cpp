@@ -628,6 +628,7 @@ int GFont::GetHeight()
 		Create();
 	}
 	
+	LgiAssert(d->Height != 0);
 	return d->Height;
 }
 
@@ -2295,6 +2296,9 @@ GFont *GFontType::Create(GSurface *pSurface)
 		{
 			DeleteObj(New);
 		}
+		
+		if (New)
+			LgiAssert(New->GetHeight() > 0);
 	}
 	return New;
 }
