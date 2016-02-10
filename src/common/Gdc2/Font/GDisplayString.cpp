@@ -415,6 +415,8 @@ void GDisplayString::Layout(bool Debug)
     
 	#elif defined(__GTK_H__)
 	
+		y = Font->GetHeight();
+		yf = y * PANGO_SCALE;
 		if (!Hnd || !Font->Handle())
 		{
 			// LgiTrace("%s:%i - Missing handle: %p,%p\n", _FL, Hnd, Font->Handle());
@@ -1854,6 +1856,8 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc, bool Debug
 	int Ox = 0, Oy = 0;
 	pDC->GetOrigin(Ox, Oy);
 	
+	Gtk::cairo_save(cr);
+	
 	GRect Client;
 	if (pDC->GetClient(&Client) && Client.Valid())
 	{
@@ -1908,11 +1912,7 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc, bool Debug
 	    Gtk::pango_cairo_show_layout(cr, Hnd);
 	}
 	
-	Gtk::cairo_identity_matrix(cr);
-	if (Client.Valid())
-	{
-		Gtk::cairo_reset_clip(cr);
-	}
+	Gtk::cairo_restore(cr);
 	
 	#elif defined MAC && !defined COCOA && !defined(LGI_SDL)
 

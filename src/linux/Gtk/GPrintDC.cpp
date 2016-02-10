@@ -118,51 +118,91 @@ GColour GPrintDC::Colour(GColour c)
 
 void GPrintDC::Set(int x, int y)
 {
-	
+	if (Cairo)
+	{
+		cairo_new_path(Cairo);
+		cairo_rectangle(Cairo, x, y, x+1, y+1);
+		cairo_fill(Cairo);
+	}
 }
 
 void GPrintDC::HLine(int x1, int x2, int y)
 {
+	Line(x1, y, x2, y);
 }
 
 void GPrintDC::VLine(int x, int y1, int y2)
 {
+	Line(x, y1, x, y2);
 }
 
 void GPrintDC::Line(int x1, int y1, int x2, int y2)
 {
+	if (Cairo)
+	{
+		cairo_set_line_width(Cairo, 0.5);
+		cairo_new_path(Cairo);
+		cairo_move_to(Cairo, x1, y1);
+		cairo_line_to(Cairo, x2, y2);
+		cairo_stroke(Cairo);
+	}
 }
 
 void GPrintDC::Circle(double cx, double cy, double radius)
 {
+	LgiAssert(!"Not impl.");
 }
 
 void GPrintDC::FilledCircle(double cx, double cy, double radius)
 {
+	LgiAssert(!"Not impl.");
 }
 
 void GPrintDC::Arc(double cx, double cy, double radius, double start, double end)
 {
+	LgiAssert(!"Not impl.");
 }
 
 void GPrintDC::FilledArc(double cx, double cy, double radius, double start, double end)
 {
+	LgiAssert(!"Not impl.");
 }
 
 void GPrintDC::Ellipse(double cx, double cy, double x, double y)
 {
+	LgiAssert(!"Not impl.");
 }
 
 void GPrintDC::FilledEllipse(double cx, double cy, double x, double y)
 {
+	LgiAssert(!"Not impl.");
 }
 
 void GPrintDC::Box(int x1, int y1, int x2, int y2)
 {
+	GRect r(x1, y1, x2, y2);
+	Box(&r);
 }
 
 void GPrintDC::Box(GRect *a)
 {
+	GRect r;
+	if (a)
+		r = *a;
+	else
+		r = Bounds();
+	if (Cairo)
+	{
+		double Half = 0.5;
+		cairo_set_line_width(Cairo, Half);
+		cairo_new_path(Cairo);
+		cairo_rectangle(Cairo,
+						Half + r.x1,
+						Half + r.y1,
+						-Half + r.X(),
+						-Half + r.Y());
+		cairo_stroke(Cairo);
+	}
 }
 
 void GPrintDC::Rectangle(int x1, int y1, int x2, int y2)
@@ -179,22 +219,30 @@ void GPrintDC::Rectangle(GRect *a)
 	else
 		r = Bounds();
 	if (Cairo)
+	{
+		cairo_new_path(Cairo);
 		cairo_rectangle(Cairo, r.x1, r.y1, r.X(), r.Y());
+		cairo_fill(Cairo);
+	}
 }
 
 void GPrintDC::Blt(int x, int y, GSurface *Src, GRect *SrcClip)
 {
+	LgiAssert(!"Not impl.");
 }
 
 void GPrintDC::StretchBlt(GRect *d, GSurface *Src, GRect *s)
 {
+	LgiAssert(!"Not impl.");
 }
 
 void GPrintDC::Polygon(int Points, GdcPt2 *Data)
 {
+	LgiAssert(!"Not impl.");
 }
 
 void GPrintDC::Bezier(int Threshold, GdcPt2 *Pt)
 {
+	LgiAssert(!"Not impl.");
 }
 
