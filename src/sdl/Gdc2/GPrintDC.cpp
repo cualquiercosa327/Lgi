@@ -48,14 +48,3 @@ int GPrintDC::DpiY()
 	return 600;
 }
 
-bool GPrintDC::StartPage()
-{
-	bool Status = false;
-
-	return Status;
-}
-
-void GPrintDC::EndPage()
-{
-}
-
