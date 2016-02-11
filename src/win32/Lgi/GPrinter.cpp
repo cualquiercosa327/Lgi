@@ -78,8 +78,23 @@ bool GPrinter::Print(GPrintEvents *Events, const char *PrintJobName, int Pages, 
 	{
 		return false;
 	}
+	
+	GString PrinterName;
+	if (d->Info.hDevNames)
+	{
+		DEVNAMES *Name = (DEVNAMES*)GlobalLock(d->Info.hDevNames);
+		if (Name)
+		{
+			// const char *Driver = (const char *)Name + Name->wDriverOffset;
+			const char *Device = (const char *)Name + Name->wDeviceOffset;
+			// const char *Output = (const char *)Name + Name->wOutputOffset;
+			// const char *Default = (const char *)Name + Name->wDefault;			
+			PrinterName = Device;			
+			GlobalUnlock(Name);
+		}
+	}
 
-	GPrintDC dc(d->Info.hDC, PrintJobName);
+	GPrintDC dc(d->Info.hDC, PrintJobName, PrinterName);
 	if (!dc.Handle())
 	{
 		d->Err.Printf("%s:%i - StartDoc failed.\n", _FL);
@@ -111,6 +126,12 @@ bool GPrinter::Print(GPrintEvents *Events, const char *PrintJobName, int Pages, 
 			Status = false;
 			break;
 		}
+	}
+	
+	GString OutputFile = dc.GetOutputFileName();
+	if (FileExists(OutputFile))
+	{
+		LgiBrowseToFile(OutputFile);
 	}
 	
 	return Status;

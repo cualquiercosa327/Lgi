@@ -11,6 +11,7 @@ public:
 	class PrintPainter *p;
 	Gtk::GtkPrintContext *Handle;
 	GString PrintJobName;
+	GString PrinterName;
 	int Pages;
 	GColour c;
 	GRect Clip;
@@ -33,10 +34,11 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////
-GPrintDC::GPrintDC(void *Handle, const char *PrintJobName)
+GPrintDC::GPrintDC(void *Handle, const char *PrintJobName, const char *PrinterName)
 {
 	d = new GPrintDCPrivate((Gtk::GtkPrintContext*)Handle);
-	d->PrintJobName = NewStr(PrintJobName);
+	d->PrintJobName = PrintJobName;
+	d->PrinterName = PrinterName;
 	Cairo = gtk_print_context_get_cairo_context(d->Handle);
 	ColourSpace = CsRgb24;
 	d->Clip = Bounds();

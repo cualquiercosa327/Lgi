@@ -993,10 +993,11 @@ class LgiClass GPrintDC
 	class GPrintDCPrivate *d;
 
 public:
-	GPrintDC(void *Handle, const char *PrintJobName);
+	GPrintDC(void *Handle, const char *PrintJobName, const char *PrinterName = NULL);
 	~GPrintDC();
 
 	bool IsPrint() { return true; }
+	const char *GetOutputFileName();
 	int X();
 	int Y();
 	int GetBits();

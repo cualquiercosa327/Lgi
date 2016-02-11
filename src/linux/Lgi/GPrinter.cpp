@@ -14,6 +14,7 @@ public:
 	::GString JobName;
 	::GString Printer;
 	::GString Err;
+	::GString PrinterName;
 	GPrintEvents *Events;
 	
 	GAutoPtr<GPrintDC> PrintDC;
@@ -77,11 +78,15 @@ GtkPrintBegin(	GtkPrintOperation	*operation,
 				GtkPrintContext		*context,
 				GPrinterPrivate		*d)
 {
-	printf("GtkPrintBegin\n");
-
 	bool Status = false;
-	// d->Cairo = gtk_print_context_get_cairo_context(context);
-	if (d->PrintDC.Reset(new GPrintDC(context, d->JobName)))
+
+	GtkPrintSettings *settings = gtk_print_operation_get_print_settings(operation);
+	if (settings)
+	{
+		d->PrinterName = gtk_print_settings_get_printer(settings);
+	}
+
+	if (d->PrintDC.Reset(new GPrintDC(context, d->JobName, d->PrinterName)))
 	{
 		int Pages = d->Events->OnBeginPrint(d->PrintDC);
 		if (Pages > 0)
@@ -100,8 +105,6 @@ GtkPrintDrawPage(	GtkPrintOperation	*operation,
 					gint				page_number,
 					GPrinterPrivate		*d)
 {
-	printf("GtkPrintDrawPage\n");
-
 	cairo_t *ct = gtk_print_context_get_cairo_context(context);
 	if (ct && d->PrintDC)
 		LgiAssert(d->PrintDC->Handle() == ct); // Just checking it's the same handle

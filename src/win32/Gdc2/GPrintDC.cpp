@@ -6,6 +6,7 @@ class GPrintDCPrivate
 public:
 	bool PageOpen;
 	bool DocOpen;
+	GString OutputFileName;
 
 	GPrintDCPrivate()
 	{
@@ -20,7 +21,7 @@ BOOL CALLBACK LgiAbortProc(HDC hdc, int iError)
 	return true;
 }
 
-GPrintDC::GPrintDC(void *Handle, const char *PrintJobName)
+GPrintDC::GPrintDC(void *Handle, const char *PrintJobName, const char *PrinterName)
 {
 	d = new GPrintDCPrivate;
 	hDC = (HDC) Handle;
@@ -34,7 +35,29 @@ GPrintDC::GPrintDC(void *Handle, const char *PrintJobName)
 
 		ZeroObj(Info);
 		Info.cbSize = sizeof(DOCINFO); 
-		Info.lpszDocName = PrintJobName ? PrintJobName : "Lgi Print Job"; 
+		Info.lpszDocName = PrintJobName ? PrintJobName : "Lgi Print Job";
+		
+		if (PrinterName &&
+			stristr(PrinterName, "XPS"))
+		{
+			GFile::Path p(LSP_USER_DOCUMENTS);
+			GString FileName;
+			FileName.Printf("%s.xps", PrintJobName);
+			p += FileName;
+			if (FileExists(p.GetFull()))
+			{
+				for (unsigned i=1; i<1000; i++)
+				{
+					p.Parent();
+					FileName.Printf("%s%i.xps", PrintJobName, i);
+					p += FileName;
+					if (!FileExists(p.GetFull()))
+						break;
+				}
+			}
+			
+			Info.lpszOutput = d->OutputFileName = p.GetFull();
+		}
 
 		d->DocOpen = StartDoc(hDC, &Info) > 0;
 		if (!d->DocOpen)
@@ -59,6 +82,11 @@ GPrintDC::~GPrintDC()
 	    DeleteDC(hDC);
 		hDC = 0;
     }
+}
+
+const char *GPrintDC::GetOutputFileName()
+{
+	return d->OutputFileName;
 }
 
 int GPrintDC::X()
