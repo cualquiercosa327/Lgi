@@ -162,6 +162,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../include/common/GStringClass.h \
 	../include/common/GTableLayout.h \
 	../include/common/GTabView.h \
+	../include/common/GTextFile.h \
 	../include/common/GTextLabel.h \
 	../include/common/GTextView3.h \
 	../include/common/GThread.h \
@@ -1073,8 +1074,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GFindReplaceDlg.h \
 	../include/common/GToolBar.h \
 	../include/common/GThread.h \
-	../include/common/GInput.h \
-	../include/common/GPrinter.h
+	../include/common/GInput.h
 
 ../../../../../../usr/include/gtk-2.0/gdk/gdkpixbuf.h : /usr/include/cairo/cairo.h \
 	/usr/include/gtk-2.0/gdk/gdktypes.h \
@@ -2103,8 +2103,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GFindReplaceDlg.h \
 	../include/common/GToolBar.h \
 	../include/common/GThread.h \
-	../include/common/GInput.h \
-	../include/common/GPrinter.h
+	../include/common/GInput.h
 
 ../include/common/LgiMsgs.h : 
 
@@ -2430,7 +2429,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../include/linux/Gtk/LgiOsDefs.h : ../include/common/LgiDefs.h \
 	../include/common/LgiInc.h \
-	/usr/include/gtk-2.0/gtk/gtk.h
+	/usr/include/gtk-2.0/gtk/gtk.h \
+	/usr/include/gtk-2.0/gdk/gdkkeysyms-compat.h
 
 ../include/common/GDateTime.h : 
 
@@ -3090,7 +3090,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GToken.h \
 	../include/common/GVariant.h \
 	../include/common/GDisplayString.h \
-	../include/common/GPalette.h
+	../include/common/GPalette.h \
+	../include/common/GNotifications.h
 
 ../../../../../../usr/include/glib-2.0/gio/gdrive.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -3200,8 +3201,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/pango-1.0/pango/pango-tabs.h : /usr/include/pango-1.0/pango/pango-types.h
 
-../src/linux/Gtk/GPrintDC.cpp : ../include/common/Lgi.h \
-	../include/common/GLibraryUtils.h
+../src/linux/Gtk/GPrintDC.cpp : ../include/common/Lgi.h
 
 ../../../../../../usr/include/pango-1.0/pango/pango-engine.h : /usr/include/pango-1.0/pango/pango-types.h \
 	/usr/include/pango-1.0/pango/pango-item.h \
@@ -3449,7 +3449,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../include/linux/Gtk/LgiOsDefs.h : ../include/common/LgiDefs.h \
 	../include/common/LgiInc.h \
-	/usr/include/gtk-2.0/gtk/gtk.h
+	/usr/include/gtk-2.0/gtk/gtk.h \
+	/usr/include/gtk-2.0/gdk/gdkkeysyms-compat.h
 
 ../src/common/Widgets/GSplitter.cpp : ../include/common/Lgi.h
 
@@ -4009,7 +4010,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../src/linux/Lgi/GPrinter.cpp : ../include/common/Lgi.h \
 	../include/common/GList.h \
-	../include/common/GButton.h
+	../include/common/GButton.h \
+	../include/common/GPrinter.h
 
 ../include/common/GPanel.h : ../include/common/GDisplayString.h
 
@@ -4305,6 +4307,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/LgiNetInc.h
 
 ../src/common/Hash/md5/md5.h : ../include/common/LgiInc.h
+
+../include/common/GTextFile.h : ../include/common/GUtf8.h
 
 VPATH=%.cpp \
 	./Code \

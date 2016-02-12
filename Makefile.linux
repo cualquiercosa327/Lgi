@@ -54,7 +54,6 @@ Depends =	GDateTime.o \
 			GFileCommon.o \
 			GApp.o \
 			GGeneral.o \
-			GPrinter.o \
 			GView.o \
 			GWindow.o \
 			LgiWidget.o \
@@ -110,6 +109,7 @@ Depends =	GDateTime.o \
 			GMemDC.o \
 			GPrintDC.o \
 			GScreenDC.o \
+			GPrinter.o \
 			GSurface.o \
 			GClipBoard.o \
 			GDataDlg.o \
@@ -229,12 +229,6 @@ GGeneral.o : ./src/linux/Lgi/GGeneral.cpp ./include/common/Lgi.h \
 	./include/common/GButton.h \
 	./include/linux/Gtk/LgiWinManGlue.h \
 	./include/common/GToken.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-GPrinter.o : ./src/linux/Lgi/GPrinter.cpp ./include/common/Lgi.h \
-	./include/common/GList.h \
-	./include/common/GButton.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -624,12 +618,18 @@ GMemDC.o : ./src/linux/Gtk/GMemDC.cpp ./include/common/Gdc2.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GPrintDC.o : ./src/linux/Gtk/GPrintDC.cpp ./include/common/Lgi.h \
-	./include/common/GLibraryUtils.h
+GPrintDC.o : ./src/linux/Gtk/GPrintDC.cpp ./include/common/Lgi.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GScreenDC.o : ./src/linux/Gtk/GScreenDC.cpp ./include/common/Lgi.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GPrinter.o : ./src/linux/Lgi/GPrinter.cpp ./include/common/Lgi.h \
+	./include/common/GList.h \
+	./include/common/GButton.h \
+	./include/common/GPrinter.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -853,7 +853,8 @@ GToolBar.o : ./src/common/Widgets/GToolBar.cpp ./include/common/Lgi.h \
 	./include/common/GToken.h \
 	./include/common/GVariant.h \
 	./include/common/GDisplayString.h \
-	./include/common/GPalette.h
+	./include/common/GPalette.h \
+	./include/common/GNotifications.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -1347,8 +1348,7 @@ md5.o : ./src/common/Hash/md5/md5.c
 	./include/common/GFindReplaceDlg.h \
 	./include/common/GToolBar.h \
 	./include/common/GThread.h \
-	./include/common/GInput.h \
-	./include/common/GPrinter.h
+	./include/common/GInput.h
 
 ./include/common/LgiCommon.h : ./include/common/GMem.h \
 	./include/common/GArray.h \
@@ -1531,6 +1531,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ../../../../../usr/include/gtk-2.0/gdk/gdkapplaunchcontext.h : /usr/include/glib-2.0/gio/gio.h \
 	/usr/include/gtk-2.0/gdk/gdkscreen.h
+
+./include/common/GPrinter.h : 
 
 ../../../../../usr/include/pango-1.0/pango/pango-enum-types.h : /usr/include/glib-2.0/glib-object.h
 
@@ -2228,7 +2230,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ./include/linux/Gtk/LgiOsDefs.h : ./include/common/LgiDefs.h \
 	./include/common/LgiInc.h \
-	/usr/include/gtk-2.0/gtk/gtk.h
+	/usr/include/gtk-2.0/gtk/gtk.h \
+	/usr/include/gtk-2.0/gdk/gdkkeysyms-compat.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtk.h : /usr/include/gtk-2.0/gdk/gdk.h \
 	/usr/include/gtk-2.0/gtk/gtkaboutdialog.h \
@@ -2835,7 +2838,8 @@ md5.o : ./src/common/Hash/md5/md5.c
 
 ./include/linux/Gtk/LgiOsDefs.h : ./include/common/LgiDefs.h \
 	./include/common/LgiInc.h \
-	/usr/include/gtk-2.0/gtk/gtk.h
+	/usr/include/gtk-2.0/gtk/gtk.h \
+	/usr/include/gtk-2.0/gdk/gdkkeysyms-compat.h
 
 ./include/common/GPopup.h : 
 
@@ -3157,8 +3161,6 @@ md5.o : ./src/common/Hash/md5/md5.c
 ../../../../../usr/include/gtk-2.0/gtk/gtktexttagtable.h : /usr/include/gtk-2.0/gtk/gtktexttag.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtksettings.h : /usr/include/gtk-2.0/gtk/gtkrc.h
-
-./include/common/GPrinter.h : 
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkcombo.h : /usr/include/gtk-2.0/gtk/gtk.h
 
