@@ -165,4 +165,4 @@ class GSlider_Factory : public GViewFactory
 		return 0;
 	}
 
-} GHtml_Factory;
+} GSliderFactory;

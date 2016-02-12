@@ -230,12 +230,79 @@ void GPrintDC::Rectangle(GRect *a)
 
 void GPrintDC::Blt(int x, int y, GSurface *Src, GRect *SrcClip)
 {
-	LgiAssert(!"Not impl.");
+	GRect s = SrcClip ? *SrcClip : Src->Bounds();
+	GRect d = s;
+	d.ZOff(x, y);
+	StretchBlt(&d, Src, &s);
 }
 
 void GPrintDC::StretchBlt(GRect *d, GSurface *Src, GRect *s)
 {
-	LgiAssert(!"Not impl.");
+	if (!Cairo)
+	{
+		LgiAssert(0);
+		return;
+	}
+	
+	uint8 *Scan0 = (*Src)[0];
+	if (!Scan0)
+	{
+		LgiAssert(0);
+		return;
+	}
+	
+	Gtk::cairo_format_t Fmt = Gtk::CAIRO_FORMAT_INVALID;
+	switch (Src->GetBits())
+	{
+		case 16:
+			Fmt = Gtk::CAIRO_FORMAT_RGB16_565;
+			break;
+		case 24:
+			Fmt = Gtk::CAIRO_FORMAT_RGB24;
+			break;
+		case 32:
+			Fmt = Gtk::CAIRO_FORMAT_ARGB32;
+			break;
+	}
+	if (Fmt == Gtk::CAIRO_FORMAT_INVALID)
+	{
+		LgiAssert(0);
+		return;
+	}
+	
+	Gtk::cairo_surface_t *Img = cairo_image_surface_create_for_data(Scan0,
+																	Fmt,
+																	Src->X(),
+																	Src->Y(),
+																	Src->GetRowStep());
+	if (!Img)
+	{
+		LgiAssert(0);
+		return;
+	}
+
+	Gtk::cairo_pattern_t *Pat = cairo_pattern_create_for_surface(Img);
+	if (Pat)
+	{
+		Gtk::cairo_matrix_t m;
+		double Sx = (double) s->X() / d->X();
+		double Sy = (double) s->Y() / d->Y();
+		cairo_matrix_init_scale(&m, Sx, Sy);
+		cairo_matrix_translate(&m, -d->x1,-d->y1);
+		cairo_pattern_set_matrix(Pat, &m);
+
+		cairo_save(Cairo);
+		cairo_set_source(Cairo, Pat);
+		
+		cairo_new_path(Cairo);
+		cairo_rectangle(Cairo, d->x1, d->y1, d->X(), d->Y());
+		cairo_fill(Cairo);
+		
+		cairo_restore(Cairo);
+		cairo_pattern_destroy(Pat);
+	}
+	
+	cairo_surface_destroy(Img);
 }
 
 void GPrintDC::Polygon(int Points, GdcPt2 *Data)
