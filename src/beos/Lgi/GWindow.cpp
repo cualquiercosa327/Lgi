@@ -795,6 +795,10 @@ GViewI *GWindow::GetFocus()
 	return d->Focus;
 }
 
+void GWindow::OnFrontSwitch(bool b)
+{
+}
+
 #if DEBUG_SETFOCUS
 static GAutoString DescribeView(GViewI *v)
 {
