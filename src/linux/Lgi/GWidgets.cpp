@@ -183,6 +183,7 @@ gboolean
 GtkDialogDestroy(GtkWidget *widget, GDialog *This)
 {
 	This->_View = NULL;
+	return 0;
 }
 
 static
