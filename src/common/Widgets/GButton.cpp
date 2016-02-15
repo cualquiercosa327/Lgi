@@ -318,7 +318,10 @@ bool GButton::OnKey(GKey &k)
 
 void GButton::OnClick()
 {
-	SendNotify();
+	if (GetId())
+		PostEvent(M_CHANGE, GetId());
+	else
+		SendNotify();
 }
 
 void GButton::OnFocus(bool f)
