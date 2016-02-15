@@ -49,6 +49,7 @@ Depends =	GDateTime.o \
 			GView.o \
 			GWindow.o \
 			GViewCommon.o \
+			GWindowCommon.o \
 			GLibrary.o \
 			GColour.o \
 			GMem.o \
@@ -109,6 +110,7 @@ Depends =	GDateTime.o \
 			LgiRand.o \
 			GString.o \
 			GToken.o \
+			GUnicode.o \
 			GUtf8.o \
 			GXmlTree.o \
 			GEdit.o \
@@ -216,6 +218,10 @@ GViewCommon.o : ./src/common/Lgi/GViewCommon.cpp ./include/common/Lgi.h \
 	./include/common/GTableLayout.h \
 	./include/common/GButton.h \
 	./include/common/GCss.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GWindowCommon.o : ./src/common/Lgi/GWindowCommon.cpp ./include/common/Lgi.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -591,6 +597,10 @@ GToken.o : ./src/common/Text/GToken.cpp ./include/beos/GMem.h \
 	./include/common/GContainers.h \
 	./include/common/GToken.h \
 	./include/common/GString.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GUnicode.o : ./src/common/Text/GUnicode.cpp ./include/common/Lgi.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
