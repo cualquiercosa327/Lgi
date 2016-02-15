@@ -1910,6 +1910,7 @@ bool GView::Detach()
 	bool Status = false;
 
 	// Detach view
+	_Window = NULL;
 	if (d->Parent)
 	{
 		GWindow *wnd = GetWindow();

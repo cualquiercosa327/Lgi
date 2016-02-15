@@ -888,6 +888,7 @@ bool GView::Detach()
 	ThreadCheck();
 	
 	// Detach view
+	_Window = NULL;
 	GViewI *Par = GetParent();
 	if (Par)
 	{

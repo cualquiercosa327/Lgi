@@ -299,6 +299,8 @@ GMessage::Param MsgB(GMessage *m)
 bool GView::Detach()
 {
 	bool Status = false;
+
+	_Window = NULL;
 	if (d->GetParent())
 	{
 		BView *Par = d->GetParent()->_View;
@@ -316,6 +318,7 @@ bool GView::Detach()
 		d->Parent = NULL;
 		Status = true;
 	}
+
 	return Status;
 }
 
