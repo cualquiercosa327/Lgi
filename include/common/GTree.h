@@ -137,6 +137,8 @@ public:
 	void ScrollTo();
 	/// Gets the bounding box of the item.
 	GRect *GetPos(int Col = -1);
+	/// Sort the child folder
+	bool SortChildren(int (*compare)(GTreeItem *a, GTreeItem *b, NativeInt UserData), NativeInt UserData = 0);
 
 	/// Called when the node expands/contracts to show or hide it's children.
 	virtual void OnExpand(bool b);
