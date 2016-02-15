@@ -50,6 +50,7 @@ Depends =	GDateTime.o \
 			GWindow.o \
 			GViewCommon.o \
 			GLibrary.o \
+			GColour.o \
 			GMem.o \
 			GProperties.o \
 			GContainers.o \
@@ -419,6 +420,11 @@ GInput.o : ./src/common/Lgi/GInput.cpp ./include/common/Lgi.h \
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 Gdc2.o : ./src/beos/Gdc2/Gdc2.cpp ./include/common/Gdc2.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GColour.o : ./src/common/Gdc2/GColour.cpp ./include/common/Lgi.h \
+	./include/common/GPalette.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 

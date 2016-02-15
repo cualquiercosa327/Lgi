@@ -104,6 +104,7 @@ typedef int OsSocket;
 #define LGI_WideCharset			"utf-32"
 #define LGI_LIBRARY_EXT			"so"
 #define LGI_PrintfInt64			"%ll"
+#define LGI_EXECUTABLE_EXT		""
 
 #define IDOK					1
 #define IDCANCEL				2

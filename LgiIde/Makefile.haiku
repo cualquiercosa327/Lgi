@@ -59,13 +59,13 @@ Depends =	FtpThread.o \
 
 # Target
 # Executable target
-$(Target) : ../$(BuildDir)/liblgi$(Tag).dll outputfolder $(Depends)
+$(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	@echo Linking $(Target) [$(Build)]...
 	$(CPP) -Wl,-soname,$(TargetFile),-export-dynamic,-R. -o \
 		$(Target) $(addprefix $(BuildDir)/,$(Depends)) $(Libs)
 	@echo Done.
 
-../$(BuildDir)/liblgi$(Tag).dll : ../include/beos/LgiOsClasses.h \
+../$(BuildDir)/liblgi$(Tag).so : ../include/beos/LgiOsClasses.h \
 	../include/beos/LgiOsDefs.h \
 	../include/common/GArray.h \
 	../include/common/GBox.h \
@@ -173,7 +173,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).dll outputfolder $(Depends)
 	../src/common/Lgi/GCss.cpp \
 	../src/common/Lgi/GCssTools.cpp \
 	../src/common/Lgi/GDataDlg.cpp \
-	../src/common/Lgi/GDragAndDrop.cpp \
+	../src/beos/Lgi/GDragAndDrop.cpp \
 	../src/common/Lgi/GFileSelect.cpp \
 	../src/common/Lgi/GFindReplace.cpp \
 	../src/common/Lgi/GFontSelect.cpp \
