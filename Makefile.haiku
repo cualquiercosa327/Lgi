@@ -121,6 +121,7 @@ Depends =	GDateTime.o \
 			GButton.o \
 			GCheckBox.o \
 			GCombo.o \
+			GItemContainer.o \
 			GList.o \
 			GPanel.o \
 			GPopup.o \
@@ -652,6 +653,15 @@ GButton.o : ./src/common/Widgets/GButton.cpp ./include/common/Lgi.h \
 	./include/common/GButton.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GItemContainer.o : ./src/common/Widgets/GItemContainer.cpp ./include/common/Lgi.h \
+	./include/common/GItemContainer.h \
+	./include/common/GDisplayString.h \
+	./include/common/GSkinEngine.h \
+	./include/common/GScrollBar.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
 
 GCheckBox.o : ./src/common/Widgets/GCheckBox.cpp ./include/common/Lgi.h \
 	./include/common/GSkinEngine.h \
