@@ -37,13 +37,17 @@ Inc = \
 	-I./Code
 
 # Dependencies
-Depends =	FtpThread.o \
+Depends =	GDebugContext.o \
+			GDebugger.o \
+			GSubProcess.o \
+			FtpThread.o \
 			IFtp.o \
 			FindInFiles.o \
 			FindSymbol.o \
-			SysCharSupport.o \
-			GLexCpp.o \
 			GHistory.o \
+			GLexCpp.o \
+			GParseCpp.o \
+			SysCharSupport.o \
 			IdeDoc.o \
 			IdeProject.o \
 			IdeProjectSettings.o \
@@ -53,7 +57,6 @@ Depends =	FtpThread.o \
 			SpaceTabConv.o \
 			GDocView.o \
 			GMdi.o \
-			GTextView3.o \
 			LgiMain.o \
 			Png.o
 
@@ -234,10 +237,34 @@ outputfolder :
 
 # Clean out targets
 clean :
-	rm -f $(BuildDir)/*.o $(Target)..exe
+	rm -f $(BuildDir)/*.o $(Target)
 	@echo Cleaned $(BuildDir)
+	+make -C "../" -f "Makefile.haiku" clean
 
-FtpThread.o : ./Code/FtpThread.cpp ../include/common/Lgi.h
+GDebugContext.o : ./Code/GDebugContext.cpp ../include/common/Lgi.h \
+	./Code/LgiIde.h \
+	./Code/IdeProject.h \
+	../include/common/GTextLog.h \
+	../include/common/GList.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GDebugger.o : ./Code/GDebugger.cpp ../include/common/Lgi.h \
+	./Code/GDebugger.h \
+	../include/common/GSubProcess.h \
+	../include/common/GToken.h \
+	../include/common/GDocView.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GSubProcess.o : ../src/common/Lgi/GSubProcess.cpp ../include/common/Lgi.h \
+	../include/common/GSubProcess.h \
+	../include/common/GToken.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+FtpThread.o : ./Code/FtpThread.cpp ../include/common/Lgi.h \
+	./Code/FtpThread.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -274,27 +301,47 @@ GLexCpp.o : ../src/common/Coding/GLexCpp.cpp ../include/common/GLexCpp.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GHistory.o : ./Code/GHistory.cpp ../include/common/Lgi.h \
-	../include/common/GList.h
+GParseCpp.o : ../src/common/Coding/GParseCpp.cpp ../include/common/Lgi.h \
+	../include/common/GParseCpp.h \
+	../include/common/GThreadEvent.h \
+	../include/common/GLexCpp.h \
+	../include/common/GVariant.h \
+	../include/common/GXmlTree.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+SysCharSupport.o : ./Code/SysCharSupport.cpp ../include/common/Lgi.h \
+	./Code/LgiIde.h \
+	../include/common/GList.h \
+	../include/common/GUtf8.h \
+	../include/common/GDisplayString.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 IdeDoc.o : ./Code/IdeDoc.cpp ../include/common/Lgi.h \
+	./Code/LgiIde.h \
 	../include/common/GToken.h \
 	../include/common/GLexCpp.h \
 	../include/common/INet.h \
-	../include/common/GClipBoard.h
+	../include/common/GClipBoard.h \
+	../include/common/GDisplayString.h \
+	../include/common/GScrollBar.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 IdeProject.o : ./Code/IdeProject.cpp ../include/common/Lgi.h \
+	./Code/LgiIde.h \
 	../include/common/GDragAndDrop.h \
 	../include/common/GToken.h \
+	./Code/resdefs.h \
 	../include/common/GProcess.h \
 	../include/common/GCombo.h \
 	../include/common/INet.h \
 	../include/common/GListItemCheckBox.h \
-	../include/common/GClipBoard.h
+	./Code/FtpThread.h \
+	../include/common/GClipBoard.h \
+	../include/common/GDropFiles.h \
+	../include/common/GSubProcess.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
