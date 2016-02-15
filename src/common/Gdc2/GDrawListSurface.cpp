@@ -429,7 +429,8 @@ void GDrawListSurface::Box(int x1, int y1, int x2, int y2)
 
 void GDrawListSurface::Box(GRect *r)
 {
-	LCmdRect *c = new LCmdRect(r ? r : Bounds(), false);
+    GRect rc = r ? r : Bounds();
+	LCmdRect *c = new LCmdRect(rc, false);
 	if (c)
 		d->Add(c);
 	else
@@ -448,7 +449,8 @@ void GDrawListSurface::Rectangle(int x1, int y1, int x2, int y2)
 
 void GDrawListSurface::Rectangle(GRect *r)
 {
-	LCmdRect *c = new LCmdRect(r ? r : Bounds(), true);
+    GRect rc = r ? r : Bounds();
+	LCmdRect *c = new LCmdRect(rc, true);
 	if (c)
 		d->Add(c);
 	else
