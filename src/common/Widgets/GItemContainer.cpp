@@ -322,7 +322,11 @@ int GItemContainer::HitColumn(int x, int y, GItemColumn *&Resize, GItemColumn *&
 	return Index;
 }
 
+#ifdef BEOS
+int ColInfoCmp(GItemContainer::ColInfo *a, GItemContainer::ColInfo *b)
+#else
 DeclGArrayCompare(ColInfoCmp, GItemContainer::ColInfo, void)
+#endif
 {
 	int AGrowPx = a->GrowPx();
 	int BGrowPx = b->GrowPx();
@@ -370,7 +374,11 @@ void GItemContainer::ResizeColumnsToContent(int Border)
 		int ExpandPx = AvailablePx - (Sizes.FixedPx + Sizes.ResizePx);
 		if (ExpandPx > 0)
 		{
+			#ifdef BEOS
+			Sizes.Info.Sort(ColInfoCmp);
+			#else
 			Sizes.Info.Sort(ColInfoCmp, (void*)NULL);
+			#endif
 			for (int i=0; i<Sizes.Info.Length(); i++)
 			{
 				ColInfo &Inf = Sizes.Info[i];
