@@ -291,9 +291,9 @@ FindSymbol.o : ./Code/FindSymbol.cpp ../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-SysCharSupport.o : ./Code/SysCharSupport.cpp ../include/common/Lgi.h \
-	../include/common/GList.h \
-	../include/common/GUtf8.h
+GHistory.o : ./Code/GHistory.cpp ../include/common/Lgi.h \
+	./Code/GHistory.h \
+	../include/common/GList.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
