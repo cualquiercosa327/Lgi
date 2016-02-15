@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include "Lgi.h"
 #include "GScrollBar.h"
+#include "GNotifications.h"
 
 #define M_SET_SCROLL		(M_USER + 0x2000)
 
@@ -135,7 +136,13 @@ void GLayout::AttachScrollBars()
 bool GLayout::SetScrollBars(bool x, bool y)
 {
 	#ifdef M_SET_SCROLL
-	PostEvent(M_SET_SCROLL, x, y);
+	if (x ^ (HScroll != NULL)
+		||
+		y ^ (VScroll != NULL))
+	{
+		printf("%s posting M_SET_SCROLL...\n", GetClass());
+		PostEvent(M_SET_SCROLL, x, y);
+	}
 	#else
 	_SetScrollBars(x, y);
 	#endif
@@ -269,7 +276,13 @@ GMessage::Param GLayout::OnEvent(GMessage *Msg)
 	#ifdef M_SET_SCROLL
 	if (MsgCode(Msg) == M_SET_SCROLL)
 	{
-		_SetScrollBars(MsgA(Msg), MsgB(Msg));
+		printf("%s receiving M_SET_SCROLL(%i,%i)\n", GetClass(), Msg->A(), Msg->B());
+		_SetScrollBars(Msg->A(), Msg->B());
+		
+		if (HScroll)
+			HScroll->SendNotify(GNotifyScrollBar_Create);
+		if (VScroll)
+			VScroll->SendNotify(GNotifyScrollBar_Create);
 		return 0;
 	}
 	#endif

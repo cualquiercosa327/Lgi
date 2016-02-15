@@ -363,6 +363,9 @@ class LgiClass GView : virtual public GViewI, virtual public GBase
 	friend Gtk::gboolean GtkViewCallback(Gtk::GtkWidget *widget, Gtk::GdkEvent *event, GView *This);
 	
 	virtual Gtk::gboolean OnGtkEvent(Gtk::GtkWidget *widget, Gtk::GdkEvent *event);
+public:
+	void OnGtkRealize();
+private:
 
 	#elif defined WIN32
 

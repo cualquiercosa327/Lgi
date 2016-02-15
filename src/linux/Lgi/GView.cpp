@@ -127,11 +127,22 @@ GViewPrivate::GViewPrivate()
 	TabStop = 0;
 	Pulse = 0;
 	InPaint = false;
+	GotOnCreate = false;
 }
 
 GViewPrivate::~GViewPrivate()
 {
 	LgiAssert(Pulse == 0);
+}
+
+void GView::OnGtkRealize()
+{
+	if (!d->GotOnCreate)
+	{
+		d->GotOnCreate = true;
+		// printf("Calling %s::OnCreate...\n", GetClass());
+		OnCreate();
+	}
 }
 
 void GView::_Focus(bool f)
@@ -858,7 +869,6 @@ bool GView::Attach(GViewI *parent)
 			gtk_widget_grab_focus(_View);
 		}
 
-		OnCreate();
 		OnAttach();
 		Status = true;
 	}
