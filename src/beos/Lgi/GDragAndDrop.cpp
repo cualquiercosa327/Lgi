@@ -279,7 +279,7 @@ GDragDropSource::~GDragDropSource()
 	DeleteObj(d);
 }
 
-bool GDragDropSource::CreateFileDrop(GVariant *OutputData, GMouse &m, List<char> &Files)
+bool GDragDropSource::CreateFileDrop(GDragData *OutputData, GMouse &m, List<char> &Files)
 {
 	if (OutputData && Files.First())
 	{
@@ -780,8 +780,6 @@ GDragDropSource::GiveFeedback(DWORD dwEffect)
 ////////////////////////////////////////////////////////////////////////////////////////////
 GDragDropTarget::GDragDropTarget()
 {
-	DragDropData = 0;
-	DragDropLength = 0;
 	To = 0;
 
 	#if WINNATIVE
@@ -792,8 +790,6 @@ GDragDropTarget::GDragDropTarget()
 
 GDragDropTarget::~GDragDropTarget()
 {
-	DragDropLength = 0;
-	DeleteArray(DragDropData);
 	Formats.DeleteArrays();
 }
 
@@ -803,7 +799,7 @@ void GDragDropTarget::SetWindow(GView *to)
 	To = to;
 	if (To)
 	{
-		To->DropTargetPtr() = this;
+		// To->DropTargetPtr() = this;
 		Status = To->DropTarget(true);
 		#ifdef MAC
 		if (To->WindowHandle())

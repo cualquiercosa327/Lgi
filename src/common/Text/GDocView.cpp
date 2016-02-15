@@ -191,11 +191,11 @@ bool GDefaultDocumentEnv::OnNavigate(GDocView *Parent, const char *Uri)
 				if (LgiExecute(Exe, Args, ".", &ErrorMsg))
 					return true;
 
-				LgiMsg(Parent, "Failed to open '%s':\n%s", LgiApp->Name(), MB_OK, Exe.Get(), ErrorMsg.Get());
+				LgiMsg(Parent, "Failed to open '%s':\n%s", LgiApp->GBase::Name(), MB_OK, Exe.Get(), ErrorMsg.Get());
 			}
 			else
 			{
-				LgiMsg(Parent, "Couldn't get app to handle email.", LgiApp->Name(), MB_OK);
+				LgiMsg(Parent, "Couldn't get app to handle email.", LgiApp->GBase::Name(), MB_OK);
 			}
 		}
 		else
@@ -205,7 +205,7 @@ bool GDefaultDocumentEnv::OnNavigate(GDocView *Parent, const char *Uri)
 			if (LgiExecute(Uri, NULL, NULL, &ErrorMsg))
 				return true;
 
-			LgiMsg(Parent, "Failed to open '%s':\n%s", LgiApp->Name(), MB_OK, Uri, ErrorMsg.Get());
+			LgiMsg(Parent, "Failed to open '%s':\n%s", LgiApp->GBase::Name(), MB_OK, Uri, ErrorMsg.Get());
 		}
 	}
 

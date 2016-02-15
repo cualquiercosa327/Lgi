@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 #include "Lgi.h"
-#if defined(LINUX)||defined(MAC)
+#if defined(LINUX) || defined(MAC) || defined(BEOS)
 #include <dlfcn.h>
 #endif
 #include "GToken.h"
@@ -83,11 +83,7 @@ bool GLibrary::Load(const char *File, bool Quiet)
 						 stricmp(f, "lgilgid." LGI_LIBRARY_EXT) == 0;			
 			if (!IsLgi) // Bad things happen when we load LGI again.
 			{
-				#ifdef BEOS
-				hLib = dlopen(FileName);
-				#else
 				hLib = dlopen(FileName, RTLD_NOW);
-				#endif
 				if (!hLib)
 				{
 					char *e = dlerror();
@@ -101,11 +97,7 @@ bool GLibrary::Load(const char *File, bool Quiet)
 						LgiMakePath(full, sizeof(full), t[i], f);
 						if (FileExists(full))
 						{
-							#ifdef BEOS
-							hLib = dlopen(full);
-							#else
 							hLib = dlopen(full, RTLD_NOW);
-							#endif
 							if (!Quiet)
 								LgiTrace("%s:%i - dlopen(%s)=%p\n", _FL, full, hLib);
 							if (hLib)

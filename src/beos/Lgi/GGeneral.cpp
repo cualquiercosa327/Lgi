@@ -65,7 +65,7 @@ long _lgi_play_sound(void *Ptr)
 bool LgiGetFileMimeType(const char *File, char *Mime)
 {
 	bool Status = false;
-	if (File AND Mime)
+	if (File && Mime)
 	{
 		BFile f(File, B_READ_ONLY);
 		BNodeInfo i(&f);
@@ -108,9 +108,9 @@ bool LgiGetsAppForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 bool LgiGetAppForMimeType(const char *Mime, char *AppPath, int BufSize)
 {
 	GArray<GAppInfo*> Apps;
-	if (AppPath AND LgiGetsAppForMimeType(Mime, Apps, 1))
+	if (AppPath && LgiGetsAppForMimeType(Mime, Apps, 1))
 	{
-		strsafecpy(AppPath, Apps[0]->Path, BufSize);
+		strcpy_s(AppPath, BufSize, Apps[0]->Path);
 		Apps.DeleteObjects();
 		return true;
 	}
@@ -122,14 +122,14 @@ bool LgiGetFileMimeType(const char *File, char *Mime, int MimeBufSize)
 {
 	bool Status = false;
 	
-	if (File AND Mime)
+	if (File && Mime)
 	{
 		BNode e(File);
 		BNodeInfo i(&e);
 		char Buf[256];
 		if (i.GetType(Buf) == B_OK)
 		{
-			strsafecpy(Mime, Buf, MimeBufSize);
+			strcpy_s(Mime, MimeBufSize, Buf);
 			Status = true;
 		}
 	}

@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "Gdc2.h"
+#include "GPalette.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 class GMemDCPrivate
@@ -31,19 +32,19 @@ public:
 	}
 };
 
-GMemDC::GMemDC(int x, int y, int bits)
+GMemDC::GMemDC(int x, int y, GColourSpace cs)
 {
 	d = new GMemDCPrivate;
-	if (x && y && bits)
+	if (x && y && cs)
 	{
-		Create(x, y, bits);
+		Create(x, y, cs);
 	}
 }
 
 GMemDC::GMemDC(GSurface *pDC)
 {
 	d = new GMemDCPrivate;
-	if (pDC AND Create(pDC->X(), pDC->Y(), pDC->GetBits()))
+	if (pDC && Create(pDC->X(), pDC->Y(), pDC->GetBits()))
 	{
 		Blt(0, 0, pDC);
 		if (pDC->Palette())
@@ -62,10 +63,12 @@ GMemDC::~GMemDC()
 	DeleteObj(d);
 }
 
+/*
 OsPainter GMemDC::Handle()
 {
 	return d->View;
 }
+*/
 
 OsBitmap GMemDC::GetBitmap()
 {
@@ -88,7 +91,7 @@ void GMemDC::SetOrigin(int x, int y)
 
 #include "Lgi.h"
 
-bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
+bool GMemDC::Create(int x, int y, GColourSpace Cs, int Flags)
 {
 	bool Status = FALSE;
 	
@@ -96,30 +99,29 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 	if (y < 1) y = 1;
 
 	color_space Mode = B_RGB24;
-	switch (Bits)
+	switch (Cs)
 	{
-		case 8:
+		case CsIndex8:
 		{
 			Mode = B_CMAP8;
 			break;
 		}
-		case 15:
+		case CsRgb15:
 		{
 			Mode = B_RGB15;
 			break;
 		}
-		case 16:
+		case CsRgb16:
 		{
 			Mode = B_RGB16;
 			break;
 		}
-		case 24:
+		case CsRgb24:
 		{
-			Bits = 32;
 			Mode = B_RGB32;
 			break;
 		}
-		case 32:
+		case CsRgba32:
 		{
 			Mode = B_RGB32;
 			break;
@@ -143,7 +145,7 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 			pMem->Base = (uchar*) d->Bmp->Bits();
 			pMem->x = x;
 			pMem->y = y;
-			ColourSpace = pMem->Cs = GBitsToColourSpace(Bits);
+			ColourSpace = pMem->Cs = Cs;
 			pMem->Line = d->Bmp->BytesPerRow();
 			pMem->Flags = 0;
 			
@@ -152,7 +154,7 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 
 			int NewOp = (pApp) ? Op() : GDC_SET;
 
-			if ( (Flags & GDC_OWN_APPLICATOR) AND
+			if ( (Flags & GDC_OWN_APPLICATOR) &&
 				!(Flags & GDC_CACHED_APPLICATOR))
 			{
 				DeleteObj(pApp);
@@ -163,7 +165,7 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 				DeleteObj(pAppCache[i]);
 			}
 
-			if (NewOp < GDC_CACHE_SIZE AND !DrawOnAlpha())
+			if (NewOp < GDC_CACHE_SIZE && !DrawOnAlpha())
 			{
 				pApp = (pAppCache[NewOp]) ? pAppCache[NewOp] : pAppCache[NewOp] = CreateApplicator(NewOp);
 				Flags &= ~GDC_OWN_APPLICATOR;
@@ -178,7 +180,7 @@ bool GMemDC::Create(int x, int y, int Bits, int LineLen, bool KeepData)
 			
 			if (!pApp)
 			{
-				LgiTrace("Couldn't create applicator (%ix%i,%i bits)\n", x, y, Bits);
+				LgiTrace("Couldn't create applicator (%ix%i,%i)\n", x, y, Cs);
 				LgiAssert(0);
 			}
 
@@ -215,8 +217,8 @@ void GMemDC::HLine(int x1, int x2, int y, COLOUR a, COLOUR b)
 
 	if (x1 < Clip.x1) x1 = Clip.x1;
 	if (x2 > Clip.x2) x2 = Clip.x2;
-	if (	x1 <= x2 AND
-		y >= Clip.y1 AND
+	if (	x1 <= x2 &&
+		y >= Clip.y1 &&
 		y <= Clip.y2)
 	{
 		COLOUR Prev = pApp->c;
@@ -247,8 +249,8 @@ void GMemDC::VLine(int x, int y1, int y2, COLOUR a, COLOUR b)
 	
 	if (y1 < Clip.y1) y1 = Clip.y1;
 	if (y2 > Clip.y2) y2 = Clip.y2;
-	if (y1 <= y2 AND
-		x >= Clip.x1 AND
+	if (y1 <= y2 &&
+		x >= Clip.x1 &&
 		x <= Clip.x2)
 	{
 		COLOUR Prev = pApp->c;

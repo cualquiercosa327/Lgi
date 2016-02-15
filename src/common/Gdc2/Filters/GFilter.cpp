@@ -2121,12 +2121,12 @@ GSurface *GdcDevice::Load(GStream *In, const char *Name, bool UseOSLoader)
 					GdcRGB *p = (*Palette)[i];
 					if (p)
 					{
-						COLOUR c = Rgb15(p->R, p->G, p->B);
+						COLOUR c = Rgb15(p->r, p->g, p->b);
 						ReMap[i] = Map->index_map[c];
 
-						p->R = Map->color_list[i].red;
-						p->G = Map->color_list[i].green;
-						p->B = Map->color_list[i].blue;
+						p->r = Map->color_list[i].red;
+						p->g = Map->color_list[i].green;
+						p->b = Map->color_list[i].blue;
 					}
 					else
 					{

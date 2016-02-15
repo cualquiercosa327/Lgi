@@ -51,7 +51,7 @@ struct GDisplayStringLayout
 	}
 
 	// Pre-layout min/max calculation
-	void DoPreLayout(GFont *f, char *t, int &Min, int &Max)
+	void DoPreLayout(GFont *f, char *t, int32 &Min, int32 &Max)
 	{
 		int MyMin = 0;
 		int MyMax = 0;

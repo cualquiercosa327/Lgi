@@ -15,6 +15,7 @@
 #include <math.h>
 
 #include "Gdc2.h"
+#include "GPalette.h"
 
 ///////////////////////////////////////////////////////////////////////
 #define RAD					(360/(2*LGI_PI))
@@ -361,14 +362,14 @@ void TrimWhite(char *s)
 {
 	char *White = " \r\n\t";
 	char *c = s;
-	while (*c AND strchr(White, *c)) c++;
+	while (*c && strchr(White, *c)) c++;
 	if (c != s)
 	{
 		strcpy(s, c);
 	}
 
 	c = s + strlen(s) - 1;
-	while (c > s AND strchr(White, *c))
+	while (c > s && strchr(White, *c))
 	{
 		*c = 0;
 		c--;
@@ -432,9 +433,9 @@ void GPalette::Set(uchar *pPal, int s)
 		{
 			for (int i=0; i<s; i++)
 			{
-				Data[i].R = *pPal++;
-				Data[i].G = *pPal++;
-				Data[i].B = *pPal++;
+				Data[i].r = *pPal++;
+				Data[i].g = *pPal++;
+				Data[i].b = *pPal++;
 			}
 		}
 
@@ -450,7 +451,7 @@ int GPalette::GetSize()
 
 GdcRGB *GPalette::operator[](int i)
 {
-	return (i>=0 AND i<Size) ? Data + i : 0;
+	return (i>=0 && i<Size) ? Data + i : 0;
 }
 
 bool GPalette::Update()
@@ -467,9 +468,9 @@ bool GPalette::SetSize(int s)
 		Size = s;
 		for (int i=0; i<GetSize(); i++)
 		{
-			(*this)[i]->R = 0;
-			(*this)[i]->G = 0;
-			(*this)[i]->B = 0;
+			(*this)[i]->r = 0;
+			(*this)[i]->g = 0;
+			(*this)[i]->b = 0;
 		}
 	}
 
@@ -482,9 +483,9 @@ void GPalette::SwapRAndB()
 	{
 		for (int i=0; i<GetSize(); i++)
 		{
-			uchar n = (*this)[i]->R;
-			(*this)[i]->R = (*this)[i]->B;
-			(*this)[i]->B = n;
+			uchar n = (*this)[i]->r;
+			(*this)[i]->r = (*this)[i]->b;
+			(*this)[i]->b = n;
 		}
 	}
 
@@ -554,9 +555,9 @@ int GPalette::MatchRgb(COLOUR Rgb)
 
 		for (int i = 0; i < Size; i++)
 		{
-			rdist = Entry[i].R - r;
-			gdist = Entry[i].G - g;
-			bdist = Entry[i].B - b;
+			rdist = Entry[i].r - r;
+			gdist = Entry[i].g - g;
+			bdist = Entry[i].b - b;
 			curdist = squares[rdist] + squares[gdist] + squares[bdist];
 
 			if (curdist < mindist)
@@ -579,10 +580,9 @@ void GPalette::CreateGreyScale()
 
 	for (int i=0; i<256; i++)
 	{
-		p->R = i;
-		p->G = i;
-		p->B = i;
-		p->Flags = 0;
+		p->r = i;
+		p->g = i;
+		p->b = i;
 		p++;
 	}
 }
@@ -598,10 +598,9 @@ void GPalette::CreateCube()
 		{
 			for (int b=0; b<6; b++)
 			{
-				p->R = r * 51;
-				p->G = g * 51;
-				p->B = b * 51;
-				p->Flags = 0;
+				p->r = r * 51;
+				p->g = g * 51;
+				p->b = b * 51;
 				p++;
 			}
 		}
@@ -609,9 +608,9 @@ void GPalette::CreateCube()
 
 	for (int i=216; i<256; i++)
 	{
-		(*this)[i]->R = 0;
-		(*this)[i]->G = 0;
-		(*this)[i]->B = 0;
+		(*this)[i]->r = 0;
+		(*this)[i]->g = 0;
+		(*this)[i]->b = 0;
 	}
 }
 
@@ -633,15 +632,15 @@ bool GPalette::Load(GFile &F)
 		// read decimal length
 		F.ReadStr(Buf, sizeof(Buf));
 		SetSize(atoi(Buf));
-		for (int i=0; i<GetSize() AND !F.Eof(); i++)
+		for (int i=0; i<GetSize() && !F.Eof(); i++)
 		{
 			F.ReadStr(Buf, sizeof(Buf));
 			GdcRGB *p = (*this)[i];
 			if (p)
 			{
-				p->R = atoi(strtok(Buf, " "));
-				p->G = atoi(strtok(NULL, " "));
-				p->B = atoi(strtok(NULL, " "));
+				p->r = atoi(strtok(Buf, " "));
+				p->g = atoi(strtok(NULL, " "));
+				p->b = atoi(strtok(NULL, " "));
 
 			}
 
@@ -674,7 +673,7 @@ bool GPalette::Save(GFile &F, int Format)
 			GdcRGB *p = (*this)[i];
 			if (p)
 			{
-				sprintf(Buf, "%i %i %i\r\n", p->R, p->G, p->B);
+				sprintf(Buf, "%i %i %i\r\n", p->r, p->g, p->b);
 				F.Write(Buf, strlen(Buf));
 			}
 		}
@@ -694,9 +693,9 @@ bool GPalette::operator ==(GPalette &p)
 
 		for (int i=0; i<GetSize(); i++)
 		{
-			if (a->R != b->R ||
-				a->G != b->G ||
-				a->B != b->B)
+			if (a->r != b->r ||
+				a->g != b->g ||
+				a->b != b->b)
 			{
 				return FALSE;
 			}
@@ -725,7 +724,7 @@ GBmpMem::GBmpMem()
 
 GBmpMem::~GBmpMem()
 {
-	if (Base AND (Flags & GDC_OWN_MEMORY))
+	if (Base && (Flags & GBmpMem::BmpOwnMemory))
 	{
 		delete [] Base;
 	}
@@ -756,12 +755,12 @@ GSurface::~GSurface()
 	DeleteObj(pMem);
 	DeleteObj(pAlphaDC);
 
-	if (pPalette AND (Flags & GDC_OWN_PALETTE))
+	if (pPalette && (Flags & GDC_OWN_PALETTE))
 	{
 		DeleteObj(pPalette);
 	}
 
-	if ( (Flags & GDC_OWN_APPLICATOR) AND
+	if ( (Flags & GDC_OWN_APPLICATOR) &&
 		!(Flags & GDC_CACHED_APPLICATOR))
 	{
 		DeleteObj(pApp);
@@ -784,7 +783,7 @@ bool GSurface::HasAlpha(bool b)
 			pAlphaDC = new GMemDC;
 		}
 
-		if (pAlphaDC AND pMem)
+		if (pAlphaDC && pMem)
 		{
 			if (!pAlphaDC->Create(pMem->x, pMem->y, 8))
 			{
@@ -811,7 +810,7 @@ bool GSurface::DrawOnAlpha(bool Draw)
 
 	if (Draw)
 	{
-		if (!Prev AND pAlphaDC AND pMem)
+		if (!Prev && pAlphaDC && pMem)
 		{
 			GBmpMem *Temp = pMem;
 			pMem = pAlphaDC->pMem;
@@ -823,7 +822,7 @@ bool GSurface::DrawOnAlpha(bool Draw)
 	}
 	else
 	{
-		if (Prev AND pAlphaDC AND pMem)
+		if (Prev && pAlphaDC && pMem)
 		{
 			GBmpMem *Temp = pMem;
 			pMem = pAlphaDC->pMem;
@@ -841,7 +840,7 @@ GApplicator *GSurface::CreateApplicator(int Op, GColourSpace Cs)
 {
 	GApplicator *pA = NULL;
 
-	if (!Cs AND pMem)
+	if (!Cs && pMem)
 	{
 		if (DrawOnAlpha())
 		{
@@ -854,7 +853,7 @@ GApplicator *GSurface::CreateApplicator(int Op, GColourSpace Cs)
 	}
 
 	pA = GApplicatorFactory::NewApp(Cs, Op);
-	if (pA AND pMem)
+	if (pA && pMem)
 	{
 		if (DrawOnAlpha())
 		{
@@ -958,7 +957,7 @@ int GSurface::Op(int NewOp)
 		DeleteObj(pApp);
 	}
 
-	if (NewOp < GDC_CACHE_SIZE AND !DrawOnAlpha())
+	if (NewOp < GDC_CACHE_SIZE && !DrawOnAlpha())
 	{
 		pApp = (pAppCache[NewOp]) ? pAppCache[NewOp] : pAppCache[NewOp] = CreateApplicator(NewOp);
 		Flags &= ~GDC_OWN_APPLICATOR;
@@ -985,7 +984,7 @@ int GSurface::Op(int NewOp)
 
 GPalette *GSurface::Palette()
 {
-	if (!pPalette AND pMem AND (pMem->Flags & GDC_ON_SCREEN))
+	if (!pPalette && pMem && (pMem->Flags & GDC_ON_SCREEN))
 	{
 		pPalette = GdcD->GetSystemPalette();
 		if (pPalette)
@@ -999,14 +998,14 @@ GPalette *GSurface::Palette()
 
 void GSurface::Palette(GPalette *pPal, bool bOwnIt)
 {
-	if (pPalette AND Flags & GDC_OWN_PALETTE)
+	if (pPalette && Flags & GDC_OWN_PALETTE)
 	{
 		delete pPalette;
 	}
 
 	pPalette = pPal;
 
-	if (pPal AND bOwnIt)
+	if (pPal && bOwnIt)
 	{
 		Flags |= GDC_OWN_PALETTE;
 	}
@@ -1165,7 +1164,7 @@ uchar *GdcDevice::GetDiv255()
 
 int GdcDevice::GetOption(int Opt)
 {
-	if (Opt >= 0 AND Opt < GDC_MAX_OPTION)
+	if (Opt >= 0 && Opt < GDC_MAX_OPTION)
 	{
 		return d->OptVal[Opt];
 	}
@@ -1177,7 +1176,7 @@ int GdcDevice::GetOption(int Opt)
 int GdcDevice::SetOption(int Opt, int Value)
 {
 	int Prev = d->OptVal[Opt];
-	if (Opt >= 0 AND Opt < GDC_MAX_OPTION)
+	if (Opt >= 0 && Opt < GDC_MAX_OPTION)
 	{
 		d->OptVal[Opt] = Value;
 	}
@@ -1261,7 +1260,10 @@ COLOUR GdcDevice::GetColour(COLOUR Rgb24, GSurface *pDC)
 					}
 					else
 					{
-						(*d->pSysPal)[Current]->Set(R24(Rgb24), G24(Rgb24), B24(Rgb24));
+						GdcRGB *n = (*d->pSysPal)[Current];
+						n->r = R24(Rgb24);
+						n->g = G24(Rgb24);
+						n->b = B24(Rgb24);
 						C = Current++;
 						if (Current == 255) Current = 1;
 					}
@@ -1411,7 +1413,7 @@ GAlphaFactory FactoryAlpha;
 
 GApplicatorFactory::GApplicatorFactory()
 {
-	LgiAssert(_Factories >= 0 AND _Factories < CountOf(_Factory));
+	LgiAssert(_Factories >= 0 && _Factories < CountOf(_Factory));
 	if (_Factories < CountOf(_Factory) - 1)
 	{
 		_Factory[_Factories++] = this;
@@ -1420,7 +1422,7 @@ GApplicatorFactory::GApplicatorFactory()
 
 GApplicatorFactory::~GApplicatorFactory()
 {
-	LgiAssert(_Factories >= 0 AND _Factories < CountOf(_Factory));
+	LgiAssert(_Factories >= 0 && _Factories < CountOf(_Factory));
 	for (int i=0; i<_Factories; i++)
 	{
 		if (_Factory[i] == this)
@@ -1434,7 +1436,7 @@ GApplicatorFactory::~GApplicatorFactory()
 
 GApplicator *GApplicatorFactory::NewApp(GColourSpace Cs, int Op)
 {
-	LgiAssert(_Factories >= 0 AND _Factories < CountOf(_Factory));
+	LgiAssert(_Factories >= 0 && _Factories < CountOf(_Factory));
 	for (int i=0; i<_Factories; i++)
 	{
 		GApplicator *a = _Factory[i]->Create(Cs, Op);

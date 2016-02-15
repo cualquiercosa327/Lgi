@@ -255,13 +255,10 @@ GViewPrivate::GViewPrivate()
 	Notify = NULL;
 	MinimumSize.x = MinimumSize.y = 0;
 	Font = NULL;
-	FontOwn = false;
 }
 
 GViewPrivate::~GViewPrivate()
 {
-	if (FontOwn)
-		DeleteObj(Font);
 }
 
 GMessage CreateMsg(int m, int a, int b)

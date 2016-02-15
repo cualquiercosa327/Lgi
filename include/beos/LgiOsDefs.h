@@ -1,6 +1,9 @@
 #ifndef __LGI_OS_DEFS_H
 #define __LGI_OS_DEFS_H
 
+#undef min
+#undef max
+
 #include <AppKit.h>
 #include <InterfaceKit.h>
 #include <GameKit.h>
@@ -11,6 +14,10 @@
 #include <stdio.h>
 
 #include "LgiInc.h"
+
+#define min(a, b) ((a)<(b)?(a):(b))
+#define max(a, b) ((a)>(b)?(a):(b))
+
 
 //////////////////////////////////////////////////////////////////
 // Typedefs
@@ -24,6 +31,7 @@ typedef thread_id					OsThread;
 typedef team_id						OsProcess;
 typedef char						OsChar;
 typedef BView						*OsPainter;
+typedef BFont						*OsFont;
 typedef int							OsProcessId;
 
 class LgiClass OsAppArguments
@@ -51,6 +59,10 @@ public:
 		AddInt32("a", a);
 		AddInt32("b", b);
 	}
+	
+	Param Msg();
+	Param A();
+	Param B();
 };
 
 /////////////////////////////////////////////////////////////////
@@ -186,6 +198,8 @@ typedef int OsSocket;
 													// int32 flags;
 #define LGI_MOUSE_ENTER			(M_USER+0x10d)
 #define LGI_MOUSE_EXIT			(M_USER+0x10e)
+#define M_SET_VISIBLE			(M_USER+0x10f)
+#define M_TEXT_UPDATE_NAME		(M_USER+0x110)
 
 // Dialog stuff
 #define IDOK					1

@@ -14,7 +14,7 @@ ifndef Build
 endif
 BuildDir = $(Build)
 
-Flags = -fPIC -w -fno-inline -fpermissive
+Flags = -fPIC -w -fno-inline -fpermissive -fmax-errors=3
 Defs = -DBEOS -D_REENTRANT -DLGI_LIBRARY
 
 ifeq ($(Build),Debug)
@@ -36,9 +36,7 @@ Libs = \
 Inc = \
 	-I./include/beos \
 	-I./include/common \
-	-I/boot/develop/headers/os/app \
-	-Iinclude/beos \
-	-Iinclude/common
+	-I/boot/develop/headers/os/app
 
 # Dependencies
 Depends =	GDateTime.o \
@@ -169,7 +167,7 @@ GDateTime.o : ./src/common/General/GDateTime.cpp ./include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GDragAndDrop.o : ./src/common/Lgi/GDragAndDrop.cpp ./include/common/Lgi.h \
+GDragAndDrop.o : ./src/beos/Lgi/GDragAndDrop.cpp ./include/common/Lgi.h \
 	./include/common/GDragAndDrop.h \
 	./include/common/INet.h
 	@echo $(<F) [$(Build)]

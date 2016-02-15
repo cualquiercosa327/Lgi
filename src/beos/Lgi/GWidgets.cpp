@@ -419,8 +419,8 @@ void GControl::MouseClickEvent(bool Down)
 		{
 			int32 Clicks = 1;
 			WindowHandle()->CurrentMessage()->FindInt32("clicks", &Clicks);
-			m.Double(	(Clicks > 1) AND
-						(abs(m.x-LastX) < DOUBLE_CLICK_THRESHOLD) AND
+			m.Double(	(Clicks > 1) &&
+						(abs(m.x-LastX) < DOUBLE_CLICK_THRESHOLD) &&
 						(abs(m.y-LastY) < DOUBLE_CLICK_THRESHOLD));
 			
 			LastX = m.x;
@@ -589,29 +589,3 @@ void GSlider::OnMouseMove(GMouse &m)
 	}
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////
-GItemContainer::GItemContainer()
-{
-	Flags = 0;
-	ImageList = 0;
-}
-
-GItemContainer::~GItemContainer()
-{
-	if (OwnList())
-	{
-		DeleteObj(ImageList);
-	}
-	else
-	{
-		ImageList = 0;
-	}
-}
-
-bool GItemContainer::SetImageList(GImageList *list, bool Own)
-{
-	ImageList = list;
-	OwnList(Own);
-	AskImage(ImageList != NULL);
-	return ImageList != NULL;
-}

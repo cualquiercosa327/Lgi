@@ -279,7 +279,7 @@ int LgiGetOs
 		Ver->Add(0);
 	}
 	
-	return LGI_OS_BEOS;
+	return LGI_OS_HAIKU;
 
 	#elif defined LINUX
 
@@ -1086,7 +1086,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 				LgiAssert(0);
 				break;
 			}
-			char *Name = LgiApp->Name();
+			char *Name = LgiApp->GBase::Name();
 			if (!Name)
 			{
 				LgiAssert(0);
@@ -1316,8 +1316,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 
 			#elif defined BEOS
 
-			strcpy_s(Dst, DstSize, "/boot/home/Desktop");
-			Status = true;
+			Path = "/boot/home/Desktop";
 			
 			#endif
 			break;
@@ -1336,8 +1335,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 
 			#elif defined BEOS
 
-			strcpy_s(Dst, DstSize, "/boot/home");
-			Status = true;
+			Path = "/boot/home";
 
 			#endif
 			break;

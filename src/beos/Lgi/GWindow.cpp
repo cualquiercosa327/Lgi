@@ -170,7 +170,7 @@ GRect &GWindow::GetClient(bool ClientSpace)
 
 void GWindow::Raise()
 {
-	if (Wnd AND Wnd->Lock())
+	if (Wnd && Wnd->Lock())
 	{
 		Wnd->Activate();
 		Wnd->Unlock();
@@ -296,7 +296,7 @@ GRect &GWindow::GetPos()
 	
 	r = Pos;
 	
-	if (Wnd AND Wnd->Lock())
+	if (Wnd && Wnd->Lock())
 	{
 		BRect frame = Wnd->Frame();
 		r.x1 = frame.left;
@@ -505,7 +505,7 @@ int GWindow::OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState)
 {
 	int Status = DROPEFFECT_NONE;
 
-	if (Format AND Data)
+	if (Format && Data)
 	{
 		if (stricmp(Format, LGI_FileDropFormat) == 0)
 		{
@@ -516,17 +516,17 @@ int GWindow::OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState)
 							"\r\n,",
 							true,
 							Data->Value.Binary.Length);
-				for (int i=0; i<Uri.Length(); i++)
+				for (int n=0; n<Uri.Length(); n++)
 				{
-					char *File = Uri[i];
+					char *File = Uri[n];
 					if (strnicmp(File, "file:", 5) == 0)
 						File += 5;
 					
 					char *i = File, *o = File;
 					while (*i)
 					{
-						if (i[0] == '%' AND
-							i[1] AND
+						if (i[0] == '%' &&
+							i[1] &&
 							i[2])
 						{
 							char h[3] = { i[1], i[2], 0 };
@@ -752,7 +752,7 @@ bool GWindow::RegisterHook(GView *Target, GWindowHookType EventType, int Priorit
 {
 	bool Status = false;
 	
-	if (Target AND EventType)
+	if (Target && EventType)
 	{
 		int i = d->GetHookIndex(Target, true);
 		if (i >= 0)
