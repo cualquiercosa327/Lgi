@@ -211,6 +211,8 @@ public:
 
 	/// Assign int value
 	GVariant &operator =(int i);
+	/// Assign int value
+	GVariant &operator =(int32 i);
 	/// Assign bool value
 	GVariant &operator =(bool i);
 	/// Assign int value

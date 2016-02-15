@@ -265,6 +265,15 @@ GVariant &GVariant::operator =(int i)
 	return *this;
 }
 
+GVariant &GVariant::operator =(int32 i)
+{
+	Empty();
+	Type = GV_INT32;
+	Value.Int = i;
+
+	return *this;
+}
+
 GVariant &GVariant::operator =(bool i)
 {
 	Empty();

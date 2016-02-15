@@ -163,7 +163,7 @@ bool LgiPlaySound(char *FileName, int ASync)
 	return Status;
 }
 
-bool LgiExecute(const char *File, const char *Args, const char *Dir)
+bool LgiExecute(const char *File, const char *Args, const char *Dir, GAutoString *ErrorMsg)
 {
 	if (File)
 	{

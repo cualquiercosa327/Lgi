@@ -15,7 +15,7 @@ endif
 BuildDir = $(Build)
 
 Flags = -fPIC -w -fno-inline -fpermissive
-Defs = -DBEOS -D_REENTRANT
+Defs = -DBEOS -D_REENTRANT -DPOSIX
 
 ifeq ($(Build),Debug)
 	Defs += -D_DEBUG

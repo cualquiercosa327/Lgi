@@ -50,19 +50,31 @@ public:
 class LgiClass GMessage : public BMessage
 {
 public:
-	typedef unsigned int Param;
-	typedef unsigned int Result;
+	typedef int Param;
+	typedef int Result;
 	
 	GMessage() {}
 	GMessage(int m, Param a, Param b)
 	{
-		AddInt32("a", a);
-		AddInt32("b", b);
+		what = m;
+		AddInt32("Lgi.a", a);
+		AddInt32("Lgi.b", b);
 	}
 	
-	Param Msg();
-	Param A();
-	Param B();
+	Param Msg() 
+	{
+		return what;
+	}
+
+	Param A()
+	{
+		return GetInt32("Lgi.a", -1);
+	}
+
+	Param B()
+	{
+		return GetInt32("Lgi.b", -1);
+	}
 };
 
 /////////////////////////////////////////////////////////////////
@@ -273,5 +285,6 @@ extern int stricmp(char *a, char *b);
 #define _stricmp				strcasecmp
 #define _strnicmp				strncasecmp
 #define atoi64					atoll
+#define vsprintf_s				vsnprintf
 
 #endif
