@@ -285,3 +285,22 @@ bool GMemDC::Unlock()
 	return true;
 }
 
+GRect GMemDC::ClipRgn(GRect *Rgn)
+{
+	GRect Old = Clip;
+	
+	if (Rgn)
+	{
+		GRect Dc(0, 0, X()-1, Y()-1);
+		
+		Clip = *Rgn;
+		Clip.Offset(-OriginX, -OriginY);
+		Clip.Bound(&Dc);
+	}
+	else
+	{
+		Clip.ZOff(X()-1, Y()-1);
+	}
+	
+	return Old;
+}
