@@ -57,6 +57,15 @@ int GScreenDC::GetFlags()
 	return 0;
 }
 
+bool GScreenDC::GetClient(GRect *c)
+{
+	if (!c)
+		return false;
+
+	*c = d->Client;
+	return true;
+}
+
 void GScreenDC::SetClient(GRect *r)
 {
 	// Unset previous client
