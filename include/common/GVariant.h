@@ -209,8 +209,12 @@ public:
 	/// Destructor
 	~GVariant();
 
+	/// Assign int value
+	GVariant &operator =(int i);
+	#ifdef BEOS
 	/// Assign 32bit int value
 	GVariant &operator =(int32 i);
+	#endif
 	/// Assign bool value
 	GVariant &operator =(bool i);
 	/// Assign 64bit int value

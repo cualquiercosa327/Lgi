@@ -1,6 +1,7 @@
 #include <Path.h>
 #include "Lgi.h"
 #include "GSkinEngine.h"
+#include "GFontCache.h"
 
 class GAppPrivate
 {
@@ -11,6 +12,7 @@ public:
 	GFileSystem *FileSystem;
 	GLibrary *SkinLib;
 	GdcDevice *GdcSystem;
+	GAutoPtr<GFontCache> FontCache;
 
 	GAppPrivate() : Args(0, 0)
 	{
@@ -494,5 +496,17 @@ GMouseHook *GApp::MouseHook = 0;
 GMouseHook *GApp::GetMouseHook()
 {
 	return MouseHook;
+}
+
+int GApp::GetCpuCount()
+{
+	return 4;	
+}
+
+GFontCache *GApp::GetFontCache()
+{
+	if (!d->FontCache)
+		d->FontCache.Reset(new GFontCache(SystemNormal));
+	return d->FontCache;
 }
 

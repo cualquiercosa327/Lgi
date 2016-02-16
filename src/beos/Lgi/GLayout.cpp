@@ -27,6 +27,10 @@ GLayout::~GLayout()
 	DeleteObj(VScroll);
 }
 
+void GLayout::OnCreate()
+{
+}
+
 bool GLayout::GetPourLargest()
 {
 	return _PourLargest;

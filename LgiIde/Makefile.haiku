@@ -28,6 +28,7 @@ endif
 # Libraries
 Libs = \
 	-llgi$(Tag) \
+	-lbe \
 	-L../$(BuildDir)
 
 # Includes
@@ -64,7 +65,7 @@ Depends =	GDebugContext.o \
 # Executable target
 $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	@echo Linking $(Target) [$(Build)]...
-	$(CPP) -Wl,-soname,$(TargetFile),-export-dynamic,-R. -o \
+	$(CPP) -Wl,-export-dynamic,-R. -o \
 		$(Target) $(addprefix $(BuildDir)/,$(Depends)) $(Libs)
 	@echo Done.
 

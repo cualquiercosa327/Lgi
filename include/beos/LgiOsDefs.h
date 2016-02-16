@@ -50,8 +50,8 @@ public:
 class LgiClass GMessage : public BMessage
 {
 public:
-	typedef int Param;
-	typedef int Result;
+	typedef int32 Param;
+	typedef int32 Result;
 	
 	GMessage() {}
 	GMessage(int m, Param a, Param b)
@@ -68,12 +68,12 @@ public:
 
 	Param A()
 	{
-		return GetInt32("Lgi.a", -1);
+		return GetInt32("Lgi.a", (int32)-1);
 	}
 
 	Param B()
 	{
-		return GetInt32("Lgi.b", -1);
+		return GetInt32("Lgi.b", (int32)-1);
 	}
 };
 

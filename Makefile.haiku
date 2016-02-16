@@ -42,6 +42,7 @@ Inc = \
 Depends =	GDateTime.o \
 			GDragAndDrop.o \
 			GFile.o \
+			GFileCommon.o \
 			GExeCheck.o \
 			GApp.o \
 			GGeneral.o \
@@ -142,7 +143,8 @@ Depends =	GDateTime.o \
 			GSplitter.o \
 			INet.o \
 			INetTools.o \
-			md5.o
+			md5.o \
+			ShowFileProp_Beos.o
 
 # Target
 TargetFile = lib$(Target)$(Tag).so
@@ -184,6 +186,10 @@ GFile.o : ./src/beos/General/GFile.cpp ./include/common/GFile.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
+GFileCommon.o : ./src/common/General/GFileCommon.cpp ./include/common/GFile.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
 GExeCheck.o : ./src/common/General/GExeCheck.cpp ./include/common/Lgi.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -198,6 +204,10 @@ GGeneral.o : ./src/beos/Lgi/GGeneral.cpp ./include/common/Lgi.h
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GPrinter.o : ./src/beos/Lgi/GPrinter.cpp ./include/common/Lgi.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+ShowFileProp_Beos.o : ./src/beos/General/ShowFileProp_Beos.cpp ./include/common/Lgi.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 

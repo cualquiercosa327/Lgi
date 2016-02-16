@@ -223,6 +223,14 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir, GAutoString
 	return false;
 }
 
+GAutoString LgiErrorCodeToString(uint32 Code)
+{
+	char e[32];
+	sprintf_s(e, sizeof(e), "Err(%i)", Code);
+	GAutoString s(NewStr(e));
+	return s;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////
 void _lgi_assert(bool b, const char *test, const char *file, int line)
 {
