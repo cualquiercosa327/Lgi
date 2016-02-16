@@ -162,8 +162,6 @@ void LgiInitColours()
 	GColour SelFore(ConvertHaikuColour(B_MENU_SELECTED_ITEM_TEXT_COLOR), 24);
 	GColour SelBack(ConvertHaikuColour(B_CONTROL_HIGHLIGHT_COLOR), 24);
 	
-	// printf("Sel - Fore=%s, Back=%s\n", SelFore.GetStr(), SelBack.GetStr());
-	
 	_LgiColours[i++] = Med.Mix(Black, 0.4f).c24(); // LC_SHADOW
 	_LgiColours[i++] = Med.Mix(Black, 0.25f).c24(); // LC_LOW
 	_LgiColours[i++] = Med.c24(); // LC_MED
@@ -182,7 +180,8 @@ void LgiInitColours()
 	_LgiColours[i++] = ConvertHaikuColour(B_MENU_ITEM_TEXT_COLOR); // LC_MENU_TEXT
 	_LgiColours[i++] = SelBack.Mix(White, 0.4f).c24(); // LC_NON_FOCUS_SEL_BACK
 	_LgiColours[i++] = SelFore.Mix(White, 0.4f).c24(); // LC_NON_FOCUS_SEL_FORE
-	LgiAssert(i == LC_MAXIMUM);	
+	_LgiColours[i++] = Rgb24(255, 222, 0); // LC_DEBUG_CURRENT_LINE
+	LgiAssert(i <= LC_MAXIMUM);	
 	
 	#elif defined __GTK_H__
 

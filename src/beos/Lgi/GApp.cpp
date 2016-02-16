@@ -13,6 +13,7 @@ public:
 	GLibrary *SkinLib;
 	GdcDevice *GdcSystem;
 	GAutoPtr<GFontCache> FontCache;
+	OsThreadId GuiThread;
 
 	GAppPrivate() : Args(0, 0)
 	{
@@ -20,6 +21,7 @@ public:
 		GdcSystem = 0;
 		Config = 0;
 		SkinLib = 0;
+		GuiThread = LgiGetCurrentThread();
 	}
 
 	~GAppPrivate()
@@ -68,6 +70,7 @@ GApp::GApp(OsAppArguments &OsArgs, const char *Name, GAppArguments *AppArgs) : B
 	d = new GAppPrivate;
 	TheApp = this;
 	d->Args = OsArgs;
+	GBase::Name(Name);
 
 	// Setup LGI Sub-systems
 	GFontSystem::Inst();
@@ -132,7 +135,7 @@ void GApp::OnUrl(const char *Url)
 
 OsThreadId GApp::GetGuiThread()
 {
-	return 0;
+	return d->GuiThread;
 }
 
 OsProcessId GApp::GetProcessId()

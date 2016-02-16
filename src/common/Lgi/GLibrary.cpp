@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+#define DEBUG_LIB_MSGS		1
+
 #include "Lgi.h"
 #if defined(LINUX) || defined(MAC) || defined(BEOS)
 #include <dlfcn.h>
@@ -69,8 +71,10 @@ bool GLibrary::Load(const char *File, bool Quiet)
 			#ifdef _DEBUG
 			if (!hLib)
 			{
+				#if DEBUG_LIB_MSGS
 				DWORD err = GetLastError();
-				int asd=0;
+				LgiTrace("LoadLibraryW failed with %i\n", err);
+				#endif				
 			}
 			#endif
 
@@ -84,13 +88,24 @@ bool GLibrary::Load(const char *File, bool Quiet)
 			if (!IsLgi) // Bad things happen when we load LGI again.
 			{
 				hLib = dlopen(FileName, RTLD_NOW);
+				#if DEBUG_LIB_MSGS
+				LgiTrace("%s:%i - dlopen('%s')\n", _FL, FileName);
+				#endif
 				if (!hLib)
 				{
 					char *e = dlerror();
 					if (!stristr(e, "No such file or directory") && !Quiet)
 						LgiTrace("%s:%i - dlopen(%s) failed: %s\n", _FL, File, e);
 
+					#if DEBUG_LIB_MSGS
+					LgiTrace("%s:%i - dlerror='%s'\n", _FL, e);
+					#endif
+
+					#ifdef BEOS
+					GToken t("/boot/system/develop/lib/x86", ":");
+					#else
 					GToken t("/opt/local/lib", ":");
+					#endif
 					for (int i=0; i<t.Length(); i++)
 					{
 						char full[MAX_PATH];
@@ -136,10 +151,6 @@ bool GLibrary::Unload()
 	{
 		#if defined WIN32
 		FreeLibrary(hLib);
-		/*
-		#elif defined BEOS
-		unload_add_on(hLib);
-		*/
 		#elif defined(LINUX) || defined(MAC) || defined(BEOS)
 		dlclose(hLib);
 		#else
@@ -165,6 +176,11 @@ void *GLibrary::GetAddress(const char *Resource)
 		p = dlsym(hLib, Resource);
 		#else
 		LgiAssert(0);
+		#endif
+
+		#if DEBUG_LIB_MSGS
+		if (!p)
+			LgiTrace("%s:%i - GetAddress('%s')=%p\n", _FL, Resource, p);
 		#endif
 	}
 

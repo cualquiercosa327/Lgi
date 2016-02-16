@@ -1032,6 +1032,7 @@ public:
 	int ScrX;
 	int ScrY;
 	int ScrBits;
+	GColourSpace ScrCs;
 
 	// Palette
 	double GammaCorrection;
@@ -1054,6 +1055,7 @@ public:
 
 		// Palette information
 		GammaCorrection = 1.0;
+		ScrCs = CsNone;
 
 		// Get mode stuff
 		{
@@ -1070,18 +1072,21 @@ public:
 				case B_RGBA32_BIG:
 				{
 					ScrBits = 32;
+					ScrCs = CsRgba32;
 					break;
 				}
 				case B_RGB24:
 				case B_RGB24_BIG:
 				{
 					ScrBits = 24;
+					ScrCs = CsRgb24;
 					break;
 				}
 				case B_RGB16:
 				case B_RGB16_BIG:
 				{
 					ScrBits = 16;
+					ScrCs = CsRgb16;
 					break;
 				}
 				case B_RGB15:
@@ -1090,17 +1095,20 @@ public:
 				case B_RGBA15_BIG:
 				{
 					ScrBits = 16;
+					ScrCs = CsRgb15;
 					break;
 				}
 				case B_CMAP8:
 				case B_GRAY8:
 				{
 					ScrBits = 8;
+					ScrCs = CsIndex8;
 					break;
 				}
 				case B_GRAY1:
 				{
 					ScrBits = 1;
+					ScrCs = CsIndex1;
 					break;
 				}
 			}
@@ -1185,6 +1193,11 @@ int GdcDevice::SetOption(int Opt, int Value)
 		LgiAssert(0);
 	}
 	return Prev;
+}
+
+GColourSpace GdcDevice::GetColourSpace()
+{
+	return d->ScrCs;
 }
 
 int GdcDevice::GetBits()

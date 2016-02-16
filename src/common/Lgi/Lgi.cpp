@@ -1117,6 +1117,8 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 					Path = pw->pw_dir;
 				else
 					LgiAssert(0);
+			#elif defined BEOS
+				Path = "/boot/system/apps";
 			#else
 				LgiAssert(0);
 			#endif

@@ -63,12 +63,10 @@ GMemDC::~GMemDC()
 	DeleteObj(d);
 }
 
-/*
 OsPainter GMemDC::Handle()
 {
 	return d->View;
 }
-*/
 
 OsBitmap GMemDC::GetBitmap()
 {

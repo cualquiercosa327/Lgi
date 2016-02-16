@@ -95,12 +95,10 @@ void GScreenDC::SetClient(GRect *r)
 	}
 }
 
-/*
 OsView GScreenDC::Handle()
 {
 	return d->View;
 }
-*/
 
 GPalette *GScreenDC::Palette()
 {
