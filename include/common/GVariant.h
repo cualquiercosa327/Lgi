@@ -209,13 +209,11 @@ public:
 	/// Destructor
 	~GVariant();
 
-	/// Assign int value
-	GVariant &operator =(int i);
-	/// Assign int value
+	/// Assign 32bit int value
 	GVariant &operator =(int32 i);
 	/// Assign bool value
 	GVariant &operator =(bool i);
-	/// Assign int value
+	/// Assign 64bit int value
 	GVariant &operator =(int64 i);
 	/// Assign double value
 	GVariant &operator =(double i);

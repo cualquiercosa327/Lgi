@@ -255,11 +255,11 @@ GVariant &GVariant::operator =(GDateTime *d)
 	return *this;
 }
 
-GVariant &GVariant::operator =(int i)
+GVariant &GVariant::operator =(bool i)
 {
 	Empty();
-	Type = GV_INT32;
-	Value.Int = i;
+	Type = GV_BOOL;
+	Value.Bool = i;
 	// if (Dirty) *Dirty = true;
 
 	return *this;
@@ -270,15 +270,6 @@ GVariant &GVariant::operator =(int32 i)
 	Empty();
 	Type = GV_INT32;
 	Value.Int = i;
-
-	return *this;
-}
-
-GVariant &GVariant::operator =(bool i)
-{
-	Empty();
-	Type = GV_BOOL;
-	Value.Bool = i;
 	// if (Dirty) *Dirty = true;
 
 	return *this;
