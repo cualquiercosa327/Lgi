@@ -695,38 +695,33 @@ public:
 		/// Construct a wrapper to draw on a window
 		GScreenDC(GView *view, void *Param = 0);
 		
-		#if defined(LGI_SDL)
-
-		OsPainter Handle();
-		
-		#elif defined MAC
-		
-		GScreenDC(GWindow *wnd, void *Param = 0);
-		GScreenDC(PMRect &Page, CGContextRef Ctx); // Used by GPrintDC
-		OsPainter Handle();
-		GRect GetPos();
-        void PushState();
-        void PopState();
-		
+		#if defined MAC
+	
+			GScreenDC(GWindow *wnd, void *Param = 0);
+			GScreenDC(PMRect &Page, CGContextRef Ctx); // Used by GPrintDC
+			GRect GetPos();
+			void PushState();
+			void PopState();
+	
 		#elif defined(__GTK_H__)
 		
-		/// Constructs a server size pixmap
-		GScreenDC(int x, int y, int bits);		
-		/// Constructs a wrapper around a drawable
-		GScreenDC(Gtk::GdkDrawable *Drawable);
-		/// Constructs a DC for drawing on a window
-		GScreenDC(OsView View);
-		
-		OsPainter Handle();
-		// Gtk::cairo_surface_t *GetSurface(bool Render);
-		GdcPt2 GetSize();
+			/// Constructs a server size pixmap
+			GScreenDC(int x, int y, int bits);		
+			/// Constructs a wrapper around a drawable
+			GScreenDC(Gtk::GdkDrawable *Drawable);
+			/// Constructs a DC for drawing on a window
+			GScreenDC(OsView View);
+			
+			// Gtk::cairo_surface_t *GetSurface(bool Render);
+			GdcPt2 GetSize();
 		
 		#elif defined(BEOS)
 		
-		GScreenDC(BView *view);
+			GScreenDC(BView *view);
 		
 		#endif
 
+		OsPainter Handle();
 		GView *GetView();
 		int GetFlags();
 		GRect *GetClient();
@@ -931,26 +926,26 @@ public:
 
 		#if defined MAC
 				
-		OsBitmap GetBitmap();
-		OsPainter Handle();
-		#if !defined(COCOA) && !defined(LGI_SDL)
-		CGColorSpaceRef GetColourSpaceRef();
-		CGImg *GetImg(GRect *Sub = 0);
-		#endif
+			OsBitmap GetBitmap();
+			#if !defined(COCOA) && !defined(LGI_SDL)
+				CGColorSpaceRef GetColourSpaceRef();
+				CGImg *GetImg(GRect *Sub = 0);
+			#endif
 		
 		#elif defined(__GTK_H__)
 
-		Gtk::GdkImage *GetImage();
-		GdcPt2 GetSize();
-		OsPainter Handle();
-		Gtk::cairo_surface_t *GetSurface(GRect &r);
-		GColourSpace GetCreateCs();
+			Gtk::GdkImage *GetImage();
+			GdcPt2 GetSize();
+			Gtk::cairo_surface_t *GetSurface(GRect &r);
+			GColourSpace GetCreateCs();
 
 		#elif defined(BEOS) || defined(LGI_SDL)
 
-		OsBitmap GetBitmap();
+			OsBitmap GetBitmap();
 
 		#endif
+
+		OsPainter Handle();
 		
 	#endif
 

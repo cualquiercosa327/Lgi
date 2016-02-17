@@ -1,6 +1,7 @@
 #include <Path.h>
 #include "Lgi.h"
 #include "GSkinEngine.h"
+#include "GFontCache.h"
 
 class GAppPrivate
 {
@@ -11,6 +12,8 @@ public:
 	GFileSystem *FileSystem;
 	GLibrary *SkinLib;
 	GdcDevice *GdcSystem;
+	GAutoPtr<GFontCache> FontCache;
+	OsThreadId GuiThread;
 
 	GAppPrivate() : Args(0, 0)
 	{
@@ -18,6 +21,7 @@ public:
 		GdcSystem = 0;
 		Config = 0;
 		SkinLib = 0;
+		GuiThread = LgiGetCurrentThread();
 	}
 
 	~GAppPrivate()
@@ -38,7 +42,14 @@ GApp *GApp::ObjInstance()
 	return TheApp;
 }
 
-GApp::GApp(const char *Mime, OsAppArguments &OsArgs, GAppArguments *AppArgs) : BApplication(Mime)
+char *MimeFromName(char *Name)
+{
+	static char m[256];
+	sprintf_s(m, sizeof(m), "application/x-%s", Name);
+	return m;
+}
+
+GApp::GApp(OsAppArguments &OsArgs, const char *Name, GAppArguments *AppArgs) : BApplication(MimeFromName(Name))
 {
 	// Sanity Checks
 	LgiAssert(sizeof(int8) == 1);
@@ -59,6 +70,7 @@ GApp::GApp(const char *Mime, OsAppArguments &OsArgs, GAppArguments *AppArgs) : B
 	d = new GAppPrivate;
 	TheApp = this;
 	d->Args = OsArgs;
+	GBase::Name(Name);
 
 	// Setup LGI Sub-systems
 	GFontSystem::Inst();
@@ -117,18 +129,13 @@ GSymLookup *GApp::GetSymLookup()
 	return NULL;
 }
 
-char *GApp::GetName()
-{
-	return NULL;
-}
-
 void GApp::OnUrl(const char *Url)
 {
 }
 
 OsThreadId GApp::GetGuiThread()
 {
-	return 0;
+	return d->GuiThread;
 }
 
 OsProcessId GApp::GetProcessId()
@@ -206,7 +213,7 @@ void GApp::RefsReceived(BMessage *Msg)
 		}
 	}
 	
-	if (AppWnd AND Files.Length() > 0)
+	if (AppWnd && Files.Length() > 0)
 	{
 		AppWnd->OnReceiveFiles(Files);
 	}
@@ -224,9 +231,9 @@ void GApp::OnReceiveFiles(GArray<char*> &Files)
 
 void GApp::SetConfig(GXmlTag *Tag)
 {
-	if (IsOk() AND Tag)
+	if (IsOk() && Tag)
 	{
-		GXmlTag *Old = GetConfig(Tag->Tag);
+		GXmlTag *Old = GetConfig(Tag->GetTag());
 		if (Old)
 		{
 			Old->RemoveTag();
@@ -246,7 +253,7 @@ void GApp::SetConfig(GXmlTag *Tag)
 
 GXmlTag *GApp::GetConfig(const char *Tag)
 {
-	if (IsOk() AND !d->Config)
+	if (IsOk() && !d->Config)
 	{
 		char File[] = "lgi.conf";
 		char Path[256];
@@ -288,9 +295,9 @@ GXmlTag *GApp::GetConfig(const char *Tag)
 		}
 	}
 
-	if (Tag AND d->Config)
+	if (Tag && d->Config)
 	{
-		return d->Config->GetTag(Tag);
+		return d->Config->GetChildTag(Tag);
 	}
 
 	return 0;
@@ -312,21 +319,21 @@ bool GApp::GetOption(const char *Option, char *Dest, int DestLen)
 				{
 					c += OptLen;
 					
-					if (!*c AND i < d->Args.Args - 1)
+					if (!*c && i < d->Args.Args - 1)
 					{
 						c = d->Args.Arg[++i];
 					}
 					
 					if (c)
 					{
-						while (*c AND strchr(" \t\r\n", *c))
+						while (*c && strchr(" \t\r\n", *c))
 						{
 							c++;
 						}
 		
-						if (Dest AND DestLen > 0)
+						if (Dest && DestLen > 0)
 						{
-							for (char *i = c; *i AND *i != ' ' AND DestLen > 1;)
+							for (char *i = c; *i && *i != ' ' && DestLen > 1;)
 							{
 								*Dest++ = *i++;
 								DestLen--;
@@ -362,11 +369,11 @@ void GApp::OnCommandLine()
 		char *e = s;
 		if (strchr(Delim, *s))
 		{
-			for (e = ++s; *e AND !strchr(Delim, *e); e++);
+			for (e = ++s; *e && !strchr(Delim, *e); e++);
 		}
 		else
 		{
-			for (; *e AND !strchr(WhiteSpace, *e); e++);
+			for (; *e && !strchr(WhiteSpace, *e); e++);
 		}
 
 		char *Arg = NewStr(s, (int)e-(int)s);
@@ -399,7 +406,7 @@ void GApp::OnCommandLine()
 
 char *GApp::GetArgumentAt(int n)
 {
-	return n >= 0 AND n < d->Args.Args ? NewStr(d->Args.Arg[n]) : 0;
+	return n >= 0 && n < d->Args.Args ? NewStr(d->Args.Arg[n]) : 0;
 }
 
 OsAppArguments *GApp::GetAppArgs()
@@ -409,7 +416,7 @@ OsAppArguments *GApp::GetAppArgs()
 
 bool GApp::GetOption(const char *Option, GAutoString &Buf)
 {
-	if (IsOk() AND Option)
+	if (IsOk() && Option)
 	{
 		int OptLen = strlen(Option);
 		for (int i=1; i<d->Args.Args; i++)
@@ -492,5 +499,17 @@ GMouseHook *GApp::MouseHook = 0;
 GMouseHook *GApp::GetMouseHook()
 {
 	return MouseHook;
+}
+
+int GApp::GetCpuCount()
+{
+	return 4;	
+}
+
+GFontCache *GApp::GetFontCache()
+{
+	if (!d->FontCache)
+		d->FontCache.Reset(new GFontCache(SystemNormal));
+	return d->FontCache;
 }
 

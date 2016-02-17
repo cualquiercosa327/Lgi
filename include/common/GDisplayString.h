@@ -10,9 +10,7 @@
 	}
 #endif
 
-#if defined(MAC) || defined(LINUX) || defined(LGI_SDL) || defined(__GTK_H__)
 #define LGI_DSP_STR_CACHE		1
-#endif
 
 /// \brief Cache for text measuring, glyph substitution and painting
 ///

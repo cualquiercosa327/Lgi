@@ -255,13 +255,10 @@ GViewPrivate::GViewPrivate()
 	Notify = NULL;
 	MinimumSize.x = MinimumSize.y = 0;
 	Font = NULL;
-	FontOwn = false;
 }
 
 GViewPrivate::~GViewPrivate()
 {
-	if (FontOwn)
-		DeleteObj(Font);
 }
 
 GMessage CreateMsg(int m, int a, int b)
@@ -299,6 +296,8 @@ GMessage::Param MsgB(GMessage *m)
 bool GView::Detach()
 {
 	bool Status = false;
+
+	_Window = NULL;
 	if (d->GetParent())
 	{
 		BView *Par = d->GetParent()->_View;
@@ -316,6 +315,7 @@ bool GView::Detach()
 		d->Parent = NULL;
 		Status = true;
 	}
+
 	return Status;
 }
 

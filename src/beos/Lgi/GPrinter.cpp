@@ -1,4 +1,5 @@
 #include "Lgi.h"
+#include "GPrinter.h"
 
 ////////////////////////////////////////////////////////////////////
 GPrinter::GPrinter()
@@ -7,11 +8,6 @@ GPrinter::GPrinter()
 
 GPrinter::~GPrinter()
 {
-}
-
-GPrintDC *GPrinter::StartDC(const char *PrintJobName, GView *Parent)
-{
-	return NULL;
 }
 
 bool GPrinter::Browse(GView *Parent)
@@ -33,20 +29,6 @@ bool GPrinter::Serialize(char *&Str, bool Write)
 	}
 
 	return false;
-}
-
-bool GPrinter::GetPageRange(GArray<int> &p)
-{
-	return false;
-}
-
-void GPrinter::SetPages(int p)
-{
-}
-
-int GPrinter::GetPages()
-{
-	return 0;
 }
 
 

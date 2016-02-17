@@ -292,11 +292,19 @@ gboolean GWindow::OnGtkEvent(GtkWidget *widget, GdkEvent *event)
 	return true;
 }
 
-gboolean GtkWindowDestroy(GtkWidget *widget, GWindow *This)
+static
+gboolean
+GtkWindowDestroy(GtkWidget *widget, GWindow *This)
 {
-	LgiTrace("GtkWindowDestroy %p %s\n", This, This->GetClass());
 	delete This;
 	return true;
+}
+
+static
+void
+GtkWindowRealize(GtkWidget *widget, GWindow *This)
+{
+	This->OnGtkRealize();
 }
 
 bool GWindow::Attach(GViewI *p)
@@ -344,6 +352,10 @@ bool GWindow::Attach(GViewI *p)
 							"window-state-event",
 							G_CALLBACK(GtkViewCallback),
 							i);
+		g_signal_connect(	G_OBJECT(Wnd),
+							"realize",
+							G_CALLBACK(GtkWindowRealize),
+							i);
 
 		gtk_window_set_default_size(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
 		gtk_widget_add_events(GTK_WIDGET(Wnd), GDK_ALL_EVENTS_MASK);
@@ -371,9 +383,6 @@ bool GWindow::Attach(GViewI *p)
 			_Default->Invalidate();
 		}
 		
-		// Call on create
-		OnCreate();
-
 		// Add icon
 		if (d->Icon)
 		{

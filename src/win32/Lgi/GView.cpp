@@ -685,6 +685,8 @@ bool GView::Attach(GViewI *p)
 bool GView::Detach()
 {
 	bool Status = false;
+
+	_Window = NULL;
 	if (d->Parent)
 	{
 		Visible(false);

@@ -74,7 +74,10 @@ enum GNotifyType
 
 	// GTabPage
 	GNotifyTabPage_ButtonClick,
-
+	
+	// GScrollBar
+	GNotifyScrollBar_Create,
+	GNotifyScrollBar_Destroy,
 	
 	
 	/// User app notification IDs should start with this value:

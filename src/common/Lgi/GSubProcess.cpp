@@ -23,6 +23,9 @@
 #include <signal.h>
 #include <sys/wait.h>
 #endif
+#ifdef BEOS
+#include <sys/select.h>
+#endif
 
 #include "Lgi.h"
 #include "GSubProcess.h"
@@ -188,26 +191,29 @@ bool GSubProcess::Dupe(PipeHandle Old, PipeHandle &New)
 
 bool GSubProcess::IsRunning()
 {
-	#if defined(POSIX)
-	int i = wait4(ChildPid, &ExitValue, WNOHANG, 0);
-	if (i)
-	{
-		ChildPid = 0;
-	}
-	return ChildPid != 0;
+	#if defined(BEOS)
+		LgiAssert(!"Impl me.");
+		return false;
+	#elif defined(POSIX)
+		int i = wait4(ChildPid, &ExitValue, WNOHANG, 0);
+		if (i)
+		{
+			ChildPid = 0;
+		}
+		return ChildPid != 0;
 	#elif defined(WIN32)
-	if (!GetExitCodeProcess(ChildHnd, &ExitValue))
-		return false;
-
-	if (ExitValue != STILL_ACTIVE)
-	{
-		ChildPid = 0;
-		return false;
-	}
-	else
-	{
-		return true;
-	}
+		if (!GetExitCodeProcess(ChildHnd, &ExitValue))
+			return false;
+	
+		if (ExitValue != STILL_ACTIVE)
+		{
+			ChildPid = 0;
+			return false;
+		}
+		else
+		{
+			return true;
+		}
 	#endif
 }
 

@@ -178,12 +178,21 @@ gboolean GDialog::OnGtkEvent(GtkWidget *widget, GdkEvent *event)
 	return true;
 }
 
-gboolean GtkDialogDestroy(GtkWidget *widget, GDialog *This)
+static
+gboolean
+GtkDialogDestroy(GtkWidget *widget, GDialog *This)
 {
 	This->_View = NULL;
-	return true;
+	return 0;
 }
 
+static
+void
+GtkDialogRealize(GtkWidget *widget, GDialog *This)
+{
+	This->OnGtkRealize();
+}
+               
 bool GDialog::SetupDialog(bool Modal)
 {
 	if (GBase::Name())
@@ -258,6 +267,10 @@ bool GDialog::SetupDialog(bool Modal)
 	g_signal_connect(	G_OBJECT(Wnd),
 						"focus-out-event",
 						G_CALLBACK(GtkViewCallback),
+						gv);
+	g_signal_connect(	G_OBJECT(Wnd),
+						"realize",
+						G_CALLBACK(GtkDialogRealize),
 						gv);
 
 	gtk_widget_realize(GTK_WIDGET(Wnd));

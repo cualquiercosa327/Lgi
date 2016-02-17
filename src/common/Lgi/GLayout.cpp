@@ -26,6 +26,10 @@ GLayout::~GLayout()
 	DeleteObj(VScroll);
 }
 
+void GLayout::OnCreate()
+{
+}
+
 GViewI *GLayout::FindControl(int Id)
 {
 	if (VScroll && VScroll->GetId() == Id)
@@ -93,10 +97,6 @@ void GLayout::SetScrollPos(int x, int y)
 	{
 		VScroll->Value(y);
 	}
-}
-
-void GLayout::OnCreate()
-{
 }
 
 bool GLayout::Attach(GViewI *p)

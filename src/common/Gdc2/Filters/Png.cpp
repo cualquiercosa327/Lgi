@@ -50,7 +50,7 @@ typedef GRgb48  Png48;
 typedef GRgba64 Png64;
 
 const char sLibrary[] =
-	#if defined(MAC) || defined(LINUX)
+	#if defined(MAC) || defined(LINUX) || defined(BEOS)
 		"libpng"
 	#else
 		#if defined(__CYGWIN__)
@@ -74,7 +74,7 @@ public:
 	{
 		if (!IsLoaded())
 		{
-			#if defined(MAC) || defined(LINUX)
+			#if defined(MAC)
 			if (!Load("/opt/local/lib/libpng.dylib"))
 			#endif
 			{

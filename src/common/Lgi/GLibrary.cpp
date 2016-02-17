@@ -1,7 +1,9 @@
 #include <stdio.h>
 
+#define DEBUG_LIB_MSGS		1
+
 #include "Lgi.h"
-#if defined(LINUX)||defined(MAC)
+#if defined(LINUX) || defined(MAC) || defined(BEOS)
 #include <dlfcn.h>
 #endif
 #include "GToken.h"
@@ -69,8 +71,10 @@ bool GLibrary::Load(const char *File, bool Quiet)
 			#ifdef _DEBUG
 			if (!hLib)
 			{
+				#if DEBUG_LIB_MSGS
 				DWORD err = GetLastError();
-				int asd=0;
+				LgiTrace("LoadLibraryW failed with %i\n", err);
+				#endif				
 			}
 			#endif
 
@@ -83,10 +87,9 @@ bool GLibrary::Load(const char *File, bool Quiet)
 						 stricmp(f, "lgilgid." LGI_LIBRARY_EXT) == 0;			
 			if (!IsLgi) // Bad things happen when we load LGI again.
 			{
-				#ifdef BEOS
-				hLib = dlopen(FileName);
-				#else
 				hLib = dlopen(FileName, RTLD_NOW);
+				#if DEBUG_LIB_MSGS
+				LgiTrace("%s:%i - dlopen('%s')\n", _FL, FileName);
 				#endif
 				if (!hLib)
 				{
@@ -94,18 +97,22 @@ bool GLibrary::Load(const char *File, bool Quiet)
 					if (!stristr(e, "No such file or directory") && !Quiet)
 						LgiTrace("%s:%i - dlopen(%s) failed: %s\n", _FL, File, e);
 
+					#if DEBUG_LIB_MSGS
+					LgiTrace("%s:%i - dlerror='%s'\n", _FL, e);
+					#endif
+
+					#ifdef BEOS
+					GToken t("/boot/system/develop/lib/x86", ":");
+					#else
 					GToken t("/opt/local/lib", ":");
+					#endif
 					for (int i=0; i<t.Length(); i++)
 					{
 						char full[MAX_PATH];
 						LgiMakePath(full, sizeof(full), t[i], f);
 						if (FileExists(full))
 						{
-							#ifdef BEOS
-							hLib = dlopen(full);
-							#else
 							hLib = dlopen(full, RTLD_NOW);
-							#endif
 							if (!Quiet)
 								LgiTrace("%s:%i - dlopen(%s)=%p\n", _FL, full, hLib);
 							if (hLib)
@@ -144,10 +151,6 @@ bool GLibrary::Unload()
 	{
 		#if defined WIN32
 		FreeLibrary(hLib);
-		/*
-		#elif defined BEOS
-		unload_add_on(hLib);
-		*/
 		#elif defined(LINUX) || defined(MAC) || defined(BEOS)
 		dlclose(hLib);
 		#else
@@ -173,6 +176,11 @@ void *GLibrary::GetAddress(const char *Resource)
 		p = dlsym(hLib, Resource);
 		#else
 		LgiAssert(0);
+		#endif
+
+		#if DEBUG_LIB_MSGS
+		if (!p)
+			LgiTrace("%s:%i - GetAddress('%s')=%p\n", _FL, Resource, p);
 		#endif
 	}
 

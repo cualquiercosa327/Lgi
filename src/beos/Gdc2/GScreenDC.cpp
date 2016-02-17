@@ -57,6 +57,15 @@ int GScreenDC::GetFlags()
 	return 0;
 }
 
+bool GScreenDC::GetClient(GRect *c)
+{
+	if (!c)
+		return false;
+
+	*c = d->Client;
+	return true;
+}
+
 void GScreenDC::SetClient(GRect *r)
 {
 	// Unset previous client
@@ -210,7 +219,7 @@ int GScreenDC::Op()
 	return GDC_SET;
 }
 
-int GScreenDC::Op(int NewOp)
+int GScreenDC::Op(int NewOp, NativeInt Param)
 {
 	int Prev = Op();
 	drawing_mode Mode = B_OP_COPY;
@@ -398,7 +407,7 @@ void GScreenDC::StretchBlt(GRect *d, GSurface *Src, GRect *s)
 
 void GScreenDC::Polygon(int Points, GdcPt2 *Data)
 {
-	if (Points > 0 AND Data)
+	if (Points > 0 && Data)
 	{
 		BPoint *p = new BPoint[Points];
 		if (p)

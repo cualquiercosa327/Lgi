@@ -255,6 +255,16 @@ GVariant &GVariant::operator =(GDateTime *d)
 	return *this;
 }
 
+GVariant &GVariant::operator =(bool i)
+{
+	Empty();
+	Type = GV_BOOL;
+	Value.Bool = i;
+	// if (Dirty) *Dirty = true;
+
+	return *this;
+}
+
 GVariant &GVariant::operator =(int i)
 {
 	Empty();
@@ -265,15 +275,17 @@ GVariant &GVariant::operator =(int i)
 	return *this;
 }
 
-GVariant &GVariant::operator =(bool i)
+#ifdef BEOS
+GVariant &GVariant::operator =(int32 i)
 {
 	Empty();
-	Type = GV_BOOL;
-	Value.Bool = i;
+	Type = GV_INT32;
+	Value.Int = i;
 	// if (Dirty) *Dirty = true;
 
 	return *this;
 }
+#endif
 
 GVariant &GVariant::operator =(int64 i)
 {

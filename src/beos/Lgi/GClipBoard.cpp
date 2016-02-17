@@ -18,7 +18,7 @@ bool GClipBoard::Empty()
 {
 	bool Status = false;
 	
-	if (be_clipboard AND
+	if (be_clipboard &&
 		be_clipboard->Lock())
 	{
 		be_clipboard->Clear();
@@ -57,8 +57,8 @@ bool GClipBoard::Text(char *Str, bool AutoEmpty)
 {
 	bool Status = false;
 	
-	if (Str AND
-		be_clipboard AND
+	if (Str &&
+		be_clipboard &&
 		be_clipboard->Lock())
 	{
 		if (AutoEmpty)
@@ -84,7 +84,7 @@ char *GClipBoard::Text()
 {
 	char *Status = 0;
 	
-	if (be_clipboard AND
+	if (be_clipboard &&
 		be_clipboard->Lock())
 	{
 		BMessage *Clip = be_clipboard->Data();

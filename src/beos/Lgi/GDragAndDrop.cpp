@@ -279,7 +279,21 @@ GDragDropSource::~GDragDropSource()
 	DeleteObj(d);
 }
 
-bool GDragDropSource::CreateFileDrop(GVariant *OutputData, GMouse &m, List<char> &Files)
+bool GDragDropSource::GetData(GArray<GDragData> &DragData)
+{
+	if (DragData.Length() == 0)
+		return false;
+
+	// Call the deprecated version of 'GetData'
+	GVariant *v = &DragData[0].Data[0];
+	char *fmt = DragData[0].Format;
+	if (!v || !fmt)
+		return false;
+
+	return GetData(v, fmt);
+}
+
+bool GDragDropSource::CreateFileDrop(GDragData *OutputData, GMouse &m, List<char> &Files)
 {
 	if (OutputData && Files.First())
 	{
@@ -780,8 +794,6 @@ GDragDropSource::GiveFeedback(DWORD dwEffect)
 ////////////////////////////////////////////////////////////////////////////////////////////
 GDragDropTarget::GDragDropTarget()
 {
-	DragDropData = 0;
-	DragDropLength = 0;
 	To = 0;
 
 	#if WINNATIVE
@@ -792,8 +804,6 @@ GDragDropTarget::GDragDropTarget()
 
 GDragDropTarget::~GDragDropTarget()
 {
-	DragDropLength = 0;
-	DeleteArray(DragDropData);
 	Formats.DeleteArrays();
 }
 
@@ -803,7 +813,7 @@ void GDragDropTarget::SetWindow(GView *to)
 	To = to;
 	if (To)
 	{
-		To->DropTargetPtr() = this;
+		// To->DropTargetPtr() = this;
 		Status = To->DropTarget(true);
 		#ifdef MAC
 		if (To->WindowHandle())
@@ -815,271 +825,20 @@ void GDragDropTarget::SetWindow(GView *to)
 		}
 		else
 		{
-			printf("%s:%i - Error\n", __FILE__, __LINE__);
+			printf("%s:%i - Error\n", _FL);
 		}
 	}
 }
 
-#if WINNATIVE
-ULONG STDMETHODCALLTYPE GDragDropTarget::AddRef()
+int GDragDropTarget::OnDrop(GArray<GDragData> &DropData,
+							GdcPt2 Pt,
+							int KeyState)
 {
-	return InterlockedIncrement(&Refs); 
-}
-
-ULONG STDMETHODCALLTYPE GDragDropTarget::Release()
-{
-	return InterlockedDecrement(&Refs); 
-}
-
-HRESULT STDMETHODCALLTYPE GDragDropTarget::QueryInterface(REFIID iid, void **ppv)
-{
-	*ppv=NULL;
-
-	if (IID_IUnknown==iid)
-	{
-		*ppv=(void*)(IUnknown*)(IDataObject*) this;
-	}
-
-	if (IID_IDropTarget==iid)
-	{
-		*ppv=(void*)(IDropTarget*) this;
-	}
-
-	if (NULL==*ppv)
-	{
-		return E_NOINTERFACE;
-	}
-
-	AddRef();
+	if (DropData.Length() == 0 ||
+		DropData[0].Data.Length() == 0)
+		return DROPEFFECT_NONE;
 	
-	return NOERROR;
+	char *Fmt = DropData[0].Format;
+	GVariant *Var = &DropData[0].Data[0];
+	return OnDrop(Fmt, Var, Pt, KeyState);
 }
-
-HRESULT STDMETHODCALLTYPE GDragDropTarget::DragEnter(IDataObject *pDataObject, DWORD grfKeyState, POINTL pt, DWORD *pdwEffect)
-{
-	HRESULT Result = E_UNEXPECTED;
-
-	DragDropLength = 0;
-	DeleteArray(DragDropData);
-	*pdwEffect = DROPEFFECT_NONE;
-
-	POINT p;
-	p.x = pt.x;
-	p.y = pt.y;
-	ScreenToClient(To->Handle(), &p);
-	GdcPt2 Pt(p.x, p.y);
-
-	// Clean out format list
-	Formats.DeleteArrays();
-
-	// Something from another app, enum the formats.
-	IEnumFORMATETC *FormatETC = 0;
-	if (pDataObject->EnumFormatEtc(DATADIR_GET, &FormatETC) == S_OK &&
-		FormatETC)
-	{
-		ULONG Fetched = 0;
-		FORMATETC Format;
-
-		// Ask what formats are being dropped
-		FormatETC->Reset();
-		while (FormatETC->Next(1, &Format, &Fetched) == S_OK)
-		{
-			if (Fetched == 1)
-			{
-				char *s = FormatToStr(Format.cfFormat);
-				if (s)
-				{
-					Formats.Insert(NewStr(s));
-				}
-			}
-		}
-		FormatETC->Release();
-	}
-
-	// Process the format list
-	if (Formats.Length() > 0)
-	{
-		// Ask the app what formats it supports.
-		// It deletes those it doesn't and leaves the formats it can handle
-		*pdwEffect = WillAccept(Formats, Pt, MapW32FlagsToLgi(grfKeyState));
-		Result = S_OK;
-	}
-
-	OnDragEnter();
-	return Result;
-}
-
-HRESULT STDMETHODCALLTYPE GDragDropTarget::DragOver(DWORD grfKeyState, POINTL pt, DWORD *pdwEffect)
-{
-	if (pdwEffect)
-	{
-		POINT p;
-		p.x = pt.x;
-		p.y = pt.y;
-		ScreenToClient(To->Handle(), &p);
-		GdcPt2 Pt(p.x, p.y);
-		*pdwEffect = WillAccept(Formats, Pt, MapW32FlagsToLgi(grfKeyState));
-	}
-
-	return S_OK;
-}
-
-HRESULT STDMETHODCALLTYPE GDragDropTarget::DragLeave()
-{
-	OnDragExit();
-	return S_OK;
-}
-
-HRESULT STDMETHODCALLTYPE GDragDropTarget::Drop(IDataObject *pDataObject, DWORD grfKeyState, POINTL pt, DWORD *pdwEffect)
-{
-	HRESULT Result = E_UNEXPECTED;
-
-	LgiAssert(To);
-
-	DataObject = pDataObject;
-
-	POINT p;
-	p.x = pt.x;
-	p.y = pt.y;
-	ScreenToClient(To->Handle(), &p);
-	GdcPt2 Pt(p.x, p.y);
-
-	char *FormatName;
-	if (FormatName = Formats.First())
-	{
-		bool FileContents = strcmp(FormatName, CFSTR_FILECONTENTS) == 0;
-
-		FORMATETC Format;
-		Format.cfFormat = FormatToInt(FormatName);
-		Format.dwAspect = DVASPECT_CONTENT;
-		Format.lindex = FileContents ? 0 : -1;
-		Format.tymed = TYMED_ISTREAM | TYMED_HGLOBAL;
-		Format.ptd = 0;
-
-		STGMEDIUM Medium;
-		ZeroObj(Medium);
-
-		HRESULT Err;
-		if ((Err = pDataObject->GetData(&Format, &Medium)) == S_OK)
-		{
-			Result = S_OK;
-			switch (Medium.tymed)
-			{
-				case TYMED_HGLOBAL:
-				{
-					int Size = GlobalSize(Medium.hGlobal);
-					void *Ptr = GlobalLock(Medium.hGlobal);
-					if (Ptr)
-					{
-						GVariant v;
-						v.SetBinary(Size, Ptr);
-						OnDrop(FormatName, &v, Pt, MapW32FlagsToLgi(grfKeyState));
-
-						GlobalUnlock(Ptr);
-					}
-					break;
-				}
-				case TYMED_ISTREAM:
-				{
-					int asd=0;
-					break;
-				}
-				default:
-				{
-					// unsupported TYMED
-					Result = E_UNEXPECTED;
-					break;
-				}
-			}
-		}
-	}
-
-	OnDragExit();
-
-	return Result;
-}
-
-bool GDragDropTarget::OnDropFileGroupDescriptor(FILEGROUPDESCRIPTOR *Data, GArray<char*> &Files)
-{
-	bool Status = false;
-
-	if (Data && Data->cItems > 0 && DataObject)
-	{
-		for (int i=0; i<Data->cItems; i++)
-		{
-			FORMATETC Format;
-			Format.cfFormat = RegisterClipboardFormat(CFSTR_FILECONTENTS);
-			Format.dwAspect = DVASPECT_CONTENT;
-			Format.lindex = i;
-			Format.tymed = TYMED_ISTORAGE | TYMED_HGLOBAL;
-			Format.ptd = 0;
-
-			STGMEDIUM Medium;
-			ZeroObj(Medium);
-
-			if (DataObject->GetData(&Format, &Medium) == S_OK)
-			{
-				int Size = 0;
-				void *Ptr = 0;
-
-				// Get data
-				if (Medium.tymed == TYMED_HGLOBAL)
-				{
-					Size = GlobalSize(Medium.hGlobal);
-					Ptr = GlobalLock(Medium.hGlobal);
-				}
-				else if (Medium.tymed == TYMED_ISTREAM)
-				{
-					STATSTG Stat;
-					ZeroObj(Stat);
-					// Stat.grfStateBits = -1;
-					if (Medium.pstm->Stat(&Stat, STATFLAG_DEFAULT) == S_OK)
-					{
-						Size = Stat.cbSize.QuadPart;
-						Ptr = new char[Size];
-						if (Ptr)
-						{
-							ulong Read;
-							if (Medium.pstm->Read(Ptr, Size, &Read) == S_OK)
-							{
-								Size = Read;
-							}
-						}
-					}
-				}
-
-				// Process data..
-				if (Ptr)
-				{
-					char Path[256];
-					LgiGetSystemPath(LSP_TEMP, Path, sizeof(Path));
-					LgiMakePath(Path, sizeof(Path), Path, Data->fgd[i].cFileName);
-
-					GFile f;
-					if (f.Open(Path, O_WRITE))
-					{
-						if (f.Write(Ptr, Size) == Size)
-						{
-							Files.Add(NewStr(Path));
-							Status = true;
-						}
-					}
-				}
-
-				// Clean up
-				if (Medium.tymed == TYMED_HGLOBAL)
-				{
-					GlobalUnlock(Ptr);
-				}
-				else if (Medium.tymed == TYMED_ISTREAM)
-				{
-					DeleteArray(Ptr);
-				}
-			}
-		}
-	}
-
-	return Status;
-}
-
-#endif

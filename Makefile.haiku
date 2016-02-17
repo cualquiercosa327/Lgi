@@ -14,7 +14,7 @@ ifndef Build
 endif
 BuildDir = $(Build)
 
-Flags = -fPIC -w -fno-inline -fpermissive
+Flags = -fPIC -w -fno-inline -fpermissive -fmax-errors=3
 Defs = -DBEOS -D_REENTRANT -DLGI_LIBRARY
 
 ifeq ($(Build),Debug)
@@ -36,14 +36,13 @@ Libs = \
 Inc = \
 	-I./include/beos \
 	-I./include/common \
-	-I/boot/develop/headers/os/app \
-	-Iinclude/beos \
-	-Iinclude/common
+	-I/boot/develop/headers/os/app
 
 # Dependencies
 Depends =	GDateTime.o \
 			GDragAndDrop.o \
 			GFile.o \
+			GFileCommon.o \
 			GExeCheck.o \
 			GApp.o \
 			GGeneral.o \
@@ -51,7 +50,9 @@ Depends =	GDateTime.o \
 			GView.o \
 			GWindow.o \
 			GViewCommon.o \
+			GWindowCommon.o \
 			GLibrary.o \
+			GColour.o \
 			GMem.o \
 			GProperties.o \
 			GContainers.o \
@@ -110,6 +111,7 @@ Depends =	GDateTime.o \
 			LgiRand.o \
 			GString.o \
 			GToken.o \
+			GUnicode.o \
 			GUtf8.o \
 			GXmlTree.o \
 			GEdit.o \
@@ -121,6 +123,7 @@ Depends =	GDateTime.o \
 			GButton.o \
 			GCheckBox.o \
 			GCombo.o \
+			GItemContainer.o \
 			GList.o \
 			GPanel.o \
 			GPopup.o \
@@ -140,7 +143,8 @@ Depends =	GDateTime.o \
 			GSplitter.o \
 			INet.o \
 			INetTools.o \
-			md5.o
+			md5.o \
+			ShowFileProp_Beos.o
 
 # Target
 TargetFile = lib$(Target)$(Tag).so
@@ -169,7 +173,7 @@ GDateTime.o : ./src/common/General/GDateTime.cpp ./include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GDragAndDrop.o : ./src/common/Lgi/GDragAndDrop.cpp ./include/common/Lgi.h \
+GDragAndDrop.o : ./src/beos/Lgi/GDragAndDrop.cpp ./include/common/Lgi.h \
 	./include/common/GDragAndDrop.h \
 	./include/common/INet.h
 	@echo $(<F) [$(Build)]
@@ -179,6 +183,10 @@ GFile.o : ./src/beos/General/GFile.cpp ./include/common/GFile.h \
 	./include/common/GString.h \
 	./include/common/GContainers.h \
 	./include/common/LgiCommon.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GFileCommon.o : ./src/common/General/GFileCommon.cpp ./include/common/GFile.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -196,6 +204,10 @@ GGeneral.o : ./src/beos/Lgi/GGeneral.cpp ./include/common/Lgi.h
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GPrinter.o : ./src/beos/Lgi/GPrinter.cpp ./include/common/Lgi.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+ShowFileProp_Beos.o : ./src/beos/General/ShowFileProp_Beos.cpp ./include/common/Lgi.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -217,6 +229,10 @@ GViewCommon.o : ./src/common/Lgi/GViewCommon.cpp ./include/common/Lgi.h \
 	./include/common/GTableLayout.h \
 	./include/common/GButton.h \
 	./include/common/GCss.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GWindowCommon.o : ./src/common/Lgi/GWindowCommon.cpp ./include/common/Lgi.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -424,6 +440,11 @@ Gdc2.o : ./src/beos/Gdc2/Gdc2.cpp ./include/common/Gdc2.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
+GColour.o : ./src/common/Gdc2/GColour.cpp ./include/common/Lgi.h \
+	./include/common/GPalette.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
 GColourReduce.o : ./src/common/Gdc2/Tools/GColourReduce.cpp ./include/common/Gdc2.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -590,6 +611,10 @@ GToken.o : ./src/common/Text/GToken.cpp ./include/beos/GMem.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
+GUnicode.o : ./src/common/Text/GUnicode.cpp ./include/common/Lgi.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
 GUtf8.o : ./src/common/Text/GUtf8.cpp ./include/common/Lgi.h \
 	./include/common/GUtf8.h
 	@echo $(<F) [$(Build)]
@@ -644,6 +669,15 @@ GButton.o : ./src/common/Widgets/GButton.cpp ./include/common/Lgi.h \
 	./include/common/GButton.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GItemContainer.o : ./src/common/Widgets/GItemContainer.cpp ./include/common/Lgi.h \
+	./include/common/GItemContainer.h \
+	./include/common/GDisplayString.h \
+	./include/common/GSkinEngine.h \
+	./include/common/GScrollBar.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
 
 GCheckBox.o : ./src/common/Widgets/GCheckBox.cpp ./include/common/Lgi.h \
 	./include/common/GSkinEngine.h \

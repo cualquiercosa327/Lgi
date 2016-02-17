@@ -179,7 +179,7 @@ bool GNetwork::EnumInterfaces(List<char> &Lst)
 			}
 		}
 	}
-	#else
+	#elif !defined(BEOS)
 	// Posix
 	struct ifaddrs *addrs = NULL;
 	int r = getifaddrs(&addrs);

@@ -676,8 +676,8 @@ void GDisplayString::Layout(bool Debug)
 		if (Font && Font->Handle())
 		{
 			int TabSize = Font->TabSize() ? Font->TabSize() : 32;
+			int TabOrigin = DrawOffsetF / FScale;
 			char *End = Str + len;
-			GArray<CharInfo> a;
 			char *s = Str;
 			
 			x = 0;
@@ -690,7 +690,7 @@ void GDisplayString::Layout(bool Debug)
 				if (s > Start)
 				{
 					// Normal segment
-					CharInfo &i = a.New();
+					CharInfo &i = Info.New();
 					i.Str = Start;
 					i.Len = s - Start;
 					
@@ -709,7 +709,7 @@ void GDisplayString::Layout(bool Debug)
 				if (s > Start)
 				{
 					// Tabs segment
-					CharInfo &i = a.New();
+					CharInfo &i = Info.New();
 					i.Str = Start;
 					i.Len = s - Start;
 					
@@ -728,8 +728,6 @@ void GDisplayString::Layout(bool Debug)
 			
 			LgiAssert(s == End);
 			
-			Blocks = a.Length();
-			Info = a.Release();
 			y = Font->GetHeight();
 
 			#if 0
@@ -848,9 +846,9 @@ void GDisplayString::TruncateWithDots(int Width)
 		}
 	}
 	
-	#elif  defined(LGI_SDL)
+	#elif defined(LGI_SDL)
 	
-	#else
+	#elif defined(MAC)
 	
 		#if USE_CORETEXT
 
@@ -1767,9 +1765,9 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 			Hnd->SetFont(Font->Handle());
 
 			int CurX = 0;
-			for (int i=0; i<Blocks; i++)
+			for (int i=0; i<Info.Length(); i++)
 			{
-				CharInfo *ci = Info + i;
+				CharInfo *ci = &Info[i];
 				BPoint pos(px + CurX, py + Font->Ascent());
 				if (ci->Str[0] != '\t')
 					Hnd->DrawString(ci->Str, ci->Len, pos);

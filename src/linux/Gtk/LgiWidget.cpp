@@ -669,6 +669,12 @@ lgi_widget_realize(GtkWidget *widget)
 	gtk_style_set_background(widget->style, widget->window, GTK_STATE_NORMAL);
 
 	lgi_widget_size_allocate(widget, &widget->allocation);
+	
+	GView *v = dynamic_cast<GView*>(w->target);
+	if (v)
+		v->OnGtkRealize();
+	else
+		LgiTrace("%s:%i - Failed to cast target to GView.\n", _FL);
 }
 
 static gboolean

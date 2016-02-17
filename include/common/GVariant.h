@@ -211,9 +211,13 @@ public:
 
 	/// Assign int value
 	GVariant &operator =(int i);
+	#ifdef BEOS
+	/// Assign 32bit int value
+	GVariant &operator =(int32 i);
+	#endif
 	/// Assign bool value
 	GVariant &operator =(bool i);
-	/// Assign int value
+	/// Assign 64bit int value
 	GVariant &operator =(int64 i);
 	/// Assign double value
 	GVariant &operator =(double i);

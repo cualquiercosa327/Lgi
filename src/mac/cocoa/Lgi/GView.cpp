@@ -900,6 +900,7 @@ bool GView::Detach()
 	bool Status = false;
 
 	// Detach view
+	_Window = NULL;
 	if (d->Parent)
 	{
 		// Remove the view from the parent

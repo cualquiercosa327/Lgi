@@ -80,7 +80,7 @@ bool ResolveShortcut(const char *LinkFile, char *Path, int Length)
 {
 	bool Status = FALSE;
 
-	if (LinkFile AND Path)
+	if (LinkFile && Path)
 	{
 		BSymLink Link(LinkFile);
 		if (Link.InitCheck())
@@ -183,12 +183,6 @@ GVolume::GVolume()
 	_Flags = 0;
 	_Size = 0;
 	_Free = 0;
-}
-
-GVolume::~GVolume()
-{
-	DeleteArray(_Name);
-	DeleteArray(_Path);
 }
 
 class BeOSVol : public GVolume
@@ -325,7 +319,7 @@ GVolume *GFileSystem::GetRootVolume()
 	return d->RootVol;
 }
 
-bool GFileSystem::Delete(char *FileName, bool ToTrash)
+bool GFileSystem::Delete(const char *FileName, bool ToTrash)
 {
 	if (FileName)
 	{
@@ -334,7 +328,7 @@ bool GFileSystem::Delete(char *FileName, bool ToTrash)
 	return false;
 }
 
-bool GFileSystem::SetCurrentDirectory(char *PathName)
+bool GFileSystem::SetCurrentFolder(char *PathName)
 {
 	if (DirExists(PathName))
 	{
@@ -346,11 +340,11 @@ bool GFileSystem::SetCurrentDirectory(char *PathName)
 	return false;
 }
 
-bool GFileSystem::GetCurrentDirectory(char *PathName, int Length)
+bool GFileSystem::GetCurrentFolder(char *PathName, int Length)
 {
-	if (PathName AND d->CurDir)
+	if (PathName && d->CurDir)
 	{
-		strsafecpy(PathName, d->CurDir, Length);
+		strcpy_s(PathName, Length, d->CurDir);
 		return true;
 	}
 	
@@ -363,7 +357,7 @@ bool GFileSystem::Move(char *OldName, char *NewName)
 	return false;
 }
 
-bool GFileSystem::CreateFolder(char *PathName)
+bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentFoldersIfNeeded)
 {
 	BDirectory Old;
 	status_t Status = Old.CreateDirectory(PathName, &Old);
@@ -414,7 +408,7 @@ bool Match(char *Name, char *Mask)
 	strupr(Name);
 	strupr(Mask);
 
-	while (*Name AND *Mask)
+	while (*Name && *Mask)
 	{
 		if (*Mask == '*')
 		{
@@ -438,9 +432,9 @@ bool Match(char *Name, char *Mask)
 		}
 	}
 
-	while (*Mask AND ((*Mask == '*') || (*Mask == '.'))) Mask++;
+	while (*Mask && ((*Mask == '*') || (*Mask == '.'))) Mask++;
 
-	return (*Name == 0 AND *Mask == 0);
+	return (*Name == 0 && *Mask == 0);
 }
 
 short DaysInMonth[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
@@ -459,25 +453,25 @@ int LeapYear(int year)
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-bool GDirectory::ConvertToTime(char *Str, uint64 Time)
+bool GDirectory::ConvertToTime(char *Str, int StrSize, uint64 Time)
 {
 	time_t k = Time;
 	struct tm *t = localtime(&k);
 	if (t)
 	{
-		strftime(Str, 256, "%I:%M:%S", t);
+		strftime(Str, StrSize, "%I:%M:%S", t);
 		return true;
 	}
 	return false;
 }
 
-bool GDirectory::ConvertToDate(char *Str, uint64 Time)
+bool GDirectory::ConvertToDate(char *Str, int StrSize, uint64 Time)
 {
 	time_t k = Time;
 	struct tm *t = localtime(&k);
 	if (t)
 	{
-		strftime(Str, 256, "%d/%m/%y", t);
+		strftime(Str, StrSize, "%d/%m/%y", t);
 		return true;
 	}
 	return false;
@@ -560,7 +554,7 @@ bool GDirectory::Path(char *s, int BufLen)
 int GDirectory::First(const char *Path, const char *Pattern)
 {
 	bool Status = false;
-	if (Path AND Pattern)
+	if (Path && Pattern)
 	{
 		DeleteArray(d->BasePath);
 		d->BasePath = NewStr(Path);
@@ -892,7 +886,7 @@ int GFile::SwapWrite(uchar *Buf, int Size)
 int GFile::ReadStr(char *Buf, int Size)
 {
 	int i = 0;
-	if (Buf AND Size > 0)
+	if (Buf && Size > 0)
 	{
 		char c;
 
@@ -908,7 +902,7 @@ int GFile::ReadStr(char *Buf, int Size)
 			
 			*Buf++ = c;
 		
-		} while (i < Size - 1 AND c != '\n');
+		} while (i < Size - 1 && c != '\n');
 
 		*Buf = 0;
 	}
@@ -1025,7 +1019,7 @@ bool VDirView::Read(char *Dir)
 	bool Done = First("*.*", 0x10, 0x1F);
 	while (!Done)
 	{
-		if (strcmp(GetName(), ".") AND strcmp(GetName(), ".."))
+		if (strcmp(GetName(), ".") && strcmp(GetName(), ".."))
 		{
 			Current = new Node(GetName(), GetAttributes(), GetSize());
 			if (Current)
@@ -1067,7 +1061,7 @@ bool VDirView::Read(char *Dir)
 		Done = Next();
 	}
 
-	if (Root AND Items)
+	if (Root && Items)
 	{
 		Index = new Node*[Items];
 		if (Index)

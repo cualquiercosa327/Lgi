@@ -22,7 +22,7 @@ public:
 		Ctrl = ctrl;
 	}
 
-	bool PreLayout(int &Min, int &Max)
+	bool PreLayout(int32 &Min, int32 &Max)
 	{
 		if (Lock(_FL))
 		{

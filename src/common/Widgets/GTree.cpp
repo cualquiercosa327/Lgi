@@ -427,6 +427,17 @@ GRect *GTreeItem::_GetRect(GTreeItemRect Which)
 	return 0;
 }
 
+bool GTreeItem::SortChildren(int (*compare)(GTreeItem *a, GTreeItem *b, NativeInt data), NativeInt data)
+{
+	Items.Sort(compare, data);
+	if (Tree)
+	{
+		Tree->_Pour();
+		Tree->Invalidate();
+	}
+	return true;
+}
+
 GRect *GTreeItem::GetPos(int Col)
 {
 	return &d->Pos;

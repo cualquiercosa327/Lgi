@@ -143,6 +143,7 @@ public:
 
 		#if defined __GTK_H__
 		bool			InPaint;
+		bool			GotOnCreate;
 		#elif defined(MAC) && !defined(COCOA)
 		static HIObjectClassRef BaseClass;
 		#endif

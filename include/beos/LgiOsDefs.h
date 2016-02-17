@@ -1,6 +1,9 @@
 #ifndef __LGI_OS_DEFS_H
 #define __LGI_OS_DEFS_H
 
+#undef min
+#undef max
+
 #include <AppKit.h>
 #include <InterfaceKit.h>
 #include <GameKit.h>
@@ -11,6 +14,10 @@
 #include <stdio.h>
 
 #include "LgiInc.h"
+
+#define min(a, b) ((a)<(b)?(a):(b))
+#define max(a, b) ((a)>(b)?(a):(b))
+
 
 //////////////////////////////////////////////////////////////////
 // Typedefs
@@ -24,6 +31,7 @@ typedef thread_id					OsThread;
 typedef team_id						OsProcess;
 typedef char						OsChar;
 typedef BView						*OsPainter;
+typedef BFont						*OsFont;
 typedef int							OsProcessId;
 
 class LgiClass OsAppArguments
@@ -42,14 +50,30 @@ public:
 class LgiClass GMessage : public BMessage
 {
 public:
-	typedef unsigned int Param;
-	typedef unsigned int Result;
+	typedef int32 Param;
+	typedef int32 Result;
 	
 	GMessage() {}
 	GMessage(int m, Param a, Param b)
 	{
-		AddInt32("a", a);
-		AddInt32("b", b);
+		what = m;
+		AddInt32("Lgi.a", a);
+		AddInt32("Lgi.b", b);
+	}
+	
+	Param Msg() 
+	{
+		return what;
+	}
+
+	Param A()
+	{
+		return GetInt32("Lgi.a", (int32)-1);
+	}
+
+	Param B()
+	{
+		return GetInt32("Lgi.b", (int32)-1);
 	}
 };
 
@@ -92,6 +116,7 @@ typedef int OsSocket;
 #define LGI_WideCharset			"utf-32"
 #define LGI_LIBRARY_EXT			"so"
 #define LGI_PrintfInt64			"%ll"
+#define LGI_EXECUTABLE_EXT		""
 
 #define IDOK					1
 #define IDCANCEL				2
@@ -186,6 +211,8 @@ typedef int OsSocket;
 													// int32 flags;
 #define LGI_MOUSE_ENTER			(M_USER+0x10d)
 #define LGI_MOUSE_EXIT			(M_USER+0x10e)
+#define M_SET_VISIBLE			(M_USER+0x10f)
+#define M_TEXT_UPDATE_NAME		(M_USER+0x110)
 
 // Dialog stuff
 #define IDOK					1
@@ -258,5 +285,6 @@ extern int stricmp(char *a, char *b);
 #define _stricmp				strcasecmp
 #define _strnicmp				strncasecmp
 #define atoi64					atoll
+#define vsprintf_s				vsnprintf
 
 #endif

@@ -14,14 +14,13 @@ public:
 	}
 };
 
-GPrintDC::GPrintDC(void *Handle, const char *PrintJobName)
+GPrintDC::GPrintDC(void *Handle, const char *PrintJobName, const char *PrinterName)
 {
 	d = new GPrintDCPrivate;
 }
 
 GPrintDC::~GPrintDC()
 {
-	EndPage();
 }
 
 int GPrintDC::X()
@@ -47,16 +46,5 @@ int GPrintDC::DpiX()
 int GPrintDC::DpiY()
 {
 	return 0;
-}
-
-bool GPrintDC::StartPage()
-{
-	bool Status = false;
-
-	return Status;
-}
-
-void GPrintDC::EndPage()
-{
 }
 
