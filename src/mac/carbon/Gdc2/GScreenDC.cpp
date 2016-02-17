@@ -44,12 +44,27 @@ GScreenDC::GScreenDC()
 	d = new GScreenPrivate;
 }
 
+GScreenDC::GScreenDC(PMRect &Page, CGContextRef Ctx)
+{
+	d = new GScreenPrivate;
+	d->Ctx = Ctx;
+	if (Ctx)
+	{
+		d->Rc.x1 = Page.left;
+		d->Rc.y1 = Page.top;
+		d->Rc.x2 = Page.right;
+		d->Rc.y2 = Page.bottom;
+		
+		CGContextSetLineWidth(d->Ctx, 1.0);
+	}
+}
+
 GScreenDC::GScreenDC(GWindow *w, void *param)
 {
 	d = new GScreenPrivate;
 	d->Wnd = w;
 	d->Ctx = (CGContextRef)param;
-	if (d->Ctx)
+	if (d->Ctx && d->Wnd)
 	{
 		Rect r;
 		if (GetWindowBounds(d->Wnd->WindowHandle(), kWindowContentRgn, &r))

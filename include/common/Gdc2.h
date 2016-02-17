@@ -702,6 +702,7 @@ public:
 		#elif defined MAC
 		
 		GScreenDC(GWindow *wnd, void *Param = 0);
+		GScreenDC(PMRect &Page, CGContextRef Ctx); // Used by GPrintDC
 		OsPainter Handle();
 		GRect GetPos();
         void PushState();
@@ -984,7 +985,7 @@ public:
 ///
 /// \sa GPrinter
 class LgiClass GPrintDC
-#if defined(WIN32)
+#if defined(WIN32) || defined(MAC)
 	: public GScreenDC
 #else
 	: public GSurface
@@ -993,6 +994,15 @@ class LgiClass GPrintDC
 	class GPrintDCPrivate *d;
 
 public:
+	#ifdef MAC
+	struct Params
+	{
+		PMRect Page;
+		CGContextRef Ctx;
+		PMResolution Dpi;
+	};
+	#endif
+
 	GPrintDC(void *Handle, const char *PrintJobName, const char *PrinterName = NULL);
 	~GPrintDC();
 
