@@ -1,6 +1,10 @@
 #include <stdio.h>
 
+#ifdef BEOS
 #define DEBUG_LIB_MSGS		1
+#else
+#define DEBUG_LIB_MSGS		0
+#endif
 
 #include "Lgi.h"
 #if defined(LINUX) || defined(MAC) || defined(BEOS)

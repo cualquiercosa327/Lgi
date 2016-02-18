@@ -73,8 +73,8 @@ GButton::GButton(int id, int x, int y, int cx, int cy, const char *name) :
 	int Ty = d->Txt ? d->Txt->Y() : 0;
 	GRect r(x,
 			y,
-			x + (cx < 0 ? Tx + Overhead.x : cx) - 1,
-			y + (cy < 0 ? Ty + Overhead.y : cy) - 1);
+			x + (cx <= 0 ? Tx + Overhead.x : cx) - 1,
+			y + (cy <= 0 ? Ty + Overhead.y : cy) - 1);
 	LgiAssert(r.Valid());
 	SetPos(r);
 	SetId(id);
