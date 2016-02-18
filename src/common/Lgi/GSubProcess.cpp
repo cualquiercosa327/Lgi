@@ -195,12 +195,22 @@ bool GSubProcess::IsRunning()
 		LgiAssert(!"Impl me.");
 		return false;
 	#elif defined(POSIX)
-		int i = wait4(ChildPid, &ExitValue, WNOHANG, 0);
-		if (i)
-		{
-			ChildPid = 0;
-		}
-		return ChildPid != 0;
+		#if 1
+			int Status = 0;
+			pid_t r = waitpid(ChildPid, &Status, WNOHANG);
+			if (r == ChildPid)
+			{
+				ChildPid = 0;
+				printf("%s:%i - waitpid signalled: %i\n", Status);
+			}
+			return ChildPid != 0;
+		#else
+			// Apparently this is deprecated...
+			int i = wait4(ChildPid, &ExitValue, WNOHANG, 0);
+			if (i)
+				ChildPid = 0;
+			return ChildPid != 0;
+		#endif
 	#elif defined(WIN32)
 		if (!GetExitCodeProcess(ChildHnd, &ExitValue))
 			return false;

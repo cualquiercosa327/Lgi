@@ -1675,7 +1675,7 @@ bool GDateTime::Decode(const char *In)
 	return Status;
 }
 
-bool GDateTime::GetVariant(const char *Name, class GVariant &Dst, char *Array)
+bool GDateTime::GetVariant(const char *Name, GVariant &Dst, char *Array)
 {
 	GDomProperty p = GStringToProp(Name);
 	switch (p)
@@ -1734,7 +1734,7 @@ bool GDateTime::GetVariant(const char *Name, class GVariant &Dst, char *Array)
 	return true;
 }
 
-bool GDateTime::SetVariant(const char *Name, class GVariant &Value, char *Array)
+bool GDateTime::SetVariant(const char *Name, GVariant &Value, char *Array)
 {
 	GDomProperty p = GStringToProp(Name);
 	switch (p)
@@ -1776,7 +1776,7 @@ bool GDateTime::SetVariant(const char *Name, class GVariant &Value, char *Array)
 	return true;
 }
 
-bool GDateTime::CallMethod(const char *Name, class GVariant *ReturnValue, GArray<class GVariant*> &Args)
+bool GDateTime::CallMethod(const char *Name, GVariant *ReturnValue, GArray<GVariant*> &Args)
 {
 	switch (GStringToProp(Name))
 	{

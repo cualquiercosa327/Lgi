@@ -1030,20 +1030,7 @@ bool GView::Focus()
 	{
 		bool Active = w->IsActive();
 		if (Active)
-		{
 			Has = w->GetFocus() == static_cast<GViewI*>(this);
-			/*
-			printf("%s::Focus() active: %p == %p = %i\n",
-				GetClass(),
-				w->GetFocus(),
-				static_cast<GViewI*>(this),
-				Has);
-			*/
-		}
-		else
-		{
-			// printf("%s::Focus() not active\n", GetClass());
-		}
 	}
 	#elif defined(WINNATIVE)
 	if (_View)

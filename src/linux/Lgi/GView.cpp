@@ -128,6 +128,7 @@ GViewPrivate::GViewPrivate()
 	Pulse = 0;
 	InPaint = false;
 	GotOnCreate = false;
+	WantsFocus = false;
 }
 
 GViewPrivate::~GViewPrivate()
@@ -140,7 +141,13 @@ void GView::OnGtkRealize()
 	if (!d->GotOnCreate)
 	{
 		d->GotOnCreate = true;
-		// printf("Calling %s::OnCreate...\n", GetClass());
+		
+		if (d->WantsFocus && _View)
+		{
+			d->WantsFocus = false;
+			gtk_widget_grab_focus(_View);
+		}
+		
 		OnCreate();
 	}
 }
@@ -157,8 +164,13 @@ void GView::_Focus(bool f)
 	OnFocus(f);	
 	Invalidate();
 
-	if (_View)
-		gtk_widget_grab_focus(_View);
+	if (f)
+	{
+		if (_View)
+			gtk_widget_grab_focus(_View);
+		else
+			d->WantsFocus = f;
+	}
 }
 
 void GView::_Delete()
