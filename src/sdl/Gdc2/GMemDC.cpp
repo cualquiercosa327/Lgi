@@ -77,6 +77,11 @@ GMemDC::~GMemDC()
 	DeleteObj(d);
 }
 
+OsPainter GMemDC::Handle()
+{
+	return NULL;
+}
+
 OsBitmap GMemDC::GetBitmap()
 {
 	return NULL;

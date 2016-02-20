@@ -14,7 +14,7 @@ public:
 	}
 };
 
-GPrintDC::GPrintDC(void *Handle, const char *PrintJobName)
+GPrintDC::GPrintDC(void *Handle, const char *PrintJobName, const char *PrinterName)
 {
 	d = new GPrintDCPrivate;
 }

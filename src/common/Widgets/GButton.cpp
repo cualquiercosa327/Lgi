@@ -319,7 +319,7 @@ bool GButton::OnKey(GKey &k)
 void GButton::OnClick()
 {
 	if (GetId())
-		PostEvent(M_CHANGE, GetId());
+		PostEvent(M_CHANGE, (GMessage::Param)GetId());
 	else
 		SendNotify();
 }
