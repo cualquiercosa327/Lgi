@@ -115,7 +115,9 @@ bool GText::Name(const char *n)
 			PostEvent(M_TEXT_UPDATE_NAME);
 		else
 		{
+			#ifndef BEOS
 			LgiAssert(!"Can't update name.");
+			#endif
 			if (!GView::Name(n))
 				return false;
 			return false;

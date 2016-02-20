@@ -257,7 +257,9 @@ class LgiClass GMenuItem :
 	friend class MenuItemImpl;
 	friend class MenuImpl;
 	friend class SubMenuImplPrivate;
-	// friend class LgiMenuItem;
+	#ifdef BEOS
+	friend class LgiMenuItem;
+	#endif
 
 private:
 	#ifdef WIN32

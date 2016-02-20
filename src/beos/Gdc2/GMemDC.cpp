@@ -89,6 +89,123 @@ void GMemDC::SetOrigin(int x, int y)
 
 #include "Lgi.h"
 
+GColourSpace BeosColourSpaceToLgi(color_space cs)
+{
+	switch (cs)
+	{
+		// linear color space (little endian)
+		case B_RGB32: // BGR-		-RGB 8:8:8:8
+			return CsBgrx32;
+		case B_RGBA32: // BGRA		ARGB 8:8:8:8
+			return CsBgra32;
+		case B_RGB24: // BGR		 RGB 8:8:8
+			return CsBgr24;
+		case B_RGB16: // BGR		 RGB 5:6:5
+			return CsBgr16;
+		case B_RGB15: // BGR-		-RGB 1:5:5:5
+			return CsBgr15;
+		case B_RGBA15: // BGRA		ARGB 1:5:5:5
+			return CsBgr15;
+		case B_CMAP8: // 256 color index table
+			return CsIndex8;
+		case B_GRAY8: // 256 greyscale table
+			return CsIndex8;
+		// B_GRAY1				= 0x0001,	// Each bit represents a single pixel
+	
+		// linear color space (big endian)
+		case B_RGB32_BIG: // -RGB		BGR- 8:8:8:8
+			return CsXrgb32;
+		case B_RGBA32_BIG: // ARGB		BGRA 8:8:8:8
+			return CsArgb32;
+		case B_RGB24_BIG: //  RGB		BGR  8:8:8
+			return CsRgb24;
+		case B_RGB16_BIG: //  RGB		BGR  5:6:5
+			return CsRgb16;
+		case B_RGB15_BIG: // -RGB		BGR- 5:5:5:1
+			return CsRgb15;
+		case B_RGBA15_BIG: // ARGB		BGRA 5:5:5:1
+			return CsRgb15;
+	
+		// non linear color space -- incidently, all with 8 bits per value
+		// Note, BBitmap and BView do not support all of these!
+	
+		/*
+		// Loss / saturation points:
+		//  Y		16 - 235 (absolute)
+		//  Cb/Cr	16 - 240 (center 128)
+	
+		B_YCbCr422			= 0x4000,	// Y0  Cb0 Y1  Cr0
+										// Y2  Cb2 Y3  Cr4
+		B_YCbCr411			= 0x4001,	// Cb0 Y0  Cr0 Y1
+										// Cb4 Y2  Cr4 Y3
+										// Y4  Y5  Y6  Y7
+		B_YCbCr444			= 0x4003,	// Y   Cb  Cr
+		B_YCbCr420			= 0x4004,	// Non-interlaced only
+			// on even scan lines: Cb0  Y0  Y1  Cb2 Y2  Y3
+			// on odd scan lines:  Cr0  Y0  Y1  Cr2 Y2  Y3
+	
+		// Extrema points are:
+		//  Y 0 - 207 (absolute)
+		//  U -91 - 91 (offset 128)
+		//  V -127 - 127 (offset 128)
+	
+		// Note that YUV byte order is different from YCbCr; use YCbCr, not YUV,
+		// when that's what you mean!
+		B_YUV422			= 0x4020,	// U0  Y0  V0  Y1
+										// U2  Y2  V2  Y3
+		B_YUV411			= 0x4021,	// U0  Y0  Y1  V0  Y2  Y3
+										// U4  Y4  Y5  V4  Y6  Y7
+		B_YUV444			= 0x4023,	// U0  Y0  V0  U1  Y1  V1
+		B_YUV420			= 0x4024,	// Non-interlaced only
+			// on even scan lines: U0  Y0  Y1  U2 Y2  Y3
+			// on odd scan lines:  V0  Y0  Y1  V2 Y2  Y3
+		B_YUV9				= 0x402C,
+		B_YUV12				= 0x402D,
+	
+		B_UVL24				= 0x4030,	// UVL
+		B_UVL32				= 0x4031,	// UVL-
+		B_UVLA32			= 0x6031,	// UVLA
+	
+		// L lightness, a/b color-opponent dimensions
+		B_LAB24				= 0x4032,	// Lab
+		B_LAB32				= 0x4033,	// Lab-
+		B_LABA32			= 0x6033,	// LabA
+	
+		// Red is at hue 0
+		B_HSI24				= 0x4040,	// HSI
+		B_HSI32				= 0x4041,	// HSI-
+		B_HSIA32			= 0x6041,	// HSIA
+	
+		B_HSV24				= 0x4042,	// HSV
+		B_HSV32				= 0x4043,	// HSV-
+		B_HSVA32			= 0x6043,	// HSVA
+	
+		B_HLS24				= 0x4044,	// HLS
+		B_HLS32				= 0x4045,	// HLS-
+		B_HLSA32			= 0x6045,	// HLSA
+	
+		B_CMY24				= 0xC001,	// CMY
+		B_CMY32				= 0xC002,	// CMY-
+		B_CMYA32			= 0xE002,	// CMYA
+		B_CMYK32			= 0xC003,	// CMYK
+	
+		// Compatibility declarations
+		B_MONOCHROME_1_BIT	= B_GRAY1,
+		B_GRAYSCALE_8_BIT	= B_GRAY8,
+		B_COLOR_8_BIT		= B_CMAP8,
+		B_RGB_32_BIT		= B_RGB32,
+		B_RGB_16_BIT		= B_RGB15,
+		B_BIG_RGB_32_BIT	= B_RGB32_BIG,
+		B_BIG_RGB_16_BIT	= B_RGB15_BIG
+		*/
+		default:
+			LgiTrace("%s:%i - Unknown BEOS colour space: 0x%x\n", _FL, cs);
+			break;
+	}
+	
+	return CsNone;
+}
+
 bool GMemDC::Create(int x, int y, GColourSpace Cs, int Flags)
 {
 	bool Status = FALSE;
@@ -105,28 +222,42 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int Flags)
 			break;
 		}
 		case CsRgb15:
+		case CsBgr15:
 		{
 			Mode = B_RGB15;
 			break;
 		}
 		case CsRgb16:
+		case CsBgr16:
 		{
 			Mode = B_RGB16;
 			break;
 		}
 		case CsRgb24:
+		case CsBgr24:
 		{
 			Mode = B_RGB32;
 			break;
 		}
 		case CsRgba32:
+		case CsBgra32:
+		case CsArgb32:
+		case CsAbgr32:
 		{
 			Mode = B_RGB32;
+			break;
+		}
+		default:
+		{
+			LgiTrace("%s:%i - Error: unsupported colour space '%s'\n",
+				_FL,
+				GColourSpaceToString(Cs));
 			break;
 		}
 	}
 
 	DeleteObj(d->Bmp);
+
 	BRect r(0, 0, x-1, y-1);
 	d->Bmp = new BBitmap(r, Mode, true, true);
 	if (d->Bmp)
@@ -143,12 +274,12 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int Flags)
 			pMem->Base = (uchar*) d->Bmp->Bits();
 			pMem->x = x;
 			pMem->y = y;
-			ColourSpace = pMem->Cs = Cs;
 			pMem->Line = d->Bmp->BytesPerRow();
 			pMem->Flags = 0;
 			
-			// Msg("Base: %p x: %i y: %i Bits: %i Line: %i", pMem->Base, pMem->x, pMem->y, pMem->Bits, pMem->Line);
-			Status = true;
+			color_space Bcs = d->Bmp->ColorSpace();
+			ColourSpace = pMem->Cs = BeosColourSpaceToLgi(Bcs);
+			Status = ColourSpace != CsNone;
 
 			int NewOp = (pApp) ? Op() : GDC_SET;
 

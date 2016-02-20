@@ -1369,6 +1369,8 @@ LgiFunc bool LgiFindBounds
 
 #if defined(LGI_SDL)
 LgiFunc GColourSpace PixelFormat2ColourSpace(SDL_PixelFormat *pf);
+#elif defined(BEOS)
+LgiFunc GColourSpace BeosColourSpaceToLgi(color_space cs);
 #endif
 
 #endif

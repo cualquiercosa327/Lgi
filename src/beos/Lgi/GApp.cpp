@@ -99,6 +99,8 @@ GApp::GApp(OsAppArguments &OsArgs, const char *Name, GAppArguments *AppArgs) : B
 			{
 				*SystemBold = *SystemNormal;
 				SystemBold->Bold(true);
+				SystemBold->Create();
+				LgiAssert(SystemBold->Handle());
 			}
 		}
 	}

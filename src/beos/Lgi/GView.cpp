@@ -271,12 +271,7 @@ GMessage::Param MsgA(GMessage *m)
 {
 	GMessage::Param i = 0;
 	if (m)
-	{
-		status_t s = m->FindInt32("a", (int32*)&i);
-		if (s != B_OK)
-			printf("%s:%i - MsgA found no part 'a' (0x%x)\n", _FL, s);
-	}
-	
+		m->FindInt32("a", (int32*)&i);
 	return i;
 }
 
@@ -284,12 +279,7 @@ GMessage::Param MsgB(GMessage *m)
 {
 	GMessage::Param i = 0;
 	if (m)
-	{
-		status_t s = m->FindInt32("b", (int32*)&i);
-		if (s != B_OK)
-			printf("%s:%i - MsgB found no part 'b' (0x%x)\n", _FL, s);
-	}
-	
+		m->FindInt32("b", (int32*)&i);
 	return i;
 }
 

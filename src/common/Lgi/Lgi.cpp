@@ -961,6 +961,10 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 
 			if (LgiMakePath(p, sizeof(p), Home, ".config/gtk-3.0"))
 				Path = p;
+			
+			#elif defined(BEOS)
+			
+			// No known user links path for Haiku			
 
 			#else
 
@@ -1118,7 +1122,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 				else
 					LgiAssert(0);
 			#elif defined BEOS
-				Path = "/boot/system/apps";
+				Path = "/boot/home/config/settings";
 			#else
 				LgiAssert(0);
 			#endif
