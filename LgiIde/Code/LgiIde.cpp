@@ -1188,12 +1188,14 @@ AppWnd::AppWnd()
 						d->CreateMakefileMenu->AppendItem(PlatformNames[i], IDM_MAKEFILE_BASE + i);
 					}
 				}
+				else LgiTrace("%s:%i - FindSubMenu failed.\n", _FL);
 
 				GMenuItem *Debug = GetMenu()->FindItem(IDM_DEBUG_MODE);
 				if (Debug)
 				{
 					Debug->Checked(true);
 				}
+				else LgiTrace("%s:%i - FindSubMenu failed.\n", _FL);
 				
 				d->UpdateMenus();
 			}

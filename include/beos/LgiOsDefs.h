@@ -7,6 +7,7 @@
 #include <AppKit.h>
 #include <InterfaceKit.h>
 #include <GameKit.h>
+#include <Path.h>
 
 #include <assert.h>
 #include <stdlib.h>

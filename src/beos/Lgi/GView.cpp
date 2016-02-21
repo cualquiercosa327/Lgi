@@ -1088,7 +1088,7 @@ void GView::_Key(const char *bytes, int32 numBytes, bool down)
 		if (mods & B_OPTION_KEY)
 			k.System(true);
 
-		k.Trace("sys down");		
+		// k.Trace("sys down");		
 
 		GWindow *w = GetWindow();
 		if (w)
@@ -1138,7 +1138,6 @@ void BViewRedir::AttachedToWindow()
 
 void BViewRedir::DetachedFromWindow()
 {
-	// BView::DetachedFromWindow();
 	Wnd->OnDestroy();
 }
 
@@ -1150,38 +1149,31 @@ void BViewRedir::Draw(BRect UpdateRect)
 
 void BViewRedir::FrameResized(float width, float height)
 {
-	// BView::FrameResized(width, height);
 	Wnd->OnPosChange();
 }
 
 void BViewRedir::Pulse()
 {
-	// BView::Pulse();
 	Wnd->OnPulse();
 }
 
 void BViewRedir::MessageReceived(BMessage *message)
 {
-	// BView::MessageReceived(message);
 	Wnd->OnEvent((GMessage*) message); // Haha, this is so bad... oh well.
 }
 
 void BViewRedir::KeyDown(const char *bytes, int32 numBytes)
 {
-	// printf("%s.keydown\n", Wnd->GetClass());
 	Wnd->_Key(bytes, numBytes, true);
 }
 
 void BViewRedir::KeyUp(const char *bytes, int32 numBytes)
 {
-	// printf("%s.keyup\n", Wnd->GetClass());
 	Wnd->_Key(bytes, numBytes, false);
 }
 
 void BViewRedir::MouseDown(BPoint point)
 {
-	// BView::MouseDown(point);
-
 	BPoint u;
 	GetMouse(&u, &WndBtn);
 
@@ -1212,8 +1204,6 @@ void BViewRedir::MouseDown(BPoint point)
 
 void BViewRedir::MouseUp(BPoint point)
 {
-	// BView::MouseUp(point);
-
 	BPoint u;
 	uint32 Btns;
 	GetMouse(&u, &Btns);
