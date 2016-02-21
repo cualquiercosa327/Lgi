@@ -87,7 +87,7 @@ GSurface::~GSurface()
 		DeleteObj(pPalette);
 	}
 
-	if (	(Flags & GDC_OWN_APPLICATOR) &&
+	if ( (Flags & GDC_OWN_APPLICATOR) &&
 		!(Flags & GDC_CACHED_APPLICATOR))
 	{
 		DeleteObj(pApp);
@@ -1753,12 +1753,13 @@ int GSurface::Op(int NewOp, NativeInt Param)
 
 GPalette *GSurface::Palette()
 {
-	if (!pPalette && pMem && (pMem->Flags & GDC_ON_SCREEN))
+	if (!pPalette && pMem && (pMem->Flags & GDC_ON_SCREEN) && pMem->Cs == CsIndex8)
 	{
 		pPalette = GdcD->GetSystemPalette();
+		printf("Setting sys palette: %p\n", pPalette);
 		if (pPalette)
 		{
-			Flags |= GDC_OWN_PALETTE;
+			Flags &= ~GDC_OWN_PALETTE;
 		}
 	}
 
@@ -1767,8 +1768,10 @@ GPalette *GSurface::Palette()
 
 void GSurface::Palette(GPalette *pPal, bool bOwnIt)
 {
-	if (pPalette && Flags & GDC_OWN_PALETTE)
+	// printf("GSurface::Palette %p %i\n", pPal, bOwnIt);
+	if (pPalette && (Flags & GDC_OWN_PALETTE) != 0)
 	{
+		// printf("\tdel=%p\n", pPalette);
 		delete pPalette;
 	}
 
@@ -1777,10 +1780,12 @@ void GSurface::Palette(GPalette *pPal, bool bOwnIt)
 	if (pPal && bOwnIt)
 	{
 		Flags |= GDC_OWN_PALETTE;
+		// printf("\tp=%p own\n", pPalette);
 	}
 	else
 	{
 		Flags &= ~GDC_OWN_PALETTE;
+		// printf("\tp=%p not-own\n", pPalette);
 	}
 
 	if (pApp)

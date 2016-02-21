@@ -1,94 +1,20 @@
 /*hdr
 **	FILE:			GMemDC.h
 **	AUTHOR:			Matthew Allen
-**	DATE:			27/11/2001
-**	DESCRIPTION:	GDC v2.xx header
+**	DATE:			16/2/2016
+**	DESCRIPTION:	Haiku memory bitmap handling.
 **
-**	Copyright (C) 2001, Matthew Allen
+**	Copyright (C) 2016, Matthew Allen
 **		fret@memecode.com
 */
 
 #include <stdio.h>
 #include <math.h>
-#include "Gdc2.h"
+
+#include "Lgi.h"
 #include "GPalette.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-class GMemDCPrivate
-{
-public:
-	OsBitmap	Bmp;
-	OsPainter	View;
-
-	GMemDCPrivate()
-	{
-		Bmp = 0;
-		View = 0;
-	}
-	
-	~GMemDCPrivate()
-	{
-		DeleteObj(Bmp);
-	}
-};
-
-GMemDC::GMemDC(int x, int y, GColourSpace cs)
-{
-	d = new GMemDCPrivate;
-	if (x && y && cs)
-	{
-		Create(x, y, cs);
-	}
-}
-
-GMemDC::GMemDC(GSurface *pDC)
-{
-	d = new GMemDCPrivate;
-	if (pDC && Create(pDC->X(), pDC->Y(), pDC->GetBits()))
-	{
-		Blt(0, 0, pDC);
-		if (pDC->Palette())
-		{
-			GPalette *Pal = new GPalette(pDC->Palette());
-			if (Pal)
-			{
-				Palette(Pal, TRUE);
-			}
-		}
-	}
-}
-
-GMemDC::~GMemDC()
-{
-	DeleteObj(d);
-}
-
-OsPainter GMemDC::Handle()
-{
-	return d->View;
-}
-
-OsBitmap GMemDC::GetBitmap()
-{
-	return d->Bmp;
-}
-
-void GMemDC::SetClient(GRect *c)
-{
-}
-
-bool GMemDC::SupportsAlphaCompositing()
-{
-	return true;
-}
-
-void GMemDC::SetOrigin(int x, int y)
-{
-	GSurface::SetOrigin(x, y);
-}
-
-#include "Lgi.h"
-
 GColourSpace BeosColourSpaceToLgi(color_space cs)
 {
 	switch (cs)
@@ -206,6 +132,80 @@ GColourSpace BeosColourSpaceToLgi(color_space cs)
 	return CsNone;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+class GMemDCPrivate
+{
+public:
+	OsBitmap	Bmp;
+	OsPainter	View;
+
+	GMemDCPrivate()
+	{
+		Bmp = 0;
+		View = 0;
+	}
+	
+	~GMemDCPrivate()
+	{
+		DeleteObj(Bmp);
+	}
+};
+
+GMemDC::GMemDC(int x, int y, GColourSpace cs)
+{
+	d = new GMemDCPrivate;
+	if (x && y && cs)
+	{
+		Create(x, y, cs);
+	}
+}
+
+GMemDC::GMemDC(GSurface *pDC)
+{
+	d = new GMemDCPrivate;
+	if (pDC && Create(pDC->X(), pDC->Y(), pDC->GetBits()))
+	{
+		Blt(0, 0, pDC);
+		if (pDC->Palette())
+		{
+			GPalette *Pal = new GPalette(pDC->Palette());
+			if (Pal)
+			{
+				Palette(Pal, TRUE);
+			}
+		}
+	}
+}
+
+GMemDC::~GMemDC()
+{
+	DeleteObj(d);
+}
+
+OsPainter GMemDC::Handle()
+{
+	return d->View;
+}
+
+OsBitmap GMemDC::GetBitmap()
+{
+	return d->Bmp;
+}
+
+void GMemDC::SetClient(GRect *c)
+{
+}
+
+bool GMemDC::SupportsAlphaCompositing()
+{
+	return true;
+}
+
+void GMemDC::SetOrigin(int x, int y)
+{
+	GSurface::SetOrigin(x, y);
+}
+
 bool GMemDC::Create(int x, int y, GColourSpace Cs, int Flags)
 {
 	bool Status = FALSE;
@@ -236,7 +236,7 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int Flags)
 		case CsRgb24:
 		case CsBgr24:
 		{
-			Mode = B_RGB32;
+			Mode = B_RGB24;
 			break;
 		}
 		case CsRgba32:
@@ -244,7 +244,7 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int Flags)
 		case CsArgb32:
 		case CsAbgr32:
 		{
-			Mode = B_RGB32;
+			Mode = B_RGBA32;
 			break;
 		}
 		default:
@@ -275,12 +275,12 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int Flags)
 			pMem->x = x;
 			pMem->y = y;
 			pMem->Line = d->Bmp->BytesPerRow();
-			pMem->Flags = 0;
+			pMem->Flags = GBmpMem::BmpPreMulAlpha;
 			
 			color_space Bcs = d->Bmp->ColorSpace();
 			ColourSpace = pMem->Cs = BeosColourSpaceToLgi(Bcs);
 			Status = ColourSpace != CsNone;
-
+			
 			int NewOp = (pApp) ? Op() : GDC_SET;
 
 			if ( (Flags & GDC_OWN_APPLICATOR) &&
@@ -338,6 +338,7 @@ void GMemDC::Blt(int x, int y, GSurface *Src, GRect *a)
 
 void GMemDC::StretchBlt(GRect *d, GSurface *Src, GRect *s)
 {
+	LgiAssert(!"Impl me.");
 }
 
 void GMemDC::HLine(int x1, int x2, int y, COLOUR a, COLOUR b)
@@ -346,7 +347,7 @@ void GMemDC::HLine(int x1, int x2, int y, COLOUR a, COLOUR b)
 
 	if (x1 < Clip.x1) x1 = Clip.x1;
 	if (x2 > Clip.x2) x2 = Clip.x2;
-	if (	x1 <= x2 &&
+	if (x1 <= x2 &&
 		y >= Clip.y1 &&
 		y <= Clip.y2)
 	{

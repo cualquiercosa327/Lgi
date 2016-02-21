@@ -189,13 +189,22 @@ public:
 	}
 };
 
+static bool HasPad(GColourSpace cs)
+{
+	if (cs == CsRgbx32 ||
+		cs == CsBgrx32 ||
+		cs == CsXrgb32 ||
+		cs == CsXbgr32)
+		return true;
+	return false;
+}
+
 GImageList::GImageList(int x, int y, GSurface *pDC)
 {
 	d = new GImageListPriv(this, x, y);
 
-	#if defined BEOS
+	// BeOS transparent pixels:
 	// B_TRANSPARENT_MAGIC_CMAP8, B_TRANSPARENT_MAGIC_RGBA15, B_TRANSPARENT_MAGIC_RGBA32
-	#endif
 
 	if (pDC &&
 		Create(pDC->X(), pDC->Y(), System32BitColourSpace, GSurface::SurfaceRequireExactCs))
@@ -209,7 +218,7 @@ GImageList::GImageList(int x, int y, GSurface *pDC)
 		
 		// printf("Toolbar input image is %s\n", GColourSpaceToString(pDC->GetColourSpace()));
 		
-		if (pDC->GetBits() < 32)
+		if (pDC->GetBits() < 32 || HasPad(pDC->GetColourSpace()))
 		{
 			// No source alpha, do colour keying to create the alpha channel
 			register uint32 *p = (uint32*)(*this)[0];
@@ -223,7 +232,13 @@ GImageList::GImageList(int x, int y, GSurface *pDC)
 					while (p < e)
 					{
 						if (*p == key)
+						{
+							#ifdef BEOS
+							*p = B_TRANSPARENT_MAGIC_RGBA32;
+							#else
 							*p = 0;
+							#endif
+						}
 						p++;
 					}
 				}

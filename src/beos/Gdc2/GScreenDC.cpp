@@ -154,7 +154,7 @@ GRect GScreenDC::ClipRgn(GRect *Rgn)
 
 bool GScreenDC::SupportsAlphaCompositing()
 {
-	return true; // Not sure yet...
+	return true;
 }
 
 COLOUR GScreenDC::Colour()
@@ -200,20 +200,13 @@ int GScreenDC::Op()
 	int Mode = d->View->DrawingMode();
 	switch (Mode)
 	{
-		case B_OP_ERASE:
-		{
-			return GDC_AND;
-			break;
-		}
-		case B_OP_OVER:
-		{
-			return GDC_OR;
-			break;
-		}
 		case B_OP_INVERT:
 		{
 			return GDC_XOR;
-			break;
+		}
+		case B_OP_OVER:
+		{
+			return GDC_ALPHA;
 		}
 	}
 	return GDC_SET;
@@ -225,19 +218,14 @@ int GScreenDC::Op(int NewOp, NativeInt Param)
 	drawing_mode Mode = B_OP_COPY;
 	switch (NewOp)
 	{
-		case GDC_AND:
-		{
-			Mode = B_OP_ERASE;
-			break;
-		}
-		case GDC_OR:
-		{
-			Mode = B_OP_OVER;
-			break;
-		}
 		case GDC_XOR:
 		{
 			Mode = B_OP_INVERT;
+			break;
+		}
+		case GDC_ALPHA:
+		{
+			Mode = B_OP_OVER;
 			break;
 		}
 	}
