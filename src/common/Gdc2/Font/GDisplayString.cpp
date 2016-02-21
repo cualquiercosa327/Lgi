@@ -728,7 +728,8 @@ void GDisplayString::Layout(bool Debug)
 			
 			LgiAssert(s == End);
 			
-			y = Font->GetHeight();
+			yf = y = Font->GetHeight();
+			xf = x;
 
 			#if 0
 			printf("Layout '%s' = %i,%i\n", Str, x, y);
@@ -1720,19 +1721,8 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 
 	if (pDC && Font)
 	{
-		rgb_color Fg, Bk;
-
-		// Create colours
-		GColour c = Font->Fore();
-		Fg.red = c.r();
-		Fg.green = c.g();
-		Fg.blue = c.b();
-
-		c = Font->Back();
-		Bk.red = c.r();
-		Bk.green = c.g();
-		Bk.blue = c.b();
-
+		rgb_color Fg = Font->Fore(), Bk = Font->Back();
+		
 		// Paint text
 		BView *Hnd = pDC->Handle();
 		if (Hnd)
@@ -1761,8 +1751,9 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 
 			// Draw foreground text segments		
 			Hnd->SetHighColor(Fg);
-			Hnd->SetLowColor(Bk);			
+			Hnd->SetLowColor(Bk);
 			Hnd->SetFont(Font->Handle());
+			// Hnd->SetDrawingMode(B_OP_OVER);
 
 			int CurX = 0;
 			for (int i=0; i<Info.Length(); i++)
@@ -1771,6 +1762,14 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 				BPoint pos(px + CurX, py + Font->Ascent());
 				if (ci->Str[0] != '\t')
 					Hnd->DrawString(ci->Str, ci->Len, pos);
+
+				/*
+				printf("DrawString %i, %i -> '%.*s' in %x,%x,%x\n",
+					px, py,
+					ci->Len, ci->Str,
+					Fg.red, Fg.green, Fg.blue);
+				*/
+
 				#if 0 // useful to debug where strings are drawn
 				{
 					GRect r;
@@ -1779,6 +1778,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 					pDC->Box(&r);
 				}
 				#endif
+
 				CurX += ci->X;
 			}
 			

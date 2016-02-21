@@ -96,6 +96,17 @@ public:
 	int GetGray(int BitDepth = 8);
 	uint32 GetNative();
 	char *GetStr();
+	
+	#ifdef BEOS
+	operator rgb_color()
+	{
+		rgb_color c;
+		c.red = r();
+		c.green = g();
+		c.blue = b();
+		return c;
+	}
+	#endif
 };
 
 #endif

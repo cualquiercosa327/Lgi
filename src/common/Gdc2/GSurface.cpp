@@ -1756,7 +1756,7 @@ GPalette *GSurface::Palette()
 	if (!pPalette && pMem && (pMem->Flags & GDC_ON_SCREEN) && pMem->Cs == CsIndex8)
 	{
 		pPalette = GdcD->GetSystemPalette();
-		printf("Setting sys palette: %p\n", pPalette);
+		// printf("Setting sys palette: %p\n", pPalette);
 		if (pPalette)
 		{
 			Flags &= ~GDC_OWN_PALETTE;

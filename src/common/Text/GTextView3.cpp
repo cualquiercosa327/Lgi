@@ -4369,11 +4369,6 @@ void GTextView3::OnPaint(GSurface *pDC)
 
 					LgiAssert(Block != 0);	// sanity check
 					
-					if (LineHasSelection)
-					{
-						int asd=0;
-					}
-
 					if (NextStyle &&							// There is a style
 						(Cur < SelMin || Cur >= SelMax) &&		// && we're not drawing a selection block
 						Cur >= NextStyle->Start &&				// && we're inside the styled area
@@ -4550,9 +4545,8 @@ void GTextView3::OnPaint(GSurface *pDC)
 			// draw any space under the lines
 			if (y <= r.y2)
 			{
-				// printf("White %i, k=%i Lines=%i\n", r.y2 - y, k, Line.Length());
-
 				pDC->Colour(Back);
+				// pDC->Colour(GColour(255, 0, 255));
 				pDC->Rectangle(d->rPadding.x1, y, r.x2, r.y2);
 			}
 
