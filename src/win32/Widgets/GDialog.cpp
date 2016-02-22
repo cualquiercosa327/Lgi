@@ -166,6 +166,11 @@ bool GDialog::OnRequestClose(bool OsClose)
 	return true;
 }
 
+bool GDialog::IsModal()
+{
+	return d->IsModal;
+}
+
 int GDialog::DoModal(OsView ParentHnd)
 {
 	int Status = -1;

@@ -247,6 +247,9 @@ public:
 	/// have to dismiss the window to continue, it can just move to the back.
 	virtual int DoModeless();
 	
+	/// Gets the model status
+	virtual bool IsModal();
+	
 	/// End a modal window. Typically calling in the OnNotify event of the GDialog.
 	virtual void EndModal(int Code = 0);
 

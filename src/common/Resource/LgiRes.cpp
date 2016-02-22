@@ -1477,7 +1477,7 @@ bool GMenuLoader::Load(LgiMenuRes *MenuRes, GXmlTag *Tag, ResFileFormat Format, 
 			Status = true;
 			for (GXmlTag *t = Tag->Children.First(); t && Status; t = Tag->Children.Next())
 			{
-				if (stricmp(t->GetTag(), "submenu") == 0)
+				if (t->IsTag("submenu"))
 				{
 					LgiStringRes *Str = MenuRes->GetString(t);
 					if (Str && Str->Str)
@@ -1507,10 +1507,9 @@ bool GMenuLoader::Load(LgiMenuRes *MenuRes, GXmlTag *Tag, ResFileFormat Format, 
 						LgiAssert(0);
 					}
 				}
-				else if (stricmp(t->GetTag(), "menuitem") == 0)
+				else if (t->IsTag("menuitem"))
 				{
-					char *n = 0;
-					if ((n = t->GetAttr("sep")) && atoi(n) != 0)
+					if (t->GetAsInt("sep") > 0)
 					{
 						AppendSeparator();
 					}
