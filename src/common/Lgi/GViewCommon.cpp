@@ -1920,12 +1920,17 @@ void GView::_Dump(int Depth)
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+static GArray<GViewFactory*> *AllFactories = NULL;
 #if defined(WIN32)
 static HANDLE FactoryEvent;
 #else
-static char FactoryFile[MAX_PATH];
+pthread_once_t FactoryOnce;
+
+void GFactoryInitFactoryies()
+{
+	AllFactories = new GArray<GViewFactory*>;
+}
 #endif
-static GArray<GViewFactory*> *AllFactories = NULL;
 
 GViewFactory::GViewFactory()
 {
@@ -1944,24 +1949,11 @@ GViewFactory::GViewFactory()
 		LgiAssert(AllFactories);
 	}
 	#else
-	// This is a terrible way of doing it... but I don't have a better solution ATM. :(
-	LgiGetTempPath(FactoryFile, sizeof(FactoryFile));
-	
-	int len = strlen(FactoryFile);
-	sprintf_s(FactoryFile+len, sizeof(FactoryFile)-len, "/LgiFactoryFile.%i", getpid());
-	printf("FactoryFile='%s'\n", FactoryFile);
-	if (!FileExists(FactoryFile))
-	{
-		GFile file;
-		file.Open(FactoryFile, O_WRITE);
-		AllFactories = new GArray<GViewFactory*>;
-	}
+	pthread_once(&FactoryOnce, GFactoryInitFactoryies());
 	#endif
 
 	if (AllFactories)
-	{
 		AllFactories->Add(this);
-	}
 }
 
 GViewFactory::~GViewFactory()
@@ -1974,8 +1966,6 @@ GViewFactory::~GViewFactory()
 			DeleteObj(AllFactories);
 			#if defined(WIN32)
 			CloseHandle(FactoryEvent);
-			#else
-			unlink(FactoryFile);
 			#endif
 		}
 	}
