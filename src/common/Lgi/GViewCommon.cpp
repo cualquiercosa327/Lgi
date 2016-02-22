@@ -1920,7 +1920,7 @@ void GView::_Dump(int Depth)
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-#if defined(WINNATIVE)
+#if defined(WIN32)
 static HANDLE FactoryEvent;
 #else
 static char FactoryFile[MAX_PATH];
@@ -1929,7 +1929,7 @@ static GArray<GViewFactory*> *AllFactories = NULL;
 
 GViewFactory::GViewFactory()
 {
-	#if defined(WINNATIVE)
+	#if defined(WIN32)
 	char Name[256];
 	sprintf_s(Name, sizeof(Name), "LgiFactoryEvent.%i", GetCurrentProcessId());
 	HANDLE h = CreateEvent(NULL, false, false, Name);
@@ -1972,7 +1972,7 @@ GViewFactory::~GViewFactory()
 		if (AllFactories->Length() == 0)
 		{
 			DeleteObj(AllFactories);
-			#if defined(WINNATIVE)
+			#if defined(WIN32)
 			CloseHandle(FactoryEvent);
 			#else
 			unlink(FactoryFile);
