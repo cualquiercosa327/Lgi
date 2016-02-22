@@ -642,13 +642,10 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 	// Does the key reference a menu shortcut?
 	// Some of the shortcuts in Haiku are not supported by the system. So we
 	// have to hook the key here and match it against the unsupported shortcuts.
-	if (Menu)
+	if (Menu && Menu->OnKey(v, k))
 	{
-		if (Menu->OnKey(v, k))
-		{
-			Status = true;
-			goto AllDone;
-		}
+		Status = true;
+		goto AllDone;
 	}
 
 	// Give the key to the window...
@@ -688,7 +685,6 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 		}
 	}
 
-	// printf("Ctrl=%p\n", Ctrl);
 	if (Ctrl)
 	{
 		if (Ctrl->Enabled())
@@ -705,9 +701,7 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 				
 				goto AllDone;
 			}
-			// else printf("OnKey()=false\n");
 		}
-		// else printf("Ctrl=disabled\n");
 	}
 	#if DEBUG_HANDLEVIEWKEY
 	else if (Debug)
@@ -727,7 +721,7 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 	}
 	
 	// Tab through controls
-	if (k.vkey == VK_TAB && k.Down() && !k.IsChar)
+	if (k.vkey == VK_TAB && k.Down() /*&& !k.IsChar*/)
 	{
 		GViewI *Wnd = GetNextTabStop(v, k.Shift());
 		#if DEBUG_HANDLEVIEWKEY

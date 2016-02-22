@@ -141,6 +141,7 @@ public:
 		GView			*Popup;
 		bool			TabStop;
 		bool			WantsFocus;
+		int				WantsPulse;
 
 		#if defined __GTK_H__
 		bool			InPaint;

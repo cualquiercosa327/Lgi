@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project>
 	<Node Name="Source Files" Type="1" Platforms="15" Open="1">
-		<Node Name="Core" Type="1" Platforms="15" Open="0">
+		<Node Name="Core" Type="1" Platforms="15" Open="1">
 			<Node Name="DateTime" Type="1" Platforms="15" Open="0">
 				<Node File="./src/common/General/GDateTime.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GDateTime.h" Type="3" Platforms="15" />
@@ -38,7 +38,7 @@
 				<Node File="./src/common/General/GFileCommon.cpp" Type="2" Platforms="15" />
 			</Node>
 			<Node Name="Interface" Type="1" Platforms="15" Open="1">
-				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
+				<Node Name="Haiku" Type="1" Platforms="15" Open="1">
 					<Node File="./src/beos/Lgi/GApp.cpp" Type="2" Platforms="8" />
 					<Node File="./src/beos/Lgi/GGeneral.cpp" Type="2" Platforms="8" />
 					<Node File="./src/beos/Lgi/GPrinter.cpp" Type="2" Platforms="8" />
@@ -166,7 +166,7 @@
 			<Node File="./src/common/Lgi/GFontSelect.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Lgi/GInput.cpp" Type="2" Platforms="15" />
 		</Node>
-		<Node Name="Graphics" Type="1" Platforms="15" Open="1">
+		<Node Name="Graphics" Type="1" Platforms="15" Open="0">
 			<Node Name="_Core" Type="1" Platforms="15" Open="0">
 				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
 					<Node File=".\src\beos\Gdc2\Gdc2.cpp" Type="2" Platforms="8" />
@@ -187,7 +187,7 @@
 				<Node File="./include/common/GdcTools.h" Type="3" Platforms="15" />
 				<Node File="./include/common/GFilter.h" Type="3" Platforms="15" />
 			</Node>
-			<Node Name="Font" Type="1" Platforms="15" Open="1">
+			<Node Name="Font" Type="1" Platforms="15" Open="0">
 				<Node File="./src/common/Gdc2/Font/GDisplayString.cpp" Type="2" Platforms="15" />
 				<Node File="./src/common/Gdc2/Font/GFont.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GFont.h" Type="3" Platforms="15" />
@@ -400,8 +400,12 @@ WINDOWS</Release>
 			<Compiler>
 				<Windows>MingW</Windows>
 			</Compiler>
-			<Executable />
-			<Arguments />
+			<Executable>
+				<Haiku />
+			</Executable>
+			<Arguments>
+				<All />
+			</Arguments>
 		</General>
 		<Build>
 			<IncludePaths>
@@ -463,6 +467,7 @@ be
 game
 textencoding</Release>
 				</Haiku>
+				<All />
 			</Libraries>
 			<TargetType>
 				<All>DynamicLibrary</All>
@@ -481,8 +486,13 @@ textencoding</Release>
 					<Release>lgi</Release>
 				</Linux>
 			</TargetName>
-			<SystemIncludes />
-			<LibraryPaths />
+			<SystemIncludes>
+				<Haiku />
+			</SystemIncludes>
+			<LibraryPaths>
+				<All />
+				<Haiku />
+			</LibraryPaths>
 		</Build>
 		<Editor>
 			<TabSize>
@@ -497,7 +507,11 @@ textencoding</Release>
 			<UseHardTabs>
 				<All>1</All>
 			</UseHardTabs>
+			<CommentFile />
+			<CommentFunction />
 		</Editor>
-		<Advanced />
+		<Advanced>
+			<OtherMakefileRules />
+		</Advanced>
 	</Settings>
 </Project>

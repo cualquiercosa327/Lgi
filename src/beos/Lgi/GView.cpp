@@ -256,6 +256,7 @@ GViewPrivate::GViewPrivate()
 	MinimumSize.x = MinimumSize.y = 0;
 	Font = NULL;
 	WantsFocus = false;
+	WantsPulse = -1;
 }
 
 GViewPrivate::~GViewPrivate()
@@ -678,8 +679,11 @@ long _lgi_pulse_thread(void *ptr)
 
 void GView::SetPulse(int Length)
 {
-	if (!_View)
+	if (!IsAttached())
+	{
+		d->WantsPulse = Length;
 		return;
+	}
 
 	GLocker Locker(_View, _FL);
 	if (Locker.Lock())
@@ -915,6 +919,11 @@ bool GView::Attach(GViewI *Wnd)
 		d->WantsFocus = false;
 		_View->MakeFocus();
 		// printf("Processing wants focus for %i\n", GetId());
+	}
+	if (d->WantsPulse)
+	{
+		d->WantsPulse = -1;
+		SetPulse(d->WantsPulse);
 	}
 
 	if (!d->GetParent()->Children.HasItem(this))

@@ -171,15 +171,15 @@ void LgiInitColours()
 	_LgiColours[i++] = ConvertHaikuColour(B_DOCUMENT_BACKGROUND_COLOR); // LC_WORKSPACE
 	_LgiColours[i++] = ConvertHaikuColour(B_CONTROL_TEXT_COLOR); // LC_TEXT
 	_LgiColours[i++] = SelBack.c24(); // LC_FOCUS_SEL_BACK
-	_LgiColours[i++] = SelFore.c24(); // LC_FOCUS_SEL_FORE
+	_LgiColours[i++] = /*SelFore.c24()*/ White.c24(); // LC_FOCUS_SEL_FORE
 	_LgiColours[i++] = ConvertHaikuColour(B_WINDOW_TAB_COLOR); // LC_ACTIVE_TITLE
 	_LgiColours[i++] = ConvertHaikuColour(B_WINDOW_TEXT_COLOR); // LC_ACTIVE_TITLE_TEXT
 	_LgiColours[i++] = ConvertHaikuColour(B_WINDOW_INACTIVE_TAB_COLOR); // LC_INACTIVE_TITLE
 	_LgiColours[i++] = ConvertHaikuColour(B_WINDOW_INACTIVE_TEXT_COLOR); // LC_INACTIVE_TITLE_TEXT
 	_LgiColours[i++] = ConvertHaikuColour(B_MENU_BACKGROUND_COLOR); // LC_MENU_BACKGROUND
 	_LgiColours[i++] = ConvertHaikuColour(B_MENU_ITEM_TEXT_COLOR); // LC_MENU_TEXT
-	_LgiColours[i++] = SelBack.Mix(White, 0.4f).c24(); // LC_NON_FOCUS_SEL_BACK
-	_LgiColours[i++] = SelFore.Mix(White, 0.4f).c24(); // LC_NON_FOCUS_SEL_FORE
+	_LgiColours[i++] = SelBack.Mix(White, 0.5f).c24(); // LC_NON_FOCUS_SEL_BACK
+	_LgiColours[i++] = /*SelFore.Mix(White, 0.4f).c24()*/ White.c24(); // LC_NON_FOCUS_SEL_FORE
 	_LgiColours[i++] = Rgb24(255, 222, 0); // LC_DEBUG_CURRENT_LINE
 	LgiAssert(i <= LC_MAXIMUM);	
 	
