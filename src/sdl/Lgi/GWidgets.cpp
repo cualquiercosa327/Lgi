@@ -49,6 +49,11 @@ GDialog::~GDialog()
 	DeleteObj(d);
 }
 
+bool GDialog::IsModal()
+{
+	return d->IsModal;
+}
+
 void GDialog::Quit(bool DontDelete)
 {
 	if (d->IsModal)
