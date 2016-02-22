@@ -38,6 +38,10 @@ protected:
 	uint ThreadId;
     void Create(class GThread *Thread, OsThread &hThread, uint &ThreadId);
 
+	#elif defined BEOS
+
+	friend int32 ThreadEntryPoint(void *i);
+
 	#elif defined POSIX
 
 	friend void *ThreadEntryPoint(void *i);

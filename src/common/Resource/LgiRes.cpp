@@ -1488,9 +1488,9 @@ bool GMenuLoader::Load(LgiMenuRes *MenuRes, GXmlTag *Tag, ResFileFormat Format, 
 						{
 							GMenuItem *p = Sub->GetParent();
 							if (p)
-							{
 								p->Id(Str->Id);
-							}
+							else
+								LgiTrace("%s:%i - No Parent to set menu item ID.\n", _FL);
 							
 							Status = Sub->Load(MenuRes, t, Format, TagList);
 

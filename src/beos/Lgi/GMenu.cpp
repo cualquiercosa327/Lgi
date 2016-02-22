@@ -302,7 +302,7 @@ int GSubMenu::Float(GView *Parent, int x, int y, bool Left)
 		}
 	}
 	
-	return -1;
+	return 0;
 }
 
 GSubMenu *GSubMenu::FindSubMenu(int Id)
@@ -408,6 +408,7 @@ GMenuItem::GMenuItem(GSubMenu *p)
 	Menu = 0;
 	Parent = 0;
 	Child = p;
+	p->Parent = this;
 	Position = -1;
 	_Icon = -1;
 	UnsupportedShortcut = false;
@@ -555,8 +556,6 @@ GMenuItem *GMenuItem::MatchShortcut(GKey &k)
 {
 	if (UnsupportedShortcut && k.vkey == ShortcutKey)
 	{
-		k.Trace("MatchShortcut");
-		
 		bool Shift = (ShortcutMod & B_SHIFT_KEY) != 0;
 		bool Alt = (ShortcutMod & B_CONTROL_KEY) != 0;
 		bool Ctrl = (ShortcutMod & B_COMMAND_KEY) != 0;
@@ -564,7 +563,6 @@ GMenuItem *GMenuItem::MatchShortcut(GKey &k)
 			Alt == k.Alt() &&
 			Ctrl == k.Ctrl())
 		{
-			printf("MatchShortcut TRUE %s\n", GBase::Name());
 			return this;
 		}
 	}
@@ -632,9 +630,21 @@ GSubMenu *GMenuItem::GetParent()
 
 void GMenuItem::Id(int i)
 {
-	if (d->Msg)
+	if (i != 0)
 	{
-		d->Msg->AddInt32("Cmd", i);
+		if (!d->Msg)
+		{
+			d->Msg = new BMessage(M_COMMAND);
+		}
+	
+		if (d->Msg)
+		{
+			// int32 Old = -1;
+			// d->Msg->FindInt32("Cmd", &Old);		
+			d->Msg->AddInt32("Cmd", i);
+			// printf("%p Msg 'cmd' = %i (from %i)\n", this, i, Old);
+		}
+		else LgiTrace("%s:%i - No msg to set ID.\n", _FL);
 	}
 }
 
@@ -644,10 +654,11 @@ int GMenuItem::Id()
 	{
 		int32 i;
 		if (d->Msg->FindInt32("Cmd", &i) == B_OK)
-		{
 			return i;
-		}
+		// else LgiTrace("%s:%i - Failed to find cmd (%p).\n", _FL, this);
 	}
+	// else LgiTrace("%s:%i - No msg to get ID (%p)\n", _FL, this);
+	
 	return 0;
 }
 

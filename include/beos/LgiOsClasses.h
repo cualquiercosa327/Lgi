@@ -48,7 +48,6 @@ public:
 	~GWnd();
 	
 	bool QuitRequested();
-	void MessageReceived(BMessage *Msg);
 	void FrameMoved(BPoint origin);
 	void FrameResized(float width, float height);
 	void KeyDown(const char *bytes, int32 numBytes);

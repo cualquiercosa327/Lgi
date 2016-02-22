@@ -1112,6 +1112,10 @@ void GView::Focus(bool i)
 				}
 				else printf("%s:%i - no window?\n", _FL);
 			#endif
+		
+		#elif defined(BEOS)
+
+		_Focus(i);
 
 		#endif
 	}
@@ -1942,12 +1946,10 @@ GViewFactory::GViewFactory()
 	#else
 	// This is a terrible way of doing it... but I don't have a better solution ATM. :(
 	LgiGetTempPath(FactoryFile, sizeof(FactoryFile));
+	
 	int len = strlen(FactoryFile);
-	#ifdef POSIX
 	sprintf_s(FactoryFile+len, sizeof(FactoryFile)-len, "/LgiFactoryFile.%i", getpid());
-	#else
-	sprintf_s(FactoryFile+len, sizeof(FactoryFile)-len, "/LgiFactoryFile");
-	#endif
+	printf("FactoryFile='%s'\n", FactoryFile);
 	if (!FileExists(FactoryFile))
 	{
 		GFile file;

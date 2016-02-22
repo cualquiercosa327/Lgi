@@ -2970,7 +2970,7 @@ void IdeProject::OnMouseClick(GMouse &m)
 	}
 }
 
-char *IdeProject::FindFullPath(const char *File, class ProjectNode **Node)
+char *IdeProject::FindFullPath(const char *File, ProjectNode **Node)
 {
 	char *Full = 0;
 	

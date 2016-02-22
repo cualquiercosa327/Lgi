@@ -53,6 +53,22 @@
 
 	#define OsAddr				S_un.S_addr
 
+#elif defined BEOS
+
+	#include <sys/time.h>
+	#include <stdio.h>
+	#include <errno.h>
+	#include <UrlContext.h>
+	#include <NetEndpoint.h>
+	#include <NetworkKit.h>
+
+	#define SOCKET_ERROR -1
+	#define MSG_NOSIGNAL 0
+
+	typedef struct hostent HostEnt;
+	// typedef int socklen_t;
+	#define OsAddr				s_addr
+
 #elif defined POSIX
 
 	#include <stdio.h>
@@ -70,22 +86,6 @@
 	typedef hostent HostEnt;
 	#define OsAddr				s_addr
 	
-#elif defined BEOS
-
-	#include <sys/time.h>
-	#include <stdio.h>
-	#include <errno.h>
-	#include <UrlContext.h>
-	#include <NetEndpoint.h>
-	#include <NetworkKit.h>
-
-	#define SOCKET_ERROR -1
-	#define MSG_NOSIGNAL 0
-
-	typedef struct hostent HostEnt;
-	// typedef int socklen_t;
-	#define OsAddr				s_addr
-
 #endif
 
 #include "LgiNetInc.h"

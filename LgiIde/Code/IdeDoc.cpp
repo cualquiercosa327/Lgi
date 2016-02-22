@@ -228,7 +228,7 @@ void EditTray::OnMouseClick(GMouse &m)
 						GdcPt2 p(m.x, m.y);
 						PointToScreen(p);
 						int Goto = s->Float(this, p.x, p.y, true);
-						if (Goto)
+						if (Goto > 0)
 						{
 							char *File = Headers[Goto-1];
 							if (File)

@@ -7,6 +7,7 @@
 #include <AppKit.h>
 #include <InterfaceKit.h>
 #include <GameKit.h>
+#include <Path.h>
 
 #include <assert.h>
 #include <stdlib.h>
@@ -38,9 +39,9 @@ class LgiClass OsAppArguments
 {
 public:
 	int Args;
-	char **Arg;
+	const char **Arg;
 
-	OsAppArguments(int args, char **arg)
+	OsAppArguments(int args, const char **arg)
 	{
 		Args = args;
 		Arg = arg;

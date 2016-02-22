@@ -42,11 +42,6 @@ bool GWnd::QuitRequested()
 	return Notify->OnRequestClose(false);
 }
 
-void GWnd::MessageReceived(BMessage *Msg)
-{
-	BWindow::MessageReceived(Msg);
-}
-
 void GWnd::FrameMoved(BPoint origin)
 {
 	if (Notify)
@@ -61,7 +56,6 @@ void GWnd::FrameMoved(BPoint origin)
 
 void GWnd::FrameResized(float width, float height)
 {
-	// printf("FrameResize event %f, %f\n", width, height);
 	if (Notify)
 	{
 		Notify->Pos.Dimension(width, height);
@@ -665,7 +659,8 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 	{
 		#if DEBUG_HANDLEVIEWKEY
 		if (Debug)
-			printf("View ate '%c'(%i) down=%i alt=%i ctrl=%i sh=%i\n",
+			printf("%s ate '%c'(%i) down=%i alt=%i ctrl=%i sh=%i\n",
+				v->GetClass(),
 				SafePrint, k.c16, k.Down(), k.Alt(), k.Ctrl(), k.Shift());
 		#endif
 		

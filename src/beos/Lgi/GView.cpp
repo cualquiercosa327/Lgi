@@ -255,6 +255,7 @@ GViewPrivate::GViewPrivate()
 	Notify = NULL;
 	MinimumSize.x = MinimumSize.y = 0;
 	Font = NULL;
+	WantsFocus = false;
 }
 
 GViewPrivate::~GViewPrivate()
@@ -844,84 +845,87 @@ GRect &GView::GetClient(bool ClientSpace)
 
 bool GView::Attach(GViewI *Wnd)
 {
-	bool Status = false;
-	
 	SetParent(Wnd);
-	if (d->GetParent())
+	if (!d->GetParent())
 	{
-		_Window = d->GetParent()->_Window;
-		if (!_View)
-			_View = new BViewRedir(this);
-	
-		if (!d->GetParent()->_View)
-		{
-			printf("%s:%i - can't attach to parent that isn't attached...\n", _FL);
-			DeleteObj(_View);
-			return false;
-		}
-		else
-		{
-			BView *ParentSysView = _View->Parent();
-			if (ParentSysView != d->GetParent()->_View)
-			{
-				if (ParentSysView)
-				{
-					// detach from the previous BView
-					GLocker Locker(ParentSysView, _FL);
-					if (Locker.Lock())
-					{
-						ParentSysView->RemoveChild(_View);
-						Locker.Unlock();
-					}
-					else
-					{
-						printf("%s:%i - Can't remove from parent view.\n", _FL);
-						return false;
-					}
-				}
-	
-				int Ox = 0, Oy = 0;
-				if (d->GetParent())
-				{
-					if (d->GetParent()->Sunken() || d->GetParent()->Raised())
-					{
-						Ox = d->GetParent()->_BorderSize;
-						Oy = d->GetParent()->_BorderSize;
-					}
-				}
-				
-				_View->MoveTo(Pos.x1 + Ox, Pos.y1 + Oy);
-				_View->ResizeTo(Pos.X()-1, Pos.Y()-1);
-				if (!GView::Visible() &&
-					!_View->IsHidden())
-				{
-					_View->Hide();
-				}
-				if (!Enabled())
-				{
-					Enabled(false);
-				}
-				
-				// attach to the new BView
-				BView *Par = d->GetParent()->_View;
+		printf("%s:%i - No parent to attach to (%s)\n", _FL, GetClass());
+		return false;
+	}
+	if (!d->GetParent()->_View)
+	{
+		printf("%s:%i - Can't attach to parent that isn't attached (%s)\n", _FL, GetClass());
+		return false;
+	}
 
-				GLocker Locker(Par, _FL);
-				Locker.Lock();
-				Par->AddChild(_View);
+	_Window = d->GetParent()->_Window;
+	if (!_View)
+		_View = new BViewRedir(this);
+
+	BView *ParentSysView = _View->Parent();
+	if (ParentSysView != d->GetParent()->_View)
+	{
+		if (ParentSysView)
+		{
+			// detach from the previous BView
+			GLocker Locker(ParentSysView, _FL);
+			if (Locker.Lock())
+			{
+				ParentSysView->RemoveChild(_View);
+				Locker.Unlock();
+			}
+			else
+			{
+				printf("%s:%i - Can't remove from parent view (%s).\n", _FL, GetClass());
+				return false;
 			}
 		}
 
-		if (!d->GetParent()->Children.HasItem(this))
+		int Ox = 0, Oy = 0;
+		if (d->GetParent())
 		{
-			// we aren't already a member of the parents children
-			// list so add ourselves in.
-			d->GetParent()->Children.Insert(this);
-			d->GetParent()->OnChildrenChanged(this, true);
+			if (d->GetParent()->Sunken() || d->GetParent()->Raised())
+			{
+				Ox = d->GetParent()->_BorderSize;
+				Oy = d->GetParent()->_BorderSize;
+			}
 		}
+		
+		_View->MoveTo(Pos.x1 + Ox, Pos.y1 + Oy);
+		_View->ResizeTo(Pos.X()-1, Pos.Y()-1);
+		if (!GView::Visible() &&
+			!_View->IsHidden())
+		{
+			_View->Hide();
+		}
+		if (!Enabled())
+		{
+			Enabled(false);
+		}
+		
+		// attach to the new BView
+		BView *Par = d->GetParent()->_View;
 
-		Status = true;
+		GLocker Locker(Par, _FL);
+		Locker.Lock();
+		Par->AddChild(_View);
 	}
-	return Status;
+
+	if (d->WantsFocus)
+	{
+		d->WantsFocus = false;
+		_View->MakeFocus();
+		// printf("Processing wants focus for %i\n", GetId());
+	}
+
+	if (!d->GetParent()->Children.HasItem(this))
+	{
+		// we aren't already a member of the parents children
+		// list so add ourselves in.
+		d->GetParent()->Children.Insert(this);
+		d->GetParent()->OnChildrenChanged(this, true);
+	}
+
+	return true;
 }
 
 GView *_lgi_search_children(GView *v, int &x, int &y)
@@ -1088,7 +1092,7 @@ void GView::_Key(const char *bytes, int32 numBytes, bool down)
 		if (mods & B_OPTION_KEY)
 			k.System(true);
 
-		k.Trace("sys down");		
+		// k.Trace("sys down");		
 
 		GWindow *w = GetWindow();
 		if (w)
@@ -1105,12 +1109,22 @@ void GView::_Focus(bool f)
 	else
 		ClearFlag(WndFlags, GWF_FOCUS);
 
-	OnFocus(f);	
+	OnFocus(f);
 	Invalidate();
 
-	if (_View)
+	// printf("_Focus(%i) view=%p id=%i attached=%i\n", f, _View, GetId(), IsAttached());
+	if (f)
 	{
-		_View->MakeFocus();
+		if (IsAttached())
+		{
+			GLocker Locker(_View, _FL);
+			Locker.Lock();
+			_View->MakeFocus();
+		}
+		else
+		{
+			d->WantsFocus = true;
+		}
 	}
 }
 
@@ -1138,7 +1152,6 @@ void BViewRedir::AttachedToWindow()
 
 void BViewRedir::DetachedFromWindow()
 {
-	// BView::DetachedFromWindow();
 	Wnd->OnDestroy();
 }
 
@@ -1150,38 +1163,31 @@ void BViewRedir::Draw(BRect UpdateRect)
 
 void BViewRedir::FrameResized(float width, float height)
 {
-	// BView::FrameResized(width, height);
 	Wnd->OnPosChange();
 }
 
 void BViewRedir::Pulse()
 {
-	// BView::Pulse();
 	Wnd->OnPulse();
 }
 
 void BViewRedir::MessageReceived(BMessage *message)
 {
-	// BView::MessageReceived(message);
 	Wnd->OnEvent((GMessage*) message); // Haha, this is so bad... oh well.
 }
 
 void BViewRedir::KeyDown(const char *bytes, int32 numBytes)
 {
-	// printf("%s.keydown\n", Wnd->GetClass());
 	Wnd->_Key(bytes, numBytes, true);
 }
 
 void BViewRedir::KeyUp(const char *bytes, int32 numBytes)
 {
-	// printf("%s.keyup\n", Wnd->GetClass());
 	Wnd->_Key(bytes, numBytes, false);
 }
 
 void BViewRedir::MouseDown(BPoint point)
 {
-	// BView::MouseDown(point);
-
 	BPoint u;
 	GetMouse(&u, &WndBtn);
 
@@ -1212,8 +1218,6 @@ void BViewRedir::MouseDown(BPoint point)
 
 void BViewRedir::MouseUp(BPoint point)
 {
-	// BView::MouseUp(point);
-
 	BPoint u;
 	uint32 Btns;
 	GetMouse(&u, &Btns);

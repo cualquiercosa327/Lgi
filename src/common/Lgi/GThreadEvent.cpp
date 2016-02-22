@@ -44,7 +44,7 @@ GThreadEvent::GThreadEvent(const char *name)
         else
             LgiAssert(!"Failed to create event.");
     
-    #elif USE_SEM
+	#elif USE_SEM
     
         char Name[256];
         sprintf_s(Name, sizeof(Name), "lgi.sem.%p", this);
@@ -60,7 +60,7 @@ GThreadEvent::GThreadEvent(const char *name)
             #endif
         }
 	
-    #elif defined(POSIX)
+	#elif !defined(BEOS) && defined(POSIX)
     
         Value = 0;
         pthread_mutexattr_t  mattr;
