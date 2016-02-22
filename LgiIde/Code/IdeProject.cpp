@@ -3483,7 +3483,9 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 	const char *PlatformLibraryExt = NULL;
 	const char *PlatformStaticLibExt = NULL;
 	const char *PlatformExeExt = "";
-	const char *LinkerFlags;
+	GString LinkerFlags;
+	const char *TargetType = d->Settings.GetStr(ProjTargetType, NULL, Platform);
+	bool IsDynamicLibrary = TargetType != NULL && !stricmp(TargetType, "DynamicLibrary");
 	GStream *Log = d->App->GetBuildLog();
 	
 	LgiAssert(Log);
@@ -3493,9 +3495,17 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 	Log->Print("CreateMakefile...\n");
 	
 	if (Platform == PlatformWin32)
+	{
 		LinkerFlags = ",--enable-auto-import";
+	}
 	else
-		LinkerFlags = ",-soname,$(TargetFile),-export-dynamic,-R.";
+	{
+		if (IsDynamicLibrary)
+		{
+			LinkerFlags = ",-soname,$(TargetFile)";
+		}
+		LinkerFlags += ",-export-dynamic,-R.";
+	}
 
 	char Buf[256];
 	GAutoString MakeFile = GetMakefile();
@@ -3503,7 +3513,6 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 	{
 		MakeFile.Reset(NewStr("../Makefile"));
 	}
-	// RenameMakefileForPlatform(MakeFile, Platform);
 	
 	// LGI_LIBRARY_EXT
 	switch (Platform)
@@ -3907,7 +3916,6 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 
 				GHashTable DepFiles;
 
-				const char *TargetType = d->Settings.GetStr(ProjTargetType, NULL, Platform);
 				if (TargetType)
 				{
 					if (!stricmp(TargetType, "Executable"))
@@ -3994,7 +4002,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 								"\n",
 								ExtraLinkFlags,
 								ExeFlags,
-								ValidStr(LinkerFlags) ? "-Wl" : "", LinkerFlags);
+								ValidStr(LinkerFlags) ? "-Wl" : "", LinkerFlags.Get());
 
 						GAutoString r(Rules.NewStr());
 						if (r)
@@ -4045,7 +4053,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 								"\n",
 								PlatformLibraryExt,
 								ValidStr(ExtraLinkFlags) ? "-Wl" : "", ExtraLinkFlags,
-								LinkerFlags);
+								LinkerFlags.Get());
 
 						// Cleaning target
 						m.Print("# Create the output folder\n"

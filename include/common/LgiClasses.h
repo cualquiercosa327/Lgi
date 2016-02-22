@@ -1165,6 +1165,8 @@ class LgiClass GWindow :
 	friend class XWindow;
 	friend class GDialog;
 	friend class GApp;
+	friend class GWindowPrivate;
+	friend class GDialogPriv;
 	#if defined(MAC) && !defined(COCOA)
 	friend pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, void *inUserData);
 	#endif
@@ -1172,6 +1174,8 @@ class LgiClass GWindow :
 	bool _QuitOnClose;
 
 protected:
+	class GWindowPrivate *d;
+
 	#if WINNATIVE
 
 	GRect OldPos;
@@ -1210,8 +1214,6 @@ protected:
 
 	/// The menu on the window
 	GMenu *Menu;
-
-	class GWindowPrivate *d;
 
 	void SetChildDialog(GDialog *Dlg);
 	void SetDragHandlers(bool On);

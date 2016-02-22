@@ -217,8 +217,6 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../src/common/Gdc2/Filters/GFilter.cpp \
 	../src/common/Gdc2/Font/GDisplayString.cpp \
 	../src/common/Gdc2/Font/GFont.cpp \
-	../src/common/Gdc2/Font/GFont_A.cpp \
-	../src/common/Gdc2/Font/GFont_W.cpp \
 	../src/common/Gdc2/Font/GFontCodePages.cpp \
 	../src/common/Gdc2/Font/GFontSystem.cpp \
 	../src/common/Gdc2/GColour.cpp \
@@ -849,10 +847,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GDisplayString.h \
 	../include/common/GPalette.h \
 	../include/common/GNotifications.h
-
-../src/common/Gdc2/Font/GFont_W.cpp : ../include/common/Lgi.h \
-	../include/common/GFontSelect.h \
-	../include/common/GdiLeak.h
 
 ../src/common/Lgi/GViewCommon.cpp : ../include/common/Lgi.h \
 	../include/common/GViewPriv.h \
@@ -1729,10 +1723,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GNotifications.h
 
 ../include/common/GParseCpp.h : 
-
-../src/common/Gdc2/Font/GFont_A.cpp : ../include/common/Lgi.h \
-	../include/common/GFontSelect.h \
-	../include/common/GdiLeak.h
 
 ../include/common/GViewPriv.h : 
 

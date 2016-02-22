@@ -116,7 +116,8 @@ typedef int OsSocket;
 #define LGI_FileDropFormat		"Something?"
 #define LGI_WideCharset			"utf-32"
 #define LGI_LIBRARY_EXT			"so"
-#define LGI_PrintfInt64			"%ll"
+#define LGI_PrintfInt64			"%"B_PRIi64
+#define LGI_PrintfHex64			"%"B_PRIx64
 #define LGI_EXECUTABLE_EXT		""
 
 #define IDOK					1

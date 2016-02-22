@@ -331,7 +331,8 @@ int GFontSelect::OnNotify(GViewI *Ctrl, int Flags)
 	{
 		case IDC_SELECT_SIZE:
 		{
-			SetCtrlValue(IDC_PT_SIZE, atoi(Ctrl->Name()));
+			char *n = Ctrl->Name();
+			SetCtrlValue(IDC_PT_SIZE, atoi(n));
 			// fall thru
 		}
 		case IDC_BOLD:

@@ -96,8 +96,6 @@ Depends =	GDateTime.o \
 			GdcTools.o \
 			GDisplayString.o \
 			GFont.o \
-			GFont_A.o \
-			GFont_W.o \
 			GFontCodePages.o \
 			GFontSystem.o \
 			15Bit.o \
@@ -505,18 +503,6 @@ GFont.o : ./src/common/Gdc2/Font/GFont.cpp ./include/common/Lgi.h \
 	./include/common/GdiLeak.h \
 	./include/common/GStringClass.h \
 	./include/common/GUtf8.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-GFont_A.o : ./src/common/Gdc2/Font/GFont_A.cpp ./include/common/Lgi.h \
-	./include/common/GFontSelect.h \
-	./include/common/GdiLeak.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-GFont_W.o : ./src/common/Gdc2/Font/GFont_W.cpp ./include/common/Lgi.h \
-	./include/common/GFontSelect.h \
-	./include/common/GdiLeak.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 

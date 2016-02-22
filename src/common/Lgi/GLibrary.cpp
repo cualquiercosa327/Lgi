@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 #ifdef BEOS
-#define DEBUG_LIB_MSGS		1
+#define DEBUG_LIB_MSGS		0
 #else
 #define DEBUG_LIB_MSGS		0
 #endif

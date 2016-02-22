@@ -1,6 +1,9 @@
 #include "Lgi.h"
 #include "GOptionsFile.h"
 
+#define DEBUG_OPTS_FILE		0
+
+
 void GOptionsFile::_Init()
 {
 	Dirty = false;
@@ -104,6 +107,11 @@ bool GOptionsFile::Serialize(bool Write)
 			f.Open(File, Write ? O_WRITE : O_READ)
 		)
 		{
+			#if DEBUG_OPTS_FILE
+			LgiTrace("%s:%i - GOptionsFile::Serialize(%i) File='%s'\n", 
+				_FL, Write, File.Get());
+			#endif
+			
 			GXmlTree Tree(GXT_PRETTY_WHITESPACE);
 			if (Write)
 			{

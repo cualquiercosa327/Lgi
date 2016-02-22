@@ -2370,11 +2370,21 @@ bool GTextView3::DoFind()
 		u = LgiNewUtf16To8(d->FindReplaceParams->LastFind);
 	}
 
-	GFindDlg Dlg(this, u, Text3_FindCallback, this);
-	Dlg.DoModal();
-	DeleteArray(u);
-	
-	Focus(true);
+	#ifdef BEOS
+
+		GFindDlg *Dlg = new GFindDlg(this, u, Text3_FindCallback, this);
+		if (Dlg)
+			Dlg->DoModeless();
+
+	#else
+
+		GFindDlg Dlg(this, u, Text3_FindCallback, this);
+		Dlg.DoModal();
+		Focus(true);
+
+	#endif
+
+	DeleteArray(u);		
 
 	return false;
 }

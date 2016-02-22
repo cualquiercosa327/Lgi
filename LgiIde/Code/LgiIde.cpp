@@ -1254,6 +1254,7 @@ AppWnd::AppWnd()
 		{
 			GVariant v = 270;
 			d->Options.GetValue("SplitPos", v);
+			
 			d->Sp->Value(max(v.CastInt32(), 20));
 			d->Sp->Attach(this);
 			d->Tree = new IdeTree;

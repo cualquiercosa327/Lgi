@@ -158,7 +158,10 @@ int GFindDlg::OnNotify(GViewI *Ctrl, int Flags)
 		}
 		case IDCANCEL:
 		{
-			EndModal(Ctrl->GetId());
+			if (IsModal())
+				EndModal(Ctrl->GetId());
+			else
+				EndModeless();
 			break;
 		}
 	}

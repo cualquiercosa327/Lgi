@@ -1200,19 +1200,23 @@ void BViewRedir::MouseDown(BPoint point)
 	m.Down(true);
 	m.Target = Wnd;
 	
-	int32 Clicks = 0;
-	if (Window()->CurrentMessage()->FindInt32("clicks", &Clicks) == B_OK)
+	int32 Clicks = 0;	
+	BWindow *w = Window();
+	if (w)
 	{
-		if (Clicks > 1)
+		if (w->CurrentMessage()->FindInt32("clicks", &Clicks) == B_OK)
 		{
-			m.Double(true);
+			if (Clicks > 1)
+				m.Double(true);
 		}
+		else
+		{
+			w->CurrentMessage()->PrintToStream();
+		}
+		
+		w->Activate();
 	}
-	else
-	{
-		Window()->CurrentMessage()->PrintToStream();
-	}
-	
+		
 	Wnd->_Mouse(m, false);
 }
 

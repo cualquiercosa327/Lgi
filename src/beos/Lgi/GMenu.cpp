@@ -841,7 +841,6 @@ bool GMenu::OnKey(GView *v, GKey &k)
 			Cmd.AddInt32("Cmd", m->Id());
 			BMessenger Mess(Window->Handle());
 			status_t Status = Mess.SendMessage(&Cmd);
-			printf("%s:%i - Menu cmd status=%i\n", _FL, Status);
 		}
 		return true;
 	}

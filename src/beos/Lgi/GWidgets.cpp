@@ -22,159 +22,48 @@
 #define DefaultViewColour()					SetViewColor(B_TRANSPARENT_COLOR); SetFlags(Flags() & ~B_FULL_UPDATE_ON_RESIZE)
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-// Standard sub-class of any BControl
-
-/*
-template <class b>
-class BSub : public b
-{
-	GView *View;
-
-public:
-	BSub(GView *v) : b(BRect(0, 0, 1, 1), "BSub")
-	{
-		View = v;
-	}
-
-	void AttachedToWindow()
-	{
-		if (View) View->OnCreate();
-	}
-
-	void DetachedFromWindow()
-	{
-		if (View) View->OnDestroy();
-	}
-	
-	void Draw(BRect UpdateRect) {}
-	void FrameMoved(BPoint Point) {}
-	void FrameResized(float width, float height) {}
-	void Pulse() {}
-	void MessageReceived(BMessage *message) {}
-	void MakeFocus(bool f = true) {}
-	void KeyDown(const char *bytes, int32 numBytes) {}
-	void KeyUp(const char *bytes, int32 numBytes) {}
-	void MouseDown(BPoint point) {}
-	void MouseMoved(BPoint point, uint32 transit, const BMessage *message) {}
-	bool QuitRequested() {}
-};
-*/
-
-
-///////////////////////////////////////////////////////////////////////////////////////////
-extern rgb_color BeRGB(uchar r, uchar g, uchar b);
-
-rgb_color BeRGB(uchar r, uchar g, uchar b)
-{
-	rgb_color c;
-
-	c.red = r;
-	c.green = g;
-	c.blue = b;
-
-	return c;
-}
-
-rgb_color BeRGB(COLOUR c)
-{
-	rgb_color b;
-
-	b.red = R24(c);
-	b.green = G24(c);
-	b.blue = B24(c);
-
-	return b;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////
-/* FIXME?
-#define LGI_WATCHER_MSG			0x80000000
-
-class GMouseWatcher : public GThread
-{
-	int TimeOut;
-	GView *Notify;
-
-public:
-	GMouseWatcher(int timeout, GView *notify)
-	{
-		TimeOut = timeout;
-		Notify = notify;
-		if (Notify)
-		{
-			Run();
-		}
-	}
-	
-	void Convert(GdcPt2 &Pt)
-	{
-		BPoint BPt(Pt.x, Pt.y);
-		Notify->Handle()->ConvertFromScreen(&BPt);
-		Pt.x = BPt.x;
-		Pt.y = BPt.y;
-	}
-	
-	int Main()
-	{
-		GMouse m;
-		
-		Notify->GetMouse(m);
-		m.Flags |= LGI_WATCHER_MSG;
-	
-		while (m.Left() || m.Right())
-		{
-			LgiSleep(TimeOut);
-
-			GMouse Ms;
-			Notify->GetMouse(Ms);
-		
-			if (Ms.x != m.x ||
-				Ms.y != m.y)
-			{
-				GLocker Locker(Notify->Handle(), _FL);
-				if (Locker.Lock())
-				{
-					m.x = Ms.x;
-					m.y = Ms.y;
-					m.Flags |= LGI_WATCHER_MSG;
-					Notify->OnMouseMove(m);
-				}
-			}
-		}
-	
-		return 0;
-	}
-};
-*/
-
-///////////////////////////////////////////////////////////////////////////////////////////
 struct GDialogPriv
 {
+	GDialog *Dlg;
 	bool IsModal;
 	int ModalRet;
 	sem_id ModalSem;
 	
-	GDialogPriv()
+	GDialogPriv(GDialog *dlg)
 	{
+		Dlg = dlg;
 		IsModal = true;
 		ModalRet = 0;
 		ModalSem = B_BAD_VALUE;
+	}
+	
+	void SetDefaultBtn()
+	{
+		if (!Dlg->_Default)
+		{
+			GViewI *c = Dlg->FindControl(IDOK);
+			GButton *Def = c ? dynamic_cast<GButton*>(c) : 0;
+			if (Def)
+			{
+				Dlg->_Default = Def;
+			}
+			else
+			{
+				for (c=Dlg->Children.First(); c; c=Dlg->Children.Next())
+				{
+					Dlg->_Default = dynamic_cast<GButton*>(c);
+					if (Dlg->_Default)
+						break;
+				}
+			}
+		}
 	}
 };
 
 GDialog::GDialog() : ResObject(Res_Dialog)
 {
-	d = new GDialogPriv;
+	d = new GDialogPriv(this);
 	Name("Dialog");
-
-	if (Wnd)
-	{
-		/*
-		Wnd->SetFlags(B_NOT_RESIZABLE);
-		Wnd->SetType(B_MODAL_WINDOW);
-		Wnd->SetLook(B_TITLED_WINDOW_LOOK);
-		*/
-	}
 }
 
 GDialog::~GDialog()
@@ -237,8 +126,6 @@ bool GDialog::OnRequestClose(bool OsClose)
 
 int GDialog::DoModal(OsView ParentHnd)
 {
-	// LgiTrace("DoModal() Me=%i Count=%i Thread=%i\n", LgiGetCurrentThread(), Wnd->CountLocks(), Wnd->LockingThread());
-
 	d->IsModal = true;
 	d->ModalRet = 0;
 	d->ModalSem = create_sem(0, "ModalSem");
@@ -246,23 +133,7 @@ int GDialog::DoModal(OsView ParentHnd)
 	if (GetParent())
 		GetParent()->Capture(false);
 	
-	if (!_Default)
-	{
-		GViewI *c = FindControl(IDOK);
-		GButton *Def = c ? dynamic_cast<GButton*>(c) : 0;
-		if (Def)
-		{
-			_Default = Def;
-		}
-		else
-		{
-			for (c=Children.First(); c; c=Children.Next())
-			{
-				_Default = dynamic_cast<GButton*>(c);
-				if (_Default) break;
-			}
-		}
-	}
+	d->SetDefaultBtn();
 
 	GLocker Locker(Wnd, _FL);
 	if (Locker.Lock())
@@ -334,6 +205,10 @@ int GDialog::DoModal(OsView ParentHnd)
 
 int GDialog::DoModeless()
 {
+	d->IsModal = false;
+	
+	d->SetDefaultBtn();
+
 	if (Wnd->Lock())
 	{
 		// Setup the BWindow
@@ -363,6 +238,12 @@ GMessage::Result GDialog::OnEvent(GMessage *Msg)
 	return GWindow::OnEvent(Msg);
 }
 
+bool GDialog::IsModal()
+{
+	return d->IsModal;
+}
+
+
 void GDialog::EndModal(int Code)
 {
 	d->ModalRet = Code;
@@ -374,12 +255,18 @@ void GDialog::EndModeless(int Code)
 	if (Wnd->Lock())
 	{
 		Handle()->RemoveSelf();
+		
 		Wnd->Hide();
-		Wnd->Quit();
-		Wnd = 0;
+		OnDestroy();
+		
+		// This will exit this thread...
+		OsWindow w = Wnd;
+		Wnd = NULL;
+		delete this;
+		w->Quit();
 	}
 	
-	OnDestroy();
+	LgiTrace("GDialog::EndModeless Lock failed..\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

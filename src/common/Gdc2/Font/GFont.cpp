@@ -1150,10 +1150,17 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 	
 		int f = 0;
 		
-		if (Bold()) f |= B_BOLD_FACE;
-		if (Italic()) f |= B_ITALIC_FACE;
-		if (Underline()) f |= B_UNDERSCORE_FACE;
-		if (!f) f |= B_REGULAR_FACE;
+		if (Bold())
+			f |= B_BOLD_FACE;
+		
+		if (Italic())
+			f |= B_ITALIC_FACE;
+		
+		if (Underline())
+			f |= B_UNDERSCORE_FACE;
+		
+		if (!f)
+			f |= B_REGULAR_FACE;
 	
 		d->hFont->SetFamilyAndFace(Face(), f);
 	

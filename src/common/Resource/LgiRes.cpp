@@ -1520,9 +1520,9 @@ bool GMenuLoader::Load(LgiMenuRes *MenuRes, GXmlTag *Tag, ResFileFormat Format, 
 						{
 							if (!TagList || TagList->Check(Str->Tag))
 							{
-								int Enabled = (n = t->GetAttr("enabled")) ? atoi(n) : true;
+								int Enabled = t->GetAsInt("enabled");
 								char *Shortcut = t->GetAttr("shortcut");
-								Status = AppendItem(Str->Str, Str->Id, Enabled, -1, Shortcut) != 0;
+								Status = AppendItem(Str->Str, Str->Id, Enabled >= 0?Enabled:true, -1, Shortcut) != 0;
 							}
 							else Status = true;
 						}
