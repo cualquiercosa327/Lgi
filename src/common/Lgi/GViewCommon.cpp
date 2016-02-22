@@ -1112,6 +1112,10 @@ void GView::Focus(bool i)
 				}
 				else printf("%s:%i - no window?\n", _FL);
 			#endif
+		
+		#elif defined(BEOS)
+
+		_Focus(i);
 
 		#endif
 	}

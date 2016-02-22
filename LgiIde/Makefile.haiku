@@ -196,6 +196,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../src/beos/Gdc2/GScreenDC.cpp \
 	../src/beos/General/GFile.cpp \
 	../src/beos/General/GMem.cpp \
+	../src/beos/General/ShowFileProp_Beos.cpp \
 	../src/beos/Lgi/GApp.cpp \
 	../src/beos/Lgi/GClipBoard.cpp \
 	../src/beos/Lgi/GDragAndDrop.cpp \
@@ -298,7 +299,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../src/common/Widgets/GToolBar.cpp \
 	../src/common/Widgets/GTree.cpp
 	export Build=$(Build); \
-	$(MAKE) -C .. -f Makefile.beos
+	$(MAKE) -C .. -f Makefile.haiku
 
 # Create the output folder
 outputfolder :
@@ -308,7 +309,7 @@ outputfolder :
 clean :
 	rm -f $(BuildDir)/*.o $(Target)
 	@echo Cleaned $(BuildDir)
-	+make -C "../" -f "Makefile.beos" clean
+	+make -C "../" -f "Makefile.haiku" clean
 
 GDebugContext.o : ./Code/GDebugContext.cpp ../include/common/Lgi.h \
 	./Code/LgiIde.h \
@@ -1444,6 +1445,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 ../include/common/GRect.h : ../include/common/GPoint.h
 
 ../include/common/GButton.h : 
+
+../src/beos/General/ShowFileProp_Beos.cpp : ../include/common/Lgi.h
 
 ../include/common/GRegKey.h : ../include/common/GContainers.h
 

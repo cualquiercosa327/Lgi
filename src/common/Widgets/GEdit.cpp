@@ -164,13 +164,14 @@ bool GEdit::OnKey(GKey &k)
 		(
 			#ifdef VK_TAB
 			k.vkey == VK_TAB ||
+			#else
+			k.vkey == '\t' ||
 			#endif
-			k.c16 == '\t' ||
-			k.c16 == '\r'
+			k.vkey == VK_RETURN
 		)
 	)
-	{
-		if (k.c16 == '\r')
+	{	
+		if (k.c16 == VK_RETURN)
 		{
 			GTextView3::OnKey(k);
 		}

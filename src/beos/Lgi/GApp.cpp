@@ -14,6 +14,7 @@ public:
 	GdcDevice *GdcSystem;
 	GAutoPtr<GFontCache> FontCache;
 	OsThreadId GuiThread;
+	bool FirstRun;
 
 	GAppPrivate() : Args(0, 0)
 	{
@@ -22,6 +23,7 @@ public:
 		Config = 0;
 		SkinLib = 0;
 		GuiThread = LgiGetCurrentThread();
+		FirstRun = true;
 	}
 
 	~GAppPrivate()
@@ -181,7 +183,11 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 {
 	if (Loop)
 	{
-		//OnCommandLine();
+		if (d->FirstRun)
+		{
+			d->FirstRun = false;
+			OnCommandLine();
+		}
 		BApplication::Run();
 	}
 	else
@@ -358,43 +364,27 @@ void GApp::OnCommandLine()
 	char WhiteSpace[] = " \r\n\t";
 
 	GArray<char*> Files;
-	
-	char *Delim = "\'\"";
-	char *s;
-	/*
-	for (s = CmdLine; *s; )
+	for (int i = 1; i<d->Args.Args; i++)
 	{
-		// skip ws
-		while (strchr(WhiteSpace, *s)) s++;
-
-		// read to end of token
-		char *e = s;
-		if (strchr(Delim, *s))
+		const char *a = d->Args.Arg[i];
+		if (a)
 		{
-			for (e = ++s; *e && !strchr(Delim, *e); e++);
-		}
-		else
-		{
-			for (; *e && !strchr(WhiteSpace, *e); e++);
-		}
-
-		char *Arg = NewStr(s, (int)e-(int)s);
-		if (Arg)
-		{
-			if (FileExists(Arg))
+			if (LgiIsRelativePath(a))
 			{
-				Files.Insert(Arg);
+				char p[MAX_PATH];
+				LgiGetExePath(p, sizeof(p));
+				LgiMakePath(p, sizeof(p), p, a);
+				if (FileExists(a))
+				{
+					Files.Add(NewStr(a));
+				}
 			}
-			else
+			else if (FileExists(a))
 			{
-				DeleteArray(Arg);
+				Files.Add(NewStr(a));
 			}
 		}
-
-		// next
-		s = (*e) ? e + 1 : e;
-	}
-	*/
+	}	
 
 	// call app
 	if (Files.Length() > 0)

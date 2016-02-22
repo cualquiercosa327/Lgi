@@ -1153,9 +1153,14 @@ AppWnd::AppWnd()
 	LgiGetResObj(true, AppName);
 	#endif
 
-	GRect r(0, 0, 1000, 630);
+	GRect r(0, 0, 1400, 900);
+	#ifdef BEOS
+	r.Offset(GdcD->X() - r.X() - 10, GdcD->Y() - r.Y() - 10);
+	SetPos(r);
+	#else
 	SetPos(r);
 	MoveToCenter();
+	#endif
 
 	d = new AppWndPrivate(this);
 	Name(AppName);
@@ -1247,7 +1252,7 @@ AppWnd::AppWnd()
 		d->Sp = new GSplitter;
 		if (d->Sp)
 		{
-			GVariant v = 200;
+			GVariant v = 270;
 			d->Options.GetValue("SplitPos", v);
 			d->Sp->Value(max(v.CastInt32(), 20));
 			d->Sp->Attach(this);
@@ -2736,7 +2741,7 @@ bool AppWnd::GetSystemIncludePaths(::GArray<char*> &Paths)
 {
 	if (d->SystemIncludePaths.Length() == 0)
 	{
-		#if defined(LINUX)
+		#if !defined(WINNATIVE)
 		// echo | gcc -v -x c++ -E -
 		GSubProcess sp1("echo");
 		GSubProcess sp2("gcc", "-v -x c++ -E -");
@@ -2769,7 +2774,7 @@ bool AppWnd::GetSystemIncludePaths(::GArray<char*> &Paths)
 				d->SystemIncludePaths.New() = a;
 			}
 		}
-		#elif defined(WINNATIVE)
+		#else
 		char p[MAX_PATH];
 		LgiGetSystemPath(LSP_USER_DOCUMENTS, p, sizeof(p));
 		LgiMakePath(p, sizeof(p), p, "Visual Studio 2008\\Settings\\CurrentSettings.xml");
@@ -2833,8 +2838,6 @@ bool AppWnd::GetSystemIncludePaths(::GArray<char*> &Paths)
 				}
 			}
 		}		
-		#else
-		LgiAssert(!"Not impl");
 		#endif
 	}
 	

@@ -556,8 +556,6 @@ GMenuItem *GMenuItem::MatchShortcut(GKey &k)
 {
 	if (UnsupportedShortcut && k.vkey == ShortcutKey)
 	{
-		k.Trace("MatchShortcut");
-		
 		bool Shift = (ShortcutMod & B_SHIFT_KEY) != 0;
 		bool Alt = (ShortcutMod & B_CONTROL_KEY) != 0;
 		bool Ctrl = (ShortcutMod & B_COMMAND_KEY) != 0;
@@ -565,7 +563,6 @@ GMenuItem *GMenuItem::MatchShortcut(GKey &k)
 			Alt == k.Alt() &&
 			Ctrl == k.Ctrl())
 		{
-			printf("MatchShortcut TRUE %s\n", GBase::Name());
 			return this;
 		}
 	}
