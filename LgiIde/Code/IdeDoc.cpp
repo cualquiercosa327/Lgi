@@ -213,9 +213,19 @@ void EditTray::OnMouseClick(GMouse &m)
 							for (int i=0; i<Headers.Length(); i++)
 							{
 								char *h = Headers[i];
+								char *f = Leaf(h);
+								
+								Map.Add(h, i + 1);
+							}
+
+							for (int i=0; i<Headers.Length(); i++)
+							{
+								char *h = Headers[i];
 								int Id = Map.Find(h);
-								LgiAssert(Id > 0);
-								s->AppendItem(Leaf(h), Id, true);
+								if (Id > 0)
+									s->AppendItem(Leaf(h), Id, true);
+								else
+									LgiTrace("%s:%i - Failed to get id for '%s' (map.len=%i)\n", _FL, h, Map.Length());
 							}
 
 							if (!Headers.Length())
