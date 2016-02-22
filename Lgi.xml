@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project>
-	<Node Name="Source Files" Type="1" Platforms="15" Open="1">
+	<Node Name="Source Files" Type="1" Platforms="15" Open="0">
 		<Node Name="Core" Type="1" Platforms="15" Open="1">
 			<Node Name="DateTime" Type="1" Platforms="15" Open="0">
 				<Node File="./src/common/General/GDateTime.cpp" Type="2" Platforms="15" />
@@ -356,10 +356,10 @@
 			<Node File="./include/common/GMime.h" Type="3" Platforms="15" />
 		</Node>
 	</Node>
-	<Node Name="Headers" Type="1" Platforms="15" Open="0">
-		<Node Name="Haiku" Type="1" Platforms="15" Open="0">
-			<Node File="./include/beos/LgiOsClasses.h" Type="3" Platforms="15" />
-			<Node File="./include/beos/LgiOsDefs.h" Type="3" Platforms="15" />
+	<Node Name="Headers" Type="1" Platforms="15" Open="1">
+		<Node Name="Haiku" Type="1" Platforms="15" Open="1">
+			<Node File="./include/beos/LgiOsClasses.h" Type="3" Platforms="8" />
+			<Node File="./include/beos/LgiOsDefs.h" Type="3" Platforms="8" />
 		</Node>
 		<Node Name="Linux" Type="1" Platforms="15" Open="0">
 			<Node File="./include/linux/Gtk/LgiOsDefs.h" Type="3" Platforms="2" />
@@ -396,12 +396,13 @@ WINDOWS</Release>
 					<Debug>POSIX</Debug>
 					<Release>POSIX</Release>
 				</Haiku>
+				<Linux />
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
 			</Compiler>
 			<Executable>
-				<Haiku />
+				<Linux />
 			</Executable>
 			<Arguments>
 				<All />
@@ -487,11 +488,11 @@ textencoding</Release>
 				</Linux>
 			</TargetName>
 			<SystemIncludes>
-				<Haiku />
+				<Linux />
 			</SystemIncludes>
 			<LibraryPaths>
 				<All />
-				<Haiku />
+				<Linux />
 			</LibraryPaths>
 		</Build>
 		<Editor>

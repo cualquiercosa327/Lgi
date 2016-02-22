@@ -1924,8 +1924,7 @@ static GArray<GViewFactory*> *AllFactories = NULL;
 #if defined(WIN32)
 static HANDLE FactoryEvent;
 #else
-pthread_once_t FactoryOnce;
-
+pthread_once_t FactoryOnce = PTHREAD_ONCE_INIT;
 void GFactoryInitFactoryies()
 {
 	AllFactories = new GArray<GViewFactory*>;
@@ -1949,7 +1948,7 @@ GViewFactory::GViewFactory()
 		LgiAssert(AllFactories);
 	}
 	#else
-	pthread_once(&FactoryOnce, GFactoryInitFactoryies());
+	pthread_once(&FactoryOnce, GFactoryInitFactoryies);
 	#endif
 
 	if (AllFactories)

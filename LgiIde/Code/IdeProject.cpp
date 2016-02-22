@@ -2197,6 +2197,10 @@ int BuildThread::Main()
 			if (Args)
 				a.Print(" %s", Args.Get());
 			GAutoString Temp(a.NewStr());
+			
+			GString Msg;
+			Msg.Printf("Making: %s\n", Temp.Get());
+			Proj->GetApp()->PostEvent(M_APPEND_TEXT, 0, (GMessage::Param)NewStr(Msg));
 
 // printf("BuildThread::Main.3 SubProc(%s)\n", Temp.Get());
 			if (SubProc.Reset(new GSubProcess(Exe, Temp)))
