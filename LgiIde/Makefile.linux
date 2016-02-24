@@ -79,7 +79,7 @@ Depends =	GDebugContext.o \
 # Executable target
 $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	@echo Linking $(Target) [$(Build)]...
-	$(CPP) -Wl,-soname,$(TargetFile),-export-dynamic,-R. -o \
+	$(CPP) -Wl,-export-dynamic,-R. -o \
 		$(Target) $(addprefix $(BuildDir)/,$(Depends)) $(Libs)
 	@echo Done.
 
@@ -206,8 +206,6 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../src/common/Gdc2/Filters/GFilter.cpp \
 	../src/common/Gdc2/Font/GDisplayString.cpp \
 	../src/common/Gdc2/Font/GFont.cpp \
-	../src/common/Gdc2/Font/GFont_A.cpp \
-	../src/common/Gdc2/Font/GFont_W.cpp \
 	../src/common/Gdc2/Font/GFontCodePages.cpp \
 	../src/common/Gdc2/Font/GFontSystem.cpp \
 	../src/common/Gdc2/GColour.cpp \
@@ -3097,10 +3095,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/glib/gshell.h : /usr/include/glib-2.0/glib/gerror.h
 
-../src/common/Gdc2/Font/GFont_W.cpp : ../include/common/Lgi.h \
-	../include/common/GFontSelect.h \
-	../include/common/GdiLeak.h
-
 ../../../../../../usr/include/glib-2.0/gio/gloadableicon.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../../usr/include/glib-2.0/gio/gsocketclient.h : /usr/include/glib-2.0/gio/giotypes.h
@@ -3292,7 +3286,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../../../../../../usr/include/glib-2.0/gio/gconverter.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../src/linux/Lgi/GLayout.cpp : ../include/common/Lgi.h \
-	../include/common/GScrollBar.h
+	../include/common/GScrollBar.h \
+	../include/common/GNotifications.h
 
 ../src/common/Lgi/GStream.cpp : ../include/common/Lgi.h \
 	../include/common/GStream.h
@@ -4280,10 +4275,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	/usr/include/gtk-2.0/gtk/gtkmisc.h
 
 ../include/common/GParseCpp.h : 
-
-../src/common/Gdc2/Font/GFont_A.cpp : ../include/common/Lgi.h \
-	../include/common/GFontSelect.h \
-	../include/common/GdiLeak.h
 
 ../include/common/GViewPriv.h : 
 

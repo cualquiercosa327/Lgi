@@ -2593,6 +2593,12 @@ int GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bool Sel
 
 bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly)
 {
+	if (!InThread())
+	{
+		LgiTrace("%s:%i - GTextView3::OnFind called out of thread.\n", _FL);
+		return false;
+	}
+
 	if (HasSelection() &&
 		SelEnd < SelStart)
 	{

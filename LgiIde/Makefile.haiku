@@ -309,7 +309,7 @@ clean :
 	@echo Cleaned $(BuildDir)
 	+make -C "../" -f "Makefile.haiku" clean
 
-GDebugContext.o : ./Code/GDebugContext.cpp ../include/common/Lgi.h \
+GDebugContext.o : /boot/home/Code/Lgi/trunk/LgiIde/Code/GDebugContext.cpp ../include/common/Lgi.h \
 	./Code/LgiIde.h \
 	./Code/IdeProject.h \
 	../include/common/GTextLog.h \
@@ -317,7 +317,7 @@ GDebugContext.o : ./Code/GDebugContext.cpp ../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GDebugger.o : ./Code/GDebugger.cpp ../include/common/Lgi.h \
+GDebugger.o : /boot/home/Code/Lgi/trunk/LgiIde/Code/GDebugger.cpp ../include/common/Lgi.h \
 	./Code/GDebugger.h \
 	../include/common/GSubProcess.h \
 	../include/common/GToken.h \
@@ -325,18 +325,18 @@ GDebugger.o : ./Code/GDebugger.cpp ../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GSubProcess.o : ../src/common/Lgi/GSubProcess.cpp ../include/common/Lgi.h \
+GSubProcess.o : /boot/home/Code/Lgi/trunk/src/common/Lgi/GSubProcess.cpp ../include/common/Lgi.h \
 	../include/common/GSubProcess.h \
 	../include/common/GToken.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-FtpThread.o : ./Code/FtpThread.cpp ../include/common/Lgi.h \
+FtpThread.o : /boot/home/Code/Lgi/trunk/LgiIde/Code/FtpThread.cpp ../include/common/Lgi.h \
 	./Code/FtpThread.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-IFtp.o : ../src/common/INet/IFtp.cpp ../include/common/Gdc2.h \
+IFtp.o : /boot/home/Code/Lgi/trunk/src/common/INet/IFtp.cpp ../include/common/Gdc2.h \
 	../include/common/IFtp.h \
 	../include/common/GToken.h \
 	../include/common/GString.h \
@@ -344,7 +344,7 @@ IFtp.o : ../src/common/INet/IFtp.cpp ../include/common/Gdc2.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-FindInFiles.o : ./Code/FindInFiles.cpp ../include/common/Lgi.h \
+FindInFiles.o : /boot/home/Code/Lgi/trunk/LgiIde/Code/FindInFiles.cpp ../include/common/Lgi.h \
 	./Code/LgiIde.h \
 	../include/common/GProcess.h \
 	../include/common/GDocView.h \
@@ -352,7 +352,7 @@ FindInFiles.o : ./Code/FindInFiles.cpp ../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-FindSymbol.o : ./Code/FindSymbol.cpp ../include/common/Lgi.h \
+FindSymbol.o : /boot/home/Code/Lgi/trunk/LgiIde/Code/FindSymbol.cpp ../include/common/Lgi.h \
 	./Code/LgiIde.h \
 	./Code/FindSymbol.h \
 	../include/common/GThreadEvent.h \
@@ -364,17 +364,17 @@ FindSymbol.o : ./Code/FindSymbol.cpp ../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GHistory.o : ./Code/GHistory.cpp ../include/common/Lgi.h \
+GHistory.o : /boot/home/Code/Lgi/trunk/LgiIde/Code/GHistory.cpp ../include/common/Lgi.h \
 	./Code/GHistory.h \
 	../include/common/GList.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GLexCpp.o : ../src/common/Coding/GLexCpp.cpp ../include/common/GLexCpp.h
+GLexCpp.o : /boot/home/Code/Lgi/trunk/src/common/Coding/GLexCpp.cpp ../include/common/GLexCpp.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GParseCpp.o : ../src/common/Coding/GParseCpp.cpp ../include/common/Lgi.h \
+GParseCpp.o : /boot/home/Code/Lgi/trunk/src/common/Coding/GParseCpp.cpp ../include/common/Lgi.h \
 	../include/common/GParseCpp.h \
 	../include/common/GThreadEvent.h \
 	../include/common/GLexCpp.h \
@@ -383,7 +383,7 @@ GParseCpp.o : ../src/common/Coding/GParseCpp.cpp ../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-SysCharSupport.o : ./Code/SysCharSupport.cpp ../include/common/Lgi.h \
+SysCharSupport.o : /boot/home/Code/Lgi/trunk/LgiIde/Code/SysCharSupport.cpp ../include/common/Lgi.h \
 	./Code/LgiIde.h \
 	../include/common/GList.h \
 	../include/common/GUtf8.h \
@@ -391,7 +391,7 @@ SysCharSupport.o : ./Code/SysCharSupport.cpp ../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-IdeDoc.o : ./Code/IdeDoc.cpp ../include/common/Lgi.h \
+IdeDoc.o : /boot/home/Code/Lgi/trunk/LgiIde/Code/IdeDoc.cpp ../include/common/Lgi.h \
 	./Code/LgiIde.h \
 	../include/common/GToken.h \
 	../include/common/GLexCpp.h \
@@ -402,7 +402,7 @@ IdeDoc.o : ./Code/IdeDoc.cpp ../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-IdeProject.o : ./Code/IdeProject.cpp ../include/common/Lgi.h \
+IdeProject.o : /boot/home/Code/Lgi/trunk/LgiIde/Code/IdeProject.cpp ../include/common/Lgi.h \
 	./Code/LgiIde.h \
 	../include/common/GDragAndDrop.h \
 	../include/common/GToken.h \
@@ -418,7 +418,7 @@ IdeProject.o : ./Code/IdeProject.cpp ../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-IdeProjectSettings.o : ./Code/IdeProjectSettings.cpp ../include/common/Lgi.h \
+IdeProjectSettings.o : /boot/home/Code/Lgi/trunk/LgiIde/Code/IdeProjectSettings.cpp ../include/common/Lgi.h \
 	./Code/LgiIde.h \
 	./Code/IdeProject.h \
 	../include/common/GTableLayout.h \
@@ -430,7 +430,7 @@ IdeProjectSettings.o : ./Code/IdeProjectSettings.cpp ../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-LgiIde.o : ./Code/LgiIde.cpp ../include/common/Lgi.h \
+LgiIde.o : /boot/home/Code/Lgi/trunk/LgiIde/Code/LgiIde.cpp ../include/common/Lgi.h \
 	./Code/LgiIde.h \
 	../include/common/GMdi.h \
 	../include/common/GToken.h \
@@ -455,12 +455,12 @@ LgiIde.o : ./Code/LgiIde.cpp ../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-LgiUtils.o : ./Code/LgiUtils.cpp ../include/common/Lgi.h \
+LgiUtils.o : /boot/home/Code/Lgi/trunk/LgiIde/Code/LgiUtils.cpp ../include/common/Lgi.h \
 	./Code/LgiIde.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-MemDumpViewer.o : ./Code/MemDumpViewer.cpp ../include/common/Lgi.h \
+MemDumpViewer.o : /boot/home/Code/Lgi/trunk/LgiIde/Code/MemDumpViewer.cpp ../include/common/Lgi.h \
 	./Code/LgiIde.h \
 	../include/common/GToken.h \
 	../include/common/GEdit.h \
@@ -469,29 +469,29 @@ MemDumpViewer.o : ./Code/MemDumpViewer.cpp ../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-SpaceTabConv.o : ./Code/SpaceTabConv.cpp ../include/common/GMem.h \
+SpaceTabConv.o : /boot/home/Code/Lgi/trunk/LgiIde/Code/SpaceTabConv.cpp ../include/common/GMem.h \
 	../include/common/GContainers.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GDocView.o : ../src/common/Text/GDocView.cpp ../include/common/Lgi.h \
+GDocView.o : /boot/home/Code/Lgi/trunk/src/common/Text/GDocView.cpp ../include/common/Lgi.h \
 	../include/common/GDocView.h \
 	../include/common/INet.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GMdi.o : ../src/common/Lgi/GMdi.cpp ../include/common/Lgi.h \
+GMdi.o : /boot/home/Code/Lgi/trunk/src/common/Lgi/GMdi.cpp ../include/common/Lgi.h \
 	../include/common/GMdi.h \
 	../include/common/GDisplayString.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-LgiMain.o : ../src/common/Lgi/LgiMain.cpp ../include/common/Lgi.h \
+LgiMain.o : /boot/home/Code/Lgi/trunk/src/common/Lgi/LgiMain.cpp ../include/common/Lgi.h \
 	../include/common/GToken.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
+Png.o : /boot/home/Code/Lgi/trunk/src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GPalette.h \
 	../include/common/GLibraryUtils.h \
 	../include/common/GVariant.h

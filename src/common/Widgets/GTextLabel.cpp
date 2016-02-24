@@ -100,7 +100,7 @@ void GText::SetWrap(bool b)
 
 bool GText::Name(const char *n)
 {
-	if (InThread())
+	if (!_View || InThread())
 	{
 		if (!GView::Name(n))
 			return false;

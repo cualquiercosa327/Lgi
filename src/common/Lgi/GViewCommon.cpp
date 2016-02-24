@@ -1615,19 +1615,35 @@ GViewI *GView::WindowFromPoint(int x, int y, bool Debug)
 bool GView::InThread()
 {
 	#if WINNATIVE
-	HWND Hnd = _View;
-	for (GViewI *p = GetParent(); p && !Hnd; p = p->GetParent())
-	{
-		Hnd = p->Handle();
-	}
+
+		HWND Hnd = _View;
+		for (GViewI *p = GetParent(); p && !Hnd; p = p->GetParent())
+		{
+			Hnd = p->Handle();
+		}
+		
+		DWORD CurThread = GetCurrentThreadId();
+		DWORD ViewThread = Hnd ? GetWindowThreadProcessId(Hnd, NULL) : LgiApp->GetGuiThread();
+		return CurThread == ViewThread;
 	
-	DWORD CurThread = GetCurrentThreadId();
-	DWORD ViewThread = Hnd ? GetWindowThreadProcessId(Hnd, NULL) : LgiApp->GetGuiThread();
-	return CurThread == ViewThread;
+	#elif defined BEOS
+
+		OsThreadId Me = LgiGetCurrentThread();
+		OsThreadId Wnd = _View && _View->Window() ? _View->Window()->Thread() : 0;
+		if (Me == Wnd)
+		{
+			return true;
+		}
+		
+		LgiTrace("InThread failed %p!=%p, %p, %p\n", Me, Wnd, _View, _View?_View->Window():0);
+		return false;
+
 	#else
-	OsThreadId Me = LgiGetCurrentThread();
-	OsThreadId Gui = LgiApp ? LgiApp->GetGuiThread() : 0;
-	return Gui == Me;
+
+		OsThreadId Me = LgiGetCurrentThread();
+		OsThreadId Gui = LgiApp ? LgiApp->GetGuiThread() : 0;
+		return Gui == Me;
+
 	#endif
 }
 
@@ -1924,8 +1940,7 @@ static GArray<GViewFactory*> *AllFactories = NULL;
 #if defined(WIN32)
 static HANDLE FactoryEvent;
 #else
-pthread_once_t FactoryOnce;
-
+pthread_once_t FactoryOnce = PTHREAD_ONCE_INIT;
 void GFactoryInitFactoryies()
 {
 	AllFactories = new GArray<GViewFactory*>;
@@ -1949,7 +1964,7 @@ GViewFactory::GViewFactory()
 		LgiAssert(AllFactories);
 	}
 	#else
-	pthread_once(&FactoryOnce, GFactoryInitFactoryies());
+	pthread_once(&FactoryOnce, GFactoryInitFactoryies);
 	#endif
 
 	if (AllFactories)

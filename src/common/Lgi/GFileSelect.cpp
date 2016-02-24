@@ -414,7 +414,6 @@ public:
 			return;
 		i->SetText(v->Name(), 0);
 		i->SetText(v->Path(), 1);
-		printf("Add %s\n", v->Path());
 		
 		for (unsigned n=0; n<Links.Length(); n++)
 		{

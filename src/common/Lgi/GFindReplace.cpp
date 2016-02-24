@@ -99,7 +99,6 @@ GFindDlg::GFindDlg(GView *Parent, char *Init, GFrCallback Callback, void *UserDa
 	    SetPos(r);
 	}	
     
-    	printf("Setting find edit %i to focus\n", d->Edit->GetId());
 	if (d->Edit)
 		d->Edit->Focus(true);
 }

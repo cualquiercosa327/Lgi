@@ -263,7 +263,11 @@ void GDialog::EndModeless(int Code)
 		OsWindow w = Wnd;
 		Wnd = NULL;
 		delete this;
-		w->Quit();
+		
+		if (w->Lock())
+		{
+			w->Quit();
+		}
 	}
 	
 	LgiTrace("GDialog::EndModeless Lock failed..\n");

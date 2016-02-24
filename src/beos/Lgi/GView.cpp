@@ -1142,7 +1142,9 @@ BViewRedir::BViewRedir(GView *wnd, uint32 Resize) :
 	BView(	BRect(0, 0, 100, 100),
 			"BViewRedir",
 			Resize,
-			B_WILL_DRAW | B_NAVIGABLE | B_FRAME_EVENTS | B_FULL_UPDATE_ON_RESIZE)
+			B_WILL_DRAW | B_NAVIGABLE | B_FRAME_EVENTS | B_FULL_UPDATE_ON_RESIZE
+			// This doesn't work: B_WILL_ACCEPT_FIRST_CLICK
+			)
 {
 	Wnd = wnd;
 	WndBtn = 0;
@@ -1227,6 +1229,7 @@ void BViewRedir::MouseDown(BPoint point)
 	}
 		
 	Wnd->_Mouse(m, false);
+	BView::MouseDown(point);
 }
 
 void BViewRedir::MouseUp(BPoint point)
@@ -1248,19 +1251,16 @@ void BViewRedir::MouseUp(BPoint point)
 	
 	Wnd->_Mouse(m, false);
 	WndBtn = Btns;
+	BView::MouseUp(point);
 }
 
 void BViewRedir::MouseMoved(BPoint point, uint32 transit, const BMessage *message)
 {
-	// BView::MouseMoved(point, transit, message);
-
 	int32 Btns = 0;
 	if (message)
 		message->FindInt32("buttons", &Btns);
 	else
 		Window()->CurrentMessage()->FindInt32("buttons", &Btns);
-
-	//EnterExitThread.SetMouseOver(Wnd);
 
 	GMouse m;
 	m.x = point.x;
@@ -1272,6 +1272,7 @@ void BViewRedir::MouseMoved(BPoint point, uint32 transit, const BMessage *messag
 	m.Target = Wnd;
 	
 	Wnd->_Mouse(m, true);
+	BView::MouseMoved(point, transit, message);
 }
 
 bool BViewRedir::QuitRequested()
