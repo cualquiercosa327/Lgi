@@ -2345,6 +2345,8 @@ Text3_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User)
 		v->d->FindReplaceParams->MatchCase = Dlg->MatchCase;
 		v->d->FindReplaceParams->SelectionOnly = Dlg->SelectionOnly;
 		v->d->FindReplaceParams->LastFind.Reset(LgiNewUtf8To16(Dlg->Find));
+		
+		v->d->FindReplaceParams->Unlock();
 	}
 
 	return v->DoFindNext();
@@ -2599,6 +2601,7 @@ bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool Selec
 		return false;
 	}
 
+	// Not sure what this is doing???
 	if (HasSelection() &&
 		SelEnd < SelStart)
 	{
