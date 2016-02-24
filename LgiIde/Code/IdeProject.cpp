@@ -3807,88 +3807,6 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 		if (Files.First())
 		{
 			ProjectNode *n;
-
-			/*
-			// Do include paths
-			GHashTable Inc;
-			const char *AllIncludes = d->Settings.GetStr(ProjIncludePaths, NULL, Platform);
-			if (ValidStr(AllIncludes))
-			{
-				// Add settings include paths.
-				GToken Paths(AllIncludes, "\r\n", Platform);
-				for (int i=0; i<Paths.Length(); i++)
-				{
-					char *p = Paths[i];
-					GAutoString pn = ToNativePath(p);
-					if (!Inc.Find(pn))
-					{
-						Inc.Add(pn);
-					}
-				}
-			}
-			
-			// Add paths of headers
-			for (int i=0; i<Files.Length(); i++)
-			{
-				ProjectNode *n = Files[i];
-				
-				if (n->GetFileName())
-				{
-					char *e = LgiGetExtension(n->GetFileName());
-					if (e && stricmp(e, "h") == 0)
-					{
-						for (char *Dir=n->GetFileName(); *Dir; Dir++)
-						{
-							if (*Dir == '/' || *Dir == '\\')
-							{
-								*Dir = DIR_CHAR;
-							}
-						}						
-
-						char Path[256];
-						strcpy_s(Path, sizeof(Path), n->GetFileName());
-
-						LgiTrimDir(Path);
-					
-						char Rel[256];
-						if (!RelativePath(Rel, Path))
-						{
-							strcpy(Rel, Path);
-						}
-						
-						if (stricmp(Rel, ".") != 0)
-						{
-							GAutoString RelN = ToNativePath(Rel);
-							if (!Inc.Find(RelN))
-							{
-								Inc.Add(RelN);
-							}
-						}
-					}
-				}
-			}
-
-			// Output include paths
-			m.Print("# Includes\n"
-					"Inc =");
-					
-			List<char> Incs;
-			char *i;
-			for (void *b=Inc.First(&i); b; b=Inc.Next(&i))
-			{
-				Incs.Insert(NewStr(i));
-			}
-			Incs.Sort(StrCmp, 0);
-			for (i = Incs.First(); i; i = Incs.Next())
-			{
-				if (*i == '`')
-					m.Print(" \\\n\t%s", i);
-				else
-					m.Print(" \\\n\t-I%s", ToUnixPath(i));
-			}
-			
-			m.Print("\n\n");
-			*/
 			
 			GArray<char*> IncPaths;
 			if (BuildIncludePaths(IncPaths, false, Platform))
@@ -4114,8 +4032,18 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 							if (Dot) *Dot = 0;
 
 							char Rel[MAX_PATH];
-							if (!RelativePath(Rel, Src))
+							
+							if (Platform != PlatformHaiku)
 							{
+								if (!RelativePath(Rel, Src))
+						 			strcpy_s(Rel, sizeof(Rel), Src);
+							}
+							else
+							{
+								// Use full path for Haiku because the Debugger needs it to
+								// find the source correctly. As there are duplicate filenames
+								// for different platforms it's better to rely on full paths
+								// rather than filename index to find the right file.
 					 			strcpy_s(Rel, sizeof(Rel), Src);
 							}
 							

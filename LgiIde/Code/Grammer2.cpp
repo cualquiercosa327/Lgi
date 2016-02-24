@@ -250,7 +250,6 @@ ParseRule::ParseRule(GToken &t, int &i)
 	Name = NewStr(t[i++]);
 	if (Name)
 	{
-		// printf("Adding '%s'\n", Name);
 		Rules.Add(Name, this);
 		
 		int c = 0;

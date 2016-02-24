@@ -8190,7 +8190,7 @@ void GHtml::OnMouseClick(GMouse &m)
 							{
 								LgiMsg(	this,
 										"Failed to open '%s'\n%s",
-										LgiApp ? LgiApp->Name() : GetClass(),
+										LgiApp ? LgiApp->GBase::Name() : GetClass(),
 										MB_OK,
 										Path,
 										Err.Get());

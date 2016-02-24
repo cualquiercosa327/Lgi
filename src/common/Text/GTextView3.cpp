@@ -2389,6 +2389,25 @@ bool GTextView3::DoFind()
 	return false;
 }
 
+bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly)
+{
+	if (!InThread())
+	{
+		LgiTrace("%s:%i - GTextView3::OnFind called out of thread.\n", _FL);
+		return false;
+	}
+
+	int Loc = MatchText(Find, MatchWord, MatchCase, SelectionOnly);
+	if (Loc >= 0)
+	{
+		SetCursor(Loc, false);
+		SetCursor(Loc + StrlenW(Find), true);
+		return true;
+	}
+
+	return false;
+}
+
 bool GTextView3::DoReplace()
 {
 	char *LastFind8 = HasSelection() ? GetSelection() : LgiNewUtf16To8(d->FindReplaceParams->LastFind);
@@ -2598,20 +2617,6 @@ int GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bool Sel
 	}
 	
 	return -1;
-}
-
-bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly)
-{
-	// printf("%s:%i - OnFind(%S, %i, %i, %i)\n", _FL, Find, MatchWord, MatchCase, SelectionOnly);
-	int Loc = MatchText(Find, MatchWord, MatchCase, SelectionOnly);
-	if (Loc >= 0)
-	{
-		SetCursor(Loc, false);
-		SetCursor(Loc + StrlenW(Find), true);
-		return true;
-	}
-
-	return false;
 }
 
 bool GTextView3::OnReplace(char16 *Find, char16 *Replace, bool All, bool MatchWord, bool MatchCase, bool SelectionOnly)

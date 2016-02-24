@@ -119,6 +119,8 @@ typedef int OsSocket;
 #define LGI_PrintfInt64			"%"B_PRIi64
 #define LGI_PrintfHex64			"%"B_PRIx64
 #define LGI_EXECUTABLE_EXT		""
+#define LGI_IllegalFileNameChars	"\t\r\n/\\:*?\"<>|"
+
 
 #define IDOK					1
 #define IDCANCEL				2

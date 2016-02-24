@@ -40,9 +40,11 @@ extern "C"
   /* Get FILE. */
 #include <stdio.h>
 
+  #ifndef BEOS
   typedef unsigned short uint16;
   typedef unsigned int uint32;
   typedef unsigned char uint8;
+  #endif
 
 #define NTLM_VERSION								"0.4.2"
 
