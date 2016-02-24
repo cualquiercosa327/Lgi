@@ -202,7 +202,11 @@ public:
 };
 
 /// Find params
-class GDocFindReplaceParams {};
+class GDocFindReplaceParams
+{
+public:
+	virtual ~GDocFindReplaceParams() {}
+};
 
 /// TextView class is a base for all text controls
 class LgiClass GDocView :

@@ -16,7 +16,12 @@
 #define TAB_SIZE					4
 #define DEBUG_TIMES_MSG				8000 // a=0 b=(char*)Str
 
-#define M_TEXTVIEW_DEBUG_TEXT		(M_USER+0x3421)
+enum GTextView3Messages
+{
+	M_TEXTVIEW_DEBUG_TEXT = M_USER + 0x3421,
+	M_TEXTVIEW_FIND,
+	M_TEXTVIEW_REPLACE,
+};
 
 extern char Delimiters[];
 

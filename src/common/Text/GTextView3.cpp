@@ -71,29 +71,23 @@
 static char SelectWordDelim[] = " \t\n.,()[]<>=?/\\{}\"\';:+=-|!@#$%^&*";
 
 //////////////////////////////////////////////////////////////////////
-class GDocFindReplaceParams3 : public GDocFindReplaceParams
+class GDocFindReplaceParams3 :
+	public GDocFindReplaceParams,
+	public GMutex
 {
 public:
 	// Find/Replace History
-	char16 *LastFind;
-	char16 *LastReplace;
+	GAutoWString LastFind;
+	GAutoWString LastReplace;
 	bool MatchCase;
 	bool MatchWord;
 	bool SelectionOnly;
 	
 	GDocFindReplaceParams3()
 	{
-		LastFind = 0;
-		LastReplace = 0;
 		MatchCase = false;
 		MatchWord = false;
 		SelectionOnly = false;
-	}
-
-	~GDocFindReplaceParams3()
-	{
-		DeleteArray(LastFind);
-		DeleteArray(LastReplace);
 	}
 };
 
@@ -2316,15 +2310,27 @@ void GTextView3::SetFindReplaceParams(GDocFindReplaceParams *Params)
 
 bool GTextView3::DoFindNext()
 {
-	if (d->FindReplaceParams->LastFind)
+	bool Status = false;
+
+	if (InThread())
 	{
-		return OnFind(	d->FindReplaceParams->LastFind,
-						d->FindReplaceParams->MatchWord,
-						d->FindReplaceParams->MatchCase,
-						d->FindReplaceParams->SelectionOnly);
+		if (d->FindReplaceParams->Lock(_FL))
+		{
+			if (d->FindReplaceParams->LastFind)
+				Status = OnFind(d->FindReplaceParams->LastFind,
+								d->FindReplaceParams->MatchWord,
+								d->FindReplaceParams->MatchCase,
+								d->FindReplaceParams->SelectionOnly);
+							
+			d->FindReplaceParams->Unlock();
+		}
+	}
+	else if (IsAttached())
+	{
+		Status = PostEvent(M_TEXTVIEW_FIND);
 	}
 	
-	return false;
+	return Status;
 }
 
 bool
@@ -2332,27 +2338,16 @@ Text3_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User)
 {
 	GTextView3 *v = (GTextView3*) User;
 
-	Dlg->MatchWord = v->d->FindReplaceParams->MatchWord;
-	Dlg->MatchCase = v->d->FindReplaceParams->MatchCase;
-
-	DeleteArray(v->d->FindReplaceParams->LastFind);
-	v->d->FindReplaceParams->MatchWord = Dlg->MatchWord;
-	v->d->FindReplaceParams->MatchCase = Dlg->MatchCase;
-
-	v->d->FindReplaceParams->LastFind = LgiNewUtf8To16(Dlg->Find);
-
-	if (v->HasSelection() &&
-		v->SelEnd < v->SelStart)
+	if (v->d->FindReplaceParams &&
+		v->d->FindReplaceParams->Lock(_FL))
 	{
-		v->Cursor = v->SelStart;
+		v->d->FindReplaceParams->MatchWord = Dlg->MatchWord;
+		v->d->FindReplaceParams->MatchCase = Dlg->MatchCase;
+		v->d->FindReplaceParams->SelectionOnly = Dlg->SelectionOnly;
+		v->d->FindReplaceParams->LastFind.Reset(LgiNewUtf8To16(Dlg->Find));
 	}
 
-	v->OnFind(	v->d->FindReplaceParams->LastFind,
-				v->d->FindReplaceParams->MatchWord,
-				v->d->FindReplaceParams->MatchCase,
-				v->d->FindReplaceParams->SelectionOnly);
-
-	return true;
+	return v->DoFindNext();
 }
 
 bool GTextView3::DoFind()
@@ -2407,12 +2402,8 @@ bool GTextView3::DoReplace()
 
 	if (Action != IDCANCEL)
 	{
-		DeleteArray(d->FindReplaceParams->LastFind);
-		d->FindReplaceParams->LastFind = LgiNewUtf8To16(Dlg.Find);
-
-		DeleteArray(d->FindReplaceParams->LastReplace);
-		d->FindReplaceParams->LastReplace = LgiNewUtf8To16(Dlg.Replace);
-
+		d->FindReplaceParams->LastFind.Reset(LgiNewUtf8To16(Dlg.Find));
+		d->FindReplaceParams->LastReplace.Reset(LgiNewUtf8To16(Dlg.Replace));
 		d->FindReplaceParams->MatchWord = Dlg.MatchWord;
 		d->FindReplaceParams->MatchCase = Dlg.MatchCase;
 		d->FindReplaceParams->SelectionOnly = Dlg.SelectionOnly;
@@ -2602,7 +2593,12 @@ int GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bool Sel
 
 bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly)
 {
-	// printf("%s:%i - OnFind(%S, %i, %i, %i)\n", _FL, Find, MatchWord, MatchCase, SelectionOnly);
+	if (HasSelection() &&
+		SelEnd < SelStart)
+	{
+		Cursor = SelStart;
+	}
+
 	int Loc = MatchText(Find, MatchWord, MatchCase, SelectionOnly);
 	if (Loc >= 0)
 	{
@@ -4596,6 +4592,16 @@ GMessage::Result GTextView3::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{
+		case M_TEXTVIEW_FIND:
+		{
+			DoFind();
+			break;
+		}
+		case M_TEXTVIEW_REPLACE:
+		{
+			DoReplace();
+			break;
+		}
 		case M_CUT:
 		{
 			Cut();
