@@ -1753,7 +1753,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 			Hnd->SetHighColor(Fg);
 			Hnd->SetLowColor(Bk);
 			Hnd->SetFont(Font->Handle());
-			// Hnd->SetDrawingMode(B_OP_OVER);
+			Hnd->SetDrawingMode(B_OP_OVER);
 
 			int CurX = 0;
 			for (int i=0; i<Info.Length(); i++)

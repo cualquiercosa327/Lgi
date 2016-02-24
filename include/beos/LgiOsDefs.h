@@ -55,7 +55,7 @@ public:
 	typedef int32 Result;
 	
 	GMessage() {}
-	GMessage(int m, Param a, Param b)
+	GMessage(int m, Param a = 0, Param b = 0)
 	{
 		what = m;
 		AddInt32("Lgi.a", a);

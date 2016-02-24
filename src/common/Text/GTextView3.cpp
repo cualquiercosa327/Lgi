@@ -68,6 +68,13 @@
 #define toupper(c)					(((c)>='a'&&(c)<='z') ? (c)-'a'+'A' : (c))
 #endif
 
+#define THREAD_CHECK() \
+	if (!InThread()) \
+	{ \
+		LgiTrace("%s:%i - %s called out of thread.\n", _FL, __FUNCTION__); \
+		return false; \
+	}
+
 static char SelectWordDelim[] = " \t\n.,()[]<>=?/\\{}\"\';:+=-|!@#$%^&*";
 
 //////////////////////////////////////////////////////////////////////
@@ -2595,11 +2602,7 @@ int GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bool Sel
 
 bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly)
 {
-	if (!InThread())
-	{
-		LgiTrace("%s:%i - GTextView3::OnFind called out of thread.\n", _FL);
-		return false;
-	}
+	THREAD_CHECK();
 
 	// Not sure what this is doing???
 	if (HasSelection() &&
@@ -2621,6 +2624,8 @@ bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool Selec
 
 bool GTextView3::OnReplace(char16 *Find, char16 *Replace, bool All, bool MatchWord, bool MatchCase, bool SelectionOnly)
 {
+	THREAD_CHECK();
+
 	if (ValidStrW(Find))
 	{
 		// int Max = -1;
@@ -2659,8 +2664,6 @@ bool GTextView3::OnReplace(char16 *Find, char16 *Replace, bool All, bool MatchWo
 			}
 			if (Loc < 0) break;
 		}
-		
-		// SetCursor(OldCursor, false);
 	}	
 	
 	return false;
@@ -2668,6 +2671,8 @@ bool GTextView3::OnReplace(char16 *Find, char16 *Replace, bool All, bool MatchWo
 
 int GTextView3::SeekLine(int i, GTextViewSeek Where)
 {
+	THREAD_CHECK();
+
 	switch (Where)
 	{
 		case PrevLine:
@@ -4603,12 +4608,15 @@ GMessage::Result GTextView3::OnEvent(GMessage *Msg)
 	{
 		case M_TEXTVIEW_FIND:
 		{
-			DoFind();
+			if (InThread())
+				DoFindNext();
+			else
+				LgiTrace("%s:%i - Not in thread.\n", _FL);
 			break;
 		}
 		case M_TEXTVIEW_REPLACE:
 		{
-			DoReplace();
+			// DoReplace();
 			break;
 		}
 		case M_CUT:
