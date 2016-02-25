@@ -188,6 +188,11 @@ void GSubMenu::Empty()
 	}
 }
 
+int GSubMenu::Length()
+{
+	return Items.Length();
+}
+
 GMenuItem *GSubMenu::ItemAt(int i)
 {
 	return Items.ItemAt(i);

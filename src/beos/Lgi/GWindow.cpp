@@ -925,3 +925,25 @@ void GWindow::SetFocus(GViewI *ctrl, FocusType type)
 		}
 	}
 }
+
+bool GWindow::GetSnapToEdge()
+{
+	return false;
+}
+
+void GWindow::SetSnapToEdge(bool b)
+{
+}
+
+GWindowZoom GWindow::GetZoom()
+{
+}
+	
+void GWindow::SetZoom(GWindowZoom i)
+{
+}
+
+bool GWindow::Obscured()
+{
+	return false;
+}

@@ -37,15 +37,17 @@ typedef int							OsProcessId;
 
 class LgiClass OsAppArguments
 {
+	struct OsAppArgumentsPriv *d;
+
 public:
 	int Args;
-	const char **Arg;
+	char **Arg;
 
-	OsAppArguments(int args, const char **arg)
-	{
-		Args = args;
-		Arg = arg;
-	}
+	OsAppArguments(int args, char **arg);
+	~OsAppArguments();
+
+	void Set(char *CmdLine);
+	OsAppArguments &operator =(OsAppArguments &a);
 };
 
 class LgiClass GMessage : public BMessage
