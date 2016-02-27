@@ -97,7 +97,7 @@ typedef sem_id						OsSemaphore;
 
 // assert
 #ifdef _DEBUG
-extern void _lgi_assert(bool b, char *test, char *file, int line);
+LgiFunc void _lgi_assert(bool b, const char *test, const char *file, int line);
 #define LgiAssert(b)			_lgi_assert(b, #b, __FILE__, __LINE__)
 #else
 #define LgiAssert(b)			

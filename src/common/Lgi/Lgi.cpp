@@ -1054,6 +1054,8 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 			#elif defined LINUX
 			Path = "/usr/bin";
 			#elif defined BEOS
+			Path = "/boot/system/apps";
+			#else
 			LgiAssert(!"Impl me.");
 			#endif
 			break;

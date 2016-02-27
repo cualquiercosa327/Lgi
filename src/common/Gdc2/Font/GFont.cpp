@@ -587,7 +587,8 @@ GdcPt2 GFont::StringBounds(const char *s, int len)
 				else
 				{
 					CacheMiss.Add(c);
-					LgiAssert(!"Impl me.");
+					printf("%s:%i - Char cache miss: %i (0x%x)\n", _FL, c, c);
+					// LgiAssert(!"Impl me.");
 				}
 			}
 			p++;
