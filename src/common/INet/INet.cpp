@@ -962,7 +962,6 @@ int GSocket::Close()
 		#if defined WIN32
 		closesocket(d->Socket);
 		#else
-		printf("closing socket...\n");
 		close(d->Socket);
 		#endif
 		d->Socket = INVALID_SOCKET;

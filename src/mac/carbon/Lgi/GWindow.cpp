@@ -563,7 +563,7 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 					GWindow *w = v->GetWindow();
 					v->OnDestroy();
 					
-					if (w->d->DeleteWhenDone)
+					if (w && w->d && w->d->DeleteWhenDone)
 					{
 						w->Wnd = 0;
 						DeleteObj(v);
