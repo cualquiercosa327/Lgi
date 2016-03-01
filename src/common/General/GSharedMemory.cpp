@@ -1,6 +1,9 @@
+
 #include "Lgi.h"
 #include "GSharedMemory.h"
 #include "GVariant.h"
+
+#ifndef BEOS // unsupported in Haik
 
 #ifndef WIN32
 #include <sys/types.h>
@@ -132,11 +135,16 @@ public:
 		return Ptr;
 	}
 };
+#endif
 
 ///////////////////////////////////////////////////////////////////////
 GSharedMemory::GSharedMemory(const char *Name, int Size)
 {
+	#ifndef BEOS
 	d = new GSharedMemoryPrivate(Name, Size);
+	#else
+	d = NULL;
+	#endif
 }
 
 GSharedMemory::~GSharedMemory()
@@ -146,16 +154,26 @@ GSharedMemory::~GSharedMemory()
 
 void *GSharedMemory::GetPtr()
 {
+	#ifndef BEOS
 	return d->GetPtr();
+	#else
+	return NULL;
+	#endif
 }
 
 int GSharedMemory::GetSize()
 {
+	#ifndef BEOS
 	return d->Size;
+	#else
+	return 0;
+	#endif
 }
 
 void GSharedMemory::Destroy()
 {
+	#ifndef BEOS
 	d->Destroy();
+	#endif
 }
 

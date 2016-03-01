@@ -145,7 +145,19 @@ bool GMdiChild::Attach(GViewI *p)
 	if (!par)
 		return false;	
 
-	LgiAssert(!par->d->Children.HasItem(this));
+	if (par->d->Children.HasItem(this))
+	{
+		LgiTrace("%s:%i - Already attached:\n", _FL);
+		for (unsigned i=0; i<par->d->Children.Length(); i++)
+		{
+			GMdiChild *c = par->d->Children[i];
+			printf("[%i]=%p %p %p %s\n",
+				i, c, c->Handle(), c->Handle()?c->Handle()->Window():0, c->Name());
+		}
+		
+		return false;
+	}
+	
 	par->d->Children.Add(this);
 	d->Order = par->GetNextOrder();
 	#endif

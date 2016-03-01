@@ -289,3 +289,15 @@ bool LgiGetAppsForMimeType(const char *Mime,
 	LgiAssert(!"Impl me.");
 	return false;
 }
+
+bool LgiGetMimeTypeExtensions(const char *Mime, GArray<char*> &Ext)
+{
+	LgiAssert(!"Impl me.");
+	return false;
+}
+
+bool LgiPlaySound(const char *File, int Flags)
+{
+	LgiAssert(!"Impl me.");
+	return false;
+}

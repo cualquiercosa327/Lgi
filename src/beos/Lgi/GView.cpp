@@ -161,6 +161,16 @@ const char *GLocker::GetLocker(int Thread)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
+GKey::GKey(int Vkey, int flags)
+{
+	c16 = vkey = Vkey;
+	Flags = flags;
+	Data = 0;
+	IsChar = false;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
 // CursorData is a bitmap in an array of uint32's. This is generated from a graphics file:
 // ./Code/cursors.png
 //

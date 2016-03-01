@@ -37,15 +37,17 @@ typedef int							OsProcessId;
 
 class LgiClass OsAppArguments
 {
+	struct OsAppArgumentsPriv *d;
+
 public:
 	int Args;
-	const char **Arg;
+	char **Arg;
 
-	OsAppArguments(int args, const char **arg)
-	{
-		Args = args;
-		Arg = arg;
-	}
+	OsAppArguments(int args, char **arg);
+	~OsAppArguments();
+
+	void Set(char *CmdLine);
+	OsAppArguments &operator =(OsAppArguments &a);
 };
 
 class LgiClass GMessage : public BMessage
@@ -95,7 +97,7 @@ typedef sem_id						OsSemaphore;
 
 // assert
 #ifdef _DEBUG
-extern void _lgi_assert(bool b, char *test, char *file, int line);
+LgiFunc void _lgi_assert(bool b, const char *test, const char *file, int line);
 #define LgiAssert(b)			_lgi_assert(b, #b, __FILE__, __LINE__)
 #else
 #define LgiAssert(b)			

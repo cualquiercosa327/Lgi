@@ -505,3 +505,88 @@ GFontCache *GApp::GetFontCache()
 	return d->FontCache;
 }
 
+bool GApp::IsElevated()
+{
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////
+struct OsAppArgumentsPriv
+{
+	GArray<char*> Ptr;
+	
+	~OsAppArgumentsPriv()
+	{
+		Ptr.DeleteArrays();
+	}
+};
+
+OsAppArguments::OsAppArguments(int args, char **arg)
+{
+	d = new OsAppArgumentsPriv;
+
+	for (int i=0; i<args; i++)
+	{
+		d->Ptr.Add(NewStr(arg[i]));
+	}
+	
+	Args = d->Ptr.Length();
+	Arg = &d->Ptr[0];
+}
+
+OsAppArguments::~OsAppArguments()
+{
+	DeleteObj(d);
+}
+
+void OsAppArguments::Set(char *CmdLine)
+{
+	d->Ptr.DeleteArrays();
+	
+	if (!CmdLine)
+		return;
+	
+	for (char *s = CmdLine; *s; )
+	{
+		while (*s && strchr(WhiteSpace, *s)) s++;
+		if (*s == '\'' || *s == '\"')
+		{
+			char delim = *s++;
+			char *e = strchr(s, delim);
+			if (e)
+				d->Ptr.Add(NewStr(s, e - s));
+			else
+				break;
+			
+			s = e + 1;
+		}
+		else
+		{
+			char *e = s;
+			while (*e && !strchr(WhiteSpace, *e))
+				e++;
+			d->Ptr.Add(NewStr(s, e-s));
+			s = e;
+		}
+	}	
+
+	Args = d->Ptr.Length();
+	Arg = &d->Ptr[0];
+}
+
+OsAppArguments &OsAppArguments::operator =(OsAppArguments &a)
+{
+	d->Ptr.DeleteArrays();
+
+	for (int i=0; i<a.Args; i++)
+	{
+		if (a.Arg[i])
+			d->Ptr.Add(NewStr(a.Arg[i]));
+	}
+	
+	Args = d->Ptr.Length();
+	Arg = &d->Ptr[0];
+
+	return *this;
+}
+

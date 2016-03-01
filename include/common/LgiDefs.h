@@ -240,10 +240,6 @@ typedef union
 
 #endif
 
-// Asserts
-LgiFunc void							_lgi_assert(bool b, const char *test, const char *file, int line);
-#define LgiAssert(b)					_lgi_assert(b, #b, __FILE__, __LINE__)
-
 // Flags
 #define SetFlag(i, f)					(i) |= (f)
 #define ClearFlag(i, f)					(i) &= ~(f)

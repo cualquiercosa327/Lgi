@@ -201,7 +201,7 @@ bool GSubProcess::IsRunning()
 			if (r == ChildPid)
 			{
 				ChildPid = 0;
-				printf("%s:%i - waitpid signalled: %i\n", Status);
+				printf("%s:%i - waitpid signalled: %i\n", _FL, Status);
 			}
 			return ChildPid != 0;
 		#else

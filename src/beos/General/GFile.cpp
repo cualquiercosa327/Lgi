@@ -53,7 +53,7 @@ void WriteStr(GFile &f, const char *s)
 	}
 }
 
-char *ReadStr(GFile &f)
+char *ReadStr(GFile &f DeclDebugArgs)
 {
 	uint32 Len;
 	f >> Len;
@@ -319,6 +319,12 @@ GVolume *GFileSystem::GetRootVolume()
 	return d->RootVol;
 }
 
+bool GFileSystem::Copy(char *From, char *To, int *Status, CopyFileCallback Callback, void *Token)
+{
+	LgiAssert(0);
+	return false;
+}
+	
 bool GFileSystem::Delete(const char *FileName, bool ToTrash)
 {
 	if (FileName)
@@ -963,229 +969,20 @@ GFile &GFile::operator << (double i) WrIO
 GFile &GFile::operator << (int64 i) WrIO
 GFile &GFile::operator << (uint64 i) WrIO
 
-/////////////////////////////////////////////////////////////////////////////////
-//////////////////////////// VDirView ///////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////
-
-/*
-VDirView::VDirView()
+int GFile::GetError()
 {
-	Items = 0;
-	Files = 0;
-	Dirs = 0;
-	strcpy(CurrentDir, ".");
-
-
-	Index = 0;
-	Root = 0;
+	LgiAssert(!"Impl me.");
+	return 0;
 }
-
-VDirView::~VDirView()
-{
-	DeleteObj(Root);
-	DeleteArray(Index);
-}
-
-bool VDirView::Read(char *Dir)
-{
-	if (!Dir) Dir = ".";
-	DeleteObj(Root);
-
-	Items = 0;
-	Files = 0;
-	Dirs = 0;
-	DeleteArray(Index);
-
-	Node *Current;
-	if (strlen(CurrentDir) > 3)
-	{
-		Current = new Node("..", FA_DIRECTORY, 0);
-		if (Current)
-		{
-			if (!Root)
-			{
-				Root = Current;
-			}
-			else
-			{
-				Root->Add(Current);
-			}
-
-			Dirs++;
-			Items++;
-		}
-	}
-
-	bool Done = First("*.*", 0x10, 0x1F);
-	while (!Done)
-	{
-		if (strcmp(GetName(), ".") && strcmp(GetName(), ".."))
-		{
-			Current = new Node(GetName(), GetAttributes(), GetSize());
-			if (Current)
-			{
-				if (!Root)
-				{
-					Root = Current;
-				}
-				else
-				{
-					Root->Add(Current);
-				}
-
-				Dirs++;
-				Items++;
-			}
-		}
-		Done = Next();
-	}
-
-	Done = First("*.*", 0x0, 0x2F);
-	while (!Done)
-	{
-		Current = new Node(GetName(), GetAttributes(), GetSize());
-		if (Current)
-		{
-			if (!Root)
-			{
-				Root = Current;
-			}
-			else
-			{
-				Root->Add(Current);
-			}
-
-			Files++;
-			Items++;
-		}
-		Done = Next();
-	}
-
-	if (Root && Items)
-	{
-		Index = new Node*[Items];
-		if (Index)
-		{
-			Node **Ptr = Root->Traverse(Index, TRUE);
-			Root->Traverse(Ptr, FALSE);
-		}
-	}
-
-	return TRUE;
-}
-
-VDirView::Node::Node()
-{
-	Left = Right = 0;
-}
-
-VDirView::Node::Node(char *n, int a, quad s) : NodeInfo(n, a, s)
-{
-	Left = Right = 0;
-}
-
-VDirView::Node::~Node()
-{
-	DeleteObj(Left);
-	DeleteObj(Right);
-}
-
-VDirView::Node **VDirView::Node::Traverse(VDirView::Node **ppNode, int Dir)
-{
-	if (Left)
-	{
-		ppNode = Left->Traverse(ppNode, Dir);
-	}
-
-	if (Dir)
-	{
-		if (GetAttributes() & FA_DIRECTORY)
-		{
-			*ppNode++ = this;
-		}
-	}
-	else
-	{
-		if (!(GetAttributes() & FA_DIRECTORY))
-		{
-			*ppNode++ = this;
-		}
-	}
-
-	if (Right)
-	{
-		ppNode = Right->Traverse(ppNode, Dir);
-	}
-
-	return ppNode;
-}
-
-void VDirView::Node::Add(Node *Info)
-{
-	int Result = *this ^ *Info;
-
-	if (Result < 0)
-	{
-		if (Right)
-		{
-			Right->Add(Info);
-		}
-		else
-		{
-			Right = Info;
-		}
-	}
-	else if (Result > 0)
-	{
-		if (Left)
-		{
-			Left->Add(Info);
-		}
-		else
-		{
-			Left = Info;
-		}
-	}
-}
-
-NodeInfo::NodeInfo()
-{
-	Name = 0;
-	Attributes = 0;
-	Size = 0;
-}
-
-NodeInfo::NodeInfo(char *n, int a, quad s)
-{
-	if (n)
-	{
-		Name = new char[strlen(n)+1];
-		if (Name)
-		{
-			strcpy(Name, n);
-		}
-	}
-	else
-	{
-		Name = 0;
-	}
-	Attributes = a;
-	Size = s;
-}
-
-NodeInfo::~NodeInfo()
-{
-	DeleteArray(Name);
-}
-
-int NodeInfo::operator ^(NodeInfo &N)
-{
-	return stricmp(Name, N.Name);
-}
-*/
 
 const char *GetErrorName(int e)
 {
 	LgiAssert(!"Not impl.");
 	return 0;
+}
+
+bool LgiGetDriveInfo(char *Path, uint64 *Free, uint64 *Size, uint64 *Available)
+{
+	LgiAssert(!"Not impl.");
+	return false;
 }

@@ -1,13 +1,21 @@
 #include "Lgi.h"
 #include "GPrinter.h"
 
+class GPrinterPrivate
+{
+public:
+	GString Err;
+};
+
 ////////////////////////////////////////////////////////////////////
 GPrinter::GPrinter()
 {
+	d = new GPrinterPrivate;
 }
 
 GPrinter::~GPrinter()
 {
+	DeleteObj(d);
 }
 
 bool GPrinter::Browse(GView *Parent)
@@ -31,4 +39,12 @@ bool GPrinter::Serialize(char *&Str, bool Write)
 	return false;
 }
 
+GString GPrinter::GetErrorMsg()
+{
+	return d->Err;
+}
 
+bool GPrinter::Print(GPrintEvents *Events, const char *PrintJobName, int Pages, GView *Parent)
+{
+	return false;
+}
