@@ -1266,12 +1266,6 @@ bool CompositeText8Alpha(GSurface *Out, GSurface *In, GFont *Font, int px, int p
 						NonPreMulOver32NoAlpha(r);
 						NonPreMulOver32NoAlpha(g);
 						NonPreMulOver32NoAlpha(b);
-						/*
-						dst->r = Div255[(oma * dst->r) + (a * src->r)];
-						dst->g = Div255[(oma * dst->g) + (a * src->g)];
-						dst->b = Div255[(oma * dst->b) + (a * src->b)];
-						dst->a = (dst->a + src->a) + Div255[dst->a * src->a];
-						*/
 						break;
 				}
 				d++;
@@ -1507,7 +1501,7 @@ bool CompositeText5NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 
 #endif
 
-void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
+void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r, bool Debug)
 {
     Layout();
 
@@ -1529,7 +1523,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 		#endif
 	}
 	
-	FDraw(pDC, px << FShift, py << FShift, r ? &rc : NULL);
+	FDraw(pDC, px << FShift, py << FShift, r ? &rc : NULL, Debug);
 	
 	#elif defined LGI_SDL
 	
@@ -1729,6 +1723,9 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 		{
 			GLocker Locker(Hnd, _FL);
 			Locker.Lock();
+			
+			drawing_mode Prev = Hnd->DrawingMode();
+			Hnd->SetDrawingMode(B_OP_COPY);
 
 			// Draw background if required.		
 			if (!Font->Transparent())
@@ -1736,16 +1733,14 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 				Hnd->SetHighColor(Bk);
 				if (r)
 				{
-					BRect rc(r->x1, r->y1, r->x2, r->y2);
-					Hnd->FillRect(rc);
+					Hnd->FillRect(*r);
 				}
 				else
 				{
 					GRect b;
 					b.ZOff(x-1, y-1);
 					b.Offset(px, py);
-					BRect rc(b.x1, b.y1, b.x2, b.y2);
-					Hnd->FillRect(rc);				
+					Hnd->FillRect(b);				
 				}
 			}
 
@@ -1781,6 +1776,8 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r)
 
 				CurX += ci->X;
 			}
+
+			Hnd->SetDrawingMode(Prev);
 			
 			if (!pDC->IsScreen())
 				Hnd->Sync();
@@ -1839,7 +1836,7 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc, bool Debug
 		rc.y2 >>= FShift;
 	}
 	
-	Draw(pDC, fx >> FShift, fy >> FShift, frc ? &rc : NULL);
+	Draw(pDC, fx >> FShift, fy >> FShift, frc ? &rc : NULL, Debug);
 
 	#elif defined __GTK_H__
 	

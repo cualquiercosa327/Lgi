@@ -18,6 +18,7 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "GFile.h"
 #include "GString.h"
@@ -359,7 +360,18 @@ bool GFileSystem::GetCurrentFolder(char *PathName, int Length)
 
 bool GFileSystem::Move(char *OldName, char *NewName)
 {
-	LgiAssert(!"Not impl.");
+	if (!ValidStr(OldName) ||
+		!ValidStr(NewName))
+	{
+		LgiTrace("%s:%i - Invalid params to move file.\n", _FL);
+		return false;
+	}
+	
+	int r = rename(OldName, NewName);
+	if (r == 0)
+		return true;
+	
+	LgiTrace("%s:%i - rename(%s, %s) failed with %i\n", _FL, OldName, NewName, errno);
 	return false;
 }
 

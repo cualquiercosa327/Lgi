@@ -169,6 +169,9 @@ C:\Data\CodeLib\Gtk\include\gtk-2.0\gdk</Release>
 				</Windows>
 				<Haiku />
 			</SystemIncludes>
+			<ApplicationIcon>
+				<Haiku>./Code/icon-haiku</Haiku>
+			</ApplicationIcon>
 		</Build>
 		<Editor>
 			<TabSize>

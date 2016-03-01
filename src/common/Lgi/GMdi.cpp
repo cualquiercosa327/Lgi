@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "GDisplayString.h"
 
-#define DEBUG_MDI			0
+#define DEBUG_MDI			1
 
 enum GMdiDrag
 {
@@ -583,18 +583,18 @@ void GMdiChild::Raise()
 		
 		#else
 
-		#if defined __GTK_H__
-		GtkWidget *wid = Handle();
-		GdkWindow *wnd = wid ? GDK_WINDOW(wid->window) : NULL;
-		if (wnd)
-			gdk_window_raise(wnd);
-		else
-			LgiAssert(0);
-		#elif WINNATIVE
-		SetWindowPos(Handle(), HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-		#else
-		#error "Impl me."
-		#endif
+			#if defined __GTK_H__
+				GtkWidget *wid = Handle();
+				GdkWindow *wnd = wid ? GDK_WINDOW(wid->window) : NULL;
+				if (wnd)
+					gdk_window_raise(wnd);
+				else
+					LgiAssert(0);
+			#elif WINNATIVE
+				SetWindowPos(Handle(), HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+			#else
+				#error "Impl me."
+			#endif
 
 		#endif
 
@@ -624,18 +624,18 @@ void GMdiChild::Lower()
 
 		#else
 
-		#if defined __GTK_H__
-		GtkWidget *wid = Handle();
-		GdkWindow *wnd = wid ? GDK_WINDOW(wid->window) : NULL;
-		if (wnd)
-			gdk_window_lower(wnd);
-		else
-			LgiAssert(0);
-		#elif WINNATIVE
-		SetWindowPos(Handle(), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-		#else
-		#error "Impl me."
-		#endif
+			#if defined __GTK_H__
+				GtkWidget *wid = Handle();
+				GdkWindow *wnd = wid ? GDK_WINDOW(wid->window) : NULL;
+				if (wnd)
+					gdk_window_lower(wnd);
+				else
+					LgiAssert(0);
+			#elif WINNATIVE
+				SetWindowPos(Handle(), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+			#else
+				#error "Impl me."
+			#endif
 
 		#endif
 

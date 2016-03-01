@@ -682,9 +682,10 @@ long _lgi_pulse_thread(void *ptr)
 			BMessage msg(M_PULSE);
 			m.SendMessage(&msg);
 		}
-		
+
 		Wnd->_PulseThread = 0;
 	}
+	else LgiTrace("%s:%i - No view?\n", _FL);
 } 
 
 void GView::SetPulse(int Length)
@@ -692,6 +693,8 @@ void GView::SetPulse(int Length)
 	if (!IsAttached())
 	{
 		d->WantsPulse = Length;
+		if (Length > 0)
+			printf("%s Not attached, wants pulse %i\n", GetClass(), Length);
 		return;
 	}
 
@@ -709,9 +712,14 @@ void GView::SetPulse(int Length)
 		if (Length > 0)
 		{
 			_PulseThread = spawn_thread(_lgi_pulse_thread, "_lgi_pulse_thread", B_LOW_PRIORITY, this);
-			if (_PulseThread > 0)
+			if (_PulseThread < B_OK)
 			{
-				resume_thread(_PulseThread);
+				printf("%s:%i - spawn_thread failed with %i\n", _FL, _PulseThread);
+			}
+			else
+			{
+				status_t s = resume_thread(_PulseThread);
+				// printf("%s starting pulse thread: %i resuming: %i\n", GetClass(), _PulseThread, s);
 			}
 		}
 	}
@@ -807,10 +815,10 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				int32 Cid = -1;
 				Msg->FindInt32("cid", &Cid);
 				GMessage::Param Data = MsgB(Msg);
-				// printf("#### M_CHANGE received #### Ctrl=%i %s, Data=%i, Cid=%i\n", CtrlId, Ctrl->Name(), Data, Cid);
 
 				OnNotify(Ctrl, Data);
 			}
+			else LgiTrace("%s:%i - Couldn't find ctrl '%i'\n", _FL, CtrlId);
 			break;
 		}
 		case M_COMMAND:
@@ -932,8 +940,8 @@ bool GView::Attach(GViewI *Wnd)
 	}
 	if (d->WantsPulse)
 	{
-		d->WantsPulse = -1;
 		SetPulse(d->WantsPulse);
+		d->WantsPulse = -1;
 	}
 
 	if (!d->GetParent()->Children.HasItem(this))

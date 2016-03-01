@@ -75,6 +75,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	@echo Linking $(Target) [$(Build)]...
 	$(CPP) -Wl,-export-dynamic,-R. -o \
 		$(Target) $(addprefix $(BuildDir)/,$(Depends)) $(Libs)
+	addattr -f ./Code/icon-haiku -t "'VICN'" "BEOS:ICON" $(Target)
 	@echo Done.
 
 ../$(BuildDir)/liblgi$(Tag).so : ../include/beos/Core.h \
@@ -426,7 +427,8 @@ IdeProjectSettings.o : /boot/home/Code/Lgi/trunk/LgiIde/Code/IdeProjectSettings.
 	../include/common/GTextLabel.h \
 	../include/common/GEdit.h \
 	../include/common/GCheckBox.h \
-	../include/common/GCombo.h
+	../include/common/GCombo.h \
+	../include/common/GButton.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -838,8 +840,7 @@ Png.o : /boot/home/Code/Lgi/trunk/src/common/Gdc2/Filters/Png.cpp ../include/com
 	../include/common/GStringClass.h
 
 ../src/beos/Lgi/GDragAndDrop.cpp : ../include/common/Lgi.h \
-	../include/common/GDragAndDrop.h \
-	../include/common/INet.h
+	../include/common/GDragAndDrop.h
 
 ../src/common/Widgets/GToolBar.cpp : ../include/common/Lgi.h \
 	../include/common/GToken.h \

@@ -170,6 +170,25 @@ void GWindow::Raise()
 
 bool GWindow::Attach(GViewI *Parent)
 {
+	if (!Wnd)
+		return false;
+
+	if (Wnd->Lock())
+	{
+		if (!Handle()->Parent())
+		{
+			// Set pos
+			BRect r = Wnd->Bounds();
+			Handle()->MoveTo(0, 0);
+			Handle()->ResizeTo(r.Width(), r.Height());
+
+			// Insert view
+			Wnd->AddChild(Handle());
+		}
+			
+		Wnd->Unlock();
+	}
+
 	return true;
 }
 
@@ -232,6 +251,7 @@ void GWindow::Visible(bool v)
 					// Add BView here, to make sure "OnCreate" is called at the end
 					// of a GWindow constructor not at the beginning, where it's not
 					// useful.
+					/*
 					if (!Handle()->Parent())
 					{
 						// Set pos
@@ -242,6 +262,7 @@ void GWindow::Visible(bool v)
 						// Insert view
 						Wnd->AddChild(Handle());
 					}
+					*/
 					
 					Wnd->Show();
 					Invalidate((GRect*)0, true);
@@ -287,7 +308,8 @@ GRect &GWindow::GetPos()
 	
 	r = Pos;
 	
-	if (Wnd && Wnd->Lock())
+	GLocker Lck(Wnd, _FL);
+	if (Lck.Lock())
 	{
 		BRect frame = Wnd->Frame();
 		r.x1 = frame.left;
@@ -296,7 +318,7 @@ GRect &GWindow::GetPos()
 		r.y2 = frame.bottom;
 		Pos = frame;
 
-		Wnd->Unlock();
+		Lck.Unlock();
 	}
 	
 	return r;

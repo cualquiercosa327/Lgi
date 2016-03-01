@@ -205,41 +205,50 @@ GImageList::GImageList(int x, int y, GSurface *pDC)
 
 	// BeOS transparent pixels:
 	// B_TRANSPARENT_MAGIC_CMAP8, B_TRANSPARENT_MAGIC_RGBA15, B_TRANSPARENT_MAGIC_RGBA32
+	uint32 Transparent =
+		#ifdef BEOS
+		B_TRANSPARENT_MAGIC_RGBA32;
+		#else
+		0;
+		#endif
 
 	if (pDC &&
 		Create(pDC->X(), pDC->Y(), System32BitColourSpace, GSurface::SurfaceRequireExactCs))
 	{
-		Colour(0, 32);
+		Colour(Transparent, 32);
 		Rectangle();
 		
 		int Old = Op(GDC_ALPHA);
 		Blt(0, 0, pDC);
 		Op(Old);
 		
-		// printf("Toolbar input image is %s\n", GColourSpaceToString(pDC->GetColourSpace()));
-		
+		/*
+		printf("Toolbar input image is %s, has_alpha=%i\n",
+			GColourSpaceToString(pDC->GetColourSpace()),
+			pDC->HasAlpha());
+		*/
+				
 		if (pDC->GetBits() < 32 || HasPad(pDC->GetColourSpace()))
 		{
-			// No source alpha, do colour keying to create the alpha channel
-			register uint32 *p = (uint32*)(*this)[0];
-			if (p)
+			if (!pDC->HasAlpha())
 			{
-				uint32 key = *p;
-				for (int y=0; y<Y(); y++)
+				// No source alpha, do colour keying to create the alpha channel
+				register uint32 *p = (uint32*)(*this)[0];
+				if (p)
 				{
-					p = (uint32*) (*this)[y];
-					register uint32 *e = p + X();
-					while (p < e)
+					uint32 key = *p;
+					for (int y=0; y<Y(); y++)
 					{
-						if (*p == key)
+						p = (uint32*) (*this)[y];
+						register uint32 *e = p + X();
+						while (p < e)
 						{
-							#ifdef BEOS
-							*p = B_TRANSPARENT_MAGIC_RGBA32;
-							#else
-							*p = 0;
-							#endif
+							if (*p == key)
+							{
+								*p = Transparent;
+							}
+							p++;
 						}
-						p++;
 					}
 				}
 			}
@@ -307,12 +316,7 @@ void GImageList::Draw(GSurface *pDC, int Dx, int Dy, int Image, GColour Backgrou
 
 	if (pDC->SupportsAlphaCompositing())
 	{
-		int Old;
-		if (Disabled)
-			Old = pDC->Op(GDC_ALPHA, 40);
-		else
-			Old = pDC->Op(GDC_ALPHA, -1);
-		
+		int Old = pDC->Op(GDC_ALPHA, Disabled ? 40 : -1);
 		pDC->Blt(Dx, Dy, this, &rSrc);
 		pDC->Op(Old);
 	}
@@ -631,7 +635,9 @@ void GToolButton::OnPaint(GSurface *pDC)
 						pDC->Colour(Background);
 						pDC->Rectangle(&IconPos);
 					}
+					
 					Par->d->ImgList->Draw(pDC, IconPos.x1, IconPos.y1, ImgIndex, Background, !e);
+
 					Unpainted.Subtract(&IconPos);
 
 					// Fill in the rest of the area

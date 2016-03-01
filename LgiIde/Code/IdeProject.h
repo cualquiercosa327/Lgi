@@ -63,7 +63,8 @@ enum ProjSetting
 	ProjEditorUseHardTabs,
 	ProjCommentFile,
 	ProjCommentFunction,
-	ProjMakefileRules
+	ProjMakefileRules,
+	ProjApplicationIcon
 };
 
 class IdeProjectSettings

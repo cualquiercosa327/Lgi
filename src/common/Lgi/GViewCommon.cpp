@@ -1635,7 +1635,7 @@ bool GView::InThread()
 			return true;
 		}
 		
-		LgiTrace("InThread failed %p!=%p, %p, %p\n", Me, Wnd, _View, _View?_View->Window():0);
+		// LgiTrace("InThread failed %p!=%p, %p, %p\n", Me, Wnd, _View, _View?_View->Window():0);
 		return false;
 
 	#else

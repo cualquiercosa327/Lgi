@@ -91,6 +91,7 @@ public:
 	int Write(const void *Buffer, int Size, int Flags = 0)
 	{
 		GAutoWString w(LgiNewUtf8To16((char*)Buffer, Size));
+		// printf("GTextLog::Write(%p)\n", w.Get());
 		if (w)
 		{
 			if (Sem.LockWithTimeout(200, _FL))

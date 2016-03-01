@@ -184,7 +184,9 @@ public:
 			/// The y coordinate of the top left corner of the output box
 			int y,
 			/// An optional clipping rectangle. If the font is not transparent this rectangle will be filled with the background colour.
-			GRect *r = NULL
+			GRect *r = NULL,
+			/// Turn on debug logging
+			bool Debug = false
 		);
 
 	// API that uses fractional pixel sizes.

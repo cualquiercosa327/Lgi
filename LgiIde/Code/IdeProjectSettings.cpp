@@ -7,6 +7,7 @@
 #include "GEdit.h"
 #include "GCheckBox.h"
 #include "GCombo.h"
+#include "GButton.h"
 
 const char TagSettings[] = "Settings";
 const char TagConfigs[] = "Configurations";
@@ -38,13 +39,10 @@ const char *sCompilers[] =
 	"VisualStudio",
 	"Cygwin",
 	"MingW",
-	#elif defined LINUX
-	"gcc",
 	#elif defined MAC
 	"XCode",
-	#elif defined BEOS
-	"Gcc2",
-	"Gcc4",
+	#else
+	"gcc",
 	#endif
 	NULL
 };
@@ -77,12 +75,14 @@ static const char **GetEnumValues(ProjSetting s)
 #define SF_CROSSPLATFORM		0x02	// Just has a "all" platforms setting (no platform specific)
 #define SF_PLATFORM_SPECIFC		0x04	// Just has a platform specific setting (no all)
 #define SF_CONFIG_SPECIFIC		0x08	// Can have a different setting in different configs
-#define SF_ENUM					0x10	// Integer is actually an enum index, not a straigh number
+#define SF_ENUM					0x10	// Integer is actually an enum index, not a straight number
+#define SF_FILE_SELECT			0x20	// UI needs a file selection button
 
 #define IDC_TEXT_BASE			100
 #define IDC_EDIT_BASE			200
 #define IDC_CHECKBOX_BASE		300
 #define IDC_COMBO_BASE			400
+#define IDC_BROWSE_FILE			500
 
 struct SettingInfo
 {
@@ -93,6 +93,7 @@ struct SettingInfo
 		uint32 PlatformSpecific : 1;
 		uint32 ConfigSpecific : 1;
 		uint32 Enum : 1;
+		uint32 FileSelect : 1;
 	};
 	
 	ProjSetting Setting;
@@ -118,6 +119,7 @@ SettingInfo AllSettings[] =
 	{ProjLibraryPaths,			GV_STRING,		"LibraryPaths",		sBuild,		SF_MULTILINE|SF_CONFIG_SPECIFIC},
 	{ProjTargetType,			GV_INT32,		"TargetType",		sBuild,		SF_CROSSPLATFORM|SF_ENUM},
 	{ProjTargetName,			GV_STRING,		"TargetName",		sBuild,		SF_PLATFORM_SPECIFC|SF_CONFIG_SPECIFIC},
+	{ProjApplicationIcon,		GV_STRING,		"ApplicationIcon",	sBuild,		SF_PLATFORM_SPECIFC|SF_FILE_SELECT},
 	{ProjEditorTabSize,			GV_INT32,		"TabSize",			sEditor,	SF_CROSSPLATFORM},
 	{ProjEditorIndentSize,		GV_INT32,		"IndentSize",		sEditor,	SF_CROSSPLATFORM},
 	{ProjEditorShowWhiteSpace,	GV_BOOL,		"ShowWhiteSpace",	sEditor,	SF_CROSSPLATFORM},
@@ -298,8 +300,12 @@ public:
 	{
 		char *Path;
 		int CellY = i * 2;
+		
+		// Do label cell
 		GLayoutCell *c = Tbl->GetCell(0, CellY);
 		c->Add(Ctrls[i].Text = new GText(IDC_TEXT_BASE + i, 0, 0, -1, -1, Path = d->BuildPath(Setting->Setting, Flags, PlatformCurrent, Config)));
+		
+		// Do value cell
 		c = Tbl->GetCell(0, CellY + 1);
 		
 		GXmlTag *t = d->Editing.GetChildTag(Path);
@@ -309,6 +315,16 @@ public:
 			Ctrls[i].Edit->MultiLine(Setting->Flag.MultiLine);
 			if (t && t->Content)
 				Ctrls[i].Edit->Name(t->Content);
+			
+			if (Setting->Flag.FileSelect)
+			{
+				c = Tbl->GetCell(1, CellY + 1);
+				if (c)
+				{
+					c->Add(new GButton(IDC_BROWSE_FILE + i, 0, 0, -1, -1, "..."));
+				}
+				else LgiTrace("%s:%i - No cell.\n", _FL);
+			}
 		}
 		else if (Setting->Type == GV_INT32)
 		{
@@ -604,6 +620,33 @@ public:
 				if (LgiCurrentTime() - DefLockOut < 500)
 					break;
 				EndModal(0);
+				break;
+			}
+			default:
+			{
+				int Id = Ctrl->GetId();
+				if (Id >= IDC_BROWSE_FILE && Id < IDC_BROWSE_FILE+100)
+				{
+					int i = Id - IDC_BROWSE_FILE;
+					GEdit *e;
+					if (GetViewById(IDC_EDIT_BASE + i, e))
+					{
+						GFileSelect s;
+						s.Parent(this);
+						if (s.Open())
+						{
+							const char *Base = GetCtrlName(IDC_PATH);
+							GAutoString Rel;
+							if (Base)
+							{
+								GFile::Path p = Base;
+								Rel = LgiMakeRelativePath(p.Parent(), s.Name());
+							}
+							e->Name(Rel ? Rel : s.Name());
+						}
+					}
+					else LgiTrace("%s:%i - Failed to find editbox.\n", _FL);
+				}
 				break;
 			}
 		}

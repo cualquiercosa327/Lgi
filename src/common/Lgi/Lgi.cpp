@@ -21,9 +21,11 @@
 #include "GCapabilities.h"
 
 #if defined(LINUX) && !defined(LGI_SDL)
-#include "LgiWinManGlue.h"
+	#include "LgiWinManGlue.h"
 #elif defined(WINDOWS)
-#include "GRegKey.h"
+	#include "GRegKey.h"
+#elif defined(BEOS)
+	#include <FindDirectory.h>
 #endif
 
 #if defined POSIX
@@ -1100,6 +1102,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 			}
 
 			#if defined MAC && !defined COCOA
+
 				FSRef Ref;
 				OSErr e = FSFindFolder(kUserDomain, kDomainLibraryFolderType, kDontCreateFolder, &Ref);
 				if (e)
@@ -1112,9 +1115,13 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 					GAutoString Base = FSRefPath(Ref);
 					Path = Base.Get();
 				}
+
 			#elif defined WIN32
+
 				Path = WinGetSpecialFolderPath(CSIDL_APPDATA);
+
 			#elif defined LINUX
+
 				char Dot[128];
 				snprintf(Dot, sizeof(Dot), ".%s", Name);
 				Name = Dot;
@@ -1123,10 +1130,19 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 					Path = pw->pw_dir;
 				else
 					LgiAssert(0);
+
 			#elif defined BEOS
-				Path = "/boot/home/config/settings";
+				
+				char p[MAX_PATH] = "";
+				if (find_directory(B_USER_SETTINGS_DIRECTORY, 0, false, p, sizeof(p)))
+					Path = p;
+				else
+					Path = "/boot/home/config/settings";
+				
 			#else
+
 				LgiAssert(0);
+
 			#endif
 
 			if (Path)
@@ -1156,6 +1172,14 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 				if (u)
 					Path = u.Get();
 			}
+			
+			#elif defined BEOS
+			
+			char p[MAX_PATH] = "";
+			if (find_directory(B_SYSTEM_DIRECTORY, 0, false, p, sizeof(p)))
+				Path = p;
+			else
+				LgiAssert(0);
 
 			#else
 
@@ -1175,6 +1199,14 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 			#elif defined MAC
 			
 			Path = "/Library";
+			
+			#elif defined BEOS
+
+			char p[MAX_PATH] = "";
+			if (find_directory(B_SYSTEM_LIB_DIRECTORY, 0, false, p, sizeof(p)))
+				Path = p;
+			else
+				LgiAssert(0);
 
 			#else
 
@@ -1209,6 +1241,14 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 				}
 				else LgiTrace("%s:%i - FSRefPath failed.\n", _FL);
 			}
+			
+			#elif defined BEOS
+			
+			char p[MAX_PATH] = "";
+			if (find_directory(B_SYSTEM_TEMP_DIRECTORY, 0, false, p, sizeof(p)))
+				Path = p;
+			else
+				Path = "/tmp";
 
 			#else
 
@@ -1227,7 +1267,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 			
 			FSRef Ref;
 			OSErr e = FSFindFolder(kOnSystemDisk, kDomainLibraryFolderType, kDontCreateFolder, &Ref);
-			if (e) printf("%s:%i - FSFindFolder failed e=%i\n", __FILE__, __LINE__, e);
+			if (e) printf("%s:%i - FSFindFolder failed e=%i\n", _FL, e);
 			else
 			{
 				GAutoString u = FSRefPath(Ref);
@@ -1278,7 +1318,9 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 			Path = WinGetSpecialFolderPath(CSIDL_LOCAL_APPDATA);
 			
 			#else
+			
 			LgiAssert(!"Impl me.");
+			
 			#endif
 			break;
 		}
@@ -1324,7 +1366,11 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 
 			#elif defined BEOS
 
-			Path = "/boot/home/Desktop";
+			char p[MAX_PATH] = "";
+			if (find_directory(B_DESKTOP_DIRECTORY, 0, false, p, sizeof(p))
+				Path = p;
+			else
+				LgiAssert(0);
 			
 			#endif
 			break;
@@ -1343,7 +1389,11 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 
 			#elif defined BEOS
 
-			Path = "/boot/home";
+			char p[MAX_PATH] = "";
+			if (find_directory(B_USER_DIRECTORY, 0, false, p, sizeof(p))
+				Path = p;
+			else
+				LgiAssert(0);
 
 			#endif
 			break;
@@ -1422,6 +1472,14 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 				if (u)
 					Path = u.Get();
 			}
+			
+			#elif defined BEOS
+
+			char p[MAX_PATH] = "";
+			if (find_directory(B_TRASH_DIRECTORY, 0, false, p, sizeof(p)))
+				Path = p;
+			else
+				LgiAssert(0);
 
 			#elif defined WIN32
 

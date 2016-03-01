@@ -30,6 +30,8 @@
 #define IDM_WINDOWS				1200
 #define IDM_MAKEFILE_BASE		1300
 
+#define USE_HAIKU_PULSE_HACK	1
+
 //////////////////////////////////////////////////////////////////////////////////////////
 char AppName[] = "LgiIde";
 
@@ -558,13 +560,15 @@ public:
 	
 	void OnCreate()
 	{
+		#if !USE_HAIKU_PULSE_HACK
 		SetPulse(1000);
+		#endif
 	}
 	
 	void OnPulse()
 	{
 		int Changed = -1;
-		
+
 		for (int Channel = 0; Channel<CountOf(Buf); Channel++)
 		{
 			int64 Size = Buf[Channel].Length();
@@ -1153,7 +1157,7 @@ AppWnd::AppWnd()
 	LgiGetResObj(true, AppName);
 	#endif
 
-	GRect r(0, 0, 1400, 900);
+	GRect r(0, 0, 1300, 900);
 	#ifdef BEOS
 	r.Offset(GdcD->X() - r.X() - 10, GdcD->Y() - r.Y() - 10);
 	SetPos(r);
@@ -1285,6 +1289,10 @@ AppWnd::AppWnd()
 	#ifdef LINUX
 	LgiFinishXWindowsStartup(this);
 	#endif
+	
+	#if USE_HAIKU_PULSE_HACK
+	d->Output->SetPulse(1000);
+	#endif
 }
 
 AppWnd::~AppWnd()
@@ -1369,18 +1377,32 @@ void AppWnd::UpdateState(int Debugging, int Building)
 
 void AppWnd::AppendOutput(char *Txt, int Channel)
 {
-	if (d->Output &&
-		Channel < CountOf(d->Output->Txt) &&
-		d->Output->Txt[Channel])
+	if (!d->Output)
 	{
-		if (Txt)
-		{
-			d->Output->Buf[Channel].Add(Txt, strlen(Txt));
-		}
-		else
-		{
-			d->Output->Txt[Channel]->Name("");
-		}
+		LgiTrace("%s:%i - No output panel.\n", _FL);
+		return;
+	}
+	
+	if (Channel < 0 ||
+		Channel >= CountOf(d->Output->Txt))
+	{
+		LgiTrace("%s:%i - Channel range: %i, %i.\n", _FL, Channel, CountOf(d->Output->Txt));
+		return;
+	}
+
+	if (!d->Output->Txt[Channel])
+	{
+		LgiTrace("%s:%i - No log for channel %i.\n", _FL, Channel);
+		return;
+	}
+	
+	if (Txt)
+	{
+		d->Output->Buf[Channel].Add(Txt, strlen(Txt));
+	}
+	else
+	{
+		d->Output->Txt[Channel]->Name("");
 	}
 }
 
@@ -1809,7 +1831,8 @@ GMessage::Result AppWnd::OnEvent(GMessage *m)
 		case M_APPEND_TEXT:
 		{
 			char *Text = (char*) MsgA(m);
-			AppendOutput(Text, MsgB(m));
+			int Ch = MsgB(m);
+			AppendOutput(Text, Ch);
 			DeleteArray(Text);
 			break;
 		}

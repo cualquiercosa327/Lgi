@@ -2200,7 +2200,7 @@ int BuildThread::Main()
 			
 			GString Msg;
 			Msg.Printf("Making: %s\n", Temp.Get());
-			Proj->GetApp()->PostEvent(M_APPEND_TEXT, 0, (GMessage::Param)NewStr(Msg));
+			Proj->GetApp()->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr(Msg), 0);
 
 // printf("BuildThread::Main.3 SubProc(%s)\n", Temp.Get());
 			if (SubProc.Reset(new GSubProcess(Exe, Temp)))
@@ -3919,12 +3919,23 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 						m.Print(" outputfolder $(Depends)\n"
 								"	@echo Linking $(Target) [$(Build)]...\n"
 								"	$(CPP)%s%s %s%s -o \\\n"
-								"		$(Target) $(addprefix $(BuildDir)/,$(Depends)) $(Libs)\n"
-								"	@echo Done.\n"
-								"\n",
+								"		$(Target) $(addprefix $(BuildDir)/,$(Depends)) $(Libs)\n",
 								ExtraLinkFlags,
 								ExeFlags,
 								ValidStr(LinkerFlags) ? "-Wl" : "", LinkerFlags.Get());
+
+						if (Platform == PlatformHaiku)
+						{
+							// Is there an application icon configured?
+							const char *AppIcon = d->Settings.GetStr(ProjApplicationIcon, NULL, Platform);
+							if (AppIcon)
+							{
+								m.Print("	addattr -f %s -t \"'VICN'\" \"BEOS:ICON\" $(Target)\n", AppIcon);
+							}							
+						}
+
+						m.Print("	@echo Done.\n"
+								"\n");
 
 						GAutoString r(Rules.NewStr());
 						if (r)

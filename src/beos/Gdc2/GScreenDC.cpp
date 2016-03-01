@@ -21,10 +21,12 @@ public:
 	bool ClientClip;
 	GRect Client;
 	GRect Clip;
+	int ConstAlpha;
 	
 	GScreenPrivate()
 	{
 		View = 0;
+		ConstAlpha = 255;
 		ClientClip = false;
 		Depth = GdcD->GetBits();
 	}
@@ -215,7 +217,10 @@ int GScreenDC::Op()
 int GScreenDC::Op(int NewOp, NativeInt Param)
 {
 	int Prev = Op();
+	
 	drawing_mode Mode = B_OP_COPY;
+	d->ConstAlpha = 255;
+	
 	switch (NewOp)
 	{
 		case GDC_XOR:
@@ -225,7 +230,8 @@ int GScreenDC::Op(int NewOp, NativeInt Param)
 		}
 		case GDC_ALPHA:
 		{
-			Mode = B_OP_OVER;
+			Mode = B_OP_ALPHA;
+			d->ConstAlpha = Param >= 0 ? Param : 255;
 			break;
 		}
 	}
@@ -236,13 +242,13 @@ int GScreenDC::Op(int NewOp, NativeInt Param)
 int GScreenDC::X()
 {
 	BRect r = d->View->Bounds();
-	return r.right - r.left + 1;
+	return r.Width();
 }
 
 int GScreenDC::Y()
 {
 	BRect r = d->View->Bounds();
-	return r.bottom - r.top + 1;
+	return r.Height();
 }
 
 int GScreenDC::GetBits()
@@ -322,8 +328,8 @@ void GScreenDC::Box(GRect *a)
 	else
 	{
 		r.left = r.top = 0;
-		r.right = X()-1;
-		r.bottom = Y()-1;
+		r.right = X();
+		r.bottom = Y();
 	}
 	
 	d->View->StrokeRect(r);
@@ -344,8 +350,8 @@ void GScreenDC::Rectangle(GRect *a)
 	else
 	{
 		r.left = r.top = 0;
-		r.right = X()-1;
-		r.bottom = Y()-1;
+		r.right = X();
+		r.bottom = Y();
 	}
 	
 	d->View->FillRect(r);
@@ -367,22 +373,34 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 			BBitmap *Bmp = Dc ? Dc->GetBitmap() : 0;
 			if (Bmp)
 			{
-				BRect S;
+				GRect SrcRc;
 				if (a)
+					SrcRc = *a;
+				else
+					SrcRc = Src->Bounds();
+				
+				BRect S = SrcRc;
+				BRect D(x, y, x+S.Width(), y+S.Height());
+				
+				if (d->ConstAlpha == 0)
 				{
-					S = *a;
+				}
+				else if (d->ConstAlpha < 255)
+				{
+					// Off screen comp
+					GMemDC mem(S.Width()+1, S.Height()+1, System32BitColourSpace);
+					
+					mem.Colour(B_TRANSPARENT_MAGIC_RGBA32, 32);
+					mem.Rectangle();
+					mem.Blt(0, 0, Src, a);
+					mem.SetConstantAlpha(d->ConstAlpha);
+					
+					d->View->DrawBitmap(mem.GetBitmap(), S = mem.Bounds(), D);
 				}
 				else
 				{
-					S.left = S.top = 0;
-					S.right = Src->X() - 1;
-					S.bottom = Src->Y() - 1;
-				}
-				
-				BRect D(x, y, x+S.Width(), y+S.Height());
-				
-				d->View->DrawBitmap(Bmp, S, D);
-				// printf("DrawBitmap %i,%i - %i,%i\n", (int)S.left, (int)S.top, (int)D.left, (int)D.top);
+					d->View->DrawBitmap(Bmp, S, D);
+				}				
 			}
 			else printf("%s:%i - Error: No bitmap to blt\n", _FL);
 		}

@@ -275,7 +275,7 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int Flags)
 			pMem->x = x;
 			pMem->y = y;
 			pMem->Line = d->Bmp->BytesPerRow();
-			pMem->Flags = GBmpMem::BmpPreMulAlpha;
+			pMem->Flags = 0; // GBmpMem::BmpPreMulAlpha;
 			
 			color_space Bcs = d->Bmp->ColorSpace();
 			ColourSpace = pMem->Cs = BeosColourSpaceToLgi(Bcs);
@@ -322,17 +322,21 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int Flags)
 
 void GMemDC::Blt(int x, int y, GSurface *Src, GRect *a)
 {
-	if (Src)
+	if (!Src)
 	{
-		if (Src->IsScreen())
-		{
-			// screen to memory Blt
-		}
-		else
-		{
-			// memory to memory Blt
-			GSurface::Blt(x, y, Src, a);
-		}
+		LgiAssert(!"Invalid parameter.");
+		return;
+	}
+	
+	if (Src->IsScreen())
+	{
+		// screen to memory Blt
+		LgiAssert(!"Impl screen->memory blt");
+	}
+	else
+	{
+		// memory to memory Blt
+		GSurface::Blt(x, y, Src, a);
 	}
 }
 
