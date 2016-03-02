@@ -151,8 +151,10 @@ bool GMdiChild::Attach(GViewI *p)
 		for (unsigned i=0; i<par->d->Children.Length(); i++)
 		{
 			GMdiChild *c = par->d->Children[i];
+			#ifdef BEOS
 			printf("[%i]=%p %p %p %s\n",
 				i, c, c->Handle(), c->Handle()?c->Handle()->Window():0, c->Name());
+			#endif
 		}
 		
 		return false;

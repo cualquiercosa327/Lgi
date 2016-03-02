@@ -1725,10 +1725,12 @@ IdeDoc *AppWnd::OpenFile(const char *FileName, NodeSource *Src)
 
 		if (Doc)
 		{
+			#ifdef BEOS
 			BView *h = Doc->Handle();
 			BWindow *w = h ? h->Window() : 0;
 			bool att = Doc->IsAttached();
 			printf("%s:%i - att=%i h=%p w=%p\n", _FL, att, h, w);
+			#endif
 			
 			if (!Doc->IsAttached())
 			{
