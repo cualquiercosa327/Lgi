@@ -13,9 +13,10 @@
 #include <stdarg.h>
 
 #include "GMem.h"
+#include "LgiDefs.h"
 
-#define ToUpper(c) ( ( (c) >= 'a' AND (c) <= 'z') ? (c)+('A'-'a') : (c) )
-#define ToLower(c) (((c) >= 'A' AND (c) <= 'Z') ? (c)+('a'-'A') : (c))
+#define ToUpper(c) ( ( (c) >= 'a' && (c) <= 'z') ? (c)+('A'-'a') : (c) )
+#define ToLower(c) (((c) >= 'A' && (c) <= 'Z') ? (c)+('a'-'A') : (c))
 
 #ifdef MEMORY_DEBUG
 void *operator new(size_t Size, char *file, int line)
