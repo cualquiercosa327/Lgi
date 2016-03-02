@@ -95,14 +95,6 @@ typedef thread_id					OsThreadId;
 typedef sem_id						OsSemaphore;
 #define LgiGetCurrentThread()		find_thread(0)
 
-// assert
-#ifdef _DEBUG
-LgiFunc void _lgi_assert(bool b, const char *test, const char *file, int line);
-#define LgiAssert(b)			_lgi_assert(b, #b, __FILE__, __LINE__)
-#else
-#define LgiAssert(b)			
-#endif
-
 #define LgiSleep(i)				snooze(i*1000)
 #define LgiYield()				LgiApp->Run(false)
 

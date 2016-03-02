@@ -283,6 +283,7 @@ public:
 		GViewLayoutInfo Inf;
 		GView *View;
 		bool IsLayout;
+		bool Debug;
 	};
 
 	GTableLayout *Table;
@@ -629,7 +630,8 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 				
 			if (ChildWid.IsValid())
 			{
-				int Px = ChildWid.ToPx(MaxCellWidth(), v->GetFont());
+				int MaxPx = MaxCellWidth();
+				int Px = ChildWid.ToPx(MaxPx, v->GetFont());
 				Min = max(Min, Px);
 				Max = max(Max, Px);
 				
@@ -985,7 +987,7 @@ void TableCell::PostLayout()
 			v->Visible(false);
 			continue;
 		}
-
+		
 		GTableLayout *Tbl = Izza(GTableLayout);
 		GRect r = v->GetPos();
 
@@ -1783,7 +1785,7 @@ void GTableLayout::OnPaint(GSurface *pDC)
 		c->OnPaint(pDC);
 	}
 
-	#if DEBUG_DRAW_CELLS
+	#if 0 // DEBUG_DRAW_CELLS
 	pDC->Colour(Rgb24(255, 0, 0), 24);
 	pDC->Box();
 	#endif

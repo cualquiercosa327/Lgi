@@ -218,6 +218,15 @@ typedef union
 										  (((a) & 0x00000000000000ff) << 56) )
 #endif
 
+// Asserts
+LgiFunc void							_lgi_assert(bool b, const char *test, const char *file, int line);
+#ifdef _DEBUG
+#define LgiAssert(b)					_lgi_assert(b, #b, __FILE__, __LINE__)
+#else
+#define LgiAssert(b)			
+#endif
+
+
 // Good ol NULLy
 #ifndef NULL
 #define NULL							0
