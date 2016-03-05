@@ -269,7 +269,7 @@ struct MaskComp
 
 int CompSort(MaskComp *a, MaskComp *b)
 {
-	return b->Mask < a->Mask ? 1 : -1;
+	return b->Mask > a->Mask ? 1 : -1;
 }
 
 GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
@@ -458,10 +458,10 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 			GArray<MaskComp> Comps;
 			Comps.New().Set(CtRed, Info.RedMask);
 			Comps.New().Set(CtGreen, Info.GreenMask);
-			Comps.New().Set(CtBlue, /*Info.BlueMask*/0xf800);
-			/*
+			Comps.New().Set(CtBlue, Info.BlueMask);
+			
 			if (Info.AlphaMask)
-				Comps.New().Set(CtAlpha, Info.AlphaMask);*/
+				Comps.New().Set(CtAlpha, Info.AlphaMask);
 			Comps.Sort(CompSort);			
 
 			GColourSpaceBits Cs;
