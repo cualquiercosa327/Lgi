@@ -293,7 +293,7 @@ WINDOWS</Release>
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
-				<Linux>gcc</Linux>
+				<Linux>cross</Linux>
 			</Compiler>
 			<Executable>
 				<Linux />
@@ -301,6 +301,9 @@ WINDOWS</Release>
 			<Arguments>
 				<All />
 			</Arguments>
+			<CrossCompiler>
+				<Linux>/opt/cross/x-tools/arm-unknown-linux-gnueabi/bin/arm-unknown-linux-gnueabi-g++</Linux>
+			</CrossCompiler>
 		</General>
 		<Build>
 			<IncludePaths>
@@ -391,6 +394,7 @@ freetype</Release>
 				<All />
 				<Linux />
 			</LibraryPaths>
+			<ApplicationIcon />
 		</Build>
 		<Editor>
 			<TabSize>

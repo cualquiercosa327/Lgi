@@ -984,7 +984,8 @@ IdeProjectSettings.o : ./Code/IdeProjectSettings.cpp ../include/common/Lgi.h \
 	../include/common/GTextLabel.h \
 	../include/common/GEdit.h \
 	../include/common/GCheckBox.h \
-	../include/common/GCombo.h
+	../include/common/GCombo.h \
+	../include/common/GButton.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project>
 	<Node Name="Source Files" Type="1" Platforms="15" Open="1">
-		<Node Name="Core" Type="1" Platforms="15" Open="1">
+		<Node Name="Core" Type="1" Platforms="15" Open="0">
 			<Node Name="DateTime" Type="1" Platforms="15" Open="0">
 				<Node File="./src/common/General/GDateTime.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GDateTime.h" Type="3" Platforms="15" />
@@ -93,7 +93,7 @@
 				<Node File="./include/common/GHashTable.h" Type="3" Platforms="15" />
 				<Node File="./include/common/GMem.h" Type="3" Platforms="15" />
 			</Node>
-			<Node Name="Menus" Type="1" Platforms="15" Open="1">
+			<Node Name="Menus" Type="1" Platforms="15" Open="0">
 				<Node Name="Haiku" Type="1" Platforms="15" Open="1">
 					<Node File="./src/beos/Lgi/GMenu.cpp" Type="2" Platforms="8" />
 				</Node>
@@ -396,16 +396,18 @@ WINDOWS</Release>
 					<Debug>POSIX</Debug>
 					<Release>POSIX</Release>
 				</Haiku>
+				<Linux />
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
 			</Compiler>
 			<Executable>
-				<Haiku />
+				<Linux />
 			</Executable>
 			<Arguments>
 				<All />
 			</Arguments>
+			<CrossCompiler />
 		</General>
 		<Build>
 			<IncludePaths>
@@ -487,11 +489,11 @@ textencoding</Release>
 				</Linux>
 			</TargetName>
 			<SystemIncludes>
-				<Haiku />
+				<Linux />
 			</SystemIncludes>
 			<LibraryPaths>
 				<All />
-				<Haiku />
+				<Linux />
 			</LibraryPaths>
 			<ApplicationIcon />
 		</Build>

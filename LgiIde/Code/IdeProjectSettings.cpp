@@ -43,6 +43,7 @@ const char *sCompilers[] =
 	"XCode",
 	#else
 	"gcc",
+	"cross",
 	#endif
 	NULL
 };
@@ -113,6 +114,7 @@ SettingInfo AllSettings[] =
 	{ProjArgs,					GV_STRING,		"Arguments",		sGeneral,	SF_CROSSPLATFORM|SF_CONFIG_SPECIFIC},
 	{ProjDefines,				GV_STRING,		"Defines",			sGeneral,	SF_MULTILINE|SF_CONFIG_SPECIFIC},
 	{ProjCompiler,				GV_INT32,		"Compiler",			sGeneral,	SF_PLATFORM_SPECIFC|SF_ENUM},
+	{ProjCrossCompiler,			GV_STRING,		"CrossCompiler",	sGeneral,	SF_PLATFORM_SPECIFC|SF_FILE_SELECT},
 	{ProjIncludePaths,			GV_STRING,		"IncludePaths",		sBuild,		SF_MULTILINE|SF_CONFIG_SPECIFIC},
 	{ProjSystemIncludes,		GV_STRING,		"SystemIncludes",	sBuild,		SF_MULTILINE|SF_CONFIG_SPECIFIC|SF_PLATFORM_SPECIFC},
 	{ProjLibraries,				GV_STRING,		"Libraries",		sBuild,		SF_MULTILINE|SF_CONFIG_SPECIFIC},

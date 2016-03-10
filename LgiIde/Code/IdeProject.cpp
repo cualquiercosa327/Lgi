@@ -410,91 +410,6 @@ public:
 //////////////////////////////////////////////////////////////////////////////////
 class ProjectNode;
 
-/*
-class ProjectSettings
-{
-public:
-	char *MakeFile;
-	char *Exe;
-	char *ExeArgs;
-	char *DefineSym;
-	int TargetType;
-	char *TargetName;
-	char *IncludePaths;
-	char *LibPaths;
-	char *Libs;
-	char *CommentFile;
-	char *CommentFunc;
-	char *MakefileRules;
-	int TabSize;
-	int IndentSize;
-	int UseTabs;
-	int ShowWhitespace;
-	int Compiler;
-
-	ProjectSettings()
-	{
-		MakeFile = 0;
-		Exe = 0;
-		ExeArgs = 0;
-		TargetType = 0;
-		TargetName = 0;
-		IncludePaths = 0;
-		LibPaths = 0;
-		Libs = 0;
-		CommentFile = 0;
-		CommentFunc = 0;
-		TabSize = 8;
-		IndentSize = 4;
-		UseTabs = 0;
-		ShowWhitespace = 0;
-		DefineSym = 0;
-		MakefileRules = 0;
-		Compiler = 0;
-	}
-	
-	~ProjectSettings()
-	{
-		DeleteArray(MakeFile);
-		DeleteArray(Exe);
-		DeleteArray(ExeArgs);
-		DeleteArray(TargetName);
-		DeleteArray(IncludePaths);
-		DeleteArray(LibPaths);
-		DeleteArray(Libs);
-		DeleteArray(CommentFile);
-		DeleteArray(CommentFunc);
-		DeleteArray(DefineSym);
-		DeleteArray(MakefileRules);
-	}
-	
-	ProjectSettings &operator =(ProjectSettings &p)
-	{
-		#define AssignStr(n) { char *t = NewStr(p.n); DeleteArray(n); n = t; }
-		
-		AssignStr(MakeFile);
-		AssignStr(Exe);
-		AssignStr(ExeArgs);
-		AssignStr(DefineSym);
-		TargetType = p.TargetType;
-		AssignStr(TargetName);
-		AssignStr(IncludePaths);
-		AssignStr(LibPaths);
-		AssignStr(Libs);
-		AssignStr(CommentFile);
-		AssignStr(CommentFunc);
-		AssignStr(MakefileRules);
-		TabSize = p.TabSize;
-		IndentSize = p.IndentSize;
-		UseTabs = p.UseTabs;
-		ShowWhitespace = p.ShowWhitespace;
-		Compiler = p.Compiler;
-
-		return *this;
-	}
-};
-*/
-
 class BuildThread : public GThread, public GStream
 {
 	IdeProject *Proj;
@@ -507,8 +422,10 @@ class BuildThread : public GThread, public GStream
 		DefaultCompiler,
 		VisualStudio,
 		MingW,
-		Gcc
-	}	Compiler;
+		Gcc,
+		CrossCompiler		
+	}
+	    Compiler;
 
 public:
 	BuildThread(IdeProject *proj, char *mf, const char *args = 0);
@@ -1845,160 +1762,6 @@ int XmlSort(GXmlTag *a, GXmlTag *b, int d)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-IdeCommon::IdeCommon(IdeProject *p)
-{
-	Project = p;
-}
-
-IdeCommon::~IdeCommon()
-{
-	Remove();
-}
-
-bool IdeCommon::OnOpen(GXmlTag *Src)
-{
-	Copy(*Src);
-	Write = false;
-	if (!Serialize())
-		return false;
-
-	List<GXmlTag>::I it = Src->Children.Start();
-	for (GXmlTag *c = *it; c; c = *++it)
-	{
-		if (c->IsTag("Node"))
-		{
-			ProjectNode *pn = new ProjectNode(Project);
-			if (pn)
-			{
-				if (pn->OnOpen(c))
-					InsertTag(pn);
-			}
-		}
-	}
-	
-	return true;
-}
-
-void IdeCommon::CollectAllSubProjects(List<IdeProject> &c)
-{
-	ForAllProjectNodes(p)
-	{
-		if (p->GetType() == NodeDependancy)
-		{
-			if (p->GetDep())
-				c.Insert(p->GetDep());
-		}
-		
-		p->CollectAllSubProjects(c);
-	}
-}
-
-IdePlatform GetCurrentPlatform()
-{
-	#if defined(WIN32)
-	return PlatformWin32;
-	#elif defined(LINUX)
-	return PlatformLinux;
-	#elif defined(MAC)
-	return PlatformMac;
-	#elif defined(BEOS)
-	return PlatformHaiku;
-	#else
-	#error "Not impl."
-	#endif
-}
-
-void IdeCommon::CollectAllSource(GArray<char*> &c, IdePlatform Platform)
-{
-	ForAllProjectNodes(p)
-	{
-		switch (p->GetType())
-		{
-			case NodeSrc:
-			case NodeHeader:
-			{
-				if (Platform == PlatformCurrent)
-					Platform = GetCurrentPlatform();
-					
-				int Flags = p->GetPlatforms();
-				if (Flags & (1 << Platform))
-				{
-					GAutoString path = p->GetFullPath();
-					if (path)
-					{
-						c.Add(path.Release());
-					}
-				}
-				break;
-			}
-			default:
-			{
-				break;
-			}
-		}
-		
-		p->CollectAllSource(c, Platform);
-	}
-}
-
-void IdeCommon::SortChildren()
-{
-	Items.Sort(NodeSort, 0);
-	Children.Sort(XmlSort, 0);
-	
-	if (Tree)
-	{
-		_RePour();
-		Tree->Invalidate();
-	}
-}
-
-void IdeCommon::InsertTag(GXmlTag *t)
-{
-	GXmlTag::InsertTag(t);
-
-	GTreeItem *i = dynamic_cast<GTreeItem*>(t);
-	if (i)
-	{
-		Insert(i);
-	}
-}
-
-void IdeCommon::RemoveTag()
-{
-	GXmlTag::RemoveTag();
-	Detach();
-}
-
-IdeCommon *IdeCommon::GetSubFolder(IdeProject *Project, char *Name, bool Create)
-{
-	if (Name)
-	{
-		ForAllProjectNodes(c)
-		{
-			if (c->GetType() == NodeDir)
-			{
-				if (c->GetName() && stricmp(c->GetName(), Name) == 0)
-				{
-					return c;
-				}
-			}
-		}
-
-		ProjectNode *New = new ProjectNode(Project);
-		if (New)
-		{
-			New->SetName(Name);
-			InsertTag(New);
-			Project->SetDirty();
-			return New;
-		}
-	}
-
-	return 0;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
 BuildThread::BuildThread(IdeProject *proj, char *mf, const char *args) : GThread("BuildThread")
 {
 	Proj = proj;
@@ -2016,6 +1779,10 @@ BuildThread::BuildThread(IdeProject *proj, char *mf, const char *args) : GThread
 			Compiler = MingW;
 		else if (!stricmp(Comp, "gcc"))
 			Compiler = Gcc;
+		else if (!stricmp(Comp, "cross"))
+			Compiler = CrossCompiler;
+		else
+		    LgiAssert(!"Unknown compiler.");
 	}
 
 	if (Compiler == DefaultCompiler)
@@ -3489,6 +3256,8 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 	const char *PlatformExeExt = "";
 	GString LinkerFlags;
 	const char *TargetType = d->Settings.GetStr(ProjTargetType, NULL, Platform);
+	const char *CompilerName = d->Settings.GetStr(ProjCompiler);
+	const char *CompilerBinary = "gcc";
 	bool IsDynamicLibrary = TargetType != NULL && !stricmp(TargetType, "DynamicLibrary");
 	GStream *Log = d->App->GetBuildLog();
 	
@@ -3539,6 +3308,22 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 			LgiAssert(0);
 			break;
 	}
+
+    if (CompilerName)
+    {
+        if (!stricmp(CompilerName, "cross"))
+        {
+            const char *CrossCompilerBin = d->Settings.GetStr(ProjCrossCompiler, NULL, Platform);
+            if (FileExists(CrossCompilerBin))
+            {
+                CompilerBinary = CrossCompilerBin;
+            }
+            else
+            {
+                Log->Print("%s:%i - Error: cross compiler '%s' not found.\n", _FL, CrossCompilerBin);
+            }
+        }
+    }
 	
 	GFile m;
 	if (!m.Open(MakeFile, O_WRITE))
@@ -3558,7 +3343,8 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 			".SILENT :\n"
 			"\n"
 			"CC = gcc\n"
-			"CPP = g++\n");
+			"CPP = %s\n",
+			CompilerBinary);
 
 	// Collect all files that require building
 	GArray<ProjectNode*> Files;
@@ -4348,11 +4134,25 @@ int IdeTree::OnDrop(char *Format, GVariant *Data, GdcPt2 p, int KeyState)
 	}
 	else if (!stricmp(Format, LGI_FileDropFormat))
 	{
-		GDropFiles Df(*Data);
-		for (int i=0; i<Df.Length(); i++)
+		ProjectNode *Folder = dynamic_cast<ProjectNode*>(Hit);
+		while (Folder && Folder->GetType() > NodeDir)
 		{
-			LgiTrace("[%i]=%s\n", i, Df[i]);
+			Folder = dynamic_cast<ProjectNode*>(Folder->GetParent());
 		}
+		
+		IdeCommon *Dst = dynamic_cast<IdeCommon*>(Folder?Folder:Hit);
+		if (Dst)
+		{
+			GDropFiles Df(*Data);
+			for (int i=0; i<Df.Length(); i++)
+			{
+				Dst->AddFiles(Df[i]);
+			}
+		}
+	}
+	else
+	{
+		LgiTrace("%s:%i - Unknown drop format: %s.\n", _FL, Format);
 	}
 
 	return DROPEFFECT_NONE;

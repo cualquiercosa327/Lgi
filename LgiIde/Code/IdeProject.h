@@ -32,6 +32,7 @@ public:
 	IdeCommon(IdeProject *p);
 	~IdeCommon();
 
+	IdeProject *GetProject() { return Project; }
 	bool OnOpen(GXmlTag *Src);	
 	void CollectAllSubProjects(List<IdeProject> &c);
 	void CollectAllSource(GArray<char*> &c, IdePlatform Platform);
@@ -40,6 +41,7 @@ public:
 	void RemoveTag();
 	virtual bool IsWeb() = 0;	
 	virtual int GetPlatforms() = 0;
+	bool AddFiles(const char *Path);
 	IdeCommon *GetSubFolder(IdeProject *Project, char *Name, bool Create = false);
 };
 
@@ -51,6 +53,7 @@ enum ProjSetting
 	ProjArgs,
 	ProjDefines,
 	ProjCompiler,
+	ProjCrossCompiler,
 	ProjIncludePaths,
 	ProjSystemIncludes,
 	ProjLibraries,
