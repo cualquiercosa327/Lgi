@@ -182,6 +182,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\Code\FtpFile.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Code\FtpThread.cpp"
 				>
 			</File>
@@ -191,6 +195,10 @@
 			</File>
 			<File
 				RelativePath="..\src\common\Coding\GLexCpp.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Code\IdeCommon.cpp"
 				>
 			</File>
 			<File
@@ -227,6 +235,14 @@
 			</File>
 			<File
 				RelativePath=".\Code\MemDumpViewer.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Code\ProjectNode.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Code\ProjectNode.h"
 				>
 			</File>
 			<File
@@ -322,6 +338,26 @@
 				</File>
 				<File
 					RelativePath="..\src\common\Lgi\GSubProcess.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Dialogs"
+				>
+				<File
+					RelativePath=".\Code\AddFtpFile.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Code\AddFtpFile.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Code\WebFldDlg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Code\WebFldDlg.h"
 					>
 				</File>
 			</Filter>
