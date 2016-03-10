@@ -908,7 +908,9 @@ public:
 		int y = 0,
 		/// The colour space to use. CsNone will default to the 
 		/// current screen colour space.
-		GColourSpace cs = CsNone
+		GColourSpace cs = CsNone,
+		/// Optional creation flags
+		int Flags = SurfaceCreateNone
 	);
 	GMemDC(GSurface *pDC);
 	virtual ~GMemDC();

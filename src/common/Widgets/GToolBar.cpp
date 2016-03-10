@@ -151,7 +151,7 @@ public:
 				
 				if (Disabled)
 				{
-					GMemDC tmp(ImgLst->X(), ImgLst->Y(), System32BitColourSpace);
+					GMemDC tmp(ImgLst->X(), ImgLst->Y(), System32BitColourSpace, GSurface::SurfaceRequireExactCs);
 					tmp.Colour(0, 32);
 					tmp.Rectangle();
 					tmp.Op(GDC_ALPHA);

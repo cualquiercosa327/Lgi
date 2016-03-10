@@ -182,49 +182,54 @@ public:
 		
 		#define Rd(var) if (f.Read(&var, sizeof(var)) != sizeof(var)) \
 			{ LgiTrace("Bmp.Read(%i) failed\n", (int)sizeof(var)); return false; }
-		Rd(Size);
-		Rd(Sx);
-		Rd(Sy);
-		Rd(Planes);
-		Rd(Bits);
+		Rd(Size); // 4
+		Rd(Sx); // 4
+		Rd(Sy); // 4
+		Rd(Planes); // 2
+		Rd(Bits); // 2
+		// = 16
 		
 		if (Size >= 40)
 		{
-			Rd(Compression);
-			Rd(DataSize);
-			Rd(XPels);
-			Rd(YPels);
-			Rd(ColoursUsed);
-			Rd(ColourImportant);
+			Rd(Compression); // 4
+			Rd(DataSize); // 4
+			Rd(XPels); // 4
+			Rd(YPels); // 4
+			Rd(ColoursUsed); // 4
+			Rd(ColourImportant); // 4
+			// = 24 + 16 = 40
 		}
 		
-		if (Size >= 54)
+		if (Size >= 52)
 		{
-			Rd(RedMask);
-			Rd(GreenMask);
-			Rd(BlueMask);
+			Rd(RedMask); // 4
+			Rd(GreenMask); // 4
+			Rd(BlueMask); // 4
+			// 12 + 40 = 52
 		}
 
 		if (Size >= 56)
 		{
-			Rd(AlphaMask);
+			Rd(AlphaMask); // 4
+			// = 4 + 52 = 56
 		}
 		
 		if (Size >= 108)
 		{
-			Rd(CSType);
-			Rd(RedX);
-			Rd(RedY);
-			Rd(RedZ);
-			Rd(GreenX);
-			Rd(GreenY);
-			Rd(GreenZ);
-			Rd(BlueX);
-			Rd(BlueY);
-			Rd(BlueZ);
-			Rd(GammaRed);
-			Rd(GammaGreen);
-			Rd(GammaBlue);
+			Rd(CSType); // 4
+			Rd(RedX); // 4
+			Rd(RedY); // 4
+			Rd(RedZ); // 4
+			Rd(GreenX); // 4
+			Rd(GreenY); // 4
+			Rd(GreenZ); // 4
+			Rd(BlueX); // 4
+			Rd(BlueY); // 4
+			Rd(BlueZ); // 4
+			Rd(GammaRed); // 4
+			Rd(GammaGreen); // 4
+			Rd(GammaBlue); // 4
+			// = 52 + 56 = 108
 		}
 
 		int64 End = f.GetPos();
@@ -264,7 +269,7 @@ struct MaskComp
 
 int CompSort(MaskComp *a, MaskComp *b)
 {
-	return b->Mask < a->Mask ? 1 : -1;
+	return b->Mask > a->Mask ? 1 : -1;
 }
 
 GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
@@ -454,6 +459,7 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 			Comps.New().Set(CtRed, Info.RedMask);
 			Comps.New().Set(CtGreen, Info.GreenMask);
 			Comps.New().Set(CtBlue, Info.BlueMask);
+			
 			if (Info.AlphaMask)
 				Comps.New().Set(CtAlpha, Info.AlphaMask);
 			Comps.Sort(CompSort);			
@@ -468,6 +474,9 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 			}
 			
 			SrcCs = (GColourSpace) Cs.All;
+			
+			const char *s = GColourSpaceToString(SrcCs);
+			int asd=0;
 		}
 		#endif
 
@@ -790,7 +799,7 @@ GFilter::IoStatus GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
 			{
 				if (UsedBits == 16)
 				{
-					System16BitPixel px[4];
+					System16BitPixel px[8];
 					ZeroObj(px);
 					px[0].r = 0x1f;
 					px[2].g = 0x3f;

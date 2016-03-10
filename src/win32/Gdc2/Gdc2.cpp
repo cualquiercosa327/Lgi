@@ -805,6 +805,7 @@ public:
 		ScrX = GetSystemMetrics(SM_CXSCREEN);
 		ScrY = GetSystemMetrics(SM_CYSCREEN);
 		ScrBits = GetDeviceCaps(hScreenDC, BITSPIXEL);
+		
 		switch (ScrBits)
 		{
 			case 8:
