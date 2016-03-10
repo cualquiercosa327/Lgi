@@ -1688,7 +1688,8 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 	GString LinkerFlags;
 	const char *TargetType = d->Settings.GetStr(ProjTargetType, NULL, Platform);
 	const char *CompilerName = d->Settings.GetStr(ProjCompiler);
-	const char *CompilerBinary = "gcc";
+	const char *CCompilerBinary = "gcc";
+	const char *CppCompilerBinary = "g++";
 	bool IsDynamicLibrary = TargetType != NULL && !stricmp(TargetType, "DynamicLibrary");
 	GStream *Log = d->App->GetBuildLog();
 	
@@ -1747,7 +1748,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
             const char *CrossCompilerBin = d->Settings.GetStr(ProjCrossCompiler, NULL, Platform);
             if (FileExists(CrossCompilerBin))
             {
-                CompilerBinary = CrossCompilerBin;
+                CppCompilerBinary = CrossCompilerBin;
             }
             else
             {
@@ -1773,9 +1774,10 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 			"\n"
 			".SILENT :\n"
 			"\n"
-			"CC = gcc\n"
+			"CC = %s\n"
 			"CPP = %s\n",
-			CompilerBinary);
+			CCompilerBinary,
+			CppCompilerBinary);
 
 	// Collect all files that require building
 	GArray<ProjectNode*> Files;
