@@ -242,10 +242,24 @@ bool LgiToWindowsCursor(LgiCursor Cursor)
 
 void GView::PointToScreen(GdcPt2 &p)
 {
+	for (GViewI *i = this; i; i = i->GetParent())
+	{
+		GRect pos = i->GetPos();
+		// const char *cls = i->GetClass();
+		p.x += pos.x1;
+		p.y += pos.y1;
+	}
 }
 
 void GView::PointToView(GdcPt2 &p)
 {
+	for (GViewI *i = this; i; i = i->GetParent())
+	{
+		GRect pos = i->GetPos();
+		// const char *cls = i->GetClass();
+		p.x -= pos.x1;
+		p.y -= pos.y1;
+	}
 }
 
 bool GView::GetMouse(GMouse &m, bool ScreenCoords)
@@ -322,6 +336,7 @@ Uint32 SDL_PulseCallback(Uint32 interval, GView *v)
 	e.type = SDL_USEREVENT;
 	e.user.code = M_PULSE;
 	e.user.data1 = v;
+	e.user.data2 = NULL;
 	SDL_PushEvent(&e);
 	return v->d->PulseLength;
 }

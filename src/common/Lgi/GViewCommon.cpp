@@ -881,7 +881,7 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 	if (c)
 	{
 		_Capturing = Wnd;
-		// LgiTrace("%s:%i _Capturing=%p\n", _FL, _Capturing);
+		// LgiTrace("%s:%i _Capturing=%p/%s\n", _FL, _Capturing, _Capturing?_Capturing->GetClass():0);
 		
 		#if WINNATIVE
 			GdcPt2 Offset;
@@ -891,6 +891,7 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 				SetCapture(h);
 			else
 				LgiAssert(0);
+
 		#elif defined(LGI_SDL)
 			#if SDL_VERSION_ATLEAST(2, 0, 4)
 			SDL_CaptureMouse(SDL_TRUE);
@@ -1562,6 +1563,7 @@ GViewI *GView::WindowFromPoint(int x, int y, bool Debug)
 	{
 		memset(Tabs, 9, Debug_Depth);
 		Tabs[Debug_Depth] = 0;
+		LgiTrace("%s%s %i\n", Tabs, GetClass(), Children.Length());
 	}
 
 	// We iterate over the child in reverse order because if they overlap the
@@ -1649,6 +1651,12 @@ bool GView::InThread()
 
 bool GView::PostEvent(int Cmd, GMessage::Param a, GMessage::Param b)
 {
+	#ifdef LGI_SDL
+	
+	return LgiPostEvent(this, Cmd, a, b);
+	
+	#else
+	
 	if (_View)
 	{
 		#if WINNATIVE
@@ -1668,7 +1676,9 @@ bool GView::PostEvent(int Cmd, GMessage::Param a, GMessage::Param b)
 	{
 		LgiTrace("%s:%i - No view to post event to.\n", _FL);
 	}
-
+	
+	#endif
+	
 	return false;
 }
 

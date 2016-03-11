@@ -35,7 +35,7 @@ public:
 	}
 };
 
-GMemDC::GMemDC(int x, int y, GColourSpace cs)
+GMemDC::GMemDC(int x, int y, GColourSpace cs, int flags)
 {
 	d = new GMemDCPrivate;
 	ColourSpace = CsNone;
@@ -43,7 +43,7 @@ GMemDC::GMemDC(int x, int y, GColourSpace cs)
 
 	if (x > 0 && y > 0)
 	{
-		Create(x, y, cs);
+		Create(x, y, cs, flags);
 	}
 }
 

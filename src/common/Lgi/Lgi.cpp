@@ -98,7 +98,12 @@ bool LgiPostEvent(OsView Wnd, int Event, GMessage::Param a, GMessage::Param b)
 {
 	#if LGI_SDL
 
-	LgiAssert(!"Impl me.");
+	SDL_Event e;
+	e.type = SDL_USEREVENT;
+	e.user.code = Event;
+	e.user.data1 = Wnd;
+	e.user.data2 = new GMessage::EventParams(a, b);
+	return SDL_PushEvent(&e) == 0;
 
 	#elif WINNATIVE
 

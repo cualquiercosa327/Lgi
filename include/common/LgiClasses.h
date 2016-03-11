@@ -396,6 +396,7 @@ private:
 
 	#if defined(LGI_SDL)
 	friend Uint32 SDL_PulseCallback(Uint32 interval, GView *v);
+	friend class GApp;
 	#endif
 
 

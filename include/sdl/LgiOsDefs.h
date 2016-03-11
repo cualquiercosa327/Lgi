@@ -69,8 +69,8 @@ typedef HANDLE							OsProcess;
 typedef int								OsProcess;
 #endif
 typedef int								OsProcessId;
-typedef void							*OsView;
-typedef void							*OsWindow;
+typedef class GView						*OsView;
+typedef class GWindow					*OsWindow;
 typedef uint32							OsChar;
 typedef SDL_Surface						*OsPainter;
 typedef FT_Face							OsFont;
@@ -117,6 +117,16 @@ public:
     typedef void *Param;
     typedef NativeInt Result;
     SDL_Event Event;
+    
+    struct EventParams
+    {
+    	Param a, b;
+    	EventParams(Param A, Param B)
+    	{
+    		a = A;
+    		b = B;
+    	}
+    };
 
 	GMessage(int m = 0, Param pa = 0, Param pb = 0);
 	~GMessage();
