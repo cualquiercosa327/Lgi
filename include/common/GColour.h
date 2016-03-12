@@ -24,6 +24,9 @@ protected:
 public:
 	static const GColour Black;
 	static const GColour White;
+	static const GColour Red;
+	static const GColour Green;
+	static const GColour Blue;
 
 	/// Transparent
 	GColour();

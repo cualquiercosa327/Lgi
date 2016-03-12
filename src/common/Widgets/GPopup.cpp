@@ -176,9 +176,6 @@ public:
 			{
 				if (m.Down() && !Old.Down()) 
 				{
-					LgiTrace("Down click in mouse thread.\n");
-
-					
 					// Down click....
 					uint64 Now = LgiCurrentTime();
 					GPopup *Over = 0;
