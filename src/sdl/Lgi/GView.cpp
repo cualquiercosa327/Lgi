@@ -264,7 +264,16 @@ void GView::PointToView(GdcPt2 &p)
 
 bool GView::GetMouse(GMouse &m, bool ScreenCoords)
 {
-	return false;
+	Uint8 btn = SDL_GetMouseState(&m.x, &m.y);
+	m.Left((SDL_BUTTON(SDL_BUTTON_LEFT) & btn) != 0);
+	m.Middle((SDL_BUTTON(SDL_BUTTON_MIDDLE) & btn) != 0);
+	m.Right((SDL_BUTTON(SDL_BUTTON_RIGHT) & btn) != 0);
+	m.Down(m.Left() || m.Middle() || m.Right());
+	if (m.Down() && !btn)
+	{
+		int asd=0;
+	}
+	return true;
 }
 
 bool GView::SetPos(GRect &p, bool Repaint)
@@ -429,15 +438,9 @@ GView *&GView::PopupChild()
 
 bool GView::_Mouse(GMouse &m, bool Move)
 {
-	if
-	(
-		GetWindow()
-		&&
-		!GetWindow()->HandleViewMouse(this, m)
-	)
-	{
+	GWindow *Wnd = GetWindow();
+	if (Wnd && !Wnd->HandleViewMouse(this, m))
 		return false;
-	}
 
 	GViewI *o = WindowFromPoint(m.x, m.y);
 	if (_Over != o)

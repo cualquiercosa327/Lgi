@@ -24,10 +24,8 @@ GSubMenu::GSubMenu(const char *name, bool Popup)
 	Parent = 0;
 	Info = 0;
 
-	#if defined __GTK_H__
 	if (Popup)
 		Info = new SubMenuImpl(this);
-	#endif
 }
 
 GSubMenu::~GSubMenu()
@@ -60,6 +58,9 @@ GMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where
 
 		if (Info && i->Info)
 		{
+			SubMenuImpl *Sub = Info->IsSub();
+			if (Sub)
+				Sub->Layout(0, 0);
 		}
 		else
 		{

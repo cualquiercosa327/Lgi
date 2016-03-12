@@ -514,7 +514,7 @@ void GApp::OnSDLEvent(GMessage *m)
 				if (gv)
 					printf("AppWnd=%s/%p Target=%s/%p\n", AppWnd->GetClass(), AppWnd, ms.Target->GetClass(), ms.Target);
 				*/
-				if (!gv || AppWnd->HandleViewMouse(gv, ms))
+				if (gv)
 					gv->_Mouse(ms, false);
 			}
 			break;
@@ -1082,6 +1082,8 @@ Uint32 SDL_MouseCapture(Uint32 interval, GView *v)
 	SDL_Event e;
 	e.type = SDL_USEREVENT;
 	e.user.code = M_MOUSE_CAPTURE_POLL;
+	e.user.data1 = NULL;
+	e.user.data2 = NULL;
 	SDL_PushEvent(&e);
 	return MOUSE_CAPTURE_POLL;
 }
@@ -1142,8 +1144,11 @@ void GMessage::Set(int m, Param pa, Param pb)
 {
 	Event.type = SDL_USEREVENT;
 	Event.user.code = m;
-	Event.user.data1 = pa;
-	Event.user.data2 = pb;
+	Event.user.data1 = NULL;
+	if (pa || pb)
+		Event.user.data2 = new EventParams(pa, pb);
+	else
+		Event.user.data2 = NULL;
 }
 
 bool GMessage::Send(OsView Wnd)

@@ -172,7 +172,11 @@ GView::GView(OsView view)
 	#endif
 
 	d = new GViewPrivate;
+	#ifdef LGI_SDL
+	_View = this;
+	#else
 	_View = view;
+	#endif
 	_Window = 0;
 	_Lock = 0;
 	_InLock = 0;
@@ -533,7 +537,9 @@ void GView::_Paint(GSurface *pDC, int Ox, int Oy)
 		GViewI *i = *it;
 		GView *w = i->GetGView();
 		if (w &&
+			#ifndef LGI_SDL
 			!w->Handle() &&
+			#endif
 			w->Visible())
 		{
 			GRect p = w->GetPos();

@@ -176,6 +176,9 @@ public:
 			{
 				if (m.Down() && !Old.Down()) 
 				{
+					LgiTrace("Down click in mouse thread.\n");
+
+					
 					// Down click....
 					uint64 Now = LgiCurrentTime();
 					GPopup *Over = 0;
@@ -265,12 +268,8 @@ public:
 							*/
 							#endif
 
-							// LgiTrace("    Close=%i\n", Close);
 							if (Close)
-							{
-								// LgiTrace("Sending M_SET_VISIBLE(%i) to %s\n", false, w->GetClass());
 								w->PostEvent(M_SET_VISIBLE, false);
-							}
 						}
 					}
 				}
@@ -574,12 +573,12 @@ GMessage::Result GPopup::OnEvent(GMessage *Msg)
 			// LgiTrace("Popup Destroyed.\n");
 			break;
 		}
+		#endif
 		case M_SET_VISIBLE:
 		{
-			Visible(Msg->a);
+			Visible(Msg->A());
 			break;
 		}
-		#endif
 	}
 	
 	return GView::OnEvent(Msg);
@@ -837,13 +836,23 @@ printf("%s:%i - GPopup::Visible(%i)\n", _FL, i);
 	}
 	else printf("%s:%i - No Wnd.\n", _FL);
 	#else
-	if (!Handle() && i)
-	{
-		#if WINNATIVE
-		SetStyle(WS_POPUP);
-		#endif
-		GView::Attach(0);
-	}
+
+	#ifdef LGI_SDL
+		GWindow *TopWnd = LgiApp->AppWnd;
+		if (i && TopWnd)
+		{
+			if (!TopWnd->HasView(this))
+				TopWnd->AddView(this);
+		}
+	#else
+		if (!Handle() && i)
+		{
+			#if WINNATIVE
+			SetStyle(WS_POPUP);
+			#endif
+			GView::Attach(0);
+		}
+	#endif
 
 	if (!_Window && Owner)
 	{
@@ -881,7 +890,8 @@ printf("%s:%i - GPopup::Visible(%i)\n", _FL, i);
 		Start = LgiCurrentTime();
 
 		GMouseHook *Hook = LgiApp->GetMouseHook();
-		if (Hook) Hook->RegisterPopup(this);
+		if (Hook)
+			Hook->RegisterPopup(this);
 
 		if (!_Window)
 		{
@@ -898,7 +908,8 @@ printf("%s:%i - GPopup::Visible(%i)\n", _FL, i);
 	else
 	{
 		GMouseHook *Hook = LgiApp->GetMouseHook();
-		if (Hook) Hook->UnregisterPopup(this);
+		if (Hook)
+			Hook->UnregisterPopup(this);
 
 		SendNotify(POPUP_HIDE);
 
@@ -915,6 +926,11 @@ printf("%s:%i - GPopup::Visible(%i)\n", _FL, i);
 		#endif
 		*/
 	}
+	#endif
+
+	#ifdef LGI_SDL
+	if (TopWnd)
+		TopWnd->Invalidate();
 	#endif
 }
 
