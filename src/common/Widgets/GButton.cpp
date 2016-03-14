@@ -319,13 +319,14 @@ bool GButton::OnKey(GKey &k)
 
 void GButton::OnClick()
 {
-	if (GetId())
+	int Id = GetId();
+	if (Id)
 	{
 		GViewI *n = GetNotify();
 		GViewI *p = GetParent();
 		GViewI *target = n ? n : p;
 		if (target)
-			target->PostEvent(M_CHANGE, (GMessage::Param)GetId());
+			target->PostEvent(M_CHANGE, (GMessage::Param)Id);
 	}
 	else
 		SendNotify();

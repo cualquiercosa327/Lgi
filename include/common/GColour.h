@@ -45,7 +45,7 @@ public:
 	
 	bool IsValid();
 	void Empty();
-	bool Transparent();
+	bool IsTransparent();
 	/// Sets the colour to a rgb(a) value
 	void Rgb(int r, int g, int b, int a = 255);
 	/// Sets the colour

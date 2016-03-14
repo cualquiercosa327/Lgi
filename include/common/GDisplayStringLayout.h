@@ -190,7 +190,7 @@ struct GDisplayStringLayout
 		
 		if (Enabled)
 		{
-			f->Transparent(Back.Transparent());
+			f->Transparent(Back.IsTransparent());
 			f->Colour(Fore, Back);
 		}
 
@@ -208,7 +208,7 @@ struct GDisplayStringLayout
 			}
 			else
 			{
-				f->Transparent(Back.Transparent());
+				f->Transparent(Back.IsTransparent());
 				f->Colour(GColour(LC_LIGHT, 24), Back);
 				s->Draw(pDC, pt.x+1, y+1, &r);
 				
@@ -221,7 +221,7 @@ struct GDisplayStringLayout
 		}
 
 		// Fill any remaining area with background...
-		if (!Back.Transparent())
+		if (!Back.IsTransparent())
 		{
 			pDC->Colour(Back);
 			for (GRect *r=Rgn.First(); r; r=Rgn.Next())

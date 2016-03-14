@@ -107,6 +107,7 @@ int GDialog::DoModal(OsView OverrideParent)
 	d->ModalStatus = -1;
 	d->IsModal = true;
 	d->PrevWindow = LgiApp->AppWnd;	
+	AttachChildren();
 	if (d->PrevWindow)
 		d->PrevWindow->PushWindow(this);
 	else

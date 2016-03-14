@@ -56,7 +56,7 @@ void GColour::Empty()
 	space = CsNone;
 }
 
-bool GColour::Transparent()
+bool GColour::IsTransparent()
 {
 	if (space == System32BitColourSpace)
 		return rgb.a == 0;

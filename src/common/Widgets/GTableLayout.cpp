@@ -1788,7 +1788,7 @@ void GTableLayout::OnPaint(GSurface *pDC)
 		else if (fill.Type == GCss::ColorTransparent)
 			Back.Empty();
 	}
-	if (!Back.Transparent())
+	if (!Back.IsTransparent())
 	{
 		pDC->Colour(Back);
 		pDC->Rectangle();

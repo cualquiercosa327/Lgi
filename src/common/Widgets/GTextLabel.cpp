@@ -258,7 +258,7 @@ void GText::OnPaint(GSurface *pDC)
 		d->Paint(pDC, f, pt, c, Fore, Back, Enabled());
 		d->Unlock();
 	}
-	else if (!Back.Transparent())
+	else if (!Back.IsTransparent())
 	{
 		pDC->Colour(Back);
 		pDC->Rectangle();

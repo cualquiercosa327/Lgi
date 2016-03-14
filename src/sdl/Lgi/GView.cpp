@@ -144,7 +144,11 @@ void GView::Quit(bool DontDelete)
 
 bool GView::IsAttached()
 {
+	#if LGI_SDL
+	return d->Parent ? d->Parent->Children.HasItem(this) : false;
+	#else
 	return _View;
+	#endif
 }
 
 bool GView::Attach(GViewI *p)
