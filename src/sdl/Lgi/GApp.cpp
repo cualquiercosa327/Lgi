@@ -621,21 +621,20 @@ void GApp::OnSDLEvent(GMessage *m)
 				default:
 				{
 					GView *v = (GView*)m->Event.user.data1;
-					printf("v=%p %s\n", v, v ? v->GetClass() : 0);
+					
+					#if 0
+					printf("SDL_USEREVENT cmd=%i v=%p/%s data2=%p\n",
+						m->Event.user.code,
+						v, v ? v->GetClass() : 0,
+						m->Event.user.data2);
+					#endif
+					
 					if (v)
 					{
-						GMessage::EventParams *p = (GMessage::EventParams*)m->Event.user.data2;
-						if (p)
-						{
-							GMessage Msg(m->Event.user.code, p->a, p->b);
-							v->OnEvent(&Msg);
-							DeleteObj(p);
-						}
-						else
-						{
-							GMessage Msg(m->Event.user.code);
-							v->OnEvent(&Msg);
-						}
+						v->OnEvent(m);
+						
+						if (m->Event.user.data2)
+							delete ((GMessage::EventParams*)m->Event.user.data2);
 					}
 					break;
 				}
@@ -1167,15 +1166,19 @@ int GMessage::Msg()
 
 GMessage::Param GMessage::A()
 {
-	if (Event.type >= SDL_USEREVENT && Event.type <= SDL_NUMEVENTS)
-		return Event.user.data1;
+	if (Event.type >= SDL_USEREVENT &&
+		Event.type <= SDL_NUMEVENTS &&
+		Event.user.data2 != NULL)
+		return ((EventParams*)Event.user.data2)->a;
 	return 0;
 }
 
 GMessage::Param GMessage::B()
 {
-	if (Event.type >= SDL_USEREVENT && Event.type <= SDL_NUMEVENTS)
-		return Event.user.data2;
+	if (Event.type >= SDL_USEREVENT &&
+		Event.type <= SDL_NUMEVENTS &&
+		Event.user.data2 != NULL)
+		return ((EventParams*)Event.user.data2)->b;
 	return 0;
 }
 
