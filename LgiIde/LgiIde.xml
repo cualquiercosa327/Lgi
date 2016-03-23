@@ -8,6 +8,12 @@
 			<Node File="../src/common/Lgi/GSubProcess.cpp" Type="2" Platforms="15" />
 			<Node File="../include/common/GSubProcess.h" Type="3" Platforms="15" />
 		</Node>
+		<Node Name="Dialogs" Type="1" Platforms="15" Open="0">
+			<Node File="./Code/AddFtpFile.cpp" Type="2" Platforms="15" />
+			<Node File="./Code/AddFtpFile.h" Type="3" Platforms="15" />
+			<Node File="./Code/WebFldDlg.cpp" Type="2" Platforms="15" />
+			<Node File="./Code/WebFldDlg.h" Type="3" Platforms="15" />
+		</Node>
 		<Node Name="Ftp" Type="1" Platforms="15" Open="0">
 			<Node File="./Code/FtpThread.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/FtpThread.h" Type="3" Platforms="15" />
@@ -27,6 +33,7 @@
 			<Node File="../src/common/Coding/GParseCpp.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/SysCharSupport.cpp" Type="2" Platforms="15" />
 		</Node>
+		<Node File="./Code/IdeCommon.cpp" Type="2" Platforms="15" />
 		<Node File="./Code/IdeDoc.cpp" Type="2" Platforms="15" />
 		<Node File="./Code/IdeDoc.h" Type="3" Platforms="15" />
 		<Node File="./Code/IdeProject.cpp" Type="2" Platforms="15" />
@@ -36,16 +43,18 @@
 		<Node File="./Code/LgiIde.h" Type="3" Platforms="15" />
 		<Node File="./Code/LgiUtils.cpp" Type="2" Platforms="15" />
 		<Node File="./Code/MemDumpViewer.cpp" Type="2" Platforms="15" />
+		<Node File="./Code/ProjectNode.cpp" Type="2" Platforms="15" />
+		<Node File="./Code/ProjectNode.h" Type="3" Platforms="15" />
 		<Node File="./Code/SpaceTabConv.cpp" Type="2" Platforms="15" />
 		<Node File="./Code/SpaceTabConv.h" Type="3" Platforms="15" />
 	</Node>
-	<Node Name="Lgi" Type="1" Platforms="15" Open="1">
+	<Node Name="Lgi" Type="1" Platforms="15" Open="0">
 		<Node File="../src/common/Text/GDocView.cpp" Type="2" Platforms="15" />
 		<Node File="../src/common/Lgi/GMdi.cpp" Type="2" Platforms="15" />
 		<Node File="../src/common/Lgi/LgiMain.cpp" Type="2" Platforms="15" />
 		<Node File="../src/common/Gdc2/Filters/Png.cpp" Type="2" Platforms="15" />
 	</Node>
-	<Node Name="Resources" Type="1" Platforms="15" Open="1">
+	<Node Name="Resources" Type="1" Platforms="15" Open="0">
 		<Node File="./Makefile.linux" Type="3" Platforms="15" />
 		<Node File="./Code/resource.h" Type="3" Platforms="15" />
 		<Node File="./Code/Script1.rc" Type="5" Platforms="15" />
@@ -68,7 +77,6 @@
 					<Debug>LgiIde.exe</Debug>
 					<Release>LgiIde.exe</Release>
 				</Windows>
-				<Haiku />
 			</Executable>
 			<Defines>
 				<Windows>
@@ -77,7 +85,6 @@ WINNATIVE</Debug>
 					<Release>WINDOWS
 WINNATIVE</Release>
 				</Windows>
-				<All />
 				<Haiku>
 					<Debug>POSIX</Debug>
 					<Release>POSIX</Release>
@@ -86,9 +93,7 @@ WINNATIVE</Release>
 			<Compiler>
 				<Windows>MingW</Windows>
 			</Compiler>
-			<Arguments>
-				<All />
-			</Arguments>
+			<Arguments />
 		</General>
 		<Build>
 			<IncludePaths>
@@ -130,7 +135,6 @@ WINNATIVE</Release>
 					<Release>`pkg-config --libs gtk+-2.0`
 -static-libgcc</Release>
 				</Linux>
-				<All />
 				<Haiku>
 					<Debug>be</Debug>
 					<Release>be</Release>
@@ -141,7 +145,6 @@ WINNATIVE</Release>
 					<Debug>..\Debug</Debug>
 					<Release>..\Release</Release>
 				</All>
-				<Haiku />
 			</LibraryPaths>
 			<TargetType>
 				<All>Executable</All>
@@ -167,7 +170,6 @@ C:\Data\CodeLib\Gtk\include\gtk-2.0\gdk</Debug>
 					<Release>C:\Data\CodeLib\Gtk\include\gtk-2.0\gtk
 C:\Data\CodeLib\Gtk\include\gtk-2.0\gdk</Release>
 				</Windows>
-				<Haiku />
 			</SystemIncludes>
 			<ApplicationIcon>
 				<Haiku>./Code/icon-haiku</Haiku>
@@ -186,11 +188,7 @@ C:\Data\CodeLib\Gtk\include\gtk-2.0\gdk</Release>
 			<UseHardTabs>
 				<All>1</All>
 			</UseHardTabs>
-			<CommentFile />
-			<CommentFunction />
 		</Editor>
-		<Advanced>
-			<OtherMakefileRules />
-		</Advanced>
+		<Advanced />
 	</Settings>
 </Project>

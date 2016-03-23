@@ -347,6 +347,8 @@ GApp::~GApp()
 	DeleteObj(GFontSystem::Me);
 	DeleteObj(d);
 	TheApp = 0;
+
+	SDL_Quit();
 }
 
 GApp *GApp::ObjInstance()
@@ -479,21 +481,41 @@ void GApp::OnSDLEvent(GMessage *m)
 			}
 			break;
 		}
+		
 		case SDL_MOUSEBUTTONUP:
 		case SDL_MOUSEBUTTONDOWN:
 		{
 			if (AppWnd)
 			{
 				GMouse ms;
-				ms.Target = AppWnd;
 				SDL_to_Mouse(ms, m->Event.button);
+
+				GViewI *v = AppWnd->WindowFromPoint(ms.x, ms.y);
+				if (v)
+				{
+					GdcPt2 p(ms.x, ms.y);
+					v->PointToView(p);
+					ms.Target = v;
+					ms.x = p.x;
+					ms.y = p.y;
+				}
+				else
+				{
+					ms.Target = AppWnd;
+				}
+				
 				ms.Left(m->Event.button.button == SDL_BUTTON_LEFT);
 				ms.Right(m->Event.button.button == SDL_BUTTON_RIGHT);
 				ms.Middle(m->Event.button.button == SDL_BUTTON_MIDDLE);
+				ms.Down(m->Event.type == SDL_MOUSEBUTTONDOWN);
 
 				GView *gv = ms.Target->GetGView();
-				if (!gv || AppWnd->HandleViewMouse(gv, ms))
-					AppWnd->_Mouse(ms, false);
+				/*
+				if (gv)
+					printf("AppWnd=%s/%p Target=%s/%p\n", AppWnd->GetClass(), AppWnd, ms.Target->GetClass(), ms.Target);
+				*/
+				if (gv)
+					gv->_Mouse(ms, false);
 			}
 			break;
 		}
@@ -579,6 +601,41 @@ void GApp::OnSDLEvent(GMessage *m)
 				{
 					// Is there any way to get the position of the mouse outside the
 					// main window in SDL v1?
+					break;
+				}
+				case M_CHANGE:
+				{
+					GView *v = (GView*)m->Event.user.data1;
+					GAutoPtr<GMessage::EventParams> p((GMessage::EventParams*)m->Event.user.data2);
+					if (p && AppWnd && v)
+					{
+						GViewI *Ctrl;
+						if (AppWnd->GetViewById((int)p->a, Ctrl))
+							v->OnNotify(Ctrl, (int)p->b);
+						else
+							printf("%s:%i - Can't find ctrl %i\n", _FL, (int)p->a);
+					}
+					else printf("%s:%i - Param error\n", _FL);
+					break;
+				}
+				default:
+				{
+					GView *v = (GView*)m->Event.user.data1;
+					
+					#if 0
+					printf("SDL_USEREVENT cmd=%i v=%p/%s data2=%p\n",
+						m->Event.user.code,
+						v, v ? v->GetClass() : 0,
+						m->Event.user.data2);
+					#endif
+					
+					if (v)
+					{
+						v->OnEvent(m);
+						
+						if (m->Event.user.data2)
+							delete ((GMessage::EventParams*)m->Event.user.data2);
+					}
 					break;
 				}
 			}
@@ -982,7 +1039,9 @@ bool GApp::InvalidateRect(GRect &r)
 		SDL_Event e;
 		e.type = SDL_USEREVENT;
 		e.user.code = M_INVALIDATE;
-		return SDL_PushEvent(&e) == 0;
+		e.user.data1 = AppWnd;
+		e.user.data2 = NULL;
+		SDL_PushEvent(&e);
 	}
 	
 	return true;
@@ -996,6 +1055,7 @@ bool GApp::PushWindow(GWindow *w)
 	if (AppWnd)
 		d->Stack.Add(AppWnd);
 	
+	// printf("Pushing %s, new AppWnd=%s %p\n", AppWnd?AppWnd->GetClass():0, w?w->GetClass():0, w);
 	AppWnd = w;
 	return true;
 }
@@ -1008,8 +1068,11 @@ GWindow *GApp::PopWindow()
 		return NULL;
 	}
 	
-	AppWnd = d->Stack.Last();
 	d->Stack.Length(d->Stack.Length()-1);
+	AppWnd = d->Stack.Last();
+
+	// printf("Popping AppWnd=%s\n", AppWnd?AppWnd->GetClass():0);
+
 	return AppWnd;
 }
 
@@ -1018,6 +1081,8 @@ Uint32 SDL_MouseCapture(Uint32 interval, GView *v)
 	SDL_Event e;
 	e.type = SDL_USEREVENT;
 	e.user.code = M_MOUSE_CAPTURE_POLL;
+	e.user.data1 = NULL;
+	e.user.data2 = NULL;
 	SDL_PushEvent(&e);
 	return MOUSE_CAPTURE_POLL;
 }
@@ -1078,8 +1143,11 @@ void GMessage::Set(int m, Param pa, Param pb)
 {
 	Event.type = SDL_USEREVENT;
 	Event.user.code = m;
-	Event.user.data1 = pa;
-	Event.user.data2 = pb;
+	Event.user.data1 = NULL;
+	if (pa || pb)
+		Event.user.data2 = new EventParams(pa, pb);
+	else
+		Event.user.data2 = NULL;
 }
 
 bool GMessage::Send(OsView Wnd)
@@ -1098,15 +1166,19 @@ int GMessage::Msg()
 
 GMessage::Param GMessage::A()
 {
-	if (Event.type >= SDL_USEREVENT && Event.type <= SDL_NUMEVENTS)
-		return Event.user.data1;
+	if (Event.type >= SDL_USEREVENT &&
+		Event.type <= SDL_NUMEVENTS &&
+		Event.user.data2 != NULL)
+		return ((EventParams*)Event.user.data2)->a;
 	return 0;
 }
 
 GMessage::Param GMessage::B()
 {
-	if (Event.type >= SDL_USEREVENT && Event.type <= SDL_NUMEVENTS)
-		return Event.user.data2;
+	if (Event.type >= SDL_USEREVENT &&
+		Event.type <= SDL_NUMEVENTS &&
+		Event.user.data2 != NULL)
+		return ((EventParams*)Event.user.data2)->b;
 	return 0;
 }
 

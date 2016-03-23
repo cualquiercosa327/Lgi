@@ -3,6 +3,9 @@
 
 const GColour GColour::Black(0, 0, 0);
 const GColour GColour::White(255, 255, 255);
+const GColour GColour::Red(255, 0, 0);
+const GColour GColour::Green(0, 222, 0);
+const GColour GColour::Blue(0, 0, 255);
 
 GColour::GColour()
 {
@@ -53,7 +56,7 @@ void GColour::Empty()
 	space = CsNone;
 }
 
-bool GColour::Transparent()
+bool GColour::IsTransparent()
 {
 	if (space == System32BitColourSpace)
 		return rgb.a == 0;

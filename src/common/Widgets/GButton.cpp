@@ -206,6 +206,7 @@ void GButton::OnMouseClick(GMouse &m)
 	{
 		bool Click = IsCapturing();
 		Capture(m.Down());
+		
 		if (Click ^ m.Down())
 		{
 			if (d->Over)
@@ -318,8 +319,15 @@ bool GButton::OnKey(GKey &k)
 
 void GButton::OnClick()
 {
-	if (GetId())
-		PostEvent(M_CHANGE, (GMessage::Param)GetId());
+	int Id = GetId();
+	if (Id)
+	{
+		GViewI *n = GetNotify();
+		GViewI *p = GetParent();
+		GViewI *target = n ? n : p;
+		if (target)
+			target->PostEvent(M_CHANGE, (GMessage::Param)Id);
+	}
 	else
 		SendNotify();
 }

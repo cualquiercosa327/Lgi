@@ -50,11 +50,11 @@ public:
 	}
 };
 
-GMemDC::GMemDC(int x, int y, GColourSpace cs)
+GMemDC::GMemDC(int x, int y, GColourSpace cs, int flags)
 {
 	d = new GMemDCPrivate;
 	if (cs != CsNone)
-		Create(x, y, cs);
+		Create(x, y, cs, flags);
 }
 
 GMemDC::GMemDC(GSurface *pDC)

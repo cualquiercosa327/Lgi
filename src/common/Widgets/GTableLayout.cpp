@@ -32,7 +32,7 @@ enum CellFlag
 #include "GCss.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
-// #define DEBUG_LAYOUT		546
+// #define DEBUG_LAYOUT		20
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
@@ -855,6 +855,12 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 				Flags = SizeFill;
 			else
 				Pos.y2 += c->Inf.Height.Max - 1;
+
+			GRect r = v->GetPos();
+			int Px = min(Width, c->Inf.Width.Max);
+			r.x2 = r.x1 + Px - 1;
+			v->SetPos(r);
+
 			c->IsLayout = true;
 		}
 		else if (Izza(GScrollBar))
@@ -993,6 +999,7 @@ void TableCell::PostLayout()
 
 		if (Cx + r.X() > Pos.X())
 		{
+			// Do wrapping
 			int Wid = Cx - Table->d->BorderSpacing;
 			int OffsetX = 0;
 			if (TextAlign().Type == AlignCenter)
@@ -1431,7 +1438,10 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 					c->Cell.Y() == 1)
 				{
 					int x = CountRange(MinCol, c->Cell.x1, c->Cell.x2) + ((c->Cell.X() - 1) * BorderSpacing);
-					c->Layout(x, MinRow[Cy], MaxRow[Cy], RowFlags[Cy]);
+					int &Min = MinRow[Cy];
+					int &Max = MaxRow[Cy];
+					CellFlag &Flags = RowFlags[Cy];
+					c->Layout(x, Min, Max, Flags);
 				}
 
 				Cx += c->Cell.X();
@@ -1655,7 +1665,12 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	InitBorderSpacing();
     
     #if DEBUG_LAYOUT
-    DebugLayout = Ctrl->GetId() == DEBUG_LAYOUT;
+    int CtrlId = Ctrl->GetId();
+    DebugLayout = CtrlId == DEBUG_LAYOUT;
+    if (DebugLayout)
+    {
+		int asd=0;
+    }
     #endif
 
 	#if DEBUG_PROFILE
@@ -1773,7 +1788,7 @@ void GTableLayout::OnPaint(GSurface *pDC)
 		else if (fill.Type == GCss::ColorTransparent)
 			Back.Empty();
 	}
-	if (!Back.Transparent())
+	if (!Back.IsTransparent())
 	{
 		pDC->Colour(Back);
 		pDC->Rectangle();
@@ -1791,17 +1806,22 @@ void GTableLayout::OnPaint(GSurface *pDC)
 	#endif
 
 	#if DEBUG_DRAW_CELLS
-	pDC->LineStyle(GSurface::LineDot);
-	for (int i=0; i<d->Cells.Length(); i++)
+	#if defined(DEBUG_LAYOUT)
+	if (GetId() == DEBUG_LAYOUT)
+	#endif
 	{
-		TableCell *c = d->Cells[i];
-		GRect r = c->Pos;
-		pDC->Colour(c->Debug ? Rgb24(255, 222, 0) : Rgb24(192, 192, 222), 24);
-		pDC->Box(&r);
-		pDC->Line(r.x1, r.y1, r.x2, r.y2);
-		pDC->Line(r.x2, r.y1, r.x1, r.y2);
+		pDC->LineStyle(GSurface::LineDot);
+		for (int i=0; i<d->Cells.Length(); i++)
+		{
+			TableCell *c = d->Cells[i];
+			GRect r = c->Pos;
+			pDC->Colour(c->Debug ? Rgb24(255, 222, 0) : Rgb24(192, 192, 222), 24);
+			pDC->Box(&r);
+			pDC->Line(r.x1, r.y1, r.x2, r.y2);
+			pDC->Line(r.x2, r.y1, r.x1, r.y2);
+		}
+		pDC->LineStyle(GSurface::LineSolid);
 	}
-	pDC->LineStyle(GSurface::LineSolid);
 	#endif
 }
 
@@ -1894,7 +1914,9 @@ int GTableLayout::OnNotify(GViewI *c, int f)
 {
     if (f == GNotifyTableLayout_Refresh)
     {
+		int Id = GetId();
         OnPosChange();
+        return 0;
     }
 
     return GLayout::OnNotify(c, f);

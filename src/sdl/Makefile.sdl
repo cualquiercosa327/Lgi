@@ -6,8 +6,8 @@
 
 .SILENT :
 
-CC = gcc
-CPP = g++
+CC = arm-linux-gnueabihf-gcc
+CPP = arm-linux-gnueabihf-g++
 Target = lgi_sdl
 ifndef Build
 	Build = Debug
@@ -15,28 +15,41 @@ endif
 BuildDir = $(Build)
 
 Flags = -fPIC -w -fno-inline -fpermissive
-Defs = -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64 -DPOSIX -DLGI_LIBRARY -DHAS_FILE_CMD=1
 
 ifeq ($(Build),Debug)
-	Defs += -D_DEBUG
 	Flags += -g
 	Tag = d
+	Defs = -D_DEBUG -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64 -DPOSIX -DLGI_LIBRARY -DHAS_FILE_CMD=1
+	Libs =  \
+		--sysroot=$(HOME)/rpi \
+		-L/usr/lib \
+		-L/usr/lib/arm-linux-gnueabihf \
+		-L/rpi/lib \
+		-L/lib/arm-linux-gnueabihf \
+		-L/opt/vc/lib \
+		-lSDL \
+		-lfreetype
+	Inc =  \
+		-I../../include/common \
+		-I../../include/sdl \
+		-I$(HOME)/rpi/usr/include \
+		-I$(HOME)/rpi/usr/include/SDL \
+		-I$(HOME)/rpi/usr/include/freetype2 \
+		-I$(HOME)/rpi/usr/include/arm-linux-gnueabihf
 else
 	Flags += -s -Os
+	Defs = -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64 -DPOSIX -DLGI_LIBRARY -DHAS_FILE_CMD=1
+	Libs =  \
+		-L/opt/cross/lib \
+		-lSDL \
+		-lfreetype
+	Inc =  \
+		-I../../include/common \
+		-I../../include/sdl \
+		-I/media/rpi-include/SDL \
+		-I/media/rpi-include/freetype2 \
+		-I/media/include/arm-linux-gnueabihf
 endif
-
-# Libraries
-Libs = \
-	-lSDL \
-	-lfreetype \
-	-static-libgcc
-
-# Includes
-Inc = \
-	-I../../include/common \
-	-I../../include/sdl \
-	-I/usr/include/freetype2 \
-	-I/usr/include/SDL
 
 # Dependencies
 Depends =	GDateTime.o \
@@ -148,11 +161,10 @@ Depends =	GDateTime.o \
 TargetFile = lib$(Target)$(Tag).so
 $(TargetFile) : outputfolder $(Depends)
 	@echo Linking $(TargetFile) [$(Build)]...
-	$(CPP)$s -shared \
-		 \
-		-o $(BuildDir)/$(TargetFile) \
+	$(CPP) -shared -o $(BuildDir)/$(TargetFile) \
 		$(addprefix $(BuildDir)/,$(Depends)) \
 		$(Libs)
+	cp $(BuildDir)/$(TargetFile) /media/rpi-home/Code/Lgi/trunk/src/sdl/$(Build)
 	@echo Done.
 
 # Create the output folder
@@ -209,7 +221,8 @@ GApp.o : ./Lgi/GApp.cpp ../../include/common/Lgi.h \
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GPrinter.o : ./Lgi/GPrinter.cpp ../../include/common/Lgi.h \
-	../../include/common/Base64.h
+	../../include/common/Base64.h \
+	../../include/common/GPrinter.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -793,7 +806,9 @@ GTabView.o : ../common/Widgets/GTabView.cpp ../../include/common/Lgi.h \
 
 GTextLabel.o : ../common/Widgets/GTextLabel.cpp ../../include/common/Lgi.h \
 	../../include/common/GTextLabel.h \
-	../../include/common/GDisplayStringLayout.h
+	../../include/common/GDisplayStringLayout.h \
+	../../include/common/GVariant.h \
+	../../include/common/GNotifications.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -812,7 +827,8 @@ GToolBar.o : ../common/Widgets/GToolBar.cpp ../../include/common/Lgi.h \
 	../../include/common/GToken.h \
 	../../include/common/GVariant.h \
 	../../include/common/GDisplayString.h \
-	../../include/common/GPalette.h
+	../../include/common/GPalette.h \
+	../../include/common/GNotifications.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -973,6 +989,8 @@ md5.o : ../common/Hash/md5/md5.c
 	../../include/common/GNotifications.h
 
 ../../include/common/GArray.h : ../../include/common/LgiDefs.h
+
+../../include/common/GPrinter.h : 
 
 ../../include/common/GEdit.h : ../../include/common/GTextView3.h
 
@@ -1144,8 +1162,7 @@ md5.o : ../common/Hash/md5/md5.c
 	../../include/common/GFindReplaceDlg.h \
 	../../include/common/GToolBar.h \
 	../../include/common/GThread.h \
-	../../include/common/GInput.h \
-	../../include/common/GPrinter.h
+	../../include/common/GInput.h
 
 ../../include/common/LgiCommon.h : ../../include/common/GMem.h \
 	../../include/common/GArray.h \
@@ -1171,6 +1188,8 @@ md5.o : ../common/Hash/md5/md5.c
 
 ../../include/common/GFindReplaceDlg.h : 
 
+../../include/common/GNotifications.h : 
+
 ../../include/common/GMru.h : ../../include/common/GProperties.h
 
 ../../include/common/GClipBoard.h : 
@@ -1192,8 +1211,6 @@ md5.o : ../common/Hash/md5/md5.c
 	../../include/common/GNotifications.h
 
 ../../include/common/GTextLabel.h : 
-
-../../include/common/GPrinter.h : 
 
 ../../include/common/GUnicode.h : ../../include/common/LgiInc.h
 

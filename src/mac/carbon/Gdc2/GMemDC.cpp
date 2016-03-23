@@ -201,14 +201,14 @@ public:
 	}
 };
 
-GMemDC::GMemDC(int x, int y, GColourSpace cs)
+GMemDC::GMemDC(int x, int y, GColourSpace cs, int flags)
 {
 	d = new GMemDCPrivate;
 	pMem = 0;
 
 	if (x && y && cs)
 	{
-		Create(x, y, cs);
+		Create(x, y, cs, flags);
 	}
 }
 

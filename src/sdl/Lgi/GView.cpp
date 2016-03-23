@@ -144,7 +144,11 @@ void GView::Quit(bool DontDelete)
 
 bool GView::IsAttached()
 {
+	#if LGI_SDL
+	return d->Parent ? d->Parent->Children.HasItem(this) : false;
+	#else
 	return _View;
+	#endif
 }
 
 bool GView::Attach(GViewI *p)
@@ -242,15 +246,38 @@ bool LgiToWindowsCursor(LgiCursor Cursor)
 
 void GView::PointToScreen(GdcPt2 &p)
 {
+	for (GViewI *i = this; i; i = i->GetParent())
+	{
+		GRect pos = i->GetPos();
+		// const char *cls = i->GetClass();
+		p.x += pos.x1;
+		p.y += pos.y1;
+	}
 }
 
 void GView::PointToView(GdcPt2 &p)
 {
+	for (GViewI *i = this; i; i = i->GetParent())
+	{
+		GRect pos = i->GetPos();
+		// const char *cls = i->GetClass();
+		p.x -= pos.x1;
+		p.y -= pos.y1;
+	}
 }
 
 bool GView::GetMouse(GMouse &m, bool ScreenCoords)
 {
-	return false;
+	Uint8 btn = SDL_GetMouseState(&m.x, &m.y);
+	m.Left((SDL_BUTTON(SDL_BUTTON_LEFT) & btn) != 0);
+	m.Middle((SDL_BUTTON(SDL_BUTTON_MIDDLE) & btn) != 0);
+	m.Right((SDL_BUTTON(SDL_BUTTON_RIGHT) & btn) != 0);
+	m.Down(m.Left() || m.Middle() || m.Right());
+	if (m.Down() && !btn)
+	{
+		int asd=0;
+	}
+	return true;
 }
 
 bool GView::SetPos(GRect &p, bool Repaint)
@@ -322,6 +349,7 @@ Uint32 SDL_PulseCallback(Uint32 interval, GView *v)
 	e.type = SDL_USEREVENT;
 	e.user.code = M_PULSE;
 	e.user.data1 = v;
+	e.user.data2 = NULL;
 	SDL_PushEvent(&e);
 	return v->d->PulseLength;
 }
@@ -414,15 +442,9 @@ GView *&GView::PopupChild()
 
 bool GView::_Mouse(GMouse &m, bool Move)
 {
-	if
-	(
-		GetWindow()
-		&&
-		!GetWindow()->HandleViewMouse(this, m)
-	)
-	{
+	GWindow *Wnd = GetWindow();
+	if (Wnd && !Wnd->HandleViewMouse(this, m))
 		return false;
-	}
 
 	GViewI *o = WindowFromPoint(m.x, m.y);
 	if (_Over != o)

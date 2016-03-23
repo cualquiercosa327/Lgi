@@ -19,6 +19,27 @@ enum ExeAction
 	ExeValgrind
 };
 
+enum AppCommands
+{
+	IDM_INSERT = 100,
+	IDM_NEW_FOLDER,
+	IDM_RENAME,
+	IDM_DELETE,
+	IDM_SETTINGS,
+	IDM_INSERT_DEP,
+	IDM_SORT_CHILDREN,
+	IDM_PROPERTIES,
+	IDM_BROWSE_FOLDER,
+	IDM_OPEN_TERM,
+	IDM_IMPORT_FOLDER,
+	IDM_WEB_FOLDER,
+	IDM_INSERT_FTP,
+	IDM_BUILD_PROJECT,
+	IDM_CLEAN_PROJECT
+};
+
+extern int PlatformCtrlId[];
+
 class AppWnd;
 class IdeProject;
 class IdeCommon : public GTreeItem, public GXmlTag
@@ -32,6 +53,7 @@ public:
 	IdeCommon(IdeProject *p);
 	~IdeCommon();
 
+	IdeProject *GetProject() { return Project; }
 	bool OnOpen(GXmlTag *Src);	
 	void CollectAllSubProjects(List<IdeProject> &c);
 	void CollectAllSource(GArray<char*> &c, IdePlatform Platform);
@@ -40,6 +62,7 @@ public:
 	void RemoveTag();
 	virtual bool IsWeb() = 0;	
 	virtual int GetPlatforms() = 0;
+	bool AddFiles(const char *Path);
 	IdeCommon *GetSubFolder(IdeProject *Project, char *Name, bool Create = false);
 };
 
@@ -51,6 +74,7 @@ enum ProjSetting
 	ProjArgs,
 	ProjDefines,
 	ProjCompiler,
+	ProjCrossCompiler,
 	ProjIncludePaths,
 	ProjSystemIncludes,
 	ProjLibraries,
@@ -166,7 +190,7 @@ public:
 	void Empty();
 	GAutoString GetMakefile();
 	bool GetExePath(char *Path, int Len);
-	bool RelativePath(char *Out, char *In, bool Debug = false);
+	bool RelativePath(char *Out, const char *In, bool Debug = false);
 	void Build(bool All, bool Release);
 	void StopBuild();
 	void Clean(bool Release);

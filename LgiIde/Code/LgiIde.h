@@ -118,6 +118,8 @@ enum IdePlatform
 
 extern const char *PlatformNames[];
 extern const char sCurrentPlatform[];
+extern const char *Untitled;
+extern const char SourcePatterns[];
 
 //////////////////////////////////////////////////////////////////////
 class IdeDoc;

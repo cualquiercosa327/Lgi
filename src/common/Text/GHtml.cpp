@@ -5970,7 +5970,7 @@ void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderP
 {
 	GArray<GRect> r;
 	GRect BorderPxRc;
-	bool DrawBackground = !Back.Transparent();
+	bool DrawBackground = !Back.IsTransparent();
 
 	#ifdef _DEBUG
 	if (Debug)
@@ -6507,8 +6507,8 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection, uint16 Depth)
 						f->Colour(LC_FOCUS_SEL_FORE, LC_FOCUS_SEL_BACK); \
 					else \
 					{ \
-						GColour bk(back.Transparent() ? GColour(LC_WORKSPACE, 24) : back);			\
-						GColour fr(fore.Transparent() ? GColour(DefaultTextColour, 32) : fore);		\
+						GColour bk(back.IsTransparent() ? GColour(LC_WORKSPACE, 24) : back);			\
+						GColour fr(fore.IsTransparent() ? GColour(DefaultTextColour, 32) : fore);		\
 						if (IsEditor)																\
 							bk = bk.Mix(GColour(0, 0, 0), 0.05f);									\
 						f->Colour(fr, bk);															\

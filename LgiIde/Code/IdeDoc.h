@@ -81,7 +81,7 @@ public:
 	void SetProject(IdeProject *p);	
 	IdeProject *GetProject();
 	char *GetFileName();
-	void SetFileName(char *f, bool Write);
+	void SetFileName(const char *f, bool Write);
 	void Focus(bool f);
 	bool SetClean();
 	void SetDirty();

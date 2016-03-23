@@ -55,6 +55,8 @@ endif
 Depends =	GDebugContext.o \
 			GDebugger.o \
 			GSubProcess.o \
+			AddFtpFile.o \
+			WebFldDlg.o \
 			FtpThread.o \
 			IFtp.o \
 			FindInFiles.o \
@@ -63,12 +65,14 @@ Depends =	GDebugContext.o \
 			GLexCpp.o \
 			GParseCpp.o \
 			SysCharSupport.o \
+			IdeCommon.o \
 			IdeDoc.o \
 			IdeProject.o \
 			IdeProjectSettings.o \
 			LgiIde.o \
 			LgiUtils.o \
 			MemDumpViewer.o \
+			ProjectNode.o \
 			SpaceTabConv.o \
 			GDocView.o \
 			GMdi.o \
@@ -889,6 +893,20 @@ GSubProcess.o : ../src/common/Lgi/GSubProcess.cpp ../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
+AddFtpFile.o : ./Code/AddFtpFile.cpp ../include/common/Lgi.h \
+	./Code/AddFtpFile.h \
+	./Code/resdefs.h \
+	./Code/FtpFile.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+WebFldDlg.o : ./Code/WebFldDlg.cpp ../include/common/Lgi.h \
+	./Code/WebFldDlg.h \
+	./Code/resdefs.h \
+	../include/common/INet.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
 FtpThread.o : ./Code/FtpThread.cpp ../include/common/Lgi.h \
 	./Code/FtpThread.h
 	@echo $(<F) [$(Build)]
@@ -949,6 +967,13 @@ SysCharSupport.o : ./Code/SysCharSupport.cpp ../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
+IdeCommon.o : ./Code/IdeCommon.cpp ../include/common/Lgi.h \
+	./Code/LgiIde.h \
+	./Code/resdefs.h \
+	./Code/ProjectNode.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
 IdeDoc.o : ./Code/IdeDoc.cpp ../include/common/Lgi.h \
 	./Code/LgiIde.h \
 	../include/common/GToken.h \
@@ -972,7 +997,9 @@ IdeProject.o : ./Code/IdeProject.cpp ../include/common/Lgi.h \
 	./Code/FtpThread.h \
 	../include/common/GClipBoard.h \
 	../include/common/GDropFiles.h \
-	../include/common/GSubProcess.h
+	../include/common/GSubProcess.h \
+	./Code/ProjectNode.h \
+	./Code/WebFldDlg.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -984,7 +1011,8 @@ IdeProjectSettings.o : ./Code/IdeProjectSettings.cpp ../include/common/Lgi.h \
 	../include/common/GTextLabel.h \
 	../include/common/GEdit.h \
 	../include/common/GCheckBox.h \
-	../include/common/GCombo.h
+	../include/common/GCombo.h \
+	../include/common/GButton.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -1024,6 +1052,18 @@ MemDumpViewer.o : ./Code/MemDumpViewer.cpp ../include/common/Lgi.h \
 	../include/common/GEdit.h \
 	../include/common/GProgressDlg.h \
 	../include/common/GList.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+ProjectNode.o : ./Code/ProjectNode.cpp ../include/common/Lgi.h \
+	./Code/LgiIde.h \
+	./Code/IdeProject.h \
+	./Code/ProjectNode.h \
+	./Code/AddFtpFile.h \
+	../include/common/GToken.h \
+	../include/common/GCombo.h \
+	./Code/WebFldDlg.h \
+	../include/common/GClipBoard.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -3514,6 +3554,14 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GButton.h \
 	../include/common/GTableLayout.h
 
+./Code/AddFtpFile.h : ./Code/FtpThread.h
+
+./Code/FtpThread.h : ../include/common/GList.h \
+	../include/common/IFtp.h
+
+../include/common/IFtp.h : ../include/common/INet.h \
+	../include/common/GDateTime.h
+
 ../include/common/GVariant.h : ../include/common/GDom.h \
 	../include/common/GDateTime.h \
 	../include/common/GContainers.h \
@@ -3896,7 +3944,11 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../../../../../../usr/include/glib-2.0/glib/gthread.h : /usr/include/glib-2.0/glib/gatomic.h \
 	/usr/include/glib-2.0/glib/gerror.h
 
-../include/common/GMenuImpl.h : ../include/common/GPopup.h
+./Code/ProjectNode.h : ./Code/FtpThread.h
+
+./Code/FtpFile.h : ../include/common/GListItemCheckBox.h
+
+../include/common/GListItemCheckBox.h : ../include/common/GList.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkseparatortoolitem.h : /usr/include/gtk-2.0/gtk/gtktoolitem.h
 
@@ -3909,6 +3961,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../../../../../../usr/include/gtk-2.0/gtk/gtkdebug.h : /usr/include/glib-2.0/glib.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtktipsquery.h : /usr/include/gtk-2.0/gtk/gtk.h
+
+../include/common/GMenuImpl.h : ../include/common/GPopup.h
 
 ./Code/GDebugger.h : ../include/common/GVariant.h \
 	../include/common/GStringClass.h
@@ -4079,6 +4133,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkcellrendereraccel.h : /usr/include/gtk-2.0/gtk/gtkcellrenderertext.h
 
+./Code/WebFldDlg.h : 
+
 ../../../../../../usr/include/glib-2.0/glib/gmarkup.h : /usr/include/glib-2.0/glib/gerror.h \
 	/usr/include/glib-2.0/glib/gslist.h
 
@@ -4153,9 +4209,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ./Code/FtpThread.h : ../include/common/GList.h \
 	../include/common/IFtp.h
-
-../include/common/IFtp.h : ../include/common/INet.h \
-	../include/common/GDateTime.h
 
 ../src/common/Gdc2/Filters/GFilter.cpp : ../include/common/Gdc2.h \
 	../include/common/GString.h \

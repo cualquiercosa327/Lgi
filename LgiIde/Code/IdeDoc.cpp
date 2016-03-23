@@ -446,7 +446,7 @@ public:
 	char *GetDisplayName();
 	bool IsFile(const char *File);
 	char *GetLocalFile();
-	void SetFileName(char *f);
+	void SetFileName(const char *f);
 	bool Load();
 	bool Save();
 	void OnSaveComplete(bool Status);
@@ -1040,7 +1040,7 @@ char *IdeDocPrivate::GetLocalFile()
 	return FileName;
 }
 
-void IdeDocPrivate::SetFileName(char *f)
+void IdeDocPrivate::SetFileName(const char *f)
 {
 	if (nSrc)
 	{
@@ -1109,8 +1109,7 @@ enum
 	IDM_SAVE = 100,
 	IDM_COPY_FILE,
 	IDM_COPY_PATH,
-	IDM_BROWSE,
-	IDM_PROPERTIES
+	IDM_BROWSE
 };
 
 void IdeDoc::OnLineChange(int Line)
@@ -1312,7 +1311,7 @@ char *IdeDoc::GetFileName()
 	return d->GetLocalFile();
 }
 
-void IdeDoc::SetFileName(char *f, bool Write)
+void IdeDoc::SetFileName(const char *f, bool Write)
 {
 	if (Write)
 	{
