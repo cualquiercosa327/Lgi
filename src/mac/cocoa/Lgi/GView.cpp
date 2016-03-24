@@ -900,7 +900,13 @@ bool GView::Detach()
 	bool Status = false;
 
 	// Detach view
-	_Window = NULL;
+	if (_Window)
+	{
+		GWindow *Wnd = dynamic_cast<GWindow*>(_Window);
+		if (Wnd)
+			Wnd->SetFocus(this, GWindow::ViewDelete);
+		_Window = NULL;
+	}
 	if (d->Parent)
 	{
 		// Remove the view from the parent

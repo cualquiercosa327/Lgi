@@ -498,6 +498,10 @@ void GView::_Delete()
 	GWindow *Wnd = GetWindow();
 	if (Wnd)
 	{
+		if (WndFlags & GWF_FOCUS)
+		{
+			int asd=0;
+		}
 		Wnd->SetFocus(this, GWindow::ViewDelete);
 	}
 
@@ -686,7 +690,13 @@ bool GView::Detach()
 {
 	bool Status = false;
 
-	_Window = NULL;
+	if (_Window)
+	{
+		GWindow *Wnd = dynamic_cast<GWindow*>(_Window);
+		if (Wnd)
+			Wnd->SetFocus(this, GWindow::ViewDelete);
+		_Window = NULL;
+	}
 	if (d->Parent)
 	{
 		Visible(false);

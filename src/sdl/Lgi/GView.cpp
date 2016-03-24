@@ -197,7 +197,13 @@ bool GView::Detach()
 {
 	bool Status = false;
 
-	_Window = NULL;
+	if (_Window)
+	{
+		GWindow *Wnd = dynamic_cast<GWindow*>(_Window);
+		if (Wnd)
+			Wnd->SetFocus(this, GWindow::ViewDelete);
+		_Window = NULL;
+	}
 	if (d->Parent)
 	{
 		Visible(false);

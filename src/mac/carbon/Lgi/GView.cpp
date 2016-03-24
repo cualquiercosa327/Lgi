@@ -1910,14 +1910,16 @@ bool GView::Detach()
 	bool Status = false;
 
 	// Detach view
-	_Window = NULL;
+	if (_Window)
+	{
+		GWindow *Wnd = dynamic_cast<GWindow*>(_Window);
+		if (Wnd)
+			Wnd->SetFocus(this, GWindow::ViewDelete);
+		_Window = NULL;
+	}
+
 	if (d->Parent)
 	{
-		GWindow *wnd = GetWindow();
-		if (wnd && wnd->GetFocus() == this)
-			wnd->SetFocus(this, GWindow::ViewDelete);
-		_Window = NULL;
-		
 		// Remove the view from the parent
 		DetachChildren(_View);
 		HIViewRemoveFromSuperview(_View);

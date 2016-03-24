@@ -900,7 +900,14 @@ bool GView::Detach()
 	ThreadCheck();
 	
 	// Detach view
-	_Window = NULL;
+	if (_Window)
+	{
+		GWindow *Wnd = dynamic_cast<GWindow*>(_Window);
+		if (Wnd)
+			Wnd->SetFocus(this, GWindow::ViewDelete);
+		_Window = NULL;
+	}
+
 	GViewI *Par = GetParent();
 	if (Par)
 	{
