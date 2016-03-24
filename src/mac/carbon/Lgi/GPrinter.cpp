@@ -82,10 +82,11 @@ bool GPrinter::Print(GPrintEvents *Events, const char *PrintJobName, int MaxPage
 	Boolean Changed = false;
 	GAutoPtr<GPrintDC> dc;
 	int Pages;
-	GPrintDC::Params Params;
-	PMPrinter CurrentPrinter = NULL;
+	GPrintDcParams Params;
 	double paperWidth, paperHeight;
 	PMPaper Paper = NULL;
+	UInt32 ResCount;
+	PMPrinter CurrentPrinter = NULL;
 
 	OSStatus e = PMCreateSession(&ps);
 	ErrCheck("PMCreateSession");
@@ -121,13 +122,24 @@ bool GPrinter::Print(GPrintEvents *Events, const char *PrintJobName, int MaxPage
 	
 	e = PMSessionGetCGGraphicsContext(ps, &Params.Ctx);
 	ErrCheck("PMSessionGetCGGraphicsContext");
-	
+
 	e = PMSessionGetCurrentPrinter(ps, &CurrentPrinter);
 	ErrCheck("PMSessionGetCurrentPrinter");
 	
 	e = PMGetPageFormatPaper(PageFmt, &Paper);
 	e = PMPaperGetWidth(Paper, &paperWidth);
 	e = PMPaperGetHeight(Paper, &paperHeight);
+	
+	e = PMPrinterGetPrinterResolutionCount(CurrentPrinter, &ResCount);
+	ErrCheck("PMPrinterGetPrinterResolutionCount");
+	
+	for (unsigned i=0; i<ResCount; i++)
+	{
+		e = PMPrinterGetIndexedPrinterResolution(CurrentPrinter, i, &Params.Dpi);
+	}
+	
+	e = PMPrinterSetOutputResolution(CurrentPrinter, PrintSettings, &Params.Dpi);
+	ErrCheck("PMPrinterSetOutputResolution");
 	
 	dc.Reset(new GPrintDC(&Params, PrintJobName));
 	Pages = Events->OnBeginPrint(dc);
@@ -143,6 +155,7 @@ bool GPrinter::Print(GPrintEvents *Events, const char *PrintJobName, int MaxPage
 
 			dc.Reset(new GPrintDC(&Params, PrintJobName));
 		}
+		
 		Status |= Events->OnPrintPage(dc, Page);
 		PMSessionEndPage(ps);
 	}
@@ -150,9 +163,10 @@ bool GPrinter::Print(GPrintEvents *Events, const char *PrintJobName, int MaxPage
 	e = PMSessionEndDocumentNoDialog(ps);
 	ErrCheck("PMSessionEndDocumentNoDialog");
 
+	return Status;
 
 OnError:
-	CFRelease(PrintSettings);
-	CFRelease(ps);
+	PMRelease(PrintSettings);
+	PMRelease(ps);
 	return Status;
 }

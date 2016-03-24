@@ -8,7 +8,9 @@
 **		fret@memecode.com
 */
 
+#ifndef WIN32
 #define _WIN32_WINNT	0x500
+#endif
 
 //////////////////////////////////////////////////////////////////////
 // Includes
@@ -28,6 +30,8 @@
 #ifdef FontChange
 #undef FontChange
 #endif
+
+#define MAC_FONT_SIZE_OFFSET	0
 
 //////////////////////////////////////////////////////////////////////
 // Helpers
@@ -1246,7 +1250,7 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 		OSStatus e;
 
 		if (this == SysFont)
-			printf("%s:%i - WARNING: you are re-creating the system font... this is bad!!!!\n", _FL);
+			LgiTrace("%s:%i - WARNING: you are re-creating the system font... this is bad!!!!\n", _FL);
 
 		#if USE_CORETEXT
 
@@ -1256,45 +1260,34 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 					CFRelease(d->Attributes);
 
 				CGFloat Size = PointSize();
-				#if 1
+				GString sFamily(Face());
+				GString sBold("Bold");
+				int keys = 1;
+				CFStringRef key[5]  = {	kCTFontFamilyNameAttribute };
+				CFTypeRef values[5] = {	sFamily.CreateStringRef() };
+
+				if (Bold())
 				{
-					GString sFamily(Face());
-					GString sBold("Bold");
-					int keys = 1;
-					CFStringRef key[5] = {	kCTFontFamilyNameAttribute };
-					CFTypeRef values[5] = {	sFamily.CreateStringRef() };
+					key[keys] = kCTFontStyleNameAttribute;
+					values[keys++] = sBold.CreateStringRef();
+				}
 
-					if (Bold())
+				CFDictionaryRef FontAttrD = CFDictionaryCreate(	kCFAllocatorDefault,
+																(const void**)&key,
+																(const void**)&values,
+																keys,
+																&kCFTypeDictionaryKeyCallBacks,
+																&kCFTypeDictionaryValueCallBacks);
+				if (FontAttrD)
+				{
+					CTFontDescriptorRef descriptor = CTFontDescriptorCreateWithAttributes(FontAttrD);
+					if (descriptor)
 					{
-						key[keys] = kCTFontStyleNameAttribute;
-						values[keys++] = sBold.CreateStringRef();
-					}
-
-					CFDictionaryRef FontAttrD = CFDictionaryCreate(	kCFAllocatorDefault,
-																	(const void**)&key,
-																	(const void**)&values,
-																	keys,
-																	&kCFTypeDictionaryKeyCallBacks,
-																	&kCFTypeDictionaryValueCallBacks);
-					if (FontAttrD)
-					{
-						CTFontDescriptorRef descriptor = CTFontDescriptorCreateWithAttributes(FontAttrD);
-						if (descriptor)
-						{
-							d->hFont = CTFontCreateWithFontDescriptor(descriptor, Size, NULL);
-						}
-						else LgiAssert(0);
+						d->hFont = CTFontCreateWithFontDescriptor(descriptor, Size, NULL);
 					}
 					else LgiAssert(0);
 				}
-				#else
-
-				CFStringRef nm = CFStringCreateWithCString(kCFAllocatorDefault, Face(), kCFStringEncodingUTF8);
-				CGAffineTransform *matrix = NULL;
-				d->hFont = CTFontCreateWithName(nm, Size, matrix);
-				CFRelease(nm);
-				
-				#endif
+				else LgiAssert(0);
 				
 				if (d->hFont)
 				{
@@ -1459,11 +1452,12 @@ bool GFont::Create(GFontType *LogFont, GSurface *pSurface)
 }
 
 #else
+
 bool GFont::Create(GFontType *LogFont, GSurface *pSurface)
 {
 	if (LogFont)
 	{
-		return Create(LogFont->GetFace(), LogFont->GetPointSize());
+		return Create(LogFont->GetFace(), LogFont->GetPointSize(), pSurface);
 	}
 
 	return false;
@@ -1788,7 +1782,7 @@ bool MacGetSystemFont(GTypeFace &Info, CTFontUIFontType Which)
 		GString face(name);
 
 		Info.Face(face);
-		Info.PointSize((int)sz - 1);
+		Info.PointSize((int)sz + MAC_FONT_SIZE_OFFSET);
 
 		CFRelease(name);
 		Status = true;
@@ -1965,7 +1959,7 @@ bool GFontType::GetSystemFont(const char *Which)
 
 				#if USE_CORETEXT
 
-				Status = MacGetSystemFont(Info, kCTFontUIFontSystem);
+				Status = MacGetSystemFont(Info, kCTFontUIFontControlContent);
 
 				#else
 			

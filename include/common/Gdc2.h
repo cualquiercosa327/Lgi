@@ -667,6 +667,17 @@ public:
 	bool CallMethod(const char *Name, GVariant *ReturnValue, GArray<GVariant*> &Args);
 };
 
+#ifdef MAC
+
+struct GPrintDcParams
+{
+	PMRect Page;
+	CGContextRef Ctx;
+	PMResolution Dpi;
+};
+
+#endif
+
 /// \brief An implemenation of GSurface to draw onto the screen.
 ///
 /// This is the class given to GView::OnPaint() most of the time. Which most of
@@ -698,7 +709,7 @@ public:
 		#if defined MAC
 	
 			GScreenDC(GWindow *wnd, void *Param = 0);
-			GScreenDC(PMRect &Page, CGContextRef Ctx); // Used by GPrintDC
+			GScreenDC(GPrintDcParams *Params); // Used by GPrintDC
 			GRect GetPos();
 			void PushState();
 			void PopState();
@@ -991,15 +1002,6 @@ class LgiClass GPrintDC
 	class GPrintDCPrivate *d;
 
 public:
-	#ifdef MAC
-	struct Params
-	{
-		PMRect Page;
-		CGContextRef Ctx;
-		PMResolution Dpi;
-	};
-	#endif
-
 	GPrintDC(void *Handle, const char *PrintJobName, const char *PrinterName = NULL);
 	~GPrintDC();
 

@@ -27,11 +27,13 @@
 
 /// This turns on the Core Text implementation.
 /// If '0' the old ATSUI implementation is used.
+/*
 #ifdef __ATSUNICODEOBJECTS__
 #define USE_CORETEXT		0
 #else
+*/
 #define USE_CORETEXT		1
-#endif
+// #endif
 
 //////////////////////////////////////////////////////////////////
 // Typedefs
@@ -201,59 +203,60 @@ LgiFunc void LgiSleep(uint32 i);
 #define kEventParamLgiEvent			'Lgie'
 #define kEventParamLgiA				'Lgia'
 #define kEventParamLgiB				'Lgib'
-/// Base point for system messages.
-#define M_SYSTEM					0
-/// Message that indicates the user is trying to close a top level window.
-#define M_CLOSE						(M_SYSTEM+92)
 
-/// Minimum value for application defined message ID's
-#define M_USER						(M_SYSTEM+1000)
+enum LgiMessages
+{
+	/// Base point for system messages.
+	M_SYSTEM						= 0,
+	
+	/// Message that indicates the user is trying to close a top level window.
+	M_CLOSE							= (M_SYSTEM+92),
 
-/// \brief Mouse enter event
-///
-/// a = bool Inside; // is the mouse inside the client area?\n
-/// b = MAKELONG(x, y); // mouse location
-#define M_MOUSEENTER				(M_USER+100)
+	/// \brief Mouse enter event
+	///
+	/// a = bool Inside; // is the mouse inside the client area?\n
+	/// b = MAKELONG(x, y); // mouse location
+	M_MOUSEENTER					= (M_SYSTEM+900),
 
-/// \brief Mouse exit event
-///
-/// a = bool Inside; // is the mouse inside the client area?\n
-/// b = MAKELONG(x, y); // mouse location
-#define M_MOUSEEXIT					(M_USER+101)
+	/// \brief Mouse exit event
+	///
+	/// a = bool Inside; // is the mouse inside the client area?\n
+	/// b = MAKELONG(x, y); // mouse location
+	M_MOUSEEXIT,
 
-/// \brief GView change notification
-///
-/// a = (GView*) Wnd;\n
-/// b = (int) Flags; // Specific to each GView
-#define M_CHANGE					(M_USER+102)
+	/// \brief GView change notification
+	///
+	/// a = (GView*) Wnd;\n
+	/// b = (int) Flags; // Specific to each GView
+	M_CHANGE,
 
-/// \brief Pass a text message up to the UI to descibe whats happening
-///
-/// a = (GView*) Wnd;\n
-/// b = (char*) Text; // description from window
-#define M_DESCRIBE					(M_USER+103)
+	/// \brief Pass a text message up to the UI to descibe whats happening
+	///
+	/// a = (GView*) Wnd;\n
+	/// b = (char*) Text; // description from window
+	M_DESCRIBE,
 
-// return (bool)
-#define M_WANT_DIALOG_PROC			(M_USER+104)
+	// return (bool)
+	M_WANT_DIALOG_PROC,
 
-#define M_MENU						(M_USER+105)
-#define M_COMMAND					(M_USER+106)
-#define M_DRAG_DROP					(M_USER+107)
+	M_MENU,
+	M_COMMAND,
+	M_DRAG_DROP,
 
-#define M_TRAY_NOTIFY				(M_USER+108)
-#define M_CUT						(M_USER+109)
-#define M_COPY						(M_USER+110)
-#define M_PASTE						(M_USER+111)
-#define M_PULSE						(M_USER+112)
-#define M_DELETE					(M_USER+113)
-#define M_MOUSE_TRACK_UP			(M_USER+114)
+	M_TRAY_NOTIFY,
+	M_CUT,
+	M_COPY,
+	M_PASTE,
+	M_PULSE,
+	M_DELETE,
+	M_MOUSE_TRACK_UP,
+	M_GTHREADWORK_COMPELTE,
+	M_TEXT_UPDATE_NAME,
+	M_SET_VISIBLE,
 
-/// GThreadWork object completed
-///
-/// MsgA = (GThreadOwner*) Owner;
-/// MsgB = (GThreadWork*) WorkUnit;
-#define M_GTHREADWORK_COMPELTE		(M_USER+114)
-#define M_TEXT_UPDATE_NAME			(M_USER+115)
+	/// Minimum value for application defined message ID's
+	M_USER							= (M_SYSTEM+1000),
+};
 
 /// Standard ID for an "Ok" button.
 /// \sa LgiMsg
