@@ -468,18 +468,22 @@ void GDisplayString::Layout(bool Debug)
 	
 		#if USE_CORETEXT
 
-			Hnd = CTLineCreateWithAttributedString(AttrStr);
-			if (Hnd)
+			int height = Font->GetHeight();
+			y = height;
+
+			if (AttrStr)
 			{
-				CGFloat ascent = 0.0;
-				CGFloat descent = 0.0;
-				CGFloat leading = 0.0;
-				double width = CTLineGetTypographicBounds(Hnd, &ascent, &descent, &leading);
-				int height = Font->GetHeight();
-				x = ceil(width);
-				y = height;
-				xf = width * FScale;
-				yf = height * FScale;
+				Hnd = CTLineCreateWithAttributedString(AttrStr);
+				if (Hnd)
+				{
+					CGFloat ascent = 0.0;
+					CGFloat descent = 0.0;
+					CGFloat leading = 0.0;
+					double width = CTLineGetTypographicBounds(Hnd, &ascent, &descent, &leading);
+					x = ceil(width);
+					xf = width * FScale;
+					yf = height * FScale;
+				}
 			}
 	
 		#else

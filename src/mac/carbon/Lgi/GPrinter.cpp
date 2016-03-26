@@ -117,8 +117,8 @@ bool GPrinter::Print(GPrintEvents *Events, const char *PrintJobName, int MaxPage
 	e = PMSessionBeginPageNoDialog(ps, PageFmt, NULL);
 	ErrCheck("PMSessionBeginPageNoDialog");
 
-	e = PMGetUnadjustedPageRect(PageFmt, &Params.Page);
-	ErrCheck("PMGetUnadjustedPaperRect");
+	e = PMGetAdjustedPaperRect(PageFmt, &Params.Page); //PMGetUnadjustedPageRect
+	ErrCheck("PMGetAdjustedPaperRect");
 	
 	e = PMSessionGetCGGraphicsContext(ps, &Params.Ctx);
 	ErrCheck("PMSessionGetCGGraphicsContext");

@@ -31,13 +31,25 @@ GPrintDC::GPrintDC(void *Handle, const char *PrintJobName, const char *PrinterNa
 	GPrintDcParams *Params = (GPrintDcParams*)Handle;
 	if (Params)
 	{
+		int x = Params->Page.right - Params->Page.left;
+		int y = Params->Page.bottom - Params->Page.top;
+		
 		d->Dpi.x = Params->Dpi.hRes;
 		d->Dpi.y = Params->Dpi.vRes;
 		
-		d->x = (Params->Page.right - Params->Page.left) * d->Dpi.x;
-		d->y = (Params->Page.bottom - Params->Page.top) * d->Dpi.y;
+		#if 0
+		d->x = x * d->Dpi.x;
+		d->y = y * d->Dpi.y;
+		#else
+		d->x = x;
+		d->y = y;
+		#endif
 
 		d->Ctx = Params->Ctx;
+
+		// Invert the co-ordinate space so 0,0 is the top left corner.
+		CGContextTranslateCTM(d->Ctx, 0, y);
+		CGContextScaleCTM(d->Ctx, 1.0, -1.0);
 	}
 }
 
