@@ -206,12 +206,12 @@ enum Store3Fields
 	FIELD_CAL_REMINDER_UNIT = 66,		// (CalendarReminderUnits) The unit of time
 	FIELD_CAL_SHOW_TIME_AS = 67,		// (CalendarShowTimeAs) Busy/Free etc
 
-	FIELD_CAL_RECUR_FREQ = 68,			// (int)
-	FIELD_CAL_RECUR_INTERVAL = 69,		// (int)
+	FIELD_CAL_RECUR_FREQ = 68,			// (CalRecurFreq) Base time unit of recurring: e.g. Day/Week/Month/Year.
+	FIELD_CAL_RECUR_INTERVAL = 69,		// (int) Number of FIELD_CAL_RECUR_FREQ units of time between recurring events.
 
-	FIELD_CAL_RECUR_FILTER_DAYS = 70 ,	// (int)
-	FIELD_CAL_RECUR_FILTER_MONTHS = 71,	// (int)
-	FIELD_CAL_RECUR_FILTER_YEARS = 72,	// (char*)
+	FIELD_CAL_RECUR_FILTER_DAYS = 70 ,	// (int) Bitmask of days: Bit 0 = Sunday, Bit 1 = Monday etc
+	FIELD_CAL_RECUR_FILTER_MONTHS = 71,	// (int) Bitmask of months: Bit 0 = January, Bit 1 = Feburary etc
+	FIELD_CAL_RECUR_FILTER_YEARS = 72,	// (char*) Comma separated list of years to filter on.
 
 	FIELD_CAL_NOTES = 73,				// (char*) Textual notes
 	FIELD_CAL_TYPE = 74,				// (CalendarType) The type of event
@@ -219,11 +219,11 @@ enum Store3Fields
 	FIELD_CAL_START_UTC = 76,			// (GDateTime*) The start time and date
 	FIELD_CAL_END_UTC = 77,				// (GDateTime*) The end time and date
 
-	FIELD_CAL_RECUR_FILTER_POS = 78,	// (char*) ??
-	FIELD_CAL_RECUR_END_DATE = 79,		// (GDateTime*) The end of recurence.
-	FIELD_CAL_RECUR_END_COUNT = 80,		// (int) Times to recur?
-	FIELD_CAL_RECUR_END_TYPE = 81,		// (int) Which ending to use... needs an enum
-	FIELD_CAL_RECUR = 82,				// (int) Boolean if the event recurs?
+	FIELD_CAL_RECUR_FILTER_POS = 78,	// (char*) Comma separated list of integers defining positions in the month to filter on.
+	FIELD_CAL_RECUR_END_DATE = 79,		// (GDateTime*) The end of recurence if FIELD_CAL_RECUR_END_TYPE == CalEndOnDate.
+	FIELD_CAL_RECUR_END_COUNT = 80,		// (int) Times to recur if FIELD_CAL_RECUR_END_TYPE == CalEndOnCount.
+	FIELD_CAL_RECUR_END_TYPE = 81,		// (CalRecurEndType) Which ending to use... needs an enum
+	FIELD_CAL_RECUR = 82,				// (int) true if the event recurs.
 
 	FIELD_CAL_TIMEZONE = 83,			// (char*) The timezone as text
 	FIELD_CAL_PRIVACY = 84,				// (CalendarPrivacyType) The privacy setting
