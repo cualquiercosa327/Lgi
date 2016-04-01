@@ -2660,8 +2660,14 @@ bool MailIMap::Append(char *Folder, ImapMailFlags *Flags, char *Msg, GAutoString
 		int Len = 0;
 		for (char *m = Msg; *m; m++)
 		{
-			if (*m == '\n') Len += 2;
-			else if (*m != '\r') Len++;
+			if (*m == '\n')
+			{
+				Len += 2;
+			}
+			else if (*m != '\r')
+			{
+				Len++;
+			}
 		}
 
 		// Append on the end of the mailbox
@@ -2704,7 +2710,7 @@ bool MailIMap::Append(char *Folder, ImapMailFlags *Flags, char *Msg, GAutoString
 					if (e > m)
 					{
 						Wrote += Socket->Write(m, e-m);
-						m = e + (*e != 0);
+						m = e;
 					}
 					else break;
 				}
