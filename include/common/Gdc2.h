@@ -705,8 +705,9 @@ public:
 
 		/// Construct a wrapper to draw on a window
 		GScreenDC(GView *view, void *Param = 0);
-		
-		#if defined MAC
+	
+		#if defined(LGI_SDL)
+		#elif defined(MAC)
 	
 			GScreenDC(GWindow *wnd, void *Param = 0);
 			GScreenDC(GPrintDcParams *Params); // Used by GPrintDC
