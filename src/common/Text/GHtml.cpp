@@ -4511,6 +4511,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f, uint16 Depth)
 	// Layout cell horizontally and then flow the contents to get 
 	// the height of all the cells
 	GArray<GRect> RowPad;
+	MaxRow.Length(s.y);
 	for (y=0; y<s.y; y++)
 	{
 		int XPos = CellSpacing;
@@ -4560,6 +4561,17 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f, uint16 Depth)
 			else break;
 		}
 	}
+
+	#ifdef _DEBUG
+	if (Table->Debug)
+	{
+		LgiTrace("%s:%i - AfterCellFlow\n", _FL);
+		for (unsigned i=0; i<MaxRow.Length(); i++)
+		{
+			LgiTrace("[%i] = %i\n", i, MaxRow[i]);
+		}
+	}
+	#endif
 
 	// Calculate row height
 	for (y=0; y<s.y; y++)
@@ -5603,7 +5615,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			{
 				Flow->y2 += Flow->ResolveX(PaddingBottom(), GetFont(), true);
 				Flow->y2 += Flow->ResolveX(BorderBottom(), GetFont(), true);
-				Size.y = Flow->y2 - Flow->y1;
+				Size.y = Flow->y2;
 			}
 			
 			CenterText();

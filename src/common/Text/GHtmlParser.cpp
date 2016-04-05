@@ -877,7 +877,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 										}
 										default:
 										{
-											LgiAssert(!"Impl me.");
+											LgiTrace("%s:%i - Warning: '%s' is missing it's parent.\n", _FL, Elem->Tag);
 											break;
 										}
 									}
