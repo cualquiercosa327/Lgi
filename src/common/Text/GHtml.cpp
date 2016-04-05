@@ -9171,3 +9171,5 @@ bool GCssStyle::SetVariant(const char *Name, GVariant &Value, char *Array)
 	
 	return false;
 }
+
+

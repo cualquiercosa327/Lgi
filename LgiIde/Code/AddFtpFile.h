@@ -20,4 +20,4 @@ public:
 	int OnNotify(GViewI *c, int f);
 };
 
-#endif;
+#endif

@@ -34,6 +34,10 @@
 		349A252F1A5E434A00F4263E /* IFtp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A252E1A5E434A00F4263E /* IFtp.cpp */; };
 		349A25311A5E43F600F4263E /* Png.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A25301A5E43F600F4263E /* Png.cpp */; };
 		349A25331A5E440100F4263E /* cmds.png in Resources */ = {isa = PBXBuildFile; fileRef = 349A25321A5E440100F4263E /* cmds.png */; };
+		34D20B771CB2861600730172 /* ProjectNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D20B751CB2861600730172 /* ProjectNode.cpp */; };
+		34D20B7B1CB2862E00730172 /* AddFtpFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D20B791CB2862E00730172 /* AddFtpFile.cpp */; };
+		34D20B7D1CB2864700730172 /* IdeCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D20B7C1CB2864700730172 /* IdeCommon.cpp */; };
+		34D20B801CB2866600730172 /* WebFldDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D20B7E1CB2866600730172 /* WebFldDlg.cpp */; };
 		8D0C4E8D0486CD37000505A6 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0867D6AAFE840B52C02AAC07 /* InfoPlist.strings */; };
 		8D0C4E8E0486CD37000505A6 /* main.nib in Resources */ = {isa = PBXBuildFile; fileRef = 02345980000FD03B11CA0E72 /* main.nib */; };
 		8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20286C33FDCF999611CA2CEA /* Carbon.framework */; };
@@ -101,6 +105,13 @@
 		349A252E1A5E434A00F4263E /* IFtp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IFtp.cpp; path = ../../src/common/INet/IFtp.cpp; sourceTree = "<group>"; };
 		349A25301A5E43F600F4263E /* Png.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Png.cpp; path = ../../src/common/Gdc2/Filters/Png.cpp; sourceTree = "<group>"; };
 		349A25321A5E440100F4263E /* cmds.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = cmds.png; path = ../Code/cmds.png; sourceTree = "<group>"; };
+		34D20B751CB2861600730172 /* ProjectNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ProjectNode.cpp; path = ../Code/ProjectNode.cpp; sourceTree = "<group>"; };
+		34D20B761CB2861600730172 /* ProjectNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ProjectNode.h; path = ../Code/ProjectNode.h; sourceTree = "<group>"; };
+		34D20B791CB2862E00730172 /* AddFtpFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AddFtpFile.cpp; path = ../Code/AddFtpFile.cpp; sourceTree = "<group>"; };
+		34D20B7A1CB2862E00730172 /* AddFtpFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AddFtpFile.h; path = ../Code/AddFtpFile.h; sourceTree = "<group>"; };
+		34D20B7C1CB2864700730172 /* IdeCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IdeCommon.cpp; path = ../Code/IdeCommon.cpp; sourceTree = "<group>"; };
+		34D20B7E1CB2866600730172 /* WebFldDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = WebFldDlg.cpp; path = ../Code/WebFldDlg.cpp; sourceTree = "<group>"; };
+		34D20B7F1CB2866600730172 /* WebFldDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WebFldDlg.h; path = ../Code/WebFldDlg.h; sourceTree = "<group>"; };
 		4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
 		4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
 		8D0C4E960486CD37000505A6 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -142,6 +153,13 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				34D20B7E1CB2866600730172 /* WebFldDlg.cpp */,
+				34D20B7F1CB2866600730172 /* WebFldDlg.h */,
+				34D20B7C1CB2864700730172 /* IdeCommon.cpp */,
+				34D20B791CB2862E00730172 /* AddFtpFile.cpp */,
+				34D20B7A1CB2862E00730172 /* AddFtpFile.h */,
+				34D20B751CB2861600730172 /* ProjectNode.cpp */,
+				34D20B761CB2861600730172 /* ProjectNode.h */,
 				349A25031A5E3D1D00F4263E /* IdeDoc.cpp */,
 				349A25051A5E3D1D00F4263E /* IdeProject.cpp */,
 				349A25071A5E3D1D00F4263E /* IdeProjectSettings.cpp */,
@@ -336,12 +354,16 @@
 			files = (
 				342D773A11FA48B6005BADBD /* GControlTree.cpp in Sources */,
 				342D774A11FA4929005BADBD /* LgiMain.cpp in Sources */,
+				34D20B7B1CB2862E00730172 /* AddFtpFile.cpp in Sources */,
 				349A250F1A5E3D1D00F4263E /* FindInFiles.cpp in Sources */,
 				349A25101A5E3D1D00F4263E /* FindSymbol.cpp in Sources */,
+				34D20B801CB2866600730172 /* WebFldDlg.cpp in Sources */,
 				349A25111A5E3D1D00F4263E /* FtpThread.cpp in Sources */,
 				349A25121A5E3D1D00F4263E /* GDebugContext.cpp in Sources */,
+				34D20B771CB2861600730172 /* ProjectNode.cpp in Sources */,
 				349A25131A5E3D1D00F4263E /* GDebugger.cpp in Sources */,
 				349A25141A5E3D1D00F4263E /* GHistory.cpp in Sources */,
+				34D20B7D1CB2864700730172 /* IdeCommon.cpp in Sources */,
 				349A25151A5E3D1D00F4263E /* IdeDoc.cpp in Sources */,
 				349A25161A5E3D1D00F4263E /* IdeProject.cpp in Sources */,
 				349A25171A5E3D1D00F4263E /* IdeProjectSettings.cpp in Sources */,
