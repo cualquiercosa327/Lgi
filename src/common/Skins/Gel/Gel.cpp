@@ -626,15 +626,22 @@ public:
 			
 			GSurface *Out = &Mem;
 			
-			GDisplayString *Text = State->FirstText();
+			GArray<GDisplayString*> *Txt = State->AllText();
 
 			int ContentX = 0;
 			int SpacingPx = 4;
 			if (State->Image)
-				ContentX += State->Image->X();
-			if (Text)
-				ContentX += Text->X();
-			if (State->Image && Text)
+				ContentX += State->Image->X();			
+			int MaxTxt = 0;
+			if (Txt)
+			{
+				for (unsigned i=0; i<Txt->Length(); i++)
+				{
+					MaxTxt = max(MaxTxt, (*Txt)[i]->X());
+				}
+				ContentX += MaxTxt;
+			}
+			if (State->Image && Txt && Txt->Length() > 0)
 				ContentX += SpacingPx;			
 
 			int CurX = (Ctrl->X() - ContentX) >> 1;
@@ -647,25 +654,32 @@ public:
 				Out->Op(Op);
 				CurX += State->Image->X() + SpacingPx;
 			}
-			if (Text)
+			if (Txt && Txt->Length() > 0)
 			{
-				int sx = Text->X(), sy = Text->Y();
+				GDisplayString *First = (*Txt)[0];
+				int sx = MaxTxt, sy = Txt->Length() * First->Y();
 				int ty = (Ctrl->Y()-sy) >> 1;
 
-				GFont *f = Text->GetFont();
+				GFont *f = First->GetFont();
 				f->Transparent(true);
-				if (Ctrl->Enabled())
+				
+				for (unsigned i=0; i<Txt->Length(); i++)
 				{
-					f->Colour(Fore, Back);
-					Text->Draw(Out, CurX+Off, ty+Off+BTN_TEXT_OFFSET_Y);
-				}
-				else
-				{
-					f->Colour(GColour(LC_LIGHT, 24), Back);
-					Text->Draw(Out, CurX+Off+1, ty+Off+1+BTN_TEXT_OFFSET_Y);
+					GDisplayString *Text = (*Txt)[i];
+					if (Ctrl->Enabled())
+					{
+						f->Colour(Fore, Back);
+						Text->Draw(Out, CurX+Off, ty+Off+BTN_TEXT_OFFSET_Y);
+					}
+					else
+					{
+						f->Colour(GColour(LC_LIGHT, 24), Back);
+						Text->Draw(Out, CurX+Off+1, ty+Off+1+BTN_TEXT_OFFSET_Y);
 
-					f->Colour(GColour(LC_LOW, 24), Back);
-					Text->Draw(Out, CurX+Off, ty+Off+BTN_TEXT_OFFSET_Y);
+						f->Colour(GColour(LC_LOW, 24), Back);
+						Text->Draw(Out, CurX+Off, ty+Off+BTN_TEXT_OFFSET_Y);
+					}
+					ty += Text->Y();
 				}
 				
 				if (Ctrl->Focus())

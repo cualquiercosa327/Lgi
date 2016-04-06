@@ -401,7 +401,26 @@ void GButton::OnPaint(GSurface *pDC)
 		GSkinState State;
 		State.pScreen = pDC;
 		State.MouseOver = d->Over;
-		State.ptrText = &d->Txt;
+
+		char *Nl = strchr(Name(), '\n');
+		if (Nl)
+		{
+			GString n = Name();
+			GString::Array a = n.Split("\n");
+			State.aText = new GArray<GDisplayString*>;
+			if (State.aText)
+			{
+				for (unsigned i=0; i<a.Length(); i++)
+				{
+					State.aText->Add(new GDisplayString(GetFont(), a[i]));
+				}
+			}
+		}
+		else
+		{
+			State.ptrText = &d->Txt;
+		}
+		
 		State.Image = d->Image;
 		GApp::SkinEngine->OnPaint_GButton(this, &State);
 	}
