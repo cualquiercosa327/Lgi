@@ -15,6 +15,7 @@
 #include <stdio.h>
 
 #define LGI_SDL				1
+#define LGI_TOUCHSCREEN		1
 
 #ifdef WIN32
 	#define LGI_SDL_WIN		1

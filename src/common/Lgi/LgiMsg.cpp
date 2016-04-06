@@ -185,50 +185,57 @@ int LgiMsg(GViewI *Parent, const char *Str, const char *Title, int Type, ...)
 		Dlg.AddView(Text);
 
 		List<GButton> Btns;
-		int BtnY = 20;
+		#ifdef LGI_TOUCHSCREEN
+		float Scale = 1.6f;
+		#else
+		float Scale = 1.0f;
+		#endif		
+		int BtnY = (int) (Scale * 20.0f);
+		int BtnX = (int) (Scale * 70.0f);
+
 		switch (Type & ~MB_SYSTEMMODAL)
 		{
 			default:
 			case MB_OK:
 			{
-				Btns.Insert(new GButton(IDOK, 10, 40, 70, BtnY, "Ok"));
+				Btns.Insert(new GButton(IDOK, 10, 40, BtnX, BtnY, "Ok"));
 				break;
 			}
 			case MB_OKCANCEL:
 			{
-				Btns.Insert(new GButton(IDOK, 10, 40, 70, BtnY, "Ok"));
-				Btns.Insert(new GButton(IDCANCEL, 10, 40, 70, BtnY, "Cancel"));
+				Btns.Insert(new GButton(IDOK, 10, 40, BtnX, BtnY, "Ok"));
+				Btns.Insert(new GButton(IDCANCEL, 10, 40, BtnX, BtnY, "Cancel"));
 				break;
 			}
 			case MB_YESNO:
 			{
-				Btns.Insert(new GButton(IDYES, 10, 40, 70, BtnY, "Yes"));
-				Btns.Insert(new GButton(IDNO, 10, 40, 70, BtnY, "No"));
+				Btns.Insert(new GButton(IDYES, 10, 40, BtnX, BtnY, "Yes"));
+				Btns.Insert(new GButton(IDNO, 10, 40, BtnX, BtnY, "No"));
 				break;
 			}
 			case MB_YESNOCANCEL:
 			{
-				Btns.Insert(new GButton(IDYES, 10, 40, 70, BtnY, "Yes"));
-				Btns.Insert(new GButton(IDNO, 10, 40, 70, BtnY, "No"));
-				Btns.Insert(new GButton(IDCANCEL, 10, 40, 70, BtnY, "Cancel"));
+				Btns.Insert(new GButton(IDYES, 10, 40, BtnX, BtnY, "Yes"));
+				Btns.Insert(new GButton(IDNO, 10, 40, BtnX, BtnY, "No"));
+				Btns.Insert(new GButton(IDCANCEL, 10, 40, BtnX, BtnY, "Cancel"));
 				break;
 			}
 		}
 
-		int BtnX = (Btns.Length() * 70) + ((Btns.Length()-1) * 10);
-		int MaxX = max(BtnX, Text->X());
+		int BtnsX = (Btns.Length() * BtnX) + ((Btns.Length()-1) * 10);
+		int MaxX = max(BtnsX, Text->X());
 		GRect p(0, 0, MaxX + 30, Text->Y() + 30 + BtnY + LgiApp->GetMetric(LGI_MET_DECOR_Y) );
 		Dlg.SetPos(p);
 		Dlg.MoveToCenter();
 
-		int x = (p.X() - BtnX) / 2;
+		int x = (p.X() - BtnsX) / 2;
 		int y = Text->Y() + 20;
 		for (GButton *b=Btns.First(); b; b=Btns.Next())
 		{
-			GRect r(x, y, x+69, y+19);
+			GRect r(x, y, x+BtnX-1, y+BtnY-1);
 			b->SetPos(r);
 			Dlg.AddView(b);
-			x += 80;
+			x += r.X() + 10;
 		}
 
 		return Dlg.DoModal();
