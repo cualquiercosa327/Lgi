@@ -6,6 +6,11 @@
 
 //////////////////////////////////////////////////////////////////////////////
 #define CMD_BASE		100
+#ifdef LGI_SDL
+#define BTN_SCALE		2.0f
+#else
+#define BTN_SCALE		1.0f
+#endif
 
 GAlert::GAlert(	GViewI *parent,
 				const char *Title,
@@ -33,7 +38,11 @@ GAlert::GAlert(	GViewI *parent,
 			GDisplayString ds(SysFont, (char*)n);
 			int x = ds.X();
 			GButton *v;
-			Btns.Insert(v = new GButton(CMD_BASE + i++, 0, 0, 30 + x, 20, (char*)n));
+			Btns.Insert(v = new GButton(CMD_BASE + i++,
+										0, 0,
+										(30.0f + x) * BTN_SCALE,
+										20.0f * BTN_SCALE,
+										(char*)n));
 			Tx += v->X() + ((i>1) ? 10 : 0);
 		}
 		

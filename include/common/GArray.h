@@ -202,13 +202,25 @@ public:
 
 	Type &First()
 	{
-		LgiAssert(len > 0);
+		if (len <= 0)
+		{
+			LgiAssert(!"Must have one element.");
+			static Type t;
+			return t;
+		}
+
 		return p[0];
 	}
 
 	Type &Last()
 	{
-		LgiAssert(len > 0);
+		if (len <= 0)
+		{
+			LgiAssert(!"Must have one element.");
+			static Type t;
+			return t;
+		}
+		
 		return p[len-1];
 	}
 

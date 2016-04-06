@@ -1050,12 +1050,15 @@ bool GApp::InvalidateRect(GRect &r)
 bool GApp::PushWindow(GWindow *w)
 {
 	if (!w)
+	{
+		printf("%s:%i - No window to push.\n", _FL);
 		return false;
+	}
 
 	if (AppWnd)
 		d->Stack.Add(AppWnd);
 	
-	// printf("Pushing %s, new AppWnd=%s %p\n", AppWnd?AppWnd->GetClass():0, w?w->GetClass():0, w);
+	printf("Pushing %s, new AppWnd=%s %p\n", AppWnd?AppWnd->GetClass():0, w?w->GetClass():0, w);
 	AppWnd = w;
 	return true;
 }
@@ -1064,14 +1067,15 @@ GWindow *GApp::PopWindow()
 {
 	if (d->Stack.Length() == 0)
 	{
+		printf("%s:%i - No window to pop.\n", _FL);
 		LgiAssert(0);
 		return NULL;
 	}
 	
-	d->Stack.Length(d->Stack.Length()-1);
 	AppWnd = d->Stack.Last();
+	d->Stack.Length(d->Stack.Length()-1);
 
-	// printf("Popping AppWnd=%s\n", AppWnd?AppWnd->GetClass():0);
+	printf("Popping AppWnd=%s\n", AppWnd?AppWnd->GetClass():0);
 
 	return AppWnd;
 }
