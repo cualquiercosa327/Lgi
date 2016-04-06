@@ -91,6 +91,7 @@ public:
 		return *this;
 	}
 
+	// Angle in radians
 	GPointF &Rotate(double a)
 	{
 		double ix = x;

@@ -32,7 +32,7 @@ enum CellFlag
 #include "GCss.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
-// #define DEBUG_LAYOUT		20
+#define DEBUG_LAYOUT		142
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
@@ -851,12 +851,16 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 		else if (v->OnLayout(c->Inf))
 		{
 			// Supports layout info
+			GRect r = v->GetPos();
+
 			if (c->Inf.Height.Max < 0)
 				Flags = SizeFill;
 			else
+			{
 				Pos.y2 += c->Inf.Height.Max - 1;
+				r.y2 = r.y1 + c->Inf.Height.Max - 1;
+			}
 
-			GRect r = v->GetPos();
 			int Px = min(Width, c->Inf.Width.Max);
 			r.x2 = r.x1 + Px - 1;
 			v->SetPos(r);
@@ -961,8 +965,8 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 		}
 	}
 	
-	MinY = max(MinY, Pos.Y() + Padding.y1 + Padding.y2 - 1);
-	MaxY = max(MaxY, Pos.Y() + Padding.y1 + Padding.y2 - 1);
+	MinY = max(MinY, Pos.Y() + Padding.y1 + Padding.y2);
+	MaxY = max(MaxY, Pos.Y() + Padding.y1 + Padding.y2);
 }
 
 /// Called after the layout has been done to move the controls into place
