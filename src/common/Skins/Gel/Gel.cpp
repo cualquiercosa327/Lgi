@@ -136,104 +136,124 @@ class GelSkin : public GSkinEngine
 	
 	void DrawBtn(GSurface *pDC, GRect &r, GColour *Base, bool Down, bool Enabled, bool Default = false)
 	{
-		if (pDC)
+		if (!pDC)
+			return;
+
+		#if LGI_SDL
+		
+		pDC->Colour(Base?*Base:GColour(192, 192, 192));
+		pDC->Rectangle(&r);
+		pDC->Colour(GColour(96, 96, 96));
+		if (Down)
 		{
-			GRect Client = r;
-			{
-				// Edge
-				GPath e;
-				GRectF r(Client);
-				// r.y2++;
-				e.RoundRect(r, 6);
-			
-				COLOUR EdgeColour = Default ? Rgba32(40, 40, 40, 255) : Rgba32(114, 114, 114, 255);
-				GSolidBrush b(EdgeColour);
-				e.Fill(pDC, b);
-			}
-
-			{
-				// Border
-				GPath e;
-				GRectF r(Client);
-				// r.y2++;
-				int Resize = Default ? 2 : 1;
-				r.Size(Resize, Resize);
-				if (Down)
-				{
-					r.x1 = r.x1 + 1;
-					r.y1 = r.y1 + 1;
-				}
-				e.RoundRect(r, 6 - Resize);
-
-				// Fill
-				COLOUR Top = c253;
-				COLOUR Mid = c232;
-				COLOUR Mid2 = c222;
-				COLOUR Bot = c255;
-				if (Base)
-				{
-					Top = Base->c32();
-					Mid = Base->c32();
-					Mid2 = Base->c32();
-					Bot = Base->c32();
-				}
-				else
-				{
-					if (!Enabled)
-					{
-						Top = LgiDarken(Top, 230);
-						Mid = LgiDarken(Mid, 230);
-						Mid2 = LgiDarken(Mid2, 230);
-						Bot = LgiDarken(Bot, 230);
-					}
-				}
-			
-				GPointF c1(r.x1, r.y1);
-				GPointF d1(r.x1, r.y2);
-				if (Down)
-				{
-					GBlendStop s1[] =
-					{
-						{0.0, Rgba32(192, 192, 192, 255)},
-						{0.1, Top},
-						{0.6, Mid},
-						{0.601, Mid2},
-						{1.0, Bot},
-					};					
-					GLinearBlendBrush b1(c1, d1, CountOf(s1), s1);
-					e.Fill(pDC, b1);
-				}
-				else
-				{
-					GBlendStop s1[] =
-					{
-						{0.0, Top},
-						{0.5, Mid},
-						{0.501, Mid2},
-						{1.0, Bot},
-					};					
-					GLinearBlendBrush b1(c1, d1, CountOf(s1), s1);
-					e.Fill(pDC, b1);
-				}
-
-				double Round = (r.X()-13)/r.X();
-				if (Round < 0.6)
-					Round = 0.6;
-					
-				int Sa = Down ? 128 : 50;
-				GBlendStop s3[] =
-				{
-					{Round, GREY32(0)},
-					{1.0, GREY32(Sa)},
-				};					
-				
-				// Rounded corners
-				GPointF c3(r.x1 + (r.X()/2), r.y1 + (r.Y()/2));
-				GPointF d3(r.x1, r.y1);
-				GRadialBlendBrush b3(c3, d3, CountOf(s3), s3);
-				e.Fill(pDC, b3);
-			}
+			pDC->Line(r.x1, r.y1, r.x2, r.y1);
+			pDC->Line(r.x1, r.y1, r.x1, r.y2);
 		}
+		else
+		{
+			pDC->Line(r.x1, r.y2, r.x2, r.y2);
+			pDC->Line(r.x2, r.y1, r.x2, r.y2);
+		}
+		
+		#else
+			
+		GRect Client = r;
+		{
+			// Edge
+			GPath e;
+			GRectF r(Client);
+			// r.y2++;
+			e.RoundRect(r, 6);
+		
+			COLOUR EdgeColour = Default ? Rgba32(40, 40, 40, 255) : Rgba32(114, 114, 114, 255);
+			GSolidBrush b(EdgeColour);
+			e.Fill(pDC, b);
+		}
+
+		{
+			// Border
+			GPath e;
+			GRectF r(Client);
+			// r.y2++;
+			int Resize = Default ? 2 : 1;
+			r.Size(Resize, Resize);
+			if (Down)
+			{
+				r.x1 = r.x1 + 1;
+				r.y1 = r.y1 + 1;
+			}
+			e.RoundRect(r, 6 - Resize);
+
+			// Fill
+			COLOUR Top = c253;
+			COLOUR Mid = c232;
+			COLOUR Mid2 = c222;
+			COLOUR Bot = c255;
+			if (Base)
+			{
+				Top = Base->c32();
+				Mid = Base->c32();
+				Mid2 = Base->c32();
+				Bot = Base->c32();
+			}
+			else
+			{
+				if (!Enabled)
+				{
+					Top = LgiDarken(Top, 230);
+					Mid = LgiDarken(Mid, 230);
+					Mid2 = LgiDarken(Mid2, 230);
+					Bot = LgiDarken(Bot, 230);
+				}
+			}
+		
+			GPointF c1(r.x1, r.y1);
+			GPointF d1(r.x1, r.y2);
+			if (Down)
+			{
+				GBlendStop s1[] =
+				{
+					{0.0, Rgba32(192, 192, 192, 255)},
+					{0.1, Top},
+					{0.6, Mid},
+					{0.601, Mid2},
+					{1.0, Bot},
+				};					
+				GLinearBlendBrush b1(c1, d1, CountOf(s1), s1);
+				e.Fill(pDC, b1);
+			}
+			else
+			{
+				GBlendStop s1[] =
+				{
+					{0.0, Top},
+					{0.5, Mid},
+					{0.501, Mid2},
+					{1.0, Bot},
+				};					
+				GLinearBlendBrush b1(c1, d1, CountOf(s1), s1);
+				e.Fill(pDC, b1);
+			}
+
+			double Round = (r.X()-13)/r.X();
+			if (Round < 0.6)
+				Round = 0.6;
+				
+			int Sa = Down ? 128 : 50;
+			GBlendStop s3[] =
+			{
+				{Round, GREY32(0)},
+				{1.0, GREY32(Sa)},
+			};					
+			
+			// Rounded corners
+			GPointF c3(r.x1 + (r.X()/2), r.y1 + (r.Y()/2));
+			GPointF d3(r.x1, r.y1);
+			GRadialBlendBrush b3(c3, d3, CountOf(s3), s3);
+			e.Fill(pDC, b3);
+		}
+		
+		#endif
 	}
 
 	GMemDC *DrawCtrl(GViewI *Ctrl, int Flags, bool Round)
