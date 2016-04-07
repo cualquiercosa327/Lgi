@@ -32,7 +32,7 @@ enum CellFlag
 #include "GCss.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
-// #define DEBUG_LAYOUT		142
+// #define DEBUG_LAYOUT		14
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
@@ -764,8 +764,20 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 		Max = max(Max, TotalBtnX);
 	}
 
+	Len MaxWid = MaxWidth();
+	if (MaxWid.IsValid())
+	{
+		int Tx = Table->X();
+		int Px = MaxWid.ToPx(Tx, Table->GetFont()) - Padding.x1 - Padding.x2;
+		if (Min > Px)
+			Min = Px;
+		if (Max > Px)
+			Max = Px;
+	}
+
 	MinX = max(MinX, Min + Padding.x1 + Padding.x2);
 	MaxX = max(MaxX, Max + Padding.x1 + Padding.x2);
+
 }
 
 /// Calculate the height of the cell based on the given width
