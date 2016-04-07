@@ -1060,6 +1060,8 @@ bool GApp::PushWindow(GWindow *w)
 	
 	printf("Pushing %s, new AppWnd=%s %p\n", AppWnd?AppWnd->GetClass():0, w?w->GetClass():0, w);
 	AppWnd = w;
+	AppWnd->Invalidate();
+
 	return true;
 }
 
@@ -1074,6 +1076,7 @@ GWindow *GApp::PopWindow()
 	
 	AppWnd = d->Stack.Last();
 	d->Stack.Length(d->Stack.Length()-1);
+	AppWnd->Invalidate();
 
 	printf("Popping AppWnd=%s\n", AppWnd?AppWnd->GetClass():0);
 
