@@ -1265,6 +1265,8 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 				int keys = 1;
 				CFStringRef key[5]  = {	kCTFontFamilyNameAttribute };
 				CFTypeRef values[5] = {	sFamily.CreateStringRef() };
+                if (!values[0])
+                    return false;
 
 				if (Bold())
 				{
