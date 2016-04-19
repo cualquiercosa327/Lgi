@@ -46,7 +46,7 @@ bool GLibrary::Load(const char *File, bool Quiet)
 			ch += sprintf_s(f+ch, sizeof(f)-ch, ".%s", LGI_LIBRARY_EXT);
 		}
 
-		int Len = strlen(f) + 16;
+		size_t Len = strlen(f) + 16;
 		FileName = new char[Len];
 		if (FileName)
 		{

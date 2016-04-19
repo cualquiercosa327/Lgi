@@ -250,7 +250,7 @@ void GFontSelect::UiToThis()
 {
 	DeleteArray(Face);
 	Face = NewStr(GetSelectedFace());
-	Size = GetCtrlValue(IDC_PT_SIZE);
+	Size = (int)GetCtrlValue(IDC_PT_SIZE);
 	Underline = GetCtrlValue(IDC_UNDERLINE);
 	Bold = GetCtrlValue(IDC_BOLD);
 	Italic = GetCtrlValue(IDC_ITALIC);

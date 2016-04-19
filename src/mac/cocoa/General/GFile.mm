@@ -1,12 +1,12 @@
 /*hdr
-**	FILE:			File.cpp
-**	AUTHOR:			Matthew Allen
-**	DATE:			8/10/2000
-**	DESCRIPTION:	The new file subsystem
-**
-**	Copyright (C) 2000, Matthew Allen
-**		fret@memecode.com
-*/
+ **	FILE:			File.cpp
+ **	AUTHOR:			Matthew Allen
+ **	DATE:			8/10/2000
+ **	DESCRIPTION:	The new file subsystem
+ **
+ **	Copyright (C) 2000, Matthew Allen
+ **		fret@memecode.com
+ */
 
 /****************************** Includes **********************************/
 
@@ -52,8 +52,8 @@ struct ErrorCodeType
 }
 ErrorCodes[] =
 {
-	#if defined(WIN32)
-
+#if defined(WIN32)
+	
 	{"EPERM", 1, "Not owner"},
 	{"ENOENT", 2, "No such file"},
 	{"ESRCH", 3, "No such process"},
@@ -141,9 +141,9 @@ ErrorCodes[] =
 	{"EMULTIHOP", 87, "Multihop attempted"},
 	{"EDOTDOT", 88, "Cross mount point"},
 	{"EREMCHG", 89, "Remote address change"},
-
-	#elif defined(MAC)
-
+	
+#elif defined(MAC)
+	
 	{"EPERM",			EPERM, "Operation not permitted"},
 	{"ENOENT",			ENOENT, "No such file or directory"},
 	{"ESRCH",			ESRCH, "No such process"},
@@ -221,11 +221,11 @@ ErrorCodes[] =
 	{"EINPROGRESS",		EINPROGRESS, "Operation now in progress"},
 	{"ESTALE",			ESTALE, "Stale NFS file handle"},
 	{"EDQUOT",			EDQUOT, "Quota exceeded"},
-
-	#else
-	#error impl me
-	#endif
-
+	
+#else
+#error impl me
+#endif
+	
 	{"NONE", 0, "No error"},
 };
 
@@ -238,7 +238,7 @@ const char *GetErrorName(int e)
 			return c->Name;
 		}
 	}
-
+	
 	static char s[32];
 	sprintf(s, "Unknown(%i)", e);
 	return s;
@@ -253,41 +253,41 @@ const char *GetErrorDesc(int e)
 			return c->Desc;
 		}
 	}
-
+	
 	return 0;
 }
 
 /****************************** Helper Functions **************************/
-char *ReadTextFile(char *File)
+char *ReadTextFile(const char *File)
 {
 	char *s = 0;
 	GFile f;
-	if (File AND f.Open(File, O_READ))
+	if (File && f.Open(File, O_READ))
 	{
-		int Len = f.GetSize();
+		int64 Len = f.GetSize();
 		s = new char[Len+1];
 		if (s)
 		{
-			int Read = f.Read(s, Len);
+			int Read = f.Read(s, (int)Len);
 			s[Read] = 0;
 		}
 	}
 	return s;
 }
 
-int64 LgiFileSize(char *FileName)
+int64 LgiFileSize(const char *FileName)
 {
 	struct stat64 s;
-	if (FileName AND
+	if (FileName &&
 		stat64(FileName, &s) == 0)
 	{
 		return s.st_size;
 	}
-
+	
 	return 0;
 }
 
-bool DirExists(const char *FileName)
+bool DirExists(const char *FileName, char *CorrectCase)
 {
 	bool Status = false;
 	
@@ -301,11 +301,11 @@ bool DirExists(const char *FileName)
 			Status = S_ISDIR(s.st_mode);
 		}
 	}
-
+	
 	return Status;
 }
 
-bool FileExists(const char *FileName)
+bool FileExists(const char *FileName, char *CorrectCase)
 {
 	bool Status = false;
 	
@@ -318,11 +318,11 @@ bool FileExists(const char *FileName)
 		{
 			Status = true;
 		}
-		else
+		else if (strlen(FileName) < MAX_PATH)
 		{
 			// Look for altenate case by enumerating the directory
-			char d[256];
-			strcpy(d, FileName);
+			char d[MAX_PATH];
+			strcpy_s(d, sizeof(d), FileName);
 			char *e = strrchr(d, DIR_CHAR);
 			if (e)
 			{
@@ -332,7 +332,7 @@ bool FileExists(const char *FileName)
 				if (Dir)
 				{
 					dirent *De;
-					while (De = readdir(Dir))
+					while ((De = readdir(Dir)))
 					{
 						if (stricmp(De->d_name, e) == 0)
 						{
@@ -350,10 +350,10 @@ bool FileExists(const char *FileName)
 							catch (...)
 							{
 								// It didn't work :(
-								#ifdef _DEBUG
+#ifdef _DEBUG
 								printf("%s,%i - FileExists(%s) found an alternate case version but couldn't return it to the caller.\n",
-										__FILE__, __LINE__, FileName);
-								#endif
+									   __FILE__, __LINE__, FileName);
+#endif
 							}
 							
 							break;
@@ -365,20 +365,18 @@ bool FileExists(const char *FileName)
 			}
 		}
 	}
-
+	
 	return Status;
 }
 
-bool ResolveShortcut(char *LinkFile, char *Path, int Len)
+bool ResolveShortcut(const char *LinkFile, char *Path, int Len)
 {
-	bool Status = false;
-
-	return Status;
+	return readlink (LinkFile, Path, Len) > 0;
 }
 
-void WriteStr(GFile &f, char *s)
+void WriteStr(GFile &f, const char *s)
 {
-	ulong Len = (s) ? strlen(s) : 0;
+	uint32 Len = (s) ? strlen(s) : 0;
 	f << Len;
 	if (Len > 0)
 	{
@@ -389,11 +387,11 @@ void WriteStr(GFile &f, char *s)
 char *ReadStr(GFile &f DeclDebugArgs)
 {
 	char *s = 0;
-
+	
 	// read the strings length...
 	uint32 Len;
 	f >> Len;
-
+	
 	if (Len > 0)
 	{
 		// 16mb sanity check.... anything over this
@@ -403,13 +401,13 @@ char *ReadStr(GFile &f DeclDebugArgs)
 			// LgiAssert(0);
 			return 0;
 		}
-
+		
 		// allocate the memory buffer
-		#if defined(_DEBUG) && defined MEMORY_DEBUG
+#if defined(_DEBUG) && defined MEMORY_DEBUG
 		s = new(_file, _line) char[Len+1];
-		#else
+#else
 		s = new char[Len+1];
-		#endif
+#endif
 		if (s)
 		{
 			// read the bytes from disk
@@ -419,18 +417,18 @@ char *ReadStr(GFile &f DeclDebugArgs)
 		else
 		{
 			// memory allocation error, skip the data
-			// on disk so the caller is where they think 
+			// on disk so the caller is where they think
 			// they are in the file.
 			f.Seek(Len, SEEK_CUR);
 		}
 	}
-
+	
 	return s;
 }
 
-int SizeofStr(char *s)
+int SizeofStr(const char *s)
 {
-	return sizeof(ulong) + ((s) ? strlen(s) : 0);
+	return sizeof(uint32) + ((s) ? strlen(s) : 0);
 }
 
 bool LgiGetDriveInfo
@@ -439,7 +437,7 @@ bool LgiGetDriveInfo
 	uint64 *Free,
 	uint64 *Size,
 	uint64 *Available
-)
+ )
 {
 	bool Status = false;
 	
@@ -458,18 +456,10 @@ bool LgiGetDriveInfo
 /****************************** Classes *************************************************************************************/
 GVolume::GVolume()
 {
-	_Name = 0;
-	_Path = 0;
 	_Type = VT_NONE;
 	_Flags = 0;
 	_Size = 0;
 	_Free = 0;
-}
-
-GVolume::~GVolume()
-{
-	DeleteArray(_Name);
-	DeleteArray(_Path);
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -480,27 +470,21 @@ class GMacVolume : public GVolume
 {
 	int Which;
 	List<GVolume> _Sub;
-
+	
 public:
 	GMacVolume(int w)
 	{
 		Which = w;
-		_Name = 0;
-		_Path = 0;
 		_Type = VT_NONE;
 		_Flags = 0;
 		_Size = 0;
 		_Free = 0;
-
+		
 		if (Which < 0)
 		{
-			_Name = NewStr("Desktop");
-
-			char p[256];
-			if (LgiGetSystemPath(LSP_DESKTOP, p, sizeof(p)))
-			{
-				_Path = NewStr(p);
-			}
+			_Name = "Desktop";
+			_Type = VT_DESKTOP;
+			_Path = LgiGetSystemPath(LSP_DESKTOP);
 		}
 	}
 	
@@ -508,17 +492,17 @@ public:
 	{
 		_Sub.DeleteObjects();
 	}
-
+	
 	bool IsMounted()
 	{
 		return false;
 	}
-
+	
 	bool SetMounted(bool Mount)
 	{
 		return Mount;
 	}
-
+	
 	void Insert(GAutoPtr<GVolume> v)
 	{
 		_Sub.Insert(v.Release());
@@ -526,101 +510,101 @@ public:
 	
 	GVolume *First()
 	{
-		if (Which < 0 AND
+		if (Which < 0 &&
 			!_Sub.Length())
 		{
 			// Get various shortcuts to points of interest
 			GMacVolume *v = new GMacVolume(0);
 			if (v)
 			{
-				v->_Path = NewStr("/");
-				v->_Name = NewStr("Root");
+				v->_Path = "/";
+				v->_Name = "Root";
 				v->_Type = VT_HARDDISK;
 				_Sub.Insert(v);
 			}
-
+			
 			struct passwd *pw = getpwuid(getuid());
 			if (pw)
 			{
 				v = new GMacVolume(0);
 				if (v)
 				{
-					v->_Path = NewStr(pw->pw_dir);
-					v->_Name = NewStr("Home");
+					v->_Path = pw->pw_dir;
+					v->_Name = "Home";
 					v->_Type = VT_HARDDISK;
 					_Sub.Insert(v);
 				}
 			}
-
+			
 			/*
-			// Get mount list
-			// this is just a hack at this stage to establish some base
-			// functionality. I would appreciate someone telling me how
-			// to do this properly. Till then...
-			GFile f;
-			if (f.Open("/etc/fstab", O_READ))
-			{
+			 // Get mount list
+			 // this is just a hack at this stage to establish some base
+			 // functionality. I would appreciate someone telling me how
+			 // to do this properly. Till then...
+			 GFile f;
+			 if (f.Open("/etc/fstab", O_READ))
+			 {
 				int Len = f.GetSize();
 				char *Buf = new char[Len+1];
 				if (Buf)
 				{
-					f.Read(Buf, Len);
-					Buf[Len] = 0;
-					f.Close();
-
-					GToken L(Buf, "\r\n");
-					for (int l=0; l<L.Length(); l++)
-					{
-						GToken M(L[l], " \t");
-						if (M.Length() > 2)
-						{
-							char *Mount = M[1];
-							if (Mount AND
-								strnicmp(M[0], "/dev/", 5) == 0 AND
-								strlen(M[1]) > 1 AND
-								stricmp(M[2], "swap") != 0)
-							{
-								v = new GMacVolume(0);
-								if (v)
-								{
-									char *MountName = strrchr(Mount, '/');
-									v->_Name = NewStr(MountName ? MountName + 1 : Mount);
-									v->_Path = NewStr(Mount);
-									v->_Type = VT_HARDDISK;
-
-									char *Device = M[0];
-									char *FileSys = M[2];
-									if (stristr(Device, "fd"))
-									{
-										v->_Type = VT_3_5FLOPPY;
-									}
-									else if (stristr(Device, "cdrom"))
-									{
-										v->_Type = VT_CDROM;
-									}
-
-									_Sub.Insert(v);
-								}
-							}
-						}
-					}
+			 f.Read(Buf, Len);
+			 Buf[Len] = 0;
+			 f.Close();
+			 
+			 GToken L(Buf, "\r\n");
+			 for (int l=0; l<L.Length(); l++)
+			 {
+			 GToken M(L[l], " \t");
+			 if (M.Length() > 2)
+			 {
+			 char *Mount = M[1];
+			 if (Mount AND
+			 strnicmp(M[0], "/dev/", 5) == 0 AND
+			 strlen(M[1]) > 1 AND
+			 stricmp(M[2], "swap") != 0)
+			 {
+			 v = new GMacVolume(0);
+			 if (v)
+			 {
+			 char *MountName = strrchr(Mount, '/');
+			 v->_Name = NewStr(MountName ? MountName + 1 : Mount);
+			 v->_Path = NewStr(Mount);
+			 v->_Type = VT_HARDDISK;
+			 
+			 char *Device = M[0];
+			 char *FileSys = M[2];
+			 if (stristr(Device, "fd"))
+			 {
+			 v->_Type = VT_3_5FLOPPY;
+			 }
+			 else if (stristr(Device, "cdrom"))
+			 {
+			 v->_Type = VT_CDROM;
+			 }
+			 
+			 _Sub.Insert(v);
+			 }
+			 }
+			 }
+			 }
 				}
-			}
-			*/
+			 }
+			 */
 		}
-
+		
 		return _Sub.First();
 	}
-
+	
 	GVolume *Next()
 	{
 		return _Sub.Next();
 	}
-
+	
 	GDirectory *GetContents()
 	{
 		GDirectory *Dir = 0;
-		if (Which >= 0 AND
+		if (Which >= 0 &&
 			_Path)
 		{
 			Dir = new GDirectory;
@@ -660,7 +644,7 @@ GVolume *GFileSystem::GetRootVolume()
 	{
 		Root = new GMacVolume(-1);
 	}
-
+	
 	return Root;
 }
 
@@ -669,44 +653,100 @@ int FloppyType(int Letter)
 	return 0;
 }
 
+#if 0
+OSType gFinderSignature = 'MACS';
+
+OSStatus MoveFileToTrash(CFURLRef fileURL)
+{
+	AppleEvent event, reply;
+	OSStatus err;
+	FSRef fileRef;
+	AliasHandle fileAlias;
+	
+	if (CFURLGetFSRef(fileURL, &fileRef) == false)
+		return coreFoundationUnknownErr;
+	
+	err = FSNewAliasMinimal(&fileRef, &fileAlias);
+	if (err == noErr)
+	{
+		err = AEBuildAppleEvent(kAECoreSuite,
+								kAEDelete,
+								typeApplSignature,
+								&gFinderSignature,
+								sizeof(OSType),
+								kAutoGenerateReturnID,
+								kAnyTransactionID,
+								&event,
+								NULL,
+								"'----':alis(@@)",
+								fileAlias);
+		if (err == noErr)
+		{
+			err = AESendMessage(&event, &reply, kAEWaitReply, kAEDefaultTimeout);
+			if (err == noErr)
+				AEDisposeDesc(&reply);
+			AEDisposeDesc(&event);
+		}
+		
+		DisposeHandle((Handle)fileAlias);
+	}
+	return err;
+}
+#endif
+
 bool GFileSystem::Copy(char *From, char *To, int *ErrorCode, CopyFileCallback Callback, void *Token)
 {
 	if (!From || !To)
 	{
+		#ifdef COCOA
+		#warning FIXME
+		#else
+		if (ErrorCode) *ErrorCode = paramErr;
+		#endif
 		return false;
 	}
-
+	
 	GFile In, Out;
 	if (!In.Open(From, O_READ))
 	{
 		if (ErrorCode) *ErrorCode = In.GetError();
 		return false;
 	}
-
+	
 	if (!Out.Open(To, O_WRITE))
 	{
 		if (ErrorCode) *ErrorCode = Out.GetError();
 		return false;
 	}
-
+	
 	if (Out.SetSize(0))
 	{
+		#ifdef COCOA
+		#warning FIXME
+		#else
+		if (ErrorCode) *ErrorCode = writErr;
+		#endif
 		return false;
 	}
-
+	
 	int64 Size = In.GetSize();
 	if (!Size)
 	{
 		return true;
 	}
-
+	
 	int64 Block = min((1 << 20), Size);
 	char *Buf = new char[Block];
 	if (!Buf)
 	{
+		#ifdef COCOA
+		#warning FIXME
+		#else
+		if (ErrorCode) *ErrorCode = notEnoughBufferSpace;
+		#endif
 		return false;
 	}
-
+	
 	int64 i = 0;
 	while (i < Size)
 	{
@@ -723,11 +763,16 @@ bool GFileSystem::Copy(char *From, char *To, int *ErrorCode, CopyFileCallback Ca
 				}
 				else
 				{
+					#ifdef COCOA
+					#warning FIXME
+					#else
+					if (ErrorCode) *ErrorCode = writErr;
+					#endif
 					goto ExitCopyLoop;
 				}
 			}
 			i += Written;
-
+			
 			if (Callback)
 			{
 				if (!Callback(Token, i, Size))
@@ -738,34 +783,101 @@ bool GFileSystem::Copy(char *From, char *To, int *ErrorCode, CopyFileCallback Ca
 		}
 		else break;
 	}
-
-	ExitCopyLoop:
+	
+ExitCopyLoop:
 	DeleteArray(Buf);
 	if (i == Size)
 	{
+		#ifdef COCOA
+		#warning FIXME
+		#else
+		if (ErrorCode) *ErrorCode = noErr;
+		#endif
 	}
 	else
 	{
 		Out.Close();
 		Delete(To, false);
 	}
-
+	
 	return i == Size;
-
+	
+	/*
+	 bool Status = false;
+	 
+	 if (From AND To)
+	 {
+		GFile In, Out;
+		if (In.Open(From, O_READ) AND
+	 Out.Open(To, O_WRITE))
+		{
+	 Out.SetSize(0);
+	 int64 Size = In.GetSize();
+	 int64 Block = min((1 << 20), Size);
+	 char *Buf = new char[Block];
+	 if (Buf)
+	 {
+	 int64 i = 0;
+	 while (i < Size)
+	 {
+	 int r = In.Read(Buf, Block);
+	 if (r > 0)
+	 {
+	 int Written = 0;
+	 while (Written < r)
+	 {
+	 int w = Out.Write(Buf + Written, r - Written);
+	 if (w > 0)
+	 {
+	 Written += w;
+	 }
+	 else goto ExitCopyLoop;
+	 }
+	 i += Written;
+	 if (Callback)
+	 {
+	 if (!Callback(Token, i, Size))
+	 {
+	 break;
+	 }
+	 }
+	 }
+	 else break;
+	 }
+	 
+	 ExitCopyLoop:
+	 DeleteArray(Buf);
+	 Status = i == Size;
+	 if (!Status)
+	 {
+	 Delete(To, false);
+	 }
+	 }
+		}
+	 }
+	 
+	 return Status;
+	 */
 }
 
-bool GFileSystem::Delete(GArray<char*> &Files, GArray<int> *Status, bool ToTrash)
+bool GFileSystem::Delete(GArray<const char*> &Files, GArray<int> *Status, bool ToTrash)
 {
 	bool Error = false;
-
+	
 	if (ToTrash)
 	{
-		#if !defined COCOA
-		// Apple events method
+#if defined MAC
 		
+		#ifdef COCOA
+		
+		#warning FIXME
+		
+		#else
+		
+		// Apple events method
 		for (int i=0; i<Files.Length(); i++)
 		{
-			char *Tmp = (UInt8*) Files[i];
+			UInt8 *Tmp = (UInt8*) Files[i];
 			CFStringRef s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)Tmp, strlen(Files[i]), kCFStringEncodingUTF8, false);
 			if (!s)
 			{
@@ -792,11 +904,11 @@ bool GFileSystem::Delete(GArray<char*> &Files, GArray<int> *Status, bool ToTrash
 			
 			CFRelease(f);
 		}
+		#endif
 		
-		#else
+#else
 		// Posix
-		LgiAssert(!"fixme");
-
+		
 		char p[300];
 		if (LgiGetSystemPath(LSP_TRASH, p, sizeof(p)))
 		{
@@ -804,7 +916,7 @@ bool GFileSystem::Delete(GArray<char*> &Files, GArray<int> *Status, bool ToTrash
 			{
 				char *f = strrchr(Files[i], DIR_CHAR);
 				LgiMakePath(p, sizeof(p), p, f?f+1:Files[i]);
-				if (!Move(Files[i], p))
+				if (!MoveFile(Files[i], p))
 				{
 					if (Status)
 					{
@@ -820,7 +932,7 @@ bool GFileSystem::Delete(GArray<char*> &Files, GArray<int> *Status, bool ToTrash
 		{
 			printf("%s:%i - LgiGetSystemPath(LSP_TRASH) failed.\n", __FILE__, __LINE__);
 		}
-		#endif
+#endif
 	}
 	else
 	{
@@ -834,27 +946,49 @@ bool GFileSystem::Delete(GArray<char*> &Files, GArray<int> *Status, bool ToTrash
 				}
 				
 				Error = true;
-			}			
+			}
 		}
 	}
 	
 	return !Error;
 }
 
-bool GFileSystem::Delete(char *FileName, bool ToTrash)
+bool GFileSystem::Delete(const char *FileName, bool ToTrash)
 {
 	if (FileName)
 	{
-		GArray<char*> f;
+		GArray<const char*> f;
 		f.Add(FileName);
 		return Delete(f, 0, ToTrash);
 	}
 	return false;
 }
 
-bool GFileSystem::CreateFolder(char *PathName)
+bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentFolders)
 {
-	return mkdir(PathName, S_IRWXU | S_IXGRP | S_IXOTH) == 0;
+	int r = mkdir(PathName, S_IRWXU | S_IXGRP | S_IXOTH);
+	if (r && CreateParentFolders)
+	{
+		char Base[MAX_PATH];
+		strcpy_s(Base, sizeof(Base), PathName);
+		do
+		{
+			char *Leaf = strrchr(Base, DIR_CHAR);
+			if (!Leaf) return false;
+			*Leaf = 0;
+		}
+		while (!DirExists(Base));
+		
+		GToken Parts(PathName + strlen(Base), DIR_STR);
+		for (int i=0; i<Parts.Length(); i++)
+		{
+			LgiMakePath(Base, sizeof(Base), Base, Parts[i]);
+			r = mkdir(Base, S_IRWXU | S_IXGRP | S_IXOTH);
+			if (r)
+				break;
+		}
+	}
+	return r == 0;
 }
 
 bool GFileSystem::RemoveFolder(char *PathName, bool Recurse)
@@ -868,7 +1002,7 @@ bool GFileSystem::RemoveFolder(char *PathName, bool Recurse)
 			{
 				char Str[256];
 				Dir.Path(Str, sizeof(Str));
-
+				
 				if (Dir.IsDir())
 				{
 					RemoveFolder(Str, Recurse);
@@ -881,16 +1015,16 @@ bool GFileSystem::RemoveFolder(char *PathName, bool Recurse)
 			while (Dir.Next());
 		}
 	}
-
+	
 	return rmdir(PathName) == 0;
 }
 
-bool GFileSystem::SetCurrentDirectory(char *PathName)
+bool GFileSystem::SetCurrentFolder(char *PathName)
 {
 	return chdir(PathName) == 0;
 }
 
-bool GFileSystem::GetCurrentDirectory(char *PathName, int Length)
+bool GFileSystem::GetCurrentFolder(char *PathName, int Length)
 {
 	return getcwd(PathName, Length) != 0;
 }
@@ -900,50 +1034,13 @@ bool GFileSystem::Move(char *OldName, char *NewName)
 	if (rename(OldName, NewName))
 	{
 		printf("%s:%i - rename failed, error: %s(%i)\n",
-			__FILE__, __LINE__,
-			GetErrorName(errno), errno);
+			   _FL,
+			   GetErrorName(errno), errno);
 		return false;
 	}
 	
 	return true;
 }
-
-
-/*
-bool Match(char *Name, char *Mask)
-{
-	strupr(Name);
-	strupr(Mask);
-
-	while (*Name AND *Mask)
-	{
-		if (*Mask == '*')
-		{
-			if (*Name == *(Mask+1))
-			{
-				Mask++;
-			}
-			else
-			{
-				Name++;
-			}
-		}
-		else if (*Mask == '?' OR *Mask == *Name)
-		{
-			Mask++;
-			Name++;
-		}
-		else
-		{
-			return false;
-		}
-	}
-
-	while (*Mask AND ((*Mask == '*') OR (*Mask == '.'))) Mask++;
-
-	return (*Name == 0 AND *Mask == 0);
-}
-*/
 
 short DaysInMonth[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 int LeapYear(int year)
@@ -961,25 +1058,25 @@ int LeapYear(int year)
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-bool GDirectory::ConvertToTime(char *Str, uint64 Time)
+bool GDirectory::ConvertToTime(char *Str, int SLen, uint64 Time)
 {
 	time_t k = Time;
 	struct tm *t = localtime(&k);
 	if (t)
 	{
-		strftime(Str, 256, "%I:%M:%S", t);
+		strftime(Str, SLen, "%I:%M:%S", t);
 		return true;
 	}
 	return false;
 }
 
-bool GDirectory::ConvertToDate(char *Str, uint64 Time)
+bool GDirectory::ConvertToDate(char *Str, int SLen, uint64 Time)
 {
 	time_t k = Time;
 	struct tm *t = localtime(&k);
 	if (t)
 	{
-		strftime(Str, 256, "%d/%m/%y", t);
+		strftime(Str, SLen, "%d/%m/%y", t);
 		return true;
 	}
 	return false;
@@ -991,18 +1088,18 @@ bool GDirectory::ConvertToDate(char *Str, uint64 Time)
 class GDirectoryPriv
 {
 public:
-	char			BasePath[256];
+	char			BasePath[512];
 	DIR				*Dir;
 	struct dirent	*De;
 	struct stat		Stat;
 	char			*Pattern;
-
+	
 	GDirectoryPriv()
-	{	
-		Dir = 0;
-		De = 0;
+	{
+		Dir = NULL;
+		De = NULL;
 		BasePath[0] = 0;
-		Pattern = 0;
+		Pattern = NULL;
 	}
 	
 	~GDirectoryPriv()
@@ -1013,18 +1110,18 @@ public:
 	bool Ignore()
 	{
 		return	De
-				AND
-				(
-					strcmp(De->d_name, ".") == 0
-					||
-					strcmp(De->d_name, "..") == 0
-					||
-					(
-						Pattern
-						AND
-						!MatchStr(Pattern, De->d_name)
-					)
-				);
+		&&
+		(
+		 strcmp(De->d_name, ".") == 0
+		 ||
+		 strcmp(De->d_name, "..") == 0
+		 ||
+		 (
+		  Pattern
+		  &&
+		  !MatchStr(Pattern, De->d_name)
+		  )
+		 );
 	}
 };
 
@@ -1047,10 +1144,10 @@ GDirectory *GDirectory::Clone()
 int GDirectory::First(const char *Name, const char *Pattern)
 {
 	Close();
-
+	
 	if (Name)
 	{
-		strcpy(d->BasePath, Name);
+		strcpy_s(d->BasePath, sizeof(d->BasePath), Name);
 		if (!Pattern || stricmp(Pattern, LGI_ALL_FILES) == 0)
 		{
 			struct stat S;
@@ -1078,10 +1175,10 @@ int GDirectory::First(const char *Name, const char *Pattern)
 			d->De = readdir(d->Dir);
 			if (d->De)
 			{
-				char s[256];
+				char s[512];
 				LgiMakePath(s, sizeof(s), d->BasePath, GetName());
 				lstat(s, &d->Stat);
-
+				
 				if (d->Ignore())
 				{
 					if (!Next())
@@ -1092,20 +1189,20 @@ int GDirectory::First(const char *Name, const char *Pattern)
 			}
 		}
 	}
-
-	return d->Dir != 0 AND d->De != 0;
+	
+	return d->Dir != 0 && d->De != 0;
 }
 
 int GDirectory::Next()
 {
 	int Status = false;
-
-	while (d->Dir AND d->De)
+	
+	while (d->Dir && d->De)
 	{
-		if (d->De = readdir(d->Dir))
+		if ((d->De = readdir(d->Dir)))
 		{
-			char s[256];
-			LgiMakePath(s, sizeof(s), d->BasePath, GetName());			
+			char s[512];
+			LgiMakePath(s, sizeof(s), d->BasePath, GetName());
 			lstat(s, &d->Stat);
 			if (!d->Ignore())
 			{
@@ -1114,7 +1211,7 @@ int GDirectory::Next()
 			}
 		}
 	}
-
+	
 	return Status;
 }
 
@@ -1126,7 +1223,7 @@ int GDirectory::Close()
 		d->Dir = 0;
 	}
 	d->De = 0;
-
+	
 	return true;
 }
 
@@ -1136,7 +1233,7 @@ bool GDirectory::Path(char *s, int BufLen)
 	{
 		return false;
 	}
-
+	
 	return LgiMakePath(s, BufLen, d->BasePath, GetName());
 }
 
@@ -1174,15 +1271,21 @@ bool GDirectory::IsReadOnly()
 	return !TestFlag(GetAttributes(), S_IWOTH);
 }
 
+bool GDirectory::IsSymLink()
+{
+	int a = GetAttributes();
+	return S_ISLNK(a);
+}
+
 bool GDirectory::IsHidden()
 {
-	return GetName() AND GetName()[0] == '.';
+	return GetName() && GetName()[0] == '.';
 }
 
 bool GDirectory::IsDir()
 {
 	int a = GetAttributes();
-	return !S_ISLNK(a) AND S_ISDIR(a);
+	return !S_ISLNK(a) && S_ISDIR(a);
 }
 
 long GDirectory::GetAttributes()
@@ -1212,7 +1315,7 @@ const uint64 GDirectory::GetLastWriteTime()
 
 const uint64 GDirectory::GetSize()
 {
-	return (uint32)d->Stat.st_size;
+	return d->Stat.st_size;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -1235,7 +1338,11 @@ public:
 		Swap = false;
 		Status = true;
 		Attributes = 0;
-		LastError = 0;
+		#ifdef COCOA
+		#warning FIXME
+		#else
+		LastError = noErr;
+		#endif
 	}
 	
 	~GFilePrivate()
@@ -1251,7 +1358,7 @@ GFile::GFile()
 
 GFile::~GFile()
 {
-	if (d AND ValidHandle(d->hFile))
+	if (d && ValidHandle(d->hFile))
 	{
 		Close();
 	}
@@ -1297,6 +1404,11 @@ int GFile::Open(const char *File, int Mode)
 {
 	if (!File)
 	{
+		#ifdef COCOA
+		#warning FIXME
+		#else
+		d->LastError = paramErr;
+		#endif
 		return false;
 	}
 	
@@ -1305,7 +1417,7 @@ int GFile::Open(const char *File, int Mode)
 	{
 		Mode |= O_CREAT;
 	}
-
+	
 	Close();
 	d->hFile = open(File, Mode | O_LARGEFILE, S_IRUSR | S_IWUSR);
 	if (!ValidHandle(d->hFile))
@@ -1315,13 +1427,13 @@ int GFile::Open(const char *File, int Mode)
 		return false;
 	}
 	
-	#ifdef _FILE_OPEN
+#ifdef _FILE_OPEN
 	if (_FileLock.Lock(_FL))
 	{5
 		_FileOpen.Add(File, this);
 		_FileLock.Unlock();
 	}
-	#endif
+#endif
 	
 	d->Attributes = Mode;
 	d->Name = new char[strlen(File)+1];
@@ -1330,7 +1442,7 @@ int GFile::Open(const char *File, int Mode)
 		strcpy(d->Name, File);
 	}
 	d->Status = true;
-
+	
 	return true;
 }
 
@@ -1338,147 +1450,147 @@ int GFile::Close()
 {
 	if (ValidHandle(d->hFile))
 	{
-		#ifdef _FILE_OPEN
+#ifdef _FILE_OPEN
 		if (_FileLock.Lock(_FL))
 		{
 			_FileOpen.Delete(d->Name);
 			_FileLock.Unlock();
 		}
-		#endif
-
+#endif
+		
 		close(d->hFile);
 		d->hFile = INVALID_HANDLE;
 		DeleteArray(d->Name);
 	}
-
+	
 	return true;
 }
 
 /*
-int GFile::Print(char *Format, ...)
-{
+ int GFile::Print(char *Format, ...)
+ {
 	int Chars = 0;
-
+ 
 	if (Format)
 	{
-		va_list Arg;
-
-		va_start(Arg, Format);
-		int Size = vsnprintf(0, 0, Format, Arg);
-		char *Buffer = new char[Size+1];
-		if (Buffer)
-		{
-			vsprintf(Buffer, Format, Arg);
-		}
-		va_end(Arg);
-
-		if (Size > 0)
-		{
-			Write(Buffer, Size);
-		}
-		DeleteArray(Buffer);
+ va_list Arg;
+ 
+ va_start(Arg, Format);
+ int Size = vsnprintf(0, 0, Format, Arg);
+ char *Buffer = new char[Size+1];
+ if (Buffer)
+ {
+ vsprintf(Buffer, Format, Arg);
+ }
+ va_end(Arg);
+ 
+ if (Size > 0)
+ {
+ Write(Buffer, Size);
+ }
+ DeleteArray(Buffer);
 	}
-
+ 
 	return Chars;
-}
-*/
+ }
+ */
 
 #define CHUNK		0xFFF0
 
 int GFile::Read(void *Buffer, int Size, int Flags)
 {
 	int Red = 0;
-
-	if (Buffer AND Size > 0)
+	
+	if (Buffer && Size > 0)
 	{
 		Red = read(d->hFile, Buffer, Size);
-		#ifdef _DEBUG
+#ifdef _DEBUG
 		if (Red < 0)
 		{
 			int Err = errno;
 			int64 Pos = GetPos();
 			printf("Read error: %i, "LGI_PrintfInt64"\n", Err, Pos);
 		}
-		#endif
+#endif
 	}
 	d->Status = Red == Size;
-
+	
 	return max(Red, 0);
 }
 
 int GFile::Write(const void *Buffer, int Size, int Flags)
 {
 	int Written = 0;
-
-	if (Buffer AND Size > 0)
+	
+	if (Buffer && Size > 0)
 	{
 		Written = write(d->hFile, Buffer, Size);
-		#ifdef _DEBUG
+#ifdef _DEBUG
 		if (Written < 0)
 		{
 			int Err = errno;
 			int64 Pos = GetPos();
 			printf("Write error: %i, "LGI_PrintfInt64"\n", Err, Pos);
 		}
-		#endif
+#endif
 	}
 	d->Status = Written == Size;
-
+	
 	return max(Written, 0);
 }
 
 int64 GFile::Seek(int64 To, int Whence)
 {
-	#if LINUX64
+#if LINUX64
 	return lseek64(d->hFile, To, Whence); // If this doesn't compile, switch off LINUX64
-	#else
+#else
 	return lseek(d->hFile, To, Whence);
-	#endif
+#endif
 }
 
 int64 GFile::SetPos(int64 Pos)
 {
-	#if LINUX64
+#if LINUX64
 	int64 p = lseek64(d->hFile, Pos, SEEK_SET);
 	if (p < 0)
 	{
 		int e = errno;
 		printf("%s:%i - lseek64(%Lx) failed (error %i: %s).\n",
-			__FILE__, __LINE__,
-			Pos, e, GetErrorName(e));
+			   __FILE__, __LINE__,
+			   Pos, e, GetErrorName(e));
 		
 	}
-	#else
+#else
 	return lseek(d->hFile, Pos, SEEK_SET);
-	#endif
+#endif
 }
 
 int64 GFile::GetPos()
 {
-	#if LINUX64
+#if LINUX64
 	int64 p = lseek64(d->hFile, 0, SEEK_CUR);
 	if (p < 0)
 	{
 		int e = errno;
 		printf("%s:%i - lseek64 failed (error %i: %s).\n",
-			__FILE__, __LINE__,
-			e, GetErrorName(e));
+			   __FILE__, __LINE__,
+			   e, GetErrorName(e));
 		
 	}
 	return p;
-	#else
+#else
 	return lseek(d->hFile, 0, SEEK_CUR);
-	#endif	
+#endif
 }
 
 int64 GFile::GetSize()
 {
 	int64 Here = GetPos();
-	#if LINUX64
+#if LINUX64
 	int64 Ret = lseek64(d->hFile, 0, SEEK_END);
-	#else
-	int64 Ret = lseek(d->hFile, 0, SEEK_END);
-	#endif
+#else
+	off_t Ret = lseek(d->hFile, 0, SEEK_END);
+#endif
 	SetPos(Here);
 	return Ret;
 }
@@ -1490,30 +1602,30 @@ int64 GFile::SetSize(int64 Size)
 		int64 Pos = GetPos();
 		
 		/*
-		close(d->hFile);
-		if (d->Name)
-		{
+		 close(d->hFile);
+		 if (d->Name)
+		 {
 			#if LINUX64
 			truncate64(Name, Size);
 			#else
 			truncate(Name, Size);
 			#endif
-		}
-		d->hFile = open(Name, Attributes, 0);
-		*/
+		 }
+		 d->hFile = open(Name, Attributes, 0);
+		 */
 		
-		#if LINUX64
+#if LINUX64
 		ftruncate64(d->hFile, Size);
-		#else
+#else
 		ftruncate(d->hFile, Size);
-		#endif
+#endif
 		
 		if (d->hFile)
 		{
 			SetPos(Pos);
 		}
 	}
-
+	
 	return GetSize();
 }
 
@@ -1579,9 +1691,9 @@ int GFile::SwapWrite(uchar *Buf, int Size)
 				Buf[i] = Buf[n];
 				Buf[n] = c;
 			}
-
+			
 			int w = Write(Buf, Size);
-
+			
 			for (i=0, n=Size-1; i<n; i++, n--)
 			{
 				uchar c = Buf[i];
@@ -1601,12 +1713,12 @@ int GFile::ReadStr(char *Buf, int Size)
 {
 	int i = 0;
 	int r = 0;
-	if (Buf AND Size > 0)
+	if (Buf && Size > 0)
 	{
 		char c;
-
+		
 		Size--;
-
+		
 		do
 		{
 			r = read(d->hFile, &c, 1);
@@ -1614,15 +1726,15 @@ int GFile::ReadStr(char *Buf, int Size)
 			{
 				break;
 			}
-
+			
 			*Buf++ = c;
 			i++;
-
-		} while (i < Size - 1 AND c != '\n');
-
+			
+		} while (i < Size - 1 && c != '\n');
+		
 		*Buf = 0;
 	}
-
+	
 	return i;
 }
 
@@ -1630,7 +1742,7 @@ int GFile::WriteStr(char *Buf, int Size)
 {
 	int i = 0;
 	int w;
-
+	
 	while (i <= Size)
 	{
 		w = write(d->hFile, Buf, 1);
@@ -1638,7 +1750,7 @@ int GFile::WriteStr(char *Buf, int Size)
 		i++;
 		if (*Buf == '\n') break;
 	}
-
+	
 	return i;
 }
 

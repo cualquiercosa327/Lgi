@@ -671,9 +671,12 @@ public:
 
 struct GPrintDcParams
 {
+	#ifdef COCOA
+	#else
 	PMRect Page;
 	CGContextRef Ctx;
 	PMResolution Dpi;
+	#endif
 };
 
 #endif

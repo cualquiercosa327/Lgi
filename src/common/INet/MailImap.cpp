@@ -1508,7 +1508,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 										DeleteArray(Comma);
 									}
 
-									int32 CnonceI[2] = { LgiRand(), LgiRand() };
+									int32 CnonceI[2] = { (int32)LgiRand(), (int32)LgiRand() };
 									char Cnonce[32];
 									if (TestCnonce)
 										strcpy_s(Cnonce, sizeof(Cnonce), TestCnonce);

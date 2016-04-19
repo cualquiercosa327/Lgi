@@ -318,7 +318,11 @@ public:
 			while (d < e)
 			{
 				System24BitPixel dst = dc[*d];
-				GRgba32 src = { s->r >> 8, s->g >> 8, s->b >> 8, alpha };
+				GRgba32 src = {
+					(uint8)(s->r >> 8),
+					(uint8)(s->g >> 8),
+					(uint8)(s->b >> 8),
+					alpha };
 				OverNpm32toNpm24(&src, &dst);
 				*d++ = Lut[Rgb15(dst.r, dst.g, dst.b)];
 				s++;
@@ -455,12 +459,12 @@ public:
 	#define Div2040(c) ((c) / 2040)
 
 	#define Setup15() \
-		register uint8 r = Rc15(this->c); \
-		register uint8 g = Gc15(this->c); \
-		register uint8 b = Bc15(this->c); \
-		register uint8 a = this->alpha; \
-		register uint8 oma = 255 - a; \
-		register Pixel *d = this->p
+		REG uint8 r = Rc15(this->c); \
+		REG uint8 g = Gc15(this->c); \
+		REG uint8 b = Bc15(this->c); \
+		REG uint8 a = this->alpha; \
+		REG uint8 oma = 255 - a; \
+		REG Pixel *d = this->p
 
 	#define Comp15() \
 		d->r = Div2040((G5bitTo8bit(d->r) * oma) + (r * a)); \
@@ -476,7 +480,7 @@ public:
 	void VLine(int height)
 	{
 		Setup15();
-		register int line = this->Dest->Line;
+		REG int line = this->Dest->Line;
 
 		while (height--)
 		{
@@ -489,12 +493,12 @@ public:
 	void Rectangle(int x, int y)
 	{
 		Setup15();
-		register int line = this->Dest->Line;
+		REG int line = this->Dest->Line;
 
 		while (y--)
 		{
 			d = this->p;
-			register Pixel *e = d + x;
+			REG Pixel *e = d + x;
 			while (d < e)
 			{
 				Comp15();
@@ -571,12 +575,12 @@ public:
 	#define Div1020(c) ((c) / 1020)
 
 	#define Setup16() \
-		register uint8 r = Rc16(this->c); \
-		register uint8 g = Gc16(this->c); \
-		register uint8 b = Bc16(this->c); \
-		register uint8 a = this->alpha; \
-		register uint8 oma = 255 - a; \
-		register Pixel *d = this->p
+		REG uint8 r = Rc16(this->c); \
+		REG uint8 g = Gc16(this->c); \
+		REG uint8 b = Bc16(this->c); \
+		REG uint8 a = this->alpha; \
+		REG uint8 oma = 255 - a; \
+		REG Pixel *d = this->p
 
 	#define Comp16() \
 		d->r = Div2040((G5bitTo8bit(d->r) * oma) + (r * a)); \
@@ -592,7 +596,7 @@ public:
 	void VLine(int height)
 	{
 		Setup16();
-		register int line = this->Dest->Line;
+		REG int line = this->Dest->Line;
 
 		while (height--)
 		{
@@ -605,12 +609,12 @@ public:
 	void Rectangle(int x, int y)
 	{
 		Setup16();
-		register int line = this->Dest->Line;
+		REG int line = this->Dest->Line;
 
 		while (y--)
 		{
 			d = this->p;
-			register Pixel *e = d + x;
+			REG Pixel *e = d + x;
 			while (d < e)
 			{
 				Comp16();
@@ -684,11 +688,11 @@ public:
 
 	#define InitComposite24() \
 		uchar *DivLut = Div255Lut; \
-		register uint8 a = this->alpha; \
-		register uint8 oma = this->one_minus_alpha; \
-		register int r = this->p24.r * a; \
-		register int g = this->p24.g * a; \
-		register int b = this->p24.b * a
+		REG uint8 a = this->alpha; \
+		REG uint8 oma = this->one_minus_alpha; \
+		REG int r = this->p24.r * a; \
+		REG int g = this->p24.g * a; \
+		REG int b = this->p24.b * a
 	#define InitFlat24() \
 		Pixel px; \
 		px.r = this->p24.r; \
@@ -734,8 +738,8 @@ public:
 			InitFlat24();
 			while (y-- > 0)
 			{
-				register Pixel *s = this->p;
-				register Pixel *e = s + x;
+				REG Pixel *s = this->p;
+				REG Pixel *e = s + x;
 				while (s < e)
 				{
 					*this->p = px;
@@ -749,8 +753,8 @@ public:
 			InitComposite24();
 			while (y-- > 0)
 			{
-				register Pixel *s = this->p;
-				register Pixel *e = s + x;
+				REG Pixel *s = this->p;
+				REG Pixel *e = s + x;
 
 				while (s < e)
 				{
@@ -766,8 +770,8 @@ public:
 	void CompositeBlt24(GBmpMem *Src)
 	{
 		uchar *Lut = Div255Lut;
-		register uint8 a = this->alpha;
-		register uint8 oma = this->one_minus_alpha;
+		REG uint8 a = this->alpha;
+		REG uint8 oma = this->one_minus_alpha;
 		
 		for (int y=0; y<Src->y; y++)
 		{
@@ -807,7 +811,7 @@ public:
 	void CompositeBlt32(GBmpMem *Src)
 	{
 		uchar *Lut = Div255Lut;
-		register uint8 a = this->alpha;
+		REG uint8 a = this->alpha;
 		
 		if (a == 0xff)
 		{
@@ -819,8 +823,8 @@ public:
 				SrcPx *src = (SrcPx*)(Src->Base + (y * Src->Line));
 				while (dst < dst_end)
 				{
-					register uint8 sa = src->a;
-					register uint8 soma = 0xff - sa;
+					REG uint8 sa = src->a;
+					REG uint8 soma = 0xff - sa;
 					dst->r = Lut[(dst->r * soma) + (src->r * sa)];
 					dst->g = Lut[(dst->g * soma) + (src->g * sa)];
 					dst->b = Lut[(dst->b * soma) + (src->b * sa)];
@@ -841,8 +845,8 @@ public:
 				SrcPx *src = (SrcPx*)(Src->Base + (y * Src->Line));
 				while (dst < dst_end)
 				{
-					register uint8 sa = Lut[a * src->a];
-					register uint8 soma = 0xff - sa;
+					REG uint8 sa = Lut[a * src->a];
+					REG uint8 soma = 0xff - sa;
 					dst->r = Lut[(dst->r * soma) + (src->r * sa)];
 					dst->g = Lut[(dst->g * soma) + (src->g * sa)];
 					dst->b = Lut[(dst->b * soma) + (src->b * sa)];
@@ -944,11 +948,11 @@ class GdcAlpha32 : public GdcAlpha<Pixel, ColourSpace>
 public:
 	#define InitComposite32() \
 		uchar *DivLut = Div255Lut; \
-		register int a = DivLut[this->alpha * this->p32.a]; \
-		register int r = this->p32.r * a; \
-		register int g = this->p32.g * a; \
-		register int b = this->p32.b * a; \
-		register uint8 oma = 0xff - a
+		REG int a = DivLut[this->alpha * this->p32.a]; \
+		REG int r = this->p32.r * a; \
+		REG int g = this->p32.g * a; \
+		REG int b = this->p32.b * a; \
+		REG uint8 oma = 0xff - a
 	#define InitFlat32() \
 		Pixel px; \
 		px.r = this->p32.r; \
@@ -1033,11 +1037,11 @@ public:
 	template<typename SrcPx>
 	void PmBlt32(GBmpMem *Src)
 	{
-		register uchar *DivLut = Div255Lut;
+		REG uchar *DivLut = Div255Lut;
 		for (int y=0; y<Src->y; y++)
 		{
-			register Pixel *d = this->p, *e = d + Src->x;
-			register SrcPx *s = (SrcPx*)(Src->Base + (Src->Line * y));
+			REG Pixel *d = this->p, *e = d + Src->x;
+			REG SrcPx *s = (SrcPx*)(Src->Base + (Src->Line * y));
 
 			while (d < e)
 			{
@@ -1053,10 +1057,10 @@ public:
 	bool Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha = 0)
 	{
 		if (!Src) return 0;
-		register uchar *DivLut = Div255Lut;
+		REG uchar *DivLut = Div255Lut;
 		uchar lookup[256];
-		register uint8 a = this->alpha;
-		register uint8 oma = this->one_minus_alpha;
+		REG uint8 a = this->alpha;
+		REG uint8 oma = this->one_minus_alpha;
 		for (int i=0; i<256; i++)
 		{
 			lookup[i] = DivLut[i * this->alpha];
@@ -1533,7 +1537,7 @@ bool GdcApp8Alpha::Blt(GBmpMem *Src, GPalette *SPal, GBmpMem *SrcAlpha)
 					uchar *s = Src->Base + (y * Src->Line);
 					uchar *sa = SrcAlpha->Base + (y * SrcAlpha->Line);
 					uchar *d = Ptr;
-					int r, g, b;
+					int r = 0, g = 0, b = 0;
 
 					Lut = DPal->MakeLut(15);
 

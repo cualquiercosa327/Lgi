@@ -28,7 +28,7 @@ struct OsAppArgumentsPriv
 	GArray<char*> Ptr;
 };
 
-OsAppArguments::OsAppArguments(int args, char **arg)
+OsAppArguments::OsAppArguments(int args, const char **arg)
 {
 	d = new OsAppArgumentsPriv;
 	Args = args;
@@ -98,7 +98,7 @@ void OsAppArguments::Set(char *CmdLine)
 	}
 	
 	Args = d->Ptr.Length();
-	Arg = &d->Ptr[0];
+	Arg = (const char**) &d->Ptr[0];
 }
 
 OsAppArguments &OsAppArguments::operator =(OsAppArguments &a)
@@ -121,7 +121,7 @@ OsAppArguments &OsAppArguments::operator =(OsAppArguments &a)
 	}
 	
 	Args = d->Ptr.Length();
-	Arg = &d->Ptr[0];
+	Arg = (const char**) &d->Ptr[0];
 	
 	return *this;
 }
@@ -885,7 +885,7 @@ void GApp::SetConfig(GXmlTag *Tag)
 	}
 }
 
-char *GApp::GetArgumentAt(int n)
+const char *GApp::GetArgumentAt(int n)
 {
 	return n >= 0 && n < d->Args.Args ? d->Args.Arg[n] : 0;
 }
@@ -909,13 +909,13 @@ bool GApp::GetOption(const char *Option, GAutoString &Buf)
 		int OptLen = strlen(Option);
 		for (int i=1; i<d->Args.Args; i++)
 		{
-			char *a = d->Args.Arg[i];
+			const char *a = d->Args.Arg[i];
 
 			if (strchr("-/\\", a[0]))
 			{
 				if (strncmp(a+1, Option, OptLen) == 0)
 				{
-					char *Arg = 0;
+					const char *Arg = 0;
 					if (strlen(a+1+OptLen) > 0)
 					{
 						Arg = a + 1 + OptLen;
@@ -963,7 +963,7 @@ void GApp::OnCommandLine()
 
 	for (int i=1; i<GetAppArgs()->Args; i++)
 	{
-		char *a = GetAppArgs()->Arg[i];
+		const char *a = GetAppArgs()->Arg[i];
 		if (FileExists(a))
 		{
 			Files.Add(NewStr(a));

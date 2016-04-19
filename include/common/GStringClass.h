@@ -183,7 +183,7 @@ public:
 			return false;
 		
 		Str->Refs = 1;
-		Str->Len = bytes;
+		Str->Len = (uint32)bytes;
 		#ifdef LGI_UNIT_TESTS
 		RefStrCount++;
 		#endif
@@ -326,7 +326,7 @@ public:
 		if (Str && Sep)
 		{
 			const char *s = Get(), *Prev = s;
-			int SepLen = strlen(Sep);
+			size_t SepLen = strlen(Sep);
 			
 			while ((s = CaseSen ? strstr(s, Sep) : stristr(s, Sep)))
 			{
@@ -354,7 +354,7 @@ public:
 		if (Str && Sep)
 		{
 			const char *s = Get();
-			int SepLen = strlen(Sep);
+			size_t SepLen = strlen(Sep);
 			
 			GArray<const char*> seps;
 			
@@ -445,8 +445,8 @@ public:
 		GString ret;
 		
 		char *Sep = Get();
-		int SepLen = Sep ? strlen(Sep) : 0;
-		int Bytes = SepLen * (a.Length() - 1);
+		size_t SepLen = Sep ? strlen(Sep) : 0;
+		size_t Bytes = SepLen * (a.Length() - 1);
 		GArray<unsigned> ALen;
 		for (unsigned i=0; i<a.Length(); i++)
 		{
@@ -495,7 +495,7 @@ public:
 	}
 
 	/// Find a sub-string	
-	int Find(const char *needle, int start = 0, int end = -1)
+	size_t Find(const char *needle, int start = 0, int end = -1)
 	{
 		if (!needle) return -1;
 		char *c = Get();
@@ -514,7 +514,7 @@ public:
 	}
 
 	/// Reverse find a string (starting from the end)
-	int RFind(const char *needle, int start = 0, int end = -1)
+	size_t RFind(const char *needle, int start = 0, int end = -1)
 	{
 		if (!needle) return -1;
 		char *c = Get();
@@ -529,7 +529,7 @@ public:
 		}
 		
 		char *found, *prev = NULL;
-		int str_len = strlen(needle);
+		size_t str_len = strlen(needle);
 		while
 		((
 			found =
@@ -637,7 +637,7 @@ public:
 		return Bytes;
 	}
 	
-	#if defined(MAC) && __COREFOUNDATION_CFBASE__
+	#if defined(MAC) // && __COREFOUNDATION_CFBASE__
 
 	GString(const CFStringRef r)
 	{

@@ -58,7 +58,7 @@ void CreateMimeBoundary(char *Buf, int BufLen)
 	if (Buf)
 	{
 		static int Count = 1;
-		sprintf_s(Buf, BufLen, "--%x-%x-%x--", (int)LgiCurrentTime(), (int)LgiGetCurrentThread(), Count++);
+		sprintf_s(Buf, BufLen, "--%x-%x-%x--", (int)LgiCurrentTime(), (int)(uint64)LgiGetCurrentThread(), Count++);
 	}
 }
 
@@ -1344,9 +1344,9 @@ int GMime::GMimeBinary::GMimeWrite::Push(GStreamI *Dest, GStreamEnd *End)
 		int32 Header[4] =
 		{
 			MimeMagic,
-			Mime->Headers ? strlen(Mime->Headers) : 0,
+			Mime->Headers ? (int32) strlen(Mime->Headers) : 0,
 			Mime->DataStore ? Mime->DataSize : 0,
-			Mime->Children.Length()
+			(int32) Mime->Children.Length()
 		};
 
 		if (Dest->Write(Header, sizeof(Header)) == sizeof(Header))

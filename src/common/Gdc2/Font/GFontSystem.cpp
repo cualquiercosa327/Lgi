@@ -317,7 +317,7 @@ bool GFontSystem::HasIconv(bool Quiet)
 	if (d->IsLoaded())
 		return true;
 
-	bool Status = d->Load("libiconv-1.9.1."LGI_LIBRARY_EXT);
+	bool Status = d->Load("libiconv-1.9.1." LGI_LIBRARY_EXT);
 	if (!Status && !Quiet)
 	{
 	    if (!NeedsCapability("libiconv"))

@@ -1,21 +1,22 @@
 /*hdr
-**      FILE:           GuiMenu.cpp
-**      AUTHOR:         Matthew Allen
-**      DATE:           18/7/98
-**      DESCRIPTION:    Gui menu system
-**
-**      Copyright (C) 1998, Matthew Allen
-**              fret@memecode.com
-*/
+ **      FILE:           GuiMenu.cpp
+ **      AUTHOR:         Matthew Allen
+ **      DATE:           18/7/98
+ **      DESCRIPTION:    Gui menu system
+ **
+ **      Copyright (C) 1998, Matthew Allen
+ **              fret@memecode.com
+ */
 
 #include <math.h>
 #include <stdio.h>
 #include <ctype.h>
-
 #include "Lgi.h"
 #include "GToken.h"
 #include "GUtf8.h"
+#include "GDisplayString.h"
 
+static int NextId = 0;
 #define DEBUG_INFO		0
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -24,11 +25,40 @@ GSubMenu::GSubMenu(const char *name, bool Popup)
 	Menu = 0;
 	Parent = 0;
 	Info = 0;
+	GBase::Name(name);
+
+	#if COCOA
+	#else
+		OSStatus e = CreateNewMenu(	NextId++, // MenuId
+								   0, // MenuAttributes
+								   &Info);
+		if (e) printf("%s:%i - can't create menu (e=%i)\n", __FILE__, __LINE__, (int)e);
+		#if DEBUG_INFO
+		else printf("CreateNewMenu()=%p\n", Info);
+		#endif
+	#endif
 }
 
 GSubMenu::~GSubMenu()
 {
-	Items.DeleteObjects();
+	while (Items.Length())
+	{
+		GMenuItem *i = Items.First();
+		if (i->Parent != this)
+		{
+			i->Parent = NULL;
+			Items.Delete(i);
+		}
+		delete i;
+	}
+	
+	if (Info)
+	{
+		#if COCOA
+		#else
+		DisposeMenu(Info);
+		#endif
+	}
 }
 
 void GSubMenu::OnAttach(bool Attach)
@@ -38,14 +68,14 @@ void GSubMenu::OnAttach(bool Attach)
 		i->OnAttach(Attach);
 	}
 	
-	if (Attach AND
-		this != Menu AND
-		Parent AND
+	if (Attach &&
+		this != Menu &&
+		Parent &&
 		Parent->Parent)
 	{
-		#if 0
+#if 0
 		GSubMenu *k = Parent->Parent;
-
+		
 		if (Parent->Info == 0)
 		{
 			Parent->Info = k->Items.IndexOf(Parent) + 1;
@@ -53,15 +83,15 @@ void GSubMenu::OnAttach(bool Attach)
 			CFStringRef s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)Str, strlen(Str), kCFStringEncodingUTF8, false);
 			OSStatus e = InsertMenuItemTextWithCFString(Parent->Parent->Info, s, Parent->Info - 1, 0, 0);
 			CFRelease(s);
-
+			
 			if (e) printf("%s:%i - Error: AppendMenuItemTextWithCFString(%p)=%i\n", __FILE__, __LINE__, Parent->Parent->Info, Parent->Info);
 			else
 			{
-				e = SetMenuItemHierarchicalMenu(Parent->Parent->Info, Parent->Info, Info);	
+				e = SetMenuItemHierarchicalMenu(Parent->Parent->Info, Parent->Info, Info);
 				if (e) printf("%s:%i - Error: SetMenuItemHierarchicalMenu(%p, %i, %p) = %i\n", __FILE__, __LINE__, Parent->Parent->Info, Parent->Info, Info, e);
 			}
 		}
-		#endif
+#endif
 	}
 }
 
@@ -77,18 +107,56 @@ GMenuItem *GSubMenu::ItemAt(int Id)
 
 GMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where, const char *Shortcut)
 {
-	GMenuItem *i = new GMenuItem(Menu, this, Where, Shortcut);
+	GMenuItem *i = new GMenuItem(Menu, this, Str, Where, Shortcut);
 	if (i)
 	{
 		if (Info)
 		{
 			Items.Insert(i, Where);
 			
-			i->Name(Str);
-			i->Parent = this;
-			i->Menu = Menu;
-
+			#if COCOA
+			#else
 			Str = i->Name();
+			CFStringRef s = CFStringCreateWithBytes(kCFAllocatorDefault,
+													(UInt8*)Str, strlen(Str),
+													kCFStringEncodingUTF8,
+													false);
+			if (!s)
+				s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)"#error", 6, kCFStringEncodingUTF8, false);
+			if (s)
+			{
+				OSStatus e;
+				
+				if (Where >= 0)
+				{
+					e = InsertMenuItemTextWithCFString(Info, s, Where, 0, 0);
+				}
+				else
+				{
+					e = AppendMenuItemTextWithCFString(Info, s, 0, 0, &i->Info);
+				}
+				
+				if (e)
+					printf("%s:%i - AppendMenuItemTextWithCFString failed (e=%i)\n", _FL, (int)e);
+#if DEBUG_INFO
+				else
+					printf("Append|Insert.MenuItemTextWithCFString(%p, %s)=%p\n", Info, Str, i->Info);
+#endif
+				
+				CFRelease(s);
+			}
+			
+			if (Where >= 0)
+			{
+				// We have to reindex everything (do the indexes change anyway?)
+				List<GMenuItem>::I it = Items.Start();
+				int n = 1;
+				for (GMenuItem *mi = *it; mi; mi = *++it)
+				{
+					mi->Info = n++;
+				}
+			}
+			#endif
 			
 			i->Id(Id);
 			i->Enabled(Enabled);
@@ -102,7 +170,7 @@ GMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where
 			DeleteObj(i);
 		}
 	}
-
+	
 	return 0;
 }
 
@@ -114,20 +182,46 @@ GMenuItem *GSubMenu::AppendSeparator(int Where)
 		i->Parent = this;
 		i->Menu = Menu;
 		i->Id(-2);
-
+		
 		Items.Insert(i, Where);
-
+		
 		if (Info)
 		{
+			#if COCOA
+			#else
+			OSStatus e;
+			if (Where >= 0)
+			{
+				e = InsertMenuItemTextWithCFString(	Info,
+												   NULL,
+												   Where,
+												   kMenuItemAttrSeparator,
+												   0);
+				if (!e)
+					i->Info = Where;
+			}
+			else
+			{
+				e = AppendMenuItemTextWithCFString(	Info,
+												   NULL,
+												   kMenuItemAttrSeparator,
+												   0,
+												   &i->Info);
+			}
+			if (e) printf("%s:%i - InsertMenuItemTextWithCFString failed (e=%i)\n", _FL, (int)e);
+			#if DEBUG_INFO
+			else printf("InsertMenuItemTextWithCFString(%p, ---)=%p\n", Info, i->Info);
+			#endif
+			#endif
 		}
 		else
 		{
-			printf("%s:%i - No menu to attach item to.\n", __FILE__, __LINE__);
+			printf("%s:%i - No menu to attach item to.\n", _FL);
 		}
 		
 		return i;
 	}
-
+	
 	return 0;
 }
 
@@ -140,9 +234,9 @@ GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 		i->Parent = this;
 		i->Menu = Menu;
 		i->Id(-1);
-
+		
 		Items.Insert(i, Where);
-
+		
 		if (Info)
 		{
 			i->Child = new GSubMenu(Str);
@@ -151,16 +245,58 @@ GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 				i->Child->Parent = i;
 				i->Child->Menu = Menu;
 				i->Child->Window = Window;
+				
+				#if COCOA
+				#else
+				CFStringRef s;
+				OSStatus e;
+				
+				Str = i->Name();
+				s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)Str, strlen(Str), kCFStringEncodingUTF8, false);
+				if (s)
+				{
+					e = SetMenuTitleWithCFString(i->Child->Info, s);
+					if (e) printf("%s:%i - SetMenuTitleWithCFString failed (e=%i)\n", __FILE__, __LINE__, (int)e);
+					#if DEBUG_INFO
+					else printf("SetMenuTitleWithCFString(%p, %s)\n", i->Child->Info, Str);
+					#endif
+					CFRelease(s);
+				}
+				
+				i->Info = Items.IndexOf(i) + 1;
+				s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)Str, strlen(Str), kCFStringEncodingUTF8, false);
+				if (s)
+				{
+					e = InsertMenuItemTextWithCFString(Info, s, i->Info - 1, 0, 0);
+					CFRelease(s);
+				}
+				if (e)
+					printf("%s:%i - Error: AppendMenuItemTextWithCFString(%p)=%i\n",
+						   _FL,
+						   Parent && Parent->Parent ? Parent->Parent->Info : NULL,
+						   Parent ? Parent->Info : NULL);
+				else
+				{
+					e = SetMenuItemHierarchicalMenu(Info, i->Info, i->Child->Info);
+					if (e)
+						printf("%s:%i - Error: SetMenuItemHierarchicalMenu(%p, %i, %p) = %i\n",
+							   _FL,
+							   Parent && Parent->Parent ? Parent->Parent->Info : NULL,
+							   Parent ? Parent->Info : NULL,
+							   Info,
+							   (int)e);
+				}
+				#endif
 			}
 		}
 		else
 		{
 			printf("%s:%i - No menu to attach item to.\n", __FILE__, __LINE__);
 		}
-
+		
 		return i->Child;
 	}
-
+	
 	return 0;
 }
 
@@ -174,16 +310,21 @@ void GSubMenu::Empty()
 
 bool GSubMenu::RemoveItem(int i)
 {
-	return RemoveItem(Items.ItemAt(i));
+	GMenuItem *Item = Items[i];
+	if (Item)
+	{
+		return Item->Remove();
+	}
+	return false;
 }
 
 bool GSubMenu::RemoveItem(GMenuItem *Item)
 {
-	if (Item AND Items.HasItem(Item))
+	if (Item &&
+		Items.HasItem(Item))
 	{
 		return Item->Remove();
 	}
-
 	return false;
 }
 
@@ -215,9 +356,9 @@ bool IsOverMenu(XEvent *e)
 				GRect gr = m->geometry();
 				
 				return gr.Overlap
-					(
-						e->xbutton.x_root,
-						e->xbutton.y_root
+				(
+				 e->xbutton.x_root,
+				 e->xbutton.y_root
 					);
 			}
 		}
@@ -227,9 +368,58 @@ bool IsOverMenu(XEvent *e)
 }
 #endif
 
+#if COCOA
+#else
+MenuCommand *ReturnFloatCommand = 0;
+#endif
+
 int GSubMenu::Float(GView *From, int x, int y, bool Left)
 {
-	return -1;
+	static int Depth = 0;
+	
+	#if COCOA
+	return 0;
+	#else
+	MenuCommand Cmd = 0;
+	if (From && Depth == 0)
+	{
+		Depth++;
+		
+		UInt32 UserSelectionType;
+		SInt16 MenuID;
+		MenuItemIndex MenuItem;
+		Point Pt = { y, x };
+		
+		From->Capture(false);
+		OnAttach(true);
+		
+		ReturnFloatCommand = &Cmd;
+		OSStatus e = ContextualMenuSelect(	Info,
+										  Pt,
+										  false,
+										  kCMHelpItemRemoveHelp,
+										  0,
+										  0, // AEDesc *inSelection,
+										  &UserSelectionType,
+										  &MenuID,
+										  &MenuItem);
+		ReturnFloatCommand = 0;
+		if (e == userCanceledErr)
+		{
+			// Success
+		}
+		else
+		{
+			printf("%s:%i - ContextualMenuSelect failed (e=%i)\n", _FL, (int)e);
+			Cmd = 0;
+		}
+		
+		Depth--;
+	}
+	else printf("%s:%i - Recursive limit.\n", _FL);
+
+	return Cmd;
+	#endif
 }
 
 GSubMenu *GSubMenu::FindSubMenu(int Id)
@@ -237,7 +427,7 @@ GSubMenu *GSubMenu::FindSubMenu(int Id)
 	for (GMenuItem *i = Items.First(); i; i = Items.Next())
 	{
 		GSubMenu *Sub = i->Sub();
-
+		
 		if (i->Id() == Id)
 		{
 			return Sub;
@@ -251,7 +441,7 @@ GSubMenu *GSubMenu::FindSubMenu(int Id)
 			}
 		}
 	}
-
+	
 	return 0;
 }
 
@@ -260,7 +450,7 @@ GMenuItem *GSubMenu::FindItem(int Id)
 	for (GMenuItem *i = Items.First(); i; i = Items.Next())
 	{
 		GSubMenu *Sub = i->Sub();
-
+		
 		if (i->Id() == Id)
 		{
 			return i;
@@ -274,7 +464,7 @@ GMenuItem *GSubMenu::FindItem(int Id)
 			}
 		}
 	}
-
+	
 	return 0;
 }
 
@@ -288,30 +478,37 @@ public:
 GMenuItem::GMenuItem()
 {
 	d = new GMenuItemPrivate();
-	Menu = 0;
-	Info = 0;
-	Child = 0;
-	Parent = 0;
+	Menu = NULL;
+	Info = NULL;
+	Child = NULL;
+	Parent = NULL;
 	_Icon = -1;
 	_Id = 0;
-	_Check = false;
+	_Flags = 0;
 }
 
-GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, int Pos, const char *Shortcut)
+GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, const char *Str, int Pos, const char *Shortcut)
 {
 	d = new GMenuItemPrivate();
+	GBase::Name(Str);
 	Menu = m;
 	Parent = p;
-	Info = 0;
-	Child = 0;
+	Info = NULL;
+	Child = NULL;
 	_Icon = -1;
 	_Id = 0;
-	_Check = false;
+	_Flags = 0;
 	d->Shortcut.Reset(NewStr(Shortcut));
+	Name(Str);
 }
 
 GMenuItem::~GMenuItem()
 {
+	if (Parent)
+	{
+		Parent->Items.Delete(this);
+		Parent = NULL;
+	}
 	DeleteObj(Child);
 	DeleteObj(d);
 }
@@ -341,13 +538,13 @@ void GMenuItem::OnAttach(bool Attach)
 // the default painting behaviour if desired.
 void GMenuItem::_Measure(GdcPt2 &Size)
 {
-	GFont *Font = Menu AND Menu->GetFont() ? Menu->GetFont() : SysFont;
+	GFont *Font = Menu && Menu->GetFont() ? Menu->GetFont() : SysFont;
 	bool BaseMenu = Parent == Menu; // true if attached to a windows menu
-									// else is a submenu
+	// else is a submenu
 	int Ht = Font->GetHeight();
 	// int IconX = BaseMenu ? ((24-Ht)/2)-Ht : 20;
 	int IconX = BaseMenu ? 2 : 16;
-
+	
 	if (Separator())
 	{
 		Size.x = 8;
@@ -358,8 +555,8 @@ void GMenuItem::_Measure(GdcPt2 &Size)
 		// remove '&' chars for string measurement
 		char Str[256];
 		char *n = Name(), *i = n, *o = Str;
-
-		while (i AND *i)
+		
+		while (i && *i)
 		{
 			if (*i == '&')
 			{
@@ -372,7 +569,7 @@ void GMenuItem::_Measure(GdcPt2 &Size)
 			{
 				*o++ = *i;
 			}
-
+			
 			i++;
 		}
 		*o++ = 0;
@@ -383,7 +580,7 @@ void GMenuItem::_Measure(GdcPt2 &Size)
 		{
 			// string with accel
 			int Mx, Tx;
-			GDisplayString ds(Font, Str, (int)Tab-(int)Str);
+			GDisplayString ds(Font, Str, Tab-Str);
 			Mx = ds.X();
 			GDisplayString ds2(Font, Tab + 1);
 			Tx = ds2.X();
@@ -395,13 +592,13 @@ void GMenuItem::_Measure(GdcPt2 &Size)
 			GDisplayString ds(Font, Str);
 			Size.x = IconX + ds.X() + 4;
 		}
-
+		
 		if (!BaseMenu)
 		{
 			// leave room for child pointer
 			Size.x += Child ? 8 : 0;
 		}
-
+		
 		Size.y = max(IconX, Ht+2);
 	}
 }
@@ -413,10 +610,10 @@ void GMenuItem::_PaintText(GSurface *pDC, int x, int y, int Width)
 	char *n = Name();
 	if (n)
 	{
-		GFont *Font = Menu AND Menu->GetFont() ? Menu->GetFont() : SysFont;
+		GFont *Font = Menu && Menu->GetFont() ? Menu->GetFont() : SysFont;
 		bool Underline = false;
 		char *e = 0;
-		for (char *s=n; s AND *s; s = *e ? e : 0)
+		for (char *s=n; s && *s; s = *e ? e : 0)
 		{
 			switch (*s)
 			{
@@ -457,14 +654,14 @@ void GMenuItem::_PaintText(GSurface *pDC, int x, int y, int Width)
 							if (*e == '&') break;
 						}
 					}
-
+					
 					int Len = e - s;
 					if (Len > 0)
 					{
 						// paint text till that point
 						GDisplayString d(Font, s, Len);
 						d.Draw(pDC, x, y, 0);
-
+						
 						if (Underline)
 						{
 							GDisplayString ds(Font, s, 1);
@@ -474,7 +671,7 @@ void GMenuItem::_PaintText(GSurface *pDC, int x, int y, int Width)
 							pDC->Line(x, y+Ascent+1, x+max(UnderX-2, 1), y+Ascent+1);
 							Underline = false;
 						}
-
+						
 						x += d.X();
 					}
 					break;
@@ -482,7 +679,7 @@ void GMenuItem::_PaintText(GSurface *pDC, int x, int y, int Width)
 			}
 		}
 	}
-
+	
 }
 
 void GMenuItem::_Paint(GSurface *pDC, int Flags)
@@ -493,20 +690,20 @@ void GMenuItem::_Paint(GSurface *pDC, int Flags)
 	bool Disabled = TestFlag(Flags, ODS_DISABLED);
 	bool Checked = TestFlag(Flags, ODS_CHECKED);
 	
-	#if defined(WIN32) || defined(MAC)
+#if defined(WIN32) || defined(MAC)
 	GRect r(0, 0, pDC->X()-1, pDC->Y()-1);
-	#else
+#else
 	GRect r = Info->GetClient();
-	#endif
-
+#endif
+	
 	if (Separator())
 	{
 		// Paint a separator
 		int Cy = r.Y() / 2;
-
+		
 		pDC->Colour(LC_MED, 24);
 		pDC->Rectangle();
-
+		
 		pDC->Colour(LC_LOW, 24);
 		pDC->Line(0, Cy-1, pDC->X()-1, Cy-1);
 		
@@ -520,13 +717,13 @@ void GMenuItem::_Paint(GSurface *pDC, int Flags)
 		COLOUR Back = Selected ? LC_HIGH : LC_MED; // Selected ? LC_SELECTION : LC_MED;
 		int x = IconX;
 		int y = 1;
-
+		
 		// For a submenu
 		pDC->Colour(Back, 24);
 		pDC->Rectangle();
-
+		
 		// Draw the text on top
-		GFont *Font = Menu AND Menu->GetFont() ? Menu->GetFont() : SysFont;
+		GFont *Font = Menu && Menu->GetFont() ? Menu->GetFont() : SysFont;
 		Font->Transparent(true);
 		if (Disabled)
 		{
@@ -537,7 +734,7 @@ void GMenuItem::_Paint(GSurface *pDC, int Flags)
 				_PaintText(pDC, x+1, y+1, r.X());
 			}
 			// Else selected... don't draw the hilight
-
+			
 			// "greyed" text...
 			Font->Colour(LC_LOW, 0);
 			_PaintText(pDC, x, y, r.X());
@@ -548,11 +745,11 @@ void GMenuItem::_Paint(GSurface *pDC, int Flags)
 			Font->Colour(Fore, 0);
 			_PaintText(pDC, x, y, r.X());
 		}
-
-		GImageList *ImgLst = (Menu AND Menu->GetImageList()) ? Menu->GetImageList() : Parent ? Parent->GetImageList() : 0;
-
+		
+		GImageList *ImgLst = (Menu && Menu->GetImageList()) ? Menu->GetImageList() : Parent ? Parent->GetImageList() : 0;
+		
 		// Draw icon/check mark
-		if (Checked AND IconX > 0)
+		if (Checked && IconX > 0)
 		{
 			// it's a check!
 			int x = 4;
@@ -568,18 +765,19 @@ void GMenuItem::_Paint(GSurface *pDC, int Flags)
 			pDC->Line(x, y, x+2, y+2);
 			pDC->Line(x+2, y+2, x+6, y-2);
 		}
-		else if (ImgLst AND
-				_Icon >= 0)
+		else if (ImgLst &&
+				 _Icon >= 0)
 		{
 			// it's an icon!
-			ImgLst->Draw(pDC, 0, 0, _Icon);
+			GColour Bk(LC_MED, 24);
+			ImgLst->Draw(pDC, 0, 0, _Icon, Bk);
 		}
-
+		
 		// Sub menu arrow
-		if (Child AND !dynamic_cast<GMenu*>(Parent))
+		if (Child && !dynamic_cast<GMenu*>(Parent))
 		{
 			pDC->Colour(LC_TEXT, 24);
-
+			
 			int x = r.x2 - 4;
 			int y = r.y1 + (r.Y()/2);
 			for (int i=0; i<4; i++)
@@ -595,11 +793,11 @@ bool GMenuItem::ScanForAccel()
 {
 	if (!d->Shortcut)
 		return false;
-
+	
 	GToken Keys(d->Shortcut, "+-");
 	if (Keys.Length() <= 0)
 		return false;
-
+	
 	int Flags = 0;
 	uchar Key = 0;
 	
@@ -652,7 +850,7 @@ bool GMenuItem::ScanForAccel()
 		{
 			Key = ' ';
 		}
-		else if (k[0] == 'F' AND isdigit(k[1]))
+		else if (k[0] == 'F' && isdigit(k[1]))
 		{
 			int F[] =
 			{
@@ -660,7 +858,7 @@ bool GMenuItem::ScanForAccel()
 				VK_F7, VK_F8, VK_F9, VK_F10, VK_F11, VK_F12
 			};
 			int idx = atoi(k + 1);
-			if (idx >= 1 AND idx <= 12)
+			if (idx >= 1 && idx <= 12)
 			{
 				Key = F[idx-1];
 			}
@@ -673,6 +871,14 @@ bool GMenuItem::ScanForAccel()
 		{
 			Key = k[0];
 		}
+		else if (strchr(",", k[0]))
+		{
+			Key = k[0];
+		}
+		else
+		{
+			printf("%s:%i - Unhandled shortcut token '%s'\n", _FL, k);
+		}
 	}
 	
 	if (Key == ' ')
@@ -681,57 +887,57 @@ bool GMenuItem::ScanForAccel()
 	}
 	else if (Key)
 	{
-		/*
-		OSStatus e;
+		#ifdef COCOA
+		#else
 		int ModMask =	(TestFlag(Flags, LGI_EF_CTRL) ? 0 : kMenuNoCommandModifier) |
-						(TestFlag(Flags, LGI_EF_ALT) ? kMenuOptionModifier : 0) |
-						(TestFlag(Flags, LGI_EF_SHIFT) ? kMenuShiftModifier : 0);
-
+		(TestFlag(Flags, LGI_EF_ALT) ? kMenuOptionModifier : 0) |
+		(TestFlag(Flags, LGI_EF_SHIFT) ? kMenuShiftModifier : 0);
+		
 		e = SetMenuItemModifiers(Parent->Info, Info, ModMask);
-
+		
 		if (e) printf("%s:%i - SetMenuItemModifiers() failed with %i\n",
-						__FILE__, __LINE__, (int)e);
+					  __FILE__, __LINE__, (int)e);
 		
 		switch (Key)
 		{
-			#define Map(k, g) \
-				case k: \
-					SetMenuItemKeyGlyph(Parent->Info, Info, g); \
-					break
-					
-			Map(VK_F1, kMenuF1Glyph);
-			Map(VK_F2, kMenuF2Glyph);
-			Map(VK_F3, kMenuF3Glyph);
-			Map(VK_F4, kMenuF4Glyph);
-			Map(VK_F5, kMenuF5Glyph);
-			Map(VK_F6, kMenuF6Glyph);
-			Map(VK_F7, kMenuF7Glyph);
-			Map(VK_F8, kMenuF8Glyph);
-			Map(VK_F9, kMenuF9Glyph);
-			Map(VK_F10, kMenuF10Glyph);
-			Map(VK_F11, kMenuF11Glyph);
-			Map(VK_F12, kMenuF12Glyph);
-			Map(' ', kMenuSpaceGlyph);
-			Map(VK_DELETE, kMenuDeleteLeftGlyph); // kMenuDeleteRightGlyph
-			Map(VK_BACKSPACE, kMenuDeleteLeftGlyph);
-			Map(VK_UP, kMenuUpArrowGlyph);
-			Map(VK_DOWN, kMenuDownArrowGlyph);
-			Map(VK_LEFT, kMenuLeftArrowGlyph);
-			Map(VK_RIGHT, kMenuRightArrowGlyph);
+#define Map(k, g) \
+case k: \
+SetMenuItemKeyGlyph(Parent->Info, Info, g); \
+break
+				
+				Map(VK_F1, kMenuF1Glyph);
+				Map(VK_F2, kMenuF2Glyph);
+				Map(VK_F3, kMenuF3Glyph);
+				Map(VK_F4, kMenuF4Glyph);
+				Map(VK_F5, kMenuF5Glyph);
+				Map(VK_F6, kMenuF6Glyph);
+				Map(VK_F7, kMenuF7Glyph);
+				Map(VK_F8, kMenuF8Glyph);
+				Map(VK_F9, kMenuF9Glyph);
+				Map(VK_F10, kMenuF10Glyph);
+				Map(VK_F11, kMenuF11Glyph);
+				Map(VK_F12, kMenuF12Glyph);
+				Map(' ', kMenuSpaceGlyph);
+				Map(VK_DELETE, kMenuDeleteRightGlyph);
+				Map(VK_BACKSPACE, kMenuDeleteLeftGlyph);
+				Map(VK_UP, kMenuUpArrowGlyph);
+				Map(VK_DOWN, kMenuDownArrowGlyph);
+				Map(VK_LEFT, kMenuLeftArrowGlyph);
+				Map(VK_RIGHT, kMenuRightArrowGlyph);
 			default:
-			{					
+			{
 				e = SetMenuItemCommandKey(	Parent->Info,
-											Info,
-											false,
-											Key);
+										  Info,
+										  false,
+										  Key);
 				if (e) printf("%s:%i - SetMenuItemCommandKey(%i/%c) failed with %i\n",
-								__FILE__, __LINE__, Key, Key, (int)e);
+							  _FL, Key, Key, (int)e);
 				break;
 			}
 		}
-		*/
+		#endif
 	}
-
+	
 	return true;
 }
 
@@ -744,16 +950,46 @@ bool GMenuItem::Remove()
 {
 	if (Parent)
 	{
-		Parent->Items.Delete(this);
+		if (Parent->Info && Info)
+		{
+			int Index = Parent->Items.IndexOf(this);
+			LgiAssert(Index + 1 == Info);
+			
+			#ifdef COCOA
+			#else
+			DeleteMenuItem(Parent->Info, Info);
+			Parent->Items.Delete(this);
+			
+			// Re-index all the following items
+			GMenuItem *mi;
+			for (int i = Index; (mi = Parent->Items.ItemAt(i)); i++)
+			{
+				mi->Info = i + 1;
+			}
+			
+			Info = NULL;
+			#endif
+		}
+		else
+		{
+			Parent->Items.Delete(this);
+		}
 		return true;
 	}
-
+	
 	return false;
 }
 
 void GMenuItem::Id(int i)
 {
 	_Id = i;
+	if (Parent && Parent->Info && Info)
+	{
+		#ifdef COCOA
+		#else
+		SetMenuItemCommandID(Parent->Info, Info, _Id);
+		#endif
+	}
 }
 
 void GMenuItem::Separator(bool s)
@@ -762,17 +998,31 @@ void GMenuItem::Separator(bool s)
 	{
 		_Id = -2;
 	}
-
+	
 	if (Parent)
 	{
+		#ifdef COCOA
+		#else
+		if (s)
+			ChangeMenuItemAttributes(Parent->Info, Info, kMenuItemAttrSeparator, 0);
+		else
+			ChangeMenuItemAttributes(Parent->Info, Info, 0, kMenuItemAttrSeparator);
+		#endif
 	}
 }
 
 void GMenuItem::Checked(bool c)
 {
-	_Check = c;
+	if (c)
+		SetFlag(_Flags, ODS_CHECKED);
+	else
+		ClearFlag(_Flags, ODS_CHECKED);
 	if (Parent)
 	{
+		#ifdef COCOA
+		#else
+		CheckMenuItem(Parent->Info, Info, c);
+		#endif
 	}
 }
 
@@ -790,14 +1040,29 @@ bool GMenuItem::Name(const char *n)
 		}
 		*out++ = 0;
 	}
-
+	
 	bool Status = GBase::Name(Tmp);
 	if (Status && Parent)
 	{
+		#ifdef COCOA
+		#else
+		CFStringRef s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)Tmp, strlen(Tmp), kCFStringEncodingUTF8, false);
+		
+		if (!s)
+			s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)"#error", 6, kCFStringEncodingUTF8, false);
+		
+		if (s)
+		{
+			SetMenuItemTextWithCFString(Parent->Info, Info, s);
+			// if (e) printf("%s:%i - SetMenuItemTextWithCFString(%p, %s) failed with %i.\n", _FL, Parent->Info, Tmp, e);
+			
+			CFRelease(s);
+		}
+		#endif
 	}
-
+	
 	DeleteArray(Tmp);
-
+	
 	return Status;
 }
 
@@ -805,6 +1070,17 @@ void GMenuItem::Enabled(bool e)
 {
 	if (Parent)
 	{
+		#ifdef COCOA
+		#else
+		if (e)
+		{
+			EnableMenuItem(Parent->Info, Info);
+		}
+		else
+		{
+			DisableMenuItem(Parent->Info, Info);
+		}
+		#endif
 	}
 }
 
@@ -827,19 +1103,20 @@ void GMenuItem::Icon(int i)
 {
 	_Icon = i;
 	
-	if (Parent AND Parent->Info AND Info)
+	if (Parent && Parent->Info && Info)
 	{
 		GImageList *Lst = Menu ? Menu->GetImageList() : Parent->GetImageList();
 		if (!Lst)
 			return;
-
+		
+#if 0
 		int Bpp = Lst->GetBits() / 8;
 		int Off = _Icon * Lst->TileX() * Bpp;
-		int Line = Lst->X() * Bpp;
+		int Line = (*Lst)[1] - (*Lst)[0];
 		uchar *Base = (*Lst)[0];
 		if (!Base)
 			return;
-
+		
 		int TempSize = Lst->TileX() * Lst->TileY() * Bpp;
 		uchar *Temp = new uchar[TempSize];
 		if (!Temp)
@@ -848,7 +1125,7 @@ void GMenuItem::Icon(int i)
 		uchar *d = Temp;
 		for (int y=0; y<Lst->TileY(); y++)
 		{
-			uchar *s = Base + Off + (Line * y);
+			uchar *s = Base + Off + (Line * (Lst->TileY() - y - 1));
 			uchar *e = s + (Lst->TileX() * Bpp);
 			while (s < e)
 			{
@@ -861,6 +1138,33 @@ void GMenuItem::Icon(int i)
 			}
 		}
 		
+		CGDataProviderRef Provider = CGDataProviderCreateWithData(0, Temp, TempSize, releaseData);
+		if (Provider)
+		{
+			// CGColorSpaceRef Cs = CGColorSpaceCreateWithName(kCGColorSpaceUserRGB);
+			CGColorSpaceRef Cs = CGColorSpaceCreateDeviceRGB();
+			CGImageRef Ico = CGImageCreate(	Lst->TileX(),
+										   Lst->TileX(),
+										   8,
+										   Lst->GetBits(),
+										   Lst->TileX() * Bpp,
+										   Cs,
+										   kCGImageAlphaPremultipliedLast,
+										   Provider,
+										   NULL,
+										   false,
+										   kCGRenderingIntentDefault);
+			if (Ico)
+			{
+				OSErr e = SetMenuItemIconHandle(Parent->Info, Info, kMenuCGImageRefType, (char**)Ico);
+				if (e) printf("%s:%i - SetMenuItemIconHandle failed with %i\n", __FILE__, __LINE__, e);
+			}
+			else printf("%s:%i - CGImageCreate failed.\n", __FILE__, __LINE__);
+			
+			// CGColorSpaceRelease(Cs);
+			// CGDataProviderRelease(Provider);
+		}
+#endif
 	}
 	else
 	{
@@ -889,15 +1193,19 @@ bool GMenuItem::Separator()
 
 bool GMenuItem::Checked()
 {
-	return _Check;
+	return TestFlag(_Flags, ODS_CHECKED);
 }
 
 bool GMenuItem::Enabled()
 {
 	if (Parent)
 	{
+		#ifdef COCOA
+		#else
+		return IsMenuItemEnabled(Parent->Info, Info);
+		#endif
 	}
-
+	
 	return true;
 }
 
@@ -944,9 +1252,9 @@ GFont *GMenu::GetFont()
 			_Font = Type.Create();
 			if (_Font)
 			{
-				#ifndef MAC
+#ifndef MAC
 				_Font->CodePage(SysFont->CodePage());
-				#endif
+#endif
 			}
 			else
 			{
@@ -957,7 +1265,7 @@ GFont *GMenu::GetFont()
 		{
 			printf("GMenu::GetFont Couldn't get menu typeface.\n");
 		}
-
+		
 		if (!_Font)
 		{
 			_Font = new GFont;
@@ -967,14 +1275,14 @@ GFont *GMenu::GetFont()
 			}
 		}
 	}
-
+	
 	return _Font ? _Font : SysFont;
 }
 
 bool GMenu::Attach(GViewI *p)
 {
 	bool Status = false;
-
+	
 	GWindow *w = dynamic_cast<GWindow*>(p);
 	if (w)
 	{
@@ -990,7 +1298,7 @@ bool GMenu::Attach(GViewI *p)
 			printf("%s:%i - No menu\n", __FILE__, __LINE__);
 		}
 	}
-
+	
 	return Status;
 }
 
@@ -1013,8 +1321,8 @@ bool GMenu::OnKey(GView *v, GKey &k)
 			}
 		}
 		
-		if (k.Alt() AND
-			!dynamic_cast<GMenuItem*>(v) AND
+		if (k.Alt() &&
+			!dynamic_cast<GMenuItem*>(v) &&
 			!dynamic_cast<GSubMenu*>(v))
 		{
 			bool Hide = false;
@@ -1033,11 +1341,11 @@ bool GMenu::OnKey(GView *v, GKey &k)
 						if (ValidStr(n))
 						{
 							char *Amp = strchr(n, '&');
-							while (Amp AND Amp[1] == '&')
+							while (Amp && Amp[1] == '&')
 							{
 								Amp = strchr(Amp + 2, '&');
 							}
-
+							
 							if (Amp)
 							{
 								char Accel = tolower(Amp[1]);
@@ -1083,34 +1391,36 @@ bool GAccelerator::Match(GKey &k)
 {
 	int Press = (uint) k.c16;
 	
-	#if 0
+#if 0
 	printf("GAccelerator::Match %i(%c)%s%s%s = %i(%c)%s%s%s\n",
-		Press,
-		Press>=' '?Press:'.',
-		k.Ctrl()?" ctrl":"",
-		k.Alt()?" alt":"",
-		k.Shift()?" shift":"",
-		Key,
-		Key>=' '?Key:'.',
-		TestFlag(Flags, LGI_EF_CTRL)?" ctrl":"",
-		TestFlag(Flags, LGI_EF_ALT)?" alt":"",
-		TestFlag(Flags, LGI_EF_SHIFT)?" shift":""		
-		);
-	#endif
-
+		   Press,
+		   Press>=' '?Press:'.',
+		   k.Ctrl()?" ctrl":"",
+		   k.Alt()?" alt":"",
+		   k.Shift()?" shift":"",
+		   Key,
+		   Key>=' '?Key:'.',
+		   TestFlag(Flags, LGI_EF_CTRL)?" ctrl":"",
+		   TestFlag(Flags, LGI_EF_ALT)?" alt":"",
+		   TestFlag(Flags, LGI_EF_SHIFT)?" shift":""
+		   );
+#endif
+	
 	if (toupper(Press) == (uint)Key)
 	{
 		if
-		(
-			(TestFlag(Flags, LGI_EF_CTRL) ^ k.Ctrl() == 0) AND
-			(TestFlag(Flags, LGI_EF_ALT) ^ k.Alt() == 0) AND
-			(TestFlag(Flags, LGI_EF_SHIFT) ^ k.Shift() == 0)
-		)				
+			(
+			 ((TestFlag(Flags, LGI_EF_CTRL) ^ k.Ctrl()) == 0)
+			 &&
+			 ((TestFlag(Flags, LGI_EF_ALT) ^ k.Alt()) == 0)
+			 &&
+			 ((TestFlag(Flags, LGI_EF_SHIFT) ^ k.Shift()) == 0)
+			 )
 		{
 			return true;
 		}
 	}
-
+	
 	return false;
 }
 
@@ -1156,7 +1466,7 @@ void GCommand::Enabled(bool e)
 bool GCommand::Value()
 {
 	bool HasChanged = false;
-
+	
 	if (ToolButton)
 	{
 		HasChanged |= (ToolButton->Value() != 0) ^ PrevValue;
@@ -1165,12 +1475,12 @@ bool GCommand::Value()
 	{
 		HasChanged |= (MenuItem->Checked() != 0) ^ PrevValue;
 	}
-
+	
 	if (HasChanged)
 	{
 		Value(!PrevValue);
 	}
-
+	
 	return PrevValue;
 }
 

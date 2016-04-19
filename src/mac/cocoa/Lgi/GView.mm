@@ -124,21 +124,34 @@ bool LgiMountVolume(char *Name)
 	return false;
 }
 
+GKey::GKey(int Vkey, int flags)
+{
+	c16 = vkey = Vkey;
+	Flags = flags;
+	Data = 0;
+	IsChar = false;
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+#if 0
 bool GViewPrivate::CursorSet = false;
 GView *GViewPrivate::LastCursor = 0;
+#endif
 
 GViewPrivate::GViewPrivate()
 {
 	TabStop = false;
+	#if 0
 	CursorId = 0;
+	FontOwn = false;
+	#endif
 	Parent = 0;
 	ParentI = 0;
 	Notify = 0;
 	CtrlId = -1;
 	DropTarget = 0;
 	Font = 0;
-	FontOwn = false;
 	Popup = 0;
 	Pulse = 0;
 		
@@ -169,11 +182,11 @@ void GView::_Delete()
 	Pos.ZOff(-1, -1);
 
 	GViewI *c;
-	while (c = Children.First())
+	while ((c = Children.First()))
 	{
 		if (c->GetParent() != (GViewI*)this)
 		{
-			printf("Error: ~GView, child not attached correctly: %p(%s) Parent: %p(%s)\n",
+			printf("Error: GView::_Delete, child not attached correctly: %p(%s) Parent: %p(%s)\n",
 				c, c->Name(),
 				c->GetParent(), c->GetParent() ? c->GetParent()->Name() : "");
 			Children.Delete(c);
@@ -248,14 +261,7 @@ bool GView::_Mouse(GMouse &m, bool Move)
 		if (Move)
 		{
 			GViewI *c = _Capturing;
-			d->CursorSet = false;
-			
 			c->OnMouseMove(m);
-			
-			if (!d->CursorSet)
-			{
-				c->SetCursor(LCUR_Normal);
-			}
 		}
 		else
 		{
@@ -290,12 +296,7 @@ bool GView::_Mouse(GMouse &m, bool Move)
 		{
 			if (Move)
 			{
-				d->CursorSet = false;
 				Target->OnMouseMove(m);
-				if (!d->CursorSet)
-				{
-					Target->SetCursor(LCUR_Normal);
-				}
 			}
 			else
 			{
@@ -343,20 +344,6 @@ void GView::Quit(bool DontDelete)
 		Detach();
 		delete this;
 	}
-}
-
-bool GView::SetCursor(LgiCursor CursorId)
-{
-	GView *Wnd = GetWindow();
-	Wnd->d->CursorSet = true;
-	if (Wnd && Wnd->d->CursorId != CursorId)
-	{
-		Wnd->d->CursorId = CursorId;
-		
-		return true;
-	}
-	
-	return false;
 }
 
 bool GView::SetPos(GRect &p, bool Repaint)
@@ -537,7 +524,12 @@ void GView::SetPulse(int Length)
 	}
 }
 
-int GView::OnEvent(GMessage *Msg)
+LgiCursor GView::GetCursor(int x, int y)
+{
+	return LCUR_Normal;
+}
+
+GMessage::Result GView::OnEvent(GMessage *Msg)
 {
 	switch (Msg->m)
 	{
@@ -551,13 +543,13 @@ int GView::OnEvent(GMessage *Msg)
 			GViewI *Ctrl = dynamic_cast<GViewI*>((GViewI*) MsgA(Msg));
 			if (Ctrl)
 			{
-				return OnNotify(Ctrl, MsgB(Msg));
+				return OnNotify(Ctrl, (int)MsgB(Msg));
 			}
 			break;
 		}
 		case M_COMMAND:
 		{
-			return OnCommand(MsgA(Msg), 0, (OsView) MsgB(Msg));
+			return OnCommand((int)MsgA(Msg), 0, (OsView) MsgB(Msg));
 		}
 		default:
 		{
@@ -832,6 +824,7 @@ int VirtualKeyToLgi(int Virt)
 	return 0;
 }
 
+#if 0
 static int GetIsChar(GKey &k, int mods)
 {
 	return k.IsChar =	(mods & 0x100) == 0 &&
@@ -842,6 +835,7 @@ static int GetIsChar(GKey &k, int mods)
 		k.c16 == VK_BACKSPACE
 	);
 }
+#endif
 
 bool GView::_Attach(GViewI *parent)
 {

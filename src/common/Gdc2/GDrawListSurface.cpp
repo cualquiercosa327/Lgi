@@ -457,7 +457,7 @@ void GDrawListSurface::Rectangle(GRect *r)
 		LgiAssert(0);
 }
 
-void GDrawListSurface::Blt(int x, int y, GSurface *Src, GRect *a)
+void GDrawListSurface::Blt(int x, int y, GSurface *Src, GRect *SrcRc)
 {
 	if (!Src)
 	{
@@ -465,7 +465,7 @@ void GDrawListSurface::Blt(int x, int y, GSurface *Src, GRect *a)
 		return;
 	}
 	
-	LCmdBlt *c = new LCmdBlt(x, y, Src, a, false);
+	LCmdBlt *c = new LCmdBlt(x, y, Src, NULL, SrcRc, false);
 	if (c)
 		d->Add(c);
 	else

@@ -1198,7 +1198,7 @@ void GTextView3::PourStyle(int Start, int EditSize)
 				{
 					Url->View = this;
 					Url->Start = (int) (Inf.Start + Start);
-					Url->Len = Inf.Len;
+					Url->Len = (int)Inf.Len;
 					Url->Email = Inf.Email;
 					Url->Font = Underline;
 					Url->c = d->UrlColour;
@@ -2029,7 +2029,7 @@ bool GTextView3::Open(const char *Name, const char *CharSet)
 		char *c8 = new char[Bytes + 4];
 		if (c8)
 		{
-			if (f.Read(c8, Bytes) == Bytes)
+			if (f.Read(c8, (int)Bytes) == Bytes)
 			{
 				char *DataStart = c8;
 

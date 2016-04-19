@@ -254,7 +254,10 @@ GSocket::~GSocket()
 
 bool GSocket::IsOK()
 {
-	return	this != 0 &&
+	return
+			#ifndef COCOA
+			this != 0 &&
+			#endif
 			d != 0 &&
 			(d->Parent ? d->Parent->IsValid() : false);
 }
@@ -922,7 +925,7 @@ int GSocket::Write(const void *Data, int Len, int Flags)
 
 	if (d->Timeout < 0 || IsWritable(d->Timeout))
 	{
-		Status = send
+		Status = (int)send
 		(
 			d->Socket,
 			(char*)Data,

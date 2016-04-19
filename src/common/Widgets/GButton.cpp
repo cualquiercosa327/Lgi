@@ -482,7 +482,7 @@ int64 GButton::Value()
 
 void GButton::Value(int64 i)
 {
-	d->Pressed = i;
+	d->Pressed = (int)i;
 	Invalidate();
 }
 

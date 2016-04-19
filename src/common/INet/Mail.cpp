@@ -3837,7 +3837,9 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 		uint64 Now = LgiCurrentTime();
 
 		char Separator[256];
-		sprintf_s(Separator, sizeof(Separator), "----=_NextPart_%8.8X.%8.8X", (uint32)Now, (unsigned)LgiGetCurrentThread());
+		sprintf_s(Separator, sizeof(Separator), "----=_NextPart_%8.8X.%8.8X",
+				(uint32)Now,
+				(unsigned)(int64)LgiGetCurrentThread());
 
 		sprintf_s(Buffer, sizeof(Buffer), "MIME-Version: 1.0\r\n");
 		Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
@@ -3860,7 +3862,7 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 
 				if (MultipartMixed && MultipartAlternate)
 				{
-					sprintf_s(AlternateBoundry, sizeof(AlternateBoundry), "----=_NextPart_%8.8X.%8.8X", (uint32)++Now, (uint32)LgiGetCurrentThread());
+					sprintf_s(AlternateBoundry, sizeof(AlternateBoundry), "----=_NextPart_%8.8X.%8.8X", (uint32)++Now, (uint32)(int64)LgiGetCurrentThread());
 					sprintf_s(Buffer, sizeof(Buffer),
 							"Content-Type: %s;\r\n\tboundary=\"%s\"\r\n",
 							sMultipartAlternative,

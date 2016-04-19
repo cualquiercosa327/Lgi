@@ -153,7 +153,10 @@ LgiFunc char *LgiEncodeUri
 );
 
 // Path
-
+#ifdef COCOA
+	LgiExtern GString LgiArgsAppPath;
+#endif
+	
 /// Gets the path and file name of the currently running executable
 /// \ingroup Base
 LgiFunc bool LgiGetExeFile(char *Dst, int DstSize);

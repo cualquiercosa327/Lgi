@@ -1008,7 +1008,6 @@ class ResTableLayout : public ResObjectImpl
 public:
 	ResTableLayout(ResFactory *f, ResObject *o) : ResObjectImpl(f, o)
 	{
-		int asd=0;		
 	}
 	
 	SStatus Res_Read(GXmlTag *Tag, ResReadCtx &Ctx);
@@ -1506,8 +1505,6 @@ int CountNumbers(char *s)
 
 ResObjectImpl::SStatus ResTableLayout::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 {
-	bool Status = false;
-
 	if (!Tag || !Tag->IsTag(Res_Table))
 		return SError;
 	

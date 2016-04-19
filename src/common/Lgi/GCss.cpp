@@ -1388,7 +1388,6 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 					}
 					case PropListStyle:
 					{
-						int asd=0;
 						// Fall thru
 					}
 					case PropListStyleType:

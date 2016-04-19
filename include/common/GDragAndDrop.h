@@ -275,8 +275,11 @@ public:
 	}
 
 	#ifdef MAC
-	OSStatus OnDragWithin(GView *v, DragRef Drag);
-	OSStatus OnDragReceive(GView *v, DragRef Drag);
+		#if defined COCOA
+		#else
+		OSStatus OnDragWithin(GView *v, DragRef Drag);
+		OSStatus OnDragReceive(GView *v, DragRef Drag);
+		#endif
 	#endif
 };
 

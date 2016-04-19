@@ -4,7 +4,7 @@
 #if USE_SEM
     #define SEM_NULL -1
 #endif
-#ifdef LINUX
+#if defined(LINUX) || COCOA
     #include <errno.h>
 #endif
 

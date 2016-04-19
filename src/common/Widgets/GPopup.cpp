@@ -143,6 +143,9 @@ public:
 			Prev.Down(true);
 			do
 			{
+				#if COCOA
+				#warning FIXME
+				#else
 				HIPoint p;
 				HIGetMousePosition(kHICoordSpaceScreenPixel, NULL, &p);
 				Cur.x = (int)p.x;
@@ -161,6 +164,7 @@ public:
 					else
 						printf("%s:%i - No mouse hook view for up click.\n", _FL);
 				}
+				#endif
 				
 				Prev = Cur;
 				LgiSleep(30);
@@ -800,7 +804,7 @@ bool GPopup::Attach(GViewI *p)
 void GPopup::Visible(bool i)
 {
 	bool HadFocus = false;
-	bool Was = GView::Visible();
+	// bool Was = GView::Visible();
 
 
 printf("%s:%i - GPopup::Visible(%i)\n", _FL, i);

@@ -337,11 +337,11 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 	if (Info.Compression == BI_RLE8)
 	{
 		// 8 bit RLE compressed image
-		int Remaining = In->GetSize() - In->GetPos();
+		int64 Remaining = In->GetSize() - In->GetPos();
 		uchar *Data = new uchar[Remaining];
 		if (Data)
 		{
-			if (In->Read(Data, Remaining) == Remaining)
+			if (In->Read(Data, (int)Remaining) == Remaining)
 			{
 				int x=0, y=pDC->Y()-1;
 				uchar *p = Data;
@@ -474,9 +474,6 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 			}
 			
 			SrcCs = (GColourSpace) Cs.All;
-			
-			const char *s = GColourSpaceToString(SrcCs);
-			int asd=0;
 		}
 		#endif
 

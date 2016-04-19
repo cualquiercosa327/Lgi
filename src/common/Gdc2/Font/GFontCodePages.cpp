@@ -791,7 +791,7 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 					case CpMapped:
 					case CpUtf8:
 					case CpIconv:
-						InLen = strlen((char*)In);
+						InLen = (int)strlen((char*)In);
 						break;
 					case CpUtf16:
 					case CpWindowsDb:
@@ -972,7 +972,7 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 						}
 						case CpUtf8:
 						{
-							uchar *PrevOut8 = Out8;
+							// uchar *PrevOut8 = Out8;
 							if (!LgiUtf32To8(Utf32, (uint8*&) Out8, OutLen))
 							{
 								// Not enough buffer to encode the character
@@ -1001,7 +1001,7 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 				}
 
 				In = (void*)In8;
-				Status = (NativeInt)Out8-(NativeInt)Out;
+				Status = (int) (Out8 - (uchar*)Out);
 			}
 		}
 		else
@@ -1050,7 +1050,7 @@ void *LgiNewConvertCp(const char *OutCp, const void *In, const char *InCp, int I
 			case CpMapped:
 			case CpUtf8:
 			case CpIconv:
-				InLen = strlen((char*)In);
+				InLen = (int)strlen((char*)In);
 				break;
 			case CpUtf16:
 			case CpWindowsDb:
@@ -1153,7 +1153,7 @@ int LgiCharLen(const void *Str, const char *Cp, int Bytes)
 				default:
 				case CpMapped:
 				{
-					return strlen((char*)Str);
+					return (int)strlen((char*)Str);
 				}
 				case CpUtf8:
 				{

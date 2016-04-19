@@ -556,7 +556,7 @@ bool GFont::Destroy()
 	return Status;
 }
 
-#ifdef MAC
+#if defined(MAC) && !COCOA
 CFDictionaryRef GFont::GetAttributes()
 {
 	return d->Attributes;
@@ -1243,7 +1243,7 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 		}
 	}
 	
-	#elif defined MAC && !defined COCOA
+	#elif defined MAC
 	
 		Destroy();
 		
@@ -1956,7 +1956,7 @@ bool GFontType::GetSystemFont(const char *Which)
 				Info.PointSize(DefSize);
 				Status = true;
 		
-			#elif defined MAC && !defined COCOA
+			#elif defined MAC
 			
 
 				#if USE_CORETEXT

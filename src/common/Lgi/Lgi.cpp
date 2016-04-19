@@ -49,49 +49,53 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Misc stuff
-#if defined MAC && !defined COCOA
-bool _get_path_FSRef(FSRef &fs, GStringPipe &a)
-{
-	HFSUniStr255 Name;
-	ZeroObj(Name);
-	FSRef Parent;
-	FSCatalogInfo Cat;
-	ZeroObj(Cat);
-	OSErr e = FSGetCatalogInfo(&fs,
-								kFSCatInfoVolume|kFSCatInfoNodeID,
-								&Cat,
-								&Name,
-								NULL,
-								&Parent);
-	if (!e)
-	{
-		if (_get_path_FSRef(Parent, a))
+#if defined MAC
+	#if COCOA
+		GString LgiArgsAppPath;
+	#else
+		bool _get_path_FSRef(FSRef &fs, GStringPipe &a)
 		{
-			GAutoString u((char*)LgiNewConvertCp("utf-8", Name.unicode, "utf-16", Name.length * sizeof(Name.unicode[0]) ));
-
-			// printf("CatInfo = '%s' %x %x\n", u.Get(), Cat.nodeID, Cat.volume);
-			if (u && Cat.nodeID > 2)
+			HFSUniStr255 Name;
+			ZeroObj(Name);
+			FSRef Parent;
+			FSCatalogInfo Cat;
+			ZeroObj(Cat);
+			OSErr e = FSGetCatalogInfo(&fs,
+										kFSCatInfoVolume|kFSCatInfoNodeID,
+										&Cat,
+										&Name,
+										NULL,
+										&Parent);
+			if (!e)
 			{
-				a.Print("%s%s", DIR_STR, u.Get());
+				if (_get_path_FSRef(Parent, a))
+				{
+					GAutoString u((char*)LgiNewConvertCp("utf-8", Name.unicode, "utf-16", Name.length * sizeof(Name.unicode[0]) ));
+
+					// printf("CatInfo = '%s' %x %x\n", u.Get(), Cat.nodeID, Cat.volume);
+					if (u && Cat.nodeID > 2)
+					{
+						a.Print("%s%s", DIR_STR, u.Get());
+					}
+				}
+				
+				return true;
 			}
+
+			return false;
 		}
-		
-		return true;
-	}
 
-	return false;
-}
-
-GAutoString FSRefPath(FSRef &fs)
-{
-	GStringPipe a;
-	if (_get_path_FSRef(fs, a))
-	{
-		return GAutoString(a.NewStr());
-	}
-	
-	return GAutoString();
-}
+		GAutoString FSRefPath(FSRef &fs)
+		{
+			GStringPipe a;
+			if (_get_path_FSRef(fs, a))
+			{
+				return GAutoString(a.NewStr());
+			}
+			
+			return GAutoString();
+		}
+	#endif
 #endif
 
 bool LgiPostEvent(OsView Wnd, int Event, GMessage::Param a, GMessage::Param b)
@@ -602,7 +606,7 @@ void LgiTrace(const char *Msg, ...)
 		Output = &f;
 	}
 	if (Output)
-		Output->Write(Buffer, strlen(Buffer));
+		Output->Write(Buffer, (int)strlen(Buffer));
 	if (!_LgiTraceStream)
 		f.Close();
 	#endif
@@ -656,7 +660,7 @@ void LgiStackTrace(const char *Msg, ...)
 		if (f.IsOpen())
 		{
 			f.Seek(0, SEEK_END);
-			f.Write(Buffer, strlen(Buffer));
+			f.Write(Buffer, (int)strlen(Buffer));
 			f.Close();
 		}
 		#endif
@@ -773,7 +777,7 @@ bool LgiMakePath(char *Str, int StrSize, const char *Path, const char *File)
 		#define EndStr() Str[strlen(Str)-1]
 		#define EndDir() if (!strchr(Dir, EndStr())) strcat(Str, DIR_STR);
 
-		int Len = strlen(Str);
+		size_t Len = strlen(Str);
 		char *End = Str + (Len ? Len - 1 : 0);
 		if (strchr(Dir, *End) && End > Str)
 		{
@@ -791,7 +795,7 @@ bool LgiMakePath(char *Str, int StrSize, const char *Path, const char *File)
 				LgiGetSystemPath(LSP_HOME, Str, StrSize);
 			else
 			{
-				int Len = strlen(Str);
+				size_t Len = strlen(Str);
 				if (!strchr(Dir, Str[Len-1]))
 				{
 					if (Len >= StrSize - 1)
@@ -799,7 +803,7 @@ bool LgiMakePath(char *Str, int StrSize, const char *Path, const char *File)
 					Str[Len++] = DIR_CHAR;
 					Str[Len] = 0;
 				}
-				int SegLen = strlen(T[i]);
+				size_t SegLen = strlen(T[i]);
 				if (Len + SegLen + 1 > StrSize)
 				{
 					return false;
@@ -964,15 +968,16 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 		case LSP_USER_LINKS:
 		{
 			GString Home = LgiGetSystemPath(LSP_HOME);
-			char p[MAX_PATH];
 			
 			#if defined(WIN32)
 
+			char p[MAX_PATH];
 			if (LgiMakePath(p, sizeof(p), Home, "Links"))
 				Path = p;
 
 			#elif defined(LINUX)
 
+			char p[MAX_PATH];
 			if (LgiMakePath(p, sizeof(p), Home, ".config/gtk-3.0"))
 				Path = p;
 			
@@ -1079,7 +1084,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 			Path = LgiGetSystemPath(LSP_EXE);
 			if (Path)
 			{
-				int Last = Path.RFind(DIR_STR);
+				size_t Last = Path.RFind(DIR_STR);
 				if (Last > 0)
 				{
 					GString s = Path(Last, -1);
@@ -1681,39 +1686,43 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 		
 		return Status;
 		
-		#elif defined MAC && !defined COCOA
+		#elif defined MAC
 		
-		bool Status = false;
-		ProcessSerialNumber ps;
-		OSErr e = GetCurrentProcess(&ps);
-		if (!e)
-		{
-			FSRef fs;
-			OSStatus s = GetProcessBundleLocation(&ps, &fs);
-			if (!s)
-			{
-				GAutoString u = FSRefPath(fs);
-				if (!e)
-				{
-					strcpy_s(Dst, DstSize, u);
-					Status = true;
-				}
-				else
-				{
-					printf("%s:%i - FSGetCatalogInfo failed (e=%i).\n", _FL, e);
-				}
-			}
-			else
-			{
-				printf("%s:%i - GetProcessBundleLocation failed (e=%i).\n", _FL, (int)s);
-			}
-		}
-		else
-		{
-			printf("%s:%i - GetCurrentProcess failed (e=%i).\n", _FL, e);
-		}
+			bool Status = false;
 		
-		return Status;
+			#if COCOA
+		
+			if (FileExists(LgiArgsAppPath))
+			{
+				strcpy_s(Dst, DstSize, LgiArgsAppPath);
+				Status = true;
+			}
+		
+			#else
+		
+			ProcessSerialNumber ps;
+			OSErr e = GetCurrentProcess(&ps);
+			if (!e)
+			{
+				FSRef fs;
+				OSStatus s = GetProcessBundleLocation(&ps, &fs);
+				if (!s)
+				{
+					GAutoString u = FSRefPath(fs);
+					if (!e)
+					{
+						strcpy_s(Dst, DstSize, u);
+						Status = true;
+					}
+					else printf("%s:%i - FSGetCatalogInfo failed (e=%i).\n", _FL, e);
+				}
+				else printf("%s:%i - GetProcessBundleLocation failed (e=%i).\n", _FL, (int)s);
+			}
+			else printf("%s:%i - GetCurrentProcess failed (e=%i).\n", _FL, e);
+		
+			#endif
+			
+			return Status;
 		
 		#endif
 	}
@@ -1752,28 +1761,13 @@ char *LgiFindFile(const char *Name)
 	
 	if (Name)
 	{
-		char Exe[256];
+		char Exe[MAX_PATH];
 		
 		#ifndef MAC
 		LgiGetExePath(Exe, sizeof(Exe));
 		#else
 		LgiGetExeFile(Exe, sizeof(Exe));
-		/*
-		GToken p(Exe, "/");
-		Exe[0] = 0;
-		for (int i=0; i<p.Length(); i++)
-		{
-			if (strcmp(p[i], "build") == 0)
-				break;
-			
-			int len = strlen(Exe);
-			sprintf_s(Exe+len, sizeof(Exe)-len, "/%s", p[i]);
-
-			#if DEBUG_FIND_FILE
-			printf("%s:%i - Exe='%s'\n", __FILE__, __LINE__, Exe);
-			#endif
-		}
-		*/
+		LgiTrimDir(Exe);
 		#endif
 
 		#if DEBUG_FIND_FILE

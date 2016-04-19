@@ -309,7 +309,7 @@ class GHashTbl
 			}
 
 		// void*
-			uint32 Hash(void *s) { return ((NativeInt)s)/31; }
+			uint32 Hash(void *s) { return (uint32)(((NativeInt)s)/31); }
 			void *CopyKey(void *a) { return a; }
 			int SizeKey(void *a) { return sizeof(a); }
 			void FreeKey(void *&a) { memcpy(&a, &NullKey, sizeof(a)); }
@@ -491,7 +491,10 @@ public:
 	/// Returns true if the object appears to be valid
 	bool IsOk()
 	{
-		bool Status =	this != 0 &&
+		bool Status =
+						#ifndef COCOA
+						this != 0 &&
+						#endif
 						Table != 0;
 		if (!Status)
 		{

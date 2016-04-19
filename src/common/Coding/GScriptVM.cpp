@@ -212,6 +212,9 @@ GExecutionStatus GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentA
 			}
 		#endif
 	#elif defined(MAC)
+		#ifdef COCOA
+		#warning FIXME
+		#else
 		// 32bit only
 		void *b = Ptr.ni - 1;
         asm (	"movl %2, %%ecx;"
@@ -225,6 +228,7 @@ GExecutionStatus GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentA
 				:"r"(c), "r"(a), "r"(b)	/* input */
 				:"%eax", "%ecx", "%ebx"	/* clobbered register */
 				);
+		#endif
 	#else
 		// Not implemented, gcc???
 		LgiAssert(0);

@@ -549,7 +549,7 @@ public:
 			NativeInt i;
 			for (i = 0; i < nsz; )
 			{
-				int Len = min(Block, nsz - i);
+				int Len = min(Block, (int) (nsz - i));
 				int rd = Read(s.Get() + i, Len);
 				if (rd <= 0)
 					break;

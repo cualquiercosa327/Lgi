@@ -684,12 +684,12 @@ void GRegion::Simplify(bool PerfectlyAlignOnly)
 	do
 	{
 		Merges = 0;
-		for (register int i=0; i<Size; i++)
+		for (REG int i=0; i<Size; i++)
 		{
-			for (register int n=i+1; n<Size; n++)
+			for (REG int n=i+1; n<Size; n++)
 			{
-				register GRect *r1 = a + i;
-				register GRect *r2 = a + n;
+				REG GRect *r1 = a + i;
+				REG GRect *r2 = a + n;
 				bool Merge = false;
 
 				if (r1->x2 == r2->x1 - 1 ||

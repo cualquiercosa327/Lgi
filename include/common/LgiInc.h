@@ -48,6 +48,18 @@
 
 		#endif
 
+	#elif defined(__clang__)
+
+		// Mac OS X
+		#ifdef __cplusplus
+			#define LgiFunc			extern "C" __attribute__((visibility("default")))
+		#else
+			#define LgiFunc			extern __attribute__((visibility("default")))
+		#endif
+
+		#define LgiClass		__attribute__((visibility("default")))
+		#define LgiExtern		extern __attribute__((visibility("default")))
+
 	#else // Unix like OS
 
 		#ifdef __cplusplus
@@ -56,7 +68,7 @@
 			#define LgiFunc			extern
 		#endif
 		
-		#if __GNUC__ >= 4
+		#if __GNUC__ >= 4 || defined(__clang__)
 			#if LGI_LIBRARY
 				#define LgiClass		__attribute__((visibility("default")))
 				#define LgiExtern		extern

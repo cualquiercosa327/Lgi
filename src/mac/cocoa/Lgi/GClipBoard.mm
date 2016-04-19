@@ -91,7 +91,7 @@ bool GClipBoard::Bitmap(GSurface *pDC, bool AutoEmpty)
 
 GSurface *GClipBoard::Bitmap()
 {
-	GSurface *pDC = false;
+	GSurface *pDC = NULL;
 
 	LgiAssert(!"Not impl");
 	

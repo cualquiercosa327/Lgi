@@ -50,6 +50,11 @@ GScreenDC::GScreenDC(GView *v, void *param)
 	d->View = v;
 }
 
+GScreenDC::GScreenDC(GPrintDcParams *params)
+{
+	d = new GScreenPrivate;
+}
+
 GScreenDC::~GScreenDC()
 {
 	DeleteObj(d);
@@ -58,6 +63,15 @@ GScreenDC::~GScreenDC()
 GView *GScreenDC::GetView()
 {
 	return d->View;
+}
+
+bool GScreenDC::GetClient(GRect *c)
+{
+	if (!c)
+		return false;
+	
+	// *c = d->Rc;
+	return true;
 }
 
 void GScreenDC::SetClient(GRect *c)
@@ -204,10 +218,9 @@ COLOUR GScreenDC::Colour(COLOUR c, int Bits)
 	return Prev;
 }
 
-int GScreenDC::Op(int Op)
+bool GScreenDC::SupportsAlphaCompositing()
 {
-	int Prev = GDC_SET;
-	return Prev;
+	return true;
 }
 
 COLOUR GScreenDC::Colour()
@@ -216,6 +229,11 @@ COLOUR GScreenDC::Colour()
 }
 
 int GScreenDC::Op()
+{
+	return GDC_SET;
+}
+
+int GScreenDC::Op(int Op, NativeInt Param)
 {
 	return GDC_SET;
 }

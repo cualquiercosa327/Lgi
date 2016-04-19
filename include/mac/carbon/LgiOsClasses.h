@@ -7,7 +7,7 @@
 class LgiClass OsApplication
 {
 public:
-	OsApplication(int i, char **a)
+	OsApplication(int i, const char **a)
 	{
 	}
 };

@@ -6,10 +6,18 @@
 
 class LgiClass OsApplication
 {
+	int Args;
+	const char **Arg;
+	
 public:
-	OsApplication(int i, char **a)
+	OsApplication(int i, const char **a)
 	{
+		Args = i;
+		Arg = a;
 	}
+	
+	int GetArgs() { return Args; }
+	const char **GetArg() { return Arg; }
 };
 
 extern OsView DefaultOsView(class GView *v);

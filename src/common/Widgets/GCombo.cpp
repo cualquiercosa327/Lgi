@@ -199,7 +199,7 @@ void GCombo::Value(int64 i)
 {
 	if (d->Current != i)
 	{
-		d->Current = i;
+		d->Current = (int)i;
 		d->SetText(NULL, _FL);
 		Invalidate();
 
@@ -453,7 +453,7 @@ bool GCombo::OnKey(GKey &k)
 			case VK_DOWN:
 			{
 				// Next value in the list...
-				int i = Value();
+				int i = (int)Value();
 				if (i < d->Items.Length()-1)
 				{
 					Value(i+1);
@@ -466,13 +466,13 @@ bool GCombo::OnKey(GKey &k)
 				// Search for value
 				if (k.IsChar && k.c16 > ' ')
 				{
-					int Now = LgiCurrentTime();
+					uint64 Now = LgiCurrentTime();
 					if (d->LastKey + 2000 < Now)
 					{
 						d->Find.Reset();
 					}
 
-					int Len = d->Find ? strlen(d->Find) : 0;
+					size_t Len = d->Find ? strlen(d->Find) : 0;
 					GAutoString n(new char[Len+2]);
 					if (n)
 					{

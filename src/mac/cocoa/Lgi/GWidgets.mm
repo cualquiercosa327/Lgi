@@ -1,12 +1,12 @@
 /*hdr
-**      FILE:           GWidgets.cpp
-**      AUTHOR:         Matthew Allen
-**      DATE:           30/12/2006
-**      DESCRIPTION:    Mac dialog components
-**
-**      Copyright (C) 2006 Matthew Allen
-**              fret@memecode.com
-*/
+ **      FILE:           GWidgets.cpp
+ **      AUTHOR:         Matthew Allen
+ **      DATE:           30/12/2006
+ **      DESCRIPTION:    Mac dialog components
+ **
+ **      Copyright (C) 2006 Matthew Allen
+ **              fret@memecode.com
+ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -15,6 +15,7 @@
 #include "GSlider.h"
 #include "GBitmap.h"
 #include "GTableLayout.h"
+#include "GDisplayString.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 #define GreyBackground()
@@ -27,7 +28,7 @@ struct GDialogPriv
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 GDialog::GDialog()
-	: ResObject(Res_Dialog)
+: ResObject(Res_Dialog)
 {
 	d = new GDialogPriv;
 	Name("Dialog");
@@ -41,6 +42,11 @@ GDialog::~GDialog()
 	DeleteObj(d);
 }
 
+bool GDialog::IsModal()
+{
+	return d->IsModal;
+}
+
 void GDialog::Quit(bool DontDelete)
 {
 	if (d->IsModal)
@@ -51,24 +57,24 @@ void GDialog::Quit(bool DontDelete)
 
 void GDialog::OnPosChange()
 {
-    if (Children.Length() == 1)
-    {
-        List<GViewI>::I it = Children.Start();
-        GTableLayout *t = dynamic_cast<GTableLayout*>((GViewI*)it.First());
-        if (t)
-        {
-            GRect r = GetClient();
-            r.Size(GTableLayout::CellSpacing, GTableLayout::CellSpacing);
-            t->SetPos(r);
-        }
-    }
+	if (Children.Length() == 1)
+	{
+		List<GViewI>::I it = Children.Start();
+		GTableLayout *t = dynamic_cast<GTableLayout*>((GViewI*)it.First());
+		if (t)
+		{
+			GRect r = GetClient();
+			r.Size(GTableLayout::CellSpacing, GTableLayout::CellSpacing);
+			t->SetPos(r);
+		}
+	}
 }
 
 bool GDialog::LoadFromResource(int Resource, char *TagList)
 {
 	GAutoString n;
 	GRect p;
-
+	
 	bool Status = GLgiRes::LoadFromResource(Resource, this, &p, &n, TagList);
 	if (Status)
 	{
@@ -85,14 +91,14 @@ bool GDialog::OnRequestClose(bool OsClose)
 		EndModal(0);
 		return false;
 	}
-
+	
 	return true;
 }
 
 int GDialog::DoModal(OsView OverideParent)
 {
 	d->ModalStatus = 0;
-
+	
 	if (Wnd && Attach(0))
 	{
 		GWindow *Owner = GetParent() ? GetParent()->GetWindow() : 0;
@@ -101,7 +107,7 @@ int GDialog::DoModal(OsView OverideParent)
 			GRect Pr = Owner->GetPos();
 			GRect Mr = GetPos();
 			Mr.Offset(	Pr.x1 + (Pr.X() - Mr.X()) / 2 - Mr.x1,
-						Pr.y1 + (Pr.Y() - Mr.Y()) / 2 - Mr.y1);
+					  Pr.y1 + (Pr.Y() - Mr.Y()) / 2 - Mr.y1);
 			SetPos(Mr);
 			Owner->SetChildDialog(this);
 		}
@@ -111,10 +117,10 @@ int GDialog::DoModal(OsView OverideParent)
 		Visible(true);
 		
 		// RunAppModalLoopForWindow(Wnd);
-
+		
 		if (Owner) Owner->SetChildDialog(0);
 	}
-
+	
 	return d->ModalStatus;
 }
 
@@ -146,7 +152,7 @@ int GDialog::DoModeless()
 
 extern GButton *FindDefault(GView *w);
 
-int GDialog::OnEvent(GMessage *Msg)
+GMessage::Result GDialog::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{
@@ -156,7 +162,7 @@ int GDialog::OnEvent(GMessage *Msg)
 			break;
 		}
 	}
-
+	
 	return GView::OnEvent(Msg);
 }
 
@@ -181,7 +187,7 @@ GControl::~GControl()
 {
 }
 
-int GControl::OnEvent(GMessage *Msg)
+GMessage::Result GControl::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{
@@ -193,21 +199,21 @@ GdcPt2 GControl::SizeOfStr(const char *Str)
 {
 	int y = SysFont->GetHeight();
 	GdcPt2 Pt(0, 0);
-
+	
 	if (Str)
 	{
 		const char *e = 0;
-		for (const char *s = Str; s AND *s; s = e?e+1:0)
+		for (const char *s = Str; s && *s; s = e?e+1:0)
 		{
 			e = strchr(s, '\n');
-			int Len = e ? (int)e-(int)s : strlen(s);
-
+			size_t Len = e ? e-s : strlen(s);
+			
 			GDisplayString ds(SysFont, s, Len);
 			Pt.x = max(Pt.x, ds.X());
 			Pt.y += y;
 		}
 	}
-
+	
 	return Pt;
 }
 
@@ -237,7 +243,7 @@ void GSlider::Value(int64 i)
 	if (i != Val)
 	{
 		Val = i;
-
+		
 		GViewI *n = GetNotify() ? GetNotify() : GetParent();
 		if (n)
 		{
@@ -265,7 +271,7 @@ void GSlider::SetLimits(int64 min, int64 max)
 	Max = max;
 }
 
-int GSlider::OnEvent(GMessage *Msg)
+GMessage::Result GSlider::OnEvent(GMessage *Msg)
 {
 	return GView::OnEvent(Msg);
 }
@@ -281,7 +287,7 @@ void GSlider::OnPaint(GSurface *pDC)
 	r.y2 = r.y1 + 3;
 	r.x1 += 3;
 	r.x2 -= 3;
-	LgiWideBorder(pDC, r, SUNKEN);
+	LgiWideBorder(pDC, r, DefaultSunkenEdge);
 	
 	if (Min <= Max)
 	{
@@ -289,8 +295,8 @@ void GSlider::OnPaint(GSurface *pDC)
 		Thumb.ZOff(5, 9);
 		Thumb.Offset(r.x1 + x - 3, y - 5);
 		GRect b = Thumb;
-		LgiWideBorder(pDC, b, RAISED);
-		pDC->Rectangle(&b);		
+		LgiWideBorder(pDC, b, DefaultRaisedEdge);
+		pDC->Rectangle(&b);
 	}
 }
 
@@ -309,38 +315,11 @@ void GSlider::OnMouseMove(GMouse &m)
 	if (IsCapturing())
 	{
 		int Rx = X() - 6;
-		if (Rx > 0 AND Max >= Min)
+		if (Rx > 0 && Max >= Min)
 		{
 			int x = m.x - Tx;
 			int v = x * (Max-Min) / Rx;
 			Value(v);
 		}
 	}
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////
-GItemContainer::GItemContainer()
-{
-	Flags = 0;
-	ImageList = 0;
-}
-
-GItemContainer::~GItemContainer()
-{
-	if (OwnList())
-	{
-		DeleteObj(ImageList);
-	}
-	else
-	{
-		ImageList = 0;
-	}
-}
-
-bool GItemContainer::SetImageList(GImageList *list, bool Own)
-{
-	ImageList = list;
-	OwnList(Own);
-	AskImage(true);
-	return ImageList != NULL;
 }

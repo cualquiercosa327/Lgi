@@ -339,6 +339,7 @@ LgiTrace("%s:%i - File='%s'\n", _FL, File);
 				LgiMsg(0, LgiLoadString(L_ERROR_RES_NO_EXE_PATH,
 										"Fatal error: Couldn't get the path of the running\nexecutable. Can't find resource file."),
 										"LgiResources::LgiResources");
+				LgiTrace("%s:%i - Fatal error: Couldn't get the path of the running\nexecutable. Can't find resource file.", _FL);
 				LgiExitApp();
 			}
 		}

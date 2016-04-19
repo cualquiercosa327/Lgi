@@ -418,7 +418,7 @@ void Convert(System24BitPixel *Dst, GBmpMem *Src, int Line, GPalette *SPal)
 template<typename Pixel>
 void BltNearest16(uchar *Lookup, uint8 *out, Pixel *p, int x)
 {
-	register Pixel *src = p, *e = src + x;
+	REG Pixel *src = p, *e = src + x;
 	while (src < e)
 	{
 		*out++ = Lookup[Rgb15(src->r<<3, src->g<<2, src->b<<3)];
@@ -429,7 +429,7 @@ void BltNearest16(uchar *Lookup, uint8 *out, Pixel *p, int x)
 template<typename Pixel>
 void BltNearest24(uchar *Lookup, uint8 *out, Pixel *p, int x)
 {
-	register Pixel *src = p, *e = src + x;
+	REG Pixel *src = p, *e = src + x;
 	while (src < e)
 	{
 		*out++ = Lookup[Rgb15(src->r, src->g, src->b)];
@@ -440,7 +440,7 @@ void BltNearest24(uchar *Lookup, uint8 *out, Pixel *p, int x)
 template<typename Pixel>
 void BltNearest48(uchar *Lookup, uint8 *out, Pixel *p, int x)
 {
-	register Pixel *src = p, *e = src + x;
+	REG Pixel *src = p, *e = src + x;
 	while (src < e)
 	{
 		*out++ = Lookup[Rgb15(src->r >> 8, src->g >> 8, src->b >> 8)];

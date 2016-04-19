@@ -108,7 +108,7 @@ GSurface *GSurface::SubImage(GRect r)
 	GRect bounds = Bounds();
 	clip.Intersection(&bounds);
 	if (!clip.Valid())
-		return false;
+		return NULL;
 
 	GAutoPtr<GSurface> s(new GSurface);
 	if (!s)
@@ -133,9 +133,9 @@ GSurface *GSurface::SubImage(GRect r)
 template<typename Px>
 void SetAlphaPm(Px *src, int x, uint8 a)
 {
-	register uint8 *Lut = Div255Lut;
-	register Px *s = src;
-	register Px *e = s + x;
+	REG uint8 *Lut = Div255Lut;
+	REG Px *s = src;
+	REG Px *e = s + x;
 	while (s < e)
 	{
 		s->r = Lut[s->r * a];
@@ -149,9 +149,9 @@ void SetAlphaPm(Px *src, int x, uint8 a)
 template<typename Px>
 void SetAlphaNpm(Px *src, int x, uint8 a)
 {
-	register uint8 *Lut = Div255Lut;
-	register Px *s = src;
-	register Px *e = s + x;
+	REG uint8 *Lut = Div255Lut;
+	REG Px *s = src;
+	REG Px *e = s + x;
 	while (s < e)
 	{
 		s->a = Lut[s->a * a];

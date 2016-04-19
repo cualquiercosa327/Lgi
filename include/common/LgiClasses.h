@@ -200,7 +200,7 @@ public:
 	OsAppArguments *GetAppArgs();
 
 	/// Returns the n'th argument as a heap string. Free with DeleteArray(...).
-	char *GetArgumentAt(int n);
+	const char *GetArgumentAt(int n);
 	
 	/// Enters the message loop.
 	bool Run
@@ -458,10 +458,10 @@ protected:
 	
 	#elif defined MAC
 	
-	OsView _CreateCustomView();
 	bool _Attach(GViewI *parent);
 	#if defined(COCOA)
 	#else
+	OsView _CreateCustomView();
 	virtual bool _OnGetInfo(HISize &size, HISize &line, HIRect &bounds, HIPoint &origin) { return false; }
 	virtual void _OnScroll(HIPoint &origin) {}
 	#endif
@@ -740,19 +740,6 @@ public:
 	/// \returns a cursor type. i.e. LCUR_Normal from LgiDefs.h
 	LgiCursor GetCursor(int x, int y);
 	
-	/*
-	/// \brief Sets the mouse cursor to display when the mouse is over this control.
-	///
-	/// This currently only works on Win32, as I can't get the X11 cursor functions to
-	/// work. They seem horribly broken. (Surprise surprise)
-	bool SetCursor
-	(
-		/// The cursor to change to.
-		/// \sa the defines starting with LCUR_Normal from LgiDefs.h
-		LgiCursor Cursor
-	);
-	*/
-
 	/// \brief Get the position of the view relitive to it's parent.
 	virtual GRect &GetPos() { return Pos; }
 	/// Get the client region of the window relitive to itself (ie always 0,0-x,y)

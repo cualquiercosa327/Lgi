@@ -221,16 +221,20 @@ int GToolTip::NewTip(char *Name, GRect &Pos)
 
 	#if defined(MAC)
 
-	HMSetHelpTagsDisplayed(true);
+		#if COCOA
+		#warning FIXME
+		#else
+		HMSetHelpTagsDisplayed(true);
 
-	if (Name)
-	{
-		d->Tag.version = kMacHelpVersion;
-		d->Tag.tagSide = kHMDefaultSide;
-		d->Tag.content[kHMMinimumContentIndex].contentType = kHMCFStringLocalizedContent;
-		d->Tag.content[kHMMinimumContentIndex].u.tagCFString = CFStringCreateWithCString(NULL, Name, kCFStringEncodingUTF8);
-		d->Tag.absHotRect = Pos;
-	}
+		if (Name)
+		{
+			d->Tag.version = kMacHelpVersion;
+			d->Tag.tagSide = kHMDefaultSide;
+			d->Tag.content[kHMMinimumContentIndex].contentType = kHMCFStringLocalizedContent;
+			d->Tag.content[kHMMinimumContentIndex].u.tagCFString = CFStringCreateWithCString(NULL, Name, kCFStringEncodingUTF8);
+			d->Tag.absHotRect = Pos;
+		}
+		#endif
 	
 	#elif WINNATIVE
 

@@ -120,7 +120,7 @@ public:
 	
 	void SetStyle()
 	{
-		int asd = 0;
+		
 	}
 };
 

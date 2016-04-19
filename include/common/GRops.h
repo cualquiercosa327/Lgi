@@ -17,9 +17,9 @@
 template<typename DstPx, typename SrcPx>
 void GRop15To15(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 	
 	OverlapCheck()
 	
@@ -36,9 +36,9 @@ void GRop15To15(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop16To15(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -55,9 +55,9 @@ void GRop16To15(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop24To15(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -74,9 +74,9 @@ void GRop24To15(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop32To15(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -93,9 +93,9 @@ void GRop32To15(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop48To15(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -112,9 +112,9 @@ void GRop48To15(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop64To15(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -133,13 +133,13 @@ void GRop64To15(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop15To16(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	if (IsOverlapping())
 	{
-		register uint8 r, g, b;
+		REG uint8 r, g, b;
 		while (Px--)
 		{
 			r = s->r;
@@ -168,13 +168,13 @@ void GRop15To16(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop16To16(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	if (IsOverlapping())
 	{
-		register uint8 r, g, b;
+		REG uint8 r, g, b;
 		while (Px--)
 		{
 			r = s->r;
@@ -203,9 +203,9 @@ void GRop16To16(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop24To16(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -222,9 +222,9 @@ void GRop24To16(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop32To16(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -241,9 +241,9 @@ void GRop32To16(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop48To16(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -260,9 +260,9 @@ void GRop48To16(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop64To16(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -281,9 +281,9 @@ void GRop64To16(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop15To24(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -300,9 +300,9 @@ void GRop15To24(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop16To24(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -319,13 +319,13 @@ void GRop16To24(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop24To24(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	if ((uint8*)d == (uint8*)s)
 	{
-		register uint8 r, g, b;
+		REG uint8 r, g, b;
 		d += px - 1;
 		s += px - 1;
 		while (Px--)
@@ -356,9 +356,9 @@ void GRop24To24(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop32To24(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -375,9 +375,9 @@ void GRop32To24(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop48To24(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -394,9 +394,9 @@ void GRop48To24(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop64To24(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -416,9 +416,9 @@ void GRop64To24(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop15To32(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -436,9 +436,9 @@ void GRop15To32(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop16To32(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -456,13 +456,13 @@ void GRop16To32(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop24To32(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	if (IsOverlapping())
 	{
-		register uint8 r, g, b;
+		REG uint8 r, g, b;
 		d += px - 1;
 		s += px - 1;
 		
@@ -496,13 +496,13 @@ void GRop24To32(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop32To32(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	if (IsOverlapping())
 	{
-		register uint8 r, g, b, a;
+		REG uint8 r, g, b, a;
 		while (Px--)
 		{
 			r = s->r;
@@ -534,9 +534,9 @@ void GRop32To32(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop48To32(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -554,9 +554,9 @@ void GRop48To32(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop64To32(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -576,9 +576,9 @@ void GRop64To32(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop15To48(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -595,9 +595,9 @@ void GRop15To48(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop16To48(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -614,9 +614,9 @@ void GRop16To48(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop24To48(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -633,9 +633,9 @@ void GRop24To48(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop32To48(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -652,9 +652,9 @@ void GRop32To48(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop48To48(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -671,9 +671,9 @@ void GRop48To48(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop64To48(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -692,9 +692,9 @@ void GRop64To48(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop15To64(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -712,9 +712,9 @@ void GRop15To64(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop16To64(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -732,9 +732,9 @@ void GRop16To64(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop24To64(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -752,9 +752,9 @@ void GRop24To64(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop32To64(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -772,9 +772,9 @@ void GRop32To64(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop48To64(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -792,9 +792,9 @@ void GRop48To64(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GRop64To64(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 
 	OverlapCheck()
 
@@ -812,9 +812,9 @@ void GRop64To64(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GComposite15To24(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 	
 	OverlapCheck()
 	
@@ -835,9 +835,9 @@ void GComposite15To24(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GComposite15To32(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 	
 	OverlapCheck()
 	
@@ -859,9 +859,9 @@ void GComposite15To32(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GComposite15To48(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 	
 	OverlapCheck()
 	
@@ -882,9 +882,9 @@ void GComposite15To48(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GComposite15To15(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 	
 	OverlapCheck()
 	
@@ -905,9 +905,9 @@ void GComposite15To15(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GComposite15To16(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 	
 	OverlapCheck()
 	
@@ -928,9 +928,9 @@ void GComposite15To16(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GComposite15To64(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 	
 	OverlapCheck()
 	
@@ -953,7 +953,7 @@ void GComposite32To15(OutPx *d, InPx *s, int Len)
 {
 	InPx *end = s + Len;
 	uint8 *DivLut = Div255Lut;
-	register uint8 sa;
+	REG uint8 sa;
 
 	while (s < end)
 	{
@@ -970,8 +970,8 @@ void GComposite32To15(OutPx *d, InPx *s, int Len)
 			// Composite pixel
 			//		Dc'  = (Sca + Dc.Da.(1 - Sa)) / Da'
 			//		Da'  = Sa + Da.(1 - Sa)
-			register uint8 o = 0xff - sa;
-			register uint8 val;
+			REG uint8 o = 0xff - sa;
+			REG uint8 val;
 			
 			#define NonPreMul(c)	\
 				val = DivLut[(s->c * sa) + (G5bitTo8bit(d->c) * o)]; \
@@ -992,7 +992,7 @@ void GComposite32To16(OutPx *d, InPx *s, int Len)
 {
 	InPx *end = s + Len;
 	uint8 *DivLut = Div255Lut;
-	register uint8 sa;
+	REG uint8 sa;
 
 	while (s < end)
 	{
@@ -1009,8 +1009,8 @@ void GComposite32To16(OutPx *d, InPx *s, int Len)
 			// Composite pixel
 			//		Dc'  = (Sca + Dc.Da.(1 - Sa)) / Da'
 			//		Da'  = Sa + Da.(1 - Sa)
-			register uint8 o = 0xff - sa;
-			register uint8 val;
+			REG uint8 o = 0xff - sa;
+			REG uint8 val;
 			
 			#define NonPreMul(c, up, down)	\
 				val = DivLut[(s->c * sa) + (G##up(d->c) * o)]; \
@@ -1031,7 +1031,7 @@ void GComposite32To24(OutPx *d, InPx *s, int Len)
 {
 	InPx *end = s + Len;
 	uint8 *DivLut = Div255Lut;
-	register uint8 sa;
+	REG uint8 sa;
 
 	while (s < end)
 	{
@@ -1048,7 +1048,7 @@ void GComposite32To24(OutPx *d, InPx *s, int Len)
 			// Composite pixel
 			//		Dc'  = (Sca + Dc.Da.(1 - Sa)) / Da'
 			//		Da'  = Sa + Da.(1 - Sa)
-			register uint8 o = 0xff - sa;
+			REG uint8 o = 0xff - sa;
 			
 			#define NonPreMul(c)	\
 				d->c = DivLut[(s->c * sa) + (d->c * o)]
@@ -1068,7 +1068,7 @@ void GComposite32To32(OutPx *d, InPx *s, int Len)
 {
 	InPx *end = s + Len;
 	uint8 *DivLut = Div255Lut;
-	register uint8 sa;
+	REG uint8 sa;
 
 	while (s < end)
 	{
@@ -1098,8 +1098,7 @@ template<typename OutPx, typename InPx>
 void GComposite32To48(OutPx *d, InPx *s, int Len)
 {
 	InPx *end = s + Len;
-	uint8 *DivLut = Div255Lut;
-	register uint8 sa;
+	REG uint8 sa;
 
 	while (s < end)
 	{
@@ -1128,8 +1127,7 @@ template<typename OutPx, typename InPx>
 void GComposite32To64(OutPx *d, InPx *s, int Len)
 {
 	InPx *end = s + Len;
-	uint8 *DivLut = Div255Lut;
-	register uint8 sa;
+	REG uint8 sa;
 
 	while (s < end)
 	{
@@ -1158,11 +1156,11 @@ void GComposite32To64(OutPx *d, InPx *s, int Len)
 template<typename OutPx, typename InPx>
 void GComposite32to24(OutPx *d, InPx *s, int Len)
 {
-	register OutPx *dst = d;
-	register InPx *src = s;
-	register InPx *end = src + Len;
+	REG OutPx *dst = d;
+	REG InPx *src = s;
+	REG InPx *end = src + Len;
 	uint8 *DivLut = Div255Lut;
-	register uint8 sa;
+	REG uint8 sa;
 
 	while (src < end)
 	{
@@ -1179,7 +1177,7 @@ void GComposite32to24(OutPx *d, InPx *s, int Len)
 			// Composite pixel
 			//		Dc'  = (Sc.Sa + Dc.Da.(1 - Sa)) / Da'
 			//		Da'  = Sa + Da.(1 - Sa)
-			register uint8 o = 0xff - sa;
+			REG uint8 o = 0xff - sa;
 			
 			#define NonPreMul24(c)	\
 				dst->c = DivLut[(src->c * sa) + (dst->c * o)]
@@ -1197,16 +1195,16 @@ void GComposite32to24(OutPx *d, InPx *s, int Len)
 template<typename DstPx, typename SrcPx>
 void GComposite64To15(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
-	register uint8 *DivLut = Div255Lut;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
+	REG uint8 *DivLut = Div255Lut;
 	
 	OverlapCheck()
 	
 	while (Px--)
 	{
-		register GRgb24 dst =
+		REG GRgb24 dst =
 		{
 			G5bitTo8bit(d->r),
 			G5bitTo8bit(d->g),
@@ -1225,16 +1223,16 @@ void GComposite64To15(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GComposite64To16(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
-	register uint8 *DivLut = Div255Lut;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
+	REG uint8 *DivLut = Div255Lut;
 	
 	OverlapCheck()
 	
 	while (Px--)
 	{
-		register GRgb24 dst =
+		REG GRgb24 dst =
 		{
 			G5bitTo8bit(d->r),
 			G6bitTo8bit(d->g),
@@ -1253,10 +1251,10 @@ void GComposite64To16(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GComposite64To24(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
-	register uint8 *DivLut = Div255Lut;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
+	REG uint8 *DivLut = Div255Lut;
 	
 	OverlapCheck()
 	
@@ -1271,10 +1269,10 @@ void GComposite64To24(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GComposite64To32(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
-	register uint8 *DivLut = Div255Lut;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
+	REG uint8 *DivLut = Div255Lut;
 	
 	OverlapCheck()
 	
@@ -1289,9 +1287,9 @@ void GComposite64To32(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GComposite64To48(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 	
 	OverlapCheck()
 	
@@ -1306,9 +1304,9 @@ void GComposite64To48(DstPx *dst, SrcPx *src, int px)
 template<typename DstPx, typename SrcPx>
 void GComposite64To64(DstPx *dst, SrcPx *src, int px)
 {
-	register DstPx *d = dst;
-	register SrcPx *s = src;
-	register int Px = px;
+	REG DstPx *d = dst;
+	REG SrcPx *s = src;
+	REG int Px = px;
 	
 	OverlapCheck()
 	

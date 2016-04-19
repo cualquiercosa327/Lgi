@@ -62,7 +62,7 @@ public:
 		{
 			case GAPP_ALPHA_A:
 			{
-				ConstAlpha = Value;
+				ConstAlpha = (int)Value;
 				break;
 			}
 			case GAPP_ALPHA_PAL:
@@ -153,7 +153,7 @@ public:
 		
 		while (y-- > 0)
 		{
-			register Pixel *i = p, *e = i + x;
+			REG Pixel *i = p, *e = i + x;
 			while (i < e)
 			{
 				*i++ = cp;
@@ -265,8 +265,6 @@ public:
 	template<typename T>
 	bool AlphaBlt(GBmpMem *Src, GBmpMem *SrcAlpha)
 	{
-		uchar *DivLut = Div255Lut;
-
 		for (int y=0; y<Src->y; y++)
 		{
 			Pixel *d = p;
@@ -330,8 +328,8 @@ public:
 				}
 				for (int y=0; y<Src->y; y++)
 				{
-					register uint8 *s = Src->Base + (y * Src->Line);
-					register Pixel *d = p, *e = d + Src->x;
+					REG uint8 *s = Src->Base + (y * Src->Line);
+					REG Pixel *d = p, *e = d + Src->x;
 					while (d < e)
 					{
 						*d++ = map[*s++];

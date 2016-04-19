@@ -141,7 +141,7 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdS
 
 #else
 
-#ifdef MAC
+#if defined(MAC) && !COCOA
 pascal OSErr TestProc(const AppleEvent *ae, AppleEvent *reply, SRefCon handlerRefcon)
 {
 	OSErr err = eventNotHandledErr;
@@ -150,7 +150,7 @@ pascal OSErr TestProc(const AppleEvent *ae, AppleEvent *reply, SRefCon handlerRe
 }
 #endif
 
-int main(int Args, char **Arg)
+int main(int Args, const char **Arg)
 {
 	int Status = 0;
 	OsAppArguments AppArgs(Args, Arg);
@@ -164,12 +164,15 @@ int main(int Args, char **Arg)
 		#endif
 		
 		// Setup apple event handlers
+		#if COCOA
+		#else
 		OSStatus e = AEInstallEventHandler(	kInternetEventClass,
 									kAEGetURL,
 									NewAEEventHandlerUPP(TestProc),
 									0,
 									false);
 		if (e) LgiTrace("%s:%i - AEInstallEventHandler = %i\n", _FL, e);
+		#endif
 	
 	#elif 1 && defined(__GTK_H__) && defined(_DEBUG)
 	
