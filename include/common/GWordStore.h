@@ -14,10 +14,10 @@ public:
 	bool Serialize(const char *file, bool Load);
 	
 	// Container
-	int GetItems();
+	long GetItems();
 	bool SetItems(int s);
 	bool Insert(const char *Word);
-	uint32 GetWordCount(const char *Word);
+	long GetWordCount(const char *Word);
 	int SetWordCount(const char *Word, uint32 Count);
 	void Empty();
 	char *GetFile();

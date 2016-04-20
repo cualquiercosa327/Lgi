@@ -1509,7 +1509,7 @@ int GFile::Read(void *Buffer, int Size, int Flags)
 		{
 			int Err = errno;
 			int64 Pos = GetPos();
-			printf("Read error: %i, "LGI_PrintfInt64"\n", Err, Pos);
+			printf("Read error: %i, " LGI_PrintfInt64 "\n", Err, Pos);
 		}
 #endif
 	}
@@ -1530,7 +1530,7 @@ int GFile::Write(const void *Buffer, int Size, int Flags)
 		{
 			int Err = errno;
 			int64 Pos = GetPos();
-			printf("Write error: %i, "LGI_PrintfInt64"\n", Err, Pos);
+			printf("Write error: %i, " LGI_PrintfInt64 "\n", Err, Pos);
 		}
 #endif
 	}

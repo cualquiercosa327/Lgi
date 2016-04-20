@@ -18,6 +18,13 @@ static const char *MimeBase64			= "base64";
 
 const char *GMime::DefaultCharset =		"text/plain";
 
+int CastInt(NativeInt in)
+{
+	int out = (int)in;
+	LgiAssert(out == in);
+	return out;
+}
+
 ///////////////////////////////////////////////////////////////////////
 enum MimeBoundary
 {
@@ -30,7 +37,7 @@ MimeBoundary IsMimeBoundary(char *Boundary, char *Line)
 {
 	if (Boundary)
 	{
-		int BoundaryLen = strlen(Boundary);
+		size_t BoundaryLen = strlen(Boundary);
 		if (Line &&
 			*Line++ == '-' &&
 			*Line++ == '-' &&
@@ -98,8 +105,8 @@ public:
 				*d++ = '\r';
 				*d++ = '\n';
 
-				int Len = d-Buf;
-				if (Out->Write(Buf, Len) < Len ||
+				size_t Len = d-Buf;
+				if (Out->Write(Buf, CastInt(Len)) < Len ||
 					!*s)
 				{
 					break;
@@ -132,8 +139,8 @@ public:
 				*d++ = '\r';
 				*d++ = '\n';
 
-				int Len = d-Buf;
-				if (Out->Write(Buf, Len) < Len)
+				size_t Len = d-Buf;
+				if (Out->Write(Buf, CastInt(Len)) < Len)
 				{
 					break;
 				}
@@ -142,7 +149,7 @@ public:
 			}
 		}
 
-		return s - (const char*)p;
+		return CastInt(s - (const char*)p);
 	}
 };
 
@@ -201,8 +208,8 @@ public:
 				}
 			}
 
-			int Len = o - Line;
-			if (Out->Write(Line, Len) < Len)
+			size_t Len = o - Line;
+			if (Out->Write(Line, CastInt(Len)) < Len)
 			{
 				// Error
 				return 0;
@@ -226,9 +233,9 @@ public:
 	{
 		uchar b[100];
 
-		int Len = (int)Buf.GetSize();
+		int64 Len = Buf.GetSize();
 		LgiAssert(Len < sizeof(b));
-		int r = Buf.Read(b, Len);
+		int r = Buf.Read(b, CastInt(Len));
 		if (r)
 		{
 			char t[256];
@@ -290,7 +297,7 @@ public:
 			char *Start = s;
 			while (*s && s < e && Lut[*s]) s++;
 			if (s-Start > 0)
-				Buf.Push(Start, s-Start);
+				Buf.Push(Start, CastInt(s-Start));
 			else
 				break;
 		}
@@ -298,7 +305,7 @@ public:
 		// While there is at least one run of base64 (4 bytes) convert it to text
 		// and write it to the output stream
 		int Size;
-		while ((Size = (int)Buf.GetSize()) > 3)
+		while ((Size = CastInt(Buf.GetSize())) > 3)
 		{
 			Size &= ~3;
 
@@ -555,7 +562,7 @@ bool GMime::SetData(char *Str, int Len)
 	{
 		if (Len < 0)
 		{
-			Len = strlen(Str);
+			Len = (int)strlen(Str);
 		}
 
 		DataLock = 0;
@@ -630,11 +637,9 @@ char *GMime::NewValue(char *&s, bool Alloc)
 
 char *GMime::StartOfField(char *s, const char *Field)
 {
-	char *Status = 0;
-
 	if (s && Field)
 	{
-		int FieldLen = strlen(Field);
+		size_t FieldLen = strlen(Field);
 		while (s && *s)
 		{
 			if (strchr(MimeWs, *s))
@@ -646,7 +651,7 @@ char *GMime::StartOfField(char *s, const char *Field)
 			{
 				char *f = s;
 				while (*s && *s != ':' && !strchr(MimeWs, *s)) s++;
-				int fLen = s-f;
+				int fLen = CastInt(s - f);
 				if (*s++ == ':' &&
 					fLen == FieldLen &&
 					_strnicmp(f, Field, FieldLen) == 0)
@@ -739,7 +744,7 @@ bool GMime::Set(const char *Name, const char *Value)
 			if (f)
 			{
 				// 'Name' exists, push out pre 'Name' header text
-				p.Push(h, f-Headers);
+				p.Push(h, CastInt(f - Headers));
 				h = NextField(f);
 			}
 			else
@@ -759,7 +764,7 @@ bool GMime::Set(const char *Name, const char *Value)
 		if (Value)
 		{
 			// Push new field
-			int Vlen = strlen(Value);
+			int Vlen = CastInt(strlen(Value));
 			while (Vlen > 0 && strchr(MimeWs, Value[Vlen-1])) Vlen--;
 
 			p.Push(Name);
@@ -788,7 +793,7 @@ char *GMime::GetSub(const char *Field, const char *Sub)
 
 	if (Field && Sub)
 	{
-		int SubLen = strlen(Sub);
+		int SubLen = CastInt(strlen(Sub));
 		char *v = Get(Field, false);
 		if (v)
 		{
@@ -803,7 +808,7 @@ char *GMime::GetSub(const char *Field, const char *Sub)
 				SkipWs(s);
 				char *Name = s;
 				while (*s && *s != '=' && !strchr(MimeWs, *s)) s++;
-				int NameLen = s-Name;
+				int NameLen = CastInt(s - Name);
 				SkipWs(s);
 				if (*s++ == '=')
 				{
@@ -842,7 +847,7 @@ bool GMime::SetSub(const char *Field, const char *Sub, const char *Value, const 
 				// Push the field data
 				char *e = s;
 				while (*e && !strchr("; \t\r\n", *e)) e++;
-				p.Push(s, e-s);
+				p.Push(s, CastInt(e-s));
 				SkipWs(e);
 
 				// Loop through the subfields and push all those that are not 'Sub'
@@ -966,7 +971,7 @@ int GMime::GMimeText::GMimeDecode::Parse(GStringPipe *Source, ParentState *State
 			// Get various bits out of the header
 			char *Encoding = Mime->GetEncoding();
 			char *Boundary = Mime->GetBoundary();
-			int BoundaryLen = Boundary ? strlen(Boundary) : 0;
+			// int BoundaryLen = Boundary ? strlen(Boundary) : 0;
 			GStream *Decoder = 0;
 			if (Encoding)
 			{
@@ -983,7 +988,7 @@ int GMime::GMimeText::GMimeDecode::Parse(GStringPipe *Source, ParentState *State
 
 			// Read in the rest of the MIME segment
 			bool Done = false;
-			int64 StartPos = Mime->DataStore->GetPos();
+			// int64 StartPos = Mime->DataStore->GetPos();
 			while (!Done)
 			{
 				// Process existing lines
@@ -1179,7 +1184,7 @@ int GMime::GMimeText::GMimeEncode::Push(GStreamI *Dest, GStreamEnd *End)
 		GToken h(Mime->Headers, MimeEol);
 		for (unsigned i=0; i<h.Length(); i++)
 		{
-			Dest->Write(h[i], strlen(h[i]));
+			Dest->Write(h[i], CastInt(strlen(h[i])));
 			Dest->Write(MimeEol, 2);
 		}
 		Dest->Write(MimeEol, 2);
@@ -1238,7 +1243,7 @@ int GMime::GMimeText::GMimeEncode::Push(GStreamI *Dest, GStreamEnd *End)
 			for (unsigned i=0; i<Mime->Children.Length(); i++)
 			{
 				sprintf_s(Buf, sizeof(Buf), "\r\n\r\n--%s\r\n", Boundary);
-				Dest->Write(Buf, strlen(Buf));
+				Dest->Write(Buf, CastInt(strlen(Buf)));
 
 				if (!Mime->Children[i]->Text.Encode.Push(Dest, End))
 				{
@@ -1249,7 +1254,7 @@ int GMime::GMimeText::GMimeEncode::Push(GStreamI *Dest, GStreamEnd *End)
 			}
 
 			sprintf_s(Buf, sizeof(Buf), "\r\n\r\n--%s--\r\n", Boundary);
-			Dest->Write(Buf, strlen(Buf));
+			Dest->Write(Buf, CastInt(strlen(Buf)));
 		}
 
 		// Clean up

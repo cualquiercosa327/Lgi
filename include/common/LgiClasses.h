@@ -1142,10 +1142,13 @@ enum GWindowHookType
 
 /// A top level window.
 class LgiClass GWindow :
+	#ifndef WIN32
+	// This needs to be first otherwise you get:
+	// Undefined symbols for architecture x86_64: non-virtual thunk to GWindow::WillAccept etc...
+	// on Clang/Mac
+	public GDragDropTarget,
+	#endif
 	public GView
-#ifndef WIN32
-	, public GDragDropTarget
-#endif
 {
 	friend class BViewRedir;
 	friend class GView;
@@ -1346,7 +1349,7 @@ public:
 	
 	// D'n'd
 	int WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState);
-	int OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState);
+	int OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState);
 
 	// Events
 	void OnChildrenChanged(GViewI *Wnd, bool Attaching);

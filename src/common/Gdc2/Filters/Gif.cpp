@@ -961,7 +961,7 @@ GFilter::IoStatus GdcGif::WriteImage(GStream *Out, GSurface *pDC)
 	if (Transparent.CastInt32())
 	{
 		// Graphic Control Extension
-		uchar gce[] = {0x21, 0xF9, 4, 1, 0, 0, Back, 0 };
+		uchar gce[] = {0x21, 0xF9, 4, 1, 0, 0, (uchar)Back, 0 };
 		Out->Write(gce, sizeof(gce));
 	}
 

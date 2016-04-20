@@ -530,7 +530,7 @@ bool GFont::Destroy()
 			FT_Done_Face(d->hFont);
 		#elif defined(WIN32)
 			DeleteObject(d->hFont);
-		#elif defined MAC && !defined COCOA
+		#elif defined MAC
 			#if USE_CORETEXT
 			CFRelease(d->hFont);
 			#else

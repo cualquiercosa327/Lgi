@@ -1,6 +1,10 @@
 //
 //	Cross platform LGI functions
 //
+#if COCOA
+#import <Foundation/Foundation.h>
+#endif
+
 #define _WIN32_WINNT 0x501
 
 #include <time.h>
@@ -316,7 +320,7 @@ int LgiGetOs
 
 	return LGI_OS_LINUX;
 
-	#elif defined MAC && !defined COCOA
+	#elif defined MAC
 
 	if (Ver)
 	{
@@ -1118,8 +1122,15 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 				break;
 			}
 
-			#if defined MAC && !defined COCOA
+			#if defined MAC
 
+				#if COCOA
+				NSArray *paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
+				if (paths)
+				{
+					Path = [[paths objectAtIndex:0] UTF8String];
+				}
+				#else
 				FSRef Ref;
 				OSErr e = FSFindFolder(kUserDomain, kDomainLibraryFolderType, kDontCreateFolder, &Ref);
 				if (e)
@@ -1132,6 +1143,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 					GAutoString Base = FSRefPath(Ref);
 					Path = Base.Get();
 				}
+				#endif
 
 			#elif defined WIN32
 

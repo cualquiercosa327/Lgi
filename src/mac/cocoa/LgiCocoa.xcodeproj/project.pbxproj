@@ -121,8 +121,8 @@
 
 /* Begin PBXFileReference section */
 		3477C2681CBF020F0028B84B /* LgiCocoa.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LgiCocoa.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		3477C26B1CBF020F0028B84B /* LgiProject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LgiProject.h; sourceTree = "<group>"; };
-		3477C26D1CBF020F0028B84B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		3477C26B1CBF020F0028B84B /* LgiProject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LgiProject.h; path = Lgi/LgiProject.h; sourceTree = "<group>"; };
+		3477C26D1CBF020F0028B84B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Lgi/Info.plist; sourceTree = "<group>"; };
 		3477C2741CBF07DD0028B84B /* GApp.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = GApp.mm; sourceTree = "<group>"; };
 		3477C2761CBF08050028B84B /* GClipBoard.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = GClipBoard.mm; sourceTree = "<group>"; };
 		3477C2771CBF08050028B84B /* GFileSelect.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = GFileSelect.mm; sourceTree = "<group>"; };
@@ -154,7 +154,7 @@
 		3477C2B01CBF96C40028B84B /* Res.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Res.cpp; path = ../../../common/Resource/Res.cpp; sourceTree = "<group>"; };
 		3477C2B31CBF96F20028B84B /* LgiMsg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiMsg.cpp; path = ../../../common/Lgi/LgiMsg.cpp; sourceTree = "<group>"; };
 		3477C2B61CBF973F0028B84B /* GGuiUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GGuiUtils.cpp; path = ../../../common/Lgi/GGuiUtils.cpp; sourceTree = "<group>"; };
-		3477C2B81CBF977F0028B84B /* Lgi.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Lgi.cpp; path = ../../../common/Lgi/Lgi.cpp; sourceTree = "<group>"; };
+		3477C2B81CBF977F0028B84B /* Lgi.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = Lgi.cpp; path = ../../../common/Lgi/Lgi.cpp; sourceTree = "<group>"; };
 		3477C2BA1CBF97C80028B84B /* GdcCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GdcCommon.cpp; path = ../../../common/Gdc2/GdcCommon.cpp; sourceTree = "<group>"; };
 		3477C2C01CBF9A040028B84B /* GString.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GString.cpp; path = ../../../common/Text/GString.cpp; sourceTree = "<group>"; };
 		3477C2C21CC045840028B84B /* GMem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GMem.h; path = ../../../include/common/GMem.h; sourceTree = "<group>"; };
@@ -271,10 +271,8 @@
 				3477C33B1CC0881E0028B84B /* Files */,
 				3477C2931CBF09240028B84B /* General */,
 				3477C28A1CBF08760028B84B /* Graphics */,
-				3477C26D1CBF020F0028B84B /* Info.plist */,
-				3477C2731CBF07410028B84B /* Interface_OS */,
+				3477C2731CBF07410028B84B /* Interface_Cocoa */,
 				3477C2B51CBF972B0028B84B /* Interface_XP */,
-				3477C26B1CBF020F0028B84B /* LgiProject.h */,
 				3477C3141CC04CC00028B84B /* Libraries */,
 				3477C2D11CC048000028B84B /* Memory */,
 				3477C31A1CC04D290028B84B /* Network */,
@@ -288,7 +286,7 @@
 			path = Lgi;
 			sourceTree = "<group>";
 		};
-		3477C2731CBF07410028B84B /* Interface_OS */ = {
+		3477C2731CBF07410028B84B /* Interface_Cocoa */ = {
 			isa = PBXGroup;
 			children = (
 				3477C2741CBF07DD0028B84B /* GApp.mm */,
@@ -304,7 +302,7 @@
 				3477C2801CBF086A0028B84B /* GWidgets.mm */,
 				3477C2811CBF086A0028B84B /* GWindow.mm */,
 			);
-			name = Interface_OS;
+			name = Interface_Cocoa;
 			sourceTree = "<group>";
 		};
 		3477C28A1CBF08760028B84B /* Graphics */ = {
@@ -340,6 +338,8 @@
 		3477C29A1CBF0A700028B84B /* Headers */ = {
 			isa = PBXGroup;
 			children = (
+				3477C26D1CBF020F0028B84B /* Info.plist */,
+				3477C26B1CBF020F0028B84B /* LgiProject.h */,
 				3477C5161CC303B70028B84B /* LgiClass.h */,
 				3477C35C1CC2253E0028B84B /* LgiInterfaces.h */,
 				3477C35A1CC1AEEA0028B84B /* LgiInc.h */,
@@ -763,7 +763,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -804,7 +804,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -828,16 +828,18 @@
 				INFOPLIST_FILE = Lgi/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_CFLAGS = (
 					"-DMAC",
 					"-DCOCOA",
 					"-DLGI_LIBRARY",
+					"-D_DEBUG",
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"-DMAC",
 					"-DCOCOA",
 					"-DLGI_LIBRARY",
+					"-D_DEBUG",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.memecode.Lgi;
 				PRODUCT_NAME = LgiCocoa;
@@ -861,7 +863,7 @@
 				INFOPLIST_FILE = Lgi/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_CFLAGS = (
 					"-DMAC",
 					"-DCOCOA",

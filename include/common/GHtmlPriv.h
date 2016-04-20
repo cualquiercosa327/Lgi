@@ -224,14 +224,14 @@ public:
 				if (!*cur || cur >= end)
 					break;
 				
-				_Write(start, cur - start);
+				_Write(start, (int) (cur - start));
 				
 				start = cur;
 				while (*start && start < end && strchr(eol, *start))
 					start++;
 			}
 			
-			return _Write(start, end - start);
+			return _Write(start, (int) (end - start));
 		}
 		
 		int GetPrev()

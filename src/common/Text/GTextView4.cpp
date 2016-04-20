@@ -1186,7 +1186,7 @@ public:
 						e++;
 					
 					// Add 't' to current line
-					int Chars = min(1024, e - s);
+					int Chars = min(1024, (int) (e - s));
 					GAutoPtr<DisplayStr> Ds(new DisplayStr(t, f, s, Chars, flow.pDC));
 					if (!Ds)
 						return flow.d->Error(_FL, "display str creation failed.");
@@ -2493,7 +2493,7 @@ bool GTextView4::Open(const char *Name, const char *CharSet)
 		char *c8 = new char[Bytes + 4];
 		if (c8)
 		{
-			if (f.Read(c8, Bytes) == Bytes)
+			if (f.Read(c8, (int)Bytes) == Bytes)
 			{
 				char *DataStart = c8;
 
@@ -2540,7 +2540,7 @@ void GTextView4::UpdateScrollBars(bool Reset)
 {
 	if (VScroll)
 	{
-		GRect Before = GetClient();
+		//GRect Before = GetClient();
 
 	}
 }
@@ -2656,7 +2656,7 @@ void GTextView4::OnPosChange()
 		Processing = true;
 		GLayout::OnPosChange();
 
-		GRect c = GetClient();
+		// GRect c = GetClient();
 		Processing = false;
 	}
 }
@@ -3193,7 +3193,6 @@ bool GTextView4::OnKey(GKey &k)
 				if (k.Ctrl())
 				{
 				    // Ctrl+H
-				    int asd=0;
 				}
 				else if (k.Down())
 				{

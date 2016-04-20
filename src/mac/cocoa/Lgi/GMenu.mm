@@ -953,10 +953,11 @@ bool GMenuItem::Remove()
 		if (Parent->Info && Info)
 		{
 			int Index = Parent->Items.IndexOf(this);
-			LgiAssert(Index + 1 == Info);
 			
 			#ifdef COCOA
 			#else
+			LgiAssert(Index + 1 == Info);
+
 			DeleteMenuItem(Parent->Info, Info);
 			Parent->Items.Delete(this);
 			

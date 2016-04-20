@@ -139,7 +139,7 @@ public:
 		p.Print("\r\n");
 		
 		GAutoString Cmd(p.NewStr());
-		int CmdLen = strlen(Cmd);
+		int CmdLen = (int) strlen(Cmd);
 		int w = Sock->Write(Cmd, CmdLen);
 		if (w == CmdLen)
 		{
@@ -159,7 +159,7 @@ public:
 	
 	int Main()
 	{
-		char Str[256];
+		// char Str[256];
 		
 		while (Loop)
 		{

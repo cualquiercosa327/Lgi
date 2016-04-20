@@ -97,7 +97,7 @@ struct GLgiAssert
 	GLgiAssert() { Result = 0; }
 };
 
-/*
+#ifdef _DEBUG
 static void *_LgiAssert(void *Param)
 {
 	GLgiAssert *Assert = (GLgiAssert*) Param;
@@ -105,7 +105,7 @@ static void *_LgiAssert(void *Param)
 	Assert->Result = a.DoModal();
 	return Assert;
 }
-*/
+#endif
 
 void _lgi_assert(bool b, const char *test, const char *file, int line)
 {

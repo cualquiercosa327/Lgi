@@ -79,7 +79,6 @@ char BinToBase64(uchar c)
 
 int ConvertBase64ToBinary(uchar *Binary, int OutBuf, char *Base64, int InBuf)
 {
-	int Status = 0;
 	uchar *Start = Binary;
 
 	if (!HasBase64ToBinLut)
@@ -124,7 +123,7 @@ int ConvertBase64ToBinary(uchar *Binary, int OutBuf, char *Base64, int InBuf)
 		}
 	}
 
-	return Binary - Start;
+	return (int) (Binary - Start);
 }
 
 int ConvertBinaryToBase64(char *Base64, int OutBuf, uchar *Binary, int InBuf)
@@ -190,6 +189,6 @@ int ConvertBinaryToBase64(char *Base64, int OutBuf, uchar *Binary, int InBuf)
 		}
 	}
 
-	return Base64 - Start;
+	return (int) (Base64 - Start);
 }
 

@@ -184,7 +184,8 @@ void GView::_Delete()
 	GViewI *c;
 	while ((c = Children.First()))
 	{
-		if (c->GetParent() != (GViewI*)this)
+		GViewI *p = c->GetParent();
+		if (p != (GViewI*)this)
 		{
 			printf("Error: GView::_Delete, child not attached correctly: %p(%s) Parent: %p(%s)\n",
 				c, c->Name(),
@@ -841,7 +842,8 @@ bool GView::_Attach(GViewI *parent)
 {
 	bool Status = false;
 
-	d->Parent = (d->ParentI = parent) ? parent->GetGView() : 0;
+	d->ParentI = parent;
+	d->Parent = d->ParentI ? parent->GetGView() : NULL;
 
 	LgiAssert(!_InLock);
 	_Window = d->GetParent() ? d->GetParent()->GetWindow() : 0;

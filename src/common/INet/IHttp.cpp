@@ -410,7 +410,7 @@ bool IHttp::Request
 					u.Host, u.Port ? u.Port : HTTPS_PORT,
 					u.Host);
 		GAutoString c(Cmd.NewStr());
-		int cLen = strlen(c);
+		size_t cLen = strlen(c);
 		int r = Socket->Write(c, cLen);
 		if (r == cLen)
 		{
