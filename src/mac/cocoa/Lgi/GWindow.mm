@@ -102,12 +102,12 @@ GView(0)
 	
 	GRect pos(0, 50, 200, 100);
 	NSRect frame = pos;
-	NSWindow* window  = [[NSWindow alloc] initWithContentRect:frame
-													 styleMask:NSBorderlessWindowMask
-													   backing:NSBackingStoreBuffered
-														 defer:NO];
+	Wnd = new _OsWindow;
+	Wnd->w = [[NSWindow alloc] initWithContentRect:frame
+					styleMask:NSBorderlessWindowMask
+					backing:NSBackingStoreBuffered
+					defer:NO];
 	// [window makeKeyAndOrderFront:NSApp];
-	
 	
 	#if 0
 	Rect r = pos;

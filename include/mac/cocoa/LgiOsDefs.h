@@ -32,15 +32,23 @@
 
 //////////////////////////////////////////////////////////////////
 // Typedefs
-#ifndef __OBJC__
-typedef void				NSWindow;
-#endif
-typedef NSWindow*			OsWindow;
+typedef struct _OsWindow
+{
+	#ifdef __OBJC__
+	NSWindow *w;
+	#else
+	NativeInt unused;
+	#endif
+}	*OsWindow;
 
-#ifndef __OBJC__
-typedef void				NSView;
-#endif
-typedef NSView*				OsView;
+typedef struct _OsView
+{
+	#ifdef __OBJC__
+	NSView *v;
+	#else
+	NativeInt unused;
+	#endif
+}	*OsView;
 
 typedef pthread_t           OsThread;
 typedef pthread_t			OsThreadId;
