@@ -101,19 +101,27 @@ GView(0)
 	_Lock = new GMutex;
 	
 	GRect pos(0, 50, 200, 100);
+	NSRect frame = pos;
+	NSWindow* window  = [[NSWindow alloc] initWithContentRect:frame
+													 styleMask:NSBorderlessWindowMask
+													   backing:NSBackingStoreBuffered
+														 defer:NO];
+	// [window makeKeyAndOrderFront:NSApp];
+	
+	
 	#if 0
 	Rect r = pos;
 	
 	OSStatus e = CreateNewWindow
 	(
-	 kDocumentWindowClass,
-	 kWindowStandardDocumentAttributes |
-	 kWindowStandardHandlerAttribute |
-	 kWindowCompositingAttribute |
-	 kWindowLiveResizeAttribute,
-	 &r,
-	 &Wnd
-		);
+		kDocumentWindowClass,
+		kWindowStandardDocumentAttributes |
+		kWindowStandardHandlerAttribute |
+		kWindowCompositingAttribute |
+		kWindowLiveResizeAttribute,
+		&r,
+		&Wnd
+	);
 	if (e)
 	{
 		printf("%s:%i - CreateNewWindow failed (e=%i).\n", _FL, (int)e);

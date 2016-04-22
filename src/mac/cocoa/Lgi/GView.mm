@@ -550,7 +550,9 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 		}
 		case M_COMMAND:
 		{
-			return OnCommand((int)MsgA(Msg), 0, (OsView) MsgB(Msg));
+			// return OnCommand((int)MsgA(Msg), 0, (OsView) MsgB(Msg));
+			#warning FIXME
+			return OnCommand((int)MsgA(Msg), 0, NULL);
 		}
 		default:
 		{
@@ -928,7 +930,7 @@ bool GView::Detach()
 
 	return Status;
 }
- 
+
 GViewI *GView::FindControl(OsView hCtrl)
 {
 	if (Handle() == hCtrl)

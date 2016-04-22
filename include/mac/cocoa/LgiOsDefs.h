@@ -32,8 +32,16 @@
 
 //////////////////////////////////////////////////////////////////
 // Typedefs
-typedef void*				OsWindow;
-typedef void*				OsView;
+#ifndef __OBJC__
+typedef void				NSWindow;
+#endif
+typedef NSWindow*			OsWindow;
+
+#ifndef __OBJC__
+typedef void				NSView;
+#endif
+typedef NSView*				OsView;
+
 typedef pthread_t           OsThread;
 typedef pthread_t			OsThreadId;
 typedef pthread_mutex_t		OsSemaphore;
