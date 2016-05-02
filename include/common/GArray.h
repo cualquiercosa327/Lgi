@@ -256,7 +256,9 @@ public:
 		{
 			ZeroObj(t);
 			if (fixed && (uint32)i >= len)
+			{
 				LgiAssert(!"Attempt to enlarged fixed array.");
+			}
 			return t;
 		}
 		

@@ -183,7 +183,7 @@ GExecutionStatus GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentA
 		return ScriptError;
 	}
 	
-	// uint32 a = Ptr.ni - &Val[0];
+	uint32 a = Ptr.ni - &Val[0];
 	NativeInt r = 0;
 
 	#if defined(_MSC_VER)

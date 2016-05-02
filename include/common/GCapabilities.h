@@ -6,6 +6,8 @@
 
 #include "GHashTable.h"
 
+#define DEBUG_CAPABILITIES		0
+
 class GCapabilityTarget;
 
 /// This class is a parent for objects that need external dependencies 
