@@ -586,7 +586,7 @@ void GApp::SetConfig(GXmlTag *Tag)
 	}
 }
 
-char *GApp::GetArgumentAt(int n)
+const char *GApp::GetArgumentAt(int n)
 {
 	if (d->Args.lpCmdLine)
 	{

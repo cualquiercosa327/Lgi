@@ -1498,7 +1498,8 @@ void GTree::OnMouseClick(GMouse &m)
 
 			// Clicked on a column heading
 			GItemColumn *Resize;
-			// int Index = HitColumn(m.x, m.y, Resize, Over);
+			GItemColumn *Over = NULL;
+			/*int Index = */HitColumn(m.x, m.y, Resize, Over);
 
 			if (Resize)
 			{

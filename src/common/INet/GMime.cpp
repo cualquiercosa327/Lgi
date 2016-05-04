@@ -105,7 +105,7 @@ public:
 				*d++ = '\r';
 				*d++ = '\n';
 
-				size_t Len = d-Buf;
+				size_t Len = d - Buf;
 				if (Out->Write(Buf, CastInt(Len)) < Len ||
 					!*s)
 				{
