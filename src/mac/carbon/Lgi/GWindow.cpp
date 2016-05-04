@@ -1606,34 +1606,39 @@ int GWindow::WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState)
 	return Status;
 }
 
-int GWindow::OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState)
+int GWindow::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 {
 	int Status = DROPEFFECT_NONE;
-
-	if (Format && Data)
+	
+	for (unsigned i=0; i<Data.Length(); i++)
 	{
-		if (!stricmp(Format, LGI_FileDropFormat))
+		GDragData &dd = Data[i];
+		if (dd.IsFileDrop())
 		{
 			GArray<char*> Files;
 			GArray< GAutoString > Uri;
-
-			if (Data->IsBinary())
+			
+			for (unsigned n=0; n<dd.Data.Length(); n++)
 			{
-				Uri[0].Reset( NewStr((char*)Data->Value.Binary.Data, Data->Value.Binary.Length) );
-			}
-			else if (Data->Str())
-			{
-				Uri[0].Reset( NewStr(Data->Str()) );
-			}
-			else if (Data->Type == GV_LIST)
-			{
-				for (GVariant *v=Data->Value.Lst->First(); v; v=Data->Value.Lst->Next())
+				GVariant *Data = &dd.Data[n];
+				if (Data->IsBinary())
 				{
-					char *f = v->Str();
-					Uri.New().Reset(NewStr(f));
+					Uri[0].Reset( NewStr((char*)Data->Value.Binary.Data, Data->Value.Binary.Length) );
+				}
+				else if (Data->Str())
+				{
+					Uri[0].Reset( NewStr(Data->Str()) );
+				}
+				else if (Data->Type == GV_LIST)
+				{
+					for (GVariant *v=Data->Value.Lst->First(); v; v=Data->Value.Lst->Next())
+					{
+						char *f = v->Str();
+						Uri.New().Reset(NewStr(f));
+					}
 				}
 			}
-
+			
 			for (int i=0; i<Uri.Length(); i++)
 			{
 				char *File = Uri[i].Get();
