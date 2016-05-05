@@ -242,7 +242,7 @@ public:
 	void OnAttach();
 	void OnDragExit();
 	int WillAccept(List<char> &Formats, GdcPt2 p, int KeyState);
-	int OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState);
+	int OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState);
 };
 
 extern const char TagSettings[];

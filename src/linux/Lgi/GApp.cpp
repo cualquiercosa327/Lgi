@@ -582,7 +582,7 @@ GXmlTag *GApp::GetConfig(const char *Tag)
 	return 0;
 }
 
-char *GApp::GetArgumentAt(int n)
+const char *GApp::GetArgumentAt(int n)
 {
 	return n >= 0 && n < d->Args.Args ? NewStr(d->Args.Arg[n]) : 0;
 }
