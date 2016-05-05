@@ -495,7 +495,7 @@ public:
 	}
 
 	/// Find a sub-string	
-	size_t Find(const char *needle, int start = 0, int end = -1)
+	NativeInt Find(const char *needle, int start = 0, int end = -1)
 	{
 		if (!needle) return -1;
 		char *c = Get();
@@ -514,7 +514,7 @@ public:
 	}
 
 	/// Reverse find a string (starting from the end)
-	size_t RFind(const char *needle, int start = 0, int end = -1)
+	NativeInt RFind(const char *needle, int start = 0, int end = -1)
 	{
 		if (!needle) return -1;
 		char *c = Get();

@@ -1142,13 +1142,12 @@ enum GWindowHookType
 
 /// A top level window.
 class LgiClass GWindow :
-	#ifndef WIN32
+	public GView,
+
 	// This needs to be first otherwise you get:
 	// Undefined symbols for architecture x86_64: non-virtual thunk to GWindow::WillAccept etc...
 	// on Clang/Mac
-	public GDragDropTarget,
-	#endif
-	public GView
+	public GDragDropTarget
 {
 	friend class BViewRedir;
 	friend class GView;
