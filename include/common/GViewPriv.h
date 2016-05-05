@@ -153,8 +153,12 @@ public:
 	#endif
 
 	#if defined(MAC)
-	EventHandlerRef DndHandler;
-	GAutoString AcceptedDropFormat;
+		#ifdef COCOA
+		#warning FIXME
+		#else
+		EventHandlerRef DndHandler;
+		GAutoString AcceptedDropFormat;
+		#endif
 	#endif
 	
 	#if defined(LGI_SDL)

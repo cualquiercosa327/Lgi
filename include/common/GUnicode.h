@@ -11,6 +11,12 @@
 
 #include "LgiInc.h"
 
+#ifdef COCOA
+#define REG
+#else
+#define REG register
+#endif
+
 // Converts character to lower case
 template<typename T>
 T Tolower(T ch)
@@ -36,7 +42,7 @@ unsigned Strlen(T *str)
 	if (!str)
 		return 0;
 
-	register T *s = str;
+	REG T *s = str;
 	while (*s)
 		s++;
 
@@ -50,8 +56,8 @@ int Strcmp(T *str_a, T *str_b)
 	if (!str_a || !str_b)
 		return -1;
 
-	register T *a = str_a;
-	register T *b = str_b;
+	REG T *a = str_a;
+	REG T *b = str_b;
 
 	while (true)
 	{
@@ -72,9 +78,9 @@ int Strncmp(T *str_a, T *str_b, unsigned len)
 	if (!str_a || !str_b)
 		return -1;
 
-	register T *a = str_a;
-	register T *b = str_b;
-	register T *end = a + len;
+	REG T *a = str_a;
+	REG T *b = str_b;
+	REG T *end = a + len;
 
 	while (a < end)
 	{
@@ -95,9 +101,9 @@ int Stricmp(T *str_a, T *str_b)
 	if (!str_a || !str_b)
 		return -1;
 
-	register T *a = str_a;
-	register T *b = str_b;
-	register T ach, bch;
+	REG T *a = str_a;
+	REG T *b = str_b;
+	REG T ach, bch;
 
 	while (true)
 	{
@@ -121,10 +127,10 @@ int Strnicmp(T *str_a, T *str_b, unsigned len)
 	if (!str_a || !str_b)
 		return -1;
 
-	register T *a = str_a;
-	register T *b = str_b;
-	register T *end = a + len;
-	register T ach, bch;
+	REG T *a = str_a;
+	REG T *b = str_b;
+	REG T *end = a + len;
+	REG T ach, bch;
 
 	while (a < end)
 	{
@@ -148,9 +154,9 @@ T *Strcpy(T *dst, unsigned dst_len, T *src)
 	if (!dst || !src || dst_len == 0)
 		return NULL;
 	
-	register T *d = dst;
-	register T *end = d + dst_len - 1; // leave 1 char for NULL terminator
-	register T *s = src;
+	REG T *d = dst;
+	REG T *end = d + dst_len - 1; // leave 1 char for NULL terminator
+	REG T *s = src;
 	while (d < end && *s)
 	{
 		*d++ = *s++;
@@ -167,7 +173,7 @@ T *Strchr(T *str, int ch)
 	if (!str)
 		return NULL;
 	
-	for (register T *s = str; *s; s++)
+	for (REG T *s = str; *s; s++)
 	{
 		if (*s == ch)
 			return s;
@@ -184,7 +190,7 @@ T *Strrchr(T *str, int ch)
 		return NULL;
 	
 	T *last = NULL;
-	for (register T *s = str; *s; s++)
+	for (REG T *s = str; *s; s++)
 	{
 		if (*s == ch)
 			last = s;
@@ -208,7 +214,7 @@ T *Strcat(T *dst, int dst_len, T *postfix)
 	}
 	
 	// Copy the postfix...
-	register T *s = postfix;
+	REG T *s = postfix;
 	for (; *s && dst_len > 1; s++)
 	{
 		*dst++ = *s++;

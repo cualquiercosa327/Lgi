@@ -82,7 +82,7 @@ struct GDisplayStringLayout
 					e = LgiSeekUtf8(e, 1);
 				}
 
-				GDisplayString d(f, s, e - s);
+				GDisplayString d(f, s, (int) (e - s));
 				MyMin = max(d.X(), MyMin);
 				X += d.X() + (*e == ' ' ? Sp.X() : 0);
 				MyMax = max(X, MyMax);
@@ -113,11 +113,11 @@ struct GDisplayStringLayout
 		{
 			char *e = strchr(s, '\n');
 			if (!e) e = s + strlen(s);
-			int Len = e - s;
+			size_t Len = e - s;
 			MinLines++;
 
 			// Create a display string for the entire line
-			GDisplayString *n = new GDisplayString(f, Len ? s : (char*)"", Len ? Len : 1);
+			GDisplayString *n = new GDisplayString(f, Len ? s : (char*)"", Len ? (int)Len : 1);
 			if (n)
 			{
 				// Do min / max size calculation
@@ -152,7 +152,7 @@ struct GDisplayStringLayout
 						}
 
 						DeleteObj(n);
-						n = new GDisplayString(f, s, e - s);
+						n = new GDisplayString(f, s, (int) (e - s));
 						MinLines--;
 					}
 				}

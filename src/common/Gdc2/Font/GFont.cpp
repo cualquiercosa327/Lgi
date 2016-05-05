@@ -530,7 +530,7 @@ bool GFont::Destroy()
 			FT_Done_Face(d->hFont);
 		#elif defined(WIN32)
 			DeleteObject(d->hFont);
-		#elif defined MAC && !defined COCOA
+		#elif defined MAC
 			#if USE_CORETEXT
 			CFRelease(d->hFont);
 			#else
@@ -556,7 +556,7 @@ bool GFont::Destroy()
 	return Status;
 }
 
-#ifdef MAC
+#if defined(MAC) && !COCOA
 CFDictionaryRef GFont::GetAttributes()
 {
 	return d->Attributes;
@@ -1243,7 +1243,7 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 		}
 	}
 	
-	#elif defined MAC && !defined COCOA
+	#elif defined MAC
 	
 		Destroy();
 		
@@ -1265,6 +1265,8 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 				int keys = 1;
 				CFStringRef key[5]  = {	kCTFontFamilyNameAttribute };
 				CFTypeRef values[5] = {	sFamily.CreateStringRef() };
+                if (!values[0])
+                    return false;
 
 				if (Bold())
 				{
@@ -1954,7 +1956,7 @@ bool GFontType::GetSystemFont(const char *Which)
 				Info.PointSize(DefSize);
 				Status = true;
 		
-			#elif defined MAC && !defined COCOA
+			#elif defined MAC
 			
 
 				#if USE_CORETEXT

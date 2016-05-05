@@ -27,10 +27,14 @@
 
 	#define CornerOffset 1
 	#ifdef COCOA
-	// #include <Foundation/NSGeometry.h>
-	// typedef NSRect OsRect;
+		#ifdef __OBJC__
+			#include <Foundation/NSGeometry.h>
+			typedef NSRect				OsRect;
+		#else
+			typedef CGRect				OsRect;
+		#endif
 	#else
-	typedef Rect OsRect;
+		typedef Rect OsRect;
 	#endif
 
 #else
@@ -158,57 +162,90 @@ public:
 	/// Returns how near a point is to a rectangle
 	int Near(GRect &r);
 
-	#ifndef COCOA
-	/// Returns an operating system specific rectangle
-	operator OsRect()
-	{
-		OsRect r;
+	#ifdef COCOA
 
-		r.left = x1;
-		r.top = y1;
-		r.right = x2+CornerOffset;
-		r.bottom = y2+CornerOffset;
-
-		return r;
-	}
-
-	GRect &operator =(OsRect &r)
-	{
-		x1 = (int) r.left;
-		y1 = (int) r.top;
-		x2 = (int) r.right - CornerOffset;
-		y2 = (int) r.bottom - CornerOffset;
-		return *this;
-	}
-
-	GRect(OsRect r)
-	{
-		x1 = (int) r.left;
-		y1 = (int) r.top;
-		x2 = (int) r.right - CornerOffset;
-		y2 = (int) r.bottom - CornerOffset;
-	}
-
-	#if defined(MAC)
-	GRect &operator =(HIRect &r)
-	{
-		x1 = (int)r.origin.x;
-		y1 = (int)r.origin.y;
-		x2 = x1 + (int)r.size.width - 1;
-		y2 = y1 + (int)r.size.height - 1;
-		return *this;
-	}
+		operator OsRect()
+		{
+			OsRect r;
+			
+			r.origin.x = x1;
+			r.origin.y = y1;
+			r.size.width = X();
+			r.size.height = Y();
+			
+			return r;
+		}
+		
+		GRect &operator =(OsRect &r)
+		{
+			x1 = r.origin.x;
+			y1 = r.origin.x;
+			x2 = x1 + r.size.width - 1;
+			y2 = y2 + r.size.height - 1;
+			return *this;
+		}
+		
+		GRect(OsRect r)
+		{
+			x1 = r.origin.x;
+			y1 = r.origin.x;
+			x2 = x1 + r.size.width - 1;
+			y2 = y2 + r.size.height - 1;
+		}
 	
-	operator CGRect()
-	{
-		CGRect r;
-		r.origin.x = x1;
-		r.origin.y = y1;
-		r.size.width = x2 - x1 + 1;
-		r.size.height = y2 - y1 + 1;
-		return r;
-	}
-	#endif
+	#else
+	
+	/// Returns an operating system specific rectangle
+		operator OsRect()
+		{
+			OsRect r;
+
+			r.left = x1;
+			r.top = y1;
+			r.right = x2+CornerOffset;
+			r.bottom = y2+CornerOffset;
+
+			return r;
+		}
+
+		GRect &operator =(OsRect &r)
+		{
+			x1 = (int) r.left;
+			y1 = (int) r.top;
+			x2 = (int) r.right - CornerOffset;
+			y2 = (int) r.bottom - CornerOffset;
+			return *this;
+		}
+
+		GRect(OsRect r)
+		{
+			x1 = (int) r.left;
+			y1 = (int) r.top;
+			x2 = (int) r.right - CornerOffset;
+			y2 = (int) r.bottom - CornerOffset;
+		}
+
+		#if defined(MAC)
+		GRect &operator =(HIRect &r)
+		{
+			x1 = (int)r.origin.x;
+			y1 = (int)r.origin.y;
+			x2 = x1 + (int)r.size.width - 1;
+			y2 = y1 + (int)r.size.height - 1;
+			return *this;
+		}
+		
+		operator CGRect()
+		{
+			CGRect r;
+			r.origin.x = x1;
+			r.origin.y = y1;
+			r.size.width = x2 - x1 + 1;
+			r.size.height = y2 - y1 + 1;
+			return r;
+		}
+		#endif
+	
 	#endif
 	
 	bool operator ==(const GRect &r)

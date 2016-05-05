@@ -638,7 +638,7 @@ void SslSocket::Log(const char *Str, int Bytes, SocketMsgType Type)
 {
 	if (d->Logger && ValidStr(Str))
 	{
-		d->Logger->Write(Str, Bytes<0?strlen(Str):Bytes, Type);
+		d->Logger->Write(Str, Bytes<0?(int)strlen(Str):Bytes, Type);
 	}
 }
 
@@ -725,7 +725,7 @@ DebugTrace("%s:%i - SslSocket::Open(%s,%i)\n", _FL, HostAddr, Port);
 			if (Library->Client)
 			{
 				const char *CertDir = "/u/matthew/cert";
-				int r = Library->SSL_CTX_load_verify_locations(Library->Client, 0, CertDir);
+				long r = Library->SSL_CTX_load_verify_locations(Library->Client, 0, CertDir);
 DebugTrace("%s:%i - SSL_CTX_load_verify_locations=%i\n", _FL, r);
 				if (r > 0)
 				{
@@ -807,7 +807,7 @@ DebugTrace("%s:%i - BIO_new_connect=%p\n", _FL, Bio);
 				uint64 Start = LgiCurrentTime();
 				int To = GetTimeout();
 
-				int r = Library->BIO_do_connect(Bio);
+				long r = Library->BIO_do_connect(Bio);
 DebugTrace("%s:%i - BIO_do_connect=%i\n", _FL, r);
 				while (r != 1 && d->Opening)
 				{
@@ -1349,7 +1349,7 @@ void SslSocket::OnInformation(const char *Str)
 		while (*nl && *nl != '\n')
 			nl++;
 
-		int Len = nl - Str + 2;
+		int Len = (int) (nl - Str + 2);
 		a.Reset(new char[Len]);
 		char *o;
 		for (o = a; Str < nl; Str++)

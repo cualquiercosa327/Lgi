@@ -238,7 +238,7 @@ public:
 		/// The current keyboard mobifiers
 		/// \sa #LGI_EF_CTRL, #LGI_EF_ALT, #LGI_EF_SHIFT
 		int KeyState
-	) { return DROPEFFECT_NONE; }
+	) = 0;
 
 	/// 'OnDrop' is called when the user releases the data over
 	/// your window. The data is going to be a binary GVariant
@@ -253,7 +253,7 @@ public:
 		/// The keyboard modifiers
 		/// \sa #LGI_EF_CTRL, #LGI_EF_ALT, #LGI_EF_SHIFT
 		int KeyState
-	);
+	) = 0;
 
 	/// [Deprecated] Old version of the drop handler.
 	DEPRECATED_PRE
@@ -275,8 +275,11 @@ public:
 	}
 
 	#ifdef MAC
-	OSStatus OnDragWithin(GView *v, DragRef Drag);
-	OSStatus OnDragReceive(GView *v, DragRef Drag);
+		#if defined COCOA
+		#else
+		OSStatus OnDragWithin(GView *v, DragRef Drag);
+		OSStatus OnDragReceive(GView *v, DragRef Drag);
+		#endif
 	#endif
 };
 

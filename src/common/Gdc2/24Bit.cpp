@@ -286,8 +286,8 @@ public:
 				}
 				for (int y=0; y<Src->y; y++)
 				{
-					register uint8 *s = Src->Base + (y * Src->Line);
-					register Pixel *d = p, *e = d + Src->x;
+					REG uint8 *s = Src->Base + (y * Src->Line);
+					REG Pixel *d = p, *e = d + Src->x;
 					while (d < e)
 					{
 						*d++ = map[*s++];
@@ -375,9 +375,9 @@ GApplicator *GApp24::Create(GColourSpace Cs, int Op)
 
 //////////////////////////////////////////////////////////////////////////////////////
 #define GetRGB(c) \
-	register uint8 R = p24.r; \
-	register uint8 G = p24.g; \
-	register uint8 B = p24.b
+	REG uint8 R = p24.r; \
+	REG uint8 G = p24.g; \
+	REG uint8 B = p24.b
 
 bool GdcApp24::SetSurface(GBmpMem *d, GPalette *p, GBmpMem *a)
 {

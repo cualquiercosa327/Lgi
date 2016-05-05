@@ -207,7 +207,7 @@ int64 GRadioGroup::Value()
 
 void GRadioGroup::Value(int64 Which)
 {
-	d->Val = Which;
+	d->Val = (int)Which;
 
 	int i=0;
 	for (	GViewI *w = Children.First();

@@ -308,7 +308,11 @@ enum Store3Fields
 	FIELD_ERROR = 153,					// (char*) An error message
 	FIELD_TYPE = 154,					// (char*) The type of the object
 
-	FIELD_MAX = 157,
+	FIELD_ATTACHMENTS_DATA = 155,		// Meta field for specifing attachment data contents
+	FIELD_ATTACHMENTS_NAME = 156,		// Meta field for specifing attachment file names
+	FIELD_MEMBER_OF_GROUP = 157,		// Meta field for specifing membership of a content group
+
+	FIELD_MAX = 158,
 };
 
 #endif

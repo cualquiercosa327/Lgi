@@ -4,7 +4,7 @@
 // #define DrawBorder(dc, r, edge) LgiWideBorder(dc, r, edge)
 #define DrawBorder(dc, r, edge) LgiThinBorder(dc, r, edge)
 
-#if defined(MAC) && !defined(LGI_SDL)
+#if defined(MAC) && !defined(LGI_SDL) && !COCOA
 #define MAC_SKIN		1
 #else
 #define MAC_SKIN		0
@@ -167,7 +167,7 @@ public:
 
 	int GetRange()
 	{
-		return Max >= Min ? Max - Min + 1 : 0;
+		return Max >= Min ? (int) (Max - Min + 1) : 0;
 	}
 
 	bool IsValid()
@@ -208,9 +208,9 @@ public:
 		if (IsValid())
 		{
 			int Range = GetRange();
-			int Size = Range ? min(Page, Range) * len / Range : len;
+			int Size = Range ? min((int)Page, Range) * len / Range : len;
 			if (Size < MinSize) Size = MinSize;
-			Start = Range > Page ? Value * (len - Size) / (Range - Page) : 0;
+			Start = Range > Page ? Value * (len - Size) / (Range - (int)Page) : 0;
 			End = Start + Size;
 
 			if (IsVertical())

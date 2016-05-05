@@ -140,7 +140,7 @@ void GToken::AppendTokens(GArray<char*> *T)
 {
 	if (T)
 	{
-		int Total = Length() + T->Length();
+		int64 Total = Length() + T->Length();
 		int Bytes = 0, i;
 		for (i=0; i<Length(); i++)
 		{
@@ -161,7 +161,7 @@ void GToken::AppendTokens(GArray<char*> *T)
 			for (i=0; i<Length(); i++)
 			{
 				char *Ptr = (*this)[i];
-				int Len = strlen(Ptr) + 1;
+				size_t Len = strlen(Ptr) + 1;
 				memcpy(p, Ptr, Len);
 				(*this)[i] = p;
 				p += Len;
@@ -172,7 +172,7 @@ void GToken::AppendTokens(GArray<char*> *T)
 			for (i=0; i<T->Length(); i++)
 			{
 				char *Ptr = (*T)[i];
-				int Len = strlen(Ptr) + 1;
+				size_t Len = strlen(Ptr) + 1;
 				memcpy(p, Ptr, Len);
 				Add(p);
 				p += Len;

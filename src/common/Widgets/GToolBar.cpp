@@ -233,14 +233,14 @@ GImageList::GImageList(int x, int y, GSurface *pDC)
 			if (!pDC->HasAlpha())
 			{
 				// No source alpha, do colour keying to create the alpha channel
-				register uint32 *p = (uint32*)(*this)[0];
+				REG uint32 *p = (uint32*)(*this)[0];
 				if (p)
 				{
 					uint32 key = *p;
 					for (int y=0; y<Y(); y++)
 					{
 						p = (uint32*) (*this)[y];
-						register uint32 *e = p + X();
+						REG uint32 *e = p + X();
 						while (p < e)
 						{
 							if (*p == key)
@@ -256,13 +256,13 @@ GImageList::GImageList(int x, int y, GSurface *pDC)
 		else
 		{
 			// Clear all the RGB values for transparent pixels.
-			register System32BitPixel *p;
+			REG System32BitPixel *p;
 			for (int y=0; y<Y(); y++)
 			{
 				p = (System32BitPixel*) (*this)[y];
 				if (!p)
 					continue;
-				register System32BitPixel *e = p + X();
+				REG System32BitPixel *e = p + X();
 				while (p < e)
 				{
 					if (p->a == 0)
@@ -831,7 +831,7 @@ void GToolButton::OnMouseClick(GMouse &m)
 					
 					if (Old && IsOver(m))
 					{
-						char *n = Name();
+						// char *n = Name();
 						if (m.Left())
 						{
 							OnCommand();
@@ -1139,8 +1139,8 @@ bool GToolBar::Pour(GRegion &r)
 {
 	int PosX = BORDER_SPACER;
 	int PosY = BORDER_SPACER;
-	int SrcX = 0;
-	int SrcY = 0;
+	// int SrcX = 0;
+	// int SrcY = 0;
 	int EndX = 0;
 	int EndY = 0;
 	int MaxDim = 0;

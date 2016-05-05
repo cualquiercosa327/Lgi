@@ -586,7 +586,6 @@ void GView::SendNotify(int Data)
 		{
 			// We are not in the same thread as the target window. So we post a message
 			// across to the view.
-			GViewI *Ptr = this;
 			if (GetId() <= 0)
 			{
 				// We are going to generate a control Id to help the receiver of the
@@ -1048,12 +1047,16 @@ bool GView::Focus()
 	#elif defined(MAC) && !defined(LGI_SDL)
 	if (w)
 	{
+		#if COCOA
+		#warning FIXME
+		#else
 		ControlRef Cur;
 		OSErr e = GetKeyboardFocus(w->WindowHandle(), &Cur);
 		if (e)
 			LgiTrace("%s:%i - GetKeyboardFocus failed with %i\n", _FL, e);
 		else
 			Has = (Cur == _View);
+		#endif
 	}
   	#endif
 
@@ -1110,7 +1113,9 @@ void GView::Focus(bool i)
 
 		#elif defined MAC && !defined(LGI_SDL)
 
-			#if !defined COCOA
+			#if COCOA
+			#warning FIXME
+			#else
 				GViewI *Wnd = GetWindow();
 				if (Wnd && i)
 				{
@@ -1144,7 +1149,7 @@ GDragDropTarget *GView::DropTarget(GDragDropTarget *Set)
 	return d->DropTarget;
 }
 
-#if defined MAC
+#if defined MAC && !COCOA
 extern pascal OSStatus LgiViewDndHandler(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, void *inUserData);
 #endif
 
@@ -1189,6 +1194,9 @@ bool GView::DropTarget(bool t)
 			d->DropTarget = t ? Wnd : 0;
 	}
 
+	#if COCOA
+	#warning FIXME
+	#else
 	if (t)
 	{
 		static EventTypeSpec DragEvents[] =
@@ -1215,6 +1223,7 @@ bool GView::DropTarget(bool t)
 	{
 		SetControlDragTrackingEnabled(_View, false);
 	}
+	#endif
 
 	#elif defined __GTK_H__
 	if (_View)
@@ -1462,7 +1471,7 @@ bool GView::AttachChildren()
 
 GFont *GView::GetFont()
 {
-	const char *Cls = GetClass();
+	// const char *Cls = GetClass();
 	
 	if (!d->Font &&
 		d->Css &&

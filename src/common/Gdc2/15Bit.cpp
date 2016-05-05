@@ -93,18 +93,18 @@ public:
 	const char *GetClass() { return "GdcApp15Set"; }
 
 	#define InitSet15() \
-		register union { \
+		REG union { \
 			Pixel px; \
 			uint16 upx; \
 		}; \
-		register union { \
+		REG union { \
 			uint8 *d8; \
 			uint16 *d16; \
 		}; \
 		px.r = R15(this->c); \
 		px.g = G15(this->c); \
 		px.b = B15(this->c); \
-		register uint32 line = this->Dest->Line; \
+		REG uint32 line = this->Dest->Line; \
 		d8 = this->u8;
 
 	void VLine(int height)
@@ -123,8 +123,8 @@ public:
 		InitSet15();
 		while (y--)
 		{
-			register uint16 *d = d16;
-			register uint16 *e = d + x;
+			REG uint16 *d = d16;
+			REG uint16 *e = d + x;
 			while (d < e)
 			{
 				*d++ = upx;

@@ -634,7 +634,7 @@ int GSubProcess::Read(void *Buf, int Size, int TimeoutMs)
 		else LgiTrace("%s:%i - Invalid socket.\n", _FL);
 	}
 	
-	return read(Io.Read, Buf, Size);
+	return (int)read(Io.Read, Buf, Size);
 	#else		
 	DWORD Rd = -1;
 	if (!ReadFile(ChildOutput.Read, Buf, Size, &Rd, NULL))
@@ -646,7 +646,8 @@ int GSubProcess::Read(void *Buf, int Size, int TimeoutMs)
 int GSubProcess::Peek()
 {
 	#ifdef POSIX
-	LgiAssert(!"Impl me.");
+	#warning FIXME
+	return 0;
 	#else		
 	DWORD Rd = 0, Avail = 0;
 	char Buf[32];

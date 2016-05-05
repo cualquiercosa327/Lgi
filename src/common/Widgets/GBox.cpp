@@ -452,7 +452,7 @@ void GBox::OnMouseMove(GMouse &m)
 		return;
 	}
 
-	int DragIndex = d->Dragging - &d->Spacers[0];
+	int DragIndex = (int) (d->Dragging - &d->Spacers[0]);
 	if (DragIndex < 0 || DragIndex >= d->Spacers.Length())
 	{
 		LgiAssert(0);

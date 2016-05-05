@@ -58,7 +58,7 @@ void GPassword::Process(char *Out, char *In, int Len)
 {
 	if (Out && In && Len > 0)
 	{
-		int HashLen = strlen(HashString);
+		size_t HashLen = strlen(HashString);
 		int i;
 
 		for (i=0; i<Len; i++)
@@ -84,7 +84,7 @@ void GPassword::Set(char *Buf)
 
 	if (Buf)
 	{
-		Len = strlen(Buf);
+		Len = (int)strlen(Buf);
 		Data = new char[Len];
 		if (Data)
 		{

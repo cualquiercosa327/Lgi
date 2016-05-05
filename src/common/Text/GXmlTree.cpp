@@ -43,7 +43,7 @@ class XmlPoolAlloc : public GXmlAlloc
 			DeleteArray(Ptr);
 		}
 
-		bool Has(int Bytes)
+		bool Has(size_t Bytes)
 		{
 			return Used + Bytes <= Len;
 		}

@@ -212,6 +212,9 @@ GExecutionStatus GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentA
 			}
 		#endif
 	#elif defined(MAC)
+		#ifdef COCOA
+		#warning FIXME
+		#else
 		// 32bit only
 		void *b = Ptr.ni - 1;
         asm (	"movl %2, %%ecx;"
@@ -225,6 +228,7 @@ GExecutionStatus GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentA
 				:"r"(c), "r"(a), "r"(b)	/* input */
 				:"%eax", "%ecx", "%ebx"	/* clobbered register */
 				);
+		#endif
 	#else
 		// Not implemented, gcc???
 		LgiAssert(0);
@@ -288,7 +292,7 @@ public:
 	{
 		uint32 CurrentFrameSize;
 		int PrevFrameStart;
-		int ReturnIp;
+		size_t ReturnIp;
 		GVariant *ReturnValue;
 	};
 
@@ -463,7 +467,7 @@ public:
 		}
 		Log->Print("\n");
 
-		GHashTbl<int, char*> Fn(0, false, -1, NULL);
+		GHashTbl<NativeInt, char*> Fn(0, false, -1, NULL);
 		for (unsigned m=0; m<Code->Methods.Length(); m++)
 		{
 			GFunctionInfo *Info = Code->Methods[m];
@@ -643,7 +647,7 @@ public:
 		return Status;
 	}
 
-	int NearestLine(int Addr)
+	int NearestLine(size_t Addr)
 	{
 		int l = Code->Debug.Find(Addr);
 		if (l >= 0)
@@ -1026,7 +1030,7 @@ struct GScriptVmDebuggerPriv
 	GVmDebuggerCallback *Callback;
 	GAutoString Script, Assembly;
 	GArray<CodeBlock> Blocks;
-	int CurrentAddr;
+	size_t CurrentAddr;
 	GArray<bool> LineIsAsm;
 	GAutoPtr<GCompiledCode> Obj;
 
@@ -1422,7 +1426,7 @@ void GVmDebuggerWnd::UpdateVariables(GList *Lst, GVariant *Arr, int Len, char Pr
 	Lst->ResizeColumnsToContent();
 }
 
-void GVmDebuggerWnd::OnAddress(int Addr)
+void GVmDebuggerWnd::OnAddress(size_t Addr)
 {
 	d->CurrentAddr = Addr;
 	if (d->Text)

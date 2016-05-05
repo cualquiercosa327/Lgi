@@ -81,11 +81,17 @@ bool LgiIsProcess(OsProcessId Pid)
 	
 	#elif defined(MAC)
 	
-		// int r = !kill(Pid, 0);
-		
+		#if COCOA
+	
+		#warning FIXME
+	
+		#else
+	
         ProcessSerialNumber psn;
         OSStatus e = GetProcessForPID(Pid, &psn);
 		return e == 0;
+	
+		#endif
 
 	#elif defined(LINUX)
 

@@ -1,6 +1,6 @@
 /// \file
 ///	\author Matthew Allen
-/// \created 24/2/1997
+/// \created 8/4/2016
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,11 +8,9 @@
 
 #include "Lgi.h"
 #include "GdiLeak.h"
+#include "GPalette.h"
 
 #define LGI_RAD					(360/(2*LGI_PI))
-
-int Pixel24::Size = 3;
-int Pixel32::Size = 4;
 
 GPalette::GPalette()
 {
@@ -40,6 +38,16 @@ GPalette::GPalette(uchar *pPal, int s)
 	Set(pPal, s);
 }
 
+void GPalette::Set(int Idx, int r, int g, int b)
+{
+	GdcRGB *rgb = (*this)[Idx];
+	if (rgb)
+	{
+		rgb->r = r;
+		rgb->g = g;
+		rgb->b = b;
+	}
+}
 void GPalette::Set(GPalette *pPal)
 {
 	DeleteArray(Data);
@@ -70,12 +78,12 @@ void GPalette::Set(uchar *pPal, int s)
 		{
 			for (int i=0; i<s; i++)
 			{
-				Data[i].R = *pPal++;
-				Data[i].G = *pPal++;
-				Data[i].B = *pPal++;
+				Data[i].r = *pPal++;
+				Data[i].g = *pPal++;
+				Data[i].b = *pPal++;
 			}
 		}
-
+		
 		Size = s;
 	}
 }
@@ -95,13 +103,13 @@ bool GPalette::SetSize(int s)
 		{
 			memcpy(New, Data, min(s, Size)*sizeof(GdcRGB));
 		}
-
+		
 		DeleteArray(Data);
 		Data = New;
 		Size = s;
 		return true;
 	}
-
+	
 	return false;
 }
 
@@ -112,7 +120,7 @@ int GPalette::GetSize()
 
 GdcRGB *GPalette::operator [](int i)
 {
-	return i >= 0 AND i < Size AND Data != 0 ? Data + i : 0;
+	return i >= 0 && i < Size && Data != 0 ? Data + i : 0;
 }
 
 void GPalette::SwapRAndB()
@@ -121,12 +129,12 @@ void GPalette::SwapRAndB()
 	{
 		for (int i=0; i<GetSize(); i++)
 		{
-			uchar n = (*this)[i]->R;
-			(*this)[i]->R = (*this)[i]->B;
-			(*this)[i]->B = n;
+			uchar n = (*this)[i]->r;
+			(*this)[i]->r = (*this)[i]->b;
+			(*this)[i]->b = n;
 		}
 	}
-
+	
 	Update();
 }
 
@@ -137,7 +145,7 @@ uchar *GPalette::MakeLut(int Bits)
 		if (!Lut)
 		{
 			// GdcRGB *p = (*this)[0];
-
+			
 			int Size = 1 << Bits;
 			switch (Bits)
 			{
@@ -151,7 +159,7 @@ uchar *GPalette::MakeLut(int Bits)
 							int r = (R15(i) << 3) | (R15(i) >> 2);
 							int g = (G15(i) << 3) | (G15(i) >> 2);
 							int b = (B15(i) << 3) | (B15(i) >> 2);
-
+							
 							Lut[i] = MatchRgb(Rgb24(r, g, b));
 						}
 					}
@@ -167,7 +175,7 @@ uchar *GPalette::MakeLut(int Bits)
 							int r = (R16(i) << 3) | (R16(i) >> 2);
 							int g = (G16(i) << 2) | (G16(i) >> 3);
 							int b = (B16(i) << 3) | (B16(i) >> 2);
-
+							
 							Lut[i] = MatchRgb(Rgb24(r, g, b));
 						}
 					}
@@ -180,7 +188,7 @@ uchar *GPalette::MakeLut(int Bits)
 	{
 		DeleteArray(Lut);
 	}
-
+	
 	return Lut;
 }
 
@@ -190,38 +198,38 @@ int GPalette::MatchRgb(COLOUR Rgb)
 	{
 		GdcRGB *Entry = (*this)[0];
 		/*
-		int r = (R24(Rgb) & 0xF8) + 4;
-		int g = (G24(Rgb) & 0xF8) + 4;
-		int b = (B24(Rgb) & 0xF8) + 4;
-		*/
+		 int r = (R24(Rgb) & 0xF8) + 4;
+		 int g = (G24(Rgb) & 0xF8) + 4;
+		 int b = (B24(Rgb) & 0xF8) + 4;
+		 */
 		int r = R24(Rgb);
 		int g = G24(Rgb);
 		int b = B24(Rgb);
 		ulong *squares = GdcD->GetCharSquares();
 		ulong mindist = 200000;
-		ulong bestcolor;
+		ulong bestcolor = 0;
 		ulong curdist;
 		long rdist;
 		long gdist;
 		long bdist;
-
+		
 		for (int i = 0; i < GetSize(); i++)
 		{
-			rdist = Entry[i].R - r;
-			gdist = Entry[i].G - g;
-			bdist = Entry[i].B - b;
+			rdist = Entry[i].r - r;
+			gdist = Entry[i].g - g;
+			bdist = Entry[i].b - b;
 			curdist = squares[rdist] + squares[gdist] + squares[bdist];
-
+			
 			if (curdist < mindist)
 			{
 				mindist = curdist;
 				bestcolor = i;
 			}
 		}
-
-		return bestcolor;
+		
+		return (int)bestcolor;
 	}
-
+	
 	return 0;
 }
 
@@ -229,15 +237,15 @@ void GPalette::CreateGreyScale()
 {
 	SetSize(256);
 	GdcRGB *p = (*this)[0];
-
+	
 	for (int i=0; i<256; i++)
 	{
-		p->R = i;
-		p->G = i;
-		p->B = i;
-		#ifndef MAC
+		p->r = i;
+		p->g = i;
+		p->b = i;
+#ifndef MAC
 		p->Flags = 0;
-		#endif
+#endif
 		p++;
 	}
 }
@@ -246,19 +254,19 @@ void GPalette::CreateCube()
 {
 	SetSize(216);
 	GdcRGB *p = (*this)[0];
-
+	
 	for (int r=0; r<6; r++)
 	{
 		for (int g=0; g<6; g++)
 		{
 			for (int b=0; b<6; b++)
 			{
-				p->R = r * 51;
-				p->G = g * 51;
-				p->B = b * 51;
-				#ifndef MAC
+				p->r = r * 51;
+				p->g = g * 51;
+				p->b = b * 51;
+#ifndef MAC
 				p->Flags = 0;
-				#endif
+#endif
 				p++;
 			}
 		}
@@ -270,14 +278,14 @@ void TrimWhite(char *s)
 {
 	const char *White = " \r\n\t";
 	char *c = s;
-	while (*c AND strchr(White, *c)) c++;
+	while (*c && strchr(White, *c)) c++;
 	if (c != s)
 	{
 		strcpy(s, c);
 	}
-
+	
 	c = s + strlen(s) - 1;
-	while (c > s AND strchr(White, *c))
+	while (c > s && strchr(White, *c))
 	{
 		*c = 0;
 		c--;
@@ -296,22 +304,22 @@ bool GPalette::Load(GFile &F)
 		// is JASC palette
 		// skip hex length
 		F.ReadStr(Buf, sizeof(Buf));
-
+		
 		// read decimal length
 		F.ReadStr(Buf, sizeof(Buf));
 		SetSize(atoi(Buf));
-		for (int i=0; i<GetSize() AND !F.Eof(); i++)
+		for (int i=0; i<GetSize() && !F.Eof(); i++)
 		{
 			F.ReadStr(Buf, sizeof(Buf));
 			GdcRGB *p = (*this)[i];
 			if (p)
 			{
-				p->R = atoi(strtok(Buf, " "));
-				p->G = atoi(strtok(NULL, " "));
-				p->B = atoi(strtok(NULL, " "));
-
+				p->r = atoi(strtok(Buf, " "));
+				p->g = atoi(strtok(NULL, " "));
+				p->b = atoi(strtok(NULL, " "));
+				
 			}
-
+			
 			Status = true;
 		}
 	}
@@ -319,38 +327,38 @@ bool GPalette::Load(GFile &F)
 	{
 		// check for microsoft format
 	}
-
+	
 	return Status;
 }
 
 bool GPalette::Save(GFile &F, int Format)
 {
 	bool Status = false;
-
+	
 	switch (Format)
 	{
 		case GDCPAL_JASC:
 		{
 			char Buf[256];
-
-			sprintf(Buf, "JASC-PAL\r\n%4.4X\r\n%i\r\n", GetSize(), GetSize());
-			F.Write(Buf, strlen(Buf));
-
+			
+			int ch = sprintf(Buf, "JASC-PAL\r\n%4.4X\r\n%i\r\n", GetSize(), GetSize());
+			F.Write(Buf, ch);
+			
 			for (int i=0; i<GetSize(); i++)
 			{
 				GdcRGB *p = (*this)[i];
 				if (p)
 				{
-					sprintf(Buf, "%i %i %i\r\n", p->R, p->G, p->B);
-					F.Write(Buf, strlen(Buf));
+					sprintf(Buf, "%i %i %i\r\n", p->r, p->g, p->b);
+					F.Write(Buf, (int)strlen(Buf));
 				}
 			}
-
+			
 			Status = true;
 			break;
 		}
 	}
-
+	
 	return Status;
 }
 
@@ -360,23 +368,23 @@ bool GPalette::operator ==(GPalette &p)
 	{
 		GdcRGB *a = (*this)[0];
 		GdcRGB *b = p[0];
-
+		
 		for (int i=0; i<GetSize(); i++)
 		{
-			if (a->R != b->R ||
-				a->G != b->G ||
-				a->B != b->B)
+			if (a->r != b->r ||
+				a->g != b->g ||
+				a->b != b->b)
 			{
 				return false;
 			}
-
+			
 			a++;
 			b++;
 		}
-
+		
 		return true;
 	}
-
+	
 	return false;
 }
 
@@ -394,7 +402,7 @@ GBmpMem::GBmpMem()
 
 GBmpMem::~GBmpMem()
 {
-	if (Base AND (Flags & GDC_OWN_MEMORY))
+	if (Base && (Flags & BmpOwnMemory))
 	{
 		delete [] Base;
 	}
@@ -407,7 +415,7 @@ public:
 	COLOUR c24;
 	bool Fixed;
 	bool Used;
-
+	
 	GlobalColourEntry()
 	{
 		c24 = 0;
@@ -435,15 +443,15 @@ public:
 				f++;
 			}
 		}
-
+		
 		return f;
 	}
-
+	
 	GGlobalColourPrivate()
 	{
 		FirstUnused = 0;
 		Global = 0;
-		#ifdef WIN32
+#ifdef WIN32
 		if (GdcD->GetBits() <= 8)
 		{
 			PALETTEENTRY e[256];
@@ -454,7 +462,7 @@ public:
 				c[i].c24 = Rgb24(e[i].peRed, e[i].peGreen, e[i].peBlue);
 				c[i].Fixed = true;
 				c[i].Used = true;
-
+				
 				c[255-i].c24 = Rgb24(e[255-i].peRed, e[255-i].peGreen, e[255-i].peBlue);
 				c[255-i].Fixed = true;
 				c[255-i].Used = true;
@@ -462,9 +470,9 @@ public:
 			DeleteDC(hdc);
 			FirstUnused = 10;
 		}
-		#endif
+#endif
 	}
-
+	
 	~GGlobalColourPrivate()
 	{
 		Cache.DeleteObjects();
@@ -487,26 +495,26 @@ COLOUR GGlobalColour::AddColour(COLOUR c24)
 	{
 		if (d->c[i].c24 == c24)
 		{
-			#ifdef WIN32
+#ifdef WIN32
 			return PALETTEINDEX(i);
-			#else
+#else
 			return i;
-			#endif
+#endif
 		}
 	}
-
+	
 	if (d->FirstUnused >= 0)
 	{
 		d->c[d->FirstUnused].c24 = c24;
 		d->c[d->FirstUnused].Used = true;
 		d->c[d->FirstUnused].Fixed = true;
-		#ifdef WIN32
+#ifdef WIN32
 		return PALETTEINDEX(d->FirstUnused++);
-		#else
+#else
 		return d->FirstUnused++;
-		#endif
+#endif
 	}
-
+	
 	return c24;
 }
 
@@ -521,7 +529,7 @@ bool GGlobalColour::AddBitmap(GSurface *pDC)
 			return true;
 		}
 	}
-
+	
 	return false;
 }
 
@@ -529,7 +537,7 @@ void KeyBlt(GSurface *To, GSurface *From, COLOUR Key)
 {
 	int Bits = From->GetBits();
 	GPalette *Pal = From->Palette();
-
+	
 	for (int y=0; y<From->Y(); y++)
 	{
 		for (int x=0; x<From->X(); x++)
@@ -553,9 +561,9 @@ bool GGlobalColour::AddBitmap(GImageList *il)
 		{
 			// Cache the full colour bitmap
 			d->Cache.Insert(s);
-
+			
 			// Cache the disabled alpha blending bitmap
-			s = new GMemDC(il->X(), il->Y(), 24);
+			s = new GMemDC(il->X(), il->Y(), System24BitColourSpace);
 			if (s)
 			{
 				s->Op(GDC_ALPHA);
@@ -567,7 +575,7 @@ bool GGlobalColour::AddBitmap(GImageList *il)
 			return true;
 		}
 	}
-
+	
 	return false;
 }
 
@@ -589,38 +597,38 @@ bool GGlobalColour::MakeGlobalPalette()
 					}
 				}
 			}
-
+			
 			for (int i=0; i<256; i++)
 			{
 				GdcRGB *r = (*d->Global)[i];
 				if (r)
 				{
 					/*
-					if (i < 10 OR i > 246)
-					{
+					 if (i < 10 OR i > 246)
+					 {
 						r->R = i;
 						r->G = 0;
 						r->B = 0;
 						r->Flags = PC_EXPLICIT;
-					}
-					else
-					{
-					*/
-						r->R = R24(d->c[i].c24);
-						r->G = G24(d->c[i].c24);
-						r->B = B24(d->c[i].c24);
-						#ifndef MAC
-						r->Flags = 0; // PC_RESERVED;
-						#endif
+					 }
+					 else
+					 {
+					 */
+					r->r = R24(d->c[i].c24);
+					r->g = G24(d->c[i].c24);
+					r->b = B24(d->c[i].c24);
+#ifndef MAC
+					r->Flags = 0; // PC_RESERVED;
+#endif
 					// }
 				}
 			}
-
+			
 			d->Global->Update();
 			d->Cache.DeleteObjects();
 		}
 	}
-
+	
 	return d->Global != 0;
 }
 
@@ -630,7 +638,7 @@ GPalette *GGlobalColour::GetPalette()
 	{
 		MakeGlobalPalette();
 	}
-
+	
 	return d->Global;
 }
 
@@ -638,13 +646,13 @@ COLOUR GGlobalColour::GetColour(COLOUR c24)
 {
 	for (int i=0; i<256; i++)
 	{
-		if (d->c[i].Used AND
+		if (d->c[i].Used &&
 			d->c[i].c24 == c24)
 		{
 			return i;
 		}
 	}
-
+	
 	return c24;
 }
 
@@ -658,53 +666,93 @@ class GdcDevicePrivate
 {
 public:
 	GdcDevice *Device;
-
+	
 	// Current mode info
 	int ScrX;
 	int ScrY;
 	int ScrBits;
-
+	GColourSpace Cs;
+	
 	// Palette
 	double GammaCorrection;
 	uchar GammaTable[256];
 	GPalette *pSysPal;
 	GGlobalColour *GlobalColour;
-
+	
 	// Data
 	ulong *CharSquareData;
 	uchar *Div255;
-
+	
 	// Options
 	int OptVal[GDC_MAX_OPTION];
-
+	
 	// Alpha
-	#if defined WIN32
+#if defined WIN32
 	GLibrary MsImg;
-	#elif defined LINUX
+#elif defined LINUX
 	int Pixel24Size;
-	#endif
-
+#endif
+	
 	GdcDevicePrivate(GdcDevice *d)
+#ifdef WIN32
+	: MsImg("msimg32")
+#endif
 	{
 		Device = d;
 		GlobalColour = 0;
 		pSysPal = 0;
-
-		// Get the screen size/rez
-		LgiAssert(0);
 		
-		// printf("%s:%i - Screen: %ix%i @ %ibpp\n", __FILE__, __LINE__, ScrX, ScrY, ScrBits);
-
+		// Get the screen size/rez
+		CGDirectDisplayID ScreenId = CGMainDisplayID();
+		CGRect r = CGDisplayBounds(ScreenId);
+		ScrX = (int)r.size.width;
+		ScrY = (int)r.size.height;
+		
+		CGDisplayModeRef mode = CGDisplayCopyDisplayMode(CGMainDisplayID());
+		
+		CFStringRef pixEnc = CGDisplayModeCopyPixelEncoding(mode);
+		if (CFStringCompare(pixEnc,
+							CFSTR(IO32BitDirectPixels),
+							kCFCompareCaseInsensitive) == kCFCompareEqualTo)
+		{
+			ScrBits = 32;
+			Cs = System32BitColourSpace;
+		}
+		else if (CFStringCompare(pixEnc,
+								 CFSTR(IO16BitDirectPixels),
+								 kCFCompareCaseInsensitive) == kCFCompareEqualTo)
+		{
+			ScrBits = 16;
+			Cs = System16BitColourSpace;
+		}
+		else if (CFStringCompare(pixEnc,
+								 CFSTR(IO8BitIndexedPixels),
+								 kCFCompareCaseInsensitive) == kCFCompareEqualTo)
+		{
+			ScrBits = 8;
+			Cs = CsIndex8;
+		}
+		else
+		{
+			LgiAssert(0);
+		}
+		
+		char PixEnc[256];
+		if (CFStringGetCString(pixEnc, PixEnc, sizeof(PixEnc), kCFStringEncodingUTF8))
+		{
+			printf("Cs = '%s'\n", PixEnc);
+		}
+		
 		// Palette information
 		GammaCorrection = 1.0;
-
+		
 		// Options
 		ZeroObj(OptVal);
 		// OptVal[GDC_REDUCE_TYPE] = REDUCE_ERROR_DIFFUSION;
 		// OptVal[GDC_REDUCE_TYPE] = REDUCE_HALFTONE;
 		OptVal[GDC_REDUCE_TYPE] = REDUCE_NEAREST;
 		OptVal[GDC_HALFTONE_BASE_INDEX] = 0;
-
+		
 		// Calcuate lookups
 		CharSquareData = new ulong[255+255+1];
 		if (CharSquareData)
@@ -714,7 +762,7 @@ public:
 				CharSquareData[i+255] = i*i;
 			}
 		}
-
+		
 		// Divide by 255 lookup, real handy for alpha blending 8 bit components
 		int Size = (255 * 255) * 2;
 		Div255 = new uchar[Size];
@@ -726,9 +774,9 @@ public:
 				Div255[i] = min(n, 255);
 			}
 		}
-
+		
 	}
-
+	
 	~GdcDevicePrivate()
 	{
 		DeleteObj(GlobalColour);
@@ -744,7 +792,7 @@ GdcDevice::GdcDevice()
 {
 	LgiAssert(pInstance == 0);
 	GColourSpaceTest();
-
+	
 	pInstance = this;
 	d = new GdcDevicePrivate(this);
 	SetGamma(LGI_DEFAULT_GAMMA);
@@ -759,13 +807,13 @@ GdcDevice::~GdcDevice()
 
 int GdcDevice::GetOption(int Opt)
 {
-	return (Opt >= 0 AND Opt < GDC_MAX_OPTION) ? d->OptVal[Opt] : 0;
+	return (Opt >= 0 && Opt < GDC_MAX_OPTION) ? d->OptVal[Opt] : 0;
 }
 
 int GdcDevice::SetOption(int Opt, int Value)
 {
 	int Prev = d->OptVal[Opt];
-	if (Opt >= 0 AND Opt < GDC_MAX_OPTION)
+	if (Opt >= 0 && Opt < GDC_MAX_OPTION)
 		d->OptVal[Opt] = Value;
 	return Prev;
 }
@@ -788,6 +836,11 @@ GGlobalColour *GdcDevice::GetGlobalColour()
 int GdcDevice::GetBits()
 {
 	return d->ScrBits;
+}
+
+GColourSpace GdcDevice::GetColourSpace()
+{
+	return d->Cs;
 }
 
 int GdcDevice::X()
@@ -817,8 +870,8 @@ double GdcDevice::GetGamma()
 void GdcDevice::SetSystemPalette(int Start, int Size, GPalette *pPal)
 {
 	/*
-	if (pPal)
-	{
+	 if (pPal)
+	 {
 		uchar Pal[768];
 		uchar *Temp = Pal;
 		uchar *System = Palette + (Start * 3);
@@ -826,14 +879,14 @@ void GdcDevice::SetSystemPalette(int Start, int Size, GPalette *pPal)
 		
 		for (int i=0; i<Size; i++, P++)
 		{
-			*Temp++ = GammaTable[*System++ = P->R] >> PalShift;
-			*Temp++ = GammaTable[*System++ = P->G] >> PalShift;
-			*Temp++ = GammaTable[*System++ = P->B] >> PalShift;
+	 *Temp++ = GammaTable[*System++ = P->R] >> PalShift;
+	 *Temp++ = GammaTable[*System++ = P->G] >> PalShift;
+	 *Temp++ = GammaTable[*System++ = P->B] >> PalShift;
 		}
 		
 		SetPaletteBlockDirect(Pal, Start, Size * 3);
-	}
-	*/
+	 }
+	 */
 }
 
 GPalette *GdcDevice::GetSystemPalette()
@@ -844,63 +897,63 @@ GPalette *GdcDevice::GetSystemPalette()
 void GdcDevice::SetColourPaletteType(int Type)
 {
 	// bool SetOpt = true;
-
+	
 	/*
-	switch (Type)
-	{
+	 switch (Type)
+	 {
 		case PALTYPE_ALLOC:
 		{
-			SetPalIndex(0, 0, 0, 0);
-			SetPalIndex(255, 255, 255, 255);
-			break;
+	 SetPalIndex(0, 0, 0, 0);
+	 SetPalIndex(255, 255, 255, 255);
+	 break;
 		}
 		case PALTYPE_RGB_CUBE:
 		{
-			uchar Pal[648];
-			uchar *p = Pal;
-
-			for (int r=0; r<6; r++)
-			{
-				for (int g=0; g<6; g++)
-				{
-					for (int b=0; b<6; b++)
-					{
-						*p++ = r * 51;
-						*p++ = g * 51;
-						*p++ = b * 51;
-					}
-				}
-			}
-
-			SetPalBlock(0, 216, Pal);
-			SetPalIndex(255, 0xFF, 0xFF, 0xFF);
-			break;
+	 uchar Pal[648];
+	 uchar *p = Pal;
+	 
+	 for (int r=0; r<6; r++)
+	 {
+	 for (int g=0; g<6; g++)
+	 {
+	 for (int b=0; b<6; b++)
+	 {
+	 *p++ = r * 51;
+	 *p++ = g * 51;
+	 *p++ = b * 51;
+	 }
+	 }
+	 }
+	 
+	 SetPalBlock(0, 216, Pal);
+	 SetPalIndex(255, 0xFF, 0xFF, 0xFF);
+	 break;
 		}
 		case PALTYPE_HSL:
 		{
-			for (int h = 0; h<16; h++)
-			{
-			}
-			break;
+	 for (int h = 0; h<16; h++)
+	 {
+	 }
+	 break;
 		}
 		default:
 		{
-			SetOpt = false;
+	 SetOpt = false;
 		}
-	}
-
-	if (SetOpt)
-	{
+	 }
+	 
+	 if (SetOpt)
+	 {
 		SetOption(GDC_PALETTE_TYPE, Type);
-	}
-	*/
+	 }
+	 */
 }
 
 COLOUR GdcDevice::GetColour(COLOUR Rgb24, GSurface *pDC)
 {
 	int Bits = (pDC) ? pDC->GetBits() : GetBits();
-	COLOUR C;
-
+	COLOUR C = 0;
+	
 	switch (Bits)
 	{
 		case 8:
@@ -910,7 +963,7 @@ COLOUR GdcDevice::GetColour(COLOUR Rgb24, GSurface *pDC)
 				case PALTYPE_ALLOC:
 				{
 					static uchar Current = 1;
-
+					
 					Rgb24 &= 0xFFFFFF;
 					if (Rgb24 == 0xFFFFFF)
 					{
@@ -922,7 +975,10 @@ COLOUR GdcDevice::GetColour(COLOUR Rgb24, GSurface *pDC)
 					}
 					else
 					{
-						(*d->pSysPal)[Current]->Set(R24(Rgb24), G24(Rgb24), B24(Rgb24));
+						GdcRGB *p = (*d->pSysPal)[Current];
+						p->r = R24(Rgb24);
+						p->g = G24(Rgb24);
+						p->b = B24(Rgb24);
 						C = Current++;
 						if (Current == 255) Current = 1;
 					}
@@ -961,7 +1017,7 @@ COLOUR GdcDevice::GetColour(COLOUR Rgb24, GSurface *pDC)
 			break;
 		}
 	}
-
+	
 	return C;
 }
 
@@ -978,7 +1034,7 @@ GAlphaFactory FactoryAlpha;
 
 GApplicatorFactory::GApplicatorFactory()
 {
-	LgiAssert(_Factories >= 0 AND _Factories < CountOf(_Factory));
+	LgiAssert(_Factories >= 0 && _Factories < CountOf(_Factory));
 	if (_Factories < CountOf(_Factory) - 1)
 	{
 		_Factory[_Factories++] = this;
@@ -987,7 +1043,7 @@ GApplicatorFactory::GApplicatorFactory()
 
 GApplicatorFactory::~GApplicatorFactory()
 {
-	LgiAssert(_Factories >= 0 AND _Factories < CountOf(_Factory));
+	LgiAssert(_Factories >= 0 && _Factories < CountOf(_Factory));
 	for (int i=0; i<_Factories; i++)
 	{
 		if (_Factory[i] == this)
@@ -999,79 +1055,14 @@ GApplicatorFactory::~GApplicatorFactory()
 	}
 }
 
-GApplicator *GApplicatorFactory::NewApp(int Bits, int Op)
+GApplicator *GApplicatorFactory::NewApp(GColourSpace Cs, int Op)
 {
-	LgiAssert(_Factories >= 0 AND _Factories < CountOf(_Factory));
+	LgiAssert(_Factories >= 0 && _Factories < CountOf(_Factory));
 	for (int i=0; i<_Factories; i++)
 	{
-		GApplicator *a = _Factory[i]->Create(Bits, Op);
+		GApplicator *a = _Factory[i]->Create(Cs, Op);
 		if (a) return a;
 	}
-
+	
 	return 0;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////
-GSurface *GInlineBmp::Create()
-{
-	GSurface *pDC = new GMemDC;
-	if (pDC->Create(X,
-					Y,
-					#ifdef MAC
-					32
-					#else
-					Bits
-					#endif
-					))
-	{
-		int Line = X * Bits / 8;
-		for (int y=0; y<Y; y++)
-		{
-			#ifdef MAC
-			switch (Bits)
-			{
-				case 16:
-				{
-					uint32 *s = (uint32*) ( ((uchar*)Data) + (y * Line) );
-					Pixel32 *d = (Pixel32*) (*pDC)[y];
-					Pixel32 *e = d + X;
-					while (d < e)
-					{
-						uint32 n = LgiSwap32(*s);
-						s++;
-						
-						uint16 a = n >> 16;
-						a = LgiSwap16(a);
-						d->r = Rc16(a);
-						d->g = Gc16(a);
-						d->b = Bc16(a);
-						d->a = 255;
-						d++;
-						
-						if (d >= e)
-							break;
-
-						uint16 b = n & 0xffff;
-						b = LgiSwap16(b);
-						d->r = Rc16(b);
-						d->g = Gc16(b);
-						d->b = Bc16(b);
-						d->a = 255;
-						d++;
-					}
-					break;
-				}
-				case 32:
-				{
-					memcpy((*pDC)[y], ((uchar*)Data) + (y * Line), Line);
-					break;
-				}
-			}
-			#else				
-			memcpy((*pDC)[y], ((uchar*)Data) + (y * Line), Line);
-			#endif
-		}
-	}
-
-	return pDC;
 }

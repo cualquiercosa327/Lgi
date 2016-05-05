@@ -122,10 +122,18 @@ public:
 	{
 		#if defined(MAC)
 
-		System(modifierKeys & cmdKey);
-		Shift(modifierKeys & shiftKey);
-		Alt(modifierKeys & optionKey);
-		Ctrl(modifierKeys & controlKey);
+			#if defined COCOA
+		
+				#warning FIXME
+		
+			#else
+
+				System(modifierKeys & cmdKey);
+				Shift(modifierKeys & shiftKey);
+				Alt(modifierKeys & optionKey);
+				Ctrl(modifierKeys & controlKey);
+	
+			#endif
 
 		#elif defined(__GTK_H__)
 		
@@ -255,9 +263,19 @@ public:
 	void SetButton(uint32 Btn)
 	{
 		#ifdef MAC
-		Left(Btn == kEventMouseButtonPrimary);
-		Right(Btn == kEventMouseButtonSecondary);
-		Middle(Btn == kEventMouseButtonTertiary);
+		
+			#if defined COCOA
+
+				#warning FIXME
+
+			#else
+
+				Left(Btn == kEventMouseButtonPrimary);
+				Right(Btn == kEventMouseButtonSecondary);
+				Middle(Btn == kEventMouseButtonTertiary);
+		
+			#endif
+		
 		#endif
 	}
 };

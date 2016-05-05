@@ -241,7 +241,11 @@ public:
 	#if defined(BEOS)
 	GdcPt2 StringBounds(const char *s, int len = -1);
 	#elif defined(MAC)
-	CFDictionaryRef GetAttributes();
+		#ifdef COCOA
+		void *GetAttributes();
+		#else
+		CFDictionaryRef GetAttributes();
+		#endif
 	#endif
 };
 

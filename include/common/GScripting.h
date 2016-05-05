@@ -235,7 +235,7 @@ class GCompiledCode
 	GScriptContext *UserContext;
 
 	/// Debug info to map instruction address back to source line numbers
-	GHashTbl<int, int> Debug;
+	GHashTbl<NativeInt, int> Debug;
 
 public:
 	GCompiledCode();
@@ -257,9 +257,9 @@ public:
 	/// Gets the file name this code was compiled from
 	const char *GetFileName() { return FileName; }
 	/// Gets the source line number associated with an address
-	int ObjectToSourceAddress(int ObjAddr);
+	int ObjectToSourceAddress(size_t ObjAddr);
 	/// Turns an object address into a FileName:LineNumber string.
-	const char *AddrToSourceRef(int ObjAddr);
+	const char *AddrToSourceRef(size_t ObjAddr);
 };
 
 /// New compiler/byte code/VM scripting engine
@@ -303,7 +303,7 @@ public:
 	
 	// Events
 		/// Called to update the debugger UI to the new current execution position
-		virtual void OnAddress(int Addr) = 0;
+		virtual void OnAddress(size_t Addr) = 0;
 		/// Called when an error occurs executing the script
 		virtual void OnError(const char *Msg) = 0;
 		/// Called when execution starts or ends
@@ -331,7 +331,7 @@ public:
 	~GVmDebuggerWnd();
 
 	void OwnVm(bool Own);
-	void OnAddress(int Addr);
+	void OnAddress(size_t Addr);
 	void OnError(const char *Msg);
 	void OnRun(bool Running);
 	void SetSource(const char *Mixed);

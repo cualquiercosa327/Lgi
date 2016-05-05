@@ -91,9 +91,9 @@ class OsAppArguments
 
 public:
 	int Args;
-	char **Arg;
+	const char **Arg;
 
-	OsAppArguments(int args = 0, char **arg = 0);
+	OsAppArguments(int args = 0, const char **arg = 0);
 	~OsAppArguments();
 
 	void Set(char *CmdLine);

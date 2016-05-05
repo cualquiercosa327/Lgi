@@ -126,11 +126,11 @@ bool LgiFindBounds(GSurface *pDC, GRect *rc)
 		System32BitPixel *px2 = p + rc->x2;
 		while (px1 < px2 && px1->a == 0)
 			px1++;
-		x1 = min(x1, px1 - p);
+		x1 = min(x1, (int) (px1 - p));
 
 		while (px2 >= px1 && px2->a == 0)
 			px2--;
-		x2 = max(x2, px2 - p);
+		x2 = max(x2, (int) (px2 - p));
 	}
 	rc->x1 = x1;
 	rc->x2 = x2;
@@ -488,8 +488,6 @@ COLOUR CBit(int DstBits, COLOUR c, int SrcBits, GPalette *Pal)
 	}
 	else
 	{
-		COLOUR c24 = 0;
-
 		switch (SrcBits)
 		{
 			case 8:
@@ -950,9 +948,6 @@ bool GColourSpaceTest()
 		GRgba32 rgba32;
 	};
 	
-	bool LeastSigBit = LEAST_SIG_BIT_FIRST;
-	bool LeastSigByte = LEAST_SIG_BYTE_FIRST;
-
 	b4[0] = 1;
 	b4[1] = 2;
 	b4[2] = 3;
@@ -1055,11 +1050,11 @@ GSurface *GInlineBmp::Create(uint32 TransparentPx)
 					}
 					case 3:
 					{
-						register uint8 r = R24(TransparentPx);
-						register uint8 g = G24(TransparentPx);
-						register uint8 b = B24(TransparentPx);
-						register GRgb24 *px = (GRgb24*) s.u8;
-						register GRgb24 *e = px + X;
+						REG uint8 r = R24(TransparentPx);
+						REG uint8 g = G24(TransparentPx);
+						REG uint8 b = B24(TransparentPx);
+						REG GRgb24 *px = (GRgb24*) s.u8;
+						REG GRgb24 *e = px + X;
 						while (px < e)
 						{
 							if (px->r == r &&
@@ -1144,7 +1139,6 @@ bool LgiRopUniversal(GBmpMem *Dst, GBmpMem *Src, bool Composite)
 
 	if (SrcBits > 8 && DstBits > 8)
 	{
-		bool Overlap = Dst->Overlap(Src);
 		uint8 *d = Dst->Base;
 		uint8 *s = Src->Base;
 

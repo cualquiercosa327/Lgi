@@ -191,11 +191,6 @@ DistributeSize(	GArray<int> &a,
 	int ExistingGrowPx = 0;
 	int ExistingFillPx = 0;
 
-	if (Debug)
-	{
-		int as=0;
-	}
-
 	for (int i=Start; i<Start+Span; i++)
 	{
 	    switch (Flags[i])
@@ -404,7 +399,7 @@ bool TableCell::Remove(GView *v)
 		
 	Table->DelView(v);
 
-	int Idx = c - &Children.First();
+	int Idx = (int) (c - &Children.First());
 	Children.DeleteAt(Idx, true);
 	return true;
 }
@@ -578,11 +573,6 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 	if (Disp == DispNone)
 		return;
 	
-	if (Debug)
-	{
-		int asd=0;
-	}
-	
 	CalcCssPadding(PaddingLeft, X, x1)
 	CalcCssPadding(PaddingRight, X, x2)
 	CalcCssPadding(PaddingTop, Y, y1)
@@ -622,7 +612,7 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 
 			ZeroObj(c->Inf);
 			
-			const char *Cls = v->GetClass();
+			// const char *Cls = v->GetClass();
 			GCss *Css = v->GetCss();
 			GCss::Len ChildWid;
 			if (Css)
@@ -829,9 +819,9 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 		}
 		
 		GTableLayout *Tbl = NULL;
-		GRadioGroup *Grp = NULL;
+		// GRadioGroup *Grp = NULL;
 
-		const char *Cls = v->GetClass();
+		// const char *Cls = v->GetClass();
 
 		GCss *Css = v->GetCss();
 		GCss::Len Ht;
@@ -991,11 +981,6 @@ void TableCell::PostLayout()
 	GArray<GRect> New;
 	int WidthPx = Pos.X() - Padding.x1 - Padding.x2;
 	int HeightPx = Pos.Y() - Padding.y1 - Padding.y2;
-
-	if (Debug)
-	{
-		int asd=0;
-	}
 
 	Child *c = &Children[0];
 	for (int i=0; i<Children.Length(); i++, c++)
@@ -1483,10 +1468,10 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 					int WidthPx      = CountRange(MinCol, c->Cell.x1, c->Cell.x2) + ((c->Cell.X() - 1)   * BorderSpacing);					
 					int InitMinY     = CountRange(MinRow, c->Cell.y1, c->Cell.y2) + ((c->Cell.Y() - 1)   * BorderSpacing);
 					int InitMaxY     = CountRange(MaxRow, c->Cell.y1, c->Cell.y2) + ((c->Cell.Y() - 1)   * BorderSpacing);
-					int AllocY       = CountRange(MinRow, 0,     Rows.Length()-1) + ((Rows.Length() - 1) * BorderSpacing);
+					//int AllocY       = CountRange(MinRow, 0,     Rows.Length()-1) + ((Rows.Length() - 1) * BorderSpacing);
 					int MinY         = InitMinY;
 					int MaxY         = InitMaxY;
-					int RemainingY   = Client.Y() - AllocY;
+					// int RemainingY   = Client.Y() - AllocY;
 					CellFlag RowFlag = SizeUnknown;
 
 					c->Layout(WidthPx, MinY, MaxY, RowFlag);
@@ -1620,7 +1605,7 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 
 void GTableLayoutPrivate::LayoutPost(GRect &Client)
 {
-	int Px = 0, Py = 0, Cx, Cy, i;
+	int Px = 0, Py = 0, Cx, Cy;
 
 	// Move cells into their final positions
 	for (Cy=0; Cy<Rows.Length(); Cy++)
@@ -1930,7 +1915,7 @@ int GTableLayout::OnNotify(GViewI *c, int f)
 {
     if (f == GNotifyTableLayout_Refresh)
     {
-		int Id = GetId();
+		// int Id = GetId();
         OnPosChange();
         return 0;
     }
@@ -1958,7 +1943,7 @@ void GTableLayout::Value(int64 v)
     if (d->CollectRadioButtons(Btns))
     {
         if (v >= 0 && v < Btns.Length())
-            Btns[v]->Value(true);
+            Btns[(int)v]->Value(true);
     }
 }
 

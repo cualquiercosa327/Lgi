@@ -638,14 +638,14 @@ bool ResampleDC(GSurface *pDest, GSurface *pSrc, GRect *FromRgn, Progress *Prog)
 			uint64 G = 0;
 			uint64 B = 0;
 			uint64 A = 0;
-			register uint64 a;
+			REG uint64 a;
 
 			int NextX = (Dx+1)*Sx+Sr.x1;
 			int NextY = (Dy+1)*Sy+Sr.y1;
 			int Nx, Ny;
 			COLOUR c;
 			
-			register uint16 *lin = ToLinear.Lut;
+			REG uint16 *lin = ToLinear.Lut;
 			switch (pSrc->GetBits())
 			{
 				case 32:
@@ -654,9 +654,9 @@ bool ResampleDC(GSurface *pDest, GSurface *pSrc, GRect *FromRgn, Progress *Prog)
 					{
 						Ny = y + (256 - (y%256));
 
-						register System32BitPixel *Src;
+						REG System32BitPixel *Src;
 						// register uchar *DivLut = Div255Lut;
-						for (register int x=Dx*Sx+Sr.x1; x<NextX; x=Nx)
+						for (REG int x=Dx*Sx+Sr.x1; x<NextX; x=Nx)
 						{
 							Nx = x + (256 - (x%256));
 
@@ -688,8 +688,8 @@ bool ResampleDC(GSurface *pDest, GSurface *pSrc, GRect *FromRgn, Progress *Prog)
 						if (pAlpha)
 						{
 							uint8 Alpha;
-							register int SrcX, SrcY;
-							for (register int x=Dx*Sx+Sr.x1; x<NextX; x=Nx)
+							REG int SrcX, SrcY;
+							for (REG int x=Dx*Sx+Sr.x1; x<NextX; x=Nx)
 							{
 								Nx = x + (256 - (x%256));
 
@@ -710,7 +710,7 @@ bool ResampleDC(GSurface *pDest, GSurface *pSrc, GRect *FromRgn, Progress *Prog)
 						}
 						else
 						{
-							for (register int x=Dx*Sx+Sr.x1; x<NextX; x=Nx)
+							for (REG int x=Dx*Sx+Sr.x1; x<NextX; x=Nx)
 							{
 								Nx = x + (256 - (x%256));
 
@@ -733,7 +733,7 @@ bool ResampleDC(GSurface *pDest, GSurface *pSrc, GRect *FromRgn, Progress *Prog)
 					{
 						Ny = y + (256 - (y%256));
 
-						for (register int x=Dx*Sx+Sr.x1; x<NextX; x=Nx)
+						for (REG int x=Dx*Sx+Sr.x1; x<NextX; x=Nx)
 						{
 							Nx = x + (256 - (x%256));
 

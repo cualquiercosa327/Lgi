@@ -357,7 +357,7 @@ GTreeItem::~GTreeItem()
 		Tree->Capture(false);
 	}
 
-	int y;
+	int y = 0;
 	GTree *t = 0;
 	if (Parent && (GTreeNode*)Parent != (GTreeNode*)Tree)
 	{
@@ -458,7 +458,7 @@ void GTreeItem::ScrollTo()
 		GRect c = Tree->GetClient();
 		GRect p = d->Pos;
 		int y = d->Pos.Y() ? d->Pos.Y() : 16;
-		p.Offset(0, -Tree->VScroll->Value() * y);
+		p.Offset(0, (int) (-Tree->VScroll->Value() * y));
 
 		if (p.y1 < c.y1)
 		{
@@ -586,7 +586,7 @@ void GTreeItem::_Pour(GdcPt2 *Limit, int ColumnPx, int Depth, bool Visible)
 		GdcPt2 TextSize;
 		_PourText(TextSize);
 		GImageList *ImgLst = Tree->GetImageList();
-		int IconX = (ImgLst && GetImage() >= 0) ? ImgLst->TileX() + Tree->d->IconTextGap : 0;
+		// int IconX = (ImgLst && GetImage() >= 0) ? ImgLst->TileX() + Tree->d->IconTextGap : 0;
 		int IconY = (ImgLst && GetImage() >= 0) ? ImgLst->TileY() : 0;
 		int Height = max(TextSize.y, IconY);
 		if (!Height)
@@ -1061,7 +1061,7 @@ void GTree::_UpdateBelow(int y, bool Now)
 
 void GTree::ClearDs(int Col)
 {
-	GTreeItem *n;
+	// GTreeItem *n;
 	List<GTreeItem>::I it = Items.Start();
 	for (GTreeItem *i=*it; i; i=*++it)
 	{
@@ -1497,8 +1497,9 @@ void GTree::OnMouseClick(GMouse &m)
 			d->DragStart.y = m.y;
 
 			// Clicked on a column heading
-			GItemColumn *Resize, *Over;
-			int Index = HitColumn(m.x, m.y, Resize, Over);
+			GItemColumn *Resize;
+			GItemColumn *Over = NULL;
+			/*int Index = */HitColumn(m.x, m.y, Resize, Over);
 
 			if (Resize)
 			{
@@ -1601,7 +1602,7 @@ void GTree::OnMouseMove(GMouse &m)
 			GItemColumn *c = Columns[d->DragData];
 			if (c)
 			{
-				int OldWidth = c->Width();
+				// int OldWidth = c->Width();
 				int NewWidth = m.x - c->GetPos().x1;
 
 				c->Width(max(NewWidth, 4));

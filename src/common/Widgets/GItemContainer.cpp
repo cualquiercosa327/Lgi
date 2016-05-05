@@ -653,9 +653,8 @@ void GItemColumn::Width(int i)
 		// If we are attached to a list...
 		if (d->Parent)
 		{
-			int MyIndex = GetIndex();
-
 			/* FIXME
+			 int MyIndex = GetIndex();
 			// Clear all the cached strings for this column
 			for (List<GListItem>::I it=d->Parent->Items.Start(); it.In(); it++)
 			{
@@ -870,8 +869,6 @@ void GItemColumn::OnPaint(GSurface *pDC, GRect &Rgn)
 	}
 	else
 	{
-		int Off = d->Down ? 1 : 0;
-
 		#ifdef MAC
 
 		GArray<GColourStop> Stops;

@@ -24,16 +24,41 @@
 // Includes
 #include "LgiInc.h"
 
+#ifdef __OBJC__
+#import <Cocoa/Cocoa.h>
+#endif
+#include <CoreFoundation/CoreFoundation.h>
+#include <CoreText/CoreText.h>
+
 //////////////////////////////////////////////////////////////////
 // Typedefs
-typedef void*				OsWindow;
-typedef void*				OsView;
+typedef struct _OsWindow
+{
+	#ifdef __OBJC__
+	NSWindow *w;
+	#else
+	NativeInt unused;
+	#endif
+}	*OsWindow;
+
+typedef struct _OsView
+{
+	#ifdef __OBJC__
+	NSView *v;
+	#else
+	NativeInt unused;
+	#endif
+}	*OsView;
+
 typedef pthread_t           OsThread;
+typedef pthread_t			OsThreadId;
+typedef pthread_mutex_t		OsSemaphore;
 typedef uint16				OsChar;
-typedef void*				OsFont;
-typedef void*				OsPainter;
-typedef void*				OsBitmap;
 typedef int					OsProcessId;
+typedef int					OsProcess;
+typedef CGContextRef		OsPainter;
+typedef CGContextRef		OsBitmap;
+typedef CTFontRef			OsFont;
 
 class LgiClass GMessage
 {
@@ -56,6 +81,17 @@ public:
 		a = A;
 		b = B;
 	}
+	
+	void Set(int M, Param A = 0, Param B = 0)
+	{
+		m = M;
+		a = A;
+		b = B;
+	}
+	
+	int Msg() { return m; }
+	Param A() { return a; }
+	Param B() { return b; }
 };
 
 class OsAppArguments
@@ -64,9 +100,9 @@ class OsAppArguments
 
 public:
 	int Args;
-	char **Arg;
+	const char **Arg;
 
-	OsAppArguments(int args = 0, char **arg = 0);
+	OsAppArguments(int args = 0, const char **arg = 0);
 	~OsAppArguments();
 
 	void Set(char *CmdLine);
@@ -78,20 +114,17 @@ public:
 #define MsgCode(msg)				(msg->m)
 #define MsgA(msg)					(msg->a)
 #define MsgB(msg)					(msg->b)
-LgiFunc GMessage CreateMsg(int m, int a = 0, int b = 0);
+// LgiFunc GMessage CreateMsg(int m, int a = 0, int b = 0);
 #define _stricmp					strcasecmp
 #define _strnicmp					strncasecmp
+
+// Text system
+#define USE_CORETEXT				1
 
 // Posix system
 #define POSIX						1
 
-// Process
-typedef int							OsProcess;
-typedef int							OsProcessId;
-
 // Threads
-typedef pthread_t					OsThreadId;
-typedef pthread_mutex_t				OsSemaphore;
 #define LgiGetCurrentThread()		pthread_self()
 
 // Sockets
@@ -100,7 +133,7 @@ typedef pthread_mutex_t				OsSemaphore;
 typedef int OsSocket;
 
 // Sleep the current thread
-LgiFunc void LgiSleep(int i);
+LgiFunc void LgiSleep(uint32 i);
 
 // Run the message loop to process any pending messages
 #define LgiYield()					GApp::ObjInstance()->Run(false)
@@ -112,6 +145,7 @@ LgiFunc void LgiSleep(int i);
 #define LGI_PrintfInt64				"%lli"
 #define atoi64						atoll
 #define sprintf_s					snprintf
+#define vsprintf_s					vsnprintf
 #define LGI_IllegalFileNameChars	"/" // FIXME: what other characters should be in here?
 
 // Window flags
@@ -211,6 +245,8 @@ LgiFunc void LgiSleep(int i);
 #define M_PASTE						(M_USER+111)
 #define M_PULSE						(M_USER+112)
 #define M_DELETE					(M_USER+113)
+#define M_SET_VISIBLE				(M_USER+114)
+#define M_TEXT_UPDATE_NAME			(M_USER+115)
 
 /// GThreadWork object completed
 ///

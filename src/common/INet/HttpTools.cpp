@@ -234,12 +234,12 @@ WebPage::WebPage(char *Page, GStream *Log)
 				if (e)
 				{
 					e++;
-					h.Push(s, e - s);
+					h.Push(s, (int) (e - s));
 					s = e;
 					e = stristr(s, "</script>");
 					if (e)
 					{
-						scr.Push(s, e - s);
+						scr.Push(s, (int) (e - s));
 						s = e;
 					}
 					else
@@ -476,8 +476,8 @@ char *FormPost::EncodeFields(GStream *Debug, char *RealFields, bool EncodePlus)
 		}
 	}
 
+	#if 0
 	// if (Form)
-	if (0)
 	{
 		for (GXmlTag *t = Form->Children.First(); t; t = Form->Children.Next())
 		{
@@ -501,6 +501,7 @@ char *FormPost::EncodeFields(GStream *Debug, char *RealFields, bool EncodePlus)
 			}
 		}
 	}
+	#endif
 
 	return p.NewStr();
 }

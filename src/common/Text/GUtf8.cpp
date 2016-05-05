@@ -93,7 +93,7 @@ int32 GUtf8Ptr::operator-=(int n)
 
 int GUtf8Ptr::GetBytes()
 {
-	return strlen((char*)Ptr);
+	return (int)strlen((char*)Ptr);
 }
 
 int GUtf8Ptr::GetChars()
@@ -169,10 +169,10 @@ char16 *GUtf8Str::ToWide()
 {
 	if (End)
 	{
-		int Len = End - Ptr;
+		size_t Len = End - Ptr;
 		if (Len > 0)
 		{
-			return LgiNewUtf8To16((char*)Ptr, Len);
+			return LgiNewUtf8To16((char*)Ptr, (int)Len);
 		}
 	}
 	else

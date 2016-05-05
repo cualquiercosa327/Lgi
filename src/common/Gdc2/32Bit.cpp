@@ -95,7 +95,7 @@ public:
 	
 	void VLine(int height)
 	{
-		register Pixel cp;
+		REG Pixel cp;
 		cp.r = this->p32.r;
 		cp.g = this->p32.g;
 		cp.b = this->p32.b;
@@ -109,16 +109,16 @@ public:
 	
 	void Rectangle(int x, int y)
 	{
-		register Pixel cp;
+		REG Pixel cp;
 		cp.r = this->p32.r;
 		cp.g = this->p32.g;
 		cp.b = this->p32.b;
 		
-		register int lines = y;
-		register int ystep = this->Dest->Line;
+		REG int lines = y;
+		REG int ystep = this->Dest->Line;
 		while (lines-- > 0)
 		{
-			register Pixel *i = this->p, *e = i + x;
+			REG Pixel *i = this->p, *e = i + x;
 			while (i < e)
 			{
 				*i++ = cp;
@@ -134,10 +134,10 @@ public:
 
 		for (int y=0; y<Src->y; y++)
 		{
-			register Pixel *d = this->p;
-			register T *s = (T*) (Src->Base + (y * Src->Line));
-			register T *e = s + Src->x;
-			register uint8 *a = Src->Base + (y * SrcAlpha->Line);
+			REG Pixel *d = this->p;
+			REG T *s = (T*) (Src->Base + (y * Src->Line));
+			REG T *e = s + Src->x;
+			REG uint8 *a = Src->Base + (y * SrcAlpha->Line);
 
 			while (s < e)
 			{
@@ -179,8 +179,8 @@ public:
 		{
 			if (this->Dest->Cs == Src->Cs)
 			{
-				register uchar *s = Src->Base;
-				for (register int y=0; y<Src->y; y++)
+				REG uchar *s = Src->Base;
+				for (REG int y=0; y<Src->y; y++)
 				{
 					MemCpy(this->p, s, Src->x * sizeof(Pixel));
 					s += Src->Line;
@@ -208,8 +208,8 @@ public:
 				}
 				for (int y=0; y<Src->y; y++)
 				{
-					register uint8 *s = Src->Base + (y * Src->Line);
-					register Pixel *d = this->p, *e = d + Src->x;
+					REG uint8 *s = Src->Base + (y * Src->Line);
+					REG Pixel *d = this->p, *e = d + Src->x;
 					while (d < e)
 					{
 						*d++ = map[*s++];
@@ -267,7 +267,7 @@ class App32Alpha : public App32Base<Pixel, ColourSpace>
 {
 public:
 	#define InitColour() \
-		register Pixel cp; \
+		REG Pixel cp; \
 		if (this->Dest->PreMul()) \
 		{ \
 			cp.r = ((int)this->p32.r * this->p32.a) / 255; \
@@ -310,11 +310,11 @@ public:
 	{
 		InitColour();
 		
-		register int lines = y;
-		register int ystep = this->Dest->Line;
+		REG int lines = y;
+		REG int ystep = this->Dest->Line;
 		while (lines-- > 0)
 		{
-			register Pixel *i = this->p, *e = i + x;
+			REG Pixel *i = this->p, *e = i + x;
 			while (i < e)
 			{
 				*i++ = cp;
@@ -328,9 +328,9 @@ public:
 	{
 		for (int y=0; y<Src->y; y++)
 		{
-			register Pixel *d = this->p;
-			register T *s = (T*) (Src->Base + (y * Src->Line));
-			register T *e = s + Src->x;
+			REG Pixel *d = this->p;
+			REG T *s = (T*) (Src->Base + (y * Src->Line));
+			REG T *e = s + Src->x;
 
 			while (s < e)
 			{
@@ -353,9 +353,9 @@ public:
 	{
 		for (int y=0; y<Src->y; y++)
 		{
-			register Pixel *d = this->p;
-			register T *s = (T*) (Src->Base + (y * Src->Line));
-			register T *e = s + Src->x;
+			REG Pixel *d = this->p;
+			REG T *s = (T*) (Src->Base + (y * Src->Line));
+			REG T *e = s + Src->x;
 
 			while (s < e)
 			{
@@ -380,10 +380,10 @@ public:
 
 		for (int y=0; y<Src->y; y++)
 		{
-			register Pixel *d = this->p;
-			register T *s = (T*) (Src->Base + (y * Src->Line));
-			register T *e = s + Src->x;
-			register uint8 *a = Src->Base + (y * SrcAlpha->Line);
+			REG Pixel *d = this->p;
+			REG T *s = (T*) (Src->Base + (y * Src->Line));
+			REG T *e = s + Src->x;
+			REG uint8 *a = Src->Base + (y * SrcAlpha->Line);
 
 			while (s < e)
 			{
@@ -413,14 +413,14 @@ public:
 	template<typename T>
 	bool AlphaBlt32(GBmpMem *Src, GBmpMem *SrcAlpha)
 	{
-		register uchar *DivLut = Div255Lut;
+		REG uchar *DivLut = Div255Lut;
 
 		for (int y=0; y<Src->y; y++)
 		{
-			register Pixel *d = this->p;
-			register T *s = (T*) (Src->Base + (y * Src->Line));
-			register T *e = s + Src->x;
-			register uint8 *a = Src->Base + (y * SrcAlpha->Line);
+			REG Pixel *d = this->p;
+			REG T *s = (T*) (Src->Base + (y * Src->Line));
+			REG T *e = s + Src->x;
+			REG uint8 *a = Src->Base + (y * SrcAlpha->Line);
 
 			while (s < e)
 			{
@@ -449,11 +449,11 @@ public:
 	
 	void ConvertPreMul(GBmpMem *m)
 	{
-		register uchar *DivLut = Div255Lut;
+		REG uchar *DivLut = Div255Lut;
 		for (int y=0; y<m->y; y++)
 		{
-			register Pixel *d = (Pixel*) (m->Base + (y * m->Line));
-			register Pixel *e = d + m->x;
+			REG Pixel *d = (Pixel*) (m->Base + (y * m->Line));
+			REG Pixel *e = d + m->x;
 			while (d < e)
 			{
 				d->r = DivLut[d->r * d->a];
@@ -489,18 +489,18 @@ public:
 			}
 			
 			uint8 *in = Src->Base;
-			register uchar *DivLut = Div255Lut;
+			REG uchar *DivLut = Div255Lut;
 			for (int y=0; y<Src->y; y++)
 			{
-				register uint8 *i = in;
-				register Pixel *o = this->p, *e = this->p + Src->x;
+				REG uint8 *i = in;
+				REG Pixel *o = this->p, *e = this->p + Src->x;
 				
 				if (SrcAlpha)
 				{
-					register uint8 *alpha = SrcAlpha->Base + (y * SrcAlpha->Line);
+					REG uint8 *alpha = SrcAlpha->Base + (y * SrcAlpha->Line);
 					while (o < e)
 					{
-						register Pixel *src = map + *i++;
+						REG Pixel *src = map + *i++;
 						src->a = *alpha++;
 						if (src->a == 255)
 						{
@@ -544,8 +544,8 @@ public:
 		{
 			if (this->Dest->Cs == Src->Cs)
 			{
-				register uchar *s = Src->Base;
-				for (register int y=0; y<Src->y; y++)
+				REG uchar *s = Src->Base;
+				for (REG int y=0; y<Src->y; y++)
 				{
 					MemCpy(this->p, s, Src->x * sizeof(Pixel));
 					s += Src->Line;
@@ -613,7 +613,7 @@ public:
 		COLOUR Get() { return Rgb32(this->p->r, this->p->g, this->p->b); }						\
 		void VLine(int height)																	\
 		{																						\
-			register uint8 r = this->p32.r, g = this->p32.g, b = this->p32.b, a = this->p32.a;	\
+			REG uint8 r = this->p32.r, g = this->p32.g, b = this->p32.b, a = this->p32.a;	\
 			while (height-- > 0)																\
 			{																					\
 				this->p->r opcode r; this->p->g opcode g; this->p->b opcode b;					\
@@ -622,12 +622,12 @@ public:
 		}																						\
 		void Rectangle(int x, int y)															\
 		{																						\
-			register uint8 r = this->p32.r, g = this->p32.g, b = this->p32.b, a = this->p32.a;	\
-			register int lines = y;																\
-			register int ystep = this->Dest->Line;												\
+			REG uint8 r = this->p32.r, g = this->p32.g, b = this->p32.b, a = this->p32.a;	\
+			REG int lines = y;																\
+			REG int ystep = this->Dest->Line;												\
 			while (lines-- > 0)																	\
 			{																					\
-				register Pixel *i = this->p, *e = i + x;										\
+				REG Pixel *i = this->p, *e = i + x;										\
 				while (i < e)																	\
 				{																				\
 					i->r opcode r; i->g opcode g; i->b opcode b;								\
@@ -649,7 +649,7 @@ public:
 		COLOUR Get() { return Rgba32(this->p->r, this->p->g, this->p->b, this->p->a); }			\
 		void VLine(int height)																	\
 		{																						\
-			register uint8 r = this->p32.r, g = this->p32.g, b = this->p32.b, a = this->p32.a;	\
+			REG uint8 r = this->p32.r, g = this->p32.g, b = this->p32.b, a = this->p32.a;	\
 			while (height-- > 0)																\
 			{																					\
 				this->p->r opcode r; this->p->g opcode g; this->p->b opcode b;					\
@@ -659,12 +659,12 @@ public:
 		}																						\
 		void Rectangle(int x, int y)															\
 		{																						\
-			register uint8 r = this->p32.r, g = this->p32.g, b = this->p32.b, a = this->p32.a;	\
-			register int lines = y;																\
-			register int ystep = this->Dest->Line;												\
+			REG uint8 r = this->p32.r, g = this->p32.g, b = this->p32.b, a = this->p32.a;	\
+			REG int lines = y;																\
+			REG int ystep = this->Dest->Line;												\
 			while (lines-- > 0)																	\
 			{																					\
-				register Pixel *i = this->p, *e = i + x;										\
+				REG Pixel *i = this->p, *e = i + x;										\
 				while (i < e)																	\
 				{																				\
 					i->r opcode r; i->g opcode g; i->b opcode b;								\

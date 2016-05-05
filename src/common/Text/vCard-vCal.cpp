@@ -7,7 +7,7 @@
 #include "GToken.h"
 #include "ScribeDefs.h"
 
-#define Push(s) Write(s, strlen(s))
+#define Push(s) Write(s, (int)strlen(s))
 
 #define ClearFields() \
 	DeleteArray(Field); \
@@ -409,7 +409,7 @@ bool VCard::Import(GDataPropI *c, GStreamI *s)
 				else if (IsVar(Field, "adr"))
 				{
 					bool IsWork = IsType("work");
-					bool IsHome = IsType("home");
+					// bool IsHome = IsType("home");
 					GToken Addr(Data, ";", false);
 					if (Addr[2])
 					{

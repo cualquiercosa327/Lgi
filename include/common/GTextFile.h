@@ -147,7 +147,7 @@ public:
 					}
 				}
 				
-				int bytes = start - buf;
+				size_t bytes = start - buf;
 				if (bytes > 0 && bytes <= Rd)
 				{
 					// Remove byte order mark from the buffer
@@ -172,8 +172,8 @@ public:
 		if (Buf.Length())
 		{
 			// Move any consumed data down to the start of the buffer
-			int BytePos = Pos.u8 - &Buf[0];
-			int Remaining = Used - BytePos;
+			int BytePos = (int) (Pos.u8 - &Buf[0]);
+			int Remaining = (int) (Used - BytePos);
 			if (BytePos > 0 && Remaining > 0)
 			{
 				memmove(&Buf[0], &Buf[BytePos], Remaining);
@@ -242,7 +242,7 @@ public:
 					break;
 				default: // Utf8
 				{
-					int len = End - Pos.u8;
+					int len = (int) (End - Pos.u8);
 					ch = LgiUtf8To32(Pos.u8, len);
 					break;
 				}

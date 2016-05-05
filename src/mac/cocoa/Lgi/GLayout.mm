@@ -21,6 +21,7 @@ OsView CreateScrollView(bool x, bool y)
 	OsView v = 0;
 	
 	// Create and attach scroll bar
+	#if 0
 	int Flags = y ? kHIScrollViewOptionsVertScroll : 0;
 	Flags |= x ? kHIScrollViewOptionsHorizScroll : 0;
 	OSStatus e = HIScrollViewCreate(Flags, &v);
@@ -34,6 +35,7 @@ OsView CreateScrollView(bool x, bool y)
 			SetControlProperty(c, 'meme', 'type', strlen(ScrollBarName)+1, ScrollBarName);
 		}
 	}
+	#endif
 	
 	return v;
 }
@@ -41,17 +43,21 @@ OsView CreateScrollView(bool x, bool y)
 bool IsScrollView(OsView v)
 {
 	char Buf[256] = "";
+	#if 0
 	if (GetControlProperty(v, 'meme', 'type', sizeof(Buf), 0, Buf))
 		return false;
-
+	#endif
 	return !stricmp(Buf, ScrollViewName);
 }
 
 bool IsScrollBar(OsView v)
 {
 	char Buf[256] = "";
+	
+	#if 0
 	if (GetControlProperty(v, 'meme', 'type', sizeof(Buf), 0, Buf))
 		return false;
+	#endif
 
 	return !stricmp(Buf, ScrollBarName);
 }
@@ -66,6 +72,7 @@ bool CarbonRelease(OsView v)
 	}
 
 	// Check that no other control is a child (other than scroll bars)
+	#if 0
 	HIViewRef c;
 	while (c = HIViewGetFirstSubview(v))
 	{
@@ -85,6 +92,7 @@ bool CarbonRelease(OsView v)
 		OSStatus e = HIViewRemoveFromSuperview(v);
 		if (e) printf("%s:%i - HIViewRemoveFromSuperview failed %i\n", _FL, e);
 	}
+	#endif
 	
 	// Release the object...
 	//printf("			DisposeControl %p\n", v);
@@ -100,7 +108,7 @@ class GLayoutScrollBar : public GScrollBar
 	GLayout *Lo;
 
 public:
-	GLayoutScrollBar(GLayout *lo, int id, int x, int y, int cx, int cy, char *name) :
+	GLayoutScrollBar(GLayout *lo, int id, int x, int y, int cx, int cy, const char *name) :
 		GScrollBar(id, x, y, cx, cy, name)
 	{
 		Lo = lo;
@@ -108,12 +116,15 @@ public:
 
 	void OnConfigure()
 	{
+		#if 0
 		Lo->OnScrollConfigure();
+		#endif
 	}
 };
 
 bool AttachHnd(GViewI *p, OsView Child)
 {
+	#if 0
 	OSStatus e;
 	#if defined(kHIViewFeatureIsOpaque)
 	HIViewChangeFeatures(Child, kHIViewFeatureIsOpaque, 0);
@@ -138,6 +149,7 @@ bool AttachHnd(GViewI *p, OsView Child)
 		if (e) printf("%s:%i - HIViewAddSubview error %i\n", _FL, e);
 		return e == 0;
 	}
+	#endif
 	return false;
 }
 
@@ -147,18 +159,24 @@ GLayout::GLayout()
 	_PourLargest = false;
 	VScroll = 0;
 	HScroll = 0;
+	
+	#if 0
 	RealWnd = 0;
 	Line.height = Line.width = 20;
+	#endif
 }
 
 GLayout::~GLayout()
 {
+	#if 0
 	if (RealWnd)
 		Detach();
+	#endif
 	DeleteObj(HScroll);
 	DeleteObj(VScroll);
 }
 
+#if 0
 void GLayout::OnScrollConfigure()
 {
 	EventRef theEvent;
@@ -241,6 +259,7 @@ void GLayout::_OnScroll(HIPoint &origin)
 	if (RealWnd && Change)
 		HIViewSetNeedsDisplay(RealWnd, true);
 }
+#endif
 
 bool GLayout::GetPourLargest()
 {
@@ -267,11 +286,34 @@ bool GLayout::Pour(GRegion &r)
 	return false;
 }
 
+void GLayout::OnCreate()
+{
+}
+
+void GLayout::OnPosChange()
+{
+}
+
+int GLayout::OnNotify(GViewI *c, int f)
+{
+	return 0;
+}
+
+void GLayout::OnNcPaint(GSurface *pDC, GRect &r)
+{
+	GView::OnNcPaint(pDC, r);
+}
+
+GViewI *GLayout::FindControl(int Id)
+{
+	return GView::FindControl(Id);
+}
+
 void GLayout::GetScrollPos(int &x, int &y)
 {
 	if (HScroll)
 	{
-		x = HScroll->Value();
+		x = (int)HScroll->Value();
 	}
 	else
 	{
@@ -280,7 +322,7 @@ void GLayout::GetScrollPos(int &x, int &y)
 
 	if (VScroll)
 	{
-		y = VScroll->Value();
+		y = (int)VScroll->Value();
 	}
 	else
 	{
@@ -313,7 +355,9 @@ bool GLayout::Attach(GViewI *p)
 		if (_View)
 		{
 			LgiAssert(!IsScrollView(_View));
+			#if 0
 			RealWnd = _View;
+			#endif
 		}
 		
 		_View = CreateScrollView(HScroll && HScroll->Valid(), VScroll && VScroll->Valid());
@@ -322,6 +366,9 @@ bool GLayout::Attach(GViewI *p)
 		if (_View && AttachHnd(p, _View))
 		{
 			// Then attach this view as a child
+			#if COCOA
+			#warning FIXME
+			#else
 			OsView ScrollWnd = _View;
 			if (_CreateCustomView())
 			{
@@ -343,6 +390,7 @@ bool GLayout::Attach(GViewI *p)
 				else printf("%s:%i - AttachHnd failed.\n", _FL);
 			}
 			else printf("%s:%i - CreateCustomView failed\n", _FL);
+			#endif
 			
 			SetPos(Pos);
 		}
@@ -358,6 +406,7 @@ bool GLayout::Attach(GViewI *p)
 
 bool GLayout::Detach()
 {
+	#if 0
 	if (RealWnd)
 	{
 		/*
@@ -382,6 +431,7 @@ bool GLayout::Detach()
 		_View = RealWnd;
 		RealWnd = 0;
 	}
+	#endif
 	
 	return GView::Detach();
 }
@@ -405,6 +455,8 @@ bool GLayout::SetScrollBars(bool x, bool y)
 		if (IsAttached())
 		{
 			LgiAssert(GetParent());
+			
+			#if 0
 			OSStatus e;
 
 			// Need to change the arrangement of windows
@@ -494,6 +546,7 @@ bool GLayout::SetScrollBars(bool x, bool y)
 				else printf("%s:%i - AttachHnd failed.\n", _FL);
 				#endif
 			}
+			#endif
 		}
 		
 		if (x)
@@ -542,6 +595,7 @@ GRect &GLayout::GetClient(bool ClientSpace)
 
 	if (_View)
 	{
+		#if 0
 		for (HIViewRef c = HIViewGetFirstSubview(_View); c; c = HIViewGetNextView(c))
 		{
 			char Buf[256] = "";
@@ -562,21 +616,22 @@ GRect &GLayout::GetClient(bool ClientSpace)
 				}
 			}
 		}
+		#endif
 	}
 
 	// printf("%s::GetClient %s\n", GetClass(), r.GetStr());
 	return r;
 }
 
-int GLayout::OnEvent(GMessage *Msg)
+GMessage::Result GLayout::OnEvent(GMessage *Msg)
 {
 	if (VScroll) VScroll->OnEvent(Msg);
 	if (HScroll) HScroll->OnEvent(Msg);
 
-	int Status = GView::OnEvent(Msg);
+	GMessage::Result Status = GView::OnEvent(Msg);
 
-	if (MsgCode(Msg) == M_CHANGE AND
-		Status == -1 AND
+	if (MsgCode(Msg) == M_CHANGE &&
+		Status == -1 &&
 		GetParent())
 	{
 		Status = GetParent()->OnEvent(Msg);
@@ -585,45 +640,3 @@ int GLayout::OnEvent(GMessage *Msg)
 	return Status;
 }
 
-bool GLayout::Invalidate(GRect *r, bool Repaint, bool NonClient)
-{
-	if (!RealWnd)
-		return GView::Invalidate(r, Repaint, NonClient);
-
-	HIViewSetNeedsDisplay(RealWnd, true);
-	return true;
-}
-
-bool GLayout::Focus()
-{
-	return GView::Focus();
-}
-
-void GLayout::Focus(bool f)
-{
-	if (!RealWnd)
-		GView::Focus(f);
-	else if (f)
-	{
-		GViewI *Wnd = GetWindow();
-		if (Wnd)
-		{
-			OSErr e = SetKeyboardFocus(Wnd ? Wnd->WindowHandle() : 0, RealWnd, 1);
-			if (e) printf("%s:%i - SetKeyboardFocus failed.\n", _FL);
-		}
-		if (f) SetFlag(WndFlags, GWF_FOCUS);
-		else ClearFlag(WndFlags, GWF_FOCUS);
-	}
-}
-
-bool GLayout::SetPos(GRect &p, bool Repaint)
-{
-	bool Status = GView::SetPos(p, Repaint);
-	if (RealWnd)
-	{
-		// This makes the child control at least big enough to cover the client area
-		// of the scroll view.
-		SizeControl(RealWnd, p.X(), p.Y());
-	}
-	return Status;
-}

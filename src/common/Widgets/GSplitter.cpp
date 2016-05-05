@@ -192,9 +192,9 @@ int64 GSplitter::Value()
 
 void GSplitter::Value(int64 s)
 {
-	d->SplitSet = s;
+	d->SplitSet = (int)s;
 	int Limit = ((d->Vertical) ? X() : Y()) - 18;
-	int NewPos = (s > 0) ? max(s, 4) : max(4, Limit+s);
+	int NewPos = (int) ((s > 0) ? max(s, 4) : max(4, Limit+s));
 	if (NewPos != d->SplitPos)
 	{
 		d->SplitPos = NewPos;

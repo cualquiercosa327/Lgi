@@ -175,15 +175,15 @@ GFunctionInfo *GCompiledCode::GetMethod(const char *Name, bool Create)
 	return 0;
 }
 
-int GCompiledCode::ObjectToSourceAddress(int ObjAddr)
+int GCompiledCode::ObjectToSourceAddress(size_t ObjAddr)
 {
 	return Debug.Find(ObjAddr);
 }
 
-const char *GCompiledCode::AddrToSourceRef(int ObjAddr)
+const char *GCompiledCode::AddrToSourceRef(size_t ObjAddr)
 {
 	static char Status[256];
-	int Addr = ObjAddr;
+	size_t Addr = ObjAddr;
 	int LineNum = ObjectToSourceAddress(Addr);
 	
 	// Search for the start of the instruction...
@@ -191,7 +191,7 @@ const char *GCompiledCode::AddrToSourceRef(int ObjAddr)
 		LineNum = ObjectToSourceAddress(--Addr);
 
 	char *Dir = FileName ? strrchr(FileName, DIR_CHAR) : NULL;
-	int PathLen = Dir ? Dir - FileName : 0;
+	size_t PathLen = Dir ? Dir - FileName : 0;
 
 	if (LineNum >= 0)
 		sprintf_s(	Status, sizeof(Status),
@@ -199,7 +199,7 @@ const char *GCompiledCode::AddrToSourceRef(int ObjAddr)
 					FileName ? (PathLen > 24 ? Dir + 1 : FileName.Get()) : "(untitled)",
 					LineNum);
 	else
-		sprintf_s(Status, sizeof(Status), "0x%x", ObjAddr);
+		sprintf_s(Status, sizeof(Status), "0x%x", (int)ObjAddr);
 	
 	return Status;
 }

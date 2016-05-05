@@ -51,7 +51,8 @@ class LgiClass GDisplayString
 	
 	#elif defined(MAC)
 	
-	#if USE_CORETEXT
+	#if defined(COCOA)
+	#elif USE_CORETEXT
 		CTLineRef Hnd;
 		CFAttributedStringRef AttrStr;
 		void CreateAttrStr();

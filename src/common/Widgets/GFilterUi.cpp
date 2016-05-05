@@ -943,7 +943,7 @@ void GFilterItem::OnMouseClick(GMouse &m)
 					int Idx = p->Items.IndexOf(m);
 					if (Idx + Delta >= 0 && Idx + Delta < Count - 1)
 					{
-						GTreeItem *i = p->Items[Idx + Delta];
+						// GTreeItem *i = p->Items[Idx + Delta];
 						p->Items.Delete(m);
 						p->Items.Insert(m, Idx + Delta);
 						p->_RePour();

@@ -1173,7 +1173,7 @@ int32 GVariant::CastInt32()
 		case GV_INT32:
 			return Value.Int;
 		case GV_INT64:
-			return Value.Int64;
+			return (int32)Value.Int64;
 		case GV_STRING:
 			return Value.String ? atoi(Value.String) : 0;
 		case GV_DOM:
@@ -1378,7 +1378,7 @@ GDom *GDom::ResolveObject(const char *Var, char *Name, char *Array)
 			else e++;
 		}
 		
-		int Len = e - s;
+		size_t Len = e - s;
 		if (Len < 1 || Len > 255)
 		{
 			Object = 0;

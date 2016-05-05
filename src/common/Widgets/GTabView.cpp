@@ -249,7 +249,7 @@ void GTabView::Value(int64 i)
 			Old->Visible(false);
 		}
 
-		d->Current = min(i, it.Length()-1);
+		d->Current = (int)min(i, it.Length()-1);
 		OnPosChange();
 
 		GTabPage *p = it[d->Current];
