@@ -21,10 +21,7 @@
 #include "GArray.h"
 #include "LgiCommon.h"
 #include "GXmlTree.h"
-
-#ifndef WIN32
 #include "GDragAndDrop.h"
-#endif
 
 /////////////////////////////////////////////////////////////////////////////////////
 // Externs
@@ -1143,10 +1140,7 @@ enum GWindowHookType
 /// A top level window.
 class LgiClass GWindow :
 	public GView,
-
-	// This needs to be first otherwise you get:
-	// Undefined symbols for architecture x86_64: non-virtual thunk to GWindow::WillAccept etc...
-	// on Clang/Mac
+	// This needs to be second otherwise is causes v-table problems.
 	public GDragDropTarget
 {
 	friend class BViewRedir;
@@ -1335,6 +1329,10 @@ public:
 	bool IsActive();
 	GRect &GetPos();
 
+	// D'n'd
+	int WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState);
+	int OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState);
+
 	#if !WINNATIVE
 	
 	bool Attach(GViewI *p);
@@ -1346,10 +1344,6 @@ public:
 	bool SetPos(GRect &p, bool Repaint = false);
 	GRect &GetClient(bool InClientSpace = true);
 	
-	// D'n'd
-	int WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState);
-	int OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState);
-
 	// Events
 	void OnChildrenChanged(GViewI *Wnd, bool Attaching);
 	void OnCreate();

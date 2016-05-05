@@ -1584,6 +1584,7 @@ void GWindow::Pour()
 
 }
 
+/*
 int GWindow::WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState)
 {
 	int Status = DROPEFFECT_NONE;
@@ -1682,6 +1683,7 @@ int GWindow::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 	
 	return Status;
 }
+*/
 
 int GWindow::OnEvent(GMessage *m)
 {
