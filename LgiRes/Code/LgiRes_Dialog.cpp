@@ -912,7 +912,7 @@ GRect &CtrlDlg::GetClient(bool InClientSpace)
 	return r;
 }
 
-void CtrlDlg::_Paint(GSurface *pDC, int Ox, int Oy)
+void CtrlDlg::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 {
 	Client = GetClient(false);
 
@@ -938,7 +938,9 @@ void CtrlDlg::_Paint(GSurface *pDC, int Ox, int Oy)
 
 	// Draw the client area
 	GRect c = Client;
-	c.Offset(Ox, Oy);
+	GdcPt2 o;
+	if (Offset) o = *Offset;
+	c.Offset(o.x, o.y);
 	pDC->SetClient(&c);
 
 	// Draw the grid
@@ -954,9 +956,10 @@ void CtrlDlg::_Paint(GSurface *pDC, int Ox, int Oy)
 	}
 
 	// Paint children
-	GView::_Paint(pDC, c.x1, c.y1);
+	GdcPt2 co(c.x1, c.y1);
+	GView::_Paint(pDC, &co);
 
-	pDC->SetOrigin(Ox, Oy);
+	pDC->SetOrigin(o.x, o.y);
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -3409,7 +3412,7 @@ void ResDialog::DrawSelection(GSurface *pDC)
 	}
 }
 
-void ResDialog::_Paint(GSurface *pDC, int Ox, int Oy)
+void ResDialog::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 {
 	#ifndef MAC
 	GScreenDC DC(this);

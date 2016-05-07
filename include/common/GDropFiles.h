@@ -160,20 +160,24 @@ public:
 class GDropStreams : public GArray<GStream*>
 {
 public:
-	GDropStreams(GVariant &v)
+	GDropStreams(GDragData &dd)
 	{
 		#if defined(WINDOWS)
-		if (v.Type == GV_LIST)
+		for (unsigned i=0; i<dd.Data.Length(); i++)
 		{
-			for (GVariant *f = v.Value.Lst->First(); f; f = v.Value.Lst->Next())
+			GVariant &v = dd.Data[i];
+			if (v.Type == GV_LIST)
 			{
-				if (f->Type == GV_STREAM)
+				for (GVariant *f = v.Value.Lst->First(); f; f = v.Value.Lst->Next())
 				{
-					Add(f->Value.Stream.Ptr);
-					f->Value.Stream.Own = false;
+					if (f->Type == GV_STREAM)
+					{
+						Add(f->Value.Stream.Ptr);
+						f->Value.Stream.Own = false;
+					}
 				}
 			}
-		}		
+		}
 		#elif defined(MAC)
 		#elif defined(LINUX)
 		#endif

@@ -1328,7 +1328,14 @@ bool CompositeText8NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 
 	for (unsigned y=0; y<In->Y(); y++)
 	{
-		register OutPx *dst = ((OutPx*) (*Out)[py + y]) + px;
+		register OutPx *dst = (OutPx*) (*Out)[py + y];
+		if (!dst)
+		{
+			LgiAssert(!"Not a valid scanline");
+			break;
+		}
+		dst += px;
+		
 		register uint8 *i = (*In)[y];
 		if (!i) return false;
 		register uint8 *e = i + In->X();

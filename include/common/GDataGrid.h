@@ -48,7 +48,7 @@ public:
 	bool GetData(GVariant *Data, char *Format);
 	bool GetFormats(List<char> &Formats);
 	int WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState);
-	int OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState);
+	int OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState);
 	ItemArray *GetDroppedItems();
 };
 

@@ -23,6 +23,7 @@
 #include "GToken.h"
 #include "GUtf8.h"
 #include "GViewPriv.h"
+#include "GRegionClipDC.h"
 
 #define DEBUG_MSG_TYPES				0
 #define DEBUG_HND_WARNINGS			0
@@ -108,37 +109,6 @@ OsAppArguments &OsAppArguments::operator =(OsAppArguments &a)
 	return *this;
 }
 
-////////////////////////////////////////////////////////////////
-#if HAS_SHARED_MIME
-
-#include "GFilterUtils.h"
-#include "mime-types.h"
-
-class GSharedMime : public GLibrary
-{
-public:
-	GSharedMime() :
-		#ifdef _DEBUG
-		GLibrary("libsharedmime1d")
-		#else
-		GLibrary("libsharedmime1")
-		#endif
-	{
-	}
-	
-	DynFunc0(int, mimetypes_init);
-	DynFunc1(const char*, mimetypes_set_default_type, const char *, default_type);	
-	DynFunc2(const char*, mimetypes_get_file_type, const char*, pathname, mimetypes_flags, flags);
-	DynFunc2(const char*, mimetypes_get_data_type, const void*, data, int, length);
-	DynFunc3(bool, mimetypes_decode, const char *, type, char **, media_type, char **, sub_type);
-	DynFunc2(char *, mimetypes_convert_filename, const char *, pathname, const char *, mime_type);
-	DynFunc3(bool, mimetypes_add_mime_dir, const char *, path, bool, high_priority, bool, rescan);
-	DynFunc2(const char *, mimetypes_get_type_info, const char *, mime_type, const char *, lang);
-};
-
-#endif
-
-#if 1
 /////////////////////////////////////////////////////////////////////////////
 //
 // Attempts to cleanup and call drkonqi to process the crash
@@ -156,7 +126,6 @@ void LgiCrashHandler(int Sig)
 
 	exit(-1);
 }
-#endif
 
 /////////////////////////////////////////////////////////////////////////////
 typedef GArray<GAppInfo*> AppArray;
@@ -171,7 +140,7 @@ typedef GArray<GAppInfo*> AppArray;
 #define XK_Caps_Lock                     0xffe5
 #endif
 
-class GAppPrivate : public GSymLookup
+class GAppPrivate : public GSymLookup, public GMutex
 {
 public:
 	// Common
@@ -196,8 +165,8 @@ public:
 	GAutoString Name;
 	GAutoPtr<GFontCache> FontCache;
 
-	// Update handling
-	GRect DirtyRect;
+	// Update handling (lock before using)
+	GRegion Dirty;
 	
 	// Mouse capture
 	SDL_TimerID CaptureId;
@@ -219,7 +188,6 @@ public:
 	GAppPrivate() : Args(0, 0)
 	{
 		CaptureId = 0;
-		DirtyRect.ZOff(-1, -1);
 		CurEvent = 0;
 		GuiThread = LgiGetCurrentThread();
 		FileSystem = 0;
@@ -359,8 +327,8 @@ GApp *GApp::ObjInstance()
 bool GApp::IsOk()
 {
 	bool Status = 	(this != NULL) &&
-					(d != NULL) &&
-					(SystemNormal != NULL);
+					(d != NULL)/* &&
+					(SystemNormal != NULL)*/;
 					
 	LgiAssert(Status);
 	return Status;
@@ -581,20 +549,26 @@ void GApp::OnSDLEvent(GMessage *m)
 				}
 				case M_INVALIDATE:
 				{
-					if (AppWnd)
+					SDL_Surface *Screen = GdcD->Handle();
+					if (AppWnd != NULL &&
+						Screen != NULL)
 					{
-						SDL_Surface *Screen = GdcD->Handle();
-						if (Screen != NULL)
+						GScreenDC Dc(AppWnd, Screen);
+						if (d->Lock(_FL))
 						{
+							GRegion r = d->Dirty;
+							d->Dirty.Empty();
+							d->Unlock();
+
+							AppWnd->_Paint(&Dc, NULL, &r);
+							for (GRect *i=r.First(); i; i=r.Next())
 							{
-								GScreenDC Dc(AppWnd, Screen);
-								AppWnd->_Paint(&Dc);
+								SDL_UpdateRect(Screen, i->x1, i->y1, i->X(), i->Y());
 							}
-							SDL_UpdateRect(Screen, 0, 0, 0, 0);
 						}
+						else LgiTrace("%s:%i - failed to lock mutex.\n", _FL);
 					}
-					
-					d->DirtyRect.ZOff(-1, -1);
+					else LgiTrace("%s:%i - parameter error.\n", _FL);
 					break;
 				}
 				case M_MOUSE_CAPTURE_POLL:
@@ -1032,16 +1006,20 @@ int GApp::GetCpuCount()
 
 bool GApp::InvalidateRect(GRect &r)
 {
-	bool HasDirty = d->DirtyRect.Valid();
-	d->DirtyRect.Union(&r);
-	if (!HasDirty)
+	if (d->Lock(_FL))
 	{
-		SDL_Event e;
-		e.type = SDL_USEREVENT;
-		e.user.code = M_INVALIDATE;
-		e.user.data1 = AppWnd;
-		e.user.data2 = NULL;
-		SDL_PushEvent(&e);
+		int Len = d->Dirty.Length();
+		d->Dirty.Union(&r);
+		if (Len == 0)
+		{
+			SDL_Event e;
+			e.type = SDL_USEREVENT;
+			e.user.code = M_INVALIDATE;
+			e.user.data1 = AppWnd;
+			e.user.data2 = NULL;
+			SDL_PushEvent(&e);
+		}
+		d->Unlock();
 	}
 	
 	return true;

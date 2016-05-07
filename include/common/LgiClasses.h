@@ -508,8 +508,7 @@ protected:
 #ifdef LGI_SDL
 public:
 #endif
-	virtual void	_Paint(GSurface *pDC = 0, int Ox = 0, int Oy = 0);
-
+	virtual void	_Paint(GSurface *pDC = NULL, GdcPt2 *Offset = NULL, GRegion *Update = NULL);
 
 public:
 	/// \brief Creates a view/window.
@@ -1183,7 +1182,7 @@ protected:
 	friend class GMenu;	
 	
 	Gtk::GtkWidget *_Root, *_VBox, *_MenuBar;
-	void _Paint(GSurface *pDC = 0, int Ox = 0, int Oy = 0);
+	void _Paint(GSurface *pDC = NULL, GdcPt2 *Offset = NULL, GRegion *Update = NULL);
 	void OnGtkDelete();
 	Gtk::gboolean OnGtkEvent(Gtk::GtkWidget *widget, Gtk::GdkEvent *event);
 

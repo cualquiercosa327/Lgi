@@ -222,7 +222,7 @@ public:
 	int OnCommand(int Cmd, int Event, OsView hWnd);
 	void OnLanguageChange();
 
-	void _Paint(GSurface *pDC = 0, int Ox = 0, int Oy = 0);
+	void _Paint(GSurface *pDC = NULL, GdcPt2 *Offset = NULL, GRegion *Update = NULL);
 
 	bool Test(ErrorCollection *e);
 	bool Read(GXmlTag *Tag, SerialiseContext &Ctx);
@@ -264,7 +264,7 @@ public:
 
 	GRect &GetClient(bool InClientSpace = true);
 	GViewI *WindowFromPoint(int x, int y);
-	void _Paint(GSurface *pDC, int Ox = 0, int Oy = 0);
+	void _Paint(GSurface *pDC = NULL, GdcPt2 *Offset = NULL, GRegion *Update = NULL);
 };
 
 class CtrlTable : public ResDialogCtrl, public GDom, public GView

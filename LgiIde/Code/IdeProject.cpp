@@ -2508,84 +2508,89 @@ int IdeTree::WillAccept(List<char> &Formats, GdcPt2 p, int KeyState)
 	return DROPEFFECT_NONE;
 }
 
-int IdeTree::OnDrop(char *Format, GVariant *Data, GdcPt2 p, int KeyState)
+int IdeTree::OnDrop(GArray<GDragData> &Data, GdcPt2 p, int KeyState)
 {
 	SelectDropTarget(0);
 
 	if (!Hit)
 		Hit = ItemAtPoint(p.x, p.y);
 
-	if (!Hit || !Data || !Format)
+	if (!Hit)
 		return DROPEFFECT_NONE;
 	
-	if (!stricmp(Format, NODE_DROP_FORMAT))
+	for (unsigned n=0; n<Data.Length(); n++)
 	{
-		if (Data->Type == GV_BINARY && Data->Value.Binary.Length == sizeof(ProjectNode*))
+		GDragData &dd = Data[n];
+		GVariant *Data = &dd.Data[0];
+		if (dd.IsFormat(NODE_DROP_FORMAT))
 		{
-			ProjectNode *Src = ((ProjectNode**)Data->Value.Binary.Data)[0];
-			if (Src)
+			if (Data->Type == GV_BINARY && Data->Value.Binary.Length == sizeof(ProjectNode*))
 			{
-				ProjectNode *Folder = dynamic_cast<ProjectNode*>(Hit);
-				while (Folder && Folder->GetType() > NodeDir)
+				ProjectNode *Src = ((ProjectNode**)Data->Value.Binary.Data)[0];
+				if (Src)
 				{
-					Folder = dynamic_cast<ProjectNode*>(Folder->GetParent());
-				}
-
-				IdeCommon *Dst = dynamic_cast<IdeCommon*>(Folder?Folder:Hit);
-				if (Dst)
-				{
-					// Check this folder is not a child of the src
-					for (IdeCommon *n=Dst; n; n=dynamic_cast<IdeCommon*>(n->GetParent()))
+					ProjectNode *Folder = dynamic_cast<ProjectNode*>(Hit);
+					while (Folder && Folder->GetType() > NodeDir)
 					{
-						if (n == Src)
+						Folder = dynamic_cast<ProjectNode*>(Folder->GetParent());
+					}
+
+					IdeCommon *Dst = dynamic_cast<IdeCommon*>(Folder?Folder:Hit);
+					if (Dst)
+					{
+						// Check this folder is not a child of the src
+						for (IdeCommon *n=Dst; n; n=dynamic_cast<IdeCommon*>(n->GetParent()))
 						{
-							return DROPEFFECT_NONE;
+							if (n == Src)
+							{
+								return DROPEFFECT_NONE;
+							}
 						}
-					}
 
-					// Detach
-					GTreeItem *i = dynamic_cast<GTreeItem*>(Src);
-					i->Detach();
-					if (Src->GXmlTag::Parent)
-					{
-						LgiAssert(Src->GXmlTag::Parent->Children.HasItem(Src));
-						Src->GXmlTag::Parent->Children.Delete(Src);
+						// Detach
+						GTreeItem *i = dynamic_cast<GTreeItem*>(Src);
+						i->Detach();
+						if (Src->GXmlTag::Parent)
+						{
+							LgiAssert(Src->GXmlTag::Parent->Children.HasItem(Src));
+							Src->GXmlTag::Parent->Children.Delete(Src);
+						}
+						
+						// Attach
+						Src->GXmlTag::Parent = Dst;
+						Dst->Children.Insert(Src);
+						Dst->Insert(Src);
+						
+						// Dirty
+						Src->GetProject()->SetDirty();
 					}
-					
-					// Attach
-					Src->GXmlTag::Parent = Dst;
-					Dst->Children.Insert(Src);
-					Dst->Insert(Src);
-					
-					// Dirty
-					Src->GetProject()->SetDirty();
+				
+					return DROPEFFECT_MOVE;
 				}
-			
-				return DROPEFFECT_MOVE;
 			}
 		}
-	}
-	else if (!stricmp(Format, LGI_FileDropFormat))
-	{
-		ProjectNode *Folder = dynamic_cast<ProjectNode*>(Hit);
-		while (Folder && Folder->GetType() > NodeDir)
+		else if (dd.IsFileDrop())
 		{
-			Folder = dynamic_cast<ProjectNode*>(Folder->GetParent());
-		}
-		
-		IdeCommon *Dst = dynamic_cast<IdeCommon*>(Folder?Folder:Hit);
-		if (Dst)
-		{
-			GDropFiles Df(*Data);
-			for (int i=0; i<Df.Length(); i++)
+			ProjectNode *Folder = dynamic_cast<ProjectNode*>(Hit);
+			while (Folder && Folder->GetType() > NodeDir)
 			{
-				Dst->AddFiles(Df[i]);
+				Folder = dynamic_cast<ProjectNode*>(Folder->GetParent());
+			}
+			
+			IdeCommon *Dst = dynamic_cast<IdeCommon*>(Folder?Folder:Hit);
+			if (Dst)
+			{
+				GDropFiles Df(*Data);
+				for (int i=0; i<Df.Length(); i++)
+				{
+					Dst->AddFiles(Df[i]);
+				}
 			}
 		}
-	}
-	else
-	{
-		LgiTrace("%s:%i - Unknown drop format: %s.\n", _FL, Format);
+		else
+		{
+			LgiTrace("%s:%i - Unknown drop format: %s.\n", _FL, dd.Format.Get());
+		}
 	}
 
 	return DROPEFFECT_NONE;

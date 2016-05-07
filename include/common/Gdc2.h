@@ -392,6 +392,7 @@ class LgiClass GSurface : public GRefCount, public GDom
 	friend class GView;
 	friend class GWindow;
 	friend class GVariant;
+	friend class GRegionClipDC;
 
 	void Init();
 	

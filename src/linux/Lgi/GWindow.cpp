@@ -906,7 +906,7 @@ void GWindow::OnCreate()
 {
 }
 
-void GWindow::_Paint(GSurface *pDC, int Ox, int Oy)
+void GWindow::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 {
 	GRect r = GetClient();
 	GView::_Paint(pDC, r.x1, r.y1);

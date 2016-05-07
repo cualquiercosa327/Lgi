@@ -622,21 +622,30 @@ GDataGrid::IndexArray *GDataGrid::GetDeletedItems()
 	return &d->Deleted;
 }
 
-int GDataGrid::OnDrop(char *Format, GVariant *Data, GdcPt2 Pt, int KeyState)
+int GDataGrid::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 {
-	if (d->AcceptFmt &&
-		!stricmp(Format, d->AcceptFmt) &&
-		Data->Type == GV_BINARY)
+	if (!d->AcceptFmt)
+		return DROPEFFECT_NONE;
+	
+	for (unsigned n=0; n<Data.Length(); n++)
 	{
-		GListItem **Item = (GListItem**)Data->Value.Binary.Data;
-		int Items = Data->Value.Binary.Length / sizeof(GListItem*);
-		d->Dropped.Length(0);
-		for (int i=0; i<Items; i++)
+		GDragData &dd = Data[n];
+		if (dd.IsFormat(d->AcceptFmt))
 		{
-			d->Dropped.Add(Item[i]);
+			GVariant *Data = &dd.Data.First();
+			if (Data->Type == GV_BINARY)
+			{
+				GListItem **Item = (GListItem**)Data->Value.Binary.Data;
+				int Items = Data->Value.Binary.Length / sizeof(GListItem*);
+				d->Dropped.Length(0);
+				for (int i=0; i<Items; i++)
+				{
+					d->Dropped.Add(Item[i]);
+				}
+				SendNotify(GNotifyItem_ItemsDropped);
+				return DROPEFFECT_COPY;
+			}
 		}
-		SendNotify(GNotifyItem_ItemsDropped);
-		return DROPEFFECT_COPY;
 	}
 
 	return DROPEFFECT_NONE;

@@ -329,6 +329,10 @@
 						>
 					</File>
 					<File
+						RelativePath="..\..\include\common\GRegionClipDC.h"
+						>
+					</File>
+					<File
 						RelativePath=".\Gdc2\GScreenDC.cpp"
 						>
 					</File>

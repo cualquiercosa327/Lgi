@@ -481,7 +481,7 @@ void GView::OnNcPaint(GSurface *pDC, GRect &r)
 	}
 }
 
-void GView::_Paint(GSurface *pDC, int Ox, int Oy)
+void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 {
 	#if defined __GTK_H__
 	d->InPaint = true;
@@ -508,6 +508,9 @@ void GView::_Paint(GSurface *pDC, int Ox, int Oy)
 
 	bool HasClient = false;
 	GRect r(0, 0, Pos.X()-1, Pos.Y()-1);
+	GdcPt2 o;
+	if (Offset)
+		o = *Offset;
 
 	#if WINNATIVE
 	if (!_View)
@@ -519,15 +522,28 @@ void GView::_Paint(GSurface *pDC, int Ox, int Oy)
 		HasClient = GetParent() && (Client != r);
 		if (HasClient)
 		{
-			Client.Offset(Ox, Oy);
+			Client.Offset(o.x, o.y);
 			pDC->SetClient(&Client);
 		}
 	}
 
-	r.Offset(Ox, Oy);
+	r.Offset(o.x, o.y);
 
 	// Paint this view's contents
-	OnPaint(pDC);
+	if (Update)
+	{
+		GRect OldClip = pDC->ClipRgn();
+		for (GRect *r = Update->First(); r; r = Update->Next())
+		{
+			pDC->ClipRgn(r);
+			OnPaint(pDC);
+		}
+		pDC->ClipRgn(OldClip.Valid() ? &OldClip : NULL);
+	}
+	else
+	{
+		OnPaint(pDC);
+	}
 
 	#if PAINT_VIRTUAL_CHILDREN
 	// Paint any virtual children
@@ -546,10 +562,22 @@ void GView::_Paint(GSurface *pDC, int Ox, int Oy)
 			#ifdef __GTK_H__
 			p.Offset(_BorderSize, _BorderSize);
 			#endif
-			p.Offset(Ox, Oy);
-			pDC->SetClient(&p);
-			w->_Paint(pDC, p.x1, p.y1);
-			pDC->SetClient(0);
+			p.Offset(o.x, o.y);
+			
+			if (!Update || Update->Overlap(&p))
+			{			
+				GdcPt2 co(p.x1, p.y1);
+				pDC->SetClient(&p);
+				w->_Paint(pDC, &co);
+				pDC->SetClient(0);
+			}
+			else
+			{
+				LgiTrace("%s:%i - Not updating '%s' because %i, %i\n",
+					_FL, w->GetClass(),
+					Update != NULL,
+					Update ? Update->Overlap(&p) : -1);
+			}
 		}
 	}
 	#endif
