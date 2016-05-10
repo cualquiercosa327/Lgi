@@ -106,7 +106,7 @@ public:
 				*d++ = '\n';
 
 				size_t Len = d - Buf;
-				if (Out->Write(Buf, CastInt(Len)) < Len ||
+				if (Out->Write(Buf, CastInt(Len)) < (int64)Len ||
 					!*s)
 				{
 					break;
@@ -140,7 +140,7 @@ public:
 				*d++ = '\n';
 
 				size_t Len = d-Buf;
-				if (Out->Write(Buf, CastInt(Len)) < Len)
+				if (Out->Write(Buf, CastInt(Len)) < (int64)Len)
 				{
 					break;
 				}
@@ -209,7 +209,7 @@ public:
 			}
 
 			size_t Len = o - Line;
-			if (Out->Write(Line, CastInt(Len)) < Len)
+			if (Out->Write(Line, CastInt(Len)) < (int64)Len)
 			{
 				// Error
 				return 0;

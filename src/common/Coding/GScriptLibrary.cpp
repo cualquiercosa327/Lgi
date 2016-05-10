@@ -463,7 +463,7 @@ bool SystemFunctions::Now(GVariant *Ret, ArgumentArray &Args)
 
 bool SystemFunctions::New(GVariant *Ret, ArgumentArray &Args)
 {
-	if (Args.Length() != 1 || !Args[0] || !Ret)
+	if (Args.Length() < 1 || !Args[0] || !Ret)
 		return false;
 
 	Ret->Empty();
@@ -540,13 +540,17 @@ bool SystemFunctions::New(GVariant *Ret, ArgumentArray &Args)
 			if (!c)
 				return false;
 
-			GAutoWString o(LgiNewUtf8To16(Args[0]->CastString()));
-			GTypeDef *t = c->GetType(o);
+			GAutoWString o(LgiNewUtf8To16(sType));
+			GCustomType *t = c->GetType(o);
 			if (t)
 			{
-				Ret->Type = GV_CUSTOM;
-				Ret->Value.Custom.Dom = t;
-				Ret->Value.Custom.Data = new char[t->Sizeof()];
+				int ArrayLength = Args.Length() > 1 ? Args[1]->CastInt32() : 1;
+				if (ArrayLength > 0)
+				{
+					Ret->Type = GV_CUSTOM;
+					Ret->Value.Custom.Dom = t;
+					Ret->Value.Custom.Data = new uint8[t->Sizeof() * ArrayLength];
+				}
 			}
 		}
 	}

@@ -385,9 +385,17 @@ public:
 		ExpTok.Add(sFalse, ConstFalse);
 		ExpTok.Add(sNull, ConstNull);
 
-		Types.Add("int32", GV_INT32);
 		Types.Add("int", GV_INT32);
+		Types.Add("short", GV_INT32);
+		Types.Add("long", GV_INT32);
+		Types.Add("int8", GV_INT32);
+		Types.Add("int16", GV_INT32);
+		Types.Add("int32", GV_INT32);
 		Types.Add("int64", GV_INT64);
+		Types.Add("uint8", GV_INT32);
+		Types.Add("uint16", GV_INT32);
+		Types.Add("uint32", GV_INT32);
+		Types.Add("uint64", GV_INT64);
 		Types.Add("bool", GV_BOOL);
 		Types.Add("boolean", GV_BOOL);
 		Types.Add("double", GV_DOUBLE);
@@ -2640,6 +2648,130 @@ public:
 		return true;
 	}
 
+	struct ExpPart
+	{
+		GOperator Op;
+		int Value;
+		ExpPart()
+		{
+			Op = OpNull;
+			Value = 0;
+		}
+	};
+
+	int Evaluate(GArray<char16*> &Exp, int Start, int End)
+	{
+		GOperator op;
+		GArray<ExpPart> p;		
+
+		// Find outer brackets
+		int e;
+		for (e = End; e >= Start; e--)
+		{
+			if (Exp[e][0] == ')') break;
+		}
+		
+		for (int i = Start; i <= End; i++)
+		{
+			char16 *t = Exp[i];
+			if (*t == '(')
+			{
+				p.New().Value = Evaluate(Exp, i + 1, e - 1);
+				i = e;
+			}
+			else
+			{
+				GOperator op = IsOp(t, 0);
+				if (op)
+				{
+					p.New().Op = op;
+				}
+				else if (IsDigit(*t))
+				{
+					p.New().Value = AtoiW(t);
+				}
+				else
+				{
+					LgiAssert(0);
+					break;
+				}
+			}
+		}
+
+		while (p.Length() > 1)
+		{
+			int HighPrec = 32;
+			int Idx = -1;
+			for (unsigned i=0; i<p.Length(); i++)
+			{
+				ExpPart &ep = p[i];
+				if (ep.Op)
+				{
+					int Prec = GetPrecedence(ep.Op);
+					if (Prec < HighPrec)
+					{
+						Idx = i;
+						HighPrec = Prec;
+					}
+				}
+			}
+			if (Idx < 0)
+			{
+				LgiAssert(0);
+				break;
+			}			
+			
+			OperatorType Type = OpType(p[Idx].Op);
+			if (Type == OpInfix)
+			{
+				if (Idx > 0 && Idx < p.Length() - 1)
+				{
+					switch (p[Idx].Op)
+					{
+						case OpPlus:
+							p[Idx-1].Value += p[Idx+1].Value;
+							break;
+						case OpMinus:
+							p[Idx-1].Value -= p[Idx+1].Value;
+							break;
+						case OpMul:
+							p[Idx-1].Value *= p[Idx+1].Value;
+							break;
+						case OpDiv:
+							if (p[Idx+1].Value)
+								p[Idx-1].Value /= p[Idx+1].Value;
+							else
+								LgiAssert(!"Div 0");
+							break;
+						default:
+							LgiAssert(!"Impl me.");
+							break;
+					}
+					p.DeleteAt(Idx, true);
+					p.DeleteAt(Idx, true);
+				}
+				else
+				{
+					LgiAssert(0);
+					break;
+				}
+			}
+			else
+			{
+				LgiAssert(!"Impl me.");
+			}
+		}
+		
+		if (p.Length() == 1)
+		{
+			LgiAssert(p[0].Op == OpNull);
+			return p[0].Value;
+		}
+		
+		LgiAssert(0);
+		return 0;
+	}
+
 	/// Compiles struct construct
 	bool DoStruct(uint32 &Cur)
 	{
@@ -2647,9 +2779,9 @@ public:
 
 		// Parse struct name and setup a type
 		char16 *t;
-		GTypeDef *Def = Code->Types.Find(t = GetTok(Cur));
+		GCustomType *Def = Code->Types.Find(t = GetTok(Cur));
 		if (!Def)
-			Code->Types.Add(t, Def = new GTypeDef(t));
+			Code->Types.Add(t, Def = new GCustomType(t));
 		Cur++;
 		t = GetTok(Cur);
 		if (!t || StricmpW(t, sStartCurlyBracket))
@@ -2674,7 +2806,7 @@ public:
 			// Parse member field
 			GVariant TypeName = t;
 
-			GTypeDef *NestedType = 0;
+			GCustomType *NestedType = 0;
 			GVariantType Type = Types.Find(TypeName.Str());
 			if (!Type)
 			{
@@ -2705,87 +2837,41 @@ public:
 			if (!(t = GetTok(Cur)))
 				goto EofError;
 
-			int Array = 0;
+			int Array = 1;
 			if (!StricmpW(t, sStartSqBracket))
 			{
 				// Array
 				Cur++;
-				if (!(t = GetTok(Cur)))
-					goto EofError;
+				
+				GArray<char16*> Exp;
+				while (t = GetTok(Cur))
+				{
+					Cur++;
+					if (!StricmpW(t, sEndSqBracket))
+						break;
+					Exp.Add(t);
+				}
 
-				Array = atoi(t);
-
-				Cur++;
-				if (!(t = GetTok(Cur)))
-					goto EofError;
-				if (StricmpW(t, sEndSqBracket))
-					return OnError(Cur, "Expecting ']' in array definition.");
-				Cur++;
+				Array = Evaluate(Exp, 0, Exp.Length()-1);
 			}
 
-			GTypeDef::GMember *Mem = Def->Members.Find(Name.Str());
-			if (Mem)
+			int MemberAddr = Def->AddressOf(Name.Str());
+			if (MemberAddr >= 0)
 				return OnError(Cur, "Member '%s' can't be defined twice.", Name.Str());
-			if (!(Mem = new GTypeDef::GMember))
-				return OnError(Cur, "Alloc.");
 
-			Mem->Offset = Def->Size;
-			Mem->Array = Array;
-			Mem->Type = Type;
-			Mem->Nest = NestedType;
-			if ((Mem->Pointer = Pointer))
+			if (NestedType)
 			{
-				Mem->Size = sizeof(void*);
+				if (!Def->DefineField(Name.Str(), NestedType, Array))
+					return OnError(Cur, "Failed to define field '%s'.", Name.Str());
 			}
 			else
 			{
-				switch (Mem->Type)
-				{
-					case GV_INT32:
-						Mem->Size = sizeof(int32);
-						break;
-					case GV_INT64:
-						Mem->Size = sizeof(int64);
-						break;
-					case GV_BOOL:
-						Mem->Size = sizeof(bool);
-						break;
-					case GV_DOUBLE:
-						Mem->Size = sizeof(double);
-						break;
-					case GV_STRING:
-						Mem->Size = sizeof(char);
-						break;
-					case GV_DATETIME:
-						Mem->Size = sizeof(GDateTime);
-						break;
-					case GV_HASHTABLE:
-						Mem->Size = sizeof(GHashTable);
-						break;
-					case GV_OPERATOR:
-						Mem->Size = sizeof(GOperator);
-						break;
-					case GV_GMOUSE:
-						Mem->Size = sizeof(GMouse);
-						break;
-					case GV_GKEY:
-						Mem->Size = sizeof(GKey);
-						break;
-					case GV_CUSTOM:
-						Mem->Size = Mem->Nest->Sizeof();
-						break;
-					default:
-						return OnError(Cur, "Can't have non-pointer of type '%s'", TypeName.Str());
-				}
+				int Bytes = 1;
+				
+				if (!Def->DefineField(Name.Str(), Type, Bytes, Array))
+					return OnError(Cur, "Failed to define field '%s'.", Name.Str());
 			}
-			if (Mem->Array)
-			{
-				Mem->Size *= Mem->Array;
-			}
-
-			Def->Size += Mem->Size;
-			Def->Members.Add(Name.Str(), Mem);
-
+			
 			t = GetTok(Cur);
 			if (StricmpW(t, sSemiColon))
 				return OnError(Cur, "Expecting ';'");

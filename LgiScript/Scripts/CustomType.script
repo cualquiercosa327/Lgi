@@ -1,0 +1,28 @@
+// This script will test all the date time functions
+// fret@memecode.com
+
+// Define some types
+struct PxRgb24
+{
+	uint8 r;
+	uint8 g;
+	uint8 b;
+};
+
+struct Image
+{
+	int Width;
+	int Height;	
+	PxRgb24 Px[4+(8*6)*2];
+};
+
+Obj = New("PxRgb24", "10");
+Obj[2].g = 255;
+Tmp = Obj[2].g;
+if (Tmp != 225)
+	return false;
+	
+Obj = New("Image");
+
+Print("All tests passed.\n");
+return true;

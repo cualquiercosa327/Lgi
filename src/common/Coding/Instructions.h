@@ -544,6 +544,17 @@ case IArrayGet:
 			else Dst->Empty();
 			break;
 		}
+		case GV_CUSTOM:
+		{
+			GCustomType *T = Var->Value.Custom.Dom;
+			size_t Sz = T->Sizeof();
+			int Index = Idx->CastInt32();
+
+			Dst->Type = GV_CUSTOM;
+			Dst->Value.Custom.Dom = T;
+			Dst->Value.Custom.Data = Var->Value.Custom.Data + (Sz * Index);
+			break;
+		}
 		default:
 		{
 			if (Log)
@@ -920,11 +931,21 @@ case IDomGet:
 			}
 			case GV_CUSTOM:
 			{
-				GTypeDef *Type = dynamic_cast<GTypeDef*>(Dom->Value.Custom.Dom);
+				GCustomType *Type = Dom->Value.Custom.Dom;
 				if (Type)
 				{
-					Type->Object = Dom->Value.Custom.Data;
-					Type->GetVariant(sName, *Dst, Arr->Str());
+					int Fld;
+					if (IsDigit(*sName))
+					{
+						Fld = atoi(sName);
+					}
+					else
+					{
+						Fld = Type->IndexOf(sName);
+					}
+					
+					int Index = Arr ? Arr->CastInt32() : 0;
+					Type->Get(Fld, *Dst, Dom->Value.Custom.Data, Index);
 				}
 				break;
 			}
@@ -1065,11 +1086,23 @@ case IDomSet:
 		}
 		case GV_CUSTOM:
 		{
-			GTypeDef *Type = dynamic_cast<GTypeDef*>(Dom->Value.Custom.Dom);
+			GCustomType *Type = Dom->Value.Custom.Dom;
 			if (Type)
 			{
-				Type->Object = Dom->Value.Custom.Data;
-				Type->SetVariant(sName, *Value, Arr->Str());
+				int Fld;
+				if (IsDigit(*sName))
+					Fld = atoi(sName);
+				else
+					Fld = Type->IndexOf(sName);
+				
+				int Index = Arr ? Arr->CastInt32() : 0;
+				if (!Type->Set(Fld, *Value, Dom->Value.Custom.Data, Index) &&
+					Log)
+				{
+					Log->Print("%s IDomSet warning: Couldn't set '%s' on custom type.\n",
+								Code->AddrToSourceRef(CurrentScriptAddress),
+								sName);
+				}
 			}
 			break;
 		}

@@ -1646,3 +1646,376 @@ bool GDom::SetValue(const char *Var, GVariant &Value)
 	return Status;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+GCustomType::GCustomType(const char *name, int pack) : Map(0, true, NULL, -1)
+{
+	Name = name;
+	Pack = 1;
+	Size = 0;
+}
+
+GCustomType::GCustomType(const char16 *name, int pack) : Map(0, true, NULL, -1)
+{
+	Name = name;
+	Pack = 1;
+	Size = 0;
+}
+
+GCustomType::~GCustomType()
+{
+}
+
+size_t GCustomType::Sizeof()
+{
+	return (size_t)PadSize();
+}
+
+int GCustomType::PadSize()
+{
+	if (Pack > 1)
+	{
+		// Bump size to the pack boundary...
+		int Remain = Size % Pack;
+		if (Remain)
+			return Size + Pack - Remain;
+	}
+	return Size;
+}
+
+int GCustomType::IndexOf(const char *Field)
+{
+	return Map.Find(Field);
+}
+
+int GCustomType::AddressOf(const char *Field)
+{
+	if (!Field)
+		return -1;
+	for (unsigned i=0; i<Flds.Length(); i++)
+	{
+		if (!strcmp(Flds[i].Name, Field))
+			return (int)i;
+	}
+	return -1;
+}
+
+bool GCustomType::DefineField(const char *Name, GCustomType *Type, int ArrayLen)
+{
+	if (ArrayLen < 1)
+	{
+		LgiAssert(!"Can't have zero size field.");
+		return false;
+	}
+
+	if (Name == NULL || Type == NULL)
+	{
+		LgiAssert(!"Invalid parameter.");
+		return false;
+	}
+
+	if (Map.Find(Name) >= 0)
+	{
+		LgiAssert(!"Field already exists.");
+		return false;
+	}
+	Map.Add(Name, Flds.Length());
+
+	FldDef &Def = Flds.New();
+	
+	Size = PadSize();
+	Def.Offset = Size;
+	
+	Def.Name = Name;
+	Def.Type = GV_CUSTOM;
+	Def.Bytes = Type->Sizeof();
+	Def.ArrayLen = ArrayLen;
+	Size += Def.Bytes * ArrayLen;
+
+	return true;
+}
+
+bool GCustomType::DefineField(const char *Name, GVariantType Type, int Bytes, int ArrayLen)
+{
+	if (ArrayLen < 1)
+	{
+		LgiAssert(!"Can't have zero size field.");
+		return false;
+	}
+
+	if (Name == NULL)
+	{
+		LgiAssert(!"No field name.");
+		return false;
+	}
+
+	if (Map.Find(Name) >= 0)
+	{
+		LgiAssert(!"Field already exists.");
+		return false;
+	}
+	Map.Add(Name, Flds.Length());
+
+	FldDef &Def = Flds.New();
+	
+	Size = PadSize();
+	Def.Offset = Size;
+	
+	Def.Name = Name;
+	Def.Type = Type;
+	Def.Bytes = Bytes;
+	Def.ArrayLen = ArrayLen;
+	Size += Bytes * ArrayLen;
+
+	return true;
+}
+
+int GCustomType::FldDef::Sizeof()
+{
+	switch (Type)
+	{
+		case GV_INT32:
+			return sizeof(int32);
+		case GV_INT64:
+			return sizeof(int64);
+		case GV_BOOL:
+			return sizeof(bool);
+		case GV_DOUBLE:
+			return sizeof(double);
+		case GV_STRING:
+			return sizeof(char);
+		case GV_DATETIME:
+			return sizeof(GDateTime);
+		case GV_HASHTABLE:
+			return sizeof(GHashTable);
+		case GV_OPERATOR:
+			return sizeof(GOperator);
+		case GV_GMOUSE:
+			return sizeof(GMouse);
+		case GV_GKEY:
+			return sizeof(GKey);
+		case GV_CUSTOM:
+			return Nested->Sizeof();
+		default:
+			LgiAssert(!"Unknown type.");
+			break;
+	}
+	
+	return 0;
+}
+
+bool GCustomType::Get(int Index, GVariant &Out, uint8 *Base, int ArrayIndex)
+{
+	if (Index < 0 ||
+		Index >= Flds.Length() ||
+		!Base)
+	{
+		LgiAssert(!"Invalid parameter error.");
+		return false;
+	}
+
+	FldDef &Def = Flds[Index];
+	if (ArrayIndex < 0 || ArrayIndex >= Def.ArrayLen)
+	{
+		LgiAssert(!"Array out of bounds.");
+		return false;
+	}
+
+	uint8 *Ptr = Base + Def.Offset;
+	Out.Empty();
+	
+	switch (Def.Type)
+	{
+		case GV_STRING:
+		{
+			int Len;
+			for (Len = 0; Ptr[Len] && Len < Def.ArrayLen-1; Len++)
+				;
+			Out.OwnStr(NewStr((char*)Ptr, Len));
+			break;
+		}
+		case GV_WSTRING:
+		{
+			char16 *p = (char16*)Ptr;
+			int Len;
+			for (Len = 0; p[Len] && Len < Def.ArrayLen-1; Len++)
+				;
+			Out.OwnStr(NewStrW(p, Len));
+			break;
+		}
+		case GV_INT32:
+		case GV_INT64:
+		{
+			switch (Def.Bytes)
+			{
+				case 1:
+				{
+					Out.Value.Int = Ptr[ArrayIndex];
+					Out.Type = GV_INT32;
+					break;
+				}
+				case 2:
+				{
+					Out.Value.Int = ((uint16*)Ptr)[ArrayIndex];
+					Out.Type = GV_INT32;
+					break;
+				}
+				case 4:
+				{
+					Out.Value.Int = ((uint32*)Ptr)[ArrayIndex];
+					Out.Type = GV_INT32;
+					break;
+				}
+				case 8:
+				{
+					Out.Value.Int64 = ((uint64*)Ptr)[ArrayIndex];
+					Out.Type = GV_INT64;
+					break;
+				}
+				default:
+				{
+					LgiAssert(!"Unknown integer size.");
+					return false;
+				}
+			}
+			break;			
+		}
+		default:
+		{
+			LgiAssert(!"Impl this type.");
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool GCustomType::Set(int Index, GVariant &In, uint8 *Base, int ArrayIndex)
+{
+	if (Index < 0 ||
+		Index >= Flds.Length() ||
+		!Base)
+	{
+		LgiAssert(!"Invalid parameter error.");
+		return false;
+	}
+
+	FldDef &Def = Flds[Index];
+	uint8 *Ptr = Base + Def.Offset;
+	if (ArrayIndex < 0 || ArrayIndex >= Def.ArrayLen)
+	{
+		LgiAssert(!"Array out of bounds.");
+		return false;
+	}
+	
+	switch (Def.Type)
+	{
+		case GV_STRING:
+		{
+			char *s = In.Str();
+			if (!s)
+			{
+				*Ptr = 0;
+				break;
+			}
+			
+			if (Def.Bytes == 1)
+			{
+				// Straight up string copy...
+				if (s)
+					strcpy_s((char*)Ptr, Def.ArrayLen, s);
+				else
+					*Ptr = 0;
+			}
+			else if (Def.Bytes == sizeof(char16))
+			{
+				// utf8 -> wide conversion...
+				const void *In = Ptr;
+				int Len = strlen(s);
+				int Ch = LgiBufConvertCp(Ptr, LGI_WideCharset, Def.ArrayLen-1, In, "utf-8", Len);
+				if (Ch >= 0)
+				{
+					// Null terminate
+					Ptr[Ch] = 0;
+				}
+				else
+				{
+					LgiAssert(!"LgiBufConvertCp failed.");
+					return false;
+				}
+			}
+			break;
+		}
+		case GV_WSTRING:
+		{
+			char16 *p = (char16*)Ptr;
+			char16 *w = In.WStr();
+			if (!w)
+			{
+				*p = 0;
+				break;
+			}
+			if (Def.Bytes == sizeof(char16))
+			{
+				// Straight string copy...
+				wcscpy_s(p, Def.ArrayLen, w);
+			}
+			else
+			{
+				// Conversion to utf-8
+				const void *In = Ptr;
+				int Len = StrlenW(w) * sizeof(char16);
+				int Ch = LgiBufConvertCp(Ptr, "utf-8", Def.ArrayLen-sizeof(char16),
+										In, LGI_WideCharset, Len);
+				if (Ch >= 0)
+				{
+					// Null terminate
+					p[Ch/sizeof(char16)] = 0;
+				}
+				else
+				{
+					LgiAssert(!"LgiBufConvertCp failed.");
+					return false;
+				}
+			}
+			break;
+		}
+		case GV_INT32:
+		case GV_INT64:
+		{
+			switch (Def.Bytes)
+			{
+				case 1:
+				{
+					Ptr[ArrayIndex] = In.CastInt32();
+					break;
+				}
+				case 2:
+				{
+					((uint16*)Ptr)[ArrayIndex] = In.CastInt32();
+					break;
+				}
+				case 4:
+				{
+					((uint32*)Ptr)[ArrayIndex] = In.CastInt32();
+					break;
+				}
+				case 8:
+				{
+					((uint64*)Ptr)[ArrayIndex] = In.CastInt64();
+					break;
+				}
+				default:
+				{
+					LgiAssert(!"Unknown integer size.");
+					break;
+				}
+			}
+			break;			
+		}
+		default:
+			LgiAssert(!"Impl this type.");
+			break;
+	}
+
+	return true;
+}

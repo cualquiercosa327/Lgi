@@ -195,50 +195,6 @@ union GPtr
 
 class SystemFunctions;
 
-class GTypeDef : public GDom
-{
-	friend class GCompilerPriv;
-	friend class GVirtualMachinePriv;
-
-	struct GMember
-	{
-		int Offset;
-		int Size;
-		bool Pointer;
-		int Array;
-		GVariantType Type;
-		GTypeDef *Nest;
-
-		GMember()
-		{
-			Offset = 0;
-			Size = 0;
-			Type = GV_NULL;
-			Pointer = false;
-			Array = 0;
-			Nest = 0;
-		}
-	};
-
-	int Size;
-	GVariant Name;
-	GHashTbl<const char*, GMember*> Members;
-
-public:
-	char *Object;
-
-	GTypeDef(char16 *n)
-	{
-		Name = n;
-		Size = 0;
-		Object = 0;
-	}
-
-	int Sizeof() { return Size; }
-	bool GetVariant(const char *Name, GVariant &Value, char *Arr = 0);
-	bool SetVariant(const char *Name, GVariant &Value, char *Arr = 0);
-};
-
 class GCompileTools
 {
 protected:
@@ -310,6 +266,9 @@ protected:
 			case OpPostInc:
 			case OpPostDec:
 				return 2;
+			
+			case OpNull:
+				return 0;
 			
 			default:
 				LgiAssert(!"Really?");

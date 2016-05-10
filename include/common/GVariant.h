@@ -94,6 +94,45 @@ enum GOperator
 	OpNot,
 };
 
+class LgiClass GCustomType
+{
+	struct FldDef
+	{
+		int Offset;
+		int Bytes;
+		int ArrayLen;
+		GVariantType Type;
+		GString Name;
+		GCustomType *Nested;
+
+		int Sizeof();
+	};
+
+	int Pack;
+	size_t Size;
+	GString Name;
+	GArray<FldDef> Flds;
+	GHashTbl<const char*, int> Map;
+	
+	int PadSize();	
+
+public:
+	GCustomType(const char *name, int pack = 1);
+	GCustomType(const char16 *name, int pack = 1);
+	~GCustomType();
+	
+	size_t Sizeof();
+	int Members() { return Flds.Length(); }
+	int AddressOf(const char *Field);
+	int IndexOf(const char *Field);
+	bool DefineField(const char *Name, GVariantType Type, int Bytes, int ArrayLen = 1);
+	bool DefineField(const char *Name, GCustomType *Type, int ArrayLen = 1);
+
+	// Field access
+	bool Get(int Index, GVariant &Out, uint8 *Base, int ArrayIndex = 0);
+	bool Set(int Index, GVariant &In, uint8 *Base, int ArrayIndex = 0);
+};
+
 /// A class that can be different types
 class LgiClass GVariant
 {
@@ -141,8 +180,8 @@ public:
 		/// Valid when Type == #GV_CUSTOM
 		struct _Custom
 		{
-			GDom *Dom;
-			char *Data;
+			GCustomType *Dom;
+			uint8 *Data;
 
 			bool operator == (_Custom &c)
 			{

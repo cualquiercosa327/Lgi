@@ -223,7 +223,7 @@ class GCompiledCode
 	GArray<GExternFunc*> Externs;
 	
 	/// All the user types defined
-	GHashTbl<char16*, class GTypeDef*> Types;
+	GHashTbl<char16*, class GCustomType*> Types;
 	
 	/// The original script filename
 	GAutoString FileName;
@@ -251,7 +251,7 @@ public:
 	/// Sets a global variable
 	GVariant *Set(const char *Name, GVariant &v);
 	/// Gets the definition of a struct or custom type
-	GTypeDef *GetType(char16 *Name) { return Types.Find(Name); }
+	GCustomType *GetType(char16 *Name) { return Types.Find(Name); }
 	/// Sets the file name this code was compiled from
 	void SetFileName(const char *f) { if (f != FileName) FileName.Reset(NewStr(f)); }
 	/// Gets the file name this code was compiled from

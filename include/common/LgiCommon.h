@@ -58,6 +58,7 @@ extern "C"
 
 /// Converts a buffer of text to a different charset
 /// \ingroup Text
+/// \returns the bytes written to the location pointed to by 'Out'
 LgiFunc int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, const char *InCp, int &InLen);
 
 /// \brief Converts a string to a new charset
