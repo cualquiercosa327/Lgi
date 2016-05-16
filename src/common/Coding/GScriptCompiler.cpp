@@ -2661,7 +2661,6 @@ public:
 
 	int Evaluate(GArray<char16*> &Exp, int Start, int End)
 	{
-		GOperator op;
 		GArray<ExpPart> p;		
 
 		// Find outer brackets
@@ -2724,7 +2723,7 @@ public:
 			OperatorType Type = OpType(p[Idx].Op);
 			if (Type == OpInfix)
 			{
-				if (Idx > 0 && Idx < p.Length() - 1)
+				if (Idx > 0 && Idx < (int)p.Length() - 1)
 				{
 					switch (p[Idx].Op)
 					{

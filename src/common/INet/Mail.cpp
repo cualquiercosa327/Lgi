@@ -22,8 +22,9 @@
 #include "GDocView.h"
 #include "Store3Defs.h"
 
-const char sTextPlain[] = "text/plain";
-const char sTextHtml[] = "text/html";
+const char *sTextPlain = "text/plain";
+const char *sTextHtml = "text/html";
+const char *sApplicationInternetExplorer = "application/internet-explorer";
 const char sMultipartMixed[] = "multipart/mixed";
 const char sMultipartAlternative[] = "multipart/alternative";
 const char sMultipartRelated[] = "multipart/related";

@@ -326,7 +326,20 @@ void GButton::OnClick()
 		GViewI *p = GetParent();
 		GViewI *target = n ? n : p;
 		if (target)
-			target->PostEvent(M_CHANGE, (GMessage::Param)Id);
+		{
+			if (Handle())
+			{
+				target->PostEvent(M_CHANGE, (GMessage::Param)Id);
+			}
+			else if (InThread())
+			{
+				target->OnNotify(this, 0);
+			}
+			else
+			{
+				LgiAssert(!"Out of thread and no handle?");
+			}
+		}
 	}
 	else
 		SendNotify();

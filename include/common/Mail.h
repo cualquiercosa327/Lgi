@@ -49,8 +49,9 @@ extern int MaxLineLen(char *Text);
 extern char *EncodeImapString(char *s);
 extern char *DecodeImapString(char *s);
 
-extern const char sTextPlain[];
-extern const char sTextHtml[];
+extern const char *sTextPlain;
+extern const char *sTextHtml;
+extern const char *sApplicationInternetExplorer;
 extern const char sMultipartMixed[];
 extern const char sMultipartAlternative[];
 extern const char sMultipartRelated[];
