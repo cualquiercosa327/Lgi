@@ -15,6 +15,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <Carbon/Carbon.h>
+#include <wchar.h>
 #include "LgiInc.h"
 #include "LgiDefs.h"
 #include "GAutoPtr.h"
@@ -147,6 +148,7 @@ LgiFunc void LgiSleep(uint32 i);
 #define sprintf_s					snprintf
 #define vsprintf_s					vsnprintf
 #define swprintf_s					swprintf
+#define wcscpy_s(dst, len, src)		wcsncpy(dst, src, len)
 #define LGI_IllegalFileNameChars	"/:" // FIXME: what other characters should be in here?
 
 // Window flags
