@@ -356,12 +356,12 @@
 			<Node File="./include/common/GMime.h" Type="3" Platforms="15" />
 		</Node>
 	</Node>
-	<Node Name="Headers" Type="1" Platforms="15" Open="0">
+	<Node Name="Headers" Type="1" Platforms="15" Open="1">
 		<Node Name="Haiku" Type="1" Platforms="15" Open="0">
 			<Node File="./include/beos/LgiOsClasses.h" Type="3" Platforms="8" />
 			<Node File="./include/beos/LgiOsDefs.h" Type="3" Platforms="8" />
 		</Node>
-		<Node Name="Linux" Type="1" Platforms="15" Open="0">
+		<Node Name="Linux" Type="1" Platforms="15" Open="1">
 			<Node File="./include/linux/Gtk/LgiOsDefs.h" Type="3" Platforms="2" />
 		</Node>
 		<Node Name="Win" Type="1" Platforms="15" Open="0">
@@ -396,12 +396,18 @@ WINDOWS</Release>
 					<Debug>POSIX</Debug>
 					<Release>POSIX</Release>
 				</Haiku>
+				<Linux />
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
 			</Compiler>
-			<Executable />
-			<Arguments />
+			<Executable>
+				<Linux />
+			</Executable>
+			<Arguments>
+				<All />
+			</Arguments>
+			<CrossCompiler />
 		</General>
 		<Build>
 			<IncludePaths>
@@ -463,6 +469,7 @@ be
 game
 textencoding</Release>
 				</Haiku>
+				<All />
 			</Libraries>
 			<TargetType>
 				<All>DynamicLibrary</All>
@@ -481,8 +488,14 @@ textencoding</Release>
 					<Release>lgi</Release>
 				</Linux>
 			</TargetName>
-			<SystemIncludes />
-			<LibraryPaths />
+			<SystemIncludes>
+				<Linux />
+			</SystemIncludes>
+			<LibraryPaths>
+				<All />
+				<Linux />
+			</LibraryPaths>
+			<ApplicationIcon />
 		</Build>
 		<Editor>
 			<TabSize>
@@ -497,7 +510,11 @@ textencoding</Release>
 			<UseHardTabs>
 				<All>1</All>
 			</UseHardTabs>
+			<CommentFile />
+			<CommentFunction />
 		</Editor>
-		<Advanced />
+		<Advanced>
+			<OtherMakefileRules />
+		</Advanced>
 	</Settings>
 </Project>
