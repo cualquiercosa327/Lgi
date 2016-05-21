@@ -4,6 +4,7 @@
 #define _MAIL_STORE_H_
 
 #include "Mail.h"
+#include "Store3Defs.h"
 
 /*
 	Handling of attachments in the Store3 API
@@ -93,37 +94,6 @@ void ParseIdList(char *In, List<char> &Out);
 	bool Set##name(ScribePerm val) { LgiAssert(Object != NULL); return Object ? Object->SetInt(id, val) : false; }
 
 
-/// This defines the possible outcomes of calling a function.
-enum Store3Status
-{
-	/// The method failed and no action was taken.
-	Store3Error,
-	/// The method succeeded but the action was not completed immediately, notification
-	/// of the actions completion will come later via the callback interface.
-	Store3Delayed,
-	/// The method succeeded and the action has been already completed.
-	Store3Success,
-};
-
-/// Possible parts of UI
-enum Store3UiFields
-{
-	Store3UiCurrentPos,		// [Set] sets the current progress value
-	Store3UiMaxPos,			// [Set] sets the maximum progress value
-	Store3UiStatus,			// [Set] set a status/progress string
-	Store3UiError,			// [Set] set an error string
-	Store3UiInteractive,	// [Get] returns a bool if the user is expecting interaction
-	Store3UiCancel,			// [Get] returns a bool indicating if the user has cancelled the operation
-	Store3UiNewFormat,		// [Get] returns a integer/enum describing the new format to use
-};
-
-enum Store3IteratorState
-{
-    Unloaded,
-    Loading,
-    Loaded,
-};
-
 /// This class is an interface to a collection of objects (NOT thread-safe).
 template <class T>
 class GDataIterator
@@ -155,6 +125,8 @@ public:
 	/// Deletes all the objects from memory
 	/// \returns true on success
 	virtual bool DeleteObjects() = 0;
+	/// Gets the current loading/loaded state.
+	virtual Store3State GetState() = 0;
 };
 
 
@@ -561,13 +533,15 @@ class DIterator : public GDataIterator<TPub*>
 
 public:
 	GArray<TPriv*> a;
-	Store3IteratorState State;
-
+	Store3State State;
+	
 	DIterator()
 	{
 		Cur = -1;
-		State = Unloaded;
+		State = Store3Unloaded;
 	}
+
+	Store3State GetState() { return State; }
 
 	TPub *Create(GDataStoreI *Store)
 	{
