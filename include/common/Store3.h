@@ -565,7 +565,6 @@ public:
 	
 	uint32 Length()
 	{
-		LgiAssert(State == Store3Loaded);
 		return a.Length();
 	}
 	
