@@ -545,33 +545,39 @@ public:
 
 	TPub *Create(GDataStoreI *Store)
 	{
+		LgiAssert(State == Store3Loaded);
 		return new TPriv(dynamic_cast<TStore*>(Store));
 	}
 
 	TPub *First()
 	{
+		LgiAssert(State == Store3Loaded);
 		Cur = 0;
 		return (int)a.Length() > Cur ? a[Cur] : 0;
 	}
 	
 	TPub *Next()
 	{
+		LgiAssert(State == Store3Loaded);
 		Cur++;
 		return (int)a.Length() > Cur ? a[Cur] : 0;
 	}
 	
 	uint32 Length()
 	{
+		LgiAssert(State == Store3Loaded);
 		return a.Length();
 	}
 	
 	TPub *operator [](int idx)
 	{
+		LgiAssert(State == Store3Loaded);
 		return a[idx];
 	}
 	
 	bool Delete(TPub *pub_ptr)
 	{
+		LgiAssert(State == Store3Loaded);
 		TPriv *priv_ptr = dynamic_cast<TPriv*>(pub_ptr);
 		if (!priv_ptr)
 		{
@@ -589,6 +595,7 @@ public:
 	
 	bool Insert(TPub *pub_ptr, int idx = -1)
 	{
+		LgiAssert(State == Store3Loaded);
 		TPriv *priv_ptr = dynamic_cast<TPriv*>(pub_ptr);
 		if (!priv_ptr)
 		{
@@ -601,6 +608,7 @@ public:
 	
 	bool Empty()
 	{
+		LgiAssert(State == Store3Loaded);
 		a.Length(0);
 		return true;
 	}
@@ -613,6 +621,7 @@ public:
 	
 	int IndexOf(TPub *pub_ptr)
 	{
+		LgiAssert(State == Store3Loaded);
 		TPriv *priv_ptr = dynamic_cast<TPriv*>(pub_ptr);
 		if (!priv_ptr)
 		{
