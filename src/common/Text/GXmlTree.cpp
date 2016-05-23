@@ -125,7 +125,7 @@ public:
 	int Flags;
 	GHashTbl<const char*,char16> Entities;
 	GHashTable NoChildTags;
-	XmlPoolAlloc *Allocator;
+	GArray<char> Buf;
 	
 	char *StyleFile;
 	char *StyleType;
@@ -137,7 +137,6 @@ public:
 
 	GXmlTreePrivate()
 	{
-		Allocator = 0;
 		Factory = 0;
 		File = 0;
 		Error = 0;
@@ -158,7 +157,6 @@ public:
 		DeleteArray(Error);
 		DeleteArray(StyleType);
 		DeleteArray(StyleFile);
-		LgiAssert(Allocator == 0);		
 	}
 };
 
@@ -239,80 +237,99 @@ bool GXmlTree::EncodeEntities(GStreamI *to, char *start, int len, const char *ex
 	return true;
 }
 
-char *GXmlTree::DecodeEntities(char *s, int len)
+char *GXmlTree::DecodeEntities(GXmlAlloc *Alloc, char *In, int Len)
 {
-	GStringPipe p;
-	
-	char *End = s + len;
-	while (s && *s && s < End)
+	if (!In || !Alloc)
 	{
-		char *e = s;
-		while (*e && *e != '&' && e < End)
-            e++;
-		if (*e)
+		LgiAssert(!"Param error");
+		return NULL;
+	}
+	
+	char *OriginalIn = In;
+
+	// Setup temporary buffer
+	int BufSize = Len + 32;
+	int BufR = BufSize & 0xff;
+	if (BufR) BufSize += 256 - BufR;
+	if (d->Buf.Length() < BufR)
+		d->Buf.Length(BufR);
+
+	char *Start = &d->Buf[0];
+	char *Out = Start;
+	char *OutEnd = Out + d->Buf.Length();
+	char *InEnd = In + Len;
+	while (*In && In < InEnd)
+	{
+		if (Out >= OutEnd - 4)
 		{
-			p.Push(s, e - s);
-			if (e >= End ||
-				*e != '&')
+			// Running out of space, extend the buffer.
+			size_t Cur = Out - Start;
+			d->Buf.Length(d->Buf.Length() + 256);
+			Start = &d->Buf[0];
+			Out = Start + Cur;
+			OutEnd = Start + d->Buf.Length();
+		}
+
+		if (*In != '&')
+		{
+			*Out++ = *In++;
+			continue;
+		}
+
+		In++; // Skip the '&'		
+		char16 c16 = 0;
+		if (*In == '#')
+		{
+			In++;
+			if (*In == 'x')
+				c16 = htoi(++In);
+			else
+				c16 = atoi(In);
+
+			In = strchr(In, ';');
+			if (In)
 			{
-				break;
+				In++;
 			}
 			else
 			{
-				e++;
-				if (*e == '#')
-				{
-					e++;
-					char16 c16;
-					if (*e == 'x')
-						c16 = htoi(++e);
-					else
-						c16 = atoi(e);
-
-					char *c8 = LgiNewUtf16To8(&c16, sizeof(char16));
-					if (c8)
-					{
-						p.Push(c8);
-						DeleteArray(c8);
-					}
-					s = strchr(e, ';');
-					if (s) s++;
-				}
-				else
-				{
-					int len;
-					char *Col = strchr(e, ';');
-					char16 Def = 0;
-					if (Col && (len = (Col - e)) < 16)
-					{
-						char tmp[16];
-						memcpy(tmp, e, len);
-						tmp[len] = 0;
-						Def = d->Entities.Find(tmp);
-						if (Def)
-						{
-							LgiAssert(Def <= 0xff);
-							uchar u = Def;
-							p.Write(&u, 1);
-							s = Col + 1;
-						}
-					}
-					if (!Def)
-					{
-						p.Write((char*)"&", 1);
-						s = e;
-					}
-				}
+				LgiAssert(0);
 			}
 		}
 		else
 		{
-			p.Push(s);
-			break;
+			int len;
+			char *Col = strnchr(In, ';', 16);
+
+			if (Col && (len = (Col - In)) < 16)
+			{
+				char tmp[16];
+				memcpy(tmp, In, len);
+				tmp[len] = 0;
+				
+				c16 = d->Entities.Find(tmp);
+				if (c16)
+					In = Col + 1;
+			}
+			if (!c16)
+			{
+				// Not a real named entity, so just emit the ampersand.
+				*Out++ = '&';
+			}
+		}
+
+		if (c16)
+		{
+			GAutoString c8(LgiNewUtf16To8(&c16, sizeof(char16)));
+			if (c8)
+			{
+				for (char *c = c8; *c; c++)
+					*Out++ = *c;
+			}
 		}
 	}
 
-	return p.NewStr();
+	return Alloc->Alloc(Start, Out - Start);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -371,7 +388,7 @@ void GXmlTag::EmptyChildren()
 void GXmlTag::Empty(bool Deep)
 {
 	EmptyAttributes();
-	DeleteArray(Content);
+	Allocator->Free(Content);
 	SetTag(NULL);
 	
 	if (Deep)
@@ -665,21 +682,10 @@ bool GXmlTag::Dump(int Depth)
 	return true;
 }
 
-bool GXmlTag::SetContent(const char *c)
-{
-	if (c == Content)
-		return true;
-	DeleteArray(Content);
-	Content = NewStr(c);
-	return c == NULL || Content != NULL;
-}
-
 bool GXmlTag::SetContent(int i)
 {
-	DeleteArray(Content);
 	char s[32];
-	sprintf_s(s, sizeof(s), "%i", i);
-	return (Content = NewStr(s)) != NULL;
+	return SetContent(s, sprintf_s(s, sizeof(s), "%i", i));
 }
 
 GXmlAttr *GXmlTag::_Attr(const char *Name, bool Wr)
@@ -739,6 +745,18 @@ bool GXmlTag::DelAttr(const char *Name)
 		}
 	}
 	return false;
+}
+
+bool GXmlTag::SetContent(const char *s, int len)
+{
+	char *n = s ? Allocator->Alloc(s, len > 0 ? len : strlen(s)) : NULL;
+	if (Content)
+	{
+		Allocator->Free(Content);
+		Content = NULL;
+	}
+	Content = n;
+	return s ? Content != NULL : true;
 }
 
 char *GXmlTag::GetAttr(const char *n)
@@ -966,8 +984,7 @@ void GXmlTag::ParseAttribute(GXmlTree *Tree, GXmlAlloc *Alloc, char *&t, bool &N
 						}
 						else
 						{
-							GAutoString e(Tree->DecodeEntities(t, End - t));
-							At.Value = Alloc->Alloc(e);
+							At.Value = Tree->DecodeEntities(Alloc, t, End - t);
 						}
 
 						/*
@@ -999,8 +1016,7 @@ void GXmlTag::ParseAttribute(GXmlTree *Tree, GXmlAlloc *Alloc, char *&t, bool &N
 					char *End = t;
 					while (*End && !strchr(White, *End) && *End != '>'  && *End != '/')
                         End++;
-					GAutoString e(Tree->DecodeEntities(t, End - t));
-					At.Value = Alloc->Alloc(e);
+					At.Value = Tree->DecodeEntities(Alloc, t, End - t);
 					t = End;
 				}
 			}
@@ -1093,7 +1109,8 @@ ParsingStart:
 				else
 				{
 					GAutoString Tmp(Before.NewStr());
-					PreContent->Content = DecodeEntities(Tmp, strlen(Tmp));
+					XmlNormalAlloc LocalAlloc;
+					PreContent->Content = DecodeEntities(Tag ? Tag->Allocator : &LocalAlloc, Tmp, strlen(Tmp));
 				}
 
 				return PreContent;
@@ -1221,12 +1238,12 @@ ParsingStart:
 					}
 					else
 					{
-						Tag->Content = DecodeEntities(ContentStart, t - ContentStart);
+						Tag->Content = DecodeEntities(Tag->Allocator, ContentStart, t - ContentStart);
 					}
 
 					if (!TestFlag(d->Flags, GXT_KEEP_WHITESPACE) && !ValidStr(Tag->Content))
 					{
-						DeleteArray(Tag->Content);
+						Tag->Allocator->Free(Tag->Content);
 					}
 				}
 			}

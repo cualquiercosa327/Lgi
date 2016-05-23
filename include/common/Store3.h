@@ -112,13 +112,13 @@ public:
 	/// \returns the 'nth' item in the collection
 	virtual T operator [](int idx) = 0;
 	/// \returns the index of the given item in the collection
-	virtual int IndexOf(T n) = 0;
+	virtual int IndexOf(T n, bool NoAssert = false) = 0;
 	/// Deletes an item
 	/// \returns true on success
 	virtual bool Delete(T ptr) = 0;
 	/// Inserts an item at 'idx' or the end if not supplied.
 	/// \returns true on success
-	virtual bool Insert(T ptr, int idx = -1) = 0;
+	virtual bool Insert(T ptr, int idx = -1, bool NoAssert = false) = 0;
 	/// Clears list, but doesn't delete objects.
 	/// \returns true on success
 	virtual bool Empty() = 0;
@@ -520,10 +520,10 @@ public:
 	int Length() { return 0; }
 	T operator [](int idx) { return 0; }
 	bool Delete(T ptr) { return 0; }
-	bool Insert(T ptr, int idx = -1) { return 0; }
+	bool Insert(T ptr, int idx = -1, bool NoAssert = false) { return 0; }
 	bool DeleteObjects() { return 0; }
 	bool Empty() { return false; }
-	int IndexOf(T n) { return -1; }
+	int IndexOf(T n, bool NoAssert = false) { return -1; }
 };
 
 template <typename TPub, typename TPriv, typename TStore>
@@ -592,9 +592,10 @@ public:
 		return true;
 	}
 	
-	bool Insert(TPub *pub_ptr, int idx = -1)
+	bool Insert(TPub *pub_ptr, int idx = -1, bool NoAssert = false)
 	{
-		LgiAssert(State == Store3Loaded);
+		if (!NoAssert)
+			LgiAssert(State == Store3Loaded);
 		TPriv *priv_ptr = dynamic_cast<TPriv*>(pub_ptr);
 		if (!priv_ptr)
 		{
@@ -618,9 +619,10 @@ public:
 		return true;
 	}
 	
-	int IndexOf(TPub *pub_ptr)
+	int IndexOf(TPub *pub_ptr, bool NoAssert = false)
 	{
-		LgiAssert(State == Store3Loaded);
+		if (!NoAssert)
+			LgiAssert(State == Store3Loaded);
 		TPriv *priv_ptr = dynamic_cast<TPriv*>(pub_ptr);
 		if (!priv_ptr)
 		{

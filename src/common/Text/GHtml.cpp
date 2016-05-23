@@ -4962,7 +4962,9 @@ bool GTag::Serialize(GXmlTag *t, bool Write)
 				else
 					p.Print("%%%.4x", *c);
 			}
-			t->Content = p.NewStr();
+			
+			GAutoString Tmp(p.NewStr());
+			t->SetContent(Tmp);
 		}
 		if (Props.Length())
 		{
@@ -5012,10 +5014,10 @@ bool GTag::Serialize(GXmlTag *t, bool Write)
 			Size.x = pos.x2;
 			Size.y = pos.y2;
 		}
-		if (ValidStr(t->Content))
+		if (ValidStr(t->GetContent()))
 		{
 			GStringPipe p(256);
-			char *c = t->Content;
+			char *c = t->GetContent();
 			SkipWhiteSpace(c);
 			for (; *c && *c > ' '; c++)
 			{
