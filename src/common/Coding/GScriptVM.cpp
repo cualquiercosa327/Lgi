@@ -4638,10 +4638,10 @@ case IArrayGet:
 			GCustomType *T = Var->Value.Custom.Dom;
 			size_t Sz = T->Sizeof();
 			int Index = Idx->CastInt32();
-			uint8 *Addr = Var->Value.Custom.Data + (Sz * Index);
-			#ifdef WINDOWS
-			_asm int 3
-			#endif
+			Dst->Empty();
+			Dst->Type = GV_CUSTOM;
+			Dst->Value.Custom.Dom = T;
+			Dst->Value.Custom.Data = Var->Value.Custom.Data + (Sz * Index);
 			break;
 		}
 		default:
