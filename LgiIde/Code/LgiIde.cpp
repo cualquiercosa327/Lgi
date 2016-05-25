@@ -2856,8 +2856,8 @@ bool AppWnd::GetSystemIncludePaths(::GArray<char*> &Paths)
 								(Name = prop->GetAttr("Name")) &&
 								!stricmp(Name, "IncludeDirectories"))
 							{
-								char *Bar = strchr(prop->Content, '|');
-								GToken t(Bar ? Bar + 1 : prop->Content, ";");
+								char *Bar = strchr(prop->GetContent(), '|');
+								GToken t(Bar ? Bar + 1 : prop->GetContent(), ";");
 								for (int i=0; i<t.Length(); i++)
 								{
 									char *s = t[i];

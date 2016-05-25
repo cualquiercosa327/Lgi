@@ -24,7 +24,7 @@
 
 #define DEBUG_TABLE_LAYOUT			1
 #define DEBUG_RESTYLE				0
-#define DEBUG_TAG_BY_POS			0
+#define DEBUG_TAG_BY_POS			1
 #define DEBUG_SELECTION				0
 #define DEBUG_TEXT_AREA				0
 
@@ -2036,7 +2036,6 @@ bool GTag::OnMouseClick(GMouse &m)
 {
 	bool Processed = false;
 
-	// char msg[256];
 	if (m.IsContextMenu())
 	{
 		GAutoString Uri;
@@ -2335,16 +2334,22 @@ int GTag::NearestChar(GFlowRect *Tr, int x, int y)
 
 void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool InBody, bool DebugLog)
 {
+	/*
+	InBody: Originally I had this test in the code but it seems that some test cases
+	have actual content after the body. And testing for "InBody" breaks functionality
+	for those cases (see "spam4.html" and the unsubscribe link at the end of the doc).	
+	*/
+
 	if (TagId == TAG_IMG)
 	{
 		GRect img(0, 0, Size.x - 1, Size.y - 1);
-		if (InBody && img.Overlap(x, y))
+		if (/*InBody &&*/ img.Overlap(x, y))
 		{
 			TagHit.Direct = this;
 			TagHit.Block = 0;
 		}
 	}
-	else if (InBody && TextPos.Length())
+	else if (/*InBody &&*/ TextPos.Length())
 	{
 		for (unsigned i=0; i<TextPos.Length(); i++)
 		{
@@ -2407,8 +2412,8 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool InBody, bo
 		x >= 0 &&
 		y >= 0 &&
 		x < Size.x &&
-		y < Size.y &&
-		InBody
+		y < Size.y
+		// && InBody
 	)
 	{
 		// Direct hit
@@ -2437,6 +2442,7 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool InBody, bo
 			t->Pos.y >= 0)
 		{
 			t->GetTagByPos(TagHit, x - t->Pos.x, y - t->Pos.y, Depth + 1, InBody, DebugLog);
+			int asd=0;
 		}
 	}
 }
@@ -7844,7 +7850,7 @@ void GHtml::OnMouseClick(GMouse &m)
 		GTagHit Hit;
 		if (Tag)
 		{
-			Tag->GetTagByPos(Hit, m.x, m.y + Offset, 0, DEBUG_TAG_BY_POS);
+			Tag->GetTagByPos(Hit, m.x, m.y + Offset, 0, false, DEBUG_TAG_BY_POS);
 			#if DEBUG_TAG_BY_POS
 			Hit.Dump("MouseClick");
 			#endif

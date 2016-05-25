@@ -682,6 +682,11 @@ bool GXmlTag::Dump(int Depth)
 	return true;
 }
 
+int GXmlTag::GetContentAsInt(int Default)
+{
+	return Content ? atoi(Content) : Default;
+}
+
 bool GXmlTag::SetContent(int i)
 {
 	char s[32];
@@ -1109,8 +1114,9 @@ ParsingStart:
 				else
 				{
 					GAutoString Tmp(Before.NewStr());
-					XmlNormalAlloc LocalAlloc;
-					PreContent->Content = DecodeEntities(Tag ? Tag->Allocator : &LocalAlloc, Tmp, strlen(Tmp));
+					GAutoRefPtr<GXmlAlloc> LocalAlloc(new XmlNormalAlloc);
+					PreContent->Content = DecodeEntities(Tag ? Tag->Allocator : LocalAlloc, Tmp, strlen(Tmp));
+					int asd=0;
 				}
 
 				return PreContent;

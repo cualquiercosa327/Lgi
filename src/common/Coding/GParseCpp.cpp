@@ -450,7 +450,9 @@ struct GSourceFile
 				GXmlTag *c = new GXmlTag(PreprocessSymbolNames[b.Type]);
 				r.InsertTag(c);
 				c->SetAttr("Line", b.BlockLine);
-				c->Content = LgiNewUtf16To8(b.Start, b.Len * sizeof(char16));
+				
+				GAutoString a(LgiNewUtf16To8(b.Start, b.Len * sizeof(char16)));
+				c->SetContent(a);
 			}
 			
 			t.Write(&r, &f);

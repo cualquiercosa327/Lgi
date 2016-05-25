@@ -122,6 +122,8 @@ public:
 
 	/// Get the content
 	char *GetContent() { return Content; };
+	/// Convert the content to an integer
+	int GetContentAsInt(int Default = 0);
 	/// Set the content
 	bool SetContent(const char *s, int len = -1);
 
