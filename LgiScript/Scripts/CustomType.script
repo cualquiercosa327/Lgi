@@ -11,18 +11,26 @@ struct PxRgb24
 
 struct Image
 {
-	int Width;
-	int Height;	
-	PxRgb24 Px[4+(8*6)*2];
+	int32 Width;
+	int32 Height;	
+	PxRgb24 Px[16 * 16];
 };
 
 Obj = New("PxRgb24", "10");
 Obj[2].g = 255;
 Tmp = Obj[2].g;
-if (Tmp != 225)
+if (Tmp != 255)
+{
+	Print("Custom field read failed, Tmp="+Tmp+"\n");
 	return false;
+}
 	
 Obj = New("Image");
+Obj.Width = 10;
+Obj.Height = 12;
+
+Type = typeid(Obj);
+Print("Type=", Type.Name, " sizeof=", Type.Length, "\n");
 
 Print("All tests passed.\n");
 return true;

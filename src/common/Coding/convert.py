@@ -7,15 +7,19 @@ InstructionsH = open("Instructions.h", "r").read()
 Insert = None
 
 parts = GScriptVmCpp.split(Key);
-if len(parts) < 4:
-	print "Already converted... converting back..."
+print "Parts:", len(parts)
+if len(parts) == 3:
+	print "Converting #include to inline..."
+	Insert = InstructionsH
+elif len(parts) == 1:
+	print "Converting inline to #include..."
 	parts = GScriptVmCpp.split(InstructionsH)
 	Insert = Key
 else:
-	print "Converting..."
-	Insert = InstructionsH
+	print "Unknown number of parts."
+	parts = None
 
-if len(parts) == 4:
+if len(parts) > 0:
 	out = Insert.join(parts)
 	f = open("GScriptVM.cpp", "w")
 	f.truncate(0)

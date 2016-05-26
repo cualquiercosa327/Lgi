@@ -52,6 +52,7 @@
 	_i(IRet,				75,					"Return") \
 	_i(IDomCall,			76,					"DomCall") \
 	_i(IBreak,				77,					"Break") \
+	_i(ICast,				78,					"Cast") \
 
 enum GInstruction {
 	AllInstructions

@@ -1050,14 +1050,12 @@ GDom *GVariant::CastDom()
 			return Value.Dom;
 		case GV_DOMREF:
 			return Value.DomRef.Dom;
-		/*
-		case GV_GFILE:
-			return Value.File.Ptr;
-		*/
 		case GV_STREAM:
 			return Value.Stream.Ptr;
 		case GV_GSURFACE:
 			return Value.Surface.Ptr;
+		case GV_CUSTOM:
+			return Value.Custom.Dom;
 	}
 
 	return NULL;
@@ -1803,11 +1801,11 @@ int GCustomType::FldDef::Sizeof()
 	return 0;
 }
 
-bool GCustomType::Get(int Index, GVariant &Out, uint8 *Base, int ArrayIndex)
+bool GCustomType::Get(int Index, GVariant &Out, uint8 *This, int ArrayIndex)
 {
 	if (Index < 0 ||
 		Index >= Flds.Length() ||
-		!Base)
+		!This)
 	{
 		LgiAssert(!"Invalid parameter error.");
 		return false;
@@ -1820,7 +1818,7 @@ bool GCustomType::Get(int Index, GVariant &Out, uint8 *Base, int ArrayIndex)
 		return false;
 	}
 
-	uint8 *Ptr = Base + Def.Offset;
+	uint8 *Ptr = This + Def.Offset;
 	Out.Empty();
 	
 	switch (Def.Type)
@@ -1889,18 +1887,18 @@ bool GCustomType::Get(int Index, GVariant &Out, uint8 *Base, int ArrayIndex)
 	return true;
 }
 
-bool GCustomType::Set(int Index, GVariant &In, uint8 *Base, int ArrayIndex)
+bool GCustomType::Set(int Index, GVariant &In, uint8 *This, int ArrayIndex)
 {
 	if (Index < 0 ||
 		Index >= Flds.Length() ||
-		!Base)
+		!This)
 	{
 		LgiAssert(!"Invalid parameter error.");
 		return false;
 	}
 
 	FldDef &Def = Flds[Index];
-	uint8 *Ptr = Base + Def.Offset;
+	uint8 *Ptr = This + Def.Offset;
 	if (ArrayIndex < 0 || ArrayIndex >= Def.ArrayLen)
 	{
 		LgiAssert(!"Array out of bounds.");
@@ -2018,4 +2016,54 @@ bool GCustomType::Set(int Index, GVariant &In, uint8 *Base, int ArrayIndex)
 	}
 
 	return true;
+}
+
+bool GCustomType::GetVariant(const char *Field, GVariant &Value, char *Array)
+{
+	GDomProperty p = GStringToProp(Field);
+	switch (p)
+	{
+		case ObjName:
+		{
+			Value = Name;
+			return true;
+		}
+		case ObjType:
+		{
+			Value = "GCustomType";
+			return true;
+		}
+		case ObjLength:
+		{
+			Value = (int)Sizeof();
+			return true;
+		}
+	}
+
+	LgiAssert(0);
+	return false;
+}
+
+bool GCustomType::SetVariant(const char *Name, GVariant &Value, char *Array)
+{
+	LgiAssert(0);
+	return false;
+}
+
+bool GCustomType::CallMethod(const char *MethodName, GVariant *ReturnValue, GArray<GVariant*> &Args)
+{
+	if (!MethodName || !ReturnValue)
+		return false;
+	
+	if (!_stricmp(MethodName, "New"))
+	{
+		ReturnValue->Empty();
+		ReturnValue->Type = GV_CUSTOM;
+		ReturnValue->Value.Custom.Dom = this;
+		ReturnValue->Value.Custom.Data = NULL; // Someone needs to own this memory..?
+		return true;
+	}
+
+	LgiAssert(0);
+	return false;
 }

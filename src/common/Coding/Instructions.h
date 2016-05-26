@@ -34,6 +34,67 @@ case INop:
 	#endif
 	break;
 }
+case ICast:
+{
+	#if VM_DECOMP
+	if (Log)
+		Log->Print("%p Cast %s",
+					CurrentScriptAddress - 1,
+					c.r[0].GetStr());
+	#endif
+	GResolveRef Var = Resolve();
+	uint8 Type = *c.u8++;
+	#if VM_DECOMP
+	if (Log)
+		Log->Print("to %s\n", GVariant::TypeToString(Type));
+	#endif
+	#if VM_EXECUTE
+	switch (Type)
+	{
+		case GV_INT32:
+		{
+			*Var = Var->CastInt32();
+			break;
+		}
+		case GV_STRING:
+		{
+			*Var = Var->CastString();
+			break;
+		}
+		case GV_DOM:
+		{
+			*Var = Var->CastDom();
+			break;
+		}
+		case GV_DOUBLE:
+		{
+			*Var = Var->CastDouble();
+			break;
+		}
+		case GV_INT64:
+		{
+			*Var = Var->CastInt32();
+			break;
+		}
+		case GV_BOOL:
+		{
+			*Var = Var->CastBool();
+			break;
+		}
+		default:
+		{
+			if (Log)
+				Log->Print(	"%s ICast warning: unknown type %i/%s\n",
+							Code->AddrToSourceRef(CurrentScriptAddress),
+							Var->Type,
+							GVariant::TypeToString(Var->Type));
+			Status = ScriptWarning;
+			break;
+		}
+	}
+	#endif
+	break;
+}
 case IBreak:
 {
 	#if VM_DECOMP
@@ -1202,6 +1263,7 @@ case IDomCall:
 		// case GV_GFILE:
 		case GV_STREAM:
 		case GV_GSURFACE:
+		case GV_CUSTOM:
 		{
 			GDom *dom = Dom->CastDom();
 			CheckParam(dom);

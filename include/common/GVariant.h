@@ -61,6 +61,9 @@ enum GVariantType
 	GV_GKEY,
 	/// Pointer to GStream
 	GV_STREAM,
+	/// The maximum value for the variant type.
+	/// (This is used by the scripting engine to refer to a GVariant itself)
+	GV_MAX,
 };
 
 /// Language operators
@@ -94,7 +97,7 @@ enum GOperator
 	OpNot,
 };
 
-class LgiClass GCustomType
+class LgiClass GCustomType : public GDom
 {
 	struct FldDef
 	{
@@ -128,9 +131,16 @@ public:
 	bool DefineField(const char *Name, GVariantType Type, int Bytes, int ArrayLen = 1);
 	bool DefineField(const char *Name, GCustomType *Type, int ArrayLen = 1);
 
-	// Field access
-	bool Get(int Index, GVariant &Out, uint8 *Base, int ArrayIndex = 0);
-	bool Set(int Index, GVariant &In, uint8 *Base, int ArrayIndex = 0);
+	// Field access. You can't use the GDom interface to get/set member variables because
+	// there is no provision for the 'This' pointer.
+	bool Get(int Index, GVariant &Out, uint8 *This, int ArrayIndex = 0);
+	bool Set(int Index, GVariant &In, uint8 *This, int ArrayIndex = 0);
+	
+	// Dom access. However the DOM can be used to access information about the type itself.
+	// Which doesn't need a 'This' pointer.
+	bool GetVariant(const char *Name, GVariant &Value, char *Array = NULL);
+	bool SetVariant(const char *Name, GVariant &Value, char *Array = NULL);
+	bool CallMethod(const char *MethodName, GVariant *ReturnValue, GArray<GVariant*> &Args);
 };
 
 /// A class that can be different types

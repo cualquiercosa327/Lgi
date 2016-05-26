@@ -24,7 +24,7 @@
 
 #define DEBUG_TABLE_LAYOUT			1
 #define DEBUG_RESTYLE				0
-#define DEBUG_TAG_BY_POS			1
+#define DEBUG_TAG_BY_POS			0
 #define DEBUG_SELECTION				0
 #define DEBUG_TEXT_AREA				0
 
@@ -2423,7 +2423,7 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool InBody, bo
 
 		if (DebugLog)
 		{
-			LgiTrace("%i:%sGetTagByPos DirectHit %s #%s, idx=%i, near=%i\n",
+			LgiTrace("%i:GetTagByPos DirectHit %s #%s, idx=%i, near=%i\n",
 				Depth,
 				Tag.Get(),
 				HtmlId,

@@ -52,10 +52,24 @@
 <span class=opt1>[else if (<span class=exp>expression</span>) { <span class=state>statements</span>; }]</span>
 <span class=opt2>[else { <span class=state>statements</span>; }]</span></pre>
 				
-		<pre>while (<span class=exp>expression</span>) { <span class=state>statements</span>; }</pre>
-		<pre>for (<span class=exp>initial_expression</span>; <span class=exp>condition_expression</span>; <span class=exp>iterate_expression</span>) { <span class=state>statements</span>; }</pre>
-		<pre>function <span class=name>method_name</span>([<span class=exp>arg1</span>, <span class=exp>arg2</span>, ...]) { <span class=state>statements</span>; }</pre>
-		<pre>extern "dynamic_library" return_type <span class=name>method_name</span>([<span class=exp>arg1</span>, <span class=exp>arg2</span>, ...]);</pre>
+		<pre>while (<span class=exp>expression</span>)
+{
+    <span class=state>statements</span>;
+}</pre>
+		<pre>for (<span class=exp>initial_expression</span>; <span class=exp>condition_expression</span>; <span class=exp>iterate_expression</span>)
+{
+    <span class=state>statements</span>;
+}</pre>
+		<pre>function <span class=name>method_name</span>([<span class=exp>arg1</span>, <span class=exp>arg2</span>, ...])
+{
+    <span class=state>statements</span>;
+}</pre>
+		<pre>struct <span class=name>structure_name</span>
+{
+    <span class=state>type member1</span>;
+    <span class=opt1>[type member2; ... ]</span>
+};</pre>
+		<pre>extern "dynamic_library" return_type <span class=name>method_name</span>([<span class=exp>type arg1</span>, <span class=exp>type arg2</span>, ...]);</pre>
 		<pre>return <span class=exp>expression</span>;</pre>
 		<pre><span class=exp>expression</span>;</pre>
 		
@@ -157,6 +171,63 @@
 		and to access the various members use <span class=name>var_name</span>[<span class=exp>index_expression</span>]
 		where the exp evaluates to an <b>string</b>. If you don't specify a string then you'll get back a NULL 
 		variable as the result.
+
+		<h3>Built In Types</h3>
+		These types can be used in defining structures and parameters to external functions:<br>
+		<br>
+		<ul>
+			<li> int </li>
+			<li> short </li>
+			<li> long </li>
+			<li> int8 </li>
+			<li> int16 </li>
+			<li> int32 </li>
+			<li> int64 </li>
+			<li> uint8 </li>
+			<li> uint16 </li>
+			<li> uint32 </li>
+			<li> uint64 </li>
+			<li> bool/boolean </li>
+			<li> double </li>
+			<li> float </li>
+			<li> char* </li>
+			<li> GDom </li>
+			<li> void* </li>
+			<li> GDateTime </li>
+			<li> GHashTable </li>
+			<li> GOperator </li>
+			<li> GView </li>
+			<li> GMouse </li>
+			<li> GKey </li>
+			<li> GVariant </li>
+		</ul><br>
+		Some of these types don't have any implementation or testing done. Integers and strings should work fine though.
+
+		<h3>Custom Types</h3>
+		You can define structures in a similar fashion to C code using the <span class=name>struct</span> keyword. For 
+		example:
+		<pre>struct PxRgb24 {
+    uint8 r;
+    uint8 g;
+    uint8 b;
+};
+struct Image
+{
+    uint32 Width;
+    uint32 Height;
+    PxRgb24 Pixels[16 * 16];
+};</pre>
+		Packing of structures is currently on 1 byte boundaries, but it would be possible to implement other settings later.
+		The <span class=name>typeid(...)</span> keyword is supported for custom types. e.g.
+<pre>Obj = New("Image");
+if (Obj)
+{
+    Type = typeid(Obj);
+    Print("TypeName=" + Type.Name + ", sizeof=" + Type.Length + "\n");
+    Delete(Obj);
+}</pre>
+<pre class=output>TypeName=Image, sizeof=772</pre>
+
 		
 		<h3>Calling extern functions</h3>
 		To call methods in dynamic libraries you first have to declare the method using the extern keyword:
@@ -170,7 +241,7 @@
 			<li> _out_ (specifies that the argument is an output, rather than an input)
 		</ul>
 		More type support will be added as needed. All non-char pointers will become "void*". The dynamic_library will
-		be password to "dlopen" or "LoadLibrary" pretty much unchanged.<br>
+		be passed to "dlopen" or "LoadLibrary" pretty much unchanged.<br>
 		<br>
 		Windows based example:
 				<pre>extern "Kernel32.dll" uint32 GetWindowsDirectoryA(_out_ char *buffer, int size);

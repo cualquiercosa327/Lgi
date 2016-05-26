@@ -6,21 +6,16 @@
 #include "GString.h"
 
 #define GetTok(c) ((c) < Tokens.Length() ? Tokens[c] : NULL)
+#define GetTokType(c) ((c) < Tokens.Length() ? ExpTok.Find(Tokens[c]) : TNone)
+#define GV_VARIANT	GV_MAX
 
 int GFunctionInfo::_Infos = 0;
 
-enum GExpTokens
+enum GTokenType
 {
-	NoToken,
-	StartRdBracket,
-	EndRdBracket,
-	Comma,
-	SemiColon,
-	StartSqBracket,
-	EndSqBracket,
-	ConstTrue,
-	ConstFalse,
-	ConstNull,
+	#define _(type, str) T##type,
+	#include "GTokenType.h"
+	#undef _
 };
 
 struct LinkFixup
@@ -60,7 +55,7 @@ struct Node
 	// -or-
 	bool Constant;
 	int Tok;
-	GExpTokens ConstTok;
+	GTokenType ConstTok;
 	// -or-
 	GFunc *ContextFunc;
 	GArray<NodeExp> Args;
@@ -80,7 +75,7 @@ struct Node
 		ScriptFunc = 0;
 		Constant = false;
 		Tok = -1;
-		ConstTok = NoToken;
+		ConstTok = TNone;
 		Reg.Empty();
 		ArrayIdx.Empty();
 	}
@@ -92,7 +87,7 @@ struct Node
 		Tok = t;
 	}
 
-	void SetConst(int t, GExpTokens e)
+	void SetConst(int t, GTokenType e)
 	{
 		Init();
 		Constant = true;
@@ -356,7 +351,7 @@ public:
 	GArray<GVariables*> Scopes;
 	GArray<LinkFixup> Fixups;
 	GHashTbl<char16*, char16*> Defines;
-	GHashTbl<char16*, GExpTokens> ExpTok;
+	GHashTbl<char16*, GTokenType> ExpTok;
 	GDom *ScriptArgs;
 	GVarRef ScriptArgsRef;
 
@@ -375,15 +370,11 @@ public:
 		ScriptArgs = NULL;
 		ScriptArgsRef.Empty();
 		
-		ExpTok.Add(sStartRdBracket, StartRdBracket);
-		ExpTok.Add(sEndRdBracket, EndRdBracket);
-		ExpTok.Add(sComma, Comma);
-		ExpTok.Add(sSemiColon, SemiColon);
-		ExpTok.Add(sStartSqBracket, StartSqBracket);
-		ExpTok.Add(sEndSqBracket, EndSqBracket);
-		ExpTok.Add(sTrue, ConstTrue);
-		ExpTok.Add(sFalse, ConstFalse);
-		ExpTok.Add(sNull, ConstNull);
+		#define LNULL NULL
+		#define _(type, str) if (str) ExpTok.Add(L##str, T##type);
+		#include "GTokenType.h"
+		#undef _
+		#undef LNULL
 
 		Types.Add("int", GV_INT32);
 		Types.Add("short", GV_INT32);
@@ -409,6 +400,7 @@ public:
 		Types.Add("GView", GV_GVIEW);
 		Types.Add("GMouse", GV_GMOUSE);
 		Types.Add("GKey", GV_GKEY);
+		Types.Add("GVariant", GV_VARIANT);
 		// Types.Add("binary", GV_BINARY);
 		// Types.Add("List", GV_LIST);
 		// Types.Add("GDom&", GV_DOMREF);
@@ -1071,8 +1063,9 @@ public:
 			if (n.IsVar())
 			{
 				// Variable
+				int p = 0;
 				bool HasScriptArgs = Scopes.Length() <= 1 && ScriptArgs != NULL;
-				GVarRef v = FindVariable(n.Variable[0].Name, !HasScriptArgs);
+				GVarRef v = FindVariable(n.Variable[p].Name, !HasScriptArgs);
 				if (v.Index < 0)
 				{
 					if (HasScriptArgs)
@@ -1102,15 +1095,36 @@ public:
 					}
 					else return false;
 				}
+				else if (n.ConstTok == TTypeId)
+				{
+					if (!v.IsReg())
+					{
+						// Because we are casting to it's DOM ptr,
+						// make sure it's a register first so we don't lose the
+						// actual variable.
+						GVarRef reg;
+						if (!AllocReg(reg, _FL))
+							return OnError(n.Tok, "Couldn't alloc register.");
+						
+						Asm2(n.Tok, IAssign, reg, v);
+						v = reg;
+					}
+
+					// Casting to DOM will give as access to the type info for a GCustomType.
+					// This currently doesn't work with other types :(					
+					Asm1(n.Tok, ICast, v);
+					uint8 Type = GV_DOM;
+					Code->ByteCode.Add(&Type, sizeof(Type));
+				}
 
 				n.Reg = v;
 				LValue = NULL;
 
 				// Does it have an array deref?
-				if (n.Variable[0].Array.Length())
+				if (n.Variable[p].Array.Length())
 				{
 					// Evaluate the array indexing expression
-					if (!AsmExpression(&n.ArrayIdx, n.Variable[0].Array))
+					if (!AsmExpression(&n.ArrayIdx, n.Variable[p].Array))
 					{
 						return OnError(n.Tok, "Error creating bytecode for array index.");
 					}
@@ -1126,7 +1140,7 @@ public:
 				}
 
 				// Load DOM parts...
-				for (unsigned p=1; p<n.Variable.Length(); p++)
+				for (++p; p<n.Variable.Length(); p++)
 				{
 					GVarRef Name, Arr;
 					GArray<GVarRef> Args;
@@ -1198,17 +1212,17 @@ public:
 				// Constant
 				switch (n.ConstTok)
 				{
-					case ConstTrue:
+					case TTrue:
 					{
 						AllocConst(n.Reg, true);
 						break;
 					}
-					case ConstFalse:
+					case TFalse:
 					{
 						AllocConst(n.Reg, false);
 						break;
 					}
-					case ConstNull:
+					case TNull:
 					{
 						AllocNull(n.Reg);
 						break;
@@ -1379,229 +1393,246 @@ public:
 
 		return true;
 	}
+	
+	bool DoVariableNode(uint32 &Cur, Node &Var, char16 *&t)
+	{
+		Var.SetVar(t, Cur);
+
+		while ((t = GetTok(Cur+1)))
+		{
+			// Get the last variable part...
+			Node::VariablePart &vp = Var.Variable.Last();
+
+			// Check for array index...
+			if (StricmpW(t, sStartSqBracket) == 0)
+			{
+				// Got array index
+				Cur += 2;
+				if (!Expression(Cur, vp.Array))
+					return OnError(Cur, "Couldn't parse array index expression.");
+				if (!(t = GetTok(Cur)) || StricmpW(t, sEndSqBracket) != 0)
+				{
+					return OnError(Cur, "Expecting ']', didn't get it.");
+				}
+
+				t = GetTok(Cur+1);
+			}
+			else if (StricmpW(t, sStartRdBracket) == 0)
+			{
+				Cur += 2;
+				t = GetTok(Cur);
+
+				vp.Call = true;
+				if (t && StricmpW(t, sEndRdBracket))
+				{
+					while (true)
+					{
+						GAutoPtr<Node::NodeExp> e(new Node::NodeExp);
+						if (!e)
+							return OnError(Cur, "Mem alloc error.");
+
+						if (!Expression(Cur, *e))
+							return OnError(Cur, "Couldn't parse func call argument expression.");
+						
+						vp.Args.Add(e.Release());
+						
+						t = GetTok(Cur);
+						if (!t)
+							return OnError(Cur, "Unexpected end of file.");
+
+						if (!StricmpW(t, sComma))
+							Cur++;
+						else if (!StricmpW(t, sEndRdBracket))
+							break;
+						else
+							return OnError(Cur, "Expecting ',', didn't get it.");
+					}
+				}
+				
+				t = GetTok(Cur+1);
+			}
+			
+			// Check for DOM operator...
+			if (StricmpW(t, sPeriod) == 0)
+			{
+				// Got Dom operator
+				Cur += 2;
+				t = GetTok(Cur);
+				if (!t)
+					return OnError(Cur, "Unexpected eof.");
+
+				Var.Variable.New().Name = t;
+			}
+			else break;
+		}
+		
+		return true;
+	}
 
 	/// Parse expression into a node tree
 	bool Expression(uint32 &Cur, GArray<Node> &n, int Depth = 0)
 	{
-		if (Cur < Tokens.Length())
-		{
-			char16 *t;
-			bool PrevIsOp = true;
-			while ((t = Tokens[Cur]))
-			{
-				GExpTokens Tok = ExpTok.Find(t);
-				if (Tok == StartRdBracket)
-				{
-					Cur++;
+		if (Cur >= Tokens.Length())
+			return OnError(Cur, "Unexpected end of file.");
 
-					if (!Expression(Cur, n[n.Length()].Child, Depth + 1))
-						return false;
-					PrevIsOp = false;
-				}
-				else if (Tok == EndRdBracket)
+		char16 *t;
+		bool PrevIsOp = true;
+		while ((t = Tokens[Cur]))
+		{
+			GTokenType Tok = ExpTok.Find(t);
+			
+			if (Tok == TTypeId)
+			{
+				char16 *v;
+				if (!DoTypeId(Cur, v))
+					return false;
+
+				Node &Var = n.New();
+				t = v;
+				Cur--;
+				DoVariableNode(Cur, Var, t);
+				Var.ConstTok = TTypeId;
+				Cur++;
+			}
+			else if (Tok == TStartRdBracket)
+			{
+				Cur++;
+
+				if (!Expression(Cur, n[n.Length()].Child, Depth + 1))
+					return false;
+				PrevIsOp = false;
+			}
+			else if (Tok == TEndRdBracket)
+			{
+				if (Depth > 0)
+					Cur++;
+				break;
+			}
+			else if (Tok == TComma || Tok == TSemiColon)
+			{
+				break;
+			}
+			else if (Depth == 0 && Tok == TEndSqBracket)
+			{
+				break;
+			}
+			else if (Tok == TTrue || Tok == TFalse || Tok == TNull)
+			{
+				n.New().SetConst(Cur++, Tok);
+			}
+			else
+			{
+				GOperator o = IsOp(t, PrevIsOp);
+				if (o != OpNull)
 				{
-					if (Depth > 0)
-						Cur++;
-					break;
-				}
-				else if (Tok == Comma || Tok == SemiColon)
-				{
-					break;
-				}
-				else if (Depth == 0 && Tok == EndSqBracket)
-				{
-					break;
-				}
-				else if (Tok == ConstTrue || Tok == ConstFalse || Tok == ConstNull)
-				{
-					n.New().SetConst(Cur++, Tok);
+					// Operator
+					PrevIsOp = 1;
+					n.New().SetOp(o, Cur);
 				}
 				else
 				{
-					GOperator o = IsOp(t, PrevIsOp);
-					if (o != OpNull)
+					PrevIsOp = 0;
+
+					GVariant m;
+					m = t;
+					GFunc *f = Methods.Find(m.Str());
+					GFunctionInfo *sf = 0;
+					char16 *Next;
+					if (f)
 					{
-						// Operator
-						PrevIsOp = 1;
-						n.New().SetOp(o, Cur);
+						Node &Call = n.New();
+						Call.SetContextFunction(f, Cur++);
+
+						// Now parse arguments
+						
+						// Get the start bracket
+						if ((t = GetTok(Cur)))
+						{
+							if (StricmpW(t, sStartRdBracket) == 0)
+								Cur++;
+							else return OnError(Cur, "Function missing '('");
+						}
+						else return OnError(Cur, "No token.");
+						
+						// Parse the args as expressions
+						while ((t = GetTok(Cur)))
+						{
+							if (StricmpW(t, sComma) == 0)
+							{
+								// Do nothing...
+								Cur++;
+							}
+							else if (StricmpW(t, sEndRdBracket) == 0)
+							{
+								break;
+							}
+							else if (!Expression(Cur, Call.Args.New()))
+							{
+								return OnError(Cur, "Can't parse function argument.");
+							}
+						}
+					}
+					else if
+					(
+						(
+							sf = Code->GetMethod
+							(
+								m.Str(),
+								(Next = GetTok(Cur+1)) != 0
+								&&
+								StricmpW(Next, sStartRdBracket) == 0
+							)
+						)
+					)
+					{
+						Node &Call = n.New();
+
+						Call.SetScriptFunction(sf, Cur++);
+
+						// Now parse arguments
+						
+						// Get the start bracket
+						if ((t = GetTok(Cur)))
+						{
+							if (StricmpW(t, sStartRdBracket) == 0)
+								Cur++;
+							else return OnError(Cur, "Function missing '('");
+						}
+						else return OnError(Cur, "No token.");
+						
+						// Parse the args as expressions
+						while ((t = GetTok(Cur)))
+						{
+							if (StricmpW(t, sComma) == 0)
+							{
+								// Do nothing...
+								Cur++;
+							}
+							else if (StricmpW(t, sEndRdBracket) == 0)
+							{
+								break;
+							}
+							else if (!Expression(Cur, Call.Args[Call.Args.Length()]))
+							{
+								return OnError(Cur, "Can't parse function argument.");
+							}
+						}
+					}
+					else if (IsAlpha(*t))
+					{
+						// Variable...
+						Node &Var = n.New();
+						if (!DoVariableNode(Cur, Var, t))
+							return false;
 					}
 					else
 					{
-						PrevIsOp = 0;
-
-						GVariant m;
-						m = t;
-						GFunc *f = Methods.Find(m.Str());
-						GFunctionInfo *sf = 0;
-						char16 *Next;
-						if (f)
-						{
-							Node &Call = n.New();
-							Call.SetContextFunction(f, Cur++);
-
-							// Now parse arguments
-							
-							// Get the start bracket
-							if ((t = GetTok(Cur)))
-							{
-								if (StricmpW(t, sStartRdBracket) == 0)
-									Cur++;
-								else return OnError(Cur, "Function missing '('");
-							}
-							else return OnError(Cur, "No token.");
-							
-							// Parse the args as expressions
-							while ((t = GetTok(Cur)))
-							{
-								if (StricmpW(t, sComma) == 0)
-								{
-									// Do nothing...
-									Cur++;
-								}
-								else if (StricmpW(t, sEndRdBracket) == 0)
-								{
-									break;
-								}
-								else if (!Expression(Cur, Call.Args.New()))
-								{
-									return OnError(Cur, "Can't parse function argument.");
-								}
-							}
-						}
-						else if
-						(
-							(
-								sf = Code->GetMethod
-								(
-									m.Str(),
-									(Next = GetTok(Cur+1)) != 0
-									&&
-									StricmpW(Next, sStartRdBracket) == 0
-								)
-							)
-						)
-						{
-							Node &Call = n.New();
-
-							Call.SetScriptFunction(sf, Cur++);
-
-							// Now parse arguments
-							
-							// Get the start bracket
-							if ((t = GetTok(Cur)))
-							{
-								if (StricmpW(t, sStartRdBracket) == 0)
-									Cur++;
-								else return OnError(Cur, "Function missing '('");
-							}
-							else return OnError(Cur, "No token.");
-							
-							// Parse the args as expressions
-							while ((t = GetTok(Cur)))
-							{
-								if (StricmpW(t, sComma) == 0)
-								{
-									// Do nothing...
-									Cur++;
-								}
-								else if (StricmpW(t, sEndRdBracket) == 0)
-								{
-									break;
-								}
-								else if (!Expression(Cur, Call.Args[Call.Args.Length()]))
-								{
-									return OnError(Cur, "Can't parse function argument.");
-								}
-							}
-						}
-						else if (IsAlpha(*t))
-						{
-							// Variable...
-							Node &Var = n.New();
-							Var.SetVar(t, Cur);
-
-							while ((t = GetTok(Cur+1)))
-							{
-								// Get the last variable part...
-								Node::VariablePart &vp = Var.Variable[Var.Variable.Length()-1];
-
-								// Check for array index...
-								if (StricmpW(t, sStartSqBracket) == 0)
-								{
-									// Got array index
-									Cur += 2;
-									if (!Expression(Cur, vp.Array))
-										return OnError(Cur, "Couldn't parse array index expression.");
-									if (!(t = GetTok(Cur)) || StricmpW(t, sEndSqBracket) != 0)
-									{
-										return OnError(Cur, "Expecting ']', didn't get it.");
-									}
-
-									t = GetTok(Cur+1);
-								}
-								else if (StricmpW(t, sStartRdBracket) == 0)
-								{
-									Cur += 2;
-									t = GetTok(Cur);
-
-									vp.Call = true;
-									if (t && StricmpW(t, sEndRdBracket))
-									{
-										while (true)
-										{
-											GAutoPtr<Node::NodeExp> e(new Node::NodeExp);
-											if (!e)
-												return OnError(Cur, "Mem alloc error.");
-
-											if (!Expression(Cur, *e))
-												return OnError(Cur, "Couldn't parse func call argument expression.");
-											
-											vp.Args.Add(e.Release());
-											
-											t = GetTok(Cur);
-											if (!t)
-												return OnError(Cur, "Unexpected end of file.");
-
-											if (!StricmpW(t, sComma))
-												Cur++;
-											else if (!StricmpW(t, sEndRdBracket))
-												break;
-											else
-												return OnError(Cur, "Expecting ',', didn't get it.");
-										}
-									}
-									
-									t = GetTok(Cur+1);
-								}
-								
-								// Check for DOM operator...
-								if (StricmpW(t, sPeriod) == 0)
-								{
-									// Got Dom operator
-									Cur += 2;
-									t = GetTok(Cur);
-									if (!t)
-										return OnError(Cur, "Unexpected eof.");
-
-									Var.Variable.New().Name = t;
-								}
-								else break;
-							}
-						}
-						else
-						{
-							n.New().SetConst(Cur, NoToken);
-						}
+						n.New().SetConst(Cur, TLiteral);
 					}
-
-					Cur++;
 				}
+
+				Cur++;
 			}
-		}
-		else
-		{
-			Log->Print("%s:%i - Unexpected end of file.\n", _FL);
-			return false;
 		}
 
 		return true;
@@ -1970,6 +2001,27 @@ public:
 		return false;
 	}
 
+	/// Converts a variable to it's type information
+	bool DoTypeId(uint32 &Cur, char16 *&Var)
+	{
+		if (GetTokType(Cur) != TTypeId)
+			return OnError(Cur, "Expecting 'typeid'.");
+		Cur++;
+		if (GetTokType(Cur) != TStartRdBracket)
+			return OnError(Cur, "Expecting '('.");
+		Cur++;
+		char16 *t = GetTok(Cur);
+		if (!t || !IsAlpha(*t))
+			return OnError(Cur, "Expecting variable name.");
+		Cur++;
+		if (GetTokType(Cur) != TEndRdBracket)
+			return OnError(Cur, "Expecting ')'.");
+		Cur++;
+
+		Var = t;
+		return true;
+	}
+
 	/// Parses statements
 	bool DoStatements(uint32 &Cur, bool *LastWasReturn, bool MoreThanOne = true)
 	{
@@ -1978,58 +2030,72 @@ public:
 			char16 *t = GetTok(Cur);
 			if (!t)
 				break;
-
-			if (StricmpW(t, sSemiColon) == 0)
+			GTokenType Tok = ExpTok.Find(t);
+			switch (Tok)
 			{
-				Cur++;
-			}
-			else if (!StricmpW(t, sReturn))
-			{
-				Cur++;
-				if (!DoReturn(Cur))
-					return false;
-				if (LastWasReturn)
-					*LastWasReturn = true;
-			}
-			else if (!StricmpW(t, sEndCurlyBracket) ||
-					 !StricmpW(t, sFunction))
-			{
-				break;
-			}
-			else if (!StricmpW(t, sIf))
-			{
-				if (!DoIf(Cur))
-					return false;
-				if (LastWasReturn)
-					*LastWasReturn = false;
-			}
-			else if (!StricmpW(t, sFor))
-			{
-				if (!DoFor(Cur))
-					return false;
-				if (LastWasReturn)
-					*LastWasReturn = false;
-			}
-			else if (!StricmpW(t, sWhile))
-			{
-				if (!DoWhile(Cur))
-					return false;
-				if (LastWasReturn)
-					*LastWasReturn = false;
-			}
-			else if (!StricmpW(t, sExtern))
-			{
-				if (!DoExtern(Cur))
-					return false;
-				if (LastWasReturn)
-					*LastWasReturn = false;
-			}
-			else
-			{
-				if (!DoExpression(Cur, 0))
-					return false;
-				if (LastWasReturn)
-					*LastWasReturn = false;
+				case TTypeId:
+				{
+					return OnError(Cur, "typeif only valid in an expression.");
+				}
+				case TSemiColon:
+				{
+					Cur++;
+					break;
+				}
+				case TReturn:
+				{
+					Cur++;
+					if (!DoReturn(Cur))
+						return false;
+					if (LastWasReturn)
+						*LastWasReturn = true;
+					break;
+				}
+				case TEndCurlyBracket:
+				case TFunction:
+				{
+					return true;
+				}
+				case TIf:
+				{
+					if (!DoIf(Cur))
+						return false;
+					if (LastWasReturn)
+						*LastWasReturn = false;
+					break;
+				}
+				case TFor:
+				{
+					if (!DoFor(Cur))
+						return false;
+					if (LastWasReturn)
+						*LastWasReturn = false;
+					break;
+				}
+				case TWhile:
+				{
+					if (!DoWhile(Cur))
+						return false;
+					if (LastWasReturn)
+						*LastWasReturn = false;
+					break;
+				}
+				case TExtern:
+				{
+					if (!DoExtern(Cur))
+						return false;
+					if (LastWasReturn)
+						*LastWasReturn = false;
+					break;
+				}
+				default:
+				{
+					if (!DoExpression(Cur, 0))
+						return false;
+					if (LastWasReturn)
+						*LastWasReturn = false;
+					break;
+				}
 			}
 
 			if (!MoreThanOne)
@@ -2043,8 +2109,8 @@ public:
 	bool DoIf(uint32 &Cur)
 	{
 		Cur++;
-		char16 *t = GetTok(Cur);
-		if (t && !StricmpW(t, sStartRdBracket))
+		char16 *t;
+		if (GetTokType(Cur) == TStartRdBracket)
 		{
 			Cur++;
 
@@ -2770,6 +2836,44 @@ public:
 		LgiAssert(0);
 		return 0;
 	}
+	
+	int ByteSizeFromType(char *s, GVariantType t)
+	{
+		switch (t)
+		{
+			case GV_INT32:
+			{
+				char n[16], *o = n;
+				for (char *c = s; *c; c++)
+				{
+					if (IsDigit(*c) && o < n + sizeof(n) - 1)
+						*o++ = *c;
+				}
+				*o++ = 0;
+				
+				int bits = ::atoi(n);
+				switch (bits)
+				{
+					case 8:
+						return 1;
+					case 16:
+						return 2;
+				}
+				return 4;
+				break;
+			}
+			case GV_INT64:
+			{
+				return 8;
+			}
+			case GV_WSTRING:
+			{
+				return sizeof(char16);
+			}
+		}
+		
+		return 1;
+	}
 
 	/// Compiles struct construct
 	bool DoStruct(uint32 &Cur)
@@ -2865,8 +2969,7 @@ public:
 			}
 			else
 			{
-				int Bytes = 1;
-				
+				int Bytes = ByteSizeFromType(TypeName.Str(), Type);
 				if (!Def->DefineField(Name.Str(), Type, Bytes, Array))
 					return OnError(Cur, "Failed to define field '%s'.", Name.Str());
 			}

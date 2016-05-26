@@ -378,6 +378,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\src\common\Coding\GTokenType.h"
+					>
+				</File>
+				<File
 					RelativePath="..\src\common\Coding\Instructions.h"
 					>
 				</File>
@@ -397,6 +401,10 @@
 			<Filter
 				Name="Test Scripts"
 				>
+				<File
+					RelativePath=".\Scripts\CustomType.script"
+					>
+				</File>
 				<File
 					RelativePath=".\Scripts\DateTime.script"
 					>
