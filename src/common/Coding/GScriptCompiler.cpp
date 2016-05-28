@@ -153,7 +153,8 @@ GFunctionInfo *GCompiledCode::GetMethod(const char *Name, bool Create)
 {
 	for (unsigned i=0; i<Methods.Length(); i++)
 	{
-		if (!strcmp(Methods[i]->GetName(), Name))
+		const char *Fn = Methods[i]->GetName();
+		if (!strcmp(Fn, Name))
 			return Methods[i];
 	}
 
@@ -1788,7 +1789,7 @@ public:
 			}
 			else if (n[i].ScriptFunc)
 			{
-				e.Print(" %s(...)", n[i].ScriptFunc->Name.Str());
+				e.Print(" %s(...)", n[i].ScriptFunc->Name.Get());
 			}
 			else
 			{
@@ -2627,7 +2628,6 @@ public:
 				if (!ScriptMethod)
 					return OnError(Cur, "Can't define method '%s'.", FunctionName.Get());
 
-				ScriptMethod->Name = t;
 				ScriptMethod->Params = Params;
 				ScriptMethod->StartAddr = Code->ByteCode.Length();
 			}
@@ -3183,13 +3183,13 @@ public:
 					*p.u16++ = f.Func->FrameSize;
 				}
 				else return OnError(f.Tok, "Function call '%s' has wrong arg count (caller=%i, method=%i).",
-											f.Func->Name.Str(),
+											f.Func->Name.Get(),
 											f.Args,
 											f.Func->Params.Length());
 			}
 			else
 			{
-				return OnError(f.Tok, "Function '%s' not defined.", f.Func->Name.Str());
+				return OnError(f.Tok, "Function '%s' not defined.", f.Func->Name.Get());
 			}
 		}
 		Fixups.Length(0);

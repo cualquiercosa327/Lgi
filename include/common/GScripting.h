@@ -105,7 +105,7 @@ class GFunctionInfo : public GRefCount
 
 	int StartAddr;
 	int FrameSize;
-	GVariant Name;
+	GString Name;
 	GArray<GString> Params;
 
 public:
@@ -123,7 +123,7 @@ public:
 	
 	char *GetName()
 	{
-		return Name.Str();
+		return Name;
 	}
 
 	GFunctionInfo &operator =(GFunctionInfo &f)

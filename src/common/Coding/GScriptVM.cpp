@@ -472,7 +472,7 @@ public:
 		{
 			GFunctionInfo *Info = Code->Methods[m];
 			if (Info->StartAddr >= 0)
-				Fn.Add(Info->StartAddr, Info->Name.Str());
+				Fn.Add(Info->StartAddr, Info->Name);
 			else
 				LgiAssert(!"Method not defined.");
 		}
