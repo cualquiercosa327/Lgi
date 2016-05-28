@@ -14,6 +14,8 @@
 #include "GContainers.h"
 #include "GHashTable.h"
 
+class GCompiledCode;
+
 /// The different types the varient can be 
 enum GVariantType
 {
@@ -99,7 +101,8 @@ enum GOperator
 
 class LgiClass GCustomType : public GDom
 {
-	struct FldDef
+protected:
+	struct FldDef : public GDom
 	{
 		int Offset;
 		int Bytes;
@@ -109,14 +112,39 @@ class LgiClass GCustomType : public GDom
 		GCustomType *Nested;
 
 		int Sizeof();
+		bool GetVariant(const char *Name, GVariant &Value, char *Array = NULL);
 	};
 
+public:
+	struct Method : public GDom
+	{
+		GString Name;
+		GArray<GString> Params;
+		int Address;
+		int FrameSize;
+		
+		Method()
+		{
+			Address = -1;
+			FrameSize = -1;
+		}
+	};
+
+protected:
+	// Global vars
 	int Pack;
 	size_t Size;
 	GString Name;
+
+	// Fields
 	GArray<FldDef> Flds;
-	GHashTbl<const char*, int> Map;
+	GHashTbl<const char*, int> FldMap;
 	
+	// Methods
+	GArray<Method> Methods;
+	GHashTbl<const char*, Method*> MethodMap;
+	
+	// Private methods
 	int PadSize();	
 
 public:
@@ -125,11 +153,14 @@ public:
 	~GCustomType();
 	
 	size_t Sizeof();
+	const char *GetName() { return Name; }
 	int Members() { return Flds.Length(); }
 	int AddressOf(const char *Field);
 	int IndexOf(const char *Field);
 	bool DefineField(const char *Name, GVariantType Type, int Bytes, int ArrayLen = 1);
 	bool DefineField(const char *Name, GCustomType *Type, int ArrayLen = 1);
+	Method *DefineMethod(const char *Name, GArray<GString> &Params, int Address);
+	Method *GetMethod(const char *Name);
 
 	// Field access. You can't use the GDom interface to get/set member variables because
 	// there is no provision for the 'This' pointer.

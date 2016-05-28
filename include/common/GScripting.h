@@ -11,6 +11,11 @@ class GVmDebuggerCallback;
 typedef GArray<GVariant*> ArgumentArray;
 typedef bool (GScriptContext::*ScriptCmd)(GVariant *Ret, ArgumentArray &Args);
 
+#define SCOPE_REGISTER		0
+#define SCOPE_LOCAL			1
+#define SCOPE_GLOBAL		2
+#define SCOPE_OBJECT		3
+
 /// Execution status
 enum GExecutionStatus
 {
@@ -35,12 +40,12 @@ enum GFuncType
 struct GFunc
 {
 	GFuncType Type;
-	GAutoString Method;
+	GString Method;
 
 	GFunc(const char *m = 0, GFuncType t = NullFunc)
 	{
 		Type = t;
-		Method.Reset(NewStr(m));
+		Method = m;
 	}
 
 	virtual ~GFunc()
@@ -53,20 +58,20 @@ struct GFunc
 struct GHostFunc : public GFunc
 {
 	GScriptContext *Context;
-	GAutoString Args;
+	GString Args;
 	ScriptCmd Func;
 	
 	GHostFunc(const GHostFunc &f)
 	{
 		Context = f.Context;
-		Args.Reset(NewStr(f.Args));
-		Method.Reset(NewStr(f.Method));
+		Args = f.Args;
+		Method = f.Method;
 		Func = f.Func;
 	}
 	
 	GHostFunc(const char *method, const char *args, ScriptCmd proc) : GFunc(method, HostFunc)
 	{
-		Args.Reset(NewStr(args));
+		Args = args;
 		Func = proc;
 	}
 
@@ -101,7 +106,7 @@ class GFunctionInfo : public GRefCount
 	int StartAddr;
 	int FrameSize;
 	GVariant Name;
-	GArray<GVariant> Params;
+	GArray<GString> Params;
 
 public:
 	GFunctionInfo(const char *name)
@@ -169,33 +174,49 @@ class GVariables : public GArray<GVariant>
 	friend class GVirtualMachinePriv;
 
 	GHashTbl<const char*,int> Lut;
-
+	
 public:
 	int Scope;
 	int NullIndex;
-
+	GCustomType *Obj;
+	
 	GVariables(int scope)
 	{
 		Scope = scope;
 		NullIndex = -1;
+		Obj = NULL;
+	}
+	
+	GVariables(GCustomType *obj)
+	{
+		Scope = SCOPE_OBJECT;
+		NullIndex = -1;
+		Obj = obj;
 	}
 
 	int Var(const char *n, bool create = false)
 	{
-		int p = Lut.Find(n);
-		if (p)
+		if (Obj)
 		{
-			return p - 1;
+			return Obj->IndexOf(n);
 		}
-
-		if (create)
+		else
 		{
-			int Len = Length();
+			int p = Lut.Find(n);
+			if (p)
+			{
+				return p - 1;
+			}
 
-			Lut.Add(n, Len + 1);
-			Length(Len + 1);
+			if (create)
+			{
+				int Len = Length();
 
-			return Len;
+				Lut.Add(n, Len + 1);
+				Length(Len + 1);
+
+				return Len;
+			}
 		}
 
 		return -1;

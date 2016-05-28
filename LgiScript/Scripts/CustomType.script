@@ -14,6 +14,12 @@ struct Image
 	int32 Width;
 	int32 Height;	
 	PxRgb24 Px[16 * 16];
+	
+	function GetWidth(a)
+	{
+		b = 100;
+		return Width + a + b;
+	}
 };
 
 Obj = New("PxRgb24", "10");
@@ -28,6 +34,8 @@ if (Tmp != 255)
 Obj = New("Image");
 Obj.Width = 10;
 Obj.Height = 12;
+
+Print("Width=", Obj.GetWidth(1000), "\n");
 
 Type = typeid(Obj);
 Print("Type=", Type.Name, " sizeof=", Type.Length, "\n");

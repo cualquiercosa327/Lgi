@@ -377,14 +377,6 @@
 					RelativePath="..\src\common\Coding\GScriptVM.cpp"
 					>
 				</File>
-				<File
-					RelativePath="..\src\common\Coding\GTokenType.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\common\Coding\Instructions.h"
-					>
-				</File>
 				<Filter
 					Name="Hdrs"
 					>
@@ -394,6 +386,14 @@
 					</File>
 					<File
 						RelativePath="..\src\common\Coding\GScriptingPriv.h"
+						>
+					</File>
+					<File
+						RelativePath="..\src\common\Coding\GTokenType.h"
+						>
+					</File>
+					<File
+						RelativePath="..\src\common\Coding\Instructions.h"
 						>
 					</File>
 				</Filter>

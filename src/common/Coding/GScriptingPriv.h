@@ -118,9 +118,6 @@ extern const char *InstToString(GInstruction i);
 */
 
 #define MAX_REGISTER		8
-#define SCOPE_REGISTER		0
-#define SCOPE_LOCAL			1
-#define SCOPE_GLOBAL		2
 
 /// 32bit variable reference, used to track where a variable is during compilation.
 struct GVarRef

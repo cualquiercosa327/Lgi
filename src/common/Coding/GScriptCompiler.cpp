@@ -247,48 +247,74 @@ void UnEscape(T *t)
 
 class TokenRanges
 {
+	GArray<GString> FileNames;
+
 	struct Range
 	{
-		int Start;
-		GArray<int> Lines;
-		GVariant File;
+		int Start, End;
+		unsigned File;
+		int Line;
 	};
 
-	GArray<Range> r;
+	GArray<Range> Ranges;
 	char fl[MAX_PATH + 32];
 
 public:
+	TokenRanges()
+	{
+		Empty();
+	}
+
 	void Empty()
 	{
-		r.Length(0);
+		Ranges.Length(0);
 	}
 
 	int Length()
 	{
-		return r.Length();
+		return Ranges.Length();
 	}
 
 	/// Gets the file/line at a given token
 	char *operator [](int Tok)
 	{
-		for (unsigned i=0; i<r.Length(); i++)
+		Range *r = NULL;
+		
+		for (unsigned i=0; i<Ranges.Length(); i++)
 		{
-			Range &n = r[i];
-			if (Tok >= n.Start && Tok < n.Start + (int)n.Lines.Length())
+			Range *rng = &Ranges[i];
+			if (Tok >= rng->Start && Tok <= rng->End)
 			{
-				sprintf_s(fl, sizeof(fl), "%s:%i", n.File.Str(), n.Lines[Tok - n.Start]);
-				return fl;
+				r = rng;
+				break;
 			}
 		}
-		return 0;
+
+		if (!r)
+			r = &Ranges.Last();
+		
+		if (r->File >= FileNames.Length())
+		{
+			LgiAssert(!"Invalid file index.");
+			return "#err: invalid file index";
+		}
+		else
+		{
+			sprintf_s(fl, sizeof(fl), "%s:%i", FileNames[r->File].Get(), r->Line);
+		}
+
+		return fl;
 	}
 
 	char *GetLine(int Line)
 	{
-		if (r.Length() > 0)
+		if (Ranges.Length() > 0)
 		{
-			Range &Last = r.Last();
-			sprintf_s(fl, sizeof(fl), "%s:%i", Last.File.Str(), Line);
+			Range &r = Ranges.Last();
+			if (r.File < FileNames.Length())
+				sprintf_s(fl, sizeof(fl), "%s:%i", FileNames[r.File].Get(), Line);
+			else
+				return "#err: invalid file index.";
 		}
 		else
 		{
@@ -296,37 +322,36 @@ public:
 		}
 		return fl;
 	}
+	
+	unsigned GetFileIndex(const char *FileName)
+	{
+		for (unsigned i=0; i<FileNames.Length(); i++)
+		{
+			if (!_stricmp(FileName, FileNames[i]))
+				return i;
+		}
+		
+		// Add new filename
+		unsigned i = FileNames.Length();
+		FileNames[i] = FileName;
+		return i;
+	}
 
 	/// Add a file/line reference for the next token
-	void Add(const char *FileName, int Line)
+	void Add(int TokIndex, unsigned FileId, int Line)
 	{
-		const char *Empty = "";
-		const char *d = FileName ? strrchr((char*)FileName, DIR_CHAR) : 0;
-		if (d) FileName = d + 1;
-
-		if (!r.Length())
+		Range *r = Ranges.Length() ? &Ranges.Last() : NULL;
+		if (!r || r->File != FileId || r->Line != Line)
 		{
-			r[0].File = FileName;
-			r[0].Start = 0;
-			r[0].Lines.Add(Line);
+			// Start a new range...
+			r = &Ranges.New();
+			r->Start = r->End = TokIndex;
+			r->File = FileId;
+			r->Line = Line;
 		}
 		else
 		{
-			Range &Last = r.Last();
-			char *LastFile = Last.File.Str();
-			if (_stricmp(LastFile?LastFile:Empty, FileName?FileName:Empty) != 0)
-			{
-				// File changed...
-				Range &n = r.New();
-				n.File = FileName;
-				n.Start = Last.Start + Last.Lines.Length();
-				n.Lines.Add(Line);
-			}
-			else
-			{
-				// Same file...
-				Last.Lines.Add(Line);
-			}
+			r->End = TokIndex;
 		}
 	}
 };
@@ -337,6 +362,7 @@ class GCompilerPriv :
 	public GScriptUtils
 {
 	GHashTbl<const char*, GVariantType> Types;
+	int JumpLoc;
 
 public:
 	GScriptContext *SysCtx;
@@ -354,6 +380,8 @@ public:
 	GHashTbl<char16*, GTokenType> ExpTok;
 	GDom *ScriptArgs;
 	GVarRef ScriptArgsRef;
+	bool ErrShowFirstOnly;
+	GArray<GString> ErrLog;
 
 	#ifdef _DEBUG
 	GArray<GVariant> RegAllocators;
@@ -361,6 +389,7 @@ public:
 
 	GCompilerPriv() : ExpTok(0, false)
 	{
+		ErrShowFirstOnly = true;
 		SysCtx = NULL;
 		UserCtx = NULL;
 		Code = 0;
@@ -434,17 +463,22 @@ public:
 		...
 	)
 	{
-		char Buf[512];
-		va_list Arg;
-		va_start(Arg, Msg);
-		#ifndef WIN32
-		#define _vsnprintf vsnprintf
-		#endif
-		vsprintf_s(Buf, sizeof(Buf), Msg, Arg);
-		Log->Print("%s - Error: %s\n", LineOrTok < 0 ? Lines.GetLine(-LineOrTok) : Lines[LineOrTok], Buf);
-		va_end(Arg);
+		if (!ErrShowFirstOnly || ErrLog.Length() == 0)
+		{
+			char Buf[512];
+			va_list Arg;
+			va_start(Arg, Msg);
+			#ifndef WIN32
+			#define _vsnprintf vsnprintf
+			#endif
+			vsprintf_s(Buf, sizeof(Buf), Msg, Arg);
+			Log->Print("%s - Error: %s\n", LineOrTok < 0 ? Lines.GetLine(-LineOrTok) : Lines[LineOrTok], Buf);
+			va_end(Arg);
+			
+			ErrLog.New() = Buf;
+		}
 
-		return false;
+		return false; // Always return false to previous caller
 	}
 
 	void DebugInfo(int Tok)
@@ -590,6 +624,7 @@ public:
 		char16 *w = LgiNewUtf8To16(Source);
 		if (w)
 		{
+			unsigned FileIndex = Lines.GetFileIndex(FileName);
 			int Line = 1;
 			char16 *s = w, *t;
 			while ((t = LexCpp(s, LexStrdup, NULL, &Line)))
@@ -615,8 +650,6 @@ public:
 								}
 								else
 								{
-									if (Lines.Length() == 0 && FileName)
-										Lines.Add(FileName, Line);
 									DeleteArray(t);
 									return OnError(-Line, "Ctx failed to include '%s'", v.Str());
 								}
@@ -637,8 +670,6 @@ public:
 								}
 								else
 								{								
-									if (Lines.Length() == 0 && FileName)
-										Lines.Add(FileName, Line);
 									DeleteArray(t);
 									return OnError(-Line, "Couldn't include '%s'", v.Str());
 								}
@@ -648,8 +679,6 @@ public:
 						}
 						else
 						{
-							if (Lines.Length() == 0 && FileName)
-								Lines.Add(FileName, Line);
 							OnError(-Line, "No file for #include.");
 						}
 					}
@@ -658,8 +687,6 @@ public:
 						GAutoWString Name(LexCpp(s, LexStrdup));
 						if (Name && IsAlpha(*Name))
 						{
-							Lines.Add(FileName, Line);
-							
 							char16 *Start = s;
 							while (*Start && strchr(WhiteSpace, *Start))
 								Start++;
@@ -685,17 +712,17 @@ public:
 					char16 *Def = DefineValue, *f;
 					while ((f = LexCpp(Def, LexStrdup)))
 					{
+						Lines.Add(Tokens.Length(), FileIndex, Line);
 						Tokens.Add(f);
-						Lines.Add(FileName, Line);
 					}
 					DeleteArray(t);
 				}
 				else
 				{
+					Lines.Add(Tokens.Length(), FileIndex, Line);
 					Tokens.Add(t);
-					Lines.Add(FileName, Line);
 				}
-			}
+			} // end of "while (t = LexCpp)" loop
 
 			if (!Script)
 			{
@@ -937,6 +964,11 @@ public:
 		GVarRef Cur = FindVariable(n.Variable[0].Name, true);
 		if (!Cur.Valid())
 			return false;
+		
+		if (Cur.Scope == SCOPE_OBJECT)
+		{
+			int asd=0;
+		}
 
 		if (n.Variable.Length() > 1)
 		{
@@ -1063,9 +1095,9 @@ public:
 			if (n.IsVar())
 			{
 				// Variable
-				int p = 0;
+				unsigned p = 0;
 				bool HasScriptArgs = Scopes.Length() <= 1 && ScriptArgs != NULL;
-				GVarRef v = FindVariable(n.Variable[p].Name, !HasScriptArgs);
+				GVarRef v = FindVariable(n.Variable[p].Name, /*!HasScriptArgs ||*/ LValue != NULL);
 				if (v.Index < 0)
 				{
 					if (HasScriptArgs)
@@ -1093,32 +1125,56 @@ public:
 						}
 						else return false;
 					}
-					else return false;
-				}
-				else if (n.ConstTok == TTypeId)
-				{
-					if (!v.IsReg())
+					else
 					{
-						// Because we are casting to it's DOM ptr,
-						// make sure it's a register first so we don't lose the
-						// actual variable.
-						GVarRef reg;
-						if (!AllocReg(reg, _FL))
+						Node::VariablePart &vp = n.Variable[p];
+						return OnError(n.Tok, "Undefined variable: %s", vp.Name.Str());
+					}
+				}
+				else
+				{
+					if (v.Scope == SCOPE_OBJECT)
+					{
+						// We have to load the variable into a register
+						GVarRef Reg, ThisPtr, MemberIndex, Null;
+						if (!AllocReg(Reg, _FL))
 							return OnError(n.Tok, "Couldn't alloc register.");
 						
-						Asm2(n.Tok, IAssign, reg, v);
-						v = reg;
+						ThisPtr.Scope = SCOPE_LOCAL;
+						ThisPtr.Index = 0;
+						AllocConst(MemberIndex, v.Index);
+						AllocNull(Null);
+												
+						Asm4(n.Tok, IDomGet, Reg, ThisPtr, MemberIndex, Null);
+						v = Reg; // Object variable now in 'Reg'
 					}
+					
+					if (n.ConstTok == TTypeId)
+					{
+						if (!v.IsReg())
+						{
+							// Because we are casting to it's DOM ptr,
+							// make sure it's a register first so we don't lose the
+							// actual variable.
+							GVarRef reg;
+							if (!AllocReg(reg, _FL))
+								return OnError(n.Tok, "Couldn't alloc register.");
+							
+							Asm2(n.Tok, IAssign, reg, v);
+							v = reg;
+						}
 
-					// Casting to DOM will give as access to the type info for a GCustomType.
-					// This currently doesn't work with other types :(					
-					Asm1(n.Tok, ICast, v);
-					uint8 Type = GV_DOM;
-					Code->ByteCode.Add(&Type, sizeof(Type));
+						// Casting to DOM will give as access to the type info for a GCustomType.
+						// This currently doesn't work with other types :(					
+						Asm1(n.Tok, ICast, v);
+						Code->ByteCode.Add(GV_DOM);
+					}
 				}
-
+				
 				n.Reg = v;
 				LValue = NULL;
+				
+				LgiAssert(v.Scope != SCOPE_OBJECT);
 
 				// Does it have an array deref?
 				if (n.Variable[p].Array.Length())
@@ -1282,9 +1338,7 @@ public:
 					for (unsigned i=0; i<n.Args.Length(); i++)
 					{
 						if (!AsmExpression(&a[i], n.Args[i]))
-						{
 							return OnError(n.Tok, "Error creating bytecode for context function argument.");
-						}
 					}
 
 					int Len = Code->ByteCode.Length();
@@ -2497,12 +2551,36 @@ public:
 	}
 
 	// Compile a method definition
-	bool DoFunction(uint32 &Cur)
+	bool DoFunction
+	(
+		/// Cursor token index
+		uint32 &Cur,
+		/// [Optional] Current struct / class.
+		/// If not NULL this is a method definition for said class.
+		GCustomType *Struct = NULL
+	)
 	{
 		bool Status = false;
 		bool LastInstIsReturn = false;
 
-		GVariant FunctionName;
+		if (!JumpLoc)
+		{
+			int Len = Code->ByteCode.Length();
+			if (Code->ByteCode.Length(Len + 5))
+			{
+				GPtr p;
+				p.u8 = &Code->ByteCode[Len];
+				*p.u8++ = IJump;
+				*p.i32++ = 0;
+				JumpLoc = Len + 1;
+			}
+			else OnError(Cur, "Mem alloc failed.");
+		}
+
+		GString FunctionName;
+		GCustomType::Method *StructMethod = NULL; // Member function of script struct/class
+		GFunctionInfo *ScriptMethod = NULL; // Standalone scripting function
+		
 		char16 *Name = GetTok(Cur);
 		if (Name)
 		{
@@ -2512,20 +2590,15 @@ public:
 				return OnError(Cur, "Expecting '(' in function.");
 
 			FunctionName = Name;
-			GFunctionInfo *f = Code->GetMethod(FunctionName.Str(), true);
-			if (!f)
-				return OnError(Cur, "Can't define method '%s'.", FunctionName.Str());
-
-			f->Name = t;
-			f->StartAddr = Code->ByteCode.Length();
-
+		
 			// Parse parameters
+			GArray<GString> Params;
 			Cur++;
 			while ((t = GetTok(Cur)))
 			{
 				if (IsAlpha(*t))
 				{
-					f->Params.New() = t;
+					Params.New() = t;
 					Cur++;
 					if (!(t = GetTok(Cur)))
 						goto UnexpectedFuncEof;
@@ -2544,19 +2617,45 @@ public:
 				Cur++;
 			}
 
+			if (Struct)
+			{
+				StructMethod = Struct->DefineMethod(FunctionName, Params, Code->ByteCode.Length());
+			}
+			else
+			{
+				ScriptMethod = Code->GetMethod(FunctionName, true);
+				if (!ScriptMethod)
+					return OnError(Cur, "Can't define method '%s'.", FunctionName.Get());
+
+				ScriptMethod->Name = t;
+				ScriptMethod->Params = Params;
+				ScriptMethod->StartAddr = Code->ByteCode.Length();
+			}
+
 			// Parse start of body
 			if (!(t = GetTok(Cur)))
 				goto UnexpectedFuncEof;
 			if (StricmpW(t, sStartCurlyBracket))
 				return OnError(Cur, "Expecting '{'.");
 
-			// Setup new scope
-			GVariables LocalScope(SCOPE_LOCAL);
-			Scopes.Add(&LocalScope);
-			for (unsigned i=0; i<f->Params.Length(); i++)
+			// Setup new scope(s)
+			GAutoPtr<GVariables> ObjectScope;
+			if (Struct)
 			{
-				LocalScope.Var(f->Params[i].Str(), true);
+				// The object scope has to be first so that local variables take
+				// precedence over object member variables.
+				if (ObjectScope.Reset(new GVariables(Struct)))
+					Scopes.Add(ObjectScope);
 			}
+
+			GVariables LocalScope(SCOPE_LOCAL);
+			if (Struct)
+				LocalScope.Var("This", true);
+			for (unsigned i=0; i<Params.Length(); i++)
+			{
+				LocalScope.Var(Params[i], true);
+			}
+			Scopes.Add(&LocalScope);
 
 			// Parse contents of function body
 			Cur++;
@@ -2565,8 +2664,13 @@ public:
 				// End of the function?
 				if (!StricmpW(t, sEndCurlyBracket))
 				{
-					f->Name = Name;
-					f->FrameSize = LocalScope.Length();
+					if (StructMethod)
+						StructMethod->FrameSize = LocalScope.Length();
+					else if (ScriptMethod)
+						ScriptMethod->FrameSize = LocalScope.Length();
+					else
+						LgiAssert(!"What are you defining exactly?");
+					
 					Status = true;
 					Cur++;
 
@@ -2579,8 +2683,10 @@ public:
 					return OnError(Cur, "Can't compile function body.");
 			}
 			
-			// Remove local scope from scopes
-			Scopes.Length(Scopes.Length()-1);
+			// Remove any scopes we created
+			Scopes.PopLast();
+			if (Struct)
+				Scopes.PopLast();
 		}
 
 		if (!LastInstIsReturn)
@@ -2673,7 +2779,7 @@ public:
 		e->Lib.Reset(LgiNewUtf16To8(LibName));
 		Tok.DeleteAt(0, true);
 
-		e->Method.Reset(LgiNewUtf16To8(Tok.Last()));
+		e->Method = Tok.Last();
 		Tok.DeleteAt(Tok.Length()-1, true);
 
 		if (!ValidStr(e->Method))
@@ -2895,89 +3001,99 @@ public:
 		while ((t = GetTok(Cur)))
 		{
 			// End of type def?
-			if (!StricmpW(t, sEndCurlyBracket))
+			GTokenType tt = ExpTok.Find(t);
+			if (tt == TEndCurlyBracket)
 			{
 				Cur++;
-				t = GetTok(Cur);
-				if (!t || StricmpW(t, sSemiColon))
+				tt = GetTokType(Cur);
+				if (!tt || tt != TSemiColon)
 					return OnError(Cur, "Expecting ';' after '}'");
 
 				Status = true;
 				break;
 			}
-
-			// Parse member field
-			GVariant TypeName = t;
-
-			GCustomType *NestedType = 0;
-			GVariantType Type = Types.Find(TypeName.Str());
-			if (!Type)
+			
+			if (tt == TFunction)
 			{
-				// Check other custom types
-				NestedType = Code->GetType(t);
-				if (!NestedType)
-					return OnError(Cur, "Unknown type '%S' in struct definition.", t);
-
-				// Ok, nested type.
-				Type = GV_CUSTOM;
-			}
-
-			Cur++;
-			if (!(t = GetTok(Cur)))
-				goto EofError;
-
-			bool Pointer = false;
-			if (t[0] == '*' && t[1] == 0)
-			{
-				Pointer = true;
 				Cur++;
-				if (!(t = GetTok(Cur)))
-					goto EofError;
-			}
-
-			GVariant Name = t;
-			Cur++;
-			if (!(t = GetTok(Cur)))
-				goto EofError;
-
-			int Array = 1;
-			if (!StricmpW(t, sStartSqBracket))
-			{
-				// Array
-				Cur++;
-				
-				GArray<char16*> Exp;
-				while (t = GetTok(Cur))
-				{
-					Cur++;
-					if (!StricmpW(t, sEndSqBracket))
-						break;
-					Exp.Add(t);
-				}
-
-				Array = Evaluate(Exp, 0, Exp.Length()-1);
-			}
-
-			int MemberAddr = Def->AddressOf(Name.Str());
-			if (MemberAddr >= 0)
-				return OnError(Cur, "Member '%s' can't be defined twice.", Name.Str());
-
-			if (NestedType)
-			{
-				if (!Def->DefineField(Name.Str(), NestedType, Array))
-					return OnError(Cur, "Failed to define field '%s'.", Name.Str());
+				if (!DoFunction(Cur, Def))
+					return false;
 			}
 			else
 			{
-				int Bytes = ByteSizeFromType(TypeName.Str(), Type);
-				if (!Def->DefineField(Name.Str(), Type, Bytes, Array))
-					return OnError(Cur, "Failed to define field '%s'.", Name.Str());
+				// Parse member field
+				GVariant TypeName = t;
+
+				GCustomType *NestedType = 0;
+				GVariantType Type = Types.Find(TypeName.Str());
+				if (!Type)
+				{
+					// Check other custom types
+					NestedType = Code->GetType(t);
+					if (!NestedType)
+						return OnError(Cur, "Unknown type '%S' in struct definition.", t);
+
+					// Ok, nested type.
+					Type = GV_CUSTOM;
+				}
+
+				Cur++;
+				if (!(t = GetTok(Cur)))
+					goto EofError;
+
+				bool Pointer = false;
+				if (t[0] == '*' && t[1] == 0)
+				{
+					Pointer = true;
+					Cur++;
+					if (!(t = GetTok(Cur)))
+						goto EofError;
+				}
+
+				GVariant Name = t;
+				Cur++;
+				if (!(t = GetTok(Cur)))
+					goto EofError;
+
+				int Array = 1;
+				if (!StricmpW(t, sStartSqBracket))
+				{
+					// Array
+					Cur++;
+					
+					GArray<char16*> Exp;
+					while (t = GetTok(Cur))
+					{
+						Cur++;
+						if (!StricmpW(t, sEndSqBracket))
+							break;
+						Exp.Add(t);
+					}
+
+					Array = Evaluate(Exp, 0, Exp.Length()-1);
+				}
+
+				int MemberAddr = Def->AddressOf(Name.Str());
+				if (MemberAddr >= 0)
+					return OnError(Cur, "Member '%s' can't be defined twice.", Name.Str());
+
+				if (NestedType)
+				{
+					if (!Def->DefineField(Name.Str(), NestedType, Array))
+						return OnError(Cur, "Failed to define field '%s'.", Name.Str());
+				}
+				else
+				{
+					int Bytes = ByteSizeFromType(TypeName.Str(), Type);
+					if (!Def->DefineField(Name.Str(), Type, Bytes, Array))
+						return OnError(Cur, "Failed to define field '%s'.", Name.Str());
+				}
+				
+				t = GetTok(Cur);
+				if (StricmpW(t, sSemiColon))
+					return OnError(Cur, "Expecting ';'");
+				Cur++;
 			}
-			
-			t = GetTok(Cur);
-			if (StricmpW(t, sSemiColon))
-				return OnError(Cur, "Expecting ';'");
-			Cur++;
 		}
 
 		return Status;
@@ -2990,7 +3106,7 @@ public:
 	bool Compile()
 	{
 		uint32 Cur = 0;
-		int JumpLoc = 0;
+		JumpLoc = 0;
 
 		// Setup the global scope
 		Scopes.Length(0);
@@ -3010,20 +3126,6 @@ public:
 			}
 			else if (!StricmpW(t, sFunction))
 			{
-				if (!JumpLoc)
-				{
-					int Len = Code->ByteCode.Length();
-					if (Code->ByteCode.Length(Len + 5))
-					{
-						GPtr p;
-						p.u8 = &Code->ByteCode[Len];
-						*p.u8++ = IJump;
-						*p.i32++ = 0;
-						JumpLoc = Len + 1;
-					}
-					else OnError(Cur, "Mem alloc failed.");
-				}
-
 				if (!DoFunction(++Cur))
 					return false;
 			}
