@@ -7,22 +7,6 @@
 #include "GString.h"
 
 /////////////////////////////////////////////////////////////////////////
-bool LgiIsNumber(char *p)
-{
-	if (p)
-	{
-		for (uint i=0; i<strlen(p); i++)
-		{
-			if ((p[i]<'0' || p[i]>'9') && p[i]!='-')
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-	return false;
-}
-
 char *LgiSkipDelim(char *p, const char *Delimiter, bool NotDelim)
 {
 	if (!p)

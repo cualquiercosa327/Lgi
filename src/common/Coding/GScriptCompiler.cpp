@@ -4,6 +4,7 @@
 #include "GScriptingPriv.h"
 #include "GLexCpp.h"
 #include "GString.h"
+#include "GToken.h"
 
 #define GetTok(c) ((c) < Tokens.Length() ? Tokens[c] : NULL)
 #define GetTokType(c) ((c) < Tokens.Length() ? ExpTok.Find(Tokens[c]) : TNone)
@@ -623,121 +624,125 @@ public:
 	bool Lex(char *Source, const char *FileName)
 	{
 		char16 *w = LgiNewUtf8To16(Source);
-		if (w)
+		if (!w)
+			return OnError(0, "Couldn't convert source to wide chars.");
+		
+		unsigned FileIndex = Lines.GetFileIndex(FileName);
+		int Line = 1;
+		char16 *s = w, *t;
+		while ((t = LexCpp(s, LexStrdup, NULL, &Line)))
 		{
-			unsigned FileIndex = Lines.GetFileIndex(FileName);
-			int Line = 1;
-			char16 *s = w, *t;
-			while ((t = LexCpp(s, LexStrdup, NULL, &Line)))
+			if (*t == '#')
 			{
-				if (*t == '#')
+				int Len;
+				if (!StrnicmpW(t + 1, sInclude, Len = StrlenW(sInclude)))
 				{
-					int Len;
-					if (!StrnicmpW(t + 1, sInclude, Len = StrlenW(sInclude)))
+					GAutoWString Raw(LexCpp(s, LexStrdup));
+					GAutoWString File(TrimStrW(Raw, (char16*)L"\"\'"));
+					if (File)
 					{
-						GAutoWString Raw(LexCpp(s, LexStrdup));
-						GAutoWString File(TrimStrW(Raw, (char16*)L"\"\'"));
-						if (File)
-						{
-							GVariant v;
-							char *IncCode = 0;
-							v.OwnStr(File.Release());
+						GVariant v;
+						GAutoString IncCode;
+						v.OwnStr(File.Release());
 
-							if (UserCtx)
+						if (UserCtx)
+						{
+							IncCode.Reset(UserCtx->GetIncludeFile(v.Str()));
+							if (IncCode)
 							{
-								if ((IncCode = UserCtx->GetIncludeFile(v.Str())))
-								{
-									Lex(IncCode, v.Str());
-								}
-								else
-								{
-									DeleteArray(t);
-									return OnError(-Line, "Ctx failed to include '%s'", v.Str());
-								}
+								Lex(IncCode, v.Str());
 							}
 							else
 							{
-								if (LgiIsRelativePath(v.Str()))
-								{
-									char p[MAX_PATH];
-									LgiMakePath(p, sizeof(p), FileName, "..");
-									LgiMakePath(p, sizeof(p), p, v.Str());
-									v = p;
-								}
-								
-								if (FileExists(v.Str()))
-								{
-									Lex(IncCode, v.Str());
-								}
-								else
-								{								
-									DeleteArray(t);
-									return OnError(-Line, "Couldn't include '%s'", v.Str());
-								}
+								DeleteArray(t);
+								return OnError(-Line, "Ctx failed to include '%s'", v.Str());
 							}
-
-							DeleteArray(IncCode);
 						}
 						else
 						{
-							OnError(-Line, "No file for #include.");
+							if (LgiIsRelativePath(v.Str()))
+							{
+								char p[MAX_PATH];
+								LgiMakePath(p, sizeof(p), FileName, "..");
+								LgiMakePath(p, sizeof(p), p, v.Str());
+								v = p;
+							}
+							
+							if (FileExists(v.Str()))
+							{
+								IncCode.Reset(ReadTextFile(v.Str()));
+								if (IncCode)
+									Lex(IncCode, v.Str());
+								else
+								{
+									DeleteArray(t);
+									return OnError(-Line, "Couldn't read '%s'", v.Str());
+								}
+							}
+							else
+							{								
+								DeleteArray(t);
+								return OnError(-Line, "Couldn't include '%s'", v.Str());
+							}
 						}
 					}
-					else if (!StrnicmpW(t + 1, sDefine, Len = StrlenW(sDefine)))
+					else
 					{
-						GAutoWString Name(LexCpp(s, LexStrdup));
-						if (Name && IsAlpha(*Name))
-						{
-							char16 *Start = s;
-							while (*Start && strchr(WhiteSpace, *Start))
-								Start++;
-							char16 *Eol = StrchrW(Start, '\n');
-							if (!Eol)
-								Eol = Start + StrlenW(Start);
-							while (Eol > Start && strchr(WhiteSpace, Eol[-1]))
-								Eol--;
-							
-							Defines.Add(Name, NewStrW(Start, Eol - Start));
-							
-							s = Eol;
-						}
+						OnError(-Line, "No file for #include.");
 					}
-
-					DeleteArray(t);
-					continue;
 				}
-
-				char16 *DefineValue;
-				if (IsAlpha(*t) && (DefineValue = Defines.Find(t)))
+				else if (!StrnicmpW(t + 1, sDefine, Len = StrlenW(sDefine)))
 				{
-					char16 *Def = DefineValue, *f;
-					while ((f = LexCpp(Def, LexStrdup)))
+					GAutoWString Name(LexCpp(s, LexStrdup));
+					if (Name && IsAlpha(*Name))
 					{
-						Lines.Add(Tokens.Length(), FileIndex, Line);
-						Tokens.Add(f);
+						char16 *Start = s;
+						while (*Start && strchr(WhiteSpace, *Start))
+							Start++;
+						char16 *Eol = StrchrW(Start, '\n');
+						if (!Eol)
+							Eol = Start + StrlenW(Start);
+						while (Eol > Start && strchr(WhiteSpace, Eol[-1]))
+							Eol--;
+						
+						Defines.Add(Name, NewStrW(Start, Eol - Start));
+						
+						s = Eol;
 					}
-					DeleteArray(t);
 				}
-				else
+
+				DeleteArray(t);
+				continue;
+			}
+
+			char16 *DefineValue;
+			if (IsAlpha(*t) && (DefineValue = Defines.Find(t)))
+			{
+				char16 *Def = DefineValue, *f;
+				while ((f = LexCpp(Def, LexStrdup)))
 				{
 					Lines.Add(Tokens.Length(), FileIndex, Line);
-					Tokens.Add(t);
+					Tokens.Add(f);
 				}
-			} // end of "while (t = LexCpp)" loop
-
-			if (!Script)
-			{
-				Script = w;
+				DeleteArray(t);
 			}
 			else
 			{
-				DeleteArray(w);
+				Lines.Add(Tokens.Length(), FileIndex, Line);
+				Tokens.Add(t);
 			}
+		} // end of "while (t = LexCpp)" loop
 
-			return true;
+		if (!Script)
+		{
+			Script = w;
+		}
+		else
+		{
+			DeleteArray(w);
 		}
 
-		return false;
+		return true;
 	}
 
 	/// Create a null var ref
@@ -966,11 +971,6 @@ public:
 		if (!Cur.Valid())
 			return false;
 		
-		if (Cur.Scope == SCOPE_OBJECT)
-		{
-			int asd=0;
-		}
-
 		if (n.Variable.Length() > 1)
 		{
 			// Do any initial array dereference
@@ -1063,6 +1063,7 @@ public:
 		else
 		{
 			// Look up the array index if any
+			GVarRef This = { SCOPE_LOCAL, 0 };
 			if (n.Variable[0].Array.Length())
 			{
 				// Assemble the array index's expression into 'Idx'
@@ -1071,16 +1072,35 @@ public:
 				if (!AsmExpression(&Idx, n.Variable[0].Array))
 					return OnError(n.Tok, "Error creating bytecode for array index.");
 
-				// Assemble array store instruction
-				Asm3(n.Tok, IArraySet, Cur, Idx, Value);
+				if (Cur.Scope == SCOPE_OBJECT)
+				{
+					GVarRef Name;
+					AllocConst(Name, n.Variable[0].Name.Str());
+					Asm4(n.Tok, IDomSet, This, Name, Idx, Value);
+				}
+				else
+				{
+					// Assemble array store instruction
+					Asm3(n.Tok, IArraySet, Cur, Idx, Value);
+				}
 
 				// Cleanup
 				DeallocReg(Idx);
 			}
 			else
 			{
-				// Non array based assignment
-				Asm2(n.Tok, IAssign, Cur, Value);
+				if (Cur.Scope == SCOPE_OBJECT)
+				{
+					GVarRef Name, Null;
+					AllocNull(Null);
+					AllocConst(Name, n.Variable[0].Name.Str());
+					Asm4(n.Tok, IDomSet, This, Name, Null, Value);
+				}
+				else
+				{
+					// Non array based assignment
+					Asm2(n.Tok, IAssign, Cur, Value);
+				}
 			}
 		}
 
@@ -1183,7 +1203,7 @@ public:
 					// Evaluate the array indexing expression
 					if (!AsmExpression(&n.ArrayIdx, n.Variable[p].Array))
 					{
-						return OnError(n.Tok, "Error creating bytecode for array index.");
+						return OnError(n.Tok, "Error creating byte code for array index.");
 					}
 
 					// Do we need to create code to load the value from the array?
@@ -1680,9 +1700,16 @@ public:
 						if (!DoVariableNode(Cur, Var, t))
 							return false;
 					}
-					else
+					else if (*t == '\'' ||
+							*t == '\"' ||
+							LgiIsNumber(t))
 					{
 						n.New().SetConst(Cur, TLiteral);
+					}
+					else
+					{
+						LgiIsNumber(t);
+						return OnError(Cur, "Unknown token '%S'", t);
 					}
 				}
 
@@ -1770,30 +1797,32 @@ public:
 		GStringPipe e;
 		for (unsigned i=0; i<n.Length(); i++)
 		{
+			if (i)
+				e.Print(".");
 			if (n[i].Op)
 			{
-				e.Print(" op(%i)", n[i].Op);
+				e.Print("op(%i)", n[i].Op);
 			}
 			else if (n[i].Variable.Length())
 			{
-				e.Print(" %s", n[i].Variable[0].Name.Str());
+				e.Print("%s", n[i].Variable[0].Name.Str());
 			}
 			else if (n[i].Constant)
 			{
 				char16 *t = Tokens[n[i].Tok];
-				e.Print(" %S", t);
+				e.Print("%S", t);
 			}
 			else if (n[i].ContextFunc)
 			{
-				e.Print(" %s(...)", n[i].ContextFunc->Method.Get());
+				e.Print("%s(...)", n[i].ContextFunc->Method.Get());
 			}
 			else if (n[i].ScriptFunc)
 			{
-				e.Print(" %s(...)", n[i].ScriptFunc->Name.Get());
+				e.Print("%s(...)", n[i].ScriptFunc->Name.Get());
 			}
 			else
 			{
-				e.Print(" #err#");
+				e.Print("#err#");
 			}
 		}
 
@@ -1868,11 +1897,14 @@ public:
 				}
 				
 				if (OpIdx < 0)
-				{
-					GVariant e;
-					e.Type = GV_STRING;
-					e.Value.String = DumpExp(n);
-					return OnError(n[0].Tok, "No operator found in expression '%s'.", e.Str());
+				{	
+					#if 1
+					GAutoString e(DumpExp(n));
+					return OnError(n[0].Tok, "No operator found in expression '%s'.", e.Get());
+					#else
+					GVarRef *NullRef = NULL;
+					return TokenToVarRef(n[0], NullRef);
+					#endif
 				}
 			}
 			
@@ -1962,12 +1994,16 @@ public:
 					if (Op == OpAssign)
 					{
 						if (LValue)
-							; // We already did the assignment as part of the
-							  // L value optimisation.
+						{
+							// We already did the assignment as part of the
+							// L value optimization.
+						}
 						else
+						{	
 							// However without the L value we have to do the output
 							// assignment.
 							AssignVarRef(a, b.Reg);
+						}
 					}
 					else if (TokenToVarRef(a, NullRef))
 					{
@@ -2047,6 +2083,10 @@ public:
 	bool DoExpression(uint32 &Cur, GVarRef *Result)
 	{
 		GArray<Node> n;
+		if (Cur >= 142)
+		{
+			int asd=0;
+		}
 		if (Expression(Cur, n))
 		{
 			bool Status = AsmExpression(Result, n);

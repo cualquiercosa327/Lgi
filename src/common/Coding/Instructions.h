@@ -48,7 +48,7 @@ case ICast:
 	uint8 Type = *c.u8++;
 	#if VM_DECOMP
 	if (Log)
-		Log->Print("to %s\n", GVariant::TypeToString((GVariantType)Type));
+		Log->Print(" to %s\n", GVariant::TypeToString((GVariantType)Type));
 	#endif
 	#if VM_EXECUTE
 	switch (Type)
