@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project>
-	<Node Name="Source Files" Type="1" Platforms="15" Open="1">
+	<Node Name="Source Files" Type="1" Platforms="15" Open="0">
 		<Node Name="Core" Type="1" Platforms="15" Open="0">
 			<Node Name="DateTime" Type="1" Platforms="15" Open="0">
 				<Node File="./src/common/General/GDateTime.cpp" Type="2" Platforms="15" />
@@ -153,7 +153,7 @@
 			<Node File="./src/common/Lgi/Lgi.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Lgi/LgiMsg.cpp" Type="2" Platforms="15" />
 		</Node>
-		<Node Name="Dialogs" Type="1" Platforms="15" Open="0">
+		<Node Name="Dialogs" Type="1" Platforms="15" Open="1">
 			<Node Name="Xp" Type="1" Platforms="15" Open="1">
 				<Node File="./src/common/Lgi/GFileSelect.cpp" Type="2" Platforms="14" />
 			</Node>
@@ -396,18 +396,12 @@ WINDOWS</Release>
 					<Debug>POSIX</Debug>
 					<Release>POSIX</Release>
 				</Haiku>
-				<Linux />
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
 			</Compiler>
-			<Executable>
-				<Linux />
-			</Executable>
-			<Arguments>
-				<All />
-			</Arguments>
-			<CrossCompiler />
+			<Executable />
+			<Arguments />
 		</General>
 		<Build>
 			<IncludePaths>
@@ -469,7 +463,6 @@ be
 game
 textencoding</Release>
 				</Haiku>
-				<All />
 			</Libraries>
 			<TargetType>
 				<All>DynamicLibrary</All>
@@ -488,14 +481,8 @@ textencoding</Release>
 					<Release>lgi</Release>
 				</Linux>
 			</TargetName>
-			<SystemIncludes>
-				<Linux />
-			</SystemIncludes>
-			<LibraryPaths>
-				<All />
-				<Linux />
-			</LibraryPaths>
-			<ApplicationIcon />
+			<SystemIncludes />
+			<LibraryPaths />
 		</Build>
 		<Editor>
 			<TabSize>
@@ -510,11 +497,7 @@ textencoding</Release>
 			<UseHardTabs>
 				<All>1</All>
 			</UseHardTabs>
-			<CommentFile />
-			<CommentFunction />
 		</Editor>
-		<Advanced>
-			<OtherMakefileRules />
-		</Advanced>
+		<Advanced />
 	</Settings>
 </Project>
