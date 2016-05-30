@@ -20,7 +20,9 @@ default:
 {
 	#if VM_DECOMP
 	if (Log)
-		Log->Print("\t%p Unknown instruction: %i\n", CurrentScriptAddress - 1, c.u8[-1]);
+		Log->Print("\t%p Unknown instruction %i (0x%x)\n",
+					CurrentScriptAddress - 1,
+					c.u8[-1], c.u8[-1]);
 	#endif
 	OnException(_FL, CurrentScriptAddress, "Unknown instruction");
 	SetScriptError;
@@ -31,6 +33,67 @@ case INop:
 	#if VM_DECOMP
 	if (Log)
 		Log->Print("%p Nop\n", CurrentScriptAddress - 1);
+	#endif
+	break;
+}
+case ICast:
+{
+	#if VM_DECOMP
+	if (Log)
+		Log->Print("%p Cast %s",
+					CurrentScriptAddress - 1,
+					c.r[0].GetStr());
+	#endif
+	GResolveRef Var = Resolve();
+	uint8 Type = *c.u8++;
+	#if VM_DECOMP
+	if (Log)
+		Log->Print(" to %s\n", GVariant::TypeToString((GVariantType)Type));
+	#endif
+	#if VM_EXECUTE
+	switch (Type)
+	{
+		case GV_INT32:
+		{
+			*Var = Var->CastInt32();
+			break;
+		}
+		case GV_STRING:
+		{
+			*Var = Var->CastString();
+			break;
+		}
+		case GV_DOM:
+		{
+			*Var = Var->CastDom();
+			break;
+		}
+		case GV_DOUBLE:
+		{
+			*Var = Var->CastDouble();
+			break;
+		}
+		case GV_INT64:
+		{
+			*Var = Var->CastInt32();
+			break;
+		}
+		case GV_BOOL:
+		{
+			*Var = Var->CastBool();
+			break;
+		}
+		default:
+		{
+			if (Log)
+				Log->Print(	"%s ICast warning: unknown type %i/%s\n",
+							Code->AddrToSourceRef(CurrentScriptAddress),
+							Var->Type,
+							GVariant::TypeToString(Var->Type));
+			Status = ScriptWarning;
+			break;
+		}
+	}
 	#endif
 	break;
 }
@@ -886,20 +949,16 @@ case IDomGet:
 		if (Dst != Dom)
 			Dst->Empty();
 
-		// Check that we have a valid name part
-		char *sName = Name->Str();
-		if (!sName)
-			break;
-
 		switch (Dom->Type)
 		{
 			case GV_DOM:
-			// case GV_GFILE:
 			case GV_STREAM:
 			case GV_GSURFACE:
 			{
 				GDom *dom = Dom->CastDom();
 				CheckParam(dom != NULL);
+				char *sName = Name->Str();
+				CheckParam(sName);
 				bool Ret = dom->GetVariant(sName, *Dst, CastArrayIndex(Arr));
 				if (!Ret)
 				{
@@ -916,6 +975,8 @@ case IDomGet:
 			case GV_DATETIME:
 			{
 				CheckParam(Dom->Value.Date != NULL);
+				char *sName = Name->Str();
+				CheckParam(sName);
 				bool Ret = Dom->Value.Date->GetVariant(sName, *Dst, CastArrayIndex(Arr));
 				if (!Ret)
 				{
@@ -935,14 +996,10 @@ case IDomGet:
 				if (Type)
 				{
 					int Fld;
-					if (IsDigit(*sName))
-					{
-						Fld = atoi(sName);
-					}
+					if (Name->Type == GV_INT32)
+						Fld = Name->Value.Int;
 					else
-					{
-						Fld = Type->IndexOf(sName);
-					}
+						Fld = Type->IndexOf(Name->Str());
 					
 					int Index = Arr ? Arr->CastInt32() : 0;
 					Type->Get(Fld, *Dst, Dom->Value.Custom.Data, Index);
@@ -952,6 +1009,8 @@ case IDomGet:
 			case GV_LIST:
 			{
 				CheckParam(Dom->Value.Lst);
+				char *sName = Name->Str();
+				CheckParam(sName);
 				GDomProperty p = GStringToProp(sName);
 				if (p == ObjLength)
 					(*Dst) = (int)Dom->Value.Lst->Length();
@@ -960,6 +1019,8 @@ case IDomGet:
 			case GV_HASHTABLE:
 			{
 				CheckParam(Dom->Value.Hash);
+				char *sName = Name->Str();
+				CheckParam(sName);
 				GDomProperty p = GStringToProp(sName);
 				if (p == ObjLength)
 					(*Dst) = (int)Dom->Value.Hash->Length();
@@ -967,6 +1028,8 @@ case IDomGet:
 			}
 			case GV_BINARY:
 			{
+				char *sName = Name->Str();
+				CheckParam(sName);
 				GDomProperty p = GStringToProp(sName);
 				if (p == ObjLength)
 					(*Dst) = Dom->Value.Binary.Length;
@@ -974,6 +1037,8 @@ case IDomGet:
 			}
 			case GV_STRING:
 			{
+				char *sName = Name->Str();
+				CheckParam(sName);
 				GDomProperty p = GStringToProp(sName);
 				switch (p)
 				{
@@ -1187,10 +1252,12 @@ case IDomCall:
 	GResolveRef Args = Resolve();
 
 	GArray<GVariant*> Arg;
-	Arg.Length(Args->CastInt32());
+	int ThisPtr = Dom->Type == GV_CUSTOM ? 1 : 0;
+	Arg.Length(Args->CastInt32() + ThisPtr);
+	if (ThisPtr) Arg[0] = Dom; // Setup this pointer...
 	for (unsigned i=0; i<Arg.Length(); i++)
 	{
-		Arg[i] = Resolve();
+		Arg[i+ThisPtr] = Resolve();
 	}
 	
 	char *sName = Name->Str();
@@ -1198,8 +1265,17 @@ case IDomCall:
 
 	switch (Dom->Type)
 	{
+		case GV_CUSTOM:
+		{
+			GCustomType *t = Dom->Value.Custom.Dom;
+			CheckParam(t);
+			GCustomType::Method *m = t->GetMethod(Name->Str());
+			CheckParam(m);
+			LgiAssert(m->Params.Length() == Arg.Length());
+			
+			break;
+		}
 		case GV_DOM:
-		// case GV_GFILE:
 		case GV_STREAM:
 		case GV_GSURFACE:
 		{

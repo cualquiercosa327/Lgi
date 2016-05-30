@@ -22,6 +22,11 @@ public:
 
 	App(OsAppArguments &AppArgs) : GApp(AppArgs, "LgiScript")
 	{
+		GFile::Path p(LSP_APP_INSTALL);
+		p += "Resources";
+		p += "LgiScript.lr8";
+		LgiGetResObj(true, p);	
+	
 		Engine = NULL;
 		Status = 0;
 	}

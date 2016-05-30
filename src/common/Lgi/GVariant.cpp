@@ -1050,14 +1050,12 @@ GDom *GVariant::CastDom()
 			return Value.Dom;
 		case GV_DOMREF:
 			return Value.DomRef.Dom;
-		/*
-		case GV_GFILE:
-			return Value.File.Ptr;
-		*/
 		case GV_STREAM:
 			return Value.Stream.Ptr;
 		case GV_GSURFACE:
 			return Value.Surface.Ptr;
+		case GV_CUSTOM:
+			return Value.Custom.Dom;
 	}
 
 	return NULL;
@@ -1511,6 +1509,7 @@ struct GDomPropMap : public GHashTbl<const char *, GDomProperty>
 		Define("Type", ObjType);
 		Define("Name", ObjName);
 		Define("Style", ObjStyle);
+		Define("Field", ObjField);
 
 		Define("List", TypeList);
 		Define("HashTable", TypeHashTable);
@@ -1647,14 +1646,14 @@ bool GDom::SetValue(const char *Var, GVariant &Value)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-GCustomType::GCustomType(const char *name, int pack) : Map(0, true, NULL, -1)
+GCustomType::GCustomType(const char *name, int pack) : FldMap(0, true, NULL, -1)
 {
 	Name = name;
 	Pack = 1;
 	Size = 0;
 }
 
-GCustomType::GCustomType(const char16 *name, int pack) : Map(0, true, NULL, -1)
+GCustomType::GCustomType(const char16 *name, int pack) : FldMap(0, true, NULL, -1)
 {
 	Name = name;
 	Pack = 1;
@@ -1684,7 +1683,7 @@ int GCustomType::PadSize()
 
 int GCustomType::IndexOf(const char *Field)
 {
-	return Map.Find(Field);
+	return FldMap.Find(Field);
 }
 
 int GCustomType::AddressOf(const char *Field)
@@ -1713,12 +1712,12 @@ bool GCustomType::DefineField(const char *Name, GCustomType *Type, int ArrayLen)
 		return false;
 	}
 
-	if (Map.Find(Name) >= 0)
+	if (FldMap.Find(Name) >= 0)
 	{
 		LgiAssert(!"Field already exists.");
 		return false;
 	}
-	Map.Add(Name, Flds.Length());
+	FldMap.Add(Name, Flds.Length());
 
 	FldDef &Def = Flds.New();
 	
@@ -1748,12 +1747,12 @@ bool GCustomType::DefineField(const char *Name, GVariantType Type, int Bytes, in
 		return false;
 	}
 
-	if (Map.Find(Name) >= 0)
+	if (FldMap.Find(Name) >= 0)
 	{
 		LgiAssert(!"Field already exists.");
 		return false;
 	}
-	Map.Add(Name, Flds.Length());
+	FldMap.Add(Name, Flds.Length());
 
 	FldDef &Def = Flds.New();
 	
@@ -1766,6 +1765,48 @@ bool GCustomType::DefineField(const char *Name, GVariantType Type, int Bytes, in
 	Def.ArrayLen = ArrayLen;
 	Size += Bytes * ArrayLen;
 
+	return true;
+}
+
+GCustomType::Method *GCustomType::GetMethod(const char *Name)
+{
+	return MethodMap.Find(Name);
+}
+
+GCustomType::Method *GCustomType::DefineMethod(const char *Name, GArray<GString> &Params, int Address)
+{
+	Method *m = MethodMap.Find(Name);
+	if (m)
+	{
+		LgiAssert(!"Method already defined.");
+		return NULL;
+	}
+	
+	m = &Methods.New();
+	m->Name = Name;
+	m->Params = Params;
+	m->Address = Address;
+	
+	MethodMap.Add(Name, m);	
+	
+	return m;
+}
+
+bool GCustomType::FldDef::GetVariant(const char *Field, GVariant &Value, char *Array)
+{
+	GDomProperty p = GStringToProp(Field);
+	switch (p)
+	{
+		case ObjName:
+			Value = Name;
+			break;
+		case ObjLength:
+			Value = Bytes;
+			break;
+		default:
+			return false;
+	}
+	
 	return true;
 }
 
@@ -1803,11 +1844,11 @@ int GCustomType::FldDef::Sizeof()
 	return 0;
 }
 
-bool GCustomType::Get(int Index, GVariant &Out, uint8 *Base, int ArrayIndex)
+bool GCustomType::Get(int Index, GVariant &Out, uint8 *This, int ArrayIndex)
 {
 	if (Index < 0 ||
 		Index >= Flds.Length() ||
-		!Base)
+		!This)
 	{
 		LgiAssert(!"Invalid parameter error.");
 		return false;
@@ -1820,7 +1861,7 @@ bool GCustomType::Get(int Index, GVariant &Out, uint8 *Base, int ArrayIndex)
 		return false;
 	}
 
-	uint8 *Ptr = Base + Def.Offset;
+	uint8 *Ptr = This + Def.Offset;
 	Out.Empty();
 	
 	switch (Def.Type)
@@ -1879,6 +1920,11 @@ bool GCustomType::Get(int Index, GVariant &Out, uint8 *Base, int ArrayIndex)
 			}
 			break;			
 		}
+		case GV_MAX:
+		{
+			Out = *((GVariant*)Ptr);
+			break;
+		}
 		default:
 		{
 			LgiAssert(!"Impl this type.");
@@ -1889,18 +1935,18 @@ bool GCustomType::Get(int Index, GVariant &Out, uint8 *Base, int ArrayIndex)
 	return true;
 }
 
-bool GCustomType::Set(int Index, GVariant &In, uint8 *Base, int ArrayIndex)
+bool GCustomType::Set(int Index, GVariant &In, uint8 *This, int ArrayIndex)
 {
 	if (Index < 0 ||
 		Index >= Flds.Length() ||
-		!Base)
+		!This)
 	{
 		LgiAssert(!"Invalid parameter error.");
 		return false;
 	}
 
 	FldDef &Def = Flds[Index];
-	uint8 *Ptr = Base + Def.Offset;
+	uint8 *Ptr = This + Def.Offset;
 	if (ArrayIndex < 0 || ArrayIndex >= Def.ArrayLen)
 	{
 		LgiAssert(!"Array out of bounds.");
@@ -2007,10 +2053,15 @@ bool GCustomType::Set(int Index, GVariant &In, uint8 *Base, int ArrayIndex)
 				default:
 				{
 					LgiAssert(!"Unknown integer size.");
-					break;
+					return false;
 				}
 			}
 			break;			
+		}
+		case GV_MAX:
+		{
+			*((GVariant*)Ptr) = In;
+			break;
 		}
 		default:
 			LgiAssert(!"Impl this type.");
@@ -2018,4 +2069,86 @@ bool GCustomType::Set(int Index, GVariant &In, uint8 *Base, int ArrayIndex)
 	}
 
 	return true;
+}
+
+bool GCustomType::GetVariant(const char *Field, GVariant &Value, char *Array)
+{
+	GDomProperty p = GStringToProp(Field);
+	switch (p)
+	{
+		case ObjName:
+		{
+			Value = Name;
+			return true;
+		}
+		case ObjType:
+		{
+			Value = "GCustomType";
+			return true;
+		}
+		case ObjLength:
+		{
+			Value = (int)Sizeof();
+			return true;
+		}
+		case ObjField:
+		{
+			if (Array)
+			{
+				int Index = atoi(Array);
+				if (Index >= 0 && Index < Flds.Length())
+				{
+					Value = (GDom*)&Flds[Index];
+					return true;
+				}			
+			}
+			else
+			{
+				Value = (int)Flds.Length();
+				break;
+			}			
+			break;
+		}
+	}
+
+	LgiAssert(0);
+	return false;
+}
+
+bool GCustomType::SetVariant(const char *Name, GVariant &Value, char *Array)
+{
+	LgiAssert(0);
+	return false;
+}
+
+bool GCustomType::CallMethod(const char *MethodName, GVariant *ReturnValue, GArray<GVariant*> &Args)
+{
+	if (!MethodName || !ReturnValue)
+		return false;
+	
+	if (!_stricmp(MethodName, "New"))
+	{
+		ReturnValue->Empty();
+		ReturnValue->Type = GV_CUSTOM;
+		ReturnValue->Value.Custom.Dom = this;
+		ReturnValue->Value.Custom.Data = new uint8[Sizeof()];
+		return true;
+	}
+	
+	if (!_stricmp(MethodName, "Delete"))
+	{
+		for (unsigned i=0; i<Args.Length(); i++)
+		{
+			GVariant *v = Args[i];
+			if (v && v->Type == GV_CUSTOM)
+			{
+				DeleteArray(v->Value.Custom.Data);
+				v->Empty();
+			}
+		}
+		return true;
+	}
+
+	LgiAssert(0);
+	return false;
 }

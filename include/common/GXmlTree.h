@@ -84,9 +84,10 @@ protected:
 	/// and assign it to 'Tag'.
 	char *Tag;
 
-public:
-	/// Any content following the tag. Memory is owned by the heap. Use NewStr/DeleteArray.
+	/// Any content following the tag. Memory is owned by the allocator.
 	char *Content;
+
+public:
 	/// The parent element/tag.
 	GXmlTag *Parent;
 	/// A list of attributes that this tag has
@@ -119,6 +120,13 @@ public:
 	/// \return true if the tag is 's'
 	bool IsTag(const char *s) { return Tag && s ? _stricmp(Tag, s) == 0 : false; }
 
+	/// Get the content
+	char *GetContent() { return Content; };
+	/// Convert the content to an integer
+	int GetContentAsInt(int Default = 0);
+	/// Set the content
+	bool SetContent(const char *s, int len = -1);
+
 	/// Get the string value of a named attribute
 	char *GetAttr(const char *Name);
 	/// Get the value of a named attribute as an int
@@ -130,8 +138,6 @@ public:
 	/// Deletes an attribute
 	bool DelAttr(const char *Name);
 
-	/// Replaces the content with a string
-	bool SetContent(const char *c);
 	/// Replaces the content with an integer
 	bool SetContent(int i);
 
@@ -230,7 +236,7 @@ public:
 	/// Add entities
 	GHashTbl<const char*,char16> *GetEntityTable();
 	/// Decode a string with entities
-	char *DecodeEntities(char *s, int len = -1);
+	char *DecodeEntities(GXmlAlloc *Alloc, char *s, int len = -1);
 	/// Encode a string to use entities
 	char *EncodeEntities(char *s, int len = -1, const char *extra_characters = 0);
 	/// Encode a string to use entities

@@ -111,7 +111,7 @@ bool ResCss::Read(GXmlTag *t, SerialiseContext &Ctx)
         return false;
     
     Name(t->GetAttr("name"));
-    Style.Reset(NewStr(t->Content));
+    Style.Reset(NewStr(t->GetContent()));
     
     return true;
 }
@@ -123,6 +123,6 @@ bool ResCss::Write(GXmlTag *t, SerialiseContext &Ctx)
     
     t->SetTag("style");
     t->SetAttr("name", Name());
-    t->Content = NewStr(Style);
+    t->SetContent(Style);
     return true;
 }

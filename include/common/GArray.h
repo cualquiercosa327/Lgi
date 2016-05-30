@@ -372,6 +372,14 @@ public:
 	{
 		return IndexOf(n) >= 0;
 	}
+
+	/// Removes last element	
+	bool PopLast()
+	{
+		if (len <= 0)
+			return false;
+		return Length(len - 1);
+	}
 	
 	/// Deletes an entry
 	bool DeleteAt

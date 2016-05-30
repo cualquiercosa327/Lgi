@@ -1,6 +1,67 @@
 #ifndef _STORE3_DEFS_H_
 #define _STORE3_DEFS_H_
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+// CORE DEFINITIONS (relevant to any implementation)
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// Load state
+///
+/// This is used by both objects AND iterators
+enum Store3State
+{
+	/// The object is not loaded at all..
+    Store3Unloaded,
+    /// The object is currently loading (in some worker thread or something)
+    /// Best to not try and access anything like data fields.
+    Store3Loading,
+    /// The mail object has only it's headers loaded, and not the body.
+	Store3Headers,
+	/// The object is fully loaded and can be accessed normally.
+    Store3Loaded,
+};
+
+/// Folder system type
+enum Store3SystemFolder
+{
+	Store3SystemNone,
+	Store3SystemInbox,
+	Store3SystemTrash,
+	Store3SystemOutbox,
+	Store3SystemSent,
+	Store3SystemCalendar,
+	Store3SystemContacts,
+	Store3SystemSpam,
+};
+
+/// This defines the possible outcomes of calling a function.
+enum Store3Status
+{
+	/// The method failed and no action was taken.
+	Store3Error,
+	/// The method succeeded but the action was not completed immediately, notification
+	/// of the actions completion will come later via the callback interface.
+	Store3Delayed,
+	/// The method succeeded and the action has been already completed.
+	Store3Success,
+};
+
+/// Possible parts of UI
+enum Store3UiFields
+{
+	Store3UiCurrentPos,		// [Set] sets the current progress value
+	Store3UiMaxPos,			// [Set] sets the maximum progress value
+	Store3UiStatus,			// [Set] set a status/progress string
+	Store3UiError,			// [Set] set an error string
+	Store3UiInteractive,	// [Get] returns a bool if the user is expecting interaction
+	Store3UiCancel,			// [Get] returns a bool indicating if the user has cancelled the operation
+	Store3UiNewFormat,		// [Get] returns a integer/enum describing the new format to use
+};
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+// MAIL/CALENDAR CLIENT RELATED DEFINITIONS
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
 enum EmailFlags
 {
 	// Mail flags
@@ -107,27 +168,6 @@ enum Store3ItemTypes
 	MAGIC_GROUP						= (MAGIC_BASE+13),	// Group of contacts
 	MAGIC_ADDRESS					= (MAGIC_BASE+14),	// Group of contacts
 	MAGIC_MAX						= (MAGIC_BASE+15)	// One past the end
-};
-
-/// GDataI load state
-enum Store3DataState
-{
-	Store3None,
-	Store3Headers,
-	Store3Loaded,
-};
-
-/// Folder system type
-enum Store3SystemFolder
-{
-	Store3SystemNone,
-	Store3SystemInbox,
-	Store3SystemTrash,
-	Store3SystemOutbox,
-	Store3SystemSent,
-	Store3SystemCalendar,
-	Store3SystemContacts,
-	Store3SystemSpam,
 };
 
 // When setting this via GDataI::SetInt the return value is:

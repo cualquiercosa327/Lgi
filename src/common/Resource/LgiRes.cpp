@@ -606,7 +606,7 @@ bool LgiResources::Load(char *FileName)
 		}
 		else if (t->IsTag("style"))
 		{
-			const char *c = t->Content;
+			const char *c = t->GetContent();
 			CssStore.Parse(c);
 		}
 

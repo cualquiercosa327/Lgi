@@ -59,6 +59,7 @@ enum GDomProperty
 	ObjType,
 	ObjName,
 	ObjStyle,
+	ObjField,
 	
 	// Types
 	TypeList,

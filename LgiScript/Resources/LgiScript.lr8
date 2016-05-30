@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<resources Offset="1">
+	<string-group Name="General">
+		<String Ref="1" Cid="1" Define="IDS_TEST_STRING" en="This is a test" />
+	</string-group>
+</resources>

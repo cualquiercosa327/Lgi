@@ -754,6 +754,7 @@ public:
 	void SetPath(char *s);
 	char *GetName();
 	void SetName(char *s);
+	char GetSep() { return Sep; }
 	void operator =(GHashTbl<const char*,int> &v);
 };
 
@@ -895,7 +896,7 @@ public:
 		GAutoString &NewUid
 	);
 
-	bool GetFolders(List<MailImapFolder> &Folders);
+	bool GetFolders(GArray<MailImapFolder*> &Folders);
 	bool SelectFolder(const char *Path, GHashTbl<const char*,int> *Values = 0);
 	char *GetSelectedFolder();
 	int GetMessages(const char *Path);
