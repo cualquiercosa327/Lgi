@@ -1825,7 +1825,8 @@ void GList::OnMouseClick(GMouse &m)
 							UpdateAllItems();
 						}
 
-						DeleteObj(DragCol);
+						DragCol->Quit();
+						DragCol = NULL;
 					}
 
 					Invalidate();
