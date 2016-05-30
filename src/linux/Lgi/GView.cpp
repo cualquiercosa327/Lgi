@@ -20,6 +20,8 @@
 using namespace Gtk;
 #include "LgiWidget.h"
 
+#define DEBUG_MOUSE_EVENTS			1
+
 #define ADJ_LEFT					1
 #define ADJ_RIGHT					2
 #define ADJ_UP						3
@@ -210,16 +212,9 @@ void GView::_Delete()
 		DeleteObj(c);
 	}
 
-	// Clean up OS view
-	if (_View)
-	{
-		gtk_widget_destroy(_View);
-		_View = 0;
-	}
-
 	Detach();
+	LgiAssert(_View == NULL);
 }
-
 
 GView *&GView::PopupChild()
 {
@@ -368,6 +363,10 @@ bool GView::_Mouse(GMouse &m, bool Move)
 	}
 	#endif
 
+	#if DEBUG_MOUSE_EVENTS
+	LgiTrace("%s:%i - _Mouse([%i,%i], %i)\n", _FL, m.x, m.y, Move);
+	#endif
+
 	if
 	(
 		!_View
@@ -379,24 +378,25 @@ bool GView::_Mouse(GMouse &m, bool Move)
 		)
 	)
 	{
+		#if DEBUG_MOUSE_EVENTS
+		LgiTrace("%s:%i - HandleViewMouse consumed event, _View=%p\n", _FL, _View);
+		#endif
 		return false;
 	}
 
-	#if 0
-	{
-		char msg[256];
-		sprintf(msg, "_mouse cap=%p move=%i", _Capturing, Move);
-		m.Trace(msg);
-	}
-	#endif
-
 	GViewI *cap = _Capturing;
+	#if DEBUG_MOUSE_EVENTS
+	LgiTrace("%s:%i - _Capturing=%p/%s\n", _FL, _Capturing, _Capturing ? _Capturing->GetClass() : NULL);
+	#endif
 	if (_Capturing)
 	{
 		if (Move)
 		{
 			GMouse Local = lgi_adjust_click(m, _Capturing);
 			LgiToGtkCursor(_Capturing, _Capturing->GetCursor(Local.x, Local.y));
+			#if DEBUG_MOUSE_EVENTS
+			LgiTrace("%s:%i - Local=%i,%i\n", _FL, Local.x, Local.y);
+			#endif
 			_Capturing->OnMouseMove(Local); // This can set _Capturing to NULL
 		}
 		else
@@ -412,6 +412,11 @@ bool GView::_Mouse(GMouse &m, bool Move)
 			GViewI *o = WindowFromPoint(m.x, m.y);
 			if (_Over != o)
 			{
+				#if DEBUG_MOUSE_EVENTS
+				LgiTrace("%s:%i - _Over changing from %p/%s to %p/%s\n", _FL,
+						_Over, _Over ? _Over->GetClass() : NULL,
+						o, o ? o->GetClass() : NULL);
+				#endif
 				if (_Over)
 					_Over->OnMouseExit(lgi_adjust_click(m, _Over));
 				_Over = o;
@@ -448,7 +453,9 @@ bool GView::_Mouse(GMouse &m, bool Move)
 		}
 		else if (!Move)
 		{
-			printf("%s:%i - Click outside %s %s %i,%i\n", _FL, Target->GetClass(), Client.GetStr(), m.x, m.y);
+			#if DEBUG_MOUSE_EVENTS
+			LgiTrace("%s:%i - Click outside %s %s %i,%i\n", _FL, Target->GetClass(), Client.GetStr(), m.x, m.y);
+			#endif
 		}
 	}
 	
@@ -714,9 +721,18 @@ void GView::PointToScreen(GdcPt2 &p)
 	if (c && c->WindowHandle())
 	{
 	    gint x = 0, y = 0;
-		gdk_window_get_origin(GTK_WIDGET(c->WindowHandle())->window, &x, &y);
-		p.x += x;
-		p.y += y;
+	    GdkRectangle rect;
+		Gtk::GtkWindow *wnd = c->WindowHandle();
+		Gtk::GtkWidget *w = GTK_WIDGET(wnd);
+		Gtk::GdkWindow *gdk_wnd = gtk_widget_get_window(w);
+		gdk_window_get_frame_extents(gdk_wnd, &rect);
+		gdk_window_get_origin(w->window, &x, &y);
+		
+		int DecorX = x - rect.x;
+		int DecorY = y - rect.y;
+		
+		p.x += x + DecorX - 8;
+		p.y += y + DecorY - 8;
 	}
 	else
 	{

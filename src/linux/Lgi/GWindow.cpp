@@ -891,7 +891,10 @@ bool GWindow::SetPos(GRect &p, bool Repaint)
 	if (Wnd)
 	{
 		ThreadCheck();
-		gtk_window_set_default_size(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
+		
+		GtkWindow *w = GTK_WINDOW(Wnd);
+		gtk_window_set_default_size(w, Pos.X(), Pos.Y());
+		gtk_window_move(w, Pos.x1, Pos.y1);
 	}
 	return true;
 }
@@ -909,7 +912,7 @@ void GWindow::OnCreate()
 void GWindow::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 {
 	GRect r = GetClient();
-	GView::_Paint(pDC, r.x1, r.y1);
+	GView::_Paint(pDC, Offset, Update);
 }
 
 void GWindow::OnPaint(GSurface *pDC)
