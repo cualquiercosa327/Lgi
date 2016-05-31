@@ -144,6 +144,7 @@ static gboolean lgi_widget_motion(GtkWidget *widget, GdkEventMotion *ev)
         m.Target = v;
         m.x = ev->x;
         m.y = ev->y;
+        m.Flags |= LGI_EF_MOVE;
         m.Down((ev->state & GDK_BUTTON_PRESS_MASK) != 0);
         m.Left(ev->state & GDK_BUTTON1_MASK);
         m.Middle(ev->state & GDK_BUTTON2_MASK);
