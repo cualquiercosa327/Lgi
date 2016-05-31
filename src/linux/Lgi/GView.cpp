@@ -20,7 +20,7 @@
 using namespace Gtk;
 #include "LgiWidget.h"
 
-#define DEBUG_MOUSE_EVENTS			1
+#define DEBUG_MOUSE_EVENTS			0
 
 #define ADJ_LEFT					1
 #define ADJ_RIGHT					2
@@ -730,9 +730,10 @@ void GView::PointToScreen(GdcPt2 &p)
 		
 		int DecorX = x - rect.x;
 		int DecorY = y - rect.y;
+		int Offset = 8;
 		
-		p.x += x + DecorX - 8;
-		p.y += y + DecorY - 8;
+		p.x += x + DecorX - Offset;
+		p.y += y + DecorY - Offset;
 	}
 	else
 	{
