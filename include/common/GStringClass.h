@@ -318,6 +318,22 @@ public:
 		return Str ? Str->Len : 0;
 	}
 
+	uint32 Length(uint32 NewLen)
+	{
+		if (Str)
+		{
+			if (NewLen < Str->Len)
+			{
+				Str->Len = NewLen;
+				Str->Str[NewLen] = 0;
+			}
+			else LgiAssert(0);
+			return Str->Len;
+		}
+		
+		return 0;
+	}
+
 	/// Splits the string into parts using a separator
 	Array Split(const char *Sep, int Count = -1, bool CaseSen = false)
 	{
