@@ -31,6 +31,73 @@
 extern "C" uint64 __cdecl CallExtern64(void *FuncAddr, NativeInt *Ret, uint32 Args, void *Arg);
 #endif
 
+
+/*	This comments is parsed by the DomScan.py script to create documenation for DOM fields that
+	aren't implemented by GDom::GetVariant, but rather are basic data type (with no virtual
+	table) that have their properties implemented in the VM byte code itself.
+	(i.e. IDomGet/IDomSet/IDomCall)
+
+bool String::GetVariant(const char *Name, GVariant &Value, char *Array)
+{
+	switch (Name)
+	{
+		case ObjLength: // Type: Int32
+		case TypeInt: // Type: Int32
+		case TypeDouble: // Type: Double
+	}
+}
+
+bool List::GetVariant(const char *Name, GVariant &Value, char *Array)
+{
+	switch (Name)
+	{
+		case ObjLength: // Type: Int32
+	}
+}
+
+bool List::CallMethod(const char *Name, GVariant &Value, char *Array)
+{
+	switch (Name)
+	{
+		case ObjLength: // Type: (Int32 NewLength)
+		case ObjType: // Type: ()
+		case ContainerAdd: // Type: (Variant Element1[, Variant Element2, ...])
+		case ContainerDelete: // Type: (Int32 Index1[, Int32 Index2, ...])
+		case ContainerHasKey: // Type: (Int32 Index)
+		case ContainerSort: // Type: (Variant SortingKey)
+	}
+}
+
+bool HashTable::GetVariant(const char *Name, GVariant &Value, char *Array)
+{
+	switch (Name)
+	{
+		case ObjLength: // Type: Int32
+	}
+}
+
+bool HashTable::CallMethod(const char *Name, GVariant &Value, char *Array)
+{
+	switch (Name)
+	{
+		case ObjLength: // Type: (Int32 NewLength)
+		case ObjType: // Type: ()
+		case ContainerAdd: // Type: (Variant Object, String Key)
+		case ContainerDelete: // Type: (String Key)
+		case ContainerHasKey: // Type: (String Key)
+	}
+}
+
+bool Binary::GetVariant(const char *Name, GVariant &Value, char *Array)
+{
+	switch (Name)
+	{
+		case ObjLength: // Type: Int32
+	}
+}
+
+*/
+
 int GVariantCmp(GVariant *a, GVariant *b, NativeInt Data)
 {
 	GVariant *Param = (GVariant*) Data;
@@ -2637,112 +2704,6 @@ bool GVirtualMachine::BreakPoint(const char *File, int Line, bool Add)
 {
 	return false;
 }
-
-////////////////////////////////////////////////////////////////////
-/*
-bool GTypeDef::GetVariant(const char *Name, GVariant &Value, char *Arr)
-{
-	GMember *m = Members.Find(Name);
-	if (!m || !Object)
-	{
-		LgiAssert(!"No member?");
-		return false;
-	}
-
-	GPtr p;
-	p.i8 = Object;
-	p.i8 += m->Offset;
-	switch (m->Type)
-	{
-		case GV_INT32:
-		{
-			Value = *p.i32;
-			break;
-		}
-		case GV_DOUBLE:
-		{
-			Value = *p.dbl;
-			break;
-		}
-		case GV_STRING:
-		{
-			Value = p.i8;
-			break;
-		}
-		case GV_CUSTOM:
-		{
-			Value.Empty();
-			Value.Type = GV_CUSTOM;
-			Value.Value.Custom.Dom = m->Nest;
-			Value.Value.Custom.Data = p.i8;
-			break;
-		}
-		default:
-		{
-			return false;
-		}
-	}
-
-	return true;
-}
-
-bool GTypeDef::SetVariant(const char *Name, GVariant &Value, char *Arr)
-{
-	GMember *m = Members.Find(Name);
-	if (!m || !Object)
-	{
-		LgiAssert(!"No member?");
-		return false;
-	}
-
-	GPtr p;
-	p.i8 = Object;
-	p.i8 += m->Offset;
-	switch (m->Type)
-	{
-		case GV_INT32:
-		{
-			*p.i32 = Value.CastInt32();
-			break;
-		}
-		case GV_DOUBLE:
-		{
-			*p.dbl = Value.CastDouble();
-			break;
-		}
-		case GV_STRING:
-		{
-			char *s = Value.CastString();
-			if (!s)
-				return false;
-
-			int i;
-			for (i = 0; *s && i < m->Size - 1; i++)
-			{
-				*p.i8++ = *s++;
-			}
-			if (i < m->Size - 1)
-				*p.i8 = 0;
-			break;
-		}
-		case GV_CUSTOM:
-		{
-			GTypeDef *t = dynamic_cast<GTypeDef*>(Value.Value.Custom.Dom);
-			if (m->Nest == t)
-			{
-				memcpy(p.i8, Value.Value.Custom.Data, t->Sizeof());
-			}
-			break;
-		}
-		default:
-		{
-			return false;
-		}
-	}
-
-	return true;
-}
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 uint32 IconsData[] =

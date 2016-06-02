@@ -498,6 +498,9 @@ GXmlTag *GXmlTag::GetChildTag(const char *Name, bool Create, const char *TagSepa
 
 bool GXmlTag::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
+	/* !_stricmp(Name, "'attribute_name'") // Type: String
+	*/
+
 	if (Name)
 	{
 		List<GXmlTag>::I n = Children.Start();

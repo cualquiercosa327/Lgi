@@ -1509,12 +1509,20 @@ struct GDomPropMap : public GHashTbl<const char *, GDomProperty>
 		Define("Type", ObjType);
 		Define("Name", ObjName);
 		Define("Style", ObjStyle);
+		Define("Class", ObjClass);
 		Define("Field", ObjField);
+		Define("Debug", ObjDebug);
+		Define("textContent", ObjTextContent);
+		Define("innerHTML", ObjInnerHtml);
 
 		Define("List", TypeList);
 		Define("HashTable", TypeHashTable);
 		Define("File", TypeFile);
 		Define("Surface", TypeSurface);
+		Define("DateTime", TypeDateTime);
+		Define("Int", TypeInt);
+		Define("Double", TypeDouble);
+		Define("String", TypeString);
 		
 		Define("Year", DateYear);
 		Define("Month", DateMonth);
@@ -1549,6 +1557,10 @@ struct GDomPropMap : public GHashTbl<const char *, GDomProperty>
 		Define("Delete", ContainerDelete);
 		Define("HasKey", ContainerHasKey);
 		Define("Sort", ContainerSort);
+		Define("Children", ContainerChildren);
+		Define("Span", ContainerSpan);
+		Define("Align", ContainerAlign);
+		Define("VAlign", ContainerVAlign);
 
 		Define("Open", FileOpen);
 		Define("Read", FileRead);
@@ -1719,7 +1731,7 @@ bool GCustomType::DefineField(const char *Name, GCustomType *Type, int ArrayLen)
 	}
 	FldMap.Add(Name, Flds.Length());
 
-	FldDef &Def = Flds.New();
+	CustomField &Def = Flds.New();
 	
 	Size = PadSize();
 	Def.Offset = Size;
@@ -1754,7 +1766,7 @@ bool GCustomType::DefineField(const char *Name, GVariantType Type, int Bytes, in
 	}
 	FldMap.Add(Name, Flds.Length());
 
-	FldDef &Def = Flds.New();
+	CustomField &Def = Flds.New();
 	
 	Size = PadSize();
 	Def.Offset = Size;
@@ -1792,15 +1804,15 @@ GCustomType::Method *GCustomType::DefineMethod(const char *Name, GArray<GString>
 	return m;
 }
 
-bool GCustomType::FldDef::GetVariant(const char *Field, GVariant &Value, char *Array)
+bool GCustomType::CustomField::GetVariant(const char *Field, GVariant &Value, char *Array)
 {
 	GDomProperty p = GStringToProp(Field);
 	switch (p)
 	{
-		case ObjName:
+		case ObjName: // Type: String
 			Value = Name;
 			break;
-		case ObjLength:
+		case ObjLength: // Type: Int32
 			Value = Bytes;
 			break;
 		default:
@@ -1810,7 +1822,7 @@ bool GCustomType::FldDef::GetVariant(const char *Field, GVariant &Value, char *A
 	return true;
 }
 
-int GCustomType::FldDef::Sizeof()
+int GCustomType::CustomField::Sizeof()
 {
 	switch (Type)
 	{
@@ -1854,7 +1866,7 @@ bool GCustomType::Get(int Index, GVariant &Out, uint8 *This, int ArrayIndex)
 		return false;
 	}
 
-	FldDef &Def = Flds[Index];
+	CustomField &Def = Flds[Index];
 	if (ArrayIndex < 0 || ArrayIndex >= Def.ArrayLen)
 	{
 		LgiAssert(!"Array out of bounds.");
@@ -1945,7 +1957,7 @@ bool GCustomType::Set(int Index, GVariant &In, uint8 *This, int ArrayIndex)
 		return false;
 	}
 
-	FldDef &Def = Flds[Index];
+	CustomField &Def = Flds[Index];
 	uint8 *Ptr = This + Def.Offset;
 	if (ArrayIndex < 0 || ArrayIndex >= Def.ArrayLen)
 	{
@@ -2076,22 +2088,22 @@ bool GCustomType::GetVariant(const char *Field, GVariant &Value, char *Array)
 	GDomProperty p = GStringToProp(Field);
 	switch (p)
 	{
-		case ObjName:
+		case ObjName: // Type: String
 		{
 			Value = Name;
 			return true;
 		}
-		case ObjType:
+		case ObjType: // Type: String
 		{
 			Value = "GCustomType";
 			return true;
 		}
-		case ObjLength:
+		case ObjLength: // Type: Int32
 		{
 			Value = (int)Sizeof();
 			return true;
 		}
-		case ObjField:
+		case ObjField: // Type: CustomField[]
 		{
 			if (Array)
 			{
@@ -2135,7 +2147,7 @@ bool GCustomType::CallMethod(const char *MethodName, GVariant *ReturnValue, GArr
 		return true;
 	}
 	
-	if (!_stricmp(MethodName, "Delete"))
+	if (!_stricmp(MethodName, "Delete")) // Type: (Object)
 	{
 		for (unsigned i=0; i<Args.Length(); i++)
 		{
