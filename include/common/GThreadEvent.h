@@ -11,13 +11,13 @@
 class LgiClass GThreadEvent : public GBase
 {
 	uint32 LastError;
-	#if defined(WINNATIVE)
-        HANDLE Event;
-    #elif USE_SEM
+    #if USE_SEM
         sem_t *Sem;
 	#elif defined(POSIX)
         pthread_cond_t Cond;
         pthread_mutex_t Mutex;
+	#elif defined(WIN32)
+        HANDLE Event;
 	#endif
 
 public:

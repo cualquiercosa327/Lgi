@@ -687,10 +687,7 @@ public:
 	bool InThread();
 	
 	/// \brief Asyncronously posts an event to be received by this window
-	///
-	/// This calls PostMessage on Win32 and XSendEvent on X11. XSendEvent is called
-	/// with a ClientMessage with the a and b parameters in the data section.
-	bool PostEvent
+	virtual bool PostEvent
 	(
 		/// The command ID.
 		/// \sa Should be M_USER or higher for custom events.

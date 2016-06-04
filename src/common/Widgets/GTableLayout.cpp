@@ -287,6 +287,7 @@ public:
 	GRect Padding;	// Cell padding from CSS styles
 	GArray<Child> Children;
 	GCss::DisplayType Disp;
+	GString ClassName;
 	bool Debug;
 
 	TableCell(GTableLayout *t, int Cx, int Cy);
@@ -421,10 +422,14 @@ bool TableCell::IsSpanned()
 
 bool TableCell::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
-	if (stricmp(Name, "children") == 0)
+	GDomProperty Fld = GStringToProp(Name);
+	switch (Fld)
 	{
-		if (Value.SetList())
+		case ContainerChildren: // Type: GView[]
 		{
+			if (!Value.SetList())
+				return false;
+
 			for (unsigned i=0; i<Children.Length(); i++)
 			{
 				Child &c = Children[i];
@@ -436,103 +441,162 @@ bool TableCell::GetVariant(const char *Name, GVariant &Value, char *Array)
 					Value.Value.Lst->Insert(v);
 				}
 			}
-			return true;
+			break;
 		}
+		case ContainerSpan: // Type: GRect
+		{
+			Value = Cell.GetStr();
+			break;
+		}
+		case ContainerAlign: // Type: String
+		{
+			GStringPipe p(128);
+			if (TextAlign().ToString(p))
+				Value.OwnStr(p.NewStr());
+			else
+				return false;
+			break;
+		}
+		case ContainerVAlign: // Type: String
+		{
+			GStringPipe p(128);
+			if (VerticalAlign().ToString(p))
+				Value.OwnStr(ToString());
+			else
+				return false;
+			break;
+		}
+		case ObjClass: // Type: String
+		{
+			Value = ClassName;
+			break;
+		}
+		case ObjStyle: // Type: String
+		{
+			Value.OwnStr(ToString());
+			break;
+		}
+		case ObjDebug:
+		{
+			Value = Debug;
+			break;
+		}
+		default:
+			return false;
 	}
 
-	return false;
+	return true;
 }
 
 bool TableCell::SetVariant(const char *Name, GVariant &Value, char *Array)
 {
-	if (stricmp(Name, "span") == 0)
+	GDomProperty Fld = GStringToProp(Name);
+	switch (Fld)
 	{
-		GRect r;
-		if (r.SetStr(Value.Str()))
+		case ContainerChildren: // Type: GView[]
 		{
-			Cell = r;
-		}
-		else return false;
-	}
-	else if (stricmp(Name, "children") == 0)
-	{
-		for (GVariant *v = Value.Value.Lst->First(); v; v = Value.Value.Lst->Next())
-		{
-			if (v->Type == GV_VOID_PTR)
+			if (Value.Type != GV_LIST)
 			{
-				ResObject *o = (ResObject*)v->Value.Ptr;
-				if (o)
+				LgiAssert(!"Should be a list.");
+				return false;
+			}
+			
+			for (GVariant *v = Value.Value.Lst->First(); v; v = Value.Value.Lst->Next())
+			{
+				if (v->Type == GV_VOID_PTR)
 				{
-					GView *gv = dynamic_cast<GView*>(o);
-					if (gv)
+					ResObject *o = (ResObject*)v->Value.Ptr;
+					if (o)
 					{
-						Children.New().View = gv;
-						Table->Children.Insert(gv);
-						gv->SetParent(Table);
-
-						GText *t = dynamic_cast<GText*>(gv);
-						if (t)
+						GView *gv = dynamic_cast<GView*>(o);
+						if (gv)
 						{
-							t->SetWrap(true);
+							Children.New().View = gv;
+							Table->Children.Insert(gv);
+							gv->SetParent(Table);
+
+							GText *t = dynamic_cast<GText*>(gv);
+							if (t)
+							{
+								t->SetWrap(true);
+							}
+						}
+					}
+				}
+			}			
+			break;
+		}
+		case ContainerSpan:
+		{
+			GRect r;
+			if (r.SetStr(Value.Str()))
+				Cell = r;
+			else
+				return false;
+			break;
+		}
+		case ContainerAlign:
+		{
+			TextAlign
+			(
+				Len
+				(
+					ConvertAlign(Value.Str(), true)
+				)
+			);
+			break;
+		}
+		case ContainerVAlign:
+		{
+			VerticalAlign
+			(
+				Len
+				(
+					ConvertAlign(Value.Str(), false)
+				)
+			);
+			break;
+		}
+		case ObjClass:
+		{
+			ClassName = Value.Str();
+			
+			LgiResources *r = LgiGetResObj();
+			if (r)
+			{	
+				GCss::SelArray *a = r->CssStore.ClassMap.Find(ClassName);
+				if (a)
+				{
+					for (int i=0; i<a->Length(); i++)
+					{
+						GCss::Selector *s = (*a)[i];
+						
+						// This is not exactly a smart matching algorithm.
+						if (s && s->Parts.Length() == 1)
+						{
+							const char *style = s->Style;
+							Parse(style, ParseRelaxed);
 						}
 					}
 				}
 			}
+			break;
 		}
-	}
-	else if (stricmp(Name, "align") == 0)
-	{
-		TextAlign
-		(
-			Len
-			(
-				ConvertAlign(Value.Str(), true)
-			)
-		);
-	}
-	else if (stricmp(Name, "valign") == 0)
-	{
-		VerticalAlign
-		(
-			Len
-			(
-				ConvertAlign(Value.Str(), false)
-			)
-		);
-	}
-	else if (stricmp(Name, "class") == 0)
-	{
-		LgiResources *r = LgiGetResObj();
-		if (r)
+		case ObjStyle:
 		{
-			GCss::SelArray *a = r->CssStore.ClassMap.Find(Value.Str());
-			if (a)
-			{
-				for (int i=0; i<a->Length(); i++)
-				{
-					GCss::Selector *s = (*a)[i];
-					
-					// This is not exactly a smart matching algorithm.
-					if (s && s->Parts.Length() == 1)
-					{
-						const char *style = s->Style;
-						Parse(style, ParseRelaxed);
-					}
-				}
-			}
+			const char *style = Value.Str();
+			if (style)
+				Parse(style, ParseRelaxed);
+			break;
 		}
+		case ObjDebug:
+		{
+			Debug = Value.CastInt32() != 0;
+			break;
+		}
+		default:
+			return false;
 	}
-	else if (stricmp(Name, "style") == 0)
-	{
-		const char *style = Value.Str();
-		if (style)
-			Parse(style, ParseRelaxed);
-	}
-	else if (stricmp(Name, "debug") == 0)
-	{
-		Debug = Value.CastInt32() != 0;
-	}
-	else return false;
 
 	return true;
 }
@@ -1915,8 +1979,8 @@ int GTableLayout::OnNotify(GViewI *c, int f)
 {
     if (f == GNotifyTableLayout_Refresh)
     {
-		// int Id = GetId();
         OnPosChange();
+        Invalidate();
         return 0;
     }
 

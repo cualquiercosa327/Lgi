@@ -64,19 +64,21 @@ public:
 	{
 	    GMutex *Sem;
 	    bool Locked;
+	    const char *File;
+	    int Line;
 	
 	public:
 	    Auto(GMutex *s, const char *file, int line)
 	    {
 	        LgiAssert(s != NULL);
-	        Locked = (Sem = s) ? Sem->Lock(file, line) : 0;
+	        Locked = (Sem = s) ? Sem->Lock(File = file, Line = line) : 0;
 			LgiAssert(Locked);
 	    }
 
 	    Auto(GMutex *s, int timeout, const char *file, int line)
 	    {
 	        LgiAssert(s != NULL);
-	        Locked = (Sem = s) ? Sem->LockWithTimeout(timeout, file, line) : 0;
+	        Locked = (Sem = s) ? Sem->LockWithTimeout(timeout, File = file, Line = line) : 0;
 	    }
 	    
 	    ~Auto()
@@ -85,6 +87,8 @@ public:
 	    }
 
 		bool GetLocked() { return Locked; }
+		const char *GetFile() { return File; }
+		int GetLine() { return Line; }
 	};
 };
 

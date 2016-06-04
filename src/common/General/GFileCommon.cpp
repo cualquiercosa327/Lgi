@@ -14,16 +14,16 @@ bool GFile::GetVariant(const char *Name, GVariant &Value, char *Array)
 	GDomProperty p = GStringToProp(Name);
 	switch (p)
 	{
-		case ObjType:
+		case ObjType: // Type: String
 			Value = "File";
 			break;
-		case ObjName:
+		case ObjName: // Type: String
 			Value = GetName();
 			break;
-		case ObjLength:
+		case ObjLength: // Type: Int64
 			Value = GetSize();
 			break;
-		case FilePos:
+		case FilePos: // Type: Int64
 			Value = GetPos();
 			break;
 		default:
@@ -56,7 +56,7 @@ bool GFile::CallMethod(const char *Name, GVariant *Dst, GArray<GVariant*> &Arg)
 	GDomProperty p = GStringToProp(Name);
 	switch (p)
 	{
-		case ObjLength:
+		case ObjLength: // Type: ([NewLength])
 		{
 			if (Arg.Length() == 1)
 				*Dst = SetSize(Arg[0]->CastInt64());
@@ -64,7 +64,7 @@ bool GFile::CallMethod(const char *Name, GVariant *Dst, GArray<GVariant*> &Arg)
 				*Dst = GetSize();
 			break;
 		}
-		case FilePos:
+		case FilePos: // Type: ([NewPosition])
 		{
 			if (Arg.Length() == 1)
 				*Dst = SetPos(Arg[0]->CastInt64());
@@ -77,7 +77,7 @@ bool GFile::CallMethod(const char *Name, GVariant *Dst, GArray<GVariant*> &Arg)
 			*Dst = "File";
 			break;
 		}
-		case FileOpen:
+		case FileOpen: // Type: (Path[, Mode])
 		{
 			if (Arg.Length() >= 1)
 			{
@@ -107,7 +107,7 @@ bool GFile::CallMethod(const char *Name, GVariant *Dst, GArray<GVariant*> &Arg)
 			*Dst = Close();
 			break;
 		}
-		case FileRead:
+		case FileRead: // Type: ([ReadLength[, ReadType = 0 - string, 1 - integer]])
 		{
 			int64 RdLen = 0;
 			int RdType = 0; // 0 - string, 1 - int
@@ -183,12 +183,12 @@ bool GFile::CallMethod(const char *Name, GVariant *Dst, GArray<GVariant*> &Arg)
 			else *Dst = -1;
 			break;
 		}
-		case FileWrite:
+		case FileWrite: // Type: (Data[, WriteLength])
 		{
 			GVariant *v;
 			if (Arg.Length() < 1 ||
 				Arg.Length() > 2 ||
-				!(v = Arg[1]))
+				!(v = Arg[0]))
 			{
 				*Dst = 0;
 				return true;

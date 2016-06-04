@@ -665,6 +665,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\include\common\LgiClass.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\common\LgiClasses.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\include\sdl\LgiOsDefs.h"
 				>
 			</File>

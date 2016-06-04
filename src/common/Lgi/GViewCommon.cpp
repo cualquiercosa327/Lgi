@@ -573,10 +573,18 @@ void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 			}
 			else
 			{
-				LgiTrace("%s:%i - Not updating '%s' because %i, %i\n",
+				LgiTrace("%s:%i - Not updating '%s' because %i, %i (%s)\n",
 					_FL, w->GetClass(),
 					Update != NULL,
-					Update ? Update->Overlap(&p) : -1);
+					Update ? Update->Overlap(&p) : -1,
+					p.GetStr());
+				/*
+				if (Update)
+				{
+					for (unsigned i=0; i<Update->Length(); i++)
+						LgiTrace("    [%i]=%s\n", i, (*Update)[i]->GetStr());
+				}
+				*/
 			}
 		}
 	}
@@ -592,11 +600,13 @@ void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 
 GViewI *GView::GetParent()
 {
+	ThreadCheck();
 	return d->Parent;
 }
 
 void GView::SetParent(GViewI *p)
 {
+	ThreadCheck();
 	d->Parent = p ? p->GetGView() : NULL;
 	d->ParentI = p;
 }
@@ -664,11 +674,13 @@ void GView::SendNotify(int Data)
 
 GViewI *GView::GetNotify()
 {
+	ThreadCheck();
 	return d->Notify;
 }
 
 void GView::SetNotify(GViewI *p)
 {
+	ThreadCheck();
 	d->Notify = p;
 }
 
@@ -737,6 +749,8 @@ GRect JoinAdjacent(GRect &a, GRect &b, int Adj)
 
 GRect *GView::FindLargest(GRegion &r)
 {
+	ThreadCheck();
+
 	int Pixels = 0;
 	GRect *Best = 0;
 	static GRect Final;
@@ -802,6 +816,8 @@ GRect *GView::FindLargest(GRegion &r)
 
 GRect *GView::FindSmallestFit(GRegion &r, int Sx, int Sy)
 {
+	ThreadCheck();
+
 	int X = 1000000;
 	int Y = 1000000;
 	GRect *Best = 0;
@@ -823,6 +839,7 @@ GRect *GView::FindSmallestFit(GRegion &r, int Sx, int Sy)
 GRect *GView::FindLargestEdge(GRegion &r, int Edge)
 {
 	GRect *Best = 0;
+	ThreadCheck();
 
 	for (GRect *i = r.First(); i; i = r.Next())
 	{
@@ -883,6 +900,8 @@ GRect *GView::FindLargestEdge(GRegion &r, int Edge)
 
 GViewI *GView::FindReal(GdcPt2 *Offset)
 {
+	ThreadCheck();
+
 	if (Offset)
 	{
 		Offset->x = 0;
@@ -911,6 +930,8 @@ GViewI *GView::FindReal(GdcPt2 *Offset)
 
 bool GView::HandleCapture(GView *Wnd, bool c)
 {
+	ThreadCheck();
+	
 	if (c)
 	{
 		_Capturing = Wnd;
@@ -954,16 +975,22 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 
 bool GView::IsCapturing()
 {
+	ThreadCheck();
+	
 	return _Capturing == this;
 }
 
 bool GView::Capture(bool c)
 {
+	ThreadCheck();
+	
 	return HandleCapture(this, c);
 }
 
 bool GView::Enabled()
 {
+	ThreadCheck();
+
 	#if WINNATIVE
 	if (_View)
 		return IsWindowEnabled(_View);
@@ -974,6 +1001,8 @@ bool GView::Enabled()
 
 void GView::Enabled(bool i)
 {
+	ThreadCheck();
+
 	if (!i) SetFlag(GViewFlags, GWF_DISABLED);
 	else ClearFlag(GViewFlags, GWF_DISABLED);
 
@@ -1000,6 +1029,8 @@ void GView::Enabled(bool i)
 
 bool GView::Visible()
 {
+	ThreadCheck();
+
 	#if WINNATIVE
 
 	if (_View)
@@ -1019,6 +1050,8 @@ bool GView::Visible()
 
 void GView::Visible(bool v)
 {
+	ThreadCheck();
+	
 	if (v) SetFlag(GViewFlags, GWF_VISIBLE);
 	else ClearFlag(GViewFlags, GWF_VISIBLE);
 
@@ -1056,6 +1089,8 @@ void GView::Visible(bool v)
 
 bool GView::Focus()
 {
+	ThreadCheck();
+
 	bool Has = false;
 	GWindow *w = GetWindow();
    
@@ -1098,6 +1133,8 @@ bool GView::Focus()
 
 void GView::Focus(bool i)
 {
+	ThreadCheck();
+
 	if (i)
 		SetFlag(WndFlags, GWF_FOCUS);
 	else
@@ -1183,6 +1220,8 @@ extern pascal OSStatus LgiViewDndHandler(EventHandlerCallRef inHandlerCallRef, E
 
 bool GView::DropTarget(bool t)
 {
+	ThreadCheck();
+
 	bool Status = false;
 
 	if (t) SetFlag(GViewFlags, GWF_DROP_TARGET);
@@ -1291,6 +1330,8 @@ bool GView::DropTarget(bool t)
 
 bool GView::Sunken()
 {
+	ThreadCheck();
+
 	#if WINNATIVE
 	return TestFlag(d->WndExStyle, WS_EX_CLIENTEDGE);
 	#else
@@ -1300,6 +1341,8 @@ bool GView::Sunken()
 
 void GView::Sunken(bool i)
 {
+	ThreadCheck();
+
 	#if WINNATIVE
 	if (i) SetFlag(d->WndExStyle, WS_EX_CLIENTEDGE);
 	else ClearFlag(d->WndExStyle, WS_EX_CLIENTEDGE);
@@ -1318,6 +1361,8 @@ void GView::Sunken(bool i)
 
 bool GView::Flat()
 {
+	ThreadCheck();
+
 	#if WINNATIVE
 	return	!TestFlag(d->WndExStyle, WS_EX_CLIENTEDGE) &&
 			!TestFlag(d->WndExStyle, WS_EX_WINDOWEDGE);
@@ -1329,6 +1374,8 @@ bool GView::Flat()
 
 void GView::Flat(bool i)
 {
+	ThreadCheck();
+	
 	#if WINNATIVE
 	ClearFlag(d->WndExStyle, (WS_EX_CLIENTEDGE|WS_EX_WINDOWEDGE));
 	#else
@@ -1338,6 +1385,8 @@ void GView::Flat(bool i)
 
 bool GView::Raised()
 {
+	ThreadCheck();
+	
 	#if WINNATIVE
 	return TestFlag(d->WndExStyle, WS_EX_WINDOWEDGE);
 	#else
@@ -1347,6 +1396,8 @@ bool GView::Raised()
 
 void GView::Raised(bool i)
 {
+	ThreadCheck();
+
 	#if WINNATIVE
 	if (i) SetFlag(d->WndExStyle, WS_EX_WINDOWEDGE);
 	else ClearFlag(d->WndExStyle, WS_EX_WINDOWEDGE);
@@ -1363,11 +1414,15 @@ void GView::Raised(bool i)
 
 int GView::GetId()
 {
+	ThreadCheck();
+
 	return d->CtrlId;
 }
 
 void GView::SetId(int i)
 {
+	ThreadCheck();
+
 	d->CtrlId = i;
 
 	#if WINNATIVE
@@ -1380,6 +1435,8 @@ void GView::SetId(int i)
 
 bool GView::GetTabStop()
 {
+	ThreadCheck();
+
 	#if WINNATIVE
 	return TestFlag(d->WndStyle, WS_TABSTOP);
 	#else
@@ -1389,6 +1446,8 @@ bool GView::GetTabStop()
 
 void GView::SetTabStop(bool b)
 {
+	ThreadCheck();
+
 	#if WINNATIVE
 	if (b)
 		SetFlag(d->WndStyle, WS_TABSTOP);
@@ -1412,6 +1471,8 @@ void GView::SetTabStop(bool b)
 
 int64 GView::GetCtrlValue(int Id)
 {
+	ThreadCheck();
+
 	GViewI *w = FindControl(Id);
 	if (!w)
 		printf("%s:%i - Ctrl %i not found.\n", _FL, Id);
@@ -1420,6 +1481,8 @@ int64 GView::GetCtrlValue(int Id)
 
 void GView::SetCtrlValue(int Id, int64 i)
 {
+	ThreadCheck();
+
 	GViewI *w = FindControl(Id);
 	if (!w)
 		printf("%s:%i - Ctrl %i not found.\n", _FL, Id);
@@ -1429,6 +1492,8 @@ void GView::SetCtrlValue(int Id, int64 i)
 
 char *GView::GetCtrlName(int Id)
 {
+	ThreadCheck();
+
 	GViewI *w = FindControl(Id);
 	if (!w)
 		printf("%s:%i - Ctrl %i not found.\n", _FL, Id);
@@ -1437,6 +1502,8 @@ char *GView::GetCtrlName(int Id)
 
 void GView::SetCtrlName(int Id, const char *s)
 {
+	ThreadCheck();
+	
 	GViewI *w = FindControl(Id);
 	if (!w)
 		printf("%s:%i - Ctrl %i not found.\n", _FL, Id);
@@ -1446,6 +1513,8 @@ void GView::SetCtrlName(int Id, const char *s)
 
 bool GView::GetCtrlEnabled(int Id)
 {
+	ThreadCheck();
+
 	GViewI *w = FindControl(Id);
 	if (!w)
 		printf("%s:%i - Ctrl %i not found.\n", _FL, Id);
@@ -1454,6 +1523,8 @@ bool GView::GetCtrlEnabled(int Id)
 
 void GView::SetCtrlEnabled(int Id, bool Enabled)
 {
+	ThreadCheck();
+
 	GViewI *w = FindControl(Id);
 	if (!w)
 		printf("%s:%i - Ctrl %i not found.\n", _FL, Id);
@@ -1463,6 +1534,8 @@ void GView::SetCtrlEnabled(int Id, bool Enabled)
 
 bool GView::GetCtrlVisible(int Id)
 {
+	ThreadCheck();
+
 	GViewI *w = FindControl(Id);
 	if (!w)
 		printf("%s:%i - Ctrl %i not found.\n", _FL, Id);
@@ -1471,6 +1544,8 @@ bool GView::GetCtrlVisible(int Id)
 
 void GView::SetCtrlVisible(int Id, bool v)
 {
+	ThreadCheck();
+
 	GViewI *w = FindControl(Id);
 	if (!w)
 		printf("%s:%i - Ctrl %i not found.\n", _FL, Id);

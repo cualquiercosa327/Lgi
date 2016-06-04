@@ -3081,11 +3081,9 @@ bool MailIMap::RenameFolder(char *From, char *To)
 	if (From && To && Lock(_FL))
 	{
 		int Cmd = d->NextCmd++;
-		char *f = EncodeImapString(From);
-		char *t = EncodeImapString(To);
-		sprintf_s(Buf, sizeof(Buf), "A%4.4i RENAME \"%s\" \"%s\"\r\n", Cmd, f, t);
-		DeleteArray(f);
-		DeleteArray(t);
+		GAutoString f(EncodePath(From));
+		GAutoString t(EncodePath(To));
+		sprintf_s(Buf, sizeof(Buf), "A%4.4i RENAME \"%s\" \"%s\"\r\n", Cmd, f.Get(), t.Get());
 		if (WriteBuf())
 		{
 			ClearDialog();

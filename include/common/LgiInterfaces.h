@@ -314,7 +314,19 @@ public:
 	virtual class GFontCache *GetFontCache() = 0;
 };
 
-class GEventsI
+class GEventSinkI
+{
+public:
+	virtual bool PostEvent(int Cmd, GMessage::Param a = 0, GMessage::Param b = 0) = 0;
+};
+
+class GEventTargetI
+{
+public:
+	virtual GMessage::Result OnEvent(GMessage *Msg) = 0;
+};
+
+class GEventsI : public GEventTargetI
 {
 public:
 	virtual ~GEventsI() {}
@@ -323,7 +335,6 @@ public:
 	virtual bool OnScriptEvent(GViewI *Ctrl) = 0;
 
 	// Events
-	virtual GMessage::Result OnEvent(GMessage *Msg) = 0;
 	virtual void OnMouseClick(GMouse &m) = 0;
 	virtual void OnMouseEnter(GMouse &m) = 0;
 	virtual void OnMouseExit(GMouse &m) = 0;
@@ -375,7 +386,7 @@ public:
 	Range Height;
 };
 
-class GViewI : public GEventsI
+class GViewI : public GEventsI, public GEventSinkI
 {
 	friend class GView;
 
@@ -457,7 +468,6 @@ public:
 	virtual void SendNotify(int Data = 0) = 0;
 	virtual GViewI *GetNotify() = 0;
 	virtual void SetNotify(GViewI *n) = 0;
-	virtual bool PostEvent(int Cmd, GMessage::Param a = 0, GMessage::Param b = 0) = 0;
 
 	// Mouse
 	virtual LgiCursor GetCursor(int x, int y) = 0;

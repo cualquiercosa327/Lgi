@@ -102,7 +102,7 @@ enum GOperator
 class LgiClass GCustomType : public GDom
 {
 protected:
-	struct FldDef : public GDom
+	struct CustomField : public GDom
 	{
 		int Offset;
 		int Bytes;
@@ -137,7 +137,7 @@ protected:
 	GString Name;
 
 	// Fields
-	GArray<FldDef> Flds;
+	GArray<CustomField> Flds;
 	GHashTbl<const char*, int> FldMap;
 	
 	// Methods

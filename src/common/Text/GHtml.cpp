@@ -1385,25 +1385,29 @@ void GTag::Set(const char *attr, const char *val)
 
 bool GTag::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
-	if (!Name)
-		return false;
-	
-	if (!_stricmp(Name, "style"))
+	GDomProperty Fld = GStringToProp(Name);
+	switch (Fld)
 	{
-		Value = &StyleDom;
-		return true;
-	}
-	else if (!_stricmp(Name, "textContent"))
-	{
-		Value = Text();
-		return true;
-	}
-
-	char *a = Attr.Find(Name);
-	if (a)
-	{
-		Value = a;
-		return true;
+		case ObjStyle: // Type: GCssStyle
+		{
+			Value = &StyleDom;
+			return true;
+		}
+		case ObjTextContent: // Type: String
+		{
+			Value = Text();
+			return true;
+		}
+		default:
+		{
+			char *a = Attr.Find(Name);
+			if (a)
+			{
+				Value = a;
+				return true;
+			}
+			break;
+		}
 	}
 	
 	return false;
@@ -1411,55 +1415,60 @@ bool GTag::GetVariant(const char *Name, GVariant &Value, char *Array)
 
 bool GTag::SetVariant(const char *Name, GVariant &Value, char *Array)
 {
-	if (!Name)
-		return false;
-
-	if (!_stricmp(Name, "style"))
+	GDomProperty Fld = GStringToProp(Name);
+	switch (Fld)
 	{
-		const char *Defs = Value.Str();
-		if (!Defs)
-			return false;
-			
-		return Parse(Defs, ParseRelaxed);
-	}
-	else if (!_stricmp(Name, "textContent"))
-	{
-		const char *s = Value.Str();
-		if (s)
+		case ObjStyle:
 		{
-			GAutoWString w(CleanText(s, strlen(s), "utf-8", true, true));
-			Txt = w;
-			return true;
+			const char *Defs = Value.Str();
+			if (!Defs)
+				return false;
+				
+			return Parse(Defs, ParseRelaxed);
 		}
-	}
-	else if (!_stricmp(Name, "innerHTML"))
-	{
-		// Clear out existing tags..
-		Children.DeleteObjects();
-	
-		char *Doc = Value.CastString();
-		if (Doc)
+		case ObjTextContent:
 		{
-			// Create new tags...
-			bool BackOut = false;
-			
-			while (Doc && *Doc)
+			const char *s = Value.Str();
+			if (s)
 			{
-				GTag *t = new GTag(Html, this);
-				if (t)
-				{
-					Doc = Html->ParseHtml(t, Doc, 1, false, &BackOut);
-					if (!Doc)
-						break;
-				}
-				else break;
+				GAutoWString w(CleanText(s, strlen(s), "utf-8", true, true));
+				Txt = w;
+				return true;
 			}
+			break;
 		}
-	}
-	else
-	{
-		Set(Name, Value.CastString());
-		SetStyle();
+		case ObjInnerHtml: // Type: String
+		{
+			// Clear out existing tags..
+			Children.DeleteObjects();
+		
+			char *Doc = Value.CastString();
+			if (Doc)
+			{
+				// Create new tags...
+				bool BackOut = false;
+				
+				while (Doc && *Doc)
+				{
+					GTag *t = new GTag(Html, this);
+					if (t)
+					{
+						Doc = Html->ParseHtml(t, Doc, 1, false, &BackOut);
+						if (!Doc)
+							break;
+					}
+					else break;
+				}
+			}
+			else return false;
+			break;
+		}
+		default:
+		{
+			Set(Name, Value.CastString());
+			SetStyle();
+			break;
+		}
 	}
 
 	Html->ViewWidth = -1;
@@ -8608,11 +8617,13 @@ GHtmlElement *GHtml::CreateElement(GHtmlElement *Parent)
 
 bool GHtml::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
-	if (!_stricmp(Name, "supportLists"))
+	if (!_stricmp(Name, "supportLists")) // Type: Bool
 		Value = false;
-	else if (!_stricmp(Name, "vml")) // Vector Markup Language
+	else if (!_stricmp(Name, "vml")) // Type: Bool
+		// Vector Markup Language
 		Value = false;
-	else if (!_stricmp(Name, "mso")) // mso = Microsoft Office
+	else if (!_stricmp(Name, "mso")) // Type: Bool
+		// mso = Microsoft Office
 		Value = false;
 	else
 		return false;
@@ -9146,7 +9157,7 @@ bool GCssStyle::GetVariant(const char *Name, GVariant &Value, char *Array)
 	if (!Name)
 		return false;
 
-	if (!_stricmp(Name, "display"))
+	if (!_stricmp(Name, "Display")) // Type: String
 	{
 		Value = Css->ToString(Css->Display());
 		return Value.Str() != NULL;

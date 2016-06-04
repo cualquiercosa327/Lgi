@@ -92,7 +92,7 @@ public:
 };
 
 // Threads
-#ifdef WIN32
+#if defined(WIN32)
 
 typedef HANDLE  					OsThread;
 typedef DWORD						OsThreadId;
