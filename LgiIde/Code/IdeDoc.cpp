@@ -114,6 +114,10 @@ public:
 	}
 	
 	void OnMouseClick(GMouse &m);
+
+	void OnHeaderList(GMouse &m);
+	void OnFunctionList(GMouse &m);
+	void OnSymbolList(GMouse &m);
 };
 
 char *Leaf(char *Path)
@@ -122,306 +126,320 @@ char *Leaf(char *Path)
 	return d ? d + 1 : Path;
 }
 
+void EditTray::OnHeaderList(GMouse &m)
+{
+	// Header list button
+	GArray<char*> Paths;
+	if (Doc->BuildIncludePaths(Paths, PlatformCurrent, false))
+	{
+		GArray<char*> Headers;
+		if (Doc->BuildHeaderList(Ctrl->NameW(), Headers, Paths))
+		{
+			// Sort them..
+			Headers.Sort(FileNameSorter);
+			
+			GSubMenu *s = new GSubMenu;
+			if (s)
+			{
+				// Construct the menu
+				GHashTbl<char*, int> Map;
+				int DisplayLines = GdcD->Y() / SysFont->GetHeight();
+				if (Headers.Length() > (0.7 * DisplayLines))
+				{
+					GArray<char*> Letters[26];
+					GArray<char*> Other;
+					
+					for (int i=0; i<Headers.Length(); i++)
+					{
+						char *h = Headers[i];
+						char *f = Leaf(h);
+						
+						Map.Add(h, i + 1);
+						
+						if (IsAlpha(*f))
+						{
+							int Idx = tolower(*f) - 'a';
+							Letters[Idx].Add(h);
+						}
+						else
+						{
+							Other.Add(h);
+						}
+					}
+					
+					for (int i=0; i<CountOf(Letters); i++)
+					{
+						if (Letters[i].Length() > 1)
+						{
+							char *First = Leaf(Letters[i][0]);
+							char *Last = Leaf(Letters[i].Last());
+
+							char Title[256];
+							sprintf_s(Title, sizeof(Title), "%s - %s", First, Last);
+							GSubMenu *sub = s->AppendSub(Title);
+							if (sub)
+							{
+								for (int n=0; n<Letters[i].Length(); n++)
+								{
+									char *h = Letters[i][n];
+									int Id = Map.Find(h);
+									LgiAssert(Id > 0);
+									sub->AppendItem(Leaf(h), Id, true);
+								}
+							}
+						}
+						else if (Letters[i].Length() == 1)
+						{
+							char *h = Letters[i][0];
+							int Id = Map.Find(h);
+							LgiAssert(Id > 0);
+							s->AppendItem(Leaf(h), Id, true);
+						}
+					}
+
+					if (Other.Length() > 0)
+					{
+						for (int n=0; n<Other.Length(); n++)
+						{
+							char *h = Other[n];
+							int Id = Map.Find(h);
+							LgiAssert(Id > 0);
+							s->AppendItem(Leaf(h), Id, true);
+						}
+					}
+				}
+				else
+				{
+					for (int i=0; i<Headers.Length(); i++)
+					{
+						char *h = Headers[i];
+						char *f = Leaf(h);
+						
+						Map.Add(h, i + 1);
+					}
+
+					for (int i=0; i<Headers.Length(); i++)
+					{
+						char *h = Headers[i];
+						int Id = Map.Find(h);
+						if (Id > 0)
+							s->AppendItem(Leaf(h), Id, true);
+						else
+							LgiTrace("%s:%i - Failed to get id for '%s' (map.len=%i)\n", _FL, h, Map.Length());
+					}
+
+					if (!Headers.Length())
+					{
+						s->AppendItem("(none)", 0, false);
+					}
+				}
+				
+				// Show the menu
+				GdcPt2 p(m.x, m.y);
+				PointToScreen(p);
+				int Goto = s->Float(this, p.x, p.y, true);
+				if (Goto > 0)
+				{
+					char *File = Headers[Goto-1];
+					if (File)
+					{
+						// Open the selected file
+						Doc->GetProject()->GetApp()->OpenFile(File);
+					}
+				}
+				
+				DeleteObj(s);
+			}
+		}
+		
+		// Clean up memory
+		Paths.DeleteArrays();
+		Headers.DeleteArrays();
+	}
+	else
+	{
+		LgiTrace("%s:%i - No include paths set.\n", _FL);
+	}
+}
+
+void EditTray::OnFunctionList(GMouse &m)
+{
+	List<DefnInfo> Funcs;
+	if (Doc->BuildDefnList(Doc->GetFileName(), Ctrl->NameW(), Funcs, DefnFunc))
+	{
+		GSubMenu *s = new GSubMenu;
+		if (s)
+		{
+			GArray<DefnInfo*> a;					
+			int n=1;
+			
+			for (DefnInfo *i=Funcs.First(); i; i=Funcs.Next())
+			{
+				char Buf[256], *o = Buf;
+				
+				if (i->Type != DefnEnumValue)
+				{
+					for (char *k = i->Name; *k; k++)
+					{
+						if (*k == '&')
+						{
+							*o++ = '&';
+							*o++ = '&';
+						}
+						else if (*k == '\t')
+						{
+							*o++ = ' ';
+						}
+						else
+						{
+							*o++ = *k;
+						}
+					}
+					*o++ = 0;
+					
+					a[n] = i;
+					s->AppendItem(Buf, n++, true);
+				}
+			}
+			
+			GdcPt2 p(m.x, m.y);
+			PointToScreen(p);
+			int Goto = s->Float(this, p.x, p.y, true);
+			if (Goto)
+			{
+				DefnInfo *Info = a[Goto];
+				if (Info)
+				{
+					Ctrl->SetLine(Info->Line + 1);
+				}
+			}
+			
+			DeleteObj(s);
+		}
+		
+		Funcs.DeleteObjects();
+	}
+	else
+	{
+		LgiTrace("%s:%i - No functions in input.\n", _FL);
+	}
+}
+
+void EditTray::OnSymbolList(GMouse &m)
+{
+	GAutoString s(Ctrl->GetSelection());
+	if (s)
+	{
+		GAutoWString sw(LgiNewUtf8To16(s));
+		if (sw)
+		{
+			#if USE_OLD_FIND_DEFN
+			List<DefnInfo> Matches;
+			Doc->FindDefn(sw, Ctrl->NameW(), Matches);
+			#else
+			GArray<FindSymResult> Matches;
+			Doc->GetApp()->FindSymbol(s, Matches);
+			#endif
+
+			GSubMenu *s = new GSubMenu;
+			if (s)
+			{
+				// Construct the menu
+				int n=1;
+				
+				#if USE_OLD_FIND_DEFN
+				for (DefnInfo *Def = Matches.First(); Def; Def = Matches.Next())
+				{
+					char m[512];
+					char *d = strrchr(Def->File, DIR_CHAR);
+					sprintf(m, "%s (%s:%i)", Def->Name, d ? d + 1 : Def->File, Def->Line);
+					s->AppendItem(m, n++, true);
+				}
+				#else
+				for (int i=0; i<Matches.Length(); i++)
+				{
+					FindSymResult &Res = Matches[i];
+					char m[512];
+					char *d = strrchr(Res.File, DIR_CHAR);
+					sprintf(m, "%s (%s:%i)", Res.Symbol.Get(), d ? d + 1 : Res.File.Get(), Res.Line);
+					s->AppendItem(m, n++, true);
+				}
+				#endif
+
+				if (!Matches.Length())
+				{
+					s->AppendItem("(none)", 0, false);
+				}
+				
+				// Show the menu
+				GdcPt2 p(m.x, m.y);
+				PointToScreen(p);
+				int Goto = s->Float(this, p.x, p.y, true);
+				if (Goto)
+				{
+					#if USE_OLD_FIND_DEFN
+					DefnInfo *Def = Matches[Goto-1];
+					#else
+					FindSymResult *Def = &Matches[Goto-1];
+					#endif
+					{
+						// Open the selected symbol
+						if (Doc->GetProject() &&
+							Doc->GetProject()->GetApp())
+						{
+							AppWnd *App = Doc->GetProject()->GetApp();
+							IdeDoc *Doc = App->OpenFile(Def->File);
+
+							if (Doc)
+							{
+								Doc->GetEdit()->SetLine(Def->Line);
+							}
+							else
+							{
+								char *f = Def->File;
+								LgiTrace("%s:%i - Couldn't open doc '%s'\n", _FL, f);
+							}
+						}
+						else
+						{
+							LgiTrace("%s:%i - No project / app ptr.\n", _FL);
+						}
+					}
+				}
+				
+				DeleteObj(s);
+			}
+		}
+	}
+	else
+	{
+		GSubMenu *s = new GSubMenu;
+		if (s)
+		{
+			s->AppendItem("(No symbol currently selected)", 0, false);
+			GdcPt2 p(m.x, m.y);
+			PointToScreen(p);
+			s->Float(this, p.x, p.y, true);
+			DeleteObj(s);
+		}
+	}
+}
+
 void EditTray::OnMouseClick(GMouse &m)
 {
 	if (m.Left() && m.Down())
 	{
 		if (HeaderBtn.Overlap(m.x, m.y))
 		{
-			// Header list button
-			GArray<char*> Paths;
-			if (Doc->BuildIncludePaths(Paths, PlatformCurrent, false))
-			{
-				GArray<char*> Headers;
-				if (Doc->BuildHeaderList(Ctrl->NameW(), Headers, Paths))
-				{
-					// Sort them..
-					Headers.Sort(FileNameSorter);
-					
-					GSubMenu *s = new GSubMenu;
-					if (s)
-					{
-						// Construct the menu
-						GHashTbl<char*, int> Map;
-						int DisplayLines = GdcD->Y() / SysFont->GetHeight();
-						if (Headers.Length() > (0.7 * DisplayLines))
-						{
-							GArray<char*> Letters[26];
-							GArray<char*> Other;
-							
-							for (int i=0; i<Headers.Length(); i++)
-							{
-								char *h = Headers[i];
-								char *f = Leaf(h);
-								
-								Map.Add(h, i + 1);
-								
-								if (IsAlpha(*f))
-								{
-									int Idx = tolower(*f) - 'a';
-									Letters[Idx].Add(h);
-								}
-								else
-								{
-									Other.Add(h);
-								}
-							}
-							
-							for (int i=0; i<CountOf(Letters); i++)
-							{
-								if (Letters[i].Length() > 1)
-								{
-									char *First = Leaf(Letters[i][0]);
-									char *Last = Leaf(Letters[i].Last());
-
-									char Title[256];
-									sprintf_s(Title, sizeof(Title), "%s - %s", First, Last);
-									GSubMenu *sub = s->AppendSub(Title);
-									if (sub)
-									{
-										for (int n=0; n<Letters[i].Length(); n++)
-										{
-											char *h = Letters[i][n];
-											int Id = Map.Find(h);
-											LgiAssert(Id > 0);
-											sub->AppendItem(Leaf(h), Id, true);
-										}
-									}
-								}
-								else if (Letters[i].Length() == 1)
-								{
-									char *h = Letters[i][0];
-									int Id = Map.Find(h);
-									LgiAssert(Id > 0);
-									s->AppendItem(Leaf(h), Id, true);
-								}
-							}
-
-							if (Other.Length() > 0)
-							{
-								for (int n=0; n<Other.Length(); n++)
-								{
-									char *h = Other[n];
-									int Id = Map.Find(h);
-									LgiAssert(Id > 0);
-									s->AppendItem(Leaf(h), Id, true);
-								}
-							}
-						}
-						else
-						{
-							for (int i=0; i<Headers.Length(); i++)
-							{
-								char *h = Headers[i];
-								char *f = Leaf(h);
-								
-								Map.Add(h, i + 1);
-							}
-
-							for (int i=0; i<Headers.Length(); i++)
-							{
-								char *h = Headers[i];
-								int Id = Map.Find(h);
-								if (Id > 0)
-									s->AppendItem(Leaf(h), Id, true);
-								else
-									LgiTrace("%s:%i - Failed to get id for '%s' (map.len=%i)\n", _FL, h, Map.Length());
-							}
-
-							if (!Headers.Length())
-							{
-								s->AppendItem("(none)", 0, false);
-							}
-						}
-						
-						// Show the menu
-						GdcPt2 p(m.x, m.y);
-						PointToScreen(p);
-						int Goto = s->Float(this, p.x, p.y, true);
-						if (Goto > 0)
-						{
-							char *File = Headers[Goto-1];
-							if (File)
-							{
-								// Open the selected file
-								Doc->GetProject()->GetApp()->OpenFile(File);
-							}
-						}
-						
-						DeleteObj(s);
-					}
-				}
-				
-				// Clean up memory
-				Paths.DeleteArrays();
-				Headers.DeleteArrays();
-			}
-			else
-			{
-				LgiTrace("%s:%i - No include paths set.\n", _FL);
-			}
+			OnHeaderList(m);
 		}
 		else if (FuncBtn.Overlap(m.x, m.y))
 		{
-			// Function list button
-			List<DefnInfo> Funcs;
-			if (Doc->BuildDefnList(Doc->GetFileName(), Ctrl->NameW(), Funcs, DefnFunc))
-			{
-				GSubMenu *s = new GSubMenu;
-				if (s)
-				{
-					GArray<DefnInfo*> a;					
-					int n=1;
-					
-					for (DefnInfo *i=Funcs.First(); i; i=Funcs.Next())
-					{
-						char Buf[256], *o = Buf;
-						
-						if (i->Type != DefnEnumValue)
-						{
-							for (char *k = i->Name; *k; k++)
-							{
-								if (*k == '&')
-								{
-									*o++ = '&';
-									*o++ = '&';
-								}
-								else if (*k == '\t')
-								{
-									*o++ = ' ';
-								}
-								else
-								{
-									*o++ = *k;
-								}
-							}
-							*o++ = 0;
-							
-							a[n] = i;
-							s->AppendItem(Buf, n++, true);
-						}
-					}
-					
-					GdcPt2 p(m.x, m.y);
-					PointToScreen(p);
-					int Goto = s->Float(this, p.x, p.y, true);
-					if (Goto)
-					{
-						DefnInfo *Info = a[Goto];
-						if (Info)
-						{
-							Ctrl->SetLine(Info->Line + 1);
-						}
-					}
-					
-					DeleteObj(s);
-				}
-				
-				Funcs.DeleteObjects();
-			}
-			else
-			{
-				LgiTrace("%s:%i - No functions in input.\n", _FL);
-			}
+			OnFunctionList(m);
 		}
 		else if (SymBtn.Overlap(m.x, m.y))
 		{
-			GAutoString s(Ctrl->GetSelection());
-			if (s)
-			{
-				GAutoWString sw(LgiNewUtf8To16(s));
-				if (sw)
-				{
-					#if USE_OLD_FIND_DEFN
-					List<DefnInfo> Matches;
-					Doc->FindDefn(sw, Ctrl->NameW(), Matches);
-					#else
-					GArray<FindSymResult> Matches;
-					Doc->GetApp()->FindSymbol(s, Matches);
-					#endif
-
-					GSubMenu *s = new GSubMenu;
-					if (s)
-					{
-						// Construct the menu
-						int n=1;
-						
-						#if USE_OLD_FIND_DEFN
-						for (DefnInfo *Def = Matches.First(); Def; Def = Matches.Next())
-						{
-							char m[512];
-							char *d = strrchr(Def->File, DIR_CHAR);
-							sprintf(m, "%s (%s:%i)", Def->Name, d ? d + 1 : Def->File, Def->Line);
-							s->AppendItem(m, n++, true);
-						}
-						#else
-						for (int i=0; i<Matches.Length(); i++)
-						{
-							FindSymResult &Res = Matches[i];
-							char m[512];
-							char *d = strrchr(Res.File, DIR_CHAR);
-							sprintf(m, "%s (%s:%i)", Res.Symbol.Get(), d ? d + 1 : Res.File.Get(), Res.Line);
-							s->AppendItem(m, n++, true);
-						}
-						#endif
-
-						if (!Matches.Length())
-						{
-							s->AppendItem("(none)", 0, false);
-						}
-						
-						// Show the menu
-						GdcPt2 p(m.x, m.y);
-						PointToScreen(p);
-						int Goto = s->Float(this, p.x, p.y, true);
-						if (Goto)
-						{
-							#if USE_OLD_FIND_DEFN
-							DefnInfo *Def = Matches[Goto-1];
-							#else
-							FindSymResult *Def = &Matches[Goto-1];
-							#endif
-							{
-								// Open the selected symbol
-								if (Doc->GetProject() &&
-									Doc->GetProject()->GetApp())
-								{
-									AppWnd *App = Doc->GetProject()->GetApp();
-									IdeDoc *Doc = App->OpenFile(Def->File);
-
-									if (Doc)
-									{
-										Doc->GetEdit()->SetLine(Def->Line);
-									}
-									else
-									{
-										char *f = Def->File;
-										LgiTrace("%s:%i - Couldn't open doc '%s'\n", _FL, f);
-									}
-								}
-								else
-								{
-									LgiTrace("%s:%i - No project / app ptr.\n", _FL);
-								}
-							}
-						}
-						
-						DeleteObj(s);
-					}
-				}
-			}
-			else
-			{
-				GSubMenu *s = new GSubMenu;
-				if (s)
-				{
-					s->AppendItem("(No symbol currently selected)", 0, false);
-					GdcPt2 p(m.x, m.y);
-					PointToScreen(p);
-					s->Float(this, p.x, p.y, true);
-					DeleteObj(s);
-				}
-			}
+			OnSymbolList(m);
 		}
 	}
 }
@@ -1733,7 +1751,7 @@ bool IdeDoc::BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Defns, D
 							}
 							DeleteArray(Buf);
 							
-							while (*End && *End != ';')
+							while (*End && *End != ';' && *End != ':')
 								End++;
 							FnEmit = *End != ';';
 						}
