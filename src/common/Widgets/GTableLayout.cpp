@@ -1979,8 +1979,8 @@ int GTableLayout::OnNotify(GViewI *c, int f)
 {
     if (f == GNotifyTableLayout_Refresh)
     {
-		// int Id = GetId();
         OnPosChange();
+        Invalidate();
         return 0;
     }
 
