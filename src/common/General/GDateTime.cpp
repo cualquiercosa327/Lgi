@@ -1716,7 +1716,7 @@ bool GDateTime::GetVariant(const char *Name, GVariant &Dst, char *Array)
 			Dst = s;
 			break;
 		}
-		case DateDateTime: // Type: String
+		case DateDateAndTime: // Type: String
 		{
 			char s[32];
 			Get(s, sizeof(s));
@@ -1767,7 +1767,7 @@ bool GDateTime::SetVariant(const char *Name, GVariant &Value, char *Array)
 		case DateTime:
 			SetTime(Value.Str());
 			break;
-		case DateDateTime:
+		case DateDateAndTime:
 			Set(Value.Str());
 			break;
 		case DateInt64:

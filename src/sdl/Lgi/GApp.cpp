@@ -1010,6 +1010,8 @@ bool GApp::InvalidateRect(GRect &r)
 	{
 		int Len = d->Dirty.Length();
 		d->Dirty.Union(&r);
+		// LgiTrace("Invalidate %s\n", r.GetStr());
+		
 		if (Len == 0)
 		{
 			SDL_Event e;
@@ -1019,6 +1021,7 @@ bool GApp::InvalidateRect(GRect &r)
 			e.user.data2 = NULL;
 			SDL_PushEvent(&e);
 		}
+
 		d->Unlock();
 	}
 	

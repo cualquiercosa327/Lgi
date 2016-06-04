@@ -1519,10 +1519,10 @@ struct GDomPropMap : public GHashTbl<const char *, GDomProperty>
 		Define("HashTable", TypeHashTable);
 		Define("File", TypeFile);
 		Define("Surface", TypeSurface);
-		Define("DateTime", TypeDateTime);
 		Define("Int", TypeInt);
 		Define("Double", TypeDouble);
 		Define("String", TypeString);
+		Define("DateTime", TypeDateTime);
 		
 		Define("Year", DateYear);
 		Define("Month", DateMonth);
@@ -1532,7 +1532,7 @@ struct GDomPropMap : public GHashTbl<const char *, GDomProperty>
 		Define("Second", DateSec);
 		Define("Date", DateDate);
 		Define("Time", DateTime);
-		Define("DateTime", DateDateTime);
+		Define("DateAndTime", DateDateAndTime);
 		Define("DateInt64", DateInt64);
 		Define("SetNow", DateSetNow);
 
@@ -1543,8 +1543,6 @@ struct GDomPropMap : public GHashTbl<const char *, GDomProperty>
 		Define("Lower", StrLower);
 		Define("Upper", StrUpper);
 		Define("Strip", StrStrip);
-		Define("Int", StrInt);
-		Define("Double", StrDouble);
 		Define("Sub", StrSub);
 		
 		Define("X", SurfaceX);

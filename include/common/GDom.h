@@ -85,7 +85,7 @@ enum GDomProperty
 	DateSec,
 	DateDate, // "yyyymmdd"
 	DateTime, // "hhmmss"
-	DateDateTime, // "yyyymmdd hhmmss"
+	DateDateAndTime, // "yyyymmdd hhmmss"
 	DateInt64,
 	DateSetNow,
 
