@@ -868,59 +868,11 @@ GString WinGetSpecialFolderPath(int Id)
 //////////////////////////////////////////////////////////////////////
 void _lgi_assert(bool b, const char *test, const char *file, int line)
 {
-	static bool Asserting = false;
-
 	if (!b)
 	{
-		#ifdef LGI_STATIC
-		assert(b);
-		#else
-		if (Asserting || !LgiApp)
-		{
-			// Woah boy...
-			assert(0);
-		}
-		else
-		{
-			Asserting = true;
-			
-			printf("%s:%i - Assert failed:\n%s\n", file, line, test);
-
-			#ifdef _DEBUG
-
-			GStringPipe p;
-			p.Print("Assert failed, file: %s, line: %i\n%s", file, line, test);
-			GAutoPtr<char,true> Msg(p.NewStr());
-			GAlert a(0, "Assert Failed", Msg, "Abort", "Debug", "Ignore");
-			a.SetAppModal();
-			switch (a.DoModal())
-			{
-				case 1:
-				{
-					exit(-1);
-					break;
-				}
-				case 2:
-				{
-					// Bring up the debugger...
-					#if defined(_WIN64) || !defined(_MSC_VER)
-					assert(0);
-					#else
-					_asm int 3
-					#endif
-					break;
-				}
-				case 3:
-				{
-					break;
-				}
-			}
-
-			#endif
-
-			Asserting = false;
-		}
-		#endif
+		printf("%s:%i - Assert failed:\n%s\n", file, line, test);
+		SDL_Quit();
+		exit(-1);
 	}
 }
 

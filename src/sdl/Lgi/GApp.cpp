@@ -1037,9 +1037,15 @@ bool GApp::PushWindow(GWindow *w)
 	}
 
 	if (AppWnd)
+	{
 		d->Stack.Add(AppWnd);
+		printf("Pushing %s, new AppWnd=%s %p\n", AppWnd?AppWnd->GetClass():0, w?w->GetClass():0, w);
+	}
+	else
+	{
+		printf("Pushing AppWnd=%s %p\n", w?w->GetClass():0, w);
+	}
 	
-	printf("Pushing %s, new AppWnd=%s %p\n", AppWnd?AppWnd->GetClass():0, w?w->GetClass():0, w);
 	AppWnd = w;
 	AppWnd->Invalidate();
 
