@@ -636,15 +636,10 @@ void GMemDC::StretchBlt(GRect *Dest, GSurface *Src, GRect *s)
 			SrcR.ZOff(Src->X()-1, Src->Y()-1);
 		}
 
-		int RowOp;
+		int RowOp = SRCCOPY;
 
 		switch (Op())
 		{
-			case GDC_SET:
-			{
-				RowOp = SRCCOPY;
-				break;
-			}
 			case GDC_AND:
 			{
 				RowOp = SRCAND;
@@ -704,7 +699,7 @@ void GMemDC::StretchBlt(GRect *Dest, GSurface *Src, GRect *s)
 			}
 			default:
 			{
-				return;
+				break;
 			}
 		}
 

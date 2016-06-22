@@ -621,12 +621,13 @@ bool GVariant::SetHashTable(GHashTable *Table, bool Copy)
 bool GVariant::SetSurface(class GSurface *Ptr, bool Own)
 {
     Empty();
+    if (!Ptr)
+		return false;
+
     Type = GV_GSURFACE;
     Value.Surface.Ptr = Ptr;
     if ((Value.Surface.Own = Own))
-    {
         Value.Surface.Ptr->AddRef();
-    }
     
     return true;
 }

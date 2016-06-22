@@ -6334,14 +6334,6 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection, uint16 Depth)
 	int Px, Py;
 	pDC->GetOrigin(Px, Py);
 
-	#ifdef _DEBUG
-	if (Debug)
-	{
-		GCss::ColorDef c = Color();
-		LgiTrace("%s::OnPaint - %i,%i\n", Tag.Get(), -Px, -Py);
-	}
-	#endif
-	
 	switch (TagId)
 	{
 		case TAG_INPUT:
