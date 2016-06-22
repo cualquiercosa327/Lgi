@@ -1190,9 +1190,19 @@ int32 GVariant::CastInt32()
 			break;
 		}
 		case GV_LIST:
-			return Value.Lst != 0;
+			return Value.Lst != NULL;
 		case GV_HASHTABLE:
-			return Value.Hash != 0;
+			return Value.Hash != NULL;
+		case GV_GSURFACE:
+			return Value.Surface.Ptr != NULL;
+		case GV_GVIEW:
+			return Value.View != NULL;
+		case GV_GMOUSE:
+			return Value.Mouse != NULL;
+		case GV_GKEY:
+			return Value.Key != NULL;
+		case GV_STREAM:
+			return Value.Stream.Ptr != NULL;
 	}
 	
 	return 0;

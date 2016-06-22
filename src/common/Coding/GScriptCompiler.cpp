@@ -56,6 +56,7 @@ struct Node
 	// -or-
 	bool Constant;
 	int Tok;
+	GArray<int> Lst;
 	GTokenType ConstTok;
 	// -or-
 	GFunc *ContextFunc;
@@ -93,6 +94,14 @@ struct Node
 		Init();
 		Constant = true;
 		Tok = t;
+		ConstTok = e;
+	}
+
+	void SetConst(GArray<int> &list_tokens, GTokenType e)
+	{
+		Init();
+		Constant = true;
+		Lst = list_tokens;
 		ConstTok = e;
 	}
 
@@ -757,6 +766,14 @@ public:
 		Code->Globals[r.Index].Type = GV_NULL;
 	}
 
+	/// Allocate a variant and ref
+	GVariant *PreAllocVariant(GVarRef &r)
+	{
+		r.Scope = SCOPE_GLOBAL;
+		r.Index = Code->Globals.Length();
+		return &Code->Globals[r.Index];
+	}
+
 	/// Allocate a constant double
 	void AllocConst(GVarRef &r, double d)
 	{
@@ -1107,6 +1124,36 @@ public:
 		n.Reg = Value;
 		return true;
 	}
+	
+	bool ConvertStringToVariant(GVariant *v, char16 *t)
+	{
+		if (!t)
+			return false;
+		
+		if (*t == '\"' || *t == '\'')
+		{
+			// string
+			int Len = StrlenW(t);
+			v->OwnStr(NewStrW(t + 1, Len - 2));
+		}
+		else if (StrchrW(t, '.'))
+		{
+			// double
+			*v = atof(t);
+		}
+		else if (t[0] == '0' && tolower(t[1]) == 'x')
+		{
+			// hex integer
+			*v = htoi(t + 2);
+		}
+		else
+		{
+			// decimal integer
+			*v = atoi(t);
+		}
+		
+		return true;
+	}
 
 	/// Convert a token stream to a var ref
 	bool TokenToVarRef(Node &n, GVarRef *&LValue)
@@ -1306,27 +1353,49 @@ public:
 					}
 					default:
 					{
-						char16 *t = Tokens[n.Tok];
-						if (*t == '\"' || *t == '\'')
+						if (n.Lst.Length())
 						{
-							// string
-							int Len = StrlenW(t);
-							AllocConst(n.Reg, t + 1, Len - 2);
-						}
-						else if (StrchrW(t, '.'))
-						{
-							// double
-							AllocConst(n.Reg, atof(t));
-						}
-						else if (t[0] == '0' && tolower(t[1]) == 'x')
-						{
-							// hex integer
-							AllocConst(n.Reg, htoi(t + 2));
+							// List/array constant
+							GVariant *v = PreAllocVariant(n.Reg);
+							if (v)
+							{
+								v->SetList();
+								for (unsigned i=0; i<n.Lst.Length(); i++)
+								{
+									char16 *t = Tokens[n.Lst[i]];
+									if (!t)
+										break;
+									GAutoPtr<GVariant> a(new GVariant);
+									if (!ConvertStringToVariant(a, t))
+										break;
+									v->Value.Lst->Insert(a.Release());
+								}
+							}
 						}
 						else
-						{
-							// decimal integer
-							AllocConst(n.Reg, atoi(t));
+						{						
+							char16 *t = Tokens[n.Tok];
+							if (*t == '\"' || *t == '\'')
+							{
+								// string
+								int Len = StrlenW(t);
+								AllocConst(n.Reg, t + 1, Len - 2);
+							}
+							else if (StrchrW(t, '.'))
+							{
+								// double
+								AllocConst(n.Reg, atof(t));
+							}
+							else if (t[0] == '0' && tolower(t[1]) == 'x')
+							{
+								// hex integer
+								AllocConst(n.Reg, htoi(t + 2));
+							}
+							else
+							{
+								// decimal integer
+								AllocConst(n.Reg, atoi(t));
+							}
 						}
 						break;
 					}
@@ -1632,14 +1701,19 @@ public:
 						// Parse the args as expressions
 						while ((t = GetTok(Cur)))
 						{
-							if (StricmpW(t, sComma) == 0)
+							GTokenType Tok = ExpTok.Find(t);
+							if (Tok == TComma)
 							{
 								// Do nothing...
 								Cur++;
 							}
-							else if (StricmpW(t, sEndRdBracket) == 0)
+							else if (Tok == TEndRdBracket)
 							{
 								break;
+							}
+							else if (Tok == TSemiColon)
+							{
+								return OnError(Cur, "Unexpected ';'");
 							}
 							else if (!Expression(Cur, Call.Args.New()))
 							{
@@ -1704,11 +1778,43 @@ public:
 							*t == '\"' ||
 							LgiIsNumber(t))
 					{
+						// Constant string or number
 						n.New().SetConst(Cur, TLiteral);
 					}
+					else if (Tok == TStartCurlyBracket)
+					{
+						// List definition
+						GArray<int> Values;
+						Cur++;
+						int Index = 0;
+						while ((t = Tokens[Cur]))
+						{
+							GTokenType Tok = ExpTok.Find(t);
+							if (Tok == TComma)
+							{
+								Index++;
+							}
+							else if (Tok == TEndCurlyBracket)
+							{
+								break;
+							}
+							else if (*t == '\'' ||
+									*t == '\"' ||
+									LgiIsNumber(t))
+							{
+								Values[Index] = Cur;
+							}
+							else
+							{
+								return OnError(Cur, "Unexpected token '%S' in list definition", t);
+							}
+							Cur++;
+						}
+						n.New().SetConst(Values, TLiteral);
+					} 
 					else
 					{
-						LgiIsNumber(t);
+						// Unknown
 						return OnError(Cur, "Unknown token '%S'", t);
 					}
 				}
@@ -1809,8 +1915,22 @@ public:
 			}
 			else if (n[i].Constant)
 			{
-				char16 *t = Tokens[n[i].Tok];
-				e.Print("%S", t);
+				Node &nd = n[i];
+				if (nd.Lst.Length())
+				{
+					e.Print("{");
+					for (unsigned j=0; j<nd.Lst.Length(); j++)
+					{
+						char16 *t = Tokens[nd.Lst[j]];
+						e.Print("%s%S", j?", ":"", t);
+					}
+					e.Print("}");
+				}
+				else
+				{
+					char16 *t = Tokens[nd.Tok];
+					e.Print("%S", t);
+				}
 			}
 			else if (n[i].ContextFunc)
 			{
@@ -2083,10 +2203,6 @@ public:
 	bool DoExpression(uint32 &Cur, GVarRef *Result)
 	{
 		GArray<Node> n;
-		if (Cur >= 142)
-		{
-			int asd=0;
-		}
 		if (Expression(Cur, n))
 		{
 			bool Status = AsmExpression(Result, n);
