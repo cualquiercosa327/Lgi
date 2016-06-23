@@ -358,7 +358,9 @@ GTreeItem::~GTreeItem()
 		{
 			Tree->d->LastHit = 0;
 		}
-		Tree->Capture(false);
+		
+		if (Tree->IsCapturing())
+			Tree->Capture(false);
 	}
 
 	int y = 0;
@@ -523,7 +525,9 @@ void GTreeItem::_Remove()
 		{
 			LgiAssert(Tree->d);
 			Tree->d->LayoutDirty = true;
-			Tree->Capture(false);
+			
+			if (Tree->IsCapturing())
+				Tree->Capture(false);
 		}
 	}
 
