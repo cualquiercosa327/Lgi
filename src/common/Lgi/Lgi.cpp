@@ -1779,11 +1779,10 @@ char *LgiFindFile(const char *Name)
 		LgiGetExePath(Exe, sizeof(Exe));
 		#else
 		LgiGetExeFile(Exe, sizeof(Exe));
-		LgiTrimDir(Exe);
 		#endif
 
 		#if DEBUG_FIND_FILE
-		printf("%s:%i - Exe='%s'\n", __FILE__, __LINE__, Exe);
+		printf("%s:%i - Exe='%s'\n", _FL, Exe);
 		#endif
 
 		char CurWorking[MAX_PATH];
@@ -1845,7 +1844,7 @@ char *LgiFindFile(const char *Name)
 		Ext.Add((char*)Name);
 
 		#if DEBUG_FIND_FILE
-		printf("%s:%i - Exe='%s'\n", __FILE__, __LINE__, Exe);
+		printf("%s:%i - Exe='%s'\n", _FL, Exe);
 		#endif
 
 		if (LgiRecursiveFileSearch(Exe, &Ext, &Files) &&
