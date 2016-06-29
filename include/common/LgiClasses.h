@@ -437,7 +437,7 @@ protected:
 	/// which is usually the name of the object.
 	GWin32Class *CreateClassW32(const char *Class = 0, HICON Icon = 0, int AddStyles = 0);
 
-	virtual int		SysOnNotify(int Code) { return 0; }
+	virtual int		SysOnNotify(int Msg, int Code) { return 0; }
 
 	#elif defined BEOS
 

@@ -8,7 +8,11 @@
 /// A check box to allow the user to select a boolean setting, i.e. a non-mutually exclusive option. For
 /// mutually exclusive options see GRadioButton.
 class LgiClass GCheckBox :
+	#ifdef WINNATIVE
+	public GControl,
+	#else
 	public GView,
+	#endif
 	public ResObject
 {
 	class GCheckBoxPrivate *d;
@@ -70,6 +74,10 @@ public:
 	void OnPaint(GSurface *pDC);
 	void OnAttach();
 	GMessage::Result OnEvent(GMessage *Msg);
+
+	#ifdef WINNATIVE
+	int SysOnNotify(int Msg, int Code);
+	#endif	
 };
 
 #endif

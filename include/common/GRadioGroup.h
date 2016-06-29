@@ -10,7 +10,11 @@
 /// calculation of the groups value. The value of the group is the index into a list of radio buttons
 /// of the radio button that is on.
 class LgiClass GRadioGroup :
+	#ifdef WINNATIVE
+	public GControl,
+	#else
 	public GView,
+	#endif
 	public ResObject
 {
 	class GRadioGroupPrivate *d;
@@ -46,7 +50,11 @@ public:
 /// A radio button control. A radio button is used to select between mutually exclusive options. i.e.
 /// only one can be valid at any given time. For non-mutually exclusive options see the GCheckBox control.
 class LgiClass GRadioButton :
+	#ifdef WINNATIVE
+	public GControl,
+	#else
 	public GView,
+	#endif
 	public ResObject
 {
 	friend class GRadioGroup;
@@ -69,14 +77,19 @@ public:
 	bool OnLayout(GViewLayoutInfo &Inf);
 
 	// Events
+	void OnAttach();
+	GMessage::Result OnEvent(GMessage *m);
+	
+	#ifdef WINNATIVE
+	int SysOnNotify(int Msg, int Code);
+	#else
 	void OnMouseClick(GMouse &m);
 	void OnMouseEnter(GMouse &m);
 	void OnMouseExit(GMouse &m);
 	bool OnKey(GKey &k);
 	void OnFocus(bool f);
 	void OnPaint(GSurface *pDC);
-	void OnAttach();
-	GMessage::Result OnEvent(GMessage *m);
+	#endif
 };
 
 #endif

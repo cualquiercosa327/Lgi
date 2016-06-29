@@ -370,6 +370,11 @@ DumpTime("vars");
 			// Force load
 			SystemNormal->Create();
 		}
+		else
+		{
+			LgiMsg(0, "Error: SysFontType.Create() failed.", "Lgi Error");
+			LgiExitApp();
+		}
 
 		SystemBold = SysFontType.Create();
 		if (SystemBold)
@@ -378,10 +383,9 @@ DumpTime("vars");
 			SystemBold->Create();
 		}
 	}
-
-	if (!SystemNormal)
+	else
 	{
-		LgiMsg(0, "Error: Couldn't create system font.", "Lgi Error");
+		LgiMsg(0, "Error: GetSystemFont failed.", "Lgi Error");
 		LgiExitApp();
 	}
 

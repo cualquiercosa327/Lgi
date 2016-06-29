@@ -689,11 +689,6 @@ void GCombo::OnAttach()
 {
 }
 
-bool GCombo::SetPos(GRect &p, bool r)
-{
-	return GView::SetPos(p, r);
-}
-
 GCombo::SelectedState GCombo::GetSelectedState()
 {
 	return d->SelState;

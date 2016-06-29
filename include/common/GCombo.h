@@ -7,7 +7,11 @@
 
 /// Combo Box widget.
 class LgiClass GCombo :
+	#ifdef WINNATIVE
+	public GControl,
+	#else
 	public GView,
+	#endif
 	public ResObject	
 {
 private:
@@ -106,14 +110,20 @@ public:
 
 	// Events/Window/Implementation
 	GMessage::Result OnEvent(GMessage *Msg);
-	void OnMouseClick(GMouse &m);
-	bool OnKey(GKey &k);
-	void OnFocus(bool f);
-	void OnPosChange();
-	void OnPaint(GSurface *pDC);
-	void SetFont(GFont *Fnt, bool OwnIt = false);
 	void OnAttach();
+	
+	#if WINNATIVE
+	GRect &GetPos();
 	bool SetPos(GRect &p, bool Repaint = false);
+	int SysOnNotify(int Msg, int Code);
+	#else
+	void OnFocus(bool f);
+	void OnPaint(GSurface *pDC);
+	bool OnKey(GKey &k);
+	void OnMouseClick(GMouse &m);
+	void OnPosChange();
+	void SetFont(GFont *Fnt, bool OwnIt = false);
+	#endif
 };
 
 #endif

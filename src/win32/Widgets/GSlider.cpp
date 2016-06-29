@@ -29,11 +29,6 @@ GSlider::~GSlider()
 {
 }
 
-int GSlider::SysOnNotify(int Code)
-{
-	return 0;
-}
-
 void GSlider::Value(int64 i)
 {
 	Val = i;

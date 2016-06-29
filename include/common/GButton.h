@@ -20,7 +20,11 @@
 /// to the top level window unless some other view intercepts it on the way up
 /// the chain of parent views.
 class LgiClass GButton :
+	#if WINNATIVE
+	public GControl,
+	#else
 	public GView,
+	#endif
 	public ResObject
 {
 	class GButtonPrivate *d;
@@ -91,6 +95,10 @@ public:
 	bool Name(const char *n);
 	bool NameW(const char16 *n);
 	void SetFont(GFont *Fnt, bool OwnIt = false);
+
+	#if WINNATIVE
+	int SysOnNotify(int Msg, int Code);
+	#endif
 };
 
 #endif

@@ -11,8 +11,6 @@
 #include "GButton.h"
 #include "GCss.h"
 
-#define DEBUG_CAPTURE	0
-
 #if WINNATIVE
 #define GViewFlags d->WndStyle
 #else
@@ -934,7 +932,9 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 	
 	if (c)
 	{
-		// LgiTrace("%s:%i - _Capturing=%p -> %p\n", _FL, _Capturing, Wnd);
+		#if DEBUG_CAPTURE
+		LgiTrace("%s:%i - _Capturing=%p -> %p\n", _FL, _Capturing, Wnd);
+		#endif
 		_Capturing = Wnd;
 		
 		#if WINNATIVE
@@ -956,7 +956,9 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 	}
 	else if (_Capturing)
 	{
-		// LgiStackTrace("%s:%i - _Capturing=%p -> NULL\n", _FL, _Capturing);
+		#if DEBUG_CAPTURE
+		LgiStackTrace("%s:%i - _Capturing=%p -> NULL\n", _FL, _Capturing);
+		#endif
 		_Capturing = NULL;
 		
 		#if WINNATIVE

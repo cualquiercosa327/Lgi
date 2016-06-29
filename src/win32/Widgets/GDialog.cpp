@@ -420,8 +420,6 @@ int GDialog::DoModeless()
 	return Status;
 }
 
-extern GButton *FindDefault(GView *w);
-
 GMessage::Result GDialog::OnEvent(GMessage *Msg)
 {
 	switch (Msg->m)
@@ -439,9 +437,7 @@ GMessage::Result GDialog::OnEvent(GMessage *Msg)
 
 			AttachChildren();
 			if (!_Default)
-			{
-				_Default = FindControl(IDOK);
-			}
+				SetDefault(FindControl(IDOK));
 
 			// OnCreate();
 
