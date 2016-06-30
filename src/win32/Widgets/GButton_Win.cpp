@@ -77,6 +77,10 @@ void GButton::SetIsToggle(bool toggle)
 void GButton::OnAttach()
 {
 	SetFont(SysFont);
+	if (d->WantsDefault && GetWindow())
+	{
+		GetWindow()->SetDefault(this);
+	}
 }
 
 bool GButton::Default()
