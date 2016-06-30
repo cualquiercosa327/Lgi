@@ -123,6 +123,9 @@
 		34983C2908F548DF0054868C /* GTrayIcon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34983C2208F548DF0054868C /* GTrayIcon.cpp */; };
 		34983C2A08F548DF0054868C /* LgiRand.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34983C2308F548DF0054868C /* LgiRand.cpp */; };
 		34983C2E08F5492E0054868C /* GPassword.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34983C2D08F5492E0054868C /* GPassword.cpp */; };
+		349C23A01D1E33DA0006793D /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 349C239F1D1E33DA0006793D /* CoreText.framework */; };
+		349C23AC1D1E42690006793D /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 349C23AB1D1E42690006793D /* CoreFoundation.framework */; };
+		349C23AE1D1E42BE0006793D /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 349C23AD1D1E42BE0006793D /* ApplicationServices.framework */; };
 		34A11A7A1675347500FCC5D7 /* GThreadCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34A11A791675347500FCC5D7 /* GThreadCommon.cpp */; };
 		34A11A7C1675349900FCC5D7 /* GMutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34A11A7B1675349900FCC5D7 /* GMutex.cpp */; };
 		34A11A7E167534A500FCC5D7 /* GMutex.h in Headers */ = {isa = PBXBuildFile; fileRef = 34A11A7D167534A500FCC5D7 /* GMutex.h */; };
@@ -298,6 +301,9 @@
 		34983C2208F548DF0054868C /* GTrayIcon.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GTrayIcon.cpp; path = ../../common/Lgi/GTrayIcon.cpp; sourceTree = "<group>"; };
 		34983C2308F548DF0054868C /* LgiRand.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = LgiRand.cpp; path = ../../common/Lgi/LgiRand.cpp; sourceTree = "<group>"; };
 		34983C2D08F5492E0054868C /* GPassword.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GPassword.cpp; path = ../../common/General/GPassword.cpp; sourceTree = "<group>"; };
+		349C239F1D1E33DA0006793D /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
+		349C23AB1D1E42690006793D /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
+		349C23AD1D1E42BE0006793D /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = System/Library/Frameworks/ApplicationServices.framework; sourceTree = SDKROOT; };
 		34A11A791675347500FCC5D7 /* GThreadCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GThreadCommon.cpp; path = ../../common/Lgi/GThreadCommon.cpp; sourceTree = "<group>"; };
 		34A11A7B1675349900FCC5D7 /* GMutex.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GMutex.cpp; path = ../../common/Lgi/GMutex.cpp; sourceTree = "<group>"; };
 		34A11A7D167534A500FCC5D7 /* GMutex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GMutex.h; path = ../../../include/common/GMutex.h; sourceTree = "<group>"; };
@@ -361,6 +367,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				349C23AE1D1E42BE0006793D /* ApplicationServices.framework in Frameworks */,
+				349C23AC1D1E42690006793D /* CoreFoundation.framework in Frameworks */,
+				349C23A01D1E33DA0006793D /* CoreText.framework in Frameworks */,
 				34B9505B0939DA3000477A2D /* Carbon.framework in Frameworks */,
 				341385001B38129500A4732A /* Cocoa.framework in Frameworks */,
 			);
@@ -380,6 +389,9 @@
 		0867D691FE84028FC02AAC07 /* Lgi */ = {
 			isa = PBXGroup;
 			children = (
+				349C23AD1D1E42BE0006793D /* ApplicationServices.framework */,
+				349C23AB1D1E42690006793D /* CoreFoundation.framework */,
+				349C239F1D1E33DA0006793D /* CoreText.framework */,
 				08FB77AEFE84172EC02AAC07 /* Classes */,
 				089C1665FE841158C02AAC07 /* Resources */,
 				0867D69AFE84028FC02AAC07 /* External Frameworks and Libraries */,
@@ -1163,7 +1175,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				INSTALL_PATH = "@executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
 					"-D_DEBUG",
@@ -1186,7 +1198,7 @@
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				INSTALL_PATH = "@executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
 					"-DMAC",

@@ -9,14 +9,15 @@
 #include "GVariant.h"
 #include "GCombo.h"
 
-static char *ClassName = "LgiCombo";
+GRect GCombo::Pad(8, 4, 24, 4);
 
 class GComboPrivate
 {
 public:
 	bool SortItems;
 	int SubType;
-	DWORD ComboClassProc;
+	GAutoString Buffer;
+	GRect Pos;
 	
 	// Initialization data
 	bool Init;
@@ -27,7 +28,6 @@ public:
 	{
 		SortItems = 0;
 		SubType = GV_NULL;
-		ComboClassProc = 0;
 		Init = false;
 		InitVal = 0;
 	}
@@ -38,17 +38,26 @@ public:
 	}
 };
 
-GCombo::GCombo(int id, int x, int y, int cx, int cy, char *name) :
+GCombo::GCombo(int id, int x, int y, int cx, int cy, const char *name) :
 	ResObject(Res_ComboBox)
 {
 	d = new GComboPrivate;
 	Name(name);
-	GRect r(x, y, x+cx, y+200);
+	
+	GRect r(x, y, x+cx, y+cy);
 	SetPos(r);
+	
 	SetId(id);
 	SetTabStop(true);
-	SetClass("COMBOBOX");
 	SetStyle(GetStyle() | CBS_DROPDOWNLIST);
+
+	SetClassW32(GetClass());
+	if (!SubClass)
+		SubClass = GWin32Class::Create(GetClass());
+	if (SubClass)
+		SubClass->SubClass("COMBOBOX");
+	else
+		LgiAssert(!"No subclass?");
 }
 
 GCombo::~GCombo()
@@ -58,13 +67,6 @@ GCombo::~GCombo()
 
 void GCombo::OnAttach()
 {
-	#ifdef SKIN_MAGIC
-
-	d->ComboClassProc = GetWindowLong(Handle(), GWL_WNDPROC);
-	SetWindowLong(Handle(), GWL_WNDPROC, (DWORD)GWin32Class::Redir);
-	SetWindowLong(Handle(), GWL_USERDATA, (DWORD)(GViewI*)this);
-
-	#endif
 }
 
 bool GCombo::Sort()
@@ -87,7 +89,7 @@ void GCombo::Sub(int Type)
 	d->SubType = Type;
 }
 
-void GCombo::Value(int i)
+void GCombo::Value(int64 i)
 {
 	if (Handle())
 	{
@@ -99,7 +101,7 @@ void GCombo::Value(int i)
 	}
 }
 
-int GCombo::Value()
+int64 GCombo::Value()
 {
 	if (Handle())
 	{
@@ -111,7 +113,7 @@ int GCombo::Value()
 	}
 }
 
-bool GCombo::Name(char *n)
+bool GCombo::Name(const char *n)
 {
 	return false;
 }
@@ -123,11 +125,18 @@ char *GCombo::Name()
 
 GSubMenu *GCombo::GetMenu()
 {
+	LgiAssert(!"Impl me.");
 	return 0;
 }
 
 void GCombo::SetMenu(GSubMenu *m)
 {
+	LgiAssert(!"Impl me.");
+}
+
+void GCombo::DoMenu()
+{
+	LgiAssert(!"Impl me.");
 }
 
 bool GCombo::Delete()
@@ -169,7 +178,7 @@ bool GCombo::Delete(char *p)
 	return false;
 }
 
-bool GCombo::Insert(char *p, int Index)
+bool GCombo::Insert(const char *p, int Index)
 {
 	bool Status = false;
 
@@ -182,7 +191,7 @@ bool GCombo::Insert(char *p, int Index)
 			{
 				if (Index < 0)
 				{
-					Index = GetItems();
+					Index = Length();
 				}
 
 				Status = SendMessage(Handle(), CB_INSERTSTRING, Index, (long)n) == Index;
@@ -199,30 +208,65 @@ bool GCombo::Insert(char *p, int Index)
 	return Status;
 }
 
-int GCombo::GetItems()
+int GCombo::Length()
 {
 	return SendMessage(Handle(), CB_GETCOUNT, 0, 0);
 }
 
 char *GCombo::operator [](int i)
 {
+	if (_View)
+	{
+		LRESULT Len = SendMessage(_View, CB_GETLBTEXTLEN, 0, 0);
+		if (Len != CB_ERR &&
+			d->Buffer.Reset(new char[Len+1]))
+		{
+			LRESULT Ret = SendMessage(_View, CB_GETLBTEXT, i, 0);
+			if (Ret != CB_ERR)
+				return d->Buffer;
+		}
+		else return NULL;
+	}
+
+	return d->InitStrs[i];
+}
+
+GRect &GCombo::GetPos()
+{
+	return d->Pos;
+}
+
+bool GCombo::SetPos(GRect &p, bool Repaint)
+{
+	d->Pos = p;
+	p.y2 = p.y1 + 200;
+	return GControl::SetPos(p, Repaint);
+}
+
+int GCombo::SysOnNotify(int Msg, int Code)
+{
+	// LgiTrace("%s:%i - GCombo::SysOnNotify %i %i\n", _FL, Msg==WM_COMMAND, Code);
+	
+	if (Msg == WM_COMMAND &&
+		Code == CBN_SELCHANGE)
+	{
+		SendNotify(Value());
+	}
+	
 	return 0;
 }
 
-void GCombo::SetFont(GFont *Fnt, bool OwnIt)
-{
-	GView::SetFont(Fnt, OwnIt);
-}
-
-int GCombo::OnEvent(GMessage *Msg)
+GMessage::Result GCombo::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{
+		/*
 		case WM_GETDLGCODE:
 		{
 			return CallWindowProc((WNDPROC)d->ComboClassProc, Handle(), MsgCode(Msg), MsgA(Msg), MsgB(Msg)) |
 				DLGC_WANTTAB;
 		}
+		*/
 		case WM_SYSKEYUP:
 		case WM_SYSKEYDOWN:
 		case WM_KEYDOWN:
@@ -236,7 +280,8 @@ int GCombo::OnEvent(GMessage *Msg)
 		}
 	}
 
-	int Status = CallWindowProc((WNDPROC)d->ComboClassProc, Handle(), MsgCode(Msg), MsgA(Msg), MsgB(Msg));
+	// int Status = CallWindowProc((WNDPROC)d->ComboClassProc, Handle(), MsgCode(Msg), MsgA(Msg), MsgB(Msg));
+	GMessage::Result Status = GControl::OnEvent(Msg);
 	
 	switch (MsgCode(Msg))
 	{
@@ -261,25 +306,10 @@ int GCombo::OnEvent(GMessage *Msg)
 	return Status;
 }
 
-void GCombo::OnMouseClick(GMouse &m)
+void GCombo::Empty()
 {
-}
-
-bool GCombo::OnKey(GKey &k)
-{
-	return false;
-}
-
-void GCombo::OnFocus(bool f)
-{
-}
-
-void GCombo::OnPaint(GSurface *pDC)
-{
-}
-
-bool GCombo::SetPos(GRect &p, bool Repaint)
-{
-	p.y2 = p.y1 + 200;
-	return GView::SetPos(p, Repaint);
+	if (_View)
+		SendMessage(_View, CB_RESETCONTENT, 0, 0);
+	else
+		d->InitStrs.DeleteArrays();
 }

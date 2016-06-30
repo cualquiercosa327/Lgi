@@ -437,7 +437,7 @@ protected:
 	/// which is usually the name of the object.
 	GWin32Class *CreateClassW32(const char *Class = 0, HICON Icon = 0, int AddStyles = 0);
 
-	virtual int		SysOnNotify(int Code) { return 0; }
+	virtual int		SysOnNotify(int Msg, int Code) { return 0; }
 
 	#elif defined BEOS
 
@@ -584,10 +584,6 @@ public:
 	/// This doesn't attach the window so that it will display. You should use GView::Attach for that.
 	virtual void SetParent(GViewI *p);
 
-	/// Script handler to receive UI events.
-	GEventsI *Script;
-	bool OnScriptEvent(GViewI *Ctrl) { return false; }
-
 	/// Sends a notification to the notify target or the parent chain
 	void SendNotify(int Data = 0);
 	
@@ -687,10 +683,7 @@ public:
 	bool InThread();
 	
 	/// \brief Asyncronously posts an event to be received by this window
-	///
-	/// This calls PostMessage on Win32 and XSendEvent on X11. XSendEvent is called
-	/// with a ClientMessage with the a and b parameters in the data section.
-	bool PostEvent
+	virtual bool PostEvent
 	(
 		/// The command ID.
 		/// \sa Should be M_USER or higher for custom events.

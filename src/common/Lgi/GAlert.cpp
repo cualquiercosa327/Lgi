@@ -40,8 +40,8 @@ GAlert::GAlert(	GViewI *parent,
 			GButton *v;
 			Btns.Insert(v = new GButton(CMD_BASE + i++,
 										0, 0,
-										(30.0f + x) * BTN_SCALE,
-										20.0f * BTN_SCALE,
+										(int) ((30.0f + x) * BTN_SCALE),
+										(int) (20.0f * BTN_SCALE),
 										(char*)n));
 			Tx += v->X() + ((i>1) ? 10 : 0);
 		}

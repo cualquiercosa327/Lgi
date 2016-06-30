@@ -625,7 +625,7 @@ bool SslSocket::GetVariant(const char *Name, GVariant &Val, char *Arr)
 	if (!Name)
 		return false;
 
-	if (!_stricmp(Name, "isSsl"))
+	if (!_stricmp(Name, "isSsl")) // Type: Bool
 	{
 		Val = true;
 		return true;

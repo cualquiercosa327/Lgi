@@ -1814,10 +1814,23 @@ bool GFontType::GetSystemFont(const char *Which)
 	// Get the system settings
 	NONCLIENTMETRICS info;
 	info.cbSize = sizeof(info);
+	#if (WINVER >= 0x0600)
+	GArray<int> Ver;
+	if (LgiGetOs(&Ver) == LGI_OS_WIN32 &&
+		Ver[0] <= 5)
+		info.cbSize -= 4;
+	#endif
 	bool InfoOk = SystemParametersInfo(	SPI_GETNONCLIENTMETRICS,
-										sizeof(info),
+										info.cbSize,
 										&info,
 										0);
+	if (!InfoOk)
+	{
+		LgiTrace("%s:%i - SystemParametersInfo failed with 0x%x (info.cbSize=%i, os=%i, %i)\n",
+			_FL, GetLastError(),
+			info.cbSize,
+			LgiGetOs(), LGI_OS_WIN9X);
+	}
 
 	// Convert windows font height into points
 	int Height = WinHeightToPoint(info.lfMessageFont.lfHeight);
@@ -1910,7 +1923,7 @@ bool GFontType::GetSystemFont(const char *Which)
 	
 	#endif
 
-	if (!stricmp(Which, "System"))
+	if (!_stricmp(Which, "System"))
 	{
 		Status = GetConfigFont("Font-System");
 		if (!Status)
@@ -1942,6 +1955,7 @@ bool GFontType::GetSystemFont(const char *Which)
 					memcpy(&Info, &info.lfMessageFont, sizeof(Info));
 					Status = true;
 				}
+				else LgiTrace("%s:%i - Info not ok.\n", _FL);
 
 			#elif defined BEOS
 

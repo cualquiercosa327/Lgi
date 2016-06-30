@@ -1,6 +1,6 @@
 // This script will test all the string functions
 // fret@memecode.com
-// #include "../resdefs.h"
+#include "../Resources/resdefs.h"
 
 // Global methods
 	s = LoadString(IDS_TEST_STRING);

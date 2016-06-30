@@ -4,6 +4,7 @@
 #define _MAIL_STORE_H_
 
 #include "Mail.h"
+#include "Store3Defs.h"
 
 /*
 	Handling of attachments in the Store3 API
@@ -93,37 +94,6 @@ void ParseIdList(char *In, List<char> &Out);
 	bool Set##name(ScribePerm val) { LgiAssert(Object != NULL); return Object ? Object->SetInt(id, val) : false; }
 
 
-/// This defines the possible outcomes of calling a function.
-enum Store3Status
-{
-	/// The method failed and no action was taken.
-	Store3Error,
-	/// The method succeeded but the action was not completed immediately, notification
-	/// of the actions completion will come later via the callback interface.
-	Store3Delayed,
-	/// The method succeeded and the action has been already completed.
-	Store3Success,
-};
-
-/// Possible parts of UI
-enum Store3UiFields
-{
-	Store3UiCurrentPos,		// [Set] sets the current progress value
-	Store3UiMaxPos,			// [Set] sets the maximum progress value
-	Store3UiStatus,			// [Set] set a status/progress string
-	Store3UiError,			// [Set] set an error string
-	Store3UiInteractive,	// [Get] returns a bool if the user is expecting interaction
-	Store3UiCancel,			// [Get] returns a bool indicating if the user has cancelled the operation
-	Store3UiNewFormat,		// [Get] returns a integer/enum describing the new format to use
-};
-
-enum Store3IteratorState
-{
-    Unloaded,
-    Loading,
-    Loaded,
-};
-
 /// This class is an interface to a collection of objects (NOT thread-safe).
 template <class T>
 class GDataIterator
@@ -142,19 +112,21 @@ public:
 	/// \returns the 'nth' item in the collection
 	virtual T operator [](int idx) = 0;
 	/// \returns the index of the given item in the collection
-	virtual int IndexOf(T n) = 0;
+	virtual int IndexOf(T n, bool NoAssert = false) = 0;
 	/// Deletes an item
 	/// \returns true on success
 	virtual bool Delete(T ptr) = 0;
 	/// Inserts an item at 'idx' or the end if not supplied.
 	/// \returns true on success
-	virtual bool Insert(T ptr, int idx = -1) = 0;
+	virtual bool Insert(T ptr, int idx = -1, bool NoAssert = false) = 0;
 	/// Clears list, but doesn't delete objects.
 	/// \returns true on success
 	virtual bool Empty() = 0;
 	/// Deletes all the objects from memory
 	/// \returns true on success
 	virtual bool DeleteObjects() = 0;
+	/// Gets the current loading/loaded state.
+	virtual Store3State GetState() = 0;
 };
 
 
@@ -548,10 +520,10 @@ public:
 	int Length() { return 0; }
 	T operator [](int idx) { return 0; }
 	bool Delete(T ptr) { return 0; }
-	bool Insert(T ptr, int idx = -1) { return 0; }
+	bool Insert(T ptr, int idx = -1, bool NoAssert = false) { return 0; }
 	bool DeleteObjects() { return 0; }
 	bool Empty() { return false; }
-	int IndexOf(T n) { return -1; }
+	int IndexOf(T n, bool NoAssert = false) { return -1; }
 };
 
 template <typename TPub, typename TPriv, typename TStore>
@@ -561,27 +533,32 @@ class DIterator : public GDataIterator<TPub*>
 
 public:
 	GArray<TPriv*> a;
-	Store3IteratorState State;
-
+	Store3State State;
+	
 	DIterator()
 	{
 		Cur = -1;
-		State = Unloaded;
+		State = Store3Unloaded;
 	}
+
+	Store3State GetState() { return State; }
 
 	TPub *Create(GDataStoreI *Store)
 	{
+		LgiAssert(State == Store3Loaded);
 		return new TPriv(dynamic_cast<TStore*>(Store));
 	}
 
 	TPub *First()
 	{
+		LgiAssert(State == Store3Loaded);
 		Cur = 0;
 		return (int)a.Length() > Cur ? a[Cur] : 0;
 	}
 	
 	TPub *Next()
 	{
+		LgiAssert(State == Store3Loaded);
 		Cur++;
 		return (int)a.Length() > Cur ? a[Cur] : 0;
 	}
@@ -593,11 +570,13 @@ public:
 	
 	TPub *operator [](int idx)
 	{
+		LgiAssert(State == Store3Loaded);
 		return a[idx];
 	}
 	
 	bool Delete(TPub *pub_ptr)
 	{
+		LgiAssert(State == Store3Loaded);
 		TPriv *priv_ptr = dynamic_cast<TPriv*>(pub_ptr);
 		if (!priv_ptr)
 		{
@@ -613,8 +592,10 @@ public:
 		return true;
 	}
 	
-	bool Insert(TPub *pub_ptr, int idx = -1)
+	bool Insert(TPub *pub_ptr, int idx = -1, bool NoAssert = false)
 	{
+		if (!NoAssert)
+			LgiAssert(State == Store3Loaded);
 		TPriv *priv_ptr = dynamic_cast<TPriv*>(pub_ptr);
 		if (!priv_ptr)
 		{
@@ -627,6 +608,7 @@ public:
 	
 	bool Empty()
 	{
+		LgiAssert(State == Store3Loaded);
 		a.Length(0);
 		return true;
 	}
@@ -637,8 +619,10 @@ public:
 		return true;
 	}
 	
-	int IndexOf(TPub *pub_ptr)
+	int IndexOf(TPub *pub_ptr, bool NoAssert = false)
 	{
+		if (!NoAssert)
+			LgiAssert(State == Store3Loaded);
 		TPriv *priv_ptr = dynamic_cast<TPriv*>(pub_ptr);
 		if (!priv_ptr)
 		{

@@ -13,6 +13,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <wchar.h>
 #ifdef WIN32
 	#include "winsock2.h"
 	#define WIN32GTK                    1
@@ -173,6 +174,7 @@ LgiFunc void LgiSleep(uint32 i);
 
 #define _snprintf					snprintf
 #define _vsnprintf					vsnprintf
+#define wcscpy_s(dst, len, src)		wcsncpy(dst, src, len)
 
 /// Process any pending messages in the applications message que and then return.
 #define LgiYield()					LgiApp->Run(false)

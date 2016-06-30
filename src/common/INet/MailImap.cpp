@@ -2911,7 +2911,7 @@ bool MailIMap::GetUidList(List<char> &Id)
 	return Status;
 }
 
-bool MailIMap::GetFolders(List<MailImapFolder> &Folders)
+bool MailIMap::GetFolders(GArray<MailImapFolder*> &Folders)
 {
 	bool Status = false;
 
@@ -2943,11 +2943,10 @@ bool MailIMap::GetFolders(List<MailImapFolder> &Folders)
 						{
 							char *Folder = t[t.Length()-1];
 
-							MailImapFolder *f = new MailImapFolder;
+							MailImapFolder *f = new MailImapFolder();
 							if (f)
 							{
-								Folders.Insert(f);
-
+								Folders.Add(f);
 								f->Sep = Sep[0];
 
 								// Check flags
@@ -2968,7 +2967,7 @@ bool MailIMap::GetFolders(List<MailImapFolder> &Folders)
 									f->Path = DecodeImapString(Folder);
 								}
 							}
-						}
+						}						
 					}
 				}
 
@@ -3082,11 +3081,9 @@ bool MailIMap::RenameFolder(char *From, char *To)
 	if (From && To && Lock(_FL))
 	{
 		int Cmd = d->NextCmd++;
-		char *f = EncodeImapString(From);
-		char *t = EncodeImapString(To);
-		sprintf_s(Buf, sizeof(Buf), "A%4.4i RENAME \"%s\" \"%s\"\r\n", Cmd, f, t);
-		DeleteArray(f);
-		DeleteArray(t);
+		GAutoString f(EncodePath(From));
+		GAutoString t(EncodePath(To));
+		sprintf_s(Buf, sizeof(Buf), "A%4.4i RENAME \"%s\" \"%s\"\r\n", Cmd, f.Get(), t.Get());
 		if (WriteBuf())
 		{
 			ClearDialog();

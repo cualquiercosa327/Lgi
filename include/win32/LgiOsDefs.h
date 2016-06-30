@@ -258,6 +258,10 @@ typedef SOCKET							OsSocket;
 
 	/// Sent from a worker thread when calling GText::Name
 	#define M_TEXT_UPDATE_NAME			(M_USER+0x100e)
+	
+	/// Send when a window is losing it's mouse capture. Usually
+	// because something else has requested it.
+	#define M_LOSING_CAPTURE			(M_USER+0x100f)
 
 // Directories
 #define DIR_CHAR						'\\'

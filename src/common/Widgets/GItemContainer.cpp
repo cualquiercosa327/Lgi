@@ -436,19 +436,6 @@ GDragColumn::GDragColumn(GItemContainer *list, int col)
 			SetExStyle(GetExStyle() | WS_EX_LAYERED | WS_EX_TRANSPARENT);
 		}
 		
-		#elif defined XWIN
-		
-		Back = new GMemDC;
-		if (Back && Back->Create(List->X(), List->Y(), GdcD->GetBits()))
-		{
-			List->OnPaint(Back);
-		}
-
-		//XSetWindowAttributes a;
-		//a.override_redirect = true;
-		//a.save_under = false; // true;
-		// XChangeWindowAttributes(Handle()->XDisplay(), Handle()->handle(), CWSaveUnder | CWOverrideRedirect, &a);
-		
 		#endif
 
 		Attach(0);
@@ -468,6 +455,15 @@ GDragColumn::GDragColumn(GItemContainer *list, int col)
 					DWORD Err = GetLastError();
 				}
 			}
+		}
+		
+		#elif defined(__GTK_H__)
+
+		Gtk::GtkWindow *w = Handle() ? GtkCast(Handle(), gtk_window, GtkWindow) : NULL;
+		if (w)
+		{
+			gtk_window_set_decorated(w, FALSE);
+			gtk_window_set_opacity(w, DRAG_COL_ALPHA / 255.0);
 		}
 		
 		#endif

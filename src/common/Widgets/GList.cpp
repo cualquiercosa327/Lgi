@@ -1727,6 +1727,9 @@ void GList::OnMouseClick(GMouse &m)
 			{
 				case CLICK_COLUMN:
 				{
+					if (d->DragData < 0)
+						break;
+					
 					GItemColumn *c = Columns[d->DragData];
 					if (c)
 					{
@@ -1822,7 +1825,8 @@ void GList::OnMouseClick(GMouse &m)
 							UpdateAllItems();
 						}
 
-						DeleteObj(DragCol);
+						DragCol->Quit();
+						DragCol = NULL;
 					}
 
 					Invalidate();

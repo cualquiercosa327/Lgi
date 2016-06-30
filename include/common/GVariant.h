@@ -14,6 +14,8 @@
 #include "GContainers.h"
 #include "GHashTable.h"
 
+class GCompiledCode;
+
 /// The different types the varient can be 
 enum GVariantType
 {
@@ -61,6 +63,9 @@ enum GVariantType
 	GV_GKEY,
 	/// Pointer to GStream
 	GV_STREAM,
+	/// The maximum value for the variant type.
+	/// (This is used by the scripting engine to refer to a GVariant itself)
+	GV_MAX,
 };
 
 /// Language operators
@@ -94,9 +99,10 @@ enum GOperator
 	OpNot,
 };
 
-class LgiClass GCustomType
+class LgiClass GCustomType : public GDom
 {
-	struct FldDef
+protected:
+	struct CustomField : public GDom
 	{
 		int Offset;
 		int Bytes;
@@ -106,14 +112,39 @@ class LgiClass GCustomType
 		GCustomType *Nested;
 
 		int Sizeof();
+		bool GetVariant(const char *Name, GVariant &Value, char *Array = NULL);
 	};
 
+public:
+	struct Method : public GDom
+	{
+		GString Name;
+		GArray<GString> Params;
+		int Address;
+		int FrameSize;
+		
+		Method()
+		{
+			Address = -1;
+			FrameSize = -1;
+		}
+	};
+
+protected:
+	// Global vars
 	int Pack;
 	size_t Size;
 	GString Name;
-	GArray<FldDef> Flds;
-	GHashTbl<const char*, int> Map;
+
+	// Fields
+	GArray<CustomField> Flds;
+	GHashTbl<const char*, int> FldMap;
 	
+	// Methods
+	GArray<Method> Methods;
+	GHashTbl<const char*, Method*> MethodMap;
+	
+	// Private methods
 	int PadSize();	
 
 public:
@@ -122,15 +153,25 @@ public:
 	~GCustomType();
 	
 	size_t Sizeof();
+	const char *GetName() { return Name; }
 	int Members() { return Flds.Length(); }
 	int AddressOf(const char *Field);
 	int IndexOf(const char *Field);
 	bool DefineField(const char *Name, GVariantType Type, int Bytes, int ArrayLen = 1);
 	bool DefineField(const char *Name, GCustomType *Type, int ArrayLen = 1);
+	Method *DefineMethod(const char *Name, GArray<GString> &Params, int Address);
+	Method *GetMethod(const char *Name);
 
-	// Field access
-	bool Get(int Index, GVariant &Out, uint8 *Base, int ArrayIndex = 0);
-	bool Set(int Index, GVariant &In, uint8 *Base, int ArrayIndex = 0);
+	// Field access. You can't use the GDom interface to get/set member variables because
+	// there is no provision for the 'This' pointer.
+	bool Get(int Index, GVariant &Out, uint8 *This, int ArrayIndex = 0);
+	bool Set(int Index, GVariant &In, uint8 *This, int ArrayIndex = 0);
+	
+	// Dom access. However the DOM can be used to access information about the type itself.
+	// Which doesn't need a 'This' pointer.
+	bool GetVariant(const char *Name, GVariant &Value, char *Array = NULL);
+	bool SetVariant(const char *Name, GVariant &Value, char *Array = NULL);
+	bool CallMethod(const char *MethodName, GVariant *ReturnValue, GArray<GVariant*> &Args);
 };
 
 /// A class that can be different types

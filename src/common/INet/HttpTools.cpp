@@ -164,7 +164,7 @@ GXmlTag *ExtractForms(char *Html, GStream *Log)
 													{
 														char *s = c->GetAttr("Value");
 														if (s) o->SetAttr("Value", s);
-														o->Content = NewStr(c->Content);
+														o->SetContent(c->GetContent());
 														i->InsertTag(o);															
 													}
 												}
@@ -553,7 +553,7 @@ bool FormPost::Set(char *field, char *value, GStream *Log, bool AllowCreate)
 						for (GXmlTag *o = f->Children.First(); o; o = f->Children.Next())
 						{
 							char *Value = o->GetAttr("Value");
-							char *Content = o->Content;
+							char *Content = o->GetContent();
 							if (Value || Content)
 							{
 								bool Mat = !ValidStr(value);

@@ -606,7 +606,7 @@ bool LgiResources::Load(char *FileName)
 		}
 		else if (t->IsTag("style"))
 		{
-			const char *c = t->Content;
+			const char *c = t->GetContent();
 			CssStore.Parse(c);
 		}
 
@@ -819,16 +819,6 @@ ResObject *LgiResources::CreateObject(GXmlTag *t, ResObject *Parent)
 	}
 	
 	LgiAssert(Wnd);
-
-	if (Wnd)
-	{
-		GView *v = dynamic_cast<GView*>(Wnd);
-		if (v)
-		{
-			v->Script = ScriptEngine;
-		}
-	}
-
 	return Wnd;
 }
 

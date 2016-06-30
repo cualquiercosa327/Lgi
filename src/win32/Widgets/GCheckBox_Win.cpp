@@ -11,13 +11,11 @@
 class GCheckBoxPrivate
 {
 public:
-	int InitState;
-	DWORD ButtonClassProc;
+	int64 InitState;
 
 	GCheckBoxPrivate()
 	{
 		InitState = 0;
-		ButtonClassProc = 0;
 	}
 
 	~GCheckBoxPrivate()
@@ -25,7 +23,7 @@ public:
 	}
 };
 
-GCheckBox::GCheckBox(int id, int x, int y, int cx, int cy, char *name, int initstate) :
+GCheckBox::GCheckBox(int id, int x, int y, int cx, int cy, const char *name, int initstate) :
 	ResObject(Res_CheckBox)
 {
 	d = new GCheckBoxPrivate;
@@ -37,7 +35,14 @@ GCheckBox::GCheckBox(int id, int x, int y, int cx, int cy, char *name, int inits
 	SetId(id);
 	SetTabStop(true);
 	SetStyle(GetStyle() | BS_AUTOCHECKBOX);
-	SetClass("BUTTON");
+
+	SetClassW32(GetClass());
+	if (!SubClass)
+		SubClass = GWin32Class::Create(GetClass());
+	if (SubClass)
+		SubClass->SubClass("BUTTON");
+	else
+		LgiAssert(!"No subclass?");
 }
 
 GCheckBox::~GCheckBox()
@@ -47,14 +52,6 @@ GCheckBox::~GCheckBox()
 
 void GCheckBox::OnAttach()
 {
-	#ifdef SKIN_MAGIC
-
-	d->ButtonClassProc = GetWindowLong(Handle(), GWL_WNDPROC);
-	SetWindowLong(Handle(), GWL_WNDPROC, (DWORD)GWin32Class::Redir);
-	SetWindowLong(Handle(), GWL_USERDATA, (DWORD)(GViewI*)this);
-
-	#endif
-
 	SetFont(SysFont);
 	Value(d->InitState);
 }
@@ -76,12 +73,12 @@ void GCheckBox::ThreeState(bool t)
 	}
 }
 
-bool GCheckBox::Name(char *n)
+bool GCheckBox::Name(const char *n)
 {
 	return GView::Name(n);
 }
 
-bool GCheckBox::NameW(char16 *n)
+bool GCheckBox::NameW(const char16 *n)
 {
 	return GView::NameW(n);
 }
@@ -91,15 +88,28 @@ void GCheckBox::SetFont(GFont *Fnt, bool OwnIt)
 	GView::SetFont(Fnt, OwnIt);
 }
 
-int GCheckBox::OnEvent(GMessage *Msg)
+int GCheckBox::SysOnNotify(int Msg, int Code)
+{
+	if (Msg == WM_COMMAND &&
+		Code == BN_CLICKED)
+	{
+		SendNotify(Value());
+	}
+	
+	return 0;
+}
+
+GMessage::Result GCheckBox::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{
+		/*
 		case WM_GETDLGCODE:
 		{
 			return CallWindowProc((WNDPROC)d->ButtonClassProc, Handle(), MsgCode(Msg), MsgA(Msg), MsgB(Msg)) |
 				DLGC_WANTTAB;
 		}
+		*/
 		case WM_SYSKEYUP:
 		case WM_SYSKEYDOWN:
 		case WM_KEYDOWN:
@@ -113,7 +123,8 @@ int GCheckBox::OnEvent(GMessage *Msg)
 		}
 	}
 
-	return CallWindowProc((WNDPROC)d->ButtonClassProc, Handle(), MsgCode(Msg), MsgA(Msg), MsgB(Msg));
+	// return CallWindowProc((WNDPROC)d->ButtonClassProc, Handle(), MsgCode(Msg), MsgA(Msg), MsgB(Msg));
+	return GControl::OnEvent(Msg);
 }
 
 void GCheckBox::OnMouseClick(GMouse &m)
@@ -141,7 +152,7 @@ void GCheckBox::OnPaint(GSurface *pDC)
 {
 }
 
-int GCheckBox::Value()
+int64 GCheckBox::Value()
 {
 	if (Handle())
 	{
@@ -151,7 +162,7 @@ int GCheckBox::Value()
 	return d->InitState;
 }
 
-void GCheckBox::Value(int i)
+void GCheckBox::Value(int64 i)
 {
 	if (Handle())
 	{
@@ -163,3 +174,25 @@ void GCheckBox::Value(int i)
 	}
 }
 
+bool GCheckBox::OnLayout(GViewLayoutInfo &Inf)
+{
+	if (Inf.Width.Max)
+	{
+		int y = GetFont()->GetHeight();
+		Inf.Height.Min = y;
+		Inf.Height.Max = y;
+	}
+	else
+	{
+		GDisplayString s(GetFont(), Name());
+		int x = s.X() + 32;
+		Inf.Width.Min = x;
+		Inf.Width.Max = x;
+	}
+
+	return true;
+}
+
+void GCheckBox::OnPosChange()
+{
+}

@@ -621,12 +621,13 @@ bool GVariant::SetHashTable(GHashTable *Table, bool Copy)
 bool GVariant::SetSurface(class GSurface *Ptr, bool Own)
 {
     Empty();
+    if (!Ptr)
+		return false;
+
     Type = GV_GSURFACE;
     Value.Surface.Ptr = Ptr;
     if ((Value.Surface.Own = Own))
-    {
         Value.Surface.Ptr->AddRef();
-    }
     
     return true;
 }
@@ -1050,14 +1051,12 @@ GDom *GVariant::CastDom()
 			return Value.Dom;
 		case GV_DOMREF:
 			return Value.DomRef.Dom;
-		/*
-		case GV_GFILE:
-			return Value.File.Ptr;
-		*/
 		case GV_STREAM:
 			return Value.Stream.Ptr;
 		case GV_GSURFACE:
 			return Value.Surface.Ptr;
+		case GV_CUSTOM:
+			return Value.Custom.Dom;
 	}
 
 	return NULL;
@@ -1191,9 +1190,19 @@ int32 GVariant::CastInt32()
 			break;
 		}
 		case GV_LIST:
-			return Value.Lst != 0;
+			return Value.Lst != NULL;
 		case GV_HASHTABLE:
-			return Value.Hash != 0;
+			return Value.Hash != NULL;
+		case GV_GSURFACE:
+			return Value.Surface.Ptr != NULL;
+		case GV_GVIEW:
+			return Value.View != NULL;
+		case GV_GMOUSE:
+			return Value.Mouse != NULL;
+		case GV_GKEY:
+			return Value.Key != NULL;
+		case GV_STREAM:
+			return Value.Stream.Ptr != NULL;
 	}
 	
 	return 0;
@@ -1511,11 +1520,20 @@ struct GDomPropMap : public GHashTbl<const char *, GDomProperty>
 		Define("Type", ObjType);
 		Define("Name", ObjName);
 		Define("Style", ObjStyle);
+		Define("Class", ObjClass);
+		Define("Field", ObjField);
+		Define("Debug", ObjDebug);
+		Define("textContent", ObjTextContent);
+		Define("innerHTML", ObjInnerHtml);
 
 		Define("List", TypeList);
 		Define("HashTable", TypeHashTable);
 		Define("File", TypeFile);
 		Define("Surface", TypeSurface);
+		Define("Int", TypeInt);
+		Define("Double", TypeDouble);
+		Define("String", TypeString);
+		Define("DateTime", TypeDateTime);
 		
 		Define("Year", DateYear);
 		Define("Month", DateMonth);
@@ -1525,7 +1543,7 @@ struct GDomPropMap : public GHashTbl<const char *, GDomProperty>
 		Define("Second", DateSec);
 		Define("Date", DateDate);
 		Define("Time", DateTime);
-		Define("DateTime", DateDateTime);
+		Define("DateAndTime", DateDateAndTime);
 		Define("DateInt64", DateInt64);
 		Define("SetNow", DateSetNow);
 
@@ -1536,8 +1554,6 @@ struct GDomPropMap : public GHashTbl<const char *, GDomProperty>
 		Define("Lower", StrLower);
 		Define("Upper", StrUpper);
 		Define("Strip", StrStrip);
-		Define("Int", StrInt);
-		Define("Double", StrDouble);
 		Define("Sub", StrSub);
 		
 		Define("X", SurfaceX);
@@ -1550,6 +1566,10 @@ struct GDomPropMap : public GHashTbl<const char *, GDomProperty>
 		Define("Delete", ContainerDelete);
 		Define("HasKey", ContainerHasKey);
 		Define("Sort", ContainerSort);
+		Define("Children", ContainerChildren);
+		Define("Span", ContainerSpan);
+		Define("Align", ContainerAlign);
+		Define("VAlign", ContainerVAlign);
 
 		Define("Open", FileOpen);
 		Define("Read", FileRead);
@@ -1647,14 +1667,14 @@ bool GDom::SetValue(const char *Var, GVariant &Value)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-GCustomType::GCustomType(const char *name, int pack) : Map(0, true, NULL, -1)
+GCustomType::GCustomType(const char *name, int pack) : FldMap(0, true, NULL, -1)
 {
 	Name = name;
 	Pack = 1;
 	Size = 0;
 }
 
-GCustomType::GCustomType(const char16 *name, int pack) : Map(0, true, NULL, -1)
+GCustomType::GCustomType(const char16 *name, int pack) : FldMap(0, true, NULL, -1)
 {
 	Name = name;
 	Pack = 1;
@@ -1684,7 +1704,7 @@ int GCustomType::PadSize()
 
 int GCustomType::IndexOf(const char *Field)
 {
-	return Map.Find(Field);
+	return FldMap.Find(Field);
 }
 
 int GCustomType::AddressOf(const char *Field)
@@ -1713,14 +1733,14 @@ bool GCustomType::DefineField(const char *Name, GCustomType *Type, int ArrayLen)
 		return false;
 	}
 
-	if (Map.Find(Name) >= 0)
+	if (FldMap.Find(Name) >= 0)
 	{
 		LgiAssert(!"Field already exists.");
 		return false;
 	}
-	Map.Add(Name, Flds.Length());
+	FldMap.Add(Name, Flds.Length());
 
-	FldDef &Def = Flds.New();
+	CustomField &Def = Flds.New();
 	
 	Size = PadSize();
 	Def.Offset = Size;
@@ -1748,14 +1768,14 @@ bool GCustomType::DefineField(const char *Name, GVariantType Type, int Bytes, in
 		return false;
 	}
 
-	if (Map.Find(Name) >= 0)
+	if (FldMap.Find(Name) >= 0)
 	{
 		LgiAssert(!"Field already exists.");
 		return false;
 	}
-	Map.Add(Name, Flds.Length());
+	FldMap.Add(Name, Flds.Length());
 
-	FldDef &Def = Flds.New();
+	CustomField &Def = Flds.New();
 	
 	Size = PadSize();
 	Def.Offset = Size;
@@ -1769,7 +1789,49 @@ bool GCustomType::DefineField(const char *Name, GVariantType Type, int Bytes, in
 	return true;
 }
 
-int GCustomType::FldDef::Sizeof()
+GCustomType::Method *GCustomType::GetMethod(const char *Name)
+{
+	return MethodMap.Find(Name);
+}
+
+GCustomType::Method *GCustomType::DefineMethod(const char *Name, GArray<GString> &Params, int Address)
+{
+	Method *m = MethodMap.Find(Name);
+	if (m)
+	{
+		LgiAssert(!"Method already defined.");
+		return NULL;
+	}
+	
+	m = &Methods.New();
+	m->Name = Name;
+	m->Params = Params;
+	m->Address = Address;
+	
+	MethodMap.Add(Name, m);	
+	
+	return m;
+}
+
+bool GCustomType::CustomField::GetVariant(const char *Field, GVariant &Value, char *Array)
+{
+	GDomProperty p = GStringToProp(Field);
+	switch (p)
+	{
+		case ObjName: // Type: String
+			Value = Name;
+			break;
+		case ObjLength: // Type: Int32
+			Value = Bytes;
+			break;
+		default:
+			return false;
+	}
+	
+	return true;
+}
+
+int GCustomType::CustomField::Sizeof()
 {
 	switch (Type)
 	{
@@ -1803,24 +1865,24 @@ int GCustomType::FldDef::Sizeof()
 	return 0;
 }
 
-bool GCustomType::Get(int Index, GVariant &Out, uint8 *Base, int ArrayIndex)
+bool GCustomType::Get(int Index, GVariant &Out, uint8 *This, int ArrayIndex)
 {
 	if (Index < 0 ||
 		Index >= Flds.Length() ||
-		!Base)
+		!This)
 	{
 		LgiAssert(!"Invalid parameter error.");
 		return false;
 	}
 
-	FldDef &Def = Flds[Index];
+	CustomField &Def = Flds[Index];
 	if (ArrayIndex < 0 || ArrayIndex >= Def.ArrayLen)
 	{
 		LgiAssert(!"Array out of bounds.");
 		return false;
 	}
 
-	uint8 *Ptr = Base + Def.Offset;
+	uint8 *Ptr = This + Def.Offset;
 	Out.Empty();
 	
 	switch (Def.Type)
@@ -1879,6 +1941,11 @@ bool GCustomType::Get(int Index, GVariant &Out, uint8 *Base, int ArrayIndex)
 			}
 			break;			
 		}
+		case GV_MAX:
+		{
+			Out = *((GVariant*)Ptr);
+			break;
+		}
 		default:
 		{
 			LgiAssert(!"Impl this type.");
@@ -1889,18 +1956,18 @@ bool GCustomType::Get(int Index, GVariant &Out, uint8 *Base, int ArrayIndex)
 	return true;
 }
 
-bool GCustomType::Set(int Index, GVariant &In, uint8 *Base, int ArrayIndex)
+bool GCustomType::Set(int Index, GVariant &In, uint8 *This, int ArrayIndex)
 {
 	if (Index < 0 ||
 		Index >= Flds.Length() ||
-		!Base)
+		!This)
 	{
 		LgiAssert(!"Invalid parameter error.");
 		return false;
 	}
 
-	FldDef &Def = Flds[Index];
-	uint8 *Ptr = Base + Def.Offset;
+	CustomField &Def = Flds[Index];
+	uint8 *Ptr = This + Def.Offset;
 	if (ArrayIndex < 0 || ArrayIndex >= Def.ArrayLen)
 	{
 		LgiAssert(!"Array out of bounds.");
@@ -2007,10 +2074,15 @@ bool GCustomType::Set(int Index, GVariant &In, uint8 *Base, int ArrayIndex)
 				default:
 				{
 					LgiAssert(!"Unknown integer size.");
-					break;
+					return false;
 				}
 			}
 			break;			
+		}
+		case GV_MAX:
+		{
+			*((GVariant*)Ptr) = In;
+			break;
 		}
 		default:
 			LgiAssert(!"Impl this type.");
@@ -2018,4 +2090,86 @@ bool GCustomType::Set(int Index, GVariant &In, uint8 *Base, int ArrayIndex)
 	}
 
 	return true;
+}
+
+bool GCustomType::GetVariant(const char *Field, GVariant &Value, char *Array)
+{
+	GDomProperty p = GStringToProp(Field);
+	switch (p)
+	{
+		case ObjName: // Type: String
+		{
+			Value = Name;
+			return true;
+		}
+		case ObjType: // Type: String
+		{
+			Value = "GCustomType";
+			return true;
+		}
+		case ObjLength: // Type: Int32
+		{
+			Value = (int)Sizeof();
+			return true;
+		}
+		case ObjField: // Type: CustomField[]
+		{
+			if (Array)
+			{
+				int Index = atoi(Array);
+				if (Index >= 0 && Index < Flds.Length())
+				{
+					Value = (GDom*)&Flds[Index];
+					return true;
+				}			
+			}
+			else
+			{
+				Value = (int)Flds.Length();
+				break;
+			}			
+			break;
+		}
+	}
+
+	LgiAssert(0);
+	return false;
+}
+
+bool GCustomType::SetVariant(const char *Name, GVariant &Value, char *Array)
+{
+	LgiAssert(0);
+	return false;
+}
+
+bool GCustomType::CallMethod(const char *MethodName, GVariant *ReturnValue, GArray<GVariant*> &Args)
+{
+	if (!MethodName || !ReturnValue)
+		return false;
+	
+	if (!_stricmp(MethodName, "New"))
+	{
+		ReturnValue->Empty();
+		ReturnValue->Type = GV_CUSTOM;
+		ReturnValue->Value.Custom.Dom = this;
+		ReturnValue->Value.Custom.Data = new uint8[Sizeof()];
+		return true;
+	}
+	
+	if (!_stricmp(MethodName, "Delete")) // Type: (Object)
+	{
+		for (unsigned i=0; i<Args.Length(); i++)
+		{
+			GVariant *v = Args[i];
+			if (v && v->Type == GV_CUSTOM)
+			{
+				DeleteArray(v->Value.Custom.Data);
+				v->Empty();
+			}
+		}
+		return true;
+	}
+
+	LgiAssert(0);
+	return false;
 }

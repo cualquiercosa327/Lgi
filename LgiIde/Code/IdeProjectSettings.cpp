@@ -137,7 +137,7 @@ static void ClearEmptyTags(GXmlTag *t)
 	for (int i=0; i<t->Children.Length(); i++)
 	{
 		GXmlTag *c = t->Children[i];
-		if (!c->Content && !c->Children.Length())
+		if (!c->GetContent() && !c->Children.Length())
 		{
 			c->RemoveTag();
 			i--;
@@ -315,8 +315,8 @@ public:
 		{
 			c->Add(Ctrls[i].Edit = new GEdit(IDC_EDIT_BASE + i, 0, 0, 60, 20));
 			Ctrls[i].Edit->MultiLine(Setting->Flag.MultiLine);
-			if (t && t->Content)
-				Ctrls[i].Edit->Name(t->Content);
+			if (t && t->GetContent())
+				Ctrls[i].Edit->Name(t->GetContent());
 			
 			if (Setting->Flag.FileSelect)
 			{
@@ -341,7 +341,7 @@ public:
 					for (int n=0; Init[n]; n++)
 					{
 						Ctrls[i].Cbo->Insert(Init[n]);
-						if (t && t->Content && !stricmp(t->Content, Init[n]))
+						if (t && t->GetContent() && !stricmp(t->GetContent(), Init[n]))
 							Ctrls[i].Cbo->Value(n);
 					}
 				}
@@ -351,14 +351,14 @@ public:
 				// Straight integer
 				c->Add(Ctrls[i].Edit = new GEdit(IDC_EDIT_BASE + i, 0, 0, 60, 20));
 				if (t)
-					Ctrls[i].Edit->Value(t->Content ? atoi(t->Content) : 0);
+					Ctrls[i].Edit->Value(t->GetContent() ? atoi(t->GetContent()) : 0);
 			}
 		}
 		else if (Setting->Type == GV_BOOL)
 		{
 			c->Add(Ctrls[i].Chk  = new GCheckBox(IDC_CHECKBOX_BASE + i, 0, 0, -1, -1, NULL));
-			if (t && t->Content)
-				Ctrls[i].Chk->Value(atoi(t->Content));
+			if (t && t->GetContent())
+				Ctrls[i].Chk->Value(atoi(t->GetContent()));
 		}
 		else LgiAssert(!"Unknown type?");
 	}
@@ -794,7 +794,7 @@ void IdeProjectSettings::InitAllSettings(bool ClearCurrent)
 				{
 					p = d->BuildPath(i->Setting, 0, PlatformCurrent, Cfg);
 					d->Active.GetChildTag(p, true);
-					if (t && !t->Content && Default.Type != GV_NULL)
+					if (t && !t->GetContent() && Default.Type != GV_NULL)
 						t->SetContent(Default.Str());
 				}
 				
@@ -802,7 +802,7 @@ void IdeProjectSettings::InitAllSettings(bool ClearCurrent)
 				{
 					p = d->BuildPath(i->Setting, SF_PLATFORM_SPECIFC, PlatformCurrent, Cfg);
 					d->Active.GetChildTag(p, true);
-					if (t && !t->Content && Default.Type != GV_NULL)
+					if (t && !t->GetContent() && Default.Type != GV_NULL)
 						t->SetContent(Default.Str());
 				}
 			}
@@ -813,7 +813,7 @@ void IdeProjectSettings::InitAllSettings(bool ClearCurrent)
 			{
 				p = d->BuildPath(i->Setting, 0, PlatformCurrent, -1);
 				t = d->Active.GetChildTag(p, true);
-				if (t && !t->Content && Default.Type != GV_NULL)
+				if (t && !t->GetContent() && Default.Type != GV_NULL)
 					t->SetContent(Default.Str());
 			}
 
@@ -821,7 +821,7 @@ void IdeProjectSettings::InitAllSettings(bool ClearCurrent)
 			{
 				p = d->BuildPath(i->Setting, SF_PLATFORM_SPECIFC, PlatformCurrent, -1);
 				t = d->Active.GetChildTag(p, true);
-				if (t && !t->Content && Default.Type != GV_NULL)
+				if (t && !t->GetContent() && Default.Type != GV_NULL)
 					t->SetContent(Default.Str());
 			}
 		}
@@ -888,19 +888,19 @@ const char *IdeProjectSettings::GetStr(ProjSetting Setting, const char *Default,
 	if (!s->Flag.PlatformSpecific)
 	{
 		GXmlTag *t = d->Active.GetChildTag(d->BuildPath(Setting, 0, Platform));
-		if (t && t->Content)
+		if (t && t->GetContent())
 		{
-			Strs.Add(t->Content);
-			Bytes += strlen(t->Content) + 1;
+			Strs.Add(t->GetContent());
+			Bytes += strlen(t->GetContent()) + 1;
 		}
 	}
 	if (!s->Flag.CrossPlatform)
 	{
 		GXmlTag *t = d->Active.GetChildTag(d->BuildPath(Setting, SF_PLATFORM_SPECIFC, Platform));
-		if (t && t->Content)
+		if (t && t->GetContent())
 		{
-			Strs.Add(t->Content);
-			Bytes += strlen(t->Content) + 1;
+			Strs.Add(t->GetContent());
+			Bytes += strlen(t->GetContent()) + 1;
 		}
 	}
 	
@@ -935,7 +935,7 @@ int IdeProjectSettings::GetInt(ProjSetting Setting, int Default, IdePlatform Pla
 		GXmlTag *t = d->Active.GetChildTag(d->BuildPath(Setting, 0, Platform));
 		if (t)
 		{
-			Status = t->Content ? atoi(t->Content) : 0;
+			Status = t->GetContent() ? atoi(t->GetContent()) : 0;
 		}
 	}
 	else if (!s->Flag.CrossPlatform)
@@ -943,7 +943,7 @@ int IdeProjectSettings::GetInt(ProjSetting Setting, int Default, IdePlatform Pla
 		GXmlTag *t = d->Active.GetChildTag(d->BuildPath(Setting, SF_PLATFORM_SPECIFC, Platform));
 		if (t)
 		{
-			Status = t->Content ? atoi(t->Content) : 0;
+			Status = t->GetContent() ? atoi(t->GetContent()) : 0;
 		}
 	}
 	else LgiAssert(0);

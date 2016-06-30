@@ -59,6 +59,11 @@ enum GDomProperty
 	ObjType,
 	ObjName,
 	ObjStyle,
+	ObjClass,
+	ObjField,
+	ObjDebug,
+	ObjTextContent,
+	ObjInnerHtml,
 	
 	// Types
 	TypeList,
@@ -66,6 +71,9 @@ enum GDomProperty
 	TypeFile,
 	TypeSurface,
 	TypeDateTime,
+	TypeInt,
+	TypeDouble,
+	TypeString,
 
 	// GDateTime
 	DateNone,
@@ -77,7 +85,7 @@ enum GDomProperty
 	DateSec,
 	DateDate, // "yyyymmdd"
 	DateTime, // "hhmmss"
-	DateDateTime, // "yyyymmdd hhmmss"
+	DateDateAndTime, // "yyyymmdd hhmmss"
 	DateInt64,
 	DateSetNow,
 
@@ -105,6 +113,10 @@ enum GDomProperty
 	ContainerDelete,
 	ContainerHasKey,
 	ContainerSort,
+	ContainerChildren,
+	ContainerSpan,
+	ContainerAlign,
+	ContainerVAlign,
 	
 	// GFile
 	FileOpen,

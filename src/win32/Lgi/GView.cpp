@@ -193,6 +193,23 @@ GKey::GKey(int v, int flags)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+template<typename T>
+bool CastHwnd(T *&Ptr, HWND hWnd)
+{
+	#if _MSC_VER >= 1400
+	LONG_PTR user = GetWindowLongPtr(hWnd, GWLP_USERDATA);
+	LONG_PTR magic = GetWindowLongPtr(hWnd, GWL_LGI_MAGIC);
+	#else
+	LONG user = GetWindowLong(hWnd, GWL_USERDATA);
+	LONG magic = GetWindowLong(hWnd, GWL_LGI_MAGIC);
+	#endif
+
+	if (magic != LGI_GViewMagic)
+		return false;
+	Ptr = dynamic_cast<T*>((GViewI*)user);
+	return Ptr != NULL;
+}
+
 LRESULT CALLBACK GWin32Class::Redir(HWND hWnd, UINT m, WPARAM a, LPARAM b)
 {
 	if (m == WM_NCCREATE)
@@ -488,7 +505,14 @@ void GView::_Delete()
 
 	// Remove static references to myself
 	if (_Over == this) _Over = 0;
-	if (_Capturing == this) _Capturing = 0;
+	if (_Capturing == this)
+	{
+		#if DEBUG_CAPTURE
+		LgiTrace("%s:%i - _Capturing %p/%s -> NULL\n",
+			_FL, this, GetClass());
+		#endif
+		_Capturing = 0;
+	}
 
 	if (LgiApp && LgiApp->AppWnd == this)
 	{
@@ -608,8 +632,14 @@ bool GView::Attach(GViewI *p)
 		_Window = Parent->_Window;
 
     const char *ClsName = GetClassW32();
+	if (ClsName && !_stricmp(ClsName, "GButton"))
+	{
+		int asd=0;
+	}
+
     if (!ClsName)
         ClsName = GetClass();
+        
 	if (ClsName)
 	{
 		// Real window with HWND
@@ -711,6 +741,10 @@ bool GView::Detach()
 		{
 			if (_View)
 				ReleaseCapture();
+			#if DEBUG_CAPTURE
+			LgiTrace("%s:%i - _Capturing %p/%s -> NULL\n",
+				_FL, this, GetClass());
+			#endif
 			_Capturing = 0;
 		}
 		if (_View)
@@ -1341,25 +1375,14 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			}
 			case M_COMMAND:
 			{
-				GViewI *Ci = FindControl((HWND) Msg->b);
-				GView *Ctrl = Ci ? Ci->GetGView() : 0;
-				if (Ctrl)
+				// GViewI *Ci = FindControl((HWND) Msg->b);
+				// GView *Ctrl = Ci ? Ci->GetGView() : 0;
+				GView *Ctrl;
+				if (CastHwnd(Ctrl, (HWND) Msg->b))
 				{
 					short Code = HIWORD(Msg->a);
 					switch (Code)
 					{
-						/*
-						case BN_CLICKED: // BUTTON
-						{
-							OnNotify(Ctrl, 0);
-							break;
-						}
-						*/
-						case EN_CHANGE: // EDIT
-						{
-							Ctrl->SysOnNotify(Code);
-							break;
-						}
 						case CBN_CLOSEUP:
 						{
 							PostMessage(_View, WM_COMMAND, MAKELONG(Ctrl->GetId(), CBN_EDITCHANGE), Msg->b);
@@ -1367,8 +1390,17 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 						}
 						case CBN_EDITCHANGE: // COMBO
 						{
-							Ctrl->SysOnNotify(Code);
+							Ctrl->SysOnNotify(Msg->Msg(), Code);
 							OnNotify(Ctrl, 0);
+							break;
+						}
+						/*
+						case BN_CLICKED: // BUTTON
+						case EN_CHANGE: // EDIT
+						*/
+						default:
+						{
+							Ctrl->SysOnNotify(Msg->Msg(), Code);
 							break;
 						}
 					}
@@ -1498,7 +1530,29 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			}
 			case WM_CAPTURECHANGED:
 			{
-				_Capturing = 0;
+				GViewI *Wnd;
+				if (CastHwnd(Wnd, (HWND)Msg->B()))
+				{
+					if (Wnd != _Capturing)
+					{
+						#if DEBUG_CAPTURE
+						LgiTrace("%s:%i - _Capturing %p/%s -> %p/%s\n",
+							_FL,
+							_Capturing, _Capturing?_Capturing->GetClass():0,
+							Wnd, Wnd?Wnd->GetClass() : 0);
+						#endif
+						_Capturing = Wnd;
+					}
+				}
+				else if (_Capturing)
+				{
+					#if DEBUG_CAPTURE
+					LgiTrace("%s:%i - _Capturing %p/%s -> NULL\n",
+						_FL,
+						_Capturing, _Capturing?_Capturing->GetClass():0);
+					#endif
+					_Capturing = NULL;
+				}
 				break;
 			}
 			case M_MOUSEENTER:
@@ -1925,6 +1979,17 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				}
 				
 				return Status;
+			}
+			case WM_NOTIFY:
+			{
+				NMHDR *Hdr = (NMHDR*)Msg->B();
+				if (Hdr)
+				{
+					GView *Wnd;
+					if (CastHwnd(Wnd, Hdr->hwndFrom))
+						Wnd->SysOnNotify(Msg->Msg(), Hdr->code);
+				}
+				break;
 			}
 			default:
 			{

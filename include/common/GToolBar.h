@@ -30,7 +30,6 @@
 
 // Dimensions
 #define BORDER_SHADE			1
-#define BORDER_SPACER			1
 #define BORDER_SEPARATOR		4
 #define BORDER_BUTTON			1
 

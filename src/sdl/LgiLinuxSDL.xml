@@ -262,7 +262,7 @@
 		<Node Name="Header" Type="1" Platforms="15" Open="0" />
 		<Node Name="Mime Message" Type="1" Platforms="15" Open="0" />
 	</Node>
-	<Node Name="Headers" Type="1" Platforms="15" Open="0">
+	<Node Name="Headers" Type="1" Platforms="15" Open="1">
 		<Node Name="Linux" Type="1" Platforms="15" Open="0" />
 		<Node Name="Win" Type="1" Platforms="15" Open="0" />
 		<Node Name="Sdl" Type="1" Platforms="15" Open="0">

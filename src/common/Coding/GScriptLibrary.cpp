@@ -633,10 +633,11 @@ bool SystemFunctions::DeleteFile(GVariant *Ret, ArgumentArray &Args)
 
 bool SystemFunctions::CurrentScript(GVariant *Ret, ArgumentArray &Args)
 {
+	GCompiledCode *Code;
 	if (Engine &&
-		Engine->GetCurrentCode())
+		(Code = Engine->GetCurrentCode()))
 	{
-		*Ret = Engine->GetCurrentCode()->GetFileName();
+		*Ret = Code->GetFileName();
 		return true;
 	}
 	return false;

@@ -97,20 +97,20 @@ struct GSoftwareUpdatePriv
 							if (Root.IsTag("software") &&
 								(StatusCode = Root.GetChildTag("status")))
 							{
-								if (StatusCode->Content &&
-									atoi(StatusCode->Content) > 0)
+								if (StatusCode->GetContent() &&
+									atoi(StatusCode->GetContent()) > 0)
 								{
 									GXmlTag *t;
 									if ((t = Root.GetChildTag("version")))
-										Info->Version.Reset(NewStr(t->Content));
+										Info->Version.Reset(NewStr(t->GetContent()));
 									if ((t = Root.GetChildTag("revision")))
-										Info->Build.Reset(NewStr(t->Content));
+										Info->Build.Reset(NewStr(t->GetContent()));
 									if ((t = Root.GetChildTag("uri")))
-										Info->Uri.Reset(NewStr(t->Content));
+										Info->Uri.Reset(NewStr(t->GetContent()));
 									if ((t = Root.GetChildTag("date")))
 									{
 										Info->Date.SetFormat(GDTF_YEAR_MONTH_DAY);
-										Info->Date.Set(t->Content);
+										Info->Date.Set(t->GetContent());
 									}
 
 									Status = true;
@@ -119,7 +119,7 @@ struct GSoftwareUpdatePriv
 								{
 									GXmlTag *Msg = Root.GetChildTag("msg");
 									GStringPipe p;
-									p.Print(LgiLoadString(L_ERROR_UPDATE, sUpdateError), Msg?Msg->Content:(char*)"Unknown");
+									p.Print(LgiLoadString(L_ERROR_UPDATE, sUpdateError), Msg?Msg->GetContent():(char*)"Unknown");
 									d->Error.Reset(p.NewStr());
 								}
 							}

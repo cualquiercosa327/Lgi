@@ -13,6 +13,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <wchar.h>
 
 #define LGI_SDL				1
 #define LGI_TOUCHSCREEN		1
@@ -92,7 +93,7 @@ public:
 };
 
 // Threads
-#ifdef WIN32
+#if defined(WIN32)
 
 typedef HANDLE  					OsThread;
 typedef DWORD						OsThreadId;
@@ -532,6 +533,7 @@ typedef enum {
 // Externs
 #define vsprintf_s		vsnprintf
 #define swprintf_s		swprintf
+#define wcscpy_s(dst, len, src)		wcsncpy(dst, src, len)
 #ifndef WIN32 // __CYGWIN__
 // LgiFunc char *strnistr(char *a, char *b, int n);
 #define _strnicmp strncasecmp // LgiFunc int _strnicmp(char *a, char *b, int i);

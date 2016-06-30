@@ -1385,25 +1385,29 @@ void GTag::Set(const char *attr, const char *val)
 
 bool GTag::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
-	if (!Name)
-		return false;
-	
-	if (!_stricmp(Name, "style"))
+	GDomProperty Fld = GStringToProp(Name);
+	switch (Fld)
 	{
-		Value = &StyleDom;
-		return true;
-	}
-	else if (!_stricmp(Name, "textContent"))
-	{
-		Value = Text();
-		return true;
-	}
-
-	char *a = Attr.Find(Name);
-	if (a)
-	{
-		Value = a;
-		return true;
+		case ObjStyle: // Type: GCssStyle
+		{
+			Value = &StyleDom;
+			return true;
+		}
+		case ObjTextContent: // Type: String
+		{
+			Value = Text();
+			return true;
+		}
+		default:
+		{
+			char *a = Attr.Find(Name);
+			if (a)
+			{
+				Value = a;
+				return true;
+			}
+			break;
+		}
 	}
 	
 	return false;
@@ -1411,55 +1415,60 @@ bool GTag::GetVariant(const char *Name, GVariant &Value, char *Array)
 
 bool GTag::SetVariant(const char *Name, GVariant &Value, char *Array)
 {
-	if (!Name)
-		return false;
-
-	if (!_stricmp(Name, "style"))
+	GDomProperty Fld = GStringToProp(Name);
+	switch (Fld)
 	{
-		const char *Defs = Value.Str();
-		if (!Defs)
-			return false;
-			
-		return Parse(Defs, ParseRelaxed);
-	}
-	else if (!_stricmp(Name, "textContent"))
-	{
-		const char *s = Value.Str();
-		if (s)
+		case ObjStyle:
 		{
-			GAutoWString w(CleanText(s, strlen(s), "utf-8", true, true));
-			Txt = w;
-			return true;
+			const char *Defs = Value.Str();
+			if (!Defs)
+				return false;
+				
+			return Parse(Defs, ParseRelaxed);
 		}
-	}
-	else if (!_stricmp(Name, "innerHTML"))
-	{
-		// Clear out existing tags..
-		Children.DeleteObjects();
-	
-		char *Doc = Value.CastString();
-		if (Doc)
+		case ObjTextContent:
 		{
-			// Create new tags...
-			bool BackOut = false;
-			
-			while (Doc && *Doc)
+			const char *s = Value.Str();
+			if (s)
 			{
-				GTag *t = new GTag(Html, this);
-				if (t)
-				{
-					Doc = Html->ParseHtml(t, Doc, 1, false, &BackOut);
-					if (!Doc)
-						break;
-				}
-				else break;
+				GAutoWString w(CleanText(s, strlen(s), "utf-8", true, true));
+				Txt = w;
+				return true;
 			}
+			break;
 		}
-	}
-	else
-	{
-		Set(Name, Value.CastString());
-		SetStyle();
+		case ObjInnerHtml: // Type: String
+		{
+			// Clear out existing tags..
+			Children.DeleteObjects();
+		
+			char *Doc = Value.CastString();
+			if (Doc)
+			{
+				// Create new tags...
+				bool BackOut = false;
+				
+				while (Doc && *Doc)
+				{
+					GTag *t = new GTag(Html, this);
+					if (t)
+					{
+						Doc = Html->ParseHtml(t, Doc, 1, false, &BackOut);
+						if (!Doc)
+							break;
+					}
+					else break;
+				}
+			}
+			else return false;
+			break;
+		}
+		default:
+		{
+			Set(Name, Value.CastString());
+			SetStyle();
+			break;
+		}
 	}
 
 	Html->ViewWidth = -1;
@@ -2036,7 +2045,6 @@ bool GTag::OnMouseClick(GMouse &m)
 {
 	bool Processed = false;
 
-	// char msg[256];
 	if (m.IsContextMenu())
 	{
 		GAutoString Uri;
@@ -2335,16 +2343,22 @@ int GTag::NearestChar(GFlowRect *Tr, int x, int y)
 
 void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool InBody, bool DebugLog)
 {
+	/*
+	InBody: Originally I had this test in the code but it seems that some test cases
+	have actual content after the body. And testing for "InBody" breaks functionality
+	for those cases (see "spam4.html" and the unsubscribe link at the end of the doc).	
+	*/
+
 	if (TagId == TAG_IMG)
 	{
 		GRect img(0, 0, Size.x - 1, Size.y - 1);
-		if (InBody && img.Overlap(x, y))
+		if (/*InBody &&*/ img.Overlap(x, y))
 		{
 			TagHit.Direct = this;
 			TagHit.Block = 0;
 		}
 	}
-	else if (InBody && TextPos.Length())
+	else if (/*InBody &&*/ TextPos.Length())
 	{
 		for (unsigned i=0; i<TextPos.Length(); i++)
 		{
@@ -2407,8 +2421,8 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool InBody, bo
 		x >= 0 &&
 		y >= 0 &&
 		x < Size.x &&
-		y < Size.y &&
-		InBody
+		y < Size.y
+		// && InBody
 	)
 	{
 		// Direct hit
@@ -2418,7 +2432,7 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool InBody, bo
 
 		if (DebugLog)
 		{
-			LgiTrace("%i:%sGetTagByPos DirectHit %s #%s, idx=%i, near=%i\n",
+			LgiTrace("%i:GetTagByPos DirectHit %s #%s, idx=%i, near=%i\n",
 				Depth,
 				Tag.Get(),
 				HtmlId,
@@ -2437,6 +2451,7 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool InBody, bo
 			t->Pos.y >= 0)
 		{
 			t->GetTagByPos(TagHit, x - t->Pos.x, y - t->Pos.y, Depth + 1, InBody, DebugLog);
+			int asd=0;
 		}
 	}
 }
@@ -4962,7 +4977,9 @@ bool GTag::Serialize(GXmlTag *t, bool Write)
 				else
 					p.Print("%%%.4x", *c);
 			}
-			t->Content = p.NewStr();
+			
+			GAutoString Tmp(p.NewStr());
+			t->SetContent(Tmp);
 		}
 		if (Props.Length())
 		{
@@ -5012,10 +5029,10 @@ bool GTag::Serialize(GXmlTag *t, bool Write)
 			Size.x = pos.x2;
 			Size.y = pos.y2;
 		}
-		if (ValidStr(t->Content))
+		if (ValidStr(t->GetContent()))
 		{
 			GStringPipe p(256);
-			char *c = t->Content;
+			char *c = t->GetContent();
 			SkipWhiteSpace(c);
 			for (; *c && *c > ' '; c++)
 			{
@@ -6317,14 +6334,6 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection, uint16 Depth)
 	int Px, Py;
 	pDC->GetOrigin(Px, Py);
 
-	#ifdef _DEBUG
-	if (Debug)
-	{
-		GCss::ColorDef c = Color();
-		LgiTrace("%s::OnPaint - %i,%i\n", Tag.Get(), -Px, -Py);
-	}
-	#endif
-	
 	switch (TagId)
 	{
 		case TAG_INPUT:
@@ -7842,7 +7851,7 @@ void GHtml::OnMouseClick(GMouse &m)
 		GTagHit Hit;
 		if (Tag)
 		{
-			Tag->GetTagByPos(Hit, m.x, m.y + Offset, 0, DEBUG_TAG_BY_POS);
+			Tag->GetTagByPos(Hit, m.x, m.y + Offset, 0, false, DEBUG_TAG_BY_POS);
 			#if DEBUG_TAG_BY_POS
 			Hit.Dump("MouseClick");
 			#endif
@@ -8600,11 +8609,13 @@ GHtmlElement *GHtml::CreateElement(GHtmlElement *Parent)
 
 bool GHtml::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
-	if (!_stricmp(Name, "supportLists"))
+	if (!_stricmp(Name, "supportLists")) // Type: Bool
 		Value = false;
-	else if (!_stricmp(Name, "vml")) // Vector Markup Language
+	else if (!_stricmp(Name, "vml")) // Type: Bool
+		// Vector Markup Language
 		Value = false;
-	else if (!_stricmp(Name, "mso")) // mso = Microsoft Office
+	else if (!_stricmp(Name, "mso")) // Type: Bool
+		// mso = Microsoft Office
 		Value = false;
 	else
 		return false;
@@ -9138,7 +9149,7 @@ bool GCssStyle::GetVariant(const char *Name, GVariant &Value, char *Array)
 	if (!Name)
 		return false;
 
-	if (!_stricmp(Name, "display"))
+	if (!_stricmp(Name, "Display")) // Type: String
 	{
 		Value = Css->ToString(Css->Display());
 		return Value.Str() != NULL;

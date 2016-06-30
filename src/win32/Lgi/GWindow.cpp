@@ -8,6 +8,7 @@
 #include "GPanel.h"
 #include "GVariant.h"
 #include "GToken.h"
+#include "GButton.h"
 
 #define DEBUG_WINDOW_PLACEMENT				0
 #define DEBUG_HANDLE_VIEW_KEY				0
@@ -1102,6 +1103,25 @@ bool GWindow::RegisterHook(GView *Target, GWindowHookType EventType, int Priorit
 	}
 	
 	return Status;
+}
+
+GViewI *GWindow::GetDefault()
+{
+	return _Default;
+}
+
+void GWindow::SetDefault(GViewI *v)
+{
+	#if WINNATIVE
+	GButton *Btn;
+	if (Btn = dynamic_cast<GButton*>(_Default))
+		Btn->Default(false);
+	#endif
+	_Default = v;
+	#if WINNATIVE
+	if (Btn = dynamic_cast<GButton*>(_Default))
+		Btn->Default(true);
+	#endif
 }
 
 bool GWindow::UnregisterHook(GView *Target)

@@ -182,6 +182,8 @@ int main(int Args, const char **Arg)
 		for (int i=0; i<AppArgs.Args; i++)
 			a[i] = AppArgs.Arg[i];
 		a.Add("--g-fatal-warnings");
+		if (0)
+			a.Add("--sync");
 		AppArgs.Arg = &a[0];
 		AppArgs.Args = a.Length();
 		

@@ -322,6 +322,8 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 	}
 	else
 	{
+		if (!Pos.Valid())
+			return false;
 		Up.Set(0, 0, Pos.X()-1, Pos.Y()-1);
 	}
 

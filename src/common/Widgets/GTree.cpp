@@ -12,11 +12,15 @@
 #define DRAG_SCROLL_X		8
 #define DRAG_SCROLL_Y		1
 
+/*
 #ifdef LINUX
+*/
 #define TreeUpdateNow		false
+/*
 #else
 #define TreeUpdateNow		true
 #endif
+*/
 
 #define ForAll(Items)		List<GTreeItem>::I it = Items.Start(); for (GTreeItem *c = *it; c; c = *++it)
 
@@ -354,7 +358,9 @@ GTreeItem::~GTreeItem()
 		{
 			Tree->d->LastHit = 0;
 		}
-		Tree->Capture(false);
+		
+		if (Tree->IsCapturing())
+			Tree->Capture(false);
 	}
 
 	int y = 0;
@@ -519,7 +525,9 @@ void GTreeItem::_Remove()
 		{
 			LgiAssert(Tree->d);
 			Tree->d->LayoutDirty = true;
-			Tree->Capture(false);
+			
+			if (Tree->IsCapturing())
+				Tree->Capture(false);
 		}
 	}
 
