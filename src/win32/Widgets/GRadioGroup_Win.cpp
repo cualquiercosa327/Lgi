@@ -50,7 +50,8 @@ GRadioGroup::GRadioGroup(int id, int x, int y, int cx, int cy, const char *name,
 	GRect r(x, y, x+cx, y+cy);
 	SetPos(r);
 	SetId(id);
-	SetStyle(GetStyle() | BS_GROUPBOX | WS_GROUP | WS_CLIPCHILDREN/* | WS_CLIPSIBLINGS*/);
+	SetTabStop(true);
+	SetStyle(GetStyle() | BS_GROUPBOX | WS_GROUP | WS_CLIPCHILDREN);
 
 	SetClassW32(GetClass());
 	if (!SubClass)
@@ -349,11 +350,6 @@ int GRadioButton::SysOnNotify(int Msg, int Code)
 	return 0;
 }
 
-GMessage::Result GRadioButton::OnEvent(GMessage *Msg)
-{
-	return GControl::OnEvent(Msg);
-}
-
 bool GRadioButton::Name(const char *n)
 {
 	return GView::Name(n);
@@ -364,17 +360,10 @@ bool GRadioButton::NameW(const char16 *n)
 	return GView::NameW(n);
 }
 
-void GRadioButton::SetFont(GFont *Fnt, bool OwnIt)
-{
-	GView::SetFont(Fnt, OwnIt);
-}
-
 int64 GRadioButton::Value()
 {
 	if (Handle())
-	{
 		return SendMessage(Handle(), BM_GETCHECK, 0, 0);
-	}
 
 	return d->InitVal;
 }
@@ -435,3 +424,71 @@ bool GRadioButton::OnLayout(GViewLayoutInfo &Inf)
 	
     return true;    
 }
+
+bool GRadioButton::OnKey(GKey &k)
+{
+	bool Status = false;
+	int Move = 0;
+
+	switch (k.vkey)
+	{
+		case VK_UP:
+		case VK_LEFT:
+		{
+			if (k.Down())
+			{
+				Move = -1;
+			}
+			Status = true;
+			break;
+		}
+		case VK_RIGHT:
+		case VK_DOWN:
+		{
+			if (k.Down())
+			{
+				Move = 1;
+			}
+			Status = true;
+			break;
+		}
+        case ' ':
+        {
+            if (k.Down())
+            {
+                Value(1);
+            }
+            return true;
+        }
+	}
+
+	if (Move)
+	{
+		List<GRadioButton> Btns;
+		GViewIterator *L = GetParent()->IterateViews();
+		if (L)
+		{
+			for (GViewI *c=L->First(); c; c=L->Next())
+			{
+				GRadioButton *b = dynamic_cast<GRadioButton*>(c);
+				if (b) Btns.Insert(b);
+			}
+			if (Btns.Length() > 1)
+			{
+				int Index = Btns.IndexOf(this);
+				if (Index >= 0)
+				{
+					GRadioButton *n = Btns[(Index + Move + Btns.Length()) % Btns.Length()];
+					if (n)
+					{
+						n->Focus(true);
+					}
+				}
+			}
+			DeleteObj(L);
+		}
+	}
+
+	return Status;
+}
+

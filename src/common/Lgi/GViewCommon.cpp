@@ -180,7 +180,6 @@ GView::GView(OsView view)
 	_InLock = 0;
 	_BorderSize = 0;
 	_IsToolBar = false;
-	Script = 0;
 	Pos.ZOff(-1, -1);
 	WndFlags = GWF_VISIBLE;
 }
@@ -291,51 +290,27 @@ void GView::Unlock()
 
 void GView::OnMouseClick(GMouse &m)
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnMouseClick(m);
-	}
 }
 
 void GView::OnMouseEnter(GMouse &m)
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnMouseEnter(m);
-	}
 }
 
 void GView::OnMouseExit(GMouse &m)
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnMouseExit(m);
-	}
 }
 
 void GView::OnMouseMove(GMouse &m)
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnMouseMove(m);
-	}
 }
 
 bool GView::OnMouseWheel(double Lines)
 {
-	if (Script && Script->OnScriptEvent(this))
-		return Script->OnMouseWheel(Lines);
-	
 	return false;
 }
 
 bool GView::OnKey(GKey &k)
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnKey(k);
-	}
-
 	return false;
 }
 
@@ -351,87 +326,45 @@ void GView::OnAttach()
 
 void GView::OnCreate()
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnCreate();
-	}
 }
 
 void GView::OnDestroy()
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnDestroy();
-	}
 }
 
 void GView::OnFocus(bool f)
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnFocus(f);
-	}
 }
 
 void GView::OnPulse()
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnPulse();
-	}
 }
 
 void GView::OnPosChange()
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnPosChange();
-	}
 }
 
 bool GView::OnRequestClose(bool OsShuttingDown)
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnRequestClose(OsShuttingDown);
-	}
-
 	return true;
 }
 
 int GView::OnHitTest(int x, int y)
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnHitTest(x, y);
-	}
-
 	return -1;
 }
 
 void GView::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnChildrenChanged(Wnd, Attaching);
-	}
 }
 
 void GView::OnPaint(GSurface *pDC)
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnPaint(pDC);
-	}
 }
 
 int GView::OnNotify(GViewI *Ctrl, int Flags)
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnNotify(Ctrl, Flags);
-	}
-	else if (Ctrl && d && d->Parent)
+	if (Ctrl && d && d->Parent)
 	{
 		// default behaviour is just to pass the 
 		// notification up to the parent
@@ -443,11 +376,6 @@ int GView::OnNotify(GViewI *Ctrl, int Flags)
 
 int GView::OnCommand(int Cmd, int Event, OsView Wnd)
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnCommand(Cmd, Event, Wnd);
-	}
-
 	return 0;
 }
 

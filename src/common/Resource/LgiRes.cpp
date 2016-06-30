@@ -819,16 +819,6 @@ ResObject *LgiResources::CreateObject(GXmlTag *t, ResObject *Parent)
 	}
 	
 	LgiAssert(Wnd);
-
-	if (Wnd)
-	{
-		GView *v = dynamic_cast<GView*>(Wnd);
-		if (v)
-		{
-			v->Script = ScriptEngine;
-		}
-	}
-
 	return Wnd;
 }
 

@@ -73,22 +73,22 @@ public:
 	bool NameW(const char16 *n);
 	int64 Value();
 	void Value(int64 i);
-	void SetFont(GFont *Fnt, bool OwnIt = false);
 	bool OnLayout(GViewLayoutInfo &Inf);
 
 	// Events
 	void OnAttach();
-	GMessage::Result OnEvent(GMessage *m);
+	bool OnKey(GKey &k);
 	
 	#ifdef WINNATIVE
 	int SysOnNotify(int Msg, int Code);
 	#else
 	void OnMouseClick(GMouse &m);
+	GMessage::Result OnEvent(GMessage *m);
 	void OnMouseEnter(GMouse &m);
 	void OnMouseExit(GMouse &m);
-	bool OnKey(GKey &k);
 	void OnFocus(bool f);
 	void OnPaint(GSurface *pDC);
+	void SetFont(GFont *Fnt, bool OwnIt = false);
 	#endif
 };
 

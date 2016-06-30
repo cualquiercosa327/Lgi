@@ -108,6 +108,11 @@ void GXmlTreeUi::EnableAll(GViewI *Ui, bool Enable)
 	}
 }
 
+bool GXmlTreeUi::IsMapped(const char *Attr)
+{
+	return d->Maps.Find(Attr) != NULL;
+}
+
 void GXmlTreeUi::Map(const char *Attr, int UiIdent, int Type)
 {
 	if (UiIdent > 0 &&

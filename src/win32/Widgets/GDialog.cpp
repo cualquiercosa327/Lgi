@@ -545,25 +545,18 @@ GMessage::Result GControl::OnEvent(GMessage *Msg)
 		case WM_SETTEXT:
 		{
 			if (IsWindowUnicode(_View))
-			{
 				GBase::NameW((char16*)Msg->b);
-			}
 			else
-			{
 				GBase::Name((char*)Msg->b);
-			}
 			break;
 		}
 		case WM_GETDLGCODE:
-		{
-			return GView::OnEvent(Msg);
-		}
 		case WM_NOTIFY:
 		case WM_COMMAND:
-		case WM_KEYDOWN:
-		case WM_KEYUP:
 		case WM_SYSKEYDOWN:
 		case WM_SYSKEYUP:
+		case WM_KEYDOWN:
+		case WM_KEYUP:
 		{
 			bool Deleted = false;
 			SetOnDelete = &Deleted;
@@ -572,6 +565,12 @@ GMessage::Result GControl::OnEvent(GMessage *Msg)
 				return Status;
 			
 			SetOnDelete = NULL;
+			break;
+		}
+		case WM_SETFOCUS:
+		case WM_KILLFOCUS:
+		{
+			int asd=0;
 			break;
 		}
 	}

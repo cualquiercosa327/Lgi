@@ -35,6 +35,8 @@ public:
 	void EnableAll(GViewI *ui, bool Enable);
 	/// Empty all controls of text / value
 	void EmptyAll(GViewI *ui);
+	/// Returns true if the attribute is mapped
+	bool IsMapped(const char *Attr);
 };
 
 #endif

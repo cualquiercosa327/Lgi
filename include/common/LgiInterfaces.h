@@ -331,9 +331,6 @@ class GEventsI : public GEventTargetI
 public:
 	virtual ~GEventsI() {}
 
-	// Does this support scripting
-	virtual bool OnScriptEvent(GViewI *Ctrl) = 0;
-
 	// Events
 	virtual void OnMouseClick(GMouse &m) = 0;
 	virtual void OnMouseEnter(GMouse &m) = 0;
@@ -386,7 +383,10 @@ public:
 	Range Height;
 };
 
-class GViewI : public GEventsI, public GEventSinkI
+class GViewI :
+	public GEventsI,
+	public GEventSinkI,
+	public virtual GDomI
 {
 	friend class GView;
 
