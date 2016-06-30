@@ -2843,7 +2843,7 @@ public:
 				Cur++;
 				
 				GArray<char16*> Exp;
-				while (t = GetTok(Cur))
+				while ((t = GetTok(Cur)))
 				{
 					Cur++;
 					if (!StricmpW(t, sEndSqBracket))
