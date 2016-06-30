@@ -1569,8 +1569,13 @@ char*
 _DumpColour(GCss::ColorDef c)
 {
 	static char Buf[4][32];
+	#ifdef _MSC_VER
 	static LONG Cur = 0;
 	LONG Idx = InterlockedIncrement(&Cur);
+	#else
+	static int Cur = 0;
+	int Idx = __sync_fetch_and_add(&Cur, 1);
+	#endif
 	char *b = Buf[Idx % 4];
 	
 	if (c.Type == GCss::ColorInherit)
