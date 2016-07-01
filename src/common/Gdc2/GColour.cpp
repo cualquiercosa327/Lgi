@@ -471,8 +471,10 @@ char *GColour::GetStr()
 			break;
 		default:
 			sprintf_s(	Buf[b], 32,
-						"unknown()");
+						"unknown(%i)",
+						space);
 			break;
 	}
+
 	return Buf[b];
 }

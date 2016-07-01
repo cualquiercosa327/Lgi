@@ -324,7 +324,7 @@
 				<Node File="./include/common/LgiWidgets.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Win32" Type="1" Platforms="15" Open="0">
-				<Node File="./src/win32/Widgets/GEdit.cpp" Type="2" Platforms="1" />
+				<Node File="./src/win32/Widgets/GEdit_Win.cpp" Type="2" Platforms="1" />
 				<Node File="./src/win32/Widgets/GDialog.cpp" Type="2" Platforms="1" />
 				<Node File="./src/win32/Widgets/GSlider.cpp" Type="2" Platforms="1" />
 				<Node File="./src/win32/Lgi/GLayout.cpp" Type="2" Platforms="1" />
