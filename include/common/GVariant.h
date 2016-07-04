@@ -137,11 +137,11 @@ protected:
 	GString Name;
 
 	// Fields
-	GArray<CustomField> Flds;
+	GArray<CustomField*> Flds;
 	GHashTbl<const char*, int> FldMap;
 	
 	// Methods
-	GArray<Method> Methods;
+	GArray<Method*> Methods;
 	GHashTbl<const char*, Method*> MethodMap;
 	
 	// Private methods

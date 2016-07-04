@@ -1683,6 +1683,8 @@ GCustomType::GCustomType(const char16 *name, int pack) : FldMap(0, true, NULL, -
 
 GCustomType::~GCustomType()
 {
+	Flds.DeleteObjects();
+	Methods.DeleteObjects();
 }
 
 size_t GCustomType::Sizeof()
@@ -1713,7 +1715,7 @@ int GCustomType::AddressOf(const char *Field)
 		return -1;
 	for (unsigned i=0; i<Flds.Length(); i++)
 	{
-		if (!strcmp(Flds[i].Name, Field))
+		if (!strcmp(Flds[i]->Name, Field))
 			return (int)i;
 	}
 	return -1;
@@ -1740,16 +1742,17 @@ bool GCustomType::DefineField(const char *Name, GCustomType *Type, int ArrayLen)
 	}
 	FldMap.Add(Name, Flds.Length());
 
-	CustomField &Def = Flds.New();
+	CustomField *Def;
+	Flds.Add(Def = new CustomField);
 	
 	Size = PadSize();
-	Def.Offset = Size;
+	Def->Offset = Size;
 	
-	Def.Name = Name;
-	Def.Type = GV_CUSTOM;
-	Def.Bytes = Type->Sizeof();
-	Def.ArrayLen = ArrayLen;
-	Size += Def.Bytes * ArrayLen;
+	Def->Name = Name;
+	Def->Type = GV_CUSTOM;
+	Def->Bytes = Type->Sizeof();
+	Def->ArrayLen = ArrayLen;
+	Size += Def->Bytes * ArrayLen;
 
 	return true;
 }
@@ -1775,15 +1778,16 @@ bool GCustomType::DefineField(const char *Name, GVariantType Type, int Bytes, in
 	}
 	FldMap.Add(Name, Flds.Length());
 
-	CustomField &Def = Flds.New();
+	CustomField *Def;
+	Flds.Add(Def = new CustomField);
 	
 	Size = PadSize();
-	Def.Offset = Size;
+	Def->Offset = Size;
 	
-	Def.Name = Name;
-	Def.Type = Type;
-	Def.Bytes = Bytes;
-	Def.ArrayLen = ArrayLen;
+	Def->Name = Name;
+	Def->Type = Type;
+	Def->Bytes = Bytes;
+	Def->ArrayLen = ArrayLen;
 	Size += Bytes * ArrayLen;
 
 	return true;
@@ -1803,7 +1807,7 @@ GCustomType::Method *GCustomType::DefineMethod(const char *Name, GArray<GString>
 		return NULL;
 	}
 	
-	m = &Methods.New();
+	Methods.Add(m = new Method);
 	m->Name = Name;
 	m->Params = Params;
 	m->Address = Address;
@@ -1875,22 +1879,22 @@ bool GCustomType::Get(int Index, GVariant &Out, uint8 *This, int ArrayIndex)
 		return false;
 	}
 
-	CustomField &Def = Flds[Index];
-	if (ArrayIndex < 0 || ArrayIndex >= Def.ArrayLen)
+	CustomField *Def = Flds[Index];
+	if (ArrayIndex < 0 || ArrayIndex >= Def->ArrayLen)
 	{
 		LgiAssert(!"Array out of bounds.");
 		return false;
 	}
 
-	uint8 *Ptr = This + Def.Offset;
+	uint8 *Ptr = This + Def->Offset;
 	Out.Empty();
 	
-	switch (Def.Type)
+	switch (Def->Type)
 	{
 		case GV_STRING:
 		{
 			int Len;
-			for (Len = 0; Ptr[Len] && Len < Def.ArrayLen-1; Len++)
+			for (Len = 0; Ptr[Len] && Len < Def->ArrayLen-1; Len++)
 				;
 			Out.OwnStr(NewStr((char*)Ptr, Len));
 			break;
@@ -1899,7 +1903,7 @@ bool GCustomType::Get(int Index, GVariant &Out, uint8 *This, int ArrayIndex)
 		{
 			char16 *p = (char16*)Ptr;
 			int Len;
-			for (Len = 0; p[Len] && Len < Def.ArrayLen-1; Len++)
+			for (Len = 0; p[Len] && Len < Def->ArrayLen-1; Len++)
 				;
 			Out.OwnStr(NewStrW(p, Len));
 			break;
@@ -1907,7 +1911,7 @@ bool GCustomType::Get(int Index, GVariant &Out, uint8 *This, int ArrayIndex)
 		case GV_INT32:
 		case GV_INT64:
 		{
-			switch (Def.Bytes)
+			switch (Def->Bytes)
 			{
 				case 1:
 				{
@@ -1966,15 +1970,15 @@ bool GCustomType::Set(int Index, GVariant &In, uint8 *This, int ArrayIndex)
 		return false;
 	}
 
-	CustomField &Def = Flds[Index];
-	uint8 *Ptr = This + Def.Offset;
-	if (ArrayIndex < 0 || ArrayIndex >= Def.ArrayLen)
+	CustomField *Def = Flds[Index];
+	uint8 *Ptr = This + Def->Offset;
+	if (ArrayIndex < 0 || ArrayIndex >= Def->ArrayLen)
 	{
 		LgiAssert(!"Array out of bounds.");
 		return false;
 	}
 	
-	switch (Def.Type)
+	switch (Def->Type)
 	{
 		case GV_STRING:
 		{
@@ -1985,20 +1989,20 @@ bool GCustomType::Set(int Index, GVariant &In, uint8 *This, int ArrayIndex)
 				break;
 			}
 			
-			if (Def.Bytes == 1)
+			if (Def->Bytes == 1)
 			{
 				// Straight up string copy...
 				if (s)
-					strcpy_s((char*)Ptr, Def.ArrayLen, s);
+					strcpy_s((char*)Ptr, Def->ArrayLen, s);
 				else
 					*Ptr = 0;
 			}
-			else if (Def.Bytes == sizeof(char16))
+			else if (Def->Bytes == sizeof(char16))
 			{
 				// utf8 -> wide conversion...
 				const void *In = Ptr;
 				int Len = strlen(s);
-				int Ch = LgiBufConvertCp(Ptr, LGI_WideCharset, Def.ArrayLen-1, In, "utf-8", Len);
+				int Ch = LgiBufConvertCp(Ptr, LGI_WideCharset, Def->ArrayLen-1, In, "utf-8", Len);
 				if (Ch >= 0)
 				{
 					// Null terminate
@@ -2021,17 +2025,17 @@ bool GCustomType::Set(int Index, GVariant &In, uint8 *This, int ArrayIndex)
 				*p = 0;
 				break;
 			}
-			if (Def.Bytes == sizeof(char16))
+			if (Def->Bytes == sizeof(char16))
 			{
 				// Straight string copy...
-				wcscpy_s(p, Def.ArrayLen, w);
+				wcscpy_s(p, Def->ArrayLen, w);
 			}
 			else
 			{
 				// Conversion to utf-8
 				const void *In = Ptr;
 				int Len = StrlenW(w) * sizeof(char16);
-				int Ch = LgiBufConvertCp(Ptr, "utf-8", Def.ArrayLen-sizeof(char16),
+				int Ch = LgiBufConvertCp(Ptr, "utf-8", Def->ArrayLen-sizeof(char16),
 										In, LGI_WideCharset, Len);
 				if (Ch >= 0)
 				{
@@ -2049,7 +2053,7 @@ bool GCustomType::Set(int Index, GVariant &In, uint8 *This, int ArrayIndex)
 		case GV_INT32:
 		case GV_INT64:
 		{
-			switch (Def.Bytes)
+			switch (Def->Bytes)
 			{
 				case 1:
 				{
