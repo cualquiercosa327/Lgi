@@ -37,12 +37,22 @@ public:
 		/// Name of the subkey or NULL for the default string.
 		const char *Name = 0
 	);
+	/// Return a string value
+	bool GetStr
+	(
+		/// Name of the subkey or NULL for the default string.
+		const char *Name,
+		/// The string's value
+		GString &Str
+	);
 	/// Sets a string value
 	bool SetStr(const char *Name, const char *Value);
+
 	/// Get an int value
-	int GetInt(char *Name = 0);
+	bool GetInt(const char *Name, uint32 &Value);
 	/// Set an int value
-	bool SetInt(char *Name, int Value);
+	bool SetInt(const char *Name, uint32 Value);
+
 	/// Get a binary value
 	bool GetBinary(char *Name, void *&Ptr, int &Len);
 	/// Set a binary value

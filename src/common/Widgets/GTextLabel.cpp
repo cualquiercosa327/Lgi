@@ -6,6 +6,7 @@
 #include "GDisplayStringLayout.h"
 #include "GVariant.h"
 #include "GNotifications.h"
+#include "LgiRes.h"
 
 class GTextPrivate : public GDisplayStringLayout, public GMutex
 {

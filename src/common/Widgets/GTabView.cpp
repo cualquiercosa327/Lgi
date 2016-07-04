@@ -14,6 +14,7 @@
 #include "GSkinEngine.h"
 #include "GDisplayString.h"
 #include "GTableLayout.h"
+#include "LgiRes.h"
 
 #ifdef WIN32
 

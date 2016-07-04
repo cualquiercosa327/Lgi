@@ -13,6 +13,7 @@
 #include "GDisplayString.h"
 #include "GViewPriv.h"
 #include "GCssTools.h"
+#include "LgiRes.h"
 
 #define DefaultCharset              "utf-8"
 #define SubtractPtr(a, b)			((a) - (b))

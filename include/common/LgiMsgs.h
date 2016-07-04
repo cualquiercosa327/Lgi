@@ -12,7 +12,9 @@
 
 // Mail lib error message ID's
 #define L_ERROR_ESMTP_NO_AUTHS				-100
-#define L_ERROR_ESMTP_UNSUPPORTED_AUTHS		-101
+#define L_ERROR_ESMTP_NO_FROM				-101
+#define L_ERROR_UNSUPPORTED_AUTH			-102
+#define L_ERROR_GENERIC						-103
 
 // Text control strings
 #define L_TEXTCTRL_AUTO_INDENT				-200

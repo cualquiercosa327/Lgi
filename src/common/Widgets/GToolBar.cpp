@@ -16,6 +16,7 @@
 #include "GDisplayString.h"
 #include "GPalette.h"
 #include "GNotifications.h"
+#include "LgiRes.h"
 
 #define ToolBarHilightColour LC_HIGH
 

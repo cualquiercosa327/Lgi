@@ -9,6 +9,8 @@
 #include "GVariant.h"
 #include "GCombo.h"
 
+#define DEBUG_COMBOBOX	362
+
 GRect GCombo::Pad(8, 4, 24, 4);
 
 class GComboPrivate
@@ -20,21 +22,19 @@ public:
 	GRect Pos;
 	
 	// Initialization data
+	int Len;
 	bool Init;
-	int InitVal;
-	List<char> InitStrs;
+	int64 Value;
+	GString Name;
+	GArray<GString> Strs;
 
 	GComboPrivate()
 	{
+		Len = 0;
 		SortItems = 0;
 		SubType = GV_NULL;
 		Init = false;
-		InitVal = 0;
-	}
-
-	~GComboPrivate()
-	{
-		InitStrs.DeleteArrays();
+		Value = 0;
 	}
 };
 
@@ -42,7 +42,8 @@ GCombo::GCombo(int id, int x, int y, int cx, int cy, const char *name) :
 	ResObject(Res_ComboBox)
 {
 	d = new GComboPrivate;
-	Name(name);
+	if (ValidStr(name))
+		Name(name);
 	
 	GRect r(x, y, x+cx, y+cy);
 	SetPos(r);
@@ -91,31 +92,52 @@ void GCombo::Sub(int Type)
 
 void GCombo::Value(int64 i)
 {
+	#if defined(DEBUG_COMBOBOX)
+	if (DEBUG_COMBOBOX==GetId())
+		LgiTrace("%s:%i %p.%p SetValue("LGI_PrintfInt64")\n", _FL, this, _View, i);
+	#endif
+
 	if (Handle())
 	{
 		SendMessage(Handle(), CB_SETCURSEL, i, 0);
 	}
 	else
 	{
-		d->InitVal = i;
+		d->Value = i;
 	}
 }
 
 int64 GCombo::Value()
 {
+	int64 v = 0;
+
 	if (Handle())
-	{
-		return SendMessage(Handle(), CB_GETCURSEL, 0, 0);
-	}
+		v = SendMessage(Handle(), CB_GETCURSEL, 0, 0);
 	else
-	{
-		return d->InitVal;
-	}
+		v = d->Value;
+
+	#if defined(DEBUG_COMBOBOX)
+	if (DEBUG_COMBOBOX==GetId())
+		LgiTrace("%s:%i %p.%p GetValue("LGI_PrintfInt64")\n", _FL, this, _View, v);
+	#endif
+	
+	return v;
 }
 
 bool GCombo::Name(const char *n)
 {
-	return false;
+	int Idx = IndexOf(n);
+
+	#if defined(DEBUG_COMBOBOX)
+	if (DEBUG_COMBOBOX==GetId())
+		LgiTrace("%s:%i %p.%p SetName(%s) Idx=%i\n", _FL, this, _View, n, Idx);
+	#endif
+
+	if (Idx < 0)
+		return false;
+
+	Value(Idx);
+	return true;
 }
 
 char *GCombo::Name()
@@ -141,94 +163,120 @@ void GCombo::DoMenu()
 
 bool GCombo::Delete()
 {
-	return Delete(Value());
+	int64 Idx = Value();
+	
+	#if defined(DEBUG_COMBOBOX)
+	if (DEBUG_COMBOBOX==GetId())
+		LgiTrace("%s:%i %p.%p Delete() Idx="LGI_PrintfInt64"\n", _FL, this, _View, Idx);
+	#endif
+
+	return Delete(Idx);
 }
 
 bool GCombo::Delete(int i)
 {
+	#if defined(DEBUG_COMBOBOX)
+	if (DEBUG_COMBOBOX==GetId())
+		LgiTrace("%s:%i %p.%p Delete(%i)\n", _FL, this, _View, i);
+	#endif
+
 	if (Handle())
 	{
-		return SendMessage(Handle(), CB_DELETESTRING, i, 0);
-	}
-	else
-	{
-		char *s = d->InitStrs[i];
-		if (s)
-		{
-			d->InitStrs.Delete();
-			DeleteArray(s);
-			return true;
-		}
-	}
+		LRESULT r = SendMessage(Handle(), CB_DELETESTRING, i, 0);
+		if (r == CB_ERR)
+			return false;
+		d->Len = r;
+	}			
 
+	if (i >= 0 && i < d->Strs.Length())
+	{
+		d->Strs.DeleteAt(i, true);
+		return true;
+	}
 	return false;
 }
 
 bool GCombo::Delete(char *p)
 {
-	if (Handle())
-	{
-		int Index = SendMessage(Handle(), CB_FINDSTRINGEXACT, 0, (long)p);
-		if (Index != CB_ERR)
-		{
-			return Delete(Index);
-		}
-	}
+	int Idx = IndexOf(p);
 
-	return false;
+	#if defined(DEBUG_COMBOBOX)
+	if (DEBUG_COMBOBOX==GetId())
+		LgiTrace("%s:%i %p.%p Delete(%s) Idx=%i\n", _FL, this, _View, p, Idx);
+	#endif
+
+	if (Idx < 0)
+		return false;
+
+	Value(Idx);
+	return true;
 }
 
 bool GCombo::Insert(const char *p, int Index)
 {
-	bool Status = false;
+	if (!p)
+		return false;
 
-	if (p)
+	if (_View)
 	{
-		if (Handle())
-		{
-			char *n = LgiToNativeCp(p);
-			if (n)
-			{
-				if (Index < 0)
-				{
-					Index = Length();
-				}
+		GAutoString n(LgiToNativeCp(p));
+		if (!n)
+			return false;
 
-				Status = SendMessage(Handle(), CB_INSERTSTRING, Index, (long)n) == Index;
-				DeleteArray(n);
-			}
-		}
-		else
-		{
-			d->InitStrs.Insert(NewStr(p), Index);
-			Status = true;
-		}
+		if (Index < 0)
+			Index = d->Len;
+
+		LRESULT r = SendMessage(Handle(), CB_INSERTSTRING, Index, (LPARAM)n.Get());
+		if (r == CB_ERR)
+			return false;
+			
+		d->Len++;
 	}
 
-	return Status;
+	d->Strs.AddAt(Index, p);
+
+	return true;
 }
 
 int GCombo::Length()
 {
-	return SendMessage(Handle(), CB_GETCOUNT, 0, 0);
+	if (_View)
+		d->Len = SendMessage(_View, CB_GETCOUNT, 0, 0);
+	return d->Len;
 }
 
 char *GCombo::operator [](int i)
 {
+	/*
 	if (_View)
 	{
 		LRESULT Len = SendMessage(_View, CB_GETLBTEXTLEN, 0, 0);
 		if (Len != CB_ERR &&
 			d->Buffer.Reset(new char[Len+1]))
 		{
-			LRESULT Ret = SendMessage(_View, CB_GETLBTEXT, i, 0);
+			LRESULT Ret = SendMessage(_View, CB_GETLBTEXT, i, (LPARAM)d->Buffer.Get());
 			if (Ret != CB_ERR)
 				return d->Buffer;
 		}
 		else return NULL;
 	}
+	*/
 
-	return d->InitStrs[i];
+	return d->Strs[i];
+}
+
+int GCombo::IndexOf(const char *str)
+{
+	if (!ValidStr(str))
+		return -1;
+	
+	for (unsigned i=0; i<d->Strs.Length(); i++)
+	{
+		if (!_stricmp(str, d->Strs[i]))
+			return i;
+	}
+	
+	return -1;
 }
 
 GRect &GCombo::GetPos()
@@ -260,13 +308,6 @@ GMessage::Result GCombo::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{
-		/*
-		case WM_GETDLGCODE:
-		{
-			return CallWindowProc((WNDPROC)d->ComboClassProc, Handle(), MsgCode(Msg), MsgA(Msg), MsgB(Msg)) |
-				DLGC_WANTTAB;
-		}
-		*/
 		case WM_SYSKEYUP:
 		case WM_SYSKEYDOWN:
 		case WM_KEYDOWN:
@@ -278,9 +319,17 @@ GMessage::Result GCombo::OnEvent(GMessage *Msg)
 			}
 			break;
 		}
+		case WM_DESTROY:
+		{
+			d->Value = Value();
+			#if defined(DEBUG_COMBOBOX)
+			if (DEBUG_COMBOBOX==GetId())
+				LgiTrace("%s:%i %p.%p WM_DESTROY v="LGI_PrintfInt64")\n", _FL, this, _View, d->Value);
+			#endif
+			break;
+		}
 	}
 
-	// int Status = CallWindowProc((WNDPROC)d->ComboClassProc, Handle(), MsgCode(Msg), MsgA(Msg), MsgB(Msg));
 	GMessage::Result Status = GControl::OnEvent(Msg);
 	
 	switch (MsgCode(Msg))
@@ -290,14 +339,17 @@ GMessage::Result GCombo::OnEvent(GMessage *Msg)
 			if (!d->Init)
 			{
 				d->Init = true;
-				int n = 0;
-				for (char *s=d->InitStrs.First(); s; s=d->InitStrs.Next())
+				for (unsigned n=0; n<d->Strs.Length(); n++)
 				{
-					SendMessage(Handle(), CB_INSERTSTRING, n++, (long)s);
+					SendMessage(Handle(), CB_INSERTSTRING, n, (LPARAM)d->Strs[n].Get());
 				}
-				d->InitStrs.DeleteArrays();
+
 				SetFont(SysFont);
-				Value(d->InitVal);
+				
+				if (d->Name)
+					Name(d->Name);
+				else
+					Value(d->Value);
 			}
 			break;
 		}
@@ -310,6 +362,6 @@ void GCombo::Empty()
 {
 	if (_View)
 		SendMessage(_View, CB_RESETCONTENT, 0, 0);
-	else
-		d->InitStrs.DeleteArrays();
+
+	d->Strs.Length(0);
 }

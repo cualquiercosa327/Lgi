@@ -1,6 +1,8 @@
 #ifndef _GCSSTOOLS_H_
 #define _GCSSTOOLS_H_
 
+#include "GCss.h"
+
 class LgiClass GCssTools
 {
 	GCss *Css;

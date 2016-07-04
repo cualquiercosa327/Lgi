@@ -531,8 +531,8 @@ GControl::~GControl()
 
 GMessage::Result GControl::OnEvent(GMessage *Msg)
 {
-	int Status = 0;
-
+	GMessage::Result Status = 0;
+	
 	// Pre-OS event handler
 	switch (Msg->m)
 	{
@@ -567,10 +567,9 @@ GMessage::Result GControl::OnEvent(GMessage *Msg)
 			SetOnDelete = NULL;
 			break;
 		}
-		case WM_SETFOCUS:
-		case WM_KILLFOCUS:
+		case WM_NCDESTROY:
 		{
-			int asd=0;
+			Status = GView::OnEvent(Msg);
 			break;
 		}
 	}

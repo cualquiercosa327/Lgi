@@ -1702,6 +1702,10 @@
 				Name="Network"
 				>
 				<File
+					RelativePath=".\src\common\INet\GUri.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\common\INet\INet.cpp"
 					>
 				</File>
@@ -1715,6 +1719,10 @@
 				</File>
 				<File
 					RelativePath=".\include\common\INetTools.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\common\INet\MDStringToDigest.cpp"
 					>
 				</File>
 				<File

@@ -313,32 +313,19 @@ GWin32Class::~GWin32Class()
 
 GWin32Class *GWin32Class::Create(const char *ClassName)
 {
-	GWin32Class *c = 0;
+	if (!LgiApp)
+		return NULL;
 
-	if (LgiApp)
+	GApp::ClassContainer *Classes = LgiApp->GetClasses();
+	if (!Classes)
+		return NULL;
+
+	GWin32Class *c = Classes->Find(ClassName);
+	if (!c)
 	{
-		List<GWin32Class> *Classes = LgiApp->GetClasses();
-		if (Classes)
-		{
-			for (c = Classes->First(); c; c = Classes->Next())
-			{
-				if (c->Name() &&
-					ClassName &&
-					stricmp(c->Name(), ClassName) == 0)
-				{
-					break;
-				}
-			}
-
-			if (!c)
-			{
-				c = new GWin32Class(ClassName);
-				if (c)
-				{
-					Classes->Insert(c);
-				}
-			}
-		}
+		c = new GWin32Class(ClassName);
+		if (c)
+			Classes->Add(ClassName, c);
 	}
 
 	return c;
@@ -347,7 +334,15 @@ GWin32Class *GWin32Class::Create(const char *ClassName)
 bool GWin32Class::Register()
 {
 	bool Status = false;
-	if (!Class.lpszClassName)
+	
+	if (!_stricmp(Name(), "BUTTON"))
+	{
+		ZeroObj(Class);
+		Class.cbSize = sizeof(Class);
+		Status = GetClassInfoExW(LgiProcessInst(), NameW(), &Class);
+		LgiAssert(Status);
+	}
+	else if (!Class.lpszClassName)
 	{
 		Class.hInstance = LgiProcessInst();
 		Class.lpszClassName = NameW();
@@ -632,12 +627,7 @@ bool GView::Attach(GViewI *p)
 		_Window = Parent->_Window;
 
     const char *ClsName = GetClassW32();
-	if (ClsName && !_stricmp(ClsName, "GButton"))
-	{
-		int asd=0;
-	}
-
-    if (!ClsName)
+	if (!ClsName)
         ClsName = GetClass();
         
 	if (ClsName)
@@ -646,10 +636,16 @@ bool GView::Attach(GViewI *p)
 		bool Enab = Enabled();
 
         // Check the class is created
+        bool IsSystemClass = !strcmp(ClsName, "BUTTON");
+        if (IsSystemClass)
+        {
+			int asd=0;
+        }
+        
         GWin32Class *Cls = GWin32Class::Create(ClsName);
         if (Cls)
             Cls->Register();
-        else
+        else if (!IsSystemClass)
             return false;
 
 		LgiAssert(!Parent || Parent->Handle() != 0);
@@ -660,9 +656,10 @@ bool GView::Attach(GViewI *p)
 			ExStyle &= ~(WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE);
 							
 		char16 *Text = GBase::NameW();
+		GAutoWString WCls(LgiNewUtf8To16(ClsName));
 
 		_View = CreateWindowExW(ExStyle,
-								Cls->NameW(),
+								WCls,
 								Text,
 								Style,
 								Pos.x1, Pos.y1,
@@ -751,6 +748,7 @@ bool GView::Detach()
 		{
 			WndFlags &= ~GWF_QUIT_WND;
 			BOOL Status = DestroyWindow(_View);
+			DWORD Err = GetLastError();
 			LgiAssert(Status);
 		}
 	}
@@ -1308,9 +1306,65 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			}
 			case WM_MENUCHAR:
 			case WM_MEASUREITEM:
-			case WM_DRAWITEM:
 			{
 				return GMenu::_OnEvent(Msg);
+				break;
+			}
+			case WM_DRAWITEM:
+			{
+				DRAWITEMSTRUCT *di = (DRAWITEMSTRUCT*)Msg->B();
+				if (di)
+				{
+					if (di->CtlType == ODT_MENU)
+					{
+						return GMenu::_OnEvent(Msg);
+					}
+					/*
+					else if (di->CtlType == ODT_BUTTON)
+					{
+						GView *b;
+						if (CastHwnd(b, di->hwndItem) &&
+							b->GetCss())
+						{
+							GScreenDC dc(di->hDC, di->hwndItem);
+							switch (di->itemAction)
+							{
+								case ODA_DRAWENTIRE:
+								{
+									GRect c = di->rcItem;
+									GMemDC m(c.X(), c.Y(), GdcD->GetColourSpace());
+									HDC hdc = m.StartDC();
+									m.Colour(GColour(255, 0, 255));
+									m.Line(0, 0, m.X()-1, m.Y()-1);
+
+									LONG s = GetWindowLong(_View, GWL_STYLE);
+									SetWindowLong(_View, GWL_STYLE, (s & ~BS_TYPEMASK) | BS_PUSHBUTTON);
+
+									SendMessage(_View, WM_PRINT, (WPARAM)hdc, PRF_ERASEBKGND|PRF_CLIENT);
+
+									SetWindowLong(_View, GWL_STYLE, (s & ~BS_TYPEMASK) | BS_OWNERDRAW);
+
+									m.EndDC();
+									dc.Blt(0, 0, &m);									
+									break;
+								}
+								case ODA_FOCUS:
+								{
+									break;
+								}
+								case ODA_SELECT:
+								{
+									break;
+								}
+							}
+							return true;
+						}
+					}
+					*/
+				}
+
+				if (!(WndFlags & GWF_DIALOG))
+					goto ReturnDefaultProc;
 				break;
 			}
 			case WM_ENABLE:
@@ -1414,7 +1468,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
                 #else
 				SetWindowLong(_View, GWL_USERDATA, 0);
 				#endif
-				_View = 0;
+				_View = NULL;
 				if (WndFlags & GWF_QUIT_WND)
 				{
 					delete this;

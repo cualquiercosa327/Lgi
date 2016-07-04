@@ -534,7 +534,7 @@ enum LgiSystemPath
 
 	/// The app's root folder (Where config and data should be stored)
 	/// GOptionsFile uses LSP_APP_ROOT as the default location.
-	///		[Win32] = ~\Application Data\$AppName
+	///		[Win32] = ~\Application Data\Roaming\$AppName
 	///		[Mac] = ~/Library/$AppName
 	///		[Linux] = ~/.$AppName
 	/// Where $AppName = GApp::GetName.

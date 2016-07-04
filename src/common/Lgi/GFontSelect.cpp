@@ -15,6 +15,7 @@
 #include "GDisplayString.h"
 #include "GdiLeak.h"
 #include "GTableLayout.h"
+#include "LgiRes.h"
 
 #define IDD_FONT					1000
 #define IDC_FONT					1001

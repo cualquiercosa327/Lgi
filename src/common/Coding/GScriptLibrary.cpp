@@ -7,6 +7,7 @@
 #include "GUtf8.h"
 #include "GToken.h"
 #include "GProcess.h"
+#include "LgiRes.h"
 
 //////////////////////////////////////////////////////////////////////////////////////
 char16 sChar[]		= { 'c','h','a','r', 0 };

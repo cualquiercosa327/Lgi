@@ -11,6 +11,7 @@
 #include "Lgi.h"
 #include "GPanel.h"
 #include "GDisplayString.h"
+#include "LgiRes.h"
 
 //////////////////////////////////////////////////////////////////////////////
 GPanel::GPanel(const char *name, int size, bool open)

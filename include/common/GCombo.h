@@ -104,6 +104,8 @@ public:
 	int Length();
 	/// Returns the item at index 'i'
 	char *operator [](int i);
+	/// Returns the index of a given string
+	int IndexOf(const char *str);
 
 	// Overridable events
 	virtual void DoMenu();

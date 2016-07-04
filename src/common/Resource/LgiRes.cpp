@@ -22,6 +22,7 @@
 #endif
 #include "GVariant.h"
 #include "GDisplayString.h"
+#include "LgiRes.h"
 
 // If it is defined it will use the cross platform 
 // "res" library distributed with the LGI library.

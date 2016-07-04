@@ -21,6 +21,8 @@ GdcPt2 GButton::Overhead =
         6
     );
 
+static int IsWin7 = -1;
+
 class GButtonPrivate
 {
 public:
@@ -45,7 +47,15 @@ GButton::GButton(int id, int x, int y, int cx, int cy, const char *name) :
 {
 	d = new GButtonPrivate;
 	Name(name);
-	GRect r(x, y, x+cx, y+cy);
+	
+	if ((cx < 0 || cy < 0))
+	{
+		GDisplayString ds(SysFont, ValidStr(name)?name:"1");
+		if (cx < 0) cx = ds.X() + Overhead.x;
+		if (cy < 0) cy = ds.Y() + Overhead.y;
+	}
+	
+	GRect r(x, y, x+cx-1, y+cy-1);
 	SetPos(r);
 	SetId(id);
 	SetTabStop(true);
@@ -155,9 +165,69 @@ GMessage::Result GButton::OnEvent(GMessage *Msg)
 			}
 			break;
 		}
+		case WM_PAINT:
+		{
+			if (!GetCss())
+				break; // Just let the system draw the control
+
+			if (IsWin7 < 0)
+			{
+				GArray<int> Ver;
+				int Os = LgiGetOs(&Ver);
+				if (Os == LGI_OS_WIN32 ||
+					Os == LGI_OS_WIN64)
+					IsWin7 = Ver[0] == 6 && Ver[1] == 1;
+				else
+					IsWin7 = false;
+			}
+			if (!IsWin7)
+				break;
+
+			// This is the effective background of the parent window:
+			GCss::ColorDef bk = GetCss()->NoPaintColor();
+		
+			// If it's not the default...
+			if (!bk.IsValid())
+				break;
+
+			// Then create a screen device context for painting
+			GScreenDC dc(this);
+			
+			// Get the control to draw itself into a bitmap
+			GRect c = GetPos();
+			
+			// Create a HBITMAP in the same size as the control 
+			// and the same bit depth as the screen
+			GMemDC m(c.X(), c.Y(), GdcD->GetColourSpace());
+			// Create a HDC for the bitmap
+			HDC hdc = m.StartDC();					
+			// Ask the control to draw itself into the memory bitmap
+			SendMessage(_View, WM_PRINT, (WPARAM)hdc, PRF_ERASEBKGND|PRF_CLIENT);
+			// End the HDC
+			m.EndDC();
+
+			// Draw correct background
+			m.Colour(bk.Rgb32, 32);
+			// The outside 1px border (unfilled rect)
+			m.Box(0, 0, c.X()-1, c.Y()-1);
+			// The 4 pixels at the corners
+			m.Set(1, 1);
+			m.Set(c.X()-2, 1);
+			m.Set(1, c.Y()-2);
+			m.Set(c.X()-2, c.Y()-2);
+
+			// Now stick it on the screen
+			dc.Blt(0, 0, &m);
+
+			// Skip over calling the parent class' callback procedure.
+			return true;
+			break;
+		}
 	}
 
-	return GControl::OnEvent(Msg);
+	GMessage::Result r = GControl::OnEvent(Msg);
+	
+	return r;
 }
 
 void GButton::OnMouseClick(GMouse &m)

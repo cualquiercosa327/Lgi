@@ -10,6 +10,8 @@
 #include "GSymLookup.h"
 #include "GDocView.h"
 #include "GToken.h"
+#include "GCss.h"
+#include "GFontCache.h"
 #include <stdio.h>
 
 HINSTANCE _lgi_app_instance = 0;
@@ -89,7 +91,7 @@ public:
 
 	// Win32
 	bool QuitReceived;
-	List<GWin32Class> Classes;
+	GApp::ClassContainer Classes;
 	GSymLookup *SymLookup;
 
 	GAppPrivate()
@@ -520,7 +522,7 @@ OsThreadId GApp::GetGuiThread()
 	return d->GuiThread;
 }
 
-List<GWin32Class> *GApp::GetClasses()
+GApp::ClassContainer *GApp::GetClasses()
 {
 	return IsOk() ? &d->Classes : 0;
 }

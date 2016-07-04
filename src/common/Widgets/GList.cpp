@@ -18,6 +18,7 @@
 #include "GEdit.h"
 #include "GScrollBar.h"
 #include "GDisplayString.h"
+#include "LgiRes.h"
 
 // Debug defines
 #define DEBUG_EDIT_LABEL				1

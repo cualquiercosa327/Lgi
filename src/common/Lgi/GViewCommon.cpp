@@ -10,6 +10,7 @@
 #include "GTableLayout.h"
 #include "GButton.h"
 #include "GCss.h"
+#include "LgiRes.h"
 
 #if WINNATIVE
 #define GViewFlags d->WndStyle

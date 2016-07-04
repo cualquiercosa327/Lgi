@@ -16,6 +16,7 @@
 #include "GCheckBox.h"
 #include "GButton.h"
 #include "GTableLayout.h"
+#include "LgiRes.h"
 
 ////////////////////////////////////////////////////////////////////////////
 GFindReplaceCommon::GFindReplaceCommon()

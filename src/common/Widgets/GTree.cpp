@@ -5,6 +5,7 @@
 #include "GScrollBar.h"
 #include "GDisplayString.h"
 #include "GPalette.h"
+#include "LgiRes.h"
 
 #define TREE_BLOCK          16
 #define DRAG_THRESHOLD		4

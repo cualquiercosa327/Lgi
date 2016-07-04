@@ -43,8 +43,6 @@ public:
 	void Set(uchar *pPal, int s = 256);
 	void Set(int Index, int r, int g, int b);
 
-	int GetSize();
-	GRgba32 *operator [](int i);
 	bool Update();
 	bool SetSize(int s = 256);
 	void SwapRAndB();
@@ -57,6 +55,28 @@ public:
 
 	bool operator ==(GPalette &p);
 	bool operator !=(GPalette &p);
+
+	#if WINNATIVE
+	GRgba32 *operator [](int i)
+	{
+		return (i >= 0 && i < GetSize() && Data) ? (GdcRGB*) (Data->palPalEntry + i) : NULL;
+	}
+	
+	int GetSize()
+	{
+		return (Data) ? Data->palNumEntries : 0;
+	}
+	#else
+	GRgba32 *operator [](int i)
+	{
+		return (i >= 0 && i < GetSize() && Data) ? (GdcRGB*) (Data + i) : NULL;
+	}
+	
+	int GetSize()
+	{
+		return Size;
+	}
+	#endif
 };
 
 #endif

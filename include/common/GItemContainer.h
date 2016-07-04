@@ -3,6 +3,7 @@
 
 #include "GPopup.h"
 #include "GNotifications.h"
+#include "GCss.h"
 
 class GItemContainer;
 #define DragColumnColour				LC_LOW

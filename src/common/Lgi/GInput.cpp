@@ -14,6 +14,7 @@
 #include "GEdit.h"
 #include "GButton.h"
 #include "GDisplayString.h"
+#include "LgiRes.h"
 
 #define IDC_CALLBACK		100
 #define IDC_EDIT			101

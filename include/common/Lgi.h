@@ -240,7 +240,7 @@
 #include "GFile.h"							// Platform specific
 #include "Gdc2.h"							// Platform specific
 
-#include "LgiRes.h"							// Xp
+// #include "LgiRes.h"						// Xp
 #include "LgiClasses.h" 					// Xp
 #include "LgiCommon.h"						// Xp
 

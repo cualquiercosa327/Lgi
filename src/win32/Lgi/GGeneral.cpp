@@ -754,6 +754,36 @@ char *GRegKey::GetStr(const char *Name)
 	return s;
 }
 
+bool GRegKey::GetStr(const char *Name, GString &Str)
+{
+	if (!k)
+	{
+		if (AssertOnError)
+			LgiAssert(!"No key to read from.");
+		return false;
+	}
+
+	DWORD Size = 0, Type;
+	LONG Ret = RegQueryValueEx(k, Name, 0, &Type, NULL, &Size);
+	if (Ret != ERROR_SUCCESS)
+		goto OnError;
+
+	{
+		GString Tmp((char*)NULL, Size);
+		Ret = RegQueryValueEx(k, Name, 0, &Type, (LPBYTE)Tmp.Get(), &Size);
+		if (Ret != ERROR_SUCCESS)
+			goto OnError;
+			
+		Str = Tmp;
+		return true;
+	}
+
+OnError:
+	if (AssertOnError)
+		LgiAssert(!"RegQueryValueEx failed.");
+	return false;
+}
+
 bool GRegKey::SetStr(const char *Name, const char *Value)
 {
 	if (!k)
@@ -773,30 +803,19 @@ bool GRegKey::SetStr(const char *Name, const char *Value)
 	return true;
 }
 
-int GRegKey::GetInt(char *Name)
+bool GRegKey::GetInt(const char *Name, uint32 &Value)
 {
-	int i = 0;
-	DWORD Size = sizeof(i), Type;
-	if (k && RegQueryValueEx(k, Name, 0, &Type, (uchar*)&i, &Size) != ERROR_SUCCESS)
-	{
-		i = 0;
-	}
-
-	return i;
+	if (!k) return false;
+	DWORD Size = sizeof(Value), Type;
+	LSTATUS r = RegQueryValueEx(k, Name, 0, &Type, (uchar*)&Value, &Size);
+	return r == ERROR_SUCCESS;
 }
 
-bool GRegKey::SetInt(char *Name, int Value)
+bool GRegKey::SetInt(const char *Name, uint32 Value)
 {
-	if (k)
-	{
-		LONG r = RegSetValueEx(k, Name, 0, REG_DWORD, (uchar*)&Value, sizeof(Value));
-		if (r == ERROR_SUCCESS)
-		{
-			return true;
-		}
-	}
-
-	return false;
+	if (!k) return false;
+	LONG r = RegSetValueEx(k, Name, 0, REG_DWORD, (uchar*)&Value, sizeof(Value));
+	return r == ERROR_SUCCESS;
 }
 
 bool GRegKey::GetBinary(char *Name, void *&Ptr, int &Len)

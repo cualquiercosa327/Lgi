@@ -8,6 +8,7 @@
 #include "GCombo.h"
 #include "GButton.h"
 #include "GDisplayString.h"
+#include "LgiRes.h"
 
 #define IDC_BROWSE -10
 
@@ -24,7 +25,9 @@ public:
 
 GControlTree::Item::Item(char *Txt, const char *opt, GVariantType type, GArray<GControlTree::EnumValue> *pEnum)
 {
-	Opt.Reset(NewStr(opt));
+	if (ValidStr(opt))
+		Opt.Reset(NewStr(opt));
+
 	Enum.Reset(pEnum);
 	SetText(Txt);
 	Type = type;
@@ -460,7 +463,8 @@ void GControlTree::ReadTree(GXmlTag *t, GTreeNode *n)
 				iType = GV_INT32;
 		}
 
-		GControlTree::Item *ct = new GControlTree::Item(Str?Str->Str:(char*)"#error", c->GetAttr("ControlTag"), iType, 0); // GArray<EnumValue> *pEnum
+		const char *Opt = c->GetAttr("ControlTag");
+		GControlTree::Item *ct = new GControlTree::Item(Str?Str->Str:(char*)"#error", ValidStr(Opt)?Opt:NULL, iType, 0); // GArray<EnumValue> *pEnum
 		if (ct)
 		{
 			ct->Flags = Flags;

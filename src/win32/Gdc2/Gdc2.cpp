@@ -202,16 +202,6 @@ bool GPalette::SetSize(int s)
 	return (Data != 0) && (hPal != 0);
 }
 
-int GPalette::GetSize()
-{
-	return (Data) ? Data->palNumEntries : 0;
-}
-
-GdcRGB *GPalette::operator [](int i)
-{
-	return (i >= 0 && i < GetSize() && Data) ? (GdcRGB*) (Data->palPalEntry + i) : 0;
-}
-
 void GPalette::SwapRAndB()
 {
 	if (Data)

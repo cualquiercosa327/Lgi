@@ -36,6 +36,7 @@ GCheckBox::GCheckBox(int id, int x, int y, int cx, int cy, const char *name, int
 	SetTabStop(true);
 	SetStyle(GetStyle() | BS_AUTOCHECKBOX);
 
+	#if 1
 	SetClassW32(GetClass());
 	if (!SubClass)
 		SubClass = GWin32Class::Create(GetClass());
@@ -43,6 +44,9 @@ GCheckBox::GCheckBox(int id, int x, int y, int cx, int cy, const char *name, int
 		SubClass->SubClass("BUTTON");
 	else
 		LgiAssert(!"No subclass?");
+	#else
+	SetClassW32("BUTTON");
+	#endif
 }
 
 GCheckBox::~GCheckBox()
@@ -103,13 +107,6 @@ GMessage::Result GCheckBox::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{
-		/*
-		case WM_GETDLGCODE:
-		{
-			return CallWindowProc((WNDPROC)d->ButtonClassProc, Handle(), MsgCode(Msg), MsgA(Msg), MsgB(Msg)) |
-				DLGC_WANTTAB;
-		}
-		*/
 		case WM_SYSKEYUP:
 		case WM_SYSKEYDOWN:
 		case WM_KEYDOWN:
@@ -123,7 +120,6 @@ GMessage::Result GCheckBox::OnEvent(GMessage *Msg)
 		}
 	}
 
-	// return CallWindowProc((WNDPROC)d->ButtonClassProc, Handle(), MsgCode(Msg), MsgA(Msg), MsgB(Msg));
 	return GControl::OnEvent(Msg);
 }
 

@@ -21,6 +21,7 @@
 #include "GPalette.h"
 #include "GPath.h"
 #include "GCssTools.h"
+#include "LgiRes.h"
 
 #define DEBUG_TABLE_LAYOUT			1
 #define DEBUG_RESTYLE				0

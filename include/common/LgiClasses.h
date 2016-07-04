@@ -22,6 +22,7 @@
 #include "LgiCommon.h"
 #include "GXmlTree.h"
 #include "GDragAndDrop.h"
+#include "GHashTable.h"
 
 /////////////////////////////////////////////////////////////////////////////////////
 // Externs
@@ -105,6 +106,9 @@ class LgiClass GApp : virtual public GAppI,
 {
 	friend class GView;
 
+public:
+	typedef GHashTbl<const char*, GWin32Class*> ClassContainer;
+
 protected:
 	// private member vars
 	class GAppPrivate *d;
@@ -119,7 +123,7 @@ protected:
 	friend LONG __stdcall _ExceptionFilter_Redir(LPEXCEPTION_POINTERS e);
 	LONG __stdcall _ExceptionFilter(LPEXCEPTION_POINTERS e, char *ProductId);
 	friend class GWin32Class;
-	List<GWin32Class> *GetClasses();
+	ClassContainer *GetClasses();
 
 	#elif defined ATHEOS
 
