@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project>
-	<Node Name="Source Files" Type="1" Platforms="15" Open="0">
-		<Node Name="Core" Type="1" Platforms="15" Open="1">
+	<Node Name="Source Files" Type="1" Platforms="15" Open="1">
+		<Node Name="Core" Type="1" Platforms="15" Open="0">
 			<Node Name="DateTime" Type="1" Platforms="15" Open="0">
 				<Node File="./src/common/General/GDateTime.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GDateTime.h" Type="3" Platforms="15" />
@@ -37,7 +37,7 @@
 				<Node File="./include/common/GFile.h" Type="3" Platforms="15" />
 				<Node File="./src/common/General/GFileCommon.cpp" Type="2" Platforms="15" />
 			</Node>
-			<Node Name="Interface" Type="1" Platforms="15" Open="1">
+			<Node Name="Interface" Type="1" Platforms="15" Open="0">
 				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
 					<Node File="./src/beos/Lgi/GApp.cpp" Type="2" Platforms="8" />
 					<Node File="./src/beos/Lgi/GGeneral.cpp" Type="2" Platforms="8" />
@@ -45,7 +45,7 @@
 					<Node File="./src/beos/Lgi/GView.cpp" Type="2" Platforms="8" />
 					<Node File="./src/beos/Lgi/GWindow.cpp" Type="2" Platforms="8" />
 				</Node>
-				<Node Name="Linux" Type="1" Platforms="15" Open="1">
+				<Node Name="Linux" Type="1" Platforms="15" Open="0">
 					<Node Name="Headers" Type="1" Platforms="15" Open="0">
 						<Node File="./include/linux/Gtk/LgiOsClasses.h" Type="3" Platforms="2" />
 						<Node File="./include/linux/Gtk/LgiOsDefs.h" Type="3" Platforms="2" />
@@ -270,7 +270,7 @@
 			<Node File="./src/common/Text/GXmlTree.cpp" Type="2" Platforms="15" />
 			<Node File="./include/common/GXmlTree.h" Type="3" Platforms="15" />
 		</Node>
-		<Node Name="Widgets" Type="1" Platforms="15" Open="1">
+		<Node Name="Widgets" Type="1" Platforms="15" Open="0">
 			<Node Name="Common" Type="1" Platforms="15" Open="1">
 				<Node File="./src/common/Widgets/GBitmap.cpp" Type="2" Platforms="15" />
 				<Node File="./src/common/Widgets/GButton.cpp" Type="2" Platforms="15" />
@@ -341,8 +341,9 @@
 			</Node>
 		</Node>
 	</Node>
-	<Node Name="LgiNet" Type="1" Platforms="15" Open="0">
-		<Node Name="Source" Type="1" Platforms="15" Open="0">
+	<Node Name="LgiNet" Type="1" Platforms="15" Open="1">
+		<Node Name="Source" Type="1" Platforms="15" Open="1">
+			<Node File="./src/common/INet/GUri.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/INet/INet.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/INet/INetTools.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Hash/md5/md5.c" Type="2" Platforms="15" />

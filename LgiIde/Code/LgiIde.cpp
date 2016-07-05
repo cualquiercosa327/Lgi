@@ -23,6 +23,7 @@
 #include "GCombo.h"
 #include "GCheckBox.h"
 #include "GDebugger.h"
+#include "LgiRes.h"
 
 #define IDM_SAVE				102
 #define IDM_RECENT_FILE			1000

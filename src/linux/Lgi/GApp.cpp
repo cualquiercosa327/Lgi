@@ -21,6 +21,7 @@
 #endif
 #include "GToken.h"
 #include "GUtf8.h"
+#include "GFontCache.h"
 
 #define DEBUG_MSG_TYPES				0
 #define DEBUG_HND_WARNINGS			0

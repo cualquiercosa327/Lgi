@@ -227,8 +227,8 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../src/common/General/GPassword.cpp \
 	../src/common/General/GProperties.cpp \
 	../src/common/Hash/md5/md5.c \
-	../src/common/Hash/md5/md5.h \
 	../src/common/INet/Base64.cpp \
+	../src/common/INet/GUri.cpp \
 	../src/common/INet/INet.cpp \
 	../src/common/INet/INetTools.cpp \
 	../src/common/Lgi/GAlert.cpp \
@@ -955,7 +955,8 @@ GParseCpp.o : ../src/common/Coding/GParseCpp.cpp ../include/common/Lgi.h \
 	../include/common/GThreadEvent.h \
 	../include/common/GLexCpp.h \
 	../include/common/GVariant.h \
-	../include/common/GXmlTree.h
+	../include/common/GXmlTree.h \
+	../include/common/GToken.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -981,7 +982,8 @@ IdeDoc.o : ./Code/IdeDoc.cpp ../include/common/Lgi.h \
 	../include/common/INet.h \
 	../include/common/GClipBoard.h \
 	../include/common/GDisplayString.h \
-	../include/common/GScrollBar.h
+	../include/common/GScrollBar.h \
+	../include/common/LgiRes.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -999,7 +1001,8 @@ IdeProject.o : ./Code/IdeProject.cpp ../include/common/Lgi.h \
 	../include/common/GDropFiles.h \
 	../include/common/GSubProcess.h \
 	./Code/ProjectNode.h \
-	./Code/WebFldDlg.h
+	./Code/WebFldDlg.h \
+	../include/common/GCss.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -1037,6 +1040,7 @@ LgiIde.o : ./Code/LgiIde.cpp ../include/common/Lgi.h \
 	../include/common/GCombo.h \
 	../include/common/GCheckBox.h \
 	./Code/GDebugger.h \
+	../include/common/LgiRes.h \
 	../include/common/GSubProcess.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -1104,6 +1108,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/LgiCommon.h \
 	../include/common/GXmlTree.h \
 	../include/common/GDragAndDrop.h \
+	../include/common/GHashTable.h \
 	../include/common/GMenu.h \
 	../include/common/LgiWidgets.h \
 	../include/common/Progress.h \
@@ -1290,9 +1295,15 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	/usr/include/glib-2.0/glib/glist.h
 
 ../src/common/Widgets/GStatusBar.cpp : ../include/common/Lgi.h \
-	../include/common/GDisplayString.h
+	../include/common/GDisplayString.h \
+	../include/common/LgiRes.h
 
 ../../../../../../usr/include/glib-2.0/glib/gqsort.h : /usr/include/glib-2.0/glib/gtypes.h
+
+../include/common/GHashTable.h : ../include/common/GMem.h \
+	../include/common/GArray.h \
+	../include/common/GString.h \
+	../include/common/LgiClass.h
 
 ../include/common/GdcTools.h : 
 
@@ -1329,7 +1340,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GTextLabel.h \
 	../include/common/GDisplayString.h \
 	../include/common/GdiLeak.h \
-	../include/common/GTableLayout.h
+	../include/common/GTableLayout.h \
+	../include/common/LgiRes.h
 
 ../include/common/GButton.h : 
 
@@ -1340,11 +1352,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../include/common/GXmlTree.h : ../include/common/GHashTable.h \
 	../include/common/GRefCount.h \
 	../include/common/GDom.h
-
-../include/common/GHashTable.h : ../include/common/GMem.h \
-	../include/common/GArray.h \
-	../include/common/GString.h \
-	../include/common/LgiClass.h
 
 ../../../../../../usr/include/pango-1.0/pango/pango-break.h : /usr/include/glib-2.0/glib.h \
 	/usr/include/pango-1.0/pango/pango-item.h
@@ -1371,6 +1378,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/linux/Gtk/LgiWinManGlue.h \
 	../include/common/GVariant.h \
 	../include/common/GDisplayString.h \
+	../include/common/LgiRes.h \
 	../include/common/GTextLabel.h \
 	../include/common/GEdit.h \
 	../include/common/GCheckBox.h \
@@ -1387,7 +1395,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../src/common/Widgets/GBox.cpp : ../include/common/Lgi.h \
 	../include/common/GBox.h \
-	../include/common/GCssTools.h
+	../include/common/GCssTools.h \
+	../include/common/LgiRes.h
 
 ../../../../../../usr/include/glib-2.0/gio/gtlsdatabase.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -1416,7 +1425,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GDragAndDrop.h \
 	../include/common/GTableLayout.h \
 	../include/common/GButton.h \
-	../include/common/GCss.h
+	../include/common/GCss.h \
+	../include/common/LgiRes.h
 
 ../include/common/GViewPriv.h : 
 
@@ -1557,7 +1567,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/gobject/gvaluetypes.h : /usr/include/glib-2.0/gobject/gvalue.h
 
-../include/common/GCssTools.h : 
+../include/common/GCssTools.h : ../include/common/GCss.h
 
 ../src/common/Lgi/GWindowCommon.cpp : ../include/common/Lgi.h
 
@@ -1965,7 +1975,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GRops.h \
 	../src/common/Gdc2/GRopsCases.cpp
 
-../include/common/GCssTools.h : 
+../include/common/GCssTools.h : ../include/common/GCss.h
 
 ../../../../../../usr/include/glib-2.0/gio/gpropertyaction.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -2009,6 +2019,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GTableLayout.h \
 	../include/common/GCssTools.h \
 	../include/common/GDisplayString.h \
+	../include/common/LgiRes.h \
 	../include/common/GToken.h \
 	../include/common/GVariant.h \
 	../include/common/GTextLabel.h \
@@ -2035,6 +2046,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GEdit.h \
 	../include/common/GClipBoard.h \
 	../include/common/GDisplayString.h \
+	../include/common/LgiRes.h \
 	../include/common/GTextView3.h
 
 ../src/common/Gdc2/8Bit.cpp : ../include/common/Gdc2.h \
@@ -2051,7 +2063,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GClipBoard.h \
 	../include/common/GDisplayString.h \
 	../include/common/GViewPriv.h \
-	../include/common/GCssTools.h
+	../include/common/GCssTools.h \
+	../include/common/LgiRes.h
 
 ../../../../../../usr/include/glib-2.0/gio/gasyncresult.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -2122,7 +2135,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/Progress.h \
 	../include/common/GFile.h \
 	../include/common/Gdc2.h \
-	../include/common/LgiRes.h \
 	../include/common/LgiClasses.h \
 	../include/common/LgiCommon.h
 
@@ -2133,6 +2145,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/LgiCommon.h \
 	../include/common/GXmlTree.h \
 	../include/common/GDragAndDrop.h \
+	../include/common/GHashTable.h \
 	../include/common/GMenu.h \
 	../include/common/LgiWidgets.h \
 	../include/common/Progress.h \
@@ -2167,6 +2180,10 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkcontainer.h : /usr/include/gtk-2.0/gtk/gtkwidget.h \
 	/usr/include/gtk-2.0/gtk/gtkadjustment.h
+
+../src/common/INet/GUri.cpp : ../include/common/Lgi.h \
+	../include/common/INet.h \
+	../include/common/GRegKey.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkmenu.h : /usr/include/gtk-2.0/gtk/gtkaccelgroup.h \
 	/usr/include/gtk-2.0/gtk/gtkmenushell.h
@@ -2226,7 +2243,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/Progress.h \
 	../include/common/GFile.h \
 	../include/common/Gdc2.h \
-	../include/common/LgiRes.h \
 	../include/common/LgiClasses.h \
 	../include/common/LgiCommon.h
 
@@ -2255,7 +2271,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GList.h \
 	../include/common/GEdit.h \
 	../include/common/GScrollBar.h \
-	../include/common/GDisplayString.h
+	../include/common/GDisplayString.h \
+	../include/common/LgiRes.h
 
 ../../../../../../usr/include/glib-2.0/glib/gerror.h : /usr/include/glib-2.0/glib/gquark.h
 
@@ -2597,8 +2614,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ./Code/FindSymbol.h : 
 
-../src/common/Hash/md5/md5.h : ../include/common/LgiInc.h
-
 ../../../../../../usr/include/glib-2.0/glib/gmacros.h : 
 
 ../../../../../../usr/include/gtk-2.0/gdk/gdkkeysyms-compat.h : 
@@ -2632,7 +2647,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../src/common/Widgets/GPanel.cpp : ../include/common/Lgi.h \
 	../include/common/GPanel.h \
-	../include/common/GDisplayString.h
+	../include/common/GDisplayString.h \
+	../include/common/LgiRes.h
 
 ../../../../../../usr/include/glib-2.0/glib/gslice.h : /usr/include/glib-2.0/glib/gtypes.h
 
@@ -2755,7 +2771,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GSkinEngine.h \
 	../include/common/GButton.h \
 	../include/common/GDisplayString.h \
-	../include/common/GTableLayout.h
+	../include/common/GTableLayout.h \
+	../include/common/LgiRes.h
 
 ../../../../../../usr/include/glib-2.0/glib/gkeyfile.h : /usr/include/glib-2.0/glib/gerror.h
 
@@ -2989,7 +3006,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GTextLabel.h \
 	../include/common/GDisplayStringLayout.h \
 	../include/common/GVariant.h \
-	../include/common/GNotifications.h
+	../include/common/GNotifications.h \
+	../include/common/LgiRes.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkversion.h : 
 
@@ -3014,7 +3032,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GSkinEngine.h \
 	../include/common/GRadioGroup.h \
 	../include/common/GCheckBox.h \
-	../include/common/GDisplayString.h
+	../include/common/GDisplayString.h \
+	../include/common/LgiRes.h
 
 ../include/common/GAutoPtr.h : 
 
@@ -3048,7 +3067,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	/usr/include/gtk-2.0/gtk/gtkpagesetup.h
 
 ../include/common/GItemContainer.h : ../include/common/GPopup.h \
-	../include/common/GNotifications.h
+	../include/common/GNotifications.h \
+	../include/common/GCss.h
 
 ../../../../../../usr/include/glib-2.0/glib/gtimer.h : /usr/include/glib-2.0/glib/gtypes.h
 
@@ -3073,7 +3093,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GSkinEngine.h \
 	../include/common/GCheckBox.h \
 	../include/common/GDisplayString.h \
-	../include/common/GDisplayStringLayout.h
+	../include/common/GDisplayStringLayout.h \
+	../include/common/LgiRes.h
 
 ../../../../../../usr/include/glib-2.0/gio/gactiongroupexporter.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -3129,7 +3150,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GVariant.h \
 	../include/common/GDisplayString.h \
 	../include/common/GPalette.h \
-	../include/common/GNotifications.h
+	../include/common/GNotifications.h \
+	../include/common/LgiRes.h
 
 ../../../../../../usr/include/glib-2.0/gio/gdrive.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -3259,6 +3281,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/linux/GSymLookup.h \
 	../include/common/GToken.h \
 	../include/common/GUtf8.h \
+	../include/common/GFontCache.h \
 	/usr/include/gtk-2.0/gdk/gdkx.h
 
 ../../../../../../usr/include/glib-2.0/gio/gmenuexporter.h : /usr/include/glib-2.0/gio/gdbusconnection.h \
@@ -3288,7 +3311,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-core.h
 
 ../src/common/Widgets/GScrollBar.cpp : ../include/common/Lgi.h \
-	../include/common/GScrollBar.h
+	../include/common/GScrollBar.h \
+	../include/common/LgiRes.h
 
 ../include/common/GUndo.h : 
 
@@ -3305,7 +3329,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/gio/gdbusobjectmanagerclient.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../include/common/GBox.h : 
+../include/common/GBox.h : ../include/common/GCss.h
 
 ../../../../../../usr/include/pango-1.0/pango/pango-enum-types.h : /usr/include/glib-2.0/glib-object.h
 
@@ -3403,7 +3427,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../include/common/GString.h : ../include/common/LgiDefs.h \
 	../include/linux/Gtk/LgiOsDefs.h
 
-../include/common/GBox.h : 
+../include/common/GBox.h : ../include/common/GCss.h
 
 ../../../../../../usr/include/glib-2.0/gio/gdbusintrospection.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -3415,7 +3439,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GTree.h \
 	../include/common/GScrollBar.h \
 	../include/common/GDisplayString.h \
-	../include/common/GPalette.h
+	../include/common/GPalette.h \
+	../include/common/LgiRes.h
 
 ../../../../../../usr/include/glib-2.0/glib/gvariant.h : /usr/include/glib-2.0/glib/gvarianttype.h \
 	/usr/include/glib-2.0/glib/gstring.h \
@@ -3472,7 +3497,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GTabView.h \
 	../include/common/GSkinEngine.h \
 	../include/common/GDisplayString.h \
-	../include/common/GTableLayout.h
+	../include/common/GTableLayout.h \
+	../include/common/LgiRes.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkradiomenuitem.h : /usr/include/gtk-2.0/gtk/gtkcheckmenuitem.h
 
@@ -3487,7 +3513,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	/usr/include/gtk-2.0/gtk/gtk.h \
 	/usr/include/gtk-2.0/gdk/gdkkeysyms-compat.h
 
-../src/common/Widgets/GSplitter.cpp : ../include/common/Lgi.h
+../src/common/Widgets/GSplitter.cpp : ../include/common/Lgi.h \
+	../include/common/LgiRes.h
 
 ../../../../../../usr/include/gtk-2.0/gdk/gdkscreen.h : /usr/include/cairo/cairo.h \
 	/usr/include/gtk-2.0/gdk/gdktypes.h \
@@ -3552,7 +3579,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GEdit.h \
 	../include/common/GCheckBox.h \
 	../include/common/GButton.h \
-	../include/common/GTableLayout.h
+	../include/common/GTableLayout.h \
+	../include/common/LgiRes.h
 
 ./Code/AddFtpFile.h : ./Code/FtpThread.h
 
@@ -3812,7 +3840,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GSkinEngine.h \
 	../include/common/GCombo.h \
 	../include/common/GDisplayString.h \
-	../include/common/GUtf8.h
+	../include/common/GUtf8.h \
+	../include/common/LgiRes.h
 
 ../../../../../../usr/include/gtk-2.0/gdk/gdkprivate.h : /usr/include/gtk-2.0/gdk/gdk.h
 
@@ -3902,7 +3931,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GTextLabel.h \
 	../include/common/GEdit.h \
 	../include/common/GButton.h \
-	../include/common/GDisplayString.h
+	../include/common/GDisplayString.h \
+	../include/common/LgiRes.h
 
 ../../../../../../usr/include/glib-2.0/gio/gpollableutils.h : /usr/include/glib-2.0/gio/gio.h
 
@@ -4127,7 +4157,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../include/common/GBitmap.h : 
 
 ../include/common/GItemContainer.h : ../include/common/GPopup.h \
-	../include/common/GNotifications.h
+	../include/common/GNotifications.h \
+	../include/common/GCss.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkalignment.h : /usr/include/gtk-2.0/gtk/gtkbin.h
 
@@ -4203,7 +4234,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../src/common/Widgets/GBitmap.cpp : ../include/common/Lgi.h \
 	../include/common/GBitmap.h \
-	../include/common/GTableLayout.h
+	../include/common/GTableLayout.h \
+	../include/common/LgiRes.h
 
 ../../../../../../usr/include/glib-2.0/glib/gmem.h : /usr/include/glib-2.0/glib/gtypes.h
 
@@ -4278,6 +4310,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GEdit.h \
 	../include/common/GViewPriv.h \
 	../include/common/GPopup.h \
+	../include/common/GCss.h \
 	../include/linux/Gtk/LgiWidget.h
 
 ../../../../../../usr/include/glib-2.0/gio/gdbusinterface.h : /usr/include/glib-2.0/gio/giotypes.h
@@ -4346,11 +4379,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GString.h \
 	../include/common/LgiCommon.h \
 	../include/linux/Gtk/LgiOsClasses.h \
-	../src/common/Hash/md5/md5.h \
 	../include/common/GRegKey.h \
 	../include/common/LgiNetInc.h
-
-../src/common/Hash/md5/md5.h : ../include/common/LgiInc.h
 
 ../include/common/GTextFile.h : ../include/common/GUtf8.h
 
