@@ -16,6 +16,7 @@
 #include "GEdit.h"
 #include "GViewPriv.h"
 #include "GPopup.h"
+#include "GCss.h"
 
 using namespace Gtk;
 #include "LgiWidget.h"

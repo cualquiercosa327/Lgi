@@ -20,6 +20,7 @@
 #include "GSubProcess.h"
 #include "ProjectNode.h"
 #include "WebFldDlg.h"
+#include "GCss.h"
 
 extern const char *Untitled;
 
