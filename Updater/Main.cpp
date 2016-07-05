@@ -20,24 +20,24 @@ char *NewStr(char *s, size_t len = 0)
 	if (!s) return NULL;
 	if (len == 0) len = strlen(s);
 	char *n = new char[len];
-	memcpy(n, s, sizeof(*n)*len);
+	memcpy(n, s, sizeof(*n)*(len+1));
 	n[len] = 0;
 	return n;
 }
 
-TCHAR *NewStr(TCHAR *s, size_t len = 0)
+WCHAR *NewStr(WCHAR *s, size_t len = 0)
 {
 	if (!s) return NULL;
-	if (len == 0) len = _tcslen(s);
+	if (len == 0) len = wcslen(s);
 	TCHAR *n = new TCHAR[len];
-	memcpy(n, s, sizeof(*n)*len);
+	memcpy(n, s, sizeof(*n)*(len+1));
 	n[len] = 0;
 	return n;
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
-	GArray<WCHAR *> Files;
+	GArray<WCHAR*> Files;
 
 	// Parse the command line for the filename(s) to copy....
 	WCHAR *CmdLine = GetCommandLineW();

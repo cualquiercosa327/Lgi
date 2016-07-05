@@ -39,16 +39,6 @@ GPalette::~GPalette()
 	Size = 0;
 }
 
-int GPalette::GetSize()
-{
-	return Size;
-}
-
-GdcRGB *GPalette::operator[](int i)
-{
-	return (i>=0 && i<Size) ? Data + i : 0;
-}
-
 void GPalette::Set(GPalette *pPal)
 {
 	DeleteArray(Data);

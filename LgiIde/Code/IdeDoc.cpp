@@ -9,6 +9,7 @@
 #include "GClipBoard.h"
 #include "GDisplayString.h"
 #include "GScrollBar.h"
+#include "LgiRes.h"
 
 const char *Untitled = "[untitled]";
 static const char *White = " \r\t\n";

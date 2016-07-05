@@ -8,6 +8,7 @@
 #include "GVariant.h"
 #include "GScriptingPriv.h"
 #include "GXmlTree.h"
+#include "GToken.h"
 
 #define CheckToken(t)	if (!t) { Error = true; break; }
 #if defined(WINDOWS) && defined(_MSC_VER)

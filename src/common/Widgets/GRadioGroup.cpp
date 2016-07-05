@@ -6,6 +6,7 @@
 #include "GRadioGroup.h"
 #include "GCheckBox.h"
 #include "GDisplayString.h"
+#include "LgiRes.h"
 
 #define RADIO_GRID  2
 

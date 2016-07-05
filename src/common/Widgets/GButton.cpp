@@ -6,6 +6,7 @@
 #include "GButton.h"
 #include "GDisplayString.h"
 #include "GTableLayout.h"
+#include "LgiRes.h"
 
 #define DOWN_MOUSE		0x1
 #define DOWN_KEY		0x2

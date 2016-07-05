@@ -7,6 +7,7 @@
 #include "GCombo.h"
 #include "GDisplayString.h"
 #include "GUtf8.h"
+#include "LgiRes.h"
 
 #define COMBO_HEIGHT			20
 

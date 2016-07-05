@@ -771,19 +771,19 @@ bool GRegKey::SetStr(const char *Name, const char *Value)
 	return true;
 }
 
-int GRegKey::GetInt(char *Name)
+bool GRegKey::GetInt(const char *Name, uint32 &Value)
 {
-	int i = 0;
-	DWORD Size = sizeof(i), Type;
-	if (k && RegQueryValueEx(k, Name, 0, &Type, (uchar*)&i, &Size) != ERROR_SUCCESS)
-	{
-		i = 0;
-	}
+	if (!k)
+		return false;
+		
+	DWORD Size = sizeof(Value), Type;
+	if (RegQueryValueEx(k, Name, 0, &Type, (uchar*)&Value, &Size) != ERROR_SUCCESS)
+		return false;
 
-	return i;
+	return true;
 }
 
-bool GRegKey::SetInt(char *Name, int Value)
+bool GRegKey::SetInt(const char *Name, uint32 Value)
 {
 	if (k)
 	{

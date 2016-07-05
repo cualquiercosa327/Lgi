@@ -12,6 +12,7 @@
 #include "Lgi.h"
 #include "GToolTabBar.h"
 #include "GNotifications.h"
+#include "GCss.h"
 
 /////////////////////////////////////////////////////////////////////////
 GToolTab::GToolTab() : GToolButton(16, 16)

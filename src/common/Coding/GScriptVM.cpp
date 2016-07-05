@@ -4639,9 +4639,7 @@ case IArrayGet:
 			size_t Sz = T->Sizeof();
 			int Index = Idx->CastInt32();
 			uint8 *Addr = Var->Value.Custom.Data + (Sz * Index);
-			#ifdef WINDOWS
-			_asm int 3
-			#endif
+			LgiAssert(!"Impl me.");
 			break;
 		}
 		default:
