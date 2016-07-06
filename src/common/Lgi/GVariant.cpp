@@ -31,6 +31,7 @@ const char *GVariant::TypeToString(GVariantType t)
 		case GV_GKEY:		return "KeyboardEvent";
 		// case GV_GFILE:		return "File";
 		case GV_STREAM:		return "Stream";
+		default: break;
 	}
 	
 	return NULL;
@@ -232,6 +233,7 @@ bool GVariant::operator ==(GVariant &v)
 			LgiAssert(0);
 			break;
 		}
+		default: break;
 	}
 
 	return false;
@@ -878,6 +880,7 @@ int64 GVariant::Length()
 			return sizeof(GKey);
 		case GV_STREAM:
 			return Value.Stream.Ptr->GetSize();
+		default: break;
 	}
 	
 	return 0;
@@ -2134,6 +2137,7 @@ bool GCustomType::GetVariant(const char *Field, GVariant &Value, char *Array)
 			}			
 			break;
 		}
+		default: break;
 	}
 
 	LgiAssert(0);

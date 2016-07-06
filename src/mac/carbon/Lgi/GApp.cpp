@@ -13,6 +13,7 @@
 #include "GThread.h"
 #include "GXmlTree.h"
 #include "GSymLookup.h"
+#include "GFontCache.h"
 
 #include <sys/poll.h>
 #include <sys/types.h>

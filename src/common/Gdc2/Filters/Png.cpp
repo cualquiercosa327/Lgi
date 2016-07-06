@@ -889,10 +889,12 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 						}
 					}
 
-					#if defined(WINNATIVE)
-					if (RequestBits)
+					if (RequestBits == 32)
+					{
+						#if defined(WINNATIVE)
 						pDC->ConvertPreMulAlpha(true);
-					#endif
+						#endif
+					}
 
 					if (ActualBits <= 8)
 					{

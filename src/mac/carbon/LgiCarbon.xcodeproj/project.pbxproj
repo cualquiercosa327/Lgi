@@ -151,6 +151,8 @@
 		34B954880939DCDD00477A2D /* INet.h in Headers */ = {isa = PBXBuildFile; fileRef = 34B954860939DCDD00477A2D /* INet.h */; };
 		34B954890939DCDD00477A2D /* INetTools.h in Headers */ = {isa = PBXBuildFile; fileRef = 34B954870939DCDD00477A2D /* INetTools.h */; };
 		34BC1E1F134DC748005451EE /* Res.h in Headers */ = {isa = PBXBuildFile; fileRef = 34BC1E1E134DC748005451EE /* Res.h */; };
+		34C4A2001D2CF7B3003CEDC9 /* GUri.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34C4A1FE1D2CF7B3003CEDC9 /* GUri.cpp */; };
+		34C4A2011D2CF7B3003CEDC9 /* MDStringToDigest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34C4A1FF1D2CF7B3003CEDC9 /* MDStringToDigest.cpp */; };
 		34CDDAE308C5DF5B005EAAC7 /* LgiMac.h in Headers */ = {isa = PBXBuildFile; fileRef = 34CDDAE008C5DF5B005EAAC7 /* LgiMac.h */; };
 		34CDDAE408C5DF5B005EAAC7 /* LgiOsClasses.h in Headers */ = {isa = PBXBuildFile; fileRef = 34CDDAE108C5DF5B005EAAC7 /* LgiOsClasses.h */; };
 		34CDDAE508C5DF5B005EAAC7 /* LgiOsDefs.h in Headers */ = {isa = PBXBuildFile; fileRef = 34CDDAE208C5DF5B005EAAC7 /* LgiOsDefs.h */; };
@@ -329,6 +331,8 @@
 		34B954860939DCDD00477A2D /* INet.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = INet.h; path = ../../../include/common/INet.h; sourceTree = SOURCE_ROOT; };
 		34B954870939DCDD00477A2D /* INetTools.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = INetTools.h; path = ../../../include/common/INetTools.h; sourceTree = SOURCE_ROOT; };
 		34BC1E1E134DC748005451EE /* Res.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Res.h; path = ../../../include/common/Res.h; sourceTree = "<group>"; };
+		34C4A1FE1D2CF7B3003CEDC9 /* GUri.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GUri.cpp; path = ../../common/INet/GUri.cpp; sourceTree = "<group>"; };
+		34C4A1FF1D2CF7B3003CEDC9 /* MDStringToDigest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MDStringToDigest.cpp; path = ../../common/INet/MDStringToDigest.cpp; sourceTree = "<group>"; };
 		34CDDAE008C5DF5B005EAAC7 /* LgiMac.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiMac.h; path = ../../../include/mac/carbon/LgiMac.h; sourceTree = "<group>"; };
 		34CDDAE108C5DF5B005EAAC7 /* LgiOsClasses.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiOsClasses.h; path = ../../../include/mac/carbon/LgiOsClasses.h; sourceTree = "<group>"; };
 		34CDDAE208C5DF5B005EAAC7 /* LgiOsDefs.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiOsDefs.h; path = ../../../include/mac/carbon/LgiOsDefs.h; sourceTree = "<group>"; };
@@ -737,6 +741,8 @@
 		34B954810939DCA400477A2D /* Network */ = {
 			isa = PBXGroup;
 			children = (
+				34C4A1FE1D2CF7B3003CEDC9 /* GUri.cpp */,
+				34C4A1FF1D2CF7B3003CEDC9 /* MDStringToDigest.cpp */,
 				34B4A5000C05966000CDD0D1 /* Base64.cpp */,
 				34B954860939DCDD00477A2D /* INet.h */,
 				34B954820939DCC400477A2D /* INet.cpp */,
@@ -1007,6 +1013,7 @@
 				344AF38708E045F2004ED88C /* GRect.cpp in Sources */,
 				344AF39008E04707004ED88C /* GVariant.cpp in Sources */,
 				344AF39608E0476A004ED88C /* GApp.cpp in Sources */,
+				34C4A2011D2CF7B3003CEDC9 /* MDStringToDigest.cpp in Sources */,
 				344AF3A108E048C2004ED88C /* GProcess.cpp in Sources */,
 				344AF3C908E04B32004ED88C /* GProperties.cpp in Sources */,
 				344AF3CC08E04B63004ED88C /* GLibrary.cpp in Sources */,
@@ -1060,6 +1067,7 @@
 				34B954850939DCC400477A2D /* INetTools.cpp in Sources */,
 				34ED97481BBF9D1900E2445B /* 48Bit.cpp in Sources */,
 				34B4A4FF0C05962100CDD0D1 /* GPrinter.cpp in Sources */,
+				34C4A2001D2CF7B3003CEDC9 /* GUri.cpp in Sources */,
 				34B4A5010C05966000CDD0D1 /* Base64.cpp in Sources */,
 				34B4A5070C05987F00CDD0D1 /* GMemStream.cpp in Sources */,
 				34B4A50B0C0598B600CDD0D1 /* GMem.cpp in Sources */,

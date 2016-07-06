@@ -628,7 +628,11 @@ bool ResampleDC(GSurface *pDest, GSurface *pSrc, GRect *FromRgn, Progress *Prog)
 
 	// For each destination pixel
 	GSurface *pAlpha = pSrc->AlphaDC();
-	bool HasDestAlpha = pDest->GetBits() == 32 || pDest->GetBits() == 64;
+	GColourSpace SrcCs = pSrc->GetColourSpace();
+	GColourSpace DstCs = pDest->GetColourSpace();
+	bool HasSrcAlpha = GColourSpaceHasAlpha(SrcCs);
+	bool HasDestAlpha = GColourSpaceHasAlpha(DstCs);
+	bool ProcessAlpha = HasSrcAlpha && HasDestAlpha;
 	for (int Dy = 0; Dy<pDest->Y(); Dy++)
 	{
 		for (int Dx = 0; Dx<pDest->X(); Dx++)
@@ -756,13 +760,19 @@ bool ResampleDC(GSurface *pDest, GSurface *pSrc, GRect *FromRgn, Progress *Prog)
 				R /= Area;
 				G /= Area;
 				B /= Area;
-				if (HasDestAlpha)
+				if (ProcessAlpha)
 				{
 					A /= Area;
 					c = Rgba32( ToSRGB.Lut[R],
 								ToSRGB.Lut[G],
 								ToSRGB.Lut[B],
 								ToSRGB.Lut[A]);
+				}
+				else if (OutBits == 32)
+				{
+					c = Rgb32(	ToSRGB.Lut[R],
+								ToSRGB.Lut[G],
+								ToSRGB.Lut[B]);
 				}
 				else
 				{

@@ -115,16 +115,6 @@ bool GPalette::SetSize(int s)
 	return false;
 }
 
-int GPalette::GetSize()
-{
-	return Size;
-}
-
-GdcRGB *GPalette::operator [](int i)
-{
-	return i >= 0 && i < Size && Data != 0 ? Data + i : 0;
-}
-
 void GPalette::SwapRAndB()
 {
 	if (Data)
