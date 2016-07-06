@@ -299,7 +299,7 @@ void ResString::Set(const char *p, GLanguageId Lang)
 	}
 }
 
-void ResString::UnDupelicate()
+void ResString::UnDuplicate()
 {
 	// reset Ref if it's a duplicate
 	int OldStrRef = Ref;

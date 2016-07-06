@@ -880,10 +880,10 @@ bool LgiGetUri(GStreamI *Out, GAutoString *OutError, const char *InUri, const ch
 	{
 		GUri u(InUri);
 		bool IsHTTPS = u.Protocol && !_stricmp(u.Protocol, "https");
+		int DefaultPort = IsHTTPS ? HTTPS_PORT : HTTP_PORT;
 
 		if (InProxy)
 		{
-			int DefaultPort = IsHTTPS ? HTTPS_PORT : HTTP_PORT;
 			Http.SetProxy(InProxy->Host, InProxy->Port ? InProxy->Port : DefaultPort);
 		}
 
@@ -893,7 +893,7 @@ bool LgiGetUri(GStreamI *Out, GAutoString *OutError, const char *InUri, const ch
 		{
 			SslSocket *ssl;
 			s.Reset(ssl = new SslSocket);
-			ssl->SetSslOnConnect(false);
+			ssl->SetSslOnConnect(true);
 		}
 		else
 		{
@@ -909,7 +909,7 @@ bool LgiGetUri(GStreamI *Out, GAutoString *OutError, const char *InUri, const ch
 
 		s->SetTimeout(10 * 1000);
 
-		if (!Http.Open(s, InUri))
+		if (!Http.Open(s, InUri, DefaultPort))
 		{
 			if (OutError)
 				OutError->Reset(NewStr("Http open failed"));

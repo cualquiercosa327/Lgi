@@ -869,6 +869,10 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 										Error = true;
 										break;
 								}
+								
+								#if defined(WINNATIVE)
+								pDC->ConvertPreMulAlpha(true);
+								#endif
 								break;
 							}
 							default:

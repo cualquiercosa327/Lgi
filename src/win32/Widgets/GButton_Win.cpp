@@ -71,6 +71,12 @@ GButton::GButton(int id, int x, int y, int cx, int cy, const char *name) :
 
 GButton::~GButton()
 {
+	GWindow *w = GetWindow();
+	if (w && w->GetDefault() == (GViewI*)this)
+	{
+		w->SetDefault(NULL);
+	}
+	
 	DeleteObj(d);
 }
 

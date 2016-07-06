@@ -22,6 +22,7 @@
 #include "GPath.h"
 #include "GCssTools.h"
 #include "LgiRes.h"
+#include "INet.h"
 
 #define DEBUG_TABLE_LAYOUT			1
 #define DEBUG_RESTYLE				0
@@ -2604,6 +2605,21 @@ void GTag::LoadImage(const char *Uri)
 	if (!Html->Environment)
 		return;
 
+	GUri u(Uri);
+	bool LdImg = Html->GetLoadImages();
+	bool IsRemote = u.Protocol &&
+					(
+						!_stricmp(u.Protocol, "http") ||
+						!_stricmp(u.Protocol, "https") ||
+						!_stricmp(u.Protocol, "ftp")
+					);
+
+	if (IsRemote && !LdImg)
+	{
+		Html->NeedsCapability("RemoteContent");
+		return;
+	}
+
 	GDocumentEnv::LoadJob *j = Html->Environment->NewJob();
 	if (j)
 	{
@@ -2632,6 +2648,7 @@ void GTag::LoadImages()
 {
 	const char *Uri = 0;
 	if (Html->Environment &&
+		TagId == TAG_IMG &&
 		!Image &&
 		Get("src", Uri))
 	{

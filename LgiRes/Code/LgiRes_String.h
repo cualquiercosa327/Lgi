@@ -73,7 +73,7 @@ public:
 	int NewId(); // Creates a new Id based on #define
 	char *Get(GLanguageId Lang = 0);
 	void Set(const char *s, GLanguageId Lang = 0);
-	void UnDupelicate();
+	void UnDuplicate();
 	int Compare(ResString *r, int Column);
 	void CopyText();
 	void PasteText();

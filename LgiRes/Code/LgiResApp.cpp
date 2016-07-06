@@ -2967,9 +2967,6 @@ bool AppWnd::SaveLgi(char *FileName)
 		}
 	}
 
-	ResString *s1 = GetStrFromRef(4);
-	ResString *s2 = GetStrFromRef(184);
-
 	// Save the file to xml
 	if (FileName)
 	{
@@ -4004,7 +4001,7 @@ bool AppWnd::LoadWin32(char *FileName)
 											}
 
 											Str->SetDefine(T[0]);
-											Str->UnDupelicate();
+											Str->UnDuplicate();
 										}
 									}
 
@@ -4171,7 +4168,7 @@ bool AppWnd::LoadWin32(char *FileName)
 															if (id)
 															{
 																i->GetStr()->SetId(atoi(id->Value));
-																i->GetStr()->UnDupelicate();
+																i->GetStr()->UnDuplicate();
 															}
 														}
 													}
