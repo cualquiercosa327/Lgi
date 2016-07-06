@@ -724,7 +724,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 					// Copy in the scanlines
 					int ActualBits = pDC->GetBits();
 					int ScanLen = Lib->png_get_image_width(png_ptr, info_ptr) * ActualBits / 8;
-
+					
 					GColourSpace OutCs = pDC->GetColourSpace();
 					for (int y=0; y<pDC->Y() && !Error; y++)
 					{
@@ -869,10 +869,6 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 										Error = true;
 										break;
 								}
-								
-								#if defined(WINNATIVE)
-								pDC->ConvertPreMulAlpha(true);
-								#endif
 								break;
 							}
 							default:
@@ -892,6 +888,11 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 							}
 						}
 					}
+
+					#if defined(WINNATIVE)
+					if (pDC->HasAlpha())
+						pDC->ConvertPreMulAlpha(true);
+					#endif
 
 					if (ActualBits <= 8)
 					{
