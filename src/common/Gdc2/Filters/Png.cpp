@@ -890,7 +890,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 					}
 
 					#if defined(WINNATIVE)
-					if (pDC->HasAlpha())
+					if (RequestBits)
 						pDC->ConvertPreMulAlpha(true);
 					#endif
 
