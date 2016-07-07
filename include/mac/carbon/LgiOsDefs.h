@@ -255,6 +255,8 @@ enum LgiMessages
 	M_GTHREADWORK_COMPELTE,
 	M_TEXT_UPDATE_NAME,
 	M_SET_VISIBLE,
+	M_TABLE_LAYOUT,
+	M_SETPOS,
 
 	/// Minimum value for application defined message ID's
 	M_USER							= (M_SYSTEM+1000),

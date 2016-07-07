@@ -361,18 +361,16 @@ void GButton::OnPaint(GSurface *pDC)
 		GCss::ColorDef NoPaint = GetCss()->NoPaintColor();
 		if (NoPaint.Type == GCss::ColorRgb)
 			NoPaintColour.Set(NoPaint.Rgb32, 32);
+		else if (NoPaint.Type == GCss::ColorTransparent)
+			NoPaintColour.Empty();
 	}
-	pDC->Colour(NoPaintColour);
-	pDC->Rectangle();
-
-	GRect c = GetClient();
-	for (GViewI *v = this; v && !v->Handle(); v = v->GetParent())
+	if (!NoPaintColour.IsTransparent())
 	{
-		GRect p = v->GetPos();
-		c.Offset(p.x1, p.y1);
+		pDC->Colour(NoPaintColour);
+		pDC->Rectangle();
 	}
 	
-	GRect rc = c;
+	GRect rc = GetClient();
 	rc.x1 += 2;
 	rc.y2 -= 1;
 	rc.x2 -= 1;

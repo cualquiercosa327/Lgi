@@ -408,6 +408,8 @@ void GView::OnNcPaint(GSurface *pDC, GRect &r)
 	}
 }
 
+// extern bool SetClientDebug;
+
 void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 {
 	#if defined __GTK_H__
@@ -473,45 +475,51 @@ void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 	}
 
 	#if PAINT_VIRTUAL_CHILDREN
+	// SetClientDebug = GetId() == 1159;
+
 	// Paint any virtual children
 	List<GViewI>::I it = Children.Start(); // just in case the child access the child list
 	while (it.Each())
 	{
 		GViewI *i = *it;
 		GView *w = i->GetGView();
-		if (w &&
-			#ifndef LGI_SDL
-			!w->Handle() &&
-			#endif
-			w->Visible())
+		if (w && w->Visible())
 		{
-			GRect p = w->GetPos();
-			#ifdef __GTK_H__
-			p.Offset(_BorderSize, _BorderSize);
+			#ifndef LGI_SDL
+			if (!w->Handle())
+			#else
+			if (1)
 			#endif
-			p.Offset(o.x, o.y);
-			
-			if (!Update || Update->Overlap(&p))
-			{			
-				GdcPt2 co(p.x1, p.y1);
-				pDC->SetClient(&p);
-				w->_Paint(pDC, &co);
-				pDC->SetClient(0);
-			}
-			else
 			{
-				LgiTrace("%s:%i - Not updating '%s' because %i, %i (%s)\n",
-					_FL, w->GetClass(),
-					Update != NULL,
-					Update ? Update->Overlap(&p) : -1,
-					p.GetStr());
-				/*
-				if (Update)
-				{
-					for (unsigned i=0; i<Update->Length(); i++)
-						LgiTrace("    [%i]=%s\n", i, (*Update)[i]->GetStr());
+				GRect p = w->GetPos();
+				#ifdef __GTK_H__
+				p.Offset(_BorderSize, _BorderSize);
+				#endif
+				p.Offset(o.x, o.y);
+				
+				if (!Update || Update->Overlap(&p))
+				{			
+					GdcPt2 co(p.x1, p.y1);
+					
+					pDC->SetClient(&p);
+					w->_Paint(pDC, &co);
+					pDC->SetClient(0);
 				}
-				*/
+				else
+				{
+					LgiTrace("%s:%i - Not updating '%s' because %i, %i (%s)\n",
+						_FL, w->GetClass(),
+						Update != NULL,
+						Update ? Update->Overlap(&p) : -1,
+						p.GetStr());
+					/*
+					if (Update)
+					{
+						for (unsigned i=0; i<Update->Length(); i++)
+							LgiTrace("    [%i]=%s\n", i, (*Update)[i]->GetStr());
+					}
+					*/
+				}
 			}
 		}
 	}
@@ -989,32 +997,39 @@ void GView::Visible(bool v)
 	if (_View)
 	{
 		#if WINNATIVE
-		ShowWindow(_View, (v) ? SW_SHOWNORMAL : SW_HIDE);
+
+			ShowWindow(_View, (v) ? SW_SHOWNORMAL : SW_HIDE);
+
 		#elif defined(BEOS)
-		if (v)
-			_View->Show();
-		else
-			_View->Hide();
-		// printf("\t\t%s::Vis(%i)\n", GetClass(), v);
+
+			if (v)
+				_View->Show();
+			else
+				_View->Hide();
+
 		#elif defined __GTK_H__
-		ThreadCheck();
-		if (v)
-			Gtk::gtk_widget_show(_View);
-		else
-			Gtk::gtk_widget_hide(_View);
+
+			ThreadCheck();
+			if (v)
+				Gtk::gtk_widget_show(_View);
+			else
+				Gtk::gtk_widget_hide(_View);
 
 		#elif defined MAC && !defined COCOA && !defined(LGI_SDL)
 		
-		OSErr e = HIViewSetVisible(_View, v);
-		if (e) printf("%s:%i - HIViewSetVisible(%p,%i) failed with %i (class=%s)\n",
-						_FL, _View, v, e, GetClass());
+			Boolean is = HIViewIsVisible(_View);
+			if (v != is)
+			{
+				OSErr e = HIViewSetVisible(_View, v);
+				if (e) printf("%s:%i - HIViewSetVisible(%p,%i) failed with %i (class=%s)\n",
+								_FL, _View, v, e, GetClass());
+			}
 		
 		#endif
 	}
 	else
 	{
 		Invalidate();
-		// printf("\t\t%s::Vis(%i) virtual\n", GetClass(), v);
 	}
 }
 

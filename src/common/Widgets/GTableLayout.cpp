@@ -1833,15 +1833,31 @@ GRect GTableLayout::GetUsedArea()
 void GTableLayout::InvalidateLayout()
 {
 	d->FirstLayout = true;
+	OnPosChange();
 	Invalidate();
+}
+
+GMessage::Result GTableLayout::OnEvent(GMessage *m)
+{
+	switch (m->Msg())
+	{
+		case M_TABLE_LAYOUT:
+		{
+			d->FirstLayout = false;
+			OnPosChange();
+			Invalidate();
+			return 0;
+		}
+	}
+	
+	return GLayout::OnEvent(m);
 }
 
 void GTableLayout::OnPaint(GSurface *pDC)
 {
 	if (d->FirstLayout)
 	{
-		d->FirstLayout = false;
-		OnPosChange();
+		PostEvent(M_TABLE_LAYOUT);
 	}
 
 	GColour Back;

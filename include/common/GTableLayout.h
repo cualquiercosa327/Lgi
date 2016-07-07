@@ -68,6 +68,7 @@ public:
 	int64 Value();
 	void Value(int64 v);
 	int OnNotify(GViewI *c, int f);
+	GMessage::Result OnEvent(GMessage *m);
 };
 
 
