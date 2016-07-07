@@ -20,16 +20,24 @@ static int NextId = 0;
 #define DEBUG_INFO		0
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
+GSubMenu::GSubMenu(OsSubMenu Hnd)
+{
+	Menu = 0;
+	Parent = 0;
+	Info = Hnd;
+}
+
 GSubMenu::GSubMenu(const char *name, bool Popup)
 {
 	Menu = 0;
 	Parent = 0;
 	Info = 0;
     GBase::Name(name);
+	OSStatus e;
 
-	OSStatus e = CreateNewMenu(	NextId++, // MenuId
-								0, // MenuAttributes
-								&Info);
+	e = CreateNewMenu(	NextId++,	// MenuId
+						0,			// MenuAttributes
+						&Info);
 	if (e) printf("%s:%i - can't create menu (e=%i)\n", __FILE__, __LINE__, (int)e);
 	#if DEBUG_INFO
 	else printf("CreateNewMenu()=%p\n", Info);
@@ -1186,7 +1194,36 @@ int GMenuItem::Icon()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 GFont *GMenu::_Font = 0;
 
-GMenu::GMenu() : GSubMenu("", false)
+OsSubMenu DefaultMenu()
+{
+	IBNibRef NibRef = 0;
+	OsSubMenu Info = 0;
+	
+	OSStatus e = CreateNibReference(CFSTR("MainMenu"), &NibRef);
+	if (e)
+		printf("%s:%i - CreateNibReference failed (e=%i)\n", _FL, (int)e);
+	else
+	{
+		e = CreateMenuFromNib(NibRef,
+							  CFSTR("main"),
+							  &Info);
+		if (e)
+			printf("%s:%i - CreateMenuFromNib failed (e=%i)\n", _FL, (int)e);
+		
+		DisposeNibReference(NibRef);
+	}
+
+	if (!Info)
+	{
+		e = CreateNewMenu(	NextId++,	// MenuId
+							0,			// MenuAttributes
+							&Info);
+	}
+
+	return Info;
+}
+
+GMenu::GMenu() : GSubMenu(DefaultMenu())
 {
 	Menu = this;
 }
@@ -1247,10 +1284,7 @@ bool GMenu::Attach(GViewI *p)
 			OnAttach(true);
 			Status = true;
 		}
-		else
-		{
-			printf("%s:%i - No menu\n", __FILE__, __LINE__);
-		}
+		else LgiTrace("%s:%i - No menu\n", _FL);
 	}
 
 	return Status;
@@ -1260,6 +1294,16 @@ bool GMenu::Detach()
 {
 	bool Status = false;
 	return Status;
+}
+
+bool GMenu::SetPrefAndAboutItems(int PrefId, int AboutId)
+{
+	if (!Window)
+		return false;
+	
+	UInt16 c = CountMenuItems(Handle());
+	
+	return true;
 }
 
 bool GMenu::OnKey(GView *v, GKey &k)

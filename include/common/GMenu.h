@@ -124,6 +124,7 @@ protected:
 	void ClearHandle();
 
 public:
+	GSubMenu(OsSubMenu Hnd);
 	/// Constructor
 	GSubMenu
 	(
@@ -485,6 +486,10 @@ public:
 		/// The keyboard event details
 		GKey &k
 	);
+
+	/// This creates copies of the preference and about menu items in the
+	/// application menu. On other platforms it's a NOP.
+	bool SetPrefAndAboutItems(int PrefId, int AboutId);
 
 	#if defined(WIN32)
 	static int _OnEvent(GMessage *Msg);
