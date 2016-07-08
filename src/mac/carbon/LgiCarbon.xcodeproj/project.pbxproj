@@ -290,7 +290,7 @@
 		349330490F60CE440092EAE8 /* GViewCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GViewCommon.cpp; path = ../../common/Lgi/GViewCommon.cpp; sourceTree = "<group>"; };
 		3493304B0F60CE690092EAE8 /* GViewPriv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GViewPriv.h; path = ../../../include/common/GViewPriv.h; sourceTree = "<group>"; };
 		34983BE208F4A54C0054868C /* GDragAndDrop.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GDragAndDrop.cpp; path = Lgi/GDragAndDrop.cpp; sourceTree = "<group>"; };
-		34983BE508F4A5790054868C /* GMenu.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GMenu.cpp; path = Lgi/GMenu.cpp; sourceTree = "<group>"; };
+		34983BE508F4A5790054868C /* GMenu.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 30; name = GMenu.cpp; path = Lgi/GMenu.cpp; sourceTree = "<group>"; };
 		34983C1208F5482D0054868C /* GDocView.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GDocView.cpp; path = ../../common/Text/GDocView.cpp; sourceTree = "<group>"; };
 		34983C1308F5482D0054868C /* GTextView3.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GTextView3.cpp; path = ../../common/Text/GTextView3.cpp; sourceTree = "<group>"; };
 		34983C1608F5484C0054868C /* GToolTip.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GToolTip.cpp; path = ../../common/Lgi/GToolTip.cpp; sourceTree = "<group>"; };

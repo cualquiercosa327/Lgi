@@ -35,9 +35,13 @@ GSubMenu::GSubMenu(const char *name, bool Popup)
     GBase::Name(name);
 	OSStatus e;
 
-	e = CreateNewMenu(	NextId++,	// MenuId
-						0,			// MenuAttributes
+	int Id = NextId++;
+	e = CreateNewMenu(	Id,	// MenuId
+						0,	// MenuAttributes
 						&Info);
+	
+	printf("GSubMenu CreateNewMenu(%i)\n", Id);
+	
 	if (e) printf("%s:%i - can't create menu (e=%i)\n", __FILE__, __LINE__, (int)e);
 	#if DEBUG_INFO
 	else printf("CreateNewMenu()=%p\n", Info);
@@ -1193,31 +1197,34 @@ int GMenuItem::Icon()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 GFont *GMenu::_Font = 0;
+#define kAppleMenu		256
+#define kAppleAboutItem		1
+
 
 OsSubMenu DefaultMenu()
 {
 	IBNibRef NibRef = 0;
 	OsSubMenu Info = 0;
+	OSStatus e;
 	
-	OSStatus e = CreateNibReference(CFSTR("MainMenu"), &NibRef);
-	if (e)
-		printf("%s:%i - CreateNibReference failed (e=%i)\n", _FL, (int)e);
-	else
-	{
-		e = CreateMenuFromNib(NibRef,
-							  CFSTR("main"),
-							  &Info);
-		if (e)
-			printf("%s:%i - CreateMenuFromNib failed (e=%i)\n", _FL, (int)e);
-		
-		DisposeNibReference(NibRef);
-	}
-
 	if (!Info)
 	{
-		e = CreateNewMenu(	NextId++,	// MenuId
+		// MenuBarHandle hnd = GetMenuBar();
+
+		e = CreateNewMenu(	kAppleMenu,	// MenuId
 							0,			// MenuAttributes
 							&Info);
+		printf("GMenu CreateNewMenu(%i)\n", kAppleMenu);
+		if (e)
+			printf("%s:%i - CreateNewMenu failed.\n", _FL);
+		else
+		{
+			SetMenuTitle(Info, "\p\024");
+			InsertMenu(Info, 0);
+			AppendMenu(Info, "\pAbout\xc9");
+			InsertMenu(Info, 0);
+			AppendMenu(Info, "\pPreferences");
+		}
 	}
 
 	return Info;
@@ -1279,6 +1286,8 @@ bool GMenu::Attach(GViewI *p)
 	{
 		Window = p;
 		
+		// [NSApplication sharedApplication].mainMenu
+		
 		if (Info)
 		{
 			OnAttach(true);
@@ -1298,10 +1307,40 @@ bool GMenu::Detach()
 
 bool GMenu::SetPrefAndAboutItems(int PrefId, int AboutId)
 {
-	if (!Window)
+	/*
+	if (Info)
+	{
+		OSStatus e = SetRootMenu(Info);
+		if (e)
+		{
+			LgiTrace("%s:%i - SetRootMenu failed with %i.\n", _FL, e);
+			return false;
+		}
+	}
+	else
+	{
+		LgiTrace("%s:%i - No menu.\n", _FL);
 		return false;
+	}
+	*/
 	
-	UInt16 c = CountMenuItems(Handle());
+	/*
+	NSApplication *app = [NSApplication sharedApplication];
+	if (app)
+	{
+		NSMenu *mainMenu = [[NSApplication sharedApplication] mainMenu];
+		if (mainMenu)
+		{
+			NSMenu *appMenu = [[mainMenu itemAtIndex:0] submenu];
+			if (appMenu)
+			{
+				for (NSMenuItem *item in [appMenu itemArray]) {
+					NSLog(@"%@", [item title]);
+				}
+			}
+		}
+	}
+	*/
 	
 	return true;
 }

@@ -593,6 +593,7 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 				}
 				case kEventWindowActivated:
 				{
+					#if 1
 					GWindow *w = v->GetWindow();
 					if (w)
 					{
@@ -622,6 +623,7 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 							}
 						}
 					}
+					#endif
 					break;
 				}
 				case kEventWindowBoundsChanged:

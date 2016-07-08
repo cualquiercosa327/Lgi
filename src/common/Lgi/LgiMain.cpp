@@ -142,10 +142,55 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdS
 #else
 
 #if defined(MAC) && !COCOA
-pascal OSErr TestProc(const AppleEvent *ae, AppleEvent *reply, SRefCon handlerRefcon)
+pascal OSErr AppEventHandler(const AppleEvent *ae, AppleEvent *reply, SRefCon handlerRefcon)
 {
 	OSErr err = eventNotHandledErr;
-	LgiTrace("TestEvent called\n");
+	
+	LgiTrace("AppEventHandler called.\n");
+	
+	if (ae->descriptorType == typeAppleEvent)
+	{
+		uint32 Code;
+		Size Used = 0;
+		DescType typeCode = 0;
+		OSErr e = AEGetAttributePtr(ae,
+									keyEventIDAttr,
+									typeWildCard,
+									&typeCode,
+									&Code,
+									sizeof(Code),
+									&Used);
+		if (e)
+		{
+			LgiTrace("%s:%i - AEGetAttributePtr failed (%i).\n", _FL, e);
+		}
+		else if (Code == kAEGetURL)
+		{
+			char urlbuf[512];
+			e = AEGetParamPtr(ae, keyDirectObject, typeUTF8Text, NULL, urlbuf, sizeof(urlbuf), &Used);
+			if (e)
+				LgiTrace("%s:%i - AEGetParamPtr failed (%i).\n", _FL, e);
+			else if (Used < sizeof(urlbuf))
+			{
+				urlbuf[Used] = 0;
+				if (LgiApp && LgiApp->AppWnd)
+				{
+					LgiApp->AppWnd->PostEvent(M_URL, (GMessage::Param) new GString(urlbuf));
+				}
+				else
+				{
+					LgiTrace("%s:%i - No AppWnd.\n", _FL);
+					err = eventInternalErr;
+				}
+			}
+		}
+		else
+		{
+			LgiTrace("%s:%i - Support for '%4.4s' not implement.\n", _FL, &Code);
+			err = eventParameterNotFoundErr;
+		}
+	}
+	
 	return err;
 }
 #endif
@@ -168,10 +213,11 @@ int main(int Args, const char **Arg)
 		#else
 		OSStatus e = AEInstallEventHandler(	kInternetEventClass,
 									kAEGetURL,
-									NewAEEventHandlerUPP(TestProc),
+									NewAEEventHandlerUPP(AppEventHandler),
 									0,
 									false);
 		if (e) LgiTrace("%s:%i - AEInstallEventHandler = %i\n", _FL, e);
+		else LgiTrace("AEInstallEventHandler installed...\n");
 		#endif
 	
 	#elif 1 && defined(__GTK_H__) && defined(_DEBUG)

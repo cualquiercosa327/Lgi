@@ -289,7 +289,7 @@ pascal OSStatus AppProc(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, 
 	UInt32 eventClass = GetEventClass( inEvent );
 	UInt32 eventKind = GetEventKind( inEvent );
 
-	#if 0
+	#if 1
 	UInt32 ec = LgiSwap32(eventClass);
 	UInt32 ek = LgiSwap32(eventKind);
 	printf("AppProc %4.4s - %u\n", (char*)&ec, (unsigned)eventKind);
@@ -631,14 +631,7 @@ GApp *GApp::ObjInstance()
 bool GApp::IsOk()
 {
 	bool Status = 	(this != 0) &&
-					(d != 0)
-					/*
-					#ifdef XWIN
-					&& (XDisplay() != 0)
-					#endif
-					*/
-					;
-					
+					(d != 0);
 	LgiAssert(Status);
 	return Status;
 }
@@ -781,14 +774,17 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 				0,
 				NULL,
 				0.001, // kEventDurationForever,
-				true,
+				kEventRemoveFromQueue,
 				&theEvent
 			)
 			==
 			noErr
 		)
 		{
-			SendEventToEventTarget (theEvent, theTarget);
+			if (GetEventKind(theEvent) == kEventAppleEvent)
+				AEProcessEvent(theEvent);
+
+			SendEventToEventTarget(theEvent, theTarget);
 			ReleaseEvent(theEvent);
 		}	
 	}
