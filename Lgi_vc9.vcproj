@@ -618,10 +618,6 @@
 				Name="Core"
 				>
 				<File
-					RelativePath=".\src\win32\Lgi\GApp.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\win32\Lgi\GGeneral.cpp"
 					>
 				</File>
@@ -647,26 +643,6 @@
 				</File>
 				<File
 					RelativePath=".\src\common\Lgi\GTrayIcon.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\win32\Lgi\GView.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\common\Lgi\GViewCommon.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\include\common\GViewPriv.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\win32\Lgi\GWindow.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\common\Lgi\GWindowCommon.cpp"
 					>
 				</File>
 				<File
@@ -1731,6 +1707,38 @@
 				</File>
 				<File
 					RelativePath=".\src\win32\INet\MibAccess.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Interface"
+				>
+				<File
+					RelativePath=".\src\win32\Lgi\GApp.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\include\common\GMessage.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\Lgi\GView.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\common\Lgi\GViewCommon.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\include\common\GViewPriv.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\Lgi\GWindow.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\common\Lgi\GWindowCommon.cpp"
 					>
 				</File>
 			</Filter>

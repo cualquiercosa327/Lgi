@@ -52,39 +52,7 @@ typedef CTFontRef			OsFont;
 typedef ATSUStyle			OsFont;
 #endif
 
-class LgiClass GMessage
-{
-public:
-	typedef NativeInt Param;
-	typedef NativeInt Result;
-
-	int m;
-	Param a;
-	Param b;
-	
-	GMessage()
-	{
-		m = a = b = 0;
-	}
-
-	GMessage(int M, Param A = 0, Param B = 0)
-	{
-		m = M;
-		a = A;
-		b = B;
-	}
-
-	void Set(int M, Param A = 0, Param B = 0)
-	{
-		m = M;
-		a = A;
-		b = B;
-	}
-	
-	int Msg() { return m; }	
-	Param A() { return a; }
-	Param B() { return b; }
-};
+#include "GMessage.h"
 
 class OsAppArguments
 {
@@ -107,10 +75,6 @@ public:
 
 //////////////////////////////////////////////////////////////////
 // Defines
-#define MsgCode(msg)				(msg->m)
-#define MsgA(msg)					(msg->a)
-#define MsgB(msg)					(msg->b)
-extern GMessage CreateMsg(int m, int a = 0, int b = 0);
 #define _stricmp					strcasecmp
 #define _strnicmp					strncasecmp
 
@@ -205,63 +169,6 @@ LgiFunc void LgiSleep(uint32 i);
 #define kEventParamLgiEvent			'Lgie'
 #define kEventParamLgiA				'Lgia'
 #define kEventParamLgiB				'Lgib'
-
-enum LgiMessages
-{
-	/// Base point for system messages.
-	M_SYSTEM						= 0,
-	
-	/// Message that indicates the user is trying to close a top level window.
-	M_CLOSE							= (M_SYSTEM+92),
-
-	/// \brief Mouse enter event
-	///
-	/// a = bool Inside; // is the mouse inside the client area?\n
-	/// b = MAKELONG(x, y); // mouse location
-	M_MOUSEENTER					= (M_SYSTEM+900),
-
-	/// \brief Mouse exit event
-	///
-	/// a = bool Inside; // is the mouse inside the client area?\n
-	/// b = MAKELONG(x, y); // mouse location
-	M_MOUSEEXIT,
-
-	/// \brief GView change notification
-	///
-	/// a = (GView*) Wnd;\n
-	/// b = (int) Flags; // Specific to each GView
-	M_CHANGE,
-
-	/// \brief Pass a text message up to the UI to descibe whats happening
-	///
-	/// a = (GView*) Wnd;\n
-	/// b = (char*) Text; // description from window
-	M_DESCRIBE,
-
-	// return (bool)
-	M_WANT_DIALOG_PROC,
-
-	M_MENU,
-	M_COMMAND,
-	M_DRAG_DROP,
-
-	M_TRAY_NOTIFY,
-	M_CUT,
-	M_COPY,
-	M_PASTE,
-	M_PULSE,
-	M_DELETE,
-	M_MOUSE_TRACK_UP,
-	M_GTHREADWORK_COMPELTE,
-	M_TEXT_UPDATE_NAME,
-	M_SET_VISIBLE,
-	M_TABLE_LAYOUT,
-	M_SETPOS, // A=(GRect*)Rectangle
-	M_URL, // A=(GString*)Url
-
-	/// Minimum value for application defined message ID's
-	M_USER							= (M_SYSTEM+1000),
-};
 
 /// Standard ID for an "Ok" button.
 /// \sa LgiMsg

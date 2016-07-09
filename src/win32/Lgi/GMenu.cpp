@@ -990,7 +990,7 @@ GSubMenu *GMenuItem::Sub() { return Child; }
 int _GMenuFontRef = 0;
 GFont *GMenu::_Font = 0;
 
-GMenu::GMenu() : GSubMenu("", false)
+GMenu::GMenu(const char *AppName) : GSubMenu("", false)
 {
 	d = new GMenuPrivate;
 	Menu = this;
@@ -1169,6 +1169,11 @@ int GMenu::_OnEvent(GMessage *Msg)
 	}
 
 	return 0;
+}
+
+bool GMenu::SetPrefAndAboutItems(int PrefId, int AboutId)
+{
+	return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////
