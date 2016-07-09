@@ -949,27 +949,6 @@ OsApplication::~OsApplication()
 }
 
 ////////////////////////////////////////////////////////////////
-GMessage::GMessage(int m, Param a, Param b)
-{
-	Event = 0;
-	OwnEvent = false;
-	Set(m, a, b);
-}
-
-GMessage::GMessage(Gtk::GdkEvent *e)
-{
-	Event = e;
-	OwnEvent = false;
-}
-
-GMessage::~GMessage()
-{
-    /*
-	if (OwnEvent && Event)
-		gdk_event_free(Event);
-	*/
-}
-
 void GMessage::Set(int m, Param a, Param b)
 {
 	if (!Event)

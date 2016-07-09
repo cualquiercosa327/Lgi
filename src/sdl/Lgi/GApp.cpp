@@ -1125,15 +1125,6 @@ OsApplication::~OsApplication()
 }
 
 ////////////////////////////////////////////////////////////////
-GMessage::GMessage(int m, Param pa, Param pb)
-{
-	Set(m, pa, pb);
-}
-
-GMessage::~GMessage()
-{
-}
-
 void GMessage::Set(int m, Param pa, Param pb)
 {
 	Event.type = SDL_USEREVENT;

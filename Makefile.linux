@@ -2264,7 +2264,10 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ./include/linux/Gtk/LgiOsDefs.h : ./include/common/LgiDefs.h \
 	./include/common/LgiInc.h \
 	/usr/include/gtk-2.0/gtk/gtk.h \
+	./include/common/GMessage.h \
 	/usr/include/gtk-2.0/gdk/gdkkeysyms-compat.h
+
+./include/common/GMessage.h : 
 
 ../../../../../usr/include/gtk-2.0/gtk/gtk.h : /usr/include/gtk-2.0/gdk/gdk.h \
 	/usr/include/gtk-2.0/gtk/gtkaboutdialog.h \
@@ -2872,6 +2875,7 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ./include/linux/Gtk/LgiOsDefs.h : ./include/common/LgiDefs.h \
 	./include/common/LgiInc.h \
 	/usr/include/gtk-2.0/gtk/gtk.h \
+	./include/common/GMessage.h \
 	/usr/include/gtk-2.0/gdk/gdkkeysyms-compat.h
 
 ./include/common/GPopup.h : 

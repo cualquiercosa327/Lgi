@@ -1018,7 +1018,7 @@ class GMenuPrivate
 public:
 };
 
-::GMenu::GMenu() : GSubMenu("", false)
+::GMenu::GMenu(const char *AppName) : GSubMenu("", false)
 {
 	Menu = this;
 	d = NULL;
@@ -1117,6 +1117,11 @@ bool ::GMenu::Detach()
 {
 	bool Status = false;
 	return Status;
+}
+
+bool ::GMenu::SetPrefAndAboutItems(int a, int b)
+{
+	return false;
 }
 
 bool ::GMenu::OnKey(GView *v, GKey &k)

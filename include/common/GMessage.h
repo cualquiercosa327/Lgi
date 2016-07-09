@@ -98,6 +98,23 @@ enum LgiMessages
 		/// Minimum value for application defined message ID's
 		M_USER							= (M_SYSTEM+1000),
 	
+	#elif defined(LGI_SDL)
+
+		/// Minimum value for application defined message ID's
+		M_USER			= 0x0400,
+	
+		M_MOUSEENTER	= (M_USER+100),
+		M_MOUSEEXIT,
+		M_COMMAND,
+		M_CUT,
+		M_COPY,
+		M_PASTE,
+		M_PULSE,
+		M_SET_VISIBLE,
+		M_MOUSE_CAPTURE_POLL,
+		M_TEXT_UPDATE_NAME,
+		M_INVALIDATE,
+	
 	#elif defined(LINUX)
 
 		/// Base point for system messages.
@@ -123,18 +140,6 @@ enum LgiMessages
 		/// a = bool Inside; // is the mouse inside the client area?\n
 		/// b = MAKELONG(x, y); // mouse location
 		M_MOUSEEXIT,
-
-		/// \brief GView change notification
-		///
-		/// a = (GView*) Wnd;\n
-		/// b = (int) Flags; // Specific to each GView
-		M_CHANGE,
-
-		/// \brief Pass a text message up to the UI to descibe whats happening
-		///
-		/// a = (GView*) Wnd;\n
-		/// b = (char*) Text; // description from window
-		M_DESCRIBE,
 
 		// return (bool)
 		M_WANT_DIALOG_PROC,
@@ -173,74 +178,117 @@ class LgiClass GMessage
 {
 public:
 	#if defined(WINDOWS)
-	typedef LPARAM Param;
-	typedef LRESULT Result;
+		typedef LPARAM Param;
+		typedef LRESULT Result;
+	#elif defined(LGI_SDL)
+	    typedef void *Param;
+	    typedef NativeInt Result;
 	#else
-	typedef NativeInt Param;
-	typedef NativeInt Result;
+		typedef NativeInt Param;
+		typedef NativeInt Result;
 	#endif
 
-	int m;
+	#if !defined(LINUX) && !defined(LGI_SDL)
+		int m;
+	#endif
 	#if defined(WINDOWS)
-	HWND hWnd;
-	WPARAM a;
-	LPARAM b;
-	#else
-	Param a;
-	Param b;
+		HWND hWnd;
+		WPARAM a;
+		LPARAM b;
+	#elif defined(LGI_SDL)
+	    SDL_Event Event;
+	    struct EventParams
+	    {
+	    	Param a, b;
+	    	EventParams(Param A, Param B)
+	    	{
+	    		a = A;
+	    		b = B;
+	    	}
+	    };
+	#elif !defined(LINUX)
+		Param a;
+		Param b;
 	#endif
 
-	#ifdef LINUX
-	bool OwnEvent;
-	Gtk::GdkEvent *Event;
-	GMessage(Gtk::GdkEvent *e);
-	bool Send(OsView Wnd);
+	#ifdef __GTK_H__
+		bool OwnEvent;
+		Gtk::GdkEvent *Event;
+
+		GMessage(Gtk::GdkEvent *e)
+		{
+			Event = e;
+			OwnEvent = false;
+		}
 	#endif
 
 	GMessage()
 	{
 		#if defined(WINDOWS)
-		hWnd = 0;
+			hWnd = 0;
 		#endif
-		m = 0;
-		a = 0;
-		b = 0;
+		#ifdef __GTK_H__
+			Event = NULL;
+			OwnEvent = false;
+		#elif !defined(LGI_SDL)
+			m = 0;
+			a = 0;
+			b = 0;
+		#endif
 	}
 
 	GMessage
 	(
 		int M,
 		#if defined(WINDOWS)
-		WPARAM A = 0, LPARAM B = 0
+			WPARAM A = 0, LPARAM B = 0
 		#else
-		Param A = 0, Param B = 0
+			Param A = 0, Param B = 0
 		#endif
 	)
 	{
 		#if defined(WINDOWS)
-		hWnd = 0;
+			hWnd = 0;
 		#endif
-		m = M;
-		a = A;
-		b = B;
+		#ifdef __GTK_H__
+			Event = NULL;
+			OwnEvent = false;
+			Set(M, A, B);
+		#elif !defined(LGI_SDL)
+			m = M;
+			a = A;
+			b = B;
+		#endif
 	}
 	
-	int Msg() { return m; }
-	#if defined(WINDOWS)
-	WPARAM A() { return a; }
-	LPARAM B() { return b; }
+	#ifdef LINUX
+		int Msg();
+		Param A();
+		Param B();
 	#else
-	Param A() { return a; }
-	Param B() { return b; }
+		int Msg() { return m; }
+		#if defined(WINDOWS)
+		WPARAM A() { return a; }
+		LPARAM B() { return b; }
+		#else
+		Param A() { return a; }
+		Param B() { return b; }
+		#endif
 	#endif
 	void Set(int m, Param a, Param b);
+	bool Send(OsView Wnd);
 };
 
 // These are deprecated.
-#define MsgCode(msg)					((msg)->m)
-#define MsgA(msg)						((msg)->a)
-#define MsgB(msg)						((msg)->b)
+#define MsgCode(msg)					((msg)->Msg())
+#define MsgA(msg)						((msg)->A())
+#define MsgB(msg)						((msg)->B())
+
+#ifdef LINUX
+extern GMessage CreateMsg(int m, int a = 0, int b = 0);
+#else
 #define CreateMsg(m, a, b)				GMessage(m, a, b)
-// extern GMessage CreateMsg(int m, int a = 0, int b = 0);
+#endif
+
 
 #endif

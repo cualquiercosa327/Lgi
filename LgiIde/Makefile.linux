@@ -136,6 +136,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../include/common/GMem.h \
 	../include/common/GMenu.h \
 	../include/common/GMenuImpl.h \
+	../include/common/GMessage.h \
 	../include/common/GMime.h \
 	../include/common/GMru.h \
 	../include/common/GMutex.h \
@@ -231,6 +232,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../src/common/INet/GUri.cpp \
 	../src/common/INet/INet.cpp \
 	../src/common/INet/INetTools.cpp \
+	../src/common/INet/MDStringToDigest.cpp \
 	../src/common/Lgi/GAlert.cpp \
 	../src/common/Lgi/GCss.cpp \
 	../src/common/Lgi/GCssTools.cpp \
@@ -1471,6 +1473,9 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/glib-2.0/gio/gmenu.h : /usr/include/glib-2.0/gio/gmenumodel.h
 
+../src/common/INet/MDStringToDigest.cpp : ../include/common/Lgi.h \
+	../include/common/INet.h
+
 ../../../../../../usr/include/gtk-2.0/gtk/gtkinfobar.h : /usr/include/gtk-2.0/gtk/gtkhbox.h \
 	/usr/include/gtk-2.0/gtk/gtkenums.h
 
@@ -2485,7 +2490,10 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../include/linux/Gtk/LgiOsDefs.h : ../include/common/LgiDefs.h \
 	../include/common/LgiInc.h \
 	/usr/include/gtk-2.0/gtk/gtk.h \
+	../include/common/GMessage.h \
 	/usr/include/gtk-2.0/gdk/gdkkeysyms-compat.h
+
+../include/common/GMessage.h : 
 
 ../include/common/GDateTime.h : 
 
@@ -3206,6 +3214,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkvbbox.h : /usr/include/gtk-2.0/gtk/gtkbbox.h
 
+../include/common/GMessage.h : 
+
 ../include/common/GTextLabel.h : 
 
 ../../../../../../usr/include/gtk-2.0/gdk/gdkdrawable.h : /usr/include/gtk-2.0/gdk/gdktypes.h \
@@ -3511,6 +3521,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../include/linux/Gtk/LgiOsDefs.h : ../include/common/LgiDefs.h \
 	../include/common/LgiInc.h \
 	/usr/include/gtk-2.0/gtk/gtk.h \
+	../include/common/GMessage.h \
 	/usr/include/gtk-2.0/gdk/gdkkeysyms-compat.h
 
 ../src/common/Widgets/GSplitter.cpp : ../include/common/Lgi.h \
