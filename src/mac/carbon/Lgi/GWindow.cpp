@@ -490,7 +490,7 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 					GetEventParameter(inEvent, kEventParamDirectObject, typeHICommand, NULL, sizeof(command), NULL, &command);
 					if (command.commandID != kHICommandSelectWindow)
 					{	
-						#if 0
+						#if 1
 						uint32 c = command.commandID;
 						#ifndef __BIG_ENDIAN__
 						c = LgiSwap32(c);
@@ -542,6 +542,19 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 								 command.commandID == kHICommandRotateFloatingWindowsBackward)
 						{
 							return eventNotHandledErr;
+						}
+						else if (command.commandID == kHICommandAbout ||
+								 command.commandID == kHICommandPreferences)
+						{
+							// This maps the About and Preference commands to the
+							// applications internal CMD identifiers.
+							GMenu *m = w->GetMenu();
+							if (m)
+							{
+								int Cmd = m->GetIdForCommand(command.commandID);
+								if (Cmd > 0)
+									w->OnCommand(Cmd, 0, 0);
+							}
 						}
 						else
 						{

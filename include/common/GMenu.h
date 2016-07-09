@@ -449,7 +449,7 @@ protected:
 
 public:
 	/// Constructor
-	GMenu();
+	GMenu(const char *AppName = NULL);
 	
 	/// Destructor
 	virtual ~GMenu();
@@ -495,6 +495,8 @@ public:
 	static int _OnEvent(GMessage *Msg);
 	#elif defined(BEOS)
 	GRect GetPos();
+	#elif defined(MAC)
+	int GetIdForCommand(uint32 Cmd);
 	#endif
 };
 
