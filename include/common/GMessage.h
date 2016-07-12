@@ -3,7 +3,7 @@
 
 enum LgiMessages
 {
-	#if defined(WINDOWS)
+	#if defined(WINNATIVE)
 
 		// Quite a lot of windows stuff uses WM_USER+n where
 		// n < 0x1A0 or so... so stay out of their way.
@@ -177,7 +177,7 @@ enum LgiMessages
 class LgiClass GMessage
 {
 public:
-	#if defined(WINDOWS)
+	#if defined(WINNATIVE)
 		typedef LPARAM Param;
 		typedef LRESULT Result;
 	#elif defined(LGI_SDL)
@@ -191,11 +191,7 @@ public:
 	#if !defined(LINUX) && !defined(LGI_SDL)
 		int m;
 	#endif
-	#if defined(WINDOWS)
-		HWND hWnd;
-		WPARAM a;
-		LPARAM b;
-	#elif defined(LGI_SDL)
+	#if defined(LGI_SDL)
 	    SDL_Event Event;
 	    struct EventParams
 	    {
@@ -206,6 +202,10 @@ public:
 	    		b = B;
 	    	}
 	    };
+	#elif defined(WINNATIVE)
+		HWND hWnd;
+		WPARAM a;
+		LPARAM b;
 	#elif !defined(LINUX)
 		Param a;
 		Param b;
@@ -224,7 +224,7 @@ public:
 
 	GMessage()
 	{
-		#if defined(WINDOWS)
+		#if defined(WINNATIVE)
 			hWnd = 0;
 		#endif
 		#ifdef __GTK_H__
@@ -240,14 +240,14 @@ public:
 	GMessage
 	(
 		int M,
-		#if defined(WINDOWS)
+		#if defined(WINNATIVE)
 			WPARAM A = 0, LPARAM B = 0
 		#else
 			Param A = 0, Param B = 0
 		#endif
 	)
 	{
-		#if defined(WINDOWS)
+		#if defined(WINNATIVE)
 			hWnd = 0;
 		#endif
 		#ifdef __GTK_H__
@@ -261,13 +261,13 @@ public:
 		#endif
 	}
 	
-	#ifdef LINUX
+	#if defined(LINUX) || defined(LGI_SDL)
 		int Msg();
 		Param A();
 		Param B();
 	#else
 		int Msg() { return m; }
-		#if defined(WINDOWS)
+		#if defined(WINNATIVE)
 		WPARAM A() { return a; }
 		LPARAM B() { return b; }
 		#else

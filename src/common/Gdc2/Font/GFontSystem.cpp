@@ -184,7 +184,7 @@ void GFontSystem::SetDefaultGlyphSub(bool i)
 		d->DefaultGlyphSub = i;
 }
 
-#ifdef WINDOWS
+#ifdef WINNATIVE
 int CALLBACK _EnumFonts(ENUMLOGFONT FAR *lpelf,
 						NEWTEXTMETRIC FAR *lpntm,
 						int FontType,
@@ -209,7 +209,7 @@ bool GFontSystem::EnumerateFonts(List<const char> &Fonts)
 {
 	if (!AllFonts.First())
 	{
-		#if defined WINDOWS
+		#if defined WINNATIVE
 
 		HDC hDC = CreateCompatibleDC(NULL);
 		if (hDC)

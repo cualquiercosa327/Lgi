@@ -1187,7 +1187,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 			#if defined WIN32
 
 			char16 p[MAX_PATH];
-			if (GetWindowsDirectory(p, CountOf(p)) > 0)
+			if (GetWindowsDirectoryW(p, CountOf(p)) > 0)
 				Path = p;
 
 			#elif defined MAC && !defined COCOA
@@ -1222,7 +1222,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 			#if defined WIN32
 
 			char16 p[MAX_PATH];
-			if (GetSystemDirectory(p, CountOf(p)) > 0)
+			if (GetSystemDirectoryW(p, CountOf(p)) > 0)
 				Path = p;
 			
 			#elif defined MAC
@@ -1534,7 +1534,7 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 		if (LgiGetOs() == LGI_OS_WIN9X)
 		{
 			char16 Exe[256];
-			if (GetModuleFileName(NULL, Exe, CountOf(Exe)) > 0)
+			if (GetModuleFileNameW(NULL, Exe, CountOf(Exe)) > 0)
 			{
 				GString e = Exe;
 				if (e)

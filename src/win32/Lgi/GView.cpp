@@ -1515,12 +1515,6 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			}
 			case WM_SETFOCUS:
 			{
-				GView *Prev;
-				if (CastHwnd(Prev, (HWND)Msg->A()))
-				{
-					LgiTrace("WM_SETFOCUS Prev=%p/%s\n", Prev, Prev->GetClass());
-				}
-				
 				GWindow *w = GetWindow();
 				if (w)
 				{
@@ -1883,7 +1877,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 
 				if (SysOnKey(this, Msg))
 				{
-					LgiTrace("SysOnKey true, Msg=0x%x %x,%x\n", Msg->m, Msg->a, Msg->b);
+					// LgiTrace("SysOnKey true, Msg=0x%x %x,%x\n", Msg->m, Msg->a, Msg->b);
 					return 0;
 				}
 				else

@@ -68,7 +68,7 @@ GFontSelect::GFontSelect(GView *Parent, void *Init, int InitLen)
 	MoveToCenter();
 
 	// Setup dialog
-	AddView(d->Tbl = new GTableLayout);
+	AddView(d->Tbl = new GTableLayout(50));
 
 	GRadioGroup *rg;
 	GLayoutCell *c = d->Tbl->GetCell(0, 0, true, 1, 2);

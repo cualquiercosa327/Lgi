@@ -502,6 +502,13 @@ void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 					GdcPt2 co(p.x1, p.y1);
 					
 					pDC->SetClient(&p);
+					static int Count = 0;
+					Count++;
+					if (Count == 14)
+					{
+						int asd=0;
+					}
+					LgiTrace("Paint %i, %s\n", Count, w->GetClass());
 					w->_Paint(pDC, &co);
 					pDC->SetClient(0);
 				}
@@ -2026,7 +2033,7 @@ GViewFactory::GViewFactory()
 	#if defined(WIN32)
 	char16 Name[64];
 	swprintf_s(Name, CountOf(Name), L"LgiFactoryEvent.%i", GetCurrentProcessId());
-	HANDLE h = CreateEvent(NULL, false, false, Name);
+	HANDLE h = CreateEventW(NULL, false, false, Name);
 	DWORD err = GetLastError();
 	if (err != ERROR_ALREADY_EXISTS)
 	{

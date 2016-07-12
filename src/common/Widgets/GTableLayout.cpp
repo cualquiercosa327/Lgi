@@ -33,7 +33,7 @@ enum CellFlag
 #include "GCss.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
-// #define DEBUG_LAYOUT		14
+#define DEBUG_LAYOUT		50
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
@@ -320,10 +320,10 @@ class GTableLayoutPrivate
 	bool DebugLayout;
 
 public:
+	int PrevWidth;
 	GArray<double> Rows, Cols;
 	GArray<TableCell*> Cells;
 	int BorderSpacing;
-	bool FirstLayout;
 	GRect LayoutBounds;
 	int LayoutMinX, LayoutMaxX;
 	GTableLayout *Ctrl;
@@ -1201,10 +1201,10 @@ void TableCell::OnPaint(GSurface *pDC)
 ////////////////////////////////////////////////////////////////////////////
 GTableLayoutPrivate::GTableLayoutPrivate(GTableLayout *ctrl)
 {
+	PrevWidth = -1;
 	InLayout = false;
 	DebugLayout = false;
 	Ctrl = ctrl;
-	FirstLayout = true;
 	BorderSpacing = GTableLayout::CellSpacing;
 	LayoutBounds.ZOff(-1, -1);
 	LayoutMinX = LayoutMaxX = 0;
@@ -1257,7 +1257,7 @@ void GTableLayoutPrivate::Empty(GRect *Range)
 		Cols.Length(0);
 	}
 
-	FirstLayout = true;
+	PrevWidth = -1;
 	LayoutBounds.ZOff(-1, -1);
 	LayoutMinX = LayoutMaxX = 0;
 }
@@ -1803,19 +1803,26 @@ GLayoutCell *GTableLayout::CellAt(int x, int y)
 void GTableLayout::OnPosChange()
 {
 	GRect r = GetClient();
-	if (GetCss())
+	if (r.X() != d->PrevWidth)
 	{
-		GCssTools t(GetCss(), GetFont());
-		r = t.ApplyPadding(r);
+		d->PrevWidth = r.X();
+		if (d->PrevWidth > 0)
+		{		
+			if (GetCss())
+			{
+				GCssTools t(GetCss(), GetFont());
+				r = t.ApplyPadding(r);
+			}
+			
+			d->Layout(r);
+		}
 	}
-	d->Layout(r);
 }
 
 GRect GTableLayout::GetUsedArea()
 {
-	if (d->FirstLayout)
+	if (d->PrevWidth != GetClient().X())
 	{
-		d->FirstLayout = false;
 		OnPosChange();
 	}
 
@@ -1828,18 +1835,21 @@ GRect GTableLayout::GetUsedArea()
         else
             r = c->Pos;
     }
+    
 	return r;
 }
 
 void GTableLayout::InvalidateLayout()
 {
+	d->PrevWidth = -1;
 	if (d->IsInLayout())
 	{
-		PostEvent(M_CHANGE, GetId(), GNotifyTableLayout_LayoutChanged);
+		PostEvent(	M_CHANGE,
+					(GMessage::Param) GetId(),
+					(GMessage::Param) GNotifyTableLayout_LayoutChanged);
 	}
 	else
 	{
-		d->FirstLayout = true;
 		OnPosChange();
 		Invalidate();
 	}
@@ -1851,7 +1861,6 @@ GMessage::Result GTableLayout::OnEvent(GMessage *m)
 	{
 		case M_TABLE_LAYOUT:
 		{
-			d->FirstLayout = false;
 			OnPosChange();
 			Invalidate();
 			return 0;
@@ -1863,7 +1872,8 @@ GMessage::Result GTableLayout::OnEvent(GMessage *m)
 
 void GTableLayout::OnPaint(GSurface *pDC)
 {
-	if (d->FirstLayout)
+	GRect Client = GetClient();
+	if (d->PrevWidth != Client.X())
 	{
 		PostEvent(M_TABLE_LAYOUT);
 	}

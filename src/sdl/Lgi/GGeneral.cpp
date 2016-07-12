@@ -870,7 +870,14 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 {
 	if (!b)
 	{
-		printf("%s:%i - Assert failed:\n%s\n", file, line, test);
+		GString Msg;
+		Msg.Printf("%s:%i - Assert failed:\n%s\n", file, line, test);
+		#ifdef WINDOWS
+		OutputDebugStringA(Msg.Get());
+		_asm int 3
+		#else
+		printf("%s", Msg.Get());
+		#endif
 		SDL_Quit();
 		exit(-1);
 	}

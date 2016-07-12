@@ -1663,7 +1663,7 @@ bool GFontType::Serialize(GDom *Options, const char *OptName, bool Write)
 	if (Options && OptName)
 	{
 		GVariant v;
-		#if defined WIN32
+		#if defined WINNATIVE
 		if (Write)
 		{
 			v.SetBinary(sizeof(Info), &Info);
