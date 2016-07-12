@@ -36,16 +36,16 @@ int MapW32FlagsToLgi(int W32Flags)
 	return f;
 }
 
-int FormatToInt(char *s)
+int FormatToInt(GString s)
 {
 	if (s && stricmp(s, "CF_HDROP") == 0) return CF_HDROP;
-	return RegisterClipboardFormat(s);
+	return RegisterClipboardFormatA(s);
 }
 
 char *FormatToStr(int f)
 {
 	static char b[128];
-	if (GetClipboardFormatName(f, b, sizeof(b)) > 0) return b;
+	if (GetClipboardFormatNameA(f, b, sizeof(b)) > 0) return b;
 	if (f == CF_HDROP) return "CF_HDROP";
 	return 0;
 }
@@ -670,8 +670,9 @@ HRESULT STDMETHODCALLTYPE GDragDropTarget::Drop(IDataObject *pDataObject, DWORD 
 	GArray<GDragData> Data;	
 	for (char *FormatName = Formats.First(); FormatName; FormatName = Formats.Next())
 	{
-		bool IsStreamDrop = !_stricmp(FormatName, LGI_StreamDropFormat);
-		bool IsFileContents = !_stricmp(FormatName, CFSTR_FILECONTENTS);
+		GString Str;
+		bool IsStreamDrop = !_stricmp(FormatName, Str = LGI_StreamDropFormat);
+		bool IsFileContents = !_stricmp(FormatName, Str = CFSTR_FILECONTENTS);
 		GDragData &CurData = Data.New();
 		CurData.Format = FormatName;
 
@@ -830,8 +831,9 @@ bool GDragDropTarget::OnDropFileGroupDescriptor(FILEGROUPDESCRIPTOR *Data, GArra
 				if (Ptr)
 				{
 					char Path[256];
+					GString Str;
 					LgiGetSystemPath(LSP_TEMP, Path, sizeof(Path));
-					LgiMakePath(Path, sizeof(Path), Path, Data->fgd[i].cFileName);
+					LgiMakePath(Path, sizeof(Path), Path, Str = Data->fgd[i].cFileName);
 
 					GFile f;
 					if (f.Open(Path, O_WRITE))

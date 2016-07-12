@@ -543,7 +543,7 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 				bool Ok = false;				
 				if (LgiGetOs() == LGI_OS_WIN9X)
 				{
-					Ok = CreateProcess(	0, 
+					Ok = CreateProcessA(0, 
 										Buf,			// command line 
 										NULL,			// process security attributes 
 										NULL,			// primary thread security attributes 

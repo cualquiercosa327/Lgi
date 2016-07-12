@@ -367,7 +367,7 @@ bool GFileSelect::OpenFolder()
 	if  (::SHGetMalloc(&pMalloc) == NOERROR)
 	{
 		BROWSEINFO      bi;
-		char            pszBuffer[MAX_PATH];
+		char16          pszBuffer[MAX_PATH];
 		LPITEMIDLIST    pidl;
 
 		ZeroObj(bi);
@@ -375,7 +375,7 @@ bool GFileSelect::OpenFolder()
 		// Get help on BROWSEINFO struct - it's got all the bit settings.
 		bi.hwndOwner        = (d->ParentWnd) ? d->ParentWnd->Handle() : 0;
 		bi.pszDisplayName   = pszBuffer;
-		bi.lpszTitle        = "Select a Directory";
+		bi.lpszTitle        = L"Select a Directory";
 		bi.ulFlags          = BIF_RETURNFSANCESTORS | BIF_RETURNONLYFSDIRS | BIF_EDITBOX;
 		bi.lpfn				= GFileSelectBrowseCallback;
 		bi.lParam			= (LPARAM)InitialDir();
@@ -386,7 +386,7 @@ bool GFileSelect::OpenFolder()
 			if  (::SHGetPathFromIDList(pidl, pszBuffer))
 			{
 				// At this point pszBuffer contains the selected path
-				d->Files.Insert(LgiFromNativeCp(pszBuffer));
+				d->Files.Insert(LgiNewUtf16To8(pszBuffer));
 				Status = true;
 			}
 

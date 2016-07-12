@@ -50,7 +50,6 @@ GFontSelect::GFontSelect(GView *Parent, void *Init, int InitLen)
 {
 	// Initialize
 	d = new GFontSelectPriv;
-	Face = 0;
 	Size = 0;
 	Bold = false;
 	Underline = false;
@@ -146,7 +145,7 @@ void GFontSelect::InsertFont(const char *f)
 			i->SetText(f, 0);
 			d->Lst->Insert(i);
 
-			if (stricmp(f, Face) == 0)
+			if (Face && stricmp(f, Face) == 0)
 			{
 				i->Select(true);
 			}
@@ -249,8 +248,7 @@ void GFontSelect::OnCreate()
 
 void GFontSelect::UiToThis()
 {
-	DeleteArray(Face);
-	Face = NewStr(GetSelectedFace());
+	Face = GetSelectedFace();
 	Size = (int)GetCtrlValue(IDC_PT_SIZE);
 	Underline = GetCtrlValue(IDC_UNDERLINE);
 	Bold = GetCtrlValue(IDC_BOLD);
@@ -263,16 +261,31 @@ bool GFontSelect::Serialize(void *Data, int DataLen, bool Write)
 	{
 		#ifdef WINNATIVE
 
-		LOGFONT *Fnt = (LOGFONT*) Data;
-
-		if (sizeof(*Fnt) > DataLen)
-			return false;
-		if (Face)
-			strcpy(Fnt->lfFaceName, Face);
-		Fnt->lfHeight = WinPointToHeight(Size);
-		Fnt->lfWeight = Bold ? FW_BOLD : FW_NORMAL;
-		Fnt->lfUnderline = Underline;
-		Fnt->lfItalic = Italic;
+		if (DataLen == sizeof(LOGFONTA))
+		{
+			LOGFONTA *Fnt = (LOGFONTA*) Data;
+			if (sizeof(*Fnt) > DataLen)
+				return false;
+			if (Face)
+				sprintf_s(Fnt->lfFaceName, CountOf(Fnt->lfFaceName), "%s", Face.Get());
+			Fnt->lfHeight = WinPointToHeight(Size);
+			Fnt->lfWeight = Bold ? FW_BOLD : FW_NORMAL;
+			Fnt->lfUnderline = Underline;
+			Fnt->lfItalic = Italic;
+		}
+		else if (DataLen == sizeof(LOGFONTW))
+		{
+			LOGFONTW *Fnt = (LOGFONTW*) Data;
+			if (sizeof(*Fnt) > DataLen)
+				return false;
+			if (Face)
+				swprintf_s(Fnt->lfFaceName, CountOf(Fnt->lfFaceName), L"%S", Face.Get());
+			Fnt->lfHeight = WinPointToHeight(Size);
+			Fnt->lfWeight = Bold ? FW_BOLD : FW_NORMAL;
+			Fnt->lfUnderline = Underline;
+			Fnt->lfItalic = Italic;
+		}
+		else LgiAssert(!"Unknown object size.");
 
 		#else
 		
@@ -291,12 +304,24 @@ bool GFontSelect::Serialize(void *Data, int DataLen, bool Write)
 	{
 		#ifdef WINNATIVE
 
-		LOGFONT *Fnt = (LOGFONT*) Data;
-		Face = NewStr(Fnt->lfFaceName);
-		Size = WinHeightToPoint(Fnt->lfHeight);
-		Bold = Fnt->lfWeight >= FW_BOLD;
-		Underline = Fnt->lfUnderline;
-		Italic = Fnt->lfItalic;
+		if (DataLen == sizeof(LOGFONTA))
+		{
+			LOGFONTA *Fnt = (LOGFONTA*) Data;
+			Face = Fnt->lfFaceName;
+			Size = WinHeightToPoint(Fnt->lfHeight);
+			Bold = Fnt->lfWeight >= FW_BOLD;
+			Underline = Fnt->lfUnderline;
+			Italic = Fnt->lfItalic;
+		}
+		else if (DataLen == sizeof(LOGFONTW))
+		{
+			LOGFONTW *Fnt = (LOGFONTW*) Data;
+			Face = Fnt->lfFaceName;
+			Size = WinHeightToPoint(Fnt->lfHeight);
+			Bold = Fnt->lfWeight >= FW_BOLD;
+			Underline = Fnt->lfUnderline;
+			Italic = Fnt->lfItalic;
+		}
 
 		#else
 
@@ -333,7 +358,10 @@ int GFontSelect::OnNotify(GViewI *Ctrl, int Flags)
 		case IDC_SELECT_SIZE:
 		{
 			char *n = Ctrl->Name();
-			SetCtrlValue(IDC_PT_SIZE, atoi(n));
+			if (n)
+				SetCtrlValue(IDC_PT_SIZE, atoi(n));
+			else
+				break;
 			// fall thru
 		}
 		case IDC_BOLD:

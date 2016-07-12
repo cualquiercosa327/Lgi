@@ -1883,8 +1883,9 @@ GSurface *GdcDevice::Load(const char *Name, bool UseOSLoader)
 	{
 		// Loading non-file resource...
 		#if WINNATIVE
+		GAutoWString WName(LgiNewUtf8To16(Name));
 		// a resource... lock and load gentlemen
-		HRSRC hRsrc = FindResource(NULL, Name, RT_BITMAP);
+		HRSRC hRsrc = FindResource(NULL, WName, RT_BITMAP);
 		if (hRsrc)
 		{
 			int Size = SizeofResource(NULL, hRsrc);

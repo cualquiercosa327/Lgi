@@ -219,7 +219,7 @@ bool GCombo::Insert(const char *p, int Index)
 
 	if (_View)
 	{
-		GAutoString n(LgiToNativeCp(p));
+		GAutoWString n(LgiNewUtf8To16(p));
 		if (!n)
 			return false;
 
@@ -279,16 +279,18 @@ int GCombo::IndexOf(const char *str)
 	return -1;
 }
 
-GRect &GCombo::GetPos()
-{
-	return d->Pos;
-}
-
 bool GCombo::SetPos(GRect &p, bool Repaint)
 {
+	if (p == Pos)
+		return true;
+	
 	d->Pos = p;
-	p.y2 = p.y1 + 200;
-	return GControl::SetPos(p, Repaint);
+	d->Pos.y2 = d->Pos.y1 + 200;
+	bool b = GControl::SetPos(d->Pos, Repaint);
+	if (b)
+		Pos = p;
+	
+	return b;
 }
 
 int GCombo::SysOnNotify(int Msg, int Code)
@@ -341,7 +343,8 @@ GMessage::Result GCombo::OnEvent(GMessage *Msg)
 				d->Init = true;
 				for (unsigned n=0; n<d->Strs.Length(); n++)
 				{
-					SendMessage(Handle(), CB_INSERTSTRING, n, (LPARAM)d->Strs[n].Get());
+					GAutoWString s(LgiNewUtf8To16(d->Strs[n]));
+					SendMessage(Handle(), CB_INSERTSTRING, n, (LPARAM)s.Get());
 				}
 
 				SetFont(SysFont);

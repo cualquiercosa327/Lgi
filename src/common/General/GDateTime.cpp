@@ -19,6 +19,8 @@
 #include <sys/time.h>
 #endif
 
+#include <tchar.h>
+
 #include "Lgi.h"
 #include "GDateTime.h"
 #include "GToken.h"
@@ -34,9 +36,9 @@ uint16 GDateTime::GetDefaultFormat()
 	{
 		#ifdef WIN32
 
-		char s[80] = "1";
-		GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_IDATE, s, sizeof(s));
-		switch (atoi(s))
+		TCHAR s[80] = _T("1");
+		GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_IDATE, s, CountOf(s));
+		switch (_tstoi(s))
 		{
 			case 0:
 				DefaultFormat = GDTF_MONTH_DAY_YEAR;
@@ -51,7 +53,7 @@ uint16 GDateTime::GetDefaultFormat()
 		}
 
 		GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_ITIME, s, sizeof(s));
-		if (atoi(s) == 1)
+		if (_tstoi(s) == 1)
 		{
 			DefaultFormat |= GDTF_24HOUR;
 		}
@@ -66,7 +68,8 @@ uint16 GDateTime::GetDefaultFormat()
 		if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_SSHORTDATE, s, sizeof(s)))
 		{
 			char Sep[] = { DefaultSeparator, '/', '\\', '-', '.', 0 };
-			GToken t(s, Sep);
+			GString Str = s;
+			GToken t(Str, Sep);
 			for (int i=0; i<t.Length(); i++)
 			{
 				if (!stricmp(t[i], "mm"))

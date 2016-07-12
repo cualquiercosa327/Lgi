@@ -193,7 +193,7 @@ int CALLBACK _EnumFonts(ENUMLOGFONT FAR *lpelf,
 	List<char> *p = (List<char>*) lParam;
 	if (p)
 	{
-		p->Insert(LgiFromNativeCp(lpelf->elfLogFont.lfFaceName));
+		p->Insert(LgiNewUtf16To8(lpelf->elfLogFont.lfFaceName));
 	}
 	return true;
 }

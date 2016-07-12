@@ -371,6 +371,7 @@ private:
 	#elif defined WIN32
 
 	friend		class GWin32Class;
+	friend		class GCombo;
 	friend		LRESULT CALLBACK DlgRedir(OsView hWnd, UINT m, WPARAM a, LPARAM b);
 	static		void CALLBACK TimerProc(OsView hwnd, UINT uMsg, UINT_PTR idEvent, uint32 dwTime);
 

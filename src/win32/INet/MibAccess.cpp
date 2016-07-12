@@ -24,8 +24,8 @@ MibExtLoad::MibExtLoad(LPSTR MibDllName, LPSTR SnmpDllName)
 	m_Query = NULL;	
 	m_Trap = NULL;
 	
-	m_hInst = LoadLibrary(MibDllName);
-	m_hSnmp = LoadLibrary(SnmpDllName);
+	m_hInst = LoadLibraryA(MibDllName);
+	m_hSnmp = LoadLibraryA(SnmpDllName);
 
 	if (!m_hInst ||
 		!m_hSnmp)

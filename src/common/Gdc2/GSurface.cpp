@@ -1934,7 +1934,7 @@ bool GSurface::ConvertPreMulAlpha(bool ToPreMul)
 		}
 	}
 
-	pMem->PreMul(false);
+	pMem->PreMul(ToPreMul);
 	return true;
 }
 

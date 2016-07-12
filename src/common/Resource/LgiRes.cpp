@@ -1250,7 +1250,7 @@ GLanguage *LgiGetLanguageId()
 	int Lang = GetSystemDefaultLCID();
 
 	TCHAR b[256];
-	if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_IDEFAULTLANGUAGE, b, sizeof(b)) > 0)
+	if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_IDEFAULTLANGUAGE, b, CountOf(b)) > 0)
 	{
 		Lang = htoi(b);
 	}

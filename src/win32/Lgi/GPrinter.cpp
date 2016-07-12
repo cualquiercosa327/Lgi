@@ -105,10 +105,11 @@ bool GPrinter::Print(GPrintEvents *Events, const char *PrintJobName, int Pages, 
 	bool Status = false;
 
 	DOCINFO Info;
+	GAutoWString DocName(LgiNewUtf8To16(PrintJobName ? PrintJobName : "Lgi Print Job"));
 
 	ZeroObj(Info);
 	Info.cbSize = sizeof(DOCINFO); 
-	Info.lpszDocName = PrintJobName ? PrintJobName : "Lgi Print Job"; 
+	Info.lpszDocName = DocName; 
 
 	if (Pages > 0)
 		JobPages = min(JobPages, Pages);

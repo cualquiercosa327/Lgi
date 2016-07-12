@@ -147,10 +147,10 @@ int _lgi_get_key_flags()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 int GetInputACP()
 {
-	char Str[16];
+	char16 Str[16];
 	LCID Lcid = (NativeInt)GetKeyboardLayout(LgiGetCurrentThread()) & 0xffff;
-	GetLocaleInfo(Lcid, LOCALE_IDEFAULTANSICODEPAGE , Str, sizeof(Str));
-	return atoi(Str);
+	GetLocaleInfo(Lcid, LOCALE_IDEFAULTANSICODEPAGE, Str, sizeof(Str));
+	return _wtoi(Str);
 }
 
 GKey::GKey(int v, int flags)
@@ -797,7 +797,7 @@ LgiCursor GView::GetCursor(int x, int y)
 
 bool LgiToWindowsCursor(LgiCursor Cursor)
 {
-	char *Set = 0;
+	char16 *Set = 0;
 	switch (Cursor)
 	{
 		case LCUR_UpArrow:
@@ -954,6 +954,7 @@ bool GView::SetPos(GRect &p, bool Repaint)
 									SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOOWNERZORDER);
 			In_SetWindowPos = false;
 
+			/*
 			HWND hNew = GetFocus();
 			if (hNew != hOld)
 			{
@@ -965,6 +966,7 @@ bool GView::SetPos(GRect &p, bool Repaint)
 				// Oh f#$% off windows.
 				// SetFocus(hOld);
 			}
+			*/
 		}
 		else if (GetParent())
 		{
@@ -1513,6 +1515,12 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			}
 			case WM_SETFOCUS:
 			{
+				GView *Prev;
+				if (CastHwnd(Prev, (HWND)Msg->A()))
+				{
+					LgiTrace("WM_SETFOCUS Prev=%p/%s\n", Prev, Prev->GetClass());
+				}
+				
 				GWindow *w = GetWindow();
 				if (w)
 				{
@@ -2079,14 +2087,12 @@ GViewI *GView::FindControl(OsView hCtrl)
 		return this;
 	}
 
-	;
 	for (List<GViewI>::I i = Children.Start(); i.In(); i++)
 	{
 		GViewI *Ctrl = (*i)->FindControl(hCtrl);
 		if (Ctrl)
-		{
 			return Ctrl;
-		}
 	}
+
 	return 0;
 }

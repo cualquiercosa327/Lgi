@@ -257,17 +257,18 @@ class LgiClass GFontType
 
 protected:
 	#if defined WINNATIVE
-	LOGFONT Info;
+	LOGFONTW Info;
 	#else
 	GTypeFace Info;
 	#endif
+	GString Buf;
 
 public:
 	GFontType(const char *face = 0, int pointsize = 0);
 	virtual ~GFontType();
 
 	#ifdef WINNATIVE
-	LOGFONT *Handle() { return &Info; }
+	LOGFONTW *Handle() { return &Info; }
 	#else
 	GTypeFace *Handle() { return &Info; }
 	#endif

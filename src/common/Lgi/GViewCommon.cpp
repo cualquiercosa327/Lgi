@@ -2024,8 +2024,8 @@ static void GFactoryInitFactories()
 GViewFactory::GViewFactory()
 {
 	#if defined(WIN32)
-	char Name[256];
-	sprintf_s(Name, sizeof(Name), "LgiFactoryEvent.%i", GetCurrentProcessId());
+	char16 Name[64];
+	swprintf_s(Name, CountOf(Name), L"LgiFactoryEvent.%i", GetCurrentProcessId());
 	HANDLE h = CreateEvent(NULL, false, false, Name);
 	DWORD err = GetLastError();
 	if (err != ERROR_ALREADY_EXISTS)

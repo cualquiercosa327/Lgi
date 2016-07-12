@@ -469,66 +469,6 @@ bool MatchStr(const char *Template, const char *Data)
 			(*Data == 0);
 }
 
-uint32 htoi(const char *a)
-{
-	uint32 Status = 0;
-
-	if (a[0] == '0' && (a[1] == 'x' || a[1] == 'X'))
-		a += 2;
-
-	for (; a && *a; a++)
-	{
-		if (*a >= '0' && *a <= '9')
-		{
-			Status <<= 4;
-			Status |= *a - '0';
-		}
-		else if (*a >= 'a' && *a <= 'f')
-		{
-			Status <<= 4;
-			Status |= *a - 'a' + 10;
-		}
-		else if (*a >= 'A' && *a <= 'F')
-		{
-			Status <<= 4;
-			Status |= *a - 'A' + 10;
-		}
-		else break;
-	}
-
-	return Status;
-}
-
-uint64 htoi64(const char *a)
-{
-	uint64 Status = 0;
-
-	if (a[0] == '0' && (a[1] == 'x' || a[1] == 'X'))
-		a += 2;
-
-	for (; a && *a; a++)
-	{
-		if (*a >= '0' && *a <= '9')
-		{
-			Status <<= 4;
-			Status |= *a - '0';
-		}
-		else if (*a >= 'a' && *a <= 'f')
-		{
-			Status <<= 4;
-			Status |= *a - 'a' + 10;
-		}
-		else if (*a >= 'A' && *a <= 'F')
-		{
-			Status <<= 4;
-			Status |= *a - 'A' + 10;
-		}
-		else break;
-	}
-
-	return Status;
-}
-
 //////////////////////////////////////////////////////////////////////////
 // UTF-16
 #define CompareDefault	(a && b ? *a - *b : -1)

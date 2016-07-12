@@ -837,8 +837,8 @@ bool GMenuItem::Name(const char *Txt)
 		if (n)
 		{
 			// Set OS menu structure
-			Info.dwTypeData = GBase::Name();
-			Info.cch = strlen(GBase::Name());
+			Info.dwTypeData = GBase::NameW();
+			Info.cch = StrlenW(GBase::NameW());
 			Info.fType |= MFT_STRING;
 			Info.fMask |= MIIM_TYPE | MIIM_DATA;
 
@@ -975,7 +975,7 @@ void GMenuItem::Visible(bool i)
 }
 
 int GMenuItem::Id() { return Info.wID; }
-char *GMenuItem::Name() { return (!(Info.fType & MFT_SEPARATOR)) ? Info.dwTypeData : 0; }
+char *GMenuItem::Name() { return GBase::Name(); }
 bool GMenuItem::Separator() { return (Info.fType & MFT_SEPARATOR) != 0; }
 bool GMenuItem::Checked() { return (Info.fState & MF_CHECKED) != 0; }
 bool GMenuItem::Enabled()

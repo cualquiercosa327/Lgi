@@ -254,8 +254,11 @@ public:
 		if (Face.Length() < 1 || !ValidStr(Face[0]))
 		{
 			Face.Empty();
-			Face.Add(NewStr(Default->Face()));
+			const char *DefFace = Default->Face();
+			LgiAssert(ValidStr(DefFace));
+			Face.Add(NewStr(DefFace));
 		}
+		LgiAssert(ValidStr(Face[0]));
 		GCss::Len Size = Style->FontSize();
 		GCss::FontWeightType Weight = Style->FontWeight();
 		bool IsBold =	Weight == GCss::FontWeightBold ||
@@ -387,7 +390,10 @@ public:
 				return Owner->GetFont();
 
 			Fonts.Insert(f = BestFont.Release());
-			LgiAssert(f && f->Face() != NULL);
+			if (!f || !f->Face())
+			{
+				LgiAssert(0);
+			}
 			return f;
 		}
 		else if (Size.Type == GCss::LenPt)
@@ -395,6 +401,12 @@ public:
 			double Pt = max(MinimumPointSize, Size.Value);
 			for (f=Fonts.First(); f; f=Fonts.Next())
 			{
+				if (!f->Face() || Face.Length() == 0)
+				{
+					LgiAssert(0);
+					break;
+				}
+				
 				if (f->Face() &&
 					_stricmp(f->Face(), Face[0]) == 0 &&
 					f->PointSize() == Pt &&
@@ -497,7 +509,11 @@ public:
 
 			// Not already cached
 			Fonts.Insert(f);
-			LgiAssert(f->Face() != NULL);
+			if (!f->Face())
+			{
+				LgiAssert(0);
+			}
+			
 			return f;
 		}
 

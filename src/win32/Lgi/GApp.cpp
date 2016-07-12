@@ -396,7 +396,7 @@ DumpTime("fonts");
 	// Other vars and init
 	hNormalCursor = LoadCursor(NULL, IDC_ARROW);
 	LgiRandomize(LgiCurrentTime()*LgiGetCurrentThread());
-	MouseRollMsg = RegisterWindowMessage("MSWHEEL_ROLLMSG");
+	MouseRollMsg = RegisterWindowMessage(L"MSWHEEL_ROLLMSG");
 
 DumpTime("cursor/rand/msg");
 
@@ -1000,7 +1000,7 @@ bool GApp::IsWine()
 {
 	if (d->LinuxWine < 0)
 	{
-		HMODULE hntdll = GetModuleHandle("ntdll.dll");
+		HMODULE hntdll = GetModuleHandle(L"ntdll.dll");
 		if (hntdll)
 		{
 			typedef const char * (CDECL *pwine_get_version)(void);

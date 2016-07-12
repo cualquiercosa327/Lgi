@@ -617,7 +617,7 @@ void LgiTrace(const char *Msg, ...)
 
 
 	#if defined WIN32
-	OutputDebugString(Buffer);
+	OutputDebugStringA(Buffer);
 	Sem.Unlock();
 	#else
 	printf("%s", Buffer);
@@ -670,7 +670,7 @@ void LgiStackTrace(const char *Msg, ...)
 		#endif
 
 		#if defined WIN32
-		OutputDebugString(Buffer);
+		OutputDebugStringA(Buffer);
 		#else
 		printf("Trace: %s", Buffer);
 		#endif
@@ -1186,8 +1186,8 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 		{
 			#if defined WIN32
 
-			char p[MAX_PATH];
-			if (GetWindowsDirectory(p, sizeof(p)) > 0)
+			char16 p[MAX_PATH];
+			if (GetWindowsDirectory(p, CountOf(p)) > 0)
 				Path = p;
 
 			#elif defined MAC && !defined COCOA
@@ -1221,8 +1221,8 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 		{
 			#if defined WIN32
 
-			char p[MAX_PATH];
-			if (GetSystemDirectory(p, sizeof(p)) > 0)
+			char16 p[MAX_PATH];
+			if (GetSystemDirectory(p, CountOf(p)) > 0)
 				Path = p;
 			
 			#elif defined MAC
@@ -1533,15 +1533,13 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 
 		if (LgiGetOs() == LGI_OS_WIN9X)
 		{
-			char Exe[256];
-			if (GetModuleFileName(NULL, Exe, sizeof(Exe)) > 0)
+			char16 Exe[256];
+			if (GetModuleFileName(NULL, Exe, CountOf(Exe)) > 0)
 			{
-				char *e = LgiFromNativeCp(Exe);
+				GString e = Exe;
 				if (e)
 				{
-					strlwr(e);
-					strcpy_s(Dst, DstSize, e);
-					DeleteArray(e);
+					strcpy_s(Dst, DstSize, e.Lower());
 					return true;
 				}
 				else
@@ -1550,9 +1548,9 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 				}
 			}
 
-			char m[256];
-			sprintf_s(m, sizeof(m), "GetModuleFileName failed err: %08.8X", GetLastError());
-			MessageBox(0, m, "LgiGetExeFile Error", MB_OK);
+			GString m;
+			m.Printf("GetModuleFileName failed err: %08.8X", GetLastError());
+			MessageBoxA(0, m, "LgiGetExeFile Error", MB_OK);
 			LgiExitApp();
 		}
 		else

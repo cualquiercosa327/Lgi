@@ -333,6 +333,7 @@ public:
 	~GTableLayoutPrivate();
 	
 	// Utils
+	bool IsInLayout() { return InLayout; }
 	TableCell *GetCellAt(int cx, int cy);
 	void Empty(GRect *Range = NULL);
     bool CollectRadioButtons(GArray<GRadioButton*> &Btns);
@@ -1832,9 +1833,16 @@ GRect GTableLayout::GetUsedArea()
 
 void GTableLayout::InvalidateLayout()
 {
-	d->FirstLayout = true;
-	OnPosChange();
-	Invalidate();
+	if (d->IsInLayout())
+	{
+		PostEvent(M_CHANGE, GetId(), GNotifyTableLayout_LayoutChanged);
+	}
+	else
+	{
+		d->FirstLayout = true;
+		OnPosChange();
+		Invalidate();
+	}
 }
 
 GMessage::Result GTableLayout::OnEvent(GMessage *m)

@@ -1,8 +1,10 @@
 #define _WIN32_WINNT 0x500
 // Win32 Implementation of General LGI functions
+#include <tchar.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+
 #include "Lgi.h"
 #include "GRegKey.h"
 
@@ -199,10 +201,12 @@ bool _GetApps_Add(GArray<GAppInfo*> &Apps, char *In)
 		if (SysRoot)
 		{
 			// correct path for variables
-			char Temp[256];
-			GetWindowsDirectory(Temp, sizeof(Temp));
-			if (Temp[strlen(Temp)-1] != DIR_CHAR) strcat(Temp, DIR_STR);
-			p.Push(Temp);
+			TCHAR Temp[256];
+			UINT Ch = GetWindowsDirectory(Temp, CountOf(Temp));
+			GString Tmp = Temp;
+			if (Tmp(-1) != DIR_CHAR)
+				Tmp += DIR_STR;
+			p.Push(Tmp);
 
 			char *End = SysRoot + strlen(RootVar);
 			p.Push(*End == DIR_CHAR ? End + 1 : End);
@@ -449,7 +453,7 @@ bool LgiPlaySound(const char *FileName, int Flags)
 {
 	bool Status = false;
 
-	HMODULE hDll = LoadLibrary("winmm.dll");
+	HMODULE hDll = LoadLibrary(_T("winmm.dll"));
 	if (hDll)
 	{
 		typedef BOOL (__stdcall *Proc_sndPlaySound)(LPCSTR pszSound, UINT fuSound);
@@ -637,7 +641,8 @@ GRegKey::GRegKey(bool WriteAccess, char *Key, ...)
 		else TestKey(HKEY_USERS, HKU)
 		else return;
 
-		LONG ret = RegOpenKeyEx(Root, SubKey, 0, WriteAccess ? KEY_ALL_ACCESS : KEY_READ, &k);
+		GAutoWString wSubKey(LgiNewUtf8To16(SubKey));
+		LONG ret = RegOpenKeyEx(Root, wSubKey, 0, WriteAccess ? KEY_ALL_ACCESS : KEY_READ, &k);
 		if (ret != ERROR_SUCCESS && ret != ERROR_FILE_NOT_FOUND)
 		{			
 			DWORD err = GetLastError();
@@ -667,7 +672,8 @@ bool GRegKey::Create()
 		char *Sub = strchr(KeyName, '\\');
 		if (Sub)
 		{
-			LONG Ret = RegCreateKey(Root, Sub+1, &k);
+			GAutoWString wSub(LgiNewUtf8To16(Sub+1));
+			LONG Ret = RegCreateKey(Root, wSub, &k);
 			if (Ret == ERROR_SUCCESS)
 			{
 				Status = IsOk();
@@ -693,7 +699,8 @@ bool GRegKey::DeleteValue(char *Name)
 {
 	if (k)
 	{
-		if (RegDeleteValue(k, Name) == ERROR_SUCCESS)
+		GAutoWString wName(LgiNewUtf8To16(Name));
+		if (RegDeleteValue(k, wName) == ERROR_SUCCESS)
 		{
 			return true;
 		}
@@ -720,7 +727,8 @@ bool GRegKey::DeleteKey()
 			k = 0;
 
 			HKEY Root = GetRootKey(KeyName);
-			int Ret = RegDeleteKey(Root, n);
+			GAutoWString wName(LgiNewUtf8To16(n));
+			int Ret = RegDeleteKey(Root, wName);
 			Status = Ret == ERROR_SUCCESS;
 			if (!Status)
 			{
@@ -743,7 +751,8 @@ char *GRegKey::GetStr(const char *Name)
 	}
 
 	DWORD Size = sizeof(s), Type;
-	LONG Ret = RegQueryValueEx(k, Name, 0, &Type, (uchar*)s, &Size);
+	GAutoWString wName(LgiNewUtf8To16(Name));
+	LONG Ret = RegQueryValueEx(k, wName, 0, &Type, (uchar*)s, &Size);
 	if (Ret != ERROR_SUCCESS)
 	{
 		if (AssertOnError)
@@ -764,13 +773,14 @@ bool GRegKey::GetStr(const char *Name, GString &Str)
 	}
 
 	DWORD Size = 0, Type;
-	LONG Ret = RegQueryValueEx(k, Name, 0, &Type, NULL, &Size);
+	GAutoWString wName(LgiNewUtf8To16(Name));
+	LONG Ret = RegQueryValueEx(k, wName, 0, &Type, NULL, &Size);
 	if (Ret != ERROR_SUCCESS)
 		goto OnError;
 
 	{
 		GString Tmp((char*)NULL, Size);
-		Ret = RegQueryValueEx(k, Name, 0, &Type, (LPBYTE)Tmp.Get(), &Size);
+		Ret = RegQueryValueEx(k, wName, 0, &Type, (LPBYTE)Tmp.Get(), &Size);
 		if (Ret != ERROR_SUCCESS)
 			goto OnError;
 			
@@ -792,7 +802,8 @@ bool GRegKey::SetStr(const char *Name, const char *Value)
 		return false;
 	}
 
-	LONG Ret = RegSetValueEx(k, Name, 0, REG_SZ, (uchar*)Value, Value ? strlen(Value) : 0);
+	GAutoWString wName(LgiNewUtf8To16(Name));
+	LONG Ret = RegSetValueEx(k, wName, 0, REG_SZ, (uchar*)Value, Value ? strlen(Value) : 0);
 	if (Ret != ERROR_SUCCESS)
 	{
 		if (AssertOnError)
@@ -807,25 +818,28 @@ bool GRegKey::GetInt(const char *Name, uint32 &Value)
 {
 	if (!k) return false;
 	DWORD Size = sizeof(Value), Type;
-	LSTATUS r = RegQueryValueEx(k, Name, 0, &Type, (uchar*)&Value, &Size);
+	GAutoWString wName(LgiNewUtf8To16(Name));
+	LSTATUS r = RegQueryValueEx(k, wName, 0, &Type, (uchar*)&Value, &Size);
 	return r == ERROR_SUCCESS;
 }
 
 bool GRegKey::SetInt(const char *Name, uint32 Value)
 {
 	if (!k) return false;
-	LONG r = RegSetValueEx(k, Name, 0, REG_DWORD, (uchar*)&Value, sizeof(Value));
+	GAutoWString wName(LgiNewUtf8To16(Name));
+	LONG r = RegSetValueEx(k, wName, 0, REG_DWORD, (uchar*)&Value, sizeof(Value));
 	return r == ERROR_SUCCESS;
 }
 
 bool GRegKey::GetBinary(char *Name, void *&Ptr, int &Len)
 {
 	DWORD Size = 0, Type;
-	if (k && RegQueryValueEx(k, Name, 0, &Type, 0, &Size) == ERROR_SUCCESS)
+	GAutoWString wName(LgiNewUtf8To16(Name));
+	if (k && RegQueryValueEx(k, wName, 0, &Type, 0, &Size) == ERROR_SUCCESS)
 	{
 		Len = Size;
 		Ptr = new uchar[Len];
-		return RegQueryValueEx(k, Name, 0, &Type, (uchar*)Ptr, &Size) == ERROR_SUCCESS;
+		return RegQueryValueEx(k, wName, 0, &Type, (uchar*)Ptr, &Size) == ERROR_SUCCESS;
 	}
 
 	return false;
@@ -839,11 +853,11 @@ bool GRegKey::SetBinary(char *Name, void *Ptr, int Len)
 bool GRegKey::GetKeyNames(List<char> &n)
 {
 	FILETIME t;
-	char Buf[256];
-	DWORD Size = sizeof(Buf), i = 0;
+	TCHAR Buf[256];
+	DWORD Size = CountOf(Buf), i = 0;
 	while (RegEnumKeyEx(k, i++, Buf, &Size, 0, 0, 0, &t) == ERROR_SUCCESS)
 	{
-		n.Insert(NewStr(Buf));
+		n.Insert(LgiNewUtf16To8(Buf));
 		Size = sizeof(Buf);
 	}
 	return n.First() != 0;
@@ -851,11 +865,11 @@ bool GRegKey::GetKeyNames(List<char> &n)
 
 bool GRegKey::GetValueNames(List<char> &n)
 {
-	char Buf[256];
-	DWORD Type, Size = sizeof(Buf), i = 0;
+	TCHAR Buf[256];
+	DWORD Type, Size = CountOf(Buf), i = 0;
 	while (RegEnumValue(k, i++, Buf, &Size, 0, &Type, 0, 0) == ERROR_SUCCESS)
 	{
-		n.Insert(NewStr(Buf));
+		n.Insert(LgiNewUtf16To8(Buf));
 		Size = sizeof(Buf);
 	}
 	return n.First() != 0;

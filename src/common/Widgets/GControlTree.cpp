@@ -183,9 +183,7 @@ void GControlTree::Item::Select(bool b)
 					if ((Ctrl = new GEdit(-1, 0, 0, 200, CtrlY, 0)))
 						Ctrl->Name(Value.Str());
 					if (Flags & TYPE_FILE)
-					{
 						Browse = new GButton(IDC_BROWSE, 0, 0, -1, CtrlY, "...");
-					}
 					break;
 				case GV_BOOL:
 					if ((Ctrl = new GCheckBox(-1, 0, 0, 14, 16, 0)))

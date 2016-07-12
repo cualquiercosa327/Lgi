@@ -191,7 +191,7 @@ LgiFunc int WinHeightToPoint(int Ht, HDC hDC = NULL);
 LgiExtern class GString WinGetSpecialFolderPath(int Id);
 
 /// Convert a string d'n'd format to an OS dependant integer.
-LgiFunc int FormatToInt(char *s);
+LgiFunc int FormatToInt(GString s);
 /// Convert a Os dependant integer d'n'd format to a string.
 LgiFunc char *FormatToStr(int f);
 extern bool LgiToWindowsCursor(LgiCursor Cursor);
@@ -204,8 +204,8 @@ extern bool LgiToWindowsCursor(LgiCursor Cursor);
 #define atoi64						_atoi64
 
 #ifdef __GNUC__
-// #define stricmp							strcasecmp
-// #define strnicmp						strncasecmp
+// #define stricmp					strcasecmp
+// #define strnicmp					strncasecmp
 #define vsnprintf_s vsnprintf
 #define swprintf_s snwprintf
 #define vsprintf_s vsnprintf

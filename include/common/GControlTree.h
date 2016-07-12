@@ -59,6 +59,8 @@ public:
 	GControlTree();
 	~GControlTree();
 
+	const char *GetClass() { return "GControlTree"; }
+
 	Item *Find(const char *opt);
 	GTreeItem *Insert(const char *DomPath, GVariantType Type, GVariant *Value = 0, GArray<EnumValue> *Enum = 0);
 	bool SetVariant(const char *Name, GVariant &Value, char *Array = 0);

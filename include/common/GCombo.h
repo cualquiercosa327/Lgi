@@ -115,7 +115,6 @@ public:
 	void OnAttach();
 	
 	#if WINNATIVE
-	GRect &GetPos();
 	bool SetPos(GRect &p, bool Repaint = false);
 	int SysOnNotify(int Msg, int Code);
 	#else

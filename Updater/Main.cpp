@@ -72,7 +72,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if (GetModuleFileNameW(NULL, Exe, sizeof(Exe)) <= 0)
 	{
 		WCHAR Msg[256];
-		swprintf_s(Msg, 256, L"GetModuleFileNameW failed with the error 0x%x", GetLastError());
+		swprintf_s(Msg, CountOf(Msg), L"GetModuleFileNameW failed with the error 0x%x", GetLastError());
 		MessageBox(NULL, Msg, AppName, MB_OK);
 		return -1;
 	}
@@ -100,7 +100,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 		// Work out the output filename...
 		WCHAR Output[MAX_PATH];
-		swprintf_s(Output, MAX_PATH, L"%s%s", Exe, Leaf + 1);
+		swprintf_s(Output, CountOf(Output), L"%s%s", Exe, Leaf + 1);
 		
 		// Copy the file...
 		BOOL Success = CopyFile(Files[i], Output, FALSE);
@@ -109,7 +109,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			WCHAR Msg[MAX_PATH << 1];
 			DWORD Err = GetLastError();
 			swprintf_s(	Msg,
-						MAX_PATH << 1,
+						CountOf(Msg),
 						L"Failed to copy\n'%s'\nto\n'%s'\nError: 0x%x",
 						Files[i],
 						Output,
@@ -124,7 +124,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// Return success
 	WCHAR Msg[256];
 	swprintf_s(	Msg,
-				256,
+				CountOf(Msg),
 				L"Success: %i files processed.",
 				Copied);
 	MessageBox(NULL, Msg, AppName, MB_OK);
