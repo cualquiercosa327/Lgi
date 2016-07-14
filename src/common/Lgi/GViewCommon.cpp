@@ -502,13 +502,6 @@ void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 					GdcPt2 co(p.x1, p.y1);
 					
 					pDC->SetClient(&p);
-					static int Count = 0;
-					Count++;
-					if (Count == 14)
-					{
-						int asd=0;
-					}
-					LgiTrace("Paint %i, %s\n", Count, w->GetClass());
 					w->_Paint(pDC, &co);
 					pDC->SetClient(0);
 				}
@@ -876,32 +869,41 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 	
 	if (c)
 	{
-		#if DEBUG_CAPTURE
-		LgiTrace("%s:%i - _Capturing=%p -> %p\n", _FL, _Capturing, Wnd);
-		#endif
-		_Capturing = Wnd;
-		
-		#if WINNATIVE
-			GdcPt2 Offset;
-			GViewI *v = _Capturing->Handle() ? _Capturing : FindReal(&Offset);
-			HWND h = v ? v->Handle() : NULL;
-			if (h)
-				SetCapture(h);
-			else
-				LgiAssert(0);
-
-		#elif defined(LGI_SDL)
-			#if SDL_VERSION_ATLEAST(2, 0, 4)
-			SDL_CaptureMouse(SDL_TRUE);
-			#else
-			LgiApp->CaptureMouse(true);
+		if (_Capturing == Wnd)
+		{
+			#if DEBUG_CAPTURE
+			LgiTrace("%s:%i - %s already has capture\n", _FL, _Capturing?_Capturing->GetClass():0);
 			#endif
-		#endif
+		}
+		else
+		{
+			#if DEBUG_CAPTURE
+			LgiTrace("%s:%i - _Capturing=%s -> %s\n", _FL, _Capturing?_Capturing->GetClass():0, Wnd?Wnd->GetClass():0);
+			#endif
+			_Capturing = Wnd;
+			
+			#if WINNATIVE
+				GdcPt2 Offset;
+				GViewI *v = _Capturing->Handle() ? _Capturing : FindReal(&Offset);
+				HWND h = v ? v->Handle() : NULL;
+				if (h)
+					SetCapture(h);
+				else
+					LgiAssert(0);
+
+			#elif defined(LGI_SDL)
+				#if SDL_VERSION_ATLEAST(2, 0, 4)
+				SDL_CaptureMouse(SDL_TRUE);
+				#else
+				LgiApp->CaptureMouse(true);
+				#endif
+			#endif
+		}
 	}
 	else if (_Capturing)
 	{
 		#if DEBUG_CAPTURE
-		LgiStackTrace("%s:%i - _Capturing=%p -> NULL\n", _FL, _Capturing);
+		LgiStackTrace("%s:%i - _Capturing=%s -> NULL\n", _FL, _Capturing?_Capturing->GetClass():0);
 		#endif
 		_Capturing = NULL;
 		

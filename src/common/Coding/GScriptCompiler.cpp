@@ -2113,12 +2113,25 @@ public:
 					
 					if (Op == OpAssign)
 					{
+						/*
+						This is breaking code like:
+						
+							Msg = Msg + "something";
+
+						Compiled looks like:						
+						
+							0000001A Assign R0 <- L1
+							00000023 Plus R0 += G3
+						
+						Leaving the result in 'R0' instead of 'L1' like it should.
+												
 						if (LValue)
 						{
 							// We already did the assignment as part of the
 							// L value optimization.
 						}
 						else
+						*/
 						{	
 							// However without the L value we have to do the output
 							// assignment.

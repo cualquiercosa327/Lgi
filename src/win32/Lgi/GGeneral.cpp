@@ -620,8 +620,7 @@ GRegKey::GRegKey(bool WriteAccess, char *Key, ...)
 	va_start(Arg, Key);
 	vsprintf(Buffer, Key, Arg);
 	va_end(Arg);
-	KeyName = NewStr(Buffer);
-
+	KeyName = Buffer;
 	if (KeyName)
 	{
 		int Len = 0;
@@ -632,7 +631,7 @@ GRegKey::GRegKey(bool WriteAccess, char *Key, ...)
 				!strnicmp(KeyName, #Short, Len = strlen(#Short))) \
 			{ \
 				Root = Long; \
-				SubKey = KeyName[Len] ? KeyName + Len + 1 : 0; \
+				SubKey = KeyName.Get()[Len] ? KeyName.Get() + Len + 1 : 0; \
 			}
 		TestKey(HKEY_CLASSES_ROOT, HKCR)
 		else TestKey(HKEY_CURRENT_CONFIG, HKCC)
@@ -641,8 +640,7 @@ GRegKey::GRegKey(bool WriteAccess, char *Key, ...)
 		else TestKey(HKEY_USERS, HKU)
 		else return;
 
-		GAutoWString wSubKey(LgiNewUtf8To16(SubKey));
-		LONG ret = RegOpenKeyEx(Root, wSubKey, 0, WriteAccess ? KEY_ALL_ACCESS : KEY_READ, &k);
+		LONG ret = RegOpenKeyExA(Root, SubKey, 0, WriteAccess ? KEY_ALL_ACCESS : KEY_READ, &k);
 		if (ret != ERROR_SUCCESS && ret != ERROR_FILE_NOT_FOUND)
 		{			
 			DWORD err = GetLastError();
@@ -655,7 +653,6 @@ GRegKey::GRegKey(bool WriteAccess, char *Key, ...)
 GRegKey::~GRegKey()
 {
 	if (k) RegCloseKey(k);
-	DeleteArray(KeyName);
 }
 
 bool GRegKey::IsOk()
@@ -672,8 +669,7 @@ bool GRegKey::Create()
 		char *Sub = strchr(KeyName, '\\');
 		if (Sub)
 		{
-			GAutoWString wSub(LgiNewUtf8To16(Sub+1));
-			LONG Ret = RegCreateKey(Root, wSub, &k);
+			LONG Ret = RegCreateKeyA(Root, Sub+1, &k);
 			if (Ret == ERROR_SUCCESS)
 			{
 				Status = IsOk();
@@ -699,8 +695,7 @@ bool GRegKey::DeleteValue(char *Name)
 {
 	if (k)
 	{
-		GAutoWString wName(LgiNewUtf8To16(Name));
-		if (RegDeleteValue(k, wName) == ERROR_SUCCESS)
+		if (RegDeleteValueA(k, Name) == ERROR_SUCCESS)
 		{
 			return true;
 		}
@@ -727,15 +722,14 @@ bool GRegKey::DeleteKey()
 			k = 0;
 
 			HKEY Root = GetRootKey(KeyName);
-			GAutoWString wName(LgiNewUtf8To16(n));
-			int Ret = RegDeleteKey(Root, wName);
+			int Ret = RegDeleteKeyA(Root, n);
 			Status = Ret == ERROR_SUCCESS;
 			if (!Status)
 			{
 				if (AssertOnError)
 					LgiAssert(!"RegDeleteKey failed.");
 			}
-			DeleteArray(KeyName);
+			KeyName.Empty();
 		}
 	}
 
@@ -751,8 +745,7 @@ char *GRegKey::GetStr(const char *Name)
 	}
 
 	DWORD Size = sizeof(s), Type;
-	GAutoWString wName(LgiNewUtf8To16(Name));
-	LONG Ret = RegQueryValueEx(k, wName, 0, &Type, (uchar*)s, &Size);
+	LONG Ret = RegQueryValueExA(k, Name, 0, &Type, (uchar*)s, &Size);
 	if (Ret != ERROR_SUCCESS)
 	{
 		if (AssertOnError)
@@ -773,14 +766,13 @@ bool GRegKey::GetStr(const char *Name, GString &Str)
 	}
 
 	DWORD Size = 0, Type;
-	GAutoWString wName(LgiNewUtf8To16(Name));
-	LONG Ret = RegQueryValueEx(k, wName, 0, &Type, NULL, &Size);
+	LONG Ret = RegQueryValueExA(k, Name, 0, &Type, NULL, &Size);
 	if (Ret != ERROR_SUCCESS)
 		goto OnError;
 
 	{
 		GString Tmp((char*)NULL, Size);
-		Ret = RegQueryValueEx(k, wName, 0, &Type, (LPBYTE)Tmp.Get(), &Size);
+		Ret = RegQueryValueExA(k, Name, 0, &Type, (LPBYTE)Tmp.Get(), &Size);
 		if (Ret != ERROR_SUCCESS)
 			goto OnError;
 			
@@ -802,8 +794,7 @@ bool GRegKey::SetStr(const char *Name, const char *Value)
 		return false;
 	}
 
-	GAutoWString wName(LgiNewUtf8To16(Name));
-	LONG Ret = RegSetValueEx(k, wName, 0, REG_SZ, (uchar*)Value, Value ? strlen(Value) : 0);
+	LONG Ret = RegSetValueExA(k, Name, 0, REG_SZ, (uchar*)Value, Value ? strlen(Value) : 0);
 	if (Ret != ERROR_SUCCESS)
 	{
 		if (AssertOnError)
@@ -818,28 +809,25 @@ bool GRegKey::GetInt(const char *Name, uint32 &Value)
 {
 	if (!k) return false;
 	DWORD Size = sizeof(Value), Type;
-	GAutoWString wName(LgiNewUtf8To16(Name));
-	LSTATUS r = RegQueryValueEx(k, wName, 0, &Type, (uchar*)&Value, &Size);
+	LSTATUS r = RegQueryValueExA(k, Name, 0, &Type, (uchar*)&Value, &Size);
 	return r == ERROR_SUCCESS;
 }
 
 bool GRegKey::SetInt(const char *Name, uint32 Value)
 {
 	if (!k) return false;
-	GAutoWString wName(LgiNewUtf8To16(Name));
-	LONG r = RegSetValueEx(k, wName, 0, REG_DWORD, (uchar*)&Value, sizeof(Value));
+	LONG r = RegSetValueExA(k, Name, 0, REG_DWORD, (uchar*)&Value, sizeof(Value));
 	return r == ERROR_SUCCESS;
 }
 
 bool GRegKey::GetBinary(char *Name, void *&Ptr, int &Len)
 {
 	DWORD Size = 0, Type;
-	GAutoWString wName(LgiNewUtf8To16(Name));
-	if (k && RegQueryValueEx(k, wName, 0, &Type, 0, &Size) == ERROR_SUCCESS)
+	if (k && RegQueryValueExA(k, Name, 0, &Type, 0, &Size) == ERROR_SUCCESS)
 	{
 		Len = Size;
 		Ptr = new uchar[Len];
-		return RegQueryValueEx(k, wName, 0, &Type, (uchar*)Ptr, &Size) == ERROR_SUCCESS;
+		return RegQueryValueExA(k, Name, 0, &Type, (uchar*)Ptr, &Size) == ERROR_SUCCESS;
 	}
 
 	return false;

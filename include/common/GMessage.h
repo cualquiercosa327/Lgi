@@ -5,9 +5,9 @@ enum LgiMessages
 {
 	#if defined(WINNATIVE)
 
-		// Quite a lot of windows stuff uses WM_USER+n where
-		// n < 0x1A0 or so... so stay out of their way.
-		M_USER						= WM_USER,
+		// [WM_APP:WM_APP+200] is reserved for LGI itself.
+		// [WM_APP+200:0xBFFF] is reserved for LGI applications.
+		M_USER						= WM_APP + 200,
 		M_CUT						= WM_CUT,
 		M_COPY						= WM_COPY,
 		M_PASTE						= WM_PASTE,
@@ -16,7 +16,7 @@ enum LgiMessages
 
 		// wParam = bool Inside; // is the mouse inside the client area?
 		// lParam = MAKELONG(x, y); // mouse location
-		M_MOUSEENTER				= M_USER + 0x1000,
+		M_MOUSEENTER				= WM_APP,
 		M_MOUSEEXIT,
 
 		// return (bool)

@@ -23,11 +23,12 @@ public:
     }
 };
 
-GControlTree::Item::Item(char *Txt, const char *opt, GVariantType type, GArray<GControlTree::EnumValue> *pEnum)
+GControlTree::Item::Item(int ctrlId, char *Txt, const char *opt, GVariantType type, GArray<GControlTree::EnumValue> *pEnum)
 {
 	if (ValidStr(opt))
 		Opt.Reset(NewStr(opt));
 
+	CtrlId = ctrlId;
 	Enum.Reset(pEnum);
 	SetText(Txt);
 	Type = type;
@@ -138,24 +139,54 @@ void GControlTree::Item::Save()
 		switch (Type)
 		{
 			case GV_STRING:
-				Value = Ctrl->Name();
+			{
+				char *v = Ctrl->Name();
+				if (Stricmp(v, Value.Str()))
+				{
+					Value = v;
+					Tree->SendNotify(Ctrl->GetId());
+				}
 				break;
+			}
 			case GV_BOOL:
-				Value = Ctrl->Value() != 0;
+			{
+				bool b = Ctrl->Value() != 0;
+				if (b != (Value.CastInt32() != 0))
+				{
+					Value = b;
+					Tree->SendNotify(Ctrl->GetId());
+				}
 				break;
+			}
 			default:
 			{
+				int Idx = (int)Ctrl->Value();
+
 				if (Enum && Enum->Length())
 				{
-					GControlTree::EnumValue &e = (*Enum)[0];
-					if (e.Value.Type == GV_STRING)
-						Value = Ctrl->Name();
-					else
-						Value = (int)Ctrl->Value();
+					if (Idx >= 0 && Idx < (int)Enum->Length())
+					{
+						GControlTree::EnumValue &e = (*Enum)[Idx];
+						if (e.Value.Type == GV_STRING)
+						{
+							if (Stricmp(Value.Str(), e.Value.Str()))
+							{
+								Value = e.Value;
+								Tree->SendNotify(Ctrl->GetId());
+							}
+						}
+						else if (Idx != Value.CastInt32())
+						{
+							Value = Idx;
+							Tree->SendNotify(Ctrl->GetId());
+						}
+					}
+					else LgiAssert(0);
 				}
-				else
+				else if (Idx != Value.CastInt32())
 				{
-					Value = (int)Ctrl->Value();
+					Value = Idx;
+					Tree->SendNotify(Ctrl->GetId());
 				}
 				break;
 			}
@@ -180,20 +211,20 @@ void GControlTree::Item::Select(bool b)
 				default:
 					break;
 				case GV_STRING:
-					if ((Ctrl = new GEdit(-1, 0, 0, 200, CtrlY, 0)))
+					if ((Ctrl = new GEdit(CtrlId, 0, 0, 200, CtrlY, 0)))
 						Ctrl->Name(Value.Str());
 					if (Flags & TYPE_FILE)
 						Browse = new GButton(IDC_BROWSE, 0, 0, -1, CtrlY, "...");
 					break;
 				case GV_BOOL:
-					if ((Ctrl = new GCheckBox(-1, 0, 0, 14, 16, 0)))
+					if ((Ctrl = new GCheckBox(CtrlId, 0, 0, 14, 16, 0)))
 						Ctrl->Value(Value.CastInt32());
 					break;
 				case GV_INT32:
 					if (Enum)
 					{
 						GCombo *Cbo;
-						if ((Ctrl = (Cbo = new GCombo(-1, 0, 0, 120, CtrlY, 0))))
+						if ((Ctrl = (Cbo = new GCombo(CtrlId, 0, 0, 120, CtrlY, 0))))
 						{
 							int Idx = -1;
 
@@ -211,7 +242,7 @@ void GControlTree::Item::Select(bool b)
 					}
 					else
 					{
-						if ((Ctrl = new GEdit(-1, 0, 0, 60, CtrlY, 0)))
+						if ((Ctrl = new GEdit(CtrlId, 0, 0, 60, CtrlY, 0)))
 							Ctrl->Value(Value.CastInt32());
 					}
 					break;
@@ -284,6 +315,13 @@ void GControlTree::Item::OnPaint(ItemPaintCtx &Ctx)
 					for (unsigned i=0; i<Enum->Length(); i++)
 					{
 						EnumValue &e = (*Enum)[i];
+						
+						#if 0
+						GString s1 = e.Value.ToString();
+						GString s2 = Value.ToString();
+						LgiTrace("EnumMatch %s: %s - %s\n", e.Name, s1.Get(), s2.Get());
+						#endif
+						
 						if (e.Value == Value)
 						{
 							Disp = e.Name;
@@ -294,6 +332,12 @@ void GControlTree::Item::OnPaint(ItemPaintCtx &Ctx)
 					if (Disp)
 					{
 						GDisplayString ds(SysBold, Disp);
+						ds.Draw(Ctx.pDC, p.x1 + 8, p.y1 + 1);
+					}
+					else
+					{
+						GDisplayString ds(SysFont, LgiLoadString(L_CONTROLTREE_NO_VALUE, "(no value)"));
+						SysFont->Colour(GColour(LC_LOW, 24), GColour(LC_WORKSPACE, 24));
 						ds.Draw(Ctx.pDC, p.x1 + 8, p.y1 + 1);
 					}
 				}
@@ -373,7 +417,7 @@ bool GControlTree::Serialize(GDom *Store, bool Write)
 	return !Error;
 }
 
-GControlTree::Item *GControlTree::Resolve(bool Create, const char *Path, GVariantType Type, GArray<EnumValue> *Enum)
+GControlTree::Item *GControlTree::Resolve(bool Create, const char *Path, int CtrlId, GVariantType Type, GArray<EnumValue> *Enum)
 {
 	GToken t(Path, ".");
 	if (t.Length() > 0)
@@ -400,7 +444,7 @@ GControlTree::Item *GControlTree::Resolve(bool Create, const char *Path, GVarian
 			{
 				if (Create && i == t.Length() - 1)
 				{
-					GControlTree::Item *Ci = new GControlTree::Item(t[i], Path, Type, Enum);
+					GControlTree::Item *Ci = new GControlTree::Item(CtrlId, t[i], Path, Type, Enum);
 					if (Ci)
 					{
 						Cur->Insert(Ci);
@@ -422,9 +466,9 @@ GControlTree::Item *GControlTree::Resolve(bool Create, const char *Path, GVarian
 	return 0;
 }
 
-GTreeItem *GControlTree::Insert(const char *DomPath, GVariantType Type, GVariant *Value, GArray<EnumValue> *Enum)
+GTreeItem *GControlTree::Insert(const char *DomPath, int CtrlId, GVariantType Type, GVariant *Value, GArray<EnumValue> *Enum)
 {
-	GControlTree::Item *c = Resolve(true, DomPath, Type, Enum);
+	GControlTree::Item *c = Resolve(true, DomPath, CtrlId, Type, Enum);
 	if (c)
 	{
 		if (Value)
@@ -438,9 +482,14 @@ void GControlTree::ReadTree(GXmlTag *t, GTreeNode *n)
 {
 	for (GXmlTag *c = t->Children.First(); c; c = t->Children.Next())
 	{
+		int CtrlId = -1;
 		int StrRef = c->GetAsInt("ref");
 		LgiStringRes *Str = d->Factory->StrFromRef(StrRef);
 		LgiAssert(Str != NULL);
+		if (!Str)
+			continue;
+		
+		CtrlId = Str->Id;		
 
 		char *Type = c->GetAttr("ControlType");
 		GVariantType iType = GV_NULL;
@@ -462,7 +511,11 @@ void GControlTree::ReadTree(GXmlTag *t, GTreeNode *n)
 		}
 
 		const char *Opt = c->GetAttr("ControlTag");
-		GControlTree::Item *ct = new GControlTree::Item(Str?Str->Str:(char*)"#error", ValidStr(Opt)?Opt:NULL, iType, 0); // GArray<EnumValue> *pEnum
+		GControlTree::Item *ct = new GControlTree::Item(CtrlId,
+														Str?Str->Str:(char*)"#error",
+														ValidStr(Opt) ? Opt : NULL,
+														iType,
+														0);
 		if (ct)
 		{
 			ct->Flags = Flags;

@@ -101,27 +101,24 @@ void GCombo::Value(int64 i)
 	{
 		SendMessage(Handle(), CB_SETCURSEL, i, 0);
 	}
-	else
+	else if (i != d->Value)
 	{
+		// LgiTrace("GCombo::Value %i->%i\n", (int)d->Value, (int)i);
 		d->Value = i;
 	}
 }
 
 int64 GCombo::Value()
 {
-	int64 v = 0;
-
 	if (Handle())
-		v = SendMessage(Handle(), CB_GETCURSEL, 0, 0);
-	else
-		v = d->Value;
+		d->Value = SendMessage(Handle(), CB_GETCURSEL, 0, 0);
 
 	#if defined(DEBUG_COMBOBOX)
 	if (DEBUG_COMBOBOX==GetId())
-		LgiTrace("%s:%i %p.%p GetValue("LGI_PrintfInt64")\n", _FL, this, _View, v);
+		LgiTrace("%s:%i %p.%p GetValue("LGI_PrintfInt64")\n", _FL, this, _View, d->Value);
 	#endif
 	
-	return v;
+	return d->Value;
 }
 
 bool GCombo::Name(const char *n)
@@ -142,7 +139,15 @@ bool GCombo::Name(const char *n)
 
 char *GCombo::Name()
 {
-	return GView::Name();
+	if (d->Value >= 0 && d->Value < d->Strs.Length())
+	{
+		char *s = d->Strs[d->Value];
+		LgiTrace("GCombo Name '%s'\n", s);
+		return s;
+	}
+	
+	LgiTrace("GCombo Name out of range %i %i\n", (int)d->Value, d->Strs.Length());
+	return NULL;
 }
 
 GSubMenu *GCombo::GetMenu()
@@ -297,10 +302,18 @@ int GCombo::SysOnNotify(int Msg, int Code)
 {
 	// LgiTrace("%s:%i - GCombo::SysOnNotify %i %i\n", _FL, Msg==WM_COMMAND, Code);
 	
-	if (Msg == WM_COMMAND &&
-		Code == CBN_SELCHANGE)
+	if
+	(
+		Msg == WM_COMMAND
+		&&
+		Code == CBN_SELCHANGE
+	)
 	{
-		SendNotify(Value());
+		uint64 Old = d->Value;
+		if (Value() != Old)
+		{
+			SendNotify(d->Value);
+		}
 	}
 	
 	return 0;
@@ -323,7 +336,7 @@ GMessage::Result GCombo::OnEvent(GMessage *Msg)
 		}
 		case WM_DESTROY:
 		{
-			d->Value = Value();
+			Value();
 			#if defined(DEBUG_COMBOBOX)
 			if (DEBUG_COMBOBOX==GetId())
 				LgiTrace("%s:%i %p.%p WM_DESTROY v="LGI_PrintfInt64")\n", _FL, this, _View, d->Value);

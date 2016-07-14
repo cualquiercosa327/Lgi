@@ -19,6 +19,7 @@ public:
 		typedef GArray<EnumValue> EnumArr;
 
 	private:
+		int CtrlId;
 		GAutoString Opt;
 		GVariantType Type;
 		GVariant Value;
@@ -35,7 +36,7 @@ public:
 		};
 		int Flags;
 
-		Item(char *Txt, const char *opt, GVariantType type, GArray<EnumValue> *pEnum);
+		Item(int ctrlId, char *Txt, const char *opt, GVariantType type, GArray<EnumValue> *pEnum);
 		~Item();
 
 		Item *Find(const char *opt);
@@ -52,7 +53,7 @@ public:
 protected:
 	class GControlTreePriv *d;
 
-	class Item *Resolve(bool Create, const char *Path, GVariantType Type = GV_NULL, GArray<EnumValue> *Enum = 0);
+	class Item *Resolve(bool Create, const char *Path, int CtrlId, GVariantType Type = GV_NULL, GArray<EnumValue> *Enum = 0);
     void ReadTree(GXmlTag *t, GTreeNode *n);
 
 public:
@@ -62,7 +63,7 @@ public:
 	const char *GetClass() { return "GControlTree"; }
 
 	Item *Find(const char *opt);
-	GTreeItem *Insert(const char *DomPath, GVariantType Type, GVariant *Value = 0, GArray<EnumValue> *Enum = 0);
+	GTreeItem *Insert(const char *DomPath, int CtrlId, GVariantType Type, GVariant *Value = 0, GArray<EnumValue> *Enum = 0);
 	bool SetVariant(const char *Name, GVariant &Value, char *Array = 0);
 	bool Serialize(GDom *Store, bool Write);
 	int OnNotify(GViewI *c, int f);

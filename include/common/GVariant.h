@@ -13,6 +13,7 @@
 #include "GDateTime.h"
 #include "GContainers.h"
 #include "GHashTable.h"
+#include "GString.h"
 
 class GCompiledCode;
 
@@ -178,9 +179,6 @@ public:
 class LgiClass GVariant
 {
 public:
-	/// Converts the varient type to a string
-	static const char *TypeToString(GVariantType t);
-
 	/// The type of the variant
     GVariantType Type;
 
@@ -392,6 +390,16 @@ public:
 	void *CastVoidPtr();
 	/// Returns a GView
 	GView *CastView() { return Type == GV_GVIEW ? Value.View : NULL; }
+
+	/// List insert
+	bool Add(GVariant *v, int Where = -1);	
+	
+	/// Converts the varient type to a string
+	static const char *TypeToString(GVariantType t);
+	/// Converts an operator to a string
+	static const char *OperatorToString(GOperator op);
+	/// Converts the varient value to a string
+	GString ToString();
 };
 
 #endif

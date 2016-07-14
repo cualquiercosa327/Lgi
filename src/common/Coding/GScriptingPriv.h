@@ -407,11 +407,13 @@ public:
 		/// [In] The function to execute
 		GFunctionInfo *Func,
 		/// [In] The function's arguments
-		ArgumentArray &Args,
+		ArgumentArray &ArgsIn,
 		/// [Out] The return value of the function
 		GVariant *Ret,
 		/// [Optional] Log file for execution
-		GStream *Log = NULL
+		GStream *Log = NULL,
+		/// [Optional] Copy arguments back to this array
+		ArgumentArray *ArgsOut = NULL
 	);
 
 	// Debugging commands

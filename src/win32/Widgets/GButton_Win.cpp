@@ -29,12 +29,14 @@ public:
 	DWORD ButtonClassProc;
 	bool Toggle;
 	bool WantsDefault;
+	int64 Value;
 
 	GButtonPrivate()
 	{
 		Toggle = false;
 		WantsDefault = false;
 		ButtonClassProc = 0;
+		Value = 0;
 	}
 
 	~GButtonPrivate()
@@ -88,6 +90,23 @@ bool GButton::GetIsToggle()
 void GButton::SetIsToggle(bool toggle)
 {
 	d->Toggle = toggle;
+	
+	int Tog = BS_PUSHLIKE | BS_AUTOCHECKBOX;
+	if (_View)
+	{
+		DWORD Style = (DWORD)GetWindowLong(_View, GWL_STYLE);
+		if (toggle)
+			SetWindowLong(_View, GWL_STYLE, Style | Tog);
+		else
+			SetWindowLong(_View, GWL_STYLE, Style & ~Tog);
+	}
+	else
+	{
+		if (toggle)
+			SetStyle(GetStyle() | Tog);
+		else
+			SetStyle(GetStyle() & ~Tog);
+	}
 }
 
 void GButton::OnAttach()
@@ -155,6 +174,12 @@ GMessage::Result GButton::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{
+		case WM_CREATE:
+		{
+			if (d->Toggle)
+				Value(d->Value);
+			break;
+		}
 		case WM_GETDLGCODE:
 		{
 			return CallWindowProc((WNDPROC)d->ButtonClassProc, Handle(), MsgCode(Msg), MsgA(Msg), MsgB(Msg)) |
@@ -285,11 +310,26 @@ void GButton::OnPaint(GSurface *pDC)
 
 int64 GButton::Value()
 {
-	return atoi(Name());
+	if (d->Toggle)
+	{
+		if (_View)
+			d->Value = SendMessage(Handle(), BM_GETCHECK, 0, 0);
+		return d->Value;
+	}
+	else
+	{
+		return atoi(Name());
+	}
 }
 
 void GButton::Value(int64 i)
 {
+	if (d->Toggle)
+	{
+		if (_View)
+			SendMessage(_View, BM_SETCHECK, i ? BST_CHECKED : BST_UNCHECKED, 0);
+		d->Value = i;
+	}
 }
 
 void GButton::OnClick()

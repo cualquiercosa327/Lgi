@@ -21,6 +21,7 @@
 #include "GViewPriv.h"
 #include "GCss.h"
 
+#define DEBUG_MOUSE_CLICKS		0
 #define DEBUG_OVER				0
 #define OLD_WM_CHAR_MODE		1
 #define GWL_LGI_MAGIC			8
@@ -1812,6 +1813,12 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 					Ms = lgi_adjust_click(Ms, _Over);
 				else
 					Ms.Target = this;
+				
+				#if DEBUG_MOUSE_CLICKS
+				GString Msg;
+				Msg.Printf("%s.Click", Ms.Target->GetClass());
+				Ms.Trace(Msg);
+				#endif
 
 				GWindow *Wnd = GetWindow();
 				if (!Wnd || Wnd->HandleViewMouse(dynamic_cast<GView*>(Ms.Target), Ms))
@@ -1835,6 +1842,12 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 					Ms = lgi_adjust_click(Ms, _Over);
 				else
 					Ms.Target = this;
+
+				#if DEBUG_MOUSE_CLICKS
+				GString Msg;
+				Msg.Printf("%s.Click", Ms.Target->GetClass());
+				Ms.Trace(Msg);
+				#endif
 
 				GWindow *Wnd = GetWindow();
 				if (!Wnd || Wnd->HandleViewMouse(dynamic_cast<GView*>(Ms.Target), Ms))

@@ -1565,12 +1565,13 @@ bool GFontType::DoUI(GView *Parent)
 
 	#if defined WIN32
 	void *i = &Info;
+	int bytes = sizeof(Info);
 	#else
 	char i[128];
-	sprintf_s(i, sizeof(i), "%s,%i", Info.Face(), Info.PointSize());
+	int bytes = sprintf_s(i, sizeof(i), "%s,%i", Info.Face(), Info.PointSize());
 	#endif
 
-	GFontSelect Dlg(Parent, i);
+	GFontSelect Dlg(Parent, i, bytes);
 	if (Dlg.DoModal() == IDOK)
 	{
 		#ifdef WIN32

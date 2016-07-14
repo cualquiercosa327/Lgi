@@ -37,6 +37,40 @@ const char *GVariant::TypeToString(GVariantType t)
 	return NULL;
 }
 
+const char *GVariant::OperatorToString(GOperator op)
+{
+	switch (op)
+	{
+		case OpNull: return "OpNull";
+		case OpAssign: return "OpAssign";
+		case OpPlus: return "OpPlus";
+		case OpUnaryPlus: return "OpUnaryPlus";
+		case OpMinus: return "OpMinus";
+		case OpUnaryMinus: return "OpUnaryMinus";
+		case OpMul: return "OpMul";
+		case OpDiv: return "OpDiv";
+		case OpMod: return "OpMod";
+		case OpLessThan: return "OpLessThan";
+		case OpLessThanEqual: return "OpLessThanEqual";
+		case OpGreaterThan: return "OpGreaterThan";
+		case OpGreaterThanEqual: return "OpGreaterThanEqual";
+		case OpEquals: return "OpEquals";
+		case OpNotEquals: return "OpNotEquals";
+		case OpPlusEquals: return "OpPlusEquals";
+		case OpMinusEquals: return "OpMinusEquals";
+		case OpMulEquals: return "OpMulEquals";
+		case OpDivEquals: return "OpDivEquals";
+		case OpPostInc: return "OpPostInc";
+		case OpPostDec: return "OpPostDec";
+		case OpPreInc: return "OpPreInc";
+		case OpPreDec: return "OpPreDec";
+		case OpAnd: return "OpAnd";
+		case OpOr: return "OpOr";
+		case OpNot: return "OpNot";
+	}
+	return NULL;
+}
+
 GVariant::GVariant()
 {
 	Type = GV_NULL;
@@ -1667,6 +1701,105 @@ bool GDom::SetValue(const char *Var, GVariant &Value)
 	}
 
 	return Status;
+}
+
+bool GVariant::Add(GVariant *v, int Where)
+{
+	if (!v)
+	{
+		LgiAssert(!"No value to insert.");
+		return false;
+	}
+
+	if (Type == GV_NULL)
+		SetList();
+		
+	if (Type != GV_LIST)
+	{
+		LgiAssert(!"Not a list variant");
+		return false;
+	}
+	
+	return Value.Lst->Insert(v, Where);
+}
+
+GString GVariant::ToString()
+{
+	GString s;
+	switch (Type)
+	{
+		case GV_NULL:
+			s = "NULL";
+			break;
+		case GV_INT32:
+			s.Printf("(int)%i", Value.Int);
+			break;
+		case GV_INT64:
+			s.Printf("(int64)"LGI_PrintfInt64, Value.Int64);
+			break;
+		case GV_BOOL:
+			s.Printf("(bool)%s", Value.Bool ? "true" : "false");
+			break;
+		case GV_DOUBLE:
+			s.Printf("(double)%f", Value.Dbl);
+			break;
+		case GV_STRING:
+			s.Printf("(string)\"%s\"", Value.String);
+			break;
+		case GV_BINARY:
+			s.Printf("(binary[%i])%p", Value.Binary.Length, Value.Binary.Data);
+			break;
+		case GV_LIST:
+			s.Printf("(list[%i])%p", Value.Lst?Value.Lst->Length():0, Value.Lst);
+			break;
+		case GV_DOM:
+			s.Printf("(dom)%p", Value.Dom);
+			break;
+		case GV_DOMREF:
+			s.Printf("(dom)%p.%s", Value.DomRef.Dom, Value.DomRef.Name);
+			break;
+		case GV_VOID_PTR:
+			s.Printf("(void*)%p", Value.Ptr);
+			break;
+		case GV_DATETIME:
+		{
+			char dt[64];
+			Value.Date->Get(dt, sizeof(dt));
+			s.Printf("(datetime)%s", dt);
+			break;
+		}
+		case GV_HASHTABLE:
+			s.Printf("(hashtbl)%p", Value.Hash);
+			break;
+		case GV_OPERATOR:
+			s.Printf("(operator)%s", OperatorToString(Value.Op));
+			break;
+		case GV_CUSTOM:
+			s.Printf("(custom.%s)%p", Value.Custom.Dom->GetName(), Value.Custom.Data);
+			break;
+		case GV_WSTRING:
+			s.Printf("(wstring)\"%S\"", Value.WString);
+			break;
+		case GV_GSURFACE:
+			s.Printf("(gsurface)%p", Value.Surface.Ptr);
+			break;
+		case GV_GVIEW:
+			s.Printf("(gview)%p", Value.View);
+			break;
+		case GV_GMOUSE:
+			s.Printf("(gmouse)%p", Value.Mouse);
+			break;
+		case GV_GKEY:
+			s.Printf("(gkey)%p", Value.Key);
+			break;
+		case GV_STREAM:
+			s.Printf("(stream)%p", Value.Stream.Ptr);
+			break;
+		default:
+			s = "(unknown)NULL";
+			break;
+	}
+	return s;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

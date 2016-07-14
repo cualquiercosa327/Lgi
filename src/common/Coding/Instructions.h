@@ -542,7 +542,29 @@ case IRet:
 		Locals.SetFixedLength(false);
 		if (Locals.Length() >= Sf.CurrentFrameSize)
 		{
-			Locals.Length(Locals.Length() - Sf.CurrentFrameSize);
+			int Base = Locals.Length() - Sf.CurrentFrameSize;
+			if (ArgsOutput)
+			{
+				/*
+				LgiTrace("Frames=%i Local=%i Base=%i\n",
+					Frames.Length(),
+					Locals.Length(),
+					Base);
+				*/
+				
+				if (Frames.Length() == 0)
+				{
+					for (unsigned i=0; i<ArgsOutput->Length(); i++)
+					{
+						*(*ArgsOutput)[i] = Locals[Base+i];
+						/*
+						GString s = Locals[Base+i].ToString();
+						LgiTrace("\t%s\n", s.Get());
+						*/
+					}
+				}
+			}
+			Locals.Length(Base);
 			Scope[1] = &Locals[Sf.PrevFrameStart];
 		}
 		else

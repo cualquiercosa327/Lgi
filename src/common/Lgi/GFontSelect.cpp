@@ -50,7 +50,7 @@ GFontSelect::GFontSelect(GView *Parent, void *Init, int InitLen)
 {
 	// Initialize
 	d = new GFontSelectPriv;
-	Size = 0;
+	Size = 10;
 	Bold = false;
 	Underline = false;
 	Italic = false;
@@ -373,7 +373,8 @@ int GFontSelect::OnNotify(GViewI *Ctrl, int Flags)
 		}
 		case IDC_FONT:
 		{
-			if (Flags == GNotifyItem_Select)
+			GNotifyType n = (GNotifyType)Flags;
+			if (n == GNotifyItem_Select)
 			{
 				UpdatePreview();
 			}

@@ -769,8 +769,10 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 				}
 				else
 				{
-					Min = max(Min, 3000);
-					Max = max(Max, 3000);
+					Min = max(Min, 16);
+					Max = max(Max, 16);
+					if (Flag < SizeFill)
+						Flag = SizeFill;
 				}
 			}
 			else if (Izza(GList))
@@ -1348,6 +1350,11 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 				{
 					int Min = 0, Max = 0;
 					CellFlag Flag = SizeUnknown;
+					
+					if (DebugLayout)
+					{
+						int asd=0;
+					}
 
 					if (c->Width().IsValid())
 					{

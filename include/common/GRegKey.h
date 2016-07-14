@@ -8,7 +8,7 @@ class LgiClass GRegKey
 {
 	HKEY k, Root;
 	char s[256];
-	char *KeyName;
+	GString KeyName;
 
 public:
 	static bool AssertOnError;
