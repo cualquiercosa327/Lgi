@@ -418,6 +418,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\Scripts\LValue Test.script"
+					>
+				</File>
+				<File
 					RelativePath=".\Scripts\Object.script"
 					>
 				</File>

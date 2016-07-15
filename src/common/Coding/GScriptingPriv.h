@@ -162,7 +162,10 @@ struct GVarRef
 	const char *GetStr()
 	{
 		if (Index < 0)
+		{
+			LgiAssert(!"Invalid reference");
 			return "NoRef";
+		}
 
 		#define GETSTR_BUF_SIZE 16
 		static char Buf[4][GETSTR_BUF_SIZE];

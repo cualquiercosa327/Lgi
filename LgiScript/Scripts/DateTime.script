@@ -13,7 +13,7 @@
 	if (!n)
 		return false;
 	
-	Print("Now: ", n.DateTime, "\n");
+	Print("Now: ", n.DateAndTime, "\n");
 
 // Object methods
 	n.Year = n.Year + 1;
@@ -24,7 +24,7 @@
 	n.Second = n.Second + 1;
 	Print("Date: ", n.Date, "\n");
 	Print("Time: ", n.Time, "\n");
-	Print("Both: ", n.DateTime, "\n");
+	Print("Both: ", n.DateAndTime, "\n");
 	
 	n = Now();
 	Print("DateInt64: ", n.DateInt64, "\n");

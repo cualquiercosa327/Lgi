@@ -980,8 +980,18 @@ public:
 				DomSet(cur, part[parts-1].var, null, value)
 			}		
 		*/
-		if (!n.IsVar())
+
+		if (!Value.Valid())
+		{
+			LgiAssert(!"Invalid value to assign.\n");
 			return false;
+		}
+
+		if (!n.IsVar())
+		{
+			LgiAssert(!"Target must be a variable.");
+			return false;
+		}
 
 		// Gets the first part of the variable.
 		GVarRef Cur = FindVariable(n.Variable[0].Name, true);
@@ -1116,6 +1126,7 @@ public:
 				else
 				{
 					// Non array based assignment
+					LgiAssert(Cur != Value);
 					Asm2(n.Tok, IAssign, Cur, Value);
 				}
 			}
@@ -1158,7 +1169,16 @@ public:
 	/// Convert a token stream to a var ref
 	bool TokenToVarRef(Node &n, GVarRef *&LValue)
 	{
-		if (!n.Reg.Valid())
+		if (n.Reg.Valid())
+		{
+			if (LValue && n.Reg != *LValue)
+			{
+				// Need to assign to LValue
+				LgiAssert(*LValue != n.Reg);
+				Asm2(n.Tok, IAssign, *LValue, n.Reg);
+			}
+		}
+		else
 		{
 			if (n.IsVar())
 			{
@@ -1228,6 +1248,7 @@ public:
 							if (!AllocReg(reg, _FL))
 								return OnError(n.Tok, "Couldn't alloc register.");
 							
+							LgiAssert(reg != v);
 							Asm2(n.Tok, IAssign, reg, v);
 							v = reg;
 						}
@@ -1420,39 +1441,38 @@ public:
 					OutRef = &n.Reg;
 				}
 				
-				if (OutRef)
+				DebugInfo(n.Tok);
+
+				GArray<GVarRef> a;
+				for (unsigned i=0; i<n.Args.Length(); i++)
 				{
-					DebugInfo(n.Tok);
+					if (!AsmExpression(&a[i], n.Args[i]))
+						return OnError(n.Tok, "Error creating bytecode for context function argument.");
+				}
 
-					GArray<GVarRef> a;
-					for (unsigned i=0; i<n.Args.Length(); i++)
-					{
-						if (!AsmExpression(&a[i], n.Args[i]))
-							return OnError(n.Tok, "Error creating bytecode for context function argument.");
-					}
+				int Len = Code->ByteCode.Length();
+				int Size = 1 + sizeof(GFunc*) + sizeof(GVarRef) + 2 + (a.Length() * sizeof(GVarRef));
+				Code->ByteCode.Length(Len + Size);
+				GPtr p;
+				uint8 *Start = &Code->ByteCode[Len];
+				p.u8 = Start;
+				*p.u8++ = ICallMethod;
+				*p.fn++ = n.ContextFunc;
+				*p.r++ = *OutRef;
+				*p.u16++ = n.Args.Length();
+				for (unsigned i=0; i<n.Args.Length(); i++)
+				{
+					*p.r++ = a[i];
+				}
+				LgiAssert(p.u8 == Start + Size);
 
-					int Len = Code->ByteCode.Length();
-					int Size = 1 + sizeof(GFunc*) + sizeof(GVarRef) + 2 + (a.Length() * sizeof(GVarRef));
-					Code->ByteCode.Length(Len + Size);
-					GPtr p;
-					uint8 *Start = &Code->ByteCode[Len];
-					p.u8 = Start;
-					*p.u8++ = ICallMethod;
-					*p.fn++ = n.ContextFunc;
-					*p.r++ = *OutRef;
-					*p.u16++ = n.Args.Length();
-					for (unsigned i=0; i<n.Args.Length(); i++)
-					{
-						*p.r++ = a[i];
-					}
-					LgiAssert(p.u8 == Start + Size);
-
-					// Deallocate argument registers
-					for (unsigned i=0; i<a.Length(); i++)
-					{
-						DeallocReg(a[i]);
-					}
-				}				
+				// Deallocate argument registers
+				for (unsigned i=0; i<a.Length(); i++)
+				{
+					DeallocReg(a[i]);
+				}
+				
+				n.Reg = *OutRef;
 			}
 			else if (n.IsScriptFunc())
 			{
@@ -1471,68 +1491,68 @@ public:
 					OutRef = &n.Reg;
 				}
 				
-				if (OutRef)
+				DebugInfo(n.Tok);
+
+				GArray<GVarRef> a;
+				for (unsigned i=0; i<n.Args.Length(); i++)
 				{
-					DebugInfo(n.Tok);
-
-					GArray<GVarRef> a;
-					for (unsigned i=0; i<n.Args.Length(); i++)
+					if (!AsmExpression(&a[i], n.Args[i]))
 					{
-						if (!AsmExpression(&a[i], n.Args[i]))
-						{
-							return OnError(n.Tok, "Error creating bytecode for script function argument.");
-						}
-					}
-
-					int Len = Code->ByteCode.Length();
-					int Size =	1 + // instruction
-								sizeof(uint32) + // address of function
-								sizeof(uint16) + // size of frame
-								sizeof(GVarRef) + // return value
-								2 + // number of args
-								(a.Length() * sizeof(GVarRef)); // args
-
-					Code->ByteCode.Length(Len + Size);
-					GPtr p;
-					uint8 *Start = &Code->ByteCode[Len];
-					p.u8 = Start;
-					*p.u8++ = ICallScript;
-					
-					if (n.ScriptFunc->StartAddr)
-					{
-						// Compile func address straight into code...
-						*p.u32++ = n.ScriptFunc->StartAddr;
-						*p.u16++ = n.ScriptFunc->FrameSize;
-					}
-					else
-					{
-						// Add link time fixup
-						LinkFixup &Fix = Fixups.New();
-						Fix.Tok = n.Tok;
-						Fix.Args = n.Args.Length();
-						Fix.Offset = p.u8 - &Code->ByteCode[0];
-						Fix.Func = n.ScriptFunc;
-						*p.u32++ = 0;
-						*p.u16++ = 0;
-					}
-
-					*p.r++ = *OutRef;
-					*p.u16++ = n.Args.Length();
-					for (unsigned i=0; i<n.Args.Length(); i++)
-					{
-						*p.r++ = a[i];
-					}
-					LgiAssert(p.u8 == Start + Size);
-
-					// Deallocate argument registers
-					for (unsigned i=0; i<a.Length(); i++)
-					{
-						DeallocReg(a[i]);
+						return OnError(n.Tok, "Error creating bytecode for script function argument.");
 					}
 				}
-				else return OnError(n.Tok, "Can't allocate register for method return value.");
+
+				int Len = Code->ByteCode.Length();
+				int Size =	1 + // instruction
+							sizeof(uint32) + // address of function
+							sizeof(uint16) + // size of frame
+							sizeof(GVarRef) + // return value
+							2 + // number of args
+							(a.Length() * sizeof(GVarRef)); // args
+
+				Code->ByteCode.Length(Len + Size);
+				GPtr p;
+				uint8 *Start = &Code->ByteCode[Len];
+				p.u8 = Start;
+				*p.u8++ = ICallScript;
+				
+				if (n.ScriptFunc->StartAddr)
+				{
+					// Compile func address straight into code...
+					*p.u32++ = n.ScriptFunc->StartAddr;
+					*p.u16++ = n.ScriptFunc->FrameSize;
+				}
+				else
+				{
+					// Add link time fixup
+					LinkFixup &Fix = Fixups.New();
+					Fix.Tok = n.Tok;
+					Fix.Args = n.Args.Length();
+					Fix.Offset = p.u8 - &Code->ByteCode[0];
+					Fix.Func = n.ScriptFunc;
+					*p.u32++ = 0;
+					*p.u16++ = 0;
+				}
+
+				*p.r++ = *OutRef;
+				*p.u16++ = n.Args.Length();
+				for (unsigned i=0; i<n.Args.Length(); i++)
+				{
+					*p.r++ = a[i];
+				}
+				LgiAssert(p.u8 == Start + Size);
+
+				// Deallocate argument registers
+				for (unsigned i=0; i<a.Length(); i++)
+				{
+					DeallocReg(a[i]);
+				}
+				
+				n.Reg = *OutRef;
 			}
 			else return false;
+			
+			LgiAssert(n.Reg.Valid());
 		}
 
 		return true;
@@ -2044,6 +2064,7 @@ public:
 					{
 						if (AllocReg(Reg, _FL))
 						{
+							LgiAssert(Reg != a.Reg);
 							Asm2(a.Tok, IAssign, Reg, a.Reg);
 							a.Reg = Reg;
 						}
@@ -2070,6 +2091,7 @@ public:
 							}
 							else if (n != a.Reg)
 							{
+								LgiAssert(n != a.Reg);
 								Asm2(a.Tok, IAssign, n, a.Reg);
 							}
 						}
@@ -2113,25 +2135,12 @@ public:
 					
 					if (Op == OpAssign)
 					{
-						/*
-						This is breaking code like:
-						
-							Msg = Msg + "something";
-
-						Compiled looks like:						
-						
-							0000001A Assign R0 <- L1
-							00000023 Plus R0 += G3
-						
-						Leaving the result in 'R0' instead of 'L1' like it should.
-												
 						if (LValue)
 						{
 							// We already did the assignment as part of the
 							// L value optimization.
 						}
 						else
-						*/
 						{	
 							// However without the L value we have to do the output
 							// assignment.
@@ -2145,6 +2154,7 @@ public:
 						{
 							if (AllocReg(Reg, _FL))
 							{
+								LgiAssert(Reg != a.Reg);
 								Asm2(a.Tok, IAssign, Reg, a.Reg);
 								a.Reg = Reg;
 							}
