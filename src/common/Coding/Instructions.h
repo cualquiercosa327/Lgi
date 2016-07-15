@@ -1095,9 +1095,11 @@ case IDomGet:
 			default:
 			{
 				if (Log)
-					Log->Print("%s IDomGet warning: Unexpected type %s.\n",
+					Log->Print("%s IDomGet warning: Unexpected type %s (Src=%s:%i IP=0x%x).\n",
 								Code->AddrToSourceRef(CurrentScriptAddress),
-								GVariant::TypeToString(Dom->Type));
+								GVariant::TypeToString(Dom->Type),
+								_FL,
+								CurrentScriptAddress);
 				Status = ScriptWarning;
 				break;
 			}
@@ -1304,9 +1306,9 @@ case IDomCall:
 		#endif
 		
 		int i = LocalsBase;
-		Locals[i++] = Dom; // this pointer...
+		Locals[i++] = *Dom; // this pointer...
 		#if DEBUG_CUSTOM_METHOD_CALL
-		GString s = Dom->ToString();
+		GString s = Locals[i-1].ToString();
 		LgiTrace("This=%s, ", s.Get());
 		#endif
 		int end = i + ArgCount;
@@ -1766,9 +1768,11 @@ case IDomCall:
 				Dst->Empty();
 				if (Log)
 				{
-					Log->Print("%s IDomCall warning: Unexpected type %s.\n",
+					Log->Print("%s IDomCall warning: Unexpected type %s (Src=%s:%i IP=0x%x).\n",
 								Code->AddrToSourceRef(CurrentScriptAddress),
-								Type);
+								Type,
+								_FL,
+								CurrentScriptAddress);
 				}
 				Status = ScriptWarning;
 			}
