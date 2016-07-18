@@ -11,6 +11,7 @@
 		340BFC4A096A9D4600A11AE6 /* GArray.h in Headers */ = {isa = PBXBuildFile; fileRef = 340BFC49096A9D4600A11AE6 /* GArray.h */; };
 		340FEA9E096E375600E534D5 /* GToolBar.h in Headers */ = {isa = PBXBuildFile; fileRef = 340FEA9C096E375600E534D5 /* GToolBar.h */; };
 		340FEA9F096E375600E534D5 /* GToolTabBar.h in Headers */ = {isa = PBXBuildFile; fileRef = 340FEA9D096E375600E534D5 /* GToolTabBar.h */; };
+		34101C041D3B64CE00818D24 /* GMessage.h in Headers */ = {isa = PBXBuildFile; fileRef = 34101C031D3B64CE00818D24 /* GMessage.h */; };
 		341384FD1B38111B00A4732A /* ShowFileProp_Mac.mm in Sources */ = {isa = PBXBuildFile; fileRef = 341384FC1B38111B00A4732A /* ShowFileProp_Mac.mm */; };
 		341385001B38129500A4732A /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 341384FF1B38129500A4732A /* Cocoa.framework */; };
 		3413BBC21349EC6900AE15B0 /* GXmlTree.h in Headers */ = {isa = PBXBuildFile; fileRef = 3413BBC11349EC6900AE15B0 /* GXmlTree.h */; };
@@ -191,6 +192,7 @@
 		340BFC49096A9D4600A11AE6 /* GArray.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GArray.h; path = ../../../include/common/GArray.h; sourceTree = "<group>"; };
 		340FEA9C096E375600E534D5 /* GToolBar.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GToolBar.h; path = ../../../include/common/GToolBar.h; sourceTree = "<group>"; };
 		340FEA9D096E375600E534D5 /* GToolTabBar.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GToolTabBar.h; path = ../../../include/common/GToolTabBar.h; sourceTree = "<group>"; };
+		34101C031D3B64CE00818D24 /* GMessage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GMessage.h; path = ../../../include/common/GMessage.h; sourceTree = "<group>"; };
 		341384FC1B38111B00A4732A /* ShowFileProp_Mac.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = ShowFileProp_Mac.mm; path = ../cocoa/General/ShowFileProp_Mac.mm; sourceTree = "<group>"; };
 		341384FF1B38129500A4732A /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		3413BBC11349EC6900AE15B0 /* GXmlTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GXmlTree.h; path = ../../../include/common/GXmlTree.h; sourceTree = "<group>"; };
@@ -425,6 +427,7 @@
 		08FB77AEFE84172EC02AAC07 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				34101C021D3B649500818D24 /* Interface */,
 				344B736A08D83F0700D49457 /* Core */,
 				34D2CCA808F118020009968C /* Dialogs */,
 				3446E2CE08D0E59E005024EB /* Graphics */,
@@ -451,6 +454,19 @@
 				0867D69BFE84028FC02AAC07 /* Foundation.framework */,
 			);
 			name = "Other Frameworks";
+			sourceTree = "<group>";
+		};
+		34101C021D3B649500818D24 /* Interface */ = {
+			isa = PBXGroup;
+			children = (
+				34101C031D3B64CE00818D24 /* GMessage.h */,
+				344AF39508E0476A004ED88C /* GApp.cpp */,
+				345F9C2208F0F622007DAFE2 /* GView.cpp */,
+				349330490F60CE440092EAE8 /* GViewCommon.cpp */,
+				34D2CCAB08F1183F0009968C /* GWindow.cpp */,
+				3479DB0E19C1AAA800E0D1E5 /* GWindowCommon.cpp */,
+			);
+			name = Interface;
 			sourceTree = "<group>";
 		};
 		3416C2790967759800DD79DC /* Regions */ = {
@@ -569,17 +585,12 @@
 		344B736A08D83F0700D49457 /* Core */ = {
 			isa = PBXGroup;
 			children = (
-				344AF39508E0476A004ED88C /* GApp.cpp */,
 				34983C1808F548620054868C /* GClipBoard.cpp */,
 				344B736B08D83F1800D49457 /* GGeneral.cpp */,
 				344B738C08D8414400D49457 /* GGuiUtils.cpp */,
 				344AF3DC08E04C75004ED88C /* GObject.cpp */,
 				3443CBFD0C16BA64008F7B02 /* GOptionsFile.cpp */,
 				34983C2208F548DF0054868C /* GTrayIcon.cpp */,
-				345F9C2208F0F622007DAFE2 /* GView.cpp */,
-				349330490F60CE440092EAE8 /* GViewCommon.cpp */,
-				34D2CCAB08F1183F0009968C /* GWindow.cpp */,
-				3479DB0E19C1AAA800E0D1E5 /* GWindowCommon.cpp */,
 				344B737A08D8401600D49457 /* Lgi.cpp */,
 				34983C2308F548DF0054868C /* LgiRand.cpp */,
 				3493304B0F60CE690092EAE8 /* GViewPriv.h */,
@@ -915,6 +926,7 @@
 				34F45B9E18C161E40040FD99 /* GPixelRops.h in Headers */,
 				3433784B19178B09007A4DC5 /* GColourSpace.h in Headers */,
 				341B7C491956D3AA00AAA225 /* GCheckBox.h in Headers */,
+				34101C041D3B64CE00818D24 /* GMessage.h in Headers */,
 				341B7C4B1956E08500AAA225 /* GRadioGroup.h in Headers */,
 				345303791A688BC1004EC2A8 /* GItemContainer.h in Headers */,
 			);

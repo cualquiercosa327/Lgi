@@ -60,39 +60,7 @@ typedef CGContextRef		OsPainter;
 typedef CGContextRef		OsBitmap;
 typedef CTFontRef			OsFont;
 
-class LgiClass GMessage
-{
-public:
-	typedef NativeInt Param;
-	typedef NativeInt Result;
-
-	int m;
-	Param a;
-	Param b;
-	
-	GMessage()
-	{
-		m = a = b = 0;
-	}
-
-	GMessage(int M, Param A = 0, Param B = 0)
-	{
-		m = M;
-		a = A;
-		b = B;
-	}
-	
-	void Set(int M, Param A = 0, Param B = 0)
-	{
-		m = M;
-		a = A;
-		b = B;
-	}
-	
-	int Msg() { return m; }
-	Param A() { return a; }
-	Param B() { return b; }
-};
+#include "GMessage.h"
 
 class OsAppArguments
 {
@@ -111,10 +79,6 @@ public:
 
 //////////////////////////////////////////////////////////////////
 // Defines
-#define MsgCode(msg)				(msg->m)
-#define MsgA(msg)					(msg->a)
-#define MsgB(msg)					(msg->b)
-// LgiFunc GMessage CreateMsg(int m, int a = 0, int b = 0);
 #define _stricmp					strcasecmp
 #define _strnicmp					strncasecmp
 

@@ -292,7 +292,7 @@ bool GFontSelect::Serialize(void *Data, int DataLen, bool Write)
 		char *Fnt = (char*)Data;
 		sprintf_s(Fnt, DataLen,
 				"%s,%i,%s%s%s",
-				Face,
+				Face.Get(),
 				Size,
 				Bold?"b":"",
 				Underline?"u":"",

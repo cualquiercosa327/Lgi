@@ -128,6 +128,14 @@ OsAppArguments &OsAppArguments::operator =(OsAppArguments &a)
 }
 
 ////////////////////////////////////////////////////////////////
+void GMessage::Set(int msg, Param A, Param B)
+{
+	m = msg;
+	a = A;
+	b = B;
+}
+
+////////////////////////////////////////////////////////////////
 typedef GArray<GAppInfo*> AppArray;
 
 void OnSigPipe(int i)

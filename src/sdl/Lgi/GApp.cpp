@@ -41,7 +41,7 @@ struct OsAppArgumentsPriv
 	}
 };
 
-OsAppArguments::OsAppArguments(int args, char **arg)
+OsAppArguments::OsAppArguments(int args, const char **arg)
 {
 	d = new OsAppArgumentsPriv;
 

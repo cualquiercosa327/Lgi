@@ -1735,7 +1735,7 @@ GString GVariant::ToString()
 			s.Printf("(int)%i", Value.Int);
 			break;
 		case GV_INT64:
-			s.Printf("(int64)"LGI_PrintfInt64, Value.Int64);
+			s.Printf("(int64)" LGI_PrintfInt64, Value.Int64);
 			break;
 		case GV_BOOL:
 			s.Printf("(bool)%s", Value.Bool ? "true" : "false");
@@ -2164,7 +2164,7 @@ bool GCustomType::Set(int Index, GVariant &In, uint8 *This, int ArrayIndex)
 			if (Def->Bytes == sizeof(char16))
 			{
 				// Straight string copy...
-				wcscpy_s(p, Def->ArrayLen, w);
+				Strcpy(p, Def->ArrayLen, w);
 			}
 			else
 			{

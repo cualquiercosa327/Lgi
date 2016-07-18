@@ -18,8 +18,9 @@
 #ifdef MAC
 #include <sys/time.h>
 #endif
-
+#ifdef WINDOWS
 #include <tchar.h>
+#endif
 
 #include "Lgi.h"
 #include "GDateTime.h"

@@ -195,10 +195,10 @@ pascal OSErr AppEventHandler(const AppleEvent *ae, AppleEvent *reply, SRefCon ha
 }
 #endif
 
-int main(int Args, const char **Arg)
+int main(int Args, char **Arg)
 {
 	int Status = 0;
-	OsAppArguments AppArgs(Args, Arg);
+	OsAppArguments AppArgs(Args, (const char**)Arg);
 	
 	#ifdef MAC
 	

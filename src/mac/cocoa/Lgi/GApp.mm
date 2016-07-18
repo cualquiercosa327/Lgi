@@ -15,6 +15,7 @@
 #include "GThread.h"
 #include "GXmlTree.h"
 #include "GSymLookup.h"
+#include "GFontCache.h"
 
 #include <sys/poll.h>
 #include <sys/types.h>
@@ -126,6 +127,14 @@ OsAppArguments &OsAppArguments::operator =(OsAppArguments &a)
 	Arg = (const char**) &d->Ptr[0];
 	
 	return *this;
+}
+
+////////////////////////////////////////////////////////////////
+void GMessage::Set(int msg, Param A, Param B)
+{
+	m = msg;
+	a = A;
+	b = B;
 }
 
 ////////////////////////////////////////////////////////////////

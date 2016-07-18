@@ -57,6 +57,23 @@ enum LgiMessages
 		// because something else has requested it.
 		M_LOSING_CAPTURE,
 	
+	#elif defined(LGI_SDL)
+
+		/// Minimum value for application defined message ID's
+		M_USER			= 0x0400,
+	
+		M_MOUSEENTER	= (M_USER+100),
+		M_MOUSEEXIT,
+		M_COMMAND,
+		M_CUT,
+		M_COPY,
+		M_PASTE,
+		M_PULSE,
+		M_SET_VISIBLE,
+		M_MOUSE_CAPTURE_POLL,
+		M_TEXT_UPDATE_NAME,
+		M_INVALIDATE,
+	
 	#elif defined(MAC)
 
 		/// Base point for system messages.
@@ -97,23 +114,6 @@ enum LgiMessages
 
 		/// Minimum value for application defined message ID's
 		M_USER							= (M_SYSTEM+1000),
-	
-	#elif defined(LGI_SDL)
-
-		/// Minimum value for application defined message ID's
-		M_USER			= 0x0400,
-	
-		M_MOUSEENTER	= (M_USER+100),
-		M_MOUSEEXIT,
-		M_COMMAND,
-		M_CUT,
-		M_COPY,
-		M_PASTE,
-		M_PULSE,
-		M_SET_VISIBLE,
-		M_MOUSE_CAPTURE_POLL,
-		M_TEXT_UPDATE_NAME,
-		M_INVALIDATE,
 	
 	#elif defined(LINUX)
 

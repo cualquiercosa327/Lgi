@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		346FACE71D3C720B00FFEBCE /* GMessage.h in Headers */ = {isa = PBXBuildFile; fileRef = 346FACE61D3C720B00FFEBCE /* GMessage.h */; };
+		346FACEB1D3C75AE00FFEBCE /* GUri.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 346FACE91D3C75AE00FFEBCE /* GUri.cpp */; };
+		346FACEC1D3C75AE00FFEBCE /* MDStringToDigest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 346FACEA1D3C75AE00FFEBCE /* MDStringToDigest.cpp */; };
 		3477C26C1CBF020F0028B84B /* LgiProject.h in Headers */ = {isa = PBXBuildFile; fileRef = 3477C26B1CBF020F0028B84B /* LgiProject.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3477C2751CBF07DD0028B84B /* GApp.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3477C2741CBF07DD0028B84B /* GApp.mm */; };
 		3477C2781CBF08050028B84B /* GClipBoard.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3477C2761CBF08050028B84B /* GClipBoard.mm */; };
@@ -120,6 +123,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		346FACE61D3C720B00FFEBCE /* GMessage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GMessage.h; path = ../../../../include/common/GMessage.h; sourceTree = "<group>"; };
+		346FACE91D3C75AE00FFEBCE /* GUri.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GUri.cpp; path = ../../../common/INet/GUri.cpp; sourceTree = "<group>"; };
+		346FACEA1D3C75AE00FFEBCE /* MDStringToDigest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MDStringToDigest.cpp; path = ../../../common/INet/MDStringToDigest.cpp; sourceTree = "<group>"; };
 		3477C2681CBF020F0028B84B /* LgiCocoa.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LgiCocoa.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3477C26B1CBF020F0028B84B /* LgiProject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LgiProject.h; path = Lgi/LgiProject.h; sourceTree = "<group>"; };
 		3477C26D1CBF020F0028B84B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Lgi/Info.plist; sourceTree = "<group>"; };
@@ -246,9 +252,18 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		346FACE81D3C723700FFEBCE /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				3477C26D1CBF020F0028B84B /* Info.plist */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
 		3477C25E1CBF020F0028B84B = {
 			isa = PBXGroup;
 			children = (
+				346FACE81D3C723700FFEBCE /* Resources */,
 				3477C26A1CBF020F0028B84B /* Classes */,
 				3477C29A1CBF0A700028B84B /* Headers */,
 				3477C34E1CC0C3A30028B84B /* Link */,
@@ -338,7 +353,6 @@
 		3477C29A1CBF0A700028B84B /* Headers */ = {
 			isa = PBXGroup;
 			children = (
-				3477C26D1CBF020F0028B84B /* Info.plist */,
 				3477C26B1CBF020F0028B84B /* LgiProject.h */,
 				3477C5161CC303B70028B84B /* LgiClass.h */,
 				3477C35C1CC2253E0028B84B /* LgiInterfaces.h */,
@@ -381,6 +395,7 @@
 		3477C2B51CBF972B0028B84B /* Interface_XP */ = {
 			isa = PBXGroup;
 			children = (
+				346FACE61D3C720B00FFEBCE /* GMessage.h */,
 				3477C4EC1CC27F1C0028B84B /* GTrayIcon.cpp */,
 				3477C34A1CC0AB0B0028B84B /* GToolTip.cpp */,
 				3477C3461CC0AA220028B84B /* GWindowCommon.cpp */,
@@ -501,6 +516,8 @@
 		3477C31A1CC04D290028B84B /* Network */ = {
 			isa = PBXGroup;
 			children = (
+				346FACE91D3C75AE00FFEBCE /* GUri.cpp */,
+				346FACEA1D3C75AE00FFEBCE /* MDStringToDigest.cpp */,
 				3477C31B1CC04D3F0028B84B /* INet.cpp */,
 				3477C31C1CC04D3F0028B84B /* INetTools.cpp */,
 			);
@@ -552,6 +569,7 @@
 				3477C2A21CBF0A920028B84B /* GSymLookup.h in Headers */,
 				3477C2A41CBF0A920028B84B /* LgiOs.h in Headers */,
 				3477C26C1CBF020F0028B84B /* LgiProject.h in Headers */,
+				346FACE71D3C720B00FFEBCE /* GMessage.h in Headers */,
 				3477C2A31CBF0A920028B84B /* LgiMac.h in Headers */,
 				3477C2A81CBF0AAF0028B84B /* Lgi.h in Headers */,
 				3477C2C31CC045840028B84B /* GMem.h in Headers */,
@@ -673,7 +691,9 @@
 				3477C43A1CC234750028B84B /* GMemStream.cpp in Sources */,
 				3477C3191CC04CF10028B84B /* GThreadCommon.cpp in Sources */,
 				3477C2781CBF08050028B84B /* GClipBoard.mm in Sources */,
+				346FACEC1D3C75AE00FFEBCE /* MDStringToDigest.cpp in Sources */,
 				3477C3491CC0AA7E0028B84B /* GProgressDlg.cpp in Sources */,
+				346FACEB1D3C75AE00FFEBCE /* GUri.cpp in Sources */,
 				3477C2B11CBF96C40028B84B /* Res.cpp in Sources */,
 				3477C4ED1CC27F1C0028B84B /* GTrayIcon.cpp in Sources */,
 				3477C2991CBF09320028B84B /* ShowFileProp_Mac.mm in Sources */,

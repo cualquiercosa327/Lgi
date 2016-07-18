@@ -1233,7 +1233,7 @@ int GMenuItem::Icon()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 GFont *GMenu::_Font = 0;
 
-GMenu::GMenu() : GSubMenu("", false)
+GMenu::GMenu(const char *AppName) : GSubMenu("", false)
 {
 	Menu = this;
 }
@@ -1241,6 +1241,11 @@ GMenu::GMenu() : GSubMenu("", false)
 GMenu::~GMenu()
 {
 	Accel.DeleteObjects();
+}
+
+bool GMenu::SetPrefAndAboutItems(int PrefId, int AboutId)
+{
+	return false;
 }
 
 GFont *GMenu::GetFont()

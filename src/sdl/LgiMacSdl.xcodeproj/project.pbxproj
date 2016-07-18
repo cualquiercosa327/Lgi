@@ -44,6 +44,9 @@
 		344D1B1308F4A30D00228075 /* GFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344D1B1208F4A30D00228075 /* GFilter.cpp */; };
 		345F9C2308F0F622007DAFE2 /* GView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 345F9C2208F0F622007DAFE2 /* GView.cpp */; };
 		34637EBA0F876EB1005A9B80 /* GDateTime.h in Headers */ = {isa = PBXBuildFile; fileRef = 34637EB90F876EB1005A9B80 /* GDateTime.h */; };
+		346FACEF1D3C776A00FFEBCE /* GMessage.h in Headers */ = {isa = PBXBuildFile; fileRef = 346FACEE1D3C776A00FFEBCE /* GMessage.h */; };
+		346FACF21D3C77DE00FFEBCE /* GUri.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 346FACF01D3C77DE00FFEBCE /* GUri.cpp */; };
+		346FACF31D3C77DE00FFEBCE /* MDStringToDigest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 346FACF11D3C77DE00FFEBCE /* MDStringToDigest.cpp */; };
 		3476333318E2D12300766FC4 /* GColour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3476333218E2D12300766FC4 /* GColour.cpp */; };
 		34766828093F207D00623A44 /* GFile.h in Headers */ = {isa = PBXBuildFile; fileRef = 34766827093F207D00623A44 /* GFile.h */; };
 		3479DB1019C1AAA800E0D1E5 /* GWindowCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3479DB0E19C1AAA800E0D1E5 /* GWindowCommon.cpp */; };
@@ -175,6 +178,9 @@
 		344D1B1208F4A30D00228075 /* GFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GFilter.cpp; path = ../common/Gdc2/Filters/GFilter.cpp; sourceTree = "<group>"; };
 		345F9C2208F0F622007DAFE2 /* GView.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GView.cpp; path = Lgi/GView.cpp; sourceTree = "<group>"; };
 		34637EB90F876EB1005A9B80 /* GDateTime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GDateTime.h; path = ../../include/common/GDateTime.h; sourceTree = "<group>"; };
+		346FACEE1D3C776A00FFEBCE /* GMessage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GMessage.h; path = ../../include/common/GMessage.h; sourceTree = "<group>"; };
+		346FACF01D3C77DE00FFEBCE /* GUri.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GUri.cpp; path = ../common/INet/GUri.cpp; sourceTree = "<group>"; };
+		346FACF11D3C77DE00FFEBCE /* MDStringToDigest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MDStringToDigest.cpp; path = ../common/INet/MDStringToDigest.cpp; sourceTree = "<group>"; };
 		3476333218E2D12300766FC4 /* GColour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GColour.cpp; path = ../common/Gdc2/GColour.cpp; sourceTree = "<group>"; };
 		34766827093F207D00623A44 /* GFile.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GFile.h; path = ../../include/common/GFile.h; sourceTree = "<group>"; };
 		3479DB0E19C1AAA800E0D1E5 /* GWindowCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GWindowCommon.cpp; path = ../common/Lgi/GWindowCommon.cpp; sourceTree = "<group>"; };
@@ -323,6 +329,7 @@
 		08FB77AEFE84172EC02AAC07 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				346FACED1D3C774A00FFEBCE /* Interface */,
 				344B736A08D83F0700D49457 /* Core */,
 				34D2CCA808F118020009968C /* Dialogs */,
 				3446E2CE08D0E59E005024EB /* Graphics */,
@@ -473,7 +480,6 @@
 				344D1B0B08F4A2C300228075 /* Resources */,
 				344AF38208E045A6004ED88C /* Stream */,
 				345F9C4108F0FAA9007DAFE2 /* Threads */,
-				344AF39508E0476A004ED88C /* GApp.cpp */,
 				34983C1808F548620054868C /* GClipBoard.cpp */,
 				34FC20391B7C6E340080FB61 /* Gel.cpp */,
 				344B736B08D83F1800D49457 /* GGeneral.cpp */,
@@ -482,10 +488,6 @@
 				3443CBFD0C16BA64008F7B02 /* GOptionsFile.cpp */,
 				34B4A4FE0C05962100CDD0D1 /* GPrinter.cpp */,
 				34983C2208F548DF0054868C /* GTrayIcon.cpp */,
-				345F9C2208F0F622007DAFE2 /* GView.cpp */,
-				349330490F60CE440092EAE8 /* GViewCommon.cpp */,
-				34D2CCAB08F1183F0009968C /* GWindow.cpp */,
-				3479DB0E19C1AAA800E0D1E5 /* GWindowCommon.cpp */,
 				344B737A08D8401600D49457 /* Lgi.cpp */,
 				34983C2308F548DF0054868C /* LgiRand.cpp */,
 			);
@@ -588,6 +590,19 @@
 			name = Threads;
 			sourceTree = "<group>";
 		};
+		346FACED1D3C774A00FFEBCE /* Interface */ = {
+			isa = PBXGroup;
+			children = (
+				346FACEE1D3C776A00FFEBCE /* GMessage.h */,
+				344AF39508E0476A004ED88C /* GApp.cpp */,
+				345F9C2208F0F622007DAFE2 /* GView.cpp */,
+				349330490F60CE440092EAE8 /* GViewCommon.cpp */,
+				34D2CCAB08F1183F0009968C /* GWindow.cpp */,
+				3479DB0E19C1AAA800E0D1E5 /* GWindowCommon.cpp */,
+			);
+			name = Interface;
+			sourceTree = "<group>";
+		};
 		34983BE408F4A5680054868C /* Menus */ = {
 			isa = PBXGroup;
 			children = (
@@ -610,6 +625,8 @@
 		34B954810939DCA400477A2D /* Network */ = {
 			isa = PBXGroup;
 			children = (
+				346FACF01D3C77DE00FFEBCE /* GUri.cpp */,
+				346FACF11D3C77DE00FFEBCE /* MDStringToDigest.cpp */,
 				34B4A5000C05966000CDD0D1 /* Base64.cpp */,
 				34B954820939DCC400477A2D /* INet.cpp */,
 				34B954830939DCC400477A2D /* INetTools.cpp */,
@@ -704,6 +721,7 @@
 				34637EBA0F876EB1005A9B80 /* GDateTime.h in Headers */,
 				34FC20331B7C6A5D0080FB61 /* LgiOsClasses.h in Headers */,
 				341BE443123ED1F1009BF203 /* sha1.h in Headers */,
+				346FACEF1D3C776A00FFEBCE /* GMessage.h in Headers */,
 				34D4D55B1250AF98000DA1FD /* GHashTable.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -801,6 +819,7 @@
 				344AF38408E045C5004ED88C /* GStream.cpp in Sources */,
 				344AF38708E045F2004ED88C /* GRect.cpp in Sources */,
 				344AF39008E04707004ED88C /* GVariant.cpp in Sources */,
+				346FACF31D3C77DE00FFEBCE /* MDStringToDigest.cpp in Sources */,
 				344AF39608E0476A004ED88C /* GApp.cpp in Sources */,
 				344AF3A108E048C2004ED88C /* GProcess.cpp in Sources */,
 				344AF3CC08E04B63004ED88C /* GLibrary.cpp in Sources */,
@@ -854,6 +873,7 @@
 				34983C2908F548DF0054868C /* GTrayIcon.cpp in Sources */,
 				34983C2A08F548DF0054868C /* LgiRand.cpp in Sources */,
 				34983C2E08F5492E0054868C /* GPassword.cpp in Sources */,
+				346FACF21D3C77DE00FFEBCE /* GUri.cpp in Sources */,
 				34B954840939DCC400477A2D /* INet.cpp in Sources */,
 				34B954850939DCC400477A2D /* INetTools.cpp in Sources */,
 				34F90E131B7C653A00F34ED6 /* GSplitter.cpp in Sources */,
@@ -917,6 +937,7 @@
 				HEADER_SEARCH_PATHS = (
 					include/mac,
 					include/common,
+					/opt/local/include/freetype2/freetype,
 				);
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "@executable_path/../Frameworks";
@@ -953,6 +974,7 @@
 				HEADER_SEARCH_PATHS = (
 					include/mac,
 					include/common,
+					/opt/local/include/freetype2/freetype,
 				);
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "@executable_path/../Frameworks";
