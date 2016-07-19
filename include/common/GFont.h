@@ -221,20 +221,34 @@ public:
 		/// Creating a font for a particular surface (e.g. printing).
 		GSurface *pSurface = 0
 	);
+
 	/// Creates a new font from type infomation
 	bool Create(GFontType *Type, GSurface *pSurface = NULL);
+
+	/// Creates the font from CSS defs.
+	bool CreateFromCss(const char *Css);
+	
+	/// Creates the font from a CSS object.
+	bool CreateFromCss(GCss *Css);
+
 	/// Clears any handles and memory associated with the object.
 	bool Destroy();
+
 	/// Returns the OS font handle
 	OsFont Handle();
+
 	/// Copies the font
 	GFont &operator =(GFont &f);
+
 	/// Returns the pixel height of the font
 	int GetHeight();
+
 	/// Gets the creation parameter passed in (0 by default).
 	GSurface *GetSurface();
+
 	/// Get supported glyphs
 	uchar *GetGlyphMap();
+
 	/// Converts printable characters to unicode.
 	GAutoString ConvertToUnicode(char16 *Input, int Len = -1);
 	

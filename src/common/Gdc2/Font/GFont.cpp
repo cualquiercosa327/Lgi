@@ -26,6 +26,7 @@
 #include "GdiLeak.h"
 #include "GDisplayString.h"
 #include "GStringClass.h"
+#include "GCss.h"
 
 #ifdef FontChange
 #undef FontChange
@@ -519,6 +520,46 @@ GFont::~GFont()
 {
 	Destroy();
 	DeleteObj(d);
+}
+
+bool GFont::CreateFromCss(const char *Css)
+{
+	if (!Css)
+		return false;
+	
+	GCss c;
+	c.Parse(Css);
+	return CreateFromCss(&c);
+}
+
+bool GFont::CreateFromCss(GCss *Css)
+{
+	if (!Css)
+		return false;
+	
+	GCss::StringsDef Fam = Css->FontFamily();
+	if (Fam.Length())
+		Face(Fam[0]);
+
+	GCss::Len Sz = Css->FontSize();
+	if (Sz.Type == GCss::LenPt)
+		PointSize((int)(Sz.Value+0.5));
+	else if (Sz.IsValid())
+		LgiAssert(!"Impl me.");
+
+	GCss::FontWeightType w = Css->FontWeight();
+	if (w == GCss::FontWeightBold)
+		Bold(true);
+	
+	GCss::FontStyleType s = Css->FontStyle();
+	if (s == GCss::FontStyleItalic)
+		Italic(true);
+
+	GCss::TextDecorType dec = Css->TextDecoration();
+	if (dec == GCss::TextDecorUnderline)
+		Underline(true);
+
+	return Create();
 }
 
 bool GFont::Destroy()

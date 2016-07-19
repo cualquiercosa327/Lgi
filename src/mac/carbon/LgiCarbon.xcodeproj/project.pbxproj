@@ -395,9 +395,6 @@
 		0867D691FE84028FC02AAC07 /* Lgi */ = {
 			isa = PBXGroup;
 			children = (
-				349C23AD1D1E42BE0006793D /* ApplicationServices.framework */,
-				349C23AB1D1E42690006793D /* CoreFoundation.framework */,
-				349C239F1D1E33DA0006793D /* CoreText.framework */,
 				08FB77AEFE84172EC02AAC07 /* Classes */,
 				089C1665FE841158C02AAC07 /* Resources */,
 				0867D69AFE84028FC02AAC07 /* External Frameworks and Libraries */,
@@ -442,6 +439,9 @@
 		1058C7B0FEA5585E11CA2CBB /* Linked Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				349C23AD1D1E42BE0006793D /* ApplicationServices.framework */,
+				349C23AB1D1E42690006793D /* CoreFoundation.framework */,
+				349C239F1D1E33DA0006793D /* CoreText.framework */,
 				341384FF1B38129500A4732A /* Cocoa.framework */,
 				34B9505A0939DA3000477A2D /* Carbon.framework */,
 			);

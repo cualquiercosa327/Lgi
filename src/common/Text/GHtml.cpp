@@ -60,7 +60,7 @@
 #define MinimumBodyFontSize			11
 #endif
 
-#define DefaultPointSize			11
+#define DefaultFont					"font-family: Times; font-size: 16pt;"
 #define DefaultBodyMargin			"5px"
 #define DefaultImgSize				16
 #define DefaultMissingCellColour	GT_TRANSPARENT // Rgb32(0xf0,0xf0,0xf0)
@@ -6831,10 +6831,6 @@ GHtml::~GHtml()
 
 void GHtml::_New()
 {
-	#if LUIS_DEBUG
-	LgiTrace("%s:%i html(%p).src(%p)'\n", __FILE__, __LINE__, this, Source);
-	#endif
-
 	d->StyleDirty = false;
 	d->IsLoaded = false;
 	d->Content.x = d->Content.y = 0;
@@ -6843,16 +6839,24 @@ void GHtml::_New()
 	DocCharSet.Reset();
 
 	IsHtml = true;
+	
+	GFont *Def = new GFont;
+	if (Def)
+	{
+		if (Def->CreateFromCss(DefaultFont))
+			SetFont(Def, true);
+		else
+			DeleteObj(Def);
+	}
+	
 	FontCache = new GFontCache(this);
+	
+	
 	SetScrollBars(false, false);
 }
 
 void GHtml::_Delete()
 {
-	#if LUIS_DEBUG
-	LgiTrace("%s:%i html(%p).src(%p)='%30.30s'\n", _FL, this, Source, Source);
-	#endif
-
 	LgiAssert(!d->IsParsing);
 
 	SetBackColour(Rgb24To32(LC_WORKSPACE));
