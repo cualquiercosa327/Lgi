@@ -112,8 +112,7 @@ GWindow::~GWindow()
 
 bool GWindow::SetIcon(const char *Icon)
 {
-	GAutoWString w(LgiNewUtf8To16(Icon));
-	return CreateClassW32(LgiApp->Name(), LoadIcon(LgiProcessInst(), w.Get()));
+	return CreateClassW32(LgiApp->Name(), LoadIcon(LgiProcessInst(), (LPCWSTR)Icon));
 }
 
 GViewI *GWindow::GetFocus()

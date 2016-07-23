@@ -60,7 +60,7 @@
 #define MinimumBodyFontSize			11
 #endif
 
-#define DefaultFont					"font-family: Times; font-size: 16pt;"
+// #define DefaultFont					"font-family: Times; font-size: 16pt;"
 #define DefaultBodyMargin			"5px"
 #define DefaultImgSize				16
 #define DefaultMissingCellColour	GT_TRANSPARENT // Rgb32(0xf0,0xf0,0xf0)
@@ -6840,6 +6840,7 @@ void GHtml::_New()
 
 	IsHtml = true;
 	
+	#ifdef DefaultFont
 	GFont *Def = new GFont;
 	if (Def)
 	{
@@ -6848,10 +6849,9 @@ void GHtml::_New()
 		else
 			DeleteObj(Def);
 	}
+	#endif
 	
-	FontCache = new GFontCache(this);
-	
-	
+	FontCache = new GFontCache(this);	
 	SetScrollBars(false, false);
 }
 

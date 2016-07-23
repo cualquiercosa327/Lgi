@@ -131,7 +131,7 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdS
 		    }
 		}
 		
-		OsAppArguments AppArgs(Args.Length(), &Args[0]);
+		OsAppArguments AppArgs(Args.Length(), (const char**) &Args[0]);
 		#endif
 		
 		Status = LgiMain(AppArgs);

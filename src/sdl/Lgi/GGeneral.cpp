@@ -626,7 +626,7 @@ GRegKey::GRegKey(bool WriteAccess, char *Key, ...)
 				!strnicmp(KeyName, #Short, Len = strlen(#Short))) \
 			{ \
 				Root = Long; \
-				SubKey = KeyName[Len] ? KeyName + Len + 1 : 0; \
+				SubKey = KeyName[Len] ? KeyName.Get() + Len + 1 : 0; \
 			}
 		TestKey(HKEY_CLASSES_ROOT, HKCR)
 		else TestKey(HKEY_CURRENT_CONFIG, HKCC)
