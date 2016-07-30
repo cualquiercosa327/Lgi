@@ -21,7 +21,7 @@
 				<Node File="../common/General/GFileCommon.cpp" Type="2" Platforms="15" />
 			</Node>
 			<Node Name="Interface" Type="1" Platforms="15" Open="0">
-				<Node Name="Linux" Type="1" Platforms="15" Open="1">
+				<Node Name="Linux" Type="1" Platforms="15" Open="0">
 					<Node File="./Lgi/GApp.cpp" Type="2" Platforms="2" />
 					<Node File="./Lgi/GPrinter.cpp" Type="2" Platforms="2" />
 					<Node File="./Lgi/GView.cpp" Type="2" Platforms="2" />
@@ -254,7 +254,7 @@
 		</Node>
 	</Node>
 	<Node Name="LgiNet" Type="1" Platforms="15" Open="1">
-		<Node Name="Source" Type="1" Platforms="15" Open="1">
+		<Node Name="Source" Type="1" Platforms="15" Open="0">
 			<Node File="../common/INet/GUri.cpp" Type="2" Platforms="15" />
 			<Node File="../common/INet/INet.cpp" Type="2" Platforms="15" />
 			<Node File="../common/INet/INetTools.cpp" Type="2" Platforms="15" />
@@ -264,10 +264,10 @@
 		<Node Name="Header" Type="1" Platforms="15" Open="0" />
 		<Node Name="Mime Message" Type="1" Platforms="15" Open="0" />
 	</Node>
-	<Node Name="Headers" Type="1" Platforms="15" Open="1">
+	<Node Name="Headers" Type="1" Platforms="15" Open="0">
 		<Node Name="Linux" Type="1" Platforms="15" Open="0" />
 		<Node Name="Win" Type="1" Platforms="15" Open="0" />
-		<Node Name="Sdl" Type="1" Platforms="15" Open="1">
+		<Node Name="Sdl" Type="1" Platforms="15" Open="0">
 			<Node File="../../include/sdl/LgiOsClasses.h" Type="3" Platforms="15" />
 			<Node File="../../include/sdl/LgiOsDefs.h" Type="3" Platforms="2" />
 		</Node>

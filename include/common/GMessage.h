@@ -224,16 +224,20 @@ public:
 
 	GMessage()
 	{
-		#if defined(WINNATIVE)
-			hWnd = 0;
-		#endif
-		#ifdef __GTK_H__
-			Event = NULL;
-			OwnEvent = false;
-		#elif !defined(LGI_SDL)
-			m = 0;
-			a = 0;
-			b = 0;
+		#if defined(LGI_SDL)
+			Set(0, 0, 0);
+		#else
+			#if defined(WINNATIVE)
+				hWnd = 0;
+			#endif
+			#ifdef __GTK_H__
+				Event = NULL;
+				OwnEvent = false;
+			#elif !defined(LGI_SDL)
+				m = 0;
+				a = 0;
+				b = 0;
+			#endif
 		#endif
 	}
 
@@ -253,12 +257,9 @@ public:
 		#ifdef __GTK_H__
 			Event = NULL;
 			OwnEvent = false;
-			Set(M, A, B);
-		#elif !defined(LGI_SDL)
-			m = M;
-			a = A;
-			b = B;
 		#endif
+
+		Set(M, A, B);
 	}
 	
 	#if defined(LINUX) || defined(LGI_SDL)

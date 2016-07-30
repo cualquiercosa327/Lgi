@@ -1147,6 +1147,8 @@ int GMessage::Msg()
 {
 	if (Event.type >= SDL_USEREVENT && Event.type <= SDL_NUMEVENTS)
 		return Event.user.code;
+	else
+		printf("%s:%i - Error: Event.type=%i (%i - %i)\n", _FL, Event.type, SDL_USEREVENT, SDL_NUMEVENTS);
 	return 0;
 }
 
