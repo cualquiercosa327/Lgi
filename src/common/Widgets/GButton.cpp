@@ -80,7 +80,9 @@ GButton::GButton(int id, int x, int y, int cx, int cy, const char *name) :
 	SetPos(r);
 	SetId(id);
 	SetTabStop(true);
+	#ifndef MAC
 	SetFont(SysBold, false);
+	#endif
 	LgiResources::StyleElement(this);
 	
 	if (LgiApp->SkinEngine)
