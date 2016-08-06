@@ -406,10 +406,16 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir, GAutoString
 		if (uri.Protocol)
 		{
 			CFStringRef s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)File, strlen(File), kCFStringEncodingUTF8, false);
-			CFURLRef u = CFURLCreateWithString(NULL, s, NULL);
-			Status = LSOpenCFURLRef(u, 0) == 0;
-			CFRelease(u);
-			CFRelease(s);
+			if (s)
+			{
+				CFURLRef u = CFURLCreateWithString(NULL, s, NULL);
+				if (u)
+				{
+					Status = LSOpenCFURLRef(u, 0) == 0;
+					CFRelease(u);
+				}
+				CFRelease(s);
+			}
 		}
 		else
 		{

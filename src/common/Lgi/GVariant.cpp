@@ -29,8 +29,8 @@ const char *GVariant::TypeToString(GVariantType t)
 		case GV_GVIEW:		return "View";
 		case GV_GMOUSE:		return "MouseEvent";
 		case GV_GKEY:		return "KeyboardEvent";
-		// case GV_GFILE:		return "File";
 		case GV_STREAM:		return "Stream";
+		default:			return "Unknown";
 	}
 	
 	return NULL;
@@ -138,6 +138,7 @@ bool GVariant::operator ==(GVariant &v)
 {
 	switch (Type)
 	{
+		default:
 		case GV_NULL:
 			return v.Type == Type;
 		case GV_INT32:
@@ -802,7 +803,7 @@ int64 GVariant::Length()
 {
 	switch (Type)
 	{
-		case GV_NULL:
+		default:
 			return 0;
 		case GV_INT32:
 			return sizeof(Value.Int);
@@ -2109,6 +2110,8 @@ bool GCustomType::GetVariant(const char *Field, GVariant &Value, char *Array)
 			}			
 			break;
 		}
+		default:
+			break;
 	}
 
 	LgiAssert(0);
