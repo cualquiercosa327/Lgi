@@ -13,6 +13,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <wchar.h>
 #ifdef WIN32
 	#include "winsock2.h"
 	#define WIN32GTK                    1
@@ -127,29 +128,7 @@ typedef pthread_mutex_t				OsSemaphore;
 
 #endif
 
-class LgiClass GMessage
-{
-public:
-    typedef NativeInt Param;
-    typedef NativeInt Result;
-
-	bool OwnEvent;
-	Gtk::GdkEvent *Event;
-
-	GMessage(int m, Param a = 0, Param b = 0);
-	GMessage(Gtk::GdkEvent *e);
-	~GMessage();
-
-	int Msg();
-	Param A();
-	Param B();
-	void Set(int m, Param a, Param b);
-	bool Send(OsView Wnd);
-};
-
-#define MsgCode(m)					m->Msg()
-#define MsgA(m)						m->A()
-#define MsgB(m)						m->B()
+#include "GMessage.h"
 
 // Sockets
 #define ValidSocket(s)				((s)>=0)
@@ -173,6 +152,7 @@ LgiFunc void LgiSleep(uint32 i);
 
 #define _snprintf					snprintf
 #define _vsnprintf					vsnprintf
+#define wcscpy_s(dst, len, src)		wcsncpy(dst, src, len)
 
 /// Process any pending messages in the applications message que and then return.
 #define LgiYield()					LgiApp->Run(false)
@@ -259,61 +239,6 @@ LgiFunc void LgiSleep(uint32 i);
 #define IsSlash(c)					(((c)=='/')||((c)=='\\'))
 /// Tests a char for being a quote
 #define IsQuote(c)					(((c)=='\"')||((c)=='\''))
-
-/// Base point for system messages.
-#define M_SYSTEM					0x03f0
-/// Message that indicates the user is trying to close a top level window.
-#define M_CLOSE						(M_SYSTEM+1)
-/// Implemented to handle invalide requests in the GUI thread.
-#define M_X11_INVALIDATE			(M_SYSTEM+2)
-/// Implemented to handle paint requests in the GUI thread.
-#define M_X11_REPARENT				(M_SYSTEM+4)
-
-/// Minimum value for application defined message ID's
-#define M_USER						0x0400
-
-/// \brief Mouse enter event
-///
-/// a = bool Inside; // is the mouse inside the client area?\n
-/// b = MAKELONG(x, y); // mouse location
-#define M_MOUSEENTER				(M_USER+100)
-
-/// \brief Mouse exit event
-///
-/// a = bool Inside; // is the mouse inside the client area?\n
-/// b = MAKELONG(x, y); // mouse location
-#define M_MOUSEEXIT					(M_USER+101)
-
-/// \brief GView change notification
-///
-/// a = (GView*) Wnd;\n
-/// b = (int) Flags; // Specific to each GView
-#define M_CHANGE					(M_USER+102)
-
-/// \brief Pass a text message up to the UI to descibe whats happening
-///
-/// a = (GView*) Wnd;\n
-/// b = (char*) Text; // description from window
-#define M_DESCRIBE					(M_USER+103)
-
-// return (bool)
-#define M_WANT_DIALOG_PROC			(M_USER+104)
-
-#define M_MENU						(M_USER+105)
-#define M_COMMAND					(M_USER+106)
-#define M_DRAG_DROP					(M_USER+107)
-
-#define M_TRAY_NOTIFY				(M_USER+108)
-#define M_CUT						(M_USER+109)
-#define M_COPY						(M_USER+110)
-#define M_PASTE						(M_USER+111)
-#define M_DELETE					(M_USER+112)
-#define M_GTHREADWORK_COMPELTE		(M_USER+113)
-/// Implemented to handle timer events in the GUI thread.
-#define M_PULSE						(M_USER+114)
-#define M_SET_VISIBLE				(M_USER+115)
-/// Sent from a worker thread when calling GText::Name
-#define M_TEXT_UPDATE_NAME			(M_USER+116)
 
 /// Standard ID for an "Ok" button.
 /// \sa LgiMsg

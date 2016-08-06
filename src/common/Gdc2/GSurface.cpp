@@ -1798,27 +1798,27 @@ bool GSurface::GetVariant(const char *Name, GVariant &Dst, char *Array)
 {
 	switch (GStringToProp(Name))
 	{
-		case SurfaceX:
+		case SurfaceX: // Type: Int32
 		{
 			Dst = X();
 			break;
 		}
-		case SurfaceY:
+		case SurfaceY: // Type: Int32
 		{
 			Dst = Y();
 			break;
 		}
-		case SurfaceBits:
+		case SurfaceBits: // Type: Int32
 		{
 			Dst = GetBits();
 			break;
 		}
-		case SurfaceColourSpace:
+		case SurfaceColourSpace: // Type: Int32
 		{
 			Dst = GetColourSpace();
 			break;
 		}
-		case SurfaceIncludeCursor:
+		case SurfaceIncludeCursor: // Type: Int32
 		{
 			Dst = TestFlag(Flags, GDC_CAPTURE_CURSOR);
 			break;
@@ -1934,7 +1934,7 @@ bool GSurface::ConvertPreMulAlpha(bool ToPreMul)
 		}
 	}
 
-	pMem->PreMul(false);
+	pMem->PreMul(ToPreMul);
 	return true;
 }
 

@@ -549,7 +549,7 @@ void GDebugContext::OnMemoryDump(const char *Addr, int WordSize, int Width, bool
 		MemoryDump->Name(NULL);
 
 		GAutoString sAddr(TrimStr(Addr));
-		d->MemDumpStart = htoi64(sAddr);
+		d->MemDumpStart = htoi64(sAddr.Get());
 		
 		if (d->Db->ReadMemory(d->MemDumpStart, 1024, d->MemDump))
 		{

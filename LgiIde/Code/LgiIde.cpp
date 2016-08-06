@@ -23,6 +23,7 @@
 #include "GCombo.h"
 #include "GCheckBox.h"
 #include "GDebugger.h"
+#include "LgiRes.h"
 
 #define IDM_SAVE				102
 #define IDM_RECENT_FILE			1000
@@ -1813,6 +1814,7 @@ GMessage::Result AppWnd::OnEvent(GMessage *m)
 	{
 		case M_BUILD_DONE:
 		{
+			printf("M_BUILD_DONE received...\n");
 			UpdateState(-1, false);
 			
 			IdeProject *p = RootProject();

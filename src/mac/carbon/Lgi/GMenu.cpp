@@ -20,16 +20,26 @@ static int NextId = 0;
 #define DEBUG_INFO		0
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
+GSubMenu::GSubMenu(OsSubMenu Hnd)
+{
+	Menu = 0;
+	Parent = 0;
+	Info = Hnd;
+}
+
 GSubMenu::GSubMenu(const char *name, bool Popup)
 {
 	Menu = 0;
 	Parent = 0;
 	Info = 0;
     GBase::Name(name);
+	OSStatus e;
 
-	OSStatus e = CreateNewMenu(	NextId++, // MenuId
-								0, // MenuAttributes
-								&Info);
+	int Id = NextId++;
+	e = CreateNewMenu(	Id,	// MenuId
+						0,	// MenuAttributes
+						&Info);
+	
 	if (e) printf("%s:%i - can't create menu (e=%i)\n", __FILE__, __LINE__, (int)e);
 	#if DEBUG_INFO
 	else printf("CreateNewMenu()=%p\n", Info);
@@ -1186,14 +1196,75 @@ int GMenuItem::Icon()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 GFont *GMenu::_Font = 0;
 
-GMenu::GMenu() : GSubMenu("", false)
+class GMenuPrivate
 {
+public:
+	int AboutCmd, PrefCmd;
+	
+	GMenuPrivate()
+	{
+		AboutCmd = -1;
+		PrefCmd = -1;
+	}
+};
+
+OsSubMenu DefaultMenu(const char *AppName)
+{
+	OsSubMenu Info = 0;
+	OSStatus e;
+	MenuRef rApplicationMenu;
+	MenuItemIndex outIndex[1];
+	
+	e = CreateNewMenu(0, 0, &Info);
+
+	// Set the text to tell the OS this is the app menu
+	UniChar kApple = kAppleLogoUnicode;
+	CFStringRef CFStr = CFStringCreateWithCharacters(NULL, &kApple, 1);
+	e = SetMenuTitleWithCFString(Info, CFStr);
+	CFRelease(CFStr);
+	
+	static bool First = true;
+	if (First)
+	{
+		First = false;
+
+		// Setup the about and preferences items
+		GString Name;
+		if (AppName)
+			Name.Printf("About %s", AppName);
+		else
+			Name = "About";
+		CFStr = Name.CreateStringRef();
+		EnableMenuCommand(NULL, kHICommandPreferences);
+		GetIndMenuItemWithCommandID(NULL, kHICommandPreferences, 1, &rApplicationMenu, outIndex);
+		e = InsertMenuItemTextWithCFString(rApplicationMenu, CFStr, (short)0, 0, kHICommandAbout);
+		e = InsertMenuItemTextWithCFString(rApplicationMenu, NULL, 1, kMenuItemAttrSeparator, 0);
+		CFRelease(CFStr);
+	}
+
+	return Info;
+}
+
+GMenu::GMenu(const char *AppName) : GSubMenu(DefaultMenu(AppName))
+{
+	d = new GMenuPrivate;
 	Menu = this;
 }
 
 GMenu::~GMenu()
 {
 	Accel.DeleteObjects();
+	DeleteObj(d);
+}
+
+int GMenu::GetIdForCommand(uint32 Cmd)
+{
+	if (Cmd == kHICommandAbout)
+		return d->AboutCmd;
+	else if (Cmd == kHICommandPreferences)
+		return d->PrefCmd;
+
+	return -1;
 }
 
 GFont *GMenu::GetFont()
@@ -1242,15 +1313,14 @@ bool GMenu::Attach(GViewI *p)
 	{
 		Window = p;
 		
+		// [NSApplication sharedApplication].mainMenu
+		
 		if (Info)
 		{
 			OnAttach(true);
 			Status = true;
 		}
-		else
-		{
-			printf("%s:%i - No menu\n", __FILE__, __LINE__);
-		}
+		else LgiTrace("%s:%i - No menu\n", _FL);
 	}
 
 	return Status;
@@ -1260,6 +1330,13 @@ bool GMenu::Detach()
 {
 	bool Status = false;
 	return Status;
+}
+
+bool GMenu::SetPrefAndAboutItems(int PrefId, int AboutId)
+{
+	d->PrefCmd = PrefId;
+	d->AboutCmd = AboutId;
+	return true;
 }
 
 bool GMenu::OnKey(GView *v, GKey &k)

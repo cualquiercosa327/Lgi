@@ -155,7 +155,9 @@ Depends =	GDateTime.o \
 			GTableLayout.o \
 			INet.o \
 			INetTools.o \
-			md5.o
+			md5.o \
+			GUri.o \
+			MDStringToDigest.o
 
 # Target
 TargetFile = lib$(Target)$(Tag).so
@@ -911,6 +913,16 @@ INetTools.o : ../common/INet/INetTools.cpp ../../include/common/GMem.h \
 	../../include/sdl/LgiOsDefs.h \
 	../../include/common/INetTools.h \
 	../../include/common/GString.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GUri.o : ../common/INet/GUri.cpp ../../include/common/Lgi.h \
+	../../include/common/INet.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lgi.h \
+	../../include/common/INet.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 

@@ -13,6 +13,7 @@
 #include "GDisplayString.h"
 #include "GViewPriv.h"
 #include "GCssTools.h"
+#include "LgiRes.h"
 
 #define DefaultCharset              "utf-8"
 #define SubtractPtr(a, b)			((a) - (b))
@@ -620,6 +621,8 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 	int StartTime = LgiCurrentTime();
 	#endif
 
+	LgiAssert(InThread());
+
 	GRect Client = GetClient();
 	int Mx = Client.X() - d->rPadding.x1 - d->rPadding.x2;
 
@@ -1124,6 +1127,8 @@ void GTextView3::PourStyle(int Start, int EditSize)
 	int64 StartTime = LgiCurrentTime();
 	#endif
 
+	LgiAssert(InThread());
+
 	if (!Text || Size < 1)
 		return;
 
@@ -1312,6 +1317,8 @@ void GTextView3::PourStyle(int Start, int EditSize)
 
 bool GTextView3::Insert(int At, char16 *Data, int Len)
 {
+	LgiAssert(InThread());
+	
 	if (!ReadOnly && Len > 0)
 	{
 		// limit input to valid data
@@ -1380,6 +1387,8 @@ bool GTextView3::Insert(int At, char16 *Data, int Len)
 bool GTextView3::Delete(int At, int Len)
 {
 	bool Status = false;
+
+	LgiAssert(InThread());
 
 	if (!ReadOnly)
 	{

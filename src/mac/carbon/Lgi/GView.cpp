@@ -651,12 +651,26 @@ bool GView::SetPos(GRect &p, bool Repaint)
 			if (p)
 				o = p->_BorderSize;
 		}
-		
-		MoveControl(_View, Pos.x1 + o, Pos.y1 + o);
-		SizeControl(_View, Pos.X(), Pos.Y());
+
+		GRect r = p;
+		r.Offset(o, o);
+
+		if (LgiThreadInPaint == LgiGetCurrentThread())
+		{
+			PostEvent(M_SETPOS, (GMessage::Param)new GRect(r));
+		}
+		else
+		{
+			HIRect Rect;
+			Rect = r;
+			HIViewSetFrame(_View, &Rect);
+		}
 	}
 	else if (GetParent())
+	{
 		OnPosChange();
+		GetParent()->Invalidate();
+	}
 
 	return true;
 }
@@ -672,106 +686,11 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 	if (r && !r->Valid())
 		return false;
 
-	#if 1
-	
 	if (_View)
 	{
 		HIViewSetNeedsDisplay(_View, true);
 		return true;
 	}
-	
-	#else
-	
-// printf("Inval %p,%s,%p r=%s repaint=%i\n", this, GetClassName(), _View, r?r->GetStr():0, Repaint);
-	if (_View || WindowHandle())
-	{
-		GRect Client = Frame ? GView::GetPos() : GView::GetClient();
-		HIViewRef ViewRef = 0;
-		if (WindowHandle())
-		{
-			OSStatus e = HIViewFindByID(HIViewGetRoot(WindowHandle()), kHIViewWindowContentID, &ViewRef);
-			if (e)
-			{
-				LgiTrace("%s:%i - Getting content view failed (e=%i)\n", __FILE__, __LINE__, e);
-			}
-		}
-		else
-		{
-			ViewRef = _View;
-		}
-		
-		if (Repaint)
-		{
-			static bool Repainting = false;
-			if (!Repainting)
-			{
-				Repainting = true;
-				if (r)
-				{
-					GRect cr = *r;
-					cr.Offset(Client.x1, Client.y1);
-					
-					RgnHandle a = NewRgn();
-					SetRectRgn(a, cr.x1, cr.y1, cr.x2, cr.y2);
-					OSStatus e = HIViewSetNeedsDisplayInRegion(ViewRef, a, true);
-					DisposeRgn(a);
-					if (e)
-					{
-						LgiTrace("%s:%i - HIViewSetNeedsDisplay failed (%i)\n", __FILE__, __LINE__, e);
-					}
-					else
-					{
-						printf("HIViewSetNeedsDisplayInRegion(%s) on %s\n", r->GetStr(), GetClassName());
-					}
-				}
-				else
-				{
-					Rect a = GetClient();
-					OSStatus e = HIViewSetNeedsDisplay(ViewRef, true);
-					if (e)
-					{
-						LgiTrace("%s:%i - HIViewSetNeedsDisplay failed (%i)\n", __FILE__, __LINE__, e);
-					}
-					else
-					{
-						printf("HIViewSetNeedsDisplay() on %s\n", GetClassName());
-					}
-				}
-				
-				// HiViewRender(ViewRef);
-				
-				Repainting = false;
-			}
-		}
-		else
-		{
-			if (r)
-			{
-				GRect cr = *r;
-				cr.Offset(Client.x1, Client.y1);
-				Rect a = cr;
-				OSStatus e = HIViewSetNeedsDisplay(ViewRef, true);
-
-				if (!e)
-				{
-					printf("HIViewSetNeedsDisplay() on %s\n", GetClassName());
-				}
-			}
-			else
-			{
-				OSStatus e = HIViewSetNeedsDisplay(ViewRef, true);
-
-				if (!e)
-				{
-					printf("HIViewSetNeedsDisplay() on %s\n", GetClassName());
-				}
-			}
-		}
-		
-		return true;
-	}
-	#endif
-
 	else
 	{
 		GRect Up;
@@ -822,6 +741,16 @@ int GView::OnEvent(GMessage *Msg)
 {
 	switch (Msg->m)
 	{
+		case M_SETPOS:
+		{
+			GAutoPtr<GRect> r((GRect*)Msg->A());
+			if (_View && r)
+			{
+				HIRect rc = *r;
+				HIViewSetFrame(_View, &rc);
+			}
+			break;
+		}
 		case M_PULSE:
 		{
 			OnPulse();
@@ -1181,6 +1110,8 @@ struct WasteOfSpace
 	GView *v;
 };
 
+OsThread LgiThreadInPaint = 0;
+
 pascal
 OSStatus
 CarbonControlProc
@@ -1302,6 +1233,7 @@ CarbonControlProc
 		  		case kEventControlDraw:
 				{
 					CGContextRef Ctx;
+					LgiThreadInPaint = LgiGetCurrentThread();
 					
 					Status = GetEventParameter(	inEvent,
 												kEventParamCGContextRef,
@@ -1315,6 +1247,8 @@ CarbonControlProc
 						GScreenDC dc(v, Ctx);
 						v->_Paint(&dc);
 					}
+
+					LgiThreadInPaint = 0;
 					break;
 				}
 				case kEventControlHitTest:

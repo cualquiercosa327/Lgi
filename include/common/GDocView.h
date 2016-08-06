@@ -89,6 +89,18 @@ public:
 			FmtFilename,
 		};
 		
+		enum JobStatus
+		{
+			JobInit,
+			JobOk,
+			JobErr_Uri,
+			JobErr_Path,
+			JobErr_FileOpen,
+			JobErr_GetUri,
+			JobErr_NoCachedFile,
+			JobErr_ImageFilter,
+		};
+		
 		// View data
 		GDocumentEnv *Env;
 		void *UserData;
@@ -104,6 +116,7 @@ public:
 		GAutoPtr<GSurface> pDC;
 		GAutoString Filename;
 		GAutoString Error;
+		JobStatus Status;
 
 		LoadJob(GThreadTarget *o) : GThreadJob(o)
 		{
@@ -111,6 +124,7 @@ public:
 			UserUid = 0;
 			UserData = NULL;
 			Pref = FmtNone;
+			Status = JobInit;
 		}
 		
 		GStreamI *GetStream()

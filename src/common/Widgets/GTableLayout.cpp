@@ -2,6 +2,7 @@
 #include "GTableLayout.h"
 #include "GCssTools.h"
 #include "GDisplayString.h"
+#include "LgiRes.h"
 
 enum CellFlag
 {
@@ -32,7 +33,7 @@ enum CellFlag
 #include "GCss.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
-// #define DEBUG_LAYOUT		14
+#define DEBUG_LAYOUT		50
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
@@ -287,6 +288,7 @@ public:
 	GRect Padding;	// Cell padding from CSS styles
 	GArray<Child> Children;
 	GCss::DisplayType Disp;
+	GString ClassName;
 	bool Debug;
 
 	TableCell(GTableLayout *t, int Cx, int Cy);
@@ -318,10 +320,10 @@ class GTableLayoutPrivate
 	bool DebugLayout;
 
 public:
+	int PrevWidth;
 	GArray<double> Rows, Cols;
 	GArray<TableCell*> Cells;
 	int BorderSpacing;
-	bool FirstLayout;
 	GRect LayoutBounds;
 	int LayoutMinX, LayoutMaxX;
 	GTableLayout *Ctrl;
@@ -331,6 +333,7 @@ public:
 	~GTableLayoutPrivate();
 	
 	// Utils
+	bool IsInLayout() { return InLayout; }
 	TableCell *GetCellAt(int cx, int cy);
 	void Empty(GRect *Range = NULL);
     bool CollectRadioButtons(GArray<GRadioButton*> &Btns);
@@ -421,10 +424,14 @@ bool TableCell::IsSpanned()
 
 bool TableCell::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
-	if (stricmp(Name, "children") == 0)
+	GDomProperty Fld = GStringToProp(Name);
+	switch (Fld)
 	{
-		if (Value.SetList())
+		case ContainerChildren: // Type: GView[]
 		{
+			if (!Value.SetList())
+				return false;
+
 			for (unsigned i=0; i<Children.Length(); i++)
 			{
 				Child &c = Children[i];
@@ -436,103 +443,162 @@ bool TableCell::GetVariant(const char *Name, GVariant &Value, char *Array)
 					Value.Value.Lst->Insert(v);
 				}
 			}
-			return true;
+			break;
 		}
+		case ContainerSpan: // Type: GRect
+		{
+			Value = Cell.GetStr();
+			break;
+		}
+		case ContainerAlign: // Type: String
+		{
+			GStringPipe p(128);
+			if (TextAlign().ToString(p))
+				Value.OwnStr(p.NewStr());
+			else
+				return false;
+			break;
+		}
+		case ContainerVAlign: // Type: String
+		{
+			GStringPipe p(128);
+			if (VerticalAlign().ToString(p))
+				Value.OwnStr(ToString());
+			else
+				return false;
+			break;
+		}
+		case ObjClass: // Type: String
+		{
+			Value = ClassName;
+			break;
+		}
+		case ObjStyle: // Type: String
+		{
+			Value.OwnStr(ToString());
+			break;
+		}
+		case ObjDebug:
+		{
+			Value = Debug;
+			break;
+		}
+		default:
+			return false;
 	}
 
-	return false;
+	return true;
 }
 
 bool TableCell::SetVariant(const char *Name, GVariant &Value, char *Array)
 {
-	if (stricmp(Name, "span") == 0)
+	GDomProperty Fld = GStringToProp(Name);
+	switch (Fld)
 	{
-		GRect r;
-		if (r.SetStr(Value.Str()))
+		case ContainerChildren: // Type: GView[]
 		{
-			Cell = r;
-		}
-		else return false;
-	}
-	else if (stricmp(Name, "children") == 0)
-	{
-		for (GVariant *v = Value.Value.Lst->First(); v; v = Value.Value.Lst->Next())
-		{
-			if (v->Type == GV_VOID_PTR)
+			if (Value.Type != GV_LIST)
 			{
-				ResObject *o = (ResObject*)v->Value.Ptr;
-				if (o)
+				LgiAssert(!"Should be a list.");
+				return false;
+			}
+			
+			for (GVariant *v = Value.Value.Lst->First(); v; v = Value.Value.Lst->Next())
+			{
+				if (v->Type == GV_VOID_PTR)
 				{
-					GView *gv = dynamic_cast<GView*>(o);
-					if (gv)
+					ResObject *o = (ResObject*)v->Value.Ptr;
+					if (o)
 					{
-						Children.New().View = gv;
-						Table->Children.Insert(gv);
-						gv->SetParent(Table);
-
-						GText *t = dynamic_cast<GText*>(gv);
-						if (t)
+						GView *gv = dynamic_cast<GView*>(o);
+						if (gv)
 						{
-							t->SetWrap(true);
+							Children.New().View = gv;
+							Table->Children.Insert(gv);
+							gv->SetParent(Table);
+
+							GText *t = dynamic_cast<GText*>(gv);
+							if (t)
+							{
+								t->SetWrap(true);
+							}
+						}
+					}
+				}
+			}			
+			break;
+		}
+		case ContainerSpan:
+		{
+			GRect r;
+			if (r.SetStr(Value.Str()))
+				Cell = r;
+			else
+				return false;
+			break;
+		}
+		case ContainerAlign:
+		{
+			TextAlign
+			(
+				Len
+				(
+					ConvertAlign(Value.Str(), true)
+				)
+			);
+			break;
+		}
+		case ContainerVAlign:
+		{
+			VerticalAlign
+			(
+				Len
+				(
+					ConvertAlign(Value.Str(), false)
+				)
+			);
+			break;
+		}
+		case ObjClass:
+		{
+			ClassName = Value.Str();
+			
+			LgiResources *r = LgiGetResObj();
+			if (r)
+			{	
+				GCss::SelArray *a = r->CssStore.ClassMap.Find(ClassName);
+				if (a)
+				{
+					for (int i=0; i<a->Length(); i++)
+					{
+						GCss::Selector *s = (*a)[i];
+						
+						// This is not exactly a smart matching algorithm.
+						if (s && s->Parts.Length() == 1)
+						{
+							const char *style = s->Style;
+							Parse(style, ParseRelaxed);
 						}
 					}
 				}
 			}
+			break;
 		}
-	}
-	else if (stricmp(Name, "align") == 0)
-	{
-		TextAlign
-		(
-			Len
-			(
-				ConvertAlign(Value.Str(), true)
-			)
-		);
-	}
-	else if (stricmp(Name, "valign") == 0)
-	{
-		VerticalAlign
-		(
-			Len
-			(
-				ConvertAlign(Value.Str(), false)
-			)
-		);
-	}
-	else if (stricmp(Name, "class") == 0)
-	{
-		LgiResources *r = LgiGetResObj();
-		if (r)
+		case ObjStyle:
 		{
-			GCss::SelArray *a = r->CssStore.ClassMap.Find(Value.Str());
-			if (a)
-			{
-				for (int i=0; i<a->Length(); i++)
-				{
-					GCss::Selector *s = (*a)[i];
-					
-					// This is not exactly a smart matching algorithm.
-					if (s && s->Parts.Length() == 1)
-					{
-						const char *style = s->Style;
-						Parse(style, ParseRelaxed);
-					}
-				}
-			}
+			const char *style = Value.Str();
+			if (style)
+				Parse(style, ParseRelaxed);
+			break;
 		}
+		case ObjDebug:
+		{
+			Debug = Value.CastInt32() != 0;
+			break;
+		}
+		default:
+			return false;
 	}
-	else if (stricmp(Name, "style") == 0)
-	{
-		const char *style = Value.Str();
-		if (style)
-			Parse(style, ParseRelaxed);
-	}
-	else if (stricmp(Name, "debug") == 0)
-	{
-		Debug = Value.CastInt32() != 0;
-	}
-	else return false;
 
 	return true;
 }
@@ -703,8 +769,10 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 				}
 				else
 				{
-					Min = max(Min, 3000);
-					Max = max(Max, 3000);
+					Min = max(Min, 16);
+					Max = max(Max, 16);
+					if (Flag < SizeFill)
+						Flag = SizeFill;
 				}
 			}
 			else if (Izza(GList))
@@ -1135,10 +1203,10 @@ void TableCell::OnPaint(GSurface *pDC)
 ////////////////////////////////////////////////////////////////////////////
 GTableLayoutPrivate::GTableLayoutPrivate(GTableLayout *ctrl)
 {
+	PrevWidth = -1;
 	InLayout = false;
 	DebugLayout = false;
 	Ctrl = ctrl;
-	FirstLayout = true;
 	BorderSpacing = GTableLayout::CellSpacing;
 	LayoutBounds.ZOff(-1, -1);
 	LayoutMinX = LayoutMaxX = 0;
@@ -1191,7 +1259,7 @@ void GTableLayoutPrivate::Empty(GRect *Range)
 		Cols.Length(0);
 	}
 
-	FirstLayout = true;
+	PrevWidth = -1;
 	LayoutBounds.ZOff(-1, -1);
 	LayoutMinX = LayoutMaxX = 0;
 }
@@ -1282,6 +1350,11 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 				{
 					int Min = 0, Max = 0;
 					CellFlag Flag = SizeUnknown;
+					
+					if (DebugLayout)
+					{
+						int asd=0;
+					}
 
 					if (c->Width().IsValid())
 					{
@@ -1737,19 +1810,26 @@ GLayoutCell *GTableLayout::CellAt(int x, int y)
 void GTableLayout::OnPosChange()
 {
 	GRect r = GetClient();
-	if (GetCss())
+	if (r.X() != d->PrevWidth)
 	{
-		GCssTools t(GetCss(), GetFont());
-		r = t.ApplyPadding(r);
+		d->PrevWidth = r.X();
+		if (d->PrevWidth > 0)
+		{		
+			if (GetCss())
+			{
+				GCssTools t(GetCss(), GetFont());
+				r = t.ApplyPadding(r);
+			}
+			
+			d->Layout(r);
+		}
 	}
-	d->Layout(r);
 }
 
 GRect GTableLayout::GetUsedArea()
 {
-	if (d->FirstLayout)
+	if (d->PrevWidth != GetClient().X())
 	{
-		d->FirstLayout = false;
 		OnPosChange();
 	}
 
@@ -1762,21 +1842,47 @@ GRect GTableLayout::GetUsedArea()
         else
             r = c->Pos;
     }
+    
 	return r;
 }
 
 void GTableLayout::InvalidateLayout()
 {
-	d->FirstLayout = true;
-	Invalidate();
+	d->PrevWidth = -1;
+	if (d->IsInLayout())
+	{
+		PostEvent(	M_CHANGE,
+					(GMessage::Param) GetId(),
+					(GMessage::Param) GNotifyTableLayout_LayoutChanged);
+	}
+	else
+	{
+		OnPosChange();
+		Invalidate();
+	}
+}
+
+GMessage::Result GTableLayout::OnEvent(GMessage *m)
+{
+	switch (m->Msg())
+	{
+		case M_TABLE_LAYOUT:
+		{
+			OnPosChange();
+			Invalidate();
+			return 0;
+		}
+	}
+	
+	return GLayout::OnEvent(m);
 }
 
 void GTableLayout::OnPaint(GSurface *pDC)
 {
-	if (d->FirstLayout)
+	GRect Client = GetClient();
+	if (d->PrevWidth != Client.X())
 	{
-		d->FirstLayout = false;
-		OnPosChange();
+		PostEvent(M_TABLE_LAYOUT);
 	}
 
 	GColour Back;
@@ -1915,8 +2021,8 @@ int GTableLayout::OnNotify(GViewI *c, int f)
 {
     if (f == GNotifyTableLayout_Refresh)
     {
-		// int Id = GetId();
         OnPosChange();
+        Invalidate();
         return 0;
     }
 

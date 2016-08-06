@@ -646,6 +646,10 @@
 				Name="Network"
 				>
 				<File
+					RelativePath="..\common\INet\GUri.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\common\INet\INet.cpp"
 					>
 				</File>
@@ -662,6 +666,14 @@
 			>
 			<File
 				RelativePath="..\..\include\common\GNotifications.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\common\LgiClass.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\common\LgiClasses.h"
 				>
 			</File>
 			<File

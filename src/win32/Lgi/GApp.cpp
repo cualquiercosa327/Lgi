@@ -10,6 +10,8 @@
 #include "GSymLookup.h"
 #include "GDocView.h"
 #include "GToken.h"
+#include "GCss.h"
+#include "GFontCache.h"
 #include <stdio.h>
 
 HINSTANCE _lgi_app_instance = 0;
@@ -89,7 +91,7 @@ public:
 
 	// Win32
 	bool QuitReceived;
-	List<GWin32Class> Classes;
+	GApp::ClassContainer Classes;
 	GSymLookup *SymLookup;
 
 	GAppPrivate()
@@ -370,6 +372,11 @@ DumpTime("vars");
 			// Force load
 			SystemNormal->Create();
 		}
+		else
+		{
+			LgiMsg(0, "Error: SysFontType.Create() failed.", "Lgi Error");
+			LgiExitApp();
+		}
 
 		SystemBold = SysFontType.Create();
 		if (SystemBold)
@@ -378,10 +385,9 @@ DumpTime("vars");
 			SystemBold->Create();
 		}
 	}
-
-	if (!SystemNormal)
+	else
 	{
-		LgiMsg(0, "Error: Couldn't create system font.", "Lgi Error");
+		LgiMsg(0, "Error: GetSystemFont failed.", "Lgi Error");
 		LgiExitApp();
 	}
 
@@ -390,7 +396,7 @@ DumpTime("fonts");
 	// Other vars and init
 	hNormalCursor = LoadCursor(NULL, IDC_ARROW);
 	LgiRandomize(LgiCurrentTime()*LgiGetCurrentThread());
-	MouseRollMsg = RegisterWindowMessage("MSWHEEL_ROLLMSG");
+	MouseRollMsg = RegisterWindowMessage(L"MSWHEEL_ROLLMSG");
 
 DumpTime("cursor/rand/msg");
 
@@ -516,7 +522,7 @@ OsThreadId GApp::GetGuiThread()
 	return d->GuiThread;
 }
 
-List<GWin32Class> *GApp::GetClasses()
+GApp::ClassContainer *GApp::GetClasses()
 {
 	return IsOk() ? &d->Classes : 0;
 }
@@ -994,7 +1000,7 @@ bool GApp::IsWine()
 {
 	if (d->LinuxWine < 0)
 	{
-		HMODULE hntdll = GetModuleHandle("ntdll.dll");
+		HMODULE hntdll = GetModuleHandle(L"ntdll.dll");
 		if (hntdll)
 		{
 			typedef const char * (CDECL *pwine_get_version)(void);

@@ -20,6 +20,7 @@
 #include "GSubProcess.h"
 #include "ProjectNode.h"
 #include "WebFldDlg.h"
+#include "GCss.h"
 
 extern const char *Untitled;
 
@@ -123,7 +124,7 @@ public:
 	GAutoString FileName;
 	IdeProject *ParentProject;
 	IdeProjectSettings Settings;
-	GAutoPtr<BuildThread> Build;
+	GAutoPtr<BuildThread> Thread;
 
 	IdeProjectPrivate(AppWnd *a, IdeProject *project) :
 		Project(project),
@@ -454,10 +455,11 @@ int BuildThread::Main()
 	AppWnd *w = Proj->GetApp();
 	if (w)
 	{
-		w->PostEvent(M_BUILD_DONE);		
+		w->PostEvent(M_BUILD_DONE);
 		if (Err)
 			Proj->GetApp()->PostEvent(M_BUILD_ERR, 0, (GMessage::Param)NewStr(Err));
 	}
+	else LgiAssert(0);
 	
 // printf("BuildThread::Main.10 exiting\n");
 	return 0;
@@ -632,7 +634,7 @@ GAutoString IdeProject::GetMakefile()
 
 void IdeProject::Clean(bool Release)
 {
-	if (!d->Build &&
+	if (!d->Thread &&
 		d->Settings.GetStr(ProjMakefile))
 	{
 		GAutoString m = GetMakefile();
@@ -641,7 +643,7 @@ void IdeProject::Clean(bool Release)
 			GString a = "clean";
 			if (Release)
 				a += " Build=Release";
-			d->Build.Reset(new BuildThread(this, m, a));
+			d->Thread.Reset(new BuildThread(this, m, a));
 		}
 	}
 }
@@ -813,21 +815,25 @@ GDebugContext *IdeProject::Execute(ExeAction Act)
 
 void IdeProject::Build(bool All, bool Release)
 {
-	if (!d->Build)
+	if (d->Thread)
 	{
-		GAutoString m = GetMakefile();
-		if (m)
-		{		
-			d->Build.Reset(new BuildThread(this, m, Release?"Build=Release":NULL));
-		}
-		else d->App->GetBuildLog()->Print("Error: no makefile? (%s:%i)\n", _FL);
+		d->App->GetBuildLog()->Print("Error: Already building (%s:%i)\n", _FL);
+		return;
 	}
-	else d->App->GetBuildLog()->Print("Error: Already building (%s:%i)\n", _FL);
+
+	GAutoString m = GetMakefile();
+	if (!m)
+	{		
+		d->App->GetBuildLog()->Print("Error: no makefile? (%s:%i)\n", _FL);
+		return;
+	}
+
+	d->Thread.Reset(new BuildThread(this, m, Release?"Build=Release":NULL));
 }
 
 void IdeProject::StopBuild()
 {
-	d->Build.Reset();
+	d->Thread.Reset();
 }
 
 bool IdeProject::Serialize()

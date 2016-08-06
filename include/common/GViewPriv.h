@@ -11,7 +11,12 @@
 	#include "Uxtheme.h"
 #endif
 
+#ifdef MAC
+extern OsThread LgiThreadInPaint;
+#endif
+
 #define PAINT_VIRTUAL_CHILDREN	1
+#define DEBUG_CAPTURE			0
 
 extern bool In_SetWindowPos;
 extern GMouse &lgi_adjust_click(GMouse &Info,

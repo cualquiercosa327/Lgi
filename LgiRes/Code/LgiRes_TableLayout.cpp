@@ -5,6 +5,7 @@
 #include "GVariant.h"
 #include "GToken.h"
 #include "GTableLayout.h"
+#include "LgiRes.h"
 
 #define DRAW_CELL_INDEX			0
 #define DRAW_TABLE_SIZE			0

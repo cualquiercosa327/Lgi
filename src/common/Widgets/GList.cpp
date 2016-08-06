@@ -18,6 +18,7 @@
 #include "GEdit.h"
 #include "GScrollBar.h"
 #include "GDisplayString.h"
+#include "LgiRes.h"
 
 // Debug defines
 #define DEBUG_EDIT_LABEL				1
@@ -1727,6 +1728,9 @@ void GList::OnMouseClick(GMouse &m)
 			{
 				case CLICK_COLUMN:
 				{
+					if (d->DragData < 0)
+						break;
+					
 					GItemColumn *c = Columns[d->DragData];
 					if (c)
 					{

@@ -32,10 +32,12 @@ GPrintDC::GPrintDC(void *Handle, const char *PrintJobName, const char *PrinterNa
 	if (hDC)
 	{
 		DOCINFO Info;
+		GAutoWString OutName;
+		GAutoWString DocName(LgiNewUtf8To16(PrintJobName ? PrintJobName : "Lgi Print Job"));
 
 		ZeroObj(Info);
 		Info.cbSize = sizeof(DOCINFO); 
-		Info.lpszDocName = PrintJobName ? PrintJobName : "Lgi Print Job";
+		Info.lpszDocName = DocName;
 		
 		if (PrinterName &&
 			stristr(PrinterName, "XPS"))
@@ -56,7 +58,9 @@ GPrintDC::GPrintDC(void *Handle, const char *PrintJobName, const char *PrinterNa
 				}
 			}
 			
-			Info.lpszOutput = d->OutputFileName = p.GetFull();
+			d->OutputFileName = p.GetFull();
+			OutName.Reset(LgiNewUtf8To16(d->OutputFileName));
+			Info.lpszOutput = OutName;
 		}
 
 		d->DocOpen = StartDoc(hDC, &Info) > 0;

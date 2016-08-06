@@ -56,6 +56,7 @@ struct Node
 	// -or-
 	bool Constant;
 	int Tok;
+	GArray<int> Lst;
 	GTokenType ConstTok;
 	// -or-
 	GFunc *ContextFunc;
@@ -93,6 +94,14 @@ struct Node
 		Init();
 		Constant = true;
 		Tok = t;
+		ConstTok = e;
+	}
+
+	void SetConst(GArray<int> &list_tokens, GTokenType e)
+	{
+		Init();
+		Constant = true;
+		Lst = list_tokens;
 		ConstTok = e;
 	}
 
@@ -757,6 +766,14 @@ public:
 		Code->Globals[r.Index].Type = GV_NULL;
 	}
 
+	/// Allocate a variant and ref
+	GVariant *PreAllocVariant(GVarRef &r)
+	{
+		r.Scope = SCOPE_GLOBAL;
+		r.Index = Code->Globals.Length();
+		return &Code->Globals[r.Index];
+	}
+
 	/// Allocate a constant double
 	void AllocConst(GVarRef &r, double d)
 	{
@@ -963,8 +980,18 @@ public:
 				DomSet(cur, part[parts-1].var, null, value)
 			}		
 		*/
-		if (!n.IsVar())
+
+		if (!Value.Valid())
+		{
+			LgiAssert(!"Invalid value to assign.\n");
 			return false;
+		}
+
+		if (!n.IsVar())
+		{
+			LgiAssert(!"Target must be a variable.");
+			return false;
+		}
 
 		// Gets the first part of the variable.
 		GVarRef Cur = FindVariable(n.Variable[0].Name, true);
@@ -1099,6 +1126,7 @@ public:
 				else
 				{
 					// Non array based assignment
+					LgiAssert(Cur != Value);
 					Asm2(n.Tok, IAssign, Cur, Value);
 				}
 			}
@@ -1107,11 +1135,50 @@ public:
 		n.Reg = Value;
 		return true;
 	}
+	
+	bool ConvertStringToVariant(GVariant *v, char16 *t)
+	{
+		if (!t)
+			return false;
+		
+		if (*t == '\"' || *t == '\'')
+		{
+			// string
+			int Len = StrlenW(t);
+			v->OwnStr(NewStrW(t + 1, Len - 2));
+		}
+		else if (StrchrW(t, '.'))
+		{
+			// double
+			*v = atof(t);
+		}
+		else if (t[0] == '0' && tolower(t[1]) == 'x')
+		{
+			// hex integer
+			*v = htoi(t + 2);
+		}
+		else
+		{
+			// decimal integer
+			*v = atoi(t);
+		}
+		
+		return true;
+	}
 
 	/// Convert a token stream to a var ref
 	bool TokenToVarRef(Node &n, GVarRef *&LValue)
 	{
-		if (!n.Reg.Valid())
+		if (n.Reg.Valid())
+		{
+			if (LValue && n.Reg != *LValue)
+			{
+				// Need to assign to LValue
+				LgiAssert(*LValue != n.Reg);
+				Asm2(n.Tok, IAssign, *LValue, n.Reg);
+			}
+		}
+		else
 		{
 			if (n.IsVar())
 			{
@@ -1181,6 +1248,7 @@ public:
 							if (!AllocReg(reg, _FL))
 								return OnError(n.Tok, "Couldn't alloc register.");
 							
+							LgiAssert(reg != v);
 							Asm2(n.Tok, IAssign, reg, v);
 							v = reg;
 						}
@@ -1306,27 +1374,49 @@ public:
 					}
 					default:
 					{
-						char16 *t = Tokens[n.Tok];
-						if (*t == '\"' || *t == '\'')
+						if (n.Lst.Length())
 						{
-							// string
-							int Len = StrlenW(t);
-							AllocConst(n.Reg, t + 1, Len - 2);
-						}
-						else if (StrchrW(t, '.'))
-						{
-							// double
-							AllocConst(n.Reg, atof(t));
-						}
-						else if (t[0] == '0' && tolower(t[1]) == 'x')
-						{
-							// hex integer
-							AllocConst(n.Reg, htoi(t + 2));
+							// List/array constant
+							GVariant *v = PreAllocVariant(n.Reg);
+							if (v)
+							{
+								v->SetList();
+								for (unsigned i=0; i<n.Lst.Length(); i++)
+								{
+									char16 *t = Tokens[n.Lst[i]];
+									if (!t)
+										break;
+									GAutoPtr<GVariant> a(new GVariant);
+									if (!ConvertStringToVariant(a, t))
+										break;
+									v->Value.Lst->Insert(a.Release());
+								}
+							}
 						}
 						else
-						{
-							// decimal integer
-							AllocConst(n.Reg, atoi(t));
+						{						
+							char16 *t = Tokens[n.Tok];
+							if (*t == '\"' || *t == '\'')
+							{
+								// string
+								int Len = StrlenW(t);
+								AllocConst(n.Reg, t + 1, Len - 2);
+							}
+							else if (StrchrW(t, '.'))
+							{
+								// double
+								AllocConst(n.Reg, atof(t));
+							}
+							else if (t[0] == '0' && tolower(t[1]) == 'x')
+							{
+								// hex integer
+								AllocConst(n.Reg, htoi(t + 2));
+							}
+							else
+							{
+								// decimal integer
+								AllocConst(n.Reg, atoi(t));
+							}
 						}
 						break;
 					}
@@ -1351,39 +1441,38 @@ public:
 					OutRef = &n.Reg;
 				}
 				
-				if (OutRef)
+				DebugInfo(n.Tok);
+
+				GArray<GVarRef> a;
+				for (unsigned i=0; i<n.Args.Length(); i++)
 				{
-					DebugInfo(n.Tok);
+					if (!AsmExpression(&a[i], n.Args[i]))
+						return OnError(n.Tok, "Error creating bytecode for context function argument.");
+				}
 
-					GArray<GVarRef> a;
-					for (unsigned i=0; i<n.Args.Length(); i++)
-					{
-						if (!AsmExpression(&a[i], n.Args[i]))
-							return OnError(n.Tok, "Error creating bytecode for context function argument.");
-					}
+				int Len = Code->ByteCode.Length();
+				int Size = 1 + sizeof(GFunc*) + sizeof(GVarRef) + 2 + (a.Length() * sizeof(GVarRef));
+				Code->ByteCode.Length(Len + Size);
+				GPtr p;
+				uint8 *Start = &Code->ByteCode[Len];
+				p.u8 = Start;
+				*p.u8++ = ICallMethod;
+				*p.fn++ = n.ContextFunc;
+				*p.r++ = *OutRef;
+				*p.u16++ = n.Args.Length();
+				for (unsigned i=0; i<n.Args.Length(); i++)
+				{
+					*p.r++ = a[i];
+				}
+				LgiAssert(p.u8 == Start + Size);
 
-					int Len = Code->ByteCode.Length();
-					int Size = 1 + sizeof(GFunc*) + sizeof(GVarRef) + 2 + (a.Length() * sizeof(GVarRef));
-					Code->ByteCode.Length(Len + Size);
-					GPtr p;
-					uint8 *Start = &Code->ByteCode[Len];
-					p.u8 = Start;
-					*p.u8++ = ICallMethod;
-					*p.fn++ = n.ContextFunc;
-					*p.r++ = *OutRef;
-					*p.u16++ = n.Args.Length();
-					for (unsigned i=0; i<n.Args.Length(); i++)
-					{
-						*p.r++ = a[i];
-					}
-					LgiAssert(p.u8 == Start + Size);
-
-					// Deallocate argument registers
-					for (unsigned i=0; i<a.Length(); i++)
-					{
-						DeallocReg(a[i]);
-					}
-				}				
+				// Deallocate argument registers
+				for (unsigned i=0; i<a.Length(); i++)
+				{
+					DeallocReg(a[i]);
+				}
+				
+				n.Reg = *OutRef;
 			}
 			else if (n.IsScriptFunc())
 			{
@@ -1402,68 +1491,68 @@ public:
 					OutRef = &n.Reg;
 				}
 				
-				if (OutRef)
+				DebugInfo(n.Tok);
+
+				GArray<GVarRef> a;
+				for (unsigned i=0; i<n.Args.Length(); i++)
 				{
-					DebugInfo(n.Tok);
-
-					GArray<GVarRef> a;
-					for (unsigned i=0; i<n.Args.Length(); i++)
+					if (!AsmExpression(&a[i], n.Args[i]))
 					{
-						if (!AsmExpression(&a[i], n.Args[i]))
-						{
-							return OnError(n.Tok, "Error creating bytecode for script function argument.");
-						}
-					}
-
-					int Len = Code->ByteCode.Length();
-					int Size =	1 + // instruction
-								sizeof(uint32) + // address of function
-								sizeof(uint16) + // size of frame
-								sizeof(GVarRef) + // return value
-								2 + // number of args
-								(a.Length() * sizeof(GVarRef)); // args
-
-					Code->ByteCode.Length(Len + Size);
-					GPtr p;
-					uint8 *Start = &Code->ByteCode[Len];
-					p.u8 = Start;
-					*p.u8++ = ICallScript;
-					
-					if (n.ScriptFunc->StartAddr)
-					{
-						// Compile func address straight into code...
-						*p.u32++ = n.ScriptFunc->StartAddr;
-						*p.u16++ = n.ScriptFunc->FrameSize;
-					}
-					else
-					{
-						// Add link time fixup
-						LinkFixup &Fix = Fixups.New();
-						Fix.Tok = n.Tok;
-						Fix.Args = n.Args.Length();
-						Fix.Offset = p.u8 - &Code->ByteCode[0];
-						Fix.Func = n.ScriptFunc;
-						*p.u32++ = 0;
-						*p.u16++ = 0;
-					}
-
-					*p.r++ = *OutRef;
-					*p.u16++ = n.Args.Length();
-					for (unsigned i=0; i<n.Args.Length(); i++)
-					{
-						*p.r++ = a[i];
-					}
-					LgiAssert(p.u8 == Start + Size);
-
-					// Deallocate argument registers
-					for (unsigned i=0; i<a.Length(); i++)
-					{
-						DeallocReg(a[i]);
+						return OnError(n.Tok, "Error creating bytecode for script function argument.");
 					}
 				}
-				else return OnError(n.Tok, "Can't allocate register for method return value.");
+
+				int Len = Code->ByteCode.Length();
+				int Size =	1 + // instruction
+							sizeof(uint32) + // address of function
+							sizeof(uint16) + // size of frame
+							sizeof(GVarRef) + // return value
+							2 + // number of args
+							(a.Length() * sizeof(GVarRef)); // args
+
+				Code->ByteCode.Length(Len + Size);
+				GPtr p;
+				uint8 *Start = &Code->ByteCode[Len];
+				p.u8 = Start;
+				*p.u8++ = ICallScript;
+				
+				if (n.ScriptFunc->StartAddr)
+				{
+					// Compile func address straight into code...
+					*p.u32++ = n.ScriptFunc->StartAddr;
+					*p.u16++ = n.ScriptFunc->FrameSize;
+				}
+				else
+				{
+					// Add link time fixup
+					LinkFixup &Fix = Fixups.New();
+					Fix.Tok = n.Tok;
+					Fix.Args = n.Args.Length();
+					Fix.Offset = p.u8 - &Code->ByteCode[0];
+					Fix.Func = n.ScriptFunc;
+					*p.u32++ = 0;
+					*p.u16++ = 0;
+				}
+
+				*p.r++ = *OutRef;
+				*p.u16++ = n.Args.Length();
+				for (unsigned i=0; i<n.Args.Length(); i++)
+				{
+					*p.r++ = a[i];
+				}
+				LgiAssert(p.u8 == Start + Size);
+
+				// Deallocate argument registers
+				for (unsigned i=0; i<a.Length(); i++)
+				{
+					DeallocReg(a[i]);
+				}
+				
+				n.Reg = *OutRef;
 			}
 			else return false;
+			
+			LgiAssert(n.Reg.Valid());
 		}
 
 		return true;
@@ -1632,14 +1721,19 @@ public:
 						// Parse the args as expressions
 						while ((t = GetTok(Cur)))
 						{
-							if (StricmpW(t, sComma) == 0)
+							GTokenType Tok = ExpTok.Find(t);
+							if (Tok == TComma)
 							{
 								// Do nothing...
 								Cur++;
 							}
-							else if (StricmpW(t, sEndRdBracket) == 0)
+							else if (Tok == TEndRdBracket)
 							{
 								break;
+							}
+							else if (Tok == TSemiColon)
+							{
+								return OnError(Cur, "Unexpected ';'");
 							}
 							else if (!Expression(Cur, Call.Args.New()))
 							{
@@ -1704,11 +1798,43 @@ public:
 							*t == '\"' ||
 							LgiIsNumber(t))
 					{
+						// Constant string or number
 						n.New().SetConst(Cur, TLiteral);
 					}
+					else if (Tok == TStartCurlyBracket)
+					{
+						// List definition
+						GArray<int> Values;
+						Cur++;
+						int Index = 0;
+						while ((t = Tokens[Cur]))
+						{
+							GTokenType Tok = ExpTok.Find(t);
+							if (Tok == TComma)
+							{
+								Index++;
+							}
+							else if (Tok == TEndCurlyBracket)
+							{
+								break;
+							}
+							else if (*t == '\'' ||
+									*t == '\"' ||
+									LgiIsNumber(t))
+							{
+								Values[Index] = Cur;
+							}
+							else
+							{
+								return OnError(Cur, "Unexpected token '%S' in list definition", t);
+							}
+							Cur++;
+						}
+						n.New().SetConst(Values, TLiteral);
+					} 
 					else
 					{
-						LgiIsNumber(t);
+						// Unknown
 						return OnError(Cur, "Unknown token '%S'", t);
 					}
 				}
@@ -1809,8 +1935,22 @@ public:
 			}
 			else if (n[i].Constant)
 			{
-				char16 *t = Tokens[n[i].Tok];
-				e.Print("%S", t);
+				Node &nd = n[i];
+				if (nd.Lst.Length())
+				{
+					e.Print("{");
+					for (unsigned j=0; j<nd.Lst.Length(); j++)
+					{
+						char16 *t = Tokens[nd.Lst[j]];
+						e.Print("%s%S", j?", ":"", t);
+					}
+					e.Print("}");
+				}
+				else
+				{
+					char16 *t = Tokens[nd.Tok];
+					e.Print("%S", t);
+				}
 			}
 			else if (n[i].ContextFunc)
 			{
@@ -1924,6 +2064,7 @@ public:
 					{
 						if (AllocReg(Reg, _FL))
 						{
+							LgiAssert(Reg != a.Reg);
 							Asm2(a.Tok, IAssign, Reg, a.Reg);
 							a.Reg = Reg;
 						}
@@ -1950,6 +2091,7 @@ public:
 							}
 							else if (n != a.Reg)
 							{
+								LgiAssert(n != a.Reg);
 								Asm2(a.Tok, IAssign, n, a.Reg);
 							}
 						}
@@ -2012,6 +2154,7 @@ public:
 						{
 							if (AllocReg(Reg, _FL))
 							{
+								LgiAssert(Reg != a.Reg);
 								Asm2(a.Tok, IAssign, Reg, a.Reg);
 								a.Reg = Reg;
 							}
@@ -2083,10 +2226,6 @@ public:
 	bool DoExpression(uint32 &Cur, GVarRef *Result)
 	{
 		GArray<Node> n;
-		if (Cur >= 142)
-		{
-			int asd=0;
-		}
 		if (Expression(Cur, n))
 		{
 			bool Status = AsmExpression(Result, n);
@@ -3016,6 +3155,8 @@ public:
 			{
 				return sizeof(char16);
 			}
+			default:
+				break;
 		}
 		
 		return 1;
@@ -3102,7 +3243,7 @@ public:
 					Cur++;
 					
 					GArray<char16*> Exp;
-					while (t = GetTok(Cur))
+					while ((t = GetTok(Cur)))
 					{
 						Cur++;
 						if (!StricmpW(t, sEndSqBracket))

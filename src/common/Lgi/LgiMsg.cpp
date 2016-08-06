@@ -145,7 +145,7 @@ int LgiMsg(GViewI *Parent, const char *Str, const char *Title, int Type, ...)
 		{
 			char *t = LgiToNativeCp(Title ? Title : (char*)"Message");
 			char *m = LgiToNativeCp(Buffer);
-			Res = MessageBox(Parent ? Parent->Handle() : 0, m?m:"", t?t:"", Type);
+			Res = MessageBoxA(Parent ? Parent->Handle() : 0, m?m:"", t?t:"", Type);
 			DeleteArray(t);
 			DeleteArray(m);
 		}

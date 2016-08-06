@@ -1,6 +1,8 @@
 #ifndef _GBOX_H_
 #define _GBOX_H_
 
+#include "GCss.h"
+
 /// This is a vertical or horizontal layout box, similar to the
 /// old GSplitter control except it can handle any number of children
 class LgiClass GBox : public GView

@@ -147,10 +147,11 @@ void GEdit::Password(bool m)
 		SetStyle(GetStyle() & ~ES_PASSWORD);
 }
 
-int GEdit::SysOnNotify(int Code)
+int GEdit::SysOnNotify(int Msg, int Code)
 {
-	if (!d->IgnoreNotify &&
+	if (Msg == WM_COMMAND &&
 		Code == EN_CHANGE &&
+		!d->IgnoreNotify &&
 		_View)
 	{
 		if (!d->InEmptyMode)

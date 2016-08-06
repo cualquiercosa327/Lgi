@@ -492,7 +492,7 @@ void ResDialogCtrl::StrFromRef(int Ref)
 	Str->UpdateWnd = View();
 
 	// make the strings refid unique
-	Str->UnDupelicate();
+	Str->UnDuplicate();
 	
 	View()->Name(Str->Get());
 }
@@ -2940,7 +2940,7 @@ void ResDialog::Paste()
 				// Deduplicate all these new strings
 				for (ResString *s = NewStrs.First(); s; s = NewStrs.Next())
 				{
-					s->UnDupelicate();
+					s->UnDuplicate();
 				}
 			}
 
@@ -3739,7 +3739,7 @@ void ResDialog::CleanSymbols()
 		for (ResDialogCtrl *c = l.First(); c; c = l.Next())
 		{
 			LgiAssert(c->Str);
-			c->Str->UnDupelicate();
+			c->Str->UnDuplicate();
 		}
 	}
 

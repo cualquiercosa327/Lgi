@@ -1,3 +1,6 @@
+#ifndef _LGI_RES_H_
+#define _LGI_RES_H_
+
 /**
  * \defgroup Resources Lgi multi-language resource support
  *
@@ -298,3 +301,9 @@ public:
 	}
 };
 
+/// Loads a string from the resource file
+/// \ingroup Resources
+LgiFunc const char *LgiLoadString(int Res, const char *Default = 0);
+
+
+#endif

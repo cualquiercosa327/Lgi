@@ -6,6 +6,7 @@
 #include "GCheckBox.h"
 #include "GDisplayString.h"
 #include "GDisplayStringLayout.h"
+#include "LgiRes.h"
 
 static int PadX1Px = 20;
 static int PadX2Px = 6;

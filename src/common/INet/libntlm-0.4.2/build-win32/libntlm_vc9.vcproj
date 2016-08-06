@@ -1256,6 +1256,54 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="Resource Files"
+			>
+			<File
+				RelativePath="..\..\..\..\..\..\..\Scribe\trunk\Resources\Icons\app.ico"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\..\Scribe\trunk\Resources\Icons\Blank.ico"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\..\Scribe\trunk\Resources\Icons\calender.ico"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\..\Scribe\trunk\Resources\Icons\contact.ico"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\..\Scribe\trunk\Resources\Icons\error.ico"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\..\Scribe\trunk\Resources\Icons\event.ico"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\..\Scribe\trunk\Resources\Icons\filter.ico"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\..\Scribe\trunk\Resources\Icons\Mail.ico"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\..\Scribe\trunk\Code\Resource.rc"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\..\Scribe\trunk\Resources\ScribeWindows.manifest"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\..\Scribe\trunk\Resources\Icons\Small.ico"
+				>
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>

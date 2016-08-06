@@ -185,20 +185,53 @@ LgiFunc char *strcat_s
 ///
 /// Stops scanning when it hits a NULL or a non-hex character. Accepts
 /// input characters in the ranges 0-9, a-f and A-F.
-LgiFunc uint32 htoi
+template<typename Ret, typename Char>
+Ret HexToInt
 (
 	/// The string of hex characters
-	const char *a
-);
-/// \brief Converts a hex string into a 64bit integer.
-///
-/// Stops scanning when it hits a NULL or a non-hex character. Accepts
-/// input characters in the ranges 0-9, a-f and A-F.
-LgiFunc uint64 htoi64
-(
-	/// The string of hex characters
-	const char *a
-);
+	const Char *a
+)
+{
+	Ret Status = 0;
+
+	if (a[0] == '0' && (a[1] == 'x' || a[1] == 'X'))
+		a += 2;
+
+	for (; a && *a; a++)
+	{
+		if (*a >= '0' && *a <= '9')
+		{
+			Status <<= 4;
+			Status |= *a - '0';
+		}
+		else if (*a >= 'a' && *a <= 'f')
+		{
+			Status <<= 4;
+			Status |= *a - 'a' + 10;
+		}
+		else if (*a >= 'A' && *a <= 'F')
+		{
+			Status <<= 4;
+			Status |= *a - 'A' + 10;
+		}
+		else break;
+	}
+
+	return Status;
+}
+
+template<typename Char>
+uint32 htoi(const Char *s)
+{
+	return HexToInt<uint32,Char>(s);
+}
+
+template<typename Char>
+uint64 htoi64(const Char *s)
+{
+	return HexToInt<uint64,Char>(s);
+}
+
 /// Trims delimiter characters off a string.
 ///
 /// \returns A dynamically allocated copy of the input without any delimiter characters

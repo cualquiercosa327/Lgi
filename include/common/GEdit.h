@@ -26,7 +26,7 @@ protected:
 
 	GAutoWString	SysName();
 	bool			SysName(const char16 *Name);
-	int				SysOnNotify(int Code);
+	int				SysOnNotify(int Msg, int Code);
 	bool			SysEmptyText();
 	#endif
 

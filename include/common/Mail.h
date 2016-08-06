@@ -201,7 +201,7 @@ public:
 	}
 };
 
-class MailMessage
+class MailMessage : public GStream
 {
 	char*						Text;
 	char*						TextCharset;
@@ -223,10 +223,10 @@ public:
 	int							MarkColour;
 	uint8						DispositionNotificationTo; // read receipt
 	GAutoString					References;
-	
+
 	// Protocol specific
 	GAutoString					UserData;
-
+	
 	// Class
 	MailMessage();
 	virtual ~MailMessage();
@@ -241,6 +241,10 @@ public:
 	virtual bool SetHtml(const char *Txt, int Bytes = -1, bool Copy = true, const char *Cs = 0);
 	virtual char *GetHtmlCharset();
 	virtual bool SetHtmlCharset(const char *Cs);
+	
+	// Logging
+	GStream						*Log;
+	int Write(const void *Ptr, int Size, int Flags = 0);
 	
 	// Conversion to/from MIME
 	GStringPipe					*Raw;
@@ -280,7 +284,10 @@ public:
 	MailProtocolProgress *Transfer;
 
 	// Settings
-	GAutoString ServerMsg;
+	int ErrMsgId; /// \sa #L_ERROR_ESMTP_NO_AUTHS, #L_ERROR_ESMTP_UNSUPPORTED_AUTHS
+	GString ErrMsgFmt; /// The format for the printf
+	GString ErrMsgParam; /// The arguments for the printf
+	
 	char *ProgramName;
 	char *DefaultDomain;
 	char *ExtraOutgoingHeaders;
@@ -304,6 +311,12 @@ public:
 		return false;
 	}
 
+	void SetError(int ResourceId, const char *Fmt, const char *Param = NULL)
+	{
+		ErrMsgId = ResourceId;
+		ErrMsgFmt = Fmt;
+		ErrMsgParam = Param;
+	}
 };
 
 /////////////////////////////////////////////////////////////////////
@@ -323,6 +336,8 @@ public:
 #define MAIL_SECURE_AUTH			0x20
 /// Use SSL
 #define MAIL_SSL					0x40
+/// OAUTH2
+#define MAIL_USE_OAUTH2				0x80
 
 /// Mail sending protocol
 class MailSink : public MailProtocol
@@ -763,7 +778,7 @@ class MailIMap : public MailSource, public GMutex
 protected:
 	class MailIMapPrivate *d;
 
-	char Buf[1024];
+	char Buf[2048];
 	List<char> Uid;
 	GStringPipe ReadBuf;
 	List<char> Dialog;
@@ -788,13 +803,18 @@ public:
 	
 	struct OAuthParams
 	{
+		enum ServiceProvider
+		{
+			OAuthGoogle,
+			OAuthMicrosoft,
+		}	Provider;
+		
 		GString ClientID;
 		GString ClientSecret;
 		GString RedirURIs;
 		GString AuthUri;
 		GString ApiUri;
-		GString RevokeUri;
-		GString TokenUri;
+		// GString RevokeUri;
 		GString Scope;
 		GUri Proxy;
 		
@@ -808,8 +828,7 @@ public:
 				ClientSecret &&
 				RedirURIs &&
 				AuthUri &&
-				RevokeUri &&
-				TokenUri &&
+				// RevokeUri &&
 				Scope &&
 				ApiUri;
 		}

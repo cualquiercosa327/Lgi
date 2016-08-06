@@ -234,7 +234,7 @@ public:
 			y2 = y1 + (int)r.size.height - 1;
 			return *this;
 		}
-		
+
 		operator CGRect()
 		{
 			CGRect r;

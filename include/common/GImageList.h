@@ -115,10 +115,10 @@ LgiFunc GImageList *LgiLoadImageList
 (
 	/// The file to load
 	const char *File,
-	/// The width of the icons
-	int x,
+	/// The width of the icons (-1 to autodetect from filename in the form "name-width[xheight].png")
+	int x = -1,
 	/// The height of the icons
-	int y
+	int y = -1
 );
 
 #endif

@@ -64,37 +64,7 @@ typedef int (__stdcall *pSHFileOperationA)(LPSHFILEOPSTRUCTA lpFileOp);
 typedef int (__stdcall *pSHFileOperationW)(LPSHFILEOPSTRUCTW lpFileOp);
 typedef int (__stdcall *p_vscprintf)(const char *format, va_list argptr);
 
-class LgiClass GMessage
-{
-public:
-	HWND hWnd;
-	int m;
-	WPARAM a;
-	LPARAM b;
-	
-	typedef LPARAM Param;
-	typedef LRESULT Result;
-
-	GMessage()
-	{
-		hWnd = 0;
-		m = 0;
-		a = 0;
-		b = 0;
-	}
-
-	GMessage(int M, WPARAM A = 0, LPARAM B = 0)
-	{
-		hWnd = 0;
-		m = M;
-		a = A;
-		b = B;
-	}
-	
-	int Msg() { return m; }
-	WPARAM A() { return a; }
-	LPARAM B() { return b; }
-};
+#include "GMessage.h"
 
 class LgiClass OsAppArguments
 {
@@ -119,10 +89,6 @@ public:
 
 //////////////////////////////////////////////////////////////////
 // Defines
-#define MsgCode(msg)					((msg)->m)
-#define MsgA(msg)						((msg)->a)
-#define MsgB(msg)						((msg)->b)
-#define CreateMsg(m, a, b)				GMessage(m, a, b)
 #define IsWin9x							(GApp::Win9x)
 #define DefaultOsView(t)				NULL
 
@@ -201,63 +167,6 @@ typedef SOCKET							OsSocket;
 
 // Messages
 
-// Quite a lot of windows stuff uses WM_USER+n where
-// n < 0x1A0 or so... so stay out of their way.
-	#define M_USER						WM_USER
-	#define M_CUT						WM_CUT
-	#define M_COPY						WM_COPY
-	#define M_PASTE						WM_PASTE
-	#define M_COMMAND					WM_COMMAND
-	#define M_CLOSE						WM_CLOSE
-
-	// wParam = bool Inside; // is the mouse inside the client area?
-	// lParam = MAKELONG(x, y); // mouse location
-	#define M_MOUSEENTER				(M_USER+0x1000)
-	#define M_MOUSEEXIT					(M_USER+0x1001)
-
-	// wParam = (GView*) Wnd;
-	// lParam = (int) Flags;
-	#define M_CHANGE					(M_USER+0x1002)
-
-	// wParam = (GView*) Wnd;
-	// lParam = (char*) Text; // description from window
-	#define M_DESCRIBE					(M_USER+0x1003)
-
-	// return (bool)
-	#define M_WANT_DIALOG_PROC			(M_USER+0x1004)
-
-	// wParam = void
-	// lParam = (MSG*) Msg;
-	#define M_TRANSLATE_ACCELERATOR		(M_USER+0x1005)
-
-	// None
-	#define M_TRAY_NOTIFY				(M_USER+0x1006)
-
-	// lParam = Style
-	#define M_SET_WND_STYLE				(M_USER+0x1007)
-
-	// lParam = GScrollBar *Obj
-	#define M_SCROLL_BAR_CHANGED		(M_USER+0x1008)
-
-	// lParam = HWND of window under mouse
-	// This is only sent for non-LGI window in our process
-	// because we'd get WM_MOUSEMOVE's for our own windows
-	#define M_HANDLEMOUSEMOVE			(M_USER+0x1009)
-
-	// Calls SetWindowPlacement...
-	#define M_SET_WINDOW_PLACEMENT		(M_USER+0x100a)
-
-	// Generic delete selection msg
-	#define M_DELETE					(M_USER+0x100b)
-
-	// Log message back to GUI thread
-	#define M_LOG_TEXT					(M_USER+0x100c)
-	
-	// Set the visibility of the window
-	#define M_SET_VISIBLE				(M_USER+0x100d)
-
-	/// Sent from a worker thread when calling GText::Name
-	#define M_TEXT_UPDATE_NAME			(M_USER+0x100e)
 
 // Directories
 #define DIR_CHAR						'\\'
@@ -282,7 +191,7 @@ LgiFunc int WinHeightToPoint(int Ht, HDC hDC = NULL);
 LgiExtern class GString WinGetSpecialFolderPath(int Id);
 
 /// Convert a string d'n'd format to an OS dependant integer.
-LgiFunc int FormatToInt(char *s);
+LgiFunc int FormatToInt(GString s);
 /// Convert a Os dependant integer d'n'd format to a string.
 LgiFunc char *FormatToStr(int f);
 extern bool LgiToWindowsCursor(LgiCursor Cursor);
@@ -295,8 +204,8 @@ extern bool LgiToWindowsCursor(LgiCursor Cursor);
 #define atoi64						_atoi64
 
 #ifdef __GNUC__
-// #define stricmp							strcasecmp
-// #define strnicmp						strncasecmp
+// #define stricmp					strcasecmp
+// #define strnicmp					strncasecmp
 #define vsnprintf_s vsnprintf
 #define swprintf_s snwprintf
 #define vsprintf_s vsnprintf

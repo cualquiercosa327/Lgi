@@ -21,6 +21,7 @@
 #include "GViewPriv.h"
 #include "GCss.h"
 
+#define DEBUG_MOUSE_CLICKS		0
 #define DEBUG_OVER				0
 #define OLD_WM_CHAR_MODE		1
 #define GWL_LGI_MAGIC			8
@@ -147,10 +148,10 @@ int _lgi_get_key_flags()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 int GetInputACP()
 {
-	char Str[16];
+	char16 Str[16];
 	LCID Lcid = (NativeInt)GetKeyboardLayout(LgiGetCurrentThread()) & 0xffff;
-	GetLocaleInfo(Lcid, LOCALE_IDEFAULTANSICODEPAGE , Str, sizeof(Str));
-	return atoi(Str);
+	GetLocaleInfo(Lcid, LOCALE_IDEFAULTANSICODEPAGE, Str, sizeof(Str));
+	return _wtoi(Str);
 }
 
 GKey::GKey(int v, int flags)
@@ -193,6 +194,23 @@ GKey::GKey(int v, int flags)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+template<typename T>
+bool CastHwnd(T *&Ptr, HWND hWnd)
+{
+	#if _MSC_VER >= 1400
+	LONG_PTR user = GetWindowLongPtr(hWnd, GWLP_USERDATA);
+	LONG_PTR magic = GetWindowLongPtr(hWnd, GWL_LGI_MAGIC);
+	#else
+	LONG user = GetWindowLong(hWnd, GWL_USERDATA);
+	LONG magic = GetWindowLong(hWnd, GWL_LGI_MAGIC);
+	#endif
+
+	if (magic != LGI_GViewMagic)
+		return false;
+	Ptr = dynamic_cast<T*>((GViewI*)user);
+	return Ptr != NULL;
+}
+
 LRESULT CALLBACK GWin32Class::Redir(HWND hWnd, UINT m, WPARAM a, LPARAM b)
 {
 	if (m == WM_NCCREATE)
@@ -296,32 +314,19 @@ GWin32Class::~GWin32Class()
 
 GWin32Class *GWin32Class::Create(const char *ClassName)
 {
-	GWin32Class *c = 0;
+	if (!LgiApp)
+		return NULL;
 
-	if (LgiApp)
+	GApp::ClassContainer *Classes = LgiApp->GetClasses();
+	if (!Classes)
+		return NULL;
+
+	GWin32Class *c = Classes->Find(ClassName);
+	if (!c)
 	{
-		List<GWin32Class> *Classes = LgiApp->GetClasses();
-		if (Classes)
-		{
-			for (c = Classes->First(); c; c = Classes->Next())
-			{
-				if (c->Name() &&
-					ClassName &&
-					stricmp(c->Name(), ClassName) == 0)
-				{
-					break;
-				}
-			}
-
-			if (!c)
-			{
-				c = new GWin32Class(ClassName);
-				if (c)
-				{
-					Classes->Insert(c);
-				}
-			}
-		}
+		c = new GWin32Class(ClassName);
+		if (c)
+			Classes->Add(ClassName, c);
 	}
 
 	return c;
@@ -330,7 +335,15 @@ GWin32Class *GWin32Class::Create(const char *ClassName)
 bool GWin32Class::Register()
 {
 	bool Status = false;
-	if (!Class.lpszClassName)
+	
+	if (!_stricmp(Name(), "BUTTON"))
+	{
+		ZeroObj(Class);
+		Class.cbSize = sizeof(Class);
+		Status = GetClassInfoExW(LgiProcessInst(), NameW(), &Class);
+		LgiAssert(Status);
+	}
+	else if (!Class.lpszClassName)
 	{
 		Class.hInstance = LgiProcessInst();
 		Class.lpszClassName = NameW();
@@ -488,7 +501,14 @@ void GView::_Delete()
 
 	// Remove static references to myself
 	if (_Over == this) _Over = 0;
-	if (_Capturing == this) _Capturing = 0;
+	if (_Capturing == this)
+	{
+		#if DEBUG_CAPTURE
+		LgiTrace("%s:%i - _Capturing %p/%s -> NULL\n",
+			_FL, this, GetClass());
+		#endif
+		_Capturing = 0;
+	}
 
 	if (LgiApp && LgiApp->AppWnd == this)
 	{
@@ -608,18 +628,25 @@ bool GView::Attach(GViewI *p)
 		_Window = Parent->_Window;
 
     const char *ClsName = GetClassW32();
-    if (!ClsName)
+	if (!ClsName)
         ClsName = GetClass();
+        
 	if (ClsName)
 	{
 		// Real window with HWND
 		bool Enab = Enabled();
 
         // Check the class is created
+        bool IsSystemClass = !strcmp(ClsName, "BUTTON");
+        if (IsSystemClass)
+        {
+			int asd=0;
+        }
+        
         GWin32Class *Cls = GWin32Class::Create(ClsName);
         if (Cls)
             Cls->Register();
-        else
+        else if (!IsSystemClass)
             return false;
 
 		LgiAssert(!Parent || Parent->Handle() != 0);
@@ -630,9 +657,10 @@ bool GView::Attach(GViewI *p)
 			ExStyle &= ~(WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE);
 							
 		char16 *Text = GBase::NameW();
+		GAutoWString WCls(LgiNewUtf8To16(ClsName));
 
 		_View = CreateWindowExW(ExStyle,
-								Cls->NameW(),
+								WCls,
 								Text,
 								Style,
 								Pos.x1, Pos.y1,
@@ -711,12 +739,17 @@ bool GView::Detach()
 		{
 			if (_View)
 				ReleaseCapture();
+			#if DEBUG_CAPTURE
+			LgiTrace("%s:%i - _Capturing %p/%s -> NULL\n",
+				_FL, this, GetClass());
+			#endif
 			_Capturing = 0;
 		}
 		if (_View)
 		{
 			WndFlags &= ~GWF_QUIT_WND;
 			BOOL Status = DestroyWindow(_View);
+			DWORD Err = GetLastError();
 			LgiAssert(Status);
 		}
 	}
@@ -765,7 +798,7 @@ LgiCursor GView::GetCursor(int x, int y)
 
 bool LgiToWindowsCursor(LgiCursor Cursor)
 {
-	char *Set = 0;
+	char16 *Set = 0;
 	switch (Cursor)
 	{
 		case LCUR_UpArrow:
@@ -922,6 +955,7 @@ bool GView::SetPos(GRect &p, bool Repaint)
 									SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOOWNERZORDER);
 			In_SetWindowPos = false;
 
+			/*
 			HWND hNew = GetFocus();
 			if (hNew != hOld)
 			{
@@ -933,6 +967,7 @@ bool GView::SetPos(GRect &p, bool Repaint)
 				// Oh f#$% off windows.
 				// SetFocus(hOld);
 			}
+			*/
 		}
 		else if (GetParent())
 		{
@@ -1274,9 +1309,65 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			}
 			case WM_MENUCHAR:
 			case WM_MEASUREITEM:
-			case WM_DRAWITEM:
 			{
 				return GMenu::_OnEvent(Msg);
+				break;
+			}
+			case WM_DRAWITEM:
+			{
+				DRAWITEMSTRUCT *di = (DRAWITEMSTRUCT*)Msg->B();
+				if (di)
+				{
+					if (di->CtlType == ODT_MENU)
+					{
+						return GMenu::_OnEvent(Msg);
+					}
+					/*
+					else if (di->CtlType == ODT_BUTTON)
+					{
+						GView *b;
+						if (CastHwnd(b, di->hwndItem) &&
+							b->GetCss())
+						{
+							GScreenDC dc(di->hDC, di->hwndItem);
+							switch (di->itemAction)
+							{
+								case ODA_DRAWENTIRE:
+								{
+									GRect c = di->rcItem;
+									GMemDC m(c.X(), c.Y(), GdcD->GetColourSpace());
+									HDC hdc = m.StartDC();
+									m.Colour(GColour(255, 0, 255));
+									m.Line(0, 0, m.X()-1, m.Y()-1);
+
+									LONG s = GetWindowLong(_View, GWL_STYLE);
+									SetWindowLong(_View, GWL_STYLE, (s & ~BS_TYPEMASK) | BS_PUSHBUTTON);
+
+									SendMessage(_View, WM_PRINT, (WPARAM)hdc, PRF_ERASEBKGND|PRF_CLIENT);
+
+									SetWindowLong(_View, GWL_STYLE, (s & ~BS_TYPEMASK) | BS_OWNERDRAW);
+
+									m.EndDC();
+									dc.Blt(0, 0, &m);									
+									break;
+								}
+								case ODA_FOCUS:
+								{
+									break;
+								}
+								case ODA_SELECT:
+								{
+									break;
+								}
+							}
+							return true;
+						}
+					}
+					*/
+				}
+
+				if (!(WndFlags & GWF_DIALOG))
+					goto ReturnDefaultProc;
 				break;
 			}
 			case WM_ENABLE:
@@ -1341,25 +1432,14 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			}
 			case M_COMMAND:
 			{
-				GViewI *Ci = FindControl((HWND) Msg->b);
-				GView *Ctrl = Ci ? Ci->GetGView() : 0;
-				if (Ctrl)
+				// GViewI *Ci = FindControl((HWND) Msg->b);
+				// GView *Ctrl = Ci ? Ci->GetGView() : 0;
+				GView *Ctrl;
+				if (CastHwnd(Ctrl, (HWND) Msg->b))
 				{
 					short Code = HIWORD(Msg->a);
 					switch (Code)
 					{
-						/*
-						case BN_CLICKED: // BUTTON
-						{
-							OnNotify(Ctrl, 0);
-							break;
-						}
-						*/
-						case EN_CHANGE: // EDIT
-						{
-							Ctrl->SysOnNotify(Code);
-							break;
-						}
 						case CBN_CLOSEUP:
 						{
 							PostMessage(_View, WM_COMMAND, MAKELONG(Ctrl->GetId(), CBN_EDITCHANGE), Msg->b);
@@ -1367,8 +1447,17 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 						}
 						case CBN_EDITCHANGE: // COMBO
 						{
-							Ctrl->SysOnNotify(Code);
+							Ctrl->SysOnNotify(Msg->Msg(), Code);
 							OnNotify(Ctrl, 0);
+							break;
+						}
+						/*
+						case BN_CLICKED: // BUTTON
+						case EN_CHANGE: // EDIT
+						*/
+						default:
+						{
+							Ctrl->SysOnNotify(Msg->Msg(), Code);
 							break;
 						}
 					}
@@ -1382,7 +1471,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
                 #else
 				SetWindowLong(_View, GWL_USERDATA, 0);
 				#endif
-				_View = 0;
+				_View = NULL;
 				if (WndFlags & GWF_QUIT_WND)
 				{
 					delete this;
@@ -1498,7 +1587,29 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			}
 			case WM_CAPTURECHANGED:
 			{
-				_Capturing = 0;
+				GViewI *Wnd;
+				if (CastHwnd(Wnd, (HWND)Msg->B()))
+				{
+					if (Wnd != _Capturing)
+					{
+						#if DEBUG_CAPTURE
+						LgiTrace("%s:%i - _Capturing %p/%s -> %p/%s\n",
+							_FL,
+							_Capturing, _Capturing?_Capturing->GetClass():0,
+							Wnd, Wnd?Wnd->GetClass() : 0);
+						#endif
+						_Capturing = Wnd;
+					}
+				}
+				else if (_Capturing)
+				{
+					#if DEBUG_CAPTURE
+					LgiTrace("%s:%i - _Capturing %p/%s -> NULL\n",
+						_FL,
+						_Capturing, _Capturing?_Capturing->GetClass():0);
+					#endif
+					_Capturing = NULL;
+				}
 				break;
 			}
 			case M_MOUSEENTER:
@@ -1702,6 +1813,12 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 					Ms = lgi_adjust_click(Ms, _Over);
 				else
 					Ms.Target = this;
+				
+				#if DEBUG_MOUSE_CLICKS
+				GString Msg;
+				Msg.Printf("%s.Click", Ms.Target->GetClass());
+				Ms.Trace(Msg);
+				#endif
 
 				GWindow *Wnd = GetWindow();
 				if (!Wnd || Wnd->HandleViewMouse(dynamic_cast<GView*>(Ms.Target), Ms))
@@ -1725,6 +1842,12 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 					Ms = lgi_adjust_click(Ms, _Over);
 				else
 					Ms.Target = this;
+
+				#if DEBUG_MOUSE_CLICKS
+				GString Msg;
+				Msg.Printf("%s.Click", Ms.Target->GetClass());
+				Ms.Trace(Msg);
+				#endif
 
 				GWindow *Wnd = GetWindow();
 				if (!Wnd || Wnd->HandleViewMouse(dynamic_cast<GView*>(Ms.Target), Ms))
@@ -1767,7 +1890,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 
 				if (SysOnKey(this, Msg))
 				{
-					LgiTrace("SysOnKey true, Msg=0x%x %x,%x\n", Msg->m, Msg->a, Msg->b);
+					// LgiTrace("SysOnKey true, Msg=0x%x %x,%x\n", Msg->m, Msg->a, Msg->b);
 					return 0;
 				}
 				else
@@ -1926,6 +2049,17 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				
 				return Status;
 			}
+			case WM_NOTIFY:
+			{
+				NMHDR *Hdr = (NMHDR*)Msg->B();
+				if (Hdr)
+				{
+					GView *Wnd;
+					if (CastHwnd(Wnd, Hdr->hwndFrom))
+						Wnd->SysOnNotify(Msg->Msg(), Hdr->code);
+				}
+				break;
+			}
 			default:
 			{
 				if (!(WndFlags & GWF_DIALOG))
@@ -1960,14 +2094,12 @@ GViewI *GView::FindControl(OsView hCtrl)
 		return this;
 	}
 
-	;
 	for (List<GViewI>::I i = Children.Start(); i.In(); i++)
 	{
 		GViewI *Ctrl = (*i)->FindControl(hCtrl);
 		if (Ctrl)
-		{
 			return Ctrl;
-		}
 	}
+
 	return 0;
 }

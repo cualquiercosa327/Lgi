@@ -22,6 +22,7 @@
 #include "LgiCommon.h"
 #include "GXmlTree.h"
 #include "GDragAndDrop.h"
+#include "GHashTable.h"
 
 /////////////////////////////////////////////////////////////////////////////////////
 // Externs
@@ -105,6 +106,9 @@ class LgiClass GApp : virtual public GAppI,
 {
 	friend class GView;
 
+public:
+	typedef GHashTbl<const char*, GWin32Class*> ClassContainer;
+
 protected:
 	// private member vars
 	class GAppPrivate *d;
@@ -119,7 +123,7 @@ protected:
 	friend LONG __stdcall _ExceptionFilter_Redir(LPEXCEPTION_POINTERS e);
 	LONG __stdcall _ExceptionFilter(LPEXCEPTION_POINTERS e, char *ProductId);
 	friend class GWin32Class;
-	List<GWin32Class> *GetClasses();
+	ClassContainer *GetClasses();
 
 	#elif defined ATHEOS
 
@@ -367,6 +371,7 @@ private:
 	#elif defined WIN32
 
 	friend		class GWin32Class;
+	friend		class GCombo;
 	friend		LRESULT CALLBACK DlgRedir(OsView hWnd, UINT m, WPARAM a, LPARAM b);
 	static		void CALLBACK TimerProc(OsView hwnd, UINT uMsg, UINT_PTR idEvent, uint32 dwTime);
 
@@ -437,7 +442,7 @@ protected:
 	/// which is usually the name of the object.
 	GWin32Class *CreateClassW32(const char *Class = 0, HICON Icon = 0, int AddStyles = 0);
 
-	virtual int		SysOnNotify(int Code) { return 0; }
+	virtual int		SysOnNotify(int Msg, int Code) { return 0; }
 
 	#elif defined BEOS
 
@@ -584,10 +589,6 @@ public:
 	/// This doesn't attach the window so that it will display. You should use GView::Attach for that.
 	virtual void SetParent(GViewI *p);
 
-	/// Script handler to receive UI events.
-	GEventsI *Script;
-	bool OnScriptEvent(GViewI *Ctrl) { return false; }
-
 	/// Sends a notification to the notify target or the parent chain
 	void SendNotify(int Data = 0);
 	
@@ -687,10 +688,7 @@ public:
 	bool InThread();
 	
 	/// \brief Asyncronously posts an event to be received by this window
-	///
-	/// This calls PostMessage on Win32 and XSendEvent on X11. XSendEvent is called
-	/// with a ClientMessage with the a and b parameters in the data section.
-	bool PostEvent
+	virtual bool PostEvent
 	(
 		/// The command ID.
 		/// \sa Should be M_USER or higher for custom events.

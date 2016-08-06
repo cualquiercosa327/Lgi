@@ -33,7 +33,7 @@ class GFontSelect : public GDialog
 
 public:
 	/// The face of the font selected
-	char *Face;
+	GString Face;
 	/// The point size of the font selected
 	int Size;
 	/// True if the font should be bold

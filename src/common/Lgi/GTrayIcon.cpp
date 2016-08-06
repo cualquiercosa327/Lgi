@@ -166,6 +166,7 @@ bool GTrayIcon::Load(const TCHAR *Str)
 		d->Icon.Add(i);
 		return true;
 	}
+	else LgiAssert(0);
 	
 	#elif defined(__GTK_H__)
 

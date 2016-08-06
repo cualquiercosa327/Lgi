@@ -15,6 +15,7 @@
 #include "errno.h"
 #endif
 #include "GProgressDlg.h"
+#include "LgiRes.h"
 
 #define STORE_DIR_ALLOC					8
 

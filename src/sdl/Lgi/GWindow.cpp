@@ -657,7 +657,10 @@ void GWindow::OnPosChange()
 
 void GWindow::Pour()
 {
-	GRegion Client(GetClient());
+	GRect Cli = GetClient();
+	if (!Cli.Valid())
+		return;
+	GRegion Client(Cli);
 	GViewI *MenuView = 0;
 
 	GRegion Update(Client);

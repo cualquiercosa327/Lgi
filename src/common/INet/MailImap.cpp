@@ -861,7 +861,7 @@ bool MailIMap::IsResponse(const char *Buf, int Cmd, bool &Ok)
 
 	Ok = _strnicmp(Buf+Ch, "OK", 2) == 0;
 	if (!Ok)
-		ServerMsg.Reset(NewStr(Buf+Ch));
+		SetError(L_ERROR_GENERIC, "Error: %s", Buf+Ch);
 	
 	return true;
 }
@@ -962,12 +962,12 @@ class OAuthWebServer : public GThread, public GMutex
 	bool Finished;
 
 public:
-	OAuthWebServer() :
+	OAuthWebServer(int DesiredPort = 0) :
 		GThread("OAuthWebServerThread"),
 		GMutex("OAuthWebServerMutex")
 	{
 		Loop = true;
-		if (Listen.Listen())
+		if (Listen.Listen(DesiredPort))
 		{
 			Port = Listen.GetLocalPort();
 			Run();
@@ -1086,6 +1086,20 @@ public:
 	}
 };
 
+static void AddIfMissing(GArray<GString> &Auths, const char *a, GString *DefaultAuthType = NULL)
+{
+	for (unsigned i=0; i<Auths.Length(); i++)
+	{
+		if (!_stricmp(Auths[i], a))
+		{
+			if (DefaultAuthType) *DefaultAuthType = Auths[i];
+			return;
+		}
+	}
+	Auths.Add(a);
+	if (DefaultAuthType) *DefaultAuthType = Auths.Last();
+}
+
 bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *Password, GDom *SettingStore, int Flags)
 {
 	bool Status = false;
@@ -1129,7 +1143,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 		if (Socket->Open(Remote, Port))
 		{
 			bool IMAP4Server = false;
-			GArray<char*> Auths;
+			GArray<GString> Auths;
 
 			// check capability
 			int CapCmd = d->NextCmd++;
@@ -1154,7 +1168,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 								if (_strnicmp(T[i], "AUTH=", 5) == 0)
 								{
 									char *Type = T[i] + 5;
-									Auths.Add(NewStr(Type));
+									AddIfMissing(Auths, Type);
 								}
 
 								d->Capability.Add(T[i]);
@@ -1172,25 +1186,39 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 				Log("CAPABILITY says not an IMAP4Server", GSocketI::SocketMsgError);
 			else
 			{
-				char *DefaultAuthType = NULL;
-				bool TryAllAuths = Auths.Length() == 0 &&
-									!(Flags & (MAIL_USE_PLAIN | MAIL_USE_LOGIN | MAIL_USE_NTLM));
+				GString DefaultAuthType;
+				bool TryAllAuths =	Auths.Length() == 0
+									&&
+									!(
+										Flags &
+										(
+											MAIL_USE_PLAIN |
+											MAIL_USE_LOGIN |
+											MAIL_USE_NTLM | 
+											MAIL_USE_OAUTH2
+										)
+									);
 
 				if (TryAllAuths)
-				{
-					Auths.Add(NewStr("DIGEST-MD5"));
-				}
+					AddIfMissing(Auths, "DIGEST-MD5");
 				if (TestFlag(Flags, MAIL_USE_PLAIN) || TryAllAuths)
-				{
-					Auths.AddAt(0, DefaultAuthType = NewStr("PLAIN"));
-				}
+					AddIfMissing(Auths, "PLAIN", &DefaultAuthType);
 				if (TestFlag(Flags, MAIL_USE_LOGIN) || TryAllAuths)
-				{
-					Auths.AddAt(0, DefaultAuthType = NewStr("LOGIN"));
-				}
+					AddIfMissing(Auths, "LOGIN", &DefaultAuthType);
 				if (TestFlag(Flags, MAIL_USE_NTLM) || TryAllAuths)
+					AddIfMissing(Auths, "NTLM", &DefaultAuthType);
+				if (TestFlag(Flags, MAIL_USE_OAUTH2) || TryAllAuths)
+					AddIfMissing(Auths, "XOAUTH2", &DefaultAuthType);
+					
+				// Move the default to the start of the list
+				for (unsigned n=0; n<Auths.Length(); n++)
 				{
-					Auths.AddAt(0, DefaultAuthType = NewStr("NTLM"));
+					if (Auths[n] == DefaultAuthType && n > 0)
+					{
+						Auths.DeleteAt(n);
+						Auths.AddAt(0, DefaultAuthType);
+						break;
+					}
 				}
 
 				// SSL
@@ -1637,7 +1665,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 						
 						if (!d->OAuth.AccessToken)
 						{						
-							OAuthWebServer WebServer;
+							OAuthWebServer WebServer(55220);
 						
 							// Launch browser to get Access Token
 							bool UsingLocalhost = WebServer.GetPort() > 0;
@@ -1671,10 +1699,13 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 								#endif
 							}
 							
+							GUri u;
+							GAutoString RedirEnc = u.Encode(RedirUri, ":/");
+							
 							Uri.Printf("%s?client_id=%s&redirect_uri=%s&response_type=code&scope=%s",
 								d->OAuth.AuthUri.Get(),
 								d->OAuth.ClientID.Get(),
-								RedirUri.Get(),
+								RedirEnc.Get(),
 								d->OAuth.Scope.Get());
 							#if DEBUG_OAUTH2
 							LgiTrace("%s:%i - Uri=%s\n", _FL, Uri.Get());
@@ -1990,16 +2021,11 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 				}
 				else
 				{
-					char Str[300];
-					sprintf_s(Str, sizeof(Str),
-							"Authentication failed, types available:\n%s",
-							(strlen(AuthTypeStr)>0) ? AuthTypeStr : "(none)");
-
-					ServerMsg.Reset(NewStr(Str));
+					SetError(L_ERROR_UNSUPPORTED_AUTH,
+							"Authentication failed, types available:\n\t%s",
+							ValidStr(AuthTypeStr) ? AuthTypeStr : "(none)");
 				}
 			}
-
-			Auths.DeleteArrays();
 		}
 		
 		Unlock();

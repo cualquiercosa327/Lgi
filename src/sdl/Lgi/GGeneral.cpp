@@ -626,7 +626,7 @@ GRegKey::GRegKey(bool WriteAccess, char *Key, ...)
 				!strnicmp(KeyName, #Short, Len = strlen(#Short))) \
 			{ \
 				Root = Long; \
-				SubKey = KeyName[Len] ? KeyName + Len + 1 : 0; \
+				SubKey = KeyName[Len] ? KeyName.Get() + Len + 1 : 0; \
 			}
 		TestKey(HKEY_CLASSES_ROOT, HKCR)
 		else TestKey(HKEY_CURRENT_CONFIG, HKCC)
@@ -771,19 +771,19 @@ bool GRegKey::SetStr(const char *Name, const char *Value)
 	return true;
 }
 
-int GRegKey::GetInt(char *Name)
+bool GRegKey::GetInt(const char *Name, uint32 &Value)
 {
-	int i = 0;
-	DWORD Size = sizeof(i), Type;
-	if (k && RegQueryValueEx(k, Name, 0, &Type, (uchar*)&i, &Size) != ERROR_SUCCESS)
-	{
-		i = 0;
-	}
+	if (!k)
+		return false;
+		
+	DWORD Size = sizeof(Value), Type;
+	if (RegQueryValueEx(k, Name, 0, &Type, (uchar*)&Value, &Size) != ERROR_SUCCESS)
+		return false;
 
-	return i;
+	return true;
 }
 
-bool GRegKey::SetInt(char *Name, int Value)
+bool GRegKey::SetInt(const char *Name, uint32 Value)
 {
 	if (k)
 	{
@@ -868,59 +868,18 @@ GString WinGetSpecialFolderPath(int Id)
 //////////////////////////////////////////////////////////////////////
 void _lgi_assert(bool b, const char *test, const char *file, int line)
 {
-	static bool Asserting = false;
-
 	if (!b)
 	{
-		#ifdef LGI_STATIC
-		assert(b);
+		GString Msg;
+		Msg.Printf("%s:%i - Assert failed:\n%s\n", file, line, test);
+		#ifdef WINDOWS
+		OutputDebugStringA(Msg.Get());
+		_asm int 3
 		#else
-		if (Asserting || !LgiApp)
-		{
-			// Woah boy...
-			assert(0);
-		}
-		else
-		{
-			Asserting = true;
-			
-			printf("%s:%i - Assert failed:\n%s\n", file, line, test);
-
-			#ifdef _DEBUG
-
-			GStringPipe p;
-			p.Print("Assert failed, file: %s, line: %i\n%s", file, line, test);
-			GAutoPtr<char,true> Msg(p.NewStr());
-			GAlert a(0, "Assert Failed", Msg, "Abort", "Debug", "Ignore");
-			a.SetAppModal();
-			switch (a.DoModal())
-			{
-				case 1:
-				{
-					exit(-1);
-					break;
-				}
-				case 2:
-				{
-					// Bring up the debugger...
-					#if defined(_WIN64) || !defined(_MSC_VER)
-					assert(0);
-					#else
-					_asm int 3
-					#endif
-					break;
-				}
-				case 3:
-				{
-					break;
-				}
-			}
-
-			#endif
-
-			Asserting = false;
-		}
+		printf("%s", Msg.Get());
 		#endif
+		SDL_Quit();
+		exit(-1);
 	}
 }
 

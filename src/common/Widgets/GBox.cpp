@@ -1,6 +1,7 @@
 #include "Lgi.h"
 #include "GBox.h"
 #include "GCssTools.h"
+#include "LgiRes.h"
 
 #define DEFAULT_SPACER_PX			5
 #define DEFAULT_SPACER_COLOUR24		LC_MED

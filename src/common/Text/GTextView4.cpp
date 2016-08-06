@@ -17,6 +17,7 @@
 
 #include "GHtmlCommon.h"
 #include "GHtmlParser.h"
+#include "LgiRes.h"
 
 #undef FixedToInt
 #define FixedToInt(fixed)			((fixed)>>GDisplayString::FShift)

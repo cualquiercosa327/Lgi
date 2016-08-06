@@ -21,6 +21,7 @@
 #endif
 #include "GToken.h"
 #include "GUtf8.h"
+#include "GFontCache.h"
 
 #define DEBUG_MSG_TYPES				0
 #define DEBUG_HND_WARNINGS			0
@@ -948,27 +949,6 @@ OsApplication::~OsApplication()
 }
 
 ////////////////////////////////////////////////////////////////
-GMessage::GMessage(int m, Param a, Param b)
-{
-	Event = 0;
-	OwnEvent = false;
-	Set(m, a, b);
-}
-
-GMessage::GMessage(Gtk::GdkEvent *e)
-{
-	Event = e;
-	OwnEvent = false;
-}
-
-GMessage::~GMessage()
-{
-    /*
-	if (OwnEvent && Event)
-		gdk_event_free(Event);
-	*/
-}
-
 void GMessage::Set(int m, Param a, Param b)
 {
 	if (!Event)

@@ -25,6 +25,7 @@
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -124,6 +125,7 @@
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -223,6 +225,7 @@
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -319,6 +322,7 @@
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -416,6 +420,7 @@
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -515,6 +520,7 @@
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -618,10 +624,6 @@
 				Name="Core"
 				>
 				<File
-					RelativePath=".\src\win32\Lgi\GApp.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\win32\Lgi\GGeneral.cpp"
 					>
 				</File>
@@ -647,26 +649,6 @@
 				</File>
 				<File
 					RelativePath=".\src\common\Lgi\GTrayIcon.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\win32\Lgi\GView.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\common\Lgi\GViewCommon.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\include\common\GViewPriv.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\win32\Lgi\GWindow.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\common\Lgi\GWindowCommon.cpp"
 					>
 				</File>
 				<File
@@ -910,39 +892,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\common\Widgets\GButton.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\include\common\GButton.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\common\Widgets\GCheckBox.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\include\common\GCheckBox.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\common\Widgets\GCombo.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\include\common\GCombo.h"
-					>
-				</File>
-				<File
 					RelativePath=".\src\common\Text\GDocView.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\win32\Widgets\GEdit.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\include\common\GEdit.h"
 					>
 				</File>
 				<File
@@ -983,14 +933,6 @@
 				</File>
 				<File
 					RelativePath=".\src\common\Widgets\GProgressDlg.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\common\Widgets\GRadioGroup.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\include\common\GRadioGroup.h"
 					>
 				</File>
 				<File
@@ -1110,6 +1052,314 @@
 					</File>
 					<File
 						RelativePath=".\include\common\GTree.h"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="Native Windows"
+					>
+					<File
+						RelativePath=".\src\win32\Widgets\GButton_Win.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\src\win32\Widgets\GCheckBox_Win.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\src\win32\Widgets\GCombo_Win.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\src\win32\Widgets\GEdit_Win.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\src\win32\Widgets\GRadioGroup_Win.cpp"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="Xp"
+					>
+					<File
+						RelativePath=".\src\common\Widgets\GButton.cpp"
+						>
+						<FileConfiguration
+							Name="Release|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|x64"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Debug|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Debug|x64"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="ReleaseNoOptimize|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="ReleaseNoOptimize|x64"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+					</File>
+					<File
+						RelativePath=".\include\common\GButton.h"
+						>
+					</File>
+					<File
+						RelativePath=".\src\common\Widgets\GCheckBox.cpp"
+						>
+						<FileConfiguration
+							Name="Release|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|x64"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Debug|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Debug|x64"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="ReleaseNoOptimize|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="ReleaseNoOptimize|x64"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+					</File>
+					<File
+						RelativePath=".\include\common\GCheckBox.h"
+						>
+					</File>
+					<File
+						RelativePath=".\src\common\Widgets\GCombo.cpp"
+						>
+						<FileConfiguration
+							Name="Release|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|x64"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Debug|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Debug|x64"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="ReleaseNoOptimize|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="ReleaseNoOptimize|x64"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+					</File>
+					<File
+						RelativePath=".\include\common\GCombo.h"
+						>
+					</File>
+					<File
+						RelativePath=".\src\common\Widgets\GEdit.cpp"
+						>
+						<FileConfiguration
+							Name="Release|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|x64"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Debug|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Debug|x64"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="ReleaseNoOptimize|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="ReleaseNoOptimize|x64"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+					</File>
+					<File
+						RelativePath=".\include\common\GEdit.h"
+						>
+					</File>
+					<File
+						RelativePath=".\src\common\Widgets\GRadioGroup.cpp"
+						>
+						<FileConfiguration
+							Name="Release|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|x64"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Debug|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Debug|x64"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="ReleaseNoOptimize|Win32"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="ReleaseNoOptimize|x64"
+							ExcludedFromBuild="true"
+							>
+							<Tool
+								Name="VCCLCompilerTool"
+							/>
+						</FileConfiguration>
+					</File>
+					<File
+						RelativePath=".\include\common\GRadioGroup.h"
 						>
 					</File>
 				</Filter>
@@ -1434,6 +1684,10 @@
 				Name="Network"
 				>
 				<File
+					RelativePath=".\src\common\INet\GUri.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\common\INet\INet.cpp"
 					>
 				</File>
@@ -1450,11 +1704,47 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\common\INet\MDStringToDigest.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\win32\INet\MibAccess.cpp"
 					>
 				</File>
 				<File
 					RelativePath=".\src\win32\INet\MibAccess.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Interface"
+				>
+				<File
+					RelativePath=".\src\win32\Lgi\GApp.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\include\common\GMessage.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\Lgi\GView.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\common\Lgi\GViewCommon.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\include\common\GViewPriv.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\win32\Lgi\GWindow.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\common\Lgi\GWindowCommon.cpp"
 					>
 				</File>
 			</Filter>

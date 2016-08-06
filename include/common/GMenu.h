@@ -124,6 +124,7 @@ protected:
 	void ClearHandle();
 
 public:
+	GSubMenu(OsSubMenu Hnd);
 	/// Constructor
 	GSubMenu
 	(
@@ -448,7 +449,7 @@ protected:
 
 public:
 	/// Constructor
-	GMenu();
+	GMenu(const char *AppName = NULL);
 	
 	/// Destructor
 	virtual ~GMenu();
@@ -486,10 +487,16 @@ public:
 		GKey &k
 	);
 
+	/// This creates copies of the preference and about menu items in the
+	/// application menu. On other platforms it's a NOP.
+	bool SetPrefAndAboutItems(int PrefId, int AboutId);
+
 	#if defined(WIN32)
 	static int _OnEvent(GMessage *Msg);
 	#elif defined(BEOS)
 	GRect GetPos();
+	#elif defined(MAC)
+	int GetIdForCommand(uint32 Cmd);
 	#endif
 };
 

@@ -13,6 +13,7 @@
 #include "GDateTime.h"
 #include "GContainers.h"
 #include "GHashTable.h"
+#include "GString.h"
 
 class GCompiledCode;
 
@@ -102,7 +103,7 @@ enum GOperator
 class LgiClass GCustomType : public GDom
 {
 protected:
-	struct FldDef : public GDom
+	struct CustomField : public GDom
 	{
 		int Offset;
 		int Bytes;
@@ -137,11 +138,11 @@ protected:
 	GString Name;
 
 	// Fields
-	GArray<FldDef> Flds;
+	GArray<CustomField*> Flds;
 	GHashTbl<const char*, int> FldMap;
 	
 	// Methods
-	GArray<Method> Methods;
+	GArray<Method*> Methods;
 	GHashTbl<const char*, Method*> MethodMap;
 	
 	// Private methods
@@ -178,9 +179,6 @@ public:
 class LgiClass GVariant
 {
 public:
-	/// Converts the varient type to a string
-	static const char *TypeToString(GVariantType t);
-
 	/// The type of the variant
     GVariantType Type;
 
@@ -392,6 +390,16 @@ public:
 	void *CastVoidPtr();
 	/// Returns a GView
 	GView *CastView() { return Type == GV_GVIEW ? Value.View : NULL; }
+
+	/// List insert
+	bool Add(GVariant *v, int Where = -1);	
+	
+	/// Converts the varient type to a string
+	static const char *TypeToString(GVariantType t);
+	/// Converts an operator to a string
+	static const char *OperatorToString(GOperator op);
+	/// Converts the varient value to a string
+	GString ToString();
 };
 
 #endif

@@ -6,6 +6,7 @@
 #include "GDocView.h"
 #include "GHtmlCommon.h"
 #include "GHtmlParser.h"
+#include "GCapabilities.h"
 
 namespace Html1
 {
@@ -29,7 +30,8 @@ class GFontCache;
 class GHtml :
 	public GDocView,
 	public ResObject,
-	public GHtmlParser
+	public GHtmlParser,
+	public GCapabilityClient
 {
 	friend class GTag;
 	friend class GFlowRegion;

@@ -457,7 +457,7 @@ case ICallScript:
 
 	#if VM_DECOMP
 	if (Log)
-		Log->Print("%p ScriptCall: %s = %p(frame=%i)(",
+		Log->Print("%p CallScript: %s = %p(frame=%i)(",
 			CurrentScriptAddress - 5,
 			c.r[0].GetStr(),
 			FuncAddr,
@@ -542,7 +542,29 @@ case IRet:
 		Locals.SetFixedLength(false);
 		if (Locals.Length() >= Sf.CurrentFrameSize)
 		{
-			Locals.Length(Locals.Length() - Sf.CurrentFrameSize);
+			int Base = Locals.Length() - Sf.CurrentFrameSize;
+			if (ArgsOutput)
+			{
+				/*
+				LgiTrace("Frames=%i Local=%i Base=%i\n",
+					Frames.Length(),
+					Locals.Length(),
+					Base);
+				*/
+				
+				if (Frames.Length() == 0)
+				{
+					for (unsigned i=0; i<ArgsOutput->Length(); i++)
+					{
+						*(*ArgsOutput)[i] = Locals[Base+i];
+						/*
+						GString s = Locals[Base+i].ToString();
+						LgiTrace("\t%s\n", s.Get());
+						*/
+					}
+				}
+			}
+			Locals.Length(Base);
 			Scope[1] = &Locals[Sf.PrevFrameStart];
 		}
 		else
@@ -1073,9 +1095,11 @@ case IDomGet:
 			default:
 			{
 				if (Log)
-					Log->Print("%s IDomGet warning: Unexpected type %s.\n",
+					Log->Print("%s IDomGet warning: Unexpected type %s (Src=%s:%i IP=0x%x).\n",
 								Code->AddrToSourceRef(CurrentScriptAddress),
-								GVariant::TypeToString(Dom->Type));
+								GVariant::TypeToString(Dom->Type),
+								_FL,
+								CurrentScriptAddress);
 				Status = ScriptWarning;
 				break;
 			}
@@ -1250,31 +1274,75 @@ case IDomCall:
 	#ifdef VM_EXECUTE
 
 	GResolveRef Args = Resolve();
-
-	GArray<GVariant*> Arg;
-	int ThisPtr = Dom->Type == GV_CUSTOM ? 1 : 0;
-	Arg.Length(Args->CastInt32() + ThisPtr);
-	if (ThisPtr) Arg[0] = Dom; // Setup this pointer...
-	for (unsigned i=0; i<Arg.Length(); i++)
-	{
-		Arg[i+ThisPtr] = Resolve();
-	}
-	
+	int ArgCount = Args->CastInt32();
 	char *sName = Name->Str();
 	CheckParam(sName)
 
+	if (Dom->Type == GV_CUSTOM)
+	{
+		#define DEBUG_CUSTOM_METHOD_CALL	1
+		
+		GCustomType *t = Dom->Value.Custom.Dom;
+		CheckParam(t);
+		GCustomType::Method *m = t->GetMethod(sName);
+		CheckParam(m);
+		CheckParam(m->Params.Length() == ArgCount);
+		
+		// Set up new stack frame...
+		StackFrame &Sf = Frames.New();
+		Sf.CurrentFrameSize = m->FrameSize;
+		Sf.PrevFrameStart = Locals.Length() ? Scope[1] - &Locals[0] : 0;
+		Sf.ReturnValue = Dst;
+
+		// Increase the local stack size
+		int LocalsBase = Locals.Length();
+		Locals.SetFixedLength(false);
+		Locals.Length(LocalsBase + m->FrameSize + 1);
+		Locals.SetFixedLength();
+		
+		#if DEBUG_CUSTOM_METHOD_CALL
+		LgiTrace("CustomType.Call(%s) Args=%i, Frame=%i, Addr=%i, LocalsBase=%i ",
+				sName, ArgCount, m->FrameSize, m->Address, LocalsBase);
+		#endif
+		
+		int i = LocalsBase;
+		Locals[i++] = *Dom; // this pointer...
+		#if DEBUG_CUSTOM_METHOD_CALL
+		GString s = Locals[i-1].ToString();
+		LgiTrace("This=%s, ", s.Get());
+		#endif
+		int end = i + ArgCount;
+		while (i < end)
+		{
+			Locals[i++] = *Resolve();
+			#if DEBUG_CUSTOM_METHOD_CALL
+			s = Locals[i-1].ToString();
+			LgiTrace("[%i]=%s, ", i-1, s.Get());
+			#endif
+		}
+
+		// Now adjust the local stack to point to the locals for the function
+		Scope[1] = Locals.Length() ? &Locals[LocalsBase] : NULL;
+
+		// Set IP to start of function
+		Sf.ReturnIp = CurrentScriptAddress;
+		c.u8 = Base + m->Address;
+
+		#if DEBUG_CUSTOM_METHOD_CALL
+		LgiTrace("\n");
+		#endif
+		break;
+	}	
+
+	GArray<GVariant*> Arg;
+	Arg.Length(ArgCount);
+	for (unsigned i=0; i<ArgCount; i++)
+	{
+		Arg[i] = Resolve();
+	}
+	
 	switch (Dom->Type)
 	{
-		case GV_CUSTOM:
-		{
-			GCustomType *t = Dom->Value.Custom.Dom;
-			CheckParam(t);
-			GCustomType::Method *m = t->GetMethod(Name->Str());
-			CheckParam(m);
-			LgiAssert(m->Params.Length() == Arg.Length());
-			
-			break;
-		}
 		case GV_DOM:
 		case GV_STREAM:
 		case GV_GSURFACE:
@@ -1700,9 +1768,11 @@ case IDomCall:
 				Dst->Empty();
 				if (Log)
 				{
-					Log->Print("%s IDomCall warning: Unexpected type %s.\n",
+					Log->Print("%s IDomCall warning: Unexpected type %s (Src=%s:%i IP=0x%x).\n",
 								Code->AddrToSourceRef(CurrentScriptAddress),
-								Type);
+								Type,
+								_FL,
+								CurrentScriptAddress);
 				}
 				Status = ScriptWarning;
 			}

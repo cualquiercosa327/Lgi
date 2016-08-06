@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include "Lgi.h"
 #include "GScrollBar.h"
+#include "GCss.h"
 
 //////////////////////////////////////////////////////////////////////////////
 GLayout::GLayout() : GView(0)

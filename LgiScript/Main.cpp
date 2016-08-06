@@ -2,6 +2,7 @@
 #include "GScripting.h"
 #include "../src/common/Coding/GScriptingPriv.h"
 #include "GStringClass.h"
+#include "LgiRes.h"
 
 struct ConsoleLog : public GStream
 {

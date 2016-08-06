@@ -7,6 +7,7 @@
 #include "GCombo.h"
 #include "GDisplayString.h"
 #include "GUtf8.h"
+#include "LgiRes.h"
 
 #define COMBO_HEIGHT			20
 
@@ -687,11 +688,6 @@ void GCombo::OnPaint(GSurface *pDC)
 
 void GCombo::OnAttach()
 {
-}
-
-bool GCombo::SetPos(GRect &p, bool r)
-{
-	return GView::SetPos(p, r);
 }
 
 GCombo::SelectedState GCombo::GetSelectedState()

@@ -22,6 +22,7 @@
 #endif
 #include "GVariant.h"
 #include "GDisplayString.h"
+#include "LgiRes.h"
 
 // If it is defined it will use the cross platform 
 // "res" library distributed with the LGI library.
@@ -819,16 +820,6 @@ ResObject *LgiResources::CreateObject(GXmlTag *t, ResObject *Parent)
 	}
 	
 	LgiAssert(Wnd);
-
-	if (Wnd)
-	{
-		GView *v = dynamic_cast<GView*>(Wnd);
-		if (v)
-		{
-			v->Script = ScriptEngine;
-		}
-	}
-
 	return Wnd;
 }
 
@@ -1259,7 +1250,7 @@ GLanguage *LgiGetLanguageId()
 	int Lang = GetSystemDefaultLCID();
 
 	TCHAR b[256];
-	if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_IDEFAULTLANGUAGE, b, sizeof(b)) > 0)
+	if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_IDEFAULTLANGUAGE, b, CountOf(b)) > 0)
 	{
 		Lang = htoi(b);
 	}

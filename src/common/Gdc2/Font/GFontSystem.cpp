@@ -184,7 +184,7 @@ void GFontSystem::SetDefaultGlyphSub(bool i)
 		d->DefaultGlyphSub = i;
 }
 
-#ifdef WINDOWS
+#ifdef WINNATIVE
 int CALLBACK _EnumFonts(ENUMLOGFONT FAR *lpelf,
 						NEWTEXTMETRIC FAR *lpntm,
 						int FontType,
@@ -193,7 +193,7 @@ int CALLBACK _EnumFonts(ENUMLOGFONT FAR *lpelf,
 	List<char> *p = (List<char>*) lParam;
 	if (p)
 	{
-		p->Insert(LgiFromNativeCp(lpelf->elfLogFont.lfFaceName));
+		p->Insert(LgiNewUtf16To8(lpelf->elfLogFont.lfFaceName));
 	}
 	return true;
 }
@@ -209,7 +209,7 @@ bool GFontSystem::EnumerateFonts(List<const char> &Fonts)
 {
 	if (!AllFonts.First())
 	{
-		#if defined WINDOWS
+		#if defined WINNATIVE
 
 		HDC hDC = CreateCompatibleDC(NULL);
 		if (hDC)

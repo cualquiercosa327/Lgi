@@ -9,6 +9,7 @@
 #include "ImageComparison.h"
 #include "GTabView.h"
 #include "resdefs.h"
+#include "LgiRes.h"
 
 #define DIFF_LARGE_8BIT		(10)
 #define DIFF_LARGE_16BIT	(DIFF_LARGE_8BIT << 8)

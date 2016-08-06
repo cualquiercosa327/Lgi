@@ -119,12 +119,14 @@ int GThreadWorker::Main()
 					// Owner is gone already... delete the job.
 					j.Reset();
 				}
+				else
+				{
+					// Pass job back to owner.
+					// This needs to be in the lock so that the owner can't delete itself
+					// from the owner list...
+					j->Owner->OnDone(j);
+				}
 				Unlock();
-			}
-			if (j)
-			{
-				// Pass job back to owner.
-				j->Owner->OnDone(j);
 			}
 		}
 		else LgiSleep(50);

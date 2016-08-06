@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project TabSize="4" IndentSize="4" UseTabs="1" Makefile="./Makefile.linux" Exe="./lgiide" ShowWhitespace="0" IncludePaths=".\Code&#10;..\include\common&#10;..\include\linux\X&#10;" BuildType="0" TargetType="0" TargetName="lgiide" Compiler="0">
-	<Node Name="Source Files" Type="1" Platforms="15" Open="1">
+	<Node Name="Source Files" Type="1" Platforms="15" Open="0">
 		<Node Name="Debugger" Type="1" Platforms="15" Open="0">
 			<Node File="./Code/GDebugContext.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/GDebugger.cpp" Type="2" Platforms="15" />
@@ -89,11 +89,16 @@ WINNATIVE</Release>
 					<Debug>POSIX</Debug>
 					<Release>POSIX</Release>
 				</Haiku>
+				<All />
+				<Linux />
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
 			</Compiler>
-			<Arguments />
+			<Arguments>
+				<All />
+			</Arguments>
+			<CrossCompiler />
 		</General>
 		<Build>
 			<IncludePaths>
@@ -139,12 +144,14 @@ WINNATIVE</Release>
 					<Debug>be</Debug>
 					<Release>be</Release>
 				</Haiku>
+				<All />
 			</Libraries>
 			<LibraryPaths>
 				<All>
 					<Debug>..\Debug</Debug>
 					<Release>..\Release</Release>
 				</All>
+				<Linux />
 			</LibraryPaths>
 			<TargetType>
 				<All>Executable</All>
@@ -170,6 +177,7 @@ C:\Data\CodeLib\Gtk\include\gtk-2.0\gdk</Debug>
 					<Release>C:\Data\CodeLib\Gtk\include\gtk-2.0\gtk
 C:\Data\CodeLib\Gtk\include\gtk-2.0\gdk</Release>
 				</Windows>
+				<Linux />
 			</SystemIncludes>
 			<ApplicationIcon>
 				<Haiku>./Code/icon-haiku</Haiku>
@@ -188,7 +196,11 @@ C:\Data\CodeLib\Gtk\include\gtk-2.0\gdk</Release>
 			<UseHardTabs>
 				<All>1</All>
 			</UseHardTabs>
+			<CommentFile />
+			<CommentFunction />
 		</Editor>
-		<Advanced />
+		<Advanced>
+			<OtherMakefileRules />
+		</Advanced>
 	</Settings>
 </Project>

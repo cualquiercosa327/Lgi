@@ -5,6 +5,7 @@
 #include "GProgressDlg.h"
 #include "GTextLabel.h"
 #include "GButton.h"
+#include "LgiRes.h"
 
 static char sHttpDownloadFailed[] = "HTTP download failed.";
 static char sSocketConnectFailed[] = "Socket connect failed.";

@@ -26,6 +26,7 @@
 #include "GdiLeak.h"
 #include "GDisplayString.h"
 #include "GStringClass.h"
+#include "GCss.h"
 
 #ifdef FontChange
 #undef FontChange
@@ -220,6 +221,7 @@ void GTypeFace::Face(const char *s)
 	{
 		DeleteArray(d->_Face);
 		d->_Face = NewStr(s);
+		LgiAssert(d->_Face);
 		_OnPropChange(true);
 	}
 }
@@ -518,6 +520,46 @@ GFont::~GFont()
 {
 	Destroy();
 	DeleteObj(d);
+}
+
+bool GFont::CreateFromCss(const char *Css)
+{
+	if (!Css)
+		return false;
+	
+	GCss c;
+	c.Parse(Css);
+	return CreateFromCss(&c);
+}
+
+bool GFont::CreateFromCss(GCss *Css)
+{
+	if (!Css)
+		return false;
+	
+	GCss::StringsDef Fam = Css->FontFamily();
+	if (Fam.Length())
+		Face(Fam[0]);
+
+	GCss::Len Sz = Css->FontSize();
+	if (Sz.Type == GCss::LenPt)
+		PointSize((int)(Sz.Value+0.5));
+	else if (Sz.IsValid())
+		LgiAssert(!"Impl me.");
+
+	GCss::FontWeightType w = Css->FontWeight();
+	if (w == GCss::FontWeightBold)
+		Bold(true);
+	
+	GCss::FontStyleType s = Css->FontStyle();
+	if (s == GCss::FontStyleItalic)
+		Italic(true);
+
+	GCss::TextDecorType dec = Css->TextDecoration();
+	if (dec == GCss::TextDecorUnderline)
+		Underline(true);
+
+	return Create();
 }
 
 bool GFont::Destroy()
@@ -960,6 +1002,7 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 						(PointSize() == 8 || PointSize() == 9) &&
 						GTypeFace::d->_Underline;
 
+	GAutoWString wFace(LgiNewUtf8To16(GTypeFace::d->_Face));
 	d->hFont = ::CreateFont(Win32Height,
 							0,
 							0,
@@ -973,7 +1016,7 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 							CLIP_DEFAULT_PRECIS,
 							GTypeFace::d->_Quality,
 							FF_DONTCARE,
-							GTypeFace::d->_Face);
+							wFace);
 	
 	if (d->hFont)
 	{
@@ -991,7 +1034,7 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 		else
 		{
 			SIZE Size = {0, 0};
-			GetTextExtentPoint32(hDC, "Ag", 2, &Size);
+			GetTextExtentPoint32(hDC, L"Ag", 2, &Size);
 			d->Height = Size.cy;
 		}
 
@@ -1421,14 +1464,18 @@ bool GFont::Create(GFontType *LogFont, GSurface *pSurface)
 	{
 		// set props
 		PointSize(WinHeightToPoint(LogFont->Info.lfHeight));
-		Face(LogFont->Info.lfFaceName);
-		Quality(LogFont->Info.lfQuality);
-		Bold(LogFont->Info.lfWeight >= FW_BOLD);
-		Italic(LogFont->Info.lfItalic);
-		Underline(LogFont->Info.lfUnderline);
+		GString uFace = LogFont->Info.lfFaceName;
+		if (ValidStr(uFace))
+		{
+			Face(uFace);
+			Quality(LogFont->Info.lfQuality);
+			Bold(LogFont->Info.lfWeight >= FW_BOLD);
+			Italic(LogFont->Info.lfItalic);
+			Underline(LogFont->Info.lfUnderline);
 
-		// create the handle
-		Create(0, 0, pSurface);
+			// create the handle
+			Create(0, 0, pSurface);
+		}
 	}
 
 	return (d->hFont != 0);
@@ -1490,7 +1537,7 @@ GFontType::GFontType(const char *face, int pointsize)
 	ZeroObj(Info);
 	if (face)
 	{
-		strcpy(Info.lfFaceName, face);
+		swprintf_s(Info.lfFaceName, CountOf(Info.lfFaceName), L"%S", face);
 	}
 	if (pointsize)
 	{
@@ -1512,7 +1559,8 @@ GFontType::~GFontType()
 char *GFontType::GetFace()
 {
 	#ifdef WINNATIVE
-	return Info.lfFaceName;
+	Buf = Info.lfFaceName;
+	return Buf;
 	#else
 	return Info.Face();
 	#endif
@@ -1521,8 +1569,14 @@ char *GFontType::GetFace()
 void GFontType::SetFace(const char *Face)
 {
 	#ifdef WINNATIVE
-	if (Face) strcpy(Info.lfFaceName, Face);
-	else Info.lfFaceName[0] = 0;
+	if (Face)
+	{
+		swprintf_s(Info.lfFaceName, CountOf(Info.lfFaceName), L"%S", Face);
+	}
+	else
+	{
+		Info.lfFaceName[0] = 0;
+	}
 	#else
 	Info.Face(Face);
 	#endif
@@ -1552,12 +1606,13 @@ bool GFontType::DoUI(GView *Parent)
 
 	#if defined WIN32
 	void *i = &Info;
+	int bytes = sizeof(Info);
 	#else
 	char i[128];
-	sprintf_s(i, sizeof(i), "%s,%i", Info.Face(), Info.PointSize());
+	int bytes = sprintf_s(i, sizeof(i), "%s,%i", Info.Face(), Info.PointSize());
 	#endif
 
-	GFontSelect Dlg(Parent, i);
+	GFontSelect Dlg(Parent, i, bytes);
 	if (Dlg.DoModal() == IDOK)
 	{
 		#ifdef WIN32
@@ -1650,7 +1705,7 @@ bool GFontType::Serialize(GDom *Options, const char *OptName, bool Write)
 	if (Options && OptName)
 	{
 		GVariant v;
-		#if defined WIN32
+		#if defined WINNATIVE
 		if (Write)
 		{
 			v.SetBinary(sizeof(Info), &Info);
@@ -1664,7 +1719,7 @@ bool GFontType::Serialize(GDom *Options, const char *OptName, bool Write)
 					v.Value.Binary.Length == sizeof(Info))
 				{
 					memcpy(&Info, v.Value.Binary.Data, sizeof(Info));
-					Status = true;
+					Status = ValidStrW(Info.lfFaceName);
 				}
 			}
 		}
@@ -1814,10 +1869,23 @@ bool GFontType::GetSystemFont(const char *Which)
 	// Get the system settings
 	NONCLIENTMETRICS info;
 	info.cbSize = sizeof(info);
+	#if (WINVER >= 0x0600)
+	GArray<int> Ver;
+	if (LgiGetOs(&Ver) == LGI_OS_WIN32 &&
+		Ver[0] <= 5)
+		info.cbSize -= 4;
+	#endif
 	bool InfoOk = SystemParametersInfo(	SPI_GETNONCLIENTMETRICS,
-										sizeof(info),
+										info.cbSize,
 										&info,
 										0);
+	if (!InfoOk)
+	{
+		LgiTrace("%s:%i - SystemParametersInfo failed with 0x%x (info.cbSize=%i, os=%i, %i)\n",
+			_FL, GetLastError(),
+			info.cbSize,
+			LgiGetOs(), LGI_OS_WIN9X);
+	}
 
 	// Convert windows font height into points
 	int Height = WinHeightToPoint(info.lfMessageFont.lfHeight);
@@ -1910,7 +1978,7 @@ bool GFontType::GetSystemFont(const char *Which)
 	
 	#endif
 
-	if (!stricmp(Which, "System"))
+	if (!_stricmp(Which, "System"))
 	{
 		Status = GetConfigFont("Font-System");
 		if (!Status)
@@ -1942,6 +2010,7 @@ bool GFontType::GetSystemFont(const char *Which)
 					memcpy(&Info, &info.lfMessageFont, sizeof(Info));
 					Status = true;
 				}
+				else LgiTrace("%s:%i - Info not ok.\n", _FL);
 
 			#elif defined BEOS
 
@@ -2184,9 +2253,9 @@ bool GFontType::GetSystemFont(const char *Which)
 			{
 				// Copy the font metrics
 				memcpy(&Info, &info.lfSmCaptionFont, sizeof(Info));
-				if (LgiGetOs() == LGI_OS_WIN9X && stricmp(Info.lfFaceName, "ms sans serif") == 0)
+				if (LgiGetOs() == LGI_OS_WIN9X && _wcsicmp(Info.lfFaceName, L"ms sans serif") == 0)
 				{
-					strcpy(Info.lfFaceName, "Arial");
+					SetFace("Arial");
 				}
 
 				// Make it a bit smaller than the system font
@@ -2249,7 +2318,7 @@ bool GFontType::GetSystemFont(const char *Which)
 			
 			#elif defined WINNATIVE
 
-			strcpy(Info.lfFaceName, "Courier New");
+			SetFace("Courier New");
 			Info.lfHeight = WinPointToHeight(9);
 			Status = true;
 

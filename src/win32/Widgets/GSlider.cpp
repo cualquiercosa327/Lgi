@@ -1,5 +1,6 @@
 #include "Lgi.h"
 #include "GSlider.h"
+#include "GCss.h"
 #include <COMMCTRL.H>
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -17,7 +18,7 @@ GSlider::GSlider(int id, int x, int y, int cx, int cy, const char *name, bool ve
 	Val = 0;
 
 	SetStyle(GetStyle() | WS_VISIBLE | WS_CHILD | WS_TABSTOP | ((Vertical) ? TBS_VERT : TBS_HORZ));
-	if (SubClass && !SubClass->SubClass(TRACKBAR_CLASS))
+	if (SubClass && !SubClass->SubClass(TRACKBAR_CLASSA))
 	{
 		LgiAssert(0);
 	}
@@ -27,11 +28,6 @@ GSlider::GSlider(int id, int x, int y, int cx, int cy, const char *name, bool ve
 
 GSlider::~GSlider()
 {
-}
-
-int GSlider::SysOnNotify(int Code)
-{
-	return 0;
 }
 
 void GSlider::Value(int64 i)

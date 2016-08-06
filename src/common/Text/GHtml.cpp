@@ -21,6 +21,8 @@
 #include "GPalette.h"
 #include "GPath.h"
 #include "GCssTools.h"
+#include "LgiRes.h"
+#include "INet.h"
 
 #define DEBUG_TABLE_LAYOUT			1
 #define DEBUG_RESTYLE				0
@@ -58,7 +60,7 @@
 #define MinimumBodyFontSize			11
 #endif
 
-#define DefaultPointSize			11
+// #define DefaultFont					"font-family: Times; font-size: 16pt;"
 #define DefaultBodyMargin			"5px"
 #define DefaultImgSize				16
 #define DefaultMissingCellColour	GT_TRANSPARENT // Rgb32(0xf0,0xf0,0xf0)
@@ -252,8 +254,11 @@ public:
 		if (Face.Length() < 1 || !ValidStr(Face[0]))
 		{
 			Face.Empty();
-			Face.Add(NewStr(Default->Face()));
+			const char *DefFace = Default->Face();
+			LgiAssert(ValidStr(DefFace));
+			Face.Add(NewStr(DefFace));
 		}
+		LgiAssert(ValidStr(Face[0]));
 		GCss::Len Size = Style->FontSize();
 		GCss::FontWeightType Weight = Style->FontWeight();
 		bool IsBold =	Weight == GCss::FontWeightBold ||
@@ -385,7 +390,10 @@ public:
 				return Owner->GetFont();
 
 			Fonts.Insert(f = BestFont.Release());
-			LgiAssert(f && f->Face() != NULL);
+			if (!f || !f->Face())
+			{
+				LgiAssert(0);
+			}
 			return f;
 		}
 		else if (Size.Type == GCss::LenPt)
@@ -393,6 +401,12 @@ public:
 			double Pt = max(MinimumPointSize, Size.Value);
 			for (f=Fonts.First(); f; f=Fonts.Next())
 			{
+				if (!f->Face() || Face.Length() == 0)
+				{
+					LgiAssert(0);
+					break;
+				}
+				
 				if (f->Face() &&
 					_stricmp(f->Face(), Face[0]) == 0 &&
 					f->PointSize() == Pt &&
@@ -495,7 +509,11 @@ public:
 
 			// Not already cached
 			Fonts.Insert(f);
-			LgiAssert(f->Face() != NULL);
+			if (!f->Face())
+			{
+				LgiAssert(0);
+			}
+			
 			return f;
 		}
 
@@ -1385,25 +1403,29 @@ void GTag::Set(const char *attr, const char *val)
 
 bool GTag::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
-	if (!Name)
-		return false;
-	
-	if (!_stricmp(Name, "style"))
+	GDomProperty Fld = GStringToProp(Name);
+	switch (Fld)
 	{
-		Value = &StyleDom;
-		return true;
-	}
-	else if (!_stricmp(Name, "textContent"))
-	{
-		Value = Text();
-		return true;
-	}
-
-	char *a = Attr.Find(Name);
-	if (a)
-	{
-		Value = a;
-		return true;
+		case ObjStyle: // Type: GCssStyle
+		{
+			Value = &StyleDom;
+			return true;
+		}
+		case ObjTextContent: // Type: String
+		{
+			Value = Text();
+			return true;
+		}
+		default:
+		{
+			char *a = Attr.Find(Name);
+			if (a)
+			{
+				Value = a;
+				return true;
+			}
+			break;
+		}
 	}
 	
 	return false;
@@ -1411,55 +1433,60 @@ bool GTag::GetVariant(const char *Name, GVariant &Value, char *Array)
 
 bool GTag::SetVariant(const char *Name, GVariant &Value, char *Array)
 {
-	if (!Name)
-		return false;
-
-	if (!_stricmp(Name, "style"))
+	GDomProperty Fld = GStringToProp(Name);
+	switch (Fld)
 	{
-		const char *Defs = Value.Str();
-		if (!Defs)
-			return false;
-			
-		return Parse(Defs, ParseRelaxed);
-	}
-	else if (!_stricmp(Name, "textContent"))
-	{
-		const char *s = Value.Str();
-		if (s)
+		case ObjStyle:
 		{
-			GAutoWString w(CleanText(s, strlen(s), "utf-8", true, true));
-			Txt = w;
-			return true;
+			const char *Defs = Value.Str();
+			if (!Defs)
+				return false;
+				
+			return Parse(Defs, ParseRelaxed);
 		}
-	}
-	else if (!_stricmp(Name, "innerHTML"))
-	{
-		// Clear out existing tags..
-		Children.DeleteObjects();
-	
-		char *Doc = Value.CastString();
-		if (Doc)
+		case ObjTextContent:
 		{
-			// Create new tags...
-			bool BackOut = false;
-			
-			while (Doc && *Doc)
+			const char *s = Value.Str();
+			if (s)
 			{
-				GTag *t = new GTag(Html, this);
-				if (t)
-				{
-					Doc = Html->ParseHtml(t, Doc, 1, false, &BackOut);
-					if (!Doc)
-						break;
-				}
-				else break;
+				GAutoWString w(CleanText(s, strlen(s), "utf-8", true, true));
+				Txt = w;
+				return true;
 			}
+			break;
 		}
-	}
-	else
-	{
-		Set(Name, Value.CastString());
-		SetStyle();
+		case ObjInnerHtml: // Type: String
+		{
+			// Clear out existing tags..
+			Children.DeleteObjects();
+		
+			char *Doc = Value.CastString();
+			if (Doc)
+			{
+				// Create new tags...
+				bool BackOut = false;
+				
+				while (Doc && *Doc)
+				{
+					GTag *t = new GTag(Html, this);
+					if (t)
+					{
+						Doc = Html->ParseHtml(t, Doc, 1, false, &BackOut);
+						if (!Doc)
+							break;
+					}
+					else break;
+				}
+			}
+			else return false;
+			break;
+		}
+		default:
+		{
+			Set(Name, Value.CastString());
+			SetStyle();
+			break;
+		}
 	}
 
 	Html->ViewWidth = -1;
@@ -2594,6 +2621,21 @@ void GTag::LoadImage(const char *Uri)
 	if (!Html->Environment)
 		return;
 
+	GUri u(Uri);
+	bool LdImg = Html->GetLoadImages();
+	bool IsRemote = u.Protocol &&
+					(
+						!_stricmp(u.Protocol, "http") ||
+						!_stricmp(u.Protocol, "https") ||
+						!_stricmp(u.Protocol, "ftp")
+					);
+
+	if (IsRemote && !LdImg)
+	{
+		Html->NeedsCapability("RemoteContent");
+		return;
+	}
+
 	GDocumentEnv::LoadJob *j = Html->Environment->NewJob();
 	if (j)
 	{
@@ -2622,6 +2664,7 @@ void GTag::LoadImages()
 {
 	const char *Uri = 0;
 	if (Html->Environment &&
+		TagId == TAG_IMG &&
 		!Image &&
 		Get("src", Uri))
 	{
@@ -6325,14 +6368,6 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection, uint16 Depth)
 	int Px, Py;
 	pDC->GetOrigin(Px, Py);
 
-	#ifdef _DEBUG
-	if (Debug)
-	{
-		GCss::ColorDef c = Color();
-		LgiTrace("%s::OnPaint - %i,%i\n", Tag.Get(), -Px, -Py);
-	}
-	#endif
-	
 	switch (TagId)
 	{
 		case TAG_INPUT:
@@ -6796,10 +6831,6 @@ GHtml::~GHtml()
 
 void GHtml::_New()
 {
-	#if LUIS_DEBUG
-	LgiTrace("%s:%i html(%p).src(%p)'\n", __FILE__, __LINE__, this, Source);
-	#endif
-
 	d->StyleDirty = false;
 	d->IsLoaded = false;
 	d->Content.x = d->Content.y = 0;
@@ -6808,16 +6839,24 @@ void GHtml::_New()
 	DocCharSet.Reset();
 
 	IsHtml = true;
-	FontCache = new GFontCache(this);
+	
+	#ifdef DefaultFont
+	GFont *Def = new GFont;
+	if (Def)
+	{
+		if (Def->CreateFromCss(DefaultFont))
+			SetFont(Def, true);
+		else
+			DeleteObj(Def);
+	}
+	#endif
+	
+	FontCache = new GFontCache(this);	
 	SetScrollBars(false, false);
 }
 
 void GHtml::_Delete()
 {
-	#if LUIS_DEBUG
-	LgiTrace("%s:%i html(%p).src(%p)='%30.30s'\n", _FL, this, Source, Source);
-	#endif
-
 	LgiAssert(!d->IsParsing);
 
 	SetBackColour(Rgb24To32(LC_WORKSPACE));
@@ -8608,11 +8647,13 @@ GHtmlElement *GHtml::CreateElement(GHtmlElement *Parent)
 
 bool GHtml::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
-	if (!_stricmp(Name, "supportLists"))
+	if (!_stricmp(Name, "supportLists")) // Type: Bool
 		Value = false;
-	else if (!_stricmp(Name, "vml")) // Vector Markup Language
+	else if (!_stricmp(Name, "vml")) // Type: Bool
+		// Vector Markup Language
 		Value = false;
-	else if (!_stricmp(Name, "mso")) // mso = Microsoft Office
+	else if (!_stricmp(Name, "mso")) // Type: Bool
+		// mso = Microsoft Office
 		Value = false;
 	else
 		return false;
@@ -9146,7 +9187,7 @@ bool GCssStyle::GetVariant(const char *Name, GVariant &Value, char *Array)
 	if (!Name)
 		return false;
 
-	if (!_stricmp(Name, "display"))
+	if (!_stricmp(Name, "Display")) // Type: String
 	{
 		Value = Css->ToString(Css->Display());
 		return Value.Str() != NULL;

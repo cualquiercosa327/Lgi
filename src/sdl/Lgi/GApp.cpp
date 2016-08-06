@@ -24,6 +24,7 @@
 #include "GUtf8.h"
 #include "GViewPriv.h"
 #include "GRegionClipDC.h"
+#include "GFontCache.h"
 
 #define DEBUG_MSG_TYPES				0
 #define DEBUG_HND_WARNINGS			0
@@ -40,7 +41,7 @@ struct OsAppArgumentsPriv
 	}
 };
 
-OsAppArguments::OsAppArguments(int args, char **arg)
+OsAppArguments::OsAppArguments(int args, const char **arg)
 {
 	d = new OsAppArgumentsPriv;
 
@@ -1010,6 +1011,8 @@ bool GApp::InvalidateRect(GRect &r)
 	{
 		int Len = d->Dirty.Length();
 		d->Dirty.Union(&r);
+		// LgiTrace("Invalidate %s\n", r.GetStr());
+		
 		if (Len == 0)
 		{
 			SDL_Event e;
@@ -1019,6 +1022,7 @@ bool GApp::InvalidateRect(GRect &r)
 			e.user.data2 = NULL;
 			SDL_PushEvent(&e);
 		}
+
 		d->Unlock();
 	}
 	
@@ -1034,9 +1038,15 @@ bool GApp::PushWindow(GWindow *w)
 	}
 
 	if (AppWnd)
+	{
 		d->Stack.Add(AppWnd);
+		printf("Pushing %s, new AppWnd=%s %p\n", AppWnd?AppWnd->GetClass():0, w?w->GetClass():0, w);
+	}
+	else
+	{
+		printf("Pushing AppWnd=%s %p\n", w?w->GetClass():0, w);
+	}
 	
-	printf("Pushing %s, new AppWnd=%s %p\n", AppWnd?AppWnd->GetClass():0, w?w->GetClass():0, w);
 	AppWnd = w;
 	AppWnd->Invalidate();
 
@@ -1115,15 +1125,6 @@ OsApplication::~OsApplication()
 }
 
 ////////////////////////////////////////////////////////////////
-GMessage::GMessage(int m, Param pa, Param pb)
-{
-	Set(m, pa, pb);
-}
-
-GMessage::~GMessage()
-{
-}
-
 void GMessage::Set(int m, Param pa, Param pb)
 {
 	Event.type = SDL_USEREVENT;
@@ -1146,6 +1147,8 @@ int GMessage::Msg()
 {
 	if (Event.type >= SDL_USEREVENT && Event.type <= SDL_NUMEVENTS)
 		return Event.user.code;
+	else
+		printf("%s:%i - Error: Event.type=%i (%i - %i)\n", _FL, Event.type, SDL_USEREVENT, SDL_NUMEVENTS);
 	return 0;
 }
 

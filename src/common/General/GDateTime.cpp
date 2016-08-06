@@ -18,6 +18,9 @@
 #ifdef MAC
 #include <sys/time.h>
 #endif
+#ifdef WINDOWS
+#include <tchar.h>
+#endif
 
 #include "Lgi.h"
 #include "GDateTime.h"
@@ -34,9 +37,9 @@ uint16 GDateTime::GetDefaultFormat()
 	{
 		#ifdef WIN32
 
-		char s[80] = "1";
-		GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_IDATE, s, sizeof(s));
-		switch (atoi(s))
+		TCHAR s[80] = _T("1");
+		GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_IDATE, s, CountOf(s));
+		switch (_tstoi(s))
 		{
 			case 0:
 				DefaultFormat = GDTF_MONTH_DAY_YEAR;
@@ -51,7 +54,7 @@ uint16 GDateTime::GetDefaultFormat()
 		}
 
 		GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_ITIME, s, sizeof(s));
-		if (atoi(s) == 1)
+		if (_tstoi(s) == 1)
 		{
 			DefaultFormat |= GDTF_24HOUR;
 		}
@@ -66,7 +69,8 @@ uint16 GDateTime::GetDefaultFormat()
 		if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_SSHORTDATE, s, sizeof(s)))
 		{
 			char Sep[] = { DefaultSeparator, '/', '\\', '-', '.', 0 };
-			GToken t(s, Sep);
+			GString Str = s;
+			GToken t(Str, Sep);
 			for (int i=0; i<t.Length(); i++)
 			{
 				if (!stricmp(t[i], "mm"))
@@ -1684,46 +1688,46 @@ bool GDateTime::GetVariant(const char *Name, GVariant &Dst, char *Array)
 	GDomProperty p = GStringToProp(Name);
 	switch (p)
 	{
-		case DateYear:
+		case DateYear: // Type: Int32
 			Dst = Year();
 			break;
-		case DateMonth:
+		case DateMonth: // Type: Int32
 			Dst = Month();
 			break;
-		case DateDay:
+		case DateDay: // Type: Int32
 			Dst = Day();
 			break;
-		case DateHour:
+		case DateHour: // Type: Int32
 			Dst = Hours();
 			break;
-		case DateMin:
+		case DateMin: // Type: Int32
 			Dst = Minutes();
 			break;
-		case DateSec:
+		case DateSec: // Type: Int32
 			Dst = Seconds();
 			break;
-		case DateDate:
+		case DateDate: // Type: String
 		{
 			char s[32];
 			GetDate(s, sizeof(s));
 			Dst = s;
 			break;
 		}
-		case DateTime:
+		case DateTime: // Type: String
 		{
 			char s[32];
 			GetTime(s, sizeof(s));
 			Dst = s;
 			break;
 		}
-		case DateDateTime:
+		case DateDateAndTime: // Type: String
 		{
 			char s[32];
 			Get(s, sizeof(s));
 			Dst = s;
 			break;
 		}
-		case DateInt64:
+		case DateInt64: // Type: Int64
 		{
 			uint64 i = 0;
 			Get(i);
@@ -1767,7 +1771,7 @@ bool GDateTime::SetVariant(const char *Name, GVariant &Value, char *Array)
 		case DateTime:
 			SetTime(Value.Str());
 			break;
-		case DateDateTime:
+		case DateDateAndTime:
 			Set(Value.Str());
 			break;
 		case DateInt64:

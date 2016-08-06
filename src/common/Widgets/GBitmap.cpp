@@ -1,6 +1,7 @@
 #include "Lgi.h"
 #include "GBitmap.h"
 #include "GTableLayout.h"
+#include "LgiRes.h"
 
 //////////////////////////////////////////////////////////////////////////////////
 #ifdef _MT
@@ -139,6 +140,8 @@ void GBitmap::SetDC(GSurface *pNewDC)
 					break;
 				}
 			}
+			
+			SendNotify(GNotifyTableLayout_LayoutChanged);
 		}
 	}
 }

@@ -16,6 +16,7 @@
 #include "GDisplayString.h"
 #include "GPalette.h"
 #include "GNotifications.h"
+#include "LgiRes.h"
 
 #define ToolBarHilightColour LC_HIGH
 
@@ -50,6 +51,21 @@ COLOUR Map(GSurface *pDC, COLOUR c);
 ////////////////////////////////////////////////////////////////////////
 GImageList *LgiLoadImageList(const char *File, int x, int y)
 {
+	if (x < 0 || y < 0)
+	{
+		GString f = File;
+		GString leaf = f(f.RFind(DIR_STR)+1, -1);
+		GString width = leaf(leaf.RFind("-")+1, leaf.RFind("."));
+		int sep = width.Find("x");
+		GString height = width(sep+1, -1);
+		if (sep > 0)
+			width.Length(sep);
+		if (x < 0 && width.Get())
+			x = (int)width.Int();
+		if (y < 0 && (width.Get() || height.Get()))
+			y = (int)(height.Get() ? height.Int() : width.Int());
+	}		
+
 	GImageList *ImgList = 0;
 	char *Path = FileExists(File) ? NewStr(File) : LgiFindFile(File);
 	if (Path)
@@ -1135,12 +1151,15 @@ GFont *GToolBar::GetFont()
 	return d->Font;
 }
 
+#define GetBorderSpacing()	GetCss() && GetCss()->BorderSpacing().IsValid() ? \
+							GetCss()->BorderSpacing().ToPx(X(), GetFont()) : \
+							1
+
 bool GToolBar::Pour(GRegion &r)
 {
-	int PosX = BORDER_SPACER;
-	int PosY = BORDER_SPACER;
-	// int SrcX = 0;
-	// int SrcY = 0;
+	int BorderSpacing = GetBorderSpacing();
+	int PosX = BorderSpacing;
+	int PosY = BorderSpacing;
 	int EndX = 0;
 	int EndY = 0;
 	int MaxDim = 0;
@@ -1223,11 +1242,11 @@ bool GToolBar::Pour(GRegion &r)
 				if (d->Vertical)
 				{
 					PosX = MaxDim;
-					PosY = BORDER_SHADE + BORDER_SPACER;
+					PosY = BORDER_SHADE + BorderSpacing;
 				}
 				else
 				{
-					PosX = BORDER_SHADE + BORDER_SPACER;
+					PosX = BORDER_SHADE + BorderSpacing;
 					PosY = MaxDim;
 				}
 			}
@@ -1235,11 +1254,11 @@ bool GToolBar::Pour(GRegion &r)
 			{
 				if (d->Vertical)
 				{
-					PosY = ButPos.y2 + 1;
+					PosY = ButPos.y2 + BorderSpacing;
 				}
 				else
 				{
-					PosX = ButPos.x2 + 1;
+					PosX = ButPos.x2 + BorderSpacing;
 				}
 			}
 
@@ -1279,8 +1298,8 @@ bool GToolBar::Pour(GRegion &r)
 		EndY = max(EndY, p.y2);
 	}
 
-	d->Sx = EndX + BORDER_SPACER;
-	d->Sy = EndY + BORDER_SPACER;
+	d->Sx = EndX + BorderSpacing;
+	d->Sy = EndY + BorderSpacing;
 
 	int BorderPx = Raised() || Sunken() ? _BorderSize<<1 : 0;
 
@@ -1335,10 +1354,8 @@ GMessage::Result GToolBar::OnEvent(GMessage *Msg)
 
 void GToolBar::OnPaint(GSurface *pDC)
 {
-	GRect r = GetClient();
-
 	pDC->Colour(LC_MED, 24);
-	pDC->Box(&r);
+	pDC->Rectangle();
 }
 
 void GToolBar::OnMouseClick(GMouse &m)

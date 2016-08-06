@@ -276,9 +276,9 @@ public:
 	GMimeBase64Decode(GStreamI *o) : GCoderStream(o)
 	{
 		ZeroObj(Lut);
-		memset(Lut+'a', 1, 'z'-'a'+1);
-		memset(Lut+'A', 1, 'Z'-'A'+1);
-		memset(Lut+'0', 1, '9'-'0'+1);
+		memset(Lut+(int)'a', 1, 'z'-'a'+1);
+		memset(Lut+(int)'A', 1, 'Z'-'A'+1);
+		memset(Lut+(int)'0', 1, '9'-'0'+1);
 		Lut['+'] = 1;
 		Lut['/'] = 1;
 		Lut['='] = 1;

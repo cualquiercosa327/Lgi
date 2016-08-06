@@ -5,6 +5,7 @@
 #include "GScrollBar.h"
 #include "GDisplayString.h"
 #include "GPalette.h"
+#include "LgiRes.h"
 
 #define TREE_BLOCK          16
 #define DRAG_THRESHOLD		4
@@ -358,7 +359,9 @@ GTreeItem::~GTreeItem()
 		{
 			Tree->d->LastHit = 0;
 		}
-		Tree->Capture(false);
+		
+		if (Tree->IsCapturing())
+			Tree->Capture(false);
 	}
 
 	int y = 0;
@@ -523,7 +526,9 @@ void GTreeItem::_Remove()
 		{
 			LgiAssert(Tree->d);
 			Tree->d->LayoutDirty = true;
-			Tree->Capture(false);
+			
+			if (Tree->IsCapturing())
+				Tree->Capture(false);
 		}
 	}
 

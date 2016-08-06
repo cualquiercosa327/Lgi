@@ -217,10 +217,6 @@ LgiFunc bool LgiRecursiveFileSearch
 /// \ingroup Resources
 LgiFunc struct GLanguage *LgiGetLanguageId();
 
-/// Loads a string from the resource file
-/// \ingroup Resources
-LgiFunc const char *LgiLoadString(int Res, const char *Default = 0);
-
 // Os version functions
 
 /// Gets the current operating system and optionally it's version.

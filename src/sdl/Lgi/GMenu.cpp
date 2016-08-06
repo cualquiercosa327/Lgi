@@ -787,7 +787,7 @@ int GMenuItem::Icon()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 GFont *GMenu::_Font = 0;
 
-GMenu::GMenu() : GSubMenu("", false)
+GMenu::GMenu(const char *AppName) : GSubMenu("", false)
 {
 	Menu = this;
 }

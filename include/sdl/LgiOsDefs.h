@@ -13,6 +13,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <wchar.h>
 
 #define LGI_SDL				1
 #define LGI_TOUCHSCREEN		1
@@ -56,7 +57,7 @@ public:
 	int Args;
 	char **Arg;
 
-	OsAppArguments(int args, char **arg);
+	OsAppArguments(int args, const char **arg);
 	~OsAppArguments();
 
 	void Set(const char *CmdLine);
@@ -92,7 +93,7 @@ public:
 };
 
 // Threads
-#ifdef WIN32
+#if defined(WIN32)
 
 typedef HANDLE  					OsThread;
 typedef DWORD						OsThreadId;
@@ -112,37 +113,7 @@ typedef pthread_mutex_t				OsSemaphore;
 
 #endif
 
-class LgiClass GMessage
-{
-public:
-    typedef void *Param;
-    typedef NativeInt Result;
-    SDL_Event Event;
-    
-    struct EventParams
-    {
-    	Param a, b;
-    	EventParams(Param A, Param B)
-    	{
-    		a = A;
-    		b = B;
-    	}
-    };
-
-	GMessage(int m = 0, Param pa = 0, Param pb = 0);
-	~GMessage();
-
-	int Msg();
-	Param A();
-	Param B();
-	void Set(int m, Param pa, Param pb);
-	bool Send(OsView Wnd);
-};
-
-
-#define MsgCode(m)					m->Msg()
-#define MsgA(m)						m->A()
-#define MsgB(m)						m->B()
+#include "GMessage.h"
 
 #ifndef _MSC_VER
 #pragma clang diagnostic ignored "-Wtautological-undefined-compare"
@@ -269,27 +240,6 @@ LgiFunc void LgiSleep(uint32 i);
 #define M_X11_INVALIDATE			(M_SYSTEM+2)
 /// Implemented to handle paint requests in the GUI thread.
 #define M_X11_REPARENT				(M_SYSTEM+4)
-
-/// Minimum value for application defined message ID's
-#define M_USER						0x0400
-
-enum LgiUserMessages
-{
-	M_MOUSEENTER					= (M_USER+100),
-	M_MOUSEEXIT,
-	M_CHANGE,
-	M_DESCRIBE,
-	M_COMMAND,
-	M_CUT,
-	M_COPY,
-	M_PASTE,
-	M_DELETE,
-	M_PULSE,
-	M_SET_VISIBLE,
-	M_INVALIDATE,
-	M_MOUSE_CAPTURE_POLL,
-	M_TEXT_UPDATE_NAME,
-};
 
 /// Standard ID for an "Ok" button.
 /// \sa LgiMsg
@@ -532,6 +482,7 @@ typedef enum {
 // Externs
 #define vsprintf_s		vsnprintf
 #define swprintf_s		swprintf
+#define wcscpy_s(dst, len, src)		wcsncpy(dst, src, len)
 #ifndef WIN32 // __CYGWIN__
 // LgiFunc char *strnistr(char *a, char *b, int n);
 #define _strnicmp strncasecmp // LgiFunc int _strnicmp(char *a, char *b, int i);

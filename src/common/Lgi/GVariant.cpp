@@ -36,6 +36,40 @@ const char *GVariant::TypeToString(GVariantType t)
 	return NULL;
 }
 
+const char *GVariant::OperatorToString(GOperator op)
+{
+	switch (op)
+	{
+		case OpNull: return "OpNull";
+		case OpAssign: return "OpAssign";
+		case OpPlus: return "OpPlus";
+		case OpUnaryPlus: return "OpUnaryPlus";
+		case OpMinus: return "OpMinus";
+		case OpUnaryMinus: return "OpUnaryMinus";
+		case OpMul: return "OpMul";
+		case OpDiv: return "OpDiv";
+		case OpMod: return "OpMod";
+		case OpLessThan: return "OpLessThan";
+		case OpLessThanEqual: return "OpLessThanEqual";
+		case OpGreaterThan: return "OpGreaterThan";
+		case OpGreaterThanEqual: return "OpGreaterThanEqual";
+		case OpEquals: return "OpEquals";
+		case OpNotEquals: return "OpNotEquals";
+		case OpPlusEquals: return "OpPlusEquals";
+		case OpMinusEquals: return "OpMinusEquals";
+		case OpMulEquals: return "OpMulEquals";
+		case OpDivEquals: return "OpDivEquals";
+		case OpPostInc: return "OpPostInc";
+		case OpPostDec: return "OpPostDec";
+		case OpPreInc: return "OpPreInc";
+		case OpPreDec: return "OpPreDec";
+		case OpAnd: return "OpAnd";
+		case OpOr: return "OpOr";
+		case OpNot: return "OpNot";
+	}
+	return NULL;
+}
+
 GVariant::GVariant()
 {
 	Type = GV_NULL;
@@ -622,12 +656,13 @@ bool GVariant::SetHashTable(GHashTable *Table, bool Copy)
 bool GVariant::SetSurface(class GSurface *Ptr, bool Own)
 {
     Empty();
+    if (!Ptr)
+		return false;
+
     Type = GV_GSURFACE;
     Value.Surface.Ptr = Ptr;
     if ((Value.Surface.Own = Own))
-    {
         Value.Surface.Ptr->AddRef();
-    }
     
     return true;
 }
@@ -803,8 +838,6 @@ int64 GVariant::Length()
 {
 	switch (Type)
 	{
-		default:
-			return 0;
 		case GV_INT32:
 			return sizeof(Value.Int);
 		case GV_INT64:
@@ -878,6 +911,7 @@ int64 GVariant::Length()
 			return sizeof(GKey);
 		case GV_STREAM:
 			return Value.Stream.Ptr->GetSize();
+		default: break;
 	}
 	
 	return 0;
@@ -1190,9 +1224,19 @@ int32 GVariant::CastInt32()
 			break;
 		}
 		case GV_LIST:
-			return Value.Lst != 0;
+			return Value.Lst != NULL;
 		case GV_HASHTABLE:
-			return Value.Hash != 0;
+			return Value.Hash != NULL;
+		case GV_GSURFACE:
+			return Value.Surface.Ptr != NULL;
+		case GV_GVIEW:
+			return Value.View != NULL;
+		case GV_GMOUSE:
+			return Value.Mouse != NULL;
+		case GV_GKEY:
+			return Value.Key != NULL;
+		case GV_STREAM:
+			return Value.Stream.Ptr != NULL;
 	}
 	
 	return 0;
@@ -1510,12 +1554,20 @@ struct GDomPropMap : public GHashTbl<const char *, GDomProperty>
 		Define("Type", ObjType);
 		Define("Name", ObjName);
 		Define("Style", ObjStyle);
+		Define("Class", ObjClass);
 		Define("Field", ObjField);
+		Define("Debug", ObjDebug);
+		Define("textContent", ObjTextContent);
+		Define("innerHTML", ObjInnerHtml);
 
 		Define("List", TypeList);
 		Define("HashTable", TypeHashTable);
 		Define("File", TypeFile);
 		Define("Surface", TypeSurface);
+		Define("Int", TypeInt);
+		Define("Double", TypeDouble);
+		Define("String", TypeString);
+		Define("DateTime", TypeDateTime);
 		
 		Define("Year", DateYear);
 		Define("Month", DateMonth);
@@ -1525,7 +1577,7 @@ struct GDomPropMap : public GHashTbl<const char *, GDomProperty>
 		Define("Second", DateSec);
 		Define("Date", DateDate);
 		Define("Time", DateTime);
-		Define("DateTime", DateDateTime);
+		Define("DateAndTime", DateDateAndTime);
 		Define("DateInt64", DateInt64);
 		Define("SetNow", DateSetNow);
 
@@ -1536,8 +1588,6 @@ struct GDomPropMap : public GHashTbl<const char *, GDomProperty>
 		Define("Lower", StrLower);
 		Define("Upper", StrUpper);
 		Define("Strip", StrStrip);
-		Define("Int", StrInt);
-		Define("Double", StrDouble);
 		Define("Sub", StrSub);
 		
 		Define("X", SurfaceX);
@@ -1550,6 +1600,10 @@ struct GDomPropMap : public GHashTbl<const char *, GDomProperty>
 		Define("Delete", ContainerDelete);
 		Define("HasKey", ContainerHasKey);
 		Define("Sort", ContainerSort);
+		Define("Children", ContainerChildren);
+		Define("Span", ContainerSpan);
+		Define("Align", ContainerAlign);
+		Define("VAlign", ContainerVAlign);
 
 		Define("Open", FileOpen);
 		Define("Read", FileRead);
@@ -1646,6 +1700,105 @@ bool GDom::SetValue(const char *Var, GVariant &Value)
 	return Status;
 }
 
+bool GVariant::Add(GVariant *v, int Where)
+{
+	if (!v)
+	{
+		LgiAssert(!"No value to insert.");
+		return false;
+	}
+
+	if (Type == GV_NULL)
+		SetList();
+		
+	if (Type != GV_LIST)
+	{
+		LgiAssert(!"Not a list variant");
+		return false;
+	}
+	
+	return Value.Lst->Insert(v, Where);
+}
+
+GString GVariant::ToString()
+{
+	GString s;
+	switch (Type)
+	{
+		case GV_NULL:
+			s = "NULL";
+			break;
+		case GV_INT32:
+			s.Printf("(int)%i", Value.Int);
+			break;
+		case GV_INT64:
+			s.Printf("(int64)" LGI_PrintfInt64, Value.Int64);
+			break;
+		case GV_BOOL:
+			s.Printf("(bool)%s", Value.Bool ? "true" : "false");
+			break;
+		case GV_DOUBLE:
+			s.Printf("(double)%f", Value.Dbl);
+			break;
+		case GV_STRING:
+			s.Printf("(string)\"%s\"", Value.String);
+			break;
+		case GV_BINARY:
+			s.Printf("(binary[%i])%p", Value.Binary.Length, Value.Binary.Data);
+			break;
+		case GV_LIST:
+			s.Printf("(list[%i])%p", Value.Lst?Value.Lst->Length():0, Value.Lst);
+			break;
+		case GV_DOM:
+			s.Printf("(dom)%p", Value.Dom);
+			break;
+		case GV_DOMREF:
+			s.Printf("(dom)%p.%s", Value.DomRef.Dom, Value.DomRef.Name);
+			break;
+		case GV_VOID_PTR:
+			s.Printf("(void*)%p", Value.Ptr);
+			break;
+		case GV_DATETIME:
+		{
+			char dt[64];
+			Value.Date->Get(dt, sizeof(dt));
+			s.Printf("(datetime)%s", dt);
+			break;
+		}
+		case GV_HASHTABLE:
+			s.Printf("(hashtbl)%p", Value.Hash);
+			break;
+		case GV_OPERATOR:
+			s.Printf("(operator)%s", OperatorToString(Value.Op));
+			break;
+		case GV_CUSTOM:
+			s.Printf("(custom.%s)%p", Value.Custom.Dom->GetName(), Value.Custom.Data);
+			break;
+		case GV_WSTRING:
+			s.Printf("(wstring)\"%S\"", Value.WString);
+			break;
+		case GV_GSURFACE:
+			s.Printf("(gsurface)%p", Value.Surface.Ptr);
+			break;
+		case GV_GVIEW:
+			s.Printf("(gview)%p", Value.View);
+			break;
+		case GV_GMOUSE:
+			s.Printf("(gmouse)%p", Value.Mouse);
+			break;
+		case GV_GKEY:
+			s.Printf("(gkey)%p", Value.Key);
+			break;
+		case GV_STREAM:
+			s.Printf("(stream)%p", Value.Stream.Ptr);
+			break;
+		default:
+			s = "(unknown)NULL";
+			break;
+	}
+	return s;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 GCustomType::GCustomType(const char *name, int pack) : FldMap(0, true, NULL, -1)
 {
@@ -1663,6 +1816,8 @@ GCustomType::GCustomType(const char16 *name, int pack) : FldMap(0, true, NULL, -
 
 GCustomType::~GCustomType()
 {
+	Flds.DeleteObjects();
+	Methods.DeleteObjects();
 }
 
 size_t GCustomType::Sizeof()
@@ -1693,7 +1848,7 @@ int GCustomType::AddressOf(const char *Field)
 		return -1;
 	for (unsigned i=0; i<Flds.Length(); i++)
 	{
-		if (!strcmp(Flds[i].Name, Field))
+		if (!strcmp(Flds[i]->Name, Field))
 			return (int)i;
 	}
 	return -1;
@@ -1720,16 +1875,17 @@ bool GCustomType::DefineField(const char *Name, GCustomType *Type, int ArrayLen)
 	}
 	FldMap.Add(Name, Flds.Length());
 
-	FldDef &Def = Flds.New();
+	CustomField *Def;
+	Flds.Add(Def = new CustomField);
 	
 	Size = PadSize();
-	Def.Offset = Size;
+	Def->Offset = Size;
 	
-	Def.Name = Name;
-	Def.Type = GV_CUSTOM;
-	Def.Bytes = Type->Sizeof();
-	Def.ArrayLen = ArrayLen;
-	Size += Def.Bytes * ArrayLen;
+	Def->Name = Name;
+	Def->Type = GV_CUSTOM;
+	Def->Bytes = Type->Sizeof();
+	Def->ArrayLen = ArrayLen;
+	Size += Def->Bytes * ArrayLen;
 
 	return true;
 }
@@ -1755,15 +1911,16 @@ bool GCustomType::DefineField(const char *Name, GVariantType Type, int Bytes, in
 	}
 	FldMap.Add(Name, Flds.Length());
 
-	FldDef &Def = Flds.New();
+	CustomField *Def;
+	Flds.Add(Def = new CustomField);
 	
 	Size = PadSize();
-	Def.Offset = Size;
+	Def->Offset = Size;
 	
-	Def.Name = Name;
-	Def.Type = Type;
-	Def.Bytes = Bytes;
-	Def.ArrayLen = ArrayLen;
+	Def->Name = Name;
+	Def->Type = Type;
+	Def->Bytes = Bytes;
+	Def->ArrayLen = ArrayLen;
 	Size += Bytes * ArrayLen;
 
 	return true;
@@ -1783,7 +1940,7 @@ GCustomType::Method *GCustomType::DefineMethod(const char *Name, GArray<GString>
 		return NULL;
 	}
 	
-	m = &Methods.New();
+	Methods.Add(m = new Method);
 	m->Name = Name;
 	m->Params = Params;
 	m->Address = Address;
@@ -1793,15 +1950,15 @@ GCustomType::Method *GCustomType::DefineMethod(const char *Name, GArray<GString>
 	return m;
 }
 
-bool GCustomType::FldDef::GetVariant(const char *Field, GVariant &Value, char *Array)
+bool GCustomType::CustomField::GetVariant(const char *Field, GVariant &Value, char *Array)
 {
 	GDomProperty p = GStringToProp(Field);
 	switch (p)
 	{
-		case ObjName:
+		case ObjName: // Type: String
 			Value = Name;
 			break;
-		case ObjLength:
+		case ObjLength: // Type: Int32
 			Value = Bytes;
 			break;
 		default:
@@ -1811,7 +1968,7 @@ bool GCustomType::FldDef::GetVariant(const char *Field, GVariant &Value, char *A
 	return true;
 }
 
-int GCustomType::FldDef::Sizeof()
+int GCustomType::CustomField::Sizeof()
 {
 	switch (Type)
 	{
@@ -1855,22 +2012,22 @@ bool GCustomType::Get(int Index, GVariant &Out, uint8 *This, int ArrayIndex)
 		return false;
 	}
 
-	FldDef &Def = Flds[Index];
-	if (ArrayIndex < 0 || ArrayIndex >= Def.ArrayLen)
+	CustomField *Def = Flds[Index];
+	if (ArrayIndex < 0 || ArrayIndex >= Def->ArrayLen)
 	{
 		LgiAssert(!"Array out of bounds.");
 		return false;
 	}
 
-	uint8 *Ptr = This + Def.Offset;
+	uint8 *Ptr = This + Def->Offset;
 	Out.Empty();
 	
-	switch (Def.Type)
+	switch (Def->Type)
 	{
 		case GV_STRING:
 		{
 			int Len;
-			for (Len = 0; Ptr[Len] && Len < Def.ArrayLen-1; Len++)
+			for (Len = 0; Ptr[Len] && Len < Def->ArrayLen-1; Len++)
 				;
 			Out.OwnStr(NewStr((char*)Ptr, Len));
 			break;
@@ -1879,7 +2036,7 @@ bool GCustomType::Get(int Index, GVariant &Out, uint8 *This, int ArrayIndex)
 		{
 			char16 *p = (char16*)Ptr;
 			int Len;
-			for (Len = 0; p[Len] && Len < Def.ArrayLen-1; Len++)
+			for (Len = 0; p[Len] && Len < Def->ArrayLen-1; Len++)
 				;
 			Out.OwnStr(NewStrW(p, Len));
 			break;
@@ -1887,7 +2044,7 @@ bool GCustomType::Get(int Index, GVariant &Out, uint8 *This, int ArrayIndex)
 		case GV_INT32:
 		case GV_INT64:
 		{
-			switch (Def.Bytes)
+			switch (Def->Bytes)
 			{
 				case 1:
 				{
@@ -1946,15 +2103,15 @@ bool GCustomType::Set(int Index, GVariant &In, uint8 *This, int ArrayIndex)
 		return false;
 	}
 
-	FldDef &Def = Flds[Index];
-	uint8 *Ptr = This + Def.Offset;
-	if (ArrayIndex < 0 || ArrayIndex >= Def.ArrayLen)
+	CustomField *Def = Flds[Index];
+	uint8 *Ptr = This + Def->Offset;
+	if (ArrayIndex < 0 || ArrayIndex >= Def->ArrayLen)
 	{
 		LgiAssert(!"Array out of bounds.");
 		return false;
 	}
 	
-	switch (Def.Type)
+	switch (Def->Type)
 	{
 		case GV_STRING:
 		{
@@ -1965,20 +2122,20 @@ bool GCustomType::Set(int Index, GVariant &In, uint8 *This, int ArrayIndex)
 				break;
 			}
 			
-			if (Def.Bytes == 1)
+			if (Def->Bytes == 1)
 			{
 				// Straight up string copy...
 				if (s)
-					strcpy_s((char*)Ptr, Def.ArrayLen, s);
+					strcpy_s((char*)Ptr, Def->ArrayLen, s);
 				else
 					*Ptr = 0;
 			}
-			else if (Def.Bytes == sizeof(char16))
+			else if (Def->Bytes == sizeof(char16))
 			{
 				// utf8 -> wide conversion...
 				const void *In = Ptr;
 				int Len = strlen(s);
-				int Ch = LgiBufConvertCp(Ptr, LGI_WideCharset, Def.ArrayLen-1, In, "utf-8", Len);
+				int Ch = LgiBufConvertCp(Ptr, LGI_WideCharset, Def->ArrayLen-1, In, "utf-8", Len);
 				if (Ch >= 0)
 				{
 					// Null terminate
@@ -2001,17 +2158,17 @@ bool GCustomType::Set(int Index, GVariant &In, uint8 *This, int ArrayIndex)
 				*p = 0;
 				break;
 			}
-			if (Def.Bytes == sizeof(char16))
+			if (Def->Bytes == sizeof(char16))
 			{
 				// Straight string copy...
-				wcscpy_s(p, Def.ArrayLen, w);
+				Strcpy(p, Def->ArrayLen, w);
 			}
 			else
 			{
 				// Conversion to utf-8
 				const void *In = Ptr;
 				int Len = StrlenW(w) * sizeof(char16);
-				int Ch = LgiBufConvertCp(Ptr, "utf-8", Def.ArrayLen-sizeof(char16),
+				int Ch = LgiBufConvertCp(Ptr, "utf-8", Def->ArrayLen-sizeof(char16),
 										In, LGI_WideCharset, Len);
 				if (Ch >= 0)
 				{
@@ -2029,7 +2186,7 @@ bool GCustomType::Set(int Index, GVariant &In, uint8 *This, int ArrayIndex)
 		case GV_INT32:
 		case GV_INT64:
 		{
-			switch (Def.Bytes)
+			switch (Def->Bytes)
 			{
 				case 1:
 				{
@@ -2077,22 +2234,22 @@ bool GCustomType::GetVariant(const char *Field, GVariant &Value, char *Array)
 	GDomProperty p = GStringToProp(Field);
 	switch (p)
 	{
-		case ObjName:
+		case ObjName: // Type: String
 		{
 			Value = Name;
 			return true;
 		}
-		case ObjType:
+		case ObjType: // Type: String
 		{
 			Value = "GCustomType";
 			return true;
 		}
-		case ObjLength:
+		case ObjLength: // Type: Int32
 		{
 			Value = (int)Sizeof();
 			return true;
 		}
-		case ObjField:
+		case ObjField: // Type: CustomField[]
 		{
 			if (Array)
 			{
@@ -2138,7 +2295,7 @@ bool GCustomType::CallMethod(const char *MethodName, GVariant *ReturnValue, GArr
 		return true;
 	}
 	
-	if (!_stricmp(MethodName, "Delete"))
+	if (!_stricmp(MethodName, "Delete")) // Type: (Object)
 	{
 		for (unsigned i=0; i<Args.Length(); i++)
 		{

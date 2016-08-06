@@ -149,6 +149,8 @@ bool GScreenDC::GetClient(GRect *c)
 	return true;
 }
 
+// bool SetClientDebug = false;
+
 void GScreenDC::SetClient(GRect *c)
 {
 	// 'c' is in absolute coordinates
@@ -162,30 +164,37 @@ void GScreenDC::SetClient(GRect *c)
 
 			d->Stack.Add(d->Rc);
 			d->Rc = *c;
-			GRect &Last = d->Stack[d->Stack.Length()-1];
-			Ox += Last.x1;
-			Oy += Last.y1;
 
 			#if 0
-			char sp[64];
-			memset(sp, ' ', (d->Stack.Length()-1)<<2);
-			sp[(d->Stack.Length()-1)<<2] = 0;
-			printf("%sSetClient %s %i,%i (", sp, c ? c->GetStr() : "", Ox, Oy);
-			for (int i=0; i<d->Stack.Length(); i++)
-			{
-				printf("%s|", d->Stack[i].GetStr());
-			}
-			printf(")\n");
+			CGAffineTransform t1 = CGContextGetCTM(d->Ctx);
+			CGRect cgrc = CGContextGetClipBoundingBox(d->Ctx);
 			#endif
 			
-			CGRect rect = {{c->x1-Ox, c->y1-Oy}, {c->X(), c->Y()}};
+			CGContextTranslateCTM(d->Ctx, c->x1, c->y1);
+			CGRect rect = {{0, 0}, {c->X(), c->Y()}};
 			CGContextClipToRect(d->Ctx, rect);
-			CGContextTranslateCTM(d->Ctx, rect.origin.x, rect.origin.y);
+
+			#if 0
+			if (SetClientDebug)
+			{
+				CGAffineTransform t2 = CGContextGetCTM(d->Ctx);
+
+				GRect r1, r2;
+				r1 = cgrc;
+				r2 = cgrc = CGContextGetClipBoundingBox(d->Ctx);
+				printf("SetClient %s (%f, %f) -> %s (%f, %f)\n",
+						r1.GetStr(),
+						t1.tx, t1.ty,
+						r2.GetStr(),
+						t2.tx, t2.ty
+						);
+			}
+			#endif
 		}
 		else
 		{
-			d->Rc = d->Stack[d->Stack.Length()-1];
-			d->Stack.Length(d->Stack.Length()-1);
+			d->Rc = d->Stack.Last();
+			d->Stack.PopLast();
 			CGContextRestoreGState(d->Ctx);
 		}
 		

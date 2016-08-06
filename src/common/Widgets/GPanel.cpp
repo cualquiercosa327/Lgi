@@ -11,6 +11,7 @@
 #include "Lgi.h"
 #include "GPanel.h"
 #include "GDisplayString.h"
+#include "LgiRes.h"
 
 //////////////////////////////////////////////////////////////////////////////
 GPanel::GPanel(const char *name, int size, bool open)
@@ -97,12 +98,10 @@ void GPanel::SetOpenSize(int i)
 bool GPanel::Attach(GViewI *Wnd)
 {
 	bool Status = GLayout::Attach(Wnd);
-	if (Status)
-	{
-		AttachChildren();
-	}
-
 	SetChildrenVisibility(IsOpen);
+	if (Status)
+		AttachChildren();
+
 	return Status;
 }
 

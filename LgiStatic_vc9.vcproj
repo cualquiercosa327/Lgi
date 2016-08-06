@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="LgiStatic_vc9"
 	ProjectGUID="{DE6D97B9-A194-401B-A8A4-83110C56D572}"
+	RootNamespace="LgiStatic_vc9"
 	TargetFrameworkVersion="0"
 	>
 	<Platforms>
@@ -19,13 +20,13 @@
 	<Configurations>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory=".\LgiStaticRelease"
-			IntermediateDirectory=".\LgiStaticRelease"
+			OutputDirectory="Static_$(PlatformName)$(ConfigurationName)"
+			IntermediateDirectory="Static_$(PlatformName)$(ConfigurationName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -51,10 +52,11 @@
 				StringPooling="true"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\LgiStaticRelease/LgiStatic.pch"
-				AssemblerListingLocation=".\LgiStaticRelease/"
-				ObjectFile=".\LgiStaticRelease/"
-				ProgramDataBaseFileName=".\LgiStaticRelease/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(IntDir)/LgiStatic.pch"
+				AssemblerListingLocation=".\$(IntDir)\"
+				ObjectFile=".\$(IntDir)\"
+				ProgramDataBaseFileName=".\$(IntDir)\"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -70,7 +72,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\LgiStaticRelease\LgiStatic.lib"
+				OutputFile="$(OutDir)\$(ProjectName).lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -93,13 +95,13 @@
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="Static_$(PlatformName)$(ConfigurationName)"
+			IntermediateDirectory="Static_$(PlatformName)$(ConfigurationName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -126,10 +128,11 @@
 				StringPooling="true"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\LgiStaticRelease/LgiStatic.pch"
-				AssemblerListingLocation=".\LgiStaticRelease/"
-				ObjectFile=".\LgiStaticRelease/"
-				ProgramDataBaseFileName=".\LgiStaticRelease/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(IntDir)/LgiStatic.pch"
+				AssemblerListingLocation=".\$(IntDir)\"
+				ObjectFile=".\$(IntDir)\"
+				ProgramDataBaseFileName=".\$(IntDir)\"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -145,7 +148,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\LgiStaticRelease\LgiStatic.lib"
+				OutputFile="$(OutDir)\$(ProjectName).lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -168,13 +171,13 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory=".\LgiStaticDebug"
-			IntermediateDirectory=".\LgiStaticDebug"
+			OutputDirectory="Static_$(PlatformName)$(ConfigurationName)"
+			IntermediateDirectory="Static_$(PlatformName)$(ConfigurationName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -199,10 +202,11 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				PrecompiledHeaderFile=".\LgiStaticDebug/LgiStatic.pch"
-				AssemblerListingLocation=".\LgiStaticDebug/"
-				ObjectFile=".\LgiStaticDebug/"
-				ProgramDataBaseFileName=".\LgiStaticDebug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(IntDir)/LgiStatic.pch"
+				AssemblerListingLocation=".\$(IntDir)\"
+				ObjectFile=".\$(IntDir)\"
+				ProgramDataBaseFileName=".\$(IntDir)\"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 			/>
@@ -219,7 +223,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\LgiStaticDebug\LgiStatic.lib"
+				OutputFile="$(OutDir)\$(ProjectName).lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -242,13 +246,13 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|x64"
-			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="Static_$(PlatformName)$(ConfigurationName)"
+			IntermediateDirectory="Static_$(PlatformName)$(ConfigurationName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -274,10 +278,11 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				PrecompiledHeaderFile=".\LgiStaticDebug/LgiStatic.pch"
-				AssemblerListingLocation=".\LgiStaticDebug/"
-				ObjectFile=".\LgiStaticDebug/"
-				ProgramDataBaseFileName=".\LgiStaticDebug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(IntDir)/LgiStatic.pch"
+				AssemblerListingLocation=".\$(IntDir)\"
+				ObjectFile=".\$(IntDir)\"
+				ProgramDataBaseFileName=".\$(IntDir)\"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 			/>
@@ -294,7 +299,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\LgiStaticDebug\LgiStatic.lib"
+				OutputFile="$(OutDir)\$(ProjectName).lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool

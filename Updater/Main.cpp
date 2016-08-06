@@ -20,24 +20,24 @@ char *NewStr(char *s, size_t len = 0)
 	if (!s) return NULL;
 	if (len == 0) len = strlen(s);
 	char *n = new char[len];
-	memcpy(n, s, sizeof(*n)*len);
+	memcpy(n, s, sizeof(*n)*(len+1));
 	n[len] = 0;
 	return n;
 }
 
-TCHAR *NewStr(TCHAR *s, size_t len = 0)
+WCHAR *NewStr(WCHAR *s, size_t len = 0)
 {
 	if (!s) return NULL;
-	if (len == 0) len = _tcslen(s);
+	if (len == 0) len = wcslen(s);
 	TCHAR *n = new TCHAR[len];
-	memcpy(n, s, sizeof(*n)*len);
+	memcpy(n, s, sizeof(*n)*(len+1));
 	n[len] = 0;
 	return n;
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
-	GArray<WCHAR *> Files;
+	GArray<WCHAR*> Files;
 
 	// Parse the command line for the filename(s) to copy....
 	WCHAR *CmdLine = GetCommandLineW();
@@ -72,7 +72,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if (GetModuleFileNameW(NULL, Exe, sizeof(Exe)) <= 0)
 	{
 		WCHAR Msg[256];
-		swprintf_s(Msg, 256, L"GetModuleFileNameW failed with the error 0x%x", GetLastError());
+		swprintf_s(Msg, CountOf(Msg), L"GetModuleFileNameW failed with the error 0x%x", GetLastError());
 		MessageBox(NULL, Msg, AppName, MB_OK);
 		return -1;
 	}
@@ -100,7 +100,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 		// Work out the output filename...
 		WCHAR Output[MAX_PATH];
-		swprintf_s(Output, MAX_PATH, L"%s%s", Exe, Leaf + 1);
+		swprintf_s(Output, CountOf(Output), L"%s%s", Exe, Leaf + 1);
 		
 		// Copy the file...
 		BOOL Success = CopyFile(Files[i], Output, FALSE);
@@ -109,7 +109,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			WCHAR Msg[MAX_PATH << 1];
 			DWORD Err = GetLastError();
 			swprintf_s(	Msg,
-						MAX_PATH << 1,
+						CountOf(Msg),
 						L"Failed to copy\n'%s'\nto\n'%s'\nError: 0x%x",
 						Files[i],
 						Output,
@@ -124,7 +124,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// Return success
 	WCHAR Msg[256];
 	swprintf_s(	Msg,
-				256,
+				CountOf(Msg),
 				L"Success: %i files processed.",
 				Copied);
 	MessageBox(NULL, Msg, AppName, MB_OK);

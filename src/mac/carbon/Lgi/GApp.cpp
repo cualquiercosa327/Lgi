@@ -13,6 +13,7 @@
 #include "GThread.h"
 #include "GXmlTree.h"
 #include "GSymLookup.h"
+#include "GFontCache.h"
 
 #include <sys/poll.h>
 #include <sys/types.h>
@@ -124,6 +125,14 @@ OsAppArguments &OsAppArguments::operator =(OsAppArguments &a)
 	Arg = (const char**) &d->Ptr[0];
 	
 	return *this;
+}
+
+////////////////////////////////////////////////////////////////
+void GMessage::Set(int msg, Param A, Param B)
+{
+	m = msg;
+	a = A;
+	b = B;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -630,14 +639,7 @@ GApp *GApp::ObjInstance()
 bool GApp::IsOk()
 {
 	bool Status = 	(this != 0) &&
-					(d != 0)
-					/*
-					#ifdef XWIN
-					&& (XDisplay() != 0)
-					#endif
-					*/
-					;
-					
+					(d != 0);
 	LgiAssert(Status);
 	return Status;
 }
@@ -780,14 +782,17 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 				0,
 				NULL,
 				0.001, // kEventDurationForever,
-				true,
+				kEventRemoveFromQueue,
 				&theEvent
 			)
 			==
 			noErr
 		)
 		{
-			SendEventToEventTarget (theEvent, theTarget);
+			if (GetEventKind(theEvent) == kEventAppleEvent)
+				AEProcessEvent(theEvent);
+
+			SendEventToEventTarget(theEvent, theTarget);
 			ReleaseEvent(theEvent);
 		}	
 	}

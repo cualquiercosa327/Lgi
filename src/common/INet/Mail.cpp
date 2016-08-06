@@ -21,6 +21,7 @@
 #include "GDateTime.h"
 #include "GDocView.h"
 #include "Store3Defs.h"
+#include "LgiRes.h"
 
 const char *sTextPlain = "text/plain";
 const char *sTextHtml = "text/html";
@@ -1321,6 +1322,7 @@ MailProtocol::MailProtocol()
 {
 	Buffer[0] = 0;
 	Logger = 0;
+	ErrMsgId = 0;
 
 	Items = 0;
 	Transfer = 0;
@@ -1621,22 +1623,19 @@ bool MailSmtp::Open(GSocketI *S,
 					if (!Authed)
 					{
 						if (NoAuthTypes)
-						{
-							ServerMsg.Reset(NewStr(LgiLoadString(L_ERROR_ESMTP_NO_AUTHS,
-															"The server didn't return the authentication methods it supports.")));
-						}
+							SetError(L_ERROR_ESMTP_NO_AUTHS, "The server didn't return the authentication methods it supports.");
 						else
 						{
-							int ch = sprintf_s(	Buffer, sizeof(Buffer),
-												LgiLoadString(	L_ERROR_ESMTP_UNSUPPORTED_AUTHS,
-																"The server doesn't support any compatible authentication types:\n\t"));
-							
-							const char *a = 0;
-							for (bool p = TheirAuthTypes.First(&a); p; p = TheirAuthTypes.Next(&a))
+							GString p;
+							const char *a;
+							for (bool b = TheirAuthTypes.First(&a); b; b = TheirAuthTypes.Next(&a))
 							{
-								ch += sprintf_s(Buffer+ch, sizeof(Buffer)-ch, "%s ", a);
+								if (p.Get())
+									p += ", ";
+								p += a;
 							}
-							ServerMsg.Reset(NewStr(Buffer));
+
+							SetError(L_ERROR_UNSUPPORTED_AUTH, "Authentication failed, types available:\n\t%s", p);
 						}
 					}
 
@@ -1644,36 +1643,6 @@ bool MailSmtp::Open(GSocketI *S,
 				}
 				else
 				{
-					/*
-					NormalLogin:
-					// Normal SMTP login
-					// send HELO message
-					sprintf_s(Buffer, sizeof(Buffer), "HELO %s\r\n", (ValidNonWSStr(LocalDomain)) ? LocalDomain : "default");
-					VERIFY_RET_VAL(Write(0, true));
-					VERIFY_RET_VAL(ReadReply("250"));
-
-					if (Flags & MAIL_SOURCE_STARTTLS)
-					{
-						if (SupportsStartTLS && TestFlag(Flags, MAIL_USE_STARTTLS))
-						{
-							strcpy(Buffer, "STARTTLS\r\n");
-							VERIFY_RET_VAL(Write(0, true));
-							VERIFY_RET_VAL(ReadReply("220", &Str));
-
-							GVariant v;
-							if (Socket->SetValue(GSocket_Protocol, v="SSL"))
-							{
-								Flags &= ~MAIL_USE_STARTTLS;
-								goto SmtpHello;
-							}
-							else
-							{
-								// SSL init failed... what to do here?
-							}
-						}
-					}
-					*/
-
 					Status = true;
 				}
 			}
@@ -1887,7 +1856,9 @@ bool MailSmtp::SendToFrom(List<AddressDescriptor> &To, AddressDescriptor *From, 
 		}
 		else
 		{
-			ServerMsg.Reset(NewStr("No 'from' address in email."));
+			ErrMsgId = L_ERROR_ESMTP_NO_FROM;
+			ErrMsgFmt = "No 'from' address in email.";
+			ErrMsgParam.Empty();
 			return false;
 		}
 
@@ -2072,7 +2043,7 @@ bool MailSmtp::ReadReply(const char *Str, GStringPipe *Pipe, MailProtocolError *
 
 		if (!Status)
 		{
-			ServerMsg.Reset(NewStr(Buffer));
+			SetError(L_ERROR_GENERIC, "Error: %s", Buffer);
 		}
 	}
 
@@ -2492,7 +2463,7 @@ bool MailPop3::ReadReply()
 
 		if (!Status)
 		{
-			ServerMsg.Reset(NewStr(Buffer));
+			SetError(L_ERROR_GENERIC, "Error: %s", Buffer);
 		}
 	}
 
@@ -3162,6 +3133,8 @@ bool MailPop3::Close()
 //////////////////////////////////////////////////////////////////////////////////////////////////
 MailMessage::MailMessage()
 {
+	Log = this;
+	
 	From = 0;
 	Reply = 0;
 	InternetHeader = 0;
@@ -3183,6 +3156,12 @@ MailMessage::~MailMessage()
 	DeleteObj(From);
 	DeleteObj(Reply);
 	DeleteObj(Raw);
+}
+
+int MailMessage::Write(const void *Ptr, int Size, int Flags)
+{
+	LgiTrace("%.*s", Size, Ptr);
+	return Size;
 }
 
 void MailMessage::Empty()
@@ -3347,10 +3326,7 @@ int MailMessage::EncodeBase64(GStreamI &Out, GStreamI &In)
 		LgiTrace("rate: %ikb/s\n", (int)(Kb / Sec));
 		#endif
 	}
-	else
-	{
-		LgiTrace("%s:%i - Error allocating buffers\n", _FL);
-	}
+	else Log->Print("%s:%i - Error allocating buffers\n", _FL);
 
 	DeleteArray(InBuf);
 	DeleteArray(OutBuf);
@@ -3597,8 +3573,7 @@ bool MailMessage::Encode(GStreamI &Out, GStream *HeadersSink, MailProtocol *Prot
 			InternetHeader = NewStr(Headers);
 		}
 
-		if (Headers &&
-			Out.Write(Headers, Len))
+		if (Headers && Out.Write(Headers, Len))
 		{
 			SendBuf *Buf = new SendBuf(&Out);
 			if (Buf)
@@ -3609,32 +3584,28 @@ bool MailMessage::Encode(GStreamI &Out, GStream *HeadersSink, MailProtocol *Prot
 					Buf->Flush();
 					Status = Buf->Status;
 					if (!Status)
-					{
-						LgiTrace("%s:%i - Buffer status failed.\n", _FL);
-					}
+						Log->Print("%s:%i - Buffer status failed.\n", _FL);
 				}
-				else
-				{
-					LgiTrace("%s:%i - EncodeBody failed.\n", _FL);
-				}
+				else Log->Print("%s:%i - EncodeBody failed.\n", _FL);
 
 				DeleteObj(Buf);
 			}
 		}
-		else
-		{
-			LgiTrace("%s:%i - Headers output failed.\n", _FL);
-		}
+		else Log->Print("%s:%i - Headers output failed.\n", _FL);
 		
 		DeleteArray(Headers);
 	}
-	else
-	{
-		LgiTrace("%s:%i - EncodeHeaders failed.\n", _FL);
-	}
+	else Log->Print("%s:%i - EncodeHeaders failed.\n", _FL);
 
 	return Status;
 }
+
+#define WriteOutput() \
+	if (Out.Write(Buffer, Len) != Len) \
+	{ \
+		Log->Print("%s:%i - Write failed.\n", _FL); \
+		Status = false; \
+	}
 
 // This encodes the main headers but not the headers relating to the 
 // actual content. Thats done by the ::EncodeBody function.
@@ -3651,25 +3622,25 @@ bool MailMessage::EncodeHeaders(GStreamI &Out, MailProtocol *Protocol, bool Mime
 	GDateTime Dt;
 	int TimeZone = Dt.SystemTimeZone();
 	Dt.SetNow();
-	sprintf_s(Buffer, sizeof(Buffer),
-			"Date: %s, %i %s %i %i:%2.2i:%2.2i %s%2.2d%2.2d\r\n",
-			Weekday[Dt.DayOfWeek()],
-			Dt.Day(),
-			Month[Dt.Month()-1],
-			Dt.Year(),
-			Dt.Hours(),
-			Dt.Minutes(),
-			Dt.Seconds(),
-			(TimeZone >= 0) ? "+" : "",
-			TimeZone / 60,
-			abs(TimeZone) % 60);
-	Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
+	int Len = sprintf_s(Buffer, sizeof(Buffer),
+						"Date: %s, %i %s %i %i:%2.2i:%2.2i %s%2.2d%2.2d\r\n",
+						Weekday[Dt.DayOfWeek()],
+						Dt.Day(),
+						Month[Dt.Month()-1],
+						Dt.Year(),
+						Dt.Hours(),
+						Dt.Minutes(),
+						Dt.Seconds(),
+						(TimeZone >= 0) ? "+" : "",
+						TimeZone / 60,
+						abs(TimeZone) % 60);
+	WriteOutput();
 
 	if (Protocol && Protocol->ProgramName)
 	{
 		// X-Mailer:
-		sprintf_s(Buffer, sizeof(Buffer), "X-Mailer: %s\r\n", Protocol->ProgramName);
-		Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
+		Len = sprintf_s(Buffer, sizeof(Buffer), "X-Mailer: %s\r\n", Protocol->ProgramName);
+		WriteOutput();
 	}
 
 	if (Protocol && Protocol->ExtraOutgoingHeaders)
@@ -3687,24 +3658,26 @@ bool MailMessage::EncodeHeaders(GStreamI &Out, MailProtocol *Protocol, bool Mime
 			while (*e && (*e == '\r' || *e == '\n')) e++;
 			s = e;
 		}
+		if (!Status)
+			Log->Print("%s:%i - Writing ExtraOutgoingHeaders failed.\n", _FL);
 	}
 
 	if (Priority != MAIL_PRIORITY_NORMAL)
 	{
 		// X-Priority:
-		sprintf_s(Buffer, sizeof(Buffer), "X-Priority: %i\r\n", Priority);
-		Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
+		Len = sprintf_s(Buffer, sizeof(Buffer), "X-Priority: %i\r\n", Priority);
+		WriteOutput();
 	}
 
 	if (MarkColour >= 0)
 	{
 		// X-Color (HTML Colour Ref for email marking)
-		sprintf_s(Buffer, sizeof(Buffer), 
+		Len = sprintf_s(Buffer, sizeof(Buffer), 
 			"X-Color: #%2.2X%2.2X%2.2X\r\n",
 			R24(MarkColour),
 			G24(MarkColour),
 			B24(MarkColour));
-		Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
+		WriteOutput();
 	}
 
 	// Message-ID:
@@ -3719,8 +3692,8 @@ bool MailMessage::EncodeHeaders(GStreamI &Out, MailProtocol *Protocol, bool Mime
 			}			
 		}
 		
-		int Ch = sprintf_s(Buffer, sizeof(Buffer), "Message-ID: %s\r\n", MessageID.Get());
-		Status &= Out.Write(Buffer, Ch) > 0;
+		Len = sprintf_s(Buffer, sizeof(Buffer), "Message-ID: %s\r\n", MessageID.Get());
+		WriteOutput();
 	}
 
 	// References:
@@ -3738,8 +3711,8 @@ bool MailMessage::EncodeHeaders(GStreamI &Out, MailProtocol *Protocol, bool Mime
 		else
 			Ref = References;
 
-		sprintf_s(Buffer, sizeof(Buffer), "References: <%s>\r\n", Ref);
-		Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
+		int Len = sprintf_s(Buffer, sizeof(Buffer), "References: <%s>\r\n", Ref);
+		WriteOutput();
 	}
 
 	// To:
@@ -3748,6 +3721,8 @@ bool MailMessage::EncodeHeaders(GStreamI &Out, MailProtocol *Protocol, bool Mime
 	{
 		Status &= Out.Write(ToAddr, strlen(ToAddr)) > 0;
 		DeleteArray(ToAddr);
+		if (!Status)
+			Log->Print("%s:%i - Writing ToAddr failed.\n", _FL);
 	}
 
 	char *CcAddr = CreateAddressTag(To, 1, &Protocol->CharsetPrefs);
@@ -3755,71 +3730,72 @@ bool MailMessage::EncodeHeaders(GStreamI &Out, MailProtocol *Protocol, bool Mime
 	{
 		Status &= Out.Write(CcAddr, strlen(CcAddr)) > 0;
 		DeleteArray(CcAddr);
+		if (!Status)
+			Log->Print("%s:%i - Writing CcAddr failed.\n", _FL);
 	}
 
 	// From:
 	if (From && From->Addr)
 	{
-		int ch = sprintf_s(Buffer, sizeof(Buffer), "From: ");
+		Len = sprintf_s(Buffer, sizeof(Buffer), "From: ");
 
 		char *Nme = EncodeRfc2047(NewStr(From->Name), 0, &Protocol->CharsetPrefs);
 		if (Nme)
 		{
 			if (strchr(Nme, '\"'))
-				ch += sprintf_s(Buffer+ch, sizeof(Buffer)-ch, "'%s' ", Nme);
+				Len += sprintf_s(Buffer+Len, sizeof(Buffer)-Len, "'%s' ", Nme);
 			else
-				ch += sprintf_s(Buffer+ch, sizeof(Buffer)-ch, "\"%s\" ", Nme);
+				Len += sprintf_s(Buffer+Len, sizeof(Buffer)-Len, "\"%s\" ", Nme);
 			DeleteArray(Nme);
 		}
 
-		ch += sprintf_s(Buffer+ch, sizeof(Buffer)-ch, "<%s>\r\n", From->Addr);
+		Len += sprintf_s(Buffer+Len, sizeof(Buffer)-Len, "<%s>\r\n", From->Addr);
+		WriteOutput();
 	}
 	else
 	{
-		LgiTrace("%s:%i - No from address.\n", _FL);
+		Log->Print("%s:%i - No 'from' address to send email.\n", _FL);
 		return false;
 	}
-	Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
 
 	// Reply-To:
 	if (Reply &&
 		ValidStr(Reply->Addr))
 	{
-		int ch = sprintf_s(Buffer, sizeof(Buffer), "Reply-To: ");
+		Len = sprintf_s(Buffer, sizeof(Buffer), "Reply-To: ");
 
 		char *Nme = EncodeRfc2047(NewStr(Reply->Name), 0, &Protocol->CharsetPrefs);
 		if (Nme)
 		{
 			if (strchr(Nme, '\"'))
-				ch += sprintf_s(Buffer+ch, sizeof(Buffer)-ch, "'%s' ", Nme);
+				Len += sprintf_s(Buffer+Len, sizeof(Buffer)-Len, "'%s' ", Nme);
 			else
-				ch += sprintf_s(Buffer+ch, sizeof(Buffer)-ch, "\"%s\" ", Nme);
+				Len += sprintf_s(Buffer+Len, sizeof(Buffer)-Len, "\"%s\" ", Nme);
 			DeleteArray(Nme);
 		}
 
-		ch += sprintf_s(Buffer+ch, sizeof(Buffer)-ch, "<%s>\r\n", Reply->Addr);
-
-		Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
+		Len += sprintf_s(Buffer+Len, sizeof(Buffer)-Len, "<%s>\r\n", Reply->Addr);
+		WriteOutput();
 	}
 
 	// Subject:
 	char *Subj = EncodeRfc2047(NewStr(Subject), 0, &Protocol->CharsetPrefs, 9);
-	sprintf_s(Buffer, sizeof(Buffer), "Subject: %s\r\n", (Subj) ? Subj : "");
-	Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
+	Len = sprintf_s(Buffer, sizeof(Buffer), "Subject: %s\r\n", (Subj) ? Subj : "");
+	WriteOutput();
 	DeleteArray(Subj);
 
 	// DispositionNotificationTo
 	if (DispositionNotificationTo)
 	{
-		int ch = sprintf_s(Buffer, sizeof(Buffer), "Disposition-Notification-To:");
+		Len = sprintf_s(Buffer, sizeof(Buffer), "Disposition-Notification-To:");
 		char *Nme = EncodeRfc2047(NewStr(From->Name), 0, &Protocol->CharsetPrefs);
 		if (Nme)
 		{
-			ch += sprintf_s(Buffer+ch, sizeof(Buffer)-ch, " \"%s\"", Nme);
+			Len += sprintf_s(Buffer+Len, sizeof(Buffer)-Len, " \"%s\"", Nme);
 			DeleteArray(Nme);
 		}
-		ch += sprintf_s(Buffer+ch, sizeof(Buffer)-ch, " <%s>\r\n", From->Addr);
-		Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
+		Len += sprintf_s(Buffer+Len, sizeof(Buffer)-Len, " <%s>\r\n", From->Addr);
+		WriteOutput();
 	}
 
 	return Status;
@@ -3842,14 +3818,14 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 				(uint32)Now,
 				(unsigned)(int64)LgiGetCurrentThread());
 
-		sprintf_s(Buffer, sizeof(Buffer), "MIME-Version: 1.0\r\n");
-		Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
+		int Len = sprintf_s(Buffer, sizeof(Buffer), "MIME-Version: 1.0\r\n");
+		Status &= Out.Write(Buffer, Len) > 0;
 		
 		if (MultiPart)
 		{
 			const char *Type = MultipartMixed ? sMultipartMixed : sMultipartAlternative;
-			sprintf_s(Buffer, sizeof(Buffer), "Content-Type: %s;\r\n\tboundary=\"%s\"\r\n", Type, Separator);
-			Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
+			Len = sprintf_s(Buffer, sizeof(Buffer), "Content-Type: %s;\r\n\tboundary=\"%s\"\r\n", Type, Separator);
+			Status &= Out.Write(Buffer, Len) > 0;
 		}
 
 		if (ValidStr(Text) || ValidStr(Html))
@@ -3858,25 +3834,25 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 
 			if (MultiPart)
 			{
-				sprintf_s(Buffer, sizeof(Buffer), "\r\n--%s\r\n", Separator);
-				Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
+				Len = sprintf_s(Buffer, sizeof(Buffer), "\r\n--%s\r\n", Separator);
+				Status &= Out.Write(Buffer, Len) > 0;
 
 				if (MultipartMixed && MultipartAlternate)
 				{
 					sprintf_s(AlternateBoundry, sizeof(AlternateBoundry), "----=_NextPart_%8.8X.%8.8X", (uint32)++Now, (uint32)(int64)LgiGetCurrentThread());
-					sprintf_s(Buffer, sizeof(Buffer),
-							"Content-Type: %s;\r\n\tboundary=\"%s\"\r\n",
-							sMultipartAlternative,
-							AlternateBoundry);
-					Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
+					Len = sprintf_s(Buffer, sizeof(Buffer),
+									"Content-Type: %s;\r\n\tboundary=\"%s\"\r\n",
+									sMultipartAlternative,
+									AlternateBoundry);
+					Status &= Out.Write(Buffer, Len) > 0;
 
-					sprintf_s(Buffer, sizeof(Buffer), "\r\n--%s\r\n", AlternateBoundry);
-					Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
+					Len = sprintf_s(Buffer, sizeof(Buffer), "\r\n--%s\r\n", AlternateBoundry);
+					Status &= Out.Write(Buffer, Len) > 0;
 				}
 			}
 
 			if (!Status)
-				LgiTrace("%s:%i - Status=%i\n", _FL, Status);
+				Log->Print("%s:%i - Status=%i\n", _FL, Status);
 
 			if (ValidStr(Text))
 			{
@@ -3896,13 +3872,13 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 					Cs = TextCharset;
 				
 				// Content type
-				sprintf_s(Buffer, sizeof(Buffer),
-						"Content-Type: text/plain; charset=\"%s\"\r\n",
-						Cs ? Cs : "us-ascii");
-				Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
+				Len = sprintf_s(Buffer, sizeof(Buffer),
+								"Content-Type: text/plain; charset=\"%s\"\r\n",
+								Cs ? Cs : "us-ascii");
+				Status &= Out.Write(Buffer, Len) > 0;
 
 				if (!Status)
-					LgiTrace("%s:%i - Status=%i\n", _FL, Status);
+					Log->Print("%s:%i - Status=%i\n", _FL, Status);
 
 				// Transfer encoding
 				if (Txt &&
@@ -3912,13 +3888,13 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 					Status &= Out.Write(QuotPrint, strlen(QuotPrint)) > 0;
 
 					if (!Status)
-						LgiTrace("%s:%i - Status=%i\n", _FL, Status);
+						Log->Print("%s:%i - Status=%i\n", _FL, Status);
 
 					GMemStream TxtStr(Txt, strlen(Txt), false);
 					Status &= EncodeQuotedPrintable(Out, TxtStr) > 0;
 					
 					if (!Status)
-						LgiTrace("%s:%i - Status=%i\n", _FL, Status);
+						Log->Print("%s:%i - Status=%i\n", _FL, Status);
 				}
 				else
 				{
@@ -3926,40 +3902,40 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 					Status &= Out.Write(Cte, strlen(Cte)) > 0;
 
 					if (!Status)
-						LgiTrace("%s:%i - Status=%i\n", _FL, Status);
+						Log->Print("%s:%i - Status=%i\n", _FL, Status);
 
 					GMemStream TxtStr(Txt, strlen(Txt), false);
 					Status &= EncodeText(Out, TxtStr) > 0;
 
 					if (!Status)
-						LgiTrace("%s:%i - Status=%i\n", _FL, Status);
+						Log->Print("%s:%i - Status=%i\n", _FL, Status);
 				}
 				
 				DeleteArray(Mem);
 			}
 
 			if (!Status)
-				LgiTrace("%s:%i - Status=%i\n", _FL, Status);
+				Log->Print("%s:%i - Status=%i\n", _FL, Status);
 
 			// Break alternate part
 			if (AlternateBoundry[0])
 			{
-				sprintf_s(Buffer, sizeof(Buffer), "--%s\r\n", AlternateBoundry);
-				Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
+				Len = sprintf_s(Buffer, sizeof(Buffer), "--%s\r\n", AlternateBoundry);
+				Status &= Out.Write(Buffer, Len) > 0;
 			}
 			else if (MultipartAlternate)
 			{
-				sprintf_s(Buffer, sizeof(Buffer), "--%s\r\n", Separator);
-				Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
+				Len = sprintf_s(Buffer, sizeof(Buffer), "--%s\r\n", Separator);
+				Status &= Out.Write(Buffer, Len) > 0;
 			}
 
 			if (ValidStr(Html))
 			{
 				// Content type
-				sprintf_s(Buffer, sizeof(Buffer), 
-						"Content-Type: text/html; charset=\"%s\"\r\n",
-						TextCharset ? TextCharset : "us-ascii");
-				Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
+				Len = sprintf_s(Buffer, sizeof(Buffer), 
+								"Content-Type: text/html; charset=\"%s\"\r\n",
+								TextCharset ? TextCharset : "us-ascii");
+				Status &= Out.Write(Buffer, Len) > 0;
 
 				// Transfer encoding
 				if (Is8Bit(Html) ||
@@ -3982,18 +3958,18 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 			}
 
 			if (!Status)
-				LgiTrace("%s:%i - Status=%i\n", _FL, Status);
+				Log->Print("%s:%i - Status=%i\n", _FL, Status);
 
 			if (AlternateBoundry[0])
 			{
 				// End alternate part
-				sprintf_s(Buffer, sizeof(Buffer), "\r\n--%s--\r\n", AlternateBoundry);
-				Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
+				Len = sprintf_s(Buffer, sizeof(Buffer), "\r\n--%s--\r\n", AlternateBoundry);
+				Status &= Out.Write(Buffer, Len) > 0;
 			}
 		}
 
 		if (!Status)
-			LgiTrace("%s:%i - Status=%i\n", _FL, Status);
+			Log->Print("%s:%i - Status=%i\n", _FL, Status);
 
 		int SizeEst = 1024;
 		FileDescriptor *FileDes = FileDesc.First();
@@ -4011,14 +3987,14 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 			// write a MIME segment for this attachment
 			if (MultiPart)
 			{
-				sprintf_s(Buffer, sizeof(Buffer), "--%s\r\n", Separator);
-				Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
+				Len = sprintf_s(Buffer, sizeof(Buffer), "--%s\r\n", Separator);
+				Status &= Out.Write(Buffer, Len) > 0;
 			}
 
 			char FileName[256];
 			char *s = FileDes->Name(), *d = FileName;
 			if (!s)
-				LgiTrace("%s:%i - File descriptor has no name.\n", _FL);
+				Log->Print("%s:%i - File descriptor has no name.\n", _FL);
 			else
 			{
 				while (*s)
@@ -4037,22 +4013,22 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 				*d = 0;
 
 				char *FName = EncodeRfc2047(NewStr(FileName), 0, &Protocol->CharsetPrefs);
-				sprintf_s(Buffer, sizeof(Buffer), 
-						"Content-Type: %s; name=\"%s\"\r\n"
-						"Content-Disposition: attachment\r\n",
-						FileDes->GetMimeType() ? FileDes->GetMimeType() : "application/x-zip-compressed",
-						(FName) ? FName : FileName);
-				Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
+				Len = sprintf_s(Buffer, sizeof(Buffer), 
+								"Content-Type: %s; name=\"%s\"\r\n"
+								"Content-Disposition: attachment\r\n",
+								FileDes->GetMimeType() ? FileDes->GetMimeType() : "application/x-zip-compressed",
+								(FName) ? FName : FileName);
+				Status &= Out.Write(Buffer, Len) > 0;
 				DeleteArray(FName);
 
 				if (FileDes->GetContentId())
 				{
-					sprintf_s(Buffer, sizeof(Buffer), "Content-Id: %s\r\n", FileDes->GetContentId());
-					Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
+					Len = sprintf_s(Buffer, sizeof(Buffer), "Content-Id: %s\r\n", FileDes->GetContentId());
+					Status &= Out.Write(Buffer, Len) > 0;
 				}
 
-				sprintf_s(Buffer, sizeof(Buffer), "Content-Transfer-Encoding: base64\r\n\r\n");
-				Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
+				Len = sprintf_s(Buffer, sizeof(Buffer), "Content-Transfer-Encoding: base64\r\n\r\n");
+				Status &= Out.Write(Buffer, Len) > 0;
 				Status &= F ? EncodeBase64(Out, *F) > 0 : false;
 			}
 
@@ -4060,20 +4036,20 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 		}
 
 		if (!Status)
-			LgiTrace("%s:%i - Status=%i\n", _FL, Status);
+			Log->Print("%s:%i - Status=%i\n", _FL, Status);
 
 		if (MultiPart)
 		{
 			// write final separator
-			sprintf_s(Buffer, sizeof(Buffer), "--%s--\r\n\r\n", Separator);
-			Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
+			Len = sprintf_s(Buffer, sizeof(Buffer), "--%s--\r\n\r\n", Separator);
+			Status &= Out.Write(Buffer, Len) > 0;
 		}
 	}
 	else
 	{
 		// send content type
-		sprintf_s(Buffer, sizeof(Buffer), "Content-Type: text/plain; charset=\"%s\"\r\n", TextCharset ? TextCharset : "us-ascii");
-		Status &= Out.Write(Buffer, strlen(Buffer)) > 0;
+		int Len = sprintf_s(Buffer, sizeof(Buffer), "Content-Type: text/plain; charset=\"%s\"\r\n", TextCharset ? TextCharset : "us-ascii");
+		Status &= Out.Write(Buffer, Len) > 0;
 
 		if (Is8Bit(Text))
 		{
@@ -4097,7 +4073,7 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 	}
 
 	if (!Status)
-		LgiTrace("%s:%i - Status=%i\n", _FL, Status);
+		Log->Print("%s:%i - Status=%i\n", _FL, Status);
 
 	return true;
 }

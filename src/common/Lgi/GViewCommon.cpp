@@ -10,8 +10,7 @@
 #include "GTableLayout.h"
 #include "GButton.h"
 #include "GCss.h"
-
-#define DEBUG_CAPTURE	0
+#include "LgiRes.h"
 
 #if WINNATIVE
 #define GViewFlags d->WndStyle
@@ -182,7 +181,6 @@ GView::GView(OsView view)
 	_InLock = 0;
 	_BorderSize = 0;
 	_IsToolBar = false;
-	Script = 0;
 	Pos.ZOff(-1, -1);
 	WndFlags = GWF_VISIBLE;
 }
@@ -293,51 +291,27 @@ void GView::Unlock()
 
 void GView::OnMouseClick(GMouse &m)
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnMouseClick(m);
-	}
 }
 
 void GView::OnMouseEnter(GMouse &m)
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnMouseEnter(m);
-	}
 }
 
 void GView::OnMouseExit(GMouse &m)
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnMouseExit(m);
-	}
 }
 
 void GView::OnMouseMove(GMouse &m)
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnMouseMove(m);
-	}
 }
 
 bool GView::OnMouseWheel(double Lines)
 {
-	if (Script && Script->OnScriptEvent(this))
-		return Script->OnMouseWheel(Lines);
-	
 	return false;
 }
 
 bool GView::OnKey(GKey &k)
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnKey(k);
-	}
-
 	return false;
 }
 
@@ -353,87 +327,45 @@ void GView::OnAttach()
 
 void GView::OnCreate()
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnCreate();
-	}
 }
 
 void GView::OnDestroy()
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnDestroy();
-	}
 }
 
 void GView::OnFocus(bool f)
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnFocus(f);
-	}
 }
 
 void GView::OnPulse()
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnPulse();
-	}
 }
 
 void GView::OnPosChange()
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnPosChange();
-	}
 }
 
 bool GView::OnRequestClose(bool OsShuttingDown)
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnRequestClose(OsShuttingDown);
-	}
-
 	return true;
 }
 
 int GView::OnHitTest(int x, int y)
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnHitTest(x, y);
-	}
-
 	return -1;
 }
 
 void GView::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnChildrenChanged(Wnd, Attaching);
-	}
 }
 
 void GView::OnPaint(GSurface *pDC)
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnPaint(pDC);
-	}
 }
 
 int GView::OnNotify(GViewI *Ctrl, int Flags)
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnNotify(Ctrl, Flags);
-	}
-	else if (Ctrl && d && d->Parent)
+	if (Ctrl && d && d->Parent)
 	{
 		// default behaviour is just to pass the 
 		// notification up to the parent
@@ -445,11 +377,6 @@ int GView::OnNotify(GViewI *Ctrl, int Flags)
 
 int GView::OnCommand(int Cmd, int Event, OsView Wnd)
 {
-	if (Script && Script->OnScriptEvent(this))
-	{
-		Script->OnCommand(Cmd, Event, Wnd);
-	}
-
 	return 0;
 }
 
@@ -480,6 +407,8 @@ void GView::OnNcPaint(GSurface *pDC, GRect &r)
 		LgiThinBorder(pDC, r, Sunken() ? DefaultSunkenEdge : DefaultRaisedEdge);
 	}
 }
+
+// extern bool SetClientDebug;
 
 void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 {
@@ -546,37 +475,51 @@ void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 	}
 
 	#if PAINT_VIRTUAL_CHILDREN
+	// SetClientDebug = GetId() == 1159;
+
 	// Paint any virtual children
 	List<GViewI>::I it = Children.Start(); // just in case the child access the child list
 	while (it.Each())
 	{
 		GViewI *i = *it;
 		GView *w = i->GetGView();
-		if (w &&
-			#ifndef LGI_SDL
-			!w->Handle() &&
-			#endif
-			w->Visible())
+		if (w && w->Visible())
 		{
-			GRect p = w->GetPos();
-			#ifdef __GTK_H__
-			p.Offset(_BorderSize, _BorderSize);
+			#ifndef LGI_SDL
+			if (!w->Handle())
+			#else
+			if (1)
 			#endif
-			p.Offset(o.x, o.y);
-			
-			if (!Update || Update->Overlap(&p))
-			{			
-				GdcPt2 co(p.x1, p.y1);
-				pDC->SetClient(&p);
-				w->_Paint(pDC, &co);
-				pDC->SetClient(0);
-			}
-			else
 			{
-				LgiTrace("%s:%i - Not updating '%s' because %i, %i\n",
-					_FL, w->GetClass(),
-					Update != NULL,
-					Update ? Update->Overlap(&p) : -1);
+				GRect p = w->GetPos();
+				#ifdef __GTK_H__
+				p.Offset(_BorderSize, _BorderSize);
+				#endif
+				p.Offset(o.x, o.y);
+				
+				if (!Update || Update->Overlap(&p))
+				{			
+					GdcPt2 co(p.x1, p.y1);
+					
+					pDC->SetClient(&p);
+					w->_Paint(pDC, &co);
+					pDC->SetClient(0);
+				}
+				else
+				{
+					LgiTrace("%s:%i - Not updating '%s' because %i, %i (%s)\n",
+						_FL, w->GetClass(),
+						Update != NULL,
+						Update ? Update->Overlap(&p) : -1,
+						p.GetStr());
+					/*
+					if (Update)
+					{
+						for (unsigned i=0; i<Update->Length(); i++)
+							LgiTrace("    [%i]=%s\n", i, (*Update)[i]->GetStr());
+					}
+					*/
+				}
 			}
 		}
 	}
@@ -592,11 +535,13 @@ void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 
 GViewI *GView::GetParent()
 {
+	ThreadCheck();
 	return d->Parent;
 }
 
 void GView::SetParent(GViewI *p)
 {
+	ThreadCheck();
 	d->Parent = p ? p->GetGView() : NULL;
 	d->ParentI = p;
 }
@@ -664,11 +609,13 @@ void GView::SendNotify(int Data)
 
 GViewI *GView::GetNotify()
 {
+	ThreadCheck();
 	return d->Notify;
 }
 
 void GView::SetNotify(GViewI *p)
 {
+	ThreadCheck();
 	d->Notify = p;
 }
 
@@ -737,6 +684,8 @@ GRect JoinAdjacent(GRect &a, GRect &b, int Adj)
 
 GRect *GView::FindLargest(GRegion &r)
 {
+	ThreadCheck();
+
 	int Pixels = 0;
 	GRect *Best = 0;
 	static GRect Final;
@@ -802,6 +751,8 @@ GRect *GView::FindLargest(GRegion &r)
 
 GRect *GView::FindSmallestFit(GRegion &r, int Sx, int Sy)
 {
+	ThreadCheck();
+
 	int X = 1000000;
 	int Y = 1000000;
 	GRect *Best = 0;
@@ -823,6 +774,7 @@ GRect *GView::FindSmallestFit(GRegion &r, int Sx, int Sy)
 GRect *GView::FindLargestEdge(GRegion &r, int Edge)
 {
 	GRect *Best = 0;
+	ThreadCheck();
 
 	for (GRect *i = r.First(); i; i = r.Next())
 	{
@@ -883,6 +835,8 @@ GRect *GView::FindLargestEdge(GRegion &r, int Edge)
 
 GViewI *GView::FindReal(GdcPt2 *Offset)
 {
+	ThreadCheck();
+
 	if (Offset)
 	{
 		Offset->x = 0;
@@ -911,33 +865,48 @@ GViewI *GView::FindReal(GdcPt2 *Offset)
 
 bool GView::HandleCapture(GView *Wnd, bool c)
 {
+	ThreadCheck();
+	
 	if (c)
 	{
-		_Capturing = Wnd;
-		// LgiTrace("%s:%i _Capturing=%p/%s\n", _FL, _Capturing, _Capturing?_Capturing->GetClass():0);
-		
-		#if WINNATIVE
-			GdcPt2 Offset;
-			GViewI *v = _Capturing->Handle() ? _Capturing : FindReal(&Offset);
-			HWND h = v ? v->Handle() : NULL;
-			if (h)
-				SetCapture(h);
-			else
-				LgiAssert(0);
-
-		#elif defined(LGI_SDL)
-			#if SDL_VERSION_ATLEAST(2, 0, 4)
-			SDL_CaptureMouse(SDL_TRUE);
-			#else
-			LgiApp->CaptureMouse(true);
+		if (_Capturing == Wnd)
+		{
+			#if DEBUG_CAPTURE
+			LgiTrace("%s:%i - %s already has capture\n", _FL, _Capturing?_Capturing->GetClass():0);
 			#endif
-		#endif
-	}
-	else
-	{
-		_Capturing = NULL;
-		// LgiTrace("%s:%i _Capturing=%p\n", _FL, _Capturing);
+		}
+		else
+		{
+			#if DEBUG_CAPTURE
+			LgiTrace("%s:%i - _Capturing=%s -> %s\n", _FL, _Capturing?_Capturing->GetClass():0, Wnd?Wnd->GetClass():0);
+			#endif
+			_Capturing = Wnd;
+			
+			#if WINNATIVE
+				GdcPt2 Offset;
+				GViewI *v = _Capturing->Handle() ? _Capturing : FindReal(&Offset);
+				HWND h = v ? v->Handle() : NULL;
+				if (h)
+					SetCapture(h);
+				else
+					LgiAssert(0);
 
+			#elif defined(LGI_SDL)
+				#if SDL_VERSION_ATLEAST(2, 0, 4)
+				SDL_CaptureMouse(SDL_TRUE);
+				#else
+				LgiApp->CaptureMouse(true);
+				#endif
+			#endif
+		}
+	}
+	else if (_Capturing)
+	{
+		#if DEBUG_CAPTURE
+		LgiStackTrace("%s:%i - _Capturing=%s -> NULL\n", _FL, _Capturing?_Capturing->GetClass():0);
+		#endif
+		_Capturing = NULL;
+		
 		#if WINNATIVE
 			ReleaseCapture();
 		#elif defined(LGI_SDL)
@@ -954,16 +923,22 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 
 bool GView::IsCapturing()
 {
+	ThreadCheck();
+	
 	return _Capturing == this;
 }
 
 bool GView::Capture(bool c)
 {
+	ThreadCheck();
+	
 	return HandleCapture(this, c);
 }
 
 bool GView::Enabled()
 {
+	ThreadCheck();
+
 	#if WINNATIVE
 	if (_View)
 		return IsWindowEnabled(_View);
@@ -974,6 +949,8 @@ bool GView::Enabled()
 
 void GView::Enabled(bool i)
 {
+	ThreadCheck();
+
 	if (!i) SetFlag(GViewFlags, GWF_DISABLED);
 	else ClearFlag(GViewFlags, GWF_DISABLED);
 
@@ -1000,6 +977,8 @@ void GView::Enabled(bool i)
 
 bool GView::Visible()
 {
+	ThreadCheck();
+
 	#if WINNATIVE
 
 	if (_View)
@@ -1019,43 +998,54 @@ bool GView::Visible()
 
 void GView::Visible(bool v)
 {
+	ThreadCheck();
+	
 	if (v) SetFlag(GViewFlags, GWF_VISIBLE);
 	else ClearFlag(GViewFlags, GWF_VISIBLE);
 
 	if (_View)
 	{
 		#if WINNATIVE
-		ShowWindow(_View, (v) ? SW_SHOWNORMAL : SW_HIDE);
+
+			ShowWindow(_View, (v) ? SW_SHOWNORMAL : SW_HIDE);
+
 		#elif defined(BEOS)
-		if (v)
-			_View->Show();
-		else
-			_View->Hide();
-		// printf("\t\t%s::Vis(%i)\n", GetClass(), v);
+
+			if (v)
+				_View->Show();
+			else
+				_View->Hide();
+
 		#elif defined __GTK_H__
-		ThreadCheck();
-		if (v)
-			Gtk::gtk_widget_show(_View);
-		else
-			Gtk::gtk_widget_hide(_View);
+
+			ThreadCheck();
+			if (v)
+				Gtk::gtk_widget_show(_View);
+			else
+				Gtk::gtk_widget_hide(_View);
 
 		#elif defined MAC && !defined COCOA && !defined(LGI_SDL)
 		
-		OSErr e = HIViewSetVisible(_View, v);
-		if (e) printf("%s:%i - HIViewSetVisible(%p,%i) failed with %i (class=%s)\n",
-						_FL, _View, v, e, GetClass());
+			Boolean is = HIViewIsVisible(_View);
+			if (v != is)
+			{
+				OSErr e = HIViewSetVisible(_View, v);
+				if (e) printf("%s:%i - HIViewSetVisible(%p,%i) failed with %i (class=%s)\n",
+								_FL, _View, v, e, GetClass());
+			}
 		
 		#endif
 	}
 	else
 	{
 		Invalidate();
-		// printf("\t\t%s::Vis(%i) virtual\n", GetClass(), v);
 	}
 }
 
 bool GView::Focus()
 {
+	ThreadCheck();
+
 	bool Has = false;
 	GWindow *w = GetWindow();
    
@@ -1098,6 +1088,8 @@ bool GView::Focus()
 
 void GView::Focus(bool i)
 {
+	ThreadCheck();
+
 	if (i)
 		SetFlag(WndFlags, GWF_FOCUS);
 	else
@@ -1183,6 +1175,8 @@ extern pascal OSStatus LgiViewDndHandler(EventHandlerCallRef inHandlerCallRef, E
 
 bool GView::DropTarget(bool t)
 {
+	ThreadCheck();
+
 	bool Status = false;
 
 	if (t) SetFlag(GViewFlags, GWF_DROP_TARGET);
@@ -1291,6 +1285,8 @@ bool GView::DropTarget(bool t)
 
 bool GView::Sunken()
 {
+	ThreadCheck();
+
 	#if WINNATIVE
 	return TestFlag(d->WndExStyle, WS_EX_CLIENTEDGE);
 	#else
@@ -1300,6 +1296,8 @@ bool GView::Sunken()
 
 void GView::Sunken(bool i)
 {
+	ThreadCheck();
+
 	#if WINNATIVE
 	if (i) SetFlag(d->WndExStyle, WS_EX_CLIENTEDGE);
 	else ClearFlag(d->WndExStyle, WS_EX_CLIENTEDGE);
@@ -1318,6 +1316,8 @@ void GView::Sunken(bool i)
 
 bool GView::Flat()
 {
+	ThreadCheck();
+
 	#if WINNATIVE
 	return	!TestFlag(d->WndExStyle, WS_EX_CLIENTEDGE) &&
 			!TestFlag(d->WndExStyle, WS_EX_WINDOWEDGE);
@@ -1329,6 +1329,8 @@ bool GView::Flat()
 
 void GView::Flat(bool i)
 {
+	ThreadCheck();
+	
 	#if WINNATIVE
 	ClearFlag(d->WndExStyle, (WS_EX_CLIENTEDGE|WS_EX_WINDOWEDGE));
 	#else
@@ -1338,6 +1340,8 @@ void GView::Flat(bool i)
 
 bool GView::Raised()
 {
+	ThreadCheck();
+	
 	#if WINNATIVE
 	return TestFlag(d->WndExStyle, WS_EX_WINDOWEDGE);
 	#else
@@ -1347,6 +1351,8 @@ bool GView::Raised()
 
 void GView::Raised(bool i)
 {
+	ThreadCheck();
+
 	#if WINNATIVE
 	if (i) SetFlag(d->WndExStyle, WS_EX_WINDOWEDGE);
 	else ClearFlag(d->WndExStyle, WS_EX_WINDOWEDGE);
@@ -1363,11 +1369,15 @@ void GView::Raised(bool i)
 
 int GView::GetId()
 {
+	ThreadCheck();
+
 	return d->CtrlId;
 }
 
 void GView::SetId(int i)
 {
+	ThreadCheck();
+
 	d->CtrlId = i;
 
 	#if WINNATIVE
@@ -1380,6 +1390,8 @@ void GView::SetId(int i)
 
 bool GView::GetTabStop()
 {
+	ThreadCheck();
+
 	#if WINNATIVE
 	return TestFlag(d->WndStyle, WS_TABSTOP);
 	#else
@@ -1389,6 +1401,8 @@ bool GView::GetTabStop()
 
 void GView::SetTabStop(bool b)
 {
+	ThreadCheck();
+
 	#if WINNATIVE
 	if (b)
 		SetFlag(d->WndStyle, WS_TABSTOP);
@@ -1412,6 +1426,8 @@ void GView::SetTabStop(bool b)
 
 int64 GView::GetCtrlValue(int Id)
 {
+	ThreadCheck();
+
 	GViewI *w = FindControl(Id);
 	if (!w)
 		printf("%s:%i - Ctrl %i not found.\n", _FL, Id);
@@ -1420,6 +1436,8 @@ int64 GView::GetCtrlValue(int Id)
 
 void GView::SetCtrlValue(int Id, int64 i)
 {
+	ThreadCheck();
+
 	GViewI *w = FindControl(Id);
 	if (!w)
 		printf("%s:%i - Ctrl %i not found.\n", _FL, Id);
@@ -1429,6 +1447,8 @@ void GView::SetCtrlValue(int Id, int64 i)
 
 char *GView::GetCtrlName(int Id)
 {
+	ThreadCheck();
+
 	GViewI *w = FindControl(Id);
 	if (!w)
 		printf("%s:%i - Ctrl %i not found.\n", _FL, Id);
@@ -1437,6 +1457,8 @@ char *GView::GetCtrlName(int Id)
 
 void GView::SetCtrlName(int Id, const char *s)
 {
+	ThreadCheck();
+	
 	GViewI *w = FindControl(Id);
 	if (!w)
 		printf("%s:%i - Ctrl %i not found.\n", _FL, Id);
@@ -1446,6 +1468,8 @@ void GView::SetCtrlName(int Id, const char *s)
 
 bool GView::GetCtrlEnabled(int Id)
 {
+	ThreadCheck();
+
 	GViewI *w = FindControl(Id);
 	if (!w)
 		printf("%s:%i - Ctrl %i not found.\n", _FL, Id);
@@ -1454,6 +1478,8 @@ bool GView::GetCtrlEnabled(int Id)
 
 void GView::SetCtrlEnabled(int Id, bool Enabled)
 {
+	ThreadCheck();
+
 	GViewI *w = FindControl(Id);
 	if (!w)
 		printf("%s:%i - Ctrl %i not found.\n", _FL, Id);
@@ -1463,6 +1489,8 @@ void GView::SetCtrlEnabled(int Id, bool Enabled)
 
 bool GView::GetCtrlVisible(int Id)
 {
+	ThreadCheck();
+
 	GViewI *w = FindControl(Id);
 	if (!w)
 		printf("%s:%i - Ctrl %i not found.\n", _FL, Id);
@@ -1471,6 +1499,8 @@ bool GView::GetCtrlVisible(int Id)
 
 void GView::SetCtrlVisible(int Id, bool v)
 {
+	ThreadCheck();
+
 	GViewI *w = FindControl(Id);
 	if (!w)
 		printf("%s:%i - Ctrl %i not found.\n", _FL, Id);
@@ -2003,9 +2033,9 @@ static void GFactoryInitFactories()
 GViewFactory::GViewFactory()
 {
 	#if defined(WIN32)
-	char Name[256];
-	sprintf_s(Name, sizeof(Name), "LgiFactoryEvent.%i", GetCurrentProcessId());
-	HANDLE h = CreateEvent(NULL, false, false, Name);
+	char16 Name[64];
+	swprintf_s(Name, CountOf(Name), L"LgiFactoryEvent.%i", GetCurrentProcessId());
+	HANDLE h = CreateEventW(NULL, false, false, Name);
 	DWORD err = GetLastError();
 	if (err != ERROR_ALREADY_EXISTS)
 	{

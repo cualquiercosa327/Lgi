@@ -568,8 +568,8 @@ static void SetBeosCursor(LgiCursor c)
 {
 }
 
-#define DEBUG_MOUSE_CLICK	0
-#define DEBUG_MOUSE_MOVE	0
+#define DEBUG_MOUSE_CLICK	1
+#define DEBUG_MOUSE_MOVE	1
 
 bool GView::_Mouse(GMouse &m, bool Move)
 {
@@ -578,8 +578,9 @@ bool GView::_Mouse(GMouse &m, bool Move)
 	#if DEBUG_MOUSE_CLICK
 	if (!Move)
 	{
-		m.Trace("MouseDown");
-		printf("\tCap=%p\n", _Capturing);
+		GString s;
+		s.Printf("%s.Click Capture=%s", GetClass(), _Capturing?_Capturing->GetClass():"(none)");
+		m.Trace(s);
 	}
 	#endif
 	if (_Capturing)
@@ -603,13 +604,13 @@ bool GView::_Mouse(GMouse &m, bool Move)
 			{
 				m.Target->OnMouseClick(m);
 				#if DEBUG_MOUSE_CLICK
-				printf("\tCap HandleViewMouse=0\n");
+				LgiTrace("\tCap HandleViewMouse=0\n");
 				#endif
 			}
 			else
 			{
 				#if DEBUG_MOUSE_CLICK
-				printf("\tCap HandleViewMouse=1\n");
+				LgiTrace("\tCap HandleViewMouse=1\n");
 				#endif
 			}
 		}
@@ -625,7 +626,7 @@ bool GView::_Mouse(GMouse &m, bool Move)
 
 			_Over = this;
 			#if DEBUG_MOUSE_CLICK
-			if (!Move) printf("\tCap Over changed to %s\n", _Over?_Over->GetClass():0);
+			if (!Move) LgiTrace("\tCap Over changed to %s\n", _Over?_Over->GetClass():0);
 			#endif
 
 			if (_Over)
@@ -651,13 +652,13 @@ bool GView::_Mouse(GMouse &m, bool Move)
 				{
 					Target->OnMouseClick(m);
 					#if DEBUG_MOUSE_CLICK
-					printf("\tClick HandleViewMouse=0 %s\n", Target->GetClass());
+					LgiTrace("\tClick HandleViewMouse=0 %s\n", Target->GetClass());
 					#endif
 				}
 				else
 				{
 					#if DEBUG_MOUSE_CLICK
-					printf("\tClick HandleViewMouse=1 %s\n", Target->GetClass());
+					LgiTrace("\tClick HandleViewMouse=1 %s\n", Target->GetClass());
 					#endif
 				}
 			}
@@ -665,8 +666,8 @@ bool GView::_Mouse(GMouse &m, bool Move)
 		else
 		{
 			#if DEBUG_MOUSE_CLICK
-			if (!Move) printf("\tClick no client %s, m=%i,%i cli=%s\n",
-				Target->GetClass(), m.x, m.y, Client.GetStr());
+			if (!Move)
+				LgiTrace("\tClick no client %s, m=%i,%i cli=%s\n", Target->GetClass(), m.x, m.y, Client.GetStr());
 			#endif
 			return false;
 		}
