@@ -733,9 +733,6 @@ void GListItem::OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GItemColumn *c)
 		else
 		{
 			GColour Background = Ctx.Back;
-			GCss::ColorDef ForeFill;
-			if (GetCss())
-				ForeFill = GetCss()->Color();
 
 			if (Parent->GetMode() == GListDetails &&
 				c->Mark() &&
@@ -757,7 +754,7 @@ void GListItem::OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GItemColumn *c)
 				{
 					Ds->GetFont()->TabSize(0);
 					Ds->GetFont()->Transparent(false);
-					Ds->GetFont()->Colour(ForeFill.Type == GCss::ColorRgb ? GColour(ForeFill.Rgb32, 32) : Ctx.Fore, Background);
+					Ds->GetFont()->Colour(Ctx.Fore, Background);
 					Ds->Draw(pDC, Ctx.x1+1, Ctx.y1+1, &ng);
 				}
 				else
@@ -803,15 +800,18 @@ void GListItem::OnPaint(GItem::ItemPaintCtx &Ctx)
 	int i = 0;
 	int x = Ctx.x1;
 
-	if (!Select() && GetCss())
+	if (GetCss())
 	{
 		GCss::ColorDef Fill = GetCss()->Color();
 		if (Fill.Type == GCss::ColorRgb)
 			Ctx.Fore.Set(Fill.Rgb32, 32);
 		
-		Fill = GetCss()->BackgroundColor();
-		if (Fill.Type == GCss::ColorRgb)
-			Ctx.Back.Set(Fill.Rgb32, 32);
+		if (!Select())
+		{
+			Fill = GetCss()->BackgroundColor();
+			if (Fill.Type == GCss::ColorRgb)
+				Ctx.Back.Set(Fill.Rgb32, 32);
+		}
 	}
 
 	// Icon?
@@ -2771,24 +2771,6 @@ void GList::OnPaint(GSurface *pDC)
 						Ctx.Back.Set(Back, 24);
 					}
 				}
-
-				if (i->GetCss())
-				{
-					Fill = i->GetCss()->Color();
-					if (Fill.Type == GCss::ColorRgb)
-					{
-						Ctx.Fore.Set(Fill.Rgb32, 32);
-						LastSelected = -1;
-					}
-					
-					Fill = i->GetCss()->BackgroundColor();
-					if (Fill.Type == GCss::ColorRgb)
-					{
-						Ctx.Fore.Set(Fill.Rgb32, 32);
-						LastSelected = -1;
-					}
-				}
-
 
 				// tell the item what colour to use
 				#if DOUBLE_BUFFER_PAINT

@@ -1336,7 +1336,7 @@ case IDomCall:
 
 	GArray<GVariant*> Arg;
 	Arg.Length(ArgCount);
-	for (unsigned i=0; i<ArgCount; i++)
+	for (int i=0; i<ArgCount; i++)
 	{
 		Arg[i] = Resolve();
 	}

@@ -327,11 +327,36 @@ public:
 				Str->Len = NewLen;
 				Str->Str[NewLen] = 0;
 			}
-			else LgiAssert(0);
-			return Str->Len;
+			else
+			{
+				RefStr *n = (RefStr*)malloc(sizeof(RefStr) + NewLen);
+				if (n)
+				{
+					n->Len = NewLen;
+					n->Refs = 1;
+					memcpy(n->Str, Str->Str, Str->Len);
+					n->Str[Str->Len] = 0; // NULL terminate...
+					
+					Empty(); // Deref the old string...
+					
+					Str = n;
+				}
+				else return 0;
+			}
+		}
+		else
+		{
+			Str = (RefStr*)malloc(sizeof(RefStr) + NewLen);
+			if (Str)
+			{
+				Str->Len = NewLen;
+				Str->Refs = 1;
+				Str->Str[0] = 0; // NULL terminate...
+			}
+			else return 0;
 		}
 		
-		return 0;
+		return Str->Len;
 	}
 
 	/// Splits the string into parts using a separator

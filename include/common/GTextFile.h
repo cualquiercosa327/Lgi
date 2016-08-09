@@ -147,7 +147,7 @@ public:
 					}
 				}
 				
-				size_t bytes = start - buf;
+				ptrdiff_t bytes = start - buf;
 				if (bytes > 0 && bytes <= Rd)
 				{
 					// Remove byte order mark from the buffer

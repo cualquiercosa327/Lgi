@@ -18,7 +18,8 @@ static const char *MimeBase64			= "base64";
 
 const char *GMime::DefaultCharset =		"text/plain";
 
-int CastInt(NativeInt in)
+template<typename T>
+int CastInt(T in)
 {
 	int out = (int)in;
 	LgiAssert(out == in);
@@ -82,16 +83,95 @@ public:
 	}
 };
 
+class GMimeTextEncode : public GCoderStream
+{
+	// This code needs to make sure it writes an end-of-line at
+	// the end, otherwise a following MIME boundary could be missed.
+	bool LastEol;
+	
+public:
+	GMimeTextEncode(GStreamI *o) : GCoderStream(o)
+	{
+		LastEol = false;
+	}
+	
+	~GMimeTextEncode()
+	{
+		if (!LastEol)
+		{
+			int w = Out->Write(MimeEol, 2);
+			LgiAssert(w == 2);
+		}
+	}
+
+	int Write(const void *p, int size, int f = 0)
+	{
+		// Make sure any new lines are \r\n
+		char *s = (char*)p, *e = s + size;
+		int wr = 0;
+		
+		while (s < e)
+		{
+			char *c = s;
+			while (c < e && *c != '\r' && *c != '\n')
+				c++;
+			
+			if (c > s)
+			{
+				int bytes = c - s;
+				int w = Out->Write(s, bytes);
+				if (w != bytes)
+					return wr;
+				wr += w;
+				LastEol = false;
+			}
+			
+			while (c < e && (*c == '\r' || *c == '\n'))
+			{
+				if (*c == '\n')
+				{
+					int w = Out->Write(MimeEol, 2);
+					if (w != 2)
+						return wr;
+					LastEol = true;
+				}
+				wr++;
+				c++;
+			}
+
+			s = c;
+		}
+		
+		return wr;
+	}
+};
+
 class GMimeQuotedPrintableEncode : public GCoderStream
 {
+	// 'd' is our current position in 'Buf'
 	char *d;
-	char Buf[256];
+	
+	// A buffer for a line of quoted printable text
+	char Buf[128];
 
 public:
 	GMimeQuotedPrintableEncode(GStreamI *o) : GCoderStream(o)
 	{
 		Buf[0] = 0;
 		d = Buf;
+	}
+	
+	~GMimeQuotedPrintableEncode()
+	{
+		if (d > Buf)
+		{
+			// Write partial line
+			*d++ = '\r';
+			*d++ = '\n';
+
+			ptrdiff_t Len = d - Buf;
+			Out->Write(Buf, CastInt(Len));
+		}
 	}
 
 	int Write(const void *p, int size, int f = 0)
@@ -105,9 +185,13 @@ public:
 				*d++ = '\r';
 				*d++ = '\n';
 
-				size_t Len = d - Buf;
-				if (Out->Write(Buf, CastInt(Len)) < (int64)Len ||
-					!*s)
+				ptrdiff_t Len = d - Buf;
+				if (Out->Write(Buf, CastInt(Len)) < Len)
+				{
+					LgiAssert(!"write error");
+					break;
+				}
+				if (!*s)
 				{
 					break;
 				}
@@ -119,8 +203,13 @@ public:
 					 *s == '.' ||
 					 *s == '=')
 			{
-				sprintf_s(d, sizeof(Buf)-(d-Buf), "=%2.2X", (uchar)*s);
-				d += 3;
+				int Ch = sprintf_s(d, sizeof(Buf)-(d-Buf), "=%2.2X", (uchar)*s);
+				if (Ch < 0)
+				{
+					LgiAssert(!"printf error");
+					break;
+				}
+				d += Ch;
 				s++;
 			}
 			else if (*s != '\r')
@@ -129,6 +218,7 @@ public:
 			}
 			else
 			{
+				// Consume any '\r' without outputting them
 				s++;
 			}
 
@@ -139,9 +229,10 @@ public:
 				*d++ = '\r';
 				*d++ = '\n';
 
-				size_t Len = d-Buf;
-				if (Out->Write(Buf, CastInt(Len)) < (int64)Len)
+				ptrdiff_t Len = d-Buf;
+				if (Out->Write(Buf, CastInt(Len)) < Len)
 				{
+					LgiAssert(!"write error");
 					break;
 				}
 
@@ -222,6 +313,9 @@ public:
 	}
 };
 
+#define BASE64_LINE_SZ			76
+#define BASE64_READ_SZ			(BASE64_LINE_SZ*3/4)
+
 class GMimeBase64Encode : public GCoderStream
 {
 	GMemQueue Buf;
@@ -236,7 +330,7 @@ public:
 		int64 Len = Buf.GetSize();
 		LgiAssert(Len < sizeof(b));
 		int r = Buf.Read(b, CastInt(Len));
-		if (r)
+		if (r > 0)
 		{
 			char t[256];
 			int w = ConvertBinaryToBase64(t, sizeof(t), b, r);
@@ -249,16 +343,20 @@ public:
 	{
 		Buf.Write((uchar*)p, size);
 
-		while (Buf.GetSize() >= 72)
+		while (Buf.GetSize() >= BASE64_READ_SZ)
 		{
 			uchar b[100];
-			int r = Buf.Read(b, 72);
+			int r = Buf.Read(b, BASE64_READ_SZ);
 			if (r)
 			{
 				char t[256];
 				int w = ConvertBinaryToBase64(t, sizeof(t), b, r);
-				Out->Write(t, w);
-				Out->Write(MimeEol, 2);
+				if (w > 0)
+				{
+					Out->Write(t, w);
+					Out->Write(MimeEol, 2);
+				}
+				else LgiAssert(0);
 			}
 			else return 0;
 		}
@@ -266,6 +364,7 @@ public:
 		return size;
 	}
 };
+
 
 class GMimeBase64Decode : public GCoderStream
 {
@@ -423,6 +522,14 @@ char *GMime::GetFileName()
 			}
 		}
 	}
+	return n;
+}
+
+GMime *GMime::NewChild()
+{
+	GMime *n = new GMime(GetTmpPath());
+	if (n)
+		Insert(n);
 	return n;
 }
 
@@ -1091,6 +1198,7 @@ int GMime::GMimeText::GMimeEncode::Push(GStreamI *Dest, GStreamEnd *End)
 	if (Mime)
 	{
 		char Buf[1024];
+		int Ch;
 
 		// Check boundary
 		char *Boundary = Mime->GetBoundary();
@@ -1202,6 +1310,10 @@ int GMime::GMimeText::GMimeEncode::Push(GStreamI *Dest, GStreamEnd *End)
 				Encoder = new GMimeBase64Encode(Dest);
 			}
 		}
+		if (!Encoder)
+		{
+			Encoder = new GMimeTextEncode(Dest);
+		}
 
 		if (Mime->DataStore)
 		{
@@ -1215,14 +1327,7 @@ int GMime::GMimeText::GMimeEncode::Push(GStreamI *Dest, GStreamEnd *End)
 					int r = Mime->DataStore->Read(Buf, m);
 					if (r > 0)
 					{
-						if (Encoder)
-						{
-							Encoder->Write(Buf, r);
-						}
-						else
-						{
-							Dest->Write(Buf, r);
-						}
+						Encoder->Write(Buf, r);
 						Status = true;
 					}
 					else break;
@@ -1242,8 +1347,8 @@ int GMime::GMimeText::GMimeEncode::Push(GStreamI *Dest, GStreamEnd *End)
 		{
 			for (unsigned i=0; i<Mime->Children.Length(); i++)
 			{
-				sprintf_s(Buf, sizeof(Buf), "\r\n\r\n--%s\r\n", Boundary);
-				Dest->Write(Buf, CastInt(strlen(Buf)));
+				Ch = sprintf_s(Buf, sizeof(Buf), "--%s\r\n", Boundary);
+				Dest->Write(Buf, Ch);
 
 				if (!Mime->Children[i]->Text.Encode.Push(Dest, End))
 				{
@@ -1253,8 +1358,8 @@ int GMime::GMimeText::GMimeEncode::Push(GStreamI *Dest, GStreamEnd *End)
 				Status = 1;
 			}
 
-			sprintf_s(Buf, sizeof(Buf), "\r\n\r\n--%s--\r\n", Boundary);
-			Dest->Write(Buf, CastInt(strlen(Buf)));
+			Ch = sprintf_s(Buf, sizeof(Buf), "--%s--\r\n", Boundary);
+			Dest->Write(Buf, Ch);
 		}
 
 		// Clean up

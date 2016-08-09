@@ -5,6 +5,8 @@
 #include "GStream.h"
 #include "INetTools.h"
 
+extern void CreateMimeBoundary(char *Buf, int BufLen);
+
 class GMime;
 
 class GMimeAction
@@ -72,6 +74,7 @@ public:
 	void Remove();
 	int Length() { return Children.Length(); }
 	GMime *operator[](uint32 i);
+	GMime *NewChild();
 	void DeleteChildren() { Children.DeleteObjects(); }
 
 	void Empty();

@@ -30,6 +30,16 @@ GCheckBox::GCheckBox(int id, int x, int y, int cx, int cy, const char *name, int
 	d->InitState = initstate;
 
 	Name(name);
+	
+	if (cx < 0 || cy < 0)
+	{
+		GDisplayString ds(SysFont, name);
+		if (cx < 0)
+			cx = 18 + ds.X();
+		if (cy < 0)
+			cy = ds.Y();
+	}
+	
 	GRect r(x, y, x+cx, y+cy);
 	SetPos(r);
 	SetId(id);

@@ -27,8 +27,11 @@ const char *sTextPlain = "text/plain";
 const char *sTextHtml = "text/html";
 const char *sApplicationInternetExplorer = "application/internet-explorer";
 const char sMultipartMixed[] = "multipart/mixed";
+const char sMultipartEncrypted[] = "multipart/encrypted";
+const char sMultipartSigned[] = "multipart/signed";
 const char sMultipartAlternative[] = "multipart/alternative";
 const char sMultipartRelated[] = "multipart/related";
+const char sAppOctetStream[] = "application/octet-stream";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 LogEntry::LogEntry(const char *t, int len, COLOUR col)
@@ -1326,16 +1329,11 @@ MailProtocol::MailProtocol()
 
 	Items = 0;
 	Transfer = 0;
-	ProgramName = 0;
-	DefaultDomain = 0;
-
-	ExtraOutgoingHeaders = 0;
 }
 
 MailProtocol::~MailProtocol()
 {
 	CharsetPrefs.DeleteArrays();
-	DeleteArray(ExtraOutgoingHeaders);
 }
 
 void MailProtocol::Log(const char *Str, GSocketI::SocketMsgType type)
@@ -1421,7 +1419,6 @@ bool MailProtocol::Write(const char *Buf, bool LogWrite)
 
 MailSmtp::MailSmtp()
 {
-	ProgramName = 0;
 }
 
 MailSmtp::~MailSmtp()
@@ -1944,7 +1941,7 @@ bool MailSmtp::Send(MailMessage *Msg, bool Mime)
 			// size until we encode it all, and I don't want it hanging around
 			// in memory at once, so we encode and send on the fly.
 			int Length =	1024 +
-							(Msg->GetBody() ? strlen(Msg->GetBody()) : 0);
+									(Msg->GetBody() ? strlen(Msg->GetBody()) : 0);
 			for (FileDescriptor *f=Msg->FileDesc.First(); f; f=Msg->FileDesc.Next())
 			{
 				Length += f->Sizeof() * 4 / 3;
@@ -3639,7 +3636,7 @@ bool MailMessage::EncodeHeaders(GStreamI &Out, MailProtocol *Protocol, bool Mime
 	if (Protocol && Protocol->ProgramName)
 	{
 		// X-Mailer:
-		Len = sprintf_s(Buffer, sizeof(Buffer), "X-Mailer: %s\r\n", Protocol->ProgramName);
+		Len = sprintf_s(Buffer, sizeof(Buffer), "X-Mailer: %s\r\n", Protocol->ProgramName.Get());
 		WriteOutput();
 	}
 
@@ -3823,7 +3820,11 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 		
 		if (MultiPart)
 		{
-			const char *Type = MultipartMixed ? sMultipartMixed : sMultipartAlternative;
+			const char *Type =	MultipartMixed
+								?
+								EncryptedMsg ? sMultipartEncrypted : sMultipartMixed
+								:
+								sMultipartAlternative;
 			Len = sprintf_s(Buffer, sizeof(Buffer), "Content-Type: %s;\r\n\tboundary=\"%s\"\r\n", Type, Separator);
 			Status &= Out.Write(Buffer, Len) > 0;
 		}

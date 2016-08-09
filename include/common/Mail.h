@@ -53,8 +53,11 @@ extern const char *sTextPlain;
 extern const char *sTextHtml;
 extern const char *sApplicationInternetExplorer;
 extern const char sMultipartMixed[];
+extern const char sMultipartEncrypted[];
+extern const char sMultipartSigned[];
 extern const char sMultipartAlternative[];
 extern const char sMultipartRelated[];
+extern const char sAppOctetStream[];
 
 // Classes
 class MailProtocol;
@@ -221,7 +224,8 @@ public:
 	char*						InternetHeader;
 	char						Priority;
 	int							MarkColour;
-	uint8						DispositionNotificationTo; // read receipt
+	uint8						DispositionNotificationTo : 1; // read receipt
+	uint8						EncryptedMsg : 1;
 	GAutoString					References;
 
 	// Protocol specific
@@ -288,9 +292,8 @@ public:
 	GString ErrMsgFmt; /// The format for the printf
 	GString ErrMsgParam; /// The arguments for the printf
 	
-	char *ProgramName;
-	char *DefaultDomain;
-	char *ExtraOutgoingHeaders;
+	GString ProgramName;
+	GString ExtraOutgoingHeaders;
 	List<char> CharsetPrefs;
 
 	// Object

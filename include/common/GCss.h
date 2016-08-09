@@ -386,6 +386,12 @@ public:
 			Rgb32 = rgb32;
 		}
 
+		ColorDef(const GColour &col)
+		{
+			Type = ColorRgb;
+			Rgb32 = col.c32();
+		}
+
 		bool IsValid() { return Type != ColorInherit; }
 		bool Parse(const char *&s);
 		ColorDef &operator =(const ColorDef &c)
