@@ -543,6 +543,7 @@ GFont.o : ./src/common/Gdc2/Font/GFont.cpp ./include/common/Lgi.h \
 	./include/common/GDisplayString.h \
 	./include/common/GdiLeak.h \
 	./include/common/GStringClass.h \
+	./include/common/GCss.h \
 	./include/common/GUtf8.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -1468,7 +1469,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ./include/common/GVariant.h : ./include/common/GDom.h \
 	./include/common/GDateTime.h \
 	./include/common/GContainers.h \
-	./include/common/GHashTable.h
+	./include/common/GHashTable.h \
+	./include/common/GString.h
 
 ../../../../../usr/include/glib-2.0/glib/gdataset.h : /usr/include/glib-2.0/glib/gquark.h
 
@@ -2165,7 +2167,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ./include/common/GVariant.h : ./include/common/GDom.h \
 	./include/common/GDateTime.h \
 	./include/common/GContainers.h \
-	./include/common/GHashTable.h
+	./include/common/GHashTable.h \
+	./include/common/GString.h
 
 ./include/common/GScrollBar.h : 
 

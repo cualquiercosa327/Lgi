@@ -12,6 +12,7 @@
 #include "LgiDefs.h"
 #include <stdarg.h>
 #include <stdlib.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <wchar.h>
 #ifdef WIN32
@@ -168,6 +169,7 @@ LgiFunc void LgiSleep(uint32 i);
 #define LGI_WideCharset				"utf-32"
 #endif
 #define LGI_PrintfInt64				"%Li"
+#define LGI_PrintfHex64				"%Lx"
 
 #ifndef SND_ASYNC
 #define SND_ASYNC					0x0001
