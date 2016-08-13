@@ -66,8 +66,9 @@ enum GNotifyType
 	GNotifyShowImagesChanged,
 
 	// GTableLayout
-	GNotifyTableLayout_LayoutChanged,
-	GNotifyTableLayout_Refresh,
+	GNotifyTableLayout_LayoutChanged,	// Sent by GTableLayout to notify it's layout changed
+	GNotifyTableLayout_Refresh,			// Sent by child views of GTableLayout to cause it to
+										// update the layout
 
 	// GZoomView
 	GNotifyViewport_Changed,

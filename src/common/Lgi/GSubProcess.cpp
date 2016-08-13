@@ -313,6 +313,36 @@ bool GSubProcess::SetEnvironment(const char *Var, const char *Value)
 	return true;
 }	
 
+bool GSubProcess::GetValue(const char *Var, GVariant &Value)
+{
+	switch (LgiStringToDomProp(Var))
+	{
+		case StreamReadable:
+		{
+			char Buf[32] = "";
+			DWORD lpBytesRead = 0;
+			BOOL b = PeekNamedPipe(	ChildOutput.Read,
+									Buf,
+									sizeof(Buf),
+									&lpBytesRead,
+									NULL,
+									NULL);
+			Value = b && lpBytesRead > 0;
+			break;
+		}
+		/*
+		case StreamWritable:
+		{
+			break;
+		}
+		*/
+		default:
+			return false;
+	}
+	
+	return true;
+}
+
 void GSubProcess::SetStdin(OsFile Hnd)
 {
 	ExternIn = Hnd;

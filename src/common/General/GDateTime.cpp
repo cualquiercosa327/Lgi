@@ -1685,7 +1685,7 @@ bool GDateTime::Decode(const char *In)
 
 bool GDateTime::GetVariant(const char *Name, GVariant &Dst, char *Array)
 {
-	GDomProperty p = GStringToProp(Name);
+	GDomProperty p = LgiStringToDomProp(Name);
 	switch (p)
 	{
 		case DateYear: // Type: Int32
@@ -1744,7 +1744,7 @@ bool GDateTime::GetVariant(const char *Name, GVariant &Dst, char *Array)
 
 bool GDateTime::SetVariant(const char *Name, GVariant &Value, char *Array)
 {
-	GDomProperty p = GStringToProp(Name);
+	GDomProperty p = LgiStringToDomProp(Name);
 	switch (p)
 	{
 		case DateYear:
@@ -1786,7 +1786,7 @@ bool GDateTime::SetVariant(const char *Name, GVariant &Value, char *Array)
 
 bool GDateTime::CallMethod(const char *Name, GVariant *ReturnValue, GArray<GVariant*> &Args)
 {
-	switch (GStringToProp(Name))
+	switch (LgiStringToDomProp(Name))
 	{
 		case DateSetNow:
 			SetNow();

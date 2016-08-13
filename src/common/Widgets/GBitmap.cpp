@@ -141,7 +141,7 @@ void GBitmap::SetDC(GSurface *pNewDC)
 				}
 			}
 			
-			SendNotify(GNotifyTableLayout_LayoutChanged);
+			SendNotify(GNotifyTableLayout_Refresh);
 		}
 	}
 }

@@ -482,7 +482,7 @@ bool SystemFunctions::New(GVariant *Ret, ArgumentArray &Args)
 		return Ret->SetBinary(Bytes, new char[Bytes], true);
 	}
 
-	GDomProperty Type = GStringToProp(sType);
+	GDomProperty Type = LgiStringToDomProp(sType);
 	switch (Type)
 	{	
 		case TypeList:
@@ -597,7 +597,7 @@ public:
 
 	bool GetVariant(const char *Var, GVariant &Value, char *Arr = 0)
 	{
-		GDomProperty p = GStringToProp(Var);
+		GDomProperty p = LgiStringToDomProp(Var);
 		switch (p)
 		{
 			case ObjName:

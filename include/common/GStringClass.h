@@ -195,7 +195,7 @@ public:
 		return true;
 	}
 
-	/// Equality operator
+	/// Equality operator (case sensitive)
 	bool operator ==(const GString &s)
 	{
 		const char *a = Get();
@@ -206,7 +206,7 @@ public:
 			return false;
 		return !strcmp(a, b);
 	}
-	
+
 	/// Assignment operator to copy one string to another
 	GString &operator =(const GString &s)
 	{
@@ -220,6 +220,17 @@ public:
 		return *this;
 	}
 
+	/// Equality with a C string (case sensitive)
+	bool operator ==(const char *b)
+	{
+		const char *a = Get();
+		if (!a && !b)
+			return true;
+		if (!a || !b)
+			return false;
+		return !strcmp(a, b);
+	}
+	
 	/// Assignment operators
 	GString &operator =(const char *s)
 	{

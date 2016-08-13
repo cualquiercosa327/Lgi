@@ -11,7 +11,7 @@
 
 bool GFile::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
-	GDomProperty p = GStringToProp(Name);
+	GDomProperty p = LgiStringToDomProp(Name);
 	switch (p)
 	{
 		case ObjType: // Type: String
@@ -35,7 +35,7 @@ bool GFile::GetVariant(const char *Name, GVariant &Value, char *Array)
 
 bool GFile::SetVariant(const char *Name, GVariant &Value, char *Array)
 {
-	GDomProperty p = GStringToProp(Name);
+	GDomProperty p = LgiStringToDomProp(Name);
 	switch (p)
 	{
 		case ObjLength:
@@ -53,7 +53,7 @@ bool GFile::SetVariant(const char *Name, GVariant &Value, char *Array)
 
 bool GFile::CallMethod(const char *Name, GVariant *Dst, GArray<GVariant*> &Arg)
 {
-	GDomProperty p = GStringToProp(Name);
+	GDomProperty p = LgiStringToDomProp(Name);
 	switch (p)
 	{
 		case ObjLength: // Type: ([NewLength])

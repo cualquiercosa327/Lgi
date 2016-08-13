@@ -172,7 +172,7 @@ public:
 	/// Gets an iterator interface to a list of sub-objects.
 	virtual GDataIt GetList(int id) { EmptyVirtual; }
 	/// Set the mime segments
-	virtual bool SetMime(GAutoPtr<GMime> m) { LgiAssert(!"Pretty sure you should be implementing this"); return false; }
+	virtual bool SetRfc822(GStreamI *Rfc822Msg) { LgiAssert(!"Pretty sure you should be implementing this"); return false; }
 };
 
 /// This class is an interface between the UI and the backend for things
@@ -211,6 +211,9 @@ public:
 	virtual GDataStoreI *GetStore() = 0;
 	/// \returns a stream to access the data stored at this node. The caller
 	/// is responsible to free the stream when finished with it.
+	/// For Type == MAGIC_ATTACHMENT: the decoded body of the MIME segment.
+	/// For Type == MAGIC_MAIL: is an RFC822 encoded version of the email.
+	/// For other objects the stream is not defined.
 	virtual GAutoStreamI GetStream(const char *file, int line) = 0;
 	/// Sets the stream, which is used during the next call to GDataI::Save, which
 	/// also deletes the object when it's used. The caller loses ownership of the

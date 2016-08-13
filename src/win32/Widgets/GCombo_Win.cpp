@@ -9,7 +9,7 @@
 #include "GVariant.h"
 #include "GCombo.h"
 
-#define DEBUG_COMBOBOX	362
+// #define DEBUG_COMBOBOX	1359
 
 GRect GCombo::Pad(8, 4, 24, 4);
 
@@ -94,28 +94,42 @@ void GCombo::Value(int64 i)
 {
 	#if defined(DEBUG_COMBOBOX)
 	if (DEBUG_COMBOBOX==GetId())
-		LgiTrace("%s:%i %p.%p SetValue("LGI_PrintfInt64")\n", _FL, this, _View, i);
+		LgiTrace("GCombo::Value("LGI_PrintfInt64") this=%p, hnd=%p strs=%i\n",
+			i, this, _View, d->Strs.Length());
 	#endif
 
+	d->Value = i;
+	
 	if (Handle())
 	{
+		if (d->Strs.Length() == 0 || i < 0)
+			i = 0;
+		if (i >= d->Strs.Length())
+			i = d->Strs.Length() - 1;
+
 		SendMessage(Handle(), CB_SETCURSEL, i, 0);
-	}
-	else if (i != d->Value)
-	{
-		// LgiTrace("GCombo::Value %i->%i\n", (int)d->Value, (int)i);
-		d->Value = i;
 	}
 }
 
 int64 GCombo::Value()
 {
 	if (Handle())
-		d->Value = SendMessage(Handle(), CB_GETCURSEL, 0, 0);
+	{
+		LRESULT r = SendMessage(Handle(), CB_GETCURSEL, 0, 0);
+		if (r != CB_ERR)
+		{
+			d->Value = r;
+			if (d->Strs.Length() == 0 || d->Value < 0)
+				d->Value = 0;
+			else if (d->Value >= d->Strs.Length())
+				d->Value = d->Strs.Length() - 1;
+		}
+	}
 
 	#if defined(DEBUG_COMBOBOX)
 	if (DEBUG_COMBOBOX==GetId())
-		LgiTrace("%s:%i %p.%p GetValue("LGI_PrintfInt64")\n", _FL, this, _View, d->Value);
+		LgiTrace("GCombo::Value()="LGI_PrintfInt64" this=%p, hnd=%p strs=%i\n",
+			d->Value, this, _View, d->Strs.Length());
 	#endif
 	
 	return d->Value;
@@ -127,11 +141,15 @@ bool GCombo::Name(const char *n)
 
 	#if defined(DEBUG_COMBOBOX)
 	if (DEBUG_COMBOBOX==GetId())
-		LgiTrace("%s:%i %p.%p SetName(%s) Idx=%i\n", _FL, this, _View, n, Idx);
+		LgiTrace("GCombo::Name(%s) this=%p, hnd=%p idx=%i strs=%i\n",
+			n, this, _View, Idx, d->Strs.Length());
 	#endif
 
 	if (Idx < 0)
+	{
+		LgiTrace("%s:%i - Can't find '%s' to set combo index.\n", _FL, n);
 		return false;
+	}
 
 	Value(Idx);
 	return true;
@@ -139,14 +157,26 @@ bool GCombo::Name(const char *n)
 
 char *GCombo::Name()
 {
-	if (d->Value >= 0 && d->Value < d->Strs.Length())
+	if (d->Value >= 0 &&
+		d->Value < d->Strs.Length())
 	{
 		char *s = d->Strs[d->Value];
-		LgiTrace("GCombo Name '%s'\n", s);
+
+		#if defined(DEBUG_COMBOBOX)
+		if (DEBUG_COMBOBOX==GetId())
+			LgiTrace("GCombo::Name()="LGI_PrintfInt64"=%s this=%p, hnd=%p strs=%i\n",
+				d->Value, s, this, _View, d->Strs.Length());
+		#endif
+
 		return s;
 	}
+
+	#if defined(DEBUG_COMBOBOX)
+	if (DEBUG_COMBOBOX==GetId())
+		LgiTrace("GCombo::Name() "LGI_PrintfInt64"=out of range this=%p, hnd=%p strs=%i\n",
+			d->Value, this, _View, d->Strs.Length());
+	#endif
 	
-	LgiTrace("GCombo Name out of range %i %i\n", (int)d->Value, d->Strs.Length());
 	return NULL;
 }
 
@@ -222,7 +252,7 @@ bool GCombo::Insert(const char *p, int Index)
 	if (!p)
 		return false;
 
-	if (_View)
+	if (_View && d->Init)
 	{
 		GAutoWString n(LgiNewUtf8To16(p));
 		if (!n)
@@ -239,15 +269,21 @@ bool GCombo::Insert(const char *p, int Index)
 	}
 
 	d->Strs.AddAt(Index, p);
+	#if defined(DEBUG_COMBOBOX)
+	if (DEBUG_COMBOBOX==GetId())
+		LgiTrace("GCombo::Insert(%s, %i) this=%p, hnd=%p strs=%i\n",
+			p, Index, this, _View, d->Strs.Length());
+	#endif
 
 	return true;
 }
 
 int GCombo::Length()
 {
-	if (_View)
+	if (_View && d->Init)
 		d->Len = SendMessage(_View, CB_GETCOUNT, 0, 0);
-	return d->Len;
+	
+	return d->Strs.Length();
 }
 
 char *GCombo::operator [](int i)

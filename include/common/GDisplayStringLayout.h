@@ -52,22 +52,25 @@ struct GDisplayStringLayout
 
 	// Pre-layout min/max calculation
 	void DoPreLayout(GFont *f, char *t, int32 &Min, int32 &Max)
-	{
-		int MyMin = 0;
-		int MyMax = 0;
-
+	{		
+		Min = 0;
+		Max = 0;
+		
 		if (t && f)
 		{
-			GDisplayString Sp(f, " ");
-			int X = 0;
-
+			char *LineStart = t;
 			char White[] = " \t\r\n";
-			for (char *s = t; *s; )
+			char *s = t;
+			while (*s)
 			{
 				while (*s && strchr(White, *s))
 				{
 					if (*s == '\n')
-						X = 0;
+					{
+						GDisplayString Line(f, LineStart, s - LineStart);
+						Max = max(Max, Line.X());
+						LineStart = s + 1;
+					}
 					s++;
 				}
 
@@ -83,16 +86,17 @@ struct GDisplayStringLayout
 				}
 
 				GDisplayString d(f, s, (int) (e - s));
-				MyMin = max(d.X(), MyMin);
-				X += d.X() + (*e == ' ' ? Sp.X() : 0);
-				MyMax = max(X, MyMax);
+				Min = max(d.X(), Min);
 
 				s = *e && strchr(White, *e) ? e + 1 : e;
 			}
+			
+			if (s > LineStart)
+			{
+				GDisplayString Line(f, LineStart, s - LineStart);
+				Max = max(Max, Line.X());
+			}
 		}
-
-		Min = max(Min, MyMin);
-		Max = max(Max, MyMax);
 	}	
 
 	// Create the lines from text

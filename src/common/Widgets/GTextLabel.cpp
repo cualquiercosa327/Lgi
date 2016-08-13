@@ -73,7 +73,7 @@ GText::~GText()
 
 bool GText::SetVariant(const char *Name, GVariant &Value, char *Array)
 {
-	GDomProperty p = GStringToProp(Name);
+	GDomProperty p = LgiStringToDomProp(Name);
 	if (p == ObjStyle)
 	{
 		const char *Style = Value.Str();

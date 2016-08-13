@@ -89,6 +89,9 @@ enum EmailFlags
 	MAIL_BAYES_HAM =				0x00010000,	// Bayesian classified originally as ham
 	MAIL_BAYES_SPAM =				0x00020000,	// Bayesian classified originally as spam
 	MAIL_NEW =	                    0x00040000, // Mail is new, cleared after the OnNew event happens
+	MAIL_STORED_FLAT =				0x00080000, // Message is signed and/or encrypted and needs
+												// to be stored in such a way as the RFC822 image
+												// is not damaged.
 };
 
 enum EmailAddressType
@@ -348,11 +351,13 @@ enum Store3Fields
 	FIELD_ERROR = 153,					// (char*) An error message
 	FIELD_TYPE = 154,					// (char*) The type of the object
 
-	FIELD_ATTACHMENTS_DATA = 155,		// Meta field for specifing attachment data contents
-	FIELD_ATTACHMENTS_NAME = 156,		// Meta field for specifing attachment file names
-	FIELD_MEMBER_OF_GROUP = 157,		// Meta field for specifing membership of a content group
+	FIELD_ATTACHMENTS_DATA = 155,		// Meta field for specifying attachment data contents
+	FIELD_ATTACHMENTS_NAME = 156,		// Meta field for specifying attachment file names
+	FIELD_MEMBER_OF_GROUP = 157,		// Meta field for specifying membership of a content group
 
-	FIELD_MAX = 158,
+	FIELD_TEMP_PATH,					// (char*) A temporary path to store files...
+
+	FIELD_MAX,
 };
 
 #endif

@@ -95,6 +95,9 @@ public:
 	const char *GetEnvironment(const char *Var);	
 	bool SetEnvironment(const char *Var, const char *Value);
 
+	// Dom (support StreamReadable/StreamWritable)
+	bool GetValue(const char *Var, GVariant &Value);
+
 	// Handles
 	void SetStdin(PipeHandle Hnd);
 	void SetStdout(PipeHandle Hnd);

@@ -1033,7 +1033,7 @@ case IDomGet:
 				CheckParam(Dom->Value.Lst);
 				char *sName = Name->Str();
 				CheckParam(sName);
-				GDomProperty p = GStringToProp(sName);
+				GDomProperty p = LgiStringToDomProp(sName);
 				if (p == ObjLength)
 					(*Dst) = (int)Dom->Value.Lst->Length();
 				break;
@@ -1043,7 +1043,7 @@ case IDomGet:
 				CheckParam(Dom->Value.Hash);
 				char *sName = Name->Str();
 				CheckParam(sName);
-				GDomProperty p = GStringToProp(sName);
+				GDomProperty p = LgiStringToDomProp(sName);
 				if (p == ObjLength)
 					(*Dst) = (int)Dom->Value.Hash->Length();
 				break;
@@ -1052,7 +1052,7 @@ case IDomGet:
 			{
 				char *sName = Name->Str();
 				CheckParam(sName);
-				GDomProperty p = GStringToProp(sName);
+				GDomProperty p = LgiStringToDomProp(sName);
 				if (p == ObjLength)
 					(*Dst) = Dom->Value.Binary.Length;
 				break;
@@ -1061,7 +1061,7 @@ case IDomGet:
 			{
 				char *sName = Name->Str();
 				CheckParam(sName);
-				GDomProperty p = GStringToProp(sName);
+				GDomProperty p = LgiStringToDomProp(sName);
 				switch (p)
 				{
 					case ObjLength:
@@ -1197,7 +1197,7 @@ case IDomSet:
 		}
 		case GV_STRING:
 		{
-			GDomProperty p = GStringToProp(sName);
+			GDomProperty p = LgiStringToDomProp(sName);
 			switch (p)
 			{
 				case ObjLength:
@@ -1379,7 +1379,7 @@ case IDomCall:
 		case GV_LIST:
 		{
 			CheckParam(Dom->Value.Lst);
-			GDomProperty p = GStringToProp(sName);
+			GDomProperty p = LgiStringToDomProp(sName);
 			switch (p)
 			{
 				case ObjLength:
@@ -1458,7 +1458,7 @@ case IDomCall:
 		case GV_HASHTABLE:
 		{
 			CheckParam(Dom->Value.Hash);
-			GDomProperty p = GStringToProp(sName);
+			GDomProperty p = LgiStringToDomProp(sName);
 			switch (p)
 			{
 				case ObjLength:
@@ -1533,7 +1533,7 @@ case IDomCall:
 		}
 		case GV_BINARY:
 		{
-			GDomProperty p = GStringToProp(sName);
+			GDomProperty p = LgiStringToDomProp(sName);
 			switch (p)
 			{
 				default:
@@ -1552,7 +1552,7 @@ case IDomCall:
 				break;
 			}
 
-			GDomProperty p = GStringToProp(sName);
+			GDomProperty p = LgiStringToDomProp(sName);
 			switch (p)
 			{
 				case ObjLength:
@@ -1758,7 +1758,7 @@ case IDomCall:
 				Type = t;
 			}
 			
-			GDomProperty p = GStringToProp(sName);
+			GDomProperty p = LgiStringToDomProp(sName);
 			if (p == ObjType)
 			{
 				*Dst = Type;

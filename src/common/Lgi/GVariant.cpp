@@ -1546,9 +1546,14 @@ ResolveDone:
 	return Object;
 }
 
-struct GDomPropMap : public GHashTbl<const char *, GDomProperty>
+struct GDomPropMap
 {
-	GDomPropMap() : GHashTbl<const char *, GDomProperty>(0, false, NULL, ObjNone)
+	GHashTbl<const char *, GDomProperty> ToProp;
+	GHashTbl<int, const char *> ToString;
+
+	GDomPropMap() :
+		ToProp(0, false, NULL, ObjNone),
+		ToString(0, true, ObjNone, NULL)
 	{
 		Define("Length", ObjLength);
 		Define("Type", ObjType);
@@ -1613,22 +1618,32 @@ struct GDomPropMap : public GHashTbl<const char *, GDomProperty>
 		Define("Modified", FileModified);
 		Define("Folder", FileFolder);
 		Define("Encoding", FileEncoding);
+		
+		Define("Readable", StreamReadable);
+		Define("Writable", StreamWritable);
 	}
 	
 	void Define(const char *s, GDomProperty p)
 	{
 		#if defined(_DEBUG)
-		GDomProperty e = Find(s);
+		GDomProperty e = ToProp.Find(s);
 		LgiAssert(e == ObjNone);
 		#endif
-		Add(s, p);
+
+		ToProp.Add(s, p);
+		ToString.Add(p, s);
 	} 
 	
 } DomPropMap;
 
-GDomProperty GStringToProp(const char *Str)
+GDomProperty LgiStringToDomProp(const char *Str)
 {
-	return DomPropMap.Find(Str);
+	return DomPropMap.ToProp.Find(Str);
+}
+
+const char *LgiDomPropToString(GDomProperty Prop)
+{
+	return DomPropMap.ToString.Find(Prop);
 }
 
 bool GDom::GetValue(const char *Var, GVariant &Value)
@@ -1952,7 +1967,7 @@ GCustomType::Method *GCustomType::DefineMethod(const char *Name, GArray<GString>
 
 bool GCustomType::CustomField::GetVariant(const char *Field, GVariant &Value, char *Array)
 {
-	GDomProperty p = GStringToProp(Field);
+	GDomProperty p = LgiStringToDomProp(Field);
 	switch (p)
 	{
 		case ObjName: // Type: String
@@ -2231,7 +2246,7 @@ bool GCustomType::Set(int Index, GVariant &In, uint8 *This, int ArrayIndex)
 
 bool GCustomType::GetVariant(const char *Field, GVariant &Value, char *Array)
 {
-	GDomProperty p = GStringToProp(Field);
+	GDomProperty p = LgiStringToDomProp(Field);
 	switch (p)
 	{
 		case ObjName: // Type: String

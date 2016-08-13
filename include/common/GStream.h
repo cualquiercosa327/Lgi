@@ -132,6 +132,7 @@ public:
 class LgiClass GCopyStreamer : public GStreamer
 {
 public:
+	GCopyStreamer(int BufSize = 4 << 10) : GStreamer(BufSize) {}
 	virtual int64 Copy(GStreamI *Source, GStreamI *Dest, GStreamEnd *End = 0);
 };
 

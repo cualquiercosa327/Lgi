@@ -1403,7 +1403,7 @@ void GTag::Set(const char *attr, const char *val)
 
 bool GTag::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
-	GDomProperty Fld = GStringToProp(Name);
+	GDomProperty Fld = LgiStringToDomProp(Name);
 	switch (Fld)
 	{
 		case ObjStyle: // Type: GCssStyle
@@ -1433,7 +1433,7 @@ bool GTag::GetVariant(const char *Name, GVariant &Value, char *Array)
 
 bool GTag::SetVariant(const char *Name, GVariant &Value, char *Array)
 {
-	GDomProperty Fld = GStringToProp(Name);
+	GDomProperty Fld = LgiStringToDomProp(Name);
 	switch (Fld)
 	{
 		case ObjStyle:

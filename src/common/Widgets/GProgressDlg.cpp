@@ -123,20 +123,38 @@ GProgressPane::GProgressPane()
 	if (AddView(t = new GTableLayout(IDC_TABLE)))
 	{
 		OnPosChange();
+
+		#define PAD 1
 		
 		int Row = 0;
 		GLayoutCell *c = t->GetCell(0, Row++, true, 2, 1);
+		#ifdef PAD
+		c->Padding(GCss::Len(GCss::LenPx, PAD));
+		#endif
 		c->Add(Desc = new GText(IDC_DESCRIPTION, 0, 0, -1, -1, "##"));
 
 		c = t->GetCell(0, Row);
+		#ifdef PAD
+		c->Padding(GCss::Len(GCss::LenPx, PAD));
+		#endif
 		c->Add(ValText = new GText(IDC_VALUE, 0, 0, -1, -1, "##"));
+
 		c = t->GetCell(1, Row++);
+		#ifdef PAD
+		c->Padding(GCss::Len(GCss::LenPx, PAD));
+		#endif
 		c->Add(Rate = new GText(IDC_RATE, 0, 0, -1, -1, "##"));
 
 		c = t->GetCell(0, Row++, true, 2, 1);
+		#ifdef PAD
+		c->Padding(GCss::Len(GCss::LenPx, PAD));
+		#endif
 		c->Add(Bar = new GProgress(IDC_PROGRESS, 0, 0, PANE_X - 14, 10, "Progress"));
 
 		c = t->GetCell(0, Row++, true, 2, 1);
+		#ifdef PAD
+		c->Padding(GCss::Len(GCss::LenPx, PAD));
+		#endif
 		c->TextAlign(GCss::Len(GCss::AlignCenter));
 		c->Add(But = new GButton(IDC_BUTTON, 0, 0, -1, -1, "Request Abort"));
 	}
@@ -230,7 +248,7 @@ void GProgressPane::Value(int64 v)
 		}
 	}
 	
-	if (Update && ValText)
+	if (ValText)
 		ValText->SendNotify(GNotifyTableLayout_Refresh);
 }
 

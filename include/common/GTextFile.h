@@ -44,7 +44,7 @@ public:
 
 	bool GetVariant(const char *Name, GVariant &Value, char *Array = NULL)
 	{
-		if (GStringToProp(Name) == FileEncoding)
+		if (LgiStringToDomProp(Name) == FileEncoding)
 		{
 			Value = (int)Type;
 			return true;

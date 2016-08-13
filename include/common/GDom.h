@@ -127,8 +127,13 @@ enum GDomProperty
 	FileModified,
 	FileFolder,
 	FileEncoding,
+	
+	// GStream
+	StreamReadable,
+	StreamWritable,
 };
 
-LgiFunc GDomProperty GStringToProp(const char *Str);
+LgiFunc GDomProperty LgiStringToDomProp(const char *Str);
+LgiFunc const char *LgiDomPropToString(GDomProperty Prop);
 
 #endif

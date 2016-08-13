@@ -33,7 +33,7 @@ enum CellFlag
 #include "GCss.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
-#define DEBUG_LAYOUT		50
+// #define DEBUG_LAYOUT		105
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
@@ -424,7 +424,7 @@ bool TableCell::IsSpanned()
 
 bool TableCell::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
-	GDomProperty Fld = GStringToProp(Name);
+	GDomProperty Fld = LgiStringToDomProp(Name);
 	switch (Fld)
 	{
 		case ContainerChildren: // Type: GView[]
@@ -492,7 +492,7 @@ bool TableCell::GetVariant(const char *Name, GVariant &Value, char *Array)
 
 bool TableCell::SetVariant(const char *Name, GVariant &Value, char *Array)
 {
-	GDomProperty Fld = GStringToProp(Name);
+	GDomProperty Fld = LgiStringToDomProp(Name);
 	switch (Fld)
 	{
 		case ContainerChildren: // Type: GView[]
@@ -1679,6 +1679,7 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 void GTableLayoutPrivate::LayoutPost(GRect &Client)
 {
 	int Px = 0, Py = 0, Cx, Cy;
+	GFont *Fnt = Ctrl->GetFont();
 
 	// Move cells into their final positions
 	for (Cy=0; Cy<Rows.Length(); Cy++)
@@ -1692,17 +1693,34 @@ void GTableLayoutPrivate::LayoutPost(GRect &Client)
 				if (c->Cell.x1 == Cx &&
 					c->Cell.y1 == Cy)
 				{
+					GCss::PositionType PosType = c->Position();
 					int y = CountRange<int>(MinRow, c->Cell.y1, c->Cell.y2) +
 							((c->Cell.Y() - 1) * BorderSpacing);
 
-					c->Pos.y2 = c->Pos.y1 + y - 1;					
-					c->Pos.Offset(Client.x1 + Px, Client.y1 + Py);
+					// Set the height of the cell
+					c->Pos.y2 = c->Pos.y1 + y - 1;
+					
+					if (PosType == GCss::PosAbsolute)
+					{
+						// Hmm this is a bit of a hack... we'll see
+						GCss::Len Left = c->Left();
+						GCss::Len Top = c->Top();
+						
+						int LeftPx = Left.IsValid() ? Left.ToPx(Client.X(), Fnt) : Px;
+						int TopPx = Top.IsValid() ? Top.ToPx(Client.Y(), Fnt) : Py;
+						
+						c->Pos.Offset(Client.x1 + LeftPx, Client.y1 + TopPx);
+					}
+					else
+					{
+						c->Pos.Offset(Client.x1 + Px, Client.y1 + Py);
+					}
 					c->PostLayout();
 
 					MaxY = max(MaxY, c->Pos.y2);
 				}
 
-				Px += c->Pos.X() + BorderSpacing;
+				Px = c->Pos.x2 + BorderSpacing;
 				Cx += c->Cell.X();
 			}
 			else
@@ -2021,6 +2039,7 @@ int GTableLayout::OnNotify(GViewI *c, int f)
 {
     if (f == GNotifyTableLayout_Refresh)
     {
+		d->PrevWidth = -1;
         OnPosChange();
         Invalidate();
         return 0;
