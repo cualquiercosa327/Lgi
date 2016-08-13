@@ -163,7 +163,7 @@ public:
 	GMemStream
 	(
 		/// The source memory block
-		void *Mem,
+		const void *Mem,
 		/// The length of the block
 		int64 Len,
 		/// Whether to copy the block or reference memory we don't own
