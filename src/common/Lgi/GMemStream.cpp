@@ -73,7 +73,7 @@ GMemStream::GMemStream(GStreamI *Src, int64 Start, int64 len)
 	}
 }
 
-GMemStream::GMemStream(void *mem, int64 len, bool copy)
+GMemStream::GMemStream(const void *mem, int64 len, bool copy)
 {
 	_Init();
 

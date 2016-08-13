@@ -319,6 +319,7 @@ bool GSubProcess::GetValue(const char *Var, GVariant &Value)
 	{
 		case StreamReadable:
 		{
+			#ifdef WINNATIVE
 			char Buf[32] = "";
 			DWORD lpBytesRead = 0;
 			BOOL b = PeekNamedPipe(	ChildOutput.Read,
@@ -329,6 +330,7 @@ bool GSubProcess::GetValue(const char *Var, GVariant &Value)
 									NULL);
 			Value = b && lpBytesRead > 0;
 			break;
+			#endif
 		}
 		/*
 		case StreamWritable:
