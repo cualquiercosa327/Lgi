@@ -9,7 +9,7 @@
 #include "GVariant.h"
 #include "GCombo.h"
 
-// #define DEBUG_COMBOBOX	1359
+#define DEBUG_COMBOBOX	1365
 
 GRect GCombo::Pad(8, 4, 24, 4);
 
@@ -268,12 +268,12 @@ bool GCombo::Insert(const char *p, int Index)
 		d->Len++;
 	}
 
-	d->Strs.AddAt(Index, p);
 	#if defined(DEBUG_COMBOBOX)
 	if (DEBUG_COMBOBOX==GetId())
 		LgiTrace("GCombo::Insert(%s, %i) this=%p, hnd=%p strs=%i\n",
 			p, Index, this, _View, d->Strs.Length());
 	#endif
+	d->Strs.AddAt(Index, p);
 
 	return true;
 }
@@ -288,22 +288,11 @@ int GCombo::Length()
 
 char *GCombo::operator [](int i)
 {
-	/*
-	if (_View)
-	{
-		LRESULT Len = SendMessage(_View, CB_GETLBTEXTLEN, 0, 0);
-		if (Len != CB_ERR &&
-			d->Buffer.Reset(new char[Len+1]))
-		{
-			LRESULT Ret = SendMessage(_View, CB_GETLBTEXT, i, (LPARAM)d->Buffer.Get());
-			if (Ret != CB_ERR)
-				return d->Buffer;
-		}
-		else return NULL;
-	}
-	*/
-
-	return d->Strs[i];
+	if (i >= 0 && i < d->Strs.Length())
+		return d->Strs[i];
+	
+	LgiAssert(!"Out of range combo string access.");
+	return NULL;
 }
 
 int GCombo::IndexOf(const char *str)
@@ -393,7 +382,7 @@ GMessage::Result GCombo::OnEvent(GMessage *Msg)
 				for (unsigned n=0; n<d->Strs.Length(); n++)
 				{
 					GAutoWString s(LgiNewUtf8To16(d->Strs[n]));
-					SendMessage(Handle(), CB_INSERTSTRING, n, (LPARAM)s.Get());
+					SendMessage(Handle(), CB_INSERTSTRING, n, (LPARAM) (s ? s.Get() : L"(NULL)"));
 				}
 
 				SetFont(SysFont);

@@ -746,7 +746,7 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 				GFont *f = Cbo->GetFont();
 				int min_x = -1, max_x = 0;
 				char *t;
-				for (int i=0; (t = (*Cbo)[i]); i++)
+				for (int i=0; i < Cbo->Length() && (t = (*Cbo)[i]); i++)
 				{
 					GDisplayString ds(f, t);
 					min_x = min_x < 0 ? ds.X() : min(min_x, ds.X());

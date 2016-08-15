@@ -10,6 +10,7 @@
 #define __DATE_TIME_H
 
 #include <time.h>
+#include "GStringClass.h"
 
 #define GDTF_DEFAULT				0
 
@@ -182,6 +183,8 @@ public:
 	/// Returns the day of the week as an index, 0=sun, 1=mon, 2=teus etc
 	int DayOfWeek();
 
+	/// Gets the data and time as a GString
+	GString Get();
 	/// Gets the date and time as a string
 	/// \sa GDateTime::GetFormat()
 	void Get(char *Str, int SLen);
@@ -189,10 +192,12 @@ public:
 	bool Get(uint64 &s);
 	/// Gets just the date as a string
 	/// \sa GDateTime::GetFormat()
-	void GetDate(char *Str, int SLen);
+	/// \returns The number of characters written to 'Str'
+	int GetDate(char *Str, int SLen);
 	/// Gets just the time as a string
 	/// \sa GDateTime::GetFormat()
-	void GetTime(char *Str, int SLen);
+	/// \returns The number of characters written to 'Str'
+	int GetTime(char *Str, int SLen);
 	
 	/// Returns the 64bit timestamp.
 	uint64 Ts();

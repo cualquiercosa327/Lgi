@@ -601,50 +601,59 @@ void GDateTime::SetNow()
 #define Convert24HrTo12Hr(h)			( (h) == 0 ? 12 : (h) > 12 ? (h) % 12 : (h) )
 #define Convert24HrToAmPm(h)		( (h) >= 12 ? "p" : "a" )
 
-void GDateTime::GetDate(char *Str, int SLen)
+int GDateTime::GetDate(char *Str, int SLen)
 {
-	if (!Str)
-		return;
+	int Ch = 0;
 
-	int c = 0;
-	switch (_Format & GDTF_DATE_MASK)
+	if (Str && SLen > 0)
 	{
-		case GDTF_MONTH_DAY_YEAR:
-			c += sprintf_s(Str+c, SLen-c, _Format&GDTF_MONTH_LEADINGZ?"%2.2i"  :"%i"  , _Month);
-			c += sprintf_s(Str+c, SLen-c, _Format&GDTF_DAY_LEADINGZ  ?"%c%2.2i":"%c%i", DefaultSeparator, _Day);
-			c += sprintf_s(Str+c, SLen-c, "%c%i", DefaultSeparator, _Year);
-			break;
-		default:
-		case GDTF_DAY_MONTH_YEAR:
-			c += sprintf_s(Str+c, SLen-c, _Format&GDTF_DAY_LEADINGZ  ?"%2.2i"  :"%i"  , _Day);
-			c += sprintf_s(Str+c, SLen-c, _Format&GDTF_MONTH_LEADINGZ?"%c%2.2i":"%c%i", DefaultSeparator, _Month);
-			c += sprintf_s(Str+c, SLen-c, "%c%i", DefaultSeparator, _Year);
-			break;
-		case GDTF_YEAR_MONTH_DAY:
-			c += sprintf_s(Str+c, SLen-c, "%i", _Year);
-			c += sprintf_s(Str+c, SLen-c, _Format&GDTF_MONTH_LEADINGZ?"%c%2.2i":"%c%i", DefaultSeparator, _Month);
-			c += sprintf_s(Str+c, SLen-c, _Format&GDTF_DAY_LEADINGZ  ?"%c%2.2i":"%c%i", DefaultSeparator, _Day);
-			break;
+		switch (_Format & GDTF_DATE_MASK)
+		{
+			case GDTF_MONTH_DAY_YEAR:
+				Ch += sprintf_s(Str+Ch, SLen-Ch, _Format&GDTF_MONTH_LEADINGZ?"%2.2i"  :"%i"  , _Month);
+				Ch += sprintf_s(Str+Ch, SLen-Ch, _Format&GDTF_DAY_LEADINGZ  ?"%c%2.2i":"%c%i", DefaultSeparator, _Day);
+				Ch += sprintf_s(Str+Ch, SLen-Ch, "%c%i", DefaultSeparator, _Year);
+				break;
+			default:
+			case GDTF_DAY_MONTH_YEAR:
+				Ch += sprintf_s(Str+Ch, SLen-Ch, _Format&GDTF_DAY_LEADINGZ  ?"%2.2i"  :"%i"  , _Day);
+				Ch += sprintf_s(Str+Ch, SLen-Ch, _Format&GDTF_MONTH_LEADINGZ?"%c%2.2i":"%c%i", DefaultSeparator, _Month);
+				Ch += sprintf_s(Str+Ch, SLen-Ch, "%c%i", DefaultSeparator, _Year);
+				break;
+			case GDTF_YEAR_MONTH_DAY:
+				Ch += sprintf_s(Str+Ch, SLen-Ch, "%i", _Year);
+				Ch += sprintf_s(Str+Ch, SLen-Ch, _Format&GDTF_MONTH_LEADINGZ?"%c%2.2i":"%c%i", DefaultSeparator, _Month);
+				Ch += sprintf_s(Str+Ch, SLen-Ch, _Format&GDTF_DAY_LEADINGZ  ?"%c%2.2i":"%c%i", DefaultSeparator, _Day);
+				break;
+		}
 	}
+	
+	return Ch;
 }
 
-void GDateTime::GetTime(char *Str, int SLen)
+int GDateTime::GetTime(char *Str, int SLen)
 {
-	if (Str)
+	int Ch = 0;
+
+	if (Str && SLen > 0)
 	{
 		switch (_Format & GDTF_TIME_MASK)
 		{
 			case GDTF_12HOUR:
 			default:
 			{
-				sprintf_s(Str, SLen, "%i:%2.2i:%2.2i%s", Convert24HrTo12Hr(_Hours), _Minutes, _Seconds, Convert24HrToAmPm(_Hours));
+				Ch += sprintf_s(Str, SLen, "%i:%2.2i:%2.2i%s", Convert24HrTo12Hr(_Hours), _Minutes, _Seconds, Convert24HrToAmPm(_Hours));
 				break;
 			}
 			case GDTF_24HOUR:
-				sprintf_s(Str, SLen, "%i:%2.2i:%2.2i", _Hours, _Minutes, _Seconds);
+			{
+				Ch += sprintf_s(Str, SLen, "%i:%2.2i:%2.2i", _Hours, _Minutes, _Seconds);
 				break;
+			}
 		}
 	}
+	
+	return Ch;
 }
 
 uint64 GDateTime::Ts()
@@ -778,6 +787,15 @@ bool GDateTime::Get(uint64 &s)
 	#endif
 
 	return Status;
+}
+
+GString GDateTime::Get()
+{
+	char buf[32];
+	int Ch = GetDate(buf, sizeof(buf));
+	buf[Ch++] = ' ';
+	Ch += GetTime(buf+Ch, sizeof(buf)-Ch);
+	return GString(buf, Ch);
 }
 
 void GDateTime::Get(char *Str, int SLen)
