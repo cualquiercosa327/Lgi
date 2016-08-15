@@ -97,6 +97,16 @@ public:
 	{
 		Length(0);
 	}	
+
+	/// Does a range check on a pointer...
+	/// \returns true if the pointer is pointing to a valid object
+	/// in this array.
+	bool PtrCheck(void *Ptr)
+	{
+		return	p != NULL &&
+				Ptr >= p &&
+				Ptr < &p[len];
+	}
 	
 	/// Returns the number of used entries
 	uint32 Length() const

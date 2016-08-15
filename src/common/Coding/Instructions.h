@@ -467,17 +467,17 @@ case ICallScript:
 	#ifdef VM_EXECUTE
 
 	// Set up stack for function call
+	int CurFrameSize = Frames.Last().CurrentFrameSize;
 	StackFrame &Sf = Frames.New();
 	Sf.CurrentFrameSize = Frame;
 	Sf.PrevFrameStart = Locals.Length() ? Scope[1] - &Locals[0] : 0;
-	Sf.ReturnValue = Resolve();
+	Sf.ReturnValue = *c.r++;
+	Sf.ReturnValue.Index -= CurFrameSize;
 	uint16 Args = *c.u16++;
 
 	// Increase the local stack size
-	int LocalsBase = Locals.Length();
-	Locals.SetFixedLength(false);
-	Locals.Length(LocalsBase + Frame);
-	Locals.SetFixedLength();
+	AddLocalSize(Frame);
+	// LgiTrace("ICallScript %i,%i\n", Sf.ReturnValue.Scope, Sf.ReturnValue.Index);
 	
 	// Put the arguments of the function call into the local array
 	GArray<GVariant*> Arg;
@@ -504,9 +504,6 @@ case ICallScript:
 	}
 
 	#if VM_EXECUTE
-	// Now adjust the local stack to point to the locals for the function
-	Scope[1] = Locals.Length() ? &Locals[LocalsBase] : NULL;
-
 	// Set IP to start of function
 	Sf.ReturnIp = CurrentScriptAddress;
 	c.u8 = Base + FuncAddr;
@@ -531,11 +528,13 @@ case IRet:
 	if (Frames.Length() > 0)
 	{
 		StackFrame Sf = Frames[Frames.Length()-1];
-		if (Sf.ReturnValue)
-		{
-			*Sf.ReturnValue = *ReturnValue;
-			CheckParam(Sf.ReturnValue->Type == ReturnValue->Type);
-		}
+		GVarRef &Ret = Sf.ReturnValue;
+		GVariant *RetVar = &Scope[Ret.Scope][Ret.Index];
+		// LgiTrace("IRet to %i:%i\n", Ret.Scope, Ret.Index);
+		if (Ret.Scope == SCOPE_LOCAL)
+			LgiAssert(Locals.PtrCheck(RetVar));
+		*RetVar = *ReturnValue;
+		CheckParam(RetVar->Type == ReturnValue->Type);
 
 		Frames.Length(Frames.Length()-1);
 		
@@ -545,32 +544,23 @@ case IRet:
 			int Base = Locals.Length() - Sf.CurrentFrameSize;
 			if (ArgsOutput)
 			{
-				/*
-				LgiTrace("Frames=%i Local=%i Base=%i\n",
-					Frames.Length(),
-					Locals.Length(),
-					Base);
-				*/
-				
 				if (Frames.Length() == 0)
 				{
 					for (unsigned i=0; i<ArgsOutput->Length(); i++)
 					{
 						*(*ArgsOutput)[i] = Locals[Base+i];
-						/*
-						GString s = Locals[Base+i].ToString();
-						LgiTrace("\t%s\n", s.Get());
-						*/
 					}
 				}
 			}
+			// LgiTrace("%s:%i Locals %i -> %i\n", _FL, Locals.Length(), Base);
 			Locals.Length(Base);
-			Scope[1] = &Locals[Sf.PrevFrameStart];
+			Scope[SCOPE_LOCAL] = &Locals[Sf.PrevFrameStart];
 		}
 		else
 		{
+			// LgiTrace("%s:%i - Locals %i -> %i\n", _FL, Locals.Length(), 0);
 			Locals.Length(0);
-			Scope[1] = 0;
+			Scope[SCOPE_LOCAL] = NULL;
 		}
 		Locals.SetFixedLength();
 
@@ -1267,6 +1257,7 @@ case IDomCall:
 					c.r[2].GetStr());
 	#endif
 
+	GVarRef DstRef = *c.r;
 	GResolveRef Dst = Resolve();
 	GResolveRef Dom = Resolve();
 	GResolveRef Name = Resolve();
@@ -1292,13 +1283,10 @@ case IDomCall:
 		StackFrame &Sf = Frames.New();
 		Sf.CurrentFrameSize = m->FrameSize;
 		Sf.PrevFrameStart = Locals.Length() ? Scope[1] - &Locals[0] : 0;
-		Sf.ReturnValue = Dst;
+		Sf.ReturnValue = DstRef;
 
 		// Increase the local stack size
-		int LocalsBase = Locals.Length();
-		Locals.SetFixedLength(false);
-		Locals.Length(LocalsBase + m->FrameSize + 1);
-		Locals.SetFixedLength();
+		AddLocalSize(m->FrameSize + 1);
 		
 		#if DEBUG_CUSTOM_METHOD_CALL
 		LgiTrace("CustomType.Call(%s) Args=%i, Frame=%i, Addr=%i, LocalsBase=%i ",
