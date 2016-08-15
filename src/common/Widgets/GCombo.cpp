@@ -75,13 +75,11 @@ public:
 	
 	GDisplayString *GetText(const char *File, int Line)
 	{
-		// LgiTrace("GCombo::GetText %p %s:%i\n", Text, File, Line);
 		return Text;
 	}
 
 	void SetText(GDisplayString *ds, const char *File, int Line)
 	{
-		// LgiTrace("GCombo::SetText %p->%p %s:%i\n", Text, ds, File, Line);
 		DeleteObj(Text);
 		Text = ds;
 	}
@@ -539,7 +537,8 @@ void GCombo::OnPaint(GSurface *pDC)
 		pDC->Colour(LC_MED, 24);
 		pDC->Rectangle();
 
-		GRect c = GetClient();
+		GRect Cli = GetClient();
+		GRect c = Cli;
 
 		#if 1
 	
@@ -564,8 +563,18 @@ void GCombo::OnPaint(GSurface *pDC)
 			if (e) printf("%s:%i - HIThemeDrawButton failed %li\n", _FL, e);
 			else if (d->GetText(_FL))
 			{
-				d->GetText(_FL)->GetFont()->Transparent(true);
-				d->GetText(_FL)->Draw(pDC, LabelRect.origin.x, LabelRect.origin.y);
+				GRect Txt;
+				Txt = LabelRect;
+				GDisplayString *Ds = d->GetText(_FL);
+				int y = Cli.y1 + ((Cli.Y() - Ds->Y()) / 2) + 1;
+
+				Ds->GetFont()->Transparent(true);
+				Ds->Draw(pDC, Txt.x1, y);
+				
+				#if 0
+				pDC->Colour(GColour(255, 0, 0));
+				pDC->Box(Txt.x1, y, Txt.x1 + Ds->X()-1, y + Ds->Y() - 1);
+				#endif
 			}
 
 		#else
