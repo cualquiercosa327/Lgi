@@ -293,7 +293,7 @@ public:
 		uint32 CurrentFrameSize;
 		int PrevFrameStart;
 		size_t ReturnIp;
-		GVariant *ReturnValue;
+		GVarRef ReturnValue;
 	};
 
 	enum RunType
@@ -310,7 +310,7 @@ public:
 	GPtr c;
 	GVariant Reg[MAX_REGISTER];
 	GArray<GVariant> Locals;
-	GVariant *Scope[3];
+	GVariant *Scope[SCOPE_MAX];
 	GArray<StackFrame> Frames;
 	RunType StepType;
 	GVmDebuggerCallback *DbgCallback;
@@ -2347,7 +2347,9 @@ case IDomCall:
 		Scope[SCOPE_REGISTER] = Reg;
 		Scope[SCOPE_LOCAL] = NULL;
 		Scope[SCOPE_GLOBAL] = &Code->Globals[0];
-
+		Scope[SCOPE_OBJECT] = NULL;
+		Scope[SCOPE_RETURN] = Ret;
+		LgiAssert(Ret != NULL);
 
 		#if 1
 		const char *SourceFileName = Code->GetFileName();
@@ -2428,7 +2430,8 @@ case IDomCall:
 		StackFrame &Sf = Frames.New();
 		Sf.ReturnIp = e - c.u8;
 		Sf.PrevFrameStart = 0;
-		Sf.ReturnValue = Ret;
+		Sf.ReturnValue.Scope = SCOPE_RETURN;
+		Sf.ReturnValue.Index = 0; // array is only one item long anyway
 
 		if (Func)
 		{
@@ -2984,12 +2987,13 @@ case ICallScript:
 	StackFrame &Sf = Frames.New();
 	Sf.CurrentFrameSize = Frame;
 	Sf.PrevFrameStart = Locals.Length() ? Scope[1] - &Locals[0] : 0;
-	Sf.ReturnValue = Resolve();
+	Sf.ReturnValue = *c.r++;
 	uint16 Args = *c.u16++;
 
 	// Increase the local stack size
 	int LocalsBase = Locals.Length();
 	Locals.SetFixedLength(false);
+	LgiTrace("%s:%i - Setting Locals from %i to %i\n", _FL, Locals.Length(), LocalsBase + Frame);
 	Locals.Length(LocalsBase + Frame);
 	Locals.SetFixedLength();
 	
@@ -3045,10 +3049,13 @@ case IRet:
 	if (Frames.Length() > 0)
 	{
 		StackFrame Sf = Frames[Frames.Length()-1];
-		if (Sf.ReturnValue)
+		GVarRef &Ret = Sf.ReturnValue;
+		if (Ret.Scope >= SCOPE_REGISTER &&
+			Ret.Scope < SCOPE_MAX)
 		{
-			*Sf.ReturnValue = *ReturnValue;
-			CheckParam(Sf.ReturnValue->Type == ReturnValue->Type);
+			GVariant &RetVar = Scope[Ret.Scope][Ret.Index];
+			RetVar = *ReturnValue;
+			CheckParam(RetVar.Type == ReturnValue->Type);
 		}
 
 		Frames.Length(Frames.Length()-1);
@@ -3781,6 +3788,7 @@ case IDomCall:
 					c.r[2].GetStr());
 	#endif
 
+	GVarRef DstRef = *c.r;
 	GResolveRef Dst = Resolve();
 	GResolveRef Dom = Resolve();
 	GResolveRef Name = Resolve();
@@ -3806,7 +3814,7 @@ case IDomCall:
 		StackFrame &Sf = Frames.New();
 		Sf.CurrentFrameSize = m->FrameSize;
 		Sf.PrevFrameStart = Locals.Length() ? Scope[1] - &Locals[0] : 0;
-		Sf.ReturnValue = Dst;
+		Sf.ReturnValue = DstRef;
 
 		// Increase the local stack size
 		int LocalsBase = Locals.Length();
@@ -4857,7 +4865,7 @@ case ICallScript:
 	StackFrame &Sf = Frames.New();
 	Sf.CurrentFrameSize = Frame;
 	Sf.PrevFrameStart = Locals.Length() ? Scope[1] - &Locals[0] : 0;
-	Sf.ReturnValue = Resolve();
+	Sf.ReturnValue = *c.r++;;
 	uint16 Args = *c.u16++;
 
 	// Increase the local stack size
@@ -4918,11 +4926,10 @@ case IRet:
 	if (Frames.Length() > 0)
 	{
 		StackFrame Sf = Frames[Frames.Length()-1];
-		if (Sf.ReturnValue)
-		{
-			*Sf.ReturnValue = *ReturnValue;
-			CheckParam(Sf.ReturnValue->Type == ReturnValue->Type);
-		}
+		GVarRef &Ret = Sf.ReturnValue;
+		GVariant *RetVar = &Scope[Ret.Scope][Ret.Index];
+		*RetVar = *ReturnValue;
+		CheckParam(RetVar->Type == ReturnValue->Type);
 
 		Frames.Length(Frames.Length()-1);
 		
@@ -5654,6 +5661,7 @@ case IDomCall:
 					c.r[2].GetStr());
 	#endif
 
+	GVarRef DstRef = *c.r;
 	GResolveRef Dst = Resolve();
 	GResolveRef Dom = Resolve();
 	GResolveRef Name = Resolve();
@@ -5679,7 +5687,7 @@ case IDomCall:
 		StackFrame &Sf = Frames.New();
 		Sf.CurrentFrameSize = m->FrameSize;
 		Sf.PrevFrameStart = Locals.Length() ? Scope[1] - &Locals[0] : 0;
-		Sf.ReturnValue = Dst;
+		Sf.ReturnValue = DstRef;
 
 		// Increase the local stack size
 		int LocalsBase = Locals.Length();

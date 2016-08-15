@@ -15,6 +15,8 @@ typedef bool (GScriptContext::*ScriptCmd)(GVariant *Ret, ArgumentArray &Args);
 #define SCOPE_LOCAL			1
 #define SCOPE_GLOBAL		2
 #define SCOPE_OBJECT		3
+#define SCOPE_RETURN		4
+#define SCOPE_MAX			5
 
 /// Execution status
 enum GExecutionStatus

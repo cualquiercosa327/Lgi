@@ -182,9 +182,6 @@ public:
 	/// The type of the variant
     GVariantType Type;
 
-    /// User data
-    uint32 User;
-
     /// The value of the variant
 	union
     {

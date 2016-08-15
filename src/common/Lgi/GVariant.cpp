@@ -73,50 +73,42 @@ const char *GVariant::OperatorToString(GOperator op)
 GVariant::GVariant()
 {
 	Type = GV_NULL;
-	User = 0;
 	ZeroObj(Value);
 }
 
 GVariant::GVariant(int i)
 {
 	Type = GV_INT32;
-	User = 0;
 	Value.Int = i;
 }
 
 GVariant::GVariant(GVariant const &v)
 {
 	Type = GV_NULL;
-	User = 0;
 	ZeroObj(Value);
-
 	*this = v;
 }
 
 GVariant::GVariant(int64 i)
 {
 	Type = GV_INT64;
-	User = 0;
 	Value.Int64 = i;
 }
 
 GVariant::GVariant(uint64 i)
 {
 	Type = GV_INT64;
-	User = 0;
 	Value.Int64 = i;
 }
 
 GVariant::GVariant(double i)
 {
 	Type = GV_DOUBLE;
-	User = 0;
 	Value.Dbl = i;
 }
 
 GVariant::GVariant(const char *s)
 {
-	User = 0;
 	Value.String = NewStr(s);
 	Type = Value.String ? GV_STRING : GV_NULL;
 }
@@ -124,42 +116,36 @@ GVariant::GVariant(const char *s)
 GVariant::GVariant(const char16 *s)
 {
 	Value.WString = NewStrW(s);
-	User = 0;
 	Type = Value.WString ? GV_WSTRING : GV_NULL;
 }
 
 GVariant::GVariant(void *p)
 {
 	Type = GV_NULL;
-	User = 0;
 	*this = p;
 }
 
 GVariant::GVariant(GDom *p)
 {
 	Type = GV_NULL;
-	User = 0;
 	*this = p;
 }
 
 GVariant::GVariant(GDom *p, char *name)
 {
 	Type = GV_NULL;
-	User = 0;
 	SetDomRef(p, name);
 }
 
 GVariant::GVariant(GDateTime *d)
 {
 	Type = GV_NULL;
-	User = 0;
 	*this = d;
 }
 
 GVariant::GVariant(GOperator Op)
 {
 	Type = GV_OPERATOR;
-	User = 0;
 	Value.Op = Op;
 }
 
@@ -436,7 +422,6 @@ GVariant &GVariant::operator =(GVariant const &i)
 {
 	Empty();
 	Type = i.Type;
-	User = i.User;
 
 	switch (Type)
 	{
