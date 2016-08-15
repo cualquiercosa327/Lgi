@@ -3478,6 +3478,7 @@ public:
 	GScriptContext *UserContext;
 	GCompiledCode *Code;
 	GVmDebuggerCallback *Callback;
+	GVariant ReturnValue;
 
 	GScriptEnginePrivate()
 	{
@@ -3524,7 +3525,7 @@ bool GScriptEngine::Compile(GAutoPtr<GCompiledCode> &Obj, GScriptContext *UserCo
 						Args);
 }
 
-GExecutionStatus GScriptEngine::Run(GCompiledCode *Obj)
+GExecutionStatus GScriptEngine::Run(GCompiledCode *Obj, GVariant *Ret)
 {
 	GExecutionStatus Status = ScriptError;
 
@@ -3532,14 +3533,14 @@ GExecutionStatus GScriptEngine::Run(GCompiledCode *Obj)
 	if (d->Code)
 	{
 		GVirtualMachine Vm(d->Callback);
-		Status = Vm.Execute(d->Code);
+		Status = Vm.Execute(d->Code, 0, NULL, true, Ret ? Ret : &d->ReturnValue);
 		d->Code = NULL;
 	}
 
 	return Status;
 }
 
-GExecutionStatus GScriptEngine::RunTemporary(GCompiledCode *Obj, char *Script)
+GExecutionStatus GScriptEngine::RunTemporary(GCompiledCode *Obj, char *Script, GVariant *Ret)
 {
 	GExecutionStatus Status = ScriptError;
 	GCompiledCode *Code = dynamic_cast<GCompiledCode*>(Obj);
@@ -3553,7 +3554,7 @@ GExecutionStatus GScriptEngine::RunTemporary(GCompiledCode *Obj, char *Script)
 		if (Comp.Compile(Temp, &d->SysContext, d->UserContext, Temp->GetFileName(), Script, NULL))
 		{
 			GVirtualMachine Vm(d->Callback);
-			Status = Vm.Execute(dynamic_cast<GCompiledCode*>(Temp.Get()), TempLen);
+			Status = Vm.Execute(dynamic_cast<GCompiledCode*>(Temp.Get()), TempLen, NULL, true, Ret ? Ret : &d->ReturnValue);
 		}
 		
 		d->Code = NULL;
@@ -3587,7 +3588,7 @@ bool GScriptEngine::EvaluateExpression(GVariant *Result, GDom *VariableSource, c
 	// Execute the script
 	GVirtualMachine Vm(d->Callback);
 	GCompiledCode *Code = dynamic_cast<GCompiledCode*>(Obj.Get());
-	GExecutionStatus s = Vm.Execute(Code, 0, NULL, true, Result);
+	GExecutionStatus s = Vm.Execute(Code, 0, NULL, true, Result ? Result : &d->ReturnValue);
 	if (s == ScriptError)
 	{
 		LgiAssert(0);
