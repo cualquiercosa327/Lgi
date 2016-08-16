@@ -3853,6 +3853,9 @@ bool GTag::GetWidthMetrics(GTag *Table, uint16 &Min, uint16 &Max)
 	int MarginPx = 0;
 	int LineWidth = 0;
 
+	if (Display() == GCss::DispNone)
+		return true;
+
 	// Break the text into words and measure...
 	if (Text())
 	{
@@ -3873,8 +3876,11 @@ bool GTag::GetWidthMetrics(GTag *Table, uint16 &Min, uint16 &Max)
 				
 				// Find size of the word
 				int Len = e - s;
-				GDisplayString ds(f, s, Len);
-				MinContent = max(MinContent, ds.X());
+				if (Len > 0)
+				{
+					GDisplayString ds(f, s, Len);
+					MinContent = max(MinContent, ds.X());
+				}
 				
 				// Move to the next word.
 				s = (*e) ? e + 1 : 0;
@@ -4015,7 +4021,8 @@ bool GTag::GetWidthMetrics(GTag *Table, uint16 &Min, uint16 &Max)
 		
 		Status &= c->GetWidthMetrics(Table, Min, TagMax);
 		LineWidth += TagMax;
-		if (c->TagId == TAG_BR)
+		if (c->TagId == TAG_BR ||
+			c->TagId == TAG_LI)
 		{
 			Max = max(Max, LineWidth);
 			LineWidth = 0;
@@ -4351,10 +4358,9 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f, uint16 Depth)
 
 				if (t->Cell->Pos.x == x && t->Cell->Pos.y == y)
 				{
-					int BoxPx = t->Cell->BorderPx.x1 +
-								t->Cell->BorderPx.x2 +
-								t->Cell->PaddingPx.x1 +
-								t->Cell->PaddingPx.x2;
+					GCss::DisplayType Disp = t->Display();
+					if (Disp == GCss::DispNone)
+						continue;
 
 					GCss::Len Content = t->Width();
 					if (Content.IsValid() && t->Cell->Span.x == 1)
@@ -4387,6 +4393,11 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f, uint16 Depth)
 
 					if (t->Cell->Span.x == 1)
 					{
+						int BoxPx = t->Cell->BorderPx.x1 +
+									t->Cell->BorderPx.x2 +
+									t->Cell->PaddingPx.x1 +
+									t->Cell->PaddingPx.x2;
+
 						MinCol[x] = max(MinCol[x], t->Cell->MinContent + BoxPx);
 						MaxCol[x] = max(MaxCol[x], t->Cell->MaxContent + BoxPx);
 					}
