@@ -300,6 +300,38 @@ GDateTime GDateTime::GDstInfo::GetLocal()
 	return d;
 }
 
+struct MonthHash : public GHashTbl<const char*,int>
+{
+	MonthHash() : GHashTbl<const char*,int>(0, false)
+	{
+		Add("Jan", 1);
+		Add("Feb", 2);
+		Add("Mar", 3);
+		Add("Apr", 4);
+		Add("May", 5);
+		Add("Jun", 6);
+		Add("Jul", 7);
+		Add("Aug", 8);
+		Add("Sep", 9);
+		Add("Oct", 10);
+		Add("Nov", 11);
+		Add("Dec", 12);
+
+		Add("January", 1);
+		Add("February", 2);
+		Add("March", 3);
+		Add("April", 4);
+		Add("May", 5);
+		Add("June", 6);
+		Add("July", 7);
+		Add("August", 8);
+		Add("September", 9);
+		Add("October", 10);
+		Add("November", 11);
+		Add("December", 12);
+	}
+};
+
 bool GDateTime::GetDaylightSavingsInfo(GArray<GDstInfo> &Info, GDateTime &Start, GDateTime *End)
 {
 	bool Status = false;
@@ -377,19 +409,7 @@ bool GDateTime::GetDaylightSavingsInfo(GArray<GDstInfo> &Info, GDateTime &Start,
 		}		
 		fclose(f);
 		
-		GHashTbl<const char*,int> Lut(0, false);
-		Lut.Add("Jan", 1);
-		Lut.Add("Feb", 2);
-		Lut.Add("Mar", 3);
-		Lut.Add("Apr", 4);
-		Lut.Add("May", 5);
-		Lut.Add("Jun", 6);
-		Lut.Add("Jul", 7);
-		Lut.Add("Aug", 8);
-		Lut.Add("Sep", 9);
-		Lut.Add("Oct", 10);
-		Lut.Add("Nov", 11);
-		Lut.Add("Dec", 12);
+		MonthHash Lut;
 
 		GAutoString ps(p.NewStr());
 		GToken t(ps, "\r\n");
@@ -946,6 +966,56 @@ bool GDateTime::SetDate(const char *Str)
 			}
 
 			Status = true;
+		}
+		else
+		{
+			// Fall back to fuzzy matching
+			GToken T(Str, " ,");
+			MonthHash Lut;
+			int FMonth = 0;
+			int FDay = 0;
+			int FYear = 0;
+			for (unsigned i=0; i<T.Length(); i++)
+			{
+				char *p = T[i];
+				if (IsDigit(*p))
+				{
+					int i = atoi(p);
+					if (i > 0)
+					{
+						if (i >= 1000)
+						{
+							FYear = i;
+						}
+						else if (i < 32)
+						{
+							FDay = i;
+						}
+					}
+				}
+				else
+				{
+					int i = Lut.Find(p);
+					if (i)
+						FMonth = i;
+				}
+			}
+			
+			if (FMonth && FDay)
+			{
+				Day(FDay);
+				Month(FMonth);
+			}
+			if (FYear)
+			{
+				Year(FYear);
+			}
+			else
+			{
+				GDateTime Now;
+				Now.SetNow();
+				Year(Now.Year());
+			}
 		}
 	}
 
