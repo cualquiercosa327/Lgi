@@ -7264,7 +7264,6 @@ GdcPt2 GHtml::Layout(bool ForceLayout)
 	GRect Client = GetClient();
 	if (Tag && (ViewWidth != Client.X() || ForceLayout))
 	{
-		GRect Client = GetClient();
 		GFlowRegion f(this, Client, false);
 
 		// Flow text, width is different
