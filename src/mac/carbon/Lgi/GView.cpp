@@ -229,7 +229,6 @@ HIObjectClassRef GViewPrivate::BaseClass = 0;
 GViewPrivate::GViewPrivate()
 {
 	TabStop = false;
-	// CursorId = 0;
 	Parent = NULL;
 	ParentI = NULL;
 	Notify = NULL;
@@ -1040,10 +1039,15 @@ int VirtualKeyToLgi(UInt32 Virt)
 		// delimiters
 		case 27: return '-';
 		case 24: return '=';
+		case kVK_ANSI_LeftBracket: return '{';
+		case kVK_ANSI_RightBracket: return '}';
 		case 42: return '\\';
 		case 47: return '.';
 		case 50: return '`';
-		case 43: return ',';
+		case kVK_ANSI_Comma: return ',';
+		case kVK_ANSI_Slash: return '/';
+		case kVK_ANSI_Quote: return '\'';
+		case kVK_ANSI_Semicolon: return ';';
 		
 		// digits
 		case 18: return '1';
@@ -1058,14 +1062,14 @@ int VirtualKeyToLgi(UInt32 Virt)
 		case 29: return '0';
 		
 		// alpha
-		case 0: return 'a';
+		case 0:  return 'a';
 		case 11: return 'b';
-		case 8: return 'c';
-		case 2: return 'd';
+		case 8:  return 'c';
+		case 2:  return 'd';
 		case 14: return 'e';
-		case 3: return 'f';
-		case 5: return 'g';
-		case 4: return 'h';
+		case 3:  return 'f';
+		case 5:  return 'g';
+		case 4:  return 'h';
 		case 34: return 'i';
 		case 38: return 'j';
 		case 40: return 'k';
@@ -1076,21 +1080,25 @@ int VirtualKeyToLgi(UInt32 Virt)
 		case 35: return 'p';
 		case 12: return 'q';
 		case 15: return 'r';
-		case 1: return 's';
+		case 1:  return 's';
 		case 17: return 't';
 		case 32: return 'u';
-		case 9: return 'v';
+		case 9:  return 'v';
 		case 13: return 'w';
-		case 7: return 'x';
+		case 7:  return 'x';
 		case 16: return 'y';
-		case 6: return 'z';
+		case 6:  return 'z';
 		
 		default:
-			printf("%s:%i - unimplemented virt->lgi code mapping: %d\n", _FL, (unsigned)Virt);
+			printf("%s:%i - unimplemented virt->lgi code mapping: %d 0x%x '%c'\n",
+				_FL,
+				(unsigned)Virt,
+				(unsigned)Virt,
+				(char)Virt);
 			break;
 	}
 	
-	return 0;
+	return Virt;
 }
 
 static int GetIsChar(GKey &k, int mods)

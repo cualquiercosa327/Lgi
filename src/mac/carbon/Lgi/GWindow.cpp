@@ -32,6 +32,7 @@ public:
 	GDialog *ChildDlg;
 	bool DeleteWhenDone;
 	bool InitVisible;
+	bool InDelete;
 	DragTrackingHandlerUPP TrackingHandler;
 	DragReceiveHandlerUPP ReceiveHandler;
 	uint64 LastMinimize;
@@ -59,6 +60,7 @@ public:
 		SnapToEdge = false;
 		EmptyMenu = 0;
 		CloseRequestDone = false;
+		InDelete = false;
 	}
 	
 	~GWindowPrivate()
@@ -403,8 +405,10 @@ void GWindow::_OnViewDelete()
 
 void GWindow::_Delete()
 {
+	d->InDelete = true;
 	SetDragHandlers(false);
 	GView::_Delete();
+	d->InDelete = false;
 }
 
 bool GWindow::PostEvent(int Event, int a, int b)
@@ -1455,12 +1459,15 @@ bool GWindow::SetPos(GRect &p, bool Repaint)
 
 void GWindow::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 {
-    if (dynamic_cast<GPopup*>(Wnd))
-    {
-        printf("%s:%i - Ignoring GPopup in OnChildrenChanged handler.\n", _FL);
-        return;
-    }
-	Pour();
+	if (!d->InDelete)
+	{
+		if (dynamic_cast<GPopup*>(Wnd))
+		{
+			printf("%s:%i - Ignoring GPopup in OnChildrenChanged handler.\n", _FL);
+			return;
+		}
+		Pour();
+	}
 }
 
 void GWindow::OnCreate()

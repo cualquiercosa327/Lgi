@@ -402,8 +402,8 @@ void GButton::OnPaint(GSurface *pDC)
 			f->Fore(LC_TEXT);
 			
 			int Ox = (LabelRect.size.width - d->Txt->X()) / 2;
-			int Oy = (LabelRect.size.height - d->Txt->Y() + 1) / 2;
-			d->Txt->Draw(pDC, LabelRect.origin.x+Ox, LabelRect.origin.y+Oy);
+			int Oy = (Y() - d->Txt->Y() + 1) / 2;
+			d->Txt->Draw(pDC, LabelRect.origin.x+Ox, Oy);
 		}
 	}
 	
