@@ -204,6 +204,7 @@ public:
 	}
 };
 
+/*
 class MailMessage : public GStream
 {
 	char*						Text;
@@ -263,6 +264,7 @@ public:
 	int EncodeQuotedPrintable	(GStreamI &Out, GStreamI &In);
 	int EncodeBase64			(GStreamI &Out, GStreamI &In);
 };
+*/
 
 /// Base class for mail protocol implementations
 class MailProtocol
@@ -377,7 +379,7 @@ public:
 	virtual bool SendEnd(GStringPipe *Sink) = 0;
 
 	// Deprecated
-	virtual bool Send(MailMessage *Msg, bool Mime) { return false; }
+	// virtual bool Send(MailMessage *Msg, bool Mime) { return false; }
 };
 
 struct ImapMailFlags
@@ -648,7 +650,7 @@ public:
 	GStringPipe *SendStart(List<AddressDescriptor> &To, AddressDescriptor *From, MailProtocolError *Err = 0);
 	bool SendEnd(GStringPipe *Sink);
 
-	bool Send(MailMessage *Msg, bool Mime = false);
+	// bool Send(MailMessage *Msg, bool Mime = false);
 };
 
 class MailSendFolder : public MailSink

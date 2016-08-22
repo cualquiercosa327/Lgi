@@ -1927,6 +1927,7 @@ bool MailSmtp::SendEnd(GStringPipe *m)
 	return Status;
 }
 
+/*
 bool MailSmtp::Send(MailMessage *Msg, bool Mime)
 {
 	bool Status = false;
@@ -1955,6 +1956,7 @@ bool MailSmtp::Send(MailMessage *Msg, bool Mime)
 
 	return Status;
 }
+*/
 
 bool MailSmtp::Close()
 {
@@ -3128,6 +3130,7 @@ bool MailPop3::Close()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
+/*
 MailMessage::MailMessage()
 {
 	Log = this;
@@ -4079,3 +4082,4 @@ bool MailMessage::EncodeBody(GStreamI &Out, MailProtocol *Protocol, bool Mime)
 	return true;
 }
 
+*/
