@@ -1694,10 +1694,11 @@ void GTableLayoutPrivate::LayoutPost(GRect &Client)
 					c->Cell.y1 == Cy)
 				{
 					GCss::PositionType PosType = c->Position();
-					int y = CountRange<int>(MinRow, c->Cell.y1, c->Cell.y2) +
-							((c->Cell.Y() - 1) * BorderSpacing);
+					int x = CountRange<int>(MinCol, c->Cell.x1, c->Cell.x2) + ((c->Cell.X() - 1) * BorderSpacing);
+					int y = CountRange<int>(MinRow, c->Cell.y1, c->Cell.y2) + ((c->Cell.Y() - 1) * BorderSpacing);
 
 					// Set the height of the cell
+					c->Pos.x2 = c->Pos.x1 + x - 1;
 					c->Pos.y2 = c->Pos.y1 + y - 1;
 					
 					if (PosType == GCss::PosAbsolute)
@@ -1720,7 +1721,7 @@ void GTableLayoutPrivate::LayoutPost(GRect &Client)
 					MaxY = max(MaxY, c->Pos.y2);
 				}
 
-				Px = c->Pos.x2 + BorderSpacing;
+				Px = c->Pos.x2 + BorderSpacing - Client.x1 + 1;
 				Cx += c->Cell.X();
 			}
 			else
@@ -1900,7 +1901,12 @@ void GTableLayout::OnPaint(GSurface *pDC)
 	GRect Client = GetClient();
 	if (d->PrevWidth != Client.X())
 	{
+		#ifdef LGI_SDL
+		OnPosChange();
+		#else
 		PostEvent(M_TABLE_LAYOUT);
+		#endif
+		return;
 	}
 
 	GColour Back;

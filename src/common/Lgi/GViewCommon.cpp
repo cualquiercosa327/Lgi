@@ -183,10 +183,19 @@ GView::GView(OsView view)
 	_IsToolBar = false;
 	Pos.ZOff(-1, -1);
 	WndFlags = GWF_VISIBLE;
+
+	#ifdef LGI_SDL
+	ViewMap.Add(this, true);
+	#endif
 }
 
 GView::~GView()
 {
+	#ifdef LGI_SDL
+	LgiAssert(ViewMap.Find(this));
+	ViewMap.Delete(this);
+	#endif
+
 	_Delete();
 	DeleteObj(d);
 }
@@ -497,7 +506,7 @@ void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 				#endif
 				p.Offset(o.x, o.y);
 				
-				if (!Update || Update->Overlap(&p))
+				if (1) // !Update || Update->Overlap(&p))
 				{			
 					GdcPt2 co(p.x1, p.y1);
 					

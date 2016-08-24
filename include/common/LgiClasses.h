@@ -397,6 +397,7 @@ private:
 	#endif
 
 	#if defined(LGI_SDL)
+	static GHashTbl<void*,bool> ViewMap;
 	friend Uint32 SDL_PulseCallback(Uint32 interval, GView *v);
 	friend class GApp;
 	#endif

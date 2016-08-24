@@ -542,7 +542,7 @@ void GApp::OnSDLEvent(GMessage *m)
 				case M_PULSE:
 				{
 					GView *v = (GView*)m->Event.user.data1;
-					if (v)
+					if (v && GView::ViewMap.Find(v))
 					{
 						v->OnPulse();
 					}
@@ -582,6 +582,10 @@ void GApp::OnSDLEvent(GMessage *m)
 				{
 					GView *v = (GView*)m->Event.user.data1;
 					GAutoPtr<GMessage::EventParams> p((GMessage::EventParams*)m->Event.user.data2);
+					
+					if (!GView::ViewMap.Find(v))
+						break;
+					
 					if (p && AppWnd && v)
 					{
 						GViewI *Ctrl;
@@ -596,6 +600,10 @@ void GApp::OnSDLEvent(GMessage *m)
 				default:
 				{
 					GView *v = (GView*)m->Event.user.data1;
+					GAutoPtr<GMessage::EventParams> p((GMessage::EventParams*)m->Event.user.data2);
+
+					if (!GView::ViewMap.Find(v))
+						break;
 					
 					#if 0
 					printf("SDL_USEREVENT cmd=%i v=%p/%s data2=%p\n",
@@ -607,9 +615,6 @@ void GApp::OnSDLEvent(GMessage *m)
 					if (v)
 					{
 						v->OnEvent(m);
-						
-						if (m->Event.user.data2)
-							delete ((GMessage::EventParams*)m->Event.user.data2);
 					}
 					break;
 				}

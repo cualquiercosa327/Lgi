@@ -20,6 +20,12 @@
 #include "GViewPriv.h"
 #include "GCss.h"
 
+/// This hash contains all the GView* that exist.
+/// It's used by GApp::OnSDLEvent to
+/// check the validity of a GView pointer passed via
+/// an asynchronous message.
+GHashTbl<void*,bool> GView::ViewMap(256);
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 GViewPrivate::GViewPrivate()
 {
