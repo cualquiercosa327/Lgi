@@ -99,7 +99,7 @@ public:
 	}
 };
 
-class GTextView3Private : public GCss
+class GTextView3Private : public GCss, public GMutex
 {
 public:
 	GTextView3 *View;
@@ -120,7 +120,12 @@ public:
 	int MapLen;
 	char16 *MapBuf;
 
-	GTextView3Private(GTextView3 *view)
+	// <RequiresLocking>
+		// Thread safe Name(char*) impl
+		GString SetName;
+	// </RequiresLocking>
+
+	GTextView3Private(GTextView3 *view) : GMutex("GTextView3Private")
 	{
 		View = view;
 		SimpleDelete = false;
@@ -1554,41 +1559,54 @@ char *GTextView3::Name()
 
 bool GTextView3::Name(const char *s)
 {
-	UndoQue.Empty();
-	DeleteArray(TextCache);
-	DeleteArray(Text);
-
-	LgiAssert(LgiIsUtf8(s));
-	Text = LgiNewUtf8To16(s);
-	if (!Text)
+	if (InThread())
 	{
-		Text = new char16[1];
-		if (Text) *Text = 0;
-	}
+		UndoQue.Empty();
+		DeleteArray(TextCache);
+		DeleteArray(Text);
 
-	Size = Text ? StrlenW(Text) : 0;
-	Alloc = Size + 1;
-	Cursor = min(Cursor, Size);
-	if (Text)
-	{
-		// Remove '\r's
-		char16 *o = Text;
-		for (char16 *i=Text; *i; i++)
+		LgiAssert(LgiIsUtf8(s));
+		Text = LgiNewUtf8To16(s);
+		if (!Text)
 		{
-			if (*i != '\r')
-			{
-				*o++ = *i;
-			}
-			else Size--;
+			Text = new char16[1];
+			if (Text) *Text = 0;
 		}
-		*o++ = 0;
-	}
 
-	// update everything else
-	PourText(0, Size);
-	PourStyle(0, Size);
-	UpdateScrollBars();
-	Invalidate();
+		Size = Text ? StrlenW(Text) : 0;
+		Alloc = Size + 1;
+		Cursor = min(Cursor, Size);
+		if (Text)
+		{
+			// Remove '\r's
+			char16 *o = Text;
+			for (char16 *i=Text; *i; i++)
+			{
+				if (*i != '\r')
+				{
+					*o++ = *i;
+				}
+				else Size--;
+			}
+			*o++ = 0;
+		}
+
+		// update everything else
+		PourText(0, Size);
+		PourStyle(0, Size);
+		UpdateScrollBars();
+		Invalidate();
+	}
+	else if (d->Lock(_FL))
+	{
+		if (IsAttached())
+		{
+			d->SetName = s;
+			PostEvent(M_TEXT_UPDATE_NAME);
+		}
+		else LgiAssert(!"Can't post event to detached/virtual window.");
+		d->Unlock();
+	}
 
 	return true;
 }
@@ -4615,6 +4633,16 @@ GMessage::Result GTextView3::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{
+		case M_TEXT_UPDATE_NAME:
+		{
+			if (d->Lock(_FL))
+			{
+				Name(d->SetName);
+				d->SetName.Empty();
+				d->Unlock();
+			}
+			break;
+		}
 		case M_TEXTVIEW_FIND:
 		{
 			if (InThread())

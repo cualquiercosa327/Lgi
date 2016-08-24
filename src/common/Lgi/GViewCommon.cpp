@@ -986,7 +986,8 @@ void GView::Enabled(bool i)
 
 bool GView::Visible()
 {
-	ThreadCheck();
+	// This is a read only operation... which is kinda thread-safe...
+	// ThreadCheck();
 
 	#if WINNATIVE
 
@@ -1378,15 +1379,15 @@ void GView::Raised(bool i)
 
 int GView::GetId()
 {
-	ThreadCheck();
-
+	// This is needed by SendNotify function which is thread safe.
+	// So no thread safety check here.
 	return d->CtrlId;
 }
 
 void GView::SetId(int i)
 {
-	ThreadCheck();
-
+	// This is needed by SendNotify function which is thread safe.
+	// So no thread safety check here.
 	d->CtrlId = i;
 
 	#if WINNATIVE

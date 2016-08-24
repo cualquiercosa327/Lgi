@@ -337,7 +337,8 @@ void GLog::Write(COLOUR c, const char *Buffer, int Len, char *Desc)
 
 		if (LogView && LogView->Visible())
 		{
-			LogView->OnNotify(LogView, 0);
+		    LogView->SendNotify();
+			// LogView->OnNotify(LogView, 0);
 		}
 	}
 }

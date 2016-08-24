@@ -50,7 +50,9 @@ typedef GRgb48  Png48;
 typedef GRgba64 Png64;
 
 const char sLibrary[] =
-	#if defined(MAC) || defined(LINUX) || defined(BEOS)
+	#if defined(LINUX)
+		"libpng12"
+	#elif defined(MAC) || defined(BEOS)
 		"libpng"
 	#else
 		#if defined(__CYGWIN__)
@@ -91,7 +93,7 @@ public:
 			#if 0
 			char File[256];
 			GetModuleFileName(Handle(), File, sizeof(File));
-			LgiTrace("%s:%i - PNG: %s\n", __FILE__, __LINE__, File);
+			LgiTrace("%s:%i - PNG: %s\n", _FL, File);
 			#endif
 		}
 	}

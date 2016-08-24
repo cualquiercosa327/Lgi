@@ -1,3 +1,4 @@
+#define __USE_GNU
 #include <stdio.h>
 
 #ifdef BEOS
@@ -93,9 +94,22 @@ bool GLibrary::Load(const char *File, bool Quiet)
 			{
 				hLib = dlopen(FileName, RTLD_NOW);
 				#if DEBUG_LIB_MSGS
-				LgiTrace("%s:%i - dlopen('%s')\n", _FL, FileName);
+				LgiTrace("%s:%i - dlopen('%s') = %p\n", _FL, FileName, hLib);
 				#endif
-				if (!hLib)
+				if (hLib)
+				{
+					#if defined(LINUX) && defined(__USE_GNU)
+					char Path[MAX_PATH];
+					int r = dlinfo(hLib, RTLD_DI_ORIGIN, Path);
+					if (r == 0)
+					{
+						LgiMakePath(Path, sizeof(Path), Path, File);
+						printf("GLibrary loaded: '%s'\n", Path);
+					}
+					else printf("%s:%i - dlinfo failed.\n", _FL);
+					#endif
+				}
+				else
 				{
 					char *e = dlerror();
 					if (!stristr(e, "No such file or directory") && !Quiet)

@@ -470,7 +470,8 @@ Gtk::gboolean IdleWrapper(Gtk::gpointer data)
 
 bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 {
-	ThreadCheck();
+	if (!InThread())
+		return false;
 
 	if (Loop)
 	{
