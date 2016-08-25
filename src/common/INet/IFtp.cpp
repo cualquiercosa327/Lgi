@@ -663,14 +663,13 @@ bool IFtp::UpDir()
 #define IsHeapOk() (-1)
 #endif
 
-bool IFtp::ListDir(List<IFtpEntry> *Dir)
+bool IFtp::ListDir(GArray<IFtpEntry*> &Dir)
 {
 	bool Status = false;
 
 	try
 	{
-		if (Dir &&
-			IsOpen() &&
+		if (IsOpen() &&
 			SetupData(true))
 		{
 			GMemQueue Buf;
@@ -746,7 +745,7 @@ bool IFtp::ListDir(List<IFtpEntry> *Dir)
 							if (strcmp(e->Name, ".") != 0 &&
 								strcmp(e->Name, "..") != 0)
 							{
-								Dir->Insert(e);
+								Dir.Add(e);
 								e = 0;
 							}
 						}

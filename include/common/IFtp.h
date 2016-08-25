@@ -104,7 +104,7 @@ public:
 	virtual bool SetDir(const char *Dir) = 0;
 	virtual bool CreateDir(const char *Dir) = 0;
 	virtual bool DeleteDir(const char *Dir) = 0;
-	virtual bool ListDir(List<IFtpEntry> *Dir) = 0;
+	virtual bool ListDir(GArray<IFtpEntry*> &Dir) = 0;
 	virtual bool UpDir() = 0;
 	
 	// File
@@ -197,7 +197,7 @@ public:
 	/// Delete a sub-folder under the current folder.
 	bool DeleteDir(const char *Dir);
 	/// List the current remote folder contents.
-	bool ListDir(List<IFtpEntry> *Dir);
+	bool ListDir(GArray<IFtpEntry*> &Dir);
 	/// Move up to the parent remote folder.
 	bool UpDir();
 	
