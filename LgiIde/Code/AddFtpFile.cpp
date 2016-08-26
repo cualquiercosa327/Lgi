@@ -40,7 +40,8 @@ void AddFtpFile::OnCmdComplete(FtpCmd *Cmd)
 {
 	if (Cmd && Base)
 	{
-		for (IFtpEntry *e=Cmd->Dir.First(); e; e=Cmd->Dir.Next())
+		GArray<IFtpEntry*>::I it = Cmd->Dir.Start();
+		for (IFtpEntry *e=*it; e; e=*++it)
 		{
 			if (e->Name && !e->IsDir())
 			{
@@ -58,7 +59,7 @@ void AddFtpFile::OnCmdComplete(FtpCmd *Cmd)
 			}
 		}
 
-		Cmd->Dir.Empty();
+		Cmd->Dir.DeleteObjects();
 	}
 }
 

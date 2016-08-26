@@ -269,7 +269,7 @@ struct MaskComp
 
 int CompSort(MaskComp *a, MaskComp *b)
 {
-	return b->Mask > a->Mask ? 1 : -1;
+	return b->Mask < a->Mask ? 1 : -1;
 }
 
 GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)

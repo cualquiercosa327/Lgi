@@ -299,7 +299,7 @@ int FtpThread::Main()
 								}
 							}
 
-							c->Status = Conn->Ftp.ListDir(&c->Dir);
+							c->Status = Conn->Ftp.ListDir(c->Dir);
 							if (!c->Status)
 								c->Error("Failed to list folder.");
 						}
@@ -339,7 +339,7 @@ int FtpThread::Main()
 							
 							IFtpEntry e;
 							e.Size = -1;
-							e.Name.Reset(NewStr(d + 1));
+							e.Name = d + 1;
 							c->Status = Conn->Ftp.DownloadFile(r, &e);
 							if (c->Status)
 							{

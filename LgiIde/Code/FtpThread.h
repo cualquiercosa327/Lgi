@@ -31,7 +31,7 @@ public:
 	// Output
 	bool Status;
 	char *File;
-	List<IFtpEntry> Dir;
+	GArray<IFtpEntry*> Dir;
 
 	// Callback stuff
 	FtpCallback *Callback;
