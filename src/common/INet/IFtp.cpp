@@ -74,11 +74,11 @@ IFtpEntry::IFtpEntry(IFtpEntry *Entry)
 {
 	Attributes = Entry->Attributes;
 	Size = Entry->Size;
-	Name.Reset(NewStr(Entry->Name));
-	Path.Reset(NewStr(Entry->Path));
+	Name = Entry->Name;
+	Path = Entry->Path;
 	Date = Entry->Date;
-	User.Reset(NewStr(Entry->User));
-	Group.Reset(NewStr(Entry->Group));
+	User = Entry->User;
+	Group = Entry->Group;
 }
 
 IFtpEntry::IFtpEntry(char *Entry, const char *Cs)
@@ -114,8 +114,8 @@ IFtpEntry::IFtpEntry(char *Entry, const char *Cs)
 				_Size = T[SizeElement];
 				_Name = SizeElement + 4;
 				_Perm = T[0];
-				User.Reset(NewStr(T[SizeElement-2]));
-				Group.Reset(NewStr(T[SizeElement-1]));
+				User = T[SizeElement-2];
+				Group = T[SizeElement-1];
 
 				char *MonthStr = T[SizeElement+1];
 				char *YearOrTime = T[SizeElement+3];
@@ -164,7 +164,9 @@ IFtpEntry::IFtpEntry(char *Entry, const char *Cs)
 					for (; *n && !strchr(Ws, *n); n++);
 					for (; *n && strchr(Ws, *n); n++);
 				}
-				Name.Reset((char*) LgiNewConvertCp("utf-8", n, Cs));
+				
+				GAutoString Utf((char*) LgiNewConvertCp("utf-8", n, Cs));
+				Name = Utf.Get();
 				if (Name)
 				{
 					if (Name[0] == '.')
@@ -501,9 +503,9 @@ void IFtp::Noop()
 	}
 }
 
-bool IFtp::GetDir(GAutoString &Dir)
+GString IFtp::GetDir()
 {
-	bool Status = false;
+	GString p;
 
 	try
 	{
@@ -520,20 +522,20 @@ bool IFtp::GetDir(GAutoString &Dir)
 			if (End)
 			{
 				*End = 0;	
-				Status = Dir.Reset(FromFtpCs(Start+1));
+				p = Start + 1;
 			}			
 		}
 	}
 	catch (int Error)
 	{
-		printf("%s:%i - error: %i\n", _FL, Error);
+		LgiTrace("%s:%i - error: %i\n", _FL, Error);
 		if (IsOpen())
 		{
 			LgiAssert(0);
 		}
 	}
 
-	return Status;
+	return p;
 }
 
 bool IFtp::SetDir(const char *Dir)

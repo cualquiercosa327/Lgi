@@ -5,6 +5,7 @@
 
 #include "INet.h"
 #include "GDateTime.h"
+#include "GStringClass.h"
 
 #define DefaultFtpCharset	"iso-8859-1"
 
@@ -55,10 +56,10 @@ class IFtpEntry
 public:
 	int Attributes;
 	int64 Size;
-	GAutoString Name;
-	GAutoString Path;
-	GAutoString User;
-	GAutoString Group;
+	GString Name;
+	GString Path;
+	GString User;
+	GString Group;
 	GDateTime Date;
 
 	IFtpEntry();
@@ -100,7 +101,7 @@ public:
 	virtual void GetHost(GAutoString *Host, int *Port) = 0;
 
 	// Directory
-	virtual bool GetDir(GAutoString &Dir) = 0;
+	virtual GString GetDir() = 0;
 	virtual bool SetDir(const char *Dir) = 0;
 	virtual bool CreateDir(const char *Dir) = 0;
 	virtual bool DeleteDir(const char *Dir) = 0;
@@ -189,7 +190,7 @@ public:
 	void Noop();
 
 	/// \returns the current remote folder.
-	bool GetDir(GAutoString &Dir);
+	GString GetDir();
 	/// Sets the current remote folder.
 	bool SetDir(const char *Dir);
 	/// Create a new sub-folder under the current remote folder.
