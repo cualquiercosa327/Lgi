@@ -267,9 +267,14 @@ struct MaskComp
 	}
 };
 
-int CompSort(MaskComp *a, MaskComp *b)
+int UpSort(MaskComp *a, MaskComp *b)
 {
 	return b->Mask < a->Mask ? 1 : -1;
+}
+
+int DownSort(MaskComp *a, MaskComp *b)
+{
+	return b->Mask > a->Mask ? 1 : -1;
 }
 
 GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
@@ -462,7 +467,7 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 			
 			if (Info.AlphaMask)
 				Comps.New().Set(CtAlpha, Info.AlphaMask);
-			Comps.Sort(CompSort);			
+			Comps.Sort(ActualBits == 16 ? DownSort : UpSort);
 
 			GColourSpaceBits Cs;
 			Cs.All = 0;

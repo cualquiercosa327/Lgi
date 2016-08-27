@@ -1101,8 +1101,15 @@ bool LgiRopRgb(uint8 *d, GColourSpace DstCs, uint8 *s, GColourSpace SrcCs, int x
 	{
 		#include "../../src/common/Gdc2/GRopsCases.cpp"
 		default:
+		{
+			GColourSpaceBits Src, Dst;
+			Src.All = SrcCs;
+			Dst.All = DstCs;
+			
+			LgiTrace("%s:%i - Unsupported ROP: %s -> %s\n", _FL, GColourSpaceToString(SrcCs), GColourSpaceToString(DstCs));
 			LgiAssert(!"Unsupported pixel conversion.");
 			return false;
+		}
 	}
 	return true;
 }
