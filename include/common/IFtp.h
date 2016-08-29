@@ -69,6 +69,7 @@ public:
 
 	bool IsDir() { return (Attributes & IFTP_DIR) != 0; }
 	bool IsHidden() { return TestFlag(Attributes, IFTP_HIDDEN); }
+	IFtpEntry &operator =(const IFtpEntry &e);
 };
 
 /// The remote folder system interfaceß

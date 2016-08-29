@@ -71,7 +71,7 @@ char *ReadTextFile(const char *File)
 
 int64 LgiFileSize(const char *FileName)
 {
-	int64 Size = 0;
+	int64 Size = -1;
 	GDirectory Dir;
 	if (Dir.First(FileName, 0))
 	{

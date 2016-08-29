@@ -72,13 +72,8 @@ IFtpEntry::IFtpEntry()
 
 IFtpEntry::IFtpEntry(IFtpEntry *Entry)
 {
-	Attributes = Entry->Attributes;
-	Size = Entry->Size;
-	Name = Entry->Name;
-	Path = Entry->Path;
-	Date = Entry->Date;
-	User = Entry->User;
-	Group = Entry->Group;
+	if (Entry)
+		*this = *Entry;
 }
 
 IFtpEntry::IFtpEntry(char *Entry, const char *Cs)
@@ -215,6 +210,21 @@ IFtpEntry::IFtpEntry(char *Entry, const char *Cs)
 
 IFtpEntry::~IFtpEntry()
 {
+}
+
+IFtpEntry &IFtpEntry::operator =(const IFtpEntry &e)
+{
+	Attributes = e.Attributes;
+	Size = e.Size;
+	Date = e.Date;
+
+	// Make copies for thread safety
+	Name = e.Name.Get();
+	Path = e.Path.Get();
+	User = e.User.Get();
+	Group = e.Group.Get();
+	
+	return *this;
 }
 
 ///////////////////////////////////////////////////////////////////
