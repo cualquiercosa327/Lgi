@@ -6,6 +6,7 @@
 #include "GDocView.h"
 #include "GBitmap.h"
 #include "GButton.h"
+#include "GCss.h"
 
 //////////////////////////////////////////////////////////////////////////////
 #define IDM_WEB				100
@@ -89,7 +90,7 @@ GAbout::GAbout(	GView *parent,
 		if (View)
 		{
 			View->SetEnv(this);
-			View->SetBackColour(LC_MED);
+			View->GetCss(true)->BackgroundColor(GCss::ColorDef(LC_MED));
 			View->SetReadOnly(true);
 			View->SetCursor(Str ? strlen(Str) : 0, false);
 

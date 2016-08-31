@@ -261,7 +261,7 @@ void GTabView::Value(int64 i)
 		}
 
 		Invalidate();
-		SendNotify(d->Current);
+		SendNotify(GNotifyValueChanged);
 	}
 }
 
@@ -365,55 +365,82 @@ GRect &GTabView::GetTabClient()
 	return d->TabClient;
 }
 
+int GTabView::HitTest(GMouse &m)
+{
+	if (d->LeftBtn.Overlap(m.x, m.y))
+	{
+		return LeftScrollBtn;
+	}
+	else if (d->RightBtn.Overlap(m.x, m.y))
+	{
+		return RightScrollBtn;
+	}
+	else
+	{
+		int Hit = -1;
+		TabIterator it(Children);
+		for (int i=0; i<it.Length(); i++)
+		{
+			GTabPage *p = it[i];
+			if (p->TabPos.Overlap(m.x, m.y))
+				return i;
+		}
+	}
+	
+	return NoBtn;
+}
+
 void GTabView::OnMouseClick(GMouse &m)
 {
-	if (m.Down())
+	bool DownLeft = m.Down() || m.Left();
+	int Result = HitTest(m);
+	
+	if (Result == LeftScrollBtn)
 	{
-		if (m.Left())
+		if (DownLeft)
 		{
-			if (d->LeftBtn.Overlap(m.x, m.y))
+			d->Scroll++;
+			Invalidate();
+		}
+	}
+	else if (Result == RightScrollBtn)
+	{
+		if (DownLeft)
+		{
+			d->Scroll = max(0, d->Scroll-1);
+			Invalidate();
+		}
+	}
+	else if (Result >= 0)
+	{
+		TabIterator it(Children);
+		GTabPage *p = it[Result];
+		if (p)
+		{
+			if (p->HasButton() &&
+				p->BtnPos.Overlap(m.x, m.y))
 			{
-				d->Scroll++;
-				Invalidate();
-			}
-			else if (d->RightBtn.Overlap(m.x, m.y))
-			{
-				d->Scroll = max(0, d->Scroll-1);
-				Invalidate();
+				if (DownLeft)
+				{
+					p->OnButtonClick(m);
+					// The tab can delete itself after this event
+					return;
+				}
 			}
 			else
 			{
-				int Hit = -1;
-				TabIterator it(Children);
-				for (int i=0; i<it.Length(); i++)
-				{
-					GTabPage *p = it[i];
-					if (p->TabPos.Overlap(m.x, m.y))
-					{
-						if (p->HasButton() &&
-							p->BtnPos.Overlap(m.x, m.y))
-						{
-							p->OnButtonClick(m);
-							// The tab can delete itself after this event
-							return;
-						}
-						else
-						{						
-							Hit = i;
-						}
-						break;
-					}
-				}
-				
-				if (Hit >= 0)
-				{
-					Value(Hit);
-				}
+				p->OnTabClick(m);
 			}
-
-			Focus(true);
+		}
+		
+		if (DownLeft)
+		{
+			Value(Result);
 		}
 	}
+
+	if (DownLeft)
+		Focus(true);
 }
 
 bool GTabView::OnKey(GKey &k)
@@ -702,6 +729,12 @@ void GTabPage::OnButtonClick(GMouse &m)
 {
 	if (GetId() > 0)
 		SendNotify(GNotifyTabPage_ButtonClick);
+}
+
+void GTabPage::OnTabClick(GMouse &m)
+{
+	GViewI *v = GetId() > 0 ? this : GetParent();
+	v->SendNotify(GNotifyItem_Click);
 }
 
 void GTabPage::OnButtonPaint(GSurface *pDC)

@@ -331,7 +331,6 @@ GTextView3::GTextView3(	int Id,
 	CrLf = false;
 	#endif
 	Underline = 0;
-	BackColour = LC_WORKSPACE;
 	d->Padding(GCss::Len(GCss::LenPx, 2));
 
 	#ifdef _DEBUG
@@ -4275,10 +4274,17 @@ void GTextView3::OnPaint(GSurface *pDC)
 		}
 		
 		GColour Fore(ForeDef.Type ==  GCss::ColorRgb ? Rgb32To24(ForeDef.Rgb32) : LC_TEXT, 24);
-		GColour Back(!ReadOnly ? (BkDef.Type == GCss::ColorRgb ? Rgb32To24(BkDef.Rgb32) : LC_WORKSPACE) : BackColour, 24);
+		GColour Back
+		(
+			!ReadOnly && BkDef.Type == GCss::ColorRgb
+			?
+			Rgb32To24(BkDef.Rgb32)
+			:
+			Enabled() ? LC_WORKSPACE : LC_MED,
+			24
+		);
 
 		GColour Whitespace = Fore.Mix(Back, 0.85f);
-
 		if (!Enabled())
 		{
 			Fore.Set(LC_LOW, 24);

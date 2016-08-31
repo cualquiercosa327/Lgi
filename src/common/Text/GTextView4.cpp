@@ -1093,7 +1093,10 @@ public:
 				Ctx.Cursor->Blk == this)
 			{
 				Ctx.pDC->Colour(CursorColour);
-				Ctx.pDC->Rectangle(&Ctx.Cursor->Pos);
+				if (Ctx.Cursor->Pos.Valid())
+					Ctx.pDC->Rectangle(&Ctx.Cursor->Pos);
+				else
+					Ctx.pDC->Rectangle(Pos.x1, Pos.y1, Pos.x1, Pos.y2);
 			}
 			#if 0 // def _DEBUG
 			if (Ctx.Select &&
@@ -1230,6 +1233,12 @@ public:
 					CurLine->Strs.Add(Ds.Release());
 					Off += Chars;
 				}
+			}
+			if (Txt.Length() == 0)
+			{
+				// Empty node case
+				int y = Pos.y1 + flow.d->View->GetFont()->GetHeight() - 1;
+				Pos.y2 = max(Pos.y2, y);
 			}
 			
 			if (CurLine && CurLine->Strs.Length() > 0)
@@ -1411,11 +1420,22 @@ public:
 	{
 		View = view;
 		WordSelectMode = false;
+		EmptyDoc();
 	}
 	
 	~GTv4Priv()
 	{
 		Empty();
+	}
+	
+	void EmptyDoc()
+	{
+		Block *Def = new TextBlock();
+		if (Def)
+		{			
+			Blocks.Add(Def);
+			Cursor.Reset(new BlockCursor(Def, 0));
+		}
 	}
 	
 	void Empty()
@@ -2135,7 +2155,6 @@ GTextView4::GTextView4(	int Id,
 	#else
 	CrLf = false;
 	#endif
-	BackColour = LC_WORKSPACE;
 	d->Padding(GCss::Len(GCss::LenPx, 4));
 	d->BackgroundColor(GCss::ColorDef(GCss::ColorRgb, Rgb24To32(LC_WORKSPACE)));
 	SetFont(SysFont);
@@ -2331,6 +2350,11 @@ bool GTextView4::Name(const char *s)
 	bool Status = d->FromHtml(Body, *d->CreationCtx);
 	if (Status)
 		SetCursor(0, false);
+	
+	if (!d->Blocks.Length())
+	{
+		d->EmptyDoc();
+	}
 	
 	d->DumpBlocks();
 	
@@ -2932,6 +2956,8 @@ void GTextView4::OnMouseClick(GMouse &m)
 
 	if (m.Down())
 	{
+		Focus(true);
+		
 		if (m.IsContextMenu())
 		{
 			DoContextMenu(m);
@@ -3773,15 +3799,18 @@ void GTextView4::OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour)
 {
 	pDC->Colour(colour);
 	pDC->Rectangle(&r);
-
 }
 
 void GTextView4::OnPaint(GSurface *pDC)
 {
-	#if 1
-	pDC->Colour(GColour(255, 222, 255));
+	pDC->Colour(
+		#if 0 // def _DEBUG
+		GColour(255, 222, 255)
+		#else
+		GColour(LC_WORKSPACE, 24)
+		#endif
+		);
 	pDC->Rectangle();
-	#endif
 	
 	GRect r = GetClient();
 	GCssTools ct(d, d->Font);

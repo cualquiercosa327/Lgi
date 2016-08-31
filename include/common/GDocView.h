@@ -260,7 +260,6 @@ public:
 	_TvMenuProp(bool, CrLf)
 	_TvMenuProp(bool, AutoIndent)
 	_TvMenuProp(bool, FixedWidthFont)
-	_TvMenuProp(COLOUR, BackColour)
 	_TvMenuProp(bool, LoadImages)
 	_TvMenuProp(bool, OverideDocCharset)
 
@@ -291,7 +290,6 @@ public:
 		CrLf = false;
 		AutoIndent = true;
 		FixedWidthFont = false;
-		BackColour = Rgb24(255, 255, 255);
 		LoadImages = false;
 		OverideDocCharset = false;
 

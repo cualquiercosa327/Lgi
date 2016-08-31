@@ -19,6 +19,13 @@ class LgiClass GTabView :
 	int TabY();
 
 public:
+	enum
+	{
+		NoBtn = -1,
+		LeftScrollBtn = -2,
+		RightScrollBtn = -3,
+	};
+
 	/// Creates the tab view object
 	GTabView(	int id = -1,
 				int x = 0,
@@ -65,9 +72,10 @@ public:
 	GViewI *FindControl(HWND hCtrl);
 	#endif
 
+	int HitTest(GMouse &m);
+	void OnMouseClick(GMouse &m);
 	void OnPosChange();
 	void OnPaint(GSurface *pDC);
-	void OnMouseClick(GMouse &m);
 	bool OnKey(GKey &k);
 	void OnFocus(bool f);
 	void OnCreate();
@@ -102,6 +110,9 @@ class LgiClass GTabPage :
 
 	/// This draws the button (should only draw within 'BtnPos')
 	virtual void OnButtonPaint(GSurface *pDC);
+
+	/// This is called when the user clicks the button
+	virtual void OnTabClick(GMouse &m);
 
 public:
 	GTabPage(const char *name);

@@ -392,6 +392,20 @@ public:
 			Rgb32 = col.c32();
 		}
 
+		ColorDef(COLOUR col)
+		{
+			Type = ColorRgb;
+			Rgb32 = Rgb24To32(col);
+		}
+		
+		operator GColour()
+		{
+			GColour c;
+			if (Type == ColorRgb)
+				c.Set(Rgb32, 32);
+			return c;
+		}
+
 		bool IsValid() { return Type != ColorInherit; }
 		bool Parse(const char *&s);
 		ColorDef &operator =(const ColorDef &c)

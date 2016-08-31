@@ -37,6 +37,8 @@ enum Store3SystemFolder
 /// This defines the possible outcomes of calling a function.
 enum Store3Status
 {
+	// General:
+	//--------------------------------------------------------------------------------
 	/// The method failed and no action was taken.
 	Store3Error,
 	/// The method succeeded but the action was not completed immediately, notification
@@ -44,6 +46,13 @@ enum Store3Status
 	Store3Delayed,
 	/// The method succeeded and the action has been already completed.
 	Store3Success,
+	
+	// Open mail store specific:
+	//--------------------------------------------------------------------------------
+	/// The store file is missing
+	Store3Missing,
+	/// A format upgrade is required to open the store.
+	Store3UpgradeRequired,
 };
 
 /// Possible parts of UI

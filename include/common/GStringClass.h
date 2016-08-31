@@ -207,6 +207,23 @@ public:
 		return !strcmp(a, b);
 	}
 
+	bool operator !=(const GString &s)
+	{
+		return !(*this == s);
+	}
+	
+	// Equality function (default: case insensitive, as the operator== is case sensitive)
+	bool Equals(const GString &s, bool CaseInsensitive = true)
+	{
+		const char *a = Get();
+		const char *b = s.Get();
+		if (!a && !b)
+			return true;
+		if (!a || !b)
+			return false;
+		return !(CaseInsensitive ? _stricmp(a, b) : strcmp(a, b));
+	}
+
 	/// Assignment operator to copy one string to another
 	GString &operator =(const GString &s)
 	{
@@ -229,6 +246,11 @@ public:
 		if (!a || !b)
 			return false;
 		return !strcmp(a, b);
+	}
+
+	bool operator !=(const char *b)
+	{
+		return !(*this == b);
 	}
 	
 	/// Assignment operators
@@ -382,7 +404,8 @@ public:
 			
 			while ((s = CaseSen ? strstr(s, Sep) : stristr(s, Sep)))
 			{
-				a.New().Set(Prev, s - Prev);
+				if (s > Prev)
+					a.New().Set(Prev, s - Prev);
 				s += SepLen;
 				Prev = s;
 				if (Count > 0 && a.Length() >= (uint32)Count)

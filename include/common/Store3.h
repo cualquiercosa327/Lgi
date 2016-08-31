@@ -324,15 +324,6 @@ public:
 
 	typedef GAutoPtr<GDsTransaction> StoreTrans;
 
-	enum DataStoreStatus
-	{
-	    DsNull,
-		DsOk,
-		DsError,
-		DsMissing,
-		DsUpgradeRequired,
-	};
-
 	virtual ~GDataStoreI() {}
 
 	/// \returns size of object on disk
@@ -416,7 +407,7 @@ public:
 	) = 0;
 	
 	/// Upgrades the mail store to the current version for this build. You should call this in response
-	/// to getting DsUpgradeRequired back from this->GetInt(FIELD_STATUS).
+	/// to getting Store3UpgradeRequired back from this->GetInt(FIELD_STATUS).
 	virtual bool Upgrade
 	(
 		/// The parent window of the UI

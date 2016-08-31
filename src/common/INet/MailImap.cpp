@@ -1251,7 +1251,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 				char AuthTypeStr[256] = "";
 				for (unsigned i=0; i<Auths.Length() && !TlsError && !LoggedIn; i++)
 				{
-					char *AuthType = Auths[i];
+					const char *AuthType = Auths[i];
 
 					if (DefaultAuthType != AuthType)
 					{

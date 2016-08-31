@@ -3133,9 +3133,11 @@ void GTag::SetStyle()
 		*/
 		case TAG_BODY:
 		{
-			if (BackgroundColor().Type != ColorInherit)
+			GCss::ColorDef Bk = BackgroundColor();
+			if (Bk.Type != ColorInherit)
 			{
-				Html->SetBackColour(BackgroundColor().Rgb32);
+				// Copy the background up to the GHtml wrapper
+				Html->GetCss(true)->BackgroundColor(Bk);
 			}
 			
 			/*
@@ -3552,8 +3554,6 @@ char *GTag::ParseText(char *Doc)
 	Info = Html->GetTagInfo(Tag);
 	char *OriginalCp = NewStr(Html->Charset);
 
-	Html->SetBackColour(Rgb24To32(LC_WORKSPACE));
-	
 	GStringPipe Utf16;
 	char *s = Doc;
 	while (s)
@@ -6822,7 +6822,6 @@ GHtml::GHtml(int id, int x, int y, int cx, int cy, GDocumentEnv *e) :
 	SetPos(r);
 	Cursor = 0;
 	Selection = 0;
-	SetBackColour(Rgb24To32(LC_WORKSPACE));
 	DocumentUid = 0;
 
 	_New();
@@ -6869,8 +6868,6 @@ void GHtml::_New()
 void GHtml::_Delete()
 {
 	LgiAssert(!d->IsParsing);
-
-	SetBackColour(Rgb24To32(LC_WORKSPACE));
 
 	CssStore.Empty();
 	CssHref.Empty();
@@ -6936,7 +6933,8 @@ void GHtml::ParseDocument(const char *Doc)
 		Tag = new GTag(this, 0);
 	}
 
-	SetBackColour(Rgb24To32(LC_WORKSPACE));
+	if (GetCss())
+		GetCss()->DeleteProp(GCss::PropBackgroundColor);
 	if (Tag)
 	{
 		Tag->TagId = ROOT;
@@ -7333,8 +7331,16 @@ void GHtml::OnPaint(GSurface *ScreenDC)
 
 		GSurface *pDC = MemDC ? MemDC : ScreenDC;
 
-		COLOUR Back = GetBackColour();
-		pDC->Colour(Back, 32);
+		GColour cBack;
+		if (GetCss())
+		{
+			GCss::ColorDef Bk = GetCss()->BackgroundColor();
+			if (Bk.Type == GCss::ColorRgb)
+				cBack = Bk;
+		}
+		if (!cBack.IsValid())
+			cBack.Set(Enabled() ? LC_WORKSPACE : LC_MED, 24);		
+		pDC->Colour(cBack);
 		pDC->Rectangle();
 
 		if (Tag)
