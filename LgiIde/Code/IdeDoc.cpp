@@ -12,6 +12,7 @@
 #include "LgiRes.h"
 #include "GEdit.h"
 #include "GList.h"
+#include "GPopupList.h"
 
 const char *Untitled = "[untitled]";
 static const char *White = " \r\t\n";
@@ -28,6 +29,7 @@ enum Ctrls
 #define skipws(s)			while (iswhite(*s)) s++;
 
 #define EDIT_TRAY_HEIGHT	(SysFont->GetHeight() + 10)
+#define EDIT_LEFT_MARGIN	16 // gutter for debug break points
 
 #ifdef LINUX
 	#define SYMPOPUP_LINUX_OFFSET (-SysFont->GetHeight())
@@ -69,6 +71,15 @@ public:
 	
 	~EditTray()
 	{
+	}
+	
+	void GotoSearch()
+	{
+		if (Search)
+		{
+			Search->Name(NULL);
+			Search->Focus(true);
+		}
 	}
 	
 	void OnCreate()
@@ -510,75 +521,39 @@ public:
 	void OnSaveComplete(bool Status);
 };
 
-class SymbolPopup : public GPopup
+class SymbolPopup : public GPopupList<DefnInfo>
 {
-	GList *Lst;
-	GViewI *Edit;
 	AppWnd *App;
-	bool Registered;
 
 public:
 	List<DefnInfo> All;
 
-	SymbolPopup(AppWnd *app, GViewI *target) : GPopup(target->GetGView())
+	SymbolPopup(AppWnd *app, GViewI *target) : GPopupList(target)
 	{
 		App = app;
-		Registered = false;
-		GRect r(200, 300);
-		Edit = target;
-		SetPos(r);
-		AddView(Lst = new GList(IDC_SYMBOLS, r.x1+1, r.y1+1, r.X()-3, r.Y()-3));
-		Lst->Sunken(false);
-		Lst->AddColumn("Name", r.X());
-		Lst->AddColumn("Index", 100);
-		Lst->ShowColumnHeader(false);
+	}
 
-		Attach(target);
+	GString ToString(DefnInfo *Obj)
+	{
+		return GString(Obj->Name);
 	}
 	
-	~SymbolPopup()
+	void OnSelect(DefnInfo *Obj)
 	{
-		if (GetWindow() && Registered)
-			GetWindow()->UnregisterHook(this);
-	}
-	
-	void OnCreate()
-	{
-		AttachChildren();
-	}
-	
-	void OnPaint(GSurface *pDC)
-	{
-		GRect c = GetClient();
-		pDC->Colour(GColour::Black);
-		pDC->Box(&c);
+		App->GotoReference(Obj->File, Obj->Line, false);
 	}
 	
 	bool Name(char *s)
 	{
-		Lst->Empty();
-		if (s)
+		GArray<DefnInfo*> Matching;
+		for (DefnInfo *i=All.First(); i; i=All.Next())
 		{
-			int n=0;
-			for (DefnInfo *i=All.First(); i; i=All.Next(),n++)
+			if (stristr(i->Name, s))
 			{
-				if (stristr(i->Name, s))
-				{
-					GListItem *it = new GListItem;
-					if (it)
-					{
-						GString Idx;
-						Idx.Printf("%i", n);
-						it->SetText(i->Name);
-						it->SetText(Idx, 1);
-						
-						Lst->Insert(it);
-					}
-				}
+				Matching.Add(i);
 			}
 		}
-
-		return true;
+		return SetItems(Matching);
 	}
 	
 	int OnNotify(GViewI *Ctrl, int Flags)
@@ -587,107 +562,10 @@ public:
 			Ctrl == Edit &&
 			!Flags)
 		{
-			char *Str = Edit->Name();
-			Name(Str);
-
-			bool Has = ValidStr(Str) && Lst->Length();
-			bool Vis = Visible();
-			if (Has ^ Vis)
-			{
-				// Set position relative to editbox
-				GRect r = GetPos();
-				GdcPt2 p(0, 0);
-				Edit->PointToScreen(p);
-				r.Offset(p.x - r.x1, (p.y - r.Y()) - r.y1 + SYMPOPUP_LINUX_OFFSET);
-				SetPos(r);				
-
-				Visible(Has);
-				if (Has)
-				{
-					AttachChildren();
-					OnPosChange();
-					
-					if (GetWindow() && !Registered)
-					{
-						Registered = true;
-						GetWindow()->RegisterHook(this, GKeyEvents);
-					}
-
-					Edit->Focus(true);
-				}
-			}
-		}
-		else if (Ctrl == Lst &&
-				Flags == GNotify_ReturnKey)
-		{
-			GListItem *Sel = Lst->GetSelected();
-			if (Sel)
-			{
-				GString Idx = Sel->GetText(1);
-				if (Idx)
-				{
-					int i = Idx.Int();
-					if (i >= 0 && i < All.Length())
-					{
-						DefnInfo *Def = All[i];
-						if (Def)
-						{
-							// Goto def...
-							App->GotoReference(Def->File, Def->Line, false);
-						}
-					}
-				}
-			}
-			
-			Visible(false);
+			Name(Edit->Name());
 		}
 		
-		return 0;
-	}
-
-	bool OnViewKey(GView *v, GKey &k)
-	{
-		if (Visible())
-		{
-			switch (k.vkey)
-			{
-				case VK_TAB:
-				{
-					Visible(false);
-					return false;
-				}
-				case VK_ESCAPE:
-				{
-					if (!k.Down())
-					{
-						Visible(false);
-					}
-					return true;
-					break;
-				}
-				case VK_RETURN:
-				{
-					if (Lst)
-						Lst->OnKey(k);
-					return true;
-					break;
-				}
-				case VK_UP:
-				case VK_DOWN:
-				{
-					if (!k.IsChar)
-					{
-						if (Lst)
-							Lst->OnKey(k);
-						
-						return true;
-					}
-					break;
-				}
-			}
-		}
-
-		return false;	
+		return GPopupList<DefnInfo>::OnNotify(Ctrl, Flags);
 	}
 };
 
@@ -889,6 +767,7 @@ public:
 	}
 	
 	bool OnMenu(GDocView *View, int Id);
+	bool OnKey(GKey &k);
 	
 	char *TemplateMerge(const char *Template, char *Name, List<char> *Params)
 	{
@@ -1008,7 +887,19 @@ public:
 	}
 };
 
-int DocEdit::LeftMarginPx = 16;
+int DocEdit::LeftMarginPx = EDIT_LEFT_MARGIN;
+
+bool DocEdit::OnKey(GKey &k)
+{
+	if (k.Alt() && k.vkey == 'M')
+	{
+		if (k.Down())
+			Doc->GotoSearch();
+		return true;
+	}
+
+	return GTextView3::OnKey(k); 
+}
 
 bool DocEdit::OnMenu(GDocView *View, int Id)
 {
@@ -1485,6 +1376,12 @@ bool IdeDoc::AddBreakPoint(int Line, bool Add)
 	return true;
 }
 
+void IdeDoc::GotoSearch()
+{
+	if (d->Tray)
+		d->Tray->GotoSearch();
+}
+
 bool IdeDoc::IsCurrentIp()
 {
 	char *Fn = GetFileName();
@@ -1596,6 +1493,12 @@ int IdeDoc::OnNotify(GViewI *v, int f)
 		}
 		case IDC_SEARCH:
 		{
+			if (f == GNotify_EscapeKey)
+			{
+				d->Edit->Focus(true);
+				break;
+			}
+			
 			char *SearchStr = v->Name();
 			if (ValidStr(SearchStr))
 			{

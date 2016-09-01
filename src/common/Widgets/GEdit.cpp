@@ -179,6 +179,9 @@ bool GEdit::OnKey(GKey &k)
 		
 		return false;
 	}
+	
+	if (k.vkey == VK_ESCAPE && k.Down())
+		SendNotify(GNotify_EscapeKey);
 
 	bool Status = GTextView3::OnKey(k);
 	return Status;
