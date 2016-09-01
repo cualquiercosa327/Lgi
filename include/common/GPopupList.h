@@ -16,12 +16,16 @@
 template<typename T>
 class GPopupList : public GPopup
 {
-protected:
-	GList *Lst;
-	GViewI *Edit;
-	bool Registered;
-
 public:
+	enum {
+		IDC_BROWSE_LIST = 50,
+	};
+	enum PositionType
+	{
+		PopupAbove,
+		PopupBelow,
+	};
+
 	class Item : public GListItem
 	{
 	public:
@@ -33,17 +37,26 @@ public:
 		}
 	};
 
-	GPopupList(GViewI *edit, int width = 200, int height = 300) : GPopup(edit->GetGView())
+protected:
+	GList *Lst;
+	GViewI *Edit;
+	bool Registered;
+	PositionType PosType;
+
+public:
+	GPopupList(GViewI *edit, PositionType pos, int width = 200, int height = 300) : GPopup(edit->GetGView())
 	{
 		Registered = false;
+		PosType = pos;
 
 		GRect r(width - 1, height - 1);
 		Edit = edit;
 		SetPos(r);
-		AddView(Lst = new GList(IDC_SYMBOLS, r.x1+1, r.y1+1, r.X()-3, r.Y()-3));
+		AddView(Lst = new GList(IDC_BROWSE_LIST, r.x1+1, r.y1+1, r.X()-3, r.Y()-3));
 		Lst->Sunken(false);
 		Lst->AddColumn("Name", r.X());
 		Lst->ShowColumnHeader(false);
+		Lst->MultiSelect(false);
 		
 		// Set default border style...
 		GCss *Css = GetCss(true);
@@ -73,6 +86,11 @@ public:
 	
 	// Implementation:
 	// ------------------------------------------------------------------------	
+	void SetPosType(PositionType t)
+	{
+		PosType = t;
+	}
+	
 	bool SetItems(GArray<T*> &a)
 	{
 		Lst->Empty();
@@ -133,9 +151,12 @@ public:
 			{
 				// Set position relative to editbox
 				GRect r = GetPos();
-				GdcPt2 p(0, 0);
+				GdcPt2 p(0, PosType == PopupAbove ? 0 : Edit->Y());
 				Edit->PointToScreen(p);
-				r.Offset(p.x - r.x1, (p.y - r.Y()) - r.y1);
+				if (PosType == PopupAbove)
+					r.Offset(p.x - r.x1, (p.y - r.Y()) - r.y1);
+				else
+					r.Offset(p.x - r.x1, p.y - r.y1);
 				SetPos(r);				
 
 				Visible(Has);

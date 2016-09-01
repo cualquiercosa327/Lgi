@@ -521,7 +521,7 @@ class SymbolPopup : public GPopupList<DefnInfo>
 public:
 	List<DefnInfo> All;
 
-	SymbolPopup(AppWnd *app, GViewI *target) : GPopupList(target)
+	SymbolPopup(AppWnd *app, GViewI *target) : GPopupList(target, PopupAbove)
 	{
 		App = app;
 	}
