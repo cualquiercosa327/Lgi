@@ -261,6 +261,35 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////
+class DebugTextLog : public GTextLog
+{
+public:
+	DebugTextLog(int id) : GTextLog(id)
+	{
+	}
+	
+	void PourText(int Start, int Len)
+	{
+		GTextView3::PourText(Start, Len);
+
+		for (GTextLine *l=Line.First(); l; l=Line.Next())
+		{
+			int n=0;
+			char16 *t = Text + l->Start;
+			char16 *e = t + l->Len;
+
+			if (l->Len > 5 && !StrnicmpW(t, L"(gdb)", 5))
+			{
+				l->c.Rgb(0, 160, 0);
+			}
+			else if (l->Len > 1 && t[0] == '[')
+			{
+				l->c.Rgb(192, 192, 192);
+			}
+		}
+	}
+};
+
 class IdeOutput : public GPanel
 {
 public:
@@ -517,7 +546,7 @@ public:
 					{
 						DebugLog->SetVertical(true);
 						DebugBox->AddView(DebugLog);
-						DebugLog->AddView(DebuggerLog = new GTextLog(IDC_DEBUGGER_LOG));
+						DebugLog->AddView(DebuggerLog = new DebugTextLog(IDC_DEBUGGER_LOG));
 						DebuggerLog->SetFont(&Small);
 						DebugLog->AddView(DebugEdit = new GEdit(IDC_DEBUG_EDIT, 0, 0, 60, 20));
 						DebugEdit->GetCss(true)->Height(GCss::Len(GCss::LenPx, SysFont->GetHeight() + 8));

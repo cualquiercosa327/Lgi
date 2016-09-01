@@ -734,12 +734,14 @@ public:
 				GString s(t->Length() ? &t->First() : NULL);
 				s = s.Strip();
 				
+				/*
 				LgiTrace("    %p: style=%p/%s, txt(%i)=%s\n",
 					t,
 					t->GetStyle(),
 					t->GetStyle() ? t->GetStyle()->Name.Get() : NULL,
 					t->Length(),
 					s.Get());
+				*/
 			}
 		}
 		
@@ -2048,8 +2050,8 @@ public:
 			}
 
 			GNamedStyle *CachedStyle = AddStyleToCache(Style);
-			LgiTrace("%s%s IsBlock=%i CachedStyle=%p\n", Sp, c->Tag.Get(), IsBlock, CachedStyle);
-
+			//LgiTrace("%s%s IsBlock=%i CachedStyle=%p\n", Sp, c->Tag.Get(), IsBlock, CachedStyle);
+			
 			if ((IsBlock && ctx.LastChar != '\n') || c->TagId == TAG_BR)
 			{
 				if (!ctx.Tb)
@@ -2356,7 +2358,7 @@ bool GTextView4::Name(const char *s)
 		d->EmptyDoc();
 	}
 	
-	d->DumpBlocks();
+	// d->DumpBlocks();
 	
 	return Status;
 }

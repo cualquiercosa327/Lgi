@@ -108,6 +108,11 @@ GWindow::~GWindow()
 	DeleteObj(_Lock);
 }
 
+static void PixbufDestroyNotify(guchar *pixels, GSurface *data)
+{
+	delete data;
+}
+
 bool GWindow::SetIcon(const char *FileName)
 {
 	GAutoString a;
@@ -128,9 +133,31 @@ bool GWindow::SetIcon(const char *FileName)
 		{		
 			GError *error = NULL;
 			Gtk::GdkPixbuf *pixbuf = Gtk::gdk_pixbuf_new_from_file(FileName, &error);
+			
+			if (!pixbuf)
+			{
+				// Fall back to LGI's image loader...
+				GSurface *Ico = LoadDC(FileName);
+				if (Ico)
+				{
+					// Convert to pixbuf
+					pixbuf = Gtk::gdk_pixbuf_new_from_data
+						(
+							(*Ico)[0],
+							Gtk::GDK_COLORSPACE_RGB,
+							Ico->GetBits() == 32,
+							Ico->GetBits(),
+							Ico->X(), Ico->Y(),
+							Ico->GetRowStep(),
+							PixbufDestroyNotify,
+							Ico
+						);
+				}
+			}
+			
 			if (pixbuf)
 			{
-				#if 0
+				#if 1
 				printf("Calling gtk_window_set_icon with '%s' (%ix%i, %ich, %ibytes/line)\n",
 					FileName,
 					gdk_pixbuf_get_width(pixbuf),
@@ -138,7 +165,7 @@ bool GWindow::SetIcon(const char *FileName)
 					gdk_pixbuf_get_n_channels(pixbuf),
 					gdk_pixbuf_get_rowstride(pixbuf));
 				#endif
-									
+				
 				Gtk::gtk_window_set_icon(Wnd, pixbuf);
 			}
 			else LgiTrace("%s:%i - gdk_pixbuf_new_from_file(%s) failed.\n", _FL, FileName);
