@@ -11,6 +11,7 @@
 #include "GScrollBar.h"
 #include "LgiRes.h"
 #include "GEdit.h"
+#include "GList.h"
 
 const char *Untitled = "[untitled]";
 static const char *White = " \r\t\n";
@@ -20,6 +21,7 @@ static const char *White = " \r\t\n";
 enum Ctrls
 {
 	IDC_EDIT = 1100,
+	IDC_SYMBOLS,
 };
 #define isword(s)			(s && (isdigit(s) || isalpha(s) || (s) == '_') )
 #define iswhite(s)			(s && strchr(White, s) != 0)
@@ -487,6 +489,7 @@ public:
 	class DocEdit *Edit;
 	EditTray *Tray;
 	GHashTbl<int, bool> BreakPoints;
+	class SymbolPopup *SymPopup;
 	
 	IdeDocPrivate(IdeDoc *d, AppWnd *a, NodeSource *src, const char *file);
 	void OnDelete();
@@ -498,6 +501,187 @@ public:
 	bool Load();
 	bool Save();
 	void OnSaveComplete(bool Status);
+};
+
+class SymbolPopup : public GPopup
+{
+	GList *Lst;
+	GViewI *Edit;
+	AppWnd *App;
+	bool Registered;
+
+public:
+	List<DefnInfo> All;
+
+	SymbolPopup(AppWnd *app, GViewI *target) : GPopup(target->GetGView())
+	{
+		App = app;
+		Registered = false;
+		GRect r(200, 300);
+		Edit = target;
+		SetPos(r);
+		AddView(Lst = new GList(IDC_SYMBOLS, r.x1+1, r.y1+1, r.X()-3, r.Y()-3));
+		Lst->Sunken(false);
+		Lst->AddColumn("Name", r.X());
+		Lst->AddColumn("Index", 100);
+		Lst->ShowColumnHeader(false);
+
+		Attach(target);
+	}
+	
+	~SymbolPopup()
+	{
+		if (GetWindow() && Registered)
+			GetWindow()->UnregisterHook(this);
+	}
+	
+	void OnCreate()
+	{
+		AttachChildren();
+	}
+	
+	void OnPaint(GSurface *pDC)
+	{
+		GRect c = GetClient();
+		pDC->Colour(GColour::Black);
+		pDC->Box(&c);
+	}
+	
+	bool Name(char *s)
+	{
+		Lst->Empty();
+		if (s)
+		{
+			int n=0;
+			for (DefnInfo *i=All.First(); i; i=All.Next(),n++)
+			{
+				if (stristr(i->Name, s))
+				{
+					GListItem *it = new GListItem;
+					if (it)
+					{
+						GString Idx;
+						Idx.Printf("%i", n);
+						it->SetText(i->Name);
+						it->SetText(Idx, 1);
+						
+						Lst->Insert(it);
+					}
+				}
+			}
+		}
+
+		return true;
+	}
+	
+	int OnNotify(GViewI *Ctrl, int Flags)
+	{
+		if (Lst &&
+			Ctrl == Edit &&
+			!Flags)
+		{
+			char *Str = Edit->Name();
+			Name(Str);
+
+			bool Has = ValidStr(Str) && Lst->Length();
+			bool Vis = Visible();
+			if (Has ^ Vis)
+			{
+				// Set position relative to editbox
+				GRect r = GetPos();
+				GdcPt2 p(0, 0);
+				Edit->PointToScreen(p);
+				r.Offset(p.x - r.x1, (p.y - r.Y()) - r.y1);
+				SetPos(r);				
+
+				Visible(Has);
+				if (Has)
+				{
+					AttachChildren();
+					OnPosChange();
+					
+					if (GetWindow() && !Registered)
+					{
+						Registered = true;
+						GetWindow()->RegisterHook(this, GKeyEvents);
+					}
+
+					Edit->Focus(true);
+				}
+			}
+		}
+		else if (Ctrl == Lst &&
+				Flags == GNotify_ReturnKey)
+		{
+			GListItem *Sel = Lst->GetSelected();
+			if (Sel)
+			{
+				GString Idx = Sel->GetText(1);
+				if (Idx)
+				{
+					int i = Idx.Int();
+					if (i >= 0 && i < All.Length())
+					{
+						DefnInfo *Def = All[i];
+						if (Def)
+						{
+							// Goto def...
+							App->GotoReference(Def->File, Def->Line, false);
+						}
+					}
+				}
+			}
+			
+			Visible(false);
+		}
+		
+		return 0;
+	}
+
+	bool OnViewKey(GView *v, GKey &k)
+	{
+		if (Visible())
+		{
+			switch (k.vkey)
+			{
+				case VK_TAB:
+				{
+					Visible(false);
+					return false;
+				}
+				case VK_ESCAPE:
+				{
+					if (!k.Down())
+					{
+						Visible(false);
+					}
+					return true;
+					break;
+				}
+				case VK_RETURN:
+				{
+					if (Lst)
+						Lst->OnKey(k);
+					return true;
+					break;
+				}
+				case VK_UP:
+				case VK_DOWN:
+				{
+					if (!k.IsChar)
+					{
+						if (Lst)
+							Lst->OnKey(k);
+						
+						return true;
+					}
+					break;
+				}
+			}
+		}
+
+		return false;	
+	}
 };
 
 class DocEdit : public GTextView3, public GDocumentEnv
@@ -952,6 +1136,7 @@ bool DocEdit::OnMenu(GDocView *View, int Id)
 IdeDocPrivate::IdeDocPrivate(IdeDoc *d, AppWnd *a, NodeSource *src, const char *file) : NodeView(src)
 {
 	IsDirty = false;
+	SymPopup = NULL;
 	App = a;
 	Doc = d;
 	Project = 0;
@@ -1404,7 +1589,27 @@ int IdeDoc::OnNotify(GViewI *v, int f)
 		}
 		case IDC_SEARCH:
 		{
-			printf("Search: %s\n", v->Name());
+			char *SearchStr = v->Name();
+			if (ValidStr(SearchStr))
+			{
+				if (!d->SymPopup)
+				{
+					if (d->SymPopup = new SymbolPopup(d->App, v))
+					{
+						// Populate with symbols
+						BuildDefnList(GetFileName(), d->Edit->NameW(), d->SymPopup->All, DefnFunc);
+					}
+				}
+				if (d->SymPopup)
+				{
+					// Update list elements...
+					d->SymPopup->OnNotify(v, f);
+				}
+			}
+			else if (d->SymPopup)
+			{
+				DeleteObj(d->SymPopup);
+			}
 			break;
 		}
 	}
