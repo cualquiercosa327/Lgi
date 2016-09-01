@@ -10,16 +10,21 @@
 #include "GDisplayString.h"
 #include "GScrollBar.h"
 #include "LgiRes.h"
+#include "GEdit.h"
 
 const char *Untitled = "[untitled]";
 static const char *White = " \r\t\n";
 
 #define USE_OLD_FIND_DEFN	1
 
-#define IDC_EDIT			100
+enum Ctrls
+{
+	IDC_EDIT = 1100,
+};
 #define isword(s)			(s && (isdigit(s) || isalpha(s) || (s) == '_') )
 #define iswhite(s)			(s && strchr(White, s) != 0)
 #define skipws(s)			while (iswhite(*s)) s++;
+#define EDIT_TRAY_HEIGHT	(SysFont->GetHeight() + 10)
 
 GAutoPtr<GDocFindReplaceParams> GlobalFindReplace;
 
@@ -35,6 +40,8 @@ class EditTray : public GLayout
 	GRect HeaderBtn;
 	GRect FuncBtn;
 	GRect SymBtn;
+	GRect TextMsg;
+	GEdit *Search;
 	GTextView3 *Ctrl;
 	IdeDoc *Doc;
 
@@ -48,17 +55,22 @@ public:
 		Line = Col = 0;
 		FuncBtn.ZOff(-1, -1);
 		SymBtn.ZOff(-1, -1);
+		AddView(Search = new GEdit(IDC_SEARCH, 0, 0, 200, SysFont->GetHeight() + 6));
 	}
 	
 	~EditTray()
 	{
 	}
-
-	void OnPaint(GSurface *pDC)
+	
+	void OnCreate()
+	{
+		AttachChildren();
+	}
+	
+	void OnPosChange()
 	{
 		GRect c = GetClient();
-		SysFont->Colour(LC_TEXT, LC_MED);
-		
+
 		int BtnHt = c.Y()-5;
 		HeaderBtn.ZOff(20, BtnHt);
 		HeaderBtn.Offset(2, 2);
@@ -68,18 +80,37 @@ public:
 
 		SymBtn.ZOff(20, BtnHt);
 		SymBtn.Offset(FuncBtn.x2 + 3, 2);
-
-		char s[256];
-		sprintf(s, "Cursor: %i,%i", Col, Line + 1);
-		SysFont->Transparent(false);
+		
+		int x = SymBtn.x2 + 10;
+		if (Search)
+		{
+			GRect r = Search->GetPos();
+			r.Offset(x - r.x1, 2 - r.y1);
+			Search->SetPos(r);
+			x = r.x2 + 10;
+		}
+		
+		TextMsg.ZOff(c.X() - x - 2, BtnHt);
+		TextMsg.Offset(x, 2);
+	}
+	
+	void OnPaint(GSurface *pDC)
+	{
+		GRect c = GetClient();
+		pDC->Colour(LC_MED, 24);
+		pDC->Rectangle();
+		SysFont->Colour(LC_TEXT, LC_MED);
+		SysFont->Transparent(true);
+		
+		GString s;
+		s.Printf("Cursor: %i,%i", Col, Line + 1);
 		{
 			GDisplayString ds(SysFont, s);
-			ds.Draw(pDC, SymBtn.x2 + 4, 4, &c);
+			ds.Draw(pDC, TextMsg.x1, TextMsg.y1 + ((c.Y()-TextMsg.Y())/2), &TextMsg);
 		}
 
 		GRect f = HeaderBtn;
 		LgiThinBorder(pDC, f, DefaultRaisedEdge);
-		SysFont->Transparent(true);
 		{
 			GDisplayString ds(SysFont, "h");
 			ds.Draw(pDC, f.x1 + 6, f.y1);
@@ -87,7 +118,6 @@ public:
 
 		f = FuncBtn;
 		LgiThinBorder(pDC, f, DefaultRaisedEdge);
-		SysFont->Transparent(true);
 		{
 			GDisplayString ds(SysFont, "{ }");
 			ds.Draw(pDC, f.x1 + 3, f.y1);
@@ -95,7 +125,6 @@ public:
 
 		f = SymBtn;
 		LgiThinBorder(pDC, f, DefaultRaisedEdge);
-		SysFont->Transparent(true);
 		{
 			GDisplayString ds(SysFont, "s");
 			ds.Draw(pDC, f.x1 + 6, f.y1);
@@ -781,7 +810,7 @@ public:
 	{
 		GRect c = r.Bound();
 
-		c.y2 -= 20;
+		c.y2 -= EDIT_TRAY_HEIGHT;
 		SetPos(c);
 		
 		return true;
@@ -1371,6 +1400,11 @@ int IdeDoc::OnNotify(GViewI *v, int f)
 					break;
 				}
 			}
+			break;
+		}
+		case IDC_SEARCH:
+		{
+			printf("Search: %s\n", v->Name());
 			break;
 		}
 	}
