@@ -27,6 +27,7 @@ enum Ctrls
 #define isword(s)			(s && (isdigit(s) || isalpha(s) || (s) == '_') )
 #define iswhite(s)			(s && strchr(White, s) != 0)
 #define skipws(s)			while (iswhite(*s)) s++;
+
 #define EDIT_TRAY_HEIGHT	(SysFont->GetHeight() + 10)
 #define EDIT_LEFT_MARGIN	16 // gutter for debug break points
 
@@ -521,7 +522,7 @@ class SymbolPopup : public GPopupList<DefnInfo>
 public:
 	List<DefnInfo> All;
 
-	SymbolPopup(AppWnd *app, GViewI *target) : GPopupList(target, PopupAbove)
+	SymbolPopup(AppWnd *app, GViewI *target) : GPopupList(target, PopupAbove, 300)
 	{
 		App = app;
 	}
@@ -884,7 +885,7 @@ int DocEdit::LeftMarginPx = EDIT_LEFT_MARGIN;
 
 bool DocEdit::OnKey(GKey &k)
 {
-	if (k.Alt() && k.vkey == 'M')
+	if (k.Alt() && ToLower(k.vkey) == 'm')
 	{
 		if (k.Down())
 			Doc->GotoSearch();
