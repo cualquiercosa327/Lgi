@@ -31,12 +31,6 @@ enum Ctrls
 #define EDIT_TRAY_HEIGHT	(SysFont->GetHeight() + 10)
 #define EDIT_LEFT_MARGIN	16 // gutter for debug break points
 
-#ifdef LINUX
-	#define SYMPOPUP_LINUX_OFFSET (-SysFont->GetHeight())
-#else
-	#define SYMPOPUP_LINUX_OFFSET 0
-#endif
-
 GAutoPtr<GDocFindReplaceParams> GlobalFindReplace;
 
 int FileNameSorter(char **a, char **b)
@@ -528,7 +522,7 @@ class SymbolPopup : public GPopupList<DefnInfo>
 public:
 	List<DefnInfo> All;
 
-	SymbolPopup(AppWnd *app, GViewI *target) : GPopupList(target)
+	SymbolPopup(AppWnd *app, GViewI *target) : GPopupList(target, 300)
 	{
 		App = app;
 	}
@@ -891,7 +885,7 @@ int DocEdit::LeftMarginPx = EDIT_LEFT_MARGIN;
 
 bool DocEdit::OnKey(GKey &k)
 {
-	if (k.Alt() && k.vkey == 'M')
+	if (k.Alt() && ToLower(k.vkey) == 'm')
 	{
 		if (k.Down())
 			Doc->GotoSearch();
