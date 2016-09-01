@@ -26,7 +26,14 @@ enum Ctrls
 #define isword(s)			(s && (isdigit(s) || isalpha(s) || (s) == '_') )
 #define iswhite(s)			(s && strchr(White, s) != 0)
 #define skipws(s)			while (iswhite(*s)) s++;
+
 #define EDIT_TRAY_HEIGHT	(SysFont->GetHeight() + 10)
+
+#ifdef LINUX
+	#define SYMPOPUP_LINUX_OFFSET (-SysFont->GetHeight())
+#else
+	#define SYMPOPUP_LINUX_OFFSET 0
+#endif
 
 GAutoPtr<GDocFindReplaceParams> GlobalFindReplace;
 
@@ -591,7 +598,7 @@ public:
 				GRect r = GetPos();
 				GdcPt2 p(0, 0);
 				Edit->PointToScreen(p);
-				r.Offset(p.x - r.x1, (p.y - r.Y()) - r.y1);
+				r.Offset(p.x - r.x1, (p.y - r.Y()) - r.y1 + SYMPOPUP_LINUX_OFFSET);
 				SetPos(r);				
 
 				Visible(Has);
