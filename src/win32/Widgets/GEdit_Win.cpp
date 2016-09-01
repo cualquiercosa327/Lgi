@@ -246,6 +246,9 @@ GMessage::Result GEdit::OnEvent(GMessage *Msg)
 				// to the next field.
 				return 0;
 			}
+			
+			if (Msg->a == VK_ESCAPE)
+				SendNotify(GNotify_EscapeKey);
 
 			if (tolower(Msg->a) == 'u')
 			{
