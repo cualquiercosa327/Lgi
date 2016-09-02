@@ -213,18 +213,11 @@ T *Strcat(T *dst, int dst_len, const T *postfix)
 		dst_len--;
 	}
 	
-	// Copy the postfix...
-	REG const T *s = postfix;
-	while (*s && dst_len > 1)
-	{
-		*dst++ = *s++;
-		dst_len--;
-	}
+	// Reuse string copy at this point
+	Strcpy(dst, dst_len, postfix);
 	
-	if (dst_len > 0)
-		*dst = 0;
-	
-	return NULL;
+	// Return the start of the complete string
+	return dst;
 }
 
 /// Converts a utf-8 string into a wide character string
