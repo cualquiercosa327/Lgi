@@ -195,7 +195,6 @@ public:
 	void StopBuild();
 	void Clean(bool Release);
 	GDebugContext *Execute(ExeAction Act = ExeRun);
-	char *FindFullPath(const char *File, class ProjectNode **Node = NULL);
 	bool InProject(const char *Path, bool Open, class IdeDoc **Doc = 0);
 	const char *GetFileComment();
 	const char *GetFunctionComment();
@@ -204,6 +203,10 @@ public:
 	bool GetTargetFile(char *Buf, int BufSize);
 	bool BuildIncludePaths(GArray<char*> &Paths, bool Recurse, IdePlatform Platform);
 	void ShowFileProperties(const char *File);
+	
+	// Nodes
+	char *FindFullPath(const char *File, class ProjectNode **Node = NULL);
+	bool GetAllNodes(GArray<ProjectNode*> &Nodes);
 
 	// Project heirarchy
 	IdeProject *GetParentProject();

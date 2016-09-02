@@ -49,6 +49,7 @@ public:
 	bool IsWeb();
 	ProjectNode *ChildNode();
 	ProjectNode *NextNode();
+	void AddNodes(GArray<ProjectNode*> &Nodes);
 	void SetClean();
 	IdeProject *GetDep();
 	IdeProject *GetProject();

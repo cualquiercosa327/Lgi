@@ -255,6 +255,15 @@ ProjectNode *ProjectNode::NextNode()
 	return dynamic_cast<ProjectNode*>(GetNext());
 }
 
+void ProjectNode::AddNodes(GArray<ProjectNode*> &Nodes)
+{
+	Nodes.Add(this);
+	for (ProjectNode *c = ChildNode(); c; c = c->NextNode())
+	{
+		c->AddNodes(Nodes);
+	}
+}
+
 void ProjectNode::SetClean()
 {
 	if (Dep)

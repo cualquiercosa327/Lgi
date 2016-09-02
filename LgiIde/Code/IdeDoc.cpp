@@ -13,6 +13,8 @@
 #include "GEdit.h"
 #include "GList.h"
 #include "GPopupList.h"
+#include "GTableLayout.h"
+#include "ProjectNode.h"
 
 const char *Untitled = "[untitled]";
 static const char *White = " \r\t\n";
@@ -22,7 +24,9 @@ static const char *White = " \r\t\n";
 enum Ctrls
 {
 	IDC_EDIT = 1100,
-	IDC_SYMBOLS,
+	IDC_FILE_SEARCH,
+	IDC_METHOD_SEARCH,
+	IDC_SYMBOL_SEARCH,
 };
 #define isword(s)			(s && (isdigit(s) || isalpha(s) || (s) == '_') )
 #define iswhite(s)			(s && strchr(White, s) != 0)
@@ -42,11 +46,17 @@ int FileNameSorter(char **a, char **b)
 
 class EditTray : public GLayout
 {
-	GRect HeaderBtn;
+	GRect FileBtn;
+	GEdit *FileSearch;
+
 	GRect FuncBtn;
+	GEdit *FuncSearch;
+
 	GRect SymBtn;
+	GEdit *SymSearch;
+
 	GRect TextMsg;
-	GEdit *Search;
+
 	GTextView3 *Ctrl;
 	IdeDoc *Doc;
 
@@ -60,7 +70,10 @@ public:
 		Line = Col = 0;
 		FuncBtn.ZOff(-1, -1);
 		SymBtn.ZOff(-1, -1);
-		AddView(Search = new GEdit(IDC_SEARCH, 0, 0, 200, SysFont->GetHeight() + 6));
+		
+		AddView(FileSearch = new GEdit(IDC_FILE_SEARCH, 0, 0, 120, SysFont->GetHeight() + 6));
+		AddView(FuncSearch = new GEdit(IDC_METHOD_SEARCH, 0, 0, 120, SysFont->GetHeight() + 6));
+		AddView(SymSearch = new GEdit(IDC_SYMBOL_SEARCH, 0, 0, 120, SysFont->GetHeight() + 6));
 	}
 	
 	~EditTray()
@@ -69,10 +82,10 @@ public:
 	
 	void GotoSearch()
 	{
-		if (Search)
+		if (FuncSearch)
 		{
-			Search->Name(NULL);
-			Search->Focus(true);
+			FuncSearch->Name(NULL);
+			FuncSearch->Focus(true);
 		}
 	}
 	
@@ -83,29 +96,25 @@ public:
 	
 	void OnPosChange()
 	{
-		GRect c = GetClient();
+		int EditPx = 120;
+		GLayoutRect c(this, 2);
 
-		int BtnHt = c.Y()-5;
-		HeaderBtn.ZOff(20, BtnHt);
-		HeaderBtn.Offset(2, 2);
+		c.Left(FileBtn, 20);
+		if (FileSearch)
+			c.Left(FileSearch, EditPx);
+		c.x1 += 8;
 
-		FuncBtn.ZOff(20, BtnHt);
-		FuncBtn.Offset(HeaderBtn.x2 + 3, 2);
+		c.Left(FuncBtn, 20);
+		if (FuncSearch)
+			c.Left(FuncSearch, EditPx);
+		c.x1 += 8;
 
-		SymBtn.ZOff(20, BtnHt);
-		SymBtn.Offset(FuncBtn.x2 + 3, 2);
+		c.Left(SymBtn, 20);
+		if (SymSearch)
+			c.Left(SymSearch, EditPx);
+		c.x1 += 8;
 		
-		int x = SymBtn.x2 + 10;
-		if (Search)
-		{
-			GRect r = Search->GetPos();
-			r.Offset(x - r.x1, 2 - r.y1);
-			Search->SetPos(r);
-			x = r.x2 + 10;
-		}
-		
-		TextMsg.ZOff(c.X() - x - 2, BtnHt);
-		TextMsg.Offset(x, 2);
+		c.Remaining(TextMsg);
 	}
 	
 	void OnPaint(GSurface *pDC)
@@ -123,7 +132,7 @@ public:
 			ds.Draw(pDC, TextMsg.x1, TextMsg.y1 + ((c.Y()-TextMsg.Y())/2), &TextMsg);
 		}
 
-		GRect f = HeaderBtn;
+		GRect f = FileBtn;
 		LgiThinBorder(pDC, f, DefaultRaisedEdge);
 		{
 			GDisplayString ds(SysFont, "h");
@@ -473,7 +482,7 @@ void EditTray::OnMouseClick(GMouse &m)
 {
 	if (m.Left() && m.Down())
 	{
-		if (HeaderBtn.Overlap(m.x, m.y))
+		if (FileBtn.Overlap(m.x, m.y))
 		{
 			OnHeaderList(m);
 		}
@@ -501,6 +510,7 @@ public:
 	class DocEdit *Edit;
 	EditTray *Tray;
 	GHashTbl<int, bool> BreakPoints;
+	class ProjFilePopup *FilePopup;
 	class SymbolPopup *SymPopup;
 	
 	IdeDocPrivate(IdeDoc *d, AppWnd *a, NodeSource *src, const char *file);
@@ -560,6 +570,75 @@ public:
 		}
 		
 		return GPopupList<DefnInfo>::OnNotify(Ctrl, Flags);
+	}
+};
+
+
+class ProjFilePopup : public GPopupList<ProjectNode>
+{
+	AppWnd *App;
+
+public:
+	GArray<ProjectNode*> Nodes;
+
+	ProjFilePopup(AppWnd *app, GViewI *target) : GPopupList(target, PopupAbove, 300)
+	{
+		App = app;
+	}
+
+	GString ToString(ProjectNode *Obj)
+	{
+		return GString(Obj->GetFileName());
+	}
+	
+	void OnSelect(ProjectNode *Obj)
+	{
+		char *Fn = Obj->GetFileName();
+		if (LgiIsRelativePath(Fn))
+		{
+			IdeProject *Proj = Obj->GetProject();
+			GAutoString Base = Proj->GetBasePath();
+			GFile::Path p(Base);
+			p += Fn;
+			App->GotoReference(p, 1, false);			
+		}
+		else
+		{
+			App->GotoReference(Fn, 1, false);
+		}
+	}
+	
+	void Update(const char *Search)
+	{
+		GArray<ProjectNode*> Matches;
+		for (unsigned i=0; i<Nodes.Length(); i++)
+		{
+			ProjectNode *Pn = Nodes[i];
+			char *Fn = Pn->GetFileName();
+			if (Fn)
+			{
+				char *Dir = strchr(Fn, '/');
+				if (!Dir) Dir = strchr(Fn, '\\');
+				char *Leaf = Dir ? strrchr(Fn, *Dir) : Fn;
+				if (stristr(Leaf, Search))
+					Matches.Add(Pn);
+			}
+		}
+		SetItems(Matches);
+	}
+	
+	int OnNotify(GViewI *Ctrl, int Flags)
+	{
+		if (Lst &&
+			Ctrl == Edit &&
+			!Flags)
+		{
+			char *s = Ctrl->Name();
+			if (ValidStr(s))
+				Update(s);
+		}
+		
+		return GPopupList<ProjectNode>::OnNotify(Ctrl, Flags);
 	}
 };
 
@@ -1029,6 +1108,7 @@ IdeDocPrivate::IdeDocPrivate(IdeDoc *d, AppWnd *a, NodeSource *src, const char *
 {
 	IsDirty = false;
 	SymPopup = NULL;
+	FilePopup = NULL;
 	App = a;
 	Doc = d;
 	Project = 0;
@@ -1485,7 +1565,54 @@ int IdeDoc::OnNotify(GViewI *v, int f)
 			}
 			break;
 		}
-		case IDC_SEARCH:
+		case IDC_FILE_SEARCH:
+		{
+			if (f == GNotify_EscapeKey)
+			{
+				d->Edit->Focus(true);
+				break;
+			}
+			
+			char *SearchStr = v->Name();
+			if (ValidStr(SearchStr))
+			{
+				if (!d->FilePopup)
+				{
+					if (d->FilePopup = new ProjFilePopup(d->App, v))
+					{
+						// Populate with files from the project...
+						
+						// Find the root project...
+						IdeProject *p = d->Project;
+						while (p && p->GetParentProject())
+							p = p->GetParentProject();
+						
+						if (p)
+						{
+							// Get all the nodes
+							List<IdeProject> All;
+							p->GetChildProjects(All);
+							All.Insert(p);							
+							for (IdeProject *p=All.First(); p; p=All.Next())
+							{
+								p->GetAllNodes(d->FilePopup->Nodes);
+							}
+						}
+					}
+				}
+				if (d->FilePopup)
+				{
+					// Update list elements...
+					d->FilePopup->OnNotify(v, f);
+				}
+			}
+			else if (d->FilePopup)
+			{
+				DeleteObj(d->FilePopup);
+			}
+			break;
+		}
+		case IDC_METHOD_SEARCH:
 		{
 			if (f == GNotify_EscapeKey)
 			{

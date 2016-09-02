@@ -75,59 +75,103 @@ public:
 /// This is just a light-weight layout system for doing things manually.
 class GLayoutRect : public GRect
 {
+	int Spacing;
+
 public:
-	GLayoutRect(GViewI *c)
+	GLayoutRect(GViewI *c, int spacing = GTableLayout::CellSpacing)
 	{
+		Spacing = spacing;
 		((GRect&)*this) = c->GetClient();
-		Size(GTableLayout::CellSpacing, GTableLayout::CellSpacing);
+		Size(Spacing, Spacing);
 	}
+
+	// Allocate object on left edge
+	// ------------------------------------
+		GLayoutRect Left(GRect &rc, int Px)
+		{
+			rc = *this;
+			rc.x2 = rc.x1 + Px - 1;
+			x1 = rc.x2 + Spacing;
+			return *this;
+		}
+
+		GLayoutRect Left(GViewI *v, int Px)
+		{
+			GRect r;
+			Left(r, Px);
+			if (v) v->SetPos(r);
+			return *this;
+		}
+
+	// Allocate on right edge...
+	// ------------------------------------
+		GLayoutRect Right(GRect &rc, int Px)
+		{
+			rc = *this;
+			rc.x1 = rc.x2 - Px + 1;
+			x2 = rc.x1 - Spacing;
+			return *this;
+		}
+
+		GLayoutRect Right(GViewI *v, int Px)
+		{
+			GRect r;
+			Right(r, Px);
+			if (v) v->SetPos(r);
+			return *this;
+		}
+
+	// Allocate on top edge...
+	// ------------------------------------
+		GLayoutRect Top(GRect &rc, int Px)
+		{
+			rc = *this;
+			rc.y2 = rc.y1 + Px - 1;
+			y1 = rc.y2 + Spacing;
+			return *this;
+		}
+
+		GLayoutRect Top(GViewI *v, int Px)
+		{
+			GRect r;
+			Top(r, Px);
+			if (v) v->SetPos(r);
+			return *this;
+		}
+
+	// Allocate on top edge...
+	// ------------------------------------
+		GLayoutRect Bottom(GRect &rc, int Px)
+		{
+			rc = *this;
+			rc.y2 = rc.y1 + Px - 1;
+			y1 = rc.y2 + Spacing;
+			return *this;
+		}
+
+		GLayoutRect Bottom(GViewI *v, int Px)
+		{
+			GRect r;
+			Bottom(r, Px);
+			if (v) v->SetPos(r);
+			return *this;
+		}
 	
-	GLayoutRect Left(GViewI *v, int Px)
+	// Allocate all remaining space.
+	// ------------------------------------
+	void Remaining(GRect &rc)
 	{
-		GLayoutRect r = *this;
-		r.x2 = r.x1 + Px - 1;
-		x1 = r.x2 + GTableLayout::CellSpacing;
-		if (v)
-			v->SetPos(r);
-		return r;
+		rc = *this;
+		ZOff(-1, -1);
 	}
 
-	GLayoutRect Right(GViewI *v, int Px)
-	{
-		GLayoutRect r = *this;
-		r.x1 = r.x2 - Px + 1;
-		x2 = r.x1 - GTableLayout::CellSpacing;
-		if (v)
-			v->SetPos(r);
-		return r;
-	}
-
-	GLayoutRect Top(GViewI *v, int Px)
-	{
-		GLayoutRect r = *this;
-		r.y2 = r.y1 + Px - 1;
-		y1 = r.y2 + GTableLayout::CellSpacing;
-		if (v)
-			v->SetPos(r);
-		return r;
-	}
-
-	GLayoutRect Bottom(GViewI *v, int Px)
-	{
-		GLayoutRect r = *this;
-		r.y2 = r.y1 + Px - 1;
-		y1 = r.y2 + GTableLayout::CellSpacing;
-		if (v)
-			v->SetPos(r);
-		return r;
-	}
-	
 	void Remaining(GViewI *v)
 	{
 		if (v)
 			v->SetPos(*this);
 		ZOff(-1, -1);
 	}
+
 };
 
 #endif

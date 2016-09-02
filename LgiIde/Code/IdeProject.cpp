@@ -1188,12 +1188,22 @@ char *IdeProject::FindFullPath(const char *File, ProjectNode **Node)
 		if (n)
 		{
 			if (Node)
-				*Node = n;			
+				*Node = n;
 			break;
 		}
 	}
 	
-	return Full;		
+	return Full;
+}
+
+bool IdeProject::GetAllNodes(GArray<ProjectNode*> &Nodes)
+{
+	ForAllProjectNodes(c)
+	{
+		c->AddNodes(Nodes);
+	}
+	
+	return true;
 }
 
 bool IdeProject::InProject(const char *Path, bool Open, IdeDoc **Doc)
