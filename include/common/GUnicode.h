@@ -37,12 +37,12 @@ T Toupper(T ch)
 
 // Finds the length of the string in characters
 template<typename T>
-unsigned Strlen(T *str)
+unsigned Strlen(const T *str)
 {
 	if (!str)
 		return 0;
 
-	REG T *s = str;
+	REG const T *s = str;
 	while (*s)
 		s++;
 
@@ -51,13 +51,13 @@ unsigned Strlen(T *str)
 
 // Compares two strings, case sensitive
 template<typename T>
-int Strcmp(T *str_a, T *str_b)
+int Strcmp(const T *str_a, const T *str_b)
 {
 	if (!str_a || !str_b)
 		return -1;
 
-	REG T *a = str_a;
-	REG T *b = str_b;
+	REG const T *a = str_a;
+	REG const T *b = str_b;
 
 	while (true)
 	{
@@ -73,14 +73,14 @@ int Strcmp(T *str_a, T *str_b)
 
 // Compares the first 'len' chars of two strings, case sensitive
 template<typename T>
-int Strncmp(T *str_a, T *str_b, unsigned len)
+int Strncmp(const T *str_a, const T *str_b, unsigned len)
 {
 	if (!str_a || !str_b)
 		return -1;
 
-	REG T *a = str_a;
-	REG T *b = str_b;
-	REG T *end = a + len;
+	REG const T *a = str_a;
+	REG const T *b = str_b;
+	REG const T *end = a + len;
 
 	while (a < end)
 	{
@@ -96,13 +96,13 @@ int Strncmp(T *str_a, T *str_b, unsigned len)
 
 // Compares two strings, case insensitive
 template<typename T>
-int Stricmp(T *str_a, T *str_b)
+int Stricmp(const T *str_a, const T *str_b)
 {
 	if (!str_a || !str_b)
 		return -1;
 
-	REG T *a = str_a;
-	REG T *b = str_b;
+	REG const T *a = str_a;
+	REG const T *b = str_b;
 	REG T ach, bch;
 
 	while (true)
@@ -122,14 +122,14 @@ int Stricmp(T *str_a, T *str_b)
 
 // Compares the first 'len' chars of two strings, case insensitive
 template<typename T>
-int Strnicmp(T *str_a, T *str_b, unsigned len)
+int Strnicmp(const T *str_a, const T *str_b, unsigned len)
 {
 	if (!str_a || !str_b)
 		return -1;
 
-	REG T *a = str_a;
-	REG T *b = str_b;
-	REG T *end = a + len;
+	REG const T *a = str_a;
+	REG const T *b = str_b;
+	REG const T *end = a + len;
 	REG T ach, bch;
 
 	while (a < end)
@@ -149,14 +149,14 @@ int Strnicmp(T *str_a, T *str_b, unsigned len)
 
 /// Copies a string
 template<typename T>
-T *Strcpy(T *dst, unsigned dst_len, T *src)
+T *Strcpy(T *dst, unsigned dst_len, const T *src)
 {
 	if (!dst || !src || dst_len == 0)
 		return NULL;
 	
 	REG T *d = dst;
 	REG T *end = d + dst_len - 1; // leave 1 char for NULL terminator
-	REG T *s = src;
+	REG const T *s = src;
 	while (d < end && *s)
 	{
 		*d++ = *s++;
@@ -199,9 +199,9 @@ T *Strrchr(T *str, int ch)
 	return last;
 }
 
-/// Finds the first instance of a character in the string
+/// Appends a string to another
 template<typename T>
-T *Strcat(T *dst, int dst_len, T *postfix)
+T *Strcat(T *dst, int dst_len, const T *postfix)
 {
 	if (!dst || !postfix || dst_len < 1)
 		return NULL;
@@ -214,14 +214,15 @@ T *Strcat(T *dst, int dst_len, T *postfix)
 	}
 	
 	// Copy the postfix...
-	REG T *s = postfix;
-	for (; *s && dst_len > 1; s++)
+	REG const T *s = postfix;
+	while (*s && dst_len > 1)
 	{
 		*dst++ = *s++;
+		dst_len--;
 	}
 	
 	if (dst_len > 0)
-		*s = 0;
+		*dst = 0;
 	
 	return NULL;
 }
