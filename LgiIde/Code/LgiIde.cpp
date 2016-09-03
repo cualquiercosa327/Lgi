@@ -2000,7 +2000,7 @@ void AppWnd::UpdateMemoryDump()
 		int iWord = sWord ? atoi(sWord) : 1;
 		int64 RowLen = GetCtrlValue(IDC_MEM_ROW_LEN);
 		bool InHex = GetCtrlValue(IDC_MEM_HEX) != 0;
-		
+
 		d->DbgContext->FormatMemoryDump(iWord, RowLen, InHex);
 	}
 }
@@ -2024,15 +2024,27 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 		}
 		case IDC_MEM_ADDR:
 		{
-			if (Flags == VK_RETURN && d->DbgContext)
+			if (Flags == VK_RETURN)
 			{
-				char *s = Ctrl->Name();
-				if (s)
+				if (d->DbgContext)
 				{
-					char *sWord = GetCtrlName(IDC_MEM_SIZE);
-					int iWord = sWord ? atoi(sWord) : 1;
-					d->DbgContext->OnMemoryDump(s, iWord, GetCtrlValue(IDC_MEM_ROW_LEN), GetCtrlValue(IDC_MEM_HEX) != 0);
+					char *s = Ctrl->Name();
+					if (s)
+					{
+						char *sWord = GetCtrlName(IDC_MEM_SIZE);
+						int iWord = sWord ? atoi(sWord) : 1;
+						d->DbgContext->OnMemoryDump(s, iWord, GetCtrlValue(IDC_MEM_ROW_LEN), GetCtrlValue(IDC_MEM_HEX) != 0);
+					}
+					else if (d->DbgContext->MemoryDump)
+					{
+						d->DbgContext->MemoryDump->Print("No address specified.");
+					}
+					else
+					{
+						LgiAssert(!"No MemoryDump.");
+					}
 				}
+				else LgiAssert(!"No debug context.");
 			}
 			break;
 		}
@@ -2050,35 +2062,34 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 		}
 		case IDC_DEBUG_TAB:
 		{
-			switch (Ctrl->Value())
+			if (d->DbgContext && Flags == GNotifyValueChanged)
 			{
-				case AppWnd::LocalsTab:
+				switch (Ctrl->Value())
 				{
-					// Locals tab
-					if (d->DbgContext)
+					case AppWnd::LocalsTab:
+					{
+						// Locals tab
 						d->DbgContext->UpdateLocals();
-					break;
-				}
-				case AppWnd::RegistersTab:
-				{
-					if (d->DbgContext)
+						break;
+					}
+					case AppWnd::RegistersTab:
+					{
 						d->DbgContext->UpdateRegisters();
-					break;
-				}
-				case AppWnd::CallStackTab:
-				{
-					if (d->DbgContext)
+						break;
+					}
+					case AppWnd::CallStackTab:
+					{
 						d->DbgContext->UpdateCallStack();
-					break;
-				}
-				case AppWnd::ThreadsTab:
-				{
-					if (d->DbgContext)
+						break;
+					}
+					case AppWnd::ThreadsTab:
+					{
 						d->DbgContext->UpdateThreads();
-					break;
+						break;
+					}
+					default:
+						break;
 				}
-				default:
-					break;
 			}
 			break;
 		}

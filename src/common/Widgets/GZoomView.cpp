@@ -36,18 +36,27 @@ struct ZoomTile : public GMemDC
 	
 	GColourSpace MapBits(int Bits)
 	{
+		GColourSpace Cs;
+		#ifdef LINUX
+		Cs = GdcD->GetColourSpace();
+		#else
 		if (Bits > 32)
 			Bits >>= 1;
 		
 		if (Bits <= 8)
-			return System32BitColourSpace;
-		
-		return GBitsToColourSpace(Bits);
+			Cs = System32BitColourSpace;
+		else
+			Cs = GBitsToColourSpace(Bits);
+		#endif
+
+		// printf("MapBits = %s\n", GColourSpaceToString(Cs));
+		return Cs;
 	}
 	
 	ZoomTile(int Size, int Bits) : GMemDC(Size, Size, MapBits(Bits))
 	{
 		Dirty = true;
+		// printf("Created ZoomTile %s %s\n", GColourSpaceToString(GetColourSpace()), GColourSpaceToString(GdcD->GetColourSpace()));
 	}
 };
 
@@ -1763,7 +1772,14 @@ void GZoomView::OnPaint(GSurface *pDC)
 						screen_source.Offset(px, py);
 						
 						// Blt the tile image pixels to the screen
-						pDC->Blt(px, py, d->Tile[x][y], &tile_source);
+						GSurface *pTile = d->Tile[x][y];
+						pDC->Blt(px, py, pTile, &tile_source);
+						/*
+						printf("Zoom: %s->%s (%s)\n",
+							GColourSpaceToString(pTile->GetColourSpace()),
+							GColourSpaceToString(pDC->GetColourSpace()),
+							GColourSpaceToString(GdcD->GetColourSpace()));
+						*/
 
 						#if DEBUG_TILE_BOUNDARIES
 						pDC->Colour(GColour(0, 0, 255));

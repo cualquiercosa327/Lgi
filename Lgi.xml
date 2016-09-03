@@ -264,6 +264,7 @@
 		<Node Name="Text" Type="1" Platforms="15" Open="0">
 			<Node File="./src/common/Text/GString.cpp" Type="2" Platforms="15" />
 			<Node File="./include/common/GString.h" Type="3" Platforms="15" />
+			<Node File="./include/common/GStringClass.h" Type="3" Platforms="15" />
 			<Node File="./include/common/GTextFile.h" Type="3" Platforms="15" />
 			<Node File="./src/common/Text/GToken.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Text/GUnicode.cpp" Type="2" Platforms="15" />

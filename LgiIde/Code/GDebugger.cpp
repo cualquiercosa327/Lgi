@@ -10,13 +10,12 @@
 #endif
 
 #define DEBUG_SHOW_GDB_IO		0
+#define ECHO_GDB_OUTPUT			0
 
 const char sPrompt[] = "(gdb) ";
 
 class Gdb : public GDebugger, public GThread
 {
-	typedef GArray<GAutoString> StrArray;
-
 	GDebugEvents *Events;
 	GAutoPtr<GSubProcess> Sp;
 	GAutoString Exe, Args, InitDir;
@@ -37,11 +36,11 @@ class Gdb : public GDebugger, public GThread
 	// Current location tracking
 	GString CurFile;
 	int CurLine;
-	StrArray Untagged;
+	GString::Array Untagged;
 
 	// Various output modes.
 	GStream *OutStream;
-	StrArray *OutLines;
+	GString::Array *OutLines;
 	
 	enum ThreadState
 	{
@@ -59,12 +58,11 @@ class Gdb : public GDebugger, public GThread
 			Events->OnFileLine(File, Line, CurrentIp);
 	}
 
-	bool ParseLocation(StrArray &p)
+	bool ParseLocation(GString::Array &p)
 	{
 		for (int i=0; i<p.Length(); i++)
 		{
-			GString s(p[i]);
-			GString::Array a(s.SplitDelimit(WhiteSpace));
+			GString::Array a = p[i].SplitDelimit(WhiteSpace);
 			if (a.Length() > 0)
 			{
 				int At = 0;
@@ -196,13 +194,20 @@ class Gdb : public GDebugger, public GThread
 
 		// Send output
 		if (OutLines)
-			OutLines->New().Reset(NewStr(Start, Length - 1));
+			OutLines->New().Set(Start, Length - 1);
 		else if (OutStream)
 			OutStream->Write(Start, Length);
 		else
-			Untagged.New().Reset(NewStr(Start, Length));
+		{
+			Untagged.New().Set(Start, Length);
+			#if !ECHO_GDB_OUTPUT
+			Events->Write(Start, Length);
+			#endif
+		}
 
+		#if ECHO_GDB_OUTPUT
 		Events->Write(Start, Length);
+		#endif
 
 		if (BreakPointIdx > 0)
 		{
@@ -408,11 +413,18 @@ class Gdb : public GDebugger, public GThread
 		}
 
 		uint64 Start = LgiCurrentTime();
+		uint64 Now = Start;
 		while (!AtPrompt &&
-				LgiCurrentTime() - Start < 2000 &&
+				Now - Start < 2000 &&
 				State == Looping)
 		{
-			LgiSleep(1);
+			Now = LgiCurrentTime();
+			LgiSleep(50);
+			uint64 After = LgiCurrentTime();
+			if (After - Now > 65)
+			{
+				printf("Sleep took=%i\n", (int)(After - Now));
+			}
 		}
 
 		if (!AtPrompt)
@@ -424,7 +436,7 @@ class Gdb : public GDebugger, public GThread
 		return true;
 	}
 	
-	bool Cmd(const char *c, GStream *Output = NULL, StrArray *Arr = NULL)
+	bool Cmd(const char *c, GStream *Output = NULL, GString::Array *Arr = NULL)
 	{
 		if (!ValidStr(c))
 		{
@@ -534,7 +546,7 @@ public:
 
 	bool GetThreads(GArray<GString> &Threads, int *pCurrentThread)
 	{
-		StrArray t;
+		GString::Array t;
 		if (!Cmd("info threads", NULL, &t))
 			return false;
 		
@@ -580,7 +592,7 @@ public:
 
 	bool GetCallStack(GArray<GAutoString> &Stack)
 	{
-		StrArray Bt;
+		GString::Array Bt;
 		if (!Cmd("bt", NULL, &Bt))
 			return false;
 
@@ -718,7 +730,7 @@ public:
 			
 			BreakPointIdx = 0;
 			
-			StrArray Lines;
+			GString::Array Lines;
 			Ret = Cmd(cmd, NULL, &Lines);
 			WaitPrompt();
 			
@@ -853,18 +865,26 @@ public:
 	void ParseVariables(const char *a, GArray<Variable> &vars, GDebugger::Variable::ScopeType scope, bool Detailed)
 	{
 		GToken t(a, "\r\n");
+		GString CurLine;
 		for (int i=0; i<t.Length(); i++)
 		{
-			char *line = t[i];
-			char *val = strchr(line, '=');
-			if (val)
+			CurLine = t[i];
+			while (	i < t.Length() - 1 &&
+					strchr(WhiteSpace, t[i+1][0]))
 			{
-				*val++ = 0;
+				CurLine += t[++i];
+				continue;
+			}
+
+			int EqPos = CurLine.Find("=");
+			if (EqPos > 0)
+			{
+				char *val = CurLine.Get() + EqPos + 1;
 				while (*val && strchr(WhiteSpace, *val)) val++;
 				
 				Variable &v = vars.New();
 				v.Scope = scope;
-				v.Name.Reset(TrimStr(line));
+				v.Name = CurLine(0, EqPos).Strip();
 				if (!strnicmp(val, "0x", 2))
 				{
 					v.Value.Type = GV_VOID_PTR;
@@ -909,7 +929,7 @@ public:
 									break;
 
 								if (strnicmp(s, "gdb", 3))
-									v.Type.Reset(NewStr(s, e - s));
+									v.Type.Set(s, e - s);
 								s = e + 1;
 								continue;
 							}						
@@ -925,16 +945,23 @@ public:
 	
 	bool GetVariables(bool Locals, GArray<Variable> &vars, bool Detailed)
 	{
+		GProfile Prof("GetVars");
 		GStringPipe p(256);
 
 		if (!Cmd("info args", &p))
 			return false;
 
+		Prof.Add("ParseArgs");
+		
 		GAutoString a(p.NewStr());
 		ParseVariables(a, vars, Variable::Arg, Detailed);
 
+		Prof.Add("InfoLocals");
+
 		if (!Cmd("info locals", &p))
 			return false;
+
+		Prof.Add("ParseLocals");
 		
 		a.Reset(p.NewStr());
 		ParseVariables(a, vars, Variable::Local, Detailed);
@@ -1008,18 +1035,71 @@ public:
 		return true;
 	}
 
-	bool ReadMemory(NativeInt Addr, int Length, GArray<uint8> &OutBuf)
+	bool ReadMemory(GString &BaseAddr, int Length, GArray<uint8> &OutBuf, GString *ErrorMsg)
 	{
-		StrArray Out;
+		if (!BaseAddr)
+		{
+			if (ErrorMsg) *ErrorMsg = "No base address supplied.";
+			return false;
+		}
+		BaseAddr = BaseAddr.Strip();
+
+		GString::Array Out;
 		char c[256];
 		int words = Length >> 2;
 		int bytes = Length % 4;
-		sprintf_s(c, sizeof(c), "x/%iw 0x%p", words, (void*)Addr);
+		
+		if (BaseAddr.Find("0x") >= 0)
+		{
+			// Looks like an literal address...
+			LiteralAddr:
+			sprintf_s(c, sizeof(c), "x/%iw %s", words, BaseAddr.Get());
+		}
+		else
+		{
+			// Maybe it's a ptr variable?
+			GString c;
+			GString::Array r;
+			c.Printf("p %s", BaseAddr.Get());
+			if (Cmd(c, NULL, &r))
+			{
+				GString::Array p = r[0].SplitDelimit(" \t");
+				for (unsigned i=0; i<p.Length(); i++)
+				{
+					if (p[i].Find("0x") >= 0)
+					{
+						BaseAddr = p[i];
+						goto LiteralAddr;
+					}
+					
+					/*
+					GString Msg;
+					Msg.Printf("%s\n", p[i].Get());
+					Events->Write(Msg, Msg.Length());
+					*/
+				}
+				
+				if (ErrorMsg) *ErrorMsg = "No address in variable value response.";
+				return false;
+			}
+			else 
+			{
+				if (ErrorMsg) *ErrorMsg = "Couldn't convert variable to address.";
+				return false;
+			}
+		}		
+		
 		if (!Cmd(c, NULL, &Out))
+		{
+			if (ErrorMsg) *ErrorMsg = "Gdb command failed.";
 			return false;
+		}
 		
 		if (!OutBuf.Length(words << 2))
+		{
+			if (ErrorMsg) ErrorMsg->Printf("Failed to allocate %i bytes.", words << 2);
 			return false;
+		}
 		
 		uint32 *buf = (uint32*) &(OutBuf)[0];
 		uint32 *ptr = buf;
@@ -1028,6 +1108,9 @@ public:
 		for (int i=0; i<Out.Length() && ptr < end; i++)
 		{
 			char *l = Out[i];
+			if (i == 0 && stristr(l, "Invalid number"))
+				return false;
+			
 			char *s = strchr(l, ':');
 			if (!s)
 				continue;

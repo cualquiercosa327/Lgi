@@ -96,7 +96,7 @@ public:
 	void SetLine(int Line, bool CurIp);
 	static void ClearCurrentIp();
 	bool IsCurrentIp();
-	void GotoSearch();
+	void GotoSearch(int CtrlId);
 
 	// Source tools
 	bool BuildIncludePaths(GArray<char*> &Paths, IdePlatform Platform, bool IncludeSysPaths);

@@ -25,15 +25,16 @@ public:
 	int SeekLine;
 	bool SeekCurrentIp;
 	
+	GString MemDumpAddr;
 	NativeInt MemDumpStart;
 	GArray<uint8> MemDump;
 
 	GDebugContextPriv(GDebugContext *ctx) : GMutex("GDebugContextPriv")
 	{
 		Ctx = ctx;
+		MemDumpStart = 0;
 		App = NULL;
 		Proj = NULL;
-		MemDumpStart = 0;
 		InDebugging = false;
 		SeekLine = 0;
 		SeekCurrentIp = false;
@@ -236,7 +237,7 @@ bool GDebugContext::UpdateLocals()
 		return false;
 
 	GArray<GDebugger::Variable> Vars;
-	if (!d->Db->GetVariables(true, Vars, true))
+	if (!d->Db->GetVariables(true, Vars, false))
 		return false;
 	
 	Locals->Empty();
@@ -467,79 +468,83 @@ void GDebugContext::OnUserCommand(const char *Cmd)
 
 void GDebugContext::FormatMemoryDump(int WordSize, int Width, bool InHex)
 {
-	if (MemoryDump)
+	if (!MemoryDump)
 	{
-		if (d->MemDump.Length() == 0)
-			MemoryDump->Name("No data.");
-		else
-		{
-			if (!Width)
-				Width = 16 / WordSize;			
-			if (!WordSize)
-				WordSize = 1;
-
-			// Format output to the mem dump window
-			GStringPipe p;
-			int LineBytes = WordSize * Width;
-			
-			GPointer ptr;
-			ptr.u8 = &d->MemDump[0];
-			
-			for (NativeInt i = 0; i < d->MemDump.Length(); i += LineBytes)
-			{
-				GPointer Start = ptr;
-				int DisplayBytes = min(d->MemDump.Length() - i, LineBytes);
-				int DisplayWords = DisplayBytes / WordSize;			
-				NativeInt iAddr = d->MemDumpStart + i;
-				p.Print("%p  ", iAddr);
-				for (int n=0; n<DisplayWords; n++)
-				{
-					switch (WordSize)
-					{
-						default:
-							if (InHex)
-								p.Print("%02X ", *ptr.u8++);
-							else
-								p.Print("%4u ", *ptr.u8++);
-							break;
-						case 2:
-							if (InHex)
-								p.Print("%04X ", *ptr.u16++);
-							else
-								p.Print("%7u ", *ptr.u16++);
-							break;
-						case 4:
-							if (InHex)
-								p.Print("%08X ", *ptr.u32++);
-							else
-								p.Print("%10u ", *ptr.u32++);
-							break;
-						case 8:
-							if (InHex)
-								#ifdef WIN32
-								p.Print("%016I64X ", *ptr.u64++);
-								#else
-								p.Print("%016LX ", *ptr.u64++);
-								#endif
-							else
-								#ifdef WIN32
-								p.Print("%17I64u ", *ptr.u64++);
-								#else
-								p.Print("%17Lu ", *ptr.u64++);
-								#endif
-							break;
-					}
-				}
-				
-				p.Print("  ", iAddr);
-				// p.Print("%.*s", DisplayBytes, Start.s8);
-				p.Print("\n");
-			}
-			
-			GAutoString a(p.NewStr());
-			MemoryDump->Name(a);
-		}
+		LgiTrace("%s:%i - No MemoryDump.\n", _FL);
+		return;
 	}
+	
+	if (d->MemDump.Length() == 0)
+	{
+		MemoryDump->Name("No data.");
+		return;
+	}
+
+	if (!Width)
+		Width = 16 / WordSize;			
+	if (!WordSize)
+		WordSize = 1;
+
+	// Format output to the mem dump window
+	GStringPipe p;
+	int LineBytes = WordSize * Width;
+	
+	GPointer ptr;
+	ptr.u8 = &d->MemDump[0];
+	
+	for (NativeInt i = 0; i < d->MemDump.Length(); i += LineBytes)
+	{
+		GPointer Start = ptr;
+		int DisplayBytes = min(d->MemDump.Length() - i, LineBytes);
+		int DisplayWords = DisplayBytes / WordSize;			
+		NativeInt iAddr = d->MemDumpStart + i;
+		p.Print("%p  ", iAddr);
+		for (int n=0; n<DisplayWords; n++)
+		{
+			switch (WordSize)
+			{
+				default:
+					if (InHex)
+						p.Print("%02X ", *ptr.u8++);
+					else
+						p.Print("%4u ", *ptr.u8++);
+					break;
+				case 2:
+					if (InHex)
+						p.Print("%04X ", *ptr.u16++);
+					else
+						p.Print("%7u ", *ptr.u16++);
+					break;
+				case 4:
+					if (InHex)
+						p.Print("%08X ", *ptr.u32++);
+					else
+						p.Print("%10u ", *ptr.u32++);
+					break;
+				case 8:
+					if (InHex)
+						#ifdef WIN32
+						p.Print("%016I64X ", *ptr.u64++);
+						#else
+						p.Print("%016LX ", *ptr.u64++);
+						#endif
+					else
+						#ifdef WIN32
+						p.Print("%17I64u ", *ptr.u64++);
+						#else
+						p.Print("%17Lu ", *ptr.u64++);
+						#endif
+					break;
+			}
+		}
+		
+		p.Print("  ", iAddr);
+		// p.Print("%.*s", DisplayBytes, Start.s8);
+		p.Print("\n");
+	}
+	
+	GAutoString a(p.NewStr());
+	MemoryDump->Name(a);
 }
 
 void GDebugContext::OnMemoryDump(const char *Addr, int WordSize, int Width, bool IsHex)
@@ -547,13 +552,15 @@ void GDebugContext::OnMemoryDump(const char *Addr, int WordSize, int Width, bool
 	if (MemoryDump && d->Db)
 	{
 		MemoryDump->Name(NULL);
-
-		GAutoString sAddr(TrimStr(Addr));
-		d->MemDumpStart = htoi64(sAddr.Get());
-		
-		if (d->Db->ReadMemory(d->MemDumpStart, 1024, d->MemDump))
+		GString ErrMsg;		
+		if (d->Db->ReadMemory(d->MemDumpAddr = Addr, 1024, d->MemDump, &ErrMsg))
 		{
+			d->MemDumpStart = d->MemDumpAddr.Int(16);
 			FormatMemoryDump(WordSize, Width, IsHex);
+		}
+		else
+		{
+			MemoryDump->Name(ErrMsg ? ErrMsg : "ReadMemory failed.");
 		}
 	}
 }

@@ -985,7 +985,12 @@ IdeDoc.o : ./Code/IdeDoc.cpp ../include/common/Lgi.h \
 	../include/common/GClipBoard.h \
 	../include/common/GDisplayString.h \
 	../include/common/GScrollBar.h \
-	../include/common/LgiRes.h
+	../include/common/LgiRes.h \
+	../include/common/GEdit.h \
+	../include/common/GList.h \
+	../include/common/GPopupList.h \
+	../include/common/GTableLayout.h \
+	./Code/ProjectNode.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -1443,7 +1448,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../include/common/GVariant.h : ../include/common/GDom.h \
 	../include/common/GDateTime.h \
 	../include/common/GContainers.h \
-	../include/common/GHashTable.h
+	../include/common/GHashTable.h \
+	../include/common/GString.h
 
 ../src/linux/Gtk/Gdc2.cpp : ../include/common/Lgi.h \
 	../include/common/GPalette.h
@@ -1975,6 +1981,10 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtklist.h : /usr/include/gtk-2.0/gtk/gtk.h
 
+../include/common/GPopupList.h : ../include/common/GList.h \
+	../include/common/GCss.h \
+	../include/common/GCssTools.h
+
 ../src/common/Gdc2/GdcCommon.cpp : ../include/common/Lgi.h \
 	../include/common/GPalette.h \
 	../include/common/GRops.h \
@@ -2267,7 +2277,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkorientable.h : /usr/include/gtk-2.0/gtk/gtkwidget.h
 
-../include/common/GDateTime.h : 
+../include/common/GDateTime.h : ../include/common/GStringClass.h
 
 ../../../../../../usr/include/glib-2.0/gio/gsocketaddress.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -2495,7 +2505,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../include/common/GMessage.h : 
 
-../include/common/GDateTime.h : 
+../include/common/GDateTime.h : ../include/common/GStringClass.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkrc.h : /usr/include/gtk-2.0/gtk/gtkstyle.h
 
@@ -2961,7 +2971,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../include/common/GPrinter.h : 
 
 ../include/common/IFtp.h : ../include/common/INet.h \
-	../include/common/GDateTime.h
+	../include/common/GDateTime.h \
+	../include/common/GStringClass.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtktreeviewcolumn.h : /usr/include/gtk-2.0/gtk/gtkcellrenderer.h \
 	/usr/include/gtk-2.0/gtk/gtktreemodel.h \
@@ -3149,6 +3160,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GDisplayString.h \
 	../include/common/GdiLeak.h \
 	../include/common/GStringClass.h \
+	../include/common/GCss.h \
 	../include/common/GUtf8.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkstatusbar.h : /usr/include/gtk-2.0/gtk/gtkhbox.h
@@ -3599,12 +3611,14 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/IFtp.h
 
 ../include/common/IFtp.h : ../include/common/INet.h \
-	../include/common/GDateTime.h
+	../include/common/GDateTime.h \
+	../include/common/GStringClass.h
 
 ../include/common/GVariant.h : ../include/common/GDom.h \
 	../include/common/GDateTime.h \
 	../include/common/GContainers.h \
-	../include/common/GHashTable.h
+	../include/common/GHashTable.h \
+	../include/common/GString.h
 
 ../src/linux/Gtk/GMemDC.cpp : ../include/common/Gdc2.h \
 	../include/common/GString.h

@@ -429,13 +429,13 @@ void GTabView::OnMouseClick(GMouse &m)
 			}
 			else
 			{
+				// We set this before firing the event, otherwise the
+				// code seeing the notication gets the old value.
+				if (DownLeft)
+					Value(Result);
+
 				p->OnTabClick(m);
 			}
-		}
-		
-		if (DownLeft)
-		{
-			Value(Result);
 		}
 	}
 

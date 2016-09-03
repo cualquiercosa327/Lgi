@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "GDisplayString.h"
 
-#define DEBUG_MDI			1
+#define DEBUG_MDI			0
 
 enum GMdiDrag
 {

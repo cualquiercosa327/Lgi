@@ -80,12 +80,18 @@ public:
 	{
 	}
 	
-	void GotoSearch()
+	void GotoSearch(int CtrlId)
 	{
-		if (FuncSearch)
+		if (FuncSearch && FuncSearch->GetId() == CtrlId)
 		{
 			FuncSearch->Name(NULL);
 			FuncSearch->Focus(true);
+		}
+
+		if (FileSearch && FileSearch->GetId() == CtrlId)
+		{
+			FileSearch->Name(NULL);
+			FileSearch->Focus(true);
 		}
 	}
 	
@@ -549,14 +555,26 @@ public:
 	
 	bool Name(char *s)
 	{
+		GString InputStr = s;
+		GString::Array p = InputStr.SplitDelimit(" \t");
+		
 		GArray<DefnInfo*> Matching;
 		for (DefnInfo *i=All.First(); i; i=All.Next())
 		{
-			if (stristr(i->Name, s))
+			bool Match = true;
+			for (unsigned n=0; n<p.Length(); n++)
 			{
-				Matching.Add(i);
+				if (!stristr(i->Name, p[n]))
+				{
+					Match = false;
+					break;
+				}
 			}
+			
+			if (Match)
+				Matching.Add(i);
 		}
+		
 		return SetItems(Matching);
 	}
 	
@@ -608,8 +626,10 @@ public:
 		}
 	}
 	
-	void Update(const char *Search)
+	void Update(GString InputStr)
 	{
+		GString::Array p = InputStr.SplitDelimit(" \t");
+		
 		GArray<ProjectNode*> Matches;
 		for (unsigned i=0; i<Nodes.Length(); i++)
 		{
@@ -620,7 +640,17 @@ public:
 				char *Dir = strchr(Fn, '/');
 				if (!Dir) Dir = strchr(Fn, '\\');
 				char *Leaf = Dir ? strrchr(Fn, *Dir) : Fn;
-				if (stristr(Leaf, Search))
+				
+				bool Match = true;
+				for (unsigned n=0; n<p.Length(); n++)
+				{
+					if (!stristr(Leaf, p[n]))
+					{
+						Match = false;
+						break;
+					}
+				}
+				if (Match)
 					Matches.Add(Pn);
 			}
 		}
@@ -964,11 +994,21 @@ int DocEdit::LeftMarginPx = EDIT_LEFT_MARGIN;
 
 bool DocEdit::OnKey(GKey &k)
 {
-	if (k.Alt() && ToLower(k.vkey) == 'm')
+	if (k.Alt())
 	{
-		if (k.Down())
-			Doc->GotoSearch();
-		return true;
+		if (ToLower(k.vkey) == 'm')
+		{
+			if (k.Down())
+				Doc->GotoSearch(IDC_METHOD_SEARCH);
+			return true;
+		}
+		else if (ToLower(k.vkey) == 'o' &&
+			k.Shift())
+		{
+			if (k.Down())
+				Doc->GotoSearch(IDC_FILE_SEARCH);
+			return true;
+		}
 	}
 
 	return GTextView3::OnKey(k); 
@@ -1450,10 +1490,10 @@ bool IdeDoc::AddBreakPoint(int Line, bool Add)
 	return true;
 }
 
-void IdeDoc::GotoSearch()
+void IdeDoc::GotoSearch(int CtrlId)
 {
 	if (d->Tray)
-		d->Tray->GotoSearch();
+		d->Tray->GotoSearch(CtrlId);
 }
 
 bool IdeDoc::IsCurrentIp()
@@ -1569,6 +1609,7 @@ int IdeDoc::OnNotify(GViewI *v, int f)
 		{
 			if (f == GNotify_EscapeKey)
 			{
+				printf("%s:%i Got GNotify_EscapeKey\n", _FL);
 				d->Edit->Focus(true);
 				break;
 			}
@@ -1616,6 +1657,7 @@ int IdeDoc::OnNotify(GViewI *v, int f)
 		{
 			if (f == GNotify_EscapeKey)
 			{
+				printf("%s:%i Got GNotify_EscapeKey\n", _FL);
 				d->Edit->Focus(true);
 				break;
 			}

@@ -157,6 +157,10 @@ public:
 					r.Offset(p.x - r.x1, (p.y - r.Y()) - r.y1);
 				else
 					r.Offset(p.x - r.x1, p.y - r.y1);
+				#ifdef __GTK_H__
+				r.Offset(9, -18);
+				#endif
+				
 				SetPos(r);				
 
 				Visible(Has);

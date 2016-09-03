@@ -61,8 +61,8 @@ public:
 			Global
 		}	Scope;
 		
-		GAutoString Name;
-		GAutoString Type;
+		GString Name;
+		GString Type;
 		GVariant Value;
 	};
 	
@@ -84,7 +84,7 @@ public:
 
 	virtual bool GetVariables(bool Locals, GArray<Variable> &vars, bool Detailed) = 0;
 	virtual bool PrintObject(const char *Var, GStream *Output) = 0;
-	virtual bool ReadMemory(NativeInt Addr, int Length, GArray<uint8> &OutBuf) = 0;
+	virtual bool ReadMemory(GString &BaseAddr, int Length, GArray<uint8> &OutBuf, GString *ErrorMsg = NULL) = 0;
 	virtual bool GetRegisters(GStream *Out) = 0;
 
 	virtual bool GetLocation(GAutoString &File, int &Line) = 0;
