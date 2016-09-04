@@ -324,6 +324,57 @@ public:
 	
 		class GLibrary *GetWindowManagerLib();
 		bool InThread();
+
+		class DesktopInfo
+		{
+			friend class GApp;
+			
+			GString File;
+			bool Dirty;
+			
+			struct KeyPair
+			{
+				GString Key, Value;
+			};
+			struct Section
+			{
+				GString Name;
+				GArray<KeyPair> Values;
+				
+				KeyPair *Get(const char *Name, bool Create, bool &Dirty)
+				{
+					for (unsigned i=0; i<Values.Length(); i++)
+					{
+						KeyPair *kp = &Values[i];
+						if (kp->Key.Equals(Name))
+							return kp;
+					}
+					if (Create)
+					{
+						KeyPair *kp = &Values.New();
+						kp->Key = Name;
+						Dirty = true;
+						return kp;
+					}
+					return NULL;
+				}
+			};
+			GArray<Section> Data;
+			
+			bool Serialize(bool Write);
+			Section *GetSection(const char *Name, bool Create);
+		
+		public:			
+			DesktopInfo(const char *file);
+			
+			GString Get(const char *Field, const char *Section = NULL);
+			bool Set(const char *Field, const char *Value, const char *Section = NULL);
+			bool Update() { return Dirty ? Serialize(true) : true; }
+			const char *GetFile() { return File; }
+		};
+
+		DesktopInfo *GetDesktopInfo();
+		bool SetApplicationIcon(const char *FileName);
 		
 	#endif
 };

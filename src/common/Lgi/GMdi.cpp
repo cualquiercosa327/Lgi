@@ -600,6 +600,10 @@ void GMdiChild::Raise()
 
 		#endif
 
+		printf("%s:%i last=%s this=%s\n", _FL,
+			p->d->Children.Last()->Name(),
+			Name());
+			
 		if (p->d->Children.Last() != this)
 		{
 			p->d->Children.Delete(this);
@@ -607,6 +611,10 @@ void GMdiChild::Raise()
 			p->d->Tabs.ZOff(-1, -1);
 			p->OnPosChange();
 		}
+
+		printf("%s:%i last=%s this=%s\n", _FL,
+			p->d->Children.Last()->Name(),
+			Name());
 		
 		Focus(true);
 

@@ -20,6 +20,8 @@ GPalette::GPalette()
 
 GPalette::GPalette(GPalette *pPal)
 {
+	// printf("%s:%i - %p::new(%p) %i\n", _FL, this, pPal, pPal?pPal->GetSize():0);
+
 	Size = 0;
 	Data = 0;
 	Set(pPal);
@@ -27,6 +29,8 @@ GPalette::GPalette(GPalette *pPal)
 
 GPalette::GPalette(uchar *pPal, int s)
 {
+	// printf("%s:%i - %p::new(%p) %i\n", _FL, this, pPal, s);
+
 	Size = 0;
 	Data = 0;
 	Set(pPal, s);
@@ -40,10 +44,16 @@ GPalette::~GPalette()
 
 void GPalette::Set(GPalette *pPal)
 {
+	if (pPal == this)
+		return;
+
+	// printf("%s:%i - %p::Set(%p) %i\n", _FL, this, pPal, pPal?pPal->GetSize():0);
 	DeleteArray(Data);
 	Size = 0;
 	if (pPal)
 	{
+		LgiAssert(pPal->GetSize() > 0);
+
 		if (pPal->Data)
 		{
 			Data = new GdcRGB[pPal->Size];
@@ -70,6 +80,8 @@ void GPalette::Set(int Index, int r, int g, int b)
 
 void GPalette::Set(uchar *pPal, int s)
 {
+	// printf("%s:%i - SetPal %p %i\n", _FL, pPal, s);
+
 	DeleteArray(Data);
 	Size = 0;
 	Data = new GdcRGB[s];
@@ -96,6 +108,8 @@ bool GPalette::Update()
 
 bool GPalette::SetSize(int s)
 {
+	// printf("%s:%i - SetSz %i\n", _FL, s);
+
 	GdcRGB *New = new GdcRGB[s];
 	if (New)
 	{

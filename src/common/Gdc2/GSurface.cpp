@@ -1768,6 +1768,12 @@ GPalette *GSurface::Palette()
 
 void GSurface::Palette(GPalette *pPal, bool bOwnIt)
 {
+	if (pPal == pPalette)
+	{
+		LgiTrace("%s:%i - Palette setting itself.\n", _FL);
+		return;
+	}
+
 	// printf("GSurface::Palette %p %i\n", pPal, bOwnIt);
 	if (pPalette && (Flags & GDC_OWN_PALETTE) != 0)
 	{

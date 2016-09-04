@@ -56,7 +56,6 @@ struct ZoomTile : public GMemDC
 	ZoomTile(int Size, int Bits) : GMemDC(Size, Size, MapBits(Bits))
 	{
 		Dirty = true;
-		// printf("Created ZoomTile %s %s\n", GColourSpaceToString(GetColourSpace()), GColourSpaceToString(GdcD->GetColourSpace()));
 	}
 };
 

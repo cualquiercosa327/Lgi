@@ -550,7 +550,7 @@ bool GView::SetPos(GRect &p, bool Repaint)
 			}
 			else
 			{
-				LgiTrace("%s:%i - Error: Can't set object position, parent is: %s\n", _FL, G_OBJECT_TYPE_NAME(GtkPar));
+				// LgiTrace("%s:%i - Error: Can't set object position, parent is: %s\n", _FL, G_OBJECT_TYPE_NAME(GtkPar));
 			}
 		}
 	}

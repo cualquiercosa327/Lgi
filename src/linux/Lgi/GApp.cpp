@@ -201,6 +201,9 @@ public:
 	GMouse LastMove;
 	GAutoString Name;
 
+	/// Desktop info
+	GAutoPtr<GApp::DesktopInfo> DesktopInfo;
+
 	/// Any fonts needed for styling the elements
 	GAutoPtr<GFontCache> FontCache;
 	
@@ -917,6 +920,196 @@ GFontCache *GApp::GetFontCache()
 	if (!d->FontCache)
 		d->FontCache.Reset(new GFontCache(SystemNormal));
 	return d->FontCache;
+}
+
+GApp::DesktopInfo::DesktopInfo(const char *file)
+{
+	File = file;
+	Dirty = false;
+	if (File)
+		Serialize(false);
+}
+
+bool GApp::DesktopInfo::Serialize(bool Write)
+{
+	GFile f;
+	if (!f.Open(File, Write?O_WRITE:O_READ))
+	{
+		LgiTrace("%s:%i - Failed to open '%s'\n", _FL, File.Get());
+		return false;
+	}
+
+	if (Write)
+	{
+		f.SetSize(0);
+		for (unsigned i=0; i<Data.Length(); i++)
+		{
+			Section &s = Data[i];
+			if (s.Name)
+				f.Print("[%s]\n", s.Name.Get());
+			for (unsigned n=0; n<s.Values.Length(); n++)
+			{
+				KeyPair &kp = s.Values[n];
+				f.Print("%s=%s\n", kp.Key.Get(), kp.Value.Get());
+			}
+			f.Print("\n");
+		}
+		Dirty = false;
+	}
+	else
+	{
+		GString::Array Lines = f.Read().Split("\n");
+		Section *Cur = NULL;
+		for (unsigned i=0; i<Lines.Length(); i++)
+		{
+			GString l = Lines[i].Strip();
+			if (l.Length() < 1)
+				continue;
+			int s = l.Find("[");
+			if (s >= 0)
+			{
+				int e = l.Find("]", ++s);
+				if (e >= 0)
+				{
+					Cur = &Data.New();
+					Cur->Name = l(s, e - s + 1);
+				}
+			}
+			else if ((s = l.Find("=")) >= 0)
+			{
+				if (!Cur)
+					Cur = &Data.New();
+				KeyPair &kp = Cur->Values.New();
+				kp.Key = l(0, s).Strip();
+				kp.Value = l(++s, -1).Strip();
+				
+				// printf("Read '%s': '%s'='%s'\n", Cur->Name.Get(), kp.Key.Get(), kp.Value.Get());
+			}
+		}
+	}
+
+	return true;
+}
+
+GApp::DesktopInfo::Section *GApp::DesktopInfo::GetSection(const char *Name, bool Create)
+{
+	for (unsigned i=0; i<Data.Length(); i++)
+	{
+		Section &s = Data[i];
+		if (s.Name && s.Name == Name)
+			return &s;
+		if (!s.Name && !Name)
+			return &s;
+	}
+	if (Create)
+	{
+		Section &s = Data.New();
+		s.Name = Name;
+		Dirty = true;
+		return &s;
+	}
+	
+	return NULL;
+}
+
+static const char *DefaultSection = "Desktop Entry";
+
+GString GApp::DesktopInfo::Get(const char *Field, const char *Sect)
+{
+	if (Field)
+	{
+		Section *s = GetSection(Sect ? Sect : DefaultSection, false);
+		if (s)
+		{
+			KeyPair *kp = s->Get(Field, false, Dirty);
+			if (kp)
+			{
+				return kp->Value;
+			}
+		}
+	}
+	
+	return GString();
+}
+
+bool GApp::DesktopInfo::Set(const char *Field, const char *Value, const char *Sect)
+{
+	if (!Field)
+		return false;
+
+	Section *s = GetSection(Sect ? Sect : DefaultSection, true);
+	if (!s)
+		return false;
+
+	KeyPair *kp = s->Get(Field, true, Dirty);
+	if (!kp)
+		return false;
+
+	if (kp->Value != Value)
+	{
+		kp->Value = Value;
+		Dirty = true;
+	}
+	return true;
+}
+
+GApp::DesktopInfo *GApp::GetDesktopInfo()
+{
+	char sExe[MAX_PATH] = "";
+	LgiGetExeFile(sExe, sizeof(sExe));
+	GFile::Path Exe(sExe);
+	GFile::Path Desktop(LSP_HOME);
+	GString Leaf;
+	Leaf.Printf("%s.desktop", Exe.Last().Get());
+	
+	Desktop += ".local/share/applications";
+	Desktop += Leaf;
+	
+	const char *Ex = Exe;
+	const char *Fn = Desktop;
+
+	if (d->DesktopInfo.Reset(new DesktopInfo(Desktop)))
+	{
+		// Do a sanity check...
+		GString s = d->DesktopInfo->Get("Name");
+		if (!s && Name())
+			d->DesktopInfo->Set("Name", Name());
+		
+		char sExe[MAX_PATH] = "";
+		if (LgiGetExeFile(sExe, sizeof(sExe)))
+		{
+			s = d->DesktopInfo->Get("Exec");
+			if (!s || s != (const char*)sExe)
+				d->DesktopInfo->Set("Exec", sExe);
+		}
+		
+		s = d->DesktopInfo->Get("Type");
+		if (!s) d->DesktopInfo->Set("Type", "Application");
+
+		s = d->DesktopInfo->Get("Categories");
+		if (!s) d->DesktopInfo->Set("Categories", "Application;");
+
+		s = d->DesktopInfo->Get("Terminal");
+		if (!s) d->DesktopInfo->Set("Terminal", "false");
+		
+		d->DesktopInfo->Update();
+	}
+	
+	return d->DesktopInfo;
+}
+
+bool GApp::SetApplicationIcon(const char *FileName)
+{
+	DesktopInfo *di = GetDesktopInfo();
+	if (!di)
+		return false;
+	
+	GString IcoPath = di->Get("Icon");
+	if (IcoPath == FileName)
+		return true;
+	
+	di->Set("Icon", FileName);
+	return di->Update();
 }
 
 using namespace Gtk;

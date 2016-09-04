@@ -524,6 +524,26 @@ void GScreenDC::Rectangle(GRect *a)
 	}
 }
 
+void GScreenDC::Polygon(int Points, GdcPt2 *Data)
+{
+	if (Data)
+	{
+		::GArray<GdkPoint> pt;
+		for (int p=0; p<Points; p++)
+		{
+			GdkPoint &out = pt.New();
+			out.x = Data[p].x;
+			out.y = Data[p].y;
+		}
+		
+		gdk_draw_polygon(d->d,
+						 d->gc,
+						 true,
+						 &pt.First(),
+						 pt.Length());
+	}
+}
+
 void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 {
 	if (!Src)
@@ -598,11 +618,6 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 }
 
 void GScreenDC::StretchBlt(GRect *d, GSurface *Src, GRect *s)
-{
-	LgiAssert(0);
-}
-
-void GScreenDC::Polygon(int Points, GdcPt2 *Data)
 {
 	LgiAssert(0);
 }

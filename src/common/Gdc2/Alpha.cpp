@@ -1293,8 +1293,9 @@ public:
 			case CsIndex8:
 			{
 				System24BitPixel c[256];
+				LgiAssert(SPal->GetSize() > 0);
 				CreatePaletteLut(c, SPal, this->alpha);
-
+				
 				for (int y=0; y<Src->y; y++)
 				{
 					uchar *s = (uchar*) (Src->Base + (y * Src->Line));

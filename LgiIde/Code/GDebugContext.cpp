@@ -214,12 +214,59 @@ bool GDebugContext::SetFrame(int Frame)
 	return d->Db ? d->Db->SetFrame(Frame) : false;
 }
 
-bool GDebugContext::DumpObject(const char *Var)
+bool GDebugContext::DumpObject(const char *Var, const char *Val)
 {
 	if (!d->Db || !Var || !ObjectDump || !d->InDebugging)
 		return false;
 	
 	ObjectDump->Name(NULL);
+	
+	if (Val && *Val == '{')
+	{
+		// Local parse the value into the dump
+		int Depth = 0;
+		char *Start = NULL;
+		char Spaces[256];
+		memset(Spaces, ' ', sizeof(Spaces));
+		int IndentShift = 2;
+
+		#define Emit() \
+			if (Start) \
+			{ \
+				int bytes = s - Start; \
+				char *last = s-1; while (last > Start && strchr(WhiteSpace, *last)) last--; \
+				ObjectDump->Print("%.*s%.*s%s\n", Depth<<IndentShift, Spaces, bytes, Start, *last == '=' ? "" : ";"); \
+				Start = NULL; \
+			}
+			
+		for (char *s = Val; *s; s++)
+		{
+			if (*s == '{')
+			{
+				Emit();
+				ObjectDump->Print("%.*s%c\n", Depth<<IndentShift, Spaces, *s);
+				Depth++;
+			}
+			else if (*s == '}')
+			{
+				Emit();
+				Depth--;
+				ObjectDump->Print("%.*s%c\n", Depth<<IndentShift, Spaces, *s);
+			}
+			else if (*s == ',')
+			{
+				Emit();
+			}
+			else if (!strchr(WhiteSpace, *s))
+			{
+				if (Start == NULL)
+					Start = s;
+			}
+		}
+		
+		return true;
+	}
+	
 	return d->Db->PrintObject(Var, ObjectDump);
 }
 

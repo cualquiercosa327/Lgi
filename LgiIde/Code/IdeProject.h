@@ -146,7 +146,7 @@ public:
 	void UpdateCallStack();
 	void UpdateThreads();
 	bool SelectThread(int ThreadId);
-	bool DumpObject(const char *Var);
+	bool DumpObject(const char *Var, const char *Val);
 	bool OnBreakPoint(GDebugger::BreakPoint &b, bool Add);
 	
 	// Ui events...

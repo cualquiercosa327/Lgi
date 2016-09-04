@@ -2103,12 +2103,13 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 				if (it)
 				{
 					char *Var = it->GetText(2);
+					char *Val = it->GetText(3);
 					if (Var)
 					{
 						if (d->Output->DebugTab)
 							d->Output->DebugTab->Value(AppWnd::ObjectTab);
 							
-						d->DbgContext->DumpObject(Var);
+						d->DbgContext->DumpObject(Var, Val);
 					}
 				}
 			}
