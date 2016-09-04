@@ -600,9 +600,13 @@ void GMdiChild::Raise()
 
 		#endif
 
-		printf("%s:%i last=%s this=%s\n", _FL,
+		/*
+		printf("%s:%i %p=%s %p=%s\n", _FL,
+			p->d->Children.Last(),
 			p->d->Children.Last()->Name(),
+			this,
 			Name());
+		*/
 			
 		if (p->d->Children.Last() != this)
 		{
@@ -610,13 +614,9 @@ void GMdiChild::Raise()
 			p->d->Children.Add(this);
 			p->d->Tabs.ZOff(-1, -1);
 			p->OnPosChange();
-		}
 
-		printf("%s:%i last=%s this=%s\n", _FL,
-			p->d->Children.Last()->Name(),
-			Name());
-		
-		Focus(true);
+			Focus(true);
+		}
 
 		#if DEBUG_MDI
 		LgiTrace("GMdiChild::Raise() '%s'\n", Name());
