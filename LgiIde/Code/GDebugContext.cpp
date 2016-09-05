@@ -225,7 +225,7 @@ bool GDebugContext::DumpObject(const char *Var, const char *Val)
 	{
 		// Local parse the value into the dump
 		int Depth = 0;
-		char *Start = NULL;
+		const char *Start = NULL;
 		char Spaces[256];
 		memset(Spaces, ' ', sizeof(Spaces));
 		int IndentShift = 2;
@@ -234,12 +234,12 @@ bool GDebugContext::DumpObject(const char *Var, const char *Val)
 			if (Start) \
 			{ \
 				int bytes = s - Start; \
-				char *last = s-1; while (last > Start && strchr(WhiteSpace, *last)) last--; \
+				const char *last = s-1; while (last > Start && strchr(WhiteSpace, *last)) last--; \
 				ObjectDump->Print("%.*s%.*s%s\n", Depth<<IndentShift, Spaces, bytes, Start, *last == '=' ? "" : ";"); \
 				Start = NULL; \
 			}
 			
-		for (char *s = Val; *s; s++)
+		for (const char *s = Val; *s; s++)
 		{
 			if (*s == '{')
 			{
