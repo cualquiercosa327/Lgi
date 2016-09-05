@@ -22,7 +22,7 @@
 #define OPT_PipeSize				"PipeSize"	// (int)
 
 // Classes
-class FileTransferProgress : public Progress
+class FileTransferProgress : public GStatusPane, public Progress
 {
 	int64 StartTime;
 	int64 StartPos;
@@ -33,9 +33,13 @@ class FileTransferProgress : public Progress
 public:
 	FileTransferProgress(GDom *App, GStatusBar *Status, bool Limit = false);
 
+	// Progress Api (must be thread-safe)
 	void SetLimits(int64 l, int64 h);
 	void Value(int64 v);
 	void SetParameter(int Which, int What);
+
+	// Impl
+	GMessage::Result OnEvent(GMessage *m);
 };
 
 #endif

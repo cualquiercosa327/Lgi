@@ -36,13 +36,6 @@ LgiClass GAutoString LgiErrorCodeToString(uint32 ErrorCode);
 LgiFunc void DumpHnd(HIViewRef v, int depth = 0);
 #endif
 
-/// Virtual base class for receiving events
-class LgiClass GTarget
-{
-public:
-	virtual GMessage::Result OnEvent(GMessage *Msg) { return 0; }
-};
-
 /////////////////////////////////////////////////////////////////////////////////
 #if WINNATIVE
 typedef DWORD						OsProcessId;

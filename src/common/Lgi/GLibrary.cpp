@@ -4,7 +4,7 @@
 #ifdef BEOS
 #define DEBUG_LIB_MSGS		0
 #else
-#define DEBUG_LIB_MSGS		0
+#define DEBUG_LIB_MSGS		1
 #endif
 
 #include "Lgi.h"

@@ -81,8 +81,6 @@ public:
 /// Sub menu.
 class LgiClass GSubMenu :
 	public GBase,
-	public GTarget,
-	// public GFlags,
 	public GMenuLoader,
 	public GImageListOwner
 {
@@ -247,9 +245,7 @@ public:
 
 /// An item an a menu
 class LgiClass GMenuItem :
-	public GBase,
-	public GTarget
-	// public GFlags
+	public GBase
 {
 	friend class GSubMenu;
 	friend class GMenu;

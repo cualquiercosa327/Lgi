@@ -26,7 +26,26 @@
 #define THROTTLE_TEXT_WIDTH		80
 #define SLIDER_ID				100
 
-int PipeSize[] = { 29491, 56 << 10, 64 << 10, 128 << 10, 256 << 10, 512 << 10, 1500 << 10, 8 << 20, 22 << 20, 0 };
+enum ProgressMessages
+{
+    IDM_SET_VALUE   = M_USER + 100,
+    IDM_SET_LIMITS,
+    IDM_SET_PARAM,
+};
+
+int PipeSize[] =
+{
+    29491,
+    56 << 10,
+    64 << 10,
+    128 << 10,
+    256 << 10,
+    512 << 10,
+    1500 << 10,
+    8 << 20,
+    22 << 20,
+    0
+};
 
 class GPaneThrottle : public GStatusPane
 {
@@ -378,10 +397,12 @@ void GPaneHistory::Value(int64 i)
 //////////////////////////////////////////////////////////////////////////////////////
 FileTransferProgress::FileTransferProgress(	GDom *App,
 											GStatusBar *Status,
-											bool Limit) : Timer(300)
+											bool Limit) :
+	Timer(300)
 {
 	StartTime = StartPos = 0;
 	ProgressPane = 0;
+	SetWidth(70);
 
 	// Download throttle
 	StatusInfo[_STATUS_THROTTLE]	= (Limit) ? new GPaneThrottle(App) : 0;
@@ -399,8 +420,9 @@ FileTransferProgress::FileTransferProgress(	GDom *App,
 	StatusInfo[_STATUS_PROGRESS]	= ProgressPane = new GProgressStatusPane;
 	if (StatusInfo[_STATUS_PROGRESS]) Status->AppendPane(ProgressPane);
 	
-	// download rate
-	StatusInfo[_STATUS_RATE]		= Status->AppendPane("", 70);
+	// download rate ('this' will be the rate, as we need a window handle to post events to)
+	Status->AppendPane(this);
+	StatusInfo[_STATUS_RATE]		= this;
 	if (StatusInfo[_STATUS_RATE]) StatusInfo[_STATUS_RATE]->Sunken(true);
 	
 	// estimated time left
@@ -408,17 +430,53 @@ FileTransferProgress::FileTransferProgress(	GDom *App,
 	if (StatusInfo[_STATUS_TIME_LEFT]) StatusInfo[_STATUS_TIME_LEFT]->Sunken(true);
 }
 
+GMessage::Result FileTransferProgress::OnEvent(GMessage *m)
+{
+    switch (m->Msg())
+    {
+        case IDM_SET_VALUE:
+        {
+            Value((int64)m->A());
+            break;
+        }
+        case IDM_SET_LIMITS:
+        {
+            SetLimits((int64)m->A(), (int64)m->B());
+            break;
+        }
+        case IDM_SET_PARAM:
+        {
+            break;
+        }
+    }
+
+    return GStatusPane::OnEvent(m);
+}
+
 void FileTransferProgress::SetLimits(int64 l, int64 h)
 {
-	Progress::SetLimits(l, h);
-	if (ProgressPane)
-	{
-		ProgressPane->SetLimits(l, h);
-	}
+    if (!InThread())
+    {
+        PostEvent(IDM_SET_LIMITS, (GMessage::Param)l, (GMessage::Param)h);
+    }
+    else
+    {
+    	Progress::SetLimits(l, h);
+    	if (ProgressPane)
+    	{
+    		ProgressPane->SetLimits(l, h);
+    	}
+    }
 }
 
 void FileTransferProgress::Value(int64 v)
 {
+    if (!InThread())
+    {
+        PostEvent(IDM_SET_VALUE, (GMessage::Param)v);
+        return;
+    }
+
 	bool Reset = v < Val;
 	bool Start = Val == 0;
 	int64 Now = LgiCurrentTime();
@@ -485,12 +543,19 @@ void FileTransferProgress::Value(int64 v)
 
 void FileTransferProgress::SetParameter(int Which, int What)
 {
-	switch (Which)
-	{
-		case PARM_START_VALUE:
-		{
-			Progress::Value(StartPos = What);
-			if (StatusInfo[_STATUS_HISTORY]) StatusInfo[_STATUS_HISTORY]->Value(-Val);
-		}
-	}
+    if (!InThread())
+    {
+        PostEvent(IDM_SET_PARAM, (GMessage::Param)Which, (GMessage::Param)What);
+    }
+    else
+    {
+    	switch (Which)
+    	{
+    		case PARM_START_VALUE:
+    		{
+    			Progress::Value(StartPos = What);
+    			if (StatusInfo[_STATUS_HISTORY]) StatusInfo[_STATUS_HISTORY]->Value(-Val);
+    		}
+    	}
+    }
 }

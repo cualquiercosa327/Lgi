@@ -221,7 +221,7 @@ GItemEdit::GItemEdit(GView *parent, GItem *item, int index, int SelStart, int Se
 	Raised(false);
 	
 	#if DEBUG_EDIT_LABEL
-	LgiTrace("%s:%i - GItemEdit(%p/%s, %p, %i, %i, %i)\n",
+	LgiTrace("%s:%i - GItemEdit(%p/%s, %i, %i, %i)\n",
 		_FL,
 		parent, parent?parent->GetClass():0,
 		index,
