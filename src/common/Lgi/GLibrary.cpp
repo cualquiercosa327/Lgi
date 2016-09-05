@@ -47,7 +47,7 @@ bool GLibrary::Load(const char *File, bool Quiet)
 			ch += sprintf_s(f+ch, sizeof(f)-ch, ".%s", LGI_LIBRARY_EXT);
 		}
 
-		size_t Len = strlen(f) + 16;
+		size_t Len = strlen(f) + 32;
 		FileName = new char[Len];
 		if (FileName)
 		{
@@ -96,9 +96,22 @@ bool GLibrary::Load(const char *File, bool Quiet)
 				#if DEBUG_LIB_MSGS
 				LgiTrace("%s:%i - dlopen('%s') = %p\n", _FL, FileName, hLib);
 				#endif
+				
+				if (!hLib)
+				{
+					// Try with an extra ".0"... just for fun.
+					char *e = FileName + strlen(FileName);
+					strcpy(e, ".0");
+					hLib = dlopen(FileName, RTLD_NOW);
+					#if DEBUG_LIB_MSGS
+					LgiTrace("%s:%i - dlopen('%s') = %p\n", _FL, FileName, hLib);
+					#endif
+					*e = 0;
+				}				
+				
 				if (hLib)
 				{
-					#if defined(LINUX) && defined(__USE_GNU)
+					#if 0 // defined(LINUX) && defined(__USE_GNU)
 					char Path[MAX_PATH];
 					int r = dlinfo(hLib, RTLD_DI_ORIGIN, Path);
 					if (r == 0)
