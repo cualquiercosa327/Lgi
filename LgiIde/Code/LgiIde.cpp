@@ -2434,10 +2434,18 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		}
 		case IDM_FIND_SYMBOL:
 		{
-			FindSymResult r = d->FindSym.OpenSearchDlg(this);
-			if (r.File)
+			IdeDoc *Doc = FocusDoc();
+			if (Doc)
 			{
-				GotoReference(r.File, r.Line, false);
+				Doc->GotoSearch(IDC_SYMBOL_SEARCH);
+			}
+			else
+			{
+				FindSymResult r = d->FindSym.OpenSearchDlg(this);
+				if (r.File)
+				{
+					GotoReference(r.File, r.Line, false);
+				}
 			}
 			break;
 		}

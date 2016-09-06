@@ -21,13 +21,6 @@ static const char *White = " \r\t\n";
 
 #define USE_OLD_FIND_DEFN	1
 
-enum Ctrls
-{
-	IDC_EDIT = 1100,
-	IDC_FILE_SEARCH,
-	IDC_METHOD_SEARCH,
-	IDC_SYMBOL_SEARCH,
-};
 #define isword(s)			(s && (isdigit(s) || isalpha(s) || (s) == '_') )
 #define iswhite(s)			(s && strchr(White, s) != 0)
 #define skipws(s)			while (iswhite(*s)) s++;
@@ -92,6 +85,12 @@ public:
 		{
 			FileSearch->Name(NULL);
 			FileSearch->Focus(true);
+		}
+		
+		if (SymSearch && SymSearch->GetId() == CtrlId)
+		{
+			SymSearch->Name(NULL);
+			SymSearch->Focus(true);
 		}
 	}
 	
@@ -617,11 +616,15 @@ public:
 			if (i)
 			{
 				char *a = s.Get();
+				char *a_end = strrchr(a, DIR_CHAR);
+
 				char *b = All[i]->File.Get();
+				char *b_end = strrchr(b, DIR_CHAR);
+
 				int Common = 0;
-				while (	*a
+				while (	*a && a <= a_end
 						&& 
-						*b
+						*b && b <= b_end
 						&&
 						ToLower(*a) == ToLower(*b))
 				{
