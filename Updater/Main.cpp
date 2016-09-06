@@ -27,11 +27,19 @@ char *NewStr(char *s, size_t len = 0)
 
 WCHAR *NewStr(WCHAR *s, size_t len = 0)
 {
-	if (!s) return NULL;
-	if (len == 0) len = wcslen(s);
-	TCHAR *n = new TCHAR[len];
-	memcpy(n, s, sizeof(*n)*(len+1));
-	n[len] = 0;
+	if (!s)
+		return NULL;
+	
+	if (len == 0)
+		len = wcslen(s);
+	
+	TCHAR *n = new TCHAR[len + 1];
+	if (n)
+	{
+		memcpy(n, s, sizeof(*n) * len);
+		n[len] = 0;
+	}
+	
 	return n;
 }
 

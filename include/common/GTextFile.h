@@ -70,7 +70,7 @@ public:
 	GAutoString Read()
 	{
 		GAutoString Ret;
-		int64 Sz = GetSize();
+		int Sz = (int)GetSize();
 		GAutoPtr<uint8, true> Buf(new uint8[Sz]);
 		if (Buf)
 		{
@@ -90,8 +90,8 @@ public:
 	GAutoWString ReadW()
 	{
 		GAutoWString Ret;
-		int64 Sz = GetSize();
-		GAutoPtr<uint8> Buf(new uint8[Sz]);
+		int Sz = (int)GetSize();
+		GAutoPtr<uint8, true> Buf(new uint8[Sz]);
 		if (Buf)
 		{
 			int Rd = Read(Buf, Sz);
