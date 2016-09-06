@@ -349,7 +349,7 @@ void GItemContainer::GetColumnSizes(ColSizes &cs)
 			Inf.ContentPx = c->GetContentSize();
 			Inf.WidthPx = c->Width();
 
-			cs.ResizePx += Inf.WidthPx;
+			cs.ResizePx += Inf.ContentPx;
 		}
 		else
 		{
@@ -371,27 +371,31 @@ void GItemContainer::ResizeColumnsToContent(int Border)
 		if (VScroll)
 			AvailablePx -= VScroll->X();
 
-		int ExpandPx = AvailablePx - (Sizes.FixedPx + Sizes.ResizePx);
-		if (ExpandPx > 0)
+		int ExpandPx = AvailablePx - Sizes.FixedPx;
+		#ifdef BEOS
+		Sizes.Info.Sort(ColInfoCmp);
+		#else
+		Sizes.Info.Sort(ColInfoCmp, (void*)NULL);
+		#endif
+		
+		for (int i=0; i<Sizes.Info.Length(); i++)
 		{
-			#ifdef BEOS
-			Sizes.Info.Sort(ColInfoCmp);
-			#else
-			Sizes.Info.Sort(ColInfoCmp, (void*)NULL);
-			#endif
-			for (int i=0; i<Sizes.Info.Length(); i++)
+			ColInfo &Inf = Sizes.Info[i];
+			if (Inf.Col && Inf.Col->Resizable())
 			{
-				ColInfo &Inf = Sizes.Info[i];
-				if (Inf.Col)
+				if (ExpandPx > Sizes.ResizePx)
 				{
-					int AddPx = min(Inf.GrowPx() + Border, ExpandPx);
-					if (AddPx > 0)
-					{
-						Inf.Col->Width(Inf.WidthPx + AddPx);
-						ClearDs(Inf.Idx);
-						ExpandPx -= AddPx;
-					}
+					// Everything fits...
+					Inf.Col->Width(Inf.ContentPx + Border);
 				}
+				else
+				{
+					// Need to scale to fit...
+					int Px = Inf.ContentPx * ExpandPx / Sizes.ResizePx;
+					Inf.Col->Width(Px + Border);
+				}
+
+				ClearDs(Inf.Idx);
 			}
 		}
 
