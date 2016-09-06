@@ -406,6 +406,10 @@
 			Name="Lgi"
 			>
 			<File
+				RelativePath="..\include\common\GEventTargetThread.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\common\Lgi\GMdi.cpp"
 				>
 			</File>

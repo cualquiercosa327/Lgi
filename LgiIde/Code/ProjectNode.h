@@ -66,7 +66,7 @@ public:
 	char *GetText(int c);
 	void OnExpand(bool b);
 	bool Serialize();
-	GAutoString GetFullPath();
+	GString GetFullPath();
 	IdeDoc *Open();
 	void Delete();
 	bool OnKey(GKey &k);

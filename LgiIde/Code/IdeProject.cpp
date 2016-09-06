@@ -1329,7 +1329,7 @@ IdeProjectSettings *IdeProject::GetSettings()
 	return &d->Settings;
 }
 
-bool IdeProject::BuildIncludePaths(GArray<char*> &Paths, bool Recurse, IdePlatform Platform)
+bool IdeProject::BuildIncludePaths(GArray<GString> &Paths, bool Recurse, IdePlatform Platform)
 {
 	List<IdeProject> Projects;
 	if (Recurse)
@@ -1567,11 +1567,11 @@ bool IdeProject::GetAllDependencies(GArray<char*> &Files, IdePlatform Platform)
 	GAutoString Base = GetBasePath();
 	
 	// Build list of all the source files...
-	GArray<char*> Src;
+	GArray<GString> Src;
 	CollectAllSource(Src, Platform);
 	
 	// Get all include paths
-	GArray<char*> IncPaths;
+	GArray<GString> IncPaths;
 	BuildIncludePaths(IncPaths, false, Platform);
 	
 	// Add all source to dependencies
@@ -1639,12 +1639,11 @@ bool IdeProject::GetAllDependencies(GArray<char*> &Files, IdePlatform Platform)
 		Files.Add(d->File.Release());
 	}
 	
-	Src.DeleteArrays();
 	Deps.DeleteObjects();
 	return true;
 }
 
-bool IdeProject::GetDependencies(const char *SourceFile, GArray<char*> &IncPaths, GArray<char*> &Files, IdePlatform Platform)
+bool IdeProject::GetDependencies(const char *SourceFile, GArray<GString> &IncPaths, GArray<char*> &Files, IdePlatform Platform)
 {
     if (!FileExists(SourceFile))
     {
@@ -2043,7 +2042,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 		{
 			ProjectNode *n;
 			
-			GArray<char*> IncPaths;
+			GArray<GString> IncPaths;
 			if (BuildIncludePaths(IncPaths, false, Platform))
 			{
 				// Do dependencies
@@ -2266,7 +2265,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 					ProjectNode *n = Files[idx];
 					if (n->GetType() == NodeSrc)
 					{
-						GAutoString Src = n->GetFullPath();
+						GString Src = n->GetFullPath();
 						if (Src)
 						{
 							char Part[256];

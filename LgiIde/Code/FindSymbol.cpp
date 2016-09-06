@@ -4,10 +4,11 @@
 #include "Lgi.h"
 #include "LgiIde.h"
 #include "FindSymbol.h"
-#include "GThreadEvent.h"
 #include "GList.h"
 #include "GProcess.h"
 #include "GToken.h"
+#include "GEventTargetThread.h"
+#include "GTextFile.h"
 
 #if 1
 #include "GParseCpp.h"
@@ -31,430 +32,207 @@ const char *CTagsExeName = "ctags"
 class FindSymbolDlg : public GDialog
 {
 	AppWnd *App;
-	FindSymbolSystemPriv *d;
+	GList *Lst;
 
 public:
 	FindSymResult Result;
 
-	FindSymbolDlg(FindSymbolSystemPriv *priv, GViewI *parent);
+	FindSymbolDlg(GViewI *parent);
 	~FindSymbolDlg();
 	
 	int OnNotify(GViewI *v, int f);
-	void OnPulse();
 	void OnCreate();
 	bool OnViewKey(GView *v, GKey &k);
 };
 
-struct SearchRequest
-{
-	GAutoString Str;
-	bool NoResults, Finished;
-	GArray<FindSymResult> Results;
-	
-	SearchRequest()
-	{
-		NoResults = false;
-		Finished = false;
-	}
-};
 
-class FindSymbolThread
-	#if !DEBUG_NO_THREAD
-	: public GThread
-	#endif
+struct FindSymbolSystemPriv : public GEventTargetThread
 {
-	struct Symbol
+	struct FileSyms
 	{
-		const char *Sym;
-		const char *File;
-		int Line;
+		GString Path;
+		GString::Array *Inc;
+		GAutoWString Source;
+		GArray<DefnInfo> Defs;
+		
+		bool Parse()
+		{
+			Defs.Length(0);
+			bool Status = BuildDefnList(Path, Source, Defs, DefnNone);
+			return Status;
+		}
 	};
 
-	bool Loop;
-	FindSymbolSystemPriv *d;
-	GAutoString data;
-	GArray<Symbol> Syms;
-
-public:
-	enum ThreadState
-	{
-		Initializing,
-		Waiting,
-		Working,
-		ExitSearch,
-	} State;
-
-	FindSymbolThread(FindSymbolSystemPriv *priv);
-	~FindSymbolThread();
-
-	void UpdateTags();
-	void Msg(const char *s);
-	void MatchesToResults(struct SearchRequest *Req, GArray<Symbol*> &Matches);
-	int Main();
-	void Stop();
-};
-
-struct FindSymbolSystemPriv : public GMutex
-{
-	AppWnd *App;
-	GList *Lst;
+	GEventSinkI *App;
+	GArray<GString::Array*> IncPaths;
+	GArray<FileSyms*> Files;
 	
-	// All the input files from the projects that are open
-	GArray<char*> Files;
-
-	#ifdef _GPARSECPP_H_
-	GCppParser CppParser;
-	#else
-	GAutoString CTagsExe;
-	GAutoString CTagsIndexFile;
-	#endif
-	GArray<char*> ThreadMsg;
-
-	bool TagsDirty;
-
-	#if !DEBUG_NO_THREAD
-	GThreadEvent Sync;
-	#endif
-	GAutoPtr<FindSymbolThread> Thread;
-
-	GArray<SearchRequest*> Requests, Done;
-	
-	FindSymbolSystemPriv() : GMutex("FindSymbolLock")
+	FindSymbolSystemPriv(GEventSinkI *app) : GEventTargetThread("FindSymbolSystemPriv")
 	{
-		App = NULL;
-		Lst = NULL;
-		TagsDirty = false;
-		
-		#ifndef _GPARSECPP_H_
-		CTagsExe.Reset(LgiFindFile(CTagsExeName));
-		if (!CTagsExe)
+		App = app;
+	}
+	
+	int GetFileIndex(GString &Path)
+	{
+		for (unsigned i=0; i<Files.Length(); i++)
 		{
-			char p[MAX_PATH];
-			if (LgiGetSystemPath(LSP_APP_INSTALL, p, sizeof(p)) &&
-				LgiMakePath(p, sizeof(p), p, "../../../../CodeLib/ctags58") &&
-				LgiMakePath(p, sizeof(p), p, CTagsExeName))
+			if (Path == Files[i]->Path)
+				return i;
+		}
+		return -1;
+	}
+	
+	bool AddFile(GString Path)
+	{
+		// Already added?
+		int Idx = GetFileIndex(Path);
+		if (Idx >= 0)
+			return true;
+			
+		LgiAssert(!LgiIsRelativePath(Path));
+
+		// Setup the file sym data...
+		FileSyms *f = new FileSyms;
+		if (!f) return false;	
+		f->Path = Path;
+		f->Inc = IncPaths.Last();
+		Files.Add(f);
+		
+		// Parse for headers...
+		GTextFile Tf;
+		if (!Tf.Open(Path, O_READ))
+			return false;
+
+		GAutoString Source = Tf.Read();
+		GArray<char*> Headers;
+		if (BuildHeaderList(Source, Headers, *f->Inc, false))
+		{
+			for (unsigned i=0; i<Headers.Length(); i++)
 			{
-				if (FileExists(p))
-					CTagsExe.Reset(NewStr(p));
+				AddFile(Headers[i]);
 			}
 		}
+		Headers.DeleteArrays();
+		
+		// Parse for symbols...
+		f->Source.Reset(LgiNewUtf8To16(Source));
+		return f->Parse();
+	}
+	
+	bool ReparseFile(GString Path)
+	{
+		int Idx = GetFileIndex(Path);
+		if (Idx < 0) return false;
+		Files[Idx]->Parse();
+		return true;
+	}
+	
+	bool RemoveFile(GString Path)
+	{
+		int Idx = GetFileIndex(Path);
+		if (Idx < 0) return false;
+		delete Files[Idx];
+		Files.DeleteAt(Idx);
+		return true;
+	}
 
-		if (!CTagsExe)
+	GMessage::Result OnEvent(GMessage *Msg)
+	{
+		switch (Msg->Msg())
 		{
-			char *Path = getenv("PATH");
-			if (Path)
+			case M_FIND_SYM_REQUEST:
 			{
-				GToken t(Path, ":");
-				for (int i=0; i<t.Length(); i++)
+				GAutoPtr<FindSymRequest> Req((FindSymRequest*)Msg->A());
+				if (Req && Req->Sink)
 				{
-					char p[MAX_PATH];
-					LgiMakePath(p, sizeof(p), t[i], CTagsExeName);
-					if (FileExists(p))
-					{
-						CTagsExe.Reset(NewStr(p));
+					GString::Array p = Req->Str.SplitDelimit(" \t");
+					if (p.Length() == 0)
 						break;
+					
+					// For each file...
+					for (unsigned f=0; f<Files.Length(); f++)
+					{
+						FileSyms *fs = Files[f];
+						if (fs)
+						{
+							// For each symbol...
+							for (unsigned i=0; i<fs->Defs.Length(); i++)
+							{
+								DefnInfo &Def = fs->Defs[i];
+								
+								// For each search term...
+								bool Match = true;
+								for (unsigned n=0; n<p.Length(); n++)
+								{
+									if (!stristr(Def.Name, p[n]))
+									{
+										Match = false;
+										break;
+									}
+								}
+								
+								if (Match)
+								{
+									// Create a result for this match...
+									FindSymResult *r = new FindSymResult();
+									if (r)
+									{
+										r->File = Def.File.Get();
+										r->Symbol = Def.Name.Get();
+										r->Line = Def.Line;
+										Req->Results.Add(r);
+									}
+								}
+							}
+						}
 					}
+					
+					Req->Sink->PostEvent(M_FIND_SYM_REQUEST, (GMessage::Param) Req.Release());
 				}
+				break;
+			}
+			case M_FIND_SYM_FILE:
+			{
+				GAutoPtr<GString> File((GString*)Msg->A());
+				if (File)
+				{
+					FindSymbolSystem::SymAction Action = (FindSymbolSystem::SymAction)Msg->B();
+
+					if (Action == FindSymbolSystem::FileAdd)
+						AddFile(*File);
+					else if (Action == FindSymbolSystem::FileRemove)
+						RemoveFile(*File);
+					else if (Action == FindSymbolSystem::FileReparse)
+						ReparseFile(*File);
+				}
+				break;
+			}
+			case M_FIND_SYM_INC_PATHS:
+			{
+				GAutoPtr<GString::Array> Paths((GString::Array*)Msg->A());
+				if (Paths)
+					IncPaths.Add(Paths.Release());
+				break;
+			}
+			default:
+			{
+				LgiAssert(!"Implement handler for message.");
+				break;
 			}
 		}
-		#endif
-	}
-	
-	~FindSymbolSystemPriv()
-	{
-		Files.DeleteArrays();
-		ThreadMsg.DeleteArrays();
-	}
-};
-
-FindSymbolThread::FindSymbolThread(FindSymbolSystemPriv *priv)
-	#if !DEBUG_NO_THREAD
-	: GThread("FindSymbolThread")
-	#endif
-{
-	State = Initializing;
-	d = priv;
-	Loop = true;
-	#if DEBUG_NO_THREAD
-	UpdateTags();
-	#else
-	Run();
-	#endif
-}
-
-FindSymbolThread::~FindSymbolThread()
-{
-	Loop = false;
-	State = ExitSearch;
-	#if !DEBUG_NO_THREAD
-	d->Sync.Signal();
-	while (!IsExited())
-		LgiSleep(1);
-	#endif
-}
-
-void FindSymbolThread::Msg(const char *s)
-{
-	if (d->Lock(_FL))
-	{
-		d->ThreadMsg.Add(NewStr(s));
-		d->Unlock();
-	}
-}
-
-void FindSymbolThread::MatchesToResults(SearchRequest *Req, GArray<Symbol*> &Matches)
-{
-	if (State == Working &&
-		Req &&
-		d->Lock(_FL))
-	{
-		for (int i=0; i<Matches.Length(); i++)
-		{
-			FindSymResult &r = Req->Results.New();
-			r.Symbol.Reset(NewStr(Matches[i]->Sym));
-			r.File.Reset(NewStr(Matches[i]->File));
-			r.Line = Matches[i]->Line;
-		}
-		d->Unlock();
-		Matches.Length(0);
-	}
-}
-
-void FindSymbolThread::UpdateTags()
-{
-	#ifdef _GPARSECPP_H_
-	
-	List<IdeProject> Projects;
-	IdeProject *p = d->App->RootProject();
-	if (p)
-	{
-		Projects.Add(p);
-		p->GetChildProjects(Projects);
 		
-		for (int i=0; i<Projects.Length(); i++)
-		{
-			IdeProject *p = Projects[i];
-			if (p)
-			{
-				GArray<char*> Src;
-				GArray<const char*> IncPaths;
-				
-				p->CollectAllSource(Src, PlatformCurrent);
-				
-				GAutoString Base = p->GetBasePath();
-				
-				const char *Ip = p->GetIncludePaths();
-				GToken t(Ip, "\n");
-				for (int n=0; n<t.Length(); n++)
-				{
-					if (LgiIsRelativePath(t[n]))
-					{
-						char p[MAX_PATH];
-						LgiMakePath(p, sizeof(p), Base, t[n]);
-						IncPaths.Add(NewStr(p));
-					}
-					else
-					{
-						IncPaths.Add(NewStr(t[n]));
-					}
-				}
-				
-				GArray<GCppParser::ValuePair*> PreDefs;
-				const char *Pd = p->GetPreDefinedValues();
-				GToken t2(Pd, ";");
-				for (int n=0; n<t.Length(); n++)
-				{
-				}
-				
-				d->CppParser.ParseCode(IncPaths, PreDefs, Src);
-				
-				IncPaths.DeleteArrays();
-				Src.DeleteArrays();
-			}
-		}
-	}
-			
-	#else
-
-	// Create index...
-	char tmp[MAX_PATH];
-	if (!LgiGetSystemPath(LSP_TEMP, tmp, sizeof(tmp)))
-	{
-		Msg("Error getting temp folder.");
-		return;
-	}
-	
-	if (!LgiMakePath(tmp, sizeof(tmp), tmp, TEMP_FILE_NAME))
-	{
-		Msg("Error making temp path.");
-		return;
-	}
-	if (!d->CTagsIndexFile)
-	{
-		Msg("Error: no index file.");
-		return;
-	}
-
-	char msg[MAX_PATH];
-	sprintf_s(msg, sizeof(msg), "Generating index: %s", d->CTagsIndexFile.Get());
-	Msg(msg);
-
-	if (d->Lock(_FL))
-	{
-		GFile tmpfile;
-		if (tmpfile.Open(tmp, O_WRITE))
-		{
-			tmpfile.SetSize(0);
-			for (int i=0; i<d->Files.Length(); i++)
-			{
-				char *file = d->Files[i];
-				tmpfile.Print("%s\n", file);
-			}
-		}
-		d->Unlock();
-	}
-	else LgiTrace("%s:%i - failed to lock.\n", _FL);	
-	
-	char args[MAX_PATH];
-	sprintf_s(args, sizeof(args), "--excmd=number -f \"%s\" -L \"%s\"", d->CTagsIndexFile.Get(), tmp);
-	GProcess proc;
-	bool b = proc.Run(d->CTagsExe, args, NULL, true);
-
-	// Read in the tags file...
-	Msg("Reading tags file...");
-	char *end = NULL;
-
-	GFile in;
-	if (in.Open(d->CTagsIndexFile, O_READ))
-	{
-		int64 sz = in.GetSize();
-		data.Reset(new char[sz+1]);
-		int r = in.Read(data, sz);
-		if (r < 0)
-			return;
-		end = data + r;
-		*end = 0;
-		in.Close();
-	}
-
-	// Parse
-	Syms.Length(0);
-	if (data)
-	{
-		for (char *b = data; *b; )
-		{
-			LgiAssert(b < end);
-			
-			Symbol &s = Syms.New();
-			s.Sym = b;
-			while (*b && *b != '\t') b++;
-			if (*b != '\t')
-				break;
-			*b++ = 0;
-			
-			s.File = b;
-			while (*b && *b != '\t' && *b != '\n') b++;
-			if (*b != '\t')
-				break;
-			*b++ = 0;
-			
-			s.Line = atoi(b);
-			while (*b && *b != '\n') b++;
-			if (*b != '\n')
-				break;
-			b++;
-		}
-	}
-	#endif
-}
-
-int FindSymbolThread::Main()
-{
-	// Start waiting for search terms
-	Msg("Ready.");
-	while (Loop)
-	{
-		State = Waiting;
-		#if !DEBUG_NO_THREAD
-		if (d->Sync.Wait())
-		{
-			if (!Loop)
-				break;
-			
-			State = Working;
-			if (d->TagsDirty)
-			{
-				Msg("Updating tags...");
-				UpdateTags();
-				d->TagsDirty = false;
-			}
-
-			SearchRequest *Req = NULL;
-			if (d->Lock(_FL))
-			{
-				while (d->Requests.Length())
-				{
-					DeleteObj(Req);
-					Req = d->Requests[0];
-					d->Requests.DeleteAt(0, true);
-				}
-				d->Unlock();
-			}
-			if (Req)
-			{
-				Symbol *s = &Syms[0];
-				GArray<Symbol*> Matches;
-				
-				#if DEBUG_FIND_SYMBOL
-				LgiTrace("Searching for '%s'...\n", Req->Str.Get());
-				#endif
-				
-				for (int i=0; State == Working && i<Syms.Length(); i++)
-				{
-					if (stristr(s[i].Sym, Req->Str))
-					{
-						Matches.Add(s + i);
-					}
-				}
-				
-				#if DEBUG_FIND_SYMBOL
-				LgiTrace("Searched for '%s', got %i hits. %i requests remain\n", Req->Str.Get(), Matches.Length(), d->Requests.Length());
-				#endif
-				
-				if (Matches.Length())
-					MatchesToResults(Req, Matches);
-				else
-					Req->NoResults = true;
-				
-				if (d->Lock(_FL))
-				{
-					d->Done.Add(Req);
-					Req->Finished = true;
-					d->Unlock();
-				}
-				else delete Req;
-			}
-		}
-		#endif
-	}
-	return 0;
-}
-
-void FindSymbolThread::Stop()
-{
-	State = ExitSearch;
-	while (State == ExitSearch)
-		LgiSleep(1);
-}
+		return 0;
+	}	
+};
 
 int AlphaCmp(GListItem *a, GListItem *b, NativeInt d)
 {
 	return stricmp(a->GetText(0), b->GetText(0));
 }
 
-FindSymbolDlg::FindSymbolDlg(FindSymbolSystemPriv *priv, GViewI *parent)
+FindSymbolDlg::FindSymbolDlg(GViewI *parent)
 {
-	d = priv;
+	Lst = NULL;
 	SetParent(parent);
 	if (LoadFromResource(IDD_FIND_SYMBOL))
 	{
@@ -464,9 +242,9 @@ FindSymbolDlg::FindSymbolDlg(FindSymbolSystemPriv *priv, GViewI *parent)
 		if (GetViewById(IDC_STR, f))
 			f->Focus(true);
 		
-		if (GetViewById(IDC_RESULTS, d->Lst))
+		if (GetViewById(IDC_RESULTS, Lst))
 		{
-			d->Lst->MultiSelect(false);
+			Lst->MultiSelect(false);
 			
 			#ifdef _GPARSECPP_H_
 			#else
@@ -483,111 +261,10 @@ FindSymbolDlg::FindSymbolDlg(FindSymbolSystemPriv *priv, GViewI *parent)
 
 FindSymbolDlg::~FindSymbolDlg()
 {
-	d->Lst = NULL;
-}
-
-void FindSymbolDlg::OnPulse()
-{
-	if (d->Lst && d->Lock(_FL))
-	{
-		if (d->ThreadMsg.Length())
-		{
-			GArray<char*> Lines;
-			GToken t(GetCtrlName(IDC_LOG), "\n");
-			int i;
-			for (i=0; i<t.Length(); i++)
-				Lines.Add(t[i]);
-			for (i=0; i<d->ThreadMsg.Length(); i++)
-				Lines.Add(d->ThreadMsg[i]);
-
-			GStringPipe p;
-			int Start = max(0, (int)Lines.Length()-3);
-			for (i=Start; i<Lines.Length(); i++)
-				p.Print("%s\n", Lines[i]);
-			d->ThreadMsg.DeleteArrays();
-
-			GAutoString a(p.NewStr());
-			SetCtrlName(IDC_LOG, a);
-		}
-
-		SearchRequest *Req = NULL;
-		if (d->Done.Length())
-		{
-			Req = d->Done[d->Done.Length()-1];
-			d->Done.DeleteAt(d->Done.Length()-1);
-			d->Done.DeleteObjects();
-		}
-		d->Unlock();
-		if (Req)
-		{
-			if (Req->NoResults)
-			{
-				d->Lst->Empty();
-			}
-			else if (Req->Results.Length())
-			{
-				// Three types of items:
-				// 1) New results that need to go in the list.
-				// 2) Duplicates of existing results.
-				// 3) Old results that are no longer relevant.
-				GHashTbl<char*, GListItem*> Old;
-
-				// Setup previous hash table to track stuff from the last search. This
-				// is used to clear old results that are no longer relevant.
-				List<GListItem> All;
-				d->Lst->GetAll(All);
-				GListItem *i;
-				for (i=All.First(); i; i=All.Next())
-				{
-					i->_UserInt = false;
-					Old.Add(i->GetText(1), i);
-				}
-
-				#if DEBUG_FIND_SYMBOL
-				LgiTrace("OnPulse results for '%s' = %i\n", Req->Str.Get(), Req->Results.Length());
-				#endif				
-
-				for (int n=0; n<Req->Results.Length(); n++)
-				{
-					FindSymResult &r = Req->Results[n];
-					char str[MAX_PATH];
-					sprintf_s(str, sizeof(str), "%s:%i", r.File.Get(), r.Line);				
-					i = Old.Find(str);
-					if (!i)
-					{
-						i = new GListItem;
-						i->SetText(r.Symbol, 0);
-						i->SetText(str, 1);
-						d->Lst->Insert(i);
-					}
-					if (i)
-					{
-						i->_UserInt = true;
-					}
-				}
-				Req->Results.Length(0);
-
-				// Thread has finished searching and there are previous entries to remove.
-				d->Lst->GetAll(All);
-				for (i=All.First(); i; i=All.Next())
-				{
-					if (!i->_UserInt)
-						d->Lst->Delete(i);
-				}
-				
-				d->Lst->Sort(AlphaCmp, 0);
-				d->Lst->ResizeColumnsToContent();
-				if (!d->Lst->GetSelected())
-					d->Lst->Value(0);
-				delete Req;
-			}
-		}
-	}
 }
 
 void FindSymbolDlg::OnCreate()
 {
-	SetPulse(500);
 	RegisterHook(this, GKeyEvents);
 }
 
@@ -600,7 +277,7 @@ bool FindSymbolDlg::OnViewKey(GView *v, GKey &k)
 		case VK_PAGEDOWN:
 		case VK_PAGEUP:
 		{
-			return d->Lst->OnKey(k);
+			return Lst->OnKey(k);
 			break;
 		}
 	}
@@ -619,26 +296,6 @@ int FindSymbolDlg::OnNotify(GViewI *v, int f)
 				char *Str = v->Name();
 				if (Str && strlen(Str) > 1)
 				{
-					// Ask the thread to stop any search
-					if (d->Thread->State != FindSymbolThread::Working)
-						d->Thread->State = FindSymbolThread::ExitSearch;
-					
-					// Setup new search string
-					if (d->Lock(_FL))
-					{
-						SearchRequest *Req = new SearchRequest;
-						Req->Str.Reset(NewStr(Str));
-						d->Requests.Add(Req);
-						d->Unlock();
-						
-						#if DEBUG_FIND_SYMBOL
-						LgiTrace("OnNotify str '%s'\n", Str);
-						#endif
-						
-						#if !DEBUG_NO_THREAD
-						d->Sync.Signal();
-						#endif
-					}
 				}
 			}
 			break;
@@ -653,9 +310,9 @@ int FindSymbolDlg::OnNotify(GViewI *v, int f)
 		}
 		case IDOK:
 		{
-			if (d->Lst)
+			if (Lst)
 			{
-				GListItem *i = d->Lst->GetSelected();
+				GListItem *i = Lst->GetSelected();
 				if (i)
 				{
 					char *r = i->GetText(1);
@@ -664,7 +321,7 @@ int FindSymbolDlg::OnNotify(GViewI *v, int f)
 						char *colon = strrchr(r, ':');
 						if (colon)
 						{
-							Result.File.Reset(NewStr(r, colon - r));
+							Result.File.Set(r, colon - r);
 							Result.Line = atoi(++colon);
 						}
 					}
@@ -685,9 +342,9 @@ int FindSymbolDlg::OnNotify(GViewI *v, int f)
 }
 
 ///////////////////////////////////////////////////////////////////////////
-FindSymbolSystem::FindSymbolSystem(AppWnd *app)
+FindSymbolSystem::FindSymbolSystem(GEventSinkI *app)
 {
-	d = new FindSymbolSystemPriv;
+	d = new FindSymbolSystemPriv(app);
 	d->App = app;
 }
 
@@ -696,93 +353,37 @@ FindSymbolSystem::~FindSymbolSystem()
 	delete d;
 }
 
-void FindSymbolSystem::OnProject()
-{
-	List<IdeProject> Projects;
-	IdeProject *p = d->App->RootProject();
-	if (p)
-	{
-		#ifndef _GPARSECPP_H_
-		char *ProjFile = p->GetFileName();
-		if (ProjFile)
-		{
-			char p[MAX_PATH];
-			if (LgiMakePath(p, sizeof(p), ProjFile, "../ctags.index"))
-			{
-				d->CTagsIndexFile.Reset(NewStr(p));
-			}
-		}
-		#endif
-		
-		Projects.Add(p);
-		p->GetChildProjects(Projects);
-	}
-
-	for (p = Projects.First(); p; p = Projects.Next())
-	{
-		p->CollectAllSource(d->Files, PlatformCurrent);
-	}
-
-	d->TagsDirty = true;
-	
-	#if 0
-	if (!d->Thread)
-	{
-		d->Thread.Reset(new FindSymbolThread(d));
-		#if !DEBUG_NO_THREAD
-		d->Sync.Signal();
-		#endif
-	}
-	#endif
-}
-
 FindSymResult FindSymbolSystem::OpenSearchDlg(GViewI *Parent)
 {
-	FindSymbolDlg Dlg(d, Parent);
+	FindSymbolDlg Dlg(Parent);
 	Dlg.DoModal();
 	return Dlg.Result;	
 }
 
-void FindSymbolSystem::Search(const char *SearchStr, GArray<FindSymResult> &Results)
+bool FindSymbolSystem::SetIncludePaths(GString::Array &Paths)
 {
-	if (d->Lock(_FL))
+	GString::Array *a = new GString::Array;
+	if (!a)
+		return false;
+	*a = Paths;
+	return d->PostEvent(M_FIND_SYM_INC_PATHS, (GMessage::Param)a);
+}
+
+bool FindSymbolSystem::OnFile(const char *Path, SymAction Action)
+{
+	GString *s = new GString(Path);
+	
+	return d->PostEvent(M_FIND_SYM_FILE,
+						(GMessage::Param)s,
+						(GMessage::Param)Action);
+}
+
+void FindSymbolSystem::Search(GEventSinkI *Results, const char *SearchStr)
+{
+	FindSymRequest *Req = new FindSymRequest(Results);
+	if (Req)
 	{
-		LgiAssert(d->Lst == NULL);
-		
-		// Create and add request
-		SearchRequest *Req = new SearchRequest;
-		Req->Str.Reset(NewStr(SearchStr));
-		d->Requests.Add(Req);
-		d->Unlock();
-		#if !DEBUG_NO_THREAD
-		d->Sync.Signal();
-		#endif
-		
-		// Wait for it to complete...
-		uint64 Start = LgiCurrentTime();
-		while (LgiCurrentTime() - Start < 3000)
-		{
-			LgiYield();
-			LgiSleep(1);
-			
-			if (d->Lock(_FL))
-			{
-				if (d->Done.HasItem(Req))
-					Start = 0;
-				d->Unlock();
-			}
-		}
-		
-		if (d->Lock(_FL))
-		{
-			if (d->Done.HasItem(Req))
-			{
-				Results = Req->Results;
-				d->Done.Delete(Req);
-				delete Req;
-			}
-			
-			d->Unlock();
-		}
+		Req->Str = SearchStr;
+		d->PostEvent(M_FIND_SYM_REQUEST, (GMessage::Param)Req);
 	}
 }

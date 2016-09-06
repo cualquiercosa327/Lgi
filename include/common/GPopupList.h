@@ -91,6 +91,22 @@ public:
 		PosType = t;
 	}
 	
+	void AdjustPosition()
+	{
+		// Set position relative to editbox
+		GRect r = GetPos();
+		GdcPt2 p(0, PosType == PopupAbove ? 0 : Edit->Y());
+		Edit->PointToScreen(p);
+		if (PosType == PopupAbove)
+			r.Offset(p.x - r.x1, (p.y - r.Y()) - r.y1);
+		else
+			r.Offset(p.x - r.x1, p.y - r.y1);
+		#ifdef __GTK_H__
+		r.Offset(9, -18);
+		#endif
+		SetPos(r);				
+	}
+	
 	bool SetItems(GArray<T*> &a)
 	{
 		Lst->Empty();
@@ -135,7 +151,32 @@ public:
 		if (r != c)
 			Lst->SetPos(c);
 	}
-		
+
+	bool Visible()
+	{
+		return GPopup::Visible();
+	}
+
+	void Visible(bool i)
+	{
+		if (i)
+			AdjustPosition();
+		GPopup::Visible(i);
+		if (i)
+		{
+			AttachChildren();
+			OnPosChange();
+			
+			if (GetWindow() && !Registered)
+			{
+				Registered = true;
+				GetWindow()->RegisterHook(this, GKeyEvents);
+			}
+
+			Edit->Focus(true);
+		}
+	}
+	
 	int OnNotify(GViewI *Ctrl, int Flags)
 	{
 		if (Lst &&
@@ -149,34 +190,7 @@ public:
 			bool Vis = Visible();
 			if (Has ^ Vis)
 			{
-				// Set position relative to editbox
-				GRect r = GetPos();
-				GdcPt2 p(0, PosType == PopupAbove ? 0 : Edit->Y());
-				Edit->PointToScreen(p);
-				if (PosType == PopupAbove)
-					r.Offset(p.x - r.x1, (p.y - r.Y()) - r.y1);
-				else
-					r.Offset(p.x - r.x1, p.y - r.y1);
-				#ifdef __GTK_H__
-				r.Offset(9, -18);
-				#endif
-				
-				SetPos(r);				
-
 				Visible(Has);
-				if (Has)
-				{
-					AttachChildren();
-					OnPosChange();
-					
-					if (GetWindow() && !Registered)
-					{
-						Registered = true;
-						GetWindow()->RegisterHook(this, GKeyEvents);
-					}
-
-					Edit->Focus(true);
-				}
 			}
 		}
 		else if (Ctrl == Lst)
@@ -224,6 +238,8 @@ public:
 				}
 				case VK_UP:
 				case VK_DOWN:
+				case VK_PAGEDOWN:
+				case VK_PAGEUP:
 				{
 					if (!k.IsChar)
 					{

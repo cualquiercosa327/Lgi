@@ -67,7 +67,7 @@ IdePlatform GetCurrentPlatform()
 	#endif
 }
 
-void IdeCommon::CollectAllSource(GArray<char*> &c, IdePlatform Platform)
+void IdeCommon::CollectAllSource(GArray<GString> &c, IdePlatform Platform)
 {
 	ForAllProjectNodes(p)
 	{
@@ -82,10 +82,10 @@ void IdeCommon::CollectAllSource(GArray<char*> &c, IdePlatform Platform)
 				int Flags = p->GetPlatforms();
 				if (Flags & (1 << Platform))
 				{
-					GAutoString path = p->GetFullPath();
+					GString path = p->GetFullPath();
 					if (path)
 					{
-						c.Add(path.Release());
+						c.Add(path);
 					}
 				}
 				break;

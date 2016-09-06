@@ -24,6 +24,7 @@
 #include "GCheckBox.h"
 #include "GDebugger.h"
 #include "LgiRes.h"
+#include "ProjectNode.h"
 
 #define IDM_SAVE				102
 #define IDM_RECENT_FILE			1000
@@ -1829,8 +1830,39 @@ IdeProject *AppWnd::OpenProject(char *FileName, IdeProject *ParentProj, bool Cre
 			}
 
 			GetTree()->Focus(true);
-			if (!ParentProj)
-				d->FindSym.OnProject();
+
+			GArray<ProjectNode*> Files;
+			if (p->GetAllNodes(Files))
+			{
+				GString::Array Inc;
+				p->BuildIncludePaths(Inc, false, PlatformCurrent);
+				d->FindSym.SetIncludePaths(Inc);
+
+				GAutoString Base = p->GetBasePath();
+				for (unsigned i=0; i<Files.Length(); i++)
+				{
+					ProjectNode *n = Files[i];
+					if (n)
+					{
+						char *Fn = n->GetFileName();
+						if (Fn)
+						{
+							GFile::Path Path;
+							if (LgiIsRelativePath(Fn))
+							{
+								Path = Base;
+								Path += Fn;
+							}
+							else
+							{
+								Path = Fn;
+							}
+							
+							d->FindSym.OnFile(Path, FindSymbolSystem::FileAdd);
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -2804,14 +2836,13 @@ GStream *AppWnd::GetBuildLog()
 	return d->Output->Txt[AppWnd::BuildTab];
 }
 
-bool AppWnd::FindSymbol(const char *Sym, GArray<FindSymResult> &Results)
+void AppWnd::FindSymbol(GEventSinkI *Results, const char *Sym)
 {
-	d->FindSym.Search(Sym, Results);
-	return Results.Length() > 0;
+	d->FindSym.Search(Results, Sym);
 }
 
 #include "GSubProcess.h"
-bool AppWnd::GetSystemIncludePaths(::GArray<char*> &Paths)
+bool AppWnd::GetSystemIncludePaths(::GArray<GString> &Paths)
 {
 	if (d->SystemIncludePaths.Length() == 0)
 	{

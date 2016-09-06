@@ -56,7 +56,7 @@ public:
 	IdeProject *GetProject() { return Project; }
 	bool OnOpen(GXmlTag *Src);	
 	void CollectAllSubProjects(List<IdeProject> &c);
-	void CollectAllSource(GArray<char*> &c, IdePlatform Platform);
+	void CollectAllSource(GArray<GString> &c, IdePlatform Platform);
 	void SortChildren();
 	void InsertTag(GXmlTag *t);
 	void RemoveTag();
@@ -201,7 +201,7 @@ public:
 	bool CreateMakefile(IdePlatform Platform);
 	GAutoString GetTargetName(IdePlatform Platform);
 	bool GetTargetFile(char *Buf, int BufSize);
-	bool BuildIncludePaths(GArray<char*> &Paths, bool Recurse, IdePlatform Platform);
+	bool BuildIncludePaths(GArray<GString> &Paths, bool Recurse, IdePlatform Platform);
 	void ShowFileProperties(const char *File);
 	
 	// Nodes
@@ -224,7 +224,7 @@ public:
 
 	// Dependency calculation
 	bool GetAllDependencies(GArray<char*> &Files, IdePlatform Platform);
-	bool GetDependencies(const char *SourceFile, GArray<char*> &IncPaths, GArray<char*> &Files, IdePlatform Platform);
+	bool GetDependencies(const char *SourceFile, GArray<GString> &IncPaths, GArray<char*> &Files, IdePlatform Platform);
 	
 	// Settings
 	IdeProjectSettings *GetSettings();

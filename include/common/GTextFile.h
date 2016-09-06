@@ -41,6 +41,19 @@ public:
 	{
 		return Type;
 	}
+	
+	const char *GetTypeString()
+	{
+		switch (Type)
+		{
+			case Utf8: return "utf-8";
+			case Utf16BE: return "utf-16be";
+			case Utf16LE: return "utf-16";
+			case Utf32BE: return "utf-32be";
+			case Utf32LE: return "utf-32";
+		}
+		return NULL;
+	}
 
 	bool GetVariant(const char *Name, GVariant &Value, char *Array = NULL)
 	{
@@ -51,6 +64,46 @@ public:
 		}
 		
 		return GFile::GetVariant(Name, Value, Array);
+	}
+	
+	/// Read the whole file as utf-8
+	GAutoString Read()
+	{
+		GAutoString Ret;
+		int64 Sz = GetSize();
+		GAutoPtr<uint8> Buf(new uint8[Sz]);
+		if (Buf)
+		{
+			int Rd = Read(Buf, Sz);
+			if (Rd > 0)
+			{
+				const char *Cs = GetTypeString();
+				if (Cs)
+					Ret.Reset((char*)LgiNewConvertCp("utf-8", Buf, Cs, Sz));
+			}
+		}
+		
+		return Ret;
+	}
+	
+	/// Read the whole file as wchar_t
+	GAutoWString ReadW()
+	{
+		GAutoWString Ret;
+		int64 Sz = GetSize();
+		GAutoPtr<uint8> Buf(new uint8[Sz]);
+		if (Buf)
+		{
+			int Rd = Read(Buf, Sz);
+			if (Rd > 0)
+			{
+				const char *Cs = GetTypeString();
+				if (Cs)
+					Ret.Reset((char16*)LgiNewConvertCp(LGI_WideCharset, Buf, Cs, Sz));
+			}
+		}
+		
+		return Ret;
 	}
 		
 	int Read(void *Buffer, int Size, int Flags = 0)

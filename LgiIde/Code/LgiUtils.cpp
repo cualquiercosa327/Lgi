@@ -8,7 +8,7 @@ static const char *White = " \r\t\n";
 #define isword(s)		(s && (isdigit(s) || isalpha(s) || (s) == '_') )
 #define skipws(s)		while (iswhite(*s)) s++;
 
-char *FindHeader(char *Short, GArray<char*> &Paths)
+char *FindHeader(char *Short, GArray<GString> &Paths)
 {
 	char *Status = 0;
 	
@@ -28,7 +28,7 @@ char *FindHeader(char *Short, GArray<char*> &Paths)
 	return Status;
 }
 
-bool BuildHeaderList(char *Cpp, GArray<char*> &Headers, GArray<char*> &IncPaths, bool Recurse)
+bool BuildHeaderList(char *Cpp, GArray<char*> &Headers, GArray<GString> &IncPaths, bool Recurse)
 {
 	char Include[] = {'i', 'n', 'c', 'l', 'u', 'd', 'e', 0 };
 	

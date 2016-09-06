@@ -19,18 +19,32 @@ class DefnInfo
 {
 public:
 	DefnType Type;
-	char *Name;
-	char *File;
+	GString Name;
+	GString File;
 	int Line;
 	
-	DefnInfo(DefnType type, char *file, char16 *s, int line)
+	DefnInfo()
+	{
+		Type = DefnNone;
+		Line = 0;
+	}
+
+	DefnInfo(const DefnInfo &d)
+	{
+		Type = d.Type;
+		Name = d.Name;
+		File = d.File;
+		Line = d.Line;
+	}
+	
+	void Set(DefnType type, char *file, char16 *s, int line)
 	{
 		Type = type;
-		File = NewStr(file);
+		File = file;
 		
 		while (strchr(" \t\r\n", *s)) s++;	
 		Line = line;
-		Name = LgiNewUtf16To8(s);
+		Name = s;
 		if (Name && Type == DefnFunc)
 		{
 			if (strlen(Name) > 42)
@@ -64,6 +78,8 @@ public:
 	}
 };
 
+extern bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Funcs, DefnType LimitTo, bool Debug = false);
+
 class IdeDoc : public GMdiChild
 {
 	friend class DocEdit;
@@ -86,7 +102,6 @@ public:
 	bool SetClean();
 	void SetDirty();
 	bool OnRequestClose(bool OsShuttingDown);
-	int OnNotify(GViewI *v, int f);
 	GTextView3 *GetEdit();
 	void OnPosChange();
 	void OnPaint(GSurface *pDC);
@@ -99,9 +114,8 @@ public:
 	void GotoSearch(int CtrlId);
 
 	// Source tools
-	bool BuildIncludePaths(GArray<char*> &Paths, IdePlatform Platform, bool IncludeSysPaths);
-	bool BuildHeaderList(char16 *Cpp, GArray<char*> &Headers, GArray<char*> &IncPaths);
-	bool BuildDefnList(char *FileName, char16 *Cpp, List<DefnInfo> &Funcs, DefnType LimitTo, bool Debug = false);
+	bool BuildIncludePaths(GArray<GString> &Paths, IdePlatform Platform, bool IncludeSysPaths);
+	bool BuildHeaderList(char16 *Cpp, GArray<char*> &Headers, GArray<GString> &IncPaths);
 	bool FindDefn(char16 *Def, char16 *Source, List<DefnInfo> &Matches);
 
 	// Events
@@ -110,6 +124,8 @@ public:
 	
 	// Impl
 	void OnTitleClick(GMouse &m);
+	GMessage::Result OnEvent(GMessage *Msg);
+	int OnNotify(GViewI *v, int f);
 };
 
 #endif

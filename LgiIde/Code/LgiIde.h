@@ -29,6 +29,19 @@ enum IdeMessages
 	M_BUILD_ERR,
 	M_BUILD_DONE,
 	M_DEBUG_ON_STATE,
+	
+	/// Find symbol results message:
+	/// GAutoPtr<FindSymRequest> Req((FindSymRequest*)Msg->A());
+	M_FIND_SYM_REQUEST,
+	
+	/// Send a file to the worker thread...
+	/// GAutoPtr<GString> File((GString*)Msg->A());
+	/// FindSymbolSystem::SymAction Action = (FindSymbolSystem::SymAction)Msg->B();
+	M_FIND_SYM_FILE,
+
+	/// Send a file to the worker thread...
+	/// GAutoPtr<GString::Array> Paths((GString::Array*)Msg->A());
+	M_FIND_SYM_INC_PATHS,	
 };
 
 #define ICON_PROJECT			0
@@ -126,8 +139,8 @@ class IdeDoc;
 class IdeProject;
 
 extern char AppName[];
-extern char *FindHeader(char *Short, GArray<char*> &Paths);
-extern bool BuildHeaderList(char *Cpp, GArray<char*> &Headers, GArray<char*> &IncPaths, bool Recurse);
+extern char *FindHeader(char *Short, GArray<GString> &Paths);
+extern bool BuildHeaderList(char *Cpp, GArray<char*> &Headers, GArray<GString> &IncPaths, bool Recurse);
 
 class NodeView;
 class NodeSource
@@ -144,7 +157,7 @@ public:
 	}
 	virtual ~NodeSource();
 
-	virtual GAutoString GetFullPath() = 0;
+	virtual GString GetFullPath() = 0;
 	virtual bool IsWeb() = 0;
 	virtual char *GetFileName() = 0;
 	virtual char *GetLocalCache() = 0;
@@ -223,8 +236,8 @@ public:
 	GStream *GetBuildLog();
 	IdeDoc *FindOpenFile(char *FileName);
 	IdeDoc *GotoReference(const char *File, int Line, bool CurIp, bool WithHistory = true);
-	bool FindSymbol(const char *Syn, GArray<FindSymResult> &Results);
-	bool GetSystemIncludePaths(GArray<char*> &Paths);
+	void FindSymbol(GEventSinkI *Results, const char *Sym);
+	bool GetSystemIncludePaths(GArray<GString> &Paths);
 	bool IsReleaseMode();
 	
 	// Events
