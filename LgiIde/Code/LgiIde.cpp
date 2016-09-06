@@ -1704,7 +1704,7 @@ IdeDoc *AppWnd::OpenFile(const char *FileName, NodeSource *Src)
 		{
 			if (Src)
 			{
-				Doc = NewDocWnd(FileName, Src);
+				Doc = NewDocWnd(File, Src);
 			}
 			else if (!DoingProjectFind)
 			{
@@ -1723,19 +1723,19 @@ IdeDoc *AppWnd::OpenFile(const char *FileName, NodeSource *Src)
 		if (!Doc)
 		{
 			GString FullPath;
-			if (LgiIsRelativePath(FileName))
+			if (LgiIsRelativePath(File))
 			{
 				IdeProject *Root = RootProject();
 				if (Root)
 				{
 					GAutoString RootPath = Root->GetBasePath();
 					char p[MAX_PATH];
-					LgiMakePath(p, sizeof(p), RootPath, FileName);
+					LgiMakePath(p, sizeof(p), RootPath, File);
 					if (FileExists(p))
 					{
 						FullPath = p;
 						File = FullPath;
-						printf("Converted '%s' to '%s'\n", FileName, p);
+						printf("Converted '%s' to '%s'\n", File, p);
 					}
 					else
 					{
@@ -1744,13 +1744,16 @@ IdeDoc *AppWnd::OpenFile(const char *FileName, NodeSource *Src)
 				}
 			}
 			
-			Doc = new IdeDoc(this, 0, File);
-			if (Doc)
+			if (FileExists(File))
 			{
-				GRect p = d->Mdi->NewPos();
-				Doc->SetPos(p);
-				d->Docs.Insert(Doc);
-				d->OnFile(File);
+				Doc = new IdeDoc(this, 0, File);
+				if (Doc)
+				{
+					GRect p = d->Mdi->NewPos();
+					Doc->SetPos(p);
+					d->Docs.Insert(Doc);
+					d->OnFile(File);
+				}
 			}
 		}
 

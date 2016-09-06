@@ -83,6 +83,7 @@
 #define IDC_SUB_TABLE							206
 #define IDC_JOBS								213
 #define IDC_BROWSE								232
+#define IDC_233									233
 #define IDC_TAB_SIZE							500
 #define IDC_SHOW_WHITESPACE						501
 #define IDM_OPEN								502

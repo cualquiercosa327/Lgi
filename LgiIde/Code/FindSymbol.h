@@ -63,7 +63,7 @@ public:
 	FindSymResult OpenSearchDlg(GViewI *Parent);
 	
 	/// This function searches the database for symbols and returns
-	/// the results as a M_FIND_SYM_RESULT message.
+	/// the results as a M_FIND_SYM_REQUEST message.
 	void Search(GEventSinkI *Results, const char *SearchStr);
 };
 

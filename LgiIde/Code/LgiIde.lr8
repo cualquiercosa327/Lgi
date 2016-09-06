@@ -128,8 +128,8 @@
 		<String Ref="179" Cid="179" Define="IDD_FIND_SYMBOL" en="Find Symbol" />
 		<String Ref="180" Cid="180" Define="IDC_TABLE" />
 		<String Ref="181" Cid="181" Define="IDC_RESULTS" />
-		<String Ref="182" Cid="182" Define="IDC_182" en="Symbol" />
-		<String Ref="183" Cid="183" Define="IDC_183" en="Definition" />
+		<String Ref="182" Cid="182" Define="IDC_182" en="File" />
+		<String Ref="183" Cid="183" Define="IDC_183" en="Line" />
 		<String Ref="184" Cid="184" Define="IDC_GENERAL_TABLE" />
 		<String Ref="185" Cid="-1" Define="IDC_STATIC" en="Makefile:" />
 		<String Ref="186" Cid="-1" Define="IDC_STATIC" en="Include Paths:" />
@@ -159,6 +159,7 @@
 		<String Ref="213" Cid="213" Define="IDC_JOBS" />
 		<String Ref="231" Cid="97" Define="IDC_PATH" />
 		<String Ref="232" Cid="232" Define="IDC_BROWSE" en="..." />
+		<String Ref="233" Cid="233" Define="IDC_233" en="Symbol" />
 	</string-group>
 	<style name="General">.fixed {
 	width: 18px;
@@ -282,7 +283,8 @@
 				<td colspan="3">
 					<ListView pos="7,7,454,104" ref="181">
 						<Column ref="182" width="199" />
-						<Column ref="183" width="208" />
+						<Column ref="183" width="50" />
+						<Column ref="233" width="156" />
 					</ListView>
 				</td>
 			</tr>

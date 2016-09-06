@@ -1392,7 +1392,10 @@ bool IdeDocPrivate::Load()
 	}
 	else if (FileName)
 	{
-		return Edit->Open(FileName);
+		if (FileExists(FileName))
+			return Edit->Open(FileName);
+		else
+			LgiTrace("%s:%i - '%s' doesn't exist.\n", _FL, FileName.Get());
 	}
 
 	return false;

@@ -33,16 +33,18 @@ class FindSymbolDlg : public GDialog
 {
 	AppWnd *App;
 	GList *Lst;
+	FindSymbolSystem *Sys;
 
 public:
 	FindSymResult Result;
 
-	FindSymbolDlg(GViewI *parent);
+	FindSymbolDlg(GViewI *parent, FindSymbolSystem *sys);
 	~FindSymbolDlg();
 	
 	int OnNotify(GViewI *v, int f);
 	void OnCreate();
 	bool OnViewKey(GView *v, GKey &k);
+	GMessage::Result OnEvent(GMessage *m);
 };
 
 
@@ -230,9 +232,10 @@ int AlphaCmp(GListItem *a, GListItem *b, NativeInt d)
 	return stricmp(a->GetText(0), b->GetText(0));
 }
 
-FindSymbolDlg::FindSymbolDlg(GViewI *parent)
+FindSymbolDlg::FindSymbolDlg(GViewI *parent, FindSymbolSystem *sys)
 {
 	Lst = NULL;
+	Sys = sys;
 	SetParent(parent);
 	if (LoadFromResource(IDD_FIND_SYMBOL))
 	{
@@ -241,21 +244,7 @@ FindSymbolDlg::FindSymbolDlg(GViewI *parent)
 		GViewI *f;
 		if (GetViewById(IDC_STR, f))
 			f->Focus(true);
-		
-		if (GetViewById(IDC_RESULTS, Lst))
-		{
-			Lst->MultiSelect(false);
-			
-			#ifdef _GPARSECPP_H_
-			#else
-			if (!d->CTagsExe)
-			{
-				GListItem *i = new GListItem;
-				i->SetText("Ctags binary missing.");
-				d->Lst->Insert(i);
-			}
-			#endif
-		}
+		GetViewById(IDC_RESULTS, Lst);
 	}
 }
 
@@ -285,6 +274,81 @@ bool FindSymbolDlg::OnViewKey(GView *v, GKey &k)
 	return false;
 }
 
+GMessage::Result FindSymbolDlg::OnEvent(GMessage *m)
+{
+	switch (m->Msg())
+	{
+		case M_FIND_SYM_REQUEST:
+		{
+			GAutoPtr<FindSymRequest> Req((FindSymRequest*)m->A());
+			if (Req)
+			{
+				GString Str = GetCtrlName(IDC_STR);
+				if (Str == Req->Str)
+				{
+					Lst->Empty();
+					List<GListItem> Ls;
+
+					GString s;
+					int CommonPathLen = 0;					
+					for (unsigned i=0; i<Req->Results.Length(); i++)
+					{
+						FindSymResult *r = Req->Results[i];
+
+						if (i)
+						{
+							char *a = s.Get();
+							char *a_end = strrchr(a, DIR_CHAR);
+
+							char *b = r->File.Get();
+							char *b_end = strrchr(b, DIR_CHAR);
+
+							int Common = 0;
+							while (	*a && a <= a_end
+									&& 
+									*b && b <= b_end
+									&&
+									ToLower(*a) == ToLower(*b))
+							{
+								Common++;
+								a++;
+								b++;
+							}
+							if (i == 1)
+								CommonPathLen = Common;
+							else
+								CommonPathLen = min(CommonPathLen, Common);
+						}
+						else s = r->File;
+					}
+
+					for (unsigned i=0; i<Req->Results.Length(); i++)
+					{
+						FindSymResult *r = Req->Results[i];
+						GListItem *it = new GListItem;
+						if (it)
+						{
+							GString Ln;
+							Ln.Printf("%i", r->Line);
+							
+							it->SetText(r->File.Get() + CommonPathLen, 0);
+							it->SetText(Ln, 1);
+							it->SetText(r->Symbol, 2);
+							Ls.Insert(it);
+						}
+					}
+					
+					Lst->Insert(Ls);
+					Lst->ResizeColumnsToContent();
+				}
+			}
+			break;
+		}
+	}
+
+	return GDialog::OnEvent(m);
+}
+
 int FindSymbolDlg::OnNotify(GViewI *v, int f)
 {
 	switch (v->GetId())
@@ -294,8 +358,10 @@ int FindSymbolDlg::OnNotify(GViewI *v, int f)
 			if (f != VK_RETURN)
 			{
 				char *Str = v->Name();
-				if (Str && strlen(Str) > 1)
+				if (Str && strlen(Str) > 2)
 				{
+					// Create a search
+					Sys->Search(this, Str);
 				}
 			}
 			break;
@@ -315,16 +381,8 @@ int FindSymbolDlg::OnNotify(GViewI *v, int f)
 				GListItem *i = Lst->GetSelected();
 				if (i)
 				{
-					char *r = i->GetText(1);
-					if (r)
-					{
-						char *colon = strrchr(r, ':');
-						if (colon)
-						{
-							Result.File.Set(r, colon - r);
-							Result.Line = atoi(++colon);
-						}
-					}
+					Result.File = i->GetText(0);
+					Result.Line = atoi(i->GetText(1));
 				}
 			}
 			
@@ -355,7 +413,7 @@ FindSymbolSystem::~FindSymbolSystem()
 
 FindSymResult FindSymbolSystem::OpenSearchDlg(GViewI *Parent)
 {
-	FindSymbolDlg Dlg(Parent);
+	FindSymbolDlg Dlg(Parent, this);
 	Dlg.DoModal();
 	return Dlg.Result;	
 }
