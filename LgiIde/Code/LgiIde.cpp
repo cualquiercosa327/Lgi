@@ -1875,7 +1875,6 @@ GMessage::Result AppWnd::OnEvent(GMessage *m)
 	{
 		case M_BUILD_DONE:
 		{
-			printf("M_BUILD_DONE received...\n");
 			UpdateState(-1, false);
 			
 			IdeProject *p = RootProject();

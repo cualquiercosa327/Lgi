@@ -422,7 +422,7 @@ int BuildThread::Main()
 					}
 					
 // printf("BuildThread::Main.7 SubProc getting exit value\n");
-					uint32 ex = SubProc->GetExitValue();
+					uint32 ex = SubProc->Wait();
 					Print("Make exited with %i (0x%x)\n", ex, ex);
 				}
 				else

@@ -203,7 +203,6 @@ bool GSubProcess::IsRunning()
 		{
 			ChildPid = INVALID_PID;
 			ExitValue = Status;
-			printf("%s:%i - waitpid signalled: %i\n", _FL, Status);
 		}
 		return ChildPid != INVALID_PID;
 	#elif defined(WIN32)
