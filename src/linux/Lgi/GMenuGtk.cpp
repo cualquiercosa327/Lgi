@@ -373,6 +373,7 @@ LgiMenuItem::GMenuItem()
 	
 	Position = -1;
 	
+	_Flags = 0;	
 	_Icon = -1;
 	_Id = 0;
 }
@@ -397,6 +398,7 @@ LgiMenuItem::GMenuItem(::GMenu *m, GSubMenu *p, const char *txt, int Pos, const 
 
 	Position = Pos;
 
+	_Flags = 0;	
 	_Icon = -1;
 	_Id = 0;
 

@@ -409,7 +409,7 @@ void EditTray::OnSymbolList(GMouse &m)
 				{
 					char m[512];
 					char *d = strrchr(Def->File, DIR_CHAR);
-					sprintf(m, "%s (%s:%i)", Def->Name, d ? d + 1 : Def->File, Def->Line);
+					sprintf(m, "%s (%s:%i)", Def->Name.Get(), d ? d + 1 : Def->File.Get(), Def->Line);
 					s->AppendItem(m, n++, true);
 				}
 				#else
@@ -1449,7 +1449,7 @@ void IdeDoc::OnLineChange(int Line)
 
 void IdeDoc::OnMarginClick(int Line)
 {
-	GAutoString Dn(d->GetDisplayName());
+	GString Dn = d->GetDisplayName();
 	d->App->ToggleBreakpoint(Dn, Line);
 }
 
@@ -1875,8 +1875,8 @@ bool IdeDoc::OnRequestClose(bool OsShuttingDown)
 {
 	if (d->Edit->IsDirty())
 	{
-		char *Dsp = d->GetDisplayName();
-		int a = LgiMsg(this, "Save '%s'?", AppName, MB_YESNOCANCEL, Dsp ? Dsp : Untitled);
+		GString Dsp = d->GetDisplayName();
+		int a = LgiMsg(this, "Save '%s'?", AppName, MB_YESNOCANCEL, Dsp ? Dsp.Get() : Untitled);
 		DeleteArray(Dsp);
 		switch (a)
 		{
@@ -2431,7 +2431,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, DefnTyp
 		for (unsigned i=0; i<Defns.Length(); i++)
 		{
 			DefnInfo *def = &Defns[i];
-			LgiTrace("    def=%s:%i %s\n", def->File, def->Line, def->Name);
+			LgiTrace("    def=%s:%i %s\n", def->File.Get(), def->Line, def->Name.Get());
 		}
 	}
 	

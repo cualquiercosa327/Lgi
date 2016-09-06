@@ -37,6 +37,7 @@
 #else
 #define NULL_PIPE -1
 #define ClosePipe close
+#define INVALID_PID -1
 #endif
 #ifdef __GTK_H__
 using namespace Gtk;
@@ -80,7 +81,8 @@ void GSubProcess::Pipe::Close()
 GSubProcess::GSubProcess(const char *exe, const char *args)
 {
 	#if defined(POSIX)
-	ChildPid = -1;
+	ChildPid = INVALID_PID;
+	ExitValue = -1;
 	#elif defined(WIN32)
 	ChildPid = NULL;
 	ChildHnd = NULL;
@@ -195,22 +197,15 @@ bool GSubProcess::IsRunning()
 		LgiAssert(!"Impl me.");
 		return false;
 	#elif defined(POSIX)
-		#if 1
-			int Status = 0;
-			pid_t r = waitpid(ChildPid, &Status, WNOHANG);
-			if (r == ChildPid)
-			{
-				ChildPid = 0;
-				printf("%s:%i - waitpid signalled: %i\n", _FL, Status);
-			}
-			return ChildPid != 0;
-		#else
-			// Apparently this is deprecated...
-			int i = wait4(ChildPid, &ExitValue, WNOHANG, 0);
-			if (i)
-				ChildPid = 0;
-			return ChildPid != 0;
-		#endif
+		int Status = 0;
+		pid_t r = waitpid(ChildPid, &Status, WNOHANG);
+		if (r == ChildPid)
+		{
+			ChildPid = INVALID_PID;
+			ExitValue = Status;
+			printf("%s:%i - waitpid signalled: %i\n", _FL, Status);
+		}
+		return ChildPid != INVALID_PID;
 	#elif defined(WIN32)
 		if (!GetExitCodeProcess(ChildHnd, &ExitValue))
 			return false;
@@ -234,7 +229,11 @@ uint32 GSubProcess::GetErrorCode()
 
 uint32 GSubProcess::GetExitValue()
 {
-	#ifdef WIN32
+	#if defined(POSIX)
+	if (ChildPid != INVALID_PID)
+	 	// This will set ExitValue if the process has finished.
+		IsRunning();
+	#elif defined(WIN32)
 	GetExitCodeProcess(ChildHnd, &ExitValue);
 	#endif
 	return ExitValue;	
@@ -401,7 +400,7 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 		GSubProcess *sp = p[i-1];
 		sp->ChildPid = fork();
 
-		if (sp->ChildPid == -1)
+		if (sp->ChildPid == INVALID_PID)
 		{
 			LgiTrace("%s:%i - fork failed with %i", _FL, errno);
 			exit(1);
@@ -608,8 +607,15 @@ int GSubProcess::Wait()
 {
 	int Status = -1;
 	#ifdef POSIX
-	if (ChildPid != -1)
-		waitpid(ChildPid, &Status, NULL);
+	if (ChildPid != INVALID_PID)
+	{
+		pid_t r = waitpid(ChildPid, &Status, NULL);
+		if (r == ChildPid)
+		{
+			ChildPid = INVALID_PID;
+			ExitValue = Status;
+		}
+	}
 	#elif defined(WIN32)
 	if (ChildHnd)
 	{
@@ -629,8 +635,11 @@ int GSubProcess::Wait()
 void GSubProcess::Interrupt()
 {
 	#ifdef POSIX
-	if (ChildPid != -1)
+	if (ChildPid != INVALID_PID)
+	{
 		kill(ChildPid, SIGINT);
+		ChildPid = INVALID_PID;
+	}
 	#elif defined(WIN32)
 	if (ChildHnd)
 		GenerateConsoleCtrlEvent(CTRL_C_EVENT, ChildPid);

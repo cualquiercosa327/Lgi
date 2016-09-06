@@ -828,7 +828,15 @@ void IdeProject::Build(bool All, bool Release)
 		return;
 	}
 
-	d->Thread.Reset(new BuildThread(this, m, Release?"Build=Release":NULL));
+	d->Thread.Reset
+	(
+		new BuildThread
+		(
+			this,
+			m,
+			Release ? "Build=Release" : NULL
+		)
+	);
 }
 
 void IdeProject::StopBuild()
@@ -2271,7 +2279,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 							char Part[256];
 							
 							char *d = strrchr(Src, DIR_CHAR);
-							d = d ? d + 1 : Src;
+							d = d ? d + 1 : Src.Get();
 							strcpy(Part, d);
 							char *Dot = strrchr(Part, '.');
 							if (Dot) *Dot = 0;

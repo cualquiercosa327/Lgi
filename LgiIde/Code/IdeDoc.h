@@ -70,12 +70,6 @@ public:
 			}
 		}		
 	}
-	
-	~DefnInfo()
-	{
-		DeleteArray(Name);
-		DeleteArray(File);
-	}
 };
 
 extern bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Funcs, DefnType LimitTo, bool Debug = false);

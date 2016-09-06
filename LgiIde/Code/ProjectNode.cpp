@@ -550,7 +550,7 @@ bool ProjectNode::Serialize()
 						char *d = strrchr(p, DIR_CHAR);
 						GArray<char*> Files;
 						GArray<const char*> Ext;
-						Ext.Add(d ? d + 1 : p);
+						Ext.Add(d ? d + 1 : p.Get());
 						if (LgiRecursiveFileSearch(Path, &Ext, &Files))
 						{
 							if (Files.Length())
