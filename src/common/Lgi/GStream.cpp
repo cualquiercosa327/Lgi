@@ -85,7 +85,7 @@ GStreamer::GStreamer(int BufSize)
 	StartTime = 0;
 	EndTime = 0;
 	Total = 0;
-	Size = min(BufSize, 256);
+	Size = max(BufSize, 256);
 	Buf = new char[Size];
 }
 

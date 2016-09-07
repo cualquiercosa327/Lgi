@@ -412,9 +412,20 @@ GVariant &GVariant::operator =(GKey *p)
 	{
 		Type = GV_GKEY;
 		Value.Key = p;
-		// if (Dirty) *Dirty = true;
 	}
 
+	return *this;
+}
+
+GVariant &GVariant::operator =(GStream *s)
+{
+	Empty();
+	if (s)
+	{
+		Type = GV_STREAM;
+		Value.Stream.Ptr = s;
+		Value.Stream.Own = false;
+	}
 	return *this;
 }
 
@@ -648,6 +659,19 @@ bool GVariant::SetSurface(class GSurface *Ptr, bool Own)
     Value.Surface.Ptr = Ptr;
     if ((Value.Surface.Own = Own))
         Value.Surface.Ptr->AddRef();
+    
+    return true;
+}
+
+bool GVariant::SetStream(class GStream *Ptr, bool Own)
+{
+    Empty();
+    if (!Ptr)
+		return false;
+
+    Type = GV_STREAM;
+    Value.Stream.Ptr = Ptr;
+    Value.Stream.Own = Own;
     
     return true;
 }

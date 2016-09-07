@@ -12,6 +12,7 @@
 
 #include "Lgi.h"
 #include "GDragAndDrop.h"
+#include "GCom.h"
 
 // #define DND_DEBUG_TRACE
 
@@ -130,7 +131,6 @@ HRESULT GDataObject::GetData(FORMATETC *pFormatEtc, STGMEDIUM *PMedium)
 		Source->GetData(Source->d->CurData);
 
 		ZeroObj(*PMedium);
-		PMedium->tymed = TYMED_HGLOBAL;
 
 		uchar *Ptr = 0;
 		int Size = 0;
@@ -144,14 +144,29 @@ HRESULT GDataObject::GetData(FORMATETC *pFormatEtc, STGMEDIUM *PMedium)
 					break;
 				case GV_BINARY:
 				{
+					PMedium->tymed = TYMED_HGLOBAL;
 					Ptr = (uchar*)Data.Value.Binary.Data;
 					Size = Data.Value.Binary.Length;
 					break;
 				}
 				case GV_STRING:
 				{
+					PMedium->tymed = TYMED_HGLOBAL;
 					Ptr = (uchar*)Data.Value.String;
 					Size = Ptr ? strlen((char*)Ptr) + 1 : 0;
+					break;
+				}
+				case GV_STREAM:
+				{
+					PMedium->tymed = TYMED_ISTREAM;
+					
+					PMedium->pstm = new GStreamWrap(Data.Value.Stream.Ptr);
+					PMedium->pstm->AddRef();
+					
+					PMedium->pUnkForRelease = PMedium->pstm;
+					PMedium->pUnkForRelease->AddRef();
+
+					Ret = S_OK;
 					break;
 				}
 				default:
@@ -162,7 +177,9 @@ HRESULT GDataObject::GetData(FORMATETC *pFormatEtc, STGMEDIUM *PMedium)
 				}
 			}
 
-			if (Ptr && Size > 0)
+			if (PMedium->tymed == TYMED_HGLOBAL &&
+				Ptr &&
+				Size > 0)
 			{
 				PMedium->hGlobal = GlobalAlloc(GHND, Size);
 				if (PMedium->hGlobal)

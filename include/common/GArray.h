@@ -65,10 +65,8 @@ public:
 	GArray(int PreAlloc = 0)
 	{
 		p = 0;
-		len = 0;
+		alloc = len = PreAlloc;
 		fixed = false;
-
-		alloc = PreAlloc;
 		if (alloc)
 		{
 			int Bytes = sizeof(Type) * alloc;
@@ -79,7 +77,7 @@ public:
 			}
 			else
 			{
-				alloc = 0;
+				alloc = len = 0;
 			}
 		}
 	}

@@ -8,7 +8,7 @@
 #if WINNATIVE
 
 #include <shlobj.h>
-#include "GCom.h"
+// #include "GCom.h"
 
 #else
 
@@ -46,7 +46,7 @@ struct LgiClass GDragData
 	GString Format;
 	GArray<GVariant> Data;
 	
-	bool IsFormat(const char *Fmt)
+	bool IsFormat(GString Fmt)
 	{
 		return	Format.Get() != NULL &&
 				Fmt != NULL &&

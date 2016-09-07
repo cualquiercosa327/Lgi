@@ -126,7 +126,10 @@ int GMemStream::Close()
 {
 	if (Own)
 		DeleteArray(Mem);
+	
+	int Sz = GrowBlockSize;
 	_Init();
+	GrowBlockSize = Sz;
 	return true;
 }
 
@@ -155,6 +158,8 @@ int64 GMemStream::SetSize(int64 Size)
 		Len = Size;
 		Mem = new char[Alloc = Len];
 	}
+	if (Pos > Size)
+		Pos = Size ? Size - 1 : 0;
 
 	return Len;
 }

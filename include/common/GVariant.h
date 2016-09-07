@@ -312,6 +312,7 @@ public:
 	GVariant &operator =(class GView *p);
 	GVariant &operator =(class GMouse *p);
 	GVariant &operator =(class GKey *k);
+	GVariant &operator =(class GStream *s);
 
 	bool operator ==(GVariant &v);
 	bool operator !=(GVariant &v) { return !(*this == v); }
@@ -326,6 +327,8 @@ public:
 	bool SetHashTable(GHashTable *Table = 0, bool Copy = true);
     /// Set the value to a surface
     bool SetSurface(class GSurface *Ptr, bool Own);
+    /// Set the value to a stream
+    bool SetStream(class GStream *Ptr, bool Own);
 
 	/// Returns the string if valid (will convert a GV_WSTRING to utf)
 	char *Str();

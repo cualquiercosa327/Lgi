@@ -28,8 +28,7 @@ class GUnknownImpl : public T
 			pvObject = p;
 		}
 	};
-
-	List<Interface> Interfaces;
+List<Interface> Interfaces;
 
 protected:
 	void AddInterface(REFIID iid, void *pvObject)
@@ -141,6 +140,7 @@ public:
 	}
 };
 
+/// This class wraps a IStream in an GStream interface...
 class IStreamWrap : public GStream
 {
 	IStream *s;
@@ -249,5 +249,87 @@ public:
 	}
 };
 
+/// This class wraps a GStream in an IStream interface...
+class GStreamWrap : public GUnknownImpl<IStream>
+{
+	GStream *s;
+
+public:
+	GStreamWrap(GStream *src)
+	{
+		s = src;
+		AddInterface(IID_IStream, (IStream*)this);
+	}
+	
+	HRESULT STDMETHODCALLTYPE Read(void *pv, ULONG cb, ULONG *pcbRead)
+	{
+		if (!s || !pv) return E_INVALIDARG;
+
+		ULONG TotalRd = 0;
+		uint8 *Ptr = (uint8*)pv;
+		ULONG i = 0;
+		while (i < cb)
+		{
+			int Remaining = cb - i;
+			int Rd = s->Read(Ptr + i, Remaining);
+			LgiTrace("Read(%i)=%i\n", cb, Rd);
+			if (Rd > 0)
+				i += Rd;				
+			else
+				break;
+		}
+
+		if (pcbRead) *pcbRead = i;
+		return S_OK;
+	}
+	
+	HRESULT STDMETHODCALLTYPE Write(const void *pv, ULONG cb, ULONG *pcbWritten)
+	{
+		if (!s || !pv) return E_INVALIDARG;
+		int Wr = s->Write(pv, cb);
+		if (pcbWritten) *pcbWritten = Wr;
+		return S_OK;
+	}    
+
+	HRESULT STDMETHODCALLTYPE Seek(LARGE_INTEGER dlibMove, DWORD dwOrigin, ULARGE_INTEGER *plibNewPosition)
+	{
+		if (!s) return E_INVALIDARG;
+		int64 NewPos = -1;
+		switch (dwOrigin)
+		{
+			case STREAM_SEEK_SET:
+				NewPos = s->SetPos(dlibMove.QuadPart);
+				break;
+			case STREAM_SEEK_CUR:
+				NewPos = s->SetPos(s->GetPos() + dlibMove.QuadPart);
+				break;
+			case STREAM_SEEK_END:
+				NewPos = s->SetPos(s->GetSize() - dlibMove.QuadPart);
+				break;
+			default:
+				return E_INVALIDARG;
+		}
+		if (plibNewPosition) plibNewPosition->QuadPart = NewPos;
+		return S_OK;
+	}
+			
+	HRESULT STDMETHODCALLTYPE SetSize(ULARGE_INTEGER libNewSize)
+	{
+		if (!s) return E_INVALIDARG;
+		if (s->SetSize(libNewSize.QuadPart) != libNewSize.QuadPart)
+			return E_FAIL;
+		return S_OK;
+	}
+	
+	#define NotImplemented { LgiAssert(!"Function not implemented."); return E_NOTIMPL; }
+	
+	HRESULT STDMETHODCALLTYPE CopyTo(IStream *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER *pcbRead, ULARGE_INTEGER *pcbWritten) NotImplemented
+	HRESULT STDMETHODCALLTYPE Commit(DWORD grfCommitFlags) NotImplemented
+	HRESULT STDMETHODCALLTYPE Revert() NotImplemented
+	HRESULT STDMETHODCALLTYPE LockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType) NotImplemented
+	HRESULT STDMETHODCALLTYPE UnlockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType) NotImplemented
+	HRESULT STDMETHODCALLTYPE Stat(__RPC__out STATSTG *pstatstg, DWORD grfStatFlag) NotImplemented
+	HRESULT STDMETHODCALLTYPE Clone(__RPC__deref_out_opt IStream **ppstm) NotImplemented
+};
 
 #endif
