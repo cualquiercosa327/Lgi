@@ -428,6 +428,8 @@ FileTransferProgress::FileTransferProgress(	GDom *App,
 	// estimated time left
 	StatusInfo[_STATUS_TIME_LEFT]	= Status->AppendPane("", 70);
 	if (StatusInfo[_STATUS_TIME_LEFT]) StatusInfo[_STATUS_TIME_LEFT]->Sunken(true);
+	
+	Status->AttachChildren();
 }
 
 GMessage::Result FileTransferProgress::OnEvent(GMessage *m)
@@ -457,7 +459,8 @@ void FileTransferProgress::SetLimits(int64 l, int64 h)
 {
     if (!InThread())
     {
-        PostEvent(IDM_SET_LIMITS, (GMessage::Param)l, (GMessage::Param)h);
+        bool Status = PostEvent(IDM_SET_LIMITS, (GMessage::Param)l, (GMessage::Param)h);
+        LgiAssert(Status);
     }
     else
     {
@@ -473,7 +476,8 @@ void FileTransferProgress::Value(int64 v)
 {
     if (!InThread())
     {
-        PostEvent(IDM_SET_VALUE, (GMessage::Param)v);
+        bool Status = PostEvent(IDM_SET_VALUE, (GMessage::Param)v);
+        LgiAssert(Status);
         return;
     }
 
@@ -543,19 +547,20 @@ void FileTransferProgress::Value(int64 v)
 
 void FileTransferProgress::SetParameter(int Which, int What)
 {
-    if (!InThread())
-    {
-        PostEvent(IDM_SET_PARAM, (GMessage::Param)Which, (GMessage::Param)What);
-    }
-    else
-    {
-    	switch (Which)
-    	{
-    		case PARM_START_VALUE:
-    		{
-    			Progress::Value(StartPos = What);
-    			if (StatusInfo[_STATUS_HISTORY]) StatusInfo[_STATUS_HISTORY]->Value(-Val);
-    		}
-    	}
-    }
+	if (!InThread())
+	{
+		bool Status = PostEvent(IDM_SET_PARAM, (GMessage::Param)Which, (GMessage::Param)What);
+		LgiAssert(Status);
+	}
+	else
+	{
+		switch (Which)
+		{
+			case PARM_START_VALUE:
+			{
+				Progress::Value(StartPos = What);
+				if (StatusInfo[_STATUS_HISTORY]) StatusInfo[_STATUS_HISTORY]->Value(-Val);
+			}
+		}
+	}
 }

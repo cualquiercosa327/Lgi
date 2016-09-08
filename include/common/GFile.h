@@ -290,7 +290,7 @@ public:
 	bool GetCurrentFolder(char *PathName, int Length);
 
 	/// Moves a file to a new location. Only works on the same device.
-	bool Move(char *OldName, char *NewName);
+	bool Move(const char *OldName, const char *NewName);
 };
 
 #ifdef BEOS

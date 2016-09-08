@@ -313,7 +313,7 @@ void GCheckBox::OnPaint(GSurface *pDC)
 		if (d->Lock(_FL))
 		{
 			GdcPt2 pt(t.x1, t.y1 + TextYOffset);
-			d->Paint(pDC, GetFont(), pt, t, cFore, cBack, en);
+			d->Paint(pDC, pt, t, cFore, cBack, en);
 			d->Unlock();
 		}
 

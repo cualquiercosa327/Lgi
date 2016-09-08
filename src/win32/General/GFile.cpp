@@ -913,7 +913,7 @@ bool GFileSystem::GetCurrentFolder(char *PathName, int Length)
 	return Status;
 }
 
-bool GFileSystem::Move(char *OldName, char *NewName)
+bool GFileSystem::Move(const char *OldName, const char *NewName)
 {
 	bool Status = false;
 

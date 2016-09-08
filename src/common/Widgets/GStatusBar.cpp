@@ -89,10 +89,7 @@ GStatusPane *GStatusBar::AppendPane(const char *Text, int Width)
 		Pane = new GStatusPane;
 		if (Pane)
 		{
-			Pane->SetParent(this);
-			Children.Insert(Pane);
-			Pane->GetWindow(); // sets the window ptr so that lock/unlock works
-
+			AddView(Pane);
 			Pane->Name(Text);
 			Pane->Width = Width;
 		}
@@ -102,12 +99,10 @@ GStatusPane *GStatusBar::AppendPane(const char *Text, int Width)
 
 bool GStatusBar::AppendPane(GStatusPane *Pane)
 {
-	if (Pane)
-	{
-		Pane->SetParent(this);
-		Children.Insert(Pane);
-	}
-	return true;
+	if (!Pane)
+		return false;
+
+	return AddView(Pane);
 }
 
 // Pane
