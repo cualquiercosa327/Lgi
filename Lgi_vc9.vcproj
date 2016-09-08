@@ -743,6 +743,10 @@
 					Name="Threads"
 					>
 					<File
+						RelativePath=".\include\common\GEventTargetThread.h"
+						>
+					</File>
+					<File
 						RelativePath=".\src\win32\Lgi\GThread.cpp"
 						>
 					</File>

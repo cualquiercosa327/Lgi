@@ -61,7 +61,14 @@ bool GLibrary::Load(const char *File, bool Quiet)
 			{
 				GAutoString a(LgiToNativeCp(f));
 				if (a)
+				{
 					hLib = LoadLibraryA(a);
+					#if defined(_DEBUG) && DEBUG_LIB_MSGS
+					if (!hLib)
+						LgiTrace("LoadLibraryA(%s) failed with %i\n", a.Get(), GetLastError());
+					#endif
+				}
+				else LgiTrace("%s:%i - Failed to convert string to native.\n", _FL);
 			}
 			else
 			{
@@ -69,19 +76,15 @@ bool GLibrary::Load(const char *File, bool Quiet)
 				if (w)
 				{
 					hLib = LoadLibraryW(w);
+					#if defined(_DEBUG) && DEBUG_LIB_MSGS
+					if (!hLib)
+						LgiTrace("LoadLibraryW(%S) failed with %i\n", w.Get(), GetLastError());
+					#endif
 				}
+				else LgiTrace("%s:%i - Failed to convert string to wide.\n", _FL);
 			}
 			SetErrorMode(0);
 
-			#ifdef _DEBUG
-			if (!hLib)
-			{
-				#if DEBUG_LIB_MSGS
-				DWORD err = GetLastError();
-				LgiTrace("LoadLibraryW failed with %i\n", err);
-				#endif				
-			}
-			#endif
 
 			#elif defined(LINUX) || defined(MAC) || defined(BEOS)
 			

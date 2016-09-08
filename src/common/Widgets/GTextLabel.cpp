@@ -256,7 +256,7 @@ void GText::OnPaint(GSurface *pDC)
 	{
 		GRect c = GetClient();
 		GdcPt2 pt(c.x1, c.y1);
-		d->Paint(pDC, f, pt, c, Fore, Back, Enabled());
+		d->Paint(pDC, pt, c, Fore, Back, Enabled());
 		d->Unlock();
 	}
 	else if (!Back.IsTransparent())

@@ -983,7 +983,8 @@ bool LgiResources::Res_SetStrRef(ResObject *Obj, int Ref, ResReadCtx *Ctx)
 	GView *w = CastToGWnd(Obj);
 	if (w)
 	{
-		w->Name(s->Str);
+		if (ValidStr(s->Str))
+			w->Name(s->Str);
 		w->SetId(s->Id);
 	}
 	else if (Obj)

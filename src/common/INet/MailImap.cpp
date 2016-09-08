@@ -2221,184 +2221,174 @@ bool MailIMap::Fetch(bool ByUid,
 					GStreamI *RawCopy,
 					int64 SizeHint)
 {
-	bool Status = false;
-
 	if (!Parts || !Callback || !Seq)
-		return false;
-
-	if (Lock(_FL))
 	{
-		int Cmd = d->NextCmd++;
-		GStringPipe p(256);
-		p.Print("A%4.4i %sFETCH ", Cmd, ByUid ? "UID " : "");
-		p.Write(Seq, strlen(Seq));
-		p.Print(" (%s)\r\n", Parts);
-		GAutoString WrBuf(p.NewStr());
-		if (WriteBuf(false, WrBuf))
+		LgiTrace("%s:%i - Invalid FETCH argument.\n", _FL);
+		return false;
+	}
+
+	if (!Lock(_FL))
+	{
+		LgiTrace("%s:%i - Failed to get lock.\n", _FL);
+		return false;
+	}
+	
+	bool Status = false;
+	int Cmd = d->NextCmd++;
+	GStringPipe p(256);
+	p.Print("A%4.4i %sFETCH ", Cmd, ByUid ? "UID " : "");
+	p.Write(Seq, strlen(Seq));
+	p.Print(" (%s)\r\n", Parts);
+	GAutoString WrBuf(p.NewStr());
+	if (WriteBuf(false, WrBuf))
+	{
+		ClearDialog();
+
+		GArray<char> Buf;
+		Buf.Length(1024 + (SizeHint>0?(uint32)SizeHint:0));
+		unsigned Used = 0;
+		unsigned MsgSize;
+		int64 Start = LgiCurrentTime();
+		int64 Bytes = 0;
+		bool Done = false;
+		
+		uint64 TotalTs = 0;
+
+		bool Blocking = Socket->IsBlocking();
+		Socket->IsBlocking(false);
+
+		while (!Done && Socket->IsOpen())
 		{
-			ClearDialog();
-
-			GArray<char> Buf;
-			Buf.Length(1024 + (SizeHint>0?(uint32)SizeHint:0));
-			unsigned Used = 0;
-			unsigned MsgSize;
-			int64 Start = LgiCurrentTime();
-			int64 Bytes = 0;
-			bool Done = false;
-			
-			uint64 TotalTs = 0;
-
-			bool Blocking = Socket->IsBlocking();
-			Socket->IsBlocking(false);
-
-			while (!Done && Socket->IsOpen())
+			int r;
+			do				
 			{
-				int r;
-				do				
+				// Extend the buffer if getting used up
+				if (Buf.Length()-Used <= 256)
 				{
-					// Extend the buffer if getting used up
-					if (Buf.Length()-Used <= 256)
-					{
-						Buf.Length(Buf.Length() + (64<<10));
-					}
-
-					// Try and read bytes from server.
-					r = Socket->Read(&Buf[Used], Buf.Length()-Used-1); // -1 for NULL terminator
-					if (r > 0)
-					{					
-						if (RawCopy)
-							RawCopy->Write(&Buf[Used], r);
-
-						Used += r;
-						Bytes += r;
-					}
+					Buf.Length(Buf.Length() + (64<<10));
 				}
-				while (r > 0);
+
+				// Try and read bytes from server.
+				r = Socket->Read(&Buf[Used], Buf.Length()-Used-1); // -1 for NULL terminator
+				if (r > 0)
+				{					
+					if (RawCopy)
+						RawCopy->Write(&Buf[Used], r);
+
+					Used += r;
+					Bytes += r;
+				}
+			}
+			while (r > 0);
+			
+			// See if we can parse out a single response
+			GArray<StrRange> Ranges;
+			LgiAssert(Used < Buf.Length());
+			Buf[Used] = 0; // NULL terminate before we parse
+
+			while (true)
+			{
+				MsgSize = ParseImapResponse(&Buf[0], Ranges, 2);
+				if (!MsgSize)
+					break;
 				
-				/*
-				if (SizeHint > 0 &&
-					Used < SizeHint &&
-					Socket->IsReadable())
-					continue;
-				*/
-
-				// See if we can parse out a single response
-				GArray<StrRange> Ranges;
-				LgiAssert(Used < Buf.Length());
-				Buf[Used] = 0; // NULL terminate before we parse
-
-				while (true)
+				char *b = &Buf[0];
+				if (MsgSize > Used)
 				{
-					// uint64 Ts1 = LgiMicroTime();
-					MsgSize = ParseImapResponse(&Buf[0], Ranges, 2);
-					// uint64 Ts2 = LgiMicroTime() - Ts1;
-					// TotalTs += Ts2;
-					// LgiTrace("ParseImapResponse=%.3f total=%.1f\n", (double)(Ts2) / 1000, (double)TotalTs / 1000);
-					if (!MsgSize)
-						break;
-					
-					char *b = &Buf[0];
-					if (MsgSize > Used)
+					// This is an error... ParseImapResponse should always return <= Used.
+					// If this triggers, ParseImapResponse is skipping a NULL that it shouldn't.
+					Ranges.Length(0);
+					LgiAssert(0);
+					ParseImapResponse(&Buf[0], Ranges, 2);
+					break;
+				}
+				
+				LgiAssert(Ranges.Length() >= 2);
+				
+				// Setup strings for callback
+				char *Param = b + Ranges[0].Start;
+				Param[Ranges[0].Len()] = 0;
+				char *Name = b + Ranges[1].Start;
+				Name[Ranges[1].Len()] = 0;
+
+				if (_stricmp(Name, "FETCH"))
+				{
+					// Not the response we're looking for.
+				}
+				else
+				{
+					// Process ranges into a hash table
+					GHashTbl<const char*, char*> Parts;
+					for (unsigned i=2; i<Ranges.Length()-1; i += 2)
 					{
-						// This is an error... ParseImapResponse should always return <= Used.
-						// If this triggers, ParseImapResponse is skipping a NULL that it shouldn't.
-						Ranges.Length(0);
-						LgiAssert(0);
-						ParseImapResponse(&Buf[0], Ranges, 2);
-						break;
+						char *Name = b + Ranges[i].Start;
+						Name[Ranges[i].Len()] = 0;							
+						char *Value = NewStr(b + Ranges[i+1].Start, Ranges[i+1].Len());
+						Parts.Add(Name, Value);
 					}
 					
-					LgiAssert(Ranges.Length() >= 2);
-					
-					// Setup strings for callback
-					char *Param = b + Ranges[0].Start;
-					Param[Ranges[0].Len()] = 0;
-					char *Name = b + Ranges[1].Start;
-					Name[Ranges[1].Len()] = 0;
-
-					if (_stricmp(Name, "FETCH"))
+					// Call the callback function
+					if (Callback(this, Param, Parts, UserData))
 					{
-						// Not the response we're looking for, save it in the untagged data.
-						/*
-						Untagged *u = new Untagged;
-						u->Name = Name;
-						u->Param = Param;
-						Untag.Add(u);
-						*/
+						Status = true;
 					}
 					else
 					{
-						// Process ranges into a hash table
-						GHashTbl<const char*, char*> Parts;
-						for (unsigned i=2; i<Ranges.Length()-1; i += 2)
-						{
-							char *Name = b + Ranges[i].Start;
-							Name[Ranges[i].Len()] = 0;							
-							char *Value = NewStr(b + Ranges[i+1].Start, Ranges[i+1].Len());
-							Parts.Add(Name, Value);
-						}
-						
-						// Call the callback function
-						if (Callback(this, Param, Parts, UserData))
-						{
-							Status = true;
-						}
-						else
-						{
-							Parts.DeleteArrays();
-							Status = false;
-							break;
-						}
-
-						// Clean up mem
+						#ifdef _DEBUG
+						LgiTrace("%s:%i - FETCH Callback return FALSE?\n", _FL);
+						#endif
 						Parts.DeleteArrays();
+						Status = false;
+						break;
 					}
 
-					// Remove this msg from buffer
-					RemoveBytes(Buf, Used, MsgSize);
-					Buf[Used] = 0; // 'Used' changed... so NULL terminate before we parse
+					// Clean up mem
+					Parts.DeleteArrays();
 				}
 
-				// Look for the end marker
-				if (Used > 0 && Buf[0] != '*')
+				// Remove this msg from buffer
+				RemoveBytes(Buf, Used, MsgSize);
+				Buf[Used] = 0; // 'Used' changed... so NULL terminate before we parse
+			}
+
+			// Look for the end marker
+			if (Used > 0 && Buf[0] != '*')
+			{
+				GAutoString Line;
+				
+				while (PopLine(Buf, Used, Line))
 				{
-					GAutoString Line;
-					
-					while (PopLine(Buf, Used, Line))
+					GToken t(Line, " \r\n");
+					if (t.Length() >= 2)
 					{
-						GToken t(Line, " \r\n");
-						if (t.Length() >= 2)
+						char *r = t[0];
+						if (*r == 'A')
 						{
-							char *r = t[0];
-							if (*r == 'A')
+							bool Status = !_stricmp(t[1], "Ok");
+							int Response = atoi(r + 1);
+							Log(Line, Status ? GSocketI::SocketMsgReceive : GSocketI::SocketMsgError);
+							if (Response == Cmd)
 							{
-								bool Status = !_stricmp(t[1], "Ok");
-								int Response = atoi(r + 1);
-								Log(Line, Status ? GSocketI::SocketMsgReceive : GSocketI::SocketMsgError);
-								if (Response == Cmd)
-								{
-									Done = true;
-									break;
-								}
+								Done = true;
+								break;
 							}
-							else Log(&Buf[0], GSocketI::SocketMsgError);
 						}
-						else
-						{
-							LgiAssert(!"What happened?");
-							Done = true;
-							break;
-						}
+						else Log(&Buf[0], GSocketI::SocketMsgError);
+					}
+					else
+					{
+						LgiAssert(!"What happened?");
+						Done = true;
+						break;
 					}
 				}
 			}
-
-			Socket->IsBlocking(Blocking);			
 		}
-		
-		Unlock();
-	}
 
+		Socket->IsBlocking(Blocking);			
+	}
+		
+	Unlock();
 	return Status;
 }
 
