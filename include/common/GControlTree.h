@@ -9,7 +9,7 @@ class GControlTree : public GTree, public GDom
 public:
 	struct EnumValue
 	{
-		char *Name;
+		GString Name;
 		GVariant Value;
 	};
 

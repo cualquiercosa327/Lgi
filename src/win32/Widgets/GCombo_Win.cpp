@@ -50,8 +50,12 @@ GCombo::GCombo(int id, int x, int y, int cx, int cy, const char *name) :
 	
 	SetId(id);
 	SetTabStop(true);
-	SetStyle(GetStyle() | CBS_DROPDOWNLIST);
+	SetStyle(GetStyle() | CBS_DROPDOWNLIST | CBS_DISABLENOSCROLL);
 
+	#if 0
+	GString Cls = WC_COMBOBOX;
+	SetClassW32(Cls);
+	#else
 	SetClassW32(GetClass());
 	if (!SubClass)
 		SubClass = GWin32Class::Create(GetClass());
@@ -59,6 +63,7 @@ GCombo::GCombo(int id, int x, int y, int cx, int cy, const char *name) :
 		SubClass->SubClass("COMBOBOX");
 	else
 		LgiAssert(!"No subclass?");
+	#endif
 }
 
 GCombo::~GCombo()
@@ -68,6 +73,24 @@ GCombo::~GCombo()
 
 void GCombo::OnAttach()
 {
+	/*
+	if (!d->Init)
+	{
+		d->Init = true;
+		for (unsigned n=0; n<d->Strs.Length(); n++)
+		{
+			GAutoWString s(LgiNewUtf8To16(d->Strs[n]));
+			SendMessage(Handle(), CB_INSERTSTRING, n, (LPARAM) (s ? s.Get() : L"(NULL)"));
+		}
+
+		SetFont(SysFont);
+		
+		if (d->Name)
+			Name(d->Name);
+		else
+			Value(d->Value);
+	}
+	*/
 }
 
 bool GCombo::Sort()
@@ -325,19 +348,24 @@ bool GCombo::SetPos(GRect &p, bool Repaint)
 
 int GCombo::SysOnNotify(int Msg, int Code)
 {
-	// LgiTrace("%s:%i - GCombo::SysOnNotify %i %i\n", _FL, Msg==WM_COMMAND, Code);
+	LgiTrace("%s:%i - GCombo::SysOnNotify %i %i\n", _FL, Msg==WM_COMMAND, Code);
 	
-	if
-	(
-		Msg == WM_COMMAND
-		&&
-		Code == CBN_SELCHANGE
-	)
+	if (Msg == WM_COMMAND)
 	{
-		uint64 Old = d->Value;
-		if (Value() != Old)
+		switch (Code)
 		{
-			SendNotify(d->Value);
+			case CBN_SELCHANGE:
+			{
+				uint64 Old = d->Value;
+				if (Value() != Old)
+					SendNotify(d->Value);
+				break;
+			}
+			case CBN_DROPDOWN:
+			{
+				Focus(true);
+				break;
+			}
 		}
 	}
 	
@@ -368,6 +396,18 @@ GMessage::Result GCombo::OnEvent(GMessage *Msg)
 			#endif
 			break;
 		}
+		#if 1
+		case WM_MOUSEWHEEL:
+		{
+			// Force the mouse wheel to do something useful
+			LRESULT c = SendMessage(_View, CB_GETCURSEL, 0, 0);
+			LRESULT items = SendMessage(_View, CB_GETCOUNT, 0, 0);
+			int16 delta = (Msg->A() >> 16);
+			int new_cur = c - (delta / WHEEL_DELTA);
+			SendMessage(_View, CB_SETCURSEL, limit(new_cur, 0, items-1), 0); 
+			break;
+		}
+		#endif
 	}
 
 	GMessage::Result Status = GControl::OnEvent(Msg);
@@ -405,4 +445,16 @@ void GCombo::Empty()
 		SendMessage(_View, CB_RESETCONTENT, 0, 0);
 
 	d->Strs.Length(0);
+}
+
+bool GCombo::OnKey(GKey &k)
+{
+	switch (k.vkey)
+	{
+		case VK_UP:
+		case VK_DOWN:
+			return true;
+	}
+	
+	return false;
 }

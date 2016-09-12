@@ -113,6 +113,7 @@ public:
 	// Events/Window/Implementation
 	GMessage::Result OnEvent(GMessage *Msg);
 	void OnAttach();
+	bool OnKey(GKey &k);
 	
 	#if WINNATIVE
 	bool SetPos(GRect &p, bool Repaint = false);
@@ -120,7 +121,6 @@ public:
 	#else
 	void OnFocus(bool f);
 	void OnPaint(GSurface *pDC);
-	bool OnKey(GKey &k);
 	void OnMouseClick(GMouse &m);
 	void OnPosChange();
 	void SetFont(GFont *Fnt, bool OwnIt = false);

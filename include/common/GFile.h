@@ -281,7 +281,7 @@ public:
 	bool RemoveFolder
 	(
 		/// The path to remove
-		char *PathName,
+		const char *PathName,
 		/// True if you want this function to recursively delete all contents of the path passing in.
 		bool Recurse = false
 	);
@@ -478,16 +478,10 @@ public:
 			return *this;
 		}
 		
-		Path &operator +=(const char *p)
-		{
-			GString s(p);
-			*this += s;
-			return *this;
-		}
-		
 		Path &operator +=(const GString &p)
 		{
 			GString::Array a = p.SplitDelimit("\\/");
+			SetFixedLength(false);
 			for (unsigned i=0; i<a.Length(); i++)
 			{
 				GString &s = a[i];

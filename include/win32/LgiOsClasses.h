@@ -105,6 +105,7 @@ public:
 	GWin32Class(const char *Name);
 	~GWin32Class();
 
+	static bool IsSystem(const char *Cls);
 	bool Register();
 	bool SubClass(char *Parent);
 	LRESULT CALLBACK CallParent(OsView hWnd, UINT m, WPARAM a, LPARAM b);

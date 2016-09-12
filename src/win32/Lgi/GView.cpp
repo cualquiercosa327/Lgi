@@ -38,7 +38,6 @@ GViewPrivate::GViewPrivate()
 	CtrlId = -1;
 	WndStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN;
 	WndExStyle = 0;
-	WndClass = 0;
 	WndDlgCode = 0;
 	TimerId = 0;
 	DropTarget = NULL;
@@ -332,11 +331,31 @@ GWin32Class *GWin32Class::Create(const char *ClassName)
 	return c;
 }
 
+bool GWin32Class::IsSystem(const char *Cls)
+{
+	if (!_stricmp(Cls, WC_BUTTONA) ||
+		!_stricmp(Cls, WC_COMBOBOXA) ||
+		!_stricmp(Cls, WC_STATICA)||
+		!_stricmp(Cls, WC_LISTBOXA)||
+		!_stricmp(Cls, WC_SCROLLBARA)||
+		!_stricmp(Cls, WC_HEADERA)||
+		!_stricmp(Cls, WC_LISTVIEWA)||
+		!_stricmp(Cls, WC_TREEVIEWA)||
+		!_stricmp(Cls, WC_COMBOBOXEXA)||
+		!_stricmp(Cls, WC_TABCONTROLA)||
+		!_stricmp(Cls, WC_IPADDRESSA)||
+		!_stricmp(Cls, WC_EDITA))
+	{
+		return true;
+	}
+	return false;
+}
+
 bool GWin32Class::Register()
 {
 	bool Status = false;
 	
-	if (!_stricmp(Name(), "BUTTON"))
+	if (IsSystem(Name()))
 	{
 		ZeroObj(Class);
 		Class.cbSize = sizeof(Class);
@@ -637,12 +656,7 @@ bool GView::Attach(GViewI *p)
 		bool Enab = Enabled();
 
         // Check the class is created
-        bool IsSystemClass = !strcmp(ClsName, "BUTTON");
-        if (IsSystemClass)
-        {
-			int asd=0;
-        }
-        
+		bool IsSystemClass = GWin32Class::IsSystem(ClsName);
         GWin32Class *Cls = GWin32Class::Create(ClsName);
         if (Cls)
             Cls->Register();

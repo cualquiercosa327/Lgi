@@ -841,7 +841,7 @@ bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentFoldersIfN
 	return Status;
 }
 
-bool GFileSystem::RemoveFolder(char *PathName, bool Recurse)
+bool GFileSystem::RemoveFolder(const char *PathName, bool Recurse)
 {
 	if (Recurse)
 	{
