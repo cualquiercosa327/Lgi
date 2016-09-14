@@ -24,7 +24,7 @@ GUri::~GUri()
 	Empty();
 }
 
-GUri &GUri::operator =(GUri &u)
+GUri &GUri::operator =(const GUri &u)
 {
 	Empty();
 	Protocol = NewStr(u.Protocol);

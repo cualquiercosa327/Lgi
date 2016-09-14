@@ -1647,10 +1647,11 @@ GColour GSurface::Colour(GColour c)
 			{
 				GPalette *p = Palette();
 				if (p)
-				{
+					// Colour
 					pApp->c = p->MatchRgb(Rgb32To24(c32));
-				}
-				else LgiAssert(0);
+				else
+					// Grey scale
+					pApp->c = c.GetGray();
 			}
 			break;
 		case CsRgb15:

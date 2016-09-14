@@ -439,7 +439,10 @@ GMessage::Result GDialog::OnEvent(GMessage *Msg)
 			if (!_Default)
 				SetDefault(FindControl(IDOK));
 
-			// OnCreate();
+			// This was commented out. I've re-introduced it until such time
+			// as there is a good reason not to have it enabled. If such a reason
+			// arises, update this comment to reflect that.
+			OnCreate();
 
     		#if USE_DIALOGBOXINDIRECTPARAM
 			GViewI *v = LgiApp->GetFocus();

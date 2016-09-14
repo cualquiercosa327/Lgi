@@ -329,7 +329,7 @@ public:
 	/// URL decode
 	GAutoString Decode(char *s);
 
-	GUri &operator =(GUri &u);
+	GUri &operator =(const GUri &u);
 	GUri &operator =(char *s) { Set(s); return *this; }
 };
 

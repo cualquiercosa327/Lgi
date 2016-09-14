@@ -578,6 +578,15 @@ public:
 	#endif
 
 	/// \returns a reference to a new object on the end of the array
+	///
+	/// Never assign this to an existing variable. e.g:
+	///		GArray<MyObject> a;
+	///		MyObject &o = a.New();
+	///		o.Type = something;
+	///		o = a.New();
+	///		o.Type = something else;
+	///
+	/// This causes the first object to be overwritten with a blank copy.
 	Type &New()
 	{
 		return (*this)[len];
