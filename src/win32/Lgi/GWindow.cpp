@@ -31,6 +31,7 @@ class GWindowPrivate
 public:
 	GArray<HookInfo> Hooks;
 	bool SnapToEdge;
+	bool AlwaysOnTop;
 	GWindowZoom Show;
 	bool InCreate;
 	WINDOWPLACEMENT *Wp;
@@ -44,6 +45,7 @@ public:
 		InCreate = true;
 		Show = GZoomNormal;
 		SnapToEdge = false;
+		AlwaysOnTop = false;
 		Wp = 0;
 	}
 
@@ -311,6 +313,18 @@ bool GWindow::GetSnapToEdge()
 void GWindow::SetSnapToEdge(bool b)
 {
 	d->SnapToEdge = b;
+}
+
+bool GWindow::GetAlwaysOnTop()
+{
+	return d->AlwaysOnTop;
+}
+
+void GWindow::SetAlwaysOnTop(bool b)
+{
+	d->AlwaysOnTop = b;
+	if (_View)
+		SetWindowPos(_View, b ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
 }
 
 void GWindow::Raise()
@@ -895,59 +909,11 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 
 			Status = GView::OnEvent(Msg);
 			break;
-		}
-		case WM_ACTIVATE:
-		{
-			// This is a hack to make Windows set the focus of a child
-			// control when you Alt-Tab in and out of a top level window
-			if (LOWORD(Msg->a) != WA_INACTIVE)
-			{
-				/*
-				// gaining focus
-				if (LastFocus)
-				{
-					if (In_SetWindowPos)
-					{
-						assert(0);
-						LgiTrace("%s:%i - %s->SetFocus()\n", __FILE__, __LINE__, GetClass());
-					}
-					SetFocus(LastFocus);
-					LastFocus = 0;
-				}
-				
-				if (d->Focus && d->Focus->Handle())
-				{
-					if (In_SetWindowPos)
-					{
-						assert(0);
-						LgiTrace("%s:%i - %s->SetFocus()\n", __FILE__, __LINE__, GetClass());
-					}
-					else
-					{					
-						::SetFocus(d->Focus->Handle());
-					}
-				}
-				*/
-			}
-			/*
-			else
-			{
-				// losing focus
-				LastFocus = 0;
-				HWND f = GetFocus();
-				for (HWND p = ::GetParent(f); p; p = ::GetParent(p))
-				{
-					if (p == Handle())
-					{
-						LastFocus = f;
-					}
-				}
-			}
-			*/
-			break;
-		}
+		}		
 		case WM_CREATE:
 		{
+			if (d->AlwaysOnTop)
+				SetAlwaysOnTop(true);
 			Pour();
 			OnCreate();
 
@@ -955,9 +921,7 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 			{
 				_Default = FindControl(IDOK);
 				if (_Default)
-				{
 					_Default->Invalidate();
-				}
 			}
 
 			d->InCreate = false;

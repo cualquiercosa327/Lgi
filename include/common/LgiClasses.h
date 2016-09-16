@@ -1279,6 +1279,9 @@ public:
 
 	bool GetSnapToEdge();
 	void SetSnapToEdge(bool b);
+
+	bool GetAlwaysOnTop();
+	void SetAlwaysOnTop(bool b);
 	
 	/// Gets the current zoom setting
 	GWindowZoom GetZoom();
