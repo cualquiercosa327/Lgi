@@ -453,7 +453,7 @@ enum LgiSystemMetric
 	/// Get the standard window vertical border size including caption bar.
 	/// \sa GApp::GetMetric()
 	LGI_MET_DECOR_Y,
-	/// Get the standard window vertical border size including caption bar.
+	/// Get the standard window caption bar height only.
 	/// \sa GApp::GetMetric()
 	LGI_MET_DECOR_CAPTION,
 	/// Get the height of a single line menu bar

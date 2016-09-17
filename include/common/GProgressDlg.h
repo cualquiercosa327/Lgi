@@ -106,6 +106,7 @@ public:
 	/// Syncs an external list of progress objects with the dialog
 	void OnSync(ProgressList *Prg);
 
+	int OnNotify(GViewI *Ctrl, int Flags);
 	GMessage::Result OnEvent(GMessage *Msg);
 	void OnPaint(GSurface *pDC);
 	void OnCreate();
