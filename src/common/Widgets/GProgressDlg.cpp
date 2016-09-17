@@ -338,6 +338,7 @@ void GProgressPane::SetDescription(const char *d)
 	if (Desc)
 	{
 		Desc->Name(d);
+		Desc->SendNotify(GNotifyTableLayout_Refresh);
 	}
 }
 
