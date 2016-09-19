@@ -158,6 +158,7 @@ public:
 
 	DynFunc1(BIO*, BIO_new, BIO_METHOD*, type);
 	DynFunc0(BIO_METHOD*, BIO_s_socket);
+	DynFunc0(BIO_METHOD*, BIO_s_mem);
 	DynFunc1(BIO*, BIO_new_connect, char *, host_port);
 	DynFunc4(long, BIO_ctrl, BIO*, bp, int, cmd, long, larg, void*, parg);
 	DynFunc4(long, BIO_int_ctrl, BIO *, bp, int, cmd, long, larg, int, iarg);
@@ -166,12 +167,14 @@ public:
 	DynFunc1(int, BIO_free, BIO*, a);
 	DynFunc1(int, BIO_free_all, BIO*, a);
 	DynFunc2(int, BIO_test_flags, const BIO *, b, int, flags);
-	
+
+
 	DynFunc0(int, ERR_load_BIO_strings);
 	DynFunc0(int, ERR_free_strings);
 	DynFunc1(const char *, ERR_lib_error_string, unsigned long, e);
 	DynFunc1(const char *, ERR_func_error_string, unsigned long, e);
 	DynFunc1(const char *, ERR_reason_error_string, unsigned long, e);
+	DynFunc1(int, ERR_print_errors, BIO *, bp);
 
 	DynFunc0(int, EVP_cleanup);
 	DynFunc0(int, OPENSSL_add_all_algorithms_noconf);
@@ -636,10 +639,13 @@ bool SslSocket::GetVariant(const char *Name, GVariant &Val, char *Arr)
 
 void SslSocket::Log(const char *Str, int Bytes, SocketMsgType Type)
 {
-	if (d->Logger && ValidStr(Str))
-	{
+	if (!ValidStr(Str))
+		return;
+
+	if (d->Logger)
 		d->Logger->Write(Str, Bytes<0?(int)strlen(Str):Bytes, Type);
-	}
+	else if (Type == SocketMsgError)
+		LgiTrace("%.*s", Bytes, Str);
 }
 
 void SslSocket::Error(const char *file, int line, const char *Msg)
@@ -649,9 +655,9 @@ void SslSocket::Error(const char *file, int line, const char *Msg)
 	printf("%s:%i - %s\n", file, line, Msg);
 	#endif
 
-	char Buf[512];
-	int Ch = sprintf_s(Buf, sizeof(Buf), "Error: %s:%i - %s\n", Part ? Part + 1 : file, line, Msg);
-	Log(Buf, Ch, SocketMsgError);
+	GString s;
+	s.Printf("Error: %s:%i - %s\n", Part ? Part + 1 : file, line, Msg);
+	Log(s, s.Length(), SocketMsgError);
 }
 
 OsSocket SslSocket::Handle(OsSocket Set)
@@ -703,6 +709,18 @@ bool SslSocket::IsOpen()
 	return Bio != 0;
 }
 
+GString SslGetErrorAsString(OpenSSL *Library)
+{
+	BIO *bio = Library->BIO_new (Library->BIO_s_mem());
+	Library->ERR_print_errors (bio);
+	
+	char *buf = NULL;
+	size_t len = Library->BIO_get_mem_data (bio, &buf);
+	GString s(buf, len);
+	Library->BIO_free (bio);
+	return s;
+}
+
 int SslSocket::Open(const char *HostAddr, int Port)
 {
 	bool Status = false;
@@ -737,8 +755,11 @@ DebugTrace("%s:%i - BIO_new_ssl_connect=%p\n", _FL, Bio);
 DebugTrace("%s:%i - BIO_get_ssl=%p\n", _FL, Ssl);
 						if (Ssl)
 						{
+							// SNI setup
+							long Result = Library->SSL_set_tlsext_host_name(Ssl, HostAddr);
+					
 							// Library->SSL_CTX_set_timeout()
-							Library->BIO_set_conn_hostname(Bio, h);
+							Library->BIO_set_conn_hostname(Bio, HostAddr);
 							Library->BIO_set_conn_int_port(Bio, &Port);
 
 							// Do non-block connect
@@ -750,14 +771,12 @@ DebugTrace("%s:%i - BIO_get_ssl=%p\n", _FL, Ssl);
 DebugTrace("%s:%i - initial BIO_do_connect=%i\n", _FL, r);
 							while (r != 1 && d->Opening)
 							{
-								/*
 								int retry = Library->BIO_should_retry(Bio);
 								if (!retry)
 								{
 DebugTrace("%s:%i - BIO_should_retry=%i\n", _FL, retry);
 									break;
 								}
-								*/
 
 								LgiSleep(50);
 								r = Library->BIO_do_connect(Bio);
@@ -783,7 +802,11 @@ DebugTrace("%s:%i - open loop finished, r=%i, Opening=%i\n", _FL, r, d->Opening)
 								sprintf_s(m, sizeof(m), "Connected to '%s' using SSL", h);
 								OnInformation(m);
 							}
-							else Error(_FL, "BIO_do_connect failed.");
+							else
+							{
+								GString Err = SslGetErrorAsString(Library);
+								Error(_FL, Err ? Err.Strip().Get() : "BIO_do_connect failed.");
+							}
 						}
 						else Error(_FL, "BIO_get_ssl failed.");
 					}
@@ -1319,10 +1342,10 @@ DebugTrace("%s:%i - BIO_read(%p,%i)=%i\n", _FL, Data, Len, r);
 
 void SslSocket::OnError(int ErrorCode, const char *ErrorDescription)
 {
-	char s[MAX_PATH];
 DebugTrace("%s:%i - OnError=%i,%s\n", _FL, ErrorCode, ErrorDescription);
-	int Ch = sprintf_s(s, sizeof(s), "Error %i: %s\n", ErrorCode, ErrorDescription);
-	Log(s, Ch, SocketMsgError);
+	GString s;
+	s.Printf("Error %i: %s\n", ErrorCode, ErrorDescription);
+	Log(s, s.Length(), SocketMsgError);
 }
 
 void SslSocket::DebugTrace(const char *fmt, ...)
@@ -1336,7 +1359,10 @@ void SslSocket::DebugTrace(const char *fmt, ...)
 		va_end(Arg);
 		
 		if (Ch > 0)
+		{
+			// LgiTrace("SSL:%p: %s", this, Buffer);
 			OnInformation(Buffer);
+		}
 	}
 }
 
@@ -1366,4 +1392,3 @@ void SslSocket::OnInformation(const char *Str)
 		Str = *nl ? nl + 1 : nl;
 	}
 }
-

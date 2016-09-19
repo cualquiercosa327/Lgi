@@ -863,12 +863,12 @@ void ZLibFree(voidpf opaque, voidpf address)
 	// Do nothing... the memory is owned by an autoptr
 }
 
-bool LgiGetUri(GStreamI *Out, GAutoString *OutError, const char *InUri, const char *InHeaders, GUri *InProxy)
+bool LgiGetUri(GStreamI *Out, GString *OutError, const char *InUri, const char *InHeaders, GUri *InProxy)
 {
 	if (!InUri || !Out)
 	{
 		if (OutError)
-			OutError->Reset(NewStr("Parameter Error"));
+			OutError->Printf("Parameter missing error (%p,%p)", InUri, Out);
 		return false;
 	}
 
@@ -903,7 +903,7 @@ bool LgiGetUri(GStreamI *Out, GAutoString *OutError, const char *InUri, const ch
 		if (!s)
 		{
 			if (OutError)
-				OutError->Reset(NewStr("Alloc Failed"));
+				OutError->Printf("Alloc Failed");
 			return false;
 		}
 
@@ -912,7 +912,7 @@ bool LgiGetUri(GStreamI *Out, GAutoString *OutError, const char *InUri, const ch
 		if (!Http.Open(s, InUri, DefaultPort))
 		{
 			if (OutError)
-				OutError->Reset(NewStr("Http open failed"));
+				OutError->Printf("Http open failed for '%s:%i'", InUri, DefaultPort);
 			return false;
 		}
 
@@ -936,14 +936,14 @@ bool LgiGetUri(GStreamI *Out, GAutoString *OutError, const char *InUri, const ch
 			if (!Loc)
 			{
 				if (OutError)
-					OutError->Reset(NewStr("HTTP redirect doesn't have a location header."));
+					*OutError = "HTTP redirect doesn't have a location header.";
 				return false;
 			}
 			
 			if (!_stricmp(Loc, InUri))
 			{
 				if (OutError)
-					OutError->Reset(NewStr("HTTP redirect to same URI."));
+					*OutError = "HTTP redirect to same URI.";
 				return false;
 			}
 
@@ -956,10 +956,8 @@ bool LgiGetUri(GStreamI *Out, GAutoString *OutError, const char *InUri, const ch
 		{
 			Enc = IHttp::EncodeRaw;
 
-			char m[256];
-			sprintf_s(m, sizeof(m), "Got %i for '%.200s'", Status, InUri);
 			if (OutError)
-				OutError->Reset(NewStr(m));
+				OutError->Printf("Got %i for '%.200s'", Status, InUri);
 			return false;
 		}
 
@@ -972,7 +970,7 @@ bool LgiGetUri(GStreamI *Out, GAutoString *OutError, const char *InUri, const ch
 			if (!Cp.Copy(&TmpFile, Out))
 			{
 				if (OutError)
-					OutError->Reset(NewStr("Stream copy failed."));
+					*OutError = "Stream copy failed.";
 				return false;
 			}
 		}
@@ -982,7 +980,7 @@ bool LgiGetUri(GStreamI *Out, GAutoString *OutError, const char *InUri, const ch
 			if (Len <= 0)
 			{
 				if (OutError)
-					OutError->Reset(NewStr("No data to ungzip."));
+					*OutError = "No data to ungzip.";
 				return false;
 			}
 
@@ -990,7 +988,7 @@ bool LgiGetUri(GStreamI *Out, GAutoString *OutError, const char *InUri, const ch
 			if (!Data)
 			{
 				if (OutError)
-					OutError->Reset(NewStr("Alloc Failed"));
+					*OutError = "Alloc Failed";
 				return false;
 			}
 
@@ -1028,7 +1026,7 @@ bool LgiGetUri(GStreamI *Out, GAutoString *OutError, const char *InUri, const ch
 			{
 				GdcD->NeedsCapability("zlib");
 				if (OutError)
-					OutError->Reset(NewStr("Gzip decompression not available"));
+					*OutError = "Gzip decompression not available";
 				return false;
 			}
 		}

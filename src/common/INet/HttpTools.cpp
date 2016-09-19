@@ -1117,7 +1117,7 @@ GSurface *GetHttpImage(char *Uri)
 						sprintf_s(r, sizeof(r), "_%x", LgiRand());
 						LgiMakePath(n, sizeof(n), n, r);
 					}
-					while(FileExists(n));
+					while (FileExists(n));
 
 					GFile f;
 					if (f.Open(n, O_WRITE))
@@ -1130,17 +1130,17 @@ GSurface *GetHttpImage(char *Uri)
 						{
 							// LgiTrace("Read uri '%s'\n", __FILE__, __LINE__, Uri);
 						}
-						else LgiTrace("%s:%i - Failed to read image '%s'\n", __FILE__, __LINE__, n);
+						else LgiTrace("%s:%i - Failed to read image '%s'\n", _FL, n);
 
 						FileDev->Delete(n, false);
 					}
-					else LgiTrace("%s:%i - Failed to open '%s'\n", __FILE__, __LINE__, n);
+					else LgiTrace("%s:%i - Failed to open '%s'\n", _FL, n);
 				}
-				else LgiTrace("%s:%i - HTTP code %i\n", __FILE__, __LINE__, Code);
+				else LgiTrace("%s:%i - HTTP code %i\n", _FL, Code);
 			}
-			else LgiTrace("%s:%i - failed to download to '%s'\n", __FILE__, __LINE__, Uri);
+			else LgiTrace("%s:%i - failed to download to '%s'\n", _FL, Uri);
 		}
-		else LgiTrace("%s:%i - failed to connect to '%s:%i'\n", __FILE__, __LINE__, u.Host, u.Port);
+		else LgiTrace("%s:%i - failed to connect to '%s:%i'\n", _FL, u.Host, u.Port);
 	}
 
 	return Img;

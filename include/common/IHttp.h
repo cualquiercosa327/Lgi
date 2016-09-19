@@ -102,7 +102,7 @@ bool LgiGetUri
 	/// The output stream to put the data
 	GStreamI *Out,
 	/// Any error message
-	GAutoString *OutError,
+	GString *OutError,
 	/// The input URI to retreive
 	const char *InUri,
 	/// [Optional] Extra headers to use
