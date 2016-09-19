@@ -411,6 +411,15 @@ void GWindow::_Delete()
 	d->InDelete = false;
 }
 
+bool GWindow::GetAlwaysOnTop()
+{
+	return false;
+}
+
+void GWindow::SetAlwaysOnTop(bool b)
+{
+}
+
 bool GWindow::PostEvent(int Event, int a, int b)
 {
 	bool Status = false;
