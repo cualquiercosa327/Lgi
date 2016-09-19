@@ -5319,11 +5319,13 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 					Size.y = Px;
 			}
 
-			if (Disp == DispInline)
+			if (Disp == DispInline ||
+				Disp == DispInlineBlock)
 			{
 				Restart = false;
 
 				Pos.y = Flow->y1;
+				Flow->y2 = max(Flow->y1, Pos.y + Size.y - 1);
 
 				GCss::LengthType a = GetAlign(true);
 				switch (a)
