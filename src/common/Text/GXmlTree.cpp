@@ -803,6 +803,19 @@ bool GXmlTag::SetAttr(const char *n, int Value)
 	return false;
 }
 
+bool GXmlTag::SetAttr(const char *n, int64 Value)
+{
+	GXmlAttr *a = _Attr(n, true);
+	if (a)
+	{
+		char s[32];
+		sprintf_s(s, sizeof(s), LGI_PrintfInt64, Value);
+		a->Value = Allocator->Alloc(s);
+		return true;
+	}
+	return false;
+}
+
 bool GXmlTag::SerializeAttr(const char *Attr, int &Int)
 {
 	GXmlAttr *a = _Attr(Attr, Write);

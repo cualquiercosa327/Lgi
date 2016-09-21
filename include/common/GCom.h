@@ -31,6 +31,8 @@ class GUnknownImpl : public T
 List<Interface> Interfaces;
 
 protected:
+	bool TraceRefs;
+
 	void AddInterface(REFIID iid, void *pvObject)
 	{
 		Interface *i = new Interface(iid, pvObject);
@@ -44,6 +46,7 @@ public:
 	GUnknownImpl()
 	{
 		Count = 0;
+		TraceRefs = false;
 	}
 
 	virtual ~GUnknownImpl()
@@ -76,12 +79,16 @@ public:
 
 	ULONG STDMETHODCALLTYPE AddRef()
 	{
+		if (TraceRefs)
+			LgiTrace("%s:%i - %p::AddRef %i\n", _FL, this, Count+1);
 		return ++Count;
 	}
 	
 	ULONG STDMETHODCALLTYPE Release()
 	{
 		int i = --Count;
+		if (TraceRefs)
+			LgiTrace("%s:%i - %p::Release %i\n", _FL, this, Count);
 		if (i <= 0)
 		{
 			delete this;
@@ -252,13 +259,22 @@ public:
 /// This class wraps a GStream in an IStream interface...
 class GStreamWrap : public GUnknownImpl<IStream>
 {
+	bool Own;
 	GStream *s;
 
 public:
-	GStreamWrap(GStream *src)
+	GStreamWrap(GStream *src, bool own = true)
 	{
 		s = src;
+		Own = own;
+		TraceRefs = true;
 		AddInterface(IID_IStream, (IStream*)this);
+	}
+	
+	~GStreamWrap()
+	{
+		if (Own)
+			delete s;
 	}
 	
 	HRESULT STDMETHODCALLTYPE Read(void *pv, ULONG cb, ULONG *pcbRead)
@@ -272,14 +288,17 @@ public:
 		{
 			int Remaining = cb - i;
 			int Rd = s->Read(Ptr + i, Remaining);
-			LgiTrace("Read(%i)=%i\n", cb, Rd);
+			
+			// LgiTrace("Read(%i)=%i\n", cb, Rd);
+			
 			if (Rd > 0)
 				i += Rd;				
 			else
 				break;
 		}
 
-		if (pcbRead) *pcbRead = i;
+		if (pcbRead)
+			*pcbRead = i;
 		return S_OK;
 	}
 	
@@ -294,6 +313,7 @@ public:
 	HRESULT STDMETHODCALLTYPE Seek(LARGE_INTEGER dlibMove, DWORD dwOrigin, ULARGE_INTEGER *plibNewPosition)
 	{
 		if (!s) return E_INVALIDARG;
+		
 		int64 NewPos = -1;
 		switch (dwOrigin)
 		{
@@ -306,10 +326,14 @@ public:
 			case STREAM_SEEK_END:
 				NewPos = s->SetPos(s->GetSize() - dlibMove.QuadPart);
 				break;
-			default:
-				return E_INVALIDARG;
+			// default: return E_INVALIDARG;
 		}
-		if (plibNewPosition) plibNewPosition->QuadPart = NewPos;
+
+		if (NewPos < 0)
+			return E_NOTIMPL;
+		
+		if (plibNewPosition)
+			plibNewPosition->QuadPart = NewPos;
 		return S_OK;
 	}
 			
@@ -320,6 +344,25 @@ public:
 			return E_FAIL;
 		return S_OK;
 	}
+
+	HRESULT STDMETHODCALLTYPE Stat(__RPC__out STATSTG *pstatstg, DWORD grfStatFlag)
+	{
+		if (!pstatstg)
+			return E_INVALIDARG;
+		
+		GVariant Name;
+		if (pstatstg->pwcsName &&
+			s->GetValue("FileName", Name))
+		{
+			GAutoWString w(LgiNewUtf8To16(Name.Str()));
+			Strcpy(pstatstg->pwcsName, 256, w.Get());
+		}
+		
+		pstatstg->type = STGTY_STREAM;
+		pstatstg->cbSize.QuadPart = s->GetSize();
+		
+		return S_OK;
+	}
 	
 	#define NotImplemented { LgiAssert(!"Function not implemented."); return E_NOTIMPL; }
 	
@@ -328,7 +371,6 @@ public:
 	HRESULT STDMETHODCALLTYPE Revert() NotImplemented
 	HRESULT STDMETHODCALLTYPE LockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType) NotImplemented
 	HRESULT STDMETHODCALLTYPE UnlockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType) NotImplemented
-	HRESULT STDMETHODCALLTYPE Stat(__RPC__out STATSTG *pstatstg, DWORD grfStatFlag) NotImplemented
 	HRESULT STDMETHODCALLTYPE Clone(__RPC__deref_out_opt IStream **ppstm) NotImplemented
 };
 
