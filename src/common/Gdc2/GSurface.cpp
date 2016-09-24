@@ -1692,6 +1692,23 @@ GColour GSurface::Colour(GColour c)
 			break;
 	}
 
+	#if MAC
+	{
+		// Update the current colour of the drawing context if present.
+		OsPainter Hnd = Handle();
+		if (Hnd)
+		{
+			float r = (float)c.r()/255.0;
+			float g = (float)c.g()/255.0;
+			float b = (float)c.b()/255.0;
+			float a = (float)c.a()/255.0;
+			
+			CGContextSetRGBFillColor(Hnd, r, g, b, a);
+			CGContextSetRGBStrokeColor(Hnd, r, g, b, a);
+		}
+	}
+	#endif
+
 	return cPrev;
 }
 

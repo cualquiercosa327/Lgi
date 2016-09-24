@@ -568,6 +568,25 @@ public:
 		}
 		return -1;
 	}
+	
+	/// Reverses all the characters in the string
+	GString Reverse()
+	{
+		GString s;
+		
+		if (Length() > 0)
+		{
+			s = Str->Str;
+			for (char *a = s, *b = s.Get() + s.Length() - 1; a < b; a++, b--)
+			{
+				char t = *a;
+				*a = *b;
+				*b = t;
+			}
+		}
+		
+		return s;
+	}
 
 	/// Find a sub-string	
 	NativeInt Find(const char *needle, int start = 0, int end = -1)
