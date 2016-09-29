@@ -82,7 +82,20 @@ struct GDisplayStringLayout
 						break;
 					if (e > s && LGI_BreakableChar(c))
 						break;
+					
+					char *cur = e;
 					e = LgiSeekUtf8(e, 1);
+					if (e == cur) // sanity check...
+					{
+						LgiAssert(!"LgiSeekUtf8 broke.");
+						break;
+					}
+				}
+				
+				if (e == s)
+				{
+					LgiAssert(0);
+					break;
 				}
 
 				GDisplayString d(f, s, (int) (e - s));
