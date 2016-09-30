@@ -526,7 +526,7 @@ void GMemDC::VLine(int x, int y1, int y2, COLOUR a, COLOUR b)
 	
 	if (y1 < Clip.y1) y1 = Clip.y1;
 	if (y2 > Clip.y2) y2 = Clip.y2;
-	if (	y1 <= y2 &&
+	if (y1 <= y2 &&
 		x >= Clip.x1 &&
 		x <= Clip.x2)
 	{

@@ -621,6 +621,13 @@ void GDateTime::SetNow()
 #define Convert24HrTo12Hr(h)			( (h) == 0 ? 12 : (h) > 12 ? (h) % 12 : (h) )
 #define Convert24HrToAmPm(h)		( (h) >= 12 ? "p" : "a" )
 
+GString GDateTime::GetDate()
+{
+	char s[32];
+	int Ch = GetDate(s, sizeof(s));
+	return GString(s, Ch);
+}
+
 int GDateTime::GetDate(char *Str, int SLen)
 {
 	int Ch = 0;
@@ -649,6 +656,13 @@ int GDateTime::GetDate(char *Str, int SLen)
 	}
 	
 	return Ch;
+}
+
+GString GDateTime::GetTime()
+{
+	char s[32];
+	int Ch = GetTime(s, sizeof(s));
+	return GString(s, Ch);
 }
 
 int GDateTime::GetTime(char *Str, int SLen)
