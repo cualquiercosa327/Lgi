@@ -224,10 +224,13 @@ inline bool LgiNextUtf8(char *&p)
 	char *old = p;
 	
 	if (IsUtf8_Lead(*p))
+	{
 		p++;
 
-	while (IsUtf8_Trail(*p))
-		p++;
+		while (IsUtf8_Trail(*p))
+			p++;
+	}
+	else p++;
 	
 	return p > old;
 }
