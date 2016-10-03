@@ -287,7 +287,7 @@ public:
 	}
 
 	/// Gets the file/line at a given token
-	char *operator [](int Tok)
+	const char *operator [](int Tok)
 	{
 		Range *r = NULL;
 		
@@ -317,7 +317,7 @@ public:
 		return fl;
 	}
 
-	char *GetLine(int Line)
+	const char *GetLine(int Line)
 	{
 		if (Ranges.Length() > 0)
 		{
@@ -388,7 +388,7 @@ public:
 	GArray<GVariables*> Scopes;
 	GArray<LinkFixup> Fixups;
 	GHashTbl<char16*, char16*> Defines;
-	GHashTbl<char16*, GTokenType> ExpTok;
+	GHashTbl<const char16*, GTokenType> ExpTok;
 	GDom *ScriptArgs;
 	GVarRef ScriptArgsRef;
 	bool ErrShowFirstOnly;
@@ -494,7 +494,7 @@ public:
 
 	void DebugInfo(int Tok)
 	{
-		char *Line = Lines[Tok];
+		const char *Line = Lines[Tok];
 		if (Line)
 		{
 			char *c = strrchr(Line, ':');

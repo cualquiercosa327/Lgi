@@ -1218,11 +1218,11 @@ bool IFtp::SetupData(bool Binary)
 	}
 	catch (int Error)
 	{
-		printf("%s:%i - error: %i\n", _FL, Error);
+		LgiTrace("%s:%i - error: %i\n", _FL, Error);
+		/*
 		if (IsOpen())
-		{
 			LgiAssert(0);
-		}
+		*/
 	}
 
 	return Status;

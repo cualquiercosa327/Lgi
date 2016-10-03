@@ -118,8 +118,10 @@ int GWindow::WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState)
 {
 	int Status = DROPEFFECT_NONE;
 	
+	printf("WillAccept\n");
 	for (char *f=Formats.First(); f; )
 	{
+		printf("\t%s\n", f);
 		if (!stricmp(f, LGI_FileDropFormat))
 		{
 			f = Formats.Next();
@@ -140,9 +142,11 @@ int GWindow::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 {
 	int Status = DROPEFFECT_NONE;
 	
+	printf("OnDrop\n");
 	for (unsigned i=0; i<Data.Length(); i++)
 	{
 		GDragData &dd = Data[i];
+		printf("\t%s\n", dd.Format.Get());
 		if (dd.IsFileDrop())
 		{
 			GArray<char*> Files;

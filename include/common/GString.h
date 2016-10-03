@@ -78,11 +78,11 @@ LgiFunc char *strncpy_s(char *dest, size_t dest_size, const char *src, size_t sr
 LgiFunc char *strnstr
 (
 	/// The string to search
-	char *a,
+	const char *a,
 	/// The string to find
 	const char *b,
 	/// The maximum number of bytes in 'a' to seach through
-	NativeInt n
+	size_t n
 );
 #endif
 

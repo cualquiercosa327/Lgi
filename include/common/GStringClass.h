@@ -752,9 +752,9 @@ public:
 										NULL,
 										0,
 										&usedBufLen);
-		if (Set(NULL, slen))
+		if (Set(NULL, usedBufLen))
 		{
-			CFStringGetBytes(			r,
+			slen = CFStringGetBytes(	r,
 										range,
 										kCFStringEncodingUTF8,
 										'?',
@@ -762,7 +762,7 @@ public:
 										(UInt8*)Str->Str,
 										Str->Len,
 										&usedBufLen);
-			Str->Str[slen] = 0; // NULL terminate
+			Str->Str[usedBufLen] = 0; // NULL terminate
 		}
 		
 		return *this;
