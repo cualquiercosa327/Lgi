@@ -190,11 +190,12 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 						CFURLRef Url = CFURLCreateWithFileSystemPath(NULL, Path, kCFURLPOSIXPathStyle, false);
 						if (Url)
 						{
-							#if 1
+							#if 0
+							// NSFilenamesPboardType
 							CFErrorRef Err;
 							CFDataRef Data = CFURLCreateBookmarkData(NULL,
 																	Url,
-																	kCFURLBookmarkCreationWithSecurityScope, // CFURLBookmarkCreationOptions,
+																	kCFURLBookmarkCreationSuitableForBookmarkFile /*| kCFURLBookmarkCreationWithSecurityScope*/, // CFURLBookmarkCreationOptions,
 																	NULL, // CFArrayRef resourcePropertiesToInclude,
 																	NULL, // CFURLRef relativeToURL,
 																	&Err);
@@ -209,11 +210,15 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 							}
 							else
 							{
+								#if 0
 								CFIndex Code = CFErrorGetCode(Err);
 								CFStringRef ErrStr = CFErrorCopyDescription(Err);
 								GString ErrStr2 = ErrStr;
 								CFRelease(ErrStr);
 								LgiTrace("%s:%i - CFURLCreateBookmarkData error: %i, %s\n", _FL, Code, ErrStr2.Get());
+								#else
+								LgiTrace("%s:%i - CFURLCreateData failed\n", _FL);
+								#endif
 							}
 
 							CFRelease(Url);
@@ -477,7 +482,9 @@ struct DragParams
 						e = PasteboardCopyItemFlavorData(Pb, Fl.ItemId, Fl.Flavor, &Ref);
 						if (e)
 						{
-							printf("%s:%i - PasteboardCopyItemFlavorData failed with %lu.\n", _FL, e);
+							GString Flavor = Fl.Flavor;
+							printf("%s:%i - PasteboardCopyItemFlavorData(%s) failed with %lu.\n",
+								_FL, Flavor.Get(), e);
 						}
 						else
 						{
