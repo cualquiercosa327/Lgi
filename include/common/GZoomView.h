@@ -24,8 +24,8 @@ public:
 	
 	#undef DefOption
 	
-	virtual void DrawBackground(GZoomView *View, GSurface *Dst, GdcPt2 Offset, GRect *Where = NULL) = 0;
-	virtual void DrawForeground(GZoomView *View, GSurface *Dst, GdcPt2 Offset, GRect *Where = NULL) = 0;
+	virtual void DrawBackground(GZoomView *View, GSurface *Dst, GdcPt2 TileIdx, GRect *Where = NULL) = 0;
+	virtual void DrawForeground(GZoomView *View, GSurface *Dst, GdcPt2 TileIdx, GRect *Where = NULL) = 0;
 	virtual void SetStatusText(const char *Msg, int Pane = 0) {}
 };
 
@@ -43,10 +43,12 @@ public:
 		///
 		/// < 0 then the image is scaled down by (1 - zoom) times
 		/// == 0 then the image is 1:1
-		/// > 0 then the image is scale up by (zoom - 1) times
+		/// > 0 then the image is scale up by (zoom + 1) times
 		int Zoom;
 		/// The current scroll offsets in document coordinates (not screen space)
 		int Sx, Sy;
+		/// Tile size
+		int TilePx;
 	};
 	
 	enum SampleMode

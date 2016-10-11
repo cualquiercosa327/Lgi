@@ -497,7 +497,7 @@ public:
 		const char *Line = Lines[Tok];
 		if (Line)
 		{
-			char *c = strrchr(Line, ':');
+			const char *c = strrchr(Line, ':');
 			if (c)
 			{
 				Code->Debug.Add(Code->ByteCode.Length(), ::atoi(c+1));

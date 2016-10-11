@@ -41,6 +41,12 @@ public:
 		y = p.y;
 	}
 
+	GPointF(const GdcPt2 &p)
+	{
+		x = p.x;
+		y = p.y;
+	}
+
 	GPointF &operator =(GPointF &p)
 	{
 		x = p.x;
@@ -106,11 +112,11 @@ class LgiClass GRectF
 {
 public:
 	double x1, y1, x2, y2;
-	bool Set;
+	bool Defined;
 
 	GRectF()
 	{
-		Set = false;
+		Defined = false;
 	}
 
 	GRectF(GRect &r)
@@ -121,18 +127,25 @@ public:
 	GRectF(double X1, double Y1, double X2, double Y2)
 	{
 		x1 = X1; y1 = Y1; x2 = X2; y2 = Y2;
-		Set = true;
+		Defined = true;
+	}
+
+	void Set(double X1, double Y1, double X2, double Y2)
+	{
+		x1 = X1; y1 = Y1; x2 = X2; y2 = Y2;
+		Defined = true;
 	}
 
 	GRectF(GPointF &a, GPointF &b)
 	{
 		x1 = a.x; y1 = a.y; x2 = b.x; y2 = b.y;
-		Set = true;
+		Defined = true;
 	}
 
 	double X() { return x2 - x1; }
 	double Y() { return y2 - y1; }
 	bool IsNormal() { return x2 >= x1 && y2 >= y1; }
+	bool Valid() { return Defined && IsNormal(); }
 	
 	void Normalize();
 	void Union(GPointF &p);
