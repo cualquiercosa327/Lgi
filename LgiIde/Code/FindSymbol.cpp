@@ -118,7 +118,8 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 		
 		// Parse for headers...
 		GTextFile Tf;
-		if (!Tf.Open(Path, O_READ))
+		if (!Tf.Open(Path, O_READ)  ||
+			Tf.GetSize() < 4)
 			return false;
 
 		GAutoString Source = Tf.Read();
