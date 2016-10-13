@@ -60,7 +60,23 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 		bool Parse()
 		{
 			Defs.Length(0);
-			bool Status = BuildDefnList(Path, Source, Defs, DefnNone);
+			
+			bool Status = false;
+			GString Src = Source.Get();
+			char *Ext = LgiGetExtension(Src);
+			if
+			(
+				Ext
+				&&
+				(
+					!_stricmp(Ext, "c")
+					||
+					!_stricmp(Ext, "cpp")
+					||
+					!_stricmp(Ext, "h")
+				)
+			)
+				Status = BuildDefnList(Path, Source, Defs, DefnNone);
 			return Status;
 		}
 	};
