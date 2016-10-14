@@ -445,6 +445,15 @@ bool GTreeItem::SortChildren(int (*compare)(GTreeItem *a, GTreeItem *b, NativeIn
 	return true;
 }
 
+bool GTreeItem::IsDropTarget()
+{
+	GTree *t = GetTree();
+	if (t && t->d && t->d->DropTarget == this)
+		return true;
+	
+	return false;
+}
+
 GRect *GTreeItem::GetPos(int Col)
 {
 	return &d->Pos;

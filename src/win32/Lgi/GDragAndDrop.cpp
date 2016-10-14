@@ -156,6 +156,13 @@ HRESULT GDataObject::GetData(FORMATETC *pFormatEtc, STGMEDIUM *PMedium)
 					Size = Ptr ? strlen((char*)Ptr) + 1 : 0;
 					break;
 				}
+				case GV_VOID_PTR:
+				{
+					PMedium->tymed = TYMED_HGLOBAL;
+					Ptr = (uchar*)&Data.Value.Ptr;
+					Size = sizeof(Data.Value.Ptr);
+					break;
+				}
 				case GV_STREAM:
 				{
 					PMedium->tymed = TYMED_ISTREAM;
