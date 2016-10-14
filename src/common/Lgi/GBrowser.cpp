@@ -292,7 +292,7 @@ public:
 						if (!f->Open(p, O_READ))
 						{
 							j->Stream.Reset();
-							j->Error.Reset(NewStr("Can't open file."));
+							j->Error.Printf("Can't open file '%s' for reading", p);
 							return LoadError;
 						}
 

@@ -101,6 +101,7 @@ Progress &Progress::operator =(Progress &p)
 #define IDC_PROGRESS			103
 #define IDC_BUTTON				104
 #define IDC_TABLE				105
+#define IDC_PANE				106
 
 #if 1
 #define PANE_X					300
@@ -116,6 +117,7 @@ GProgressPane::GProgressPane()
 	GRect r(0, 0, PANE_X-1, PANE_Y-1);
 	SetPos(r);
 	Name("Progress");
+	SetId(IDC_PANE);
 	Canceled = false;
 	Wait = false;
 	Ref = 0;
@@ -261,6 +263,24 @@ int GProgressPane::OnNotify(GViewI *Ctrl, int Flags)
 {
 	switch (Ctrl->GetId())
 	{
+		case IDC_TABLE:
+		{
+			if (Flags == GNotifyTableLayout_LayoutChanged)
+			{
+				GRect p = GetPos();
+				GRect tbl_pos = t->GetPos();
+				GRect tbl_req = t->GetUsedArea();
+				if (tbl_req.Valid() &&
+					tbl_req.Y() > tbl_pos.Y())
+				{
+					p.y2 = p.y1 + (tbl_req.Y() + GTableLayout::CellSpacing * 2);
+					SetPos(p);
+					
+					SendNotify(GNotifyTableLayout_LayoutChanged);
+				}
+			}
+			break;
+		}
 		case IDC_BUTTON:
 		{
 			Cancel(true);
@@ -295,7 +315,7 @@ void GProgressPane::OnPosChange()
 	if (t)
 	{
 		GRect cr = GetClient();
-		cr.Size(4, 4);
+		cr.Size(GTableLayout::CellSpacing, GTableLayout::CellSpacing);
 		t->SetPos(cr);
 	}
 }
@@ -318,6 +338,7 @@ void GProgressPane::SetDescription(const char *d)
 	if (Desc)
 	{
 		Desc->Name(d);
+		Desc->SendNotify(GNotifyTableLayout_Refresh);
 	}
 }
 
@@ -423,6 +444,39 @@ void GProgressDlg::OnPosChange()
 			y = r.y2 + 1;
 		}
 	}
+}
+
+int GProgressDlg::OnNotify(GViewI *Ctrl, int Flags)
+{
+	if (Ctrl->GetId() == IDC_PANE &&
+		Flags == GNotifyTableLayout_LayoutChanged)
+	{
+		// This code recalculates the size needed by all the progress panes
+		// and then resizes the window to contain them all.
+		GRect u(0, 0, -1, -1);
+		for (int i=0; i<Progri.Length(); i++)
+		{
+			GProgressPane *p = Progri[i];
+			if (p)
+			{
+				GRect r = p->GetPos();
+				if (u.Valid()) u.Union(&r);
+				else u = r;
+			}
+		}
+
+		if (u.Valid())
+		{		
+			int x = u.X();
+			int y = u.Y();
+			GRect p = GetPos();
+			p.Dimension(x + LgiApp->GetMetric(LGI_MET_DECOR_X),
+						y + LgiApp->GetMetric(LGI_MET_DECOR_Y));
+			SetPos(p);
+		}
+	}
+	
+	return 0;
 }
 
 GMessage::Result GProgressDlg::OnEvent(GMessage *Msg)

@@ -458,7 +458,10 @@ GMessage::Result GDialog::OnEvent(GMessage *Msg)
 				return true;
 			}
 			#endif
-			break;
+			
+			// If we don't return true here the GWindow::OnEvent handler for
+			// WM_CREATE will call OnCreate again.
+			return true;
 		}
 		/*
 		case WM_CLOSE:

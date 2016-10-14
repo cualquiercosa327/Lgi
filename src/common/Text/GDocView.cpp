@@ -142,7 +142,7 @@ GDocumentEnv::LoadType GDefaultDocumentEnv::GetContent(LoadJob *&j)
 			return LoadImmediate;
 		}
 		
-		j->Filename.Reset(NewStr(FullPath));
+		j->Filename = FullPath;
 		return LoadImmediate;
 	}
 

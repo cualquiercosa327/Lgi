@@ -139,6 +139,8 @@ public:
 	GRect *GetPos(int Col = -1);
 	/// Sort the child folder
 	bool SortChildren(int (*compare)(GTreeItem *a, GTreeItem *b, NativeInt UserData), NativeInt UserData = 0);
+	/// True if the node is the drop target
+	bool IsDropTarget();
 
 	/// Called when the node expands/contracts to show or hide it's children.
 	virtual void OnExpand(bool b);

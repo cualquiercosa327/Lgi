@@ -1852,7 +1852,7 @@ GRect GTableLayout::GetUsedArea()
 		OnPosChange();
 	}
 
-	GRect r;
+	GRect r(0, 0, -1, -1);
     for (int i=0; i<d->Cells.Length(); i++)
     {
         TableCell *c = d->Cells[i];

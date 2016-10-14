@@ -219,19 +219,28 @@ inline void LgiUtf32To16(uint32 c, uint16 *&i, int &Len)
 }
 
 /// Seeks the pointer 'Ptr' to the next utf-8 character
-inline void LgiNextUtf8(char *&p)
+inline bool LgiNextUtf8(char *&p)
 {
-	if (IsUtf8_Lead(*p++))
+	char *old = p;
+	
+	if (IsUtf8_Lead(*p))
 	{
-		while (IsUtf8_Trail(*p)) p++;
+		p++;
+
+		while (IsUtf8_Trail(*p))
+			p++;
 	}
+	else p++;
+	
+	return p > old;
 }
 
 /// Seeks the pointer 'Ptr' to the previous utf-8 character
 inline void LgiPrevUtf8(char *&p)
 {
 	p--;
-	while (IsUtf8_Trail(*p)) p--;
+	while (IsUtf8_Trail(*p))
+		p--;
 }
 
 /// Pointer to utf-8 string

@@ -568,6 +568,25 @@ public:
 		}
 		return -1;
 	}
+	
+	/// Reverses all the characters in the string
+	GString Reverse()
+	{
+		GString s;
+		
+		if (Length() > 0)
+		{
+			s = Str->Str;
+			for (char *a = s, *b = s.Get() + s.Length() - 1; a < b; a++, b--)
+			{
+				char t = *a;
+				*a = *b;
+				*b = t;
+			}
+		}
+		
+		return s;
+	}
 
 	/// Find a sub-string	
 	NativeInt Find(const char *needle, int start = 0, int end = -1)
@@ -733,9 +752,9 @@ public:
 										NULL,
 										0,
 										&usedBufLen);
-		if (Set(NULL, slen))
+		if (Set(NULL, usedBufLen))
 		{
-			CFStringGetBytes(			r,
+			slen = CFStringGetBytes(	r,
 										range,
 										kCFStringEncodingUTF8,
 										'?',
@@ -743,7 +762,7 @@ public:
 										(UInt8*)Str->Str,
 										Str->Len,
 										&usedBufLen);
-			Str->Str[slen] = 0; // NULL terminate
+			Str->Str[usedBufLen] = 0; // NULL terminate
 		}
 		
 		return *this;

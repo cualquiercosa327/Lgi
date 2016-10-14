@@ -33,7 +33,7 @@ typedef int (*FilterUi_Menu)(GFilterView *View,
 							 GArray<char*> *GetList,
 							 void *UserData);
 
-class GFilterItem : public GTreeItem
+class GFilterItem : public GTreeItem, public GDragDropSource
 {
 	class GFilterItemPrivate *d;
 
@@ -61,8 +61,12 @@ public:
 	bool OnKey(GKey &k);
 	void OnMouseClick(GMouse &m);
 	void OnExpand(bool b);
-
 	void OptionsMenu();
+
+	// Dnd
+	bool OnBeginDrag(GMouse &m);
+	bool GetFormats(List<char> &Formats);
+	bool GetData(GArray<GDragData> &Data);
 };
 
 /// Filter user interface using a tree structure.

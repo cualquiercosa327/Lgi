@@ -268,6 +268,23 @@ class GHashTbl
 					return StricmpW(a, b) == 0;
 			}
 
+		// const char16
+			uint32 Hash(const char16 *s) { return LgiHash<uint, char16>((char16*)s, 0, Case); }
+			const char16 *CopyKey(const char16 *a) { return NewStrW(a); }
+			int SizeKey(const char16 *a) { return StrlenW(a) + 1; }
+			void FreeKey(const char16 *&a)
+			{
+				if (Pool) a = NULL;
+				else DeleteArray(a);
+			}
+			bool CmpKey(const char16 *a, const char16 *b)
+			{
+				if (Case)
+					return StrcmpW(a, b) == 0;
+				else
+					return StricmpW(a, b) == 0;
+			}
+
 		// int
 			uint32 Hash(int s) { return s; }
 			int CopyKey(int a) { return a; }

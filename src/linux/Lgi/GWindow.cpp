@@ -1358,3 +1358,6 @@ void GWindow::Quit(bool DontDelete)
 }
 
 
+void GWindow::SetAlwaysOnTop(bool b)
+{
+}

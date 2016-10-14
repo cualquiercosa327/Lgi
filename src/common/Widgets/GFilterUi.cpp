@@ -9,6 +9,7 @@
 #include "GDisplayString.h"
 #include "LgiRes.h"
 
+#define FILTER_DRAG_FORMAT	"Scribe.FilterItem"
 #define IconSize			15
 static GColour TransparentBlk(0, 0, 0, 0);
 static GColour White(255, 255, 255);
@@ -78,13 +79,18 @@ static const char **GetIconNames()
 	return IconName;
 }
 
-class GFilterTree : public GTree
+class GFilterTree : public GTree, public GDragDropTarget
 {
 	friend class GFilterItem;
 
 public:
 	GFilterTree() : GTree(-1, 0, 0, 100, 100)
 	{
+	}
+	
+	void OnCreate()
+	{
+		SetWindow(this);
 	}
 
 	void OnFocus(bool f)
@@ -94,6 +100,90 @@ public:
 			GTreeItem *n = GetChild();
 			if (n) n->Select(true);
 		}
+	}
+
+	// Dnd
+	int WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState)
+	{
+		GFilterItem *i = dynamic_cast<GFilterItem*>(ItemAtPoint(Pt.x, Pt.y));
+		if (!i || i->GetNode() == LNODE_NEW)
+		{
+			return DROPEFFECT_NONE;
+		}
+		
+		SelectDropTarget(i);
+
+		for (char *f = Formats.First(); f; )
+		{
+			if (!_stricmp(f, FILTER_DRAG_FORMAT))
+			{
+				f = Formats.Next();
+			}
+			else
+			{
+				Formats.Delete(f);
+				DeleteArray(f);
+				f = Formats.Current();
+			}
+		}
+		
+		return DROPEFFECT_MOVE;
+	}
+	
+	int OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
+	{
+		SelectDropTarget(NULL);
+		
+		GFilterItem *Target = dynamic_cast<GFilterItem*>(ItemAtPoint(Pt.x, Pt.y));
+		if (!Target)
+			return DROPEFFECT_NONE;
+
+		if (Target->GetNode() == LNODE_COND)
+		{
+			Target = dynamic_cast<GFilterItem*>(Target->GetParent());
+			if (!Target)
+				return DROPEFFECT_NONE;
+		}
+		
+		for (unsigned i=0; i<Data.Length(); i++)
+		{
+			GDragData &dd = Data[i];
+			if (dd.IsFormat(FILTER_DRAG_FORMAT) &&
+				dd.Data.Length() == 1)
+			{
+				GVariant &v = dd.Data.First();
+				if (v.IsBinary() &&
+					v.Value.Binary.Length == sizeof(GFilterItem *))
+				{
+					GFilterItem **Item = (GFilterItem**)v.Value.Binary.Data;
+					if
+					(
+						*Item != NULL &&
+						Target != NULL &&
+						Target != *Item &&
+						(
+							Target->GetNode() == LNODE_OR ||
+							Target->GetNode() == LNODE_AND
+						)
+					)
+					{
+						(*Item)->Remove();
+						
+						int Idx = 0;
+						for (GFilterItem *ti = dynamic_cast<GFilterItem*>(Target->GetChild());
+							ti && ti->GetNode() != LNODE_NEW;
+							ti = dynamic_cast<GFilterItem*>(ti->GetNext()))
+						{
+							Idx++;
+						}
+						
+						Target->Insert(*Item, Idx);
+					}
+				}
+			}
+		}
+		
+		return DROPEFFECT_NONE;
 	}
 };
 
@@ -580,7 +670,9 @@ void GFilterItem::_PaintText(GItem::ItemPaintCtx &Ctx)
 			break;
 	}
 
-	if (Select())
+	bool IsTarget = IsDropTarget();
+
+	if (Select() || IsTarget)
 	{
 		GPath p;
 		GSolidBrush b(Rgb24To32(LC_FOCUS_SEL_BACK));
@@ -589,6 +681,7 @@ void GFilterItem::_PaintText(GItem::ItemPaintCtx &Ctx)
 		p.Fill(&Buf, b);
 	}
 
+	if (!IsTarget)
 	{
 		GPath p;
 		GSolidBrush b(BackCol);
@@ -836,6 +929,30 @@ void GFilterItem::OnExpand(bool b)
 		if (i)
 			i->OnExpand(b);
 	}
+}
+
+bool GFilterItem::OnBeginDrag(GMouse &m)
+{
+	Drag(GetTree(), DROPEFFECT_MOVE);
+	return true;
+}
+
+bool GFilterItem::GetFormats(List<char> &Formats)
+{
+	Formats.Add(NewStr(FILTER_DRAG_FORMAT));
+	return true;
+}
+
+bool GFilterItem::GetData(GArray<GDragData> &Data)
+{
+	GDragData &dd = Data[0];
+	
+	dd.Format = FILTER_DRAG_FORMAT;
+	GVariant &v = dd.Data[0];
+	v.Type = GV_VOID_PTR;
+	v.Value.Ptr = this;
+	
+	return true;
 }
 
 bool GFilterItem::OnKey(GKey &k)
@@ -1181,3 +1298,4 @@ void GFilterView::Empty()
 {
 	d->Tree->Empty();
 }
+

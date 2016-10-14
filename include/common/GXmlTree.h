@@ -135,6 +135,8 @@ public:
 	bool SetAttr(const char *Name, const char *Value);
 	/// Set the value of a named attribute to an int
 	bool SetAttr(const char *Name, int Value);
+	/// Set the value of a named attribute to an int64
+	bool SetAttr(const char *Name, int64 Value);
 	/// Deletes an attribute
 	bool DelAttr(const char *Name);
 

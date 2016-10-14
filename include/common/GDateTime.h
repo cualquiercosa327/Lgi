@@ -194,10 +194,16 @@ public:
 	/// \sa GDateTime::GetFormat()
 	/// \returns The number of characters written to 'Str'
 	int GetDate(char *Str, int SLen);
+	/// Gets just the date as a GString
+	/// \sa GDateTime::GetFormat()
+	GString GetDate();
 	/// Gets just the time as a string
 	/// \sa GDateTime::GetFormat()
 	/// \returns The number of characters written to 'Str'
 	int GetTime(char *Str, int SLen);
+	/// Gets just the time as a GString
+	/// \sa GDateTime::GetFormat()
+	GString GetTime();
 	
 	/// Returns the 64bit timestamp.
 	uint64 Ts();

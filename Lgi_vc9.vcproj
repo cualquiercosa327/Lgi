@@ -1762,6 +1762,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\common\GCom.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\common\GNotifications.h"
 				>
 			</File>

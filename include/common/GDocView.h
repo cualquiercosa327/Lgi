@@ -114,8 +114,8 @@ public:
 		// Output data
 		GAutoPtr<GStreamI> Stream;
 		GAutoPtr<GSurface> pDC;
-		GAutoString Filename;
-		GAutoString Error;
+		GString Filename;
+		GString Error;
 		JobStatus Status;
 
 		LoadJob(GThreadTarget *o) : GThreadJob(o)

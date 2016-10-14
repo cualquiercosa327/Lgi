@@ -99,6 +99,23 @@ bool GDragDropSource::CreateFileDrop(GDragData *OutputData, GMouse &m, List<char
 	return false;
 }
 
+static
+OSStatus
+LgiDragSendDataFunction
+(
+	PasteboardRef Pb,
+	PasteboardItemID Item,
+	CFStringRef flavorType,
+	void *context
+)
+{
+	CFURLRef Loc;
+	OSStatus e = PasteboardCopyPasteLocation(Pb, &Loc);
+	if (e) printf("%s:%i - PasteboardCopyPasteLocation failed with %i\n", _FL, (int)e);
+	
+	return 0;
+}
+
 int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 {
 	LgiAssert(SourceWnd);
@@ -173,11 +190,12 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 						CFURLRef Url = CFURLCreateWithFileSystemPath(NULL, Path, kCFURLPOSIXPathStyle, false);
 						if (Url)
 						{
-							#if 1
+							#if 0
+							// NSFilenamesPboardType
 							CFErrorRef Err;
 							CFDataRef Data = CFURLCreateBookmarkData(NULL,
 																	Url,
-																	kCFURLBookmarkCreationWithSecurityScope, // CFURLBookmarkCreationOptions,
+																	kCFURLBookmarkCreationSuitableForBookmarkFile /*| kCFURLBookmarkCreationWithSecurityScope*/, // CFURLBookmarkCreationOptions,
 																	NULL, // CFArrayRef resourcePropertiesToInclude,
 																	NULL, // CFURLRef relativeToURL,
 																	&Err);
@@ -192,11 +210,15 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 							}
 							else
 							{
+								#if 0
 								CFIndex Code = CFErrorGetCode(Err);
 								CFStringRef ErrStr = CFErrorCopyDescription(Err);
 								GString ErrStr2 = ErrStr;
 								CFRelease(ErrStr);
 								LgiTrace("%s:%i - CFURLCreateBookmarkData error: %i, %s\n", _FL, Code, ErrStr2.Get());
+								#else
+								LgiTrace("%s:%i - CFURLCreateData failed\n", _FL);
+								#endif
 							}
 
 							CFRelease(Url);
@@ -228,6 +250,7 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 			
 			if (Ptr)
 			{
+				PasteboardItemID Id = (PasteboardItemID)ItemId;
 				CFStringRef FlavorType = dd.Format.CreateStringRef();
 				if (FlavorType)
 				{
@@ -243,6 +266,25 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 					CFRelease(FlavorType);
 				}
 				else LgiTrace("%s:%i - Failed to create flavour type.\n", _FL);
+				
+				if (dd.IsFormat(LGI_StreamDropFormat))
+				{
+					// Setup a promise keeper...
+					OSStatus e = PasteboardSetPromiseKeeper(Pb, LgiDragSendDataFunction, this);
+					if (e) printf("%s:%i - PasteboardSetPromiseKeeper failed with %i\n", _FL, (int)e);
+
+					// Placeholder for file promise...
+					PromiseHFSFlavor *Prom = (PromiseHFSFlavor*)Ptr;
+					uint32 f[2] = { Prom->promisedFlavor, 0 }; // kDragPromisedFlavor
+					GString s = (char*)&f;
+					FlavorType = s.Reverse().CreateStringRef();
+					
+					e = PasteboardPutItemFlavor(Pb, Id, FlavorType, NULL, Flags);
+					if (e) printf("%s:%i - PasteboardPutItemFlavor failed with %i\n", _FL, (int)e);
+					// noPasteboardPromiseKeeperErr
+
+					CFRelease(FlavorType);
+				}
 			}
 		}
 	}
@@ -264,15 +306,17 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 	}
 	else
 	{
-		SysFont->Fore(Rgb24(0xff, 0xff, 0xff));
-		SysFont->Transparent(true);
 		GDisplayString s(SysFont, "+");
 
 		if (m.Create(s.X() + 12, s.Y() + 2, System32BitColourSpace))
 		{
 			m.Colour(Rgb32(0x30, 0, 0xff));
 			m.Rectangle();
+
+			SysFont->Fore(GColour::White);
+			SysFont->Transparent(true);
 			s.Draw(&m, 6, 0);
+
 			d->Img.Reset(new CGImg(&m));
 		}
 	}
@@ -438,7 +482,9 @@ struct DragParams
 						e = PasteboardCopyItemFlavorData(Pb, Fl.ItemId, Fl.Flavor, &Ref);
 						if (e)
 						{
-							printf("%s:%i - PasteboardCopyItemFlavorData failed with %lu.\n", _FL, e);
+							GString Flavor = Fl.Flavor;
+							printf("%s:%i - PasteboardCopyItemFlavorData(%s) failed with %lu.\n",
+								_FL, Flavor.Get(), e);
 						}
 						else
 						{
