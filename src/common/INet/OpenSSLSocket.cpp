@@ -766,23 +766,24 @@ DebugTrace("%s:%i - BIO_get_ssl=%p\n", _FL, Ssl);
 							uint64 Start = LgiCurrentTime();
 							int To = GetTimeout();
 							d->Opening = true;
+							
 							IsBlocking(false);
-							r = Library->BIO_do_connect(Bio);
-DebugTrace("%s:%i - initial BIO_do_connect=%i\n", _FL, r);
+							
+							r = Library->SSL_connect(Ssl);
+DebugTrace("%s:%i - initial SSL_connect=%i\n", _FL, r);
 							while (r != 1 && d->Opening)
 							{
-								int retry = Library->BIO_should_retry(Bio);
-								if (!retry)
+								int err = Library->SSL_get_error(Ssl, r);
+								if (err != SSL_ERROR_WANT_CONNECT)
 								{
-DebugTrace("%s:%i - BIO_should_retry=%i\n", _FL, retry);
-									break;
+DebugTrace("%s:%i - SSL_get_error=%i\n", _FL, err);
 								}
 
 								LgiSleep(50);
-								r = Library->BIO_do_connect(Bio);
-DebugTrace("%s:%i - BIO_do_connect=%i (%i of %i ms)\n", _FL, r, (int)(LgiCurrentTime() - Start), (int)To);
+								r = Library->SSL_connect(Ssl);
+DebugTrace("%s:%i - SSL_connect=%i (%i of %i ms)\n", _FL, r, (int)(LgiCurrentTime() - Start), (int)To);
 
-								if (!HasntTimedOut())
+								if (r == -1 && !HasntTimedOut())
 								{
 DebugTrace("%s:%i - SSL connect timeout, to=%i\n", _FL, To);
 									OnError(0, "Connection timeout.");
@@ -804,8 +805,8 @@ DebugTrace("%s:%i - open loop finished, r=%i, Opening=%i\n", _FL, r, d->Opening)
 							}
 							else
 							{
-								GString Err = SslGetErrorAsString(Library);
-								Error(_FL, Err ? Err.Strip().Get() : "BIO_do_connect failed.");
+								GString Err = SslGetErrorAsString(Library).Strip();
+								Error(_FL, Err.Length() > 0 ? Err.Get() : "BIO_do_connect failed.");
 							}
 						}
 						else Error(_FL, "BIO_get_ssl failed.");

@@ -256,8 +256,22 @@ public:
 	/// Assignment operators
 	GString &operator =(const char *s)
 	{
-		Empty();
-		Set(s);
+		if (Str == NULL ||
+			s < Str->Str ||
+			s > Str->Str + Str->Len)
+		{
+			Empty();
+			Set(s);
+		}
+		else if (s != Str->Str)
+		{
+			// Special case for setting it to part of itself
+			// If you try and set a string to the start, it's a NOP
+			int Off = s - Str->Str;
+			memmove(Str->Str, s, Str->Len - Off + 1);
+			Str->Len -= Off;
+		}
+		
 		return *this;
 	}
 
