@@ -120,6 +120,7 @@
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -1003,6 +1004,10 @@
 				Name="Network"
 				>
 				<File
+					RelativePath=".\src\common\INet\GUri.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\common\INet\INet.cpp"
 					>
 				</File>
@@ -1016,6 +1021,10 @@
 				</File>
 				<File
 					RelativePath=".\include\common\INetTools.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\common\INet\MDStringToDigest.cpp"
 					>
 				</File>
 				<File
@@ -1040,6 +1049,10 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
+			<File
+				RelativePath=".\include\common\GMessage.h"
+				>
+			</File>
 			<File
 				RelativePath=".\include\common\LgiClasses.h"
 				>
