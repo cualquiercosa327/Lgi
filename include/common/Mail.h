@@ -51,6 +51,7 @@ extern char *DecodeImapString(char *s);
 
 extern const char *sTextPlain;
 extern const char *sTextHtml;
+extern const char *sTextXml;
 extern const char *sApplicationInternetExplorer;
 extern const char sMultipartMixed[];
 extern const char sMultipartEncrypted[];

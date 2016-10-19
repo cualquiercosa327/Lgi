@@ -128,7 +128,7 @@ class GFileSelectPrivate
 		else
 			Info.Flags |= OFN_HIDEREADONLY;
 
-		Info.Flags |= OFN_EXPLORER;
+		Info.Flags |= OFN_EXPLORER | OFN_ENABLESIZING;
 		Files.DeleteArrays();
 	}
 
@@ -361,6 +361,28 @@ int CALLBACK GFileSelectBrowseCallback(HWND hwnd, UINT uMsg, LPARAM lParam, LPAR
 
 bool GFileSelect::OpenFolder()
 {
+	#if 1
+
+	bool Status = FALSE;
+
+	Name("(folder selection)");
+
+	OPENFILENAMEW	Info;
+	d->BeforeDlg(Info);
+	Info.Flags &= ~OFN_FILEMUSTEXIST;
+	Info.Flags &= ~OFN_ALLOWMULTISELECT;
+	Info.Flags |= OFN_NOVALIDATE;
+	Info.Flags |= OFN_PATHMUSTEXIST;
+	Status = GetSaveFileNameW(&Info);
+	d->AfterDlg(Info, Status);
+	
+	LgiTrimDir(Name());
+
+	return Status && Length() > 0;
+	
+	#else
+	// This is the ACTUAL folder selection dialog, but it sucks.
+	
 	LPMALLOC pMalloc; // Gets the Shell's default allocator
 	bool Status = false;
 
@@ -397,6 +419,7 @@ bool GFileSelect::OpenFolder()
 		// Release the shell's allocator
 		pMalloc->Release();
 	}
+	#endif
 
 	return Status;
 }
