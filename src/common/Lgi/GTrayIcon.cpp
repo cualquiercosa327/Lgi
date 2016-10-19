@@ -172,10 +172,11 @@ bool GTrayIcon::Load(const TCHAR *Str)
 
 	if (Str)	
 	{
-		GAutoString File(LgiFindFile(Str));
+		::GString sStr = Str;
+		GAutoString File(LgiFindFile(sStr));
 		// d->Icon.Add(new GAutoString(NewStr(File ? File : Str)));
 		GError *err = NULL;
-		Gtk::GdkPixbuf *pb =  Gtk::gdk_pixbuf_new_from_file(File ? File : Str, &err);
+		Gtk::GdkPixbuf *pb =  Gtk::gdk_pixbuf_new_from_file(File ? File : sStr.Get(), &err);
 		if (!pb)
 			return false;
 		

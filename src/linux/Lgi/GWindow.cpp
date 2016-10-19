@@ -133,7 +133,9 @@ bool GWindow::SetIcon(const char *FileName)
 		{
 			GError *error = NULL;
 			
+			#if defined(LINUX)
 			LgiApp->SetApplicationIcon(FileName);
+			#endif
 			
 			if (gtk_window_set_icon_from_file(Wnd, FileName, &error))
 				return true;
@@ -1358,3 +1360,6 @@ void GWindow::Quit(bool DontDelete)
 }
 
 
+void GWindow::SetAlwaysOnTop(bool b)
+{
+}

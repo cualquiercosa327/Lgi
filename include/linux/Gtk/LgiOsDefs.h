@@ -59,7 +59,7 @@ public:
 	int Args;
 	char **Arg;
 
-	OsAppArguments(int args, char **arg);
+	OsAppArguments(int args, const char **arg);
 	~OsAppArguments();
 
 	void Set(char *CmdLine);
@@ -162,6 +162,7 @@ LgiFunc void LgiSleep(uint32 i);
 
 /// Drag and drop format for a file
 #define LGI_FileDropFormat			"text/uri-list"
+#define LGI_StreamDropFormat		"application/x-file-stream" // FIXME
 #define LGI_IllegalFileNameChars	"\t\r\n/\\:*?\"<>|"
 #ifdef WINDOWS
 #define LGI_WideCharset				"ucs-2"

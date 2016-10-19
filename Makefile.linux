@@ -1117,8 +1117,7 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/GString.h \
 	./include/common/GHashTable.h
 
-./include/common/GDragAndDrop.h : ./include/common/GVariant.h \
-	./include/common/GCom.h
+./include/common/GDragAndDrop.h : ./include/common/GVariant.h
 
 ./include/common/GTree.h : ./include/common/GItemContainer.h
 
@@ -1663,8 +1662,7 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	/usr/include/pango-1.0/pango/pango-script.h \
 	/usr/include/pango-1.0/pango/pango-bidi-type.h
 
-./include/common/GDragAndDrop.h : ./include/common/GVariant.h \
-	./include/common/GCom.h
+./include/common/GDragAndDrop.h : ./include/common/GVariant.h
 
 ../../../../../usr/include/glib-2.0/glib/gvariant.h : /usr/include/glib-2.0/glib/gvarianttype.h \
 	/usr/include/glib-2.0/glib/gstring.h \
@@ -2905,9 +2903,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/GStringClass.h
 
 ./include/common/GMutex.h : 
-
-./include/common/GCom.h : ./include/common/GContainers.h \
-	./include/common/GVariant.h
 
 ../../../../../usr/include/atk-1.0/atk/atkhyperlinkimpl.h : /usr/include/atk-1.0/atk/atkobject.h \
 	/usr/include/atk-1.0/atk/atkhyperlink.h

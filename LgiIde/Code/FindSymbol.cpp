@@ -60,7 +60,23 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 		bool Parse()
 		{
 			Defs.Length(0);
-			bool Status = BuildDefnList(Path, Source, Defs, DefnNone);
+			
+			bool Status = false;
+			GString Src = Source.Get();
+			char *Ext = LgiGetExtension(Src);
+			if
+			(
+				Ext
+				&&
+				(
+					!_stricmp(Ext, "c")
+					||
+					!_stricmp(Ext, "cpp")
+					||
+					!_stricmp(Ext, "h")
+				)
+			)
+				Status = BuildDefnList(Path, Source, Defs, DefnNone);
 			return Status;
 		}
 	};
@@ -102,7 +118,8 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 		
 		// Parse for headers...
 		GTextFile Tf;
-		if (!Tf.Open(Path, O_READ))
+		if (!Tf.Open(Path, O_READ)  ||
+			Tf.GetSize() < 4)
 			return false;
 
 		GAutoString Source = Tf.Read();

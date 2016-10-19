@@ -496,18 +496,25 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 
 	// Check default controls
 	p = 0;
-	if (k.c16 == VK_RETURN && _Default)
+	if (k.c16 == VK_RETURN)
 	{
-		p = _Default;
+		if (!_Default)
+			p = _Default = FindControl(IDOK);
+		else
+			p = _Default;
 		#if DEBUG_HANDLE_VIEW_KEY
 		LgiTrace("    Using _Default ctrl (%s).\n", p->GetClass());
 		#endif
 	}
-	else if (k.c16 == VK_ESCAPE && (p = FindControl(IDCANCEL)))
+	else if (k.c16 == VK_ESCAPE)
 	{
-		#if DEBUG_HANDLE_VIEW_KEY
-		LgiTrace("    Using IDCANCEL ctrl (%s).\n", p->GetClass());
-		#endif
+		p = FindControl(IDCANCEL);
+		if (p)
+		{
+			#if DEBUG_HANDLE_VIEW_KEY
+			LgiTrace("    Using IDCANCEL ctrl (%s).\n", p->GetClass());
+			#endif
+		}
 	}
 	
 	if (p && p->OnKey(k))

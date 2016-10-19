@@ -1301,6 +1301,7 @@ GZoomView::ViewportInfo GZoomView::GetViewport()
 	v.Zoom = d->GetZoom();
 	v.Sy = VScroll ? (int)VScroll->Value() : 0;
 	v.Sx = HScroll ? (int)HScroll->Value() : 0;
+	v.TilePx = d->TileSize;
 	
 	return v;
 }

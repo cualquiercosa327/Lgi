@@ -402,7 +402,7 @@ void GRectF::Normalize()
 
 void GRectF::Intersect(GRectF &p)
 {
-	if (Set)
+	if (Defined)
 	{
 		x1 = max(x1, p.x1);
 		y1 = max(y1, p.y1);
@@ -413,7 +413,7 @@ void GRectF::Intersect(GRectF &p)
 
 void GRectF::Union(GPointF &p)
 {
-	if (Set)
+	if (Defined)
 	{
 		x1 = min(x1, p.x);
 		y1 = min(y1, p.y);
@@ -424,13 +424,13 @@ void GRectF::Union(GPointF &p)
 	{
 		x1 = x2 = p.x;
 		y1 = y2 = p.y;
-		Set = true;
+		Defined = true;
 	}
 }
 
 void GRectF::Union(GRectF &p)
 {
-	if (Set)
+	if (Defined)
 	{
 		p.Normalize();
 		x1 = min(x1, p.x1);
@@ -482,7 +482,7 @@ GRectF &GRectF::operator =(GRect &f)
 	y1 = f.y1;
 	x2 = f.x2 + 1;
 	y2 = f.y2 + 1;
-	Set = true;
+	Defined = true;
 	return *this;
 }
 
@@ -492,7 +492,7 @@ GRectF &GRectF::operator =(GRectF &f)
 	y1 = f.y1;
 	x2 = f.x2;
 	y2 = f.y2;
-	Set = true;
+	Defined = true;
 	return *this;
 }
 
@@ -500,7 +500,7 @@ GRectF &GRectF::operator =(GPointF &p)
 {
 	x1 = x2 = p.x;
 	y1 = y2 = p.y;
-	Set = true;
+	Defined = true;
 	return *this;
 }
 

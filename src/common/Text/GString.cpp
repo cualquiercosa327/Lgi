@@ -107,7 +107,7 @@ char *strnchr(const char *s, char c, NativeInt Len)
 	return 0;
 }
 
-char *strnstr(char *a, const char *b, NativeInt n)
+char *strnstr(const char *a, const char *b, size_t n)
 {
 	if (a && b)
 	{
@@ -123,7 +123,7 @@ char *strnstr(char *a, const char *b, NativeInt n)
 		{
 			int i;
 			for (i=0; i<SLen && a[i] == b[i]; i++);
-			if (i == SLen) return a;
+			if (i == SLen) return (char*)a;
 
 			n--;
 			DLen--;

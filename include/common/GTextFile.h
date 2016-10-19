@@ -51,8 +51,7 @@ public:
 			case Utf16LE: return "utf-16";
 			case Utf32BE: return "utf-32be";
 			case Utf32LE: return "utf-32";
-			default:
-				break;
+			default: break;
 		}
 		return NULL;
 	}

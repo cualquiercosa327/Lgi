@@ -3,7 +3,53 @@
 
 enum LgiMessages
 {
-	#if defined(WINNATIVE)
+	#if defined(__GTK_H__)
+
+		/// Base point for system messages.
+		M_SYSTEM						= 0x03f0,
+		/// Message that indicates the user is trying to close a top level window.
+		M_CLOSE,
+		/// Implemented to handle invalid requests in the GUI thread.
+		M_X11_INVALIDATE,
+		/// Implemented to handle paint requests in the GUI thread.
+		M_X11_REPARENT,
+
+		/// Minimum value for application defined message ID's
+		M_USER							= 0x0400,
+
+		/// \brief Mouse enter event
+		///
+		/// a = bool Inside; // is the mouse inside the client area?\n
+		/// b = MAKELONG(x, y); // mouse location
+		M_MOUSEENTER,
+
+		/// \brief Mouse exit event
+		///
+		/// a = bool Inside; // is the mouse inside the client area?\n
+		/// b = MAKELONG(x, y); // mouse location
+		M_MOUSEEXIT,
+
+		// return (bool)
+		M_WANT_DIALOG_PROC,
+
+		M_MENU,
+		M_COMMAND,
+		M_DRAG_DROP,
+
+		M_TRAY_NOTIFY,
+		M_CUT,
+		M_COPY,
+		M_PASTE,
+		M_GTHREADWORK_COMPELTE,
+		
+		/// Implemented to handle timer events in the GUI thread.
+		M_PULSE,
+		M_SET_VISIBLE,
+		
+		/// Sent from a worker thread when calling GText::Name
+		M_TEXT_UPDATE_NAME,
+	
+	#elif defined(WINNATIVE)
 
 		// [WM_APP:WM_APP+200] is reserved for LGI itself.
 		// [WM_APP+200:0xBFFF] is reserved for LGI applications.
@@ -114,52 +160,6 @@ enum LgiMessages
 
 		/// Minimum value for application defined message ID's
 		M_USER							= (M_SYSTEM+1000),
-	
-	#elif defined(LINUX)
-
-		/// Base point for system messages.
-		M_SYSTEM						= 0x03f0,
-		/// Message that indicates the user is trying to close a top level window.
-		M_CLOSE,
-		/// Implemented to handle invalid requests in the GUI thread.
-		M_X11_INVALIDATE,
-		/// Implemented to handle paint requests in the GUI thread.
-		M_X11_REPARENT,
-
-		/// Minimum value for application defined message ID's
-		M_USER							= 0x0400,
-
-		/// \brief Mouse enter event
-		///
-		/// a = bool Inside; // is the mouse inside the client area?\n
-		/// b = MAKELONG(x, y); // mouse location
-		M_MOUSEENTER,
-
-		/// \brief Mouse exit event
-		///
-		/// a = bool Inside; // is the mouse inside the client area?\n
-		/// b = MAKELONG(x, y); // mouse location
-		M_MOUSEEXIT,
-
-		// return (bool)
-		M_WANT_DIALOG_PROC,
-
-		M_MENU,
-		M_COMMAND,
-		M_DRAG_DROP,
-
-		M_TRAY_NOTIFY,
-		M_CUT,
-		M_COPY,
-		M_PASTE,
-		M_GTHREADWORK_COMPELTE,
-		
-		/// Implemented to handle timer events in the GUI thread.
-		M_PULSE,
-		M_SET_VISIBLE,
-		
-		/// Sent from a worker thread when calling GText::Name
-		M_TEXT_UPDATE_NAME,
 	
 	#else
 	

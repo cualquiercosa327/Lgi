@@ -29,6 +29,32 @@ def process(s, vars):
 
 	return out + s[i:]
 
+def process_folder(out_folder, in_folder, vars):
+
+	if not os.path.exists(out_folder):
+		os.mkdir(out_folder)
+
+	files = os.listdir(in_folder)
+	for idx, file in enumerate(files):
+		if file.find(".py") > 0:
+			del files[idx]
+
+	for f in files:
+		in_path = os.path.join(in_folder, f)
+		if os.path.isdir(in_path):
+			child_out = os.path.join(out_folder, process(f, vars))
+			process_folder(child_out, in_path, vars)
+		else:
+			# print "in_path:", in_path
+			out_path = os.path.abspath(os.path.join(out_folder, process(f, vars)))
+			# print "out_path:", out_path
+
+			in_data = open(in_path, "r").read()
+			out_data = process(in_data, vars)
+			open(out_path, "w").write(out_data)
+			print "Wrote:", out_path
+	
+
 if len(sys.argv) < 2:
 	print "Usage:", os.path.basename(sys.argv[0]), " <template_path> [<project_name>]"
 	sys.exit(-1)
@@ -38,7 +64,7 @@ if not os.path.exists(template_path):
 	print "Error: The path '"+template_path+"' doesn't exist."
 	sys.exit(-1)
 
-try:
+if 1:
 	dest_path = os.path.abspath(os.path.join(sys.argv[0], ".."))
 	print "dest_path:", dest_path
 	print "template_path:", template_path
@@ -48,9 +74,10 @@ try:
 
 	# find the Lgi folder based on the template path
 	parts = template_path.split(os.sep)
-	for i in range(len(parts)-1):
+	for i in range(len(parts)):
 		r = (".." + os.sep) * i
-		t = os.path.join(template_path, r, "Lgi", "trunk", "lgi_vc9.sln")
+		t = os.path.abspath(os.path.join(template_path, r, "Lgi", "trunk", "lgi_vc9.sln"))
+		# print i, t
 		if os.path.exists(t):
 			lgi = os.path.abspath(os.path.join(template_path, r, "Lgi", "trunk"))
 			rel = os.path.relpath(lgi, dest_path)
@@ -73,23 +100,9 @@ try:
 		proj_name = raw_input("Project name: ")
 	vars["name"] = proj_name
 
-	files = os.listdir(template_path)
-	for idx, file in enumerate(files):
-		if file.find(".py") > 0:
-			del files[idx]
+	process_folder(dest_path, template_path, vars)
 
-	print "Input files:"
-	for f in files:
-		in_path = os.path.join(template_path, f)
-		# print "in_path:", in_path
-		out_path = os.path.abspath(os.path.join(dest_path, process(f, vars)))
-		# print "out_path:", out_path
 
-		in_data = open(in_path, "r").read()
-		out_data = process(in_data, vars)
-		open(out_path, "w").write(out_data)
-		print "Wrote:", out_path
-
-except:
-	print "Unexpected error:", sys.exc_info()[0]
-	# raw_input("Wait")
+#except:
+#	print "Unexpected error:", sys.exc_info()[0]
+# raw_input("Wait")

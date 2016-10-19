@@ -25,6 +25,7 @@
 
 const char *sTextPlain = "text/plain";
 const char *sTextHtml = "text/html";
+const char *sTextXml = "text/xml";
 const char *sApplicationInternetExplorer = "application/internet-explorer";
 const char sMultipartMixed[] = "multipart/mixed";
 const char sMultipartEncrypted[] = "multipart/encrypted";

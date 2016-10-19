@@ -44,7 +44,7 @@ struct OsAppArgumentsPriv
 	}
 };
 
-OsAppArguments::OsAppArguments(int args, char **arg)
+OsAppArguments::OsAppArguments(int args, const char **arg)
 {
 	d = new OsAppArgumentsPriv;
 
@@ -201,8 +201,10 @@ public:
 	GMouse LastMove;
 	GAutoString Name;
 
+	#if defined(LINUX)
 	/// Desktop info
 	GAutoPtr<GApp::DesktopInfo> DesktopInfo;
+	#endif
 
 	/// Any fonts needed for styling the elements
 	GAutoPtr<GFontCache> FontCache;
@@ -434,13 +436,13 @@ void GApp::SetAppArgs(OsAppArguments &AppArgs)
 	}
 }
 
-#ifndef WIN32
 bool GApp::InThread()
 {
 	OsThreadId Me = LgiGetCurrentThread();
 	return GetGuiThread() == Me;
 }
 
+#ifndef WIN32
 void GApp::OnEvents()
 {
 }
@@ -922,6 +924,7 @@ GFontCache *GApp::GetFontCache()
 	return d->FontCache;
 }
 
+#ifdef LINUX
 GApp::DesktopInfo::DesktopInfo(const char *file)
 {
 	File = file;
@@ -1111,6 +1114,7 @@ bool GApp::SetApplicationIcon(const char *FileName)
 	di->Set("Icon", FileName);
 	return di->Update();
 }
+#endif
 
 using namespace Gtk;
 
@@ -1300,6 +1304,7 @@ bool GMessage::Send(GtkWidget *Wnd)
 	return Status;
 }
 
+#ifdef LINUX
 int GMessage::Msg()
 {
 	if (Event && Event->type == Gtk::GDK_CLIENT_EVENT)
@@ -1320,4 +1325,5 @@ GMessage::Param GMessage::B()
 		return Event->client.data.l[2];
 	return 0;
 }
+#endif
 

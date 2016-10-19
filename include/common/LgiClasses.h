@@ -285,6 +285,9 @@ public:
 	/// Gets the font cache
 	class GFontCache *GetFontCache();
 
+	/// \returns TRUE if the current thread is the GUI thread...
+	bool InThread();
+
 	// OS Specific
 	#if defined(LGI_SDL)
 
@@ -316,7 +319,6 @@ public:
 	#elif defined(LINUX)
 	
 		class GLibrary *GetWindowManagerLib();
-		bool InThread();
 
 		class DesktopInfo
 		{

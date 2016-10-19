@@ -1274,7 +1274,8 @@ char *LgiSeekUtf8(const char *Ptr, int D, char *Start)
 		{
 			for (int i=0; i<D; i++)
 			{
-				LgiNextUtf8((char*&)p);
+				if (!LgiNextUtf8((char*&)p))
+					break;
 			}
 		}
 		else if (Start)

@@ -678,18 +678,25 @@ void LgiStackTrace(const char *Msg, ...)
 }
 #endif
 
+char *LgiGetLeaf(char *Path)
+{
+	if (!Path)
+		return NULL;
+	char *l = strrchr(Path, DIR_CHAR);
+	return l ? l + 1 : Path;
+}
+
 bool LgiTrimDir(char *Path)
 {
-	if (Path)
-	{
-		char *p = strrchr(Path, DIR_CHAR);
-		if (p)
-		{
-			*p = 0;
-			return true;
-		}
-	}
-	return false;
+	if (!Path)
+		return false;
+
+	char *p = strrchr(Path, DIR_CHAR);
+	if (!p)
+		return false;
+
+	*p = 0;
+	return true;
 }
 
 GAutoString LgiMakeRelativePath(const char *Base, const char *Path)

@@ -869,7 +869,7 @@ bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentTree)
 	return r == 0;
 }
 
-bool GFileSystem::RemoveFolder(char *PathName, bool Recurse)
+bool GFileSystem::RemoveFolder(const char *PathName, bool Recurse)
 {
 	if (Recurse)
 	{
@@ -908,7 +908,7 @@ bool GFileSystem::GetCurrentFolder(char *PathName, int Length)
 	return getcwd(PathName, Length) != 0;
 }
 
-bool GFileSystem::Move(char *OldName, char *NewName)
+bool GFileSystem::Move(const char *OldName, const char *NewName)
 {
 	if (rename(OldName, NewName))
 	{
