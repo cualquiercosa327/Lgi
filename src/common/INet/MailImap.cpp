@@ -3138,7 +3138,7 @@ bool MailIMap::SetFlagsByUid(GArray<char*> &Uids, const char *Flags)
 {
 	bool Status = false;
 
-	if (Flags && Lock(_FL))
+	if (Lock(_FL))
 	{
 		int Cmd = d->NextCmd++;
 
@@ -3153,7 +3153,7 @@ bool MailIMap::SetFlagsByUid(GArray<char*> &Uids, const char *Flags)
 		}
 		else
 			p.Print("1:*");
-		p.Print(" FLAGS (%s)\r\n", Flags);
+		p.Print(" FLAGS (%s)\r\n", Flags?Flags:"");
 
 		char *Buffer = p.NewStr();
 		if (Buffer)

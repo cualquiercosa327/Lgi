@@ -68,16 +68,19 @@ IFtpEntry::IFtpEntry()
 {
 	Attributes = 0;
 	Size = 0;
+	UserData = NULL;
 }
 
 IFtpEntry::IFtpEntry(IFtpEntry *Entry)
 {
+	UserData = NULL;
 	if (Entry)
 		*this = *Entry;
 }
 
 IFtpEntry::IFtpEntry(char *Entry, const char *Cs)
 {
+	UserData = NULL;
 	Attributes = 0;
 	Size = 0;
 	if (Entry)
@@ -217,6 +220,7 @@ IFtpEntry &IFtpEntry::operator =(const IFtpEntry &e)
 	Attributes = e.Attributes;
 	Size = e.Size;
 	Date = e.Date;
+	UserData = e.UserData;
 
 	// Make copies for thread safety
 	Name = e.Name.Get();

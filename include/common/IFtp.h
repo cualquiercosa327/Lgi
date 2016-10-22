@@ -61,6 +61,7 @@ public:
 	GString User;
 	GString Group;
 	GDateTime Date;
+	void *UserData;
 
 	IFtpEntry();
 	IFtpEntry(char *Entry, const char *Cs);
