@@ -189,7 +189,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\%name%.manifest"
+					RelativePath="%lgi.folder%\src\win32\General\Lgi.manifest"
 					>
 				</File>
 			</Filter>
