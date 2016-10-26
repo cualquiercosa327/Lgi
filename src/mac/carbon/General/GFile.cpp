@@ -1472,7 +1472,8 @@ int GFile::Read(void *Buffer, int Size, int Flags)
 		{
 			int Err = errno;
 			int64 Pos = GetPos();
-			printf("Read error: %i, "LGI_PrintfInt64"\n", Err, Pos);
+			printf("%s:%i - GFile::Read(%p,%i) err=%i, pos="LGI_PrintfInt64"\n",
+				_FL, Buffer, Size, Err, Pos);
 		}
 		#endif
 	}

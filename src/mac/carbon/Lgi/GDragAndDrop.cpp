@@ -113,7 +113,7 @@ LgiDragSendDataFunction
 	OSStatus e = PasteboardCopyPasteLocation(Pb, &Loc);
 	if (e) printf("%s:%i - PasteboardCopyPasteLocation failed with %i\n", _FL, (int)e);
 	
-	return 0;
+	return noErr;
 }
 
 int GDragDropSource::Drag(GView *SourceWnd, int Effect)
@@ -165,12 +165,16 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 	// Get the data for each format...
 	GetData(Data);
 	
+	// Setup a promise keeper...
+	OSStatus e = PasteboardSetPromiseKeeper(Pb, LgiDragSendDataFunction, this);
+	if (e) printf("%s:%i - PasteboardSetPromiseKeeper failed with %i\n", _FL, (int)e);
+	
 	// Now push the data into the pasteboard
-	int ItemId = 1;
 	for (unsigned i=0; i<Data.Length(); i++)
 	{
 		GDragData &dd = Data[i];
 		PasteboardFlavorFlags Flags = kPasteboardFlavorNoFlags;
+		PasteboardItemID Id = (PasteboardItemID) (i + 1);
 
 		for (int i=0; i<dd.Data.Length(); i++)
 		{
@@ -204,8 +208,8 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 							#endif
 							if (Data)
 							{
-								printf("PasteboardPutItemFlavor(%i, %s)\n", ItemId, dd.Format.Get());
-								status = PasteboardPutItemFlavor(Pb, (PasteboardItemID)(ItemId++), kUTTypeFileURL, Data, Flags);
+								printf("PasteboardPutItemFlavor(%i, %s)\n", (int)Id, dd.Format.Get());
+								status = PasteboardPutItemFlavor(Pb, Id, kUTTypeFileURL, Data, Flags);
 								if (status) printf("%s:%i - PasteboardPutItemFlavor=%li\n", _FL, status);
 							}
 							else
@@ -231,6 +235,41 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 				}
 				else LgiTrace("%s:%i - No path for file drag.\n", _FL);
 			}
+			else if (dd.IsFormat(LGI_StreamDropFormat))
+			{
+				// Placeholder for file promise...
+				// https://web.archive.org/web/20080725134839/http://developer.apple.com/technotes/tn/tn1085.html
+				
+				// kPasteboardTypeFilePromiseContent is the cocoa equiv
+				
+				CFStringRef Fmt;
+				PromiseHFSFlavor flavor;
+				flavor.fileType       = '****';
+				flavor.fileCreator    = '****';
+				flavor.fdFlags        = 0;
+				flavor.promisedFlavor = kDragPromisedFlavor;
+				
+				GString sFmt, sId;
+				CFDataRef data = CFDataCreate(0, (const UInt8*)&flavor, sizeof(flavor));
+				sFmt = Fmt = UTCreateStringForOSType(kDragFlavorTypePromiseHFS);
+				CFStringRef PrefId = UTTypeCreatePreferredIdentifierForTag(	kUTTagClassNSPboardType,
+																			Fmt,
+																			NULL);
+				sId = PrefId;
+				OSStatus e = PasteboardPutItemFlavor(Pb, Id, PrefId, data, flavorNotSaved);
+				if (e) LgiTrace("%s:%i - PasteboardPutItemFlavor failed with %i\n", _FL, (int)e);
+				else printf("PasteboardPutItemFlavor(%i, %s/%s)\n", (int)Id, sFmt.Get(), sId.Get());
+				
+				sFmt = Fmt = UTCreateStringForOSType(flavor.promisedFlavor);
+				#if 0
+				sId = PrefId = UTTypeCreatePreferredIdentifierForTag(	kUTTagClassNSPboardType,
+																			Fmt,
+																			NULL);
+				#endif
+				e = PasteboardPutItemFlavor(Pb, Id, Fmt, 0, flavorNotSaved);
+				if (e) LgiTrace("%s:%i - PasteboardPutItemFlavor failed with %i\n", _FL, (int)e);
+				else printf("PasteboardPutItemFlavor(%i, %s)\n", (int)Id, sFmt.Get());
+			}
 			else if (v->Type == GV_STRING)
 			{
 				Ptr = v->Str();
@@ -242,6 +281,11 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 				Ptr = v->Value.Binary.Data;
 				Size = v->Value.Binary.Length;
 			}
+			else if (v->Type == GV_VOID_PTR)
+			{
+				Ptr = &v->Value.Ptr;
+				Size = sizeof(v->Value.Ptr);
+			}
 			else
 			{
 				printf("%s:%i - Unsupported drag flavour %i\n", _FL, v->Type);
@@ -250,15 +294,14 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 			
 			if (Ptr)
 			{
-				PasteboardItemID Id = (PasteboardItemID)ItemId;
 				CFStringRef FlavorType = dd.Format.CreateStringRef();
 				if (FlavorType)
 				{
 					CFDataRef Data = CFDataCreate(NULL, (const UInt8 *)Ptr, Size);
 					if (Data)
 					{
-						printf("PasteboardPutItemFlavor(%i, %s)\n", ItemId, dd.Format.Get());
-						status = PasteboardPutItemFlavor(Pb, (PasteboardItemID)(ItemId++), FlavorType, Data, Flags);
+						printf("PasteboardPutItemFlavor(%i, %s)\n", (int)Id, dd.Format.Get());
+						status = PasteboardPutItemFlavor(Pb, Id, FlavorType, Data, Flags);
 						if (status) printf("%s:%i - PasteboardPutItemFlavor=%li\n", _FL, status);
 						CFRelease(Data);
 					}
@@ -266,25 +309,6 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 					CFRelease(FlavorType);
 				}
 				else LgiTrace("%s:%i - Failed to create flavour type.\n", _FL);
-				
-				if (dd.IsFormat(LGI_StreamDropFormat))
-				{
-					// Setup a promise keeper...
-					OSStatus e = PasteboardSetPromiseKeeper(Pb, LgiDragSendDataFunction, this);
-					if (e) printf("%s:%i - PasteboardSetPromiseKeeper failed with %i\n", _FL, (int)e);
-
-					// Placeholder for file promise...
-					PromiseHFSFlavor *Prom = (PromiseHFSFlavor*)Ptr;
-					uint32 f[2] = { Prom->promisedFlavor, 0 }; // kDragPromisedFlavor
-					GString s = (char*)&f;
-					FlavorType = s.Reverse().CreateStringRef();
-					
-					e = PasteboardPutItemFlavor(Pb, Id, FlavorType, NULL, Flags);
-					if (e) printf("%s:%i - PasteboardPutItemFlavor failed with %i\n", _FL, (int)e);
-					// noPasteboardPromiseKeeperErr
-
-					CFRelease(FlavorType);
-				}
 			}
 		}
 	}

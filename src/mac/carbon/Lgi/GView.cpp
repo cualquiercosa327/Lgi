@@ -323,7 +323,6 @@ pascal OSStatus LgiViewDndHandler(EventHandlerCallRef inHandlerCallRef, EventRef
 		}
 		case kEventControlDragWithin:
 		{
-
 			result = Target->OnDragWithin(v, Drag);
 			break;
 		}
