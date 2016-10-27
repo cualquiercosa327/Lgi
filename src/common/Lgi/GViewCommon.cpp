@@ -1241,12 +1241,12 @@ bool GView::DropTarget(bool t)
 		
 		if (!d->DndHandler)
 		{
-			OSStatus e = ::InstallControlEventHandler(_View,
-													NewEventHandlerUPP(LgiViewDndHandler),
-													GetEventTypeCount(DragEvents),
-													DragEvents,
-													(void*)this,
-													&d->DndHandler);
+			OSStatus e = ::InstallControlEventHandler(	_View,
+														NewEventHandlerUPP(LgiViewDndHandler),
+														GetEventTypeCount(DragEvents),
+														DragEvents,
+														(void*)this,
+														&d->DndHandler);
 			if (e) LgiTrace("%s:%i - InstallEventHandler failed (%i)\n", _FL, e);
 		}
 		SetControlDragTrackingEnabled(_View, true);
