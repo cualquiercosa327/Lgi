@@ -816,38 +816,47 @@ bool GSocket::Listen(int Port)
 
 bool GSocket::Accept(GSocketI *c)
 {
-	if (c)
+	if (!c)
 	{
-		OsSocket NewSocket = INVALID_SOCKET;
-		sockaddr Address;
-		
-		#ifdef WIN32
-		int Length = sizeof(Address);
-		NewSocket = accept(d->Socket, &Address, &Length);
-		#else
-		int Loop = 0;
-		socklen_t Length = sizeof(Address);
-		while (ValidSocket(d->Socket))
-		{
-			if (IsReadable(1000))
-			{
-				NewSocket = accept(d->Socket, &Address, &Length);
-				break;
-			}
-			else
-			{
-				printf("%s:%i - Accept wait %i\n", _FL, Loop++);
-			}
-		}
-		#endif
-		
-		if (ValidSocket(NewSocket))
-			return ValidSocket(c->Handle(NewSocket));
-		
+		LgiAssert(0);
 		return false;
 	}
+	
+	OsSocket NewSocket = INVALID_SOCKET;
+	sockaddr Address;
+	
+	/*
+	int Length = sizeof(Address);
+	NewSocket = accept(d->Socket, &Address, &Length);
+	*/
+	
+	int Loop = 0;
+	socklen_t Length = sizeof(Address);
+	uint64 Start = LgiCurrentTime();
+	while (ValidSocket(d->Socket))
+	{
+		if (IsReadable(100))
+		{
+			NewSocket = accept(d->Socket, &Address, &Length);
+			break;
+		}
+		else if (d->Timeout > 0)
+		{
+			uint64 Now = LgiCurrentTime();
+			if (Now - Start >= d->Timeout)
+			{
+				GString s;
+				s.Printf("Accept timeout after %.1f seconds.", ((double)(Now-Start)) / 1000.0);
+				OnInformation(s);
+				return false;
+			}
+		}
+	}
+	
+	if (!ValidSocket(NewSocket))
+		return false;
 
-	return false;
+	return ValidSocket(c->Handle(NewSocket));
 }
 
 int GSocket::Close()

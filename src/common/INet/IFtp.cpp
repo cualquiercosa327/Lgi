@@ -407,7 +407,8 @@ FtpOpenStatus IFtp::Open(GSocketI *S, char *RemoteHost, int Port, char *User, ch
 	try
 	{
 		Socket.Reset(S);
-		S->SetTimeout(15 * 1000);
+		if (S->GetTimeout() < 0)
+			S->SetTimeout(15 * 1000);
 		Authenticated = false;	
 
 		if (!Port)
@@ -903,21 +904,28 @@ bool IFtp::TransferFile(const char *Local, const char *Remote, int64 Size, bool 
 			Local &&
 			Remote)
 		{
-			if (d->F->Open(Local, (Upload)?O_READ:O_WRITE))
+			if (SetupData(Binary))
 			{
-				if (SetupData(Binary))
+				// Data command
+				char *f = ToFtpCs(Remote);
+				sprintf_s(d->OutBuf, sizeof(d->OutBuf), "%s %s\r\n", (Upload)?"STOR":"RETR", f ? f : Remote);
+				WriteLine();
+				DeleteArray(f);
+
+				// Build data connection
+				if (ConnectData())
 				{
-					// Data command
-					char *f = ToFtpCs(Remote);
-					sprintf_s(d->OutBuf, sizeof(d->OutBuf), "%s %s\r\n", (Upload)?"STOR":"RETR", f ? f : Remote);
-					WriteLine();
-					DeleteArray(f);
+					VerifyRange(ReadLine(), 1);
 
-					// Build data connection
-					if (ConnectData())
+					if (!d->F->Open(Local, (Upload)?O_READ:O_WRITE))
 					{
-						VerifyRange(ReadLine(), 1);
-
+						// couldn't open file...
+						char Str[256];
+						sprintf_s(Str, sizeof(Str), "Error: Couldn't open '%s' for %s", Local, (Upload)?"reading":"writing");
+						Socket->OnInformation(Str);
+					}
+					else
+					{
 						// do the transfer
 						int TempLen = 64 << 10;
 						uchar *Temp = new uchar[TempLen];
@@ -1071,21 +1079,10 @@ bool IFtp::TransferFile(const char *Local, const char *Remote, int64 Size, bool 
 							VerifyRange(ReadLine(), 2);
 						}
 					}
+				}
 
-					d->Data.Reset();
-					d->Listen.Reset();
-				}
-				else
-				{
-					// data setup failed
-				}
-			}
-			else
-			{
-				// couldn't open file...
-				char Str[256];
-				sprintf_s(Str, sizeof(Str), "Error: Couldn't open '%s' for %s", Local, (Upload)?(char*)"reading":(char*)"writing");
-				Socket->OnInformation(Str);
+				d->Data.Reset();
+				d->Listen.Reset();
 			}
 		}
 	}
@@ -1193,6 +1190,8 @@ bool IFtp::SetupData(bool Binary)
 			d->Listen.Reset(new GSocket);			// listen
 			if (d->Listen)
 			{
+				int To = Socket->GetTimeout();
+				d->Listen->SetTimeout(To);
 				if (d->Listen->Listen())
 				{
 					Socket->GetLocalIp(Ip);				// get current IP
@@ -1242,7 +1241,11 @@ bool IFtp::ConnectData()
 	{
 		d->Data.Reset(Socket ? dynamic_cast<GSocket*>(Socket->Clone()) : new GSocket());
 		if (d->Data)
+		{
+			int To = Socket->GetTimeout();
+			d->Data->SetTimeout(To);
 			return d->Listen->Accept(d->Data);
+		}
 	}
 
 	return false;
