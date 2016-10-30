@@ -1850,6 +1850,38 @@ bool IdeDoc::SetClean()
 	if (!Processing)
 	{
 		Status = Processing = true;
+
+		GAutoString Base;
+		if (GetProject())
+			Base = GetProject()->GetBasePath();
+		
+		GString LocalPath;
+		if (d->GetLocalFile() &&
+			LgiIsRelativePath(LocalPath) &&
+			Base)
+		{
+			char p[MAX_PATH];
+			LgiMakePath(p, sizeof(p), Base, d->GetLocalFile());
+			LocalPath = p;
+		}
+		else
+		{
+			LocalPath = d->GetLocalFile();
+		}
+
+		if (!FileExists(LocalPath))
+		{
+			// We need a valid filename to save to...			
+			GFileSelect s;
+			s.Parent(this);
+			if (Base)
+				s.InitialDir(Base);
+			
+			if (s.Save())
+			{
+				d->SetFileName(s.Name());
+			}
+		}
 		
 		if (d->Edit->IsDirty())
 		{

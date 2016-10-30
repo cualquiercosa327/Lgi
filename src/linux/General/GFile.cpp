@@ -804,7 +804,7 @@ bool GFileSystem::Delete(GArray<const char*> &Files, GArray<int> *Status, bool T
 
 	if (ToTrash)
 	{
-		char p[300];
+		char p[MAX_PATH];
 		if (LgiGetSystemPath(LSP_TRASH, p, sizeof(p)))
 		{
 			for (int i=0; i<Files.Length(); i++)
@@ -818,14 +818,14 @@ bool GFileSystem::Delete(GArray<const char*> &Files, GArray<int> *Status, bool T
 						(*Status)[i] = errno;
 					}
 					
-					printf("%s:%i - MoveFile(%s,%s) failed.\n", __FILE__, __LINE__, Files[i], p);
+					LgiTrace("%s:%i - MoveFile(%s,%s) failed.\n", _FL, Files[i], p);
 					Error = true;
 				}
 			}
 		}
 		else
 		{
-			printf("%s:%i - LgiGetSystemPath(LSP_TRASH) failed.\n", __FILE__, __LINE__);
+			LgiTrace("%s:%i - LgiGetSystemPath(LSP_TRASH) failed.\n", _FL);
 		}
 	}
 	else
@@ -913,8 +913,7 @@ bool GFileSystem::Move(const char *OldName, const char *NewName)
 	if (rename(OldName, NewName))
 	{
 		printf("%s:%i - rename failed, error: %s(%i)\n",
-			__FILE__, __LINE__,
-			GetErrorName(errno), errno);
+			_FL, GetErrorName(errno), errno);
 		return false;
 	}
 	

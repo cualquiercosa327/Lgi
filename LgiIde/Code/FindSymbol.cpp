@@ -18,6 +18,7 @@
 
 #define DEBUG_FIND_SYMBOL		0
 #define DEBUG_NO_THREAD			1
+// #define DEBUG_FILE				"IdeDoc.cpp"
 
 #ifdef _GPARSECPP_H_
 #else
@@ -62,8 +63,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 			Defs.Length(0);
 			
 			bool Status = false;
-			GString Src = Source.Get();
-			char *Ext = LgiGetExtension(Src);
+			char *Ext = LgiGetExtension(Path);
 			if
 			(
 				Ext
@@ -104,6 +104,13 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 	{
 		// Already added?
 		int Idx = GetFileIndex(Path);
+
+		bool Debug = false;
+		#ifdef DEBUG_FILE
+		if ((Debug = Path.Find(DEBUG_FILE) >= 0))
+			printf("%s:%i - AddFile(%s) = %i\n", _FL, Path.Get(), Idx);
+		#endif
+
 		if (Idx >= 0)
 			return true;
 			
@@ -120,7 +127,10 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 		GTextFile Tf;
 		if (!Tf.Open(Path, O_READ)  ||
 			Tf.GetSize() < 4)
+		{
+			LgiTrace("%s:%i - Error: GTextFile.Open(%s) failed.\n", _FL, Path.Get());
 			return false;
+		}
 
 		GAutoString Source = Tf.Read();
 		GArray<char*> Headers;
@@ -135,6 +145,12 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 		
 		// Parse for symbols...
 		f->Source.Reset(LgiNewUtf8To16(Source));
+
+		#ifdef DEBUG_FILE
+		if (Debug)
+			printf("%s:%i - About to parse '%s' containing %i chars.\n", _FL, f->Path.Get(), StrlenW(f->Source));
+		#endif
+
 		return f->Parse();
 	}
 	
@@ -174,6 +190,13 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 						FileSyms *fs = Files[f];
 						if (fs)
 						{
+							bool Debug = false;
+							#ifdef DEBUG_FILE
+							Debug = fs->Path.Find(DEBUG_FILE) >= 0;
+							if (Debug)
+								printf("%s:%i - Searching '%s' with %i syms...\n", _FL, fs->Path.Get(), fs->Defs.Length());
+							#endif
+							
 							// For each symbol...
 							for (unsigned i=0; i<fs->Defs.Length(); i++)
 							{
@@ -189,6 +212,11 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 										break;
 									}
 								}
+
+								#ifdef DEBUG_FILE
+								if (Debug)
+									printf("%s:%i - '%s' = %i\n", _FL, Def.Name.Get(), Match);
+								#endif
 								
 								if (Match)
 								{

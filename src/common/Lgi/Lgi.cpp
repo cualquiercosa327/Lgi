@@ -1477,12 +1477,12 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 							}
 							else
 							{
-								printf("%s:%i - No output from 'kde-config'.\n", __FILE__, __LINE__);
+								printf("%s:%i - No output from 'kde-config'.\n", _FL);
 							}
 						}
 						else
 						{
-							printf("%s:%i - Run 'kde-config' failed.\n", __FILE__, __LINE__);
+							printf("%s:%i - Run 'kde-config' failed.\n", _FL);
 						}
 					}
 
@@ -1492,7 +1492,22 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 				}
 				default:
 				{
-					printf("%s:%i - Unknown window manager.\n", __FILE__, __LINE__);
+					GString Home = LgiGetSystemPath(LSP_HOME);
+					if (!Home)
+					{
+						LgiTrace("%s:%i - Can't get LSP_HOME.\n", _FL);
+						break;
+					}
+					
+					char p[MAX_PATH];
+					if (!LgiMakePath(p, sizeof(p), Home, ".local/share/Trash") ||
+						!DirExists(p))
+					{
+						LgiTrace("%s:%i - '%s' doesn't exist.\n", _FL, p);
+						break;
+					}
+					
+					Path = p;
 					break;
 				}
 			}
@@ -1501,7 +1516,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 			
 			FSRef Ref;
 			OSErr e = FSFindFolder(kUserDomain, kTrashFolderType, kDontCreateFolder, &Ref);
-			if (e) printf("%s:%i - FSFindFolder failed e=%i\n", __FILE__, __LINE__, e);
+			if (e) printf("%s:%i - FSFindFolder failed e=%i\n", _FL, e);
 			else
 			{
 				GAutoString u = FSRefPath(Ref);
