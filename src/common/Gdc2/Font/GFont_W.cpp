@@ -85,7 +85,7 @@ void GFont::_Draw(GSurface *pDC, int x, int y, OsChar *Str, int Len, GRect *r, G
 	{
 		bool IsTransparent = Transparent();
 		
-		SetTextColor(hDC, fore.GetNative());
+		SetTextColor(hDC, 0xff000000 | fore.GetNative());
 		if (!IsTransparent)
 			SetBkColor(hDC, Back().GetNative());
 		SetBkMode(hDC, IsTransparent ? TRANSPARENT : OPAQUE);

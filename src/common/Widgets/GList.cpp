@@ -372,6 +372,13 @@ GMessage::Result GItemEdit::OnEvent(GMessage *Msg)
 			#if DEBUG_EDIT_LABEL
 			LgiTrace("%s:%i - GItemEdit got M_END_POPUP, quiting\n", _FL);
 			#endif
+			
+			if (d->Item &&
+				d->Item->GetContainer())
+			{
+				d->Item->GetContainer()->Focus(true);
+			}
+			
 			Quit();
 			return 0;
 		}
@@ -392,6 +399,11 @@ GListItemColumn::GListItemColumn(GListItem *item, int col)
 GList *GListItemColumn::GetList()
 {
 	return _Item ? _Item->Parent : 0;
+}
+
+GItemContainer *GListItemColumn::GetContainer()
+{
+	return GetList();
 }
 
 List<GListItem> *GListItemColumn::GetAllItems()
@@ -459,6 +471,11 @@ void GListItem::SetImage(int i)
 int GListItem::GetImage(int Flags)
 {
 	return d->ListItem_Image;
+}
+
+GItemContainer *GListItem::GetContainer()
+{
+	return Parent;
 }
 
 List<GListItemColumn> *GListItem::GetItemCols()

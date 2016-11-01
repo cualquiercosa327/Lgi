@@ -107,6 +107,8 @@ public:
 	GTreeItem();
 	virtual ~GTreeItem();
 
+	GItemContainer *GetContainer();
+	
 	/// \brief Get the text for the node
 	///
 	/// You can either return a string stored internally to your
