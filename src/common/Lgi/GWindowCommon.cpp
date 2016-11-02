@@ -117,11 +117,15 @@ bool GWindow::MoveSameScreen(GViewI *wnd)
 int GWindow::WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState)
 {
 	int Status = DROPEFFECT_NONE;
-	
-	// printf("WillAccept\n");
+
+	#ifdef DEBUG_DND	
+	LgiTrace("%s:%i - WillAccept Formats=%i Pt=%i,%i Key=0x%x\n", _FL, Formats.Length(), Pt.x, Pt.y, KeyState);
+	#endif
 	for (char *f=Formats.First(); f; )
 	{
-		// printf("\t%s\n", f);
+		#ifdef DEBUG_DND
+		LgiTrace("\tFmt=%s\n", f);
+		#endif
 		if (!stricmp(f, LGI_FileDropFormat))
 		{
 			f = Formats.Next();
@@ -142,11 +146,17 @@ int GWindow::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 {
 	int Status = DROPEFFECT_NONE;
 	
-	// printf("OnDrop\n");
+	#ifdef DEBUG_DND	
+	LgiTrace("%s:%i - OnDrop Data=%i Pt=%i,%i Key=0x%x\n", _FL, Data.Length(), Pt.x, Pt.y, KeyState);
+	#endif
 	for (unsigned i=0; i<Data.Length(); i++)
 	{
 		GDragData &dd = Data[i];
-		// printf("\t%s\n", dd.Format.Get());
+
+		#ifdef DEBUG_DND	
+		LgiTrace("\tFmt=%s\n", dd.Format.Get());
+		#endif
+		
 		if (dd.IsFileDrop())
 		{
 			GArray<char*> Files;

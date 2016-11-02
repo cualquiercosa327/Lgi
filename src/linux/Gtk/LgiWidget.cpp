@@ -445,19 +445,36 @@ lgi_widget_drag_motion(GtkWidget	   *widget,
 	}
 	
 	GDragDropTarget *Target = v->target->DropTarget();
+	#if DEBUG_DND
+	printf("%s:%i - DragMotion %p\n", _FL, Target);
+	#endif
 	if (!Target)
 	{
+		#if DEBUG_DND
 		printf("%s:%i - View '%s' doesn't have drop target.\n", _FL, v->target->GetClass());
+		#endif
 		return false;
 	}
+
+	#if DEBUG_DND
+	// printf("%s:%i - DragMotion(%s): ", _FL, v->target->GetClass());
+	#endif
 	
 	List<char> Formats;
 	for (Gtk::GList *Types = gdk_drag_context_list_targets(context); Types; Types = Types->next)
 	{
 		gchar *Type = gdk_atom_name((GdkAtom)Types->data);
 		if (Type)
+		{
 			Formats.Insert(NewStr(Type));
+			#if DEBUG_DND
+			// printf("%s, ", Type);
+			#endif
+		}
 	}
+	#if DEBUG_DND
+	// printf("\n");
+	#endif
 	
 	if (!v->drag_over_widget)
 	{
@@ -558,16 +575,24 @@ lgi_widget_drag_data_received(	GtkWidget			*widget,
 	}
 	
 	gchar *Type = gdk_atom_name(gtk_selection_data_get_data_type(data));
-	printf("%s:%i - Type=%s\n", _FL, Type);
+	#if DEBUG_DND
+	printf("%s:%i - Type=%s, Target=%s\n", _FL, Type, v->target->GetClass());
+	#endif
 	GdcPt2 p(x, y);
 	gint Len = gtk_selection_data_get_length(data);
+	#if DEBUG_DND
 	printf("%s:%i - Len=%i\n", _FL, Len);
+	#endif
 
 	const guchar *Ptr = gtk_selection_data_get_data(data);
+	#if DEBUG_DND
 	printf("%s:%i - Ptr=%p\n", _FL, Ptr);
+	#endif
 	if (!Ptr || Len <= 0)
 	{
+		#if DEBUG_DND
 		printf("%s:%i - gtk_selection_data_get_[data/len] failed.\n", _FL);
+		#endif
 		return;
 	}
 

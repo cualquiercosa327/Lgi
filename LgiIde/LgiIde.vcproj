@@ -308,6 +308,18 @@
 						>
 					</File>
 				</Filter>
+				<Filter
+					Name="Simple Cpp Parser"
+					>
+					<File
+						RelativePath=".\Code\SimpleCppParser.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Code\SimpleCppParser.h"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="Process"
