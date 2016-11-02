@@ -1,11 +1,7 @@
 #define __USE_GNU
 #include <stdio.h>
 
-#ifdef BEOS
 #define DEBUG_LIB_MSGS		0
-#else
-#define DEBUG_LIB_MSGS		1
-#endif
 
 #include "Lgi.h"
 #if defined(LINUX) || defined(MAC) || defined(BEOS)

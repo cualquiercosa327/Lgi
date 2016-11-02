@@ -5,6 +5,8 @@
 
 #include "GVariant.h"
 
+#define DEBUG_DND	1
+
 #if WINNATIVE
 
 #include <shlobj.h>

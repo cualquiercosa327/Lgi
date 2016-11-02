@@ -83,7 +83,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 			}
 			else
 			{
-				LgiTrace("%s:%i - Ignoring '%s'\n", _FL, Path.Get());
+				// LgiTrace("%s:%i - Ignoring '%s'\n", _FL, Path.Get());
 			}
 			
 			return Status;

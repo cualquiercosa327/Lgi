@@ -351,7 +351,7 @@ void EditTray::OnFunctionList(GMouse &m)
 					*o++ = 0;
 					
 					a[n] = i;
-					s->AppendItem(Buf, ++n, true);
+					s->AppendItem(Buf, n+1, true);
 				}
 			}
 			
