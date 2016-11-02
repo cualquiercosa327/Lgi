@@ -306,6 +306,16 @@ void GButton::OnFocus(bool f)
 
 void GButton::OnPaint(GSurface *pDC)
 {
+	if (!_View)
+	{
+		// Fall back drawing code
+		pDC->Colour(LC_MED, 24);
+		pDC->Rectangle();
+		pDC->Colour(GColour::Red);
+		GRect c = GetClient();
+		pDC->Line(0, 0, c.X()-1, c.Y()-1); 
+		pDC->Line(c.X()-1, 0, 0, c.Y()-1); 
+	}
 }
 
 int64 GButton::Value()

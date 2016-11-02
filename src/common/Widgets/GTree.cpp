@@ -184,6 +184,11 @@ void GTreeNode::_ClearDs(int Col)
 	}
 }
 
+GItemContainer *GTreeItem::GetContainer()
+{
+	return Tree;
+}
+
 GTreeItem *GTreeNode::Insert(GTreeItem *Obj, int Idx)
 {
 	LgiAssert(Obj != this);

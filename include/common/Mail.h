@@ -378,9 +378,6 @@ public:
 	
 	/// Finishes the mail send
 	virtual bool SendEnd(GStringPipe *Sink) = 0;
-
-	// Deprecated
-	// virtual bool Send(MailMessage *Msg, bool Mime) { return false; }
 };
 
 struct ImapMailFlags

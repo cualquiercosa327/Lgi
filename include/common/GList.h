@@ -51,6 +51,7 @@ public:
 	// Other objects
 	GListItem *GetItem() { return _Item; }
 	GList *GetList();
+	GItemContainer *GetContainer();
 
 	// Props
 	int GetColumn() { return _Column; }
@@ -90,6 +91,7 @@ public:
 	GListItem();
 	virtual ~GListItem();
 
+	GItemContainer *GetContainer();
 	/// Get the owning list
 	GList *GetList() { return Parent; }
 	/// Gets the GListItemColumn's.

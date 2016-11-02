@@ -44,6 +44,8 @@ public:
         return *this;
     }
 
+	virtual GItemContainer *GetContainer() = 0;
+
 	// Events
 	
 	/// Called when the item is selected
