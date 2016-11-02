@@ -9,6 +9,7 @@
 #include "GToken.h"
 #include "GEventTargetThread.h"
 #include "GTextFile.h"
+#include "SimpleCppParser.h"
 
 #if 1
 #include "GParseCpp.h"
@@ -63,7 +64,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 			
 			bool Status = false;
 			GString Src = Source.Get();
-			char *Ext = LgiGetExtension(Src);
+			char *Ext = LgiGetExtension(Path);
 			if
 			(
 				Ext
@@ -76,7 +77,14 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 					!_stricmp(Ext, "h")
 				)
 			)
+			{
 				Status = BuildDefnList(Path, Source, Defs, DefnNone);
+			}
+			else
+			{
+				LgiTrace("%s:%i - Ignoring '%s'\n", _FL, Path.Get());
+			}
+			
 			return Status;
 		}
 	};

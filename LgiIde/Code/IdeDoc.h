@@ -3,76 +3,7 @@
 
 #include "GMdi.h"
 #include "GTextView3.h"
-
-enum DefnType
-{
-	DefnNone,
-	DefnDefine,
-	DefnFunc,
-	DefnClass,
-	DefnEnum,
-	DefnEnumValue,
-	DefnTypedef,
-};
-
-class DefnInfo
-{
-public:
-	DefnType Type;
-	GString Name;
-	GString File;
-	int Line;
-	
-	DefnInfo()
-	{
-		Type = DefnNone;
-		Line = 0;
-	}
-
-	DefnInfo(const DefnInfo &d)
-	{
-		Type = d.Type;
-		Name = d.Name;
-		File = d.File;
-		Line = d.Line;
-	}
-	
-	void Set(DefnType type, char *file, char16 *s, int line)
-	{
-		Type = type;
-		File = file;
-		
-		while (strchr(" \t\r\n", *s)) s++;	
-		Line = line;
-		Name = s;
-		if (Name && Type == DefnFunc)
-		{
-			if (strlen(Name) > 42)
-			{
-				char *b = strchr(Name, '(');
-				if (b)
-				{
-					if (strlen(b) > 5)
-					{
-						strcpy(b, "(...)");
-					}
-					else
-					{
-						*b = 0;
-					}
-				}
-			}
-			
-			char *t;
-			while ((t = strchr(Name, '\t')))
-			{
-				*t = ' ';
-			}
-		}		
-	}
-};
-
-extern bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Funcs, DefnType LimitTo, bool Debug = false);
+#include "SimpleCppParser.h"
 
 class IdeDoc : public GMdiChild
 {
