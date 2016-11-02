@@ -64,10 +64,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 			Defs.Length(0);
 			
 			bool Status = false;
-<<<<<<< HEAD
-=======
 			GString Src = Source.Get();
->>>>>>> 343c604cb08a0deebd903089d3f0e53b9ac8b3df
 			char *Ext = LgiGetExtension(Path);
 			if
 			(

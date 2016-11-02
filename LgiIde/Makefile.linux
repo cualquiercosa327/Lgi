@@ -62,6 +62,7 @@ Depends =	GDebugContext.o \
 			FindInFiles.o \
 			FindSymbol.o \
 			GHistory.o \
+			SimpleCppParser.o \
 			GLexCpp.o \
 			GParseCpp.o \
 			SysCharSupport.o \
@@ -933,10 +934,12 @@ FindInFiles.o : ./Code/FindInFiles.cpp ../include/common/Lgi.h \
 FindSymbol.o : ./Code/FindSymbol.cpp ../include/common/Lgi.h \
 	./Code/LgiIde.h \
 	./Code/FindSymbol.h \
-	../include/common/GThreadEvent.h \
 	../include/common/GList.h \
 	../include/common/GProcess.h \
 	../include/common/GToken.h \
+	../include/common/GEventTargetThread.h \
+	../include/common/GTextFile.h \
+	./Code/SimpleCppParser.h \
 	../include/common/GParseCpp.h \
 	./Code/resdefs.h
 	@echo $(<F) [$(Build)]
@@ -945,6 +948,11 @@ FindSymbol.o : ./Code/FindSymbol.cpp ../include/common/Lgi.h \
 GHistory.o : ./Code/GHistory.cpp ../include/common/Lgi.h \
 	./Code/GHistory.h \
 	../include/common/GList.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+SimpleCppParser.o : ./Code/SimpleCppParser.cpp ../include/common/Lgi.h \
+	./Code/SimpleCppParser.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -980,7 +988,6 @@ IdeCommon.o : ./Code/IdeCommon.cpp ../include/common/Lgi.h \
 IdeDoc.o : ./Code/IdeDoc.cpp ../include/common/Lgi.h \
 	./Code/LgiIde.h \
 	../include/common/GToken.h \
-	../include/common/GLexCpp.h \
 	../include/common/INet.h \
 	../include/common/GClipBoard.h \
 	../include/common/GDisplayString.h \
@@ -1048,6 +1055,7 @@ LgiIde.o : ./Code/LgiIde.cpp ../include/common/Lgi.h \
 	../include/common/GCheckBox.h \
 	./Code/GDebugger.h \
 	../include/common/LgiRes.h \
+	./Code/ProjectNode.h \
 	../include/common/GSubProcess.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -1673,8 +1681,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	/usr/include/pango-1.0/pango/pango-script.h \
 	/usr/include/pango-1.0/pango/pango-bidi-type.h
 
-../include/common/GDragAndDrop.h : ../include/common/GVariant.h \
-	../include/common/GCom.h
+../include/common/GDragAndDrop.h : ../include/common/GVariant.h
 
 ../src/common/Lgi/GObject.cpp : ../include/common/Gdc2.h \
 	../include/common/LgiCommon.h \
@@ -2704,9 +2711,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../include/common/GMutex.h : 
 
-../include/common/GCom.h : ../include/common/GContainers.h \
-	../include/common/GVariant.h
-
 ../include/common/GCss.h : ../include/common/LgiInc.h \
 	../include/linux/Gtk/LgiOsDefs.h \
 	../include/common/GMem.h \
@@ -2953,8 +2957,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../../../../../../usr/include/gtk-2.0/gtk/gtktextiter.h : /usr/include/gtk-2.0/gtk/gtktexttag.h \
 	/usr/include/gtk-2.0/gtk/gtktextchild.h
 
-../include/common/GDragAndDrop.h : ../include/common/GVariant.h \
-	../include/common/GCom.h
+../include/common/GDragAndDrop.h : ../include/common/GVariant.h
 
 ../src/common/Gdc2/Font/GFontSystem.cpp : ../include/common/Lgi.h \
 	../include/common/GToken.h \
@@ -3787,7 +3790,14 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	./Code/FindInFiles.h
 
 ./Code/IdeDoc.h : ../include/common/GMdi.h \
-	../include/common/GTextView3.h
+	../include/common/GTextView3.h \
+	./Code/SimpleCppParser.h
+
+./Code/SimpleCppParser.h : ../include/common/GLexCpp.h
+
+../include/common/GLexCpp.h : ../include/common/LgiInc.h \
+	../include/linux/Gtk/LgiOsDefs.h \
+	../include/common/GString.h
 
 ./Code/resdefs.h : 
 
@@ -4179,7 +4189,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../../../../../../usr/include/gtk-2.0/gdk/gdkgc.h : /usr/include/gtk-2.0/gdk/gdkcolor.h \
 	/usr/include/gtk-2.0/gdk/gdktypes.h
 
-../include/common/GBitmap.h : 
+./Code/SimpleCppParser.h : ../include/common/GLexCpp.h
 
 ../include/common/GItemContainer.h : ../include/common/GPopup.h \
 	../include/common/GNotifications.h \
@@ -4188,6 +4198,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../../../../../../usr/include/gtk-2.0/gtk/gtkalignment.h : /usr/include/gtk-2.0/gtk/gtkbin.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkcellrendereraccel.h : /usr/include/gtk-2.0/gtk/gtkcellrenderertext.h
+
+../include/common/GBitmap.h : 
 
 ./Code/WebFldDlg.h : 
 
@@ -4235,6 +4247,10 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GCss.h \
 	../include/common/GAutoPtr.h \
 	../include/common/GFontCache.h
+
+../include/common/GEventTargetThread.h : ../include/common/GThread.h \
+	../include/common/GMutex.h \
+	../include/common/GThreadEvent.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkmessagedialog.h : /usr/include/gtk-2.0/gtk/gtkdialog.h \
 	/usr/include/gtk-2.0/gtk/gtkenums.h

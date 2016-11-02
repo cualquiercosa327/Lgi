@@ -373,6 +373,7 @@
 		</Node>
 		<Node File="./include/common/GNotifications.h" Type="3" Platforms="15" />
 		<Node File="./include/common/LgiClasses.h" Type="3" Platforms="15" />
+		<Node File="./include/common/LgiDefs.h" Type="3" Platforms="15" />
 		<Node File="./include/common/LgiInc.h" Type="3" Platforms="15" />
 		<Node File="./include/common/LgiInterfaces.h" Type="3" Platforms="15" />
 		<Node File="./include/common/LgiMsgs.h" Type="3" Platforms="15" />
