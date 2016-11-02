@@ -838,60 +838,58 @@ char *GMime::Get(const char *Name, bool Short, const char *Default)
 
 bool GMime::Set(const char *Name, const char *Value)
 {
-	bool Status = false;
-	
-	if (Name)
+	if (!Name)
+		return false;
+
+	GStringPipe p;
+
+	char *h = Headers;
+	if (h)
 	{
-		GStringPipe p;
-
-		char *h = Headers;
-		if (h)
+		char *f = StartOfField(h, Name);
+		if (f)
 		{
-			char *f = StartOfField(h, Name);
-			if (f)
+			// 'Name' exists, push out pre 'Name' header text
+			p.Push(h, CastInt(f - Headers));
+			h = NextField(f);
+		}
+		else
+		{
+			if (!Value)
 			{
-				// 'Name' exists, push out pre 'Name' header text
-				p.Push(h, CastInt(f - Headers));
-				h = NextField(f);
+				// Nothing to do here...
+				return true;
 			}
-			else
-			{
-				if (!Value)
-				{
-					// Nothing to do here...
-					return true;
-				}
 
-				// 'Name' doesn't exist, push out all the headers
-				p.Push(Headers);
-				h = 0;
-			}
+			// 'Name' doesn't exist, push out all the headers
+			p.Push(Headers);
+			h = 0;
 		}
-
-		if (Value)
-		{
-			// Push new field
-			int Vlen = CastInt(strlen(Value));
-			while (Vlen > 0 && strchr(MimeWs, Value[Vlen-1])) Vlen--;
-
-			p.Push(Name);
-			p.Push(": ");
-			p.Push(Value, Vlen);
-			p.Push(MimeEol);
-		}
-		// else we're deleting the feild
-
-		if (h)
-		{
-			// Push out any header text post the 'Name' field.
-			p.Push(h);
-		}
-
-		DeleteArray(Headers);
-		Headers = (char*)p.New(sizeof(char));
 	}
 
-	return Status;
+	if (Value)
+	{
+		// Push new field
+		int Vlen = CastInt(strlen(Value));
+		while (Vlen > 0 && strchr(MimeWs, Value[Vlen-1])) Vlen--;
+
+		p.Push(Name);
+		p.Push(": ");
+		p.Push(Value, Vlen);
+		p.Push(MimeEol);
+	}
+	// else we're deleting the feild
+
+	if (h)
+	{
+		// Push out any header text post the 'Name' field.
+		p.Push(h);
+	}
+
+	DeleteArray(Headers);
+	Headers = (char*)p.New(sizeof(char));
+
+	return Headers != NULL;
 }
 
 char *GMime::GetSub(const char *Field, const char *Sub)
