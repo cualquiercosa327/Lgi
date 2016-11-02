@@ -345,9 +345,6 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	/usr/include/cairo/cairo-features.h \
 	/usr/include/cairo/cairo-version.h \
 	/usr/include/cairo/cairo.h \
-	/usr/include/freetype2/config/ftheader.h \
-	/usr/include/freetype2/ft2build.h \
-	/usr/include/freetype2/ftsynth.h \
 	/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-animation.h \
 	/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-core.h \
 	/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-enum-types.h \
@@ -2456,8 +2453,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GdiLeak.h \
 	../include/common/GUtf8.h \
 	../include/common/GDisplayString.h \
-	../include/common/GPixelRops.h \
-	/usr/include/freetype2/ftsynth.h
+	../include/common/GPixelRops.h
 
 ../include/common/GPixelRops.h : 
 
