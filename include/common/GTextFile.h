@@ -72,15 +72,18 @@ public:
 	{
 		GAutoString Ret;
 		int Sz = (int)GetSize();
-		GAutoPtr<uint8, true> Buf(new uint8[Sz]);
-		if (Buf)
+		if (Sz > 0)
 		{
-			int Rd = Read(Buf, Sz);
-			if (Rd > 0)
+			GAutoPtr<uint8, true> Buf(new uint8[Sz]);
+			if (Buf)
 			{
-				const char *Cs = GetTypeString();
-				if (Cs)
-					Ret.Reset((char*)LgiNewConvertCp("utf-8", Buf, Cs, Sz));
+				int Rd = Read(Buf, Sz);
+				if (Rd > 0)
+				{
+					const char *Cs = GetTypeString();
+					if (Cs)
+						Ret.Reset((char*)LgiNewConvertCp("utf-8", Buf, Cs, Sz));
+				}
 			}
 		}
 		
@@ -92,15 +95,18 @@ public:
 	{
 		GAutoWString Ret;
 		int Sz = (int)GetSize();
-		GAutoPtr<uint8, true> Buf(new uint8[Sz]);
-		if (Buf)
+		if (Sz > 0)
 		{
-			int Rd = Read(Buf, Sz);
-			if (Rd > 0)
+			GAutoPtr<uint8, true> Buf(new uint8[Sz]);
+			if (Buf)
 			{
-				const char *Cs = GetTypeString();
-				if (Cs)
-					Ret.Reset((char16*)LgiNewConvertCp(LGI_WideCharset, Buf, Cs, Sz));
+				int Rd = Read(Buf, Sz);
+				if (Rd > 0)
+				{
+					const char *Cs = GetTypeString();
+					if (Cs)
+						Ret.Reset((char16*)LgiNewConvertCp(LGI_WideCharset, Buf, Cs, Sz));
+				}
 			}
 		}
 		

@@ -131,20 +131,14 @@ void IdeCommon::RemoveTag()
 
 bool IdeCommon::AddFiles(const char *Path)
 {
-	GDirectory d;
-	if (!d.First(Path, NULL))
-	{
-		LgiAssert(!"Path doesn't exist.");
-		return false;
-	}
-	
-	if (d.IsDir())
+	if (DirExists(Path))
 	{
 		GString s = Path;
 		GString::Array a = s.Split(DIR_STR);
 		IdeCommon *Sub = GetSubFolder(Project, a.Last(), true);
 		if (Sub)
 		{
+			GDirectory d;
 			for (int b = d.First(Path); b; b = d.Next())
 			{
 				char p[MAX_PATH];
