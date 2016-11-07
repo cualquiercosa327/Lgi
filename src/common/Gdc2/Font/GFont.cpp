@@ -1263,7 +1263,9 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 		{
 			GTypeFace::d->_Ascent = (double)Gtk::pango_font_metrics_get_ascent(m) / PANGO_SCALE;
 			GTypeFace::d->_Descent = (double)Gtk::pango_font_metrics_get_descent(m) / PANGO_SCALE;
-			d->Height = ceil(GTypeFace::d->_Ascent + GTypeFace::d->_Descent);
+			d->Height = ceil(GTypeFace::d->_Ascent + GTypeFace::d->_Descent + 1/*hack the underscores to work*/);
+			
+			// printf("Created '%s:%i' %f + %f = %i\n", Face(), PointSize(), GTypeFace::d->_Ascent, GTypeFace::d->_Descent, d->Height);
 
 			#if 1
 			if (PrintCtx)

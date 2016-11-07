@@ -464,7 +464,15 @@ void GDisplayString::Layout(bool Debug)
 		Gtk::pango_layout_set_text(Hnd, Str, len);
 		Gtk::pango_layout_get_size(Hnd, &xf, &yf);
 		x = (xf + PANGO_SCALE - 1) / PANGO_SCALE;
+		#if 1
+		y = Font->GetHeight();
+		#else
 		y = (yf + PANGO_SCALE - 1) / PANGO_SCALE;
+		#endif
+		if (y > Font->GetHeight())
+		{
+			printf("%s:%i - Height error: %i > %i\n", _FL, y, Font->GetHeight());
+		}
 	
 	#elif defined MAC && !defined COCOA && !defined(LGI_SDL)
 	
