@@ -131,7 +131,10 @@ void IdeCommon::RemoveTag()
 
 bool IdeCommon::AddFiles(const char *Path)
 {
-	if (DirExists(Path))
+	bool IsDir = DirExists(Path);
+	printf("AddFiles(%s) dir=%i\n", Path, IsDir);
+
+	if (IsDir)
 	{
 		GString s = Path;
 		GString::Array a = s.Split(DIR_STR);
@@ -144,27 +147,42 @@ bool IdeCommon::AddFiles(const char *Path)
 				char p[MAX_PATH];
 				if (d.Path(p, sizeof(p)))
 				{
+					char *Name = d.GetName();
 					char *Ext = LgiGetExtension(p);
 					if
 					(
-						d.IsDir()
-						||
 						(
-							Ext
-							&&
+							d.IsDir()
+							||
 							(
-								!stricmp(Ext, "c") ||
-								!stricmp(Ext, "h") ||
-								!stricmp(Ext, "cpp")
+								Ext
+								&&
+								(
+									!stricmp(Ext, "c") ||
+									!stricmp(Ext, "h") ||
+									!stricmp(Ext, "cpp")
+								)
 							)
 						)
+						&&
+						Name != NULL
+						&&
+						Name[0] != '.'
 					)
 					{
 						Sub->AddFiles(p);
 					}
 				}
 			}
+			
+			// If the folder is empty then just delete...
+			if (Sub->GetChild() == NULL)
+			{
+				Sub->Remove();
+				DeleteObj(Sub);
+			}
 		}
+		else LgiTrace("%s:%i - GetSubFolder failed\n", _FL);
 	}
 	else
 	{

@@ -1910,7 +1910,6 @@ bool IdeDoc::OnRequestClose(bool OsShuttingDown)
 	{
 		GString Dsp = d->GetDisplayName();
 		int a = LgiMsg(this, "Save '%s'?", AppName, MB_YESNOCANCEL, Dsp ? Dsp.Get() : Untitled);
-		DeleteArray(Dsp);
 		switch (a)
 		{
 			case IDYES:
