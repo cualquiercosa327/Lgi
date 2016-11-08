@@ -24,7 +24,7 @@
 		<String Ref="21" Cid="-1" Define="IDC_STATIC" en="In file types:" />
 		<String Ref="22" Cid="23" Define="IDC_FILE_TYPES" />
 		<String Ref="23" Cid="69" Define="IDC_FOLDER_HISTORY" />
-		<String Ref="24" Cid="24" Define="IDC_24" />
+		<String Ref="24" Cid="24" Define="IDC_TABLE" />
 		<String Ref="25" Cid="26" Define="IDC_SET_DIR" en="..." />
 		<String Ref="26" Cid="31" Define="IDC_SUB_DIRS" en="Search sub directories" />
 		<String Ref="27" Cid="25" Define="IDC_DIR" />
@@ -126,7 +126,7 @@
 		<String Ref="177" Cid="2" Define="IDCANCEL" en="Cancel" />
 		<String Ref="178" Cid="1" Define="IDOK" en="Save" />
 		<String Ref="179" Cid="179" Define="IDD_FIND_SYMBOL" en="Find Symbol" />
-		<String Ref="180" Cid="180" Define="IDC_TABLE" />
+		<String Ref="180" Cid="24" Define="IDC_TABLE" />
 		<String Ref="181" Cid="181" Define="IDC_RESULTS" />
 		<String Ref="182" Cid="182" Define="IDC_182" en="File" />
 		<String Ref="183" Cid="183" Define="IDC_183" en="Line" />
@@ -152,7 +152,7 @@
 		<String Ref="205" Cid="1" Define="IDOK" en="Ok" />
 		<String Ref="206" Cid="206" Define="IDC_SUB_TABLE" />
 		<String Ref="207" Cid="564" Define="IDC_DETAIL" />
-		<String Ref="208" Cid="180" Define="IDC_TABLE" />
+		<String Ref="208" Cid="24" Define="IDC_TABLE" />
 		<String Ref="209" Cid="-1" Define="IDC_STATIC" en="Search for setting:" />
 		<String Ref="210" Cid="2" Define="IDCANCEL" en="Cancel" />
 		<String Ref="212" Cid="-1" Define="IDC_STATIC" en="Concurrent jobs:" />

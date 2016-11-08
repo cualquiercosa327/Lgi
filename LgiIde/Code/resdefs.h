@@ -8,7 +8,7 @@
 #define IDD_FIND_IN_FILES						19
 #define IDC_LOOK_FOR							21
 #define IDC_FILE_TYPES							23
-#define IDC_24									24
+#define IDC_TABLE								24
 #define IDC_DIR									25
 #define IDC_SET_DIR								26
 #define IDC_WHOLE_WORD							29
@@ -69,7 +69,6 @@
 #define IDS_118									118
 #define IDS_121									121
 #define IDD_FIND_SYMBOL							179
-#define IDC_TABLE								180
 #define IDC_RESULTS								181
 #define IDC_182									182
 #define IDC_183									183

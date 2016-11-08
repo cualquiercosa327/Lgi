@@ -7,6 +7,7 @@
 #include "GCombo.h"
 #include "WebFldDlg.h"
 #include "GClipBoard.h"
+#include "GTableLayout.h"
 
 //////////////////////////////////////////////////////////////////////////////////
 class FileProps : public GDialog
@@ -43,6 +44,24 @@ public:
 			for (int i=0; PlatformNames[i]; i++)
 			{
 				SetCtrlValue(PlatformCtrlId[i], ((1 << i) & Platforms) != 0);
+			}
+			
+			OnPosChange();
+			
+			// Make sure the dialog can display the whole table...
+			GTableLayout *t;
+			if (GetViewById(IDC_TABLE, t))
+			{
+				GRect u = t->GetUsedArea();
+				u.Size(-GTableLayout::CellSpacing, -GTableLayout::CellSpacing);
+				GRect p = GetPos();
+				if (u.X() < p.X() ||
+					u.Y() < p.Y())
+				{
+					p.Dimension(max(u.X(), p.X()),
+								max(u.Y(), p.Y()));
+					SetPos(p);
+				}				
 			}
 		}
 	}
