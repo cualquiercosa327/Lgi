@@ -1,8 +1,8 @@
 #include "Lgi.h"
 #include "SimpleCppParser.h"
 
-// #define DEBUG_FILE		"rfc822.h"
-// #define DEBUG_LINE		506
+// #define DEBUG_FILE		"IdeProject.h"
+// #define DEBUG_LINE		43
 
 bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int LimitTo, bool Debug)
 {
@@ -432,7 +432,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 						{
 							// Check if this is really a class/struct definition or just a reference
 							char16 *next = s;
-							while (*next && !strchr(",;){", *next))
+							while (*next && !strchr(";){", *next))
 								next++;
 							
 							if (*next == '{')

@@ -513,6 +513,35 @@ void GDebugContext::OnUserCommand(const char *Cmd)
 		d->Db->UserCommand(Cmd);
 }
 
+void NonPrintable(uint32 ch, uint8 *&out, int &len)
+{
+	if (ch == '\r')
+	{
+		if (len > 1)
+		{
+			*out++ = '\\';
+			*out++ = 'r';
+			len -= 2;
+		}
+		else LgiAssert(0);
+	}
+	else if (ch == '\n')
+	{
+		if (len > 1)
+		{
+			*out++ = '\\';
+			*out++ = 'n';
+			len -= 2;
+		}
+		else LgiAssert(0);
+	}
+	else if (len > 0)
+	{
+		*out++ = '.';
+		len--;
+	}
+}
+
 void GDebugContext::FormatMemoryDump(int WordSize, int Width, bool InHex)
 {
 	if (!MemoryDump)
@@ -546,29 +575,58 @@ void GDebugContext::FormatMemoryDump(int WordSize, int Width, bool InHex)
 		int DisplayWords = DisplayBytes / WordSize;			
 		NativeInt iAddr = d->MemDumpStart + i;
 		p.Print("%p  ", iAddr);
+		
+		char Char[256] = "";
+		uint8 *ChPtr = (uint8*)Char;
+		int Len = sizeof(Char);
+		
 		for (int n=0; n<DisplayWords; n++)
 		{
 			switch (WordSize)
 			{
 				default:
+					if (*ptr.u8 < ' ')
+						NonPrintable(*ptr.u8, ChPtr, Len);
+					else
+						LgiUtf32To8(*ptr.u8, ChPtr, Len);
+					
 					if (InHex)
 						p.Print("%02X ", *ptr.u8++);
 					else
 						p.Print("%4u ", *ptr.u8++);
 					break;
 				case 2:
+					if (*ptr.u16 < ' ')
+						NonPrintable(*ptr.u16, ChPtr, Len);
+					else
+						LgiUtf32To8(*ptr.u16, ChPtr, Len);
+					
 					if (InHex)
 						p.Print("%04X ", *ptr.u16++);
 					else
 						p.Print("%7u ", *ptr.u16++);
 					break;
 				case 4:
+					if (*ptr.u32 < ' ')
+						NonPrintable(*ptr.u32, ChPtr, Len);
+					else
+					{
+						// printf("print %i\n", *ptr.u32);
+						LgiUtf32To8(*ptr.u32, ChPtr, Len);
+						// printf("valid=%i\n", LgiIsUtf8(Char, (char*)ChPtr-Char));
+					}
+
 					if (InHex)
 						p.Print("%08X ", *ptr.u32++);
 					else
 						p.Print("%10u ", *ptr.u32++);
 					break;
 				case 8:
+					if (*ptr.u64 < ' ')
+						NonPrintable(*ptr.u64, ChPtr, Len);
+					else
+						LgiUtf32To8(*ptr.u64, ChPtr, Len);
+
 					if (InHex)
 						#ifdef WIN32
 						p.Print("%016I64X ", *ptr.u64++);
@@ -584,10 +642,9 @@ void GDebugContext::FormatMemoryDump(int WordSize, int Width, bool InHex)
 					break;
 			}
 		}
+		*ChPtr = 0;
 		
-		p.Print("  ", iAddr);
-		// p.Print("%.*s", DisplayBytes, Start.s8);
-		p.Print("\n");
+		p.Print("    \"%s\"\n", Char);
 	}
 	
 	GAutoString a(p.NewStr());

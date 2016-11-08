@@ -19,17 +19,7 @@
 
 #define DEBUG_FIND_SYMBOL		0
 #define DEBUG_NO_THREAD			1
-// #define DEBUG_FILE				"IdeDoc.cpp"
-
-#ifdef _GPARSECPP_H_
-#else
-const char *CTagsExeName = "ctags"
-	#ifdef WIN32
-	".exe"
-	#endif
-	;
-#define TEMP_FILE_NAME		"lgiide_ctags_filelist.txt"
-#endif
+// #define DEBUG_FILE				"IdeProject.h"
 
 class FindSymbolDlg : public GDialog
 {
@@ -80,10 +70,6 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 			)
 			{
 				Status = BuildDefnList(Path, Source, Defs, DefnNone);
-			}
-			else
-			{
-				// LgiTrace("%s:%i - Ignoring '%s'\n", _FL, Path.Get());
 			}
 			
 			return Status;

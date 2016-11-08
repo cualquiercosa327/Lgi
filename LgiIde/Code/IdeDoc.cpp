@@ -317,7 +317,7 @@ void EditTray::OnHeaderList(GMouse &m)
 void EditTray::OnFunctionList(GMouse &m)
 {
 	GArray<DefnInfo> Funcs;
-	if (BuildDefnList(Doc->GetFileName(), Ctrl->NameW(), Funcs, DefnFunc | DefnClass))
+	if (BuildDefnList(Doc->GetFileName(), Ctrl->NameW(), Funcs, DefnNone /*DefnFunc | DefnClass*/))
 	{
 		GSubMenu *s = new GSubMenu;
 		if (s)
