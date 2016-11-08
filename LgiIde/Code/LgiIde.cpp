@@ -1300,6 +1300,10 @@ AppWnd::AppWnd()
 				d->Sp->SetViewA(d->Tree);
 			}
 			d->Sp->SetViewB(d->Mdi = new GMdiParent);
+			if (d->Mdi)
+			{
+				d->Mdi->HasButton(true);
+			}
 		}
 	
 		#ifdef LINUX

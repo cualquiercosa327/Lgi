@@ -27,7 +27,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 	int CaptureLevel = 0;
 	int InClass = false;	// true if we're in a class definition			
 	char16 *CurClassDecl = 0;
-	bool IsEnum = 0, IsClass, IsStruct;
+	bool IsEnum = 0, IsClass = false, IsStruct = false;
 	bool FnEmit = false;	// don't emit functions between a f(n) and the next '{'
 							// they are only parent class initializers
 
@@ -316,16 +316,10 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 					{
 						// Typedef
 						skipws(s);
-						if
-						(
-							(
-								IsStruct = !Strnicmp(StrStruct, s, StrlenW(StrStruct))
-							)
-							||
-							(
-								IsClass = !Strnicmp(StrClass, s, StrlenW(StrClass))
-							)
-						)
+						
+						IsStruct = !Strnicmp(StrStruct, s, StrlenW(StrStruct));
+						IsClass = !Strnicmp(StrClass, s, StrlenW(StrClass));
+						if (IsStruct || IsClass)
 						{
 							Start = s;
 							goto DefineStructClass;

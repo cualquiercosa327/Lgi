@@ -24,7 +24,7 @@ public:
 
 	GRect Title;
 	#if MDI_TAB_STYLE
-	GRect Tab;
+	GRect Tab, Btn;
 	int Order;
 	#else
 	GRect Close;
@@ -108,12 +108,14 @@ class GMdiParentPrivate
 {
 public:
 	bool InOnPosChange;
+	bool Btn;
 	GRect Tabs;
 	GRect Content;
 	::GArray<GMdiChild*> Children;
 	
 	GMdiParentPrivate()
 	{
+		Btn = false;
 		InOnPosChange = false;
 		Tabs.ZOff(-1, -1);
 		Content.ZOff(-1, -1);
@@ -262,6 +264,33 @@ void GMdiChild::OnTitleClick(GMouse &m)
 	{
 		Raise();
 	}
+}
+
+void GMdiChild::OnButtonClick(GMouse &m)
+{
+	if (m.Down())
+	{
+		if (OnRequestClose(false))
+		{
+			Quit();
+		}
+	}
+}
+
+void GMdiChild::OnPaintButton(GSurface *pDC, GRect &rc)
+{
+	// Default: Draw little 'x' for closing the MDI child
+	GRect r = rc;
+	pDC->Colour(GColour(192,192,192));
+	
+	r.Size(3, 3);
+	pDC->Line(r.x1, r.y1, r.x2, r.y2);
+	pDC->Line(r.x1+1, r.y1, r.x2, r.y2-1);
+	pDC->Line(r.x1, r.y1+1, r.x2-1, r.y2);
+
+	pDC->Line(r.x2, r.y1, r.x1, r.y2);
+	pDC->Line(r.x2-1, r.y1, r.x1, r.y2-1);
+	pDC->Line(r.x2, r.y1+1, r.x1+1, r.y2);
 }
 
 #if MDI_TAB_STYLE
@@ -680,6 +709,18 @@ GMdiParent::~GMdiParent()
 	DeleteObj(d);
 }
 
+bool GMdiParent::HasButton()
+{
+	return d->Btn;
+}
+
+void GMdiParent::HasButton(bool b)
+{
+	d->Btn = b;
+	if (IsAttached())
+		Invalidate();
+}
+
 #if MDI_TAB_STYLE
 int ViewCmp(GMdiChild **a, GMdiChild **b)
 {
@@ -721,9 +762,18 @@ void GMdiParent::OnPaint(GSurface *pDC)
 		bool Active = c == Last;
 		
 		GDisplayString ds(GetFont(), c->Name());
-		c->d->Tab.ZOff(ds.X()+1, d->Tabs.y2-1);
+		int BtnWidth = d->Btn ? ds.Y()-4 : 0;
+		c->d->Tab.ZOff(ds.X()+BtnWidth+1, d->Tabs.y2-1);
 		c->d->Tab.Offset(d->Tabs.x1 + Cx, d->Tabs.y1);
-		c->d->Tab.x2 += MarginPx * 2;
+		c->d->Tab.x2 += MarginPx * 2 - 2;
+		if (d->Btn)
+		{
+			c->d->Btn = c->d->Tab;
+			c->d->Btn.Size(2, 2);
+			c->d->Btn.x1 = c->d->Btn.x2 - BtnWidth + 1;
+			c->d->Btn.Offset(-2, 0);
+		}
+		else c->d->Btn.ZOff(-1, -1);
 		
 		c->Visible(Active);
 		GColour Bk(Active ? LC_WORKSPACE : LC_MED, 24);
@@ -760,6 +810,7 @@ void GMdiParent::OnPaint(GSurface *pDC)
 		GRect txt = r;
 		txt.x1 += OffX - 1;
 		ds.Draw(pDC, r.x1 + MarginPx + 2, r.y1, &txt);
+		c->OnPaintButton(pDC, c->d->Btn);
 		
 		Cx += c->d->Tab.X();
 	}
@@ -873,7 +924,13 @@ void GMdiParent::OnMouseClick(GMouse &m)
 		for (int i=0; i<Views.Length(); i++)
 		{
 			GMdiChild *c = Views[i];
-			if (c->d->Tab.Overlap(m.x, m.y))
+
+			if (c->d->Btn.Overlap(m.x, m.y))
+			{
+				c->OnButtonClick(m);
+				break;
+			}
+			else if (c->d->Tab.Overlap(m.x, m.y))
 			{
 				c->OnTitleClick(m);
 				break;

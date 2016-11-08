@@ -35,6 +35,8 @@ public:
 	virtual void Raise();
 	virtual void Lower();
 	virtual void OnTitleClick(GMouse &m);
+	virtual void OnButtonClick(GMouse &m);
+	virtual void OnPaintButton(GSurface *pDC, GRect &rc);
 };
 
 class GMdiParent : public GLayout
@@ -52,6 +54,9 @@ public:
 	~GMdiParent();
 	
 	const char *GetClass() { return "GMdiParent"; }
+
+	bool HasButton();
+	void HasButton(bool b);
 
 	void OnPaint(GSurface *pDC);
 	bool Attach(GViewI *p);
