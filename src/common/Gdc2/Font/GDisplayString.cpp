@@ -1959,7 +1959,7 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc, bool Debug
 	    if (VisibleTab && Str)
 	    {
 			GUtf8Str Ptr(Str);
-			pDC->Colour(f->WhitespaceColour());
+			pDC->Colour(Font->WhitespaceColour());
 			
 	    	for (int32 u, Idx = 0; u = Ptr; Idx++)
 	    	{
