@@ -25,6 +25,7 @@
 	//	2nd
 
 #define DEBUG_CHAR_AT				0
+#define WHITESPACE_WEIGHT			0.15f // amount of foreground colour in visible whitespace
 
 #if defined(__GTK_H__) || (defined(MAC) && !defined(COCOA) && !defined(LGI_SDL))
 #define DISPLAY_STRING_FRACTIONAL_NATIVE	1
@@ -1916,7 +1917,9 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc, bool Debug
 	    if (VisibleTab && Str)
 	    {
 			GUtf8Str Ptr(Str);
-			pDC->Colour(GColour(192,192,192));
+			GColour c = Font->Fore();
+			pDC->Colour(b.Mix(c, WHITESPACE_WEIGHT));
+			
 	    	for (int32 u, Idx = 0; u = Ptr; Idx++)
 	    	{
 	    		if (IsTabChar(u) || u == ' ')
@@ -1931,10 +1934,10 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc, bool Debug
 						r.Size(3, 3);
 						if (r.Y()/2 == 0)
 							r.y2++;
-						int Cy = r.y1 + (r.Y() >> 1);
-						pDC->Line(r.x1, Cy, r.x2, Cy);
-						pDC->Line(r.x2, Cy, r.x2-Cy, r.y1);
-						pDC->Line(r.x2, Cy, r.x2-Cy, r.y2);
+						int Cy = (r.Y() >> 1);
+						pDC->Line(r.x1, r.y1+Cy, r.x2, r.y1+Cy);
+						pDC->Line(r.x2, r.y1+Cy, r.x2-Cy, r.y1);
+						pDC->Line(r.x2, r.y1+Cy, r.x2-Cy, r.y2);
 					}
 					else
 					{

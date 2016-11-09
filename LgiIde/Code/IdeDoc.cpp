@@ -19,6 +19,8 @@ const char *Untitled = "[untitled]";
 static const char *White = " \r\t\n";
 
 #define USE_OLD_FIND_DEFN	1
+#define POPUP_WIDTH			700 // px
+#define POPUP_HEIGHT		350 // px
 
 #define EDIT_TRAY_HEIGHT	(SysFont->GetHeight() + 10)
 #define EDIT_LEFT_MARGIN	16 // gutter for debug break points
@@ -533,7 +535,7 @@ class ProjMethodPopup : public GPopupList<DefnInfo>
 public:
 	GArray<DefnInfo> All;
 
-	ProjMethodPopup(AppWnd *app, GViewI *target) : GPopupList(target, PopupAbove, 300)
+	ProjMethodPopup(AppWnd *app, GViewI *target) : GPopupList(target, PopupAbove, POPUP_WIDTH)
 	{
 		App = app;
 	}
@@ -597,7 +599,7 @@ class ProjSymPopup : public GPopupList<FindSymResult>
 public:
 	GArray<FindSymResult*> All;
 
-	ProjSymPopup(AppWnd *app, IdeDoc *doc, GViewI *target) : GPopupList(target, PopupAbove, 500)
+	ProjSymPopup(AppWnd *app, IdeDoc *doc, GViewI *target) : GPopupList(target, PopupAbove, POPUP_WIDTH)
 	{
 		App = app;
 		Doc = doc;
@@ -682,7 +684,7 @@ class ProjFilePopup : public GPopupList<ProjectNode>
 public:
 	GArray<ProjectNode*> Nodes;
 
-	ProjFilePopup(AppWnd *app, GViewI *target) : GPopupList(target, PopupAbove, 300)
+	ProjFilePopup(AppWnd *app, GViewI *target) : GPopupList(target, PopupAbove, POPUP_WIDTH)
 	{
 		App = app;
 	}
