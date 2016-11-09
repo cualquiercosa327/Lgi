@@ -889,7 +889,7 @@ GAutoString IdeProject::GetFullPath()
 	GAutoString Status;
 	if (!d->FileName)
 	{
-		LgiAssert(!"No path.");
+		// LgiAssert(!"No path.");
 		return Status;
 	}
 
@@ -945,6 +945,7 @@ void IdeProject::CreateProject()
 		f->SetType(NodeDir);
 		InsertTag(f);
 	}
+	
 	f = new ProjectNode(this);
 	if (f)
 	{
@@ -952,6 +953,11 @@ void IdeProject::CreateProject()
 		f->SetType(NodeDir);
 		InsertTag(f);
 	}
+	
+	d->Settings.Set(ProjEditorTabSize, 4);
+	d->Settings.Set(ProjEditorIndentSize, 4);
+	d->Settings.Set(ProjEditorUseHardTabs, true);
+	
 	d->Dirty = true;
 	Expanded(true);	
 }

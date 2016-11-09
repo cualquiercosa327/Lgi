@@ -329,9 +329,39 @@ void GView::OnAttach()
 	List<GViewI>::I it = Children.Start();
 	for (GViewI *v = *it; v; v = *++it)
 	{
+
 		if (!v->GetParent())
 			v->SetParent(this);
 	}
+
+	#if defined __GTK_H__
+	if (_View && !DropTarget())
+	{
+		// If one of our parents is drop capable we need to set a dest here
+		GViewI *p;
+		for (p = GetParent(); p; p = p->GetParent())
+		{
+			if (p->DropTarget())
+			{
+				break;
+			}
+		}
+		if (p)
+		{
+			Gtk::gtk_drag_dest_set(	_View,
+									(Gtk::GtkDestDefaults)0,
+									NULL,
+									0,
+									Gtk::GDK_ACTION_DEFAULT);
+			// printf("%s:%i - Drop dest for '%s'\n", _FL, GetClass());
+		}
+		else
+		{
+			Gtk::gtk_drag_dest_unset(_View);
+			// printf("%s:%i - Not setting drop dest '%s'\n", _FL, GetClass());
+		}
+	}
+	#endif
 }
 
 void GView::OnCreate()
@@ -1183,6 +1213,39 @@ GDragDropTarget *GView::DropTarget(GDragDropTarget *Set)
 extern pascal OSStatus LgiViewDndHandler(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, void *inUserData);
 #endif
 
+#if defined __GTK_H__
+// Recursively add drag dest to all view and all children
+bool GtkAddDragDest(GViewI *v, bool IsTarget)
+{
+	if (!v->Handle())
+		return false;
+
+	if (IsTarget)
+	{
+		Gtk::gtk_drag_dest_set(	v->Handle(),
+								(Gtk::GtkDestDefaults)0,
+								NULL,
+								0,
+								Gtk::GDK_ACTION_DEFAULT);
+	}
+	else
+	{
+		Gtk::gtk_drag_dest_unset(v->Handle());
+	}
+	
+	GAutoPtr<GViewIterator> it(v->IterateViews());
+	if (it)
+	{
+		for (GViewI *c = it->First(); c; c = it->Next())
+		{
+			GtkAddDragDest(c, IsTarget);
+		}
+	}	
+	
+	return true;
+}
+#endif
+
 bool GView::DropTarget(bool t)
 {
 	ThreadCheck();
@@ -1258,36 +1321,9 @@ bool GView::DropTarget(bool t)
 	#endif
 
 	#elif defined __GTK_H__
-	if (_View)
-	{
-		if (t)
-		{
-			Gtk::GtkTargetEntry targets[] =
-			{
-				{ "STRING",							0, 0 },
-				{ "text/plain",						0, 0 },
-				{ "text/uri-list",					0, 0 },
-				{ "application/x-rootwindow-drop",	0, 0 },
-			};
-
-			Gtk::gtk_drag_dest_set(	_View,
-									(Gtk::GtkDestDefaults)0,
-									#if 1
-									NULL,
-									0,
-									#else
-									targets,
-									CountOf(targets),
-									#endif
-									Gtk::GDK_ACTION_DEFAULT);
-		}
-		else
-		{
-			Gtk::gtk_drag_dest_unset(_View);
-		}
-		
-		Status = true;
-	}
+	Status = GtkAddDragDest(this, t);
+	if (Status && !d->DropTarget)
+		d->DropTarget = t ? GetWindow() : 0;
 	#endif
 
 	return Status;

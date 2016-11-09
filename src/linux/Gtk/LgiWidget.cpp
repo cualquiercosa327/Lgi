@@ -444,10 +444,23 @@ lgi_widget_drag_motion(GtkWidget	   *widget,
 		return false;
 	}
 	
-	GDragDropTarget *Target = v->target->DropTarget();
+	GViewI *view = v->target;
 	#if DEBUG_DND
-	printf("%s:%i - DragMotion %p\n", _FL, Target);
+	printf("%s:%i - DragMotion %s\n", _FL, view->GetClass());
 	#endif
+
+	GDragDropTarget *Target = view->DropTarget();
+	while (view && !Target)
+	{
+		view = view->GetParent();
+		if (!view)
+			break;
+		Target = view->DropTarget();
+		#if DEBUG_DND
+		printf("\t%s = %p\n", view->GetClass(), Target);
+		#endif
+	}
+	
 	if (!Target)
 	{
 		#if DEBUG_DND
@@ -508,10 +521,19 @@ lgi_widget_drag_drop(GtkWidget	       *widget,
 		return false;
 	}
 	
-	GDragDropTarget *Target = v->target->DropTarget();
+	GViewI *view = v->target;
+	GDragDropTarget *Target = view->DropTarget();
+	while (view && !Target)
+	{
+		view = view->GetParent();
+		if (view)
+			Target = view->DropTarget();
+	}
 	if (!Target)
 	{
+		#if DEBUG_DND
 		printf("%s:%i - View '%s' doesn't have drop target.\n", _FL, v->target->GetClass());
+		#endif
 		return false;
 	}
 
@@ -533,7 +555,9 @@ lgi_widget_drag_drop(GtkWidget	       *widget,
 	char *drop_format = Formats.First();
 	Formats.Delete(drop_format);
 	Formats.DeleteArrays();
-	// LgiTrace("lgi_widget_drag_drop, fmt=%s\n", drop_format);
+	#if DEBUG_DND
+	LgiTrace("lgi_widget_drag_drop, fmt=%s\n", drop_format);
+	#endif
 
 	// Request the data...
 	gtk_drag_get_data
@@ -567,10 +591,19 @@ lgi_widget_drag_data_received(	GtkWidget			*widget,
 		return;
 	}
 	
-	GDragDropTarget *Target = v->target->DropTarget();
+	GViewI *view = v->target;
+	GDragDropTarget *Target = view->DropTarget();
+	while (view && !Target)
+	{
+		view = view->GetParent();
+		if (view)
+			Target = view->DropTarget();
+	}
 	if (!Target)
 	{
+		#if DEBUG_DND
 		printf("%s:%i - View '%s' doesn't have drop target.\n", _FL, v->target->GetClass());
+		#endif
 		return;
 	}
 	

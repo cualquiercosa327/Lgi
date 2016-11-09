@@ -6,6 +6,7 @@
 //
 //
 #include "Lgi.h"
+#include "INet.h"
 
 void GWindow::MoveOnScreen()
 {
@@ -160,38 +161,41 @@ int GWindow::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 		if (dd.IsFileDrop())
 		{
 			GArray<char*> Files;
-			GArray< GAutoString > Uri;
+			GString::Array Uri;
 			
 			for (unsigned n=0; n<dd.Data.Length(); n++)
 			{
 				GVariant *Data = &dd.Data[n];
 				if (Data->IsBinary())
 				{
-					Uri[0].Reset( NewStr((char*)Data->Value.Binary.Data, Data->Value.Binary.Length) );
+					Uri.New().Set((char*)Data->Value.Binary.Data, Data->Value.Binary.Length);
 				}
 				else if (Data->Str())
 				{
-					Uri[0].Reset( NewStr(Data->Str()) );
+					Uri.New() = Data->Str();
 				}
 				else if (Data->Type == GV_LIST)
 				{
 					for (GVariant *v=Data->Value.Lst->First(); v; v=Data->Value.Lst->Next())
 					{
 						char *f = v->Str();
-						Uri.New().Reset(NewStr(f));
+						Uri.New() = f;
 					}
 				}
 			}
 			
 			for (int i=0; i<Uri.Length(); i++)
 			{
-				char *File = Uri[i].Get();
+				char *File = Uri[i].Strip().Get();
+				GUri u(File);
+				/*
 				if (strnicmp(File, "file:", 5) == 0)
 					File += 5;
 				if (strnicmp(File, "//localhost", 11) == 0)
 					File += 11;
+				*/
 				
-				char *in = File, *out = File;
+				char *in = u.Path, *out = u.Path;
 				while (*in)
 				{
 					if (in[0] == '%' &&
@@ -209,9 +213,9 @@ int GWindow::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 				}
 				*out++ = 0;
 				
-				if (FileExists(File))
+				if (FileExists(u.Path))
 				{
-					Files.Add(NewStr(File));
+					Files.Add(NewStr(u.Path));
 				}
 			}
 			

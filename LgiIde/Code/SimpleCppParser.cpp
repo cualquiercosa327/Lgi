@@ -1,7 +1,7 @@
 #include "Lgi.h"
 #include "SimpleCppParser.h"
 
-// #define DEBUG_FILE		"IdeProject.h"
+// #define DEBUG_FILE		"dcm_license.c"
 // #define DEBUG_LINE		43
 
 bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int LimitTo, bool Debug)
