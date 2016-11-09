@@ -58,7 +58,8 @@ bool StringConvert(Out *&out, uint32 *OutLen, const In *in, int InLen)
 
 //////////////////////////////////////////////////////////////////////
 #define SubtractPtr(a, b)			(	(((NativeInt)(a))-((NativeInt)(b))) / sizeof(*a)	)
-#define IsTabChar(c)				(c == '\t' || (c == 0x2192 && VisibleTab))
+#define VisibleTabChar				0x2192
+#define IsTabChar(c)				(c == '\t') // || (c == VisibleTabChar && VisibleTab))
 
 static OsChar GDisplayStringDots[] = {'.', '.', '.', 0};
 
@@ -1911,6 +1912,40 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc, bool Debug
 								    (double)f.g()/255.0,
 								    (double)f.b()/255.0);
 	    Gtk::pango_cairo_show_layout(cr, Hnd);
+	    
+	    if (VisibleTab && Str)
+	    {
+			GUtf8Str Ptr(Str);
+			pDC->Colour(GColour(192,192,192));
+	    	for (int32 u, Idx = 0; u = Ptr; Idx++)
+	    	{
+	    		if (IsTabChar(u) || u == ' ')
+	    		{
+	    			Gtk::PangoRectangle pos;
+					Gtk::pango_layout_index_to_pos(Hnd, Idx, &pos);
+					GRect r(0, 0, pos.width / FScale, pos.height / FScale);
+					r.Offset(Dx + (pos.x / FScale), Dy + (pos.y / FScale));
+					
+					if (IsTabChar(u))
+					{
+						r.Size(3, 3);
+						if (r.Y()/2 == 0)
+							r.y2++;
+						int Cy = r.y1 + (r.Y() >> 1);
+						pDC->Line(r.x1, Cy, r.x2, Cy);
+						pDC->Line(r.x2, Cy, r.x2-Cy, r.y1);
+						pDC->Line(r.x2, Cy, r.x2-Cy, r.y2);
+					}
+					else
+					{
+						int x = r.x1 + (r.X()>>1) - 1;
+						int Cy = r.y1 + Font->Ascent() - 2;
+						pDC->Rectangle(x, Cy, x+1, Cy+1);
+					}
+				}
+				Ptr++;
+	    	}
+	    }
 	}
 	
 	Gtk::cairo_restore(cr);

@@ -413,7 +413,7 @@ GTextView3::~GTextView3()
 
 char16 *GTextView3::MapText(char16 *Str, int Len, bool RtlTrailingSpace)
 {
-	if (ObscurePassword || ShowWhiteSpace || RtlTrailingSpace)
+	if (ObscurePassword /*|| ShowWhiteSpace*/ || RtlTrailingSpace)
 	{
 		if (Len > d->MapLen)
 		{
@@ -441,6 +441,7 @@ char16 *GTextView3::MapText(char16 *Str, int Len, bool RtlTrailingSpace)
 					d->MapBuf[n++] = '*';
 				}
 			}
+			/*
 			else if (ShowWhiteSpace)
 			{
 				for (int i=0; i<Len; i++)
@@ -459,6 +460,7 @@ char16 *GTextView3::MapText(char16 *Str, int Len, bool RtlTrailingSpace)
 					}
 				}
 			}
+			*/			
 
 			return d->MapBuf;
 		}
