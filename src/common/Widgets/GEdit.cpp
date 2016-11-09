@@ -80,8 +80,11 @@ void GEdit::SendNotify(int Data)
 {
 	if (Data == GNotifyDocChanged)
 		return GTextView3::SendNotify(0);
-	else if (Data == VK_RETURN)
+	else if (Data == VK_RETURN ||
+			Data == GNotify_EscapeKey)
 		return GTextView3::SendNotify(Data);
+	else
+		printf("%s:%i - Unsupported notify type: %i\n", _FL, Data);
 }
 
 bool GEdit::GetSelection(int &Start, int &Len)

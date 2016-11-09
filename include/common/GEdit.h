@@ -87,7 +87,7 @@ public:
 	#else
 	bool Paste();
 	void OnEnter(GKey &k);
-	void SendNotify(int Data);
+	void SendNotify(int Data = 0);
 	bool OnLayout(GViewLayoutInfo &Inf) { return false; }
     void OnPaint(GSurface *pDC);
 	#endif

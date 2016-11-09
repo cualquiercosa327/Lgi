@@ -37,6 +37,7 @@ public:
 	static void ClearCurrentIp();
 	bool IsCurrentIp();
 	void GotoSearch(int CtrlId);
+	void SearchSymbol();
 
 	// Source tools
 	bool BuildIncludePaths(GArray<GString> &Paths, IdePlatform Platform, bool IncludeSysPaths);

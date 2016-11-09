@@ -2456,6 +2456,15 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			}
 			break;
 		}
+		case IDM_GOTO_SYMBOL:
+		{
+			IdeDoc *Doc = FocusDoc();
+			if (Doc)
+			{
+				Doc->SearchSymbol();
+			}
+			break;
+		}
 		case IDM_FIND_REFERENCES:
 		{
 			LgiMsg(this, "Not implemented yet.", AppName);

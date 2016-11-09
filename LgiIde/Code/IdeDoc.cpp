@@ -68,24 +68,30 @@ public:
 	{
 	}
 	
-	void GotoSearch(int CtrlId)
+	void GotoSearch(int CtrlId, char *InitialText = NULL)
 	{
 		if (FuncSearch && FuncSearch->GetId() == CtrlId)
 		{
-			FuncSearch->Name(NULL);
+			FuncSearch->Name(InitialText);
 			FuncSearch->Focus(true);
+			if (InitialText)
+				FuncSearch->SendNotify(GNotifyDocChanged);
 		}
 
 		if (FileSearch && FileSearch->GetId() == CtrlId)
 		{
-			FileSearch->Name(NULL);
+			FileSearch->Name(InitialText);
 			FileSearch->Focus(true);
+			if (InitialText)
+				FileSearch->SendNotify(GNotifyDocChanged);
 		}
 		
 		if (SymSearch && SymSearch->GetId() == CtrlId)
 		{
-			SymSearch->Name(NULL);
+			SymSearch->Name(InitialText);
 			SymSearch->Focus(true);
+			if (InitialText)
+				SymSearch->SendNotify(GNotifyDocChanged);
 		}
 	}
 	
@@ -173,12 +179,6 @@ public:
 	void OnSymbolList(GMouse &m);
 };
 
-char *Leaf(char *Path)
-{
-	char *d = strrchr(Path, DIR_CHAR);
-	return d ? d + 1 : Path;
-}
-
 void EditTray::OnHeaderList(GMouse &m)
 {
 	// Header list button
@@ -205,7 +205,7 @@ void EditTray::OnHeaderList(GMouse &m)
 					for (int i=0; i<Headers.Length(); i++)
 					{
 						char *h = Headers[i];
-						char *f = Leaf(h);
+						char *f = LgiGetLeaf(h);
 						
 						Map.Add(h, i + 1);
 						
@@ -224,8 +224,8 @@ void EditTray::OnHeaderList(GMouse &m)
 					{
 						if (Letters[i].Length() > 1)
 						{
-							char *First = Leaf(Letters[i][0]);
-							char *Last = Leaf(Letters[i].Last());
+							char *First = LgiGetLeaf(Letters[i][0]);
+							char *Last = LgiGetLeaf(Letters[i].Last());
 
 							char Title[256];
 							sprintf_s(Title, sizeof(Title), "%s - %s", First, Last);
@@ -237,7 +237,7 @@ void EditTray::OnHeaderList(GMouse &m)
 									char *h = Letters[i][n];
 									int Id = Map.Find(h);
 									LgiAssert(Id > 0);
-									sub->AppendItem(Leaf(h), Id, true);
+									sub->AppendItem(LgiGetLeaf(h), Id, true);
 								}
 							}
 						}
@@ -246,7 +246,7 @@ void EditTray::OnHeaderList(GMouse &m)
 							char *h = Letters[i][0];
 							int Id = Map.Find(h);
 							LgiAssert(Id > 0);
-							s->AppendItem(Leaf(h), Id, true);
+							s->AppendItem(LgiGetLeaf(h), Id, true);
 						}
 					}
 
@@ -257,7 +257,7 @@ void EditTray::OnHeaderList(GMouse &m)
 							char *h = Other[n];
 							int Id = Map.Find(h);
 							LgiAssert(Id > 0);
-							s->AppendItem(Leaf(h), Id, true);
+							s->AppendItem(LgiGetLeaf(h), Id, true);
 						}
 					}
 				}
@@ -266,7 +266,7 @@ void EditTray::OnHeaderList(GMouse &m)
 					for (int i=0; i<Headers.Length(); i++)
 					{
 						char *h = Headers[i];
-						char *f = Leaf(h);
+						char *f = LgiGetLeaf(h);
 						
 						Map.Add(h, i + 1);
 					}
@@ -276,7 +276,7 @@ void EditTray::OnHeaderList(GMouse &m)
 						char *h = Headers[i];
 						int Id = Map.Find(h);
 						if (Id > 0)
-							s->AppendItem(Leaf(h), Id, true);
+							s->AppendItem(LgiGetLeaf(h), Id, true);
 						else
 							LgiTrace("%s:%i - Failed to get id for '%s' (map.len=%i)\n", _FL, h, Map.Length());
 					}
@@ -352,6 +352,7 @@ void EditTray::OnFunctionList(GMouse &m)
 					
 					a[n] = i;
 					s->AppendItem(Buf, n+1, true);
+					printf("Append '%s' as %i\n", Buf, n+1);
 				}
 			}
 			
@@ -360,6 +361,7 @@ void EditTray::OnFunctionList(GMouse &m)
 			int Goto = s->Float(this, p.x, p.y, true);
 			if (Goto)
 			{
+				printf("Goto=%i\n", Goto);
 				DefnInfo *Info = a[Goto-1];
 				if (Info)
 				{
@@ -1582,6 +1584,41 @@ void IdeDoc::GotoSearch(int CtrlId)
 		d->Tray->GotoSearch(CtrlId);
 }
 
+#define IsVariableChar(ch) \
+	( \
+		IsAlpha(ch) \
+		|| \
+		IsDigit(ch) \
+		|| \
+		strchr("-_", ch) != NULL \
+	)
+
+void IdeDoc::SearchSymbol()
+{
+	if (!d->Edit || !d->Tray)
+	{
+		LgiAssert(0);
+		return;
+	}
+	
+	int Cur = d->Edit->GetCursor();
+	char16 *Txt = d->Edit->NameW();
+	if (Cur >= 0 &&
+		Txt != NULL)
+	{
+		int Start = Cur;
+		while (	Start > 0 &&
+				IsVariableChar(Txt[Start-1]))
+			Start--;
+		int End = Cur;
+		while (	Txt[End] &&
+				IsVariableChar(Txt[End]))
+			End++;
+		GString Word(Txt + Start, End - Start);
+		d->Tray->GotoSearch(IDC_SYMBOL_SEARCH, Word);
+	}
+}
+
 bool IdeDoc::IsCurrentIp()
 {
 	char *Fn = GetFileName();
@@ -1694,6 +1731,8 @@ GMessage::Result IdeDoc::OnEvent(GMessage *Msg)
 
 int IdeDoc::OnNotify(GViewI *v, int f)
 {
+	// printf("IdeDoc::OnNotify(%i, %i)\n", v->GetId(), f);
+	
 	switch (v->GetId())
 	{
 		case IDC_EDIT:
