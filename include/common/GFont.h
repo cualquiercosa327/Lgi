@@ -72,6 +72,7 @@
 
 #endif
 
+#define LGI_WHITESPACE_WEIGHT			0.15f // amount of foreground colour in visible whitespace
 #define MAX_UNICODE						0xffff // maximum unicode char I can handle
 #define _HasUnicodeGlyph(map, u)		( (map[(u)>>3] & (1 << ((u) & 7))) != 0  )
 

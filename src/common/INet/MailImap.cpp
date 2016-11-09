@@ -667,7 +667,7 @@ void MailImapFolder::SetName(char *s)
 }
 
 /////////////////////////////////////////////
-class MailIMapPrivate
+class MailIMapPrivate : public GMutex
 {
 public:
 	int NextCmd;
@@ -681,8 +681,10 @@ public:
 	MailIMap::OAuthParams OAuth;
 	GViewI *ParentWnd;
 	bool *LoopState;
+	OsThreadId InCommand;
+	GString LastWrite;
 
-	MailIMapPrivate()
+	MailIMapPrivate() : GMutex("MailImapSem")
 	{
 		ParentWnd = NULL;
 		LoopState = NULL;
@@ -692,6 +694,7 @@ public:
 		ExpungeOnExit = true;
 		Current = 0;
 		Flags = 0;
+		InCommand = 0;
 	}
 
 	~MailIMapPrivate()
@@ -701,7 +704,7 @@ public:
 	}
 };
 
-MailIMap::MailIMap() : GMutex("MailImapSem")
+MailIMap::MailIMap()
 {
 	d = new MailIMapPrivate;
 	Buffer[0] = 0;
@@ -715,6 +718,26 @@ MailIMap::~MailIMap()
 		ClearUid();
 		DeleteObj(d);
 	}
+}
+
+bool MailIMap::Lock(const char *file, int line)
+{
+	if (!d->Lock(file, line))
+		return false;
+	return true;
+}
+
+bool MailIMap::LockWithTimeout(int Timeout, const char *file, int line)
+{
+	if (!d->LockWithTimeout(Timeout, file, line))
+		return false;
+	return true;
+}
+
+void MailIMap::Unlock()
+{
+	d->Unlock();
+	d->InCommand = 0;
 }
 
 void MailIMap::SetLoopState(bool *LoopState)
@@ -780,13 +803,30 @@ void MailIMap::ClearDialog()
 	}
 }
 
-bool MailIMap::WriteBuf(bool ObsurePass, const char *Buffer)
+bool MailIMap::WriteBuf(bool ObsurePass, const char *Buffer, bool Continuation)
 {
 	if (Socket)
 	{
-		if (!Buffer) Buffer = Buf;
+		if (!Buffer)
+			Buffer = Buf;
 
 		int Len = strlen(Buffer);
+		d->LastWrite = Buffer;
+		if (!Continuation && d->InCommand)
+		{
+			GString Msg;
+			Msg.Printf("%s:%i - WriteBuf failed(%s)\n", LgiGetLeaf(__FILE__), __LINE__, d->LastWrite.Strip().Get());
+			Socket->OnInformation(Msg);
+
+			LgiAssert(!"Can't be issuing new commands while others are still running.");
+			return false;
+		}
+		else
+		{
+			GString Msg;
+			Msg.Printf("%s:%i - WriteBuf ok(%s)\n", LgiGetLeaf(__FILE__), __LINE__, d->LastWrite.Strip().Get());
+			Socket->OnInformation(Msg);
+		}
 
 		if (Socket->Write((void*)Buffer, Len, 0) == Len)
 		{
@@ -802,6 +842,8 @@ bool MailIMap::WriteBuf(bool ObsurePass, const char *Buffer)
 				}
 			}
 			else Log(Buffer, GSocketI::SocketMsgSend);
+			
+			d->InCommand = LgiGetCurrentThread();
 
 			return true;
 		}
@@ -1100,6 +1142,16 @@ static void AddIfMissing(GArray<GString> &Auths, const char *a, GString *Default
 	if (DefaultAuthType) *DefaultAuthType = Auths.Last();
 }
 
+void MailIMap::CommandFinished()
+{
+	GString Msg;
+	Msg.Printf("%s:%i - CommandFinished(%s)\n", LgiGetLeaf(__FILE__), __LINE__, d->LastWrite.Strip().Get());
+	Socket->OnInformation(Msg);
+
+	d->InCommand = 0;
+	d->LastWrite.Empty();
+}
+
 bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *Password, GDom *SettingStore, int Flags)
 {
 	bool Status = false;
@@ -1150,7 +1202,9 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 			sprintf_s(Buf, sizeof(Buf), "A%4.4i CAPABILITY\r\n", CapCmd);
 			if (WriteBuf())
 			{
-				if (ReadResponse(CapCmd))
+				bool Rd = ReadResponse(CapCmd);
+				CommandFinished();
+				if (Rd)
 				{
 					for (char *r=Dialog.First(); r; r=Dialog.Next())
 					{
@@ -1226,10 +1280,12 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 				if (TestFlag(Flags, MAIL_USE_STARTTLS))
 				{
 					int CapCmd = d->NextCmd++;
-					sprintf_s(Buf, sizeof(Buf), "A%4.4i STARTTLS\r\n", CapCmd);
+					sprintf_s(Buf, sizeof(Buf), "A%4.4i STARTTLS\r\n", CapCmd);					
 					if (WriteBuf())
 					{
-						if (ReadResponse(CapCmd))
+						bool Rd = ReadResponse(CapCmd);
+						CommandFinished();
+						if (Rd)
 						{
 							GVariant v;
 							TlsError = !Socket->SetValue(GSocket_Protocol, v="SSL");
@@ -1306,6 +1362,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 						if (WriteBuf(true))
 						{
 							LoggedIn = ReadResponse(AuthCmd);
+							CommandFinished();
 						}
 					}
 					else if (_stricmp(AuthType, "PLAIN") == 0)
@@ -1331,10 +1388,11 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 							{
 								int b = ConvertBinaryToBase64(Buf, sizeof(Buf), (uchar*)s, Len);
 								strcpy_s(Buf+b, sizeof(Buf)-b, "\r\n");
-
-								if (WriteBuf())
+								if (WriteBuf(false, NULL, true))
 								{
-									if (ReadResponse(AuthCmd))
+									bool Rd = ReadResponse(AuthCmd);
+									CommandFinished();
+									if (Rd)
 									{
 										LoggedIn = true;
 									}
@@ -1407,7 +1465,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 									int negotiateLen = SmbLength(&negotiate);
 									int c = ConvertBinaryToBase64(Buf, sizeof(Buf), (uchar*)&negotiate, negotiateLen);
 									strcpy_s(Buf+c, sizeof(Buf)-c, "\r\n");
-									WriteBuf();
+									WriteBuf(false, NULL, true);
 
 									/* read challange data from server, convert from base64 */
 
@@ -1475,12 +1533,14 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 										ZeroObj(Buf);
 										c = ConvertBinaryToBase64(Buf, sizeof(Buf), (uchar*) &response, SmbLength(&response));
 										strcat(Buf, "\r\n");
-										WriteBuf();
+										WriteBuf(false, NULL, true);
 
 										/* read line from server, it should be "[seq] OK blah blah blah" */
 										LoggedIn = ReadResponse(AuthCmd);
 									}
 								}
+
+								CommandFinished();
 							}
 						}
 
@@ -1496,7 +1556,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 							if (ReadResponse(AuthCmd))
 							{
 								char *TestCnonce = 0;
-
+								
 								#if 0
 								// Test case
 								strcpy(Buf, "+ cmVhbG09ImVsd29vZC5pbm5vc29mdC5jb20iLG5vbmNlPSJPQTZNRzl0RVFHbTJoaCIscW9wPSJhdXRoIixhbGdvcml0aG09bWQ1LXNlc3MsY2hhcnNldD11dGYtOA==");
@@ -1611,7 +1671,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 										LgiAssert(Chars < sizeof(Buf));
 										strcpy_s(Buf+Chars, sizeof(Buf)-Chars, "\r\n");
 										
-										if (WriteBuf() && Read())
+										if (WriteBuf(false, NULL, true) && Read())
 										{
 											for (char *Dlg = Dialog.First(); Dlg; Dlg=Dialog.Next())
 											{
@@ -1619,7 +1679,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 												{
 													Log(Dlg, GSocketI::SocketMsgReceive);
 													strcpy_s(Buf, sizeof(Buf), "\r\n");
-													if (WriteBuf())
+													if (WriteBuf(false, NULL, true))
 													{
 														LoggedIn = ReadResponse(AuthCmd);
 													}
@@ -1636,6 +1696,8 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 									}
 								}
 							}
+							
+							CommandFinished();
 						}
 					}
 					else if (!_stricmp(AuthType, "XOAUTH2"))
@@ -1928,7 +1990,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 										int StatusCode = t.GetAsInt("status");
 
 										sprintf_s(Buf, sizeof(Buf), "\r\n");
-										WriteBuf();
+										WriteBuf(false, NULL, true);
 										
 										if (StatusCode == 400)
 										{
@@ -1958,6 +2020,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 									}
 								}
 							}
+							CommandFinished();
 						}
 						
 						if (!LoggedIn && SettingStore)
@@ -2017,6 +2080,7 @@ bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *P
 								}
 							}
 						}
+						CommandFinished();
 					}
 				}
 				else
@@ -2050,6 +2114,7 @@ bool MailIMap::Close()
 		{
 			Status = true;
 		}
+		CommandFinished();
 		Unlock();
 	}
 	return Status;
@@ -2125,6 +2190,7 @@ bool MailIMap::SelectFolder(const char *Path, GHashTbl<const char*,int> *Values)
 				d->Current = NewStr(Path);
 				ClearDialog();
 			}
+			CommandFinished();
 		}
 		
 		Unlock();
@@ -2377,7 +2443,7 @@ bool MailIMap::Fetch(bool ByUid,
 					}
 					else
 					{
-						LgiAssert(!"What happened?");
+						// This is normal behaviour... just don't have the end marker yet.
 						Done = true;
 						break;
 					}
@@ -2386,155 +2452,12 @@ bool MailIMap::Fetch(bool ByUid,
 		}
 
 		Socket->IsBlocking(Blocking);			
+		CommandFinished();
 	}
 		
 	Unlock();
 	return Status;
 }
-
-/* Deprecated in favor of ::Fetch
-bool MailIMap::GetParts(int Message, GStreamI &Out, const char *Parts, char **Flags)
-{
-	bool Status = false;
-
-	if (Parts)
-	{
-		int Cmd = d->NextCmd++;
-		sprintf_s(Buf, sizeof(Buf), "A%4.4i FETCH %i (%s)\r\n", Cmd, Message+1, Parts);
-		if (WriteBuf())
-		{
-			ClearDialog();
-			Buf[0] = 0;
-			d->Logging = false;
-
-			GStringPipe Buf(4096);
-			
-			/////////////////////////////////
-			// Debug
-			int64 Start = LgiCurrentTime();
-			/////////////////////////////////
-			
-			LgiTrace("Starting GetParts ReadResponse msg='%i'\n", Message);
-			bool ReadOk = ReadResponse(Cmd, &Buf);
-			
-			/////////////////////////////////
-			// Debug
-			char Size[64];
-			LgiFormatSize(Size, sizeof(Size), Buf.GetSize());
-			// LgiTrace("ReadResponse time %i for %s\n", (int) (LgiCurrentTime() - Start), Size);
-			/////////////////////////////////
-
-			if (ReadOk)
-			{
-				int Chars = 0;
-				int DialogItems = Dialog.Length();
-				int Pos = 0;
-
-				char *Response = Buf.NewStr();
-				if (Response)
-				{
-					// FIXME..
-					// Log(d, MAIL_RECEIVE_COLOUR);
-
-					bool Error = false;
-					char *s = Response;
-					int Depth = 0;
-					for (int i=0; i<10 && s[i]; i++, s++);
-
-					while (!Error && s && *s)
-					{
-						Ws(s);
-						if (*s == '(')
-						{
-							s++;
-							Depth++;
-						}
-						else if (*s == ')')
-						{
-							s++;
-							Depth--;
-						}
-						else
-						{
-							char *Field = LgiTokStr((const char*&)s);
-							if (!Field) break;
-
-							if (_stricmp(Field, "Flags") == 0)
-							{
-								char *Start = strchr(s, '(');
-								if (Start)
-								{
-									char *End = strchr(++Start, ')');
-									if (End)
-									{
-										if (Flags)
-										{
-											*Flags = NewStr(Start, End-Start);
-										}
-										s = End + 1;
-									}
-									else Error = true;
-								}
-								else Error = true;
-							}
-							else
-							{
-								char *Start = strchr(s, '{');
-								if (Start)
-								{
-									char *End = strchr(Start, '}');
-									if (End)
-									{
-										*End = 0;
-										Chars = atoi(++Start);
-										s = End + 1;
-										Ws(s);
-										
-										int i = 0;
-										for (; i<Chars && s[i]; i++);
-										Out.Write(s, i);
-										Out.Write((char*)"\r\n\r\n", 4);
-										s += i;
-									}
-									else Error = true;
-								}
-								else if (Depth > 0)
-								{
-									Ws(s);
-									Start = s;
-									char *End = strchr(Start, ' ');
-									if (End)
-									{
-										Out.Write(s, End - s);
-										s = End;
-									}
-									else Error = true;
-								}
-							}
-
-							DeleteArray(Field);
-						}
-					}
-
-					DeleteArray(Response);
-				}
-
-				Status = Out.GetSize() > 0;
-
-				char *Last = Dialog.Last();
-				if (Last)
-				{
-					Log(Last, GSocketI::SocketMsgReceive);
-				}
-			}
-
-			d->Logging = true;
-		}
-	}
-
-	return Status;
-}
-*/
 
 bool IMapHeadersCallback(MailIMap *Imap, char *Msg, GHashTbl<const char*, char*> &Parts, void *UserData)
 {
@@ -2692,75 +2615,79 @@ bool MailIMap::Append(char *Folder, ImapMailFlags *Flags, char *Msg, GAutoString
 			c += sprintf_s(Buf+c, sizeof(Buf)-c, " (%s)", Flag.Get());
 		c += sprintf_s(Buf+c, sizeof(Buf)-c, " {%i}\r\n", Len);
 		
-		if (WriteBuf() && Read())
+		if (WriteBuf())
 		{
-		    bool GotPlus = false;
-			for (char *Dlg = Dialog.First(); Dlg; Dlg = Dialog.Next())
+			if (Read())
 			{
-			    if (Dlg[0] == '+')
-			    {
-    				Dialog.Delete(Dlg);
-    				DeleteArray(Dlg);
-			        GotPlus = true;
-			        break;
-			    }
-			}
-			
-			if (GotPlus)
-			{
-				int Wrote = 0;
-				for (char *m = Msg; *m; )
+				bool GotPlus = false;
+				for (char *Dlg = Dialog.First(); Dlg; Dlg = Dialog.Next())
 				{
-					while (*m == '\r' || *m == '\n')
+					if (Dlg[0] == '+')
 					{
-						if (*m == '\n')
-						{
-							Wrote += Socket->Write((char*)"\r\n", 2);
-						}
-						m++;
+    					Dialog.Delete(Dlg);
+    					DeleteArray(Dlg);
+						GotPlus = true;
+						break;
 					}
-
-					char *e = m;
-					while (*e && *e != '\r' && *e != '\n')
-						e++;
-					if (e > m)
-					{
-						Wrote += Socket->Write(m, e-m);
-						m = e;
-					}
-					else break;
 				}
-
-				LgiAssert(Wrote == Len);
-				Wrote += Socket->Write((char*)"\r\n", 2);
-
-				// Read response..
-				ClearDialog();
-				if ((Status = ReadResponse(Cmd)))
+				
+				if (GotPlus)
 				{
-					char Tmp[16];
-					sprintf_s(Tmp, sizeof(Tmp), "A%4.4i", Cmd);
-					for (char *Line = Dialog.First(); Line; Line = Dialog.Next())
+					int Wrote = 0;
+					for (char *m = Msg; *m; )
 					{
-						GAutoString c = ImapBasicTokenize(Line);
-						if (!c) break;
-						if (!strcmp(Tmp, c))
+						while (*m == '\r' || *m == '\n')
 						{
-							GAutoString a;
-
-							while ((a = ImapBasicTokenize(Line)).Get())
+							if (*m == '\n')
 							{
-								GToken t(a, " ");
-								if (t.Length() > 2 && !_stricmp(t[0], "APPENDUID"))
+								Wrote += Socket->Write((char*)"\r\n", 2);
+							}
+							m++;
+						}
+
+						char *e = m;
+						while (*e && *e != '\r' && *e != '\n')
+							e++;
+						if (e > m)
+						{
+							Wrote += Socket->Write(m, e-m);
+							m = e;
+						}
+						else break;
+					}
+
+					LgiAssert(Wrote == Len);
+					Wrote += Socket->Write((char*)"\r\n", 2);
+
+					// Read response..
+					ClearDialog();
+					if ((Status = ReadResponse(Cmd)))
+					{
+						char Tmp[16];
+						sprintf_s(Tmp, sizeof(Tmp), "A%4.4i", Cmd);
+						for (char *Line = Dialog.First(); Line; Line = Dialog.Next())
+						{
+							GAutoString c = ImapBasicTokenize(Line);
+							if (!c) break;
+							if (!strcmp(Tmp, c))
+							{
+								GAutoString a;
+
+								while ((a = ImapBasicTokenize(Line)).Get())
 								{
-									NewUid.Reset(NewStr(t[2]));
-									break;
+									GToken t(a, " ");
+									if (t.Length() > 2 && !_stricmp(t[0], "APPENDUID"))
+									{
+										NewUid.Reset(NewStr(t[2]));
+										break;
+									}
 								}
 							}
 						}
 					}
 				}
 			}
+			CommandFinished();
 		}
 		
 		Unlock();
@@ -2781,7 +2708,8 @@ bool MailIMap::Delete(int Message)
 		{
 			ClearDialog();
 			Status = ReadResponse(Cmd);
-		}
+			CommandFinished();
+ 		}
 		
 		Unlock();
 	}
@@ -2814,6 +2742,7 @@ int MailIMap::Sizeof(int Message)
 					}
 				}
 			}
+			CommandFinished();
 		}
 		
 		Unlock();
@@ -2893,6 +2822,7 @@ bool MailIMap::FillUidList()
 
 					Status = true;
 				}
+				CommandFinished();
 			}
 		}
 		else
@@ -2990,6 +2920,7 @@ bool MailIMap::GetFolders(GArray<MailImapFolder*> &Folders)
 				Status = true;
 				ClearDialog();
 			}
+			CommandFinished();
 		}
 		
 		Unlock();
@@ -3026,6 +2957,7 @@ bool MailIMap::CreateFolder(MailImapFolder *f)
 					f->NoInferiors = true;
 				}
 			}
+			CommandFinished();
 		}
 		
 		Unlock();
@@ -3070,6 +3002,7 @@ bool MailIMap::DeleteFolder(char *Path)
 				ClearDialog();
 				ReadResponse(Cmd);
 				DeleteArray(d->Current);
+				CommandFinished();
 			}
 		}
 
@@ -3082,6 +3015,7 @@ bool MailIMap::DeleteFolder(char *Path)
 		{
 			ClearDialog();
 			Status = ReadResponse(Cmd);
+			CommandFinished();
 		}
 		
 		Unlock();
@@ -3104,6 +3038,7 @@ bool MailIMap::RenameFolder(char *From, char *To)
 		{
 			ClearDialog();
 			Status = ReadResponse(Cmd);
+			CommandFinished();
 		}
 		
 		Unlock();
@@ -3162,6 +3097,7 @@ bool MailIMap::SetFlagsByUid(GArray<char*> &Uids, const char *Flags)
 			{
 				ClearDialog();
 				Status = ReadResponse(Cmd);
+				CommandFinished();
 			}
 			DeleteArray(Buffer);
 		}
@@ -3195,6 +3131,7 @@ bool MailIMap::CopyByUid(GArray<char*> &InUids, char *DestFolder)
 		{
 			ClearDialog();
 			Status = ReadResponse(Cmd);
+			CommandFinished();
 		}
 
 		Unlock();
@@ -3216,6 +3153,7 @@ bool MailIMap::ExpungeFolder()
 		{
 			ClearDialog();
 			Status = ReadResponse(Cmd);
+			CommandFinished();
 		}
 		
 		Unlock();
@@ -3254,6 +3192,7 @@ bool MailIMap::Search(bool Uids, GArray<GAutoString> &SeqNumbers, const char *Fi
 					}
 				}
 			}
+			CommandFinished();
 		}
 
 		Unlock();
@@ -3307,6 +3246,7 @@ bool MailIMap::Status(char *Path, int *Recent)
 				}
 			}
 			else LgiTrace("%s:%i - STATUS cmd failed.\n", _FL);
+			CommandFinished();
 		}
 		
 		Unlock();
@@ -3346,6 +3286,7 @@ bool MailIMap::Poll(int *Recent, GArray<GAutoString> *New)
 					Search(false, *New, "new");
 				}
 			}
+			CommandFinished();
 		}
 		Unlock();
 	}
@@ -3362,6 +3303,7 @@ bool MailIMap::StartIdle()
 		int Cmd = d->NextCmd++;
 		sprintf_s(Buf, sizeof(Buf), "A%4.4i IDLE\r\n", Cmd);
 		Status = WriteBuf();
+		CommandFinished();
 		Unlock();
 	}
 
@@ -3427,7 +3369,10 @@ bool MailIMap::FinishIdle()
 	if (Lock(_FL))
 	{
 		if (WriteBuf(false, "DONE\r\n"))
+		{
 			Status = ReadResponse();
+			CommandFinished();
+		}
 		Unlock();
 	}
 

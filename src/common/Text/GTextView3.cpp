@@ -4311,7 +4311,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 
 			// font properties
 			Font->Colour(Fore, Back);
-			Font->WhitespaceColour(Whitespace);
+			// Font->WhitespaceColour(Whitespace);
 			Font->Transparent(false);
 
 			// draw margins

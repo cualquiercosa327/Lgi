@@ -776,7 +776,7 @@ public:
 	void operator =(GHashTbl<const char*,int> &v);
 };
 
-class MailIMap : public MailSource, public GMutex
+class MailIMap : public MailSource
 {
 protected:
 	class MailIMapPrivate *d;
@@ -789,11 +789,12 @@ protected:
 	void ClearDialog();
 	void ClearUid();
 	bool FillUidList();
-	bool WriteBuf(bool ObsurePass = false, const char *Buffer = 0);
+	bool WriteBuf(bool ObsurePass = false, const char *Buffer = 0, bool Continuation = false);
 	bool ReadResponse(int Cmd = -1, bool Plus = false);
 	bool Read(GStreamI *Out = 0);
 	bool ReadLine();
 	bool IsResponse(const char *Buf, int Cmd, bool &Ok);
+	void CommandFinished();
 
 public:
 	// Typedefs
@@ -854,6 +855,11 @@ public:
 	// Object
 	MailIMap();
 	~MailIMap();
+
+	// Mutex
+	bool Lock(const char *file, int line);
+	bool LockWithTimeout(int Timeout, const char *file, int line);
+	void Unlock();
 
 	// General
 	char GetFolderSep();

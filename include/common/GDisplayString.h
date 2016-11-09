@@ -93,6 +93,7 @@ class LgiClass GDisplayString
 	#endif
 
 	void Layout(bool Debug = false);
+	void DrawWhiteSpace(GSurface *pDC, char Ch, GRect &r);
 
 public:
 	/// Constructor

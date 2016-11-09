@@ -823,6 +823,7 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 		"john.omalley <john.O'Malley@testing.com>",
 		"Bankers' Association (ABA)<survey@aawp.org.au>",
 		"'Amy's Mum' <name@domain.com>",
+		"\"Philip Doggett (JIRA)\" <jira@audinate.atlassian.net>",
 		0
 	};
 
@@ -846,7 +847,7 @@ void DecodeAddrName(char *Start, GAutoString &Name, GAutoString &Addr, char *Def
 		{
 			// skip whitespace
 		}
-		/*	This was removed becuase it works better for cases of mismatched single quotes.
+		/*	This was removed because it works better for cases of mismatched single quotes.
 			e.g. 'Amy's Mum' <name@domain.com>
 		else if (strchr("\"'", *c))
 		{

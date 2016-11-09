@@ -148,7 +148,7 @@ public:
 	// Output
 	GColour _Fore;
 	GColour _Back;
-	GColour WhiteSpace;
+	GColour WhiteSpace; // Can be empty (if so it's calculated)
 	int _TabSize;
 	bool _Transparent;
 	bool _SubGlyphs;
@@ -171,7 +171,6 @@ public:
 		_CodePage = NewStr("utf-8");
 		_Fore.Rgb(0, 0, 0);
 		_Back.Rgb(255, 255, 255);
-		WhiteSpace = _Fore;
 		_TabSize = 32;
 		_Transparent = false;
 		_Quality = DEFAULT_QUALITY;
@@ -252,7 +251,10 @@ void GTypeFace::Quality(int i)
 
 GColour GTypeFace::WhitespaceColour()
 {
-    return d->WhiteSpace;
+	if (d->WhiteSpace.IsValid())
+		return d->WhiteSpace;
+	
+	return d->_Back.Mix(d->_Fore, LGI_WHITESPACE_WEIGHT);
 }
 
 void GTypeFace::WhitespaceColour(GColour c)

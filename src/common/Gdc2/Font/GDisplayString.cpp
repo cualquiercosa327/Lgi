@@ -25,7 +25,6 @@
 	//	2nd
 
 #define DEBUG_CHAR_AT				0
-#define WHITESPACE_WEIGHT			0.15f // amount of foreground colour in visible whitespace
 
 #if defined(__GTK_H__) || (defined(MAC) && !defined(COCOA) && !defined(LGI_SDL))
 #define DISPLAY_STRING_FRACTIONAL_NATIVE	1
@@ -295,6 +294,26 @@ void GDisplayString::UpdateTabs(int Offset, int Size, bool Debug)
 	}
 }
 #endif
+
+void GDisplayString::DrawWhiteSpace(GSurface *pDC, char Ch, GRect &r)
+{
+	if (Ch == '\t')
+	{
+		r.Size(3, 3);
+		if (r.Y()/2 == 0)
+			r.y2++;
+		int Cy = (r.Y() >> 1);
+		pDC->Line(r.x1, r.y1+Cy, r.x2, r.y1+Cy);
+		pDC->Line(r.x2, r.y1+Cy, r.x2-Cy, r.y1);
+		pDC->Line(r.x2, r.y1+Cy, r.x2-Cy, r.y2);
+	}
+	else // Space
+	{
+		int x = r.x1 + (r.X()>>1) - 1;
+		int Cy = r.y1 + (int)ceil(Font->Ascent()) - 2;
+		pDC->Rectangle(x, Cy, x+1, Cy+1);
+	}
+}
 
 void GDisplayString::Layout(bool Debug)
 {
@@ -1595,6 +1614,15 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r, bool Debug)
 		COLOUR Old = pDC->Colour();
 		int TabSize = Font->TabSize() ? Font->TabSize() : 32;
 		int Ox = px;
+		GColour cFore = Font->Fore();
+		GColour cBack = Font->Back();
+		GColour cWhitespace;
+
+		if (VisibleTab)
+		{
+			cWhitespace = Font->WhitespaceColour();
+			LgiAssert(cWhitespace.IsValid());
+		}
 
 		for (int i=0; i<Info.Length(); i++)
 		{
@@ -1605,11 +1633,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r, bool Debug)
 			{
 				f = Sys->Font[Info[i].FontId];
 
-				#if 1 // true == proper colour
-				f->Colour(Font->Fore(), Font->Back());
-				#else
-				f->Colour(Rgb24(255, 0, 0), Font->Back());
-				#endif
+				f->Colour(cFore, cBack);
 
 				f->PointSize(Font->PointSize() + Info[i].SizeDelta);
 				f->Transparent(Font->Transparent());
@@ -1646,26 +1670,22 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r, bool Debug)
 				{
 					if (IsTabChar(*Info[i].Str))
 					{
-						if (Info[i].Str[0] == '\t')
+						// Invisible tab... draw blank space
+						if (!Font->Transparent())
 						{
-							// Invisible tab... draw blank space
-							if (!Font->Transparent())
-							{
-								pDC->Colour(Font->Back());
-								pDC->Rectangle(&b);
-							}
+							pDC->Colour(cBack);
+							pDC->Rectangle(&b);
 						}
-						else
+
+						if (VisibleTab)
 						{
-							// Visible tab...
 							int X = px;
 							for (int n=0; n<Info[i].Len; n++)
 							{
 								int Dx = TabSize - ((X - Ox + GetDrawOffset()) % TabSize);
-								GRect Char(X, b.y1, X + Dx - 1, b.y2);
-								GColour WsCol = f->WhitespaceColour();
-								LgiAssert(WsCol.IsValid());
-								f->_Draw(pDC, X, py, Info[i].Str, 1, &Char, WsCol);
+								GRect r(X, b.y1, X + Dx - 1, b.y2);
+								pDC->Colour(cWhitespace);
+								DrawWhiteSpace(pDC, '\t', r);
 								X += Dx;
 							}
 						}
@@ -1676,6 +1696,28 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r, bool Debug)
 						GColour Fg = f->Fore();
 						LgiAssert(Fg.IsValid());
 						f->_Draw(pDC, px, py, Info[i].Str, Info[i].Len, &b, Fg);
+						
+						if (VisibleTab)
+						{
+							OsChar *start = Info[i].Str;
+							OsChar *s = start;
+							OsChar *e = s + Info[i].Len;
+							int Sp = -1;
+							while (s < e)
+							{
+								if (*s == ' ')
+								{
+									int Sx, Sy;
+									if (Sp < 0) f->_Measure(Sp, Sy, s, 1);
+									f->_Measure(Sx, Sy, start, s - start);
+									GRect r(0, 0, Sp-1, Sy-1);
+									r.Offset(px + Sx, py);
+									pDC->Colour(cWhitespace);
+									DrawWhiteSpace(pDC, ' ', r);
+								}
+								s++;
+							}
+						}
 					}
 				}
 			}
@@ -1917,8 +1959,7 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc, bool Debug
 	    if (VisibleTab && Str)
 	    {
 			GUtf8Str Ptr(Str);
-			GColour c = Font->Fore();
-			pDC->Colour(b.Mix(c, WHITESPACE_WEIGHT));
+			pDC->Colour(f->WhitespaceColour());
 			
 	    	for (int32 u, Idx = 0; u = Ptr; Idx++)
 	    	{
@@ -1927,24 +1968,8 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc, bool Debug
 	    			Gtk::PangoRectangle pos;
 					Gtk::pango_layout_index_to_pos(Hnd, Idx, &pos);
 					GRect r(0, 0, pos.width / FScale, pos.height / FScale);
-					r.Offset(Dx + (pos.x / FScale), Dy + (pos.y / FScale));
-					
-					if (IsTabChar(u))
-					{
-						r.Size(3, 3);
-						if (r.Y()/2 == 0)
-							r.y2++;
-						int Cy = (r.Y() >> 1);
-						pDC->Line(r.x1, r.y1+Cy, r.x2, r.y1+Cy);
-						pDC->Line(r.x2, r.y1+Cy, r.x2-Cy, r.y1);
-						pDC->Line(r.x2, r.y1+Cy, r.x2-Cy, r.y2);
-					}
-					else
-					{
-						int x = r.x1 + (r.X()>>1) - 1;
-						int Cy = r.y1 + Font->Ascent() - 2;
-						pDC->Rectangle(x, Cy, x+1, Cy+1);
-					}
+					r.Offset(Dx + (pos.x / FScale), Dy + (pos.y / FScale));					
+					DrawWhiteSpace(pDC, u, r);
 				}
 				Ptr++;
 	    	}
