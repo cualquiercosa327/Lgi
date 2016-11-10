@@ -2886,40 +2886,66 @@ int GTextView3::WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState)
 
 int GTextView3::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 {
+	int Status = DROPEFFECT_NONE;
+	
 	for (unsigned i=0; i<Data.Length(); i++)
 	{
 		GDragData &dd = Data[i];
-		const char *Format = dd.Format;
-		if
-		(
-			Format != NULL &&
-			dd.Data.Length() > 0 &&
-			(
-				!_stricmp(Format, "text/uri-list") ||
-				!_stricmp(Format, "text/html") ||
-				!_stricmp(Format, "UniformResourceLocatorW")
-			)
-		)
+		if (dd.Data.Length() <= 0)
+			continue;
+		
+		if (dd.IsFormat("text/html") || dd.IsFormat("UniformResourceLocatorW"))
 		{
 			GVariant *Data = &dd.Data[0];
 			LgiAssert(dd.Data.Length() == 1); // Impl multiple data entries if this asserts.
 			if (Data->IsBinary())
 			{
-				char16 *e = (char16*) ((char*)Data->Value.Binary.Data + Data->Value.Binary.Length);
-				char16 *s = (char16*)Data->Value.Binary.Data;
+				OsChar *e = (OsChar*) ((char*)Data->Value.Binary.Data + Data->Value.Binary.Length);
+				OsChar *s = (OsChar*) Data->Value.Binary.Data;
 				int len = 0;
 				while (s < e && s[len])
 				{
 					len++;
 				}
-				Insert(Cursor, s, len);
+				
+				GAutoWString w
+				(
+					(char16*)LgiNewConvertCp
+					(
+						LGI_WideCharset,
+						s,
+						(
+							sizeof(OsChar) == 1
+							?
+							"utf-8"
+							:
+							LGI_WideCharset
+						),
+						len * sizeof(*s)
+					)
+				);
+				
+				Insert(Cursor, w, len);
 				Invalidate();
 				return DROPEFFECT_COPY;
 			}
 		}
+		else if (dd.IsFileDrop())
+		{
+			// We don't directly handle file drops... pass up to the parent
+			for (GViewI *p = GetParent(); p; p = p->GetParent())
+			{
+				GDragDropTarget *t = p->DropTarget();
+				if (t)
+				{
+					Status = t->OnDrop(Data, Pt, KeyState);
+					break;
+				}
+			}
+		}
 	}
 
-	return DROPEFFECT_NONE;
+	return Status;
 }
 
 void GTextView3::OnCreate()

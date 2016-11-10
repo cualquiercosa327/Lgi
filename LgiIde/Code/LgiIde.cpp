@@ -1353,6 +1353,7 @@ GDebugContext *AppWnd::GetDebugContext()
 	return d->DbgContext;
 }
 
+
 void AppWnd::OnReceiveFiles(GArray<char*> &Files)
 {
 	for (int i=0; i<Files.Length(); i++)
