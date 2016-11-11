@@ -733,7 +733,7 @@ bool GDateTime::Set(uint64 s)
 bool GDateTime::Set(time_t tt)
 {
 	struct tm *t;
-	#if _MSC_VER < 1400
+	#if _MSC_VER < _MSC_VER_VS2005
 	t = localtime(&tt);
 	if (t)
 	#else

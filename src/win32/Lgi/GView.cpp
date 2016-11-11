@@ -196,7 +196,7 @@ GKey::GKey(int v, int flags)
 template<typename T>
 bool CastHwnd(T *&Ptr, HWND hWnd)
 {
-	#if _MSC_VER >= 1400
+	#if _MSC_VER >= _MSC_VER_VS2005
 	LONG_PTR user = GetWindowLongPtr(hWnd, GWLP_USERDATA);
 	LONG_PTR magic = GetWindowLongPtr(hWnd, GWL_LGI_MAGIC);
 	#else
@@ -222,7 +222,7 @@ LRESULT CALLBACK GWin32Class::Redir(HWND hWnd, UINT m, WPARAM a, LPARAM b)
 			GView *View = ViewI->GetGView();
 			if (View) View->_View = hWnd;
 
-			#if _MSC_VER >= 1400
+			#if _MSC_VER >= _MSC_VER_VS2005
 			SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)ViewI);
 			#else
 			SetWindowLong(hWnd, GWL_USERDATA, (LONG)ViewI);
@@ -232,7 +232,7 @@ LRESULT CALLBACK GWin32Class::Redir(HWND hWnd, UINT m, WPARAM a, LPARAM b)
 	}
 
 	GViewI *Wnd = (GViewI*)
-		#if _MSC_VER >= 1400
+		#if _MSC_VER >= _MSC_VER_VS2005
 		GetWindowLongPtr(hWnd, GWLP_USERDATA);
 		#else
 		GetWindowLong(hWnd, GWL_USERDATA);
@@ -262,7 +262,7 @@ LRESULT CALLBACK GWin32Class::SubClassRedir(HWND hWnd, UINT m, WPARAM a, LPARAM 
 					View->_View = hWnd;
 			}
 		}
-		#if _MSC_VER >= 1400
+		#if _MSC_VER >= _MSC_VER_VS2005
 		SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) ViewI);
 		#else
 		SetWindowLong(hWnd, GWL_USERDATA, (LONG) ViewI);
@@ -275,7 +275,7 @@ LRESULT CALLBACK GWin32Class::SubClassRedir(HWND hWnd, UINT m, WPARAM a, LPARAM 
 	}
 
 	GViewI *Wnd = (GViewI*)
-		#if _MSC_VER >= 1400
+		#if _MSC_VER >= _MSC_VER_VS2005
 		GetWindowLongPtr(hWnd, GWLP_USERDATA);
 		#else
 		GetWindowLong(hWnd, GWL_USERDATA);
@@ -417,11 +417,7 @@ LRESULT CALLBACK GWin32Class::CallParent(HWND hWnd, UINT m, WPARAM a, LPARAM b)
 	}
 	else
 	{
-		#if _MSC_VER == 1100
-		return CallWindowProcA((FARPROC) ParentProc, hWnd, m, a, b);
-		#else
 		return CallWindowProcA(ParentProc, hWnd, m, a, b);
-		#endif
 	}
 }
 
@@ -456,7 +452,7 @@ GViewI *GWindowFromHandle(HWND hWnd)
 		if (m == LGI_GViewMagic)
 		{
 			return (GViewI*)
-				#if _MSC_VER >= 1400
+				#if _MSC_VER >= _MSC_VER_VS2005
 				GetWindowLongPtr(hWnd, GWLP_USERDATA);
 				#else
 				GetWindowLong(hWnd, GWL_USERDATA);
@@ -1485,7 +1481,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			}
 			case WM_NCDESTROY:
 			{
-                #if _MSC_VER >= 1400
+                #if _MSC_VER >= _MSC_VER_VS2005
                 SetWindowLongPtr(_View, GWLP_USERDATA, 0);
                 #else
 				SetWindowLong(_View, GWL_USERDATA, 0);
@@ -1768,7 +1764,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				}
 
 				// int CurX = Ms.x, CurY = Ms.y;
-				LgiCursor Cursor = _Over->GetCursor(Ms.x, Ms.y);
+				LgiCursor Cursor = (_Over ? _Over : this)->GetCursor(Ms.x, Ms.y);
 				LgiToWindowsCursor(_View, Cursor);
 
 				#if 0
