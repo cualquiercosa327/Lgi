@@ -316,6 +316,7 @@ public:
 	bool OnLayout(GViewLayoutInfo &Inf);
 	int WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState);
 	int OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState);
+	LgiCursor GetCursor(int x, int y) { return LCUR_Ibeam; }
 
 	// Virtuals
 	virtual bool Insert(int At, char16 *Data, int Len);

@@ -76,7 +76,8 @@ public:
 	void SetEmptyText(const char *EmptyText);
 
 	bool OnKey(GKey &k);
-	
+	LgiCursor GetCursor(int x, int y) { return LCUR_Ibeam; }
+
 	#if WINNATIVE
 	GMessage::Result OnEvent(GMessage *Msg);
 	void OnFocus(bool f);

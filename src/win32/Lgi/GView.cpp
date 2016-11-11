@@ -810,7 +810,11 @@ LgiCursor GView::GetCursor(int x, int y)
 	return LCUR_Normal;
 }
 
-bool LgiToWindowsCursor(LgiCursor Cursor)
+#ifndef GCL_HCURSOR
+#define GCL_HCURSOR -12
+#endif
+
+bool LgiToWindowsCursor(OsView Hnd, LgiCursor Cursor)
 {
 	char16 *Set = 0;
 	switch (Cursor)
@@ -877,7 +881,11 @@ bool LgiToWindowsCursor(LgiCursor Cursor)
 			break;
 	}
 
-	SetCursor(LoadCursor(0, MAKEINTRESOURCE(Set?Set:IDC_ARROW)));
+	HCURSOR cur = LoadCursor(0, MAKEINTRESOURCE(Set ? Set : IDC_ARROW));
+	// LgiTrace("Cur=%i\n", Cursor);
+	SetCursor(cur);
+	if (Hnd)
+		SetClassLong(Hnd, GCL_HCURSOR, (DWORD)cur);
 
 	return true;
 }
@@ -1733,17 +1741,6 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				SetKeyFlag(Ms.Flags, VK_MENU, MK_ALT);
 				Ms.Down((Msg->a & (MK_LBUTTON|MK_MBUTTON|MK_RBUTTON)) != 0);
 
-				int CurX = Ms.x, CurY = Ms.y;
-				LgiCursor Cursor = LCUR_Normal;
-				for (GViewI *c = this; Cursor == LCUR_Normal && c->GetParent(); c = c->GetParent())
-				{
-					GRect CPos = c->GetPos();
-					Cursor = c->GetCursor(CurX, CurY);
-					CurX += CPos.x1;
-					CurY += CPos.y1;
-				}
-				LgiToWindowsCursor(Cursor);
-
 				GViewI *MouseOver = WindowFromPoint(Ms.x, Ms.y);
 				if (_Over != MouseOver)
 				{
@@ -1769,6 +1766,10 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 						#endif
 					}
 				}
+
+				// int CurX = Ms.x, CurY = Ms.y;
+				LgiCursor Cursor = _Over->GetCursor(Ms.x, Ms.y);
+				LgiToWindowsCursor(_View, Cursor);
 
 				#if 0
 				LgiTrace("WM_MOUSEMOVE %i,%i target=%p/%s, over=%p/%s, cap=%p/%s\n",
@@ -1799,6 +1800,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				int Hit = OnHitTest(Pt.x, Pt.y);
 				if (Hit >= 0)
 				{
+					// LgiTrace("%I64i Hit=%i\n", LgiCurrentTime(), Hit);
 					return Hit;
 				}
 				if (!(WndFlags & GWF_DIALOG))

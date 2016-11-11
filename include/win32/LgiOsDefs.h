@@ -194,7 +194,7 @@ LgiExtern class GString WinGetSpecialFolderPath(int Id);
 LgiFunc int FormatToInt(GString s);
 /// Convert a Os dependant integer d'n'd format to a string.
 LgiFunc char *FormatToStr(int f);
-extern bool LgiToWindowsCursor(LgiCursor Cursor);
+extern bool LgiToWindowsCursor(OsView Hnd, LgiCursor Cursor);
 
 #ifdef _MSC_VER
 #define snprintf					_snprintf
