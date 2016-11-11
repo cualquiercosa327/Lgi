@@ -17,7 +17,7 @@
 #endif
 #include <math.h>
 #ifdef _MSC_VER
-	#include <xmath.h>
+	#include <math.h>
 #endif
 #include "GUtf8.h"
 #include "GString.h"
