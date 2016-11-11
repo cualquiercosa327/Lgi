@@ -1,0 +1,213 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source Files\Search">
+      <UniqueIdentifier>{6b83273a-b199-4420-ae65-9663c7c7e75b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Search\Cpp Parser">
+      <UniqueIdentifier>{e809cc3d-4694-4e36-b2d4-60e9f9450e56}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Search\Scripting">
+      <UniqueIdentifier>{448bd709-7433-4368-a79b-6b1091071ddf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Search\Simple Cpp Parser">
+      <UniqueIdentifier>{b327086f-7d0e-4840-ac95-7dc18a89fe19}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Process">
+      <UniqueIdentifier>{3cefce7e-26bb-4e9e-8711-c7fa5c51373d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Debugger">
+      <UniqueIdentifier>{63c6319b-3755-4b59-95f2-1e7b5b2c1a75}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Dialogs">
+      <UniqueIdentifier>{f1667c53-311d-44b9-aafb-6db5c2bb7ea7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="Lgi">
+      <UniqueIdentifier>{0823126b-5e9f-417c-b233-7025ea646dad}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Code\FtpFile.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Code\IdeDoc.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Code\IdeProject.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Code\LgiIde.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Code\ProjectNode.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Code\FindInFiles.h">
+      <Filter>Source Files\Search</Filter>
+    </ClInclude>
+    <ClInclude Include="Code\FindSymbol.h">
+      <Filter>Source Files\Search</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\common\GParseCpp.h">
+      <Filter>Source Files\Search\Cpp Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\common\GScripting.h">
+      <Filter>Source Files\Search\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\common\Coding\GScriptingPriv.h">
+      <Filter>Source Files\Search\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="Code\SimpleCppParser.h">
+      <Filter>Source Files\Search\Simple Cpp Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\common\GProcess.h">
+      <Filter>Source Files\Process</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\common\GSubProcess.h">
+      <Filter>Source Files\Process</Filter>
+    </ClInclude>
+    <ClInclude Include="Code\GDebugger.h">
+      <Filter>Source Files\Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Code\AddFtpFile.h">
+      <Filter>Source Files\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Code\WebFldDlg.h">
+      <Filter>Source Files\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Code\FtpThread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Code\GHistory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Code\resdefs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Code\resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Code\SpaceTabConv.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\common\GEventTargetThread.h">
+      <Filter>Lgi</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Code\FtpThread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\GHistory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Coding\GLexCpp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\IdeCommon.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\IdeDoc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\IdeProject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\IdeProjectSettings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\LgiIde.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\LgiUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\MemDumpViewer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\ProjectNode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\SpaceTabConv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\SysCharSupport.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\FindInFiles.cpp">
+      <Filter>Source Files\Search</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\FindSymbol.cpp">
+      <Filter>Source Files\Search</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Coding\GParseCpp.cpp">
+      <Filter>Source Files\Search\Cpp Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Coding\GScriptCompiler.cpp">
+      <Filter>Source Files\Search\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Coding\GScriptLibrary.cpp">
+      <Filter>Source Files\Search\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Coding\GScriptVM.cpp">
+      <Filter>Source Files\Search\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\SimpleCppParser.cpp">
+      <Filter>Source Files\Search\Simple Cpp Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\GDebugContext.cpp">
+      <Filter>Source Files\Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\GDebugger.cpp">
+      <Filter>Source Files\Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Lgi\GSubProcess.cpp">
+      <Filter>Source Files\Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\AddFtpFile.cpp">
+      <Filter>Source Files\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\WebFldDlg.cpp">
+      <Filter>Source Files\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Lgi\GMdi.cpp">
+      <Filter>Lgi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\INet\IFtp.cpp">
+      <Filter>Lgi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Lgi\LgiMain.cpp">
+      <Filter>Lgi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Gdc2\Filters\Png.cpp">
+      <Filter>Lgi</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="..\src\win32\General\Lgi.manifest">
+      <Filter>Resource Files</Filter>
+    </Manifest>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Code\Script1.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="..\src\common\Coding\ExternCall.asm">
+      <Filter>Source Files\Search\Scripting</Filter>
+    </MASM>
+  </ItemGroup>
+</Project>

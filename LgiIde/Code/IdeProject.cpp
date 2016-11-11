@@ -157,7 +157,7 @@ NodeView::~NodeView()
 
 
 //////////////////////////////////////////////////////////////////////////////////
-int NodeSort(GTreeItem *a, GTreeItem *b, int d)
+int NodeSort(GTreeItem *a, GTreeItem *b, NativeInt d)
 {
 	ProjectNode *A = dynamic_cast<ProjectNode*>(a);
 	ProjectNode *B = dynamic_cast<ProjectNode*>(b);
@@ -186,7 +186,7 @@ int NodeSort(GTreeItem *a, GTreeItem *b, int d)
 	return 0;
 }
 
-int XmlSort(GXmlTag *a, GXmlTag *b, int d)
+int XmlSort(GXmlTag *a, GXmlTag *b, NativeInt d)
 {
 	GTreeItem *A = dynamic_cast<GTreeItem*>(a);
 	GTreeItem *B = dynamic_cast<GTreeItem*>(b);
@@ -1549,7 +1549,7 @@ bool IdeProject::GetTargetFile(char *Buf, int BufSize)
 	return Status;
 }
 
-int StrCmp(char *a, char *b, int d)
+int StrCmp(char *a, char *b, NativeInt d)
 {
 	return stricmp(a, b);
 }

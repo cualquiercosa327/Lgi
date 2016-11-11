@@ -11,7 +11,7 @@
 #include "GToken.h"
 
 #define CheckToken(t)	if (!t) { Error = true; break; }
-#if defined(WINDOWS) && defined(_MSC_VER)
+#if defined(WINDOWS) && defined(_MSC_VER) && !defined(WIN64)
 #define Debug			__asm int 3
 #else
 #define Debug			assert(0)

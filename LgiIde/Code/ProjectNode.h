@@ -22,8 +22,8 @@ enum NodeType
 		Var=dynamic_cast<ProjectNode*>(Var->GetNext()))
 
 
-extern int NodeSort(GTreeItem *a, GTreeItem *b, int d);
-extern int XmlSort(GXmlTag *a, GXmlTag *b, int d);
+extern int NodeSort(GTreeItem *a, GTreeItem *b, NativeInt d);
+extern int XmlSort(GXmlTag *a, GXmlTag *b, NativeInt d);
 
 class ProjectNode : public IdeCommon, public GDragDropSource, public FtpCallback, public NodeSource
 {

@@ -659,7 +659,7 @@ public:
 	}
 };
 
-int DocSorter(IdeDoc *a, IdeDoc *b, int d)
+int DocSorter(IdeDoc *a, IdeDoc *b, NativeInt d)
 {
 	char *A = a->GetFileName();
 	char *B = b->GetFileName();
@@ -1202,7 +1202,7 @@ AppWnd::AppWnd()
 	SetQuitOnClose(true);
 
 	#if WINNATIVE
-	SetIcon(MAKEINTRESOURCE(IDI_APP));
+	SetIcon((char*)MAKEINTRESOURCE(IDI_APP));
 	#else
 	SetIcon("Icon64.png");
 	#endif
