@@ -2263,7 +2263,7 @@ bool GCss::Selector::TokString(GAutoString &a, const char *&s)
 		#if DEBUG_CSS_LOGGING
 		LgiTrace("Stuck at '%s'\n", e);
 		#endif
-		LgiAssert(!"Failed to tokenise string.");
+		// LgiAssert(!"Failed to tokenise string.");
 		return false;
 	}
 	a.Reset(NewStr(s, e - s));
@@ -2451,7 +2451,7 @@ bool GCss::Selector::Parse(const char *&s)
 			Part &n = Parts.New();
 			n.Type = SelPseudo;
 			if (!TokString(n.Value, s))
-				break;
+				return false;
 			if (*s == '(')
 			{
 				char *e = strchr(s + 1, ')');
@@ -2470,7 +2470,7 @@ bool GCss::Selector::Parse(const char *&s)
 			Part &n = Parts.New();
 			n.Type = SelID;
 			if (!TokString(n.Value, s))
-				break;
+				return false;
 		}
 		else if (*s == '.')
 		{
@@ -2481,7 +2481,7 @@ bool GCss::Selector::Parse(const char *&s)
 			Part &n = Parts.New();
 			n.Type = SelClass;
 			if (!TokString(n.Value, s))
-				break;
+				return false;
 		}
 		else if (*s == '@')
 		{
@@ -2492,7 +2492,7 @@ bool GCss::Selector::Parse(const char *&s)
 			n.Media = MediaNull;
 			GAutoString Str;
 			if (!TokString(Str, s))
-				break;
+				return false;
 			if (!Str || stricmp(Str, "media"))
 				return false;
 			
@@ -2545,7 +2545,7 @@ bool GCss::Selector::Parse(const char *&s)
 			Part &n = Parts.New();
 			n.Type = SelType;
 			if (!TokString(n.Value, s))
-				break;
+				return false;
 		}
 		else if (*s == '[')
 		{
@@ -2735,6 +2735,8 @@ bool GCss::Store::Parse(const char *&c, int Depth)
 		else
 		{
 			DeleteObj(Cur);
+			if (*c)
+				return false;
 		}
 
 		while (*c)
