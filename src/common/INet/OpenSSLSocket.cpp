@@ -798,6 +798,7 @@ DebugTrace("%s:%i - open loop finished, r=%i, Opening=%i\n", _FL, r, d->Opening)
 								IsBlocking(true);
 								Library->SSL_set_mode(Ssl, SSL_MODE_AUTO_RETRY);
 								Status = true;
+								// d->UseSSLrw = true;
 								
 								char m[256];
 								sprintf_s(m, sizeof(m), "Connected to '%s' using SSL", h);

@@ -108,14 +108,14 @@ struct StrRange
 #define SkipNonWhite(s)		while (*s && !strchr(WhiteSpace, *s)) s++;
 #define ExpectChar(ch)		if (*s != ch) return 0; s++
 
-unsigned ParseImapResponse(char *Buffer, GArray<StrRange> &Ranges, int Names)
+unsigned ParseImapResponse(char *Buffer, int BufferLen, GArray<StrRange> &Ranges, int Names)
 {
 	Ranges.Length(0);
 
 	if (!*Buffer || *Buffer != '*')
 		return 0;
 
-	char *End = Buffer + strlen(Buffer);
+	char *End = Buffer + BufferLen;
 	char *s = Buffer + 1;
 	char *Start;
 	for (int n=0; n<Names; n++)
@@ -177,14 +177,14 @@ unsigned ParseImapResponse(char *Buffer, GArray<StrRange> &Ranges, int Names)
 			ExpectChar('\r');
 			ExpectChar('\n');
 			Start = s;
-			while (*s && Size > 0)
+			int CurPos = s - Buffer;
+			if (CurPos + Size <= BufferLen)
 			{
-				s++;
-				Size--;
+				s += Size;
+				Ranges.New().Set(Start - Buffer, s - Buffer);
 			}
-			if (Size > 0)
+			else
 				return 0;
-			Ranges.New().Set(Start - Buffer, s - Buffer);				
 		}
 		else
 		{
@@ -2281,6 +2281,18 @@ static bool PopLine(GArray<char> &a, unsigned &Used, GAutoString &Line)
 	return false;
 }
 
+
+void NullCheck(char *Ptr, unsigned Len)
+{
+	// Check for NULLs
+	for (unsigned i=0; i<Len; i++)
+	{
+		LgiAssert(Ptr[i] != 0);
+	}
+}
+
+extern void DeNullText(char *in, int &len);
+
 bool MailIMap::Fetch(bool ByUid,
 					const char *Seq,
 					const char *Parts,
@@ -2349,7 +2361,7 @@ bool MailIMap::Fetch(bool ByUid,
 				LgiTrace("%s:%i - Fetch: r=%i, used=%i, buf=%i\n", _FL, r, Used, Buf.Length());
 				#endif
 				if (r > 0)
-				{					
+				{
 					if (RawCopy)
 						RawCopy->Write(&Buf[Used], r);
 
@@ -2366,7 +2378,7 @@ bool MailIMap::Fetch(bool ByUid,
 
 			while (true)
 			{
-				MsgSize = ParseImapResponse(&Buf[0], Ranges, 2);
+				MsgSize = ParseImapResponse(&Buf[0], Used, Ranges, 2);
 				#if DEBUG_FETCH
 				LgiTrace("%s:%i - Fetch: MsgSize=%i\n", _FL, MsgSize);
 				#endif
@@ -2384,7 +2396,7 @@ bool MailIMap::Fetch(bool ByUid,
 					Ranges.Length(0);
 					LgiAssert(0);
 					#if _DEBUG
-					ParseImapResponse(&Buf[0], Ranges, 2);
+					ParseImapResponse(&Buf[0], Used, Ranges, 2);
 					#endif
 					Done = true;
 					break;
