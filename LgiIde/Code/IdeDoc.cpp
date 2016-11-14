@@ -326,6 +326,14 @@ void EditTray::OnFunctionList(GMouse &m)
 		{
 			GArray<DefnInfo*> a;					
 			int n=1;
+
+			int ScreenHt = GdcD->Y();
+			int ScreenLines = ScreenHt / SysFont->GetHeight();
+			float Ratio = ScreenHt ? (float)(SysFont->GetHeight() * Funcs.Length()) / ScreenHt : 0.0f;
+			bool UseSubMenus = Ratio > 0.9f;
+			int Buckets = UseSubMenus ? ScreenLines * 0.75 : 1;
+			int BucketSize = Funcs.Length() / Buckets;
+			GSubMenu *Cur = NULL;
 			
 			for (unsigned n=0; n<Funcs.Length(); n++)
 			{
@@ -353,8 +361,22 @@ void EditTray::OnFunctionList(GMouse &m)
 					*o++ = 0;
 					
 					a[n] = i;
-					s->AppendItem(Buf, n+1, true);
-					printf("Append '%s' as %i\n", Buf, n+1);
+
+					if (UseSubMenus)
+					{
+						if (!Cur || n % BucketSize == 0)
+						{
+							GString SubMsg;
+							SubMsg.Printf("%s...", Buf);
+							Cur = s->AppendSub(SubMsg);
+						}
+						if (Cur)
+							s->AppendItem(Buf, n + 1, true);
+					}
+					else
+					{
+						s->AppendItem(Buf, n+1, true);
+					}
 				}
 			}
 			
