@@ -198,16 +198,35 @@ bool CastHwnd(T *&Ptr, HWND hWnd)
 {
 	#if _MSC_VER >= 1400
 	LONG_PTR user = GetWindowLongPtr(hWnd, GWLP_USERDATA);
-	LONG_PTR magic = GetWindowLongPtr(hWnd, GWL_LGI_MAGIC);
 	#else
 	LONG user = GetWindowLong(hWnd, GWL_USERDATA);
-	LONG magic = GetWindowLong(hWnd, GWL_LGI_MAGIC);
 	#endif
+	LONG magic = GetWindowLong(hWnd, GWL_LGI_MAGIC);
 
 	if (magic != LGI_GViewMagic)
+	{
+		LgiTrace("%s:%i - Error: hWnd=%p, GWL_LGI_MAGIC=%i\n", _FL, hWnd, magic);
 		return false;
+	}
 	Ptr = dynamic_cast<T*>((GViewI*)user);
 	return Ptr != NULL;
+}
+
+bool SetLgiMagic(HWND hWnd)
+{
+	SetLastError(0);
+	LONG res = SetWindowLong(hWnd, GWL_LGI_MAGIC, LGI_GViewMagic);
+	bool Status = res != 0;
+	if (!Status)
+	{
+		DWORD err = GetLastError();
+		Status = err == 0;
+	}
+
+	LONG v = GetWindowLong(hWnd, GWL_LGI_MAGIC);
+	LgiTrace("set LGI_GViewMagic for %p, %i, %i\n", hWnd, Status, v);
+	
+	return Status;
 }
 
 LRESULT CALLBACK GWin32Class::Redir(HWND hWnd, UINT m, WPARAM a, LPARAM b)
@@ -227,7 +246,7 @@ LRESULT CALLBACK GWin32Class::Redir(HWND hWnd, UINT m, WPARAM a, LPARAM b)
 			#else
 			SetWindowLong(hWnd, GWL_USERDATA, (LONG)ViewI);
 			#endif
-			SetWindowLong(hWnd, GWL_LGI_MAGIC, LGI_GViewMagic);
+			SetLgiMagic(hWnd);
 		}
 	}
 
@@ -267,11 +286,7 @@ LRESULT CALLBACK GWin32Class::SubClassRedir(HWND hWnd, UINT m, WPARAM a, LPARAM 
 		#else
 		SetWindowLong(hWnd, GWL_USERDATA, (LONG) ViewI);
 		#endif
-		SetLastError(0);
-		SetWindowLong(hWnd, GWL_LGI_MAGIC, LGI_GViewMagic);
-		DWORD err = GetLastError();
-		LgiAssert(!err);
-
+		SetLgiMagic(hWnd);
 	}
 
 	GViewI *Wnd = (GViewI*)
@@ -1454,7 +1469,8 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				// GViewI *Ci = FindControl((HWND) Msg->b);
 				// GView *Ctrl = Ci ? Ci->GetGView() : 0;
 				GView *Ctrl;
-				if (CastHwnd(Ctrl, (HWND) Msg->b))
+				if (Msg->b &&
+					CastHwnd(Ctrl, (HWND)Msg->b))
 				{
 					short Code = HIWORD(Msg->a);
 					switch (Code)
@@ -1607,7 +1623,8 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			case WM_CAPTURECHANGED:
 			{
 				GViewI *Wnd;
-				if (CastHwnd(Wnd, (HWND)Msg->B()))
+				if (Msg->B() &&
+					CastHwnd(Wnd, (HWND)Msg->B()))
 				{
 					if (Wnd != _Capturing)
 					{
