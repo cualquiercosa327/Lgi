@@ -16,8 +16,8 @@
 	#undef abs
 #endif
 #include <math.h>
-#ifdef _MSC_VER
-	#include <math.h>
+#if defined(_MSC_VER) && _MSC_VER < _MSC_VER_VS2013
+	#include <xmath.h>
 #endif
 #include "GUtf8.h"
 #include "GString.h"

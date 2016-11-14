@@ -419,7 +419,7 @@ DumpTime("ms hook");
 
 	if
 	(
-		#if 0 // defined(LGI_STATIC) && _MSC_VER < 1600
+		#if 0 // defined(LGI_STATIC) && _MSC_VER < _MSC_VER_VS2010
 		0
 		#else
 		(
@@ -438,17 +438,26 @@ DumpTime("ms hook");
 			"lib"
 		#endif
 			"lgiskin"
-		#if _MSC_VER == 1300
+		#if _MSC_VER == _MSC_VER_VC7
 			"7"
 		#endif
-		#if _MSC_VER == 1400
+		#if _MSC_VER == _MSC_VER_VS2005
 			"8"
 		#endif
-		#if _MSC_VER == 1500
+		#if _MSC_VER == _MSC_VER_VS2008
 			"9"
 		#endif
-		#if _MSC_VER == 1600
+		#if _MSC_VER == _MSC_VER_VS2010
 			"10"
+		#endif
+		#if _MSC_VER == _MSC_VER_VS2012
+			"11"
+		#endif
+		#if _MSC_VER == _MSC_VER_VS2013
+			"12"
+		#endif
+		#if _MSC_VER == _MSC_VER_VS2015
+			"14"
 		#endif
 		#ifdef _DEBUG
 			"d"

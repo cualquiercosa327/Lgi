@@ -95,7 +95,7 @@ LONG __stdcall GApp::_ExceptionFilter(LPEXCEPTION_POINTERS e, char *ProductId)
 			{
 				DWORD Err = GetLastError();
 				char m[256];
-				#if _MSC_VER >= 1400
+				#if _MSC_VER >= _MSC_VER_VS2005
 				sprintf_s
 				#else
 				snprintf

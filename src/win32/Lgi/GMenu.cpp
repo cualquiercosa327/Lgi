@@ -338,7 +338,7 @@ GMenuItem::GMenuItem()
 	Info.fMask = MIIM_DATA;
 	Info.fType = MFT_OWNERDRAW;
 
-	#if _MSC_VER >= 1400
+	#if _MSC_VER >= _MSC_VER_VS2005
 	Info.dwItemData = (ULONG_PTR)this;
 	#else
 	Info.dwItemData = (DWORD)this;
@@ -366,7 +366,7 @@ GMenuItem::GMenuItem(GMenu *m, GSubMenu *p, const char *Txt, int Pos, const char
 	#ifdef LGI_OWNER_DRAW_MENUS
 	Info.fMask = MIIM_DATA;
 	Info.fType = MFT_OWNERDRAW;
-	#if _MSC_VER >= 1400
+	#if _MSC_VER >= _MSC_VER_VS2005
 	Info.dwItemData = (ULONG_PTR)this;
 	#else
 	Info.dwItemData = (DWORD)this;

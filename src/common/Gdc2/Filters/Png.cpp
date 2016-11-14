@@ -59,7 +59,7 @@ const char sLibrary[] =
 			"cygpng12"
 		#else
 			"libpng"
-			#if _MSC_VER == 1800
+			#if _MSC_VER == _MSC_VER_VS2013
 			"12"
 			#else
 			"9"
