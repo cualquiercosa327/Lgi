@@ -19,7 +19,7 @@
 
 #define DEBUG_FIND_SYMBOL		0
 #define DEBUG_NO_THREAD			1
-// #define DEBUG_FILE				"IdeProject.h"
+#define DEBUG_FILE				"silabs_srate_program.h"
 
 class FindSymbolDlg : public GDialog
 {

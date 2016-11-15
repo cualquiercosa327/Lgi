@@ -332,7 +332,7 @@ void EditTray::OnFunctionList(GMouse &m)
 			float Ratio = ScreenHt ? (float)(SysFont->GetHeight() * Funcs.Length()) / ScreenHt : 0.0f;
 			bool UseSubMenus = Ratio > 0.9f;
 			int Buckets = UseSubMenus ? ScreenLines * 0.75 : 1;
-			int BucketSize = Funcs.Length() / Buckets;
+			int BucketSize = max(5, Funcs.Length() / Buckets);
 			GSubMenu *Cur = NULL;
 			
 			for (unsigned n=0; n<Funcs.Length(); n++)
@@ -371,7 +371,7 @@ void EditTray::OnFunctionList(GMouse &m)
 							Cur = s->AppendSub(SubMsg);
 						}
 						if (Cur)
-							s->AppendItem(Buf, n + 1, true);
+							Cur->AppendItem(Buf, n + 1, true);
 					}
 					else
 					{
