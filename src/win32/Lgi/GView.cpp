@@ -224,7 +224,7 @@ bool SetLgiMagic(HWND hWnd)
 	}
 
 	LONG v = GetWindowLong(hWnd, GWL_LGI_MAGIC);
-	LgiTrace("set LGI_GViewMagic for %p, %i, %i\n", hWnd, Status, v);
+	// LgiTrace("set LGI_GViewMagic for %p, %i, %i\n", hWnd, Status, v);
 	
 	return Status;
 }

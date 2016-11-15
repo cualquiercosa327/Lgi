@@ -125,10 +125,12 @@ public:
 	IdeProject *ParentProject;
 	IdeProjectSettings Settings;
 	GAutoPtr<BuildThread> Thread;
+	GHashTbl<const char*, ProjectNode*> Nodes;
 
 	IdeProjectPrivate(AppWnd *a, IdeProject *project) :
 		Project(project),
-		Settings(project)
+		Settings(project),
+		Nodes(0, false, NULL, NULL)
 	{
 		App = a;
 		Dirty = false;
@@ -476,7 +478,34 @@ IdeProject::IdeProject(AppWnd *App) : IdeCommon(NULL)
 IdeProject::~IdeProject()
 {
 	d->App->OnProjectDestroy(this);
+	GXmlTag::Empty(true);
 	DeleteObj(d);
+}
+
+bool IdeProject::OnNode(const char *Path, ProjectNode *Node, bool Add)
+{
+	if (!Path || !Node)
+	{
+		LgiAssert(0);
+		return false;
+	}
+
+	char Full[MAX_PATH];
+	if (LgiIsRelativePath(Path))
+	{
+		GAutoString Base = GetBasePath();
+		if (LgiMakePath(Full, sizeof(Full), Base, Path))
+		{
+			Path = Full;
+		}
+	}
+
+	// LgiTrace("%s:%i - OnNode(%s, %i)\n", _FL, Path, Add);
+	
+	if (Add)
+		return d->Nodes.Add(Path, Node);
+	else
+		return d->Nodes.Delete(Path);
 }
 
 void IdeProject::ShowFileProperties(const char *File)
@@ -1222,15 +1251,7 @@ bool IdeProject::GetAllNodes(GArray<ProjectNode*> &Nodes)
 
 bool IdeProject::InProject(const char *Path, bool Open, IdeDoc **Doc)
 {
-	ProjectNode *n = 0;
-
-	ForAllProjectNodes(c)
-	{
-		if ((n = c->FindFile(Path, 0)))
-		{
-			break;
-		}
-	}
+	ProjectNode *n = d->Nodes.Find(Path);
 	
 	if (n && Doc)
 	{

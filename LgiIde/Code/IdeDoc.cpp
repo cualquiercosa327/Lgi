@@ -603,7 +603,7 @@ public:
 	{
 		if (Lst &&
 			Ctrl == Edit &&
-			!Flags)
+			(!Flags || Flags == GNotifyDocChanged))
 		{
 			Name(Edit->Name());
 		}
@@ -685,7 +685,7 @@ public:
 	{
 		if (Lst &&
 			Ctrl == Edit &&
-			!Flags)
+			(!Flags || Flags == GNotifyDocChanged))
 		{
 			// Kick off search...
 			GString s = Ctrl->Name();
@@ -768,7 +768,7 @@ public:
 	{
 		if (Lst &&
 			Ctrl == Edit &&
-			!Flags)
+			(!Flags || Flags == GNotifyDocChanged))
 		{
 			char *s = Ctrl->Name();
 			if (ValidStr(s))

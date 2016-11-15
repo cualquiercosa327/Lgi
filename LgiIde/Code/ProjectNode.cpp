@@ -116,6 +116,9 @@ ProjectNode::ProjectNode(IdeProject *p) : IdeCommon(p)
 
 ProjectNode::~ProjectNode()
 {
+	if (File && Project)
+		Project->OnNode(File, this, false);
+
 	if (Dep)
 	{
 		DeleteObj(Dep);
@@ -337,6 +340,10 @@ char *ProjectNode::GetFileName()
 void ProjectNode::SetFileName(const char *f)
 {
 	char Rel[MAX_PATH];
+
+	if (File && Project)
+		Project->OnNode(File, this, false);
+
 	DeleteArray(File);
 	if (Project->RelativePath(Rel, f))
 	{
@@ -350,8 +357,12 @@ void ProjectNode::SetFileName(const char *f)
 	if (File)
 	{
 		char MimeType[256];
-		
+
 		GString FullPath = GetFullPath();
+
+		if (Project)
+			Project->OnNode(FullPath, this, true);
+
 		if (FullPath)
 		{
 			if (LgiGetFileMimeType(FullPath, MimeType, sizeof(MimeType)) &&
@@ -494,7 +505,15 @@ void ProjectNode::OnExpand(bool b)
 
 bool ProjectNode::Serialize()
 {
+	if (!Write && File)
+		Project->OnNode(File, this, false);
+
 	SerializeAttr("File", File);
+	
+	if (!Write && File)
+		Project->OnNode(File, this, true);
+
+	
 	SerializeAttr("Name", Name);
 	SerializeAttr("Type", (int&)Type);
 	SerializeAttr("Platforms", (int&)Platforms);
@@ -553,9 +572,14 @@ bool ProjectNode::Serialize()
 						char Rel[MAX_PATH];
 						if (Project->RelativePath(Rel, File))
 						{
+							if (File)
+								Project->OnNode(File, this, false);
+
 							DeleteArray(File);
 							File = NewStr(Rel);
 							Project->SetDirty();
+
+							Project->OnNode(File, this, true);
 						}
 					}
 				}
