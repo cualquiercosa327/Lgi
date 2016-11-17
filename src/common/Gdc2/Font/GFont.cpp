@@ -2322,8 +2322,9 @@ bool GFontType::GetSystemFont(const char *Which)
 			
 			#elif defined WINNATIVE
 
-			SetFace("Courier New");
-			Info.lfHeight = WinPointToHeight(9);
+			// SetFace("Courier New");
+			SetFace("Consolas");
+			Info.lfHeight = WinPointToHeight(10);
 			Status = true;
 
 			#elif defined BEOS

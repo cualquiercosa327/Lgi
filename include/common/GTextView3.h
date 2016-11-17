@@ -155,8 +155,10 @@ protected:
 
 	// Display
 	GFont *Font;
+	GFont *Bold;		// Bold variant of 'Font'
+	GFont *Underline;	// Underline variant of 'Font'
+
 	GFont *FixedFont;
-	GFont *Underline;	// URL display
 	int LineY;
 	int SelStart, SelEnd;
 	int DocOffset;

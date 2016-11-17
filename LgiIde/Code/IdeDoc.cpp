@@ -25,9 +25,35 @@ static const char *White = " \r\t\n";
 #define EDIT_TRAY_HEIGHT	(SysFont->GetHeight() + 10)
 #define EDIT_LEFT_MARGIN	16 // gutter for debug break points
 
-#define ColourComment		GColour(0, 140, 0);
-#define ColourHashDef		GColour(0, 0, 222);
-#define ColourLiteral		GColour(192, 0, 0);
+#define IsSymbolChar(ch)	(IsAlpha(ch) || (ch) == '_')
+
+#define ColourComment		GColour(0, 140, 0)
+#define ColourHashDef		GColour(0, 0, 222)
+#define ColourLiteral		GColour(192, 0, 0)
+#define ColourKeyword		GColour::Black
+
+enum SourceType
+{
+	SrcUnknown,
+	SrcPlainText,
+	SrcCpp,
+	SrcPython
+};
+
+const char *KeywordsCpp[] = {"extern", "class", "struct", "static", "default", "case", "break", "switch", "new", "delete", "sizeof", NULL};
+const char *KeywordsPython[] = {"def", NULL};
+
+const char **SourceKeywords[] =
+{
+	// Unknown
+	NULL,
+	// Plain text
+	NULL,
+	// C/C++
+	KeywordsCpp,
+	// Python
+	KeywordsPython
+};
 
 GAutoPtr<GDocFindReplaceParams> GlobalFindReplace;
 
@@ -788,12 +814,36 @@ class DocEdit : public GTextView3, public GDocumentEnv
 	IdeDoc *Doc;
 	int CurLine;
 	GdcPt2 MsClick;
+	SourceType FileType;
+
+	struct Keyword
+	{
+		char16 *Word;
+		int Len;
+		Keyword *Next;
+
+		Keyword(const char *w)
+		{
+			Word = LgiNewUtf8To16(w);
+			Len = Strlen(Word);
+			Next = NULL;
+		}
+
+		~Keyword()
+		{
+			delete Next;
+			delete [] Word;
+		}
+	};
+
+	Keyword *HasKeyword[26];
 
 public:
 	static int LeftMarginPx;
 
 	DocEdit(IdeDoc *d, GFontType *f) : GTextView3(IDC_EDIT, 0, 0, 100, 100, f)
 	{
+		FileType = SrcUnknown;
 		Doc = d;
 		CurLine = -1;
 		if (!GlobalFindReplace)
@@ -844,6 +894,10 @@ public:
 	~DocEdit()
 	{
 		SetEnv(0);
+		for (int i=0; i<CountOf(HasKeyword); i++)
+		{
+			DeleteObj(HasKeyword[i]);
+		}
 	}
 
 	bool DoGoto()
@@ -1053,19 +1107,40 @@ public:
 
 	void PourStyle(int Start, int EditSize)
 	{
-		char *Ext = LgiGetExtension(Doc->GetFileName());
-		if
-		(
-			!Ext
-			||
-			!(
-				!stricmp(Ext, "c")
-				||
-				!stricmp(Ext, "cpp")
-				||
-				!stricmp(Ext, "h")
-			)
-		)
+		if (FileType == SrcUnknown)
+		{
+			char *Ext = LgiGetExtension(Doc->GetFileName());
+			if (!Ext)
+				FileType = SrcPlainText;
+			else if (!stricmp(Ext, "c")
+					||
+					!stricmp(Ext, "cpp")
+					||
+					!stricmp(Ext, "h"))
+				FileType = SrcCpp;
+			else if (!stricmp(Ext, "py"))
+				FileType = SrcPython;
+			else
+				FileType = SrcPlainText;
+
+			ZeroObj(HasKeyword);
+			if (SourceKeywords[FileType])
+			{
+				for (const char **k = SourceKeywords[FileType]; *k; k++)
+				{
+					const char *Word = *k;
+					int idx = *Word-'a';
+					LgiAssert(idx >= 0 && idx < CountOf(HasKeyword));
+					
+					Keyword **Ptr = &HasKeyword[idx];
+					while (*Ptr != NULL)
+						Ptr = &(*Ptr)->Next;
+					*Ptr = new Keyword(Word);
+				}
+			}
+		}
+
+		if (FileType != SrcCpp)
 			return;
 		
 		char16 *e = Text + Size;
@@ -1101,6 +1176,7 @@ public:
 				}
 				case '#':
 				{
+					// Check that the '#' is the first non-whitespace on the line
 					bool IsWhite = true;
 					for (char16 *w = s - 1; w >= Text && *w != '\n'; w--)
 					{
@@ -1123,7 +1199,16 @@ public:
 							char LastNonWhite = 0;
 							while (s < e)
 							{
-								if (*s == '\n' && LastNonWhite != '\\')
+								if
+								(
+									// Break at end of line
+									(*s == '\n' && LastNonWhite != '\\')
+									||
+									// Or the start of a comment
+									(*s == '/' && s[1] == '/')
+									||
+									(*s == '/' && s[1] == '*')
+								)
 									break;
 								if (!IsWhiteSpace(*s))
 									LastNonWhite = *s;
@@ -1149,7 +1234,7 @@ public:
 				case '8':
 				case '9':
 				{
-					if (s == Text || (!IsAlpha(s[-1]) && s[-1] != '_'))
+					if (s == Text || !IsSymbolChar(s[-1]))
 					{
 						GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
 						if (st)
@@ -1158,15 +1243,35 @@ public:
 							st->Start = s - Text;
 							st->Font = GetFont();
 
+							bool IsHex = false;
 							if (s[0] == '0' &&
-								s[1] == 'x')
+								ToLower(s[1]) == 'x')
+							{
 								s += 2;
+								IsHex = true;
+							}
 							
 							while (s < e)
 							{
-								if (!IsDigit(*s) && *s != '.')
+								if
+								(
+									IsDigit(*s)
+									||
+									*s == '.'
+									||
+									(
+										IsHex
+										&&
+										(
+											(*s >= 'a' && *s <= 'f')
+											||
+											(*s >= 'A' && *s <= 'F')
+										)
+									)
+								)
+									s++;
+								else
 									break;
-								s++;
 							}
 							
 							st->Len = (s - Text) - st->Start;
@@ -1215,6 +1320,63 @@ public:
 						}
 					}
 					break;
+				}
+				/*
+				case '(':
+				case ')':
+				case '{':
+				case '}':
+				{
+					GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+					if (st)
+					{
+						st->View = this;
+						st->Start = s - Text;
+						st->Font = Font;
+						st->Len = 1;
+						st->c.Rgb(128, 128, 128);
+						InsertStyle(st);
+					}
+					break;
+				}
+				*/
+				default:
+				{
+					if (*s >= 'a' && *s <= 'z')
+					{
+						Keyword *k;
+						if (k = HasKeyword[*s - 'a'])
+						{
+							do
+							{
+								if (!Strncmp(k->Word, s, k->Len))
+									break;
+							}
+							while (k = k->Next);
+
+							if
+							(
+								k
+								&&
+								(s == Text || !IsSymbolChar(s[-1]))
+								&&
+								!IsSymbolChar(s[k->Len])
+							)
+							{
+								GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+								if (st)
+								{
+									st->View = this;
+									st->Start = s - Text;
+									st->Font = Bold;
+									st->Len = k->Len;
+									st->c = ColourKeyword;
+									InsertStyle(st);
+									s += k->Len - 1;
+								}
+							}
+						}
+					}
 				}
 			}
 		}

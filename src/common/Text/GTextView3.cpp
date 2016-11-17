@@ -330,7 +330,8 @@ GTextView3::GTextView3(	int Id,
 	#else
 	CrLf = false;
 	#endif
-	Underline = 0;
+	Underline = NULL;
+	Bold = NULL;
 	d->Padding(GCss::Len(GCss::LenPx, 2));
 
 	#ifdef _DEBUG
@@ -378,6 +379,13 @@ GTextView3::GTextView3(	int Id,
 				Underline->Fore(d->UrlColour.c24());
 			Underline->Create();
 		}
+		Bold = new GFont;
+		if (Bold)
+		{
+			*Bold = *Font;
+			Bold->Bold(true);
+			Bold->Create();
+		}
 
 		OnFontChange();
 	}
@@ -408,6 +416,7 @@ GTextView3::~GTextView3()
 	if (Font != SysFont) DeleteObj(Font);
 	DeleteObj(FixedFont);
 	DeleteObj(Underline);
+	DeleteObj(Bold);
 	// 'd' is owned by the GView::Css auto ptr
 }
 
@@ -562,11 +571,23 @@ void GTextView3::SetFont(GFont *f, bool OwnIt)
 	{
 		if (!Underline)
 			Underline = new GFont;
-		*Underline = *Font;
-		Underline->Underline(true);
-		
-		if (d->UrlColour.IsValid())
-			Underline->Fore(d->UrlColour.c24());
+		if (Underline)
+		{
+			*Underline = *Font;
+			Underline->Underline(true);
+			Underline->Create();
+			if (d->UrlColour.IsValid())
+				Underline->Fore(d->UrlColour.c24());
+		}
+
+		if (!Bold)
+			Bold = new GFont;
+		if (Bold)
+		{
+			*Bold = *Font;
+			Bold->Bold(true);
+			Bold->Create();
+		}
 	}
 
 	OnFontChange();
