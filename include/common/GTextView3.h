@@ -104,7 +104,7 @@ public:
 		/// Returns true if this style overlaps the position of 's'
 		bool Overlap(int sStart, int sLen)
 		{
-			if (sStart + sLen < Start ||
+			if (sStart + sLen - 1 < Start ||
 				sStart >= Start + Len)
 				return false;
 

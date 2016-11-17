@@ -25,6 +25,10 @@ static const char *White = " \r\t\n";
 #define EDIT_TRAY_HEIGHT	(SysFont->GetHeight() + 10)
 #define EDIT_LEFT_MARGIN	16 // gutter for debug break points
 
+#define ColourComment		GColour(0, 140, 0);
+#define ColourHashDef		GColour(0, 0, 222);
+#define ColourLiteral		GColour(192, 0, 0);
+
 GAutoPtr<GDocFindReplaceParams> GlobalFindReplace;
 
 int FileNameSorter(char **a, char **b)
@@ -1039,6 +1043,185 @@ public:
 		return T.NewStr();
 	}
 
+	enum StyleState
+	{
+		SNone,
+		SCommentLine,
+		SCommentMulti,
+		SHashDef,
+	};
+
+	void PourStyle(int Start, int EditSize)
+	{
+		char *Ext = LgiGetExtension(Doc->GetFileName());
+		if
+		(
+			!Ext
+			||
+			!(
+				!stricmp(Ext, "c")
+				||
+				!stricmp(Ext, "cpp")
+				||
+				!stricmp(Ext, "h")
+			)
+		)
+			return;
+		
+		char16 *e = Text + Size;
+		StyleState state = SNone;
+		
+		Style.DeleteObjects();
+		for (char16 *s = Text; s < e; s++)
+		{
+			switch (*s)
+			{
+				case '\"':
+				case '\'':
+				{
+					GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+					if (st)
+					{
+						st->View = this;
+						st->Start = s - Text;
+						st->Font = GetFont();
+
+						char16 Delim = *s++;
+						while (s < e && *s != Delim)
+						{
+							if (*s == '\\')
+								s++;
+							s++;
+						}
+						st->Len = (s - Text) - st->Start + 1;
+						st->c = ColourLiteral;
+						InsertStyle(st);
+					}
+					break;
+				}
+				case '#':
+				{
+					bool IsWhite = true;
+					for (char16 *w = s - 1; w >= Text && *w != '\n'; w--)
+					{
+						if (!IsWhiteSpace(*w))
+						{
+							IsWhite = false;
+							break;
+						}
+					}
+
+					if (IsWhite)
+					{
+						GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+						if (st)
+						{
+							st->View = this;
+							st->Start = s - Text;
+							st->Font = GetFont();
+							
+							char LastNonWhite = 0;
+							while (s < e)
+							{
+								if (*s == '\n' && LastNonWhite != '\\')
+									break;
+								if (!IsWhiteSpace(*s))
+									LastNonWhite = *s;
+								s++;
+							}
+							
+							st->Len = (s - Text) - st->Start;
+							st->c = ColourHashDef;
+							InsertStyle(st);
+							s--;
+						}
+					}
+					break;
+				}
+				case '0':
+				case '1':
+				case '2':
+				case '3':
+				case '4':
+				case '5':
+				case '6':
+				case '7':
+				case '8':
+				case '9':
+				{
+					if (s == Text || (!IsAlpha(s[-1]) && s[-1] != '_'))
+					{
+						GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+						if (st)
+						{
+							st->View = this;
+							st->Start = s - Text;
+							st->Font = GetFont();
+
+							if (s[0] == '0' &&
+								s[1] == 'x')
+								s += 2;
+							
+							while (s < e)
+							{
+								if (!IsDigit(*s) && *s != '.')
+									break;
+								s++;
+							}
+							
+							st->Len = (s - Text) - st->Start;
+							st->c = ColourLiteral;
+							InsertStyle(st);
+							s--;
+						}
+					}
+					while (s < e - 1 && IsDigit(s[1]))
+						s++;
+					break;
+				}
+				case '/':
+				{
+					if (s[1] == '/')
+					{
+						GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+						if (st)
+						{
+							st->View = this;
+							st->Start = s - Text;
+							st->Font = GetFont();
+							while (s < e && *s != '\n')
+								s++;
+							st->Len = (s - Text) - st->Start;
+							st->c = ColourComment;
+							InsertStyle(st);
+							s--;
+						}
+					}
+					else if (s[1] == '*')
+					{
+						GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+						if (st)
+						{
+							st->View = this;
+							st->Start = s - Text;
+							st->Font = GetFont();
+							s += 2;
+							while (s < e && !(s[-2] == '*' && s[-1] == '/'))
+								s++;
+							st->Len = (s - Text) - st->Start;
+							st->c = ColourComment;
+							InsertStyle(st);
+							s--;
+						}
+					}
+					break;
+				}
+			}
+		}
+	}
+
+
+	/*
 	void PourText(int Start, int Len)
 	{
 		GTextView3::PourText(Start, Len);
@@ -1085,6 +1268,7 @@ public:
 			}
 		}
 	}
+	*/
 	
 	bool Pour(GRegion &r)
 	{
@@ -1272,9 +1456,6 @@ IdeDocPrivate::IdeDocPrivate(IdeDoc *d, AppWnd *a, NodeSource *src, const char *
 	
 	Doc->AddView(Edit = new DocEdit(Doc, Use));
 	Doc->AddView(Tray = new EditTray(Edit, Doc));
-
-	if (src || file)
-		Load();
 }
 
 void IdeDocPrivate::OnDelete()
@@ -1453,6 +1634,9 @@ IdeDoc::IdeDoc(AppWnd *a, NodeSource *src, const char *file)
 {
 	d = new IdeDocPrivate(this, a, src, file);
 	d->UpdateName();
+
+	if (src || file)
+		d->Load();
 }
 
 IdeDoc::~IdeDoc()
