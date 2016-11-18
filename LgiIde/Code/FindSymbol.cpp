@@ -17,6 +17,8 @@
 
 #include "resdefs.h"
 
+#define MSG_TIME_MS				5000
+
 #define DEBUG_FIND_SYMBOL		0
 #define DEBUG_NO_THREAD			1
 #define DEBUG_FILE				"silabs_srate_program.h"
@@ -79,10 +81,26 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 	GEventSinkI *App;
 	GArray<GString::Array*> IncPaths;
 	GArray<FileSyms*> Files;
+	uint32 Tasks;
+	uint64 MsgTs;
 	
 	FindSymbolSystemPriv(GEventSinkI *app) : GEventTargetThread("FindSymbolSystemPriv")
 	{
+		Tasks = 0;
 		App = app;
+		MsgTs = 0;
+	}
+
+	void Log(const char *Fmt, ...)
+	{
+		va_list Arg;
+		va_start(Arg, Fmt);
+		GString s;
+		s.Printf(Arg, Fmt);
+		va_end(Arg);
+		
+		if (s.Length())
+			App->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr(s), AppWnd::BuildTab);
 	}
 	
 	int GetFileIndex(GString &Path)
@@ -229,7 +247,8 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 						}
 					}
 					
-					Req->Sink->PostEvent(M_FIND_SYM_REQUEST, (GMessage::Param) Req.Release());
+					GEventSinkI *Sink = Req->Sink;
+					Sink->PostEvent(M_FIND_SYM_REQUEST, (GMessage::Param) Req.Release());
 				}
 				break;
 			}
@@ -246,6 +265,14 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 						RemoveFile(*File);
 					else if (Action == FindSymbolSystem::FileReparse)
 						ReparseFile(*File);
+				}
+
+				uint64 Now = LgiCurrentTime();
+				if (Now - MsgTs > MSG_TIME_MS)
+				{
+					MsgTs = Now;
+					uint32 Remaining = Tasks - GetQueueSize();
+					Log("FindSym: %i of %i (%.1f%%)\n", Remaining, Tasks, (double)Remaining * 100.0 / max(Tasks, 1));
 				}
 				break;
 			}
@@ -470,6 +497,8 @@ bool FindSymbolSystem::SetIncludePaths(GString::Array &Paths)
 bool FindSymbolSystem::OnFile(const char *Path, SymAction Action)
 {
 	GString *s = new GString(Path);
+
+	d->Tasks++;
 	
 	return d->PostEvent(M_FIND_SYM_FILE,
 						(GMessage::Param)s,

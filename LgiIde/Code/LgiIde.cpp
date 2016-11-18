@@ -1411,7 +1411,7 @@ void AppWnd::UpdateState(int Debugging, int Building)
 	SetCtrlEnabled(IDM_RUN_TO, d->Debugging);
 }
 
-void AppWnd::AppendOutput(char *Txt, int Channel)
+void AppWnd::AppendOutput(char *Txt, AppWnd::Channels Channel)
 {
 	if (!d->Output)
 	{
@@ -1903,7 +1903,7 @@ GMessage::Result AppWnd::OnEvent(GMessage *m)
 		case M_APPEND_TEXT:
 		{
 			char *Text = (char*) MsgA(m);
-			int Ch = MsgB(m);
+			Channels Ch = (Channels) MsgB(m);
 			AppendOutput(Text, Ch);
 			DeleteArray(Text);
 			break;

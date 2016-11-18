@@ -744,6 +744,13 @@ public:
 		va_end(Arg);
 		return Bytes;
 	}
+
+	/// Prints a varargs string
+	int Printf(va_list &Arg, const char *Fmt)
+	{
+		Empty();
+		return LgiPrintf(*this, Fmt, Arg);
+	}
 	
 	#if defined(MAC) // && __COREFOUNDATION_CFBASE__
 

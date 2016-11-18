@@ -230,7 +230,7 @@ public:
 	IdeProject *RootProject();
 	IdeDoc *TopDoc();
 	IdeDoc *FocusDoc();
-	void AppendOutput(char *Txt, int Channel);
+	void AppendOutput(char *Txt, Channels Channel);
 	void UpdateState(int Debugging = -1, int Building = -1);
 	void OnReceiveFiles(GArray<char*> &Files);
 	int GetBuildMode();
