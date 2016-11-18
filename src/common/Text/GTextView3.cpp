@@ -1840,8 +1840,14 @@ void GTextView3::SetCursor(int i, bool Select, bool ForceFullUpdate)
 		// need full update
 		Invalidate();
 	}
-	else if (	SelStart != s ||
-				SelEnd != e)
+	else if
+	(
+		(
+			SelStart != s
+			||
+			SelEnd != e
+		)
+	)
 	{
 		// Update just the selection bounds
 		GRect Client = GetClient();
@@ -1864,6 +1870,7 @@ void GTextView3::SetCursor(int i, bool Select, bool ForceFullUpdate)
 			Start = min(s, e);
 			End = max(s, e);
 		}
+		else LgiAssert(0);
 
 		GTextLine *SLine = GetTextLine(Start);
 		GTextLine *ELine = GetTextLine(End);
