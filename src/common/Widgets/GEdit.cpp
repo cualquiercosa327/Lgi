@@ -89,8 +89,8 @@ void GEdit::SendNotify(int Data)
 
 bool GEdit::GetSelection(int &Start, int &Len)
 {
-	int Sel = GetCursor(false);
-	Start = GetCursor();
+	int Sel = GTextView3::GetCursor(false);
+	Start = GTextView3::GetCursor();
 	if (Sel < Start)
 		Len = Start - Sel + 1;
 	else
@@ -106,7 +106,7 @@ void GEdit::Select(int Start, int Len)
 
 int GEdit::GetCaret()
 {
-	return GetCursor();
+	return GTextView3::GetCursor();
 }
 
 void GEdit::SetCaret(int i)

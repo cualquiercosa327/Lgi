@@ -24,8 +24,6 @@
 #define DEBUG_MOUSE_CLICKS		0
 #define DEBUG_OVER				0
 #define OLD_WM_CHAR_MODE		1
-#define GWL_LGI_MAGIC			8
-#define GWL_EXTRA_BYTES			12
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 bool In_SetWindowPos = false;
@@ -205,7 +203,10 @@ bool CastHwnd(T *&Ptr, HWND hWnd)
 
 	if (magic != LGI_GViewMagic)
 	{
-		LgiTrace("%s:%i - Error: hWnd=%p, GWL_LGI_MAGIC=%i\n", _FL, hWnd, magic);
+		TCHAR ClsName[256] = {0};
+		int Ch = GetClassName(hWnd, ClsName, CountOf(ClsName));
+		GString Cls = ClsName;
+		LgiTrace("%s:%i - Error: hWnd=%p/%s, GWL_LGI_MAGIC=%i\n", _FL, hWnd, Cls.Get(), magic);
 		return false;
 	}
 	Ptr = dynamic_cast<T*>((GViewI*)user);

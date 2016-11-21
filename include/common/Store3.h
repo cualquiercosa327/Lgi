@@ -206,7 +206,7 @@ public:
 	/// Delete the on disk representation of the object. This will cause GDataEventsI::OnDelete
 	/// to be called after which this object will be freed from heap memory automatically. So
 	/// Once you call this method assume the object pointed at is gone.
-	virtual Store3Status Delete() = 0;
+	virtual Store3Status Delete(bool ToTrash = true) = 0;
 	/// Gets the storage that this object belongs to.
 	virtual GDataStoreI *GetStore() = 0;
 	/// \returns a stream to access the data stored at this node. The caller

@@ -370,12 +370,12 @@ bool GToolTip::Attach(GViewI *p)
 								NULL,
 								NULL,
 								NULL);
-
 	}
 
 	if (!_View)
 		return false;
-
+	SetWindowLongPtr(	_View, GWLP_USERDATA, (LONG_PTR)(GViewI*)this);
+	SetWindowLong(		_View, GWL_LGI_MAGIC, LGI_GViewMagic);			
 	SetWindowPos(		_View,
 						HWND_TOPMOST,
 						0, 0, 0, 0,

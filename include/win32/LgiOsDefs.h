@@ -103,6 +103,9 @@ public:
 #define IsWin9x							(GApp::Win9x)
 #define DefaultOsView(t)				NULL
 
+#define GWL_LGI_MAGIC					8
+#define GWL_EXTRA_BYTES					12
+
 // Key redefs
 #define VK_PAGEUP						VK_PRIOR
 #define VK_PAGEDOWN						VK_NEXT
