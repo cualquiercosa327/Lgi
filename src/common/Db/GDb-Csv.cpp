@@ -234,7 +234,7 @@ public:
 		{
 			In += RawLen;
 			while (*In == '\r' || *In == '\n') In++;
-			Raw.Reset(LgiNewUtf16To8(Start, RawLen * sizeof(char16)));
+			Raw.Reset(WideToUtf8(Start, RawLen));
 
 			if (Raw && SetFields(Flds))
 			{

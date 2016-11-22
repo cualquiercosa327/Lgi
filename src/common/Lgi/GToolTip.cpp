@@ -1,3 +1,4 @@
+
 #define _WIN32_WINNT 0x500
 #include "Lgi.h"
 #if defined WIN32

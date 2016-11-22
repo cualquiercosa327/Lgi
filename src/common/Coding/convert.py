@@ -8,14 +8,14 @@ Insert = None
 
 parts = GScriptVmCpp.split(Key);
 if len(parts) == 4:
-	print "Converting #include to inline..."
+	print("Converting #include to inline...")
 	Insert = InstructionsH
 elif len(parts) == 1:
-	print "Converting inline to #include..."
+	print("Converting inline to #include...")
 	parts = GScriptVmCpp.split(InstructionsH)
 	Insert = Key
 else:
-	print "Unknown number of parts:", len(parts)
+	print("Unknown number of parts:", len(parts))
 	parts = None
 	sys.exit(-1)
 
@@ -25,4 +25,4 @@ if len(parts) > 0:
 	f.truncate(0)
 	f.write(out)
 else:
-	print "Error: Parts=", len(parts)
+	print("Error: Parts=", len(parts))

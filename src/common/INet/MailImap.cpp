@@ -481,7 +481,7 @@ char *DecodeImapString(char *s)
 								Bin[i] = (Bin[i]>>8) | ((Bin[i]&0xff)<<8);
 							}
 
-							char *c8 = LgiNewUtf16To8((char16*)Bin, BinLen);
+							char *c8 = WideToUtf8((char16*)Bin, BinLen);
 							if (c8)
 							{
 								p.Push(c8);

@@ -141,7 +141,7 @@ GSubProcess::Variable *GSubProcess::GetEnvVar(const char *Var, bool Create)
 				if (NameChars > 0)
 				{					
 					Variable &v = Environment.New();
-					v.Var.Reset(WideToUtf8(s, sizeof(char16)*(eq-s)));
+					v.Var.Reset(WideToUtf8(s, eq - s));
 					eq++;
 					v.Val.Reset(WideToUtf8(eq));
 				}

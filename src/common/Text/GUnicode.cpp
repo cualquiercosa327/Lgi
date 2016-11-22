@@ -1,14 +1,15 @@
 #include "Lgi.h"
+#include "GUnicode.h"
 
-char16 *Utf8ToWide(const char *In, int InLen)
+wchar_t *Utf8ToWide(const char *In, int InLen)
 {
 	if (!In)
 		return NULL;
 
-	return (char16*) LgiNewConvertCp(LGI_WideCharset, In, "utf-8", InLen);
+	return (wchar_t*) LgiNewConvertCp(LGI_WideCharset, In, "utf-8", InLen);
 }
 
-char *WideToUtf8(const char16 *In, int InLen)
+char *WideToUtf8(const wchar_t *In, int InLen)
 {
 	if (!In)
 		return NULL;
