@@ -322,6 +322,13 @@ public:
 
 	bool Error(const char *file, int line, const char *fmt, ...)
 	{
+		va_list Arg;
+		va_start(Arg, fmt);
+		GString s;
+		LgiPrintf(s, fmt, Arg);
+		va_end(Arg);
+		LgiTrace("%s:%i - Error: %s\n", file, line, s.Get());
+		
 		LgiAssert(0);
 		return false;
 	}
@@ -521,11 +528,28 @@ public:
 		(
 			/// [In] true if the next line is needed, false for the previous line
 			SeekType To,
-			/// [In] The inital offset.
+			/// [In] The initial offset.
 			int Offset,
 			/// [In] The x position hint
 			int XPos
 		) = 0;
+
+		// Add some text at a given position
+		virtual bool AddText
+		(
+			/// The index to add at (-1 = the end)
+			int AtOffset,
+			/// The text itself
+			const char16 *Str,
+			/// [Optional] The number of characters
+			int Chars = -1,
+			/// [Optional] Style to give the text
+			GNamedStyle *Style = NULL
+		)	{ return false; }
+
+		/// Delete some chars
+		/// \returns the number of chars actually removed
+		virtual int DeleteAt(int Offset, int Chars) { return false; }
 
 		virtual void Dump() {}
 		virtual GNamedStyle *GetStyle() = 0;
@@ -1274,13 +1298,45 @@ public:
 			}
 			return NULL;
 		}
+
+		int DeleteAt(int BlkOffset, int Chars)
+		{
+			int Pos = 0;
+			for (unsigned i=0; i<Txt.Length(); i++)
+			{
+				Text *t = Txt[i];
+				int TxtOffset = BlkOffset - Pos;
+				if (TxtOffset >= 0 && TxtOffset < t->Length())
+				{
+					int MaxChars = t->Length() - TxtOffset;
+					int Remove = min(Chars, MaxChars);
+					if (Remove <= 0)
+						return 0;
+					int Remaining = MaxChars - Remove;
+					if (Remaining > 0)
+					{
+						// Copy down
+						memmove(&(*t)[TxtOffset], &(*t)[TxtOffset + Remove], Remaining * sizeof(char16));
+					}
+
+					// Change length
+					t->Length(t->Length() - Remove);
+					LayoutDirty = true;
+					return Remove;
+				}
+				Pos += t->Length();
+			}
+
+			return 0;
+		}
 		
-		bool AddText(GNamedStyle *Style, const char16 *Str, int Chars = -1)
+		bool AddText(int AtOffset, const char16 *Str, int Chars = -1, GNamedStyle *Style = NULL)
 		{
 			if (!Str)
 				return false;
 			if (Chars < 0)
 				Chars = StrlenW(Str);
+			
 			bool StyleDiff = (Style != NULL) ^ ((Txt.Length() ? Txt.Last()->GetStyle() : NULL) != NULL);
 			Text *t = !StyleDiff && Txt.Length() ? Txt.Last() : NULL;
 			if (t)
@@ -1295,6 +1351,7 @@ public:
 			}
 			else return false;
 
+			LayoutDirty = true;
 			t->SetStyle(Style);
 			return true;
 		}
@@ -1912,7 +1969,7 @@ public:
 			
 			if (Used > 0)
 			{
-				Tb->AddText(Style, &Buf[0], Used);
+				Tb->AddText(-1, &Buf[0], Used, Style);
 				LastChar = Buf[Used-1];
 			}
 		}
@@ -2058,7 +2115,7 @@ public:
 					Blocks.Add(ctx.Tb = new TextBlock);
 				if (ctx.Tb)
 				{
-					ctx.Tb->AddText(CachedStyle, L"\n");
+					ctx.Tb->AddText(-1, L"\n", 1, CachedStyle);
 					ctx.LastChar = '\n';
 				}
 			}
@@ -3091,6 +3148,16 @@ bool GTextView4::OnKey(GKey &k)
 					if (k.Down())
 					{
 						// letter/number etc
+						if (d->Cursor &&
+							d->Cursor->Blk)
+						{
+							if (d->Cursor->Blk->AddText(d->Cursor->Offset, &k.c16, 1))
+							{
+								d->Cursor->Offset++;
+								Invalidate();
+							}
+						}
+
 						/*
 						if (SelStart >= 0)
 						{
@@ -3225,6 +3292,21 @@ bool GTextView4::OnKey(GKey &k)
 				}
 				else if (k.Down())
 				{
+					if (d->Cursor &&
+						d->Cursor->Blk &&
+						d->Cursor->Offset > 0)
+					{
+						if (d->Cursor->Blk->DeleteAt(d->Cursor->Offset-1, 1))
+						{
+							d->Cursor->Offset--;
+							Invalidate();
+						}
+					}
+					else
+					{
+						LgiAssert(!"Impl deleting char from previous block");
+					}
+
 					/*
 					if (SelStart >= 0)
 					{

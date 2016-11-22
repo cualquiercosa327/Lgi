@@ -2,8 +2,8 @@
 /// \author Matthew Allen
 /// \brief A unicode text editor
 
-#ifndef __GTEXTVIEW4_H
-#define __GTEXTVIEW4_H
+#ifndef _GTEXTVIEW4_H_
+#define _GTEXTVIEW4_H_
 
 #include "GDocView.h"
 #include "GUndo.h"

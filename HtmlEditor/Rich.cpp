@@ -1,10 +1,17 @@
 #include "Lgi.h"
-#include "GHtmlEdit.h"
 #include "GTextView3.h"
 #include "GTree.h"
 #include "GTabView.h"
 #include "GBox.h"
 #include "resource.h"
+
+#if 1
+#include "GTextView4.h"
+typedef GTextView4 EditCtrl;
+#else
+#include "GHtmlEdit.h"
+typedef GHtmlEdit EditCtrl;
+#endif
 
 enum Ctrls
 {
@@ -43,12 +50,13 @@ char Src[] =
 
 class App : public GWindow
 {
-	GHtmlEdit *Edit;
 	GBox *Split;
 	GTextView3 *Txt;
 	GTabView *Tabs;
 	GTree *Tree;
 	uint64 LastChange;
+
+	EditCtrl *Edit;
 
 public:
 	App()
@@ -72,7 +80,7 @@ public:
 			AddView(Split = new GBox);
 			if (Split)
 			{
-				Split->AddView(Edit = new GHtmlEdit);
+				Split->AddView(Edit = new EditCtrl(IDC_EDITOR));
 				if (Edit)
 				{
 					Edit->SetId(IDC_EDITOR);
@@ -149,8 +157,10 @@ public:
 			if (Txt)
 				Txt->Name(Edit->Name());
 			
+			#ifdef _RICH_EDIT_H_
 			if (Edit && Tree)
 				Edit->DumpNodes(Tree);
+			#endif
 		}
 	}
 };
