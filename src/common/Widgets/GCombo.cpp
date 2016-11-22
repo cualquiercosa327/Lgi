@@ -352,7 +352,7 @@ void GCombo::DoMenu()
 							*n++ = '.';
 							*n++ = '.';
 							*n++ = 0;
-							GAutoString a(LgiNewUtf16To8(Name));
+							GAutoString a(WideToUtf8(Name));
 							m = RClick.AppendSub(a);
 						}
 					}

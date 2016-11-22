@@ -3,7 +3,7 @@
 #include "GToken.h"
 #include "GHtmlCommon.h"
 #include "GHtmlParser.h"
-#include "GUtf8.h"
+#include "GUnicode.h"
 
 #define FEATURE_REATTACH_ELEMENTS		1
 #define IsBlock(d)						((d) == GCss::DispBlock)
@@ -157,7 +157,7 @@ char16 *GHtmlParser::DecodeEntities(const char *s, int len)
 						e++;
 					}
 					
-					GAutoWString Var(LgiNewUtf8To16(i, e-i));
+					GAutoWString Var(Utf8ToWide(i, e-i));
 					uint32 Char = GHtmlStatic::Inst->VarMap.Find(Var);
 					if (Char)
 					{
@@ -652,7 +652,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 									{
 										char16 *cs = NULL;
 										ParsePropValue(CharSet + 8, cs);
-										Cs.Reset(LgiNewUtf16To8(cs));
+										Cs.Reset(WideToUtf8(cs));
 										DeleteArray(cs);
 									}
 								}

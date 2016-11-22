@@ -14,6 +14,7 @@
 #include "GViewPriv.h"
 #include "GCssTools.h"
 #include "GFontCache.h"
+#include "GUnicode.h"
 
 #include "GHtmlCommon.h"
 #include "GHtmlParser.h"
@@ -2422,13 +2423,13 @@ bool GTextView4::Name(const char *s)
 
 char16 *GTextView4::NameW()
 {
-	d->WideNameCache.Reset(LgiNewUtf8To16(Name()));
+	d->WideNameCache.Reset(Utf8ToWide(Name()));
 	return d->WideNameCache;
 }
 
 bool GTextView4::NameW(const char16 *s)
 {
-	GAutoString a(LgiNewUtf16To8(s));
+	GAutoString a(WideToUtf8(s));
 	return Name(a);
 }
 
@@ -2906,7 +2907,7 @@ void GTextView4::DoContextMenu(GMouse &m)
 			{
 				LgiTrace("[%i] %i,%i (%s)\n", n, l->Start, l->Len, l->r.Describe());
 
-				char *s = LgiNewUtf16To8(Text + l->Start, l->Len * sizeof(char16));
+				char *s = WideToUtf8(Text + l->Start, l->Len);
 				if (s)
 				{
 					LgiTrace("%s\n", s);

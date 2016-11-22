@@ -1506,13 +1506,13 @@ public:
 
 			if (!t->Text())
 			{
-				t->Text(LgiNewUtf8To16(utf));
+				t->Text(Utf8ToWide(utf));
 				t->Cursor = StrlenW(t->Text());
 				Status = true;
 			}
 			else
 			{
-				char16 *w = LgiNewUtf8To16(utf);
+				char16 *w = Utf8ToWide(utf);
 				if (w)
 				{
 					int Base = t->GetTextStart();
@@ -1975,7 +1975,7 @@ public:
 			if (MinTag->Text())
 			{
 				int Start = MinTag->GetTextStart();
-				p.Push(LgiNewUtf16To8(MinTag->Text() + Start + MinIdx, (MaxIdx - MinIdx) * sizeof(char16)));
+				p.Push(WideToUtf8(MinTag->Text() + Start + MinIdx, MaxIdx - MinIdx));
 			}
 		}
 		else
@@ -1988,15 +1988,15 @@ public:
 					int Start = t->GetTextStart();
 					if (t == MinTag)
 					{
-						p.Push(LgiNewUtf16To8(t->Text() + Start + MinIdx));
+						p.Push(WideToUtf8(t->Text() + Start + MinIdx));
 					}
 					else if (t == MaxTag)
 					{
-						p.Push(LgiNewUtf16To8(t->Text() + Start, (MaxIdx - Start) * sizeof(char16)));
+						p.Push(WideToUtf8(t->Text() + Start, MaxIdx - Start));
 					}
 					else
 					{
-						p.Push(LgiNewUtf16To8(t->Text() + Start));
+						p.Push(WideToUtf8(t->Text() + Start));
 					}
 				}
 				else
@@ -2062,7 +2062,7 @@ public:
 				}
 				else if (k.c16 >= ' ')
 				{
-					GAutoString utf(LgiNewUtf16To8(&k.c16, sizeof(k.c16)));
+					GAutoString utf(WideToUtf8(&k.c16, 1));
 					Insert(utf);
 				}
 			}
@@ -2372,7 +2372,7 @@ public:
 			}
 
 			DbgInf *Cur = new DbgInf(Cursor);
-			GAutoString CursorText(LgiNewUtf16To8(Cursor->Text(), Cursor->Cursor));
+			GAutoString CursorText(WideToUtf8(Cursor->Text(), Cursor->Cursor));
 			sprintf_s(m, sizeof(m), "<%s>%s", Cursor->Tag?Cursor->Tag.Get():"CONTENT", CursorText.Get());
 			Cur->Ds.Add(ds = new DbgDs(SysFont, m, Rgb24(0, 0, 255)));
 			Cur->Ds.Add(ds = new DbgDs(SysFont, "[cursor]", Rgb24(255, 0, 0)));
@@ -2777,7 +2777,7 @@ char *GHtmlEdit::Name()
 
 bool GHtmlEdit::Name(const char *s)
 {
-	d->e->OriginalSrcW.Reset(LgiNewUtf8To16(s));
+	d->e->OriginalSrcW.Reset(Utf8ToWide(s));
 	bool r = d->e->Name(s);
 	if (r)
 	{

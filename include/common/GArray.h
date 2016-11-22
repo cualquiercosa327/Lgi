@@ -7,7 +7,6 @@
 
 #include <stdlib.h>
 #include <assert.h>
-#include "LgiDefs.h"
 
 #define GARRAY_MIN_SIZE			16
 
@@ -32,6 +31,8 @@ _CRTIMP void __cdecl qsort_s(void *_Base,
 #endif
 #endif
 
+#define MAX(a,b) ((a) > (b) ? a : b)
+#define MIN(a,b) ((a) < (b) ? a : b)
 
 /// \brief Growable type-safe array.
 /// \ingroup Base
@@ -125,7 +126,7 @@ public:
 		{
 			if (i > len && fixed)
 			{
-				LgiAssert(!"Attempt to enlarged fixed array.");
+				assert(!"Attempt to enlarged fixed array.");
 				return false;
 			}
 
@@ -141,7 +142,7 @@ public:
 			    for (b = 4; ((uint32)1 << b) < i; b++)
 			        ;
 			    nalloc = 1 << b;
-			    LgiAssert(nalloc >= i);
+			    assert(nalloc >= i);
 			}
 			
 			if (nalloc != alloc)
@@ -155,7 +156,7 @@ public:
 				if (p)
 				{
 					// copy across common elements
-					memcpy(np, p, min(len, i) * sizeof(Type));
+					memcpy(np, p, MIN(len, i) * sizeof(Type));
 					free(p);
 				}
 				p = np;
@@ -253,7 +254,7 @@ public:
 
 		if (i < 0)
 		{
-			LgiAssert(!"Invalid index...");
+			assert(!"Invalid index...");
 			return t;
 		}
 		
@@ -262,10 +263,10 @@ public:
 			(fixed && (uint32)i >= len)
 		)
 		{
-			ZeroObj(t);
+			memset(&t, 0, sizeof(t));
 			if (fixed && (uint32)i >= len)
 			{
-				LgiAssert(!"Attempt to enlarged fixed array.");
+				assert(!"Attempt to enlarged fixed array.");
 			}
 			return t;
 		}
@@ -273,7 +274,7 @@ public:
 		if (i >= (int)alloc)
 		{
 			// increase array length
-			uint32 nalloc = max(alloc, GARRAY_MIN_SIZE);
+			uint32 nalloc = MAX(alloc, GARRAY_MIN_SIZE);
 			while (nalloc <= (uint32)i)
 			{
 				nalloc <<= 1;
@@ -393,7 +394,7 @@ public:
 	bool DeleteAt
 	(
 		/// The index of the entry to delete
-		uint Index,
+		unsigned int Index,
 		/// true if the order of the array matters, otherwise false.
 		bool Ordered = false
 	)

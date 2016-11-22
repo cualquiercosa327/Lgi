@@ -1004,7 +1004,7 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 						(PointSize() == 8 || PointSize() == 9) &&
 						GTypeFace::d->_Underline;
 
-	GAutoWString wFace(LgiNewUtf8To16(GTypeFace::d->_Face));
+	GAutoWString wFace(Utf8ToWide(GTypeFace::d->_Face));
 	d->hFont = ::CreateFont(Win32Height,
 							0,
 							0,
@@ -2428,13 +2428,13 @@ GAutoString GFont::ConvertToUnicode(char16 *Input, int Len)
 			}
 			
 			GAutoWString w(p.NewStrW());
-			a.Reset(LgiNewUtf16To8(w));
+			a.Reset(WideToUtf8(w));
 		}
 	}
 	else
 	{
 		// Normal utf-8 text...
-		a.Reset(LgiNewUtf16To8(Input, Len));
+		a.Reset(WideToUtf8(Input, Len));
 	}
 	
 	return a;

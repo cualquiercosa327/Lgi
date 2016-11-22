@@ -25,7 +25,7 @@ typedef		unsigned long				ulong;
 
 #ifndef BEOS
 	/// 8-bit signed int type (size safe, garenteed to be 8 bits)
-	typedef		char					int8;
+	typedef		signed char				int8;
 	/// 8-bit unsigned int type (size safe, garenteed to be 8 bits)
 	typedef		unsigned char			uint8;
 #else
@@ -64,8 +64,8 @@ typedef		unsigned long long			uint64;
 ///
 /// Firstly to convert to and from utf-8 there is:
 /// <ul>
-/// 	<li> LgiNewUtf8To16()
-///		<li> LgiNewUtf16To8()
+/// 	<li> Utf8ToWide()
+///		<li> WideToUtf8()
 /// </ul>
 ///
 /// Wide versions of standard library functions are available:

@@ -612,7 +612,7 @@ public:
 					continue;
 				}
 				
-				GAutoPtr<char16, true> w(LgiNewUtf8To16(Utf, Size));
+				GAutoPtr<char16, true> w(Utf8ToWide(Utf, Size));
 				char16 *OldText = Txt[Channel]->NameW();
 				int OldLen = 0;
 				if (OldText)
@@ -970,7 +970,7 @@ public:
 						}
 						
 						// Store the filename
-						char *File = LgiNewUtf16To8(Txt+Line, (i-Line)*sizeof(char16));
+						char *File = WideToUtf8(Txt+Line, (i-Line)*sizeof(char16));
 						if (File)
 						{
 							// Scan over the linenumber..
@@ -978,7 +978,7 @@ public:
 							while (isdigit(Txt[NumIndex])) NumIndex++;
 							
 							// Store the linenumber
-							char *NumStr = LgiNewUtf16To8(Txt + i, (NumIndex - i) * sizeof(char16));
+							char *NumStr = WideToUtf8(Txt + i, (NumIndex - i) * sizeof(char16));
 							if (NumStr)
 							{
 								// Convert it to an integer
@@ -987,7 +987,7 @@ public:
 								o->SetCursor(Line, false);
 								o->SetCursor(NumIndex + 1, true);
 								
-								char *Context8 = LgiNewUtf16To8(Context);
+								char *Context8 = WideToUtf8(Context);
 								ViewMsg(File, LineNumber, Context8);
 								DeleteArray(Context8);
 							}

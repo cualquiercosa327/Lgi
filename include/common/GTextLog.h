@@ -90,7 +90,7 @@ public:
 	
 	int Write(const void *Buffer, int Size, int Flags = 0)
 	{
-		GAutoWString w(LgiNewUtf8To16((char*)Buffer, Size));
+		GAutoWString w(Utf8ToWide((char*)Buffer, Size));
 		// printf("GTextLog::Write(%p)\n", w.Get());
 		if (w)
 		{

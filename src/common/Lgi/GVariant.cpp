@@ -708,7 +708,7 @@ char *GVariant::Str()
 
 	if (Type == GV_WSTRING)
 	{
-		char *u = LgiNewUtf16To8(Value.WString);
+		char *u = WideToUtf8(Value.WString);
 		DeleteArray(Value.WString);
 		Type = GV_STRING;
 		return Value.String = u;
@@ -735,7 +735,7 @@ char16 *GVariant::WStr()
 
 	if (Type == GV_STRING)
 	{
-		char16 *w = LgiNewUtf8To16(Value.String);
+		char16 *w = Utf8ToWide(Value.String);
 		DeleteArray(Value.String);
 		Type = GV_WSTRING;
 		return Value.WString = w;

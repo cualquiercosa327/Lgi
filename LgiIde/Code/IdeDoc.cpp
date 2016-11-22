@@ -437,7 +437,7 @@ void EditTray::OnSymbolList(GMouse &m)
 	GAutoString s(Ctrl->GetSelection());
 	if (s)
 	{
-		GAutoWString sw(LgiNewUtf8To16(s));
+		GAutoWString sw(Utf8ToWide(s));
 		if (sw)
 		{
 			#if USE_OLD_FIND_DEFN
@@ -824,7 +824,7 @@ class DocEdit : public GTextView3, public GDocumentEnv
 
 		Keyword(const char *w)
 		{
-			Word = LgiNewUtf8To16(w);
+			Word = Utf8ToWide(w);
 			Len = Strlen(Word);
 			Next = NULL;
 		}
@@ -1638,7 +1638,7 @@ bool DocEdit::OnMenu(GDocView *View, int Id)
 						char *Comment = TemplateMerge(Template, File + 1, 0);
 						if (Comment)
 						{
-							char16 *C16 = LgiNewUtf8To16(Comment);
+							char16 *C16 = Utf8ToWide(Comment);
 							DeleteArray(Comment);
 							if (C16)
 							{
@@ -1684,7 +1684,7 @@ bool DocEdit::OnMenu(GDocView *View, int Id)
 						
 						if (OpenBracketIndex > 0)
 						{
-							char *FuncName = LgiNewUtf16To8(Tokens[OpenBracketIndex-1]);
+							char *FuncName = WideToUtf8(Tokens[OpenBracketIndex-1]);
 							if (FuncName)
 							{
 								// Get a list of parameter names
@@ -1698,7 +1698,7 @@ bool DocEdit::OnMenu(GDocView *View, int Id)
 										char16 *Param = Tokens[i-1];
 										if (Param)
 										{
-											Params.Insert(LgiNewUtf16To8(Param));
+											Params.Insert(WideToUtf8(Param));
 										}
 									}
 								}
@@ -1707,7 +1707,7 @@ bool DocEdit::OnMenu(GDocView *View, int Id)
 								char *Comment = TemplateMerge(Template, FuncName, &Params);
 								if (Comment)
 								{
-									char16 *C16 = LgiNewUtf8To16(Comment);
+									char16 *C16 = Utf8ToWide(Comment);
 									DeleteArray(Comment);
 									if (C16)
 									{
@@ -2527,7 +2527,7 @@ bool IdeDoc::BuildIncludePaths(GArray<GString> &Paths, IdePlatform Platform, boo
 
 bool IdeDoc::BuildHeaderList(char16 *Cpp, GArray<char*> &Headers, GArray<GString> &IncPaths)
 {
-	GAutoString c8(LgiNewUtf16To8(Cpp));
+	GAutoString c8(WideToUtf8(Cpp));
 	if (!c8)
 		return false;
 
@@ -2609,7 +2609,7 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 			char *c8 = ReadTextFile(h);
 			if (c8)
 			{
-				char16 *c16 = LgiNewUtf8To16(c8);
+				char16 *c16 = Utf8ToWide(c8);
 				DeleteArray(c8);
 				if (c16)
 				{

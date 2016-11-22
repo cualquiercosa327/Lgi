@@ -1,6 +1,6 @@
 #include "Lgi.h"
 
-char16 *LgiNewUtf8To16(const char *In, int InLen)
+char16 *Utf8ToWide(const char *In, int InLen)
 {
 	if (!In)
 		return NULL;
@@ -8,11 +8,11 @@ char16 *LgiNewUtf8To16(const char *In, int InLen)
 	return (char16*) LgiNewConvertCp(LGI_WideCharset, In, "utf-8", InLen);
 }
 
-char *LgiNewUtf16To8(const char16 *In, int InLen)
+char *WideToUtf8(const char16 *In, int InLen)
 {
 	if (!In)
 		return NULL;
 
-	return (char*) LgiNewConvertCp("utf-8", In, LGI_WideCharset, InLen);
+	return (char*) LgiNewConvertCp("utf-8", In, LGI_WideCharset, InLen*sizeof(*In));
 }
 

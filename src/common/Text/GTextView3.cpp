@@ -1057,7 +1057,7 @@ public:
 		{
 			if ( (m && m->Left() && m->Double()) || (!m) )
 			{
-				char *Utf8 = LgiNewUtf16To8(View->NameW() + Start, Len * sizeof(char16));
+				char *Utf8 = WideToUtf8(View->NameW() + Start, Len);
 				if (Utf8)
 				{
 					View->OnUrl(Utf8);
@@ -1104,7 +1104,7 @@ public:
 			}
 			case IDM_COPY_URL:
 			{
-				char *Url = LgiNewUtf16To8(View->NameW() + Start, Len * sizeof(char16));
+				char *Url = WideToUtf8(View->NameW() + Start, Len);
 				if (Url)
 				{
 					GClipBoard Clip(View);
@@ -1574,7 +1574,7 @@ char *GTextView3::Name()
 {
 	UndoQue.Empty();
 	DeleteArray(TextCache);
-	TextCache = LgiNewUtf16To8(Text);
+	TextCache = WideToUtf8(Text);
 
 	return TextCache;
 }
@@ -1588,7 +1588,7 @@ bool GTextView3::Name(const char *s)
 		DeleteArray(Text);
 
 		LgiAssert(LgiIsUtf8(s));
-		Text = LgiNewUtf8To16(s);
+		Text = Utf8ToWide(s);
 		if (!Text)
 		{
 			Text = new char16[1];
@@ -2010,7 +2010,7 @@ bool GTextView3::Paste()
 		char *s = Clip.Text();
 		if (s)
 		{
-			Mem.Reset(LgiNewUtf8To16(s));
+			Mem.Reset(Utf8ToWide(s));
 			t = Mem;
 		}
 	}
@@ -2407,7 +2407,7 @@ Text3_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User)
 		v->d->FindReplaceParams->MatchWord = Dlg->MatchWord;
 		v->d->FindReplaceParams->MatchCase = Dlg->MatchCase;
 		v->d->FindReplaceParams->SelectionOnly = Dlg->SelectionOnly;
-		v->d->FindReplaceParams->LastFind.Reset(LgiNewUtf8To16(Dlg->Find));
+		v->d->FindReplaceParams->LastFind.Reset(Utf8ToWide(Dlg->Find));
 		
 		v->d->FindReplaceParams->Unlock();
 	}
@@ -2423,11 +2423,11 @@ bool GTextView3::DoFind()
 		int Min = min(SelStart, SelEnd);
 		int Max = max(SelStart, SelEnd);
 
-		u = LgiNewUtf16To8(Text + Min, (Max - Min) * sizeof(char16));
+		u = WideToUtf8(Text + Min, Max - Min);
 	}
 	else
 	{
-		u = LgiNewUtf16To8(d->FindReplaceParams->LastFind);
+		u = WideToUtf8(d->FindReplaceParams->LastFind);
 	}
 
 	#ifdef BEOS
@@ -2451,8 +2451,8 @@ bool GTextView3::DoFind()
 
 bool GTextView3::DoReplace()
 {
-	char *LastFind8 = HasSelection() ? GetSelection() : LgiNewUtf16To8(d->FindReplaceParams->LastFind);
-	char *LastReplace8 = LgiNewUtf16To8(d->FindReplaceParams->LastReplace);
+	char *LastFind8 = HasSelection() ? GetSelection() : WideToUtf8(d->FindReplaceParams->LastFind);
+	char *LastReplace8 = WideToUtf8(d->FindReplaceParams->LastReplace);
 	
 	GReplaceDlg Dlg(this, LastFind8, LastReplace8);
 
@@ -2467,8 +2467,8 @@ bool GTextView3::DoReplace()
 
 	if (Action != IDCANCEL)
 	{
-		d->FindReplaceParams->LastFind.Reset(LgiNewUtf8To16(Dlg.Find));
-		d->FindReplaceParams->LastReplace.Reset(LgiNewUtf8To16(Dlg.Replace));
+		d->FindReplaceParams->LastFind.Reset(Utf8ToWide(Dlg.Find));
+		d->FindReplaceParams->LastReplace.Reset(Utf8ToWide(Dlg.Replace));
 		d->FindReplaceParams->MatchWord = Dlg.MatchWord;
 		d->FindReplaceParams->MatchCase = Dlg.MatchCase;
 		d->FindReplaceParams->SelectionOnly = Dlg.SelectionOnly;
@@ -3136,7 +3136,7 @@ void GTextView3::DoContextMenu(GMouse &m)
 			{
 				LgiTrace("[%i] %i,%i (%s)\n", n, l->Start, l->Len, l->r.Describe());
 
-				char *s = LgiNewUtf16To8(Text + l->Start, l->Len * sizeof(char16));
+				char *s = WideToUtf8(Text + l->Start, l->Len);
 				if (s)
 				{
 					LgiTrace("%s\n", s);

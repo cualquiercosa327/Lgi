@@ -312,7 +312,7 @@ public:
 #else
 
 #define GFileOps()						\
-	GFilePre char GFilePost;			\
+	GFilePre int8 GFilePost;			\
 	GFilePre uint8 GFilePost;			\
 	GFilePre int16 GFilePost;			\
 	GFilePre uint16 GFilePost;			\

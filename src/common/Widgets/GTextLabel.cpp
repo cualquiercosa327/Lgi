@@ -140,7 +140,7 @@ bool GText::NameW(const char16 *n)
 	}
 	else if (d->Lock(_FL))
 	{
-		d->ThreadName.Reset(LgiNewUtf16To8(n));
+		d->ThreadName.Reset(WideToUtf8(n));
 		d->Unlock();
 		if (IsAttached())
 			PostEvent(M_TEXT_UPDATE_NAME);

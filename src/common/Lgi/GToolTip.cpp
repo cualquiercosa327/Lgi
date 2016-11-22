@@ -247,7 +247,7 @@ int GToolTip::NewTip(char *Name, GRect &Pos)
 		ti.uFlags = TTF_SUBCLASS;
 		ti.hwnd = GetParent()->Handle();
 		ti.rect = Pos;
-		ti.lpszText = LgiNewUtf8To16(Name);
+		ti.lpszText = Utf8ToWide(Name);
 		ti.uId = Status = d->NextUid++;
 
 		int Result = SendMessage(_View, TTM_ADDTOOLW, 0, (LPARAM) &ti);

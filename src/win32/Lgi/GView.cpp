@@ -396,7 +396,7 @@ bool GWin32Class::SubClass(char *Parent)
 	if (!Class.lpszClassName)
 	{
 		HBRUSH hBr = Class.hbrBackground;
-		GAutoWString p(LgiNewUtf8To16(Parent));
+		GAutoWString p(Utf8ToWide(Parent));
 		if (p)
 		{
 			if (GetClassInfoExW(LgiProcessInst(), p, &Class))
@@ -683,7 +683,7 @@ bool GView::Attach(GViewI *p)
 			ExStyle &= ~(WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE);
 							
 		char16 *Text = GBase::NameW();
-		GAutoWString WCls(LgiNewUtf8To16(ClsName));
+		GAutoWString WCls(Utf8ToWide(ClsName));
 
 		_View = CreateWindowExW(ExStyle,
 								WCls,

@@ -89,7 +89,7 @@ bool FileExists(const char *Name, char *CorrectCase)
 	{
 		HANDLE hFind = INVALID_HANDLE_VALUE;
 		
-		GAutoWString n(LgiNewUtf8To16(Name));
+		GAutoWString n(Utf8ToWide(Name));
 		if (n)
 		{
 			WIN32_FIND_DATAW Info;
@@ -110,7 +110,7 @@ bool FileExists(const char *Name, char *CorrectCase)
 
 bool DirExists(const char *Dir, char *CorrectCase)
 {
-	GAutoWString n(LgiNewUtf8To16(Dir));
+	GAutoWString n(Utf8ToWide(Dir));
 	DWORD e = GetFileAttributesW(n);
 	return e != 0xFFFFFFFF && TestFlag(e, FILE_ATTRIBUTE_DIRECTORY);
 }
@@ -370,7 +370,7 @@ bool LgiGetDriveInfo
 
 	if (Path)
 	{
-		GAutoWString w(LgiNewUtf8To16(Path));
+		GAutoWString w(Utf8ToWide(Path));
 		if (w)
 		{
 			char16 *d = StrchrW(w, DIR_CHAR);
@@ -774,7 +774,7 @@ bool GFileSystem::Delete(GArray<const char*> &Files, GArray<int> *Status, bool T
 		{
 			DWORD e = 0;
 
-			GAutoWString n(LgiNewUtf8To16(Files[i]));
+			GAutoWString n(Utf8ToWide(Files[i]));
 			if (n)
 			{
 				SetFileAttributesW(n, FILE_ATTRIBUTE_ARCHIVE);
@@ -807,7 +807,7 @@ bool GFileSystem::Delete(const char *FileName, bool ToTrash)
 
 bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentFoldersIfNeeded)
 {
-	GAutoWString w(LgiNewUtf8To16(PathName));
+	GAutoWString w(Utf8ToWide(PathName));
 	bool Status = ::CreateDirectoryW(w, NULL);
 	
 	if (!Status &&
@@ -830,7 +830,7 @@ bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentFoldersIfN
 			for (int i=0; i<Parts.Length(); i++)
 			{
 				LgiMakePath(Base, sizeof(Base), Base, Parts[i]);
-				GAutoWString w(LgiNewUtf8To16(Base));
+				GAutoWString w(Utf8ToWide(Base));
 				Status = ::CreateDirectoryW(w, NULL);
 				if (!Status)
 					break;
@@ -868,7 +868,7 @@ bool GFileSystem::RemoveFolder(const char *PathName, bool Recurse)
 	}
 
 	#ifdef UNICODE
-	GAutoWString w(LgiNewUtf8To16(PathName));
+	GAutoWString w(Utf8ToWide(PathName));
 	if (!::RemoveDirectory(w))
 	#else
 	if (!::RemoveDirectory(PathName))
@@ -888,7 +888,7 @@ bool GFileSystem::SetCurrentFolder(char *PathName)
 {
 	bool Status = false;
 	
-	GAutoWString w(LgiNewUtf8To16(PathName));
+	GAutoWString w(Utf8ToWide(PathName));
 	if (w)
 		Status = ::SetCurrentDirectoryW(w);
 
@@ -902,7 +902,7 @@ bool GFileSystem::GetCurrentFolder(char *PathName, int Length)
 	GAutoWString w(new char16[DIR_PATH_SIZE+1]);
 	if (w && ::GetCurrentDirectoryW(DIR_PATH_SIZE, w) > 0)
 	{
-		GAutoString s(LgiNewUtf16To8(w));
+		GAutoString s(WideToUtf8(w));
 		if (s)
 		{
 			strcpy_s(PathName, Length, s);
@@ -919,8 +919,8 @@ bool GFileSystem::Move(const char *OldName, const char *NewName)
 
 	if (OldName && NewName)
 	{
-		GAutoWString New(LgiNewUtf8To16(NewName));
-		GAutoWString Old(LgiNewUtf8To16(OldName));
+		GAutoWString New(Utf8ToWide(NewName));
+		GAutoWString Old(Utf8ToWide(OldName));
 		if (New && Old)
 			Status = ::MoveFileW(Old, New);
 	}
@@ -1180,7 +1180,7 @@ int GDirectory::First(const char *InName, const char *Pattern)
 	}
 
 	// dir
-	GAutoWString p(LgiNewUtf8To16(Name));
+	GAutoWString p(Utf8ToWide(Name));
 	if (p)
 	{
 		char16 w[DIR_PATH_SIZE];
@@ -1192,7 +1192,7 @@ int GDirectory::First(const char *InName, const char *Pattern)
 			StrcpyW(w, p);
 		}
 
-		GAutoString utf(LgiNewUtf16To8(w));
+		GAutoString utf(WideToUtf8(w));
 		if (utf)
 			strcpy_s(d->BasePath, sizeof(d->BasePath), utf);
 		else
@@ -1212,7 +1212,7 @@ int GDirectory::First(const char *InName, const char *Pattern)
 		strcpy_s(Str, sizeof(Str), d->BasePath);
 	}
 
-	GAutoWString s(LgiNewUtf8To16(Str));
+	GAutoWString s(Utf8ToWide(Str));
 	if (s)
 		d->Handle = FindFirstFileW(s, &d->Data);
 
@@ -1294,7 +1294,7 @@ char *GDirectory::GetName()
 {
 	if (!d->Utf)
 	{
-	    d->Utf.Reset(LgiNewUtf16To8(d->Data.cFileName));
+	    d->Utf.Reset(WideToUtf8(d->Data.cFileName));
 	}
 	
 	return d->Utf;
@@ -1397,7 +1397,7 @@ int GFile::GetBlockSize()
 	DWORD TotalNumberOfClusters;
 	
 	#ifdef UNICODE
-	GAutoWString n(LgiNewUtf8To16(GetName()));
+	GAutoWString n(Utf8ToWide(GetName()));
 	#else
 	GAutoString n(NewStr(GetName()));
 	#endif
@@ -1434,7 +1434,7 @@ int GFile::Open(const char *File, int Mode)
 			return false;
 		}
 		
-		GAutoWString n(LgiNewUtf8To16(File));
+		GAutoWString n(Utf8ToWide(File));
 		if (n)
 		{
 			d->hFile = CreateFileW(	n,

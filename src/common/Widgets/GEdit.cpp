@@ -213,7 +213,7 @@ bool GEdit::Paste()
 		char *s = Clip.Text();
 		if (s)
 		{
-			Mem.Reset(LgiNewUtf8To16(s));
+			Mem.Reset(Utf8ToWide(s));
 			t = Mem;
 		}
 	}

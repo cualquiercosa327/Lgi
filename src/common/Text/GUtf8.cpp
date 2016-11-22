@@ -134,7 +134,7 @@ GUtf8Str::GUtf8Str(char *utf, int bytes, bool Copy)
 GUtf8Str::GUtf8Str(char16 *wide, int chars)
 {
 	Own = true;
-	Start = (uint8*)LgiNewUtf16To8(wide);
+	Start = (uint8*)WideToUtf8(wide);
 	End = chars >= 0 ? Start + chars : 0;
 	Cur = Start;
 }
@@ -172,12 +172,12 @@ char16 *GUtf8Str::ToWide()
 		size_t Len = End - Ptr;
 		if (Len > 0)
 		{
-			return LgiNewUtf8To16((char*)Ptr, (int)Len);
+			return Utf8ToWide((char*)Ptr, (int)Len);
 		}
 	}
 	else
 	{
-		return LgiNewUtf8To16((char*)Ptr);
+		return Utf8ToWide((char*)Ptr);
 	}
 
 	return 0;

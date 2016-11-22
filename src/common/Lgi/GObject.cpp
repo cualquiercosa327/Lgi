@@ -19,7 +19,7 @@ char *GBase::Name()
 {
 	if (!_Name8 && _Name16)
 	{
-		_Name8 = LgiNewUtf16To8(_Name16);
+		_Name8 = WideToUtf8(_Name16);
 	}
 
 	return _Name8;
@@ -40,7 +40,7 @@ char16 *GBase::NameW()
 {
 	if (!_Name16 && _Name8)
 	{
-		_Name16 = LgiNewUtf8To16(_Name8);
+		_Name16 = Utf8ToWide(_Name8);
 	}
 
 	return _Name16;

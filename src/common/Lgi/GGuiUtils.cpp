@@ -424,13 +424,13 @@ bool LgiGetDisplays(::GArray<GDisplayInfo*> &Displays, GRect *AllDisplays)
 
 				Dsp->BitDepth = mode.dmBitsPerPel;
 				Dsp->Refresh = mode.dmDisplayFrequency;
-				Dsp->Name = LgiNewUtf16To8(disp.DeviceString);
-				Dsp->Device = LgiNewUtf16To8(disp.DeviceName);
+				Dsp->Name = WideToUtf8(disp.DeviceString);
+				Dsp->Device = WideToUtf8(disp.DeviceName);
 
 				DISPLAY_DEVICEW temp = disp;
 				if (EnumDisplayDevicesW(temp.DeviceName, 0, &disp, 0))
 				{
-					Dsp->Monitor = LgiNewUtf16To8(disp.DeviceString);
+					Dsp->Monitor = WideToUtf8(disp.DeviceString);
 				}
 
 				Displays.Add(Dsp);

@@ -557,6 +557,6 @@ bool GEdit::SysEmptyText()
 
 void GEdit::SetEmptyText(const char *EmptyText)
 {
-	d->EmptyText.Reset(LgiNewUtf8To16(EmptyText));
+	d->EmptyText.Reset(Utf8ToWide(EmptyText));
 	SysEmptyText();
 }

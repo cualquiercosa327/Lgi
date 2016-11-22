@@ -193,7 +193,7 @@ int CALLBACK _EnumFonts(ENUMLOGFONT FAR *lpelf,
 	List<char> *p = (List<char>*) lParam;
 	if (p)
 	{
-		p->Insert(LgiNewUtf16To8(lpelf->elfLogFont.lfFaceName));
+		p->Insert(WideToUtf8(lpelf->elfLogFont.lfFaceName));
 	}
 	return true;
 }
@@ -491,7 +491,7 @@ GFont *GFontSystem::GetBestFont(char *Str)
 
 	if (d->SubSupport)
 	{
-		char16 *s = LgiNewUtf8To16(Str);
+		char16 *s = Utf8ToWide(Str);
 		if (s)
 		{
 			// Make list of possible fonts

@@ -930,7 +930,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 				HRESULT r = SHGetKnownFolderPath(FOLDERID_Downloads, 0, NULL, &ptr);
 				if (SUCCEEDED(r))
 				{
-					GAutoString u8(LgiNewUtf16To8(ptr));
+					GAutoString u8(WideToUtf8(ptr));
 					if (u8)
 						Path = u8;
 					CoTaskMemFree(ptr);
@@ -1258,7 +1258,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 			char16 t[MAX_PATH];
 			if (GetTempPathW(CountOf(t), t) > 0)
 			{
-				GAutoString utf(LgiNewUtf16To8(t));
+				GAutoString utf(WideToUtf8(t));
 				if (utf)
 					Path = utf;
 			}
@@ -1580,7 +1580,7 @@ bool LgiGetExeFile(char *Dst, int DstSize)
 			char16 Exe[256];
 			if (GetModuleFileNameW(NULL, Exe, sizeof(Exe)) > 0)
 			{
-				char *e = LgiNewUtf16To8(Exe);
+				char *e = WideToUtf8(Exe);
 				if (e)
 				{
 					strcpy_s(Dst, DstSize, e);

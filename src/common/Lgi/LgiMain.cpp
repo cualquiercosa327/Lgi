@@ -112,12 +112,12 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdS
 		        char16 *end = StrchrW(c, delim);
 		        if (end)
 		        {
-		            Args.Add(LgiNewUtf16To8(c, (end-c)*sizeof(char16)));
+		            Args.Add(WideToUtf8(c, end-c));
 		            c = end + 1;
 		        }
 		        else
 		        {
-		            Args.Add(LgiNewUtf16To8(c));
+		            Args.Add(WideToUtf8(c));
 		            break;
 		        }
 		    }
@@ -126,7 +126,7 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdS
 		        char16 *end = c;
     		    while (*end && !StrchrW(Ws, *end)) end++;
     		    if (end > c)
-	                Args.Add(LgiNewUtf16To8(c, (end-c) * sizeof(char16)));
+	                Args.Add(WideToUtf8(c, end-c));
 	            c = end + (*end != 0);
 		    }
 		}

@@ -320,7 +320,7 @@ char *GXmlTree::DecodeEntities(GXmlAlloc *Alloc, char *In, int Len)
 
 		if (c16)
 		{
-			GAutoString c8(LgiNewUtf16To8(&c16, sizeof(char16)));
+			GAutoString c8(WideToUtf8(&c16, sizeof(char16)));
 			if (c8)
 			{
 				for (char *c = c8; *c; c++)

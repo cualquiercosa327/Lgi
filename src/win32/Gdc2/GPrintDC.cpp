@@ -33,7 +33,7 @@ GPrintDC::GPrintDC(void *Handle, const char *PrintJobName, const char *PrinterNa
 	{
 		DOCINFO Info;
 		GAutoWString OutName;
-		GAutoWString DocName(LgiNewUtf8To16(PrintJobName ? PrintJobName : "Lgi Print Job"));
+		GAutoWString DocName(Utf8ToWide(PrintJobName ? PrintJobName : "Lgi Print Job"));
 
 		ZeroObj(Info);
 		Info.cbSize = sizeof(DOCINFO); 
@@ -59,7 +59,7 @@ GPrintDC::GPrintDC(void *Handle, const char *PrintJobName, const char *PrinterNa
 			}
 			
 			d->OutputFileName = p.GetFull();
-			OutName.Reset(LgiNewUtf8To16(d->OutputFileName));
+			OutName.Reset(Utf8ToWide(d->OutputFileName));
 			Info.lpszOutput = OutName;
 		}
 

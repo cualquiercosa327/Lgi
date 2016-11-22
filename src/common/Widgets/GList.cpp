@@ -1453,7 +1453,7 @@ bool GList::OnKey(GKey &k)
 						d->KeyBuf = p.NewStrW();
 						if (d->KeyBuf)
 						{
-							char *c8 = LgiNewUtf16To8(d->KeyBuf);
+							char *c8 = WideToUtf8(d->KeyBuf);
 							if (c8)
 							{
 								int Col = 0;

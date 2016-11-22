@@ -157,7 +157,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 		Headers.DeleteArrays();
 		
 		// Parse for symbols...
-		f->Source.Reset(LgiNewUtf8To16(Source));
+		f->Source.Reset(Utf8ToWide(Source));
 
 		#ifdef DEBUG_FILE
 		if (Debug)

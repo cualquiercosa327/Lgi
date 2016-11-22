@@ -824,7 +824,7 @@ void ResString::CopyText()
 
 			Clip.Text(All);
 
-			char16 *w = LgiNewUtf8To16(All);
+			char16 *w = Utf8ToWide(All);
 			Clip.TextW(w, false);
 			DeleteArray(w);
 
@@ -845,7 +845,7 @@ void ResString::PasteText()
 	char16 *w = c.TextW();
 	if (w)
 	{
-		Clip = LgiNewUtf16To8(w);
+		Clip = WideToUtf8(w);
 	}
 	else
 	{

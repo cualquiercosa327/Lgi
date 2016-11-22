@@ -61,7 +61,7 @@ void OsAppArguments::Set(int Args, char **Arg)
 
 void OsAppArguments::Set(char *Utf)
 {
-	CmdLine.Reset(LgiNewUtf8To16(Utf));
+	CmdLine.Reset(Utf8ToWide(Utf));
 	lpCmdLine = CmdLine;
 }
 
@@ -153,7 +153,7 @@ static GAutoString ParseStr(GPointer &p, bool Pad = true)
 			p.u8++;
 	}
 
-	return GAutoString(LgiNewUtf16To8(Key));
+	return GAutoString(WideToUtf8(Key));
 }
 
 static GAutoString ParseVer(void *Resource, char *Part)
@@ -631,7 +631,7 @@ const char *GApp::GetArgumentAt(int n)
 
 			if (i == n)
 			{
-				return LgiNewUtf16To8(s, (e - s) * sizeof(char16));
+				return WideToUtf8(s, e - s);
 			}
 
 			s = *e ? e + 1 : e;
@@ -649,7 +649,7 @@ bool GApp::GetOption(const char *Option, GAutoString &Buf)
 	}
 
 	char16 *c = d->Args.lpCmdLine;
-	char16 *Opt = LgiNewUtf8To16(Option);
+	char16 *Opt = Utf8ToWide(Option);
 	int OptLen = StrlenW(Opt);
 
 	while (c && *c)
@@ -677,7 +677,7 @@ bool GApp::GetOption(const char *Option, GAutoString &Buf)
 					char16 End = (*c == '\'' || *c == '\"') ? *c++ : ' ';
 					char16 *e = StrchrW(c, End);
 					if (!e) e = c + StrlenW(c);
-					Buf.Reset(LgiNewUtf16To8(c, (NativeInt)e-(NativeInt)c));
+					Buf.Reset(WideToUtf8(c, e-c));
 				}
 
 				// yeah we got the option
@@ -716,7 +716,7 @@ void GApp::SetAppArgs(OsAppArguments &AppArgs)
 void GApp::OnCommandLine()
 {
 	char WhiteSpace[] = " \r\n\t";
-	char *CmdLine = LgiNewUtf16To8(d->Args.lpCmdLine);
+	char *CmdLine = WideToUtf8(d->Args.lpCmdLine);
 
 	if (ValidStr(CmdLine))
 	{

@@ -995,7 +995,7 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 					char16 FileName[256];
 					if (DragQueryFileW(hDrop, i, FileName, sizeof(FileName)-1) > 0)
 					{
-						FileNames.Add(LgiNewUtf16To8(FileName));
+						FileNames.Add(WideToUtf8(FileName));
 					}
 				}
 
