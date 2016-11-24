@@ -580,7 +580,7 @@ int GRichTextPriv::TextBlock::DeleteAt(int BlkOffset, int Chars)
 	{
 		Text *t = Txt[i];
 		int TxtOffset = BlkOffset - Pos;
-		if (TxtOffset >= 0 && TxtOffset < t->Length())
+		if (TxtOffset >= 0 && TxtOffset < (int)t->Length())
 		{
 			int MaxChars = t->Length() - TxtOffset;
 			int Remove = min(Chars, MaxChars);

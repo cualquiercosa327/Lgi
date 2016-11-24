@@ -84,13 +84,13 @@ enum UndoType
 	UndoDelete, UndoInsert, UndoChange
 };
 
-class GTextView4Undo : public GUndoEvent
+class GRichEditUndo : public GUndoEvent
 {
 	GRichTextEdit *View;
 	UndoType Type;
 
 public:
-	GTextView4Undo(	GRichTextEdit *view,
+	GRichEditUndo(	GRichTextEdit *view,
 					char16 *t,
 					int len,
 					int at,
@@ -100,7 +100,7 @@ public:
 		Type = type;
 	}
 
-	~GTextView4Undo()
+	~GRichEditUndo()
 	{
 	}
 
@@ -1038,7 +1038,7 @@ bool GRichTextEdit::OnKey(GKey &k)
 		// Blink = true;
 	}
 
-	// k.Trace("GTextView4::OnKey");
+	// k.Trace("GRichTextEdit::OnKey");
 
 	if (k.IsContextMenu())
 	{
@@ -1950,15 +1950,15 @@ bool GRichTextEdit::OnLayout(GViewLayoutInfo &Inf)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-class GTextView4_Factory : public GViewFactory
+class GRichTextEdit_Factory : public GViewFactory
 {
 	GView *NewView(const char *Class, GRect *Pos, const char *Text)
 	{
-		if (_stricmp(Class, "GTextView4") == 0)
+		if (_stricmp(Class, "GRichTextEdit") == 0)
 		{
 			return new GRichTextEdit(-1, 0, 0, 2000, 2000);
 		}
 
 		return 0;
 	}
-} TextView4_Factory;
+} RichTextEdit_Factory;

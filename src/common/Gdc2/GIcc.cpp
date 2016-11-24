@@ -391,7 +391,7 @@ public:
 			for (char16 *p = u; *p; p++)
 				*p = Swap16(*p);
 
-			char *u8 = LgiNewUtf16To8(u);
+			char *u8 = WideToUtf8(u);
 			DeleteArray(u);
 
 			char s[512];
