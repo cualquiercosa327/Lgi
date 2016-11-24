@@ -1116,7 +1116,7 @@ public:
 		}
 	}
 
-	wchar_t *GetCursor()
+	CURSOR_CHAR GetCursor()
 	{
 		#ifdef WIN32
 		GArray<int> Ver;

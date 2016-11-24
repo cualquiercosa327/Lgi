@@ -93,7 +93,13 @@ public:
 		virtual bool OnMouseClick(GMouse *m) { return false; }
 		virtual bool OnMenu(GSubMenu *m) { return false; }
 		virtual void OnMenuClick(int i) {}
-		virtual wchar_t *GetCursor()  { return 0; }
+
+		#ifdef UNICODE
+		typedef LPWSTR CURSOR_CHAR;
+		#else
+		typedef LPSTR CURSOR_CHAR;
+		#endif
+		virtual CURSOR_CHAR GetCursor()  { return 0; }
 
 		/// Returns true if this style overlaps the position of 's'
 		bool Overlap(GStyle *s)

@@ -554,9 +554,9 @@ bool LgiExecute(const char *File, const char *Arguments, const char *Dir, GAutoS
 	}
 	else
 	{
-		GAutoWString f(LgiNewUtf8To16(File));
-		GAutoWString a(LgiNewUtf8To16(Arguments));
-		GAutoWString d(LgiNewUtf8To16(Dir));
+		GAutoWString f(Utf8ToWide(File));
+		GAutoWString a(Utf8ToWide(Arguments));
+		GAutoWString d(Utf8ToWide(Dir));
 		if (f)
 		{
 			Status = (NativeInt) ShellExecuteW(NULL, L"open", f, a, d, 5);
@@ -852,7 +852,7 @@ GString WinGetSpecialFolderPath(int Id)
 		BOOL result = w(0, wp, Id, false);
 		if (result && ValidStrW(wp))
 		{
-			GAutoString Tmp(LgiNewUtf16To8(wp));
+			GAutoString Tmp(WideToUtf8(wp));
 			s = Tmp;
 		}
 		else

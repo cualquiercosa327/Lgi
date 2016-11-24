@@ -23,9 +23,9 @@ GRichTextPriv::TextBlock::~TextBlock()
 void GRichTextPriv::TextBlock::Dump()
 {
 	LgiTrace("    margin=%s, border=%s, padding=%s\n",
-			Margin.GetStr(),
-			Border.GetStr(),
-			Padding.GetStr());
+				Margin.GetStr(),
+				Border.GetStr(),
+				Padding.GetStr());
 	for (unsigned i=0; i<Txt.Length(); i++)
 	{
 		Text *t = Txt[i];
@@ -573,6 +573,24 @@ GRichTextPriv::Text *GRichTextPriv::TextBlock::GetTextAt(uint32 Offset)
 	return NULL;
 }
 
+bool GRichTextPriv::TextBlock::IsValid()
+{
+	for (unsigned i = 0; i < Txt.Length(); i++)
+	{
+		Text *t = Txt[i];
+		for (unsigned n = 0; n < t->Length(); n++)
+		{
+			if ((*t)[n] == 0)
+			{
+				LgiAssert(0);
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
 int GRichTextPriv::TextBlock::DeleteAt(int BlkOffset, int Chars)
 {
 	int Pos = 0;
@@ -601,6 +619,8 @@ int GRichTextPriv::TextBlock::DeleteAt(int BlkOffset, int Chars)
 		Pos += t->Length();
 	}
 
+	IsValid();
+
 	return 0;
 }
 		
@@ -627,6 +647,9 @@ bool GRichTextPriv::TextBlock::AddText(int AtOffset, const char16 *Str, int Char
 
 	LayoutDirty = true;
 	t->SetStyle(Style);
+	
+	IsValid();
+	
 	return true;
 }
 

@@ -665,6 +665,8 @@ public:
 		TextBlock();
 		~TextBlock();
 
+		bool IsValid();
+
 		void Dump();
 		GNamedStyle *GetStyle();		
 		void SetStyle(GNamedStyle *s);

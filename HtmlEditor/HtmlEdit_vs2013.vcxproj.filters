@@ -9,9 +9,6 @@
       <UniqueIdentifier>{a4c991b0-729e-474a-88df-86ee58479274}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl</Extensions>
     </Filter>
-    <Filter Include="Editor">
-      <UniqueIdentifier>{709ef9b9-cc52-4d5a-8579-25db2a246210}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Resources">
       <UniqueIdentifier>{42d83401-80f5-44e4-9c26-e91423d5f214}</UniqueIdentifier>
     </Filter>
@@ -23,6 +20,9 @@
     </Filter>
     <Filter Include="Controls\RichTextEdit">
       <UniqueIdentifier>{666d6b50-f5fb-48b3-8e73-d8a90741e5ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Controls\Html\Editor">
+      <UniqueIdentifier>{709ef9b9-cc52-4d5a-8579-25db2a246210}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -36,7 +36,7 @@
       <Filter>Lgi</Filter>
     </ClCompile>
     <ClCompile Include="..\src\common\Widgets\GHtmlEdit.cpp">
-      <Filter>Editor</Filter>
+      <Filter>Controls\Html\Editor</Filter>
     </ClCompile>
     <ClCompile Include="..\src\common\Text\GHtml.cpp">
       <Filter>Controls\Html</Filter>
@@ -59,7 +59,7 @@
       <Filter>Lgi</Filter>
     </ClInclude>
     <ClInclude Include="..\include\common\GHtmlEdit.h">
-      <Filter>Editor</Filter>
+      <Filter>Controls\Html\Editor</Filter>
     </ClInclude>
     <ClInclude Include="..\include\common\GHtmlPriv.h">
       <Filter>Controls\Html</Filter>
