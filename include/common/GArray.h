@@ -55,8 +55,8 @@ template <class Type>
 class GArray
 {
 	Type *p;
-	uint32 len;
-	uint32 alloc;
+	unsigned int len;
+	unsigned int alloc;
 
 protected:
 	bool fixed;
@@ -108,7 +108,7 @@ public:
 	}
 	
 	/// Returns the number of used entries
-	uint32 Length() const
+	unsigned int Length() const
 	{
 		return len;
 	}
@@ -120,7 +120,7 @@ public:
 	}
 
 	/// Sets the length of available entries
-	bool Length(uint32 i)
+	bool Length(unsigned int i)
 	{
 		if (i > 0)
 		{
@@ -606,7 +606,7 @@ public:
 	class Iter
 	{
 		int i;
-		int8 each_dir;
+		char each_dir;
 		GArray<T> *a;
 
 	public:

@@ -853,7 +853,7 @@ public:
 	{
 		LgiAssert(s != 0);
 
-		char *utf = WideToUtf8(s, len * sizeof(char16));
+		char *utf = WideToUtf8(s, len);
 		if (!utf)
 			utf = NewStr("");
 

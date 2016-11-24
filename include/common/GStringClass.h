@@ -11,8 +11,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdint.h>
-#include <inttypes.h>
 #ifdef _MSC_VER
 	// This fixes compile errors in VS2008/Gtk
 	#undef _SIGN_DEFINED
@@ -21,6 +19,10 @@
 #include <math.h>
 #if defined(_MSC_VER) && _MSC_VER < 1800/*_MSC_VER_VS2013*/
 	#include <xmath.h>
+	#define PRId64 "I64i"
+#else
+	#include <stdint.h>
+	#include <inttypes.h>
 #endif
 #include "GUnicode.h"
 #include "GArray.h"
