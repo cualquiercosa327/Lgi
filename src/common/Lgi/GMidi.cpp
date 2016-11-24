@@ -298,7 +298,7 @@ GMidi::GMidi() : GMutex("GMidi")
 		if (r == MMSYSERR_NOERROR)
 		{
 			#ifdef UNICODE
-			In.New().Reset(LgiNewUtf16To8(InCaps.szPname));
+			In.New().Reset(WideToUtf8(InCaps.szPname));
 			#else
 			In.New().Reset(NewStr(InCaps.szPname));
 			#endif
@@ -312,7 +312,7 @@ GMidi::GMidi() : GMutex("GMidi")
 		if (r == MMSYSERR_NOERROR)
 		{
 			#ifdef UNICODE
-			Out.New().Reset(LgiNewUtf16To8(OutCaps.szPname));
+			Out.New().Reset(WideToUtf8(OutCaps.szPname));
 			#else
 			Out.New().Reset(NewStr(OutCaps.szPname));
 			#endif
