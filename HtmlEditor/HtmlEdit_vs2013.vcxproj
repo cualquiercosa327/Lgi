@@ -272,14 +272,16 @@
     <ClCompile Include="..\src\common\Text\GHtml.cpp" />
     <ClCompile Include="..\src\common\Text\GHtmlCommon.cpp" />
     <ClCompile Include="..\src\common\Text\GHtmlParser.cpp" />
-    <ClCompile Include="..\src\common\Text\GTextView4.cpp" />
+    <ClCompile Include="..\src\common\Widgets\Editor\GRichTextEdit.cpp" />
+    <ClCompile Include="..\src\common\Widgets\Editor\GTextBlock.cpp" />
     <ClCompile Include="..\src\common\Widgets\GHtmlEdit.cpp" />
     <ClCompile Include="Rich.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\common\GHtmlEdit.h" />
     <ClInclude Include="..\include\common\GHtmlPriv.h" />
-    <ClInclude Include="..\include\common\GTextView4.h" />
+    <ClInclude Include="..\include\common\GRichTextEdit.h" />
+    <ClInclude Include="..\src\common\Widgets\Editor\GRichTextEditPriv.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

@@ -21,7 +21,7 @@
     <Filter Include="Controls\Html">
       <UniqueIdentifier>{102281d9-5fed-495e-8ce7-d4232c9afda4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Controls\Text4">
+    <Filter Include="Controls\RichTextEdit">
       <UniqueIdentifier>{666d6b50-f5fb-48b3-8e73-d8a90741e5ee}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -47,8 +47,11 @@
     <ClCompile Include="..\src\common\Text\GHtmlParser.cpp">
       <Filter>Controls\Html</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\common\Text\GTextView4.cpp">
-      <Filter>Controls\Text4</Filter>
+    <ClCompile Include="..\src\common\Widgets\Editor\GRichTextEdit.cpp">
+      <Filter>Controls\RichTextEdit</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Widgets\Editor\GTextBlock.cpp">
+      <Filter>Controls\RichTextEdit</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -61,8 +64,11 @@
     <ClInclude Include="..\include\common\GHtmlPriv.h">
       <Filter>Controls\Html</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\common\GTextView4.h">
-      <Filter>Controls\Text4</Filter>
+    <ClInclude Include="..\include\common\GRichTextEdit.h">
+      <Filter>Controls\RichTextEdit</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\common\Widgets\Editor\GRichTextEditPriv.h">
+      <Filter>Controls\RichTextEdit</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

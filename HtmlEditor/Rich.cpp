@@ -6,8 +6,8 @@
 #include "resource.h"
 
 #if 1
-#include "GTextView4.h"
-typedef GTextView4 EditCtrl;
+#include "GRichTextEdit.h"
+typedef GRichTextEdit EditCtrl;
 #else
 #include "GHtmlEdit.h"
 typedef GHtmlEdit EditCtrl;

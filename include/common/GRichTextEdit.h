@@ -2,8 +2,8 @@
 /// \author Matthew Allen
 /// \brief A unicode text editor
 
-#ifndef _GTEXTVIEW4_H_
-#define _GTEXTVIEW4_H_
+#ifndef _RICH_TEXT_EDIT_H_
+#define _RICH_TEXT_EDIT_H_
 
 #include "GDocView.h"
 #include "GUndo.h"
@@ -11,15 +11,12 @@
 
 extern char Delimiters[];
 
-#if defined(MAC)
-#define DefClass class LgiClass
-#else
-#define DefClass class
-#endif
-
 /// Styled unicode text editor control.
-DefClass
-	GTextView4 :
+class
+#if defined(MAC)
+	LgiClass
+#endif
+	GRichTextEdit :
 	public GDocView,
 	public ResObject,
 	public GDragDropTarget
@@ -36,8 +33,8 @@ public:
 	};
 
 protected:
-	class GTv4Priv *d;
-	friend class GTv4Priv;
+	class GRichTextPriv *d;
+	friend class GRichTextPriv;
 
 	// Overridables
 	virtual void PourText(int Start, int Length);
@@ -48,15 +45,15 @@ protected:
 
 public:
 	// Construction
-	GTextView4(	int Id,
-				int x = 0,
-				int y = 0,
-				int cx = 100,
-				int cy = 100,
-				GFontType *FontInfo = 0);
-	~GTextView4();
+	GRichTextEdit(	int Id,
+					int x = 0,
+					int y = 0,
+					int cx = 100,
+					int cy = 100,
+					GFontType *FontInfo = 0);
+	~GRichTextEdit();
 
-	const char *GetClass() { return "GTextView4"; }
+	const char *GetClass() { return "GRichTextEdit"; }
 
 	// Data
 	char *Name();
