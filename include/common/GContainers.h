@@ -89,6 +89,8 @@ template <class Type>
 class List : public DLinkList
 {
 public:
+	typedef Type *ItemType;
+
 	/// Deletes the current item
 	virtual bool Delete()			{ return DLinkList::Delete(); }
 	/// Deletes the item at position 'i'

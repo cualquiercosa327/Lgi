@@ -264,6 +264,63 @@ bool GRichTextEdit::Delete(int At, int Len)
 
 void GRichTextEdit::DeleteSelection(char16 **Cut)
 {
+	if (d->Cursor &&
+		d->Selection)
+	{
+		GArray<char16> DeletedText;
+		GArray<char16> *DelTxt = Cut ? &DeletedText : NULL;
+
+		bool Cf = d->CursorFirst();
+		GRichTextPriv::BlockCursor *Start = Cf ? d->Cursor : d->Selection;
+		GRichTextPriv::BlockCursor *End = Cf ? d->Selection : d->Cursor;
+		if (Start->Blk == End->Blk)
+		{
+			// In the same block... just delete the text
+			int Len = End->Offset - Start->Offset;
+			Start->Blk->DeleteAt(Start->Offset, Len, DelTxt);
+		}
+		else
+		{
+			// Multi-block delete...
+
+			// 1) Delete all the content to the end of the first block
+			int StartLen = Start->Blk->Length();
+			if (Start->Offset < StartLen)
+			{
+				Start->Blk->DeleteAt(Start->Offset, StartLen - Start->Offset, DelTxt);
+			}
+
+			// 2) Delete any blocks between 'Start' and 'End'
+			unsigned i = d->Blocks.IndexOf(Start->Blk);
+			unsigned EndIdx = d->Blocks.IndexOf(End->Blk);
+			if (i >= 0 && EndIdx >= i)
+			{
+				for (++i; d->Blocks[i] != End->Blk && i < d->Blocks.Length(); i++)
+				{
+					GRichTextPriv::Block *&b = d->Blocks[i];
+					b->CopyAt(0, -1, DelTxt);
+					d->Blocks.DeleteAt(i, true);
+					DeleteObj(b);
+				}
+			}
+			else LgiAssert(0);
+
+			// 3) Delete any text up to the Cursor in the 'End' block
+			End->Blk->DeleteAt(0, End->Offset, DelTxt);
+		}
+
+		// Set the cursor and update the screen
+		d->Cursor->Set(Start->Blk, Start->Offset);
+		d->Selection.Reset();
+		Invalidate();
+
+		if (Cut)
+		{
+			DelTxt->Add(0);
+			*Cut = DelTxt->Release();
+		}
+	}
+	else LgiAssert(0);
 }
 
 int64 GRichTextEdit::Value()
@@ -435,20 +492,30 @@ void GRichTextEdit::SetCursor(int i, bool Select, bool ForceFullUpdate)
 	}
 }
 
-void GRichTextEdit::SetBorder(int b)
-{
-}
-
 bool GRichTextEdit::Cut()
 {
-	return false;
+	if (!HasSelection())
+		return false;
+
+	char16 *Txt = NULL;
+	DeleteSelection(&Txt);
+	bool Status = true;
+	if (Txt)
+	{
+		GClipBoard Cb(this);
+		Status = Cb.TextW(Txt);
+		DeleteArray(Txt);
+	}
+
+	return Status;
 }
 
 bool GRichTextEdit::Copy()
 {
-	bool Status = true;
+	if (!HasSelection())
+		return false;
 
-	return Status;
+	return true;
 }
 
 bool GRichTextEdit::Paste()
@@ -597,7 +664,7 @@ bool GRichTextEdit::DoFindNext()
 }
 
 bool
-Text4_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User)
+RichText_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User)
 {
 	return true;
 }
@@ -612,7 +679,7 @@ bool GRichTextEdit::DoFind()
 	{
 	}
 
-	GFindDlg Dlg(this, u, Text4_FindCallback, this);
+	GFindDlg Dlg(this, u, RichText_FindCallback, this);
 	Dlg.DoModal();
 	DeleteArray(u);
 	
@@ -1076,7 +1143,7 @@ bool GRichTextEdit::OnKey(GKey &k)
 						{
 							if (d->Cursor->Blk->AddText(d->Cursor->Offset, &k.c16, 1))
 							{
-								d->Cursor->Offset++;
+								d->Cursor->Set(d->Cursor->Offset + 1);
 								Invalidate();
 							}
 						}
@@ -1215,91 +1282,26 @@ bool GRichTextEdit::OnKey(GKey &k)
 				}
 				else if (k.Down())
 				{
-					if (d->Cursor &&
-						d->Cursor->Blk &&
-						d->Cursor->Offset > 0)
+					if (HasSelection())
 					{
-						if (d->Cursor->Blk->DeleteAt(d->Cursor->Offset-1, 1))
-						{
-							d->Cursor->Offset--;
-							Invalidate();
-						}
-					}
-					else
-					{
-						LgiAssert(!"Impl deleting char from previous block");
-					}
-
-					/*
-					if (SelStart >= 0)
-					{
-						// delete selection
 						DeleteSelection();
 					}
-					else
-					{						
-						char Del = Cursor > 0 ? Text[Cursor-1] : 0;
-						
-						if (Del == ' ' && (!HardTabs || IndentSize != TabSize))
+					else if (d->Cursor &&
+							 d->Cursor->Blk)
+					{
+						if (d->Cursor->Offset > 0)
 						{
-							// Delete soft tab
-							int x = GetColumn();
-							int Max = x % IndentSize;
-							if (Max == 0) Max = IndentSize;
-							int i;
-							for (i=Cursor-1; i>=0; i--)
+							if (d->Cursor->Blk->DeleteAt(d->Cursor->Offset-1, 1))
 							{
-								if (Max-- <= 0 || Text[i] != ' ')
-								{
-									i++;
-									break;
-								}
-							}
-							
-							if (i < 0) i = 0;
-							
-							if (i < Cursor - 1)
-							{
-								int Del = Cursor - i;								
-								Delete(i, Del);
-								// SetCursor(i, false, false);
-								// Invalidate();
-								break;
+								d->Cursor->Set(d->Cursor->Offset - 1);
+								Invalidate();
 							}
 						}
-						else if (Del == '\t' && HardTabs && IndentSize != TabSize)
+						else
 						{
-							int x = GetColumn();
-							Delete(--Cursor, 1);
-							
-							for (int c=GetColumn(); c<x-IndentSize; c=GetColumn())
-							{
-								int Add = IndentSize + (c % IndentSize);
-								if (Add)
-								{
-									char16 *s = new char16[Add];
-									if (s)
-									{
-										for (int n=0; n<Add; n++) s[n] = ' ';
-										Insert(Cursor, s, Add);
-										Cursor += Add;
-										DeleteArray(s);
-									}
-								}
-								else break;
-							}
-							
-							Invalidate();
-							break;
-						}
-
-
-						if (Cursor > 0)
-						{
-							Delete(Cursor - 1, 1);
+							LgiTrace("%s:%i - Impl deleting char from previous block\n", _FL);
 						}
 					}
-					*/
 				}
 				return true;
 				break;
@@ -1562,24 +1564,27 @@ bool GRichTextEdit::OnKey(GKey &k)
 				{
 					if (k.Down())
 					{
-						/*
-						if (SelStart >= 0)
+						GRichTextPriv::Block *b;
+						if (HasSelection())
 						{
 							if (k.Shift())
-							{
 								Cut();
+							else
+								DeleteSelection();
+						}
+						else if (d->Cursor &&
+								 (b = d->Cursor->Blk))
+						{
+							if (d->Cursor->Offset < b->Length() - 1)
+							{
+								if (d->Cursor->Blk->DeleteAt(d->Cursor->Offset, 1))
+									Invalidate();
 							}
 							else
 							{
-								DeleteSelection();
+								LgiTrace("%s:%i - Impl deleting char from next block\n", _FL);
 							}
 						}
-						else if (Cursor < Size &&
-								Delete(Cursor, 1))
-						{
-							Invalidate();
-						}
-						*/
 					}
 					return true;
 				}

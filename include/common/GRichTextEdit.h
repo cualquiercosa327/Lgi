@@ -21,7 +21,7 @@ class
 	public ResObject,
 	public GDragDropTarget
 {
-	friend bool Text4_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User);
+	friend bool RichText_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User);
 
 public:
 	enum GTextViewSeek
@@ -75,7 +75,6 @@ public:
 
 	// Options
 	void SetTabSize(uint8 i);
-	void SetBorder(int b);
 	void SetReadOnly(bool i);
 
 	/// Sets the wrapping on the control, use #TEXTED_WRAP_NONE or #TEXTED_WRAP_REFLOW

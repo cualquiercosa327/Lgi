@@ -6,6 +6,8 @@
 #include "GFontCache.h"
 #include "GDisplayString.h"
 
+#define DEBUG_LOG_CURSOR_COUNT		0
+
 //////////////////////////////////////////////////////////////////////
 #define PtrCheckBreak(ptr)			if (!ptr) { LgiAssert(!"Invalid ptr"); break; }
 #undef FixedToInt
@@ -313,7 +315,8 @@ public:
 		}
 	};
 
-	class Text : public GArray<char16>
+	/// This is a run of text, all of the same style
+	class StyleText : public GArray<char16>
 	{
 		GNamedStyle *Style; // owned by the CSS cache
 	
@@ -321,7 +324,7 @@ public:
 		ColourPair Colours;
 		GColour Fore, Back;
 		
-		Text(const char16 *t = NULL, int Chars = -1)
+		StyleText(const char16 *t = NULL, int Chars = -1)
 		{
 			Style = NULL;
 			if (t)
@@ -483,7 +486,9 @@ public:
 
 		/// Delete some chars
 		/// \returns the number of chars actually removed
-		virtual int DeleteAt(int Offset, int Chars) { return false; }
+		virtual int DeleteAt(int Offset, int Chars, GArray<char16> *DeletedText = NULL) { return false; }
+		// Copy some or all of the text out
+		virtual int CopyAt(int Offset, int Chars, GArray<char16> *Text) { return false; }
 
 		virtual void Dump() {}
 		virtual GNamedStyle *GetStyle() = 0;
@@ -529,18 +534,7 @@ public:
 		
 		BlockCursor &operator =(const BlockCursor &c)
 		{
-			if (Blk)
-			{
-				LgiAssert(Blk->Cursors > 0);
-				Blk->Cursors--;
-			}
-			Blk = c.Blk;
-			if (Blk)
-			{
-				LgiAssert(Blk->Cursors < 0x7f);
-				Blk->Cursors++;
-			}
-			Offset = c.Offset;
+			Set(c.Blk, c.Offset);
 			Pos = c.Pos;
 			Line = c.Line;
 			
@@ -549,21 +543,56 @@ public:
 			return *this;
 		}
 		
+		void Set(int off)
+		{
+			Set(Blk, off);
+		}
+
 		void Set(Block *b, int off)
 		{
+			if (Blk != b)
+			{
+				if (Blk)
+				{
+					LgiAssert(Blk->Cursors > 0);
+					Blk->Cursors--;
+
+					#if DEBUG_LOG_CURSOR_COUNT
+					{
+						GArray<char16> Text;
+						Blk->CopyAt(0, 20, &Text);
+						Text.Add(0);
+						LgiTrace("%s:%i - %i del cursor %p (%.20S)\n", _FL, Blk->Cursors, Blk, &Text.First());
+					}
+					#endif
+
+					Blk = NULL;
+				}
+				if (b)
+				{
+					Blk = b;
+					LgiAssert(Blk->Cursors < 0x7f);
+					Blk->Cursors++;
+
+					#if DEBUG_LOG_CURSOR_COUNT
+					{
+						GArray<char16> Text;
+						Blk->CopyAt(0, 20, &Text);
+						Text.Add(0);
+						LgiTrace("%s:%i - %i add cursor %p (%.20S)\n", _FL, Blk->Cursors, Blk, &Text.First());
+					}
+					#endif
+				}
+			}
+
+			Offset = off;
 			if (Blk)
 			{
-				LgiAssert(Blk->Cursors > 0);
-				Blk->Cursors--;
-				Blk = NULL;
+				GRect Line;
+				LgiAssert(off >= 0 && off <= Blk->Length());
+				Blk->GetPosFromIndex(&Pos, &Line, Offset);
 			}
-			if (b)
-			{
-				Blk = b;
-				LgiAssert(Blk->Cursors < 0x7f);
-				Blk->Cursors++;
-			}
-			Offset = off;
+			
 			LgiAssert(Offset >= 0);
 		}
 	};
@@ -573,10 +602,10 @@ public:
 	/// This is part or all of a Text run
 	struct DisplayStr : public GDisplayString
 	{
-		Text *Src;
+		StyleText *Src;
 		int OffsetY; // Offset of this string from the TextLine's box in the Y axis
 		
-		DisplayStr(Text *src, GFont *f, const char16 *s, int l = -1, GSurface *pdc = NULL) :
+		DisplayStr(StyleText *src, GFont *f, const char16 *s, int l = -1, GSurface *pdc = NULL) :
 			GDisplayString(f, s, l, pdc)
 		{
 			Src = src;
@@ -653,7 +682,7 @@ public:
 		GNamedStyle *Style;
 
 	public:
-		GArray<Text*> Txt;
+		GArray<StyleText*> Txt;
 		GArray<TextLine*> Layout;
 		GRect Margin, Border, Padding;
 		GFont *Fnt;
@@ -676,8 +705,9 @@ public:
 		bool HitTest(HitTestResult &htr);
 		void OnPaint(PaintContext &Ctx);
 		bool OnLayout(Flow &flow);
-		Text *GetTextAt(uint32 Offset);
-		int DeleteAt(int BlkOffset, int Chars);
+		StyleText *GetTextAt(uint32 Offset);
+		int DeleteAt(int BlkOffset, int Chars, GArray<char16> *DeletedText = NULL);
+		int CopyAt(int Offset, int Chars, GArray<char16> *Text);
 		bool AddText(int AtOffset, const char16 *Str, int Chars = -1, GNamedStyle *Style = NULL);
 		int Seek(SeekType To, int Offset, int XPos);
 	};

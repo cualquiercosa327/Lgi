@@ -17,6 +17,7 @@ GRichTextPriv::TextBlock::TextBlock()
 		
 GRichTextPriv::TextBlock::~TextBlock()
 {
+	LgiAssert(Cursors == 0);
 	Txt.DeleteObjects();
 }
 
@@ -28,7 +29,7 @@ void GRichTextPriv::TextBlock::Dump()
 				Padding.GetStr());
 	for (unsigned i=0; i<Txt.Length(); i++)
 	{
-		Text *t = Txt[i];
+		StyleText *t = Txt[i];
 		GString s(t->Length() ? &t->First() : NULL);
 		s = s.Strip();
 				
@@ -81,7 +82,7 @@ bool GRichTextPriv::TextBlock::ToHtml(GStream &s)
 	s.Print("<p>");
 	for (unsigned i=0; i<Txt.Length(); i++)
 	{
-		Text *t = Txt[i];
+		StyleText *t = Txt[i];
 		GNamedStyle *style = t->GetStyle();
 		if (style)
 		{
@@ -455,13 +456,16 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 
 	for (unsigned i=0; i<Txt.Length(); i++)
 	{
-		Text *t = Txt[i];
+		StyleText *t = Txt[i];
 				
+		if (t->Length() == 0)
+			continue;
+
 		// Get the font for 't'
 		GFont *f = flow.d->GetFont(t->GetStyle());
 		if (!f)
 			return flow.d->Error(_FL, "font creation failed.");
-				
+		
 		char16 *sStart = &(*t)[0];
 		char16 *sEnd = sStart + t->Length();
 		for (unsigned Off = 0; Off < t->Length(); )
@@ -560,10 +564,10 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 	return true;
 }
 		
-GRichTextPriv::Text *GRichTextPriv::TextBlock::GetTextAt(uint32 Offset)
+GRichTextPriv::StyleText *GRichTextPriv::TextBlock::GetTextAt(uint32 Offset)
 {
-	Text **t = &Txt[0];
-	Text **e = t + Txt.Length();
+	StyleText **t = &Txt[0];
+	StyleText **e = t + Txt.Length();
 	while (Offset > 0 && t < e)
 	{
 		if (Offset < (*t)->Length())
@@ -577,7 +581,7 @@ bool GRichTextPriv::TextBlock::IsValid()
 {
 	for (unsigned i = 0; i < Txt.Length(); i++)
 	{
-		Text *t = Txt[i];
+		StyleText *t = Txt[i];
 		for (unsigned n = 0; n < t->Length(); n++)
 		{
 			if ((*t)[n] == 0)
@@ -591,12 +595,11 @@ bool GRichTextPriv::TextBlock::IsValid()
 	return true;
 }
 
-int GRichTextPriv::TextBlock::DeleteAt(int BlkOffset, int Chars)
+int GRichTextPriv::TextBlock::DeleteAt(int BlkOffset, int Chars, GArray<char16> *DeletedText)
 {
 	int Pos = 0;
-	for (unsigned i=0; i<Txt.Length(); i++)
+	foreach(t, Txt)
 	{
-		Text *t = Txt[i];
 		int TxtOffset = BlkOffset - Pos;
 		if (TxtOffset >= 0 && TxtOffset < (int)t->Length())
 		{
@@ -605,14 +608,21 @@ int GRichTextPriv::TextBlock::DeleteAt(int BlkOffset, int Chars)
 			if (Remove <= 0)
 				return 0;
 			int Remaining = MaxChars - Remove;
+			int NewLen = t->Length() - Remove;
+			
+			if (DeletedText)
+			{
+				DeletedText->Add(&(*t)[TxtOffset], Remove);
+			}
 			if (Remaining > 0)
 			{
 				// Copy down
 				memmove(&(*t)[TxtOffset], &(*t)[TxtOffset + Remove], Remaining * sizeof(char16));
+				(*t)[NewLen] = 0;
 			}
 
 			// Change length
-			t->Length(t->Length() - Remove);
+			t->Length(NewLen);
 			LayoutDirty = true;
 			return Remove;
 		}
@@ -632,13 +642,13 @@ bool GRichTextPriv::TextBlock::AddText(int AtOffset, const char16 *Str, int Char
 		Chars = StrlenW(Str);
 			
 	bool StyleDiff = (Style != NULL) ^ ((Txt.Length() ? Txt.Last()->GetStyle() : NULL) != NULL);
-	Text *t = !StyleDiff && Txt.Length() ? Txt.Last() : NULL;
+	StyleText *t = !StyleDiff && Txt.Length() ? Txt.Last() : NULL;
 	if (t)
 	{
 		t->Add((char16*)Str, Chars);
 		Len += Chars;
 	}
-	else if ((t = new Text(Str, Chars)))
+	else if ((t = new StyleText(Str, Chars)))
 	{
 		Len += t->Length();
 		Txt.Add(t);
@@ -651,6 +661,32 @@ bool GRichTextPriv::TextBlock::AddText(int AtOffset, const char16 *Str, int Char
 	IsValid();
 	
 	return true;
+}
+
+int GRichTextPriv::TextBlock::CopyAt(int Offset, int Chars, GArray<char16> *Text)
+{
+	if (!Text)
+		return 0;
+	if (Chars < 0)
+		Chars = Length();
+
+	int Pos = 0;
+	foreach(t, Txt)
+	{
+		if (Offset >= Pos && Offset < Pos + t->Length())
+		{
+			int Skip = Offset - Pos;
+			int Remain = t->Length() - Skip;
+			int Cp = min(Chars, Remain);
+			Text->Add(&(*t)[Skip], Cp);
+			Chars -= Cp;
+			Offset += Cp;
+		}
+
+		Pos += t->Length();
+	}
+
+	return 0;
 }
 
 int GRichTextPriv::TextBlock::Seek(SeekType To, int Offset, int XPos)

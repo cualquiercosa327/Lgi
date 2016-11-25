@@ -127,6 +127,9 @@ public:
 			Pour();
 			Visible(true);
 			SetPulse(200);
+
+			if (Edit)
+				Edit->Focus(true);
 		}
 	}
 

@@ -62,6 +62,8 @@ protected:
 	bool fixed;
 
 public:
+	typedef Type ItemType;
+
 	/// Constructor
 	GArray(int PreAlloc = 0)
 	{
