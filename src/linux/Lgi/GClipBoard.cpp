@@ -89,14 +89,14 @@ char *GClipBoard::Text()
 
 bool GClipBoard::TextW(char16 *Str, bool AutoEmpty)
 {
-    GAutoString u(LgiNewUtf16To8(Str));
+    GAutoString u(WideToUtf8(Str));
     return Text(u, AutoEmpty);
 }
 
 char16 *GClipBoard::TextW()
 {
     GAutoString u(Text());
-    return LgiNewUtf8To16(u);
+    return Utf8ToWide(u);
 }
 
 bool GClipBoard::Bitmap(GSurface *pDC, bool AutoEmpty)

@@ -169,7 +169,7 @@ class IdeProject : public GXmlFactory, public IdeCommon
 	friend class ProjectNode;
 	class IdeProjectPrivate *d;
 
-	bool OnNode(const char *Path, ProjectNode *Node, bool Add);
+	bool OnNode(const char *Path, class ProjectNode *Node, bool Add);
 
 public:
 	IdeProject(AppWnd *App);

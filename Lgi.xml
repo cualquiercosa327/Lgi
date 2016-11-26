@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project>
-	<Node Name="Source Files" Type="1" Platforms="15" Open="0">
+	<Node Name="Source Files" Type="1" Platforms="15" Open="1">
 		<Node Name="Core" Type="1" Platforms="15" Open="0">
 			<Node Name="DateTime" Type="1" Platforms="15" Open="0">
 				<Node File="./src/common/General/GDateTime.cpp" Type="2" Platforms="15" />
@@ -261,13 +261,14 @@
 			<Node File="./src/common/Lgi/GOptionsFile.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Lgi/LgiRand.cpp" Type="2" Platforms="15" />
 		</Node>
-		<Node Name="Text" Type="1" Platforms="15" Open="0">
+		<Node Name="Text" Type="1" Platforms="15" Open="1">
 			<Node File="./src/common/Text/GString.cpp" Type="2" Platforms="15" />
 			<Node File="./include/common/GString.h" Type="3" Platforms="15" />
 			<Node File="./include/common/GStringClass.h" Type="3" Platforms="15" />
 			<Node File="./include/common/GTextFile.h" Type="3" Platforms="15" />
 			<Node File="./src/common/Text/GToken.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Text/GUnicode.cpp" Type="2" Platforms="15" />
+			<Node File="./include/common/GUnicode.h" Type="3" Platforms="15" />
 			<Node File="./src/common/Text/GUtf8.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Text/GXmlTree.cpp" Type="2" Platforms="15" />
 			<Node File="./include/common/GXmlTree.h" Type="3" Platforms="15" />

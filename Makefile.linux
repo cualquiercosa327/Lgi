@@ -269,7 +269,8 @@ GViewCommon.o : ./src/common/Lgi/GViewCommon.cpp ./include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GWindowCommon.o : ./src/common/Lgi/GWindowCommon.cpp ./include/common/Lgi.h
+GWindowCommon.o : ./src/common/Lgi/GWindowCommon.cpp ./include/common/Lgi.h \
+	./include/common/INet.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -532,7 +533,8 @@ GDisplayString.o : ./src/common/Gdc2/Font/GDisplayString.cpp ./include/common/Lg
 	./include/common/GdiLeak.h \
 	./include/common/GUtf8.h \
 	./include/common/GDisplayString.h \
-	./include/common/GPixelRops.h
+	./include/common/GPixelRops.h \
+	/usr/include/freetype2/ftsynth.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -692,7 +694,8 @@ GToken.o : ./src/common/Text/GToken.cpp ./include/common/GMem.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GUnicode.o : ./src/common/Text/GUnicode.cpp ./include/common/Lgi.h
+GUnicode.o : ./src/common/Text/GUnicode.cpp ./include/common/Lgi.h \
+	./include/common/GUnicode.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -1170,7 +1173,7 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/LgiClass.h \
 	./include/common/GStringClass.h
 
-./include/common/GArray.h : ./include/common/LgiDefs.h
+./include/common/GArray.h : 
 
 ./include/linux/GSymLookup.h : ./include/common/GProcess.h
 
@@ -1491,7 +1494,7 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ../../../../../usr/include/glib-2.0/glib/gscanner.h : /usr/include/glib-2.0/glib/gdataset.h \
 	/usr/include/glib-2.0/glib/ghash.h
 
-./include/common/GArray.h : ./include/common/LgiDefs.h
+./include/common/GArray.h : 
 
 ./include/common/GTabView.h : 
 
@@ -2067,9 +2070,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ../../../../../usr/include/glib-2.0/gio/gsimpleasyncresult.h : /usr/include/glib-2.0/gio/giotypes.h
 
-./include/common/GStringClass.h : ./include/common/GUtf8.h \
-	./include/common/GString.h \
-	./include/common/GUnicode.h
+./include/common/GStringClass.h : ./include/common/GUnicode.h \
+	./include/common/GArray.h
 
 ./include/common/GUnicode.h : ./include/common/LgiInc.h
 
@@ -2790,9 +2792,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ./include/common/GUtf8.h : 
 
-./include/common/GStringClass.h : ./include/common/GUtf8.h \
-	./include/common/GString.h \
-	./include/common/GUnicode.h
+./include/common/GStringClass.h : ./include/common/GUnicode.h \
+	./include/common/GArray.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkcelllayout.h : /usr/include/gtk-2.0/gtk/gtkcellrenderer.h \
 	/usr/include/gtk-2.0/gtk/gtktreeviewcolumn.h \
@@ -3220,6 +3221,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/GCss.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkalignment.h : /usr/include/gtk-2.0/gtk/gtkbin.h
+
+./include/common/GUnicode.h : ./include/common/LgiInc.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkcellrendereraccel.h : /usr/include/gtk-2.0/gtk/gtkcellrenderertext.h
 

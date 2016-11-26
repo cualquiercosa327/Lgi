@@ -278,6 +278,25 @@ public:
 		
 		return *this;
 	}
+	
+	GString &operator =(const char16 *s)
+	{
+		Empty();
+		
+		if (s)
+		{
+			// FIXME, this needs to work without allocating 2 blocks of 
+			// heap memory
+			char *u = WideToUtf8(s);
+			if (u)
+			{
+				*this = u;
+				delete [] u;
+			}			
+		}
+		
+		return *this;
+	}
 
 	GString &operator =(int val)
 	{

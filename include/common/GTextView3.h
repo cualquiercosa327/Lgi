@@ -95,9 +95,9 @@ public:
 		virtual void OnMenuClick(int i) {}
 
 		#ifdef UNICODE
-		typedef LPWSTR CURSOR_CHAR;
+		typedef char16 *CURSOR_CHAR;
 		#else
-		typedef LPSTR CURSOR_CHAR;
+		typedef char *CURSOR_CHAR;
 		#endif
 		virtual CURSOR_CHAR GetCursor()  { return 0; }
 
