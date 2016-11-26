@@ -273,7 +273,7 @@
 			<Node File="./src/common/Text/GXmlTree.cpp" Type="2" Platforms="15" />
 			<Node File="./include/common/GXmlTree.h" Type="3" Platforms="15" />
 		</Node>
-		<Node Name="Widgets" Type="1" Platforms="15" Open="1">
+		<Node Name="Widgets" Type="1" Platforms="15" Open="0">
 			<Node Name="Common" Type="1" Platforms="15" Open="1">
 				<Node File="./src/common/Widgets/GBitmap.cpp" Type="2" Platforms="15" />
 				<Node File="./src/common/Widgets/GButton.cpp" Type="2" Platforms="15" />

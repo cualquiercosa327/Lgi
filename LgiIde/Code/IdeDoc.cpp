@@ -31,6 +31,7 @@ static const char *White = " \r\t\n";
 #define ColourHashDef		GColour(0, 0, 222)
 #define ColourLiteral		GColour(192, 0, 0)
 #define ColourKeyword		GColour::Black
+#define ColourType			GColour(0, 0, 222)
 
 enum SourceType
 {
@@ -40,19 +41,34 @@ enum SourceType
 	SrcPython
 };
 
-const char *KeywordsCpp[] = {"extern", "class", "struct", "static", "default", "case", "break", "switch", "new", "delete", "sizeof", NULL};
-const char *KeywordsPython[] = {"def", "try", "except", "import", "if", "for", NULL};
+struct LanguageParams
+{
+	const char **Keywords;
+	const char **Types;
+};
 
-const char **SourceKeywords[] =
+const char *CppKeywords[] = {"extern", "class", "struct", "static", "default", "case", "break", 
+							"switch", "new", "delete", "sizeof", "return", "enum", "else",
+							"if", "for", "while", "do", NULL};
+const char *CppTypes[] = {	"int", "char", "unsigned", "double", "float", "bool", "const", "void",
+							"int8", "int16", "int32", "int64",
+							"uint8", "uint16", "uint32", "uint64",
+							"GArray", "GHashTbl", "List", "GString", "GAutoString", "GAutoWString",
+							"GAutoPtr",
+							NULL};
+
+const char *PythonKeywords[] = {"def", "try", "except", "import", "if", "for", NULL};
+
+LanguageParams LangParam[] =
 {
 	// Unknown
-	NULL,
+	{NULL, NULL},
 	// Plain text
-	NULL,
+	{NULL, NULL},
 	// C/C++
-	KeywordsCpp,
+	{CppKeywords, CppTypes},
 	// Python
-	KeywordsPython
+	{PythonKeywords, NULL},
 };
 
 GAutoPtr<GDocFindReplaceParams> GlobalFindReplace;
@@ -820,12 +836,14 @@ class DocEdit : public GTextView3, public GDocumentEnv
 	{
 		char16 *Word;
 		int Len;
+		bool IsType;
 		Keyword *Next;
 
-		Keyword(const char *w)
+		Keyword(const char *w, bool istype = false)
 		{
 			Word = Utf8ToWide(w);
 			Len = Strlen(Word);
+			IsType = istype;
 			Next = NULL;
 		}
 
@@ -1297,14 +1315,15 @@ public:
 				*/
 				default:
 				{
-					if (*s >= 'a' && *s <= 'z')
+					wchar_t Ch = ToLower(*s);
+					if (Ch >= 'a' && Ch <= 'z')
 					{
 						Keyword *k;
-						if (k = HasKeyword[*s - 'a'])
+						if (k = HasKeyword[Ch - 'a'])
 						{
 							do
 							{
-								if (!Strncmp(k->Word, s, k->Len))
+								if (!StrnicmpW(k->Word, s, k->Len))
 									break;
 							}
 							while (k = k->Next);
@@ -1323,9 +1342,9 @@ public:
 								{
 									st->View = this;
 									st->Start = s - Text;
-									st->Font = Bold;
+									st->Font = k->IsType ? Font : Bold;
 									st->Len = k->Len;
-									st->c = ColourKeyword;
+									st->c = k->IsType ? ColourType : ColourKeyword;
 									InsertStyle(st);
 									s += k->Len - 1;
 								}
@@ -1489,6 +1508,21 @@ public:
 			}
 		}
 	}
+	
+	void AddKeywords(const char **keys, bool IsType)
+	{
+		for (const char **k = keys; *k; k++)
+		{
+			const char *Word = *k;
+			int idx = ToLower(*Word)-'a';
+			LgiAssert(idx >= 0 && idx < CountOf(HasKeyword));
+			
+			Keyword **Ptr = &HasKeyword[idx];
+			while (*Ptr != NULL)
+				Ptr = &(*Ptr)->Next;
+			*Ptr = new Keyword(Word, IsType);
+		}
+	}
 
 	void PourStyle(int Start, int EditSize)
 	{
@@ -1509,20 +1543,10 @@ public:
 				FileType = SrcPlainText;
 
 			ZeroObj(HasKeyword);
-			if (SourceKeywords[FileType])
-			{
-				for (const char **k = SourceKeywords[FileType]; *k; k++)
-				{
-					const char *Word = *k;
-					int idx = *Word-'a';
-					LgiAssert(idx >= 0 && idx < CountOf(HasKeyword));
-					
-					Keyword **Ptr = &HasKeyword[idx];
-					while (*Ptr != NULL)
-						Ptr = &(*Ptr)->Next;
-					*Ptr = new Keyword(Word);
-				}
-			}
+			if (LangParam[FileType].Keywords)
+				AddKeywords(LangParam[FileType].Keywords, false);
+			if (LangParam[FileType].Types)
+				AddKeywords(LangParam[FileType].Types, true);
 		}
 
 		switch (FileType)

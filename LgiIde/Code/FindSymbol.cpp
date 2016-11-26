@@ -274,6 +274,11 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 					uint32 Remaining = Tasks - GetQueueSize();
 					Log("FindSym: %i of %i (%.1f%%)\n", Remaining, Tasks, (double)Remaining * 100.0 / max(Tasks, 1));
 				}
+				else if (GetQueueSize() == 0 && MsgTs)
+				{
+					Log("FindSym: Done.\n");
+					MsgTs = 0;
+				}
 				break;
 			}
 			case M_FIND_SYM_INC_PATHS:
