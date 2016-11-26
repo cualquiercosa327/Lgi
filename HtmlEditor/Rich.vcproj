@@ -275,6 +275,10 @@
 			Name="RichTextEdit"
 			>
 			<File
+				RelativePath="..\src\common\Widgets\Editor\BlockCursor.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\common\Widgets\Editor\GRichTextEdit.cpp"
 				>
 			</File>
@@ -287,7 +291,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\common\Widgets\Editor\GTextBlock.cpp"
+				RelativePath="..\src\common\Widgets\Editor\TextBlock.cpp"
 				>
 			</File>
 		</Filter>
