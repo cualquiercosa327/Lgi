@@ -50,7 +50,10 @@
     <ClCompile Include="..\src\common\Widgets\Editor\GRichTextEdit.cpp">
       <Filter>Controls\RichTextEdit</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\common\Widgets\Editor\GTextBlock.cpp">
+    <ClCompile Include="..\src\common\Widgets\Editor\BlockCursor.cpp">
+      <Filter>Controls\RichTextEdit</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Widgets\Editor\TextBlock.cpp">
       <Filter>Controls\RichTextEdit</Filter>
     </ClCompile>
   </ItemGroup>

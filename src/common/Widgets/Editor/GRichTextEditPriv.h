@@ -18,13 +18,13 @@
 #define CursorColour				GColour(0, 0, 0)
 
 //////////////////////////////////////////////////////////////////////
-class GText4Elem : public GHtmlElement
+class GRichEditElem : public GHtmlElement
 {
 	GString Style;
 	GString Classes;
 
 public:
-	GText4Elem(GHtmlElement *parent) : GHtmlElement(parent)
+	GRichEditElem(GHtmlElement *parent) : GHtmlElement(parent)
 	{
 	}
 
@@ -61,16 +61,16 @@ public:
 	}
 };
 
-struct GText4ElemContext : public GCss::ElementCallback<GText4Elem>
+struct GRichEditElemContext : public GCss::ElementCallback<GRichEditElem>
 {
 	/// Returns the element name
-	const char *GetElement(GText4Elem *obj)
+	const char *GetElement(GRichEditElem *obj)
 	{
 		return obj->Tag;
 	}
 	
 	/// Returns the document unque element ID
-	const char *GetAttr(GText4Elem *obj, const char *Attr)
+	const char *GetAttr(GRichEditElem *obj, const char *Attr)
 	{
 		const char *a = NULL;
 		obj->Get(Attr, a);
@@ -78,7 +78,7 @@ struct GText4ElemContext : public GCss::ElementCallback<GText4Elem>
 	}
 	
 	/// Returns the class
-	bool GetClasses(GArray<const char *> &Classes, GText4Elem *obj)
+	bool GetClasses(GArray<const char *> &Classes, GRichEditElem *obj)
 	{
 		const char *c;
 		if (!obj->Get("class", c))
@@ -92,17 +92,17 @@ struct GText4ElemContext : public GCss::ElementCallback<GText4Elem>
 	}
 
 	/// Returns the parent object
-	GText4Elem *GetParent(GText4Elem *obj)
+	GRichEditElem *GetParent(GRichEditElem *obj)
 	{
-		return dynamic_cast<GText4Elem*>(obj->Parent);
+		return dynamic_cast<GRichEditElem*>(obj->Parent);
 	}
 
 	/// Returns an array of child objects
-	GArray<GText4Elem*> GetChildren(GText4Elem *obj)
+	GArray<GRichEditElem*> GetChildren(GRichEditElem *obj)
 	{
-		GArray<GText4Elem*> a;
+		GArray<GRichEditElem*> a;
 		for (unsigned i=0; i<obj->Children.Length(); i++)
-			a.Add(dynamic_cast<GText4Elem*>(obj->Children[i]));
+			a.Add(dynamic_cast<GRichEditElem*>(obj->Children[i]));
 		return a;
 	}
 };
@@ -222,6 +222,7 @@ public:
 	GAutoString UtfNameCache;
 	GAutoPtr<GFont> Font;
 	bool WordSelectMode;
+	bool Dirty;
 
 	enum SelectModeType
 	{
@@ -510,91 +511,13 @@ public:
 		// used to calculate the bounds for screen updates.
 		GRect Line;
 
-		BlockCursor(const BlockCursor &c)
-		{
-			Blk = NULL;
-			*this = c;
-		}
+		BlockCursor(const BlockCursor &c);
+		BlockCursor(Block *b, int off);
+		~BlockCursor();
 		
-		BlockCursor(Block *b, int off)
-		{
-			Blk = NULL;
-			Offset = -1;
-			Pos.ZOff(-1, -1);
-			Line.ZOff(-1, -1);
-
-			if (b)
-				Set(b, off);
-		}
-		
-		~BlockCursor()
-		{
-			Set(NULL, 0);
-		}
-		
-		BlockCursor &operator =(const BlockCursor &c)
-		{
-			Set(c.Blk, c.Offset);
-			Pos = c.Pos;
-			Line = c.Line;
-			
-			LgiAssert(Offset >= 0);
-			
-			return *this;
-		}
-		
-		void Set(int off)
-		{
-			Set(Blk, off);
-		}
-
-		void Set(Block *b, int off)
-		{
-			if (Blk != b)
-			{
-				if (Blk)
-				{
-					LgiAssert(Blk->Cursors > 0);
-					Blk->Cursors--;
-
-					#if DEBUG_LOG_CURSOR_COUNT
-					{
-						GArray<char16> Text;
-						Blk->CopyAt(0, 20, &Text);
-						Text.Add(0);
-						LgiTrace("%s:%i - %i del cursor %p (%.20S)\n", _FL, Blk->Cursors, Blk, &Text.First());
-					}
-					#endif
-
-					Blk = NULL;
-				}
-				if (b)
-				{
-					Blk = b;
-					LgiAssert(Blk->Cursors < 0x7f);
-					Blk->Cursors++;
-
-					#if DEBUG_LOG_CURSOR_COUNT
-					{
-						GArray<char16> Text;
-						Blk->CopyAt(0, 20, &Text);
-						Text.Add(0);
-						LgiTrace("%s:%i - %i add cursor %p (%.20S)\n", _FL, Blk->Cursors, Blk, &Text.First());
-					}
-					#endif
-				}
-			}
-
-			Offset = off;
-			if (Blk)
-			{
-				GRect Line;
-				LgiAssert(off >= 0 && off <= Blk->Length());
-				Blk->GetPosFromIndex(&Pos, &Line, Offset);
-			}
-			
-			LgiAssert(Offset >= 0);
-		}
+		BlockCursor &operator =(const BlockCursor &c);
+		void Set(int off);
+		void Set(Block *b, int off);
 	};
 	
 	GAutoPtr<BlockCursor> Cursor, Selection;
@@ -720,6 +643,8 @@ public:
 	{
 		View = view;
 		WordSelectMode = false;
+		Dirty = false;
+
 		EmptyDoc();
 	}
 	
@@ -1159,7 +1084,7 @@ public:
 	
 	GHtmlElement *CreateElement(GHtmlElement *Parent)
 	{
-		return new GText4Elem(Parent);
+		return new GRichEditElem(Parent);
 	}
 	
 	struct CreateContext
@@ -1324,8 +1249,8 @@ public:
 			if (c->Get("class", Class))
 			{
 				GCss::SelArray Selectors;
-				GText4ElemContext StyleCtx;
-				if (ctx.StyleStore.Match(Selectors, &StyleCtx, dynamic_cast<GText4Elem*>(c)))
+				GRichEditElemContext StyleCtx;
+				if (ctx.StyleStore.Match(Selectors, &StyleCtx, dynamic_cast<GRichEditElem*>(c)))
 				{
 					for (unsigned n=0; n<Selectors.Length(); n++)
 					{

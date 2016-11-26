@@ -158,20 +158,15 @@ GRichTextEdit::~GRichTextEdit()
 
 bool GRichTextEdit::IsDirty()
 {
-	return false;
+	return d->Dirty;
 }
 
-void GRichTextEdit::IsDirty(bool d)
+void GRichTextEdit::IsDirty(bool dirty)
 {
-}
-
-char16 *GRichTextEdit::MapText(char16 *Str, int Len, bool RtlTrailingSpace)
-{
-	if (ObscurePassword || ShowWhiteSpace || RtlTrailingSpace)
+	if (d->Dirty ^ dirty)
 	{
+		d->Dirty = dirty;
 	}
-
-	return Str;
 }
 
 void GRichTextEdit::SetFixedWidthFont(bool i)

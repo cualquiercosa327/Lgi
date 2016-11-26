@@ -41,7 +41,6 @@ protected:
 	virtual void PourStyle(int Start, int Length);
 	virtual void OnFontChange();
 	virtual void OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour);
-	virtual char16 *MapText(char16 *Str, int Len, bool RtlTrailingSpace = false);
 
 public:
 	// Construction

@@ -16,7 +16,7 @@ extern OsThread LgiThreadInPaint;
 #endif
 
 #define PAINT_VIRTUAL_CHILDREN	1
-#define DEBUG_CAPTURE			0
+#define DEBUG_CAPTURE			1
 
 extern bool In_SetWindowPos;
 extern GMouse &lgi_adjust_click(GMouse &Info,
