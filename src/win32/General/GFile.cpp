@@ -52,6 +52,24 @@
 #define FLOPPY_3_5				(FLOPPY_720K | FLOPPY_1_4M)
 
 /****************************** Helper Functions ****************************************************************************/
+const char *LgiGetLeaf(const char *Path)
+{
+	if (!Path)
+		return NULL;
+
+	const char *l = strrchr(Path, DIR_CHAR);
+	return l ? l + 1 : Path;
+}
+
+char *LgiGetLeaf(char *Path)
+{
+	if (!Path)
+		return NULL;
+
+	char *l = strrchr(Path, DIR_CHAR);
+	return l ? l + 1 : Path;
+}
+
 char *ReadTextFile(const char *File)
 {
 	char *s = 0;

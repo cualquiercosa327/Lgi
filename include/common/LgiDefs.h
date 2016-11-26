@@ -594,16 +594,4 @@ enum LgiSystemPath
 
 #include "GAutoPtr.h"
 
-/// This macro allows you to iterate over a List<T> or GArray<T> with one line.
-/// 'thing' becomes the variable name to access the item.
-/// 'index_thing' is the current index
-/// 'container' is the object to iterate over..
-/// Beware that 'thing' persists after the loop is done
-/// And also it shouldn't conflict with other loop variable names, esp nested ones.
-#define foreach(thing, container) \
-	decltype(container)::ItemType thing; \
-	for (unsigned index_##thing = 0; \
-		index_##thing < container.Length() && (thing = container[index_##thing]); \
-		index_##thing++)
-
 #endif

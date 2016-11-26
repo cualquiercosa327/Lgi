@@ -1,6 +1,7 @@
 #include "Lgi.h"
 #include "GRichTextEdit.h"
 #include "GRichTextEditPriv.h"
+#include "GForEach.h"
 
 GRichTextPriv::TextBlock::TextBlock()
 {
@@ -598,8 +599,10 @@ bool GRichTextPriv::TextBlock::IsValid()
 int GRichTextPriv::TextBlock::DeleteAt(int BlkOffset, int Chars, GArray<char16> *DeletedText)
 {
 	int Pos = 0;
-	foreach(t, Txt)
+	
+	for (unsigned i=0; i<Txt.Length(); i++)
 	{
+		StyleText *t = Txt[i];
 		int TxtOffset = BlkOffset - Pos;
 		if (TxtOffset >= 0 && TxtOffset < (int)t->Length())
 		{
@@ -671,9 +674,10 @@ int GRichTextPriv::TextBlock::CopyAt(int Offset, int Chars, GArray<char16> *Text
 		Chars = Length();
 
 	int Pos = 0;
-	foreach(t, Txt)
+	for (unsigned i=0; i<Txt.Length(); i++)
 	{
-		if (Offset >= Pos && Offset < Pos + t->Length())
+		StyleText *t = Txt[i];
+		if (Offset >= Pos && Offset < Pos + (int)t->Length())
 		{
 			int Skip = Offset - Pos;
 			int Remain = t->Length() - Skip;
