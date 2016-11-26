@@ -918,10 +918,10 @@ public:
 		{
 			int line = p[0].Int();
 			if (line > 0)
-			{
 				SetLine(line);
-			}
-			else printf("%s:%i - Error: no line number.\n", _FL);
+			else
+				// Probably a filename with no line number..
+				Doc->GetApp()->GotoReference(p[0], 1, false, true);				
 		}
 		
 		return true;

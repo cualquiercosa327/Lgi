@@ -1251,7 +1251,43 @@ bool IdeProject::GetAllNodes(GArray<ProjectNode*> &Nodes)
 
 bool IdeProject::InProject(const char *Path, bool Open, IdeDoc **Doc)
 {
-	ProjectNode *n = d->Nodes.Find(Path);
+	if (!Path)
+		return false;
+		
+	// Search complete path first...
+	ProjectNode *n = d->Nodes.Find(Path);	
+	if (!n)
+	{
+		// No match, do partial matching.
+		const char *Leaf = LgiGetLeaf(Path);
+		int PathLen = strlen(Path);
+		int LeafLen = strlen(Leaf);
+		int MatchingCh = 0;
+		const char *p;
+
+		// Traverse all nodes and try and find the best fit.
+		for (ProjectNode *Cur = d->Nodes.First(&p); Cur; Cur = d->Nodes.Next(&p))
+		{
+			if (stristr(p, Path))
+			{
+				// Path is a fragment of a path and may contain a sub-folder names as well
+				if (PathLen > MatchingCh)
+				{
+					n = Cur;
+					MatchingCh = PathLen;
+				}
+			}
+			else if (stristr(p, Leaf))
+			{
+				// The leaf part matches at least
+				if (LeafLen > MatchingCh)
+				{
+					n = Cur;
+					MatchingCh = LeafLen;
+				}
+			}
+		}
+	}
 	
 	if (n && Doc)
 	{
