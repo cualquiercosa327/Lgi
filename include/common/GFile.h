@@ -572,7 +572,6 @@ LgiFunc char *ReadStr(GFile &f DeclDebugArgs);
 LgiFunc int SizeofStr(const char *s);
 LgiFunc char *ReadTextFile(const char *File);
 LgiFunc bool LgiTrimDir(char *Path);
-LgiFunc char *LgiGetLeaf(char *Path);
 LgiFunc bool LgiIsRelativePath(const char *Path);
 LgiClass GAutoString LgiMakeRelativePath(const char *Base, const char *Path);
 LgiFunc bool LgiMakePath(char *Str, int StrBufLen, const char *Dir, const char *File);
@@ -589,5 +588,15 @@ LgiFunc void LgiShowFileProperties(OsView Parent, const char *Filename);
 
 /// Opens to the file or folder in the OS file browser (Explorer/Finder etc)
 LgiFunc bool LgiBrowseToFile(const char *Filename);
+
+template<typename T>
+T *LgiGetLeaf(T *Path)
+{
+	if (!Path)
+		return NULL;
+
+	T *l = strrchr(Path, DIR_CHAR);
+	return l ? (T*)l + 1 : Path;
+}
 
 #endif

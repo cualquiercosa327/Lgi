@@ -678,14 +678,6 @@ void LgiStackTrace(const char *Msg, ...)
 }
 #endif
 
-char *LgiGetLeaf(char *Path)
-{
-	if (!Path)
-		return NULL;
-	char *l = strrchr(Path, DIR_CHAR);
-	return l ? l + 1 : Path;
-}
-
 bool LgiTrimDir(char *Path)
 {
 	if (!Path)

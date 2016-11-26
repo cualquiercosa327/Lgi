@@ -1845,7 +1845,7 @@ IdeProject *AppWnd::OpenProject(char *FileName, IdeProject *ParentProj, bool Cre
 			GetTree()->Focus(true);
 
 			GArray<ProjectNode*> Files;
-			if (p->GetAllNodes(Files))
+			if (p && p->GetAllNodes(Files))
 			{
 				GString::Array Inc;
 				p->BuildIncludePaths(Inc, false, PlatformCurrent);
