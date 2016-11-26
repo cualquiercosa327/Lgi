@@ -261,7 +261,7 @@
 			<Node File="./src/common/Lgi/GOptionsFile.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Lgi/LgiRand.cpp" Type="2" Platforms="15" />
 		</Node>
-		<Node Name="Text" Type="1" Platforms="15" Open="1">
+		<Node Name="Text" Type="1" Platforms="15" Open="0">
 			<Node File="./src/common/Text/GString.cpp" Type="2" Platforms="15" />
 			<Node File="./include/common/GString.h" Type="3" Platforms="15" />
 			<Node File="./include/common/GStringClass.h" Type="3" Platforms="15" />
@@ -273,7 +273,7 @@
 			<Node File="./src/common/Text/GXmlTree.cpp" Type="2" Platforms="15" />
 			<Node File="./include/common/GXmlTree.h" Type="3" Platforms="15" />
 		</Node>
-		<Node Name="Widgets" Type="1" Platforms="15" Open="0">
+		<Node Name="Widgets" Type="1" Platforms="15" Open="1">
 			<Node Name="Common" Type="1" Platforms="15" Open="1">
 				<Node File="./src/common/Widgets/GBitmap.cpp" Type="2" Platforms="15" />
 				<Node File="./src/common/Widgets/GButton.cpp" Type="2" Platforms="15" />
@@ -321,7 +321,7 @@
 				<Node File="./src/beos/Lgi/GLayout.cpp" Type="2" Platforms="8" />
 				<Node File="./src/beos/Lgi/GWidgets.cpp" Type="2" Platforms="8" />
 			</Node>
-			<Node Name="Linux" Type="1" Platforms="15" Open="0">
+			<Node Name="Linux" Type="1" Platforms="15" Open="1">
 				<Node File="./src/linux/Lgi/GLayout.cpp" Type="2" Platforms="2" />
 				<Node File="./src/linux/Lgi/GWidgets.cpp" Type="2" Platforms="2" />
 				<Node File="./include/common/LgiWidgets.h" Type="3" Platforms="15" />

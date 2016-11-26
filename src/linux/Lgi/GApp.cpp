@@ -286,6 +286,7 @@ GApp::GApp(OsAppArguments &AppArgs, const char *name, GAppArguments *Args) :
 	SystemBold = 0;
 	d = new GAppPrivate;
 	Name(name);
+	LgiAssert(sizeof(wchar_t) == 4);
 
 	Gtk::gdk_threads_init();	
 	
@@ -406,7 +407,8 @@ int GApp::GetMetric(LgiSystemMetric Metric)
 
 GViewI *GApp::GetFocus()
 {
-	return 0;
+	// GtkWidget *w = gtk_window_get_focus(GtkWindow *window);
+	return NULL;
 }
 
 OsThreadId GApp::GetGuiThread()

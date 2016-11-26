@@ -5,19 +5,6 @@ enum GNotifyType
 {
 	GNotifyNull,
 
-	/// Return/Enter pressed
-	/// \sa GList, GView::OnNotify
-	GNotify_ReturnKey = VK_RETURN,
-	/// Backspace pressed
-	/// \sa GList, GView::OnNotify
-	GNotify_BackspaceKey = VK_BACKSPACE,
-	/// Delete pressed
-	/// \sa GList, GView::OnNotify
-	GNotify_DeleteKey = VK_DELETE,
-	/// Escape pressed
-	/// \sa GList, GView::OnNotify
-	GNotify_EscapeKey = VK_ESCAPE,
-
 	// GItemContainer notification flags
 	/// Item inserted
 	/// \sa GList, GView::OnNotify
@@ -79,6 +66,19 @@ enum GNotifyType
 	// GScrollBar
 	GNotifyScrollBar_Create,
 	GNotifyScrollBar_Destroy,
+
+	/// Return/Enter pressed
+	/// \sa GList, GView::OnNotify
+	GNotify_ReturnKey = VK_RETURN,
+	/// Backspace pressed
+	/// \sa GList, GView::OnNotify
+	GNotify_BackspaceKey = VK_BACKSPACE,
+	/// Delete pressed
+	/// \sa GList, GView::OnNotify
+	GNotify_DeleteKey = VK_DELETE,
+	/// Escape pressed
+	/// \sa GList, GView::OnNotify
+	GNotify_EscapeKey = VK_ESCAPE,
 	
 	
 	/// User app notification IDs should start with this value:
