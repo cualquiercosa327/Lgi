@@ -133,7 +133,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 		FileSyms *f = new FileSyms;
 		if (!f) return false;	
 		f->Path = Path;
-		f->Inc = IncPaths.Last();
+		f->Inc = IncPaths.Length() ? IncPaths.Last() : NULL;
 		Files.Add(f);
 		
 		// Parse for headers...
