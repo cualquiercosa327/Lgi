@@ -970,7 +970,7 @@ public:
 						}
 						
 						// Store the filename
-						char *File = WideToUtf8(Txt+Line, (i-Line)*sizeof(char16));
+						GAutoString File(WideToUtf8(Txt+Line, i-Line));
 						if (File)
 						{
 							// Scan over the linenumber..
@@ -978,12 +978,11 @@ public:
 							while (isdigit(Txt[NumIndex])) NumIndex++;
 							
 							// Store the linenumber
-							char *NumStr = WideToUtf8(Txt + i, (NumIndex - i) * sizeof(char16));
+							GAutoString NumStr(WideToUtf8(Txt + i, NumIndex - i));
 							if (NumStr)
 							{
 								// Convert it to an integer
 								int LineNumber = atoi(NumStr);
-								DeleteArray(NumStr);
 								o->SetCursor(Line, false);
 								o->SetCursor(NumIndex + 1, true);
 								
@@ -991,7 +990,6 @@ public:
 								ViewMsg(File, LineNumber, Context8);
 								DeleteArray(Context8);
 							}
-							DeleteArray(File);
 						}
 					}					
 				}
@@ -2327,83 +2325,83 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		//
 		case IDM_UNDO:
 		{
-			IdeDoc *Doc = FocusDoc();
+			GTextView3 *Doc = FocusEdit();
 			if (Doc)
 			{
-				Doc->GetEdit()->Undo();
+				Doc->Undo();
 			}
 			else LgiTrace("%s:%i - No focus doc.\n", _FL);
 			break;
 		}
 		case IDM_REDO:
 		{
-			IdeDoc *Doc = FocusDoc();
+			GTextView3 *Doc = FocusEdit();
 			if (Doc)
 			{
-				Doc->GetEdit()->Redo();
+				Doc->Redo();
 			}
 			else LgiTrace("%s:%i - No focus doc.\n", _FL);
 			break;
 		}
 		case IDM_FIND:
 		{
-			IdeDoc *Doc = FocusDoc();
+			GTextView3 *Doc = FocusEdit();
 			if (Doc)
 			{
-				Doc->GetEdit()->DoFind();
+				Doc->DoFind();
 			}
 			else LgiTrace("%s:%i - No focus doc.\n", _FL);
 			break;
 		}
 		case IDM_FIND_NEXT:
 		{
-			IdeDoc *Doc = FocusDoc();
+			GTextView3 *Doc = FocusEdit();
 			if (Doc)
 			{
-				Doc->GetEdit()->DoFindNext();
+				Doc->DoFindNext();
 			}
 			else LgiTrace("%s:%i - No focus doc.\n", _FL);
 			break;
 		}
 		case IDM_REPLACE:
 		{
-			IdeDoc *Doc = FocusDoc();
+			GTextView3 *Doc = FocusEdit();
 			if (Doc)
 			{
-				Doc->GetEdit()->DoReplace();
+				Doc->DoReplace();
 			}
 			else LgiTrace("%s:%i - No focus doc.\n", _FL);
 			break;
 		}
 		case IDM_GOTO:
 		{
-			IdeDoc *Doc = FocusDoc();
+			GTextView3 *Doc = FocusEdit();
 			if (Doc)
 			{
-				Doc->GetEdit()->DoGoto();
+				Doc->DoGoto();
 			}
 			else LgiTrace("%s:%i - No focus doc.\n", _FL);
 			break;
 		}
 		case IDM_CUT:
 		{
-			GViewI *v = GetFocus();
-			if (v)
-				v->PostEvent(M_CUT);
+			GTextView3 *Doc = FocusEdit();
+			if (Doc)
+				Doc->PostEvent(M_CUT);
 			break;
 		}
 		case IDM_COPY:
 		{
-			GViewI *v = GetFocus();
-			if (v)
-				v->PostEvent(M_COPY);
+			GTextView3 *Doc = FocusEdit();
+			if (Doc)
+				Doc->PostEvent(M_COPY);
 			break;
 		}
 		case IDM_PASTE:
 		{
-			GViewI *v = GetFocus();
-			if (v)
-				v->PostEvent(M_PASTE);
+			GTextView3 *Doc = FocusEdit();
+			if (Doc)
+				Doc->PostEvent(M_PASTE);
 			break;
 		}
 		case IDM_FIND_IN_FILES:
@@ -2806,6 +2804,11 @@ GTree *AppWnd::GetTree()
 IdeDoc *AppWnd::TopDoc()
 {
 	return dynamic_cast<IdeDoc*>(d->Mdi->GetTop());
+}
+
+GTextView3 *AppWnd::FocusEdit()
+{
+	return dynamic_cast<GTextView3*>(GetWindow()->GetFocus());	
 }
 	
 IdeDoc *AppWnd::FocusDoc()

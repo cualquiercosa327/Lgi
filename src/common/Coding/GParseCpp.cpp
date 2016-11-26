@@ -452,7 +452,7 @@ struct GSourceFile
 				r.InsertTag(c);
 				c->SetAttr("Line", b.BlockLine);
 				
-				GAutoString a(WideToUtf8(b.Start, b.Len * sizeof(char16)));
+				GAutoString a(WideToUtf8(b.Start, b.Len));
 				c->SetContent(a);
 			}
 			

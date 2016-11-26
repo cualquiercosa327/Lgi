@@ -56,7 +56,6 @@ typedef		signed long long			int64;
 typedef		unsigned long long			uint64;
 #endif
 
-#if !defined(LINUX)
 /// \brief Wide unicode char
 ///
 /// This is 16 bits on Win32 and Mac, but 32 bits on unix platforms. There are a number
@@ -91,14 +90,7 @@ typedef		unsigned long long			uint64;
 ///		<li> ValidStrW()
 ///		<li> MatchStrW()
 /// </ul>
-
-	typedef		wchar_t						char16;
-
-#else // LINUX
-
-	typedef		unsigned int				char16;
-
-#endif
+typedef		wchar_t						char16;
 
 #if !WINNATIVE
 #ifdef UNICODE
