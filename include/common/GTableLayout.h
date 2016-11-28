@@ -85,6 +85,12 @@ public:
 		Size(Spacing, Spacing);
 	}
 
+	GLayoutRect(GRect rc, int spacing = GTableLayout::CellSpacing)
+	{
+		Spacing = spacing;
+		((GRect&)*this) = rc;		
+	}
+
 	// Allocate object on left edge
 	// ------------------------------------
 		GLayoutRect Left(GRect &rc, int Px)

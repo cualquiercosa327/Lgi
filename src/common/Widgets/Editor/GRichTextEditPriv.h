@@ -1,3 +1,23 @@
+/* Rich text design notes:
+
+- The document is an array of Blocks (Blocks have no hierarchy)
+- Blocks have a length in characters. New lines are considered as one '\n' char.
+- Currently the main type of block is the TextBlock
+	- TextBlock contains:
+		- array of StyleText:
+			This is the source text. Each run of text has a style associated with it.
+			This forms the input to the layout algorithm and is what the user is 
+			editing.
+		- array of TextLine:
+			Contains all the info needed to render one line of text. Essentially
+			the output of the layout engine.
+			Contains an array of DisplayStr objects. i.e. Characters in the exact
+			same style as each other.
+			It will regularly be deleted and re-flowed from the StyleText objects.
+	- For a plaint text document the entire thing is contained by the one TextBlock.
+- There will be an Image block down the track, where the image is treated as one character object.
+
+*/
 #ifndef _RICH_TEXT_EDIT_PRIV_H_
 #define _RICH_TEXT_EDIT_PRIV_H_
 
@@ -5,6 +25,8 @@
 #include "GHtmlParser.h"
 #include "GFontCache.h"
 #include "GDisplayString.h"
+#include "GColourSpace.h"
+#include "GPopup.h"
 
 #define DEBUG_LOG_CURSOR_COUNT		0
 
@@ -208,6 +230,27 @@ public:
 	}
 };
 
+class GRichTextPriv;
+class SelectColour : public GPopup
+{
+	GRichTextPriv *d;
+	GRichTextEdit::RectType Type;
+
+	struct Entry
+	{
+		GRect r;
+		GColour c;
+	};
+	GArray<Entry> e;
+
+public:
+	SelectColour(GRichTextPriv *priv, GdcPt2 p, GRichTextEdit::RectType t);
+
+	void OnPaint(GSurface *pDC);
+	void OnMouseClick(GMouse &m);
+	void Visible(bool i);
+};
+
 class GRichTextPriv :
 	public GCss,
 	public GHtmlParser,
@@ -223,6 +266,9 @@ public:
 	GAutoPtr<GFont> Font;
 	bool WordSelectMode;
 	bool Dirty;
+	bool ShowTools;
+	GRect Areas[GRichTextEdit::MaxArea];
+	GVariant Values[GRichTextEdit::MaxArea];
 
 	enum SelectModeType
 	{
@@ -637,6 +683,7 @@ public:
 	
 	GArray<Block*> Blocks;
 
+	// Constructor
 	GRichTextPriv(GRichTextEdit *view) :
 		GHtmlParser(view),
 		GFontCache(SysFont)
@@ -644,6 +691,21 @@ public:
 		View = view;
 		WordSelectMode = false;
 		Dirty = false;
+		ShowTools = true;
+		for (unsigned i=0; i<CountOf(Areas); i++)
+		{
+			Areas[i].ZOff(-1, -1);
+		}
+
+		Values[GRichTextEdit::FontFamilyBtn] = "FontName";
+		Values[GRichTextEdit::FontSizeBtn] = "14";
+
+		Values[GRichTextEdit::BoldBtn] = true;
+		Values[GRichTextEdit::ItalicBtn] = false;
+		Values[GRichTextEdit::UnderlineBtn] = false;
+		
+		Values[GRichTextEdit::ForegroundColourBtn] = (int64)Rgb24To32(LC_TEXT);
+		Values[GRichTextEdit::BackgroundColourBtn] = (int64)Rgb24To32(LC_WORKSPACE);
 
 		EmptyDoc();
 	}
@@ -1052,9 +1114,176 @@ public:
 											 Cursor->Offset);
 		}
 	}
+
+	void OnStyleChange(GRichTextEdit::RectType t)
+	{
+	}
+
+	void PaintBtn(GSurface *pDC, GRichTextEdit::RectType t)
+	{
+		GRect r = Areas[t];
+		GVariant &v = Values[t];
+		bool Down = v.Type == GV_BOOL && v.Value.Bool;
+
+		LgiThinBorder(pDC, r, Down ? EdgeXpSunken : EdgeXpRaised);
+		switch (v.Type)
+		{
+			case GV_STRING:
+			{
+				GDisplayString Ds(SysFont, v.Str());
+				Ds.Draw(pDC, r.x1 + ((r.X()-Ds.X())>>1), r.y1 + ((r.Y()-Ds.Y())>>1), &r);
+				break;
+			}
+			case GV_INT64:
+			{
+				pDC->Colour((uint32)v.Value.Int64, 32);
+				pDC->Rectangle(&r);
+				break;
+			}
+			case GV_BOOL:
+			{
+				const char *Label = NULL;
+				switch (t)
+				{
+					case GRichTextEdit::BoldBtn: Label = "B"; break;
+					case GRichTextEdit::ItalicBtn: Label = "I"; break;
+					case GRichTextEdit::UnderlineBtn: Label = "U"; break;
+				}
+				if (!Label) break;
+				GDisplayString Ds(SysFont, Label);
+				Ds.Draw(pDC, r.x1 + ((r.X()-Ds.X())>>1) + Down, r.y1 + ((r.Y()-Ds.Y())>>1) + Down, &r);
+				break;
+			}
+		}
+	}
+
+	void ClickBtn(GMouse &m, GRichTextEdit::RectType t)
+	{
+		switch (t)
+		{
+			case GRichTextEdit::FontFamilyBtn:
+			{
+				List<const char> Fonts;
+				if (!GFontSystem::Inst()->EnumerateFonts(Fonts))
+				{
+					LgiTrace("%s:%i - EnumerateFonts failed.\n", _FL);
+					break;
+				}
+
+				bool UseSub = (SysFont->GetHeight() * Fonts.Length()) > (GdcD->Y() * 0.8);
+
+				GSubMenu s;
+				GSubMenu *Cur = NULL;
+				int Idx = 1;
+				char Last = 0;
+				for (const char *f = Fonts.First(); f; )
+				{
+					if (*f == '@')
+					{
+						Fonts.Delete(f);
+						DeleteArray(f);
+						f = Fonts.Current();
+					}
+					else if (UseSub)
+					{
+						if (*f != Last || Cur == NULL)
+						{
+							GString str;
+							str.Printf("%c...", Last = *f);
+							Cur = s.AppendSub(str);
+						}
+						if (Cur)
+							Cur->AppendItem(f, Idx++);
+						else
+							break;
+						f = Fonts.Next();
+					}
+					else
+					{
+						s.AppendItem(f, Idx++);
+						f = Fonts.Next();
+					}
+				}
+
+				GdcPt2 p(Areas[t].x1, Areas[t].y2 + 1);
+				View->PointToScreen(p);
+				int Result = s.Float(View, p.x, p.y, true);
+				if (Result)
+				{
+					Values[t] = Fonts[Result-1];
+					View->Invalidate(Areas+t);
+					OnStyleChange(t);
+				}
+				break;
+			}
+			case GRichTextEdit::FontSizeBtn:
+			{
+				static const char *Sizes[] = { "6", "7", "8", "9", "10", "11", "12", "14", "16", "18", "20", "24",
+												"28", "32", "40", "50", "60", "80", "100", "120", 0 };
+				GSubMenu s;
+				for (int Idx = 0; Sizes[Idx]; Idx++)
+					s.AppendItem(Sizes[Idx], Idx+1);
+
+				GdcPt2 p(Areas[t].x1, Areas[t].y2 + 1);
+				View->PointToScreen(p);
+				int Result = s.Float(View, p.x, p.y, true);
+				if (Result)
+				{
+					Values[t] = Sizes[Result-1];
+					View->Invalidate(Areas+t);
+					OnStyleChange(t);
+				}
+				break;
+			}
+			case GRichTextEdit::BoldBtn:
+			case GRichTextEdit::ItalicBtn:
+			case GRichTextEdit::UnderlineBtn:
+			{
+				Values[t] = !Values[t].CastBool();
+				View->Invalidate(Areas+t);
+				OnStyleChange(t);
+			}
+			case GRichTextEdit::ForegroundColourBtn:
+			case GRichTextEdit::BackgroundColourBtn:
+			{
+				GdcPt2 p(Areas[t].x1, Areas[t].y2 + 1);
+				View->PointToScreen(p);
+				new SelectColour(this, p, t);
+				break;
+			}
+		}
+	}
 	
 	void Paint(GSurface *pDC)
 	{
+		if (Areas[GRichTextEdit::ToolsArea].Valid())
+		{
+			// Draw tools area...
+			GRect &t = Areas[GRichTextEdit::ToolsArea];
+			pDC->Colour(LC_MED, 24);
+			pDC->Rectangle(&t);
+
+			GRect r = t;
+			r.Size(2, 2);
+			#define AllocPx(sz, border) \
+				GRect(r.x1, r.y1, r.x1 + sz - 1, r.y2); r.x1 += sz + border
+
+			Areas[GRichTextEdit::FontFamilyBtn] = AllocPx(100, 6);
+			Areas[GRichTextEdit::FontSizeBtn] = AllocPx(40, 6);
+
+			Areas[GRichTextEdit::BoldBtn] = AllocPx(r.Y(), 0);
+			Areas[GRichTextEdit::ItalicBtn] = AllocPx(r.Y(), 0);
+			Areas[GRichTextEdit::UnderlineBtn] = AllocPx(r.Y(), 6);
+
+			Areas[GRichTextEdit::ForegroundColourBtn] = AllocPx(r.Y()*1.5, 0);
+			Areas[GRichTextEdit::BackgroundColourBtn] = AllocPx(r.Y()*1.5, 6);
+
+			for (unsigned i = GRichTextEdit::FontFamilyBtn; i <= GRichTextEdit::BackgroundColourBtn; i++)
+			{
+				PaintBtn(pDC, (GRichTextEdit::RectType) i);
+			}
+		}
+
 		PaintContext Ctx;
 		
 		Ctx.pDC = pDC;
@@ -1321,7 +1550,6 @@ public:
 		return true;
 	}
 };
-
 
 
 #endif

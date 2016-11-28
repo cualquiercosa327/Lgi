@@ -75,6 +75,27 @@ public:
 	// Options
 	void SetTabSize(uint8 i);
 	void SetReadOnly(bool i);
+	bool ShowStyleTools();
+	void ShowStyleTools(bool b);
+
+	enum RectType
+	{
+		ContentArea,
+		ToolsArea,
+
+		FontFamilyBtn,
+		FontSizeBtn,
+		
+		BoldBtn,
+		ItalicBtn,
+		UnderlineBtn,
+		
+		ForegroundColourBtn,
+		BackgroundColourBtn,
+		
+		MaxArea
+	};
+	GRect GetArea(RectType Type);
 
 	/// Sets the wrapping on the control, use #TEXTED_WRAP_NONE or #TEXTED_WRAP_REFLOW
 	void SetWrapType(uint8 i);
