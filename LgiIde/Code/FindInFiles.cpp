@@ -53,7 +53,6 @@ void SerializeHistory(GHistory *h, const char *opt, GOptionsFile *p, bool Write)
 			{
 				p->SetValue(opt, v = strs.Get());
 				p->SetValue(last, v = h->Value());
-				// printf("Setting '%s' to %i\n", last.Get(), (int)h->Value());
 			}
 		}
 		else
@@ -111,7 +110,11 @@ int FindInFiles::OnNotify(GViewI *v, int f)
 			s.InitialDir(GetCtrlName(IDC_DIR));
 			if (s.OpenFolder())
 			{
-				SetCtrlName(IDC_DIR, s.Name());
+				int Idx = FolderHistory->Add(s.Name());
+				if (Idx >= 0)
+					FolderHistory->Value(Idx);
+				else
+					SetCtrlName(IDC_DIR, s.Name());
 			}
 			break;
 		}
