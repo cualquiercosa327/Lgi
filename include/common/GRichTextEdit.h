@@ -2,8 +2,8 @@
 /// \author Matthew Allen
 /// \brief A unicode text editor
 
-#ifndef __GTEXTVIEW4_H
-#define __GTEXTVIEW4_H
+#ifndef _RICH_TEXT_EDIT_H_
+#define _RICH_TEXT_EDIT_H_
 
 #include "GDocView.h"
 #include "GUndo.h"
@@ -11,20 +11,17 @@
 
 extern char Delimiters[];
 
-#if defined(MAC)
-#define DefClass class LgiClass
-#else
-#define DefClass class
-#endif
-
 /// Styled unicode text editor control.
-DefClass
-	GTextView4 :
+class
+#if defined(MAC)
+	LgiClass
+#endif
+	GRichTextEdit :
 	public GDocView,
 	public ResObject,
 	public GDragDropTarget
 {
-	friend bool Text4_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User);
+	friend bool RichText_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User);
 
 public:
 	enum GTextViewSeek
@@ -36,27 +33,26 @@ public:
 	};
 
 protected:
-	class GTv4Priv *d;
-	friend class GTv4Priv;
+	class GRichTextPriv *d;
+	friend class GRichTextPriv;
 
 	// Overridables
 	virtual void PourText(int Start, int Length);
 	virtual void PourStyle(int Start, int Length);
 	virtual void OnFontChange();
 	virtual void OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour);
-	virtual char16 *MapText(char16 *Str, int Len, bool RtlTrailingSpace = false);
 
 public:
 	// Construction
-	GTextView4(	int Id,
-				int x = 0,
-				int y = 0,
-				int cx = 100,
-				int cy = 100,
-				GFontType *FontInfo = 0);
-	~GTextView4();
+	GRichTextEdit(	int Id,
+					int x = 0,
+					int y = 0,
+					int cx = 100,
+					int cy = 100,
+					GFontType *FontInfo = 0);
+	~GRichTextEdit();
 
-	const char *GetClass() { return "GTextView4"; }
+	const char *GetClass() { return "GRichTextEdit"; }
 
 	// Data
 	char *Name();
@@ -78,8 +74,28 @@ public:
 
 	// Options
 	void SetTabSize(uint8 i);
-	void SetBorder(int b);
 	void SetReadOnly(bool i);
+	bool ShowStyleTools();
+	void ShowStyleTools(bool b);
+
+	enum RectType
+	{
+		ContentArea,
+		ToolsArea,
+
+		FontFamilyBtn,
+		FontSizeBtn,
+		
+		BoldBtn,
+		ItalicBtn,
+		UnderlineBtn,
+		
+		ForegroundColourBtn,
+		BackgroundColourBtn,
+		
+		MaxArea
+	};
+	GRect GetArea(RectType Type);
 
 	/// Sets the wrapping on the control, use #TEXTED_WRAP_NONE or #TEXTED_WRAP_REFLOW
 	void SetWrapType(uint8 i);

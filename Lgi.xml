@@ -268,6 +268,7 @@
 			<Node File="./include/common/GTextFile.h" Type="3" Platforms="15" />
 			<Node File="./src/common/Text/GToken.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Text/GUnicode.cpp" Type="2" Platforms="15" />
+			<Node File="./include/common/GUnicode.h" Type="3" Platforms="15" />
 			<Node File="./src/common/Text/GUtf8.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Text/GXmlTree.cpp" Type="2" Platforms="15" />
 			<Node File="./include/common/GXmlTree.h" Type="3" Platforms="15" />
@@ -320,7 +321,7 @@
 				<Node File="./src/beos/Lgi/GLayout.cpp" Type="2" Platforms="8" />
 				<Node File="./src/beos/Lgi/GWidgets.cpp" Type="2" Platforms="8" />
 			</Node>
-			<Node Name="Linux" Type="1" Platforms="15" Open="0">
+			<Node Name="Linux" Type="1" Platforms="15" Open="1">
 				<Node File="./src/linux/Lgi/GLayout.cpp" Type="2" Platforms="2" />
 				<Node File="./src/linux/Lgi/GWidgets.cpp" Type="2" Platforms="2" />
 				<Node File="./include/common/LgiWidgets.h" Type="3" Platforms="15" />

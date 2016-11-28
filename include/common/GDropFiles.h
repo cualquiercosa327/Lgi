@@ -42,7 +42,7 @@ public:
 				char16 *f = (char16*)FilesPtr;
 				while (*f)
 				{
-					char *Utf8 = LgiNewUtf16To8(f);
+					char *Utf8 = WideToUtf8(f);
 					if (Utf8) Add(Utf8);
 					f += StrlenW(f) + 1;
 				}

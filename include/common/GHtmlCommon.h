@@ -191,7 +191,7 @@ public:
 	// Helper
 	void Set(const char *attr, const char16 *val)
 	{
-		GAutoString utf8(LgiNewUtf16To8(val));
+		GAutoString utf8(WideToUtf8(val));
 		Set(attr, utf8);
 	}
 };

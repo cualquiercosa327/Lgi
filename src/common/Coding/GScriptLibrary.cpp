@@ -541,7 +541,7 @@ bool SystemFunctions::New(GVariant *Ret, ArgumentArray &Args)
 			if (!c)
 				return false;
 
-			GAutoWString o(LgiNewUtf8To16(sType));
+			GAutoWString o(Utf8ToWide(sType));
 			GCustomType *t = c->GetType(o);
 			if (t)
 			{

@@ -33,6 +33,17 @@
 #include "LgiDefs.h"
 #include "LgiClass.h"
 
+#define _MSC_VER_VS2015	1900 // MSVC++ 14.0
+#define _MSC_VER_VS2013	1800 // MSVC++ 12.0
+#define _MSC_VER_VS2012	1700 // MSVC++ 11.0
+#define _MSC_VER_VS2010	1600 // MSVC++ 10.0
+#define _MSC_VER_VS2008	1500 // MSVC++ 9.0
+#define _MSC_VER_VS2005	1400 // MSVC++ 8.0
+#define _MSC_VER_VS2003	1310 // MSVC++ 7.1
+#define _MSC_VER_VC7	1300 // MSVC++ 7.0
+#define _MSC_VER_VC6	1200 // MSVC++ 6.0
+#define _MSC_VER_VC5	1100 // MSVC++ 5.0
+
 //////////////////////////////////////////////////////////////////
 // Includes
 #define WIN32_LEAN_AND_MEAN
@@ -53,7 +64,7 @@ typedef char16				OsChar;
 typedef HBITMAP				OsBitmap;
 typedef HDC					OsPainter;
 typedef HFONT				OsFont;
-#if _MSC_VER <= 1200 //vc6
+#if _MSC_VER <= _MSC_VER_VC6
 typedef unsigned long		ULONG_PTR, *PULONG_PTR;
 #define sprintf_s			_snprintf
 #endif
@@ -91,6 +102,9 @@ public:
 // Defines
 #define IsWin9x							(GApp::Win9x)
 #define DefaultOsView(t)				NULL
+
+#define GWL_LGI_MAGIC					8
+#define GWL_EXTRA_BYTES					12
 
 // Key redefs
 #define VK_PAGEUP						VK_PRIOR
@@ -194,7 +208,7 @@ LgiExtern class GString WinGetSpecialFolderPath(int Id);
 LgiFunc int FormatToInt(GString s);
 /// Convert a Os dependant integer d'n'd format to a string.
 LgiFunc char *FormatToStr(int f);
-extern bool LgiToWindowsCursor(LgiCursor Cursor);
+extern bool LgiToWindowsCursor(OsView Hnd, LgiCursor Cursor);
 
 #ifdef _MSC_VER
 #define snprintf					_snprintf

@@ -907,7 +907,7 @@ bool GPath::Text(	GFont *Font,
 
 	if (Font && Utf8)
 	{
-		char16 *Utf16 = LgiNewUtf8To16(Utf8, Bytes);
+		char16 *Utf16 = Utf8ToWide(Utf8, Bytes);
 		if (Utf16)
 		{
 			GPath Temp;

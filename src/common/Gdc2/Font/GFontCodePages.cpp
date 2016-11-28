@@ -1411,7 +1411,7 @@ char *LgiToNativeCp(const char *In, int InLen)
 				InLen = strlen(In);
 			}
 
-			char16 *Wide = LgiNewUtf8To16(In, InLen);
+			char16 *Wide = Utf8ToWide(In, InLen);
 			if (Wide)
 			{
 				int Len = wcstombs(0, Wide, StrlenW(Wide));
@@ -1484,7 +1484,7 @@ char *LgiFromNativeCp(const char *In, int InLen)
 				{
 					mbstowcs(Buf, In, InLen);
 					Buf[Len] = 0;
-					char *Utf8 = LgiNewUtf16To8(Buf);
+					char *Utf8 = WideToUtf8(Buf);
 					DeleteArray(Buf);
 					return Utf8;
 				}

@@ -252,7 +252,7 @@ public:
 		#ifdef WIN32
 		if (WinNT)
 		{
-			if (utf) w = LgiNewUtf8To16(utf);
+			if (utf) w = Utf8ToWide(utf);
 		}
 		else
 		{
@@ -338,7 +338,7 @@ public:
 	{
 		if (w)
 		{
-			return LgiNewUtf16To8(w);
+			return WideToUtf8(w);
 		}
 		else if (n)
 		{

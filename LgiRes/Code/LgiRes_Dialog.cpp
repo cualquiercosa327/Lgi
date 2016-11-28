@@ -2716,7 +2716,7 @@ void ResDialog::Copy(bool Delete)
 			{
 				GClipBoard Clip(Ui);
 
-				char16 *w = LgiNewUtf8To16(s);
+				char16 *w = Utf8ToWide(s);
 				Clip.TextW(w);
 				Status = Clip.Text(s, false);
 				DeleteObj(w);
@@ -2803,7 +2803,7 @@ void ResDialog::Paste()
 		GClipBoard Clip(Ui);
 		char16 *w = Clip.TextW();
 		if (w)
-			Data = Mem = LgiNewUtf16To8(w);
+			Data = Mem = WideToUtf8(w);
 		else
 			Data = Clip.Text();
 	}

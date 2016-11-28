@@ -137,7 +137,7 @@ LRESULT CALLBACK DlgRedir(HWND hWnd, UINT m, WPARAM a, LPARAM b)
 	{
 		GDialog *NewWnd = (GDialog*) b;
 		NewWnd->_View = hWnd;
-		#if _MSC_VER >= 1400
+		#if _MSC_VER >= _MSC_VER_VS2005
         SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)(GViewI*)NewWnd);
 		#else
         SetWindowLong(hWnd, GWL_USERDATA, (LONG)(GViewI*)NewWnd);
@@ -145,7 +145,7 @@ LRESULT CALLBACK DlgRedir(HWND hWnd, UINT m, WPARAM a, LPARAM b)
 	}
 
 	GViewI *Wnd = (GViewI*)
-		#if _MSC_VER >= 1400
+		#if _MSC_VER >= _MSC_VER_VS2005
 		#pragma warning(disable : 4312)
 		GetWindowLongPtr(hWnd, GWLP_USERDATA);
 		#pragma warning(default : 4312)

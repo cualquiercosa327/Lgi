@@ -125,10 +125,12 @@ public:
 	IdeProject *ParentProject;
 	IdeProjectSettings Settings;
 	GAutoPtr<BuildThread> Thread;
+	GHashTbl<const char*, ProjectNode*> Nodes;
 
 	IdeProjectPrivate(AppWnd *a, IdeProject *project) :
 		Project(project),
-		Settings(project)
+		Settings(project),
+		Nodes(0, false, NULL, NULL)
 	{
 		App = a;
 		Dirty = false;
@@ -157,7 +159,7 @@ NodeView::~NodeView()
 
 
 //////////////////////////////////////////////////////////////////////////////////
-int NodeSort(GTreeItem *a, GTreeItem *b, int d)
+int NodeSort(GTreeItem *a, GTreeItem *b, NativeInt d)
 {
 	ProjectNode *A = dynamic_cast<ProjectNode*>(a);
 	ProjectNode *B = dynamic_cast<ProjectNode*>(b);
@@ -186,7 +188,7 @@ int NodeSort(GTreeItem *a, GTreeItem *b, int d)
 	return 0;
 }
 
-int XmlSort(GXmlTag *a, GXmlTag *b, int d)
+int XmlSort(GXmlTag *a, GXmlTag *b, NativeInt d)
 {
 	GTreeItem *A = dynamic_cast<GTreeItem*>(a);
 	GTreeItem *B = dynamic_cast<GTreeItem*>(b);
@@ -476,7 +478,34 @@ IdeProject::IdeProject(AppWnd *App) : IdeCommon(NULL)
 IdeProject::~IdeProject()
 {
 	d->App->OnProjectDestroy(this);
+	GXmlTag::Empty(true);
 	DeleteObj(d);
+}
+
+bool IdeProject::OnNode(const char *Path, ProjectNode *Node, bool Add)
+{
+	if (!Path || !Node)
+	{
+		LgiAssert(0);
+		return false;
+	}
+
+	char Full[MAX_PATH];
+	if (LgiIsRelativePath(Path))
+	{
+		GAutoString Base = GetBasePath();
+		if (LgiMakePath(Full, sizeof(Full), Base, Path))
+		{
+			Path = Full;
+		}
+	}
+
+	// LgiTrace("%s:%i - OnNode(%s, %i)\n", _FL, Path, Add);
+	
+	if (Add)
+		return d->Nodes.Add(Path, Node);
+	else
+		return d->Nodes.Delete(Path);
 }
 
 void IdeProject::ShowFileProperties(const char *File)
@@ -1222,13 +1251,41 @@ bool IdeProject::GetAllNodes(GArray<ProjectNode*> &Nodes)
 
 bool IdeProject::InProject(const char *Path, bool Open, IdeDoc **Doc)
 {
-	ProjectNode *n = 0;
-
-	ForAllProjectNodes(c)
+	if (!Path)
+		return false;
+		
+	// Search complete path first...
+	ProjectNode *n = d->Nodes.Find(Path);	
+	if (!n)
 	{
-		if ((n = c->FindFile(Path, 0)))
+		// No match, do partial matching.
+		const char *Leaf = LgiGetLeaf(Path);
+		int PathLen = strlen(Path);
+		int LeafLen = strlen(Leaf);
+		int MatchingCh = 0;
+		const char *p;
+
+		// Traverse all nodes and try and find the best fit.
+		for (ProjectNode *Cur = d->Nodes.First(&p); Cur; Cur = d->Nodes.Next(&p))
 		{
-			break;
+			if (stristr(p, Path))
+			{
+				// Path is a fragment of a path and may contain a sub-folder names as well
+				if (PathLen > MatchingCh)
+				{
+					n = Cur;
+					MatchingCh = PathLen;
+				}
+			}
+			else if (stristr(p, Leaf))
+			{
+				// The leaf part matches at least
+				if (LeafLen > MatchingCh)
+				{
+					n = Cur;
+					MatchingCh = LeafLen;
+				}
+			}
 		}
 	}
 	
@@ -1549,7 +1606,7 @@ bool IdeProject::GetTargetFile(char *Buf, int BufSize)
 	return Status;
 }
 
-int StrCmp(char *a, char *b, int d)
+int StrCmp(char *a, char *b, NativeInt d)
 {
 	return stricmp(a, b);
 }

@@ -112,6 +112,18 @@ public:
 		
 		return Ret;
 	}
+
+	template<typename T>
+	bool CheckForNull(T *ptr, uint8 *end)
+	{
+		while ((uint8*)ptr < (end-sizeof(T)))
+		{
+			if (*ptr == 0)
+				return false;
+			ptr++;
+		}
+		return true;
+	}
 		
 	int Read(void *Buffer, int Size, int Flags = 0)
 	{
@@ -154,57 +166,13 @@ public:
 				else
 				{
 					// Try and detect the char type
-					#define Detect(c) ((c) == ' ' || (c) == '\n')
-
 					uint8 *end = buf + Rd;
-					
-					// Check for utf-8 first...
-					GUtf8Ptr utf(buf);
-					bool InvalidUtf = false;
-					while (utf.GetPtr() < end - 6) // Leave enough bytes not to run over the end of the buffer
-					{						
-						int32 u = utf;
-						if (u < 0)
-						{
-							InvalidUtf = true;
-							break;
-						}
-						utf++;
-					}
-					
-					if (!InvalidUtf)
-					{
+					if (CheckForNull(buf, end))
 						Type = Utf8;
-					}
-					else
-					{
-						// Check for utf16 or utf32?
-						GPointer p;
-						p.u8 = buf;
-						bool HasNull = false;
-
-						int u16 = 0, u32 = 0;
-						for (int i=0; i<min(Rd, 1024); i++)
-						{
-							if (p.u16 + i < (uint16*)(end-1))
-							{
-								if (p.u16[i] == 0)
-									HasNull = true;
-								else if (Detect(p.u16[i]))
-									u16++;
-							}							
-							if (p.u32 + i < (uint32*)(end-3))
-							{
-								if (Detect(p.u32[i]))
-									u32++;
-							}
-						}
-						
-						if (HasNull && u16 > 5)
-							Type = Utf16LE;
-						else
-							Type = Utf32LE;
-					}
+					else if (CheckForNull((uint16*)buf, end))
+						Type = Utf16LE;
+					else 
+						Type = Utf32LE;
 				}
 				
 				ptrdiff_t bytes = start - buf;

@@ -160,7 +160,7 @@ char *DecodeXml(char *Str, int Len)
 							e++;
 							
 							char16 c = htoi(e);
-							char *c8 = LgiNewUtf16To8(&c, sizeof(char16));
+							char *c8 = WideToUtf8(&c, 1);
 							if (c8)
 							{
 								p.Push(c8);
@@ -171,7 +171,7 @@ char *DecodeXml(char *Str, int Len)
 						{
 							// Decimal
 							char16 c = atoi(e);
-							char *c8 = LgiNewUtf16To8(&c, sizeof(char16));
+							char *c8 = WideToUtf8(&c, 1);
 							if (c8)
 							{
 								p.Push(c8);

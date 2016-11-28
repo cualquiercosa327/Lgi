@@ -560,9 +560,9 @@ bool LgiExecute(const char *File, const char *Arguments, const char *Dir, GAutoS
 	}
 	else
 	{
-		GAutoWString f(LgiNewUtf8To16(File));
-		GAutoWString a(LgiNewUtf8To16(Arguments));
-		GAutoWString d(LgiNewUtf8To16(Dir));
+		GAutoWString f(Utf8ToWide(File));
+		GAutoWString a(Utf8ToWide(Arguments));
+		GAutoWString d(Utf8ToWide(Dir));
 		if (f)
 		{
 			Status = (NativeInt) ShellExecuteW(NULL, L"open", f, a, d, 5);
@@ -845,7 +845,7 @@ bool GRegKey::GetKeyNames(List<char> &n)
 	DWORD Size = CountOf(Buf), i = 0;
 	while (RegEnumKeyEx(k, i++, Buf, &Size, 0, 0, 0, &t) == ERROR_SUCCESS)
 	{
-		n.Insert(LgiNewUtf16To8(Buf));
+		n.Insert(WideToUtf8(Buf));
 		Size = sizeof(Buf);
 	}
 	return n.First() != 0;
@@ -857,7 +857,7 @@ bool GRegKey::GetValueNames(List<char> &n)
 	DWORD Type, Size = CountOf(Buf), i = 0;
 	while (RegEnumValue(k, i++, Buf, &Size, 0, &Type, 0, 0) == ERROR_SUCCESS)
 	{
-		n.Insert(LgiNewUtf16To8(Buf));
+		n.Insert(WideToUtf8(Buf));
 		Size = sizeof(Buf);
 	}
 	return n.First() != 0;
@@ -875,7 +875,7 @@ GString WinGetSpecialFolderPath(int Id)
 		BOOL result = w(0, wp, Id, false);
 		if (result && ValidStrW(wp))
 		{
-			GAutoString Tmp(LgiNewUtf16To8(wp));
+			GAutoString Tmp(WideToUtf8(wp));
 			s = Tmp;
 		}
 		else

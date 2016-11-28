@@ -52,8 +52,8 @@ class GFileSelectPrivate
 
 		for (GFileType *Type = TypeList.First(); Type; Type = TypeList.Next())
 		{
-			char16 *d = LgiNewUtf8To16(Type->Description());
-			char16 *e = LgiNewUtf8To16(Type->Extension());
+			char16 *d = Utf8ToWide(Type->Description());
+			char16 *e = Utf8ToWide(Type->Extension());
 			
 			p.Write((uchar*)d, sizeof(char16)*StrlenW(d));
 			p.Write((uchar*)L"", sizeof(char16));
@@ -108,7 +108,7 @@ class GFileSelectPrivate
 		{
 			memset(Info.lpstrFile, 0, sizeof(*Info.lpstrFile) * Info.nMaxFile);
 
-			char16 *s = LgiNewUtf8To16(FileStr);
+			char16 *s = Utf8ToWide(FileStr);
 			if (s)
 			{
 				StrcpyW(Info.lpstrFile, s);
@@ -116,7 +116,7 @@ class GFileSelectPrivate
 			}
 		}
 
-		Info.lpstrInitialDir = LgiNewUtf8To16(InitDir);
+		Info.lpstrInitialDir = Utf8ToWide(InitDir);
 
 		if (CanMultiSelect)
 			Info.Flags |= OFN_ALLOWMULTISELECT;
@@ -148,13 +148,13 @@ class GFileSelectPrivate
 				while (*f)
 				{
 					StrcpyW(e, f);
-					Files.Insert(LgiNewUtf16To8(s));
+					Files.Insert(WideToUtf8(s));
 					f += StrlenW(f) + 1;
 				}
 			}
 			else
 			{
-				char *f = LgiNewUtf16To8(Info.lpstrFile);
+				char *f = WideToUtf8(Info.lpstrFile);
 				if (f)
 					Files.Insert(f);
 			}
@@ -408,7 +408,7 @@ bool GFileSelect::OpenFolder()
 			if  (::SHGetPathFromIDList(pidl, pszBuffer))
 			{
 				// At this point pszBuffer contains the selected path
-				d->Files.Insert(LgiNewUtf16To8(pszBuffer));
+				d->Files.Insert(WideToUtf8(pszBuffer));
 				Status = true;
 			}
 

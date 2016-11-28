@@ -93,7 +93,13 @@ public:
 		virtual bool OnMouseClick(GMouse *m) { return false; }
 		virtual bool OnMenu(GSubMenu *m) { return false; }
 		virtual void OnMenuClick(int i) {}
-		virtual TCHAR *GetCursor() { return 0; }
+
+		#ifdef UNICODE
+		typedef char16 *CURSOR_CHAR;
+		#else
+		typedef char *CURSOR_CHAR;
+		#endif
+		virtual CURSOR_CHAR GetCursor()  { return 0; }
 
 		/// Returns true if this style overlaps the position of 's'
 		bool Overlap(GStyle *s)
@@ -104,7 +110,7 @@ public:
 		/// Returns true if this style overlaps the position of 's'
 		bool Overlap(int sStart, int sLen)
 		{
-			if (sStart + sLen < Start ||
+			if (sStart + sLen - 1 < Start ||
 				sStart >= Start + Len)
 				return false;
 
@@ -155,8 +161,10 @@ protected:
 
 	// Display
 	GFont *Font;
+	GFont *Bold;		// Bold variant of 'Font'
+	GFont *Underline;	// Underline variant of 'Font'
+
 	GFont *FixedFont;
-	GFont *Underline;	// URL display
 	int LineY;
 	int SelStart, SelEnd;
 	int DocOffset;
@@ -316,6 +324,7 @@ public:
 	bool OnLayout(GViewLayoutInfo &Inf);
 	int WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState);
 	int OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState);
+	LgiCursor GetCursor(int x, int y) { return LCUR_Ibeam; }
 
 	// Virtuals
 	virtual bool Insert(int At, char16 *Data, int Len);

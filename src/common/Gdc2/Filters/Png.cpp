@@ -58,7 +58,12 @@ const char sLibrary[] =
 		#if defined(__CYGWIN__)
 			"cygpng12"
 		#else
-			"libpng9"
+			"libpng"
+			#if _MSC_VER == _MSC_VER_VS2013
+			"12"
+			#else
+			"9"
+			#endif
 			#if defined(WIN64)
 			"x64"
 			#else

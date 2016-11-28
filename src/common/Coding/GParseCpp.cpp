@@ -11,7 +11,7 @@
 #include "GToken.h"
 
 #define CheckToken(t)	if (!t) { Error = true; break; }
-#if defined(WINDOWS) && defined(_MSC_VER)
+#if defined(WINDOWS) && defined(_MSC_VER) && !defined(WIN64)
 #define Debug			__asm int 3
 #else
 #define Debug			assert(0)
@@ -339,7 +339,7 @@ struct GSourceFile
 		if (!f)
 			return false;
 
-		Raw.Reset(LgiNewUtf8To16(f));
+		Raw.Reset(Utf8ToWide(f));
 
 		return true;
 	}
@@ -452,7 +452,7 @@ struct GSourceFile
 				r.InsertTag(c);
 				c->SetAttr("Line", b.BlockLine);
 				
-				GAutoString a(LgiNewUtf16To8(b.Start, b.Len * sizeof(char16)));
+				GAutoString a(WideToUtf8(b.Start, b.Len));
 				c->SetContent(a);
 			}
 			
@@ -1476,7 +1476,7 @@ GSourceFile *GCppParserWorker::ParseCpp(const char *Path)
 									#else
 									char Tmp[256];
 									sprintf_s(Tmp, CountOf(Tmp), "UnnamedEnum%i", Idx++);
-									GAutoWString Buf(LgiNewUtf8To16(Tmp));
+									GAutoWString Buf(Utf8ToWide(Tmp));
 									#endif
 
 									if (CurrentScope()->Find(SymName))
@@ -2209,7 +2209,7 @@ bool GCppParserWorker::ParsePreprocessor(GSourceFile *sf)
 				break;
 			}
 			
-			GAutoString FileName8(LgiNewUtf16To8(t));
+			GAutoString FileName8(WideToUtf8(t));
 			if (!FileName8)
 			{
 				Status = false;

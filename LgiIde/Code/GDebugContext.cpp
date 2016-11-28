@@ -345,7 +345,7 @@ bool GDebugContext::UpdateLocals()
 				{
 					it->SetText(v.Type ? v.Type.Get() : "wstring", 1);
 					#ifdef MAC
-					GAutoString tmp(LgiNewUtf16To8(v.Value.Value.WString));
+					GAutoString tmp(WideToUtf8(v.Value.Value.WString));
 					sprintf_s(s, sizeof(s), "%s", tmp.Get());
 					#else
 					sprintf_s(s, sizeof(s), "%S", v.Value.Value.WString);

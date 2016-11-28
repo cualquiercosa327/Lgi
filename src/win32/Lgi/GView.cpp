@@ -24,8 +24,6 @@
 #define DEBUG_MOUSE_CLICKS		0
 #define DEBUG_OVER				0
 #define OLD_WM_CHAR_MODE		1
-#define GWL_LGI_MAGIC			8
-#define GWL_EXTRA_BYTES			12
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 bool In_SetWindowPos = false;
@@ -196,18 +194,40 @@ GKey::GKey(int v, int flags)
 template<typename T>
 bool CastHwnd(T *&Ptr, HWND hWnd)
 {
-	#if _MSC_VER >= 1400
+	#if _MSC_VER >= _MSC_VER_VS2005
 	LONG_PTR user = GetWindowLongPtr(hWnd, GWLP_USERDATA);
-	LONG_PTR magic = GetWindowLongPtr(hWnd, GWL_LGI_MAGIC);
 	#else
 	LONG user = GetWindowLong(hWnd, GWL_USERDATA);
-	LONG magic = GetWindowLong(hWnd, GWL_LGI_MAGIC);
 	#endif
+	LONG magic = GetWindowLong(hWnd, GWL_LGI_MAGIC);
 
 	if (magic != LGI_GViewMagic)
+	{
+		TCHAR ClsName[256] = {0};
+		int Ch = GetClassName(hWnd, ClsName, CountOf(ClsName));
+		GString Cls = ClsName;
+		LgiTrace("%s:%i - Error: hWnd=%p/%s, GWL_LGI_MAGIC=%i\n", _FL, hWnd, Cls.Get(), magic);
 		return false;
+	}
 	Ptr = dynamic_cast<T*>((GViewI*)user);
 	return Ptr != NULL;
+}
+
+bool SetLgiMagic(HWND hWnd)
+{
+	SetLastError(0);
+	LONG res = SetWindowLong(hWnd, GWL_LGI_MAGIC, LGI_GViewMagic);
+	bool Status = res != 0;
+	if (!Status)
+	{
+		DWORD err = GetLastError();
+		Status = err == 0;
+	}
+
+	LONG v = GetWindowLong(hWnd, GWL_LGI_MAGIC);
+	// LgiTrace("set LGI_GViewMagic for %p, %i, %i\n", hWnd, Status, v);
+	
+	return Status;
 }
 
 LRESULT CALLBACK GWin32Class::Redir(HWND hWnd, UINT m, WPARAM a, LPARAM b)
@@ -222,17 +242,17 @@ LRESULT CALLBACK GWin32Class::Redir(HWND hWnd, UINT m, WPARAM a, LPARAM b)
 			GView *View = ViewI->GetGView();
 			if (View) View->_View = hWnd;
 
-			#if _MSC_VER >= 1400
+			#if _MSC_VER >= _MSC_VER_VS2005
 			SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)ViewI);
 			#else
 			SetWindowLong(hWnd, GWL_USERDATA, (LONG)ViewI);
 			#endif
-			SetWindowLong(hWnd, GWL_LGI_MAGIC, LGI_GViewMagic);
+			SetLgiMagic(hWnd);
 		}
 	}
 
 	GViewI *Wnd = (GViewI*)
-		#if _MSC_VER >= 1400
+		#if _MSC_VER >= _MSC_VER_VS2005
 		GetWindowLongPtr(hWnd, GWLP_USERDATA);
 		#else
 		GetWindowLong(hWnd, GWL_USERDATA);
@@ -262,20 +282,16 @@ LRESULT CALLBACK GWin32Class::SubClassRedir(HWND hWnd, UINT m, WPARAM a, LPARAM 
 					View->_View = hWnd;
 			}
 		}
-		#if _MSC_VER >= 1400
+		#if _MSC_VER >= _MSC_VER_VS2005
 		SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR) ViewI);
 		#else
 		SetWindowLong(hWnd, GWL_USERDATA, (LONG) ViewI);
 		#endif
-		SetLastError(0);
-		SetWindowLong(hWnd, GWL_LGI_MAGIC, LGI_GViewMagic);
-		DWORD err = GetLastError();
-		LgiAssert(!err);
-
+		SetLgiMagic(hWnd);
 	}
 
 	GViewI *Wnd = (GViewI*)
-		#if _MSC_VER >= 1400
+		#if _MSC_VER >= _MSC_VER_VS2005
 		GetWindowLongPtr(hWnd, GWLP_USERDATA);
 		#else
 		GetWindowLong(hWnd, GWL_USERDATA);
@@ -380,7 +396,7 @@ bool GWin32Class::SubClass(char *Parent)
 	if (!Class.lpszClassName)
 	{
 		HBRUSH hBr = Class.hbrBackground;
-		GAutoWString p(LgiNewUtf8To16(Parent));
+		GAutoWString p(Utf8ToWide(Parent));
 		if (p)
 		{
 			if (GetClassInfoExW(LgiProcessInst(), p, &Class))
@@ -417,11 +433,7 @@ LRESULT CALLBACK GWin32Class::CallParent(HWND hWnd, UINT m, WPARAM a, LPARAM b)
 	}
 	else
 	{
-		#if _MSC_VER == 1100
-		return CallWindowProcA((FARPROC) ParentProc, hWnd, m, a, b);
-		#else
 		return CallWindowProcA(ParentProc, hWnd, m, a, b);
-		#endif
 	}
 }
 
@@ -456,7 +468,7 @@ GViewI *GWindowFromHandle(HWND hWnd)
 		if (m == LGI_GViewMagic)
 		{
 			return (GViewI*)
-				#if _MSC_VER >= 1400
+				#if _MSC_VER >= _MSC_VER_VS2005
 				GetWindowLongPtr(hWnd, GWLP_USERDATA);
 				#else
 				GetWindowLong(hWnd, GWL_USERDATA);
@@ -671,7 +683,7 @@ bool GView::Attach(GViewI *p)
 			ExStyle &= ~(WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE);
 							
 		char16 *Text = GBase::NameW();
-		GAutoWString WCls(LgiNewUtf8To16(ClsName));
+		GAutoWString WCls(Utf8ToWide(ClsName));
 
 		_View = CreateWindowExW(ExStyle,
 								WCls,
@@ -810,7 +822,11 @@ LgiCursor GView::GetCursor(int x, int y)
 	return LCUR_Normal;
 }
 
-bool LgiToWindowsCursor(LgiCursor Cursor)
+#ifndef GCL_HCURSOR
+#define GCL_HCURSOR -12
+#endif
+
+bool LgiToWindowsCursor(OsView Hnd, LgiCursor Cursor)
 {
 	char16 *Set = 0;
 	switch (Cursor)
@@ -877,7 +893,11 @@ bool LgiToWindowsCursor(LgiCursor Cursor)
 			break;
 	}
 
-	SetCursor(LoadCursor(0, MAKEINTRESOURCE(Set?Set:IDC_ARROW)));
+	HCURSOR cur = LoadCursor(0, MAKEINTRESOURCE(Set ? Set : IDC_ARROW));
+	// LgiTrace("Cur=%i\n", Cursor);
+	SetCursor(cur);
+	if (Hnd)
+		SetClassLong(Hnd, GCL_HCURSOR, (DWORD)cur);
 
 	return true;
 }
@@ -1446,7 +1466,8 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				// GViewI *Ci = FindControl((HWND) Msg->b);
 				// GView *Ctrl = Ci ? Ci->GetGView() : 0;
 				GView *Ctrl;
-				if (CastHwnd(Ctrl, (HWND) Msg->b))
+				if (Msg->b &&
+					CastHwnd(Ctrl, (HWND)Msg->b))
 				{
 					short Code = HIWORD(Msg->a);
 					switch (Code)
@@ -1477,7 +1498,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			}
 			case WM_NCDESTROY:
 			{
-                #if _MSC_VER >= 1400
+                #if _MSC_VER >= _MSC_VER_VS2005
                 SetWindowLongPtr(_View, GWLP_USERDATA, 0);
                 #else
 				SetWindowLong(_View, GWL_USERDATA, 0);
@@ -1599,7 +1620,8 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			case WM_CAPTURECHANGED:
 			{
 				GViewI *Wnd;
-				if (CastHwnd(Wnd, (HWND)Msg->B()))
+				if (Msg->B() &&
+					CastHwnd(Wnd, (HWND)Msg->B()))
 				{
 					if (Wnd != _Capturing)
 					{
@@ -1733,17 +1755,6 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				SetKeyFlag(Ms.Flags, VK_MENU, MK_ALT);
 				Ms.Down((Msg->a & (MK_LBUTTON|MK_MBUTTON|MK_RBUTTON)) != 0);
 
-				int CurX = Ms.x, CurY = Ms.y;
-				LgiCursor Cursor = LCUR_Normal;
-				for (GViewI *c = this; Cursor == LCUR_Normal && c->GetParent(); c = c->GetParent())
-				{
-					GRect CPos = c->GetPos();
-					Cursor = c->GetCursor(CurX, CurY);
-					CurX += CPos.x1;
-					CurY += CPos.y1;
-				}
-				LgiToWindowsCursor(Cursor);
-
 				GViewI *MouseOver = WindowFromPoint(Ms.x, Ms.y);
 				if (_Over != MouseOver)
 				{
@@ -1769,6 +1780,10 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 						#endif
 					}
 				}
+
+				// int CurX = Ms.x, CurY = Ms.y;
+				LgiCursor Cursor = (_Over ? _Over : this)->GetCursor(Ms.x, Ms.y);
+				LgiToWindowsCursor(_View, Cursor);
 
 				#if 0
 				LgiTrace("WM_MOUSEMOVE %i,%i target=%p/%s, over=%p/%s, cap=%p/%s\n",
@@ -1799,6 +1814,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				int Hit = OnHitTest(Pt.x, Pt.y);
 				if (Hit >= 0)
 				{
+					// LgiTrace("%I64i Hit=%i\n", LgiCurrentTime(), Hit);
 					return Hit;
 				}
 				if (!(WndFlags & GWF_DIALOG))

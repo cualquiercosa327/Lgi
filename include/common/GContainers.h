@@ -89,6 +89,8 @@ template <class Type>
 class List : public DLinkList
 {
 public:
+	typedef Type *ItemType;
+
 	/// Deletes the current item
 	virtual bool Delete()			{ return DLinkList::Delete(); }
 	/// Deletes the item at position 'i'
@@ -150,7 +152,7 @@ public:
 	{
 		for (Type *o=(Type*)DLinkList::First(); o; o=(Type*)DLinkList::Next())
 		{
-			#if defined(_MSC_VER) && _MSC_VER <= 1200
+			#if defined(_MSC_VER) && _MSC_VER <= _MSC_VER_VC6
 			delete [] (void*)o;
 			#else
 			delete [] o;

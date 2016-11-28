@@ -299,3 +299,21 @@ bool GFile::CallMethod(const char *Name, GVariant *Dst, GArray<GVariant*> &Arg)
 	return true;
 }
 
+const char *LgiGetLeaf(const char *Path)
+{
+	if (!Path)
+		return NULL;
+
+	const char *l = strrchr(Path, DIR_CHAR);
+	return l ? l + 1 : Path;
+}
+
+char *LgiGetLeaf(char *Path)
+{
+	if (!Path)
+		return NULL;
+
+	char *l = strrchr(Path, DIR_CHAR);
+	return l ? l + 1 : Path;
+}
+

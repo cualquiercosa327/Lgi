@@ -18,6 +18,7 @@
 #include "FindSymbol.h"
 #include "GStringClass.h"
 #include "GDebugger.h"
+#include "GTextView3.h"
 
 #define LgiIdeVer				"1.0.0"
 
@@ -230,7 +231,8 @@ public:
 	IdeProject *RootProject();
 	IdeDoc *TopDoc();
 	IdeDoc *FocusDoc();
-	void AppendOutput(char *Txt, int Channel);
+	GTextView3 *FocusEdit();
+	void AppendOutput(char *Txt, Channels Channel);
 	void UpdateState(int Debugging = -1, int Building = -1);
 	void OnReceiveFiles(GArray<char*> &Files);
 	int GetBuildMode();

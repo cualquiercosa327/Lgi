@@ -10,7 +10,7 @@
 #include "GScrollBar.h"
 #include "GVariant.h"
 #include "GFindReplaceDlg.h"
-#include "GUtf8.h"
+#include "GUnicode.h"
 #include "Emoji.h"
 #include "GClipBoard.h"
 #include "GButton.h"
@@ -1891,7 +1891,7 @@ void GTag::_Dump(GStringPipe &Buf, int Depth)
 	{
 		GFlowRect *Tr = TextPos[i];
 		
-		GAutoString Utf8(LgiNewUtf16To8(Tr->Text, Tr->Len*sizeof(char16)));
+		GAutoString Utf8(WideToUtf8(Tr->Text, Tr->Len));
 		if (Utf8)
 		{
 			int Len = strlen(Utf8);
@@ -1928,7 +1928,7 @@ GAutoWString GTag::DumpW()
 	// Buf.Print("Html pos=%s\n", Html?Html->GetPos().GetStr():0);
 	_Dump(Buf, 0);
 	GAutoString a(Buf.NewStr());
-	GAutoWString w(LgiNewUtf8To16(a));
+	GAutoWString w(Utf8ToWide(a));
 	return w;
 }
 
@@ -2051,7 +2051,7 @@ GTag *GTag::IsAnchor(GAutoString *Uri)
 			GAutoWString w(CleanText(u, strlen(u), "utf-8"));
 			if (w)
 			{
-				Uri->Reset(LgiNewUtf16To8(w));
+				Uri->Reset(WideToUtf8(w));
 			}
 		}
 	}
@@ -3103,7 +3103,7 @@ void GTag::SetStyle()
 					{
 						char16 *cs = NULL;
 						Html->ParsePropValue(CharSet + 8, cs);
-						Cs.Reset(LgiNewUtf16To8(cs));
+						Cs.Reset(WideToUtf8(cs));
 						DeleteArray(cs);
 					}
 				}
@@ -3255,7 +3255,7 @@ void GTag::SetStyle()
 			if (Get("Face", s))
 			{
 				char16 *cw = CleanText(s, strlen(s), "utf-8", true);
-				char *c8 = LgiNewUtf16To8(cw);
+				char *c8 = WideToUtf8(cw);
 				DeleteArray(cw);
 				GToken Faces(c8, ",");
 				DeleteArray(c8);
@@ -3315,7 +3315,7 @@ void GTag::SetStyle()
 					CtrlType == CtrlPassword)
 				{
 					GEdit *Ed;
-					GAutoString UtfCleanValue(LgiNewUtf16To8(CleanValue));
+					GAutoString UtfCleanValue(WideToUtf8(CleanValue));
 					Ctrl = Ed = new GEdit(Html->d->NextCtrlId++, 0, 0, 60, SysFont->GetHeight() + 8, UtfCleanValue);
 					if (Ctrl)
 					{
@@ -3326,7 +3326,7 @@ void GTag::SetStyle()
 				else if (CtrlType == CtrlButton ||
 						 CtrlType == CtrlSubmit)
 				{
-					GAutoString UtfCleanValue(LgiNewUtf16To8(CleanValue));
+					GAutoString UtfCleanValue(WideToUtf8(CleanValue));
 					if (UtfCleanValue)
 					{
 						Ctrl = new InputButton(this, Html->d->NextCtrlId++, UtfCleanValue);
@@ -3670,7 +3670,7 @@ bool GTag::ConvertToText(TextConvertState &State)
 		if (f)
 			u = f->ConvertToUnicode(Txt);
 		else
-			u.Reset(LgiNewUtf16To8(Txt));
+			u.Reset(WideToUtf8(Txt));
 		if (u)
 		{
 			int u_len = strlen(u);
@@ -5506,7 +5506,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 							int Index = Parent->Children.IndexOf(this);
 							char Txt[32];
 							sprintf_s(Txt, sizeof(Txt), "%i. ", Index + 1);
-							PreText(LgiNewUtf8To16(Txt));
+							PreText(Utf8ToWide(Txt));
 							break;
 						}
 						case ListDisc:
@@ -7071,7 +7071,7 @@ void GHtml::ParseDocument(const char *Doc)
 
 bool GHtml::NameW(const char16 *s)
 {
-	GAutoPtr<char, true> utf(LgiNewUtf16To8(s));
+	GAutoPtr<char, true> utf(WideToUtf8(s));
 	return Name(utf);
 }
 
@@ -7596,7 +7596,7 @@ char *GHtml::GetSelection()
 				{
 					if (t[i] == 0xa0) t[i] = ' ';
 				}
-				s = LgiNewUtf16To8(t);
+				s = WideToUtf8(t);
 				DeleteArray(t);
 			}
 		}
@@ -7625,7 +7625,7 @@ bool GHtml::Copy()
 	{
 		GClipBoard c(this);
 		
-		GAutoWString w(LgiNewUtf8To16(s));
+		GAutoWString w(Utf8ToWide(s));
 		if (w) c.TextW(w);
 		c.Text(s, w == 0);
 
@@ -7736,7 +7736,7 @@ bool GHtml::OnFind(GFindReplaceCommon *Params)
 		if (!Params->Find)
 			return Status;
 
-		d->FindText.Reset(LgiNewUtf8To16(Params->Find));
+		d->FindText.Reset(Utf8ToWide(Params->Find));
 		d->MatchCase = Params->MatchCase;
 	}		
 
@@ -8136,7 +8136,7 @@ void GHtml::OnMouseClick(GMouse &m)
 						if (ViewCs)
 							SrcMem.Reset((char16*)LgiNewConvertCp(LGI_WideCharset, Source, ViewCs));
 						else
-							SrcMem.Reset(LgiNewUtf8To16(Source));						
+							SrcMem.Reset(Utf8ToWide(Source));						
 
 						for (char16 *s=SrcMem; s && *s;)
 						{
@@ -8167,7 +8167,7 @@ void GHtml::OnMouseClick(GMouse &m)
 											GDocumentEnv::LoadJob *j = Environment->NewJob();
 											if (j)
 											{
-												j->Uri.Reset(LgiNewUtf16To8(cid));
+												j->Uri.Reset(WideToUtf8(cid));
 												j->Env = Environment;
 												j->Pref = GDocumentEnv::LoadJob::FmtFilename;
 												j->UserUid = GetDocumentUid();
@@ -8199,7 +8199,7 @@ void GHtml::OnMouseClick(GMouse &m)
 											
 											Ex.Push(L"file:///");
 											
-											GAutoWString w(LgiNewUtf8To16(File));
+											GAutoWString w(Utf8ToWide(File));
 											Ex.Push(w);
 										}
 										s = e;

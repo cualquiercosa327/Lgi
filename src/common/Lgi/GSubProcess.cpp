@@ -141,9 +141,9 @@ GSubProcess::Variable *GSubProcess::GetEnvVar(const char *Var, bool Create)
 				if (NameChars > 0)
 				{					
 					Variable &v = Environment.New();
-					v.Var.Reset(LgiNewUtf16To8(s, sizeof(char16)*(eq-s)));
+					v.Var.Reset(WideToUtf8(s, eq - s));
 					eq++;
-					v.Val.Reset(LgiNewUtf16To8(eq));
+					v.Val.Reset(WideToUtf8(eq));
 				}
 				
 				eq += StrlenW(eq);
@@ -467,7 +467,7 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 	GAutoWString WExe;
 	if (FileExists(Exe))
 	{
-		WExe.Reset(LgiNewUtf8To16(Exe));
+		WExe.Reset(Utf8ToWide(Exe));
 	}
 	else
 	{
@@ -491,7 +491,7 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 			LgiMakePath(s, sizeof(s), p[i], Exe);
 			if (FileExists(s))
 			{
-				WExe.Reset(LgiNewUtf8To16(s));
+				WExe.Reset(Utf8ToWide(s));
 				break;
 			}
 			if (!HasExt)
@@ -499,7 +499,7 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 				strcat_s(s, sizeof(s), ".exe");
 				if (FileExists(s))
 				{
-					WExe.Reset(LgiNewUtf8To16(s));
+					WExe.Reset(Utf8ToWide(s));
 					break;
 				}
 			}
@@ -511,7 +511,7 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 	for (unsigned i=0; i<Args.Length(); i++)
 	{
 		char *a = Args[i];
-		GAutoWString aw(LgiNewUtf8To16(a));
+		GAutoWString aw(Utf8ToWide(a));
 		
 		if (i > 0)
 		{
@@ -551,7 +551,7 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 		Info.hStdInput = HasExternIn ? ExternIn : ChildInput.Read;
 		if (MapStderrToStdout)
 			Info.hStdError = ChildOutput.Write;
-		GAutoWString WInitialFolder(LgiNewUtf8To16(InitialFolder));
+		GAutoWString WInitialFolder(Utf8ToWide(InitialFolder));
 
 		GAutoWString WEnv;
 		if (EnvironmentChanged)
@@ -560,8 +560,8 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 			for (unsigned i=0; i<Environment.Length(); i++)
 			{
 				Variable &v = Environment[i];
-				GAutoWString Var(LgiNewUtf8To16(v.Var));
-				GAutoWString Val(LgiNewUtf8To16(v.Val));
+				GAutoWString Var(Utf8ToWide(v.Var));
+				GAutoWString Val(Utf8ToWide(v.Val));
 				q.Write(Var, sizeof(char16)*(StrlenW(Var)));
 				q.Write(L"=", sizeof(char16));
 				q.Write(Val, sizeof(char16)*(StrlenW(Val)+1));

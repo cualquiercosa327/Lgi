@@ -25,6 +25,52 @@ static const char *White = " \r\t\n";
 #define EDIT_TRAY_HEIGHT	(SysFont->GetHeight() + 10)
 #define EDIT_LEFT_MARGIN	16 // gutter for debug break points
 
+#define IsSymbolChar(ch)	(IsAlpha(ch) || (ch) == '_')
+
+#define ColourComment		GColour(0, 140, 0)
+#define ColourHashDef		GColour(0, 0, 222)
+#define ColourLiteral		GColour(192, 0, 0)
+#define ColourKeyword		GColour::Black
+#define ColourType			GColour(0, 0, 222)
+
+enum SourceType
+{
+	SrcUnknown,
+	SrcPlainText,
+	SrcCpp,
+	SrcPython
+};
+
+struct LanguageParams
+{
+	const char **Keywords;
+	const char **Types;
+};
+
+const char *CppKeywords[] = {"extern", "class", "struct", "static", "default", "case", "break", 
+							"switch", "new", "delete", "sizeof", "return", "enum", "else",
+							"if", "for", "while", "do", NULL};
+const char *CppTypes[] = {	"int", "char", "unsigned", "double", "float", "bool", "const", "void",
+							"int8", "int16", "int32", "int64",
+							"uint8", "uint16", "uint32", "uint64",
+							"GArray", "GHashTbl", "List", "GString", "GAutoString", "GAutoWString",
+							"GAutoPtr",
+							NULL};
+
+const char *PythonKeywords[] = {"def", "try", "except", "import", "if", "for", NULL};
+
+LanguageParams LangParam[] =
+{
+	// Unknown
+	{NULL, NULL},
+	// Plain text
+	{NULL, NULL},
+	// C/C++
+	{CppKeywords, CppTypes},
+	// Python
+	{PythonKeywords, NULL},
+};
+
 GAutoPtr<GDocFindReplaceParams> GlobalFindReplace;
 
 int FileNameSorter(char **a, char **b)
@@ -326,6 +372,14 @@ void EditTray::OnFunctionList(GMouse &m)
 		{
 			GArray<DefnInfo*> a;					
 			int n=1;
+
+			int ScreenHt = GdcD->Y();
+			int ScreenLines = ScreenHt / SysFont->GetHeight();
+			float Ratio = ScreenHt ? (float)(SysFont->GetHeight() * Funcs.Length()) / ScreenHt : 0.0f;
+			bool UseSubMenus = Ratio > 0.9f;
+			int Buckets = UseSubMenus ? ScreenLines * 0.75 : 1;
+			int BucketSize = max(5, Funcs.Length() / Buckets);
+			GSubMenu *Cur = NULL;
 			
 			for (unsigned n=0; n<Funcs.Length(); n++)
 			{
@@ -353,8 +407,22 @@ void EditTray::OnFunctionList(GMouse &m)
 					*o++ = 0;
 					
 					a[n] = i;
-					s->AppendItem(Buf, n+1, true);
-					printf("Append '%s' as %i\n", Buf, n+1);
+
+					if (UseSubMenus)
+					{
+						if (!Cur || n % BucketSize == 0)
+						{
+							GString SubMsg;
+							SubMsg.Printf("%s...", Buf);
+							Cur = s->AppendSub(SubMsg);
+						}
+						if (Cur)
+							Cur->AppendItem(Buf, n + 1, true);
+					}
+					else
+					{
+						s->AppendItem(Buf, n+1, true);
+					}
 				}
 			}
 			
@@ -385,7 +453,7 @@ void EditTray::OnSymbolList(GMouse &m)
 	GAutoString s(Ctrl->GetSelection());
 	if (s)
 	{
-		GAutoWString sw(LgiNewUtf8To16(s));
+		GAutoWString sw(Utf8ToWide(s));
 		if (sw)
 		{
 			#if USE_OLD_FIND_DEFN
@@ -581,7 +649,7 @@ public:
 	{
 		if (Lst &&
 			Ctrl == Edit &&
-			!Flags)
+			(!Flags || Flags == GNotifyDocChanged))
 		{
 			Name(Edit->Name());
 		}
@@ -663,7 +731,7 @@ public:
 	{
 		if (Lst &&
 			Ctrl == Edit &&
-			!Flags)
+			(!Flags || Flags == GNotifyDocChanged))
 		{
 			// Kick off search...
 			GString s = Ctrl->Name();
@@ -746,7 +814,7 @@ public:
 	{
 		if (Lst &&
 			Ctrl == Edit &&
-			!Flags)
+			(!Flags || Flags == GNotifyDocChanged))
 		{
 			char *s = Ctrl->Name();
 			if (ValidStr(s))
@@ -762,12 +830,38 @@ class DocEdit : public GTextView3, public GDocumentEnv
 	IdeDoc *Doc;
 	int CurLine;
 	GdcPt2 MsClick;
+	SourceType FileType;
+
+	struct Keyword
+	{
+		char16 *Word;
+		int Len;
+		bool IsType;
+		Keyword *Next;
+
+		Keyword(const char *w, bool istype = false)
+		{
+			Word = Utf8ToWide(w);
+			Len = Strlen(Word);
+			IsType = istype;
+			Next = NULL;
+		}
+
+		~Keyword()
+		{
+			delete Next;
+			delete [] Word;
+		}
+	};
+
+	Keyword *HasKeyword[26];
 
 public:
 	static int LeftMarginPx;
 
 	DocEdit(IdeDoc *d, GFontType *f) : GTextView3(IDC_EDIT, 0, 0, 100, 100, f)
 	{
+		FileType = SrcUnknown;
 		Doc = d;
 		CurLine = -1;
 		if (!GlobalFindReplace)
@@ -818,6 +912,10 @@ public:
 	~DocEdit()
 	{
 		SetEnv(0);
+		for (int i=0; i<CountOf(HasKeyword); i++)
+		{
+			DeleteObj(HasKeyword[i]);
+		}
 	}
 
 	bool DoGoto()
@@ -838,10 +936,10 @@ public:
 		{
 			int line = p[0].Int();
 			if (line > 0)
-			{
 				SetLine(line);
-			}
-			else printf("%s:%i - Error: no line number.\n", _FL);
+			else
+				// Probably a filename with no line number..
+				Doc->GetApp()->GotoReference(p[0], 1, false, true);				
 		}
 		
 		return true;
@@ -1017,6 +1115,453 @@ public:
 		return T.NewStr();
 	}
 
+	void StyleCpp(int Start, int EditSize)
+	{
+		char16 *e = Text + Size;
+		
+		Style.DeleteObjects();
+		for (char16 *s = Text; s < e; s++)
+		{
+			switch (*s)
+			{
+				case '\"':
+				case '\'':
+				{
+					GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+					if (st)
+					{
+						st->View = this;
+						st->Start = s - Text;
+						st->Font = GetFont();
+
+						char16 Delim = *s++;
+						while (s < e && *s != Delim)
+						{
+							if (*s == '\\')
+								s++;
+							s++;
+						}
+						st->Len = (s - Text) - st->Start + 1;
+						st->c = ColourLiteral;
+						InsertStyle(st);
+					}
+					break;
+				}
+				case '#':
+				{
+					// Check that the '#' is the first non-whitespace on the line
+					bool IsWhite = true;
+					for (char16 *w = s - 1; w >= Text && *w != '\n'; w--)
+					{
+						if (!IsWhiteSpace(*w))
+						{
+							IsWhite = false;
+							break;
+						}
+					}
+
+					if (IsWhite)
+					{
+						GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+						if (st)
+						{
+							st->View = this;
+							st->Start = s - Text;
+							st->Font = GetFont();
+							
+							char LastNonWhite = 0;
+							while (s < e)
+							{
+								if
+								(
+									// Break at end of line
+									(*s == '\n' && LastNonWhite != '\\')
+									||
+									// Or the start of a comment
+									(*s == '/' && s[1] == '/')
+									||
+									(*s == '/' && s[1] == '*')
+								)
+									break;
+								if (!IsWhiteSpace(*s))
+									LastNonWhite = *s;
+								s++;
+							}
+							
+							st->Len = (s - Text) - st->Start;
+							st->c = ColourHashDef;
+							InsertStyle(st);
+							s--;
+						}
+					}
+					break;
+				}
+				case '0':
+				case '1':
+				case '2':
+				case '3':
+				case '4':
+				case '5':
+				case '6':
+				case '7':
+				case '8':
+				case '9':
+				{
+					if (s == Text || !IsSymbolChar(s[-1]))
+					{
+						GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+						if (st)
+						{
+							st->View = this;
+							st->Start = s - Text;
+							st->Font = GetFont();
+
+							bool IsHex = false;
+							if (s[0] == '0' &&
+								ToLower(s[1]) == 'x')
+							{
+								s += 2;
+								IsHex = true;
+							}
+							
+							while (s < e)
+							{
+								if
+								(
+									IsDigit(*s)
+									||
+									*s == '.'
+									||
+									(
+										IsHex
+										&&
+										(
+											(*s >= 'a' && *s <= 'f')
+											||
+											(*s >= 'A' && *s <= 'F')
+										)
+									)
+								)
+									s++;
+								else
+									break;
+							}
+							
+							st->Len = (s - Text) - st->Start;
+							st->c = ColourLiteral;
+							InsertStyle(st);
+							s--;
+						}
+					}
+					while (s < e - 1 && IsDigit(s[1]))
+						s++;
+					break;
+				}
+				case '/':
+				{
+					if (s[1] == '/')
+					{
+						GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+						if (st)
+						{
+							st->View = this;
+							st->Start = s - Text;
+							st->Font = GetFont();
+							while (s < e && *s != '\n')
+								s++;
+							st->Len = (s - Text) - st->Start;
+							st->c = ColourComment;
+							InsertStyle(st);
+							s--;
+						}
+					}
+					else if (s[1] == '*')
+					{
+						GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+						if (st)
+						{
+							st->View = this;
+							st->Start = s - Text;
+							st->Font = GetFont();
+							s += 2;
+							while (s < e && !(s[-2] == '*' && s[-1] == '/'))
+								s++;
+							st->Len = (s - Text) - st->Start;
+							st->c = ColourComment;
+							InsertStyle(st);
+							s--;
+						}
+					}
+					break;
+				}
+				/*
+				case '(':
+				case ')':
+				case '{':
+				case '}':
+				{
+					GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+					if (st)
+					{
+						st->View = this;
+						st->Start = s - Text;
+						st->Font = Font;
+						st->Len = 1;
+						st->c.Rgb(128, 128, 128);
+						InsertStyle(st);
+					}
+					break;
+				}
+				*/
+				default:
+				{
+					wchar_t Ch = ToLower(*s);
+					if (Ch >= 'a' && Ch <= 'z')
+					{
+						Keyword *k;
+						if (k = HasKeyword[Ch - 'a'])
+						{
+							do
+							{
+								if (!StrnicmpW(k->Word, s, k->Len))
+									break;
+							}
+							while (k = k->Next);
+
+							if
+							(
+								k
+								&&
+								(s == Text || !IsSymbolChar(s[-1]))
+								&&
+								!IsSymbolChar(s[k->Len])
+							)
+							{
+								GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+								if (st)
+								{
+									st->View = this;
+									st->Start = s - Text;
+									st->Font = k->IsType ? Font : Bold;
+									st->Len = k->Len;
+									st->c = k->IsType ? ColourType : ColourKeyword;
+									InsertStyle(st);
+									s += k->Len - 1;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	void StylePython(int Start, int EditSize)
+	{
+		char16 *e = Text + Size;
+		
+		Style.DeleteObjects();
+		for (char16 *s = Text; s < e; s++)
+		{
+			switch (*s)
+			{
+				case '\"':
+				case '\'':
+				{
+					GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+					if (st)
+					{
+						st->View = this;
+						st->Start = s - Text;
+						st->Font = GetFont();
+
+						char16 Delim = *s++;
+						while (s < e && *s != Delim)
+						{
+							if (*s == '\\')
+								s++;
+							s++;
+						}
+						st->Len = (s - Text) - st->Start + 1;
+						st->c = ColourLiteral;
+						InsertStyle(st);
+					}
+					break;
+				}
+				case '#':
+				{
+					// Single line comment
+					GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+					if (st)
+					{
+						st->View = this;
+						st->Start = s - Text;
+						st->Font = GetFont();
+						while (s < e && *s != '\n')
+							s++;
+						st->Len = (s - Text) - st->Start;
+						st->c = ColourComment;
+						InsertStyle(st);
+						s--;
+					}
+					break;
+				}
+				case '0':
+				case '1':
+				case '2':
+				case '3':
+				case '4':
+				case '5':
+				case '6':
+				case '7':
+				case '8':
+				case '9':
+				{
+					if (s == Text || !IsSymbolChar(s[-1]))
+					{
+						GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+						if (st)
+						{
+							st->View = this;
+							st->Start = s - Text;
+							st->Font = GetFont();
+
+							bool IsHex = false;
+							if (s[0] == '0' &&
+								ToLower(s[1]) == 'x')
+							{
+								s += 2;
+								IsHex = true;
+							}
+							
+							while (s < e)
+							{
+								if
+								(
+									IsDigit(*s)
+									||
+									*s == '.'
+									||
+									(
+										IsHex
+										&&
+										(
+											(*s >= 'a' && *s <= 'f')
+											||
+											(*s >= 'A' && *s <= 'F')
+										)
+									)
+								)
+									s++;
+								else
+									break;
+							}
+							
+							st->Len = (s - Text) - st->Start;
+							st->c = ColourLiteral;
+							InsertStyle(st);
+							s--;
+						}
+					}
+					while (s < e - 1 && IsDigit(s[1]))
+						s++;
+					break;
+				}
+				default:
+				{
+					if (*s >= 'a' && *s <= 'z')
+					{
+						Keyword *k;
+						if (k = HasKeyword[*s - 'a'])
+						{
+							do
+							{
+								if (!Strncmp(k->Word, s, k->Len))
+									break;
+							}
+							while (k = k->Next);
+
+							if
+							(
+								k
+								&&
+								(s == Text || !IsSymbolChar(s[-1]))
+								&&
+								!IsSymbolChar(s[k->Len])
+							)
+							{
+								GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+								if (st)
+								{
+									st->View = this;
+									st->Start = s - Text;
+									st->Font = Bold;
+									st->Len = k->Len;
+									st->c = ColourKeyword;
+									InsertStyle(st);
+									s += k->Len - 1;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	void AddKeywords(const char **keys, bool IsType)
+	{
+		for (const char **k = keys; *k; k++)
+		{
+			const char *Word = *k;
+			int idx = ToLower(*Word)-'a';
+			LgiAssert(idx >= 0 && idx < CountOf(HasKeyword));
+			
+			Keyword **Ptr = &HasKeyword[idx];
+			while (*Ptr != NULL)
+				Ptr = &(*Ptr)->Next;
+			*Ptr = new Keyword(Word, IsType);
+		}
+	}
+
+	void PourStyle(int Start, int EditSize)
+	{
+		if (FileType == SrcUnknown)
+		{
+			char *Ext = LgiGetExtension(Doc->GetFileName());
+			if (!Ext)
+				FileType = SrcPlainText;
+			else if (!stricmp(Ext, "c")
+					||
+					!stricmp(Ext, "cpp")
+					||
+					!stricmp(Ext, "h"))
+				FileType = SrcCpp;
+			else if (!stricmp(Ext, "py"))
+				FileType = SrcPython;
+			else
+				FileType = SrcPlainText;
+
+			ZeroObj(HasKeyword);
+			if (LangParam[FileType].Keywords)
+				AddKeywords(LangParam[FileType].Keywords, false);
+			if (LangParam[FileType].Types)
+				AddKeywords(LangParam[FileType].Types, true);
+		}
+
+		switch (FileType)
+		{
+			case SrcCpp:
+				StyleCpp(Start, EditSize);
+				break;
+			case SrcPython:
+				StylePython(Start, EditSize);
+				break;
+		}		
+	}
+
+
+	/*
 	void PourText(int Start, int Len)
 	{
 		GTextView3::PourText(Start, Len);
@@ -1063,6 +1608,7 @@ public:
 			}
 		}
 	}
+	*/
 	
 	bool Pour(GRegion &r)
 	{
@@ -1116,7 +1662,7 @@ bool DocEdit::OnMenu(GDocView *View, int Id)
 						char *Comment = TemplateMerge(Template, File + 1, 0);
 						if (Comment)
 						{
-							char16 *C16 = LgiNewUtf8To16(Comment);
+							char16 *C16 = Utf8ToWide(Comment);
 							DeleteArray(Comment);
 							if (C16)
 							{
@@ -1162,7 +1708,7 @@ bool DocEdit::OnMenu(GDocView *View, int Id)
 						
 						if (OpenBracketIndex > 0)
 						{
-							char *FuncName = LgiNewUtf16To8(Tokens[OpenBracketIndex-1]);
+							char *FuncName = WideToUtf8(Tokens[OpenBracketIndex-1]);
 							if (FuncName)
 							{
 								// Get a list of parameter names
@@ -1176,7 +1722,7 @@ bool DocEdit::OnMenu(GDocView *View, int Id)
 										char16 *Param = Tokens[i-1];
 										if (Param)
 										{
-											Params.Insert(LgiNewUtf16To8(Param));
+											Params.Insert(WideToUtf8(Param));
 										}
 									}
 								}
@@ -1185,7 +1731,7 @@ bool DocEdit::OnMenu(GDocView *View, int Id)
 								char *Comment = TemplateMerge(Template, FuncName, &Params);
 								if (Comment)
 								{
-									char16 *C16 = LgiNewUtf8To16(Comment);
+									char16 *C16 = Utf8ToWide(Comment);
 									DeleteArray(Comment);
 									if (C16)
 									{
@@ -1250,9 +1796,6 @@ IdeDocPrivate::IdeDocPrivate(IdeDoc *d, AppWnd *a, NodeSource *src, const char *
 	
 	Doc->AddView(Edit = new DocEdit(Doc, Use));
 	Doc->AddView(Tray = new EditTray(Edit, Doc));
-
-	if (src || file)
-		Load();
 }
 
 void IdeDocPrivate::OnDelete()
@@ -1431,6 +1974,9 @@ IdeDoc::IdeDoc(AppWnd *a, NodeSource *src, const char *file)
 {
 	d = new IdeDocPrivate(this, a, src, file);
 	d->UpdateName();
+
+	if (src || file)
+		d->Load();
 }
 
 IdeDoc::~IdeDoc()
@@ -2005,7 +2551,7 @@ bool IdeDoc::BuildIncludePaths(GArray<GString> &Paths, IdePlatform Platform, boo
 
 bool IdeDoc::BuildHeaderList(char16 *Cpp, GArray<char*> &Headers, GArray<GString> &IncPaths)
 {
-	GAutoString c8(LgiNewUtf16To8(Cpp));
+	GAutoString c8(WideToUtf8(Cpp));
 	if (!c8)
 		return false;
 
@@ -2087,7 +2633,7 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 			char *c8 = ReadTextFile(h);
 			if (c8)
 			{
-				char16 *c16 = LgiNewUtf8To16(c8);
+				char16 *c16 = Utf8ToWide(c8);
 				DeleteArray(c8);
 				if (c16)
 				{

@@ -272,32 +272,26 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="Editor"
+			Name="RichTextEdit"
 			>
 			<File
-				RelativePath="..\src\common\Widgets\GHtmlEdit.cpp"
+				RelativePath="..\src\common\Widgets\Editor\BlockCursor.cpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\include\common\GHtmlEdit.h"
+				RelativePath="..\src\common\Widgets\Editor\GRichTextEdit.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\include\common\GRichTextEdit.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\Widgets\Editor\GRichTextEditPriv.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\Widgets\Editor\TextBlock.cpp"
 				>
 			</File>
 		</Filter>
@@ -320,6 +314,36 @@
 				RelativePath="..\include\common\GHtmlPriv.h"
 				>
 			</File>
+			<Filter
+				Name="Editor"
+				>
+				<File
+					RelativePath="..\src\common\Widgets\GHtmlEdit.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							AdditionalIncludeDirectories=""
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							AdditionalIncludeDirectories=""
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\include\common\GHtmlEdit.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Resources"

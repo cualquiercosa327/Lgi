@@ -15,7 +15,9 @@
 #include "OpenSSLSocket.h"
 
 #define DEBUG_OAUTH2				1
+#define DEBUG_FETCH					0
 #define OPT_ImapOAuth2AccessToken	"OAuth2AccessTok"
+
 
 ////////////////////////////////////////////////////////////////////////////
 #if GPL_COMPATIBLE
@@ -106,14 +108,14 @@ struct StrRange
 #define SkipNonWhite(s)		while (*s && !strchr(WhiteSpace, *s)) s++;
 #define ExpectChar(ch)		if (*s != ch) return 0; s++
 
-unsigned ParseImapResponse(char *Buffer, GArray<StrRange> &Ranges, int Names)
+unsigned ParseImapResponse(char *Buffer, int BufferLen, GArray<StrRange> &Ranges, int Names)
 {
 	Ranges.Length(0);
 
 	if (!*Buffer || *Buffer != '*')
 		return 0;
 
-	char *End = Buffer + strlen(Buffer);
+	char *End = Buffer + BufferLen;
 	char *s = Buffer + 1;
 	char *Start;
 	for (int n=0; n<Names; n++)
@@ -175,14 +177,14 @@ unsigned ParseImapResponse(char *Buffer, GArray<StrRange> &Ranges, int Names)
 			ExpectChar('\r');
 			ExpectChar('\n');
 			Start = s;
-			while (*s && Size > 0)
+			int CurPos = s - Buffer;
+			if (CurPos + Size <= BufferLen)
 			{
-				s++;
-				Size--;
+				s += Size;
+				Ranges.New().Set(Start - Buffer, s - Buffer);
 			}
-			if (Size > 0)
+			else
 				return 0;
-			Ranges.New().Set(Start - Buffer, s - Buffer);				
 		}
 		else
 		{
@@ -479,7 +481,7 @@ char *DecodeImapString(char *s)
 								Bin[i] = (Bin[i]>>8) | ((Bin[i]&0xff)<<8);
 							}
 
-							char *c8 = LgiNewUtf16To8((char16*)Bin, BinLen);
+							char *c8 = WideToUtf8((char16*)Bin, BinLen);
 							if (c8)
 							{
 								p.Push(c8);
@@ -2279,6 +2281,18 @@ static bool PopLine(GArray<char> &a, unsigned &Used, GAutoString &Line)
 	return false;
 }
 
+
+void NullCheck(char *Ptr, unsigned Len)
+{
+	// Check for NULLs
+	for (unsigned i=0; i<Len; i++)
+	{
+		LgiAssert(Ptr[i] != 0);
+	}
+}
+
+extern void DeNullText(char *in, int &len);
+
 bool MailIMap::Fetch(bool ByUid,
 					const char *Seq,
 					const char *Parts,
@@ -2323,6 +2337,10 @@ bool MailIMap::Fetch(bool ByUid,
 		bool Blocking = Socket->IsBlocking();
 		Socket->IsBlocking(false);
 
+		#if DEBUG_FETCH
+		LgiTrace("%s:%i - Fetch: Starting loop\n", _FL);
+		#endif
+
 		while (!Done && Socket->IsOpen())
 		{
 			int r;
@@ -2332,12 +2350,18 @@ bool MailIMap::Fetch(bool ByUid,
 				if (Buf.Length()-Used <= 256)
 				{
 					Buf.Length(Buf.Length() + (64<<10));
+					#if DEBUG_FETCH
+					LgiTrace("%s:%i - Fetch: Ext buf: %i\n", _FL, Buf.Length());
+					#endif
 				}
 
 				// Try and read bytes from server.
 				r = Socket->Read(&Buf[Used], Buf.Length()-Used-1); // -1 for NULL terminator
+				#if DEBUG_FETCH
+				LgiTrace("%s:%i - Fetch: r=%i, used=%i, buf=%i\n", _FL, r, Used, Buf.Length());
+				#endif
 				if (r > 0)
-				{					
+				{
 					if (RawCopy)
 						RawCopy->Write(&Buf[Used], r);
 
@@ -2354,7 +2378,10 @@ bool MailIMap::Fetch(bool ByUid,
 
 			while (true)
 			{
-				MsgSize = ParseImapResponse(&Buf[0], Ranges, 2);
+				MsgSize = ParseImapResponse(&Buf[0], Used, Ranges, 2);
+				#if DEBUG_FETCH
+				LgiTrace("%s:%i - Fetch: MsgSize=%i\n", _FL, MsgSize);
+				#endif
 				if (!MsgSize)
 					break;
 				
@@ -2363,9 +2390,15 @@ bool MailIMap::Fetch(bool ByUid,
 				{
 					// This is an error... ParseImapResponse should always return <= Used.
 					// If this triggers, ParseImapResponse is skipping a NULL that it shouldn't.
+					#if DEBUG_FETCH
+					LgiTrace("%s:%i - Fetch: Wrong size %i, %i\n", _FL, MsgSize, Used);
+					#endif
 					Ranges.Length(0);
 					LgiAssert(0);
-					ParseImapResponse(&Buf[0], Ranges, 2);
+					#if _DEBUG
+					ParseImapResponse(&Buf[0], Used, Ranges, 2);
+					#endif
+					Done = true;
 					break;
 				}
 				
@@ -2380,6 +2413,9 @@ bool MailIMap::Fetch(bool ByUid,
 				if (_stricmp(Name, "FETCH"))
 				{
 					// Not the response we're looking for.
+					#if DEBUG_FETCH
+					LgiTrace("%s:%i - Fetch: Wrong response: %s\n", _FL, Name);
+					#endif
 				}
 				else
 				{
@@ -2396,12 +2432,15 @@ bool MailIMap::Fetch(bool ByUid,
 					// Call the callback function
 					if (Callback(this, Param, Parts, UserData))
 					{
+						#if DEBUG_FETCH
+						LgiTrace("%s:%i - Fetch: Callback OK\n", _FL);
+						#endif
 						Status = true;
 					}
 					else
 					{
-						#ifdef _DEBUG
-						LgiTrace("%s:%i - FETCH Callback return FALSE?\n", _FL);
+						#if DEBUG_FETCH
+						LgiTrace("%s:%i - Fetch: Callback return FALSE?\n", _FL);
 						#endif
 						Parts.DeleteArrays();
 						Status = false;
@@ -2418,12 +2457,18 @@ bool MailIMap::Fetch(bool ByUid,
 			}
 
 			// Look for the end marker
+			#if DEBUG_FETCH
+			LgiTrace("%s:%i - Fetch: End, Used=%i, Buf=%.12s\n", _FL, Used, Buf);
+			#endif
 			if (Used > 0 && Buf[0] != '*')
 			{
 				GAutoString Line;
 				
 				while (PopLine(Buf, Used, Line))
 				{
+					#if DEBUG_FETCH
+					LgiTrace("%s:%i - Fetch: Line='%s'\n", _FL, Line.Get());
+					#endif
 					GToken t(Line, " \r\n");
 					if (t.Length() >= 2)
 					{

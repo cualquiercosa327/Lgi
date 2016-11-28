@@ -56,7 +56,7 @@ public:
 	}
 };
 
-int Cmp(GListItem *A, GListItem *B, int d)
+int Cmp(GListItem *A, GListItem *B, NativeInt d)
 {
 	DumpItem *a = (DumpItem*) A;
 	DumpItem *b = (DumpItem*) B;

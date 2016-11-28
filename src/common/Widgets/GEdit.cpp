@@ -83,14 +83,16 @@ void GEdit::SendNotify(int Data)
 	else if (Data == VK_RETURN ||
 			Data == GNotify_EscapeKey)
 		return GTextView3::SendNotify(Data);
+	/*
 	else
 		printf("%s:%i - Unsupported notify type: %i\n", _FL, Data);
+	*/
 }
 
 bool GEdit::GetSelection(int &Start, int &Len)
 {
-	int Sel = GetCursor(false);
-	Start = GetCursor();
+	int Sel = GTextView3::GetCursor(false);
+	Start = GTextView3::GetCursor();
 	if (Sel < Start)
 		Len = Start - Sel + 1;
 	else
@@ -106,7 +108,7 @@ void GEdit::Select(int Start, int Len)
 
 int GEdit::GetCaret()
 {
-	return GetCursor();
+	return GTextView3::GetCursor();
 }
 
 void GEdit::SetCaret(int i)
@@ -213,7 +215,7 @@ bool GEdit::Paste()
 		char *s = Clip.Text();
 		if (s)
 		{
-			Mem.Reset(LgiNewUtf8To16(s));
+			Mem.Reset(Utf8ToWide(s));
 			t = Mem;
 		}
 	}

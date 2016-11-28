@@ -168,7 +168,7 @@ public:
 		switch (p)
 		{
 			case ObjName:
-				Value.OwnStr(LgiNewUtf16To8(Desc->cFileName));
+				Value.OwnStr(WideToUtf8(Desc->cFileName));
 				return true;
 			case ObjLength:
 				Value = ((int64) Desc->nFileSizeHigh << 32) | Desc->nFileSizeLow;
@@ -354,7 +354,7 @@ public:
 		if (pstatstg->pwcsName &&
 			s->GetValue("FileName", Name))
 		{
-			GAutoWString w(LgiNewUtf8To16(Name.Str()));
+			GAutoWString w(Utf8ToWide(Name.Str()));
 			Strcpy(pstatstg->pwcsName, 256, w.Get());
 		}
 		

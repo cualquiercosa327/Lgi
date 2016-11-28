@@ -289,7 +289,7 @@ bool GDragDropSource::CreateFileDrop(GDragData *OutputData, GMouse &m, List<char
 	List<char16> NativeW;
 	for (char *File=Files.First(); File; File=Files.Next())
 	{
-		char16 *f = LgiNewUtf8To16(File);
+		char16 *f = Utf8ToWide(File);
 		if (f)
 		{
 			int Len = StrlenW(f) + 1;

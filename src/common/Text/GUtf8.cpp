@@ -14,7 +14,7 @@ GUtf8Ptr::operator int32()
 	return LgiUtf8To32(p, l);
 }
 
-void GUtf8Ptr::Add(char16 c)
+void GUtf8Ptr::Add(wchar_t c)
 {
 	int l = 6;
 	LgiUtf32To8(c, Ptr, l);
@@ -131,10 +131,10 @@ GUtf8Str::GUtf8Str(char *utf, int bytes, bool Copy)
 	Cur = Start;
 }
 
-GUtf8Str::GUtf8Str(char16 *wide, int chars)
+GUtf8Str::GUtf8Str(wchar_t *wide, int chars)
 {
 	Own = true;
-	Start = (uint8*)LgiNewUtf16To8(wide);
+	Start = (uint8*)WideToUtf8(wide);
 	End = chars >= 0 ? Start + chars : 0;
 	Cur = Start;
 }
@@ -165,19 +165,19 @@ GUtf8Str &GUtf8Str::operator =(char *s)
 	return *this;
 }
 
-char16 *GUtf8Str::ToWide()
+wchar_t *GUtf8Str::ToWide()
 {
 	if (End)
 	{
 		size_t Len = End - Ptr;
 		if (Len > 0)
 		{
-			return LgiNewUtf8To16((char*)Ptr, (int)Len);
+			return Utf8ToWide((char*)Ptr, (int)Len);
 		}
 	}
 	else
 	{
-		return LgiNewUtf8To16((char*)Ptr);
+		return Utf8ToWide((char*)Ptr);
 	}
 
 	return 0;

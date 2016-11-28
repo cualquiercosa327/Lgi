@@ -68,7 +68,7 @@ bool GLibrary::Load(const char *File, bool Quiet)
 			}
 			else
 			{
-				GAutoWString w(LgiNewUtf8To16(f));
+				GAutoWString w(Utf8ToWide(f));
 				if (w)
 				{
 					hLib = LoadLibraryW(w);

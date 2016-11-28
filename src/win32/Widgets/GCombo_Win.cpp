@@ -79,7 +79,7 @@ void GCombo::OnAttach()
 		d->Init = true;
 		for (unsigned n=0; n<d->Strs.Length(); n++)
 		{
-			GAutoWString s(LgiNewUtf8To16(d->Strs[n]));
+			GAutoWString s(Utf8ToWide(d->Strs[n]));
 			SendMessage(Handle(), CB_INSERTSTRING, n, (LPARAM) (s ? s.Get() : L"(NULL)"));
 		}
 
@@ -277,7 +277,7 @@ bool GCombo::Insert(const char *p, int Index)
 
 	if (_View && d->Init)
 	{
-		GAutoWString n(LgiNewUtf8To16(p));
+		GAutoWString n(Utf8ToWide(p));
 		if (!n)
 			return false;
 
@@ -421,7 +421,7 @@ GMessage::Result GCombo::OnEvent(GMessage *Msg)
 				d->Init = true;
 				for (unsigned n=0; n<d->Strs.Length(); n++)
 				{
-					GAutoWString s(LgiNewUtf8To16(d->Strs[n]));
+					GAutoWString s(Utf8ToWide(d->Strs[n]));
 					SendMessage(Handle(), CB_INSERTSTRING, n, (LPARAM) (s ? s.Get() : L"(NULL)"));
 				}
 

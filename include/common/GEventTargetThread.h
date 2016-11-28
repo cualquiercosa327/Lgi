@@ -35,6 +35,11 @@ public:
 			LgiSleep(10);
 	}
 
+	uint32 GetQueueSize()
+	{
+		return Msgs.Length();
+	}
+
 	bool PostEvent(int Cmd, GMessage::Param a = 0, GMessage::Param b = 0)
 	{
 		if (!Loop)

@@ -151,8 +151,8 @@ int LgiMsg(GViewI *Parent, const char *Str, const char *Title, int Type, ...)
 		}
 		else
 		{
-			char16 *t = LgiNewUtf8To16(Title ? Title : (char*)"Message");
-			char16 *m = LgiNewUtf8To16(Buffer);
+			char16 *t = Utf8ToWide(Title ? Title : (char*)"Message");
+			char16 *m = Utf8ToWide(Buffer);
 			Res = MessageBoxW(Parent ? Parent->Handle() : 0, m?m:L"", t?t:L"", Type);
 			DeleteArray(t);
 			DeleteArray(m);

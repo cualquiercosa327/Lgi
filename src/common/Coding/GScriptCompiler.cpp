@@ -632,7 +632,7 @@ public:
 	/// Convert the source from one big string into an array of tokens
 	bool Lex(char *Source, const char *FileName)
 	{
-		char16 *w = LgiNewUtf8To16(Source);
+		char16 *w = Utf8ToWide(Source);
 		if (!w)
 			return OnError(0, "Couldn't convert source to wide chars.");
 		
@@ -853,7 +853,7 @@ public:
 	{
 		LgiAssert(s != 0);
 
-		char *utf = LgiNewUtf16To8(s, len * sizeof(char16));
+		char *utf = WideToUtf8(s, len);
 		if (!utf)
 			utf = NewStr("");
 
@@ -2910,7 +2910,7 @@ public:
 			}
 			else
 			{
-				GAutoString u(LgiNewUtf16To8(t));
+				GAutoString u(WideToUtf8(t));
 				GVariantType tok_type = Types.Find(u);
 				if (tok_type != GV_NULL)
 				{
@@ -2955,7 +2955,7 @@ public:
 		e->Type = ExternFunc;
 		char16 sQuotes[] = {'\'','\"',0};
 		GAutoWString LibName(TrimStrW(Tok[0], sQuotes));
-		e->Lib.Reset(LgiNewUtf16To8(LibName));
+		e->Lib.Reset(WideToUtf8(LibName));
 		Tok.DeleteAt(0, true);
 
 		e->Method = Tok.Last();

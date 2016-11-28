@@ -95,7 +95,7 @@ GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc)
 	
 	#if LGI_DSP_STR_CACHE
 
-		StrCache.Reset(LgiNewUtf8To16(s, l));
+		StrCache.Reset(Utf8ToWide(s, l));
 
 	#endif
 
@@ -180,7 +180,7 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
 
 	#else
 
-		Str = LgiNewUtf16To8(s, l < 0 ? -1 : l * sizeof(char16));
+		Str = WideToUtf8(s, l < 0 ? -1 : l);
 		len = Str ? strlen(Str) : 0;
 
 	#endif

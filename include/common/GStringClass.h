@@ -10,18 +10,22 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
 #ifdef _MSC_VER
 	// This fixes compile errors in VS2008/Gtk
 	#undef _SIGN_DEFINED
 	#undef abs
 #endif
 #include <math.h>
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && _MSC_VER < 1800/*_MSC_VER_VS2013*/
 	#include <xmath.h>
+	#define PRId64 "I64i"
+#else
+	#include <stdint.h>
+	#include <inttypes.h>
 #endif
-#include "GUtf8.h"
-#include "GString.h"
 #include "GUnicode.h"
+#include "GArray.h"
 
 LgiExtern int LgiPrintf(class GString &Str, const char *Format, va_list &Arg);
 
@@ -113,14 +117,14 @@ public:
 	}
 
 	/// const char16* constructor
-	GString(const char16 *str, int chars = -1)
+	GString(const wchar_t *str, int chars = -1)
 	{
 		Str = NULL;
-		char *Utf = LgiNewUtf16To8(str, chars < 0 ? -1 : chars * sizeof(char16));
+		char *Utf = WideToUtf8(str, chars < 0 ? -1 : chars);
 		if (Utf)
 		{
 			Set(Utf);
-			DeleteArray(Utf);
+			delete [] Utf;
 		}
 	}
 
@@ -142,7 +146,7 @@ public:
 	{
 		if (!Str) return;
 		Str->Refs--;
-		LgiAssert(Str->Refs >= 0);
+		assert(Str->Refs >= 0);
 		if (Str->Refs == 0)
 		{
 			free(Str);
@@ -165,7 +169,7 @@ public:
 		/// Can be a pointer to string data or NULL to create an empty buffer (requires valid length)
 		const char *str,
 		/// Byte length of input string or -1 to copy till the NULL terminator.
-		NativeInt bytes = -1
+		ptrdiff_t bytes = -1
 	)
 	{
 		Empty();
@@ -274,6 +278,25 @@ public:
 		
 		return *this;
 	}
+	
+	GString &operator =(const wchar_t *s)
+	{
+		Empty();
+		
+		if (s)
+		{
+			// FIXME, this needs to work without allocating 2 blocks of 
+			// heap memory
+			char *u = WideToUtf8(s);
+			if (u)
+			{
+				*this = u;
+				delete [] u;
+			}			
+		}
+		
+		return *this;
+	}
 
 	GString &operator =(int val)
 	{
@@ -286,7 +309,7 @@ public:
 	GString &operator =(int64 val)
 	{
 		char n[32];
-		sprintf_s(n, sizeof(n), LGI_PrintfInt64, val);
+		sprintf_s(n, sizeof(n), "%"PRId64, val);
 		Set(n);
 		return *this;
 	}
@@ -350,7 +373,7 @@ public:
 				p += s.Str->Len;
 			}
 			*p++ = 0;
-			LgiAssert(p - (char*)rs <= Alloc);
+			assert(p - (char*)rs <= Alloc);
 			
 			Empty();
 			Str = rs;
@@ -416,7 +439,7 @@ public:
 			const char *s = Get(), *Prev = s;
 			size_t SepLen = strlen(Sep);
 			
-			while ((s = CaseSen ? strstr(s, Sep) : stristr(s, Sep)))
+			while ((s = CaseSen ? strstr(s, Sep) : Stristr(s, Sep)))
 			{
 				if (s > Prev)
 					a.New().Set(Prev, s - Prev);
@@ -447,7 +470,7 @@ public:
 			
 			GArray<const char*> seps;
 			
-			while ((s = CaseSen ? strstr(s, Sep) : stristr(s, Sep)))
+			while ((s = CaseSen ? strstr(s, Sep) : Stristr(s, Sep)))
 			{
 				seps.Add(s);
 				s += SepLen;
@@ -557,7 +580,7 @@ public:
 				memcpy(ptr, a[i].Get(), ALen[i]);
 				ptr += ALen[i];
 			}
-			LgiAssert(ptr - ret.Get() == Bytes);
+			assert(ptr - ret.Get() == Bytes);
 			*ptr++ = 0; // NULL terminate
 		}
 
@@ -574,12 +597,7 @@ public:
 	int64 Int(int Base = 10)
 	{
 		if (Str)
-		{
-			if (Base == 10)
-				return atoi64(Str->Str);
-			else if (Base == 16)
-				return htoi64(Str->Str);
-		}
+			return Atoi(Str->Str, Base);
 		return -1;
 	}
 	
@@ -603,7 +621,7 @@ public:
 	}
 
 	/// Find a sub-string	
-	NativeInt Find(const char *needle, int start = 0, int end = -1)
+	ptrdiff_t Find(const char *needle, int start = 0, int end = -1)
 	{
 		if (!needle) return -1;
 		char *c = Get();
@@ -617,12 +635,12 @@ public:
 			c++;
 		}
 		
-		char *found = (end > 0) ? strnstr(c, needle, end - start) : strstr(c, needle);
+		char *found = (end > 0) ? Strnstr(c, needle, end - start) : strstr(c, needle);
 		return (found) ? found - Get() : -1;
 	}
 
 	/// Reverse find a string (starting from the end)
-	NativeInt RFind(const char *needle, int start = 0, int end = -1)
+	ptrdiff_t RFind(const char *needle, int start = 0, int end = -1)
 	{
 		if (!needle) return -1;
 		char *c = Get();
@@ -643,7 +661,7 @@ public:
 			found =
 			(
 				(end > 0) ?
-				strnstr(c, needle, end - start) :
+				Strnstr(c, needle, end - start) :
 				strstr(c, needle)
 			)
 		))
@@ -659,7 +677,7 @@ public:
 	{
 		GString s;
 		s.Set(Get());
-		StrLwr(s.Get());
+		Strlwr(s.Get());
 		return s;
 	}
 	
@@ -668,7 +686,7 @@ public:
 	{
 		GString s;
 		s.Set(Get());
-		StrUpr(s.Get());
+		Strupr(s.Get());
 		return s;
 	}
 
@@ -740,9 +758,16 @@ public:
 		Empty();
 		va_list Arg;
 		va_start(Arg, Fmt);
-		int Bytes = LgiPrintf(*this, Fmt, Arg);
+		int Bytes = Printf(Arg, Fmt);
 		va_end(Arg);
 		return Bytes;
+	}
+
+	/// Prints a varargs string
+	int Printf(va_list &Arg, const char *Fmt)
+	{
+		Empty();
+		return LgiPrintf(*this, Fmt, Arg);
 	}
 	
 	#if defined(MAC) // && __COREFOUNDATION_CFBASE__

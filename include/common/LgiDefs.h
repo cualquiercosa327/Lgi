@@ -25,7 +25,7 @@ typedef		unsigned long				ulong;
 
 #ifndef BEOS
 	/// 8-bit signed int type (size safe, garenteed to be 8 bits)
-	typedef		char					int8;
+	typedef		signed char				int8;
 	/// 8-bit unsigned int type (size safe, garenteed to be 8 bits)
 	typedef		unsigned char			uint8;
 #else
@@ -56,7 +56,6 @@ typedef		signed long long			int64;
 typedef		unsigned long long			uint64;
 #endif
 
-#if !defined(LINUX)
 /// \brief Wide unicode char
 ///
 /// This is 16 bits on Win32 and Mac, but 32 bits on unix platforms. There are a number
@@ -64,8 +63,8 @@ typedef		unsigned long long			uint64;
 ///
 /// Firstly to convert to and from utf-8 there is:
 /// <ul>
-/// 	<li> LgiNewUtf8To16()
-///		<li> LgiNewUtf16To8()
+/// 	<li> Utf8ToWide()
+///		<li> WideToUtf8()
 /// </ul>
 ///
 /// Wide versions of standard library functions are available:
@@ -91,14 +90,7 @@ typedef		unsigned long long			uint64;
 ///		<li> ValidStrW()
 ///		<li> MatchStrW()
 /// </ul>
-
-	typedef		wchar_t						char16;
-
-#else // LINUX
-
-	typedef		unsigned int				char16;
-
-#endif
+typedef		wchar_t						char16;
 
 #if !WINNATIVE
 #ifdef UNICODE

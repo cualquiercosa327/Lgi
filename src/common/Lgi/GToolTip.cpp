@@ -1,3 +1,4 @@
+
 #define _WIN32_WINNT 0x500
 #include "Lgi.h"
 #if defined WIN32
@@ -247,7 +248,7 @@ int GToolTip::NewTip(char *Name, GRect &Pos)
 		ti.uFlags = TTF_SUBCLASS;
 		ti.hwnd = GetParent()->Handle();
 		ti.rect = Pos;
-		ti.lpszText = LgiNewUtf8To16(Name);
+		ti.lpszText = Utf8ToWide(Name);
 		ti.uId = Status = d->NextUid++;
 
 		int Result = SendMessage(_View, TTM_ADDTOOLW, 0, (LPARAM) &ti);
@@ -370,12 +371,12 @@ bool GToolTip::Attach(GViewI *p)
 								NULL,
 								NULL,
 								NULL);
-
 	}
 
 	if (!_View)
 		return false;
-
+	SetWindowLongPtr(	_View, GWLP_USERDATA, (LONG_PTR)(GViewI*)this);
+	SetWindowLong(		_View, GWL_LGI_MAGIC, LGI_GViewMagic);			
 	SetWindowPos(		_View,
 						HWND_TOPMOST,
 						0, 0, 0, 0,
