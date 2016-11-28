@@ -279,7 +279,7 @@ public:
 		return *this;
 	}
 	
-	GString &operator =(const char16 *s)
+	GString &operator =(const wchar_t *s)
 	{
 		Empty();
 		
