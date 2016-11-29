@@ -161,6 +161,9 @@ public:
 	}
 #endif
 
+	typedef void (*locking_callback)(int mode,int type, const char *file,int line);
+	typedef unsigned long (*id_callback)();
+
 	DynFunc1(const char *, SSLeay_version, int, type);
 
 	DynFunc1(BIO*, BIO_new, BIO_METHOD*, type);
@@ -194,9 +197,6 @@ public:
 	DynFunc1(X509_NAME*, X509_get_subject_name, X509*, a);
 	DynFunc2(char*, ERR_error_string, unsigned long, e, char*, buf);
 	DynFunc0(unsigned long, ERR_get_error);
-
-	typedef void (*locking_callback)(int mode,int type, const char *file,int line);
-	typedef unsigned long (*id_callback)();
 };
 
 typedef GArray<int> SslVer;
