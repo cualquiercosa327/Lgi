@@ -1631,8 +1631,9 @@ void GList::OnMouseClick(GMouse &m)
 						d->DeleteFlag = 0;
 
 						// Check if the handler hung for a long time...
-						HandlerHung = LgiCurrentTime() - StartHandler > 200;
-						if (!HandlerHung && !m.Double())
+						uint64 Now = LgiCurrentTime();
+						HandlerHung = Now - StartHandler > 200;
+						if (!HandlerHung && !m.Double() && !m.IsContextMenu())
 						{
 							// Start d'n'd watcher pulse...
 							SetPulse(100);
@@ -1712,7 +1713,7 @@ void GList::OnMouseClick(GMouse &m)
 							Keyboard = Items.IndexOf(Item);
 						}
 
-						if (!m.Modifier() && Items.First())
+						if (!m.Modifier() && Items.First() && !m.IsContextMenu())
 						{
 							DragMode = SELECT_ITEMS;
 							SetPulse(100);

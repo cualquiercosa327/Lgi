@@ -769,7 +769,7 @@ DebugTrace("%s:%i - BIO_get_ssl=%p\n", _FL, Ssl);
 					
 							// Library->SSL_CTX_set_timeout()
 							Library->BIO_set_conn_hostname(Bio, HostAddr);
-							Library->BIO_set_conn_port(Bio, &Port);
+							Library->BIO_set_conn_int_port(Bio, &Port);
 
 							// Do non-block connect
 							uint64 Start = LgiCurrentTime();
