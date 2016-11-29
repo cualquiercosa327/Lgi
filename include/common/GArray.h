@@ -459,7 +459,7 @@ public:
 	}
 
 	/// Appends multiple elements
-	void Add
+	bool Add
 	(
 		/// Items to insert
 		Type *s,
@@ -469,19 +469,23 @@ public:
 	)
 	{
 		if (!s || count < 1)
-			return;
+			return false;
 			
 		int i = len;
-		Length(len + count);
+		if (!Length(len + count))
+			return false;
+
 		Type *d = p + i;
 		while (count--)
 		{
 			*d++ = *s++;
 		}
+
+		return true;
 	}
 
 	/// Appends an array of elements
-	void Add
+	bool Add
 	(
 		/// Array to insert
 		GArray<Type> &a
@@ -494,7 +498,10 @@ public:
 			for (unsigned i=0; i<a.Length(); i++, old++)
 				p[old] = a[i];
 		}
+		else return false;
+		return true;
 	}
+
 	GArray<Type> &operator +(GArray<Type> &a)
 	{
 		Add(a);
