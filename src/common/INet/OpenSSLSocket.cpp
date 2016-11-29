@@ -769,7 +769,13 @@ DebugTrace("%s:%i - BIO_get_ssl=%p\n", _FL, Ssl);
 					
 							// Library->SSL_CTX_set_timeout()
 							Library->BIO_set_conn_hostname(Bio, HostAddr);
+							#if OPENSSL_VERSION_NUMBER < 0x10100000L
 							Library->BIO_set_conn_int_port(Bio, &Port);
+							#else
+							GString sPort;
+							sPort.Printf("%i");
+							Library->BIO_set_conn_port(Bio, sPort.Get());
+							#endif
 
 							// Do non-block connect
 							uint64 Start = LgiCurrentTime();
