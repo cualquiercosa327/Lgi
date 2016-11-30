@@ -602,7 +602,7 @@ public:
 			while (Match = (CaseSen ? strstr(Match, Old) : Stristr(Match, Old)))
 			{
 				Matches.Add(Match);
-				if (Count >= 0 && Matches.Length() >= Count)
+				if (Count >= 0 && (int)Matches.Length() >= Count)
 					break;
 				Match += OldLen;
 			}
