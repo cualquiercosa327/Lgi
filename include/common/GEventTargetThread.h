@@ -79,13 +79,18 @@ public:
 	
 	~GEventTargetThread()
 	{
-		Lock(_FL);
-		for (unsigned i=0; i<Ptrs.Length(); i++)
+		if (Lock(_FL))
 		{
-			Ptrs[i]->OnDelete(this);
+			for (unsigned i=0; i<Ptrs.Length(); i++)
+			{
+				Ptrs[i]->OnDelete(this);
+			}
+			Ptrs.Length(0);
+			Unlock();
 		}
-		Ptrs.Length(0);
 
+		// We can't be locked here, because GEventTargetThread::Main needs
+		// to lock to check for messages...
 		Loop = false;
 		Event.Signal();
 		while (!IsExited())

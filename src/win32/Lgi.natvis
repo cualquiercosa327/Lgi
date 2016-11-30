@@ -2,7 +2,7 @@
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
   <Type Name="GString">
 	<DisplayString Condition="Str == 0">(empty)</DisplayString>
-	<DisplayString>{Str-*gt;Str,s} ({Str-*gt;Len})</DisplayString>
+	<DisplayString>{Str->Str,s} ({Str->Len})</DisplayString>
   </Type>
   <Type Name="GAutoPtr&lt;char,1&gt;">
 	<DisplayString Condition="Ptr == 0">(empty)</DisplayString>
