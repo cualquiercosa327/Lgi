@@ -371,7 +371,7 @@ char *DecodeRfc2047(char *Str)
 							Temp.Write((uchar*)s, p-s);
 						}
 						
-						GAutoString Utf8((char*)LgiNewConvertCp("utf-8", Block, Cp));
+						GAutoString Utf8((char*)LgiNewConvertCp("utf-8", Block, Cp, Len));
 						if (Utf8)
 						{
 							if (LgiIsUtf8(Utf8))

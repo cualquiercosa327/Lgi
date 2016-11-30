@@ -1,7 +1,6 @@
 #include "Lgi.h"
 #include "GRichTextEdit.h"
 #include "GRichTextEditPriv.h"
-#include "GForEach.h"
 
 GRichTextPriv::TextBlock::TextBlock()
 {

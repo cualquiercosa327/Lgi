@@ -49,20 +49,28 @@ protected:
 
 	inline void _strip(GString &ret, const char *set, bool left, bool right)
 	{
-		if (!Str) return;
+		if (!Str)
+			return;
 		
 		char *s = Str->Str;
 		char *e = s + Str->Len;
 
 		if (!set) set = " \t\r\n";
+
+		if (left)
+		{		
+			while (s < e && strchr(set, *s))
+				s++;
+		}
 		
-		while (left && *s && strchr(set, *s))
-			s++;
+		if (right)
+		{
+			while (e > s && strchr(set, e[-1]))
+				e--;
+		}
 		
-		while (right && e > s && strchr(set, e[-1]))
-			e--;
-		
-		ret.Set(s, e - s);
+		if (e > s)
+			ret.Set(s, e - s);
 	}
 
 public:
@@ -676,8 +684,8 @@ public:
 	GString Lower()
 	{
 		GString s;
-		s.Set(Get());
-		Strlwr(s.Get());
+		if (Str && s.Set(Str->Str, Str->Len))
+			Strlwr(s.Get());
 		return s;
 	}
 	
@@ -685,8 +693,8 @@ public:
 	GString Upper()
 	{
 		GString s;
-		s.Set(Get());
-		Strupr(s.Get());
+		if (Str && s.Set(Str->Str, Str->Len))
+			Strupr(s.Get());
 		return s;
 	}
 
