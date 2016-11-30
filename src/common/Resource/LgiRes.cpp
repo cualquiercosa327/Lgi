@@ -390,7 +390,7 @@ LgiTrace("%s:%i - FullPath='%s'\n", _FL, FullPath);
 		sprintf_s(Msg, sizeof(Msg),
 				LgiLoadString(L_ERROR_RES_NO_LR8_FILE,
 								"Couldn't find the file '%s' required to run this application\n(Exe='%s')"),
-				File,
+				File.Get(),
 				Exe);
 
 		// Dialog
