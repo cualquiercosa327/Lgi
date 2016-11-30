@@ -472,7 +472,7 @@ int GFontSystem::IconvConvert(const char *OutCs, char *Out, int OutLen, const ch
 
 		// Convert
 		char *Start = o;
-		int s = d->libiconv(Conv, (IconvChar**)&i, &InSz, &o, &OutLen);
+		int s = d->libiconv(Conv, (IconvChar**)&i, &InSz, &o, &OutSz);
 		InLen = InSz;
 		OutLen = OutSz;
 		d->libiconv_close(Conv);

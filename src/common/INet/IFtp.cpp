@@ -837,24 +837,18 @@ bool IFtp::DeleteFile(const char *Remote)
 {
 	bool Status = false;
 
-	try
+	if (IsOpen() && Remote)
 	{
-		if (IsOpen() && Remote)
+		char *f = ToFtpCs(Remote);
+		if (f)
 		{
-			char *f = ToFtpCs(Remote);
-			if (f)
-			{
-				sprintf_s(d->OutBuf, sizeof(d->OutBuf), "DELE %s\r\n", f);
-				WriteLine();
-				VerifyRange(ReadLine(), 2);
+			sprintf_s(d->OutBuf, sizeof(d->OutBuf), "DELE %s\r\n", f);
+			WriteLine();
+			VerifyRange(ReadLine(), 2);
 
-				Status = true;
-				DeleteArray(f);
-			}
+			Status = true;
+			DeleteArray(f);
 		}
-	}
-	catch (int Error)
-	{
 	}
 
 	return Status;
