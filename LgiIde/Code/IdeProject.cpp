@@ -500,12 +500,16 @@ bool IdeProject::OnNode(const char *Path, ProjectNode *Node, bool Add)
 		}
 	}
 
-	// LgiTrace("%s:%i - OnNode(%s, %i)\n", _FL, Path, Add);
-	
+	bool Status = false;
 	if (Add)
-		return d->Nodes.Add(Path, Node);
+		Status = d->Nodes.Add(Path, Node);
 	else
-		return d->Nodes.Delete(Path);
+		Status = d->Nodes.Delete(Path);
+	
+	if (Status)
+		d->App->OnNode(Path, Node, Add);
+
+	return Status;
 }
 
 void IdeProject::ShowFileProperties(const char *File)

@@ -148,7 +148,8 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 
 		GAutoString Source = Tf.Read();
 		GArray<char*> Headers;
-		if (BuildHeaderList(Source, Headers, *f->Inc, false))
+		GArray<GString> EmptyInc;
+		if (BuildHeaderList(Source, Headers, f->Inc ? *f->Inc : EmptyInc, false))
 		{
 			for (unsigned i=0; i<Headers.Length(); i++)
 			{
@@ -255,6 +256,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 			}
 			case M_FIND_SYM_FILE:
 			{
+				uint64 Now = LgiCurrentTime();
 				GAutoPtr<GString> File((GString*)Msg->A());
 				if (File)
 				{
@@ -268,7 +270,6 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 						ReparseFile(*File);
 				}
 
-				uint64 Now = LgiCurrentTime();
 				if (Now - MsgTs > MSG_TIME_MS)
 				{
 					MsgTs = Now;
