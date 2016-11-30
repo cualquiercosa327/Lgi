@@ -256,6 +256,7 @@ public:
 	bool OnRequestClose(bool IsClose);
 	int OnNotify(GViewI *Ctrl, int Flags);
 	GMessage::Result OnEvent(GMessage *m);
+	bool OnNode(const char *Path, class ProjectNode *Node, bool Add);
 
 	// Debugging support
 	class GDebugContext *GetDebugContext();

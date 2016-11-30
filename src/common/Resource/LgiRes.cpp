@@ -277,7 +277,7 @@ LgiResources::LgiResources(const char *FileName, bool Warn)
 	// global pointer list
 	_ResourceOwner.Add(this);
 
-	char File[MAX_PATH] = "";
+	GString File;
 	char *FullPath = 0;
 
 #if DEBUG_RES_FILE
@@ -299,10 +299,10 @@ LgiTrace("%s:%i - Filename='%s'\n", _FL, FileName);
 LgiTrace("%s:%i - f='%s'\n", _FL, f);
 #endif
 
-			strcpy_s(File, sizeof(File), f ? f + 1 : FileName);
+			File = f ? f + 1 : FileName;
 
 #if DEBUG_RES_FILE
-LgiTrace("%s:%i - File='%s'\n", _FL, File);
+LgiTrace("%s:%i - File='%s'\n", _FL, File.Get());
 #endif
 		}
 		else
@@ -328,7 +328,7 @@ LgiTrace("%s:%i - Str='%s'\n", _FL, Str);
 					}
 					#endif
 
-					strcpy_s(File, sizeof(File), f);
+					File = f;
 				}
 
 #if DEBUG_RES_FILE
@@ -346,37 +346,32 @@ LgiTrace("%s:%i - File='%s'\n", _FL, File);
 		}
 
 		// Find the file..
-		char *End = File + strlen(File);
 		#ifdef MAC
-		char *DotApp = stristr(File, ".app");
-		if (DotApp) End = DotApp;
+		int DotApp = File.RFind(".app");
+		if (DotApp >= 0)
+			File.Length(DotApp);
 		#endif
 
 #if DEBUG_RES_FILE
-LgiTrace("%s:%i - File='%s'\n", _FL, File);
+LgiTrace("%s:%i - File='%s'\n", _FL, File.Get());
 #endif
 
-		strcpy(End, ".lr8");
+		GString BaseFile = File;
+		GString AltFile = File.Replace(".");
+		BaseFile += ".lr8";
+		AltFile += ".lr8";
 
 #if DEBUG_RES_FILE
-LgiTrace("%s:%i - File='%s'\n", _FL, File);
+LgiTrace("%s:%i - File='%s'\n", _FL, BaseFile.Get());
 #endif
 
-		FullPath = LgiFindFile(File);
+		FullPath = LgiFindFile(BaseFile);
+		if (!FullPath)
+			FullPath = LgiFindFile(AltFile);
 
 #if DEBUG_RES_FILE
 LgiTrace("%s:%i - FullPath='%s'\n", _FL, FullPath);
 #endif
-
-		if (!FullPath)
-		{
-			strcpy(End, ".lr");
-			FullPath = LgiFindFile(File);
-			if (!FullPath)
-			{
-				strcpy(End, ".lr8");
-			}
-		}
 	}
 
 	if (FullPath)

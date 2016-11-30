@@ -371,7 +371,6 @@ T *Strlwr(T *Str)
 	{
 		if (*s >= 'A' && *s <= 'Z')
 			*s = *s - 'A' + 'a';
-		s++;
 	}
 
 	return Str;
@@ -395,7 +394,6 @@ T *Strupr(T *Str)
 	{
 		if (*s >= 'a' && *s <= 'z')
 			*s = *s - 'a' + 'A';
-		s++;
 	}
 
 	return Str;

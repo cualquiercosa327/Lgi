@@ -25,7 +25,7 @@ public:
 	/// Call after you change the list of strings
 	void Update();
 	void OnPopupClose();
-	void Add(char *s);
+	int Add(char *s);
 };
 
 #endif

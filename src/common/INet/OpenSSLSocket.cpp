@@ -93,10 +93,17 @@ public:
 		}
     }
 
+	#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+	DynFunc0(int, OPENSSL_library_init);
+	DynFunc0(int, OPENSSL_load_error_strings);
+	DynFunc2(int, OPENSSL_init_crypto, uint64_t, opts, const OPENSSL_INIT_SETTINGS *, settings);
+	DynFunc2(int, OPENSSL_init_ssl, uint64_t, opts, const OPENSSL_INIT_SETTINGS *, settings);
+	#else
 	DynFunc0(int, SSL_library_init);
+	DynFunc0(int, SSL_load_error_strings);
+	#endif
 	DynFunc1(int, SSL_open, SSL*, s);
 	DynFunc1(int, SSL_connect, SSL*, s);
-	DynFunc0(int, SSL_load_error_strings);
 	DynFunc4(long, SSL_ctrl, SSL*, ssl, int, cmd, long, larg, void*, parg);
 	DynFunc1(int, SSL_shutdown, SSL*, s);
 	DynFunc1(int, SSL_free, SSL*, ssl);
@@ -154,6 +161,9 @@ public:
 	}
 #endif
 
+	typedef void (*locking_callback)(int mode,int type, const char *file,int line);
+	typedef unsigned long (*id_callback)();
+
 	DynFunc1(const char *, SSLeay_version, int, type);
 
 	DynFunc1(BIO*, BIO_new, BIO_METHOD*, type);
@@ -170,24 +180,23 @@ public:
 
 
 	DynFunc0(int, ERR_load_BIO_strings);
+	#if OPENSSL_VERSION_NUMBER < 0x10100000L
 	DynFunc0(int, ERR_free_strings);
+	DynFunc0(int, EVP_cleanup);
+	DynFunc0(int, OPENSSL_add_all_algorithms_noconf);
+	DynFunc1(int, CRYPTO_set_locking_callback, locking_callback, func);
+	DynFunc1(int, CRYPTO_set_id_callback, id_callback, func);
+	DynFunc0(int, CRYPTO_num_locks);
+	#endif
 	DynFunc1(const char *, ERR_lib_error_string, unsigned long, e);
 	DynFunc1(const char *, ERR_func_error_string, unsigned long, e);
 	DynFunc1(const char *, ERR_reason_error_string, unsigned long, e);
 	DynFunc1(int, ERR_print_errors, BIO *, bp);
 
-	DynFunc0(int, EVP_cleanup);
-	DynFunc0(int, OPENSSL_add_all_algorithms_noconf);
 	DynFunc3(char*, X509_NAME_oneline, X509_NAME*, a, char*, buf, int, size);
 	DynFunc1(X509_NAME*, X509_get_subject_name, X509*, a);
 	DynFunc2(char*, ERR_error_string, unsigned long, e, char*, buf);
 	DynFunc0(unsigned long, ERR_get_error);
-
-	typedef void (*locking_callback)(int mode,int type, const char *file,int line);
-	typedef unsigned long (*id_callback)();
-	DynFunc1(int, CRYPTO_set_locking_callback, locking_callback, func);
-	DynFunc1(int, CRYPTO_set_id_callback, id_callback, func);
-	DynFunc0(int, CRYPTO_num_locks);
 };
 
 typedef GArray<int> SslVer;
@@ -760,7 +769,13 @@ DebugTrace("%s:%i - BIO_get_ssl=%p\n", _FL, Ssl);
 					
 							// Library->SSL_CTX_set_timeout()
 							Library->BIO_set_conn_hostname(Bio, HostAddr);
+							#if OPENSSL_VERSION_NUMBER < 0x10100000L
 							Library->BIO_set_conn_int_port(Bio, &Port);
+							#else
+							GString sPort;
+							sPort.Printf("%i");
+							Library->BIO_set_conn_port(Bio, sPort.Get());
+							#endif
 
 							// Do non-block connect
 							uint64 Start = LgiCurrentTime();

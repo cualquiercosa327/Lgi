@@ -252,34 +252,6 @@ uint32 GColour::c32() const
 	else if (space == CsHls32)
 	{
 		// Convert from HLS back to RGB
-		GHls32 Hls = hls;
-		if (Hls.s == 0)
-		{
-			return Rgba32(0, 0, 0, 255);
-		}
-		else
-		{
-			while (Hls.h >= 360)
-				Hls.h -= 360;			
-			while (hls.h < 0)
-				Hls.h += 360;
-		
-			double fHue = (double) Hls.h, fM1, fM2;
-			double fLightness = ((double) Hls.l) / 255.0;
-			double fSaturation = ((double) Hls.s) / 255.0;
-		
-			if (Hls.l < 128)
-				fM2 = fLightness * (1 + fSaturation);
-			else
-				fM2 = fLightness + fSaturation - (fLightness * fSaturation);
-		
-			fM1 = 2.0 * fLightness - fM2;
-
-			uint8 r = HlsValue(fM1, fM2, fHue + 120.0);
-			uint8 g = HlsValue(fM1, fM2, fHue);
-			uint8 b = HlsValue(fM1, fM2, fHue - 120.0);
-			return Rgb32(r, g, b);
-		}
 	}
 
 	// Transparent?
@@ -381,6 +353,37 @@ void GColour::SetHLS(uint16 h, uint8 l, uint8 s)
 	hls.h = h;
 	hls.l = l;
 	hls.s = s;
+}
+
+void GColour::ToRGB()
+{
+	GHls32 Hls = hls;
+	if (Hls.s == 0)
+	{
+		Rgb(0, 0, 0);
+	}
+	else
+	{
+		while (Hls.h >= 360)
+			Hls.h -= 360;			
+		while (hls.h < 0)
+			Hls.h += 360;
+		
+		double fHue = (double) Hls.h, fM1, fM2;
+		double fLightness = ((double) Hls.l) / 255.0;
+		double fSaturation = ((double) Hls.s) / 255.0;
+		
+		if (Hls.l < 128)
+			fM2 = fLightness * (1 + fSaturation);
+		else
+			fM2 = fLightness + fSaturation - (fLightness * fSaturation);
+		
+		fM1 = 2.0 * fLightness - fM2;
+
+		Rgb(HlsValue(fM1, fM2, fHue + 120.0),
+			HlsValue(fM1, fM2, fHue),
+			HlsValue(fM1, fM2, fHue - 120.0));
+	}
 }
 
 int GColour::GetGray(int BitDepth)

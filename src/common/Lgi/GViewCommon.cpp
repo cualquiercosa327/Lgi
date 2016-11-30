@@ -917,7 +917,7 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 		else
 		{
 			#if DEBUG_CAPTURE
-			LgiTrace("%s:%i - _Capturing=%s -> %s\n", _FL, _Capturing?_Capturing->GetClass():0, Wnd?Wnd->GetClass():0);
+			LgiStackTrace("%s:%i - _Capturing=%s -> %s\n", _FL, _Capturing?_Capturing->GetClass():0, Wnd?Wnd->GetClass():0);
 			#endif
 			_Capturing = Wnd;
 			
@@ -942,7 +942,7 @@ bool GView::HandleCapture(GView *Wnd, bool c)
 	else if (_Capturing)
 	{
 		#if DEBUG_CAPTURE
-		LgiStackTrace("%s:%i - _Capturing=%s -> NULL\n", _FL, _Capturing?_Capturing->GetClass():0);
+		LgiTrace("%s:%i - _Capturing=%s -> NULL\n", _FL, _Capturing?_Capturing->GetClass():0);
 		#endif
 		_Capturing = NULL;
 		

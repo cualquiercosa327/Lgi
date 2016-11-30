@@ -287,7 +287,7 @@ public:
 		return *this;
 	}
 	
-	GString &operator =(const char16 *s)
+	GString &operator =(const wchar_t *s)
 	{
 		Empty();
 		
@@ -593,6 +593,72 @@ public:
 		}
 
 		return ret;
+	}
+
+	// Replaces a sub-string with another
+	GString Replace(const char *Old, const char *New = NULL, int Count = -1, bool CaseSen = false)
+	{
+		GString s;
+		
+		if (Old)
+		{
+			// Calculate the new of the new string...
+			size_t OldLen = strlen(Old);
+			size_t NewLen = New ? strlen(New) : 0;
+			char *Match = Str->Str;
+			GArray<char*> Matches;
+			while (Match = (CaseSen ? strstr(Match, Old) : Stristr(Match, Old)))
+			{
+				Matches.Add(Match);
+				if (Count >= 0 && (int)Matches.Length() >= Count)
+					break;
+				Match += OldLen;
+			}
+
+			size_t NewSize = Str->Len + (Matches.Length() * (NewLen - OldLen));
+			s.Length(NewSize);
+			char *Out = s.Get();
+			char *In = Str->Str;
+
+			// For each match...
+			for (unsigned i=0; i<Matches.Length(); i++)
+			{
+				char *m = Matches[i];
+				if (In < m)
+				{
+					// Copy any part before the match
+					int Bytes = m - In;
+					memcpy(Out, In, Bytes);
+					Out += Bytes;
+				}
+				In = m + OldLen;
+
+				if (New)
+				{
+					// Copy any new string
+					memcpy(Out, New, NewLen);
+					Out += NewLen;
+				}
+			}
+
+			// Copy any trailer characters
+			char *End = Str->Str + Str->Len;
+			if (In < End)
+			{
+				int Bytes = End - In;
+				memcpy(Out, In, Bytes);
+				Out += Bytes;
+			}
+
+			LgiAssert(Out - s.Get() == NewSize); // Check we got the size right...
+			*Out = 0; // Null terminate
+		}
+		else
+		{
+			s = *this;
+		}
+		
+		return s;
 	}
 
 	/// Convert string to double

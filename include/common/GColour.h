@@ -96,6 +96,8 @@ public:
 		/// (0-255)
 		uint8 s
 	);
+	// Convert HLS to RGB
+	void ToRGB();
 	int GetGray(int BitDepth = 8);
 	uint32 GetNative();
 	char *GetStr();

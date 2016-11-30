@@ -17,7 +17,7 @@
 
 #include "resdefs.h"
 
-#define MSG_TIME_MS				5000
+#define MSG_TIME_MS				1000
 
 #define DEBUG_FIND_SYMBOL		0
 #define DEBUG_NO_THREAD			1
@@ -78,16 +78,17 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 		}
 	};
 
-	GEventSinkI *App;
+	GEventSinkPtr App;
 	GArray<GString::Array*> IncPaths;
 	GArray<FileSyms*> Files;
 	uint32 Tasks;
 	uint64 MsgTs;
 	
-	FindSymbolSystemPriv(GEventSinkI *app) : GEventTargetThread("FindSymbolSystemPriv")
+	FindSymbolSystemPriv(GEventSinkI *app) :
+		App(app, false),
+		GEventTargetThread("FindSymbolSystemPriv")
 	{
 		Tasks = 0;
-		App = app;
 		MsgTs = 0;
 	}
 
@@ -100,7 +101,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 		va_end(Arg);
 		
 		if (s.Length())
-			App->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr(s), AppWnd::BuildTab);
+			App.PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr(s), AppWnd::BuildTab);
 	}
 	
 	int GetFileIndex(GString &Path)
@@ -147,7 +148,8 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 
 		GAutoString Source = Tf.Read();
 		GArray<char*> Headers;
-		if (BuildHeaderList(Source, Headers, *f->Inc, false))
+		GArray<GString> EmptyInc;
+		if (BuildHeaderList(Source, Headers, f->Inc ? *f->Inc : EmptyInc, false))
 		{
 			for (unsigned i=0; i<Headers.Length(); i++)
 			{
@@ -254,6 +256,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 			}
 			case M_FIND_SYM_FILE:
 			{
+				uint64 Now = LgiCurrentTime();
 				GAutoPtr<GString> File((GString*)Msg->A());
 				if (File)
 				{
@@ -267,7 +270,6 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 						ReparseFile(*File);
 				}
 
-				uint64 Now = LgiCurrentTime();
 				if (Now - MsgTs > MSG_TIME_MS)
 				{
 					MsgTs = Now;
@@ -475,7 +477,6 @@ int FindSymbolDlg::OnNotify(GViewI *v, int f)
 FindSymbolSystem::FindSymbolSystem(GEventSinkI *app)
 {
 	d = new FindSymbolSystemPriv(app);
-	d->App = app;
 }
 
 FindSymbolSystem::~FindSymbolSystem()

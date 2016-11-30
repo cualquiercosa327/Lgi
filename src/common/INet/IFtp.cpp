@@ -855,11 +855,6 @@ bool IFtp::DeleteFile(const char *Remote)
 	}
 	catch (int Error)
 	{
-		printf("%s:%i - error: %i\n", _FL, Error);
-		if (IsOpen())
-		{
-			LgiAssert(0);
-		}
 	}
 
 	return Status;

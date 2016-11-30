@@ -196,6 +196,30 @@ void GRichTextEdit::SetReadOnly(bool i)
 	#endif
 }
 
+GRect GRichTextEdit::GetArea(RectType Type)
+{
+	return	Type >= ContentArea &&
+			Type <= MaxArea
+			?
+			d->Areas[Type]
+			:
+			GRect(0, 0, -1, -1);
+}
+
+bool GRichTextEdit::ShowStyleTools()
+{
+	return d->ShowTools;
+}
+
+void GRichTextEdit::ShowStyleTools(bool b)
+{
+	if (d->ShowTools ^ b)
+	{
+		d->ShowTools = b;
+		Invalidate();
+	}
+}
+
 void GRichTextEdit::SetTabSize(uint8 i)
 {
 	TabSize = limit(i, 2, 32);
@@ -1011,14 +1035,27 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 		{
 			Focus(true);
 
-			int Hit = HitText(m.x, m.y);
-			d->WordSelectMode = !Processed && m.Double();
-
-			if (Hit >= 0)
+			if (d->Areas[ToolsArea].Overlap(m.x, m.y))
 			{
-				SetCursor(Hit, m.Shift());
-				if (d->WordSelectMode)
-					SelectWord(Hit);
+				for (unsigned i=FontFamilyBtn; i<MaxArea; i++)
+				{
+					if (d->Areas[i].Overlap(m.x, m.y))
+					{
+						d->ClickBtn(m, (RectType)i);
+					}
+				}
+			}
+			else
+			{
+				int Hit = HitText(m.x, m.y);
+				d->WordSelectMode = !Processed && m.Double();
+
+				if (Hit >= 0)
+				{
+					SetCursor(Hit, m.Shift());
+					if (d->WordSelectMode)
+						SelectWord(Hit);
+				}
 			}
 		}
 	}
@@ -1823,7 +1860,17 @@ void GRichTextEdit::OnPaint(GSurface *pDC)
 	GCssTools ct(d, d->Font);
 	r = ct.PaintBorderAndPadding(pDC, r);
 
-	d->Layout(r);
+	int FontY = GetFont()->GetHeight();
+	d->Areas[ContentArea] = r;
+	if (d->ShowTools && r.Y() > (FontY * 3))
+	{
+		d->Areas[ToolsArea] = r;
+		d->Areas[ToolsArea].y2 = d->Areas[ToolsArea].y1 + (FontY + 8) - 1;
+		d->Areas[ContentArea].y1 = d->Areas[ToolsArea].y2 + 1;
+	}
+	else d->Areas[ToolsArea].ZOff(-1, -1);
+
+	d->Layout(d->Areas[ContentArea]);
 	d->Paint(pDC);
 }
 
@@ -1947,6 +1994,93 @@ bool GRichTextEdit::OnLayout(GViewLayoutInfo &Inf)
 	Inf.Height.Max = -1;
 
 	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+SelectColour::SelectColour(GRichTextPriv *priv, GdcPt2 p, GRichTextEdit::RectType t) : GPopup(priv->View)
+{
+	d = priv;
+	Type = t;
+
+	int Px = 16;
+	int PxSp = Px + 2;
+	int x = 6;
+	int y = 6;
+
+	// Do grey ramp
+	for (int i=0; i<8; i++)
+	{
+		Entry &en = e.New();
+		int Grey = i * 255 / 7;
+		en.r.ZOff(Px-1, Px-1);
+		en.r.Offset(x + (i * PxSp), y);
+		en.c.Rgb(Grey, Grey, Grey);
+	}
+
+	// Do colours
+	y += PxSp + 4;
+	int SatRange = 255 - 64;
+	int SatStart = 255 - 32;
+	int HueStep = 360 / 8;
+	for (int sat=0; sat<8; sat++)
+	{
+		for (int hue=0; hue<8; hue++)
+		{
+			GColour c;
+			c.SetHLS(hue * HueStep, SatStart - ((sat * SatRange) / 7), 255);
+			c.ToRGB();
+			LgiTrace("c=%s\n", c.GetStr());
+
+			Entry &en = e.New();
+			en.r.ZOff(Px-1, Px-1);
+			en.r.Offset(x + (hue * PxSp), y);
+			en.c = c;
+		}
+
+		y += PxSp;
+	}
+
+	GRect r(0, 0, 12 + (8 * PxSp) - 1, y + 6 - 1);
+	r.Offset(p.x, p.y);
+	SetPos(r);
+
+	Visible(true);
+}
+
+void SelectColour::OnPaint(GSurface *pDC)
+{
+	pDC->Colour(LC_MED, 24);
+	pDC->Rectangle();
+	for (unsigned i=0; i<e.Length(); i++)
+	{
+		pDC->Colour(e[i].c);
+		pDC->Rectangle(&e[i].r);
+	}
+}
+
+void SelectColour::OnMouseClick(GMouse &m)
+{
+	if (m.Down())
+	{
+		for (unsigned i=0; i<e.Length(); i++)
+		{
+			if (e[i].r.Overlap(m.x, m.y))
+			{
+				d->Values[Type] = (int64)e[i].c.c32();
+				d->View->Invalidate(d->Areas + Type);
+				d->OnStyleChange(Type);
+				Visible(false);
+				break;
+			}
+		}
+	}
+}
+
+void SelectColour::Visible(bool i)
+{
+	GPopup::Visible(i);
+	if (!i)
+		delete this;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
