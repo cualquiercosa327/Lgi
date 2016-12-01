@@ -314,7 +314,7 @@ void GRichTextEdit::DeleteSelection(char16 **Cut)
 			int EndIdx = d->Blocks.IndexOf(End->Blk);
 			if (i >= 0 && EndIdx >= i)
 			{
-				for (++i; d->Blocks[i] != End->Blk && i < d->Blocks.Length(); i++)
+				for (++i; d->Blocks[i] != End->Blk && i < (int)d->Blocks.Length(); i++)
 				{
 					GRichTextPriv::Block *&b = d->Blocks[i];
 					b->CopyAt(0, -1, DelTxt);
