@@ -286,8 +286,8 @@ void GRichTextEdit::DeleteSelection(char16 **Cut)
 			}
 
 			// 2) Delete any blocks between 'Start' and 'End'
-			unsigned i = d->Blocks.IndexOf(Start->Blk);
-			unsigned EndIdx = d->Blocks.IndexOf(End->Blk);
+			int i = d->Blocks.IndexOf(Start->Blk);
+			int EndIdx = d->Blocks.IndexOf(End->Blk);
 			if (i >= 0 && EndIdx >= i)
 			{
 				for (++i; d->Blocks[i] != End->Blk && i < d->Blocks.Length(); i++)

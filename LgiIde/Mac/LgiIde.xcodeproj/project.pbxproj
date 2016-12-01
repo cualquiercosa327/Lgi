@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		3412BAC51A6256E60096412F /* icons.png in Resources */ = {isa = PBXBuildFile; fileRef = 3412BAC41A6256E60096412F /* icons.png */; };
+		341B9A4F1DEACA060011CE44 /* cmds-32px.png in Resources */ = {isa = PBXBuildFile; fileRef = 341B9A4E1DEACA060011CE44 /* cmds-32px.png */; };
+		341B9A521DEACA310011CE44 /* SimpleCppParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 341B9A501DEACA310011CE44 /* SimpleCppParser.cpp */; };
 		342D773A11FA48B6005BADBD /* GControlTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 342D773911FA48B6005BADBD /* GControlTree.cpp */; };
 		342D774A11FA4929005BADBD /* LgiMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 342D774911FA4929005BADBD /* LgiMain.cpp */; };
 		349A250F1A5E3D1D00F4263E /* FindInFiles.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A24F81A5E3D1D00F4263E /* FindInFiles.cpp */; };
@@ -33,7 +35,7 @@
 		349A252D1A5E433A00F4263E /* GSubProcess.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A252C1A5E433A00F4263E /* GSubProcess.cpp */; };
 		349A252F1A5E434A00F4263E /* IFtp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A252E1A5E434A00F4263E /* IFtp.cpp */; };
 		349A25311A5E43F600F4263E /* Png.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A25301A5E43F600F4263E /* Png.cpp */; };
-		349A25331A5E440100F4263E /* cmds.png in Resources */ = {isa = PBXBuildFile; fileRef = 349A25321A5E440100F4263E /* cmds.png */; };
+		349A25331A5E440100F4263E /* cmds-16px.png in Resources */ = {isa = PBXBuildFile; fileRef = 349A25321A5E440100F4263E /* cmds-16px.png */; };
 		34D20B771CB2861600730172 /* ProjectNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D20B751CB2861600730172 /* ProjectNode.cpp */; };
 		34D20B7B1CB2862E00730172 /* AddFtpFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D20B791CB2862E00730172 /* AddFtpFile.cpp */; };
 		34D20B7D1CB2864700730172 /* IdeCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D20B7C1CB2864700730172 /* IdeCommon.cpp */; };
@@ -72,6 +74,9 @@
 		20286C33FDCF999611CA2CEA /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		32DBCF6D0370B57F00C91783 /* LgiIde_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LgiIde_Prefix.pch; sourceTree = "<group>"; };
 		3412BAC41A6256E60096412F /* icons.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = icons.png; path = ../Code/icons.png; sourceTree = "<group>"; };
+		341B9A4E1DEACA060011CE44 /* cmds-32px.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "cmds-32px.png"; path = "../Code/cmds-32px.png"; sourceTree = "<group>"; };
+		341B9A501DEACA310011CE44 /* SimpleCppParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SimpleCppParser.cpp; path = ../Code/SimpleCppParser.cpp; sourceTree = "<group>"; };
+		341B9A511DEACA310011CE44 /* SimpleCppParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SimpleCppParser.h; path = ../Code/SimpleCppParser.h; sourceTree = "<group>"; };
 		342D773911FA48B6005BADBD /* GControlTree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GControlTree.cpp; path = ../../src/common/Widgets/GControlTree.cpp; sourceTree = SOURCE_ROOT; };
 		342D774911FA4929005BADBD /* LgiMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiMain.cpp; path = ../../src/common/Lgi/LgiMain.cpp; sourceTree = SOURCE_ROOT; };
 		349A24F11A5E3C5C00F4263E /* LgiCarbon.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LgiCarbon.xcodeproj; path = ../../src/mac/carbon/LgiCarbon.xcodeproj; sourceTree = "<group>"; };
@@ -104,7 +109,7 @@
 		349A252C1A5E433A00F4263E /* GSubProcess.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GSubProcess.cpp; path = ../../src/common/Lgi/GSubProcess.cpp; sourceTree = "<group>"; };
 		349A252E1A5E434A00F4263E /* IFtp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IFtp.cpp; path = ../../src/common/INet/IFtp.cpp; sourceTree = "<group>"; };
 		349A25301A5E43F600F4263E /* Png.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Png.cpp; path = ../../src/common/Gdc2/Filters/Png.cpp; sourceTree = "<group>"; };
-		349A25321A5E440100F4263E /* cmds.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = cmds.png; path = ../Code/cmds.png; sourceTree = "<group>"; };
+		349A25321A5E440100F4263E /* cmds-16px.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "cmds-16px.png"; path = "../Code/cmds-16px.png"; sourceTree = "<group>"; };
 		34D20B751CB2861600730172 /* ProjectNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ProjectNode.cpp; path = ../Code/ProjectNode.cpp; sourceTree = "<group>"; };
 		34D20B761CB2861600730172 /* ProjectNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ProjectNode.h; path = ../Code/ProjectNode.h; sourceTree = "<group>"; };
 		34D20B791CB2862E00730172 /* AddFtpFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AddFtpFile.cpp; path = ../Code/AddFtpFile.cpp; sourceTree = "<group>"; };
@@ -153,6 +158,8 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				341B9A501DEACA310011CE44 /* SimpleCppParser.cpp */,
+				341B9A511DEACA310011CE44 /* SimpleCppParser.h */,
 				34D20B7E1CB2866600730172 /* WebFldDlg.cpp */,
 				34D20B7F1CB2866600730172 /* WebFldDlg.h */,
 				34D20B7C1CB2864700730172 /* IdeCommon.cpp */,
@@ -184,8 +191,9 @@
 		20286C2CFDCF999611CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				341B9A4E1DEACA060011CE44 /* cmds-32px.png */,
 				3412BAC41A6256E60096412F /* icons.png */,
-				349A25321A5E440100F4263E /* cmds.png */,
+				349A25321A5E440100F4263E /* cmds-16px.png */,
 				349A25091A5E3D1D00F4263E /* LgiIde.lr8 */,
 				8D0C4E960486CD37000505A6 /* Info.plist */,
 				0867D6AAFE840B52C02AAC07 /* InfoPlist.strings */,
@@ -338,9 +346,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				8D0C4E8D0486CD37000505A6 /* InfoPlist.strings in Resources */,
+				341B9A4F1DEACA060011CE44 /* cmds-32px.png in Resources */,
 				8D0C4E8E0486CD37000505A6 /* main.nib in Resources */,
 				349A25191A5E3D1D00F4263E /* LgiIde.lr8 in Resources */,
-				349A25331A5E440100F4263E /* cmds.png in Resources */,
+				349A25331A5E440100F4263E /* cmds-16px.png in Resources */,
 				3412BAC51A6256E60096412F /* icons.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -355,6 +364,7 @@
 				342D773A11FA48B6005BADBD /* GControlTree.cpp in Sources */,
 				342D774A11FA4929005BADBD /* LgiMain.cpp in Sources */,
 				34D20B7B1CB2862E00730172 /* AddFtpFile.cpp in Sources */,
+				341B9A521DEACA310011CE44 /* SimpleCppParser.cpp in Sources */,
 				349A250F1A5E3D1D00F4263E /* FindInFiles.cpp in Sources */,
 				349A25101A5E3D1D00F4263E /* FindSymbol.cpp in Sources */,
 				34D20B801CB2866600730172 /* WebFldDlg.cpp in Sources */,

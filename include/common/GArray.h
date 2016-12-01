@@ -31,8 +31,12 @@ _CRTIMP void __cdecl qsort_s(void *_Base,
 #endif
 #endif
 
+#ifndef MAX
 #define MAX(a,b) ((a) > (b) ? a : b)
+#endif
+#ifndef MIN
 #define MIN(a,b) ((a) < (b) ? a : b)
+#endif
 
 /// \brief Growable type-safe array.
 /// \ingroup Base
