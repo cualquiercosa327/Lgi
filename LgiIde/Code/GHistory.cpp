@@ -149,33 +149,33 @@ void GHistory::Value(int64 i)
 	else LgiTrace("%s:%i - No list?\n", _FL);
 }
 
-void GHistory::Add(char *Str)
+int GHistory::Add(char *Str)
 {
-	if (Str)
+	if (!Str)
+		return -1;
+
+	int Idx = 0;
+	for (char *s=First(); s; s=Next(), Idx++)
 	{
-		bool Has = false;
-		for (char *s=First(); s; s=Next())
+		if (strcmp(s, Str) == 0)
 		{
-			if (strcmp(s, Str) == 0)
-			{
-				Has = true;
-				break;
-			}
-		}
-		if (!Has)
-		{
-			Insert(NewStr(Str));
-			if (d->Popup && d->Popup->Lst)
-			{
-				GListItem *li = new GListItem;
-				if (li)
-				{
-					li->SetText(Str);
-					d->Popup->Lst->Insert(li);
-				}
-			}
+			return Idx;
 		}
 	}
+
+	Idx = Length();
+	Insert(NewStr(Str));
+	if (d->Popup && d->Popup->Lst)
+	{
+		GListItem *li = new GListItem;
+		if (li)
+		{
+			li->SetText(Str);
+			d->Popup->Lst->Insert(li);
+		}
+	}
+
+	return Idx;
 }
 
 void GHistory::Update()

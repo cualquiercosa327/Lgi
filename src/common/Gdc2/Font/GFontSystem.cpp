@@ -401,9 +401,11 @@ int GFontSystem::IconvConvert(const char *OutCs, GStreamI *Out, const char *InCs
 		while (InLen)
 		{
 			char *o = (char*)Buf;
-			int OutLen = sizeof(Buf);
+			size_t OutLen = sizeof(Buf);
 			int OldInLen = InLen;
-			int s = d->libiconv(Conv, (IconvChar**)&i, (size_t*)&InLen, &o, (size_t*)&OutLen);
+			size_t InSz = InLen;
+			int s = d->libiconv(Conv, (IconvChar**)&i, &InSz, &o, &OutLen);
+			InLen = InSz;
 			Out->Write((uchar*)Buf, sizeof(Buf) - OutLen);
 			if (OldInLen == InLen) break;
 		}
@@ -463,13 +465,16 @@ int GFontSystem::IconvConvert(const char *OutCs, char *Out, int OutLen, const ch
 	iconv_t Conv;
 	if ((Conv = d->libiconv_open(OutCs, InCs)) >= 0)
 	{
-		int InLength = InLen;
+		size_t InSz = InLen;
+		size_t OutSz = OutLen;
 		char *o = Out;
 		char *i = (char*)In;
 
 		// Convert
 		char *Start = o;
-		int s = d->libiconv(Conv, (IconvChar**)&i, (size_t*)&InLen, &o, (size_t*)&OutLen);
+		int s = d->libiconv(Conv, (IconvChar**)&i, &InSz, &o, &OutSz);
+		InLen = InSz;
+		OutLen = OutSz;
 		d->libiconv_close(Conv);
 
 		In = (const char*)i;

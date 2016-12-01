@@ -176,7 +176,6 @@ protected:
 	bool Buttons;
 	bool LinesAtRoot;
 	bool EditLabels;
-	bool MultipleSelect;
 	
 	GRect rItems;
 	

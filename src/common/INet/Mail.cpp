@@ -371,15 +371,22 @@ char *DecodeRfc2047(char *Str)
 							Temp.Write((uchar*)s, p-s);
 						}
 						
-						GAutoString Utf8((char*)LgiNewConvertCp("utf-8", Block, Cp));
-						if (Utf8)
+						if (Cp && !_stricmp(Cp, "utf-8"))
 						{
-							if (LgiIsUtf8(Utf8))
-								Temp.Write((uchar*)Utf8.Get(), strlen(Utf8));
+							Temp.Write((uchar*)Block, Len);
 						}
 						else
 						{
-							Temp.Write((uchar*)Block, Len);
+							GAutoString Utf8((char*)LgiNewConvertCp("utf-8", Block, Cp, Len));
+							if (Utf8)
+							{
+								if (LgiIsUtf8(Utf8))
+									Temp.Write((uchar*)Utf8.Get(), strlen(Utf8));
+							}
+							else
+							{
+								Temp.Write((uchar*)Block, Len);
+							}
 						}
 
 						DeleteArray(Block);
@@ -803,7 +810,7 @@ int PartCmp(GAutoPtr<MailAddrPart> *a, GAutoPtr<MailAddrPart> *b)
     return (*b)->Score() - (*a)->Score();
 }
 
-void DecodeAddrName(const char *Str, GAutoString &Name, GAutoString &Addr, char *DefaultDomain)
+void DecodeAddrName(char *Str, GAutoString &Name, GAutoString &Addr, char *DefaultDomain)
 {
 	/* Testing code
 	char *Input[] =
@@ -896,7 +903,7 @@ void DecodeAddrName(const char *Str, GAutoString &Name, GAutoString &Addr, char 
 	
 	if (non.Length() > 0)
 	{
-		const char *ChSet = " \t\r\n\'\"<>";
+		char *ChSet = " \t\r\n\'\"<>";
 		do
 		{
 			non = non.Strip(ChSet);

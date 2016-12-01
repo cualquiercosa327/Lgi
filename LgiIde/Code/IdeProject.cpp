@@ -500,12 +500,16 @@ bool IdeProject::OnNode(const char *Path, ProjectNode *Node, bool Add)
 		}
 	}
 
-	// LgiTrace("%s:%i - OnNode(%s, %i)\n", _FL, Path, Add);
-	
+	bool Status = false;
 	if (Add)
-		return d->Nodes.Add(Path, Node);
+		Status = d->Nodes.Add(Path, Node);
 	else
-		return d->Nodes.Delete(Path);
+		Status = d->Nodes.Delete(Path);
+	
+	if (Status)
+		d->App->OnNode(Path, Node, Add);
+
+	return Status;
 }
 
 void IdeProject::ShowFileProperties(const char *File)
@@ -1249,14 +1253,14 @@ bool IdeProject::GetAllNodes(GArray<ProjectNode*> &Nodes)
 	return true;
 }
 
-bool IdeProject::InProject(const char *Path, bool Open, IdeDoc **Doc)
+bool IdeProject::InProject(bool FuzzyMatch, const char *Path, bool Open, IdeDoc **Doc)
 {
 	if (!Path)
 		return false;
 		
 	// Search complete path first...
 	ProjectNode *n = d->Nodes.Find(Path);	
-	if (!n)
+	if (!n && FuzzyMatch)
 	{
 		// No match, do partial matching.
 		const char *Leaf = LgiGetLeaf(Path);
@@ -2521,6 +2525,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 IdeTree::IdeTree() : GTree(100, 0, 0, 100, 100)
 {
 	Hit = 0;
+	MultiSelect(true);
 }
 
 void IdeTree::OnAttach()

@@ -49,20 +49,28 @@ protected:
 
 	inline void _strip(GString &ret, const char *set, bool left, bool right)
 	{
-		if (!Str) return;
+		if (!Str)
+			return;
 		
 		char *s = Str->Str;
 		char *e = s + Str->Len;
 
 		if (!set) set = " \t\r\n";
+
+		if (left)
+		{		
+			while (s < e && strchr(set, *s))
+				s++;
+		}
 		
-		while (left && *s && strchr(set, *s))
-			s++;
+		if (right)
+		{
+			while (e > s && strchr(set, e[-1]))
+				e--;
+		}
 		
-		while (right && e > s && strchr(set, e[-1]))
-			e--;
-		
-		ret.Set(s, e - s);
+		if (e > s)
+			ret.Set(s, e - s);
 	}
 
 public:
@@ -279,7 +287,7 @@ public:
 		return *this;
 	}
 	
-	GString &operator =(const char16 *s)
+	GString &operator =(const wchar_t *s)
 	{
 		Empty();
 		
@@ -587,6 +595,72 @@ public:
 		return ret;
 	}
 
+	// Replaces a sub-string with another
+	GString Replace(const char *Old, const char *New = NULL, int Count = -1, bool CaseSen = false)
+	{
+		GString s;
+		
+		if (Old)
+		{
+			// Calculate the new of the new string...
+			size_t OldLen = strlen(Old);
+			size_t NewLen = New ? strlen(New) : 0;
+			char *Match = Str->Str;
+			GArray<char*> Matches;
+			while (Match = (CaseSen ? strstr(Match, Old) : Stristr(Match, Old)))
+			{
+				Matches.Add(Match);
+				if (Count >= 0 && (int)Matches.Length() >= Count)
+					break;
+				Match += OldLen;
+			}
+
+			size_t NewSize = Str->Len + (Matches.Length() * (NewLen - OldLen));
+			s.Length(NewSize);
+			char *Out = s.Get();
+			char *In = Str->Str;
+
+			// For each match...
+			for (unsigned i=0; i<Matches.Length(); i++)
+			{
+				char *m = Matches[i];
+				if (In < m)
+				{
+					// Copy any part before the match
+					int Bytes = m - In;
+					memcpy(Out, In, Bytes);
+					Out += Bytes;
+				}
+				In = m + OldLen;
+
+				if (New)
+				{
+					// Copy any new string
+					memcpy(Out, New, NewLen);
+					Out += NewLen;
+				}
+			}
+
+			// Copy any trailer characters
+			char *End = Str->Str + Str->Len;
+			if (In < End)
+			{
+				int Bytes = End - In;
+				memcpy(Out, In, Bytes);
+				Out += Bytes;
+			}
+
+			assert(Out - s.Get() == NewSize); // Check we got the size right...
+			*Out = 0; // Null terminate
+		}
+		else
+		{
+			s = *this;
+		}
+		
+		return s;
+	}
+
 	/// Convert string to double
 	double Float()
 	{
@@ -676,8 +750,8 @@ public:
 	GString Lower()
 	{
 		GString s;
-		s.Set(Get());
-		Strlwr(s.Get());
+		if (Str && s.Set(Str->Str, Str->Len))
+			Strlwr(s.Get());
 		return s;
 	}
 	
@@ -685,8 +759,8 @@ public:
 	GString Upper()
 	{
 		GString s;
-		s.Set(Get());
-		Strupr(s.Get());
+		if (Str && s.Set(Str->Str, Str->Len))
+			Strupr(s.Get());
 		return s;
 	}
 

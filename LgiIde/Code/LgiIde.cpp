@@ -1720,7 +1720,7 @@ IdeDoc *AppWnd::OpenFile(const char *FileName, NodeSource *Src)
 				List<IdeProject>::I Proj = d->Projects.Start();
 				for (IdeProject *p=*Proj; p && !Doc; p=*++Proj)
 				{
-					p->InProject(File, true, &Doc);				
+					p->InProject(true, File, true, &Doc);				
 				}
 				DoingProjectFind = false;
 
@@ -1812,6 +1812,10 @@ IdeProject *AppWnd::OpenProject(char *FileName, IdeProject *ParentProj, bool Cre
 		d->Projects.Insert(p = new IdeProject(this));
 		if (p)
 		{
+			GString::Array Inc;
+			p->BuildIncludePaths(Inc, false, PlatformCurrent);
+			d->FindSym.SetIncludePaths(Inc);
+
 			p->SetParentProject(ParentProj);
 			
 			if (p->OpenFile(FileName))
@@ -1845,10 +1849,8 @@ IdeProject *AppWnd::OpenProject(char *FileName, IdeProject *ParentProj, bool Cre
 			GArray<ProjectNode*> Files;
 			if (p && p->GetAllNodes(Files))
 			{
-				GString::Array Inc;
-				p->BuildIncludePaths(Inc, false, PlatformCurrent);
-				d->FindSym.SetIncludePaths(Inc);
 
+				/* This is handling in ::OnNode now
 				GAutoString Base = p->GetBasePath();
 				for (unsigned i=0; i<Files.Length(); i++)
 				{
@@ -1873,6 +1875,7 @@ IdeProject *AppWnd::OpenProject(char *FileName, IdeProject *ParentProj, bool Cre
 						}
 					}
 				}
+				*/
 			}
 		}
 	}
@@ -1961,6 +1964,16 @@ GMessage::Result AppWnd::OnEvent(GMessage *m)
 	}
 
 	return GWindow::OnEvent(m);
+}
+
+bool AppWnd::OnNode(const char *Path, ProjectNode *Node, bool Add)
+{
+	// This takes care of adding/removing files from the symbol search engine.
+	if (!Path || !Node)
+		return false;
+
+	d->FindSym.OnFile(Path, Add ? FindSymbolSystem::FileAdd : FindSymbolSystem::FileRemove);
+	return true;
 }
 
 GOptionsFile *AppWnd::GetOptions()
