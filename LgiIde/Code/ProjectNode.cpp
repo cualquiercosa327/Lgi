@@ -974,7 +974,7 @@ void ProjectNode::OnMouseClick(GMouse &m)
 				{
 					for (int i=0; i<s.Length(); i++)
 					{
-						if (!Project->InProject(s[i], false))
+						if (!Project->InProject(false, s[i], false))
 						{
 							ProjectNode *New = new ProjectNode(Project);
 							if (New)

@@ -1253,14 +1253,14 @@ bool IdeProject::GetAllNodes(GArray<ProjectNode*> &Nodes)
 	return true;
 }
 
-bool IdeProject::InProject(const char *Path, bool Open, IdeDoc **Doc)
+bool IdeProject::InProject(bool FuzzyMatch, const char *Path, bool Open, IdeDoc **Doc)
 {
 	if (!Path)
 		return false;
 		
 	// Search complete path first...
 	ProjectNode *n = d->Nodes.Find(Path);	
-	if (!n)
+	if (!n && FuzzyMatch)
 	{
 		// No match, do partial matching.
 		const char *Leaf = LgiGetLeaf(Path);
@@ -2525,6 +2525,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 IdeTree::IdeTree() : GTree(100, 0, 0, 100, 100)
 {
 	Hit = 0;
+	MultiSelect(true);
 }
 
 void IdeTree::OnAttach()

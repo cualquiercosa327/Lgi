@@ -238,6 +238,8 @@ public:
 #define GIC_OWN_LIST				0x08
 /// Drag is over the control
 #define GIC_IN_DRAG_OP				0x10
+/// Multiple item select allowed
+#define GIC_MULTI_SELECT			0x20
 
 #define DRAG_NONE					0
 #define SELECT_ITEMS				1
@@ -303,6 +305,11 @@ public:
 	void AskImage(bool b) { if (b) SetFlag(Flags, GIC_ASK_IMAGE); else ClearFlag(Flags, GIC_ASK_IMAGE); }
 	bool InsideDragOp() { return TestFlag(Flags, GIC_IN_DRAG_OP); }
 	void InsideDragOp(bool b) { if (b) SetFlag(Flags, GIC_IN_DRAG_OP); else ClearFlag(Flags, GIC_IN_DRAG_OP); }
+
+	/// Returns whether the user can select multiple items at the same time
+	bool MultiSelect() { return TestFlag(Flags, GIC_MULTI_SELECT); }
+	/// Sets whether the user can select multiple items at the same time
+	void MultiSelect(bool b) { if (b) SetFlag(Flags, GIC_MULTI_SELECT); else ClearFlag(Flags, GIC_MULTI_SELECT); }
 
 	/// Returns whether display of column headers is switched on
 	bool ShowColumnHeader() { return ColumnHeaders; }

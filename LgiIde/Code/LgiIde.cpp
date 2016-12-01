@@ -1720,7 +1720,7 @@ IdeDoc *AppWnd::OpenFile(const char *FileName, NodeSource *Src)
 				List<IdeProject>::I Proj = d->Projects.Start();
 				for (IdeProject *p=*Proj; p && !Doc; p=*++Proj)
 				{
-					p->InProject(File, true, &Doc);				
+					p->InProject(true, File, true, &Doc);				
 				}
 				DoingProjectFind = false;
 

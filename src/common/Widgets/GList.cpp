@@ -889,7 +889,7 @@ GList::GList(int id, int x, int y, int cx, int cy, const char *name)
 	FirstVisible = -1;
 	LastVisible = -1;
 	EditLabels = false;
-	MultiItemSelect = true;
+	MultiSelect(true);
 	CompletelyVisible = 0;
 	Keyboard = -1;
 	Sunken(true);
@@ -961,11 +961,11 @@ void GList::OnItemSelect(GArray<GListItem*> &It)
 		for (int n=0; n<It.Length(); n++)
 		{
 			It[n]->OnSelect();
-			if (!MultiItemSelect)
+			if (!MultiSelect())
 				Sel.Add(It[n], true);
 		}
 
-		if (!MultiItemSelect)
+		if (!MultiSelect())
 		{
 			// deselect all other items
 			ForAllItems(i)
@@ -2045,7 +2045,7 @@ void GList::OnMouseMove(GMouse &m)
 
 				if (IsCapturing())
 				{
-					if (MultiItemSelect)
+					if (MultiSelect())
 					{
 						int Over = -1;
 						

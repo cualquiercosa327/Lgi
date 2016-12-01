@@ -197,7 +197,7 @@ public:
 	void StopBuild();
 	void Clean(bool Release);
 	GDebugContext *Execute(ExeAction Act = ExeRun);
-	bool InProject(const char *Path, bool Open, class IdeDoc **Doc = 0);
+	bool InProject(bool FuzzyMatch, const char *Path, bool Open, class IdeDoc **Doc = 0);
 	const char *GetFileComment();
 	const char *GetFunctionComment();
 	bool CreateMakefile(IdePlatform Platform);

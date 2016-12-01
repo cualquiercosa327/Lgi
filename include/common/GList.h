@@ -225,7 +225,6 @@ protected:
 	// Flags
 	bool EditLabels;
 	bool GridLines;
-	bool MultiItemSelect;
 
 	// Double buffered
 	GSurface *Buf;
@@ -341,10 +340,6 @@ public:
 	bool DrawGridLines() { return GridLines; }
 	/// Sets whether grid lines are drawn
 	void DrawGridLines(bool b) { GridLines = b; }
-	/// Returns whether the user can select multiple items at the same time
-	bool MultiSelect() { return MultiItemSelect; }
-	/// Sets whether the user can select multiple items at the same time
-	void MultiSelect(bool b) { MultiItemSelect = b; }
 
 	// Methods
 	

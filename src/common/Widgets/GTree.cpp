@@ -42,6 +42,7 @@ public:
 	int64			DropSelectTime;
     int8            IconTextGap;
     int				LastLayoutPx;
+	GMouse			*CurrentClick;
     
     // Visual style
 	GTree::ThumbStyle Btns;
@@ -54,6 +55,7 @@ public:
 
 	GTreePrivate()
 	{
+		CurrentClick = NULL;
 		LastLayoutPx = -1;
 		DropSelectTime = 0;
 		InPour = false;
@@ -1045,7 +1047,6 @@ GTree::GTree(int id, int x, int y, int cx, int cy, const char *name) :
 	Buttons = true;
 	LinesAtRoot = true;
 	EditLabels = false;
-	MultipleSelect = false;
 	ColumnHeaders = false;
 	rItems.ZOff(-1, -1);
 
@@ -1170,7 +1171,16 @@ void GTree::_UpdateScrollBars()
 
 void GTree::_OnSelect(GTreeItem *Item)
 {
-	if (!MultipleSelect)
+	if
+	(
+		!MultiSelect()
+		||
+		(
+			d->CurrentClick 
+			&&
+			!d->CurrentClick->Ctrl()
+		)
+	)
 	{
 		for (GTreeItem *i=d->Selection.First(); i; i=d->Selection.Next())
 		{
@@ -1517,9 +1527,12 @@ bool GTree::OnMouseWheel(double Lines)
 
 void GTree::OnMouseClick(GMouse &m)
 {
+	d->CurrentClick = &m;
+
 	if (m.Down())
 	{
 		DragMode = DRAG_NONE;
+
 		if (ColumnHeaders &&
 			ColumnHeader.Overlap(m.x, m.y))
 		{
@@ -1529,7 +1542,7 @@ void GTree::OnMouseClick(GMouse &m)
 			// Clicked on a column heading
 			GItemColumn *Resize;
 			GItemColumn *Over = NULL;
-			/*int Index = */HitColumn(m.x, m.y, Resize, Over);
+			HitColumn(m.x, m.y, Resize, Over);
 
 			if (Resize)
 			{
@@ -1596,6 +1609,8 @@ void GTree::OnMouseClick(GMouse &m)
 			}
 		}
 	}
+
+	d->CurrentClick = NULL;
 }
 
 void GTree::OnMouseMove(GMouse &m)

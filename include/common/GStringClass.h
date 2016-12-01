@@ -650,7 +650,7 @@ public:
 				Out += Bytes;
 			}
 
-			LgiAssert(Out - s.Get() == NewSize); // Check we got the size right...
+			assert(Out - s.Get() == NewSize); // Check we got the size right...
 			*Out = 0; // Null terminate
 		}
 		else
