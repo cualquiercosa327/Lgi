@@ -428,6 +428,7 @@ public:
 	bool Continue();
 	bool Stop();
 	bool BreakPoint(const char *File, int Line, bool Add);
+	void SetBreakCpp(bool Brk);
 };
 
 /// Scripting engine system functions

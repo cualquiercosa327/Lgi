@@ -327,10 +327,12 @@ public:
 	GVirtualMachine *Vm;
 	ArgumentArray *ArgsOutput;
 	GVariant UnusedReturn;
+	bool BreakCpp;
 
 	GVirtualMachinePriv(GVirtualMachine *vm, GVmDebuggerCallback *Callback)
 	{
 		Vm = vm;
+		BreakCpp = false;
 		ArgsOutput = NULL;
 		Log = NULL;
 		Code = NULL;
@@ -773,6 +775,13 @@ public:
 			// Stepping through code
 			// GHashTbl<int, int> &Debug = Code->Debug;
 			int Line = NearestLine(CurrentScriptAddress);
+			
+			if (BreakCpp)
+			#if defined(WIN32) && !defined(_WIN64)
+				_asm int 3
+			#else
+				assert(!"BreakPoint");
+			#endif
 
 			while (c.u8 < e)
 			{
@@ -884,6 +893,11 @@ bool GVirtualMachine::Stop()
 bool GVirtualMachine::BreakPoint(const char *File, int Line, bool Add)
 {
 	return false;
+}
+
+void GVirtualMachine::SetBreakCpp(bool Brk)
+{
+	d->BreakCpp = Brk;
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -1036,6 +1050,7 @@ enum DbgCtrls
 	IDC_STEP_OUT,
 	IDC_SOURCE_LST,
 	IDC_BREAK_POINT,
+	IDC_BREAK_CPP,
 	IDC_VARS_TBL
 };
 
@@ -1217,6 +1232,7 @@ GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVi
 			s->AppendItem("Step Out", IDC_STEP_OUT, true, -1, "Shift+F11");
 			s->AppendSeparator();
 			s->AppendItem("Breakpoint", IDC_BREAK_POINT, true, -1, "F9");
+			s->AppendItem("Break Into C++", IDC_BREAK_CPP, true, -1, "Ctrl+F9");
 		}
 		
 		AddView(d->Tools = new GToolBar);
@@ -1619,6 +1635,12 @@ int GVmDebuggerWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		{
 			if (d->Vm)
 				d->Vm->StepOut();
+			break;
+		}
+		case IDC_BREAK_CPP:
+		{
+			if (d->Vm)
+				d->Vm->SetBreakCpp(true);
 			break;
 		}
 	}

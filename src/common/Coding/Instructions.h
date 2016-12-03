@@ -1743,7 +1743,6 @@ case IDomCall:
 				}
 				case StrSub:
 				{
-					Dst->Empty();
 					char *s = Dom->Str();
 					if (s)
 					{
@@ -1755,10 +1754,11 @@ case IDomCall:
 						if (Start < 0)
 							Start = 0;
 						if (Start <= End)
-						{
 							Dst->OwnStr(NewStr(s + Start, End - Start));
-						}
+						else
+							Dst->Empty();
 					}
+					else Dst->Empty();
 					break;
 				}
 				default:
