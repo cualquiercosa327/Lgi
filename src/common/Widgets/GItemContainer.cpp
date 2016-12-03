@@ -390,9 +390,18 @@ void GItemContainer::ResizeColumnsToContent(int Border)
 				}
 				else
 				{
-					// Need to scale to fit...
-					int Px = Inf.ContentPx * ExpandPx / Sizes.ResizePx;
-					Inf.Col->Width(Px + Border);
+					int Cx = GetClient().X();
+					double Ratio = Cx ? (double)Inf.ContentPx / Cx : 1.0;
+					if (Ratio < 0.25)
+					{
+						Inf.Col->Width(Inf.ContentPx + 2);
+					}
+					else
+					{					
+						// Need to scale to fit...
+						int Px = Inf.ContentPx * ExpandPx / Sizes.ResizePx;
+						Inf.Col->Width(Px + Border);
+					}
 				}
 
 				ClearDs(Inf.Idx);
