@@ -493,7 +493,7 @@ int GRichTextEdit::GetCursor(bool Cur)
 
 int GRichTextEdit::IndexAt(int x, int y)
 {
-	return d->HitTest(x, y);
+	return d->HitText(x, y, false);
 }
 
 void GRichTextEdit::SetCursor(int i, bool Select, bool ForceFullUpdate)
@@ -836,7 +836,7 @@ void GRichTextEdit::OnFocus(bool f)
 
 int GRichTextEdit::HitText(int x, int y)
 {
-	return d->HitTest(x, y);
+	return d->HitText(x, y, false);
 }
 
 void GRichTextEdit::Undo()
@@ -1047,7 +1047,7 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 			}
 			else
 			{
-				int Hit = HitText(m.x, m.y);
+				int Hit = d->HitText(m.x, m.y, true);
 				d->WordSelectMode = !Processed && m.Double();
 
 				if (Hit >= 0)
@@ -1079,7 +1079,7 @@ int GRichTextEdit::OnHitTest(int x, int y)
 
 void GRichTextEdit::OnMouseMove(GMouse &m)
 {
-	int Hit = d->HitTest(m.x, m.y);
+	int Hit = d->HitText(m.x, m.y, false);
 	if (IsCapturing())
 	{
 		if (!d->WordSelectMode)
@@ -1173,7 +1173,8 @@ bool GRichTextEdit::OnKey(GKey &k)
 						if (d->Cursor &&
 							d->Cursor->Blk)
 						{
-							if (d->Cursor->Blk->AddText(d->Cursor->Offset, &k.c16, 1))
+							GRichTextPriv::Block *b = d->Cursor->Blk;
+							if (b->AddText(d->Cursor->Offset, &k.c16, 1))
 							{
 								d->Cursor->Set(d->Cursor->Offset + 1);
 								Invalidate();
@@ -1297,9 +1298,7 @@ bool GRichTextEdit::OnKey(GKey &k)
 					break;
 
 				if (k.Down() && k.IsChar)
-				{
 					OnEnter(k);
-				}
 				return true;
 				break;
 			}
@@ -1810,33 +1809,19 @@ bool GRichTextEdit::OnKey(GKey &k)
 void GRichTextEdit::OnEnter(GKey &k)
 {
 	// enter
-	/*
-	if (SelStart >= 0)
-	{
+	if (HasSelection())
 		DeleteSelection();
-	}
 
-	char16 InsertStr[256] = {'\n', 0};
-
-	GTextLine *CurLine = GetTextLine(Cursor);
-	if (CurLine && AutoIndent)
+	if (d->Cursor &&
+		d->Cursor->Blk)
 	{
-		int WsLen = 0;
-		for (;	WsLen < CurLine->Len &&
-				WsLen < (Cursor - CurLine->Start) &&
-				strchr(" \t", Text[CurLine->Start + WsLen]); WsLen++);
-		if (WsLen > 0)
+		GRichTextPriv::Block *b = d->Cursor->Blk;
+		if (b->AddText(d->Cursor->Offset, L"\n", 1))
 		{
-			memcpy(InsertStr+1, Text+CurLine->Start, WsLen * sizeof(char16));
-			InsertStr[WsLen+1] = 0;
+			d->Cursor->Set(d->Cursor->Offset + 1);
+			Invalidate();
 		}
 	}
-
-	if (Insert(Cursor, InsertStr, StrlenW(InsertStr)))
-	{
-		SetCursor(Cursor + StrlenW(InsertStr), false, true);
-	}
-	*/
 }
 
 void GRichTextEdit::OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour)
@@ -1857,9 +1842,6 @@ void GRichTextEdit::OnPaint(GSurface *pDC)
 	pDC->Rectangle();
 	
 	GRect r = GetClient();
-	GCssTools ct(d, d->Font);
-	r = ct.PaintBorderAndPadding(pDC, r);
-
 	int FontY = GetFont()->GetHeight();
 	d->Areas[ContentArea] = r;
 	if (d->ShowTools && r.Y() > (FontY * 3))
@@ -1867,10 +1849,18 @@ void GRichTextEdit::OnPaint(GSurface *pDC)
 		d->Areas[ToolsArea] = r;
 		d->Areas[ToolsArea].y2 = d->Areas[ToolsArea].y1 + (FontY + 8) - 1;
 		d->Areas[ContentArea].y1 = d->Areas[ToolsArea].y2 + 1;
+		r = d->Areas[ContentArea];
 	}
-	else d->Areas[ToolsArea].ZOff(-1, -1);
+	else
+	{
+		d->Areas[ToolsArea].ZOff(-1, -1);
+		d->Areas[ContentArea] = r;
+	}
 
-	d->Layout(d->Areas[ContentArea]);
+	GCssTools ct(d, d->Font);
+	r = ct.PaintBorderAndPadding(pDC, r);
+
+	d->Layout(r);
 	d->Paint(pDC);
 }
 

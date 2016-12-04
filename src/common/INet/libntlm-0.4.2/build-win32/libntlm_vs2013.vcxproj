@@ -100,34 +100,40 @@
     <_ProjectFileVersion>12.0.30501.0</_ProjectFileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(Platform)$(Configuration)12\</OutDir>
+    <OutDir>..\..\..\..\..\lib\</OutDir>
     <IntDir>$(Platform)$(Configuration)12\</IntDir>
     <LinkIncremental>true</LinkIncremental>
+    <TargetName>$(ProjectName)32d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(Platform)$(Configuration)12\</OutDir>
+    <OutDir>..\..\..\..\..\lib\</OutDir>
     <IntDir>$(Platform)$(Configuration)12\</IntDir>
     <LinkIncremental>true</LinkIncremental>
+    <TargetName>$(ProjectName)64d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(Platform)$(Configuration)12\</OutDir>
+    <OutDir>..\..\..\..\..\lib\</OutDir>
     <IntDir>$(Platform)$(Configuration)12\</IntDir>
     <LinkIncremental>false</LinkIncremental>
+    <TargetName>$(ProjectName)32</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(Platform)$(Configuration)12\</OutDir>
+    <OutDir>..\..\..\..\..\lib\</OutDir>
     <IntDir>$(Platform)$(Configuration)12\</IntDir>
     <LinkIncremental>false</LinkIncremental>
+    <TargetName>$(ProjectName)64</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseNoOptimize|Win32'">
-    <OutDir>$(Platform)$(Configuration)12\</OutDir>
+    <OutDir>..\..\..\..\..\lib\</OutDir>
     <IntDir>$(Platform)$(Configuration)12\</IntDir>
     <LinkIncremental>false</LinkIncremental>
+    <TargetName>$(ProjectName)32</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseNoOptimize|x64'">
-    <OutDir>$(Platform)$(Configuration)12\</OutDir>
+    <OutDir>..\..\..\..\..\lib\</OutDir>
     <IntDir>$(Platform)$(Configuration)12\</IntDir>
     <LinkIncremental>false</LinkIncremental>
+    <TargetName>$(ProjectName)64</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
@@ -157,7 +163,7 @@
       <Culture>0x0c09</Culture>
     </ResourceCompile>
     <Link>
-      <OutputFile>../../../../../lib/libntlm9d.dll</OutputFile>
+      <OutputFile>$(OutputPath)$(TargetName).dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)libntlm9.pdb</ProgramDatabaseFile>
@@ -199,7 +205,7 @@
       <Culture>0x0c09</Culture>
     </ResourceCompile>
     <Link>
-      <OutputFile>../../../../../lib/libntlm64d.dll</OutputFile>
+      <OutputFile>$(OutputPath)$(TargetName).dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(IntDir)libntlm.pdb</ProgramDatabaseFile>
@@ -241,7 +247,7 @@
       <Culture>0x0c09</Culture>
     </ResourceCompile>
     <Link>
-      <OutputFile>../../../../../lib/libntlm9.dll</OutputFile>
+      <OutputFile>$(OutputPath)$(TargetName).dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <ProgramDatabaseFile>$(OutDir)libntlm9.pdb</ProgramDatabaseFile>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
@@ -282,7 +288,7 @@
       <Culture>0x0c09</Culture>
     </ResourceCompile>
     <Link>
-      <OutputFile>../../../../../lib/libntlm64.dll</OutputFile>
+      <OutputFile>$(OutputPath)$(TargetName).dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <ProgramDatabaseFile>$(IntDir)libntlm.pdb</ProgramDatabaseFile>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
@@ -323,7 +329,7 @@
       <Culture>0x0c09</Culture>
     </ResourceCompile>
     <Link>
-      <OutputFile>../../../../../lib/libntlm9.dll</OutputFile>
+      <OutputFile>$(OutputPath)$(TargetName).dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <ProgramDatabaseFile>$(OutDir)libntlm9.pdb</ProgramDatabaseFile>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
@@ -364,7 +370,7 @@
       <Culture>0x0c09</Culture>
     </ResourceCompile>
     <Link>
-      <OutputFile>../../../../../lib/libntlm64.dll</OutputFile>
+      <OutputFile>$(OutputPath)$(TargetName).dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <ProgramDatabaseFile>$(IntDir)libntlm.pdb</ProgramDatabaseFile>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>

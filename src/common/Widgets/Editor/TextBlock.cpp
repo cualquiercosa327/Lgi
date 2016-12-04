@@ -104,8 +104,15 @@ bool GRichTextPriv::TextBlock::GetPosFromIndex(GRect *CursorPos, GRect *LinePos,
 		LgiAssert(0);
 		return false;
 	}
+
+	if (LayoutDirty)
+	{
+		CursorPos->ZOff(-1, -1);
+		return false;
+	}
 		
 	int CharPos = 0;
+	int LastY = 0;
 	for (unsigned i=0; i<Layout.Length(); i++)
 	{
 		TextLine *tl = Layout[i];
@@ -165,7 +172,23 @@ bool GRichTextPriv::TextBlock::GetPosFromIndex(GRect *CursorPos, GRect *LinePos,
 		}
 				
 		CharPos += tl->NewLine;
+		LastY = tl->PosOff.y2;
 	}
+
+	/*
+	LgiTrace("Idx=%i CharPos=%i\n", Index, CharPos);
+	if (Index == CharPos)
+	{
+		TextLine *tl = Layout.Length() ? Layout.Last() : NULL;
+		if (tl)
+		{
+			CursorPos->ZOff(1, tl->PosOff.Y()-1);
+			CursorPos->Offset(Pos.x1, Pos.y1 + LastY);
+			*LinePos = *CursorPos;
+			return true;
+		}
+	}
+	*/
 			
 	return false;
 }
@@ -486,6 +509,12 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 						
 				Layout.Add(CurLine.Release());
 				CurLine.Reset(new TextLine(flow.Left - Pos.x1, flow.X(), Pos.Y()));
+
+				if (Off == t->Length())
+				{
+					// Empty line at the end of the StyleText
+					CurLine->Strs.Add(new DisplayStr(t, f, L"", 0, flow.pDC));
+				}
 				continue;
 			}
 
@@ -642,23 +671,63 @@ bool GRichTextPriv::TextBlock::AddText(int AtOffset, const char16 *Str, int Char
 		return false;
 	if (Chars < 0)
 		Chars = StrlenW(Str);
-			
-	bool StyleDiff = (Style != NULL) ^ ((Txt.Length() ? Txt.Last()->GetStyle() : NULL) != NULL);
-	StyleText *t = !StyleDiff && Txt.Length() ? Txt.Last() : NULL;
-	if (t)
+	
+	if (AtOffset >= 0)
 	{
-		t->Add((char16*)Str, Chars);
-		Len += Chars;
-	}
-	else if ((t = new StyleText(Str, Chars)))
-	{
-		Len += t->Length();
-		Txt.Add(t);
-	}
-	else return false;
+		for (unsigned i=0; i<Txt.Length(); i++)
+		{
+			StyleText *t = Txt[i];
+			if (AtOffset <= (int)t->Length())
+			{
+				if (!Style)
+				{
+					// Add to existing text run
+					int After = t->Length() - AtOffset;
+					int NewSz = t->Length() + Chars;
+					t->Length(NewSz);
+					char16 *c = &t->First();
+					if (After > 0)
+						memmove(c + AtOffset + Chars, c + AtOffset, After * sizeof(*c));
+					memcpy(c + AtOffset, Str, Chars * sizeof(*c));
+				}
+				else
+				{
+					// Break into 2 runs, with the new text in the middle...
 
+					// Insert the new text+style
+					StyleText *Run = new StyleText(Str, Chars, Style);
+					if (!Run) return false;
+					Txt.AddAt(++i, Run);
+
+					if (AtOffset < (int)t->Length())
+					{
+						// Insert the 2nd part of the string
+						Run = new StyleText(&(*t)[AtOffset], t->Length() - AtOffset, t->GetStyle());
+						if (!Run) return false;
+						Txt.AddAt(++i, Run);
+
+						// Now truncate the existing text..
+						t->Length(AtOffset);
+					}
+				}
+
+				Str = NULL;
+				break;
+			}
+
+			AtOffset -= t->Length();
+		}
+	}
+
+	if (Str)
+	{
+		StyleText *Run = new StyleText(Str, Chars, Style);
+		if (!Run) return false;
+		Txt.Add(Run);
+	}
+
+	Len += Chars;
 	LayoutDirty = true;
-	t->SetStyle(Style);
 	
 	IsValid();
 	

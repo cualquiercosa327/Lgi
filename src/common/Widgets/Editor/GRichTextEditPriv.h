@@ -30,6 +30,8 @@
 
 #define DEBUG_LOG_CURSOR_COUNT		0
 
+#define TEXT_LINK					"Link"
+
 //////////////////////////////////////////////////////////////////////
 #define PtrCheckBreak(ptr)			if (!ptr) { LgiAssert(!"Invalid ptr"); break; }
 #undef FixedToInt
@@ -259,17 +261,6 @@ class GRichTextPriv :
 	public GFontCache
 {
 public:
-	GRichTextEdit *View;
-	GString OriginalText;
-	GAutoWString WideNameCache;
-	GAutoString UtfNameCache;
-	GAutoPtr<GFont> Font;
-	bool WordSelectMode;
-	bool Dirty;
-	bool ShowTools;
-	GRect Areas[GRichTextEdit::MaxArea];
-	GVariant Values[GRichTextEdit::MaxArea];
-
 	enum SelectModeType
 	{
 		Unselected = 0,
@@ -303,6 +294,53 @@ public:
 	struct BlockCursor;
 	class Block;
 
+	GRichTextEdit *View;
+	GString OriginalText;
+	GAutoWString WideNameCache;
+	GAutoString UtfNameCache;
+	GAutoPtr<GFont> Font;
+	bool WordSelectMode;
+	bool Dirty;
+	bool ShowTools;
+	GRect Areas[GRichTextEdit::MaxArea];
+	GVariant Values[GRichTextEdit::MaxArea];
+
+	// Constructor
+	GRichTextPriv(GRichTextEdit *view) :
+		GHtmlParser(view),
+		GFontCache(SysFont)
+	{
+		View = view;
+		WordSelectMode = false;
+		Dirty = false;
+		ShowTools = true;
+		for (unsigned i=0; i<CountOf(Areas); i++)
+		{
+			Areas[i].ZOff(-1, -1);
+		}
+
+		Values[GRichTextEdit::FontFamilyBtn] = "FontName";
+		Values[GRichTextEdit::FontSizeBtn] = "14";
+
+		Values[GRichTextEdit::BoldBtn] = true;
+		Values[GRichTextEdit::ItalicBtn] = false;
+		Values[GRichTextEdit::UnderlineBtn] = false;
+		
+		Values[GRichTextEdit::ForegroundColourBtn] = (int64)Rgb24To32(LC_TEXT);
+		Values[GRichTextEdit::BackgroundColourBtn] = (int64)Rgb24To32(LC_WORKSPACE);
+
+		Values[GRichTextEdit::MakeLinkBtn] = TEXT_LINK;
+
+		Padding(GCss::Len(GCss::LenPx, 4));
+
+		EmptyDoc();
+	}
+	
+	~GRichTextPriv()
+	{
+		Empty();
+	}
+	
 	bool Error(const char *file, int line, const char *fmt, ...)
 	{
 		va_list Arg;
@@ -371,9 +409,11 @@ public:
 		ColourPair Colours;
 		GColour Fore, Back;
 		
-		StyleText(const char16 *t = NULL, int Chars = -1)
+		StyleText(const char16 *t = NULL, int Chars = -1, GNamedStyle *style = NULL)
 		{
 			Style = NULL;
+			if (style)
+				SetStyle(style);
 			if (t)
 				Add((char16*)t, Chars >= 0 ? Chars : StrlenW(t));
 		}
@@ -527,7 +567,7 @@ public:
 			const char16 *Str,
 			/// [Optional] The number of characters
 			int Chars = -1,
-			/// [Optional] Style to give the text
+			/// [Optional] Style to give the text, NULL means "use the existing style"
 			GNamedStyle *Style = NULL
 		)	{ return false; }
 
@@ -683,38 +723,6 @@ public:
 	
 	GArray<Block*> Blocks;
 
-	// Constructor
-	GRichTextPriv(GRichTextEdit *view) :
-		GHtmlParser(view),
-		GFontCache(SysFont)
-	{
-		View = view;
-		WordSelectMode = false;
-		Dirty = false;
-		ShowTools = true;
-		for (unsigned i=0; i<CountOf(Areas); i++)
-		{
-			Areas[i].ZOff(-1, -1);
-		}
-
-		Values[GRichTextEdit::FontFamilyBtn] = "FontName";
-		Values[GRichTextEdit::FontSizeBtn] = "14";
-
-		Values[GRichTextEdit::BoldBtn] = true;
-		Values[GRichTextEdit::ItalicBtn] = false;
-		Values[GRichTextEdit::UnderlineBtn] = false;
-		
-		Values[GRichTextEdit::ForegroundColourBtn] = (int64)Rgb24To32(LC_TEXT);
-		Values[GRichTextEdit::BackgroundColourBtn] = (int64)Rgb24To32(LC_WORKSPACE);
-
-		EmptyDoc();
-	}
-	
-	~GRichTextPriv()
-	{
-		Empty();
-	}
-	
 	void EmptyDoc()
 	{
 		Block *Def = new TextBlock();
@@ -1053,10 +1061,15 @@ public:
 		return -1;
 	}
 	
-	int HitTest(int x, int y)
+	int HitText(int x, int y, bool Click)
 	{
 		int CharPos = 0;
 		HitTestResult r(x, y);
+
+		if (Click)
+		{
+			int asd=0;
+		}
 		
 		for (unsigned i=0; i<Blocks.Length(); i++)
 		{
@@ -1077,8 +1090,10 @@ public:
 		for (unsigned i=0; i<Blocks.Length(); i++)
 		{
 			Block *b = Blocks[i];
+			int Len = b->Length();
+
 			if (Index >= CharPos &&
-				Index < CharPos + b->Length())
+				Index <= CharPos + Len)
 			{
 				if (Offset)
 					*Offset = Index - CharPos;
@@ -1109,9 +1124,13 @@ public:
 		{
 			LgiAssert(Cursor->Blk != NULL);
 			if (Cursor->Blk)
+			{
 				Cursor->Blk->GetPosFromIndex(&Cursor->Pos,
 											 &Cursor->Line,
 											 Cursor->Offset);
+				
+				// LgiTrace("%s:%i - Cursor->Pos=%s\n", _FL, Cursor->Pos.GetStr());
+			}
 		}
 	}
 
@@ -1251,6 +1270,11 @@ public:
 				new SelectColour(this, p, t);
 				break;
 			}
+			case GRichTextEdit::MakeLinkBtn:
+			{
+				LgiAssert(!"Impl link dialog.");
+				break;
+			}
 		}
 	}
 	
@@ -1278,7 +1302,10 @@ public:
 			Areas[GRichTextEdit::ForegroundColourBtn] = AllocPx(r.Y()*1.5, 0);
 			Areas[GRichTextEdit::BackgroundColourBtn] = AllocPx(r.Y()*1.5, 6);
 
-			for (unsigned i = GRichTextEdit::FontFamilyBtn; i <= GRichTextEdit::BackgroundColourBtn; i++)
+			GDisplayString Ds(SysFont, TEXT_LINK);
+			Areas[GRichTextEdit::MakeLinkBtn] = AllocPx(Ds.X() + 12, 6);
+
+			for (unsigned i = GRichTextEdit::FontFamilyBtn; i <= GRichTextEdit::MakeLinkBtn; i++)
 			{
 				PaintBtn(pDC, (GRichTextEdit::RectType) i);
 			}

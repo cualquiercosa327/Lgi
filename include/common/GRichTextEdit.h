@@ -92,6 +92,8 @@ public:
 		
 		ForegroundColourBtn,
 		BackgroundColourBtn,
+
+		MakeLinkBtn,
 		
 		MaxArea
 	};
