@@ -534,24 +534,41 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 				int AvailablePx = Pos.X() - FixedToInt(FixX);
 				int FitChars = Ds->CharAt(AvailablePx);
 				if (FitChars < 0)
+				{
 					flow.d->Error(_FL, "CharAt(%i) failed.", AvailablePx);
+					LgiAssert(0);
+				}
 				else
 				{
 					// Wind back to the last break opportunity
 					int ch;
 					for (ch = FitChars-1; ch > 0; ch--)
 					{
-						if ((*t)[ch] == ' ') // FIXME: use better breaking ops
+						if (IsWordBreakChar((*t)[ch]))
 							break;
 					}
-					if (ch > FitChars >> 2)
+					if (ch > (FitChars >> 2))
+						Chars = ch;
+					else
 						Chars = FitChars;
 							
 					// Create a new display string of the right size...
 					if (!Ds.Reset(new DisplayStr(t, f, s, Chars, flow.pDC)))
 						return flow.d->Error(_FL, "failed to create wrapped display str.");
-							
-					FixX = Ds->FX();
+					
+					// Finish off line
+					CurLine->PosOff.x2 = FixedToInt(FixX + Ds->FX());
+					CurLine->Strs.Add(Ds.Release());
+
+					CurLine->LayoutOffsets(CurLine->Strs.Last()->GetFont()->GetHeight());
+					Pos.y2 = max(Pos.y2, Pos.y1 + CurLine->PosOff.y2);
+					Layout.Add(CurLine.Release());
+					
+					// New line...
+					CurLine.Reset(new TextLine(flow.Left - Pos.x1, flow.X(), Pos.Y()));
+					FixX = 0;
+					Off += Chars;
+					continue;
 				}
 			}
 			else
@@ -739,7 +756,7 @@ int GRichTextPriv::TextBlock::CopyAt(int Offset, int Chars, GArray<char16> *Text
 	if (!Text)
 		return 0;
 	if (Chars < 0)
-		Chars = Length();
+		Chars = Length() - Offset;
 
 	int Pos = 0;
 	for (unsigned i=0; i<Txt.Length(); i++)

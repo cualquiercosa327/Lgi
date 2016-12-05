@@ -534,14 +534,76 @@ bool GRichTextEdit::Copy()
 	if (!HasSelection())
 		return false;
 
-	return true;
+	GArray<char16> Text;
+
+	bool Cf = d->CursorFirst();
+	GRichTextPriv::BlockCursor *Start = Cf ? d->Cursor : d->Selection;
+	GRichTextPriv::BlockCursor *End = Cf ? d->Selection : d->Cursor;
+	if (Start->Blk == End->Blk)
+	{
+		// In the same block... just copy
+		int Len = End->Offset - Start->Offset;
+		Start->Blk->CopyAt(Start->Offset, Len, &Text);
+	}
+	else
+	{
+		// Multi-block delete...
+
+		// 1) Copy the content to the end of the first block
+		Start->Blk->CopyAt(Start->Offset, -1, &Text);
+
+		// 2) Copy any blocks between 'Start' and 'End'
+		int i = d->Blocks.IndexOf(Start->Blk);
+		int EndIdx = d->Blocks.IndexOf(End->Blk);
+		if (i >= 0 && EndIdx >= i)
+		{
+			for (++i; d->Blocks[i] != End->Blk && i < (int)d->Blocks.Length(); i++)
+			{
+				GRichTextPriv::Block *&b = d->Blocks[i];
+				b->CopyAt(0, -1, &Text);
+			}
+		}
+		else LgiAssert(0);
+
+		// 3) Delete any text up to the Cursor in the 'End' block
+		End->Blk->CopyAt(0, End->Offset, &Text);
+	}
+
+	// Null terminate
+	Text.Add(0);
+
+	// Put on the clipboard
+	GClipBoard Cb(this);
+	return Cb.TextW(&Text[0]);
 }
 
 bool GRichTextEdit::Paste()
 {
-	GClipBoard Clip(this);
+	GClipBoard Cb(this);
+	GAutoWString Text(Cb.TextW());
+	if (!Text)
+		return false;
 	
-	return false;
+	if (HasSelection())
+		DeleteSelection();
+
+	if (!d->Cursor ||
+		!d->Cursor->Blk)
+	{
+		LgiAssert(0);
+		return false;
+	}
+
+	int Len = Strlen(Text.Get());
+	if (!d->Cursor->Blk->AddText(d->Cursor->Offset, Text, Len))
+	{
+		LgiAssert(0);
+		return false;
+	}
+
+	d->Cursor->Offset += Len;
+	Invalidate();
+	return true;
 }
 
 bool GRichTextEdit::ClearDirty(bool Ask, char *FileName)
