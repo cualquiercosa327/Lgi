@@ -64,7 +64,7 @@ public:
 	const char *GetMimeType() { return "text/html"; }
 	int GetSize();
 
-	int HitText(int x, int y);
+	int HitTest(int x, int y);
 	void DeleteSelection(char16 **Cut = 0);
 
 	// Font

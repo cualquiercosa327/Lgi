@@ -84,7 +84,7 @@ public:
 				if (Edit)
 				{
 					Edit->SetId(IDC_EDITOR);
-					Edit->Name("<span style='color:#800;'>The rich editor control is not functional in this build.</span><b>This is some bold</b>");
+					// Edit->Name("<span style='color:#800;'>The rich editor control is not functional in this build.</span><b>This is some bold</b>");
 
 					#if LOAD_DOC
 					#ifndef SrcFileName
@@ -165,6 +165,16 @@ public:
 			if (Edit && Tree)
 				Edit->DumpNodes(Tree);
 			#endif
+		}
+	}
+
+	void OnReceiveFiles(GArray<char*> &Files)
+	{
+		if (Edit && Files.Length() > 0)
+		{
+			GAutoString t(ReadTextFile(Files[0]));
+			if (t)
+				Edit->Name(t);
 		}
 	}
 };

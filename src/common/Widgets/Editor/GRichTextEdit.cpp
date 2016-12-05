@@ -120,8 +120,8 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 GRichTextEdit::GRichTextEdit(	int Id,
-						int x, int y, int cx, int cy,
-						GFontType *FontType)
+								int x, int y, int cx, int cy,
+								GFontType *FontType)
 	: ResObject(Res_Custom)
 {
 	// init vars
@@ -493,7 +493,7 @@ int GRichTextEdit::GetCursor(bool Cur)
 
 int GRichTextEdit::IndexAt(int x, int y)
 {
-	return d->HitText(x, y, false);
+	return d->HitTest(x, y, false);
 }
 
 void GRichTextEdit::SetCursor(int i, bool Select, bool ForceFullUpdate)
@@ -834,9 +834,9 @@ void GRichTextEdit::OnFocus(bool f)
 	SetPulse(f ? 500 : -1);
 }
 
-int GRichTextEdit::HitText(int x, int y)
+int GRichTextEdit::HitTest(int x, int y)
 {
-	return d->HitText(x, y, false);
+	return d->HitTest(x, y, false);
 }
 
 void GRichTextEdit::Undo()
@@ -1047,7 +1047,7 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 			}
 			else
 			{
-				int Hit = d->HitText(m.x, m.y, true);
+				int Hit = d->HitTest(m.x, m.y, true);
 				d->WordSelectMode = !Processed && m.Double();
 
 				if (Hit >= 0)
@@ -1079,7 +1079,7 @@ int GRichTextEdit::OnHitTest(int x, int y)
 
 void GRichTextEdit::OnMouseMove(GMouse &m)
 {
-	int Hit = d->HitText(m.x, m.y, false);
+	int Hit = d->HitTest(m.x, m.y, false);
 	if (IsCapturing())
 	{
 		if (!d->WordSelectMode)
@@ -1521,23 +1521,6 @@ bool GRichTextEdit::OnKey(GKey &k)
 					d->Seek(d->Cursor,
 							k.Ctrl() ? GRichTextPriv::SkDocStart : GRichTextPriv::SkLineStart,
 							k.Shift());
-
-					/*
-					char16 *Line = Text + l->Start;
-					char16 *s;
-					char16 SpTab[] = {' ', '\t', 0};
-					for (s = Line; (SubtractPtr(s,Line) < l->Len) && StrchrW(SpTab, *s); s++);
-					int Whitespace = SubtractPtr(s, Line);
-
-					if (l->Start + Whitespace == Cursor)
-					{
-						SetCursor(l->Start, k.Shift());
-					}
-					else
-					{
-						SetCursor(l->Start + Whitespace, k.Shift());
-					}
-					*/
 				}
 				return true;
 				break;
@@ -1662,11 +1645,7 @@ bool GRichTextEdit::OnKey(GKey &k)
 							if (k.Down())
 							{
 								// select all
-								/*
-								SelStart = 0;
-								SelEnd = Size;
-								Invalidate();
-								*/
+								SelectAll();
 							}
 							return true;
 							break;

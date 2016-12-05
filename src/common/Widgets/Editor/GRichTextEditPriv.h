@@ -32,6 +32,8 @@
 
 #define TEXT_LINK					"Link"
 
+#define IsWordBreakChar(ch)			IsWhiteSpace(ch) // FIXME: Add asian character set support to this
+
 //////////////////////////////////////////////////////////////////////
 #define PtrCheckBreak(ptr)			if (!ptr) { LgiAssert(!"Invalid ptr"); break; }
 #undef FixedToInt
@@ -827,45 +829,23 @@ public:
 			}
 			case SkLeftWord:
 			{
-				/*
-				bool StartWhiteSpace = IsWhiteSpace(Text[n]);
-				bool LeftWhiteSpace = n > 0 && IsWhiteSpace(Text[n-1]);
+				if (c->Offset > 0)
+				{
+					GArray<char16> a;
+					c->Blk->CopyAt(0, c->Offset, &a);
+					
+					int i = c->Offset;
+					while (i > 0 && IsWordBreakChar(a[i-1]))
+						i--;
+					while (i > 0 && !IsWordBreakChar(a[i-1]))
+						i--;
 
-				if (!StartWhiteSpace ||
-					Text[n] == '\n')
-				{
-					n--;
+					c->Offset = i;
+					Status = true;
 				}
-				
-				// Skip ws
-				for (; n > 0 && strchr(" \t", Text[n]); n--)
-					;
-				
-				if (Text[n] == '\n')
+				else // Seek into previous block?
 				{
-					n--;
 				}
-				else if (!StartWhiteSpace || !LeftWhiteSpace)
-				{
-					if (IsDelimiter(Text[n]))
-					{
-						for (; n > 0 && IsDelimiter(Text[n]); n--);
-					}
-					else
-					{
-						for (; n > 0; n--)
-						{
-							//IsWordBoundry(Text[n])
-							if (IsWhiteSpace(Text[n]) ||
-								IsDelimiter(Text[n]))
-							{
-								break;
-							}
-						}
-					}
-				}
-				if (n > 0) n++;
-				*/
 				break;
 			}
 			case SkUpPage:
@@ -896,42 +876,24 @@ public:
 			}
 			case SkRightWord:
 			{
-				/*
-				if (IsWhiteSpace(Text[n]))
+				if (c->Offset < c->Blk->Length())
 				{
-					for (; n<Size && IsWhiteSpace(Text[n]); n++);
-				}
-				else
-				{
-					if (IsDelimiter(Text[n]))
-					{
-						while (IsDelimiter(Text[n]))
-						{
-							n++;
-						}
-					}
-					else
-					{
-						for (; n<Size; n++)
-						{
-							if (IsWhiteSpace(Text[n]) ||
-								IsDelimiter(Text[n]))
-							{
-								break;
-							}
-						}
-					}
+					GArray<char16> a;
+					int RemainingCh = c->Blk->Length() - c->Offset;
+					c->Blk->CopyAt(c->Offset, RemainingCh, &a);
+					
+					int i = 0;
+					while (i < RemainingCh && !IsWordBreakChar(a[i]))
+						i++;
+					while (i < RemainingCh && IsWordBreakChar(a[i]))
+						i++;
 
-					if (n < Size &&
-						Text[n] != '\n')
-					{
-						if (IsWhiteSpace(Text[n]))
-						{
-							n++;
-						}
-					}
+					c->Offset += i;
+					Status = true;
 				}
-				*/
+				else // Seek into next block?
+				{
+				}
 				break;
 			}
 			case SkDownPage:
@@ -1061,7 +1023,7 @@ public:
 		return -1;
 	}
 	
-	int HitText(int x, int y, bool Click)
+	int HitTest(int x, int y, bool Click)
 	{
 		int CharPos = 0;
 		HitTestResult r(x, y);
