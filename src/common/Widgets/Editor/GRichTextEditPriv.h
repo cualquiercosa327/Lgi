@@ -1273,6 +1273,15 @@ public:
 			}
 		}
 
+		pDC->Colour(
+			#if 0 // def _DEBUG
+			GColour(255, 222, 255)
+			#else
+			GColour(LC_WORKSPACE, 24)
+			#endif
+			);
+		pDC->Rectangle(Areas + GRichTextEdit::ContentArea);
+
 		PaintContext Ctx;
 		
 		Ctx.pDC = pDC;

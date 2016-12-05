@@ -1873,15 +1873,6 @@ void GRichTextEdit::OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour)
 
 void GRichTextEdit::OnPaint(GSurface *pDC)
 {
-	pDC->Colour(
-		#if 0 // def _DEBUG
-		GColour(255, 222, 255)
-		#else
-		GColour(LC_WORKSPACE, 24)
-		#endif
-		);
-	pDC->Rectangle();
-	
 	GRect r = GetClient();
 	int FontY = GetFont()->GetHeight();
 	d->Areas[ContentArea] = r;
