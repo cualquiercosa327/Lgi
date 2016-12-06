@@ -5,6 +5,7 @@
 GRichTextPriv::BlockCursor::BlockCursor(const BlockCursor &c)
 {
 	Blk = NULL;
+	Blink = true;
 	*this = c;
 }
 		

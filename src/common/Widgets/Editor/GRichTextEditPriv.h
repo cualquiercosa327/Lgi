@@ -484,6 +484,9 @@ public:
 		// used to calculate the bounds for screen updates.
 		GRect Line;
 
+		// Cursor is currently blinking on
+		bool Blink;
+
 		BlockCursor(const BlockCursor &c);
 		BlockCursor(Block *b, int off);
 		~BlockCursor();
@@ -617,6 +620,7 @@ public:
 	bool CursorFirst();
 	bool SetCursor(GAutoPtr<BlockCursor> c, bool Select = false);
 	GRect SelectionRect();
+	bool GetSelection(GArray<char16> &Text);
 	int IndexOfCursor(BlockCursor *c);
 	int HitTest(int x, int y, bool Click);
 	Block *GetBlockByIndex(int Index, int *Offset = NULL);

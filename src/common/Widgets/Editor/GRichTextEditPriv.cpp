@@ -1031,3 +1031,48 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 		
 	return true;
 }
+
+bool GRichTextPriv::GetSelection(GArray<char16> &Text)
+{
+	bool Cf = CursorFirst();
+	GRichTextPriv::BlockCursor *Start = Cf ? Cursor : Selection;
+	GRichTextPriv::BlockCursor *End = Cf ? Selection : Cursor;
+	if (Start->Blk == End->Blk)
+	{
+		// In the same block... just copy
+		int Len = End->Offset - Start->Offset;
+		Start->Blk->CopyAt(Start->Offset, Len, &Text);
+	}
+	else
+	{
+		// Multi-block delete...
+
+		// 1) Copy the content to the end of the first block
+		Start->Blk->CopyAt(Start->Offset, -1, &Text);
+
+		// 2) Copy any blocks between 'Start' and 'End'
+		int i = Blocks.IndexOf(Start->Blk);
+		int EndIdx = Blocks.IndexOf(End->Blk);
+		if (i >= 0 && EndIdx >= i)
+		{
+			for (++i; Blocks[i] != End->Blk && i < (int)Blocks.Length(); i++)
+			{
+				GRichTextPriv::Block *&b = Blocks[i];
+				b->CopyAt(0, -1, &Text);
+			}
+		}
+		else
+		{
+			LgiAssert(0);
+			return false;
+		}
+
+		// 3) Delete any text up to the Cursor in the 'End' block
+		End->Blk->CopyAt(0, End->Offset, &Text);
+	}
+
+	// Null terminate
+	Text.Add(0);
+
+	return true;
+}

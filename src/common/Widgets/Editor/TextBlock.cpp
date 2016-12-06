@@ -414,7 +414,8 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 	}
 
 	if (Ctx.Cursor &&
-		Ctx.Cursor->Blk == this)
+		Ctx.Cursor->Blk == this &&
+		Ctx.Cursor->Blink)
 	{
 		Ctx.pDC->Colour(CursorColour);
 		if (Ctx.Cursor->Pos.Valid())

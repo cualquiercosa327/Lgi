@@ -139,7 +139,7 @@ GRichTextEdit::GRichTextEdit(	int Id,
 	#endif
 	d->Padding(GCss::Len(GCss::LenPx, 4));
 	
-	#if 1
+	#if 0
 	d->BackgroundColor(GCss::ColorDef(GColour::Green));
 	#else
 	d->BackgroundColor(GCss::ColorDef(GCss::ColorRgb, Rgb24To32(LC_WORKSPACE)));
@@ -460,11 +460,14 @@ bool GRichTextEdit::NameW(const char16 *s)
 
 char *GRichTextEdit::GetSelection()
 {
-	if (HasSelection())
-	{
-	}
+	if (!HasSelection())
+		return NULL;
 
-	return 0;
+	GArray<char16> Text;
+	if (!d->GetSelection(Text))
+		return NULL;
+	
+	return WideToUtf8(&Text[0]);
 }
 
 bool GRichTextEdit::HasSelection()
@@ -474,6 +477,12 @@ bool GRichTextEdit::HasSelection()
 
 void GRichTextEdit::SelectAll()
 {
+	GAutoPtr<GRichTextPriv::BlockCursor> Start(new GRichTextPriv::BlockCursor(d->Blocks.First(), 0));
+	d->SetCursor(Start);
+
+	GAutoPtr<GRichTextPriv::BlockCursor> End(new GRichTextPriv::BlockCursor(d->Blocks.Last(), d->Blocks.Last()->Length()));
+	d->SetCursor(End, true);
+
 	Invalidate();
 }
 
@@ -483,6 +492,7 @@ void GRichTextEdit::UnSelectAll()
 
 	if (Update)
 	{
+		d->Selection.Reset();
 		Invalidate();
 	}
 }
@@ -569,42 +579,8 @@ bool GRichTextEdit::Copy()
 		return false;
 
 	GArray<char16> Text;
-
-	bool Cf = d->CursorFirst();
-	GRichTextPriv::BlockCursor *Start = Cf ? d->Cursor : d->Selection;
-	GRichTextPriv::BlockCursor *End = Cf ? d->Selection : d->Cursor;
-	if (Start->Blk == End->Blk)
-	{
-		// In the same block... just copy
-		int Len = End->Offset - Start->Offset;
-		Start->Blk->CopyAt(Start->Offset, Len, &Text);
-	}
-	else
-	{
-		// Multi-block delete...
-
-		// 1) Copy the content to the end of the first block
-		Start->Blk->CopyAt(Start->Offset, -1, &Text);
-
-		// 2) Copy any blocks between 'Start' and 'End'
-		int i = d->Blocks.IndexOf(Start->Blk);
-		int EndIdx = d->Blocks.IndexOf(End->Blk);
-		if (i >= 0 && EndIdx >= i)
-		{
-			for (++i; d->Blocks[i] != End->Blk && i < (int)d->Blocks.Length(); i++)
-			{
-				GRichTextPriv::Block *&b = d->Blocks[i];
-				b->CopyAt(0, -1, &Text);
-			}
-		}
-		else LgiAssert(0);
-
-		// 3) Delete any text up to the Cursor in the 'End' block
-		End->Blk->CopyAt(0, End->Offset, &Text);
-	}
-
-	// Null terminate
-	Text.Add(0);
+	if (!d->GetSelection(Text))
+		return false;
 
 	// Put on the clipboard
 	GClipBoard Cb(this);
@@ -915,9 +891,7 @@ bool GRichTextEdit::OnMouseWheel(double l)
 {
 	if (VScroll)
 	{
-		int NewPos = (int)VScroll->Value() + (int) l;
-		NewPos = limit(NewPos, 0, GetLines());
-		VScroll->Value(NewPos);
+		VScroll->Value(VScroll->Value() + (int64)l);
 		Invalidate();
 	}
 	
@@ -2047,15 +2021,10 @@ int GRichTextEdit::OnNotify(GViewI *Ctrl, int Flags)
 
 void GRichTextEdit::OnPulse()
 {
-	if (!ReadOnly)
+	if (!ReadOnly && d->Cursor)
 	{
-		/*
-		Blink = !Blink;
-
-		GRect p = CursorPos;
-		p.Offset(-ScrollX, 0);
-		Invalidate(&p);
-		*/
+		d->Cursor->Blink = !d->Cursor->Blink;
+		d->InvalidateDoc(&d->Cursor->Pos);
 	}
 }
 

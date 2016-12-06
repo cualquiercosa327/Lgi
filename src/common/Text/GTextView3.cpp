@@ -306,7 +306,6 @@ GTextView3::GTextView3(	int Id,
 	
 	LineY = 1;
 	MaxX = 0;
-	Blink = true;
 	TextCache = 0;
 	UndoOn = true;
 	Font = 0;
