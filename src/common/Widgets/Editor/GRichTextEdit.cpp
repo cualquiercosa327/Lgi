@@ -1109,7 +1109,7 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 			}
 			else
 			{
-				int Hit = d->HitTest(m.x, m.y, true);
+				int Hit = d->HitTest(m.x, m.y + d->ScrollOffsetPx, true);
 				d->WordSelectMode = !Processed && m.Double();
 
 				if (Hit >= 0)
@@ -1141,7 +1141,7 @@ int GRichTextEdit::OnHitTest(int x, int y)
 
 void GRichTextEdit::OnMouseMove(GMouse &m)
 {
-	int Hit = d->HitTest(m.x, m.y, false);
+	int Hit = d->HitTest(m.x, m.y + d->ScrollOffsetPx, false);
 	if (IsCapturing())
 	{
 		if (!d->WordSelectMode)
@@ -1892,8 +1892,9 @@ void GRichTextEdit::OnPaint(GSurface *pDC)
 	GCssTools ct(d, d->Font);
 	r = ct.PaintBorderAndPadding(pDC, r);
 
-	d->Layout(r);
-	d->Paint(pDC);
+	if (d->Layout(r, VScroll))
+		d->Paint(pDC, VScroll);
+	// else the scroll bars changed, wait for re-paint
 }
 
 GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
