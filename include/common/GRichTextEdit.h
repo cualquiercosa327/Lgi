@@ -8,6 +8,7 @@
 #include "GDocView.h"
 #include "GUndo.h"
 #include "GDragAndDrop.h"
+#include "GCapabilities.h"
 
 extern char Delimiters[];
 
@@ -19,7 +20,8 @@ class
 	GRichTextEdit :
 	public GDocView,
 	public ResObject,
-	public GDragDropTarget
+	public GDragDropTarget,
+	public GCapabilityTarget
 {
 	friend bool RichText_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User);
 
@@ -29,7 +31,7 @@ public:
 		PrevLine,
 		NextLine,
 		StartLine,
- 		EndLine
+		EndLine
 	};
 
 protected:
@@ -82,6 +84,8 @@ public:
 	{
 		ContentArea,
 		ToolsArea,
+		CapabilityArea,
+		CapabilityBtn,
 
 		FontFamilyBtn,
 		FontSizeBtn,
@@ -157,6 +161,11 @@ public:
 	void OnCreate();
 	void OnEscape(GKey &K);
 	bool OnMouseWheel(double Lines);
+
+	// Capability target stuff
+	bool NeedsCapability(const char *Name, const char *Param);
+	void OnInstall(CapsHash *Caps, bool Status);
+	void OnCloseInstaller();
 
 	// Window Events
 	void OnFocus(bool f);

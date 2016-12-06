@@ -2,6 +2,7 @@
 #include "GRichTextEdit.h"
 #include "GRichTextEditPriv.h"
 #include "GScrollBar.h"
+#include "GCssTools.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 const char *GRichEditElemContext::GetElement(GRichEditElem *obj)
@@ -117,6 +118,8 @@ GRichTextPriv::GRichTextPriv(GRichTextEdit *view) :
 	ScrollOffsetPx = 0;
 	ShowTools = true;
 	ScrollChange = false;
+	DocumentExtent.x = 0;
+	DocumentExtent.y = 0;
 
 	for (unsigned i=0; i<CountOf(Areas); i++)
 	{
@@ -134,6 +137,7 @@ GRichTextPriv::GRichTextPriv(GRichTextEdit *view) :
 	Values[GRichTextEdit::BackgroundColourBtn] = (int64)Rgb24To32(LC_WORKSPACE);
 
 	Values[GRichTextEdit::MakeLinkBtn] = TEXT_LINK;
+	Values[GRichTextEdit::CapabilityBtn] = TEXT_CAP_BTN;
 
 	Padding(GCss::Len(GCss::LenPx, 4));
 
@@ -156,6 +160,19 @@ bool GRichTextPriv::Error(const char *file, int line, const char *fmt, ...)
 		
 	LgiAssert(0);
 	return false;
+}
+
+void GRichTextPriv::InvalidateDoc(GRect *r)
+{
+	// Transform the coordinates from doc to screen space
+	GRect &c = Areas[GRichTextEdit::ContentArea];
+	if (r)
+	{
+		GRect t = *r;
+		t.Offset(c.x1, c.y1);
+		View->Invalidate(&t);
+	}
+	else View->Invalidate(&c);
 }
 
 void GRichTextPriv::EmptyDoc()
@@ -384,7 +401,7 @@ bool GRichTextPriv::SetCursor(GAutoPtr<BlockCursor> c, bool Select)
 		// Selection ending... invalidate selection region and delete 
 		// selection end point
 		GRect r = SelectionRect();
-		View->Invalidate(&r);
+		InvalidateDoc(&r);
 		Selection.Reset();
 
 		// LgiTrace("Ending selection delete(sel) Idx=%i\n", i);
@@ -400,7 +417,7 @@ bool GRichTextPriv::SetCursor(GAutoPtr<BlockCursor> c, bool Select)
 	if (Cursor && !Select)
 	{
 		// Just moving cursor
-		View->Invalidate(&Cursor->Pos);
+		InvalidateDoc(&Cursor->Pos);
 	}
 
 	if (!Cursor)
@@ -411,12 +428,12 @@ bool GRichTextPriv::SetCursor(GAutoPtr<BlockCursor> c, bool Select)
 	if (Select)
 		InvalidRc.Union(&Cursor->Line);
 	else
-		View->Invalidate(&Cursor->Pos);
+		InvalidateDoc(&Cursor->Pos);
 		
 	if (InvalidRc.Valid())
 	{
 		// Update the screen
-		View->Invalidate(&InvalidRc);
+		InvalidateDoc(&InvalidRc);
 	}
 
 	return true;
@@ -501,16 +518,21 @@ GRichTextPriv::Block *GRichTextPriv::GetBlockByIndex(int Index, int *Offset)
 	return NULL;
 }
 	
-bool GRichTextPriv::Layout(GRect &Client, GScrollBar *&ScrollY)
+bool GRichTextPriv::Layout(GScrollBar *&ScrollY)
 {
 	Flow f(this);
 	
 	ScrollLinePx = View->GetFont()->GetHeight();
 
-	f.Left = Client.x1;
-	f.Right = Client.x2;
-	f.CurY = Client.y1;
-		
+	GRect Client = Areas[GRichTextEdit::ContentArea];
+	DocumentExtent.x = Client.X();
+
+	GCssTools Ct(this, Font);
+	GRect Content = Ct.ApplyPadding(Client);
+	f.Left = Content.x1;
+	f.Right = Content.x2;
+	f.Top = f.CurY = Content.y1;
+
 	for (unsigned i=0; i<Blocks.Length(); i++)
 	{
 		Block *b = Blocks[i];
@@ -525,6 +547,7 @@ bool GRichTextPriv::Layout(GRect &Client, GScrollBar *&ScrollY)
 			return false;
 		}
 	}
+	DocumentExtent.y = f.CurY + (Client.y2 - Content.y2);
 
 	if (ScrollY)
 	{
@@ -559,6 +582,9 @@ void GRichTextPriv::PaintBtn(GSurface *pDC, GRichTextEdit::RectType t)
 	GRect r = Areas[t];
 	GVariant &v = Values[t];
 	bool Down = v.Type == GV_BOOL && v.Value.Bool;
+
+	SysFont->Colour(LC_TEXT, LC_MED);
+	SysFont->Transparent(false);
 
 	LgiThinBorder(pDC, r, Down ? EdgeXpSunken : EdgeXpRaised);
 	switch (v.Type)
@@ -691,11 +717,35 @@ void GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 			LgiAssert(!"Impl link dialog.");
 			break;
 		}
+		case GRichTextEdit::CapabilityBtn:
+		{
+			View->OnCloseInstaller();
+			break;
+		}
 	}
 }
 	
 void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
 {
+	if (Areas[GRichTextEdit::CapabilityArea].Valid())
+	{
+		GRect &t = Areas[GRichTextEdit::CapabilityArea];
+		pDC->Colour(GColour::Red);
+		pDC->Rectangle(&t);
+		int y = t.y1 + 4;
+		for (unsigned i=0; i<NeedsCap.Length(); i++)
+		{
+			CtrlCap &cc = NeedsCap[i];
+			GDisplayString Ds(SysFont, cc.Param);
+			SysFont->Transparent(true);
+			SysFont->Colour(GColour::White, GColour::Red);
+			Ds.Draw(pDC, t.x1 + 4, y);
+			y += Ds.Y() + 4;
+		}
+
+		PaintBtn(pDC, GRichTextEdit::CapabilityBtn);
+	}
+
 	if (Areas[GRichTextEdit::ToolsArea].Valid())
 	{
 		// Draw tools area...
@@ -727,6 +777,42 @@ void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
 		}
 	}
 
+	GRect r = Areas[GRichTextEdit::ContentArea];
+	pDC->ClipRgn(&r);
+
+	#if 0
+	pDC->Colour(LC_WORKSPACE, 24);
+	pDC->Rectangle(&r);
+	pDC->Colour(GColour::Red);
+	pDC->Line(r.x1, r.y1, r.x2, r.y2);
+	pDC->Line(r.x2, r.y1, r.x1, r.y2);
+	return;
+	#endif
+
+	ScrollOffsetPx = ScrollY ? ScrollY->Value() * ScrollLinePx : 0;
+	pDC->SetOrigin(-r.x1, -r.y1+ScrollOffsetPx);
+
+	int DrawPx = ScrollOffsetPx + Areas[GRichTextEdit::ContentArea].Y();
+	int ExtraPx = DrawPx > DocumentExtent.y ? DrawPx - DocumentExtent.y : 0;
+	/*
+	LgiTrace("ScrollOffsetPx=%i Areas[GRichTextEdit::ContentArea].Y()=%i DocumentExtent.y=%i\n",
+		ScrollOffsetPx, Areas[GRichTextEdit::ContentArea].Y(), DocumentExtent.y);
+	*/
+
+	r.Set(0, 0, DocumentExtent.x-1, DocumentExtent.y-1);
+
+	#if 0
+	pDC->Colour(LC_WORKSPACE, 24);
+	pDC->Rectangle(&r);
+	pDC->Colour(GColour::Red);
+	pDC->Line(r.x1, r.y1, r.x2, r.y2);
+	pDC->Line(r.x2, r.y1, r.x1, r.y2);
+	return;
+	#endif
+	
+	GCssTools ct(this, Font);
+	r = ct.PaintPadding(pDC, r);
+
 	pDC->Colour(
 		#if 0 // def _DEBUG
 		GColour(255, 222, 255)
@@ -734,13 +820,9 @@ void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
 		GColour(LC_WORKSPACE, 24)
 		#endif
 		);
-	pDC->Rectangle(Areas + GRichTextEdit::ContentArea);
-
-	ScrollOffsetPx = ScrollY ? ScrollY->Value() * ScrollLinePx : 0;
-	if (ScrollOffsetPx)
-	{
-		pDC->SetOrigin(0, ScrollOffsetPx);
-	}
+	pDC->Rectangle(&r);
+	if (ExtraPx)
+		pDC->Rectangle(0, DocumentExtent.y, DocumentExtent.x-1, DocumentExtent.y+ExtraPx);
 
 	PaintContext Ctx;
 	Ctx.pDC = pDC;

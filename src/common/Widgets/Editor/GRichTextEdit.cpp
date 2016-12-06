@@ -138,7 +138,13 @@ GRichTextEdit::GRichTextEdit(	int Id,
 	CrLf = false;
 	#endif
 	d->Padding(GCss::Len(GCss::LenPx, 4));
+	
+	#if 1
+	d->BackgroundColor(GCss::ColorDef(GColour::Green));
+	#else
 	d->BackgroundColor(GCss::ColorDef(GCss::ColorRgb, Rgb24To32(LC_WORKSPACE)));
+	#endif
+	
 	SetFont(SysFont);
 
 	#if 0 // def _DEBUG
@@ -149,11 +155,32 @@ GRichTextEdit::GRichTextEdit(	int Id,
 		"</body>\n"
 		"</html>\n");
 	#endif
+
+	// d->Border(GCss::BorderDef(d, "4px solid green"));
+	NeedsCapability("Alpha", "This control is still in alpha.");
 }
 
 GRichTextEdit::~GRichTextEdit()
 {
 	// 'd' is owned by the GView CSS autoptr.
+}
+
+bool GRichTextEdit::NeedsCapability(const char *Name, const char *Param)
+{
+	d->NeedsCap.New().Set(Name, Param);
+	Invalidate();
+	return true;
+}
+
+void GRichTextEdit::OnInstall(CapsHash *Caps, bool Status)
+{
+	OnCloseInstaller();
+}
+
+void GRichTextEdit::OnCloseInstaller()
+{
+	d->NeedsCap.Length(0);
+	Invalidate();
 }
 
 bool GRichTextEdit::IsDirty()
@@ -467,6 +494,8 @@ int GRichTextEdit::GetLines()
 
 void GRichTextEdit::GetTextExtent(int &x, int &y)
 {
+	x = d->DocumentExtent.x;
+	y = d->DocumentExtent.y;
 }
 
 void GRichTextEdit::PositionAt(int &x, int &y, int Index)
@@ -493,7 +522,12 @@ int GRichTextEdit::GetCursor(bool Cur)
 
 int GRichTextEdit::IndexAt(int x, int y)
 {
-	return d->HitTest(x, y, false);
+	GRect &Content = d->Areas[ContentArea];
+	int dx = x - Content.x1;
+	int dy = y - Content.y1 + d->ScrollOffsetPx;
+	int Idx = d->HitTest(dx, dy, false);
+	// LgiTrace("IndexAt(%i,%i)=%i Doc=%i,%i Content=%s\n", x, y, Idx, dx, dy, Content.GetStr());
+	return Idx;
 }
 
 void GRichTextEdit::SetCursor(int i, bool Select, bool ForceFullUpdate)
@@ -1097,11 +1131,13 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 		{
 			Focus(true);
 
-			if (d->Areas[ToolsArea].Overlap(m.x, m.y))
+			if (d->Areas[ToolsArea].Overlap(m.x, m.y) ||
+				d->Areas[CapabilityArea].Overlap(m.x, m.y))
 			{
-				for (unsigned i=FontFamilyBtn; i<MaxArea; i++)
+				for (unsigned i=CapabilityBtn; i<MaxArea; i++)
 				{
-					if (d->Areas[i].Overlap(m.x, m.y))
+					if (d->Areas[i].Valid() &&
+						d->Areas[i].Overlap(m.x, m.y))
 					{
 						d->ClickBtn(m, (RectType)i);
 					}
@@ -1109,7 +1145,7 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 			}
 			else
 			{
-				int Hit = d->HitTest(m.x, m.y + d->ScrollOffsetPx, true);
+				int Hit = IndexAt(m.x, m.y);
 				d->WordSelectMode = !Processed && m.Double();
 
 				if (Hit >= 0)
@@ -1141,7 +1177,7 @@ int GRichTextEdit::OnHitTest(int x, int y)
 
 void GRichTextEdit::OnMouseMove(GMouse &m)
 {
-	int Hit = d->HitTest(m.x, m.y + d->ScrollOffsetPx, false);
+	int Hit = IndexAt(m.x, m.y);
 	if (IsCapturing())
 	{
 		if (!d->WordSelectMode)
@@ -1874,25 +1910,48 @@ void GRichTextEdit::OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour)
 void GRichTextEdit::OnPaint(GSurface *pDC)
 {
 	GRect r = GetClient();
+
+	#if 0
+	pDC->Colour(GColour(255, 0, 255));
+	pDC->Rectangle();
+	#endif
+
 	int FontY = GetFont()->GetHeight();
-	d->Areas[ContentArea] = r;
-	if (d->ShowTools && r.Y() > (FontY * 3))
+
+	GCssTools ct(d, d->Font);
+	r = ct.PaintBorder(pDC, r);
+
+	bool HasSpace = r.Y() > (FontY * 3);
+	if (d->NeedsCap.Length() > 0 && HasSpace)
+	{
+		d->Areas[CapabilityArea] = r;
+		d->Areas[CapabilityArea].y2 = d->Areas[CapabilityArea].y1 + 4 + ((FontY + 4) * d->NeedsCap.Length());
+		r.y1 = d->Areas[CapabilityArea].y2 + 1;
+
+		d->Areas[CapabilityBtn] = d->Areas[CapabilityArea];
+		d->Areas[CapabilityBtn].Size(2, 2);
+		d->Areas[CapabilityBtn].x1 = d->Areas[CapabilityBtn].x2 - 30;
+	}
+	else
+	{
+		d->Areas[CapabilityArea].ZOff(-1, -1);
+		d->Areas[CapabilityBtn].ZOff(-1, -1);
+	}
+
+	if (d->ShowTools && HasSpace)
 	{
 		d->Areas[ToolsArea] = r;
 		d->Areas[ToolsArea].y2 = d->Areas[ToolsArea].y1 + (FontY + 8) - 1;
-		d->Areas[ContentArea].y1 = d->Areas[ToolsArea].y2 + 1;
-		r = d->Areas[ContentArea];
+		r.y1 = d->Areas[ToolsArea].y2 + 1;
 	}
 	else
 	{
 		d->Areas[ToolsArea].ZOff(-1, -1);
-		d->Areas[ContentArea] = r;
 	}
 
-	GCssTools ct(d, d->Font);
-	r = ct.PaintBorderAndPadding(pDC, r);
+	d->Areas[ContentArea] = r;
 
-	if (d->Layout(r, VScroll))
+	if (d->Layout(VScroll))
 		d->Paint(pDC, VScroll);
 	// else the scroll bars changed, wait for re-paint
 }
@@ -1980,7 +2039,7 @@ int GRichTextEdit::OnNotify(GViewI *Ctrl, int Flags)
 {
 	if (Ctrl->GetId() == IDC_VSCROLL && VScroll)
 	{
-		Invalidate();
+		Invalidate(d->Areas + ContentArea);
 	}
 
 	return 0;

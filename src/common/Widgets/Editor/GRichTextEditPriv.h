@@ -31,6 +31,7 @@
 #define DEBUG_LOG_CURSOR_COUNT		0
 
 #define TEXT_LINK					"Link"
+#define TEXT_CAP_BTN				"Ok"
 
 #define IsWordBreakChar(ch)			IsWhiteSpace(ch) // FIXME: Add asian character set support to this
 
@@ -158,6 +159,17 @@ public:
 	void Visible(bool i);
 };
 
+struct CtrlCap
+{
+	GString Name, Param;
+
+	void Set(const char *name, const char *param)
+	{
+		Name = name;
+		Param = param;
+	}
+};
+
 class GRichTextPriv :
 	public GCss,
 	public GHtmlParser,
@@ -206,6 +218,9 @@ public:
 	GAutoPtr<GFont> Font;
 	bool WordSelectMode;
 	bool Dirty;
+	GdcPt2 DocumentExtent; // Px
+
+	// Toolbar
 	bool ShowTools;
 	GRect Areas[GRichTextEdit::MaxArea];
 	GVariant Values[GRichTextEdit::MaxArea];
@@ -214,6 +229,9 @@ public:
 	int ScrollLinePx;
 	int ScrollOffsetPx;
 	bool ScrollChange;
+
+	// Capabilities
+	GArray<CtrlCap> NeedsCap;
 
 	// Constructor
 	GRichTextPriv(GRichTextEdit *view);	
@@ -228,6 +246,7 @@ public:
 
 		int Left, Right;// Left and right margin positions as measured in px
 						// from the left of the page (controls client area).
+		int Top;
 		int CurY;		// Current y position down the page in document co-ords
 		bool Visible;	// true if the current block overlaps the visible page
 						// If false, the implementation can take short cuts and
@@ -238,6 +257,7 @@ public:
 			d = priv;
 			pDC = NULL;
 			Left = 0;
+			Top = 0;
 			Right = 1000;
 			CurY = 0;
 			Visible = true;
@@ -590,6 +610,7 @@ public:
 	
 	GArray<Block*> Blocks;
 
+	void InvalidateDoc(GRect *r);
 	void EmptyDoc();	
 	void Empty();
 	bool Seek(BlockCursor *In, SeekType Dir, bool Select);
@@ -599,7 +620,7 @@ public:
 	int IndexOfCursor(BlockCursor *c);
 	int HitTest(int x, int y, bool Click);
 	Block *GetBlockByIndex(int Index, int *Offset = NULL);
-	bool Layout(GRect &Client, GScrollBar *&ScrollY);
+	bool Layout(GScrollBar *&ScrollY);
 	void OnStyleChange(GRichTextEdit::RectType t);
 	void PaintBtn(GSurface *pDC, GRichTextEdit::RectType t);
 	void ClickBtn(GMouse &m, GRichTextEdit::RectType t);
