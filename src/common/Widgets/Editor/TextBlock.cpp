@@ -524,6 +524,9 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 		if (t->Length() == 0)
 			continue;
 
+		int AvailableX = Pos.X() - CurLine->PosOff.x1;
+		LgiAssert(AvailableX > 0);
+
 		// Get the font for 't'
 		GFont *f = flow.d->GetFont(t->GetStyle());
 		if (!f)
@@ -568,10 +571,10 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 			if (!Ds)
 				return flow.d->Error(_FL, "display str creation failed.");
 
-			if (FixedToInt(FixX) + Ds->X() > Pos.X())
+			if (FixedToInt(FixX) + Ds->X() > AvailableX)
 			{
 				// Wrap the string onto the line...
-				int AvailablePx = Pos.X() - FixedToInt(FixX);
+				int AvailablePx = AvailableX - FixedToInt(FixX);
 				int FitChars = Ds->CharAt(AvailablePx);
 				if (FitChars < 0)
 				{
