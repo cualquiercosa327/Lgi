@@ -169,7 +169,7 @@ void GRichTextPriv::InvalidateDoc(GRect *r)
 	if (r)
 	{
 		GRect t = *r;
-		t.Offset(c.x1, c.y1);
+		t.Offset(c.x1, c.y1 - ScrollOffsetPx);
 		View->Invalidate(&t);
 	}
 	else View->Invalidate(&c);
@@ -177,7 +177,7 @@ void GRichTextPriv::InvalidateDoc(GRect *r)
 
 void GRichTextPriv::EmptyDoc()
 {
-	Block *Def = new TextBlock();
+	Block *Def = new TextBlock(this);
 	if (Def)
 	{			
 		Blocks.Add(Def);
@@ -425,6 +425,10 @@ bool GRichTextPriv::SetCursor(GAutoPtr<BlockCursor> c, bool Select)
 	else
 		*Cursor = *c;
 	Cursor->Blk->GetPosFromIndex(&Cursor->Pos, &Cursor->Line, Cursor->Offset);
+	
+	#if DEBUG_OUTLINE_CUR_DISPLAY_STR || DEBUG_OUTLINE_CUR_STYLE_TEXT
+	InvalidateDoc(NULL);
+	#else
 	if (Select)
 		InvalidRc.Union(&Cursor->Line);
 	else
@@ -435,6 +439,7 @@ bool GRichTextPriv::SetCursor(GAutoPtr<BlockCursor> c, bool Select)
 		// Update the screen
 		InvalidateDoc(&InvalidRc);
 	}
+	#endif
 
 	return true;
 }
@@ -778,48 +783,34 @@ void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
 	}
 
 	GRect r = Areas[GRichTextEdit::ContentArea];
+	#ifdef WINDOWS
+	GMemDC Mem(r.X(), r.Y(), pDC->GetColourSpace());
+	GSurface *pScreen = pDC;
+	pDC = &Mem;
+	r.Offset(-r.x1, -r.y1);
+	#else
 	pDC->ClipRgn(&r);
-
-	#if 0
-	pDC->Colour(LC_WORKSPACE, 24);
-	pDC->Rectangle(&r);
-	pDC->Colour(GColour::Red);
-	pDC->Line(r.x1, r.y1, r.x2, r.y2);
-	pDC->Line(r.x2, r.y1, r.x1, r.y2);
-	return;
 	#endif
 
 	ScrollOffsetPx = ScrollY ? ScrollY->Value() * ScrollLinePx : 0;
+	if (ScrollOffsetPx != 0)
+	{
+		int asd=0;
+	}
 	pDC->SetOrigin(-r.x1, -r.y1+ScrollOffsetPx);
 
 	int DrawPx = ScrollOffsetPx + Areas[GRichTextEdit::ContentArea].Y();
 	int ExtraPx = DrawPx > DocumentExtent.y ? DrawPx - DocumentExtent.y : 0;
-	/*
-	LgiTrace("ScrollOffsetPx=%i Areas[GRichTextEdit::ContentArea].Y()=%i DocumentExtent.y=%i\n",
-		ScrollOffsetPx, Areas[GRichTextEdit::ContentArea].Y(), DocumentExtent.y);
-	*/
 
 	r.Set(0, 0, DocumentExtent.x-1, DocumentExtent.y-1);
 
-	#if 0
-	pDC->Colour(LC_WORKSPACE, 24);
-	pDC->Rectangle(&r);
-	pDC->Colour(GColour::Red);
-	pDC->Line(r.x1, r.y1, r.x2, r.y2);
-	pDC->Line(r.x2, r.y1, r.x1, r.y2);
-	return;
-	#endif
-	
+	// Fill the padding...
 	GCssTools ct(this, Font);
 	r = ct.PaintPadding(pDC, r);
 
-	pDC->Colour(
-		#if 0 // def _DEBUG
-		GColour(255, 222, 255)
-		#else
-		GColour(LC_WORKSPACE, 24)
-		#endif
-		);
+	// Fill the background...
+	GCss::ColorDef cBack = BackgroundColor();
+	pDC->Colour(cBack.IsValid() ? cBack : GColour(LC_WORKSPACE, 24));
 	pDC->Rectangle(&r);
 	if (ExtraPx)
 		pDC->Rectangle(0, DocumentExtent.y, DocumentExtent.x-1, DocumentExtent.y+ExtraPx);
@@ -846,8 +837,29 @@ void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
 	{
 		Block *b = Blocks[i];
 		if (b)
+		{
 			b->OnPaint(Ctx);
+			#if DEBUG_OUTLINE_BLOCKS
+			pDC->Colour(GColour(192, 192, 192));
+			pDC->LineStyle(GSurface::LineDot);
+			pDC->Box(&b->GetPos());
+			pDC->LineStyle(GSurface::LineSolid);
+			#endif
+		}
 	}
+
+	#ifdef _DEBUG
+	pDC->Colour(GColour::Green);
+	for (unsigned i=0; i<DebugRects.Length(); i++)
+	{
+		pDC->Box(&DebugRects[i]);
+	}
+	#endif
+
+	#ifdef WINDOWS
+	Mem.SetOrigin(0, 0);
+	pScreen->Blt(Areas[GRichTextEdit::ContentArea].x1, Areas[GRichTextEdit::ContentArea].y1, &Mem);
+	#endif
 }
 	
 GHtmlElement *GRichTextPriv::CreateElement(GHtmlElement *Parent)
@@ -990,7 +1002,7 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 		if ((IsBlock && ctx.LastChar != '\n') || c->TagId == TAG_BR)
 		{
 			if (!ctx.Tb)
-				Blocks.Add(ctx.Tb = new TextBlock);
+				Blocks.Add(ctx.Tb = new TextBlock(this));
 			if (ctx.Tb)
 			{
 				ctx.Tb->AddText(-1, L"\n", 1, CachedStyle);
@@ -1005,7 +1017,7 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 			{
 				// Start a new block because the styles are different...
 				EndStyleChange = true;
-				Blocks.Add(ctx.Tb = new TextBlock);
+				Blocks.Add(ctx.Tb = new TextBlock(this));
 					
 				if (CachedStyle)
 				{
@@ -1018,7 +1030,8 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 		if (c->GetText())
 		{
 			if (!ctx.Tb)
-				Blocks.Add(ctx.Tb = new TextBlock);
+				Blocks.Add(ctx.Tb = new TextBlock(this));
+			
 			ctx.AddText(CachedStyle, c->GetText());
 		}
 			

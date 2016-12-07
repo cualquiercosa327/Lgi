@@ -28,21 +28,24 @@
 #include "GColourSpace.h"
 #include "GPopup.h"
 
-#define DEBUG_LOG_CURSOR_COUNT		0
+#define DEBUG_LOG_CURSOR_COUNT			0
+#define DEBUG_OUTLINE_CUR_DISPLAY_STR	0
+#define DEBUG_OUTLINE_CUR_STYLE_TEXT	1
+#define DEBUG_OUTLINE_BLOCKS			0
 
-#define TEXT_LINK					"Link"
-#define TEXT_CAP_BTN				"Ok"
+#define TEXT_LINK						"Link"
+#define TEXT_CAP_BTN					"Ok"
 
-#define IsWordBreakChar(ch)			IsWhiteSpace(ch) // FIXME: Add asian character set support to this
+#define IsWordBreakChar(ch)				IsWhiteSpace(ch) // FIXME: Add asian character set support to this
 
 //////////////////////////////////////////////////////////////////////
-#define PtrCheckBreak(ptr)			if (!ptr) { LgiAssert(!"Invalid ptr"); break; }
+#define PtrCheckBreak(ptr)				if (!ptr) { LgiAssert(!"Invalid ptr"); break; }
 #undef FixedToInt
-#define FixedToInt(fixed)			((fixed)>>GDisplayString::FShift)
+#define FixedToInt(fixed)				((fixed)>>GDisplayString::FShift)
 #undef IntToFixed
-#define IntToFixed(val)				((val)<<GDisplayString::FShift)
+#define IntToFixed(val)					((val)<<GDisplayString::FShift)
 
-#define CursorColour				GColour(0, 0, 0)
+#define CursorColour					GColour(0, 0, 0)
 
 //////////////////////////////////////////////////////////////////////
 class GRichEditElem : public GHtmlElement
@@ -219,6 +222,7 @@ public:
 	bool WordSelectMode;
 	bool Dirty;
 	GdcPt2 DocumentExtent; // Px
+	GString Charset;
 
 	// Toolbar
 	bool ShowTools;
@@ -232,6 +236,9 @@ public:
 
 	// Capabilities
 	GArray<CtrlCap> NeedsCap;
+
+	// Debug stuff
+	GArray<GRect> DebugRects;
 
 	// Constructor
 	GRichTextPriv(GRichTextEdit *view);	
@@ -409,12 +416,16 @@ public:
 	class Block // is like a DIV in HTML, it's as wide as the page and
 				// always starts and ends on a whole line.
 	{
+	protected:
+		GRichTextPriv *d;
+
 	public:
 		/// This is the number of cursors current referencing this Block.
 		int8 Cursors;
 		
-		Block()
+		Block(GRichTextPriv *priv)
 		{
+			d = priv;
 			Cursors = 0;
 		}
 		
@@ -426,6 +437,7 @@ public:
 			LgiAssert(Cursors == 0);
 		}
 		
+		virtual GRect GetPos() = 0;
 		virtual int Length() = 0;
 		virtual bool HitTest(HitTestResult &htr) = 0;
 		virtual bool GetPosFromIndex(GRect *CursorPos, GRect *LinePos, int Index) = 0;
@@ -590,11 +602,12 @@ public:
 		int Len; // chars in the whole block (sum of all Text lengths)
 		GRect Pos; // position in document co-ordinates
 		
-		TextBlock();
+		TextBlock(GRichTextPriv *priv);
 		~TextBlock();
 
 		bool IsValid();
 
+		GRect GetPos() { return Pos; }
 		void Dump();
 		GNamedStyle *GetStyle();		
 		void SetStyle(GNamedStyle *s);

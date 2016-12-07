@@ -65,6 +65,8 @@ public:
 	void Value(int64 i);
 	const char *GetMimeType() { return "text/html"; }
 	int GetSize();
+	const char *GetCharset();
+	void SetCharset(const char *s);
 
 	int HitTest(int x, int y);
 	void DeleteSelection(char16 **Cut = 0);

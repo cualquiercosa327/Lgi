@@ -2,7 +2,7 @@
 #include "GRichTextEdit.h"
 #include "GRichTextEditPriv.h"
 
-GRichTextPriv::TextBlock::TextBlock()
+GRichTextPriv::TextBlock::TextBlock(GRichTextPriv *priv) : Block(priv)
 {
 	LayoutDirty = false;
 	Len = 0;
@@ -217,7 +217,7 @@ bool GRichTextPriv::TextBlock::HitTest(HitTestResult &htr)
 		}
 				
 		int FixX = 0;
-		int InputX = IntToFixed(htr.In.x - Pos.x1);
+		int InputX = IntToFixed(htr.In.x - Pos.x1 - tl->PosOff.x1);
 		for (unsigned n=0; n<tl->Strs.Length(); n++)
 		{
 			DisplayStr *ds = tl->Strs[n];
@@ -230,6 +230,8 @@ bool GRichTextPriv::TextBlock::HitTest(HitTestResult &htr)
 				int OffFix = InputX - FixX;
 				int OffPx = FixedToInt(OffFix);
 				int OffChar = ds->CharAt(OffPx);
+
+				// d->DebugRects[0].Set(Pos.x1, r.y1, Pos.x1 + InputX+1, r.y2);
 						
 				htr.Blk = this;
 				htr.Ds = ds;
@@ -340,6 +342,20 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 
 			// Check for selection changes...
 			int FixY = IntToFixed(CurY + Ds->OffsetY);
+
+			#if DEBUG_OUTLINE_CUR_STYLE_TEXT
+			GRect r(0, 0, -1, -1);
+			if (Ctx.Cursor->Blk == (Block*)this)
+			{
+				StyleText *CurStyle = GetTextAt(Ctx.Cursor->Offset);
+				if (Ds->Src == CurStyle)
+				{
+					r.ZOff(Ds->X()-1, Ds->Y()-1);
+					r.Offset(FixedToInt(FixX), FixedToInt(FixY));
+				}
+			}
+			#endif
+
 			if (CurEndPoint < EndPoints &&
 				EndPoint[CurEndPoint] >= CharPos &&
 				EndPoint[CurEndPoint] <= CharPos + Ds->Length())
@@ -404,9 +420,32 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 							Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
 						
 				Ds->FDraw(Ctx.pDC, FixX, FixY);
+
+				#if DEBUG_OUTLINE_CUR_DISPLAY_STR
+				if (Ctx.Cursor->Blk == (Block*)this &&
+					Ctx.Cursor->Offset >= CharPos &&
+					Ctx.Cursor->Offset < CharPos + Ds->Length())
+				{
+					GRect r(0, 0, Ds->X()-1, Ds->Y()-1);
+					r.Offset(FixedToInt(FixX), FixedToInt(FixY));
+					Ctx.pDC->Colour(GColour::Red);
+					Ctx.pDC->Box(&r);
+				}
+				#endif
+
 				FixX += Ds->FX();
 			}
-					
+
+			#if DEBUG_OUTLINE_CUR_STYLE_TEXT
+			if (r.Valid())
+			{
+				Ctx.pDC->Colour(GColour(192, 192, 192));
+				Ctx.pDC->LineStyle(GSurface::LineDot);
+				Ctx.pDC->Box(&r);
+				Ctx.pDC->LineStyle(GSurface::LineSolid);
+			}
+			#endif
+
 			CharPos += Ds->Length();
 		}
 				
@@ -543,9 +582,9 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 				{
 					// Wind back to the last break opportunity
 					int ch;
-					for (ch = FitChars-1; ch > 0; ch--)
+					for (ch = FitChars; ch > 0; ch--)
 					{
-						if (IsWordBreakChar((*t)[ch]))
+						if (IsWordBreakChar((*t)[ch-1]))
 							break;
 					}
 					if (ch > (FitChars >> 2))
@@ -615,20 +654,31 @@ GRichTextPriv::StyleText *GRichTextPriv::TextBlock::GetTextAt(uint32 Offset)
 {
 	StyleText **t = &Txt[0];
 	StyleText **e = t + Txt.Length();
-	while (Offset > 0 && t < e)
+
+	int TotalLen = 0;
+
+	while (Offset >= 0 && t < e)
 	{
-		if (Offset < (*t)->Length())
+		int Len = (*t)->Length();
+		if (Offset < Len)
 			return *t;
-		Offset -= (*t)->Length();
+		Offset -= Len;
+		TotalLen += Len;
+
+		t++;
 	}
+
+	LgiAssert(TotalLen == Len);
 	return NULL;
 }
 
 bool GRichTextPriv::TextBlock::IsValid()
 {
+	int TxtLen = 0;
 	for (unsigned i = 0; i < Txt.Length(); i++)
 	{
 		StyleText *t = Txt[i];
+		TxtLen += t->Length();
 		for (unsigned n = 0; n < t->Length(); n++)
 		{
 			if ((*t)[n] == 0)
@@ -638,6 +688,7 @@ bool GRichTextPriv::TextBlock::IsValid()
 			}
 		}
 	}
+	LgiAssert(Len == TxtLen);
 
 	return true;
 }
@@ -645,6 +696,11 @@ bool GRichTextPriv::TextBlock::IsValid()
 int GRichTextPriv::TextBlock::DeleteAt(int BlkOffset, int Chars, GArray<char16> *DeletedText)
 {
 	int Pos = 0;
+
+	for (unsigned i=0; i<Txt.Length(); i++)
+	{
+		LgiTrace("%p/%i: '%.*S'\n", Txt[i], i, Txt[i]->Length(), &(*Txt[i])[0]);
+	}
 	
 	for (unsigned i=0; i<Txt.Length(); i++)
 	{
@@ -671,11 +727,27 @@ int GRichTextPriv::TextBlock::DeleteAt(int BlkOffset, int Chars, GArray<char16> 
 			}
 
 			// Change length
-			t->Length(NewLen);
+			if (NewLen == 0)
+			{
+				// Remove run completely
+				// LgiTrace("DelRun %p/%i '%.*S'\n", t, i, t->Length(), &(*t)[0]);
+				Txt.DeleteAt(i--, true);
+				DeleteObj(t);
+			}
+			else
+			{
+				// Shorten run
+				t->Length(NewLen);
+				// LgiTrace("ShortenRun %p/%i '%.*S'\n", t, i, t->Length(), &(*t)[0]);
+			}
+
 			LayoutDirty = true;
-			return Remove;
+			Chars -= Remove;
+			Len -= Remove;
 		}
-		Pos += t->Length();
+
+		if (t)
+			Pos += t->Length();
 	}
 
 	IsValid();

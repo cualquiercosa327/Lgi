@@ -126,7 +126,7 @@ GRichTextEdit::GRichTextEdit(	int Id,
 {
 	// init vars
 	GView::d->Css.Reset(d = new GRichTextPriv(this));
-	
+
 	// setup window
 	SetId(Id);
 
@@ -390,6 +390,16 @@ char *GRichTextEdit::Name()
 {
 	d->ToHtml();
 	return d->UtfNameCache;
+}
+
+const char *GRichTextEdit::GetCharset()
+{
+	return d->Charset;
+}
+
+void GRichTextEdit::SetCharset(const char *s)
+{
+	d->Charset = s;
 }
 
 static GHtmlElement *FindElement(GHtmlElement *e, HtmlTag TagId)
@@ -1151,11 +1161,11 @@ int GRichTextEdit::OnHitTest(int x, int y)
 
 void GRichTextEdit::OnMouseMove(GMouse &m)
 {
-	int Hit = IndexAt(m.x, m.y);
 	if (IsCapturing())
 	{
 		if (!d->WordSelectMode)
 		{
+			int Hit = IndexAt(m.x, m.y);
 			SetCursor(Hit, m.Left());
 		}
 		else

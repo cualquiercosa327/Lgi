@@ -1108,7 +1108,10 @@ public:
 	~GDoubleBuffer()
 	{
 		if (Screen)
+		{
+			Mem.SetOrigin(0, 0);
 			Screen->Blt(0, 0, &Mem);
+		}
 	}
 };
 
