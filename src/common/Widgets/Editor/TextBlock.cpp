@@ -874,6 +874,71 @@ int GRichTextPriv::TextBlock::CopyAt(int Offset, int Chars, GArray<char16> *Text
 	return 0;
 }
 
+int GRichTextPriv::TextBlock::FindAt(int StartIdx, const char16 *Str, GFindReplaceCommon *Params)
+{
+	if (!Str || !Params)
+		return -1;
+
+	int InLen = Strlen(Str);
+	bool Match;
+	int CharPos = 0;
+	for (int i=0; i<Txt.Length(); i++)
+	{
+		StyleText *t = Txt[i];
+		char16 *s = &t->First();
+		char16 *e = s + t->Length();
+		if (Params->MatchCase)
+		{
+			for (char16 *c = s; c < e; c++)
+			{
+				if (*c == *Str)
+				{
+					if (c + InLen <= e)
+						Match = !Strncmp(c, Str, InLen);
+					else
+					{
+						GArray<char16> tmp;
+						if (CopyAt(CharPos + (c - s), InLen, &tmp) &&
+							tmp.Length() == InLen)
+							Match = !Strncmp(&tmp[0], Str, InLen);
+						else
+							Match = false;
+					}
+					if (Match)
+						return CharPos + (c - s);
+				}
+			}
+		}
+		else
+		{
+			char16 l = ToLower(*Str);
+			for (char16 *c = s; c < e; c++)
+			{
+				if (ToLower(*c) == l)
+				{
+					if (c + InLen <= e)
+						Match = !Strnicmp(c, Str, InLen);
+					else
+					{
+						GArray<char16> tmp;
+						if (CopyAt(CharPos + (c - s), InLen, &tmp) &&
+							tmp.Length() == InLen)
+							Match = !Strnicmp(&tmp[0], Str, InLen);
+						else
+							Match = false;
+					}
+					if (Match)
+						return CharPos + (c - s);
+				}
+			}
+		}
+
+		CharPos += t->Length();
+	}
+
+	return -1;
+}
+
 bool GRichTextPriv::TextBlock::Seek(SeekType To, BlockCursor &Cur)
 {
 	int XOffset = Cur.Pos.x1 - Pos.x1;

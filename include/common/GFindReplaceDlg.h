@@ -8,7 +8,7 @@ class LgiClass GFindReplaceCommon : public GDialog
 {
 public:
 	/// The string to find
-	char *Find;
+	GString Find;
 	/// Whether to match a whole word
 	bool MatchWord;
 	/// Whether to match the case
@@ -17,7 +17,6 @@ public:
 	bool SelectionOnly;
 	
 	GFindReplaceCommon();
-	~GFindReplaceCommon();
 };
 
 typedef bool (*GFrCallback)(GFindReplaceCommon *Dlg, bool Replace, void *User);

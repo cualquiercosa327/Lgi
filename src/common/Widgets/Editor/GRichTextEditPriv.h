@@ -448,6 +448,7 @@ public:
 		virtual void OnPaint(PaintContext &Ctx) = 0;
 		virtual bool ToHtml(GStream &s) = 0;
 		virtual int GetLines() = 0;
+		virtual int FindAt(int StartIdx, const char16 *Str, GFindReplaceCommon *Params) = 0;
 		
 		/// This method moves a cursor index.
 		/// \returns the new cursor index or -1 on error.
@@ -630,6 +631,7 @@ public:
 		int CopyAt(int Offset, int Chars, GArray<char16> *Text);
 		bool AddText(int AtOffset, const char16 *Str, int Chars = -1, GNamedStyle *Style = NULL);
 		bool Seek(SeekType To, BlockCursor &Cursor);
+		int FindAt(int StartIdx, const char16 *Str, GFindReplaceCommon *Params);
 	};
 	
 	GArray<Block*> Blocks;

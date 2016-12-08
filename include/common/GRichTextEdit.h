@@ -157,8 +157,8 @@ public:
 	void OnAddStyle(const char *MimeType, const char *Styles);
 
 	// Object Events
-	bool OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly);
-	bool OnReplace(char16 *Find, char16 *Replace, bool All, bool MatchWord, bool MatchCase, bool SelectionOnly);
+	bool OnFind(GFindReplaceCommon *Params);
+	bool OnReplace(GFindReplaceCommon *Params);
 	bool OnMultiLineTab(bool In);
 	void OnSetHidden(int Hidden);
 	void OnPosChange();

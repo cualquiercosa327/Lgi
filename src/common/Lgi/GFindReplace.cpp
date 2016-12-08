@@ -21,15 +21,9 @@
 ////////////////////////////////////////////////////////////////////////////
 GFindReplaceCommon::GFindReplaceCommon()
 {
-	Find = 0;
 	MatchWord = false;
 	MatchCase = false;
 	SelectionOnly = false;
-}
-
-GFindReplaceCommon::~GFindReplaceCommon()
-{
-	DeleteArray(Find);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -53,7 +47,8 @@ public:
 GFindDlg::GFindDlg(GView *Parent, char *Init, GFrCallback Callback, void *UserData)
 {
 	d = new GFindDlgPrivate;
-	Find = NewStr(Init);
+	if (Init)
+		Find = Init;
 	d->Callback = Callback;
 	d->CallbackData = UserData;
 
@@ -123,7 +118,8 @@ void GFindDlg::OnPosChange()
 void GFindDlg::OnCreate()
 {
 	// Load controls
-	if (Find) SetCtrlName(IDC_TEXT, Find);
+	if (Find)
+		SetCtrlName(IDC_TEXT, Find);
 	SetCtrlValue(IDC_MATCH_WORD, MatchWord);
 	SetCtrlValue(IDC_MATCH_CASE, MatchCase);
 	
@@ -141,9 +137,7 @@ int GFindDlg::OnNotify(GViewI *Ctrl, int Flags)
 		case IDOK:
 		{
 			// Save controls
-			DeleteArray(Find);
-			
-			Find = NewStr(GetCtrlName(IDC_TEXT));
+			Find = GetCtrlName(IDC_TEXT);
 			MatchWord = GetCtrlValue(IDC_MATCH_WORD);
 			MatchCase = GetCtrlValue(IDC_MATCH_CASE);
 			
@@ -188,7 +182,8 @@ GReplaceDlg::GReplaceDlg(GView *Parent, char *InitFind, char *InitReplace, GFrCa
 	d = new GReplaceDlgPrivate;
 	d->Callback = Callback;
 	d->CallbackData = UserData;
-	Find = NewStr(InitFind);
+	if (InitFind)
+		Find = InitFind;
 	Replace = NewStr(InitReplace);
 	MatchWord = false;
 	MatchCase = false;
@@ -286,15 +281,16 @@ GReplaceDlg::GReplaceDlg(GView *Parent, char *InitFind, char *InitReplace, GFrCa
 
 GReplaceDlg::~GReplaceDlg()
 {
-	DeleteArray(Find);
 	DeleteArray(Replace);
 	DeleteObj(d);
 }
 
 void GReplaceDlg::OnCreate()
 {
-	if (Find) SetCtrlName(IDC_TEXT, Find);
-	if (Replace) SetCtrlName(IDC_REPLACE_WITH, Replace);
+	if (Find)
+		SetCtrlName(IDC_TEXT, Find);
+	if (Replace)
+		SetCtrlName(IDC_REPLACE_WITH, Replace);
 	SetCtrlValue(IDC_MATCH_WORD, MatchWord);
 	SetCtrlValue(IDC_MATCH_CASE, MatchCase);
 	SetCtrlValue(IDC_SELECTION_ONLY, SelectionOnly);
@@ -308,11 +304,8 @@ int GReplaceDlg::OnNotify(GViewI *Ctrl, int Flags)
 		case IDC_FR_FIND:
 		case IDC_FR_REPLACE:
 		{
-			DeleteArray(Find);
-			DeleteArray(Replace);
-
-			Find = NewStr(GetCtrlName(IDC_TEXT));
-			Replace = NewStr(GetCtrlName(IDC_REPLACE_WITH));
+			Find = GetCtrlName(IDC_TEXT);
+			Replace = GetCtrlName(IDC_REPLACE_WITH);
 			MatchWord = GetCtrlValue(IDC_MATCH_WORD);
 			MatchCase = GetCtrlValue(IDC_MATCH_CASE);
 			SelectionOnly = GetCtrlValue(IDC_SELECTION_ONLY);

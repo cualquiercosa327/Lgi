@@ -790,50 +790,73 @@ bool GRichTextEdit::DoFindNext()
 bool
 RichText_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User)
 {
-	return true;
+	return ((GRichTextEdit*)User)->OnFind(Dlg);
 }
 
+////////////////////////////////////////////////////////////////////////////////// FIND
 bool GRichTextEdit::DoFind()
 {
-	char *u = 0;
+	GArray<char16> Sel;
 	if (HasSelection())
+		d->GetSelection(Sel);
+	GAutoString u(Sel.Length() ? WideToUtf8(&Sel.First()) : NULL);
+	GFindDlg Dlg(this, u, RichText_FindCallback, this);
+	Dlg.DoModal();	
+	Focus(true);
+	return false;
+}
+
+bool GRichTextEdit::OnFind(GFindReplaceCommon *Params)
+{
+	if (!Params || !d->Cursor)
 	{
+		LgiAssert(0);
+		return false;
 	}
-	else
+	
+	GAutoWString w(Utf8ToWide(Params->Find));
+	int Idx = d->Blocks.IndexOf(d->Cursor->Blk);
+	if (Idx < 0)
 	{
+		LgiAssert(0);
+		return false;
 	}
 
-	GFindDlg Dlg(this, u, RichText_FindCallback, this);
-	Dlg.DoModal();
-	DeleteArray(u);
-	
-	Focus(true);
+	for (int n = 0; n < d->Blocks.Length(); n++)
+	{
+		int i = Idx + n;
+		GRichTextPriv::Block *b = d->Blocks[i % d->Blocks.Length()];
+		int At = n ? 0 : d->Cursor->Offset;
+		int Result = b->FindAt(At, w, Params);
+		if (Result >= At)
+		{
+			int Len = Strlen(w.Get());
+			GAutoPtr<GRichTextPriv::BlockCursor> Sel(new GRichTextPriv::BlockCursor(b, Result, -1));
+			d->SetCursor(Sel, false);
+
+			GAutoPtr<GRichTextPriv::BlockCursor> Cur(new GRichTextPriv::BlockCursor(b, Result + Len, -1));
+			return d->SetCursor(Cur, true);
+		}
+	}
 
 	return false;
 }
 
+////////////////////////////////////////////////////////////////////////////////// REPLACE
 bool GRichTextEdit::DoReplace()
 {
 	return false;
 }
 
+bool GRichTextEdit::OnReplace(GFindReplaceCommon *Params)
+{
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////////////
 void GRichTextEdit::SelectWord(int From)
 {
 	Invalidate();
-}
-
-bool GRichTextEdit::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly)
-{
-	return false;
-}
-
-bool GRichTextEdit::OnReplace(char16 *Find, char16 *Replace, bool All, bool MatchWord, bool MatchCase, bool SelectionOnly)
-{
-	if (ValidStrW(Find))
-	{
-	}	
-	
-	return false;
 }
 
 bool GRichTextEdit::OnMultiLineTab(bool In)
@@ -1245,21 +1268,14 @@ void GRichTextEdit::OnMouseMove(GMouse &m)
 
 bool GRichTextEdit::OnKey(GKey &k)
 {
-	if (k.Down())
-	{
-		// Blink = true;
-	}
+	if (k.Down() &&
+		d->Cursor)
+		d->Cursor->Blink = true;
 
 	// k.Trace("GRichTextEdit::OnKey");
-
 	if (k.IsContextMenu())
 	{
 		GMouse m;
-		/*
-		m.x = CursorPos.x1;
-		m.y = CursorPos.y1 + (CursorPos.Y() >> 1);
-		m.Target = this;
-		*/
 		DoContextMenu(m);
 	}
 	else if (k.IsChar)
@@ -1280,126 +1296,17 @@ bool GRichTextEdit::OnKey(GKey &k)
 					)
 				)
 				{
-					if (k.Down())
+					if (k.Down() &&
+						d->Cursor &&
+						d->Cursor->Blk)
 					{
 						// letter/number etc
-						if (d->Cursor &&
-							d->Cursor->Blk)
+						GRichTextPriv::Block *b = d->Cursor->Blk;
+						if (b->AddText(d->Cursor->Offset, &k.c16, 1))
 						{
-							GRichTextPriv::Block *b = d->Cursor->Blk;
-							if (b->AddText(d->Cursor->Offset, &k.c16, 1))
-							{
-								d->Cursor->Set(d->Cursor->Offset + 1);
-								Invalidate();
-							}
+							d->Cursor->Set(d->Cursor->Offset + 1);
+							Invalidate();
 						}
-
-						/*
-						if (SelStart >= 0)
-						{
-							bool MultiLine = false;
-							if (k.c16 == VK_TAB)
-							{
-								int Min = min(SelStart, SelEnd), Max = max(SelStart, SelEnd);
-								for (int i=Min; i<Max; i++)
-								{
-									if (Text[i] == '\n')
-									{
-										MultiLine = true;
-									}
-								}
-							}
-							if (MultiLine)
-							{
-								if (OnMultiLineTab(k.Shift()))
-								{
-									return true;
-								}
-							}
-							else
-							{
-								DeleteSelection();
-							}
-						}
-						
-						GTextLine *l = GetTextLine(Cursor);
-						int Len = (l) ? l->Len : 0;
-						
-						if (l && k.c16 == VK_TAB && (!HardTabs || IndentSize != TabSize))
-						{
-							int x = GetColumn();							
-							int Add = IndentSize - (x % IndentSize);
-							
-							if (HardTabs && ((x + Add) % TabSize) == 0)
-							{
-								int Rx = x;
-								int Remove;
-								for (Remove = Cursor; Text[Remove - 1] == ' ' && Rx % TabSize != 0; Remove--, Rx--);
-								int Chars = Cursor - Remove;
-								Delete(Remove, Chars);
-								Insert(Remove, &k.c16, 1);
-								Cursor = Remove + 1;
-								
-								Invalidate();
-							}
-							else
-							{							
-								char16 *Sp = new char16[Add];
-								if (Sp)
-								{
-									for (int n=0; n<Add; n++) Sp[n] = ' ';
-									if (Insert(Cursor, Sp, Add))
-									{
-										l = GetTextLine(Cursor);
-										int NewLen = (l) ? l->Len : 0;
-										SetCursor(Cursor + Add, false, Len != NewLen - 1);
-									}
-									DeleteArray(Sp);
-								}
-							}
-						}
-						else
-						{
-							char16 In = k.GetChar();
-
-							if (In == '\t' &&
-								k.Shift() &&
-								Cursor > 0)
-							{
-								l = GetTextLine(Cursor);
-								if (Cursor > l->Start)
-								{
-									if (Text[Cursor-1] == '\t')
-									{
-										Delete(Cursor - 1, 1);
-										SetCursor(Cursor, false, false);
-									}
-									else if (Text[Cursor-1] == ' ')
-									{
-										int Start = Cursor - 1;
-										while (Start >= l->Start && strchr(" \t", Text[Start-1]))
-											Start--;
-										int Depth = SpaceDepth(Text + Start, Text + Cursor);
-										int NewDepth = Depth - (Depth % IndentSize);
-										if (NewDepth == Depth && NewDepth > 0)
-											NewDepth -= IndentSize;
-										int Use = 0;
-										while (SpaceDepth(Text + Start, Text + Start + Use + 1) < NewDepth)
-											Use++;
-										Delete(Start + Use, Cursor - Start - Use);
-										SetCursor(Start + Use, false, false);
-									}
-								}
-								
-							}
-							else if (In && Insert(Cursor, &In, 1))
-							{
-								l = GetTextLine(Cursor);
-								int NewLen = (l) ? l->Len : 0;
-								SetCursor(Cursor + 1, false, Len != NewLen - 1);
-							}
-						}
-						*/
 					}
 					return true;
 				}
@@ -1412,8 +1319,8 @@ bool GRichTextEdit::OnKey(GKey &k)
 
 				if (k.Down() && k.IsChar)
 					OnEnter(k);
+
 				return true;
-				break;
 			}
 			case VK_BACKSPACE:
 			{
@@ -1447,8 +1354,8 @@ bool GRichTextEdit::OnKey(GKey &k)
 						}
 					}
 				}
+
 				return true;
-				break;
 			}
 		}
 	}
@@ -1459,9 +1366,7 @@ bool GRichTextEdit::OnKey(GKey &k)
 			case VK_TAB:
 				return true;
 			case VK_RETURN:
-			{
 				return !GetReadOnly();
-			}
 			case VK_BACKSPACE:
 			{
 				if (!GetReadOnly())
@@ -1471,30 +1376,17 @@ bool GRichTextEdit::OnKey(GKey &k)
 						if (k.Down())
 						{
 							if (k.Ctrl())
-							{
 								Redo();
-							}
 							else
-							{
 								Undo();
-							}
 						}
 					}
 					else if (k.Ctrl())
 					{
 						if (k.Down())
 						{
-							/*
-							int Start = Cursor;
-							while (IsWhiteSpace(Text[Cursor-1]) && Cursor > 0)
-								Cursor--;
-
-							while (!IsWhiteSpace(Text[Cursor-1]) && Cursor > 0)
-								Cursor--;
-
-							Delete(Cursor, Start - Cursor);
-							Invalidate();
-							*/
+							// Implement delete by word
+							LgiAssert(!"Impl backspace by word");
 						}
 					}
 
@@ -1505,11 +1397,8 @@ bool GRichTextEdit::OnKey(GKey &k)
 			case VK_F3:
 			{
 				if (k.Down())
-				{
 					DoFindNext();
-				}
 				return true;
-				break;
 			}
 			case VK_LEFT:
 			{
@@ -1538,7 +1427,6 @@ bool GRichTextEdit::OnKey(GKey &k)
 					}
 				}
 				return true;
-				break;
 			}
 			case VK_RIGHT:
 			{
@@ -1566,7 +1454,6 @@ bool GRichTextEdit::OnKey(GKey &k)
 					}
 				}
 				return true;
-				break;
 			}
 			case VK_UP:
 			{
@@ -1585,7 +1472,6 @@ bool GRichTextEdit::OnKey(GKey &k)
 							k.Shift());
 				}
 				return true;
-				break;
 			}
 			case VK_DOWN:
 			{
@@ -1604,7 +1490,6 @@ bool GRichTextEdit::OnKey(GKey &k)
 							k.Shift());
 				}
 				return true;
-				break;
 			}
 			case VK_END:
 			{
@@ -1620,7 +1505,6 @@ bool GRichTextEdit::OnKey(GKey &k)
 							k.Shift());
 				}
 				return true;
-				break;
 			}
 			case VK_HOME:
 			{
@@ -1636,7 +1520,6 @@ bool GRichTextEdit::OnKey(GKey &k)
 							k.Shift());
 				}
 				return true;
-				break;
 			}
 			case VK_PAGEUP:
 			{
@@ -1837,11 +1720,8 @@ bool GRichTextEdit::OnKey(GKey &k)
 						case 'f':
 						{
 							if (k.Down())
-							{
 								DoFind();
-							}
 							return true;
-							break;
 						}
 						case 'g':
 						case 'G':
