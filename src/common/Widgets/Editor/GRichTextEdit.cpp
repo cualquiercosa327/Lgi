@@ -308,65 +308,66 @@ bool GRichTextEdit::Delete(int At, int Len)
 	return false;
 }
 
-void GRichTextEdit::DeleteSelection(char16 **Cut)
+bool GRichTextEdit::DeleteSelection(char16 **Cut)
 {
-	if (d->Cursor &&
-		d->Selection)
-	{
-		GArray<char16> DeletedText;
-		GArray<char16> *DelTxt = Cut ? &DeletedText : NULL;
+	if (!d->Cursor || !d->Selection)
+		return false;
 
-		bool Cf = d->CursorFirst();
-		GRichTextPriv::BlockCursor *Start = Cf ? d->Cursor : d->Selection;
-		GRichTextPriv::BlockCursor *End = Cf ? d->Selection : d->Cursor;
-		if (Start->Blk == End->Blk)
+	GArray<char16> DeletedText;
+	GArray<char16> *DelTxt = Cut ? &DeletedText : NULL;
+
+	bool Cf = d->CursorFirst();
+	GRichTextPriv::BlockCursor *Start = Cf ? d->Cursor : d->Selection;
+	GRichTextPriv::BlockCursor *End = Cf ? d->Selection : d->Cursor;
+	if (Start->Blk == End->Blk)
+	{
+		// In the same block... just delete the text
+		int Len = End->Offset - Start->Offset;
+		Start->Blk->DeleteAt(Start->Offset, Len, DelTxt);
+	}
+	else
+	{
+		// Multi-block delete...
+
+		// 1) Delete all the content to the end of the first block
+		int StartLen = Start->Blk->Length();
+		if (Start->Offset < StartLen)
+			Start->Blk->DeleteAt(Start->Offset, StartLen - Start->Offset, DelTxt);
+
+		// 2) Delete any blocks between 'Start' and 'End'
+		int i = d->Blocks.IndexOf(Start->Blk);
+		if (i >= 0)
 		{
-			// In the same block... just delete the text
-			int Len = End->Offset - Start->Offset;
-			Start->Blk->DeleteAt(Start->Offset, Len, DelTxt);
+			for (++i; d->Blocks[i] != End->Blk && i < (int)d->Blocks.Length(); )
+			{
+				GRichTextPriv::Block *b = d->Blocks[i];
+				b->CopyAt(0, -1, DelTxt);
+				d->Blocks.DeleteAt(i, true);
+				DeleteObj(b);
+			}
 		}
 		else
 		{
-			// Multi-block delete...
-
-			// 1) Delete all the content to the end of the first block
-			int StartLen = Start->Blk->Length();
-			if (Start->Offset < StartLen)
-			{
-				Start->Blk->DeleteAt(Start->Offset, StartLen - Start->Offset, DelTxt);
-			}
-
-			// 2) Delete any blocks between 'Start' and 'End'
-			int i = d->Blocks.IndexOf(Start->Blk);
-			int EndIdx = d->Blocks.IndexOf(End->Blk);
-			if (i >= 0 && EndIdx >= i)
-			{
-				for (++i; d->Blocks[i] != End->Blk && i < (int)d->Blocks.Length(); i++)
-				{
-					GRichTextPriv::Block *&b = d->Blocks[i];
-					b->CopyAt(0, -1, DelTxt);
-					d->Blocks.DeleteAt(i, true);
-					DeleteObj(b);
-				}
-			}
-			else LgiAssert(0);
-
-			// 3) Delete any text up to the Cursor in the 'End' block
-			End->Blk->DeleteAt(0, End->Offset, DelTxt);
+			LgiAssert(0);
+			return false;
 		}
 
-		// Set the cursor and update the screen
-		d->Cursor->Set(Start->Blk, Start->Offset);
-		d->Selection.Reset();
-		Invalidate();
-
-		if (Cut)
-		{
-			DelTxt->Add(0);
-			*Cut = DelTxt->Release();
-		}
+		// 3) Delete any text up to the Cursor in the 'End' block
+		End->Blk->DeleteAt(0, End->Offset, DelTxt);
 	}
-	else LgiAssert(0);
+
+	// Set the cursor and update the screen
+	d->Cursor->Set(Start->Blk, Start->Offset);
+	d->Selection.Reset();
+	Invalidate();
+
+	if (Cut)
+	{
+		DelTxt->Add(0);
+		*Cut = DelTxt->Release();
+	}
+
+	return true;
 }
 
 int64 GRichTextEdit::Value()
@@ -449,6 +450,19 @@ bool GRichTextEdit::Name(const char *s)
 	if (!d->Blocks.Length())
 	{
 		d->EmptyDoc();
+	}
+	else
+	{
+		// Clear out any zero length blocks.
+		for (unsigned i=0; i<d->Blocks.Length(); i++)
+		{
+			GRichTextPriv::Block *b = d->Blocks[i];
+			if (b->Length() == 0)
+			{
+				d->Blocks.DeleteAt(i--, true);
+				DeleteObj(b);
+			}
+		}
 	}
 	
 	// d->DumpBlocks();
@@ -571,7 +585,9 @@ bool GRichTextEdit::Cut()
 		return false;
 
 	char16 *Txt = NULL;
-	DeleteSelection(&Txt);
+	if (!DeleteSelection(&Txt))
+		return false;
+
 	bool Status = true;
 	if (Txt)
 	{

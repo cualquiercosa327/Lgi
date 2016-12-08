@@ -162,6 +162,25 @@ bool GRichTextPriv::Error(const char *file, int line, const char *fmt, ...)
 	return false;
 }
 
+void GRichTextPriv::ScrollTo(GRect r)
+{
+	GRect Content = Areas[GRichTextEdit::ContentArea];
+	Content.Offset(0, ScrollOffsetPx);
+
+	if (r.y1 < Content.y1)
+	{
+		int OffsetPx = max(r.y1, 0);
+		View->SetScrollPos(0, OffsetPx / ScrollLinePx);
+		InvalidateDoc(NULL);
+	}
+	if (r.y2 > Content.y2)
+	{
+		int OffsetPx = r.y2 - Content.Y();
+		View->SetScrollPos(0, (OffsetPx + ScrollLinePx - 1) / ScrollLinePx);
+		InvalidateDoc(NULL);
+	}
+}
+
 void GRichTextPriv::InvalidateDoc(GRect *r)
 {
 	// Transform the coordinates from doc to screen space
@@ -232,8 +251,7 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 					if (!b)
 						return false;
 						
-					c->Blk = b;
-					c->Offset = Up ? b->Length() : 0;
+					c.Reset(new BlockCursor(b, Up ? b->Length() : 0));
 					LgiAssert(c->Offset >= 0);
 					Status = true;							
 				}
@@ -423,7 +441,7 @@ bool GRichTextPriv::SetCursor(GAutoPtr<BlockCursor> c, bool Select)
 	if (!Cursor)
 		Cursor.Reset(new BlockCursor(*c));
 	else
-		*Cursor = *c;
+		Cursor = c;
 	Cursor->Blk->GetPosFromIndex(&Cursor->Pos, &Cursor->Line, Cursor->Offset);
 	
 	#if DEBUG_OUTLINE_CUR_DISPLAY_STR || DEBUG_OUTLINE_CUR_STYLE_TEXT
@@ -440,6 +458,9 @@ bool GRichTextPriv::SetCursor(GAutoPtr<BlockCursor> c, bool Select)
 		InvalidateDoc(&InvalidRc);
 	}
 	#endif
+
+	// Check the cursor is on the visible part of the document.
+	ScrollTo(Cursor->Pos);
 
 	return true;
 }
@@ -570,7 +591,6 @@ bool GRichTextPriv::Layout(GScrollBar *&ScrollY)
 			Cursor->Blk->GetPosFromIndex(&Cursor->Pos,
 											&Cursor->Line,
 											Cursor->Offset);
-				
 			// LgiTrace("%s:%i - Cursor->Pos=%s\n", _FL, Cursor->Pos.GetStr());
 		}
 	}
@@ -783,7 +803,7 @@ void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
 	}
 
 	GRect r = Areas[GRichTextEdit::ContentArea];
-	#ifdef WINDOWS
+	#if defined(WINDOWS) && !DEBUG_NO_DOUBLE_BUF
 	GMemDC Mem(r.X(), r.Y(), pDC->GetColourSpace());
 	GSurface *pScreen = pDC;
 	pDC = &Mem;
@@ -856,7 +876,7 @@ void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
 	}
 	#endif
 
-	#ifdef WINDOWS
+	#if defined(WINDOWS) && !DEBUG_NO_DOUBLE_BUF
 	Mem.SetOrigin(0, 0);
 	pScreen->Blt(Areas[GRichTextEdit::ContentArea].x1, Areas[GRichTextEdit::ContentArea].y1, &Mem);
 	#endif
@@ -1041,7 +1061,7 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 		if (EndStyleChange)
 			ctx.Tb = NULL;
 	}
-		
+
 	return true;
 }
 

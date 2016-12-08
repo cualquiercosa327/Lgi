@@ -476,6 +476,8 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 {
 	if (Pos.X() == flow.X() && !LayoutDirty)
 	{
+		// Adjust position to match the flow, even if we are not dirty
+		Pos.Offset(0, flow.CurY - Pos.y1);
 		flow.CurY = Pos.y2 + 1;
 		return true;
 	}
@@ -700,10 +702,10 @@ int GRichTextPriv::TextBlock::DeleteAt(int BlkOffset, int Chars, GArray<char16> 
 {
 	int Pos = 0;
 
+	#if 0
 	for (unsigned i=0; i<Txt.Length(); i++)
-	{
 		LgiTrace("%p/%i: '%.*S'\n", Txt[i], i, Txt[i]->Length(), &(*Txt[i])[0]);
-	}
+	#endif
 	
 	for (unsigned i=0; i<Txt.Length(); i++)
 	{
@@ -957,7 +959,7 @@ int GRichTextPriv::TextBlock::Seek(SeekType To, int Offset, int XPos)
 			}
 					
 			// Cursor is nearest the end of the string...?
-			return LineOffset[CurLine] + Line->Length() - 1;
+			return LineOffset[CurLine] + Line->Length() - Line->NewLine;
 		}
 		else if (Line->NewLine)
 		{

@@ -30,8 +30,9 @@
 
 #define DEBUG_LOG_CURSOR_COUNT			0
 #define DEBUG_OUTLINE_CUR_DISPLAY_STR	0
-#define DEBUG_OUTLINE_CUR_STYLE_TEXT	1
+#define DEBUG_OUTLINE_CUR_STYLE_TEXT	0
 #define DEBUG_OUTLINE_BLOCKS			0
+#define DEBUG_NO_DOUBLE_BUF				1
 
 #define TEXT_LINK						"Link"
 #define TEXT_CAP_BTN					"Ok"
@@ -627,6 +628,7 @@ public:
 	GArray<Block*> Blocks;
 
 	void InvalidateDoc(GRect *r);
+	void ScrollTo(GRect r);
 	void EmptyDoc();	
 	void Empty();
 	bool Seek(BlockCursor *In, SeekType Dir, bool Select);

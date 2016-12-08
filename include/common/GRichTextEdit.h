@@ -69,7 +69,7 @@ public:
 	void SetCharset(const char *s);
 
 	int HitTest(int x, int y);
-	void DeleteSelection(char16 **Cut = 0);
+	bool DeleteSelection(char16 **Cut = 0);
 
 	// Font
 	GFont *GetFont();
