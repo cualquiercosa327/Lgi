@@ -219,9 +219,7 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 	if (!In || !In->Blk || Blocks.Length() == 0)
 		return false;
 		
-	GAutoPtr<BlockCursor> c(new BlockCursor(*In));
-	if (!c)
-		return false;
+	GAutoPtr<BlockCursor> c;
 
 	bool Status = false;
 	switch (Dir)
@@ -231,6 +229,9 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 		case SkUpLine:
 		case SkDownLine:
 		{
+			if (!c.Reset(new BlockCursor(*In)))
+				break;
+
 			Block *b = c->Blk;
 			Status = b->Seek(Dir, *c);
 			if (Status)
@@ -274,21 +275,29 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 		}
 		case SkDocStart:
 		{
-			c->Blk = Blocks[0];
-			c->Offset = 0;
+			if (!c.Reset(new BlockCursor(Blocks[0], 0, 0)))
+				break;
+
 			Status = true;
 			break;
 		}
 		case SkDocEnd:
 		{
-			c->Blk = Blocks.Last();
-			c->Offset = c->Blk->Length();
-			LgiAssert(c->Offset >= 0);
+			if (Blocks.Length() == 0)
+				break;
+
+			Block *l = Blocks.Last();
+			if (!c.Reset(new BlockCursor(l, l->Length(), -1)))
+				break;
+
 			Status = true;
 			break;
 		}
 		case SkLeftChar:
 		{
+			if (!c.Reset(new BlockCursor(*In)))
+				break;
+
 			if (c->Offset > 0)
 			{
 				c->Offset--;
@@ -311,6 +320,9 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 		}
 		case SkLeftWord:
 		{
+			if (!c.Reset(new BlockCursor(*In)))
+				break;
+
 			if (c->Offset > 0)
 			{
 				GArray<char16> a;
@@ -330,12 +342,11 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 			}
 			break;
 		}
-		case SkUpPage:
-		{
-			break;
-		}
 		case SkRightChar:
 		{
+			if (!c.Reset(new BlockCursor(*In)))
+				break;
+
 			if (c->Offset < c->Blk->Length())
 			{
 				c->Offset++;
@@ -358,6 +369,9 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 		}
 		case SkRightWord:
 		{
+			if (!c.Reset(new BlockCursor(*In)))
+				break;
+
 			if (c->Offset < c->Blk->Length())
 			{
 				GArray<char16> a;
@@ -378,8 +392,44 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 			}
 			break;
 		}
+		case SkUpPage:
+		{
+			GRect &Content = Areas[GRichTextEdit::ContentArea];
+			int LineHint = -1;
+			int TargetY = In->Pos.y1 - Content.Y();
+			int Idx = HitTest(In->Pos.x1, max(TargetY, 0), LineHint);
+			if (Idx >= 0)
+			{
+				int Offset = -1;
+				Block *b = GetBlockByIndex(Idx, &Offset);
+				if (b)
+				{
+					if (!c.Reset(new BlockCursor(b, Offset, LineHint)))
+						break;
+
+					Status = true;
+				}
+			}
+			break;
+		}
 		case SkDownPage:
 		{
+			GRect &Content = Areas[GRichTextEdit::ContentArea];
+			int LineHint = -1;
+			int TargetY = In->Pos.y1 + Content.Y();
+			int Idx = HitTest(In->Pos.x1, min(TargetY, DocumentExtent.y-1), LineHint);
+			if (Idx >= 0)
+			{
+				int Offset = -1;
+				Block *b = GetBlockByIndex(Idx, &Offset);
+				if (b)
+				{
+					if (!c.Reset(new BlockCursor(b, Offset, LineHint)))
+						break;
+
+					Status = true;
+				}
+			}
 			break;
 		}
 		default:
@@ -533,10 +583,16 @@ int GRichTextPriv::HitTest(int x, int y, int &LineHint)
 	for (unsigned i=0; i<Blocks.Length(); i++)
 	{
 		Block *b = Blocks[i];
+		GRect p = b->GetPos();
+		bool Over = p.Overlap(x, y);
 		if (b->HitTest(r))
 		{
 			LineHint = r.LineHint;
 			return CharPos + r.Idx;
+		}
+		else if (Over)
+		{
+			LgiAssert(!"Block failed to hit.");
 		}
 			
 		CharPos += b->Length();

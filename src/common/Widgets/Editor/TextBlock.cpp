@@ -213,13 +213,14 @@ bool GRichTextPriv::TextBlock::HitTest(HitTestResult &htr)
 	{
 		TextLine *tl = Layout[i];
 		PtrCheckBreak(tl);
+		int InitCharPos = CharPos;
 
 		GRect r = tl->PosOff;
 		r.Offset(Pos.x1, Pos.y1);
 		bool Over = r.Overlap(htr.In.x, htr.In.y);
 		bool OnThisLine =	htr.In.y >= r.y1 &&
 							htr.In.y <= r.y2;
-		if (OnThisLine && htr.In.x < r.x1)
+		if (OnThisLine && htr.In.x <= r.x1)
 		{
 			htr.Near = true;
 			htr.Idx = CharPos;
@@ -256,12 +257,15 @@ bool GRichTextPriv::TextBlock::HitTest(HitTestResult &htr)
 			CharPos += ds->Length();
 		}
 
-		if (OnThisLine && htr.In.x > r.x2)
+		if (OnThisLine)
 		{
-			htr.Near = true;
-			htr.Idx = CharPos;
-			htr.LineHint = i;
-			return true;
+			if (htr.In.x > r.x2)
+			{
+				htr.Near = true;
+				htr.Idx = CharPos;
+				htr.LineHint = i;
+				return true;
+			}
 		}
 				
 		CharPos += tl->NewLine;
