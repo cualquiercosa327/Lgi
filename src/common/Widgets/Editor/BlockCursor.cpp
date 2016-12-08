@@ -9,25 +9,26 @@ GRichTextPriv::BlockCursor::BlockCursor(const BlockCursor &c)
 	*this = c;
 }
 		
-GRichTextPriv::BlockCursor::BlockCursor(Block *b, int off)
+GRichTextPriv::BlockCursor::BlockCursor(Block *b, int off, int line)
 {
 	Blk = NULL;
 	Offset = -1;
 	Pos.ZOff(-1, -1);
 	Line.ZOff(-1, -1);
+	LineHint = 0;
 
 	if (b)
-		Set(b, off);
+		Set(b, off, line);
 }
 		
 GRichTextPriv::BlockCursor::~BlockCursor()
 {
-	Set(NULL, 0);
+	Set(NULL, 0, 0);
 }
 		
 GRichTextPriv::BlockCursor &GRichTextPriv::BlockCursor::operator =(const BlockCursor &c)
 {
-	Set(c.Blk, c.Offset);
+	Set(c.Blk, c.Offset, c.LineHint);
 	Pos = c.Pos;
 	Line = c.Line;
 			
@@ -38,10 +39,10 @@ GRichTextPriv::BlockCursor &GRichTextPriv::BlockCursor::operator =(const BlockCu
 		
 void GRichTextPriv::BlockCursor::Set(int off)
 {
-	Set(Blk, off);
+	Set(Blk, off, LineHint);
 }
 
-void GRichTextPriv::BlockCursor::Set(GRichTextPriv::Block *b, int off)
+void GRichTextPriv::BlockCursor::Set(GRichTextPriv::Block *b, int off, int line)
 {
 	if (Blk != b)
 	{
@@ -61,6 +62,7 @@ void GRichTextPriv::BlockCursor::Set(GRichTextPriv::Block *b, int off)
 
 			Blk = NULL;
 		}
+
 		if (b)
 		{
 			Blk = b;
@@ -79,11 +81,12 @@ void GRichTextPriv::BlockCursor::Set(GRichTextPriv::Block *b, int off)
 	}
 
 	Offset = off;
+	LineHint = line;
 	if (Blk)
 	{
 		GRect Line;
 		LgiAssert(off >= 0 && off <= Blk->Length());
-		Blk->GetPosFromIndex(&Pos, &Line, Offset);
+		Blk->GetPosFromIndex(this);
 	}
 			
 	LgiAssert(Offset >= 0);

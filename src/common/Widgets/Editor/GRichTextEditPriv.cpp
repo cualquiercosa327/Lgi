@@ -200,7 +200,7 @@ void GRichTextPriv::EmptyDoc()
 	if (Def)
 	{			
 		Blocks.Add(Def);
-		Cursor.Reset(new BlockCursor(Def, 0));
+		Cursor.Reset(new BlockCursor(Def, 0, 0));
 	}
 }
 	
@@ -231,27 +231,41 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 		case SkUpLine:
 		case SkDownLine:
 		{
-			int Off = c->Blk->Seek(Dir, c->Offset, c->Pos.x1);
-			if (Off >= 0)
-			{
-				// Got the next line in the current block.
-				c->Offset = Off;
-				Status = true;
-			}
-			else if (Dir == SkUpLine || Dir == SkDownLine)
+			Block *b = c->Blk;
+			Status = b->Seek(Dir, *c);
+			if (Status)
+				break;
+
+			if (Dir == SkUpLine)
 			{
 				// No more lines in the current block...
 				// Move to the next block.
-				bool Up = Dir == SkUpLine;
-				int CurIdx = Blocks.IndexOf(c->Blk);
-				int NewIdx = CurIdx + (Up ? -1 : 1);
-				if (NewIdx >= 0 && (unsigned)NewIdx < Blocks.Length())
+				int CurIdx = Blocks.IndexOf(b);
+				int NewIdx = CurIdx - 1;
+				if (NewIdx >= 0)
 				{
 					Block *b = Blocks[NewIdx];
 					if (!b)
 						return false;
 						
-					c.Reset(new BlockCursor(b, Up ? b->Length() : 0));
+					c.Reset(new BlockCursor(b, b->Length(), b->GetLines() - 1));
+					LgiAssert(c->Offset >= 0);
+					Status = true;							
+				}
+			}
+			else if (Dir == SkDownLine)
+			{
+				// No more lines in the current block...
+				// Move to the next block.
+				int CurIdx = Blocks.IndexOf(b);
+				int NewIdx = CurIdx + 1;
+				if ((unsigned)NewIdx < Blocks.Length())
+				{
+					Block *b = Blocks[NewIdx];
+					if (!b)
+						return false;
+						
+					c.Reset(new BlockCursor(b, 0, 0));
 					LgiAssert(c->Offset >= 0);
 					Status = true;							
 				}
@@ -377,7 +391,7 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 		
 	if (Status)
 	{
-		c->Blk->GetPosFromIndex(&c->Pos, &c->Line, c->Offset);
+		c->Blk->GetPosFromIndex(c);
 		SetCursor(c, Select);
 	}
 		
@@ -442,7 +456,7 @@ bool GRichTextPriv::SetCursor(GAutoPtr<BlockCursor> c, bool Select)
 		Cursor.Reset(new BlockCursor(*c));
 	else
 		Cursor = c;
-	Cursor->Blk->GetPosFromIndex(&Cursor->Pos, &Cursor->Line, Cursor->Offset);
+	Cursor->Blk->GetPosFromIndex(Cursor);
 	
 	#if DEBUG_OUTLINE_CUR_DISPLAY_STR || DEBUG_OUTLINE_CUR_STYLE_TEXT
 	InvalidateDoc(NULL);
@@ -498,27 +512,61 @@ int GRichTextPriv::IndexOfCursor(BlockCursor *c)
 	LgiAssert(0);
 	return -1;
 }
-	
-int GRichTextPriv::HitTest(int x, int y, bool Click)
+
+GdcPt2 GRichTextPriv::ScreenToDoc(int x, int y)
+{
+	GRect &Content = Areas[GRichTextEdit::ContentArea];
+	return GdcPt2(x - Content.x1, y - Content.y1 + ScrollOffsetPx);
+}
+
+GdcPt2 GRichTextPriv::DocToScreen(int x, int y)
+{
+	GRect &Content = Areas[GRichTextEdit::ContentArea];
+	return GdcPt2(x + Content.x1, y + Content.y1 - ScrollOffsetPx);
+}
+
+int GRichTextPriv::HitTest(int x, int y, int &LineHint)
 {
 	int CharPos = 0;
 	HitTestResult r(x, y);
 
-	if (Click)
-	{
-		int asd=0;
-	}
-		
 	for (unsigned i=0; i<Blocks.Length(); i++)
 	{
 		Block *b = Blocks[i];
 		if (b->HitTest(r))
+		{
+			LineHint = r.LineHint;
 			return CharPos + r.Idx;
+		}
 			
 		CharPos += b->Length();
 	}
 		
 	return -1;
+}
+	
+bool GRichTextPriv::CursorFromPos(int x, int y, GAutoPtr<BlockCursor> *Cursor, int *GlobalIdx)
+{
+	int CharPos = 0;
+	HitTestResult r(x, y);
+
+	for (unsigned i=0; i<Blocks.Length(); i++)
+	{
+		Block *b = Blocks[i];
+		if (b->HitTest(r))
+		{
+			if (Cursor)
+				Cursor->Reset(new BlockCursor(b, r.Idx, r.LineHint));
+			if (GlobalIdx)
+				*GlobalIdx = CharPos + r.Idx;
+
+			return true;
+		}
+			
+		CharPos += b->Length();
+	}
+		
+	return false;
 }
 
 GRichTextPriv::Block *GRichTextPriv::GetBlockByIndex(int Index, int *Offset)
@@ -588,9 +636,7 @@ bool GRichTextPriv::Layout(GScrollBar *&ScrollY)
 		LgiAssert(Cursor->Blk != NULL);
 		if (Cursor->Blk)
 		{
-			Cursor->Blk->GetPosFromIndex(&Cursor->Pos,
-											&Cursor->Line,
-											Cursor->Offset);
+			Cursor->Blk->GetPosFromIndex(Cursor);
 			// LgiTrace("%s:%i - Cursor->Pos=%s\n", _FL, Cursor->Pos.GetStr());
 		}
 	}

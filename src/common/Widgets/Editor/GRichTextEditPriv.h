@@ -401,6 +401,7 @@ public:
 		Block *Blk;
 		DisplayStr *Ds;
 		int Idx;
+		int LineHint;
 		bool Near;
 		
 		HitTestResult(int x, int y)
@@ -410,6 +411,7 @@ public:
 			Blk = NULL;
 			Ds = NULL;
 			Idx = -1;
+			LineHint = -1;
 			Near = false;
 		}
 	};
@@ -441,21 +443,20 @@ public:
 		virtual GRect GetPos() = 0;
 		virtual int Length() = 0;
 		virtual bool HitTest(HitTestResult &htr) = 0;
-		virtual bool GetPosFromIndex(GRect *CursorPos, GRect *LinePos, int Index) = 0;
+		virtual bool GetPosFromIndex(BlockCursor *Cursor) = 0;
 		virtual bool OnLayout(Flow &f) = 0;
 		virtual void OnPaint(PaintContext &Ctx) = 0;
 		virtual bool ToHtml(GStream &s) = 0;
+		virtual int GetLines() = 0;
 		
 		/// This method moves a cursor index.
 		/// \returns the new cursor index or -1 on error.
-		virtual int Seek
+		virtual bool Seek
 		(
 			/// [In] true if the next line is needed, false for the previous line
 			SeekType To,
-			/// [In] The initial offset.
-			int Offset,
-			/// [In] The x position hint
-			int XPos
+			/// [In/Out] The starting cursor.
+			BlockCursor &Cursor
 		) = 0;
 
 		// Add some text at a given position
@@ -489,6 +490,11 @@ public:
 		// This is the character offset of the cursor relative to
 		// the start of 'Blk'.
 		int Offset;
+
+		// In wrapped text, a given offset can either be at the end
+		// of one line or the start of the next line. This tells the
+		// text block which line the cursor is actually on.
+		int LineHint;
 		
 		// This is the position on the screen in doc coords.
 		GRect Pos;
@@ -501,12 +507,12 @@ public:
 		bool Blink;
 
 		BlockCursor(const BlockCursor &c);
-		BlockCursor(Block *b, int off);
+		BlockCursor(Block *b, int off, int line);
 		~BlockCursor();
 		
 		BlockCursor &operator =(const BlockCursor &c);
 		void Set(int off);
-		void Set(Block *b, int off);
+		void Set(Block *b, int off, int line);
 	};
 	
 	GAutoPtr<BlockCursor> Cursor, Selection;
@@ -608,13 +614,14 @@ public:
 
 		bool IsValid();
 
+		int GetLines();
 		GRect GetPos() { return Pos; }
 		void Dump();
 		GNamedStyle *GetStyle();		
 		void SetStyle(GNamedStyle *s);
 		int Length();
 		bool ToHtml(GStream &s);
-		bool GetPosFromIndex(GRect *CursorPos, GRect *LinePos, int Index);
+		bool GetPosFromIndex(BlockCursor *Cursor);
 		bool HitTest(HitTestResult &htr);
 		void OnPaint(PaintContext &Ctx);
 		bool OnLayout(Flow &flow);
@@ -622,7 +629,7 @@ public:
 		int DeleteAt(int BlkOffset, int Chars, GArray<char16> *DeletedText = NULL);
 		int CopyAt(int Offset, int Chars, GArray<char16> *Text);
 		bool AddText(int AtOffset, const char16 *Str, int Chars = -1, GNamedStyle *Style = NULL);
-		int Seek(SeekType To, int Offset, int XPos);
+		bool Seek(SeekType To, BlockCursor &Cursor);
 	};
 	
 	GArray<Block*> Blocks;
@@ -637,7 +644,8 @@ public:
 	GRect SelectionRect();
 	bool GetSelection(GArray<char16> &Text);
 	int IndexOfCursor(BlockCursor *c);
-	int HitTest(int x, int y, bool Click);
+	int HitTest(int x, int y, int &LineHint);
+	bool CursorFromPos(int x, int y, GAutoPtr<BlockCursor> *Cursor, int *GlobalIdx);
 	Block *GetBlockByIndex(int Index, int *Offset = NULL);
 	bool Layout(GScrollBar *&ScrollY);
 	void OnStyleChange(GRichTextEdit::RectType t);
@@ -645,7 +653,9 @@ public:
 	void ClickBtn(GMouse &m, GRichTextEdit::RectType t);
 	void Paint(GSurface *pDC, GScrollBar *&ScrollY);
 	GHtmlElement *CreateElement(GHtmlElement *Parent);
-	
+	GdcPt2 ScreenToDoc(int x, int y);
+	GdcPt2 DocToScreen(int x, int y);
+
 	struct CreateContext
 	{
 		TextBlock *Tb;

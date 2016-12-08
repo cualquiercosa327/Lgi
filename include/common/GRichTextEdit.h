@@ -38,6 +38,8 @@ protected:
 	class GRichTextPriv *d;
 	friend class GRichTextPriv;
 
+	bool InternalIndexAt(int x, int y, int &Off, int &LineHint);
+
 	// Overridables
 	virtual void PourText(int Start, int Length);
 	virtual void PourStyle(int Start, int Length);

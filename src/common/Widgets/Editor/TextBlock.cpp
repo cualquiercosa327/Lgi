@@ -97,9 +97,9 @@ bool GRichTextPriv::TextBlock::ToHtml(GStream &s)
 	return true;
 }		
 
-bool GRichTextPriv::TextBlock::GetPosFromIndex(GRect *CursorPos, GRect *LinePos, int Index)
+bool GRichTextPriv::TextBlock::GetPosFromIndex(BlockCursor *Cursor)
 {
-	if (!CursorPos || !LinePos)
+	if (!Cursor)
 	{
 		LgiAssert(0);
 		return false;
@@ -107,7 +107,7 @@ bool GRichTextPriv::TextBlock::GetPosFromIndex(GRect *CursorPos, GRect *LinePos,
 
 	if (LayoutDirty)
 	{
-		CursorPos->ZOff(-1, -1);
+		Cursor->Pos.ZOff(-1, -1);
 		return false;
 	}
 		
@@ -127,32 +127,42 @@ bool GRichTextPriv::TextBlock::GetPosFromIndex(GRect *CursorPos, GRect *LinePos,
 			DisplayStr *ds = tl->Strs[n];
 			int dsChars = ds->Length();
 					
-			if (Index >= CharPos &&
-				Index <= CharPos + dsChars)
+			if
+			(
+				Cursor->Offset >= CharPos
+				&&
+				Cursor->Offset <= CharPos + dsChars
+				&&
+				(
+					Cursor->LineHint < 0
+					||
+					Cursor->LineHint == i
+				)
+			)
 			{
-				int CharOffset = Index - CharPos;
+				int CharOffset = Cursor->Offset - CharPos;
 				if (CharOffset == 0)
 				{
 					// First char
-					CursorPos->x1 = r.x1 + IntToFixed(FixX);
+					Cursor->Pos.x1 = r.x1 + IntToFixed(FixX);
 				}
 				else if (CharOffset == dsChars)
 				{
 					// Last char
-					CursorPos->x1 = r.x1 + IntToFixed(FixX + ds->FX());
+					Cursor->Pos.x1 = r.x1 + IntToFixed(FixX + ds->FX());
 				}
 				else
 				{
 					// In the middle somewhere...
 					GDisplayString Tmp(ds->GetFont(), *ds, CharOffset);
-					CursorPos->x1 = r.x1 + IntToFixed(FixX + Tmp.FX());
+					Cursor->Pos.x1 = r.x1 + IntToFixed(FixX + Tmp.FX());
 				}
 
-				CursorPos->y1 = r.y1 + ds->OffsetY;
-				CursorPos->y2 = CursorPos->y1 + ds->Y() - 1;
-				CursorPos->x2 = CursorPos->x1 + 1;
+				Cursor->Pos.y1 = r.y1 + ds->OffsetY;
+				Cursor->Pos.y2 = Cursor->Pos.y1 + ds->Y() - 1;
+				Cursor->Pos.x2 = Cursor->Pos.x1 + 1;
 
-				*LinePos = r;
+				Cursor->Line = r;
 				return true;
 			}					
 					
@@ -160,14 +170,14 @@ bool GRichTextPriv::TextBlock::GetPosFromIndex(GRect *CursorPos, GRect *LinePos,
 			CharPos += ds->Length();
 		}
 				
-		if (tl->Strs.Length() == 0 && Index == CharPos)
+		if (tl->Strs.Length() == 0 && Cursor->Offset == CharPos)
 		{
 			// Cursor at the start of empty line.
-			CursorPos->x1 = r.x1;
-			CursorPos->x2 = CursorPos->x1 + 1;
-			CursorPos->y1 = r.y1;
-			CursorPos->y2 = r.y2;
-			*LinePos = r;
+			Cursor->Pos.x1 = r.x1;
+			Cursor->Pos.x2 = Cursor->Pos.x1 + 1;
+			Cursor->Pos.y1 = r.y1;
+			Cursor->Pos.y2 = r.y2;
+			Cursor->Line = r;
 			return true;
 		}
 				
@@ -213,6 +223,7 @@ bool GRichTextPriv::TextBlock::HitTest(HitTestResult &htr)
 		{
 			htr.Near = true;
 			htr.Idx = CharPos;
+			htr.LineHint = i;
 			return true;
 		}
 				
@@ -236,6 +247,7 @@ bool GRichTextPriv::TextBlock::HitTest(HitTestResult &htr)
 				htr.Blk = this;
 				htr.Ds = ds;
 				htr.Idx = CharPos + OffChar;
+				htr.LineHint = i;
 				return true;
 			}
 					
@@ -248,6 +260,7 @@ bool GRichTextPriv::TextBlock::HitTest(HitTestResult &htr)
 		{
 			htr.Near = true;
 			htr.Idx = CharPos;
+			htr.LineHint = i;
 			return true;
 		}
 				
@@ -698,6 +711,11 @@ bool GRichTextPriv::TextBlock::IsValid()
 	return true;
 }
 
+int GRichTextPriv::TextBlock::GetLines()
+{
+	return Layout.Length();
+}
+
 int GRichTextPriv::TextBlock::DeleteAt(int BlkOffset, int Chars, GArray<char16> *DeletedText)
 {
 	int Pos = 0;
@@ -856,14 +874,14 @@ int GRichTextPriv::TextBlock::CopyAt(int Offset, int Chars, GArray<char16> *Text
 	return 0;
 }
 
-int GRichTextPriv::TextBlock::Seek(SeekType To, int Offset, int XPos)
+bool GRichTextPriv::TextBlock::Seek(SeekType To, BlockCursor &Cur)
 {
-	int XOffset = XPos - Pos.x1;
+	int XOffset = Cur.Pos.x1 - Pos.x1;
 	int CharPos = 0;
 	GArray<int> LineOffset;
 	GArray<int> LineLen;
 	int CurLine = -1;
-			
+	
 	for (unsigned i=0; i<Layout.Length(); i++)
 	{
 		TextLine *Line = Layout[i];
@@ -873,10 +891,11 @@ int GRichTextPriv::TextBlock::Seek(SeekType To, int Offset, int XPos)
 		LineOffset[i] = CharPos;
 		LineLen[i] = Len;
 				
-		if (Offset >= CharPos &&
-			Offset <= CharPos + Len) // - Line->NewLine
+		if (Cur.Offset >= CharPos &&
+			Cur.Offset <= CharPos + Len)
 		{
-			CurLine = i;
+			if (Cur.LineHint < 0 || i == Cur.LineHint)
+				CurLine = i;
 		}				
 				
 		CharPos += Len;
@@ -885,7 +904,7 @@ int GRichTextPriv::TextBlock::Seek(SeekType To, int Offset, int XPos)
 	if (CurLine < 0)
 	{
 		LgiAssert(!"Index not in layout lines.");
-		return -1;
+		return false;
 	}
 				
 	TextLine *Line = NULL;
@@ -893,32 +912,36 @@ int GRichTextPriv::TextBlock::Seek(SeekType To, int Offset, int XPos)
 	{
 		case SkLineStart:
 		{
-			return LineOffset[CurLine];
+			Cur.Offset = LineOffset[CurLine];
+			Cur.LineHint = CurLine;
+			return true;
 		}
 		case SkLineEnd:
 		{
-			return	LineOffset[CurLine] +
-					LineLen[CurLine] -
-					Layout[CurLine]->NewLine;
+			Cur.Offset = LineOffset[CurLine] +
+						LineLen[CurLine] -
+						Layout[CurLine]->NewLine;
+			Cur.LineHint = CurLine;
+			return true;
 		}
 		case SkUpLine:
 		{
 			// Get previous line...
 			if (CurLine == 0)
-				return -1;
+				return false;
 			Line = Layout[--CurLine];
 			if (!Line)
-				return -1;
+				return false;
 			break;
 		}				
 		case SkDownLine:
 		{
 			// Get next line...
 			if (CurLine >= (int)Layout.Length() - 1)
-				return -1;
+				return false;
 			Line = Layout[++CurLine];
 			if (!Line)
-				return -1;
+				return false;
 			break;
 		}
 		default:
@@ -944,13 +967,15 @@ int GRichTextPriv::TextBlock::Seek(SeekType To, int Offset, int XPos)
 					XOffset <= FixedToInt(FixX + Ds->FX()))
 				{
 					// This is the matching string...
-					int Px = XOffset - FixedToInt(FixX);
+					int Px = XOffset - FixedToInt(FixX) - Line->PosOff.x1;
 					int Char = Ds->CharAt(Px);
 					if (Char >= 0)
 					{
-						return	LineOffset[CurLine] +	// Character offset of line
-								CharOffset +			// Character offset of current string
-								Char;					// Offset into current string for 'XOffset'
+						Cur.Offset = LineOffset[CurLine] +	// Character offset of line
+									CharOffset +			// Character offset of current string
+									Char;					// Offset into current string for 'XOffset'
+						Cur.LineHint = CurLine;
+						return true;
 					}
 				}
 						
@@ -959,14 +984,18 @@ int GRichTextPriv::TextBlock::Seek(SeekType To, int Offset, int XPos)
 			}
 					
 			// Cursor is nearest the end of the string...?
-			return LineOffset[CurLine] + Line->Length() - Line->NewLine;
+			Cur.Offset = LineOffset[CurLine] + Line->Length() - Line->NewLine;
+			Cur.LineHint = CurLine;
+			return true;
 		}
 		else if (Line->NewLine)
 		{
-			return LineOffset[CurLine];
+			Cur.Offset = LineOffset[CurLine];
+			Cur.LineHint = CurLine;
+			return true;
 		}
 	}
 			
-	return -1;
+	return false;
 }
 	

@@ -357,7 +357,7 @@ bool GRichTextEdit::DeleteSelection(char16 **Cut)
 	}
 
 	// Set the cursor and update the screen
-	d->Cursor->Set(Start->Blk, Start->Offset);
+	d->Cursor->Set(Start->Blk, Start->Offset, Start->LineHint);
 	d->Selection.Reset();
 	Invalidate();
 
@@ -501,11 +501,16 @@ bool GRichTextEdit::HasSelection()
 
 void GRichTextEdit::SelectAll()
 {
-	GAutoPtr<GRichTextPriv::BlockCursor> Start(new GRichTextPriv::BlockCursor(d->Blocks.First(), 0));
+	GAutoPtr<GRichTextPriv::BlockCursor> Start(new GRichTextPriv::BlockCursor(d->Blocks.First(), 0, 0));
 	d->SetCursor(Start);
 
-	GAutoPtr<GRichTextPriv::BlockCursor> End(new GRichTextPriv::BlockCursor(d->Blocks.Last(), d->Blocks.Last()->Length()));
-	d->SetCursor(End, true);
+	GRichTextPriv::Block *Last = d->Blocks.Length() ? d->Blocks.Last() : NULL;
+	if (Last)
+	{
+		GAutoPtr<GRichTextPriv::BlockCursor> End(new GRichTextPriv::BlockCursor(Last, Last->Length(), Last->GetLines()-1));
+		d->SetCursor(End, true);
+	}
+	else d->Selection.Reset();
 
 	Invalidate();
 }
@@ -554,13 +559,18 @@ int GRichTextEdit::GetCursor(bool Cur)
 	return -1;
 }
 
+bool GRichTextEdit::InternalIndexAt(int x, int y, int &Off, int &LineHint)
+{
+	GdcPt2 Doc = d->ScreenToDoc(x, y);
+	Off = d->HitTest(Doc.x, Doc.y, LineHint);
+	return Off >= 0;
+}
+
 int GRichTextEdit::IndexAt(int x, int y)
 {
-	GRect &Content = d->Areas[ContentArea];
-	int dx = x - Content.x1;
-	int dy = y - Content.y1 + d->ScrollOffsetPx;
-	int Idx = d->HitTest(dx, dy, false);
-	// LgiTrace("IndexAt(%i,%i)=%i Doc=%i,%i Content=%s\n", x, y, Idx, dx, dy, Content.GetStr());
+	int Idx, Line;
+	if (!InternalIndexAt(x, y, Idx, Line))
+		return -1;
 	return Idx;
 }
 
@@ -570,12 +580,9 @@ void GRichTextEdit::SetCursor(int i, bool Select, bool ForceFullUpdate)
 	GRichTextPriv::Block *Blk = d->GetBlockByIndex(i, &Offset);
 	if (Blk)
 	{
-		GAutoPtr<GRichTextPriv::BlockCursor> c(new GRichTextPriv::BlockCursor(Blk, Offset));
+		GAutoPtr<GRichTextPriv::BlockCursor> c(new GRichTextPriv::BlockCursor(Blk, Offset, -1));
 		if (c)
-		{
-			c->Blk->GetPosFromIndex(&c->Pos, &c->Line, Offset);
 			d->SetCursor(c, Select);
-		}
 	}
 }
 
@@ -932,7 +939,8 @@ void GRichTextEdit::OnFocus(bool f)
 
 int GRichTextEdit::HitTest(int x, int y)
 {
-	return d->HitTest(x, y, false);
+	int Line = -1;
+	return d->HitTest(x, y, Line);
 }
 
 void GRichTextEdit::Undo()
@@ -1145,14 +1153,16 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 			}
 			else
 			{
-				int Hit = IndexAt(m.x, m.y);
 				d->WordSelectMode = !Processed && m.Double();
 
-				if (Hit >= 0)
+				GAutoPtr<GRichTextPriv::BlockCursor> c(new GRichTextPriv::BlockCursor(NULL, 0, 0));
+				GdcPt2 Doc = d->ScreenToDoc(m.x, m.y);
+				int Idx = -1;
+				if (d->CursorFromPos(Doc.x, Doc.y, &c, &Idx))
 				{
-					SetCursor(Hit, m.Shift());
+					d->SetCursor(c, m.Shift());
 					if (d->WordSelectMode)
-						SelectWord(Hit);
+						SelectWord(Idx);
 				}
 			}
 		}
@@ -1181,8 +1191,13 @@ void GRichTextEdit::OnMouseMove(GMouse &m)
 	{
 		if (!d->WordSelectMode)
 		{
-			int Hit = IndexAt(m.x, m.y);
-			SetCursor(Hit, m.Left());
+			GAutoPtr<GRichTextPriv::BlockCursor> c;
+			GdcPt2 Doc = d->ScreenToDoc(m.x, m.y);
+			int Idx = -1;
+			if (d->CursorFromPos(Doc.x, Doc.y, &c, &Idx))
+			{
+				d->SetCursor(c, m.Left());
+			}
 		}
 		else
 		{
