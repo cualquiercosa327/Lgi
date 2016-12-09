@@ -1132,10 +1132,11 @@ public:
 	void Empty();
 	void DeleteProp(PropType p);
 	virtual void OnChange(PropType Prop);
+	bool CopyStyle(const GCss &c);
 	bool operator ==(GCss &c);
 	bool operator !=(GCss &c) { return !(*this == c); }
-	bool CopyStyle(const GCss &c);
-	GCss &operator =(const GCss &c) { CopyStyle(c); return *this; }
+	GCss &operator =(const GCss &c) { Empty(); CopyStyle(c); return *this; }
+	GCss &operator +=(const GCss &c) { CopyStyle(c); return *this; }
 	void *PropAddress(PropType p) { return Props.Find(p); }
 	GAutoString ToString();
 	const char *ToString(DisplayType dt);

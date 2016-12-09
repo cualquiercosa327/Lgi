@@ -32,7 +32,7 @@
 #define DEBUG_OUTLINE_CUR_DISPLAY_STR	0
 #define DEBUG_OUTLINE_CUR_STYLE_TEXT	0
 #define DEBUG_OUTLINE_BLOCKS			0
-#define DEBUG_NO_DOUBLE_BUF				1
+#define DEBUG_NO_DOUBLE_BUF				0
 
 #define TEXT_LINK						"Link"
 #define TEXT_CAP_BTN					"Ok"
@@ -312,6 +312,11 @@ public:
 			if (t)
 				Add((char16*)t, Chars >= 0 ? Chars : StrlenW(t));
 		}
+
+		char16 *At(int i)
+		{
+			return &(*this)[i];
+		}
 		
 		GNamedStyle *GetStyle()
 		{
@@ -479,6 +484,9 @@ public:
 		// Copy some or all of the text out
 		virtual int CopyAt(int Offset, int Chars, GArray<char16> *Text) { return false; }
 
+		/// Changes the style of a range of characters
+		virtual bool ChangeStyle(int Offset, int Chars, GCss *Style, bool Add) = 0;
+
 		virtual void Dump() {}
 		virtual GNamedStyle *GetStyle() = 0;
 	};
@@ -630,6 +638,7 @@ public:
 		int DeleteAt(int BlkOffset, int Chars, GArray<char16> *DeletedText = NULL);
 		int CopyAt(int Offset, int Chars, GArray<char16> *Text);
 		bool AddText(int AtOffset, const char16 *Str, int Chars = -1, GNamedStyle *Style = NULL);
+		bool ChangeStyle(int Offset, int Chars, GCss *Style, bool Add);
 		bool Seek(SeekType To, BlockCursor &Cursor);
 		int FindAt(int StartIdx, const char16 *Str, GFindReplaceCommon *Params);
 	};
@@ -639,6 +648,7 @@ public:
 	void InvalidateDoc(GRect *r);
 	void ScrollTo(GRect r);
 	void UpdateStyleUI();
+
 	void EmptyDoc();	
 	void Empty();
 	bool Seek(BlockCursor *In, SeekType Dir, bool Select);
@@ -652,6 +662,7 @@ public:
 	Block *GetBlockByIndex(int Index, int *Offset = NULL, int *BlockIdx = NULL);
 	bool Layout(GScrollBar *&ScrollY);
 	void OnStyleChange(GRichTextEdit::RectType t);
+	bool ChangeSelectionStyle(GCss *Style, bool Add);
 	void PaintBtn(GSurface *pDC, GRichTextEdit::RectType t);
 	void ClickBtn(GMouse &m, GRichTextEdit::RectType t);
 	void Paint(GSurface *pDC, GScrollBar *&ScrollY);

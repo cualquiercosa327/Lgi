@@ -1031,8 +1031,6 @@ bool GCss::InheritResolve(PropMap &Contrib)
 
 bool GCss::CopyStyle(const GCss &c)
 {
-	Empty();
-
 	int Prop;
 	GCss &cc = (GCss&)c;
 	for (void *p=cc.Props.First(&Prop); p; p=cc.Props.Next(&Prop))
@@ -1042,7 +1040,8 @@ bool GCss::CopyStyle(const GCss &c)
 			#define CopyProp(TypeId, Type) \
 				case TypeId: \
 				{ \
-					Type *n = new Type; \
+					Type *n = (Type*)Props.Find(Prop); \
+					if (!n) n = new Type; \
 					*n = *(Type*)p; \
 					Props.Add(Prop, n); \
 					break; \

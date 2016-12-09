@@ -16,7 +16,7 @@ const char *GRichEditElemContext::GetAttr(GRichEditElem *obj, const char *Attr)
 	obj->Get(Attr, a);
 	return a;
 }
-	
+
 bool GRichEditElemContext::GetClasses(GArray<const char *> &Classes, GRichEditElem *obj)
 {
 	const char *c;
@@ -792,6 +792,99 @@ bool GRichTextPriv::Layout(GScrollBar *&ScrollY)
 
 void GRichTextPriv::OnStyleChange(GRichTextEdit::RectType t)
 {
+	GCss s;
+	switch (t)
+	{
+		case GRichTextEdit::FontFamilyBtn:
+		{
+			GCss::StringsDef Fam(Values[t].Str());
+			s.FontFamily(Fam);
+			ChangeSelectionStyle(&s, true);
+			break;
+		}
+		case GRichTextEdit::FontSizeBtn:
+		{
+			int32 Pt = Values[t].CastInt32();
+			s.FontSize(GCss::Len(GCss::LenPt, Pt));
+			ChangeSelectionStyle(&s, true);
+			break;
+		}
+		case GRichTextEdit::BoldBtn:
+		{
+			s.FontWeight(GCss::FontWeightBold);
+			ChangeSelectionStyle(&s, Values[t].CastBool());
+			break;
+		}
+		case GRichTextEdit::ItalicBtn:
+		{
+			s.FontStyle(GCss::FontStyleItalic);
+			ChangeSelectionStyle(&s, Values[t].CastBool());
+			break;
+		}
+		case GRichTextEdit::UnderlineBtn:
+		{
+			s.TextDecoration(GCss::TextDecorUnderline);
+			ChangeSelectionStyle(&s, Values[t].CastBool());
+			break;
+		}
+		case GRichTextEdit::ForegroundColourBtn:
+		{
+			s.Color(GCss::ColorDef(GCss::ColorRgb, (uint32) Values[t].Value.Int64));
+			ChangeSelectionStyle(&s, true);
+			break;
+		}
+		case GRichTextEdit::BackgroundColourBtn:
+		{
+			s.BackgroundColor(GCss::ColorDef(GCss::ColorRgb, (uint32) Values[t].Value.Int64));
+			ChangeSelectionStyle(&s, true);
+			break;
+		}
+	}
+}
+
+bool GRichTextPriv::ChangeSelectionStyle(GCss *Style, bool Add)
+{
+	bool Cf = CursorFirst();
+	GRichTextPriv::BlockCursor *Start = Cf ? Cursor : Selection;
+	GRichTextPriv::BlockCursor *End = Cf ? Selection : Cursor;
+	if (Start->Blk == End->Blk)
+	{
+		// In the same block... do change style
+		int Len = End->Offset - Start->Offset;
+		if (!Start->Blk->ChangeStyle(Start->Offset, Len, Style, Add))
+			return false;
+	}
+	else
+	{
+		// Multi-block delete...
+
+		// 1) Change style on the content to the end of the first block
+		Start->Blk->ChangeStyle(Start->Offset, -1, Style, Add);
+
+		// 2) Change style on blocks between 'Start' and 'End'
+		int i = Blocks.IndexOf(Start->Blk);
+		if (i >= 0)
+		{
+			for (++i; Blocks[i] != End->Blk && i < (int)Blocks.Length(); i++)
+			{
+				GRichTextPriv::Block *&b = Blocks[i];
+				if (!b->ChangeStyle(0, -1, Style, Add))
+					return false;
+			}
+		}
+		else
+		{
+			LgiAssert(0);
+			return false;
+		}
+
+		// 3) Change style up to the Cursor in the 'End' block
+		if (!End->Blk->ChangeStyle(0, End->Offset, Style, Add))
+			return false;
+	}
+
+	InvalidateDoc(NULL);
+	return true;
 }
 
 void GRichTextPriv::PaintBtn(GSurface *pDC, GRichTextEdit::RectType t)
@@ -939,6 +1032,7 @@ void GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 			Values[t] = !Values[t].CastBool();
 			View->Invalidate(Areas+t);
 			OnStyleChange(t);
+			break;
 		}
 		case GRichTextEdit::ForegroundColourBtn:
 		case GRichTextEdit::BackgroundColourBtn:
