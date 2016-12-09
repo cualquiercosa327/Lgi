@@ -46,7 +46,8 @@
 #undef IntToFixed
 #define IntToFixed(val)					((val)<<GDisplayString::FShift)
 
-#define CursorColour					GColour(0, 0, 0)
+#define CursorColour					GColour::Black
+#define TextColour						GColour::Black
 
 //////////////////////////////////////////////////////////////////////
 class GRichEditElem : public GHtmlElement
@@ -302,7 +303,6 @@ public:
 	
 	public:
 		ColourPair Colours;
-		GColour Fore, Back;
 		
 		StyleText(const char16 *t = NULL, int Chars = -1, GNamedStyle *style = NULL)
 		{
@@ -638,6 +638,7 @@ public:
 
 	void InvalidateDoc(GRect *r);
 	void ScrollTo(GRect r);
+	void UpdateStyleUI();
 	void EmptyDoc();	
 	void Empty();
 	bool Seek(BlockCursor *In, SeekType Dir, bool Select);
@@ -648,7 +649,7 @@ public:
 	int IndexOfCursor(BlockCursor *c);
 	int HitTest(int x, int y, int &LineHint);
 	bool CursorFromPos(int x, int y, GAutoPtr<BlockCursor> *Cursor, int *GlobalIdx);
-	Block *GetBlockByIndex(int Index, int *Offset = NULL);
+	Block *GetBlockByIndex(int Index, int *Offset = NULL, int *BlockIdx = NULL);
 	bool Layout(GScrollBar *&ScrollY);
 	void OnStyleChange(GRichTextEdit::RectType t);
 	void PaintBtn(GSurface *pDC, GRichTextEdit::RectType t);

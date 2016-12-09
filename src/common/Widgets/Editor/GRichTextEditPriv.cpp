@@ -162,10 +162,41 @@ bool GRichTextPriv::Error(const char *file, int line, const char *fmt, ...)
 	return false;
 }
 
+void GRichTextPriv::UpdateStyleUI()
+{
+	if (!Cursor ||
+		!Cursor->Blk)
+	{
+		LgiAssert(0);
+		return;
+	}
+
+	TextBlock *b = dynamic_cast<TextBlock*>(Cursor->Blk);
+	StyleText *st = b ? b->GetTextAt(Cursor->Offset) : NULL;
+	if (st)
+	{
+		GFont *f = GetFont(st->GetStyle());
+		if (f)
+		{
+			Values[GRichTextEdit::FontFamilyBtn] = f->Face();
+			Values[GRichTextEdit::FontSizeBtn] = f->PointSize();
+			Values[GRichTextEdit::FontSizeBtn].CastString();
+			Values[GRichTextEdit::BoldBtn] = f->Bold();
+			Values[GRichTextEdit::ItalicBtn] = f->Italic();
+			Values[GRichTextEdit::UnderlineBtn] = f->Underline();
+		}
+		
+		Values[GRichTextEdit::ForegroundColourBtn] = (int64) (st->Colours.Fore.IsValid() ? st->Colours.Fore.c32() : TextColour.c32());
+		Values[GRichTextEdit::BackgroundColourBtn] = (int64) (st->Colours.Back.IsValid() ? st->Colours.Back.c32() : 0);
+	}
+
+	View->Invalidate(Areas + GRichTextEdit::ToolsArea);
+}
+
 void GRichTextPriv::ScrollTo(GRect r)
 {
 	GRect Content = Areas[GRichTextEdit::ContentArea];
-	Content.Offset(0, ScrollOffsetPx);
+	Content.Offset(-Content.x1, ScrollOffsetPx-Content.y1);
 
 	if (r.y1 < Content.y1)
 	{
@@ -305,16 +336,28 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 			}
 			else // Seek to previous block
 			{
+				SeekPrevBlock:
 				int Idx = Blocks.IndexOf(c->Blk);
-				if (Idx > 0)
+				if (Idx < 0)
 				{
-					c->Blk = Blocks[--Idx];
-					if (c->Blk)
-					{
-						c->Offset = 0;
-						Status = true;
-					}
+					LgiAssert(0);
+					break;
 				}
+
+				if (Idx == 0)
+					break; // Beginning of document
+				
+				Block *b = Blocks[--Idx];
+				if (!b)
+				{
+					LgiAssert(0);
+					break;
+				}
+
+				if (!c.Reset(new BlockCursor(b, b->Length(), -1)))
+					break;
+
+				Status = true;
 			}
 			break;
 		}
@@ -339,6 +382,7 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 			}
 			else // Seek into previous block?
 			{
+				goto SeekPrevBlock;
 			}
 			break;
 		}
@@ -354,16 +398,28 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 			}
 			else // Seek to next block
 			{
+				SeekNextBlock:
 				int Idx = Blocks.IndexOf(c->Blk);
-				if (Idx < (int)Blocks.Length() - 1)
+				if (Idx < 0)
 				{
-					c->Blk = Blocks[++Idx];
-					if (c->Blk)
-					{
-						c->Offset = 0;
-						Status = true;
-					}
+					LgiAssert(0);
+					break;
 				}
+
+				if (Idx >= Blocks.Length() - 1)
+					break; // End of document
+				
+				Block *b = Blocks[++Idx];
+				if (!b)
+				{
+					LgiAssert(0);
+					break;
+				}
+
+				if (!c.Reset(new BlockCursor(b, 0, 0)))
+					break;
+
+				Status = true;
 			}
 			break;
 		}
@@ -389,6 +445,7 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 			}
 			else // Seek into next block?
 			{
+				goto SeekNextBlock;
 			}
 			break;
 		}
@@ -420,8 +477,18 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 			int Idx = HitTest(In->Pos.x1, min(TargetY, DocumentExtent.y-1), LineHint);
 			if (Idx >= 0)
 			{
-				int Offset = -1;
-				Block *b = GetBlockByIndex(Idx, &Offset);
+				int Offset = -1, BlkIdx = -1;
+				int CursorBlkIdx = Blocks.IndexOf(Cursor->Blk);
+				Block *b = GetBlockByIndex(Idx, &Offset, &BlkIdx);
+
+				if (!b ||
+					BlkIdx < CursorBlkIdx ||
+					(BlkIdx == CursorBlkIdx && Offset < Cursor->Offset))
+				{
+					LgiAssert(!"GetBlockByIndex failed.\n");
+					LgiTrace("%s:%i - GetBlockByIndex failed.\n", _FL);
+				}
+
 				if (b)
 				{
 					if (!c.Reset(new BlockCursor(b, Offset, LineHint)))
@@ -440,10 +507,7 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 	}
 		
 	if (Status)
-	{
-		c->Blk->GetPosFromIndex(c);
 		SetCursor(c, Select);
-	}
 		
 	return Status;
 }
@@ -506,7 +570,9 @@ bool GRichTextPriv::SetCursor(GAutoPtr<BlockCursor> c, bool Select)
 		Cursor.Reset(new BlockCursor(*c));
 	else
 		Cursor = c;
+
 	Cursor->Blk->GetPosFromIndex(Cursor);
+	UpdateStyleUI();
 	
 	#if DEBUG_OUTLINE_CUR_DISPLAY_STR || DEBUG_OUTLINE_CUR_STYLE_TEXT
 	InvalidateDoc(NULL);
@@ -524,7 +590,10 @@ bool GRichTextPriv::SetCursor(GAutoPtr<BlockCursor> c, bool Select)
 	#endif
 
 	// Check the cursor is on the visible part of the document.
-	ScrollTo(Cursor->Pos);
+	if (Cursor->Pos.Valid())
+		ScrollTo(Cursor->Pos);
+	else
+		LgiTrace("%s:%i - Invalid cursor position.\n", _FL);
 
 	return true;
 }
@@ -580,11 +649,19 @@ int GRichTextPriv::HitTest(int x, int y, int &LineHint)
 	int CharPos = 0;
 	HitTestResult r(x, y);
 
+	if (Blocks.Length() == 0)
+		return -1;
+
+	GRect rc = Blocks.First()->GetPos();
+	if (y < rc.y1)
+		return 0;
+
+	Block *b;
 	for (unsigned i=0; i<Blocks.Length(); i++)
 	{
-		Block *b = Blocks[i];
+		b = Blocks[i];
 		GRect p = b->GetPos();
-		bool Over = p.Overlap(x, y);
+		bool Over = y >= p.y1 && y <= p.y2;
 		if (b->HitTest(r))
 		{
 			LineHint = r.LineHint;
@@ -597,6 +674,11 @@ int GRichTextPriv::HitTest(int x, int y, int &LineHint)
 			
 		CharPos += b->Length();
 	}
+
+	b = Blocks.Last();
+	rc = b->GetPos();
+	if (y > rc.y2)
+		return CharPos + b->Length();
 		
 	return -1;
 }
@@ -625,7 +707,7 @@ bool GRichTextPriv::CursorFromPos(int x, int y, GAutoPtr<BlockCursor> *Cursor, i
 	return false;
 }
 
-GRichTextPriv::Block *GRichTextPriv::GetBlockByIndex(int Index, int *Offset)
+GRichTextPriv::Block *GRichTextPriv::GetBlockByIndex(int Index, int *Offset, int *BlockIdx)
 {
 	int CharPos = 0;
 		
@@ -637,6 +719,8 @@ GRichTextPriv::Block *GRichTextPriv::GetBlockByIndex(int Index, int *Offset)
 		if (Index >= CharPos &&
 			Index <= CharPos + Len)
 		{
+			if (BlockIdx)
+				*BlockIdx = i;
 			if (Offset)
 				*Offset = Index - CharPos;
 			return b;
@@ -644,8 +728,14 @@ GRichTextPriv::Block *GRichTextPriv::GetBlockByIndex(int Index, int *Offset)
 			
 		CharPos += b->Length();
 	}
-		
-	return NULL;
+
+	Block *b = Blocks.Last();
+	if (Offset)
+		*Offset = b->Length();
+	if (BlockIdx)
+		*BlockIdx = Blocks.Length() - 1;
+
+	return b;
 }
 	
 bool GRichTextPriv::Layout(GScrollBar *&ScrollY)
@@ -724,8 +814,27 @@ void GRichTextPriv::PaintBtn(GSurface *pDC, GRichTextEdit::RectType t)
 		}
 		case GV_INT64:
 		{
-			pDC->Colour((uint32)v.Value.Int64, 32);
-			pDC->Rectangle(&r);
+			if (v.Value.Int64)
+			{
+				pDC->Colour((uint32)v.Value.Int64, 32);
+				pDC->Rectangle(&r);
+			}
+			else
+			{
+				// Transparent
+				int g[2] = { 128, 192 };
+				pDC->ClipRgn(&r);
+				for (int y=0; y<r.Y(); y+=2)
+				{
+					for (int x=0; x<r.X(); x+=2)
+					{
+						int i = ((y>>1)%2) ^ ((x>>1)%2);
+						pDC->Colour(GColour(g[i],g[i],g[i]));
+						pDC->Rectangle(r.x1+x, r.y1+y, r.x1+x+1, r.y1+y+1);
+					}
+				}
+				pDC->ClipRgn(NULL);
+			}
 			break;
 		}
 		case GV_BOOL:
@@ -915,10 +1024,6 @@ void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
 	#endif
 
 	ScrollOffsetPx = ScrollY ? ScrollY->Value() * ScrollLinePx : 0;
-	if (ScrollOffsetPx != 0)
-	{
-		int asd=0;
-	}
 	pDC->SetOrigin(-r.x1, -r.y1+ScrollOffsetPx);
 
 	int DrawPx = ScrollOffsetPx + Areas[GRichTextEdit::ContentArea].Y();

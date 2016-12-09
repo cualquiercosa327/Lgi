@@ -108,6 +108,7 @@ bool GRichTextPriv::TextBlock::GetPosFromIndex(BlockCursor *Cursor)
 	if (LayoutDirty)
 	{
 		Cursor->Pos.ZOff(-1, -1);
+		LgiTrace("%s:%i - Can't get pos from index, layout is dirty...\n", _FL);
 		return false;
 	}
 		
@@ -170,7 +171,16 @@ bool GRichTextPriv::TextBlock::GetPosFromIndex(BlockCursor *Cursor)
 			CharPos += ds->Length();
 		}
 				
-		if (tl->Strs.Length() == 0 && Cursor->Offset == CharPos)
+		if
+		(
+			(
+				tl->Strs.Length() == 0
+				||
+				i == Layout.Length() - 1
+			)
+			&&
+			Cursor->Offset == CharPos
+		)
 		{
 			// Cursor at the start of empty line.
 			Cursor->Pos.x1 = r.x1;
@@ -184,28 +194,14 @@ bool GRichTextPriv::TextBlock::GetPosFromIndex(BlockCursor *Cursor)
 		CharPos += tl->NewLine;
 		LastY = tl->PosOff.y2;
 	}
-
-	/*
-	LgiTrace("Idx=%i CharPos=%i\n", Index, CharPos);
-	if (Index == CharPos)
-	{
-		TextLine *tl = Layout.Length() ? Layout.Last() : NULL;
-		if (tl)
-		{
-			CursorPos->ZOff(1, tl->PosOff.Y()-1);
-			CursorPos->Offset(Pos.x1, Pos.y1 + LastY);
-			*LinePos = *CursorPos;
-			return true;
-		}
-	}
-	*/
 			
+	LgiTrace("%s:%i - Index not found in Layout for pos...\n", _FL);
 	return false;
 }
 		
 bool GRichTextPriv::TextBlock::HitTest(HitTestResult &htr)
 {
-	if (!Pos.Overlap(htr.In.x, htr.In.y))
+	if (htr.In.y < Pos.y1 || htr.In.y > Pos.y2)
 		return false;
 
 	int CharPos = 0;
@@ -259,13 +255,10 @@ bool GRichTextPriv::TextBlock::HitTest(HitTestResult &htr)
 
 		if (OnThisLine)
 		{
-			if (htr.In.x > r.x2)
-			{
-				htr.Near = true;
-				htr.Idx = CharPos;
-				htr.LineHint = i;
-				return true;
-			}
+			htr.Near = true;
+			htr.Idx = CharPos;
+			htr.LineHint = i;
+			return true;
 		}
 				
 		CharPos += tl->NewLine;
