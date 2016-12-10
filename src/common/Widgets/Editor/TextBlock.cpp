@@ -84,14 +84,44 @@ bool GRichTextPriv::TextBlock::ToHtml(GStream &s)
 	{
 		StyleText *t = Txt[i];
 		GNamedStyle *style = t->GetStyle();
+		
+		GString utf(t->At(0), t->Length());
+		char *str = utf;
+		char *end = str + utf.Length();
+
 		if (style)
+			s.Print("<span class='%s'>", style->Name.Get());
+		
+		// Encode entities...
+		char *last = str;
+		while (str < end)
 		{
-			s.Print("<span class='%s'>%.*S</span>", style->Name.Get(), t->Length(), &t[0]);
+			if (*str == '<')
+			{
+				s.Print("%.*s&lt;", str-last, last);
+				last = str+1;
+			}
+			else if (*str == '>')
+			{
+				s.Print("%.*s&gt;", str-last, last);
+				last = str+1;
+			}
+			else if (*str == '\n')
+			{
+				s.Print("%.*s<br>", str-last, last);
+				last = str+1;
+			}
+			else if (*str == '&')
+			{
+				s.Print("%.*s&amp;", str-last, last);
+				last = str+1;
+			}
+			str++;
 		}
-		else
-		{
-			s.Print("%.*S", t->Length(), &t[0]);
-		}
+		s.Print("%.*s", str-last, last);
+
+		if (style)
+			s.Print("</span>");
 	}
 	s.Print("</p>\n");
 	return true;
@@ -194,8 +224,18 @@ bool GRichTextPriv::TextBlock::GetPosFromIndex(BlockCursor *Cursor)
 		CharPos += tl->NewLine;
 		LastY = tl->PosOff.y2;
 	}
+	
+	if (Cursor->Offset == 0 &&
+		Len == 0)
+	{
+		Cursor->Pos.x1 = Pos.x1;
+		Cursor->Pos.x2 = Pos.x1 + 1;
+		Cursor->Pos.y1 = Pos.y1;
+		Cursor->Pos.y2 = Pos.y2;
+		Cursor->Line = Pos;
+		return true;
+	}
 			
-	LgiTrace("%s:%i - Index not found in Layout for pos...\n", _FL);
 	return false;
 }
 		
@@ -667,6 +707,9 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 		
 GRichTextPriv::StyleText *GRichTextPriv::TextBlock::GetTextAt(uint32 Offset)
 {
+	if (Txt.Length() == 0)
+		return NULL;
+
 	StyleText **t = &Txt[0];
 	StyleText **e = t + Txt.Length();
 
@@ -674,7 +717,7 @@ GRichTextPriv::StyleText *GRichTextPriv::TextBlock::GetTextAt(uint32 Offset)
 
 	while (Offset >= 0 && t < e)
 	{
-		int Len = (*t)->Length();
+		uint32 Len = (*t)->Length();
 		if (Offset < Len)
 			return *t;
 		Offset -= Len;
@@ -879,7 +922,7 @@ int GRichTextPriv::TextBlock::FindAt(int StartIdx, const char16 *Str, GFindRepla
 	int InLen = Strlen(Str);
 	bool Match;
 	int CharPos = 0;
-	for (int i=0; i<Txt.Length(); i++)
+	for (unsigned i=0; i<Txt.Length(); i++)
 	{
 		StyleText *t = Txt[i];
 		char16 *s = &t->First();

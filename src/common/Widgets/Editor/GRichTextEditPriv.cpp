@@ -406,7 +406,7 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 					break;
 				}
 
-				if (Idx >= Blocks.Length() - 1)
+				if (Idx >= (int)Blocks.Length() - 1)
 					break; // End of document
 				
 				Block *b = Blocks[++Idx];
@@ -745,6 +745,7 @@ bool GRichTextPriv::Layout(GScrollBar *&ScrollY)
 	ScrollLinePx = View->GetFont()->GetHeight();
 
 	GRect Client = Areas[GRichTextEdit::ContentArea];
+	Client.Offset(-Client.x1, -Client.y1);
 	DocumentExtent.x = Client.X();
 
 	GCssTools Ct(this, Font);
@@ -781,10 +782,7 @@ bool GRichTextPriv::Layout(GScrollBar *&ScrollY)
 	{
 		LgiAssert(Cursor->Blk != NULL);
 		if (Cursor->Blk)
-		{
 			Cursor->Blk->GetPosFromIndex(Cursor);
-			// LgiTrace("%s:%i - Cursor->Pos=%s\n", _FL, Cursor->Pos.GetStr());
-		}
 	}
 
 	return true;
@@ -804,8 +802,8 @@ void GRichTextPriv::OnStyleChange(GRichTextEdit::RectType t)
 		}
 		case GRichTextEdit::FontSizeBtn:
 		{
-			int32 Pt = Values[t].CastInt32();
-			s.FontSize(GCss::Len(GCss::LenPt, Pt));
+			double Pt = Values[t].CastDouble();
+			s.FontSize(GCss::Len(GCss::LenPt, (float)Pt));
 			ChangeSelectionStyle(&s, true);
 			break;
 		}
@@ -844,19 +842,22 @@ void GRichTextPriv::OnStyleChange(GRichTextEdit::RectType t)
 
 bool GRichTextPriv::ChangeSelectionStyle(GCss *Style, bool Add)
 {
+	if (!Selection)
+		return false;
+
 	bool Cf = CursorFirst();
 	GRichTextPriv::BlockCursor *Start = Cf ? Cursor : Selection;
 	GRichTextPriv::BlockCursor *End = Cf ? Selection : Cursor;
 	if (Start->Blk == End->Blk)
 	{
-		// In the same block... do change style
+		// Change style in the same block...
 		int Len = End->Offset - Start->Offset;
 		if (!Start->Blk->ChangeStyle(Start->Offset, Len, Style, Add))
 			return false;
 	}
 	else
 	{
-		// Multi-block delete...
+		// Multi-block style change...
 
 		// 1) Change style on the content to the end of the first block
 		Start->Blk->ChangeStyle(Start->Offset, -1, Style, Add);
@@ -1117,7 +1118,7 @@ void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
 	pDC->ClipRgn(&r);
 	#endif
 
-	ScrollOffsetPx = ScrollY ? ScrollY->Value() * ScrollLinePx : 0;
+	ScrollOffsetPx = ScrollY ? (int)(ScrollY->Value() * ScrollLinePx) : 0;
 	pDC->SetOrigin(-r.x1, -r.y1+ScrollOffsetPx);
 
 	int DrawPx = ScrollOffsetPx + Areas[GRichTextEdit::ContentArea].Y();
@@ -1202,7 +1203,8 @@ bool GRichTextPriv::ToHtml()
 		
 	for (unsigned i=0; i<Blocks.Length(); i++)
 	{
-		Blocks[i]->ToHtml(p);
+		Block *b = Blocks[i];
+		b->ToHtml(p);
 	}
 		
 	p.Print("</body>\n");
@@ -1307,10 +1309,7 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 							if (!Style)
 								Style.Reset(new GCss);
 							if (Style)
-							{
-								LgiTrace("class style: %s\n", s);
 								Style->Parse(s);
-							}
 						}
 					}
 				}

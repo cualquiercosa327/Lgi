@@ -156,7 +156,6 @@ GRichTextEdit::GRichTextEdit(	int Id,
 		"</html>\n");
 	#endif
 
-	// d->Border(GCss::BorderDef(d, "4px solid green"));
 	NeedsCapability("Alpha", "This control is still in alpha.");
 }
 
@@ -444,9 +443,6 @@ bool GRichTextEdit::Name(const char *s)
 		Body = &Root;
 
 	bool Status = d->FromHtml(Body, *d->CreationCtx);
-	if (Status)
-		SetCursor(0, false);
-	
 	if (!d->Blocks.Length())
 	{
 		d->EmptyDoc();
@@ -464,6 +460,9 @@ bool GRichTextEdit::Name(const char *s)
 			}
 		}
 	}
+	
+	if (Status)
+		SetCursor(0, false);
 	
 	// d->DumpBlocks();
 	
@@ -603,6 +602,8 @@ bool GRichTextEdit::Cut()
 		DeleteArray(Txt);
 	}
 
+	SendNotify(GNotifyDocChanged);
+
 	return Status;
 }
 
@@ -627,9 +628,6 @@ bool GRichTextEdit::Paste()
 	if (!Text)
 		return false;
 	
-	if (HasSelection())
-		DeleteSelection();
-
 	if (!d->Cursor ||
 		!d->Cursor->Blk)
 	{
@@ -637,15 +635,21 @@ bool GRichTextEdit::Paste()
 		return false;
 	}
 
+	if (HasSelection())
+		DeleteSelection();
+
 	int Len = Strlen(Text.Get());
 	if (!d->Cursor->Blk->AddText(d->Cursor->Offset, Text, Len))
 	{
 		LgiAssert(0);
+		SendNotify(GNotifyDocChanged);
 		return false;
 	}
 
 	d->Cursor->Offset += Len;
 	Invalidate();
+	SendNotify(GNotifyDocChanged);
+
 	return true;
 }
 
@@ -822,7 +826,7 @@ bool GRichTextEdit::OnFind(GFindReplaceCommon *Params)
 		return false;
 	}
 
-	for (int n = 0; n < d->Blocks.Length(); n++)
+	for (unsigned n = 0; n < d->Blocks.Length(); n++)
 	{
 		int i = Idx + n;
 		GRichTextPriv::Block *b = d->Blocks[i % d->Blocks.Length()];
@@ -1306,6 +1310,7 @@ bool GRichTextEdit::OnKey(GKey &k)
 						{
 							d->Cursor->Set(d->Cursor->Offset + 1);
 							Invalidate();
+							SendNotify(GNotifyDocChanged);
 						}
 					}
 					return true;
@@ -1355,6 +1360,7 @@ bool GRichTextEdit::OnKey(GKey &k)
 					}
 				}
 
+				SendNotify(GNotifyDocChanged);
 				return true;
 			}
 		}
@@ -1595,6 +1601,8 @@ bool GRichTextEdit::OnKey(GKey &k)
 								LgiTrace("%s:%i - Impl deleting char from next block\n", _FL);
 							}
 						}
+						
+						SendNotify(GNotifyDocChanged);
 					}
 					return true;
 				}
@@ -1794,6 +1802,8 @@ void GRichTextEdit::OnEnter(GKey &k)
 			Invalidate();
 		}
 	}
+
+	SendNotify(GNotifyDocChanged);
 }
 
 void GRichTextEdit::OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour)
