@@ -1132,7 +1132,7 @@ void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
 
 	// Fill the background...
 	GCss::ColorDef cBack = BackgroundColor();
-	pDC->Colour(cBack.IsValid() ? cBack : GColour(LC_WORKSPACE, 24));
+	pDC->Colour(cBack.IsValid() ? (GColour)cBack : GColour(LC_WORKSPACE, 24));
 	pDC->Rectangle(&r);
 	if (ExtraPx)
 		pDC->Rectangle(0, DocumentExtent.y, DocumentExtent.x-1, DocumentExtent.y+ExtraPx);

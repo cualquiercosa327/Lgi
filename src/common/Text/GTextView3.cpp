@@ -317,6 +317,7 @@ GTextView3::GTextView3(	int Id,
 	IndentSize = TAB_SIZE;
 	HardTabs = true;
 	CanScrollX = false;
+	Blink = true;
 
 	// setup window
 	SetId(Id);
