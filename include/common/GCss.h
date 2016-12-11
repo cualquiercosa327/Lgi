@@ -307,6 +307,8 @@ public:
 		AttachmentScroll,
 		AttachmentFixed,
 	};
+	
+	static double FontSizeTable[7]; // SizeXSmall etc
 
 	#define _FloatAbs(a) \
 		(((a) < 0.0f) ? -(a) : (a))

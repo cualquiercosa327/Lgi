@@ -191,8 +191,12 @@ void TokeniseStrList(char *Str, List<char> &Output, const char *Delim)
 				if (strchr("\'\"", *e))
 				{
 					// handle string constant
-					char EndChar = *e++;
-					while (*e && *e != EndChar) e++;
+					char delim = *e++;
+					e = strchr(e, delim);
+				}
+				else if (*e == '<')
+				{
+					e = strchr(e, '>');
 				}
 
 				if (strchr(Delim, *e))

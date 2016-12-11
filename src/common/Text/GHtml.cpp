@@ -449,20 +449,9 @@ public:
 				Size.Type == GCss::SizeXLarge ||
 				Size.Type == GCss::SizeXXLarge)
 		{
-			double Table[] =
-			{
-				0.6, // SizeXXSmall
-				0.75, // SizeXSmall
-				0.85, // SizeSmall
-				1.0, // SizeMedium
-				1.2, // SizeLarge
-				1.5, // SizeXLarge
-				2.0, // SizeXXLarge
-			};
-
 			int Idx = Size.Type-GCss::SizeXXSmall;
-			LgiAssert(Idx >= 0 && Idx < CountOf(Table));
-			PtSize = Default->PointSize() * Table[Idx];
+			LgiAssert(Idx >= 0 && Idx < CountOf(GCss::FontSizeTable));
+			PtSize = Default->PointSize() * GCss::FontSizeTable[Idx];
 			if (PtSize < MinimumPointSize)
 				PtSize = MinimumPointSize;
 		}

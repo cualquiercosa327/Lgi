@@ -55,6 +55,17 @@ const char *GCss::PropName(PropType p)
 	return 0;
 }
 
+double GCss::FontSizeTable[7] =
+{
+	0.6, // SizeXXSmall
+	0.75, // SizeXSmall
+	0.85, // SizeSmall
+	1.0, // SizeMedium
+	1.2, // SizeLarge
+	1.5, // SizeXLarge
+	2.0, // SizeXXLarge
+};
+
 /////////////////////////////////////////////////////////////////////////////
 static bool ParseWord(const char *&s, const char *word)
 {
@@ -989,6 +1000,9 @@ bool GCss::InheritResolve(PropMap &Contrib)
 			                }
 			                case LenPercent:
 			                {
+								if (Cur->Value == 100)
+									break;
+
 			                    switch (Mine->Type)
 			                    {
 			                        case LenPt:
@@ -1001,6 +1015,25 @@ bool GCss::InheritResolve(PropMap &Contrib)
 			                            Mine->Value *= Cur->Value / 100;
 			                            break;
 			                        }
+									case SizeXXSmall:
+									case SizeXSmall:
+									case SizeSmall:
+									case SizeMedium:
+									case SizeLarge:
+									case SizeXLarge:
+									case SizeXXLarge:
+									{
+										int Idx = (int)Mine->Type - SizeXXSmall;
+										if (Idx >= 0 && Idx < CountOf(FontSizeTable))
+										{
+											double Sz = FontSizeTable[Idx];
+											double NewSz = Sz * Cur->Value / 100;
+											Mine->Value = NewSz;
+											Mine->Type = LenEm;
+										}
+										else LgiAssert(0);										
+										break;
+									}
 			                        default:
 			                        {
 			                            LgiAssert(!"Not impl");

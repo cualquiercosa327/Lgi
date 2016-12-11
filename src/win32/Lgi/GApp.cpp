@@ -234,6 +234,15 @@ static GAutoString ParseVer(void *Resource, char *Part)
 	return GAutoString();
 }
 
+void LgiInvalidParam(const wchar_t * expression,
+					const wchar_t * function, 
+					const wchar_t * file, 
+					unsigned int line,
+					uintptr_t pReserved)
+{
+	LgiTrace("Invalid Parameter: %S (%S @ %S:%i)\n", expression, function, file, line);
+}
+
 /////////////////////////////////////////////////////////////////////////////
 #include <Shlwapi.h>
 #include <uxtheme.h>
@@ -306,7 +315,8 @@ DumpTime("priv");
 	#if !defined(_DEBUG)
 	_PrevExceptionHandler = SetUnhandledExceptionFilter(_ExceptionFilter_Redir);
 	#endif
-
+	_set_invalid_parameter_handler(LgiInvalidParam);
+	
 DumpTime("exception handler");
 
 	// Initialize windows dll's
