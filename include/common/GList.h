@@ -67,8 +67,6 @@ class LgiClass GListItem : public GItem, public GListItemPainter
 	friend class GListItemColumn;
 	friend class GItemColumn;
 
-	void OnEditLabelEnd();
-
 protected:
 	// Data
 	class GListItemPrivate *d;
@@ -135,10 +133,6 @@ public:
 	void Update();
 	/// Moves the item on screen if not visible
 	void ScrollTo();
-	/// Sets the default selection of text when editing a label
-	void SetEditLabelSelection(int SelStart, int SelEnd); // call before 'EditLabel'
-	/// Opens an editbox over a column to let the user edit the value.
-	GView *EditLabel(int Col = -1);
 	
 	// Events;
 	void OnMouseClick(GMouse &m);
@@ -225,7 +219,6 @@ protected:
 	// Flags
 	bool EditLabels;
 	bool GridLines;
-	bool MultiItemSelect;
 
 	// Double buffered
 	GSurface *Buf;
@@ -341,10 +334,6 @@ public:
 	bool DrawGridLines() { return GridLines; }
 	/// Sets whether grid lines are drawn
 	void DrawGridLines(bool b) { GridLines = b; }
-	/// Returns whether the user can select multiple items at the same time
-	bool MultiSelect() { return MultiItemSelect; }
-	/// Sets whether the user can select multiple items at the same time
-	void MultiSelect(bool b) { MultiItemSelect = b; }
 
 	// Methods
 	

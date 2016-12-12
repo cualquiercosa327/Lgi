@@ -191,8 +191,12 @@ void TokeniseStrList(char *Str, List<char> &Output, const char *Delim)
 				if (strchr("\'\"", *e))
 				{
 					// handle string constant
-					char EndChar = *e++;
-					while (*e && *e != EndChar) e++;
+					char delim = *e++;
+					e = strchr(e, delim);
+				}
+				else if (*e == '<')
+				{
+					e = strchr(e, '>');
 				}
 
 				if (strchr(Delim, *e))
@@ -371,15 +375,22 @@ char *DecodeRfc2047(char *Str)
 							Temp.Write((uchar*)s, p-s);
 						}
 						
-						GAutoString Utf8((char*)LgiNewConvertCp("utf-8", Block, Cp));
-						if (Utf8)
+						if (Cp && !_stricmp(Cp, "utf-8"))
 						{
-							if (LgiIsUtf8(Utf8))
-								Temp.Write((uchar*)Utf8.Get(), strlen(Utf8));
+							Temp.Write((uchar*)Block, Len);
 						}
 						else
 						{
-							Temp.Write((uchar*)Block, Len);
+							GAutoString Utf8((char*)LgiNewConvertCp("utf-8", Block, Cp, Len));
+							if (Utf8)
+							{
+								if (LgiIsUtf8(Utf8))
+									Temp.Write((uchar*)Utf8.Get(), strlen(Utf8));
+							}
+							else
+							{
+								Temp.Write((uchar*)Block, Len);
+							}
 						}
 
 						DeleteArray(Block);
@@ -803,7 +814,7 @@ int PartCmp(GAutoPtr<MailAddrPart> *a, GAutoPtr<MailAddrPart> *b)
     return (*b)->Score() - (*a)->Score();
 }
 
-void DecodeAddrName(char *Str, GAutoString &Name, GAutoString &Addr, char *DefaultDomain)
+void DecodeAddrName(const char *Str, GAutoString &Name, GAutoString &Addr, char *DefaultDomain)
 {
 	/* Testing code
 	char *Input[] =
@@ -841,8 +852,6 @@ void DecodeAddrName(char *Str, GAutoString &Name, GAutoString &Addr, char *Defau
 		return;
 
 	GArray< GAutoPtr<MailAddrPart> > Parts;
-
-	#if 1
 
 	GString s = Str;
 	GString non;
@@ -906,138 +915,6 @@ void DecodeAddrName(char *Str, GAutoString &Name, GAutoString &Addr, char *Defau
 	
 	Name.Reset(NewStr(non));
 	Addr.Reset(NewStr(email.Strip()));
-	return;
-	
-	#else
-	
-	for (char *c = Start; *c; )
-	{
-		if (strchr(WhiteSpace, *c))
-		{
-			// skip whitespace
-		}
-		/*	This was removed because it works better for cases of mismatched single quotes.
-			e.g. 'Amy's Mum' <name@domain.com>
-		else if (strchr("\"'", *c))
-		{
-			// string delim
-			char End = *c++;
-			char *s = c;
-			for (; *c && *c != End; c++)
-			{
-				if (*c == '\\')
-					c++;
-			}
-
-			Parts.New().Reset(new MailAddrPart(s, c - s));
-		}
-		*/
-		else if (strchr("<(", *c))
-		{
-			// brackets
-			char Delim = (*c == '<') ? '>' : ')';
-			char *End = strchr(c + 1, Delim);
-			if (End)
-			{
-				End++;
-			}
-			else
-			{
-				End = c + 1;
-				while (*End && *End != ' ')
-					End++;
-			}
-			Parts.New().Reset(new MailAddrPart(c, End - c));
-			c = End - 1;
-		}
-		else
-		{
-			// Some string
-			char *s = c;
-			for (; *c && !strchr("<(", *c); c++);
-			LgiAssert(c - s > 0);
-		    Parts.New().Reset(new MailAddrPart(s, c - s));
-			continue;
-		}
-
-		if (*c)
-			c++;
-		else
-			break;
-	}
-	#endif
-	
-	// Process the email address
-	if (!Parts.Length())
-	    return;
-
-    // Look for the highest scoring part... that'll be the email address.
-    int MaxScore = -1;
-    uint32 i;
-	for (i=0; i<Parts.Length(); i++)
-    {
-        MailAddrPart *p = Parts[i];
-	    if
-	    (
-	        p->ValidEmail &&
-	        (
-	            MaxScore < 0
-	            ||
-	            p->Score() > Parts[MaxScore]->Score()
-	        )
-	    )
-	    {
-	        MaxScore = i;
-	    }
-	}
-
-    if (MaxScore >= 0)
-    {
-	    Addr = Parts[MaxScore]->Part;
-	    Parts.DeleteAt(MaxScore, true);
-	}
-
-	// Process the remaining parts into the name
-	GStringPipe n(256);
-	for (i=0; i<Parts.Length(); i++)
-	{
-		MailAddrPart *Name = Parts[i];
-		if (Name)
-		{
-			if (n.GetSize())
-				n.Push(" ");
-
-			// De-quote the string
-			char *s = Name->Part, *e;
-			for (e = Name->Part; e && *e; )
-			{
-				if (*e == '\\')
-				{
-					n.Write(s, e - s);
-					s = ++e;
-				}
-				else
-					e++;
-			}
-			n.Write(s, e - s);
-		}
-	}
-	Name.Reset(n.NewStr());
-
-	if (Name)
-	{
-		char *In = Name;
-		char *Out = Name;
-		while (*In)
-		{
-			if (!(*In == '\\' && *In == '\"'))
-			{
-				*Out++ = *In;
-			}
-			In++;
-		}
-		*Out = 0;
-	}
 }
 
 void StrCopyToEOL(char *d, char *s)

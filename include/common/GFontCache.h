@@ -110,6 +110,10 @@ public:
 											GCss::FontWeightNormal;
 		GCss::FontStyleType FontStyle = Style->FontStyle();
 		GCss::TextDecorType Decor = Style->TextDecoration();
+		if (Decor == GCss::TextDecorUnderline)
+		{
+			int asd=0;
+		}
 
 		GFont *f = NULL;
 		for (unsigned i = 0; !f && i<Fam.Length(); i++)
@@ -118,7 +122,7 @@ public:
 						(int) (Sz.Type == GCss::LenPt ? Sz.Value : (float)DefaultFont->PointSize()),
 						Weight != GCss::FontWeightInherit ? Weight : DefaultWeight,
 						FontStyle != GCss::FontStyleInherit ? FontStyle : GCss::FontStyleNormal,
-						Decor != GCss::TextDecorUnderline ? Decor : GCss::TextDecorNone);
+						Decor != GCss::TextDecorInherit ? Decor : GCss::TextDecorNone);
 		}
 
 		return f;

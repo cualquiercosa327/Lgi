@@ -191,7 +191,7 @@ bool IdeCommon::AddFiles(const char *Path)
 	{
 		GProfile p("IdeCommon::AddFiles");
 		p.HideResultsIfBelow(50);
-		if (!Project->InProject(Path, false))
+		if (!Project->InProject(false, Path, false))
 		{
 			p.Add("new node");
 			ProjectNode *New = new ProjectNode(Project);

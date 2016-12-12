@@ -65,7 +65,7 @@ bool GClipBoard::Text(char *Str, bool AutoEmpty)
 		Empty();
 	}
 	
-	if (!wTxt.Reset(LgiNewUtf8To16(Str)))
+	if (!wTxt.Reset(Utf8ToWide(Str)))
 		return false;
 
 	return TextW(wTxt);
@@ -74,7 +74,7 @@ bool GClipBoard::Text(char *Str, bool AutoEmpty)
 char *GClipBoard::Text()
 {
 	char16 *w = TextW();
-	Txt.Reset(LgiNewUtf16To8(w));
+	Txt.Reset(WideToUtf8(w));
 	return Txt;
 }
 

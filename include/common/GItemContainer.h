@@ -11,7 +11,9 @@ class GItemContainer;
 /// Base class for items in widget containers
 class LgiClass GItem : virtual public GEventsI
 {
+protected:
     GAutoPtr<GCss> Css;
+	int SelectionStart, SelectionEnd;
     
 public:
 	/// Painting context
@@ -30,6 +32,9 @@ public:
 		/// Width of each column
 		int *ColPx;
 	};
+	
+	GItem();
+	~GItem();
 
     GItem &operator =(GItem &i)
     {
@@ -70,9 +75,11 @@ public:
 	/// Moves the item onscreen
 	virtual void ScrollTo() {}
 	/// Shows a editable label above the item allowing the user to change the value associated with the column 'Col'
-	virtual GView *EditLabel(int Col = -1) { return 0; }
+	virtual GView *EditLabel(int Col = -1);
 	/// Event called when the edit label ends
-	virtual void OnEditLabelEnd() {}
+	virtual void OnEditLabelEnd();
+	/// Sets the default selection of text when editing a label
+	void SetEditLabelSelection(int SelStart, int SelEnd); // call before 'EditLabel'
 
 	// Data
 
@@ -140,6 +147,7 @@ public:
 	GItemEdit(GView *parent, GItem *item, int index, int selstart, int selend);
 	~GItemEdit();
 	
+	GItem *GetItem();
 	void OnPaint(GSurface *pDC);
 	int OnNotify(GViewI *v, int f);
 	void Visible(bool i);
@@ -238,6 +246,8 @@ public:
 #define GIC_OWN_LIST				0x08
 /// Drag is over the control
 #define GIC_IN_DRAG_OP				0x10
+/// Multiple item select allowed
+#define GIC_MULTI_SELECT			0x20
 
 #define DRAG_NONE					0
 #define SELECT_ITEMS				1
@@ -253,6 +263,8 @@ class LgiClass GItemContainer :
 	public GImageListOwner 
 {
 	friend class GItemColumn;
+	friend class GItem;
+	friend class GItemEdit;
 
 public:
 	struct ColInfo
@@ -275,7 +287,8 @@ protected:
 	bool ColumnHeaders;
 	GRect ColumnHeader;
 	int ColClick;
-	GMouse ColMouse;	
+	GMouse ColMouse;
+	GItemEdit *ItemEdit;
 
 	GArray<GItemColumn*> Columns;
 	GAutoPtr<GItemColumn> IconCol;
@@ -303,6 +316,11 @@ public:
 	void AskImage(bool b) { if (b) SetFlag(Flags, GIC_ASK_IMAGE); else ClearFlag(Flags, GIC_ASK_IMAGE); }
 	bool InsideDragOp() { return TestFlag(Flags, GIC_IN_DRAG_OP); }
 	void InsideDragOp(bool b) { if (b) SetFlag(Flags, GIC_IN_DRAG_OP); else ClearFlag(Flags, GIC_IN_DRAG_OP); }
+
+	/// Returns whether the user can select multiple items at the same time
+	bool MultiSelect() { return TestFlag(Flags, GIC_MULTI_SELECT); }
+	/// Sets whether the user can select multiple items at the same time
+	void MultiSelect(bool b) { if (b) SetFlag(Flags, GIC_MULTI_SELECT); else ClearFlag(Flags, GIC_MULTI_SELECT); }
 
 	/// Returns whether display of column headers is switched on
 	bool ShowColumnHeader() { return ColumnHeaders; }

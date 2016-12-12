@@ -42,20 +42,20 @@ public:
 	ProjectNode(IdeProject *p);
 	~ProjectNode();
 
-	int GetPlatforms();
-	char *GetLocalCache();
-	bool Load(GDocView *Edit, NodeView *Callback);
-	bool Save(GDocView *Edit, NodeView *Callback);
-	bool IsWeb();
+	// Tree hierarchy
 	ProjectNode *ChildNode();
 	ProjectNode *NextNode();
-	void AddNodes(GArray<ProjectNode*> &Nodes);
+
+	// Actions
+	IdeDoc *Open();
+	void Delete();
 	void SetClean();
+	void AddNodes(GArray<ProjectNode*> &Nodes);
+	
+	// Props
+	bool IsWeb();
 	IdeProject *GetDep();
 	IdeProject *GetProject();
-	bool GetFormats(List<char> &Formats);
-	bool GetData(GVariant *Data, char *Format);
-	bool OnBeginDrag(GMouse &m);
 	char *GetFileName();
 	void SetFileName(const char *f);
 	char *GetName();
@@ -64,15 +64,26 @@ public:
 	void SetType(NodeType t);
 	int GetImage(int f);
 	char *GetText(int c);
-	void OnExpand(bool b);
-	bool Serialize();
 	GString GetFullPath();
-	IdeDoc *Open();
-	void Delete();
-	bool OnKey(GKey &k);
-	void OnMouseClick(GMouse &m);
 	ProjectNode *FindFile(const char *In, char **Full);
+	int GetPlatforms();
+	char *GetLocalCache();
+	
+	// Dnd
+	bool GetFormats(List<char> &Formats);
+	bool GetData(GVariant *Data, char *Format);
+	
+	// Ui events
+	bool OnBeginDrag(GMouse &m);
+	bool OnKey(GKey &k);
+	void OnExpand(bool b);
+	void OnMouseClick(GMouse &m);
 	void OnProperties();
+
+	// Serialization
+	bool Load(GDocView *Edit, NodeView *Callback);
+	bool Save(GDocView *Edit, NodeView *Callback);
+	bool Serialize();
 };
 
 #endif

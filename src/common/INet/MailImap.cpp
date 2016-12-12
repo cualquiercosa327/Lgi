@@ -823,12 +823,14 @@ bool MailIMap::WriteBuf(bool ObsurePass, const char *Buffer, bool Continuation)
 			LgiAssert(!"Can't be issuing new commands while others are still running.");
 			return false;
 		}
+		/*
 		else
 		{
 			GString Msg;
 			Msg.Printf("%s:%i - WriteBuf ok(%s)\n", LgiGetLeaf(__FILE__), __LINE__, d->LastWrite.Strip().Get());
 			Socket->OnInformation(Msg);
 		}
+		*/
 
 		if (Socket->Write((void*)Buffer, Len, 0) == Len)
 		{
@@ -1146,9 +1148,11 @@ static void AddIfMissing(GArray<GString> &Auths, const char *a, GString *Default
 
 void MailIMap::CommandFinished()
 {
+	/*
 	GString Msg;
 	Msg.Printf("%s:%i - CommandFinished(%s)\n", LgiGetLeaf(__FILE__), __LINE__, d->LastWrite.Strip().Get());
 	Socket->OnInformation(Msg);
+	*/
 
 	d->InCommand = 0;
 	d->LastWrite.Empty();

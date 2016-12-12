@@ -201,7 +201,8 @@ GMessage::Param GDebugContext::OnEvent(GMessage *m)
 				GMutex::Auto a(d, _FL);
 				File = d->SeekFile;
 			}
-			d->App->GotoReference(File, d->SeekLine, d->SeekCurrentIp);
+			if (File && d->SeekLine > 0)
+				d->App->GotoReference(File, d->SeekLine, d->SeekCurrentIp);
 			break;
 		}
 	}

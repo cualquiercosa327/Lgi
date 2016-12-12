@@ -1652,8 +1652,8 @@ case IDomCall:
 					}
 					char *sStart = (char*)s + start;
 					char *pos;
-					if (end > start)
-						pos = strnstr(sStart, sub, end - start);
+					if (end >= 0)
+						pos = strnstr(sStart, sub, end);
 					else
 						pos = strstr(sStart, sub);
 
@@ -1665,7 +1665,46 @@ case IDomCall:
 				}
 				case StrRfind:
 				{
-					CheckParam(0);
+					const char *s = Dom->Str();
+					if (!s)
+					{
+						*Dst = -1;
+						break;
+					}
+
+					int sLen = strlen(s);
+					const char *sub = Arg[0]->Str();
+					int start_idx = Arg.Length() > 1 ? Arg[1]->CastInt32() : 0;
+					int end_idx = Arg.Length() > 2 ? Arg[2]->CastInt32() : -1;								
+
+					if (start_idx >= sLen)
+					{
+						*Dst = -1;
+						break;
+					}
+					int sublen = strlen(sub);
+					char *cur = (char*)s + start_idx;
+					char *end = end_idx >= 0 ? cur + end_idx : NULL;
+					char *pos = NULL;
+					while (true)
+					{
+						cur =	(end)
+								?
+								strnstr(cur, sub, end - cur)
+								:
+								strstr(cur, sub);
+						if (cur)
+						{
+							pos = cur;
+							cur += sublen;
+						}
+						else break;
+					}
+					
+					if (pos)
+						*Dst = (int64) (pos - s);
+					else
+						*Dst = -1;
 					break;
 				}
 				case StrLower:
@@ -1704,7 +1743,6 @@ case IDomCall:
 				}
 				case StrSub:
 				{
-					Dst->Empty();
 					char *s = Dom->Str();
 					if (s)
 					{
@@ -1716,10 +1754,11 @@ case IDomCall:
 						if (Start < 0)
 							Start = 0;
 						if (Start <= End)
-						{
 							Dst->OwnStr(NewStr(s + Start, End - Start));
-						}
+						else
+							Dst->Empty();
 					}
+					else Dst->Empty();
 					break;
 				}
 				default:

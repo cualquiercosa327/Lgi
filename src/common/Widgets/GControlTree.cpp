@@ -373,7 +373,6 @@ void GControlTree::Item::OnPaint(ItemPaintCtx &Ctx)
 GControlTree::GControlTree() : GTree(-1, 0, 0, 100, 100)
 {
 	_ObjName = Res_ControlTree;
-	MultipleSelect = false;
 	d = new GControlTreePriv;
 }
 

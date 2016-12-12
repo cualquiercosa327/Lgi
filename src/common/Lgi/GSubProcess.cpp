@@ -687,6 +687,7 @@ int GSubProcess::Peek()
 {
 	#ifdef POSIX
 	#warning FIXME
+	LgiAssert(0);
 	return 0;
 	#else		
 	DWORD Rd = 0, Avail = 0;

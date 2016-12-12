@@ -247,13 +247,13 @@ class Gdb : public GDebugger, public GThread
 					getpgid(ThreadId);
 					if (Pid > 0 && ProcessId < 0)
 					{
-						LgiTrace("Got the thread id: %i, and pid: %i\n", ThreadId, Pid);
+						// LgiTrace("Got the thread id: %i, and pid: %i\n", ThreadId, Pid);
 						ProcessId = Pid;
 					}
+					/*
 					else
-					{
 						LgiTrace("Not setting pid: pid=%i, processid=%i\n", Pid, ProcessId);
-					}
+					*/
 					#else
 					LgiAssert(!"Impl me.");
 					#endif

@@ -722,19 +722,20 @@ void GView::PointToScreen(GdcPt2 &p)
 	if (c && c->WindowHandle())
 	{
 	    gint x = 0, y = 0;
-	    GdkRectangle rect;
+	    // GdkRectangle rect;
 		Gtk::GtkWindow *wnd = c->WindowHandle();
 		Gtk::GtkWidget *w = GTK_WIDGET(wnd);
-		Gtk::GdkWindow *gdk_wnd = gtk_widget_get_window(w);
-		gdk_window_get_frame_extents(gdk_wnd, &rect);
+		// Gtk::GdkWindow *gdk_wnd = gtk_widget_get_window(w);
+
+		// gdk_window_get_frame_extents(gdk_wnd, &rect);
 		gdk_window_get_origin(w->window, &x, &y);
 		
-		int DecorX = x - rect.x;
-		int DecorY = y - rect.y;
-		int Offset = 8;
+		// int DecorX = x - rect.x;
+		// int DecorY = y - rect.y;		
+		// printf("%s:%i - rect=%i,%i-%i,%i  origin=%i,%i\n", _FL, rect.x, rect.y, rect.width, rect.height, x, y);
 		
-		p.x += x + DecorX - Offset;
-		p.y += y + DecorY - Offset;
+		p.x += x;
+		p.y += y;
 	}
 	else
 	{

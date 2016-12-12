@@ -291,6 +291,43 @@ public:
 	}
 };
 
+class WatchItem : public GTreeItem
+{
+	class IdeOutput *Out;
+	GTreeItem *PlaceHolder;
+
+public:
+	WatchItem(IdeOutput *out)
+	{
+		Out = out;
+		Expanded(false);
+		Insert(PlaceHolder = new GTreeItem);
+	}
+	
+	~WatchItem()
+	{
+	}
+	
+	bool SetText(const char *s, int i = 0)
+	{
+		if (ValidStr(s))
+		{
+			return GTreeItem::SetText(s, i);
+		}
+		
+		delete this;
+		return false;
+	}
+	
+	void OnExpand(bool b)
+	{
+		if (b && PlaceHolder)
+		{
+			// Do something 
+		}
+	}
+};
+
 class IdeOutput : public GPanel
 {
 public:
@@ -310,7 +347,8 @@ public:
 	GTabView *DebugTab;
 	GBox *DebugBox;
 	GBox *DebugLog;
-	GList *Locals, *Watch, *CallStack, *Threads;
+	GList *Locals, *CallStack, *Threads;
+	GTree *Watch;
 	GTextLog *ObjectDump, *MemoryDump, *Registers;
 	GTableLayout *MemTable;
 	GEdit *DebugEdit;
@@ -418,10 +456,11 @@ public:
 						if ((Page = DebugTab->Append("Watch")))
 						{
 							Page->SetFont(&Small);
-							if ((Watch = new GList(IDC_WATCH_LIST, 0, 0, 100, 100, "Watch List")))
+							if ((Watch = new GTree(IDC_WATCH_LIST, 0, 0, 100, 100, "Watch List")))
 							{
 								Watch->SetFont(&Small);
-								Watch->AddColumn("Watch Var", 80);
+								Watch->ShowColumnHeader(true);
+								Watch->AddColumn("Watch", 80);
 								Watch->AddColumn("Value", 1000);
 								Watch->SetPourLargest(true);
 
@@ -1720,7 +1759,7 @@ IdeDoc *AppWnd::OpenFile(const char *FileName, NodeSource *Src)
 				List<IdeProject>::I Proj = d->Projects.Start();
 				for (IdeProject *p=*Proj; p && !Doc; p=*++Proj)
 				{
-					p->InProject(File, true, &Doc);				
+					p->InProject(true, File, true, &Doc);				
 				}
 				DoingProjectFind = false;
 
@@ -1812,6 +1851,10 @@ IdeProject *AppWnd::OpenProject(char *FileName, IdeProject *ParentProj, bool Cre
 		d->Projects.Insert(p = new IdeProject(this));
 		if (p)
 		{
+			GString::Array Inc;
+			p->BuildIncludePaths(Inc, false, PlatformCurrent);
+			d->FindSym.SetIncludePaths(Inc);
+
 			p->SetParentProject(ParentProj);
 			
 			if (p->OpenFile(FileName))
@@ -1845,10 +1888,8 @@ IdeProject *AppWnd::OpenProject(char *FileName, IdeProject *ParentProj, bool Cre
 			GArray<ProjectNode*> Files;
 			if (p && p->GetAllNodes(Files))
 			{
-				GString::Array Inc;
-				p->BuildIncludePaths(Inc, false, PlatformCurrent);
-				d->FindSym.SetIncludePaths(Inc);
 
+				/* This is handling in ::OnNode now
 				GAutoString Base = p->GetBasePath();
 				for (unsigned i=0; i<Files.Length(); i++)
 				{
@@ -1873,6 +1914,7 @@ IdeProject *AppWnd::OpenProject(char *FileName, IdeProject *ParentProj, bool Cre
 						}
 					}
 				}
+				*/
 			}
 		}
 	}
@@ -1961,6 +2003,16 @@ GMessage::Result AppWnd::OnEvent(GMessage *m)
 	}
 
 	return GWindow::OnEvent(m);
+}
+
+bool AppWnd::OnNode(const char *Path, ProjectNode *Node, bool Add)
+{
+	// This takes care of adding/removing files from the symbol search engine.
+	if (!Path || !Node)
+		return false;
+
+	d->FindSym.OnFile(Path, Add ? FindSymbolSystem::FileAdd : FindSymbolSystem::FileRemove);
+	return true;
 }
 
 GOptionsFile *AppWnd::GetOptions()
@@ -2191,15 +2243,43 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 			}
 			break;
 		}
+		case IDC_WATCH_LIST:
+		{
+			WatchItem *Edit = NULL;
+			switch (Flags)
+			{
+				case GNotify_DeleteKey:
+				{
+					GArray<GTreeItem *> Sel;
+					for (GTreeItem *c = d->Output->Watch->GetChild(); c; c = c->GetNext())
+					{
+						if (c->Select())
+							Sel.Add(c);
+					}
+					Sel.DeleteObjects();
+					break;
+				}
+				case GNotifyItem_Click:
+				{
+					Edit = dynamic_cast<WatchItem*>(d->Output->Watch->Selection());
+					break;
+				}
+				case GNotifyContainer_Click:
+				{
+					// Create new watch.
+					Edit = new WatchItem(d->Output);
+					if (Edit)
+						d->Output->Watch->Insert(Edit);
+					break;
+				}
+			}
+			
+			if (Edit)
+				Edit->EditLabel(0);
+			break;
+		}
 		case IDC_THREADS:
 		{
-			/*
-			if (Flags == M_CHANGE)
-			{
-				if (d->Output->DebugTab)
-					d->Output->DebugTab->Value(AppWnd::CallStackTab);
-			}
-			else */
 			if (Flags == GNotifyItem_Select)
 			{
 				// This takes the user to a given thread

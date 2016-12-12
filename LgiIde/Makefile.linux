@@ -3840,6 +3840,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	./Code/FindSymbol.h \
 	../include/common/GStringClass.h \
 	./Code/GDebugger.h \
+	../include/common/GTextView3.h \
 	./Code/IdeDoc.h \
 	./Code/IdeProject.h \
 	./Code/FindInFiles.h

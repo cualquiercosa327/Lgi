@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		341B9A491DEAC4930011CE44 /* BlockCursor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 341B9A451DEAC4930011CE44 /* BlockCursor.cpp */; };
+		341B9A4A1DEAC4930011CE44 /* GRichTextEdit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 341B9A461DEAC4930011CE44 /* GRichTextEdit.cpp */; };
+		341B9A4B1DEAC4930011CE44 /* TextBlock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 341B9A481DEAC4930011CE44 /* TextBlock.cpp */; };
 		349A13611A7F7C1B000D4C67 /* LgiMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A13601A7F7C1B000D4C67 /* LgiMain.cpp */; };
 		349A13631A7F7C2A000D4C67 /* Rich.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A13621A7F7C2A000D4C67 /* Rich.cpp */; };
 		349A136D1A7F7CEF000D4C67 /* Lgi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 349A136C1A7F7C3E000D4C67 /* Lgi.framework */; };
@@ -46,6 +49,11 @@
 /* Begin PBXFileReference section */
 		20286C33FDCF999611CA2CEA /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		32DBCF6D0370B57F00C91783 /* HtmlEdit_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HtmlEdit_Prefix.pch; sourceTree = "<group>"; };
+		341B9A441DEAC4760011CE44 /* GRichTextEdit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GRichTextEdit.h; path = ../include/common/GRichTextEdit.h; sourceTree = "<group>"; };
+		341B9A451DEAC4930011CE44 /* BlockCursor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BlockCursor.cpp; path = ../src/common/Widgets/Editor/BlockCursor.cpp; sourceTree = "<group>"; };
+		341B9A461DEAC4930011CE44 /* GRichTextEdit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GRichTextEdit.cpp; path = ../src/common/Widgets/Editor/GRichTextEdit.cpp; sourceTree = "<group>"; };
+		341B9A471DEAC4930011CE44 /* GRichTextEditPriv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GRichTextEditPriv.h; path = ../src/common/Widgets/Editor/GRichTextEditPriv.h; sourceTree = "<group>"; };
+		341B9A481DEAC4930011CE44 /* TextBlock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TextBlock.cpp; path = ../src/common/Widgets/Editor/TextBlock.cpp; sourceTree = "<group>"; };
 		3495283A1A65F1AD004E07EF /* LgiCarbon.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LgiCarbon.xcodeproj; path = ../src/mac/carbon/LgiCarbon.xcodeproj; sourceTree = "<group>"; };
 		349A13601A7F7C1B000D4C67 /* LgiMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiMain.cpp; path = ../src/common/Lgi/LgiMain.cpp; sourceTree = "<group>"; };
 		349A13621A7F7C2A000D4C67 /* Rich.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Rich.cpp; sourceTree = "<group>"; };
@@ -96,6 +104,7 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				341B9A421DEAC4490011CE44 /* RichTextEdit */,
 				349A13771A7F7D9D000D4C67 /* GHtmlEdit.cpp */,
 				349A136F1A7F7D81000D4C67 /* GDocView.cpp */,
 				349A13701A7F7D81000D4C67 /* GHtml.cpp */,
@@ -125,6 +134,18 @@
 				4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */,
 			);
 			name = "External Frameworks and Libraries";
+			sourceTree = "<group>";
+		};
+		341B9A421DEAC4490011CE44 /* RichTextEdit */ = {
+			isa = PBXGroup;
+			children = (
+				341B9A451DEAC4930011CE44 /* BlockCursor.cpp */,
+				341B9A461DEAC4930011CE44 /* GRichTextEdit.cpp */,
+				341B9A471DEAC4930011CE44 /* GRichTextEditPriv.h */,
+				341B9A481DEAC4930011CE44 /* TextBlock.cpp */,
+				341B9A441DEAC4760011CE44 /* GRichTextEdit.h */,
+			);
+			name = RichTextEdit;
 			sourceTree = "<group>";
 		};
 		349A13681A7F7C3E000D4C67 /* Products */ = {
@@ -224,9 +245,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				341B9A4A1DEAC4930011CE44 /* GRichTextEdit.cpp in Sources */,
 				349A13611A7F7C1B000D4C67 /* LgiMain.cpp in Sources */,
+				341B9A491DEAC4930011CE44 /* BlockCursor.cpp in Sources */,
 				349A13631A7F7C2A000D4C67 /* Rich.cpp in Sources */,
 				349A13731A7F7D81000D4C67 /* GDocView.cpp in Sources */,
+				341B9A4B1DEAC4930011CE44 /* TextBlock.cpp in Sources */,
 				349A13741A7F7D81000D4C67 /* GHtml.cpp in Sources */,
 				349A13751A7F7D81000D4C67 /* GHtmlCommon.cpp in Sources */,
 				349A13761A7F7D81000D4C67 /* GHtmlParser.cpp in Sources */,

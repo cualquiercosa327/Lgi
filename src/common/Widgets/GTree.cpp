@@ -42,6 +42,7 @@ public:
 	int64			DropSelectTime;
     int8            IconTextGap;
     int				LastLayoutPx;
+	GMouse			*CurrentClick;
     
     // Visual style
 	GTree::ThumbStyle Btns;
@@ -54,6 +55,7 @@ public:
 
 	GTreePrivate()
 	{
+		CurrentClick = NULL;
 		LastLayoutPx = -1;
 		DropSelectTime = 0;
 		InPour = false;
@@ -461,7 +463,36 @@ bool GTreeItem::IsDropTarget()
 
 GRect *GTreeItem::GetPos(int Col)
 {
-	return &d->Pos;
+	if (!d->Pos.Valid() && Tree)
+		Tree->_Pour();
+
+	static GRect r;
+
+	r = d->Pos;
+
+	if (Col >= 0)
+	{
+		GItemColumn *Column = 0;
+
+		int Cx = Tree->GetImageList() ? 16 : 0;
+		for (int c=0; c<Col; c++)
+		{
+			Column = Tree->ColumnAt(c);
+			if (Column)
+			{
+				Cx += Column->Width();
+			}
+		}
+		Column = Tree->ColumnAt(Col);
+
+		if (Column)
+		{
+			r.x1 = Cx;
+			r.x2 = Cx + Column->Width() - 1;
+		}
+	}
+
+	return &r;
 }
 
 void GTreeItem::_RePour()
@@ -1045,7 +1076,6 @@ GTree::GTree(int id, int x, int y, int cx, int cy, const char *name) :
 	Buttons = true;
 	LinesAtRoot = true;
 	EditLabels = false;
-	MultipleSelect = false;
 	ColumnHeaders = false;
 	rItems.ZOff(-1, -1);
 
@@ -1170,7 +1200,16 @@ void GTree::_UpdateScrollBars()
 
 void GTree::_OnSelect(GTreeItem *Item)
 {
-	if (!MultipleSelect)
+	if
+	(
+		!MultiSelect()
+		||
+		(
+			d->CurrentClick 
+			&&
+			!d->CurrentClick->Ctrl()
+		)
+	)
 	{
 		for (GTreeItem *i=d->Selection.First(); i; i=d->Selection.Next())
 		{
@@ -1449,6 +1488,16 @@ bool GTree::OnKey(GKey &k)
 				Status = true;
 				break;
 			}
+			case VK_DELETE:
+			{
+				if (k.Down())
+				{
+					SendNotify(GNotify_DeleteKey);
+					// This might delete the item... so just return here.
+					return true;
+				}
+				break;
+			}
 			#ifdef VK_APPS
 			case VK_APPS:
 			{
@@ -1517,9 +1566,12 @@ bool GTree::OnMouseWheel(double Lines)
 
 void GTree::OnMouseClick(GMouse &m)
 {
+	d->CurrentClick = &m;
+
 	if (m.Down())
 	{
 		DragMode = DRAG_NONE;
+
 		if (ColumnHeaders &&
 			ColumnHeader.Overlap(m.x, m.y))
 		{
@@ -1529,7 +1581,7 @@ void GTree::OnMouseClick(GMouse &m)
 			// Clicked on a column heading
 			GItemColumn *Resize;
 			GItemColumn *Over = NULL;
-			/*int Index = */HitColumn(m.x, m.y, Resize, Over);
+			HitColumn(m.x, m.y, Resize, Over);
 
 			if (Resize)
 			{
@@ -1575,6 +1627,10 @@ void GTree::OnMouseClick(GMouse &m)
 				m.y += c.y;
 				d->LastHit->_MouseClick(m);
 			}
+			else
+			{
+				SendNotify(GNotifyContainer_Click);
+			}
 		}
 	}
 	else if (IsCapturing())
@@ -1596,6 +1652,8 @@ void GTree::OnMouseClick(GMouse &m)
 			}
 		}
 	}
+
+	d->CurrentClick = NULL;
 }
 
 void GTree::OnMouseMove(GMouse &m)
@@ -2004,6 +2062,8 @@ void GTree::OnItemClick(GTreeItem *Item, GMouse &m)
 	if (Item)
 	{
 		Item->OnMouseClick(m);
+		if (!m.Ctrl() && !m.Shift())
+			SendNotify(GNotifyItem_Click);
 	}
 }
 

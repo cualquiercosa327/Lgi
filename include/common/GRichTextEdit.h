@@ -8,6 +8,7 @@
 #include "GDocView.h"
 #include "GUndo.h"
 #include "GDragAndDrop.h"
+#include "GCapabilities.h"
 
 extern char Delimiters[];
 
@@ -19,7 +20,8 @@ class
 	GRichTextEdit :
 	public GDocView,
 	public ResObject,
-	public GDragDropTarget
+	public GDragDropTarget,
+	public GCapabilityTarget
 {
 	friend bool RichText_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User);
 
@@ -29,12 +31,14 @@ public:
 		PrevLine,
 		NextLine,
 		StartLine,
- 		EndLine
+		EndLine
 	};
 
 protected:
 	class GRichTextPriv *d;
 	friend class GRichTextPriv;
+
+	bool InternalIndexAt(int x, int y, int &Off, int &LineHint);
 
 	// Overridables
 	virtual void PourText(int Start, int Length);
@@ -63,9 +67,11 @@ public:
 	void Value(int64 i);
 	const char *GetMimeType() { return "text/html"; }
 	int GetSize();
+	const char *GetCharset();
+	void SetCharset(const char *s);
 
-	int HitText(int x, int y);
-	void DeleteSelection(char16 **Cut = 0);
+	int HitTest(int x, int y);
+	bool DeleteSelection(char16 **Cut = 0);
 
 	// Font
 	GFont *GetFont();
@@ -82,6 +88,8 @@ public:
 	{
 		ContentArea,
 		ToolsArea,
+		CapabilityArea,
+		CapabilityBtn,
 
 		FontFamilyBtn,
 		FontSizeBtn,
@@ -92,6 +100,8 @@ public:
 		
 		ForegroundColourBtn,
 		BackgroundColourBtn,
+
+		MakeLinkBtn,
 		
 		MaxArea
 	};
@@ -147,14 +157,19 @@ public:
 	void OnAddStyle(const char *MimeType, const char *Styles);
 
 	// Object Events
-	bool OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly);
-	bool OnReplace(char16 *Find, char16 *Replace, bool All, bool MatchWord, bool MatchCase, bool SelectionOnly);
+	bool OnFind(GFindReplaceCommon *Params);
+	bool OnReplace(GFindReplaceCommon *Params);
 	bool OnMultiLineTab(bool In);
 	void OnSetHidden(int Hidden);
 	void OnPosChange();
 	void OnCreate();
 	void OnEscape(GKey &K);
 	bool OnMouseWheel(double Lines);
+
+	// Capability target stuff
+	bool NeedsCapability(const char *Name, const char *Param);
+	void OnInstall(CapsHash *Caps, bool Status);
+	void OnCloseInstaller();
 
 	// Window Events
 	void OnFocus(bool f);

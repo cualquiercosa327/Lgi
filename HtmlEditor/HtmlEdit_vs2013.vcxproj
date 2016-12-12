@@ -274,6 +274,7 @@
     <ClCompile Include="..\src\common\Text\GHtmlParser.cpp" />
     <ClCompile Include="..\src\common\Widgets\Editor\BlockCursor.cpp" />
     <ClCompile Include="..\src\common\Widgets\Editor\GRichTextEdit.cpp" />
+    <ClCompile Include="..\src\common\Widgets\Editor\GRichTextEditPriv.cpp" />
     <ClCompile Include="..\src\common\Widgets\Editor\TextBlock.cpp" />
     <ClCompile Include="..\src\common\Widgets\GHtmlEdit.cpp" />
     <ClCompile Include="Rich.cpp" />
