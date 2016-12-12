@@ -291,6 +291,43 @@ public:
 	}
 };
 
+class WatchItem : public GTreeItem
+{
+	class IdeOutput *Out;
+	GTreeItem *PlaceHolder;
+
+public:
+	WatchItem(IdeOutput *out)
+	{
+		Out = out;
+		Expanded(false);
+		Insert(PlaceHolder = new GTreeItem);
+	}
+	
+	~WatchItem()
+	{
+	}
+	
+	bool SetText(const char *s, int i = 0)
+	{
+		if (ValidStr(s))
+		{
+			return GTreeItem::SetText(s, i);
+		}
+		
+		delete this;
+		return false;
+	}
+	
+	void OnExpand(bool b)
+	{
+		if (b && PlaceHolder)
+		{
+			// Do something 
+		}
+	}
+};
+
 class IdeOutput : public GPanel
 {
 public:
@@ -2208,20 +2245,37 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 		}
 		case IDC_WATCH_LIST:
 		{
+			WatchItem *Edit = NULL;
 			switch (Flags)
 			{
+				case GNotify_DeleteKey:
+				{
+					GArray<GTreeItem *> Sel;
+					for (GTreeItem *c = d->Output->Watch->GetChild(); c; c = c->GetNext())
+					{
+						if (c->Select())
+							Sel.Add(c);
+					}
+					Sel.DeleteObjects();
+					break;
+				}
+				case GNotifyItem_Click:
+				{
+					Edit = dynamic_cast<WatchItem*>(d->Output->Watch->Selection());
+					break;
+				}
 				case GNotifyContainer_Click:
 				{
 					// Create new watch.
-					GTreeItem *wv = new GTreeItem;
-					if (wv)
-					{
-						d->Output->Watch->Insert(wv);
-						wv->EditLabel(0);
-					}
+					Edit = new WatchItem(d->Output);
+					if (Edit)
+						d->Output->Watch->Insert(Edit);
 					break;
 				}
 			}
+			
+			if (Edit)
+				Edit->EditLabel(0);
 			break;
 		}
 		case IDC_THREADS:

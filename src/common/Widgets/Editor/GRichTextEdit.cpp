@@ -1260,7 +1260,7 @@ void GRichTextEdit::OnMouseMove(GMouse &m)
 					if (b->CopyAt(0, b->Length(), &Txt))
 					{
 						int Off = d->Cursor->Offset;
-						while (Off < Txt.Length() &&
+						while (Off < (int)Txt.Length() &&
 							!IsWordBreakChar(Txt[Off]))
 							Off++;
 						if (Off != d->Cursor->Offset)

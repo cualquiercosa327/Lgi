@@ -11,7 +11,9 @@ class GItemContainer;
 /// Base class for items in widget containers
 class LgiClass GItem : virtual public GEventsI
 {
+protected:
     GAutoPtr<GCss> Css;
+	int SelectionStart, SelectionEnd;
     
 public:
 	/// Painting context
@@ -30,6 +32,11 @@ public:
 		/// Width of each column
 		int *ColPx;
 	};
+	
+	GItem()
+	{
+		SelectionStart = SelectionEnd = -1;
+	}
 
     GItem &operator =(GItem &i)
     {
@@ -70,9 +77,11 @@ public:
 	/// Moves the item onscreen
 	virtual void ScrollTo() {}
 	/// Shows a editable label above the item allowing the user to change the value associated with the column 'Col'
-	virtual GView *EditLabel(int Col = -1) { return 0; }
+	virtual GView *EditLabel(int Col = -1);
 	/// Event called when the edit label ends
-	virtual void OnEditLabelEnd() {}
+	virtual void OnEditLabelEnd();
+	/// Sets the default selection of text when editing a label
+	void SetEditLabelSelection(int SelStart, int SelEnd); // call before 'EditLabel'
 
 	// Data
 
@@ -255,6 +264,8 @@ class LgiClass GItemContainer :
 	public GImageListOwner 
 {
 	friend class GItemColumn;
+	friend class GItem;
+	friend class GItemEdit;
 
 public:
 	struct ColInfo
@@ -277,7 +288,8 @@ protected:
 	bool ColumnHeaders;
 	GRect ColumnHeader;
 	int ColClick;
-	GMouse ColMouse;	
+	GMouse ColMouse;
+	GItemEdit *ItemEdit;
 
 	GArray<GItemColumn*> Columns;
 	GAutoPtr<GItemColumn> IconCol;

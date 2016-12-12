@@ -320,7 +320,7 @@ public:
 
 		char16 *At(int i)
 		{
-			if (i >= 0 && i < Length())
+			if (i >= 0 && i < (int)Length())
 				return &(*this)[i];
 			LgiAssert(0);
 			return NULL;
