@@ -1055,6 +1055,18 @@ public:
 		
 		return GEdit::OnKey(k);
 	}
+
+	/*	
+	void OnPaint(GSurface *pDC)
+	{
+		GEdit::OnPaint(pDC);
+		
+		GRect c = GetClient();
+		pDC->Colour(GColour::Red);
+		pDC->Line(c.x1, c.y1, c.x2, c.y2);
+		pDC->Line(c.x2, c.y1, c.x1, c.y2);
+	}
+	*/
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////

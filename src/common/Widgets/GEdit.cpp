@@ -83,10 +83,6 @@ void GEdit::SendNotify(int Data)
 	else if (Data == VK_RETURN ||
 			Data == GNotify_EscapeKey)
 		return GTextView3::SendNotify(Data);
-	/*
-	else
-		printf("%s:%i - Unsupported notify type: %i\n", _FL, Data);
-	*/
 }
 
 bool GEdit::GetSelection(int &Start, int &Len)
@@ -152,6 +148,7 @@ void GEdit::Password(bool m)
 void GEdit::OnPaint(GSurface *pDC)
 {
     GTextView3::OnPaint(pDC);
+
     if (!ValidStr(Name()) && d->EmptyTxt && !Focus())
     {
         GFont *f = GetFont();

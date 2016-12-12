@@ -804,10 +804,6 @@ bool GPopup::Attach(GViewI *p)
 void GPopup::Visible(bool i)
 {
 	bool HadFocus = false;
-	// bool Was = GView::Visible();
-
-
-	// printf("%s:%i - GPopup::Visible(%i)\n", _FL, i);
 
 	#if defined __GTK_H__
 	if (i && !Wnd)
