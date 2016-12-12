@@ -1735,8 +1735,10 @@ void GList::OnMouseClick(GMouse &m)
 						SendNotify(GNotifyItem_ContextMenu);
 					else if (m.Double())
 						SendNotify(GNotifyItem_DoubleClick);
-					else
+					else if (Item)
 						SendNotify(GNotifyItem_Click);
+					else
+						SendNotify(GNotifyContainer_Click);
 				}
 			}
 		}

@@ -1588,6 +1588,10 @@ void GTree::OnMouseClick(GMouse &m)
 				m.y += c.y;
 				d->LastHit->_MouseClick(m);
 			}
+			else
+			{
+				SendNotify(GNotifyContainer_Click);
+			}
 		}
 	}
 	else if (IsCapturing())

@@ -1793,7 +1793,7 @@ bool GView::PostEvent(int Cmd, GMessage::Param a, GMessage::Param b)
 	}
 	else
 	{
-		LgiTrace("%s:%i - No view to post event to.\n", _FL);
+		// LgiTrace("%s:%i - No view to post event to.\n", _FL);
 	}
 	
 	#endif

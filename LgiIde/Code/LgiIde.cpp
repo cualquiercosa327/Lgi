@@ -310,7 +310,8 @@ public:
 	GTabView *DebugTab;
 	GBox *DebugBox;
 	GBox *DebugLog;
-	GList *Locals, *Watch, *CallStack, *Threads;
+	GList *Locals, *CallStack, *Threads;
+	GTree *Watch;
 	GTextLog *ObjectDump, *MemoryDump, *Registers;
 	GTableLayout *MemTable;
 	GEdit *DebugEdit;
@@ -418,10 +419,11 @@ public:
 						if ((Page = DebugTab->Append("Watch")))
 						{
 							Page->SetFont(&Small);
-							if ((Watch = new GList(IDC_WATCH_LIST, 0, 0, 100, 100, "Watch List")))
+							if ((Watch = new GTree(IDC_WATCH_LIST, 0, 0, 100, 100, "Watch List")))
 							{
 								Watch->SetFont(&Small);
-								Watch->AddColumn("Watch Var", 80);
+								Watch->ShowColumnHeader(true);
+								Watch->AddColumn("Watch", 80);
 								Watch->AddColumn("Value", 1000);
 								Watch->SetPourLargest(true);
 
@@ -2204,15 +2206,26 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 			}
 			break;
 		}
+		case IDC_WATCH_LIST:
+		{
+			switch (Flags)
+			{
+				case GNotifyContainer_Click:
+				{
+					// Create new watch.
+					GTreeItem *wv = new GTreeItem;
+					if (wv)
+					{
+						d->Output->Watch->Insert(wv);
+						wv->EditLabel(0);
+					}
+					break;
+				}
+			}
+			break;
+		}
 		case IDC_THREADS:
 		{
-			/*
-			if (Flags == M_CHANGE)
-			{
-				if (d->Output->DebugTab)
-					d->Output->DebugTab->Value(AppWnd::CallStackTab);
-			}
-			else */
 			if (Flags == GNotifyItem_Select)
 			{
 				// This takes the user to a given thread
