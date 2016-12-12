@@ -33,6 +33,8 @@
 #define DEBUG_OUTLINE_CUR_STYLE_TEXT	0
 #define DEBUG_OUTLINE_BLOCKS			0
 #define DEBUG_NO_DOUBLE_BUF				0
+#define DEBUG_COVERAGE_CHECK			0
+#define DEBUG_NUMBERED_LAYOUTS			0
 
 #define TEXT_LINK						"Link"
 #define TEXT_CAP_BTN					"Ok"
@@ -303,10 +305,13 @@ public:
 	
 	public:
 		ColourPair Colours;
+		HtmlTag Element;
+		GString Param;
 		
 		StyleText(const char16 *t = NULL, int Chars = -1, GNamedStyle *style = NULL)
 		{
 			Style = NULL;
+			Element = CONTENT;
 			if (style)
 				SetStyle(style);
 			if (t)
@@ -315,7 +320,10 @@ public:
 
 		char16 *At(int i)
 		{
-			return &(*this)[i];
+			if (i >= 0 && i < Length())
+				return &(*this)[i];
+			LgiAssert(0);
+			return NULL;
 		}
 		
 		GNamedStyle *GetStyle()
@@ -345,6 +353,7 @@ public:
 	
 	struct PaintContext
 	{
+		int Index;
 		GSurface *pDC;
 		SelectModeType Type;
 		ColourPair Colours[2];
@@ -352,6 +361,7 @@ public:
 		
 		PaintContext()
 		{
+			Index = 0;
 			pDC = NULL;
 			Type = Unselected;
 			Cursor = NULL;
@@ -556,7 +566,7 @@ public:
 		TextLine(int XOffsetPx, int WidthPx, int YOffsetPx)
 		{
 			NewLine = 0;
-			PosOff.ZOff(WidthPx-1, 0);
+			PosOff.ZOff(0, 0);
 			PosOff.Offset(XOffsetPx, YOffsetPx);
 		}
 
@@ -664,7 +674,7 @@ public:
 	void OnStyleChange(GRichTextEdit::RectType t);
 	bool ChangeSelectionStyle(GCss *Style, bool Add);
 	void PaintBtn(GSurface *pDC, GRichTextEdit::RectType t);
-	void ClickBtn(GMouse &m, GRichTextEdit::RectType t);
+	bool ClickBtn(GMouse &m, GRichTextEdit::RectType t);
 	void Paint(GSurface *pDC, GScrollBar *&ScrollY);
 	GHtmlElement *CreateElement(GHtmlElement *Parent);
 	GdcPt2 ScreenToDoc(int x, int y);

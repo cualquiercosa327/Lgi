@@ -948,7 +948,7 @@ void GRichTextPriv::PaintBtn(GSurface *pDC, GRichTextEdit::RectType t)
 	}
 }
 
-void GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
+bool GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 {
 	switch (t)
 	{
@@ -1045,7 +1045,61 @@ void GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 		}
 		case GRichTextEdit::MakeLinkBtn:
 		{
-			LgiAssert(!"Impl link dialog.");
+			if (Cursor &&
+				Cursor->Blk)
+			{
+				TextBlock *tb = dynamic_cast<TextBlock*>(Cursor->Blk);
+				if (tb)
+				{
+					StyleText *st = tb->GetTextAt(Cursor->Offset);
+					if (st)
+					{
+						if (st->Element == TAG_A)
+						{
+							// Edit the existing link...
+							GInput i(View, st->Param, "Edit link:", "Link");
+							if (i.DoModal())
+							{
+								st->Param = i.Str;
+							}
+						}
+						else if (Selection)
+						{
+							// Turn current selection into link
+							GInput i(View, st->Param, "Edit link:", "Link");
+							if (i.DoModal())
+							{
+								BlockCursor *Start = CursorFirst() ? Cursor : Selection;
+								BlockCursor *End = CursorFirst() ? Selection : Cursor;
+								if (!Start || !End) return false;
+								if (Start->Blk != End->Blk)
+								{
+									LgiMsg(View, "Selection too large.", "Error");
+									return false;
+								}
+								int Off = Start->Offset;
+								int Len = End->Offset - Start->Offset;
+								GAutoPtr<GNamedStyle> ns(new GNamedStyle);
+								if (ns)
+								{
+									if (st->GetStyle())
+										*ns = *st->GetStyle();
+									ns->TextDecoration(GCss::TextDecorUnderline);
+									ns->Color(GCss::ColorDef(GCss::ColorRgb, GColour::Blue.c32()));
+									tb->ChangeStyle(Off, Len, ns, true);
+
+									st = tb->GetTextAt(Off);
+									if (st)
+									{
+										st->Element = TAG_A;
+										st->Param = i.Str;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 			break;
 		}
 		case GRichTextEdit::CapabilityBtn:
@@ -1053,7 +1107,11 @@ void GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 			View->OnCloseInstaller();
 			break;
 		}
+		default:
+			return false;
 	}
+
+	return true;
 }
 	
 void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
@@ -1081,6 +1139,9 @@ void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
 	{
 		// Draw tools area...
 		GRect &t = Areas[GRichTextEdit::ToolsArea];
+		#ifdef WIN32
+		GDoubleBuffer Buf(pDC, &t);
+		#endif
 		pDC->Colour(LC_MED, 24);
 		pDC->Rectangle(&t);
 
@@ -1131,8 +1192,12 @@ void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
 	r = ct.PaintPadding(pDC, r);
 
 	// Fill the background...
+	#if DEBUG_COVERAGE_CHECK
+	pDC->Colour(GColour(255, 0, 255));
+	#else
 	GCss::ColorDef cBack = BackgroundColor();
-	pDC->Colour(cBack.IsValid() ? (GColour)cBack : GColour(LC_WORKSPACE, 24));
+	// pDC->Colour(cBack.IsValid() ? (GColour)cBack : GColour(LC_WORKSPACE, 24));
+	#endif
 	pDC->Rectangle(&r);
 	if (ExtraPx)
 		pDC->Rectangle(0, DocumentExtent.y, DocumentExtent.x-1, DocumentExtent.y+ExtraPx);
@@ -1260,6 +1325,17 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 					Style->FontWeight(GCss::FontWeightBold);
 				break;
 			}
+			case TAG_A:
+			{
+				if (!Style)
+					Style.Reset(new GCss);
+				if (Style)
+				{
+					Style->TextDecoration(GCss::TextDecorUnderline);
+					Style->Color(GCss::ColorDef(GCss::ColorRgb, GColour::Blue.c32()));
+				}
+				break;
+			}
 			/*
 			case TAG_IMG:
 			{
@@ -1331,28 +1407,47 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 		}
 
 		bool EndStyleChange = false;
-		if (IsBlock && ctx.Tb != NULL)
+
+		if (c->TagId == TAG_A)
 		{
-			if (CachedStyle != ctx.Tb->GetStyle())
+			ctx.AddText(CachedStyle, c->GetText());
+			
+			if (ctx.Tb->Txt.Length())
 			{
-				// Start a new block because the styles are different...
-				EndStyleChange = true;
-				Blocks.Add(ctx.Tb = new TextBlock(this));
-					
-				if (CachedStyle)
-				{
-					ctx.Tb->Fnt = ctx.FontCache->GetFont(CachedStyle);
-					ctx.Tb->SetStyle(CachedStyle);
-				}
+				StyleText *st = ctx.Tb->Txt.Last();
+
+				st->Element = TAG_A;
+			
+				const char *Link;
+				if (c->Get("href", Link))
+					st->Param = Link;
 			}
 		}
-
-		if (c->GetText())
+		else
 		{
-			if (!ctx.Tb)
-				Blocks.Add(ctx.Tb = new TextBlock(this));
+			if (IsBlock && ctx.Tb != NULL)
+			{
+				if (CachedStyle != ctx.Tb->GetStyle())
+				{
+					// Start a new block because the styles are different...
+					EndStyleChange = true;
+					Blocks.Add(ctx.Tb = new TextBlock(this));
+					
+					if (CachedStyle)
+					{
+						ctx.Tb->Fnt = ctx.FontCache->GetFont(CachedStyle);
+						ctx.Tb->SetStyle(CachedStyle);
+					}
+				}
+			}
+
+			if (c->GetText())
+			{
+				if (!ctx.Tb)
+					Blocks.Add(ctx.Tb = new TextBlock(this));
 			
-			ctx.AddText(CachedStyle, c->GetText());
+				ctx.AddText(CachedStyle, c->GetText());
+			}
 		}
 			
 		if (!FromHtml(c, ctx, Style, Depth + 1))

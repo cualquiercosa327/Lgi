@@ -283,18 +283,25 @@ public:
 	GUtf8Ptr &operator =(uint8 *s) { Ptr = s; return *this; }
 	/// \returns the current character in the string or -1 on error.
 	operator int32();
-	/// Seeks 1 character forward
-	/// \returns current character or -1 on error
-	int32 operator ++(const int n);
+
+	/// Seeks forward
+	GUtf8Ptr &operator ++();
+	GUtf8Ptr &operator ++(const int i);
+	GUtf8Ptr &operator +=(const int n);
+
 	/// Seeks 1 character backward
-	/// \returns current character or -1 on error
-	int32 operator --(const int n);
-	/// Seeks 'n' characters forward
-	/// \returns current character or -1 on error
-	int32 operator +=(const int n);
-	/// Seeks 'n' characters backward
-	/// \returns current character or -1 on error
-	int32 operator -=(const int n);
+	GUtf8Ptr &operator --();
+	GUtf8Ptr &operator --(const int i);
+	GUtf8Ptr &operator -=(const int n);
+
+	// Comparison
+	bool operator <(const GUtf8Ptr &p) { return Ptr < p.Ptr; }
+	bool operator <=(const GUtf8Ptr &p) { return Ptr <= p.Ptr; }
+	bool operator >(const GUtf8Ptr &p) { return Ptr > p.Ptr; }
+	bool operator >=(const GUtf8Ptr &p) { return Ptr >= p.Ptr; }
+	bool operator ==(const GUtf8Ptr &p) { return Ptr == p.Ptr; }
+	bool operator !=(const GUtf8Ptr &p) { return Ptr != p.Ptr; }
+	ptrdiff_t operator -(const GUtf8Ptr &p) { return Ptr - p.Ptr; }
 
 	/// Gets the bytes between the cur pointer and the end of the buffer or string.
 	int GetBytes();

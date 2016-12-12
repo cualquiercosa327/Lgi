@@ -87,38 +87,45 @@ bool GRichTextPriv::TextBlock::ToHtml(GStream &s)
 		
 		GString utf(t->At(0), t->Length());
 		char *str = utf;
-		char *end = str + utf.Length();
 
 		if (style)
 			s.Print("<span class='%s'>", style->Name.Get());
 		
 		// Encode entities...
-		char *last = str;
-		while (str < end)
+		GUtf8Ptr last(str);
+		GUtf8Ptr cur(str);
+		GUtf8Ptr end(str + utf.Length());
+		while (cur < end)
 		{
-			if (*str == '<')
+			char16 ch = cur;
+			switch (ch)
 			{
-				s.Print("%.*s&lt;", str-last, last);
-				last = str+1;
+				case '<':
+					s.Print("%.*s&lt;", cur - last, last);
+					last = ++cur;
+					break;
+				case '>':
+					s.Print("%.*s&gt;", cur - last, last);
+					last = ++cur;
+					break;
+				case '\n':
+					s.Print("%.*s<br>\n", cur - last, last);
+					last = ++cur;
+					break;
+				case '&':
+					s.Print("%.*s&amp;", cur - last, last);
+					last = ++cur;
+					break;
+				case 0xa0:
+					s.Print("%.*s&nbsp;", cur - last, last);
+					last = ++cur;
+					break;
+				default:
+					cur++;
+					break;
 			}
-			else if (*str == '>')
-			{
-				s.Print("%.*s&gt;", str-last, last);
-				last = str+1;
-			}
-			else if (*str == '\n')
-			{
-				s.Print("%.*s<br>", str-last, last);
-				last = str+1;
-			}
-			else if (*str == '&')
-			{
-				s.Print("%.*s&amp;", str-last, last);
-				last = str+1;
-			}
-			str++;
 		}
-		s.Print("%.*s", str-last, last);
+		s.Print("%.*s", cur - last, last);
 
 		if (style)
 			s.Print("</span>");
@@ -193,7 +200,7 @@ bool GRichTextPriv::TextBlock::GetPosFromIndex(BlockCursor *Cursor)
 				Cursor->Pos.y2 = Cursor->Pos.y1 + ds->Y() - 1;
 				Cursor->Pos.x2 = Cursor->Pos.x1 + 1;
 
-				Cursor->Line = r;
+				Cursor->Line.Set(Pos.x1, r.y1, Pos.x2, r.y2);
 				return true;
 			}					
 					
@@ -217,7 +224,8 @@ bool GRichTextPriv::TextBlock::GetPosFromIndex(BlockCursor *Cursor)
 			Cursor->Pos.x2 = Cursor->Pos.x1 + 1;
 			Cursor->Pos.y1 = r.y1;
 			Cursor->Pos.y2 = r.y2;
-			Cursor->Line = r;
+
+			Cursor->Line.Set(Pos.x1, r.y1, Pos.x2, r.y2);
 			return true;
 		}
 				
@@ -232,6 +240,7 @@ bool GRichTextPriv::TextBlock::GetPosFromIndex(BlockCursor *Cursor)
 		Cursor->Pos.x2 = Pos.x1 + 1;
 		Cursor->Pos.y1 = Pos.y1;
 		Cursor->Pos.y2 = Pos.y2;
+
 		Cursor->Line = Pos;
 		return true;
 	}
@@ -348,7 +357,8 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 	Ctx.DrawBox(r, Margin, Ctx.Colours[Unselected].Back);
 	Ctx.DrawBox(r, Border, BorderCol);
 	Ctx.DrawBox(r, Padding, Ctx.Colours[Unselected].Back);
-			
+	
+	int CurY = Pos.y1;
 	for (unsigned i=0; i<Layout.Length(); i++)
 	{
 		TextLine *Line = Layout[i];
@@ -362,8 +372,22 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 		}
 
 		int FixX = IntToFixed(LinePos.x1);
-		int CurY = LinePos.y1;
+		
+		if (CurY < LinePos.y1)
+		{
+			// Fill padded area...
+			Ctx.pDC->Colour(Ctx.Colours[Unselected].Back);
+			Ctx.pDC->Rectangle(Pos.x1, CurY, Pos.x2, LinePos.y1 - 1);
+		}
+
+		CurY = LinePos.y1;
 		GFont *Fnt = NULL;
+
+		#if DEBUG_NUMBERED_LAYOUTS
+		GString s;
+		s.Printf("%i", Ctx.Index);
+		Ctx.Index++;
+		#endif
 
 		for (unsigned n=0; n<Line->Strs.Length(); n++)
 		{
@@ -498,13 +522,33 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 
 			CharPos += Ds->Length();
 		}
+
+		#if DEBUG_NUMBERED_LAYOUTS
+		GDisplayString Ds(SysFont, s);
+		SysFont->Colour(GColour::Green, GColour::White);
+		SysFont->Transparent(false);
+		Ds.Draw(Ctx.pDC, LinePos.x1, LinePos.y1);
+		/*
+		Ctx.pDC->Colour(GColour::Blue);
+		Ctx.pDC->Line(LinePos.x1, LinePos.y1,LinePos.x2,LinePos.y2);
+		*/
+		#endif
 				
+		CurY = LinePos.y2 + 1;
 		CharPos += Line->NewLine;
+	}
+
+	if (CurY < Pos.y2)
+	{
+		// Fill padded area...
+		Ctx.pDC->Colour(Ctx.Colours[Unselected].Back);
+		Ctx.pDC->Rectangle(Pos.x1, CurY, Pos.x2, Pos.y2);
 	}
 
 	if (Ctx.Cursor &&
 		Ctx.Cursor->Blk == this &&
-		Ctx.Cursor->Blink)
+		Ctx.Cursor->Blink &&
+		d->View->Focus())
 	{
 		Ctx.pDC->Colour(CursorColour);
 		if (Ctx.Cursor->Pos.Valid())
@@ -535,17 +579,6 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 	LayoutDirty = false;
 	Layout.DeleteObjects();
 			
-	/*
-	GString Str = flow.Describe();
-	LgiTrace("%p::OnLayout Flow: %s Style: %s, %s, %s, %s\n",
-		this,
-		Str.Get(),
-		Style?Style->Name.Get():0,
-		Margin.GetStr(),
-		Border.GetStr(),
-		Padding.GetStr());
-	*/
-			
 	flow.Left += Margin.x1;
 	flow.Right -= Margin.x2;
 	flow.CurY += Margin.y1;
@@ -559,11 +592,6 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 	flow.Right -= Border.x2 + Padding.x2;
 	flow.CurY += Border.y1 + Padding.y1;
 
-	/*
-	Str = flow.Describe();
-	LgiTrace("    Pos: %s Flow: %s\n", Pos.GetStr(), Str.Get());
-	*/
-			
 	int FixX = 0; // Current x offset (fixed point) on the current line
 	GAutoPtr<TextLine> CurLine(new TextLine(flow.Left - Pos.x1, flow.X(), flow.CurY - Pos.y1));
 	if (!CurLine)
@@ -594,7 +622,7 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 			{
 				// New line handling...
 				Off++;
-				CurLine->PosOff.x2 = CurLine->PosOff.x1 + FixedToInt(FixX);
+				CurLine->PosOff.x2 = CurLine->PosOff.x1 + FixedToInt(FixX) - 1;
 				FixX = 0;
 				CurLine->LayoutOffsets(f->GetHeight());
 				Pos.y2 = max(Pos.y2, Pos.y1 + CurLine->PosOff.y2);
@@ -652,7 +680,7 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 						return flow.d->Error(_FL, "failed to create wrapped display str.");
 					
 					// Finish off line
-					CurLine->PosOff.x2 = FixedToInt(FixX + Ds->FX());
+					CurLine->PosOff.x2 = CurLine->PosOff.x1 + FixedToInt(FixX + Ds->FX()) - 1;
 					CurLine->Strs.Add(Ds.Release());
 
 					CurLine->LayoutOffsets(CurLine->Strs.Last()->GetFont()->GetHeight());
@@ -674,7 +702,7 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 			if (!Ds)
 				break;
 					
-			CurLine->PosOff.x2 = FixedToInt(FixX);
+			CurLine->PosOff.x2 = CurLine->PosOff.x1 + FixedToInt(FixX) - 1;
 			CurLine->Strs.Add(Ds.Release());
 			Off += Chars;
 		}
@@ -697,11 +725,6 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 	flow.Left -= Margin.x1 + Border.x1 + Padding.x1;
 	flow.Right += Margin.x2 + Border.x2 + Padding.x2;
 			
-	/*
-	Str = flow.Describe();
-	LgiTrace("    Pos: %s Flow: %s\n", Pos.GetStr(), Str.Get());
-	*/
-
 	return true;
 }
 		
@@ -911,7 +934,7 @@ int GRichTextPriv::TextBlock::CopyAt(int Offset, int Chars, GArray<char16> *Text
 		Pos += t->Length();
 	}
 
-	return 0;
+	return Text->Length();
 }
 
 int GRichTextPriv::TextBlock::FindAt(int StartIdx, const char16 *Str, GFindReplaceCommon *Params)

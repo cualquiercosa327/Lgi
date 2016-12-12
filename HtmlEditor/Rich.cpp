@@ -19,6 +19,11 @@ enum Ctrls
 	IDC_HTML,
 	IDC_TABS,
 	IDC_TREE,
+	IDC_TO_HTML,
+	IDC_TO_NODES,
+	IDC_VIEW_IN_BROWSER,
+	IDC_SAVE_FILE,
+	IDC_EXIT
 };
 
 #define LOAD_DOC 1
@@ -77,6 +82,20 @@ public:
 		
 		if (Attach(0))
 		{
+			Menu = new GMenu;
+			if (Menu)
+			{
+				Menu->Attach(this);
+
+				GSubMenu *s = Menu->AppendSub("&File");
+				s->AppendItem("To &HTML", IDC_TO_HTML, true, -1, "F5");
+				s->AppendItem("To &Nodes", IDC_TO_NODES, true, -1, "F6");
+				s->AppendItem("View In &Browser", IDC_VIEW_IN_BROWSER, true, -1, "F7");
+				s->AppendItem("Save &As", IDC_SAVE_FILE, true, -1, "Ctrl+S");
+				s->AppendSeparator();
+				s->AppendItem("E&xit", IDC_EXIT, true, -1, "Ctrl+W");
+			}
+
 			AddView(Split = new GBox);
 			if (Split)
 			{
@@ -117,8 +136,6 @@ public:
 						p->AddView(Tree = new GTree(IDC_TREE, 0, 0, 100, 100));
 						Tree->SetPourLargest(true);
 					}
-					
-					Tabs->Value(1);
 				}
 
 				Split->Value(GetClient().X()/2);
@@ -132,6 +149,44 @@ public:
 			if (Edit)
 				Edit->Focus(true);
 		}
+	}
+
+	int OnCommand(int Cmd, int Event, OsView Wnd)
+	{
+		switch (Cmd)
+		{
+			case IDC_EXIT:
+				LgiCloseApp();
+				break;
+			case IDC_TO_HTML:
+				Tabs->Value(0);
+				Txt->Name(Edit->Name());
+				break;
+			case IDC_TO_NODES:
+				Tabs->Value(1);
+				break;
+			case IDC_VIEW_IN_BROWSER:
+			{
+				GFile::Path p(LSP_TEMP);
+				p += "export.html";
+				if (Edit->Save(p))
+				{
+					LgiExecute(p);
+				}
+				break;
+			}
+			case IDC_SAVE_FILE:
+			{
+				GFileSelect s;
+				s.Parent(this);
+				s.Type("HTML", "*.html");
+				if (s.Save())
+					Edit->Save(s.Name());
+				break;
+			}
+		}
+
+		return GWindow::OnCommand(Cmd, Event, Wnd);
 	}
 
 	int OnNotify(GViewI *c, int f)

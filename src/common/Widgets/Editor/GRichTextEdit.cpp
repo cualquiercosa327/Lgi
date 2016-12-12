@@ -728,14 +728,19 @@ bool GRichTextEdit::Open(const char *Name, const char *CharSet)
 	return Status;
 }
 
-bool GRichTextEdit::Save(const char *Name, const char *CharSet)
+bool GRichTextEdit::Save(const char *FileName, const char *CharSet)
 {
 	GFile f;
-	if (f.Open(Name, O_WRITE))
-	{
-		f.SetSize(0);
-	}
-	return false;
+	if (!FileName || !f.Open(FileName, O_WRITE))
+		return false;
+
+	f.SetSize(0);
+	char *Nm = Name();
+	if (!Nm)
+		return false;
+
+	int Len = strlen(Nm);
+	return f.Write(Nm, Len) == Len;
 }
 
 void GRichTextEdit::UpdateScrollBars(bool Reset)
@@ -860,7 +865,27 @@ bool GRichTextEdit::OnReplace(GFindReplaceCommon *Params)
 //////////////////////////////////////////////////////////////////////////////////
 void GRichTextEdit::SelectWord(int From)
 {
-	Invalidate();
+	int Start, End, BlockIdx;
+	GRichTextPriv::Block *b = d->GetBlockByIndex(From, &Start, &BlockIdx);
+	if (!b)
+		return;
+
+	GArray<char16> Txt;
+	if (!b->CopyAt(0, b->Length(), &Txt))
+		return;
+
+	End = Start;
+	while (Start > 0 &&
+			!IsWordBreakChar(Txt[Start-1]))
+		Start--;
+	while (End < b->Length()-1 &&
+			!IsWordBreakChar(Txt[End]))
+		End++;
+
+	GAutoPtr<GRichTextPriv::BlockCursor> c(new GRichTextPriv::BlockCursor(b, Start, -1));
+	d->SetCursor(c);
+	c.Reset(new GRichTextPriv::BlockCursor(b, End, -1));
+	d->SetCursor(c, true);
 }
 
 bool GRichTextEdit::OnMultiLineTab(bool In)
@@ -1174,9 +1199,10 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 					if (d->Areas[i].Valid() &&
 						d->Areas[i].Overlap(m.x, m.y))
 					{
-						d->ClickBtn(m, (RectType)i);
+						Processed |= d->ClickBtn(m, (RectType)i);
 					}
 				}
+				return;
 			}
 			else
 			{
@@ -1216,42 +1242,53 @@ void GRichTextEdit::OnMouseMove(GMouse &m)
 {
 	if (IsCapturing())
 	{
-		if (!d->WordSelectMode)
+		GAutoPtr<GRichTextPriv::BlockCursor> c;
+		GdcPt2 Doc = d->ScreenToDoc(m.x, m.y);
+		int Idx = -1;
+		if (d->CursorFromPos(Doc.x, Doc.y, &c, &Idx))
 		{
-			GAutoPtr<GRichTextPriv::BlockCursor> c;
-			GdcPt2 Doc = d->ScreenToDoc(m.x, m.y);
-			int Idx = -1;
-			if (d->CursorFromPos(Doc.x, Doc.y, &c, &Idx))
-			{
-				d->SetCursor(c, m.Left());
-			}
-		}
-		else
-		{
-			/*
-			int Min = Hit < d->WordSelectMode ? Hit : d->WordSelectMode;
-			int Max = Hit > d->WordSelectMode ? Hit : d->WordSelectMode;
+			d->SetCursor(c, m.Left());
 
-			for (SelStart = Min; SelStart > 0; SelStart--)
+			if (d->WordSelectMode && d->Selection)
 			{
-				if (strchr(SelectWordDelim, Text[SelStart]))
+				// Extend the selection to include the whole word
+				if (!d->CursorFirst())
 				{
-					SelStart++;
-					break;
+					// Extend towards the end of the doc...
+					GArray<char16> Txt;
+					GRichTextPriv::Block *b = d->Selection->Blk;
+					if (b->CopyAt(0, b->Length(), &Txt))
+					{
+						int Off = d->Cursor->Offset;
+						while (Off < Txt.Length() &&
+							!IsWordBreakChar(Txt[Off]))
+							Off++;
+						if (Off != d->Cursor->Offset)
+						{
+							GAutoPtr<GRichTextPriv::BlockCursor> c(new GRichTextPriv::BlockCursor(b, Off, -1));
+							d->SetCursor(c, true);
+						}
+					}
+				}
+				else
+				{
+					// Extend towards the start of the doc...
+					GArray<char16> Txt;
+					GRichTextPriv::Block *b = d->Selection->Blk;
+					if (b->CopyAt(0, b->Length(), &Txt))
+					{
+						int Off = d->Cursor->Offset;
+						while (Off > 0 &&
+							!IsWordBreakChar(Txt[Off-1]))
+							Off--;
+						if (Off != d->Cursor->Offset)
+						{
+							GAutoPtr<GRichTextPriv::BlockCursor> c(new GRichTextPriv::BlockCursor(b, Off, -1));
+							d->SetCursor(c, true);
+						}
+					}
 				}
 			}
-
-			for (SelEnd = Max; SelEnd < Size; SelEnd++)
-			{
-				if (strchr(SelectWordDelim, Text[SelEnd]))
-				{
-					break;
-				}
-			}
-
-			Cursor = SelEnd;
-			Invalidate();
-			*/
 		}
 	}
 

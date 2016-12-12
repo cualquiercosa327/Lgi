@@ -2,6 +2,8 @@
 #include "GUtf8.h"
 
 /////////////////////////////////////////////////////////////////////////////
+static bool Warn = true;
+
 GUtf8Ptr::GUtf8Ptr(void *p)
 {
 	Ptr = (uint8*)p;
@@ -20,7 +22,7 @@ void GUtf8Ptr::Add(wchar_t c)
 	LgiUtf32To8(c, Ptr, l);
 }
 
-int32 GUtf8Ptr::operator++(const int n)
+GUtf8Ptr &GUtf8Ptr::operator++()
 {
 	if (IsUtf8_Lead(*Ptr))
 	{
@@ -33,14 +35,13 @@ int32 GUtf8Ptr::operator++(const int n)
 	}
 	else
 	{
-	    if (IsUtf8_Trail(*Ptr))
-	    {
-	        static bool Warn = true;
-	        if (Warn)
-	        {
-	            Warn = false;
-		        LgiAssert(!"Invalid UTF");
-		    }
+		if (IsUtf8_Trail(*Ptr))
+		{
+			if (Warn)
+			{
+				Warn = false;
+				LgiAssert(!"Invalid UTF");
+			}
 		}
 
 		Ptr++;
@@ -49,7 +50,7 @@ int32 GUtf8Ptr::operator++(const int n)
 	return *this;
 }
 
-int32 GUtf8Ptr::operator--(const int n)
+GUtf8Ptr &GUtf8Ptr::operator--()
 {
 	Ptr--;
 	if (IsUtf8_Trail(*Ptr))
@@ -71,7 +72,57 @@ int32 GUtf8Ptr::operator--(const int n)
 	return *this;
 }
 
-int32 GUtf8Ptr::operator += (int n)
+GUtf8Ptr &GUtf8Ptr::operator++(const int i)
+{
+	if (IsUtf8_Lead(*Ptr))
+	{
+		Ptr++;
+
+		while (IsUtf8_Trail(*Ptr))
+		{
+			Ptr++;
+		}
+	}
+	else
+	{
+		if (IsUtf8_Trail(*Ptr))
+		{
+			if (Warn)
+			{
+				Warn = false;
+				LgiAssert(!"Invalid UTF");
+			}
+		}
+
+		Ptr++;
+	}
+
+	return *this;
+}
+
+GUtf8Ptr &GUtf8Ptr::operator--(const int i)
+{
+	Ptr--;
+	if (IsUtf8_Trail(*Ptr))
+	{
+		Ptr--;
+
+		while (IsUtf8_Trail(*Ptr))
+		{
+			Ptr--;
+		}
+
+		LgiAssert(IsUtf8_Lead(*Ptr));
+	}
+	else
+	{
+		LgiAssert((*Ptr & 0x80) == 0);
+	}
+
+	return *this;
+}
+
+GUtf8Ptr &GUtf8Ptr::operator += (int n)
 {
 	while (*Ptr && n-- > 0)
 	{
@@ -81,7 +132,7 @@ int32 GUtf8Ptr::operator += (int n)
 	return *this;
 }
 
-int32 GUtf8Ptr::operator-=(int n)
+GUtf8Ptr &GUtf8Ptr::operator-=(int n)
 {
 	while (*Ptr && n-- > 0)
 	{
