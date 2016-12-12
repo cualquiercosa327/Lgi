@@ -964,6 +964,15 @@ void GItemColumn::OnPaint(GSurface *pDC, GRect &Rgn)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
+GItem::GItem()
+{
+	SelectionStart = SelectionEnd = -1;
+}
+	
+GItem::~GItem()
+{
+}
+
 GView *GItem::EditLabel(int Col)
 {
 	GItemContainer *c = GetContainer();
@@ -1128,6 +1137,7 @@ GItemEdit::~GItemEdit()
 				d->Index, Str);
 			#endif
 
+			GItemContainer *c = d->Item->GetContainer();
 			if (d->Item->SetText(Str, d->Index))
 			{
 				d->Item->Update();
@@ -1135,6 +1145,10 @@ GItemEdit::~GItemEdit()
 			else
 			{
 				// Item is deleting itself...
+				
+				// Make sure there is no dangling ptr on the container..
+				if (c) c->ItemEdit = NULL;
+				// And we don't touch the no longer existant item..
 				d->Item = NULL;
 			}
 		}
@@ -1150,6 +1164,11 @@ GItemEdit::~GItemEdit()
 	#endif
 		
 	DeleteObj(d);
+}
+
+GItem *GItemEdit::GetItem()
+{
+	return d->Item;
 }
 
 void GItemEdit::OnPaint(GSurface *pDC)

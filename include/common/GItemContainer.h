@@ -33,10 +33,8 @@ public:
 		int *ColPx;
 	};
 	
-	GItem()
-	{
-		SelectionStart = SelectionEnd = -1;
-	}
+	GItem();
+	~GItem();
 
     GItem &operator =(GItem &i)
     {
@@ -149,6 +147,7 @@ public:
 	GItemEdit(GView *parent, GItem *item, int index, int selstart, int selend);
 	~GItemEdit();
 	
+	GItem *GetItem();
 	void OnPaint(GSurface *pDC);
 	int OnNotify(GViewI *v, int f);
 	void Visible(bool i);
