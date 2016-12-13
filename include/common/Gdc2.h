@@ -726,7 +726,7 @@ public:
 			/// Constructs a wrapper around a drawable
 			GScreenDC(Gtk::GdkDrawable *Drawable);
 			/// Constructs a DC for drawing on a window
-			GScreenDC(OsView View);
+			///GScreenDC(OsView View);
 			
 			// Gtk::cairo_surface_t *GetSurface(bool Render);
 			GdcPt2 GetSize();

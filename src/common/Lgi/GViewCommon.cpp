@@ -200,13 +200,6 @@ GView::~GView()
 	DeleteObj(d);
 }
 
-#ifdef _DEBUG
-void GView::Debug()
-{
-    _Debug = true;
-}
-#endif
-
 GViewIterator *GView::IterateViews()
 {
 	return new GViewIter(this);
@@ -2131,3 +2124,29 @@ GView *GViewFactory::Create(const char *Class, GRect *Pos, const char *Text)
 
 	return 0;
 }
+
+#ifdef _DEBUG
+using namespace Gtk;
+#include "LgiWidget.h"
+
+void GView::Debug()
+{
+    _Debug = true;
+    printf("%s:%i - Debug %s, _View=%p\n", _FL, GetClass(), _View);
+    if (_View)
+    {
+    	if (LGI_IS_WIDGET(_View))
+    	{
+    		LgiWidget *w = LGI_WIDGET(_View);
+    		if (w)
+    		{
+    			w->debug = true;
+    			printf("Wid=%i,%i\n", w->w, w->h);
+    		}
+    		else LgiTrace("%s:%i - NULL widget.\n", _FL);
+    	}
+    	else LgiTrace("%s:%i - Not a widget.\n", _FL);
+    }
+}
+#endif
+

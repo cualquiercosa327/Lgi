@@ -1023,6 +1023,8 @@ public:
 		SetPos(GetPos());
 		#endif
 	}
+	
+	const char *GetClass() { return "GItemEditBox"; }
 
 	void OnCreate()
 	{
@@ -1110,11 +1112,10 @@ GItemEdit::GItemEdit(GView *parent, GItem *item, int index, int SelStart, int Se
 	if (r.Y() < MinY)
 		r.y2 = r.y1 + MinY - 1;
 	r.Offset(p.x, p.y);	
+	SetPos(r);
 
 	if (Attach(parent))
 	{
-        SetPos(r);
-
 		d->Edit = new GItemEditBox(this, r.X(), r.Y(), d->Item->GetText(d->Index));
 		if (d->Edit)
 		{

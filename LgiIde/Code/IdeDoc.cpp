@@ -367,79 +367,74 @@ void EditTray::OnFunctionList(GMouse &m)
 	GArray<DefnInfo> Funcs;
 	if (BuildDefnList(Doc->GetFileName(), Ctrl->NameW(), Funcs, DefnNone /*DefnFunc | DefnClass*/))
 	{
-		GSubMenu *s = new GSubMenu;
-		if (s)
+		GSubMenu s;
+		GArray<DefnInfo*> a;					
+		int n=1;
+
+		int ScreenHt = GdcD->Y();
+		int ScreenLines = ScreenHt / SysFont->GetHeight();
+		float Ratio = ScreenHt ? (float)(SysFont->GetHeight() * Funcs.Length()) / ScreenHt : 0.0f;
+		bool UseSubMenus = Ratio > 0.9f;
+		int Buckets = UseSubMenus ? ScreenLines * 0.75 : 1;
+		int BucketSize = max(5, Funcs.Length() / Buckets);
+		GSubMenu *Cur = NULL;
+		
+		for (unsigned n=0; n<Funcs.Length(); n++)
 		{
-			GArray<DefnInfo*> a;					
-			int n=1;
-
-			int ScreenHt = GdcD->Y();
-			int ScreenLines = ScreenHt / SysFont->GetHeight();
-			float Ratio = ScreenHt ? (float)(SysFont->GetHeight() * Funcs.Length()) / ScreenHt : 0.0f;
-			bool UseSubMenus = Ratio > 0.9f;
-			int Buckets = UseSubMenus ? ScreenLines * 0.75 : 1;
-			int BucketSize = max(5, Funcs.Length() / Buckets);
-			GSubMenu *Cur = NULL;
+			DefnInfo *i = &Funcs[n];
+			char Buf[256], *o = Buf;
 			
-			for (unsigned n=0; n<Funcs.Length(); n++)
+			if (i->Type != DefnEnumValue)
 			{
-				DefnInfo *i = &Funcs[n];
-				char Buf[256], *o = Buf;
-				
-				if (i->Type != DefnEnumValue)
+				for (char *k = i->Name; *k && o < Buf+sizeof(Buf)-8; k++)
 				{
-					for (char *k = i->Name; *k; k++)
+					if (*k == '&')
 					{
-						if (*k == '&')
-						{
-							*o++ = '&';
-							*o++ = '&';
-						}
-						else if (*k == '\t')
-						{
-							*o++ = ' ';
-						}
-						else
-						{
-							*o++ = *k;
-						}
+						*o++ = '&';
+						*o++ = '&';
 					}
-					*o++ = 0;
-					
-					a[n] = i;
-
-					if (UseSubMenus)
+					else if (*k == '\t')
 					{
-						if (!Cur || n % BucketSize == 0)
-						{
-							GString SubMsg;
-							SubMsg.Printf("%s...", Buf);
-							Cur = s->AppendSub(SubMsg);
-						}
-						if (Cur)
-							Cur->AppendItem(Buf, n + 1, true);
+						*o++ = ' ';
 					}
 					else
 					{
-						s->AppendItem(Buf, n+1, true);
+						*o++ = *k;
 					}
 				}
-			}
-			
-			GdcPt2 p(m.x, m.y);
-			PointToScreen(p);
-			int Goto = s->Float(this, p.x, p.y, true);
-			if (Goto)
-			{
-				printf("Goto=%i\n", Goto);
-				DefnInfo *Info = a[Goto-1];
-				if (Info)
+				*o++ = 0;
+				
+				a[n] = i;
+
+				if (UseSubMenus)
 				{
-					Ctrl->SetLine(Info->Line);
+					if (!Cur || n % BucketSize == 0)
+					{
+						GString SubMsg;
+						SubMsg.Printf("%s...", Buf);
+						Cur = s.AppendSub(SubMsg);
+					}
+					if (Cur)
+						Cur->AppendItem(Buf, n+1, true);
+				}
+				else
+				{
+					s.AppendItem(Buf, n+1, true);
 				}
 			}
-			
-			DeleteObj(s);
+		}
+		
+		GdcPt2 p(m.x, m.y);
+		PointToScreen(p);
+		int Goto = s.Float(this, p.x, p.y, true);
+		if (Goto)
+		{
+			printf("Goto=%i\n", Goto);
+			DefnInfo *Info = a[Goto-1];
+			if (Info)
+			{
+				Ctrl->SetLine(Info->Line);
+			}
 		}
 	}
 	else

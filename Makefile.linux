@@ -533,7 +533,8 @@ GDisplayString.o : ./src/common/Gdc2/Font/GDisplayString.cpp ./include/common/Lg
 	./include/common/GdiLeak.h \
 	./include/common/GUtf8.h \
 	./include/common/GDisplayString.h \
-	./include/common/GPixelRops.h
+	./include/common/GPixelRops.h \
+	/usr/include/freetype2/ftsynth.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -765,7 +766,8 @@ GItemContainer.o : ./src/common/Widgets/GItemContainer.cpp ./include/common/Lgi.
 	./include/common/GDisplayString.h \
 	./include/common/GSkinEngine.h \
 	./include/common/GScrollBar.h \
-	./include/common/GEdit.h
+	./include/common/GEdit.h \
+	/usr/include/gtk-2.0/gtk/gtkcontainer.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -1056,8 +1058,7 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	/usr/include/glib-2.0/glib/deprecated/gcompletion.h \
 	/usr/include/glib-2.0/glib/deprecated/gmain.h \
 	/usr/include/glib-2.0/glib/deprecated/grel.h \
-	/usr/include/glib-2.0/glib/deprecated/gthread.h \
-	/usr/include/glib-2.0/glib/glib-autocleanups.h
+	/usr/include/glib-2.0/glib/deprecated/gthread.h
 
 ../../../../../usr/include/glib-2.0/glib/gstringchunk.h : /usr/include/glib-2.0/glib/gtypes.h
 
@@ -1102,8 +1103,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ../../../../../usr/include/glib-2.0/glib/gdatetime.h : /usr/include/glib-2.0/glib/gtimezone.h
 
 ./include/common/GRadioGroup.h : 
-
-../../../../../usr/include/glib-2.0/glib/glib-autocleanups.h : 
 
 ../../../../../usr/include/gtk-2.0/gdk/gdkkeysyms.h : /usr/include/gtk-2.0/gdk/gdkkeysyms-compat.h
 
@@ -1156,6 +1155,9 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	/usr/include/glib-2.0/glib/gthread.h
 
 ./include/common/GClipBoard.h : 
+
+../../../../../usr/include/gtk-2.0/gtk/gtkcontainer.h : /usr/include/gtk-2.0/gtk/gtkwidget.h \
+	/usr/include/gtk-2.0/gtk/gtkadjustment.h
 
 ./include/common/GContainers.h : ./include/common/LgiInc.h \
 	./include/linux/Gtk/LgiOsDefs.h \
@@ -1284,8 +1286,7 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	/usr/include/glib-2.0/gobject/gtypeplugin.h \
 	/usr/include/glib-2.0/gobject/gvalue.h \
 	/usr/include/glib-2.0/gobject/gvaluearray.h \
-	/usr/include/glib-2.0/gobject/gvaluetypes.h \
-	/usr/include/glib-2.0/gobject/gobject-autocleanups.h
+	/usr/include/glib-2.0/gobject/gvaluetypes.h
 
 ../../../../../usr/include/glib-2.0/gobject/genums.h : /usr/include/glib-2.0/gobject/gtype.h
 
@@ -1314,6 +1315,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ../../../../../usr/include/gtk-2.0/gdk/gdkpixmap.h : /usr/include/gtk-2.0/gdk/gdktypes.h \
 	/usr/include/gtk-2.0/gdk/gdkdrawable.h
+
+../../../../../usr/include/freetype2/ftsynth.h : /usr/include/freetype2/ft2build.h
 
 ../../../../../usr/include/glib-2.0/glib/gatomic.h : /usr/include/glib-2.0/glib/gtypes.h
 
@@ -1392,25 +1395,17 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ./include/common/GToolBar.h : ./include/common/GImageList.h
 
+./include/common/GThreadEvent.h : 
+
 ./include/common/LgiWidgets.h : 
 
-./include/common/GFileSelect.h : 
-
 ../../../../../usr/include/cairo/cairo-deprecated.h : 
-
-./include/common/GMutex.h : 
 
 ../../../../../usr/include/glib-2.0/glib/gtimer.h : /usr/include/glib-2.0/glib/gtypes.h
 
 ./include/common/GXmlTree.h : ./include/common/GHashTable.h \
 	./include/common/GRefCount.h \
 	./include/common/GDom.h
-
-../../../../../usr/include/glib-2.0/glib/gerror.h : /usr/include/glib-2.0/glib/gquark.h
-
-../../../../../usr/include/glib-2.0/glib/gthread.h : /usr/include/glib-2.0/glib/gatomic.h \
-	/usr/include/glib-2.0/glib/gerror.h \
-	/usr/include/glib-2.0/glib/gutils.h
 
 ../../../../../usr/include/glib-2.0/glib/gcharset.h : /usr/include/glib-2.0/glib/gtypes.h
 
@@ -1438,8 +1433,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	/usr/include/pango-1.0/pango/pango-tabs.h \
 	/usr/include/pango-1.0/pango/pango-types.h \
 	/usr/include/pango-1.0/pango/pango-utils.h
-
-./include/common/GThreadEvent.h : 
 
 ../../../../../usr/include/pango-1.0/pango/pango-utils.h : /usr/include/glib-2.0/glib.h \
 	/usr/include/pango-1.0/pango/pango-font.h
@@ -1538,7 +1531,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	/usr/include/pango-1.0/pango/pango-item.h \
 	/usr/include/pango-1.0/pango/pango-font.h \
 	/usr/include/pango-1.0/pango/pango-glyph.h \
-	/usr/include/pango-1.0/pango/pango-script.h
+	/usr/include/pango-1.0/pango/pango-script.h \
+	/usr/include/glib-2.0/gmodule.h
 
 ./include/common/GRops.h : ./include/common/GPixelRops.h
 
@@ -1585,8 +1579,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ../../../../../usr/include/glib-2.0/gobject/gbinding.h : /usr/include/glib-2.0/glib.h \
 	/usr/include/glib-2.0/gobject/gobject.h
 
-../../../../../usr/include/glib-2.0/gobject/gobject-autocleanups.h : 
-
 ./include/common/GThread.h : ./include/common/GMutex.h
 
 ../../../../../usr/include/glib-2.0/gobject/gvaluetypes.h : /usr/include/glib-2.0/gobject/gvalue.h
@@ -1602,6 +1594,9 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ../../../../../usr/include/pango-1.0/pango/pango-script.h : /usr/include/glib-2.0/glib.h \
 	/usr/include/pango-1.0/pango/pango-language.h
+
+../../../../../usr/include/gtk-2.0/gtk/gtkadjustment.h : /usr/include/gtk-2.0/gdk/gdk.h \
+	/usr/include/gtk-2.0/gtk/gtkobject.h
 
 ../../../../../usr/include/gtk-2.0/gdk/gdkfont.h : /usr/include/gtk-2.0/gdk/gdktypes.h \
 	/usr/include/pango-1.0/pango/pango.h
@@ -1630,6 +1625,91 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/GColour.h \
 	./include/common/GFilter.h
 
+../../../../../usr/include/gtk-2.0/gtk/gtkwidget.h : /usr/include/gtk-2.0/gdk/gdk.h \
+	/usr/include/gtk-2.0/gtk/gtkaccelgroup.h \
+	/usr/include/gtk-2.0/gtk/gtkobject.h \
+	/usr/include/gtk-2.0/gtk/gtkadjustment.h \
+	/usr/include/gtk-2.0/gtk/gtkstyle.h \
+	/usr/include/gtk-2.0/gtk/gtksettings.h \
+	/usr/include/atk-1.0/atk/atk.h
+
+../../../../../usr/include/gtk-2.0/gtk/gtkaccelgroup.h : /usr/include/gtk-2.0/gdk/gdk.h \
+	/usr/include/gtk-2.0/gtk/gtkenums.h
+
+../../../../../usr/include/atk-1.0/atk/atk.h : /usr/include/atk-1.0/atk/atkobject.h \
+	/usr/include/atk-1.0/atk/atkaction.h \
+	/usr/include/atk-1.0/atk/atkcomponent.h \
+	/usr/include/atk-1.0/atk/atkdocument.h \
+	/usr/include/atk-1.0/atk/atkeditabletext.h \
+	/usr/include/atk-1.0/atk/atkgobjectaccessible.h \
+	/usr/include/atk-1.0/atk/atkhyperlink.h \
+	/usr/include/atk-1.0/atk/atkhyperlinkimpl.h \
+	/usr/include/atk-1.0/atk/atkhypertext.h \
+	/usr/include/atk-1.0/atk/atkimage.h \
+	/usr/include/atk-1.0/atk/atknoopobject.h \
+	/usr/include/atk-1.0/atk/atknoopobjectfactory.h \
+	/usr/include/atk-1.0/atk/atkobjectfactory.h \
+	/usr/include/atk-1.0/atk/atkplug.h \
+	/usr/include/atk-1.0/atk/atkregistry.h \
+	/usr/include/atk-1.0/atk/atkrelation.h \
+	/usr/include/atk-1.0/atk/atkrelationset.h \
+	/usr/include/atk-1.0/atk/atkrelationtype.h \
+	/usr/include/atk-1.0/atk/atkselection.h \
+	/usr/include/atk-1.0/atk/atksocket.h \
+	/usr/include/atk-1.0/atk/atkstate.h \
+	/usr/include/atk-1.0/atk/atkstateset.h \
+	/usr/include/atk-1.0/atk/atkstreamablecontent.h \
+	/usr/include/atk-1.0/atk/atktable.h \
+	/usr/include/atk-1.0/atk/atktext.h \
+	/usr/include/atk-1.0/atk/atkutil.h \
+	/usr/include/atk-1.0/atk/atkmisc.h \
+	/usr/include/atk-1.0/atk/atkvalue.h \
+	/usr/include/atk-1.0/atk/atkversion.h \
+	/usr/include/atk-1.0/atk/atkwindow.h
+
+../../../../../usr/include/atk-1.0/atk/atkhyperlinkimpl.h : /usr/include/atk-1.0/atk/atkobject.h \
+	/usr/include/atk-1.0/atk/atkhyperlink.h
+
+../../../../../usr/include/atk-1.0/atk/atknoopobjectfactory.h : /usr/include/atk-1.0/atk/atkobjectfactory.h
+
+../../../../../usr/include/atk-1.0/atk/atkstreamablecontent.h : /usr/include/atk-1.0/atk/atkobject.h
+
+../../../../../usr/include/atk-1.0/atk/atkobjectfactory.h : /usr/include/glib-2.0/glib-object.h \
+	/usr/include/atk-1.0/atk/atkobject.h
+
+../../../../../usr/include/atk-1.0/atk/atkvalue.h : /usr/include/atk-1.0/atk/atkobject.h
+
+../../../../../usr/include/atk-1.0/atk/atkcomponent.h : /usr/include/atk-1.0/atk/atkobject.h \
+	/usr/include/atk-1.0/atk/atkutil.h
+
+../../../../../usr/include/atk-1.0/atk/atkrelation.h : /usr/include/glib-2.0/glib-object.h \
+	/usr/include/atk-1.0/atk/atkrelationtype.h
+
+../../../../../usr/include/gtk-2.0/gtk/gtkenums.h : /usr/include/glib-2.0/glib-object.h
+
+../../../../../usr/include/atk-1.0/atk/atkutil.h : /usr/include/atk-1.0/atk/atkobject.h
+
+../../../../../usr/include/atk-1.0/atk/atkobject.h : /usr/include/glib-2.0/glib-object.h \
+	/usr/include/atk-1.0/atk/atkstate.h \
+	/usr/include/atk-1.0/atk/atkrelationtype.h
+
+../../../../../usr/include/atk-1.0/atk/atkselection.h : /usr/include/atk-1.0/atk/atkobject.h
+
+../../../../../usr/include/atk-1.0/atk/atkwindow.h : /usr/include/atk-1.0/atk/atkobject.h
+
+../../../../../usr/include/atk-1.0/atk/atkgobjectaccessible.h : /usr/include/atk-1.0/atk/atkobject.h
+
+../../../../../usr/include/atk-1.0/atk/atkhyperlink.h : /usr/include/atk-1.0/atk/atkaction.h
+
+../../../../../usr/include/atk-1.0/atk/atkversion.h : 
+
+../../../../../usr/include/atk-1.0/atk/atkimage.h : /usr/include/atk-1.0/atk/atkobject.h \
+	/usr/include/atk-1.0/atk/atkutil.h
+
+../../../../../usr/include/atk-1.0/atk/atkrelationset.h : /usr/include/glib-2.0/glib-object.h \
+	/usr/include/atk-1.0/atk/atkobject.h \
+	/usr/include/atk-1.0/atk/atkrelation.h
+
 ./include/common/GCapabilities.h : ./include/common/GHashTable.h
 
 ./include/common/GProgress.h : 
@@ -1638,6 +1718,10 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ../../../../../usr/include/glib-2.0/gobject/gsourceclosure.h : /usr/include/glib-2.0/gobject/gclosure.h \
 	/usr/include/glib-2.0/gobject/glib-types.h
+
+../../../../../usr/include/freetype2/ft2build.h : /usr/include/freetype2/config/ftheader.h
+
+../../../../../usr/include/freetype2/config/ftheader.h : 
 
 ./include/common/GMru.h : ./include/common/GProperties.h
 
@@ -1665,6 +1749,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ./include/common/GDragAndDrop.h : ./include/common/GVariant.h
 
+../../../../../usr/include/atk-1.0/atk/atkaction.h : /usr/include/atk-1.0/atk/atkobject.h
+
 ../../../../../usr/include/glib-2.0/glib/gvariant.h : /usr/include/glib-2.0/glib/gvarianttype.h \
 	/usr/include/glib-2.0/glib/gstring.h \
 	/usr/include/glib-2.0/glib/gbytes.h
@@ -1672,6 +1758,9 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ../../../../../usr/include/pango-1.0/pango/pango-font.h : /usr/include/pango-1.0/pango/pango-coverage.h \
 	/usr/include/pango-1.0/pango/pango-types.h \
 	/usr/include/glib-2.0/glib-object.h
+
+../../../../../usr/include/atk-1.0/atk/atkhypertext.h : /usr/include/atk-1.0/atk/atkobject.h \
+	/usr/include/atk-1.0/atk/atkhyperlink.h
 
 ../../../../../usr/include/glib-2.0/glib/gmessages.h : /usr/include/glib-2.0/glib/gtypes.h \
 	/usr/include/glib-2.0/glib/gmacros.h
@@ -1737,7 +1826,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	/usr/include/glib-2.0/gio/gconverterinputstream.h \
 	/usr/include/glib-2.0/gio/gconverteroutputstream.h \
 	/usr/include/glib-2.0/gio/gcredentials.h \
-	/usr/include/glib-2.0/gio/gdatagrambased.h \
 	/usr/include/glib-2.0/gio/gdatainputstream.h \
 	/usr/include/glib-2.0/gio/gdataoutputstream.h \
 	/usr/include/glib-2.0/gio/gdbusaddress.h \
@@ -1753,9 +1841,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	/usr/include/glib-2.0/gio/gdbusserver.h \
 	/usr/include/glib-2.0/gio/gdbusutils.h \
 	/usr/include/glib-2.0/gio/gdrive.h \
-	/usr/include/glib-2.0/gio/gdtlsclientconnection.h \
-	/usr/include/glib-2.0/gio/gdtlsconnection.h \
-	/usr/include/glib-2.0/gio/gdtlsserverconnection.h \
 	/usr/include/glib-2.0/gio/gemblemedicon.h \
 	/usr/include/glib-2.0/gio/gfileattribute.h \
 	/usr/include/glib-2.0/gio/gfileenumerator.h \
@@ -1808,7 +1893,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	/usr/include/glib-2.0/gio/gsimpleaction.h \
 	/usr/include/glib-2.0/gio/gsimpleactiongroup.h \
 	/usr/include/glib-2.0/gio/gsimpleasyncresult.h \
-	/usr/include/glib-2.0/gio/gsimpleiostream.h \
 	/usr/include/glib-2.0/gio/gsimplepermission.h \
 	/usr/include/glib-2.0/gio/gsocketaddressenumerator.h \
 	/usr/include/glib-2.0/gio/gsocketaddress.h \
@@ -1857,10 +1941,7 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	/usr/include/glib-2.0/gio/gmenu.h \
 	/usr/include/glib-2.0/gio/gmenuexporter.h \
 	/usr/include/glib-2.0/gio/gdbusmenumodel.h \
-	/usr/include/glib-2.0/gio/gnotification.h \
-	/usr/include/glib-2.0/gio/glistmodel.h \
-	/usr/include/glib-2.0/gio/gliststore.h \
-	/usr/include/glib-2.0/gio/gio-autocleanups.h
+	/usr/include/glib-2.0/gio/gnotification.h
 
 ../../../../../usr/include/glib-2.0/gio/gioscheduler.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -1889,13 +1970,11 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ../../../../../usr/include/glib-2.0/gio/ginputstream.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../usr/include/glib-2.0/gio/gthemedicon.h : /usr/include/glib-2.0/gio/giotypes.h
-
 ../../../../../usr/include/glib-2.0/gio/gfileicon.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../usr/include/glib-2.0/gio/gapplication.h : /usr/include/glib-2.0/gio/giotypes.h
+../../../../../usr/include/glib-2.0/gio/gthemedicon.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../usr/include/glib-2.0/gio/gdtlsclientconnection.h : /usr/include/glib-2.0/gio/gdtlsconnection.h
+../../../../../usr/include/glib-2.0/gio/gapplication.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../usr/include/glib-2.0/gio/gpermission.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -1905,8 +1984,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ../../../../../usr/include/glib-2.0/gio/gdbusserver.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../usr/include/glib-2.0/gio/gfileiostream.h : /usr/include/glib-2.0/gio/giostream.h
-
-../../../../../usr/include/glib-2.0/gio/gdatagrambased.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../usr/include/glib-2.0/gio/gfilterinputstream.h : /usr/include/glib-2.0/gio/ginputstream.h
 
@@ -2002,8 +2079,7 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ../../../../../usr/include/glib-2.0/gio/gbufferedoutputstream.h : /usr/include/glib-2.0/gio/gfilteroutputstream.h
 
-../../../../../usr/include/glib-2.0/gio/gnotification.h : /usr/include/glib-2.0/gio/giotypes.h \
-	/usr/include/glib-2.0/gio/gioenums.h
+../../../../../usr/include/glib-2.0/gio/gnotification.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../usr/include/glib-2.0/gio/gbufferedinputstream.h : /usr/include/glib-2.0/gio/gfilterinputstream.h
 
@@ -2027,8 +2103,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ../../../../../usr/include/glib-2.0/gio/gvfs.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../usr/include/glib-2.0/gio/gio-autocleanups.h : 
-
 ../../../../../usr/include/glib-2.0/gio/gfile.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../usr/include/glib-2.0/gio/gtlspassword.h : /usr/include/glib-2.0/gio/giotypes.h
@@ -2038,8 +2112,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ../../../../../usr/include/glib-2.0/gio/gpropertyaction.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../usr/include/glib-2.0/gio/gresource.h : /usr/include/glib-2.0/gio/giotypes.h
-
-../../../../../usr/include/glib-2.0/gio/gliststore.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../usr/include/glib-2.0/gio/gfileinputstream.h : /usr/include/glib-2.0/gio/ginputstream.h
 
@@ -2053,22 +2125,23 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ../../../../../usr/include/glib-2.0/gio/gbytesicon.h : /usr/include/glib-2.0/gio/giotypes.h
 
+../../../../../usr/include/atk-1.0/atk/atkregistry.h : /usr/include/glib-2.0/glib-object.h
+
 ../../../../../usr/include/glib-2.0/gio/gcharsetconverter.h : /usr/include/glib-2.0/gio/gconverter.h
 
 ./include/common/GRect.h : ./include/common/GPoint.h
-
-../../../../../usr/include/glib-2.0/gio/gsimpleiostream.h : /usr/include/glib-2.0/gio/giotypes.h \
-	/usr/include/glib-2.0/gio/giostream.h
 
 ../../../../../usr/include/glib-2.0/gio/gsimpleproxyresolver.h : /usr/include/glib-2.0/gio/gproxyresolver.h
 
 ../../../../../usr/include/glib-2.0/gio/gmountoperation.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../usr/include/glib-2.0/gio/glistmodel.h : /usr/include/glib-2.0/gio/giotypes.h
+../../../../../usr/include/atk-1.0/atk/atknoopobject.h : 
 
 ../../../../../usr/include/glib-2.0/gio/gsocketcontrolmessage.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../usr/include/glib-2.0/gio/gfileattribute.h : /usr/include/glib-2.0/gio/giotypes.h
+
+./include/common/GFileSelect.h : 
 
 ../../../../../usr/include/glib-2.0/gio/gmenumodel.h : /usr/include/glib-2.0/glib-object.h \
 	/usr/include/glib-2.0/gio/giotypes.h
@@ -2079,15 +2152,31 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ../../../../../usr/include/glib-2.0/gio/gactiongroup.h : /usr/include/glib-2.0/gio/giotypes.h
 
+../../../../../usr/include/gtk-2.0/gtk/gtkstyle.h : /usr/include/gtk-2.0/gdk/gdk.h \
+	/usr/include/gtk-2.0/gtk/gtkenums.h
+
 ../../../../../usr/include/pango-1.0/pango/pango-features.h : 
 
 ./include/common/Core.h : 
 
+../../../../../usr/include/atk-1.0/atk/atkmisc.h : /usr/include/glib-2.0/glib-object.h
+
+../../../../../usr/include/atk-1.0/atk/atktext.h : /usr/include/glib-2.0/glib-object.h \
+	/usr/include/atk-1.0/atk/atkobject.h \
+	/usr/include/atk-1.0/atk/atkutil.h
+
 ../../../../../usr/include/glib-2.0/gio/gfileenumerator.h : /usr/include/glib-2.0/gio/giotypes.h
+
+./include/common/GMutex.h : 
 
 ../../../../../usr/include/glib-2.0/gio/gdatainputstream.h : /usr/include/glib-2.0/gio/gbufferedinputstream.h
 
 ../../../../../usr/include/glib-2.0/gio/gsocketaddress.h : /usr/include/glib-2.0/gio/giotypes.h
+
+../../../../../usr/include/glib-2.0/glib/gerror.h : /usr/include/glib-2.0/glib/gquark.h
+
+../../../../../usr/include/glib-2.0/glib/gthread.h : /usr/include/glib-2.0/glib/gatomic.h \
+	/usr/include/glib-2.0/glib/gerror.h
 
 ../../../../../usr/include/glib-2.0/gio/gsimpleasyncresult.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -2108,8 +2197,7 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-simple-anim.h \
 	/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-io.h \
 	/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-loader.h \
-	/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-enum-types.h \
-	/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-autocleanups.h
+	/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-enum-types.h
 
 ../../../../../usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-loader.h : /usr/include/glib-2.0/glib.h \
 	/usr/include/glib-2.0/glib-object.h \
@@ -2121,8 +2209,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-core.h
 
 ../../../../../usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-simple-anim.h : /usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-animation.h
-
-../../../../../usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-autocleanups.h : 
 
 ../../../../../usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-core.h : /usr/include/glib-2.0/glib.h \
 	/usr/include/glib-2.0/glib-object.h \
@@ -2142,6 +2228,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/GDom.h
 
 ../../../../../usr/include/glib-2.0/glib/garray.h : /usr/include/glib-2.0/glib/gtypes.h
+
+../../../../../usr/include/atk-1.0/atk/atkplug.h : 
 
 ../../../../../usr/include/glib-2.0/gio/gdbusobjectmanagerserver.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -2171,8 +2259,7 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ../../../../../usr/include/glib-2.0/gio/goutputstream.h : /usr/include/glib-2.0/gio/giotypes.h
 
-../../../../../usr/include/glib-2.0/glib/gpoll.h : /usr/lib/x86_64-linux-gnu/glib-2.0/include/glibconfig.h \
-	/usr/include/glib-2.0/glib/gtypes.h
+../../../../../usr/include/glib-2.0/glib/gpoll.h : /usr/include/glib-2.0/glib/gtypes.h
 
 ../../../../../usr/include/glib-2.0/glib/gsequence.h : /usr/include/glib-2.0/glib/gtypes.h
 
@@ -2224,6 +2311,9 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ./include/common/GMatrix.h : 
 
+../../../../../usr/include/atk-1.0/atk/atkeditabletext.h : /usr/include/atk-1.0/atk/atkobject.h \
+	/usr/include/atk-1.0/atk/atktext.h
+
 ../../../../../usr/include/glib-2.0/gio/gconverterinputstream.h : /usr/include/glib-2.0/gio/gfilterinputstream.h \
 	/usr/include/glib-2.0/gio/gconverter.h
 
@@ -2269,7 +2359,17 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ../../../../../usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-transform.h : /usr/include/glib-2.0/glib.h \
 	/usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-core.h
 
+../../../../../usr/include/atk-1.0/atk/atktable.h : /usr/include/atk-1.0/atk/atkobject.h
+
+../../../../../usr/include/atk-1.0/atk/atkstateset.h : /usr/include/glib-2.0/glib-object.h \
+	/usr/include/atk-1.0/atk/atkobject.h \
+	/usr/include/atk-1.0/atk/atkstate.h
+
+../../../../../usr/include/atk-1.0/atk/atkstate.h : /usr/include/glib-2.0/glib-object.h
+
 ../../../../../usr/include/glib-2.0/glib/ggettext.h : /usr/include/glib-2.0/glib/gtypes.h
+
+../../../../../usr/include/gtk-2.0/gtk/gtksettings.h : /usr/include/gtk-2.0/gtk/gtkrc.h
 
 ./include/common/GTextView3.h : ./include/common/GDocView.h \
 	./include/common/GUndo.h \
@@ -2513,11 +2613,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ../../../../../usr/include/gtk-2.0/gtk/gtkstatusicon.h : /usr/include/gtk-2.0/gtk/gtkimage.h \
 	/usr/include/gtk-2.0/gtk/gtkmenu.h
 
-../../../../../usr/include/gtk-2.0/gtk/gtkaccelgroup.h : /usr/include/gtk-2.0/gdk/gdk.h \
-	/usr/include/gtk-2.0/gtk/gtkenums.h
-
-../../../../../usr/include/gtk-2.0/gtk/gtkenums.h : /usr/include/glib-2.0/glib-object.h
-
 ../../../../../usr/include/gtk-2.0/gtk/gtkrecentchoosermenu.h : /usr/include/gtk-2.0/gtk/gtkmenu.h \
 	/usr/include/gtk-2.0/gtk/gtkrecentchooser.h
 
@@ -2577,70 +2672,10 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ../../../../../usr/include/gtk-2.0/gtk/gtktable.h : /usr/include/gtk-2.0/gtk/gtkcontainer.h
 
-../../../../../usr/include/gtk-2.0/gtk/gtkadjustment.h : /usr/include/gtk-2.0/gdk/gdk.h \
-	/usr/include/gtk-2.0/gtk/gtkobject.h
-
 ../../../../../usr/include/gtk-2.0/gtk/gtkaspectframe.h : /usr/include/gtk-2.0/gtk/gtkframe.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkaccessible.h : /usr/include/atk-1.0/atk/atk.h \
 	/usr/include/gtk-2.0/gtk/gtkwidget.h
-
-../../../../../usr/include/atk-1.0/atk/atk.h : /usr/include/atk-1.0/atk/atkobject.h \
-	/usr/include/atk-1.0/atk/atkaction.h \
-	/usr/include/atk-1.0/atk/atkcomponent.h \
-	/usr/include/atk-1.0/atk/atkdocument.h \
-	/usr/include/atk-1.0/atk/atkeditabletext.h \
-	/usr/include/atk-1.0/atk/atk-enum-types.h \
-	/usr/include/atk-1.0/atk/atkgobjectaccessible.h \
-	/usr/include/atk-1.0/atk/atkhyperlink.h \
-	/usr/include/atk-1.0/atk/atkhyperlinkimpl.h \
-	/usr/include/atk-1.0/atk/atkhypertext.h \
-	/usr/include/atk-1.0/atk/atkimage.h \
-	/usr/include/atk-1.0/atk/atknoopobject.h \
-	/usr/include/atk-1.0/atk/atknoopobjectfactory.h \
-	/usr/include/atk-1.0/atk/atkobjectfactory.h \
-	/usr/include/atk-1.0/atk/atkplug.h \
-	/usr/include/atk-1.0/atk/atkrange.h \
-	/usr/include/atk-1.0/atk/atkregistry.h \
-	/usr/include/atk-1.0/atk/atkrelation.h \
-	/usr/include/atk-1.0/atk/atkrelationset.h \
-	/usr/include/atk-1.0/atk/atkrelationtype.h \
-	/usr/include/atk-1.0/atk/atkselection.h \
-	/usr/include/atk-1.0/atk/atksocket.h \
-	/usr/include/atk-1.0/atk/atkstate.h \
-	/usr/include/atk-1.0/atk/atkstateset.h \
-	/usr/include/atk-1.0/atk/atkstreamablecontent.h \
-	/usr/include/atk-1.0/atk/atktable.h \
-	/usr/include/atk-1.0/atk/atktablecell.h \
-	/usr/include/atk-1.0/atk/atktext.h \
-	/usr/include/atk-1.0/atk/atkutil.h \
-	/usr/include/atk-1.0/atk/atkmisc.h \
-	/usr/include/atk-1.0/atk/atkvalue.h \
-	/usr/include/atk-1.0/atk/atkversion.h \
-	/usr/include/atk-1.0/atk/atkwindow.h
-
-../../../../../usr/include/atk-1.0/atk/atknoopobjectfactory.h : /usr/include/atk-1.0/atk/atkobjectfactory.h
-
-../../../../../usr/include/atk-1.0/atk/atkstreamablecontent.h : /usr/include/atk-1.0/atk/atkobject.h
-
-../../../../../usr/include/atk-1.0/atk/atkobjectfactory.h : /usr/include/glib-2.0/glib-object.h \
-	/usr/include/atk-1.0/atk/atkobject.h
-
-../../../../../usr/include/atk-1.0/atk/atkvalue.h : /usr/include/atk-1.0/atk/atkobject.h \
-	/usr/include/atk-1.0/atk/atkrange.h
-
-../../../../../usr/include/atk-1.0/atk/atkcomponent.h : /usr/include/atk-1.0/atk/atkobject.h \
-	/usr/include/atk-1.0/atk/atkutil.h
-
-../../../../../usr/include/atk-1.0/atk/atkutil.h : /usr/include/atk-1.0/atk/atkobject.h
-
-../../../../../usr/include/atk-1.0/atk/atktablecell.h : /usr/include/atk-1.0/atk/atkobject.h
-
-../../../../../usr/include/atk-1.0/atk/atkversion.h : /usr/include/glib-2.0/glib.h
-
-../../../../../usr/include/atk-1.0/atk/atkrelationset.h : /usr/include/glib-2.0/glib-object.h \
-	/usr/include/atk-1.0/atk/atkobject.h \
-	/usr/include/atk-1.0/atk/atkrelation.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkoptionmenu.h : /usr/include/gtk-2.0/gtk/gtk.h
 
@@ -2648,9 +2683,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkactivatable.h : /usr/include/gtk-2.0/gtk/gtkaction.h \
 	/usr/include/gtk-2.0/gtk/gtktypeutils.h
-
-../../../../../usr/include/atk-1.0/atk/atkhypertext.h : /usr/include/atk-1.0/atk/atkobject.h \
-	/usr/include/atk-1.0/atk/atkhyperlink.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtktoolitem.h : /usr/include/gtk-2.0/gtk/gtkbin.h \
 	/usr/include/gtk-2.0/gtk/gtktooltips.h \
@@ -2692,14 +2724,9 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkhruler.h : /usr/include/gtk-2.0/gtk/gtkruler.h
 
-../../../../../usr/include/atk-1.0/atk/atknoopobject.h : /usr/include/atk-1.0/atk/atkversion.h
-
 ../../../../../usr/include/gtk-2.0/gtk/gtkscrolledwindow.h : /usr/include/gtk-2.0/gtk/gtkhscrollbar.h \
 	/usr/include/gtk-2.0/gtk/gtkvscrollbar.h \
 	/usr/include/gtk-2.0/gtk/gtkviewport.h
-
-../../../../../usr/include/gtk-2.0/gtk/gtkcontainer.h : /usr/include/gtk-2.0/gtk/gtkwidget.h \
-	/usr/include/gtk-2.0/gtk/gtkadjustment.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkmenu.h : /usr/include/gtk-2.0/gtk/gtkaccelgroup.h \
 	/usr/include/gtk-2.0/gtk/gtkmenushell.h
@@ -2721,9 +2748,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkcheckmenuitem.h : /usr/include/gtk-2.0/gtk/gtkmenuitem.h
 
-../../../../../usr/include/atk-1.0/atk/atkmisc.h : /usr/include/glib-2.0/glib-object.h \
-	/usr/include/atk-1.0/atk/atkversion.h
-
 ../../../../../usr/include/gtk-2.0/gtk/gtkfilechooserwidget.h : /usr/include/gtk-2.0/gtk/gtkfilechooser.h \
 	/usr/include/gtk-2.0/gtk/gtkvbox.h
 
@@ -2743,8 +2767,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkcellrenderertoggle.h : /usr/include/gtk-2.0/gtk/gtkcellrenderer.h
 
-../../../../../usr/include/atk-1.0/atk/atkplug.h : /usr/include/atk-1.0/atk/atkversion.h
-
 ../../../../../usr/include/gtk-2.0/gtk/gtkplug.h : /usr/include/gtk-2.0/gtk/gtksocket.h \
 	/usr/include/gtk-2.0/gtk/gtkwindow.h
 
@@ -2762,9 +2784,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ../../../../../usr/include/gtk-2.0/gtk/gtksocket.h : /usr/include/gtk-2.0/gtk/gtkcontainer.h
 
-../../../../../usr/include/atk-1.0/atk/atkeditabletext.h : /usr/include/atk-1.0/atk/atkobject.h \
-	/usr/include/atk-1.0/atk/atktext.h
-
 ../../../../../usr/include/gtk-2.0/gtk/gtkcelleditable.h : /usr/include/gtk-2.0/gtk/gtkwidget.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkicontheme.h : /usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf.h \
@@ -2777,13 +2796,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ../../../../../usr/include/gtk-2.0/gtk/gtkitem.h : /usr/include/gtk-2.0/gtk/gtkbin.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkgc.h : /usr/include/gtk-2.0/gdk/gdk.h
-
-../../../../../usr/include/atk-1.0/atk/atkstateset.h : /usr/include/glib-2.0/glib-object.h \
-	/usr/include/atk-1.0/atk/atkobject.h \
-	/usr/include/atk-1.0/atk/atkstate.h
-
-../../../../../usr/include/atk-1.0/atk/atkstate.h : /usr/include/glib-2.0/glib-object.h \
-	/usr/include/atk-1.0/atk/atkversion.h
 
 ./include/common/GDateTime.h : ./include/common/GStringClass.h
 
@@ -2834,8 +2846,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	/usr/include/gtk-2.0/gtk/gtkbuilder.h
 
 ./include/common/GCapabilities.h : ./include/common/GHashTable.h
-
-../../../../../usr/include/glib-2.0/gio/gdtlsconnection.h : /usr/include/glib-2.0/gio/gdatagrambased.h
 
 ../../../../../usr/include/glib-2.0/gio/gdbusmenumodel.h : /usr/include/glib-2.0/gio/gdbusconnection.h
 
@@ -2896,11 +2906,11 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ../../../../../usr/include/gtk-2.0/gdk/gdkcolor.h : /usr/include/cairo/cairo.h \
 	/usr/include/gtk-2.0/gdk/gdktypes.h
 
+../../../../../usr/include/atk-1.0/atk/atksocket.h : 
+
 ../../../../../usr/include/glib-2.0/gio/gfilemonitor.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../usr/include/glib-2.0/gio/gproxyaddress.h : /usr/include/glib-2.0/gio/ginetsocketaddress.h
-
-../../../../../usr/include/atk-1.0/atk/atksocket.h : /usr/include/atk-1.0/atk/atkversion.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkbox.h : /usr/include/gtk-2.0/gtk/gtkcontainer.h
 
@@ -2939,9 +2949,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ./include/common/GMutex.h : 
 
-../../../../../usr/include/atk-1.0/atk/atkhyperlinkimpl.h : /usr/include/atk-1.0/atk/atkobject.h \
-	/usr/include/atk-1.0/atk/atkhyperlink.h
-
 ../../../../../usr/include/gtk-2.0/gtk/gtkcellrendererpixbuf.h : /usr/include/gtk-2.0/gtk/gtkcellrenderer.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkprogressbar.h : /usr/include/gtk-2.0/gtk/gtkprogress.h
@@ -2961,13 +2968,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	/usr/include/gtk-2.0/gtk/gtkvbox.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkpaned.h : /usr/include/gtk-2.0/gtk/gtkcontainer.h
-
-../../../../../usr/include/atk-1.0/atk/atk-enum-types.h : /usr/include/atk-1.0/atk/atkversion.h \
-	/usr/include/glib-2.0/glib-object.h
-
-../../../../../usr/include/atk-1.0/atk/atkrelation.h : /usr/include/glib-2.0/glib-object.h \
-	/usr/include/atk-1.0/atk/atkrelationtype.h \
-	/usr/include/atk-1.0/atk/atkversion.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkmountoperation.h : 
 
@@ -3011,11 +3011,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkcomboboxtext.h : /usr/include/gtk-2.0/gtk/gtkcombobox.h
 
-../../../../../usr/include/atk-1.0/atk/atkobject.h : /usr/include/glib-2.0/glib-object.h \
-	/usr/include/atk-1.0/atk/atkversion.h \
-	/usr/include/atk-1.0/atk/atkstate.h \
-	/usr/include/atk-1.0/atk/atkrelationtype.h
-
 ../../../../../usr/include/gtk-2.0/gtk/gtkeventbox.h : /usr/include/gtk-2.0/gtk/gtkbin.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkversion.h : 
@@ -3044,13 +3039,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkstatusbar.h : /usr/include/gtk-2.0/gtk/gtkhbox.h
 
-../../../../../usr/include/atk-1.0/atk/atkrange.h : /usr/include/glib-2.0/glib-object.h \
-	/usr/include/atk-1.0/atk/atkversion.h
-
-../../../../../usr/include/atk-1.0/atk/atkselection.h : /usr/include/atk-1.0/atk/atkobject.h
-
-../../../../../usr/include/atk-1.0/atk/atkwindow.h : /usr/include/atk-1.0/atk/atkobject.h
-
 ../../../../../usr/include/gtk-2.0/gtk/gtktree.h : /usr/include/gtk-2.0/gtk/gtkcontainer.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkbuildable.h : /usr/include/gtk-2.0/gtk/gtkbuilder.h \
@@ -3058,8 +3046,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ../../../../../usr/include/gtk-2.0/gtk/gtklayout.h : /usr/include/gtk-2.0/gtk/gtkcontainer.h \
 	/usr/include/gtk-2.0/gtk/gtkadjustment.h
-
-../../../../../usr/include/atk-1.0/atk/atkgobjectaccessible.h : /usr/include/atk-1.0/atk/atkobject.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkaction.h : /usr/include/gtk-2.0/gtk/gtkwidget.h
 
@@ -3083,8 +3069,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkeditable.h : /usr/include/gtk-2.0/gtk/gtkwidget.h
 
-../../../../../usr/include/atk-1.0/atk/atkhyperlink.h : /usr/include/atk-1.0/atk/atkaction.h
-
 ../../../../../usr/include/gtk-2.0/gtk/gtktreestore.h : /usr/lib/x86_64-linux-gnu/gtk-2.0/include/gdkconfig.h \
 	/usr/include/gtk-2.0/gtk/gtktreemodel.h \
 	/usr/include/gtk-2.0/gtk/gtktreesortable.h
@@ -3094,20 +3078,9 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ../../../../../usr/include/gtk-2.0/gtk/gtkmenutoolbutton.h : /usr/include/gtk-2.0/gtk/gtkmenu.h \
 	/usr/include/gtk-2.0/gtk/gtktoolbutton.h
 
-../../../../../usr/include/atk-1.0/atk/atkimage.h : /usr/include/atk-1.0/atk/atkobject.h \
-	/usr/include/atk-1.0/atk/atkutil.h
-
 ../../../../../usr/include/gtk-2.0/gtk/gtkspinner.h : /usr/include/gtk-2.0/gtk/gtkdrawingarea.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkassistant.h : /usr/include/gtk-2.0/gtk/gtkwindow.h
-
-../../../../../usr/include/gtk-2.0/gtk/gtkwidget.h : /usr/include/gtk-2.0/gdk/gdk.h \
-	/usr/include/gtk-2.0/gtk/gtkaccelgroup.h \
-	/usr/include/gtk-2.0/gtk/gtkobject.h \
-	/usr/include/gtk-2.0/gtk/gtkadjustment.h \
-	/usr/include/gtk-2.0/gtk/gtkstyle.h \
-	/usr/include/gtk-2.0/gtk/gtksettings.h \
-	/usr/include/atk-1.0/atk/atk.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkdrawingarea.h : /usr/include/gtk-2.0/gtk/gtkwidget.h
 
@@ -3118,8 +3091,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	/usr/include/gtk-2.0/gtk/gtkrecentfilter.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkhscale.h : /usr/include/gtk-2.0/gtk/gtkscale.h
-
-../../../../../usr/include/atk-1.0/atk/atkaction.h : /usr/include/atk-1.0/atk/atkobject.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtktreemodel.h : /usr/include/glib-2.0/glib-object.h \
 	/usr/include/gtk-2.0/gtk/gtkobject.h
@@ -3150,8 +3121,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ../../../../../usr/include/gtk-2.0/gtk/gtktypebuiltins.h : /usr/include/glib-2.0/glib-object.h
 
-../../../../../usr/include/atk-1.0/atk/atkregistry.h : /usr/include/glib-2.0/glib-object.h
-
 ../../../../../usr/include/gtk-2.0/gtk/gtkaccelmap.h : /usr/include/gtk-2.0/gtk/gtkaccelgroup.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkcheckbutton.h : /usr/include/gtk-2.0/gtk/gtktogglebutton.h
@@ -3178,13 +3147,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ../../../../../usr/include/gtk-2.0/gtk/gtkvruler.h : /usr/include/gtk-2.0/gtk/gtkruler.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkvolumebutton.h : /usr/include/gtk-2.0/gtk/gtkscalebutton.h
-
-../../../../../usr/include/gtk-2.0/gtk/gtkstyle.h : /usr/include/gtk-2.0/gdk/gdk.h \
-	/usr/include/gtk-2.0/gtk/gtkenums.h
-
-../../../../../usr/include/atk-1.0/atk/atktext.h : /usr/include/glib-2.0/glib-object.h \
-	/usr/include/atk-1.0/atk/atkobject.h \
-	/usr/include/atk-1.0/atk/atkutil.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkseparatortoolitem.h : /usr/include/gtk-2.0/gtk/gtktoolitem.h
 
@@ -3234,11 +3196,7 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ../../../../../usr/include/gtk-2.0/gtk/gtkfilechooser.h : /usr/include/gtk-2.0/gtk/gtkfilefilter.h \
 	/usr/include/gtk-2.0/gtk/gtkwidget.h
 
-../../../../../usr/include/atk-1.0/atk/atktable.h : /usr/include/atk-1.0/atk/atkobject.h
-
 ../../../../../usr/include/gtk-2.0/gtk/gtktexttagtable.h : /usr/include/gtk-2.0/gtk/gtktexttag.h
-
-../../../../../usr/include/gtk-2.0/gtk/gtksettings.h : /usr/include/gtk-2.0/gtk/gtkrc.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkcombo.h : /usr/include/gtk-2.0/gtk/gtk.h
 
@@ -3296,11 +3254,11 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkradiotoolbutton.h : /usr/include/gtk-2.0/gtk/gtktoggletoolbutton.h
 
+../../../../../usr/include/atk-1.0/atk/atkrelationtype.h : /usr/include/glib-2.0/glib.h
+
 ../../../../../usr/include/gtk-2.0/gtk/gtkmodules.h : /usr/include/gtk-2.0/gtk/gtksettings.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkpreview.h : /usr/include/gtk-2.0/gtk/gtk.h
-
-../../../../../usr/include/atk-1.0/atk/atkrelationtype.h : /usr/include/glib-2.0/glib.h
 
 ./include/common/GCss.h : ./include/common/LgiInc.h \
 	./include/linux/Gtk/LgiOsDefs.h \
@@ -3324,7 +3282,7 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkitemfactory.h : /usr/include/gtk-2.0/gtk/gtk.h
 
-../../../../../usr/include/glib-2.0/glib/gmem.h : /usr/include/glib-2.0/glib/gutils.h
+../../../../../usr/include/glib-2.0/glib/gmem.h : /usr/include/glib-2.0/glib/gtypes.h
 
 ../../../../../usr/include/glib-2.0/gio/gfilenamecompleter.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -3340,10 +3298,10 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ../../../../../usr/include/glib-2.0/gobject/gclosure.h : /usr/include/glib-2.0/gobject/gtype.h
 
-../../../../../usr/include/gtk-2.0/gtk/gtkdialog.h : /usr/include/gtk-2.0/gtk/gtkwindow.h
-
 ../../../../../usr/include/atk-1.0/atk/atkdocument.h : /usr/include/atk-1.0/atk/atkobject.h \
 	/usr/include/atk-1.0/atk/atkutil.h
+
+../../../../../usr/include/gtk-2.0/gtk/gtkdialog.h : /usr/include/gtk-2.0/gtk/gtkwindow.h
 
 ../../../../../usr/include/gtk-2.0/gtk/gtktoolbutton.h : /usr/include/gtk-2.0/gtk/gtktoolitem.h
 
@@ -3414,24 +3372,22 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkseparator.h : /usr/include/gtk-2.0/gtk/gtkwidget.h
 
-../../../../../usr/include/glib-2.0/gio/gdtlsserverconnection.h : /usr/include/glib-2.0/gio/gdtlsconnection.h
-
 VPATH=%.cpp \
 	./include/common \
 	./include/linux \
 	./include/linux/Gtk \
 	../../../../../usr/include/gtk-2.0 \
 	../../../../../usr/lib/x86_64-linux-gnu/gtk-2.0/include \
-	../../../../../usr/include/gio-unix-2.0 \
-	../../../../../usr/include/cairo \
-	../../../../../usr/include/pango-1.0 \
 	../../../../../usr/include/atk-1.0 \
-	../../../../../usr/include/pixman-1 \
-	../../../../../usr/include/libpng12 \
+	../../../../../usr/include/cairo \
 	../../../../../usr/include/gdk-pixbuf-2.0 \
-	../../../../../usr/include/harfbuzz \
+	../../../../../usr/include/pango-1.0 \
+	../../../../../usr/include/gio-unix-2.0 \
+	../../../../../usr/include/freetype2 \
 	../../../../../usr/include/glib-2.0 \
 	../../../../../usr/lib/x86_64-linux-gnu/glib-2.0/include \
-	../../../../../usr/include/freetype2 \
+	../../../../../usr/include/pixman-1 \
+	../../../../../usr/include/libpng12 \
+	../../../../../usr/include/harfbuzz \
 	$(BuildDir)
 
