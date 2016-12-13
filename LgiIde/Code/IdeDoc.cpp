@@ -429,7 +429,6 @@ void EditTray::OnFunctionList(GMouse &m)
 		int Goto = s.Float(this, p.x, p.y, true);
 		if (Goto)
 		{
-			printf("Goto=%i\n", Goto);
 			DefnInfo *Info = a[Goto-1];
 			if (Info)
 			{

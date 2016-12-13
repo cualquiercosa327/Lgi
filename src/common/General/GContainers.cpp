@@ -1321,6 +1321,27 @@ int GMemQueue::Write(const void *Ptr, int Size, int Flags)
 }
 
 //////////////////////////////////////////////////////////////////////////
+GString GStringPipe::NewGStr()
+{
+	GString s;
+	
+	int64 Sz = GetSize();
+	if (Sz > 0)
+	{
+		if (s.Length(Sz))
+		{
+			int Rd = Read(s.Get(), s.Length());
+			if (Rd > 0 && Rd <= Sz)
+			{
+				s.Get()[Rd] = 0;
+			}
+		}
+		else s.Empty();
+	}
+	
+	return s;
+}
+
 int GStringPipe::Pop(char *Str, int BufSize)
 {
 	if (Str)

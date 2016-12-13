@@ -291,42 +291,58 @@ public:
 	}
 };
 
-class WatchItem : public GTreeItem
+WatchItem::WatchItem(IdeOutput *out, const char *Init = NULL)
 {
-	class IdeOutput *Out;
-	GTreeItem *PlaceHolder;
+	Out = out;
+	Expanded(false);
+	if (Init)
+		SetText(Init);
+	Insert(PlaceHolder = new GTreeItem);
+}
 
-public:
-	WatchItem(IdeOutput *out)
+WatchItem::~WatchItem()
+{
+	printf("~WatchItem\n");
+}
+
+bool WatchItem::SetValue(GVariant &v)
+{
+	char *Str = v.CastString();
+	if (ValidStr(Str))
+		SetText(Str, 2);
+	else
+		GTreeItem::SetText(NULL, 2);
+	return true;
+}
+
+bool WatchItem::SetText(const char *s, int i = 0)
+{
+	if (ValidStr(s))
 	{
-		Out = out;
-		Expanded(false);
-		Insert(PlaceHolder = new GTreeItem);
-	}
-	
-	~WatchItem()
-	{
-	}
-	
-	bool SetText(const char *s, int i = 0)
-	{
-		if (ValidStr(s))
+		bool status = GTreeItem::SetText(s, i);
+
+		if (i == 0 && Tree && Tree->GetWindow())
 		{
-			return GTreeItem::SetText(s, i);
+			GViewI *Tabs = Tree->GetWindow()->FindControl(IDC_DEBUG_TAB);
+			if (Tabs)
+				Tabs->SendNotify(GNotifyValueChanged);
 		}
-		
+		return true;
+	}
+
+	if (i == 0)	
 		delete this;
-		return false;
-	}
-	
-	void OnExpand(bool b)
+		
+	return false;
+}
+
+void WatchItem::OnExpand(bool b)
+{
+	if (b && PlaceHolder)
 	{
-		if (b && PlaceHolder)
-		{
-			// Do something 
-		}
+		// Do something 
 	}
-};
+}
 
 class IdeOutput : public GPanel
 {
@@ -461,10 +477,30 @@ public:
 								Watch->SetFont(&Small);
 								Watch->ShowColumnHeader(true);
 								Watch->AddColumn("Watch", 80);
-								Watch->AddColumn("Value", 1000);
+								Watch->AddColumn("Type", 100);
+								Watch->AddColumn("Value", 600);
 								Watch->SetPourLargest(true);
 
 								Page->Append(Watch);
+								
+								GXmlTag *w = App->GetOptions()->LockTag("watches", _FL);
+								if (!w)
+								{
+									App->GetOptions()->CreateTag("watches");
+									w = App->GetOptions()->LockTag("watches", _FL);
+								}
+								if (w)
+								{
+									for (GXmlTag *c = w->Children.First(); c; c = w->Children.Next())
+									{
+										if (c->IsTag("watch"))
+										{
+											Watch->Insert(new WatchItem(this, c->GetContent()));
+										}
+									}
+									
+									App->GetOptions()->Unlock();
+								}
 							}
 						}
 						if ((Page = DebugTab->Append("Memory")))
@@ -626,6 +662,34 @@ public:
 
 	~IdeOutput()
 	{
+	}
+	
+	void Save()
+	{
+		if (Watch)
+		{
+			GXmlTag *w = App->GetOptions()->LockTag("watches", _FL);
+			if (!w)
+			{
+				App->GetOptions()->CreateTag("watches");
+				w = App->GetOptions()->LockTag("watches", _FL);
+			}
+			if (w)
+			{
+				w->EmptyChildren();
+				for (GTreeItem *ti = Watch->GetChild(); ti; ti = ti->GetNext())
+				{
+					GXmlTag *t = new GXmlTag("watch");
+					if (t)
+					{
+						t->SetContent(ti->GetText(0));
+						w->InsertTag(t);
+					}
+				}
+				
+				App->GetOptions()->Unlock();
+			}
+		}
 	}
 	
 	void OnCreate()
@@ -805,6 +869,7 @@ public:
 	
 	~AppWndPrivate()
 	{
+		Output->Save();
 		App->SerializeState(&Options, "WndPos", false);
 		SerializeStringList("RecentFiles", &RecentFiles, true);
 		SerializeStringList("RecentProjects", &RecentProjects, true);
@@ -2156,14 +2221,19 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 		}
 		case IDC_DEBUG_TAB:
 		{
+			printf("notify IDC_DEBUG_TAB %i %i\n", Flags == GNotifyValueChanged, (int)Ctrl->Value());
 			if (d->DbgContext && Flags == GNotifyValueChanged)
 			{
 				switch (Ctrl->Value())
 				{
 					case AppWnd::LocalsTab:
 					{
-						// Locals tab
 						d->DbgContext->UpdateLocals();
+						break;
+					}
+					case AppWnd::WatchTab:
+					{
+						d->DbgContext->UpdateWatches();
 						break;
 					}
 					case AppWnd::RegistersTab:
@@ -3103,6 +3173,7 @@ public:
 #include "GSubProcess.h"
 void Test()
 {
+	/*
 	int r;
 
 	#if 1
@@ -3124,6 +3195,13 @@ void Test()
 		// So something with 'Buf'
 		Buf[r] = 0;
 	}
+	*/
+
+	GString NullStr;
+	GString GStr("This is a test.");
+	int Asd = 1235;
+	
+	printf("Asd=%i\n", Asd);
 }
 
 int LgiMain(OsAppArguments &AppArgs)
@@ -3132,7 +3210,7 @@ int LgiMain(OsAppArguments &AppArgs)
 	GApp a(AppArgs, "LgiIde");
 	if (a.IsOk())
 	{
-		// Test();
+		Test();
 		
 		a.AppWnd = new AppWnd;
 		// a.AppWnd = new Test;

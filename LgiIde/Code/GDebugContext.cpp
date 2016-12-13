@@ -379,6 +379,44 @@ bool GDebugContext::UpdateLocals()
 	return true;
 }
 
+bool GDebugContext::UpdateWatches()
+{
+	GArray<GDebugger::Variable> Vars;
+	for (GTreeItem *i = Watch->GetChild(); i; i = i->GetNext())
+	{
+		GDebugger::Variable &v = Vars.New();
+		v.Name = i->GetText(0);
+		v.Type = i->GetText(1);
+	}
+	
+	printf("Update watches %i\n", Vars.Length());
+	if (!d->Db->GetVariables(false, Vars, false))
+		return false;
+	
+	int Idx = 0;
+	for (GTreeItem *i = Watch->GetChild(); i; i = i->GetNext(), Idx++)
+	{
+		GDebugger::Variable &v = Vars[Idx];
+		WatchItem *wi = dynamic_cast<WatchItem*>(i);
+		if (!wi)
+		{
+			LgiTrace("%s:%i - Error: not watch item.\n", _FL);
+			continue;
+		}
+		if (v.Name == (const char*)i->GetText(0))
+		{
+			i->SetText(v.Type, 1);
+			wi->SetValue(v.Value);
+		}
+		else
+		{
+			LgiTrace("%s:%i - Error: Not the same name.\n", _FL);
+		}
+	}
+
+	return true;
+}
+
 void GDebugContext::UpdateCallStack()
 {
 	d->UpdateCallStack();

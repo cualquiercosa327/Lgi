@@ -120,6 +120,20 @@ public:
 	bool Set(ProjSetting Setting, int Value, IdePlatform Platform = PlatformCurrent);
 };
 
+class WatchItem : public GTreeItem
+{
+	class IdeOutput *Out;
+	GTreeItem *PlaceHolder;
+
+public:
+	WatchItem(IdeOutput *out, const char *Init = NULL);
+	~WatchItem();
+	
+	bool SetText(const char *s, int i = 0);
+	void OnExpand(bool b);
+	bool SetValue(GVariant &v);
+};
+
 class GDebugContext : public GDebugEvents
 {
 	class GDebugContextPriv *d;
@@ -142,6 +156,7 @@ public:
 	bool ParseFrameReference(const char *Frame, GAutoString &File, int &Line);
 	bool SetFrame(int Frame);
 	bool UpdateLocals();
+	bool UpdateWatches();
 	bool UpdateRegisters();
 	void UpdateCallStack();
 	void UpdateThreads();

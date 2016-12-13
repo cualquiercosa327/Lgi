@@ -948,23 +948,73 @@ public:
 		GProfile Prof("GetVars");
 		GStringPipe p(256);
 
-		if (!Cmd("info args", &p))
-			return false;
+		if (vars.Length())
+		{
+			GString c;
 
-		Prof.Add("ParseArgs");
+			for (unsigned i=0; i<vars.Length(); i++)
+			{
+				Variable &v = vars[i];
+				if (!v.Type)
+				{
+					c.Printf("whatis %s", v.Name.Get());
+					if (Cmd(c, &p))
+					{
+						GString a = p.NewGStr();
+						printf("Type='%s'\n", a.Get());
+						if (a.Find("=") >= 0)
+						{
+							GString::Array tmp = a.Split("=", 1);
+							v.Type = tmp[1].Strip().Replace("\n", " ");
+						}
+						else
+						{
+							v.Type = a.Get();
+						}
+					}
+					else printf("%s:%i - Cmd failed '%s'\n", _FL, c.Get());
+				}
+				
+				c.Printf("p %s", v.Name.Get());
+				if (Cmd(c, &p))
+				{
+					GString a = p.NewGStr();
+					if (a.Find("=") >= 0)
+					{
+						GString::Array tmp = a.Split("=", 1);
+						v.Value = tmp[1].Strip().Replace("\n", " ").Get();
+					}
+					else
+					{
+						v.Value = a.Get();
+					}
+				}
+				else printf("%s:%i - Cmd failed '%s'\n", _FL, c.Get());
+			}
+			
+			return true;
+		}
+		else
+		{
+			if (!Cmd("info args", &p))
+				return false;
+
+			Prof.Add("ParseArgs");
+			
+			GAutoString a(p.NewStr());
+			ParseVariables(a, vars, Variable::Arg, Detailed);
+
+			Prof.Add("InfoLocals");
+
+			if (!Cmd("info locals", &p))
+				return false;
+
+			Prof.Add("ParseLocals");
+			
+			a.Reset(p.NewStr());
+			ParseVariables(a, vars, Variable::Local, Detailed);
+		}
 		
-		GAutoString a(p.NewStr());
-		ParseVariables(a, vars, Variable::Arg, Detailed);
-
-		Prof.Add("InfoLocals");
-
-		if (!Cmd("info locals", &p))
-			return false;
-
-		Prof.Add("ParseLocals");
-		
-		a.Reset(p.NewStr());
-		ParseVariables(a, vars, Variable::Local, Detailed);
 		return true;
 	}
 
