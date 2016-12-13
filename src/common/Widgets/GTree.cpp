@@ -1204,6 +1204,8 @@ void GTree::_OnSelect(GTreeItem *Item)
 	(
 		!MultiSelect()
 		||
+		!d->CurrentClick
+		||
 		(
 			d->CurrentClick 
 			&&

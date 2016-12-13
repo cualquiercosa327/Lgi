@@ -89,12 +89,20 @@ public:
 			Unlock();
 		}
 
-		// We can't be locked here, because GEventTargetThread::Main needs
-		// to lock to check for messages...
-		Loop = false;
-		Event.Signal();
-		while (!IsExited())
-			LgiSleep(10);
+		EndThread();
+	}
+
+	void EndThread()
+	{
+		if (Loop)
+		{
+			// We can't be locked here, because GEventTargetThread::Main needs
+			// to lock to check for messages...
+			Loop = false;
+			Event.Signal();
+			while (!IsExited())
+				LgiSleep(10);
+		}
 	}
 
 	uint32 GetQueueSize()
