@@ -4302,7 +4302,19 @@ void GTextView3::OnPaint(GSurface *pDC)
 			PourText(d->DirtyStart, d->DirtyLen);
 		}
 		
-		// printf("%s:%i txt on paint %s, %s, dc=%i,%i\n", _FL, GetClass(), GetPos().GetStr(), pDC->X(), pDC->Y());
+		{
+			Gtk::cairo_t *cr = pDC->Handle();
+			double x1, y1, x2, y2;
+			
+			GRect clip = pDC->ClipRgn();
+			
+			cairo_clip_extents (cr, &x1, &y1, &x2, &y2);
+			
+			if ((int)x1==2 && (int)y1==2 && (int)x2==4)
+			{
+				printf("%s:%i onpaint %g,%g,%g,%g  %s\n", _FL, x1,y1,x2,y2, clip.GetStr());
+			}
+		}
 		
 		GRect r = GetClient();
 		r.x2 += ScrollX;

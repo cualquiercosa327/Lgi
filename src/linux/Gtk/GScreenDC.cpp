@@ -74,7 +74,9 @@ GScreenDC::GScreenDC(OsView View)
 		        ColourSpace = GdkVisualToColourSpace(v, v->depth);
 	        }
 	    }
-	}	
+	}
+	
+	printf("%s:%i %p, %ix%i, %i\n", _FL, View, d->x, d->y, d->Bits);
 }
 
 GScreenDC::GScreenDC(int x, int y, int bits)
@@ -161,6 +163,22 @@ OsPainter GScreenDC::Handle()
 	if (!Cairo)
 	{
 		Cairo = gdk_cairo_create(d->d);
+	}
+	
+	if (Cairo)
+	{
+		cairo_reset_clip(Cairo);
+
+		cairo_surface_t *cs = cairo_get_target(Cairo);
+		int x = cairo_image_surface_get_width(cs);
+		int y = cairo_image_surface_get_height(cs);
+
+		double x1, y1, x2, y2;
+		cairo_clip_extents (Cairo, &x1, &y1, &x2, &y2);
+		// if ((int)x1==2 && (int)y1==2 && (int)x2==4)
+		{
+			printf("%s:%i handle %g,%g,%g,%g %i,%i\n", _FL, x1,y1,x2,y2, x,y);
+		}
 	}
 	return Cairo;
 }
