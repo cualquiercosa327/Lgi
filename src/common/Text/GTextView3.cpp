@@ -4302,6 +4302,8 @@ void GTextView3::OnPaint(GSurface *pDC)
 			PourText(d->DirtyStart, d->DirtyLen);
 		}
 		
+		// printf("%s:%i txt on paint %s, %s, dc=%i,%i\n", _FL, GetClass(), GetPos().GetStr(), pDC->X(), pDC->Y());
+		
 		GRect r = GetClient();
 		r.x2 += ScrollX;
 

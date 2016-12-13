@@ -881,6 +881,8 @@ bool GView::Attach(GViewI *parent)
 			{
 				lgi_widget_add(GTK_CONTAINER(p), _View);
 				lgi_widget_setchildpos(p, _View, Pos.x1 + o, Pos.y1 + o);
+				
+				// printf("%s:%i - Attach %s @ %i,%i - %i,%i\n", _FL, GetClass(), Pos.x1 + o, Pos.y1 + o, Pos.X(), Pos.Y());
 			}
 		}
 

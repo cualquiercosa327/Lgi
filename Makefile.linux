@@ -533,8 +533,7 @@ GDisplayString.o : ./src/common/Gdc2/Font/GDisplayString.cpp ./include/common/Lg
 	./include/common/GdiLeak.h \
 	./include/common/GUtf8.h \
 	./include/common/GDisplayString.h \
-	./include/common/GPixelRops.h \
-	/usr/include/freetype2/ftsynth.h
+	./include/common/GPixelRops.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -765,14 +764,14 @@ GItemContainer.o : ./src/common/Widgets/GItemContainer.cpp ./include/common/Lgi.
 	./include/common/GItemContainer.h \
 	./include/common/GDisplayString.h \
 	./include/common/GSkinEngine.h \
-	./include/common/GScrollBar.h
+	./include/common/GScrollBar.h \
+	./include/common/GEdit.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GList.o : ./src/common/Widgets/GList.cpp ./include/common/Lgi.h \
 	./include/common/GSkinEngine.h \
 	./include/common/GList.h \
-	./include/common/GEdit.h \
 	./include/common/GScrollBar.h \
 	./include/common/GDisplayString.h \
 	./include/common/LgiRes.h

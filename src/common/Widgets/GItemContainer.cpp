@@ -1015,6 +1015,7 @@ public:
 	{
 		ItemEdit = i;
 		Sunken(false);
+		MultiLine(false);
 		
 		#ifndef LINUX
 		SetPos(GetPos());
@@ -1056,17 +1057,10 @@ public:
 		return GEdit::OnKey(k);
 	}
 
-	/*	
-	void OnPaint(GSurface *pDC)
+	bool SetScrollBars(bool x, bool y)
 	{
-		GEdit::OnPaint(pDC);
-		
-		GRect c = GetClient();
-		pDC->Colour(GColour::Red);
-		pDC->Line(c.x1, c.y1, c.x2, c.y2);
-		pDC->Line(c.x2, c.y1, c.x1, c.y2);
+		return false;
 	}
-	*/
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1110,12 +1104,10 @@ GItemEdit::GItemEdit(GView *parent, GItem *item, int index, int SelStart, int Se
 	GetParent()->PointToScreen(p);
 
 	GRect r = d->Item->GetPos(d->Index);
-    #ifndef WINDOWS
-	r.Offset(p.x, p.y);
-    #else
-	r.Offset(p.x-1, p.y);
-    #endif
-	r.y2 += 2;
+	int MinY = 6 + SysFont->GetHeight();
+	if (r.Y() < MinY)
+		r.y2 = r.y1 + MinY - 1;
+	r.Offset(p.x, p.y);	
 
 	if (Attach(parent))
 	{

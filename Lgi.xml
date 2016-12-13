@@ -273,8 +273,8 @@
 			<Node File="./src/common/Text/GXmlTree.cpp" Type="2" Platforms="15" />
 			<Node File="./include/common/GXmlTree.h" Type="3" Platforms="15" />
 		</Node>
-		<Node Name="Widgets" Type="1" Platforms="15" Open="0">
-			<Node Name="Common" Type="1" Platforms="15" Open="0">
+		<Node Name="Widgets" Type="1" Platforms="15" Open="1">
+			<Node Name="Common" Type="1" Platforms="15" Open="1">
 				<Node File="./src/common/Widgets/GBitmap.cpp" Type="2" Platforms="15" />
 				<Node File="./src/common/Widgets/GButton.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GButton.h" Type="3" Platforms="15" />
@@ -307,6 +307,7 @@
 				<Node File="./src/common/Widgets/GTextLabel.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GTextLabel.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Text/GTextView3.cpp" Type="2" Platforms="14" />
+				<Node File="./include/common/GTextView3.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Widgets/GToolBar.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GToolBar.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Widgets/GTree.cpp" Type="2" Platforms="15" />
