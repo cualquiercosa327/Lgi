@@ -2126,13 +2126,17 @@ GView *GViewFactory::Create(const char *Class, GRect *Pos, const char *Text)
 }
 
 #ifdef _DEBUG
+
+#if defined(__GTK_H__)
 using namespace Gtk;
 #include "LgiWidget.h"
+#endif
 
 void GView::Debug()
 {
     _Debug = true;
-    printf("%s:%i - Debug %s, _View=%p\n", _FL, GetClass(), _View);
+
+	#if defined(__GTK_H__)
     if (_View)
     {
     	if (LGI_IS_WIDGET(_View))
@@ -2141,12 +2145,12 @@ void GView::Debug()
     		if (w)
     		{
     			w->debug = true;
-    			printf("Wid=%i,%i\n", w->w, w->h);
     		}
     		else LgiTrace("%s:%i - NULL widget.\n", _FL);
     	}
     	else LgiTrace("%s:%i - Not a widget.\n", _FL);
     }
+	#endif
 }
 #endif
 

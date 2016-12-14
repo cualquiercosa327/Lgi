@@ -16,9 +16,6 @@
 typedef BOOL (__stdcall *_SetLayeredWindowAttributes)(HWND hwnd, COLORREF crKey, BYTE bAlpha, DWORD dwFlags);
 #endif
 
-void _dump(OsView Hnd, int Depth = 0);
-
-
 class GItemColumnPrivate
 {
 public:
@@ -1276,32 +1273,3 @@ GMessage::Result GItemEdit::OnEvent(GMessage *Msg)
 
 	return GPopup::OnEvent(Msg);
 }
-
-using namespace Gtk;
-#include "gtk/gtkcontainer.h"
-#define GList Gtk::GList
-void _dump(OsView Hnd, int Depth = 0)
-{
-	char sp[256];
-	int spd = Depth << 2;
-	memset(sp, ' ', spd);
-	sp[spd] = 0;
-
-	int w, h;
-	gtk_widget_get_size_request (Hnd, &w, &h);
-	
-	GtkAllocation allocation;
-	gtk_widget_get_allocation (Hnd, &allocation);
-	
-	printf("%s%p, %i,%i-%i,%i\n", sp, Hnd, allocation.x, allocation.y, allocation.width, allocation.height);
-
-	GtkContainer *c = GtkCast(Hnd, gtk_container, GtkContainer);
-	if (c)
-	{
-		GList *children = gtk_container_get_children(c), *iter;
-		for (iter = children; iter != NULL; iter = g_list_next(iter))
-	  		_dump(GtkCast(iter->data, gtk_widget, GtkWidget), Depth+1);
-		g_list_free(children);
-	}
-}
-
