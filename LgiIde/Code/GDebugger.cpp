@@ -3,6 +3,8 @@
 #include "GSubProcess.h"
 #include "GToken.h"
 #include "GDocView.h"
+#include "GStringClass.h"
+#include "GString.h"
 #ifdef POSIX
 #include <sys/types.h>
 #include <signal.h>
@@ -14,7 +16,58 @@
 
 const char sPrompt[] = "(gdb) ";
 
-class Gdb : public GDebugger, public GThread
+class Callback
+{
+public:
+	virtual GString GetResponse(const char *c) = 0;
+};
+
+class Visualizer
+{
+public:
+	virtual ~Visualizer() {}
+	
+	virtual bool Match(GString s) = 0;
+	virtual bool Transform(GString name, GString val, Callback *Cb, GVariant &Value, GString &Detail) = 0;
+};
+
+class GStringVis : public Visualizer
+{
+public:
+	bool Match(GString s)
+	{
+		return s == "GString";
+	}
+	
+	bool Transform(GString name, GString val, Callback *Cb, GVariant &Value, GString &Detail)	
+	{
+		GString::Array a = val.SplitDelimit("{} \t\r\n");
+		if (a.Length() == 3 &&
+			a[1] == "=")
+		{
+			void *Ptr = htoi(a[2].Get());
+			if (Ptr == NULL)
+			{
+				Value = "NULL";
+			}
+			else
+			{
+				GString cmd;
+				cmd.Printf("p (char*)%s.Str->Str", name.Get());
+				GString r = Cb->GetResponse(cmd);
+				int Pos = r.Find("=");
+				if (Pos >= 0)
+					Value = r(Pos, r.Length()).Strip().Get();
+				else
+					Value = r.Get();
+			}
+		}
+		
+		return true;
+	}
+};
+
+class Gdb : public GDebugger, public GThread, public Callback
 {
 	GDebugEvents *Events;
 	GAutoPtr<GSubProcess> Sp;
@@ -28,6 +81,7 @@ class Gdb : public GDebugger, public GThread
 	int BreakPointIdx;
 	int ProcessId;
 	bool SuppressNextFileLine;
+	GArray<Visualizer*> Vis;
 
 	GMutex StateMutex;
 	bool DebuggingProcess;
@@ -499,6 +553,8 @@ public:
 		BreakPointIdx = -1;
 		ProcessId = -1;
 		SuppressNextFileLine = false;
+		
+		Vis.Add(new GStringVis);
 	}
 	
 	~Gdb()
@@ -979,15 +1035,29 @@ public:
 				if (Cmd(c, &p))
 				{
 					GString a = p.NewGStr();
+					GString Val;
 					if (a.Find("=") >= 0)
 					{
 						GString::Array tmp = a.Split("=", 1);
-						v.Value = tmp[1].Strip().Replace("\n", " ").Get();
+						Val = tmp[1].Strip().Replace("\n", " ").Get();
 					}
 					else
 					{
-						v.Value = a.Get();
+						Val = a.Get();
 					}
+					
+					unsigned i;
+					for (i=0; i<Vis.Length(); i++)
+					{
+						Visualizer *vs = Vis[i];
+						if (vs->Match(v.Type))
+						{
+							if (vs->Transform(v.Name, Val, this, v.Value, v.Detail))
+								break;
+						}
+					}
+					if (i >= Vis.Length())
+						v.Value = Val.Get();
 				}
 				else printf("%s:%i - Cmd failed '%s'\n", _FL, c.Get());
 			}
@@ -1253,6 +1323,15 @@ public:
 		char c[256];
 		sprintf_s(c, sizeof(c), "%s", cmd);
 		return Cmd(c);
+	}
+
+	GString GetResponse(const char *c)
+	{
+		GString r;
+		GStringPipe p;
+		if (Cmd(c, &p))
+			r = p.NewGStr();
+		return r;
 	}
 };
 

@@ -64,6 +64,7 @@ public:
 		GString Name;
 		GString Type;
 		GVariant Value;
+		GString Detail;
 	};
 	
 	virtual ~GDebugger() {}
