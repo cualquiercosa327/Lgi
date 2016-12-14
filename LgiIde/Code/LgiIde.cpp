@@ -3197,11 +3197,6 @@ void Test()
 	}
 	*/
 
-	GString NullStr;
-	GString GStr("This is a test.");
-	int Asd = 1235;
-	
-	printf("Asd=%i\n", Asd);
 }
 
 int LgiMain(OsAppArguments &AppArgs)

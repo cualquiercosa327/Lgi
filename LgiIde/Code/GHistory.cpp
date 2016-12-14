@@ -65,11 +65,11 @@ public:
 					Index = Lst->Value();
 					Visible(false);
 					
-					printf("%s:%i - str=%s idx=%i\n", _FL, Str.Get(), (int)Index);
+					// printf("%s:%i - str=%s idx=%i\n", _FL, Str.Get(), (int)Index);
 				}
 				else printf("%s:%i - No selection.\n", _FL);
 			}
-			else printf("%s:%i - Flags=%i\n", _FL, Flags);
+			// else printf("%s:%i - Flags=%i\n", _FL, Flags);
 		}
 		else printf("%s:%i - getid=%i\n", _FL, Ctrl->GetId());
 		
