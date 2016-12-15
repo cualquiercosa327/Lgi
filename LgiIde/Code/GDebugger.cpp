@@ -116,9 +116,22 @@ class Gdb : public GDebugger, public GThread, public Callback
 	void OnFileLine(const char *File, int Line, bool CurrentIp)
 	{
 		if (SuppressNextFileLine)
+		{
+			// printf("%s:%i - SuppressNextFileLine\n", _FL);
 			SuppressNextFileLine = false;
+		}
 		else if (Events)
-			Events->OnFileLine(File, Line, CurrentIp);
+		{
+			if (File)
+				CurFile = File;
+			if (Line > 0)
+				CurLine = Line;
+			
+			if (CurFile && CurLine > 0)
+				Events->OnFileLine(CurFile, Line, CurrentIp);
+			else
+				printf("%s:%i - Error: Cur loc incomplete: %s %i.\n", _FL, CurFile.Get(), CurLine);
+		}
 	}
 
 	bool ParseLocation(GString::Array &p)
@@ -221,21 +234,24 @@ class Gdb : public GDebugger, public GThread, public Callback
 		
 		GString File, Line;
 		
-		printf("%s:%i - f='%s'\n", _FL, f.Get());
+		// printf("%s:%i - f='%s'\n", _FL, f.Get());
 		
 		GString::Array a = f.Split("at");
+		/*
 		printf("%s:%i - a.len=%i\n", _FL, a.Length());
 		for (unsigned n=0; n<a.Length(); n++)
 			printf("\t[%i]='%s'\n", n, a[n].Get());
+		*/
+		
 		if (a.Length() == 2)
 		{
 			GString k = a[1].Strip();
-			printf("%s:%i - k='%s'\n", _FL, k.Get());
+			// printf("%s:%i - k='%s'\n", _FL, k.Get());
 			
 			if (k.Find("0x") == 0)
 			{			
 				GString::Array b = a[1].SplitDelimit(":,");
-				printf("%s:%i - b.len=%i\n", _FL, b.Length());
+				// printf("%s:%i - b.len=%i\n", _FL, b.Length());
 				for (unsigned i=0; i<b.Length(); i++)
 				{
 					GString s = b[i].Strip();
@@ -252,15 +268,15 @@ class Gdb : public GDebugger, public GThread, public Callback
 			else
 			{
 				int e = k.Find(":");
-				printf("%s:%i - e=%i\n", _FL, e);
+				// printf("%s:%i - e=%i\n", _FL, e);
 				if (e > 0)
 				{
 					e++;
 					while (e < k.Length() && IsDigit(k(e)))
 						e++;
-					printf("%s:%i - e=%i\n", _FL, e);
+					// printf("%s:%i - e=%i\n", _FL, e);
 					GString::Array b = k(0, e).RSplit(":", 1);
-					printf("%s:%i - b.len=%i\n", _FL, b.Length());
+					//  printf("%s:%i - b.len=%i\n", _FL, b.Length());
 					if (b.Length() == 2)
 					{
 						File = b[0];
@@ -270,8 +286,8 @@ class Gdb : public GDebugger, public GThread, public Callback
 			}
 		}
 
-		printf("%s:%i - file='%s' line='%s'\n", _FL, File.Get(), Line.Get());
-		if (File && Line)
+		// printf("%s:%i - file='%s' line='%s'\n", _FL, File.Get(), Line.Get());
+		if (File && Line > 0)
 		{
 			OnFileLine(NativePath(File), Line.Int(), true);
 		}
@@ -447,7 +463,7 @@ class Gdb : public GDebugger, public GThread, public Callback
 		#else
 		const char *Path = "gdb";
 		#endif
-		const char *ExePath = RunAsAdmin ? "sudo" : Path;
+		const char *ExePath = RunAsAdmin ? "pkexec" : Path;
 		const char *Prefix = RunAsAdmin ? Path : "";
 
 		if (ValidStr(Args))
