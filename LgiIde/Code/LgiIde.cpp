@@ -2559,8 +2559,23 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			if (d->Finder)
 			{
 				d->Finder->Stop();
+
+				uint64 Start = LgiCurrentTime();
+				while (d->Finder)
+				{
+					LgiYield();
+					LgiSleep(10);
+
+					uint64 Now = LgiCurrentTime();
+					if (Now - Start > 2000)
+					{
+						LgiAssert(0);
+						return 0;
+					}
+				}
 			}
-			else
+
+			if (!d->Finder)
 			{
 				FindInFiles Dlg(this);
 

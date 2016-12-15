@@ -397,9 +397,29 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 			if (!c.Reset(new BlockCursor(*In)))
 				break;
 
-			if (c->Offset < c->Blk->Length())
+			int Len = c->Blk->Length();
+			if (c->Offset < Len)
 			{
-				c->Offset++;
+				GArray<char16> Txt;
+				c->Blk->CopyAt(c->Offset, 1, &Txt);
+				bool IsNewLine = Txt.Length() == 1 && Txt[0] == '\n';
+				if (!IsNewLine)
+				{
+					int Ln;
+					if (c->Blk->OffsetToLine(c->Offset, NULL, &Ln) &&
+						Ln > c->LineHint)
+					{
+						c->LineHint = Ln;
+					}
+					else
+					{
+						c->Offset++;
+					}
+				}
+				else
+				{
+					c->Blk->OffsetToLine(++c->Offset, NULL, &c->LineHint);
+				}
 				Status = true;
 			}
 			else // Seek to next block
