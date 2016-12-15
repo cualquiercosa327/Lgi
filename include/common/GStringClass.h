@@ -448,24 +448,26 @@ public:
 			const char *end = s + Str->Len;
 			size_t SepLen = strlen(Sep);
 			
-			assert(s[Str->Len] == 0);
-			
-			while ((s = CaseSen ? strnstr(s, Sep, end - s) : strnistr(s, Sep, end - s)))
+			if (s[Str->Len] == 0)
 			{
-				if (s > Prev)
-					a.New().Set(Prev, s - Prev);
-				s += SepLen;
-				Prev = s;
-				if (Count > 0 && a.Length() >= (uint32)Count)
-					break;
-			}
+				while ((s = CaseSen ? strstr(s, Sep) : Stristr(s, Sep)))
+				{
+					if (s > Prev)
+						a.New().Set(Prev, s - Prev);
+					s += SepLen;
+					Prev = s;
+					if (Count > 0 && a.Length() >= (uint32)Count)
+						break;
+				}
 			
-			if (Prev < end)
-				a.New().Set(Prev, end - Prev);
+				if (Prev < end)
+					a.New().Set(Prev, end - Prev);
 
+				a.SetFixedLength();
+			}
+			else assert(!"String not NULL terminated.");
 		}
 
-		a.SetFixedLength();
 		return a;
 	}
 
