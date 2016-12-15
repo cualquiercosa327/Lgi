@@ -302,7 +302,6 @@ WatchItem::WatchItem(IdeOutput *out, const char *Init)
 
 WatchItem::~WatchItem()
 {
-	printf("~WatchItem\n");
 }
 
 bool WatchItem::SetValue(GVariant &v)
@@ -1755,6 +1754,7 @@ IdeDoc *AppWnd::GotoReference(const char *File, int Line, bool CurIp, bool WithH
 		d->InHistorySeek = true;
 
 	IdeDoc *Doc = File ? OpenFile(File) : GetCurrentDoc();
+	printf("%s:%i Doc=%p\n", _FL, Doc);
 	if (Doc)
 	{
 		Doc->SetLine(Line, CurIp);

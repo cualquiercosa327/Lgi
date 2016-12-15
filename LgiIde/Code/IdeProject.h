@@ -72,6 +72,7 @@ enum ProjSetting
 	ProjMakefile,
 	ProjExe,
 	ProjArgs,
+	ProjDebugAdmin,
 	ProjDefines,
 	ProjCompiler,
 	ProjCrossCompiler,
@@ -149,7 +150,7 @@ public:
 	class GTextLog *Registers;
 
 	// Object
-	GDebugContext(AppWnd *App, class IdeProject *Proj, const char *Exe, const char *Args);
+	GDebugContext(AppWnd *App, class IdeProject *Proj, const char *Exe, const char *Args, bool RunAsAdmin = false);
 	virtual ~GDebugContext();
 
 	// Impl

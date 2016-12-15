@@ -444,10 +444,13 @@ public:
 
 		if (Str && Sep)
 		{
-			const char *s = Get(), *Prev = s;
+			const char *s = Str->Str, *Prev = s;
+			const char *end = s + Str->Len;
 			size_t SepLen = strlen(Sep);
 			
-			while ((s = CaseSen ? strstr(s, Sep) : Stristr(s, Sep)))
+			assert(s[Str->Len] == 0);
+			
+			while ((s = CaseSen ? strnstr(s, Sep, end - s) : strnistr(s, Sep, end - s)))
 			{
 				if (s > Prev)
 					a.New().Set(Prev, s - Prev);
@@ -457,8 +460,8 @@ public:
 					break;
 			}
 			
-			if (*Prev)
-				a.New().Set(Prev);
+			if (Prev < end)
+				a.New().Set(Prev, end - Prev);
 
 		}
 
@@ -564,6 +567,9 @@ public:
 	{
 		GString ret;
 		
+		if (a.Length() == 0)
+			return ret;
+
 		char *Sep = Get();
 		size_t SepLen = Sep ? strlen(Sep) : 0;
 		size_t Bytes = SepLen * (a.Length() - 1);
