@@ -102,6 +102,7 @@ public:
 		BackgroundColourBtn,
 
 		MakeLinkBtn,
+		RemoveStyleBtn,
 		
 		MaxArea
 	};
@@ -120,7 +121,7 @@ public:
 	void SelectWord(int From);
 	void SelectAll();
 	int GetCursor(bool Cursor = true);
-	void PositionAt(int &x, int &y, int Index = -1);
+	bool GetLineColumnAtIndex(GdcPt2 &Pt, int Index = -1);
 	int GetLines();
 	void GetTextExtent(int &x, int &y);
 	char *GetSelection();

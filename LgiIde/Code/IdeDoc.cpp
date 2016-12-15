@@ -2296,8 +2296,13 @@ int IdeDoc::OnNotify(GViewI *v, int f)
 				{
 					if (d->Tray)
 					{
-						d->Edit->PositionAt(d->Tray->Col, d->Tray->Line, d->Edit->GetCursor());
-						d->Tray->Invalidate();
+						GdcPt2 Pt;
+						if (d->Edit->GetLineColumnAtIndex(Pt, d->Edit->GetCursor()))
+						{
+							d->Tray->Col = Pt.x;
+							d->Tray->Line = Pt.y;
+							d->Tray->Invalidate();
+						}
 					}
 					break;
 				}

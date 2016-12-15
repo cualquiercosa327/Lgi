@@ -37,6 +37,7 @@
 #define DEBUG_NUMBERED_LAYOUTS			0
 
 #define TEXT_LINK						"Link"
+#define TEXT_REMOVE_STYLE				"Remove Style"
 #define TEXT_CAP_BTN					"Ok"
 
 #define IsWordBreakChar(ch)				IsWhiteSpace(ch) // FIXME: Add asian character set support to this
@@ -245,7 +246,7 @@ public:
 	GArray<GRect> DebugRects;
 
 	// Constructor
-	GRichTextPriv(GRichTextEdit *view);	
+	GRichTextPriv(GRichTextEdit *view, GRichTextPriv *&Ptr);	
 	~GRichTextPriv();
 	
 	bool Error(const char *file, int line, const char *fmt, ...);
@@ -462,6 +463,8 @@ public:
 		virtual bool OnLayout(Flow &f) = 0;
 		virtual void OnPaint(PaintContext &Ctx) = 0;
 		virtual bool ToHtml(GStream &s) = 0;
+		virtual bool OffsetToLine(int Offset, int *ColX, int *LineY) = 0;
+		virtual int LineToOffset(int Line) = 0;
 		virtual int GetLines() = 0;
 		virtual int FindAt(int StartIdx, const char16 *Str, GFindReplaceCommon *Params) = 0;
 		
@@ -634,6 +637,8 @@ public:
 		bool IsValid();
 
 		int GetLines();
+		bool OffsetToLine(int Offset, int *ColX, int *LineY);
+		int LineToOffset(int Line);
 		GRect GetPos() { return Pos; }
 		void Dump();
 		GNamedStyle *GetStyle();		
@@ -669,7 +674,7 @@ public:
 	int IndexOfCursor(BlockCursor *c);
 	int HitTest(int x, int y, int &LineHint);
 	bool CursorFromPos(int x, int y, GAutoPtr<BlockCursor> *Cursor, int *GlobalIdx);
-	Block *GetBlockByIndex(int Index, int *Offset = NULL, int *BlockIdx = NULL);
+	Block *GetBlockByIndex(int Index, int *Offset = NULL, int *BlockIdx = NULL, int *LineCount = NULL);
 	bool Layout(GScrollBar *&ScrollY);
 	void OnStyleChange(GRichTextEdit::RectType t);
 	bool ChangeSelectionStyle(GCss *Style, bool Add);

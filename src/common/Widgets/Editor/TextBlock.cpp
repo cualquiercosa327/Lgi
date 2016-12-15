@@ -779,6 +779,65 @@ int GRichTextPriv::TextBlock::GetLines()
 	return Layout.Length();
 }
 
+bool GRichTextPriv::TextBlock::OffsetToLine(int Offset, int *ColX, int *LineY)
+{
+	if (LayoutDirty)
+		return false;
+
+	if (Offset <= 0)
+	{
+		if (ColX) *ColX = 0;
+		if (LineY) *LineY = 0;
+		return true;
+	}
+
+	TextLine *tl = NULL;
+	int Pos = 0;
+	for (unsigned i=0; i<Layout.Length(); i++)
+	{
+		tl = Layout[i];
+		int Len = tl->Length();
+
+		if (Offset >= Pos && Offset < Pos + Len)
+		{
+			if (ColX) *ColX = Offset - Pos;
+			if (LineY) *LineY = i;
+			return true;
+		}
+		
+		Pos += Len;
+	}
+
+	if (!tl)
+		return false;
+
+	if (ColX) *ColX = tl->Length();
+	if (LineY) *LineY = Layout.Length() - 1;
+
+	return true;
+}
+
+int GRichTextPriv::TextBlock::LineToOffset(int Line)
+{
+	if (LayoutDirty)
+		return -1;
+	
+	if (Line <= 0)
+		return 0;
+
+	int Pos = 0;
+	for (unsigned i=0; i<Layout.Length(); i++)
+	{
+		TextLine *tl = Layout[i];
+		int Len = tl->Length();
+		if (i == Line)
+			return Pos;
+		Pos = Len;
+	}
+
+	return Length();
+}
+
 int GRichTextPriv::TextBlock::DeleteAt(int BlkOffset, int Chars, GArray<char16> *DeletedText)
 {
 	int Pos = 0;
@@ -1023,7 +1082,7 @@ bool GRichTextPriv::TextBlock::ChangeStyle(int Offset, int Chars, GCss *Style, b
 		int Len = t->Length();
 		int End = CharPos + Len;
 
-		if (End < Offset || CharPos >= RestyleEnd)
+		if (End <= Offset || CharPos > RestyleEnd)
 			;
 		else
 		{
@@ -1033,16 +1092,30 @@ bool GRichTextPriv::TextBlock::ChangeStyle(int Offset, int Chars, GCss *Style, b
 			LgiAssert(After >= 0);
 			int Inside = Len - Before - After;
 			LgiAssert(Inside >= 0);
+
+
+			GAutoPtr<GCss> TmpStyle(new GCss);
+			if (Add)
+			{
+				if (t->GetStyle())
+					*TmpStyle = *t->GetStyle();
+				*TmpStyle += *Style;
+			}
+			else if (Style->Length() != 0)
+			{
+				if (t->GetStyle())
+					*TmpStyle = *t->GetStyle();
+				*TmpStyle -= *Style;
+			}
+
+			GNamedStyle *CacheStyle = TmpStyle && TmpStyle->Length() ? d->AddStyleToCache(TmpStyle) : NULL;
+
+
 			if (Before && After)
 			{
 				// Split into 3 parts:
 				// |---before----|###restyled###|---after---|
-				GAutoPtr<GCss> TmpStyle(new GCss);
-				if (t->GetStyle())
-					*TmpStyle = *t->GetStyle();
-				*TmpStyle += *Style;
-				
-				StyleText *st = new StyleText(t->At(Before), Inside, d->AddStyleToCache(TmpStyle));
+				StyleText *st = new StyleText(t->At(Before), Inside, CacheStyle);
 				if (st)
 					Txt.AddAt(++i, st);
 				
@@ -1058,12 +1131,7 @@ bool GRichTextPriv::TextBlock::ChangeStyle(int Offset, int Chars, GCss *Style, b
 			{
 				// Split into 2 parts:
 				// |---before----|###restyled###|
-				GAutoPtr<GCss> TmpStyle(new GCss);
-				if (t->GetStyle())
-					*TmpStyle = *t->GetStyle();
-				*TmpStyle += *Style;
-
-				StyleText *st = new StyleText(t->At(Before), Inside, d->AddStyleToCache(TmpStyle));
+				StyleText *st = new StyleText(t->At(Before), Inside, CacheStyle);
 				if (st)
 					Txt.AddAt(++i, st);
 				
@@ -1074,12 +1142,7 @@ bool GRichTextPriv::TextBlock::ChangeStyle(int Offset, int Chars, GCss *Style, b
 			{
 				// Split into 2 parts:
 				// |###restyled###|---after---|
-				GAutoPtr<GCss> TmpStyle(new GCss);
-				if (t->GetStyle())
-					*TmpStyle = *t->GetStyle();
-				*TmpStyle += *Style;
-
-				StyleText *st = new StyleText(t->At(0), Inside, d->AddStyleToCache(TmpStyle));
+				StyleText *st = new StyleText(t->At(0), Inside, CacheStyle);
 				if (st)
 					Txt.AddAt(i, st);
 				
@@ -1090,12 +1153,14 @@ bool GRichTextPriv::TextBlock::ChangeStyle(int Offset, int Chars, GCss *Style, b
 			else if (Inside)
 			{
 				// Re-style the whole run
-				GAutoPtr<GCss> TmpStyle(new GCss);
-				if (t->GetStyle())
-					*TmpStyle = *t->GetStyle();
-				*TmpStyle += *Style;
+				t->SetStyle(CacheStyle);
+				LayoutDirty = true;
 
-				t->SetStyle(d->AddStyleToCache(TmpStyle));
+				if (t->Element != CONTENT)
+				{
+					t->Element = CONTENT;
+					t->Param.Empty();
+				}
 			}
 		}
 

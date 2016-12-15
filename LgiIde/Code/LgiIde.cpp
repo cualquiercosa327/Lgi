@@ -291,7 +291,7 @@ public:
 	}
 };
 
-WatchItem::WatchItem(IdeOutput *out, const char *Init = NULL)
+WatchItem::WatchItem(IdeOutput *out, const char *Init)
 {
 	Out = out;
 	Expanded(false);
@@ -315,7 +315,7 @@ bool WatchItem::SetValue(GVariant &v)
 	return true;
 }
 
-bool WatchItem::SetText(const char *s, int i = 0)
+bool WatchItem::SetText(const char *s, int i)
 {
 	if (ValidStr(s))
 	{

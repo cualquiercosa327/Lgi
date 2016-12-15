@@ -1727,15 +1727,16 @@ void GTextView3::GetTextExtent(int &x, int &y)
 	y = Line.Length() * LineY;
 }
 
-void GTextView3::PositionAt(int &x, int &y, int Index)
+bool GTextView3::GetLineColumnAtIndex(GdcPt2 &Pt, int Index)
 {
 	int FromIndex = 0;
 	GTextLine *From = GetTextLine(Index < 0 ? Cursor : Index, &FromIndex);
-	if (From)
-	{
-		x = Cursor - From->Start;
-		y = FromIndex;
-	}
+	if (!From)
+		return false;
+
+	Pt.x = Cursor - From->Start;
+	Pt.y = FromIndex;
+	return true;
 }
 
 int GTextView3::GetCursor(bool Cur)

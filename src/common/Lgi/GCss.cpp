@@ -1062,6 +1062,19 @@ bool GCss::InheritResolve(PropMap &Contrib)
     return false;
 }
 
+GCss &GCss::operator -=(const GCss &c)
+{
+	// Removes all props in 'cc' from this Css store...
+	int Prop;
+	GCss &cc = (GCss&)c;
+	for (void *p=cc.Props.First(&Prop); p; p=cc.Props.Next(&Prop))
+	{
+		DeleteProp((PropType)Prop);
+	}
+
+	return *this;
+}
+
 bool GCss::CopyStyle(const GCss &c)
 {
 	int Prop;

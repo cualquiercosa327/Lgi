@@ -108,10 +108,11 @@ GNamedStyle *GCssCache::AddStyleToCache(GAutoPtr<GCss> &s)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-GRichTextPriv::GRichTextPriv(GRichTextEdit *view) :
+GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv *&Ptr) :
 	GHtmlParser(view),
 	GFontCache(SysFont)
 {
+	Ptr = this;
 	View = view;
 	WordSelectMode = false;
 	Dirty = false;
@@ -120,6 +121,8 @@ GRichTextPriv::GRichTextPriv(GRichTextEdit *view) :
 	ScrollChange = false;
 	DocumentExtent.x = 0;
 	DocumentExtent.y = 0;
+	if (Font.Reset(new GFont))
+		*Font = *SysFont;
 
 	for (unsigned i=0; i<CountOf(Areas); i++)
 	{
@@ -137,6 +140,7 @@ GRichTextPriv::GRichTextPriv(GRichTextEdit *view) :
 	Values[GRichTextEdit::BackgroundColourBtn] = (int64)Rgb24To32(LC_WORKSPACE);
 
 	Values[GRichTextEdit::MakeLinkBtn] = TEXT_LINK;
+	Values[GRichTextEdit::RemoveStyleBtn] = TEXT_REMOVE_STYLE;
 	Values[GRichTextEdit::CapabilityBtn] = TEXT_CAP_BTN;
 
 	Padding(GCss::Len(GCss::LenPx, 4));
@@ -173,22 +177,23 @@ void GRichTextPriv::UpdateStyleUI()
 
 	TextBlock *b = dynamic_cast<TextBlock*>(Cursor->Blk);
 	StyleText *st = b ? b->GetTextAt(Cursor->Offset) : NULL;
-	if (st)
+	GFont *f = st ? GetFont(st->GetStyle()) : View->GetFont();
+	if (f)
 	{
-		GFont *f = GetFont(st->GetStyle());
-		if (f)
-		{
-			Values[GRichTextEdit::FontFamilyBtn] = f->Face();
-			Values[GRichTextEdit::FontSizeBtn] = f->PointSize();
-			Values[GRichTextEdit::FontSizeBtn].CastString();
-			Values[GRichTextEdit::BoldBtn] = f->Bold();
-			Values[GRichTextEdit::ItalicBtn] = f->Italic();
-			Values[GRichTextEdit::UnderlineBtn] = f->Underline();
-		}
-		
-		Values[GRichTextEdit::ForegroundColourBtn] = (int64) (st->Colours.Fore.IsValid() ? st->Colours.Fore.c32() : TextColour.c32());
-		Values[GRichTextEdit::BackgroundColourBtn] = (int64) (st->Colours.Back.IsValid() ? st->Colours.Back.c32() : 0);
+		Values[GRichTextEdit::FontFamilyBtn] = f->Face();
+		Values[GRichTextEdit::FontSizeBtn] = f->PointSize();
+		Values[GRichTextEdit::FontSizeBtn].CastString();
+		Values[GRichTextEdit::BoldBtn] = f->Bold();
+		Values[GRichTextEdit::ItalicBtn] = f->Italic();
+		Values[GRichTextEdit::UnderlineBtn] = f->Underline();
 	}
+	else
+	{
+		Values[GRichTextEdit::FontFamilyBtn] = "(Unknown)";
+	}
+		
+	Values[GRichTextEdit::ForegroundColourBtn] = (int64) (st && st->Colours.Fore.IsValid() ? st->Colours.Fore.c32() : TextColour.c32());
+	Values[GRichTextEdit::BackgroundColourBtn] = (int64) (st && st->Colours.Back.IsValid() ? st->Colours.Back.c32() : 0);
 
 	View->Invalidate(Areas + GRichTextEdit::ToolsArea);
 }
@@ -232,6 +237,7 @@ void GRichTextPriv::EmptyDoc()
 	{			
 		Blocks.Add(Def);
 		Cursor.Reset(new BlockCursor(Def, 0, 0));
+		UpdateStyleUI();
 	}
 }
 	
@@ -707,14 +713,16 @@ bool GRichTextPriv::CursorFromPos(int x, int y, GAutoPtr<BlockCursor> *Cursor, i
 	return false;
 }
 
-GRichTextPriv::Block *GRichTextPriv::GetBlockByIndex(int Index, int *Offset, int *BlockIdx)
+GRichTextPriv::Block *GRichTextPriv::GetBlockByIndex(int Index, int *Offset, int *BlockIdx, int *LineCount)
 {
 	int CharPos = 0;
+	int Lines = 0;
 		
 	for (unsigned i=0; i<Blocks.Length(); i++)
 	{
 		Block *b = Blocks[i];
 		int Len = b->Length();
+		int Ln = b->GetLines();
 
 		if (Index >= CharPos &&
 			Index <= CharPos + Len)
@@ -727,6 +735,7 @@ GRichTextPriv::Block *GRichTextPriv::GetBlockByIndex(int Index, int *Offset, int
 		}
 			
 		CharPos += b->Length();
+		Lines += Ln;
 	}
 
 	Block *b = Blocks.Last();
@@ -734,6 +743,8 @@ GRichTextPriv::Block *GRichTextPriv::GetBlockByIndex(int Index, int *Offset, int
 		*Offset = b->Length();
 	if (BlockIdx)
 		*BlockIdx = Blocks.Length() - 1;
+	if (LineCount)
+		*LineCount = Lines;
 
 	return b;
 }
@@ -884,6 +895,7 @@ bool GRichTextPriv::ChangeSelectionStyle(GCss *Style, bool Add)
 			return false;
 	}
 
+	Cursor->Pos.ZOff(-1, -1);
 	InvalidateDoc(NULL);
 	return true;
 }
@@ -1102,6 +1114,12 @@ bool GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 			}
 			break;
 		}
+		case GRichTextEdit::RemoveStyleBtn:
+		{
+			GCss s;
+			ChangeSelectionStyle(&s, false);
+			break;
+		}
 		case GRichTextEdit::CapabilityBtn:
 		{
 			View->OnCloseInstaller();
@@ -1162,8 +1180,10 @@ void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
 
 		GDisplayString Ds(SysFont, TEXT_LINK);
 		Areas[GRichTextEdit::MakeLinkBtn] = AllocPx(Ds.X() + 12, 6);
+		GDisplayString Ds2(SysFont, TEXT_REMOVE_STYLE);
+		Areas[GRichTextEdit::RemoveStyleBtn] = AllocPx(Ds2.X() + 12, 6);
 
-		for (unsigned i = GRichTextEdit::FontFamilyBtn; i <= GRichTextEdit::MakeLinkBtn; i++)
+		for (unsigned i = GRichTextEdit::FontFamilyBtn; i < GRichTextEdit::MaxArea; i++)
 		{
 			PaintBtn(pDC, (GRichTextEdit::RectType) i);
 		}

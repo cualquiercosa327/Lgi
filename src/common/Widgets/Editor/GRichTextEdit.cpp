@@ -125,7 +125,7 @@ GRichTextEdit::GRichTextEdit(	int Id,
 	: ResObject(Res_Custom)
 {
 	// init vars
-	GView::d->Css.Reset(d = new GRichTextPriv(this));
+	GView::d->Css.Reset(new GRichTextPriv(this, d));
 
 	// setup window
 	SetId(Id);
@@ -527,7 +527,80 @@ void GRichTextEdit::UnSelectAll()
 
 int GRichTextEdit::GetLines()
 {
-	return 0;
+	uint32 Count = 0;
+	for (unsigned i=0; i<d->Blocks.Length(); i++)
+	{
+		GRichTextPriv::Block *b = d->Blocks[i];
+		Count += b->GetLines();
+	}
+	return Count;
+}
+
+int GRichTextEdit::GetLine()
+{
+	if (!d->Cursor)
+		return -1;
+
+	int Idx = d->Blocks.IndexOf(d->Cursor->Blk);
+	if (Idx < 0)
+	{
+		LgiAssert(0);
+		return -1;
+	}
+
+	int Count = 0;
+	
+	// Count lines in blocks before the cursor...
+	for (unsigned i=0; i<Idx; i++)
+	{
+		GRichTextPriv::Block *b = d->Blocks[i];
+		Count += b->GetLines();
+	}
+
+	// Add the lines in the cursor's block...
+	if (d->Cursor->LineHint)
+	{
+		Count += d->Cursor->LineHint;
+	}
+	else
+	{
+		int BlockLine;
+		if (d->Cursor->Blk->OffsetToLine(d->Cursor->Offset, NULL, &BlockLine))
+			Count += BlockLine;
+		else
+		{
+			// Hmmm...
+			LgiAssert(!"Can't find block line.");
+			return -1;
+		}
+	}
+
+
+	return Count;
+}
+
+void GRichTextEdit::SetLine(int i)
+{
+	int Count = 0;
+	
+	// Count lines in blocks before the cursor...
+	for (unsigned i=0; i<d->Blocks.Length(); i++)
+	{
+		GRichTextPriv::Block *b = d->Blocks[i];
+		int Lines = b->GetLines();
+		if (i >= Count && i < Count + Lines)
+		{
+			int BlockLine = i - Count;
+			int Offset = b->LineToOffset(BlockLine);
+			if (Offset >= 0)
+			{
+				GAutoPtr<GRichTextPriv::BlockCursor> c(new GRichTextPriv::BlockCursor(b, Offset, BlockLine));
+				d->SetCursor(c);
+				break;
+			}
+		}		
+		Count += Lines;
+	}
 }
 
 void GRichTextEdit::GetTextExtent(int &x, int &y)
@@ -536,8 +609,20 @@ void GRichTextEdit::GetTextExtent(int &x, int &y)
 	y = d->DocumentExtent.y;
 }
 
-void GRichTextEdit::PositionAt(int &x, int &y, int Index)
+bool GRichTextEdit::GetLineColumnAtIndex(GdcPt2 &Pt, int Index)
 {
+	int Offset = -1, BlockLines = -1;
+	GRichTextPriv::Block *b = d->GetBlockByIndex(Index, &Offset, NULL, &BlockLines);
+	if (!b)
+		return false;
+
+	int Cols, Lines;
+	if (b->OffsetToLine(Offset, &Cols, &Lines))
+		return false;
+	
+	Pt.x = Cols;
+	Pt.y = BlockLines + Lines;
+	return true;
 }
 
 int GRichTextEdit::GetCursor(bool Cur)
@@ -755,16 +840,6 @@ void GRichTextEdit::UpdateScrollBars(bool Reset)
 bool GRichTextEdit::DoCase(bool Upper)
 {
 	return true;
-}
-
-int GRichTextEdit::GetLine()
-{
-	int Idx = 0;
-	return Idx + 1;
-}
-
-void GRichTextEdit::SetLine(int i)
-{
 }
 
 bool GRichTextEdit::DoGoto()

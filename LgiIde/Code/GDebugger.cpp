@@ -45,7 +45,7 @@ public:
 		if (a.Length() == 3 &&
 			a[1] == "=")
 		{
-			void *Ptr = htoi(a[2].Get());
+			void *Ptr = (void*)htoi(a[2].Get());
 			if (Ptr == NULL)
 			{
 				Value = "NULL";
