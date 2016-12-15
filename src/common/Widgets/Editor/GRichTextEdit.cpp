@@ -1688,37 +1688,36 @@ bool GRichTextEdit::OnKey(GKey &k)
 			}
 			case VK_DELETE:
 			{
-				if (!GetReadOnly())
-				{
-					if (k.Down())
-					{
-						GRichTextPriv::Block *b;
-						if (HasSelection())
-						{
-							if (k.Shift())
-								Cut();
-							else
-								DeleteSelection();
-						}
-						else if (d->Cursor &&
-								 (b = d->Cursor->Blk))
-						{
-							if (d->Cursor->Offset < b->Length() - 1)
-							{
-								if (d->Cursor->Blk->DeleteAt(d->Cursor->Offset, 1))
-									Invalidate();
-							}
-							else
-							{
-								LgiTrace("%s:%i - Impl deleting char from next block\n", _FL);
-							}
-						}
-						
-						SendNotify(GNotifyDocChanged);
-					}
+				if (GetReadOnly())
+					break;
+
+				if (!k.Down())
 					return true;
+
+				GRichTextPriv::Block *b;
+				if (HasSelection())
+				{
+					if (k.Shift())
+						Cut();
+					else
+						DeleteSelection();
 				}
-				break;
+				else if (d->Cursor &&
+						(b = d->Cursor->Blk))
+				{
+					if (d->Cursor->Offset < b->Length() - 1)
+					{
+						if (b->DeleteAt(d->Cursor->Offset, 1))
+							Invalidate();
+					}
+					else
+					{
+						LgiTrace("%s:%i - Impl deleting char from next block\n", _FL);
+					}
+				}
+						
+				SendNotify(GNotifyDocChanged);
+				return true;
 			}
 			default:
 			{

@@ -841,6 +841,7 @@ int GRichTextPriv::TextBlock::LineToOffset(int Line)
 int GRichTextPriv::TextBlock::DeleteAt(int BlkOffset, int Chars, GArray<char16> *DeletedText)
 {
 	int Pos = 0;
+	int Deleted = 0;
 
 	#if 0
 	for (unsigned i=0; i<Txt.Length(); i++)
@@ -889,6 +890,7 @@ int GRichTextPriv::TextBlock::DeleteAt(int BlkOffset, int Chars, GArray<char16> 
 			LayoutDirty = true;
 			Chars -= Remove;
 			Len -= Remove;
+			Deleted += Remove;
 		}
 
 		if (t)
@@ -897,7 +899,7 @@ int GRichTextPriv::TextBlock::DeleteAt(int BlkOffset, int Chars, GArray<char16> 
 
 	IsValid();
 
-	return 0;
+	return Deleted;
 }
 		
 bool GRichTextPriv::TextBlock::AddText(int AtOffset, const char16 *Str, int Chars, GNamedStyle *Style)
