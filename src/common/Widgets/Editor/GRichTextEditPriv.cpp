@@ -153,6 +153,24 @@ GRichTextPriv::~GRichTextPriv()
 	Empty();
 }
 	
+GRichTextPriv::Block *GRichTextPriv::Next(Block *b)
+{
+	int Idx = Blocks.IndexOf(b);
+	if (Idx < 0)
+		return NULL;
+	if (++Idx >= Blocks.Length())
+		return NULL;
+	return Blocks[Idx];
+}
+
+GRichTextPriv::Block *GRichTextPriv::Prev(Block *b)
+{
+	int Idx = Blocks.IndexOf(b);
+	if (Idx <= 0)
+		return NULL;
+	return Blocks[--Idx];
+}
+
 bool GRichTextPriv::Error(const char *file, int line, const char *fmt, ...)
 {
 	va_list Arg;
@@ -337,7 +355,18 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 
 			if (c->Offset > 0)
 			{
-				c->Offset--;
+				GArray<int> Ln;
+				c->Blk->OffsetToLine(c->Offset, NULL, &Ln);
+				if (Ln.Length() == 2 &&
+					c->LineHint == Ln.Last())
+				{
+					c->LineHint = Ln.First();
+				}
+				else
+				{
+					c->Offset--;
+				}
+
 				Status = true;
 			}
 			else // Seek to previous block
@@ -360,7 +389,7 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 					break;
 				}
 
-				if (!c.Reset(new BlockCursor(b, b->Length(), -1)))
+				if (!c.Reset(new BlockCursor(b, b->Length(), b->GetLines()-1)))
 					break;
 
 				Status = true;
@@ -384,6 +413,11 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 					i--;
 
 				c->Offset = i;
+
+				GArray<int> Ln;
+				if (c->Blk->OffsetToLine(c->Offset, NULL, &Ln))
+					c->LineHint = Ln[0];
+
 				Status = true;
 			}
 			else // Seek into previous block?
@@ -400,26 +434,18 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 			int Len = c->Blk->Length();
 			if (c->Offset < Len)
 			{
-				GArray<char16> Txt;
-				c->Blk->CopyAt(c->Offset, 1, &Txt);
-				bool IsNewLine = Txt.Length() == 1 && Txt[0] == '\n';
-				if (!IsNewLine)
+				GArray<int> Ln;
+				if (c->Blk->OffsetToLine(c->Offset, NULL, &Ln) &&
+					Ln.Length() == 2 &&
+					c->LineHint == Ln.First())
 				{
-					int Ln;
-					if (c->Blk->OffsetToLine(c->Offset, NULL, &Ln) &&
-						Ln > c->LineHint)
-					{
-						c->LineHint = Ln;
-					}
-					else
-					{
-						c->Offset++;
-					}
+					c->LineHint = Ln.Last();
 				}
 				else
 				{
-					c->Blk->OffsetToLine(++c->Offset, NULL, &c->LineHint);
+					c->Offset++;
 				}
+
 				Status = true;
 			}
 			else // Seek to next block
@@ -467,6 +493,12 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 					i++;
 
 				c->Offset += i;
+				
+				GArray<int> Ln;
+				if (c->Blk->OffsetToLine(c->Offset, NULL, &Ln))
+					c->LineHint = Ln.Last();
+				else
+					c->LineHint = -1;
 				Status = true;
 			}
 			else // Seek into next block?
@@ -1544,3 +1576,58 @@ bool GRichTextPriv::GetSelection(GArray<char16> &Text)
 
 	return true;
 }
+
+#ifdef _DEBUG
+void GRichTextPriv::DumpNodes(GTree *Root)
+{
+	if (Cursor)
+	{
+		GTreeItem *ti = new GTreeItem;
+		ti->SetText("Cursor");
+		PrintNode(ti, "Offset=%i", Cursor->Offset);
+		PrintNode(ti, "Pos=%s", Cursor->Pos.GetStr());
+		PrintNode(ti, "LineHint=%i", Cursor->LineHint);
+		PrintNode(ti, "Blk=%i", Cursor->Blk ? Blocks.IndexOf(Cursor->Blk) : -2);
+		Root->Insert(ti);
+	}
+	if (Selection)
+	{
+		GTreeItem *ti = new GTreeItem;
+		ti->SetText("Selection");
+		PrintNode(ti, "Offset=%i", Selection->Offset);
+		PrintNode(ti, "Pos=%s", Selection->Pos.GetStr());
+		PrintNode(ti, "LineHint=%i", Selection->LineHint);
+		PrintNode(ti, "Blk=%i", Selection->Blk ? Blocks.IndexOf(Selection->Blk) : -2);
+		Root->Insert(ti);
+	}
+
+	for (unsigned i=0; i<Blocks.Length(); i++)
+	{
+		GTreeItem *ti = new GTreeItem;
+		Block *b = Blocks[i];
+		b->DumpNodes(ti);
+
+		GString s;
+		s.Printf("[%i] %s", i, ti->GetText());
+		ti->SetText(s);
+
+		Root->Insert(ti);
+	}
+}
+
+GTreeItem *PrintNode(GTreeItem *Parent, const char *Fmt, ...)
+{
+	GTreeItem *i = new GTreeItem;
+	GString s;
+
+	va_list Arg;
+	va_start(Arg, Fmt);
+	int Ch = s.Printf(Arg, Fmt);
+	va_end(Arg);
+
+	i->SetText(s);
+	Parent->Insert(i);
+	return i;
+}
+
+#endif

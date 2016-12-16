@@ -129,6 +129,7 @@ GRichTextEdit::GRichTextEdit(	int Id,
 
 	// setup window
 	SetId(Id);
+	SetTabStop(true);
 
 	// default options
 	#if WINNATIVE
@@ -564,9 +565,9 @@ int GRichTextEdit::GetLine()
 	}
 	else
 	{
-		int BlockLine;
+		GArray<int> BlockLine;
 		if (d->Cursor->Blk->OffsetToLine(d->Cursor->Offset, NULL, &BlockLine))
-			Count += BlockLine;
+			Count += BlockLine.First();
 		else
 		{
 			// Hmmm...
@@ -616,12 +617,13 @@ bool GRichTextEdit::GetLineColumnAtIndex(GdcPt2 &Pt, int Index)
 	if (!b)
 		return false;
 
-	int Cols, Lines;
+	int Cols;
+	GArray<int> Lines;
 	if (b->OffsetToLine(Offset, &Cols, &Lines))
 		return false;
 	
 	Pt.x = Cols;
-	Pt.y = BlockLines + Lines;
+	Pt.y = BlockLines + Lines.First();
 	return true;
 }
 
@@ -1694,29 +1696,46 @@ bool GRichTextEdit::OnKey(GKey &k)
 				if (!k.Down())
 					return true;
 
+				bool Changed = false;
 				GRichTextPriv::Block *b;
 				if (HasSelection())
 				{
 					if (k.Shift())
-						Cut();
+						Changed |= Cut();
 					else
-						DeleteSelection();
+						Changed |= DeleteSelection();
 				}
 				else if (d->Cursor &&
 						(b = d->Cursor->Blk))
 				{
-					if (d->Cursor->Offset < b->Length() - 1)
+					if (d->Cursor->Offset >= b->Length())
 					{
-						if (b->DeleteAt(d->Cursor->Offset, 1))
-							Invalidate();
+						// Get the next block instead
+						b = d->Next(b);
+						if (!b)
+							break;
+						d->Cursor.Reset(new GRichTextPriv::BlockCursor(b, 0, 0));
 					}
-					else
+
+					if (b->DeleteAt(d->Cursor->Offset, 1))
 					{
-						LgiTrace("%s:%i - Impl deleting char from next block\n", _FL);
+						if (b->Length() == 0)
+						{
+							GRichTextPriv::Block *n = d->Next(b);
+							if (n)
+							{
+								d->Blocks.Delete(b, true);
+								d->Cursor.Reset(new GRichTextPriv::BlockCursor(n, 0, 0));
+							}
+						}
+
+						Changed = true;
+						Invalidate();
 					}
 				}
 						
-				SendNotify(GNotifyDocChanged);
+				if (Changed)
+					SendNotify(GNotifyDocChanged);
 				return true;
 			}
 			default:
@@ -2088,6 +2107,14 @@ bool GRichTextEdit::OnLayout(GViewLayoutInfo &Inf)
 
 	return true;
 }
+
+#if _DEBUG
+void GRichTextEdit::DumpNodes(GTree *Root)
+{
+	d->DumpNodes(Root);
+}
+#endif
+
 
 ///////////////////////////////////////////////////////////////////////////////
 SelectColour::SelectColour(GRichTextPriv *priv, GdcPt2 p, GRichTextEdit::RectType t) : GPopup(priv->View)
