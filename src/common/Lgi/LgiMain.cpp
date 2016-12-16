@@ -233,6 +233,11 @@ int main(int Args, char **Arg)
 		AppArgs.Arg = &a[0];
 		AppArgs.Args = a.Length();
 		
+		for (int i=0; i<AppArgs.Args; i++)
+		{
+			printf("[%i]=%s\n", i, AppArgs.Arg[i]);
+		}
+		
 	#endif
 	
 	if (_BuildCheck())

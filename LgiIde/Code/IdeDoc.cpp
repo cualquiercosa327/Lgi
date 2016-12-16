@@ -952,7 +952,7 @@ public:
 			int PadPx = GetTopPaddingPx();
 			GRect r = Ln->r;
 			r.Offset(0, -ScrollYPixel() + PadPx);
-			LgiTrace("%s:%i - r=%s\n", _FL, r.GetStr());
+			// LgiTrace("%s:%i - r=%s\n", _FL, r.GetStr());
 			Invalidate(&r);
 		}
 	}
@@ -2183,6 +2183,8 @@ void IdeDoc::SetLine(int Line, bool CurIp)
 	{
 		GString CurDoc = GetFileName();
 		
+		printf("SetLine %i %i\n", Line, CurIp);
+		
 		if (ValidStr(CurIpDoc) ^ ValidStr(CurDoc)
 			||
 			(CurIpDoc && CurDoc && strcmp(CurDoc, CurIpDoc) != 0)
@@ -2199,7 +2201,7 @@ void IdeDoc::SetLine(int Line, bool CurIp)
 			CurIpLine = Line;
 			CurIpDoc = CurDoc;
 			
-			LgiTrace("%s:%i - CurIpLine=%i\n", _FL, CurIpLine);
+			// LgiTrace("%s:%i - CurIpLine=%i\n", _FL, CurIpLine);
 			d->Edit->InvalidateLine(CurIpLine - 1);
 		}
 	}

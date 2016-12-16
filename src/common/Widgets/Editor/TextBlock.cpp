@@ -779,7 +779,7 @@ int GRichTextPriv::TextBlock::GetLines()
 	return Layout.Length();
 }
 
-bool GRichTextPriv::TextBlock::OffsetToLine(int Offset, int *ColX, int *LineY)
+bool GRichTextPriv::TextBlock::OffsetToLine(int Offset, int *ColX, GArray<int> *LineY)
 {
 	if (LayoutDirty)
 		return false;
@@ -791,30 +791,25 @@ bool GRichTextPriv::TextBlock::OffsetToLine(int Offset, int *ColX, int *LineY)
 		return true;
 	}
 
-	TextLine *tl = NULL;
+	bool Found = false;
 	int Pos = 0;
+
 	for (unsigned i=0; i<Layout.Length(); i++)
 	{
-		tl = Layout[i];
+		TextLine *tl = Layout[i];
 		int Len = tl->Length();
 
-		if (Offset >= Pos && Offset < Pos + Len)
+		if (Offset >= Pos && Offset <= Pos + Len)
 		{
 			if (ColX) *ColX = Offset - Pos;
-			if (LineY) *LineY = i;
-			return true;
+			if (LineY) LineY->Add(i);
+			Found = true;
 		}
 		
 		Pos += Len;
 	}
 
-	if (!tl)
-		return false;
-
-	if (ColX) *ColX = tl->Length();
-	if (LineY) *LineY = Layout.Length() - 1;
-
-	return true;
+	return Found;
 }
 
 int GRichTextPriv::TextBlock::LineToOffset(int Line)
@@ -848,7 +843,7 @@ int GRichTextPriv::TextBlock::DeleteAt(int BlkOffset, int Chars, GArray<char16> 
 		LgiTrace("%p/%i: '%.*S'\n", Txt[i], i, Txt[i]->Length(), &(*Txt[i])[0]);
 	#endif
 	
-	for (unsigned i=0; i<Txt.Length(); i++)
+	for (unsigned i=0; i<Txt.Length() && Chars > 0; i++)
 	{
 		StyleText *t = Txt[i];
 		int TxtOffset = BlkOffset - Pos;
@@ -896,6 +891,9 @@ int GRichTextPriv::TextBlock::DeleteAt(int BlkOffset, int Chars, GArray<char16> 
 		if (t)
 			Pos += t->Length();
 	}
+
+	if (Deleted > 0)
+		LayoutDirty = true;
 
 	IsValid();
 
@@ -1297,3 +1295,49 @@ bool GRichTextPriv::TextBlock::Seek(SeekType To, BlockCursor &Cur)
 	return false;
 }
 	
+#ifdef _DEBUG
+void GRichTextPriv::TextBlock::DumpNodes(GTreeItem *Ti)
+{
+	GString s;
+	s.Printf("TextBlock style=%s", Style?Style->Name.Get():NULL);
+	Ti->SetText(s);
+
+	GTreeItem *TxtRoot = PrintNode(Ti, "Txt(%i)", Txt.Length());
+	if (TxtRoot)
+	{
+		int Pos = 0;
+		for (unsigned i=0; i<Txt.Length(); i++)
+		{
+			StyleText *St = Txt[i];
+			int Len = St->Length();
+			GTreeItem *TxtElem = PrintNode(TxtRoot, "[%i] range=%i-%i, len=%i, style=%s, '%.20S'",
+				i,
+				Pos, Pos + Len - 1,
+				Len,
+				St->GetStyle() ? St->GetStyle()->Name.Get() : NULL,
+				St->At(0));
+			Pos += Len;
+		}
+	}
+
+	GTreeItem *LayoutRoot = PrintNode(Ti, "Layout(%i)", Layout.Length());
+	if (LayoutRoot)
+	{
+		for (unsigned i=0; i<Layout.Length(); i++)
+		{
+			TextLine *Tl = Layout[i];
+			GTreeItem *Elem = PrintNode(LayoutRoot, "[%i] len=%i", i, Tl->Length());
+			for (unsigned n=0; n<Tl->Strs.Length(); n++)
+			{
+				DisplayStr *Ds = Tl->Strs[n];
+				GNamedStyle *Style = Ds->Src ? Ds->Src->GetStyle() : NULL;
+				PrintNode(Elem, "[%i] style=%s len=%i txt='%.20S'",
+					n,
+					Style ? Style->Name.Get() : NULL,
+					Ds->Length(),
+					(const char16*) (*Ds));
+			}
+		}
+	}
+}
+#endif

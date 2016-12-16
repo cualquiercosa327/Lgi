@@ -463,7 +463,7 @@ public:
 		virtual bool OnLayout(Flow &f) = 0;
 		virtual void OnPaint(PaintContext &Ctx) = 0;
 		virtual bool ToHtml(GStream &s) = 0;
-		virtual bool OffsetToLine(int Offset, int *ColX, int *LineY) = 0;
+		virtual bool OffsetToLine(int Offset, int *ColX, GArray<int> *LineY) = 0;
 		virtual int LineToOffset(int Line) = 0;
 		virtual int GetLines() = 0;
 		virtual int FindAt(int StartIdx, const char16 *Str, GFindReplaceCommon *Params) = 0;
@@ -502,6 +502,10 @@ public:
 
 		virtual void Dump() {}
 		virtual GNamedStyle *GetStyle() = 0;
+
+		#ifdef _DEBUG
+		virtual void DumpNodes(GTreeItem *Ti) = 0;
+		#endif
 	};
 
 	struct BlockCursor
@@ -535,6 +539,10 @@ public:
 		BlockCursor &operator =(const BlockCursor &c);
 		void Set(int off);
 		void Set(Block *b, int off, int line);
+
+		#ifdef _DEBUG
+		void DumpNodes(GTreeItem *Ti);
+		#endif
 	};
 	
 	GAutoPtr<BlockCursor> Cursor, Selection;
@@ -615,6 +623,10 @@ public:
 			
 			PosOff.y2 = PosOff.y1 + HtPx - 1;
 		}
+
+		#ifdef _DEBUG
+		void DumpNodes(GTreeItem *Ti);
+		#endif
 	};
 	
 	class TextBlock : public Block
@@ -637,7 +649,7 @@ public:
 		bool IsValid();
 
 		int GetLines();
-		bool OffsetToLine(int Offset, int *ColX, int *LineY);
+		bool OffsetToLine(int Offset, int *ColX, GArray<int> *LineY);
 		int LineToOffset(int Line);
 		GRect GetPos() { return Pos; }
 		void Dump();
@@ -656,9 +668,15 @@ public:
 		bool ChangeStyle(int Offset, int Chars, GCss *Style, bool Add);
 		bool Seek(SeekType To, BlockCursor &Cursor);
 		int FindAt(int StartIdx, const char16 *Str, GFindReplaceCommon *Params);
+
+		#ifdef _DEBUG
+		void DumpNodes(GTreeItem *Ti);
+		#endif
 	};
 	
 	GArray<Block*> Blocks;
+	Block *Next(Block *b);
+	Block *Prev(Block *b);
 
 	void InvalidateDoc(GRect *r);
 	void ScrollTo(GRect r);
@@ -745,7 +763,15 @@ public:
 	bool ToHtml();
 	void DumpBlocks();
 	bool FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentStyle = NULL, int Depth = 0);
+
+	#ifdef _DEBUG
+	void DumpNodes(GTree *Root);
+	#endif
 };
+
+#ifdef _DEBUG
+GTreeItem *PrintNode(GTreeItem *Parent, const char *Fmt, ...);
+#endif
 
 
 #endif

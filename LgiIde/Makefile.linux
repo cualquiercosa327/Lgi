@@ -1298,8 +1298,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GDisplayString.h \
 	../include/common/GSkinEngine.h \
 	../include/common/GScrollBar.h \
-	../include/common/GEdit.h \
-	/usr/include/gtk-2.0/gtk/gtkcontainer.h
+	../include/common/GEdit.h
 
 ../../../../../../usr/include/glib-2.0/glib/gnode.h : /usr/include/glib-2.0/glib/gmem.h
 

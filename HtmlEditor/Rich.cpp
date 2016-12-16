@@ -144,7 +144,6 @@ public:
 			AttachChildren();
 			Pour();
 			Visible(true);
-			SetPulse(200);
 
 			if (Edit)
 				Edit->Focus(true);
@@ -164,6 +163,10 @@ public:
 				break;
 			case IDC_TO_NODES:
 				Tabs->Value(1);
+				#ifdef _DEBUG
+				Tree->Empty();
+				Edit->DumpNodes(Tree);
+				#endif
 				break;
 			case IDC_VIEW_IN_BROWSER:
 			{
@@ -206,23 +209,6 @@ public:
 		return 0;
 	}
 	
-	void OnPulse()
-	{
-		uint64 Now = LgiCurrentTime();
-		if (LastChange != 0 && Now - LastChange > 1500)
-		{
-			LastChange = 0;
-			
-			if (Txt)
-				Txt->Name(Edit->Name());
-			
-			#ifdef _RICH_EDIT_H_
-			if (Edit && Tree)
-				Edit->DumpNodes(Tree);
-			#endif
-		}
-	}
-
 	void OnReceiveFiles(GArray<char*> &Files)
 	{
 		if (Edit && Files.Length() > 0)

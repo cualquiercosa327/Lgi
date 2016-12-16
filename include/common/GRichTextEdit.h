@@ -9,6 +9,9 @@
 #include "GUndo.h"
 #include "GDragAndDrop.h"
 #include "GCapabilities.h"
+#if _DEBUG
+#include "GTree.h"
+#endif
 
 extern char Delimiters[];
 
@@ -192,6 +195,10 @@ public:
 	virtual void OnEnter(GKey &k);
 	virtual void OnUrl(char *Url);
 	virtual void DoContextMenu(GMouse &m);
+
+	#if _DEBUG
+	void DumpNodes(GTree *Root);
+	#endif
 };
 
 #endif
