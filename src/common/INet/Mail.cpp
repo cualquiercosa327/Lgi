@@ -193,10 +193,19 @@ void TokeniseStrList(char *Str, List<char> &Output, const char *Delim)
 					// handle string constant
 					char delim = *e++;
 					e = strchr(e, delim);
+					if (!e)
+						break;
 				}
 				else if (*e == '<')
 				{
 					e = strchr(e, '>');
+					if (!e)
+						break;
+				}
+				else
+				{
+					while (*e && *e != '<' && !IsWhiteSpace(*e) && !strchr(Delim, *e))
+						e++;
 				}
 
 				if (strchr(Delim, *e))
@@ -205,7 +214,7 @@ void TokeniseStrList(char *Str, List<char> &Output, const char *Delim)
 				}
 			}
 
-			int Len = e - s;
+			int Len = e ? e - s : strlen(s);
 			if (Len > 0)
 			{
 				char *Temp = new char[Len+1];
@@ -217,8 +226,12 @@ void TokeniseStrList(char *Str, List<char> &Output, const char *Delim)
 				}
 			}
 
-			s = e;
-			for (; *s && strchr(Delim, *s); s++);
+			if (e)
+			{
+				s = e;
+				for (; *s && strchr(Delim, *s); s++);
+			}
+			else break;
 		}
 	}
 }

@@ -793,14 +793,13 @@ public:
 		GString s;
 		if (Str)
 		{
-			char *c = Str->Str;
 			int start_idx = start < 0 ? Str->Len + start + 1 : start;
-			int end_idx = end < 0 ? Str->Len + end + 1 : end;
-			if (end_idx > Str->Len)
-				end_idx = Str->Len;
-			
-			if (start_idx >= 0 && end_idx > start_idx)
-				s.Set(c + start_idx, end_idx - start_idx);
+			if (start_idx >= 0 && (uint32)start_idx < Str->Len)
+			{
+				int end_idx = end < 0 ? Str->Len + end + 1 : end;
+				if (end_idx >= start_idx && (uint32)end_idx <= Str->Len)
+					s.Set(Str->Str + start_idx, end_idx - start_idx);
+			}
 		}
 		return s;
 	}
