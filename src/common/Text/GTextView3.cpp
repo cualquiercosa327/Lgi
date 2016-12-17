@@ -980,6 +980,17 @@ bool GTextView3::InsertStyle(GAutoPtr<GStyle> s)
 	int Last = 0;
 	int n = 0;
 
+	if (Style.Length() > 0)
+	{
+		// Optimize for last in the list
+		GStyle *Last = Style.Last();
+		if (s->Start >= Last->Start + Last->Len)
+		{
+			Style.Insert(s.Release());
+			return true;
+		}
+	}
+
 	for (GStyle *i=Style.First(); i; i=Style.Next(), n++)
 	{
 		if (s->Overlap(i))

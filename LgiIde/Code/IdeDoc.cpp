@@ -831,7 +831,6 @@ public:
 	{
 		switch (Msg->Msg())
 		{
-			case 
 		}
 		
 		return 0;
@@ -1131,6 +1130,7 @@ public:
 
 	void StyleCpp(int Start, int EditSize)
 	{
+		// uint64 StartTs = LgiMicroTime();
 		char16 *e = Text + Size;
 		
 		Style.DeleteObjects();
@@ -1368,6 +1368,9 @@ public:
 				}
 			}
 		}
+
+		// uint64 EndTs = LgiMicroTime();
+		// LgiTrace("PourCpp = %g ms\n", (double)(EndTs - StartTs) / 1000.0);
 	}
 
 	void StylePython(int Start, int EditSize)

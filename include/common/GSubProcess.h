@@ -21,7 +21,12 @@
 #ifndef _SUB_PROCESS_H_
 #define _SUB_PROCESS_H_
 
+#ifdef WIN32
+#define USE_SIMPLE_FORK		0
+#else
 #define USE_SIMPLE_FORK		1
+#endif
+
 #if USE_SIMPLE_FORK
 #include <stdio.h>
 #endif

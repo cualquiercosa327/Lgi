@@ -7,7 +7,7 @@
 
 class GEventTargetThread;
 
-class GEventSinkPtr : public GEventSinkI, public GMutex
+class LgiClass GEventSinkPtr : public GEventSinkI, public GMutex
 {
 	friend class GEventTargetThread;
 	bool OwnPtr;
@@ -53,7 +53,7 @@ public:
 
 /// This class is a worker thread that accepts messages on it's GEventSinkI interface.
 /// To use, sub class and implement the OnEvent handler.
-class GEventTargetThread :
+class LgiClass GEventTargetThread :
 	public GThread,
 	public GMutex,
 	public GEventSinkI,
@@ -160,37 +160,6 @@ public:
 	}
 };
 
-GEventSinkPtr::GEventSinkPtr(GEventTargetThread *p, bool own)
-{
-	Ptr = p;
-	OwnPtr = own;
-	if (p && p->Lock(_FL))
-	{
-		p->Ptrs.Add(this);
-		p->Unlock();
-	}
-}
-
-GEventSinkPtr::~GEventSinkPtr()
-{
-	if (Lock(_FL))
-	{
-		GEventTargetThread *tt = dynamic_cast<GEventTargetThread*>(Ptr);
-		if (tt)
-		{
-			if (tt->Lock(_FL))
-			{
-				if (!tt->Ptrs.Delete(this))
-					LgiAssert(0);
-				tt->Unlock();
-			}
-		}
-
-		if (OwnPtr)
-			delete Ptr;
-		Ptr = NULL;
-	}
-}
 
 
 #endif

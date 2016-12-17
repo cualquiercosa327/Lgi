@@ -1,4 +1,5 @@
 #include "Lgi.h"
+#include "GEventTargetThread.h"
 
 //////////////////////////////////////////////////////////////////////////////////
 GThreadTarget::GThreadTarget()
@@ -142,5 +143,38 @@ GThreadOwner::~GThreadOwner()
 		if (Worker)
 			Worker->Detach(this);
 		Unlock();
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+GEventSinkPtr::GEventSinkPtr(GEventTargetThread *p, bool own)
+{
+	Ptr = p;
+	OwnPtr = own;
+	if (p && p->Lock(_FL))
+	{
+		p->Ptrs.Add(this);
+		p->Unlock();
+	}
+}
+
+GEventSinkPtr::~GEventSinkPtr()
+{
+	if (Lock(_FL))
+	{
+		GEventTargetThread *tt = dynamic_cast<GEventTargetThread*>(Ptr);
+		if (tt)
+		{
+			if (tt->Lock(_FL))
+			{
+				if (!tt->Ptrs.Delete(this))
+					LgiAssert(0);
+				tt->Unlock();
+			}
+		}
+
+		if (OwnPtr)
+			delete Ptr;
+		Ptr = NULL;
 	}
 }

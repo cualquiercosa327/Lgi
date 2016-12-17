@@ -798,8 +798,15 @@ int GSubProcess::Kill()
 		}
 		else printf("%s:%i - child pid doesn't exist.\n", _FL);
 	#elif defined(WIN32)
-		LgiAssert(!"Impl me.");
+		if (ChildHnd)
+		{
+			TerminateProcess(ChildHnd, -1);
+			ChildHnd = NULL;
+		}
+		else return false;;
 	#endif
+	
+	return true;
 }
 
 int GSubProcess::Read(void *Buf, int Size, int TimeoutMs)
