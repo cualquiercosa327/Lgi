@@ -14,6 +14,7 @@
 #include "GPopupList.h"
 #include "GTableLayout.h"
 #include "ProjectNode.h"
+#include "GEventTargetThread.h"
 
 const char *Untitled = "[untitled]";
 static const char *White = " \r\t\n";
@@ -818,6 +819,24 @@ public:
 		return GPopupList<ProjectNode>::OnNotify(Ctrl, Flags);
 	}
 };
+
+class GStyleThread : public GEventTargetThread
+{
+public:
+	GStyleThread() : GEventTargetThread("StyleThread")
+	{
+	}
+	
+	GMessage::Result OnEvent(GMessage *Msg)
+	{
+		switch (Msg->Msg())
+		{
+			case 
+		}
+		
+		return 0;
+	}	
+}	StyleThread;
 
 class DocEdit : public GTextView3, public GDocumentEnv
 {
@@ -2182,8 +2201,6 @@ void IdeDoc::SetLine(int Line, bool CurIp)
 	if (CurIp)
 	{
 		GString CurDoc = GetFileName();
-		
-		printf("SetLine %i %i\n", Line, CurIp);
 		
 		if (ValidStr(CurIpDoc) ^ ValidStr(CurDoc)
 			||

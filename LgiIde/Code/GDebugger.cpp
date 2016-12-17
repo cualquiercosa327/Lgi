@@ -128,9 +128,11 @@ class Gdb : public GDebugger, public GThread, public Callback
 				CurLine = Line;
 			
 			if (CurFile && CurLine > 0)
-				Events->OnFileLine(CurFile, Line, CurrentIp);
+				Events->OnFileLine(CurFile, CurLine, CurrentIp);
+			/*
 			else
 				printf("%s:%i - Error: Cur loc incomplete: %s %i.\n", _FL, CurFile.Get(), CurLine);
+			*/
 		}
 	}
 
@@ -229,13 +231,13 @@ class Gdb : public GDebugger, public GThread, public Callback
 	
 	void OnBreakPoint(GString f)
 	{
-		if (!f.Get())
+		if (!f.Get() || ProcessId < 0)
+		{
+			// printf("Error: Param error: %s, %i (%s:%i)\n", f.Get(), ProcessId, _FL);
 			return;
+		}
 		
 		GString File, Line;
-		
-		// printf("%s:%i - f='%s'\n", _FL, f.Get());
-		
 		GString::Array a = f.Split("at");
 		/*
 		printf("%s:%i - a.len=%i\n", _FL, a.Length());
@@ -283,20 +285,25 @@ class Gdb : public GDebugger, public GThread, public Callback
 						Line = b[1];
 					}					
 				}
+				else printf("Error: no ':' in '%s'. (%s:%i)\n", k.Get(), _FL);
 			}
 		}
+		else printf("Error: %i parts (%s:%i).\n", a.Length(), _FL);
 
-		// printf("%s:%i - file='%s' line='%s'\n", _FL, File.Get(), Line.Get());
 		if (File && Line > 0)
 		{
 			OnFileLine(NativePath(File), Line.Int(), true);
+		}
+		else
+		{
+			printf("%s:%i - No file='%s' or line='%s'\n%s\n", _FL, File.Get(), Line.Get(), f.Get());
 		}
 	}
 	
 	void OnLine(const char *Start, int Length)
 	{
 		#if DEBUG_SHOW_GDB_IO
-		LgiTrace("Receive: '%.*s'\n", Length-1, Start);
+		LgiTrace("Receive: '%.*s' ParseState=%i, OutLine=%p, OutStream=%p\n", Length-1, Start, ParseState, OutLines, OutStream);
 		#endif
 
 		// Send output
@@ -326,6 +333,7 @@ class Gdb : public GDebugger, public GThread, public Callback
 		{
 			if (Length > 0 && IsDigit(*Start))
 			{
+				// printf("ParsingBp.Parse=%s\n", Start);
 				GString Bp = GString(" ").Join(BreakInfo).Strip();
 				OnBreakPoint(Bp);
 				ParseState = ParseNone;
@@ -333,6 +341,7 @@ class Gdb : public GDebugger, public GThread, public Callback
 			}
 			else
 			{
+				// printf("ParsingBp.Add=%s\n", Start);
 				BreakInfo.New().Set(Start, Length);
 			}
 		}
@@ -391,6 +400,7 @@ class Gdb : public GDebugger, public GThread, public Callback
 					IsDigit(Start[11]))
 			{
 				ParseState = ParseBreakPoint;
+				// printf("ParseState=%i\n", ParseState);
 				BreakInfo.New().Set(Start, Length);
 			}
 			else
@@ -456,22 +466,20 @@ class Gdb : public GDebugger, public GThread, public Callback
 	
 	int Main()
 	{
-		char s[MAX_PATH];
 		#ifdef WIN32
 		const char *Shell = "C:\\Windows\\System32\\cmd.exe";
 		const char *Path = "C:\\MinGW\\bin\\gdb.exe";
 		#else
 		const char *Path = "gdb";
 		#endif
-		const char *ExePath = RunAsAdmin ? "pkexec" : Path;
-		const char *Prefix = RunAsAdmin ? Path : "";
-
-		if (ValidStr(Args))
-			sprintf_s(s, sizeof(s), "%s \"%s\" -- %s", Prefix, Exe.Get(), Args.Get());
+		GString p;
+		if (RunAsAdmin)
+			p.Printf("pkexec %s \"%s\"", Path, Exe.Get());
 		else
-			sprintf_s(s, sizeof(s), "%s \"%s\"", Prefix, Exe.Get());
-		
-		if (!Sp.Reset(new GSubProcess(ExePath, s)))
+			p.Printf("%s \"%s\"", Path, Exe.Get());
+		GString::Array a = p.Split(" ", 1);
+
+		if (!Sp.Reset(new GSubProcess(a[0], a[1])))
 			return false;
 
 		if (InitDir)
@@ -504,11 +512,14 @@ class Gdb : public GDebugger, public GThread, public Callback
 			if (Rd > 0)
 			{
 				#if 0 // DEBUG_SESSION_LOGGING
-				// LgiTrace("%I64i: %p,%p Read(%i)='%.*s'\n", LgiCurrentTime(), OutLines, OutStream, Rd, Rd, Buf);
+				printf("GDB: %.*s\n", Rd, Buf);
 				#endif
 				OnRead(Buf, Rd);
 			}			
 		}
+
+		Break();
+		Cmd("q");
 
 		#if DEBUG_SESSION_LOGGING
 		LgiTrace("Gdb::Main - exited loop.\n");
@@ -818,7 +829,7 @@ public:
 				SetAsmType = true;
 				Cmd("set disassembly-flavor intel");
 			}
-
+			
 			GString a;
 			if (DebuggingProcess)
 				a = "c";
@@ -826,6 +837,52 @@ public:
 				a.Printf("r %s", Args.Get());
 			else
 				a = "r";
+
+			if (a(0) == 'r' && ProcessId < 0)
+			{
+				BreakPoint bp;
+				bp.Symbol = "main";
+				if (SetBreakPoint(&bp))
+				{
+					if (!Cmd(a))
+						return false;
+					
+					if (!WaitPrompt())
+						return false;
+					
+					RemoveBreakPoint(&bp);
+					
+					// Get process info
+					GStringPipe p;
+					if (Cmd("info inferiors", &p))
+					{
+						GString::Array Ln = p.NewGStr().SplitDelimit("\r\n");
+						if (Ln.Length() >= 2)
+						{
+							GString::Array a = Ln[1].SplitDelimit(" \t");
+							for (unsigned i=0; i<a.Length()-1; i++)
+							{
+								if (a[i].Equals("process"))
+								{
+									int Id = a[i+1].Int();
+									if (Id >= 0)
+									{
+										ProcessId = Id;
+									}
+									break;
+								}
+							}
+						}
+					}
+					
+					bool Status = Cmd("c");
+					if (Status)
+						SetState(true, true);
+
+					Log("[ProcessId=%i]\n", ProcessId);
+					return Status;					
+				}
+			}
 
 			if (Cmd(a))
 			{
@@ -857,8 +914,16 @@ public:
 			
 			char cmd[MAX_PATH];
 			char *File = bp.File.Get();
-			char *Last = strrchr(File, DIR_CHAR);
-			sprintf_s(cmd, sizeof(cmd), "break %s:%i", Last ? Last + 1 : File, bp.Line);
+			if (File)
+			{
+				char *Last = strrchr(File, DIR_CHAR);
+				sprintf_s(cmd, sizeof(cmd), "break %s:%i", Last ? Last + 1 : File, bp.Line);
+			}
+			else if (bp.Symbol)
+			{
+				sprintf_s(cmd, sizeof(cmd), "break %s", bp.Symbol.Get());
+			}
+			else return false;
 			
 			BreakPointIdx = 0;
 			

@@ -497,6 +497,13 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 			Gtk::g_idle_add(IdleWrapper, &idle);
 			#endif
 		}
+
+		static bool CmdLineDone = false;
+		if (!CmdLineDone)
+		{
+			CmdLineDone = true;
+			OnCommandLine();
+		}
 		
 		Gtk::gtk_main();
 	}
@@ -1296,10 +1303,7 @@ bool GMessage::Send(GtkWidget *Wnd)
 		    g_idle_add((GSourceFunc)GlibPostMessage, p);
 		    Status = true;
 	    }
-	    else
-	    {
-	    	printf("GMessage::Send error: %s not attached.\n", G_OBJECT_TYPE_NAME(Wnd));
-	    }
+	    // else printf("GMessage::Send error: %s not attached.\n", G_OBJECT_TYPE_NAME(Wnd));
 	}
 	else LgiAssert(!"No Event or Wnd");
 

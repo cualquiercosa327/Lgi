@@ -431,8 +431,7 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 			if (!c.Reset(new BlockCursor(*In)))
 				break;
 
-			int Len = c->Blk->Length();
-			if (c->Offset < Len)
+			if (c->Offset < c->Blk->Length())
 			{
 				GArray<int> Ln;
 				if (c->Blk->OffsetToLine(c->Offset, NULL, &Ln) &&

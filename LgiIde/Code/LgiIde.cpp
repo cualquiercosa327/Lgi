@@ -1754,7 +1754,7 @@ IdeDoc *AppWnd::GotoReference(const char *File, int Line, bool CurIp, bool WithH
 		d->InHistorySeek = true;
 
 	IdeDoc *Doc = File ? OpenFile(File) : GetCurrentDoc();
-	printf("%s:%i Doc=%p\n", _FL, Doc);
+	// printf("Goto Doc=%p %s:%i\n", Doc, File, Line);
 	if (Doc)
 	{
 		Doc->SetLine(Line, CurIp);
@@ -2221,7 +2221,6 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 		}
 		case IDC_DEBUG_TAB:
 		{
-			printf("notify IDC_DEBUG_TAB %i %i\n", Flags == GNotifyValueChanged, (int)Ctrl->Value());
 			if (d->DbgContext && Flags == GNotifyValueChanged)
 			{
 				switch (Ctrl->Value())

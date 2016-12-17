@@ -648,7 +648,7 @@ public:
 							e->Name(Rel ? Rel : s.Name());
 						}
 					}
-					else LgiTrace("%s:%i - Failed to find editbox: %i\n", _FL, i);
+					//       else LgiTrace("%s:%i - Failed to find editbox: %i\n", _FL, i);
 				}
 				break;
 			}

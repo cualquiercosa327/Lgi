@@ -23,9 +23,14 @@ public:
 	struct BreakPoint
 	{
 		int Index;
+		bool Added;
+
+		// Use File:Line
 		GString File;
 		int Line;
-		bool Added;
+		// -or-
+		// A symbol reference
+		GString Symbol;
 		
 		BreakPoint()
 		{
@@ -39,13 +44,15 @@ public:
 			Index = b.Index;
 			File = b.File;
 			Line = b.Line;
+			Symbol = b.Symbol;
 			return *this;
 		}
 		
 		bool operator ==(const BreakPoint &b)
 		{
 			if (File == b.File &&
-				Line == b.Line)
+				Line == b.Line &&
+				Symbol == b.Symbol)
 				return true;
 			
 			return false;

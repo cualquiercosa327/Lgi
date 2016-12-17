@@ -742,7 +742,7 @@ void GDebugContext::OnFileLine(const char *File, int Line, bool CurrentIp)
 		return;
 	}
 	
-	if (!File && Line < 1)
+	if (!File || Line < 1)
 	{
 		LgiTrace("%s:%i - Error: No File or Line... one or both must be valid.\n", _FL);
 		LgiAssert(!"Invalid Param");
