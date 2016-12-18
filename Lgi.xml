@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project>
 	<Node Name="Source Files" Type="1" Platforms="15" Open="1">
-		<Node Name="Core" Type="1" Platforms="15" Open="0">
+		<Node Name="Core" Type="1" Platforms="15" Open="1">
 			<Node Name="DateTime" Type="1" Platforms="15" Open="0">
 				<Node File="./src/common/General/GDateTime.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GDateTime.h" Type="3" Platforms="15" />
@@ -46,7 +46,7 @@
 					<Node File="./src/beos/Lgi/GWindow.cpp" Type="2" Platforms="8" />
 				</Node>
 				<Node Name="Linux" Type="1" Platforms="15" Open="0">
-					<Node Name="Headers" Type="1" Platforms="15" Open="0">
+					<Node Name="Headers" Type="1" Platforms="15" Open="1">
 						<Node File="./include/linux/Gtk/LgiOsClasses.h" Type="3" Platforms="2" />
 						<Node File="./include/linux/Gtk/LgiOsDefs.h" Type="3" Platforms="2" />
 					</Node>
@@ -55,6 +55,7 @@
 					<Node File="./src/linux/Lgi/GView.cpp" Type="2" Platforms="2" />
 					<Node File="./src/linux/Lgi/GWindow.cpp" Type="2" Platforms="2" />
 					<Node File="./src/linux/Gtk/LgiWidget.cpp" Type="2" Platforms="2" />
+					<Node File="./include/linux/Gtk/LgiWidget.h" Type="3" Platforms="15" />
 				</Node>
 				<Node Name="Win32" Type="1" Platforms="15" Open="0">
 					<Node File="./src/win32/Lgi/GApp.cpp" Type="2" Platforms="1" />
@@ -126,16 +127,17 @@
 				<Node File=".\src\common\Lgi\GStream.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GStream.h" Type="3" Platforms="15" />
 			</Node>
-			<Node Name="Threads" Type="1" Platforms="15" Open="0">
+			<Node Name="Threads" Type="1" Platforms="15" Open="1">
 				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
 					<Node File=".\src\beos\Lgi\GThread.cpp" Type="2" Platforms="8" />
 				</Node>
-				<Node Name="Linux" Type="1" Platforms="15" Open="1">
+				<Node Name="Linux" Type="1" Platforms="15" Open="0">
 					<Node File="./src/linux/Lgi/GThread.cpp" Type="2" Platforms="2" />
 				</Node>
 				<Node Name="Win32" Type="1" Platforms="15" Open="0">
 					<Node File=".\src\win32\Lgi\GThread.cpp" Type="2" Platforms="1" />
 				</Node>
+				<Node File="./include/common/GEventTargetThread.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Lgi/GMutex.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GMutex.h" Type="3" Platforms="15" />
 				<Node File="./include/common/GThread.h" Type="3" Platforms="15" />
@@ -212,7 +214,7 @@
 				<Node File="./include/common/GRect.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Surfaces" Type="1" Platforms="15" Open="0">
-				<Node Name="Haiku" Type="1" Platforms="15" Open="1">
+				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
 					<Node File="./src/beos/Gdc2/GMemDC.cpp" Type="2" Platforms="8" />
 					<Node File="./src/beos/Gdc2/GPrintDC.cpp" Type="2" Platforms="8" />
 					<Node File="./src/beos/Gdc2/GScreenDC.cpp" Type="2" Platforms="8" />
@@ -286,6 +288,7 @@
 				<Node File="./src/common/Widgets/GEdit.cpp" Type="2" Platforms="14" />
 				<Node File="./include/common/GEdit.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Widgets/GItemContainer.cpp" Type="2" Platforms="15" />
+				<Node File="./include/common/GItemContainer.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Widgets/GList.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GList.h" Type="3" Platforms="15" />
 				<Node File="./include/common/GListItemCheckBox.h" Type="3" Platforms="15" />
@@ -306,6 +309,7 @@
 				<Node File="./src/common/Widgets/GTextLabel.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GTextLabel.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Text/GTextView3.cpp" Type="2" Platforms="14" />
+				<Node File="./include/common/GTextView3.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Widgets/GToolBar.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GToolBar.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Widgets/GTree.cpp" Type="2" Platforms="15" />
@@ -321,7 +325,7 @@
 				<Node File="./src/beos/Lgi/GLayout.cpp" Type="2" Platforms="8" />
 				<Node File="./src/beos/Lgi/GWidgets.cpp" Type="2" Platforms="8" />
 			</Node>
-			<Node Name="Linux" Type="1" Platforms="15" Open="1">
+			<Node Name="Linux" Type="1" Platforms="15" Open="0">
 				<Node File="./src/linux/Lgi/GLayout.cpp" Type="2" Platforms="2" />
 				<Node File="./src/linux/Lgi/GWidgets.cpp" Type="2" Platforms="2" />
 				<Node File="./include/common/LgiWidgets.h" Type="3" Platforms="15" />
@@ -415,6 +419,7 @@ WINDOWS</Release>
 				<All />
 			</Arguments>
 			<CrossCompiler />
+			<DebugAdmin />
 		</General>
 		<Build>
 			<IncludePaths>

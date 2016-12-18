@@ -14,37 +14,37 @@ class GCapabilityTarget;
 /// to be installed by an external source.
 class LgiClass GCapabilityClient
 {
-    friend class GCapabilityTarget;
-    GArray<GCapabilityTarget*> Targets;
+	friend class GCapabilityTarget;
+	GArray<GCapabilityTarget*> Targets;
 
 public:
-    virtual ~GCapabilityClient();
-    
+	virtual ~GCapabilityClient();
+	
 	/// Call this when you need to fulfill an external dependency.
-    bool NeedsCapability(const char *Name, const char *Param = NULL);
+	bool NeedsCapability(const char *Name, const char *Param = NULL);
 
-    /// Call this to register a target that can install dependencies.
-    void Register(GCapabilityTarget *t);
+	/// Call this to register a target that can install dependencies.
+	void Register(GCapabilityTarget *t);
 };
 
 class LgiClass GCapabilityTarget
 {
-    friend class GCapabilityClient;
-    GArray<GCapabilityClient*> Clients;
+	friend class GCapabilityClient;
+	GArray<GCapabilityClient*> Clients;
 
 public:
 	typedef GHashTbl<const char*, bool> CapsHash;
 
-    virtual ~GCapabilityTarget();
-    
-    /// This is called to install a dependency.
-    virtual bool NeedsCapability(const char *Name, const char *Param) = 0;
-    
-    /// This is called after the dependcy is installed.
-    virtual void OnInstall(CapsHash *Caps, bool Status) = 0;
+	virtual ~GCapabilityTarget();
+	
+	/// This is called to install a dependency.
+	virtual bool NeedsCapability(const char *Name, const char *Param) = 0;
+	
+	/// This is called after the dependcy is installed.
+	virtual void OnInstall(CapsHash *Caps, bool Status) = 0;
 
-    /// This is called if the user closes the capability bar...
-    virtual void OnCloseInstaller() = 0;
+	/// This is called if the user closes the capability bar...
+	virtual void OnCloseInstaller() = 0;
 };
 
 #endif

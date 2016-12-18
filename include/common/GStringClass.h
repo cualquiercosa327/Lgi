@@ -444,25 +444,30 @@ public:
 
 		if (Str && Sep)
 		{
-			const char *s = Get(), *Prev = s;
+			const char *s = Str->Str, *Prev = s;
+			const char *end = s + Str->Len;
 			size_t SepLen = strlen(Sep);
 			
-			while ((s = CaseSen ? strstr(s, Sep) : Stristr(s, Sep)))
+			if (s[Str->Len] == 0)
 			{
-				if (s > Prev)
-					a.New().Set(Prev, s - Prev);
-				s += SepLen;
-				Prev = s;
-				if (Count > 0 && a.Length() >= (uint32)Count)
-					break;
-			}
+				while ((s = CaseSen ? strstr(s, Sep) : Stristr(s, Sep)))
+				{
+					if (s > Prev)
+						a.New().Set(Prev, s - Prev);
+					s += SepLen;
+					Prev = s;
+					if (Count > 0 && a.Length() >= (uint32)Count)
+						break;
+				}
 			
-			if (*Prev)
-				a.New().Set(Prev);
+				if (Prev < end)
+					a.New().Set(Prev, end - Prev);
 
+				a.SetFixedLength();
+			}
+			else assert(!"String not NULL terminated.");
 		}
 
-		a.SetFixedLength();
 		return a;
 	}
 
@@ -564,6 +569,9 @@ public:
 	{
 		GString ret;
 		
+		if (a.Length() == 0)
+			return ret;
+
 		char *Sep = Get();
 		size_t SepLen = Sep ? strlen(Sep) : 0;
 		size_t Bytes = SepLen * (a.Length() - 1);
@@ -793,11 +801,13 @@ public:
 		GString s;
 		if (Str)
 		{
-			char *c = Str->Str;
 			int start_idx = start < 0 ? Str->Len + start + 1 : start;
-			int end_idx = end < 0 ? Str->Len + end + 1 : end;
-			if (start_idx >= 0 && end_idx > start_idx)
-				s.Set(c + start_idx, end_idx - start_idx);
+			if (start_idx >= 0 && (uint32)start_idx < Str->Len)
+			{
+				int end_idx = end < 0 ? Str->Len + end + 1 : end;
+				if (end_idx >= start_idx && (uint32)end_idx <= Str->Len)
+					s.Set(Str->Str + start_idx, end_idx - start_idx);
+			}
 		}
 		return s;
 	}

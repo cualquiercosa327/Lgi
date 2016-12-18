@@ -19,6 +19,7 @@ struct _LgiWidget
 	bool pour_largest;
 	bool drag_over_widget;
 	char *drop_format;
+	bool debug;
 	
 	struct ChildInfo
 	{

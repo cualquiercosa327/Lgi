@@ -827,9 +827,10 @@ GDebugContext *IdeProject::Execute(ExeAction Act)
 			if (FileExists(e))
 			{
 				const char *Args = d->Settings.GetStr(ProjArgs);
+				int RunAsAdmin = d->Settings.GetInt(ProjDebugAdmin);
 				if (Act == ExeDebug)
 				{
-					return new GDebugContext(d->App, this, e, Args);
+					return new GDebugContext(d->App, this, e, Args, RunAsAdmin != 0);
 				}
 				else
 				{

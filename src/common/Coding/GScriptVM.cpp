@@ -270,7 +270,7 @@ GExecutionStatus GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentA
 struct CodeBlock
 {
 	unsigned SrcLine;
-	GArray<int> AsmAddr;
+	GArray<unsigned> AsmAddr;
 	unsigned ViewLine;
 
 	GAutoString Source;

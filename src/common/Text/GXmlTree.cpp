@@ -180,6 +180,11 @@ bool GXmlTree::EncodeEntities(GStreamI *to, char *start, int len, const char *ex
 	if (!start || !to)
 		return 0;
 
+	if (strnistr(start, "<body", len))
+	{
+		int asd=0;
+	}
+
 	int Amp = (d->Flags & GXT_NO_ENTITIES) ? 10000000 : '&';
 
 	for (char *s = start; s && *s;)
@@ -980,7 +985,12 @@ void GXmlTag::ParseAttribute(GXmlTree *Tree, GXmlAlloc *Alloc, char *&t, bool &N
 		{
 			GXmlAttr &At = Attr.New();
 			At.Name = Alloc->Alloc(AttrName, t-AttrName);
-				
+			
+			if (!_stricmp(At.Name, "HtmlReplyFmt"))
+			{
+				int asd=0;
+			}
+			
 			// Skip white
 			SkipWhiteSpace(t);
 			

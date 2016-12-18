@@ -726,7 +726,7 @@ public:
 			/// Constructs a wrapper around a drawable
 			GScreenDC(Gtk::GdkDrawable *Drawable);
 			/// Constructs a DC for drawing on a window
-			GScreenDC(OsView View);
+			///GScreenDC(OsView View);
 			
 			// Gtk::cairo_surface_t *GetSurface(bool Render);
 			GdcPt2 GetSize();
@@ -1089,26 +1089,37 @@ public:
 /// This class is useful for double buffering in an OnPaint handler...
 class GDoubleBuffer
 {
+	GSurface **In;
 	GSurface *Screen;
 	GMemDC Mem;
+	GRect Rgn;
+	bool Valid;
 
 public:
-	GDoubleBuffer(GSurface *&pDC)
+	GDoubleBuffer(GSurface *&pDC, GRect *Sub = NULL) : In(&pDC)
 	{
-		if (pDC &&
-			Mem.Create(pDC->X(), pDC->Y(), pDC->GetColourSpace()))
+		Rgn = Sub ? *Sub : pDC->Bounds();
+		Screen = pDC;
+
+		Valid = pDC && Mem.Create(Rgn.X(), Rgn.Y(), pDC->GetColourSpace());
+		if (Valid)
 		{
-			Screen = pDC;
-			pDC = &Mem;
+			*In = &Mem;
+			if (Sub)
+				pDC->SetOrigin(Sub->x1, Sub->y1);
 		}
-		else
-			Screen = NULL;		
 	}
 	
 	~GDoubleBuffer()
 	{
-		if (Screen)
-			Screen->Blt(0, 0, &Mem);
+		if (Valid)
+		{
+			Mem.SetOrigin(0, 0);
+			Screen->Blt(Rgn.x1, Rgn.y1, &Mem);
+		}
+
+		// Restore state
+		*In = Screen;
 	}
 };
 

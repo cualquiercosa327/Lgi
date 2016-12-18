@@ -200,13 +200,6 @@ GView::~GView()
 	DeleteObj(d);
 }
 
-#ifdef _DEBUG
-void GView::Debug()
-{
-    _Debug = true;
-}
-#endif
-
 GViewIterator *GView::IterateViews()
 {
 	return new GViewIter(this);
@@ -1793,7 +1786,7 @@ bool GView::PostEvent(int Cmd, GMessage::Param a, GMessage::Param b)
 	}
 	else
 	{
-		LgiTrace("%s:%i - No view to post event to.\n", _FL);
+		// LgiTrace("%s:%i - No view to post event to.\n", _FL);
 	}
 	
 	#endif
@@ -2131,3 +2124,33 @@ GView *GViewFactory::Create(const char *Class, GRect *Pos, const char *Text)
 
 	return 0;
 }
+
+#ifdef _DEBUG
+
+#if defined(__GTK_H__)
+using namespace Gtk;
+#include "LgiWidget.h"
+#endif
+
+void GView::Debug()
+{
+    _Debug = true;
+
+	#if defined(__GTK_H__)
+    if (_View)
+    {
+    	if (LGI_IS_WIDGET(_View))
+    	{
+    		LgiWidget *w = LGI_WIDGET(_View);
+    		if (w)
+    		{
+    			w->debug = true;
+    		}
+    		else LgiTrace("%s:%i - NULL widget.\n", _FL);
+    	}
+    	else LgiTrace("%s:%i - Not a widget.\n", _FL);
+    }
+	#endif
+}
+#endif
+

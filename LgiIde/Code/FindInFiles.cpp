@@ -299,7 +299,7 @@ int FindInFilesThread::Main()
 			sprintf(Msg, "in %i files...\n", Files.Length());
 			d->App->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr(Msg), 2);
 			
-			for (int i=0; i<Files.Length(); i++)
+			for (int i=0; i<Files.Length() && d->Loop; i++)
 			{
 				char *f = Files[i];
 				char *Dir = strrchr(f, DIR_CHAR);

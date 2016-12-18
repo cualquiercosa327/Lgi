@@ -306,7 +306,6 @@ GTextView3::GTextView3(	int Id,
 	
 	LineY = 1;
 	MaxX = 0;
-	Blink = true;
 	TextCache = 0;
 	UndoOn = true;
 	Font = 0;
@@ -318,6 +317,7 @@ GTextView3::GTextView3(	int Id,
 	IndentSize = TAB_SIZE;
 	HardTabs = true;
 	CanScrollX = false;
+	Blink = true;
 
 	// setup window
 	SetId(Id);
@@ -979,6 +979,17 @@ bool GTextView3::InsertStyle(GAutoPtr<GStyle> s)
 	LgiAssert(s->Len > 0);
 	int Last = 0;
 	int n = 0;
+
+	if (Style.Length() > 0)
+	{
+		// Optimize for last in the list
+		GStyle *Last = Style.Last();
+		if (s->Start >= Last->Start + Last->Len)
+		{
+			Style.Insert(s.Release());
+			return true;
+		}
+	}
 
 	for (GStyle *i=Style.First(); i; i=Style.Next(), n++)
 	{
@@ -1727,15 +1738,16 @@ void GTextView3::GetTextExtent(int &x, int &y)
 	y = Line.Length() * LineY;
 }
 
-void GTextView3::PositionAt(int &x, int &y, int Index)
+bool GTextView3::GetLineColumnAtIndex(GdcPt2 &Pt, int Index)
 {
 	int FromIndex = 0;
 	GTextLine *From = GetTextLine(Index < 0 ? Cursor : Index, &FromIndex);
-	if (From)
-	{
-		x = Cursor - From->Start;
-		y = FromIndex;
-	}
+	if (!From)
+		return false;
+
+	Pt.x = Cursor - From->Start;
+	Pt.y = FromIndex;
+	return true;
 }
 
 int GTextView3::GetCursor(bool Cur)

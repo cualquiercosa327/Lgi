@@ -287,6 +287,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\common\Widgets\Editor\GRichTextEditPriv.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\common\Widgets\Editor\GRichTextEditPriv.h"
 				>
 			</File>

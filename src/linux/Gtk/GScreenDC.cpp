@@ -22,12 +22,14 @@ public:
 	GColour Col;
 	GRect Client;
 
+	GView *View;
 	OsView v;
 	GdkDrawable *d;
 	GdkGC *gc;
 
 	GScreenPrivate()
 	{
+		View = NULL;
 		x = y = Bits = 0;
 		Own = false;
 		v = 0;
@@ -55,6 +57,7 @@ GScreenDC::GScreenDC()
 	d->y = GdcD->Y();
 }
 
+/*
 GScreenDC::GScreenDC(OsView View)
 {
 	d = new GScreenPrivate;
@@ -74,8 +77,11 @@ GScreenDC::GScreenDC(OsView View)
 		        ColourSpace = GdkVisualToColourSpace(v, v->depth);
 	        }
 	    }
-	}	
+	}
+	
+	// printf("%s:%i %p, %ix%i, %i\n", _FL, View, d->x, d->y, d->Bits);
 }
+*/
 
 GScreenDC::GScreenDC(int x, int y, int bits)
 {
@@ -108,16 +114,31 @@ GScreenDC::GScreenDC(Gtk::GdkDrawable *Drawable)
 GScreenDC::GScreenDC(GView *view, void *param)
 {
 	d = new GScreenPrivate;
+	d->View = view;
 	if (view)
 	{
-		d->x = view->X();
-		d->y = view->Y();
-		d->Bits = 0;
-		d->Own = false;
-
 		OsView v = view->Handle();
 		if (v)
 		{
+			d->v = v;
+			d->d = v->window;	
+			d->x = v->allocation.width;
+			d->y = v->allocation.height;	
+			if (d->gc = gdk_gc_new(v->window))
+			{
+			    GdkScreen *s = gdk_gc_get_screen(d->gc);
+			    if (s)
+			    {
+			        GdkVisual *v = gdk_screen_get_system_visual(s);
+			        if (v)
+			        {
+			            d->Bits = v->depth;
+				        ColourSpace = GdkVisualToColourSpace(v, v->depth);
+			        }
+			    }
+			}
+	
+			/*
 			d->d = v->window;
 			if (d->gc = gdk_gc_new(v->window))
 			{
@@ -132,9 +153,15 @@ GScreenDC::GScreenDC(GView *view, void *param)
 			        }
 			    }
 			}
+			*/
 		}
 		else
 		{
+			d->x = view->X();
+			d->y = view->Y();
+			d->Bits = 0;
+			d->Own = false;
+
 		    GdkScreen *s = gdk_display_get_default_screen(gdk_display_get_default());
 		    if (s)
 		    {
@@ -146,6 +173,10 @@ GScreenDC::GScreenDC(GView *view, void *param)
 		        }
 		    }
 		}
+    }
+    else
+    {
+    	printf("%s:%i - No view?\n", _FL);
     }
 }
 
@@ -161,7 +192,33 @@ OsPainter GScreenDC::Handle()
 	if (!Cairo)
 	{
 		Cairo = gdk_cairo_create(d->d);
+		if (Cairo)
+		{
+			// cairo_reset_clip(Cairo);
+
+			double x1, y1, x2, y2;
+			cairo_clip_extents (Cairo, &x1, &y1, &x2, &y2);
+			
+			int x = (int) (x2 - x1);
+			int y = (int) (y2 - y1);
+			
+			if (d->View &&
+				d->View->_Debug)
+			{
+				int width, height;
+				gdk_drawable_get_size (d->d, &width, &height);
+				
+				printf("%s:%i %s %g,%g,%g,%g %i,%i  %i,%i  %i,%i\n",
+					_FL,
+					d->View ? d->View->GetClass() : NULL,
+					x1,y1,x2,y2,
+					x,y,
+					d->x, d->y,
+					width, height);
+			}
+		}
 	}
+	
 	return Cairo;
 }
 

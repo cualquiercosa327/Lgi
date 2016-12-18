@@ -886,7 +886,9 @@ GDebugger.o : ./Code/GDebugger.cpp ../include/common/Lgi.h \
 	./Code/GDebugger.h \
 	../include/common/GSubProcess.h \
 	../include/common/GToken.h \
-	../include/common/GDocView.h
+	../include/common/GDocView.h \
+	../include/common/GStringClass.h \
+	../include/common/GString.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -1295,7 +1297,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GItemContainer.h \
 	../include/common/GDisplayString.h \
 	../include/common/GSkinEngine.h \
-	../include/common/GScrollBar.h
+	../include/common/GScrollBar.h \
+	../include/common/GEdit.h
 
 ../../../../../../usr/include/glib-2.0/glib/gnode.h : /usr/include/glib-2.0/glib/gmem.h
 
@@ -1442,7 +1445,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GTableLayout.h \
 	../include/common/GButton.h \
 	../include/common/GCss.h \
-	../include/common/LgiRes.h
+	../include/common/LgiRes.h \
+	../include/linux/Gtk/LgiWidget.h
 
 ../include/common/GViewPriv.h : 
 
@@ -2293,7 +2297,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../src/common/Widgets/GList.cpp : ../include/common/Lgi.h \
 	../include/common/GSkinEngine.h \
 	../include/common/GList.h \
-	../include/common/GEdit.h \
 	../include/common/GScrollBar.h \
 	../include/common/GDisplayString.h \
 	../include/common/LgiRes.h

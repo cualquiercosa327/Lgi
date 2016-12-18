@@ -270,8 +270,8 @@ public:
 	_TvMenuProp(int, DocumentUid)
 	#undef _TvMenuProp
 
-	const char *GetCharset() { return Charset ? Charset.Get() : "utf-8"; }
-	void SetCharset(const char *s) { Charset.Reset(NewStr(s)); }
+	virtual const char *GetCharset() { return Charset ? Charset.Get() : "utf-8"; }
+	virtual void SetCharset(const char *s) { Charset.Reset(NewStr(s)); }
 	virtual const char *GetMimeType() = 0;
 
 	///////////////////////////////////////////////////////////////////////
@@ -361,7 +361,7 @@ public:
 	virtual int IndexAt(int x, int y) { return 0; }
 
 	/// Index=-1 returns the x,y of the cursor, Index >=0 returns the specified x,y
-	virtual void PositionAt(int &x, int &y, int Index = -1) { }
+	virtual bool GetLineColumnAtIndex(GdcPt2 &Pt, int Index = -1) { return false; }
 
 	/// True if the document has changed
 	virtual bool IsDirty() { return false; }

@@ -463,7 +463,36 @@ bool GTreeItem::IsDropTarget()
 
 GRect *GTreeItem::GetPos(int Col)
 {
-	return &d->Pos;
+	if (!d->Pos.Valid() && Tree)
+		Tree->_Pour();
+
+	static GRect r;
+
+	r = d->Pos;
+
+	if (Col >= 0)
+	{
+		GItemColumn *Column = 0;
+
+		int Cx = Tree->GetImageList() ? 16 : 0;
+		for (int c=0; c<Col; c++)
+		{
+			Column = Tree->ColumnAt(c);
+			if (Column)
+			{
+				Cx += Column->Width();
+			}
+		}
+		Column = Tree->ColumnAt(Col);
+
+		if (Column)
+		{
+			r.x1 = Cx;
+			r.x2 = Cx + Column->Width() - 1;
+		}
+	}
+
+	return &r;
 }
 
 void GTreeItem::_RePour()
@@ -1175,6 +1204,8 @@ void GTree::_OnSelect(GTreeItem *Item)
 	(
 		!MultiSelect()
 		||
+		!d->CurrentClick
+		||
 		(
 			d->CurrentClick 
 			&&
@@ -1459,6 +1490,16 @@ bool GTree::OnKey(GKey &k)
 				Status = true;
 				break;
 			}
+			case VK_DELETE:
+			{
+				if (k.Down())
+				{
+					SendNotify(GNotify_DeleteKey);
+					// This might delete the item... so just return here.
+					return true;
+				}
+				break;
+			}
 			#ifdef VK_APPS
 			case VK_APPS:
 			{
@@ -1587,6 +1628,10 @@ void GTree::OnMouseClick(GMouse &m)
 				m.x += c.x;
 				m.y += c.y;
 				d->LastHit->_MouseClick(m);
+			}
+			else
+			{
+				SendNotify(GNotifyContainer_Click);
 			}
 		}
 	}
@@ -2019,6 +2064,8 @@ void GTree::OnItemClick(GTreeItem *Item, GMouse &m)
 	if (Item)
 	{
 		Item->OnMouseClick(m);
+		if (!m.Ctrl() && !m.Shift())
+			SendNotify(GNotifyItem_Click);
 	}
 }
 
