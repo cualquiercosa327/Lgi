@@ -1148,12 +1148,14 @@ public:
 					case GRichTextEdit::BoldBtn: Label = "B"; break;
 					case GRichTextEdit::ItalicBtn: Label = "I"; break;
 					case GRichTextEdit::UnderlineBtn: Label = "U"; break;
+					default: break;
 				}
 				if (!Label) break;
 				GDisplayString Ds(SysFont, Label);
 				Ds.Draw(pDC, r.x1 + ((r.X()-Ds.X())>>1) + Down, r.y1 + ((r.Y()-Ds.Y())>>1) + Down, &r);
 				break;
 			}
+			default: break;
 		}
 	}
 
@@ -1161,6 +1163,7 @@ public:
 	{
 		switch (t)
 		{
+			default: break;
 			case GRichTextEdit::FontFamilyBtn:
 			{
 				List<const char> Fonts;

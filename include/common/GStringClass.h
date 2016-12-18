@@ -607,7 +607,7 @@ public:
 			size_t NewLen = New ? strlen(New) : 0;
 			char *Match = Str->Str;
 			GArray<char*> Matches;
-			while (Match = (CaseSen ? strstr(Match, Old) : Stristr(Match, Old)))
+			while ((Match = (CaseSen ? strstr(Match, Old) : Stristr(Match, Old))))
 			{
 				Matches.Add(Match);
 				if (Count >= 0 && (int)Matches.Length() >= Count)

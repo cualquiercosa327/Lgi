@@ -810,7 +810,7 @@ int PartCmp(GAutoPtr<MailAddrPart> *a, GAutoPtr<MailAddrPart> *b)
     return (*b)->Score() - (*a)->Score();
 }
 
-void DecodeAddrName(const char *Str, GAutoString &Name, GAutoString &Addr, char *DefaultDomain)
+void DecodeAddrName(const char *Str, GAutoString &Name, GAutoString &Addr, const char *DefaultDomain)
 {
 	/* Testing code
 	char *Input[] =
@@ -903,7 +903,7 @@ void DecodeAddrName(const char *Str, GAutoString &Name, GAutoString &Addr, char 
 	
 	if (non.Length() > 0)
 	{
-		char *ChSet = " \t\r\n\'\"<>";
+		const char *ChSet = " \t\r\n\'\"<>";
 		do
 		{
 			non = non.Strip(ChSet);
