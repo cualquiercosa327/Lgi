@@ -145,7 +145,7 @@ bool GRichTextPriv::TextBlock::GetPosFromIndex(BlockCursor *Cursor)
 	if (LayoutDirty)
 	{
 		Cursor->Pos.ZOff(-1, -1);
-		LgiTrace("%s:%i - Can't get pos from index, layout is dirty...\n", _FL);
+		// LgiTrace("%s:%i - Can't get pos from index, layout is dirty...\n", _FL);
 		return false;
 	}
 		

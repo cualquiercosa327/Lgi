@@ -187,6 +187,7 @@ bool GXmlTree::EncodeEntities(GStreamI *to, char *start, int len, const char *ex
 
 	int Amp = (d->Flags & GXT_NO_ENTITIES) ? 10000000 : '&';
 
+	char *end = start + len;
 	for (char *s = start; s && *s;)
 	{
 		char *e = s;
@@ -194,12 +195,15 @@ bool GXmlTree::EncodeEntities(GStreamI *to, char *start, int len, const char *ex
 				*e != Amp &&
 				*e != '\r' &&
 				(!extra_characters || !strchr(extra_characters, *e)) &&
-				(len < 0 || e < start + len))
+				(len < 0 || e < end))
 			e++;
 		
-		if (*e)
+		if (e == end || *e)
 		{
 			to->Write(s, e - s);
+			
+			if (e == end)
+				break;
 			
 			switch (*e)
 			{

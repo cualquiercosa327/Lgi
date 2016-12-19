@@ -158,7 +158,7 @@ GRichTextPriv::Block *GRichTextPriv::Next(Block *b)
 	int Idx = Blocks.IndexOf(b);
 	if (Idx < 0)
 		return NULL;
-	if (++Idx >= Blocks.Length())
+	if (++Idx >= (int)Blocks.Length())
 		return NULL;
 	return Blocks[Idx];
 }
@@ -649,8 +649,10 @@ bool GRichTextPriv::SetCursor(GAutoPtr<BlockCursor> c, bool Select)
 	// Check the cursor is on the visible part of the document.
 	if (Cursor->Pos.Valid())
 		ScrollTo(Cursor->Pos);
+	/*
 	else
 		LgiTrace("%s:%i - Invalid cursor position.\n", _FL);
+	*/
 
 	return true;
 }
