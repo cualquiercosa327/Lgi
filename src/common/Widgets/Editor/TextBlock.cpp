@@ -53,6 +53,7 @@ void GRichTextPriv::TextBlock::SetStyle(GNamedStyle *s)
 {
 	if ((Style = s))
 	{
+		Fnt = d->GetFont(s);
 		LgiAssert(Fnt != NULL);
 
 		Margin.x1 = Style->MarginLeft().ToPx(Pos.X(), Fnt);
