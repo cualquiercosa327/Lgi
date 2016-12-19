@@ -102,6 +102,12 @@ GNamedStyle *GCssCache::AddStyleToCache(GAutoPtr<GCss> &s)
 		ns->Name.Printf("style%i", Idx++);
 		*(GCss*)ns = *s.Get();
 		Styles.Add(ns);
+
+		#if _DEBUG
+		GAutoString ss = ns->ToString();
+		if (ss)
+			LgiTrace("%s = %s\n", ns->Name.Get(), ss.Get());
+		#endif
 	}
 		
 	return ns;
@@ -701,6 +707,24 @@ GdcPt2 GRichTextPriv::DocToScreen(int x, int y)
 {
 	GRect &Content = Areas[GRichTextEdit::ContentArea];
 	return GdcPt2(x + Content.x1, y + Content.y1 - ScrollOffsetPx);
+}
+
+bool GRichTextPriv::Merge(Block *a, Block *b)
+{
+	TextBlock *ta = dynamic_cast<TextBlock*>(a);
+	TextBlock *tb = dynamic_cast<TextBlock*>(b);
+	if (!ta || !tb)
+		return false;
+
+	ta->Txt.Add(tb->Txt);
+	ta->LayoutDirty = true;
+	ta->Len += tb->Len;
+	tb->Txt.Length(0);
+
+	Blocks.Delete(b, true);
+	Dirty = true;
+
+	return true;
 }
 
 int GRichTextPriv::HitTest(int x, int y, int &LineHint)
@@ -1365,8 +1389,8 @@ void GRichTextPriv::DumpBlocks()
 	
 bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentStyle, int Depth)
 {
-	char Sp[256];
-	int SpLen = Depth << 1;
+	char Sp[48];
+	int SpLen = min(Depth << 1, sizeof(Sp) - 1);
 	memset(Sp, ' ', SpLen);
 	Sp[SpLen] = 0;
 		
@@ -1381,7 +1405,6 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 		// paragraph if so.
 		c->Info = c->Tag ? GHtmlStatic::Inst->GetTagInfo(c->Tag) : NULL;
 		bool IsBlock =	c->Info != NULL && c->Info->Block();
-
 		switch (c->TagId)
 		{
 			case TAG_STYLE:
@@ -1394,7 +1417,9 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 			}
 			case TAG_B:
 			{
-				if (Style.Reset(new GCss))
+				if (!Style)
+					Style.Reset(new GCss);
+				if (Style)
 					Style->FontWeight(GCss::FontWeightBold);
 				break;
 			}
@@ -1409,24 +1434,11 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 				}
 				break;
 			}
-			/*
 			case TAG_IMG:
 			{
-				ctx.Tb = NULL;
-					
-				const char *Src = NULL;
-				if (e->Get("src", Src))
-				{
-					ImageBlock *Ib = new ImageBlock;
-					if (Ib)
-					{
-						Ib->Src = Src;
-						Blocks.Add(Ib);
-					}
-				}
+				IsBlock = true;
 				break;
 			}
-			*/
 			default:
 			{
 				break;
@@ -1466,16 +1478,28 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 		}
 
 		GNamedStyle *CachedStyle = AddStyleToCache(Style);
-		//LgiTrace("%s%s IsBlock=%i CachedStyle=%p\n", Sp, c->Tag.Get(), IsBlock, CachedStyle);
 			
-		if ((IsBlock && ctx.LastChar != '\n') || c->TagId == TAG_BR)
+		if
+		(
+			(
+				IsBlock
+				&&
+				ctx.LastChar != '\n'
+			)
+			||
+			c->TagId == TAG_BR
+		)
 		{
 			if (!ctx.Tb)
-				Blocks.Add(ctx.Tb = new TextBlock(this));
-			if (ctx.Tb)
 			{
-				ctx.Tb->AddText(-1, L"\n", 1, CachedStyle);
+				Blocks.Add(ctx.Tb = new TextBlock(this));
+			}
+			else if (ctx.Tb)
+			{
+				const char16 *Nl = L"\n";
+				ctx.Tb->AddText(-1, Nl, StrlenW(Nl), NULL/*CachedStyle*/);
 				ctx.LastChar = '\n';
+				ctx.StartOfLine = true;
 			}
 		}
 
@@ -1483,7 +1507,7 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 
 		if (c->TagId == TAG_A)
 		{
-			ctx.AddText(CachedStyle, c->GetText());
+			ctx.StartOfLine |= ctx.AddText(CachedStyle, c->GetText());
 			
 			if (ctx.Tb->Txt.Length())
 			{
@@ -1508,18 +1532,31 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 					
 					if (CachedStyle)
 					{
-						ctx.Tb->Fnt = ctx.FontCache->GetFont(CachedStyle);
+						// ctx.Tb->Fnt = ctx.FontCache->GetFont(CachedStyle);
 						ctx.Tb->SetStyle(CachedStyle);
 					}
 				}
 			}
 
-			if (c->GetText())
+			char16 *Txt = c->GetText();
+			if
+			(
+				Txt
+				&&
+				(
+					!ctx.StartOfLine
+					|| 
+					ValidStrW(Txt)
+				)
+			)
 			{
 				if (!ctx.Tb)
+				{
 					Blocks.Add(ctx.Tb = new TextBlock(this));
+					ctx.Tb->SetStyle(CachedStyle);
+				}
 			
-				ctx.AddText(CachedStyle, c->GetText());
+				ctx.StartOfLine |= ctx.AddText(CachedStyle, Txt);
 			}
 		}
 			
@@ -1528,6 +1565,8 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 			
 		if (EndStyleChange)
 			ctx.Tb = NULL;
+		if (IsBlock)
+			ctx.StartOfLine = true;
 	}
 
 	return true;

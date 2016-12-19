@@ -53,6 +53,7 @@ void GRichTextPriv::TextBlock::SetStyle(GNamedStyle *s)
 {
 	if ((Style = s))
 	{
+		Fnt = d->GetFont(s);
 		LgiAssert(Fnt != NULL);
 
 		Margin.x1 = Style->MarginLeft().ToPx(Pos.X(), Fnt);
@@ -77,6 +78,43 @@ int GRichTextPriv::TextBlock::Length()
 	return Len;
 }
 
+HtmlTag IsDefaultStyle(HtmlTag Id, GCss *Css)
+{
+	if (!Css)
+		return CONTENT;
+
+	if (Css->Length() == 2)
+	{
+		GCss::ColorDef c = Css->Color();
+		if ((GColour)c != GColour::Blue)
+			return CONTENT;
+				
+		GCss::TextDecorType td = Css->TextDecoration();
+		if (td != GCss::TextDecorUnderline)
+			return CONTENT;
+
+		return TAG_A;
+	}
+	else if (Css->Length() == 1)
+	{
+		GCss::FontWeightType fw = Css->FontWeight();
+		if (fw == GCss::FontWeightBold ||
+			fw == GCss::FontWeightBolder ||
+			fw >= GCss::FontWeight700)
+			return TAG_B;
+
+		GCss::TextDecorType td = Css->TextDecoration();
+		if (td == GCss::TextDecorUnderline)
+			return TAG_U;
+
+		GCss::FontStyleType fs = Css->FontStyle();
+		if (fs == GCss::FontStyleItalic)
+			return TAG_I;
+	}
+
+	return CONTENT;
+}
+
 bool GRichTextPriv::TextBlock::ToHtml(GStream &s)
 {
 	s.Print("<p>");
@@ -88,8 +126,42 @@ bool GRichTextPriv::TextBlock::ToHtml(GStream &s)
 		GString utf(t->At(0), t->Length());
 		char *str = utf;
 
+		const char *ElemName = NULL;
+		if (t->Element != CONTENT)
+		{
+			GHtmlElemInfo *e = d->Inst.Static->GetTagInfo(t->Element);
+			if (!e)
+				return false;
+			ElemName = e->Tag;
+			if (style)
+			{
+				HtmlTag tag = IsDefaultStyle(t->Element, style);
+				if (tag == t->Element)
+					style = NULL;
+			}
+		}
+		else
+		{
+			HtmlTag tag = IsDefaultStyle(t->Element, style);
+			if (tag != CONTENT)
+			{
+				GHtmlElemInfo *e = d->Inst.Static->GetTagInfo(tag);
+				if (e)
+				{
+					ElemName = e->Tag;
+					style = NULL;
+				}
+			}			
+		}
+
+		if (style && !ElemName)
+			ElemName = "span";
+		if (ElemName)
+			s.Print("<%s", ElemName);
 		if (style)
-			s.Print("<span class='%s'>", style->Name.Get());
+			s.Print(" class='%s'", style->Name.Get());
+		if (ElemName)
+			s.Print(">");
 		
 		// Encode entities...
 		GUtf8Ptr last(str);
@@ -127,8 +199,8 @@ bool GRichTextPriv::TextBlock::ToHtml(GStream &s)
 		}
 		s.Print("%.*s", cur - last, last.GetPtr());
 
-		if (style)
-			s.Print("</span>");
+		if (ElemName)
+			s.Print("</%s>", ElemName);
 	}
 	s.Print("</p>\n");
 	return true;
@@ -664,10 +736,10 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 				else
 				{
 					// Wind back to the last break opportunity
-					int ch;
+					int ch = 0;
 					for (ch = FitChars; ch > 0; ch--)
 					{
-						if (IsWordBreakChar((*t)[ch-1]))
+						if (IsWordBreakChar(s[ch-1]))
 							break;
 					}
 					if (ch > (FitChars >> 2))

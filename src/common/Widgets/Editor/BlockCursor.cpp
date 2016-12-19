@@ -39,7 +39,11 @@ GRichTextPriv::BlockCursor &GRichTextPriv::BlockCursor::operator =(const BlockCu
 		
 void GRichTextPriv::BlockCursor::Set(int off)
 {
-	Set(Blk, off, LineHint);
+	GArray<int> Ln;
+	if (!Blk->OffsetToLine(off, NULL, &Ln))
+		Ln.Add(-1);
+
+	Set(Blk, off, Ln.First());
 }
 
 void GRichTextPriv::BlockCursor::Set(GRichTextPriv::Block *b, int off, int line)

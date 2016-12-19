@@ -228,6 +228,7 @@ public:
 	bool Dirty;
 	GdcPt2 DocumentExtent; // Px
 	GString Charset;
+	GHtmlStaticInst Inst;
 
 	// Toolbar
 	bool ShowTools;
@@ -702,6 +703,7 @@ public:
 	GHtmlElement *CreateElement(GHtmlElement *Parent);
 	GdcPt2 ScreenToDoc(int x, int y);
 	GdcPt2 DocToScreen(int x, int y);
+	bool Merge(Block *a, Block *b);
 
 	struct CreateContext
 	{
@@ -710,18 +712,20 @@ public:
 		char16 LastChar;
 		GFontCache *FontCache;
 		GCss::Store StyleStore;
+		bool StartOfLine;
 		
 		CreateContext(GFontCache *fc)
 		{
 			Tb = NULL;
 			LastChar = '\n';
 			FontCache = fc;
+			StartOfLine = true;
 		}
 		
-		void AddText(GNamedStyle *Style, char16 *Str)
+		bool AddText(GNamedStyle *Style, char16 *Str)
 		{
 			if (!Str || !Tb)
-				return;
+				return false;
 			
 			int Used = 0;
 			char16 *s = Str;
@@ -750,11 +754,13 @@ public:
 				}
 			}
 			
+			bool Status = false;
 			if (Used > 0)
 			{
-				Tb->AddText(-1, &Buf[0], Used, Style);
+				Status = Tb->AddText(-1, &Buf[0], Used, Style);
 				LastChar = Buf[Used-1];
 			}
+			return Status;
 		}
 	};
 	

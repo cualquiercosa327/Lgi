@@ -42,6 +42,10 @@ public:
 	{
 		return c32() == c.c32();
 	}
+	bool operator !=(const GColour &c)
+	{
+		return c32() != c.c32();
+	}
 	
 	bool IsValid();
 	void Empty();
