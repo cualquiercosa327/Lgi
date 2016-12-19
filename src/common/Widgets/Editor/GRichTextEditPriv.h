@@ -228,6 +228,7 @@ public:
 	bool Dirty;
 	GdcPt2 DocumentExtent; // Px
 	GString Charset;
+	GHtmlStaticInst Inst;
 
 	// Toolbar
 	bool ShowTools;
