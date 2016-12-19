@@ -78,6 +78,9 @@ static char SelectWordDelim[] = " \t\n.,()[]<>=?/\\{}\"\';:+=-|!@#$%^&*";
 
 #include "GRichTextEditPriv.h"
 
+typedef GRichTextPriv::BlockCursor BlkCursor;
+typedef GAutoPtr<GRichTextPriv::BlockCursor> AutoCursor;
+
 //////////////////////////////////////////////////////////////////////
 enum UndoType
 {
@@ -504,13 +507,13 @@ bool GRichTextEdit::HasSelection()
 
 void GRichTextEdit::SelectAll()
 {
-	GAutoPtr<GRichTextPriv::BlockCursor> Start(new GRichTextPriv::BlockCursor(d->Blocks.First(), 0, 0));
+	AutoCursor Start(new BlkCursor(d->Blocks.First(), 0, 0));
 	d->SetCursor(Start);
 
 	GRichTextPriv::Block *Last = d->Blocks.Length() ? d->Blocks.Last() : NULL;
 	if (Last)
 	{
-		GAutoPtr<GRichTextPriv::BlockCursor> End(new GRichTextPriv::BlockCursor(Last, Last->Length(), Last->GetLines()-1));
+		AutoCursor End(new BlkCursor(Last, Last->Length(), Last->GetLines()-1));
 		d->SetCursor(End, true);
 	}
 	else d->Selection.Reset();
@@ -598,7 +601,7 @@ void GRichTextEdit::SetLine(int i)
 			int Offset = b->LineToOffset(BlockLine);
 			if (Offset >= 0)
 			{
-				GAutoPtr<GRichTextPriv::BlockCursor> c(new GRichTextPriv::BlockCursor(b, Offset, BlockLine));
+				AutoCursor c(new BlkCursor(b, Offset, BlockLine));
 				d->SetCursor(c);
 				break;
 			}
@@ -669,7 +672,7 @@ void GRichTextEdit::SetCursor(int i, bool Select, bool ForceFullUpdate)
 	GRichTextPriv::Block *Blk = d->GetBlockByIndex(i, &Offset);
 	if (Blk)
 	{
-		GAutoPtr<GRichTextPriv::BlockCursor> c(new GRichTextPriv::BlockCursor(Blk, Offset, -1));
+		AutoCursor c(new BlkCursor(Blk, Offset, -1));
 		if (c)
 			d->SetCursor(c, Select);
 	}
@@ -920,10 +923,10 @@ bool GRichTextEdit::OnFind(GFindReplaceCommon *Params)
 		if (Result >= At)
 		{
 			int Len = Strlen(w.Get());
-			GAutoPtr<GRichTextPriv::BlockCursor> Sel(new GRichTextPriv::BlockCursor(b, Result, -1));
+			AutoCursor Sel(new BlkCursor(b, Result, -1));
 			d->SetCursor(Sel, false);
 
-			GAutoPtr<GRichTextPriv::BlockCursor> Cur(new GRichTextPriv::BlockCursor(b, Result + Len, -1));
+			AutoCursor Cur(new BlkCursor(b, Result + Len, -1));
 			return d->SetCursor(Cur, true);
 		}
 	}
@@ -971,9 +974,9 @@ void GRichTextEdit::SelectWord(int From)
 	)
 		End++;
 
-	GAutoPtr<GRichTextPriv::BlockCursor> c(new GRichTextPriv::BlockCursor(b, Start, -1));
+	AutoCursor c(new BlkCursor(b, Start, -1));
 	d->SetCursor(c);
-	c.Reset(new GRichTextPriv::BlockCursor(b, End, -1));
+	c.Reset(new BlkCursor(b, End, -1));
 	d->SetCursor(c, true);
 }
 
@@ -1297,7 +1300,7 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 			{
 				d->WordSelectMode = !Processed && m.Double();
 
-				GAutoPtr<GRichTextPriv::BlockCursor> c(new GRichTextPriv::BlockCursor(NULL, 0, 0));
+				AutoCursor c(new BlkCursor(NULL, 0, 0));
 				GdcPt2 Doc = d->ScreenToDoc(m.x, m.y);
 				int Idx = -1;
 				if (d->CursorFromPos(Doc.x, Doc.y, &c, &Idx))
@@ -1331,7 +1334,7 @@ void GRichTextEdit::OnMouseMove(GMouse &m)
 {
 	if (IsCapturing())
 	{
-		GAutoPtr<GRichTextPriv::BlockCursor> c;
+		AutoCursor c;
 		GdcPt2 Doc = d->ScreenToDoc(m.x, m.y);
 		int Idx = -1;
 		if (d->CursorFromPos(Doc.x, Doc.y, &c, &Idx))
@@ -1354,7 +1357,7 @@ void GRichTextEdit::OnMouseMove(GMouse &m)
 							Off++;
 						if (Off != d->Cursor->Offset)
 						{
-							GAutoPtr<GRichTextPriv::BlockCursor> c(new GRichTextPriv::BlockCursor(b, Off, -1));
+							AutoCursor c(new BlkCursor(b, Off, -1));
 							d->SetCursor(c, true);
 						}
 					}
@@ -1372,7 +1375,7 @@ void GRichTextEdit::OnMouseMove(GMouse &m)
 							Off--;
 						if (Off != d->Cursor->Offset)
 						{
-							GAutoPtr<GRichTextPriv::BlockCursor> c(new GRichTextPriv::BlockCursor(b, Off, -1));
+							AutoCursor c(new BlkCursor(b, Off, -1));
 							d->SetCursor(c, true);
 						}
 					}
@@ -1487,7 +1490,7 @@ bool GRichTextEdit::OnKey(GKey &k)
 								int Len = Prev->Length();
 								d->Merge(Prev, d->Cursor->Blk);
 
-								GAutoPtr<GRichTextPriv::BlockCursor> c(new GRichTextPriv::BlockCursor(Prev, Len, -1));
+								AutoCursor c(new BlkCursor(Prev, Len, -1));
 								d->SetCursor(c);
 							}
 							else // at the start of the doc...
@@ -1560,7 +1563,9 @@ bool GRichTextEdit::OnKey(GKey &k)
 					{
 						GRect r = d->SelectionRect();
 						Invalidate(&r);
-						d->SetCursor(d->CursorFirst() ? d->Cursor : d->Selection);
+						
+						AutoCursor c(new BlkCursor(d->CursorFirst() ? *d->Cursor : *d->Selection));
+						d->SetCursor(c);
 					}
 					else
 					{
@@ -1588,7 +1593,9 @@ bool GRichTextEdit::OnKey(GKey &k)
 					{
 						GRect r = d->SelectionRect();
 						Invalidate(&r);
-						d->SetCursor(d->CursorFirst() ? d->Selection : d->Cursor);
+
+						AutoCursor c(new BlkCursor(d->CursorFirst() ? *d->Selection : *d->Cursor));
+						d->SetCursor(c);
 					}
 					else
 					{

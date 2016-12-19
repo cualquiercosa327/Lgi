@@ -449,6 +449,8 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 				else
 				{
 					c->Offset++;
+					if (c->Blk->OffsetToLine(c->Offset, NULL, &Ln))
+						c->LineHint = Ln.First();
 				}
 
 				Status = true;
@@ -620,7 +622,6 @@ bool GRichTextPriv::SetCursor(GAutoPtr<BlockCursor> c, bool Select)
 		// Changing selection...
 		InvalidRc = Cursor->Line;
 
-		// LgiTrace("Changing selection region: %i\n", i);
 	}
 
 	if (Cursor && !Select)
@@ -633,6 +634,11 @@ bool GRichTextPriv::SetCursor(GAutoPtr<BlockCursor> c, bool Select)
 		Cursor.Reset(new BlockCursor(*c));
 	else
 		Cursor = c;
+
+	if (Cursor &&
+		Selection &&
+		*Cursor == *Selection)
+		Selection.Reset();
 
 	Cursor->Blk->GetPosFromIndex(Cursor);
 	UpdateStyleUI();
@@ -1494,7 +1500,7 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 			{
 				Blocks.Add(ctx.Tb = new TextBlock(this));
 			}
-			else if (ctx.Tb)
+			if (ctx.Tb)
 			{
 				const char16 *Nl = L"\n";
 				ctx.Tb->AddText(-1, Nl, StrlenW(Nl), NULL/*CachedStyle*/);
@@ -1664,6 +1670,7 @@ GTreeItem *PrintNode(GTreeItem *Parent, const char *Fmt, ...)
 	va_start(Arg, Fmt);
 	int Ch = s.Printf(Arg, Fmt);
 	va_end(Arg);
+	s = s.Replace("\n", "\\n");
 
 	i->SetText(s);
 	Parent->Insert(i);

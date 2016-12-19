@@ -594,6 +594,27 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 
 			CharPos += Ds->Length();
 		}
+		if (Line->Strs.Length() == 0)
+		{
+			if (CurEndPoint < EndPoints &&
+				EndPoint[CurEndPoint] == CharPos)
+			{
+				Ctx.Type = Ctx.Type == Selected ? Unselected : Selected;
+				CurEndPoint++;
+			}
+		}
+		if (Ctx.Type == Selected)
+		{
+			// Draw new line
+			int x1 = FixedToInt(FixX);
+			FixX += IntToFixed(5);
+			int x2 = FixedToInt(FixX);
+			Ctx.pDC->Colour(Ctx.Colours[Selected].Back);
+			Ctx.pDC->Rectangle(x1, LinePos.y1, x2, LinePos.y2);
+		}
+		Ctx.pDC->Colour(Ctx.Colours[Unselected].Back);
+		Ctx.pDC->Rectangle(FixedToInt(FixX), LinePos.y1, Pos.x2, LinePos.y2);
+		
 
 		#if DEBUG_NUMBERED_LAYOUTS
 		GDisplayString Ds(SysFont, s);
@@ -856,6 +877,8 @@ bool GRichTextPriv::TextBlock::OffsetToLine(int Offset, int *ColX, GArray<int> *
 	if (LayoutDirty)
 		return false;
 
+	if (LineY)
+		LineY->Length(0);
 	if (Offset <= 0)
 	{
 		if (ColX) *ColX = 0;
@@ -871,7 +894,7 @@ bool GRichTextPriv::TextBlock::OffsetToLine(int Offset, int *ColX, GArray<int> *
 		TextLine *tl = Layout[i];
 		int Len = tl->Length();
 
-		if (Offset >= Pos && Offset <= Pos + Len)
+		if (Offset >= Pos && Offset <= Pos + Len - tl->NewLine)
 		{
 			if (ColX) *ColX = Offset - Pos;
 			if (LineY) LineY->Add(i);
@@ -1382,12 +1405,12 @@ void GRichTextPriv::TextBlock::DumpNodes(GTreeItem *Ti)
 		{
 			StyleText *St = Txt[i];
 			int Len = St->Length();
-			GTreeItem *TxtElem = PrintNode(TxtRoot, "[%i] range=%i-%i, len=%i, style=%s, '%.20S'",
-				i,
-				Pos, Pos + Len - 1,
-				Len,
-				St->GetStyle() ? St->GetStyle()->Name.Get() : NULL,
-				St->At(0));
+			GTreeItem *TxtElem = PrintNode(	TxtRoot, "[%i] range=%i-%i, len=%i, style=%s, '%.20S'",
+											i,
+											Pos, Pos + Len - 1,
+											Len,
+											St->GetStyle() ? St->GetStyle()->Name.Get() : NULL,
+											St->At(0));
 			Pos += Len;
 		}
 	}
@@ -1403,11 +1426,11 @@ void GRichTextPriv::TextBlock::DumpNodes(GTreeItem *Ti)
 			{
 				DisplayStr *Ds = Tl->Strs[n];
 				GNamedStyle *Style = Ds->Src ? Ds->Src->GetStyle() : NULL;
-				PrintNode(Elem, "[%i] style=%s len=%i txt='%.20S'",
-					n,
-					Style ? Style->Name.Get() : NULL,
-					Ds->Length(),
-					(const char16*) (*Ds));
+				PrintNode(	Elem, "[%i] style=%s len=%i txt='%.20S'",
+							n,
+							Style ? Style->Name.Get() : NULL,
+							Ds->Length(),
+							(const char16*) (*Ds));
 			}
 		}
 	}

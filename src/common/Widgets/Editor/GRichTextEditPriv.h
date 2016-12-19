@@ -540,6 +540,11 @@ public:
 		BlockCursor &operator =(const BlockCursor &c);
 		void Set(int off);
 		void Set(Block *b, int off, int line);
+		bool operator ==(const BlockCursor &c)
+		{
+			return Blk == c.Blk &&
+				Offset == c.Offset;
+		}
 
 		#ifdef _DEBUG
 		void DumpNodes(GTreeItem *Ti);
