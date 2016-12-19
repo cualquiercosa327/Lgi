@@ -958,8 +958,17 @@ void GRichTextEdit::SelectWord(int From)
 	while (Start > 0 &&
 			!IsWordBreakChar(Txt[Start-1]))
 		Start--;
-	while (End < b->Length()-1 &&
-			!IsWordBreakChar(Txt[End]))
+	
+	while
+	(
+		End < b->Length()
+		&&
+		(
+			End == Txt.Length()
+			||
+			!IsWordBreakChar(Txt[End])
+		)
+	)
 		End++;
 
 	GAutoPtr<GRichTextPriv::BlockCursor> c(new GRichTextPriv::BlockCursor(b, Start, -1));
@@ -1771,7 +1780,29 @@ bool GRichTextEdit::OnKey(GKey &k)
 			}
 			default:
 			{
-				if (k.c16 == 17) break;
+				if (k.c16 == 17)
+					break;
+
+				if (k.c16 == ' ' &&
+					k.Ctrl() &&
+					k.Alt() &&
+					d->Cursor &&
+					d->Cursor->Blk)
+				{
+					if (k.Down())
+					{
+						// letter/number etc
+						GRichTextPriv::Block *b = d->Cursor->Blk;
+						char16 Nbsp[] = {0xa0};
+						if (b->AddText(d->Cursor->Offset, Nbsp, 1))
+						{
+							d->Cursor->Set(d->Cursor->Offset + 1);
+							Invalidate();
+							SendNotify(GNotifyDocChanged);
+						}
+					}
+					break;
+				}
 
 				if (k.Modifier() &&
 					!k.Alt())
