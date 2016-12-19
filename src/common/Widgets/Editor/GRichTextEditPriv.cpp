@@ -707,6 +707,24 @@ GdcPt2 GRichTextPriv::DocToScreen(int x, int y)
 	return GdcPt2(x + Content.x1, y + Content.y1 - ScrollOffsetPx);
 }
 
+bool GRichTextPriv::Merge(Block *a, Block *b)
+{
+	TextBlock *ta = dynamic_cast<TextBlock*>(a);
+	TextBlock *tb = dynamic_cast<TextBlock*>(b);
+	if (!ta || !tb)
+		return false;
+
+	ta->Txt.Add(tb->Txt);
+	ta->LayoutDirty = true;
+	ta->Len += tb->Len;
+	tb->Txt.Length(0);
+
+	Blocks.Delete(b, true);
+	Dirty = true;
+
+	return true;
+}
+
 int GRichTextPriv::HitTest(int x, int y, int &LineHint)
 {
 	int CharPos = 0;

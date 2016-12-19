@@ -354,6 +354,9 @@ bool GRichTextEdit::DeleteSelection(char16 **Cut)
 
 		// 3) Delete any text up to the Cursor in the 'End' block
 		End->Blk->DeleteAt(0, End->Offset, DelTxt);
+
+		// Try and merge the start and end blocks
+		d->Merge(Start->Blk, End->Blk);
 	}
 
 	// Set the cursor and update the screen
@@ -1446,6 +1449,7 @@ bool GRichTextEdit::OnKey(GKey &k)
 				if (GetReadOnly())
 					break;
 
+				bool Changed = false;
 				if (k.Ctrl())
 				{
 				    // Ctrl+H
@@ -1461,20 +1465,36 @@ bool GRichTextEdit::OnKey(GKey &k)
 					{
 						if (d->Cursor->Offset > 0)
 						{
-							if (d->Cursor->Blk->DeleteAt(d->Cursor->Offset-1, 1))
-							{
+							Changed = d->Cursor->Blk->DeleteAt(d->Cursor->Offset-1, 1);
+							if (Changed)
 								d->Cursor->Set(d->Cursor->Offset - 1);
-								Invalidate();
-							}
 						}
 						else
 						{
-							LgiTrace("%s:%i - Impl deleting char from previous block\n", _FL);
+							GRichTextPriv::Block *Prev = d->Prev(d->Cursor->Blk);
+							if (Prev)
+							{
+								// Try and merge the two blocks...
+								int Len = Prev->Length();
+								d->Merge(Prev, d->Cursor->Blk);
+
+								GAutoPtr<GRichTextPriv::BlockCursor> c(new GRichTextPriv::BlockCursor(Prev, Len, -1));
+								d->SetCursor(c);
+							}
+							else // at the start of the doc...
+							{
+								// Don't send the doc changed...
+								return true;
+							}
 						}
 					}
 				}
 
-				SendNotify(GNotifyDocChanged);
+				if (Changed)
+				{
+					Invalidate();
+					SendNotify(GNotifyDocChanged);
+				}
 				return true;
 			}
 		}
@@ -1710,14 +1730,23 @@ bool GRichTextEdit::OnKey(GKey &k)
 				{
 					if (d->Cursor->Offset >= b->Length())
 					{
-						// Get the next block instead
-						b = d->Next(b);
-						if (!b)
+						// Cursor is at the end of this block, pull the styles
+						// from the next block into this one.
+						GRichTextPriv::Block *next = d->Next(b);
+						if (!next)
+						{
+							// No next block, therefor nothing to delete
 							break;
-						d->Cursor.Reset(new GRichTextPriv::BlockCursor(b, 0, 0));
+						}
+
+						// Try and merge the blocks
+						if (d->Merge(b, next))
+							Changed = true;
+						else // move the cursor to the next block							
+							d->Cursor.Reset(new GRichTextPriv::BlockCursor(b, 0, 0));
 					}
 
-					if (b->DeleteAt(d->Cursor->Offset, 1))
+					if (!Changed && b->DeleteAt(d->Cursor->Offset, 1))
 					{
 						if (b->Length() == 0)
 						{
@@ -1730,12 +1759,14 @@ bool GRichTextEdit::OnKey(GKey &k)
 						}
 
 						Changed = true;
-						Invalidate();
 					}
 				}
 						
 				if (Changed)
+				{
+					Invalidate();
 					SendNotify(GNotifyDocChanged);
+				}
 				return true;
 			}
 			default:
