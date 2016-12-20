@@ -558,7 +558,7 @@ int GRichTextEdit::GetLine()
 	int Count = 0;
 	
 	// Count lines in blocks before the cursor...
-	for (unsigned i=0; i<Idx; i++)
+	for (int i=0; i<Idx; i++)
 	{
 		GRichTextPriv::Block *b = d->Blocks[i];
 		Count += b->GetLines();
@@ -591,7 +591,7 @@ void GRichTextEdit::SetLine(int i)
 	int Count = 0;
 	
 	// Count lines in blocks before the cursor...
-	for (unsigned i=0; i<d->Blocks.Length(); i++)
+	for (int i=0; i<(int)d->Blocks.Length(); i++)
 	{
 		GRichTextPriv::Block *b = d->Blocks[i];
 		int Lines = b->GetLines();
@@ -1477,7 +1477,7 @@ bool GRichTextEdit::OnKey(GKey &k)
 					{
 						if (d->Cursor->Offset > 0)
 						{
-							Changed = d->Cursor->Blk->DeleteAt(d->Cursor->Offset-1, 1);
+							Changed = d->Cursor->Blk->DeleteAt(d->Cursor->Offset-1, 1) > 0;
 							if (Changed)
 								d->Cursor->Set(d->Cursor->Offset - 1);
 						}
