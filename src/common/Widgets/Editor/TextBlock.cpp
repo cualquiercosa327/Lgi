@@ -571,7 +571,7 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 				// to draw.
 				if (CurEndPoint < EndPoints &&
 					EndPoint[CurEndPoint] >= CharPos &&
-					EndPoint[CurEndPoint] < CharPos + Ds->Length())
+					EndPoint[CurEndPoint] <= CharPos + Ds->Length())
 				{
 					// Yes..
 					int Ch2 = EndPoint[CurEndPoint] - CharPos;
@@ -884,7 +884,7 @@ int GRichTextPriv::TextBlock::GetTextAt(uint32 Offset, GArray<StyleText*> &Out)
 	StyleText **e = t + Txt.Length();
 	Out.Length(0);
 
-	int Pos = 0;
+	uint32 Pos = 0;
 	while (t < e)
 	{
 		uint32 Len = (*t)->Length();

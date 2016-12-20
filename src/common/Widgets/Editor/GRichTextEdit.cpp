@@ -532,6 +532,11 @@ void GRichTextEdit::UnSelectAll()
 	}
 }
 
+void GRichTextEdit::SetStylePrefix(GString s)
+{
+	d->SetPrefix(s);
+}
+
 int GRichTextEdit::GetLines()
 {
 	uint32 Count = 0;
@@ -1496,7 +1501,7 @@ bool GRichTextEdit::OnKey(GKey &k)
 								if (d->StyleDirty.HasItem(FontFamilyBtn))
 									Mod->FontFamily(GCss::StringsDef(d->Values[FontFamilyBtn].Str()));
 								if (d->StyleDirty.HasItem(FontSizeBtn))
-									Mod->FontSize(GCss::Len(GCss::LenPt, d->Values[FontSizeBtn].CastDouble()));
+									Mod->FontSize(GCss::Len(GCss::LenPt, (float) d->Values[FontSizeBtn].CastDouble()));
 								if (d->StyleDirty.HasItem(BoldBtn))
 									Mod->FontWeight(d->Values[BoldBtn].CastInt32() ? GCss::FontWeightBold : GCss::FontWeightNormal);
 								if (d->StyleDirty.HasItem(ItalicBtn))
@@ -1513,6 +1518,8 @@ bool GRichTextEdit::OnKey(GKey &k)
 							
 							d->StyleDirty.Length(0);
 						}
+						
+						DeleteSelection();
 
 						if (b->AddText(d->Cursor->Offset, &k.c16, 1, AddStyle))
 						{
@@ -2376,7 +2383,10 @@ void SelectColour::Visible(bool i)
 {
 	GPopup::Visible(i);
 	if (!i)
+	{
+		d->View->Focus(true);
 		delete this;
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////

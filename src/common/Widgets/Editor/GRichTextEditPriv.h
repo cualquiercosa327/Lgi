@@ -138,11 +138,13 @@ class GCssCache
 {
 	int Idx;
 	GArray<GNamedStyle*> Styles;
+	GString Prefix;
 
 public:
 	GCssCache();
 	~GCssCache();
 
+	void SetPrefix(GString s) { Prefix = s; }
 	uint32 GetStyles();
 	void ZeroRefCounts();
 	bool OutputStyles(GStream &s, int TabDepth);

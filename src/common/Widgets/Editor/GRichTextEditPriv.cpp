@@ -117,7 +117,8 @@ GNamedStyle *GCssCache::AddStyleToCache(GAutoPtr<GCss> &s)
 	GNamedStyle *ns = new GNamedStyle;
 	if (ns)
 	{
-		ns->Name.Printf("style%i", Idx++);
+		char *p = Prefix;
+		ns->Name.Printf("%sStyle%i", p?p:"", Idx++);
 		*(GCss*)ns = *s.Get();
 		Styles.Add(ns);
 
@@ -1452,7 +1453,7 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 			case TAG_STYLE:
 			{
 				char16 *Style = e->GetText();
-				if (Style)
+				if (ValidStrW(Style))
 					LgiAssert(!"Impl me.");
 				continue;
 				break;
@@ -1595,7 +1596,8 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 					ctx.Tb->SetStyle(CachedStyle);
 				}
 			
-				ctx.StartOfLine |= ctx.AddText(CachedStyle, Txt);
+				ctx.AddText(CachedStyle, Txt);
+				ctx.StartOfLine = false;
 			}
 		}
 			

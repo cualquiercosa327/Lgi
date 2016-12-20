@@ -128,6 +128,7 @@ public:
 	int GetLines();
 	void GetTextExtent(int &x, int &y);
 	char *GetSelection();
+	void SetStylePrefix(GString s);
 
 	// File IO
 	bool Open(const char *Name, const char *Cs = 0);
