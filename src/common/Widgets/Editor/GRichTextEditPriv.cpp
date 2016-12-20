@@ -54,6 +54,24 @@ GCssCache::~GCssCache()
 	Styles.DeleteObjects();
 }
 
+uint32 GCssCache::GetStyles()
+{
+	uint32 c = 0;
+	for (unsigned i=0; i<Styles.Length(); i++)
+	{
+		c += Styles[i]->RefCount != 0;
+	}
+	return c;
+}
+
+void GCssCache::ZeroRefCounts()
+{
+	for (unsigned i=0; i<Styles.Length(); i++)
+	{
+		Styles[i]->RefCount = 0;
+	}
+}
+
 bool GCssCache::OutputStyles(GStream &s, int TabDepth)
 {
 	char Tabs[64];
@@ -63,7 +81,7 @@ bool GCssCache::OutputStyles(GStream &s, int TabDepth)
 	for (unsigned i=0; i<Styles.Length(); i++)
 	{
 		GNamedStyle *ns = Styles[i];
-		if (ns)
+		if (ns && ns->RefCount > 0)
 		{
 			s.Print("%s.%s {\n", Tabs, ns->Name.Get());
 				
@@ -200,7 +218,12 @@ void GRichTextPriv::UpdateStyleUI()
 	}
 
 	TextBlock *b = dynamic_cast<TextBlock*>(Cursor->Blk);
-	StyleText *st = b ? b->GetTextAt(Cursor->Offset) : NULL;
+
+	GArray<StyleText*> Styles;
+	if (b)
+		b->GetTextAt(Cursor->Offset, Styles);
+	StyleText *st = Styles.Length() ? Styles.First() : NULL;
+
 	GFont *f = st ? GetFont(st->GetStyle()) : View->GetFont();
 	if (f)
 	{
@@ -661,10 +684,6 @@ bool GRichTextPriv::SetCursor(GAutoPtr<BlockCursor> c, bool Select)
 	// Check the cursor is on the visible part of the document.
 	if (Cursor->Pos.Valid())
 		ScrollTo(Cursor->Pos);
-	/*
-	else
-		LgiTrace("%s:%i - Invalid cursor position.\n", _FL);
-	*/
 
 	return true;
 }
@@ -869,7 +888,7 @@ bool GRichTextPriv::Layout(GScrollBar *&ScrollY)
 		int Lines = (f.CurY + ScrollLinePx - 1) / ScrollLinePx;
 		int PageLines = (Client.Y() + ScrollLinePx - 1) / ScrollLinePx;
 		ScrollY->SetPage(PageLines);
-		ScrollY->SetLimits(0, Lines-1);
+		ScrollY->SetLimits(0, Lines);
 	}
 		
 	if (Cursor)
@@ -891,44 +910,51 @@ void GRichTextPriv::OnStyleChange(GRichTextEdit::RectType t)
 		{
 			GCss::StringsDef Fam(Values[t].Str());
 			s.FontFamily(Fam);
-			ChangeSelectionStyle(&s, true);
+			if (!ChangeSelectionStyle(&s, true))
+				StyleDirty.Add(t);
 			break;
 		}
 		case GRichTextEdit::FontSizeBtn:
 		{
 			double Pt = Values[t].CastDouble();
 			s.FontSize(GCss::Len(GCss::LenPt, (float)Pt));
-			ChangeSelectionStyle(&s, true);
+			if (!ChangeSelectionStyle(&s, true))
+				StyleDirty.Add(t);
 			break;
 		}
 		case GRichTextEdit::BoldBtn:
 		{
 			s.FontWeight(GCss::FontWeightBold);
-			ChangeSelectionStyle(&s, Values[t].CastBool());
+			if (!ChangeSelectionStyle(&s, Values[t].CastBool()))
+				StyleDirty.Add(t);
 			break;
 		}
 		case GRichTextEdit::ItalicBtn:
 		{
 			s.FontStyle(GCss::FontStyleItalic);
-			ChangeSelectionStyle(&s, Values[t].CastBool());
+			if (!ChangeSelectionStyle(&s, Values[t].CastBool()))
+				StyleDirty.Add(t);
 			break;
 		}
 		case GRichTextEdit::UnderlineBtn:
 		{
 			s.TextDecoration(GCss::TextDecorUnderline);
-			ChangeSelectionStyle(&s, Values[t].CastBool());
+			if (ChangeSelectionStyle(&s, Values[t].CastBool()))
+				StyleDirty.Add(t);
 			break;
 		}
 		case GRichTextEdit::ForegroundColourBtn:
 		{
 			s.Color(GCss::ColorDef(GCss::ColorRgb, (uint32) Values[t].Value.Int64));
-			ChangeSelectionStyle(&s, true);
+			if (!ChangeSelectionStyle(&s, true))
+				StyleDirty.Add(t);
 			break;
 		}
 		case GRichTextEdit::BackgroundColourBtn:
 		{
 			s.BackgroundColor(GCss::ColorDef(GCss::ColorRgb, (uint32) Values[t].Value.Int64));
-			ChangeSelectionStyle(&s, true);
+			if (!ChangeSelectionStyle(&s, true))
+				StyleDirty.Add(t);
 			break;
 		}
 	}
@@ -1146,22 +1172,23 @@ bool GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 				TextBlock *tb = dynamic_cast<TextBlock*>(Cursor->Blk);
 				if (tb)
 				{
-					StyleText *st = tb->GetTextAt(Cursor->Offset);
-					if (st)
+					GArray<StyleText*> st;
+					if (tb->GetTextAt(Cursor->Offset, st))
 					{
-						if (st->Element == TAG_A)
+						StyleText *a = st.Length() > 1 && st[1]->Element == TAG_A ? st[1] : st.First()->Element == TAG_A ? st[0] : NULL;
+						if (a)
 						{
 							// Edit the existing link...
-							GInput i(View, st->Param, "Edit link:", "Link");
+							GInput i(View, a->Param, "Edit link:", "Link");
 							if (i.DoModal())
 							{
-								st->Param = i.Str;
+								a->Param = i.Str;
 							}
 						}
 						else if (Selection)
 						{
 							// Turn current selection into link
-							GInput i(View, st->Param, "Edit link:", "Link");
+							GInput i(View, NULL, "Edit link:", "Link");
 							if (i.DoModal())
 							{
 								BlockCursor *Start = CursorFirst() ? Cursor : Selection;
@@ -1177,17 +1204,16 @@ bool GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 								GAutoPtr<GNamedStyle> ns(new GNamedStyle);
 								if (ns)
 								{
-									if (st->GetStyle())
-										*ns = *st->GetStyle();
+									if (st.Last()->GetStyle())
+										*ns = *st.Last()->GetStyle();
 									ns->TextDecoration(GCss::TextDecorUnderline);
 									ns->Color(GCss::ColorDef(GCss::ColorRgb, GColour::Blue.c32()));
 									tb->ChangeStyle(Off, Len, ns, true);
 
-									st = tb->GetTextAt(Off);
-									if (st)
+									if (tb->GetTextAt(Off+1, st))
 									{
-										st->Element = TAG_A;
-										st->Param = i.Str;
+										st.First()->Element = TAG_A;
+										st.First()->Param = i.Str;
 									}
 								}
 							}
@@ -1362,11 +1388,21 @@ bool GRichTextPriv::ToHtml()
 	GStringPipe p(256);
 		
 	p.Print("<html>\n"
-			"<head>\n"
-			"\t<style>\n");		
-	OutputStyles(p, 1);		
-	p.Print("\t</style>\n"
-			"</head>\n"
+			"<head>\n");
+	
+	ZeroRefCounts();
+	for (unsigned i=0; i<Blocks.Length(); i++)
+	{
+		Blocks[i]->IncAllStyleRefs();
+	}
+	if (GetStyles())
+	{
+		p.Print("\t<style>\n");
+		OutputStyles(p, 1);		
+		p.Print("\t</style>\n");
+	}
+
+	p.Print("</head>\n"
 			"<body>\n");
 		
 	for (unsigned i=0; i<Blocks.Length(); i++)
@@ -1483,8 +1519,7 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 			}
 		}
 
-		GNamedStyle *CachedStyle = AddStyleToCache(Style);
-			
+		GNamedStyle *CachedStyle = AddStyleToCache(Style);			
 		if
 		(
 			(
@@ -1499,6 +1534,8 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 			if (!ctx.Tb)
 			{
 				Blocks.Add(ctx.Tb = new TextBlock(this));
+				if (CachedStyle && ctx.Tb)
+					ctx.Tb->SetStyle(CachedStyle);
 			}
 			if (ctx.Tb)
 			{
@@ -1534,13 +1571,9 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 				{
 					// Start a new block because the styles are different...
 					EndStyleChange = true;
-					Blocks.Add(ctx.Tb = new TextBlock(this));
-					
+					Blocks.Add(ctx.Tb = new TextBlock(this));					
 					if (CachedStyle)
-					{
-						// ctx.Tb->Fnt = ctx.FontCache->GetFont(CachedStyle);
 						ctx.Tb->SetStyle(CachedStyle);
-					}
 				}
 			}
 
@@ -1678,3 +1711,4 @@ GTreeItem *PrintNode(GTreeItem *Parent, const char *Fmt, ...)
 }
 
 #endif
+

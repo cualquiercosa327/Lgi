@@ -847,6 +847,51 @@ void GRichTextEdit::UpdateScrollBars(bool Reset)
 
 bool GRichTextEdit::DoCase(bool Upper)
 {
+	if (!HasSelection())
+		return false;
+
+	bool Cf = d->CursorFirst();
+	GRichTextPriv::BlockCursor *Start = Cf ? d->Cursor : d->Selection;
+	GRichTextPriv::BlockCursor *End = Cf ? d->Selection : d->Cursor;
+	if (Start->Blk == End->Blk)
+	{
+		// In the same block...
+		int Len = End->Offset - Start->Offset;
+		Start->Blk->DoCase(Start->Offset, Len, Upper);
+	}
+	else
+	{
+		// Multi-block delete...
+
+		// 1) Delete all the content to the end of the first block
+		int StartLen = Start->Blk->Length();
+		if (Start->Offset < StartLen)
+			Start->Blk->DoCase(Start->Offset, StartLen - Start->Offset, Upper);
+
+		// 2) Delete any blocks between 'Start' and 'End'
+		int i = d->Blocks.IndexOf(Start->Blk);
+		if (i >= 0)
+		{
+			for (++i; d->Blocks[i] != End->Blk && i < (int)d->Blocks.Length(); )
+			{
+				GRichTextPriv::Block *b = d->Blocks[i];
+				b->DoCase(0, -1, Upper);
+			}
+		}
+		else
+		{
+			LgiAssert(0);
+			return false;
+		}
+
+		// 3) Delete any text up to the Cursor in the 'End' block
+		End->Blk->DoCase(0, End->Offset, Upper);
+	}
+
+	// Update the screen
+	d->Dirty = true;
+	Invalidate();
+	
 	return true;
 }
 
@@ -1435,7 +1480,41 @@ bool GRichTextEdit::OnKey(GKey &k)
 					{
 						// letter/number etc
 						GRichTextPriv::Block *b = d->Cursor->Blk;
-						if (b->AddText(d->Cursor->Offset, &k.c16, 1))
+
+						GNamedStyle *AddStyle = NULL;
+						if (d->StyleDirty.Length() > 0)
+						{
+							GAutoPtr<GCss> Mod(new GCss);
+							if (Mod)
+							{
+								// Get base styles at the cursor..
+								GNamedStyle *Base = b->GetStyle(d->Cursor->Offset);
+								if (Base && Mod)
+									*Mod = *Base;
+
+								// Apply dirty toolbar styles...
+								if (d->StyleDirty.HasItem(FontFamilyBtn))
+									Mod->FontFamily(GCss::StringsDef(d->Values[FontFamilyBtn].Str()));
+								if (d->StyleDirty.HasItem(FontSizeBtn))
+									Mod->FontSize(GCss::Len(GCss::LenPt, d->Values[FontSizeBtn].CastDouble()));
+								if (d->StyleDirty.HasItem(BoldBtn))
+									Mod->FontWeight(d->Values[BoldBtn].CastInt32() ? GCss::FontWeightBold : GCss::FontWeightNormal);
+								if (d->StyleDirty.HasItem(ItalicBtn))
+									Mod->FontStyle(d->Values[ItalicBtn].CastInt32() ? GCss::FontStyleItalic : GCss::FontStyleNormal);
+								if (d->StyleDirty.HasItem(UnderlineBtn))
+									Mod->TextDecoration(d->Values[UnderlineBtn].CastInt32() ? GCss::TextDecorUnderline : GCss::TextDecorNone);
+								if (d->StyleDirty.HasItem(ForegroundColourBtn))
+									Mod->Color(GCss::ColorDef(GCss::ColorRgb, (uint32)d->Values[ForegroundColourBtn].CastInt64()));
+								if (d->StyleDirty.HasItem(BackgroundColourBtn))
+									Mod->BackgroundColor(GCss::ColorDef(GCss::ColorRgb, (uint32)d->Values[BackgroundColourBtn].CastInt64()));
+							
+								AddStyle = d->AddStyleToCache(Mod);
+							}
+							
+							d->StyleDirty.Length(0);
+						}
+
+						if (b->AddText(d->Cursor->Offset, &k.c16, 1, AddStyle))
 						{
 							d->Cursor->Set(d->Cursor->Offset + 1);
 							Invalidate();
@@ -1853,6 +1932,32 @@ bool GRichTextEdit::OnKey(GKey &k)
 							return true;
 							break;
 						}
+						case 'b':
+						case 'B':
+						{
+							if (k.Down())
+							{
+								// Bold selection
+								GMouse m;
+								GetMouse(m);
+								d->ClickBtn(m, BoldBtn);
+							}
+							return true;
+							break;
+						}
+						case 'i':
+						case 'I':
+						{
+							if (k.Down())
+							{
+								// Italic selection
+								GMouse m;
+								GetMouse(m);
+								d->ClickBtn(m, ItalicBtn);
+							}
+							return true;
+							break;
+						}
 						case 'y':
 						case 'Y':
 						{
@@ -2014,6 +2119,8 @@ void GRichTextEdit::OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour)
 void GRichTextEdit::OnPaint(GSurface *pDC)
 {
 	GRect r = GetClient();
+	if (!r.Valid())
+		return;
 
 	#if 0
 	pDC->Colour(GColour(255, 0, 255));
