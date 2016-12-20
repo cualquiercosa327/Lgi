@@ -608,7 +608,7 @@ public:
 	{
 		GString s;
 		
-		if (Old)
+		if (Old && Str)
 		{
 			// Calculate the new of the new string...
 			size_t OldLen = strlen(Old);

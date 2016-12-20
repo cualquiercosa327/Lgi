@@ -2,6 +2,37 @@
 #include "GRichTextEdit.h"
 #include "GRichTextEditPriv.h"
 
+struct Range
+{
+	int Start;
+	int Len;
+
+	Range(int s, int l)
+	{
+		Start = s;
+		Len = l;
+	}
+
+	Range Overlap(const Range &r)
+	{
+		Range o(0, 0);
+		if (r.Start >= End())
+			return o;
+		if (r.End() <= Start)
+			return o;
+
+		int e = min(End(), r.End());
+		o.Start = max(r.Start, Start);
+		o.Len = e - o.Start;
+		return o; 
+	}
+
+	int End() const
+	{
+		return Start + Len;
+	}
+};
+
 GRichTextPriv::TextBlock::TextBlock(GRichTextPriv *priv) : Block(priv)
 {
 	LayoutDirty = false;
@@ -44,8 +75,15 @@ void GRichTextPriv::TextBlock::Dump()
 	}
 }
 		
-GNamedStyle *GRichTextPriv::TextBlock::GetStyle()
+GNamedStyle *GRichTextPriv::TextBlock::GetStyle(int At)
 {
+	if (At >= 0)
+	{
+		GArray<StyleText*> t;
+		if (GetTextAt(At, t))
+			return t[0]->GetStyle();
+	}
+
 	return Style;
 }
 		
@@ -122,6 +160,9 @@ bool GRichTextPriv::TextBlock::ToHtml(GStream &s)
 	{
 		StyleText *t = Txt[i];
 		GNamedStyle *style = t->GetStyle();
+		int tlen = t->Length();
+		if (!tlen)
+			continue;
 		
 		GString utf(t->At(0), t->Length());
 		char *str = utf;
@@ -160,6 +201,8 @@ bool GRichTextPriv::TextBlock::ToHtml(GStream &s)
 			s.Print("<%s", ElemName);
 		if (style)
 			s.Print(" class='%s'", style->Name.Get());
+		if (t->Element == TAG_A && t->Param)
+			s.Print(" href='%s'", t->Param.Get());
 		if (ElemName)
 			s.Print(">");
 		
@@ -493,8 +536,8 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 			GRect r(0, 0, -1, -1);
 			if (Ctx.Cursor->Blk == (Block*)this)
 			{
-				StyleText *CurStyle = GetTextAt(Ctx.Cursor->Offset);
-				if (Ds->Src == CurStyle)
+				GArray<StyleText*> CurStyle;
+				if (GetTextAt(Ctx.Cursor->Offset, CurStyle) && Ds->Src == CurStyle.First())
 				{
 					r.ZOff(Ds->X()-1, Ds->Y()-1);
 					r.Offset(FixedToInt(FixX), FixedToInt(FixY));
@@ -698,7 +741,8 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 			continue;
 
 		int AvailableX = Pos.X() - CurLine->PosOff.x1;
-		LgiAssert(AvailableX > 0);
+		if (AvailableX < 0)
+			AvailableX = 1;
 
 		// Get the font for 't'
 		GFont *f = flow.d->GetFont(t->GetStyle());
@@ -763,7 +807,17 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 						if (IsWordBreakChar(s[ch-1]))
 							break;
 					}
-					if (ch > (FitChars >> 2))
+					if (ch == 0)
+					{
+						// One word minimum per line
+						for (ch = 1; ch < Chars; ch++)
+						{
+							if (IsWordBreakChar(s[ch]))
+								break;
+						}
+						Chars = ch;
+					}						
+					else if (ch > (FitChars >> 2))
 						Chars = ch;
 					else
 						Chars = FitChars;
@@ -821,29 +875,28 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 	return true;
 }
 		
-GRichTextPriv::StyleText *GRichTextPriv::TextBlock::GetTextAt(uint32 Offset)
+int GRichTextPriv::TextBlock::GetTextAt(uint32 Offset, GArray<StyleText*> &Out)
 {
 	if (Txt.Length() == 0)
 		return NULL;
 
 	StyleText **t = &Txt[0];
 	StyleText **e = t + Txt.Length();
+	Out.Length(0);
 
-	int TotalLen = 0;
-
-	while (Offset >= 0 && t < e)
+	int Pos = 0;
+	while (t < e)
 	{
 		uint32 Len = (*t)->Length();
-		if (Offset < Len)
-			return *t;
-		Offset -= Len;
-		TotalLen += Len;
+		if (Offset >= Pos && Offset <= Pos + Len)
+			Out.Add(*t);
 
 		t++;
+		Pos += Len;
 	}
 
-	LgiAssert(TotalLen == Len);
-	return NULL;
+	LgiAssert(Pos == Len);
+	return Out.Length();
 }
 
 bool GRichTextPriv::TextBlock::IsValid()
@@ -1154,6 +1207,57 @@ int GRichTextPriv::TextBlock::FindAt(int StartIdx, const char16 *Str, GFindRepla
 	}
 
 	return -1;
+}
+
+bool GRichTextPriv::TextBlock::DoCase(int StartIdx, int Chars, bool Upper)
+{
+	Range Blk(0, Len);
+	Range Inp(StartIdx, Chars < 0 ? Len - StartIdx : Chars);
+	Range Change = Blk.Overlap(Inp);
+
+	Range Run(0, 0);
+	bool Changed = false;
+	for (unsigned i=0; i<Txt.Length(); i++)
+	{
+		StyleText *st = Txt[i];
+		Run.Len = st->Length();
+		Range Edit = Run.Overlap(Change);
+		if (Edit.Len > 0)
+		{
+			char16 *s = st->At(Edit.Start - Run.Start);
+			for (int n=0; n<Edit.Len; n++)
+			{
+				if (Upper)
+				{
+					if (s[n] >= 'a' && s[n] <= 'z')
+						s[n] = s[n] - 'a' + 'A';
+				}
+				else
+				{
+					if (s[n] >= 'A' && s[n] <= 'Z')
+						s[n] = s[n] - 'A' + 'a';
+				}
+			}
+			Changed = true;
+		}
+
+		Run.Start += Run.Len;
+	}
+
+	LayoutDirty |= Changed;
+
+	return Changed;
+}
+
+void GRichTextPriv::TextBlock::IncAllStyleRefs()
+{
+	if (Style)
+		Style->RefCount++;
+	for (unsigned i=0; i<Txt.Length(); i++)
+	{
+		GNamedStyle *s = Txt[i]->GetStyle();
+		if (s) s->RefCount++;
+	}
 }
 
 bool GRichTextPriv::TextBlock::ChangeStyle(int Offset, int Chars, GCss *Style, bool Add)

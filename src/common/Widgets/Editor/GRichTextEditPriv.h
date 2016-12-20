@@ -130,6 +130,7 @@ public:
 
 struct GNamedStyle : public GCss
 {
+	int RefCount;
 	GString Name;
 };
 
@@ -142,6 +143,8 @@ public:
 	GCssCache();
 	~GCssCache();
 
+	uint32 GetStyles();
+	void ZeroRefCounts();
 	bool OutputStyles(GStream &s, int TabDepth);
 	GNamedStyle *AddStyleToCache(GAutoPtr<GCss> &s);
 };
@@ -229,6 +232,10 @@ public:
 	GdcPt2 DocumentExtent; // Px
 	GString Charset;
 	GHtmlStaticInst Inst;
+
+	// This is set when the user changes a style without a selection,
+	// indicating that we should start a new run when new text is entered
+	GArray<GRichTextEdit::RectType> StyleDirty;
 
 	// Toolbar
 	bool ShowTools;
@@ -468,6 +475,8 @@ public:
 		virtual int LineToOffset(int Line) = 0;
 		virtual int GetLines() = 0;
 		virtual int FindAt(int StartIdx, const char16 *Str, GFindReplaceCommon *Params) = 0;
+		virtual bool DoCase(int StartIdx, int Chars, bool Upper) { return false; }
+		virtual void IncAllStyleRefs() {}
 		
 		/// This method moves a cursor index.
 		/// \returns the new cursor index or -1 on error.
@@ -502,7 +511,7 @@ public:
 		virtual bool ChangeStyle(int Offset, int Chars, GCss *Style, bool Add) = 0;
 
 		virtual void Dump() {}
-		virtual GNamedStyle *GetStyle() = 0;
+		virtual GNamedStyle *GetStyle(int At = -1) = 0;
 
 		#ifdef _DEBUG
 		virtual void DumpNodes(GTreeItem *Ti) = 0;
@@ -659,7 +668,7 @@ public:
 		int LineToOffset(int Line);
 		GRect GetPos() { return Pos; }
 		void Dump();
-		GNamedStyle *GetStyle();		
+		GNamedStyle *GetStyle(int At = -1);
 		void SetStyle(GNamedStyle *s);
 		int Length();
 		bool ToHtml(GStream &s);
@@ -667,13 +676,15 @@ public:
 		bool HitTest(HitTestResult &htr);
 		void OnPaint(PaintContext &Ctx);
 		bool OnLayout(Flow &flow);
-		StyleText *GetTextAt(uint32 Offset);
+		int GetTextAt(uint32 Offset, GArray<StyleText*> &t);
 		int DeleteAt(int BlkOffset, int Chars, GArray<char16> *DeletedText = NULL);
 		int CopyAt(int Offset, int Chars, GArray<char16> *Text);
 		bool AddText(int AtOffset, const char16 *Str, int Chars = -1, GNamedStyle *Style = NULL);
 		bool ChangeStyle(int Offset, int Chars, GCss *Style, bool Add);
 		bool Seek(SeekType To, BlockCursor &Cursor);
 		int FindAt(int StartIdx, const char16 *Str, GFindReplaceCommon *Params);
+		bool DoCase(int StartIdx, int Chars, bool Upper);
+		void IncAllStyleRefs();
 
 		#ifdef _DEBUG
 		void DumpNodes(GTreeItem *Ti);
