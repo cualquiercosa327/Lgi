@@ -1020,7 +1020,16 @@ void GRichTextPriv::PaintBtn(GSurface *pDC, GRichTextEdit::RectType t)
 	SysFont->Colour(LC_TEXT, LC_MED);
 	SysFont->Transparent(false);
 
-	LgiThinBorder(pDC, r, Down ? EdgeXpSunken : EdgeXpRaised);
+	GColour Low(96, 96, 96);
+	pDC->Colour(Down ? GColour::White : Low);
+	pDC->Line(r.x1, r.y2, r.x2, r.y2);
+	pDC->Line(r.x2, r.y1, r.x2, r.y2);
+	pDC->Colour(Down ? Low : GColour::White);
+	pDC->Line(r.x1, r.y1, r.x2, r.y1);
+	pDC->Line(r.x1, r.y1, r.x1, r.y2);
+	r.Size(1, 1);
+	// LgiThinBorder(pDC, r, Down ? EdgeXpSunken : EdgeXpRaised);
+	
 	switch (v.Type)
 	{
 		case GV_STRING:
@@ -1307,11 +1316,11 @@ void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
 		#ifdef WIN32
 		GDoubleBuffer Buf(pDC, &t);
 		#endif
-		pDC->Colour(LC_MED, 24);
+		pDC->Colour(GColour(180, 180, 206));
 		pDC->Rectangle(&t);
 
 		GRect r = t;
-		r.Size(2, 2);
+		r.Size(3, 3);
 		#define AllocPx(sz, border) \
 			GRect(r.x1, r.y1, r.x1 + (int)(sz) - 1, r.y2); r.x1 += (int)(sz) + border
 
