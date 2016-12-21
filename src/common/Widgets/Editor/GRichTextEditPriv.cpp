@@ -165,6 +165,7 @@ GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv *&Ptr) :
 	Values[GRichTextEdit::BackgroundColourBtn] = (int64)Rgb24To32(LC_WORKSPACE);
 
 	Values[GRichTextEdit::MakeLinkBtn] = TEXT_LINK;
+	Values[GRichTextEdit::RemoveLinkBtn] = TEXT_REMOVE_LINK;
 	Values[GRichTextEdit::RemoveStyleBtn] = TEXT_REMOVE_STYLE;
 	Values[GRichTextEdit::CapabilityBtn] = TEXT_CAP_BTN;
 
@@ -1167,62 +1168,98 @@ bool GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 		}
 		case GRichTextEdit::MakeLinkBtn:
 		{
-			if (Cursor &&
-				Cursor->Blk)
-			{
-				TextBlock *tb = dynamic_cast<TextBlock*>(Cursor->Blk);
-				if (tb)
-				{
-					GArray<StyleText*> st;
-					if (tb->GetTextAt(Cursor->Offset, st))
-					{
-						StyleText *a = st.Length() > 1 && st[1]->Element == TAG_A ? st[1] : st.First()->Element == TAG_A ? st[0] : NULL;
-						if (a)
-						{
-							// Edit the existing link...
-							GInput i(View, a->Param, "Edit link:", "Link");
-							if (i.DoModal())
-							{
-								a->Param = i.Str;
-							}
-						}
-						else if (Selection)
-						{
-							// Turn current selection into link
-							GInput i(View, NULL, "Edit link:", "Link");
-							if (i.DoModal())
-							{
-								BlockCursor *Start = CursorFirst() ? Cursor : Selection;
-								BlockCursor *End = CursorFirst() ? Selection : Cursor;
-								if (!Start || !End) return false;
-								if (Start->Blk != End->Blk)
-								{
-									LgiMsg(View, "Selection too large.", "Error");
-									return false;
-								}
-								int Off = Start->Offset;
-								int Len = End->Offset - Start->Offset;
-								GAutoPtr<GNamedStyle> ns(new GNamedStyle);
-								if (ns)
-								{
-									if (st.Last()->GetStyle())
-										*ns = *st.Last()->GetStyle();
-									ns->TextDecoration(GCss::TextDecorUnderline);
-									ns->Color(GCss::ColorDef(GCss::ColorRgb, GColour::Blue.c32()));
-									tb->ChangeStyle(Off, Len, ns, true);
+			if (!Cursor || !Cursor->Blk)
+				break;
 
-									if (tb->GetTextAt(Off+1, st))
-									{
-										st.First()->Element = TAG_A;
-										st.First()->Param = i.Str;
-									}
-								}
-							}
+			TextBlock *tb = dynamic_cast<TextBlock*>(Cursor->Blk);
+			if (!tb)
+				break;
+
+			GArray<StyleText*> st;
+			if (!tb->GetTextAt(Cursor->Offset, st))
+				break;
+
+			StyleText *a = st.Length() > 1 && st[1]->Element == TAG_A ? st[1] : st.First()->Element == TAG_A ? st[0] : NULL;
+			if (a)
+			{
+				// Edit the existing link...
+				GInput i(View, a->Param, "Edit link:", "Link");
+				if (i.DoModal())
+				{
+					a->Param = i.Str;
+				}
+			}
+			else if (Selection)
+			{
+				// Turn current selection into link
+				GInput i(View, NULL, "Edit link:", "Link");
+				if (i.DoModal())
+				{
+					BlockCursor *Start = CursorFirst() ? Cursor : Selection;
+					BlockCursor *End = CursorFirst() ? Selection : Cursor;
+					if (!Start || !End) return false;
+					if (Start->Blk != End->Blk)
+					{
+						LgiMsg(View, "Selection too large.", "Error");
+						return false;
+					}
+					int Off = Start->Offset;
+					int Len = End->Offset - Start->Offset;
+					GAutoPtr<GNamedStyle> ns(new GNamedStyle);
+					if (ns)
+					{
+						if (st.Last()->GetStyle())
+							*ns = *st.Last()->GetStyle();
+						ns->TextDecoration(GCss::TextDecorUnderline);
+						ns->Color(GCss::ColorDef(GCss::ColorRgb, GColour::Blue.c32()));
+						tb->ChangeStyle(Off, Len, ns, true);
+
+						if (tb->GetTextAt(Off+1, st))
+						{
+							st.First()->Element = TAG_A;
+							st.First()->Param = i.Str;
 						}
 					}
 				}
 			}
 			break;
+		}
+		case GRichTextEdit::RemoveLinkBtn:
+		{
+			if (!Cursor || !Cursor->Blk)
+				break;
+
+			TextBlock *tb = dynamic_cast<TextBlock*>(Cursor->Blk);
+			if (!tb)
+				break;
+
+			GArray<StyleText*> st;
+			if (!tb->GetTextAt(Cursor->Offset, st))
+				break;
+
+			StyleText *a = st.Length() > 1 && st[1]->Element == TAG_A ? st[1] : st.First()->Element == TAG_A ? st[0] : NULL;
+			if (a)
+			{
+				// Remove the existing link...
+				a->Element = CONTENT;
+				a->Param.Empty();
+
+				GAutoPtr<GCss> s(new GCss);
+				GNamedStyle *Ns = a->GetStyle();
+				if (Ns)
+					*s = *Ns;
+				if (s->TextDecoration() == GCss::TextDecorUnderline)
+					s->DeleteProp(GCss::PropTextDecoration);
+				if ((GColour)s->Color() == GColour::Blue)
+					s->DeleteProp(GCss::PropColor);
+
+				Ns = AddStyleToCache(s);
+				a->SetStyle(Ns);
+
+				tb->LayoutDirty = true;
+				InvalidateDoc(NULL);
+			}
+			break;			
 		}
 		case GRichTextEdit::RemoveStyleBtn:
 		{
@@ -1288,10 +1325,18 @@ void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
 		Areas[GRichTextEdit::ForegroundColourBtn] = AllocPx(r.Y()*1.5, 0);
 		Areas[GRichTextEdit::BackgroundColourBtn] = AllocPx(r.Y()*1.5, 6);
 
-		GDisplayString Ds(SysFont, TEXT_LINK);
-		Areas[GRichTextEdit::MakeLinkBtn] = AllocPx(Ds.X() + 12, 6);
-		GDisplayString Ds2(SysFont, TEXT_REMOVE_STYLE);
-		Areas[GRichTextEdit::RemoveStyleBtn] = AllocPx(Ds2.X() + 12, 6);
+		{
+			GDisplayString Ds(SysFont, TEXT_LINK);
+			Areas[GRichTextEdit::MakeLinkBtn] = AllocPx(Ds.X() + 12, 0);
+		}
+		{
+			GDisplayString Ds(SysFont, TEXT_REMOVE_LINK);
+			Areas[GRichTextEdit::RemoveLinkBtn] = AllocPx(Ds.X() + 12, 6);
+		}
+		{
+			GDisplayString Ds(SysFont, TEXT_REMOVE_STYLE);
+			Areas[GRichTextEdit::RemoveStyleBtn] = AllocPx(Ds.X() + 12, 6);
+		}
 
 		for (unsigned i = GRichTextEdit::FontFamilyBtn; i < GRichTextEdit::MaxArea; i++)
 		{

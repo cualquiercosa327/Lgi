@@ -105,6 +105,7 @@ public:
 		BackgroundColourBtn,
 
 		MakeLinkBtn,
+		RemoveLinkBtn,
 		RemoveStyleBtn,
 		
 		MaxArea

@@ -1354,12 +1354,6 @@ bool GRichTextPriv::TextBlock::ChangeStyle(int Offset, int Chars, GCss *Style, b
 				// Re-style the whole run
 				t->SetStyle(CacheStyle);
 				LayoutDirty = true;
-
-				if (t->Element != CONTENT)
-				{
-					t->Element = CONTENT;
-					t->Param.Empty();
-				}
 			}
 		}
 

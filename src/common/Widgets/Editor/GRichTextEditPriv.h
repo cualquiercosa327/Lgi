@@ -37,6 +37,7 @@
 #define DEBUG_NUMBERED_LAYOUTS			0
 
 #define TEXT_LINK						"Link"
+#define TEXT_REMOVE_LINK				"X"
 #define TEXT_REMOVE_STYLE				"Remove Style"
 #define TEXT_CAP_BTN					"Ok"
 
