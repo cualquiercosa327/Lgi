@@ -981,7 +981,7 @@ int GRichTextPriv::TextBlock::LineToOffset(int Line)
 	return Length();
 }
 
-int GRichTextPriv::TextBlock::DeleteAt(int BlkOffset, int Chars, GArray<char16> *DeletedText)
+int GRichTextPriv::TextBlock::DeleteAt(Transaction *Trans, int BlkOffset, int Chars, GArray<char16> *DeletedText)
 {
 	int Pos = 0;
 	int Deleted = 0;
@@ -1048,7 +1048,7 @@ int GRichTextPriv::TextBlock::DeleteAt(int BlkOffset, int Chars, GArray<char16> 
 	return Deleted;
 }
 		
-bool GRichTextPriv::TextBlock::AddText(int AtOffset, const char16 *Str, int Chars, GNamedStyle *Style)
+bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const char16 *Str, int Chars, GNamedStyle *Style)
 {
 	if (!Str)
 		return false;
@@ -1209,7 +1209,7 @@ int GRichTextPriv::TextBlock::FindAt(int StartIdx, const char16 *Str, GFindRepla
 	return -1;
 }
 
-bool GRichTextPriv::TextBlock::DoCase(int StartIdx, int Chars, bool Upper)
+bool GRichTextPriv::TextBlock::DoCase(Transaction *Trans, int StartIdx, int Chars, bool Upper)
 {
 	Range Blk(0, Len);
 	Range Inp(StartIdx, Chars < 0 ? Len - StartIdx : Chars);
@@ -1260,7 +1260,7 @@ void GRichTextPriv::TextBlock::IncAllStyleRefs()
 	}
 }
 
-bool GRichTextPriv::TextBlock::ChangeStyle(int Offset, int Chars, GCss *Style, bool Add)
+bool GRichTextPriv::TextBlock::ChangeStyle(Transaction *Trans, int Offset, int Chars, GCss *Style, bool Add)
 {
 	if (!Style)
 	{

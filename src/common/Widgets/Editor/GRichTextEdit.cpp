@@ -326,7 +326,7 @@ bool GRichTextEdit::DeleteSelection(char16 **Cut)
 	{
 		// In the same block... just delete the text
 		int Len = End->Offset - Start->Offset;
-		Start->Blk->DeleteAt(Start->Offset, Len, DelTxt);
+		Start->Blk->DeleteAt(NoTransaction, Start->Offset, Len, DelTxt);
 	}
 	else
 	{
@@ -335,7 +335,7 @@ bool GRichTextEdit::DeleteSelection(char16 **Cut)
 		// 1) Delete all the content to the end of the first block
 		int StartLen = Start->Blk->Length();
 		if (Start->Offset < StartLen)
-			Start->Blk->DeleteAt(Start->Offset, StartLen - Start->Offset, DelTxt);
+			Start->Blk->DeleteAt(NoTransaction, Start->Offset, StartLen - Start->Offset, DelTxt);
 
 		// 2) Delete any blocks between 'Start' and 'End'
 		int i = d->Blocks.IndexOf(Start->Blk);
@@ -356,7 +356,7 @@ bool GRichTextEdit::DeleteSelection(char16 **Cut)
 		}
 
 		// 3) Delete any text up to the Cursor in the 'End' block
-		End->Blk->DeleteAt(0, End->Offset, DelTxt);
+		End->Blk->DeleteAt(NoTransaction, 0, End->Offset, DelTxt);
 
 		// Try and merge the start and end blocks
 		d->Merge(Start->Blk, End->Blk);
@@ -737,7 +737,7 @@ bool GRichTextEdit::Paste()
 		DeleteSelection();
 
 	int Len = Strlen(Text.Get());
-	if (!d->Cursor->Blk->AddText(d->Cursor->Offset, Text, Len))
+	if (!d->Cursor->Blk->AddText(NoTransaction, d->Cursor->Offset, Text, Len))
 	{
 		LgiAssert(0);
 		SendNotify(GNotifyDocChanged);
@@ -862,7 +862,7 @@ bool GRichTextEdit::DoCase(bool Upper)
 	{
 		// In the same block...
 		int Len = End->Offset - Start->Offset;
-		Start->Blk->DoCase(Start->Offset, Len, Upper);
+		Start->Blk->DoCase(NoTransaction, Start->Offset, Len, Upper);
 	}
 	else
 	{
@@ -871,7 +871,7 @@ bool GRichTextEdit::DoCase(bool Upper)
 		// 1) Delete all the content to the end of the first block
 		int StartLen = Start->Blk->Length();
 		if (Start->Offset < StartLen)
-			Start->Blk->DoCase(Start->Offset, StartLen - Start->Offset, Upper);
+			Start->Blk->DoCase(NoTransaction, Start->Offset, StartLen - Start->Offset, Upper);
 
 		// 2) Delete any blocks between 'Start' and 'End'
 		int i = d->Blocks.IndexOf(Start->Blk);
@@ -880,7 +880,7 @@ bool GRichTextEdit::DoCase(bool Upper)
 			for (++i; d->Blocks[i] != End->Blk && i < (int)d->Blocks.Length(); )
 			{
 				GRichTextPriv::Block *b = d->Blocks[i];
-				b->DoCase(0, -1, Upper);
+				b->DoCase(NoTransaction, 0, -1, Upper);
 			}
 		}
 		else
@@ -890,7 +890,7 @@ bool GRichTextEdit::DoCase(bool Upper)
 		}
 
 		// 3) Delete any text up to the Cursor in the 'End' block
-		End->Blk->DoCase(0, End->Offset, Upper);
+		End->Blk->DoCase(NoTransaction, 0, End->Offset, Upper);
 	}
 
 	// Update the screen
@@ -1521,7 +1521,7 @@ bool GRichTextEdit::OnKey(GKey &k)
 						
 						DeleteSelection();
 
-						if (b->AddText(d->Cursor->Offset, &k.c16, 1, AddStyle))
+						if (b->AddText(NoTransaction, d->Cursor->Offset, &k.c16, 1, AddStyle))
 						{
 							d->Cursor->Set(d->Cursor->Offset + 1);
 							Invalidate();
@@ -1563,7 +1563,7 @@ bool GRichTextEdit::OnKey(GKey &k)
 					{
 						if (d->Cursor->Offset > 0)
 						{
-							Changed = d->Cursor->Blk->DeleteAt(d->Cursor->Offset-1, 1) > 0;
+							Changed = d->Cursor->Blk->DeleteAt(NoTransaction, d->Cursor->Offset-1, 1) > 0;
 							if (Changed)
 								d->Cursor->Set(d->Cursor->Offset - 1);
 						}
@@ -1848,7 +1848,7 @@ bool GRichTextEdit::OnKey(GKey &k)
 							d->Cursor.Reset(new GRichTextPriv::BlockCursor(b, 0, 0));
 					}
 
-					if (!Changed && b->DeleteAt(d->Cursor->Offset, 1))
+					if (!Changed && b->DeleteAt(NoTransaction, d->Cursor->Offset, 1))
 					{
 						if (b->Length() == 0)
 						{
@@ -1887,7 +1887,7 @@ bool GRichTextEdit::OnKey(GKey &k)
 						// letter/number etc
 						GRichTextPriv::Block *b = d->Cursor->Blk;
 						char16 Nbsp[] = {0xa0};
-						if (b->AddText(d->Cursor->Offset, Nbsp, 1))
+						if (b->AddText(NoTransaction, d->Cursor->Offset, Nbsp, 1))
 						{
 							d->Cursor->Set(d->Cursor->Offset + 1);
 							Invalidate();
@@ -2107,7 +2107,7 @@ void GRichTextEdit::OnEnter(GKey &k)
 		d->Cursor->Blk)
 	{
 		GRichTextPriv::Block *b = d->Cursor->Blk;
-		if (b->AddText(d->Cursor->Offset, L"\n", 1))
+		if (b->AddText(NoTransaction, d->Cursor->Offset, L"\n", 1))
 		{
 			d->Cursor->Set(d->Cursor->Offset + 1);
 			Invalidate();

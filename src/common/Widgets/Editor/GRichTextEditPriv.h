@@ -41,6 +41,7 @@
 #define TEXT_REMOVE_STYLE				"Remove Style"
 #define TEXT_CAP_BTN					"Ok"
 
+#define NoTransaction					NULL
 #define IsWordBreakChar(ch)				IsWhiteSpace(ch) // FIXME: Add asian character set support to this
 
 //////////////////////////////////////////////////////////////////////
@@ -443,8 +444,43 @@ public:
 		}
 	};
 
-	class Block // is like a DIV in HTML, it's as wide as the page and
-				// always starts and ends on a whole line.
+	//////////////////////////////////////////////////////////////////////////////////////////////
+	// Undo structures...
+	struct DocChange
+	{
+		virtual ~DocChange() {}
+		virtual bool Apply(bool Forward) = 0;
+	};
+
+	class Transaction
+	{
+		GArray<DocChange*> Changes;
+
+	public:		
+		~Transaction()
+		{
+			Changes.DeleteObjects();
+		}
+
+		bool Apply(bool Forward)
+		{
+			for (unsigned i=0; i<Changes.Length(); i++)
+			{
+				if (!Changes[i]->Apply(Forward))
+					return false;
+			}
+
+			return true;
+		}
+	};
+
+	GArray<Transaction*> UndoQue;
+	int UndoPos;
+
+	//////////////////////////////////////////////////////////////////////////////////////////////
+	// A Block is like a DIV in HTML, it's as wide as the page and
+	// always starts and ends on a whole line.
+	class Block 
 	{
 	protected:
 		GRichTextPriv *d;
@@ -467,58 +503,89 @@ public:
 			LgiAssert(Cursors == 0);
 		}
 		
-		virtual GRect GetPos() = 0;
-		virtual int Length() = 0;
-		virtual bool HitTest(HitTestResult &htr) = 0;
-		virtual bool GetPosFromIndex(BlockCursor *Cursor) = 0;
-		virtual bool OnLayout(Flow &f) = 0;
-		virtual void OnPaint(PaintContext &Ctx) = 0;
-		virtual bool ToHtml(GStream &s) = 0;
-		virtual bool OffsetToLine(int Offset, int *ColX, GArray<int> *LineY) = 0;
-		virtual int LineToOffset(int Line) = 0;
-		virtual int GetLines() = 0;
-		virtual int FindAt(int StartIdx, const char16 *Str, GFindReplaceCommon *Params) = 0;
-		virtual bool DoCase(int StartIdx, int Chars, bool Upper) { return false; }
-		virtual void IncAllStyleRefs() {}
-		
-		/// This method moves a cursor index.
-		/// \returns the new cursor index or -1 on error.
-		virtual bool Seek
-		(
-			/// [In] true if the next line is needed, false for the previous line
-			SeekType To,
-			/// [In/Out] The starting cursor.
-			BlockCursor &Cursor
-		) = 0;
+		/************************************************
+		 * Get state methods, do not modify the block   *
+		 ***********************************************/
+			virtual GRect GetPos() = 0;
+			virtual int Length() = 0;
+			virtual bool HitTest(HitTestResult &htr) = 0;
+			virtual bool GetPosFromIndex(BlockCursor *Cursor) = 0;
+			virtual bool OnLayout(Flow &f) = 0;
+			virtual void OnPaint(PaintContext &Ctx) = 0;
+			virtual bool ToHtml(GStream &s) = 0;
+			virtual bool OffsetToLine(int Offset, int *ColX, GArray<int> *LineY) = 0;
+			virtual int LineToOffset(int Line) = 0;
+			virtual int GetLines() = 0;
+			virtual int FindAt(int StartIdx, const char16 *Str, GFindReplaceCommon *Params) = 0;
+			virtual void IncAllStyleRefs() {}
+			virtual void Dump() {}
+			virtual GNamedStyle *GetStyle(int At = -1) = 0;
+			#ifdef _DEBUG
+			virtual void DumpNodes(GTreeItem *Ti) = 0;
+			#endif
 
-		// Add some text at a given position
-		virtual bool AddText
-		(
-			/// The index to add at (-1 = the end)
-			int AtOffset,
-			/// The text itself
-			const char16 *Str,
-			/// [Optional] The number of characters
-			int Chars = -1,
-			/// [Optional] Style to give the text, NULL means "use the existing style"
-			GNamedStyle *Style = NULL
-		)	{ return false; }
+			// Copy some or all of the text out
+			virtual int CopyAt(int Offset, int Chars, GArray<char16> *Text) { return false; }
 
-		/// Delete some chars
-		/// \returns the number of chars actually removed
-		virtual int DeleteAt(int Offset, int Chars, GArray<char16> *DeletedText = NULL) { return false; }
-		// Copy some or all of the text out
-		virtual int CopyAt(int Offset, int Chars, GArray<char16> *Text) { return false; }
+			/// This method moves a cursor index.
+			/// \returns the new cursor index or -1 on error.
+			virtual bool Seek
+			(
+				/// [In] true if the next line is needed, false for the previous line
+				SeekType To,
+				/// [In/Out] The starting cursor.
+				BlockCursor &Cursor
+			) = 0;
 
-		/// Changes the style of a range of characters
-		virtual bool ChangeStyle(int Offset, int Chars, GCss *Style, bool Add) = 0;
+		/************************************************
+		 * Change state methods, require a transaction  *
+		 ***********************************************/
+			// Add some text at a given position
+			virtual bool AddText
+			(
+				/// Current transaction
+				Transaction *Trans,
+				/// The index to add at (-1 = the end)
+				int AtOffset,
+				/// The text itself
+				const char16 *Str,
+				/// [Optional] The number of characters
+				int Chars = -1,
+				/// [Optional] Style to give the text, NULL means "use the existing style"
+				GNamedStyle *Style = NULL
+			)	{ return false; }
 
-		virtual void Dump() {}
-		virtual GNamedStyle *GetStyle(int At = -1) = 0;
+			/// Delete some chars
+			/// \returns the number of chars actually removed
+			virtual int DeleteAt
+			(
+				Transaction *Trans,
+				int Offset,
+				int Chars,
+				GArray<char16> *DeletedText = NULL
+			)	{ return false; }
 
-		#ifdef _DEBUG
-		virtual void DumpNodes(GTreeItem *Ti) = 0;
-		#endif
+			/// Changes the style of a range of characters
+			virtual bool ChangeStyle
+			(
+				Transaction *Trans,
+				int Offset,
+				int Chars,
+				GCss *Style,
+				bool Add
+			)	{ return false; }
+
+			virtual bool DoCase
+			(
+				/// Current transaction
+				Transaction *Trans,
+				/// Start index of text to change
+				int StartIdx,
+				/// Number of chars to change
+				int Chars,
+				/// True if upper case is desired
+				bool Upper
+			)	{ return false; }
 	};
 
 	struct BlockCursor
@@ -666,6 +733,7 @@ public:
 
 		bool IsValid();
 
+		// No state change methods
 		int GetLines();
 		bool OffsetToLine(int Offset, int *ColX, GArray<int> *LineY);
 		int LineToOffset(int Line);
@@ -680,18 +748,19 @@ public:
 		void OnPaint(PaintContext &Ctx);
 		bool OnLayout(Flow &flow);
 		int GetTextAt(uint32 Offset, GArray<StyleText*> &t);
-		int DeleteAt(int BlkOffset, int Chars, GArray<char16> *DeletedText = NULL);
 		int CopyAt(int Offset, int Chars, GArray<char16> *Text);
-		bool AddText(int AtOffset, const char16 *Str, int Chars = -1, GNamedStyle *Style = NULL);
-		bool ChangeStyle(int Offset, int Chars, GCss *Style, bool Add);
 		bool Seek(SeekType To, BlockCursor &Cursor);
 		int FindAt(int StartIdx, const char16 *Str, GFindReplaceCommon *Params);
-		bool DoCase(int StartIdx, int Chars, bool Upper);
 		void IncAllStyleRefs();
-
 		#ifdef _DEBUG
 		void DumpNodes(GTreeItem *Ti);
 		#endif
+
+		// Transactional changes
+		bool AddText(Transaction *Trans, int AtOffset, const char16 *Str, int Chars = -1, GNamedStyle *Style = NULL);
+		bool ChangeStyle(Transaction *Trans, int Offset, int Chars, GCss *Style, bool Add);
+		int DeleteAt(Transaction *Trans, int BlkOffset, int Chars, GArray<char16> *DeletedText = NULL);
+		bool DoCase(Transaction *Trans, int StartIdx, int Chars, bool Upper);
 	};
 	
 	GArray<Block*> Blocks;
@@ -776,7 +845,7 @@ public:
 			bool Status = false;
 			if (Used > 0)
 			{
-				Status = Tb->AddText(-1, &Buf[0], Used, Style);
+				Status = Tb->AddText(NULL, -1, &Buf[0], Used, Style);
 				LastChar = Buf[Used-1];
 			}
 			return Status;

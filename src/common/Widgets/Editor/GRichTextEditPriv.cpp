@@ -974,7 +974,7 @@ bool GRichTextPriv::ChangeSelectionStyle(GCss *Style, bool Add)
 	{
 		// Change style in the same block...
 		int Len = End->Offset - Start->Offset;
-		if (!Start->Blk->ChangeStyle(Start->Offset, Len, Style, Add))
+		if (!Start->Blk->ChangeStyle(NoTransaction, Start->Offset, Len, Style, Add))
 			return false;
 	}
 	else
@@ -982,7 +982,7 @@ bool GRichTextPriv::ChangeSelectionStyle(GCss *Style, bool Add)
 		// Multi-block style change...
 
 		// 1) Change style on the content to the end of the first block
-		Start->Blk->ChangeStyle(Start->Offset, -1, Style, Add);
+		Start->Blk->ChangeStyle(NoTransaction, Start->Offset, -1, Style, Add);
 
 		// 2) Change style on blocks between 'Start' and 'End'
 		int i = Blocks.IndexOf(Start->Blk);
@@ -991,7 +991,7 @@ bool GRichTextPriv::ChangeSelectionStyle(GCss *Style, bool Add)
 			for (++i; Blocks[i] != End->Blk && i < (int)Blocks.Length(); i++)
 			{
 				GRichTextPriv::Block *&b = Blocks[i];
-				if (!b->ChangeStyle(0, -1, Style, Add))
+				if (!b->ChangeStyle(NoTransaction, 0, -1, Style, Add))
 					return false;
 			}
 		}
@@ -1002,7 +1002,7 @@ bool GRichTextPriv::ChangeSelectionStyle(GCss *Style, bool Add)
 		}
 
 		// 3) Change style up to the Cursor in the 'End' block
-		if (!End->Blk->ChangeStyle(0, End->Offset, Style, Add))
+		if (!End->Blk->ChangeStyle(NoTransaction, 0, End->Offset, Style, Add))
 			return false;
 	}
 
@@ -1212,7 +1212,7 @@ bool GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 							*ns = *st.Last()->GetStyle();
 						ns->TextDecoration(GCss::TextDecorUnderline);
 						ns->Color(GCss::ColorDef(GCss::ColorRgb, GColour::Blue.c32()));
-						tb->ChangeStyle(Off, Len, ns, true);
+						tb->ChangeStyle(NoTransaction, Off, Len, ns, true);
 
 						if (tb->GetTextAt(Off+1, st))
 						{
@@ -1586,7 +1586,7 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 			if (ctx.Tb)
 			{
 				const char16 *Nl = L"\n";
-				ctx.Tb->AddText(-1, Nl, StrlenW(Nl), NULL/*CachedStyle*/);
+				ctx.Tb->AddText(NoTransaction, -1, Nl, StrlenW(Nl), NULL/*CachedStyle*/);
 				ctx.LastChar = '\n';
 				ctx.StartOfLine = true;
 			}
