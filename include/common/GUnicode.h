@@ -221,26 +221,33 @@ inline uint32 LgiUtf16To32(uint16 *&i, int &Len)
 }
 
 /// Convert a single utf-32 char to utf-16
-inline void LgiUtf32To16(uint32 c, uint16 *&i, int &Len)
+inline bool LgiUtf32To16(uint32 c, uint16 *&i, int &Len)
 {
-	if (c & 0xffff0000)
+	if (c >= 0x10000)
 	{
 		// 2 word UTF
-		if (Len > 3)
-		{
-			int w = (c >> 16) - 1;
-			*i++ = 0xd800 | (w << 6) | ((c & 0xfc00) >> 10);
-			*i++ = 0xdc00 | (c & 0x3ff);
-			Len -= sizeof(uint16) << 1;
-		}
-	}
+		if (Len < 4)
+			return false;
 
-	// 1 word UTF
-	if (Len > 1)
-	{
-		*i++ = c;
-		Len -= sizeof(uint16);
+		int w = c - 0x10000;
+		*i++ = 0xd800 + (w >> 10);
+		*i++ = 0xdc00 + (c & 0x3ff);
+		Len -= sizeof(*i) << 1;
 	}
+	else
+	{
+		if (Len < 2)
+			return false;
+		if (c > 0xD7FF && c < 0xE000)
+			return false;
+
+		// 1 word UTF
+		*i++ = c;
+		Len -= sizeof(*i);
+		return true;
+	}
+	
+	return false;
 }
 
 /// Seeks the pointer 'Ptr' to the next utf-8 character

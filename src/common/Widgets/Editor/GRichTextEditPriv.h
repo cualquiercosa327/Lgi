@@ -56,6 +56,37 @@
 #define TextColour						GColour::Black
 
 //////////////////////////////////////////////////////////////////////
+struct Range
+{
+	int Start;
+	int Len;
+
+	Range(int s, int l)
+	{
+		Start = s;
+		Len = l;
+	}
+
+	Range Overlap(const Range &r)
+	{
+		Range o(0, 0);
+		if (r.Start >= End())
+			return o;
+		if (r.End() <= Start)
+			return o;
+
+		int e = min(End(), r.End());
+		o.Start = max(r.Start, Start);
+		o.Len = e - o.Start;
+		return o; 
+	}
+
+	int End() const
+	{
+		return Start + Len;
+	}
+};
+
 class GRichEditElem : public GHtmlElement
 {
 	GHashTbl<const char*, GString> Attr;
@@ -175,6 +206,25 @@ public:
 	void Visible(bool i);
 };
 
+class EmojiMenu : public GPopup
+{
+	GRichTextPriv *d;
+
+	struct Emoji
+	{
+		GRect Src, Dst;
+		uint32 u;
+	};
+	GArray<Emoji> e;
+
+public:
+	EmojiMenu(GRichTextPriv *priv, GdcPt2 p);
+
+	void OnPaint(GSurface *pDC);
+	void OnMouseClick(GMouse &m);
+	void Visible(bool i);
+};
+
 struct CtrlCap
 {
 	GString Name, Param;
@@ -193,6 +243,8 @@ class GRichTextPriv :
 	public GCssCache,
 	public GFontCache
 {
+	GAutoPtr<GSurface> EmojiImg;
+
 public:
 	enum SelectModeType
 	{
@@ -793,6 +845,7 @@ public:
 	GdcPt2 ScreenToDoc(int x, int y);
 	GdcPt2 DocToScreen(int x, int y);
 	bool Merge(Block *a, Block *b);
+	GSurface *GetEmojiImage();
 
 	struct CreateContext
 	{

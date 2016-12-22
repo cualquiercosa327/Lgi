@@ -80,6 +80,7 @@
     <OutDir>$(Platform)$(Configuration)\</OutDir>
     <IntDir>$(Platform)$(Configuration)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>..\..\..\..\CodeLib\libpng-1.6.26;..\..\..\..\CodeLib\zlib-1.2.8;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(Platform)$(Configuration)12\</OutDir>
@@ -90,6 +91,7 @@
     <OutDir>$(Platform)$(Configuration)\</OutDir>
     <IntDir>$(Platform)$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>..\..\..\..\CodeLib\libpng-1.6.26;..\..\..\..\CodeLib\zlib-1.2.8;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
@@ -267,6 +269,7 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\common\Gdc2\Filters\Png.cpp" />
     <ClCompile Include="..\src\common\Gdc2\Tools\GdcTools.cpp" />
     <ClCompile Include="..\src\common\Lgi\LgiMain.cpp" />
     <ClCompile Include="..\src\common\Text\Emoji\EmojiMap.cpp" />

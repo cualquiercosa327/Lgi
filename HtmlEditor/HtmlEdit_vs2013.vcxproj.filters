@@ -68,6 +68,9 @@
     <ClCompile Include="..\src\common\Text\Emoji\EmojiTools.cpp">
       <Filter>Controls\RichTextEdit\Emoji</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\common\Gdc2\Filters\Png.cpp">
+      <Filter>Lgi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">

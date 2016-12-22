@@ -185,7 +185,7 @@ void GRichTextEdit::OnInstall(CapsHash *Caps, bool Status)
 
 void GRichTextEdit::OnCloseInstaller()
 {
-	
+	WarnAlpha = false;
 	d->NeedsCap.Length(0);
 	Invalidate();
 }
@@ -1346,9 +1346,6 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 						d->Areas[i].Overlap(m.x, m.y))
 					{
 						Processed |= d->ClickBtn(m, (RectType)i);
-						
-						if (i == CapabilityBtn)
-							WarnAlpha = false;
 					}
 				}
 				return;
@@ -2387,6 +2384,143 @@ void SelectColour::OnMouseClick(GMouse &m)
 }
 
 void SelectColour::Visible(bool i)
+{
+	GPopup::Visible(i);
+	if (!i)
+	{
+		d->View->Focus(true);
+		delete this;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+#define EMOJI_PAD	2
+#include "Emoji.h"
+
+EmojiMenu::EmojiMenu(GRichTextPriv *priv, GdcPt2 p) : GPopup(priv->View)
+{
+	d = priv;
+
+	int Rows = 4;
+	GRect r(0, 0,
+			(EMOJI_CELL_SIZE + EMOJI_PAD) * EMOJI_GROUP_X + EMOJI_PAD,
+			(EMOJI_CELL_SIZE + EMOJI_PAD) * Rows + EMOJI_PAD);
+	r.Offset(p.x, p.y);
+	SetPos(r);
+
+	d->GetEmojiImage();
+
+	Range EmojiBlocks[2] = { {0x203c, 0x3299 - 0x203c + 1}, { 0x1f004, 0x1f6c5 - 0x1f004 + 1 } };
+	GHashTbl<int, int> Map;
+	for (int b=0; b<CountOf(EmojiBlocks); b++)
+	{
+		Range &r = EmojiBlocks[b];
+		for (int i=0; i<r.Len; i++)
+		{
+			uint32 u = r.Start + i;
+			int Idx = EmojiToIconIndex(&u, 1);
+			if (Idx >= 0)
+				Map.Add(Idx, u);
+		}
+	}
+
+	int StartIdx = 676;
+	int Sz = EMOJI_CELL_SIZE - 1;
+	int Dx = EMOJI_PAD;
+	int Dy = EMOJI_PAD;
+	for (int i=0; i<EMOJI_GROUP_X*Rows; i++)
+	{
+		int ImgIdx = StartIdx + i;
+		uint32 u = Map.Find(ImgIdx);
+		if (u)
+		{
+			Emoji &Ch = e.New();
+			Ch.u = u;
+
+			int Sx = ImgIdx % EMOJI_GROUP_X;
+			int Sy = ImgIdx / EMOJI_GROUP_X;
+
+			Ch.Src.ZOff(Sz, Sz);
+			Ch.Src.Offset(Sx * EMOJI_CELL_SIZE, Sy * EMOJI_CELL_SIZE);
+
+			Ch.Dst.ZOff(Sz, Sz);
+			Ch.Dst.Offset(Dx, Dy);
+
+			Dx += EMOJI_PAD + EMOJI_CELL_SIZE;
+			if (Dx + EMOJI_PAD + EMOJI_CELL_SIZE >= r.X())
+			{
+				Dx = EMOJI_PAD;
+				Dy += EMOJI_PAD + EMOJI_CELL_SIZE;
+			}
+		}
+	}
+
+	Visible(true);
+}
+
+void EmojiMenu::OnPaint(GSurface *pDC)
+{
+	pDC->Colour(LC_MED, 24);
+	pDC->Rectangle();
+
+	GSurface *EmojiImg = d->GetEmojiImage();
+	if (EmojiImg)
+	{
+		pDC->Op(GDC_ALPHA);
+		for (unsigned i=0; i<e.Length(); i++)
+		{
+			Emoji &g = e[i];
+			pDC->Blt(g.Dst.x1, g.Dst.y1, EmojiImg, &g.Src);
+		}
+	}
+	else
+	{
+		GRect c = GetClient();
+		GDisplayString Ds(SysFont, "Loading...");
+		SysFont->Colour(LC_TEXT, LC_MED);
+		SysFont->Transparent(true);
+		Ds.Draw(pDC, (c.X()-Ds.X())>>1, (c.Y()-Ds.Y())>>1);
+	}
+}
+
+void EmojiMenu::OnMouseClick(GMouse &m)
+{
+	if (m.Down())
+	{
+		for (unsigned i=0; i<e.Length(); i++)
+		{
+			Emoji &Ch = e[i];
+			if (Ch.Dst.Overlap(m.x, m.y))
+			{
+				if (d->Cursor &&
+					d->Cursor->Blk)
+				{
+					#ifdef _WIN32
+					char16 w[2];
+					uint16 *ptr = (uint16*)w;
+					int len = sizeof(w);
+					LgiUtf32To16(Ch.u, ptr, len);
+					int chars = (sizeof(w) - len) / sizeof(*w);
+					#else
+					char16 w[1] = { Ch.u };
+					int chars = 1;
+					#endif
+
+					if (d->Cursor->Blk->AddText(NoTransaction, d->Cursor->Offset, w, chars, NULL))
+					{
+						d->Dirty = true;
+						d->InvalidateDoc(NULL);
+					}
+				}
+
+				Visible(false);
+				break;
+			}
+		}
+	}
+}
+
+void EmojiMenu::Visible(bool i)
 {
 	GPopup::Visible(i);
 	if (!i)

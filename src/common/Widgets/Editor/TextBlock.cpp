@@ -2,37 +2,6 @@
 #include "GRichTextEdit.h"
 #include "GRichTextEditPriv.h"
 
-struct Range
-{
-	int Start;
-	int Len;
-
-	Range(int s, int l)
-	{
-		Start = s;
-		Len = l;
-	}
-
-	Range Overlap(const Range &r)
-	{
-		Range o(0, 0);
-		if (r.Start >= End())
-			return o;
-		if (r.End() <= Start)
-			return o;
-
-		int e = min(End(), r.End());
-		o.Start = max(r.Start, Start);
-		o.Len = e - o.Start;
-		return o; 
-	}
-
-	int End() const
-	{
-		return Start + Len;
-	}
-};
-
 GRichTextPriv::TextBlock::TextBlock(GRichTextPriv *priv) : Block(priv)
 {
 	LayoutDirty = false;

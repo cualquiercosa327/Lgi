@@ -755,6 +755,19 @@ bool GRichTextPriv::Merge(Block *a, Block *b)
 	return true;
 }
 
+GSurface *GRichTextPriv::GetEmojiImage()
+{
+	GString p = LgiGetSystemPath(LSP_APP_INSTALL);
+	if (!p)
+		return NULL;
+
+	char File[MAX_PATH] = "";
+	LgiMakePath(File, sizeof(File), p, "..\\src\\common\\Text\\Emoji\\EmojiMap.png");
+
+	EmojiImg.Reset(GdcD->Load(File, false));
+	return EmojiImg;
+}
+
 int GRichTextPriv::HitTest(int x, int y, int &LineHint)
 {
 	int CharPos = 0;
@@ -1280,6 +1293,13 @@ bool GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 		case GRichTextEdit::CapabilityBtn:
 		{
 			View->OnCloseInstaller();
+			break;
+		}
+		case GRichTextEdit::EmojiBtn:
+		{
+			GdcPt2 p(Areas[t].x1, Areas[t].y2 + 1);
+			View->PointToScreen(p);
+			new EmojiMenu(this, p);
 			break;
 		}
 		default:
