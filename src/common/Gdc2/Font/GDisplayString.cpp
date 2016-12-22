@@ -224,6 +224,40 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
 	#endif
 }
 
+#ifdef _WIN32
+GDisplayString::GDisplayString(GFont *f, const uint32 *s, int l, GSurface *pdc)
+{
+	pDC = pdc;
+	Font = f;
+
+	#if LGI_DSP_STR_CACHE
+
+		int Chars = l < 0 ? Strlen(s) : l;
+		StrCache.Reset((char16*)LgiNewConvertCp(LGI_WideCharset, s, "utf-32", Chars*4));
+
+	#endif
+
+    #if defined(MAC) || WINNATIVE || defined(LGI_SDL)
+
+		StringConvert(Str, &len, s, l);
+
+	#else
+
+		Str = WideToUtf8(s, l < 0 ? -1 : l);
+		len = Str ? strlen(Str) : 0;
+
+	#endif
+	
+	x = y = 0;
+	xf = 0;
+	yf = 0;
+	DrawOffsetF = 0;
+	LaidOut = 0;
+	AppendDots = 0;
+	VisibleTab = 0;
+}
+#endif
+
 GDisplayString::~GDisplayString()
 {
 	#if defined(LGI_SDL)

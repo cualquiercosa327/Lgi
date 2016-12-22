@@ -320,8 +320,8 @@ bool GRichTextEdit::DeleteSelection(char16 **Cut)
 	if (!d->Cursor || !d->Selection)
 		return false;
 
-	GArray<char16> DeletedText;
-	GArray<char16> *DelTxt = Cut ? &DeletedText : NULL;
+	GArray<uint32> DeletedText;
+	GArray<uint32> *DelTxt = Cut ? &DeletedText : NULL;
 
 	bool Cf = d->CursorFirst();
 	GRichTextPriv::BlockCursor *Start = Cf ? d->Cursor : d->Selection;
@@ -374,7 +374,8 @@ bool GRichTextEdit::DeleteSelection(char16 **Cut)
 	if (Cut)
 	{
 		DelTxt->Add(0);
-		*Cut = DelTxt->Release();
+		// *Cut = DelTxt->Release();
+		*Cut = (char16*)LgiNewConvertCp(LGI_WideCharset, &DelTxt->First(), "utf-32", DelTxt->Length()*sizeof(uint32));
 	}
 
 	return true;
@@ -740,8 +741,9 @@ bool GRichTextEdit::Paste()
 	if (HasSelection())
 		DeleteSelection();
 
-	int Len = Strlen(Text.Get());
-	if (!d->Cursor->Blk->AddText(NoTransaction, d->Cursor->Offset, Text, Len))
+	GAutoPtr<uint32,true> Utf32((uint32*)LgiNewConvertCp("utf-32", Text, LGI_WideCharset));
+	int Len = Strlen(Utf32.Get());
+	if (!d->Cursor->Blk->AddText(NoTransaction, d->Cursor->Offset, Utf32.Get(), Len))
 	{
 		LgiAssert(0);
 		SendNotify(GNotifyDocChanged);
@@ -960,7 +962,7 @@ bool GRichTextEdit::OnFind(GFindReplaceCommon *Params)
 		return false;
 	}
 	
-	GAutoWString w(Utf8ToWide(Params->Find));
+	GAutoPtr<uint32,true> w((uint32*)LgiNewConvertCp("utf-32", Params->Find, "utf-8", Params->Find.Length()));
 	int Idx = d->Blocks.IndexOf(d->Cursor->Blk);
 	if (Idx < 0)
 	{
@@ -1007,7 +1009,7 @@ void GRichTextEdit::SelectWord(int From)
 	if (!b)
 		return;
 
-	GArray<char16> Txt;
+	GArray<uint32> Txt;
 	if (!b->CopyAt(0, b->Length(), &Txt))
 		return;
 
@@ -1401,7 +1403,7 @@ void GRichTextEdit::OnMouseMove(GMouse &m)
 				if (!d->CursorFirst())
 				{
 					// Extend towards the end of the doc...
-					GArray<char16> Txt;
+					GArray<uint32> Txt;
 					GRichTextPriv::Block *b = d->Selection->Blk;
 					if (b->CopyAt(0, b->Length(), &Txt))
 					{
@@ -1419,7 +1421,7 @@ void GRichTextEdit::OnMouseMove(GMouse &m)
 				else
 				{
 					// Extend towards the start of the doc...
-					GArray<char16> Txt;
+					GArray<uint32> Txt;
 					GRichTextPriv::Block *b = d->Selection->Blk;
 					if (b->CopyAt(0, b->Length(), &Txt))
 					{
@@ -1525,7 +1527,8 @@ bool GRichTextEdit::OnKey(GKey &k)
 						
 						DeleteSelection();
 
-						if (b->AddText(NoTransaction, d->Cursor->Offset, &k.c16, 1, AddStyle))
+						uint32 Ch = k.c16;
+						if (b->AddText(NoTransaction, d->Cursor->Offset, &Ch, 1, AddStyle))
 						{
 							d->Cursor->Set(d->Cursor->Offset + 1);
 							Invalidate();
@@ -1890,7 +1893,7 @@ bool GRichTextEdit::OnKey(GKey &k)
 					{
 						// letter/number etc
 						GRichTextPriv::Block *b = d->Cursor->Blk;
-						char16 Nbsp[] = {0xa0};
+						uint32 Nbsp[] = {0xa0};
 						if (b->AddText(NoTransaction, d->Cursor->Offset, Nbsp, 1))
 						{
 							d->Cursor->Set(d->Cursor->Offset + 1);
@@ -2111,7 +2114,8 @@ void GRichTextEdit::OnEnter(GKey &k)
 		d->Cursor->Blk)
 	{
 		GRichTextPriv::Block *b = d->Cursor->Blk;
-		if (b->AddText(NoTransaction, d->Cursor->Offset, L"\n", 1))
+		const uint32 Nl[] = {'\n'};
+		if (b->AddText(NoTransaction, d->Cursor->Offset, Nl, 1))
 		{
 			d->Cursor->Set(d->Cursor->Offset + 1);
 			Invalidate();
@@ -2495,18 +2499,7 @@ void EmojiMenu::OnMouseClick(GMouse &m)
 				if (d->Cursor &&
 					d->Cursor->Blk)
 				{
-					#ifdef _WIN32
-					char16 w[2];
-					uint16 *ptr = (uint16*)w;
-					int len = sizeof(w);
-					LgiUtf32To16(Ch.u, ptr, len);
-					int chars = (sizeof(w) - len) / sizeof(*w);
-					#else
-					char16 w[1] = { Ch.u };
-					int chars = 1;
-					#endif
-
-					if (d->Cursor->Blk->AddText(NoTransaction, d->Cursor->Offset, w, chars, NULL))
+					if (d->Cursor->Blk->AddText(NoTransaction, d->Cursor->Offset, &Ch.u, 1, NULL))
 					{
 						d->Dirty = true;
 						d->InvalidateDoc(NULL);

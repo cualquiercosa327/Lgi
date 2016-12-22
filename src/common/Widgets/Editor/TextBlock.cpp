@@ -30,7 +30,7 @@ void GRichTextPriv::TextBlock::Dump()
 	for (unsigned i=0; i<Txt.Length(); i++)
 	{
 		StyleText *t = Txt[i];
-		GString s(t->Length() ? &t->First() : NULL);
+		GString s(t->Length() ? t->At(0) : NULL, t->Length());
 		s = s.Strip();
 				
 		/*
@@ -718,12 +718,12 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 		if (!f)
 			return flow.d->Error(_FL, "font creation failed.");
 		
-		char16 *sStart = &(*t)[0];
-		char16 *sEnd = sStart + t->Length();
+		uint32 *sStart = t->At(0);
+		uint32 *sEnd = sStart + t->Length();
 		for (unsigned Off = 0; Off < t->Length(); )
 		{					
 			// How much of 't' is on the same line?
-			char16 *s = sStart + Off;
+			uint32 *s = sStart + Off;
 			if (*s == '\n')
 			{
 				// New line handling...
@@ -742,12 +742,13 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 				if (Off == t->Length())
 				{
 					// Empty line at the end of the StyleText
-					CurLine->Strs.Add(new DisplayStr(t, f, L"", 0, flow.pDC));
+					const uint32 Empty[] = {0};
+					CurLine->Strs.Add(new DisplayStr(t, f, Empty, 0, flow.pDC));
 				}
 				continue;
 			}
 
-			char16 *e = s;
+			uint32 *e = s;
 			while (*e != '\n' && e < sEnd)
 				e++;
 					
@@ -950,7 +951,7 @@ int GRichTextPriv::TextBlock::LineToOffset(int Line)
 	return Length();
 }
 
-int GRichTextPriv::TextBlock::DeleteAt(Transaction *Trans, int BlkOffset, int Chars, GArray<char16> *DeletedText)
+int GRichTextPriv::TextBlock::DeleteAt(Transaction *Trans, int BlkOffset, int Chars, GArray<uint32> *DeletedText)
 {
 	int Pos = 0;
 	int Deleted = 0;
@@ -975,7 +976,7 @@ int GRichTextPriv::TextBlock::DeleteAt(Transaction *Trans, int BlkOffset, int Ch
 			
 			if (DeletedText)
 			{
-				DeletedText->Add(&(*t)[TxtOffset], Remove);
+				DeletedText->Add(t->At(TxtOffset), Remove);
 			}
 			if (Remaining > 0)
 			{
@@ -1017,12 +1018,12 @@ int GRichTextPriv::TextBlock::DeleteAt(Transaction *Trans, int BlkOffset, int Ch
 	return Deleted;
 }
 		
-bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const char16 *Str, int Chars, GNamedStyle *Style)
+bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const uint32 *Str, int Chars, GNamedStyle *Style)
 {
 	if (!Str)
 		return false;
 	if (Chars < 0)
-		Chars = StrlenW(Str);
+		Chars = Strlen(Str);
 	
 	if (AtOffset >= 0)
 	{
@@ -1037,7 +1038,7 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const c
 					int After = t->Length() - AtOffset;
 					int NewSz = t->Length() + Chars;
 					t->Length(NewSz);
-					char16 *c = &t->First();
+					uint32 *c = &t->First();
 					if (After > 0)
 						memmove(c + AtOffset + Chars, c + AtOffset, After * sizeof(*c));
 					memcpy(c + AtOffset, Str, Chars * sizeof(*c));
@@ -1086,7 +1087,7 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const c
 	return true;
 }
 
-int GRichTextPriv::TextBlock::CopyAt(int Offset, int Chars, GArray<char16> *Text)
+int GRichTextPriv::TextBlock::CopyAt(int Offset, int Chars, GArray<uint32> *Text)
 {
 	if (!Text)
 		return 0;
@@ -1113,7 +1114,7 @@ int GRichTextPriv::TextBlock::CopyAt(int Offset, int Chars, GArray<char16> *Text
 	return Text->Length();
 }
 
-int GRichTextPriv::TextBlock::FindAt(int StartIdx, const char16 *Str, GFindReplaceCommon *Params)
+int GRichTextPriv::TextBlock::FindAt(int StartIdx, const uint32 *Str, GFindReplaceCommon *Params)
 {
 	if (!Str || !Params)
 		return -1;
@@ -1124,11 +1125,11 @@ int GRichTextPriv::TextBlock::FindAt(int StartIdx, const char16 *Str, GFindRepla
 	for (unsigned i=0; i<Txt.Length(); i++)
 	{
 		StyleText *t = Txt[i];
-		char16 *s = &t->First();
-		char16 *e = s + t->Length();
+		uint32 *s = &t->First();
+		uint32 *e = s + t->Length();
 		if (Params->MatchCase)
 		{
-			for (char16 *c = s; c < e; c++)
+			for (uint32 *c = s; c < e; c++)
 			{
 				if (*c == *Str)
 				{
@@ -1136,7 +1137,7 @@ int GRichTextPriv::TextBlock::FindAt(int StartIdx, const char16 *Str, GFindRepla
 						Match = !Strncmp(c, Str, InLen);
 					else
 					{
-						GArray<char16> tmp;
+						GArray<uint32> tmp;
 						if (CopyAt(CharPos + (c - s), InLen, &tmp) &&
 							tmp.Length() == InLen)
 							Match = !Strncmp(&tmp[0], Str, InLen);
@@ -1150,8 +1151,8 @@ int GRichTextPriv::TextBlock::FindAt(int StartIdx, const char16 *Str, GFindRepla
 		}
 		else
 		{
-			char16 l = ToLower(*Str);
-			for (char16 *c = s; c < e; c++)
+			uint32 l = ToLower(*Str);
+			for (uint32 *c = s; c < e; c++)
 			{
 				if (ToLower(*c) == l)
 				{
@@ -1159,7 +1160,7 @@ int GRichTextPriv::TextBlock::FindAt(int StartIdx, const char16 *Str, GFindRepla
 						Match = !Strnicmp(c, Str, InLen);
 					else
 					{
-						GArray<char16> tmp;
+						GArray<uint32> tmp;
 						if (CopyAt(CharPos + (c - s), InLen, &tmp) &&
 							tmp.Length() == InLen)
 							Match = !Strnicmp(&tmp[0], Str, InLen);
@@ -1193,7 +1194,7 @@ bool GRichTextPriv::TextBlock::DoCase(Transaction *Trans, int StartIdx, int Char
 		Range Edit = Run.Overlap(Change);
 		if (Edit.Len > 0)
 		{
-			char16 *s = st->At(Edit.Start - Run.Start);
+			uint32 *s = st->At(Edit.Start - Run.Start);
 			for (int n=0; n<Edit.Len; n++)
 			{
 				if (Upper)

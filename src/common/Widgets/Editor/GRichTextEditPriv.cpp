@@ -435,7 +435,7 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 
 			if (c->Offset > 0)
 			{
-				GArray<char16> a;
+				GArray<uint32> a;
 				c->Blk->CopyAt(0, c->Offset, &a);
 					
 				int i = c->Offset;
@@ -515,7 +515,7 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 
 			if (c->Offset < c->Blk->Length())
 			{
-				GArray<char16> a;
+				GArray<uint32> a;
 				int RemainingCh = c->Blk->Length() - c->Offset;
 				c->Blk->CopyAt(c->Offset, RemainingCh, &a);
 					
@@ -1619,8 +1619,8 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 			}
 			if (ctx.Tb)
 			{
-				const char16 *Nl = L"\n";
-				ctx.Tb->AddText(NoTransaction, -1, Nl, StrlenW(Nl), NULL/*CachedStyle*/);
+				const uint32 Nl[] = {'\n', 0};
+				ctx.Tb->AddText(NoTransaction, -1, Nl, 1, NULL/*CachedStyle*/);
 				ctx.LastChar = '\n';
 				ctx.StartOfLine = true;
 			}
@@ -1694,6 +1694,8 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 
 bool GRichTextPriv::GetSelection(GArray<char16> &Text)
 {
+	GArray<uint32> Utf32;
+
 	bool Cf = CursorFirst();
 	GRichTextPriv::BlockCursor *Start = Cf ? Cursor : Selection;
 	GRichTextPriv::BlockCursor *End = Cf ? Selection : Cursor;
@@ -1701,14 +1703,14 @@ bool GRichTextPriv::GetSelection(GArray<char16> &Text)
 	{
 		// In the same block... just copy
 		int Len = End->Offset - Start->Offset;
-		Start->Blk->CopyAt(Start->Offset, Len, &Text);
+		Start->Blk->CopyAt(Start->Offset, Len, &Utf32);
 	}
 	else
 	{
 		// Multi-block delete...
 
 		// 1) Copy the content to the end of the first block
-		Start->Blk->CopyAt(Start->Offset, -1, &Text);
+		Start->Blk->CopyAt(Start->Offset, -1, &Utf32);
 
 		// 2) Copy any blocks between 'Start' and 'End'
 		int i = Blocks.IndexOf(Start->Blk);
@@ -1718,7 +1720,7 @@ bool GRichTextPriv::GetSelection(GArray<char16> &Text)
 			for (++i; Blocks[i] != End->Blk && i < (int)Blocks.Length(); i++)
 			{
 				GRichTextPriv::Block *&b = Blocks[i];
-				b->CopyAt(0, -1, &Text);
+				b->CopyAt(0, -1, &Utf32);
 			}
 		}
 		else
@@ -1728,12 +1730,15 @@ bool GRichTextPriv::GetSelection(GArray<char16> &Text)
 		}
 
 		// 3) Delete any text up to the Cursor in the 'End' block
-		End->Blk->CopyAt(0, End->Offset, &Text);
+		End->Blk->CopyAt(0, End->Offset, &Utf32);
 	}
 
-	// Null terminate
-	Text.Add(0);
+	char16 *w = (char16*)LgiNewConvertCp(LGI_WideCharset, &Utf32[0], "utf-32", Utf32.Length() * sizeof(uint32));
+	if (!w)
+		return false;
 
+	Text.Add(w, Strlen(w));
+	Text.Add(0);
 	return true;
 }
 

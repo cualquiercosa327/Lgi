@@ -55,6 +55,59 @@
 #define CursorColour					GColour::Black
 #define TextColour						GColour::Black
 
+/*
+int Utf16Strlen(const uint16 *s, int &len)
+{
+	int c = 0;
+
+	if (!s)
+	{
+		len = 0;
+		return 0;
+	}
+
+	if (len < 0)
+	{
+		const uint16 *start = s;
+		while (*s)
+		{
+			if ((*s & 0xfc00) == 0xD800)
+			{
+				s++;
+				if (!*s)
+					break;
+				if ((*s & 0xfc00) == 0xDC00)
+					s++;
+
+				c++;
+			}
+			else c++;
+		}
+		len = s - start;
+	}
+	else
+	{
+		const uint16 *e = s + len;
+		while (s < e)
+		{
+			if ((*s & 0xfc00) == 0xD800)
+			{
+				s++;
+				if (s >= e)
+					break;
+				if ((*s & 0xfc00) == 0xDC00)
+					s++;
+
+				c++;
+			}
+			else c++;
+		}
+	}
+
+	return c;
+}
+*/
+
 //////////////////////////////////////////////////////////////////////
 struct Range
 {
@@ -365,7 +418,7 @@ public:
 	};
 
 	/// This is a run of text, all of the same style
-	class StyleText : public GArray<char16>
+	class StyleText : public GArray<uint32>
 	{
 		GNamedStyle *Style; // owned by the CSS cache
 	
@@ -374,17 +427,42 @@ public:
 		HtmlTag Element;
 		GString Param;
 		
-		StyleText(const char16 *t = NULL, int Chars = -1, GNamedStyle *style = NULL)
+		StyleText(const uint32 *t = NULL, int Chars = -1, GNamedStyle *style = NULL)
 		{
 			Style = NULL;
 			Element = CONTENT;
 			if (style)
 				SetStyle(style);
 			if (t)
-				Add((char16*)t, Chars >= 0 ? Chars : StrlenW(t));
+			{
+				/*
+				#ifdef _WIN32
+				int Len = Utf16Strlen((const uint16*)t, Chars);
+				if (Len > 0)
+				{
+					if (Length(Len))
+					{
+						uint32 *o = At(0);
+						uint16 *i = (uint16*)t;
+						int InLen = Chars * sizeof(*t);
+						while (InLen > 0)
+						{
+							*o++ = LgiUtf16To32(i, InLen);
+						}
+					}
+					else LgiAssert(0);
+				}
+				else LgiAssert(0);
+				#else
+				*/
+				
+				if (Chars < 0)
+					Chars = Strlen(t);
+				Add((uint32*)t, Chars);
+			}
 		}
 
-		char16 *At(int i)
+		uint32 *At(int i)
 		{
 			if (i >= 0 && i < (int)Length())
 				return &(*this)[i];
@@ -569,7 +647,7 @@ public:
 			virtual bool OffsetToLine(int Offset, int *ColX, GArray<int> *LineY) = 0;
 			virtual int LineToOffset(int Line) = 0;
 			virtual int GetLines() = 0;
-			virtual int FindAt(int StartIdx, const char16 *Str, GFindReplaceCommon *Params) = 0;
+			virtual int FindAt(int StartIdx, const uint32 *Str, GFindReplaceCommon *Params) = 0;
 			virtual void IncAllStyleRefs() {}
 			virtual void Dump() {}
 			virtual GNamedStyle *GetStyle(int At = -1) = 0;
@@ -578,7 +656,7 @@ public:
 			#endif
 
 			// Copy some or all of the text out
-			virtual int CopyAt(int Offset, int Chars, GArray<char16> *Text) { return false; }
+			virtual int CopyAt(int Offset, int Chars, GArray<uint32> *Text) { return false; }
 
 			/// This method moves a cursor index.
 			/// \returns the new cursor index or -1 on error.
@@ -601,7 +679,7 @@ public:
 				/// The index to add at (-1 = the end)
 				int AtOffset,
 				/// The text itself
-				const char16 *Str,
+				const uint32 *Str,
 				/// [Optional] The number of characters
 				int Chars = -1,
 				/// [Optional] Style to give the text, NULL means "use the existing style"
@@ -615,7 +693,7 @@ public:
 				Transaction *Trans,
 				int Offset,
 				int Chars,
-				GArray<char16> *DeletedText = NULL
+				GArray<uint32> *DeletedText = NULL
 			)	{ return false; }
 
 			/// Changes the style of a range of characters
@@ -691,7 +769,7 @@ public:
 		StyleText *Src;
 		int OffsetY; // Offset of this string from the TextLine's box in the Y axis
 		
-		DisplayStr(StyleText *src, GFont *f, const char16 *s, int l = -1, GSurface *pdc = NULL) :
+		DisplayStr(StyleText *src, GFont *f, const uint32 *s, int l = -1, GSurface *pdc = NULL) :
 			GDisplayString(f, s, l, pdc)
 		{
 			Src = src;
@@ -801,18 +879,18 @@ public:
 		void OnPaint(PaintContext &Ctx);
 		bool OnLayout(Flow &flow);
 		int GetTextAt(uint32 Offset, GArray<StyleText*> &t);
-		int CopyAt(int Offset, int Chars, GArray<char16> *Text);
+		int CopyAt(int Offset, int Chars, GArray<uint32> *Text);
 		bool Seek(SeekType To, BlockCursor &Cursor);
-		int FindAt(int StartIdx, const char16 *Str, GFindReplaceCommon *Params);
+		int FindAt(int StartIdx, const uint32 *Str, GFindReplaceCommon *Params);
 		void IncAllStyleRefs();
 		#ifdef _DEBUG
 		void DumpNodes(GTreeItem *Ti);
 		#endif
 
 		// Transactional changes
-		bool AddText(Transaction *Trans, int AtOffset, const char16 *Str, int Chars = -1, GNamedStyle *Style = NULL);
+		bool AddText(Transaction *Trans, int AtOffset, const uint32 *Str, int Chars = -1, GNamedStyle *Style = NULL);
 		bool ChangeStyle(Transaction *Trans, int Offset, int Chars, GCss *Style, bool Add);
-		int DeleteAt(Transaction *Trans, int BlkOffset, int Chars, GArray<char16> *DeletedText = NULL);
+		int DeleteAt(Transaction *Trans, int BlkOffset, int Chars, GArray<uint32> *DeletedText = NULL);
 		bool DoCase(Transaction *Trans, int StartIdx, int Chars, bool Upper);
 	};
 	
@@ -850,7 +928,7 @@ public:
 	struct CreateContext
 	{
 		TextBlock *Tb;
-		GArray<char16> Buf;
+		GArray<uint32> Buf;
 		char16 LastChar;
 		GFontCache *FontCache;
 		GCss::Store StyleStore;
@@ -899,7 +977,7 @@ public:
 			bool Status = false;
 			if (Used > 0)
 			{
-				Status = Tb->AddText(NULL, -1, &Buf[0], Used, Style);
+				Status = Tb->AddText(NoTransaction, -1, &Buf[0], Used, Style);
 				LastChar = Buf[Used-1];
 			}
 			return Status;

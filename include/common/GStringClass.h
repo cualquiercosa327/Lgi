@@ -136,6 +136,42 @@ public:
 		}
 	}
 
+	#ifdef _WIN32
+	/// const uint32* constructor
+	GString(const uint32 *str, int chars = -1)
+	{
+		Str = NULL;
+
+		if (chars < 0)
+			chars = Strlen(str);
+		
+		int utf_len = 0;
+		const uint32 *end = str + chars;
+		const uint32 *c = str;
+		while (c < end)
+		{
+			uint8 utf[6], *u = utf;
+			int len = sizeof(utf);
+			if (!LgiUtf32To8(*c++, u, len))
+				break;
+			utf_len += u - utf;
+		}
+
+		if (Length(utf_len))
+		{
+			c = str;
+			uint8 *u = (uint8*)Str->Str;
+			int len = Str->Len;
+			while (c < end)
+			{
+				if (!LgiUtf32To8(*c++, u, len))
+					break;
+			}
+			*u++ = 0;
+		}
+	}
+	#endif
+
 	/// GString constructor
 	GString(const GString &s)
 	{

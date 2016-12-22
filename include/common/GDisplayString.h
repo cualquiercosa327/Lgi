@@ -118,6 +118,19 @@ public:
 		int l = -1,
 		GSurface *pdc = 0
 	);
+	#ifdef _WIN32
+	/// Constructor
+	GDisplayString
+	(
+		/// The base font. Must not be destroyed during the lifetime of this object.
+		GFont *f,
+		/// A wide character input string
+		const uint32 *s,
+		/// The number of characters in the input string (NOT the number of bytes) or -1 for NULL terminated
+		int l = -1,
+		GSurface *pdc = 0
+	);
+	#endif
 	virtual ~GDisplayString();
 	
 	GDisplayString &operator=(const GDisplayString &s)
