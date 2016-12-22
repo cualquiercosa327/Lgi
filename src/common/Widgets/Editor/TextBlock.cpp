@@ -1,6 +1,7 @@
 #include "Lgi.h"
 #include "GRichTextEdit.h"
 #include "GRichTextEditPriv.h"
+#include "Emoji.h"
 
 GRichTextPriv::TextBlock::TextBlock(GRichTextPriv *priv) : Block(priv)
 {
@@ -519,15 +520,17 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 				EndPoint[CurEndPoint] <= CharPos + Ds->Length())
 			{
 				// Process string into parts based on the selection boundaries
-				const char16 *s = *(GDisplayString*)Ds;
 				int Ch = EndPoint[CurEndPoint] - CharPos;
-				GDisplayString ds1(f, s, Ch);
+				GAutoPtr<DisplayStr> ds1 = Ds->Clone(0, Ch);
 						
 				// First part...
 				f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
 							Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
-				ds1.FDraw(Ctx.pDC, FixX, FixY);
-				FixX += ds1.FX();
+				if (ds1)
+				{
+					ds1->FDraw(Ctx.pDC, FixX, FixY);
+					FixX += ds1->FX();
+				}
 				Ctx.Type = Ctx.Type == Selected ? Unselected : Selected;
 				CurEndPoint++;
 						
@@ -546,29 +549,38 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 					int Ch2 = EndPoint[CurEndPoint] - CharPos;
 
 					// Part 2
-					GDisplayString ds2(f, s + Ch, Ch2 - Ch);
+					GAutoPtr<DisplayStr> ds2 = Ds->Clone(Ch, Ch2 - Ch);
 					f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
 								Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
-					ds2.FDraw(Ctx.pDC, FixX, FixY);
-					FixX += ds2.FX();
+					if (ds2)
+					{
+						ds2->FDraw(Ctx.pDC, FixX, FixY);
+						FixX += ds2->FX();
+					}
 					Ctx.Type = Ctx.Type == Selected ? Unselected : Selected;
 					CurEndPoint++;
 
 					// Part 3
-					GDisplayString ds3(f, s + Ch2);
+					GAutoPtr<DisplayStr> ds3 = Ds->Clone(Ch2);
 					f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
 								Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
-					ds3.FDraw(Ctx.pDC, FixX, FixY);
-					FixX += ds3.FX();
+					if (ds3)
+					{
+						ds3->FDraw(Ctx.pDC, FixX, FixY);
+						FixX += ds3->FX();
+					}
 				}
-				else
+				else if (Ch < Ds->Length())
 				{
 					// No... draw 2nd part
-					GDisplayString ds2(f, s + Ch);
+					GAutoPtr<DisplayStr> ds2 = Ds->Clone(Ch);
 					f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
 								Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
-					ds2.FDraw(Ctx.pDC, FixX, FixY);
-					FixX += ds2.FX();
+					if (ds2)
+					{
+						ds2->FDraw(Ctx.pDC, FixX, FixY);
+						FixX += ds2->FX();
+					}
 				}
 			}
 			else
@@ -1018,68 +1030,101 @@ int GRichTextPriv::TextBlock::DeleteAt(Transaction *Trans, int BlkOffset, int Ch
 	return Deleted;
 }
 		
-bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const uint32 *Str, int Chars, GNamedStyle *Style)
+bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const uint32 *InStr, int InChars, GNamedStyle *Style)
 {
-	if (!Str)
+	if (!InStr)
 		return false;
-	if (Chars < 0)
-		Chars = Strlen(Str);
+	if (InChars < 0)
+		InChars = Strlen(InStr);
 	
-	if (AtOffset >= 0)
+	GArray<int> EmojiIdx;
+	EmojiIdx.Length(InChars);
+	for (int i=0; i<InChars; i++)
 	{
-		for (unsigned i=0; i<Txt.Length(); i++)
+		EmojiIdx[i] = EmojiToIconIndex(InStr + i, InChars - i);
+	}
+
+	const uint32 *End = InStr + InChars;
+	int Chars = 0;
+	for (int i = 0; i < InChars; i += Chars)
+	{
+		// Work out the run of chars that are either
+		// emoji or not emoji...
+		bool IsEmoji = EmojiIdx[i] >= 0;
+		Chars = 1;
+		for (int n = i + 1; n < InChars; n++)
 		{
-			StyleText *t = Txt[i];
-			if (AtOffset <= (int)t->Length())
+			if ( IsEmoji ^ (EmojiIdx[n] >= 0) )
+				break;
+			Chars++;
+		}
+		
+		// Now process 'Char' chars
+		const uint32 *Str = InStr + i;
+		if (AtOffset >= 0)
+		{
+			for (unsigned i=0; i<Txt.Length(); i++)
 			{
-				if (!Style)
+				StyleText *t = Txt[i];
+				int Len = t->Length();
+				if (AtOffset <= Len)
 				{
-					// Add to existing text run
-					int After = t->Length() - AtOffset;
-					int NewSz = t->Length() + Chars;
-					t->Length(NewSz);
-					uint32 *c = &t->First();
-					if (After > 0)
-						memmove(c + AtOffset + Chars, c + AtOffset, After * sizeof(*c));
-					memcpy(c + AtOffset, Str, Chars * sizeof(*c));
-				}
-				else
-				{
-					// Break into 2 runs, with the new text in the middle...
-
-					// Insert the new text+style
-					StyleText *Run = new StyleText(Str, Chars, Style);
-					if (!Run) return false;
-					Txt.AddAt(++i, Run);
-
-					if (AtOffset < (int)t->Length())
+					if (!Style && !IsEmoji)
 					{
-						// Insert the 2nd part of the string
-						Run = new StyleText(&(*t)[AtOffset], t->Length() - AtOffset, t->GetStyle());
+						// Insert/append to existing text run
+						int After = t->Length() - AtOffset;
+						int NewSz = t->Length() + Chars;
+						t->Length(NewSz);
+						uint32 *c = &t->First();
+
+						// Do we need to move characters up to make space?
+						if (After > 0)
+							memmove(c + AtOffset + Chars, c + AtOffset, After * sizeof(*c));
+
+						// Insert the new string...
+						memcpy(c + AtOffset, Str, Chars * sizeof(*c));
+					}
+					else
+					{
+						// Break into 2 runs, with the new text in the middle...
+
+						// Insert the new text+style
+						StyleText *Run = new StyleText(Str, Chars, Style);
 						if (!Run) return false;
+						Run->Emoji = IsEmoji;
 						Txt.AddAt(++i, Run);
 
-						// Now truncate the existing text..
-						t->Length(AtOffset);
+						if (AtOffset < (int)t->Length())
+						{
+							// Insert the 2nd part of the string
+							Run = new StyleText(&(*t)[AtOffset], t->Length() - AtOffset, t->GetStyle());
+							if (!Run) return false;
+							Txt.AddAt(++i, Run);
+
+							// Now truncate the existing text..
+							t->Length(AtOffset);
+						}
 					}
+
+					Str = NULL;
+					break;
 				}
 
-				Str = NULL;
-				break;
+				AtOffset -= Len;
 			}
+		}
 
-			AtOffset -= t->Length();
+		if (Str)
+		{
+			// Add after the end
+			StyleText *Run = new StyleText(Str, Chars, Style);
+			if (!Run) return false;
+			Run->Emoji = IsEmoji;
+			Txt.Add(Run);
 		}
 	}
 
-	if (Str)
-	{
-		StyleText *Run = new StyleText(Str, Chars, Style);
-		if (!Run) return false;
-		Txt.Add(Run);
-	}
-
-	Len += Chars;
+	Len += InChars;
 	LayoutDirty = true;
 	
 	IsValid();

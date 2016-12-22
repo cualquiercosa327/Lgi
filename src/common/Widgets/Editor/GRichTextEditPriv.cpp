@@ -5,6 +5,35 @@
 #include "GCssTools.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Utf16to32(GArray<uint32> &Out, const uint16 *In, int Len)
+{
+	// Count the length of utf32 chars...
+	uint16 *Ptr = (uint16*)In;
+	int Bytes = sizeof(*In) * Len;
+	int Chars = 0;
+	while (	Bytes >= sizeof(*In) &&
+			LgiUtf16To32(Ptr, Bytes) > 0)
+		Chars++;
+	
+	// Set the output buffer size..
+	if (!Out.Length(Chars))
+		return false;
+
+	// Convert the string...
+	Ptr = (uint16*)In;
+	Bytes = sizeof(*In) * Len;
+	uint32 *o = &Out[0];
+	uint32 *e = o + Out.Length();
+	while (	Bytes >= sizeof(*In))
+	{
+		*o++ = LgiUtf16To32(Ptr, Bytes);
+	}
+	
+	LgiAssert(o == e);
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 const char *GRichEditElemContext::GetElement(GRichEditElem *obj)
 {
 	return obj->Tag;

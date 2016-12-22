@@ -13,8 +13,6 @@ typedef uint32 WChar;
 typedef wchar_t WChar;
 #endif
 
-extern int EmojiToIconIndex(uint32 *Str, int Len);
-
 bool HasEmoji(char *Txt)
 {
 	if (!Txt)

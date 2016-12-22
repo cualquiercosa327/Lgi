@@ -14,6 +14,6 @@
 /// The height of each group in cells
 #define EMOJI_GROUP_Y			6
 
-extern int EmojiToIconIndex(uint32 *Str, int Len);
+extern int EmojiToIconIndex(const uint32 *Str, int Len);
 
 #endif

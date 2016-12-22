@@ -289,6 +289,8 @@ struct CtrlCap
 	}
 };
 
+extern bool Utf16to32(GArray<uint32> &Out, const uint16 *In, int Len);
+
 class GRichTextPriv :
 	public GCss,
 	public GHtmlParser,
@@ -426,9 +428,11 @@ public:
 		ColourPair Colours;
 		HtmlTag Element;
 		GString Param;
+		bool Emoji;
 		
 		StyleText(const uint32 *t = NULL, int Chars = -1, GNamedStyle *style = NULL)
 		{
+			Emoji = false;
 			Style = NULL;
 			Element = CONTENT;
 			if (style)
@@ -774,6 +778,43 @@ public:
 		{
 			Src = src;
 			OffsetY = 0;
+		}
+		
+		template<typename T>
+		T *Utf16Seek(T *s, int i)
+		{
+			while (i)
+			{
+				i--;
+				s++;
+			}
+			
+			return s;
+		}
+		
+		virtual GAutoPtr<DisplayStr> Clone(int Start, int Len = -1)
+		{
+			GAutoPtr<DisplayStr> c;
+			if (len > 0)
+			{
+				const char16 *Str = *this;
+				if (Len < 0)
+					Len = len - Start;
+				LgiAssert(Start >= 0 && Start < len);
+				LgiAssert(Start + Len <= len);
+				#ifdef _WIN32
+				LgiAssert(Str != NULL);
+				const char16 *s = Utf16Seek(Str, Start);
+				const char16 *e = Utf16Seek(s, Len);
+				GAutoPtr<DisplayStr> c;
+				GArray<uint32> Tmp;
+				if (Utf16to32(Tmp, (const uint16*)s, e - s))
+					c.Reset(new DisplayStr(Src, GetFont(), &Tmp[0], Tmp.Length(), pDC));
+				#else
+				GAutoPtr<DisplayStr> c(new DisplayStr(Src, GetFont(), Str + Start, Len, pDC));
+				#endif
+			}		
+			return c;
 		}
 	};
 

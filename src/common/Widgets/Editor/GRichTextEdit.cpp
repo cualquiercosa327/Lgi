@@ -2414,7 +2414,7 @@ EmojiMenu::EmojiMenu(GRichTextPriv *priv, GdcPt2 p) : GPopup(priv->View)
 
 	d->GetEmojiImage();
 
-	Range EmojiBlocks[2] = { {0x203c, 0x3299 - 0x203c + 1}, { 0x1f004, 0x1f6c5 - 0x1f004 + 1 } };
+	Range EmojiBlocks[2] = { Range(0x203c, 0x3299 - 0x203c + 1), Range(0x1f004, 0x1f6c5 - 0x1f004 + 1) };
 	GHashTbl<int, int> Map;
 	for (int b=0; b<CountOf(EmojiBlocks); b++)
 	{
@@ -2501,6 +2501,10 @@ void EmojiMenu::OnMouseClick(GMouse &m)
 				{
 					if (d->Cursor->Blk->AddText(NoTransaction, d->Cursor->Offset, &Ch.u, 1, NULL))
 					{
+						AutoCursor c(new BlkCursor(*d->Cursor));
+						c->Offset++;
+						d->SetCursor(c);
+						
 						d->Dirty = true;
 						d->InvalidateDoc(NULL);
 					}

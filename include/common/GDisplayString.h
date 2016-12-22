@@ -28,6 +28,7 @@
 /// are expanded to the current tab size setting.
 class LgiClass GDisplayString
 {
+protected:
 	GSurface *pDC;
 	OsChar *Str;
 	GFont *Font;
