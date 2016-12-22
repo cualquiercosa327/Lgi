@@ -122,6 +122,8 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////
+static bool WarnAlpha = true;
+
 GRichTextEdit::GRichTextEdit(	int Id,
 								int x, int y, int cx, int cy,
 								GFontType *FontType)
@@ -160,7 +162,8 @@ GRichTextEdit::GRichTextEdit(	int Id,
 		"</html>\n");
 	#endif
 
-	NeedsCapability("Alpha", "This control is still in alpha.");
+	if (WarnAlpha)
+		NeedsCapability("Alpha", "This control is still in alpha.");
 }
 
 GRichTextEdit::~GRichTextEdit()
@@ -1343,6 +1346,9 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 						d->Areas[i].Overlap(m.x, m.y))
 					{
 						Processed |= d->ClickBtn(m, (RectType)i);
+						
+						if (i == CapabilityBtn)
+							WarnAlpha = false;
 					}
 				}
 				return;
