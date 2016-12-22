@@ -107,6 +107,8 @@ public:
 		MakeLinkBtn,
 		RemoveLinkBtn,
 		RemoveStyleBtn,
+	
+		EmojiBtn,
 		
 		MaxArea
 	};

@@ -182,6 +182,7 @@ void GRichTextEdit::OnInstall(CapsHash *Caps, bool Status)
 
 void GRichTextEdit::OnCloseInstaller()
 {
+	
 	d->NeedsCap.Length(0);
 	Invalidate();
 }

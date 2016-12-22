@@ -269,6 +269,8 @@
   <ItemGroup>
     <ClCompile Include="..\src\common\Gdc2\Tools\GdcTools.cpp" />
     <ClCompile Include="..\src\common\Lgi\LgiMain.cpp" />
+    <ClCompile Include="..\src\common\Text\Emoji\EmojiMap.cpp" />
+    <ClCompile Include="..\src\common\Text\Emoji\EmojiTools.cpp" />
     <ClCompile Include="..\src\common\Text\GHtml.cpp" />
     <ClCompile Include="..\src\common\Text\GHtmlCommon.cpp" />
     <ClCompile Include="..\src\common\Text\GHtmlParser.cpp" />
@@ -280,6 +282,7 @@
     <ClCompile Include="Rich.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\common\Emoji.h" />
     <ClInclude Include="..\include\common\GHtmlEdit.h" />
     <ClInclude Include="..\include\common\GHtmlPriv.h" />
     <ClInclude Include="..\include\common\GRichTextEdit.h" />

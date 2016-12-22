@@ -40,6 +40,7 @@
 #define TEXT_REMOVE_LINK				"X"
 #define TEXT_REMOVE_STYLE				"Remove Style"
 #define TEXT_CAP_BTN					"Ok"
+#define TEXT_EMOJI						":)"
 
 #define NoTransaction					NULL
 #define IsWordBreakChar(ch)				IsWhiteSpace(ch) // FIXME: Add asian character set support to this

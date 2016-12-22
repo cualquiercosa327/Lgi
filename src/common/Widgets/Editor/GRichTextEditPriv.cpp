@@ -168,6 +168,7 @@ GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv *&Ptr) :
 	Values[GRichTextEdit::RemoveLinkBtn] = TEXT_REMOVE_LINK;
 	Values[GRichTextEdit::RemoveStyleBtn] = TEXT_REMOVE_STYLE;
 	Values[GRichTextEdit::CapabilityBtn] = TEXT_CAP_BTN;
+	Values[GRichTextEdit::EmojiBtn] = TEXT_EMOJI;
 
 	Padding(GCss::Len(GCss::LenPx, 4));
 
@@ -1336,6 +1337,10 @@ void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
 		{
 			GDisplayString Ds(SysFont, TEXT_REMOVE_STYLE);
 			Areas[GRichTextEdit::RemoveStyleBtn] = AllocPx(Ds.X() + 12, 6);
+		}
+		{
+			GDisplayString Ds(SysFont, TEXT_EMOJI);
+			Areas[GRichTextEdit::EmojiBtn] = AllocPx(Ds.X() + 12, 6);
 		}
 
 		for (unsigned i = GRichTextEdit::FontFamilyBtn; i < GRichTextEdit::MaxArea; i++)
