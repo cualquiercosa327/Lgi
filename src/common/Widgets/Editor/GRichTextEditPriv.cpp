@@ -792,14 +792,17 @@ bool GRichTextPriv::Merge(Block *a, Block *b)
 
 GSurface *GRichTextPriv::GetEmojiImage()
 {
-	GString p = LgiGetSystemPath(LSP_APP_INSTALL);
-	if (!p)
-		return NULL;
+	if (!EmojiImg)
+	{
+		GString p = LgiGetSystemPath(LSP_APP_INSTALL);
+		if (!p)
+			return NULL;
 
-	char File[MAX_PATH] = "";
-	LgiMakePath(File, sizeof(File), p, "..\\src\\common\\Text\\Emoji\\EmojiMap.png");
+		char File[MAX_PATH] = "";
+		LgiMakePath(File, sizeof(File), p, "..\\src\\common\\Text\\Emoji\\EmojiMap.png");
 
-	EmojiImg.Reset(GdcD->Load(File, false));
+		EmojiImg.Reset(GdcD->Load(File, false));
+	}
 	return EmojiImg;
 }
 

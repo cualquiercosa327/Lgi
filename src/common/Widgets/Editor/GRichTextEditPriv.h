@@ -277,6 +277,7 @@ public:
 	void OnPaint(GSurface *pDC);
 	void OnMouseClick(GMouse &m);
 	void Visible(bool i);
+	bool InsertEmoji(uint32 Ch);
 };
 
 struct CtrlCap
@@ -824,16 +825,21 @@ public:
 			return c;
 		}
 
-		virtual void Paint(GSurface *pDC, int &FixX, int FixY)
+		virtual void Paint(GSurface *pDC, int &FixX, int FixY, GColour &Back)
 		{
 			FDraw(pDC, FixX, FixY);
 			FixX += FX();
+		}
+
+		virtual double GetAscent()
+		{
+			return Font->Ascent();
 		}
 	};
 	
 	struct EmojiDisplayStr : public DisplayStr
 	{
-		GArray<GRect> Src;
+		GArray<GRect> SrcRect;
 		GSurface *Img;
 		#ifdef _WIN32
 		GArray<uint32> Utf32;
@@ -858,13 +864,13 @@ public:
 				{
 					int x = Idx % EMOJI_GROUP_X;
 					int y = Idx / EMOJI_GROUP_X;
-					GRect &rc = Src[i];
+					GRect &rc = SrcRect[i];
 					rc.ZOff(EMOJI_CELL_SIZE-1, EMOJI_CELL_SIZE-1);
 					rc.Offset(x * EMOJI_CELL_SIZE, y * EMOJI_CELL_SIZE);
 				}
 			}
 
-			x = Src.Length() * EMOJI_CELL_SIZE;
+			x = SrcRect.Length() * EMOJI_CELL_SIZE;
 			y = EMOJI_CELL_SIZE;
 			xf = IntToFixed(x);
 			yf = IntToFixed(y);
@@ -872,20 +878,43 @@ public:
 
 		GAutoPtr<DisplayStr> Clone(int Start, int Len = -1)
 		{
-			GAutoPtr<DisplayStr> s;
-			LgiAssert(0);
+			if (Len < 0)
+				Len = Chars - Start;
+			#ifdef _WIN32
+			LgiAssert(	Start >= 0 &&
+						Start < Utf32.Length() &&
+						Start + Len <= Utf32.Length());
+			#endif
+			GAutoPtr<DisplayStr> s(new EmojiDisplayStr(Src, Img, NULL,
+				#ifdef _WIN32
+				&Utf32[Start]
+				#else
+				(const char16*)(*this)
+				#endif
+				, Len));
 			return s;
 		}
 
-		void Paint(GSurface *pDC, int &FixX, int FixY)
+		void Paint(GSurface *pDC, int &FixX, int FixY, GColour &Back)
 		{
+			GRect f(0, 0, x-1, y-1);
+			f.Offset(FixedToInt(FixX), FixedToInt(FixY));
+			pDC->Colour(Back);
+			pDC->Rectangle(&f);
+
 			int Op = pDC->Op(GDC_ALPHA);
-			for (unsigned i=0; i<Src.Length(); i++)
+			for (unsigned i=0; i<SrcRect.Length(); i++)
 			{
-				pDC->Blt(FixedToInt(FixX), FixedToInt(FixY), Img, &Src[i]);
-				FixX += IntToFixed(Src[i].X());
+				pDC->Blt(f.x1, f.y1, Img, &SrcRect[i]);
+				f.x1 += EMOJI_CELL_SIZE;
+				FixX += IntToFixed(EMOJI_CELL_SIZE);
 			}
 			pDC->Op(Op);
+		}
+
+		double GetAscent()
+		{
+			return EMOJI_CELL_SIZE;
 		}
 	};
 
@@ -913,7 +942,7 @@ public:
 		{
 			int Len = NewLine;
 			for (unsigned i=0; i<Strs.Length(); i++)
-				Len += Strs[i]->Length();
+				Len += Strs[i]->Chars;
 			return Len;
 		}
 		
@@ -929,16 +958,8 @@ public:
 			{
 				DisplayStr *ds = Strs[i];
 				GFont *f = ds->GetFont();
-				if (f)
-				{
-					double FontBase = f->Ascent();
-					BaseLine = max(BaseLine, FontBase);
-				}
-				else
-				{
-					BaseLine = max(BaseLine, ds->Y());
-				}
-
+				double Ascent = ds->GetAscent();
+				BaseLine = max(BaseLine, Ascent);
 				HtPx = max(HtPx, ds->Y());
 			}
 			
@@ -951,16 +972,8 @@ public:
 			{
 				DisplayStr *ds = Strs[i];
 				GFont *f = ds->GetFont();
-				if (f)
-				{
-					double FontBase = f->Ascent();
-					ds->OffsetY = (int)(BaseLine - FontBase);
-				}
-				else
-				{
-					int DsY = ds->Y();
-					ds->OffsetY = (int)(BaseLine - ds->Y());
-				}
+				double Ascent = ds->GetAscent();
+				ds->OffsetY = (int)(BaseLine - Ascent);
 				LgiAssert(ds->OffsetY >= 0);
 			}
 			

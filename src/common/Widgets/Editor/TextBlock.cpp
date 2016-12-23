@@ -248,7 +248,7 @@ bool GRichTextPriv::TextBlock::GetPosFromIndex(BlockCursor *Cursor)
 		for (unsigned n=0; n<tl->Strs.Length(); n++)
 		{
 			DisplayStr *ds = tl->Strs[n];
-			int dsChars = ds->Length();
+			int dsChars = ds->Chars;
 					
 			if
 			(
@@ -277,8 +277,10 @@ bool GRichTextPriv::TextBlock::GetPosFromIndex(BlockCursor *Cursor)
 				else
 				{
 					// In the middle somewhere...
-					GDisplayString Tmp(ds->GetFont(), *ds, CharOffset);
-					Cursor->Pos.x1 = r.x1 + IntToFixed(FixX + Tmp.FX());
+					GAutoPtr<DisplayStr> Tmp = ds->Clone(0, CharOffset);
+					// GDisplayString Tmp(ds->GetFont(), *ds, CharOffset);
+					if (Tmp)
+						Cursor->Pos.x1 = r.x1 + IntToFixed(FixX + Tmp->FX());
 				}
 
 				Cursor->Pos.y1 = r.y1 + ds->OffsetY;
@@ -290,7 +292,7 @@ bool GRichTextPriv::TextBlock::GetPosFromIndex(BlockCursor *Cursor)
 			}					
 					
 			FixX += ds->FX();
-			CharPos += ds->Length();
+			CharPos += ds->Chars;
 		}
 				
 		if
@@ -384,7 +386,7 @@ bool GRichTextPriv::TextBlock::HitTest(HitTestResult &htr)
 					
 			FixX += ds->FX();
 
-			CharPos += ds->Length();
+			CharPos += ds->Chars;
 		}
 
 		if (OnThisLine)
@@ -477,12 +479,12 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 		for (unsigned n=0; n<Line->Strs.Length(); n++)
 		{
 			DisplayStr *Ds = Line->Strs[n];
-			GFont *f = Ds->GetFont();
+			GFont *DsFnt = Ds->GetFont();
 			ColourPair &Cols = Ds->Src->Colours;
-			if (f && f != Fnt)
+			if (DsFnt && DsFnt != Fnt)
 			{
-				f->Transparent(false);
-				Fnt = f;
+				Fnt = DsFnt;
+				Fnt->Transparent(false);
 			}
 
 			// If the current text part doesn't cover the full line height we have to
@@ -524,11 +526,11 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 				GAutoPtr<DisplayStr> ds1 = Ds->Clone(0, Ch);
 						
 				// First part...
-				if (f)
-					f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
-								Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
+				GColour Bk = Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back();
+				if (DsFnt)
+					DsFnt->Colour(Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(), Bk);
 				if (ds1)
-					ds1->Paint(Ctx.pDC, FixX, FixY);
+					ds1->Paint(Ctx.pDC, FixX, FixY, Bk);
 				Ctx.Type = Ctx.Type == Selected ? Unselected : Selected;
 				CurEndPoint++;
 						
@@ -548,44 +550,45 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 
 					// Part 2
 					GAutoPtr<DisplayStr> ds2 = Ds->Clone(Ch, Ch2 - Ch);
-					if (f)
-						f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
-									Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
+					GColour Bk = Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back();
+					if (DsFnt)
+						DsFnt->Colour(Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(), Bk);
 					if (ds2)
-						ds2->Paint(Ctx.pDC, FixX, FixY);
+						ds2->Paint(Ctx.pDC, FixX, FixY, Bk);
 					Ctx.Type = Ctx.Type == Selected ? Unselected : Selected;
 					CurEndPoint++;
 
 					// Part 3
 					GAutoPtr<DisplayStr> ds3 = Ds->Clone(Ch2);
-					f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
-								Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
+					Bk = Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back();
+					if (DsFnt)
+						DsFnt->Colour(Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(), Bk);
 					if (ds3)
-						ds3->Paint(Ctx.pDC, FixX, FixY);
+						ds3->Paint(Ctx.pDC, FixX, FixY, Bk);
 				}
 				else if (Ch < Ds->Chars)
 				{
 					// No... draw 2nd part
 					GAutoPtr<DisplayStr> ds2 = Ds->Clone(Ch);
-					if (f)
-						f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
-									Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
-					if (ds2)
-						ds2->Paint(Ctx.pDC, FixX, FixY);
+					GColour Bk = Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back();
+					if (DsFnt)
+						DsFnt->Colour(Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(), Bk);
+					if (ds2)	
+						ds2->Paint(Ctx.pDC, FixX, FixY, Bk);
 				}
 			}
 			else
 			{
 				// No selection changes... draw the whole string
-				if (f)
-					f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
-								Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
+				GColour Bk = Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back();
+				if (DsFnt)
+					DsFnt->Colour(Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(), Bk);
 						
 				#if DEBUG_OUTLINE_CUR_DISPLAY_STR
 				int OldFixX = FixX;
 				#endif
 
-				Ds->Paint(Ctx.pDC, FixX, FixY);
+				Ds->Paint(Ctx.pDC, FixX, FixY, Bk);
 
 				#if DEBUG_OUTLINE_CUR_DISPLAY_STR
 				if (Ctx.Cursor->Blk == (Block*)this &&
@@ -857,7 +860,7 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 			
 	if (CurLine && CurLine->Strs.Length() > 0)
 	{
-		CurLine->LayoutOffsets(CurLine->Strs.Last()->GetFont()->GetHeight());
+		CurLine->LayoutOffsets(d->View->GetFont()->GetHeight());
 		Pos.y2 = max(Pos.y2, Pos.y1 + CurLine->PosOff.y2);
 		Layout.Add(CurLine.Release());
 	}
@@ -1081,7 +1084,7 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 				int Len = t->Length();
 				if (AtOffset <= Len)
 				{
-					if (!Style && !IsEmoji)
+					if (!Style && IsEmoji == t->Emoji)
 					{
 						// Insert/append to existing text run
 						int After = t->Length() - AtOffset;

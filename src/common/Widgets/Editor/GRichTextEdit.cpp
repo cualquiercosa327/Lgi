@@ -2487,6 +2487,24 @@ void EmojiMenu::OnPaint(GSurface *pDC)
 	}
 }
 
+bool EmojiMenu::InsertEmoji(uint32 Ch)
+{
+	if (!d->Cursor || !d->Cursor->Blk)
+		return false;
+
+	if (!d->Cursor->Blk->AddText(NoTransaction, d->Cursor->Offset, &Ch, 1, NULL))
+		return false;
+
+	AutoCursor c(new BlkCursor(*d->Cursor));
+	c->Offset++;
+	d->SetCursor(c);
+						
+	d->Dirty = true;
+	d->InvalidateDoc(NULL);
+
+	return true;
+}
+
 void EmojiMenu::OnMouseClick(GMouse &m)
 {
 	if (m.Down())
@@ -2496,20 +2514,7 @@ void EmojiMenu::OnMouseClick(GMouse &m)
 			Emoji &Ch = e[i];
 			if (Ch.Dst.Overlap(m.x, m.y))
 			{
-				if (d->Cursor &&
-					d->Cursor->Blk)
-				{
-					if (d->Cursor->Blk->AddText(NoTransaction, d->Cursor->Offset, &Ch.u, 1, NULL))
-					{
-						AutoCursor c(new BlkCursor(*d->Cursor));
-						c->Offset++;
-						d->SetCursor(c);
-						
-						d->Dirty = true;
-						d->InvalidateDoc(NULL);
-					}
-				}
-
+				InsertEmoji(Ch.u);
 				Visible(false);
 				break;
 			}
