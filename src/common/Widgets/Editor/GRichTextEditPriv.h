@@ -27,6 +27,7 @@
 #include "GDisplayString.h"
 #include "GColourSpace.h"
 #include "GPopup.h"
+#include "Emoji.h"
 
 #define DEBUG_LOG_CURSOR_COUNT			0
 #define DEBUG_OUTLINE_CUR_DISPLAY_STR	0
@@ -439,27 +440,6 @@ public:
 				SetStyle(style);
 			if (t)
 			{
-				/*
-				#ifdef _WIN32
-				int Len = Utf16Strlen((const uint16*)t, Chars);
-				if (Len > 0)
-				{
-					if (Length(Len))
-					{
-						uint32 *o = At(0);
-						uint16 *i = (uint16*)t;
-						int InLen = Chars * sizeof(*t);
-						while (InLen > 0)
-						{
-							*o++ = LgiUtf16To32(i, InLen);
-						}
-					}
-					else LgiAssert(0);
-				}
-				else LgiAssert(0);
-				#else
-				*/
-				
 				if (Chars < 0)
 					Chars = Strlen(t);
 				Add((uint32*)t, Chars);
@@ -771,50 +751,141 @@ public:
 	struct DisplayStr : public GDisplayString
 	{
 		StyleText *Src;
-		int OffsetY; // Offset of this string from the TextLine's box in the Y axis
+		int Chars;		// The number of UTF-32 characters. This can be different to 
+						// GDisplayString::Length() in the case that GDisplayString 
+						// is using UTF-16 (i.e. Windows).
+		int OffsetY;	// Offset of this string from the TextLine's box in the Y axis
 		
 		DisplayStr(StyleText *src, GFont *f, const uint32 *s, int l = -1, GSurface *pdc = NULL) :
 			GDisplayString(f, s, l, pdc)
 		{
 			Src = src;
 			OffsetY = 0;
+			#ifdef _WIN32
+			Chars = l < 0 ? Strlen(s) : l;
+			#else
+			Chars = len;
+			#endif
 		}
 		
 		template<typename T>
 		T *Utf16Seek(T *s, int i)
 		{
-			while (i)
+			T *e = s + i;
+			while (s < e)
 			{
-				i--;
+				uint16 n = *s & 0xfc00;
+				if (n == 0xd800)
+				{
+					s++;
+					if (s >= e)
+						break;
+
+					n = *s & 0xfc00;
+					if (n != 0xdc00)
+					{
+						LgiAssert(!"Unexpected surrogate");
+						continue;
+					}
+					// else skip over the 2nd surrogate
+				}
+
 				s++;
 			}
 			
 			return s;
 		}
 		
+		// Make a sub-string of this display string
 		virtual GAutoPtr<DisplayStr> Clone(int Start, int Len = -1)
 		{
 			GAutoPtr<DisplayStr> c;
-			if (len > 0)
+			if (len > 0 && Len != 0)
 			{
 				const char16 *Str = *this;
 				if (Len < 0)
 					Len = len - Start;
-				LgiAssert(Start >= 0 && Start < len);
-				LgiAssert(Start + Len <= len);
-				#ifdef _WIN32
-				LgiAssert(Str != NULL);
-				const char16 *s = Utf16Seek(Str, Start);
-				const char16 *e = Utf16Seek(s, Len);
-				GAutoPtr<DisplayStr> c;
-				GArray<uint32> Tmp;
-				if (Utf16to32(Tmp, (const uint16*)s, e - s))
-					c.Reset(new DisplayStr(Src, GetFont(), &Tmp[0], Tmp.Length(), pDC));
-				#else
-				GAutoPtr<DisplayStr> c(new DisplayStr(Src, GetFont(), Str + Start, Len, pDC));
-				#endif
+				if (Start >= 0 &&
+					Start < len &&
+					Start + Len <= len)
+				{
+					#ifdef _WIN32
+					LgiAssert(Str != NULL);
+					const char16 *s = Utf16Seek(Str, Start);
+					const char16 *e = Utf16Seek(s, Len);
+					GArray<uint32> Tmp;
+					if (Utf16to32(Tmp, (const uint16*)s, e - s))
+						c.Reset(new DisplayStr(Src, GetFont(), &Tmp[0], Tmp.Length(), pDC));
+					#else
+					c.Reset(new DisplayStr(Src, GetFont(), Str + Start, Len, pDC));
+					#endif
+				}
 			}		
 			return c;
+		}
+
+		virtual void Paint(GSurface *pDC, int &FixX, int FixY)
+		{
+			FDraw(pDC, FixX, FixY);
+			FixX += FX();
+		}
+	};
+	
+	struct EmojiDisplayStr : public DisplayStr
+	{
+		GArray<GRect> Src;
+		GSurface *Img;
+		#ifdef _WIN32
+		GArray<uint32> Utf32;
+		#endif
+
+		EmojiDisplayStr(StyleText *src, GSurface *img, GFont *f, const uint32 *s, int l = -1) :
+			DisplayStr(src, NULL, s, l)
+		{
+			Img = img;
+			#ifdef _WIN32
+			Utf16to32(Utf32, (const uint16*) StrCache.Get(), len);
+			uint32 *u = &Utf32[0];
+			#else
+			uint32 *u = Str;
+			#endif
+
+			for (int i=0; i<Chars; i++)
+			{
+				int Idx = EmojiToIconIndex(u + i, Chars - i);
+				LgiAssert(Idx >= 0);
+				if (Idx >= 0)
+				{
+					int x = Idx % EMOJI_GROUP_X;
+					int y = Idx / EMOJI_GROUP_X;
+					GRect &rc = Src[i];
+					rc.ZOff(EMOJI_CELL_SIZE-1, EMOJI_CELL_SIZE-1);
+					rc.Offset(x * EMOJI_CELL_SIZE, y * EMOJI_CELL_SIZE);
+				}
+			}
+
+			x = Src.Length() * EMOJI_CELL_SIZE;
+			y = EMOJI_CELL_SIZE;
+			xf = IntToFixed(x);
+			yf = IntToFixed(y);
+		}
+
+		GAutoPtr<DisplayStr> Clone(int Start, int Len = -1)
+		{
+			GAutoPtr<DisplayStr> s;
+			LgiAssert(0);
+			return s;
+		}
+
+		void Paint(GSurface *pDC, int &FixX, int FixY)
+		{
+			int Op = pDC->Op(GDC_ALPHA);
+			for (unsigned i=0; i<Src.Length(); i++)
+			{
+				pDC->Blt(FixedToInt(FixX), FixedToInt(FixY), Img, &Src[i]);
+				FixX += IntToFixed(Src[i].X());
+			}
+			pDC->Op(Op);
 		}
 	};
 
@@ -858,9 +929,16 @@ public:
 			{
 				DisplayStr *ds = Strs[i];
 				GFont *f = ds->GetFont();
-				double FontBase = f->Ascent();
-				
-				BaseLine = max(BaseLine, FontBase);
+				if (f)
+				{
+					double FontBase = f->Ascent();
+					BaseLine = max(BaseLine, FontBase);
+				}
+				else
+				{
+					BaseLine = max(BaseLine, ds->Y());
+				}
+
 				HtPx = max(HtPx, ds->Y());
 			}
 			
@@ -873,8 +951,16 @@ public:
 			{
 				DisplayStr *ds = Strs[i];
 				GFont *f = ds->GetFont();
-				double FontBase = f->Ascent();
-				ds->OffsetY = (int)(BaseLine - FontBase);
+				if (f)
+				{
+					double FontBase = f->Ascent();
+					ds->OffsetY = (int)(BaseLine - FontBase);
+				}
+				else
+				{
+					int DsY = ds->Y();
+					ds->OffsetY = (int)(BaseLine - ds->Y());
+				}
 				LgiAssert(ds->OffsetY >= 0);
 			}
 			

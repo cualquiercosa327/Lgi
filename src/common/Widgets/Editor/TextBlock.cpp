@@ -479,7 +479,7 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 			DisplayStr *Ds = Line->Strs[n];
 			GFont *f = Ds->GetFont();
 			ColourPair &Cols = Ds->Src->Colours;
-			if (f != Fnt)
+			if (f && f != Fnt)
 			{
 				f->Transparent(false);
 				Fnt = f;
@@ -517,20 +517,18 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 
 			if (CurEndPoint < EndPoints &&
 				EndPoint[CurEndPoint] >= CharPos &&
-				EndPoint[CurEndPoint] <= CharPos + Ds->Length())
+				EndPoint[CurEndPoint] <= CharPos + Ds->Chars)
 			{
 				// Process string into parts based on the selection boundaries
 				int Ch = EndPoint[CurEndPoint] - CharPos;
 				GAutoPtr<DisplayStr> ds1 = Ds->Clone(0, Ch);
 						
 				// First part...
-				f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
-							Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
+				if (f)
+					f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
+								Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
 				if (ds1)
-				{
-					ds1->FDraw(Ctx.pDC, FixX, FixY);
-					FixX += ds1->FX();
-				}
+					ds1->Paint(Ctx.pDC, FixX, FixY);
 				Ctx.Type = Ctx.Type == Selected ? Unselected : Selected;
 				CurEndPoint++;
 						
@@ -543,20 +541,18 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 				// to draw.
 				if (CurEndPoint < EndPoints &&
 					EndPoint[CurEndPoint] >= CharPos &&
-					EndPoint[CurEndPoint] <= CharPos + Ds->Length())
+					EndPoint[CurEndPoint] <= CharPos + Ds->Chars)
 				{
 					// Yes..
 					int Ch2 = EndPoint[CurEndPoint] - CharPos;
 
 					// Part 2
 					GAutoPtr<DisplayStr> ds2 = Ds->Clone(Ch, Ch2 - Ch);
-					f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
-								Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
+					if (f)
+						f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
+									Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
 					if (ds2)
-					{
-						ds2->FDraw(Ctx.pDC, FixX, FixY);
-						FixX += ds2->FX();
-					}
+						ds2->Paint(Ctx.pDC, FixX, FixY);
 					Ctx.Type = Ctx.Type == Selected ? Unselected : Selected;
 					CurEndPoint++;
 
@@ -565,45 +561,43 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 					f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
 								Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
 					if (ds3)
-					{
-						ds3->FDraw(Ctx.pDC, FixX, FixY);
-						FixX += ds3->FX();
-					}
+						ds3->Paint(Ctx.pDC, FixX, FixY);
 				}
-				else if (Ch < Ds->Length())
+				else if (Ch < Ds->Chars)
 				{
 					// No... draw 2nd part
 					GAutoPtr<DisplayStr> ds2 = Ds->Clone(Ch);
-					f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
-								Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
+					if (f)
+						f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
+									Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
 					if (ds2)
-					{
-						ds2->FDraw(Ctx.pDC, FixX, FixY);
-						FixX += ds2->FX();
-					}
+						ds2->Paint(Ctx.pDC, FixX, FixY);
 				}
 			}
 			else
 			{
 				// No selection changes... draw the whole string
-				f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
-							Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
+				if (f)
+					f->Colour(	Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(),
+								Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back());
 						
-				Ds->FDraw(Ctx.pDC, FixX, FixY);
+				#if DEBUG_OUTLINE_CUR_DISPLAY_STR
+				int OldFixX = FixX;
+				#endif
+
+				Ds->Paint(Ctx.pDC, FixX, FixY);
 
 				#if DEBUG_OUTLINE_CUR_DISPLAY_STR
 				if (Ctx.Cursor->Blk == (Block*)this &&
 					Ctx.Cursor->Offset >= CharPos &&
-					Ctx.Cursor->Offset < CharPos + Ds->Length())
+					Ctx.Cursor->Offset < CharPos + Ds->Chars)
 				{
 					GRect r(0, 0, Ds->X()-1, Ds->Y()-1);
-					r.Offset(FixedToInt(FixX), FixedToInt(FixY));
+					r.Offset(FixedToInt(OldFixX), FixedToInt(FixY));
 					Ctx.pDC->Colour(GColour::Red);
 					Ctx.pDC->Box(&r);
 				}
 				#endif
-
-				FixX += Ds->FX();
 			}
 
 			#if DEBUG_OUTLINE_CUR_STYLE_TEXT
@@ -616,7 +610,7 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 			}
 			#endif
 
-			CharPos += Ds->Length();
+			CharPos += Ds->Chars;
 		}
 		if (Line->Strs.Length() == 0)
 		{
@@ -766,7 +760,14 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 					
 			// Add 't' to current line
 			int Chars = min(1024, (int) (e - s));
-			GAutoPtr<DisplayStr> Ds(new DisplayStr(t, f, s, Chars, flow.pDC));
+			GAutoPtr<DisplayStr> Ds
+			(
+				t->Emoji
+				?
+				new EmojiDisplayStr(t, d->GetEmojiImage(), f, s, Chars)
+				:
+				new DisplayStr(t, f, s, Chars, flow.pDC)
+			);
 			if (!Ds)
 				return flow.d->Error(_FL, "display str creation failed.");
 
@@ -805,7 +806,18 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 						Chars = FitChars;
 							
 					// Create a new display string of the right size...
-					if (!Ds.Reset(new DisplayStr(t, f, s, Chars, flow.pDC)))
+					if
+					(
+						!
+						Ds.Reset
+						(
+							t->Emoji
+							?
+							new EmojiDisplayStr(t, d->GetEmojiImage(), f, s, Chars)
+							:
+							new DisplayStr(t, f, s, Chars, flow.pDC)
+						)
+					)
 						return flow.d->Error(_FL, "failed to create wrapped display str.");
 					
 					// Finish off line

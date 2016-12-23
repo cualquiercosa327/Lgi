@@ -7,6 +7,12 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Utf16to32(GArray<uint32> &Out, const uint16 *In, int Len)
 {
+	if (Len == 0)
+	{
+		Out.Length(0);
+		return true;
+	}
+
 	// Count the length of utf32 chars...
 	uint16 *Ptr = (uint16*)In;
 	int Bytes = sizeof(*In) * Len;
