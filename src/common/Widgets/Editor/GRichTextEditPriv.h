@@ -44,7 +44,16 @@
 #define TEXT_EMOJI						":)"
 
 #define NoTransaction					NULL
-#define IsWordBreakChar(ch)				IsWhiteSpace(ch) // FIXME: Add asian character set support to this
+#define IsWordBreakChar(ch)				\
+	( \
+		( \
+			(ch) == ' ' || (ch) == '\t' || (ch) == '\r' || (ch) == '\n' \
+		) \
+		|| \
+		( \
+			EmojiToIconIndex(&(ch), 1) >= 0 \
+		) \
+	)
 
 //////////////////////////////////////////////////////////////////////
 #define PtrCheckBreak(ptr)				if (!ptr) { LgiAssert(!"Invalid ptr"); break; }
@@ -807,8 +816,8 @@ public:
 				if (Len < 0)
 					Len = len - Start;
 				if (Start >= 0 &&
-					Start < len &&
-					Start + Len <= len)
+					Start < (int)len &&
+					Start + Len <= (int)len)
 				{
 					#ifdef _WIN32
 					LgiAssert(Str != NULL);
@@ -834,6 +843,11 @@ public:
 		virtual double GetAscent()
 		{
 			return Font->Ascent();
+		}
+		
+		virtual int PosToIndex(int x, bool Nearest)
+		{
+			return CharAt(x);
 		}
 	};
 	
@@ -882,8 +896,8 @@ public:
 				Len = Chars - Start;
 			#ifdef _WIN32
 			LgiAssert(	Start >= 0 &&
-						Start < Utf32.Length() &&
-						Start + Len <= Utf32.Length());
+						Start < (int)Utf32.Length() &&
+						Start + Len <= (int)Utf32.Length());
 			#endif
 			GAutoPtr<DisplayStr> s(new EmojiDisplayStr(Src, Img, NULL,
 				#ifdef _WIN32
@@ -915,6 +929,15 @@ public:
 		double GetAscent()
 		{
 			return EMOJI_CELL_SIZE * 0.8;
+		}
+
+		int PosToIndex(int XPos, bool Nearest)
+		{
+			if (XPos >= x)
+				return Chars;
+			if (XPos <= 0)
+				return 0;
+			return (XPos + (Nearest ? EMOJI_CELL_SIZE >> 1 : 0)) / EMOJI_CELL_SIZE;
 		}
 	};
 

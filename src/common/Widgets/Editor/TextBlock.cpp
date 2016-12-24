@@ -373,7 +373,7 @@ bool GRichTextPriv::TextBlock::HitTest(HitTestResult &htr)
 			{
 				int OffFix = InputX - FixX;
 				int OffPx = FixedToInt(OffFix);
-				int OffChar = ds->CharAt(OffPx);
+				int OffChar = ds->PosToIndex(OffPx, true);
 
 				// d->DebugRects[0].Set(Pos.x1, r.y1, Pos.x1 + InputX+1, r.y2);
 						
@@ -543,7 +543,7 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 				// to draw.
 				if (CurEndPoint < EndPoints &&
 					EndPoint[CurEndPoint] >= CharPos &&
-					EndPoint[CurEndPoint] <= CharPos + Ds->Chars)
+					EndPoint[CurEndPoint] < CharPos + Ds->Chars)
 				{
 					// Yes..
 					int Ch2 = EndPoint[CurEndPoint] - CharPos;
@@ -778,10 +778,10 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 			{
 				// Wrap the string onto the line...
 				int AvailablePx = AvailableX - FixedToInt(FixX);
-				int FitChars = Ds->CharAt(AvailablePx);
+				int FitChars = Ds->PosToIndex(AvailablePx, false);
 				if (FitChars < 0)
 				{
-					flow.d->Error(_FL, "CharAt(%i) failed.", AvailablePx);
+					flow.d->Error(_FL, "PosToIndex(%i) failed.", AvailablePx);
 					LgiAssert(0);
 				}
 				else
@@ -827,7 +827,7 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 					CurLine->PosOff.x2 = CurLine->PosOff.x1 + FixedToInt(FixX + Ds->FX()) - 1;
 					CurLine->Strs.Add(Ds.Release());
 
-					CurLine->LayoutOffsets(CurLine->Strs.Last()->GetFont()->GetHeight());
+					CurLine->LayoutOffsets(d->Font->GetHeight());
 					Pos.y2 = max(Pos.y2, Pos.y1 + CurLine->PosOff.y2);
 					Layout.Add(CurLine.Release());
 					
@@ -932,7 +932,7 @@ bool GRichTextPriv::TextBlock::OffsetToLine(int Offset, int *ColX, GArray<int> *
 	if (Offset <= 0)
 	{
 		if (ColX) *ColX = 0;
-		if (LineY) *LineY = 0;
+		if (LineY) LineY->Add(0);
 		return true;
 	}
 
@@ -1060,7 +1060,10 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 	}
 
 	const uint32 *End = InStr + InChars;
-	int Chars = 0;
+	int Chars = 0; // Length of run to insert
+	int Pos = 0; // Current position in this block
+	uint32 TxtIdx = 0; // Index into Txt array
+	
 	for (int i = 0; i < InChars; i += Chars)
 	{
 		// Work out the run of chars that are either
@@ -1076,70 +1079,94 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 		
 		// Now process 'Char' chars
 		const uint32 *Str = InStr + i;
+
 		if (AtOffset >= 0)
 		{
-			for (unsigned i=0; i<Txt.Length(); i++)
+			// Seek further into block?
+			while (	Pos < AtOffset &&
+					TxtIdx < Txt.Length())
 			{
-				StyleText *t = Txt[i];
+				StyleText *t = Txt[TxtIdx];
 				int Len = t->Length();
-				if (AtOffset <= Len)
+				if (AtOffset <= Pos + Len)
+					break;
+				Pos += Len;
+				TxtIdx++;
+			}
+			
+			StyleText *t = TxtIdx >= Txt.Length() ? Txt.Last() : Txt[TxtIdx];
+			int TxtLen = t->Length();			
+			if (AtOffset >= Pos && AtOffset <= Pos + TxtLen)
+			{
+				int StyleOffset = AtOffset - Pos;
+				if (!Style && IsEmoji == t->Emoji)
 				{
-					if (!Style && IsEmoji == t->Emoji)
+					// Insert/append to existing text run
+					int After = t->Length() - AtOffset;
+					int NewSz = t->Length() + Chars;
+					t->Length(NewSz);
+					uint32 *c = &t->First();
+
+					// Do we need to move characters up to make space?
+					if (After > 0)
+						memmove(c + StyleOffset + Chars, c + StyleOffset, After * sizeof(*c));
+
+					// Insert the new string...
+					memcpy(c + StyleOffset, Str, Chars * sizeof(*c));
+					Len += Chars;
+				}
+				else
+				{
+					// Break into 2 runs, with the new text in the middle...
+
+					// Insert the new text+style
+					StyleText *Run = new StyleText(Str, Chars, Style);
+					if (!Run)
+						return false;
+					Run->Emoji = IsEmoji;
+					Txt.AddAt(++i, Run);
+
+					if (StyleOffset < TxtLen)
 					{
-						// Insert/append to existing text run
-						int After = t->Length() - AtOffset;
-						int NewSz = t->Length() + Chars;
-						t->Length(NewSz);
-						uint32 *c = &t->First();
-
-						// Do we need to move characters up to make space?
-						if (After > 0)
-							memmove(c + AtOffset + Chars, c + AtOffset, After * sizeof(*c));
-
-						// Insert the new string...
-						memcpy(c + AtOffset, Str, Chars * sizeof(*c));
-					}
-					else
-					{
-						// Break into 2 runs, with the new text in the middle...
-
-						// Insert the new text+style
-						StyleText *Run = new StyleText(Str, Chars, Style);
+						// Insert the 2nd part of the string
+						Run = new StyleText(t->At(StyleOffset), t->Length() - StyleOffset, t->GetStyle());
 						if (!Run) return false;
-						Run->Emoji = IsEmoji;
 						Txt.AddAt(++i, Run);
 
-						if (AtOffset < (int)t->Length())
-						{
-							// Insert the 2nd part of the string
-							Run = new StyleText(&(*t)[AtOffset], t->Length() - AtOffset, t->GetStyle());
-							if (!Run) return false;
-							Txt.AddAt(++i, Run);
-
-							// Now truncate the existing text..
-							t->Length(AtOffset);
-						}
+						// Now truncate the existing text..
+						t->Length(StyleOffset);
 					}
-
-					Str = NULL;
-					break;
+					
+					Len += Chars;
 				}
 
-				AtOffset -= Len;
+				Str = NULL;
 			}
 		}
 
 		if (Str)
 		{
-			// Add after the end
-			StyleText *Run = new StyleText(Str, Chars, Style);
-			if (!Run) return false;
-			Run->Emoji = IsEmoji;
-			Txt.Add(Run);
+			// At the end
+			StyleText *Last = Txt.Length() > 0 ? Txt.Last() : NULL;
+			if (Last &&
+				Last->GetStyle() == Style &&
+				IsEmoji == Last->Emoji)
+			{
+				if (Last->Add((uint32*)Str, Chars))
+					Len += Chars;
+			}
+			else
+			{			
+				StyleText *Run = new StyleText(Str, Chars, Style);
+				if (!Run)
+					return false;
+				Run->Emoji = IsEmoji;
+				Txt.Add(Run);
+				Len += Chars;
+			}
 		}
 	}
 
-	Len += InChars;
 	LayoutDirty = true;
 	
 	IsValid();
@@ -1487,7 +1514,7 @@ bool GRichTextPriv::TextBlock::Seek(SeekType To, BlockCursor &Cur)
 				{
 					// This is the matching string...
 					int Px = XOffset - FixedToInt(FixX) - Line->PosOff.x1;
-					int Char = Ds->CharAt(Px);
+					int Char = Ds->PosToIndex(Px, true);
 					if (Char >= 0)
 					{
 						Cur.Offset = LineOffset[CurLine] +	// Character offset of line

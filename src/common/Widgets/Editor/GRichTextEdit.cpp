@@ -2501,6 +2501,7 @@ bool EmojiMenu::InsertEmoji(uint32 Ch)
 						
 	d->Dirty = true;
 	d->InvalidateDoc(NULL);
+	d->View->SendNotify(GNotifyDocChanged);
 
 	return true;
 }

@@ -432,6 +432,8 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 				else
 				{
 					c->Offset--;
+					if (c->Blk->OffsetToLine(c->Offset, NULL, &Ln))
+						c->LineHint = Ln.First();
 				}
 
 				Status = true;
@@ -800,8 +802,12 @@ GSurface *GRichTextPriv::GetEmojiImage()
 
 		char File[MAX_PATH] = "";
 		LgiMakePath(File, sizeof(File), p, "..\\src\\common\\Text\\Emoji\\EmojiMap.png");
-
-		EmojiImg.Reset(GdcD->Load(File, false));
+		GAutoString a;
+		if (!FileExists(File))
+			a.Reset(LgiFindFile("EmojiMap.png"));
+		
+		EmojiImg.Reset(GdcD->Load(a ? a : File, false));
+		
 	}
 	return EmojiImg;
 }
@@ -1515,7 +1521,8 @@ bool GRichTextPriv::ToHtml()
 	GStringPipe p(256);
 		
 	p.Print("<html>\n"
-			"<head>\n");
+			"<head>\n"
+			"\t<meta name=\"charset\" content=\"utf-8\">\n");
 	
 	ZeroRefCounts();
 	for (unsigned i=0; i<Blocks.Length(); i++)
