@@ -1124,14 +1124,14 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 					if (!Run)
 						return false;
 					Run->Emoji = IsEmoji;
-					Txt.AddAt(++i, Run);
+					Txt.AddAt(++TxtIdx, Run);
 
 					if (StyleOffset < TxtLen)
 					{
 						// Insert the 2nd part of the string
-						Run = new StyleText(t->At(StyleOffset), t->Length() - StyleOffset, t->GetStyle());
+						Run = new StyleText(t->At(StyleOffset), TxtLen - StyleOffset, t->GetStyle());
 						if (!Run) return false;
-						Txt.AddAt(++i, Run);
+						Txt.AddAt(++TxtIdx, Run);
 
 						// Now truncate the existing text..
 						t->Length(StyleOffset);

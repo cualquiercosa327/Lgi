@@ -157,7 +157,7 @@ GNamedStyle *GCssCache::AddStyleToCache(GAutoPtr<GCss> &s)
 		*(GCss*)ns = *s.Get();
 		Styles.Add(ns);
 
-		#if _DEBUG
+		#if 0 // _DEBUG
 		GAutoString ss = ns->ToString();
 		if (ss)
 			LgiTrace("%s = %s\n", ns->Name.Get(), ss.Get());
