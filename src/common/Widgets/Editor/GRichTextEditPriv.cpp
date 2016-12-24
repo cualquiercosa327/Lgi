@@ -1490,6 +1490,15 @@ void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
 	}
 	#endif
 
+	#if 0 // Outline the line the cursor is on
+	if (Cursor)
+	{
+		pDC->Colour(GColour::Blue);
+		pDC->LineStyle(GSurface::LineDot);
+		pDC->Box(&Cursor->Line);
+	}
+	#endif
+
 	#if defined(WINDOWS) && !DEBUG_NO_DOUBLE_BUF
 	Mem.SetOrigin(0, 0);
 	pScreen->Blt(Areas[GRichTextEdit::ContentArea].x1, Areas[GRichTextEdit::ContentArea].y1, &Mem);

@@ -914,7 +914,7 @@ public:
 
 		double GetAscent()
 		{
-			return EMOJI_CELL_SIZE;
+			return EMOJI_CELL_SIZE * 0.8;
 		}
 	};
 
@@ -973,8 +973,10 @@ public:
 				DisplayStr *ds = Strs[i];
 				GFont *f = ds->GetFont();
 				double Ascent = ds->GetAscent();
-				ds->OffsetY = (int)(BaseLine - Ascent);
+				if (Ascent > 0.0)
+					ds->OffsetY = (int)(BaseLine - Ascent);
 				LgiAssert(ds->OffsetY >= 0);
+				HtPx = max(HtPx, ds->OffsetY+ds->Y());
 			}
 			
 			PosOff.y2 = PosOff.y1 + HtPx - 1;
