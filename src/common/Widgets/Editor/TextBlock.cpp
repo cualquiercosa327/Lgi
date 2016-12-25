@@ -182,7 +182,7 @@ bool GRichTextPriv::TextBlock::ToHtml(GStream &s)
 		GUtf8Ptr end(str + utf.Length());
 		while (cur < end)
 		{
-			char16 ch = cur;
+			int32 ch = cur;
 			switch (ch)
 			{
 				case '<':
@@ -1008,7 +1008,7 @@ int GRichTextPriv::TextBlock::DeleteAt(Transaction *Trans, int BlkOffset, int Ch
 			if (Remaining > 0)
 			{
 				// Copy down
-				memmove(&(*t)[TxtOffset], &(*t)[TxtOffset + Remove], Remaining * sizeof(char16));
+				memmove(&(*t)[TxtOffset], &(*t)[TxtOffset + Remove], Remaining * sizeof(uint32));
 				(*t)[NewLen] = 0;
 			}
 
@@ -1102,7 +1102,7 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 				if (!Style && IsEmoji == t->Emoji)
 				{
 					// Insert/append to existing text run
-					int After = t->Length() - AtOffset;
+					int After = t->Length() - StyleOffset;
 					int NewSz = t->Length() + Chars;
 					t->Length(NewSz);
 					uint32 *c = &t->First();
@@ -1114,6 +1114,7 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 					// Insert the new string...
 					memcpy(c + StyleOffset, Str, Chars * sizeof(*c));
 					Len += Chars;
+					AtOffset += Chars;
 				}
 				else
 				{
@@ -1124,6 +1125,7 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 					if (!Run)
 						return false;
 					Run->Emoji = IsEmoji;
+					Pos += StyleOffset; // We are skipping over the run at 'TxtIdx', update pos
 					Txt.AddAt(++TxtIdx, Run);
 
 					if (StyleOffset < TxtLen)
@@ -1131,6 +1133,7 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 						// Insert the 2nd part of the string
 						Run = new StyleText(t->At(StyleOffset), TxtLen - StyleOffset, t->GetStyle());
 						if (!Run) return false;
+						Pos += Chars;
 						Txt.AddAt(++TxtIdx, Run);
 
 						// Now truncate the existing text..
@@ -1138,6 +1141,7 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 					}
 					
 					Len += Chars;
+					AtOffset += Chars;
 				}
 
 				Str = NULL;
@@ -1153,7 +1157,10 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 				IsEmoji == Last->Emoji)
 			{
 				if (Last->Add((uint32*)Str, Chars))
+				{
 					Len += Chars;
+					AtOffset += Chars;
+				}
 			}
 			else
 			{			
@@ -1163,6 +1170,7 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 				Run->Emoji = IsEmoji;
 				Txt.Add(Run);
 				Len += Chars;
+				AtOffset += Chars;
 			}
 		}
 	}
@@ -1402,7 +1410,7 @@ bool GRichTextPriv::TextBlock::ChangeStyle(Transaction *Trans, int Offset, int C
 				if (st)
 					Txt.AddAt(i, st);
 				
-				memmove(t->At(0), t->At(Inside), After*sizeof(char16));
+				memmove(t->At(0), t->At(Inside), After*sizeof(uint32));
 				t->Length(After);
 				LayoutDirty = true;
 			}
@@ -1560,12 +1568,37 @@ void GRichTextPriv::TextBlock::DumpNodes(GTreeItem *Ti)
 		{
 			StyleText *St = Txt[i];
 			int Len = St->Length();
-			GTreeItem *TxtElem = PrintNode(	TxtRoot, "[%i] range=%i-%i, len=%i, style=%s, '%.20S'",
+			GString u;
+			if (Len)
+			{
+				GStringPipe p(256);
+				uint32 *Str = St->At(0);
+				p.Write("\'", 1);
+				for (int k=0; k<min(Len, 30); k++)
+				{
+					if (Str[k] == '\n')
+						p.Write("\\n", 2);
+					else if (Str[k] >= 0x10000)
+						p.Print("&#%i;", Str[k]);
+					else
+					{
+						uint8 utf8[6], *n = utf8;
+						int utf8len = sizeof(utf8);
+						if (LgiUtf32To8(Str[k], n, utf8len))
+							p.Write(utf8, sizeof(utf8)-utf8len);
+					}
+				}
+				p.Write("\'", 1);
+				u = p.NewGStr();
+			}
+			else u = "(Empty)";
+
+			GTreeItem *TxtElem = PrintNode(	TxtRoot, "[%i] range=%i-%i, len=%i, style=%s, %s",
 											i,
 											Pos, Pos + Len - 1,
 											Len,
 											St->GetStyle() ? St->GetStyle()->Name.Get() : NULL,
-											St->At(0));
+											u.Get());
 			Pos += Len;
 		}
 	}

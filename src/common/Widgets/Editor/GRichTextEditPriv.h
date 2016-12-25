@@ -933,7 +933,7 @@ public:
 
 		int PosToIndex(int XPos, bool Nearest)
 		{
-			if (XPos >= x)
+			if (XPos >= (int)x)
 				return Chars;
 			if (XPos <= 0)
 				return 0;
