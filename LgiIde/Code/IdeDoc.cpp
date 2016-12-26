@@ -2057,6 +2057,7 @@ void IdeDoc::OnTitleClick(GMouse &m)
 				s.AppendItem(sFile, IDM_COPY_FILE, true);
 			s.AppendItem(sFull, IDM_COPY_PATH, true);
 			s.AppendItem(sBrowse, IDM_BROWSE, true);
+			s.AppendItem("Show In Project", IDM_SHOW_IN_PROJECT, true);
 		}
 		if (p)
 		{
@@ -2109,6 +2110,11 @@ void IdeDoc::OnTitleClick(GMouse &m)
 				#else
 				LgiAssert(!"Impl me.");
 				#endif
+				break;
+			}
+			case IDM_SHOW_IN_PROJECT:
+			{
+				d->App->ShowInProject(Fn);
 				break;
 			}
 			case IDM_PROPERTIES:

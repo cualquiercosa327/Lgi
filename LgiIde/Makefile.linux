@@ -117,6 +117,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../include/common/GDragAndDrop.h \
 	../include/common/GDropFiles.h \
 	../include/common/GEdit.h \
+	../include/common/GEventTargetThread.h \
 	../include/common/GFile.h \
 	../include/common/GFileSelect.h \
 	../include/common/GFilter.h \
@@ -999,7 +1000,8 @@ IdeDoc.o : ./Code/IdeDoc.cpp ../include/common/Lgi.h \
 	../include/common/GList.h \
 	../include/common/GPopupList.h \
 	../include/common/GTableLayout.h \
-	./Code/ProjectNode.h
+	./Code/ProjectNode.h \
+	../include/common/GEventTargetThread.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -2414,7 +2416,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/linux/Gtk/LgiOsDefs.h \
 	../include/common/GColour.h
 
-../src/common/Lgi/GThreadCommon.cpp : ../include/common/Lgi.h
+../src/common/Lgi/GThreadCommon.cpp : ../include/common/Lgi.h \
+	../include/common/GEventTargetThread.h
 
 ../../../../../../usr/include/atk-1.0/atk/atkeditabletext.h : /usr/include/atk-1.0/atk/atkobject.h \
 	/usr/include/atk-1.0/atk/atktext.h
@@ -3051,6 +3054,10 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GCssTools.h
 
 ../include/common/GUtf8.h : 
+
+../include/common/GEventTargetThread.h : ../include/common/GThread.h \
+	../include/common/GMutex.h \
+	../include/common/GThreadEvent.h
 
 ../../../../../../usr/include/freetype2/ftsynth.h : /usr/include/freetype2/ft2build.h
 

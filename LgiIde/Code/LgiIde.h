@@ -245,6 +245,7 @@ public:
 	void FindSymbol(GEventSinkI *Results, const char *Sym);
 	bool GetSystemIncludePaths(GArray<GString> &Paths);
 	bool IsReleaseMode();
+	bool ShowInProject(const char *Fn);
 	
 	// Events
 	void OnLocationChange(const char *File, int Line);

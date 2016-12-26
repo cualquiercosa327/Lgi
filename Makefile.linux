@@ -382,7 +382,8 @@ GMutex.o : ./src/common/Lgi/GMutex.cpp ./include/common/Lgi.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GThreadCommon.o : ./src/common/Lgi/GThreadCommon.cpp ./include/common/Lgi.h
+GThreadCommon.o : ./src/common/Lgi/GThreadCommon.cpp ./include/common/Lgi.h \
+	./include/common/GEventTargetThread.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -2143,6 +2144,10 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	/usr/include/glib-2.0/glib-object.h \
 	/usr/include/pango-1.0/pango/pango-types.h
 
+./include/common/GEventTargetThread.h : ./include/common/GThread.h \
+	./include/common/GMutex.h \
+	./include/common/GThreadEvent.h
+
 ./include/common/INetTools.h : ./include/common/GContainers.h \
 	./include/common/LgiNetInc.h
 
@@ -2782,6 +2787,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/GString.h
 
 ../../../../../usr/include/glib-2.0/glib/ghook.h : /usr/include/glib-2.0/glib/gmem.h
+
+./include/common/GThreadEvent.h : 
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkfontbutton.h : /usr/include/gtk-2.0/gtk/gtkbutton.h
 

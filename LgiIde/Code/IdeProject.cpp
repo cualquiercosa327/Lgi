@@ -1280,6 +1280,11 @@ bool IdeProject::InProject(bool FuzzyMatch, const char *Path, bool Open, IdeDoc 
 				{
 					n = Cur;
 					MatchingCh = PathLen;
+					printf("%s:%i - '%s' '%s'\n", _FL, p, Path);
+				}
+				else
+				{
+					printf("%s:%i - too short '%s' '%s'\n", _FL, p, Path);
 				}
 			}
 			else if (stristr(p, Leaf))
@@ -1289,6 +1294,11 @@ bool IdeProject::InProject(bool FuzzyMatch, const char *Path, bool Open, IdeDoc 
 				{
 					n = Cur;
 					MatchingCh = LeafLen;
+					printf("%s:%i - '%s' '%s'\n", _FL, p, Leaf);
+				}
+				else
+				{
+					printf("%s:%i - too short '%s' '%s'\n", _FL, p, Path);
 				}
 			}
 		}

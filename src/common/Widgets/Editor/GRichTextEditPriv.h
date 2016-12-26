@@ -867,7 +867,7 @@ public:
 			Utf16to32(Utf32, (const uint16*) StrCache.Get(), len);
 			uint32 *u = &Utf32[0];
 			#else
-			uint32 *u = Str;
+			uint32 *u = StrCache;
 			#endif
 
 			for (int i=0; i<Chars; i++)

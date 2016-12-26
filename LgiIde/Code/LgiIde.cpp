@@ -641,20 +641,6 @@ public:
 			{
 				Txt[n]->SetTabSize(8);
 				Txt[n]->Sunken(true);
-				
-				/*
-				GFontType Type;
-				if (Type.GetSystemFont("Fixed"))
-				{
-					Type.SetPointSize(11);
-					
-					GFont *f = Type.Create();
-					if (f)
-					{
-						Txt[n]->SetFont(f, true);
-					}
-				}
-				*/
 			}
 		}
 	}
@@ -1202,7 +1188,7 @@ public:
 				{
 					if (stricmp(f, File) == 0)
 					{
-						LgiTrace("Remove '%s'\n", f);
+						// LgiTrace("Remove '%s'\n", f);
 
 						(*r)->Delete(f);
 						DeleteArray(f);
@@ -1824,7 +1810,7 @@ IdeDoc *AppWnd::OpenFile(const char *FileName, NodeSource *Src)
 				List<IdeProject>::I Proj = d->Projects.Start();
 				for (IdeProject *p=*Proj; p && !Doc; p=*++Proj)
 				{
-					p->InProject(true, File, true, &Doc);				
+					p->InProject(LgiIsRelativePath(File), File, true, &Doc);				
 				}
 				DoingProjectFind = false;
 
@@ -2025,12 +2011,15 @@ GMessage::Result AppWnd::OnEvent(GMessage *m)
 
 			if (d->Running != Running)
 			{
+				bool RunToNotRun = d->Running && !Running;
+				
 				d->Running = Running;
-				if (!d->Running &&
+				
+				if (RunToNotRun &&
 					d->Output &&
 					d->Output->DebugTab)
 				{
-					d->Output->DebugTab->SendNotify();
+					d->Output->DebugTab->SendNotify(GNotifyValueChanged);
 				}
 			}
 			if (d->Debugging != Debugging)
@@ -2378,6 +2367,33 @@ bool AppWnd::IsReleaseMode()
 	GMenuItem *Release = GetMenu()->FindItem(IDM_RELEASE_MODE);
 	bool IsRelease = Release ? Release->Checked() : false;
 	return IsRelease;
+}
+
+bool AppWnd::ShowInProject(const char *Fn)
+{
+	if (!Fn)
+	{
+		printf("%s:%i - Error: no file.\n", _FL);
+		return false;
+	}
+	
+	for (IdeProject *p=d->Projects.First(); p; p=d->Projects.Next())
+	{
+		ProjectNode *Node = NULL;
+		if (p->FindFullPath(Fn, &Node))
+		{
+			for (GTreeItem *i = Node->GetParent(); i; i = i->GetParent())
+			{
+				i->Expanded(true);
+			}
+			Node->Select(true);			
+			printf("%s:%i - '%s' found.\n", _FL, Fn);	
+			return true;
+		}	
+	}
+	
+	printf("%s:%i - '%s' not found.\n", _FL, Fn);	
+	return false;
 }
 
 int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
