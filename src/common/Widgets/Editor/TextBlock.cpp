@@ -551,7 +551,7 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 				// to draw.
 				if (CurEndPoint < EndPoints &&
 					EndPoint[CurEndPoint] >= CharPos &&
-					EndPoint[CurEndPoint] < CharPos + Ds->Chars)
+					EndPoint[CurEndPoint] <= CharPos + Ds->Chars)
 				{
 					// Yes..
 					int Ch2 = EndPoint[CurEndPoint] - CharPos;
