@@ -792,6 +792,8 @@ public:
 				case RunStepOut:
 					Param = Frames.Length();
 					break;
+				default:
+					break;
 			}
 			
 			if (BreakCpp)

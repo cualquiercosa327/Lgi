@@ -1817,9 +1817,9 @@ void GList::OnMouseMove(GMouse &m)
 						(abs(d->DragStart.x-m.x) > DRAG_THRESHOLD ||
 						abs(d->DragStart.y-m.y) > DRAG_THRESHOLD))
 					{
+						Capture(false);
 						OnItemBeginDrag(Cur, m);
 						DragMode = DRAG_NONE;
-						Capture(false);
 					}
 				}
 				break;

@@ -767,7 +767,11 @@ public:
 		int OffsetY;	// Offset of this string from the TextLine's box in the Y axis
 		
 		DisplayStr(StyleText *src, GFont *f, const uint32 *s, int l = -1, GSurface *pdc = NULL) :
-			GDisplayString(f, s, l, pdc)
+			GDisplayString(f,
+				#ifndef WINDOWS
+				(char16*)
+				#endif
+				s, l, pdc)
 		{
 			Src = src;
 			OffsetY = 0;
@@ -819,7 +823,7 @@ public:
 					Start < (int)len &&
 					Start + Len <= (int)len)
 				{
-					#ifdef _WIN32
+					#if defined(_WIN32)
 					LgiAssert(Str != NULL);
 					const char16 *s = Utf16Seek(Str, Start);
 					const char16 *e = Utf16Seek(s, Len);
@@ -827,7 +831,7 @@ public:
 					if (Utf16to32(Tmp, (const uint16*)s, e - s))
 						c.Reset(new DisplayStr(Src, GetFont(), &Tmp[0], Tmp.Length(), pDC));
 					#else
-					c.Reset(new DisplayStr(Src, GetFont(), Str + Start, Len, pDC));
+					c.Reset(new DisplayStr(Src, GetFont(), (uint32*)Str + Start, Len, pDC));
 					#endif
 				}
 			}		
@@ -855,7 +859,7 @@ public:
 	{
 		GArray<GRect> SrcRect;
 		GSurface *Img;
-		#ifdef _WIN32
+		#if defined(_WIN32)
 		GArray<uint32> Utf32;
 		#endif
 
@@ -863,11 +867,11 @@ public:
 			DisplayStr(src, NULL, s, l)
 		{
 			Img = img;
-			#ifdef _WIN32
+			#if defined(_WIN32)
 			Utf16to32(Utf32, (const uint16*) StrCache.Get(), len);
 			uint32 *u = &Utf32[0];
 			#else
-			uint32 *u = StrCache;
+			uint32 *u = (uint32*)StrCache.Get();
 			#endif
 
 			for (int i=0; i<Chars; i++)
@@ -894,16 +898,16 @@ public:
 		{
 			if (Len < 0)
 				Len = Chars - Start;
-			#ifdef _WIN32
+			#if defined(_WIN32)
 			LgiAssert(	Start >= 0 &&
 						Start < (int)Utf32.Length() &&
 						Start + Len <= (int)Utf32.Length());
 			#endif
 			GAutoPtr<DisplayStr> s(new EmojiDisplayStr(Src, Img, NULL,
-				#ifdef _WIN32
+				#if defined(_WIN32)
 				&Utf32[Start]
 				#else
-				(const char16*)(*this)
+				(uint32*)(const char16*)(*this)
 				#endif
 				, Len));
 			return s;

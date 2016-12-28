@@ -31,7 +31,11 @@ void GRichTextPriv::TextBlock::Dump()
 	for (unsigned i=0; i<Txt.Length(); i++)
 	{
 		StyleText *t = Txt[i];
-		GString s(t->Length() ? t->At(0) : NULL, t->Length());
+		GString s(t->Length() ?
+					#ifndef WINDOWS
+					(char16*)
+					#endif
+					t->At(0) : NULL, t->Length());
 		s = s.Strip();
 				
 		/*
@@ -134,7 +138,11 @@ bool GRichTextPriv::TextBlock::ToHtml(GStream &s)
 		if (!tlen)
 			continue;
 		
-		GString utf(t->At(0), t->Length());
+		GString utf(
+			#ifndef WINDOWS
+			(char16*)
+			#endif
+			t->At(0), t->Length());
 		char *str = utf;
 
 		const char *ElemName = NULL;

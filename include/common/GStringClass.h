@@ -136,7 +136,7 @@ public:
 		}
 	}
 
-	#ifdef _WIN32
+	#if defined(_WIN32)
 	/// const uint32* constructor
 	GString(const uint32 *str, int chars = -1)
 	{
