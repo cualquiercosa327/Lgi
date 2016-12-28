@@ -984,7 +984,6 @@ public:
 			for (unsigned i=0; i<Strs.Length(); i++)
 			{
 				DisplayStr *ds = Strs[i];
-				GFont *f = ds->GetFont();
 				double Ascent = ds->GetAscent();
 				BaseLine = max(BaseLine, Ascent);
 				HtPx = max(HtPx, ds->Y());
@@ -998,7 +997,6 @@ public:
 			for (unsigned i=0; i<Strs.Length(); i++)
 			{
 				DisplayStr *ds = Strs[i];
-				GFont *f = ds->GetFont();
 				double Ascent = ds->GetAscent();
 				if (Ascent > 0.0)
 					ds->OffsetY = (int)(BaseLine - Ascent);

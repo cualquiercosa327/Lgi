@@ -1067,7 +1067,7 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 		EmojiIdx[i] = EmojiToIconIndex(InStr + i, InChars - i);
 	}
 
-	const uint32 *End = InStr + InChars;
+	// const uint32 *End = InStr + InChars;
 	int Chars = 0; // Length of run to insert
 	int Pos = 0; // Current position in this block
 	uint32 TxtIdx = 0; // Index into Txt array
@@ -1088,7 +1088,7 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 		// Now process 'Char' chars
 		const uint32 *Str = InStr + i;
 
-		if (AtOffset >= 0)
+		if (AtOffset >= 0 && Txt.Length() > 0)
 		{
 			// Seek further into block?
 			while (	Pos < AtOffset &&
@@ -1601,12 +1601,12 @@ void GRichTextPriv::TextBlock::DumpNodes(GTreeItem *Ti)
 			}
 			else u = "(Empty)";
 
-			GTreeItem *TxtElem = PrintNode(	TxtRoot, "[%i] range=%i-%i, len=%i, style=%s, %s",
-											i,
-											Pos, Pos + Len - 1,
-											Len,
-											St->GetStyle() ? St->GetStyle()->Name.Get() : NULL,
-											u.Get());
+			PrintNode(	TxtRoot, "[%i] range=%i-%i, len=%i, style=%s, %s",
+						i,
+						Pos, Pos + Len - 1,
+						Len,
+						St->GetStyle() ? St->GetStyle()->Name.Get() : NULL,
+						u.Get());
 			Pos += Len;
 		}
 	}

@@ -110,10 +110,6 @@ public:
 											GCss::FontWeightNormal;
 		GCss::FontStyleType FontStyle = Style->FontStyle();
 		GCss::TextDecorType Decor = Style->TextDecoration();
-		if (Decor == GCss::TextDecorUnderline)
-		{
-			int asd=0;
-		}
 
 		GFont *f = NULL;
 		for (unsigned i = 0; !f && i<Fam.Length(); i++)

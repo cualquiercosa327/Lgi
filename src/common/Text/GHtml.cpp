@@ -2167,7 +2167,6 @@ bool GTag::OnMouseClick(GMouse &m)
 				{
 					if (Uri)
 					{
-						const char *OnClick = NULL;
 						if (!Html->d->LinkDoubleClick || m.Double())
 						{
 							Html->Environment->OnNavigate(Html, Uri);
@@ -2458,7 +2457,6 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool InBody, bo
 			t->Pos.y >= 0)
 		{
 			t->GetTagByPos(TagHit, x - t->Pos.x, y - t->Pos.y, Depth + 1, InBody, DebugLog);
-			int asd=0;
 		}
 	}
 }
