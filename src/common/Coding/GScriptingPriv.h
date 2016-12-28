@@ -53,6 +53,7 @@
 	_i(IDomCall,			76,					"DomCall") \
 	_i(IBreak,				77,					"Break") \
 	_i(ICast,				78,					"Cast") \
+	_i(IDebug,				79,					"Debug") \
 
 enum GInstruction {
 	AllInstructions
@@ -385,8 +386,9 @@ class GVirtualMachine : public GScriptUtils
 
 public:
 	GVirtualMachine(GVmDebuggerCallback *callback = NULL);
+	GVirtualMachine(GVirtualMachine *vm);
 	~GVirtualMachine();
-	
+
 	/// Executes the whole script starting at the top
 	GExecutionStatus Execute
 	(
@@ -421,13 +423,13 @@ public:
 
 	// Debugging commands
 	GVmDebugger *OpenDebugger(const char *Script = NULL);
-	bool StepInto();
-	bool StepOver();
+	bool StepInstruction();
+	bool StepLine();
 	bool StepOut();
 	bool BreakExecution();
 	bool Continue();
-	bool Stop();
 	bool BreakPoint(const char *File, int Line, bool Add);
+	bool BreakPoint(int Addr, bool Add);
 	void SetBreakCpp(bool Brk);
 };
 
@@ -513,6 +515,8 @@ public:
 		bool CreateSurface(GVariant *Ret, ArgumentArray &Args);
 
 	// User interface
+		/// Standard alert message box
+		bool MessageDlg(GVariant *Ret, ArgumentArray &Args);
 		/// Gets an input string from the user
 		/// String GetInputDlg(Window Parent, String InitialValue, String Question, String Title[, bool IsPassword]);
 		bool GetInputDlg(GVariant *Ret, ArgumentArray &Args);

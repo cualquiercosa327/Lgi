@@ -78,6 +78,7 @@
 					<a href="#CreateSurface">CreateSurface</a><br>
 				<td>
 					<a href="#LoadDialog">LoadDialog</a><br>
+					<a href="#MessageDlg">MessageDlg</a><br>
 					<a href="#GetInputDlg">GetInputDlg</a><br>
 					<a href="#GetViewById">GetViewById</a><br>
 				<td>
@@ -997,6 +998,47 @@ Print(c.Type(), ": ", c.x, ", ", c.y, ", ", c.Bits, ", ", c.ColourSpace, "\n");<
 				Returns:
 				<ul>
 					<li> A view object.
+				</ul>
+			</div>
+
+		<h4>string <a name="MessageDlg">MessageDlg</a>(parent_wnd, msg, title, btns);</h4>
+			<div>
+				Displays a model alert message.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> parent_wnd - The handle of the parent window.
+					<li> msg - A message above the editbox.
+					<li> title - The title of the dialog.
+					<li> btns - Integer mask of buttons:
+					<ul>
+						<li>MB_OK = 0</li>
+						<li>MB_OKCANCEL = 1</li>
+						<li>MB_ABORTRETRYIGNORE = 2</li>
+						<li>MB_YESNOCANCEL = 3</li>
+						<li>MB_YESNO = 4</li>
+						<li>MB_RETRYCANCEL = 5</li>
+						<li>MB_CANCELTRYCONTINUE = 6</li>
+					</ul>
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> Integer representing the button pressed:
+					<ul>
+						<li>IDOK = 1
+						<li>IDCANCEL = 2
+						<li>IDABORT = 3
+						<li>IDRETRY = 4
+						<li>IDIGNORE = 5
+						<li>IDYES = 6
+						<li>IDNO = 7
+						<li>IDCLOSE = 8
+						<li>IDHELP = 9
+						<li>IDTRYAGAIN = 10
+						<li>IDCONTINUE = 11
+						<li>IDTIMEOUT = 32000
+					</ul>
 				</ul>
 			</div>
 

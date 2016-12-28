@@ -476,8 +476,10 @@ case ICallScript:
 	uint16 Args = *c.u16++;
 
 	// Increase the local stack size
-	AddLocalSize(Frame);
-	// LgiTrace("ICallScript %i,%i\n", Sf.ReturnValue.Scope, Sf.ReturnValue.Index);
+	int LocalsBase = Locals.Length();
+	Locals.SetFixedLength(false);
+	Locals.Length(LocalsBase + Frame);
+	Locals.SetFixedLength();
 	
 	// Put the arguments of the function call into the local array
 	GArray<GVariant*> Arg;
@@ -504,6 +506,8 @@ case ICallScript:
 	}
 
 	#if VM_EXECUTE
+	Scope[SCOPE_LOCAL] = &Locals[LocalsBase];
+
 	// Set IP to start of function
 	Sf.ReturnIp = CurrentScriptAddress;
 	c.u8 = Base + FuncAddr;
@@ -1080,6 +1084,12 @@ case IDomGet:
 						break;
 					}
 				}
+				break;
+			}
+			case GV_NULL:
+			{
+				OnException(_FL, CurrentScriptAddress-1, "NULL Dom Ptr");
+				return ScriptWarning;
 				break;
 			}
 			default:
@@ -1835,6 +1845,17 @@ case IDomCall:
 		Log->Print(")\n");
 	#endif
 
+	#endif
+	break;
+}
+case IDebug:
+{
+	#if VM_DECOMP
+	if (Log)
+		Log->Print("%p Debugger\n", CurrentScriptAddress-1);
+	#elif VM_EXECUTE
+	OnException(_FL, CurrentScriptAddress-1, "ShowDebugger");
+	return ScriptWarning;
 	#endif
 	break;
 }

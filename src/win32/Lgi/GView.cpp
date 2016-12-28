@@ -206,7 +206,7 @@ bool CastHwnd(T *&Ptr, HWND hWnd)
 		TCHAR ClsName[256] = {0};
 		int Ch = GetClassName(hWnd, ClsName, CountOf(ClsName));
 		GString Cls = ClsName;
-		LgiTrace("%s:%i - Error: hWnd=%p/%s, GWL_LGI_MAGIC=%i\n", _FL, hWnd, Cls.Get(), magic);
+		// LgiTrace("%s:%i - Error: hWnd=%p/%s, GWL_LGI_MAGIC=%i\n", _FL, hWnd, Cls.Get(), magic);
 		return false;
 	}
 	Ptr = dynamic_cast<T*>((GViewI*)user);

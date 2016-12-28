@@ -9,6 +9,7 @@
 #define GetTok(c) ((c) < Tokens.Length() ? Tokens[c] : NULL)
 #define GetTokType(c) ((c) < Tokens.Length() ? ExpTok.Find(Tokens[c]) : TNone)
 #define GV_VARIANT	GV_MAX
+const char *sDebugger = "Debugger";
 
 int GFunctionInfo::_Infos = 0;
 
@@ -1476,6 +1477,24 @@ public:
 			}
 			else if (n.IsScriptFunc())
 			{
+				// Check for debugger break
+				char *FnName = n.ScriptFunc->GetName();
+				if (*FnName == 'D' &&
+					!_stricmp(FnName, sDebugger))
+				{
+					Asm0(n.Tok, IDebug);
+					return true;
+				}
+				
+				if (n.ScriptFunc->GetParams() != n.Args.Length())
+				{
+					return OnError(	n.Tok,
+									"Wrong number of parameters: %i (%s expects %i)",
+									n.Args.Length(),
+									FnName,
+									n.ScriptFunc->GetParams());
+				}
+				
 				// Call to a script function, create byte code to call function
 				GVarRef *OutRef;
 				if (LValue)

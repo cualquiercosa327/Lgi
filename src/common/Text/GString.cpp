@@ -777,6 +777,7 @@ int HtoiW(const char16 *a)
 				i |= *a - 'A' + 10;
 			}
 			else break;
+			a++;
 		}
 	}
 	return i;

@@ -10,6 +10,7 @@
 #include "GToken.h"
 #include "GTableLayout.h"
 #include "GTextLabel.h"
+#include "GScrollBar.h"
 
 #define TIME_INSTRUCTIONS		0
 #define POST_EXECUTE_STATE		0
@@ -21,7 +22,7 @@
 #define CurrentScriptAddress	(c.u8 - Base)
 #define CheckParam(ptr)			if (!(ptr)) \
 								{ \
-									OnException(_FL, CurrentScriptAddress, #ptr); \
+									OnException(_FL, CurrentScriptAddress-1, #ptr); \
 									c.u8 = e; \
 									Status = ScriptError; \
 									break; \
@@ -280,7 +281,7 @@ struct CodeBlock
 	int AsmLines;
 };
 
-class GVirtualMachinePriv
+class GVirtualMachinePriv : public GRefCount
 {
 	GVariant ArrayTemp;
 	
@@ -308,8 +309,8 @@ public:
 	enum RunType
 	{
 		RunContinue,
-		RunStepInto,
-		RunStepOver,
+		RunStepInstruction,
+		RunStepLine,
 		RunStepOut
 	};
 
@@ -328,6 +329,7 @@ public:
 	ArgumentArray *ArgsOutput;
 	GVariant UnusedReturn;
 	bool BreakCpp;
+	GArray<int> BreakPts;
 
 	GVirtualMachinePriv(GVirtualMachine *vm, GVmDebuggerCallback *Callback)
 	{
@@ -339,6 +341,11 @@ public:
 		Debugger = NULL;
 		DbgCallback = Callback;
 		ZeroObj(Scope);
+	}
+	
+	~GVirtualMachinePriv()
+	{
+		int asd=0;
 	}
 
 	void DumpVariant(GStream *Log, GVariant &v)
@@ -451,7 +458,7 @@ public:
 		
 		const char *Fn = Code->GetFileName();
 		GAutoString Src(ReadTextFile(Fn));
-		if (Vm->OpenDebugger(Src))
+		if (Vm && Vm->OpenDebugger(Src))
 		{
 			if (!Debugger->GetCode())
 			{
@@ -469,6 +476,8 @@ public:
 			GString m;
 			m.Printf("%s (%s:%i)", Msg, LgiGetLeaf(File), Line);
 			Debugger->OnError(m);
+			
+			Debugger->Run();
 		}
 		else
 		{
@@ -705,7 +714,7 @@ public:
 		uint8 *Base = &Code->ByteCode[0];
 		uint8 *e = Base + Code->ByteCode.Length();
 		
-		if (Type == RunContinue)
+		if (Type == RunContinue && BreakPts.Length() == 0)
 		{
 			// Unconstrained execution
 			while (c.u8 < e)
@@ -774,7 +783,16 @@ public:
 		{
 			// Stepping through code
 			// GHashTbl<int, int> &Debug = Code->Debug;
-			int Line = NearestLine(CurrentScriptAddress);
+			int Param;
+			switch (Type)
+			{
+				case RunStepLine:
+					Param = NearestLine(CurrentScriptAddress);
+					break;
+				case RunStepOut:
+					Param = Frames.Length();
+					break;
+			}
 			
 			if (BreakCpp)
 			#if defined(WIN32) && !defined(_WIN64)
@@ -785,18 +803,30 @@ public:
 
 			while (c.u8 < e)
 			{
+				if (Type == RunContinue &&
+					BreakPts.HasItem(c.u8 - Base))
+					break;
+				
 				switch (*c.u8++)
 				{
 					#define VM_EXECUTE 1
 					#include "Instructions.h"
 					#undef VM_EXECUTE
 				}
-				
-				int NewLine = NearestLine(CurrentScriptAddress);
-				if (NewLine && NewLine != Line)
+
+				if (Type == RunStepLine)
 				{
-					break;
+					int CurLine = NearestLine(CurrentScriptAddress);
+					if (CurLine && CurLine != Param)
+						break;
 				}
+				else if (Type == RunStepOut)
+				{
+					if ((int)Frames.Length() < Param)
+						break;
+				}
+				else if (Type == RunStepInstruction)
+					break;
 			}
 		}
 
@@ -810,11 +840,20 @@ public:
 GVirtualMachine::GVirtualMachine(GVmDebuggerCallback *callback)
 {
 	d = new GVirtualMachinePriv(this, callback);
+	d->AddRef();
+}
+
+GVirtualMachine::GVirtualMachine(GVirtualMachine *vm)
+{
+	d = vm->d;
+	d->AddRef();
 }
 
 GVirtualMachine::~GVirtualMachine()
 {
-	DeleteObj(d);
+	if (d->Vm == this)
+		d->Vm = NULL;
+	d->DecRef();
 }
 
 GExecutionStatus GVirtualMachine::Execute(GCompiledCode *Code, uint32 StartOffset, GStream *Log, bool StartImmediately, GVariant *Return)
@@ -856,15 +895,15 @@ GVmDebugger *GVirtualMachine::OpenDebugger(const char *Script)
 	return d->Debugger;
 }
 
-bool GVirtualMachine::StepInto()
+bool GVirtualMachine::StepInstruction()
 {
-	GExecutionStatus s = d->Run(GVirtualMachinePriv::RunStepInto);
+	GExecutionStatus s = d->Run(GVirtualMachinePriv::RunStepInstruction);
 	return s != ScriptError;
 }
 
-bool GVirtualMachine::StepOver()
+bool GVirtualMachine::StepLine()
 {
-	GExecutionStatus s = d->Run(GVirtualMachinePriv::RunStepOver);
+	GExecutionStatus s = d->Run(GVirtualMachinePriv::RunStepLine);
 	return s != ScriptError;
 }
 
@@ -885,14 +924,18 @@ bool GVirtualMachine::Continue()
 	return s != ScriptError;
 }
 
-bool GVirtualMachine::Stop()
+bool GVirtualMachine::BreakPoint(const char *File, int Line, bool Add)
 {
 	return false;
 }
 
-bool GVirtualMachine::BreakPoint(const char *File, int Line, bool Add)
+bool GVirtualMachine::BreakPoint(int Addr, bool Add)
 {
-	return false;
+	if (Add)
+		d->BreakPts.Add(Addr);
+	else
+		d->BreakPts.Delete(Addr);
+	return true;
 }
 
 void GVirtualMachine::SetBreakCpp(bool Brk)
@@ -1045,8 +1088,8 @@ enum DbgCtrls
 	IDC_STOP,
 	IDC_RESTART,
 	IDC_GOTO,
-	IDC_STEP_INTO,
-	IDC_STEP_OVER,
+	IDC_STEP_INSTR,
+	IDC_STEP_LINE,
 	IDC_STEP_OUT,
 	IDC_SOURCE_LST,
 	IDC_BREAK_POINT,
@@ -1063,22 +1106,27 @@ class GDebugView : public GTextView3
 	int ErrorLine;
 	GString Error;
 	
+	GArray<int> BreakPts;
+	
 public:
-	GDebugView(GScriptVmDebuggerPriv *priv); //  : GTextView3(IDC_TEXT, 0, 0, 100, 100);
+	GDebugView(GScriptVmDebuggerPriv *priv);
 	~GDebugView();
 
 	void SetError(const char *Err);
 	int GetCurLine() { return CurLine; }
+	int GetAddr();
 	void ScrollToCurLine();
 	void PourText(int Start, int Length);
+	void OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour);
 	void OnPaint(GSurface *pDC);
+	bool Breakpoint(int Addr);
 };
 
 struct GScriptVmDebuggerPriv
 {
 	// Current script
 	bool OwnVm;
-	GVirtualMachine *Vm;
+	GAutoPtr<GVirtualMachine> Vm;
 	GVmDebuggerCallback *Callback;
 	GAutoString Script, Assembly;
 	GArray<CodeBlock> Blocks;
@@ -1087,6 +1135,7 @@ struct GScriptVmDebuggerPriv
 	GAutoPtr<GCompiledCode> Obj;
 
 	// Ui
+	bool RunLoop;
 	GView *Parent;
 	GBox *Main;
 	GBox *Sub;
@@ -1100,6 +1149,7 @@ struct GScriptVmDebuggerPriv
 
 	GScriptVmDebuggerPriv()
 	{
+		RunLoop = false;
 		OwnVm = false;
 		CurrentAddr = -1;
 		Main = NULL;
@@ -1122,6 +1172,7 @@ GDebugView::GDebugView(GScriptVmDebuggerPriv *priv) : GTextView3(IDC_TEXT, 0, 0,
 	d = priv;
 	ErrorLine = -1;
 	SetWrapType(TEXTED_WRAP_NONE);
+	GetCss(true)->PaddingLeft(GCss::Len(GCss::LenPx, 18));
 }
 
 GDebugView::~GDebugView()
@@ -1134,9 +1185,97 @@ void GDebugView::SetError(const char *Err)
 	Error = Err;
 }
 
+#define IsHexChar(c) \
+	( \
+		IsDigit(c) \
+		|| \
+		((c) >= 'a' && (c) <= 'f') \
+		|| \
+		((c) >= 'A' && (c) <= 'F') \
+	)
+
+int IsAddr(char16 *Ln)
+{
+	int Addr = 0;
+	for (char16 *s = Ln; *s && *s != '\n' && s < Ln + 8; s++)
+	{
+		Addr += IsHexChar(*s);
+	}
+	
+	if (Addr != 8)
+		return -1;
+	
+	return HtoiW(Ln);
+}
+
+int GDebugView::GetAddr()
+{
+	int Index;
+	GTextLine *t = GetTextLine(Cursor, &Index);
+	if (!t)
+		return -1;
+		
+	int Addr = IsAddr(Text + t->Start);
+	return Addr;
+}
+
 void GDebugView::ScrollToCurLine()
 {
 	SetLine(CurLine);
+}
+
+bool GDebugView::Breakpoint(int Addr)
+{
+	if (BreakPts.HasItem(Addr))
+	{
+		BreakPts.Delete(Addr);
+		Invalidate();
+		return false;
+	}
+	else
+	{
+		BreakPts.Add(Addr);
+		Invalidate();
+		return true;
+	}
+}
+
+void GDebugView::OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour)
+{
+	GTextView3::OnPaintLeftMargin(pDC, r, colour);
+
+	pDC->Colour(GColour(192, 0, 0));
+	GFont *f = GetFont();
+	f->Colour(LC_LOW, LC_WORKSPACE);
+	f->Transparent(true);
+	
+	int Fy = f->GetHeight();
+	int Start = VScroll ? (int)VScroll->Value() : 0;
+	int Page = (r.Y() + Fy - 1) / Fy;
+	int Ln = Start;
+	int Rad = (Fy >> 1) - 1;
+	int PadY = GetCss(true)->PaddingTop().ToPx(Y(), f) + ((Fy - Rad) >> 1);
+
+	for (GTextLine *i = Line[Start]; i && Ln <= Start + Page; i = Line.Next(), Ln++)
+	{
+		int OffY = (Ln - Start) * f->GetHeight();
+		/*
+		GString Num;
+		Num.Printf("%i", Ln);
+		GDisplayString Ds(f, Num);
+		Ds.Draw(pDC, 0, r.y1+OffY);
+		*/
+		
+		char16 *s = Text + i->Start;
+		int Addr = IsAddr(s);
+		if (BreakPts.HasItem(Addr))
+		{
+			pDC->FilledCircle(r.x1 + Rad + 2, OffY + PadY + Rad, Rad);
+		}		
+	}
+
+	f->Transparent(false);
+	f->Colour(LC_TEXT, LC_WORKSPACE);
 }
 
 void GDebugView::OnPaint(GSurface *pDC)
@@ -1202,7 +1341,8 @@ GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVi
 {
 	d = new GScriptVmDebuggerPriv;
 	d->Parent = Parent;
-	d->Vm = Vm;
+	if (Vm)
+		d->Vm.Reset(new GVirtualMachine(Vm));
 	d->Callback = Callback;
 	d->Script.Reset(NewStr(Script));
 	d->Assembly.Reset(NewStr(Assembly));
@@ -1221,14 +1361,14 @@ GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVi
 		{
 			Menu->Attach(this);
 			GSubMenu *s = Menu->AppendSub("Debug");
-			s->AppendItem("Run", IDC_RUN, true, -1, "Ctrl+F5");
+			s->AppendItem("Run", IDC_RUN, true, -1, "F5");
 			s->AppendItem("Pause", IDC_PAUSE, true, -1, NULL);
 			s->AppendItem("Stop", IDC_STOP, true, -1, "Ctrl+Break");
 			s->AppendItem("Restart", IDC_RESTART, true, -1, NULL);
 			s->AppendItem("Goto", IDC_GOTO, true, -1, NULL);
 			s->AppendSeparator();
-			s->AppendItem("Step Into", IDC_STEP_INTO, true, -1, "F11");
-			s->AppendItem("Step Over", IDC_STEP_OVER, true, -1, "F10");
+			s->AppendItem("Step Instruction", IDC_STEP_INSTR, true, -1, "F11");
+			s->AppendItem("Step Line", IDC_STEP_LINE, true, -1, "F10");
 			s->AppendItem("Step Out", IDC_STEP_OUT, true, -1, "Shift+F11");
 			s->AppendSeparator();
 			s->AppendItem("Breakpoint", IDC_BREAK_POINT, true, -1, "F9");
@@ -1248,8 +1388,8 @@ GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVi
 		d->Tools->AppendButton("Restart", IDC_RESTART);
 		d->Tools->AppendButton("Goto", IDC_GOTO);
 		d->Tools->AppendSeparator();
-		d->Tools->AppendButton("Step Into", IDC_STEP_INTO);
-		d->Tools->AppendButton("Step Over", IDC_STEP_OVER);
+		d->Tools->AppendButton("Step Instruction", IDC_STEP_INSTR);
+		d->Tools->AppendButton("Step Line", IDC_STEP_LINE);
 		d->Tools->AppendButton("Step Out", IDC_STEP_OUT);
 		
 		AddView(d->Main = new GBox(IDC_BOX));		
@@ -1294,6 +1434,8 @@ GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVi
 		p = d->Tabs->Append("Stack");
 		p->Append(d->Stack = new GList(IDC_STACK, 0, 0, 100, 100));
 		d->Stack->SetPourLargest(true);
+		d->Stack->AddColumn("Address", 100);
+		d->Stack->AddColumn("Function", 300);
 		
 		p = d->Tabs->Append("Log");
 		p->Append(d->Log = new GTextLog(IDC_LOG));
@@ -1327,7 +1469,29 @@ GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVi
 
 GVmDebuggerWnd::~GVmDebuggerWnd()
 {
-	delete d;
+	LgiAssert(d->RunLoop == false);
+}
+
+bool GVmDebuggerWnd::OnRequestClose(bool OsShuttingDown)
+{
+	if (!d->RunLoop)
+		return GWindow::OnRequestClose(OsShuttingDown);
+
+	d->RunLoop = false;
+	return false; // Wait for Run() to exit in it's own time.
+}
+
+void GVmDebuggerWnd::Run()
+{
+	// This is to allow objects on the application's stack to 
+	// still be valid while the debugger UI is shown.
+	d->RunLoop = true;
+	while (d->RunLoop && Visible())
+	{
+		LgiApp->Run(false);
+		LgiSleep(1);
+	}
+	Quit();
 }
 
 GStream *GVmDebuggerWnd::GetLog()
@@ -1522,31 +1686,8 @@ void GVmDebuggerWnd::OnAddress(size_t Addr)
 		d->Text->ScrollToCurLine();
 		d->Text->Invalidate();
 	}
-	
-	if (d->Tabs->Value() == 0)
-	{
-		if (d->Obj)
-		{
-			UpdateVariables(d->Globals,
-							d->Vm->d->Scope[SCOPE_GLOBAL],
-							d->Obj->Globals.Length(),
-							'G');
-		}
-		if (d->Vm->d->Frames.Length())
-		{
-			GVirtualMachinePriv::StackFrame &frm = d->Vm->d->Frames.Last();
-			UpdateVariables(d->Locals,
-						d->Vm->d->Scope[SCOPE_LOCAL],
-						frm.CurrentFrameSize,
-						'L');
-		}
-		else d->Locals->Empty();
-		
-		UpdateVariables(d->Registers,
-						d->Vm->d->Scope[SCOPE_REGISTER],
-						MAX_REGISTER,
-						'R');
-	}
+
+	OnNotify(d->Tabs, 0);	
 }
 
 void GVmDebuggerWnd::OnError(const char *Msg)
@@ -1585,6 +1726,15 @@ void GVmDebuggerWnd::LoadFile(const char *File)
 
 int GVmDebuggerWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 {
+	if (d->Vm &&
+		d->Vm->d->Vm == NULL)
+	{
+		// This happens when the original VM decides to go away and leave
+		// our copy of the VM as the only one left. This means we have to
+		// update the pointer in the VM's private data to point to us.
+		d->Vm->d->Vm = d->Vm;
+	}
+	
 	switch (Cmd)
 	{
 		case IDC_RUN:
@@ -1601,8 +1751,11 @@ int GVmDebuggerWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		}
 		case IDC_STOP:
 		{
-			if (d->Vm)
-				d->Vm->Stop();
+			d->Vm.Reset();
+			if (d->RunLoop)
+				d->RunLoop = false;
+			else
+				Quit();
 			break;
 		}
 		case IDC_RESTART:
@@ -1619,16 +1772,16 @@ int GVmDebuggerWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		{
 			break;
 		}
-		case IDC_STEP_INTO:
+		case IDC_STEP_INSTR:
 		{
 			if (d->Vm)
-				d->Vm->StepInto();
+				d->Vm->StepInstruction();
 			break;
 		}
-		case IDC_STEP_OVER:
+		case IDC_STEP_LINE:
 		{
 			if (d->Vm)
-				d->Vm->StepOver();
+				d->Vm->StepLine();
 			break;
 		}
 		case IDC_STEP_OUT:
@@ -1637,10 +1790,31 @@ int GVmDebuggerWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 				d->Vm->StepOut();
 			break;
 		}
+		case IDC_BREAK_POINT:
+		{
+			int Addr = d->Text->GetAddr();
+			if (Addr >= 0)
+				d->Vm->BreakPoint(Addr, d->Text->Breakpoint(Addr));
+			break;
+		}
 		case IDC_BREAK_CPP:
 		{
-			if (d->Vm)
-				d->Vm->SetBreakCpp(true);
+			if (!d->Vm)
+			{
+				LgiAssert(0);
+				break;
+			}
+
+			GMenuItem *i = Menu->FindItem(IDC_BREAK_CPP);
+			if (!i)
+			{
+				LgiAssert(0);
+				break;
+			}
+			
+			bool b = !i->Checked();
+			i->Checked(b);
+			d->Vm->SetBreakCpp(b);
 			break;
 		}
 	}
@@ -1652,6 +1826,62 @@ int GVmDebuggerWnd::OnNotify(GViewI *Ctrl, int Flags)
 {
 	switch (Ctrl->GetId())
 	{
+		case IDC_TABS:
+		{
+			switch (Ctrl->Value())
+			{
+				case 0: // Variables
+				{
+					if (d->Obj)
+					{
+						UpdateVariables(d->Globals,
+										d->Vm->d->Scope[SCOPE_GLOBAL],
+										d->Obj->Globals.Length(),
+										'G');
+					}
+					if (d->Vm->d->Frames.Length())
+					{
+						GVirtualMachinePriv::StackFrame &frm = d->Vm->d->Frames.Last();
+						UpdateVariables(d->Locals,
+									d->Vm->d->Scope[SCOPE_LOCAL],
+									frm.CurrentFrameSize,
+									'L');
+					}
+					else d->Locals->Empty();
+					
+					UpdateVariables(d->Registers,
+									d->Vm->d->Scope[SCOPE_REGISTER],
+									MAX_REGISTER,
+									'R');
+					break;
+				}
+				case 1: // Call stack
+				{
+					d->Stack->Empty();
+					
+					GArray<GVirtualMachinePriv::StackFrame> &Frames = d->Vm->d->Frames;
+					for (int i=(int)Frames.Length()-1; i>=0; i--)
+					{
+						GVirtualMachinePriv::StackFrame &Sf = Frames[i];
+						GListItem *li = new GListItem;
+						GString s;
+						s.Printf("%p/%i", Sf.ReturnIp, Sf.ReturnIp);
+						li->SetText(s, 0);
+						
+						const char *Src = d->Vm->d->Code->AddrToSourceRef(Sf.ReturnIp);
+						li->SetText(Src, 1);
+						
+						d->Stack->Insert(li);
+					}
+					break;
+				}					
+				case 2: // Log
+				{
+					break;
+				}
+			}
+			break;
+		}
 		case IDC_SOURCE_LST:
 		{
 			if (Flags != GNotifyItem_DoubleClick)

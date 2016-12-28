@@ -216,4 +216,3 @@ void *GLibrary::GetAddress(const char *Resource)
 
 	return p;
 }
-
