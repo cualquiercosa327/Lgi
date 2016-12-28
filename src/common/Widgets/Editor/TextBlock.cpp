@@ -275,12 +275,12 @@ bool GRichTextPriv::TextBlock::GetPosFromIndex(BlockCursor *Cursor)
 				if (CharOffset == 0)
 				{
 					// First char
-					Cursor->Pos.x1 = r.x1 + IntToFixed(FixX);
+					Cursor->Pos.x1 = r.x1 + FixedToInt(FixX);
 				}
 				else if (CharOffset == dsChars)
 				{
 					// Last char
-					Cursor->Pos.x1 = r.x1 + IntToFixed(FixX + ds->FX());
+					Cursor->Pos.x1 = r.x1 + FixedToInt(FixX + ds->FX());
 				}
 				else
 				{
@@ -288,7 +288,7 @@ bool GRichTextPriv::TextBlock::GetPosFromIndex(BlockCursor *Cursor)
 					GAutoPtr<DisplayStr> Tmp = ds->Clone(0, CharOffset);
 					// GDisplayString Tmp(ds->GetFont(), *ds, CharOffset);
 					if (Tmp)
-						Cursor->Pos.x1 = r.x1 + IntToFixed(FixX + Tmp->FX());
+						Cursor->Pos.x1 = r.x1 + FixedToInt(FixX + Tmp->FX());
 				}
 
 				Cursor->Pos.y1 = r.y1 + ds->OffsetY;

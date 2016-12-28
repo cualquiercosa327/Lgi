@@ -145,13 +145,13 @@
 		341B9A421DEAC4490011CE44 /* RichTextEdit */ = {
 			isa = PBXGroup;
 			children = (
-				34D470AC1E1468CE003AF375 /* GRichTextEditPriv.cpp */,
-				34D470A61E1468AE003AF375 /* Emoji */,
 				341B9A451DEAC4930011CE44 /* BlockCursor.cpp */,
 				341B9A461DEAC4930011CE44 /* GRichTextEdit.cpp */,
-				341B9A471DEAC4930011CE44 /* GRichTextEditPriv.h */,
+				34D470AC1E1468CE003AF375 /* GRichTextEditPriv.cpp */,
 				341B9A481DEAC4930011CE44 /* TextBlock.cpp */,
 				341B9A441DEAC4760011CE44 /* GRichTextEdit.h */,
+				341B9A471DEAC4930011CE44 /* GRichTextEditPriv.h */,
+				34D470A61E1468AE003AF375 /* Emoji */,
 			);
 			name = RichTextEdit;
 			sourceTree = "<group>";
