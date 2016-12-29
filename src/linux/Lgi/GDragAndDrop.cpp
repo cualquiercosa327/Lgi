@@ -57,10 +57,15 @@ class GDndSourcePriv
 public:
 	GAutoString CurrentFormat;
 	Gtk::GdkDragContext *Ctx;
+
+	OsView SignalWnd;
+	bool SignalConnected;
 	
 	GDndSourcePriv()
 	{
 		Ctx = NULL;
+		SignalWnd = NULL;
+		SignalConnected = false;
 	}
 	
 	~GDndSourcePriv()
@@ -78,6 +83,7 @@ GDragDropSource::GDragDropSource()
 
 GDragDropSource::~GDragDropSource()
 {
+	printf("%s:%i - %p::~GDragDropSource delete\n", _FL, this);
 	DeleteObj(d);
 }
 
@@ -147,6 +153,8 @@ LgiDragDataGet(GtkWidget        *widget,
 {
 	GDragDropSource *Src = (GDragDropSource*)data;
 
+	printf("%s:%i - LgiDragDataGet(%p) Src=%p\n", _FL, widget, Src);
+
 	// Iterate over the targets and put their formats into 'dd'
 	Gtk::GList *targets = gdk_drag_context_list_targets(context);
 	Gtk::GList *node;
@@ -205,6 +213,30 @@ LgiDragDataGet(GtkWidget        *widget,
 	}	
 }
 
+void
+LgiDragEnd(GtkWidget      *widget,
+           GdkDragContext *drag_context,
+           gpointer        user_data)
+{
+	GDragDropSource *Src = (GDragDropSource*)user_data;
+
+	printf("%s:%i - LgiDragEnd(%p) Src=%p\n", _FL, widget, Src);
+	
+	Src->OnEndData();
+}
+
+void GDragDropSource::OnEndData()
+{
+	if (d->SignalConnected &&
+		d->SignalWnd)
+	{
+		gtk_signal_disconnect(GTK_OBJECT(d->SignalWnd), "drag-data-get");
+		gtk_signal_disconnect(GTK_OBJECT(d->SignalWnd), "drag-end");
+		printf("%s:%i - %p::OnEndData() Signals removed.\n", _FL);
+	}
+	else printf("%s:%i - No signal.\n", _FL);
+}
+
 int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 {
 	LgiAssert(SourceWnd);
@@ -240,15 +272,20 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 	Gtk::GdkDragAction Action = EffectToDragAction(Effect);
 	
 	int Button = 1;
-	OsView Wnd = SourceWnd->Handle();
-	gtk_signal_connect(GTK_OBJECT(Wnd), "drag_data_get", GTK_SIGNAL_FUNC(LgiDragDataGet), this);
+	d->SignalWnd = SourceWnd->Handle();
+	gtk_signal_connect(GTK_OBJECT(d->SignalWnd), "drag-data-get", G_CALLBACK(LgiDragDataGet), this);
+	gtk_signal_connect(GTK_OBJECT(d->SignalWnd), "drag-end", G_CALLBACK(LgiDragEnd), this);
+	d->SignalConnected = true;
+	printf("%s:%i - %p::GDragDropSource connect data get on %p (%s)\n", _FL, this, d->SignalWnd, SourceWnd->GetClass());
 
-	d->Ctx = Gtk::gtk_drag_begin(Wnd,
+	d->Ctx = Gtk::gtk_drag_begin(d->SignalWnd,
 								Targets,
 								Action,
 								Button,
 								NULL); // Gdk event if available...
 
+
+	printf("%s:%i - %p::GDragDropSource post gtk_drag_begin\n", _FL, this);
     return -1;
 }
 
