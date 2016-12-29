@@ -237,7 +237,7 @@ GDisplayString::GDisplayString(GFont *f, const uint32 *s, int l, GSurface *pdc)
 
 	#endif
 
-    #if defined(MAC) || WINNATIVE || defined(LGI_SDL)
+    #if defined(MAC) || WINNATIVE || defined(LGI_SDL) || defined(__GTK_H__)
 
 		StringConvert(Str, &len, s, l);
 

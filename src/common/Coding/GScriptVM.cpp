@@ -1135,6 +1135,7 @@ struct GScriptVmDebuggerPriv
 	size_t CurrentAddr;
 	GArray<bool> LineIsAsm;
 	GAutoPtr<GCompiledCode> Obj;
+	GVariant Return;
 
 	// Ui
 	bool RunLoop;
@@ -1717,11 +1718,9 @@ void GVmDebuggerWnd::LoadFile(const char *File)
 		GCompiledCode *Code = dynamic_cast<GCompiledCode*>(d->Obj.Get());
 		if (Code)
 		{
-			GExecutionStatus s = d->Vm->Execute(Code, 0, d->Log, false);
-			if (s != ScriptError)
-			{
-				
-			}
+			d->Return.Empty();
+			d->Vm->d->Frames.Length(0);
+			d->Vm->d->Setup(Code, 0, d->Log, NULL, NULL, &d->Return);
 		}
 	}
 }
@@ -1886,18 +1885,18 @@ int GVmDebuggerWnd::OnNotify(GViewI *Ctrl, int Flags)
 		}
 		case IDC_SOURCE_LST:
 		{
-			if (Flags != GNotifyItem_DoubleClick)
-				break;
+			if (Flags == GNotifyItem_Select)
+			{
+				GListItem *it = d->SourceLst->GetSelected();
+				if (!it)
+					break;
 
-			GListItem *it = d->SourceLst->GetSelected();
-			if (!it)
-				break;
+				char *full = it->GetText(1);
+				if (!FileExists(full))
+					break;
 
-			char *full = it->GetText(1);
-			if (!FileExists(full))
-				break;
-
-			LoadFile(full);
+				LoadFile(full);
+			}
 			break;
 		}
 	}
