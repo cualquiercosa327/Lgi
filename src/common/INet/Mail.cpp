@@ -193,14 +193,10 @@ void TokeniseStrList(char *Str, List<char> &Output, const char *Delim)
 					// handle string constant
 					char delim = *e++;
 					e = strchr(e, delim);
-					if (!e)
-						break;
 				}
 				else if (*e == '<')
 				{
 					e = strchr(e, '>');
-					if (!e)
-						break;
 				}
 				else
 				{
@@ -208,7 +204,7 @@ void TokeniseStrList(char *Str, List<char> &Output, const char *Delim)
 						e++;
 				}
 
-				if (strchr(Delim, *e))
+				if (!e || !*e || strchr(Delim, *e))
 				{
 					break;
 				}
