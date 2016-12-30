@@ -2355,6 +2355,7 @@ SelectColour::SelectColour(GRichTextPriv *priv, GdcPt2 p, GRichTextEdit::RectTyp
 	r.Offset(p.x, p.y);
 	SetPos(r);
 
+	SetParent(d->View);
 	Visible(true);
 }
 
@@ -2459,6 +2460,7 @@ EmojiMenu::EmojiMenu(GRichTextPriv *priv, GdcPt2 p) : GPopup(priv->View)
 		}
 	}
 
+	SetParent(d->View);
 	Visible(true);
 }
 

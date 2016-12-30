@@ -199,6 +199,7 @@ OsPainter GScreenDC::Handle()
 			double x1, y1, x2, y2;
 			cairo_clip_extents (Cairo, &x1, &y1, &x2, &y2);
 			
+			#ifdef _DEBUG
 			int x = (int) (x2 - x1);
 			int y = (int) (y2 - y1);
 			
@@ -216,6 +217,7 @@ OsPainter GScreenDC::Handle()
 					d->x, d->y,
 					width, height);
 			}
+			#endif
 		}
 	}
 	
