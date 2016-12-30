@@ -115,7 +115,7 @@ public:
 	/// Called on start of drag op
 	virtual void OnStartData() {}
 	/// Called on end of drag op
-	virtual void OnEndData();
+	virtual void OnEndData() {}
 	
 	/// This is called when you are being asked for your
 	/// data. You must provide it in the format specified

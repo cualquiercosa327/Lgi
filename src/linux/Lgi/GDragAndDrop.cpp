@@ -59,13 +59,11 @@ public:
 	Gtk::GdkDragContext *Ctx;
 
 	OsView SignalWnd;
-	gulong GetDataSig;
 	
 	GDndSourcePriv()
 	{
 		Ctx = NULL;
 		SignalWnd = NULL;
-		GetDataSig = 0;
 	}
 	
 	~GDndSourcePriv()
@@ -75,6 +73,32 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
+struct SignalInfo
+{
+	OsView Wnd;
+	gulong Sig;
+};
+
+static ::GArray<SignalInfo> ExistingSignals;
+
+void RemoveExistingSignals(OsView w)
+{
+	for (unsigned i=0; i<ExistingSignals.Length(); i++)
+	{
+		SignalInfo &Si = ExistingSignals[i];
+		if (Si.Wnd == w)
+		{
+			if (Si.Sig > 0)
+			{
+				gtk_signal_disconnect(GTK_OBJECT(w), Si.Sig);
+				Si.Sig = 0;
+			}
+			
+			ExistingSignals.DeleteAt(i--);			
+		}
+	}
+}
+
 GDragDropSource::GDragDropSource()
 {
 	d = new GDndSourcePriv;
@@ -83,7 +107,7 @@ GDragDropSource::GDragDropSource()
 
 GDragDropSource::~GDragDropSource()
 {
-	OnEndData();
+	RemoveExistingSignals(d->SignalWnd);
 	DeleteObj(d);
 }
 
@@ -211,18 +235,6 @@ LgiDragDataGet(GtkWidget        *widget,
 	}	
 }
 
-void GDragDropSource::OnEndData()
-{
-	if (d->SignalWnd)
-	{
-		if (d->GetDataSig > 0)
-		{
-			gtk_signal_disconnect(GTK_OBJECT(d->SignalWnd), d->GetDataSig);
-			d->GetDataSig = 0;
-		}
-	}
-}
-
 int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 {
 	LgiAssert(SourceWnd);
@@ -250,7 +262,7 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 		entry.flags = 0;
 		entry.info = GtkGetDndType(f);
 		
-		LgiTrace("%s:%i - dnd fmt %s %i\n", _FL, f, entry.info);
+		// LgiTrace("%s:%i - dnd fmt %s %i\n", _FL, f, entry.info);
 	}
 	
 	Gtk::GtkTargetList *Targets = Gtk::gtk_target_list_new(&e[0], e.Length());
@@ -259,7 +271,10 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 	
 	int Button = 1;
 	d->SignalWnd = SourceWnd->Handle();
-	d->GetDataSig = gtk_signal_connect(GTK_OBJECT(d->SignalWnd), "drag-data-get", G_CALLBACK(LgiDragDataGet), this);
+	RemoveExistingSignals(d->SignalWnd);
+	SignalInfo &Si = ExistingSignals.New();
+	Si.Wnd = d->SignalWnd;
+	Si.Sig = gtk_signal_connect(GTK_OBJECT(d->SignalWnd), "drag-data-get", G_CALLBACK(LgiDragDataGet), this);
 
 	d->Ctx = Gtk::gtk_drag_begin(d->SignalWnd,
 								Targets,
