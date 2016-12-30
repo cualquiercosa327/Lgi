@@ -898,7 +898,7 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 		#ifdef LGI_STATIC
 		assert(b);
 		#else
-		if (Asserting || !LgiApp)
+		if (Asserting || !LgiApp || !SysFont)
 		{
 			// Woah boy...
 			assert(0);

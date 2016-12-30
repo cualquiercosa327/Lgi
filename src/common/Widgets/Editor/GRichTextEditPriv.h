@@ -775,7 +775,7 @@ public:
 		{
 			Src = src;
 			OffsetY = 0;
-			#ifdef _WIN32
+			#if defined(_MSC_VER)
 			Chars = l < 0 ? Strlen(s) : l;
 			#else
 			Chars = len;
@@ -823,7 +823,7 @@ public:
 					Start < (int)len &&
 					Start + Len <= (int)len)
 				{
-					#if defined(_WIN32)
+					#if defined(_MSC_VER)
 					LgiAssert(Str != NULL);
 					const char16 *s = Utf16Seek(Str, Start);
 					const char16 *e = Utf16Seek(s, Len);
@@ -859,7 +859,7 @@ public:
 	{
 		GArray<GRect> SrcRect;
 		GSurface *Img;
-		#if defined(_WIN32)
+		#if defined(_MSC_VER)
 		GArray<uint32> Utf32;
 		#endif
 
@@ -867,7 +867,7 @@ public:
 			DisplayStr(src, NULL, s, l)
 		{
 			Img = img;
-			#if defined(_WIN32)
+			#if defined(_MSC_VER)
 			Utf16to32(Utf32, (const uint16*) StrCache.Get(), len);
 			uint32 *u = &Utf32[0];
 			#else
@@ -898,13 +898,13 @@ public:
 		{
 			if (Len < 0)
 				Len = Chars - Start;
-			#if defined(_WIN32)
+			#if defined(_MSC_VER)
 			LgiAssert(	Start >= 0 &&
 						Start < (int)Utf32.Length() &&
 						Start + Len <= (int)Utf32.Length());
 			#endif
 			GAutoPtr<DisplayStr> s(new EmojiDisplayStr(Src, Img, NULL,
-				#if defined(_WIN32)
+				#if defined(_MSC_VER)
 				&Utf32[Start]
 				#else
 				(uint32*)(const char16*)(*this)

@@ -119,7 +119,7 @@ public:
 		int l = -1,
 		GSurface *pdc = 0
 	);
-	#ifdef _WIN32
+	#ifdef _MSC_VER
 	/// Constructor
 	GDisplayString
 	(

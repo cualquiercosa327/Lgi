@@ -224,7 +224,7 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
 	#endif
 }
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 GDisplayString::GDisplayString(GFont *f, const uint32 *s, int l, GSurface *pdc)
 {
 	pDC = pdc;
@@ -237,7 +237,7 @@ GDisplayString::GDisplayString(GFont *f, const uint32 *s, int l, GSurface *pdc)
 
 	#endif
 
-    #if defined(MAC) || WINNATIVE || defined(LGI_SDL) || defined(__GTK_H__)
+    #if defined(MAC) || defined(LGI_SDL) || defined(_MSC_VER)
 
 		StringConvert(Str, &len, s, l);
 

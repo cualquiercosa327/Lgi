@@ -286,7 +286,13 @@ GApp::GApp(OsAppArguments &AppArgs, const char *name, GAppArguments *Args) :
 	SystemBold = 0;
 	d = new GAppPrivate;
 	Name(name);
-	LgiAssert(sizeof(wchar_t) == 4);
+	
+	int WCharSz = sizeof(wchar_t);
+	#if defined(_MSC_VER)
+	LgiAssert(WCharSz == 2);
+	#else
+	LgiAssert(WCharSz == 4);
+	#endif
 
 	Gtk::gdk_threads_init();	
 	
@@ -1310,7 +1316,7 @@ bool GMessage::Send(GtkWidget *Wnd)
 	return Status;
 }
 
-#ifdef LINUX
+#ifdef __GTK_H__
 int GMessage::Msg()
 {
 	if (Event && Event->type == Gtk::GDK_CLIENT_EVENT)
