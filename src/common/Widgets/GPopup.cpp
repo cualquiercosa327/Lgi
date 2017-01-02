@@ -526,7 +526,9 @@ GPopup::GPopup(GView *owner)
 	d = new GPopupPrivate;
 	Start = 0;
 	Cancelled = false;
+	#ifdef _DEBUG
 	_Debug = true;
+	#endif
 
     #ifdef __GTK_H__
     Wnd = NULL;
