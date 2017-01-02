@@ -2039,6 +2039,8 @@ GdcPt2 &GView::GetWindowBorderSize()
 }
 
 #ifdef _DEBUG
+
+#ifdef MAC
 void DumpHiview(HIViewRef v, int Depth = 0)
 {
 	char Sp[256];
@@ -2069,6 +2071,7 @@ void DumpHiview(HIViewRef v, int Depth = 0)
 		DumpHiview(c, Depth + 1);
 	}
 }
+#endif
 
 void GView::_Dump(int Depth)
 {
