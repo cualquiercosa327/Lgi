@@ -2340,7 +2340,6 @@ SelectColour::SelectColour(GRichTextPriv *priv, GdcPt2 p, GRichTextEdit::RectTyp
 			GColour c;
 			c.SetHLS(hue * HueStep, SatStart - ((sat * SatRange) / 7), 255);
 			c.ToRGB();
-			LgiTrace("c=%s\n", c.GetStr());
 
 			Entry &en = e.New();
 			en.r.ZOff(Px-1, Px-1);
@@ -2351,11 +2350,12 @@ SelectColour::SelectColour(GRichTextPriv *priv, GdcPt2 p, GRichTextEdit::RectTyp
 		y += PxSp;
 	}
 
+	SetParent(d->View);
+
 	GRect r(0, 0, 12 + (8 * PxSp) - 1, y + 6 - 1);
 	r.Offset(p.x, p.y);
 	SetPos(r);
 
-	SetParent(d->View);
 	Visible(true);
 }
 

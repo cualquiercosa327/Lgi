@@ -1749,7 +1749,16 @@ bool GView::_Attach(GViewI *parent)
 			if (_View)
 			{
 				// Set the view position
-				SetPos(Pos);				
+				GView::SetPos(Pos);
+				if (_Debug)
+				{
+					printf("%s:%i - setpos %s\n", _FL, Pos.GetStr());
+				}
+				#ifdef _DEBUG
+				const char *cls = GetClass();
+				int len = strlen(cls);
+				SetControlProperty(_View, 'meme', 'clas', len, cls);
+				#endif
 				
 				// Set the view id
 				SetControlCommandID(_View, GetId());

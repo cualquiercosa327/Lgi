@@ -263,6 +263,8 @@ class SelectColour : public GPopup
 
 public:
 	SelectColour(GRichTextPriv *priv, GdcPt2 p, GRichTextEdit::RectType t);
+	
+	const char *GetClass() { return "SelectColour"; }
 
 	void OnPaint(GSurface *pDC);
 	void OnMouseClick(GMouse &m);

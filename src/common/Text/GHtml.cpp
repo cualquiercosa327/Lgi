@@ -8719,7 +8719,7 @@ bool GHtml::EvaluateCondition(const char *Cond)
 			else
 			{
 				// If this fires: update GHtml::GetVariant with the variable.
-				LgiTrace("%s:%i - Unsupported variable '%s'\n", _FL, s);
+				// LgiTrace("%s:%i - Unsupported variable '%s'\n", _FL, s);
 			}
 			Not = false;
 		}
