@@ -1017,6 +1017,8 @@ void GRichTextPriv::OnStyleChange(GRichTextEdit::RectType t)
 				StyleDirty.Add(t);
 			break;
 		}
+		default:
+			break;
 	}
 }
 
@@ -1129,12 +1131,16 @@ void GRichTextPriv::PaintBtn(GSurface *pDC, GRichTextEdit::RectType t)
 				case GRichTextEdit::BoldBtn: Label = "B"; break;
 				case GRichTextEdit::ItalicBtn: Label = "I"; break;
 				case GRichTextEdit::UnderlineBtn: Label = "U"; break;
+				default:
+					break;
 			}
 			if (!Label) break;
 			GDisplayString Ds(SysFont, Label);
 			Ds.Draw(pDC, r.x1 + ((r.X()-Ds.X())>>1) + Down, r.y1 + ((r.Y()-Ds.Y())>>1) + Down, &r);
 			break;
 		}
+		default:
+			break;
 	}
 }
 

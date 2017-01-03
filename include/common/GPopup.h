@@ -28,6 +28,7 @@ protected:
 	bool Cancelled;
 	GView *Owner;
 	int64 Start;
+	GRect ScreenPos;
 
 public:
 	GPopup(GView *owner);

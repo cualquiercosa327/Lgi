@@ -134,6 +134,16 @@ enum IdePlatform
 #define PLATFORM_HAIKU			(1 << PlatformHaiku)
 #define PLATFORM_ALL			(PLATFORM_WIN32|PLATFORM_LINUX|PLATFORM_MAC|PLATFORM_HAIKU)
 
+#if defined(_WIN32)
+#define PLATFORM_CURRENT		PLATFORM_WIN32
+#elif defined(MAC)
+#define PLATFORM_CURRENT		PLATFORM_MAC
+#elif defined(LINUX)
+#define PLATFORM_CURRENT		PLATFORM_LINUX
+#elif defined(BEOS)
+#define PLATFORM_CURRENT		PLATFORM_HAIKU
+#endif
+
 extern const char *PlatformNames[];
 extern const char sCurrentPlatform[];
 extern const char *Untitled;
@@ -168,6 +178,7 @@ public:
 	virtual char *GetLocalCache() = 0;
 	virtual bool Load(GDocView *Edit, NodeView *Callback) = 0;
 	virtual bool Save(GDocView *Edit, NodeView *Callback) = 0;
+	virtual IdeProject *GetProject() = 0;
 };
 
 class NodeView
