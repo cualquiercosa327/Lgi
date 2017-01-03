@@ -1796,8 +1796,24 @@ IdeDoc *AppWnd::OpenFile(const char *FileName, NodeSource *Src)
 	const char *File = Src ? Src->GetFileName() : FileName;
 	if (Src || ValidStr(File))
 	{
+		GString FullPath;
+		if (LgiIsRelativePath(File))
+		{
+			IdeProject *Proj = Src && Src->GetProject() ? Src->GetProject() : RootProject();
+			if (Proj)
+			{
+				GAutoString ProjPath = Proj->GetBasePath();
+				char p[MAX_PATH];
+				LgiMakePath(p, sizeof(p), ProjPath, File);
+				if (FileExists(p))
+				{
+					FullPath = p;
+					File = FullPath;
+				}
+			}
+		}
+			
 		Doc = d->IsFileOpen(File);
-
 		if (!Doc)
 		{
 			if (Src)
@@ -1818,40 +1834,15 @@ IdeDoc *AppWnd::OpenFile(const char *FileName, NodeSource *Src)
 			}
 		}
 
-		if (!Doc)
+		if (!Doc && FileExists(File))
 		{
-			GString FullPath;
-			if (LgiIsRelativePath(File))
+			Doc = new IdeDoc(this, 0, File);
+			if (Doc)
 			{
-				IdeProject *Root = RootProject();
-				if (Root)
-				{
-					GAutoString RootPath = Root->GetBasePath();
-					char p[MAX_PATH];
-					LgiMakePath(p, sizeof(p), RootPath, File);
-					if (FileExists(p))
-					{
-						FullPath = p;
-						File = FullPath;
-						printf("Converted '%s' to '%s'\n", File, p);
-					}
-					else
-					{
-						printf("Rel Path '%s' doesn't exist\n", p);
-					}
-				}
-			}
-			
-			if (FileExists(File))
-			{
-				Doc = new IdeDoc(this, 0, File);
-				if (Doc)
-				{
-					GRect p = d->Mdi->NewPos();
-					Doc->SetPos(p);
-					d->Docs.Insert(Doc);
-					d->OnFile(File);
-				}
+				GRect p = d->Mdi->NewPos();
+				Doc->SetPos(p);
+				d->Docs.Insert(Doc);
+				d->OnFile(File);
 			}
 		}
 

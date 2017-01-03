@@ -66,6 +66,7 @@ public:
 	char *GetText(int c);
 	GString GetFullPath();
 	ProjectNode *FindFile(const char *In, char **Full);
+	/// \sa Some combination of PLATFORM_WIN32, PLATFORM_LINUX, PLATFORM_MAC, PLATFORM_HAIKU or PLATFORM_ALL
 	int GetPlatforms();
 	char *GetLocalCache();
 	

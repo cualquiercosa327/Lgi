@@ -1192,15 +1192,41 @@ bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 					d->Show = State;
 				}
 
-				if (Position.Valid() &&
-					Position.x1 >= 0 &&
-					Position.y1 >= 0)
-				    Pos = Position;
-				else
-					Pos.ZOff(800, 600);
+				GRect DefaultPos(100, 100, 900, 700);
+				if (Position.Valid())
+				{
+					GArray<GDisplayInfo*> Displays;
+					GRect AllDisplays;
+					bool PosOk = true;
+					if (LgiGetDisplays(Displays, &AllDisplays))
+					{
+						// Check that the position is on one of the screens
+						PosOk = false;
+						for (unsigned i=0; i<Displays.Length(); i++)
+						{
+							GRect Int = Displays[i]->r;
+							Int.Intersection(&Position);
+							if (Int.Valid() &&
+								Int.X() > 20 &&
+								Int.Y() > 20)
+							{
+								PosOk = true;
+								break;
+							}
+						}
+						Displays.DeleteObjects();
+					}
+
+					if (PosOk)
+						Pos = Position;
+					else
+						Pos = DefaultPos;
+				}
+				else Pos = DefaultPos;
+
 				Wp->rcNormalPosition = Pos;
 				#if DEBUG_SERIALIZE_STATE
-				LgiTrace("%s:%i - SetWindowPlacement, pos=%s, show=%i\n", __FILE__, __LINE__, Pos.GetStr(), Wp->showCmd);
+				LgiTrace("%s:%i - SetWindowPlacement, pos=%s, show=%i\n", _FL, Pos.GetStr(), Wp->showCmd);
 				#endif
 				SetWindowPlacement(Handle(), Wp);
 
