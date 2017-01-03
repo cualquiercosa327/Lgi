@@ -2401,20 +2401,15 @@ void SelectColour::Visible(bool i)
 ///////////////////////////////////////////////////////////////////////////////
 #define EMOJI_PAD	2
 #include "Emoji.h"
+int EmojiMenu::Cur = 0;
 
 EmojiMenu::EmojiMenu(GRichTextPriv *priv, GdcPt2 p) : GPopup(priv->View)
 {
 	d = priv;
 
-	int Rows = 4;
-	GRect r(0, 0,
-			(EMOJI_CELL_SIZE + EMOJI_PAD) * EMOJI_GROUP_X + EMOJI_PAD,
-			(EMOJI_CELL_SIZE + EMOJI_PAD) * Rows + EMOJI_PAD);
-	r.Offset(p.x, p.y);
-	SetPos(r);
-
 	d->GetEmojiImage();
 
+	int MaxIdx = 0;
 	Range EmojiBlocks[2] = { Range(0x203c, 0x3299 - 0x203c + 1), Range(0x1f004, 0x1f6c5 - 0x1f004 + 1) };
 	GHashTbl<int, int> Map;
 	for (int b=0; b<CountOf(EmojiBlocks); b++)
@@ -2425,38 +2420,64 @@ EmojiMenu::EmojiMenu(GRichTextPriv *priv, GdcPt2 p) : GPopup(priv->View)
 			uint32 u = r.Start + i;
 			int Idx = EmojiToIconIndex(&u, 1);
 			if (Idx >= 0)
+			{
 				Map.Add(Idx, u);
+				MaxIdx = MAX(MaxIdx, Idx);
+			}
 		}
 	}
 
-	int StartIdx = 676;
 	int Sz = EMOJI_CELL_SIZE - 1;
-	int Dx = EMOJI_PAD;
-	int Dy = EMOJI_PAD;
-	for (int i=0; i<EMOJI_GROUP_X*Rows; i++)
+	int PaneCount = 5;
+	int PaneSz = Map.Length() / PaneCount;
+	if (PaneSz % EMOJI_GROUP_X)
+		PaneSz += EMOJI_GROUP_X - (PaneSz % EMOJI_GROUP_X);
+	int ImgIdx = 0;
+
+	int PaneSelectSz = SysFont->GetHeight() * 2;
+	int Rows = PaneSz / EMOJI_GROUP_X;
+	GRect r(0, 0,
+			(EMOJI_CELL_SIZE + EMOJI_PAD) * EMOJI_GROUP_X + EMOJI_PAD,
+			(EMOJI_CELL_SIZE + EMOJI_PAD) * Rows + EMOJI_PAD + PaneSelectSz);
+	r.Offset(p.x, p.y);
+	SetPos(r);
+	
+	for (int pi = 0; pi < PaneCount; pi++)
 	{
-		int ImgIdx = StartIdx + i;
-		uint32 u = Map.Find(ImgIdx);
-		if (u)
+		Pane &p = Panes[pi];
+		int Wid = X() - (EMOJI_PAD*2);
+		p.Btn.x1 = EMOJI_PAD + (pi * Wid / PaneCount);
+		p.Btn.y1 = EMOJI_PAD;
+		p.Btn.x2 = EMOJI_PAD + ((pi + 1) * Wid / PaneCount) - 1;
+		p.Btn.y2 = EMOJI_PAD + PaneSelectSz;
+		int Dx = EMOJI_PAD;
+		int Dy = p.Btn.y2 + 1;
+		
+		while (p.e.Length() < PaneSz && ImgIdx <= MaxIdx)
 		{
-			Emoji &Ch = e.New();
-			Ch.u = u;
-
-			int Sx = ImgIdx % EMOJI_GROUP_X;
-			int Sy = ImgIdx / EMOJI_GROUP_X;
-
-			Ch.Src.ZOff(Sz, Sz);
-			Ch.Src.Offset(Sx * EMOJI_CELL_SIZE, Sy * EMOJI_CELL_SIZE);
-
-			Ch.Dst.ZOff(Sz, Sz);
-			Ch.Dst.Offset(Dx, Dy);
-
-			Dx += EMOJI_PAD + EMOJI_CELL_SIZE;
-			if (Dx + EMOJI_PAD + EMOJI_CELL_SIZE >= r.X())
+			uint32 u = Map.Find(ImgIdx);
+			if (u)
 			{
-				Dx = EMOJI_PAD;
-				Dy += EMOJI_PAD + EMOJI_CELL_SIZE;
+				Emoji &Ch = p.e.New();
+				Ch.u = u;
+
+				int Sx = ImgIdx % EMOJI_GROUP_X;
+				int Sy = ImgIdx / EMOJI_GROUP_X;
+
+				Ch.Src.ZOff(Sz, Sz);
+				Ch.Src.Offset(Sx * EMOJI_CELL_SIZE, Sy * EMOJI_CELL_SIZE);
+
+				Ch.Dst.ZOff(Sz, Sz);
+				Ch.Dst.Offset(Dx, Dy);
+
+				Dx += EMOJI_PAD + EMOJI_CELL_SIZE;
+				if (Dx + EMOJI_PAD + EMOJI_CELL_SIZE >= r.X())
+				{
+					Dx = EMOJI_PAD;
+					Dy += EMOJI_PAD + EMOJI_CELL_SIZE;
+				}
 			}
+			ImgIdx++;
 		}
 	}
 
@@ -2473,9 +2494,28 @@ void EmojiMenu::OnPaint(GSurface *pDC)
 	if (EmojiImg)
 	{
 		pDC->Op(GDC_ALPHA);
-		for (unsigned i=0; i<e.Length(); i++)
+		
+		for (unsigned i=0; i<Panes.Length(); i++)
 		{
-			Emoji &g = e[i];
+			Pane &p = Panes[i];
+			
+			GString s;
+			s.Printf("%i", i);
+			GDisplayString Ds(SysFont, s);
+			if (Cur == i)
+			{
+				pDC->Colour(LC_LIGHT, 24);
+				pDC->Rectangle(&p.Btn);
+			}
+			SysFont->Fore(LC_TEXT);
+			SysFont->Transparent(true);
+			Ds.Draw(pDC, p.Btn.x1 + ((p.Btn.X()-Ds.X())>>1), p.Btn.y1 + ((p.Btn.Y()-Ds.Y())>>1));
+		}
+		
+		Pane &p = Panes[Cur];
+		for (unsigned i=0; i<p.e.Length(); i++)
+		{
+			Emoji &g = p.e[i];
 			pDC->Blt(g.Dst.x1, g.Dst.y1, EmojiImg, &g.Src);
 		}
 	}
@@ -2512,9 +2552,21 @@ void EmojiMenu::OnMouseClick(GMouse &m)
 {
 	if (m.Down())
 	{
-		for (unsigned i=0; i<e.Length(); i++)
+		for (unsigned i=0; i<Panes.Length(); i++)
 		{
-			Emoji &Ch = e[i];
+			Pane &p = Panes[i];
+			if (p.Btn.Overlap(m.x, m.y))
+			{
+				Cur = i;
+				Invalidate();
+				return;
+			}
+		}
+		
+		Pane &p = Panes[Cur];
+		for (unsigned i=0; i<p.e.Length(); i++)
+		{
+			Emoji &Ch = p.e[i];
 			if (Ch.Dst.Overlap(m.x, m.y))
 			{
 				InsertEmoji(Ch.u);

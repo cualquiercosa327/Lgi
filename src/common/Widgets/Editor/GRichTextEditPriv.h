@@ -278,7 +278,13 @@ class EmojiMenu : public GPopup
 		GRect Src, Dst;
 		uint32 u;
 	};
-	GArray<Emoji> e;
+	struct Pane
+	{
+		GRect Btn;
+		GArray<Emoji> e;
+	};
+	GArray<Pane> Panes;
+	static int Cur;
 
 public:
 	EmojiMenu(GRichTextPriv *priv, GdcPt2 p);
