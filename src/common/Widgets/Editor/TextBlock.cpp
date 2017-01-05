@@ -15,6 +15,24 @@ GRichTextPriv::TextBlock::TextBlock(GRichTextPriv *priv) : Block(priv)
 	Border.ZOff(0, 0);
 	Padding.ZOff(0, 0);
 }
+
+GRichTextPriv::TextBlock::TextBlock(const TextBlock *Copy) : Block(Copy)
+{
+	LayoutDirty = true;
+	Len = Copy->Len;
+	Pos = Copy->Pos;
+	Style = Copy->Style;
+	Fnt = Copy->Fnt;
+			
+	Margin = Copy->Margin;
+	Border = Copy->Border;
+	Padding = Copy->Padding;
+
+	for (unsigned i=0; i<Copy->Txt.Length(); i++)
+	{
+		Txt.Add(new StyleText(Copy->Txt.ItemAt(i)));
+	}
+}
 		
 GRichTextPriv::TextBlock::~TextBlock()
 {
@@ -1059,6 +1077,9 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 		return false;
 	if (InChars < 0)
 		InChars = Strlen(InStr);
+
+	if (Trans)
+		Trans->Add(new CompleteTextBlockState(d, this));
 	
 	GArray<int> EmojiIdx;
 	EmojiIdx.Length(InChars);

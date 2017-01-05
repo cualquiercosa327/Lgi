@@ -80,46 +80,7 @@ static char SelectWordDelim[] = " \t\n.,()[]<>=?/\\{}\"\';:+=-|!@#$%^&*";
 
 typedef GRichTextPriv::BlockCursor BlkCursor;
 typedef GAutoPtr<GRichTextPriv::BlockCursor> AutoCursor;
-
-//////////////////////////////////////////////////////////////////////
-enum UndoType
-{
-	UndoDelete, UndoInsert, UndoChange
-};
-
-class GRichEditUndo : public GUndoEvent
-{
-	GRichTextEdit *View;
-	UndoType Type;
-
-public:
-	GRichEditUndo(	GRichTextEdit *view,
-					char16 *t,
-					int len,
-					int at,
-					UndoType type)
-	{
-		View = view;
-		Type = type;
-	}
-
-	~GRichEditUndo()
-	{
-	}
-
-	void OnChange()
-	{
-	}
-
-	// GUndoEvent
-    void ApplyChange()
-	{
-	}
-
-    void RemoveChange()
-	{
-	}
-};
+typedef GAutoPtr<GRichTextPriv::Transaction> AutoTrans;
 
 //////////////////////////////////////////////////////////////////////
 static bool WarnAlpha = true;
@@ -317,68 +278,11 @@ bool GRichTextEdit::Delete(int At, int Len)
 
 bool GRichTextEdit::DeleteSelection(char16 **Cut)
 {
-	if (!d->Cursor || !d->Selection)
+	AutoTrans t(new GRichTextPriv::Transaction);
+	if (!d->DeleteSelection(t, Cut))
 		return false;
 
-	GArray<uint32> DeletedText;
-	GArray<uint32> *DelTxt = Cut ? &DeletedText : NULL;
-
-	bool Cf = d->CursorFirst();
-	GRichTextPriv::BlockCursor *Start = Cf ? d->Cursor : d->Selection;
-	GRichTextPriv::BlockCursor *End = Cf ? d->Selection : d->Cursor;
-	if (Start->Blk == End->Blk)
-	{
-		// In the same block... just delete the text
-		int Len = End->Offset - Start->Offset;
-		Start->Blk->DeleteAt(NoTransaction, Start->Offset, Len, DelTxt);
-	}
-	else
-	{
-		// Multi-block delete...
-
-		// 1) Delete all the content to the end of the first block
-		int StartLen = Start->Blk->Length();
-		if (Start->Offset < StartLen)
-			Start->Blk->DeleteAt(NoTransaction, Start->Offset, StartLen - Start->Offset, DelTxt);
-
-		// 2) Delete any blocks between 'Start' and 'End'
-		int i = d->Blocks.IndexOf(Start->Blk);
-		if (i >= 0)
-		{
-			for (++i; d->Blocks[i] != End->Blk && i < (int)d->Blocks.Length(); )
-			{
-				GRichTextPriv::Block *b = d->Blocks[i];
-				b->CopyAt(0, -1, DelTxt);
-				d->Blocks.DeleteAt(i, true);
-				DeleteObj(b);
-			}
-		}
-		else
-		{
-			LgiAssert(0);
-			return false;
-		}
-
-		// 3) Delete any text up to the Cursor in the 'End' block
-		End->Blk->DeleteAt(NoTransaction, 0, End->Offset, DelTxt);
-
-		// Try and merge the start and end blocks
-		d->Merge(Start->Blk, End->Blk);
-	}
-
-	// Set the cursor and update the screen
-	d->Cursor->Set(Start->Blk, Start->Offset, Start->LineHint);
-	d->Selection.Reset();
-	Invalidate();
-
-	if (Cut)
-	{
-		DelTxt->Add(0);
-		// *Cut = DelTxt->Release();
-		*Cut = (char16*)LgiNewConvertCp(LGI_WideCharset, &DelTxt->First(), "utf-32", DelTxt->Length()*sizeof(uint32));
-	}
-
-	return true;
+	return d->AddTrans(t);
 }
 
 int64 GRichTextEdit::Value()
@@ -661,7 +565,7 @@ int GRichTextEdit::GetCursor(bool Cur)
 	return -1;
 }
 
-bool GRichTextEdit::InternalIndexAt(int x, int y, int &Off, int &LineHint)
+bool GRichTextEdit::IndexAt(int x, int y, int &Off, int &LineHint)
 {
 	GdcPt2 Doc = d->ScreenToDoc(x, y);
 	Off = d->HitTest(Doc.x, Doc.y, LineHint);
@@ -671,7 +575,7 @@ bool GRichTextEdit::InternalIndexAt(int x, int y, int &Off, int &LineHint)
 int GRichTextEdit::IndexAt(int x, int y)
 {
 	int Idx, Line;
-	if (!InternalIndexAt(x, y, Idx, Line))
+	if (!IndexAt(x, y, Idx, Line))
 		return -1;
 	return Idx;
 }
@@ -1145,10 +1049,14 @@ int GRichTextEdit::HitTest(int x, int y)
 
 void GRichTextEdit::Undo()
 {
+	if (d->UndoPos > 0)
+		d->SetUndoPos(d->UndoPos - 1);
 }
 
 void GRichTextEdit::Redo()
 {
+	if (d->UndoPos < d->UndoQue.Length())
+		d->SetUndoPos(d->UndoPos + 1);
 }
 
 void GRichTextEdit::DoContextMenu(GMouse &m)
@@ -1524,15 +1432,18 @@ bool GRichTextEdit::OnKey(GKey &k)
 							
 							d->StyleDirty.Length(0);
 						}
-						
-						DeleteSelection();
+
+						AutoTrans Trans(new GRichTextPriv::Transaction);						
+						d->DeleteSelection(Trans, NULL);
 
 						uint32 Ch = k.c16;
-						if (b->AddText(NoTransaction, d->Cursor->Offset, &Ch, 1, AddStyle))
+						if (b->AddText(Trans, d->Cursor->Offset, &Ch, 1, AddStyle))
 						{
 							d->Cursor->Set(d->Cursor->Offset + 1);
 							Invalidate();
 							SendNotify(GNotifyDocChanged);
+
+							d->AddTrans(Trans);
 						}
 					}
 					return true;
@@ -2430,12 +2341,10 @@ EmojiMenu::EmojiMenu(GRichTextPriv *priv, GdcPt2 p) : GPopup(priv->View)
 	int Sz = EMOJI_CELL_SIZE - 1;
 	int PaneCount = 5;
 	int PaneSz = Map.Length() / PaneCount;
-	if (PaneSz % EMOJI_GROUP_X)
-		PaneSz += EMOJI_GROUP_X - (PaneSz % EMOJI_GROUP_X);
 	int ImgIdx = 0;
 
 	int PaneSelectSz = SysFont->GetHeight() * 2;
-	int Rows = PaneSz / EMOJI_GROUP_X;
+	int Rows = (PaneSz + EMOJI_GROUP_X - 1) / EMOJI_GROUP_X;
 	GRect r(0, 0,
 			(EMOJI_CELL_SIZE + EMOJI_PAD) * EMOJI_GROUP_X + EMOJI_PAD,
 			(EMOJI_CELL_SIZE + EMOJI_PAD) * Rows + EMOJI_PAD + PaneSelectSz);

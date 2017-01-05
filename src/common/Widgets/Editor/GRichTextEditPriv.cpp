@@ -168,12 +168,85 @@ GNamedStyle *GCssCache::AddStyleToCache(GAutoPtr<GCss> &s)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+BlockCursorState::BlockCursorState(bool cursor, GRichTextPriv::BlockCursor *c)
+{
+	Cursor = cursor;
+	Offset = c->Offset;
+	LineHint = c->LineHint;
+	BlockUid = c->Blk->GetUid();
+}
+
+bool BlockCursorState::Apply(GRichTextPriv *Ctx, bool Forward)
+{
+	GAutoPtr<GRichTextPriv::BlockCursor> &Bc = Cursor ? Ctx->Cursor : Ctx->Selection;
+	if (!Bc)
+		return false;
+
+	int o = Bc->Offset;
+	int lh = Bc->LineHint;
+	int uid = Bc->Blk->GetUid();
+
+	int Index;
+	GRichTextPriv::Block *b;
+	if (!Ctx->GetBlockByUid(b, BlockUid, &Index))
+		return false;
+
+	if (b != Bc->Blk)
+		Bc.Reset(new GRichTextPriv::BlockCursor(b, Offset, LineHint));
+	else
+	{
+		Bc->Offset = Offset;
+		Bc->LineHint = LineHint;
+	}
+
+	Offset = o;
+	LineHint = lh;
+	BlockUid = uid;
+	return true;
+}
+
+/// This is the simplest form of undo, just save the entire block state, and restore it if needed
+CompleteTextBlockState::CompleteTextBlockState(GRichTextPriv *Ctx, GRichTextPriv::TextBlock *Tb)
+{
+	if (Ctx->Cursor)
+		Cur.Reset(new BlockCursorState(true, Ctx->Cursor));
+	if (Ctx->Selection)
+		Sel.Reset(new BlockCursorState(false, Ctx->Selection));
+	if (Tb)
+	{
+		Uid = Tb->GetUid();
+		Blk.Reset(new GRichTextPriv::TextBlock(Tb));
+	}
+}
+
+bool CompleteTextBlockState::Apply(GRichTextPriv *Ctx, bool Forward)
+{
+	int Index;
+	GRichTextPriv::TextBlock *b;
+	if (!Ctx->GetBlockByUid(b, Uid, &Index))
+		return false;
+
+	// Swap the local state with the block in the ctx
+	Ctx->Blocks[Index] = Blk.Release();
+	Blk.Reset(b);
+
+	// Update cursors
+	if (Cur)
+		Cur->Apply(Ctx, Forward);
+	if (Sel)
+		Sel->Apply(Ctx, Forward);
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv *&Ptr) :
 	GHtmlParser(view),
 	GFontCache(SysFont)
 {
 	Ptr = this;
 	View = view;
+	NextUid = 1;
+	UndoPos = 0;
 	WordSelectMode = false;
 	Dirty = false;
 	ScrollOffsetPx = 0;
@@ -215,6 +288,73 @@ GRichTextPriv::~GRichTextPriv()
 	Empty();
 }
 	
+bool GRichTextPriv::DeleteSelection(Transaction *t, char16 **Cut)
+{
+	if (!Cursor || !Selection)
+		return false;
+
+	GArray<uint32> DeletedText;
+	GArray<uint32> *DelTxt = Cut ? &DeletedText : NULL;
+
+	bool Cf = CursorFirst();
+	GRichTextPriv::BlockCursor *Start = Cf ? Cursor : Selection;
+	GRichTextPriv::BlockCursor *End = Cf ? Selection : Cursor;
+	if (Start->Blk == End->Blk)
+	{
+		// In the same block... just delete the text
+		int Len = End->Offset - Start->Offset;
+		Start->Blk->DeleteAt(NoTransaction, Start->Offset, Len, DelTxt);
+	}
+	else
+	{
+		// Multi-block delete...
+
+		// 1) Delete all the content to the end of the first block
+		int StartLen = Start->Blk->Length();
+		if (Start->Offset < StartLen)
+			Start->Blk->DeleteAt(NoTransaction, Start->Offset, StartLen - Start->Offset, DelTxt);
+
+		// 2) Delete any blocks between 'Start' and 'End'
+		int i = Blocks.IndexOf(Start->Blk);
+		if (i >= 0)
+		{
+			for (++i; Blocks[i] != End->Blk && i < (int)Blocks.Length(); )
+			{
+				GRichTextPriv::Block *b = Blocks[i];
+				b->CopyAt(0, -1, DelTxt);
+				Blocks.DeleteAt(i, true);
+				DeleteObj(b);
+			}
+		}
+		else
+		{
+			LgiAssert(0);
+			return false;
+		}
+
+		// 3) Delete any text up to the Cursor in the 'End' block
+		End->Blk->DeleteAt(NoTransaction, 0, End->Offset, DelTxt);
+
+		// Try and merge the start and end blocks
+		Merge(Start->Blk, End->Blk);
+	}
+
+	// Set the cursor and update the screen
+	Cursor->Set(Start->Blk, Start->Offset, Start->LineHint);
+	Selection.Reset();
+	View->Invalidate();
+
+	if (Cut)
+	{
+		DelTxt->Add(0);
+		// *Cut = DelTxt->Release();
+		*Cut = (char16*)LgiNewConvertCp(LGI_WideCharset, &DelTxt->First(), "utf-32", DelTxt->Length()*sizeof(uint32));
+	}
+
+	return true;
+}
+
+
 GRichTextPriv::Block *GRichTextPriv::Next(Block *b)
 {
 	int Idx = Blocks.IndexOf(b);
@@ -231,6 +371,57 @@ GRichTextPriv::Block *GRichTextPriv::Prev(Block *b)
 	if (Idx <= 0)
 		return NULL;
 	return Blocks[--Idx];
+}
+
+bool GRichTextPriv::AddTrans(GAutoPtr<Transaction> &t)
+{
+	// Delete any transaction history after 'UndoPos'
+	for (unsigned i=UndoPos; i<UndoQue.Length(); i++)
+	{
+		delete UndoQue[i];
+	}
+	UndoQue.Length(UndoPos);
+
+	// Now add the new transaction
+	UndoQue.Add(t.Release());
+
+	// And the position is now at the end of the que
+	UndoPos = UndoQue.Length();
+
+	return true;
+}
+
+bool GRichTextPriv::SetUndoPos(int Pos)
+{
+	Pos = limit(Pos, 0, UndoQue.Length());
+	if (UndoQue.Length() == 0)
+		return true;
+
+	while (Pos != UndoPos)
+	{
+		if (Pos > UndoPos)
+		{
+			// Forward in que
+			Transaction *t = UndoQue[UndoPos];
+			if (!t->Apply(this, true))
+				return false;
+
+			UndoPos++;
+		}
+		else if (Pos < UndoPos)
+		{
+			Transaction *t = UndoQue[UndoPos-1];
+			if (!t->Apply(this, false))
+				return false;
+
+			UndoPos--;
+		}
+		else break; // We are done
+	}
+
+	Dirty = true;
+	InvalidateDoc(NULL);
+	return true;
 }
 
 bool GRichTextPriv::Error(const char *file, int line, const char *fmt, ...)

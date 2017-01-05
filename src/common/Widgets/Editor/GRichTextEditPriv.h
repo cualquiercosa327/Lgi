@@ -363,6 +363,7 @@ public:
 	GdcPt2 DocumentExtent; // Px
 	GString Charset;
 	GHtmlStaticInst Inst;
+	int NextUid;
 
 	// This is set when the user changes a style without a selection,
 	// indicating that we should start a new run when new text is entered
@@ -448,6 +449,17 @@ public:
 		HtmlTag Element;
 		GString Param;
 		bool Emoji;
+
+		StyleText(const StyleText *St)
+		{
+			Emoji = St->Emoji;
+			Style = NULL;
+			Element = St->Element;
+			Param = St->Param;
+			if (St->Style)
+				SetStyle(St->Style);
+			Add((uint32*)&St->ItemAt(0), St->Length());
+		}
 		
 		StyleText(const uint32 *t = NULL, int Chars = -1, GNamedStyle *style = NULL)
 		{
@@ -582,7 +594,7 @@ public:
 	struct DocChange
 	{
 		virtual ~DocChange() {}
-		virtual bool Apply(bool Forward) = 0;
+		virtual bool Apply(GRichTextPriv *Ctx, bool Forward) = 0;
 	};
 
 	class Transaction
@@ -595,11 +607,16 @@ public:
 			Changes.DeleteObjects();
 		}
 
-		bool Apply(bool Forward)
+		void Add(DocChange *Dc)
+		{
+			Changes.Add(Dc);
+		}
+
+		bool Apply(GRichTextPriv *Ctx, bool Forward)
 		{
 			for (unsigned i=0; i<Changes.Length(); i++)
 			{
-				if (!Changes[i]->Apply(Forward))
+				if (!Changes[i]->Apply(Ctx, Forward))
 					return false;
 			}
 
@@ -610,12 +627,33 @@ public:
 	GArray<Transaction*> UndoQue;
 	int UndoPos;
 
+	bool AddTrans(GAutoPtr<Transaction> &t);
+	bool SetUndoPos(int Pos);
+
+	template<typename T>
+	bool GetBlockByUid(T *&Ptr, int Uid, int *Idx = NULL)
+	{
+		for (unsigned i=0; i<Blocks.Length(); i++)
+		{
+			Block *b = Blocks[i];
+			if (b->GetUid() == Uid)
+			{
+				if (Idx) *Idx = i;
+				return (Ptr = dynamic_cast<T*>(b)) != NULL;
+			}
+		}
+
+		if (Idx) *Idx = -1;
+		return false;
+	}
+
 	//////////////////////////////////////////////////////////////////////////////////////////////
 	// A Block is like a DIV in HTML, it's as wide as the page and
 	// always starts and ends on a whole line.
 	class Block 
 	{
 	protected:
+		int BlockUid;
 		GRichTextPriv *d;
 
 	public:
@@ -625,6 +663,14 @@ public:
 		Block(GRichTextPriv *priv)
 		{
 			d = priv;
+			BlockUid = d->NextUid++;
+			Cursors = 0;
+		}
+
+		Block(const Block *blk)
+		{
+			d = blk->d;
+			BlockUid = blk->GetUid();
 			Cursors = 0;
 		}
 		
@@ -653,6 +699,7 @@ public:
 			virtual void IncAllStyleRefs() {}
 			virtual void Dump() {}
 			virtual GNamedStyle *GetStyle(int At = -1) = 0;
+			virtual int GetUid() const { return BlockUid; }
 			#ifdef _DEBUG
 			virtual void DumpNodes(GTreeItem *Ti) = 0;
 			#endif
@@ -1035,6 +1082,7 @@ public:
 		GRect Pos; // position in document co-ordinates
 		
 		TextBlock(GRichTextPriv *priv);
+		TextBlock(const TextBlock *Copy);
 		~TextBlock();
 
 		bool IsValid();
@@ -1099,6 +1147,7 @@ public:
 	GdcPt2 DocToScreen(int x, int y);
 	bool Merge(Block *a, Block *b);
 	GSurface *GetEmojiImage();
+	bool DeleteSelection(Transaction *t, char16 **Cut);
 
 	struct CreateContext
 	{
@@ -1168,6 +1217,27 @@ public:
 	#ifdef _DEBUG
 	void DumpNodes(GTree *Root);
 	#endif
+};
+
+struct BlockCursorState
+{
+	bool Cursor;
+	int Offset;
+	int LineHint;
+	int BlockUid;
+
+	BlockCursorState(bool cursor, GRichTextPriv::BlockCursor *c);
+	bool Apply(GRichTextPriv *Ctx, bool Forward);
+};
+
+struct CompleteTextBlockState : public GRichTextPriv::DocChange
+{
+	int Uid;
+	GAutoPtr<BlockCursorState> Cur, Sel;
+	GAutoPtr<GRichTextPriv::TextBlock> Blk;
+
+	CompleteTextBlockState(GRichTextPriv *Ctx, GRichTextPriv::TextBlock *Tb);
+	bool Apply(GRichTextPriv *Ctx, bool Forward);
 };
 
 #ifdef _DEBUG
