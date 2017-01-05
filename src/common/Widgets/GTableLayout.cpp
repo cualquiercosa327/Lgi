@@ -33,7 +33,7 @@ enum CellFlag
 #include "GCss.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
-// #define DEBUG_LAYOUT		105
+// #define DEBUG_LAYOUT		102
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
@@ -1066,7 +1066,7 @@ void TableCell::PostLayout()
 		GTableLayout *Tbl = Izza(GTableLayout);
 		GRect r = v->GetPos();
 
-		if (Cx + r.X() > Pos.X())
+		if (i > 0 && Cx + r.X() > Pos.X())
 		{
 			// Do wrapping
 			int Wid = Cx - Table->d->BorderSpacing;
@@ -1173,6 +1173,13 @@ void TableCell::PostLayout()
 		int Py = Pos.Y();
 		OffsetY = Py - MaxY;
 	}
+
+	#if DEBUG_LAYOUT
+	if (Table->d->DebugLayout)
+	{
+		Table->d->Dbg.Print("\tCell[%i,%i]=%s\n", Cell.x1, Cell.y1, Pos.GetStr());
+	}
+	#endif
 	for (n=0; n<Children.Length(); n++)
 	{
 		GView *v = Children[n].View;
@@ -1181,10 +1188,10 @@ void TableCell::PostLayout()
 
 		New[n].Offset(0, OffsetY);
 
-		#if 0 // DEBUG_LAYOUT
+		#if DEBUG_LAYOUT
 		if (Table->d->DebugLayout)
 		{
-			Table->d->Dbg.Print("Cell[%i,%i] View[%i]=%s\n", Cell.x1, Cell.y1, n, New[n].GetStr());
+			Table->d->Dbg.Print("\t\tView[%i]=%s Offy=%i\n", n, New[n].GetStr(), OffsetY);
 		}
 		#endif
 
