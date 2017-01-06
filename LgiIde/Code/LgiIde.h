@@ -269,6 +269,7 @@ public:
 	int OnNotify(GViewI *Ctrl, int Flags);
 	GMessage::Result OnEvent(GMessage *m);
 	bool OnNode(const char *Path, class ProjectNode *Node, bool Add);
+	void OnPulse();
 
 	// Debugging support
 	class GDebugContext *GetDebugContext();

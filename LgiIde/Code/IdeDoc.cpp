@@ -572,6 +572,7 @@ public:
 	AppWnd *App;
 	IdeProject *Project;
 	bool IsDirty;
+	GDateTime ModTs;
 	class DocEdit *Edit;
 	EditTray *Tray;
 	GHashTbl<int, bool> BreakPoints;
@@ -589,6 +590,23 @@ public:
 	bool Load();
 	bool Save();
 	void OnSaveComplete(bool Status);
+
+	GDateTime GetModTime()
+	{
+		GDateTime Ts;
+
+		GString Full = nSrc ? nSrc->GetFullPath() : FileName;
+		if (Full)
+		{
+			GDirectory Dir;
+			if (Dir.First(Full, NULL))
+				Ts.Set(Dir.GetLastWriteTime());
+		}
+
+		return Ts;
+	}
+
+	void CheckModTime();
 };
 
 class ProjMethodPopup : public GPopupList<DefnInfo>
@@ -1945,19 +1963,25 @@ void IdeDocPrivate::SetFileName(const char *f)
 
 bool IdeDocPrivate::Load()
 {
+	bool Status = false;
+	
 	if (nSrc)
 	{
-		return nSrc->Load(Edit, this);
+		Status = nSrc->Load(Edit, this);
 	}
 	else if (FileName)
 	{
 		if (FileExists(FileName))
-			return Edit->Open(FileName);
-		else
-			LgiTrace("%s:%i - '%s' doesn't exist.\n", _FL, FileName.Get());
+		{
+			Status = Edit->Open(FileName);
+		}
+		else LgiTrace("%s:%i - '%s' doesn't exist.\n", _FL, FileName.Get());
 	}
 
-	return false;
+	if (Status)
+		ModTs = GetModTime();	
+
+	return Status;
 }
 
 bool IdeDocPrivate::Save()
@@ -1973,6 +1997,9 @@ bool IdeDocPrivate::Save()
 		Status = Edit->Save(FileName);
 		OnSaveComplete(Status);
 	}
+
+	if (Status)
+		ModTs = GetModTime();
 	
 	return Status;
 }
@@ -1981,6 +2008,32 @@ void IdeDocPrivate::OnSaveComplete(bool Status)
 {
 	IsDirty = false;
 	UpdateName();
+}
+
+void IdeDocPrivate::CheckModTime()
+{
+	if (!ModTs.IsValid())
+		return;
+
+	GDateTime Ts = GetModTime();
+	if (Ts.IsValid() && Ts > ModTs)
+	{
+		static bool InCheckModTime = false;
+		if (!InCheckModTime)
+		{
+			InCheckModTime = true;
+			if (!IsDirty ||
+				LgiMsg(Doc, "Do you want to reload modified file from\ndisk and lose your changes?", AppName, MB_YESNO) == IDYES)
+			{
+				int Ln = Edit->GetLine();
+				Load();
+				IsDirty = false;
+				UpdateName();
+				Edit->SetLine(Ln);
+			}
+			InCheckModTime = false;
+		}
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -2299,6 +2352,11 @@ GMessage::Result IdeDoc::OnEvent(GMessage *Msg)
 	}
 	
 	return GMdiChild::OnEvent(Msg);
+}
+
+void IdeDoc::OnPulse()
+{
+	d->CheckModTime();
 }
 
 int IdeDoc::OnNotify(GViewI *v, int f)
