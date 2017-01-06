@@ -248,15 +248,13 @@ bool GRichTextPriv::TextBlock::ToHtml(GStream &s)
 bool GRichTextPriv::TextBlock::GetPosFromIndex(BlockCursor *Cursor)
 {
 	if (!Cursor)
-	{
-		LgiAssert(0);
-		return false;
-	}
+		return d->Error(_FL, "No cursor param.");
 
 	if (LayoutDirty)
 	{
-		Cursor->Pos.ZOff(-1, -1);
-		// LgiTrace("%s:%i - Can't get pos from index, layout is dirty...\n", _FL);
+		Cursor->Pos.ZOff(-1, -1); // This is valid behaviour... need to 
+								// wait for layout before getting cursor
+								// position.
 		return false;
 	}
 		
@@ -938,7 +936,9 @@ bool GRichTextPriv::TextBlock::IsValid()
 			}
 		}
 	}
-	LgiAssert(Len == TxtLen);
+	
+	if (Len != TxtLen)
+		return d->Error(_FL, "Txt.Len vs Len mismatch: %i, %i.", TxtLen, Len);
 
 	return true;
 }
@@ -1074,7 +1074,7 @@ int GRichTextPriv::TextBlock::DeleteAt(Transaction *Trans, int BlkOffset, int Ch
 bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const uint32 *InStr, int InChars, GNamedStyle *Style)
 {
 	if (!InStr)
-		return false;
+		return d->Error(_FL, "No input text.");
 	if (InChars < 0)
 		InChars = Strlen(InStr);
 
@@ -1136,6 +1136,8 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 					t->Length(NewSz);
 					uint32 *c = &t->First();
 
+					d->Log->Print("TextBlock(%i)::Add(%i,%i,%s)::Append StyleOffset=%i, After=%i\n", GetUid(), AtOffset, InChars, Style?Style->Name.Get():NULL, StyleOffset, After);
+
 					// Do we need to move characters up to make space?
 					if (After > 0)
 						memmove(c + StyleOffset + Chars, c + StyleOffset, After * sizeof(*c));
@@ -1156,6 +1158,8 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 					Run->Emoji = IsEmoji;
 					Pos += StyleOffset; // We are skipping over the run at 'TxtIdx', update pos
 					Txt.AddAt(++TxtIdx, Run);
+
+					d->Log->Print("TextBlock(%i)::Add(%i,%i,%s)::Insert StyleOffset=%i\n", GetUid(), AtOffset, InChars, Style?Style->Name.Get():NULL, StyleOffset);
 
 					if (StyleOffset < TxtLen)
 					{
@@ -1357,10 +1361,7 @@ void GRichTextPriv::TextBlock::IncAllStyleRefs()
 bool GRichTextPriv::TextBlock::ChangeStyle(Transaction *Trans, int Offset, int Chars, GCss *Style, bool Add)
 {
 	if (!Style)
-	{
-		LgiAssert(0);
-		return false;
-	}
+		return d->Error(_FL, "No style.");
 
 	if (Offset < 0 || Offset >= Len)
 		return true;
@@ -1486,8 +1487,15 @@ bool GRichTextPriv::TextBlock::Seek(SeekType To, BlockCursor &Cur)
 			
 	if (CurLine < 0)
 	{
-		LgiAssert(!"Index not in layout lines.");
-		return false;
+		CharPos = 0;
+		d->Log->Print("TextBlock(%i)::Seek, lines=%i\n", GetUid(), Layout.Length());
+		for (unsigned i=0; i<Layout.Length(); i++)
+		{
+			TextLine *Line = Layout[i];
+			if (Line) { d->Log->Print("\tLine[%i] @ %i+%i=%i\n", i, CharPos, Line->Length(), CharPos + Line->Length()); CharPos += Line->Length(); }
+			else      { d->Log->Print("\tLine[%i] @ %i, is NULL\n", i, CharPos); break; }
+		}
+		return d->Error(_FL, "Index '%i' not in layout lines.", Cur.Offset);
 	}
 				
 	TextLine *Line = NULL;
@@ -1514,7 +1522,7 @@ bool GRichTextPriv::TextBlock::Seek(SeekType To, BlockCursor &Cur)
 				return false;
 			Line = Layout[--CurLine];
 			if (!Line)
-				return false;
+				return d->Error(_FL, "No line at %i.", CurLine);
 			break;
 		}				
 		case SkDownLine:
@@ -1524,7 +1532,7 @@ bool GRichTextPriv::TextBlock::Seek(SeekType To, BlockCursor &Cur)
 				return false;
 			Line = Layout[++CurLine];
 			if (!Line)
-				return false;
+				return d->Error(_FL, "No line at %i.", CurLine);
 			break;
 		}
 		default:
