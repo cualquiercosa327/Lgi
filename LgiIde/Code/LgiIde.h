@@ -201,6 +201,7 @@ public:
 
 	virtual void OnDelete() = 0;
 	virtual void OnSaveComplete(bool Status) = 0;
+
 };
 
 class AppWnd : public GWindow

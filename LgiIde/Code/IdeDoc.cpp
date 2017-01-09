@@ -1987,14 +1987,9 @@ char *IdeDocPrivate::GetLocalFile()
 
 void IdeDocPrivate::SetFileName(const char *f)
 {
-	if (nSrc)
-	{
-	}
-	else
-	{
-		FileName = f;
-		Edit->IsDirty(true);
-	}
+	nSrc = NULL;
+	FileName = f;
+	Edit->IsDirty(true);
 }
 
 bool IdeDocPrivate::Load()
