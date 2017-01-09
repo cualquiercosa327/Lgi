@@ -271,7 +271,7 @@ void GRect::Intersection(GRect *a, GRect *b)
 
 char *GRect::GetStr()
 {
-	#define BUFFERS	4
+	#define BUFFERS	5
 	static char Str[BUFFERS][48];
 	static int Cur = 0;
 	

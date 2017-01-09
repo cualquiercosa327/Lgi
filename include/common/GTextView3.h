@@ -101,6 +101,18 @@ public:
 		#endif
 		virtual CURSOR_CHAR GetCursor()  { return 0; }
 
+		int End() const { return Start + Len; }
+
+		/// \returns true if style is the same
+		bool operator ==(const GStyle &s)
+		{
+			return	Owner == s.Owner &&
+					Start == s.Start &&
+					Len == s.Len &&
+					c == s.c &&
+					Decor == s.Decor;
+		}
+
 		/// Returns true if this style overlaps the position of 's'
 		bool Overlap(GStyle *s)
 		{
@@ -115,6 +127,20 @@ public:
 				return false;
 
 			return true;
+		}
+
+		void Union(const GStyle &s)
+		{
+			if (Start < 0)
+			{
+				Start = s.Start;
+				Len = s.Len;
+			}
+			else
+			{
+				Start = min(Start, s.Start);
+				Len = max(End(), s.End()) - Start;
+			}
 		}
 	};
 
@@ -195,6 +221,7 @@ protected:
 	int TextWidth(GFont *f, char16 *s, int Len, int x, int Origin);
 	int ScrollYLine();
 	int ScrollYPixel();
+	GRect DocToScreen(GRect r);
 	int MatchText(char16 *Text, bool MatchWord, bool MatchCase, bool SelectionOnly);
 	
 	// styles

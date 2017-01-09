@@ -1146,12 +1146,32 @@ public:
 		return T.NewStr();
 	}
 
+	#define COMP_STYLE	1
+
+	bool GetVisible(GStyle &s)
+	{
+		GRect c = GetClient();
+		int a = HitText(c.x1, c.y1);
+		int b = HitText(c.x2, c.y2);
+		s.Start = a;
+		s.Len = b - a + 1;
+		return true;
+	}
+
 	void StyleCpp(int Start, int EditSize)
 	{
-		// uint64 StartTs = LgiMicroTime();
 		char16 *e = Text + Size;
 		
+		// uint64 StartTs = LgiMicroTime();
+		#if COMP_STYLE
+		List<GStyle> OldStyle;
+		OldStyle = Style;
+		Style.Empty();
+		#else
 		Style.DeleteObjects();
+		#endif
+		// uint64 SetupTs = LgiMicroTime();
+		
 		for (char16 *s = Text; s < e; s++)
 		{
 			switch (*s)
@@ -1326,25 +1346,6 @@ public:
 					}
 					break;
 				}
-				/*
-				case '(':
-				case ')':
-				case '{':
-				case '}':
-				{
-					GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
-					if (st)
-					{
-						st->View = this;
-						st->Start = s - Text;
-						st->Font = Font;
-						st->Len = 1;
-						st->c.Rgb(128, 128, 128);
-						InsertStyle(st);
-					}
-					break;
-				}
-				*/
 				default:
 				{
 					wchar_t Ch = ToLower(*s);
@@ -1387,8 +1388,91 @@ public:
 			}
 		}
 
-		// uint64 EndTs = LgiMicroTime();
-		// LgiTrace("PourCpp = %g ms\n", (double)(EndTs - StartTs) / 1000.0);
+		// uint64 PourTs = LgiMicroTime();
+
+		#if COMP_STYLE
+		GStyle Vis(0);
+		if (GetVisible(Vis))
+		{
+			GArray<GStyle*> Old, Cur;
+			for (GStyle *s = OldStyle.First(); s; s = OldStyle.Next())
+			{
+				if (s->Overlap(&Vis))
+					Old.Add(s);
+				else if (Old.Length())
+					break;
+			}
+			for (GStyle *s = Style.First(); s; s = Style.Next())
+			{
+				if (s->Overlap(&Vis))
+					Cur.Add(s);
+				else if (Cur.Length())
+					break;
+			}
+
+			GStyle Dirty(0);
+			for (int o=0; o<Old.Length(); o++)
+			{
+				bool Match = false;
+				GStyle *OldStyle = Old[o];
+				for (int n=0; n<Cur.Length(); n++)
+				{
+					if (*OldStyle == *Cur[n])
+					{
+						Old.DeleteAt(o--);
+						Cur.DeleteAt(n--);
+						Match = true;
+						break;
+					}
+				}
+				if (!Match)
+					Dirty.Union(*OldStyle);
+			}
+			for (int n=0; n<Cur.Length(); n++)
+			{
+				Dirty.Union(*Cur[n]);
+			}
+
+			if (Dirty.Start >= 0)
+			{
+				// LgiTrace("Visible rgn: %i + %i = %i\n", Vis.Start, Vis.Len, Vis.End());
+				// LgiTrace("Dirty rgn: %i + %i = %i\n", Dirty.Start, Dirty.Len, Dirty.End());
+
+				int CurLine = -1, DirtyStartLine = -1, DirtyEndLine = -1;
+				GTextLine *CursorLine = GetTextLine(Cursor, &CurLine);
+				GTextLine *Start = GetTextLine(Dirty.Start, &DirtyStartLine);
+				GTextLine *End = GetTextLine(min(Size, Dirty.End()), &DirtyEndLine);
+				if (CurLine >= 0 &&
+					DirtyStartLine >= 0 &&
+					DirtyEndLine >= 0)
+				{
+					// LgiTrace("Dirty lines %i, %i, %i\n", CurLine, DirtyStartLine, DirtyEndLine);
+					
+					if (DirtyStartLine != CurLine ||
+						DirtyEndLine != CurLine)
+					{
+						GRect c = GetClient();
+						GRect r(c.x1,
+								Start->r.Valid() ? DocToScreen(Start->r).y1 : c.y1,
+								c.x2,
+								Dirty.End() >= Vis.End() ? c.y2 : DocToScreen(End->r).y2);
+						
+						// LgiTrace("Cli: %s, CursorLine: %s, Start rgn: %s, End rgn: %s, Update: %s\n", c.GetStr(), CursorLine->r.GetStr(), Start->r.GetStr(), End->r.GetStr(), r.GetStr());
+
+						Invalidate(&r);
+					}						
+				}
+				else
+				{
+					// LgiTrace("No Change: %i, %i, %i\n", CurLine, DirtyStartLine, DirtyEndLine);
+				}
+			}
+		}
+		OldStyle.DeleteObjects();
+		#endif
+
+		// uint64 DirtyTs = LgiMicroTime();		
+		// LgiTrace("PourCpp = %g, %g\n", (double)(PourTs - SetupTs) / 1000.0, (double)(DirtyTs - PourTs) / 1000.0);
 	}
 
 	void StylePython(int Start, int EditSize)
@@ -1595,56 +1679,6 @@ public:
 		}		
 	}
 
-
-	/*
-	void PourText(int Start, int Len)
-	{
-		GTextView3::PourText(Start, Len);
-		
-		bool Lut[128];
-		ZeroObj(Lut);
-		Lut[' '] = true;
-		Lut['\r'] = true;
-		Lut['\t'] = true;
-		
-		bool LongComment = false;
-		COLOUR CommentColour = Rgb32(0, 0x80, 0);
-		char16 Eoc[] = { '*', '/', 0 };
-		for (GTextLine *l=GTextView3::Line.First(); l; l=GTextView3::Line.Next())
-		{
-			char16 *s = Text + l->Start;			
-			if (LongComment)
-			{
-				l->c.c32(CommentColour);
-				if (StrnstrW(s, Eoc, l->Len))
-				{
-					LongComment = false;
-				}
-			}
-			else
-			{
-				while (*s <= 256 && Lut[*s]) s++;
-				if (*s == '#')
-				{
-					l->c.Rgb(0, 0, 222);
-				}
-				else if (s[0] == '/')
-				{
-					if (s[1] == '/')
-					{
-						l->c.c32(CommentColour);
-					}
-					else if (s[1] == '*')
-					{
-						l->c.c32(CommentColour);
-						LongComment = StrnstrW(s, Eoc, l->Len) == 0;
-					}
-				}
-			}
-		}
-	}
-	*/
-	
 	bool Pour(GRegion &r)
 	{
 		GRect c = r.Bound();
