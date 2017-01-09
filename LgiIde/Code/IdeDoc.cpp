@@ -892,6 +892,7 @@ public:
 	DocEdit(IdeDoc *d, GFontType *f) : GTextView3(IDC_EDIT, 0, 0, 100, 100, f)
 	{
 		FileType = SrcUnknown;
+		ZeroObj(HasKeyword);
 		Doc = d;
 		CurLine = -1;
 		if (!GlobalFindReplace)
@@ -1992,6 +1993,7 @@ void IdeDocPrivate::SetFileName(const char *f)
 	else
 	{
 		FileName = f;
+		Edit->IsDirty(true);
 	}
 }
 
