@@ -76,6 +76,12 @@
 #define MAX_UNICODE						0xffff // maximum unicode char I can handle
 #define _HasUnicodeGlyph(map, u)		( (map[(u)>>3] & (1 << ((u) & 7))) != 0  )
 
+enum LgiPxToIndexType
+{
+	LgiTruncate,
+	LgiNearest
+};
+
 //////////////////////////////////////////////////////////////
 // Classes
 class GFontType;
@@ -191,7 +197,7 @@ class LgiClass GFont :
 	friend class GDisplayString;
 
 	void _Measure(int &x, int &y, OsChar *Str, int Len);
-	int _CharAt(int x, OsChar *Str, int Len);
+	int _CharAt(int x, OsChar *Str, int Len, LgiPxToIndexType Type);
 	void _Draw(GSurface *pDC, int x, int y, OsChar *Str, int Len, GRect *r, GColour &fore);
 	#endif
 

@@ -3019,7 +3019,7 @@ void GTextView3::OnFocus(bool f)
 	SetPulse(f ? 500 : -1);
 }
 
-int GTextView3::HitText(int x, int y)
+int GTextView3::HitText(int x, int y, bool Nearest)
 {
 	if (!Text)
 		return 0;
@@ -3038,7 +3038,7 @@ int GTextView3::HitText(int x, int y)
 			int Char = 0;
 				
 			GDisplayString Ds(Font, MapText(Text + l->Start, l->Len), l->Len, 0);
-			Char = Ds.CharAt(At);
+			Char = Ds.CharAt(At, Nearest ? LgiNearest : LgiTruncate);
 
 			return l->Start + Char;
 		}
@@ -3099,7 +3099,7 @@ void GTextView3::DoContextMenu(GMouse &m)
 	RClick.AppendSeparator();
 	#endif
 
-	GStyle *s = HitStyle(HitText(m.x, m.y));
+	GStyle *s = HitStyle(HitText(m.x, m.y, true));
 	if (s)
 	{
 		if (s->OnMenu(&RClick))
@@ -3254,7 +3254,7 @@ void GTextView3::OnMouseClick(GMouse &m)
 		{
 			Focus(true);
 
-			int Hit = HitText(m.x, m.y);
+			int Hit = HitText(m.x, m.y, true);
 			if (Hit >= 0)
 			{
 				SetCursor(Hit, m.Shift());
@@ -3304,7 +3304,7 @@ void GTextView3::OnMouseMove(GMouse &m)
 {
 	m.x += ScrollX;
 
-	int Hit = HitText(m.x, m.y);
+	int Hit = HitText(m.x, m.y, true);
 	if (IsCapturing())
 	{
 		if (d->WordSelectMode < 0)

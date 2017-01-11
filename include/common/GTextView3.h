@@ -267,7 +267,7 @@ public:
 	const char *GetMimeType() { return "text/plain"; }
 	int GetSize() { return Size; }
 
-	int HitText(int x, int y);
+	int HitText(int x, int y, bool Nearest);
 	void DeleteSelection(char16 **Cut = 0);
 
 	// Font

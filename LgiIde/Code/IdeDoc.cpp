@@ -1152,8 +1152,8 @@ public:
 	bool GetVisible(GStyle &s)
 	{
 		GRect c = GetClient();
-		int a = HitText(c.x1, c.y1);
-		int b = HitText(c.x2, c.y2);
+		int a = HitText(c.x1, c.y1, false);
+		int b = HitText(c.x2, c.y2, false);
 		s.Start = a;
 		s.Len = b - a + 1;
 		return true;

@@ -44,14 +44,13 @@ void GFont::_Measure(int &x, int &y, OsChar *Str, int Len)
 		DeleteDC(hDC);
 }
 
-int GFont::_CharAt(int x, OsChar *Str, int Len)
+int GFont::_CharAt(int x, OsChar *Str, int Len, LgiPxToIndexType Type)
 {
 	LgiAssert(Handle());
 
 	INT Fit = 0;
 	HDC hDC = CreateCompatibleDC(GetSurface()?GetSurface()->Handle():0);
 	HFONT hOldFont = (HFONT) SelectObject(hDC, Handle());
-
 	if (hOldFont)
 	{
 		SIZE Size = {0, 0};
@@ -60,6 +59,19 @@ int GFont::_CharAt(int x, OsChar *Str, int Len)
 		{
 			DWORD e = GetLastError();
 			Fit = -1;
+		}
+		else if (Type == LgiNearest && Fit < Len)
+		{
+			// Check if the next char is nearer...
+			SIZE Prev, Next;
+			if (GetTextExtentPoint32W(hDC, Str, Fit, &Prev) &&
+				GetTextExtentPoint32W(hDC, Str, Fit + 1, &Next))
+			{
+				int PrevDist = abs(Prev.cx - x);
+				int NextDist = abs(Next.cx - x);
+				if (NextDist <= PrevDist)
+					Fit++;
+			}
 		}
 		
 		SelectObject(hDC, hOldFont);
