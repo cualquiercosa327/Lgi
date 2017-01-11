@@ -875,40 +875,18 @@ bool GMdiParent::OnViewKey(GView *View, GKey &Key)
 		#endif
 		if (Child)
 		{
-			GView *v;
-
-			if (Key.Shift())
+			::GArray<GMdiChild*> Views;
+			GetChildren(Views);
+			int Idx = Views.IndexOf(Child);
+			int Inc = Key.Shift() ? -1 : 1;
+			int NewIdx = (Idx + Inc) % Views.Length();
+			GMdiChild *NewFront = Views[NewIdx];
+			if (NewFront)
 			{
-				v = dynamic_cast<GView*>(Children.First());
-			}
-			else
-			{
-				v = dynamic_cast<GView*>(Children.Last());
+				NewFront->Raise();
 			}
 
-			GMdiChild *c = dynamic_cast<GMdiChild*>(v);
-			if (c)
-			{
-				int Idx = Children.IndexOf((GViewI*)v);
-				#if DEBUG_MDI
-				LgiTrace("roll = %i of %i\n", Idx, Children.Length());
-				#endif
-				
-				if (Key.Shift())
-				{
-					c->Raise();
-				}
-				else
-				{
-					c->Lower();
-				}
-
-				GMdiChild *Top = dynamic_cast<GMdiChild*>(Children.Last());
-				if (Top)
-					Top->Focus(true);
-
-				return true;
-			}
+			return true;
 		}
 	}
 
