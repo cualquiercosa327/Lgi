@@ -394,7 +394,7 @@ bool GRichTextPriv::AddTrans(GAutoPtr<Transaction> &t)
 
 bool GRichTextPriv::SetUndoPos(int Pos)
 {
-	Pos = limit(Pos, 0, UndoQue.Length());
+	Pos = limit(Pos, 0, (int)UndoQue.Length());
 	if (UndoQue.Length() == 0)
 		return true;
 
