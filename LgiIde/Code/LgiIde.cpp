@@ -1411,6 +1411,8 @@ AppWnd::AppWnd()
 		
 		Visible(true);
 		DropTarget(true);
+
+		SetPulse(1000);
 	}
 	
 	#ifdef LINUX
@@ -1438,6 +1440,13 @@ AppWnd::~AppWnd()
 	
 	LgiApp->AppWnd = 0;
 	DeleteObj(d);
+}
+
+void AppWnd::OnPulse()
+{
+	IdeDoc *Top = TopDoc();
+	if (Top)
+		Top->OnPulse();
 }
 
 GDebugContext *AppWnd::GetDebugContext()

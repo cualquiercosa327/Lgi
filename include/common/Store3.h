@@ -466,6 +466,8 @@ extern GDataStoreI *OpenImap
 (
 	/// The host name of the IMAP server
 	char *Host,
+	/// The port to connect to, or <= 0 means use default
+	int Port,
 	/// The user name of the account to connect to
 	char *User,
 	/// [Optional] The password of the user

@@ -1548,6 +1548,7 @@ void GTextView3::DeleteSelection(char16 **Cut)
 GTextView3::GTextLine *GTextView3::GetTextLine(int Offset, int *Index)
 {
 	int i = 0;
+
 	for (GTextLine *l=Line.First(); l; l=Line.Next(), i++)
 	{
 		if (Offset >= l->Start && Offset <= l->Start+l->Len)
@@ -1891,8 +1892,7 @@ void GTextView3::SetCursor(int i, bool Select, bool ForceFullUpdate)
 		{
 			if (SLine->r.Valid())
 			{
-				u = SLine->r;
-				u.Offset(0, d->rPadding.y1-ScrollYPixel());
+				u = DocToScreen(SLine->r);
 			}
 			else
 				u.Set(0, 0, Client.X()-1, 1); // Start of visible page 
@@ -1900,8 +1900,7 @@ void GTextView3::SetCursor(int i, bool Select, bool ForceFullUpdate)
 			GRect b(0, Client.Y()-1, Client.X()-1, Client.Y()-1);
 			if (ELine->r.Valid())
 			{
-				b = ELine->r;
-				b.Offset(0, d->rPadding.y1-ScrollYPixel());
+				b = DocToScreen(ELine->r);
 			}
 			else
 			{
@@ -3020,55 +3019,55 @@ void GTextView3::OnFocus(bool f)
 	SetPulse(f ? 500 : -1);
 }
 
-int GTextView3::HitText(int x, int y)
+int GTextView3::HitText(int x, int y, bool Nearest)
 {
-	if (Text)
+	if (!Text)
+		return 0;
+
+	bool Down = y >= 0;
+	int Y = (VScroll) ? (int)VScroll->Value() : 0;
+	GTextLine *l = Line.ItemAt(Y);
+	y += (l) ? l->r.y1 : 0;
+
+	while (l)
 	{
-		bool Down = y >= 0;
-		int Y = (VScroll) ? (int)VScroll->Value() : 0;
-		GTextLine *l = Line.ItemAt(Y);
-		y += (l) ? l->r.y1 : 0;
-
-		while (l)
+		if (l->r.Overlap(x, y))
 		{
-			if (l->r.Overlap(x, y))
-			{
-				// Over a line
-				int At = x - l->r.x1;
-				int Char = 0;
+			// Over a line
+			int At = x - l->r.x1;
+			int Char = 0;
 				
-				GDisplayString Ds(Font, MapText(Text + l->Start, l->Len), l->Len, 0);
-				Char = Ds.CharAt(At);
+			GDisplayString Ds(Font, MapText(Text + l->Start, l->Len), l->Len, 0);
+			Char = Ds.CharAt(At, Nearest ? LgiNearest : LgiTruncate);
 
-				return l->Start + Char;
-			}
-			else if (y >= l->r.y1 && y <= l->r.y2)
-			{
-				// Click horizontally before of after line
-				if (x < l->r.x1)
-				{
-					return l->Start;
-				}
-				else if (x > l->r.x2)
-				{
-					return l->Start + l->Len;
-				}
-			}
-			
-			l = (Down) ? Line.Next() : Line.Prev();
+			return l->Start + Char;
 		}
-
-		// outside text area
-		if (Down)
+		else if (y >= l->r.y1 && y <= l->r.y2)
 		{
-			l = Line.Last();
-			if (l)
+			// Click horizontally before of after line
+			if (x < l->r.x1)
 			{
-				if (y > l->r.y2)
-				{
-					// end of document
-					return Size;
-				}
+				return l->Start;
+			}
+			else if (x > l->r.x2)
+			{
+				return l->Start + l->Len;
+			}
+		}
+			
+		l = (Down) ? Line.Next() : Line.Prev();
+	}
+
+	// outside text area
+	if (Down)
+	{
+		l = Line.Last();
+		if (l)
+		{
+			if (y > l->r.y2)
+			{
+				// end of document
+				return Size;
 			}
 		}
 	}
@@ -3100,7 +3099,7 @@ void GTextView3::DoContextMenu(GMouse &m)
 	RClick.AppendSeparator();
 	#endif
 
-	GStyle *s = HitStyle(HitText(m.x, m.y));
+	GStyle *s = HitStyle(HitText(m.x, m.y, true));
 	if (s)
 	{
 		if (s->OnMenu(&RClick))
@@ -3255,7 +3254,7 @@ void GTextView3::OnMouseClick(GMouse &m)
 		{
 			Focus(true);
 
-			int Hit = HitText(m.x, m.y);
+			int Hit = HitText(m.x, m.y, true);
 			if (Hit >= 0)
 			{
 				SetCursor(Hit, m.Shift());
@@ -3305,7 +3304,7 @@ void GTextView3::OnMouseMove(GMouse &m)
 {
 	m.x += ScrollX;
 
-	int Hit = HitText(m.x, m.y);
+	int Hit = HitText(m.x, m.y, true);
 	if (IsCapturing())
 	{
 		if (d->WordSelectMode < 0)
@@ -4295,6 +4294,12 @@ int GTextView3::ScrollYLine()
 int GTextView3::ScrollYPixel()
 {
 	return ScrollYLine() * LineY;
+}
+
+GRect GTextView3::DocToScreen(GRect r)
+{
+	r.Offset(0, d->rPadding.y1 - ScrollYPixel());
+	return r;
 }
 
 void GTextView3::OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour)

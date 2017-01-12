@@ -188,7 +188,7 @@ public:
 		/// Returns the width and height of the whole string
 		GdcPt2 Size();
 		/// Returns the number of characters that fit in 'x' pixels.
-		int CharAt(int x);
+		int CharAt(int x, LgiPxToIndexType Type = LgiTruncate);
 
 		/// Draws the string onto a device surface
 		void Draw

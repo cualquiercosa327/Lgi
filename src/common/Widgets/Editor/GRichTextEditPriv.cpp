@@ -245,6 +245,7 @@ GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv *&Ptr) :
 {
 	Ptr = this;
 	View = view;
+	Log = &LogBuffer;
 	NextUid = 1;
 	UndoPos = 0;
 	WordSelectMode = false;
@@ -393,7 +394,7 @@ bool GRichTextPriv::AddTrans(GAutoPtr<Transaction> &t)
 
 bool GRichTextPriv::SetUndoPos(int Pos)
 {
-	Pos = limit(Pos, 0, UndoQue.Length());
+	Pos = limit(Pos, 0, (int)UndoQue.Length());
 	if (UndoQue.Length() == 0)
 		return true;
 
@@ -431,7 +432,13 @@ bool GRichTextPriv::Error(const char *file, int line, const char *fmt, ...)
 	GString s;
 	LgiPrintf(s, fmt, Arg);
 	va_end(Arg);
-	LgiTrace("%s:%i - Error: %s\n", file, line, s.Get());
+
+	GString Err;
+	Err.Printf("%s:%i - Error: %s\n", file, line, s.Get());
+	Log->Write(Err, Err.Length());
+
+	Err = LogBuffer.NewGStr();
+	LgiTrace("%.*s", Err.Length(), Err.Get());
 		
 	LgiAssert(0);
 	return false;
@@ -439,10 +446,9 @@ bool GRichTextPriv::Error(const char *file, int line, const char *fmt, ...)
 
 void GRichTextPriv::UpdateStyleUI()
 {
-	if (!Cursor ||
-		!Cursor->Blk)
+	if (!Cursor || !Cursor->Blk)
 	{
-		LgiAssert(0);
+		Error(_FL, "Not a valid cursor.");
 		return;
 	}
 
@@ -530,7 +536,7 @@ void GRichTextPriv::Empty()
 bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 {
 	if (!In || !In->Blk || Blocks.Length() == 0)
-		return false;
+		return Error(_FL, "Not a valid 'In' cursor, Blks=%i", Blocks.Length());
 		
 	GAutoPtr<BlockCursor> c;
 
@@ -560,7 +566,7 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 				{
 					Block *b = Blocks[NewIdx];
 					if (!b)
-						return false;
+						return Error(_FL, "No block at %i", NewIdx);
 						
 					c.Reset(new BlockCursor(b, b->Length(), b->GetLines() - 1));
 					LgiAssert(c->Offset >= 0);
@@ -577,7 +583,7 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 				{
 					Block *b = Blocks[NewIdx];
 					if (!b)
-						return false;
+						return Error(_FL, "No block at %i", NewIdx);
 						
 					c.Reset(new BlockCursor(b, 0, 0));
 					LgiAssert(c->Offset >= 0);
@@ -714,20 +720,14 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 				SeekNextBlock:
 				int Idx = Blocks.IndexOf(c->Blk);
 				if (Idx < 0)
-				{
-					LgiAssert(0);
-					break;
-				}
+					return Error(_FL, "Block ptr index error.");
 
 				if (Idx >= (int)Blocks.Length() - 1)
 					break; // End of document
 				
 				Block *b = Blocks[++Idx];
 				if (!b)
-				{
-					LgiAssert(0);
-					break;
-				}
+					return Error(_FL, "No block at %i.", Idx);
 
 				if (!c.Reset(new BlockCursor(b, 0, 0)))
 					break;
@@ -820,8 +820,7 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 		}
 		default:
 		{
-			LgiAssert(!"Unknown seek type.");
-			return false;
+			return Error(_FL, "Unknown seek type.");
 		}
 	}
 		
@@ -849,10 +848,7 @@ bool GRichTextPriv::SetCursor(GAutoPtr<BlockCursor> c, bool Select)
 	GRect InvalidRc(0, 0, -1, -1);
 
 	if (!c || !c->Blk)
-	{
-		LgiAssert(0);
-		return false;
-	}
+		return Error(_FL, "Invalid cursor.");
 
 	if (Select && !Selection)
 	{
@@ -937,8 +933,11 @@ GRect GRichTextPriv::SelectionRect()
 
 int GRichTextPriv::IndexOfCursor(BlockCursor *c)
 {
-	if (!c)
+	if (!c || !c->Blk)
+	{
+		Error(_FL, "Invalid cursor param.");
 		return -1;
+	}
 
 	int CharPos = 0;
 	for (unsigned i=0; i<Blocks.Length(); i++)
@@ -970,7 +969,7 @@ bool GRichTextPriv::Merge(Block *a, Block *b)
 	TextBlock *ta = dynamic_cast<TextBlock*>(a);
 	TextBlock *tb = dynamic_cast<TextBlock*>(b);
 	if (!ta || !tb)
-		return false;
+		return Error(_FL, "Can't merge non-text block: %p, %p", ta, tb);
 
 	ta->Txt.Add(tb->Txt);
 	ta->LayoutDirty = true;
@@ -989,7 +988,10 @@ GSurface *GRichTextPriv::GetEmojiImage()
 	{
 		GString p = LgiGetSystemPath(LSP_APP_INSTALL);
 		if (!p)
+		{
+			Error(_FL, "No app install path.");
 			return NULL;
+		}
 
 		char File[MAX_PATH] = "";
 		LgiMakePath(File, sizeof(File), p, "..\\src\\common\\Text\\Emoji\\EmojiMap.png");
@@ -1000,6 +1002,7 @@ GSurface *GRichTextPriv::GetEmojiImage()
 		EmojiImg.Reset(GdcD->Load(a ? a : File, false));
 		
 	}
+
 	return EmojiImg;
 }
 
@@ -1009,7 +1012,10 @@ int GRichTextPriv::HitTest(int x, int y, int &LineHint)
 	HitTestResult r(x, y);
 
 	if (Blocks.Length() == 0)
+	{
+		Error(_FL, "No blocks.");
 		return -1;
+	}
 
 	GRect rc = Blocks.First()->GetPos();
 	if (y < rc.y1)
@@ -1028,7 +1034,7 @@ int GRichTextPriv::HitTest(int x, int y, int &LineHint)
 		}
 		else if (Over)
 		{
-			LgiAssert(!"Block failed to hit.");
+			Error(_FL, "Block failed to hit, i=%i, pos=%s, y=%i.", i, p.GetStr(), y);
 		}
 			
 		CharPos += b->Length();
@@ -1218,6 +1224,7 @@ bool GRichTextPriv::ChangeSelectionStyle(GCss *Style, bool Add)
 	if (!Selection)
 		return false;
 
+	GAutoPtr<Transaction> Trans(new Transaction);
 	bool Cf = CursorFirst();
 	GRichTextPriv::BlockCursor *Start = Cf ? Cursor : Selection;
 	GRichTextPriv::BlockCursor *End = Cf ? Selection : Cursor;
@@ -1225,7 +1232,7 @@ bool GRichTextPriv::ChangeSelectionStyle(GCss *Style, bool Add)
 	{
 		// Change style in the same block...
 		int Len = End->Offset - Start->Offset;
-		if (!Start->Blk->ChangeStyle(NoTransaction, Start->Offset, Len, Style, Add))
+		if (!Start->Blk->ChangeStyle(Trans, Start->Offset, Len, Style, Add))
 			return false;
 	}
 	else
@@ -1233,7 +1240,7 @@ bool GRichTextPriv::ChangeSelectionStyle(GCss *Style, bool Add)
 		// Multi-block style change...
 
 		// 1) Change style on the content to the end of the first block
-		Start->Blk->ChangeStyle(NoTransaction, Start->Offset, -1, Style, Add);
+		Start->Blk->ChangeStyle(Trans, Start->Offset, -1, Style, Add);
 
 		// 2) Change style on blocks between 'Start' and 'End'
 		int i = Blocks.IndexOf(Start->Blk);
@@ -1242,23 +1249,23 @@ bool GRichTextPriv::ChangeSelectionStyle(GCss *Style, bool Add)
 			for (++i; Blocks[i] != End->Blk && i < (int)Blocks.Length(); i++)
 			{
 				GRichTextPriv::Block *&b = Blocks[i];
-				if (!b->ChangeStyle(NoTransaction, 0, -1, Style, Add))
+				if (!b->ChangeStyle(Trans, 0, -1, Style, Add))
 					return false;
 			}
 		}
 		else
 		{
-			LgiAssert(0);
-			return false;
+			return Error(_FL, "Start block has no index.");
 		}
 
 		// 3) Change style up to the Cursor in the 'End' block
-		if (!End->Blk->ChangeStyle(NoTransaction, 0, End->Offset, Style, Add))
+		if (!End->Blk->ChangeStyle(Trans, 0, End->Offset, Style, Add))
 			return false;
 	}
 
 	Cursor->Pos.ZOff(-1, -1);
 	InvalidateDoc(NULL);
+	AddTrans(Trans);
 	return true;
 }
 
@@ -1343,10 +1350,7 @@ bool GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 		{
 			List<const char> Fonts;
 			if (!GFontSystem::Inst()->EnumerateFonts(Fonts))
-			{
-				LgiTrace("%s:%i - EnumerateFonts failed.\n", _FL);
-				break;
-			}
+				return Error(_FL, "EnumerateFonts failed.");
 
 			bool UseSub = (SysFont->GetHeight() * Fonts.Length()) > (GdcD->Y() * 0.8);
 
@@ -1476,13 +1480,18 @@ bool GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 							*ns = *st.Last()->GetStyle();
 						ns->TextDecoration(GCss::TextDecorUnderline);
 						ns->Color(GCss::ColorDef(GCss::ColorRgb, GColour::Blue.c32()));
-						tb->ChangeStyle(NoTransaction, Off, Len, ns, true);
+						
+						GAutoPtr<Transaction> Trans(new Transaction);
+
+						tb->ChangeStyle(Trans, Off, Len, ns, true);
 
 						if (tb->GetTextAt(Off+1, st))
 						{
 							st.First()->Element = TAG_A;
 							st.First()->Param = i.Str;
 						}
+
+						AddTrans(Trans);
 					}
 				}
 			}
@@ -1974,11 +1983,7 @@ bool GRichTextPriv::GetSelection(GArray<char16> &Text)
 				b->CopyAt(0, -1, &Utf32);
 			}
 		}
-		else
-		{
-			LgiAssert(0);
-			return false;
-		}
+		else return Error(_FL, "Blocks missing index: %i, %i.", i, EndIdx);
 
 		// 3) Delete any text up to the Cursor in the 'End' block
 		End->Blk->CopyAt(0, End->Offset, &Utf32);
@@ -1986,7 +1991,7 @@ bool GRichTextPriv::GetSelection(GArray<char16> &Text)
 
 	char16 *w = (char16*)LgiNewConvertCp(LGI_WideCharset, &Utf32[0], "utf-32", Utf32.Length() * sizeof(uint32));
 	if (!w)
-		return false;
+		return Error(_FL, "Failed to convert %i utf32 to wide.", Utf32.Length());
 
 	Text.Add(w, Strlen(w));
 	Text.Add(0);

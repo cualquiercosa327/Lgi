@@ -318,6 +318,7 @@ class GRichTextPriv :
 	public GFontCache
 {
 	GAutoPtr<GSurface> EmojiImg;
+	GStringPipe LogBuffer;
 
 public:
 	enum SelectModeType
@@ -364,6 +365,7 @@ public:
 	GString Charset;
 	GHtmlStaticInst Inst;
 	int NextUid;
+	GStream *Log;
 
 	// This is set when the user changes a style without a selection,
 	// indicating that we should start a new run when new text is entered

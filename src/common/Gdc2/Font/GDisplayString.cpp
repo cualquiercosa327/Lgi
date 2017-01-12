@@ -948,19 +948,17 @@ void GDisplayString::TruncateWithDots(int Width)
 	#endif
 }
 
-int GDisplayString::CharAt(int Px)
+int GDisplayString::CharAt(int Px, LgiPxToIndexType Type)
 {
 	int Status = -1;
 
     Layout();
 	if (Px < 0)
 	{
-		// printf("CharAt(%i) <0\n", Px);
 		return 0;
 	}
 	else if (Px >= x)
 	{
-		// printf("CharAt(%i) >x=%i len=%i\n", Px, x, len);
 		#if defined __GTK_H__
 		if (Str)
 		{
@@ -1115,7 +1113,7 @@ int GDisplayString::CharAt(int Px)
 						}
 					}
 
-					int Fit = f->_CharAt(Px - Cx, Info[i].Str, Info[i].Len);
+					int Fit = f->_CharAt(Px - Cx, Info[i].Str, Info[i].Len, Type);
 					#endif
 
 					#if DEBUG_CHAR_AT

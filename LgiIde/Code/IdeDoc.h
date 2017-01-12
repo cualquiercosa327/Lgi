@@ -52,6 +52,7 @@ public:
 	void OnTitleClick(GMouse &m);
 	GMessage::Result OnEvent(GMessage *Msg);
 	int OnNotify(GViewI *v, int f);
+	void OnPulse();
 };
 
 #endif

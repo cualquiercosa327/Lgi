@@ -16,11 +16,14 @@ class GSegment
 public:
 	int64 Start;
 	int64 Length;
+	void *UserData;
 
-	GSegment()
+	GSegment(int64 start, int64 len, void *userData = 0)
 	{
 		Left = Right = Parent = 0;
-		Start = Length = 0;
+		Start = start;
+		Length = len;
+		UserData = userData;
 	}
 
 	~GSegment()
