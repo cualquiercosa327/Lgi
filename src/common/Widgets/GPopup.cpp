@@ -478,10 +478,35 @@ void GMouseHook::UnregisterPopup(GPopup *p)
 	}
 }
 
-#ifdef WIN32
+#if defined(WIN32)
 LRESULT CALLBACK GMouseHook::MouseProc(int Code, WPARAM a, LPARAM b)
 {
 	return 0;
+}
+#elif defined(MAC)
+WindowRef CreateBorderlessWindow()
+{
+	Rect r = {0,0,100,100};
+	WindowRef wr;
+	OSStatus e = CreateNewWindow
+				(
+					kDocumentWindowClass,
+					(WindowAttributes)
+					(
+						kWindowStandardHandlerAttribute |
+						kWindowCompositingAttribute |
+						kWindowNoShadowAttribute |
+						kWindowNoTitleBarAttribute
+					),
+					&r,
+					&wr
+				);
+	if (e)
+	{
+		LgiTrace("%s:%i - Error: Creating popup window: %i\n", _FL, e);
+		return NULL;
+	}
+	return wr;
 }
 #endif
 
@@ -490,30 +515,10 @@ class GPopupPrivate
 {
 public:
 	bool TakeFocus;
-	#ifdef MAC
-	WindowRef Wnd;
-	EventHandlerUPP EventUPP;
-	#endif
 	
 	GPopupPrivate()
 	{
 		TakeFocus = true;
-
-		#ifdef MAC
-		Wnd = NULL;
-		EventUPP = NULL;
-		#endif
-	}
-	
-	~GPopupPrivate()
-	{
-		#ifdef MAC
-		if (Wnd)
-		{
-			DisposeWindow(Wnd);
-			Wnd = 0;
-		}
-		#endif
 	}
 };
 
@@ -522,12 +527,15 @@ public:
 #endif
 
 GPopup::GPopup(GView *owner)
+	#ifdef MAC
+	: GWindow(CreateBorderlessWindow())
+	#endif
 {
 	d = new GPopupPrivate;
 	Start = 0;
 	Cancelled = false;
 	#ifdef _DEBUG
-	_Debug = true;
+	// _Debug = true;
 	#endif
 
     #ifdef __GTK_H__
@@ -543,7 +551,9 @@ GPopup::GPopup(GView *owner)
 		Owner->PopupChild() = this;
 		#endif
 		
+		#ifndef MAC
 		_Window = Owner->GetWindow();
+		#endif
 		SetNotify(Owner);
 	}
 	
@@ -613,26 +623,6 @@ void GPopup::TakeFocus(bool Take)
 	d->TakeFocus = Take;
 }
 
-#if defined MAC
-extern pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, void *inUserData);
-
-bool GPopup::SetPos(GRect &p, bool Repaint)
-{
-	ScreenPos = p;
-
-	GRect r = p;
-	r.Offset(2-r.x1, 2-r.y1);
-
-	return GView::SetPos(r, Repaint);
-}
-
-GRect &GPopup::GetPos()
-{
-	return ScreenPos;
-}
-
-#endif
-
 #ifdef __GTK_H__
 gboolean PopupDestroy(GtkWidget *widget, GPopup *This)
 {
@@ -688,130 +678,7 @@ bool GPopup::Attach(GViewI *p)
 {
 	#if defined MAC && !defined(LGI_SDL)
 	
-		#if !defined COCOA
-		OSStatus e;
-	
-		if (!d->Wnd)
-		{
-			Rect r = ScreenPos;
-			e = CreateNewWindow
-			(
-				kDocumentWindowClass,
-				(WindowAttributes)
-				(
-					kWindowStandardHandlerAttribute |
-					kWindowCompositingAttribute |
-					kWindowNoShadowAttribute |
-					kWindowNoTitleBarAttribute
-				),
-				&r,
-				&d->Wnd
-			);
-			if (e)
-			{
-				LgiTrace("%s:%i - Error: Creating popup window: %i\n", _FL, e);
-				return false;
-			}
-
-			EventTypeSpec	WndEvents[] =
-			{
-				{ kEventClassCommand, kEventProcessCommand },
-				
-				{ kEventClassWindow, kEventWindowClose },
-				{ kEventClassWindow, kEventWindowInit },
-				{ kEventClassWindow, kEventWindowDispose },
-				{ kEventClassWindow, kEventWindowBoundsChanged },
-				{ kEventClassWindow, kEventWindowActivated },
-				{ kEventClassWindow, kEventWindowShown },
-				{ kEventClassWindow, kEventWindowCollapsing },
-				
-				{ kEventClassMouse, kEventMouseDown },
-				{ kEventClassMouse, kEventMouseUp },
-				{ kEventClassMouse, kEventMouseMoved },
-				{ kEventClassMouse, kEventMouseDragged },
-				{ kEventClassMouse, kEventMouseWheelMoved },
-				
-				{ kEventClassControl, kEventControlDragEnter },
-				{ kEventClassControl, kEventControlDragWithin },
-				{ kEventClassControl, kEventControlDragLeave },
-				{ kEventClassControl, kEventControlDragReceive },
-				
-				{ kEventClassUser, kEventUser }
-
-			};
-			
-			EventHandlerRef Handler = 0;
-			e = InstallWindowEventHandler(	d->Wnd,
-											d->EventUPP = NewEventHandlerUPP(LgiWindowProc),
-											GetEventTypeCount(WndEvents),
-											WndEvents,
-											(void*)this,
-											&Handler);
-			if (e)
-				LgiTrace("%s:%i - InstallEventHandler failed (%i)\n", _FL, e);
-		}
-
-		if (!_View)
-			_View = _CreateCustomView();
-			
-		if (!_View)
-		{
-			LgiTrace("%s:%i - Error: No view\n", _FL);
-			return false;
-		}
-	
-		#ifdef _DEBUG
-		const char *cls = GetClass();
-		int len = strlen(cls);
-		SetControlProperty(_View, 'meme', 'clas', len, cls);
-		#endif
-	
-		// Set the view id
-		SetControlCommandID(_View, GetId());
-		GViewI *Ptr = this;
-		SetControlProperty(_View, 'meme', 'view', sizeof(Ptr), &Ptr);
-	
-		HIViewRef Par = NULL;
-		HIViewRef ViewRef = HIViewGetRoot(d->Wnd);
-		if (ViewRef)
-		{
-			e = HIViewFindByID(ViewRef, kHIViewWindowContentID, &Par);
-			if (e)
-			{
-				LgiTrace("%s:%i - HIViewFindByID(%p,%p) failed with '%i'.\n", _FL, Par, _View, e);
-				return false;
-			}
-		}
-		else
-		{
-			LgiTrace("%s:%i - HIViewGetRoot failed.\n", _FL);
-			return false;
-		}
-
-		if (Par)
-		{
-			// Attach the view to the parent view
-			e = HIViewAddSubview(Par, _View);
-			if (e) LgiTrace("%s:%i - HIViewAddSubview(%p,%p) failed with '%i' (name=%s).\n",
-							_FL, Par, _View, e, Name());
-			else
-			{
-				HIRect Rect = {{0, 0},{X(), Y()}};
-				HIViewSetFrame(_View, &Rect);
-
-				OSErr e = HIViewSetVisible(_View, true);
-				if (e) printf("%s:%i - SetControlVisibility failed %i\n", _FL, e);
-
-				OnCreate();
-				OnAttach();
-			}
-		}
-
-		return true;
-
-		#endif
-	
-	return false;
+	return GWindow::Attach(NULL);
 	
 	#else
 	
@@ -949,8 +816,7 @@ void GPopup::Visible(bool i)
 				#if WINNATIVE
 				SetStyle(WS_POPUP);
 				#endif
-				GViewI *p = GetParent();
-				/* GView:: */ Attach(p);
+				Attach(NULL);
 			}
 		#endif
 
@@ -980,10 +846,7 @@ void GPopup::Visible(bool i)
 	
 		#elif defined(MAC)
 	
-			if (i)
-				ShowWindow(d->Wnd);
-			else
-				HideWindow(d->Wnd);
+			GWindow::Visible(i);
 		
 		#else
 		

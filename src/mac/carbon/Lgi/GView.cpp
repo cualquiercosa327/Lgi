@@ -813,11 +813,13 @@ void GView::PointToScreen(GdcPt2 &p)
 
 void GView::PointToView(GdcPt2 &p)
 {
+Start:
 	GViewI *c = this;
 	int Ox = 0, Oy = 0;
+	GViewI *w = c->GetWindow();
 
 	// Find offset to window
-	while (c && c != c->GetWindow())
+	while (c && c != w)
 	{
 		// GView *gv = c->GetGView();
 		// GRect cli = gv ? gv->GView::GetClient(false) : c->GetClient(false);
@@ -843,6 +845,7 @@ void GView::PointToView(GdcPt2 &p)
 	else
 	{
 		printf("%s:%i - No window handle to map to view. c=%p\n", __FILE__, __LINE__, c);
+		goto Start;
 	}
 }
 
