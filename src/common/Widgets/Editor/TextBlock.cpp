@@ -1368,6 +1368,9 @@ bool GRichTextPriv::TextBlock::ChangeStyle(Transaction *Trans, int Offset, int C
 	if (Chars < 0)
 		Chars = Len;
 
+	if (Trans)
+		Trans->Add(new CompleteTextBlockState(d, this));
+
 	int CharPos = 0;
 	int RestyleEnd = Offset + Chars;
 	for (unsigned i=0; i<Txt.Length(); i++)

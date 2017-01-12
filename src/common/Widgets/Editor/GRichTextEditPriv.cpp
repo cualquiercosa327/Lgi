@@ -1224,6 +1224,7 @@ bool GRichTextPriv::ChangeSelectionStyle(GCss *Style, bool Add)
 	if (!Selection)
 		return false;
 
+	GAutoPtr<Transaction> Trans(new Transaction);
 	bool Cf = CursorFirst();
 	GRichTextPriv::BlockCursor *Start = Cf ? Cursor : Selection;
 	GRichTextPriv::BlockCursor *End = Cf ? Selection : Cursor;
@@ -1231,7 +1232,7 @@ bool GRichTextPriv::ChangeSelectionStyle(GCss *Style, bool Add)
 	{
 		// Change style in the same block...
 		int Len = End->Offset - Start->Offset;
-		if (!Start->Blk->ChangeStyle(NoTransaction, Start->Offset, Len, Style, Add))
+		if (!Start->Blk->ChangeStyle(Trans, Start->Offset, Len, Style, Add))
 			return false;
 	}
 	else
@@ -1239,7 +1240,7 @@ bool GRichTextPriv::ChangeSelectionStyle(GCss *Style, bool Add)
 		// Multi-block style change...
 
 		// 1) Change style on the content to the end of the first block
-		Start->Blk->ChangeStyle(NoTransaction, Start->Offset, -1, Style, Add);
+		Start->Blk->ChangeStyle(Trans, Start->Offset, -1, Style, Add);
 
 		// 2) Change style on blocks between 'Start' and 'End'
 		int i = Blocks.IndexOf(Start->Blk);
@@ -1248,7 +1249,7 @@ bool GRichTextPriv::ChangeSelectionStyle(GCss *Style, bool Add)
 			for (++i; Blocks[i] != End->Blk && i < (int)Blocks.Length(); i++)
 			{
 				GRichTextPriv::Block *&b = Blocks[i];
-				if (!b->ChangeStyle(NoTransaction, 0, -1, Style, Add))
+				if (!b->ChangeStyle(Trans, 0, -1, Style, Add))
 					return false;
 			}
 		}
@@ -1258,12 +1259,13 @@ bool GRichTextPriv::ChangeSelectionStyle(GCss *Style, bool Add)
 		}
 
 		// 3) Change style up to the Cursor in the 'End' block
-		if (!End->Blk->ChangeStyle(NoTransaction, 0, End->Offset, Style, Add))
+		if (!End->Blk->ChangeStyle(Trans, 0, End->Offset, Style, Add))
 			return false;
 	}
 
 	Cursor->Pos.ZOff(-1, -1);
 	InvalidateDoc(NULL);
+	AddTrans(Trans);
 	return true;
 }
 
@@ -1478,13 +1480,18 @@ bool GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 							*ns = *st.Last()->GetStyle();
 						ns->TextDecoration(GCss::TextDecorUnderline);
 						ns->Color(GCss::ColorDef(GCss::ColorRgb, GColour::Blue.c32()));
-						tb->ChangeStyle(NoTransaction, Off, Len, ns, true);
+						
+						GAutoPtr<Transaction> Trans(new Transaction);
+
+						tb->ChangeStyle(Trans, Off, Len, ns, true);
 
 						if (tb->GetTextAt(Off+1, st))
 						{
 							st.First()->Element = TAG_A;
 							st.First()->Param = i.Str;
 						}
+
+						AddTrans(Trans);
 					}
 				}
 			}
