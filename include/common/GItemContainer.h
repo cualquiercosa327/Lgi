@@ -27,6 +27,9 @@ public:
 		/// Current background colour (24bit)
 		GColour Back;
 		
+		// Horizontal alignment of content
+		GCss::Len Align;
+		
 		/// Number of columns
 		int Columns;
 		/// Width of each column
@@ -169,8 +172,9 @@ public:
 #define GLI_MARK_DOWN_ARROW			2
 
 /// Item container column
-class LgiClass GItemColumn
-	: public ResObject
+class LgiClass GItemColumn :
+	public ResObject,
+	public GCss
 {
 	class GItemColumnPrivate *d;
 	friend class GDragColumn;

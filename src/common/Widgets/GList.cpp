@@ -481,7 +481,19 @@ void GListItem::OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GItemColumn *c)
 					Ds->GetFont()->TabSize(0);
 					Ds->GetFont()->Transparent(false);
 					Ds->GetFont()->Colour(Ctx.Fore, Background);
-					Ds->Draw(pDC, Ctx.x1+1, Ctx.y1+1, &ng);
+					
+					switch (Ctx.Align.Type)
+					{
+						case GCss::AlignCenter:
+							Ds->Draw(pDC, ng.x1+((ng.X()-Ds->X())/2), ng.y1+1, &ng);
+							break;
+						case GCss::AlignRight:
+							Ds->Draw(pDC, ng.x2-Ds->X()-1, ng.y1+1, &ng);
+							break;
+						default: // Left or inherit
+							Ds->Draw(pDC, ng.x1+1, ng.y1+1, &ng);
+							break;
+					}
 				}
 				else
 				{
@@ -562,6 +574,7 @@ void GListItem::OnPaint(GItem::ItemPaintCtx &Ctx)
 			ColCtx.Set(x, Ctx.y1, Ctx.x2, Ctx.y2);
 		else
 			ColCtx.Set(x, Ctx.y1, x + c->Width()-1, Ctx.y2);
+		ColCtx.Align = c->TextAlign();
 		
 		OnPaintColumn(ColCtx, i, c);
 		if (h && i == h->GetColumn())
