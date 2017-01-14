@@ -478,10 +478,35 @@ void GMouseHook::UnregisterPopup(GPopup *p)
 	}
 }
 
-#ifdef WIN32
+#if defined(WIN32)
 LRESULT CALLBACK GMouseHook::MouseProc(int Code, WPARAM a, LPARAM b)
 {
 	return 0;
+}
+#elif defined(MAC)
+WindowRef CreateBorderlessWindow()
+{
+	Rect r = {0,0,100,100};
+	WindowRef wr;
+	OSStatus e = CreateNewWindow
+				(
+					kDocumentWindowClass,
+					(WindowAttributes)
+					(
+						kWindowStandardHandlerAttribute |
+						kWindowCompositingAttribute |
+						kWindowNoShadowAttribute |
+						kWindowNoTitleBarAttribute
+					),
+					&r,
+					&wr
+				);
+	if (e)
+	{
+		LgiTrace("%s:%i - Error: Creating popup window: %i\n", _FL, e);
+		return NULL;
+	}
+	return wr;
 }
 #endif
 
@@ -502,10 +527,16 @@ public:
 #endif
 
 GPopup::GPopup(GView *owner)
+	#ifdef MAC
+	: GWindow(CreateBorderlessWindow())
+	#endif
 {
 	d = new GPopupPrivate;
 	Start = 0;
 	Cancelled = false;
+	#ifdef _DEBUG
+	// _Debug = true;
+	#endif
 
     #ifdef __GTK_H__
     Wnd = NULL;
@@ -520,7 +551,9 @@ GPopup::GPopup(GView *owner)
 		Owner->PopupChild() = this;
 		#endif
 		
+		#ifndef MAC
 		_Window = Owner->GetWindow();
+		#endif
 		SetNotify(Owner);
 	}
 	
@@ -590,29 +623,6 @@ void GPopup::TakeFocus(bool Take)
 	d->TakeFocus = Take;
 }
 
-#if defined MAC
-bool GPopup::SetPos(GRect &p, bool Repaint)
-{
-	GdcPt2 o(0, 0);
-	if (GetWindow())
-        GetWindow()->PointToScreen(o);
-	GRect r = p;
-	r.Offset(-o.x, -o.y);
-	return GView::SetPos(r, Repaint);
-}
-
-GRect &GPopup::GetPos()
-{
-	static GRect p;
-	p = GView::GetPos();
-	GdcPt2 o(0, 0);
-	if (GetWindow())
-        GetWindow()->PointToScreen(o);
-	// p.Offset(o.x, o.y);
-	return p;
-}
-#endif
-
 #ifdef __GTK_H__
 gboolean PopupDestroy(GtkWidget *widget, GPopup *This)
 {
@@ -649,7 +659,7 @@ gboolean PopupEvent(GtkWidget *widget, GdkEvent *event, GPopup *This)
 		}
 		case GDK_EXPOSE:
 		{
-			GScreenDC s(This->Handle());
+			GScreenDC s(This);
 			This->OnPaint(&s);
 			break;
 		}
@@ -668,32 +678,7 @@ bool GPopup::Attach(GViewI *p)
 {
 	#if defined MAC && !defined(LGI_SDL)
 	
-		#if !defined COCOA
-		if (p)
-		{
-			GWindow *w = p->GetWindow();
-			if (w)
-			{
-				if (GView::Attach(w))
-				{
-					HIViewRef p = HIViewGetSuperview(_View);
-					HIViewRef f = HIViewGetFirstSubview(p);
-					if (f != _View)
-					{
-						HIViewSetZOrder(_View, kHIViewZOrderAbove, 	f);
-					}
-					
-					AttachChildren();
-					return true;
-				}
-				else LgiTrace("%s:%i - error\n", _FL);
-			}
-			else LgiTrace("%s:%i - error\n", _FL);
-		}
-		else LgiTrace("%s:%i - error\n", _FL);
-		#endif
-	
-	return false;
+	return GWindow::Attach(NULL);
 	
 	#else
 	
@@ -712,27 +697,18 @@ bool GPopup::Attach(GViewI *p)
 		
 		if (!Wnd)
 		{
-			#if 1
 		    Wnd = gtk_window_new(GTK_WINDOW_POPUP);
-		    #else
-		    Wnd = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-		    #endif
 		    
 		    gtk_window_set_decorated(GTK_WINDOW(Wnd), FALSE);
-		    // gtk_window_set_type_hint(GTK_WINDOW(Wnd), GDK_WINDOW_TYPE_HINT_COMBO);
     		gtk_widget_add_events(Wnd, GDK_ALL_EVENTS_MASK);
 
-			#if 1
 			GViewI *p = GetParent();
 			GtkWidget *toplevel = gtk_widget_get_toplevel(p->Handle());
 			if (GTK_IS_WINDOW(toplevel))
 				gtk_window_set_transient_for(GTK_WINDOW(Wnd), GTK_WINDOW(toplevel));
 			else
 				LgiTrace("%s:%i - toplevel isn't window?\n", _FL);
-			#endif
 
-            #if 1
-            // printf("Popup connect Wnd=%p, this=%p\n", GTK_WIDGET(Wnd), this);
             g_signal_connect(	G_OBJECT(Wnd),
 								"button-press-event",
 								G_CALLBACK(PopupEvent),
@@ -749,12 +725,6 @@ bool GPopup::Attach(GViewI *p)
 								"delete_event",
 								G_CALLBACK(PopupEvent),
 								this);
-			/*
-			g_signal_connect(	G_OBJECT(Wnd),
-								"destroy",
-								G_CALLBACK(PopupDestroy),
-								this);
-			*/
 			g_signal_connect(	G_OBJECT(Wnd),
 								"configure-event",
 								G_CALLBACK(PopupEvent),
@@ -767,7 +737,6 @@ bool GPopup::Attach(GViewI *p)
 								"client-event",
 								G_CALLBACK(PopupEvent),
 								this);
-			#endif
 		}
 
 		if (Wnd && Pos.Valid())
@@ -776,13 +745,11 @@ bool GPopup::Attach(GViewI *p)
 			gtk_window_move(GTK_WINDOW(Wnd), Pos.x1, Pos.y1);
 		}
 
-		#if 1
         if (!_View)
         {
 		    _View = lgi_widget_new(this, Pos.X(), Pos.Y(), true);
 		    gtk_container_add(GTK_CONTAINER(Wnd), _View);
 		}
-		#endif
 
 		#endif
 
@@ -804,150 +771,161 @@ bool GPopup::Attach(GViewI *p)
 void GPopup::Visible(bool i)
 {
 	bool HadFocus = false;
-	// bool Was = GView::Visible();
-
-
-	// printf("%s:%i - GPopup::Visible(%i)\n", _FL, i);
 
 	#if defined __GTK_H__
-	if (i && !Wnd)
-	{
-		if (!Attach(0))
-		{
-			printf("%s:%i - Attach failed.\n", _FL);
-		    return;
-		}
-	}
 	
-	GView::Visible(i);
-    if (Wnd)
-    {
-	    if (i)
-	    {
-	        gtk_widget_show_all(Wnd);
-			gtk_window_move(GTK_WINDOW(Wnd), Pos.x1, Pos.y1);
-			gtk_window_resize(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
-			// printf("%s:%i - Showing Wnd %s.\n", _FL, Pos.GetStr());
-	    }
-	    else
-	    {
-	        gtk_widget_hide(Wnd);
-			// printf("%s:%i - Hiding Wnd.\n", _FL);
-	    }
-	}
-	else printf("%s:%i - No Wnd.\n", _FL);
-	#else
-
-	#ifdef LGI_SDL
-		GWindow *TopWnd = LgiApp->AppWnd;
-		if (i && TopWnd)
+		if (i && !Wnd)
 		{
-			if (!TopWnd->HasView(this))
-				TopWnd->AddView(this);
+			if (!Attach(0))
+			{
+				printf("%s:%i - Attach failed.\n", _FL);
+			    return;
+			}
 		}
-	#else
-		if (!Handle() && i)
-		{
-			#if WINNATIVE
-			SetStyle(WS_POPUP);
-			#endif
-			GView::Attach(0);
-		}
-	#endif
-
-	if (!_Window && Owner)
-	{
-		_Window = Owner->GetWindow();
-	}
-	
-	AttachChildren();
-
-	#ifdef WINNATIVE
-	// See if we or a child window has the focus...
-	for (HWND hWnd = GetFocus(); hWnd; hWnd = ::GetParent(hWnd))
-	{
-		if (hWnd == Handle())
-		{
-			HadFocus = true;
-			break;
-		}
-	}
-	
-	// LgiTrace("%s HasFocus=%i\n", GetClass(), HadFocus);
-	
-	if (d->TakeFocus || !i)
+		
 		GView::Visible(i);
-	else
-		ShowWindow(Handle(), SW_SHOWNA);
+	    if (Wnd)
+	    {
+		    if (i)
+		    {
+		        gtk_widget_show_all(Wnd);
+				gtk_window_move(GTK_WINDOW(Wnd), Pos.x1, Pos.y1);
+				gtk_window_resize(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
+				// printf("%s:%i - Showing Wnd %s.\n", _FL, Pos.GetStr());
+		    }
+		    else
+		    {
+		        gtk_widget_hide(Wnd);
+				// printf("%s:%i - Hiding Wnd.\n", _FL);
+		    }
+		}
+		else printf("%s:%i - No Wnd.\n", _FL);
+		
 	#else
-	HadFocus = Focus();
-	GView::Visible(i);
-	#endif
+
+		#ifdef LGI_SDL
+			GWindow *TopWnd = LgiApp->AppWnd;
+			if (i && TopWnd)
+			{
+				if (!TopWnd->HasView(this))
+					TopWnd->AddView(this);
+			}
+		#else
+			if (!Handle() && i)
+			{
+				#if WINNATIVE
+				SetStyle(WS_POPUP);
+				#endif
+				Attach(NULL);
+			}
+		#endif
+
+		if (!_Window && Owner)
+		{
+			_Window = Owner->GetWindow();
+		}
+		
+		AttachChildren();
+
+		#ifdef WINNATIVE
+		
+			// See if we or a child window has the focus...
+			for (HWND hWnd = GetFocus(); hWnd; hWnd = ::GetParent(hWnd))
+			{
+				if (hWnd == Handle())
+				{
+					HadFocus = true;
+					break;
+				}
+			}
+			
+			if (d->TakeFocus || !i)
+				GView::Visible(i);
+			else
+				ShowWindow(Handle(), SW_SHOWNA);
+	
+		#elif defined(MAC)
+	
+			GWindow::Visible(i);
+		
+		#else
+		
+			HadFocus = Focus();
+			GView::Visible(i);
+	
+		#endif
+
 	#endif
 	
 	#if 1
-	if (i)
-	{
-		Start = LgiCurrentTime();
-
-		GMouseHook *Hook = LgiApp->GetMouseHook();
-		if (Hook)
-			Hook->RegisterPopup(this);
-
-		if (!_Window)
+	
+		if (i)
 		{
-			if (Owner)
+			Start = LgiCurrentTime();
+
+			GMouseHook *Hook = LgiApp->GetMouseHook();
+			if (Hook)
+				Hook->RegisterPopup(this);
+
+			if (!_Window)
 			{
-				_Window = Owner->GetWindow();
-			}
-			else if (GetParent())
-			{
-				_Window = GetParent()->GetWindow();
+				if (Owner)
+				{
+					_Window = Owner->GetWindow();
+				}
+				else if (GetParent())
+				{
+					_Window = GetParent()->GetWindow();
+				}
 			}
 		}
-	}
-	else
-	{
-		GMouseHook *Hook = LgiApp->GetMouseHook();
-		if (Hook)
-			Hook->UnregisterPopup(this);
-
-		SendNotify(POPUP_HIDE);
-
-		/*
-		#if WINNATIVE
-		// This is required to re-focus the owner.
-		// If the popup or a child window gets focus at some point. The
-		// owner doesn't get focus when we close... weird I know.
-		if (Owner && HadFocus)
+		else
 		{
-			LgiTrace("%s Setting owner focus %s\n", GetClass(), Owner->GetClass());
-			Owner->Focus(true);
+			GMouseHook *Hook = LgiApp->GetMouseHook();
+			if (Hook)
+				Hook->UnregisterPopup(this);
+
+			SendNotify(POPUP_HIDE);
+
+			/*
+			#if WINNATIVE
+			// This is required to re-focus the owner.
+			// If the popup or a child window gets focus at some point. The
+			// owner doesn't get focus when we close... weird I know.
+			if (Owner && HadFocus)
+			{
+				LgiTrace("%s Setting owner focus %s\n", GetClass(), Owner->GetClass());
+				Owner->Focus(true);
+			}
+			#endif
+			*/
 		}
-		#endif
-		*/
-	}
+		
 	#endif
 
 	#ifdef LGI_SDL
-	if (TopWnd)
-		TopWnd->Invalidate();
+
+		if (TopWnd)
+			TopWnd->Invalidate();
+
 	#endif
 }
 
 bool GPopup::Visible()
 {
     #if defined __GTK_H__
-    if (Wnd)
-    {
-		GView::Visible(
-						#if GtkVer(2, 18)
-						gtk_widget_get_visible(Wnd)
-						#else
-						(GTK_OBJECT_FLAGS (Wnd) & GTK_VISIBLE) != 0
-						#endif
-						);
-    }
+    
+	    if (Wnd)
+	    {
+			GView::Visible(
+							#if GtkVer(2, 18)
+							gtk_widget_get_visible(Wnd)
+							#else
+							(GTK_OBJECT_FLAGS (Wnd) & GTK_VISIBLE) != 0
+							#endif
+							);
+	    }
+	    
     #endif
 
 	return GView::Visible();

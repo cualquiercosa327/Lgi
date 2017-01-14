@@ -1234,8 +1234,8 @@ char16 *GHtmlParser::CleanText(const char *s, int Len, bool ConversionAllowed, b
 		}
 		else
 		{
-			const char *ViewCs = View ? View->GetCharset() : DefaultCs;
-			t = (char16*) LgiNewConvertCp(LGI_WideCharset, s, ViewCs, Len);
+			const char *ViewCs = View ? View->GetCharset() : NULL;
+			t = (char16*) LgiNewConvertCp(LGI_WideCharset, s, ViewCs?ViewCs:DefaultCs, Len);
 		}
 
 		if (t && ConversionAllowed)

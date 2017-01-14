@@ -55,6 +55,17 @@ const char *GCss::PropName(PropType p)
 	return 0;
 }
 
+double GCss::FontSizeTable[7] =
+{
+	0.6, // SizeXXSmall
+	0.75, // SizeXSmall
+	0.85, // SizeSmall
+	1.0, // SizeMedium
+	1.2, // SizeLarge
+	1.5, // SizeXLarge
+	2.0, // SizeXXLarge
+};
+
 /////////////////////////////////////////////////////////////////////////////
 static bool ParseWord(const char *&s, const char *word)
 {
@@ -989,6 +1000,9 @@ bool GCss::InheritResolve(PropMap &Contrib)
 			                }
 			                case LenPercent:
 			                {
+								if (Cur->Value == 100)
+									break;
+
 			                    switch (Mine->Type)
 			                    {
 			                        case LenPt:
@@ -1001,6 +1015,25 @@ bool GCss::InheritResolve(PropMap &Contrib)
 			                            Mine->Value *= Cur->Value / 100;
 			                            break;
 			                        }
+									case SizeXXSmall:
+									case SizeXSmall:
+									case SizeSmall:
+									case SizeMedium:
+									case SizeLarge:
+									case SizeXLarge:
+									case SizeXXLarge:
+									{
+										int Idx = (int)Mine->Type - SizeXXSmall;
+										if (Idx >= 0 && Idx < CountOf(FontSizeTable))
+										{
+											double Sz = FontSizeTable[Idx];
+											double NewSz = Sz * Cur->Value / 100;
+											Mine->Value = NewSz;
+											Mine->Type = LenEm;
+										}
+										else LgiAssert(0);										
+										break;
+									}
 			                        default:
 			                        {
 			                            LgiAssert(!"Not impl");
@@ -1029,10 +1062,21 @@ bool GCss::InheritResolve(PropMap &Contrib)
     return false;
 }
 
+GCss &GCss::operator -=(const GCss &c)
+{
+	// Removes all props in 'cc' from this Css store...
+	int Prop;
+	GCss &cc = (GCss&)c;
+	for (void *p=cc.Props.First(&Prop); p; p=cc.Props.Next(&Prop))
+	{
+		DeleteProp((PropType)Prop);
+	}
+
+	return *this;
+}
+
 bool GCss::CopyStyle(const GCss &c)
 {
-	Empty();
-
 	int Prop;
 	GCss &cc = (GCss&)c;
 	for (void *p=cc.Props.First(&Prop); p; p=cc.Props.Next(&Prop))
@@ -1042,7 +1086,8 @@ bool GCss::CopyStyle(const GCss &c)
 			#define CopyProp(TypeId, Type) \
 				case TypeId: \
 				{ \
-					Type *n = new Type; \
+					Type *n = (Type*)Props.Find(Prop); \
+					if (!n) n = new Type; \
 					*n = *(Type*)p; \
 					Props.Add(Prop, n); \
 					break; \

@@ -15,7 +15,6 @@
 #include "Lgi.h"
 #include "GSkinEngine.h"
 #include "GList.h"
-#include "GEdit.h"
 #include "GScrollBar.h"
 #include "GDisplayString.h"
 #include "LgiRes.h"
@@ -66,13 +65,9 @@ public:
 	int KeyLast;
 	char16 *KeyBuf;
 	
-	// Editing label
-	GView *Edit;
-	
 	// Class
 	GListPrivate()
 	{
-		Edit = 0;
 		DragData = 0;
 		KeyBuf = 0;
 		DeleteFlag = 0;
@@ -84,11 +79,8 @@ public:
 	
 	~GListPrivate()
 	{
-		DeleteObj(Edit);
 		if (DeleteFlag)
-		{
 			*DeleteFlag = true;
-		}
 		DeleteArray(KeyBuf);
 	}
 };
@@ -101,12 +93,10 @@ public:
 	List<GListItemColumn> Cols;
 	GArray<char*> Str;
 	GArray<GDisplayString*> Display;
-	int SelectionStart, SelectionEnd;
 	int16 LayoutColumn;
 
 	GListItemPrivate()
 	{
-		SelectionStart = SelectionEnd = -1;
 		Selected = 0;
 		ListItem_Image = -1;
 		LayoutColumn = -1;
@@ -137,255 +127,6 @@ public:
 		Display.Length(0);
 	}
 };
-
-////////////////////////////////////////////////////////////////////////////////////////////
-#define M_END_POPUP			(M_USER+0x1500)
-#define M_LOSING_FOCUS		(M_USER+0x1501)
-
-class GItemEditBox : public GEdit
-{
-	GItemEdit *ItemEdit;
-
-public:
-	GItemEditBox(GItemEdit *i, int x, int y, char *s) : GEdit(100, 1, 1, x-3, y-3, s)
-	{
-		ItemEdit = i;
-		Sunken(false);
-		
-		#ifndef LINUX
-		SetPos(GetPos());
-		#endif
-	}
-
-	void OnCreate()
-	{
-		GEdit::OnCreate();
-		Focus(true);
-	}
-
-	void OnFocus(bool f)
-	{
-		if (!f && GetParent())
-		{
-			#if DEBUG_EDIT_LABEL
-			LgiTrace("%s:%i - GItemEditBox posting M_LOSING_FOCUS\n", _FL);
-			#endif
-			GetParent()->PostEvent(M_LOSING_FOCUS);
-		}
-		
-		GEdit::OnFocus(f);
-	}
-
-	bool OnKey(GKey &k)
-	{
-		if (k.c16 == VK_RETURN ||
-			k.c16 == VK_ESCAPE)
-		{
-			if (k.Down())
-			{			
-				ItemEdit->OnNotify(this, k.c16);
-			}
-			
-			return true;
-		}
-		
-		return GEdit::OnKey(k);
-	}
-};
-
-class GItemEditPrivate
-{
-public:
-	GItem *Item;
-	GEdit *Edit;
-	int Index;
-	bool Esc;
-
-	GItemEditPrivate()
-	{
-		Esc = false;
-		Item = 0;
-		Index = 0;
-	}
-};
-
-GItemEdit::GItemEdit(GView *parent, GItem *item, int index, int SelStart, int SelEnd)
-	: GPopup(parent)
-{
-	d = new GItemEditPrivate;
-	d->Item = item;
-	d->Index = index;
-
-	_BorderSize = 0;
-	Sunken(false);
-	Raised(false);
-	
-	#if DEBUG_EDIT_LABEL
-	LgiTrace("%s:%i - GItemEdit(%p/%s, %i, %i, %i)\n",
-		_FL,
-		parent, parent?parent->GetClass():0,
-		index,
-		SelStart, SelEnd);
-	#endif
-	
-	GdcPt2 p;
-	SetParent(parent);
-	GetParent()->PointToScreen(p);
-
-	GRect r = d->Item->GetPos(d->Index);
-    #ifndef WINDOWS
-	r.Offset(p.x, p.y);
-    #else
-	r.Offset(p.x-1, p.y);
-    #endif
-	r.y2 += 2;
-
-	if (Attach(parent))
-	{
-        SetPos(r);
-
-		d->Edit = new GItemEditBox(this, r.X(), r.Y(), d->Item->GetText(d->Index));
-		if (d->Edit)
-		{
-			d->Edit->Attach(this);
-			d->Edit->Focus(true);
-			
-			if (SelStart >= 0)
-			{
-				d->Edit->Select(SelStart, SelEnd-SelStart+1);
-			}
-		}
-
-		Visible(true);
-	}
-}
-
-GItemEdit::~GItemEdit()
-{
-	if (d->Item)
-	{
-		if (d->Edit && !d->Esc)
-		{
-			char *Str = d->Edit->Name();
-			#if DEBUG_EDIT_LABEL
-			LgiTrace("%s:%i - ~GItemEdit, updating item(%i) with '%s'\n", _FL,
-				d->Index, Str);
-			#endif
-
-			d->Item->SetText(Str, d->Index);
-			d->Item->Update();
-		}
-		#if DEBUG_EDIT_LABEL
-		else LgiTrace("%s:%i - Edit=%p Esc=%i\n", _FL, d->Edit, d->Esc);
-		#endif
-
-		d->Item->OnEditLabelEnd();
-	}
-	#if DEBUG_EDIT_LABEL
-	else LgiTrace("%s:%i - Error: No item?\n", _FL);
-	#endif
-		
-	DeleteObj(d);
-}
-
-void GItemEdit::OnPaint(GSurface *pDC)
-{
-	pDC->Colour(LC_BLACK, 24);
-	pDC->Rectangle();
-}
-
-int GItemEdit::OnNotify(GViewI *v, int f)
-{
-	switch (v->GetId())
-	{
-		case 100:
-		{
-			if (f == VK_ESCAPE)
-			{
-				d->Esc = true;
-				#if DEBUG_EDIT_LABEL
-				LgiTrace("%s:%i - GItemEdit got escape\n", _FL);
-				#endif
-			}
-
-			if (f == VK_ESCAPE || f == VK_RETURN)
-			{
-				#if DEBUG_EDIT_LABEL
-				LgiTrace("%s:%i - GItemEdit hiding on esc/enter\n", _FL);
-				#endif
-				Visible(false);
-			}
-
-			break;
-		}
-	}
-
-	return 0;
-}
-
-void GItemEdit::Visible(bool i)
-{
-	GPopup::Visible(i);
-	if (!i)
-	{
-		#if DEBUG_EDIT_LABEL
-		LgiTrace("%s:%i - GItemEdit posting M_END_POPUP\n", _FL);
-		#endif
-		PostEvent(M_END_POPUP);
-	}
-}
-
-bool GItemEdit::OnKey(GKey &k)
-{
-	if (d->Edit)
-		return d->Edit->OnKey(k);
-	return false;
-}
-
-void GItemEdit::OnFocus(bool f)
-{
-	if (f && d->Edit)
-		d->Edit->Focus(true);
-}
-
-GMessage::Result GItemEdit::OnEvent(GMessage *Msg)
-{
-	switch (Msg->Msg())
-	{
-		case M_LOSING_FOCUS:
-		{
-			#if DEBUG_EDIT_LABEL
-			LgiTrace("%s:%i - GItemEdit get M_LOSING_FOCUS\n", _FL);
-			#endif
-
-			// One of us has to retain focus... don't care which control.
-			if (Focus() || d->Edit->Focus())
-				break;
-
-			// else fall thru to end the popup
-			#if DEBUG_EDIT_LABEL
-			LgiTrace("%s:%i - GItemEdit falling thru to M_END_POPUP\n", _FL);
-			#endif
-		}
-		case M_END_POPUP:
-		{
-			#if DEBUG_EDIT_LABEL
-			LgiTrace("%s:%i - GItemEdit got M_END_POPUP, quiting\n", _FL);
-			#endif
-			
-			if (d->Item &&
-				d->Item->GetContainer())
-			{
-				d->Item->GetContainer()->Focus(true);
-			}
-			
-			Quit();
-			return 0;
-		}
-	}
-
-	return GPopup::OnEvent(Msg);
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 GListItemColumn::GListItemColumn(GListItem *item, int col)
@@ -455,14 +196,6 @@ GListItem::~GListItem()
 	DeleteObj(d);
 }
 
-void GListItem::OnEditLabelEnd()
-{
-	if (Parent)
-	{
-		Parent->d->Edit = 0;
-	}
-}
-
 void GListItem::SetImage(int i)
 {
 	d->ListItem_Image = i;
@@ -512,30 +245,6 @@ char *GListItem::GetText(int i)
 bool GListItem::Select()
 {
 	return d->Selected;
-}
-
-void GListItem::SetEditLabelSelection(int SelStart, int SelEnd)
-{
-	d->SelectionStart = SelStart;
-	d->SelectionEnd = SelEnd;
-}
-
-GView *GListItem::EditLabel(int Col)
-{
-	GetList()->Capture(false);
-
-	if (Parent)
-	{
-		if (!Parent->d->Edit)
-		{
-			Parent->d->Edit = new GItemEdit(Parent, this, Col, d->SelectionStart, d->SelectionEnd);
-			d->SelectionStart = d->SelectionEnd = -1;
-		}
-
-		return Parent->d->Edit;
-	}
-
-	return 0;	
 }
 
 GRect *GListItem::GetPos(int Col)
@@ -912,8 +621,6 @@ GList::GList(int id, int x, int y, int cx, int cy, const char *name)
 GList::~GList()
 {
 	DeleteObj(Buf);
-	DeleteObj(d->Edit);
-
 	Empty();
 	EmptyColumns();
 	DeleteObj(d);
@@ -1735,8 +1442,10 @@ void GList::OnMouseClick(GMouse &m)
 						SendNotify(GNotifyItem_ContextMenu);
 					else if (m.Double())
 						SendNotify(GNotifyItem_DoubleClick);
-					else
+					else if (Item)
 						SendNotify(GNotifyItem_Click);
+					else
+						SendNotify(GNotifyContainer_Click);
 				}
 			}
 		}
@@ -2108,9 +1817,9 @@ void GList::OnMouseMove(GMouse &m)
 						(abs(d->DragStart.x-m.x) > DRAG_THRESHOLD ||
 						abs(d->DragStart.y-m.y) > DRAG_THRESHOLD))
 					{
+						Capture(false);
 						OnItemBeginDrag(Cur, m);
 						DragMode = DRAG_NONE;
-						Capture(false);
 					}
 				}
 				break;

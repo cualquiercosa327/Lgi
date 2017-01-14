@@ -188,7 +188,7 @@ public:
 		typedef NativeInt Result;
 	#endif
 
-	#if !defined(LINUX) && !defined(LGI_SDL)
+	#if !defined(__GTK_H__) && !defined(LGI_SDL)
 		int m;
 	#endif
 	#if defined(LGI_SDL)
@@ -206,7 +206,7 @@ public:
 		HWND hWnd;
 		WPARAM a;
 		LPARAM b;
-	#elif !defined(LINUX)
+	#elif !defined(__GTK_H__)
 		Param a;
 		Param b;
 	#endif
@@ -262,7 +262,7 @@ public:
 		Set(M, A, B);
 	}
 	
-	#if defined(LINUX) || defined(LGI_SDL)
+	#if defined(__GTK_H__) || defined(LGI_SDL)
 		int Msg();
 		Param A();
 		Param B();

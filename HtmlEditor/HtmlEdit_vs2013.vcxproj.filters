@@ -24,6 +24,9 @@
     <Filter Include="Controls\Html\Editor">
       <UniqueIdentifier>{709ef9b9-cc52-4d5a-8579-25db2a246210}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Controls\RichTextEdit\Emoji">
+      <UniqueIdentifier>{62a1d4c6-9ce5-466d-a6a2-65e26f62c288}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Rich.cpp">
@@ -56,6 +59,18 @@
     <ClCompile Include="..\src\common\Widgets\Editor\TextBlock.cpp">
       <Filter>Controls\RichTextEdit</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\common\Widgets\Editor\GRichTextEditPriv.cpp">
+      <Filter>Controls\RichTextEdit</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Text\Emoji\EmojiMap.cpp">
+      <Filter>Controls\RichTextEdit\Emoji</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Text\Emoji\EmojiTools.cpp">
+      <Filter>Controls\RichTextEdit\Emoji</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Gdc2\Filters\Png.cpp">
+      <Filter>Lgi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
@@ -72,6 +87,9 @@
     </ClInclude>
     <ClInclude Include="..\src\common\Widgets\Editor\GRichTextEditPriv.h">
       <Filter>Controls\RichTextEdit</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\common\Emoji.h">
+      <Filter>Controls\RichTextEdit\Emoji</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

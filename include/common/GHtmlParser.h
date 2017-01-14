@@ -35,6 +35,10 @@ public:
 		View = view;
 	}
 
+	// Props
+	GDocView *GetView() { return View; }
+	void SetView(GDocView *v) { View = v; }
+
 	// Main entry point
 	bool Parse(GHtmlElement *Root, const char *Doc);
 	

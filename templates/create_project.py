@@ -45,29 +45,29 @@ def process_folder(out_folder, in_folder, vars):
 			child_out = os.path.join(out_folder, process(f, vars))
 			process_folder(child_out, in_path, vars)
 		else:
-			# print "in_path:", in_path
+			# print("in_path:", in_path)
 			out_path = os.path.abspath(os.path.join(out_folder, process(f, vars)))
-			# print "out_path:", out_path
+			# print("out_path:", out_path)
 
 			in_data = open(in_path, "r").read()
 			out_data = process(in_data, vars)
 			open(out_path, "w").write(out_data)
-			print "Wrote:", out_path
+			print("Wrote:", out_path)
 	
 
 if len(sys.argv) < 2:
-	print "Usage:", os.path.basename(sys.argv[0]), " <template_path> [<project_name>]"
+	print("Usage:", os.path.basename(sys.argv[0]), " <template_path> [<project_name>]")
 	sys.exit(-1)
 
 template_path = sys.argv[1]
 if not os.path.exists(template_path):
-	print "Error: The path '"+template_path+"' doesn't exist."
+	print("Error: The path '"+template_path+"' doesn't exist.")
 	sys.exit(-1)
 
 if 1:
 	dest_path = os.path.abspath(os.path.join(sys.argv[0], ".."))
-	print "dest_path:", dest_path
-	print "template_path:", template_path
+	print("dest_path:", dest_path)
+	print("template_path:", template_path)
 
 	# set up the variables
 	vars = dict()
@@ -77,7 +77,7 @@ if 1:
 	for i in range(len(parts)):
 		r = (".." + os.sep) * i
 		t = os.path.abspath(os.path.join(template_path, r, "Lgi", "trunk", "lgi_vc9.sln"))
-		# print i, t
+		# print(i, t)
 		if os.path.exists(t):
 			lgi = os.path.abspath(os.path.join(template_path, r, "Lgi", "trunk"))
 			rel = os.path.relpath(lgi, dest_path)
@@ -85,24 +85,24 @@ if 1:
 				vars["lgi.folder"] = rel
 			else:
 				vars["lgi.folder"] = lgi
-			print "Lgi:", vars["lgi.folder"]
+			print("Lgi:", vars["lgi.folder"])
 			break
 
 	if "lgi.folder" not in vars:
-		print "Error: The LGI path wasn't found."
+		print("Error: The LGI path wasn't found.")
 		raw_input("Wait")
 		sys.exit(-1)
 
 	if len(sys.argv) > 2:
 		proj_name = sys.argv[2]
-		print "Project name:", proj_name
+		print("Project name:", proj_name)
 	else:
-		proj_name = raw_input("Project name: ")
+		proj_name = input("Project name: ")
 	vars["name"] = proj_name
 
 	process_folder(dest_path, template_path, vars)
 
 
 #except:
-#	print "Unexpected error:", sys.exc_info()[0]
-# raw_input("Wait")
+#	print("Unexpected error:", sys.exc_info()[0])
+# input("Wait")

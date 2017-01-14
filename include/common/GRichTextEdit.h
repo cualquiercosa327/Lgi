@@ -8,6 +8,10 @@
 #include "GDocView.h"
 #include "GUndo.h"
 #include "GDragAndDrop.h"
+#include "GCapabilities.h"
+#if _DEBUG
+#include "GTree.h"
+#endif
 
 extern char Delimiters[];
 
@@ -19,7 +23,8 @@ class
 	GRichTextEdit :
 	public GDocView,
 	public ResObject,
-	public GDragDropTarget
+	public GDragDropTarget,
+	public GCapabilityTarget
 {
 	friend bool RichText_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User);
 
@@ -29,13 +34,15 @@ public:
 		PrevLine,
 		NextLine,
 		StartLine,
- 		EndLine
+		EndLine
 	};
 
 protected:
 	class GRichTextPriv *d;
 	friend class GRichTextPriv;
 
+	bool IndexAt(int x, int y, int &Off, int &LineHint);
+	
 	// Overridables
 	virtual void PourText(int Start, int Length);
 	virtual void PourStyle(int Start, int Length);
@@ -63,9 +70,11 @@ public:
 	void Value(int64 i);
 	const char *GetMimeType() { return "text/html"; }
 	int GetSize();
+	const char *GetCharset();
+	void SetCharset(const char *s);
 
-	int HitText(int x, int y);
-	void DeleteSelection(char16 **Cut = 0);
+	int HitTest(int x, int y);
+	bool DeleteSelection(char16 **Cut = 0);
 
 	// Font
 	GFont *GetFont();
@@ -82,6 +91,8 @@ public:
 	{
 		ContentArea,
 		ToolsArea,
+		CapabilityArea,
+		CapabilityBtn,
 
 		FontFamilyBtn,
 		FontSizeBtn,
@@ -92,6 +103,12 @@ public:
 		
 		ForegroundColourBtn,
 		BackgroundColourBtn,
+
+		MakeLinkBtn,
+		RemoveLinkBtn,
+		RemoveStyleBtn,
+	
+		EmojiBtn,
 		
 		MaxArea
 	};
@@ -110,10 +127,11 @@ public:
 	void SelectWord(int From);
 	void SelectAll();
 	int GetCursor(bool Cursor = true);
-	void PositionAt(int &x, int &y, int Index = -1);
+	bool GetLineColumnAtIndex(GdcPt2 &Pt, int Index = -1);
 	int GetLines();
 	void GetTextExtent(int &x, int &y);
 	char *GetSelection();
+	void SetStylePrefix(GString s);
 
 	// File IO
 	bool Open(const char *Name, const char *Cs = 0);
@@ -147,14 +165,19 @@ public:
 	void OnAddStyle(const char *MimeType, const char *Styles);
 
 	// Object Events
-	bool OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly);
-	bool OnReplace(char16 *Find, char16 *Replace, bool All, bool MatchWord, bool MatchCase, bool SelectionOnly);
+	bool OnFind(GFindReplaceCommon *Params);
+	bool OnReplace(GFindReplaceCommon *Params);
 	bool OnMultiLineTab(bool In);
 	void OnSetHidden(int Hidden);
 	void OnPosChange();
 	void OnCreate();
 	void OnEscape(GKey &K);
 	bool OnMouseWheel(double Lines);
+
+	// Capability target stuff
+	bool NeedsCapability(const char *Name, const char *Param);
+	void OnInstall(CapsHash *Caps, bool Status);
+	void OnCloseInstaller();
 
 	// Window Events
 	void OnFocus(bool f);
@@ -176,6 +199,10 @@ public:
 	virtual void OnEnter(GKey &k);
 	virtual void OnUrl(char *Url);
 	virtual void DoContextMenu(GMouse &m);
+
+	#if _DEBUG
+	void DumpNodes(GTree *Root);
+	#endif
 };
 
 #endif

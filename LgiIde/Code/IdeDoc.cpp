@@ -14,6 +14,7 @@
 #include "GPopupList.h"
 #include "GTableLayout.h"
 #include "ProjectNode.h"
+#include "GEventTargetThread.h"
 
 const char *Untitled = "[untitled]";
 static const char *White = " \r\t\n";
@@ -367,79 +368,73 @@ void EditTray::OnFunctionList(GMouse &m)
 	GArray<DefnInfo> Funcs;
 	if (BuildDefnList(Doc->GetFileName(), Ctrl->NameW(), Funcs, DefnNone /*DefnFunc | DefnClass*/))
 	{
-		GSubMenu *s = new GSubMenu;
-		if (s)
+		GSubMenu s;
+		GArray<DefnInfo*> a;					
+		int n=1;
+
+		int ScreenHt = GdcD->Y();
+		int ScreenLines = ScreenHt / SysFont->GetHeight();
+		float Ratio = ScreenHt ? (float)(SysFont->GetHeight() * Funcs.Length()) / ScreenHt : 0.0f;
+		bool UseSubMenus = Ratio > 0.9f;
+		int Buckets = UseSubMenus ? ScreenLines * 0.75 : 1;
+		int BucketSize = max(5, Funcs.Length() / Buckets);
+		GSubMenu *Cur = NULL;
+		
+		for (unsigned n=0; n<Funcs.Length(); n++)
 		{
-			GArray<DefnInfo*> a;					
-			int n=1;
-
-			int ScreenHt = GdcD->Y();
-			int ScreenLines = ScreenHt / SysFont->GetHeight();
-			float Ratio = ScreenHt ? (float)(SysFont->GetHeight() * Funcs.Length()) / ScreenHt : 0.0f;
-			bool UseSubMenus = Ratio > 0.9f;
-			int Buckets = UseSubMenus ? ScreenLines * 0.75 : 1;
-			int BucketSize = max(5, Funcs.Length() / Buckets);
-			GSubMenu *Cur = NULL;
+			DefnInfo *i = &Funcs[n];
+			char Buf[256], *o = Buf;
 			
-			for (unsigned n=0; n<Funcs.Length(); n++)
+			if (i->Type != DefnEnumValue)
 			{
-				DefnInfo *i = &Funcs[n];
-				char Buf[256], *o = Buf;
-				
-				if (i->Type != DefnEnumValue)
+				for (char *k = i->Name; *k && o < Buf+sizeof(Buf)-8; k++)
 				{
-					for (char *k = i->Name; *k; k++)
+					if (*k == '&')
 					{
-						if (*k == '&')
-						{
-							*o++ = '&';
-							*o++ = '&';
-						}
-						else if (*k == '\t')
-						{
-							*o++ = ' ';
-						}
-						else
-						{
-							*o++ = *k;
-						}
+						*o++ = '&';
+						*o++ = '&';
 					}
-					*o++ = 0;
-					
-					a[n] = i;
-
-					if (UseSubMenus)
+					else if (*k == '\t')
 					{
-						if (!Cur || n % BucketSize == 0)
-						{
-							GString SubMsg;
-							SubMsg.Printf("%s...", Buf);
-							Cur = s->AppendSub(SubMsg);
-						}
-						if (Cur)
-							Cur->AppendItem(Buf, n + 1, true);
+						*o++ = ' ';
 					}
 					else
 					{
-						s->AppendItem(Buf, n+1, true);
+						*o++ = *k;
 					}
 				}
-			}
-			
-			GdcPt2 p(m.x, m.y);
-			PointToScreen(p);
-			int Goto = s->Float(this, p.x, p.y, true);
-			if (Goto)
-			{
-				printf("Goto=%i\n", Goto);
-				DefnInfo *Info = a[Goto-1];
-				if (Info)
+				*o++ = 0;
+				
+				a[n] = i;
+
+				if (UseSubMenus)
 				{
-					Ctrl->SetLine(Info->Line);
+					if (!Cur || n % BucketSize == 0)
+					{
+						GString SubMsg;
+						SubMsg.Printf("%s...", Buf);
+						Cur = s.AppendSub(SubMsg);
+					}
+					if (Cur)
+						Cur->AppendItem(Buf, n+1, true);
+				}
+				else
+				{
+					s.AppendItem(Buf, n+1, true);
 				}
 			}
-			
-			DeleteObj(s);
+		}
+		
+		GdcPt2 p(m.x, m.y);
+		PointToScreen(p);
+		int Goto = s.Float(this, p.x, p.y, true);
+		if (Goto)
+		{
+			DefnInfo *Info = a[Goto-1];
+			if (Info)
+			{
+				Ctrl->SetLine(Info->Line);
+			}
 		}
 	}
 	else
@@ -577,6 +572,7 @@ public:
 	AppWnd *App;
 	IdeProject *Project;
 	bool IsDirty;
+	GDateTime ModTs;
 	class DocEdit *Edit;
 	EditTray *Tray;
 	GHashTbl<int, bool> BreakPoints;
@@ -594,6 +590,23 @@ public:
 	bool Load();
 	bool Save();
 	void OnSaveComplete(bool Status);
+
+	GDateTime GetModTime()
+	{
+		GDateTime Ts;
+
+		GString Full = nSrc ? nSrc->GetFullPath() : FileName;
+		if (Full)
+		{
+			GDirectory Dir;
+			if (Dir.First(Full, NULL))
+				Ts.Set(Dir.GetLastWriteTime());
+		}
+
+		return Ts;
+	}
+
+	void CheckModTime();
 };
 
 class ProjMethodPopup : public GPopupList<DefnInfo>
@@ -825,6 +838,23 @@ public:
 	}
 };
 
+class GStyleThread : public GEventTargetThread
+{
+public:
+	GStyleThread() : GEventTargetThread("StyleThread")
+	{
+	}
+	
+	GMessage::Result OnEvent(GMessage *Msg)
+	{
+		switch (Msg->Msg())
+		{
+		}
+		
+		return 0;
+	}	
+}	StyleThread;
+
 class DocEdit : public GTextView3, public GDocumentEnv
 {
 	IdeDoc *Doc;
@@ -862,6 +892,7 @@ public:
 	DocEdit(IdeDoc *d, GFontType *f) : GTextView3(IDC_EDIT, 0, 0, 100, 100, f)
 	{
 		FileType = SrcUnknown;
+		ZeroObj(HasKeyword);
 		Doc = d;
 		CurLine = -1;
 		if (!GlobalFindReplace)
@@ -958,6 +989,7 @@ public:
 			int PadPx = GetTopPaddingPx();
 			GRect r = Ln->r;
 			r.Offset(0, -ScrollYPixel() + PadPx);
+			// LgiTrace("%s:%i - r=%s\n", _FL, r.GetStr());
 			Invalidate(&r);
 		}
 	}
@@ -1115,11 +1147,32 @@ public:
 		return T.NewStr();
 	}
 
+	#define COMP_STYLE	1
+
+	bool GetVisible(GStyle &s)
+	{
+		GRect c = GetClient();
+		int a = HitText(c.x1, c.y1, false);
+		int b = HitText(c.x2, c.y2, false);
+		s.Start = a;
+		s.Len = b - a + 1;
+		return true;
+	}
+
 	void StyleCpp(int Start, int EditSize)
 	{
 		char16 *e = Text + Size;
 		
+		// uint64 StartTs = LgiMicroTime();
+		#if COMP_STYLE
+		List<GStyle> OldStyle;
+		OldStyle = Style;
+		Style.Empty();
+		#else
 		Style.DeleteObjects();
+		#endif
+		// uint64 SetupTs = LgiMicroTime();
+		
 		for (char16 *s = Text; s < e; s++)
 		{
 			switch (*s)
@@ -1294,25 +1347,6 @@ public:
 					}
 					break;
 				}
-				/*
-				case '(':
-				case ')':
-				case '{':
-				case '}':
-				{
-					GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
-					if (st)
-					{
-						st->View = this;
-						st->Start = s - Text;
-						st->Font = Font;
-						st->Len = 1;
-						st->c.Rgb(128, 128, 128);
-						InsertStyle(st);
-					}
-					break;
-				}
-				*/
 				default:
 				{
 					wchar_t Ch = ToLower(*s);
@@ -1354,6 +1388,92 @@ public:
 				}
 			}
 		}
+
+		// uint64 PourTs = LgiMicroTime();
+
+		#if COMP_STYLE
+		GStyle Vis(0);
+		if (GetVisible(Vis))
+		{
+			GArray<GStyle*> Old, Cur;
+			for (GStyle *s = OldStyle.First(); s; s = OldStyle.Next())
+			{
+				if (s->Overlap(&Vis))
+					Old.Add(s);
+				else if (Old.Length())
+					break;
+			}
+			for (GStyle *s = Style.First(); s; s = Style.Next())
+			{
+				if (s->Overlap(&Vis))
+					Cur.Add(s);
+				else if (Cur.Length())
+					break;
+			}
+
+			GStyle Dirty(0);
+			for (int o=0; o<Old.Length(); o++)
+			{
+				bool Match = false;
+				GStyle *OldStyle = Old[o];
+				for (int n=0; n<Cur.Length(); n++)
+				{
+					if (*OldStyle == *Cur[n])
+					{
+						Old.DeleteAt(o--);
+						Cur.DeleteAt(n--);
+						Match = true;
+						break;
+					}
+				}
+				if (!Match)
+					Dirty.Union(*OldStyle);
+			}
+			for (int n=0; n<Cur.Length(); n++)
+			{
+				Dirty.Union(*Cur[n]);
+			}
+
+			if (Dirty.Start >= 0)
+			{
+				// LgiTrace("Visible rgn: %i + %i = %i\n", Vis.Start, Vis.Len, Vis.End());
+				// LgiTrace("Dirty rgn: %i + %i = %i\n", Dirty.Start, Dirty.Len, Dirty.End());
+
+				int CurLine = -1, DirtyStartLine = -1, DirtyEndLine = -1;
+				GTextLine *CursorLine = GetTextLine(Cursor, &CurLine);
+				GTextLine *Start = GetTextLine(Dirty.Start, &DirtyStartLine);
+				GTextLine *End = GetTextLine(min(Size, Dirty.End()), &DirtyEndLine);
+				if (CurLine >= 0 &&
+					DirtyStartLine >= 0 &&
+					DirtyEndLine >= 0)
+				{
+					// LgiTrace("Dirty lines %i, %i, %i\n", CurLine, DirtyStartLine, DirtyEndLine);
+					
+					if (DirtyStartLine != CurLine ||
+						DirtyEndLine != CurLine)
+					{
+						GRect c = GetClient();
+						GRect r(c.x1,
+								Start->r.Valid() ? DocToScreen(Start->r).y1 : c.y1,
+								c.x2,
+								Dirty.End() >= Vis.End() ? c.y2 : DocToScreen(End->r).y2);
+						
+						// LgiTrace("Cli: %s, CursorLine: %s, Start rgn: %s, End rgn: %s, Update: %s\n", c.GetStr(), CursorLine->r.GetStr(), Start->r.GetStr(), End->r.GetStr(), r.GetStr());
+
+						Invalidate(&r);
+					}						
+				}
+				else
+				{
+					// LgiTrace("No Change: %i, %i, %i\n", CurLine, DirtyStartLine, DirtyEndLine);
+				}
+			}
+		}
+		OldStyle.DeleteObjects();
+		#endif
+
+		// uint64 DirtyTs = LgiMicroTime();		
+		// LgiTrace("PourCpp = %g, %g\n", (double)(PourTs - SetupTs) / 1000.0, (double)(DirtyTs - PourTs) / 1000.0);
 	}
 
 	void StylePython(int Start, int EditSize)
@@ -1560,56 +1680,6 @@ public:
 		}		
 	}
 
-
-	/*
-	void PourText(int Start, int Len)
-	{
-		GTextView3::PourText(Start, Len);
-		
-		bool Lut[128];
-		ZeroObj(Lut);
-		Lut[' '] = true;
-		Lut['\r'] = true;
-		Lut['\t'] = true;
-		
-		bool LongComment = false;
-		COLOUR CommentColour = Rgb32(0, 0x80, 0);
-		char16 Eoc[] = { '*', '/', 0 };
-		for (GTextLine *l=GTextView3::Line.First(); l; l=GTextView3::Line.Next())
-		{
-			char16 *s = Text + l->Start;			
-			if (LongComment)
-			{
-				l->c.c32(CommentColour);
-				if (StrnstrW(s, Eoc, l->Len))
-				{
-					LongComment = false;
-				}
-			}
-			else
-			{
-				while (*s <= 256 && Lut[*s]) s++;
-				if (*s == '#')
-				{
-					l->c.Rgb(0, 0, 222);
-				}
-				else if (s[0] == '/')
-				{
-					if (s[1] == '/')
-					{
-						l->c.c32(CommentColour);
-					}
-					else if (s[1] == '*')
-					{
-						l->c.c32(CommentColour);
-						LongComment = StrnstrW(s, Eoc, l->Len) == 0;
-					}
-				}
-			}
-		}
-	}
-	*/
-	
 	bool Pour(GRegion &r)
 	{
 		GRect c = r.Bound();
@@ -1917,30 +1987,32 @@ char *IdeDocPrivate::GetLocalFile()
 
 void IdeDocPrivate::SetFileName(const char *f)
 {
-	if (nSrc)
-	{
-	}
-	else
-	{
-		FileName = f;
-	}
+	nSrc = NULL;
+	FileName = f;
+	Edit->IsDirty(true);
 }
 
 bool IdeDocPrivate::Load()
 {
+	bool Status = false;
+	
 	if (nSrc)
 	{
-		return nSrc->Load(Edit, this);
+		Status = nSrc->Load(Edit, this);
 	}
 	else if (FileName)
 	{
 		if (FileExists(FileName))
-			return Edit->Open(FileName);
-		else
-			LgiTrace("%s:%i - '%s' doesn't exist.\n", _FL, FileName.Get());
+		{
+			Status = Edit->Open(FileName);
+		}
+		else LgiTrace("%s:%i - '%s' doesn't exist.\n", _FL, FileName.Get());
 	}
 
-	return false;
+	if (Status)
+		ModTs = GetModTime();	
+
+	return Status;
 }
 
 bool IdeDocPrivate::Save()
@@ -1956,6 +2028,9 @@ bool IdeDocPrivate::Save()
 		Status = Edit->Save(FileName);
 		OnSaveComplete(Status);
 	}
+
+	if (Status)
+		ModTs = GetModTime();
 	
 	return Status;
 }
@@ -1964,6 +2039,32 @@ void IdeDocPrivate::OnSaveComplete(bool Status)
 {
 	IsDirty = false;
 	UpdateName();
+}
+
+void IdeDocPrivate::CheckModTime()
+{
+	if (!ModTs.IsValid())
+		return;
+
+	GDateTime Ts = GetModTime();
+	if (Ts.IsValid() && Ts > ModTs)
+	{
+		static bool InCheckModTime = false;
+		if (!InCheckModTime)
+		{
+			InCheckModTime = true;
+			if (!IsDirty ||
+				LgiMsg(Doc, "Do you want to reload modified file from\ndisk and lose your changes?", AppName, MB_YESNO) == IDYES)
+			{
+				int Ln = Edit->GetLine();
+				Load();
+				IsDirty = false;
+				UpdateName();
+				Edit->SetLine(Ln);
+			}
+			InCheckModTime = false;
+		}
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -2040,6 +2141,7 @@ void IdeDoc::OnTitleClick(GMouse &m)
 				s.AppendItem(sFile, IDM_COPY_FILE, true);
 			s.AppendItem(sFull, IDM_COPY_PATH, true);
 			s.AppendItem(sBrowse, IDM_BROWSE, true);
+			s.AppendItem("Show In Project", IDM_SHOW_IN_PROJECT, true);
 		}
 		if (p)
 		{
@@ -2092,6 +2194,11 @@ void IdeDoc::OnTitleClick(GMouse &m)
 				#else
 				LgiAssert(!"Impl me.");
 				#endif
+				break;
+			}
+			case IDM_SHOW_IN_PROJECT:
+			{
+				d->App->ShowInProject(Fn);
 				break;
 			}
 			case IDM_PROPERTIES:
@@ -2204,6 +2311,7 @@ void IdeDoc::SetLine(int Line, bool CurIp)
 			CurIpLine = Line;
 			CurIpDoc = CurDoc;
 			
+			// LgiTrace("%s:%i - CurIpLine=%i\n", _FL, CurIpLine);
 			d->Edit->InvalidateLine(CurIpLine - 1);
 		}
 	}
@@ -2277,6 +2385,11 @@ GMessage::Result IdeDoc::OnEvent(GMessage *Msg)
 	return GMdiChild::OnEvent(Msg);
 }
 
+void IdeDoc::OnPulse()
+{
+	d->CheckModTime();
+}
+
 int IdeDoc::OnNotify(GViewI *v, int f)
 {
 	// printf("IdeDoc::OnNotify(%i, %i)\n", v->GetId(), f);
@@ -2300,8 +2413,13 @@ int IdeDoc::OnNotify(GViewI *v, int f)
 				{
 					if (d->Tray)
 					{
-						d->Edit->PositionAt(d->Tray->Col, d->Tray->Line, d->Edit->GetCursor());
-						d->Tray->Invalidate();
+						GdcPt2 Pt;
+						if (d->Edit->GetLineColumnAtIndex(Pt, d->Edit->GetCursor()))
+						{
+							d->Tray->Col = Pt.x;
+							d->Tray->Line = Pt.y;
+							d->Tray->Invalidate();
+						}
 					}
 					break;
 				}

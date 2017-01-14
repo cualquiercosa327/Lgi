@@ -112,6 +112,7 @@ SettingInfo AllSettings[] =
 	{ProjMakefile,				GV_STRING,		"Makefile",			sGeneral,	SF_PLATFORM_SPECIFC},
 	{ProjExe,					GV_STRING,		"Executable",		sGeneral,	SF_PLATFORM_SPECIFC|SF_CONFIG_SPECIFIC},
 	{ProjArgs,					GV_STRING,		"Arguments",		sGeneral,	SF_CROSSPLATFORM|SF_CONFIG_SPECIFIC},
+	{ProjDebugAdmin,			GV_BOOL,		"DebugAdmin",		sGeneral,	SF_CROSSPLATFORM},
 	{ProjDefines,				GV_STRING,		"Defines",			sGeneral,	SF_MULTILINE|SF_CONFIG_SPECIFIC},
 	{ProjCompiler,				GV_INT32,		"Compiler",			sGeneral,	SF_PLATFORM_SPECIFC|SF_ENUM},
 	{ProjCrossCompiler,			GV_STRING,		"CrossCompiler",	sGeneral,	SF_PLATFORM_SPECIFC|SF_FILE_SELECT},
@@ -647,7 +648,7 @@ public:
 							e->Name(Rel ? Rel : s.Name());
 						}
 					}
-					else LgiTrace("%s:%i - Failed to find editbox: %i\n", _FL, i);
+					//       else LgiTrace("%s:%i - Failed to find editbox: %i\n", _FL, i);
 				}
 				break;
 			}

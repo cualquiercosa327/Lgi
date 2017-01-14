@@ -39,6 +39,8 @@ enum GNotifyType
 	/// outside of the existing items, i.e. in the blank
 	/// space below the items.
 	GNotifyItem_ContextMenu,
+	/// Blank space clicked
+	GNotifyContainer_Click,
 
 	// Generic value changed
 	GNotifyValueChanged,

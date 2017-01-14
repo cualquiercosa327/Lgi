@@ -813,11 +813,13 @@ void GView::PointToScreen(GdcPt2 &p)
 
 void GView::PointToView(GdcPt2 &p)
 {
+Start:
 	GViewI *c = this;
 	int Ox = 0, Oy = 0;
+	GViewI *w = c->GetWindow();
 
 	// Find offset to window
-	while (c && c != c->GetWindow())
+	while (c && c != w)
 	{
 		// GView *gv = c->GetGView();
 		// GRect cli = gv ? gv->GView::GetClient(false) : c->GetClient(false);
@@ -843,6 +845,7 @@ void GView::PointToView(GdcPt2 &p)
 	else
 	{
 		printf("%s:%i - No window handle to map to view. c=%p\n", __FILE__, __LINE__, c);
+		goto Start;
 	}
 }
 
@@ -1749,7 +1752,16 @@ bool GView::_Attach(GViewI *parent)
 			if (_View)
 			{
 				// Set the view position
-				SetPos(Pos);				
+				GView::SetPos(Pos);
+				if (_Debug)
+				{
+					printf("%s:%i - setpos %s\n", _FL, Pos.GetStr());
+				}
+				#ifdef _DEBUG
+				const char *cls = GetClass();
+				int len = strlen(cls);
+				SetControlProperty(_View, 'meme', 'clas', len, cls);
+				#endif
 				
 				// Set the view id
 				SetControlCommandID(_View, GetId());

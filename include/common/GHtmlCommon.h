@@ -90,6 +90,7 @@ class GHtmlStatic
 	friend class GHtmlStaticInst;
 	GHtmlElemInfo *UnknownElement;
 	GHashTbl<const char*,GHtmlElemInfo*> TagMap;
+	GHashTbl<int,GHtmlElemInfo*> TagIdMap;
 
 public:
 	static GHtmlStatic *Inst;
@@ -103,6 +104,7 @@ public:
 	~GHtmlStatic();
 
 	GHtmlElemInfo *GetTagInfo(const char *Tag);
+	GHtmlElemInfo *GetTagInfo(HtmlTag TagId);
 };
 
 /// Static data setup/pulldown

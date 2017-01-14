@@ -265,7 +265,8 @@ GViewCommon.o : ./src/common/Lgi/GViewCommon.cpp ./include/common/Lgi.h \
 	./include/common/GTableLayout.h \
 	./include/common/GButton.h \
 	./include/common/GCss.h \
-	./include/common/LgiRes.h
+	./include/common/LgiRes.h \
+	./include/linux/Gtk/LgiWidget.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -381,7 +382,8 @@ GMutex.o : ./src/common/Lgi/GMutex.cpp ./include/common/Lgi.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GThreadCommon.o : ./src/common/Lgi/GThreadCommon.cpp ./include/common/Lgi.h
+GThreadCommon.o : ./src/common/Lgi/GThreadCommon.cpp ./include/common/Lgi.h \
+	./include/common/GEventTargetThread.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -765,14 +767,14 @@ GItemContainer.o : ./src/common/Widgets/GItemContainer.cpp ./include/common/Lgi.
 	./include/common/GItemContainer.h \
 	./include/common/GDisplayString.h \
 	./include/common/GSkinEngine.h \
-	./include/common/GScrollBar.h
+	./include/common/GScrollBar.h \
+	./include/common/GEdit.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GList.o : ./src/common/Widgets/GList.cpp ./include/common/Lgi.h \
 	./include/common/GSkinEngine.h \
 	./include/common/GList.h \
-	./include/common/GEdit.h \
 	./include/common/GScrollBar.h \
 	./include/common/GDisplayString.h \
 	./include/common/LgiRes.h
@@ -2142,6 +2144,10 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	/usr/include/glib-2.0/glib-object.h \
 	/usr/include/pango-1.0/pango/pango-types.h
 
+./include/common/GEventTargetThread.h : ./include/common/GThread.h \
+	./include/common/GMutex.h \
+	./include/common/GThreadEvent.h
+
 ./include/common/INetTools.h : ./include/common/GContainers.h \
 	./include/common/LgiNetInc.h
 
@@ -2781,6 +2787,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/GString.h
 
 ../../../../../usr/include/glib-2.0/glib/ghook.h : /usr/include/glib-2.0/glib/gmem.h
+
+./include/common/GThreadEvent.h : 
 
 ../../../../../usr/include/gtk-2.0/gtk/gtkfontbutton.h : /usr/include/gtk-2.0/gtk/gtkbutton.h
 

@@ -35,7 +35,8 @@ enum AppCommands
 	IDM_WEB_FOLDER,
 	IDM_INSERT_FTP,
 	IDM_BUILD_PROJECT,
-	IDM_CLEAN_PROJECT
+	IDM_CLEAN_PROJECT,
+	IDM_SHOW_IN_PROJECT
 };
 
 extern int PlatformCtrlId[];
@@ -72,6 +73,7 @@ enum ProjSetting
 	ProjMakefile,
 	ProjExe,
 	ProjArgs,
+	ProjDebugAdmin,
 	ProjDefines,
 	ProjCompiler,
 	ProjCrossCompiler,
@@ -120,12 +122,26 @@ public:
 	bool Set(ProjSetting Setting, int Value, IdePlatform Platform = PlatformCurrent);
 };
 
+class WatchItem : public GTreeItem
+{
+	class IdeOutput *Out;
+	GTreeItem *PlaceHolder;
+
+public:
+	WatchItem(IdeOutput *out, const char *Init = NULL);
+	~WatchItem();
+	
+	bool SetText(const char *s, int i = 0);
+	void OnExpand(bool b);
+	bool SetValue(GVariant &v);
+};
+
 class GDebugContext : public GDebugEvents
 {
 	class GDebugContextPriv *d;
 	
 public:
-	GList *Watch;
+	GTree *Watch;
 	GList *Locals;
 	GList *CallStack;
 	GList *Threads;
@@ -135,13 +151,14 @@ public:
 	class GTextLog *Registers;
 
 	// Object
-	GDebugContext(AppWnd *App, class IdeProject *Proj, const char *Exe, const char *Args);
+	GDebugContext(AppWnd *App, class IdeProject *Proj, const char *Exe, const char *Args, bool RunAsAdmin = false);
 	virtual ~GDebugContext();
 
 	// Impl
 	bool ParseFrameReference(const char *Frame, GAutoString &File, int &Line);
 	bool SetFrame(int Frame);
 	bool UpdateLocals();
+	bool UpdateWatches();
 	bool UpdateRegisters();
 	void UpdateCallStack();
 	void UpdateThreads();

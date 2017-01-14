@@ -150,7 +150,7 @@ public:
 	}
 };
 
-GDebugContext::GDebugContext(AppWnd *App, IdeProject *Proj, const char *Exe, const char *Args)
+GDebugContext::GDebugContext(AppWnd *App, IdeProject *Proj, const char *Exe, const char *Args, bool RunAsAdmin)
 {
 	Watch = NULL;
 	Locals = NULL;
@@ -166,7 +166,7 @@ GDebugContext::GDebugContext(AppWnd *App, IdeProject *Proj, const char *Exe, con
 	
 	if (d->Db.Reset(CreateGdbDebugger()))
 	{
-		if (!d->Db->Load(this, Exe, Args, NULL))
+		if (!d->Db->Load(this, Exe, Args, RunAsAdmin, NULL))
 		{
 			d->Log("Failed to load '%s' into debugger.\n", d->Exe.Get());
 			d->Db.Reset();
@@ -201,7 +201,10 @@ GMessage::Param GDebugContext::OnEvent(GMessage *m)
 				GMutex::Auto a(d, _FL);
 				File = d->SeekFile;
 			}
-			d->App->GotoReference(File, d->SeekLine, d->SeekCurrentIp);
+			
+			// printf("%s:%i - %s %i\n", _FL, File.Get(), d->SeekLine);
+			if (File && d->SeekLine > 0)
+				d->App->GotoReference(File, d->SeekLine, d->SeekCurrentIp);
 			break;
 		}
 	}
@@ -375,6 +378,44 @@ bool GDebugContext::UpdateLocals()
 	
 	Locals->ResizeColumnsToContent();
 	
+	return true;
+}
+
+bool GDebugContext::UpdateWatches()
+{
+	GArray<GDebugger::Variable> Vars;
+	for (GTreeItem *i = Watch->GetChild(); i; i = i->GetNext())
+	{
+		GDebugger::Variable &v = Vars.New();
+		v.Name = i->GetText(0);
+		v.Type = i->GetText(1);
+	}
+	
+	printf("Update watches %i\n", Vars.Length());
+	if (!d->Db->GetVariables(false, Vars, false))
+		return false;
+	
+	int Idx = 0;
+	for (GTreeItem *i = Watch->GetChild(); i; i = i->GetNext(), Idx++)
+	{
+		GDebugger::Variable &v = Vars[Idx];
+		WatchItem *wi = dynamic_cast<WatchItem*>(i);
+		if (!wi)
+		{
+			LgiTrace("%s:%i - Error: not watch item.\n", _FL);
+			continue;
+		}
+		if (v.Name == (const char*)i->GetText(0))
+		{
+			i->SetText(v.Type, 1);
+			wi->SetValue(v.Value);
+		}
+		else
+		{
+			LgiTrace("%s:%i - Error: Not the same name.\n", _FL);
+		}
+	}
+
 	return true;
 }
 
@@ -696,11 +737,15 @@ void GDebugContext::OnState(bool Debugging, bool Running)
 void GDebugContext::OnFileLine(const char *File, int Line, bool CurrentIp)
 {
 	if (!d->App)
+	{
+		printf("%s:%i - No app.\n", _FL);
 		return;
+	}
 	
-	if (!File && !Line)
+	if (!File || Line < 1)
 	{
 		LgiTrace("%s:%i - Error: No File or Line... one or both must be valid.\n", _FL);
+		LgiAssert(!"Invalid Param");
 		return;
 	}
 
@@ -716,6 +761,8 @@ void GDebugContext::OnFileLine(const char *File, int Line, bool CurrentIp)
 				d->SeekFile = File;
 			d->SeekLine = Line;
 			d->SeekCurrentIp = CurrentIp;
+			
+			// printf("%s:%i - %s %i, %i\n", _FL, d->SeekFile.Get(), d->SeekLine, d->SeekCurrentIp);
 		}
 
 		d->App->PostEvent(M_FILE_LINE);

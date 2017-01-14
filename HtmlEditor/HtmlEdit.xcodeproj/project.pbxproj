@@ -20,6 +20,9 @@
 		349A13761A7F7D81000D4C67 /* GHtmlParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A13721A7F7D81000D4C67 /* GHtmlParser.cpp */; };
 		349A13781A7F7D9D000D4C67 /* GHtmlEdit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A13771A7F7D9D000D4C67 /* GHtmlEdit.cpp */; };
 		349A137A1A7F7DB7000D4C67 /* GdcTools.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A13791A7F7DB7000D4C67 /* GdcTools.cpp */; };
+		34D470AA1E1468BC003AF375 /* EmojiMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D470A81E1468BC003AF375 /* EmojiMap.cpp */; };
+		34D470AB1E1468BC003AF375 /* EmojiTools.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D470A91E1468BC003AF375 /* EmojiTools.cpp */; };
+		34D470AD1E1468CE003AF375 /* GRichTextEditPriv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D470AC1E1468CE003AF375 /* GRichTextEditPriv.cpp */; };
 		8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20286C33FDCF999611CA2CEA /* Carbon.framework */; };
 /* End PBXBuildFile section */
 
@@ -63,6 +66,9 @@
 		349A13721A7F7D81000D4C67 /* GHtmlParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GHtmlParser.cpp; path = ../src/common/Text/GHtmlParser.cpp; sourceTree = "<group>"; };
 		349A13771A7F7D9D000D4C67 /* GHtmlEdit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GHtmlEdit.cpp; path = ../src/common/Widgets/GHtmlEdit.cpp; sourceTree = "<group>"; };
 		349A13791A7F7DB7000D4C67 /* GdcTools.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GdcTools.cpp; path = ../src/common/Gdc2/Tools/GdcTools.cpp; sourceTree = "<group>"; };
+		34D470A81E1468BC003AF375 /* EmojiMap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EmojiMap.cpp; path = ../src/common/Text/Emoji/EmojiMap.cpp; sourceTree = "<group>"; };
+		34D470A91E1468BC003AF375 /* EmojiTools.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EmojiTools.cpp; path = ../src/common/Text/Emoji/EmojiTools.cpp; sourceTree = "<group>"; };
+		34D470AC1E1468CE003AF375 /* GRichTextEditPriv.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GRichTextEditPriv.cpp; path = ../src/common/Widgets/Editor/GRichTextEditPriv.cpp; sourceTree = "<group>"; };
 		4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
 		4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
 		8D0C4E960486CD37000505A6 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -141,9 +147,11 @@
 			children = (
 				341B9A451DEAC4930011CE44 /* BlockCursor.cpp */,
 				341B9A461DEAC4930011CE44 /* GRichTextEdit.cpp */,
-				341B9A471DEAC4930011CE44 /* GRichTextEditPriv.h */,
+				34D470AC1E1468CE003AF375 /* GRichTextEditPriv.cpp */,
 				341B9A481DEAC4930011CE44 /* TextBlock.cpp */,
 				341B9A441DEAC4760011CE44 /* GRichTextEdit.h */,
+				341B9A471DEAC4930011CE44 /* GRichTextEditPriv.h */,
+				34D470A61E1468AE003AF375 /* Emoji */,
 			);
 			name = RichTextEdit;
 			sourceTree = "<group>";
@@ -163,6 +171,15 @@
 				349A13601A7F7C1B000D4C67 /* LgiMain.cpp */,
 			);
 			name = Lgi;
+			sourceTree = "<group>";
+		};
+		34D470A61E1468AE003AF375 /* Emoji */ = {
+			isa = PBXGroup;
+			children = (
+				34D470A81E1468BC003AF375 /* EmojiMap.cpp */,
+				34D470A91E1468BC003AF375 /* EmojiTools.cpp */,
+			);
+			name = Emoji;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -246,12 +263,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				341B9A4A1DEAC4930011CE44 /* GRichTextEdit.cpp in Sources */,
+				34D470AD1E1468CE003AF375 /* GRichTextEditPriv.cpp in Sources */,
+				34D470AB1E1468BC003AF375 /* EmojiTools.cpp in Sources */,
 				349A13611A7F7C1B000D4C67 /* LgiMain.cpp in Sources */,
 				341B9A491DEAC4930011CE44 /* BlockCursor.cpp in Sources */,
 				349A13631A7F7C2A000D4C67 /* Rich.cpp in Sources */,
 				349A13731A7F7D81000D4C67 /* GDocView.cpp in Sources */,
 				341B9A4B1DEAC4930011CE44 /* TextBlock.cpp in Sources */,
 				349A13741A7F7D81000D4C67 /* GHtml.cpp in Sources */,
+				34D470AA1E1468BC003AF375 /* EmojiMap.cpp in Sources */,
 				349A13751A7F7D81000D4C67 /* GHtmlCommon.cpp in Sources */,
 				349A13761A7F7D81000D4C67 /* GHtmlParser.cpp in Sources */,
 				349A13781A7F7D9D000D4C67 /* GHtmlEdit.cpp in Sources */,

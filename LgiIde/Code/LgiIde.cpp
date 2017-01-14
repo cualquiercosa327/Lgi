@@ -291,6 +291,58 @@ public:
 	}
 };
 
+WatchItem::WatchItem(IdeOutput *out, const char *Init)
+{
+	Out = out;
+	Expanded(false);
+	if (Init)
+		SetText(Init);
+	Insert(PlaceHolder = new GTreeItem);
+}
+
+WatchItem::~WatchItem()
+{
+}
+
+bool WatchItem::SetValue(GVariant &v)
+{
+	char *Str = v.CastString();
+	if (ValidStr(Str))
+		SetText(Str, 2);
+	else
+		GTreeItem::SetText(NULL, 2);
+	return true;
+}
+
+bool WatchItem::SetText(const char *s, int i)
+{
+	if (ValidStr(s))
+	{
+		bool status = GTreeItem::SetText(s, i);
+
+		if (i == 0 && Tree && Tree->GetWindow())
+		{
+			GViewI *Tabs = Tree->GetWindow()->FindControl(IDC_DEBUG_TAB);
+			if (Tabs)
+				Tabs->SendNotify(GNotifyValueChanged);
+		}
+		return true;
+	}
+
+	if (i == 0)	
+		delete this;
+		
+	return false;
+}
+
+void WatchItem::OnExpand(bool b)
+{
+	if (b && PlaceHolder)
+	{
+		// Do something 
+	}
+}
+
 class IdeOutput : public GPanel
 {
 public:
@@ -310,7 +362,8 @@ public:
 	GTabView *DebugTab;
 	GBox *DebugBox;
 	GBox *DebugLog;
-	GList *Locals, *Watch, *CallStack, *Threads;
+	GList *Locals, *CallStack, *Threads;
+	GTree *Watch;
 	GTextLog *ObjectDump, *MemoryDump, *Registers;
 	GTableLayout *MemTable;
 	GEdit *DebugEdit;
@@ -418,14 +471,35 @@ public:
 						if ((Page = DebugTab->Append("Watch")))
 						{
 							Page->SetFont(&Small);
-							if ((Watch = new GList(IDC_WATCH_LIST, 0, 0, 100, 100, "Watch List")))
+							if ((Watch = new GTree(IDC_WATCH_LIST, 0, 0, 100, 100, "Watch List")))
 							{
 								Watch->SetFont(&Small);
-								Watch->AddColumn("Watch Var", 80);
-								Watch->AddColumn("Value", 1000);
+								Watch->ShowColumnHeader(true);
+								Watch->AddColumn("Watch", 80);
+								Watch->AddColumn("Type", 100);
+								Watch->AddColumn("Value", 600);
 								Watch->SetPourLargest(true);
 
 								Page->Append(Watch);
+								
+								GXmlTag *w = App->GetOptions()->LockTag("watches", _FL);
+								if (!w)
+								{
+									App->GetOptions()->CreateTag("watches");
+									w = App->GetOptions()->LockTag("watches", _FL);
+								}
+								if (w)
+								{
+									for (GXmlTag *c = w->Children.First(); c; c = w->Children.Next())
+									{
+										if (c->IsTag("watch"))
+										{
+											Watch->Insert(new WatchItem(this, c->GetContent()));
+										}
+									}
+									
+									App->GetOptions()->Unlock();
+								}
 							}
 						}
 						if ((Page = DebugTab->Append("Memory")))
@@ -567,26 +641,40 @@ public:
 			{
 				Txt[n]->SetTabSize(8);
 				Txt[n]->Sunken(true);
-				
-				/*
-				GFontType Type;
-				if (Type.GetSystemFont("Fixed"))
-				{
-					Type.SetPointSize(11);
-					
-					GFont *f = Type.Create();
-					if (f)
-					{
-						Txt[n]->SetFont(f, true);
-					}
-				}
-				*/
 			}
 		}
 	}
 
 	~IdeOutput()
 	{
+	}
+	
+	void Save()
+	{
+		if (Watch)
+		{
+			GXmlTag *w = App->GetOptions()->LockTag("watches", _FL);
+			if (!w)
+			{
+				App->GetOptions()->CreateTag("watches");
+				w = App->GetOptions()->LockTag("watches", _FL);
+			}
+			if (w)
+			{
+				w->EmptyChildren();
+				for (GTreeItem *ti = Watch->GetChild(); ti; ti = ti->GetNext())
+				{
+					GXmlTag *t = new GXmlTag("watch");
+					if (t)
+					{
+						t->SetContent(ti->GetText(0));
+						w->InsertTag(t);
+					}
+				}
+				
+				App->GetOptions()->Unlock();
+			}
+		}
 	}
 	
 	void OnCreate()
@@ -766,6 +854,7 @@ public:
 	
 	~AppWndPrivate()
 	{
+		Output->Save();
 		App->SerializeState(&Options, "WndPos", false);
 		SerializeStringList("RecentFiles", &RecentFiles, true);
 		SerializeStringList("RecentProjects", &RecentProjects, true);
@@ -1099,7 +1188,7 @@ public:
 				{
 					if (stricmp(f, File) == 0)
 					{
-						LgiTrace("Remove '%s'\n", f);
+						// LgiTrace("Remove '%s'\n", f);
 
 						(*r)->Delete(f);
 						DeleteArray(f);
@@ -1322,6 +1411,8 @@ AppWnd::AppWnd()
 		
 		Visible(true);
 		DropTarget(true);
+
+		SetPulse(1000);
 	}
 	
 	#ifdef LINUX
@@ -1349,6 +1440,13 @@ AppWnd::~AppWnd()
 	
 	LgiApp->AppWnd = 0;
 	DeleteObj(d);
+}
+
+void AppWnd::OnPulse()
+{
+	IdeDoc *Top = TopDoc();
+	if (Top)
+		Top->OnPulse();
 }
 
 GDebugContext *AppWnd::GetDebugContext()
@@ -1651,6 +1749,7 @@ IdeDoc *AppWnd::GotoReference(const char *File, int Line, bool CurIp, bool WithH
 		d->InHistorySeek = true;
 
 	IdeDoc *Doc = File ? OpenFile(File) : GetCurrentDoc();
+	// printf("Goto Doc=%p %s:%i\n", Doc, File, Line);
 	if (Doc)
 	{
 		Doc->SetLine(Line, CurIp);
@@ -1706,8 +1805,24 @@ IdeDoc *AppWnd::OpenFile(const char *FileName, NodeSource *Src)
 	const char *File = Src ? Src->GetFileName() : FileName;
 	if (Src || ValidStr(File))
 	{
+		GString FullPath;
+		if (LgiIsRelativePath(File))
+		{
+			IdeProject *Proj = Src && Src->GetProject() ? Src->GetProject() : RootProject();
+			if (Proj)
+			{
+				GAutoString ProjPath = Proj->GetBasePath();
+				char p[MAX_PATH];
+				LgiMakePath(p, sizeof(p), ProjPath, File);
+				if (FileExists(p))
+				{
+					FullPath = p;
+					File = FullPath;
+				}
+			}
+		}
+			
 		Doc = d->IsFileOpen(File);
-
 		if (!Doc)
 		{
 			if (Src)
@@ -1720,7 +1835,7 @@ IdeDoc *AppWnd::OpenFile(const char *FileName, NodeSource *Src)
 				List<IdeProject>::I Proj = d->Projects.Start();
 				for (IdeProject *p=*Proj; p && !Doc; p=*++Proj)
 				{
-					p->InProject(true, File, true, &Doc);				
+					p->InProject(LgiIsRelativePath(File), File, true, &Doc);				
 				}
 				DoingProjectFind = false;
 
@@ -1728,40 +1843,15 @@ IdeDoc *AppWnd::OpenFile(const char *FileName, NodeSource *Src)
 			}
 		}
 
-		if (!Doc)
+		if (!Doc && FileExists(File))
 		{
-			GString FullPath;
-			if (LgiIsRelativePath(File))
+			Doc = new IdeDoc(this, 0, File);
+			if (Doc)
 			{
-				IdeProject *Root = RootProject();
-				if (Root)
-				{
-					GAutoString RootPath = Root->GetBasePath();
-					char p[MAX_PATH];
-					LgiMakePath(p, sizeof(p), RootPath, File);
-					if (FileExists(p))
-					{
-						FullPath = p;
-						File = FullPath;
-						printf("Converted '%s' to '%s'\n", File, p);
-					}
-					else
-					{
-						printf("Rel Path '%s' doesn't exist\n", p);
-					}
-				}
-			}
-			
-			if (FileExists(File))
-			{
-				Doc = new IdeDoc(this, 0, File);
-				if (Doc)
-				{
-					GRect p = d->Mdi->NewPos();
-					Doc->SetPos(p);
-					d->Docs.Insert(Doc);
-					d->OnFile(File);
-				}
+				GRect p = d->Mdi->NewPos();
+				Doc->SetPos(p);
+				d->Docs.Insert(Doc);
+				d->OnFile(File);
 			}
 		}
 
@@ -1921,12 +2011,15 @@ GMessage::Result AppWnd::OnEvent(GMessage *m)
 
 			if (d->Running != Running)
 			{
+				bool RunToNotRun = d->Running && !Running;
+				
 				d->Running = Running;
-				if (!d->Running &&
+				
+				if (RunToNotRun &&
 					d->Output &&
 					d->Output->DebugTab)
 				{
-					d->Output->DebugTab->SendNotify();
+					d->Output->DebugTab->SendNotify(GNotifyValueChanged);
 				}
 			}
 			if (d->Debugging != Debugging)
@@ -2123,8 +2216,12 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 				{
 					case AppWnd::LocalsTab:
 					{
-						// Locals tab
 						d->DbgContext->UpdateLocals();
+						break;
+					}
+					case AppWnd::WatchTab:
+					{
+						d->DbgContext->UpdateWatches();
 						break;
 					}
 					case AppWnd::RegistersTab:
@@ -2204,15 +2301,43 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 			}
 			break;
 		}
+		case IDC_WATCH_LIST:
+		{
+			WatchItem *Edit = NULL;
+			switch (Flags)
+			{
+				case GNotify_DeleteKey:
+				{
+					GArray<GTreeItem *> Sel;
+					for (GTreeItem *c = d->Output->Watch->GetChild(); c; c = c->GetNext())
+					{
+						if (c->Select())
+							Sel.Add(c);
+					}
+					Sel.DeleteObjects();
+					break;
+				}
+				case GNotifyItem_Click:
+				{
+					Edit = dynamic_cast<WatchItem*>(d->Output->Watch->Selection());
+					break;
+				}
+				case GNotifyContainer_Click:
+				{
+					// Create new watch.
+					Edit = new WatchItem(d->Output);
+					if (Edit)
+						d->Output->Watch->Insert(Edit);
+					break;
+				}
+			}
+			
+			if (Edit)
+				Edit->EditLabel(0);
+			break;
+		}
 		case IDC_THREADS:
 		{
-			/*
-			if (Flags == M_CHANGE)
-			{
-				if (d->Output->DebugTab)
-					d->Output->DebugTab->Value(AppWnd::CallStackTab);
-			}
-			else */
 			if (Flags == GNotifyItem_Select)
 			{
 				// This takes the user to a given thread
@@ -2242,6 +2367,33 @@ bool AppWnd::IsReleaseMode()
 	GMenuItem *Release = GetMenu()->FindItem(IDM_RELEASE_MODE);
 	bool IsRelease = Release ? Release->Checked() : false;
 	return IsRelease;
+}
+
+bool AppWnd::ShowInProject(const char *Fn)
+{
+	if (!Fn)
+	{
+		printf("%s:%i - Error: no file.\n", _FL);
+		return false;
+	}
+	
+	for (IdeProject *p=d->Projects.First(); p; p=d->Projects.Next())
+	{
+		ProjectNode *Node = NULL;
+		if (p->FindFullPath(Fn, &Node))
+		{
+			for (GTreeItem *i = Node->GetParent(); i; i = i->GetParent())
+			{
+				i->Expanded(true);
+			}
+			Node->Select(true);			
+			printf("%s:%i - '%s' found.\n", _FL, Fn);	
+			return true;
+		}	
+	}
+	
+	printf("%s:%i - '%s' not found.\n", _FL, Fn);	
+	return false;
 }
 
 int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
@@ -2422,8 +2574,23 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			if (d->Finder)
 			{
 				d->Finder->Stop();
+
+				uint64 Start = LgiCurrentTime();
+				while (d->Finder)
+				{
+					LgiYield();
+					LgiSleep(10);
+
+					uint64 Now = LgiCurrentTime();
+					if (Now - Start > 2000)
+					{
+						LgiAssert(0);
+						return 0;
+					}
+				}
 			}
-			else
+
+			if (!d->Finder)
 			{
 				FindInFiles Dlg(this);
 
@@ -3036,6 +3203,7 @@ public:
 #include "GSubProcess.h"
 void Test()
 {
+	/*
 	int r;
 
 	#if 1
@@ -3057,6 +3225,8 @@ void Test()
 		// So something with 'Buf'
 		Buf[r] = 0;
 	}
+	*/
+
 }
 
 int LgiMain(OsAppArguments &AppArgs)
@@ -3065,7 +3235,7 @@ int LgiMain(OsAppArguments &AppArgs)
 	GApp a(AppArgs, "LgiIde");
 	if (a.IsOk())
 	{
-		// Test();
+		Test();
 		
 		a.AppWnd = new AppWnd;
 		// a.AppWnd = new Test;

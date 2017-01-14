@@ -57,10 +57,13 @@ class GDndSourcePriv
 public:
 	GAutoString CurrentFormat;
 	Gtk::GdkDragContext *Ctx;
+
+	OsView SignalWnd;
 	
 	GDndSourcePriv()
 	{
 		Ctx = NULL;
+		SignalWnd = NULL;
 	}
 	
 	~GDndSourcePriv()
@@ -70,6 +73,32 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
+struct SignalInfo
+{
+	OsView Wnd;
+	gulong Sig;
+};
+
+static ::GArray<SignalInfo> ExistingSignals;
+
+void RemoveExistingSignals(OsView w)
+{
+	for (unsigned i=0; i<ExistingSignals.Length(); i++)
+	{
+		SignalInfo &Si = ExistingSignals[i];
+		if (Si.Wnd == w)
+		{
+			if (Si.Sig > 0)
+			{
+				gtk_signal_disconnect(GTK_OBJECT(w), Si.Sig);
+				Si.Sig = 0;
+			}
+			
+			ExistingSignals.DeleteAt(i--);			
+		}
+	}
+}
+
 GDragDropSource::GDragDropSource()
 {
 	d = new GDndSourcePriv;
@@ -78,6 +107,7 @@ GDragDropSource::GDragDropSource()
 
 GDragDropSource::~GDragDropSource()
 {
+	RemoveExistingSignals(d->SignalWnd);
 	DeleteObj(d);
 }
 
@@ -232,7 +262,7 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 		entry.flags = 0;
 		entry.info = GtkGetDndType(f);
 		
-		printf("%s:%i - dnd fmt %s %i\n", _FL, f, entry.info);
+		// LgiTrace("%s:%i - dnd fmt %s %i\n", _FL, f, entry.info);
 	}
 	
 	Gtk::GtkTargetList *Targets = Gtk::gtk_target_list_new(&e[0], e.Length());
@@ -240,14 +270,18 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 	Gtk::GdkDragAction Action = EffectToDragAction(Effect);
 	
 	int Button = 1;
-	OsView Wnd = SourceWnd->Handle();
-	gtk_signal_connect(GTK_OBJECT(Wnd), "drag_data_get", GTK_SIGNAL_FUNC(LgiDragDataGet), this);
+	d->SignalWnd = SourceWnd->Handle();
+	RemoveExistingSignals(d->SignalWnd);
+	SignalInfo &Si = ExistingSignals.New();
+	Si.Wnd = d->SignalWnd;
+	Si.Sig = gtk_signal_connect(GTK_OBJECT(d->SignalWnd), "drag-data-get", G_CALLBACK(LgiDragDataGet), this);
 
-	d->Ctx = Gtk::gtk_drag_begin(Wnd,
+	d->Ctx = Gtk::gtk_drag_begin(d->SignalWnd,
 								Targets,
 								Action,
 								Button,
 								NULL); // Gdk event if available...
+
 
     return -1;
 }

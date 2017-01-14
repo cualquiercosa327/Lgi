@@ -69,7 +69,8 @@ GHtmlStatic::GHtmlStatic() :
 	VarMap(8, true),
 	StyleMap(8, false),
 	ColourMap(8, false, 0, -1),
-	TagMap(CountOf(TagInfo) * 3, false, NULL, NULL)
+	TagMap(CountOf(TagInfo) * 3, false, NULL, NULL),
+	TagIdMap(CountOf(TagInfo) * 3, false, NULL, NULL)
 {
 	Refs = 0;
 	UnknownElement = NULL;
@@ -560,6 +561,7 @@ GHtmlStatic::GHtmlStatic() :
 	for (GHtmlElemInfo *t = TagInfo; t->Tag; t++)
 	{
 		TagMap.Add(t->Tag, t);
+		TagIdMap.Add(t->Id, t);
 	}
 	UnknownElement = TagInfo + CountOf(TagInfo) - 1;
 }
@@ -572,6 +574,11 @@ GHtmlElemInfo *GHtmlStatic::GetTagInfo(const char *Tag)
 {
 	GHtmlElemInfo *i = TagMap.Find(Tag);
 	return i ? i : UnknownElement;
+}
+
+GHtmlElemInfo *GHtmlStatic::GetTagInfo(HtmlTag TagId)
+{
+	return TagIdMap.Find(TagId);
 }
 
 /////////////////////////////////////////////////////////////////////////////

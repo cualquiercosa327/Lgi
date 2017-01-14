@@ -66,7 +66,7 @@ public:
 			Css->Border(b);
 		}
 
-		Attach(edit);
+		Attach(Edit);
 	}
 	
 	~GPopupList()
@@ -253,7 +253,11 @@ public:
 			}
 		}
 
-		return false;	
+		#ifdef MAC
+		return Edit->OnKey(k);
+		#else
+		return false;
+		#endif
 	}
 };
 

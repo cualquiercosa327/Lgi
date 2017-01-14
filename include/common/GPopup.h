@@ -7,7 +7,11 @@
 
 /// A popup window: closes when the user clicks off-window.
 class LgiClass GPopup :
+	#ifdef MAC
+	public GWindow
+	#else
 	public GView
+	#endif
 {
 	friend class _QPopup;
 	friend class GWindow;
@@ -28,6 +32,7 @@ protected:
 	bool Cancelled;
 	GView *Owner;
 	int64 Start;
+	GRect ScreenPos;
 
 public:
 	GPopup(GView *owner);
@@ -42,11 +47,6 @@ public:
 	void Visible(bool i);
 	bool Visible();
 	GMessage::Result OnEvent(GMessage *Msg);
-	
-	#if defined(MAC)
-	bool SetPos(GRect &p, bool Repaint = false);
-	GRect &GetPos();
-	#endif
 };
 
 /// Drop down menu, UI widget for opening a popup.

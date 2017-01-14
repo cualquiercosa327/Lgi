@@ -49,7 +49,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\include\common,..\include\win32"
+				AdditionalIncludeDirectories="..\include\common;..\include\win32;..\..\..\..\CodeLib\libpng;..\..\..\..\CodeLib\zlib"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -145,7 +145,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="1"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\include\common,..\include\win32"
+				AdditionalIncludeDirectories="..\include\common;..\include\win32;..\..\..\..\CodeLib\libpng;..\..\..\..\CodeLib\zlib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;WINDOWS"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -267,6 +267,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\src\common\Gdc2\Filters\Png.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\resource.h"
 				>
 			</File>
@@ -287,6 +291,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\common\Widgets\Editor\GRichTextEditPriv.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\common\Widgets\Editor\GRichTextEditPriv.h"
 				>
 			</File>
@@ -294,6 +302,18 @@
 				RelativePath="..\src\common\Widgets\Editor\TextBlock.cpp"
 				>
 			</File>
+			<Filter
+				Name="Emoji"
+				>
+				<File
+					RelativePath="..\src\common\Text\Emoji\EmojiMap.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\src\common\Text\Emoji\EmojiTools.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Html"

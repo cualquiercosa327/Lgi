@@ -127,6 +127,11 @@ public:
 	{
 		return Name;
 	}
+	
+	uint32 GetParams()
+	{
+		return Params.Length();
+	}
 
 	GFunctionInfo &operator =(GFunctionInfo &f)
 	{
@@ -323,6 +328,8 @@ public:
 	virtual GCompiledCode *GetCode() = 0;
 	/// Set the source and asm
 	virtual void SetSource(const char *Mixed) = 0;
+	/// Show UI and wait for user response
+	virtual void Run() = 0;
 	
 	// Events
 		/// Called to update the debugger UI to the new current execution position
@@ -360,11 +367,14 @@ public:
 	void SetSource(const char *Mixed);
 	int OnNotify(GViewI *Ctrl, int Flags);
 	int OnCommand(int Cmd, int Event, OsView Wnd);
+	bool OnRequestClose(bool OsShuttingDown);
 	GMessage::Param OnEvent(GMessage *Msg);
 	void LoadFile(const char *File);
 	GStream *GetLog();
 	void OwnCompiledCode(GAutoPtr<GCompiledCode> Cc);
 	GCompiledCode *GetCode();
+	
+	void Run();
 };
 
 #endif

@@ -1252,6 +1252,9 @@ public:
 	#else
 	GWindow();
 	#endif
+	#ifdef MAC
+	GWindow(WindowRef wr);
+	#endif
 	~GWindow();
 
 	const char *GetClass() { return "GWindow"; }

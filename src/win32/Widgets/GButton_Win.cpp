@@ -22,6 +22,7 @@ GdcPt2 GButton::Overhead =
     );
 
 static int IsWin7 = -1;
+static int IsWin10 = -1;
 
 class GButtonPrivate
 {
@@ -207,11 +208,13 @@ GMessage::Result GButton::OnEvent(GMessage *Msg)
 				int Os = LgiGetOs(&Ver);
 				if (Os == LGI_OS_WIN32 ||
 					Os == LGI_OS_WIN64)
+				{
 					IsWin7 = Ver[0] == 6 && Ver[1] == 1;
-				else
-					IsWin7 = false;
+					IsWin10 = Ver[0] == 10 && Ver[1] == 0;
+				}
+				else IsWin7 = false;
 			}
-			if (!IsWin7)
+			if (!IsWin7 && !IsWin10)
 				break;
 
 			// This is the effective background of the parent window:
@@ -241,11 +244,14 @@ GMessage::Result GButton::OnEvent(GMessage *Msg)
 			m.Colour(bk.Rgb32, 32);
 			// The outside 1px border (unfilled rect)
 			m.Box(0, 0, c.X()-1, c.Y()-1);
-			// The 4 pixels at the corners
-			m.Set(1, 1);
-			m.Set(c.X()-2, 1);
-			m.Set(1, c.Y()-2);
-			m.Set(c.X()-2, c.Y()-2);
+			if (IsWin7)
+			{
+				// The 4 pixels at the corners
+				m.Set(1, 1);
+				m.Set(c.X()-2, 1);
+				m.Set(1, c.Y()-2);
+				m.Set(c.X()-2, c.Y()-2);
+			}
 
 			// Now stick it on the screen
 			dc.Blt(0, 0, &m);

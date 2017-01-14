@@ -648,6 +648,9 @@
     <ClInclude Include="src\common\Hash\sha1\sha1.h" />
     <ClInclude Include="src\win32\INet\MibAccess.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

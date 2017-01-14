@@ -239,8 +239,8 @@ const char *GetErrorName(int e)
 		}
 	}
 
-	static char s[32];
-	sprintf(s, "Unknown(%i)", e);
+	static char s[64];
+	sprintf_s(s, sizeof(s), "Unknown(%i)", e);
 	return s;
 }
 
@@ -1296,7 +1296,7 @@ class GFilePrivate
 {
 public:
 	int hFile;
-	char *Name;
+	GString Name;
 	bool Swap;
 	int Status;
 	int Attributes;
@@ -1305,16 +1305,10 @@ public:
 	GFilePrivate()
 	{
 		hFile = INVALID_HANDLE;
-		Name = 0;
 		Swap = false;
 		Status = true;
 		Attributes = 0;
 		LastError = noErr;
-	}
-	
-	~GFilePrivate()
-	{
-		DeleteArray(Name);
 	}
 };
 
@@ -1399,11 +1393,7 @@ int GFile::Open(const char *File, int Mode)
 	#endif
 	
 	d->Attributes = Mode;
-	d->Name = new char[strlen(File)+1];
-	if (d->Name)
-	{
-		strcpy(d->Name, File);
-	}
+	d->Name = File;
 	d->Status = true;
 
 	return true;
@@ -1423,63 +1413,35 @@ int GFile::Close()
 
 		close(d->hFile);
 		d->hFile = INVALID_HANDLE;
-		DeleteArray(d->Name);
+		d->Name.Empty();
 	}
 
 	return true;
 }
 
-/*
-int GFile::Print(char *Format, ...)
-{
-	int Chars = 0;
-
-	if (Format)
-	{
-		va_list Arg;
-
-		va_start(Arg, Format);
-		int Size = vsnprintf(0, 0, Format, Arg);
-		char *Buffer = new char[Size+1];
-		if (Buffer)
-		{
-			vsprintf(Buffer, Format, Arg);
-		}
-		va_end(Arg);
-
-		if (Size > 0)
-		{
-			Write(Buffer, Size);
-		}
-		DeleteArray(Buffer);
-	}
-
-	return Chars;
-}
-*/
-
 #define CHUNK		0xFFF0
 
 int GFile::Read(void *Buffer, int Size, int Flags)
 {
-	int Red = 0;
+	int Rd = 0;
 
 	if (Buffer && Size > 0)
 	{
-		Red = read(d->hFile, Buffer, Size);
+		Rd = read(d->hFile, Buffer, Size);
 		#ifdef _DEBUG
-		if (Red < 0)
+		if (Rd < 0)
 		{
-			int Err = errno;
+			d->LastError = errno;
+			const char *Err = GetErrorName(errno);
 			int64 Pos = GetPos();
-			printf("%s:%i - GFile::Read(%p,%i) err=%i, pos="LGI_PrintfInt64"\n",
+			printf("%s:%i - GFile::Read(%p,%i) err=%s, pos="LGI_PrintfInt64"\n",
 				_FL, Buffer, Size, Err, Pos);
 		}
 		#endif
 	}
-	d->Status = Red == Size;
+	d->Status = Rd == Size;
 
-	return max(Red, 0);
+	return max(Rd, 0);
 }
 
 int GFile::Write(const void *Buffer, int Size, int Flags)
@@ -1520,7 +1482,7 @@ int64 GFile::SetPos(int64 Pos)
 	{
 		int e = errno;
 		printf("%s:%i - lseek64(%Lx) failed (error %i: %s).\n",
-			__FILE__, __LINE__,
+			_FL,
 			Pos, e, GetErrorName(e));
 		
 	}
@@ -1537,7 +1499,7 @@ int64 GFile::GetPos()
 	{
 		int e = errno;
 		printf("%s:%i - lseek64 failed (error %i: %s).\n",
-			__FILE__, __LINE__,
+			_FL,
 			e, GetErrorName(e));
 		
 	}

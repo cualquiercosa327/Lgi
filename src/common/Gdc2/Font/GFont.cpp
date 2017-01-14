@@ -617,8 +617,8 @@ GdcPt2 GFont::StringBounds(const char *s, int len)
 	if (s)
 	{
 		GUtf8Ptr p(s);
-		char *end = s + (len < 0 ? strlen(s) : len);
-		while (p.GetPtr() < end)
+		GUtf8Ptr end(s + (len < 0 ? strlen(s) : len);
+		while (p < end)
 		{
 			uint32 c = p;
 			if (c < 0x80)
@@ -639,6 +639,7 @@ GdcPt2 GFont::StringBounds(const char *s, int len)
 					// LgiAssert(!"Impl me.");
 				}
 			}
+			
 			p++;
 		}
 	}

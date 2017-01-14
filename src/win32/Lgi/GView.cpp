@@ -206,7 +206,7 @@ bool CastHwnd(T *&Ptr, HWND hWnd)
 		TCHAR ClsName[256] = {0};
 		int Ch = GetClassName(hWnd, ClsName, CountOf(ClsName));
 		GString Cls = ClsName;
-		LgiTrace("%s:%i - Error: hWnd=%p/%s, GWL_LGI_MAGIC=%i\n", _FL, hWnd, Cls.Get(), magic);
+		// LgiTrace("%s:%i - Error: hWnd=%p/%s, GWL_LGI_MAGIC=%i\n", _FL, hWnd, Cls.Get(), magic);
 		return false;
 	}
 	Ptr = dynamic_cast<T*>((GViewI*)user);
@@ -988,20 +988,6 @@ bool GView::SetPos(GRect &p, bool Repaint)
 									// ((Repaint) ? 0 : SWP_NOREDRAW) |
 									SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOOWNERZORDER);
 			In_SetWindowPos = false;
-
-			/*
-			HWND hNew = GetFocus();
-			if (hNew != hOld)
-			{
-				bool IsVis = IsWindowVisible(_View);
-
-				LgiTrace("%s:%i - SetWindowPos changed the focus!!!!!! Old=%p New=%p Vis=%i->%i _View=%s %s->%s\\n",
-					_FL, hOld, hNew, WasVis, IsVis, GetClass(), OldPos.GetStr(), Pos.GetStr());
-				
-				// Oh f#$% off windows.
-				// SetFocus(hOld);
-			}
-			*/
 		}
 		else if (GetParent())
 		{

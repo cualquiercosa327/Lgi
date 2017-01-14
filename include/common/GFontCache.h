@@ -118,7 +118,7 @@ public:
 						(int) (Sz.Type == GCss::LenPt ? Sz.Value : (float)DefaultFont->PointSize()),
 						Weight != GCss::FontWeightInherit ? Weight : DefaultWeight,
 						FontStyle != GCss::FontStyleInherit ? FontStyle : GCss::FontStyleNormal,
-						Decor != GCss::TextDecorUnderline ? Decor : GCss::TextDecorNone);
+						Decor != GCss::TextDecorInherit ? Decor : GCss::TextDecorNone);
 		}
 
 		return f;

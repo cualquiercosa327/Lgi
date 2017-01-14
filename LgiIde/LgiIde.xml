@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project TabSize="4" IndentSize="4" UseTabs="1" Makefile="./Makefile.linux" Exe="./lgiide" ShowWhitespace="0" IncludePaths=".\Code&#10;..\include\common&#10;..\include\linux\X&#10;" BuildType="0" TargetType="0" TargetName="lgiide" Compiler="0">
 	<Node Name="Source Files" Type="1" Platforms="15" Open="1">
-		<Node Name="Debugger" Type="1" Platforms="15" Open="1">
+		<Node Name="Debugger" Type="1" Platforms="15" Open="0">
 			<Node File="./Code/GDebugContext.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/GDebugger.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/GDebugger.h" Type="3" Platforms="15" />
@@ -53,6 +53,7 @@
 	<Node Name="Lgi" Type="1" Platforms="15" Open="1">
 		<Node File="../src/common/Text/GDocView.cpp" Type="2" Platforms="15" />
 		<Node File="../src/common/Lgi/GMdi.cpp" Type="2" Platforms="15" />
+		<Node File="../include/common/GMdi.h" Type="3" Platforms="15" />
 		<Node File="../include/common/GPopupList.h" Type="3" Platforms="15" />
 		<Node File="../src/common/Lgi/LgiMain.cpp" Type="2" Platforms="15" />
 		<Node File="../src/common/Gdc2/Filters/Png.cpp" Type="2" Platforms="15" />
@@ -99,9 +100,12 @@ WINNATIVE</Release>
 				<Windows>MingW</Windows>
 			</Compiler>
 			<Arguments>
-				<All />
+				<All>
+					<Debug>/home/matthew/CodeGmn/XGate/UwImap/UwImapUnixProj.xml</Debug>
+				</All>
 			</Arguments>
 			<CrossCompiler />
+			<DebugAdmin />
 		</General>
 		<Build>
 			<IncludePaths>

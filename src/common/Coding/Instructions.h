@@ -476,8 +476,10 @@ case ICallScript:
 	uint16 Args = *c.u16++;
 
 	// Increase the local stack size
-	AddLocalSize(Frame);
-	// LgiTrace("ICallScript %i,%i\n", Sf.ReturnValue.Scope, Sf.ReturnValue.Index);
+	int LocalsBase = Locals.Length();
+	Locals.SetFixedLength(false);
+	Locals.Length(LocalsBase + Frame);
+	Locals.SetFixedLength();
 	
 	// Put the arguments of the function call into the local array
 	GArray<GVariant*> Arg;
@@ -504,6 +506,8 @@ case ICallScript:
 	}
 
 	#if VM_EXECUTE
+	Scope[SCOPE_LOCAL] = &Locals[LocalsBase];
+
 	// Set IP to start of function
 	Sf.ReturnIp = CurrentScriptAddress;
 	c.u8 = Base + FuncAddr;
@@ -1082,6 +1086,12 @@ case IDomGet:
 				}
 				break;
 			}
+			case GV_NULL:
+			{
+				OnException(_FL, CurrentScriptAddress-1, "NULL Dom Ptr");
+				return ScriptWarning;
+				break;
+			}
 			default:
 			{
 				if (Log)
@@ -1652,8 +1662,8 @@ case IDomCall:
 					}
 					char *sStart = (char*)s + start;
 					char *pos;
-					if (end > start)
-						pos = strnstr(sStart, sub, end - start);
+					if (end >= 0)
+						pos = strnstr(sStart, sub, end);
 					else
 						pos = strstr(sStart, sub);
 
@@ -1665,7 +1675,46 @@ case IDomCall:
 				}
 				case StrRfind:
 				{
-					CheckParam(0);
+					const char *s = Dom->Str();
+					if (!s)
+					{
+						*Dst = -1;
+						break;
+					}
+
+					int sLen = strlen(s);
+					const char *sub = Arg[0]->Str();
+					int start_idx = Arg.Length() > 1 ? Arg[1]->CastInt32() : 0;
+					int end_idx = Arg.Length() > 2 ? Arg[2]->CastInt32() : -1;								
+
+					if (start_idx >= sLen)
+					{
+						*Dst = -1;
+						break;
+					}
+					int sublen = strlen(sub);
+					char *cur = (char*)s + start_idx;
+					char *end = end_idx >= 0 ? cur + end_idx : NULL;
+					char *pos = NULL;
+					while (true)
+					{
+						cur =	(end)
+								?
+								strnstr(cur, sub, end - cur)
+								:
+								strstr(cur, sub);
+						if (cur)
+						{
+							pos = cur;
+							cur += sublen;
+						}
+						else break;
+					}
+					
+					if (pos)
+						*Dst = (int64) (pos - s);
+					else
+						*Dst = -1;
 					break;
 				}
 				case StrLower:
@@ -1704,7 +1753,6 @@ case IDomCall:
 				}
 				case StrSub:
 				{
-					Dst->Empty();
 					char *s = Dom->Str();
 					if (s)
 					{
@@ -1716,10 +1764,11 @@ case IDomCall:
 						if (Start < 0)
 							Start = 0;
 						if (Start <= End)
-						{
 							Dst->OwnStr(NewStr(s + Start, End - Start));
-						}
+						else
+							Dst->Empty();
 					}
+					else Dst->Empty();
 					break;
 				}
 				default:
@@ -1796,6 +1845,17 @@ case IDomCall:
 		Log->Print(")\n");
 	#endif
 
+	#endif
+	break;
+}
+case IDebug:
+{
+	#if VM_DECOMP
+	if (Log)
+		Log->Print("%p Debugger\n", CurrentScriptAddress-1);
+	#elif VM_EXECUTE
+	OnException(_FL, CurrentScriptAddress-1, "ShowDebugger");
+	return ScriptWarning;
 	#endif
 	break;
 }

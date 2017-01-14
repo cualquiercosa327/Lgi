@@ -827,9 +827,10 @@ GDebugContext *IdeProject::Execute(ExeAction Act)
 			if (FileExists(e))
 			{
 				const char *Args = d->Settings.GetStr(ProjArgs);
+				int RunAsAdmin = d->Settings.GetInt(ProjDebugAdmin);
 				if (Act == ExeDebug)
 				{
-					return new GDebugContext(d->App, this, e, Args);
+					return new GDebugContext(d->App, this, e, Args, RunAsAdmin != 0);
 				}
 				else
 				{
@@ -1267,27 +1268,51 @@ bool IdeProject::InProject(bool FuzzyMatch, const char *Path, bool Open, IdeDoc 
 		int PathLen = strlen(Path);
 		int LeafLen = strlen(Leaf);
 		int MatchingCh = 0;
+		bool MatchingPlatform = false;
 		const char *p;
 
 		// Traverse all nodes and try and find the best fit.
 		for (ProjectNode *Cur = d->Nodes.First(&p); Cur; Cur = d->Nodes.Next(&p))
 		{
+			int CurPlatform = Cur->GetPlatforms();
+			bool IsCur = (CurPlatform & PLATFORM_CURRENT) != 0;
+
 			if (stristr(p, Path))
 			{
 				// Path is a fragment of a path and may contain a sub-folder names as well
-				if (PathLen > MatchingCh)
+				if
+				(
+					PathLen > MatchingCh
+					||
+					(
+						!MatchingPlatform
+						&&
+						IsCur
+					)
+				)
 				{
 					n = Cur;
 					MatchingCh = PathLen;
+					MatchingPlatform = IsCur;
 				}
 			}
 			else if (stristr(p, Leaf))
 			{
 				// The leaf part matches at least
-				if (LeafLen > MatchingCh)
+				if
+				(
+					LeafLen > MatchingCh
+					||
+					(
+						!MatchingPlatform
+						&&
+						IsCur
+					)
+				)
 				{
 					n = Cur;
 					MatchingCh = LeafLen;
+					MatchingPlatform = IsCur;
 				}
 			}
 		}

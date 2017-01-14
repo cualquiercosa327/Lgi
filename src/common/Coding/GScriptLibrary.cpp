@@ -10,7 +10,7 @@
 #include "LgiRes.h"
 
 //////////////////////////////////////////////////////////////////////////////////////
-char16 sChar[]		= { 'c','h','a','r', 0 };
+char16 sChar[]		= L"char";
 char16 sInt[]		= { 'i','n','t', 0 };
 char16 sUInt[]		= { 'u','i','n','t', 0 };
 char16 sInt32[]		= { 'i','n','t','3','2', 0 };
@@ -751,6 +751,23 @@ bool SystemFunctions::CreateSurface(GVariant *Ret, ArgumentArray &Args)
 	return true;
 }
 
+bool SystemFunctions::MessageDlg(GVariant *Ret, ArgumentArray &Args)
+{
+	if (Args.Length() < 4)
+		return false;
+
+	GViewI *Parent = CastGView(*Args[0]);
+	char *Msg = Args[1]->Str();
+	char *Title = Args[2]->Str();
+	uint32 Btns = Args[3]->CastInt32();
+
+	int Btn = LgiMsg(Parent, Msg, Title, Btns);
+	if (Ret)
+		*Ret = Btn;
+
+	return true;
+}
+
 bool SystemFunctions::GetInputDlg(GVariant *Ret, ArgumentArray &Args)
 {
 	if (Args.Length() < 4)
@@ -884,6 +901,7 @@ GHostFunc SystemLibrary[] =
 	DefFn(CreateSurface),
 
 	// UI
+	DefFn(MessageDlg),
 	DefFn(GetInputDlg),
 	DefFn(GetViewById),
 

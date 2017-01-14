@@ -224,6 +224,40 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
 	#endif
 }
 
+#ifdef _MSC_VER
+GDisplayString::GDisplayString(GFont *f, const uint32 *s, int l, GSurface *pdc)
+{
+	pDC = pdc;
+	Font = f;
+
+	#if LGI_DSP_STR_CACHE
+
+		int Chars = l < 0 ? Strlen(s) : l;
+		StrCache.Reset((char16*)LgiNewConvertCp(LGI_WideCharset, s, "utf-32", Chars*4));
+
+	#endif
+
+    #if defined(MAC) || defined(LGI_SDL) || defined(_MSC_VER)
+
+		StringConvert(Str, &len, s, l);
+
+	#else
+
+		Str = WideToUtf8(s, l < 0 ? -1 : l);
+		len = Str ? strlen(Str) : 0;
+
+	#endif
+	
+	x = y = 0;
+	xf = 0;
+	yf = 0;
+	DrawOffsetF = 0;
+	LaidOut = 0;
+	AppendDots = 0;
+	VisibleTab = 0;
+}
+#endif
+
 GDisplayString::~GDisplayString()
 {
 	#if defined(LGI_SDL)
@@ -914,19 +948,17 @@ void GDisplayString::TruncateWithDots(int Width)
 	#endif
 }
 
-int GDisplayString::CharAt(int Px)
+int GDisplayString::CharAt(int Px, LgiPxToIndexType Type)
 {
 	int Status = -1;
 
     Layout();
 	if (Px < 0)
 	{
-		// printf("CharAt(%i) <0\n", Px);
 		return 0;
 	}
 	else if (Px >= x)
 	{
-		// printf("CharAt(%i) >x=%i len=%i\n", Px, x, len);
 		#if defined __GTK_H__
 		if (Str)
 		{
@@ -1081,7 +1113,7 @@ int GDisplayString::CharAt(int Px)
 						}
 					}
 
-					int Fit = f->_CharAt(Px - Cx, Info[i].Str, Info[i].Len);
+					int Fit = f->_CharAt(Px - Cx, Info[i].Str, Info[i].Len, Type);
 					#endif
 
 					#if DEBUG_CHAR_AT

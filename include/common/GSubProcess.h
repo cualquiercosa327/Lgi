@@ -21,6 +21,16 @@
 #ifndef _SUB_PROCESS_H_
 #define _SUB_PROCESS_H_
 
+#ifdef WIN32
+#define USE_SIMPLE_FORK		0
+#else
+#define USE_SIMPLE_FORK		1
+#endif
+
+#if USE_SIMPLE_FORK
+#include <stdio.h>
+#endif
+
 class GSubProcess : public GStreamI
 {
 public:
@@ -67,20 +77,21 @@ protected:
 	bool EnvironmentChanged;
 	GArray<Variable> Environment;
 	uint32 ErrorCode;
+
 	PipeHandle ExternIn, ExternOut;
-	
+
 	Variable *GetEnvVar(const char *Var, bool Create = false);
 
 	ProcessId ChildPid;
 	#if defined(POSIX)
-	Pipe Io;
-	int ExitValue; // was uint32
-	bool Dupe(PipeHandle Old, PipeHandle New);
+		Pipe Io;
+		int ExitValue; // was uint32
+		bool Dupe(PipeHandle Old, PipeHandle New);
 	#elif defined(WIN32)
-	HANDLE ChildHnd;
-	DWORD ExitValue;
-	Pipe ChildOutput, ChildInput;
-	bool Dupe(PipeHandle Old, PipeHandle &New);
+		HANDLE ChildHnd;
+		DWORD ExitValue;
+		Pipe ChildOutput, ChildInput;
+		bool Dupe(PipeHandle Old, PipeHandle &New);
 	#endif
 
 	GSubProcess *Parent, *Child;
@@ -111,6 +122,7 @@ public:
 	bool Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdout = true);
 	int Wait();
 	void Interrupt();
+	int Kill();
 	
 	// IO
 	int Read(void *Buf, int Size, int Flags = 0);

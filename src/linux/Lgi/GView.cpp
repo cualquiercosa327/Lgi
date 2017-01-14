@@ -584,11 +584,23 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 						GRect cr = *r;
 						cr.Offset(Client.x1, Client.y1);
 						Gtk::GdkRectangle r = cr;
+						
+						/*
+						if (_Debug)
+							printf("%s:%i - inval %i,%i - %i,%i\n", _FL, r.x, r.y, r.width, r.height);
+						*/
+						
 	            		gdk_window_invalidate_rect(hnd, &r, FALSE);
 					}
 					else
 					{
 						Gtk::GdkRectangle r = {0, 0, Pos.X(), Pos.Y()};
+
+						/*
+						if (_Debug)
+							printf("%s:%i - inval %i,%i,%i,%i\n", _FL, 0, 0, Pos.X()-1, Pos.Y()-1);
+						*/
+
 	            		gdk_window_invalidate_rect(hnd, &r, FALSE);
 					}
 				}
@@ -722,19 +734,20 @@ void GView::PointToScreen(GdcPt2 &p)
 	if (c && c->WindowHandle())
 	{
 	    gint x = 0, y = 0;
-	    GdkRectangle rect;
+	    // GdkRectangle rect;
 		Gtk::GtkWindow *wnd = c->WindowHandle();
 		Gtk::GtkWidget *w = GTK_WIDGET(wnd);
-		Gtk::GdkWindow *gdk_wnd = gtk_widget_get_window(w);
-		gdk_window_get_frame_extents(gdk_wnd, &rect);
+		// Gtk::GdkWindow *gdk_wnd = gtk_widget_get_window(w);
+
+		// gdk_window_get_frame_extents(gdk_wnd, &rect);
 		gdk_window_get_origin(w->window, &x, &y);
 		
-		int DecorX = x - rect.x;
-		int DecorY = y - rect.y;
-		int Offset = 8;
+		// int DecorX = x - rect.x;
+		// int DecorY = y - rect.y;		
+		// printf("%s:%i - rect=%i,%i-%i,%i  origin=%i,%i\n", _FL, rect.x, rect.y, rect.width, rect.height, x, y);
 		
-		p.x += x + DecorX - Offset;
-		p.y += y + DecorY - Offset;
+		p.x += x;
+		p.y += y;
 	}
 	else
 	{
@@ -880,6 +893,8 @@ bool GView::Attach(GViewI *parent)
 			{
 				lgi_widget_add(GTK_CONTAINER(p), _View);
 				lgi_widget_setchildpos(p, _View, Pos.x1 + o, Pos.y1 + o);
+				
+				// printf("%s:%i - Attach %s @ %i,%i - %i,%i\n", _FL, GetClass(), Pos.x1 + o, Pos.y1 + o, Pos.X(), Pos.Y());
 			}
 		}
 

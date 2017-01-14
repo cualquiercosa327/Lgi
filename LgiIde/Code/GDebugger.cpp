@@ -3,6 +3,8 @@
 #include "GSubProcess.h"
 #include "GToken.h"
 #include "GDocView.h"
+#include "GStringClass.h"
+#include "GString.h"
 #ifdef POSIX
 #include <sys/types.h>
 #include <signal.h>
@@ -14,11 +16,63 @@
 
 const char sPrompt[] = "(gdb) ";
 
-class Gdb : public GDebugger, public GThread
+class Callback
+{
+public:
+	virtual GString GetResponse(const char *c) = 0;
+};
+
+class Visualizer
+{
+public:
+	virtual ~Visualizer() {}
+	
+	virtual bool Match(GString s) = 0;
+	virtual bool Transform(GString name, GString val, Callback *Cb, GVariant &Value, GString &Detail) = 0;
+};
+
+class GStringVis : public Visualizer
+{
+public:
+	bool Match(GString s)
+	{
+		return s == "GString";
+	}
+	
+	bool Transform(GString name, GString val, Callback *Cb, GVariant &Value, GString &Detail)	
+	{
+		GString::Array a = val.SplitDelimit("{} \t\r\n");
+		if (a.Length() == 3 &&
+			a[1] == "=")
+		{
+			void *Ptr = (void*)htoi(a[2].Get());
+			if (Ptr == NULL)
+			{
+				Value = "NULL";
+			}
+			else
+			{
+				GString cmd;
+				cmd.Printf("p (char*)%s.Str->Str", name.Get());
+				GString r = Cb->GetResponse(cmd);
+				int Pos = r.Find("=");
+				if (Pos >= 0)
+					Value = r(Pos, r.Length()).Strip().Get();
+				else
+					Value = r.Get();
+			}
+		}
+		
+		return true;
+	}
+};
+
+class Gdb : public GDebugger, public GThread, public Callback
 {
 	GDebugEvents *Events;
 	GAutoPtr<GSubProcess> Sp;
 	GAutoString Exe, Args, InitDir;
+	bool RunAsAdmin;
 	bool AtPrompt;
 	char Line[256], *LinePtr;
 	int CurFrame;
@@ -28,6 +82,7 @@ class Gdb : public GDebugger, public GThread
 	int BreakPointIdx;
 	int ProcessId;
 	bool SuppressNextFileLine;
+	GArray<Visualizer*> Vis;
 
 	GMutex StateMutex;
 	bool DebuggingProcess;
@@ -37,6 +92,14 @@ class Gdb : public GDebugger, public GThread
 	GString CurFile;
 	int CurLine;
 	GString::Array Untagged;
+
+	// Parse state
+	enum ParseType
+	{
+		ParseNone,
+		ParseBreakPoint,
+	}	ParseState;
+	GString::Array BreakInfo;
 
 	// Various output modes.
 	GStream *OutStream;
@@ -53,9 +116,24 @@ class Gdb : public GDebugger, public GThread
 	void OnFileLine(const char *File, int Line, bool CurrentIp)
 	{
 		if (SuppressNextFileLine)
+		{
+			// printf("%s:%i - SuppressNextFileLine\n", _FL);
 			SuppressNextFileLine = false;
+		}
 		else if (Events)
-			Events->OnFileLine(File, Line, CurrentIp);
+		{
+			if (File)
+				CurFile = File;
+			if (Line > 0)
+				CurLine = Line;
+			
+			if (CurFile && CurLine > 0)
+				Events->OnFileLine(CurFile, CurLine, CurrentIp);
+			/*
+			else
+				printf("%s:%i - Error: Cur loc incomplete: %s %i.\n", _FL, CurFile.Get(), CurLine);
+			*/
+		}
 	}
 
 	bool ParseLocation(GString::Array &p)
@@ -151,52 +229,94 @@ class Gdb : public GDebugger, public GThread
 		return p;
 	}
 	
-	void OnBreakPoint(const char *Str, int Len)
+	void OnBreakPoint(GString f)
 	{
-		// Trim off the whitespace...
-		while (Len > 0 && strchr(WhiteSpace, *Str))
+		if (!f.Get() || ProcessId < 0)
 		{
-			Str++;
-			Len--;
+			// printf("Error: Param error: %s, %i (%s:%i)\n", f.Get(), ProcessId, _FL);
+			return;
 		}
-		while (Len > 0 && strchr(WhiteSpace, Str[Len-1]))
-		{
-			Len--;
-		}
-
-		GString f(Str, Len);
-		GString::Array a = f.SplitDelimit(" \t");
-		int At = 0;
-
-		// Find 'at'
-		for (; At < a.Length() && stricmp(a[At], "at") != 0; At++)
-			;
 		
-		if (At < a.Length() - 1) // Found the 'at'
+		GString File, Line;
+		GString::Array a = f.Split("at");
+		/*
+		printf("%s:%i - a.len=%i\n", _FL, a.Length());
+		for (unsigned n=0; n<a.Length(); n++)
+			printf("\t[%i]='%s'\n", n, a[n].Get());
+		*/
+		
+		if (a.Length() == 2)
 		{
-			GString::Array ref = a[At+1].SplitDelimit(":");
-			if (ref.Length() == 2)
-			{
-				OnFileLine(NativePath(ref[0]), ref[1].Int(), true);
-			}
-			else LgiTrace("%s:%i - Not the right arg count.\n", _FL);
+			GString k = a[1].Strip();
+			// printf("%s:%i - k='%s'\n", _FL, k.Get());
 			
-			BreakPointIdx = -1;
+			if (k.Find("0x") == 0)
+			{			
+				GString::Array b = a[1].SplitDelimit(":,");
+				// printf("%s:%i - b.len=%i\n", _FL, b.Length());
+				for (unsigned i=0; i<b.Length(); i++)
+				{
+					GString s = b[i].Strip();
+					if (s.Find("file ") == 0)
+					{
+						File = s(5, -1);
+					}
+					else if (s.Find("line ") == 0)
+					{
+						Line = s(5, -1);
+					}
+				}
+			}
+			else
+			{
+				int e = k.Find(":");
+				// printf("%s:%i - e=%i\n", _FL, e);
+				if (e > 0)
+				{
+					e++;
+					while (e < k.Length() && IsDigit(k(e)))
+						e++;
+					// printf("%s:%i - e=%i\n", _FL, e);
+					GString::Array b = k(0, e).RSplit(":", 1);
+					//  printf("%s:%i - b.len=%i\n", _FL, b.Length());
+					if (b.Length() == 2)
+					{
+						File = b[0];
+						Line = b[1];
+					}					
+				}
+				else printf("Error: no ':' in '%s'. (%s:%i)\n", k.Get(), _FL);
+			}
 		}
-		else LgiTrace("Not end of breakpoint.\n");
+		else printf("Error: %i parts (%s:%i).\n", a.Length(), _FL);
+
+		if (File && Line > 0)
+		{
+			OnFileLine(NativePath(File), Line.Int(), true);
+		}
+		else
+		{
+			printf("%s:%i - No file='%s' or line='%s'\n%s\n", _FL, File.Get(), Line.Get(), f.Get());
+		}
 	}
 	
 	void OnLine(const char *Start, int Length)
 	{
 		#if DEBUG_SHOW_GDB_IO
-		LgiTrace("Receive: '%.*s'\n", Length-1, Start);
+		LgiTrace("Receive: '%.*s' ParseState=%i, OutLine=%p, OutStream=%p\n", Length-1, Start, ParseState, OutLines, OutStream);
 		#endif
 
 		// Send output
 		if (OutLines)
+		{
 			OutLines->New().Set(Start, Length - 1);
+			return;
+		}
 		else if (OutStream)
+		{
 			OutStream->Write(Start, Length);
+			return;
+		}
 		else
 		{
 			Untagged.New().Set(Start, Length);
@@ -209,73 +329,87 @@ class Gdb : public GDebugger, public GThread
 		Events->Write(Start, Length);
 		#endif
 
-		if (BreakPointIdx > 0)
+		if (ParseState == ParseBreakPoint)
 		{
-			OnBreakPoint(Start, Length);
-		}
-		else if (stristr(Start, "received signal SIGSEGV"))
-		{
-			Events->OnCrash(0);
-		}
-		else if (*Start == '[')
-		{
-			if (stristr(Start, "Inferior") && stristr(Start, "exited"))
+			if (Length > 0 && IsDigit(*Start))
 			{
-				OnExit();
+				// printf("ParsingBp.Parse=%s\n", Start);
+				GString Bp = GString(" ").Join(BreakInfo).Strip();
+				OnBreakPoint(Bp);
+				ParseState = ParseNone;
+				BreakInfo.Length(0);
 			}
-			else if (stristr(Start, "New Thread"))
+			else
 			{
-				GString s(Start, Length);
-				GString::Array a = s.SplitDelimit("[] ()");
-				int ThreadId = -1;
-				for (unsigned i=0; i<a.Length(); i++)
-				{
-					if (a[i] == GString("LWP") && i < a.Length() - 1)
-					{
-						ThreadId = a[i+1].Int();
-						break;
-					}
-				}
-				if (ThreadId > 0)
-				{
-					// Ok so whats the process ID?
-					#ifdef POSIX
-					int Pid = 
-					#ifdef __GTK_H__
-					Gtk::
-					#endif
-					getpgid(ThreadId);
-					if (Pid > 0 && ProcessId < 0)
-					{
-						LgiTrace("Got the thread id: %i, and pid: %i\n", ThreadId, Pid);
-						ProcessId = Pid;
-					}
-					else
-					{
-						LgiTrace("Not setting pid: pid=%i, processid=%i\n", Pid, ProcessId);
-					}
-					#else
-					LgiAssert(!"Impl me.");
-					#endif
-				}
-				else LgiTrace("%s:%i - No thread id?\n", _FL);
+				// printf("ParsingBp.Add=%s\n", Start);
+				BreakInfo.New().Set(Start, Length);
 			}
 		}
-		else if (BreakPointIdx < 0 &&
-				strncmp(Start, "Breakpoint ", 11) == 0 &&
-				IsDigit(Start[11]))
+
+		if (ParseState == ParseNone)
 		{
-			Start += 11;
-			Length -= 11;
-			BreakPointIdx = atoi(Start);
-			OnBreakPoint(Start, Length);
-		}
-		else
-		{
-			// Untagged file/line?
-			if (ParseLocation(Untagged))
+			if (stristr(Start, "received signal SIGSEGV"))
 			{
-				Untagged.Length(0);
+				Events->OnCrash(0);
+			}
+			else if (*Start == '[')
+			{
+				if (stristr(Start, "Inferior") && stristr(Start, "exited"))
+				{
+					OnExit();
+				}
+				else if (stristr(Start, "New Thread"))
+				{
+					GString s(Start, Length);
+					GString::Array a = s.SplitDelimit("[] ()");
+					int ThreadId = -1;
+					for (unsigned i=0; i<a.Length(); i++)
+					{
+						if (a[i] == GString("LWP") && i < a.Length() - 1)
+						{
+							ThreadId = a[i+1].Int();
+							break;
+						}
+					}
+					if (ThreadId > 0)
+					{
+						// Ok so whats the process ID?
+						#ifdef POSIX
+						int Pid = 
+						#ifdef __GTK_H__
+						Gtk::
+						#endif
+						getpgid(ThreadId);
+						if (Pid > 0 && ProcessId < 0)
+						{
+							// LgiTrace("Got the thread id: %i, and pid: %i\n", ThreadId, Pid);
+							ProcessId = Pid;
+						}
+						/*
+						else
+							LgiTrace("Not setting pid: pid=%i, processid=%i\n", Pid, ProcessId);
+						*/
+						#else
+						LgiAssert(!"Impl me.");
+						#endif
+					}
+					else LgiTrace("%s:%i - No thread id?\n", _FL);
+				}
+			}
+			else if (strncmp(Start, "Breakpoint ", 11) == 0 &&
+					IsDigit(Start[11]))
+			{
+				ParseState = ParseBreakPoint;
+				// printf("ParseState=%i\n", ParseState);
+				BreakInfo.New().Set(Start, Length);
+			}
+			else
+			{
+				// Untagged file/line?
+				if (ParseLocation(Untagged))
+				{
+					Untagged.Length(0);
+				}
 			}
 		}
 	}
@@ -332,19 +466,20 @@ class Gdb : public GDebugger, public GThread
 	
 	int Main()
 	{
-		char s[MAX_PATH];
 		#ifdef WIN32
 		const char *Shell = "C:\\Windows\\System32\\cmd.exe";
 		const char *Path = "C:\\MinGW\\bin\\gdb.exe";
 		#else
 		const char *Path = "gdb";
 		#endif
-		if (ValidStr(Args))
-			sprintf_s(s, sizeof(s), "\"%s\" -- %s", Exe.Get(), Args.Get());
+		GString p;
+		if (RunAsAdmin)
+			p.Printf("pkexec %s \"%s\"", Path, Exe.Get());
 		else
-			sprintf_s(s, sizeof(s), "\"%s\"", Exe.Get());
-		
-		if (!Sp.Reset(new GSubProcess(Path, s)))
+			p.Printf("%s \"%s\"", Path, Exe.Get());
+		GString::Array a = p.Split(" ", 1);
+
+		if (!Sp.Reset(new GSubProcess(a[0], a[1])))
 			return false;
 
 		if (InitDir)
@@ -377,11 +512,14 @@ class Gdb : public GDebugger, public GThread
 			if (Rd > 0)
 			{
 				#if 0 // DEBUG_SESSION_LOGGING
-				// LgiTrace("%I64i: %p,%p Read(%i)='%.*s'\n", LgiCurrentTime(), OutLines, OutStream, Rd, Rd, Buf);
+				printf("GDB: %.*s\n", Rd, Buf);
 				#endif
 				OnRead(Buf, Rd);
 			}			
 		}
+
+		Break();
+		Cmd("q");
 
 		#if DEBUG_SESSION_LOGGING
 		LgiTrace("Gdb::Main - exited loop.\n");
@@ -490,6 +628,7 @@ public:
 		State = Init;
 		AtPrompt = false;
 		LinePtr = Line;
+		RunAsAdmin = false;
 		OutStream = NULL;
 		OutLines = NULL;
 		CurFrame = 0;
@@ -499,6 +638,9 @@ public:
 		BreakPointIdx = -1;
 		ProcessId = -1;
 		SuppressNextFileLine = false;
+		ParseState = ParseNone;
+		
+		Vis.Add(new GStringVis);
 	}
 	
 	~Gdb()
@@ -519,11 +661,12 @@ public:
 		}
 	}
 
-	bool Load(GDebugEvents *EventHandler, const char *exe, const char *args, const char *initDir)
+	bool Load(GDebugEvents *EventHandler, const char *exe, const char *args, bool runAsAdmin, const char *initDir)
 	{
 		Events = EventHandler;
 		Exe.Reset(NewStr(exe));
 		Args.Reset(NewStr(args));
+		RunAsAdmin = runAsAdmin;
 		InitDir.Reset(NewStr(initDir));
 		Running = false;
 		Run();
@@ -686,7 +829,7 @@ public:
 				SetAsmType = true;
 				Cmd("set disassembly-flavor intel");
 			}
-
+			
 			GString a;
 			if (DebuggingProcess)
 				a = "c";
@@ -694,6 +837,52 @@ public:
 				a.Printf("r %s", Args.Get());
 			else
 				a = "r";
+
+			if (a(0) == 'r' && ProcessId < 0)
+			{
+				BreakPoint bp;
+				bp.Symbol = "main";
+				if (SetBreakPoint(&bp))
+				{
+					if (!Cmd(a))
+						return false;
+					
+					if (!WaitPrompt())
+						return false;
+					
+					RemoveBreakPoint(&bp);
+					
+					// Get process info
+					GStringPipe p;
+					if (Cmd("info inferiors", &p))
+					{
+						GString::Array Ln = p.NewGStr().SplitDelimit("\r\n");
+						if (Ln.Length() >= 2)
+						{
+							GString::Array a = Ln[1].SplitDelimit(" \t");
+							for (unsigned i=0; i<a.Length()-1; i++)
+							{
+								if (a[i].Equals("process"))
+								{
+									int Id = a[i+1].Int();
+									if (Id >= 0)
+									{
+										ProcessId = Id;
+									}
+									break;
+								}
+							}
+						}
+					}
+					
+					bool Status = Cmd("c");
+					if (Status)
+						SetState(true, true);
+
+					Log("[ProcessId=%i]\n", ProcessId);
+					return Status;					
+				}
+			}
 
 			if (Cmd(a))
 			{
@@ -725,8 +914,16 @@ public:
 			
 			char cmd[MAX_PATH];
 			char *File = bp.File.Get();
-			char *Last = strrchr(File, DIR_CHAR);
-			sprintf_s(cmd, sizeof(cmd), "break %s:%i", Last ? Last + 1 : File, bp.Line);
+			if (File)
+			{
+				char *Last = strrchr(File, DIR_CHAR);
+				sprintf_s(cmd, sizeof(cmd), "break %s:%i", Last ? Last + 1 : File, bp.Line);
+			}
+			else if (bp.Symbol)
+			{
+				sprintf_s(cmd, sizeof(cmd), "break %s", bp.Symbol.Get());
+			}
+			else return false;
 			
 			BreakPointIdx = 0;
 			
@@ -948,23 +1145,85 @@ public:
 		GProfile Prof("GetVars");
 		GStringPipe p(256);
 
-		if (!Cmd("info args", &p))
-			return false;
+		if (vars.Length())
+		{
+			GString c;
 
-		Prof.Add("ParseArgs");
+			for (unsigned i=0; i<vars.Length(); i++)
+			{
+				Variable &v = vars[i];
+
+				c.Printf("whatis %s", v.Name.Get());
+				if (Cmd(c, &p))
+				{
+					GString a = p.NewGStr();
+					printf("Type='%s'\n", a.Get());
+					if (a.Find("=") >= 0)
+					{
+						GString::Array tmp = a.Split("=", 1);
+						v.Type = tmp[1].Strip().Replace("\n", " ");
+					}
+					else
+					{
+						v.Type = a.Get();
+					}
+				}
+				else printf("%s:%i - Cmd failed '%s'\n", _FL, c.Get());
+				
+				c.Printf("p %s", v.Name.Get());
+				if (Cmd(c, &p))
+				{
+					GString a = p.NewGStr();
+					GString Val;
+					if (a.Find("=") >= 0)
+					{
+						GString::Array tmp = a.Split("=", 1);
+						Val = tmp[1].Strip().Replace("\n", " ").Get();
+					}
+					else
+					{
+						Val = a.Get();
+					}
+					
+					unsigned i;
+					for (i=0; i<Vis.Length(); i++)
+					{
+						Visualizer *vs = Vis[i];
+						if (vs->Match(v.Type))
+						{
+							if (vs->Transform(v.Name, Val, this, v.Value, v.Detail))
+								break;
+						}
+					}
+					if (i >= Vis.Length())
+						v.Value = Val.Get();
+				}
+				else printf("%s:%i - Cmd failed '%s'\n", _FL, c.Get());
+			}
+			
+			return true;
+		}
+		else
+		{
+			if (!Cmd("info args", &p))
+				return false;
+
+			Prof.Add("ParseArgs");
+			
+			GAutoString a(p.NewStr());
+			ParseVariables(a, vars, Variable::Arg, Detailed);
+
+			Prof.Add("InfoLocals");
+
+			if (!Cmd("info locals", &p))
+				return false;
+
+			Prof.Add("ParseLocals");
+			
+			a.Reset(p.NewStr());
+			ParseVariables(a, vars, Variable::Local, Detailed);
+		}
 		
-		GAutoString a(p.NewStr());
-		ParseVariables(a, vars, Variable::Arg, Detailed);
-
-		Prof.Add("InfoLocals");
-
-		if (!Cmd("info locals", &p))
-			return false;
-
-		Prof.Add("ParseLocals");
-		
-		a.Reset(p.NewStr());
-		ParseVariables(a, vars, Variable::Local, Detailed);
 		return true;
 	}
 
@@ -1203,6 +1462,15 @@ public:
 		char c[256];
 		sprintf_s(c, sizeof(c), "%s", cmd);
 		return Cmd(c);
+	}
+
+	GString GetResponse(const char *c)
+	{
+		GString r;
+		GStringPipe p;
+		if (Cmd(c, &p))
+			r = p.NewGStr();
+		return r;
 	}
 };
 

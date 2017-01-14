@@ -28,6 +28,7 @@
 /// are expanded to the current tab size setting.
 class LgiClass GDisplayString
 {
+protected:
 	GSurface *pDC;
 	OsChar *Str;
 	GFont *Font;
@@ -118,6 +119,19 @@ public:
 		int l = -1,
 		GSurface *pdc = 0
 	);
+	#ifdef _MSC_VER
+	/// Constructor
+	GDisplayString
+	(
+		/// The base font. Must not be destroyed during the lifetime of this object.
+		GFont *f,
+		/// A wide character input string
+		const uint32 *s,
+		/// The number of characters in the input string (NOT the number of bytes) or -1 for NULL terminated
+		int l = -1,
+		GSurface *pdc = 0
+	);
+	#endif
 	virtual ~GDisplayString();
 	
 	GDisplayString &operator=(const GDisplayString &s)
@@ -174,7 +188,7 @@ public:
 		/// Returns the width and height of the whole string
 		GdcPt2 Size();
 		/// Returns the number of characters that fit in 'x' pixels.
-		int CharAt(int x);
+		int CharAt(int x, LgiPxToIndexType Type = LgiTruncate);
 
 		/// Draws the string onto a device surface
 		void Draw

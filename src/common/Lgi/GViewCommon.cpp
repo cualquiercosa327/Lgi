@@ -200,13 +200,6 @@ GView::~GView()
 	DeleteObj(d);
 }
 
-#ifdef _DEBUG
-void GView::Debug()
-{
-    _Debug = true;
-}
-#endif
-
 GViewIterator *GView::IterateViews()
 {
 	return new GViewIter(this);
@@ -1793,7 +1786,7 @@ bool GView::PostEvent(int Cmd, GMessage::Param a, GMessage::Param b)
 	}
 	else
 	{
-		LgiTrace("%s:%i - No view to post event to.\n", _FL);
+		// LgiTrace("%s:%i - No view to post event to.\n", _FL);
 	}
 	
 	#endif
@@ -2046,21 +2039,64 @@ GdcPt2 &GView::GetWindowBorderSize()
 }
 
 #ifdef _DEBUG
+
+#ifdef MAC
+void DumpHiview(HIViewRef v, int Depth = 0)
+{
+	char Sp[256];
+	memset(Sp, ' ', Depth << 2);
+	Sp[Depth<<2] = 0;
+
+	printf("%sHIView=%p", Sp, v);
+	if (v)
+	{
+		Boolean vis = HIViewIsVisible(v);
+		Boolean en = HIViewIsEnabled(v, NULL);
+		HIRect pos;
+		HIViewGetFrame(v, &pos);
+
+		char cls[128];
+		ZeroObj(cls);
+		GetControlProperty(v, 'meme', 'clas', sizeof(cls), NULL, cls);
+
+		printf(" vis=%i en=%i pos=%g,%g-%g,%g cls=%s",
+			vis, en,
+			pos.origin.x, pos.origin.y, pos.size.width, pos.size.height,
+			cls);
+	}
+	printf("\n");
+
+	for (HIViewRef c = HIViewGetFirstSubview(v); c; c = HIViewGetNextView(c))
+	{
+		DumpHiview(c, Depth + 1);
+	}
+}
+#endif
+
 void GView::_Dump(int Depth)
 {
 	char Sp[65];
 	memset(Sp, ' ', Depth << 2);
 	Sp[Depth<<2] = 0;
-	char s[256];
-	sprintf_s(s, sizeof(s), "%s%p::%s %s (_View=%p)\n", Sp, this, GetClass(), GetPos().GetStr(), _View);
-	LgiTrace(s);
-	List<GViewI>::I i = Children.Start();
-	for (GViewI *c = *i; c; c = *++i)
-	{
-		GView *v = c->GetGView();
-		if (v)
-			v->_Dump(Depth+1);
-	}
+	
+	#if 0
+	
+		char s[256];
+		sprintf_s(s, sizeof(s), "%s%p::%s %s (_View=%p)\n", Sp, this, GetClass(), GetPos().GetStr(), _View);
+		LgiTrace(s);
+		List<GViewI>::I i = Children.Start();
+		for (GViewI *c = *i; c; c = *++i)
+		{
+			GView *v = c->GetGView();
+			if (v)
+				v->_Dump(Depth+1);
+		}
+	
+	#elif defined(MAC)
+	
+	DumpHiview(_View);
+	
+	#endif
 }
 #endif
 
@@ -2131,3 +2167,33 @@ GView *GViewFactory::Create(const char *Class, GRect *Pos, const char *Text)
 
 	return 0;
 }
+
+#ifdef _DEBUG
+
+#if defined(__GTK_H__)
+using namespace Gtk;
+#include "LgiWidget.h"
+#endif
+
+void GView::Debug()
+{
+    _Debug = true;
+
+	#if defined(__GTK_H__)
+    if (_View)
+    {
+    	if (LGI_IS_WIDGET(_View))
+    	{
+    		LgiWidget *w = LGI_WIDGET(_View);
+    		if (w)
+    		{
+    			w->debug = true;
+    		}
+    		else LgiTrace("%s:%i - NULL widget.\n", _FL);
+    	}
+    	else LgiTrace("%s:%i - Not a widget.\n", _FL);
+    }
+	#endif
+}
+#endif
+

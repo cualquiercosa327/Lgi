@@ -749,7 +749,8 @@ lgi_widget_expose(GtkWidget *widget, GdkEventExpose *event)
 	{
 		if (p && p->target)
 		{
-			GScreenDC Dc(widget);
+			GScreenDC Dc(p->target->GetGView());
+
 			GView *v = dynamic_cast<GView*>(p->target);
 			if (v)
 			    v->_Paint(&Dc);
@@ -803,11 +804,13 @@ lgi_widget_setchildpos(GtkWidget *parent, GtkWidget *child, int x, int y)
 				if (GTK_WIDGET_REALIZED(c.w))
 				{
                 	LgiWidget *child_wid = LGI_WIDGET(c.w);
+                	
 				    GtkAllocation a;
 				    a.x = c.x;
 				    a.y = c.y;
 				    a.width = max(1, child_wid->w);
 				    a.height = max(1, child_wid->h);
+				    
     				gtk_widget_size_allocate(c.w, &a);
 
             		gdk_window_invalidate_rect(
@@ -931,5 +934,6 @@ lgi_widget_init(LgiWidget *w)
 	w->pour_largest = false;
 	w->drag_over_widget = false;
 	w->drop_format = NULL;
+	w->debug = false;
 }
 

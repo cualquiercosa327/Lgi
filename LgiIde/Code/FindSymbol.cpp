@@ -92,6 +92,11 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 		MsgTs = 0;
 	}
 
+	~FindSymbolSystemPriv()
+	{
+		EndThread();
+	}
+
 	void Log(const char *Fmt, ...)
 	{
 		va_list Arg;

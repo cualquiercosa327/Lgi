@@ -10,6 +10,7 @@
 #include "GToken.h"
 #include "GTableLayout.h"
 #include "GTextLabel.h"
+#include "GScrollBar.h"
 
 #define TIME_INSTRUCTIONS		0
 #define POST_EXECUTE_STATE		0
@@ -21,7 +22,7 @@
 #define CurrentScriptAddress	(c.u8 - Base)
 #define CheckParam(ptr)			if (!(ptr)) \
 								{ \
-									OnException(_FL, CurrentScriptAddress, #ptr); \
+									OnException(_FL, CurrentScriptAddress-1, #ptr); \
 									c.u8 = e; \
 									Status = ScriptError; \
 									break; \
@@ -270,7 +271,7 @@ GExecutionStatus GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentA
 struct CodeBlock
 {
 	unsigned SrcLine;
-	GArray<int> AsmAddr;
+	GArray<unsigned> AsmAddr;
 	unsigned ViewLine;
 
 	GAutoString Source;
@@ -280,7 +281,7 @@ struct CodeBlock
 	int AsmLines;
 };
 
-class GVirtualMachinePriv
+class GVirtualMachinePriv : public GRefCount
 {
 	GVariant ArrayTemp;
 	
@@ -308,8 +309,8 @@ public:
 	enum RunType
 	{
 		RunContinue,
-		RunStepInto,
-		RunStepOver,
+		RunStepInstruction,
+		RunStepLine,
 		RunStepOut
 	};
 
@@ -326,16 +327,25 @@ public:
 	GVmDebugger *Debugger;
 	GVirtualMachine *Vm;
 	ArgumentArray *ArgsOutput;
+	GVariant UnusedReturn;
+	bool BreakCpp;
+	GArray<int> BreakPts;
 
 	GVirtualMachinePriv(GVirtualMachine *vm, GVmDebuggerCallback *Callback)
 	{
 		Vm = vm;
+		BreakCpp = false;
 		ArgsOutput = NULL;
 		Log = NULL;
 		Code = NULL;
 		Debugger = NULL;
 		DbgCallback = Callback;
 		ZeroObj(Scope);
+	}
+	
+	~GVirtualMachinePriv()
+	{
+		int asd=0;
 	}
 
 	void DumpVariant(GStream *Log, GVariant &v)
@@ -446,10 +456,28 @@ public:
 			Log->Print("%s Exception: %s (%s:%i)\n", Code->AddrToSourceRef(Address), Msg, Last?Last+1:File, Line);
 		}
 		
-		if (Vm->OpenDebugger(Code->GetFileName()))
+		const char *Fn = Code->GetFileName();
+		GAutoString Src(ReadTextFile(Fn));
+		if (Vm && Vm->OpenDebugger(Src))
 		{
+			if (!Debugger->GetCode())
+			{
+				GAutoPtr<GCompiledCode> Cp(new GCompiledCode(*Code));
+				Debugger->OwnCompiledCode(Cp);
+				
+				GStringPipe AsmBuf;
+				Decompile(Code->UserContext, Code, &AsmBuf);
+				GAutoString Asm(AsmBuf.NewStr());
+				Debugger->SetSource(Asm);
+			}
+			
 			Debugger->OnAddress(Address);
-			Debugger->OnError(Msg);
+			
+			GString m;
+			m.Printf("%s (%s:%i)", Msg, LgiGetLeaf(File), Line);
+			Debugger->OnError(m);
+			
+			Debugger->Run();
 		}
 		else
 		{
@@ -506,1810 +534,7 @@ public:
 			switch (*c.u8++)
 			{
 				#define VM_DECOMP 1
-				/*
-	This file is included in both the GVirtualMachinePriv::Execute and GVirtualMachinePriv::Decompile
-	That way the "parsing" of instructions is the same.
-	
-	During decompile the define VM_DECOMP is active.
-	
-	During execution the define VM_EXECUTE is active.
-
-*/
-
-#ifdef VM_EXECUTE
-#define Resolve()		&Scope[c.r->Scope][c.r->Index]; c.r++
-#define GResolveRef		GVariant *
-#else
-#define Resolve()		c.r++
-#define GResolveRef		GVarRef *
-#endif
-
-default:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("\t%p Unknown instruction %i (0x%x)\n",
-					CurrentScriptAddress - 1,
-					c.u8[-1], c.u8[-1]);
-	#endif
-	OnException(_FL, CurrentScriptAddress, "Unknown instruction");
-	SetScriptError;
-	break;
-}
-case INop:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Nop\n", CurrentScriptAddress - 1);
-	#endif
-	break;
-}
-case ICast:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Cast %s",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr());
-	#endif
-	GResolveRef Var = Resolve();
-	uint8 Type = *c.u8++;
-	#if VM_DECOMP
-	if (Log)
-		Log->Print(" to %s\n", GVariant::TypeToString((GVariantType)Type));
-	#endif
-	#if VM_EXECUTE
-	switch (Type)
-	{
-		case GV_INT32:
-		{
-			*Var = Var->CastInt32();
-			break;
-		}
-		case GV_STRING:
-		{
-			*Var = Var->CastString();
-			break;
-		}
-		case GV_DOM:
-		{
-			*Var = Var->CastDom();
-			break;
-		}
-		case GV_DOUBLE:
-		{
-			*Var = Var->CastDouble();
-			break;
-		}
-		case GV_INT64:
-		{
-			*Var = Var->CastInt32();
-			break;
-		}
-		case GV_BOOL:
-		{
-			*Var = Var->CastBool();
-			break;
-		}
-		default:
-		{
-			if (Log)
-				Log->Print(	"%s ICast warning: unknown type %i/%s\n",
-							Code->AddrToSourceRef(CurrentScriptAddress),
-							Var->Type,
-							GVariant::TypeToString(Var->Type));
-			Status = ScriptWarning;
-			break;
-		}
-	}
-	#endif
-	break;
-}
-case IBreak:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Break\n", CurrentScriptAddress - 1);
-	#endif
-	break;
-}
-case IAssign:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Assign %s <- %s\n",
-				CurrentScriptAddress - 1,
-				c.r[0].GetStr(),
-				c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	#ifdef VM_EXECUTE
-	CheckParam(Dst != Src);
-	*Dst = *Src;
-	#endif
-	break;
-}
-case IJump:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Jump by %i (to 0x%x)\n",
-			CurrentScriptAddress - 1,
-			c.i32[0],
-			CurrentScriptAddress + 4 + c.i32[0]);
-	#endif
-
-	int32 Jmp = *c.i32++;
-	#ifdef VM_EXECUTE
-	CheckParam(Jmp != 0);
-	c.u8 += Jmp;
-	#endif
-	break;
-}
-case IJumpZero:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p JumpZ(%s) by 0x%x\n",
-			CurrentScriptAddress - 1,
-			c.r[0].GetStr(),
-			c.i32[1]);
-	#endif
-
-	GResolveRef Exp = Resolve();
-	int32 Jmp = *c.i32++;
-	#ifdef VM_EXECUTE
-	CheckParam(Jmp != 0);
-	if (!Exp->CastInt32())
-	{
-		c.u8 += Jmp;
-	}
-	#endif
-	break;
-}
-// case IUnaryPlus:
-case IUnaryMinus:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p UnaryMinus %s\n",
-			CurrentScriptAddress - 1,
-			c.r[0].GetStr());
-	#endif
-
-	GResolveRef Var = Resolve();
-	#ifdef VM_EXECUTE
-	if (Var->Type == GV_DOUBLE)
-		*Var = -Var->CastDouble();
-	else
-		*Var = -Var->CastInt32();
-	#endif
-	break;
-}
-case IPlus:
-case IPlusEquals:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Plus %s += %s\n",
-			CurrentScriptAddress - 1,
-			c.r[0].GetStr(),
-			c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	#ifdef VM_EXECUTE
-	if (Dst->Str())
-	{
-		int dlen = strlen(Dst->Str());
-		char *ss;
-		GVariant SrcTmp;
-		
-		switch (Src->Type)
-		{
-			case GV_NULL:
-				ss = (char*)"(null)";
-				break;
-			case GV_STRING:
-				ss = Src->Str();
-				break;
-			default:
-				SrcTmp = *Src;
-				ss = SrcTmp.CastString();
-				break;
-		}
-
-		if (ss)
-		{
-			int slen = strlen(ss);
-			char *s = new char[slen + dlen + 1];
-			if (s)
-			{
-				memcpy(s, Dst->Value.String, dlen);
-				memcpy(s + dlen, ss, slen);
-				s[dlen + slen] = 0;
-				DeleteArray(Dst->Value.String);
-				Dst->Value.String = s;
-			}
-		}
-	}
-	else if (Dst->Type == GV_DOUBLE ||
-			 Src->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() + Src->CastDouble();
-	else
-		*Dst = Dst->CastInt32() + Src->CastInt32();
-	#endif
-	break;
-}
-case IMinus:
-case IMinusEquals:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Minus %s -= %s\n",
-			CurrentScriptAddress - 1,
-			c.r[0].GetStr(),
-			c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	#ifdef VM_EXECUTE
-	if (Dst->Type == GV_DOUBLE ||
-		Src->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() - Src->CastDouble();
-	else
-		*Dst = Dst->CastInt32() - Src->CastInt32();
-	#endif
-	break;
-}
-case IMul:
-case IMulEquals:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Mul %s *= %s\n",
-			CurrentScriptAddress - 1,
-			c.r[0].GetStr(),
-			c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	#ifdef VM_EXECUTE
-	if (Dst->Type == GV_DOUBLE ||
-		Src->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() * Src->CastDouble();
-	else
-		*Dst = Dst->CastInt32() * Src->CastInt32();
-	#endif
-	break;
-}
-case IDiv:
-case IDivEquals:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Div %s /= %s\n",
-			CurrentScriptAddress - 1,
-			c.r[0].GetStr(),
-			c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	#ifdef VM_EXECUTE
-	if (Dst->Type == GV_DOUBLE ||
-		Src->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() / Src->CastDouble();
-	else
-		*Dst = Dst->CastInt32() / Src->CastInt32();
-	#endif
-	break;
-}
-case IMod:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Mod %s %= %s\n",
-			CurrentScriptAddress - 1,
-			c.r[0].GetStr(),
-			c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	#ifdef VM_EXECUTE
-	if (Dst->Type == GV_DOUBLE ||
-		Src->Type == GV_DOUBLE)
-	{
-		*Dst = fmod(Dst->CastDouble(), Src->CastDouble());
-	}
-	else
-	{
-		*Dst = Dst->CastInt32() % Src->CastInt32();
-	}
-	#endif
-	break;
-}
-case IPostInc:
-case IPreInc:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p PostInc %s\n",
-			CurrentScriptAddress - 1,
-			c.r[0].GetStr());
-	#endif
-
-	GResolveRef v = Resolve();
-	#ifdef VM_EXECUTE
-	if (v->Type == GV_DOUBLE)
-		*v = v->CastDouble() + 1;
-	else
-		*v = v->CastInt32() + 1;
-	#endif
-	break;
-}
-case IPostDec:
-case IPreDec:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p PostDec %sn",
-			CurrentScriptAddress - 1,
-			c.r[0].GetStr());
-	#endif
-
-	GResolveRef v = Resolve();
-	#ifdef VM_EXECUTE
-	if (v->Type == GV_DOUBLE)
-		*v = v->CastDouble() - 1;
-	else
-		*v = v->CastInt32() - 1;
-	#endif
-	break;
-}
-case ICallMethod:
-{
-	GFunc *Meth = *c.fn++;
-	if (!Meth)
-	{
-		Log->Print(	"%s ICallMethod error: No method struct.\n",
-					Code->AddrToSourceRef(CurrentScriptAddress - sizeof(Meth)));
-		SetScriptError;
-		break;
-	}
-
-	#ifdef VM_DECOMP
-	if (Log)
-	{
-		Log->Print("%p Call: %s = %s(",
-				CurrentScriptAddress - sizeof(Meth) - 1,
-				c.r[0].GetStr(),
-				Meth->Method.Get());
-	}
-	#endif
-	
-	GResolveRef Ret = Resolve();
-	uint16 Args = *c.u16++;
-
-	#ifdef VM_EXECUTE			
-	GArray<GVariant*> Arg;
-	#endif
-	
-	for (int i=0; i<Args; i++)
-	{
-		#if VM_DECOMP
-		if (Log)
-			Log->Print("%s%s", i?", ":"", c.r[0].GetStr());
-		#endif
-
-		#if VM_EXECUTE
-		Arg[i] = Resolve();
-		CheckParam(Arg[i] != NULL);
-		#else
-		c.r++;
-		#endif
-	}
-
-	#if VM_DECOMP
-	if (Log)
-		Log->Print(")\n");
-	#endif
-	
-	#if VM_EXECUTE
-	GHostFunc *Hf = dynamic_cast<GHostFunc*>(Meth);
-	if (Hf)
-	{
-		if (!(Hf->Context->*(Hf->Func))(Ret, Arg))
-		{
-			if (Log)
-				Log->Print(	"%s ICallMethod error: Method '%s' failed.\n",
-							Code->AddrToSourceRef(CurrentScriptAddress),
-							Meth->Method.Get());
-			SetScriptError;
-		}		
-	}
-	else
-	{
-		// Fixme
-		if (!Meth->Call(NULL, Ret, Arg))
-		{
-			if (Log)
-				Log->Print(	"%s ICallMethod error: Method '%s' failed.\n",
-							Code->AddrToSourceRef(CurrentScriptAddress),
-							Meth->Method.Get());
-			SetScriptError;
-		}
-	}
-	#endif
-	break;
-}
-case ICallScript:
-{
-	int32 FuncAddr = *c.i32++;
-	if (FuncAddr < 0 || (uint32)FuncAddr >= Code->ByteCode.Length())
-	{
-		Log->Print(	"%s ICallScript error: Script function call invalid addr '%p'.\n",
-					Code->AddrToSourceRef(CurrentScriptAddress - sizeof(FuncAddr)),
-					FuncAddr);
-		SetScriptError;
-		break;
-	}
-
-	uint16 Frame = *c.u16++;
-
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p CallScript: %s = %p(frame=%i)(",
-			CurrentScriptAddress - 5,
-			c.r[0].GetStr(),
-			FuncAddr,
-			Frame);
-	#endif
-
-	#ifdef VM_EXECUTE
-
-	// Set up stack for function call
-	int CurFrameSize = Frames.Last().CurrentFrameSize;
-	StackFrame &Sf = Frames.New();
-	Sf.CurrentFrameSize = Frame;
-	Sf.PrevFrameStart = Locals.Length() ? Scope[1] - &Locals[0] : 0;
-	Sf.ReturnValue = *c.r++;
-	Sf.ReturnValue.Index -= CurFrameSize;
-	uint16 Args = *c.u16++;
-
-	// Increase the local stack size
-	AddLocalSize(Frame);
-	// LgiTrace("ICallScript %i,%i\n", Sf.ReturnValue.Scope, Sf.ReturnValue.Index);
-	
-	// Put the arguments of the function call into the local array
-	GArray<GVariant*> Arg;
-	
-	#else
-	
-	GResolveRef Ret = Resolve();
-	int Args = *c.u16++;
-	
-	#endif
-	
-	for (int i=0; i<Args; i++)
-	{
-		#if VM_DECOMP
-		if (Log)
-			Log->Print("%s%s", i?",":"", c.r[0].GetStr());
-		#endif
-
-		#if VM_EXECUTE
-		Locals[LocalsBase+i] = *Resolve();
-		#else
-		c.r++;
-		#endif
-	}
-
-	#if VM_EXECUTE
-	// Set IP to start of function
-	Sf.ReturnIp = CurrentScriptAddress;
-	c.u8 = Base + FuncAddr;
-	#endif
-
-	#if VM_DECOMP
-	if (Log)
-		Log->Print(")\n");
-	#endif
-	break;
-}
-case IRet:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Ret %s\n", CurrentScriptAddress - 1, c.r[0].GetStr());
-	#endif
-
-	GResolveRef ReturnValue = Resolve();
-
-	#ifdef VM_EXECUTE
-	if (Frames.Length() > 0)
-	{
-		StackFrame Sf = Frames[Frames.Length()-1];
-		GVarRef &Ret = Sf.ReturnValue;
-		GVariant *RetVar = &Scope[Ret.Scope][Ret.Index];
-		// LgiTrace("IRet to %i:%i\n", Ret.Scope, Ret.Index);
-		if (Ret.Scope == SCOPE_LOCAL)
-			LgiAssert(Locals.PtrCheck(RetVar));
-		*RetVar = *ReturnValue;
-		CheckParam(RetVar->Type == ReturnValue->Type);
-
-		Frames.Length(Frames.Length()-1);
-		
-		Locals.SetFixedLength(false);
-		if (Locals.Length() >= Sf.CurrentFrameSize)
-		{
-			int Base = Locals.Length() - Sf.CurrentFrameSize;
-			if (ArgsOutput)
-			{
-				if (Frames.Length() == 0)
-				{
-					for (unsigned i=0; i<ArgsOutput->Length(); i++)
-					{
-						*(*ArgsOutput)[i] = Locals[Base+i];
-					}
-				}
-			}
-			// LgiTrace("%s:%i Locals %i -> %i\n", _FL, Locals.Length(), Base);
-			Locals.Length(Base);
-			Scope[SCOPE_LOCAL] = &Locals[Sf.PrevFrameStart];
-		}
-		else
-		{
-			// LgiTrace("%s:%i - Locals %i -> %i\n", _FL, Locals.Length(), 0);
-			Locals.Length(0);
-			Scope[SCOPE_LOCAL] = NULL;
-		}
-		Locals.SetFixedLength();
-
-		c.u8 = Base + Sf.ReturnIp;
-	}
-	else
-	{
-		ExitScriptExecution;
-	}
-	#endif
-	break;
-}
-case IArrayGet:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print(	"%p ArrayGet %s = %s[%s]\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr(),
-					c.r[2].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Var = Resolve();
-	GResolveRef Idx = Resolve();
-
-	#ifdef VM_EXECUTE
-	switch (Var->Type)
-	{
-		case GV_LIST:
-		{
-			CheckParam(Var->Value.Lst);
-			GVariant *t = Var->Value.Lst->ItemAt(Idx->CastInt32());
-			if (t)
-			{
-				if (Var == Dst)
-				{
-					if (Var->Value.Lst->Delete(t))
-					{
-						*Var = *t;
-						DeleteObj(t);
-					}
-					else CheckParam(!"List delete failed.");
-				}
-				else *Dst = *t;
-			}
-			else Dst->Empty();
-			break;
-		}
-		case GV_HASHTABLE:
-		{
-			CheckParam(Var->Value.Hash);
-			GVariant *t = (GVariant*)Var->Value.Hash->Find(Idx->CastString());
-			if (t) *Dst = *t;
-			else Dst->Empty();
-			break;
-		}
-		case GV_CUSTOM:
-		{
-			GCustomType *T = Var->Value.Custom.Dom;
-			size_t Sz = T->Sizeof();
-			int Index = Idx->CastInt32();
-
-			Dst->Type = GV_CUSTOM;
-			Dst->Value.Custom.Dom = T;
-			Dst->Value.Custom.Data = Var->Value.Custom.Data + (Sz * Index);
-			break;
-		}
-		default:
-		{
-			if (Log)
-				Log->Print(	"%s IArrayGet warning: Can't array deref variant type %i\n",
-							Code->AddrToSourceRef(CurrentScriptAddress),
-							Var->Type);
-			Status = ScriptWarning;
-			break;
-		}
-	}
-	#endif
-	break;
-}
-case IArraySet:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print(	"%p ArraySet %s[%s] = %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr(),
-					c.r[2].GetStr());
-	#endif
-
-	GResolveRef Var = Resolve();
-	GResolveRef Idx = Resolve();
-	GResolveRef Val = Resolve();
-	#ifdef VM_EXECUTE
-	switch (Var->Type)
-	{
-		case GV_LIST:
-		{
-			CheckParam(Var->Value.Lst);
-			(*Var->Value.Lst).Insert(new GVariant(*Val), Idx->CastInt32());
-			break;
-		}
-		case GV_HASHTABLE:
-		{
-			CheckParam(Var->Value.Hash);
-			GVariant *Old = (GVariant*)Var->Value.Hash->Find(Idx->CastString());
-			DeleteObj(Old);
-			Var->Value.Hash->Add(Idx->CastString(), new GVariant(*Val));
-			break;
-		}
-		default:
-		{
-			if (Log)
-				Log->Print(	"%s IArraySet warning: Can't dereference type '%s'\n",
-							Code->AddrToSourceRef(CurrentScriptAddress),
-							GVariant::TypeToString(Var->Type));
-			Status = ScriptWarning;
-			break;
-		}
-	}
-	#endif
-	break;
-}
-case IEquals:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s == %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-
-	#ifdef VM_EXECUTE
-	if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
-		*Dst = *Dst->Value.Date == *Src->Value.Date;
-	else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() == Src->CastDouble();
-	else if (Src->Type == GV_STRING || Dst->Type == GV_STRING)
-	{
-		char *d = Dst->Str();
-		char *s = Src->Str();
-		if (!d && !s)
-			*Dst = true;
-		else if (s && d)
-			*Dst = strcmp(s, d) == 0;
-		else
-			*Dst = false;
-	}
-	else
-		*Dst = Dst->CastInt32() == Src->CastInt32();
-	#endif
-	break;
-}
-case INotEquals:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print(	"%p %s != %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-
-	#ifdef VM_EXECUTE
-	if (Src->Type == GV_NULL || Dst->Type == GV_NULL)
-	{
-		if ((Src->Type == GV_NULL) ^ (Dst->Type == GV_NULL))
-			*Dst = (Src->Type == GV_NULL ? Dst : Src)->CastVoidPtr() != 0;
-		else
-			*Dst = false;
-	}
-	else if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
-		*Dst = *Dst->Value.Date != *Src->Value.Date;
-	else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() != Src->CastDouble();
-	else if (Src->Type == GV_STRING)
-	{
-		char *d = Dst->Str();
-		char *s = Src->Str();
-		if (!d || !s)
-			*Dst = (s == 0) ^ (d == 0);
-		else
-			*Dst = strcmp(s, d) != 0;
-	}
-	else
-		*Dst = Dst->CastInt32() != Src->CastInt32();
-	#endif
-	break;
-}
-case ILessThan:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s < %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	
-	#ifdef VM_EXECUTE
-	if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
-		*Dst = *Dst->Value.Date < *Src->Value.Date;
-	else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() < Src->CastDouble();
-	else if (Src->Type == GV_STRING)
-	{
-		char *d = Dst->Str();
-		char *s = Src->Str();
-		if (!d || !s)
-			*Dst = false;
-		else
-			*Dst = strcmp(d, s) < 0;
-	}
-	else
-		*Dst = Dst->CastInt32() < Src->CastInt32();
-	#endif
-	break;
-}
-case ILessThanEqual:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print(	"%p %s < %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	
-	#ifdef VM_EXECUTE
-	if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
-		*Dst = *Dst->Value.Date <= *Src->Value.Date;
-	else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() <= Src->CastDouble();
-	else if (Src->Type == GV_STRING)
-	{
-		char *d = Dst->Str();
-		char *s = Src->Str();
-		if (!d || !s)
-			*Dst = false;
-		else
-			*Dst = strcmp(d, s) <= 0;
-	}
-	else
-		*Dst = Dst->CastInt32() <= Src->CastInt32();
-	#endif
-	break;
-}
-case IGreaterThan:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s < %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	
-	#ifdef VM_EXECUTE
-	if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
-		*Dst = *Dst->Value.Date > *Src->Value.Date;
-	else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() > Src->CastDouble();
-	else if (Dst->Type == GV_STRING && Src->Type == GV_STRING)
-	{
-		char *d = Dst->Str();
-		char *s = Src->Str();
-		if (!d || !s)
-			*Dst = false;
-		else
-			*Dst = strcmp(d, s) > 0;
-	}
-	else
-		*Dst = Dst->CastInt32() > Src->CastInt32();
-	#endif
-	break;
-}
-case IGreaterThanEqual:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s < %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	
-	#ifdef VM_EXECUTE
-	if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
-		*Dst = *Dst->Value.Date >= *Src->Value.Date;
-	else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() >= Src->CastDouble();
-	else if (Src->Type == GV_STRING)
-	{
-		char *d = Dst->Str();
-		char *s = Src->Str();
-		if (!d || !s)
-			*Dst = false;
-		else
-			*Dst = strcmp(d, s) >= 0;
-	}
-	else
-		*Dst = Dst->CastInt32() >= Src->CastInt32();
-	#endif
-	break;
-}
-case IAnd:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s && %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	#ifdef VM_EXECUTE
-	*Dst = (Dst->CastInt32() != 0) && (Src->CastInt32() != 0);
-	#endif
-	break;
-}
-case IOr:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s || %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	#ifdef VM_EXECUTE
-	*Dst = (Dst->CastInt32() != 0) || (Src->CastInt32() != 0);
-	#endif
-	break;
-}
-case INot:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s = !%s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[0].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	#ifdef VM_EXECUTE
-	*Dst = !Dst->CastBool();
-	#endif
-	break;
-}
-case IDomGet:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s = %s->DomGet(%s, %s)\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr(),
-					c.r[2].GetStr(),
-					c.r[3].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Dom = Resolve();
-	GResolveRef Name = Resolve();
-	GResolveRef Arr = Resolve();
-
-	#ifdef VM_EXECUTE
-
-		// Return "NULL" in Dst on error
-		if (Dst != Dom)
-			Dst->Empty();
-
-		switch (Dom->Type)
-		{
-			case GV_DOM:
-			case GV_STREAM:
-			case GV_GSURFACE:
-			{
-				GDom *dom = Dom->CastDom();
-				CheckParam(dom != NULL);
-				char *sName = Name->Str();
-				CheckParam(sName);
-				bool Ret = dom->GetVariant(sName, *Dst, CastArrayIndex(Arr));
-				if (!Ret)
-				{
-					Dst->Empty();
-					if (Log)
-						Log->Print("%s IDomGet warning: Unexpected %s member '%s'.\n",
-									Code->AddrToSourceRef(CurrentScriptAddress),
-									GVariant::TypeToString(Dom->Type),
-									sName);
-					Status = ScriptWarning;
-				}
-				break;
-			}
-			case GV_DATETIME:
-			{
-				CheckParam(Dom->Value.Date != NULL);
-				char *sName = Name->Str();
-				CheckParam(sName);
-				bool Ret = Dom->Value.Date->GetVariant(sName, *Dst, CastArrayIndex(Arr));
-				if (!Ret)
-				{
-					Dst->Empty();
-					if (Log)
-						Log->Print("%s IDomGet warning: Unexpected %s member '%s'.\n",
-									Code->AddrToSourceRef(CurrentScriptAddress),
-									GVariant::TypeToString(Dom->Type),
-									sName);
-					Status = ScriptWarning;
-				}
-				break;
-			}
-			case GV_CUSTOM:
-			{
-				GCustomType *Type = Dom->Value.Custom.Dom;
-				if (Type)
-				{
-					int Fld;
-					if (Name->Type == GV_INT32)
-						Fld = Name->Value.Int;
-					else
-						Fld = Type->IndexOf(Name->Str());
-					
-					int Index = Arr ? Arr->CastInt32() : 0;
-					Type->Get(Fld, *Dst, Dom->Value.Custom.Data, Index);
-				}
-				break;
-			}
-			case GV_LIST:
-			{
-				CheckParam(Dom->Value.Lst);
-				char *sName = Name->Str();
-				CheckParam(sName);
-				GDomProperty p = LgiStringToDomProp(sName);
-				if (p == ObjLength)
-					(*Dst) = (int)Dom->Value.Lst->Length();
-				break;
-			}
-			case GV_HASHTABLE:
-			{
-				CheckParam(Dom->Value.Hash);
-				char *sName = Name->Str();
-				CheckParam(sName);
-				GDomProperty p = LgiStringToDomProp(sName);
-				if (p == ObjLength)
-					(*Dst) = (int)Dom->Value.Hash->Length();
-				break;
-			}
-			case GV_BINARY:
-			{
-				char *sName = Name->Str();
-				CheckParam(sName);
-				GDomProperty p = LgiStringToDomProp(sName);
-				if (p == ObjLength)
-					(*Dst) = Dom->Value.Binary.Length;
-				break;
-			}
-			case GV_STRING:
-			{
-				char *sName = Name->Str();
-				CheckParam(sName);
-				GDomProperty p = LgiStringToDomProp(sName);
-				switch (p)
-				{
-					case ObjLength:
-					{
-						(*Dst) = (int)strlen(Dom->Str());
-						break;
-					}
-					case StrInt:
-					{
-						(*Dst) = Dom->CastInt32();
-						break;
-					}
-					case StrDouble:
-					{
-						(*Dst) = Dom->CastDouble();
-						break;
-					}
-					default:
-					{
-						Dst->Empty();
-						if (Log)
-							Log->Print("%s IDomGet warning: Unexpected string member '%s'.\n",
-										Code->AddrToSourceRef(CurrentScriptAddress),
-										sName);
-						Status = ScriptWarning;
-						break;
-					}
-				}
-				break;
-			}
-			default:
-			{
-				if (Log)
-					Log->Print("%s IDomGet warning: Unexpected type %s (Src=%s:%i IP=0x%x).\n",
-								Code->AddrToSourceRef(CurrentScriptAddress),
-								GVariant::TypeToString(Dom->Type),
-								_FL,
-								CurrentScriptAddress);
-				Status = ScriptWarning;
-				break;
-			}
-		}
-
-	#endif
-	break;
-}
-case IDomSet:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s->DomSet(%s, %s) = %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr(),
-					c.r[2].GetStr(),
-					c.r[3].GetStr());
-	#endif
-
-	GResolveRef Dom = Resolve();
-	GResolveRef Name = Resolve();
-	GResolveRef Arr = Resolve();
-	GResolveRef Value = Resolve();
-	
-	#ifdef VM_EXECUTE
-
-	char *sName = Name->Str();
-	if (!sName)
-	{
-		if (Log)
-			Log->Print("%s IDomSet error: No name string.\n",
-						Code->AddrToSourceRef(CurrentScriptAddress));
-		SetScriptError;
-		break;
-	}
-
-	switch (Dom->Type)
-	{
-		case GV_DOM:
-		// case GV_GFILE:
-		case GV_STREAM:
-		case GV_GSURFACE:
-		{
-			GDom *dom = Dom->CastDom();
-			CheckParam(dom != NULL);
-			bool Ret = dom->SetVariant(sName, *Value, CastArrayIndex(Arr));
-			if (!Ret)
-			{
-				if (Log)
-					Log->Print("%s IDomSet warning: Unexpected %s member '%s'.\n",
-								Code->AddrToSourceRef(CurrentScriptAddress),
-								GVariant::TypeToString(Dom->Type),
-								sName);
-				Status = ScriptWarning;
-			}
-			break;
-		}
-		case GV_DATETIME:
-		{
-			CheckParam(Dom->Value.Date != NULL);
-			bool Ret = Dom->Value.Date->SetVariant(sName, *Value, CastArrayIndex(Arr));
-			if (!Ret)
-			{
-				if (Log)
-					Log->Print("%s IDomSet warning: Unexpected %s member '%s'.\n",
-								Code->AddrToSourceRef(CurrentScriptAddress),
-								GVariant::TypeToString(Dom->Type),
-								sName);
-				Status = ScriptWarning;
-			}
-			break;
-		}
-		case GV_CUSTOM:
-		{
-			GCustomType *Type = Dom->Value.Custom.Dom;
-			if (Type)
-			{
-				int Fld;
-				if (IsDigit(*sName))
-					Fld = atoi(sName);
-				else
-					Fld = Type->IndexOf(sName);
-				
-				int Index = Arr ? Arr->CastInt32() : 0;
-				if (!Type->Set(Fld, *Value, Dom->Value.Custom.Data, Index) &&
-					Log)
-				{
-					Log->Print("%s IDomSet warning: Couldn't set '%s' on custom type.\n",
-								Code->AddrToSourceRef(CurrentScriptAddress),
-								sName);
-				}
-			}
-			break;
-		}
-		case GV_STRING:
-		{
-			GDomProperty p = LgiStringToDomProp(sName);
-			switch (p)
-			{
-				case ObjLength:
-				{
-					char *s;
-					int DLen = Value->CastInt32();
-					if (DLen && (s = new char[DLen+1]))
-					{
-						int SLen = Dom->Str() ? strlen(Dom->Str()) : 0;
-						if (SLen)
-							memcpy(s, Dom->Str(), SLen);
-						memset(s+SLen, ' ', DLen-SLen);
-						s[DLen] = 0;
-						DeleteArray(Dom->Value.String);
-						Dom->Value.String = s;
-					}
-					else Dom->Empty();
-
-					break;
-				}
-				case StrInt:
-				{
-					*Dom = Value->CastInt32();
-					Dom->Str();
-					break;
-				}
-				case StrDouble:
-				{
-					*Dom = Value->CastDouble();
-					Dom->Str();
-					break;
-				}
-				default:
-				{
-					if (Log)
-						Log->Print("%s IDomSet warning: Unexpected string member %s.\n",
-									Code->AddrToSourceRef(CurrentScriptAddress),
-									sName);
-					Status = ScriptWarning;
-					break;
-				}
-			}
-			break;
-		}
-		default:
-		{
-			if (Log)
-				Log->Print("%s IDomSet warning: Unexpected type %s.\n",
-							Code->AddrToSourceRef(CurrentScriptAddress),
-							GVariant::TypeToString(Dom->Type));
-			Status = ScriptWarning;
-			break;
-		}
-	}
-
-	#endif
-	break;
-}
-case IDomCall:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s = %s->DomCall(%s, ",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr(),
-					c.r[2].GetStr());
-	#endif
-
-	GVarRef DstRef = *c.r;
-	GResolveRef Dst = Resolve();
-	GResolveRef Dom = Resolve();
-	GResolveRef Name = Resolve();
-
-	#ifdef VM_EXECUTE
-
-	GResolveRef Args = Resolve();
-	int ArgCount = Args->CastInt32();
-	char *sName = Name->Str();
-	CheckParam(sName)
-
-	if (Dom->Type == GV_CUSTOM)
-	{
-		#define DEBUG_CUSTOM_METHOD_CALL	1
-		
-		GCustomType *t = Dom->Value.Custom.Dom;
-		CheckParam(t);
-		GCustomType::Method *m = t->GetMethod(sName);
-		CheckParam(m);
-		CheckParam(m->Params.Length() == ArgCount);
-		
-		// Set up new stack frame...
-		StackFrame &Sf = Frames.New();
-		Sf.CurrentFrameSize = m->FrameSize;
-		Sf.PrevFrameStart = Locals.Length() ? Scope[1] - &Locals[0] : 0;
-		Sf.ReturnValue = DstRef;
-
-		// Increase the local stack size
-		AddLocalSize(m->FrameSize + 1);
-		
-		#if DEBUG_CUSTOM_METHOD_CALL
-		LgiTrace("CustomType.Call(%s) Args=%i, Frame=%i, Addr=%i, LocalsBase=%i ",
-				sName, ArgCount, m->FrameSize, m->Address, LocalsBase);
-		#endif
-		
-		int i = LocalsBase;
-		Locals[i++] = *Dom; // this pointer...
-		#if DEBUG_CUSTOM_METHOD_CALL
-		GString s = Locals[i-1].ToString();
-		LgiTrace("This=%s, ", s.Get());
-		#endif
-		int end = i + ArgCount;
-		while (i < end)
-		{
-			Locals[i++] = *Resolve();
-			#if DEBUG_CUSTOM_METHOD_CALL
-			s = Locals[i-1].ToString();
-			LgiTrace("[%i]=%s, ", i-1, s.Get());
-			#endif
-		}
-
-		// Now adjust the local stack to point to the locals for the function
-		Scope[1] = Locals.Length() ? &Locals[LocalsBase] : NULL;
-
-		// Set IP to start of function
-		Sf.ReturnIp = CurrentScriptAddress;
-		c.u8 = Base + m->Address;
-
-		#if DEBUG_CUSTOM_METHOD_CALL
-		LgiTrace("\n");
-		#endif
-		break;
-	}	
-
-	GArray<GVariant*> Arg;
-	Arg.Length(ArgCount);
-	for (int i=0; i<ArgCount; i++)
-	{
-		Arg[i] = Resolve();
-	}
-	
-	switch (Dom->Type)
-	{
-		case GV_DOM:
-		case GV_STREAM:
-		case GV_GSURFACE:
-		{
-			GDom *dom = Dom->CastDom();
-			CheckParam(dom);
-			bool Ret = dom->CallMethod(sName, Dst, Arg);
-			if (!Ret)
-			{
-				Dst->Empty();
-				if (Log)
-					Log->Print("%s IDomCall warning: %s(...) failed.\n",
-								Code->AddrToSourceRef(CurrentScriptAddress),
-								sName);
-				Status = ScriptWarning;
-			}
-			break;
-		}
-		case GV_DATETIME:
-		{
-			CheckParam(Dom->Value.Date);
-			bool Ret = Dom->Value.Date->CallMethod(sName, Dst, Arg);
-			if (!Ret)
-			{
-				Dst->Empty();
-				if (Log)
-					Log->Print("%s IDomCall warning: %s(...) failed.\n",
-								Code->AddrToSourceRef(CurrentScriptAddress),
-								sName);
-				Status = ScriptWarning;
-			}
-			break;
-		}
-		case GV_LIST:
-		{
-			CheckParam(Dom->Value.Lst);
-			GDomProperty p = LgiStringToDomProp(sName);
-			switch (p)
-			{
-				case ObjLength:
-				{
-					*Dst = Dom->Value.Lst->Length();
-					break;
-				}
-				case ObjType:
-				{
-					*Dst = "List";
-					break;
-				}
-				case ContainerAdd:
-				{
-					if (Arg.Length() > 0 &&
-						Arg[0])
-					{
-						int Index = Arg.Length() > 1 ? Arg[1]->CastInt32() : -1;
-
-						GVariant *v = new GVariant;
-						*v = *Arg[0];
-						Dom->Value.Lst->Insert(v, Index);
-					}
-					break;
-				}
-				case ContainerDelete:
-				{
-					for (unsigned i=0; i<Arg.Length(); i++)
-					{
-						GVariant *Idx = Arg[i];
-						if (Idx)
-						{
-							int32 n = Arg[i]->CastInt32();
-							GVariant *Elem = Dom->Value.Lst->ItemAt(n);
-							if (Elem)
-							{
-								Dom->Value.Lst->Delete(Elem);
-								DeleteObj(Elem);
-							}
-						}
-					}
-					break;
-				}
-				case ContainerHasKey:
-				{
-					if (Arg.Length() > 0 && Arg[0])
-					{
-						int Index = Arg[0]->CastInt32();
-						*Dst = (bool) (Index >= 0 && Index < Dom->Value.Lst->Length());
-					}
-					else
-					{
-						*Dst = false;
-					}
-					break;
-				}
-				case ContainerSort:
-				{
-					GVariant *Param = Arg.Length() > 0 ? Arg[0] : NULL;
-					Dom->Value.Lst->Sort(GVariantCmp, (NativeInt)Param);
-					break;
-				}
-				default:
-				{
-					Dst->Empty();
-					if (Log)
-						Log->Print(	"%s IDomCall warning: Unexpected list member '%s'.\n",
-									Code->AddrToSourceRef(CurrentScriptAddress),
-									sName);
-					Status = ScriptWarning;
-					break;
-				}
-			}
-			break;
-		}
-		case GV_HASHTABLE:
-		{
-			CheckParam(Dom->Value.Hash);
-			GDomProperty p = LgiStringToDomProp(sName);
-			switch (p)
-			{
-				case ObjLength:
-				{
-					*Dst = Dom->Value.Hash->Length();
-					break;
-				}
-				case ObjType:
-				{
-					*Dst = "HashTable";
-					break;
-				}
-				case ContainerAdd:
-				{
-					if (Arg.Length() == 2 &&
-						Arg[0] &&
-						Arg[1])
-					{
-						char *Key = Arg[1]->Str();
-						if (Key)
-						{
-							GVariant *v = new GVariant;
-							*v = *Arg[0];
-							Dom->Value.Hash->Add(Key, v);
-						}
-					}
-					break;
-				}
-				case ContainerDelete:
-				{
-					if (Arg.Length() == 1 &&
-						Arg[0])
-					{
-						char *Key = Arg[0]->Str();
-						if (Key)
-						{
-							GVariant *v = (GVariant*) Dom->Value.Hash->Find(Key);
-							if (v)
-							{
-								Dom->Value.Hash->Delete(Key);
-								delete v;
-							}
-						}
-					}
-					break;
-				}
-				case ContainerHasKey:
-				{
-					if (Arg.Length() > 0 && Arg[0])
-					{
-						char *Key = Arg[0]->Str();
-						*Dst = (bool) (Dom->Value.Hash->Find(Key) != NULL);
-					}
-					else
-					{
-						*Dst = false;
-					}
-					break;
-				}
-				default:
-				{
-					Dst->Empty();
-					if (Log)
-						Log->Print("%s IDomCall warning: Unexpected hashtable member '%s'.\n",
-									Code->AddrToSourceRef(CurrentScriptAddress),
-									sName);
-					Status = ScriptWarning;
-					break;
-				}
-			}
-			break;
-		}
-		case GV_BINARY:
-		{
-			GDomProperty p = LgiStringToDomProp(sName);
-			switch (p)
-			{
-				default:
-					break;
-				case ObjLength:
-					*Dst = Dom->Value.Binary.Length;
-					break;
-			}
-			break;
-		}
-		case GV_STRING:
-		{
-			if (Arg.Length() > 0 && !Arg[0])
-			{
-				Dst->Empty();
-				break;
-			}
-
-			GDomProperty p = LgiStringToDomProp(sName);
-			switch (p)
-			{
-				case ObjLength:
-				{
-					char *s = Dom->Str();
-					*Dst = (int) (s ? strlen(s) : 0);
-					break;
-				}
-				case ObjType:
-				{
-					*Dst = "String";
-					break;
-				}
-				case StrJoin:
-				{
-					switch (Arg[0]->Type)
-					{
-						case GV_LIST:
-						{
-							GStringPipe p(256);
-							List<GVariant> *Lst = Arg[0]->Value.Lst;
-							const char *Sep = Dom->CastString();
-							GVariant *v = Lst->First();
-							if (v)
-							{
-								GVariant Tmp = *v;
-								p.Print("%s", Tmp.CastString());
-								while ((v = Lst->Next()))
-								{
-									Tmp = *v;
-									p.Print("%s%s", Sep, Tmp.CastString());
-								}
-							}
-							Dst->OwnStr(p.NewStr());
-							break;
-						}
-						default:
-						{
-							*Dst = *Arg[0];
-							Dst->CastString();
-							break;
-						}
-					}
-					break;
-				}								
-				case StrSplit:
-				{
-					const char *Sep = Arg[0]->Str();
-					if (!Sep)
-					{
-						Dst->Empty();
-						break;
-					}
-					
-					GVariant Tmp;
-					if (Dst == Dom)
-					{
-						Tmp = *Dom;
-						Dom = &Tmp;
-					}
-
-					Dst->SetList();
-					
-					int SepLen = strlen(Sep);
-					int MaxSplit = Arg.Length() > 1 ? Arg[1]->CastInt32() : -1;
-					const char *c = Dom->CastString();
-					while (c && *c)
-					{
-						if (MaxSplit > 0 && Dst->Value.Lst->Length() >= MaxSplit)
-							break;
-
-						const char *next = strstr(c, Sep);
-						if (!next)
-							break;
-						
-						GVariant *v = new GVariant;
-						v->OwnStr(NewStr(c, next - c));
-						Dst->Value.Lst->Insert(v);
-						
-						c = next + SepLen;
-					}
-
-					if (c && *c)
-					{
-						GVariant *v = new GVariant;
-						v->OwnStr(NewStr(c));
-						Dst->Value.Lst->Insert(v);
-					}
-					break;
-				}								
-				case StrFind:
-				{
-					const char *s = Dom->Str();
-					if (!s)
-					{
-						*Dst = -1;
-						break;
-					}
-
-					int sLen = strlen(s);
-					const char *sub = Arg[0]->Str();
-					int start = Arg.Length() > 1 ? Arg[1]->CastInt32() : 0;
-					int end = Arg.Length() > 2 ? Arg[2]->CastInt32() : -1;								
-
-					if (start >= sLen)
-					{
-						*Dst = -1;
-						break;
-					}
-					char *sStart = (char*)s + start;
-					char *pos;
-					if (end > start)
-						pos = strnstr(sStart, sub, end - start);
-					else
-						pos = strstr(sStart, sub);
-
-					if (pos)
-						*Dst = (int64) (pos - s);
-					else
-						*Dst = -1;
-					break;
-				}
-				case StrRfind:
-				{
-					CheckParam(0);
-					break;
-				}
-				case StrLower:
-				{
-					if (Dst != Dom)
-						*Dst = Dom->CastString();
-					
-					StrLwr(Dst->Str());
-					break;
-				}
-				case StrUpper:
-				{
-					if (Dst != Dom)
-						*Dst = Dom->CastString();
-
-					StrUpr(Dst->Str());
-					break;
-				}
-				case StrStrip:
-				{
-					char *s = Dom->Str();
-					if (s)
-					{
-						char *start = s;
-						char *end = s + strlen(s);
-						while (start < end && strchr(WhiteSpace, *start))
-							start++;
-
-						while (end > start && strchr(WhiteSpace, end[-1]))
-							end--;
-						
-						Dst->OwnStr(NewStr(start, end - start));
-					}
-					else Dst->Empty();
-					break;
-				}
-				case StrSub:
-				{
-					Dst->Empty();
-					char *s = Dom->Str();
-					if (s)
-					{
-						int Start = Arg.Length() > 0 ? Arg[0]->CastInt32() : 0;
-						int End = Arg.Length() > 1 ? Arg[1]->CastInt32() : -1;
-						int Len = strlen(s);
-						if (End < 0 || End > Len)
-							End = Len;
-						if (Start < 0)
-							Start = 0;
-						if (Start <= End)
-						{
-							Dst->OwnStr(NewStr(s + Start, End - Start));
-						}
-					}
-					break;
-				}
-				default:
-				{
-					Dst->Empty();
-					if (Log)
-						Log->Print("%p IDomCall warning: Unexpected string member %s (%s:%i).\n",
-									CurrentScriptAddress,
-									sName,
-									_FL);
-					Status = ScriptWarning;
-					break;
-				}
-			}
-			break;
-		}
-		default:
-		{
-			const char *Type = GVariant::TypeToString(Dom->Type);
-			char t[32];
-			if (!Type)
-			{
-				sprintf_s(t, sizeof(t), "UnknownType(%i)", Dom->Type);
-				Type = t;
-			}
-			
-			GDomProperty p = LgiStringToDomProp(sName);
-			if (p == ObjType)
-			{
-				*Dst = Type;
-			}
-			else
-			{
-				Dst->Empty();
-				if (Log)
-				{
-					Log->Print("%s IDomCall warning: Unexpected type %s (Src=%s:%i IP=0x%x).\n",
-								Code->AddrToSourceRef(CurrentScriptAddress),
-								Type,
-								_FL,
-								CurrentScriptAddress);
-				}
-				Status = ScriptWarning;
-			}
-			break;
-		}
-	}
-
-	#else
-
-	GVariant *Count = NULL;
-	switch (c.r->Scope)
-	{
-		case SCOPE_GLOBAL:
-			Count = &Code->Globals[c.r->Index];
-			c.r++;
-			break;
-		default:
-			OnException(_FL, CurrentScriptAddress, "Unsupported scope.");
-			return ScriptError;
-	}
-	
-	int Args = Count->CastInt32();
-	for (int i=0; i<Args; i++)
-	{
-		#if VM_DECOMP
-		if (Log)
-			Log->Print("%s%s", i ? ", " : "", c.r->GetStr());
-		#endif
-		c.r++;
-	}
-	#if VM_DECOMP
-	if (Log)
-		Log->Print(")\n");
-	#endif
-
-	#endif
-	break;
-}
-
-#undef Resolve
-#undef GResolveRef
+				#include "Instructions.h"
 				#undef VM_DECOMP
 			}
 		}
@@ -2345,8 +570,7 @@ case IDomCall:
 		Scope[SCOPE_LOCAL] = NULL;
 		Scope[SCOPE_GLOBAL] = &Code->Globals[0];
 		Scope[SCOPE_OBJECT] = NULL;
-		Scope[SCOPE_RETURN] = Ret;
-		LgiAssert(Ret != NULL);
+		Scope[SCOPE_RETURN] = Ret ? Ret : &UnusedReturn;
 
 		#if 1
 		const char *SourceFileName = Code->GetFileName();
@@ -2490,7 +714,7 @@ case IDomCall:
 		uint8 *Base = &Code->ByteCode[0];
 		uint8 *e = Base + Code->ByteCode.Length();
 		
-		if (Type == RunContinue)
+		if (Type == RunContinue && BreakPts.Length() == 0)
 		{
 			// Unconstrained execution
 			while (c.u8 < e)
@@ -2508,1810 +732,7 @@ case IDomCall:
 				switch (*c.u8++)
 				{
 					#define VM_EXECUTE 1
-					/*
-	This file is included in both the GVirtualMachinePriv::Execute and GVirtualMachinePriv::Decompile
-	That way the "parsing" of instructions is the same.
-	
-	During decompile the define VM_DECOMP is active.
-	
-	During execution the define VM_EXECUTE is active.
-
-*/
-
-#ifdef VM_EXECUTE
-#define Resolve()		&Scope[c.r->Scope][c.r->Index]; c.r++
-#define GResolveRef		GVariant *
-#else
-#define Resolve()		c.r++
-#define GResolveRef		GVarRef *
-#endif
-
-default:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("\t%p Unknown instruction %i (0x%x)\n",
-					CurrentScriptAddress - 1,
-					c.u8[-1], c.u8[-1]);
-	#endif
-	OnException(_FL, CurrentScriptAddress, "Unknown instruction");
-	SetScriptError;
-	break;
-}
-case INop:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Nop\n", CurrentScriptAddress - 1);
-	#endif
-	break;
-}
-case ICast:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Cast %s",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr());
-	#endif
-	GResolveRef Var = Resolve();
-	uint8 Type = *c.u8++;
-	#if VM_DECOMP
-	if (Log)
-		Log->Print(" to %s\n", GVariant::TypeToString((GVariantType)Type));
-	#endif
-	#if VM_EXECUTE
-	switch (Type)
-	{
-		case GV_INT32:
-		{
-			*Var = Var->CastInt32();
-			break;
-		}
-		case GV_STRING:
-		{
-			*Var = Var->CastString();
-			break;
-		}
-		case GV_DOM:
-		{
-			*Var = Var->CastDom();
-			break;
-		}
-		case GV_DOUBLE:
-		{
-			*Var = Var->CastDouble();
-			break;
-		}
-		case GV_INT64:
-		{
-			*Var = Var->CastInt32();
-			break;
-		}
-		case GV_BOOL:
-		{
-			*Var = Var->CastBool();
-			break;
-		}
-		default:
-		{
-			if (Log)
-				Log->Print(	"%s ICast warning: unknown type %i/%s\n",
-							Code->AddrToSourceRef(CurrentScriptAddress),
-							Var->Type,
-							GVariant::TypeToString(Var->Type));
-			Status = ScriptWarning;
-			break;
-		}
-	}
-	#endif
-	break;
-}
-case IBreak:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Break\n", CurrentScriptAddress - 1);
-	#endif
-	break;
-}
-case IAssign:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Assign %s <- %s\n",
-				CurrentScriptAddress - 1,
-				c.r[0].GetStr(),
-				c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	#ifdef VM_EXECUTE
-	CheckParam(Dst != Src);
-	*Dst = *Src;
-	#endif
-	break;
-}
-case IJump:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Jump by %i (to 0x%x)\n",
-			CurrentScriptAddress - 1,
-			c.i32[0],
-			CurrentScriptAddress + 4 + c.i32[0]);
-	#endif
-
-	int32 Jmp = *c.i32++;
-	#ifdef VM_EXECUTE
-	CheckParam(Jmp != 0);
-	c.u8 += Jmp;
-	#endif
-	break;
-}
-case IJumpZero:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p JumpZ(%s) by 0x%x\n",
-			CurrentScriptAddress - 1,
-			c.r[0].GetStr(),
-			c.i32[1]);
-	#endif
-
-	GResolveRef Exp = Resolve();
-	int32 Jmp = *c.i32++;
-	#ifdef VM_EXECUTE
-	CheckParam(Jmp != 0);
-	if (!Exp->CastInt32())
-	{
-		c.u8 += Jmp;
-	}
-	#endif
-	break;
-}
-// case IUnaryPlus:
-case IUnaryMinus:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p UnaryMinus %s\n",
-			CurrentScriptAddress - 1,
-			c.r[0].GetStr());
-	#endif
-
-	GResolveRef Var = Resolve();
-	#ifdef VM_EXECUTE
-	if (Var->Type == GV_DOUBLE)
-		*Var = -Var->CastDouble();
-	else
-		*Var = -Var->CastInt32();
-	#endif
-	break;
-}
-case IPlus:
-case IPlusEquals:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Plus %s += %s\n",
-			CurrentScriptAddress - 1,
-			c.r[0].GetStr(),
-			c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	#ifdef VM_EXECUTE
-	if (Dst->Str())
-	{
-		int dlen = strlen(Dst->Str());
-		char *ss;
-		GVariant SrcTmp;
-		
-		switch (Src->Type)
-		{
-			case GV_NULL:
-				ss = (char*)"(null)";
-				break;
-			case GV_STRING:
-				ss = Src->Str();
-				break;
-			default:
-				SrcTmp = *Src;
-				ss = SrcTmp.CastString();
-				break;
-		}
-
-		if (ss)
-		{
-			int slen = strlen(ss);
-			char *s = new char[slen + dlen + 1];
-			if (s)
-			{
-				memcpy(s, Dst->Value.String, dlen);
-				memcpy(s + dlen, ss, slen);
-				s[dlen + slen] = 0;
-				DeleteArray(Dst->Value.String);
-				Dst->Value.String = s;
-			}
-		}
-	}
-	else if (Dst->Type == GV_DOUBLE ||
-			 Src->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() + Src->CastDouble();
-	else
-		*Dst = Dst->CastInt32() + Src->CastInt32();
-	#endif
-	break;
-}
-case IMinus:
-case IMinusEquals:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Minus %s -= %s\n",
-			CurrentScriptAddress - 1,
-			c.r[0].GetStr(),
-			c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	#ifdef VM_EXECUTE
-	if (Dst->Type == GV_DOUBLE ||
-		Src->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() - Src->CastDouble();
-	else
-		*Dst = Dst->CastInt32() - Src->CastInt32();
-	#endif
-	break;
-}
-case IMul:
-case IMulEquals:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Mul %s *= %s\n",
-			CurrentScriptAddress - 1,
-			c.r[0].GetStr(),
-			c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	#ifdef VM_EXECUTE
-	if (Dst->Type == GV_DOUBLE ||
-		Src->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() * Src->CastDouble();
-	else
-		*Dst = Dst->CastInt32() * Src->CastInt32();
-	#endif
-	break;
-}
-case IDiv:
-case IDivEquals:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Div %s /= %s\n",
-			CurrentScriptAddress - 1,
-			c.r[0].GetStr(),
-			c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	#ifdef VM_EXECUTE
-	if (Dst->Type == GV_DOUBLE ||
-		Src->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() / Src->CastDouble();
-	else
-		*Dst = Dst->CastInt32() / Src->CastInt32();
-	#endif
-	break;
-}
-case IMod:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Mod %s %= %s\n",
-			CurrentScriptAddress - 1,
-			c.r[0].GetStr(),
-			c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	#ifdef VM_EXECUTE
-	if (Dst->Type == GV_DOUBLE ||
-		Src->Type == GV_DOUBLE)
-	{
-		*Dst = fmod(Dst->CastDouble(), Src->CastDouble());
-	}
-	else
-	{
-		*Dst = Dst->CastInt32() % Src->CastInt32();
-	}
-	#endif
-	break;
-}
-case IPostInc:
-case IPreInc:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p PostInc %s\n",
-			CurrentScriptAddress - 1,
-			c.r[0].GetStr());
-	#endif
-
-	GResolveRef v = Resolve();
-	#ifdef VM_EXECUTE
-	if (v->Type == GV_DOUBLE)
-		*v = v->CastDouble() + 1;
-	else
-		*v = v->CastInt32() + 1;
-	#endif
-	break;
-}
-case IPostDec:
-case IPreDec:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p PostDec %sn",
-			CurrentScriptAddress - 1,
-			c.r[0].GetStr());
-	#endif
-
-	GResolveRef v = Resolve();
-	#ifdef VM_EXECUTE
-	if (v->Type == GV_DOUBLE)
-		*v = v->CastDouble() - 1;
-	else
-		*v = v->CastInt32() - 1;
-	#endif
-	break;
-}
-case ICallMethod:
-{
-	GFunc *Meth = *c.fn++;
-	if (!Meth)
-	{
-		Log->Print(	"%s ICallMethod error: No method struct.\n",
-					Code->AddrToSourceRef(CurrentScriptAddress - sizeof(Meth)));
-		SetScriptError;
-		break;
-	}
-
-	#ifdef VM_DECOMP
-	if (Log)
-	{
-		Log->Print("%p Call: %s = %s(",
-				CurrentScriptAddress - sizeof(Meth) - 1,
-				c.r[0].GetStr(),
-				Meth->Method.Get());
-	}
-	#endif
-	
-	GResolveRef Ret = Resolve();
-	uint16 Args = *c.u16++;
-
-	#ifdef VM_EXECUTE			
-	GArray<GVariant*> Arg;
-	#endif
-	
-	for (int i=0; i<Args; i++)
-	{
-		#if VM_DECOMP
-		if (Log)
-			Log->Print("%s%s", i?", ":"", c.r[0].GetStr());
-		#endif
-
-		#if VM_EXECUTE
-		Arg[i] = Resolve();
-		CheckParam(Arg[i] != NULL);
-		#else
-		c.r++;
-		#endif
-	}
-
-	#if VM_DECOMP
-	if (Log)
-		Log->Print(")\n");
-	#endif
-	
-	#if VM_EXECUTE
-	GHostFunc *Hf = dynamic_cast<GHostFunc*>(Meth);
-	if (Hf)
-	{
-		if (!(Hf->Context->*(Hf->Func))(Ret, Arg))
-		{
-			if (Log)
-				Log->Print(	"%s ICallMethod error: Method '%s' failed.\n",
-							Code->AddrToSourceRef(CurrentScriptAddress),
-							Meth->Method.Get());
-			SetScriptError;
-		}		
-	}
-	else
-	{
-		// Fixme
-		if (!Meth->Call(NULL, Ret, Arg))
-		{
-			if (Log)
-				Log->Print(	"%s ICallMethod error: Method '%s' failed.\n",
-							Code->AddrToSourceRef(CurrentScriptAddress),
-							Meth->Method.Get());
-			SetScriptError;
-		}
-	}
-	#endif
-	break;
-}
-case ICallScript:
-{
-	int32 FuncAddr = *c.i32++;
-	if (FuncAddr < 0 || (uint32)FuncAddr >= Code->ByteCode.Length())
-	{
-		Log->Print(	"%s ICallScript error: Script function call invalid addr '%p'.\n",
-					Code->AddrToSourceRef(CurrentScriptAddress - sizeof(FuncAddr)),
-					FuncAddr);
-		SetScriptError;
-		break;
-	}
-
-	uint16 Frame = *c.u16++;
-
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p CallScript: %s = %p(frame=%i)(",
-			CurrentScriptAddress - 5,
-			c.r[0].GetStr(),
-			FuncAddr,
-			Frame);
-	#endif
-
-	#ifdef VM_EXECUTE
-
-	// Set up stack for function call
-	int CurFrameSize = Frames.Last().CurrentFrameSize;
-	StackFrame &Sf = Frames.New();
-	Sf.CurrentFrameSize = Frame;
-	Sf.PrevFrameStart = Locals.Length() ? Scope[1] - &Locals[0] : 0;
-	Sf.ReturnValue = *c.r++;
-	Sf.ReturnValue.Index -= CurFrameSize;
-	uint16 Args = *c.u16++;
-
-	// Increase the local stack size
-	AddLocalSize(Frame);
-	// LgiTrace("ICallScript %i,%i\n", Sf.ReturnValue.Scope, Sf.ReturnValue.Index);
-	
-	// Put the arguments of the function call into the local array
-	GArray<GVariant*> Arg;
-	
-	#else
-	
-	GResolveRef Ret = Resolve();
-	int Args = *c.u16++;
-	
-	#endif
-	
-	for (int i=0; i<Args; i++)
-	{
-		#if VM_DECOMP
-		if (Log)
-			Log->Print("%s%s", i?",":"", c.r[0].GetStr());
-		#endif
-
-		#if VM_EXECUTE
-		Locals[LocalsBase+i] = *Resolve();
-		#else
-		c.r++;
-		#endif
-	}
-
-	#if VM_EXECUTE
-	// Set IP to start of function
-	Sf.ReturnIp = CurrentScriptAddress;
-	c.u8 = Base + FuncAddr;
-	#endif
-
-	#if VM_DECOMP
-	if (Log)
-		Log->Print(")\n");
-	#endif
-	break;
-}
-case IRet:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Ret %s\n", CurrentScriptAddress - 1, c.r[0].GetStr());
-	#endif
-
-	GResolveRef ReturnValue = Resolve();
-
-	#ifdef VM_EXECUTE
-	if (Frames.Length() > 0)
-	{
-		StackFrame Sf = Frames[Frames.Length()-1];
-		GVarRef &Ret = Sf.ReturnValue;
-		GVariant *RetVar = &Scope[Ret.Scope][Ret.Index];
-		// LgiTrace("IRet to %i:%i\n", Ret.Scope, Ret.Index);
-		if (Ret.Scope == SCOPE_LOCAL)
-			LgiAssert(Locals.PtrCheck(RetVar));
-		*RetVar = *ReturnValue;
-		CheckParam(RetVar->Type == ReturnValue->Type);
-
-		Frames.Length(Frames.Length()-1);
-		
-		Locals.SetFixedLength(false);
-		if (Locals.Length() >= Sf.CurrentFrameSize)
-		{
-			int Base = Locals.Length() - Sf.CurrentFrameSize;
-			if (ArgsOutput)
-			{
-				if (Frames.Length() == 0)
-				{
-					for (unsigned i=0; i<ArgsOutput->Length(); i++)
-					{
-						*(*ArgsOutput)[i] = Locals[Base+i];
-					}
-				}
-			}
-			// LgiTrace("%s:%i Locals %i -> %i\n", _FL, Locals.Length(), Base);
-			Locals.Length(Base);
-			Scope[SCOPE_LOCAL] = &Locals[Sf.PrevFrameStart];
-		}
-		else
-		{
-			// LgiTrace("%s:%i - Locals %i -> %i\n", _FL, Locals.Length(), 0);
-			Locals.Length(0);
-			Scope[SCOPE_LOCAL] = NULL;
-		}
-		Locals.SetFixedLength();
-
-		c.u8 = Base + Sf.ReturnIp;
-	}
-	else
-	{
-		ExitScriptExecution;
-	}
-	#endif
-	break;
-}
-case IArrayGet:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print(	"%p ArrayGet %s = %s[%s]\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr(),
-					c.r[2].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Var = Resolve();
-	GResolveRef Idx = Resolve();
-
-	#ifdef VM_EXECUTE
-	switch (Var->Type)
-	{
-		case GV_LIST:
-		{
-			CheckParam(Var->Value.Lst);
-			GVariant *t = Var->Value.Lst->ItemAt(Idx->CastInt32());
-			if (t)
-			{
-				if (Var == Dst)
-				{
-					if (Var->Value.Lst->Delete(t))
-					{
-						*Var = *t;
-						DeleteObj(t);
-					}
-					else CheckParam(!"List delete failed.");
-				}
-				else *Dst = *t;
-			}
-			else Dst->Empty();
-			break;
-		}
-		case GV_HASHTABLE:
-		{
-			CheckParam(Var->Value.Hash);
-			GVariant *t = (GVariant*)Var->Value.Hash->Find(Idx->CastString());
-			if (t) *Dst = *t;
-			else Dst->Empty();
-			break;
-		}
-		case GV_CUSTOM:
-		{
-			GCustomType *T = Var->Value.Custom.Dom;
-			size_t Sz = T->Sizeof();
-			int Index = Idx->CastInt32();
-
-			Dst->Type = GV_CUSTOM;
-			Dst->Value.Custom.Dom = T;
-			Dst->Value.Custom.Data = Var->Value.Custom.Data + (Sz * Index);
-			break;
-		}
-		default:
-		{
-			if (Log)
-				Log->Print(	"%s IArrayGet warning: Can't array deref variant type %i\n",
-							Code->AddrToSourceRef(CurrentScriptAddress),
-							Var->Type);
-			Status = ScriptWarning;
-			break;
-		}
-	}
-	#endif
-	break;
-}
-case IArraySet:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print(	"%p ArraySet %s[%s] = %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr(),
-					c.r[2].GetStr());
-	#endif
-
-	GResolveRef Var = Resolve();
-	GResolveRef Idx = Resolve();
-	GResolveRef Val = Resolve();
-	#ifdef VM_EXECUTE
-	switch (Var->Type)
-	{
-		case GV_LIST:
-		{
-			CheckParam(Var->Value.Lst);
-			(*Var->Value.Lst).Insert(new GVariant(*Val), Idx->CastInt32());
-			break;
-		}
-		case GV_HASHTABLE:
-		{
-			CheckParam(Var->Value.Hash);
-			GVariant *Old = (GVariant*)Var->Value.Hash->Find(Idx->CastString());
-			DeleteObj(Old);
-			Var->Value.Hash->Add(Idx->CastString(), new GVariant(*Val));
-			break;
-		}
-		default:
-		{
-			if (Log)
-				Log->Print(	"%s IArraySet warning: Can't dereference type '%s'\n",
-							Code->AddrToSourceRef(CurrentScriptAddress),
-							GVariant::TypeToString(Var->Type));
-			Status = ScriptWarning;
-			break;
-		}
-	}
-	#endif
-	break;
-}
-case IEquals:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s == %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-
-	#ifdef VM_EXECUTE
-	if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
-		*Dst = *Dst->Value.Date == *Src->Value.Date;
-	else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() == Src->CastDouble();
-	else if (Src->Type == GV_STRING || Dst->Type == GV_STRING)
-	{
-		char *d = Dst->Str();
-		char *s = Src->Str();
-		if (!d && !s)
-			*Dst = true;
-		else if (s && d)
-			*Dst = strcmp(s, d) == 0;
-		else
-			*Dst = false;
-	}
-	else
-		*Dst = Dst->CastInt32() == Src->CastInt32();
-	#endif
-	break;
-}
-case INotEquals:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print(	"%p %s != %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-
-	#ifdef VM_EXECUTE
-	if (Src->Type == GV_NULL || Dst->Type == GV_NULL)
-	{
-		if ((Src->Type == GV_NULL) ^ (Dst->Type == GV_NULL))
-			*Dst = (Src->Type == GV_NULL ? Dst : Src)->CastVoidPtr() != 0;
-		else
-			*Dst = false;
-	}
-	else if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
-		*Dst = *Dst->Value.Date != *Src->Value.Date;
-	else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() != Src->CastDouble();
-	else if (Src->Type == GV_STRING)
-	{
-		char *d = Dst->Str();
-		char *s = Src->Str();
-		if (!d || !s)
-			*Dst = (s == 0) ^ (d == 0);
-		else
-			*Dst = strcmp(s, d) != 0;
-	}
-	else
-		*Dst = Dst->CastInt32() != Src->CastInt32();
-	#endif
-	break;
-}
-case ILessThan:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s < %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	
-	#ifdef VM_EXECUTE
-	if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
-		*Dst = *Dst->Value.Date < *Src->Value.Date;
-	else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() < Src->CastDouble();
-	else if (Src->Type == GV_STRING)
-	{
-		char *d = Dst->Str();
-		char *s = Src->Str();
-		if (!d || !s)
-			*Dst = false;
-		else
-			*Dst = strcmp(d, s) < 0;
-	}
-	else
-		*Dst = Dst->CastInt32() < Src->CastInt32();
-	#endif
-	break;
-}
-case ILessThanEqual:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print(	"%p %s < %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	
-	#ifdef VM_EXECUTE
-	if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
-		*Dst = *Dst->Value.Date <= *Src->Value.Date;
-	else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() <= Src->CastDouble();
-	else if (Src->Type == GV_STRING)
-	{
-		char *d = Dst->Str();
-		char *s = Src->Str();
-		if (!d || !s)
-			*Dst = false;
-		else
-			*Dst = strcmp(d, s) <= 0;
-	}
-	else
-		*Dst = Dst->CastInt32() <= Src->CastInt32();
-	#endif
-	break;
-}
-case IGreaterThan:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s < %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	
-	#ifdef VM_EXECUTE
-	if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
-		*Dst = *Dst->Value.Date > *Src->Value.Date;
-	else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() > Src->CastDouble();
-	else if (Dst->Type == GV_STRING && Src->Type == GV_STRING)
-	{
-		char *d = Dst->Str();
-		char *s = Src->Str();
-		if (!d || !s)
-			*Dst = false;
-		else
-			*Dst = strcmp(d, s) > 0;
-	}
-	else
-		*Dst = Dst->CastInt32() > Src->CastInt32();
-	#endif
-	break;
-}
-case IGreaterThanEqual:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s < %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	
-	#ifdef VM_EXECUTE
-	if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
-		*Dst = *Dst->Value.Date >= *Src->Value.Date;
-	else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() >= Src->CastDouble();
-	else if (Src->Type == GV_STRING)
-	{
-		char *d = Dst->Str();
-		char *s = Src->Str();
-		if (!d || !s)
-			*Dst = false;
-		else
-			*Dst = strcmp(d, s) >= 0;
-	}
-	else
-		*Dst = Dst->CastInt32() >= Src->CastInt32();
-	#endif
-	break;
-}
-case IAnd:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s && %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	#ifdef VM_EXECUTE
-	*Dst = (Dst->CastInt32() != 0) && (Src->CastInt32() != 0);
-	#endif
-	break;
-}
-case IOr:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s || %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	#ifdef VM_EXECUTE
-	*Dst = (Dst->CastInt32() != 0) || (Src->CastInt32() != 0);
-	#endif
-	break;
-}
-case INot:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s = !%s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[0].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	#ifdef VM_EXECUTE
-	*Dst = !Dst->CastBool();
-	#endif
-	break;
-}
-case IDomGet:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s = %s->DomGet(%s, %s)\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr(),
-					c.r[2].GetStr(),
-					c.r[3].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Dom = Resolve();
-	GResolveRef Name = Resolve();
-	GResolveRef Arr = Resolve();
-
-	#ifdef VM_EXECUTE
-
-		// Return "NULL" in Dst on error
-		if (Dst != Dom)
-			Dst->Empty();
-
-		switch (Dom->Type)
-		{
-			case GV_DOM:
-			case GV_STREAM:
-			case GV_GSURFACE:
-			{
-				GDom *dom = Dom->CastDom();
-				CheckParam(dom != NULL);
-				char *sName = Name->Str();
-				CheckParam(sName);
-				bool Ret = dom->GetVariant(sName, *Dst, CastArrayIndex(Arr));
-				if (!Ret)
-				{
-					Dst->Empty();
-					if (Log)
-						Log->Print("%s IDomGet warning: Unexpected %s member '%s'.\n",
-									Code->AddrToSourceRef(CurrentScriptAddress),
-									GVariant::TypeToString(Dom->Type),
-									sName);
-					Status = ScriptWarning;
-				}
-				break;
-			}
-			case GV_DATETIME:
-			{
-				CheckParam(Dom->Value.Date != NULL);
-				char *sName = Name->Str();
-				CheckParam(sName);
-				bool Ret = Dom->Value.Date->GetVariant(sName, *Dst, CastArrayIndex(Arr));
-				if (!Ret)
-				{
-					Dst->Empty();
-					if (Log)
-						Log->Print("%s IDomGet warning: Unexpected %s member '%s'.\n",
-									Code->AddrToSourceRef(CurrentScriptAddress),
-									GVariant::TypeToString(Dom->Type),
-									sName);
-					Status = ScriptWarning;
-				}
-				break;
-			}
-			case GV_CUSTOM:
-			{
-				GCustomType *Type = Dom->Value.Custom.Dom;
-				if (Type)
-				{
-					int Fld;
-					if (Name->Type == GV_INT32)
-						Fld = Name->Value.Int;
-					else
-						Fld = Type->IndexOf(Name->Str());
-					
-					int Index = Arr ? Arr->CastInt32() : 0;
-					Type->Get(Fld, *Dst, Dom->Value.Custom.Data, Index);
-				}
-				break;
-			}
-			case GV_LIST:
-			{
-				CheckParam(Dom->Value.Lst);
-				char *sName = Name->Str();
-				CheckParam(sName);
-				GDomProperty p = LgiStringToDomProp(sName);
-				if (p == ObjLength)
-					(*Dst) = (int)Dom->Value.Lst->Length();
-				break;
-			}
-			case GV_HASHTABLE:
-			{
-				CheckParam(Dom->Value.Hash);
-				char *sName = Name->Str();
-				CheckParam(sName);
-				GDomProperty p = LgiStringToDomProp(sName);
-				if (p == ObjLength)
-					(*Dst) = (int)Dom->Value.Hash->Length();
-				break;
-			}
-			case GV_BINARY:
-			{
-				char *sName = Name->Str();
-				CheckParam(sName);
-				GDomProperty p = LgiStringToDomProp(sName);
-				if (p == ObjLength)
-					(*Dst) = Dom->Value.Binary.Length;
-				break;
-			}
-			case GV_STRING:
-			{
-				char *sName = Name->Str();
-				CheckParam(sName);
-				GDomProperty p = LgiStringToDomProp(sName);
-				switch (p)
-				{
-					case ObjLength:
-					{
-						(*Dst) = (int)strlen(Dom->Str());
-						break;
-					}
-					case StrInt:
-					{
-						(*Dst) = Dom->CastInt32();
-						break;
-					}
-					case StrDouble:
-					{
-						(*Dst) = Dom->CastDouble();
-						break;
-					}
-					default:
-					{
-						Dst->Empty();
-						if (Log)
-							Log->Print("%s IDomGet warning: Unexpected string member '%s'.\n",
-										Code->AddrToSourceRef(CurrentScriptAddress),
-										sName);
-						Status = ScriptWarning;
-						break;
-					}
-				}
-				break;
-			}
-			default:
-			{
-				if (Log)
-					Log->Print("%s IDomGet warning: Unexpected type %s (Src=%s:%i IP=0x%x).\n",
-								Code->AddrToSourceRef(CurrentScriptAddress),
-								GVariant::TypeToString(Dom->Type),
-								_FL,
-								CurrentScriptAddress);
-				Status = ScriptWarning;
-				break;
-			}
-		}
-
-	#endif
-	break;
-}
-case IDomSet:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s->DomSet(%s, %s) = %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr(),
-					c.r[2].GetStr(),
-					c.r[3].GetStr());
-	#endif
-
-	GResolveRef Dom = Resolve();
-	GResolveRef Name = Resolve();
-	GResolveRef Arr = Resolve();
-	GResolveRef Value = Resolve();
-	
-	#ifdef VM_EXECUTE
-
-	char *sName = Name->Str();
-	if (!sName)
-	{
-		if (Log)
-			Log->Print("%s IDomSet error: No name string.\n",
-						Code->AddrToSourceRef(CurrentScriptAddress));
-		SetScriptError;
-		break;
-	}
-
-	switch (Dom->Type)
-	{
-		case GV_DOM:
-		// case GV_GFILE:
-		case GV_STREAM:
-		case GV_GSURFACE:
-		{
-			GDom *dom = Dom->CastDom();
-			CheckParam(dom != NULL);
-			bool Ret = dom->SetVariant(sName, *Value, CastArrayIndex(Arr));
-			if (!Ret)
-			{
-				if (Log)
-					Log->Print("%s IDomSet warning: Unexpected %s member '%s'.\n",
-								Code->AddrToSourceRef(CurrentScriptAddress),
-								GVariant::TypeToString(Dom->Type),
-								sName);
-				Status = ScriptWarning;
-			}
-			break;
-		}
-		case GV_DATETIME:
-		{
-			CheckParam(Dom->Value.Date != NULL);
-			bool Ret = Dom->Value.Date->SetVariant(sName, *Value, CastArrayIndex(Arr));
-			if (!Ret)
-			{
-				if (Log)
-					Log->Print("%s IDomSet warning: Unexpected %s member '%s'.\n",
-								Code->AddrToSourceRef(CurrentScriptAddress),
-								GVariant::TypeToString(Dom->Type),
-								sName);
-				Status = ScriptWarning;
-			}
-			break;
-		}
-		case GV_CUSTOM:
-		{
-			GCustomType *Type = Dom->Value.Custom.Dom;
-			if (Type)
-			{
-				int Fld;
-				if (IsDigit(*sName))
-					Fld = atoi(sName);
-				else
-					Fld = Type->IndexOf(sName);
-				
-				int Index = Arr ? Arr->CastInt32() : 0;
-				if (!Type->Set(Fld, *Value, Dom->Value.Custom.Data, Index) &&
-					Log)
-				{
-					Log->Print("%s IDomSet warning: Couldn't set '%s' on custom type.\n",
-								Code->AddrToSourceRef(CurrentScriptAddress),
-								sName);
-				}
-			}
-			break;
-		}
-		case GV_STRING:
-		{
-			GDomProperty p = LgiStringToDomProp(sName);
-			switch (p)
-			{
-				case ObjLength:
-				{
-					char *s;
-					int DLen = Value->CastInt32();
-					if (DLen && (s = new char[DLen+1]))
-					{
-						int SLen = Dom->Str() ? strlen(Dom->Str()) : 0;
-						if (SLen)
-							memcpy(s, Dom->Str(), SLen);
-						memset(s+SLen, ' ', DLen-SLen);
-						s[DLen] = 0;
-						DeleteArray(Dom->Value.String);
-						Dom->Value.String = s;
-					}
-					else Dom->Empty();
-
-					break;
-				}
-				case StrInt:
-				{
-					*Dom = Value->CastInt32();
-					Dom->Str();
-					break;
-				}
-				case StrDouble:
-				{
-					*Dom = Value->CastDouble();
-					Dom->Str();
-					break;
-				}
-				default:
-				{
-					if (Log)
-						Log->Print("%s IDomSet warning: Unexpected string member %s.\n",
-									Code->AddrToSourceRef(CurrentScriptAddress),
-									sName);
-					Status = ScriptWarning;
-					break;
-				}
-			}
-			break;
-		}
-		default:
-		{
-			if (Log)
-				Log->Print("%s IDomSet warning: Unexpected type %s.\n",
-							Code->AddrToSourceRef(CurrentScriptAddress),
-							GVariant::TypeToString(Dom->Type));
-			Status = ScriptWarning;
-			break;
-		}
-	}
-
-	#endif
-	break;
-}
-case IDomCall:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s = %s->DomCall(%s, ",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr(),
-					c.r[2].GetStr());
-	#endif
-
-	GVarRef DstRef = *c.r;
-	GResolveRef Dst = Resolve();
-	GResolveRef Dom = Resolve();
-	GResolveRef Name = Resolve();
-
-	#ifdef VM_EXECUTE
-
-	GResolveRef Args = Resolve();
-	int ArgCount = Args->CastInt32();
-	char *sName = Name->Str();
-	CheckParam(sName)
-
-	if (Dom->Type == GV_CUSTOM)
-	{
-		#define DEBUG_CUSTOM_METHOD_CALL	1
-		
-		GCustomType *t = Dom->Value.Custom.Dom;
-		CheckParam(t);
-		GCustomType::Method *m = t->GetMethod(sName);
-		CheckParam(m);
-		CheckParam(m->Params.Length() == ArgCount);
-		
-		// Set up new stack frame...
-		StackFrame &Sf = Frames.New();
-		Sf.CurrentFrameSize = m->FrameSize;
-		Sf.PrevFrameStart = Locals.Length() ? Scope[1] - &Locals[0] : 0;
-		Sf.ReturnValue = DstRef;
-
-		// Increase the local stack size
-		AddLocalSize(m->FrameSize + 1);
-		
-		#if DEBUG_CUSTOM_METHOD_CALL
-		LgiTrace("CustomType.Call(%s) Args=%i, Frame=%i, Addr=%i, LocalsBase=%i ",
-				sName, ArgCount, m->FrameSize, m->Address, LocalsBase);
-		#endif
-		
-		int i = LocalsBase;
-		Locals[i++] = *Dom; // this pointer...
-		#if DEBUG_CUSTOM_METHOD_CALL
-		GString s = Locals[i-1].ToString();
-		LgiTrace("This=%s, ", s.Get());
-		#endif
-		int end = i + ArgCount;
-		while (i < end)
-		{
-			Locals[i++] = *Resolve();
-			#if DEBUG_CUSTOM_METHOD_CALL
-			s = Locals[i-1].ToString();
-			LgiTrace("[%i]=%s, ", i-1, s.Get());
-			#endif
-		}
-
-		// Now adjust the local stack to point to the locals for the function
-		Scope[1] = Locals.Length() ? &Locals[LocalsBase] : NULL;
-
-		// Set IP to start of function
-		Sf.ReturnIp = CurrentScriptAddress;
-		c.u8 = Base + m->Address;
-
-		#if DEBUG_CUSTOM_METHOD_CALL
-		LgiTrace("\n");
-		#endif
-		break;
-	}	
-
-	GArray<GVariant*> Arg;
-	Arg.Length(ArgCount);
-	for (int i=0; i<ArgCount; i++)
-	{
-		Arg[i] = Resolve();
-	}
-	
-	switch (Dom->Type)
-	{
-		case GV_DOM:
-		case GV_STREAM:
-		case GV_GSURFACE:
-		{
-			GDom *dom = Dom->CastDom();
-			CheckParam(dom);
-			bool Ret = dom->CallMethod(sName, Dst, Arg);
-			if (!Ret)
-			{
-				Dst->Empty();
-				if (Log)
-					Log->Print("%s IDomCall warning: %s(...) failed.\n",
-								Code->AddrToSourceRef(CurrentScriptAddress),
-								sName);
-				Status = ScriptWarning;
-			}
-			break;
-		}
-		case GV_DATETIME:
-		{
-			CheckParam(Dom->Value.Date);
-			bool Ret = Dom->Value.Date->CallMethod(sName, Dst, Arg);
-			if (!Ret)
-			{
-				Dst->Empty();
-				if (Log)
-					Log->Print("%s IDomCall warning: %s(...) failed.\n",
-								Code->AddrToSourceRef(CurrentScriptAddress),
-								sName);
-				Status = ScriptWarning;
-			}
-			break;
-		}
-		case GV_LIST:
-		{
-			CheckParam(Dom->Value.Lst);
-			GDomProperty p = LgiStringToDomProp(sName);
-			switch (p)
-			{
-				case ObjLength:
-				{
-					*Dst = Dom->Value.Lst->Length();
-					break;
-				}
-				case ObjType:
-				{
-					*Dst = "List";
-					break;
-				}
-				case ContainerAdd:
-				{
-					if (Arg.Length() > 0 &&
-						Arg[0])
-					{
-						int Index = Arg.Length() > 1 ? Arg[1]->CastInt32() : -1;
-
-						GVariant *v = new GVariant;
-						*v = *Arg[0];
-						Dom->Value.Lst->Insert(v, Index);
-					}
-					break;
-				}
-				case ContainerDelete:
-				{
-					for (unsigned i=0; i<Arg.Length(); i++)
-					{
-						GVariant *Idx = Arg[i];
-						if (Idx)
-						{
-							int32 n = Arg[i]->CastInt32();
-							GVariant *Elem = Dom->Value.Lst->ItemAt(n);
-							if (Elem)
-							{
-								Dom->Value.Lst->Delete(Elem);
-								DeleteObj(Elem);
-							}
-						}
-					}
-					break;
-				}
-				case ContainerHasKey:
-				{
-					if (Arg.Length() > 0 && Arg[0])
-					{
-						int Index = Arg[0]->CastInt32();
-						*Dst = (bool) (Index >= 0 && Index < Dom->Value.Lst->Length());
-					}
-					else
-					{
-						*Dst = false;
-					}
-					break;
-				}
-				case ContainerSort:
-				{
-					GVariant *Param = Arg.Length() > 0 ? Arg[0] : NULL;
-					Dom->Value.Lst->Sort(GVariantCmp, (NativeInt)Param);
-					break;
-				}
-				default:
-				{
-					Dst->Empty();
-					if (Log)
-						Log->Print(	"%s IDomCall warning: Unexpected list member '%s'.\n",
-									Code->AddrToSourceRef(CurrentScriptAddress),
-									sName);
-					Status = ScriptWarning;
-					break;
-				}
-			}
-			break;
-		}
-		case GV_HASHTABLE:
-		{
-			CheckParam(Dom->Value.Hash);
-			GDomProperty p = LgiStringToDomProp(sName);
-			switch (p)
-			{
-				case ObjLength:
-				{
-					*Dst = Dom->Value.Hash->Length();
-					break;
-				}
-				case ObjType:
-				{
-					*Dst = "HashTable";
-					break;
-				}
-				case ContainerAdd:
-				{
-					if (Arg.Length() == 2 &&
-						Arg[0] &&
-						Arg[1])
-					{
-						char *Key = Arg[1]->Str();
-						if (Key)
-						{
-							GVariant *v = new GVariant;
-							*v = *Arg[0];
-							Dom->Value.Hash->Add(Key, v);
-						}
-					}
-					break;
-				}
-				case ContainerDelete:
-				{
-					if (Arg.Length() == 1 &&
-						Arg[0])
-					{
-						char *Key = Arg[0]->Str();
-						if (Key)
-						{
-							GVariant *v = (GVariant*) Dom->Value.Hash->Find(Key);
-							if (v)
-							{
-								Dom->Value.Hash->Delete(Key);
-								delete v;
-							}
-						}
-					}
-					break;
-				}
-				case ContainerHasKey:
-				{
-					if (Arg.Length() > 0 && Arg[0])
-					{
-						char *Key = Arg[0]->Str();
-						*Dst = (bool) (Dom->Value.Hash->Find(Key) != NULL);
-					}
-					else
-					{
-						*Dst = false;
-					}
-					break;
-				}
-				default:
-				{
-					Dst->Empty();
-					if (Log)
-						Log->Print("%s IDomCall warning: Unexpected hashtable member '%s'.\n",
-									Code->AddrToSourceRef(CurrentScriptAddress),
-									sName);
-					Status = ScriptWarning;
-					break;
-				}
-			}
-			break;
-		}
-		case GV_BINARY:
-		{
-			GDomProperty p = LgiStringToDomProp(sName);
-			switch (p)
-			{
-				default:
-					break;
-				case ObjLength:
-					*Dst = Dom->Value.Binary.Length;
-					break;
-			}
-			break;
-		}
-		case GV_STRING:
-		{
-			if (Arg.Length() > 0 && !Arg[0])
-			{
-				Dst->Empty();
-				break;
-			}
-
-			GDomProperty p = LgiStringToDomProp(sName);
-			switch (p)
-			{
-				case ObjLength:
-				{
-					char *s = Dom->Str();
-					*Dst = (int) (s ? strlen(s) : 0);
-					break;
-				}
-				case ObjType:
-				{
-					*Dst = "String";
-					break;
-				}
-				case StrJoin:
-				{
-					switch (Arg[0]->Type)
-					{
-						case GV_LIST:
-						{
-							GStringPipe p(256);
-							List<GVariant> *Lst = Arg[0]->Value.Lst;
-							const char *Sep = Dom->CastString();
-							GVariant *v = Lst->First();
-							if (v)
-							{
-								GVariant Tmp = *v;
-								p.Print("%s", Tmp.CastString());
-								while ((v = Lst->Next()))
-								{
-									Tmp = *v;
-									p.Print("%s%s", Sep, Tmp.CastString());
-								}
-							}
-							Dst->OwnStr(p.NewStr());
-							break;
-						}
-						default:
-						{
-							*Dst = *Arg[0];
-							Dst->CastString();
-							break;
-						}
-					}
-					break;
-				}								
-				case StrSplit:
-				{
-					const char *Sep = Arg[0]->Str();
-					if (!Sep)
-					{
-						Dst->Empty();
-						break;
-					}
-					
-					GVariant Tmp;
-					if (Dst == Dom)
-					{
-						Tmp = *Dom;
-						Dom = &Tmp;
-					}
-
-					Dst->SetList();
-					
-					int SepLen = strlen(Sep);
-					int MaxSplit = Arg.Length() > 1 ? Arg[1]->CastInt32() : -1;
-					const char *c = Dom->CastString();
-					while (c && *c)
-					{
-						if (MaxSplit > 0 && Dst->Value.Lst->Length() >= MaxSplit)
-							break;
-
-						const char *next = strstr(c, Sep);
-						if (!next)
-							break;
-						
-						GVariant *v = new GVariant;
-						v->OwnStr(NewStr(c, next - c));
-						Dst->Value.Lst->Insert(v);
-						
-						c = next + SepLen;
-					}
-
-					if (c && *c)
-					{
-						GVariant *v = new GVariant;
-						v->OwnStr(NewStr(c));
-						Dst->Value.Lst->Insert(v);
-					}
-					break;
-				}								
-				case StrFind:
-				{
-					const char *s = Dom->Str();
-					if (!s)
-					{
-						*Dst = -1;
-						break;
-					}
-
-					int sLen = strlen(s);
-					const char *sub = Arg[0]->Str();
-					int start = Arg.Length() > 1 ? Arg[1]->CastInt32() : 0;
-					int end = Arg.Length() > 2 ? Arg[2]->CastInt32() : -1;								
-
-					if (start >= sLen)
-					{
-						*Dst = -1;
-						break;
-					}
-					char *sStart = (char*)s + start;
-					char *pos;
-					if (end > start)
-						pos = strnstr(sStart, sub, end - start);
-					else
-						pos = strstr(sStart, sub);
-
-					if (pos)
-						*Dst = (int64) (pos - s);
-					else
-						*Dst = -1;
-					break;
-				}
-				case StrRfind:
-				{
-					CheckParam(0);
-					break;
-				}
-				case StrLower:
-				{
-					if (Dst != Dom)
-						*Dst = Dom->CastString();
-					
-					StrLwr(Dst->Str());
-					break;
-				}
-				case StrUpper:
-				{
-					if (Dst != Dom)
-						*Dst = Dom->CastString();
-
-					StrUpr(Dst->Str());
-					break;
-				}
-				case StrStrip:
-				{
-					char *s = Dom->Str();
-					if (s)
-					{
-						char *start = s;
-						char *end = s + strlen(s);
-						while (start < end && strchr(WhiteSpace, *start))
-							start++;
-
-						while (end > start && strchr(WhiteSpace, end[-1]))
-							end--;
-						
-						Dst->OwnStr(NewStr(start, end - start));
-					}
-					else Dst->Empty();
-					break;
-				}
-				case StrSub:
-				{
-					Dst->Empty();
-					char *s = Dom->Str();
-					if (s)
-					{
-						int Start = Arg.Length() > 0 ? Arg[0]->CastInt32() : 0;
-						int End = Arg.Length() > 1 ? Arg[1]->CastInt32() : -1;
-						int Len = strlen(s);
-						if (End < 0 || End > Len)
-							End = Len;
-						if (Start < 0)
-							Start = 0;
-						if (Start <= End)
-						{
-							Dst->OwnStr(NewStr(s + Start, End - Start));
-						}
-					}
-					break;
-				}
-				default:
-				{
-					Dst->Empty();
-					if (Log)
-						Log->Print("%p IDomCall warning: Unexpected string member %s (%s:%i).\n",
-									CurrentScriptAddress,
-									sName,
-									_FL);
-					Status = ScriptWarning;
-					break;
-				}
-			}
-			break;
-		}
-		default:
-		{
-			const char *Type = GVariant::TypeToString(Dom->Type);
-			char t[32];
-			if (!Type)
-			{
-				sprintf_s(t, sizeof(t), "UnknownType(%i)", Dom->Type);
-				Type = t;
-			}
-			
-			GDomProperty p = LgiStringToDomProp(sName);
-			if (p == ObjType)
-			{
-				*Dst = Type;
-			}
-			else
-			{
-				Dst->Empty();
-				if (Log)
-				{
-					Log->Print("%s IDomCall warning: Unexpected type %s (Src=%s:%i IP=0x%x).\n",
-								Code->AddrToSourceRef(CurrentScriptAddress),
-								Type,
-								_FL,
-								CurrentScriptAddress);
-				}
-				Status = ScriptWarning;
-			}
-			break;
-		}
-	}
-
-	#else
-
-	GVariant *Count = NULL;
-	switch (c.r->Scope)
-	{
-		case SCOPE_GLOBAL:
-			Count = &Code->Globals[c.r->Index];
-			c.r++;
-			break;
-		default:
-			OnException(_FL, CurrentScriptAddress, "Unsupported scope.");
-			return ScriptError;
-	}
-	
-	int Args = Count->CastInt32();
-	for (int i=0; i<Args; i++)
-	{
-		#if VM_DECOMP
-		if (Log)
-			Log->Print("%s%s", i ? ", " : "", c.r->GetStr());
-		#endif
-		c.r++;
-	}
-	#if VM_DECOMP
-	if (Log)
-		Log->Print(")\n");
-	#endif
-
-	#endif
-	break;
-}
-
-#undef Resolve
-#undef GResolveRef
+					#include "Instructions.h"
 					#undef VM_EXECUTE
 				}
 				
@@ -4362,1829 +783,56 @@ case IDomCall:
 		{
 			// Stepping through code
 			// GHashTbl<int, int> &Debug = Code->Debug;
-			int Line = NearestLine(CurrentScriptAddress);
+			int Param;
+			switch (Type)
+			{
+				case RunStepLine:
+					Param = NearestLine(CurrentScriptAddress);
+					break;
+				case RunStepOut:
+					Param = Frames.Length();
+					break;
+				default:
+					break;
+			}
+			
+			if (BreakCpp)
+			#if defined(WIN32) && !defined(_WIN64)
+				_asm int 3
+			#else
+				assert(!"BreakPoint");
+			#endif
 
 			while (c.u8 < e)
 			{
+				if (Type == RunContinue &&
+					BreakPts.HasItem(c.u8 - Base))
+					break;
+				
 				switch (*c.u8++)
 				{
 					#define VM_EXECUTE 1
-					/*
-	This file is included in both the GVirtualMachinePriv::Execute and GVirtualMachinePriv::Decompile
-	That way the "parsing" of instructions is the same.
-	
-	During decompile the define VM_DECOMP is active.
-	
-	During execution the define VM_EXECUTE is active.
-
-*/
-
-#ifdef VM_EXECUTE
-#define Resolve()		&Scope[c.r->Scope][c.r->Index]; c.r++
-#define GResolveRef		GVariant *
-#else
-#define Resolve()		c.r++
-#define GResolveRef		GVarRef *
-#endif
-
-default:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("\t%p Unknown instruction %i (0x%x)\n",
-					CurrentScriptAddress - 1,
-					c.u8[-1], c.u8[-1]);
-	#endif
-	OnException(_FL, CurrentScriptAddress, "Unknown instruction");
-	SetScriptError;
-	break;
-}
-case INop:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Nop\n", CurrentScriptAddress - 1);
-	#endif
-	break;
-}
-case ICast:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Cast %s",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr());
-	#endif
-	GResolveRef Var = Resolve();
-	uint8 Type = *c.u8++;
-	#if VM_DECOMP
-	if (Log)
-		Log->Print(" to %s\n", GVariant::TypeToString((GVariantType)Type));
-	#endif
-	#if VM_EXECUTE
-	switch (Type)
-	{
-		case GV_INT32:
-		{
-			*Var = Var->CastInt32();
-			break;
-		}
-		case GV_STRING:
-		{
-			*Var = Var->CastString();
-			break;
-		}
-		case GV_DOM:
-		{
-			*Var = Var->CastDom();
-			break;
-		}
-		case GV_DOUBLE:
-		{
-			*Var = Var->CastDouble();
-			break;
-		}
-		case GV_INT64:
-		{
-			*Var = Var->CastInt32();
-			break;
-		}
-		case GV_BOOL:
-		{
-			*Var = Var->CastBool();
-			break;
-		}
-		default:
-		{
-			if (Log)
-				Log->Print(	"%s ICast warning: unknown type %i/%s\n",
-							Code->AddrToSourceRef(CurrentScriptAddress),
-							Var->Type,
-							GVariant::TypeToString(Var->Type));
-			Status = ScriptWarning;
-			break;
-		}
-	}
-	#endif
-	break;
-}
-case IBreak:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Break\n", CurrentScriptAddress - 1);
-	#endif
-	break;
-}
-case IAssign:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Assign %s <- %s\n",
-				CurrentScriptAddress - 1,
-				c.r[0].GetStr(),
-				c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	#ifdef VM_EXECUTE
-	CheckParam(Dst != Src);
-	*Dst = *Src;
-	#endif
-	break;
-}
-case IJump:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Jump by %i (to 0x%x)\n",
-			CurrentScriptAddress - 1,
-			c.i32[0],
-			CurrentScriptAddress + 4 + c.i32[0]);
-	#endif
-
-	int32 Jmp = *c.i32++;
-	#ifdef VM_EXECUTE
-	CheckParam(Jmp != 0);
-	c.u8 += Jmp;
-	#endif
-	break;
-}
-case IJumpZero:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p JumpZ(%s) by 0x%x\n",
-			CurrentScriptAddress - 1,
-			c.r[0].GetStr(),
-			c.i32[1]);
-	#endif
-
-	GResolveRef Exp = Resolve();
-	int32 Jmp = *c.i32++;
-	#ifdef VM_EXECUTE
-	CheckParam(Jmp != 0);
-	if (!Exp->CastInt32())
-	{
-		c.u8 += Jmp;
-	}
-	#endif
-	break;
-}
-// case IUnaryPlus:
-case IUnaryMinus:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p UnaryMinus %s\n",
-			CurrentScriptAddress - 1,
-			c.r[0].GetStr());
-	#endif
-
-	GResolveRef Var = Resolve();
-	#ifdef VM_EXECUTE
-	if (Var->Type == GV_DOUBLE)
-		*Var = -Var->CastDouble();
-	else
-		*Var = -Var->CastInt32();
-	#endif
-	break;
-}
-case IPlus:
-case IPlusEquals:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Plus %s += %s\n",
-			CurrentScriptAddress - 1,
-			c.r[0].GetStr(),
-			c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	#ifdef VM_EXECUTE
-	if (Dst->Str())
-	{
-		int dlen = strlen(Dst->Str());
-		char *ss;
-		GVariant SrcTmp;
-		
-		switch (Src->Type)
-		{
-			case GV_NULL:
-				ss = (char*)"(null)";
-				break;
-			case GV_STRING:
-				ss = Src->Str();
-				break;
-			default:
-				SrcTmp = *Src;
-				ss = SrcTmp.CastString();
-				break;
-		}
-
-		if (ss)
-		{
-			int slen = strlen(ss);
-			char *s = new char[slen + dlen + 1];
-			if (s)
-			{
-				memcpy(s, Dst->Value.String, dlen);
-				memcpy(s + dlen, ss, slen);
-				s[dlen + slen] = 0;
-				DeleteArray(Dst->Value.String);
-				Dst->Value.String = s;
-			}
-		}
-	}
-	else if (Dst->Type == GV_DOUBLE ||
-			 Src->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() + Src->CastDouble();
-	else
-		*Dst = Dst->CastInt32() + Src->CastInt32();
-	#endif
-	break;
-}
-case IMinus:
-case IMinusEquals:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Minus %s -= %s\n",
-			CurrentScriptAddress - 1,
-			c.r[0].GetStr(),
-			c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	#ifdef VM_EXECUTE
-	if (Dst->Type == GV_DOUBLE ||
-		Src->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() - Src->CastDouble();
-	else
-		*Dst = Dst->CastInt32() - Src->CastInt32();
-	#endif
-	break;
-}
-case IMul:
-case IMulEquals:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Mul %s *= %s\n",
-			CurrentScriptAddress - 1,
-			c.r[0].GetStr(),
-			c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	#ifdef VM_EXECUTE
-	if (Dst->Type == GV_DOUBLE ||
-		Src->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() * Src->CastDouble();
-	else
-		*Dst = Dst->CastInt32() * Src->CastInt32();
-	#endif
-	break;
-}
-case IDiv:
-case IDivEquals:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Div %s /= %s\n",
-			CurrentScriptAddress - 1,
-			c.r[0].GetStr(),
-			c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	#ifdef VM_EXECUTE
-	if (Dst->Type == GV_DOUBLE ||
-		Src->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() / Src->CastDouble();
-	else
-		*Dst = Dst->CastInt32() / Src->CastInt32();
-	#endif
-	break;
-}
-case IMod:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Mod %s %= %s\n",
-			CurrentScriptAddress - 1,
-			c.r[0].GetStr(),
-			c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	#ifdef VM_EXECUTE
-	if (Dst->Type == GV_DOUBLE ||
-		Src->Type == GV_DOUBLE)
-	{
-		*Dst = fmod(Dst->CastDouble(), Src->CastDouble());
-	}
-	else
-	{
-		*Dst = Dst->CastInt32() % Src->CastInt32();
-	}
-	#endif
-	break;
-}
-case IPostInc:
-case IPreInc:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p PostInc %s\n",
-			CurrentScriptAddress - 1,
-			c.r[0].GetStr());
-	#endif
-
-	GResolveRef v = Resolve();
-	#ifdef VM_EXECUTE
-	if (v->Type == GV_DOUBLE)
-		*v = v->CastDouble() + 1;
-	else
-		*v = v->CastInt32() + 1;
-	#endif
-	break;
-}
-case IPostDec:
-case IPreDec:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p PostDec %sn",
-			CurrentScriptAddress - 1,
-			c.r[0].GetStr());
-	#endif
-
-	GResolveRef v = Resolve();
-	#ifdef VM_EXECUTE
-	if (v->Type == GV_DOUBLE)
-		*v = v->CastDouble() - 1;
-	else
-		*v = v->CastInt32() - 1;
-	#endif
-	break;
-}
-case ICallMethod:
-{
-	GFunc *Meth = *c.fn++;
-	if (!Meth)
-	{
-		Log->Print(	"%s ICallMethod error: No method struct.\n",
-					Code->AddrToSourceRef(CurrentScriptAddress - sizeof(Meth)));
-		SetScriptError;
-		break;
-	}
-
-	#ifdef VM_DECOMP
-	if (Log)
-	{
-		Log->Print("%p Call: %s = %s(",
-				CurrentScriptAddress - sizeof(Meth) - 1,
-				c.r[0].GetStr(),
-				Meth->Method.Get());
-	}
-	#endif
-	
-	GResolveRef Ret = Resolve();
-	uint16 Args = *c.u16++;
-
-	#ifdef VM_EXECUTE			
-	GArray<GVariant*> Arg;
-	#endif
-	
-	for (int i=0; i<Args; i++)
-	{
-		#if VM_DECOMP
-		if (Log)
-			Log->Print("%s%s", i?", ":"", c.r[0].GetStr());
-		#endif
-
-		#if VM_EXECUTE
-		Arg[i] = Resolve();
-		CheckParam(Arg[i] != NULL);
-		#else
-		c.r++;
-		#endif
-	}
-
-	#if VM_DECOMP
-	if (Log)
-		Log->Print(")\n");
-	#endif
-	
-	#if VM_EXECUTE
-	GHostFunc *Hf = dynamic_cast<GHostFunc*>(Meth);
-	if (Hf)
-	{
-		if (!(Hf->Context->*(Hf->Func))(Ret, Arg))
-		{
-			if (Log)
-				Log->Print(	"%s ICallMethod error: Method '%s' failed.\n",
-							Code->AddrToSourceRef(CurrentScriptAddress),
-							Meth->Method.Get());
-			SetScriptError;
-		}		
-	}
-	else
-	{
-		// Fixme
-		if (!Meth->Call(NULL, Ret, Arg))
-		{
-			if (Log)
-				Log->Print(	"%s ICallMethod error: Method '%s' failed.\n",
-							Code->AddrToSourceRef(CurrentScriptAddress),
-							Meth->Method.Get());
-			SetScriptError;
-		}
-	}
-	#endif
-	break;
-}
-case ICallScript:
-{
-	int32 FuncAddr = *c.i32++;
-	if (FuncAddr < 0 || (uint32)FuncAddr >= Code->ByteCode.Length())
-	{
-		Log->Print(	"%s ICallScript error: Script function call invalid addr '%p'.\n",
-					Code->AddrToSourceRef(CurrentScriptAddress - sizeof(FuncAddr)),
-					FuncAddr);
-		SetScriptError;
-		break;
-	}
-
-	uint16 Frame = *c.u16++;
-
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p CallScript: %s = %p(frame=%i)(",
-			CurrentScriptAddress - 5,
-			c.r[0].GetStr(),
-			FuncAddr,
-			Frame);
-	#endif
-
-	#ifdef VM_EXECUTE
-
-	// Set up stack for function call
-	int CurFrameSize = Frames.Last().CurrentFrameSize;
-	StackFrame &Sf = Frames.New();
-	Sf.CurrentFrameSize = Frame;
-	Sf.PrevFrameStart = Locals.Length() ? Scope[1] - &Locals[0] : 0;
-	Sf.ReturnValue = *c.r++;
-	Sf.ReturnValue.Index -= CurFrameSize;
-	uint16 Args = *c.u16++;
-
-	// Increase the local stack size
-	AddLocalSize(Frame);
-	// LgiTrace("ICallScript %i,%i\n", Sf.ReturnValue.Scope, Sf.ReturnValue.Index);
-	
-	// Put the arguments of the function call into the local array
-	GArray<GVariant*> Arg;
-	
-	#else
-	
-	GResolveRef Ret = Resolve();
-	int Args = *c.u16++;
-	
-	#endif
-	
-	for (int i=0; i<Args; i++)
-	{
-		#if VM_DECOMP
-		if (Log)
-			Log->Print("%s%s", i?",":"", c.r[0].GetStr());
-		#endif
-
-		#if VM_EXECUTE
-		Locals[LocalsBase+i] = *Resolve();
-		#else
-		c.r++;
-		#endif
-	}
-
-	#if VM_EXECUTE
-	// Set IP to start of function
-	Sf.ReturnIp = CurrentScriptAddress;
-	c.u8 = Base + FuncAddr;
-	#endif
-
-	#if VM_DECOMP
-	if (Log)
-		Log->Print(")\n");
-	#endif
-	break;
-}
-case IRet:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p Ret %s\n", CurrentScriptAddress - 1, c.r[0].GetStr());
-	#endif
-
-	GResolveRef ReturnValue = Resolve();
-
-	#ifdef VM_EXECUTE
-	if (Frames.Length() > 0)
-	{
-		StackFrame Sf = Frames[Frames.Length()-1];
-		GVarRef &Ret = Sf.ReturnValue;
-		GVariant *RetVar = &Scope[Ret.Scope][Ret.Index];
-		// LgiTrace("IRet to %i:%i\n", Ret.Scope, Ret.Index);
-		if (Ret.Scope == SCOPE_LOCAL)
-			LgiAssert(Locals.PtrCheck(RetVar));
-		*RetVar = *ReturnValue;
-		CheckParam(RetVar->Type == ReturnValue->Type);
-
-		Frames.Length(Frames.Length()-1);
-		
-		Locals.SetFixedLength(false);
-		if (Locals.Length() >= Sf.CurrentFrameSize)
-		{
-			int Base = Locals.Length() - Sf.CurrentFrameSize;
-			if (ArgsOutput)
-			{
-				if (Frames.Length() == 0)
-				{
-					for (unsigned i=0; i<ArgsOutput->Length(); i++)
-					{
-						*(*ArgsOutput)[i] = Locals[Base+i];
-					}
-				}
-			}
-			// LgiTrace("%s:%i Locals %i -> %i\n", _FL, Locals.Length(), Base);
-			Locals.Length(Base);
-			Scope[SCOPE_LOCAL] = &Locals[Sf.PrevFrameStart];
-		}
-		else
-		{
-			// LgiTrace("%s:%i - Locals %i -> %i\n", _FL, Locals.Length(), 0);
-			Locals.Length(0);
-			Scope[SCOPE_LOCAL] = NULL;
-		}
-		Locals.SetFixedLength();
-
-		c.u8 = Base + Sf.ReturnIp;
-	}
-	else
-	{
-		ExitScriptExecution;
-	}
-	#endif
-	break;
-}
-case IArrayGet:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print(	"%p ArrayGet %s = %s[%s]\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr(),
-					c.r[2].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Var = Resolve();
-	GResolveRef Idx = Resolve();
-
-	#ifdef VM_EXECUTE
-	switch (Var->Type)
-	{
-		case GV_LIST:
-		{
-			CheckParam(Var->Value.Lst);
-			GVariant *t = Var->Value.Lst->ItemAt(Idx->CastInt32());
-			if (t)
-			{
-				if (Var == Dst)
-				{
-					if (Var->Value.Lst->Delete(t))
-					{
-						*Var = *t;
-						DeleteObj(t);
-					}
-					else CheckParam(!"List delete failed.");
-				}
-				else *Dst = *t;
-			}
-			else Dst->Empty();
-			break;
-		}
-		case GV_HASHTABLE:
-		{
-			CheckParam(Var->Value.Hash);
-			GVariant *t = (GVariant*)Var->Value.Hash->Find(Idx->CastString());
-			if (t) *Dst = *t;
-			else Dst->Empty();
-			break;
-		}
-		case GV_CUSTOM:
-		{
-			GCustomType *T = Var->Value.Custom.Dom;
-			size_t Sz = T->Sizeof();
-			int Index = Idx->CastInt32();
-
-			Dst->Type = GV_CUSTOM;
-			Dst->Value.Custom.Dom = T;
-			Dst->Value.Custom.Data = Var->Value.Custom.Data + (Sz * Index);
-			break;
-		}
-		default:
-		{
-			if (Log)
-				Log->Print(	"%s IArrayGet warning: Can't array deref variant type %i\n",
-							Code->AddrToSourceRef(CurrentScriptAddress),
-							Var->Type);
-			Status = ScriptWarning;
-			break;
-		}
-	}
-	#endif
-	break;
-}
-case IArraySet:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print(	"%p ArraySet %s[%s] = %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr(),
-					c.r[2].GetStr());
-	#endif
-
-	GResolveRef Var = Resolve();
-	GResolveRef Idx = Resolve();
-	GResolveRef Val = Resolve();
-	#ifdef VM_EXECUTE
-	switch (Var->Type)
-	{
-		case GV_LIST:
-		{
-			CheckParam(Var->Value.Lst);
-			(*Var->Value.Lst).Insert(new GVariant(*Val), Idx->CastInt32());
-			break;
-		}
-		case GV_HASHTABLE:
-		{
-			CheckParam(Var->Value.Hash);
-			GVariant *Old = (GVariant*)Var->Value.Hash->Find(Idx->CastString());
-			DeleteObj(Old);
-			Var->Value.Hash->Add(Idx->CastString(), new GVariant(*Val));
-			break;
-		}
-		default:
-		{
-			if (Log)
-				Log->Print(	"%s IArraySet warning: Can't dereference type '%s'\n",
-							Code->AddrToSourceRef(CurrentScriptAddress),
-							GVariant::TypeToString(Var->Type));
-			Status = ScriptWarning;
-			break;
-		}
-	}
-	#endif
-	break;
-}
-case IEquals:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s == %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-
-	#ifdef VM_EXECUTE
-	if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
-		*Dst = *Dst->Value.Date == *Src->Value.Date;
-	else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() == Src->CastDouble();
-	else if (Src->Type == GV_STRING || Dst->Type == GV_STRING)
-	{
-		char *d = Dst->Str();
-		char *s = Src->Str();
-		if (!d && !s)
-			*Dst = true;
-		else if (s && d)
-			*Dst = strcmp(s, d) == 0;
-		else
-			*Dst = false;
-	}
-	else
-		*Dst = Dst->CastInt32() == Src->CastInt32();
-	#endif
-	break;
-}
-case INotEquals:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print(	"%p %s != %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-
-	#ifdef VM_EXECUTE
-	if (Src->Type == GV_NULL || Dst->Type == GV_NULL)
-	{
-		if ((Src->Type == GV_NULL) ^ (Dst->Type == GV_NULL))
-			*Dst = (Src->Type == GV_NULL ? Dst : Src)->CastVoidPtr() != 0;
-		else
-			*Dst = false;
-	}
-	else if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
-		*Dst = *Dst->Value.Date != *Src->Value.Date;
-	else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() != Src->CastDouble();
-	else if (Src->Type == GV_STRING)
-	{
-		char *d = Dst->Str();
-		char *s = Src->Str();
-		if (!d || !s)
-			*Dst = (s == 0) ^ (d == 0);
-		else
-			*Dst = strcmp(s, d) != 0;
-	}
-	else
-		*Dst = Dst->CastInt32() != Src->CastInt32();
-	#endif
-	break;
-}
-case ILessThan:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s < %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	
-	#ifdef VM_EXECUTE
-	if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
-		*Dst = *Dst->Value.Date < *Src->Value.Date;
-	else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() < Src->CastDouble();
-	else if (Src->Type == GV_STRING)
-	{
-		char *d = Dst->Str();
-		char *s = Src->Str();
-		if (!d || !s)
-			*Dst = false;
-		else
-			*Dst = strcmp(d, s) < 0;
-	}
-	else
-		*Dst = Dst->CastInt32() < Src->CastInt32();
-	#endif
-	break;
-}
-case ILessThanEqual:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print(	"%p %s < %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	
-	#ifdef VM_EXECUTE
-	if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
-		*Dst = *Dst->Value.Date <= *Src->Value.Date;
-	else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() <= Src->CastDouble();
-	else if (Src->Type == GV_STRING)
-	{
-		char *d = Dst->Str();
-		char *s = Src->Str();
-		if (!d || !s)
-			*Dst = false;
-		else
-			*Dst = strcmp(d, s) <= 0;
-	}
-	else
-		*Dst = Dst->CastInt32() <= Src->CastInt32();
-	#endif
-	break;
-}
-case IGreaterThan:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s < %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	
-	#ifdef VM_EXECUTE
-	if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
-		*Dst = *Dst->Value.Date > *Src->Value.Date;
-	else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() > Src->CastDouble();
-	else if (Dst->Type == GV_STRING && Src->Type == GV_STRING)
-	{
-		char *d = Dst->Str();
-		char *s = Src->Str();
-		if (!d || !s)
-			*Dst = false;
-		else
-			*Dst = strcmp(d, s) > 0;
-	}
-	else
-		*Dst = Dst->CastInt32() > Src->CastInt32();
-	#endif
-	break;
-}
-case IGreaterThanEqual:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s < %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	
-	#ifdef VM_EXECUTE
-	if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
-		*Dst = *Dst->Value.Date >= *Src->Value.Date;
-	else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() >= Src->CastDouble();
-	else if (Src->Type == GV_STRING)
-	{
-		char *d = Dst->Str();
-		char *s = Src->Str();
-		if (!d || !s)
-			*Dst = false;
-		else
-			*Dst = strcmp(d, s) >= 0;
-	}
-	else
-		*Dst = Dst->CastInt32() >= Src->CastInt32();
-	#endif
-	break;
-}
-case IAnd:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s && %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	#ifdef VM_EXECUTE
-	*Dst = (Dst->CastInt32() != 0) && (Src->CastInt32() != 0);
-	#endif
-	break;
-}
-case IOr:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s || %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	#ifdef VM_EXECUTE
-	*Dst = (Dst->CastInt32() != 0) || (Src->CastInt32() != 0);
-	#endif
-	break;
-}
-case INot:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s = !%s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[0].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	#ifdef VM_EXECUTE
-	*Dst = !Dst->CastBool();
-	#endif
-	break;
-}
-case IDomGet:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s = %s->DomGet(%s, %s)\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr(),
-					c.r[2].GetStr(),
-					c.r[3].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Dom = Resolve();
-	GResolveRef Name = Resolve();
-	GResolveRef Arr = Resolve();
-
-	#ifdef VM_EXECUTE
-
-		// Return "NULL" in Dst on error
-		if (Dst != Dom)
-			Dst->Empty();
-
-		switch (Dom->Type)
-		{
-			case GV_DOM:
-			case GV_STREAM:
-			case GV_GSURFACE:
-			{
-				GDom *dom = Dom->CastDom();
-				CheckParam(dom != NULL);
-				char *sName = Name->Str();
-				CheckParam(sName);
-				bool Ret = dom->GetVariant(sName, *Dst, CastArrayIndex(Arr));
-				if (!Ret)
-				{
-					Dst->Empty();
-					if (Log)
-						Log->Print("%s IDomGet warning: Unexpected %s member '%s'.\n",
-									Code->AddrToSourceRef(CurrentScriptAddress),
-									GVariant::TypeToString(Dom->Type),
-									sName);
-					Status = ScriptWarning;
-				}
-				break;
-			}
-			case GV_DATETIME:
-			{
-				CheckParam(Dom->Value.Date != NULL);
-				char *sName = Name->Str();
-				CheckParam(sName);
-				bool Ret = Dom->Value.Date->GetVariant(sName, *Dst, CastArrayIndex(Arr));
-				if (!Ret)
-				{
-					Dst->Empty();
-					if (Log)
-						Log->Print("%s IDomGet warning: Unexpected %s member '%s'.\n",
-									Code->AddrToSourceRef(CurrentScriptAddress),
-									GVariant::TypeToString(Dom->Type),
-									sName);
-					Status = ScriptWarning;
-				}
-				break;
-			}
-			case GV_CUSTOM:
-			{
-				GCustomType *Type = Dom->Value.Custom.Dom;
-				if (Type)
-				{
-					int Fld;
-					if (Name->Type == GV_INT32)
-						Fld = Name->Value.Int;
-					else
-						Fld = Type->IndexOf(Name->Str());
-					
-					int Index = Arr ? Arr->CastInt32() : 0;
-					Type->Get(Fld, *Dst, Dom->Value.Custom.Data, Index);
-				}
-				break;
-			}
-			case GV_LIST:
-			{
-				CheckParam(Dom->Value.Lst);
-				char *sName = Name->Str();
-				CheckParam(sName);
-				GDomProperty p = LgiStringToDomProp(sName);
-				if (p == ObjLength)
-					(*Dst) = (int)Dom->Value.Lst->Length();
-				break;
-			}
-			case GV_HASHTABLE:
-			{
-				CheckParam(Dom->Value.Hash);
-				char *sName = Name->Str();
-				CheckParam(sName);
-				GDomProperty p = LgiStringToDomProp(sName);
-				if (p == ObjLength)
-					(*Dst) = (int)Dom->Value.Hash->Length();
-				break;
-			}
-			case GV_BINARY:
-			{
-				char *sName = Name->Str();
-				CheckParam(sName);
-				GDomProperty p = LgiStringToDomProp(sName);
-				if (p == ObjLength)
-					(*Dst) = Dom->Value.Binary.Length;
-				break;
-			}
-			case GV_STRING:
-			{
-				char *sName = Name->Str();
-				CheckParam(sName);
-				GDomProperty p = LgiStringToDomProp(sName);
-				switch (p)
-				{
-					case ObjLength:
-					{
-						(*Dst) = (int)strlen(Dom->Str());
-						break;
-					}
-					case StrInt:
-					{
-						(*Dst) = Dom->CastInt32();
-						break;
-					}
-					case StrDouble:
-					{
-						(*Dst) = Dom->CastDouble();
-						break;
-					}
-					default:
-					{
-						Dst->Empty();
-						if (Log)
-							Log->Print("%s IDomGet warning: Unexpected string member '%s'.\n",
-										Code->AddrToSourceRef(CurrentScriptAddress),
-										sName);
-						Status = ScriptWarning;
-						break;
-					}
-				}
-				break;
-			}
-			default:
-			{
-				if (Log)
-					Log->Print("%s IDomGet warning: Unexpected type %s (Src=%s:%i IP=0x%x).\n",
-								Code->AddrToSourceRef(CurrentScriptAddress),
-								GVariant::TypeToString(Dom->Type),
-								_FL,
-								CurrentScriptAddress);
-				Status = ScriptWarning;
-				break;
-			}
-		}
-
-	#endif
-	break;
-}
-case IDomSet:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s->DomSet(%s, %s) = %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr(),
-					c.r[2].GetStr(),
-					c.r[3].GetStr());
-	#endif
-
-	GResolveRef Dom = Resolve();
-	GResolveRef Name = Resolve();
-	GResolveRef Arr = Resolve();
-	GResolveRef Value = Resolve();
-	
-	#ifdef VM_EXECUTE
-
-	char *sName = Name->Str();
-	if (!sName)
-	{
-		if (Log)
-			Log->Print("%s IDomSet error: No name string.\n",
-						Code->AddrToSourceRef(CurrentScriptAddress));
-		SetScriptError;
-		break;
-	}
-
-	switch (Dom->Type)
-	{
-		case GV_DOM:
-		// case GV_GFILE:
-		case GV_STREAM:
-		case GV_GSURFACE:
-		{
-			GDom *dom = Dom->CastDom();
-			CheckParam(dom != NULL);
-			bool Ret = dom->SetVariant(sName, *Value, CastArrayIndex(Arr));
-			if (!Ret)
-			{
-				if (Log)
-					Log->Print("%s IDomSet warning: Unexpected %s member '%s'.\n",
-								Code->AddrToSourceRef(CurrentScriptAddress),
-								GVariant::TypeToString(Dom->Type),
-								sName);
-				Status = ScriptWarning;
-			}
-			break;
-		}
-		case GV_DATETIME:
-		{
-			CheckParam(Dom->Value.Date != NULL);
-			bool Ret = Dom->Value.Date->SetVariant(sName, *Value, CastArrayIndex(Arr));
-			if (!Ret)
-			{
-				if (Log)
-					Log->Print("%s IDomSet warning: Unexpected %s member '%s'.\n",
-								Code->AddrToSourceRef(CurrentScriptAddress),
-								GVariant::TypeToString(Dom->Type),
-								sName);
-				Status = ScriptWarning;
-			}
-			break;
-		}
-		case GV_CUSTOM:
-		{
-			GCustomType *Type = Dom->Value.Custom.Dom;
-			if (Type)
-			{
-				int Fld;
-				if (IsDigit(*sName))
-					Fld = atoi(sName);
-				else
-					Fld = Type->IndexOf(sName);
-				
-				int Index = Arr ? Arr->CastInt32() : 0;
-				if (!Type->Set(Fld, *Value, Dom->Value.Custom.Data, Index) &&
-					Log)
-				{
-					Log->Print("%s IDomSet warning: Couldn't set '%s' on custom type.\n",
-								Code->AddrToSourceRef(CurrentScriptAddress),
-								sName);
-				}
-			}
-			break;
-		}
-		case GV_STRING:
-		{
-			GDomProperty p = LgiStringToDomProp(sName);
-			switch (p)
-			{
-				case ObjLength:
-				{
-					char *s;
-					int DLen = Value->CastInt32();
-					if (DLen && (s = new char[DLen+1]))
-					{
-						int SLen = Dom->Str() ? strlen(Dom->Str()) : 0;
-						if (SLen)
-							memcpy(s, Dom->Str(), SLen);
-						memset(s+SLen, ' ', DLen-SLen);
-						s[DLen] = 0;
-						DeleteArray(Dom->Value.String);
-						Dom->Value.String = s;
-					}
-					else Dom->Empty();
-
-					break;
-				}
-				case StrInt:
-				{
-					*Dom = Value->CastInt32();
-					Dom->Str();
-					break;
-				}
-				case StrDouble:
-				{
-					*Dom = Value->CastDouble();
-					Dom->Str();
-					break;
-				}
-				default:
-				{
-					if (Log)
-						Log->Print("%s IDomSet warning: Unexpected string member %s.\n",
-									Code->AddrToSourceRef(CurrentScriptAddress),
-									sName);
-					Status = ScriptWarning;
-					break;
-				}
-			}
-			break;
-		}
-		default:
-		{
-			if (Log)
-				Log->Print("%s IDomSet warning: Unexpected type %s.\n",
-							Code->AddrToSourceRef(CurrentScriptAddress),
-							GVariant::TypeToString(Dom->Type));
-			Status = ScriptWarning;
-			break;
-		}
-	}
-
-	#endif
-	break;
-}
-case IDomCall:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s = %s->DomCall(%s, ",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr(),
-					c.r[2].GetStr());
-	#endif
-
-	GVarRef DstRef = *c.r;
-	GResolveRef Dst = Resolve();
-	GResolveRef Dom = Resolve();
-	GResolveRef Name = Resolve();
-
-	#ifdef VM_EXECUTE
-
-	GResolveRef Args = Resolve();
-	int ArgCount = Args->CastInt32();
-	char *sName = Name->Str();
-	CheckParam(sName)
-
-	if (Dom->Type == GV_CUSTOM)
-	{
-		#define DEBUG_CUSTOM_METHOD_CALL	1
-		
-		GCustomType *t = Dom->Value.Custom.Dom;
-		CheckParam(t);
-		GCustomType::Method *m = t->GetMethod(sName);
-		CheckParam(m);
-		CheckParam(m->Params.Length() == ArgCount);
-		
-		// Set up new stack frame...
-		StackFrame &Sf = Frames.New();
-		Sf.CurrentFrameSize = m->FrameSize;
-		Sf.PrevFrameStart = Locals.Length() ? Scope[1] - &Locals[0] : 0;
-		Sf.ReturnValue = DstRef;
-
-		// Increase the local stack size
-		AddLocalSize(m->FrameSize + 1);
-		
-		#if DEBUG_CUSTOM_METHOD_CALL
-		LgiTrace("CustomType.Call(%s) Args=%i, Frame=%i, Addr=%i, LocalsBase=%i ",
-				sName, ArgCount, m->FrameSize, m->Address, LocalsBase);
-		#endif
-		
-		int i = LocalsBase;
-		Locals[i++] = *Dom; // this pointer...
-		#if DEBUG_CUSTOM_METHOD_CALL
-		GString s = Locals[i-1].ToString();
-		LgiTrace("This=%s, ", s.Get());
-		#endif
-		int end = i + ArgCount;
-		while (i < end)
-		{
-			Locals[i++] = *Resolve();
-			#if DEBUG_CUSTOM_METHOD_CALL
-			s = Locals[i-1].ToString();
-			LgiTrace("[%i]=%s, ", i-1, s.Get());
-			#endif
-		}
-
-		// Now adjust the local stack to point to the locals for the function
-		Scope[1] = Locals.Length() ? &Locals[LocalsBase] : NULL;
-
-		// Set IP to start of function
-		Sf.ReturnIp = CurrentScriptAddress;
-		c.u8 = Base + m->Address;
-
-		#if DEBUG_CUSTOM_METHOD_CALL
-		LgiTrace("\n");
-		#endif
-		break;
-	}	
-
-	GArray<GVariant*> Arg;
-	Arg.Length(ArgCount);
-	for (int i=0; i<ArgCount; i++)
-	{
-		Arg[i] = Resolve();
-	}
-	
-	switch (Dom->Type)
-	{
-		case GV_DOM:
-		case GV_STREAM:
-		case GV_GSURFACE:
-		{
-			GDom *dom = Dom->CastDom();
-			CheckParam(dom);
-			bool Ret = dom->CallMethod(sName, Dst, Arg);
-			if (!Ret)
-			{
-				Dst->Empty();
-				if (Log)
-					Log->Print("%s IDomCall warning: %s(...) failed.\n",
-								Code->AddrToSourceRef(CurrentScriptAddress),
-								sName);
-				Status = ScriptWarning;
-			}
-			break;
-		}
-		case GV_DATETIME:
-		{
-			CheckParam(Dom->Value.Date);
-			bool Ret = Dom->Value.Date->CallMethod(sName, Dst, Arg);
-			if (!Ret)
-			{
-				Dst->Empty();
-				if (Log)
-					Log->Print("%s IDomCall warning: %s(...) failed.\n",
-								Code->AddrToSourceRef(CurrentScriptAddress),
-								sName);
-				Status = ScriptWarning;
-			}
-			break;
-		}
-		case GV_LIST:
-		{
-			CheckParam(Dom->Value.Lst);
-			GDomProperty p = LgiStringToDomProp(sName);
-			switch (p)
-			{
-				case ObjLength:
-				{
-					*Dst = Dom->Value.Lst->Length();
-					break;
-				}
-				case ObjType:
-				{
-					*Dst = "List";
-					break;
-				}
-				case ContainerAdd:
-				{
-					if (Arg.Length() > 0 &&
-						Arg[0])
-					{
-						int Index = Arg.Length() > 1 ? Arg[1]->CastInt32() : -1;
-
-						GVariant *v = new GVariant;
-						*v = *Arg[0];
-						Dom->Value.Lst->Insert(v, Index);
-					}
-					break;
-				}
-				case ContainerDelete:
-				{
-					for (unsigned i=0; i<Arg.Length(); i++)
-					{
-						GVariant *Idx = Arg[i];
-						if (Idx)
-						{
-							int32 n = Arg[i]->CastInt32();
-							GVariant *Elem = Dom->Value.Lst->ItemAt(n);
-							if (Elem)
-							{
-								Dom->Value.Lst->Delete(Elem);
-								DeleteObj(Elem);
-							}
-						}
-					}
-					break;
-				}
-				case ContainerHasKey:
-				{
-					if (Arg.Length() > 0 && Arg[0])
-					{
-						int Index = Arg[0]->CastInt32();
-						*Dst = (bool) (Index >= 0 && Index < Dom->Value.Lst->Length());
-					}
-					else
-					{
-						*Dst = false;
-					}
-					break;
-				}
-				case ContainerSort:
-				{
-					GVariant *Param = Arg.Length() > 0 ? Arg[0] : NULL;
-					Dom->Value.Lst->Sort(GVariantCmp, (NativeInt)Param);
-					break;
-				}
-				default:
-				{
-					Dst->Empty();
-					if (Log)
-						Log->Print(	"%s IDomCall warning: Unexpected list member '%s'.\n",
-									Code->AddrToSourceRef(CurrentScriptAddress),
-									sName);
-					Status = ScriptWarning;
-					break;
-				}
-			}
-			break;
-		}
-		case GV_HASHTABLE:
-		{
-			CheckParam(Dom->Value.Hash);
-			GDomProperty p = LgiStringToDomProp(sName);
-			switch (p)
-			{
-				case ObjLength:
-				{
-					*Dst = Dom->Value.Hash->Length();
-					break;
-				}
-				case ObjType:
-				{
-					*Dst = "HashTable";
-					break;
-				}
-				case ContainerAdd:
-				{
-					if (Arg.Length() == 2 &&
-						Arg[0] &&
-						Arg[1])
-					{
-						char *Key = Arg[1]->Str();
-						if (Key)
-						{
-							GVariant *v = new GVariant;
-							*v = *Arg[0];
-							Dom->Value.Hash->Add(Key, v);
-						}
-					}
-					break;
-				}
-				case ContainerDelete:
-				{
-					if (Arg.Length() == 1 &&
-						Arg[0])
-					{
-						char *Key = Arg[0]->Str();
-						if (Key)
-						{
-							GVariant *v = (GVariant*) Dom->Value.Hash->Find(Key);
-							if (v)
-							{
-								Dom->Value.Hash->Delete(Key);
-								delete v;
-							}
-						}
-					}
-					break;
-				}
-				case ContainerHasKey:
-				{
-					if (Arg.Length() > 0 && Arg[0])
-					{
-						char *Key = Arg[0]->Str();
-						*Dst = (bool) (Dom->Value.Hash->Find(Key) != NULL);
-					}
-					else
-					{
-						*Dst = false;
-					}
-					break;
-				}
-				default:
-				{
-					Dst->Empty();
-					if (Log)
-						Log->Print("%s IDomCall warning: Unexpected hashtable member '%s'.\n",
-									Code->AddrToSourceRef(CurrentScriptAddress),
-									sName);
-					Status = ScriptWarning;
-					break;
-				}
-			}
-			break;
-		}
-		case GV_BINARY:
-		{
-			GDomProperty p = LgiStringToDomProp(sName);
-			switch (p)
-			{
-				default:
-					break;
-				case ObjLength:
-					*Dst = Dom->Value.Binary.Length;
-					break;
-			}
-			break;
-		}
-		case GV_STRING:
-		{
-			if (Arg.Length() > 0 && !Arg[0])
-			{
-				Dst->Empty();
-				break;
-			}
-
-			GDomProperty p = LgiStringToDomProp(sName);
-			switch (p)
-			{
-				case ObjLength:
-				{
-					char *s = Dom->Str();
-					*Dst = (int) (s ? strlen(s) : 0);
-					break;
-				}
-				case ObjType:
-				{
-					*Dst = "String";
-					break;
-				}
-				case StrJoin:
-				{
-					switch (Arg[0]->Type)
-					{
-						case GV_LIST:
-						{
-							GStringPipe p(256);
-							List<GVariant> *Lst = Arg[0]->Value.Lst;
-							const char *Sep = Dom->CastString();
-							GVariant *v = Lst->First();
-							if (v)
-							{
-								GVariant Tmp = *v;
-								p.Print("%s", Tmp.CastString());
-								while ((v = Lst->Next()))
-								{
-									Tmp = *v;
-									p.Print("%s%s", Sep, Tmp.CastString());
-								}
-							}
-							Dst->OwnStr(p.NewStr());
-							break;
-						}
-						default:
-						{
-							*Dst = *Arg[0];
-							Dst->CastString();
-							break;
-						}
-					}
-					break;
-				}								
-				case StrSplit:
-				{
-					const char *Sep = Arg[0]->Str();
-					if (!Sep)
-					{
-						Dst->Empty();
-						break;
-					}
-					
-					GVariant Tmp;
-					if (Dst == Dom)
-					{
-						Tmp = *Dom;
-						Dom = &Tmp;
-					}
-
-					Dst->SetList();
-					
-					int SepLen = strlen(Sep);
-					int MaxSplit = Arg.Length() > 1 ? Arg[1]->CastInt32() : -1;
-					const char *c = Dom->CastString();
-					while (c && *c)
-					{
-						if (MaxSplit > 0 && Dst->Value.Lst->Length() >= MaxSplit)
-							break;
-
-						const char *next = strstr(c, Sep);
-						if (!next)
-							break;
-						
-						GVariant *v = new GVariant;
-						v->OwnStr(NewStr(c, next - c));
-						Dst->Value.Lst->Insert(v);
-						
-						c = next + SepLen;
-					}
-
-					if (c && *c)
-					{
-						GVariant *v = new GVariant;
-						v->OwnStr(NewStr(c));
-						Dst->Value.Lst->Insert(v);
-					}
-					break;
-				}								
-				case StrFind:
-				{
-					const char *s = Dom->Str();
-					if (!s)
-					{
-						*Dst = -1;
-						break;
-					}
-
-					int sLen = strlen(s);
-					const char *sub = Arg[0]->Str();
-					int start = Arg.Length() > 1 ? Arg[1]->CastInt32() : 0;
-					int end = Arg.Length() > 2 ? Arg[2]->CastInt32() : -1;								
-
-					if (start >= sLen)
-					{
-						*Dst = -1;
-						break;
-					}
-					char *sStart = (char*)s + start;
-					char *pos;
-					if (end > start)
-						pos = strnstr(sStart, sub, end - start);
-					else
-						pos = strstr(sStart, sub);
-
-					if (pos)
-						*Dst = (int64) (pos - s);
-					else
-						*Dst = -1;
-					break;
-				}
-				case StrRfind:
-				{
-					CheckParam(0);
-					break;
-				}
-				case StrLower:
-				{
-					if (Dst != Dom)
-						*Dst = Dom->CastString();
-					
-					StrLwr(Dst->Str());
-					break;
-				}
-				case StrUpper:
-				{
-					if (Dst != Dom)
-						*Dst = Dom->CastString();
-
-					StrUpr(Dst->Str());
-					break;
-				}
-				case StrStrip:
-				{
-					char *s = Dom->Str();
-					if (s)
-					{
-						char *start = s;
-						char *end = s + strlen(s);
-						while (start < end && strchr(WhiteSpace, *start))
-							start++;
-
-						while (end > start && strchr(WhiteSpace, end[-1]))
-							end--;
-						
-						Dst->OwnStr(NewStr(start, end - start));
-					}
-					else Dst->Empty();
-					break;
-				}
-				case StrSub:
-				{
-					Dst->Empty();
-					char *s = Dom->Str();
-					if (s)
-					{
-						int Start = Arg.Length() > 0 ? Arg[0]->CastInt32() : 0;
-						int End = Arg.Length() > 1 ? Arg[1]->CastInt32() : -1;
-						int Len = strlen(s);
-						if (End < 0 || End > Len)
-							End = Len;
-						if (Start < 0)
-							Start = 0;
-						if (Start <= End)
-						{
-							Dst->OwnStr(NewStr(s + Start, End - Start));
-						}
-					}
-					break;
-				}
-				default:
-				{
-					Dst->Empty();
-					if (Log)
-						Log->Print("%p IDomCall warning: Unexpected string member %s (%s:%i).\n",
-									CurrentScriptAddress,
-									sName,
-									_FL);
-					Status = ScriptWarning;
-					break;
-				}
-			}
-			break;
-		}
-		default:
-		{
-			const char *Type = GVariant::TypeToString(Dom->Type);
-			char t[32];
-			if (!Type)
-			{
-				sprintf_s(t, sizeof(t), "UnknownType(%i)", Dom->Type);
-				Type = t;
-			}
-			
-			GDomProperty p = LgiStringToDomProp(sName);
-			if (p == ObjType)
-			{
-				*Dst = Type;
-			}
-			else
-			{
-				Dst->Empty();
-				if (Log)
-				{
-					Log->Print("%s IDomCall warning: Unexpected type %s (Src=%s:%i IP=0x%x).\n",
-								Code->AddrToSourceRef(CurrentScriptAddress),
-								Type,
-								_FL,
-								CurrentScriptAddress);
-				}
-				Status = ScriptWarning;
-			}
-			break;
-		}
-	}
-
-	#else
-
-	GVariant *Count = NULL;
-	switch (c.r->Scope)
-	{
-		case SCOPE_GLOBAL:
-			Count = &Code->Globals[c.r->Index];
-			c.r++;
-			break;
-		default:
-			OnException(_FL, CurrentScriptAddress, "Unsupported scope.");
-			return ScriptError;
-	}
-	
-	int Args = Count->CastInt32();
-	for (int i=0; i<Args; i++)
-	{
-		#if VM_DECOMP
-		if (Log)
-			Log->Print("%s%s", i ? ", " : "", c.r->GetStr());
-		#endif
-		c.r++;
-	}
-	#if VM_DECOMP
-	if (Log)
-		Log->Print(")\n");
-	#endif
-
-	#endif
-	break;
-}
-
-#undef Resolve
-#undef GResolveRef
+					#include "Instructions.h"
 					#undef VM_EXECUTE
 				}
-				
-				int NewLine = NearestLine(CurrentScriptAddress);
-				if (NewLine && NewLine != Line)
+
+				if (Type == RunStepLine)
 				{
-					break;
+					int CurLine = NearestLine(CurrentScriptAddress);
+					if (CurLine && CurLine != Param)
+						break;
 				}
+				else if (Type == RunStepOut)
+				{
+					if ((int)Frames.Length() < Param)
+						break;
+				}
+				else if (Type == RunStepInstruction)
+					break;
 			}
 		}
 
-		if (Debugger)
+		if (Debugger && Status != ScriptError)
 			Debugger->OnAddress(CurrentScriptAddress);
 		
 		return Status;
@@ -6194,11 +842,20 @@ case IDomCall:
 GVirtualMachine::GVirtualMachine(GVmDebuggerCallback *callback)
 {
 	d = new GVirtualMachinePriv(this, callback);
+	d->AddRef();
+}
+
+GVirtualMachine::GVirtualMachine(GVirtualMachine *vm)
+{
+	d = vm->d;
+	d->AddRef();
 }
 
 GVirtualMachine::~GVirtualMachine()
 {
-	DeleteObj(d);
+	if (d->Vm == this)
+		d->Vm = NULL;
+	d->DecRef();
 }
 
 GExecutionStatus GVirtualMachine::Execute(GCompiledCode *Code, uint32 StartOffset, GStream *Log, bool StartImmediately, GVariant *Return)
@@ -6240,15 +897,15 @@ GVmDebugger *GVirtualMachine::OpenDebugger(const char *Script)
 	return d->Debugger;
 }
 
-bool GVirtualMachine::StepInto()
+bool GVirtualMachine::StepInstruction()
 {
-	GExecutionStatus s = d->Run(GVirtualMachinePriv::RunStepInto);
+	GExecutionStatus s = d->Run(GVirtualMachinePriv::RunStepInstruction);
 	return s != ScriptError;
 }
 
-bool GVirtualMachine::StepOver()
+bool GVirtualMachine::StepLine()
 {
-	GExecutionStatus s = d->Run(GVirtualMachinePriv::RunStepOver);
+	GExecutionStatus s = d->Run(GVirtualMachinePriv::RunStepLine);
 	return s != ScriptError;
 }
 
@@ -6269,14 +926,23 @@ bool GVirtualMachine::Continue()
 	return s != ScriptError;
 }
 
-bool GVirtualMachine::Stop()
+bool GVirtualMachine::BreakPoint(const char *File, int Line, bool Add)
 {
 	return false;
 }
 
-bool GVirtualMachine::BreakPoint(const char *File, int Line, bool Add)
+bool GVirtualMachine::BreakPoint(int Addr, bool Add)
 {
-	return false;
+	if (Add)
+		d->BreakPts.Add(Addr);
+	else
+		d->BreakPts.Delete(Addr);
+	return true;
+}
+
+void GVirtualMachine::SetBreakCpp(bool Brk)
+{
+	d->BreakCpp = Brk;
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -6424,11 +1090,12 @@ enum DbgCtrls
 	IDC_STOP,
 	IDC_RESTART,
 	IDC_GOTO,
-	IDC_STEP_INTO,
-	IDC_STEP_OVER,
+	IDC_STEP_INSTR,
+	IDC_STEP_LINE,
 	IDC_STEP_OUT,
 	IDC_SOURCE_LST,
 	IDC_BREAK_POINT,
+	IDC_BREAK_CPP,
 	IDC_VARS_TBL
 };
 
@@ -6436,27 +1103,42 @@ struct GScriptVmDebuggerPriv;
 class GDebugView : public GTextView3
 {
 	GScriptVmDebuggerPriv *d;
+	int CurLine;
+	
+	int ErrorLine;
+	GString Error;
+	
+	GArray<int> BreakPts;
 	
 public:
-	GDebugView(GScriptVmDebuggerPriv *priv); //  : GTextView3(IDC_TEXT, 0, 0, 100, 100);
+	GDebugView(GScriptVmDebuggerPriv *priv);
 	~GDebugView();
 
+	void SetError(const char *Err);
+	int GetCurLine() { return CurLine; }
+	int GetAddr();
+	void ScrollToCurLine();
 	void PourText(int Start, int Length);
+	void OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour);
+	void OnPaint(GSurface *pDC);
+	bool Breakpoint(int Addr);
 };
 
 struct GScriptVmDebuggerPriv
 {
 	// Current script
 	bool OwnVm;
-	GVirtualMachine *Vm;
+	GAutoPtr<GVirtualMachine> Vm;
 	GVmDebuggerCallback *Callback;
 	GAutoString Script, Assembly;
 	GArray<CodeBlock> Blocks;
 	size_t CurrentAddr;
 	GArray<bool> LineIsAsm;
 	GAutoPtr<GCompiledCode> Obj;
+	GVariant Return;
 
 	// Ui
+	bool RunLoop;
 	GView *Parent;
 	GBox *Main;
 	GBox *Sub;
@@ -6470,6 +1152,7 @@ struct GScriptVmDebuggerPriv
 
 	GScriptVmDebuggerPriv()
 	{
+		RunLoop = false;
 		OwnVm = false;
 		CurrentAddr = -1;
 		Main = NULL;
@@ -6490,27 +1173,147 @@ struct GScriptVmDebuggerPriv
 GDebugView::GDebugView(GScriptVmDebuggerPriv *priv) : GTextView3(IDC_TEXT, 0, 0, 100, 100)
 {
 	d = priv;
+	ErrorLine = -1;
 	SetWrapType(TEXTED_WRAP_NONE);
+	GetCss(true)->PaddingLeft(GCss::Len(GCss::LenPx, 18));
 }
 
 GDebugView::~GDebugView()
 {
 }
 
+void GDebugView::SetError(const char *Err)
+{
+	ErrorLine = CurLine;
+	Error = Err;
+}
+
+#define IsHexChar(c) \
+	( \
+		IsDigit(c) \
+		|| \
+		((c) >= 'a' && (c) <= 'f') \
+		|| \
+		((c) >= 'A' && (c) <= 'F') \
+	)
+
+int IsAddr(char16 *Ln)
+{
+	int Addr = 0;
+	for (char16 *s = Ln; *s && *s != '\n' && s < Ln + 8; s++)
+	{
+		Addr += IsHexChar(*s);
+	}
+	
+	if (Addr != 8)
+		return -1;
+	
+	return HtoiW(Ln);
+}
+
+int GDebugView::GetAddr()
+{
+	int Index;
+	GTextLine *t = GetTextLine(Cursor, &Index);
+	if (!t)
+		return -1;
+		
+	int Addr = IsAddr(Text + t->Start);
+	return Addr;
+}
+
+void GDebugView::ScrollToCurLine()
+{
+	SetLine(CurLine);
+}
+
+bool GDebugView::Breakpoint(int Addr)
+{
+	if (BreakPts.HasItem(Addr))
+	{
+		BreakPts.Delete(Addr);
+		Invalidate();
+		return false;
+	}
+	else
+	{
+		BreakPts.Add(Addr);
+		Invalidate();
+		return true;
+	}
+}
+
+void GDebugView::OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour)
+{
+	GTextView3::OnPaintLeftMargin(pDC, r, colour);
+
+	pDC->Colour(GColour(192, 0, 0));
+	GFont *f = GetFont();
+	f->Colour(LC_LOW, LC_WORKSPACE);
+	f->Transparent(true);
+	
+	int Fy = f->GetHeight();
+	int Start = VScroll ? (int)VScroll->Value() : 0;
+	int Page = (r.Y() + Fy - 1) / Fy;
+	int Ln = Start;
+	int Rad = (Fy >> 1) - 1;
+	int PadY = GetCss(true)->PaddingTop().ToPx(Y(), f) + ((Fy - Rad) >> 1);
+
+	for (GTextLine *i = Line[Start]; i && Ln <= Start + Page; i = Line.Next(), Ln++)
+	{
+		int OffY = (Ln - Start) * f->GetHeight();
+		/*
+		GString Num;
+		Num.Printf("%i", Ln);
+		GDisplayString Ds(f, Num);
+		Ds.Draw(pDC, 0, r.y1+OffY);
+		*/
+		
+		char16 *s = Text + i->Start;
+		int Addr = IsAddr(s);
+		if (BreakPts.HasItem(Addr))
+		{
+			pDC->FilledCircle(r.x1 + Rad + 2, OffY + PadY + Rad, Rad);
+		}		
+	}
+
+	f->Transparent(false);
+	f->Colour(LC_TEXT, LC_WORKSPACE);
+}
+
+void GDebugView::OnPaint(GSurface *pDC)
+{
+	GTextView3::OnPaint(pDC);
+	if (Error)
+	{
+		GTextLine *Ln = Line[ErrorLine];
+
+		GFont *f = GetFont();
+		GRect c = GetClient();
+		int Pad = 3;
+		GDisplayString Ds(f, Error);
+		GRect r(0, 0, Ds.X()-1, Ds.Y()-1);
+		r.Size(-Pad, -Pad);
+		r.Offset(c.X()-r.X(), Ln ? Ln->r.y1 - ScrollYPixel(): 0);
+		f->Transparent(false);
+		f->Colour(GColour::White, GColour::Red);
+		Ds.Draw(pDC, r.x1 + Pad, r.y1 + Pad, &r);
+	}
+}
+
 void GDebugView::PourText(int Start, int Len)
 {
 	GTextView3::PourText(Start, Len);
 
-	int CurLine = -1;
+	CurLine = -1;
 	for (unsigned i=0; i<d->Blocks.Length(); i++)
 	{
 		CodeBlock &b = d->Blocks[i];
 		for (unsigned n=0; n<b.AsmAddr.Length(); n++)
 		{
-			if (d->CurrentAddr == b.AsmAddr[n])
+			if (d->CurrentAddr >= b.AsmAddr[n])
 			{
 				CurLine = b.ViewLine + b.SrcLines + n - 1;
-				break;
 			}
 		}
 	}
@@ -6520,7 +1323,6 @@ void GDebugView::PourText(int Start, int Len)
 	{
 		// char16 *t = Text + l->Start;
 		// char16 *e = t + l->Len;
-
 		if (CurLine == Idx)
 		{
 			l->c.Rgb(0, 0, 0);
@@ -6542,7 +1344,8 @@ GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVi
 {
 	d = new GScriptVmDebuggerPriv;
 	d->Parent = Parent;
-	d->Vm = Vm;
+	if (Vm)
+		d->Vm.Reset(new GVirtualMachine(Vm));
 	d->Callback = Callback;
 	d->Script.Reset(NewStr(Script));
 	d->Assembly.Reset(NewStr(Assembly));
@@ -6561,17 +1364,18 @@ GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVi
 		{
 			Menu->Attach(this);
 			GSubMenu *s = Menu->AppendSub("Debug");
-			s->AppendItem("Run", IDC_RUN, true, -1, "Ctrl+F5");
+			s->AppendItem("Run", IDC_RUN, true, -1, "F5");
 			s->AppendItem("Pause", IDC_PAUSE, true, -1, NULL);
 			s->AppendItem("Stop", IDC_STOP, true, -1, "Ctrl+Break");
 			s->AppendItem("Restart", IDC_RESTART, true, -1, NULL);
 			s->AppendItem("Goto", IDC_GOTO, true, -1, NULL);
 			s->AppendSeparator();
-			s->AppendItem("Step Into", IDC_STEP_INTO, true, -1, "F11");
-			s->AppendItem("Step Over", IDC_STEP_OVER, true, -1, "F10");
+			s->AppendItem("Step Instruction", IDC_STEP_INSTR, true, -1, "F11");
+			s->AppendItem("Step Line", IDC_STEP_LINE, true, -1, "F10");
 			s->AppendItem("Step Out", IDC_STEP_OUT, true, -1, "Shift+F11");
 			s->AppendSeparator();
 			s->AppendItem("Breakpoint", IDC_BREAK_POINT, true, -1, "F9");
+			s->AppendItem("Break Into C++", IDC_BREAK_CPP, true, -1, "Ctrl+F9");
 		}
 		
 		AddView(d->Tools = new GToolBar);
@@ -6587,8 +1391,8 @@ GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVi
 		d->Tools->AppendButton("Restart", IDC_RESTART);
 		d->Tools->AppendButton("Goto", IDC_GOTO);
 		d->Tools->AppendSeparator();
-		d->Tools->AppendButton("Step Into", IDC_STEP_INTO);
-		d->Tools->AppendButton("Step Over", IDC_STEP_OVER);
+		d->Tools->AppendButton("Step Instruction", IDC_STEP_INSTR);
+		d->Tools->AppendButton("Step Line", IDC_STEP_LINE);
 		d->Tools->AppendButton("Step Out", IDC_STEP_OUT);
 		
 		AddView(d->Main = new GBox(IDC_BOX));		
@@ -6633,6 +1437,8 @@ GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVi
 		p = d->Tabs->Append("Stack");
 		p->Append(d->Stack = new GList(IDC_STACK, 0, 0, 100, 100));
 		d->Stack->SetPourLargest(true);
+		d->Stack->AddColumn("Address", 100);
+		d->Stack->AddColumn("Function", 300);
 		
 		p = d->Tabs->Append("Log");
 		p->Append(d->Log = new GTextLog(IDC_LOG));
@@ -6666,7 +1472,29 @@ GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVi
 
 GVmDebuggerWnd::~GVmDebuggerWnd()
 {
-	delete d;
+	LgiAssert(d->RunLoop == false);
+}
+
+bool GVmDebuggerWnd::OnRequestClose(bool OsShuttingDown)
+{
+	if (!d->RunLoop)
+		return GWindow::OnRequestClose(OsShuttingDown);
+
+	d->RunLoop = false;
+	return false; // Wait for Run() to exit in it's own time.
+}
+
+void GVmDebuggerWnd::Run()
+{
+	// This is to allow objects on the application's stack to 
+	// still be valid while the debugger UI is shown.
+	d->RunLoop = true;
+	while (d->RunLoop && Visible())
+	{
+		LgiApp->Run(false);
+		LgiSleep(1);
+	}
+	Quit();
 }
 
 GStream *GVmDebuggerWnd::GetLog()
@@ -6699,13 +1527,15 @@ void GVmDebuggerWnd::SetSource(const char *Mixed)
 	CodeBlock *Cur = &d->Blocks.New();
 
 	// Parse the mixed source
-	GToken t(Mixed, "\n");
+	GToken t(Mixed, "\n", false);
 	bool InGlobals = true;
 	int InAsm = -1;
 	
 	for (unsigned i=0; i<t.Length(); i++)
 	{
 		char *l = t[i];
+		if (!l)
+			continue;
 		if (InGlobals)
 		{
 			if (*l == 'G')
@@ -6755,7 +1585,7 @@ void GVmDebuggerWnd::SetSource(const char *Mixed)
 	Tmp.Empty();
 	
 	GStringPipe Txt;
-	GToken Src(d->Script, "\n");
+	GToken Src(d->Script, "\n", false);
 	unsigned SrcLine = 1;
 	unsigned ViewLine = 1;
 	for (unsigned i=0; i<d->Blocks.Length(); i++)
@@ -6765,7 +1595,8 @@ void GVmDebuggerWnd::SetSource(const char *Mixed)
 		{
 			while (SrcLine <= b.SrcLine)
 			{
-				Tmp.Print("%i: %s\n", SrcLine, Src[SrcLine-1]);
+				char *s = Src[SrcLine-1];
+				Tmp.Print("%i: %s\n", SrcLine, s ? s : "");
 				b.SrcLines++;
 				SrcLine++;
 			}
@@ -6853,35 +1684,19 @@ void GVmDebuggerWnd::OnAddress(size_t Addr)
 	d->CurrentAddr = Addr;
 	if (d->Text)
 	{
-		d->Text->PourText(0, d->Text->GetSize());
+		int Sz = d->Text->GetSize();
+		d->Text->PourText(0, Sz);
+		d->Text->ScrollToCurLine();
 		d->Text->Invalidate();
 	}
-	
-	if (d->Tabs->Value() == 0)
-	{
-		UpdateVariables(d->Globals,
-						d->Vm->d->Scope[SCOPE_GLOBAL],
-						d->Obj->Globals.Length(),
-						'G');
-		if (d->Vm->d->Frames.Length())
-		{
-			GVirtualMachinePriv::StackFrame &frm = d->Vm->d->Frames.Last();
-			UpdateVariables(d->Locals,
-						d->Vm->d->Scope[SCOPE_LOCAL],
-						frm.CurrentFrameSize,
-						'L');
-		}
-		else d->Locals->Empty();
-		
-		UpdateVariables(d->Registers,
-						d->Vm->d->Scope[SCOPE_REGISTER],
-						MAX_REGISTER,
-						'R');
-	}
+
+	OnNotify(d->Tabs, 0);	
 }
 
 void GVmDebuggerWnd::OnError(const char *Msg)
 {
+	if (Msg)
+		d->Text->SetError(Msg);
 }
 
 void GVmDebuggerWnd::OnRun(bool Running)
@@ -6903,17 +1718,24 @@ void GVmDebuggerWnd::LoadFile(const char *File)
 		GCompiledCode *Code = dynamic_cast<GCompiledCode*>(d->Obj.Get());
 		if (Code)
 		{
-			GExecutionStatus s = d->Vm->Execute(Code, 0, d->Log, false);
-			if (s != ScriptError)
-			{
-				
-			}
+			d->Return.Empty();
+			d->Vm->d->Frames.Length(0);
+			d->Vm->d->Setup(Code, 0, d->Log, NULL, NULL, &d->Return);
 		}
 	}
 }
 
 int GVmDebuggerWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 {
+	if (d->Vm &&
+		d->Vm->d->Vm == NULL)
+	{
+		// This happens when the original VM decides to go away and leave
+		// our copy of the VM as the only one left. This means we have to
+		// update the pointer in the VM's private data to point to us.
+		d->Vm->d->Vm = d->Vm;
+	}
+	
 	switch (Cmd)
 	{
 		case IDC_RUN:
@@ -6930,8 +1752,11 @@ int GVmDebuggerWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		}
 		case IDC_STOP:
 		{
-			if (d->Vm)
-				d->Vm->Stop();
+			d->Vm.Reset();
+			if (d->RunLoop)
+				d->RunLoop = false;
+			else
+				Quit();
 			break;
 		}
 		case IDC_RESTART:
@@ -6948,22 +1773,49 @@ int GVmDebuggerWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		{
 			break;
 		}
-		case IDC_STEP_INTO:
+		case IDC_STEP_INSTR:
 		{
 			if (d->Vm)
-				d->Vm->StepInto();
+				d->Vm->StepInstruction();
 			break;
 		}
-		case IDC_STEP_OVER:
+		case IDC_STEP_LINE:
 		{
 			if (d->Vm)
-				d->Vm->StepOver();
+				d->Vm->StepLine();
 			break;
 		}
 		case IDC_STEP_OUT:
 		{
 			if (d->Vm)
 				d->Vm->StepOut();
+			break;
+		}
+		case IDC_BREAK_POINT:
+		{
+			int Addr = d->Text->GetAddr();
+			if (Addr >= 0)
+				d->Vm->BreakPoint(Addr, d->Text->Breakpoint(Addr));
+			break;
+		}
+		case IDC_BREAK_CPP:
+		{
+			if (!d->Vm)
+			{
+				LgiAssert(0);
+				break;
+			}
+
+			GMenuItem *i = Menu->FindItem(IDC_BREAK_CPP);
+			if (!i)
+			{
+				LgiAssert(0);
+				break;
+			}
+			
+			bool b = !i->Checked();
+			i->Checked(b);
+			d->Vm->SetBreakCpp(b);
 			break;
 		}
 	}
@@ -6975,20 +1827,76 @@ int GVmDebuggerWnd::OnNotify(GViewI *Ctrl, int Flags)
 {
 	switch (Ctrl->GetId())
 	{
+		case IDC_TABS:
+		{
+			switch (Ctrl->Value())
+			{
+				case 0: // Variables
+				{
+					if (d->Obj)
+					{
+						UpdateVariables(d->Globals,
+										d->Vm->d->Scope[SCOPE_GLOBAL],
+										d->Obj->Globals.Length(),
+										'G');
+					}
+					if (d->Vm->d->Frames.Length())
+					{
+						GVirtualMachinePriv::StackFrame &frm = d->Vm->d->Frames.Last();
+						UpdateVariables(d->Locals,
+									d->Vm->d->Scope[SCOPE_LOCAL],
+									frm.CurrentFrameSize,
+									'L');
+					}
+					else d->Locals->Empty();
+					
+					UpdateVariables(d->Registers,
+									d->Vm->d->Scope[SCOPE_REGISTER],
+									MAX_REGISTER,
+									'R');
+					break;
+				}
+				case 1: // Call stack
+				{
+					d->Stack->Empty();
+					
+					GArray<GVirtualMachinePriv::StackFrame> &Frames = d->Vm->d->Frames;
+					for (int i=(int)Frames.Length()-1; i>=0; i--)
+					{
+						GVirtualMachinePriv::StackFrame &Sf = Frames[i];
+						GListItem *li = new GListItem;
+						GString s;
+						s.Printf("%p/%i", Sf.ReturnIp, Sf.ReturnIp);
+						li->SetText(s, 0);
+						
+						const char *Src = d->Vm->d->Code->AddrToSourceRef(Sf.ReturnIp);
+						li->SetText(Src, 1);
+						
+						d->Stack->Insert(li);
+					}
+					break;
+				}					
+				case 2: // Log
+				{
+					break;
+				}
+			}
+			break;
+		}
 		case IDC_SOURCE_LST:
 		{
-			if (Flags != GNotifyItem_DoubleClick)
-				break;
+			if (Flags == GNotifyItem_Select)
+			{
+				GListItem *it = d->SourceLst->GetSelected();
+				if (!it)
+					break;
 
-			GListItem *it = d->SourceLst->GetSelected();
-			if (!it)
-				break;
+				char *full = it->GetText(1);
+				if (!FileExists(full))
+					break;
 
-			char *full = it->GetText(1);
-			if (!FileExists(full))
-				break;
-
-			LoadFile(full);
+				LoadFile(full);
+			}
 			break;
 		}
 	}

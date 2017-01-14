@@ -130,6 +130,20 @@ GWindow::GWindow() :
 	}
 }
 
+GWindow::GWindow(WindowRef wr)
+{
+	d = new GWindowPrivate(this);
+	_QuitOnClose = false;
+	Wnd = 0;
+	Menu = 0;
+	_Default = 0;
+	_Window = this;
+	WndFlags |= GWND_CREATE;
+	GView::Visible(false);
+    _Lock = new GMutex;
+	Wnd = wr;
+}
+
 GWindow::~GWindow()
 {
 	if (LgiApp->AppWnd == this)
@@ -503,7 +517,7 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 					GetEventParameter(inEvent, kEventParamDirectObject, typeHICommand, NULL, sizeof(command), NULL, &command);
 					if (command.commandID != kHICommandSelectWindow)
 					{	
-						#if 1
+						#if 0
 						uint32 c = command.commandID;
 						#ifndef __BIG_ENDIAN__
 						c = LgiSwap32(c);
@@ -990,7 +1004,6 @@ bool GWindow::Attach(GViewI *p)
 			{ kEventClassControl, kEventControlDragReceive },
 			
 			{ kEventClassUser, kEventUser }
-
 		};
 		
 		EventHandlerRef Handler = 0;
@@ -1313,25 +1326,29 @@ bool GWindow::Name(const char *n)
 	bool Status = GBase::Name(n);
 
 	if (Wnd)
-	{	
-		CFStringRef s = CFStringCreateWithBytes(NULL, (UInt8*)n, strlen(n), kCFStringEncodingUTF8, false);
-		if (s)
+	{
+		if (n)
 		{
-			OSStatus e = SetWindowTitleWithCFString(Wnd, s);
-			if (e)
+			CFStringRef s = CFStringCreateWithBytes(NULL, (UInt8*)n, strlen(n), kCFStringEncodingUTF8, false);
+			if (s)
 			{
-				printf("%s:%i - SetWindowTitleWithCFString failed (e=%i)\n", _FL, (int)e);
+				OSStatus e = SetWindowTitleWithCFString(Wnd, s);
+				if (e)
+				{
+					printf("%s:%i - SetWindowTitleWithCFString failed (e=%i)\n", _FL, (int)e);
+				}
+				else
+				{
+					Status = true;
+				}
+				
+				CFRelease(s);
 			}
-			else
-			{
-				Status = true;
-			}
-			
-			CFRelease(s);
+			else printf("%s:%i - CFStringCreateWithBytes failed.\n", _FL);
 		}
 		else
 		{
-			printf("%s:%i - CFStringCreateWithBytes failed.\n", __FILE__, __LINE__);
+			SetWindowTitleWithCFString(Wnd, NULL);
 		}
 	}
 

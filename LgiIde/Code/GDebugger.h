@@ -23,9 +23,14 @@ public:
 	struct BreakPoint
 	{
 		int Index;
+		bool Added;
+
+		// Use File:Line
 		GString File;
 		int Line;
-		bool Added;
+		// -or-
+		// A symbol reference
+		GString Symbol;
 		
 		BreakPoint()
 		{
@@ -39,13 +44,15 @@ public:
 			Index = b.Index;
 			File = b.File;
 			Line = b.Line;
+			Symbol = b.Symbol;
 			return *this;
 		}
 		
 		bool operator ==(const BreakPoint &b)
 		{
 			if (File == b.File &&
-				Line == b.Line)
+				Line == b.Line &&
+				Symbol == b.Symbol)
 				return true;
 			
 			return false;
@@ -64,11 +71,12 @@ public:
 		GString Name;
 		GString Type;
 		GVariant Value;
+		GString Detail;
 	};
 	
 	virtual ~GDebugger() {}
 	
-	virtual bool Load(GDebugEvents *EventHandler, const char *Exe, const char *Args, const char *InitDir) = 0;
+	virtual bool Load(GDebugEvents *EventHandler, const char *Exe, const char *Args, bool RunAsAdmin, const char *InitDir) = 0;
 	virtual bool Restart() = 0;
 	virtual bool Unload() = 0;
 	

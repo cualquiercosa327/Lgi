@@ -449,20 +449,9 @@ public:
 				Size.Type == GCss::SizeXLarge ||
 				Size.Type == GCss::SizeXXLarge)
 		{
-			double Table[] =
-			{
-				0.6, // SizeXXSmall
-				0.75, // SizeXSmall
-				0.85, // SizeSmall
-				1.0, // SizeMedium
-				1.2, // SizeLarge
-				1.5, // SizeXLarge
-				2.0, // SizeXXLarge
-			};
-
 			int Idx = Size.Type-GCss::SizeXXSmall;
-			LgiAssert(Idx >= 0 && Idx < CountOf(Table));
-			PtSize = Default->PointSize() * Table[Idx];
+			LgiAssert(Idx >= 0 && Idx < CountOf(GCss::FontSizeTable));
+			PtSize = Default->PointSize() * GCss::FontSizeTable[Idx];
 			if (PtSize < MinimumPointSize)
 				PtSize = MinimumPointSize;
 		}
@@ -2178,7 +2167,6 @@ bool GTag::OnMouseClick(GMouse &m)
 				{
 					if (Uri)
 					{
-						const char *OnClick = NULL;
 						if (!Html->d->LinkDoubleClick || m.Double())
 						{
 							Html->Environment->OnNavigate(Html, Uri);
@@ -2469,7 +2457,6 @@ void GTag::GetTagByPos(GTagHit &TagHit, int x, int y, int Depth, bool InBody, bo
 			t->Pos.y >= 0)
 		{
 			t->GetTagByPos(TagHit, x - t->Pos.x, y - t->Pos.y, Depth + 1, InBody, DebugLog);
-			int asd=0;
 		}
 	}
 }
@@ -8732,7 +8719,7 @@ bool GHtml::EvaluateCondition(const char *Cond)
 			else
 			{
 				// If this fires: update GHtml::GetVariant with the variable.
-				LgiTrace("%s:%i - Unsupported variable '%s'\n", _FL, s);
+				// LgiTrace("%s:%i - Unsupported variable '%s'\n", _FL, s);
 			}
 			Not = false;
 		}

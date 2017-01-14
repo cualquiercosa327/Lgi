@@ -42,8 +42,6 @@ enum HtmlEditIds {
 
 using namespace Html1;
 
-static char16 EmptyStr[] = {0};
-
 uint32 IconData[] =
 {
 	0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 
@@ -870,12 +868,13 @@ public:
 				Source.Reset();
 				Update(true);
 				OnDocumentChange();
+				Status = true;
 			}
 		}
 
 		LgiAssert(IsOk());
 		
-		return false;
+		return Status;
 	}
 
 	bool RemoveLink()
@@ -885,8 +884,6 @@ public:
 		GTag *c = GetCur();
 		if (c)
 		{
-			bool DoUpdate = false;
-
 			GArray<GTag*> Anchors;
 			if (HasElement("a", &Anchors))
 			{
@@ -904,14 +901,14 @@ public:
 				}
 
 				Source.Reset();
-				Update(true);
+				Update(Status = true);
 				OnDocumentChange();
 			}
 		}
 
 		LgiAssert(IsOk());
 		
-		return false;
+		return Status;
 	}
 
 
@@ -934,14 +931,14 @@ public:
 			if (DoUpdate)
 			{
 				Source.Reset();
-				Update(true);
+				Update(Status = true);
 				OnDocumentChange();
 			}
 		}
 
 		LgiAssert(IsOk());
 		
-		return false;
+		return Status;
 	}
 
 	bool OnItalic()
