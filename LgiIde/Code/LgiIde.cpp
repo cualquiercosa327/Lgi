@@ -1908,7 +1908,8 @@ IdeProject *AppWnd::OpenProject(char *FileName, IdeProject *ParentProj, bool Cre
 
 			p->SetParentProject(ParentProj);
 			
-			if (p->OpenFile(FileName))
+			ProjectStatus Status = p->OpenFile(FileName);
+			if (Status == OpenOk)
 			{
 				d->OnFile(FileName, true);
 				
@@ -1926,7 +1927,8 @@ IdeProject *AppWnd::OpenProject(char *FileName, IdeProject *ParentProj, bool Cre
 			else
 			{
 				DeleteObj(p);
-				d->RemoveRecent(FileName);
+				if (Status == OpenError)
+					d->RemoveRecent(FileName);
 			}
 
 			if (!GetTree()->Selection())

@@ -119,7 +119,6 @@ GProgressPane::GProgressPane()
 	Name("Progress");
 	SetId(IDC_PANE);
 	Canceled = false;
-	Wait = false;
 	Ref = 0;
 
 	if (AddView(t = new GTableLayout(IDC_TABLE)))
@@ -285,12 +284,6 @@ int GProgressPane::OnNotify(GViewI *Ctrl, int Flags)
 		{
 			Cancel(true);
 
-			if (GetParent() &&
-				!Wait)
-			{
-				delete GetParent();
-			}
-
 			if (But)
 			{
 				But->Name("Waiting...");
@@ -351,9 +344,11 @@ void GProgressPane::SetDescription(const char *d)
 #define DefY		LgiApp->GetMetric(LGI_MET_DECOR_Y)
 // #endif
 
-GProgressDlg::GProgressDlg(GView *parent, bool wait)
+GProgressDlg::GProgressDlg(GView *parent, uint64 timeout)
 {
-	Wait = wait;
+	Ts = LgiCurrentTime();
+	YieldTs = 0;
+	Timeout = timeout;
 	SetParent(parent);
 	Resize();
 	MoveToCenter();
@@ -361,31 +356,32 @@ GProgressDlg::GProgressDlg(GView *parent, bool wait)
 	#ifdef BEOS
 	WindowHandle()->SetFeel(B_NORMAL_WINDOW_FEEL);
 	#endif
-	DoModeless();
+	if (Timeout == 0)
+		DoModeless();
+	else
+		Push();
 }
 
 GProgressDlg::~GProgressDlg()
 {
-	EndModeless(true);
+	if (Visible())
+		EndModeless(true);
 }
 
 bool GProgressDlg::OnRequestClose(bool OsClose)
 {
-	if (Wait)
+	for (int i=0; i<Progri.Length(); i++)
 	{
-		for (int i=0; i<Progri.Length(); i++)
+		GProgressPane *pp = Progri[i];
+		if (pp)
 		{
-			GProgressPane *pp = Progri[i];
-			if (pp)
-			{
-				pp->Cancel(true);
-			}
+			pp->Cancel(true);
 		}
-		
-		return false;
 	}
+		
+	return false;
 	
-	return GDialog::OnRequestClose(OsClose);
+	// return GDialog::OnRequestClose(OsClose);
 }
 
 void GProgressDlg::Resize()
@@ -505,8 +501,10 @@ GProgressPane *GProgressDlg::Push()
 	if (Pane)
 	{
 		// Attach the new pane..
-		Pane->Wait = Wait;
-		Pane->Attach(this);
+		if (Visible())
+			Pane->Attach(this);
+		else
+			AddView(Pane);
 		Progri.Insert(Pane);
 		Resize();
 	}
@@ -567,6 +565,24 @@ int64 GProgressDlg::Value()
 
 void GProgressDlg::Value(int64 v)
 {
+	uint64 Now = LgiCurrentTime();
+	if (Timeout)
+	{
+		if (Now - Ts >= Timeout)
+		{
+			DoModeless();
+			Timeout = 0;
+		}
+	}
+	else if (YieldTs)
+	{
+		if (Now - Ts >= YieldTs)
+		{
+			Ts = Now;
+			LgiYield();
+		}
+	}
+
 	GProgressPane *Pane = Progri.First();
 	if (Pane) Pane->Value(v);
 }

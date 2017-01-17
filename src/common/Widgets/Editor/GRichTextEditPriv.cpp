@@ -330,7 +330,7 @@ bool GRichTextPriv::DeleteSelection(Transaction *t, char16 **Cut)
 		else
 		{
 			LgiAssert(0);
-			return false;
+			return Error(_FL, "Start block has no index.");;
 		}
 
 		// 3) Delete any text up to the Cursor in the 'End' block

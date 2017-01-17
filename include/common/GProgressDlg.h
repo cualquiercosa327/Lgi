@@ -26,8 +26,6 @@ class LgiClass GProgressPane : public Progress, public GLayout
 	Progress *Ref;
 
 protected:
-	bool Wait;
-
 	GTableLayout *t;
 	GText *Desc;
 	GText *ValText;
@@ -57,7 +55,7 @@ public:
 class LgiClass GProgressDlg : public GDialog
 {
 protected:
-	bool Wait;
+	uint64 Ts, Timeout, YieldTs;
 	List<GProgressPane> Progri;
 
 	void Resize();
@@ -67,10 +65,9 @@ public:
 	GProgressDlg
 	(
 		/// The parent window
-		GView *parent = 0,
-		/// true if the window should not destroy itself when the user
-		/// cancels the operation.
-		bool wait = false
+		GView *parent = NULL,
+		/// Specify a timeout to become visible (in ms)
+		uint64 timeout = 0
 	);
 	~GProgressDlg();
 
@@ -80,6 +77,10 @@ public:
 	void Pop(GProgressPane *p = 0);
 	/// Gets the pane at index 'i'
 	GProgressPane *ItemAt(int i);
+
+	/// Sets up the Value function to yield every so often
+	/// to update the screen
+	void SetYieldTime(uint64 yt) { YieldTs = yt; }
 
 	/// Returns the description of the first pane
 	char *GetDescription();

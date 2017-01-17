@@ -6,6 +6,7 @@
 #include "GTree.h"
 #include "GOptionsFile.h"
 #include "GDebugger.h"
+#include "GProgressDlg.h"
 
 #define NODE_DROP_FORMAT			"Ide.ProjectNode"
 
@@ -39,7 +40,31 @@ enum AppCommands
 	IDM_SHOW_IN_PROJECT
 };
 
+enum ProjectStatus
+{
+	OpenError,
+	OpenOk,
+	OpenCancel,
+};
+
 extern int PlatformCtrlId[];
+
+class AddFilesProgress : public GDialog
+{
+	uint64 Ts;
+	uint64 v;
+	GView *Msg;
+
+public:
+	bool Cancel;
+
+	AddFilesProgress(GViewI *par);
+
+	int64 Value();
+	void Value(int64 val);
+	int OnNotify(GViewI *c, int f);
+};
+
 
 class AppWnd;
 class IdeProject;
@@ -55,7 +80,7 @@ public:
 	~IdeCommon();
 
 	IdeProject *GetProject() { return Project; }
-	bool OnOpen(GXmlTag *Src);	
+	bool OnOpen(GProgressDlg &Prog, GXmlTag *Src);	
 	void CollectAllSubProjects(List<IdeProject> &c);
 	void CollectAllSource(GArray<GString> &c, IdePlatform Platform);
 	void SortChildren();
@@ -63,7 +88,7 @@ public:
 	void RemoveTag();
 	virtual bool IsWeb() = 0;	
 	virtual int GetPlatforms() = 0;
-	bool AddFiles(const char *Path);
+	bool AddFiles(AddFilesProgress *Prog, const char *Path);
 	IdeCommon *GetSubFolder(IdeProject *Project, char *Name, bool Create = false);
 };
 
@@ -234,7 +259,7 @@ public:
 
 	// File
 	void CreateProject();
-	bool OpenFile(char *FileName);
+	ProjectStatus OpenFile(char *FileName);
 	bool SaveFile(char *FileName = 0);
 	void SetClean();
 	void SetDirty();
