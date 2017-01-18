@@ -1426,8 +1426,6 @@ AppWnd::AppWnd()
 
 AppWnd::~AppWnd()
 {
-	SaveAll();
-	
 	if (d->Sp)
 	{
 		GVariant v = d->Sp->Value();

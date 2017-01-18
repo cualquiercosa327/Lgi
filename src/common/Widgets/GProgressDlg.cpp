@@ -177,6 +177,10 @@ void GProgressPane::SetLimits(int64 l, int64 h)
 		Bar->SetLimits(l, h);
 		#endif
 	}
+
+	GProgressDlg *Pd = dynamic_cast<GProgressDlg*>(GetParent());
+	if (Pd && But)
+		But->Enabled(Pd->CanCancel);
 }
 
 void GProgressPane::Value(int64 v)
@@ -349,6 +353,7 @@ GProgressDlg::GProgressDlg(GView *parent, uint64 timeout)
 	Ts = LgiCurrentTime();
 	YieldTs = 0;
 	Timeout = timeout;
+	CanCancel = true;
 	SetParent(parent);
 	Resize();
 	MoveToCenter();
@@ -525,6 +530,11 @@ void GProgressDlg::Pop(GProgressPane *p)
 	}
 }
 
+void GProgressDlg::SetCanCancel(bool cc)
+{
+	CanCancel = cc;
+}
+
 char *GProgressDlg::GetDescription()
 {
 	GProgressPane *Pane = Progri.First();
@@ -535,9 +545,7 @@ void GProgressDlg::SetDescription(const char *d)
 {
 	GProgressPane *Pane = Progri.First();
 	if (Pane)
-	{
 		Pane->SetDescription(d);
-	}
 }
 
 void GProgressDlg::GetLimits(int64 *l, int64 *h)

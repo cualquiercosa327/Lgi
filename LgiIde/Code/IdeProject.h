@@ -261,7 +261,7 @@ public:
 	void CreateProject();
 	ProjectStatus OpenFile(char *FileName);
 	bool SaveFile(char *FileName = 0);
-	void SetClean();
+	bool SetClean();
 	void SetDirty();
 	bool Serialize();
 	void ImportDsp(char *File);

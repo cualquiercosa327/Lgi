@@ -30,11 +30,8 @@ bool IdeCommon::OnOpen(GProgressDlg &Prog, GXmlTag *Src)
 		if (c->IsTag("Node"))
 		{
 			ProjectNode *pn = new ProjectNode(Project);
-			if (pn)
-			{
-				if (Processed = pn->OnOpen(Prog, c))
-					InsertTag(pn);
-			}
+			if (pn && (Processed = pn->OnOpen(Prog, c)))
+				InsertTag(pn);
 		}
 		if (!Processed)
 			Prog.Value(Prog.Value() + 1);

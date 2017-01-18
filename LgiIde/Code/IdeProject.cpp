@@ -999,15 +999,6 @@ void IdeProject::CreateProject()
 	Expanded(true);	
 }
 
-uint64 CountNodes(GXmlTag *t)
-{
-	uint64 n = 1;
-	for (GXmlTag *c = t->Children.First(); c; c = t->Children.Next())
-		n += CountNodes(c);
-
-	return n;
-}
-
 ProjectStatus IdeProject::OpenFile(char *FileName)
 {
 	Empty();
@@ -1033,7 +1024,7 @@ ProjectStatus IdeProject::OpenFile(char *FileName)
 			GXmlTag r;
 			if (x.Read(&r, &f))
 			{
-				int64 Nodes = CountNodes(&r);
+				int64 Nodes = r.CountTags();
 				GProgressDlg Prog(d->App, 500);
 				Prog.SetDescription("Loading project...");
 				Prog.SetLimits(0, Nodes);
@@ -1074,12 +1065,25 @@ bool IdeProject::SaveFile(char *FileName)
 		if (f.Open(Full, O_WRITE))
 		{
 			GXmlTree x;
+			GProgressDlg Prog(d->App, 1000);
+			Prog.SetAlwaysOnTop(true);
+			Prog.SetDescription("Serializing project XML...");
+			Prog.SetYieldTime(200);
+			Prog.SetCanCancel(false);
 
 			d->Settings.Serialize(this, true /* write */);
-			if (x.Write(this, &f))
+			
+			GStringPipe Buf(4096);			
+			if (x.Write(this, &Buf, &Prog))
 			{
-				d->Dirty = false;
-				return true;
+				GCopyStreamer Cp;
+				Prog.SetDescription("Writing XML...");
+				LgiYield();
+				if (Cp.Copy(&Buf, &f))
+				{
+					d->Dirty = false;
+					return true;
+				}
 			}
 		}
 	}
@@ -1092,7 +1096,7 @@ void IdeProject::SetDirty()
 	d->Dirty = true;
 }
 
-void IdeProject::SetClean()
+bool IdeProject::SetClean()
 {
 	if (d->Dirty)
 	{
@@ -1107,6 +1111,7 @@ void IdeProject::SetClean()
 				d->App->OnFile(d->FileName, true);
 				Update();
 			}
+			else return false;
 		}
 
 		SaveFile(0);
@@ -1116,6 +1121,8 @@ void IdeProject::SetClean()
 	{
 		p->SetClean();
 	}
+
+	return true;
 }
 
 char *IdeProject::GetText(int Col)

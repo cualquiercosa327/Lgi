@@ -52,11 +52,14 @@ public:
 };
 
 /// Progress dialog
-class LgiClass GProgressDlg : public GDialog
+class LgiClass GProgressDlg : public GDialog, public Progress
 {
+	friend class GProgressPane;
+
 protected:
 	uint64 Ts, Timeout, YieldTs;
 	List<GProgressPane> Progri;
+	bool CanCancel;
 
 	void Resize();
 
@@ -81,6 +84,8 @@ public:
 	/// Sets up the Value function to yield every so often
 	/// to update the screen
 	void SetYieldTime(uint64 yt) { YieldTs = yt; }
+	/// Set ability to cancel
+	void SetCanCancel(bool cc);
 
 	/// Returns the description of the first pane
 	char *GetDescription();

@@ -126,6 +126,7 @@ public:
 	GHashTbl<const char*,char16> Entities;
 	GHashTable NoChildTags;
 	GArray<char> Buf;
+	Progress *Prog;
 	
 	char *StyleFile;
 	char *StyleType;
@@ -144,6 +145,7 @@ public:
 		StyleFile = 0;
 		StyleType = 0;
 		Current = NULL;
+		Prog = NULL;
 
 		Entities.Add("lt", '<');
 		Entities.Add("gt", '>');
@@ -665,6 +667,18 @@ void GXmlTag::RemoveTag()
 		Parent->Children.Delete(this);
 	}
 	Parent = 0;	
+}
+
+int64 GXmlTag::CountTags()
+{
+	uint64 c = 1;
+	List<GXmlTag>::I it = Children.Start();
+	for (GXmlTag *t = *it; t; t = *++it)
+	{
+		c += t->CountTags();
+	}
+
+	return c;
 }
 
 bool GXmlTag::Dump(int Depth)
@@ -1453,6 +1467,8 @@ void GXmlTree::Output(GXmlTag *t, int Depth)
 	#define Tabs if (!TestFlag(d->Flags, GXT_NO_PRETTY_WHITESPACE)) \
 		{ for (int i=0; i<Depth; i++) d->File->Write((void*)"\t", 1); }
 
+	if (d->Prog)
+		d->Prog->Value(d->Prog->Value()+1);
 	t->Write = true;
 	t->Serialize();
 	Tabs
@@ -1529,7 +1545,7 @@ void GXmlTree::Output(GXmlTag *t, int Depth)
 	#undef Tabs
 }
 
-bool GXmlTree::Write(GXmlTag *Root, GStreamI *File)
+bool GXmlTree::Write(GXmlTag *Root, GStreamI *File, Progress *Prog)
 {
 	bool Status = false;
 	
@@ -1537,6 +1553,8 @@ bool GXmlTree::Write(GXmlTag *Root, GStreamI *File)
 	{
 		File->SetSize(0);
 		d->File = File;
+		if (d->Prog = Prog)
+			d->Prog->SetLimits(0, Root->CountTags());
 
 		if (!TestFlag(d->Flags, GXT_NO_HEADER))
 			File->Write(GXmlHeader, strlen(GXmlHeader));
@@ -1544,7 +1562,9 @@ bool GXmlTree::Write(GXmlTag *Root, GStreamI *File)
 			GStreamPrint(d->File, "<?xml-stylesheet href=\"%s\" type=\"%s\"?>\n", d->StyleFile, d->StyleType);
 
 		Output(Root, 0);
-		d->File = 0;
+
+		d->File = NULL;
+		d->Prog = NULL;
 		Status = true;
 	}
 	
