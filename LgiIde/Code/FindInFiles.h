@@ -3,37 +3,38 @@
 
 #include "GHistory.h"
 
+enum FifSearchType
+{
+	FifSearchSolution,
+	FifSearchDirectory,
+};
+
 class FindParams
 {
 public:
-	char *Text;
-	char *Ext;
-	char *Dir;
+	FifSearchType Type;
+	GString Text;
+	GString Ext;
+	GString Dir;
 	bool MatchWord;
 	bool MatchCase;
 	bool SubDirs;
+	GArray<GString> ProjectFiles;
 	
 	FindParams()
 	{
-		Text = 0;
+		Type = FifSearchDirectory;
 
-		Ext = NewStr("*.c* *.h *.java");
+		Ext = "*.c* *.h *.java";
 
-		char Exe[256];
+		char Exe[MAX_PATH];
 		LgiGetExePath(Exe, sizeof(Exe));
 		LgiTrimDir(Exe);
-		Dir = NewStr(Exe);
+		Dir = Exe;
 		
 		MatchWord = false;
 		MatchCase = false;
 		SubDirs = true;
-	}
-	
-	~FindParams()
-	{
-		DeleteArray(Text);
-		DeleteArray(Ext);
-		DeleteArray(Dir);
 	}
 };
 

@@ -2600,7 +2600,8 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 					GTextView3 *Edit = dynamic_cast<GTextView3*>(Focus);
 					if (Edit && Edit->HasSelection())
 					{
-						Dlg.Params->Text = Edit->GetSelection();
+						GAutoString a(Edit->GetSelection());
+						Dlg.Params->Text = a;
 					}
 				}
 				
@@ -2609,14 +2610,23 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 				{
 					GAutoString Base = p->GetBasePath();
 					if (Base)
-					{
-						DeleteArray(Dlg.Params->Dir);
-						Dlg.Params->Dir = NewStr(Base);
-					}
+						Dlg.Params->Dir = Base;
 				}
 
 				if (Dlg.DoModal())
 				{
+					if (p && Dlg.Params->Type == FifSearchSolution)
+					{
+						GArray<ProjectNode*> Nodes;
+						if (p->GetAllNodes(Nodes))
+						{
+							for (unsigned i=0; i<Nodes.Length(); i++)
+							{
+								Dlg.Params->ProjectFiles.Add(Nodes[i]->GetFullPath());
+							}
+						}
+					}
+
 					d->Finder = new FindInFilesThread(this, Dlg.Params);
 					Dlg.Params = 0;
 				}
