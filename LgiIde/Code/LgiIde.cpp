@@ -26,7 +26,6 @@
 #include "LgiRes.h"
 #include "ProjectNode.h"
 
-#define IDM_SAVE				102
 #define IDM_RECENT_FILE			1000
 #define IDM_RECENT_PROJECT		1100
 #define IDM_WINDOWS				1200
@@ -2446,7 +2445,8 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		case IDM_SAVE:
 		{
 			IdeDoc *Top = TopDoc();
-			if (Top) Top->SetClean();
+			if (Top)
+				Top->SetClean();
 			break;
 		}
 		case IDM_SAVEAS:

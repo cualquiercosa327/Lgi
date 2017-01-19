@@ -666,7 +666,7 @@
 			<String Ref="175" en="&File" />
 			<String Ref="174" Cid="504" Define="IDM_NEW" en="&New" />
 			<String Ref="173" Cid="502" Define="IDM_OPEN" en="&Open" />
-			<String Ref="172" Cid="503" Define="IDM_SAVE_ALL" en="&Save All" />
+			<String Ref="172" Cid="503" Define="IDM_SAVE_ALL" en="Save All" />
 			<String Ref="171" Cid="535" Define="IDM_SAVEAS" en="Save &As" />
 			<String Ref="170" Cid="505" Define="IDM_CLOSE" en="&Close" />
 			<String Ref="169" Cid="506" Define="IDM_CLOSE_ALL" en="Close All" />
@@ -737,11 +737,13 @@
 			<String Ref="228" Cid="529" Define="IDM_RUN" en="Start &Without Debugging" />
 			<String Ref="229" Cid="581" Define="IDM_RESTART_DEBUGGING" en="Restart Debugging" />
 			<String Ref="230" Cid="582" Define="IDM_RUN_TO" en="Run To Current Location" />
+			<String Ref="235" Cid="569" Define="IDM_SAVE" en="&Save" />
 		</string-group>
 		<submenu Ref="175">
 			<menuitem Ref="174" Shortcut="Ctrl+N" />
 			<menuitem Ref="173" Shortcut="Ctrl+O" />
-			<menuitem Ref="172" Shortcut="Ctrl+S" />
+			<menuitem Ref="235" Shortcut="Ctrl+S" />
+			<menuitem Ref="172" />
 			<menuitem Ref="171" />
 			<menuitem Ref="170" Shortcut="Ctrl+W" />
 			<menuitem Ref="169" />

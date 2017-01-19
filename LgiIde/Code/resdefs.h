@@ -153,6 +153,7 @@
 #define IDM_MENU_566							566
 #define IDM_PREV_LOCATION						567
 #define IDM_NEXT_LOCATION						568
+#define IDM_SAVE								569
 #define IDM_START_DEBUG							570
 #define IDM_PAUSE_DEBUG							571
 #define IDM_STOP_DEBUG							572
