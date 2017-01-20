@@ -39,6 +39,11 @@ include/common/LgiQuickSort.h
 	License: Public Domain
 	Inclusion: Yes (svn from 27/7/2012)
 	
+src/common/INet/FtpListParser.cpp
+	Source: D. J. Bernstein, djb@cr.yp.to, https://cr.yp.to/ftpparse/ftpparse.c
+	License: Commercial use is fine, if you let me know what programs you're using this in.
+	Inclusion: Yes (Added: 20 Jan 2017)
+
 src/win32/INet/MibAccess.*
 	Author: Stas Khirman <staskh@rocketmail.com>
 	License: "Free software: no warranty; use anywhere is ok;"
@@ -63,3 +68,6 @@ src/common/Db/bfs/*
 	Author: "Axel Dofler" <axeld@pinc-software.de>
 	License: OpenBeOS License / MIT
 	Inclusion: No longer in SVN
+
+
+	
