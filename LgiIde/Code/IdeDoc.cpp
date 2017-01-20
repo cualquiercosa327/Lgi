@@ -2389,6 +2389,13 @@ void IdeDoc::OnPulse()
 	d->CheckModTime();
 }
 
+void IdeDoc::OnProjectChange()
+{
+	DeleteObj(d->FilePopup);
+	DeleteObj(d->MethodPopup);
+	DeleteObj(d->SymPopup);
+}
+
 int IdeDoc::OnNotify(GViewI *v, int f)
 {
 	// printf("IdeDoc::OnNotify(%i, %i)\n", v->GetId(), f);

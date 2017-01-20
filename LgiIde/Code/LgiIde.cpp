@@ -3028,6 +3028,20 @@ void AppWnd::OnProjectDestroy(IdeProject *Proj)
 	d->Projects.Delete(Proj);
 }
 
+void AppWnd::OnProjectChange()
+{
+	GArray<GMdiChild*> Views;
+	if (d->Mdi->GetChildren(Views))
+	{
+		for (unsigned i=0; i<Views.Length(); i++)
+		{
+			IdeDoc *Doc = dynamic_cast<IdeDoc*>(Views[i]);
+			if (Doc)
+				Doc->OnProjectChange();
+		}
+	}
+}
+
 void AppWnd::OnDocDestroy(IdeDoc *Doc)
 {
 	if (d)

@@ -1094,6 +1094,7 @@ bool IdeProject::SaveFile(char *FileName)
 void IdeProject::SetDirty()
 {
 	d->Dirty = true;
+	d->App->OnProjectChange();
 }
 
 bool IdeProject::SetClean()

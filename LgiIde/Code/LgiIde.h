@@ -264,6 +264,7 @@ public:
 	int OnCommand(int Cmd, int Event, OsView Wnd);
 	void OnDocDestroy(IdeDoc *Doc);
 	void OnProjectDestroy(IdeProject *Proj);
+	void OnProjectChange();
 	void OnFile(char *File, bool IsProject = false);
 	void OnFindFinished();
 	bool OnRequestClose(bool IsClose);

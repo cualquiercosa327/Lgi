@@ -336,15 +336,14 @@ int FindInFilesThread::Main()
 		else
 		{
 			// Find the files recursively...
-			if (LgiRecursiveFileSearch(d->Params->Dir, &Ext, &Files, 0, 0, FindInFilesCallback))
-			{
-				sprintf(Msg, "in %i files...\n", Files.Length());
-				d->App->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr(Msg), 2);
-			}
+			LgiRecursiveFileSearch(d->Params->Dir, &Ext, &Files, 0, 0, FindInFilesCallback);
 		}
 
 		if (Files.Length() > 0)
 		{			
+			sprintf(Msg, "in %i files...\n", Files.Length());
+			d->App->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr(Msg), 2);
+
 			for (int i=0; i<Files.Length() && d->Loop; i++)
 			{
 				char *f = Files[i];

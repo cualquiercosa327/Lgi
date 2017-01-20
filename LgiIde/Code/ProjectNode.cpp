@@ -882,9 +882,7 @@ IdeDoc *ProjectNode::Open()
 void ProjectNode::Delete()
 {
 	if (nView)
-	{
 		nView->OnDelete();
-	}
 
 	Project->SetDirty();
 	GXmlTag::RemoveTag();							
