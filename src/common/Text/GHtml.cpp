@@ -4620,7 +4620,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f, uint16 Depth)
 		}
 	}
 
-	#ifdef _DEBUG
+	#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 	if (Table->Debug)
 	{
 		LgiTrace("%s:%i - AfterCellFlow\n", _FL);

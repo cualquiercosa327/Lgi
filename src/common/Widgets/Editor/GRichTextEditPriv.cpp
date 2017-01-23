@@ -1757,11 +1757,13 @@ bool GRichTextPriv::ToHtml()
 	
 void GRichTextPriv::DumpBlocks()
 {
+	LgiTrace("GRichTextPriv Blocks=%i\n", Blocks.Length());
 	for (unsigned i=0; i<Blocks.Length(); i++)
 	{
 		Block *b = Blocks[i];
-		LgiTrace("%p: style=%p/%s {\n",
+		LgiTrace("%p::%s style=%p/%s {\n",
 			b,
+			b->GetClass(),
 			b->GetStyle(),
 			b->GetStyle() ? b->GetStyle()->Name.Get() : NULL);
 		b->Dump();

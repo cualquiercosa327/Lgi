@@ -687,6 +687,7 @@ public:
 		/************************************************
 		 * Get state methods, do not modify the block   *
 		 ***********************************************/
+			virtual const char *GetClass() { return "Block"; }
 			virtual GRect GetPos() = 0;
 			virtual int Length() = 0;
 			virtual bool HitTest(HitTestResult &htr) = 0;
@@ -1090,6 +1091,7 @@ public:
 		bool IsValid();
 
 		// No state change methods
+		const char *GetClass() { return "TextBlock"; }
 		int GetLines();
 		bool OffsetToLine(int Offset, int *ColX, GArray<int> *LineY);
 		int LineToOffset(int Line);

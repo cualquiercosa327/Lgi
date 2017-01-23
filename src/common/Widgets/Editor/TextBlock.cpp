@@ -42,7 +42,8 @@ GRichTextPriv::TextBlock::~TextBlock()
 
 void GRichTextPriv::TextBlock::Dump()
 {
-	LgiTrace("    margin=%s, border=%s, padding=%s\n",
+	LgiTrace("    Txt.Len=%i, margin=%s, border=%s, padding=%s\n",
+				Txt.Length(),
 				Margin.GetStr(),
 				Border.GetStr(),
 				Padding.GetStr());
@@ -56,14 +57,11 @@ void GRichTextPriv::TextBlock::Dump()
 					t->At(0) : NULL, t->Length());
 		s = s.Strip();
 				
-		/*
-		LgiTrace("    %p: style=%p/%s, txt(%i)=%s\n",
+		LgiTrace("    %p: style=%p/%s, len=%i\n",
 			t,
 			t->GetStyle(),
 			t->GetStyle() ? t->GetStyle()->Name.Get() : NULL,
-			t->Length(),
-			s.Get());
-		*/
+			t->Length());
 	}
 }
 		
@@ -1192,7 +1190,8 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 				if (Last->Add((uint32*)Str, Chars))
 				{
 					Len += Chars;
-					AtOffset += Chars;
+					if (AtOffset >= 0)
+						AtOffset += Chars;
 				}
 			}
 			else
@@ -1203,7 +1202,8 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 				Run->Emoji = IsEmoji;
 				Txt.Add(Run);
 				Len += Chars;
-				AtOffset += Chars;
+				if (AtOffset >= 0)
+					AtOffset += Chars;
 			}
 		}
 	}

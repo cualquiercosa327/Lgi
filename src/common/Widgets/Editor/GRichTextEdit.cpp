@@ -359,6 +359,9 @@ bool GRichTextEdit::Name(const char *s)
 		Body = &Root;
 
 	bool Status = d->FromHtml(Body, *d->CreationCtx);
+	
+	// d->DumpBlocks();
+	
 	if (!d->Blocks.Length())
 	{
 		d->EmptyDoc();
@@ -1055,7 +1058,7 @@ void GRichTextEdit::Undo()
 
 void GRichTextEdit::Redo()
 {
-	if (d->UndoPos < d->UndoQue.Length())
+	if (d->UndoPos < (int)d->UndoQue.Length())
 		d->SetUndoPos(d->UndoPos + 1);
 }
 
@@ -2362,7 +2365,7 @@ EmojiMenu::EmojiMenu(GRichTextPriv *priv, GdcPt2 p) : GPopup(priv->View)
 		int Dx = EMOJI_PAD;
 		int Dy = p.Btn.y2 + 1;
 		
-		while (p.e.Length() < PaneSz && ImgIdx <= MaxIdx)
+		while ((int)p.e.Length() < PaneSz && ImgIdx <= MaxIdx)
 		{
 			uint32 u = Map.Find(ImgIdx);
 			if (u)
