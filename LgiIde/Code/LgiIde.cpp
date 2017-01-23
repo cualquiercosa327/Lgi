@@ -26,7 +26,6 @@
 #include "LgiRes.h"
 #include "ProjectNode.h"
 
-#define IDM_SAVE				102
 #define IDM_RECENT_FILE			1000
 #define IDM_RECENT_PROJECT		1100
 #define IDM_WINDOWS				1200
@@ -1426,8 +1425,6 @@ AppWnd::AppWnd()
 
 AppWnd::~AppWnd()
 {
-	SaveAll();
-	
 	if (d->Sp)
 	{
 		GVariant v = d->Sp->Value();
@@ -1908,7 +1905,8 @@ IdeProject *AppWnd::OpenProject(char *FileName, IdeProject *ParentProj, bool Cre
 
 			p->SetParentProject(ParentProj);
 			
-			if (p->OpenFile(FileName))
+			ProjectStatus Status = p->OpenFile(FileName);
+			if (Status == OpenOk)
 			{
 				d->OnFile(FileName, true);
 				
@@ -1926,7 +1924,8 @@ IdeProject *AppWnd::OpenProject(char *FileName, IdeProject *ParentProj, bool Cre
 			else
 			{
 				DeleteObj(p);
-				d->RemoveRecent(FileName);
+				if (Status == OpenError)
+					d->RemoveRecent(FileName);
 			}
 
 			if (!GetTree()->Selection())
@@ -2446,7 +2445,8 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		case IDM_SAVE:
 		{
 			IdeDoc *Top = TopDoc();
-			if (Top) Top->SetClean();
+			if (Top)
+				Top->SetClean();
 			break;
 		}
 		case IDM_SAVEAS:
@@ -2600,7 +2600,8 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 					GTextView3 *Edit = dynamic_cast<GTextView3*>(Focus);
 					if (Edit && Edit->HasSelection())
 					{
-						Dlg.Params->Text = Edit->GetSelection();
+						GAutoString a(Edit->GetSelection());
+						Dlg.Params->Text = a;
 					}
 				}
 				
@@ -2609,14 +2610,23 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 				{
 					GAutoString Base = p->GetBasePath();
 					if (Base)
-					{
-						DeleteArray(Dlg.Params->Dir);
-						Dlg.Params->Dir = NewStr(Base);
-					}
+						Dlg.Params->Dir = Base;
 				}
 
 				if (Dlg.DoModal())
 				{
+					if (p && Dlg.Params->Type == FifSearchSolution)
+					{
+						GArray<ProjectNode*> Nodes;
+						if (p->GetAllNodes(Nodes))
+						{
+							for (unsigned i=0; i<Nodes.Length(); i++)
+							{
+								Dlg.Params->ProjectFiles.Add(Nodes[i]->GetFullPath());
+							}
+						}
+					}
+
 					d->Finder = new FindInFilesThread(this, Dlg.Params);
 					Dlg.Params = 0;
 				}
@@ -3016,6 +3026,20 @@ IdeDoc *AppWnd::FocusDoc()
 void AppWnd::OnProjectDestroy(IdeProject *Proj)
 {
 	d->Projects.Delete(Proj);
+}
+
+void AppWnd::OnProjectChange()
+{
+	GArray<GMdiChild*> Views;
+	if (d->Mdi->GetChildren(Views))
+	{
+		for (unsigned i=0; i<Views.Length(); i++)
+		{
+			IdeDoc *Doc = dynamic_cast<IdeDoc*>(Views[i]);
+			if (Doc)
+				Doc->OnProjectChange();
+		}
+	}
 }
 
 void AppWnd::OnDocDestroy(IdeDoc *Doc)

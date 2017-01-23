@@ -47,6 +47,7 @@ public:
 	// Events
 	void OnLineChange(int Line);
 	void OnMarginClick(int Line);
+	void OnProjectChange();
 	
 	// Impl
 	void OnTitleClick(GMouse &m);

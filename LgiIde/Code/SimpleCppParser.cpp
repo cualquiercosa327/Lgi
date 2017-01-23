@@ -230,7 +230,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 								char16 Str[1024];
 								ZeroObj(Str);
 								
-								StrcpyW(Str, Buf);
+								StrncpyW(Str, Buf, CountOf(Str));
 								char16 *b = StrchrW(Str, '(');
 								if (b)
 								{
@@ -291,7 +291,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 			}
 			default:
 			{
-				if (isalpha(*s) || isdigit(*s) || *s == '_')
+				if (IsAlpha(*s) || IsDigit(*s) || *s == '_')
 				{
 					char16 *Start = s;
 					

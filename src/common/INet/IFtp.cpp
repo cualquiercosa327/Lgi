@@ -9,6 +9,8 @@
 #include "GString.h"
 #include "LgiCommon.h"
 
+#include "FtpListParser.cpp"
+
 ///////////////////////////////////////////////////////////////////
 enum FtpTransferMode
 {
@@ -78,6 +80,58 @@ IFtpEntry::IFtpEntry(IFtpEntry *Entry)
 		*this = *Entry;
 }
 
+IFtpEntry::IFtpEntry(struct ftpparse *Fp, const char *Cs)
+{
+	UserData = NULL;
+	Attributes = 0;
+	Size = 0;
+	if (Fp)
+	{
+		Name.Set(Fp->name, Fp->namelen);
+		if (Name(0) == '.')
+			Attributes |= IFTP_HIDDEN;
+		
+		Size = (Fp->sizetype == FTPPARSE_SIZE_BINARY) ? Fp->size : -1;
+		
+		if (Fp->mtimetype != FTPPARSE_MTIME_UNKNOWN)
+		{
+			struct tm *local = localtime(&Fp->mtime);
+			if (local)
+				Date = local;
+		}
+
+		char *perm = Fp->perms;
+		if (strlen(perm) > 0)
+		{
+			if (perm[0] == 'd' ||
+				perm[0] == 'l') Attributes |= IFTP_DIR;
+			if (perm[1] != '-') Attributes |= IFTP_READ;
+			if (perm[2] != '-') Attributes |= IFTP_WRITE;
+			if (perm[3] != '-') Attributes |= IFTP_EXECUTE;
+
+			if (perm[4] != '-') Attributes |= IFTP_GRP_READ;
+			if (perm[5] != '-') Attributes |= IFTP_GRP_WRITE;
+			if (perm[6] != '-') Attributes |= IFTP_GRP_EXECUTE;
+
+			if (perm[7] != '-') Attributes |= IFTP_GLOB_READ;
+			if (perm[8] != '-') Attributes |= IFTP_GLOB_WRITE;
+			if (perm[9] != '-') Attributes |= IFTP_GLOB_EXECUTE;
+
+			if (perm[0] == 'l')
+			{
+				// link...
+				Attributes |= IFTP_SYM_LINK;
+				if (Name)
+				{
+					int Arrow = Name.Find("->");
+					if (Arrow > 0)
+						Name.Length(Arrow-1);
+				}
+			}
+		}
+	}
+}
+
 IFtpEntry::IFtpEntry(char *Entry, const char *Cs)
 {
 	UserData = NULL;
@@ -105,21 +159,23 @@ IFtpEntry::IFtpEntry(char *Entry, const char *Cs)
 				Date.SetDate(T[0]);
 				Date.SetTime(T[1]);
 			}
-			else if (T.Length() > 7)
+			else
 			{
 				// Unix format
-				int SizeElement = (isdigit(*T[4])) ? 4 : 3;
-				_Size = T[SizeElement];
-				_Name = SizeElement + 4;
+				int SizeElement = T.Length() > 4 && isdigit(*T[4]) ? 4 : 3;
+				_Size = T.Length() > SizeElement ? T[SizeElement] : NULL;
+				_Name = T.Length() - 1;
 				_Perm = T[0];
-				User = T[SizeElement-2];
-				Group = T[SizeElement-1];
+				if (T.Length() > SizeElement-2)
+					User = T[SizeElement-2];
+				if (T.Length() > SizeElement-1)
+					Group = T[SizeElement-1];
 
-				char *MonthStr = T[SizeElement+1];
-				char *YearOrTime = T[SizeElement+3];
+				char *MonthStr = T.Length() > SizeElement + 1 ? T[SizeElement+1] : NULL;
+				char *YearOrTime = T.Length() > SizeElement + 3 ? T[SizeElement+3] : NULL;
 				if (MonthStr && YearOrTime)
 				{
-					int Day = atoi(T[SizeElement+2]);
+					int Day = T.Length() > SizeElement+2 ? atoi(T[SizeElement+2]) : -1;
 					int Month = LookupMonth(MonthStr);
 					int Year = 0;
 
@@ -689,7 +745,7 @@ bool IFtp::ListDir(GArray<IFtpEntry*> &Dir)
 		if (IsOpen() &&
 			SetupData(true))
 		{
-			GMemQueue Buf;
+			GStringPipe Buf;
 
 			// List command
 			strcpy_s(d->OutBuf, sizeof(d->OutBuf), "LIST");
@@ -736,44 +792,49 @@ bool IFtp::ListDir(GArray<IFtpEntry*> &Dir)
 			d->Listen.Reset();
 			
 			// Parse the results
-			int Len = (int)Buf.GetSize();
-			if (Status && Len)
+			GString Text = Buf.NewGStr();
+			if (Status && Text)
 			{
-				char *Text = new char[Len+1];
-				if (Text && Buf.Read((uchar*)Text, Len))
+				#ifdef LOG_LISTINGS
+				GFile F;
+				if (F.Open("c:\\temp\\ftplog.txt", O_WRITE))
 				{
-					Text[Len] = 0;
-
-					#ifdef LOG_LISTINGS
-					GFile F;
-					if (F.Open("c:\\temp\\ftplog.txt", O_WRITE))
-					{
-						F.Write(Text, Len);
-						F.Close();
-					}
-					#endif
-
-					GToken Lines(Text, "\r\n");
-					for (unsigned i=0; i<Lines.Length(); i++)
-					{
-						IFtpEntry *e = new IFtpEntry(Lines[i], GetCharset());
-						if (e && e->Name)
-						{
-							if (strcmp(e->Name, ".") != 0 &&
-								strcmp(e->Name, "..") != 0)
-							{
-								Dir.Add(e);
-								e = 0;
-							}
-						}
-						
-						DeleteObj(e);
-					}
-					
-					DeleteArray(Text);
-					VerifyRange(ReadLine(), 2);
-					Status = true;
+					F.Write(Text, Len);
+					F.Close();
 				}
+				#endif
+
+				GString::Array Ln = Text.Split("\n");
+
+				// Parse lines...
+				for (unsigned i=0; i<Ln.Length(); i++)
+				{
+					GString Line = Ln[i].Strip();
+
+					#if 1					
+					struct ftpparse fp;					
+					int r = ftpparse(&fp, Line, Line.Length());
+					if (!r)
+						LgiTrace("Error: %s\n", Line.Get());
+					IFtpEntry *e = r ? new IFtpEntry(&fp, GetCharset()) : NULL;
+					#else
+					IFtpEntry *e = new IFtpEntry(Line, GetCharset());
+					#endif
+					if (e && e->Name)
+					{
+						if (strcmp(e->Name, ".") != 0 &&
+							strcmp(e->Name, "..") != 0)
+						{
+							Dir.Add(e);
+							e = 0;
+						}
+					}
+						
+					DeleteObj(e);
+				}
+					
+				VerifyRange(ReadLine(), 2);
+				Status = true;
 			}
 			else
 			{

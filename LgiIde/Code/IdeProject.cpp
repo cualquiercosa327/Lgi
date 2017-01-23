@@ -21,6 +21,9 @@
 #include "ProjectNode.h"
 #include "WebFldDlg.h"
 #include "GCss.h"
+#include "GTableLayout.h"
+#include "GTextLabel.h"
+#include "GButton.h"
 
 extern const char *Untitled;
 
@@ -996,10 +999,8 @@ void IdeProject::CreateProject()
 	Expanded(true);	
 }
 
-bool IdeProject::OpenFile(char *FileName)
+ProjectStatus IdeProject::OpenFile(char *FileName)
 {
-	bool Status = false;
-	
 	Empty();
 
 	if (LgiIsRelativePath(FileName))
@@ -1021,13 +1022,28 @@ bool IdeProject::OpenFile(char *FileName)
 		{
 			GXmlTree x;
 			GXmlTag r;
-			if ((Status = x.Read(&r, &f)))
+			if (x.Read(&r, &f))
 			{
-				OnOpen(&r);
-				d->App->GetTree()->Insert(this);
-				Expanded(true);
+				int64 Nodes = r.CountTags();
+				GProgressDlg Prog(d->App, 500);
+				Prog.SetDescription("Loading project...");
+				Prog.SetLimits(0, Nodes);
+				Prog.SetYieldTime(200);
+				Prog.SetAlwaysOnTop(true);
 				
-				d->Settings.Serialize(&r, false /* read */);
+				OnOpen(Prog, &r);
+				if (Prog.Cancel())
+				{
+					return OpenCancel;
+				}
+				else
+				{
+					d->App->GetTree()->Insert(this);
+					Expanded(true);
+				
+					d->Settings.Serialize(&r, false /* read */);
+					return OpenOk;
+				}
 			}
 			else
 			{
@@ -1036,7 +1052,7 @@ bool IdeProject::OpenFile(char *FileName)
 		}
 	}
 
-	return Status;
+	return OpenError;
 }
 
 bool IdeProject::SaveFile(char *FileName)
@@ -1049,12 +1065,25 @@ bool IdeProject::SaveFile(char *FileName)
 		if (f.Open(Full, O_WRITE))
 		{
 			GXmlTree x;
+			GProgressDlg Prog(d->App, 1000);
+			Prog.SetAlwaysOnTop(true);
+			Prog.SetDescription("Serializing project XML...");
+			Prog.SetYieldTime(200);
+			Prog.SetCanCancel(false);
 
 			d->Settings.Serialize(this, true /* write */);
-			if (x.Write(this, &f))
+			
+			GStringPipe Buf(4096);			
+			if (x.Write(this, &Buf, &Prog))
 			{
-				d->Dirty = false;
-				return true;
+				GCopyStreamer Cp;
+				Prog.SetDescription("Writing XML...");
+				LgiYield();
+				if (Cp.Copy(&Buf, &f))
+				{
+					d->Dirty = false;
+					return true;
+				}
 			}
 		}
 	}
@@ -1065,9 +1094,10 @@ bool IdeProject::SaveFile(char *FileName)
 void IdeProject::SetDirty()
 {
 	d->Dirty = true;
+	d->App->OnProjectChange();
 }
 
-void IdeProject::SetClean()
+bool IdeProject::SetClean()
 {
 	if (d->Dirty)
 	{
@@ -1082,6 +1112,7 @@ void IdeProject::SetClean()
 				d->App->OnFile(d->FileName, true);
 				Update();
 			}
+			else return false;
 		}
 
 		SaveFile(0);
@@ -1091,6 +1122,8 @@ void IdeProject::SetClean()
 	{
 		p->SetClean();
 	}
+
+	return true;
 }
 
 char *IdeProject::GetText(int Col)
@@ -2696,10 +2729,11 @@ int IdeTree::OnDrop(GArray<GDragData> &Data, GdcPt2 p, int KeyState)
 			IdeCommon *Dst = dynamic_cast<IdeCommon*>(Folder?Folder:Hit);
 			if (Dst)
 			{
+				AddFilesProgress Prog(this);
 				GDropFiles Df(*Data);
-				for (int i=0; i<Df.Length(); i++)
+				for (int i=0; i<Df.Length() && !Prog.Cancel; i++)
 				{
-					Dst->AddFiles(Df[i]);
+					Dst->AddFiles(&Prog, Df[i]);
 				}
 			}
 		}
@@ -2710,5 +2744,65 @@ int IdeTree::OnDrop(GArray<GDragData> &Data, GdcPt2 p, int KeyState)
 	}
 
 	return DROPEFFECT_NONE;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+AddFilesProgress::AddFilesProgress(GViewI *par)
+{
+	v = 0;
+	Cancel = false;
+	Msg = NULL;
+	SetParent(par);
+	Ts = LgiCurrentTime();
+	GRect r(0, 0, 140, 100);
+	SetPos(r);
+	MoveSameScreen(par);
+	Name("Importing files...");
+
+	GTableLayout *t = new GTableLayout(100);
+	AddView(t);
+		
+	GLayoutCell *c = t->GetCell(0, 0);
+	c->Add(new GText(-1, 0, 0, -1, -1, "Loaded:"));
+		
+	c = t->GetCell(1, 0);
+	c->Add(Msg = new GText(-1, 0, 0, -1, -1, "..."));
+		
+	c = t->GetCell(0, 1, true, 2);
+	c->TextAlign(GCss::Len(GCss::AlignRight));
+	c->Add(new GButton(IDCANCEL, 0, 0, -1, -1, "Cancel"));
+}
+
+int64 AddFilesProgress::Value()
+{
+	return v;
+}
+
+void AddFilesProgress::Value(int64 val)
+{
+	v = val;
+	if (Visible() && Msg)
+	{
+		Msg->Value(v);
+		Msg->SendNotify(GNotifyTableLayout_Refresh);
+	}
+
+	uint64 Now = LgiCurrentTime();
+	if (Visible())
+	{
+		if (Now - Ts > 150)
+			LgiYield();
+	}
+	else if (Now - Ts > 1000)
+	{
+		DoModeless();
+	}
+}
+
+int AddFilesProgress::OnNotify(GViewI *c, int f)
+{
+	if (c->GetId() == IDCANCEL)
+		Cancel = true;
+	return 0;
 }
 

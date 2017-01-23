@@ -697,8 +697,13 @@ char16 *StrncpyW(char16 *a, const char16 *b, int n)
 {
 	if (a && b && n > 0)
 	{
-		while (*b && --n > 0)
+		while (*b)
 		{
+			if (--n <= 0)
+			{
+				break;
+			}
+
 			*a++ = *b++;
 		}
 

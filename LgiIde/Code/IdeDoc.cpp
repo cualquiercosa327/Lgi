@@ -2088,8 +2088,7 @@ IdeDoc::~IdeDoc()
 
 enum
 {
-	IDM_SAVE = 100,
-	IDM_COPY_FILE,
+	IDM_COPY_FILE = 1100,
 	IDM_COPY_PATH,
 	IDM_BROWSE
 };
@@ -2388,6 +2387,13 @@ GMessage::Result IdeDoc::OnEvent(GMessage *Msg)
 void IdeDoc::OnPulse()
 {
 	d->CheckModTime();
+}
+
+void IdeDoc::OnProjectChange()
+{
+	DeleteObj(d->FilePopup);
+	DeleteObj(d->MethodPopup);
+	DeleteObj(d->SymPopup);
 }
 
 int IdeDoc::OnNotify(GViewI *v, int f)
