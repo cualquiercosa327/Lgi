@@ -954,9 +954,12 @@ public:
 	public:
 		GAutoPtr<GSurface> SourceImg, DisplayImg;
 		GRect Margin, Border, Padding;
+		GString Source;
+		GdcPt2 Size;
 		
 		bool LayoutDirty;
 		GRect Pos; // position in document co-ordinates
+		GRect ImgPos;
 		
 		ImageBlock(GRichTextPriv *priv);
 		ImageBlock(const ImageBlock *Copy);
@@ -1029,6 +1032,7 @@ public:
 	struct CreateContext
 	{
 		TextBlock *Tb;
+		ImageBlock *Ib;
 		GArray<uint32> Buf;
 		char16 LastChar;
 		GFontCache *FontCache;
@@ -1038,6 +1042,7 @@ public:
 		CreateContext(GFontCache *fc)
 		{
 			Tb = NULL;
+			Ib = NULL;
 			LastChar = '\n';
 			FontCache = fc;
 			StartOfLine = true;

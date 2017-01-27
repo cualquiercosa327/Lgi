@@ -7,6 +7,8 @@ GRichTextPriv::ImageBlock::ImageBlock(GRichTextPriv *priv) : Block(priv)
 	LayoutDirty = false;
 	Pos.ZOff(-1, -1);
 	Style = NULL;
+	Size.x = 200;
+	Size.y = 64;
 
 	Margin.ZOff(0, 0);
 	Border.ZOff(0, 0);
@@ -17,6 +19,7 @@ GRichTextPriv::ImageBlock::ImageBlock(const ImageBlock *Copy) : Block(Copy->d)
 {
 	LayoutDirty = true;
 	SourceImg.Reset(new GMemDC(Copy->SourceImg));
+	Size = Copy->Size;
 
 	Margin = Copy->Margin;
 	Border = Copy->Border;
@@ -63,8 +66,27 @@ GNamedStyle *GRichTextPriv::ImageBlock::GetStyle(int At)
 
 void GRichTextPriv::ImageBlock::SetStyle(GNamedStyle *s)
 {
-	Style = s;
-	LayoutDirty = true;
+	if ((Style = s))
+	{
+		GFont *Fnt = d->GetFont(s);
+		LayoutDirty = true;
+		LgiAssert(Fnt != NULL);
+
+		Margin.x1 = Style->MarginLeft().ToPx(Pos.X(), Fnt);
+		Margin.y1 = Style->MarginTop().ToPx(Pos.Y(), Fnt);
+		Margin.x2 = Style->MarginRight().ToPx(Pos.X(), Fnt);
+		Margin.y2 = Style->MarginBottom().ToPx(Pos.Y(), Fnt);
+
+		Border.x1 = Style->BorderLeft().ToPx(Pos.X(), Fnt);
+		Border.y1 = Style->BorderTop().ToPx(Pos.Y(), Fnt);
+		Border.x2 = Style->BorderRight().ToPx(Pos.X(), Fnt);
+		Border.y2 = Style->BorderBottom().ToPx(Pos.Y(), Fnt);
+
+		Padding.x1 = Style->PaddingLeft().ToPx(Pos.X(), Fnt);
+		Padding.y1 = Style->PaddingTop().ToPx(Pos.Y(), Fnt);
+		Padding.x2 = Style->PaddingRight().ToPx(Pos.X(), Fnt);
+		Padding.y2 = Style->PaddingBottom().ToPx(Pos.Y(), Fnt);
+	}
 }
 
 int GRichTextPriv::ImageBlock::Length()
@@ -90,7 +112,7 @@ bool GRichTextPriv::ImageBlock::GetPosFromIndex(BlockCursor *Cursor)
 		return false;
 	}
 
-	Cursor->Pos = Pos;
+	Cursor->Pos = ImgPos;
 	Cursor->Line = Pos;
 	if (Cursor->Offset == 0)
 	{
@@ -112,7 +134,9 @@ bool GRichTextPriv::ImageBlock::HitTest(HitTestResult &htr)
 
 	htr.Near = false;
 	htr.LineHint = 0;
-	if (htr.In.x < Pos.X() / 2)
+
+	int Cx = ImgPos.x1 + (ImgPos.X() / 2);
+	if (htr.In.x < Cx)
 		htr.Idx = 0;
 	else
 		htr.Idx = 1;
@@ -162,6 +186,16 @@ void GRichTextPriv::ImageBlock::OnPaint(PaintContext &Ctx)
 	Ctx.DrawBox(r, Border, BorderCol);
 	Ctx.DrawBox(r, Padding, Ctx.Colours[Unselected].Back);
 
+	// After image selection end point
+	if (CurEndPoint < EndPoints &&
+		EndPoint[CurEndPoint] == 0)
+	{
+		Ctx.Type = Ctx.Type == Selected ? Unselected : Selected;
+		CurEndPoint++;
+	}
+
+	bool ImgSelected = Ctx.Type == Selected;
+
 	GSurface *Src = SourceImg ? SourceImg : DisplayImg;
 	if (Src)
 	{
@@ -169,10 +203,12 @@ void GRichTextPriv::ImageBlock::OnPaint(PaintContext &Ctx)
 	}
 	else
 	{
-		Ctx.pDC->Colour(Ctx.Colours[Unselected].Back);
+		// Drag missing image...
+		r = ImgPos;
+		Ctx.pDC->Colour(ImgSelected ? GColour(222, 222, 255) : GColour(245, 245, 245));
 		Ctx.pDC->Rectangle(&r);
 
-		Ctx.pDC->Colour(LC_MED, 24);
+		Ctx.pDC->Colour(LC_LOW, 24);
 		uint Ls = Ctx.pDC->LineStyle(GSurface::LineAlternate);
 		Ctx.pDC->Box(&r);
 		Ctx.pDC->LineStyle(Ls);
@@ -182,7 +218,32 @@ void GRichTextPriv::ImageBlock::OnPaint(PaintContext &Ctx)
 		Ctx.pDC->Colour(GColour::Red);
 		int Sz = 5;
 		Ctx.pDC->Line(Cx - Sz, Cy - Sz, Cx + Sz, Cy + Sz);
+		Ctx.pDC->Line(Cx - Sz, Cy - Sz + 1, Cx + Sz - 1, Cy + Sz);
+		Ctx.pDC->Line(Cx - Sz + 1, Cy - Sz, Cx + Sz, Cy + Sz - 1);
+
 		Ctx.pDC->Line(Cx + Sz, Cy - Sz, Cx - Sz, Cy + Sz);
+		Ctx.pDC->Line(Cx + Sz - 1, Cy - Sz, Cx - Sz, Cy + Sz - 1);
+		Ctx.pDC->Line(Cx + Sz, Cy - Sz + 1, Cx - Sz + 1, Cy + Sz);
+	}
+
+	// After image selection end point
+	if (CurEndPoint < EndPoints &&
+		EndPoint[CurEndPoint] == 1)
+	{
+		Ctx.Type = Ctx.Type == Selected ? Unselected : Selected;
+		CurEndPoint++;
+	}
+
+	if (Ctx.Cursor &&
+		Ctx.Cursor->Blk == this &&
+		Ctx.Cursor->Blink &&
+		d->View->Focus())
+	{
+		Ctx.pDC->Colour(CursorColour);
+		if (Ctx.Cursor->Pos.Valid())
+			Ctx.pDC->Rectangle(&Ctx.Cursor->Pos);
+		else
+			Ctx.pDC->Rectangle(Pos.x1, Pos.y1, Pos.x1, Pos.y2);
 	}
 }
 
@@ -203,11 +264,25 @@ bool GRichTextPriv::ImageBlock::OnLayout(Flow &flow)
 	flow.Right -= Border.x2 + Padding.x2;
 	flow.CurY += Border.y1 + Padding.y1;
 
+	ImgPos.x1 = Pos.x1 + Padding.x1;
+	ImgPos.y1 = Pos.y1 + Padding.y1;	
+
 	GSurface *Src = SourceImg ? SourceImg : DisplayImg;
 	if (Src)
-		Pos.y2 = Pos.y1 + Src->Y() - 1;
+	{
+		ImgPos.x2 = ImgPos.x1 + Src->X() - 1;
+		ImgPos.y2 = ImgPos.y1 + Src->Y() - 1;
+	}
 	else
-		Pos.y2 = Pos.y1 + 39;
+	{
+		ImgPos.x2 = ImgPos.x1 + Size.x - 1;
+		ImgPos.y2 = ImgPos.y1 + Size.y - 1;
+	}
+
+	int Px2 = ImgPos.x2 + Padding.x2;
+	if (Px2 < Pos.x2)
+		Pos.x2 = ImgPos.x2 + Padding.x2;
+	Pos.y2 = ImgPos.y2 + Padding.y2;
 
 	flow.CurY = Pos.y2 + 1 + Margin.y2 + Border.y2 + Padding.y2;
 	flow.Left -= Margin.x1 + Border.x1 + Padding.x1;

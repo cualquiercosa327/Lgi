@@ -1818,6 +1818,7 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 			}
 			case TAG_IMG:
 			{
+				ctx.Tb = NULL;
 				IsBlock = true;
 				break;
 			}
@@ -1888,7 +1889,22 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 
 		bool EndStyleChange = false;
 
-		if (c->TagId == TAG_A)
+		if (c->TagId == TAG_IMG)
+		{
+			Blocks.Add(ctx.Ib = new ImageBlock(this));
+			if (ctx.Ib)
+			{
+				const char *Src;
+				if (c->Get("src", Src))
+					ctx.Ib->Source = Src;
+
+				if (CachedStyle)
+					ctx.Ib->SetStyle(CachedStyle);
+
+
+			}
+		}
+		else if (c->TagId == TAG_A)
 		{
 			ctx.StartOfLine |= ctx.AddText(CachedStyle, c->GetText());
 			
