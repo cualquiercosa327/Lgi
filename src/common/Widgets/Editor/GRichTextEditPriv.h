@@ -452,63 +452,11 @@ public:
 		GString Param;
 		bool Emoji;
 
-		StyleText(const StyleText *St)
-		{
-			Emoji = St->Emoji;
-			Style = NULL;
-			Element = St->Element;
-			Param = St->Param;
-			if (St->Style)
-				SetStyle(St->Style);
-			Add((uint32*)&St->ItemAt(0), St->Length());
-		}
-		
-		StyleText(const uint32 *t = NULL, int Chars = -1, GNamedStyle *style = NULL)
-		{
-			Emoji = false;
-			Style = NULL;
-			Element = CONTENT;
-			if (style)
-				SetStyle(style);
-			if (t)
-			{
-				if (Chars < 0)
-					Chars = Strlen(t);
-				Add((uint32*)t, Chars);
-			}
-		}
-
-		uint32 *At(int i)
-		{
-			if (i >= 0 && i < (int)Length())
-				return &(*this)[i];
-			LgiAssert(0);
-			return NULL;
-		}
-		
-		GNamedStyle *GetStyle()
-		{
-			return Style;
-		}
-				
-		void SetStyle(GNamedStyle *s)
-		{
-			if (Style != s)
-			{
-				Style = s;
-				Colours.Empty();
-				
-				if (Style)
-				{			
-					GCss::ColorDef c = Style->Color();
-					if (c.Type == GCss::ColorRgb)
-						Colours.Fore.Set(c.Rgb32, 32);
-					c = Style->BackgroundColor();
-					if (c.Type == GCss::ColorRgb)
-						Colours.Back.Set(c.Rgb32, 32);
-				}				
-			}
-		}
+		StyleText(const StyleText *St);
+		StyleText(const uint32 *t = NULL, int Chars = -1, GNamedStyle *style = NULL);
+		uint32 *At(int i);
+		GNamedStyle *GetStyle();
+		void SetStyle(GNamedStyle *s);
 	};
 	
 	struct PaintContext
@@ -920,86 +868,11 @@ public:
 		GArray<uint32> Utf32;
 		#endif
 
-		EmojiDisplayStr(StyleText *src, GSurface *img, GFont *f, const uint32 *s, int l = -1) :
-			DisplayStr(src, NULL, s, l)
-		{
-			Img = img;
-			#if defined(_MSC_VER)
-			Utf16to32(Utf32, (const uint16*) StrCache.Get(), len);
-			uint32 *u = &Utf32[0];
-			#else
-			uint32 *u = (uint32*)StrCache.Get();
-			#endif
-
-			for (int i=0; i<Chars; i++)
-			{
-				int Idx = EmojiToIconIndex(u + i, Chars - i);
-				LgiAssert(Idx >= 0);
-				if (Idx >= 0)
-				{
-					int x = Idx % EMOJI_GROUP_X;
-					int y = Idx / EMOJI_GROUP_X;
-					GRect &rc = SrcRect[i];
-					rc.ZOff(EMOJI_CELL_SIZE-1, EMOJI_CELL_SIZE-1);
-					rc.Offset(x * EMOJI_CELL_SIZE, y * EMOJI_CELL_SIZE);
-				}
-			}
-
-			x = SrcRect.Length() * EMOJI_CELL_SIZE;
-			y = EMOJI_CELL_SIZE;
-			xf = IntToFixed(x);
-			yf = IntToFixed(y);
-		}
-
-		GAutoPtr<DisplayStr> Clone(int Start, int Len = -1)
-		{
-			if (Len < 0)
-				Len = Chars - Start;
-			#if defined(_MSC_VER)
-			LgiAssert(	Start >= 0 &&
-						Start < (int)Utf32.Length() &&
-						Start + Len <= (int)Utf32.Length());
-			#endif
-			GAutoPtr<DisplayStr> s(new EmojiDisplayStr(Src, Img, NULL,
-				#if defined(_MSC_VER)
-				&Utf32[Start]
-				#else
-				(uint32*)(const char16*)(*this)
-				#endif
-				, Len));
-			return s;
-		}
-
-		void Paint(GSurface *pDC, int &FixX, int FixY, GColour &Back)
-		{
-			GRect f(0, 0, x-1, y-1);
-			f.Offset(FixedToInt(FixX), FixedToInt(FixY));
-			pDC->Colour(Back);
-			pDC->Rectangle(&f);
-
-			int Op = pDC->Op(GDC_ALPHA);
-			for (unsigned i=0; i<SrcRect.Length(); i++)
-			{
-				pDC->Blt(f.x1, f.y1, Img, &SrcRect[i]);
-				f.x1 += EMOJI_CELL_SIZE;
-				FixX += IntToFixed(EMOJI_CELL_SIZE);
-			}
-			pDC->Op(Op);
-		}
-
-		double GetAscent()
-		{
-			return EMOJI_CELL_SIZE * 0.8;
-		}
-
-		int PosToIndex(int XPos, bool Nearest)
-		{
-			if (XPos >= (int)x)
-				return Chars;
-			if (XPos <= 0)
-				return 0;
-			return (XPos + (Nearest ? EMOJI_CELL_SIZE >> 1 : 0)) / EMOJI_CELL_SIZE;
-		}
+		EmojiDisplayStr(StyleText *src, GSurface *img, GFont *f, const uint32 *s, int l = -1);
+		GAutoPtr<DisplayStr> Clone(int Start, int Len = -1);
+		void Paint(GSurface *pDC, int &FixX, int FixY, GColour &Back);
+		double GetAscent();
+		int PosToIndex(int XPos, bool Nearest);
 	};
 
 	/// This structure is a layout of a full line of text. Made up of one or more
@@ -1015,58 +888,13 @@ public:
 		/// Is '1' for lines that have a new line character at the end.
 		uint8 NewLine;
 		
-		TextLine(int XOffsetPx, int WidthPx, int YOffsetPx)
-		{
-			NewLine = 0;
-			PosOff.ZOff(0, 0);
-			PosOff.Offset(XOffsetPx, YOffsetPx);
-		}
-
-		int Length()
-		{
-			int Len = NewLine;
-			for (unsigned i=0; i<Strs.Length(); i++)
-				Len += Strs[i]->Chars;
-			return Len;
-		}
+		TextLine(int XOffsetPx, int WidthPx, int YOffsetPx);
+		int Length();
 		
 		/// This runs after the layout line has been filled with display strings.
 		/// It measures the line and works out the right offsets for each strings
 		/// so that their baselines all match up correctly.
-		void LayoutOffsets(int DefaultFontHt)
-		{
-			double BaseLine = 0.0;
-			int HtPx = 0;
-			
-			for (unsigned i=0; i<Strs.Length(); i++)
-			{
-				DisplayStr *ds = Strs[i];
-				double Ascent = ds->GetAscent();
-				BaseLine = max(BaseLine, Ascent);
-				HtPx = max(HtPx, ds->Y());
-			}
-			
-			if (Strs.Length() == 0)
-				HtPx = DefaultFontHt;
-			else
-				LgiAssert(HtPx > 0);
-			
-			for (unsigned i=0; i<Strs.Length(); i++)
-			{
-				DisplayStr *ds = Strs[i];
-				double Ascent = ds->GetAscent();
-				if (Ascent > 0.0)
-					ds->OffsetY = (int)(BaseLine - Ascent);
-				LgiAssert(ds->OffsetY >= 0);
-				HtPx = max(HtPx, ds->OffsetY+ds->Y());
-			}
-			
-			PosOff.y2 = PosOff.y1 + HtPx - 1;
-		}
-
-		#ifdef _DEBUG
-		void DumpNodes(GTreeItem *Ti);
-		#endif
+		void LayoutOffsets(int DefaultFontHt);
 	};
 	
 	class TextBlock : public Block
@@ -1086,6 +914,53 @@ public:
 		TextBlock(GRichTextPriv *priv);
 		TextBlock(const TextBlock *Copy);
 		~TextBlock();
+
+		bool IsValid();
+
+		// No state change methods
+		int GetLines();
+		bool OffsetToLine(int Offset, int *ColX, GArray<int> *LineY);
+		int LineToOffset(int Line);
+		GRect GetPos() { return Pos; }
+		void Dump();
+		GNamedStyle *GetStyle(int At = -1);
+		void SetStyle(GNamedStyle *s);
+		int Length();
+		bool ToHtml(GStream &s);
+		bool GetPosFromIndex(BlockCursor *Cursor);
+		bool HitTest(HitTestResult &htr);
+		void OnPaint(PaintContext &Ctx);
+		bool OnLayout(Flow &flow);
+		int GetTextAt(uint32 Offset, GArray<StyleText*> &t);
+		int CopyAt(int Offset, int Chars, GArray<uint32> *Text);
+		bool Seek(SeekType To, BlockCursor &Cursor);
+		int FindAt(int StartIdx, const uint32 *Str, GFindReplaceCommon *Params);
+		void IncAllStyleRefs();
+		#ifdef _DEBUG
+		void DumpNodes(GTreeItem *Ti);
+		#endif
+
+		// Transactional changes
+		bool AddText(Transaction *Trans, int AtOffset, const uint32 *Str, int Chars = -1, GNamedStyle *Style = NULL);
+		bool ChangeStyle(Transaction *Trans, int Offset, int Chars, GCss *Style, bool Add);
+		int DeleteAt(Transaction *Trans, int BlkOffset, int Chars, GArray<uint32> *DeletedText = NULL);
+		bool DoCase(Transaction *Trans, int StartIdx, int Chars, bool Upper);
+	};
+
+	class ImageBlock : public Block
+	{
+		GNamedStyle *Style;
+
+	public:
+		GAutoPtr<GSurface> SourceImg, DisplayImg;
+		GRect Margin, Border, Padding;
+		
+		bool LayoutDirty;
+		GRect Pos; // position in document co-ordinates
+		
+		ImageBlock(GRichTextPriv *priv);
+		ImageBlock(const ImageBlock *Copy);
+		~ImageBlock();
 
 		bool IsValid();
 

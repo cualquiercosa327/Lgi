@@ -3,6 +3,198 @@
 #include "GRichTextEditPriv.h"
 #include "Emoji.h"
 
+//////////////////////////////////////////////////////////////////////////////////////////////////
+GRichTextPriv::StyleText::StyleText(const StyleText *St)
+{
+	Emoji = St->Emoji;
+	Style = NULL;
+	Element = St->Element;
+	Param = St->Param;
+	if (St->Style)
+		SetStyle(St->Style);
+	Add((uint32*)&St->ItemAt(0), St->Length());
+}
+		
+GRichTextPriv::StyleText::StyleText(const uint32 *t, int Chars, GNamedStyle *style)
+{
+	Emoji = false;
+	Style = NULL;
+	Element = CONTENT;
+	if (style)
+		SetStyle(style);
+	if (t)
+	{
+		if (Chars < 0)
+			Chars = Strlen(t);
+		Add((uint32*)t, Chars);
+	}
+}
+
+uint32 *GRichTextPriv::StyleText::At(int i)
+{
+	if (i >= 0 && i < (int)Length())
+		return &(*this)[i];
+	LgiAssert(0);
+	return NULL;
+}
+		
+GNamedStyle *GRichTextPriv::StyleText::GetStyle()
+{
+	return Style;
+}
+				
+void GRichTextPriv::StyleText::SetStyle(GNamedStyle *s)
+{
+	if (Style != s)
+	{
+		Style = s;
+		Colours.Empty();
+				
+		if (Style)
+		{			
+			GCss::ColorDef c = Style->Color();
+			if (c.Type == GCss::ColorRgb)
+				Colours.Fore.Set(c.Rgb32, 32);
+			c = Style->BackgroundColor();
+			if (c.Type == GCss::ColorRgb)
+				Colours.Back.Set(c.Rgb32, 32);
+		}				
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+GRichTextPriv::EmojiDisplayStr::EmojiDisplayStr(StyleText *src, GSurface *img, GFont *f, const uint32 *s, int l) :
+	DisplayStr(src, NULL, s, l)
+{
+	Img = img;
+	#if defined(_MSC_VER)
+	Utf16to32(Utf32, (const uint16*) StrCache.Get(), len);
+	uint32 *u = &Utf32[0];
+	#else
+	uint32 *u = (uint32*)StrCache.Get();
+	#endif
+
+	for (int i=0; i<Chars; i++)
+	{
+		int Idx = EmojiToIconIndex(u + i, Chars - i);
+		LgiAssert(Idx >= 0);
+		if (Idx >= 0)
+		{
+			int x = Idx % EMOJI_GROUP_X;
+			int y = Idx / EMOJI_GROUP_X;
+			GRect &rc = SrcRect[i];
+			rc.ZOff(EMOJI_CELL_SIZE-1, EMOJI_CELL_SIZE-1);
+			rc.Offset(x * EMOJI_CELL_SIZE, y * EMOJI_CELL_SIZE);
+		}
+	}
+
+	x = SrcRect.Length() * EMOJI_CELL_SIZE;
+	y = EMOJI_CELL_SIZE;
+	xf = IntToFixed(x);
+	yf = IntToFixed(y);
+}
+
+GAutoPtr<GRichTextPriv::DisplayStr> GRichTextPriv::EmojiDisplayStr::Clone(int Start, int Len)
+{
+	if (Len < 0)
+		Len = Chars - Start;
+	#if defined(_MSC_VER)
+	LgiAssert(	Start >= 0 &&
+				Start < (int)Utf32.Length() &&
+				Start + Len <= (int)Utf32.Length());
+	#endif
+	GAutoPtr<DisplayStr> s(new EmojiDisplayStr(Src, Img, NULL,
+		#if defined(_MSC_VER)
+		&Utf32[Start]
+		#else
+		(uint32*)(const char16*)(*this)
+		#endif
+		, Len));
+	return s;
+}
+
+void GRichTextPriv::EmojiDisplayStr::Paint(GSurface *pDC, int &FixX, int FixY, GColour &Back)
+{
+	GRect f(0, 0, x-1, y-1);
+	f.Offset(FixedToInt(FixX), FixedToInt(FixY));
+	pDC->Colour(Back);
+	pDC->Rectangle(&f);
+
+	int Op = pDC->Op(GDC_ALPHA);
+	for (unsigned i=0; i<SrcRect.Length(); i++)
+	{
+		pDC->Blt(f.x1, f.y1, Img, &SrcRect[i]);
+		f.x1 += EMOJI_CELL_SIZE;
+		FixX += IntToFixed(EMOJI_CELL_SIZE);
+	}
+	pDC->Op(Op);
+}
+
+double GRichTextPriv::EmojiDisplayStr::GetAscent()
+{
+	return EMOJI_CELL_SIZE * 0.8;
+}
+
+int GRichTextPriv::EmojiDisplayStr::PosToIndex(int XPos, bool Nearest)
+{
+	if (XPos >= (int)x)
+		return Chars;
+	if (XPos <= 0)
+		return 0;
+	return (XPos + (Nearest ? EMOJI_CELL_SIZE >> 1 : 0)) / EMOJI_CELL_SIZE;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+GRichTextPriv::TextLine::TextLine(int XOffsetPx, int WidthPx, int YOffsetPx)
+{
+	NewLine = 0;
+	PosOff.ZOff(0, 0);
+	PosOff.Offset(XOffsetPx, YOffsetPx);
+}
+
+int GRichTextPriv::TextLine::Length()
+{
+	int Len = NewLine;
+	for (unsigned i=0; i<Strs.Length(); i++)
+		Len += Strs[i]->Chars;
+	return Len;
+}
+		
+/// This runs after the layout line has been filled with display strings.
+/// It measures the line and works out the right offsets for each strings
+/// so that their baselines all match up correctly.
+void GRichTextPriv::TextLine::LayoutOffsets(int DefaultFontHt)
+{
+	double BaseLine = 0.0;
+	int HtPx = 0;
+			
+	for (unsigned i=0; i<Strs.Length(); i++)
+	{
+		DisplayStr *ds = Strs[i];
+		double Ascent = ds->GetAscent();
+		BaseLine = max(BaseLine, Ascent);
+		HtPx = max(HtPx, ds->Y());
+	}
+			
+	if (Strs.Length() == 0)
+		HtPx = DefaultFontHt;
+	else
+		LgiAssert(HtPx > 0);
+			
+	for (unsigned i=0; i<Strs.Length(); i++)
+	{
+		DisplayStr *ds = Strs[i];
+		double Ascent = ds->GetAscent();
+		if (Ascent > 0.0)
+			ds->OffsetY = (int)(BaseLine - Ascent);
+		LgiAssert(ds->OffsetY >= 0);
+		HtPx = max(HtPx, ds->OffsetY+ds->Y());
+	}
+			
+	PosOff.y2 = PosOff.y1 + HtPx - 1;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
 GRichTextPriv::TextBlock::TextBlock(GRichTextPriv *priv) : Block(priv)
 {
 	LayoutDirty = false;
@@ -84,6 +276,7 @@ void GRichTextPriv::TextBlock::SetStyle(GNamedStyle *s)
 	if ((Style = s))
 	{
 		Fnt = d->GetFont(s);
+		LayoutDirty = true;
 		LgiAssert(Fnt != NULL);
 
 		Margin.x1 = Style->MarginLeft().ToPx(Pos.X(), Fnt);
@@ -383,14 +576,14 @@ bool GRichTextPriv::TextBlock::HitTest(HitTestResult &htr)
 			htr.LineHint = i;
 			return true;
 		}
-				
+		
 		int FixX = 0;
 		int InputX = IntToFixed(htr.In.x - Pos.x1 - tl->PosOff.x1);
 		for (unsigned n=0; n<tl->Strs.Length(); n++)
 		{
 			DisplayStr *ds = tl->Strs[n];
 			int dsFixX = ds->FX();
-					
+			
 			if (Over &&
 				InputX >= FixX &&
 				InputX < FixX + dsFixX)
@@ -451,7 +644,7 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 			EndPoint[1] = ep;
 		}
 	}
-			
+	
 	// Paint margins, borders and padding...
 	GRect r = Pos;
 	r.x1 -= Margin.x1;
@@ -899,7 +1092,7 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 int GRichTextPriv::TextBlock::GetTextAt(uint32 Offset, GArray<StyleText*> &Out)
 {
 	if (Txt.Length() == 0)
-		return NULL;
+		return 0;
 
 	StyleText **t = &Txt[0];
 	StyleText **e = t + Txt.Length();
@@ -1664,3 +1857,5 @@ void GRichTextPriv::TextBlock::DumpNodes(GTreeItem *Ti)
 	}
 }
 #endif
+
+
