@@ -96,7 +96,8 @@ int GRichTextPriv::ImageBlock::Length()
 
 bool GRichTextPriv::ImageBlock::ToHtml(GStream &s)
 {
-	return false;
+	s.Print("<img src='%s'>", Source.Get());
+	return true;
 }
 
 bool GRichTextPriv::ImageBlock::GetPosFromIndex(BlockCursor *Cursor)
@@ -120,8 +121,7 @@ bool GRichTextPriv::ImageBlock::GetPosFromIndex(BlockCursor *Cursor)
 	}
 	else if (Cursor->Offset == 1)
 	{
-		Cursor->Pos.x1 = Cursor->Pos.x2;
-		Cursor->Pos.x2++;
+		Cursor->Pos.x1 = Cursor->Pos.x2 - 1;
 	}
 
 	return true;
@@ -205,7 +205,8 @@ void GRichTextPriv::ImageBlock::OnPaint(PaintContext &Ctx)
 	{
 		// Drag missing image...
 		r = ImgPos;
-		Ctx.pDC->Colour(ImgSelected ? GColour(222, 222, 255) : GColour(245, 245, 245));
+		GColour cBack(245, 245, 245);
+		Ctx.pDC->Colour(ImgSelected ? cBack.Mix(Ctx.Colours[Selected].Back) : cBack);
 		Ctx.pDC->Rectangle(&r);
 
 		Ctx.pDC->Colour(LC_LOW, 24);
@@ -232,6 +233,12 @@ void GRichTextPriv::ImageBlock::OnPaint(PaintContext &Ctx)
 	{
 		Ctx.Type = Ctx.Type == Selected ? Unselected : Selected;
 		CurEndPoint++;
+	}
+
+	if (Ctx.Type == Selected)
+	{
+		Ctx.pDC->Colour(Ctx.Colours[Selected].Back);
+		Ctx.pDC->Rectangle(ImgPos.x2 + 1, ImgPos.y1, ImgPos.x2 + 7, ImgPos.y2);
 	}
 
 	if (Ctx.Cursor &&

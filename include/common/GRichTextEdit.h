@@ -190,6 +190,8 @@ public:
 	void OnPulse();
 	int OnHitTest(int x, int y);
 	bool OnLayout(GViewLayoutInfo &Inf);
+
+	// D'n'd target
 	int WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState);
 	int OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState);
 
