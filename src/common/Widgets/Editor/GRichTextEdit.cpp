@@ -15,6 +15,7 @@
 #include "GCssTools.h"
 #include "GFontCache.h"
 #include "GUnicode.h"
+#include "GDropFiles.h"
 
 #include "GHtmlCommon.h"
 #include "GHtmlParser.h"
@@ -968,17 +969,18 @@ void GRichTextEdit::OnPosChange()
 
 int GRichTextEdit::WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState)
 {
+	const char *Fd = LGI_FileDropFormat;
+
 	for (char *s = Formats.First(); s; )
 	{
-		if (!_stricmp(s, "text/uri-list") ||
-			!_stricmp(s, "text/html") ||
+		if (!_stricmp(s, Fd) ||
 			!_stricmp(s, "UniformResourceLocatorW"))
 		{
 			s = Formats.Next();
 		}
 		else
 		{
-			// LgiTrace("Ignoring format '%s'\n", s);
+			LgiTrace("Ignoring format '%s'\n", s);
 			Formats.Delete(s);
 			DeleteArray(s);
 			s = Formats.Current();
@@ -990,26 +992,29 @@ int GRichTextEdit::WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState)
 
 int GRichTextEdit::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 {
-	/* FIXME
-	if (!_stricmp(Format, "text/uri-list") ||
-		!_stricmp(Format, "text/html") ||
-		!_stricmp(Format, "UniformResourceLocatorW"))
+	for (unsigned i=0; i<Data.Length(); i++)
 	{
-		if (Data->IsBinary())
+		GDragData &dd = Data[i];
+		if (dd.IsFileDrop())
 		{
-			char16 *e = (char16*) ((char*)Data->Value.Binary.Data + Data->Value.Binary.Length);
-			char16 *s = (char16*)Data->Value.Binary.Data;
-			int len = 0;
-			while (s < e && s[len])
+			GDropFiles Df(dd);
+			for (unsigned n=0; n<Df.Length(); n++)
 			{
-				len++;
+				const char *f = Df[n];
+				char Mt[128];
+				if (LgiGetFileMimeType(f, Mt, sizeof(Mt)) &&
+					!_strnicmp(Mt, "image/", 6))
+				{
+					int LineHint = -1;
+					int Idx = d->HitTest(Pt.x, Pt.y, LineHint);
+					if (Idx >= 0)
+					{
+						int asd=0;
+					}
+				}
 			}
-			// Insert(Cursor, s, len);
-			Invalidate();
-			return DROPEFFECT_COPY;
 		}
 	}
-	*/
 
 	return DROPEFFECT_NONE;
 }
