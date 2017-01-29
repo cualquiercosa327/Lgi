@@ -2345,6 +2345,8 @@ bool MailIMap::Fetch(bool ByUid,
 		LgiTrace("%s:%i - Fetch: Starting loop\n", _FL);
 		#endif
 
+		uint64 LastActivity = LgiCurrentTime();
+		bool Debug = false;
 		while (!Done && Socket->IsOpen())
 		{
 			int r;
@@ -2371,7 +2373,17 @@ bool MailIMap::Fetch(bool ByUid,
 
 					Used += r;
 					Bytes += r;
+					
+					LastActivity = LgiCurrentTime();
 				}
+				else if (!Debug)
+				{
+					if (LgiCurrentTime() - LastActivity > 10000)
+						Debug = true;
+				}
+				
+				if (Debug)
+					LgiTrace("%s:%i - Recv=%i\n", _FL, r);
 			}
 			while (r > 0);
 			
@@ -2386,8 +2398,15 @@ bool MailIMap::Fetch(bool ByUid,
 				#if DEBUG_FETCH
 				LgiTrace("%s:%i - Fetch: MsgSize=%i\n", _FL, MsgSize);
 				#endif
+				
+				if (Debug)
+					LgiTrace("%s:%i - ParseImapResponse=%i\n", _FL, MsgSize);
+				
 				if (!MsgSize)
 					break;
+
+				if (!Debug)
+					LastActivity = LgiCurrentTime();
 				
 				char *b = &Buf[0];
 				if (MsgSize > Used)
