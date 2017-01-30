@@ -2588,6 +2588,12 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 						return 0;
 					}
 				}
+
+				if (d->Finder)
+				{
+					LgiAssert(!"Finder failed to shutdown");
+					break;
+				}
 			}
 
 			if (!d->Finder)
