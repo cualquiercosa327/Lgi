@@ -502,7 +502,7 @@ int Stricmp(const T *str_a, const T *str_b)
 template<typename T>
 int Strnicmp(const T *str_a, const T *str_b, unsigned len)
 {
-	if (!str_a || !str_b)
+	if (!str_a || !str_b || len == 0)
 		return -1;
 
 	REG const T *a = str_a;
@@ -552,6 +552,23 @@ T *Strchr(T *str, int ch)
 		return NULL;
 	
 	for (REG T *s = str; *s; s++)
+	{
+		if (*s == ch)
+			return s;
+	}
+	
+	return NULL;
+}
+
+/// Finds the first instance of a character in the string
+template<typename T>
+T *Strnchr(T *str, int ch, unsigned len)
+{
+	if (!str || len == 0)
+		return NULL;
+	
+	REG T *e = str + len;
+	for (REG T *s = str; s < e; s++)
 	{
 		if (*s == ch)
 			return s;
