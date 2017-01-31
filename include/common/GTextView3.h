@@ -69,6 +69,7 @@ public:
 		/// The colour to draw with. If transparent, then the default 
 		/// line colour is used.
 		GColour c;
+		
 		/// Optional extra decor not supported by the fonts
 		StyleDecor Decor;
 		/// Colour for the optional decor.

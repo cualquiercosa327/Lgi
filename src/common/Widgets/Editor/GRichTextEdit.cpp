@@ -997,6 +997,8 @@ int GRichTextEdit::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 		GDragData &dd = Data[i];
 		if (dd.IsFileDrop())
 		{
+			int AddIndex = -1;
+
 			GDropFiles Df(dd);
 			for (unsigned n=0; n<Df.Length(); n++)
 			{
@@ -1005,9 +1007,33 @@ int GRichTextEdit::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 				if (LgiGetFileMimeType(f, Mt, sizeof(Mt)) &&
 					!_strnicmp(Mt, "image/", 6))
 				{
-					int LineHint = -1;
-					int Idx = d->HitTest(Pt.x, Pt.y, LineHint);
-					if (Idx >= 0)
+					if (AddIndex < 0)
+					{
+						int LineHint = -1;
+						int Idx = d->HitTest(Pt.x, Pt.y, LineHint);
+						if (Idx >= 0)
+						{
+							int BlkOffset;
+							int BlkIdx;
+							GRichTextPriv::Block *b = d->GetBlockByIndex(Idx, &BlkOffset, &BlkIdx);
+							if (b)
+							{
+								// Split 'b' to make room for the image
+								if (BlkOffset > 0)
+								{
+									
+									AddIndex = BlkIdx+1;
+								}
+								else
+								{
+									// Insert before..
+									AddIndex = BlkIdx;
+								}
+							}
+						}
+					}
+
+					if (AddIndex >= 0)
 					{
 						int asd=0;
 					}

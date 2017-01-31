@@ -717,6 +717,15 @@ public:
 				/// True if upper case is desired
 				bool Upper
 			)	{ return false; }
+
+			// Split a block
+			virtual bool Split
+			(
+				/// Current transaction
+				Transaction *Trans,
+				/// The index to add at (-1 = the end)
+				int AtOffset
+			)	{ return false; }
 	};
 
 	struct BlockCursor
