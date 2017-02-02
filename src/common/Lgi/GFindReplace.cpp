@@ -55,9 +55,9 @@ GFindDlg::GFindDlg(GView *Parent, char *Init, GFrCallback Callback, void *UserDa
 	SetParent(Parent);
 	Name(LgiLoadString(L_FR_FIND, "Find"));
 
-	GRect r(0, 0, 450, 300);
+	GRect r(0, 0, 450, 370);
 	SetPos(r);
-	MoveToCenter();
+	MoveSameScreen(Parent);
 
     GTableLayout *t;
     if (AddView(t = new GTableLayout()))
@@ -88,10 +88,14 @@ GFindDlg::GFindDlg(GView *Parent, char *Init, GFrCallback Callback, void *UserDa
 	    
 	    OnPosChange();
 	    
-	    GRect u = t->GetUsedArea();
-	    int Over = t->GetPos().Y() - u.Y();
+	    GRect TblPos = t->GetPos();
+		int TblY = TblPos.Y();
+		GRect Used = t->GetUsedArea();
+		int UsedY = Used.Y();
+	    
+		int Over = TblY - UsedY;
 	    r = GetPos();
-        r.y2 -= Over - GTableLayout::CellSpacing;
+        r.y2 -= Over - (GTableLayout::CellSpacing<<1);
 	    SetPos(r);
 	}	
     
@@ -270,7 +274,7 @@ GReplaceDlg::GReplaceDlg(GView *Parent, char *InitFind, char *InitReplace, GFrCa
 	    GRect u = t->GetUsedArea();
 	    int Over = t->GetPos().Y() - u.Y();
 	    r = GetPos();
-        r.y2 -= Over - GTableLayout::CellSpacing;
+        r.y2 -= Over - (GTableLayout::CellSpacing << 1);
 	    SetPos(r);
 	}
 	
@@ -281,7 +285,6 @@ GReplaceDlg::GReplaceDlg(GView *Parent, char *InitFind, char *InitReplace, GFrCa
 
 GReplaceDlg::~GReplaceDlg()
 {
-	DeleteArray(Replace);
 	DeleteObj(d);
 }
 
