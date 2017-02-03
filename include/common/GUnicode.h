@@ -415,7 +415,7 @@ T *Strupr(T *Str)
 
 // Finds the length of the string in characters
 template<typename T>
-unsigned Strlen(const T *str)
+ptrdiff_t Strlen(const T *str)
 {
 	if (!str)
 		return 0;
