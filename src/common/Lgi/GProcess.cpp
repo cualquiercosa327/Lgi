@@ -752,6 +752,8 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 					printf("execv(%s) failed.\n", Exe);
 					exit(-1);
 				}
+
+				close(Write.Read);
 			}
 			else
 			{
@@ -765,13 +767,13 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 					}
 
 					// stdout -> Read
-					close(1);			// close stdout
-					dup(Read.Write);
+					dup2(Read.Write, stdout);
+					close(Read.Write);
 					close(Read.Read);
 
 					// stderr -> Error
-					close(2);			// close stderr
-					dup(Error.Write);
+					dup2(Error.Write, stderr);
+					close(Error.Write);
 					close(Error.Read);
 
 					execv(Exe, Args);
@@ -781,8 +783,8 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 					exit(-1);
 				}
 			}
-			
-			// printf("Started PID=%i\n", d->Pid);
+			close(Read.Write);
+			close(Error.Write);
 
 			Status = true;
 

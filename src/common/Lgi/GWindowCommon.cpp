@@ -119,12 +119,12 @@ int GWindow::WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState)
 {
 	int Status = DROPEFFECT_NONE;
 
-	#ifdef DEBUG_DND	
+	#if DEBUG_DND	
 	LgiTrace("%s:%i - WillAccept Formats=%i Pt=%i,%i Key=0x%x\n", _FL, Formats.Length(), Pt.x, Pt.y, KeyState);
 	#endif
 	for (char *f=Formats.First(); f; )
 	{
-		#ifdef DEBUG_DND
+		#if DEBUG_DND
 		LgiTrace("\tFmt=%s\n", f);
 		#endif
 		if (!stricmp(f, LGI_FileDropFormat))

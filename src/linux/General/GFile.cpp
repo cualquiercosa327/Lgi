@@ -1291,6 +1291,13 @@ bool GFile::IsOpen()
 	return ValidHandle(d->hFile);
 }
 
+#define DEBUG_OPEN_FILES 	0
+
+#if DEBUG_OPEN_FILES
+GMutex Lck;
+GArray<GFile*> OpenFiles;
+#endif
+
 int GFile::Open(const char *File, int Mode)
 {
 	int Status = false;
@@ -1315,10 +1322,29 @@ int GFile::Open(const char *File, int Mode)
 			}
 			Status = true;
 			d->Status = true;
+
+			#if DEBUG_OPEN_FILES			
+			if (Lck.Lock(_FL))
+			{
+				if (!OpenFiles.HasItem(this))
+					OpenFiles.Add(this);
+				Lck.Unlock();
+			}
+			#endif
 		}
 		else
 		{
 			d->ErrorCode = errno;
+
+			#if DEBUG_OPEN_FILES
+			if (Lck.Lock(_FL))
+			{
+				for (unsigned i=0; i<OpenFiles.Length(); i++)
+					printf("%i: %s\n", i, OpenFiles[i]->GetName());
+				Lck.Unlock();
+			}
+			#endif
+
 			printf("GFile::Open failed\n\topen(%s,%08.8x) = %i\n\terrno=%s (%s)\n",
 				File, 
 				Mode, 
@@ -1338,6 +1364,14 @@ int GFile::Close()
 		close(d->hFile);
 		d->hFile = INVALID_HANDLE;
 		DeleteArray(d->Name);
+
+		#if DEBUG_OPEN_FILES
+		if (Lck.Lock(_FL))
+		{
+			OpenFiles.Delete(this);
+			Lck.Unlock();
+		}
+		#endif
 	}
 
 	return true;

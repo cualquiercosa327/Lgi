@@ -38,10 +38,9 @@ GThreadEvent::GThreadEvent(const char *name)
 
 	#if USE_SEM
 	
-		char Name[256];
-		sprintf_s(Name, sizeof(Name), "lgi.sem.%p", this);
-		// printf("Name=%p '%s'\n", Name, Name);
-		Sem = sem_open(Name, O_CREAT, 0666, 0);
+		char Str[256];
+		sprintf_s(Str, sizeof(Str), "lgi.sem.%p", this);
+		Sem = sem_open(Str, O_CREAT, 0666, 0);
 		if (Sem == SEM_FAILED)
 		{
 			printf("%s:%i - sem_open failed with %i.\n", _FL, errno);
