@@ -190,19 +190,19 @@ bool IdeCommon::AddFiles(AddFilesProgress *Prog, const char *Path)
 	}
 	else
 	{
-		GProfile p("IdeCommon::AddFiles");
-		p.HideResultsIfBelow(50);
+		// GProfile p("IdeCommon::AddFiles");
+		// p.HideResultsIfBelow(50);
 		if (!Project->InProject(false, Path, false))
 		{
-			p.Add("new node");
+			// p.Add("new node");
 			ProjectNode *New = new ProjectNode(Project);
 			if (New)
 			{
-				p.Add("set filename");
+				// p.Add("set filename");
 				New->SetFileName(Path);
-				p.Add("insert");
+				// p.Add("insert");
 				InsertTag(New);
-				p.Add("set dirty");
+				// p.Add("set dirty");
 				Project->SetDirty();
 
 				if (Prog)

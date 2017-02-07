@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project>
-	<Node Name="Source Files" Type="1" Platforms="15" Open="0">
+	<Node Name="Source Files" Type="1" Platforms="15" Open="1">
 		<Node Name="Core" Type="1" Platforms="15" Open="0">
 			<Node Name="DateTime" Type="1" Platforms="15" Open="0">
 				<Node File="./src/common/General/GDateTime.cpp" Type="2" Platforms="15" />
@@ -378,6 +378,7 @@
 			<Node File="./include/win32/LgiOsDefs.h" Type="3" Platforms="1" />
 		</Node>
 		<Node File="./include/common/GNotifications.h" Type="3" Platforms="15" />
+		<Node File="./include/common/Lgi.h" Type="3" Platforms="15" />
 		<Node File="./include/common/LgiClasses.h" Type="3" Platforms="15" />
 		<Node File="./include/common/LgiDefs.h" Type="3" Platforms="15" />
 		<Node File="./include/common/LgiInc.h" Type="3" Platforms="15" />
@@ -467,9 +468,11 @@ ole32
 uuid</Release>
 				</Windows>
 				<Linux>
-					<Debug>-static-libgcc 
+					<Debug>magic
+-static-libgcc 
 `pkg-config --libs gtk+-2.0`</Debug>
-					<Release>-static-libgcc 
+					<Release>magic
+-static-libgcc 
 `pkg-config --libs gtk+-2.0`</Release>
 				</Linux>
 				<Haiku>

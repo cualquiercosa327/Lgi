@@ -290,6 +290,7 @@ bool GDialog::SetupDialog(bool Modal)
 	}
 
 	gtk_widget_show(GTK_WIDGET(Wnd));
+	GView::Visible(true);
 
 	return true;
 }

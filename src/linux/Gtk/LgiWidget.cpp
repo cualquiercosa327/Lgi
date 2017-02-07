@@ -415,14 +415,14 @@ lgi_widget_drag_leave(GtkWidget	       *widget,
 	LgiWidget *v = LGI_WIDGET(widget);
 	if (!v || !v->target)
 	{
-		printf("%s:%i - LGI_WIDGET failed.\n", _FL);
+		// printf("%s:%i - LGI_WIDGET failed.\n", _FL);
 		return;
 	}
 	
 	GDragDropTarget *Target = v->target->DropTarget();
 	if (!Target)
 	{
-		printf("%s:%i - View '%s' doesn't have drop target.\n", _FL, v->target->GetClass());
+		// printf("%s:%i - View '%s' doesn't have drop target.\n", _FL, v->target->GetClass());
 		return;
 	}
 
@@ -582,12 +582,12 @@ lgi_widget_drag_data_received(	GtkWidget			*widget,
 								guint				info,
 								guint				time)
 {
-	LgiTrace("lgi_widget_drag_data_received\n");
+	// LgiTrace("lgi_widget_drag_data_received\n");
 
 	LgiWidget *v = LGI_WIDGET(widget);
 	if (!v || !v->target)
 	{
-		printf("%s:%i - LGI_WIDGET failed.\n", _FL);
+		// printf("%s:%i - LGI_WIDGET failed.\n", _FL);
 		return;
 	}
 	

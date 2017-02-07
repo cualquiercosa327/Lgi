@@ -22,6 +22,10 @@
 #include "GToken.h"
 #include "GUtf8.h"
 #include "GFontCache.h"
+#if HAS_LIB_MAGIC
+// sudo apt-get install libmagic-dev
+#include <magic.h>
+#endif
 
 #define DEBUG_MSG_TYPES				0
 #define DEBUG_HND_WARNINGS			0
@@ -206,6 +210,10 @@ public:
 	GAutoPtr<GApp::DesktopInfo> DesktopInfo;
 	#endif
 
+	#if HAS_LIB_MAGIC
+	magic_t hMagic;
+	#endif
+
 	/// Any fonts needed for styling the elements
 	GAutoPtr<GFontCache> FontCache;
 	
@@ -233,6 +241,9 @@ public:
 		#if HAS_SHARED_MIME
 		Sm = 0;
 		#endif
+		#if HAS_LIB_MAGIC
+		hMagic = NULL;
+		#endif
 
 		LastClickTime = 0;
 		LastClickWnd = 0;
@@ -242,6 +253,14 @@ public:
 
 	~GAppPrivate()
 	{
+		#if HAS_LIB_MAGIC
+		if (hMagic != NULL)
+		{
+			magic_close(hMagic);
+			hMagic = NULL;
+		}
+		#endif
+
 		if (WmLib)
 		{
 			Proc_LgiWmExit WmExit = (Proc_LgiWmExit) WmLib->GetAddress("LgiWmExit");
@@ -484,7 +503,10 @@ Gtk::gboolean IdleWrapper(Gtk::gpointer data)
 bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 {
 	if (!InThread())
+	{
+		printf("%s:%i - Error: Out of thread.\n", _FL);
 		return false;
+	}
 
 	if (Loop)
 	{
@@ -510,6 +532,7 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 			CmdLineDone = true;
 			OnCommandLine();
 		}
+		
 		
 		Gtk::gtk_main();
 	}
@@ -742,6 +765,41 @@ GAutoString GApp::GetFileMimeType(const char *File)
 			}
 		}		
 	}
+
+	#if HAS_LIB_MAGIC
+	
+	static bool MagicError = false;
+	if (!d->hMagic && !MagicError)
+	{
+		d->hMagic = magic_open(MAGIC_MIME_TYPE);
+		if (d->hMagic)
+		{
+			if (magic_load(d->hMagic, NULL) != 0)
+			{
+	        	printf("%s:%i - magic_load failed - %s\n", _FL, magic_error(d->hMagic));
+	        	magic_close(d->hMagic);
+	        	d->hMagic = NULL;
+	        	MagicError = true;
+			}
+		}
+		else
+		{
+			printf("%s:%i - magic_open failed.\n", _FL);
+			MagicError = true;
+		}
+	}
+	
+	if (d->hMagic)
+	{
+		const char *mt = magic_file(d->hMagic, File);
+		if (mt)
+		{
+			Status.Reset(NewStr(mt));
+			return Status;
+		}
+	}
+
+	#endif
 
 	#if HAS_SHARED_MIME
 	// freedesktop.org rocks...

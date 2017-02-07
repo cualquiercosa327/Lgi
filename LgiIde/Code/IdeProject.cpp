@@ -2602,8 +2602,10 @@ int IdeTree::WillAccept(List<char> &Formats, GdcPt2 p, int KeyState)
 	
 	for (char *f=Formats.First(); f; )
 	{
+		/*
 		if (First)
 			LgiTrace("    WillAccept='%s'\n", f);
+		*/
 		
 		if (stricmp(f, NODE_DROP_FORMAT) == 0 ||
 			stricmp(f, LGI_FileDropFormat) == 0)

@@ -58,7 +58,7 @@
 		<Node File="../src/common/Lgi/LgiMain.cpp" Type="2" Platforms="15" />
 		<Node File="../src/common/Gdc2/Filters/Png.cpp" Type="2" Platforms="15" />
 	</Node>
-	<Node Name="Resources" Type="1" Platforms="15" Open="0">
+	<Node Name="Resources" Type="1" Platforms="15" Open="1">
 		<Node File="./Makefile.linux" Type="3" Platforms="15" />
 		<Node File="./Code/resource.h" Type="3" Platforms="15" />
 		<Node File="./Code/Script1.rc" Type="5" Platforms="15" />
@@ -142,9 +142,11 @@ WINNATIVE</Release>
 					<Release>imm32</Release>
 				</Windows>
 				<Linux>
-					<Debug>`pkg-config --libs gtk+-2.0`
+					<Debug>magic
+`pkg-config --libs gtk+-2.0`
 -static-libgcc</Debug>
-					<Release>`pkg-config --libs gtk+-2.0`
+					<Release>magic
+`pkg-config --libs gtk+-2.0`
 -static-libgcc</Release>
 				</Linux>
 				<Haiku>
