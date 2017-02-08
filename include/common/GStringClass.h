@@ -138,14 +138,14 @@ public:
 
 	#if defined(_WIN32)
 	/// const uint32* constructor
-	GString(const uint32 *str, int chars = -1)
+	GString(const uint32 *str, ptrdiff_t chars = -1)
 	{
 		Str = NULL;
 
 		if (chars < 0)
 			chars = Strlen(str);
 		
-		int utf_len = 0;
+		ptrdiff_t utf_len = 0;
 		const uint32 *end = str + chars;
 		const uint32 *c = str;
 		while (c < end)
