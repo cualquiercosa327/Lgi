@@ -1134,7 +1134,11 @@ void GView::Focus(bool i)
 
 	if (_View)
 	{
-		#if WINNATIVE
+		#if defined(LGI_SDL) || defined(__GTK_H__)
+		
+			// Nop: Focus is all handled by Lgi's GWindow class.
+		
+		#elif WINNATIVE
 
 			if (i)
 			{
@@ -1162,20 +1166,28 @@ void GView::Focus(bool i)
 				SetFocus(GetDesktopWindow());
 			}
 
-		#elif defined __GTK_H__
-
-		#elif defined MAC && !defined(LGI_SDL)
+		#elif defined MAC
 
 			#if COCOA
-			#warning FIXME
+		
+				#warning FIXME
+		
 			#else
+		
 				GViewI *Wnd = GetWindow();
 				if (Wnd && i)
 				{
 					OSErr e = SetKeyboardFocus(Wnd->WindowHandle(), _View, 1);
-					if (e) printf("%s:%i - error setting keyboard focus (%i) to %s\n", _FL, e, GetClass());
+					if (e)
+					{
+						HIViewRef p = HIViewGetSuperview(_View);
+						printf("%s:%i - SetKeyboardFocus failed: %i (%s, %p)\n", _FL, e, GetClass(), p);
+					}
+					else
+						printf("%s:%i - SetFocus v=%p\n", _FL, _View);
 				}
 				else printf("%s:%i - no window?\n", _FL);
+		
 			#endif
 		
 		#elif defined(BEOS)

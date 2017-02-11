@@ -30,6 +30,7 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <unistd.h>
 
 int hndstate(int hnd)
 {
@@ -767,12 +768,12 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 					}
 
 					// stdout -> Read
-					dup2(Read.Write, stdout);
+					dup2(Read.Write, fileno(stdout));
 					close(Read.Write);
 					close(Read.Read);
 
 					// stderr -> Error
-					dup2(Error.Write, stderr);
+					dup2(Error.Write, fileno(stderr));
 					close(Error.Write);
 					close(Error.Read);
 

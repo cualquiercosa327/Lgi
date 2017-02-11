@@ -847,7 +847,7 @@ void GPopup::Visible(bool i)
 		#elif defined(MAC)
 	
 			GWindow::Visible(i);
-		
+	
 		#else
 		
 			HadFocus = Focus();

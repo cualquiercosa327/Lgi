@@ -10,6 +10,7 @@ extern void NextTabStop(GViewI *v, int dir);
 extern void SetDefaultFocus(GViewI *v);
 
 #define DEBUG_KEYS			0
+#define DEBUG_SETFOCUS		0
 
 ///////////////////////////////////////////////////////////////////////
 class HookInfo
@@ -178,6 +179,32 @@ GViewI *GWindow::GetFocus()
 {
 	return d->Focus;
 }
+
+#if DEBUG_SETFOCUS
+static GAutoString DescribeView(GViewI *v)
+{
+	if (!v)
+		return GAutoString(NewStr("NULL"));
+
+	char s[512];
+	int ch = 0;
+	::GArray<GViewI*> p;
+	for (GViewI *i = v; i; i = i->GetParent())
+	{
+		p.Add(i);
+	}
+	for (int n=min(3, p.Length()-1); n>=0; n--)
+	{
+		char Buf[256] = "";
+		if (!stricmp(v->GetClass(), "GMdiChild"))
+			sprintf(Buf, "'%s'", v->Name());
+		v = p[n];
+		
+		ch += sprintf_s(s + ch, sizeof(s) - ch, "%s>%s", Buf, v->GetClass());
+	}
+	return GAutoString(NewStr(s));
+}
+#endif
 
 void GWindow::SetFocus(GViewI *ctrl, FocusType type)
 {
@@ -633,37 +660,36 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 				}
 				case kEventWindowActivated:
 				{
-					#if 1
+					printf("%s:%i - Activate %s\n", _FL, v ? v->GetClass() : 0);
 					GWindow *w = v->GetWindow();
-					if (w)
+					if (!w)
+						break;
+
+					GMenu *m = w->GetMenu();
+					if (m)
 					{
-						GMenu *m = w->GetMenu();
-						if (m)
+						OSStatus e = SetRootMenu(m->Handle());
+						if (e)
 						{
-							OSStatus e = SetRootMenu(m->Handle());
+							printf("%s:%i - SetRootMenu failed (e=%i)\n", _FL, (int)e);
+						}
+					}
+					else
+					{
+						if (!w->d->EmptyMenu)
+						{
+							w->d->EmptyMenu = new GMenu;
+						}
+
+						if (w->d->EmptyMenu)
+						{
+							OSStatus e = SetRootMenu(w->d->EmptyMenu->Handle());
 							if (e)
 							{
 								printf("%s:%i - SetRootMenu failed (e=%i)\n", _FL, (int)e);
 							}
 						}
-						else
-						{
-							if (!w->d->EmptyMenu)
-							{
-								w->d->EmptyMenu = new GMenu;
-							}
-
-							if (w->d->EmptyMenu)
-							{
-								OSStatus e = SetRootMenu(w->d->EmptyMenu->Handle());
-								if (e)
-								{
-									printf("%s:%i - SetRootMenu failed (e=%i)\n", _FL, (int)e);
-								}
-							}
-						}
 					}
-					#endif
 					break;
 				}
 				case kEventWindowBoundsChanged:

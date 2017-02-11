@@ -1295,9 +1295,9 @@ CarbonControlProc
 					if (e) printf("%s:%i - error (%i)\n", _FL, (int)e);
 					
 					bool f = Part != kControlFocusNoPart;
-					#if 0
-					printf("Focus change id=%i %s (%s) %i -> %i\n",
-						v->GetId(), v->GetClass(), p->GetClass(), TestFlag(p->WndFlags, GWF_FOCUS), f);
+					#if 1
+					printf("Focus(%i) change id=%i %s %i -> %i\n",
+						f,v->GetId(), v->GetClass(), TestFlag(v->WndFlags, GWF_FOCUS), f);
 					#endif
 					
 					if (f) SetFlag(v->WndFlags, GWF_FOCUS);

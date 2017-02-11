@@ -173,7 +173,7 @@ public:
 				GetWindow()->RegisterHook(this, GKeyEvents);
 			}
 
-			Edit->Focus(true);
+			Lst->Focus(true);
 		}
 	}
 	

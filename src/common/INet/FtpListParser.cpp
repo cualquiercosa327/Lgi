@@ -92,7 +92,7 @@ static long guesstai(long month,long mday)
 	return 0; // FIXME?
 }
 
-static int check(char *buf,char *monthname)
+static int check2(char *buf, const char *monthname)
 {
 	if ((buf[0] != monthname[0]) && (buf[0] != monthname[0] - 32)) return 0;
 	if ((buf[1] != monthname[1]) && (buf[1] != monthname[1] - 32)) return 0;
@@ -100,7 +100,7 @@ static int check(char *buf,char *monthname)
 	return 1;
 }
 
-static char *months[12] = {
+static const char *months[12] = {
 	"jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"
 } ;
 
@@ -109,7 +109,7 @@ static int getmonth(char *buf,int len)
 	int i;
 	if (len == 3)
 		for (i = 0;i < 12;++i)
-			if (check(buf,months[i])) return i;
+			if (check2(buf,months[i])) return i;
 	return -1;
 }
 
