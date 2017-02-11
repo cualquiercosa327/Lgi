@@ -1183,8 +1183,7 @@ void GView::Focus(bool i)
 						HIViewRef p = HIViewGetSuperview(_View);
 						printf("%s:%i - SetKeyboardFocus failed: %i (%s, %p)\n", _FL, e, GetClass(), p);
 					}
-					else
-						printf("%s:%i - SetFocus v=%p\n", _FL, _View);
+					// else printf("%s:%i - SetFocus v=%p(%s)\n", _FL, _View, GetClass());
 				}
 				else printf("%s:%i - no window?\n", _FL);
 		

@@ -928,7 +928,12 @@ bool GPopup::Visible()
 	    
     #endif
 
-	return GView::Visible();
+	#if defined(MAC)
+	bool v = GWindow::Visible();
+	#else
+	bool v = GView::Visible();
+	#endif
+	return v;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////

@@ -173,7 +173,11 @@ public:
 				GetWindow()->RegisterHook(this, GKeyEvents);
 			}
 
+			#ifdef WINNATIVE
+			Edit->Focus(true);
+			#else
 			Lst->Focus(true);
+			#endif
 		}
 	}
 	
@@ -190,6 +194,7 @@ public:
 			bool Vis = Visible();
 			if (Has ^ Vis)
 			{
+				// printf("%s:%i - PopupLst, has=%i vis=%i\n", _FL, Has, Vis);
 				Visible(Has);
 			}
 		}

@@ -660,7 +660,7 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 				}
 				case kEventWindowActivated:
 				{
-					printf("%s:%i - Activate %s\n", _FL, v ? v->GetClass() : 0);
+					// printf("%s:%i - Activate %s\n", _FL, v ? v->GetClass() : 0);
 					GWindow *w = v->GetWindow();
 					if (!w)
 						break;
