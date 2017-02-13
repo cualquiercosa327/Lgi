@@ -719,13 +719,13 @@ public:
 			)	{ return false; }
 
 			// Split a block
-			virtual bool Split
+			virtual Block *Split
 			(
 				/// Current transaction
 				Transaction *Trans,
 				/// The index to add at (-1 = the end)
 				int AtOffset
-			)	{ return false; }
+			)	{ return NULL; }
 	};
 
 	struct BlockCursor
@@ -956,6 +956,7 @@ public:
 		bool ChangeStyle(Transaction *Trans, int Offset, int Chars, GCss *Style, bool Add);
 		int DeleteAt(Transaction *Trans, int BlkOffset, int Chars, GArray<uint32> *DeletedText = NULL);
 		bool DoCase(Transaction *Trans, int StartIdx, int Chars, bool Upper);
+		Block *Split(Transaction *Trans, int AtOffset);
 	};
 
 	class ImageBlock : public Block

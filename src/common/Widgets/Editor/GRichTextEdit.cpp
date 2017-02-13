@@ -1018,17 +1018,23 @@ int GRichTextEdit::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 							GRichTextPriv::Block *b = d->GetBlockByIndex(Idx, &BlkOffset, &BlkIdx);
 							if (b)
 							{
+								GRichTextPriv::Block *After = NULL;
+
 								// Split 'b' to make room for the image
 								if (BlkOffset > 0)
 								{
-									
-									AddIndex = BlkIdx+1;
+									After = b->Split(NoTransaction, BlkOffset);
+									AddIndex = BlkIdx+1;									
 								}
 								else
 								{
 									// Insert before..
 									AddIndex = BlkIdx;
 								}
+
+								d->Blocks.AddAt(AddIndex++, new GRichTextPriv::ImageBlock(d) );
+								if (After)
+									d->Blocks.AddAt(AddIndex++, After);
 							}
 						}
 					}
@@ -1039,6 +1045,8 @@ int GRichTextEdit::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 					}
 				}
 			}
+
+			break;
 		}
 	}
 

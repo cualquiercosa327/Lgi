@@ -1540,6 +1540,61 @@ bool GRichTextPriv::TextBlock::DoCase(Transaction *Trans, int StartIdx, int Char
 	return Changed;
 }
 
+GRichTextPriv::Block *GRichTextPriv::TextBlock::Split(Transaction *Trans, int AtOffset)
+{
+	if (AtOffset < 0 || 
+		AtOffset >= Len)
+		return NULL;
+
+	GRichTextPriv::TextBlock *After = new GRichTextPriv::TextBlock(d);
+	if (!After)
+	{
+		d->Error(_FL, "Alloc Err");
+		return NULL;
+	}
+
+	After->SetStyle(GetStyle());
+	
+	int Pos = 0;
+	unsigned i;
+	for (i=0; i<Txt.Length(); i++)
+	{
+		StyleText *St = Txt[i];
+		int StLen = St->Length();
+		if (AtOffset >= Pos && AtOffset < Pos + StLen)
+		{
+			int StOff = AtOffset - Pos;
+			if (StOff > 0)
+			{
+				// Split the text into 2 blocks...
+				StyleText *AfterText = new StyleText(St->At(StOff), St->Length() - StOff, St->GetStyle());
+				if (!AfterText)
+				{
+					d->Error(_FL, "Alloc Err");
+					return NULL;
+				}
+				St->Length(StOff);
+				i++;
+			}
+			break;
+		}
+
+		Pos += StLen;
+	}
+
+	while (i < Txt.Length())
+	{
+		StyleText *St = Txt[i];
+		Txt.DeleteAt(i, true);
+		After->Txt.Add(St);
+	}
+
+	LayoutDirty = true;
+	After->LayoutDirty = true;
+
+	return After;
+}
+
 void GRichTextPriv::TextBlock::IncAllStyleRefs()
 {
 	if (Style)
