@@ -1628,6 +1628,9 @@ void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
 		}
 	}
 
+	GdcPt2 Origin;
+	pDC->GetOrigin(Origin.x, Origin.y);
+	
 	GRect r = Areas[GRichTextEdit::ContentArea];
 	#if defined(WINDOWS) && !DEBUG_NO_DOUBLE_BUF
 	GMemDC Mem(r.X(), r.Y(), pDC->GetColourSpace());
@@ -1639,7 +1642,7 @@ void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
 	#endif
 
 	ScrollOffsetPx = ScrollY ? (int)(ScrollY->Value() * ScrollLinePx) : 0;
-	pDC->SetOrigin(-r.x1, -r.y1+ScrollOffsetPx);
+	pDC->SetOrigin(Origin.x-r.x1, Origin.y-r.y1+ScrollOffsetPx);
 
 	int DrawPx = ScrollOffsetPx + Areas[GRichTextEdit::ContentArea].Y();
 	int ExtraPx = DrawPx > DocumentExtent.y ? DrawPx - DocumentExtent.y : 0;

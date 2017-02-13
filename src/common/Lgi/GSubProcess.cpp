@@ -458,7 +458,7 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 			Io.Read = out[0];
 			Io.Write = in[1];
 			
-			printf("USE_SIMPLE_FORK success.\n");
+			// printf("USE_SIMPLE_FORK success.\n");
 			return true;
 		}
 	
