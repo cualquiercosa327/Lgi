@@ -169,8 +169,8 @@
 			<Node File="./src/common/Lgi/GFontSelect.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Lgi/GInput.cpp" Type="2" Platforms="15" />
 		</Node>
-		<Node Name="Graphics" Type="1" Platforms="15" Open="0">
-			<Node Name="_Core" Type="1" Platforms="15" Open="0">
+		<Node Name="Graphics" Type="1" Platforms="15" Open="1">
+			<Node Name="_Core" Type="1" Platforms="15" Open="1">
 				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
 					<Node File=".\src\beos\Gdc2\Gdc2.cpp" Type="2" Platforms="8" />
 				</Node>

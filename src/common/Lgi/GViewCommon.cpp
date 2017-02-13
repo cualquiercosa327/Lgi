@@ -485,6 +485,8 @@ void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 		{
 			Client.Offset(o.x, o.y);
 			pDC->SetClient(&Client);
+			if (_Debug)
+				printf("%s:%i SetClient %s  %i,%i\n", _FL, Client.GetStr(), o.x, o.y);
 		}
 	}
 
@@ -494,16 +496,20 @@ void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 	if (Update)
 	{
 		GRect OldClip = pDC->ClipRgn();
-		for (GRect *r = Update->First(); r; r = Update->Next())
+		for (GRect *rc = Update->First(); rc; rc = Update->Next())
 		{
-			pDC->ClipRgn(r);
+			pDC->ClipRgn(rc);
 			OnPaint(pDC);
+			if (_Debug)
+				printf("%s:%i OnPaint %s\n", _FL, rc->GetStr());
 		}
 		pDC->ClipRgn(OldClip.Valid() ? &OldClip : NULL);
 	}
 	else
 	{
 		OnPaint(pDC);
+		if (_Debug)
+			printf("%s:%i OnPaint %s\n", _FL, r.GetStr());
 	}
 
 	#if PAINT_VIRTUAL_CHILDREN
