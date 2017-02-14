@@ -1,6 +1,79 @@
 #include "Lgi.h"
 #include "GRichTextEdit.h"
 #include "GRichTextEditPriv.h"
+#include "GdcTools.h"
+
+class ImageLoader : public GEventTargetThread, public Progress
+{
+	GString File;
+	GEventSinkI *Sink;
+	GSurface *Img;
+	GAutoPtr<GFilter> Filter;
+	int64 PrevY;
+	bool SurfaceSent;
+
+public:
+	ImageLoader(GEventSinkI *s) : GEventTargetThread("ImageLoader")
+	{
+		Sink = s;
+		PrevY = 0;
+		Img = NULL;
+		SurfaceSent = false;
+	}
+
+	void Value(int64 v)
+	{
+		Progress::Value(v);
+
+		if (!SurfaceSent)
+		{
+			SurfaceSent = true;
+			Sink->PostEvent(M_IMAGE_SET_SURFACE, (GMessage::Param)Img);
+		}
+
+		if (v - PrevY > 16)
+		{
+			PrevY = v;
+			Sink->PostEvent(M_IMAGE_PROGRESS, (GMessage::Param)v);
+		}
+	}
+
+	GMessage::Result OnEvent(GMessage *Msg)
+	{
+		switch (Msg->Msg())
+		{
+			case M_IMAGE_LOAD_FILE:
+			{
+				GAutoPtr<GString> Str((GString*)Msg->A());
+				File = *Str;
+				
+				if (!Filter.Reset(GFilterFactory::New(File, O_READ, NULL)))
+					return Sink->PostEvent(M_IMAGE_ERROR);
+
+				GFile In;
+				if (!In.Open(File, O_READ))
+					return Sink->PostEvent(M_IMAGE_ERROR);
+
+				if (!(Img = new GMemDC))
+					return Sink->PostEvent(M_IMAGE_ERROR);
+
+				Filter->SetProgress(this);
+
+				GFilter::IoStatus Status = Filter->ReadImage(Img, &In);
+				if (Status != GFilter::IoSuccess)
+					return Sink->PostEvent(M_IMAGE_ERROR);
+
+				if (!SurfaceSent)
+					Sink->PostEvent(M_IMAGE_SET_SURFACE, (GMessage::Param)Img);
+
+				Sink->PostEvent(M_IMAGE_FINISHED);
+				break;
+			}			
+		}
+
+		return 0;
+	}
+};
 
 GRichTextPriv::ImageBlock::ImageBlock(GRichTextPriv *priv) : Block(priv)
 {
@@ -9,6 +82,7 @@ GRichTextPriv::ImageBlock::ImageBlock(GRichTextPriv *priv) : Block(priv)
 	Style = NULL;
 	Size.x = 200;
 	Size.y = 64;
+	Scale = 1;
 
 	Margin.ZOff(0, 0);
 	Border.ZOff(0, 0);
@@ -34,6 +108,16 @@ GRichTextPriv::ImageBlock::~ImageBlock()
 bool GRichTextPriv::ImageBlock::IsValid()
 {
 	return true;
+}
+
+bool GRichTextPriv::ImageBlock::Load(const char *Src)
+{
+	if (Src)
+		Source = Src;
+	if (!Thread.Reset(new GEventSinkPtr(new ImageLoader(this), true)))
+		return false;
+
+	return Thread->PostEvent(M_IMAGE_LOAD_FILE, (GMessage::Param)new GString(Src));
 }
 
 int GRichTextPriv::ImageBlock::GetLines()
@@ -196,10 +280,10 @@ void GRichTextPriv::ImageBlock::OnPaint(PaintContext &Ctx)
 
 	bool ImgSelected = Ctx.Type == Selected;
 
-	GSurface *Src = SourceImg ? SourceImg : DisplayImg;
+	GSurface *Src = DisplayImg ? DisplayImg : SourceImg;
 	if (Src)
 	{
-		Ctx.pDC->Blt(r.x1, r.y1, Src, &r);
+		Ctx.pDC->Blt(r.x1, r.y1, Src);
 	}
 	else
 	{
@@ -274,17 +358,8 @@ bool GRichTextPriv::ImageBlock::OnLayout(Flow &flow)
 	ImgPos.x1 = Pos.x1 + Padding.x1;
 	ImgPos.y1 = Pos.y1 + Padding.y1;	
 
-	GSurface *Src = SourceImg ? SourceImg : DisplayImg;
-	if (Src)
-	{
-		ImgPos.x2 = ImgPos.x1 + Src->X() - 1;
-		ImgPos.y2 = ImgPos.y1 + Src->Y() - 1;
-	}
-	else
-	{
-		ImgPos.x2 = ImgPos.x1 + Size.x - 1;
-		ImgPos.y2 = ImgPos.y1 + Size.y - 1;
-	}
+	ImgPos.x2 = ImgPos.x1 + Size.x - 1;
+	ImgPos.y2 = ImgPos.y1 + Size.y - 1;
 
 	int Px2 = ImgPos.x2 + Padding.x2;
 	if (Px2 < Pos.x2)
@@ -362,6 +437,56 @@ void GRichTextPriv::ImageBlock::IncAllStyleRefs()
 {
 	if (Style)
 		Style->RefCount++;
+}
+
+GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
+{
+	switch (Msg->Msg())
+	{
+		case M_IMAGE_ERROR:
+		{
+			Thread.Reset();
+			break;
+		}
+		case M_IMAGE_SET_SURFACE:
+		{
+			if (SourceImg.Reset((GSurface*)Msg->A()))
+			{
+				int ViewX = d->Areas[GRichTextEdit::ContentArea].X();
+				int MaxX = (int) (ViewX * 0.9);
+				if (SourceImg->X() > MaxX)
+				{
+					double Ratio = (double)SourceImg->X() / MaxX;
+					Scale = (int)ceil(Ratio);
+
+					Size.x = (int)ceil((double)SourceImg->X() / Scale);
+					Size.y = (int)ceil((double)SourceImg->Y() / Scale);
+					if (DisplayImg.Reset(new GMemDC(Size.x, Size.y, SourceImg->GetColourSpace())))
+					{
+						DisplayImg->Colour(0, 32);
+						DisplayImg->Rectangle();
+					}
+				}
+			}
+			break;
+		}
+		case M_IMAGE_PROGRESS:
+		{
+			break;
+		}
+		case M_IMAGE_FINISHED:
+		{
+			LayoutDirty = true;
+			d->InvalidateDoc(NULL);
+			Thread.Reset();
+
+			if (DisplayImg)
+				ResampleDC(DisplayImg, SourceImg, NULL, NULL);
+			break;
+		}
+	}
+
+	return 0;
 }
 
 bool GRichTextPriv::ImageBlock::AddText(Transaction *Trans, int AtOffset, const uint32 *Str, int Chars, GNamedStyle *Style)

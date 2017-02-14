@@ -1567,7 +1567,9 @@ GRichTextPriv::Block *GRichTextPriv::TextBlock::Split(Transaction *Trans, int At
 			if (StOff > 0)
 			{
 				// Split the text into 2 blocks...
-				StyleText *AfterText = new StyleText(St->At(StOff), St->Length() - StOff, St->GetStyle());
+				uint32 *t = St->At(StOff);
+				int remaining = St->Length() - StOff;
+				StyleText *AfterText = new StyleText(t, remaining, St->GetStyle());
 				if (!AfterText)
 				{
 					d->Error(_FL, "Alloc Err");
@@ -1575,6 +1577,10 @@ GRichTextPriv::Block *GRichTextPriv::TextBlock::Split(Transaction *Trans, int At
 				}
 				St->Length(StOff);
 				i++;
+				Len = Pos + StOff;
+
+				After->Txt.Add(AfterText);
+				After->Len += AfterText->Length();
 			}
 			break;
 		}
@@ -1587,6 +1593,7 @@ GRichTextPriv::Block *GRichTextPriv::TextBlock::Split(Transaction *Trans, int At
 		StyleText *St = Txt[i];
 		Txt.DeleteAt(i, true);
 		After->Txt.Add(St);
+		After->Len += St->Length();
 	}
 
 	LayoutDirty = true;

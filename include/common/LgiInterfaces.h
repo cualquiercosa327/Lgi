@@ -317,12 +317,14 @@ public:
 class GEventSinkI
 {
 public:
+	virtual ~GEventSinkI() {}
 	virtual bool PostEvent(int Cmd, GMessage::Param a = 0, GMessage::Param b = 0) = 0;
 };
 
 class GEventTargetI
 {
 public:
+	virtual ~GEventTargetI() {}
 	virtual GMessage::Result OnEvent(GMessage *Msg) = 0;
 };
 

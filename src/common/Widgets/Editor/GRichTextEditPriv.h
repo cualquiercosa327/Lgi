@@ -28,6 +28,7 @@
 #include "GColourSpace.h"
 #include "GPopup.h"
 #include "Emoji.h"
+#include "GEventTargetThread.h"
 
 #define DEBUG_LOG_CURSOR_COUNT			0
 #define DEBUG_OUTLINE_CUR_DISPLAY_STR	0
@@ -600,7 +601,9 @@ public:
 	//////////////////////////////////////////////////////////////////////////////////////////////
 	// A Block is like a DIV in HTML, it's as wide as the page and
 	// always starts and ends on a whole line.
-	class Block 
+	class Block :
+		public GEventSinkI,
+		public GEventTargetI
 	{
 	protected:
 		int BlockUid;
@@ -632,6 +635,19 @@ public:
 			LgiAssert(Cursors == 0);
 		}
 		
+		// Events
+		bool PostEvent(int Cmd, GMessage::Param a = 0, GMessage::Param b = 0)
+		{
+			return d->View->PostEvent(	M_BLOCK_MSG,
+										(GMessage::Param)(Block*)this,
+										(GMessage::Param)new GMessage(Cmd, a, b));
+		}
+
+		GMessage::Result OnEvent(GMessage *Msg)
+		{
+			return 0;
+		}
+
 		/************************************************
 		 * Get state methods, do not modify the block   *
 		 ***********************************************/
@@ -959,9 +975,12 @@ public:
 		Block *Split(Transaction *Trans, int AtOffset);
 	};
 
-	class ImageBlock : public Block
+	class ImageBlock :
+		public Block
 	{
 		GNamedStyle *Style;
+		GAutoPtr<GEventSinkPtr> Thread;
+		int Scale;
 
 	public:
 		GAutoPtr<GSurface> SourceImg, DisplayImg;
@@ -978,6 +997,7 @@ public:
 		~ImageBlock();
 
 		bool IsValid();
+		bool Load(const char *Src = NULL);
 
 		// No state change methods
 		int GetLines();
@@ -1001,6 +1021,9 @@ public:
 		#ifdef _DEBUG
 		void DumpNodes(GTreeItem *Ti);
 		#endif
+
+		// Events
+		GMessage::Result OnEvent(GMessage *Msg);
 
 		// Transactional changes
 		bool AddText(Transaction *Trans, int AtOffset, const uint32 *Str, int Chars = -1, GNamedStyle *Style = NULL);

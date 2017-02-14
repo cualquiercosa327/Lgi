@@ -13,6 +13,16 @@
 #include "GTree.h"
 #endif
 
+enum RichEditMsgs
+{
+	M_BLOCK_MSG	= M_USER + 0x1000,
+	M_IMAGE_LOAD_FILE,
+	M_IMAGE_SET_SURFACE,
+	M_IMAGE_ERROR,
+	M_IMAGE_PROGRESS,
+	M_IMAGE_FINISHED,
+};
+
 extern char Delimiters[];
 
 /// Styled unicode text editor control.

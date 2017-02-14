@@ -6,6 +6,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HtmlEdit", "HtmlEdit_vs2013
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lgi", "..\Lgi_vs2013.vcxproj", "{95DF9CA4-6D37-4A85-A648-80C2712E0DA1}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libjpeg", "..\..\..\..\CodeLib\libjpeg\windows\libjpeg.vcxproj", "{D88AD9F0-4276-4BFB-9F21-F7E78F0902F7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -36,6 +38,16 @@ Global
 		{95DF9CA4-6D37-4A85-A648-80C2712E0DA1}.Release|x64.Build.0 = Release|x64
 		{95DF9CA4-6D37-4A85-A648-80C2712E0DA1}.ReleaseNoOptimize|Win32.ActiveCfg = ReleaseNoOptimize|Win32
 		{95DF9CA4-6D37-4A85-A648-80C2712E0DA1}.ReleaseNoOptimize|x64.ActiveCfg = ReleaseNoOptimize|x64
+		{D88AD9F0-4276-4BFB-9F21-F7E78F0902F7}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D88AD9F0-4276-4BFB-9F21-F7E78F0902F7}.Debug|Win32.Build.0 = Debug|Win32
+		{D88AD9F0-4276-4BFB-9F21-F7E78F0902F7}.Debug|x64.ActiveCfg = Debug|x64
+		{D88AD9F0-4276-4BFB-9F21-F7E78F0902F7}.Debug|x64.Build.0 = Debug|x64
+		{D88AD9F0-4276-4BFB-9F21-F7E78F0902F7}.Release|Win32.ActiveCfg = Release|Win32
+		{D88AD9F0-4276-4BFB-9F21-F7E78F0902F7}.Release|Win32.Build.0 = Release|Win32
+		{D88AD9F0-4276-4BFB-9F21-F7E78F0902F7}.Release|x64.ActiveCfg = Release|x64
+		{D88AD9F0-4276-4BFB-9F21-F7E78F0902F7}.Release|x64.Build.0 = Release|x64
+		{D88AD9F0-4276-4BFB-9F21-F7E78F0902F7}.ReleaseNoOptimize|Win32.ActiveCfg = Release|Win32
+		{D88AD9F0-4276-4BFB-9F21-F7E78F0902F7}.ReleaseNoOptimize|x64.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

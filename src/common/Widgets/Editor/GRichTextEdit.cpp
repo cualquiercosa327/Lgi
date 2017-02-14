@@ -992,12 +992,16 @@ int GRichTextEdit::WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState)
 
 int GRichTextEdit::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 {
+	int Effect = DROPEFFECT_NONE;
+
 	for (unsigned i=0; i<Data.Length(); i++)
 	{
 		GDragData &dd = Data[i];
-		if (dd.IsFileDrop())
+		if (dd.IsFileDrop() && d->Areas[ContentArea].Overlap(Pt.x, Pt.y))
 		{
 			int AddIndex = -1;
+			GdcPt2 TestPt(	Pt.x - d->Areas[ContentArea].x1,
+							Pt.y - d->Areas[ContentArea].y1);
 
 			GDropFiles Df(dd);
 			for (unsigned n=0; n<Df.Length(); n++)
@@ -1010,7 +1014,7 @@ int GRichTextEdit::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 					if (AddIndex < 0)
 					{
 						int LineHint = -1;
-						int Idx = d->HitTest(Pt.x, Pt.y, LineHint);
+						int Idx = d->HitTest(TestPt.x, TestPt.y, LineHint);
 						if (Idx >= 0)
 						{
 							int BlkOffset;
@@ -1032,9 +1036,16 @@ int GRichTextEdit::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 									AddIndex = BlkIdx;
 								}
 
-								d->Blocks.AddAt(AddIndex++, new GRichTextPriv::ImageBlock(d) );
-								if (After)
-									d->Blocks.AddAt(AddIndex++, After);
+								GRichTextPriv::ImageBlock *ImgBlk = new GRichTextPriv::ImageBlock(d);
+								if (ImgBlk)
+								{
+									d->Blocks.AddAt(AddIndex++, ImgBlk);
+									if (After)
+										d->Blocks.AddAt(AddIndex++, After);
+
+									ImgBlk->Load(f);
+									Effect = DROPEFFECT_COPY;
+								}
 							}
 						}
 					}
@@ -1050,7 +1061,10 @@ int GRichTextEdit::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 		}
 	}
 
-	return DROPEFFECT_NONE;
+	if (Effect != DROPEFFECT_NONE)
+		Invalidate();
+
+	return Effect;
 }
 
 void GRichTextEdit::OnCreate()
@@ -2152,6 +2166,16 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 		case M_PASTE:
 		{
 			Paste();
+			break;
+		}
+		case M_BLOCK_MSG:
+		{
+			GRichTextPriv::Block *b = (GRichTextPriv::Block*)Msg->A();
+			GAutoPtr<GMessage> msg((GMessage*)Msg->B());
+			if (d->Blocks.HasItem(b) && msg)
+			{
+				b->OnEvent(msg);
+			}
 			break;
 		}
 		#if defined WIN32
