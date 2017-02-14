@@ -8635,7 +8635,7 @@ bool GHtml::GetFormattedContent(const char *MimeType, GAutoString &Out, GArray<G
 						{
 							// Add the exported image stream to the media array
 							GDocView::ContentMedia &m = Media->New();
-							m.Id.Reset(NewStr(Cid));
+							m.Id = Cid;
 							m.Stream.Reset(f);
 						}
 					}

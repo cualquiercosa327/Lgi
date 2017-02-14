@@ -178,9 +178,17 @@ int GRichTextPriv::ImageBlock::Length()
 	return 1;
 }
 
-bool GRichTextPriv::ImageBlock::ToHtml(GStream &s)
+bool GRichTextPriv::ImageBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media)
 {
-	s.Print("<img src='%s'>\n", Source.Get());
+	if (Media)
+	{
+		LgiAssert(!"Impl me.");
+	}
+	else
+	{
+		s.Print("<img src='%s'>\n", Source.Get());
+	}
+	
 	return true;
 }
 

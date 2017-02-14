@@ -336,7 +336,7 @@ HtmlTag IsDefaultStyle(HtmlTag Id, GCss *Css)
 	return CONTENT;
 }
 
-bool GRichTextPriv::TextBlock::ToHtml(GStream &s)
+bool GRichTextPriv::TextBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media)
 {
 	s.Print("<p>");
 	for (unsigned i=0; i<Txt.Length(); i++)

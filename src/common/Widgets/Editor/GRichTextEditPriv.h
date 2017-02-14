@@ -658,7 +658,7 @@ public:
 			virtual bool GetPosFromIndex(BlockCursor *Cursor) = 0;
 			virtual bool OnLayout(Flow &f) = 0;
 			virtual void OnPaint(PaintContext &Ctx) = 0;
-			virtual bool ToHtml(GStream &s) = 0;
+			virtual bool ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media) = 0;
 			virtual bool OffsetToLine(int Offset, int *ColX, GArray<int> *LineY) = 0;
 			virtual int LineToOffset(int Line) = 0;
 			virtual int GetLines() = 0;
@@ -953,7 +953,7 @@ public:
 		GNamedStyle *GetStyle(int At = -1);
 		void SetStyle(GNamedStyle *s);
 		int Length();
-		bool ToHtml(GStream &s);
+		bool ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media);
 		bool GetPosFromIndex(BlockCursor *Cursor);
 		bool HitTest(HitTestResult &htr);
 		void OnPaint(PaintContext &Ctx);
@@ -1008,7 +1008,7 @@ public:
 		GNamedStyle *GetStyle(int At = -1);
 		void SetStyle(GNamedStyle *s);
 		int Length();
-		bool ToHtml(GStream &s);
+		bool ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media);
 		bool GetPosFromIndex(BlockCursor *Cursor);
 		bool HitTest(HitTestResult &htr);
 		void OnPaint(PaintContext &Ctx);
@@ -1127,7 +1127,7 @@ public:
 	
 	GAutoPtr<CreateContext> CreationCtx;
 
-	bool ToHtml();
+	bool ToHtml(GArray<GDocView::ContentMedia> *Media = NULL);
 	void DumpBlocks();
 	bool FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentStyle = NULL, int Depth = 0);
 

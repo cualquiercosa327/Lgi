@@ -394,7 +394,7 @@ public:
 
 	struct ContentMedia
 	{
-		GAutoString Id;
+		GString Id;
 		GVariant Data;
 		GAutoPtr<GStream> Stream;
 	};
@@ -405,7 +405,7 @@ public:
 		/// [In] The desired mime type of the content
 		const char *MimeType,
 		/// [Out] The content in the specified mime type
-		GAutoString &Out,
+		GString &Out,
 		/// [Out/Optional] Any attached media files that the content references
 		GArray<ContentMedia> *Media = 0
 	)

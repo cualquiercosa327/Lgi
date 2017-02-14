@@ -1725,7 +1725,7 @@ GHtmlElement *GRichTextPriv::CreateElement(GHtmlElement *Parent)
 	return new GRichEditElem(Parent);
 }
 
-bool GRichTextPriv::ToHtml()		
+bool GRichTextPriv::ToHtml(GArray<GDocView::ContentMedia> *Media)
 {
 	GStringPipe p(256);
 		
@@ -1751,7 +1751,7 @@ bool GRichTextPriv::ToHtml()
 	for (unsigned i=0; i<Blocks.Length(); i++)
 	{
 		Block *b = Blocks[i];
-		b->ToHtml(p);
+		b->ToHtml(p, Media);
 	}
 		
 	p.Print("</body>\n");

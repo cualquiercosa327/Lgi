@@ -85,7 +85,9 @@ public:
 
 	int HitTest(int x, int y);
 	bool DeleteSelection(char16 **Cut = 0);
-
+	
+	bool GetFormattedContent(const char *MimeType, GString &Out, GArray<ContentMedia> *Media = 0);
+	
 	// Font
 	GFont *GetFont();
 	void SetFont(GFont *f, bool OwnIt = false);

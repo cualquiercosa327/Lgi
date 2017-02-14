@@ -303,6 +303,18 @@ void GRichTextEdit::Value(int64 i)
 	Name(Str);
 }
 
+bool GRichTextEdit::GetFormattedContent(const char *MimeType, GString &Out, GArray<ContentMedia> *Media)
+{
+	if (!MimeType || _stricmp(MimeType, "text/html"))
+		return false;
+
+	if (!d->ToHtml(Media))
+		return false;
+	
+	Out = d->UtfNameCache;
+	return true;
+}
+
 char *GRichTextEdit::Name()
 {
 	d->ToHtml();
@@ -1062,7 +1074,10 @@ int GRichTextEdit::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 	}
 
 	if (Effect != DROPEFFECT_NONE)
+	{
 		Invalidate();
+		SendNotify(GNotifyDocChanged);
+	}
 
 	return Effect;
 }
