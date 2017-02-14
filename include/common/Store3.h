@@ -166,7 +166,7 @@ public:
 
 	/// Gets a sub object pointer
 	virtual GDataPropI *GetObj(int id) { EmptyVirtual; }
-	/// Gets a sub object pointer
+	/// Sets a sub object pointer
 	virtual bool SetObj(int id, GDataPropI *i) { EmptyVirtual; }
 	
 	/// Gets an iterator interface to a list of sub-objects.

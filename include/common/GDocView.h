@@ -395,6 +395,8 @@ public:
 	struct ContentMedia
 	{
 		GString Id;
+		GString FileName;
+		GString MimeType;
 		GVariant Data;
 		GAutoPtr<GStream> Stream;
 	};

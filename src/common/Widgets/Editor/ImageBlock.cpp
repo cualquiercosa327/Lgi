@@ -180,15 +180,36 @@ int GRichTextPriv::ImageBlock::Length()
 
 bool GRichTextPriv::ImageBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media)
 {
-	if (Media)
+	if (Media && FileExists(Source))
 	{
-		LgiAssert(!"Impl me.");
+		GDocView::ContentMedia &Cm = Media->New();
+		Cm.Id.Printf("%u@memecode.com", LgiRand()%10000);
+		Cm.FileName = LgiGetLeaf(Source);
+		GAutoString mt = LgiApp->GetFileMimeType(Source);
+		Cm.MimeType = mt.Get();
+		
+		GFile *f = new GFile;
+		if (f)
+		{
+			if (f->Open(Source, O_READ))
+			{
+				Cm.Stream.Reset(f);
+			}
+			else
+			{
+				delete f;
+				LgiTrace("%s:%i - Failed to open link image '%s'.\n", _FL, Source.Get());
+			}
+		}
+		
+		if (Cm.Stream)
+		{		
+			s.Print("<img src='cid:%s'>\n", Cm.Id.Get());
+			return true;
+		}
 	}
-	else
-	{
-		s.Print("<img src='%s'>\n", Source.Get());
-	}
-	
+
+	s.Print("<img src='%s'>\n", Source.Get());
 	return true;
 }
 
