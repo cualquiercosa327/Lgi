@@ -969,7 +969,7 @@ bool GRichTextPriv::Merge(Block *a, Block *b)
 	TextBlock *ta = dynamic_cast<TextBlock*>(a);
 	TextBlock *tb = dynamic_cast<TextBlock*>(b);
 	if (!ta || !tb)
-		return Error(_FL, "Can't merge non-text block: %p, %p", ta, tb);
+		return false;
 
 	ta->Txt.Add(tb->Txt);
 	ta->LayoutDirty = true;

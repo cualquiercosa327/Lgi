@@ -180,7 +180,7 @@ int GRichTextPriv::ImageBlock::Length()
 
 bool GRichTextPriv::ImageBlock::ToHtml(GStream &s)
 {
-	s.Print("<img src='%s'>", Source.Get());
+	s.Print("<img src='%s'>\n", Source.Get());
 	return true;
 }
 

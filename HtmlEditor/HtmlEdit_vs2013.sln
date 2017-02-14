@@ -6,7 +6,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HtmlEdit", "HtmlEdit_vs2013
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lgi", "..\Lgi_vs2013.vcxproj", "{95DF9CA4-6D37-4A85-A648-80C2712E0DA1}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libjpeg", "..\..\..\..\CodeLib\libjpeg\windows\libjpeg.vcxproj", "{D88AD9F0-4276-4BFB-9F21-F7E78F0902F7}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libjpeg", "..\..\..\..\CodeLib\libjpeg-9a\windows\libjpeg-9a-vs2013.vcxproj", "{D88AD9F0-4276-4BFB-9F21-F7E78F0902F7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

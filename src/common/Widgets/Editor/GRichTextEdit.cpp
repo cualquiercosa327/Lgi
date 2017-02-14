@@ -1549,7 +1549,7 @@ bool GRichTextEdit::OnKey(GKey &k)
 								// Try and merge the two blocks...
 								int Len = Prev->Length();
 								d->Merge(Prev, d->Cursor->Blk);
-
+								
 								AutoCursor c(new BlkCursor(Prev, Len, -1));
 								d->SetCursor(c);
 							}
