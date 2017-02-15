@@ -981,6 +981,7 @@ public:
 		GNamedStyle *Style;
 		GAutoPtr<GEventSinkPtr> Thread;
 		int Scale;
+		GRect SourceValid;
 
 	public:
 		GAutoPtr<GSurface> SourceImg, DisplayImg;

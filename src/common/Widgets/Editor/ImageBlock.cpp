@@ -31,7 +31,7 @@ public:
 			Sink->PostEvent(M_IMAGE_SET_SURFACE, (GMessage::Param)Img);
 		}
 
-		if (v - PrevY > 16)
+		if (v - PrevY >= 32)
 		{
 			PrevY = v;
 			Sink->PostEvent(M_IMAGE_PROGRESS, (GMessage::Param)v);
@@ -83,6 +83,7 @@ GRichTextPriv::ImageBlock::ImageBlock(GRichTextPriv *priv) : Block(priv)
 	Size.x = 200;
 	Size.y = 64;
 	Scale = 1;
+	SourceValid.ZOff(-1, -1);
 
 	Margin.ZOff(0, 0);
 	Border.ZOff(0, 0);
@@ -312,7 +313,14 @@ void GRichTextPriv::ImageBlock::OnPaint(PaintContext &Ctx)
 	GSurface *Src = DisplayImg ? DisplayImg : SourceImg;
 	if (Src)
 	{
-		Ctx.pDC->Blt(r.x1, r.y1, Src);
+		if (SourceValid.Valid())
+		{
+			GRect rr(0, 0, DisplayImg->X()-1, SourceValid.y2 / Scale);
+			LgiTrace("Paint %s\n", rr.GetStr());
+			Ctx.pDC->Blt(r.x1, r.y1, Src, &rr);
+		}
+		else
+			Ctx.pDC->Blt(r.x1, r.y1, Src);
 	}
 	else
 	{
@@ -501,6 +509,34 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 		}
 		case M_IMAGE_PROGRESS:
 		{
+			GRect f;
+			if (DisplayImg && !SourceValid.Valid())
+			{
+				SourceValid = SourceImg->Bounds();
+				SourceValid.y2 = (int)Msg->A();
+				f = SourceValid;
+			}
+			else
+			{
+				f = SourceValid;
+				f.y1 = f.y2 + 1;
+				f.y2 = SourceValid.y2 = (int)Msg->A();
+			}
+
+			if (DisplayImg)
+			{
+				GRect s(0, f.y1 / Scale, DisplayImg->X()-1, f.y2 / Scale);
+				GSurface *Sub = DisplayImg->SubImage(&s);
+				if (Sub)
+				{
+					LgiTrace("Resamp %s -> %s\n", f.GetStr(), s.GetStr());
+					// ResampleDC(Sub, SourceImg, &f, NULL);
+					delete Sub;
+					
+					LayoutDirty = true;
+					d->InvalidateDoc(NULL);
+				}
+			}
 			break;
 		}
 		case M_IMAGE_FINISHED:
@@ -511,6 +547,7 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 
 			if (DisplayImg)
 				ResampleDC(DisplayImg, SourceImg, NULL, NULL);
+			SourceValid.ZOff(-1, -1);
 			break;
 		}
 	}

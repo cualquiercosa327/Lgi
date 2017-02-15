@@ -778,7 +778,8 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 					else break;
 				}
 
-				if (Meter) Meter->Value(cinfo.output_scanline);
+				if (Meter)
+					Meter->Value(cinfo.output_scanline);
 			}
 		}
 
