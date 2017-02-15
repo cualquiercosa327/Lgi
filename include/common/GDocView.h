@@ -398,7 +398,7 @@ public:
 		GString FileName;
 		GString MimeType;
 		GVariant Data;
-		GAutoPtr<GStream> Stream;
+		GAutoPtr<GStreamI> Stream;
 	};
 
 	/// Gets the document in format of a desired MIME type
