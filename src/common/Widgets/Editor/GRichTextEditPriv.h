@@ -983,6 +983,8 @@ public:
 		int Scale;
 		GRect SourceValid;
 
+		void UpdateDisplay(int y);
+
 	public:
 		GAutoPtr<GSurface> SourceImg, DisplayImg;
 		GRect Margin, Border, Padding;

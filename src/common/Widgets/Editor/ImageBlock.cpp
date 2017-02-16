@@ -3,22 +3,24 @@
 #include "GRichTextEditPriv.h"
 #include "GdcTools.h"
 
+#define TIMEOUT_LOAD_PROGRESS		100 // ms
+
 class ImageLoader : public GEventTargetThread, public Progress
 {
 	GString File;
 	GEventSinkI *Sink;
 	GSurface *Img;
 	GAutoPtr<GFilter> Filter;
-	int64 PrevY;
 	bool SurfaceSent;
+	int64 Ts;
 
 public:
 	ImageLoader(GEventSinkI *s) : GEventTargetThread("ImageLoader")
 	{
 		Sink = s;
-		PrevY = 0;
 		Img = NULL;
 		SurfaceSent = false;
+		Ts = 0;
 	}
 
 	void Value(int64 v)
@@ -31,9 +33,10 @@ public:
 			Sink->PostEvent(M_IMAGE_SET_SURFACE, (GMessage::Param)Img);
 		}
 
-		if (v - PrevY >= 32)
+		int64 Now = LgiCurrentTime();
+		if (Now - Ts > TIMEOUT_LOAD_PROGRESS)
 		{
-			PrevY = v;
+			Ts = Now;
 			Sink->PostEvent(M_IMAGE_PROGRESS, (GMessage::Param)v);
 		}
 	}
@@ -59,6 +62,7 @@ public:
 
 				Filter->SetProgress(this);
 
+				Ts = LgiCurrentTime();
 				GFilter::IoStatus Status = Filter->ReadImage(Img, &In);
 				if (Status != GFilter::IoSuccess)
 					return Sink->PostEvent(M_IMAGE_ERROR);
@@ -68,7 +72,18 @@ public:
 
 				Sink->PostEvent(M_IMAGE_FINISHED);
 				break;
-			}			
+			}
+			case M_IMAGE_RESAMPLE:
+			{
+				GSurface *Dst = (GSurface*) Msg->A();
+				GSurface *Src = (GSurface*) Msg->B();
+				if (Src && Dst)
+				{
+					ResampleDC(Dst, Src, NULL, NULL);
+					Sink->PostEvent(M_IMAGE_RESAMPLE);
+				}
+				break;
+			}
 		}
 
 		return 0;
@@ -315,8 +330,16 @@ void GRichTextPriv::ImageBlock::OnPaint(PaintContext &Ctx)
 	{
 		if (SourceValid.Valid())
 		{
+			GRect Bounds(0, 0, Size.x-1, Size.y-1);
+			Bounds.Offset(r.x1, r.y1);
+
+			Ctx.pDC->Colour(LC_MED, 24);
+			Ctx.pDC->Box(&Bounds);
+			Bounds.Size(1, 1);
+			Ctx.pDC->Colour(LC_WORKSPACE, 24);
+			Ctx.pDC->Rectangle(&Bounds);
+
 			GRect rr(0, 0, DisplayImg->X()-1, SourceValid.y2 / Scale);
-			LgiTrace("Paint %s\n", rr.GetStr());
 			Ctx.pDC->Blt(r.x1, r.y1, Src, &rr);
 		}
 		else
@@ -476,6 +499,47 @@ void GRichTextPriv::ImageBlock::IncAllStyleRefs()
 		Style->RefCount++;
 }
 
+void GRichTextPriv::ImageBlock::UpdateDisplay(int yy)
+{
+	GRect s;
+	if (DisplayImg && !SourceValid.Valid())
+	{
+		SourceValid = SourceImg->Bounds();
+		SourceValid.y2 = yy;
+		s = SourceValid;
+	}
+	else
+	{
+		s = SourceValid;
+		s.y1 = s.y2 + 1;
+		s.y2 = SourceValid.y2 = yy;
+	}
+
+	if (DisplayImg)
+	{
+		GRect d(0, s.y1 / Scale, DisplayImg->X()-1, s.y2 / Scale);
+
+		// Do a quick and dirty nearest neighbor scale to 
+		// show the user some feed back.
+		GSurface *Src = SourceImg;
+		GSurface *Dst = DisplayImg;
+		for (int y=d.y1; y<=d.y2; y++)
+		{
+			int sy = y * Scale;
+			int sx = d.x1 * Scale;
+			for (int x=d.x1; x<=d.x2; x++, sx+=Scale)
+			{
+				COLOUR c = Src->Get(sx, sy);
+				Dst->Colour(c);
+				Dst->Set(x, y);
+			}
+		}
+					
+		LayoutDirty = true;
+		this->d->InvalidateDoc(NULL);
+	}
+}
+
 GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 {
 	switch (Msg->Msg())
@@ -509,45 +573,22 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 		}
 		case M_IMAGE_PROGRESS:
 		{
-			GRect f;
-			if (DisplayImg && !SourceValid.Valid())
-			{
-				SourceValid = SourceImg->Bounds();
-				SourceValid.y2 = (int)Msg->A();
-				f = SourceValid;
-			}
-			else
-			{
-				f = SourceValid;
-				f.y1 = f.y2 + 1;
-				f.y2 = SourceValid.y2 = (int)Msg->A();
-			}
-
-			if (DisplayImg)
-			{
-				GRect s(0, f.y1 / Scale, DisplayImg->X()-1, f.y2 / Scale);
-				GSurface *Sub = DisplayImg->SubImage(&s);
-				if (Sub)
-				{
-					LgiTrace("Resamp %s -> %s\n", f.GetStr(), s.GetStr());
-					// ResampleDC(Sub, SourceImg, &f, NULL);
-					delete Sub;
-					
-					LayoutDirty = true;
-					d->InvalidateDoc(NULL);
-				}
-			}
+			UpdateDisplay((int)Msg->A());
 			break;
 		}
 		case M_IMAGE_FINISHED:
 		{
+			UpdateDisplay(SourceImg->Y()-1);
+			Thread->PostEvent(M_IMAGE_RESAMPLE,
+							(GMessage::Param)DisplayImg.Get(),
+							(GMessage::Param)SourceImg.Get());
+			break;
+		}
+		case M_IMAGE_RESAMPLE:
+		{
 			LayoutDirty = true;
 			d->InvalidateDoc(NULL);
 			Thread.Reset();
-
-			if (DisplayImg)
-				ResampleDC(DisplayImg, SourceImg, NULL, NULL);
-			SourceValid.ZOff(-1, -1);
 			break;
 		}
 	}
