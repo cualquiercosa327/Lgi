@@ -409,7 +409,19 @@ public:
 		/// [Out] The content in the specified mime type
 		GString &Out,
 		/// [Out/Optional] Any attached media files that the content references
-		GArray<ContentMedia> *Media = 0
+		GArray<ContentMedia> *Media = NULL
+	)
+	{ return false; }
+
+	/// Sets the document in format of a desired MIME type
+	virtual bool SetFormattedContent
+	(
+		/// [In] The desired mime type of the content
+		const char *MimeType,
+		/// [In] The content in the specified mime type
+		GString In,
+		/// [In/Optional] Any attached media files that the content references
+		GArray<ContentMedia> *Media = NULL
 	)
 	{ return false; }
 };

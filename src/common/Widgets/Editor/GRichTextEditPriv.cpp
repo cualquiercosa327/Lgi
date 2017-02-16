@@ -1919,6 +1919,8 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 
 				if (CachedStyle)
 					ctx.Ib->SetStyle(CachedStyle);
+
+				ctx.Ib->Load();
 			}
 		}
 		else if (c->TagId == TAG_A)

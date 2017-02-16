@@ -138,7 +138,7 @@ bool GRichTextPriv::ImageBlock::Load(const char *Src)
 	if (!Thread.Reset(new GEventSinkPtr(new ImageLoader(this), true)))
 		return false;
 
-	return Thread->PostEvent(M_IMAGE_LOAD_FILE, (GMessage::Param)new GString(Src));
+	return Thread->PostEvent(M_IMAGE_LOAD_FILE, (GMessage::Param)new GString(Source));
 }
 
 int GRichTextPriv::ImageBlock::GetLines()
