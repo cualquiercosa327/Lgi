@@ -1140,32 +1140,16 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 		ClipText.Reset(NewStr(Clip.Text()));
 	}
 
-	#if LUIS_DEBUG
-	RClick.AppendItem("Dump Layout", IDM_DUMP, true);
-	RClick.AppendSeparator();
-	#endif
-
-	/*
-	GStyle *s = HitStyle(HitText(m.x, m.y));
-	if (s)
-	{
-		if (s->OnMenu(&RClick))
-		{
-			RClick.AppendSeparator();
-		}
-	}
-	*/
-
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_CUT, "Cut"), IDM_CUT, HasSelection());
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_COPY, "Copy"), IDM_COPY, HasSelection());
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_PASTE, "Paste"), IDM_PASTE, ClipText != 0);
 	RClick.AppendSeparator();
 
-	#if 0
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_UNDO, "Undo"), IDM_UNDO, false /* UndoQue.CanUndo() */);
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_REDO, "Redo"), IDM_REDO, false /* UndoQue.CanRedo() */);
 	RClick.AppendSeparator();
 
+	#if 0
 	i = RClick.AppendItem(LgiLoadString(L_TEXTCTRL_FIXED, "Fixed Width Font"), IDM_FIXED, true);
 	if (i) i->Checked(GetFixedWidthFont());
 	#endif
@@ -1183,6 +1167,23 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_TAB_SIZE, "Tab Size"), IDM_TAB_SIZE, true);
 	RClick.AppendItem("Copy Original", IDM_COPY_ORIGINAL, d->OriginalText.Get() != NULL);
 
+	GRichTextPriv::Block *Over = NULL;
+	GRect &Content = d->Areas[ContentArea];
+	GdcPt2 Doc = d->ScreenToDoc(m.x, m.y);
+	if (Content.Overlap(m.x, m.y))
+	{
+		int LineHint;
+		int Idx = d->HitTest(Doc.x, Doc.y, LineHint);
+		if (Idx >= 0)
+			Over = d->GetBlockByIndex(Idx);
+	}
+	if (Over)
+	{
+		#ifdef _DEBUG
+		RClick.AppendItem(Over->GetClass(), -1, false);
+		#endif
+		Over->DoContext(RClick, Doc);
+	}
 	if (Environment)
 		Environment->AppendItems(&RClick);
 

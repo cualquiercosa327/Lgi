@@ -56,6 +56,15 @@
 		) \
 	)
 
+enum RtcCmds
+{
+	IDM_CLOCKWISE = 300,
+	IDM_ANTI_CLOCKWISE,
+	IDM_X_FLIP,
+	IDM_Y_FLIP,
+	IDM_SCALE_IMAGE,
+};
+
 //////////////////////////////////////////////////////////////////////
 #define PtrCheckBreak(ptr)				if (!ptr) { LgiAssert(!"Invalid ptr"); break; }
 #undef FixedToInt
@@ -667,6 +676,7 @@ public:
 			virtual void Dump() {}
 			virtual GNamedStyle *GetStyle(int At = -1) = 0;
 			virtual int GetUid() const { return BlockUid; }
+			virtual bool DoContext(GSubMenu &s, GdcPt2 Doc) { return false; }
 			#ifdef _DEBUG
 			virtual void DumpNodes(GTreeItem *Ti) = 0;
 			#endif
@@ -1021,6 +1031,7 @@ public:
 		bool Seek(SeekType To, BlockCursor &Cursor);
 		int FindAt(int StartIdx, const uint32 *Str, GFindReplaceCommon *Params);
 		void IncAllStyleRefs();
+		bool DoContext(GSubMenu &s, GdcPt2 Doc);
 		#ifdef _DEBUG
 		void DumpNodes(GTreeItem *Ti);
 		#endif

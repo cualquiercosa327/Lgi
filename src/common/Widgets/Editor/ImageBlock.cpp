@@ -527,6 +527,47 @@ void GRichTextPriv::ImageBlock::IncAllStyleRefs()
 		Style->RefCount++;
 }
 
+int ImgScales[] = { 15, 25, 50, 75, 100 };
+bool GRichTextPriv::ImageBlock::DoContext(GSubMenu &s, GdcPt2 Doc)
+{
+	if (SourceImg)
+	{
+		s.AppendSeparator();
+		
+		GSubMenu *c = s.AppendSub("Transform Image");
+		if (c)
+		{
+			c->AppendItem("Rotate Clockwise", IDM_CLOCKWISE); 
+			c->AppendItem("Rotate Anti-clockwise", IDM_ANTI_CLOCKWISE); 
+			c->AppendItem("Horizontal Flip", IDM_X_FLIP); 
+			c->AppendItem("Vertical Flip", IDM_Y_FLIP); 
+		}
+
+		c = s.AppendSub("Scale Image");
+		if (c)
+		{
+			for (int i=0; i<CountOf(ImgScales); i++)
+			{
+				GString m;
+				int x = SourceImg->X() * ImgScales[i] / 100;
+				int y = SourceImg->Y() * ImgScales[i] / 100;
+				m.Printf("%i x %i, %i%%", x, y, ImgScales[i]);
+				GMenuItem *mi = c->AppendItem(m, IDM_SCALE_IMAGE+i);
+				if (mi &&
+					x == SourceImg->X() &&
+					y == SourceImg->Y())
+				{
+					mi->Checked(true);
+				}
+			}			
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
 void GRichTextPriv::ImageBlock::UpdateDisplay(int yy)
 {
 	GRect s;
