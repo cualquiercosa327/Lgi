@@ -661,7 +661,9 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 			}
 
 			// loop through scanlines
-			while (cinfo.output_scanline < cinfo.output_height)
+			Status = IoSuccess;
+			while (	cinfo.output_scanline < cinfo.output_height &&
+					Status == IoSuccess)
 			{
 				uchar *Ptr = (*pDC)[cinfo.output_scanline];
 				if (Ptr)
@@ -707,6 +709,7 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 
 									default:
 										LgiAssert(!"impl me.");
+										Status = IoUnsupportedFormat;
 										break;
 								}
 								break;
@@ -735,6 +738,7 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 										
 										default:
 											LgiAssert(!"Unsupported colour space.");
+											Status = IoUnsupportedFormat;
 											break;
 									}
 								}
@@ -768,6 +772,7 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 
 										default:
 											LgiAssert(!"Unsupported colour space.");
+											Status = IoUnsupportedFormat;
 											break;
 									}
 								}
@@ -779,7 +784,11 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 				}
 
 				if (Meter)
+				{
 					Meter->Value(cinfo.output_scanline);
+					if (Meter->Cancel())
+						Status = IoCancel;
+				}
 			}
 		}
 
@@ -789,8 +798,6 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 		DeleteArray(range_table);
 
 		JPEGLIB jpeg_finish_decompress(&cinfo);
-
-		Status = IoSuccess;
 	}
 
 	JPEGLIB jpeg_destroy_decompress(&cinfo);

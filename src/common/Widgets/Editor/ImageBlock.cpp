@@ -23,6 +23,11 @@ public:
 		Ts = 0;
 	}
 
+	~ImageLoader()
+	{
+		Cancel(true);
+	}
+
 	void Value(int64 v)
 	{
 		Progress::Value(v);
