@@ -986,7 +986,7 @@ public:
 		void UpdateDisplay(int y);
 
 	public:
-		GAutoPtr<GSurface> SourceImg, DisplayImg;
+		GAutoPtr<GSurface> SourceImg, DisplayImg, SelectImg;
 		GRect Margin, Border, Padding;
 		GString Source;
 		GdcPt2 Size;

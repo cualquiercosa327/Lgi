@@ -348,7 +348,30 @@ void GRichTextPriv::ImageBlock::OnPaint(PaintContext &Ctx)
 			Ctx.pDC->Blt(r.x1, r.y1, Src, &rr);
 		}
 		else
-			Ctx.pDC->Blt(r.x1, r.y1, Src);
+		{
+			if (DisplayImg && Ctx.Type == GRichTextPriv::Selected)
+			{
+				if (!SelectImg &&
+					SelectImg.Reset(new GMemDC(DisplayImg->X(), DisplayImg->Y(), System32BitColourSpace)))
+				{
+					SelectImg->Blt(0, 0, DisplayImg);
+
+					int Op = SelectImg->Op(GDC_ALPHA);
+					GColour c = Ctx.Colours[GRichTextPriv::Selected].Back;
+					c.Rgb(c.r(), c.g(), c.b(), 0xa0);
+					SelectImg->Colour(c);
+					SelectImg->Rectangle();
+					SelectImg->Op(Op);
+
+				}
+
+				Ctx.pDC->Blt(r.x1, r.y1, SelectImg);
+			}
+			else
+			{
+				Ctx.pDC->Blt(r.x1, r.y1, Src);
+			}
+		}
 	}
 	else
 	{
@@ -594,6 +617,7 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 			LayoutDirty = true;
 			d->InvalidateDoc(NULL);
 			Thread.Reset();
+			SourceValid.ZOff(-1, -1);
 			break;
 		}
 	}
