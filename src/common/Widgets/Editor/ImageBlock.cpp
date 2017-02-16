@@ -13,6 +13,7 @@ class ImageLoader : public GEventTargetThread, public Progress
 	GAutoPtr<GFilter> Filter;
 	bool SurfaceSent;
 	int64 Ts;
+	GAutoPtr<GFile> In;
 
 public:
 	ImageLoader(GEventSinkI *s) : GEventTargetThread("ImageLoader")
@@ -35,7 +36,7 @@ public:
 		if (!SurfaceSent)
 		{
 			SurfaceSent = true;
-			Sink->PostEvent(M_IMAGE_SET_SURFACE, (GMessage::Param)Img);
+			Sink->PostEvent(M_IMAGE_SET_SURFACE, (GMessage::Param)Img, (GMessage::Param)In.Release());
 		}
 
 		int64 Now = LgiCurrentTime();
@@ -58,8 +59,8 @@ public:
 				if (!Filter.Reset(GFilterFactory::New(File, O_READ, NULL)))
 					return Sink->PostEvent(M_IMAGE_ERROR);
 
-				GFile In;
-				if (!In.Open(File, O_READ))
+				if (!In.Reset(new GFile) ||
+					!In->Open(File, O_READ))
 					return Sink->PostEvent(M_IMAGE_ERROR);
 
 				if (!(Img = new GMemDC))
@@ -68,12 +69,12 @@ public:
 				Filter->SetProgress(this);
 
 				Ts = LgiCurrentTime();
-				GFilter::IoStatus Status = Filter->ReadImage(Img, &In);
+				GFilter::IoStatus Status = Filter->ReadImage(Img, In);
 				if (Status != GFilter::IoSuccess)
 					return Sink->PostEvent(M_IMAGE_ERROR);
 
 				if (!SurfaceSent)
-					Sink->PostEvent(M_IMAGE_SET_SURFACE, (GMessage::Param)Img);
+					Sink->PostEvent(M_IMAGE_SET_SURFACE, (GMessage::Param)Img, (GMessage::Param)In.Release());
 
 				Sink->PostEvent(M_IMAGE_FINISHED);
 				break;
@@ -89,6 +90,38 @@ public:
 				}
 				break;
 			}
+			case M_IMAGE_COMPRESS:
+			{
+				GSurface *img = (GSurface*)Msg->A();
+				GRichTextPriv::ImageBlock::ScaleInf *si = (GRichTextPriv::ImageBlock::ScaleInf*)Msg->B();
+				if (!img || !si)
+					break;
+				
+				GAutoPtr<GFilter> f(GFilterFactory::New("a.jpg", O_READ, NULL));
+				if (!f)
+					break;
+
+				GAutoPtr<GSurface> scaled;
+				if (img->X() != si->Sz.x ||
+					img->Y() != si->Sz.y)
+				{
+					if (!scaled.Reset(new GMemDC(si->Sz.x, si->Sz.y, img->GetColourSpace())))
+						break;
+					ResampleDC(scaled, img, NULL, NULL);
+					img = scaled;
+				}
+
+				GXmlTag Props;
+				f->Props = &Props;
+				Props.SetAttr(LGI_FILTER_QUALITY, 90);
+				
+				GAutoPtr<GMemStream> jpg(new GMemStream(1024));
+				if (!f->WriteImage(jpg, img))
+					break;
+
+				Sink->PostEvent(M_IMAGE_COMPRESS, (GMessage::Param)jpg.Release(), (GMessage::Param)si);
+				break;
+			}
 		}
 
 		return 0;
@@ -100,8 +133,8 @@ GRichTextPriv::ImageBlock::ImageBlock(GRichTextPriv *priv) : Block(priv)
 	LayoutDirty = false;
 	Pos.ZOff(-1, -1);
 	Style = NULL;
-	Size.x = 200;
-	Size.y = 64;
+	OutputSz.x = Size.x = 200;
+	OutputSz.y = Size.y = 64;
 	Scale = 1;
 	SourceValid.ZOff(-1, -1);
 
@@ -123,6 +156,7 @@ GRichTextPriv::ImageBlock::ImageBlock(const ImageBlock *Copy) : Block(Copy->d)
 
 GRichTextPriv::ImageBlock::~ImageBlock()
 {
+	Thread.Reset();
 	LgiAssert(Cursors == 0);
 }
 
@@ -546,20 +580,33 @@ bool GRichTextPriv::ImageBlock::DoContext(GSubMenu &s, GdcPt2 Doc)
 		c = s.AppendSub("Scale Image");
 		if (c)
 		{
-			for (int i=0; i<CountOf(ImgScales); i++)
+			for (int i=0; i<Scales.Length(); i++)
 			{
+				ScaleInf &si = Scales[i];
+				
 				GString m;
-				int x = SourceImg->X() * ImgScales[i] / 100;
-				int y = SourceImg->Y() * ImgScales[i] / 100;
-				m.Printf("%i x %i, %i%%", x, y, ImgScales[i]);
+				si.Sz.x = SourceImg->X() * ImgScales[i] / 100;
+				si.Sz.y = SourceImg->Y() * ImgScales[i] / 100;
+				si.Percent = ImgScales[i];
+				
+				m.Printf("%i x %i, %i%% ", si.Sz.x, si.Sz.y, ImgScales[i]);
+				if (si.Jpg)
+				{
+					char Sz[128];
+					LgiFormatSize(Sz, sizeof(Sz), si.Jpg->GetSize());
+					GString s;
+					s.Printf(" (%s)", Sz);
+					m += s;
+				}
+				
 				GMenuItem *mi = c->AppendItem(m, IDM_SCALE_IMAGE+i);
 				if (mi &&
-					x == SourceImg->X() &&
-					y == SourceImg->Y())
+					si.Sz.x == OutputSz.x &&
+					si.Sz.y == OutputSz.y)
 				{
 					mi->Checked(true);
 				}
-			}			
+			}
 		}
 
 		return true;
@@ -613,6 +660,36 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 {
 	switch (Msg->Msg())
 	{
+		case M_COMMAND:
+		{
+			if (SourceImg &&
+				Msg->A() >= IDM_SCALE_IMAGE &&
+				Msg->A() < IDM_SCALE_IMAGE + CountOf(ImgScales))
+			{
+				int i = Msg->A() - IDM_SCALE_IMAGE;
+				if (i >= 0 && i < Scales.Length())
+				{
+					ScaleInf &si = Scales[i];
+					OutputSz = si.Sz;
+
+					if (!Thread.Reset(new GEventSinkPtr(new ImageLoader(this), true)))
+						return false;
+
+					Thread->PostEvent(M_IMAGE_COMPRESS, (GMessage::Param)SourceImg.Get(), (GMessage::Param)&si);
+				}
+			}
+			break;
+		}
+		case M_IMAGE_COMPRESS:
+		{
+			GAutoPtr<GMemStream> Jpg((GMemStream*)Msg->A());
+			ScaleInf *Si = (ScaleInf*)Msg->B();
+			if (!Jpg || !Si)
+				break;
+
+			Si->Jpg.Reset(Jpg.Release());
+			break;
+		}
 		case M_IMAGE_ERROR:
 		{
 			Thread.Reset();
@@ -620,8 +697,28 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 		}
 		case M_IMAGE_SET_SURFACE:
 		{
+			GAutoPtr<GFile> Jpeg((GFile*)Msg->B());
+
 			if (SourceImg.Reset((GSurface*)Msg->A()))
 			{
+				OutputSz.x = SourceImg->X();
+				OutputSz.y = SourceImg->Y();
+
+				Scales.Length(CountOf(ImgScales));
+				for (int i=0; i<CountOf(ImgScales); i++)
+				{
+					ScaleInf &si = Scales[i];
+					si.Sz.x = SourceImg->X() * ImgScales[i] / 100;
+					si.Sz.y = SourceImg->Y() * ImgScales[i] / 100;
+					si.Percent = ImgScales[i];
+				
+					if (si.Sz.x == OutputSz.x &&
+						si.Sz.y == OutputSz.y)
+					{
+						si.Jpg.Reset(Jpeg.Release());
+					}
+				}
+
 				int ViewX = d->Areas[GRichTextEdit::ContentArea].X();
 				int MaxX = (int) (ViewX * 0.9);
 				if (SourceImg->X() > MaxX)

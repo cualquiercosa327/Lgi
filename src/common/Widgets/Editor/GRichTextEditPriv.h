@@ -988,10 +988,27 @@ public:
 	class ImageBlock :
 		public Block
 	{
+	public:
+		struct ScaleInf
+		{
+			GdcPt2 Sz;
+			GAutoPtr<GStreamI> Jpg;
+			int Percent;
+
+			ScaleInf()
+			{
+				Sz.x = Sz.y = 0;
+				Percent = 0;
+			}
+		};
+
+	protected:
 		GNamedStyle *Style;
 		GAutoPtr<GEventSinkPtr> Thread;
 		int Scale;
 		GRect SourceValid;
+
+		GArray<ScaleInf> Scales;
 
 		void UpdateDisplay(int y);
 
@@ -999,7 +1016,7 @@ public:
 		GAutoPtr<GSurface> SourceImg, DisplayImg, SelectImg;
 		GRect Margin, Border, Padding;
 		GString Source;
-		GdcPt2 Size;
+		GdcPt2 Size, OutputSz;
 		
 		bool LayoutDirty;
 		GRect Pos; // position in document co-ordinates

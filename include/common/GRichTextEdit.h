@@ -22,6 +22,7 @@ enum RichEditMsgs
 	M_IMAGE_PROGRESS,
 	M_IMAGE_RESAMPLE,
 	M_IMAGE_FINISHED,
+	M_IMAGE_COMPRESS,
 };
 
 extern char Delimiters[];

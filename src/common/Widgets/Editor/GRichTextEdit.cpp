@@ -1286,13 +1286,12 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 		}
 		default:
 		{
-			/*
-			if (s)
+			if (Over)
 			{
-				s->OnMenuClick(Id);
+				GMessage Cmd(M_COMMAND, Id);
+				Over->OnEvent(&Cmd);
 			}
-			*/
-
+			
 			if (Environment)
 			{
 				Environment->OnMenu(this, Id, 0);
