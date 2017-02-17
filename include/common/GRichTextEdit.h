@@ -23,6 +23,8 @@ enum RichEditMsgs
 	M_IMAGE_RESAMPLE,
 	M_IMAGE_FINISHED,
 	M_IMAGE_COMPRESS,
+	M_IMAGE_ROTATE,
+	M_IMAGE_FLIP,
 };
 
 extern char Delimiters[];

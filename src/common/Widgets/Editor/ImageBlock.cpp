@@ -113,13 +113,36 @@ public:
 
 				GXmlTag Props;
 				f->Props = &Props;
-				Props.SetAttr(LGI_FILTER_QUALITY, 90);
+				Props.SetAttr(LGI_FILTER_QUALITY, RICH_TEXT_RESIZED_JPEG_QUALITY);
 				
 				GAutoPtr<GMemStream> jpg(new GMemStream(1024));
 				if (!f->WriteImage(jpg, img))
 					break;
 
 				Sink->PostEvent(M_IMAGE_COMPRESS, (GMessage::Param)jpg.Release(), (GMessage::Param)si);
+				break;
+			}
+			case M_IMAGE_ROTATE:
+			{
+				GSurface *Img = (GSurface*)Msg->A();
+				if (!Img)
+					break;
+
+				RotateDC(Img, Msg->B() == 1 ? 90 : 270);
+				Sink->PostEvent(M_IMAGE_ROTATE);
+				break;
+			}
+			case M_IMAGE_FLIP:
+			{
+				GSurface *Img = (GSurface*)Msg->A();
+				if (!Img)
+					break;
+
+				if (Msg->B() == 1)
+					FlipXDC(Img);
+				else
+					FlipYDC(Img);
+				Sink->PostEvent(M_IMAGE_FLIP);
 				break;
 			}
 		}
@@ -133,10 +156,11 @@ GRichTextPriv::ImageBlock::ImageBlock(GRichTextPriv *priv) : Block(priv)
 	LayoutDirty = false;
 	Pos.ZOff(-1, -1);
 	Style = NULL;
-	OutputSz.x = Size.x = 200;
-	OutputSz.y = Size.y = 64;
+	Size.x = 200;
+	Size.y = 64;
 	Scale = 1;
 	SourceValid.ZOff(-1, -1);
+	ResizeIdx = -1;
 
 	Margin.ZOff(0, 0);
 	Border.ZOff(0, 0);
@@ -243,17 +267,28 @@ bool GRichTextPriv::ImageBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia
 		GAutoString mt = LgiApp->GetFileMimeType(Source);
 		Cm.MimeType = mt.Get();
 		
-		GFile *f = new GFile;
-		if (f)
+		ScaleInf *Si = ResizeIdx >= 0 && ResizeIdx < Scales.Length() ? &Scales[ResizeIdx] : NULL;
+		if (Si && Si->Percent != 100 && Si->Jpg)
 		{
-			if (f->Open(Source, O_READ))
+			// Attach a copy of the resized jpeg...
+			Si->Jpg->SetPos(0);
+			Cm.Stream.Reset(new GMemStream(Si->Jpg, 0, -1));
+		}
+		else
+		{
+			// Attach the original file...
+			GFile *f = new GFile;
+			if (f)
 			{
-				Cm.Stream.Reset(f);
-			}
-			else
-			{
-				delete f;
-				LgiTrace("%s:%i - Failed to open link image '%s'.\n", _FL, Source.Get());
+				if (f->Open(Source, O_READ))
+				{
+					Cm.Stream.Reset(f);
+				}
+				else
+				{
+					delete f;
+					LgiTrace("%s:%i - Failed to open link image '%s'.\n", _FL, Source.Get());
+				}
 			}
 		}
 		
@@ -600,9 +635,7 @@ bool GRichTextPriv::ImageBlock::DoContext(GSubMenu &s, GdcPt2 Doc)
 				}
 				
 				GMenuItem *mi = c->AppendItem(m, IDM_SCALE_IMAGE+i);
-				if (mi &&
-					si.Sz.x == OutputSz.x &&
-					si.Sz.y == OutputSz.y)
+				if (mi && ResizeIdx == i)
 				{
 					mi->Checked(true);
 				}
@@ -656,27 +689,73 @@ void GRichTextPriv::ImageBlock::UpdateDisplay(int yy)
 	}
 }
 
+GEventSinkPtr *GRichTextPriv::ImageBlock::GetThread()
+{
+	if (!Thread.Reset(new GEventSinkPtr(new ImageLoader(this), true)))
+		return false;
+	return Thread;
+}
+
+
+void GRichTextPriv::ImageBlock::UpdateDisplayImg()
+{
+	if (SourceImg)
+	{
+		int ViewX = d->Areas[GRichTextEdit::ContentArea].X();
+		int MaxX = (int) (ViewX * 0.9);
+		if (SourceImg->X() > MaxX)
+		{
+			double Ratio = (double)SourceImg->X() / MaxX;
+			Scale = (int)ceil(Ratio);
+
+			Size.x = (int)ceil((double)SourceImg->X() / Scale);
+			Size.y = (int)ceil((double)SourceImg->Y() / Scale);
+			if (DisplayImg.Reset(new GMemDC(Size.x, Size.y, SourceImg->GetColourSpace())))
+			{
+				DisplayImg->Colour(0, 32);
+				DisplayImg->Rectangle();
+			}
+		}
+	}
+}
+
 GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 {
 	switch (Msg->Msg())
 	{
 		case M_COMMAND:
 		{
-			if (SourceImg &&
-				Msg->A() >= IDM_SCALE_IMAGE &&
+			if (!SourceImg)
+				break;
+			if (Msg->A() >= IDM_SCALE_IMAGE &&
 				Msg->A() < IDM_SCALE_IMAGE + CountOf(ImgScales))
 			{
 				int i = Msg->A() - IDM_SCALE_IMAGE;
 				if (i >= 0 && i < Scales.Length())
 				{
 					ScaleInf &si = Scales[i];
-					OutputSz = si.Sz;
+					ResizeIdx = i;
 
 					if (!Thread.Reset(new GEventSinkPtr(new ImageLoader(this), true)))
 						return false;
 
 					Thread->PostEvent(M_IMAGE_COMPRESS, (GMessage::Param)SourceImg.Get(), (GMessage::Param)&si);
 				}
+			}
+			else switch (Msg->A())
+			{
+				case IDM_CLOCKWISE:
+					GetThread()->PostEvent(M_IMAGE_ROTATE, (GMessage::Param) SourceImg.Get(), 1);
+					break;
+				case IDM_ANTI_CLOCKWISE:
+					GetThread()->PostEvent(M_IMAGE_ROTATE, (GMessage::Param) SourceImg.Get(), -1);
+					break;
+				case IDM_X_FLIP:
+					GetThread()->PostEvent(M_IMAGE_FLIP, (GMessage::Param) SourceImg.Get(), 1);
+					break;
+				case IDM_Y_FLIP:
+					GetThread()->PostEvent(M_IMAGE_FLIP, (GMessage::Param) SourceImg.Get(), 0);
+					break;
 			}
 			break;
 		}
@@ -701,9 +780,6 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 
 			if (SourceImg.Reset((GSurface*)Msg->A()))
 			{
-				OutputSz.x = SourceImg->X();
-				OutputSz.y = SourceImg->Y();
-
 				Scales.Length(CountOf(ImgScales));
 				for (int i=0; i<CountOf(ImgScales); i++)
 				{
@@ -712,28 +788,15 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 					si.Sz.y = SourceImg->Y() * ImgScales[i] / 100;
 					si.Percent = ImgScales[i];
 				
-					if (si.Sz.x == OutputSz.x &&
-						si.Sz.y == OutputSz.y)
+					if (si.Sz.x == SourceImg->X() &&
+						si.Sz.y == SourceImg->Y())
 					{
+						ResizeIdx = i;
 						si.Jpg.Reset(Jpeg.Release());
 					}
 				}
 
-				int ViewX = d->Areas[GRichTextEdit::ContentArea].X();
-				int MaxX = (int) (ViewX * 0.9);
-				if (SourceImg->X() > MaxX)
-				{
-					double Ratio = (double)SourceImg->X() / MaxX;
-					Scale = (int)ceil(Ratio);
-
-					Size.x = (int)ceil((double)SourceImg->X() / Scale);
-					Size.y = (int)ceil((double)SourceImg->Y() / Scale);
-					if (DisplayImg.Reset(new GMemDC(Size.x, Size.y, SourceImg->GetColourSpace())))
-					{
-						DisplayImg->Colour(0, 32);
-						DisplayImg->Rectangle();
-					}
-				}
+				UpdateDisplayImg();
 			}
 			break;
 		}
@@ -756,6 +819,18 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 			d->InvalidateDoc(NULL);
 			Thread.Reset();
 			SourceValid.ZOff(-1, -1);
+			break;
+		}
+		case M_IMAGE_ROTATE:
+		case M_IMAGE_FLIP:
+		{
+			DisplayImg.Reset();
+			UpdateDisplayImg();
+			if (DisplayImg)
+				GetThread()->PostEvent(	M_IMAGE_RESAMPLE,
+										(GMessage::Param)DisplayImg.Get(),
+										(GMessage::Param)SourceImg.Get());
+
 			break;
 		}
 	}

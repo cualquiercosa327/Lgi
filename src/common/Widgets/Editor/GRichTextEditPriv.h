@@ -44,6 +44,8 @@
 #define TEXT_CAP_BTN					"Ok"
 #define TEXT_EMOJI						":)"
 
+#define RICH_TEXT_RESIZED_JPEG_QUALITY	83 // out of 100, high = better quality
+
 #define NoTransaction					NULL
 #define IsWordBreakChar(ch)				\
 	( \
@@ -1009,14 +1011,17 @@ public:
 		GRect SourceValid;
 
 		GArray<ScaleInf> Scales;
+		int ResizeIdx;
 
+		GEventSinkPtr *GetThread();
 		void UpdateDisplay(int y);
+		void UpdateDisplayImg();
 
 	public:
 		GAutoPtr<GSurface> SourceImg, DisplayImg, SelectImg;
 		GRect Margin, Border, Padding;
 		GString Source;
-		GdcPt2 Size, OutputSz;
+		GdcPt2 Size;
 		
 		bool LayoutDirty;
 		GRect Pos; // position in document co-ordinates
