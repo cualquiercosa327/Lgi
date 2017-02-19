@@ -25,6 +25,7 @@ enum RichEditMsgs
 	M_IMAGE_COMPRESS,
 	M_IMAGE_ROTATE,
 	M_IMAGE_FLIP,
+	M_IMAGE_LOAD_STREAM,
 };
 
 extern char Delimiters[];
@@ -90,7 +91,7 @@ public:
 	int HitTest(int x, int y);
 	bool DeleteSelection(char16 **Cut = 0);
 	
-	bool GetFormattedContent(const char *MimeType, GString &Out, GArray<ContentMedia> *Media = 0);
+	bool GetFormattedContent(const char *MimeType, GString &Out, GArray<ContentMedia> *Media = NULL);
 	
 	// Font
 	GFont *GetFont();

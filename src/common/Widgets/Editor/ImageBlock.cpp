@@ -79,6 +79,33 @@ public:
 				Sink->PostEvent(M_IMAGE_FINISHED);
 				break;
 			}
+			case M_IMAGE_LOAD_STREAM:
+			{
+				GAutoPtr<GStreamI> Stream((GStreamI*)Msg->A());
+				GAutoPtr<GString> FileName((GString*)Msg->B());
+				if (!Stream)
+					break;
+				
+				GMemStream Mem(Stream, 0, -1);				
+				if (!Filter.Reset(GFilterFactory::New(FileName ? *FileName : NULL, O_READ, (const uchar*)Mem.GetBasePtr())))
+					return Sink->PostEvent(M_IMAGE_ERROR);
+
+				if (!(Img = new GMemDC))
+					return Sink->PostEvent(M_IMAGE_ERROR);
+
+				Filter->SetProgress(this);
+
+				Ts = LgiCurrentTime();
+				GFilter::IoStatus Status = Filter->ReadImage(Img, &Mem);
+				if (Status != GFilter::IoSuccess)
+					return Sink->PostEvent(M_IMAGE_ERROR);
+
+				if (!SurfaceSent)
+					Sink->PostEvent(M_IMAGE_SET_SURFACE, (GMessage::Param)Img, (GMessage::Param)In.Release());
+
+				Sink->PostEvent(M_IMAGE_FINISHED);
+				break;
+			}
 			case M_IMAGE_RESAMPLE:
 			{
 				GSurface *Dst = (GSurface*) Msg->A();
@@ -193,10 +220,67 @@ bool GRichTextPriv::ImageBlock::Load(const char *Src)
 {
 	if (Src)
 		Source = Src;
+
+	GAutoPtr<GStreamI> Stream;
+	GString FileName;
+	
+	GString::Array a = Source.Strip().Split(":", 1);
+	if (a.Length() > 1 &&
+		a[0].Equals("cid"))
+	{
+		GDocumentEnv *Env = d->View->GetEnv();
+		if (!Env)
+			return false;
+		
+		GDocumentEnv::LoadJob *j = Env->NewJob();
+		if (!j)
+			return false;
+		
+		j->Uri.Reset(NewStr(Source));
+		j->Env = Env;
+		j->Pref = GDocumentEnv::LoadJob::FmtStream;
+		j->UserUid = d->View->GetDocumentUid();
+
+		GDocumentEnv::LoadType Result = Env->GetContent(j);
+		if (Result == GDocumentEnv::LoadImmediate)
+		{
+			if (j->Stream)
+				Stream = j->Stream;
+			else if (j->Filename)
+				FileName = j->Filename;
+			else if (j->pDC)
+			{
+				SourceImg = j->pDC;
+				return true;
+			}
+		}
+		else if (Result == GDocumentEnv::LoadDeferred)
+		{
+			LgiAssert(!"Impl me?");
+		}
+		
+		DeleteObj(j);
+	}
+	else if (FileExists(Source))
+	{
+		FileName = Source;
+	}
+	else
+		return false;
+
+	if (!FileName && !Stream)
+		return false;
+
 	if (!Thread.Reset(new GEventSinkPtr(new ImageLoader(this), true)))
 		return false;
 
-	return Thread->PostEvent(M_IMAGE_LOAD_FILE, (GMessage::Param)new GString(Source));
+	if (Stream)
+		return Thread->PostEvent(M_IMAGE_LOAD_STREAM, (GMessage::Param)Stream.Release(), (GMessage::Param) (FileName ? new GString(FileName) : NULL));
+	
+	if (FileName)
+		return Thread->PostEvent(M_IMAGE_LOAD_FILE, (GMessage::Param)new GString(FileName));
+	
+	return false;
 }
 
 int GRichTextPriv::ImageBlock::GetLines()
@@ -267,7 +351,7 @@ bool GRichTextPriv::ImageBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia
 		GAutoString mt = LgiApp->GetFileMimeType(Source);
 		Cm.MimeType = mt.Get();
 		
-		ScaleInf *Si = ResizeIdx >= 0 && ResizeIdx < Scales.Length() ? &Scales[ResizeIdx] : NULL;
+		ScaleInf *Si = ResizeIdx >= 0 && ResizeIdx < (int)Scales.Length() ? &Scales[ResizeIdx] : NULL;
 		if (Si && Si->Percent != 100 && Si->Jpg)
 		{
 			// Attach a copy of the resized jpeg...
@@ -398,6 +482,13 @@ void GRichTextPriv::ImageBlock::OnPaint(PaintContext &Ctx)
 	}
 
 	bool ImgSelected = Ctx.Type == Selected;
+
+	if (!DisplayImg &&
+		SourceImg &&
+		SourceImg->X() > r.X())
+	{
+		UpdateDisplayImg();
+	}
 
 	GSurface *Src = DisplayImg ? DisplayImg : SourceImg;
 	if (Src)
@@ -615,7 +706,7 @@ bool GRichTextPriv::ImageBlock::DoContext(GSubMenu &s, GdcPt2 Doc)
 		c = s.AppendSub("Scale Image");
 		if (c)
 		{
-			for (int i=0; i<Scales.Length(); i++)
+			for (unsigned i=0; i<Scales.Length(); i++)
 			{
 				ScaleInf &si = Scales[i];
 				
@@ -702,19 +793,27 @@ void GRichTextPriv::ImageBlock::UpdateDisplayImg()
 	if (SourceImg)
 	{
 		int ViewX = d->Areas[GRichTextEdit::ContentArea].X();
-		int MaxX = (int) (ViewX * 0.9);
-		if (SourceImg->X() > MaxX)
+		if (ViewX > 0)
 		{
-			double Ratio = (double)SourceImg->X() / MaxX;
-			Scale = (int)ceil(Ratio);
-
-			Size.x = (int)ceil((double)SourceImg->X() / Scale);
-			Size.y = (int)ceil((double)SourceImg->Y() / Scale);
-			if (DisplayImg.Reset(new GMemDC(Size.x, Size.y, SourceImg->GetColourSpace())))
+			int MaxX = (int) (ViewX * 0.9);
+			if (SourceImg->X() > MaxX)
 			{
-				DisplayImg->Colour(0, 32);
-				DisplayImg->Rectangle();
+				double Ratio = (double)SourceImg->X() / MAX(1, MaxX);
+				Scale = (int)ceil(Ratio);
+
+				Size.x = (int)ceil((double)SourceImg->X() / Scale);
+				Size.y = (int)ceil((double)SourceImg->Y() / Scale);
+				if (DisplayImg.Reset(new GMemDC(Size.x, Size.y, SourceImg->GetColourSpace())))
+				{
+					DisplayImg->Colour(0, 32);
+					DisplayImg->Rectangle();
+				}
 			}
+		}
+		else
+		{
+			Size.x = SourceImg->X();
+			Size.y = SourceImg->Y();
 		}
 	}
 }
@@ -731,7 +830,7 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 				Msg->A() < IDM_SCALE_IMAGE + CountOf(ImgScales))
 			{
 				int i = Msg->A() - IDM_SCALE_IMAGE;
-				if (i >= 0 && i < Scales.Length())
+				if (i >= 0 && i < (int)Scales.Length())
 				{
 					ScaleInf &si = Scales[i];
 					ResizeIdx = i;

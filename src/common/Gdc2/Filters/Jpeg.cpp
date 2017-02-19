@@ -111,9 +111,13 @@ class GdcJpegFactory : public GFilterFactory
 				Hint[7] == 'F' &&
 				Hint[8] == 'I' &&
 				Hint[9] == 'F')
-			{
 				return true;
-			}
+			
+			if (Hint[0] == 0xff &&
+				Hint[1] == 0xd8 &&
+				Hint[2] == 0xff &&
+				Hint[3] == 0xe1)
+				return true;
 		}
 
 		return (File) ? stristr(File, ".jpeg") != 0 ||

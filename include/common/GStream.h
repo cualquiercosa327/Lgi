@@ -177,6 +177,8 @@ public:
 
 	~GMemStream();
 	
+	char *GetBasePtr() { return Mem; }
+	
 	bool IsOpen() { return Mem != 0; }
 	int Close();
 	int64 GetSize() { return Len; }
