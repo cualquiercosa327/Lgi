@@ -44,6 +44,8 @@
 #define TEXT_CAP_BTN					"Ok"
 #define TEXT_EMOJI						":)"
 
+#define RICH_TEXT_RESIZED_JPEG_QUALITY	83 // out of 100, high = better quality
+
 #define NoTransaction					NULL
 #define IsWordBreakChar(ch)				\
 	( \
@@ -988,12 +990,32 @@ public:
 	class ImageBlock :
 		public Block
 	{
+	public:
+		struct ScaleInf
+		{
+			GdcPt2 Sz;
+			GAutoPtr<GStreamI> Jpg;
+			int Percent;
+
+			ScaleInf()
+			{
+				Sz.x = Sz.y = 0;
+				Percent = 0;
+			}
+		};
+
+	protected:
 		GNamedStyle *Style;
 		GAutoPtr<GEventSinkPtr> Thread;
 		int Scale;
 		GRect SourceValid;
 
+		GArray<ScaleInf> Scales;
+		int ResizeIdx;
+
+		GEventSinkPtr *GetThread();
 		void UpdateDisplay(int y);
+		void UpdateDisplayImg();
 
 	public:
 		GAutoPtr<GSurface> SourceImg, DisplayImg, SelectImg;

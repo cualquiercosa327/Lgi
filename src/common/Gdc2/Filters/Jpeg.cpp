@@ -111,9 +111,13 @@ class GdcJpegFactory : public GFilterFactory
 				Hint[7] == 'F' &&
 				Hint[8] == 'I' &&
 				Hint[9] == 'F')
-			{
 				return true;
-			}
+			
+			if (Hint[0] == 0xff &&
+				Hint[1] == 0xd8 &&
+				Hint[2] == 0xff &&
+				Hint[3] == 0xe1)
+				return true;
 		}
 
 		return (File) ? stristr(File, ".jpeg") != 0 ||
@@ -828,7 +832,8 @@ void j_term_destination(j_compress_ptr cinfo)
 {
 	JpegStream *Stream = (JpegStream*)cinfo->client_data;
 	int Bytes = Stream->Buf.Length() - cinfo->dest->free_in_buffer;
-	Stream->f->Write(&Stream->Buf[0], Bytes);
+	if (Stream->f->Write(&Stream->Buf[0], Bytes) != Bytes)
+		LgiAssert(!"Write failed.");
 }
 
 GFilter::IoStatus GdcJpeg::WriteImage(GStream *Out, GSurface *pDC)
@@ -852,7 +857,7 @@ GFilter::IoStatus GdcJpeg::WriteImage(GStream *Out, GSurface *pDC)
 	// bool Ok = true;
 
 	// Setup quality setting
-	GVariant Quality, SubSample, DpiX, DpiY;
+	GVariant Quality(80), SubSample(Sample_1x1_1x1_1x1), DpiX, DpiY;
 	GdcPt2 Dpi;
 	if (Props)
 	{
@@ -864,13 +869,11 @@ GFilter::IoStatus GdcJpeg::WriteImage(GStream *Out, GSurface *pDC)
 		Dpi.x = DpiX.CastInt32();
 		Dpi.y = DpiY.CastInt32();
 	}
-	else
-	{
-		Quality = 80;
-		SubSample = Sample_1x1_1x1_1x1;
+
+	if (!Dpi.x)
 		Dpi.x = 300;
+	if (!Dpi.y)
 		Dpi.y = 300;
-	}
 
 	return _Write(Out, pDC, Quality.CastInt32(), (SubSampleMode)SubSample.CastInt32(), Dpi);
 }
