@@ -2097,11 +2097,15 @@ void GRichTextEdit::OnEnter(GKey &k)
 	{
 		GRichTextPriv::Block *b = d->Cursor->Blk;
 		const uint32 Nl[] = {'\n'};
-		if (b->AddText(NoTransaction, d->Cursor->Offset, Nl, 1))
+		AutoTrans Trans(new GRichTextPriv::Transaction);						
+
+		if (b->AddText(Trans, d->Cursor->Offset, Nl, 1))
 		{
 			d->Cursor->Set(d->Cursor->Offset + 1);
 			Invalidate();
 		}
+
+		d->AddTrans(Trans);
 	}
 
 	SendNotify(GNotifyDocChanged);
@@ -2524,12 +2528,16 @@ bool EmojiMenu::InsertEmoji(uint32 Ch)
 	if (!d->Cursor || !d->Cursor->Blk)
 		return false;
 
+	AutoTrans Trans(new GRichTextPriv::Transaction);						
+
 	if (!d->Cursor->Blk->AddText(NoTransaction, d->Cursor->Offset, &Ch, 1, NULL))
 		return false;
 
 	AutoCursor c(new BlkCursor(*d->Cursor));
 	c->Offset++;
 	d->SetCursor(c);
+
+	d->AddTrans(Trans);
 						
 	d->Dirty = true;
 	d->InvalidateDoc(NULL);
