@@ -647,7 +647,7 @@ bool GRichTextEdit::Copy()
 bool GRichTextEdit::Paste()
 {
 	GClipBoard Cb(this);
-	GAutoWString Text(Cb.TextW());
+	char16 *Text = Cb.TextW();
 	if (!Text)
 		return false;
 	
@@ -2159,6 +2159,19 @@ void GRichTextEdit::OnPaint(GSurface *pDC)
 	}
 
 	d->Areas[ContentArea] = r;
+
+	#if 1
+	CGAffineTransform t1 = CGContextGetCTM(pDC->Handle());
+	CGRect rc = CGContextGetClipBoundingBox(pDC->Handle());
+	LgiTrace("d->Areas[ContentArea]=%s  %f,%f,%f,%f\n",
+		d->Areas[ContentArea].GetStr(),
+		rc.origin.x, rc.origin.y,
+		rc.size.width, rc.size.height);
+	if (rc.size.width < 20)
+	{
+		int asd=0;
+	}
+	#endif
 
 	if (d->Layout(VScroll))
 		d->Paint(pDC, VScroll);

@@ -226,7 +226,7 @@ public:
 		}
 
 		#if defined(MAC)
-		GRect &operator =(HIRect &r)
+		GRect &operator =(const CGRect &r)
 		{
 			x1 = (int)r.origin.x;
 			y1 = (int)r.origin.y;
