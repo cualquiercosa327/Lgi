@@ -949,140 +949,144 @@ public:
 	
 	void GetContext(char16 *Txt, int &i, char16 *&Context)
 	{
-		static char16 NMsg[] = { 'I', 'n', ' ', 'f', 'i', 'l', 'e', ' ', 'i', 'n', 'c', 'l', 'u', 'd', 'e', 'd', ' ', 0 };
-		static char16 FromMsg[] = { 'f', 'r', 'o', 'm', ' ', 0 };
+		static char16 NMsg[] = L"In file included ";
+		static char16 FromMsg[] = L"from ";
 		int NMsgLen = StrlenW(NMsg);
 
-		if (Txt[i] == '\n')
-		{
-			if (StrncmpW(Txt + i + 1, NMsg, NMsgLen) == 0)
-			{
-				i += NMsgLen + 1;								
-				
-				while (Txt[i])
-				{
-					// Skip whitespace
-					while (Txt[i] && strchr(" \t\r\n", Txt[i])) i++;
-					
-					// Check for 'from'
-					if (StrncmpW(FromMsg, Txt + i, 5) == 0)
-					{
-						i += 5;
-						char16 *Start = Txt + i;
+		if (Txt[i] != '\n')
+			return;
 
-						// Skip to end of doc or line
-						char16 *Colon = 0;
-						while (Txt[i] && Txt[i] != '\n')
-						{
-							if (Txt[i] == ':' && Txt[i+1] != '\n')
-							{
-								Colon = Txt + i;
-							}
-							i++;
-						}
-						if (Colon)
-						{
-							DeleteArray(Context);
-							Context = NewStrW(Start, Colon-Start);
-						}
-					}
-					else
-					{
-						break;
-					}
-				}
-			}
-		}
-		
-	}
-		
-	void NextMsg()
-	{
-		if (Output &&
-			Output->Tab)
+		if (StrncmpW(Txt + i + 1, NMsg, NMsgLen))
+			return;
+
+		i += NMsgLen + 1;								
+				
+		while (Txt[i])
 		{
-			int Current = Output->Tab->Value();
-			GTextView3 *o = Current < CountOf(Output->Txt) ? Output->Txt[Current] : 0;
-			if (o)
+			// Skip whitespace
+			while (Txt[i] && strchr(" \t\r\n", Txt[i]))
+				i++;
+					
+			// Check for 'from'
+			if (StrncmpW(FromMsg, Txt + i, 5))
+				break;
+
+			i += 5;
+			char16 *Start = Txt + i;
+
+			// Skip to end of doc or line
+			char16 *Colon = 0;
+			while (Txt[i] && Txt[i] != '\n')
 			{
-				char16 *Txt = o->NameW();
-				if (Txt)
+				if (Txt[i] == ':' && Txt[i+1] != '\n')
 				{
-					int Cur = o->GetCursor();
-					char16 *Context = 0;
-					
-					// Scan forward to the end of file for the next filename/linenumber separator.
-					int i;
-					for (i=Cur; Txt[i]; i++)
-					{
-						GetContext(Txt, i, Context);
+					Colon = Txt + i;
+				}
+				i++;
+			}
+			if (Colon)
+			{
+				DeleteArray(Context);
+				Context = NewStrW(Start, Colon-Start);
+			}
+		}
+	}
+
+	#define PossibleLineSep(ch) \
+		( (ch) == ':' || (ch) == '(' )
+		
+	void SeekMsg(int Direction)
+	{
+		GString Comp;
+		IdeProject *p = App->RootProject();
+		if (p)
+			p ->GetSettings()->GetStr(ProjCompiler);
+		bool IsIAR = Comp.Equals("IAR");
+		
+		if (!Output || !Output->Tab)
+			return;
+
+		int Current = Output->Tab->Value();
+		GTextView3 *o = Current < CountOf(Output->Txt) ? Output->Txt[Current] : 0;
+		if (!o)
+			return;
+
+		char16 *Txt = o->NameW();
+		if (!Txt)
+			return;
+
+		int Cur = o->GetCursor();
+		char16 *Context = NULL;
+		
+		// Scan forward to the end of file for the next filename/line number separator.
+		int i;
+		for (i=Cur; Txt[i]; i++)
+		{
+			GetContext(Txt, i, Context);
 						
-						if
-						(
-							(Txt[i] == ':' || Txt[i] == '(')
-							&&
-							isdigit(Txt[i+1])
-						)
-						{
-							break;
-						}
-					}
+			if
+			(
+				PossibleLineSep(Txt[i])
+				&&
+				isdigit(Txt[i+1])
+			)
+			{
+				break;
+			}
+		}
 					
-					// If not found then scan from the start of the file for the next filename/linenumber separator.
-					if (Txt[i] != ':')
-					{
-						for (i=0; i<Cur; i++)
-						{
-							GetContext(Txt, i, Context);
+		// If not found then scan from the start of the file for the next filename/line number separator.
+		if (!PossibleLineSep(Txt[i]))
+		{
+			for (i=0; i<Cur; i++)
+			{
+				GetContext(Txt, i, Context);
 							
-							if
-							(
-								(Txt[i] == ':' || Txt[i] == '(')
-								&&
-								isdigit(Txt[i+1])
-							)
-							{
-								break;
-							}
-						}
-					}
-					
-					// If match found?
-					if (Txt[i] == ':' || Txt[i] == '(')
-					{
-						// Scan back to the start of the filename
-						int Line = i;
-						while (Line > 0 && Txt[Line-1] != '\n')
-						{
-							Line--;
-						}
-						
-						// Store the filename
-						GAutoString File(WideToUtf8(Txt+Line, i-Line));
-						if (File)
-						{
-							// Scan over the linenumber..
-							int NumIndex = ++i;
-							while (isdigit(Txt[NumIndex])) NumIndex++;
-							
-							// Store the linenumber
-							GAutoString NumStr(WideToUtf8(Txt + i, NumIndex - i));
-							if (NumStr)
-							{
-								// Convert it to an integer
-								int LineNumber = atoi(NumStr);
-								o->SetCursor(Line, false);
-								o->SetCursor(NumIndex + 1, true);
-								
-								char *Context8 = WideToUtf8(Context);
-								ViewMsg(File, LineNumber, Context8);
-								DeleteArray(Context8);
-							}
-						}
-					}					
+				if
+				(
+					PossibleLineSep(Txt[i])
+					&&
+					isdigit(Txt[i+1])
+				)
+				{
+					break;
 				}
 			}
 		}
+					
+		// If match found?
+		if (!PossibleLineSep(Txt[i]))
+			return;
+
+		// Scan back to the start of the filename
+		int Line = i;
+		while (Line > 0 && Txt[Line-1] != '\n')
+		{
+			Line--;
+		}
+						
+		// Store the filename
+		GAutoString File(WideToUtf8(Txt+Line, i-Line));
+		if (!File)
+			return;
+
+		// Scan over the line number..
+		int NumIndex = ++i;
+		while (isdigit(Txt[NumIndex]))
+			NumIndex++;
+							
+		// Store the line number
+		GAutoString NumStr(WideToUtf8(Txt + i, NumIndex - i));
+		if (!NumStr)
+			return;
+
+		// Convert it to an integer
+		int LineNumber = atoi(NumStr);
+		o->SetCursor(Line, false);
+		o->SetCursor(NumIndex + 1, true);
+								
+		GString Context8 = Context;
+		ViewMsg(File, LineNumber, Context8);
 	}
 
 	void UpdateMenus()
@@ -2844,7 +2848,12 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		}
 		case IDM_NEXT_MSG:
 		{
-			d->NextMsg();
+			d->SeekMsg(1);
+			break;
+		}
+		case IDM_PREV_MSG:
+		{
+			d->SeekMsg(-1);
 			break;
 		}
 		case IDM_DEBUG_MODE:

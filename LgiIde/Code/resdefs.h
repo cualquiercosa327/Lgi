@@ -164,5 +164,7 @@
 #define IDM_STEP_OUT							577
 #define IDM_MENU_578							578
 #define IDM_TOGGLE_BREAKPOINT					579
+#define IDM_MENU_580							580
 #define IDM_RESTART_DEBUGGING					581
 #define IDM_RUN_TO								582
+#define IDM_PREV_MSG							583

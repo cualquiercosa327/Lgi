@@ -738,6 +738,8 @@
 			<String Ref="229" Cid="581" Define="IDM_RESTART_DEBUGGING" en="Restart Debugging" />
 			<String Ref="230" Cid="582" Define="IDM_RUN_TO" en="Run To Current Location" />
 			<String Ref="235" Cid="569" Define="IDM_SAVE" en="&Save" />
+			<String Ref="236" Cid="580" Define="IDM_MENU_580" />
+			<String Ref="237" Cid="583" Define="IDM_PREV_MSG" en="Previous Message" />
 		</string-group>
 		<submenu Ref="175">
 			<menuitem Ref="174" Shortcut="Ctrl+N" />
@@ -799,7 +801,9 @@
 			<menuitem Ref="140" Shortcut="F7" />
 			<menuitem Ref="139" />
 			<menuitem Ref="138" />
+			<menuitem Sep="1" />
 			<menuitem Ref="137" Shortcut="F4" />
+			<menuitem Ref="237" Shortcut="Shift+F4" />
 			<menuitem Sep="1" />
 			<menuitem Ref="135" Shortcut="Ctrl+F5" />
 			<menuitem Ref="134" Shortcut="Ctrl+Shift+V" />
