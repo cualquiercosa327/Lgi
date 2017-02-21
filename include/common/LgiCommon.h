@@ -31,7 +31,8 @@
 /// \ingroup Base
 LgiExtern GString LgiGetSystemPath(
 	/// Which path to retreive
-	LgiSystemPath Which
+	LgiSystemPath Which,
+	int WordSize = 0
 );
 
 /// Removes escaping from the string

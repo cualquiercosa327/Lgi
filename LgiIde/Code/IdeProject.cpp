@@ -104,7 +104,9 @@ class BuildThread : public GThread, public GStream
 		VisualStudio,
 		MingW,
 		Gcc,
-		CrossCompiler		
+		CrossCompiler,
+		PythonScript,
+		IAR
 	}
 	    Compiler;
 
@@ -113,7 +115,7 @@ public:
 	~BuildThread();
 	
 	int Write(const void *Buffer, int Size, int Flags = 0);
-	char *FindExe();
+	GString FindExe();
 	GAutoString WinToMingWPath(const char *path);
 	int Main();
 };
@@ -206,20 +208,30 @@ BuildThread::BuildThread(IdeProject *proj, char *mf, const char *args) : GThread
 	Args.Reset(NewStr(args));
 	Compiler = DefaultCompiler;
 
-	GAutoString Comp(NewStr(Proj->GetSettings()->GetStr(ProjCompiler)));
-	if (Comp)
+	char *Ext = LgiGetExtension(Makefile);
+	if (Ext && !_stricmp(Ext, "py"))
 	{
-		// Use the specified compiler...
-		if (!stricmp(Comp, "VisualStudio"))
-			Compiler = VisualStudio;
-		else if (!stricmp(Comp, "MingW"))
-			Compiler = MingW;
-		else if (!stricmp(Comp, "gcc"))
-			Compiler = Gcc;
-		else if (!stricmp(Comp, "cross"))
-			Compiler = CrossCompiler;
-		else
-		    LgiAssert(!"Unknown compiler.");
+		Compiler = PythonScript;
+	}
+	else
+	{
+		GAutoString Comp(NewStr(Proj->GetSettings()->GetStr(ProjCompiler)));
+		if (Comp)
+		{
+			// Use the specified compiler...
+			if (!stricmp(Comp, "VisualStudio"))
+				Compiler = VisualStudio;
+			else if (!stricmp(Comp, "MingW"))
+				Compiler = MingW;
+			else if (!stricmp(Comp, "gcc"))
+				Compiler = Gcc;
+			else if (!stricmp(Comp, "cross"))
+				Compiler = CrossCompiler;
+			else if (!stricmp(Comp, "IAR"))
+				Compiler = IAR;
+			else
+				LgiAssert(!"Unknown compiler.");
+		}
 	}
 
 	if (Compiler == DefaultCompiler)
@@ -258,21 +270,65 @@ int BuildThread::Write(const void *Buffer, int Size, int Flags)
 	return Size;
 }
 
-char *BuildThread::FindExe()
+GString BuildThread::FindExe()
 {
-	char Exe[256] = "";
 	GToken p(getenv("PATH"), LGI_PATH_SEPARATOR);
 	
-	if (Compiler == VisualStudio)
+	if (Compiler == PythonScript)
 	{
 		for (int i=0; i<p.Length(); i++)
 		{
-			char Path[256];
+			char Path[MAX_PATH];
+			LgiMakePath(Path, sizeof(Path), p[i], "python"LGI_EXECUTABLE_EXT);
+			if (FileExists(Path))
+			{
+				return Path;
+			}
+		}
+	}
+	else if (Compiler == VisualStudio)
+	{
+		for (int i=0; i<p.Length(); i++)
+		{
+			char Path[MAX_PATH];
 			LgiMakePath(Path, sizeof(Path), p[i], "msdev.exe");
 			if (FileExists(Path))
 			{
-				return NewStr(Path);
+				return Path;
 			}
+		}
+	}
+	else if (Compiler == IAR)
+	{
+		const char *Def = "c:\\Program Files (x86)\\IAR Systems\\Embedded Workbench 7.0\\common\\bin\\IarBuild.exe";
+		
+		GString ProgFiles = LgiGetSystemPath(LSP_USER_APPS, 32);
+		char p[MAX_PATH];
+		if (!LgiMakePath(p, sizeof(p), ProgFiles, "IAR Systems"))
+			return GString();
+		GDirectory d;
+		double LatestVer = 0.0;
+		GString Latest;
+		for (int b = d.First(p); b; b = d.Next())
+		{
+			if (d.IsDir())
+			{
+				GString n(d.GetName());
+				GString::Array p = n.Split(" ");
+				if (p.Length() == 3 &&
+					p[2].Float() > LatestVer)
+				{
+					LatestVer = p[2].Float();
+					Latest = n;
+				}
+			}
+		}
+		if (Latest &&
+			LgiMakePath(p, sizeof(p), p, Latest) &&
+			LgiMakePath(p, sizeof(p), p, "common\\bin\\IarBuild.exe"))
+		{
+			if (FileExists(p))
+				return p;
 		}
 	}
 	else
@@ -283,33 +339,31 @@ char *BuildThread::FindExe()
 			const char *Def = "C:\\MinGW\\msys\\1.0\\bin\\make.exe";
 			if (FileExists(Def))
 			{
-				return NewStr(Def);
+				return Def;
 			}				
 		}
 		
-		if (!FileExists(Exe))
+		for (int i=0; i<p.Length(); i++)
 		{
-			for (int i=0; i<p.Length(); i++)
+			char Exe[MAX_PATH];
+			LgiMakePath
+			(
+				Exe,
+				sizeof(Exe),
+				p[i],
+				"make"
+				#ifdef WIN32
+				".exe"
+				#endif
+			);
+			if (FileExists(Exe))
 			{
-				LgiMakePath
-				(
-					Exe,
-					sizeof(Exe),
-					p[i],
-					"make"
-					#ifdef WIN32
-					".exe"
-					#endif
-				);
-				if (FileExists(Exe))
-				{
-					return NewStr(Exe);
-				}
+				return Exe;
 			}
 		}
 	}
 	
-	return 0;
+	return GString();
 }
 
 GAutoString BuildThread::WinToMingWPath(const char *path)
@@ -335,10 +389,7 @@ int BuildThread::Main()
 	const char *Err = 0;
 	char ErrBuf[256];
 
-// printf("BuildThread::Main.0\n");
-	
-	const char *Exe = FindExe();
-// printf("BuildThread::Main.1 Exe='%s'\n", Exe);
+	GString Exe = FindExe();
 	if (Exe)
 	{
 		bool Status = false;
@@ -347,17 +398,43 @@ int BuildThread::Main()
 		if (!Proj->GetApp()->GetOptions()->GetValue(OPT_Jobs, Jobs) || Jobs.CastInt32() < 1)
 			Jobs = 2;
 
-// printf("BuildThread::Main.2 Jobs=%i\n", Jobs.CastInt32());
 		if (Compiler == VisualStudio)
 		{
-			char a[256];
-			sprintf(a, "\"%s\" /make \"All - Win32 Debug\"", Makefile.Get());
+			char a[MAX_PATH];
+			sprintf_s(a, sizeof(a), "\"%s\" /make \"All - Win32 Debug\"", Makefile.Get());
 			GProcess Make;
 			Status = Make.Run(Exe, a, 0, true, 0, this);
-
 			if (!Status)
 			{
 				Err = "Running make failed";
+				LgiTrace("%s,%i - %s.\n", _FL, Err);
+			}
+		}
+		else if (Compiler == IAR)
+		{
+			GString Conf;
+
+			GFile f;
+			if (f.Open(Makefile, O_READ))
+			{
+				GXmlTree t;
+				GXmlTag r;
+				if (t.Read(&r, &f))
+				{
+					GXmlTag *c = r.GetChildTag("configuration");
+					c = c ? c->GetChildTag("name") : NULL;
+					if (c)
+						Conf = c->GetContent();
+				}				
+			}
+
+			char a[MAX_PATH];
+			sprintf_s(a, sizeof(a), "\"%s\" %s -log errors", Makefile.Get(), Conf.Get());
+			GProcess Make;
+			Status = Make.Run(Exe, a, 0, true, 0, this);
+			if (!Status)
+			{
+				Err = "Running IAR Build failed";
 				LgiTrace("%s,%i - %s.\n", _FL, Err);
 			}
 		}
@@ -406,18 +483,14 @@ int BuildThread::Main()
 			Msg.Printf("Making: %s\n", Temp.Get());
 			Proj->GetApp()->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr(Msg), 0);
 
-// printf("BuildThread::Main.3 SubProc(%s)\n", Temp.Get());
 			if (SubProc.Reset(new GSubProcess(Exe, Temp)))
 			{
-// printf("BuildThread::Main.4 SubProc(%s)\n", InitDir);
 				SubProc->SetInitFolder(InitDir);
 				if (Compiler == MingW)
 					SubProc->SetEnvironment("PATH", "c:\\MingW\\bin;C:\\MinGW\\msys\\1.0\\bin;%PATH%");
 				
-// printf("BuildThread::Main.5 SubProc starting\n");
 				if ((Status = SubProc->Start(true, false)))
 				{
-// printf("BuildThread::Main.6 SubProc reading output\n");
 					// Read all the output					
 					char Buf[256];
 					int rd;
@@ -426,14 +499,12 @@ int BuildThread::Main()
 						Write(Buf, rd);
 					}
 					
-// printf("BuildThread::Main.7 SubProc getting exit value\n");
 					uint32 ex = SubProc->Wait();
 					Print("Make exited with %i (0x%x)\n", ex, ex);
 				}
 				else
 				{
 					// Create a nice error message.
-// printf("BuildThread::Main.8 getting err\n");
 					GAutoString ErrStr = LgiErrorCodeToString(SubProc->GetErrorCode());
 					if (ErrStr)
 					{
@@ -456,7 +527,6 @@ int BuildThread::Main()
 		LgiTrace("%s,%i - %s.\n", _FL, Err);
 	}
 
-// printf("BuildThread::Main.9 posting done\n");
 	AppWnd *w = Proj->GetApp();
 	if (w)
 	{
@@ -466,7 +536,6 @@ int BuildThread::Main()
 	}
 	else LgiAssert(0);
 	
-// printf("BuildThread::Main.10 exiting\n");
 	return 0;
 }
 
