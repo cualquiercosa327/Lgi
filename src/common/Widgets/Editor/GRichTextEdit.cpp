@@ -2163,7 +2163,7 @@ void GRichTextEdit::OnPaint(GSurface *pDC)
 
 	d->Areas[ContentArea] = r;
 
-	#if 1
+	#if 0
 	CGAffineTransform t1 = CGContextGetCTM(pDC->Handle());
 	CGRect rc = CGContextGetClipBoundingBox(pDC->Handle());
 	LgiTrace("d->Areas[ContentArea]=%s  %f,%f,%f,%f\n",
