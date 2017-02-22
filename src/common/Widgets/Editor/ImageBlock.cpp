@@ -87,7 +87,7 @@ public:
 					break;
 				
 				GMemStream Mem(Stream, 0, -1);				
-				if (!Filter.Reset(GFilterFactory::New(FileName ? *FileName : NULL, O_READ, (const uchar*)Mem.GetBasePtr())))
+				if (!Filter.Reset(GFilterFactory::New(FileName ? *FileName : 0, O_READ, (const uchar*)Mem.GetBasePtr())))
 					return Sink->PostEvent(M_IMAGE_ERROR);
 
 				if (!(Img = new GMemDC))
