@@ -429,7 +429,7 @@ int BuildThread::Main()
 			}
 
 			char a[MAX_PATH];
-			sprintf_s(a, sizeof(a), "\"%s\" %s -log errors", Makefile.Get(), Conf.Get());
+			sprintf_s(a, sizeof(a), "\"%s\" %s -log warnings", Makefile.Get(), Conf.Get());
 			GProcess Make;
 			Status = Make.Run(Exe, a, 0, true, 0, this);
 			if (!Status)
