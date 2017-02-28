@@ -105,6 +105,7 @@ struct StrRange
 };
 
 #define SkipWhite(s)		while (*s && strchr(WhiteSpace, *s)) s++
+#define SkipSpaces(s)		while (*s && strchr(" \t", *s)) s++
 #define SkipNonWhite(s)		while (*s && !strchr(WhiteSpace, *s)) s++;
 #define ExpectChar(ch)		if (*s != ch) return 0; s++
 
@@ -120,7 +121,7 @@ unsigned ParseImapResponse(char *Buffer, int BufferLen, GArray<StrRange> &Ranges
 	char *Start;
 	for (int n=0; n<Names; n++)
 	{
-		SkipWhite(s);
+		SkipSpaces(s);
 		Start = s;
 		SkipNonWhite(s);
 		if (s <= Start) return 0;
@@ -128,7 +129,7 @@ unsigned ParseImapResponse(char *Buffer, int BufferLen, GArray<StrRange> &Ranges
 	}
 	
 	// Look for start of block
-	SkipWhite(s);
+	SkipSpaces(s);
 	if (s[0] == '\r' &&
 		s[1] == '\n')
 	{
@@ -2297,7 +2298,7 @@ void NullCheck(char *Ptr, unsigned Len)
 
 extern void DeNullText(char *in, int &len);
 
-bool MailIMap::Fetch(bool ByUid,
+int MailIMap::Fetch(bool ByUid,
 					const char *Seq,
 					const char *Parts,
 					FetchCallback Callback,
@@ -2317,7 +2318,7 @@ bool MailIMap::Fetch(bool ByUid,
 		return false;
 	}
 	
-	bool Status = false;
+	int Status = 0;
 	int Cmd = d->NextCmd++;
 	GStringPipe p(256);
 	p.Print("A%4.4i %sFETCH ", Cmd, ByUid ? "UID " : "");
@@ -2458,16 +2459,13 @@ bool MailIMap::Fetch(bool ByUid,
 						#if DEBUG_FETCH
 						LgiTrace("%s:%i - Fetch: Callback OK\n", _FL);
 						#endif
-						Status = true;
+						Status++;
 					}
 					else
 					{
 						#if DEBUG_FETCH
 						LgiTrace("%s:%i - Fetch: Callback return FALSE?\n", _FL);
 						#endif
-						Parts.DeleteArrays();
-						Status = false;
-						break;
 					}
 
 					// Clean up mem
