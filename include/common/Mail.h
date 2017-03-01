@@ -893,7 +893,8 @@ public:
 	// Imap specific commands
 
 	/// This method wraps the imap FETCH command
-	bool Fetch
+	/// \returns the number of records accepted by the callback fn
+	int Fetch
 	(
 		/// True if 'Seq' is a UID, otherwise it's a sequence
 		bool ByUid,
