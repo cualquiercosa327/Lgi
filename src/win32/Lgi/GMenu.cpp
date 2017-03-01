@@ -908,16 +908,15 @@ void GMenuItem::Enabled(bool e)
 {
 	Info.fState &= ~(MFS_ENABLED|MFS_DISABLED|MFS_GRAYED);
 
-	if (e)
-	{
-	}
-	else
+	if (!e)
 	{
 		Info.fState |= MFS_DISABLED|MFS_GRAYED;
 	}
 
 	Info.fMask |= MIIM_STATE;
 	Update();
+
+	// LgiTrace("%s:%i - GMenuItem::Enabled(%i) %s\n", _FL, e, Name());
 }
 
 void GMenuItem::Focus(bool f)

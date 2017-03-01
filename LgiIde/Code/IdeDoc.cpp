@@ -1161,6 +1161,9 @@ public:
 
 	void StyleCpp(int Start, int EditSize)
 	{
+		if (!Text)
+			return;
+
 		char16 *e = Text + Size;
 		
 		// uint64 StartTs = LgiMicroTime();

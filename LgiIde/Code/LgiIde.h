@@ -207,8 +207,10 @@ public:
 class AppWnd : public GWindow
 {
 	class AppWndPrivate *d;
+	friend class AppWndPrivate;
 
 	void UpdateMemoryDump();
+	void DumpHistory();
 
 public:
 	enum Channels

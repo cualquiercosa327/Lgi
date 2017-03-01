@@ -805,12 +805,15 @@ public:
 	{
 		if (CursorHistory.Length())
 		{
-			HistoryLoc += Direction;
-			if (HistoryLoc < 1) HistoryLoc = 1;
-			if (HistoryLoc > CursorHistory.Length()) HistoryLoc = CursorHistory.Length();
+			int Loc = HistoryLoc + Direction;
+			if (Loc >= 0 && Loc < CursorHistory.Length())
+			{
+				HistoryLoc = Loc;
+				FileLoc &Loc = CursorHistory[HistoryLoc];
+				App->GotoReference(Loc.File, Loc.Line, false, false);
 
-			FileLoc &Loc = CursorHistory[HistoryLoc-1];
-			App->GotoReference(Loc.File, Loc.Line, false, false);
+				App->DumpHistory();
+			}
 		}
 	}
 	
@@ -1670,6 +1673,18 @@ bool AppWnd::ToggleBreakpoint(const char *File, int Line)
 	return true;
 }
 
+void AppWnd::DumpHistory()
+{
+	#if 0
+	LgiTrace("History %i of %i\n", d->HistoryLoc, d->CursorHistory.Length());
+	for (int i=0; i<d->CursorHistory.Length(); i++)
+	{
+		FileLoc &p = d->CursorHistory[i];		
+		LgiTrace("    [%i] = %s, %i %s\n", i, p.File.Get(), p.Line, d->HistoryLoc == i ? "<-----":"");
+	}
+	#endif
+}
+	
 void AppWnd::OnLocationChange(const char *File, int Line)
 {
 	if (!File)
@@ -1677,9 +1692,6 @@ void AppWnd::OnLocationChange(const char *File, int Line)
 
 	if (!d->InHistorySeek)
 	{
-		// Destroy any history after the current...
-		d->CursorHistory.Length(d->HistoryLoc++);
-
 		if (d->CursorHistory.Length() > 0)
 		{
 			FileLoc &Last = d->CursorHistory.Last();
@@ -1687,28 +1699,24 @@ void AppWnd::OnLocationChange(const char *File, int Line)
 			{
 				// Previous or next line... just update line number
 				Last.Line = Line;
-				d->HistoryLoc--;
+				DumpHistory();
 				return;
 			}
-		}
-		
-		// Add new entry
-		d->CursorHistory.New().Set(File, Line);
 
-		#if 0
-		int alloc = 1;
-		while (alloc < d->CursorHistory.Length())
-		{
-			alloc <<=1;
+			// Add new entry
+			d->HistoryLoc++;
+			d->CursorHistory[d->HistoryLoc].Set(File, Line);
 		}
-		FileLoc *p = &d->CursorHistory[0];
-		LgiTrace("Added %s, %i to %i items. Idx=%i\n", File, Line, d->CursorHistory.Length(), d->HistoryLoc);
-		for (int i=0; i<alloc; i++)
+		else
 		{
-			LgiTrace("    [%i] = %s, %i\n", i, p[i].File.Get(), p[i].Line);
+			// Add new entry
+			d->CursorHistory[0].Set(File, Line);
 		}
-		#endif
-		
+
+		// Destroy any history after the current...
+		d->CursorHistory.Length(d->HistoryLoc+1);
+
+		DumpHistory();
 	}
 }
 
@@ -1750,15 +1758,13 @@ IdeDoc *AppWnd::GotoReference(const char *File, int Line, bool CurIp, bool WithH
 		d->InHistorySeek = true;
 
 	IdeDoc *Doc = File ? OpenFile(File) : GetCurrentDoc();
-	// printf("Goto Doc=%p %s:%i\n", Doc, File, Line);
 	if (Doc)
-	{
 		Doc->SetLine(Line, CurIp);
-	}
-	else LgiTrace("%s:%i - No file '%s' found.\n", _FL, File);
+	else
+		LgiTrace("%s:%i - No file '%s' found.\n", _FL, File);
 
 	if (!WithHistory)
-		d->InHistorySeek = true;
+		d->InHistorySeek = false;
 
 	return Doc;			
 }
