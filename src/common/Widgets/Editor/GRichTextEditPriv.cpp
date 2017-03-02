@@ -289,7 +289,7 @@ GRichTextPriv::~GRichTextPriv()
 	Empty();
 }
 	
-bool GRichTextPriv::DeleteSelection(Transaction *t, char16 **Cut)
+bool GRichTextPriv::DeleteSelection(Transaction *Trans, char16 **Cut)
 {
 	if (!Cursor || !Selection)
 		return false;
@@ -304,7 +304,7 @@ bool GRichTextPriv::DeleteSelection(Transaction *t, char16 **Cut)
 	{
 		// In the same block... just delete the text
 		int Len = End->Offset - Start->Offset;
-		Start->Blk->DeleteAt(NoTransaction, Start->Offset, Len, DelTxt);
+		Start->Blk->DeleteAt(Trans, Start->Offset, Len, DelTxt);
 	}
 	else
 	{

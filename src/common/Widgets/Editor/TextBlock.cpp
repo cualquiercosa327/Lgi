@@ -1197,16 +1197,39 @@ int GRichTextPriv::TextBlock::LineToOffset(int Line)
 	return Length();
 }
 
+
+bool GRichTextPriv::TextBlock::PreEdit(Transaction *Trans)
+{
+	if (Trans)
+	{
+		bool HasThisBlock = false;
+		for (unsigned i=0; i<Trans->Changes.Length(); i++)
+		{
+			CompleteTextBlockState *c = dynamic_cast<CompleteTextBlockState*>(Trans->Changes[i]);
+			if (c)
+			{
+				if (c->Uid == BlockUid)
+				{
+					HasThisBlock = true;
+					break;
+				}
+			}
+		}
+
+		if (!HasThisBlock)
+			Trans->Add(new CompleteTextBlockState(d, this));
+	}
+
+	return true;
+}
+
 int GRichTextPriv::TextBlock::DeleteAt(Transaction *Trans, int BlkOffset, int Chars, GArray<uint32> *DeletedText)
 {
 	int Pos = 0;
 	int Deleted = 0;
 
-	#if 0
-	for (unsigned i=0; i<Txt.Length(); i++)
-		LgiTrace("%p/%i: '%.*S'\n", Txt[i], i, Txt[i]->Length(), &(*Txt[i])[0]);
-	#endif
-	
+	PreEdit(Trans);
+
 	for (unsigned i=0; i<Txt.Length() && Chars > 0; i++)
 	{
 		StyleText *t = Txt[i];
@@ -1271,8 +1294,7 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 	if (InChars < 0)
 		InChars = Strlen(InStr);
 
-	if (Trans)
-		Trans->Add(new CompleteTextBlockState(d, this));
+	PreEdit(Trans);
 	
 	GArray<int> EmojiIdx;
 	EmojiIdx.Length(InChars);
@@ -1507,6 +1529,8 @@ bool GRichTextPriv::TextBlock::DoCase(Transaction *Trans, int StartIdx, int Char
 	Range Blk(0, Len);
 	Range Inp(StartIdx, Chars < 0 ? Len - StartIdx : Chars);
 	Range Change = Blk.Overlap(Inp);
+
+	PreEdit(Trans);
 
 	Range Run(0, 0);
 	bool Changed = false;

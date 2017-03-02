@@ -658,12 +658,17 @@ bool GRichTextEdit::Paste()
 		return false;
 	}
 
+	AutoTrans Trans(new GRichTextPriv::Transaction);						
+
 	if (HasSelection())
-		DeleteSelection();
+	{
+		if (!d->DeleteSelection(Trans, NULL))
+			return false;
+	}
 
 	GAutoPtr<uint32,true> Utf32((uint32*)LgiNewConvertCp("utf-32", Text, LGI_WideCharset));
 	int Len = Strlen(Utf32.Get());
-	if (!d->Cursor->Blk->AddText(NoTransaction, d->Cursor->Offset, Utf32.Get(), Len))
+	if (!d->Cursor->Blk->AddText(Trans, d->Cursor->Offset, Utf32.Get(), Len))
 	{
 		LgiAssert(0);
 		SendNotify(GNotifyDocChanged);
@@ -674,7 +679,7 @@ bool GRichTextEdit::Paste()
 	Invalidate();
 	SendNotify(GNotifyDocChanged);
 
-	return true;
+	return d->AddTrans(Trans);
 }
 
 bool GRichTextEdit::ClearDirty(bool Ask, char *FileName)

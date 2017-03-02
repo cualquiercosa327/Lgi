@@ -404,7 +404,7 @@ bool GDocApp<OptionsFmt>::_Destroy()
 }
 
 template <typename OptionsFmt>
-bool GDocApp<OptionsFmt>::_LoadMenu(const char *Resource, const char *Tags)
+bool GDocApp<OptionsFmt>::_LoadMenu(const char *Resource, const char *Tags, int FileMenuId, int RecentMenuId)
 {
 	if ((Menu = new GMenu))
 	{
@@ -413,7 +413,10 @@ bool GDocApp<OptionsFmt>::_LoadMenu(const char *Resource, const char *Tags)
 		if (Resource)
 		{
 			Menu->Load(this, Resource, Tags);
-			_FileMenu = Menu->AppendSub("&File", 0);
+			if (FileMenuId >= 0)
+				_FileMenu = Menu->FindSubMenu(FileMenuId);
+			else
+				_FileMenu = Menu->AppendSub("&File", 0);
 		}
 		else
 		{
@@ -422,21 +425,35 @@ bool GDocApp<OptionsFmt>::_LoadMenu(const char *Resource, const char *Tags)
 
 		if (_FileMenu)
 		{
-			_FileMenu->AppendItem("&Open", IDM_OPEN, true, -1, "Ctrl+O");
-			_FileMenu->AppendItem("&Save", IDM_SAVE, true, -1, "Ctrl+S");
-			_FileMenu->AppendItem("Save &As", IDM_SAVEAS, true);
-			_FileMenu->AppendItem("Close", IDM_CLOSE, true, -1, "Ctrl+W");
-			_FileMenu->AppendSeparator();
+			if (!_FileMenu->FindItem(IDM_OPEN))
+				_FileMenu->AppendItem("&Open", IDM_OPEN, true, -1, "Ctrl+O");
 
-			GSubMenu *Recent = _FileMenu->AppendSub("Recent...");
+			if (!_FileMenu->FindItem(IDM_SAVE))
+				_FileMenu->AppendItem("&Save", IDM_SAVE, true, -1, "Ctrl+S");
+			
+			if (!_FileMenu->FindItem(IDM_SAVEAS))
+				_FileMenu->AppendItem("Save &As", IDM_SAVEAS, true);
+			
+			if (!_FileMenu->FindItem(IDM_CLOSE))
+			{
+				_FileMenu->AppendItem("Close", IDM_CLOSE, true, -1, "Ctrl+W");			
+				_FileMenu->AppendSeparator();
+			}
+
+			GSubMenu *Recent = NULL;
+			if (RecentMenuId >= 0)
+				Recent = _FileMenu->FindSubMenu(RecentMenuId);
+			else
+				Recent = _FileMenu->AppendSub("Recent...");
 			if (Recent)
 			{
 				Set(Recent);
-				_FileMenu->AppendSeparator();
+				//_FileMenu->AppendSeparator();
 				GMru::Serialize(Options, "Mru", false);
 			}
 
-			_FileMenu->AppendItem("&Quit", IDM_EXIT, true, -1, "Ctrl+Q");
+			if (!_FileMenu->FindItem(IDM_EXIT))
+				_FileMenu->AppendItem("&Quit", IDM_EXIT, true, -1, "Ctrl+Q");
 		}
 	}
 

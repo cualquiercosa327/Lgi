@@ -561,9 +561,9 @@ public:
 
 	class Transaction
 	{
+	public:		
 		GArray<DocChange*> Changes;
 
-	public:		
 		~Transaction()
 		{
 			Changes.DeleteObjects();
@@ -939,6 +939,8 @@ public:
 	{
 		GNamedStyle *Style;
 
+		bool PreEdit(Transaction *Trans);
+	
 	public:
 		GArray<StyleText*> Txt;
 		GArray<TextLine*> Layout;
