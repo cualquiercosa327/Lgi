@@ -1749,6 +1749,7 @@ bool GRichTextPriv::TextBlock::Seek(SeekType To, BlockCursor &Cur)
 	GArray<int> LineOffset;
 	GArray<int> LineLen;
 	int CurLine = -1;
+	int CurLineScore = 0;
 	
 	for (unsigned i=0; i<Layout.Length(); i++)
 	{
@@ -1762,8 +1763,14 @@ bool GRichTextPriv::TextBlock::Seek(SeekType To, BlockCursor &Cur)
 		if (Cur.Offset >= CharPos &&
 			Cur.Offset <= CharPos + Len)
 		{
-			if (Cur.LineHint < 0 || i == Cur.LineHint)
+			int Score = 1;
+			if (Cur.LineHint >= 0 && i == Cur.LineHint)
+				Score++;
+			if (Score > CurLineScore)
+			{
 				CurLine = i;
+				CurLineScore = Score;
+			}
 		}				
 				
 		CharPos += Len;

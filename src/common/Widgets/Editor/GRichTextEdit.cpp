@@ -24,7 +24,6 @@
 #define DefaultCharset              "utf-8"
 
 #define GDCF_UTF8					-1
-#define LUIS_DEBUG					0
 #define POUR_DEBUG					0
 #define PROFILE_POUR				0
 
@@ -84,8 +83,6 @@ typedef GAutoPtr<GRichTextPriv::BlockCursor> AutoCursor;
 typedef GAutoPtr<GRichTextPriv::Transaction> AutoTrans;
 
 //////////////////////////////////////////////////////////////////////
-static bool WarnAlpha = true;
-
 GRichTextEdit::GRichTextEdit(	int Id,
 								int x, int y, int cx, int cy,
 								GFontType *FontType)
@@ -123,9 +120,6 @@ GRichTextEdit::GRichTextEdit(	int Id,
 		"</body>\n"
 		"</html>\n");
 	#endif
-
-	if (WarnAlpha)
-		NeedsCapability("Alpha", "This control is still in alpha.");
 }
 
 GRichTextEdit::~GRichTextEdit()
@@ -147,7 +141,6 @@ void GRichTextEdit::OnInstall(CapsHash *Caps, bool Status)
 
 void GRichTextEdit::OnCloseInstaller()
 {
-	WarnAlpha = false;
 	d->NeedsCap.Length(0);
 	Invalidate();
 }
@@ -1196,24 +1189,6 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 	m.ToScreen();
 	switch (Id = RClick.Float(this, m.x, m.y))
 	{
-		#if LUIS_DEBUG
-		case IDM_DUMP:
-		{
-			int n=0;
-			for (GTextLine *l=Line.First(); l; l=Line.Next(), n++)
-			{
-				LgiTrace("[%i] %i,%i (%s)\n", n, l->Start, l->Len, l->r.Describe());
-
-				char *s = WideToUtf8(Text + l->Start, l->Len);
-				if (s)
-				{
-					LgiTrace("%s\n", s);
-					DeleteArray(s);
-				}
-			}
-			break;
-		}
-		#endif
 		case IDM_FIXED:
 		{
 			SetFixedWidthFont(!GetFixedWidthFont());							
