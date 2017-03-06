@@ -268,7 +268,7 @@ void GColour::c32(uint32 c)
 	rgb.a = A32(c);
 }
 
-GColour GColour::Mix(GColour Tint, float RatioOfTint)
+GColour GColour::Mix(GColour Tint, float RatioOfTint) const
 {
 	COLOUR c1 = c32();
 	COLOUR c2 = Tint.c32();

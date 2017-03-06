@@ -77,7 +77,7 @@ public:
 	void c32(uint32 c);
 	/// Mixes 'Tint' with the current colour and returns it 
 	/// without modifying the object.
-	GColour Mix(GColour Tint, float RatioOfTint = 0.5);
+	GColour Mix(GColour Tint, float RatioOfTint = 0.5) const;
 	// Hue Lum Sat methods
 	
 	/// Returns the hue value (0-359)
