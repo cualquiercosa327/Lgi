@@ -33,6 +33,8 @@
 
 #define USE_HAIKU_PULSE_HACK	1
 
+#define OPT_ENTIRE_SOLUTION		"SearchSolution"
+
 //////////////////////////////////////////////////////////////////////////////////////////
 char AppName[] = "LgiIde";
 
@@ -818,6 +820,7 @@ public:
 	}
 	
 	// Find in files
+	GAutoPtr<FindParams> FindParameters;
 	FindInFilesThread *Finder;
 	
 	// Mru
@@ -2608,7 +2611,15 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 
 			if (!d->Finder)
 			{
-				FindInFiles Dlg(this);
+				if (!d->FindParameters &&
+					d->FindParameters.Reset(new FindParams))
+				{
+					GVariant var;
+					if (GetOptions()->GetValue(OPT_ENTIRE_SOLUTION, var))
+						d->FindParameters->Type = var.CastInt32() ? FifSearchSolution : FifSearchDirectory;
+				}		
+
+				FindInFiles Dlg(this, d->FindParameters);
 
 				GViewI *Focus = GetFocus();
 				if (Focus)
@@ -2644,8 +2655,10 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 					}
 
 					d->Finder = new FindInFilesThread(this, Dlg.Params);
-					Dlg.Params = 0;
 				}
+
+				GVariant var = d->FindParameters->Type == FifSearchSolution;
+				GetOptions()->SetValue(OPT_ENTIRE_SOLUTION, var);
 			}
 			break;
 		}

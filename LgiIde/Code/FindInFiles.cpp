@@ -8,13 +8,24 @@
 #include "GToken.h"
 
 /////////////////////////////////////////////////////////////////////////////////////
-FindInFiles::FindInFiles(AppWnd *app)
+FindInFiles::FindInFiles(AppWnd *app, FindParams *params)
 {
 	TypeHistory = 0;
 	FolderHistory = 0;
 
 	SetParent(App = app);
-	Params = new FindParams;
+	
+	if (params)
+	{
+		Params = params;
+		OwnParams = false;
+	}
+	else
+	{
+		Params = new FindParams;
+		OwnParams = true;
+	}
+
 	if (LoadFromResource(IDD_FIND_IN_FILES))
 	{
 		MoveToCenter();
@@ -29,7 +40,8 @@ FindInFiles::FindInFiles(AppWnd *app)
 
 FindInFiles::~FindInFiles()
 {
-	DeleteObj(Params);
+	if (OwnParams)
+		DeleteObj(Params);
 }
 
 void SerializeHistory(GHistory *h, const char *opt, GOptionsFile *p, bool Write)
@@ -95,7 +107,7 @@ void FindInFiles::OnCreate()
 		
 		SerializeHistory(TypeHistory, "TypeHist", App->GetOptions(), false);
 		SerializeHistory(FolderHistory, "FolderHist", App->GetOptions(), false);
-		
+
 		GViewI *v;
 		if (GetViewById(IDC_LOOK_FOR, v))
 			v->Focus(true);
@@ -132,6 +144,7 @@ int FindInFiles::OnNotify(GViewI *v, int f)
 			break;
 		}
 		case IDOK:
+		case IDCANCEL:
 		{
 			Params->Type = GetCtrlValue(IDC_ENTIRE_SOLUTION) != 0 ? FifSearchSolution :  FifSearchDirectory;
 			Params->Text = GetCtrlName(IDC_LOOK_FOR);
@@ -147,12 +160,7 @@ int FindInFiles::OnNotify(GViewI *v, int f)
 			if (FolderHistory) FolderHistory->Add(Params->Dir);
 			SerializeHistory(FolderHistory, "FolderHist", App->GetOptions(), true);
 			
-			EndModal(1);
-			break;
-		}
-		case IDCANCEL:
-		{
-			EndModal(0);
+			EndModal(v->GetId() == IDOK);
 			break;
 		}
 	}

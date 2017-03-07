@@ -43,11 +43,12 @@ class FindInFiles : public GDialog
 	AppWnd *App;
 	GHistory *TypeHistory;
 	GHistory *FolderHistory;
+	bool OwnParams;
 
 public:
 	FindParams *Params;
 	
-	FindInFiles(AppWnd *app);
+	FindInFiles(AppWnd *app, FindParams *params = NULL);
 	~FindInFiles();
 	
 	int OnNotify(GViewI *v, int f);
