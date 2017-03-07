@@ -1627,8 +1627,9 @@ bool GTextView3::Name(const char *s)
 			}
 			*o++ = 0;
 		}
-
+		
 		// update everything else
+		d->SetDirty(0, Size);
 		PourText(0, Size);
 		PourStyle(0, Size);
 		UpdateScrollBars();
@@ -1684,6 +1685,7 @@ bool GTextView3::NameW(const char16 *s)
 	}
 
 	// update everything else
+	d->SetDirty(0, Size);
 	PourText(0, Size);
 	PourStyle(0, Size);
 	UpdateScrollBars();
