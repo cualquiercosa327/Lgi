@@ -1230,6 +1230,9 @@ void GTextView3::PourStyle(int Start, int EditSize)
 		#if 1
 		
 		GArray<GLinkInfo> Links;
+		
+		LgiAssert(Start + Length <= Size);
+		
 		if (LgiDetectLinks(Links, Text + Start, Length))
 		{
 			for (uint32 i=0; i<Links.Length(); i++)

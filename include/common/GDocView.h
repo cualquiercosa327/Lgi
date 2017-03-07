@@ -424,6 +424,7 @@ bool LgiDetectLinks(GArray<GLinkInfo> &Links, T *Text, int TextCharLen = -1)
 	if (TextCharLen < 0)
 		TextCharLen = Strlen(Text);
 
+	T *End = Text + TextCharLen;
 	static T Http[] = {'h', 't', 't', 'p', ':', '/', '/', 0 };
 	static T Https[] = {'h', 't', 't', 'p', 's', ':', '/', '/', 0};
 
@@ -434,13 +435,21 @@ bool LgiDetectLinks(GArray<GLinkInfo> &Links, T *Text, int TextCharLen = -1)
 			case 'h':
 			case 'H':
 			{
-				if (Strnicmp(Text+i, Http, 6) == 0 ||
-					Strnicmp(Text+i, Https, 7) == 0)
+				int64 Remaining = TextCharLen - i;
+				if
+				(
+					Remaining >= 7
+					&&
+					(
+						Strnicmp(Text+i, Http, 6) == 0 ||
+						Strnicmp(Text+i, Https, 7) == 0
+					)
+				)
 				{
 					// find end
 					T *s = Text + i;
 					T *e = s + 6;
-					for ( ; ((e - Text) < TextCharLen) && UrlChar(*e); e++)
+					for ( ; e < End && UrlChar(*e); e++)
 						;
 					
 					while
@@ -476,12 +485,16 @@ bool LgiDetectLinks(GArray<GLinkInfo> &Links, T *Text, int TextCharLen = -1)
 					bool FoundDot = false;
 					T *Start = Text + i + 1;
 					T *e = Start;
-					for ( ; ((e - Text) < TextCharLen) && 
-							EmailChar(*e); e++)
+					for	(	;
+							e < End && EmailChar(*e);
+							e++)
 					{
-						if (*e == '.') FoundDot = true;
+						if (*e == '.')
+							FoundDot = true;
 					}
-					while (e > Start && e[-1] == '.') e--;
+
+					while (e > Start && e[-1] == '.')
+						e--;
 
 					if (FoundDot)
 					{
