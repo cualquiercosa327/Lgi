@@ -1293,7 +1293,10 @@ public:
 			case CsIndex8:
 			{
 				System24BitPixel c[256];
-				LgiAssert(SPal->GetSize() > 0);
+				
+				if (SPal->GetSize() == 0)
+					return false;
+				
 				CreatePaletteLut(c, SPal, this->alpha);
 				
 				for (int y=0; y<Src->y; y++)
