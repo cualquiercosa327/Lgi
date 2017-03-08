@@ -183,7 +183,7 @@ FindInFilesThread::FindInFilesThread(AppWnd *App, FindParams *Params) : GThread(
 {
 	d = new FindInFilesThreadPrivate;
 	d->App = App;
-	d->Params = Params;
+	d->Params = new FindParams(Params); // Make copy that we own...
 	d->Loop = true;
 	d->Last = 0;
 	
