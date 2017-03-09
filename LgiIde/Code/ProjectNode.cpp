@@ -581,6 +581,7 @@ bool ProjectNode::Serialize()
 	}
 	else
 	{
+		#if 0
 		if (!Write)
 		{
 			// Check that file exists.
@@ -713,6 +714,7 @@ bool ProjectNode::Serialize()
 				}
 			}
 		}
+		#endif
 	}
 
 	return true;

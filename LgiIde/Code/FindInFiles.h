@@ -49,9 +49,9 @@ public:
 		Ext = p->Ext.Get();
 		Dir = p->Dir.Get();
 		
-		ProjectFiles.Length(0);
-		for (unsigned i=0; i<p->ProjectFiles.Length(); i++)
-			ProjectFiles.New() = p->ProjectFiles[i].Get();
+		ProjectFiles.Length(p->ProjectFiles.Length());
+		for (unsigned i=0; i<ProjectFiles.Length(); i++)
+			ProjectFiles[i] = p->ProjectFiles.ItemAt(i).Get();
 		
 		MatchWord = p->MatchWord;
 		MatchCase = p->MatchCase;
