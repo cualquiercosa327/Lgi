@@ -410,6 +410,22 @@ int BuildThread::Main()
 				LgiTrace("%s,%i - %s.\n", _FL, Err);
 			}
 		}
+		else if (Compiler == PythonScript)
+		{
+			char a[MAX_PATH];
+			GString Path = Makefile;
+			int Pos = Path.RFind(DIR_STR);
+			if (Pos >= 0)
+				Path.Length(Pos);
+
+			GProcess Python;
+			Status = Python.Run(Exe, Makefile, Path, true, 0, this);
+			if (!Status)
+			{
+				Err = "Running python failed";
+				LgiTrace("%s,%i - %s.\n", _FL, Err);
+			}
+		}
 		else if (Compiler == IAR)
 		{
 			GString Conf;

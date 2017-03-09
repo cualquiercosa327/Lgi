@@ -42,19 +42,15 @@ public:
 		Line = d.Line;
 	}
 	
-	void Set(DefnType type, char *file, char16 *s, int line)
+	void Set(DefnType type, char *file, GString s, int line)
 	{
-		if (*s == ')')
-		{
-			int asd=0;
-		}
+		LgiAssert(s(0) != ')');
 		
 		Type = type;
 		File = file;
 		
-		while (strchr(" \t\r\n", *s)) s++;	
 		Line = line;
-		Name = s;
+		Name = s.Strip();
 		if (Name && Type == DefnFunc)
 		{
 			if (strlen(Name) > 42)

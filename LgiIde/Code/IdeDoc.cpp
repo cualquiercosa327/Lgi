@@ -843,6 +843,7 @@ class GStyleThread : public GEventTargetThread
 public:
 	GStyleThread() : GEventTargetThread("StyleThread")
 	{
+		int asd=0;
 	}
 	
 	GMessage::Result OnEvent(GMessage *Msg)

@@ -1,8 +1,8 @@
 #include "Lgi.h"
 #include "SimpleCppParser.h"
 
-// #define DEBUG_FILE		"dcm_license.c"
-// #define DEBUG_LINE		43
+// #define DEBUG_FILE		"dante_config_common.h"
+// #define DEBUG_LINE		28
 
 
 bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int LimitTo, bool Debug)
@@ -131,18 +131,29 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 				s++;
 				LastDecl = s;
 				
-				if (Depth == 0)
+				if (Depth == 0 && InClass)
 				{
-					if (InClass)
+					// Check for typedef struct name
+					char16 *Start = s - 1;
+					while (Start > Cpp && Start[-1] != '}')
+						Start--;
+					GString TypeDef = GString(Start, s - Start - 1).Strip();
+					if (TypeDef.Length() > 0)
 					{
-						InClass = false;
-						CaptureLevel = 0;
-						#ifdef DEBUG_FILE
-						if (Debug)
-							LgiTrace("%s:%i - CaptureLevel=%i Depth=%i @ line %i\n", _FL, CaptureLevel, Depth, Line);
-						#endif
-						DeleteArray(CurClassDecl);
+						if (LimitTo == DefnNone || (LimitTo & DefnClass) != 0)
+						{
+							Defns.New().Set(DefnClass, FileName, TypeDef, Line + 1);
+						}
 					}
+
+					// End the class def
+					InClass = false;
+					CaptureLevel = 0;
+					#ifdef DEBUG_FILE
+					if (Debug)
+						LgiTrace("%s:%i - CaptureLevel=%i Depth=%i @ line %i\n", _FL, CaptureLevel, Depth, Line);
+					#endif
+					DeleteArray(CurClassDecl);
 				}
 				break;
 			}
@@ -464,7 +475,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 												*Last = 0;
 												Defns.New().Set(DefnClass, FileName, Start, Line + 1);
 												*Last = r;
-												s = Last;											
+												s = Last;
 											}
 											break;
 										}
@@ -497,7 +508,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 						GAutoWString t(LexCpp(s, LexStrdup));
 						if (t && isalpha(*t))
 						{
-							Defns.New().Set(DefnEnum, FileName, t, Line + 1);
+							Defns.New().Set(DefnEnum, FileName, t.Get(), Line + 1);
 						}
 					}
 					else if (IsEnum)
