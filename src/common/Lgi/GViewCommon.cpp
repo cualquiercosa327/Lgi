@@ -484,6 +484,7 @@ void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 		if (HasClient)
 		{
 			Client.Offset(o.x, o.y);
+			// printf("Client=%s\n", Client.GetStr());
 			pDC->SetClient(&Client);
 			#ifdef _DEBUG
 			if (_Debug)
