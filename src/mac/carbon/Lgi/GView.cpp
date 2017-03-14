@@ -1254,6 +1254,15 @@ CarbonControlProc
 												&Ctx);
 					if (!Status)
 					{
+						HIRect outRect;
+						HIViewGetFrame(v->Handle(), &outRect);
+  
+						CGRect bounds = CGContextGetClipBoundingBox(Ctx);
+						GRect r, out;
+						r = bounds;
+						out = outRect;
+						// LgiTrace("r=%s view=%s\n", r.GetStr(), out.GetStr());
+
 						GScreenDC dc(v, Ctx);
 						v->_Paint(&dc);
 					}

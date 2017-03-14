@@ -669,6 +669,7 @@ bool GRichTextEdit::Paste()
 	}
 
 	d->Cursor->Offset += Len;
+	d->Cursor->LineHint = -1;
 	Invalidate();
 	SendNotify(GNotifyDocChanged);
 
@@ -2068,27 +2069,57 @@ bool GRichTextEdit::OnKey(GKey &k)
 
 void GRichTextEdit::OnEnter(GKey &k)
 {
-	// enter
-	if (HasSelection())
-		DeleteSelection();
+	AutoTrans Trans(new GRichTextPriv::Transaction);						
 
+	// Enter key handling
+	bool Changed = false;
+
+	if (HasSelection())
+		Changed |= d->DeleteSelection(Trans, NULL);
+	
 	if (d->Cursor &&
 		d->Cursor->Blk)
 	{
 		GRichTextPriv::Block *b = d->Cursor->Blk;
 		const uint32 Nl[] = {'\n'};
-		AutoTrans Trans(new GRichTextPriv::Transaction);						
 
 		if (b->AddText(Trans, d->Cursor->Offset, Nl, 1))
 		{
 			d->Cursor->Set(d->Cursor->Offset + 1);
-			Invalidate();
+			Changed = true;
 		}
-
-		d->AddTrans(Trans);
+		else
+		{
+			// Some blocks don't take text. However a new block can be created or
+			// the text added to the start of the next block
+			if (d->Cursor->Offset == 0)
+			{
+				GRichTextPriv::Block *Prev = d->Prev(b);
+				if (Prev &&
+					Prev->AddText(Trans, Prev->Length(), Nl, 1))
+				{
+					Changed = true;
+				}
+			}
+			else if (d->Cursor->Offset == b->Length())
+			{
+				GRichTextPriv::Block *Next = d->Next(b);
+				if (Next &&
+					Next->AddText(Trans, 0, Nl, 1))
+				{
+					Changed = true;
+					d->Cursor->Set(Next, 0, -1);
+				}
+			}
+		}
 	}
 
-	SendNotify(GNotifyDocChanged);
+	if (Changed)
+	{
+		Invalidate();
+		d->AddTrans(Trans);
+		SendNotify(GNotifyDocChanged);
+	}
 }
 
 void GRichTextEdit::OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour)

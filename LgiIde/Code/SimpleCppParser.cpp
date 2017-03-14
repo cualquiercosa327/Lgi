@@ -1,8 +1,32 @@
 #include "Lgi.h"
 #include "SimpleCppParser.h"
 
-// #define DEBUG_FILE		"dante_config_common.h"
-// #define DEBUG_LINE		28
+#if 1
+#define DEBUG_FILE		"daemon.c"
+#define DEBUG_LINE		3000
+#elif 0
+#define DEBUG_FILE		"apcp-stdin.c"
+#define DEBUG_LINE		396
+#else
+#define DEBUG_FILE		"korthals.c"
+#define DEBUG_LINE		130
+#endif
+
+const char *TypeToStr(DefnType t)
+{
+	switch (t)
+	{
+		default:
+		case DefnNone: return "DefnNone";
+		case DefnDefine: return "DefnDefine";
+		case DefnFunc: return "DefnFunc";
+		case DefnClass: return "DefnClass";
+		case DefnEnum: return "DefnEnum";
+		case DefnEnumValue: return "DefnEnumValue";
+		case DefnTypedef: return "DefnTypedef";
+		case DefnVariable: return "DefnVariable";
+	}
+}
 
 
 bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int LimitTo, bool Debug)
@@ -24,7 +48,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 	char16 *s = Cpp;
 	char16 *LastDecl = s;
 	int Depth = 0;
-	int Line = 0;
+	int Line = 0, PrevLine = 0;
 	int CaptureLevel = 0;
 	int InClass = false;	// true if we're in a class definition			
 	char16 *CurClassDecl = 0;
@@ -42,9 +66,15 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 		while (*s && strchr(" \t\r", *s)) s++;
 		
 		#ifdef DEBUG_LINE
-		if (Debug && Line == DEBUG_LINE)
+		if (Debug)
 		{
-			int asd=0;
+			if (Line >= DEBUG_LINE - 1)
+				int asd=0;
+			else if (PrevLine != Line)
+			{
+				PrevLine = Line;
+				LgiTrace("%s:%i '%.10S'\n", FileName, Line + 1, s);
+			}
 		}
 		#endif
 
@@ -215,7 +245,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 						{
 							// remove new-lines
 							char16 *Out = Buf;
-							// bool InArgs = false;
+							bool HasEquals = false;
 							for (char16 *In = Buf; *In; In++)
 							{
 								if (*In == '\r' || *In == '\n' || *In == '\t' || *In == ' ')
@@ -231,6 +261,8 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 								}
 								else
 								{
+									if (*In == '=')
+										HasEquals = true;
 									*Out++ = *In;
 								}
 							}
@@ -283,8 +315,9 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 							}
 
 							// cache f(n) def
-							if (LimitTo == DefnNone || (LimitTo & DefnFunc) != 0)
-								Defns.New().Set(DefnFunc, FileName, Buf, Line + 1);
+							DefnType Type = HasEquals ? DefnVariable : DefnFunc;
+							if (LimitTo == DefnNone || (LimitTo & Type) != 0)
+								Defns.New().Set(Type, FileName, Buf, Line + 1);
 							DeleteArray(Buf);
 							
 							while (*End && *End != ';' && *End != ':')
@@ -554,7 +587,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 		for (unsigned i=0; i<Defns.Length(); i++)
 		{
 			DefnInfo *def = &Defns[i];
-			LgiTrace("    %i = %s:%i %s\n", def->Type, def->File.Get(), def->Line, def->Name.Get());
+			LgiTrace("    %s: %s:%i %s\n", TypeToStr(def->Type), def->File.Get(), def->Line, def->Name.Get());
 		}
 	}
 	

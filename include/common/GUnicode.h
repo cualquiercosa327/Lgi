@@ -649,7 +649,7 @@ T *Strnstr(const T *Data, const T *Value, int DataLen)
 		return NULL;
 
 	const T v = *Value;
-	int ValLen = Strlen(Value);
+	ptrdiff_t ValLen = Strlen(Value);
 	if (ValLen > DataLen)
 		return NULL;
 	

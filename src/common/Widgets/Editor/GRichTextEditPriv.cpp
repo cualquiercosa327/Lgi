@@ -871,7 +871,6 @@ bool GRichTextPriv::SetCursor(GAutoPtr<BlockCursor> c, bool Select)
 	{
 		// Changing selection...
 		InvalidRc = Cursor->Line;
-
 	}
 
 	if (Cursor && !Select)
@@ -885,6 +884,8 @@ bool GRichTextPriv::SetCursor(GAutoPtr<BlockCursor> c, bool Select)
 	else
 		Cursor = c;
 
+	// LgiTrace("%s:%i - SetCursor: %i, line: %i\n", _FL, Cursor->Offset, Cursor->LineHint);
+	
 	if (Cursor &&
 		Selection &&
 		*Cursor == *Selection)
