@@ -669,6 +669,7 @@ bool GRichTextEdit::Paste()
 	}
 
 	d->Cursor->Offset += Len;
+	d->Cursor->LineHint = -1;
 	Invalidate();
 	SendNotify(GNotifyDocChanged);
 

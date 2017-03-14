@@ -93,6 +93,8 @@ void GRichTextPriv::BlockCursor::Set(GRichTextPriv::Block *b, int off, int line)
 		LgiAssert(off >= 0 && off <= BlkLen);
 		Blk->GetPosFromIndex(this);
 	}
+
+	// LOG_FN("%s:%i - Cursor.Set: %i, Line: %i\n", _FL, Offset, LineHint);
 			
 	LgiAssert(Offset >= 0);
 }

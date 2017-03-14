@@ -18,6 +18,7 @@ enum DefnType
 	DefnEnum = 0x8,
 	DefnEnumValue = 0x10,
 	DefnTypedef = 0x20,
+	DefnVariable = 0x40,
 };
 
 class DefnInfo

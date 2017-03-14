@@ -1,8 +1,16 @@
 #include "Lgi.h"
 #include "SimpleCppParser.h"
 
-// #define DEBUG_FILE		"dante_config_common.h"
-// #define DEBUG_LINE		28
+#if 1
+#define DEBUG_FILE		"daemon.c"
+#define DEBUG_LINE		1886
+#elif 0
+#define DEBUG_FILE		"apcp-stdin.c"
+#define DEBUG_LINE		396
+#else
+#define DEBUG_FILE		"korthals.c"
+#define DEBUG_LINE		130
+#endif
 
 
 bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int LimitTo, bool Debug)
@@ -42,9 +50,12 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 		while (*s && strchr(" \t\r", *s)) s++;
 		
 		#ifdef DEBUG_LINE
-		if (Debug && Line == DEBUG_LINE)
+		if (Debug)
 		{
-			int asd=0;
+			if (Line >= DEBUG_LINE - 1)
+				int asd=0;
+			else
+				LgiTrace("%s:%i '%.10S'\n", FileName, Line + 1, s);
 		}
 		#endif
 
@@ -215,7 +226,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 						{
 							// remove new-lines
 							char16 *Out = Buf;
-							// bool InArgs = false;
+							bool HasEquals = false;
 							for (char16 *In = Buf; *In; In++)
 							{
 								if (*In == '\r' || *In == '\n' || *In == '\t' || *In == ' ')
@@ -231,6 +242,8 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 								}
 								else
 								{
+									if (*In == '=')
+										HasEquals = true;
 									*Out++ = *In;
 								}
 							}
@@ -283,12 +296,18 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 							}
 
 							// cache f(n) def
-							if (LimitTo == DefnNone || (LimitTo & DefnFunc) != 0)
-								Defns.New().Set(DefnFunc, FileName, Buf, Line + 1);
+							DefnType Type = HasEquals ? DefnVariable : DefnFunc;
+							if (LimitTo == DefnNone || (LimitTo & Type) != 0)
+								Defns.New().Set(Type, FileName, Buf, Line + 1);
 							DeleteArray(Buf);
 							
 							while (*End && *End != ';' && *End != ':')
+							{
+								if (*End == '\n')
+									Line++;
 								End++;
+							}
+							s = End;
 							
 							FnEmit = *End != ';';
 							#if 0 //DEBUG_FILE

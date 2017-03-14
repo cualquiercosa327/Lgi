@@ -1351,7 +1351,7 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 					t->Length(NewSz);
 					uint32 *c = &t->First();
 
-					d->Log->Print("TextBlock(%i)::Add(%i,%i,%s)::Append StyleOffset=%i, After=%i\n", GetUid(), AtOffset, InChars, Style?Style->Name.Get():NULL, StyleOffset, After);
+					LOG_FN("TextBlock(%i)::Add(%i,%i,%s)::Append StyleOffset=%i, After=%i\n", GetUid(), AtOffset, InChars, Style?Style->Name.Get():NULL, StyleOffset, After);
 
 					// Do we need to move characters up to make space?
 					if (After > 0)
@@ -1374,7 +1374,7 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 					Pos += StyleOffset; // We are skipping over the run at 'TxtIdx', update pos
 					Txt.AddAt(++TxtIdx, Run);
 
-					d->Log->Print("TextBlock(%i)::Add(%i,%i,%s)::Insert StyleOffset=%i\n", GetUid(), AtOffset, InChars, Style?Style->Name.Get():NULL, StyleOffset);
+					LOG_FN("TextBlock(%i)::Add(%i,%i,%s)::Insert StyleOffset=%i\n", GetUid(), AtOffset, InChars, Style?Style->Name.Get():NULL, StyleOffset);
 
 					if (StyleOffset < TxtLen)
 					{
@@ -1761,7 +1761,9 @@ bool GRichTextPriv::TextBlock::Seek(SeekType To, BlockCursor &Cur)
 		LineLen[i] = Len;
 				
 		if (Cur.Offset >= CharPos &&
-			Cur.Offset <= CharPos + Len)
+			Cur.Offset <= CharPos + Len - Line->NewLine)	// Minus 'NewLine' is because the cursor can't be
+															// after the '\n' on a line. It's actually on the 
+															// next line.
 		{
 			int Score = 1;
 			if (Cur.LineHint >= 0 && i == Cur.LineHint)
