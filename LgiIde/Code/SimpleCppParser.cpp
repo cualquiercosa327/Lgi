@@ -322,12 +322,6 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 							
 							while (*End && *End != ';' && *End != ':')
 								End++;
-							while (s < End)
-							{
-								if (*s == '\n')
-									Line++;
-								s++;
-							}
 							
 							FnEmit = *End != ';';
 							#if 0 //DEBUG_FILE

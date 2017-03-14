@@ -157,7 +157,7 @@ public:
 			utf_len += u - utf;
 		}
 
-		if (Length(utf_len))
+		if (Length((uint32)utf_len))
 		{
 			c = str;
 			uint8 *u = (uint8*)Str->Str;
@@ -315,9 +315,9 @@ public:
 		{
 			// Special case for setting it to part of itself
 			// If you try and set a string to the start, it's a NOP
-			int Off = s - Str->Str;
+			ptrdiff_t Off = s - Str->Str;
 			memmove(Str->Str, s, Str->Len - Off + 1);
-			Str->Len -= Off;
+			Str->Len -= (uint32)Off;
 		}
 		
 		return *this;
@@ -660,7 +660,7 @@ public:
 			}
 
 			size_t NewSize = Str->Len + (Matches.Length() * (NewLen - OldLen));
-			s.Length(NewSize);
+			s.Length((uint32)NewSize);
 			char *Out = s.Get();
 			char *In = Str->Str;
 
@@ -671,7 +671,7 @@ public:
 				if (In < m)
 				{
 					// Copy any part before the match
-					int Bytes = m - In;
+					ptrdiff_t Bytes = m - In;
 					memcpy(Out, In, Bytes);
 					Out += Bytes;
 				}
@@ -689,7 +689,7 @@ public:
 			char *End = Str->Str + Str->Len;
 			if (In < End)
 			{
-				int Bytes = End - In;
+				ptrdiff_t Bytes = End - In;
 				memcpy(Out, In, Bytes);
 				Out += Bytes;
 			}
