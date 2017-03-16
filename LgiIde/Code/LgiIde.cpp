@@ -2644,6 +2644,8 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 				{
 					if (p && Dlg.Params->Type == FifSearchSolution)
 					{
+						Dlg.Params->ProjectFiles.Length(0);
+
 						GArray<ProjectNode*> Nodes;
 						if (p->GetAllNodes(Nodes))
 						{
