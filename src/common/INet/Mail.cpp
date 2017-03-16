@@ -2168,7 +2168,7 @@ MailReceiveFolder::~MailReceiveFolder()
 	DeleteObj(d);
 }
 
-bool MailReceiveFolder::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password, GDom *SettingStore, int Flags)
+bool MailReceiveFolder::Open(GSocketI *S, const char *RemoteHost, int Port, const char *User, const char *Password, GDom *SettingStore, int Flags)
 {
 	// We don't use the socket so just free it here...
 	DeleteObj(S);
@@ -2455,7 +2455,7 @@ bool MailPop3::ListCmd(const char *Cmd, GHashTbl<const char*, bool> &Results)
 
 #define OPT_Pop3NoApop		"NoAPOP"
 
-bool MailPop3::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password, GDom *SettingStore, int Flags)
+bool MailPop3::Open(GSocketI *S, const char *RemoteHost, int Port, const char *User, const char *Password, GDom *SettingStore, int Flags)
 {
 	bool Status = false;
 	bool RemoveMail = false;

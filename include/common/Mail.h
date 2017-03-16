@@ -584,13 +584,13 @@ public:
 		/// The transport socket
 		GSocketI *S,
 		/// The hostname or IP of the server
-		char *RemoteHost,
+		const char *RemoteHost,
 		/// The port on the host to connect to
 		int Port,
 		/// The username for authentication
-		char *User,
+		const char *User,
 		/// The password for authentication
-		char *Password,
+		const char *Password,
 		/// [Optional] Persistant storage of settings
 		GDom *SettingStore,
 		/// [Optional] Flags: #MAIL_SOURCE_STARTTLS, #MAIL_SOURCE_AUTH, #MAIL_SOURCE_USE_PLAIN, #MAIL_SOURCE_USE_LOGIN
@@ -684,7 +684,7 @@ public:
 	~MailPop3();
 
 	// Connection
-	bool Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password, GDom *SettingStore, int Flags = 0);
+	bool Open(GSocketI *S, const char *RemoteHost, int Port, const char *User, const char *Password, GDom *SettingStore, int Flags = 0);
 	bool Close();
 
 	// Commands available while connected
@@ -708,7 +708,7 @@ public:
 	~MailReceiveFolder();
 
 	// Connection
-	bool Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password, GDom *SettingStore, int Flags = 0);
+	bool Open(GSocketI *S, const char *RemoteHost, int Port, const char *User, const char *Password, GDom *SettingStore, int Flags = 0);
 	bool Close();
 
 	// Commands available while connected
@@ -733,7 +733,7 @@ public:
 	~MailPhp();
 
 	// Connection
-	bool Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password, GDom *SettingStore, int Flags = 0);
+	bool Open(GSocketI *S, const char *RemoteHost, int Port, const char *User, const char *Password, GDom *SettingStore, int Flags = 0);
 	bool Close();
 
 	// Commands available while connected
@@ -875,7 +875,7 @@ public:
 	void SetLoopState(bool *LoopState);
 
 	// Connection
-	bool Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password, GDom *SettingStore, int Flags = 0);
+	bool Open(GSocketI *S, const char *RemoteHost, int Port, const char *User, const char *Password, GDom *SettingStore, int Flags = 0);
 	bool Close(); // Non-threadsafe soft close (normal operation)
 	bool GetCapabilities(GArray<char*> &s);
 

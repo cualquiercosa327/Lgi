@@ -1159,7 +1159,7 @@ void MailIMap::CommandFinished()
 	d->LastWrite.Empty();
 }
 
-bool MailIMap::Open(GSocketI *s, char *RemoteHost, int Port, char *User, char *Password, GDom *SettingStore, int Flags)
+bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *User, const char *Password, GDom *SettingStore, int Flags)
 {
 	bool Status = false;
 
@@ -2834,7 +2834,7 @@ bool ImapSizeCallback(MailIMap *Imap, char *Msg, GHashTbl<const char*, char*> &P
 
 bool MailIMap::GetSizes(GArray<int> &Sizes)
 {
-	return Fetch(false, "1:*", sRfc822Size, ImapSizeCallback, &Sizes);	
+	return Fetch(false, "1:*", sRfc822Size, ImapSizeCallback, &Sizes) != 0;	
 }
 
 bool MailIMap::GetUid(int Message, char *Id, int IdLen)
