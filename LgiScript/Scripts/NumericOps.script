@@ -1,0 +1,17 @@
+// This script will test all the variant ops
+// fret@memecode.com
+
+a = 3.34;
+b = -a;
+if (b != -3.34)
+	return false;
+
+a = 54294967296;
+b = -a;
+if (b != -54294967296)
+	return false;
+Print("b=" + b + "\n");
+
+
+Print("All tests passed.\n");
+return true;

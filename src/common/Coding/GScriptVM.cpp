@@ -81,6 +81,76 @@ int GVariantCmp(GVariant *a, GVariant *b, NativeInt Data)
 	return 0;
 }
 
+inline GVariantType DecidePrecision(GVariantType a, GVariantType b)
+{
+	if (a == GV_DOUBLE || b == GV_DOUBLE)
+		return GV_DOUBLE;
+
+	if (a == GV_INT64 || b == GV_INT64)
+		return GV_INT64;
+
+	return GV_INT32;
+}
+
+inline GVariantType ComparePrecision(GVariantType a, GVariantType b)
+{
+	if (a == GV_NULL || b == GV_NULL)
+		return GV_NULL;
+
+	if (a == GV_DATETIME && b == GV_DATETIME)
+		return GV_DATETIME;
+	
+	if (a == GV_DOUBLE || b == GV_DOUBLE)
+		return GV_DOUBLE;
+
+	if (a == GV_STRING || b == GV_STRING)
+		return GV_STRING;
+
+	if (a == GV_INT64 || b == GV_INT64)
+		return GV_INT64;
+
+	return GV_INT32;
+}
+
+inline int CompareVariants(GVariant *a, GVariant *b)
+{
+	// Calculates "a - b"
+
+	switch (ComparePrecision(a->Type, b->Type))
+	{
+		case GV_DATETIME:
+			return a->Value.Date->Compare(b->Value.Date);
+			break;
+		case GV_DOUBLE:
+		{
+			double d = a->CastDouble() - b->CastDouble();
+			if (d < 0.0)
+				return -1;
+			return d > 0.0;
+		}
+		case GV_STRING:
+		{
+			char *A = a->Str();
+			char *B = b->Str();
+			if (!A || !B)
+				return -1;
+			else
+				return strcmp(A, B);
+			break;
+		}
+		case GV_INT64:
+		{
+			int64 d = a->CastInt64() - b->CastInt64();
+			if (d < 0)
+				return -1;
+			return d > 0;
+		}
+		default:
+			return a->CastInt32() - b->CastInt32();
+			break;
+	}
+}
+
 GExecutionStatus GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args)
 {
 	if (!Lib || !Method)

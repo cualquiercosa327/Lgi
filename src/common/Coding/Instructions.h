@@ -173,10 +173,18 @@ case IUnaryMinus:
 
 	GResolveRef Var = Resolve();
 	#ifdef VM_EXECUTE
-	if (Var->Type == GV_DOUBLE)
-		*Var = -Var->CastDouble();
-	else
-		*Var = -Var->CastInt32();
+	switch (Var->Type)
+	{
+		case GV_DOUBLE:
+			*Var = -Var->CastDouble();
+			break;
+		case GV_INT64:
+			*Var = -Var->CastInt64();
+			break;
+		default:
+			*Var = -Var->CastInt32();
+			break;
+	}
 	#endif
 	break;
 }
@@ -228,11 +236,18 @@ case IPlusEquals:
 			}
 		}
 	}
-	else if (Dst->Type == GV_DOUBLE ||
-			 Src->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() + Src->CastDouble();
-	else
-		*Dst = Dst->CastInt32() + Src->CastInt32();
+	else switch (DecidePrecision(Dst->Type, Src->Type))
+	{
+		case GV_DOUBLE:
+			*Dst = Dst->CastDouble() + Src->CastDouble();
+			break;
+		case GV_INT64:
+			*Dst = Dst->CastInt64() + Src->CastInt64();
+			break;
+		default:
+			*Dst = Dst->CastInt32() + Src->CastInt32();
+			break;
+	}
 	#endif
 	break;
 }
@@ -250,11 +265,18 @@ case IMinusEquals:
 	GResolveRef Dst = Resolve();
 	GResolveRef Src = Resolve();
 	#ifdef VM_EXECUTE
-	if (Dst->Type == GV_DOUBLE ||
-		Src->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() - Src->CastDouble();
-	else
-		*Dst = Dst->CastInt32() - Src->CastInt32();
+	switch (DecidePrecision(Dst->Type, Src->Type))
+	{
+		case GV_DOUBLE:
+			*Dst = Dst->CastDouble() - Src->CastDouble();
+			break;
+		case GV_INT64:
+			*Dst = Dst->CastInt64() - Src->CastInt64();
+			break;
+		default:
+			*Dst = Dst->CastInt32() - Src->CastInt32();
+			break;
+	}
 	#endif
 	break;
 }
@@ -272,11 +294,18 @@ case IMulEquals:
 	GResolveRef Dst = Resolve();
 	GResolveRef Src = Resolve();
 	#ifdef VM_EXECUTE
-	if (Dst->Type == GV_DOUBLE ||
-		Src->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() * Src->CastDouble();
-	else
-		*Dst = Dst->CastInt32() * Src->CastInt32();
+	switch (DecidePrecision(Dst->Type, Src->Type))
+	{
+		case GV_DOUBLE:
+			*Dst = Dst->CastDouble() * Src->CastDouble();
+			break;
+		case GV_INT64:
+			*Dst = Dst->CastInt64() * Src->CastInt64();
+			break;
+		default:
+			*Dst = Dst->CastInt32() * Src->CastInt32();
+			break;
+	}
 	#endif
 	break;
 }
@@ -294,11 +323,18 @@ case IDivEquals:
 	GResolveRef Dst = Resolve();
 	GResolveRef Src = Resolve();
 	#ifdef VM_EXECUTE
-	if (Dst->Type == GV_DOUBLE ||
-		Src->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() / Src->CastDouble();
-	else
-		*Dst = Dst->CastInt32() / Src->CastInt32();
+	switch (DecidePrecision(Dst->Type, Src->Type))
+	{
+		case GV_DOUBLE:
+			*Dst = Dst->CastDouble() / Src->CastDouble();
+			break;
+		case GV_INT64:
+			*Dst = Dst->CastInt64() / Src->CastInt64();
+			break;
+		default:
+			*Dst = Dst->CastInt32() / Src->CastInt32();
+			break;
+	}
 	#endif
 	break;
 }
@@ -315,14 +351,17 @@ case IMod:
 	GResolveRef Dst = Resolve();
 	GResolveRef Src = Resolve();
 	#ifdef VM_EXECUTE
-	if (Dst->Type == GV_DOUBLE ||
-		Src->Type == GV_DOUBLE)
+	switch (DecidePrecision(Dst->Type, Src->Type))
 	{
-		*Dst = fmod(Dst->CastDouble(), Src->CastDouble());
-	}
-	else
-	{
-		*Dst = Dst->CastInt32() % Src->CastInt32();
+		case GV_DOUBLE:
+			*Dst = fmod(Dst->CastDouble(), Src->CastDouble());
+			break;
+		case GV_INT64:
+			*Dst = Dst->CastInt64() % Src->CastInt64();
+			break;
+		default:
+			*Dst = Dst->CastInt32() % Src->CastInt32();
+			break;
 	}
 	#endif
 	break;
@@ -339,10 +378,18 @@ case IPreInc:
 
 	GResolveRef v = Resolve();
 	#ifdef VM_EXECUTE
-	if (v->Type == GV_DOUBLE)
-		*v = v->CastDouble() + 1;
-	else
-		*v = v->CastInt32() + 1;
+	switch (v->Type)
+	{
+		case GV_DOUBLE:
+			*v = v->Value.Dbl + 1;
+			break;
+		case GV_INT64:
+			*v = v->Value.Int64 + 1;
+			break;
+		default:
+			*v = v->CastInt32() + 1;
+			break;
+	}
 	#endif
 	break;
 }
@@ -358,10 +405,305 @@ case IPreDec:
 
 	GResolveRef v = Resolve();
 	#ifdef VM_EXECUTE
-	if (v->Type == GV_DOUBLE)
-		*v = v->CastDouble() - 1;
-	else
-		*v = v->CastInt32() - 1;
+	switch (v->Type)
+	{
+		case GV_DOUBLE:
+			*v = v->Value.Dbl - 1;
+			break;
+		case GV_INT64:
+			*v = v->Value.Int64 - 1;
+			break;
+		default:
+			*v = v->CastInt32() - 1;
+			break;
+	}
+	#endif
+	break;
+}
+case IEquals:
+{
+	#if VM_DECOMP
+	if (Log)
+		Log->Print("%p %s == %s\n",
+					CurrentScriptAddress - 1,
+					c.r[0].GetStr(),
+					c.r[1].GetStr());
+	#endif
+
+	GResolveRef Dst = Resolve();
+	GResolveRef Src = Resolve();
+
+	#ifdef VM_EXECUTE
+	
+	/*
+	switch (ComparePrecision(Src->Type, Dst->Type))
+	{
+		case GV_NULL:
+			*Dst = Dst->CastVoidPtr() == Src->CastVoidPtr();
+			break;
+		case GV_DATETIME:
+			*Dst = *Dst->Value.Date == *Src->Value.Date;
+			break;
+		case GV_DOUBLE:
+			*Dst = Dst->CastDouble() == Src->CastDouble();
+			break;
+		case GV_STRING:
+		{
+			char *d = Dst->Str();
+			char *s = Src->Str();
+			if (!d && !s)
+				*Dst = true;
+			else if (s && d)
+				*Dst = strcmp(s, d) == 0;
+			else
+				*Dst = false;
+			break;
+		}
+		case GV_INT64:
+			*Dst = Dst->CastInt64() == Src->CastInt64();
+			break;
+		default:
+			*Dst = Dst->CastInt32() == Src->CastInt32();
+			break;
+	}
+	*/
+	*Dst = CompareVariants(Dst, Src) == 0;
+
+	#endif
+	break;
+}
+case INotEquals:
+{
+	#if VM_DECOMP
+	if (Log)
+		Log->Print(	"%p %s != %s\n",
+					CurrentScriptAddress - 1,
+					c.r[0].GetStr(),
+					c.r[1].GetStr());
+	#endif
+
+	GResolveRef Dst = Resolve();
+	GResolveRef Src = Resolve();
+
+	#ifdef VM_EXECUTE
+	/*
+	switch (ComparePrecision(Src->Type, Dst->Type))
+	{
+		case GV_NULL:
+			*Dst = Dst->CastVoidPtr() != Src->CastVoidPtr();
+			break;
+		case GV_DATETIME:
+			*Dst = *Dst->Value.Date != *Src->Value.Date;
+			break;
+		case GV_DOUBLE:
+			*Dst = Dst->CastDouble() != Src->CastDouble();
+			break;
+		case GV_STRING:
+		{
+			char *d = Dst->Str();
+			char *s = Src->Str();
+			if (!d && !s)
+				*Dst = false;
+			else if (s && d)
+				*Dst = strcmp(s, d) != 0;
+			else
+				*Dst = true;
+			break;
+		}
+		case GV_INT64:
+			*Dst = Dst->CastInt64() != Src->CastInt64();
+			break;
+		default:
+			*Dst = Dst->CastInt32() != Src->CastInt32();
+			break;
+	}
+	*/
+	*Dst = CompareVariants(Dst, Src) != 0;
+
+	#endif
+	break;
+}
+case ILessThan:
+{
+	#if VM_DECOMP
+	if (Log)
+		Log->Print("%p %s < %s\n",
+					CurrentScriptAddress - 1,
+					c.r[0].GetStr(),
+					c.r[1].GetStr());
+	#endif
+
+	GResolveRef Dst = Resolve();
+	GResolveRef Src = Resolve();
+	
+	#ifdef VM_EXECUTE
+	/*
+	switch (ComparePrecision(Src->Type, Dst->Type))
+	{
+		case GV_DATETIME:
+			*Dst = *Dst->Value.Date < *Src->Value.Date;
+			break;
+		case GV_DOUBLE:
+			*Dst = Dst->CastDouble() < Src->CastDouble();
+			break;
+		case GV_STRING:
+		{
+			char *d = Dst->Str();
+			char *s = Src->Str();
+			if (!d || !s)
+				*Dst = false;
+			else
+				*Dst = strcmp(d, s) < 0;
+			break;
+		}
+		case GV_INT64:
+			*Dst = Dst->CastInt64() < Src->CastInt64();
+			break;
+		default:
+			*Dst = Dst->CastInt32() < Src->CastInt32();
+			break;
+	}
+	*/
+	*Dst = CompareVariants(Dst, Src) < 0;
+
+	#endif
+	break;
+}
+case ILessThanEqual:
+{
+	#if VM_DECOMP
+	if (Log)
+		Log->Print(	"%p %s < %s\n",
+					CurrentScriptAddress - 1,
+					c.r[0].GetStr(),
+					c.r[1].GetStr());
+	#endif
+
+	GResolveRef Dst = Resolve();
+	GResolveRef Src = Resolve();
+	
+	#ifdef VM_EXECUTE
+	/*
+	switch (ComparePrecision(Src->Type, Dst->Type))
+	{
+		case GV_DATETIME:
+			*Dst = *Dst->Value.Date <= *Src->Value.Date;
+			break;
+		case GV_DOUBLE:
+			*Dst = Dst->CastDouble() <= Src->CastDouble();
+			break;
+		case GV_STRING:
+		{
+			char *d = Dst->Str();
+			char *s = Src->Str();
+			if (!d || !s)
+				*Dst = false;
+			else
+				*Dst = strcmp(d, s) <= 0;
+			break;
+		}
+		case GV_INT64:
+			*Dst = Dst->CastInt64() <= Src->CastInt64();
+			break;
+		default:
+			*Dst = Dst->CastInt32() <= Src->CastInt32();
+			break;
+	}
+	*/
+	*Dst = CompareVariants(Dst, Src) <= 0;
+
+	#endif
+	break;
+}
+case IGreaterThan:
+{
+	#if VM_DECOMP
+	if (Log)
+		Log->Print("%p %s < %s\n",
+					CurrentScriptAddress - 1,
+					c.r[0].GetStr(),
+					c.r[1].GetStr());
+	#endif
+
+	GResolveRef Dst = Resolve();
+	GResolveRef Src = Resolve();
+	
+	#ifdef VM_EXECUTE
+	/*
+	switch (ComparePrecision(Src->Type, Dst->Type))
+	{
+		case GV_DATETIME:
+			*Dst = *Dst->Value.Date > *Src->Value.Date;
+			break;
+		case GV_DOUBLE:
+			*Dst = Dst->CastDouble() > Src->CastDouble();
+			break;
+		case GV_STRING:
+		{
+			char *d = Dst->Str();
+			char *s = Src->Str();
+			if (!d || !s)
+				*Dst = false;
+			else
+				*Dst = strcmp(d, s) > 0;
+			break;
+		}
+		case GV_INT64:
+			*Dst = Dst->CastInt64() > Src->CastInt64();
+			break;
+		default:
+			*Dst = Dst->CastInt32() > Src->CastInt32();
+			break;
+	}
+	*/
+	*Dst = CompareVariants(Dst, Src) > 0;
+
+	#endif
+	break;
+}
+case IGreaterThanEqual:
+{
+	#if VM_DECOMP
+	if (Log)
+		Log->Print("%p %s < %s\n",
+					CurrentScriptAddress - 1,
+					c.r[0].GetStr(),
+					c.r[1].GetStr());
+	#endif
+
+	GResolveRef Dst = Resolve();
+	GResolveRef Src = Resolve();
+	
+	#ifdef VM_EXECUTE
+	/*
+	switch (ComparePrecision(Src->Type, Dst->Type))
+	{
+		case GV_DATETIME:
+			*Dst = *Dst->Value.Date >= *Src->Value.Date;
+			break;
+		case GV_DOUBLE:
+			*Dst = Dst->CastDouble() >= Src->CastDouble();
+			break;
+		case GV_STRING:
+		{
+			char *d = Dst->Str();
+			char *s = Src->Str();
+			if (!d || !s)
+				*Dst = false;
+			else
+				*Dst = strcmp(d, s) >= 0;
+			break;
+		}
+		case GV_INT64:
+			*Dst = Dst->CastInt64() >= Src->CastInt64();
+			break;
+		default:
+			*Dst = Dst->CastInt32() >= Src->CastInt32();
+			break;
+	}
+	*/
+	*Dst = CompareVariants(Dst, Src) >= 0;
+
 	#endif
 	break;
 }
@@ -688,207 +1030,6 @@ case IArraySet:
 			break;
 		}
 	}
-	#endif
-	break;
-}
-case IEquals:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s == %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-
-	#ifdef VM_EXECUTE
-	if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
-		*Dst = *Dst->Value.Date == *Src->Value.Date;
-	else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() == Src->CastDouble();
-	else if (Src->Type == GV_STRING || Dst->Type == GV_STRING)
-	{
-		char *d = Dst->Str();
-		char *s = Src->Str();
-		if (!d && !s)
-			*Dst = true;
-		else if (s && d)
-			*Dst = strcmp(s, d) == 0;
-		else
-			*Dst = false;
-	}
-	else
-		*Dst = Dst->CastInt32() == Src->CastInt32();
-	#endif
-	break;
-}
-case INotEquals:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print(	"%p %s != %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-
-	#ifdef VM_EXECUTE
-	if (Src->Type == GV_NULL || Dst->Type == GV_NULL)
-	{
-		if ((Src->Type == GV_NULL) ^ (Dst->Type == GV_NULL))
-			*Dst = (Src->Type == GV_NULL ? Dst : Src)->CastVoidPtr() != 0;
-		else
-			*Dst = false;
-	}
-	else if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
-		*Dst = *Dst->Value.Date != *Src->Value.Date;
-	else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() != Src->CastDouble();
-	else if (Src->Type == GV_STRING)
-	{
-		char *d = Dst->Str();
-		char *s = Src->Str();
-		if (!d || !s)
-			*Dst = (s == 0) ^ (d == 0);
-		else
-			*Dst = strcmp(s, d) != 0;
-	}
-	else
-		*Dst = Dst->CastInt32() != Src->CastInt32();
-	#endif
-	break;
-}
-case ILessThan:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s < %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	
-	#ifdef VM_EXECUTE
-	if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
-		*Dst = *Dst->Value.Date < *Src->Value.Date;
-	else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() < Src->CastDouble();
-	else if (Src->Type == GV_STRING)
-	{
-		char *d = Dst->Str();
-		char *s = Src->Str();
-		if (!d || !s)
-			*Dst = false;
-		else
-			*Dst = strcmp(d, s) < 0;
-	}
-	else
-		*Dst = Dst->CastInt32() < Src->CastInt32();
-	#endif
-	break;
-}
-case ILessThanEqual:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print(	"%p %s < %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	
-	#ifdef VM_EXECUTE
-	if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
-		*Dst = *Dst->Value.Date <= *Src->Value.Date;
-	else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() <= Src->CastDouble();
-	else if (Src->Type == GV_STRING)
-	{
-		char *d = Dst->Str();
-		char *s = Src->Str();
-		if (!d || !s)
-			*Dst = false;
-		else
-			*Dst = strcmp(d, s) <= 0;
-	}
-	else
-		*Dst = Dst->CastInt32() <= Src->CastInt32();
-	#endif
-	break;
-}
-case IGreaterThan:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s < %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	
-	#ifdef VM_EXECUTE
-	if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
-		*Dst = *Dst->Value.Date > *Src->Value.Date;
-	else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() > Src->CastDouble();
-	else if (Dst->Type == GV_STRING && Src->Type == GV_STRING)
-	{
-		char *d = Dst->Str();
-		char *s = Src->Str();
-		if (!d || !s)
-			*Dst = false;
-		else
-			*Dst = strcmp(d, s) > 0;
-	}
-	else
-		*Dst = Dst->CastInt32() > Src->CastInt32();
-	#endif
-	break;
-}
-case IGreaterThanEqual:
-{
-	#if VM_DECOMP
-	if (Log)
-		Log->Print("%p %s < %s\n",
-					CurrentScriptAddress - 1,
-					c.r[0].GetStr(),
-					c.r[1].GetStr());
-	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
-	
-	#ifdef VM_EXECUTE
-	if (Src->Type == GV_DATETIME && Dst->Type == GV_DATETIME)
-		*Dst = *Dst->Value.Date >= *Src->Value.Date;
-	else if (Src->Type == GV_DOUBLE || Dst->Type == GV_DOUBLE)
-		*Dst = Dst->CastDouble() >= Src->CastDouble();
-	else if (Src->Type == GV_STRING)
-	{
-		char *d = Dst->Str();
-		char *s = Src->Str();
-		if (!d || !s)
-			*Dst = false;
-		else
-			*Dst = strcmp(d, s) >= 0;
-	}
-	else
-		*Dst = Dst->CastInt32() >= Src->CastInt32();
 	#endif
 	break;
 }
