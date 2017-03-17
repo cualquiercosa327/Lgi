@@ -1901,7 +1901,29 @@ bool GDateTime::CallMethod(const char *Name, GVariant *ReturnValue, GArray<GVari
 	{
 		case DateSetNow:
 			SetNow();
+			if (ReturnValue)
+				*ReturnValue = true;
 			break;
+		case DateSetStr:
+			if (Args.Length() < 1)
+				return false;
+
+			bool Status;
+			if (Args[0]->Type == GV_INT64)
+				Status = Set(Args[0]->Value.Int64);
+			else
+				Status = Set(Args[0]->Str());
+			if (ReturnValue)
+				*ReturnValue = Status;
+			break;
+		case DateGetStr:
+		{
+			char s[256] = "";
+			Get(s, sizeof(s));
+			if (ReturnValue)
+				*ReturnValue = s;
+			break;
+		}
 		default:
 			return false;
 	}
