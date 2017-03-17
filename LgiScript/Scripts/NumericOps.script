@@ -1,17 +1,46 @@
 // This script will test all the variant ops
 // fret@memecode.com
 
-a = 3.34;
-b = -a;
-if (b != -3.34)
-	return false;
+// IUnaryMinus
+	a = 3.34;
+	b = -a;
+	if (b != -3.34)
+		return false;
 
-a = 54294967296;
-b = -a;
-if (b != -54294967296)
-	return false;
-Print("b=" + b + "\n");
+	a = 54294967296;
+	b = -a;
+	if (b != -54294967296)
+		return false;
 
+	a = 4567;
+	b = -a;
+	if (b != -4567)
+		return false;
+
+// IPlus/IPlusEquals
+	a = 3.34;
+	a += 4.56;
+	if (a != 7.9)
+	{
+		Print("Double Plus failed.\n");
+		return false;
+	}
+
+	a = 54294967296;
+	a += 37835104332;
+	if (a != 92130071628)
+	{
+		Print("Int64 Plus failed.\n");
+		return false;
+	}
+
+	a = 4567;
+	a += 723;
+	if (a != 5290)
+	{
+		Print("Int32 Plus failed.\n");
+		return false;
+	}
 
 Print("All tests passed.\n");
 return true;

@@ -11,6 +11,7 @@
 #include "GTableLayout.h"
 #include "GTextLabel.h"
 #include "GScrollBar.h"
+#include "GMatrix.h"
 
 #define TIME_INSTRUCTIONS		0
 #define POST_EXECUTE_STATE		0
@@ -124,9 +125,9 @@ inline int CompareVariants(GVariant *a, GVariant *b)
 		case GV_DOUBLE:
 		{
 			double d = a->CastDouble() - b->CastDouble();
-			if (d < 0.0)
+			if (d < -MATRIX_DOUBLE_EPSILON)
 				return -1;
-			return d > 0.0;
+			return d > MATRIX_DOUBLE_EPSILON;
 		}
 		case GV_STRING:
 		{

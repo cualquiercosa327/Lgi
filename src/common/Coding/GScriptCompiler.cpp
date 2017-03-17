@@ -792,9 +792,11 @@ public:
 	}
 
 	/// Allocate a constant int
-	void AllocConst(GVarRef &r, int i)
+	void AllocConst(GVarRef &r, int64 i)
 	{
 		r.Scope = SCOPE_GLOBAL;
+
+		GVariantType Type = i <= INT_MAX && i >= INT_MIN ? GV_INT32 : GV_INT64;
 
 		if (Code->Globals.Length())
 		{
@@ -803,11 +805,20 @@ public:
 			GVariant *e = p + Code->Globals.Length();
 			while (p < e)
 			{
-				if (p->Type == GV_INT32 &&
-					p->Value.Int == i)
+				if (p->Type == Type)
 				{
-					r.Index = p - &Code->Globals[0];
-					return;
+					if (Type == GV_INT32 &&
+						p->Value.Int == i)
+					{
+						r.Index = p - &Code->Globals[0];
+						return;
+					}
+					else if (Type == GV_INT64 &&
+						p->Value.Int64 == i)
+					{
+						r.Index = p - &Code->Globals[0];
+						return;
+					}
 				}
 				p++;
 			}
@@ -815,7 +826,15 @@ public:
 
 		// Allocate new global
 		r.Index = Code->Globals.Length();
-		Code->Globals[r.Index] = i;
+		if (Type == GV_INT32)
+			Code->Globals[r.Index] = (int32)i;
+		else
+			Code->Globals[r.Index] = i;
+	}
+
+	void AllocConst(GVarRef &r, int i)
+	{
+		AllocConst(r, (int64)i);
 	}
 
 	/// Allocate a constant string
@@ -1161,7 +1180,11 @@ public:
 		else
 		{
 			// decimal integer
-			*v = atoi(t);
+			int64 i = Atoi(t);
+			if (i <= INT_MAX && i >= INT_MIN)
+				*v = (int32)i;
+			else
+				*v = i;
 		}
 		
 		return true;
@@ -1416,7 +1439,7 @@ public:
 							else
 							{
 								// decimal integer
-								AllocConst(n.Reg, atoi(t));
+								AllocConst(n.Reg, Atoi(t));
 							}
 						}
 						break;
