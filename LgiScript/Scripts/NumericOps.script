@@ -5,24 +5,33 @@
 	a = 3.34;
 	b = -a;
 	if (b != -3.34)
+	{
+		Print("Double UnaryMinus failed.\n");
 		return false;
+	}
 
 	a = 54294967296;
 	b = -a;
 	if (b != -54294967296)
+	{
+		Print("Int64 UnaryMinus failed.\n");
 		return false;
+	}
 
 	a = 4567;
 	b = -a;
 	if (b != -4567)
+	{
+		Print("Int32 UnaryMinus failed.\n");
 		return false;
+	}
 
 // IPlus/IPlusEquals
 	a = 3.34;
 	a += 4.56;
 	if (a != 7.9)
 	{
-		Print("Double Plus failed.\n");
+		Print("Double plus failed.\n");
 		return false;
 	}
 
@@ -30,7 +39,7 @@
 	a += 37835104332;
 	if (a != 92130071628)
 	{
-		Print("Int64 Plus failed.\n");
+		Print("Int64 plus failed.\n");
 		return false;
 	}
 
@@ -38,7 +47,205 @@
 	a += 723;
 	if (a != 5290)
 	{
-		Print("Int32 Plus failed.\n");
+		Print("Int32 plus failed.\n");
+		return false;
+	}
+
+// IMinus/IMinusEquals
+	a = 3.34;
+	a -= 2.56;
+	if (a != 0.78)
+	{
+		Print("Double minus failed.\n");
+		return false;
+	}
+
+	a = 54294967296;
+	a -= 37835104332;
+	if (a != 16459862964)
+	{
+		Print("Int64 minus failed.\n");
+		return false;
+	}
+
+	a = 4567;
+	a -= 723;
+	if (a != 3844)
+	{
+		Print("Int32 minus failed.\n");
+		return false;
+	}
+
+// IMul/IMulEquals
+	a = 3.34;
+	a *= 2.56;
+	if (a != 8.5504)
+	{
+		Print("Double multiple failed.\n");
+		return false;
+	}
+
+	a = 54294967296;
+	a *= 378352;
+	if (a != 20542609466376192)
+	{
+		Print("Int64 multiple failed.\n");
+		return false;
+	}
+
+	a = 4567;
+	a *= 723;
+	if (a != 3301941)
+	{
+		Print("Int32 multiple failed.\n");
+		return false;
+	}
+
+// IDiv/IDivEquals
+	a = 3.34;
+	a /= 2.56;
+	if (a != 1.3046875)
+	{
+		Print("Double divide failed.\n");
+		return false;
+	}
+
+	a = 54294967296;
+	a /= 378352;
+	if (a != 143503)
+	{
+		Print("Int64 divide failed.\n");
+		return false;
+	}
+
+	a = 4567;
+	a /= 723;
+	if (a != 6)
+	{
+		Print("Int32 divide failed.\n");
+		return false;
+	}
+
+// IMod
+	a = 7.11;
+	b = a % 2.5;
+	if (b != 2.11)
+	{
+		Print("Double modulus failed: " + b + "\n");
+		return false;
+	}
+
+	a = 54294967296;
+	b = a % 378352;
+	if (b != 320240)
+	{
+		Print("Int64 modulus failed: " + b + "\n");
+		return false;
+	}
+
+	a = 4567;
+	b = a % 723;
+	if (b != 229)
+	{
+		Print("Int32 modulus failed: " + b + "\n");
+		return false;
+	}
+
+// IEquals
+	a = 3.45 == 2.34;
+	if (a)
+	{
+		Print("Double equals failed\n");
+		return false;
+	}
+
+	a = 3.45 == 3.45;
+	if (!a)
+	{
+		Print("Double equals failed\n");
+		return false;
+	}
+
+	a = 54294967296 == 44294967296;
+	if (a)
+	{
+		Print("Int64 equals failed\n");
+		return false;
+	}
+
+	a = 54294967296 == 54294967296;
+	if (!a)
+	{
+		Print("Int64 equals failed\n");
+		return false;
+	}
+
+	a = 4567 == 45673;
+	if (a)
+	{
+		Print("Int32 equals failed\n");
+		return false;
+	}
+
+	a = 4567 == 4567;
+	if (!a)
+	{
+		Print("Int32 equals failed\n");
+		return false;
+	}
+
+// INotEquals
+	a = 3.45 != 2.34;
+	if (!a)
+	{
+		Print("Double equals failed\n");
+		return false;
+	}
+
+	a = 3.45 != 3.45;
+	if (a)
+	{
+		Print("Double equals failed\n");
+		return false;
+	}
+
+	a = 54294967296 != 44294967296;
+	if (!a)
+	{
+		Print("Int64 equals failed\n");
+		return false;
+	}
+
+	a = 54294967296 != 54294967296;
+	if (a)
+	{
+		Print("Int64 equals failed\n");
+		return false;
+	}
+
+	a = 4567 != 45673;
+	if (!a)
+	{
+		Print("Int32 equals failed\n");
+		return false;
+	}
+
+	a = 4567 != 4567;
+	if (a)
+	{
+		Print("Int32 equals failed\n");
+		return false;
+	}
+
+// ILessThan
+	date1 = New("DateTime");
+	date2 = New("DateTime");
+	date1.Date = "4/5/2013";
+	date2.Date = "11/12/2014";
+	a = date1 < date2;
+	if (!a)
+	{
+		Print("Date < failed.\n");
 		return false;
 	}
 

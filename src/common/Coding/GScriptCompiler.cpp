@@ -779,6 +779,24 @@ public:
 	void AllocConst(GVarRef &r, double d)
 	{
 		r.Scope = SCOPE_GLOBAL;
+
+		if (Code->Globals.Length())
+		{
+			// Check for existing int
+			GVariant *p = &Code->Globals[0];
+			GVariant *e = p + Code->Globals.Length();
+			while (p < e)
+			{
+				if (p->Type == GV_DOUBLE &&
+					p->Value.Dbl == d)
+				{
+					r.Index = p - &Code->Globals[0];
+					return;
+				}
+				p++;
+			}
+		}
+
 		r.Index = Code->Globals.Length();
 		Code->Globals[r.Index] = d;
 	}
@@ -787,6 +805,24 @@ public:
 	void AllocConst(GVarRef &r, bool b)
 	{
 		r.Scope = SCOPE_GLOBAL;
+
+		if (Code->Globals.Length())
+		{
+			// Check for existing int
+			GVariant *p = &Code->Globals[0];
+			GVariant *e = p + Code->Globals.Length();
+			while (p < e)
+			{
+				if (p->Type == GV_BOOL &&
+					p->Value.Bool == b)
+				{
+					r.Index = p - &Code->Globals[0];
+					return;
+				}
+				p++;
+			}
+		}
+
 		r.Index = Code->Globals.Length();
 		Code->Globals[r.Index] = b;
 	}
@@ -1687,6 +1723,11 @@ public:
 		{
 			GTokenType Tok = ExpTok.Find(t);
 			
+			if (!Stricmp(t, L"false"))
+			{
+				int asd=0;
+			}
+
 			if (Tok == TTypeId)
 			{
 				char16 *v;
