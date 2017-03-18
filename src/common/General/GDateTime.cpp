@@ -600,14 +600,7 @@ void GDateTime::SetNow()
 	time(&now);
 	struct tm *time = localtime(&now);
 	if (time)
-	{
-    	_Seconds = time->tm_sec;
-    	_Minutes = time->tm_min;
-    	_Hours = time->tm_hour;
-    	_Day = time->tm_mday;
-    	_Month = time->tm_mon + 1;
-    	_Year = time->tm_year + 1900;
-    }
+		*this = time;
 	#ifndef LGI_STATIC
     else
     {
@@ -1398,6 +1391,22 @@ GDateTime GDateTime::operator +(GDateTime &dt)
 	return s;
 }
 
+GDateTime &GDateTime::operator =(struct tm *time)
+{
+	if (time)
+	{
+		_Seconds = time->tm_sec;
+		_Minutes = time->tm_min;
+		_Hours = time->tm_hour;
+		_Day = time->tm_mday;
+		_Month = time->tm_mon + 1;
+		_Year = time->tm_year + 1900;
+	}
+	else Empty();
+
+	return *this;
+}
+
 bool GDateTime::IsSameDay(GDateTime &d)
 {
 	return	Day() == d.Day() &&
@@ -1892,7 +1901,29 @@ bool GDateTime::CallMethod(const char *Name, GVariant *ReturnValue, GArray<GVari
 	{
 		case DateSetNow:
 			SetNow();
+			if (ReturnValue)
+				*ReturnValue = true;
 			break;
+		case DateSetStr:
+			if (Args.Length() < 1)
+				return false;
+
+			bool Status;
+			if (Args[0]->Type == GV_INT64)
+				Status = Set(Args[0]->Value.Int64);
+			else
+				Status = Set(Args[0]->Str());
+			if (ReturnValue)
+				*ReturnValue = Status;
+			break;
+		case DateGetStr:
+		{
+			char s[256] = "";
+			Get(s, sizeof(s));
+			if (ReturnValue)
+				*ReturnValue = s;
+			break;
+		}
 		default:
 			return false;
 	}

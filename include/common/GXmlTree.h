@@ -165,6 +165,8 @@ public:
 	virtual void InsertTag(GXmlTag *t);
 	/// Removes this tag from the DOM hierarchy.
 	virtual void RemoveTag();
+	/// Counts all this and all child tags
+	int64 CountTags();
 
 	/// Copy operator, doesn't effect children.
 	GXmlTag &operator =(GXmlTag &t);
@@ -224,7 +226,9 @@ public:
 		/// The DOM tree.
 		GXmlTag *Root,
 		/// The output stream.
-		GStreamI *File
+		GStreamI *File,
+		/// [Optional] Progress reporting.
+		Progress *Prog = NULL
 	);
 	/// Gets the last error message.
 	char *GetErrorMsg();

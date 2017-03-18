@@ -299,6 +299,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\common\Widgets\Editor\ImageBlock.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\common\Widgets\Editor\TextBlock.cpp"
 				>
 			</File>

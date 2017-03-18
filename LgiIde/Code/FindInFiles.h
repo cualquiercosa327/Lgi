@@ -3,37 +3,61 @@
 
 #include "GHistory.h"
 
+enum FifSearchType
+{
+	FifSearchSolution,
+	FifSearchDirectory,
+};
+
 class FindParams
 {
 public:
-	char *Text;
-	char *Ext;
-	char *Dir;
+	FifSearchType Type;
+	GString Text;
+	GString Ext;
+	GString Dir;
 	bool MatchWord;
 	bool MatchCase;
 	bool SubDirs;
+	GArray<GString> ProjectFiles;
 	
-	FindParams()
+	FindParams(const FindParams *Set = NULL)
 	{
-		Text = 0;
+		Type = FifSearchDirectory;
 
-		Ext = NewStr("*.c* *.h *.java");
+		Ext = "*.c* *.h *.java";
 
-		char Exe[256];
+		char Exe[MAX_PATH];
 		LgiGetExePath(Exe, sizeof(Exe));
 		LgiTrimDir(Exe);
-		Dir = NewStr(Exe);
+		Dir = Exe;
 		
 		MatchWord = false;
 		MatchCase = false;
 		SubDirs = true;
+		
+		if (Set)
+			*this = *Set;
 	}
 	
-	~FindParams()
+	FindParams &operator =(const FindParams *p)
 	{
-		DeleteArray(Text);
-		DeleteArray(Ext);
-		DeleteArray(Dir);
+		Type = p->Type;
+		
+		// Make explicit copies of the GString's to ensure thread safety.
+		Text = p->Text.Get();
+		Ext = p->Ext.Get();
+		Dir = p->Dir.Get();
+		
+		ProjectFiles.Length(p->ProjectFiles.Length());
+		for (unsigned i=0; i<ProjectFiles.Length(); i++)
+			ProjectFiles[i] = p->ProjectFiles.ItemAt(i).Get();
+		
+		MatchWord = p->MatchWord;
+		MatchCase = p->MatchCase;
+		SubDirs = p->SubDirs;
+		
+		return *this;
 	}
 };
 
@@ -42,11 +66,12 @@ class FindInFiles : public GDialog
 	AppWnd *App;
 	GHistory *TypeHistory;
 	GHistory *FolderHistory;
+	bool OwnParams;
 
 public:
 	FindParams *Params;
 	
-	FindInFiles(AppWnd *app);
+	FindInFiles(AppWnd *app, FindParams *params = NULL);
 	~FindInFiles();
 	
 	int OnNotify(GViewI *v, int f);

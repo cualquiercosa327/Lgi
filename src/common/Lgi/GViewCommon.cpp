@@ -484,7 +484,12 @@ void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 		if (HasClient)
 		{
 			Client.Offset(o.x, o.y);
+			// printf("Client=%s\n", Client.GetStr());
 			pDC->SetClient(&Client);
+			#ifdef _DEBUG
+			if (_Debug)
+				printf("%s:%i SetClient %s  %i,%i\n", _FL, Client.GetStr(), o.x, o.y);
+			#endif
 		}
 	}
 
@@ -494,16 +499,24 @@ void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 	if (Update)
 	{
 		GRect OldClip = pDC->ClipRgn();
-		for (GRect *r = Update->First(); r; r = Update->Next())
+		for (GRect *rc = Update->First(); rc; rc = Update->Next())
 		{
-			pDC->ClipRgn(r);
+			pDC->ClipRgn(rc);
 			OnPaint(pDC);
+			#ifdef _DEBUG
+			if (_Debug)
+				printf("%s:%i OnPaint %s\n", _FL, rc->GetStr());
+			#endif
 		}
 		pDC->ClipRgn(OldClip.Valid() ? &OldClip : NULL);
 	}
 	else
 	{
 		OnPaint(pDC);
+		#ifdef _DEBUG
+		if (_Debug)
+			printf("%s:%i OnPaint %s\n", _FL, r.GetStr());
+		#endif
 	}
 
 	#if PAINT_VIRTUAL_CHILDREN
@@ -1134,7 +1147,11 @@ void GView::Focus(bool i)
 
 	if (_View)
 	{
-		#if WINNATIVE
+		#if defined(LGI_SDL) || defined(__GTK_H__)
+		
+			// Nop: Focus is all handled by Lgi's GWindow class.
+		
+		#elif WINNATIVE
 
 			if (i)
 			{
@@ -1162,20 +1179,27 @@ void GView::Focus(bool i)
 				SetFocus(GetDesktopWindow());
 			}
 
-		#elif defined __GTK_H__
-
-		#elif defined MAC && !defined(LGI_SDL)
+		#elif defined MAC
 
 			#if COCOA
-			#warning FIXME
+		
+				#warning FIXME
+		
 			#else
+		
 				GViewI *Wnd = GetWindow();
 				if (Wnd && i)
 				{
 					OSErr e = SetKeyboardFocus(Wnd->WindowHandle(), _View, 1);
-					if (e) printf("%s:%i - error setting keyboard focus (%i) to %s\n", _FL, e, GetClass());
+					if (e)
+					{
+						HIViewRef p = HIViewGetSuperview(_View);
+						printf("%s:%i - SetKeyboardFocus failed: %i (%s, %p)\n", _FL, e, GetClass(), p);
+					}
+					// else printf("%s:%i - SetFocus v=%p(%s)\n", _FL, _View, GetClass());
 				}
 				else printf("%s:%i - no window?\n", _FL);
+		
 			#endif
 		
 		#elif defined(BEOS)

@@ -450,10 +450,10 @@ public:
 				*this = init;
 		}
 		
-		Path(LgiSystemPath Which)
+		Path(LgiSystemPath Which, int WordSize = 0)
 		{
 			SetFixedLength(false);
-			*this = GetSystem(Which);
+			*this = GetSystem(Which, WordSize);
 		}
 
 		Path &operator =(const char *p)
@@ -527,7 +527,7 @@ public:
 
 		bool IsFile();
 		bool IsFolder();
-		static GString GetSystem(LgiSystemPath Which);
+		static GString GetSystem(LgiSystemPath Which, int WordSize);
 	};
 
 	/// Read the whole file into a string

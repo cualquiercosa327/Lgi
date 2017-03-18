@@ -9,6 +9,8 @@
 #include "GClipBoard.h"
 #include "GTableLayout.h"
 
+#define DEBUG_SHOW_NODE_COUNTS		0
+
 //////////////////////////////////////////////////////////////////////////////////
 class FileProps : public GDialog
 {
@@ -106,6 +108,7 @@ ProjectNode::ProjectNode(IdeProject *p) : IdeCommon(p)
 {
 	Platforms = PLATFORM_ALL;
 	Type = NodeNone;
+	ChildCount = -1;
 	File = 0;
 	Name = 0;
 	IgnoreExpand = false;
@@ -155,6 +158,16 @@ void ProjectNode::OpenLocalCache(IdeDoc *&Doc)
 			LgiMsg(Tree, "Couldn't open file '%s'", AppName, MB_OK, LocalCache);
 		}
 	}
+}
+
+int64 ProjectNode::CountNodes()
+{
+	int64 n = 1;
+	for (ProjectNode *c = ChildNode(); c; c = c->NextNode())
+	{
+		n += c->CountNodes();
+	}
+	return n;
 }
 
 void ProjectNode::OnCmdComplete(FtpCmd *Cmd)
@@ -492,6 +505,16 @@ char *ProjectNode::GetText(int c)
 		else return File;
 	}
 
+	#if DEBUG_SHOW_NODE_COUNTS
+	if (Type == NodeDir)
+	{
+		if (ChildCount < 0)
+			ChildCount = CountNodes();
+		Label.Printf("%s ("LGI_PrintfInt64")", Name, ChildCount);
+		return Label;
+	}
+	#endif
+
 	return Name ? Name : (char*)Untitled;
 }
 
@@ -558,6 +581,7 @@ bool ProjectNode::Serialize()
 	}
 	else
 	{
+		#if 0
 		if (!Write)
 		{
 			// Check that file exists.
@@ -690,6 +714,7 @@ bool ProjectNode::Serialize()
 				}
 			}
 		}
+		#endif
 	}
 
 	return true;
@@ -859,9 +884,7 @@ IdeDoc *ProjectNode::Open()
 void ProjectNode::Delete()
 {
 	if (nView)
-	{
 		nView->OnDelete();
-	}
 
 	Project->SetDirty();
 	GXmlTag::RemoveTag();							

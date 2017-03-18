@@ -1230,6 +1230,9 @@ void GTextView3::PourStyle(int Start, int EditSize)
 		#if 1
 		
 		GArray<GLinkInfo> Links;
+		
+		LgiAssert(Start + Length <= Size);
+		
 		if (LgiDetectLinks(Links, Text + Start, Length))
 		{
 			for (uint32 i=0; i<Links.Length(); i++)
@@ -1624,8 +1627,9 @@ bool GTextView3::Name(const char *s)
 			}
 			*o++ = 0;
 		}
-
+		
 		// update everything else
+		d->SetDirty(0, Size);
 		PourText(0, Size);
 		PourStyle(0, Size);
 		UpdateScrollBars();
@@ -1681,6 +1685,7 @@ bool GTextView3::NameW(const char16 *s)
 	}
 
 	// update everything else
+	d->SetDirty(0, Size);
 	PourText(0, Size);
 	PourStyle(0, Size);
 	UpdateScrollBars();
@@ -4317,6 +4322,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 		if (d->LayoutDirty)
 		{
 			PourText(d->DirtyStart, d->DirtyLen);
+			PourStyle(d->DirtyStart, d->DirtyLen);
 		}
 		
 		GRect r = GetClient();
@@ -4500,18 +4506,19 @@ void GTextView3::OnPaint(GSurface *pDC)
 						Cur >= NextStyle->Start &&				// && we're inside the styled area
 						Cur < NextStyle->Start+NextStyle->Len)
 					{
-						if (NextStyle->Font)
+						GFont *Sf = NextStyle->Font ? NextStyle->Font : Font;
+						if (Sf)
 						{
 							// draw styled text
 							if (NextStyle->c.IsValid())
 							{
-								NextStyle->Font->Colour(NextStyle->c, l->Back.IsValid() ? l->Back : Back);
+								Sf->Colour(NextStyle->c, l->Back.IsValid() ? l->Back : Back);
 							}
-							NextStyle->Font->Transparent(false);
+							Sf->Transparent(false);
 
 							LgiAssert(l->Start + Done >= 0);
 
-							GDisplayString Ds(	NextStyle->Font,
+							GDisplayString Ds(	Sf,
 												MapText(Text + (l->Start + Done),
 														Block,
 														RtlTrailingSpace != 0),
@@ -4536,8 +4543,9 @@ void GTextView3::OnPaint(GSurface *pDC)
 
 							GColour fore = l->c.IsValid() ? l->c : Fore;
 							GColour back = l->Back.IsValid() ? l->Back : Back;
-							NextStyle->Font->Colour(fore, back);
+							Sf->Colour(fore, back);
 						}
+						else LgiAssert(0);
 					}
 					else
 					{

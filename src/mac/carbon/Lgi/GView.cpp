@@ -1254,6 +1254,15 @@ CarbonControlProc
 												&Ctx);
 					if (!Status)
 					{
+						HIRect outRect;
+						HIViewGetFrame(v->Handle(), &outRect);
+  
+						CGRect bounds = CGContextGetClipBoundingBox(Ctx);
+						GRect r, out;
+						r = bounds;
+						out = outRect;
+						// LgiTrace("r=%s view=%s\n", r.GetStr(), out.GetStr());
+
 						GScreenDC dc(v, Ctx);
 						v->_Paint(&dc);
 					}
@@ -1296,8 +1305,8 @@ CarbonControlProc
 					
 					bool f = Part != kControlFocusNoPart;
 					#if 0
-					printf("Focus change id=%i %s (%s) %i -> %i\n",
-						v->GetId(), v->GetClass(), p->GetClass(), TestFlag(p->WndFlags, GWF_FOCUS), f);
+					printf("%s:%i - Focus(%i) change id=%i %s %i -> %i\n",
+						_FL, f, v->GetId(), v->GetClass(), TestFlag(v->WndFlags, GWF_FOCUS), f);
 					#endif
 					
 					if (f) SetFlag(v->WndFlags, GWF_FOCUS);

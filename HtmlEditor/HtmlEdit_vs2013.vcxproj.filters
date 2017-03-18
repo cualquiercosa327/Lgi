@@ -71,6 +71,12 @@
     <ClCompile Include="..\src\common\Gdc2\Filters\Png.cpp">
       <Filter>Lgi</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\common\Widgets\Editor\ImageBlock.cpp">
+      <Filter>Controls\RichTextEdit</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Gdc2\Filters\Jpeg.cpp">
+      <Filter>Lgi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">

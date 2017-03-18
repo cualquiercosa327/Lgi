@@ -13,6 +13,21 @@
 #include "GTree.h"
 #endif
 
+enum RichEditMsgs
+{
+	M_BLOCK_MSG	= M_USER + 0x1000,
+	M_IMAGE_LOAD_FILE,
+	M_IMAGE_SET_SURFACE,
+	M_IMAGE_ERROR,
+	M_IMAGE_PROGRESS,
+	M_IMAGE_RESAMPLE,
+	M_IMAGE_FINISHED,
+	M_IMAGE_COMPRESS,
+	M_IMAGE_ROTATE,
+	M_IMAGE_FLIP,
+	M_IMAGE_LOAD_STREAM,
+};
+
 extern char Delimiters[];
 
 /// Styled unicode text editor control.
@@ -75,7 +90,9 @@ public:
 
 	int HitTest(int x, int y);
 	bool DeleteSelection(char16 **Cut = 0);
-
+	
+	bool GetFormattedContent(const char *MimeType, GString &Out, GArray<ContentMedia> *Media = NULL);
+	
 	// Font
 	GFont *GetFont();
 	void SetFont(GFont *f, bool OwnIt = false);
@@ -190,6 +207,8 @@ public:
 	void OnPulse();
 	int OnHitTest(int x, int y);
 	bool OnLayout(GViewLayoutInfo &Inf);
+
+	// D'n'd target
 	int WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState);
 	int OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState);
 

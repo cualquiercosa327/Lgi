@@ -17,9 +17,11 @@ public:
 	int Bits;
 	int Op;
 	NativeInt ConstAlpha;
+	int Clipped;
 	
 	GScreenPrivate()
 	{
+		Clipped = 0;
 		Op = GDC_SET;
 		ConstAlpha = 255;
 		Wnd = 0;
@@ -165,29 +167,36 @@ void GScreenDC::SetClient(GRect *c)
 			d->Stack.Add(d->Rc);
 			d->Rc = *c;
 
-			#if 0
+			#if 1
 			CGAffineTransform t1 = CGContextGetCTM(d->Ctx);
-			CGRect cgrc = CGContextGetClipBoundingBox(d->Ctx);
+			CGRect old_bounds = CGContextGetClipBoundingBox(d->Ctx);
 			#endif
 			
 			CGContextTranslateCTM(d->Ctx, c->x1, c->y1);
-			CGRect rect = {{0, 0}, {c->X(), c->Y()}};
-			CGContextClipToRect(d->Ctx, rect);
+			CGRect rect = {0};
+			rect.size.width = c->X();
+			rect.size.height = c->Y();
+			//CGContextClipToRect(d->Ctx, rect);
 
 			#if 0
-			if (SetClientDebug)
 			{
 				CGAffineTransform t2 = CGContextGetCTM(d->Ctx);
 
 				GRect r1, r2;
-				r1 = cgrc;
-				r2 = cgrc = CGContextGetClipBoundingBox(d->Ctx);
-				printf("SetClient %s (%f, %f) -> %s (%f, %f)\n",
+				r1 = old_bounds;
+				CGRect new_bounds = CGContextGetClipBoundingBox(d->Ctx);
+				r2 = new_bounds;
+				printf("SetClient(%s) %s (%f, %f) -> %s (%f, %f)\n",
+						c->GetStr(),
 						r1.GetStr(),
 						t1.tx, t1.ty,
 						r2.GetStr(),
 						t2.tx, t2.ty
 						);
+				if (r1.x2 == 12 && r1.y2 == 12)
+				{
+					int asd=0;
+				}
 			}
 			#endif
 		}
@@ -255,10 +264,12 @@ GRect GScreenDC::ClipRgn(GRect *Rgn)
 		CGContextSaveGState(d->Ctx);
 		CGRect rect = {{c.x1, c.y1}, {c.X(), c.Y()}};
 		CGContextClipToRect(d->Ctx, rect);
+		d->Clipped++;
 	}
 	else
 	{
 		CGContextRestoreGState(d->Ctx);			
+		d->Clipped--;
 	}
 
 	return Prev;

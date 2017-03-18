@@ -24,7 +24,8 @@
 #include "LgiRes.h"
 #include "INet.h"
 
-#define DEBUG_TABLE_LAYOUT			1
+#define DEBUG_TABLE_LAYOUT			0
+#define DEBUG_DRAW_TD				0
 #define DEBUG_RESTYLE				0
 #define DEBUG_TAG_BY_POS			0
 #define DEBUG_SELECTION				0
@@ -3891,7 +3892,17 @@ bool GTag::GetWidthMetrics(GTag *Table, uint16 &Min, uint16 &Max)
 	// Specific tag handling?
 	switch (TagId)
 	{
-		default: break;
+		default:
+		{
+			if (IsBlock())
+			{
+				MarginPx = (int)(BorderLeft().ToPx() +
+								BorderRight().ToPx() +
+								PaddingLeft().ToPx() +
+								PaddingRight().ToPx());
+			}
+			break;
+		}
 		case TAG_IMG:
 		{
 			Len w = Width();
@@ -4609,7 +4620,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f, uint16 Depth)
 		}
 	}
 
-	#ifdef _DEBUG
+	#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 	if (Table->Debug)
 	{
 		LgiTrace("%s:%i - AfterCellFlow\n", _FL);
@@ -4909,8 +4920,7 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, int LineHeight, 
 
 					// Seek to the end of the word
 					for (Tr->Len = Chars; Text[Tr->Len] && !StrchrW(WhiteW, Text[Tr->Len]); Tr->Len++)
-					{
-					}
+						;
 
 					// Wrap...
 					if (*Text == ' ') Text++;
@@ -4926,9 +4936,9 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, int LineHeight, 
 			{
 				Tr->Len = n;
 				LgiAssert(Tr->Len > 0);
+				Wrap = true;
 			}
 
-			Wrap = true;
 		}
 		else
 		{
@@ -6794,6 +6804,22 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection, uint16 Depth)
 		t->OnPaint(pDC, InSelection, Depth + 1);
 		pDC->SetOrigin(Px, Py);
 	}
+	
+	#if DEBUG_DRAW_TD
+	if (TagId == TAG_TD)
+	{
+		GTag *Tbl = this;
+		while (Tbl && Tbl->TagId != TAG_TABLE)
+			Tbl = ToTag(Tbl->Parent);
+		if (Tbl && Tbl->Debug)
+		{
+			int Ls = pDC->LineStyle(GSurface::LineDot);
+			pDC->Colour(GColour::Blue);
+			pDC->Box(0, 0, Size.x-1, Size.y-1);
+			pDC->LineStyle(Ls);
+		}
+	}
+	#endif
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -8609,7 +8635,7 @@ bool GHtml::GetFormattedContent(const char *MimeType, GAutoString &Out, GArray<G
 						{
 							// Add the exported image stream to the media array
 							GDocView::ContentMedia &m = Media->New();
-							m.Id.Reset(NewStr(Cid));
+							m.Id = Cid;
 							m.Stream.Reset(f);
 						}
 					}

@@ -207,8 +207,10 @@ public:
 class AppWnd : public GWindow
 {
 	class AppWndPrivate *d;
+	friend class AppWndPrivate;
 
 	void UpdateMemoryDump();
+	void DumpHistory();
 
 public:
 	enum Channels
@@ -264,6 +266,7 @@ public:
 	int OnCommand(int Cmd, int Event, OsView Wnd);
 	void OnDocDestroy(IdeDoc *Doc);
 	void OnProjectDestroy(IdeProject *Proj);
+	void OnProjectChange();
 	void OnFile(char *File, bool IsProject = false);
 	void OnFindFinished();
 	bool OnRequestClose(bool IsClose);

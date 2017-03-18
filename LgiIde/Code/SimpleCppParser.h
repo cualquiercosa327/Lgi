@@ -7,7 +7,7 @@
 #define iswhite(s)			(s && strchr(WhiteSpace, s) != 0)
 #define skipws(s)			while (iswhite(*s)) s++;
 #define defnskipws(s)		while (iswhite(*s)) { if (*s == '\n') Line++; s++; }
-#define defnskipsym(s)		while (isalpha(*s) || isdigit(*s) || strchr("_:.~", *s)) { s++; }
+#define defnskipsym(s)		while (IsAlpha(*s) || IsDigit(*s) || strchr("_:.~", *s)) { s++; }
 
 enum DefnType
 {
@@ -18,6 +18,7 @@ enum DefnType
 	DefnEnum = 0x8,
 	DefnEnumValue = 0x10,
 	DefnTypedef = 0x20,
+	DefnVariable = 0x40,
 };
 
 class DefnInfo
@@ -42,19 +43,15 @@ public:
 		Line = d.Line;
 	}
 	
-	void Set(DefnType type, char *file, char16 *s, int line)
+	void Set(DefnType type, char *file, GString s, int line)
 	{
-		if (*s == ')')
-		{
-			int asd=0;
-		}
+		LgiAssert(s(0) != ')');
 		
 		Type = type;
 		File = file;
 		
-		while (strchr(" \t\r\n", *s)) s++;	
 		Line = line;
-		Name = s;
+		Name = s.Strip();
 		if (Name && Type == DefnFunc)
 		{
 			if (strlen(Name) > 42)

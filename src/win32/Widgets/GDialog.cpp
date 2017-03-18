@@ -435,6 +435,9 @@ GMessage::Result GDialog::OnEvent(GMessage *Msg)
 			SetPos(r);	// resets the dialog to the correct
 						// size when large fonts are used
 
+			if (GetAlwaysOnTop())
+				SetAlwaysOnTop(true);
+
 			AttachChildren();
 			if (!_Default)
 				SetDefault(FindControl(IDOK));

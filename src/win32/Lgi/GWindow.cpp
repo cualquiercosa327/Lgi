@@ -457,6 +457,11 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 	k.Trace(msg);
 	#endif
 
+	if (!(k.vkey == 17 && k.IsChar == false))
+	{
+		int asd=0;
+	}
+
 	// Any window in a popup always gets the key...
 	GViewI *p;
 	for (p = v->GetParent(); p; p = p->GetParent())

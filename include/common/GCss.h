@@ -320,12 +320,12 @@ public:
 		LengthType Type;
 		float Value;
 
-		Len(const char *init = 0)
+		Len(const char *init = NULL, ParsingStyle ParseType = ParseRelaxed)
 		{
 			Type = LenInherit;
 			Value = 0.0;
 			if (init)
-				Parse(init, PropNull);
+				Parse(init, PropNull, ParseType);
 		}
 
 		Len(LengthType t, float v = 0.0)

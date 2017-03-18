@@ -69,7 +69,7 @@
 		<String Ref="67" Cid="66" Define="IDC_SET_FONT" en="..." />
 		<String Ref="68" Cid="1" Define="IDOK" en="Ok" />
 		<String Ref="69" Cid="70" Define="IDC_TYPE_HISTORY" />
-		<String Ref="70" Cid="-1" Define="IDC_STATIC" en="Directory:" />
+		<String Ref="70" Cid="542" Define="IDC_SEARCH_DIR" en="Directory:" />
 		<String Ref="71" Cid="72" Define="IDC_DEFS" />
 		<String Ref="72" Cid="-1" Define="IDC_STATIC" en="Compiler / Build System:" />
 		<String Ref="73" Cid="73" Define="IDS_73" en="Makefile" />
@@ -160,6 +160,7 @@
 		<String Ref="231" Cid="97" Define="IDC_PATH" />
 		<String Ref="232" Cid="232" Define="IDC_BROWSE" en="..." />
 		<String Ref="233" Cid="233" Define="IDC_233" en="Symbol" />
+		<String Ref="234" Cid="234" Define="IDC_ENTIRE_SOLUTION" en="Entire Solution" />
 	</string-group>
 	<style name="General">.fixed {
 	width: 18px;
@@ -223,56 +224,63 @@
 			</tr>
 		</TableLayout>
 	</Dialog>
-	<Dialog pos="7,7,436,206" ref="19">
-		<TableLayout pos="7,7,419,167" ref="64" cols="0.334,0.295,0.218,0.153" rows="0.200,0.200,0.200,0.200,0.200">
+	<Dialog pos="7,7,436,221" ref="19">
+		<TableLayout pos="7,7,419,174" ref="64" cols="0.334,0.295,0.218,0.153" rows="0.167,0.167,0.167,0.167,0.167,0.167">
 			<tr>
 				<td>
 					<StaticText pos="0,0,76,13" ref="122" />
 				</td>
 				<td colspan="3">
-					<EditBox Pos="140,7,377,27" ref="20" />
+					<EditBox Pos="140,2,377,22" ref="20" />
 				</td>
 			</tr>
 			<tr>
 				<td>
-					<StaticText pos="0,29,76,42" ref="21" />
+					<StaticText pos="0,26,76,39" ref="21" />
 				</td>
 				<td colspan="2">
-					<EditBox Pos="140,36,321,56" ref="22" />
+					<EditBox Pos="140,28,321,48" ref="22" />
 				</td>
 				<td class="fixed">
-					<Custom pos="371,36,384,56" ref="69" Ctrl="GHistory" />
+					<Custom pos="371,28,384,48" ref="69" Ctrl="GHistory" />
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<RadioBox pos="7,56,111,69" ref="234" />
+				</td>
+				<td />
+				<td />
+			</tr>
+			<tr>
+				<td>
+					<RadioBox pos="7,84,90,97" ref="70" />
+				</td>
+				<td>
+					<EditBox Pos="147,80,237,100" ref="27" />
+				</td>
+				<td>
+					<Button pos="265,80,285,100" ref="25" />
+				</td>
+				<td class="fixed">
+					<Custom pos="371,80,384,100" ref="23" Ctrl="GHistory" />
 				</td>
 			</tr>
 			<tr>
 				<td>
-					<StaticText pos="0,58,76,71" ref="70" />
-				</td>
-				<td>
-					<EditBox Pos="147,65,237,85" ref="27" />
-				</td>
-				<td>
-					<Button pos="265,65,285,85" ref="25" />
-				</td>
-				<td class="fixed">
-					<Custom pos="371,65,384,85" ref="23" Ctrl="GHistory" />
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<CheckBox pos="0,101,98,114" ref="29" />
+					<CheckBox pos="7,112,105,125" ref="29" />
 				</td>
 				<td colspan="3">
-					<CheckBox pos="208,101,306,114" ref="26" />
+					<CheckBox pos="154,112,300,125" ref="26" />
 				</td>
 			</tr>
 			<tr>
 				<td>
-					<CheckBox pos="0,116,97,129" ref="31" />
+					<CheckBox pos="7,133,104,146" ref="31" />
 				</td>
 				<td colspan="3" align="Max">
-					<Button pos="245,126,314,146" ref="28" />
-					<Button pos="322,126,391,146" ref="177" />
+					<Button pos="245,134,314,154" ref="28" />
+					<Button pos="322,134,391,154" ref="177" />
 				</td>
 			</tr>
 		</TableLayout>
@@ -658,7 +666,7 @@
 			<String Ref="175" en="&File" />
 			<String Ref="174" Cid="504" Define="IDM_NEW" en="&New" />
 			<String Ref="173" Cid="502" Define="IDM_OPEN" en="&Open" />
-			<String Ref="172" Cid="503" Define="IDM_SAVE_ALL" en="&Save All" />
+			<String Ref="172" Cid="503" Define="IDM_SAVE_ALL" en="Save All" />
 			<String Ref="171" Cid="535" Define="IDM_SAVEAS" en="Save &As" />
 			<String Ref="170" Cid="505" Define="IDM_CLOSE" en="&Close" />
 			<String Ref="169" Cid="506" Define="IDM_CLOSE_ALL" en="Close All" />
@@ -729,11 +737,15 @@
 			<String Ref="228" Cid="529" Define="IDM_RUN" en="Start &Without Debugging" />
 			<String Ref="229" Cid="581" Define="IDM_RESTART_DEBUGGING" en="Restart Debugging" />
 			<String Ref="230" Cid="582" Define="IDM_RUN_TO" en="Run To Current Location" />
+			<String Ref="235" Cid="569" Define="IDM_SAVE" en="&Save" />
+			<String Ref="236" Cid="580" Define="IDM_MENU_580" />
+			<String Ref="237" Cid="583" Define="IDM_PREV_MSG" en="Previous Message" />
 		</string-group>
 		<submenu Ref="175">
 			<menuitem Ref="174" Shortcut="Ctrl+N" />
 			<menuitem Ref="173" Shortcut="Ctrl+O" />
-			<menuitem Ref="172" Shortcut="Ctrl+S" />
+			<menuitem Ref="235" Shortcut="Ctrl+S" />
+			<menuitem Ref="172" />
 			<menuitem Ref="171" />
 			<menuitem Ref="170" Shortcut="Ctrl+W" />
 			<menuitem Ref="169" />
@@ -789,7 +801,9 @@
 			<menuitem Ref="140" Shortcut="F7" />
 			<menuitem Ref="139" />
 			<menuitem Ref="138" />
+			<menuitem Sep="1" />
 			<menuitem Ref="137" Shortcut="F4" />
+			<menuitem Ref="237" Shortcut="Shift+F4" />
 			<menuitem Sep="1" />
 			<menuitem Ref="135" Shortcut="Ctrl+F5" />
 			<menuitem Ref="134" Shortcut="Ctrl+Shift+V" />

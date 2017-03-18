@@ -351,7 +351,7 @@ void GDisplayString::DrawWhiteSpace(GSurface *pDC, char Ch, GRect &r)
 
 void GDisplayString::Layout(bool Debug)
 {
-    if (LaidOut)
+    if (LaidOut || !Font)
         return;
 
     LaidOut = 1;

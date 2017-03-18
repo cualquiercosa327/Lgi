@@ -183,55 +183,56 @@ int GMemStream::Read(void *Buffer, int Size, int Flags)
 
 int GMemStream::Write(const void *Buffer, int Size, int Flags)
 {
-	int Bytes = 0;
-	if (Buffer && Size > 0)
-	{
-		if (GrowBlockSize)
-		{
-			// Allow mem stream to grow
-			char *Ptr = (char*)Buffer;
-			while (Size)
-			{
-				if (Pos >= Alloc)
-				{
-					// Grow the mem block
-					int64 NewSize = Pos + Size;
-					int Blocks = (NewSize + GrowBlockSize - 1) / GrowBlockSize;
-					
-					int64 NewAlloc = Blocks * GrowBlockSize;
-					char *NewMem = new char[NewAlloc];
-					if (!NewMem)
-						return Bytes;
-					memcpy(NewMem, Mem, Pos);
-					if (Own)
-						DeleteArray(Mem);
-					Mem = NewMem;
-					Alloc = NewAlloc;
-				}
+	if (!Buffer || Size <= 0)
+		return 0;
 
-				if (Pos < Alloc)
-				{
-					// Fill available mem first...
-					int Remaining = Alloc - Pos;
-					int Copy = min(Size, Remaining);
-					memcpy(Mem + Pos, Ptr, Copy);
-					Size -= Copy;
-					Ptr += Copy;
-					Bytes += Copy;
-					Pos += Copy;
-					Len = max(Pos, Len);
-				}
-				else break;
-			}
-		}
-		else if (Pos >= 0 && Pos < Len)
+	int Bytes = 0;
+	if (GrowBlockSize)
+	{
+		// Allow mem stream to grow
+		char *Ptr = (char*)Buffer;
+		while (Size)
 		{
-			// Fill fixed space...
-			Bytes = min(Len - Pos, Size);
-			memcpy(Mem + Pos, Buffer, Bytes);
-			Pos += Bytes;
+			if (Pos >= Alloc)
+			{
+				// Grow the mem block
+				int64 NewSize = Pos + Size;
+				int Blocks = (NewSize + GrowBlockSize - 1) / GrowBlockSize;
+					
+				int64 NewAlloc = Blocks * GrowBlockSize;
+				char *NewMem = new char[NewAlloc];
+				if (!NewMem)
+					return Bytes;
+				memcpy(NewMem, Mem, Pos);
+				if (Own)
+					DeleteArray(Mem);
+				Mem = NewMem;
+				Alloc = NewAlloc;
+			}
+
+			if (Pos < Alloc)
+			{
+				// Fill available mem first...
+				int Remaining = Alloc - Pos;
+				int Copy = min(Size, Remaining);
+				memcpy(Mem + Pos, Ptr, Copy);
+				Size -= Copy;
+				Ptr += Copy;
+				Bytes += Copy;
+				Pos += Copy;
+				Len = max(Pos, Len);
+			}
+			else break;
 		}
 	}
+	else if (Pos >= 0 && Pos < Len)
+	{
+		// Fill fixed space...
+		Bytes = min(Len - Pos, Size);
+		memcpy(Mem + Pos, Buffer, Bytes);
+		Pos += Bytes;
+	}
+
 	return Bytes;
 }
 

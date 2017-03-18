@@ -830,7 +830,7 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 		return false;
 
 	GFile::Path p;
-	GString s = p.GetSystem(Which);
+	GString s = p.GetSystem(Which, 0);
 	if (!s)
 		return false;
 
@@ -838,10 +838,10 @@ bool LgiGetSystemPath(LgiSystemPath Which, char *Dst, int DstSize)
 	return true;
 }
 
-GString LgiGetSystemPath(LgiSystemPath Which)
+GString LgiGetSystemPath(LgiSystemPath Which, int WordSize)
 {
 	GFile::Path p;
-	return p.GetSystem(Which);
+	return p.GetSystem(Which, WordSize);
 }
 
 bool GFile::Path::IsFile()
@@ -854,7 +854,7 @@ bool GFile::Path::IsFolder()
 	return DirExists(GetFull());
 }
 
-GString GFile::Path::GetSystem(LgiSystemPath Which)
+GString GFile::Path::GetSystem(LgiSystemPath Which, int WordSize = 0)
 {
 	GString Path;
 
@@ -1064,13 +1064,20 @@ GString GFile::Path::GetSystem(LgiSystemPath Which)
 		case LSP_USER_APPS:
 		{
 			#if defined WIN32
-			Path = WinGetSpecialFolderPath(
+			int Id = 
 				#ifdef WIN64
 				CSIDL_PROGRAM_FILES
 				#else
 				CSIDL_PROGRAM_FILESX86
 				#endif
-				);
+				;
+
+			if (WordSize == 32)
+				Id = CSIDL_PROGRAM_FILESX86;
+			else if (WordSize == 64)
+				Id = CSIDL_PROGRAM_FILES;
+
+			Path = WinGetSpecialFolderPath(Id);
 			#elif defined MAC
 			Path = "/Applications";
 			#elif defined LINUX

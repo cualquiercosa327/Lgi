@@ -34,9 +34,12 @@ class ProjectNode : public IdeCommon, public GDragDropSource, public FtpCallback
 	char *Name;
 	IdeProject *Dep;
 	bool IgnoreExpand;
+	int64 ChildCount;
+	GString Label;
 
 	void OpenLocalCache(IdeDoc *&Doc);
 	void OnCmdComplete(FtpCmd *Cmd);
+	int64 CountNodes();
 
 public:
 	ProjectNode(IdeProject *p);

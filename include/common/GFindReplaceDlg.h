@@ -60,7 +60,7 @@ class LgiClass GReplaceDlg : public GFindReplaceCommon
 	class GReplaceDlgPrivate *d;
 
 public:
-	char *Replace;
+	GString Replace;
 
 	/// Constructor
 	GReplaceDlg

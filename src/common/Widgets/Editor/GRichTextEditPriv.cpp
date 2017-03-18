@@ -289,7 +289,7 @@ GRichTextPriv::~GRichTextPriv()
 	Empty();
 }
 	
-bool GRichTextPriv::DeleteSelection(Transaction *t, char16 **Cut)
+bool GRichTextPriv::DeleteSelection(Transaction *Trans, char16 **Cut)
 {
 	if (!Cursor || !Selection)
 		return false;
@@ -304,7 +304,7 @@ bool GRichTextPriv::DeleteSelection(Transaction *t, char16 **Cut)
 	{
 		// In the same block... just delete the text
 		int Len = End->Offset - Start->Offset;
-		Start->Blk->DeleteAt(NoTransaction, Start->Offset, Len, DelTxt);
+		Start->Blk->DeleteAt(Trans, Start->Offset, Len, DelTxt);
 	}
 	else
 	{
@@ -330,7 +330,7 @@ bool GRichTextPriv::DeleteSelection(Transaction *t, char16 **Cut)
 		else
 		{
 			LgiAssert(0);
-			return false;
+			return Error(_FL, "Start block has no index.");;
 		}
 
 		// 3) Delete any text up to the Cursor in the 'End' block
@@ -871,7 +871,6 @@ bool GRichTextPriv::SetCursor(GAutoPtr<BlockCursor> c, bool Select)
 	{
 		// Changing selection...
 		InvalidRc = Cursor->Line;
-
 	}
 
 	if (Cursor && !Select)
@@ -885,6 +884,8 @@ bool GRichTextPriv::SetCursor(GAutoPtr<BlockCursor> c, bool Select)
 	else
 		Cursor = c;
 
+	// LgiTrace("%s:%i - SetCursor: %i, line: %i\n", _FL, Cursor->Offset, Cursor->LineHint);
+	
 	if (Cursor &&
 		Selection &&
 		*Cursor == *Selection)
@@ -969,7 +970,7 @@ bool GRichTextPriv::Merge(Block *a, Block *b)
 	TextBlock *ta = dynamic_cast<TextBlock*>(a);
 	TextBlock *tb = dynamic_cast<TextBlock*>(b);
 	if (!ta || !tb)
-		return Error(_FL, "Can't merge non-text block: %p, %p", ta, tb);
+		return false;
 
 	ta->Txt.Add(tb->Txt);
 	ta->LayoutDirty = true;
@@ -1628,6 +1629,9 @@ void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
 		}
 	}
 
+	GdcPt2 Origin;
+	pDC->GetOrigin(Origin.x, Origin.y);
+	
 	GRect r = Areas[GRichTextEdit::ContentArea];
 	#if defined(WINDOWS) && !DEBUG_NO_DOUBLE_BUF
 	GMemDC Mem(r.X(), r.Y(), pDC->GetColourSpace());
@@ -1639,7 +1643,7 @@ void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
 	#endif
 
 	ScrollOffsetPx = ScrollY ? (int)(ScrollY->Value() * ScrollLinePx) : 0;
-	pDC->SetOrigin(-r.x1, -r.y1+ScrollOffsetPx);
+	pDC->SetOrigin(Origin.x-r.x1, Origin.y-r.y1+ScrollOffsetPx);
 
 	int DrawPx = ScrollOffsetPx + Areas[GRichTextEdit::ContentArea].Y();
 	int ExtraPx = DrawPx > DocumentExtent.y ? DrawPx - DocumentExtent.y : 0;
@@ -1722,7 +1726,7 @@ GHtmlElement *GRichTextPriv::CreateElement(GHtmlElement *Parent)
 	return new GRichEditElem(Parent);
 }
 
-bool GRichTextPriv::ToHtml()		
+bool GRichTextPriv::ToHtml(GArray<GDocView::ContentMedia> *Media)
 {
 	GStringPipe p(256);
 		
@@ -1748,7 +1752,7 @@ bool GRichTextPriv::ToHtml()
 	for (unsigned i=0; i<Blocks.Length(); i++)
 	{
 		Block *b = Blocks[i];
-		b->ToHtml(p);
+		b->ToHtml(p, Media);
 	}
 		
 	p.Print("</body>\n");
@@ -1757,11 +1761,13 @@ bool GRichTextPriv::ToHtml()
 	
 void GRichTextPriv::DumpBlocks()
 {
+	LgiTrace("GRichTextPriv Blocks=%i\n", Blocks.Length());
 	for (unsigned i=0; i<Blocks.Length(); i++)
 	{
 		Block *b = Blocks[i];
-		LgiTrace("%p: style=%p/%s {\n",
+		LgiTrace("%p::%s style=%p/%s {\n",
 			b,
+			b->GetClass(),
 			b->GetStyle(),
 			b->GetStyle() ? b->GetStyle()->Name.Get() : NULL);
 		b->Dump();
@@ -1818,6 +1824,7 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 			}
 			case TAG_IMG:
 			{
+				ctx.Tb = NULL;
 				IsBlock = true;
 				break;
 			}
@@ -1888,7 +1895,36 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 
 		bool EndStyleChange = false;
 
-		if (c->TagId == TAG_A)
+		if (c->TagId == TAG_IMG)
+		{
+			Blocks.Add(ctx.Ib = new ImageBlock(this));
+			if (ctx.Ib)
+			{
+				const char *s;
+				if (c->Get("src", s))
+					ctx.Ib->Source = s;
+
+				if (c->Get("width", s))
+				{
+					GCss::Len Sz(s);
+					int Px = Sz.ToPx();
+					if (Px) ctx.Ib->Size.x = Px;
+				}
+
+				if (c->Get("height", s))
+				{
+					GCss::Len Sz(s);
+					int Px = Sz.ToPx();
+					if (Px) ctx.Ib->Size.y = Px;
+				}
+
+				if (CachedStyle)
+					ctx.Ib->SetStyle(CachedStyle);
+
+				ctx.Ib->Load();
+			}
+		}
+		else if (c->TagId == TAG_A)
 		{
 			ctx.StartOfLine |= ctx.AddText(CachedStyle, c->GetText());
 			

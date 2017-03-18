@@ -137,7 +137,6 @@ public:
 			else
 				Attachments.Add(Seg);
 		}
-
 	}
 
 	bool Build()
@@ -174,29 +173,7 @@ public:
 			}
 		}
 
-		TAttachment *HtmlRoot = NULL;
-		if (MsgHtmlRelated.Length() > 0)
-		{
-			// Create the HTML related tree if needed
-			if (!Related)
-			{
-				Related = new TAttachment(Store);
-				if (!Related)
-					return false;
-				Alternative->SetStr(FIELD_MIME_TYPE, sMultipartRelated);
-			}
-			if (MsgHtml)
-				MsgHtml->AttachTo(Related);
-			for (unsigned i=0; i<MsgHtmlRelated.Length(); i++)
-				MsgHtmlRelated[i]->AttachTo(Related);
-			HtmlRoot = Related;
-		}
-		else
-		{
-			HtmlRoot = MsgHtml;
-		}
-		
-		if (HtmlRoot && MsgText)
+		if (MsgHtml && MsgText)
 		{
 			// We need an alternative
 			if (!Alternative)
@@ -206,20 +183,16 @@ public:
 					return false;
 				Alternative->SetStr(FIELD_MIME_TYPE, sMultipartAlternative);
 			}
-			if (Root && Root->IsMultipart())
-				Alternative->AttachTo(Root);
-			else
-				Root = Alternative;
+			if (Alternative != Root)
+			{
+				if (Root && Root->IsMultipart())
+					Alternative->AttachTo(Root);
+				else
+					Root = Alternative;
+			}
 			
-			HtmlRoot->AttachTo(Alternative);
+			MsgHtml->AttachTo(Alternative);
 			MsgText->AttachTo(Alternative);
-		}
-		else if (HtmlRoot)
-		{
-			if (Root && Root->IsMultipart())
-				HtmlRoot->AttachTo(Root);
-			else
-				Root = HtmlRoot;
 		}
 		else if (MsgText)
 		{
@@ -227,6 +200,43 @@ public:
 				MsgText->AttachTo(Root);
 			else
 				Root = MsgText;
+		}
+		
+		if (MsgHtml)
+		{
+			if (MsgHtmlRelated.Length() > 0)
+			{
+				// Create the HTML related tree if needed
+				if (!Related)
+				{
+					Related = new TAttachment(Store);
+					if (!Related)
+						return false;
+					Related->SetStr(FIELD_MIME_TYPE, sMultipartRelated);
+					
+					if (Alternative)
+						Related->AttachTo(Alternative);
+					else if (Root && Root->IsMultipart())
+						Related->AttachTo(Root);
+					else
+						Root = Related;
+				}
+				
+				if (MsgHtml)
+					MsgHtml->AttachTo(Related);
+				
+				for (unsigned i=0; i<MsgHtmlRelated.Length(); i++)
+					MsgHtmlRelated[i]->AttachTo(Related);
+			}
+			else
+			{
+				if (Alternative)
+					MsgHtml->AttachTo(Alternative);
+				else if (Root && Root->IsMultipart())
+					MsgHtml->AttachTo(Root);
+				else
+					Root = MsgHtml;					
+			}
 		}
 		
 		if (Root)

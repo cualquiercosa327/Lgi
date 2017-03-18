@@ -26,13 +26,14 @@
 #include "LgiRes.h"
 #include "ProjectNode.h"
 
-#define IDM_SAVE				102
 #define IDM_RECENT_FILE			1000
 #define IDM_RECENT_PROJECT		1100
 #define IDM_WINDOWS				1200
 #define IDM_MAKEFILE_BASE		1300
 
 #define USE_HAIKU_PULSE_HACK	1
+
+#define OPT_ENTIRE_SOLUTION		"SearchSolution"
 
 //////////////////////////////////////////////////////////////////////////////////////////
 char AppName[] = "LgiIde";
@@ -806,16 +807,20 @@ public:
 	{
 		if (CursorHistory.Length())
 		{
-			HistoryLoc += Direction;
-			if (HistoryLoc < 1) HistoryLoc = 1;
-			if (HistoryLoc > CursorHistory.Length()) HistoryLoc = CursorHistory.Length();
+			int Loc = HistoryLoc + Direction;
+			if (Loc >= 0 && Loc < CursorHistory.Length())
+			{
+				HistoryLoc = Loc;
+				FileLoc &Loc = CursorHistory[HistoryLoc];
+				App->GotoReference(Loc.File, Loc.Line, false, false);
 
-			FileLoc &Loc = CursorHistory[HistoryLoc-1];
-			App->GotoReference(Loc.File, Loc.Line, false, false);
+				App->DumpHistory();
+			}
 		}
 	}
 	
 	// Find in files
+	GAutoPtr<FindParams> FindParameters;
 	FindInFilesThread *Finder;
 	
 	// Mru
@@ -950,140 +955,144 @@ public:
 	
 	void GetContext(char16 *Txt, int &i, char16 *&Context)
 	{
-		static char16 NMsg[] = { 'I', 'n', ' ', 'f', 'i', 'l', 'e', ' ', 'i', 'n', 'c', 'l', 'u', 'd', 'e', 'd', ' ', 0 };
-		static char16 FromMsg[] = { 'f', 'r', 'o', 'm', ' ', 0 };
+		static char16 NMsg[] = L"In file included ";
+		static char16 FromMsg[] = L"from ";
 		int NMsgLen = StrlenW(NMsg);
 
-		if (Txt[i] == '\n')
-		{
-			if (StrncmpW(Txt + i + 1, NMsg, NMsgLen) == 0)
-			{
-				i += NMsgLen + 1;								
-				
-				while (Txt[i])
-				{
-					// Skip whitespace
-					while (Txt[i] && strchr(" \t\r\n", Txt[i])) i++;
-					
-					// Check for 'from'
-					if (StrncmpW(FromMsg, Txt + i, 5) == 0)
-					{
-						i += 5;
-						char16 *Start = Txt + i;
+		if (Txt[i] != '\n')
+			return;
 
-						// Skip to end of doc or line
-						char16 *Colon = 0;
-						while (Txt[i] && Txt[i] != '\n')
-						{
-							if (Txt[i] == ':' && Txt[i+1] != '\n')
-							{
-								Colon = Txt + i;
-							}
-							i++;
-						}
-						if (Colon)
-						{
-							DeleteArray(Context);
-							Context = NewStrW(Start, Colon-Start);
-						}
-					}
-					else
-					{
-						break;
-					}
-				}
-			}
-		}
-		
-	}
-		
-	void NextMsg()
-	{
-		if (Output &&
-			Output->Tab)
+		if (StrncmpW(Txt + i + 1, NMsg, NMsgLen))
+			return;
+
+		i += NMsgLen + 1;								
+				
+		while (Txt[i])
 		{
-			int Current = Output->Tab->Value();
-			GTextView3 *o = Current < CountOf(Output->Txt) ? Output->Txt[Current] : 0;
-			if (o)
+			// Skip whitespace
+			while (Txt[i] && strchr(" \t\r\n", Txt[i]))
+				i++;
+					
+			// Check for 'from'
+			if (StrncmpW(FromMsg, Txt + i, 5))
+				break;
+
+			i += 5;
+			char16 *Start = Txt + i;
+
+			// Skip to end of doc or line
+			char16 *Colon = 0;
+			while (Txt[i] && Txt[i] != '\n')
 			{
-				char16 *Txt = o->NameW();
-				if (Txt)
+				if (Txt[i] == ':' && Txt[i+1] != '\n')
 				{
-					int Cur = o->GetCursor();
-					char16 *Context = 0;
-					
-					// Scan forward to the end of file for the next filename/linenumber separator.
-					int i;
-					for (i=Cur; Txt[i]; i++)
-					{
-						GetContext(Txt, i, Context);
+					Colon = Txt + i;
+				}
+				i++;
+			}
+			if (Colon)
+			{
+				DeleteArray(Context);
+				Context = NewStrW(Start, Colon-Start);
+			}
+		}
+	}
+
+	#define PossibleLineSep(ch) \
+		( (ch) == ':' || (ch) == '(' )
+		
+	void SeekMsg(int Direction)
+	{
+		GString Comp;
+		IdeProject *p = App->RootProject();
+		if (p)
+			p ->GetSettings()->GetStr(ProjCompiler);
+		bool IsIAR = Comp.Equals("IAR");
+		
+		if (!Output || !Output->Tab)
+			return;
+
+		int Current = Output->Tab->Value();
+		GTextView3 *o = Current < CountOf(Output->Txt) ? Output->Txt[Current] : 0;
+		if (!o)
+			return;
+
+		char16 *Txt = o->NameW();
+		if (!Txt)
+			return;
+
+		int Cur = o->GetCursor();
+		char16 *Context = NULL;
+		
+		// Scan forward to the end of file for the next filename/line number separator.
+		int i;
+		for (i=Cur; Txt[i]; i++)
+		{
+			GetContext(Txt, i, Context);
 						
-						if
-						(
-							(Txt[i] == ':' || Txt[i] == '(')
-							&&
-							isdigit(Txt[i+1])
-						)
-						{
-							break;
-						}
-					}
+			if
+			(
+				PossibleLineSep(Txt[i])
+				&&
+				isdigit(Txt[i+1])
+			)
+			{
+				break;
+			}
+		}
 					
-					// If not found then scan from the start of the file for the next filename/linenumber separator.
-					if (Txt[i] != ':')
-					{
-						for (i=0; i<Cur; i++)
-						{
-							GetContext(Txt, i, Context);
+		// If not found then scan from the start of the file for the next filename/line number separator.
+		if (!PossibleLineSep(Txt[i]))
+		{
+			for (i=0; i<Cur; i++)
+			{
+				GetContext(Txt, i, Context);
 							
-							if
-							(
-								(Txt[i] == ':' || Txt[i] == '(')
-								&&
-								isdigit(Txt[i+1])
-							)
-							{
-								break;
-							}
-						}
-					}
-					
-					// If match found?
-					if (Txt[i] == ':' || Txt[i] == '(')
-					{
-						// Scan back to the start of the filename
-						int Line = i;
-						while (Line > 0 && Txt[Line-1] != '\n')
-						{
-							Line--;
-						}
-						
-						// Store the filename
-						GAutoString File(WideToUtf8(Txt+Line, i-Line));
-						if (File)
-						{
-							// Scan over the linenumber..
-							int NumIndex = ++i;
-							while (isdigit(Txt[NumIndex])) NumIndex++;
-							
-							// Store the linenumber
-							GAutoString NumStr(WideToUtf8(Txt + i, NumIndex - i));
-							if (NumStr)
-							{
-								// Convert it to an integer
-								int LineNumber = atoi(NumStr);
-								o->SetCursor(Line, false);
-								o->SetCursor(NumIndex + 1, true);
-								
-								char *Context8 = WideToUtf8(Context);
-								ViewMsg(File, LineNumber, Context8);
-								DeleteArray(Context8);
-							}
-						}
-					}					
+				if
+				(
+					PossibleLineSep(Txt[i])
+					&&
+					isdigit(Txt[i+1])
+				)
+				{
+					break;
 				}
 			}
 		}
+					
+		// If match found?
+		if (!PossibleLineSep(Txt[i]))
+			return;
+
+		// Scan back to the start of the filename
+		int Line = i;
+		while (Line > 0 && Txt[Line-1] != '\n')
+		{
+			Line--;
+		}
+						
+		// Store the filename
+		GAutoString File(WideToUtf8(Txt+Line, i-Line));
+		if (!File)
+			return;
+
+		// Scan over the line number..
+		int NumIndex = ++i;
+		while (isdigit(Txt[NumIndex]))
+			NumIndex++;
+							
+		// Store the line number
+		GAutoString NumStr(WideToUtf8(Txt + i, NumIndex - i));
+		if (!NumStr)
+			return;
+
+		// Convert it to an integer
+		int LineNumber = atoi(NumStr);
+		o->SetCursor(Line, false);
+		o->SetCursor(NumIndex + 1, true);
+								
+		GString Context8 = Context;
+		ViewMsg(File, LineNumber, Context8);
 	}
 
 	void UpdateMenus()
@@ -1426,8 +1435,6 @@ AppWnd::AppWnd()
 
 AppWnd::~AppWnd()
 {
-	SaveAll();
-	
 	if (d->Sp)
 	{
 		GVariant v = d->Sp->Value();
@@ -1669,6 +1676,18 @@ bool AppWnd::ToggleBreakpoint(const char *File, int Line)
 	return true;
 }
 
+void AppWnd::DumpHistory()
+{
+	#if 0
+	LgiTrace("History %i of %i\n", d->HistoryLoc, d->CursorHistory.Length());
+	for (int i=0; i<d->CursorHistory.Length(); i++)
+	{
+		FileLoc &p = d->CursorHistory[i];		
+		LgiTrace("    [%i] = %s, %i %s\n", i, p.File.Get(), p.Line, d->HistoryLoc == i ? "<-----":"");
+	}
+	#endif
+}
+	
 void AppWnd::OnLocationChange(const char *File, int Line)
 {
 	if (!File)
@@ -1676,9 +1695,6 @@ void AppWnd::OnLocationChange(const char *File, int Line)
 
 	if (!d->InHistorySeek)
 	{
-		// Destroy any history after the current...
-		d->CursorHistory.Length(d->HistoryLoc++);
-
 		if (d->CursorHistory.Length() > 0)
 		{
 			FileLoc &Last = d->CursorHistory.Last();
@@ -1686,28 +1702,24 @@ void AppWnd::OnLocationChange(const char *File, int Line)
 			{
 				// Previous or next line... just update line number
 				Last.Line = Line;
-				d->HistoryLoc--;
+				DumpHistory();
 				return;
 			}
-		}
-		
-		// Add new entry
-		d->CursorHistory.New().Set(File, Line);
 
-		#if 0
-		int alloc = 1;
-		while (alloc < d->CursorHistory.Length())
-		{
-			alloc <<=1;
+			// Add new entry
+			d->HistoryLoc++;
+			d->CursorHistory[d->HistoryLoc].Set(File, Line);
 		}
-		FileLoc *p = &d->CursorHistory[0];
-		LgiTrace("Added %s, %i to %i items. Idx=%i\n", File, Line, d->CursorHistory.Length(), d->HistoryLoc);
-		for (int i=0; i<alloc; i++)
+		else
 		{
-			LgiTrace("    [%i] = %s, %i\n", i, p[i].File.Get(), p[i].Line);
+			// Add new entry
+			d->CursorHistory[0].Set(File, Line);
 		}
-		#endif
-		
+
+		// Destroy any history after the current...
+		d->CursorHistory.Length(d->HistoryLoc+1);
+
+		DumpHistory();
 	}
 }
 
@@ -1749,15 +1761,13 @@ IdeDoc *AppWnd::GotoReference(const char *File, int Line, bool CurIp, bool WithH
 		d->InHistorySeek = true;
 
 	IdeDoc *Doc = File ? OpenFile(File) : GetCurrentDoc();
-	// printf("Goto Doc=%p %s:%i\n", Doc, File, Line);
 	if (Doc)
-	{
 		Doc->SetLine(Line, CurIp);
-	}
-	else LgiTrace("%s:%i - No file '%s' found.\n", _FL, File);
+	else
+		LgiTrace("%s:%i - No file '%s' found.\n", _FL, File);
 
 	if (!WithHistory)
-		d->InHistorySeek = true;
+		d->InHistorySeek = false;
 
 	return Doc;			
 }
@@ -1908,7 +1918,8 @@ IdeProject *AppWnd::OpenProject(char *FileName, IdeProject *ParentProj, bool Cre
 
 			p->SetParentProject(ParentProj);
 			
-			if (p->OpenFile(FileName))
+			ProjectStatus Status = p->OpenFile(FileName);
+			if (Status == OpenOk)
 			{
 				d->OnFile(FileName, true);
 				
@@ -1926,7 +1937,8 @@ IdeProject *AppWnd::OpenProject(char *FileName, IdeProject *ParentProj, bool Cre
 			else
 			{
 				DeleteObj(p);
-				d->RemoveRecent(FileName);
+				if (Status == OpenError)
+					d->RemoveRecent(FileName);
 			}
 
 			if (!GetTree()->Selection())
@@ -2446,7 +2458,8 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		case IDM_SAVE:
 		{
 			IdeDoc *Top = TopDoc();
-			if (Top) Top->SetClean();
+			if (Top)
+				Top->SetClean();
 			break;
 		}
 		case IDM_SAVEAS:
@@ -2588,11 +2601,25 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 						return 0;
 					}
 				}
+
+				if (d->Finder)
+				{
+					LgiAssert(!"Finder failed to shutdown");
+					break;
+				}
 			}
 
 			if (!d->Finder)
 			{
-				FindInFiles Dlg(this);
+				if (!d->FindParameters &&
+					d->FindParameters.Reset(new FindParams))
+				{
+					GVariant var;
+					if (GetOptions()->GetValue(OPT_ENTIRE_SOLUTION, var))
+						d->FindParameters->Type = var.CastInt32() ? FifSearchSolution : FifSearchDirectory;
+				}		
+
+				FindInFiles Dlg(this, d->FindParameters);
 
 				GViewI *Focus = GetFocus();
 				if (Focus)
@@ -2600,7 +2627,8 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 					GTextView3 *Edit = dynamic_cast<GTextView3*>(Focus);
 					if (Edit && Edit->HasSelection())
 					{
-						Dlg.Params->Text = Edit->GetSelection();
+						GAutoString a(Edit->GetSelection());
+						Dlg.Params->Text = a;
 					}
 				}
 				
@@ -2609,17 +2637,30 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 				{
 					GAutoString Base = p->GetBasePath();
 					if (Base)
-					{
-						DeleteArray(Dlg.Params->Dir);
-						Dlg.Params->Dir = NewStr(Base);
-					}
+						Dlg.Params->Dir = Base;
 				}
 
 				if (Dlg.DoModal())
 				{
+					if (p && Dlg.Params->Type == FifSearchSolution)
+					{
+						Dlg.Params->ProjectFiles.Length(0);
+
+						GArray<ProjectNode*> Nodes;
+						if (p->GetAllNodes(Nodes))
+						{
+							for (unsigned i=0; i<Nodes.Length(); i++)
+							{
+								Dlg.Params->ProjectFiles.Add(Nodes[i]->GetFullPath());
+							}
+						}
+					}
+
 					d->Finder = new FindInFilesThread(this, Dlg.Params);
-					Dlg.Params = 0;
 				}
+
+				GVariant var = d->FindParameters->Type == FifSearchSolution;
+				GetOptions()->SetValue(OPT_ENTIRE_SOLUTION, var);
 			}
 			break;
 		}
@@ -2828,7 +2869,12 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		}
 		case IDM_NEXT_MSG:
 		{
-			d->NextMsg();
+			d->SeekMsg(1);
+			break;
+		}
+		case IDM_PREV_MSG:
+		{
+			d->SeekMsg(-1);
 			break;
 		}
 		case IDM_DEBUG_MODE:
@@ -3016,6 +3062,20 @@ IdeDoc *AppWnd::FocusDoc()
 void AppWnd::OnProjectDestroy(IdeProject *Proj)
 {
 	d->Projects.Delete(Proj);
+}
+
+void AppWnd::OnProjectChange()
+{
+	GArray<GMdiChild*> Views;
+	if (d->Mdi->GetChildren(Views))
+	{
+		for (unsigned i=0; i<Views.Length(); i++)
+		{
+			IdeDoc *Doc = dynamic_cast<IdeDoc*>(Views[i]);
+			if (Doc)
+				Doc->OnProjectChange();
+		}
+	}
 }
 
 void AppWnd::OnDocDestroy(IdeDoc *Doc)

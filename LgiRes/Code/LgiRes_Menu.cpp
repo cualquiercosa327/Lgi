@@ -160,6 +160,8 @@ bool ResMenuItem::Serialize(FieldTree &Fields)
 	Fields.Serialize(this, VAL_Enabled, Enabled);
 	Fields.Serialize(this, VAL_Shortcut, Short);
 
+	Update();
+
 	return true;
 }
 

@@ -114,7 +114,7 @@ GSubProcess::GSubProcess(const char *exe, const char *args)
 GSubProcess::~GSubProcess()
 {
 	#if defined(POSIX)
-	close(Io.Read);
+	Io.Close();
 	#endif
 	
 	if (Child)
@@ -401,29 +401,34 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 			}
 
 			// Child shouldn't write to its stdin.
-			close(in[1]);
+			if (close(in[1]))
+				printf("%s:%i - close failed.\n", _FL);
 
 			// Child shouldn't read from its stdout.
-			close(out[0]);
+			if (close(out[0]))
+				printf("%s:%i - close failed.\n", _FL);
 
 			// Redirect stdin and stdout for the child process.
 			if (dup2(in[0], fileno(stdin)) == -1)
 			{
-				printf("child[pre-exec]: Failed to redirect stdin for child");
+				printf("%s:%i - child[pre-exec]: Failed to redirect stdin for child\n", _FL);
 				return false;
 			}
+			if (close(in[0]))
+				printf("%s:%i - close failed.\n", _FL);
 			
 			if (dup2(out[1], fileno(stdout)) == -1)
 			{
-				printf("child[pre-exec]: Failed to redirect stdout for child");
+				printf("%s:%i - child[pre-exec]: Failed to redirect stdout for child\n", _FL);
 				return false;
 			}
 
 			if (dup2(out[1], fileno(stderr)) == -1)
 			{
-				printf("child[pre-exec]: Failed to redirect stderr for child");
+				printf("%s:%i - child[pre-exec]: Failed to redirect stderr for child\n", _FL);
 				return false;
 			}
+			close(out[1]);
 
 			// Execute the child
 			Args.Add(NULL);
@@ -438,20 +443,22 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 			// We are in the parent process.
 			if (ChildPid == -1)
 			{
-				printf("parent: Failed to create child");
+				printf("%s:%i - parent: Failed to create child", _FL);
 				return false;
 			}
 
 			// Parent shouldn't read from child's stdin.
-			close(in[0]);
+			if (close(in[0]))
+				printf("%s:%i - close failed.\n", _FL);
 
 			// Parent shouldn't write to child's stdout.
-			close(out[1]);
+			if (close(out[1]))
+				printf("%s:%i - close failed.\n", _FL);
 
 			Io.Read = out[0];
 			Io.Write = in[1];
 			
-			printf("USE_SIMPLE_FORK success.\n");
+			// printf("USE_SIMPLE_FORK success.\n");
 			return true;
 		}
 	

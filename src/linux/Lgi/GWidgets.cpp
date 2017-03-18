@@ -230,8 +230,10 @@ bool GDialog::SetupDialog(bool Modal)
 		{
 			const gchar *type = G_OBJECT_TYPE_NAME(i->data);
 			GtkWidget *w = GTK_WIDGET(i->data);
-			if (!btns)
+			if (!btns && GTK_IS_HBUTTON_BOX(i->data))
+			{
 				btns = GTK_HBUTTON_BOX(i->data);
+			}
 		}		
 		g_list_free(list);
     
@@ -288,6 +290,7 @@ bool GDialog::SetupDialog(bool Modal)
 	}
 
 	gtk_widget_show(GTK_WIDGET(Wnd));
+	GView::Visible(true);
 
 	return true;
 }

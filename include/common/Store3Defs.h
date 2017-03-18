@@ -365,6 +365,9 @@ enum Store3Fields
 	FIELD_MEMBER_OF_GROUP = 157,		// Meta field for specifying membership of a content group
 
 	FIELD_TEMP_PATH,					// (char*) A temporary path to store files...
+	FIELD_HTML_RELATED,					// Array of related attachments for the HTML content.
+										// Pass this to an email's SetObj member to add a
+										// related attachment.
 
 	FIELD_MAX,
 };

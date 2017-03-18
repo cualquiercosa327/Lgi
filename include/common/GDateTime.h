@@ -315,6 +315,8 @@ public:
 		Set(ts);
 		return *this;
 	}
+
+	GDateTime &operator =(struct tm *t);
 	
 	/// GDom interface.
 	///

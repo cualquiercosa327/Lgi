@@ -1594,6 +1594,8 @@ struct GDomPropMap
 		Define("DateAndTime", DateDateAndTime);
 		Define("DateInt64", DateInt64);
 		Define("SetNow", DateSetNow);
+		Define("SetStr", DateSetStr);
+		Define("GetStr", DateGetStr);
 
 		Define("Join", StrJoin);
 		Define("Split", StrSplit);

@@ -103,7 +103,7 @@
     <IntDir>$(Platform)$(Configuration)12\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\..\CodeLib\libiconv-1.14\include</IncludePath>
-    <TargetName>Lgi12x32nop</TargetName>
+    <TargetName>Lgi12x32</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>.\Lib\</OutDir>

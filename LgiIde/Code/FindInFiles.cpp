@@ -8,13 +8,24 @@
 #include "GToken.h"
 
 /////////////////////////////////////////////////////////////////////////////////////
-FindInFiles::FindInFiles(AppWnd *app)
+FindInFiles::FindInFiles(AppWnd *app, FindParams *params)
 {
 	TypeHistory = 0;
 	FolderHistory = 0;
 
 	SetParent(App = app);
-	Params = new FindParams;
+	
+	if (params)
+	{
+		Params = params;
+		OwnParams = false;
+	}
+	else
+	{
+		Params = new FindParams;
+		OwnParams = true;
+	}
+
 	if (LoadFromResource(IDD_FIND_IN_FILES))
 	{
 		MoveToCenter();
@@ -29,7 +40,8 @@ FindInFiles::FindInFiles(AppWnd *app)
 
 FindInFiles::~FindInFiles()
 {
-	DeleteObj(Params);
+	if (OwnParams)
+		DeleteObj(Params);
 }
 
 void SerializeHistory(GHistory *h, const char *opt, GOptionsFile *p, bool Write)
@@ -82,6 +94,9 @@ void FindInFiles::OnCreate()
 {
 	if (Params)
 	{
+		SetCtrlValue(IDC_ENTIRE_SOLUTION, Params->Type == FifSearchSolution);
+		SetCtrlValue(IDC_SEARCH_DIR, Params->Type == FifSearchDirectory);
+
 		SetCtrlName(IDC_LOOK_FOR, Params->Text);
 		SetCtrlName(IDC_FILE_TYPES, Params->Ext);
 		SetCtrlName(IDC_DIR, Params->Dir);
@@ -92,7 +107,7 @@ void FindInFiles::OnCreate()
 		
 		SerializeHistory(TypeHistory, "TypeHist", App->GetOptions(), false);
 		SerializeHistory(FolderHistory, "FolderHist", App->GetOptions(), false);
-		
+
 		GViewI *v;
 		if (GetViewById(IDC_LOOK_FOR, v))
 			v->Focus(true);
@@ -118,11 +133,23 @@ int FindInFiles::OnNotify(GViewI *v, int f)
 			}
 			break;
 		}
-		case IDOK:
+		case IDC_ENTIRE_SOLUTION:
+		case IDC_SEARCH_DIR:
 		{
-			Params->Text = NewStr(GetCtrlName(IDC_LOOK_FOR));
-			Params->Ext = NewStr(GetCtrlName(IDC_FILE_TYPES));
-			Params->Dir = NewStr(GetCtrlName(IDC_DIR));
+			bool SearchSol = GetCtrlValue(IDC_ENTIRE_SOLUTION) != 0;
+			SetCtrlEnabled(IDC_DIR, !SearchSol);
+			SetCtrlEnabled(IDC_SET_DIR, !SearchSol);
+			SetCtrlEnabled(IDC_FOLDER_HISTORY, !SearchSol);
+			SetCtrlEnabled(IDC_SUB_DIRS, !SearchSol);
+			break;
+		}
+		case IDOK:
+		case IDCANCEL:
+		{
+			Params->Type = GetCtrlValue(IDC_ENTIRE_SOLUTION) != 0 ? FifSearchSolution :  FifSearchDirectory;
+			Params->Text = GetCtrlName(IDC_LOOK_FOR);
+			Params->Ext = GetCtrlName(IDC_FILE_TYPES);
+			Params->Dir = GetCtrlName(IDC_DIR);
 			
 			Params->MatchWord = GetCtrlValue(IDC_WHOLE_WORD);
 			Params->MatchCase = GetCtrlValue(IDC_CASE);
@@ -133,12 +160,7 @@ int FindInFiles::OnNotify(GViewI *v, int f)
 			if (FolderHistory) FolderHistory->Add(Params->Dir);
 			SerializeHistory(FolderHistory, "FolderHist", App->GetOptions(), true);
 			
-			EndModal(1);
-			break;
-		}
-		case IDCANCEL:
-		{
-			EndModal(0);
+			EndModal(v->GetId() == IDOK);
 			break;
 		}
 	}
@@ -161,7 +183,7 @@ FindInFilesThread::FindInFilesThread(AppWnd *App, FindParams *Params) : GThread(
 {
 	d = new FindInFilesThreadPrivate;
 	d->App = App;
-	d->Params = Params;
+	d->Params = new FindParams(Params); // Make copy that we own...
 	d->Loop = true;
 	d->Last = 0;
 	
@@ -187,7 +209,8 @@ void FindInFilesThread::SearchFile(char *File)
 		char *Doc = ReadTextFile(File);
 		if (Doc)
 		{
-			int Len = strlen(d->Params->Text);
+			int Len = d->Params->Text.Length();
+			const char *Text = d->Params->Text;
 			
 			char *LineStart = 0;
 			int Line = 0;
@@ -206,16 +229,16 @@ void FindInFilesThread::SearchFile(char *File)
 					bool Match = false;
 					if (d->Params->MatchCase)
 					{
-						if (d->Params->Text[0] == *s)
+						if (Text[0] == *s)
 						{
-							Match = strncmp(s, d->Params->Text, Len) == 0;
+							Match = strncmp(s, Text, Len) == 0;
 						}
 					}
 					else
 					{
-						if (toupper(d->Params->Text[0]) == toupper(*s))
+						if (toupper(Text[0]) == toupper(*s))
 						{
-							Match = strnicmp(s, d->Params->Text, Len) == 0;
+							Match = strnicmp(s, Text, Len) == 0;
 						}
 					}
 					
@@ -268,7 +291,17 @@ bool FindInFilesCallback(void *UserData, char *Path, GDirectory *Dir)
 	if (Dir->IsDir())
 	{
 		char *p = Dir->GetName();
-		if (p && stricmp(p, ".svn") == 0) return false;
+		if
+		(
+			p
+			&&
+			(
+				stricmp(p, ".svn") == 0
+				||
+				stricmp(p, ".git") == 0
+			)
+		)
+			return false;
 	}
 	
 	return true;
@@ -282,7 +315,7 @@ int FindInFilesThread::Main()
 	{
 		char Msg[256];
 
-		snprintf(Msg, sizeof(Msg), "Searching for '%s'...\n", d->Params->Text);
+		snprintf(Msg, sizeof(Msg), "Searching for '%s'...\n", d->Params->Text.Get());
 		d->App->PostEvent(M_APPEND_TEXT, 0, 2);
 		d->App->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr(Msg), 2);
 
@@ -294,11 +327,31 @@ int FindInFilesThread::Main()
 		}
 		
 		GArray<char*> Files;
-		if (LgiRecursiveFileSearch(d->Params->Dir, &Ext, &Files, 0, 0, FindInFilesCallback))
+		if (d->Params->Type == FifSearchSolution)
 		{
+			// Do the extension filtering...
+			for (unsigned i=0; i<d->Params->ProjectFiles.Length(); i++)
+			{
+				GString p = d->Params->ProjectFiles[i];
+				const char *Leaf = LgiGetLeaf(p);
+				for (unsigned n=0; n<Ext.Length(); n++)
+				{
+					if (MatchStr(Ext[n], Leaf))
+						Files.Add(NewStr(p));
+				}
+			}
+		}
+		else
+		{
+			// Find the files recursively...
+			LgiRecursiveFileSearch(d->Params->Dir, &Ext, &Files, 0, 0, FindInFilesCallback);
+		}
+
+		if (Files.Length() > 0)
+		{			
 			sprintf(Msg, "in %i files...\n", Files.Length());
 			d->App->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr(Msg), 2);
-			
+
 			for (int i=0; i<Files.Length() && d->Loop; i++)
 			{
 				char *f = Files[i];
@@ -323,9 +376,8 @@ int FindInFilesThread::Main()
 		{
 			d->App->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr("No files matched.\n"), 2);
 		}
-		
-		d->App->OnFindFinished();
 	}
 
+	d->App->OnFindFinished();
 	return 0;
 }

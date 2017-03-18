@@ -39,6 +39,7 @@ const char *sCompilers[] =
 	"VisualStudio",
 	"Cygwin",
 	"MingW",
+	"IAR",
 	#elif defined MAC
 	"XCode",
 	#else

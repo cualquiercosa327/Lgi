@@ -21,6 +21,9 @@
 #include "ProjectNode.h"
 #include "WebFldDlg.h"
 #include "GCss.h"
+#include "GTableLayout.h"
+#include "GTextLabel.h"
+#include "GButton.h"
 
 extern const char *Untitled;
 
@@ -101,7 +104,9 @@ class BuildThread : public GThread, public GStream
 		VisualStudio,
 		MingW,
 		Gcc,
-		CrossCompiler		
+		CrossCompiler,
+		PythonScript,
+		IAR
 	}
 	    Compiler;
 
@@ -110,7 +115,7 @@ public:
 	~BuildThread();
 	
 	int Write(const void *Buffer, int Size, int Flags = 0);
-	char *FindExe();
+	GString FindExe();
 	GAutoString WinToMingWPath(const char *path);
 	int Main();
 };
@@ -203,20 +208,30 @@ BuildThread::BuildThread(IdeProject *proj, char *mf, const char *args) : GThread
 	Args.Reset(NewStr(args));
 	Compiler = DefaultCompiler;
 
-	GAutoString Comp(NewStr(Proj->GetSettings()->GetStr(ProjCompiler)));
-	if (Comp)
+	char *Ext = LgiGetExtension(Makefile);
+	if (Ext && !_stricmp(Ext, "py"))
 	{
-		// Use the specified compiler...
-		if (!stricmp(Comp, "VisualStudio"))
-			Compiler = VisualStudio;
-		else if (!stricmp(Comp, "MingW"))
-			Compiler = MingW;
-		else if (!stricmp(Comp, "gcc"))
-			Compiler = Gcc;
-		else if (!stricmp(Comp, "cross"))
-			Compiler = CrossCompiler;
-		else
-		    LgiAssert(!"Unknown compiler.");
+		Compiler = PythonScript;
+	}
+	else
+	{
+		GAutoString Comp(NewStr(Proj->GetSettings()->GetStr(ProjCompiler)));
+		if (Comp)
+		{
+			// Use the specified compiler...
+			if (!stricmp(Comp, "VisualStudio"))
+				Compiler = VisualStudio;
+			else if (!stricmp(Comp, "MingW"))
+				Compiler = MingW;
+			else if (!stricmp(Comp, "gcc"))
+				Compiler = Gcc;
+			else if (!stricmp(Comp, "cross"))
+				Compiler = CrossCompiler;
+			else if (!stricmp(Comp, "IAR"))
+				Compiler = IAR;
+			else
+				LgiAssert(!"Unknown compiler.");
+		}
 	}
 
 	if (Compiler == DefaultCompiler)
@@ -255,21 +270,65 @@ int BuildThread::Write(const void *Buffer, int Size, int Flags)
 	return Size;
 }
 
-char *BuildThread::FindExe()
+GString BuildThread::FindExe()
 {
-	char Exe[256] = "";
 	GToken p(getenv("PATH"), LGI_PATH_SEPARATOR);
 	
-	if (Compiler == VisualStudio)
+	if (Compiler == PythonScript)
 	{
 		for (int i=0; i<p.Length(); i++)
 		{
-			char Path[256];
+			char Path[MAX_PATH];
+			LgiMakePath(Path, sizeof(Path), p[i], "python"LGI_EXECUTABLE_EXT);
+			if (FileExists(Path))
+			{
+				return Path;
+			}
+		}
+	}
+	else if (Compiler == VisualStudio)
+	{
+		for (int i=0; i<p.Length(); i++)
+		{
+			char Path[MAX_PATH];
 			LgiMakePath(Path, sizeof(Path), p[i], "msdev.exe");
 			if (FileExists(Path))
 			{
-				return NewStr(Path);
+				return Path;
 			}
+		}
+	}
+	else if (Compiler == IAR)
+	{
+		const char *Def = "c:\\Program Files (x86)\\IAR Systems\\Embedded Workbench 7.0\\common\\bin\\IarBuild.exe";
+		
+		GString ProgFiles = LgiGetSystemPath(LSP_USER_APPS, 32);
+		char p[MAX_PATH];
+		if (!LgiMakePath(p, sizeof(p), ProgFiles, "IAR Systems"))
+			return GString();
+		GDirectory d;
+		double LatestVer = 0.0;
+		GString Latest;
+		for (int b = d.First(p); b; b = d.Next())
+		{
+			if (d.IsDir())
+			{
+				GString n(d.GetName());
+				GString::Array p = n.Split(" ");
+				if (p.Length() == 3 &&
+					p[2].Float() > LatestVer)
+				{
+					LatestVer = p[2].Float();
+					Latest = n;
+				}
+			}
+		}
+		if (Latest &&
+			LgiMakePath(p, sizeof(p), p, Latest) &&
+			LgiMakePath(p, sizeof(p), p, "common\\bin\\IarBuild.exe"))
+		{
+			if (FileExists(p))
+				return p;
 		}
 	}
 	else
@@ -280,33 +339,31 @@ char *BuildThread::FindExe()
 			const char *Def = "C:\\MinGW\\msys\\1.0\\bin\\make.exe";
 			if (FileExists(Def))
 			{
-				return NewStr(Def);
+				return Def;
 			}				
 		}
 		
-		if (!FileExists(Exe))
+		for (int i=0; i<p.Length(); i++)
 		{
-			for (int i=0; i<p.Length(); i++)
+			char Exe[MAX_PATH];
+			LgiMakePath
+			(
+				Exe,
+				sizeof(Exe),
+				p[i],
+				"make"
+				#ifdef WIN32
+				".exe"
+				#endif
+			);
+			if (FileExists(Exe))
 			{
-				LgiMakePath
-				(
-					Exe,
-					sizeof(Exe),
-					p[i],
-					"make"
-					#ifdef WIN32
-					".exe"
-					#endif
-				);
-				if (FileExists(Exe))
-				{
-					return NewStr(Exe);
-				}
+				return Exe;
 			}
 		}
 	}
 	
-	return 0;
+	return GString();
 }
 
 GAutoString BuildThread::WinToMingWPath(const char *path)
@@ -332,10 +389,7 @@ int BuildThread::Main()
 	const char *Err = 0;
 	char ErrBuf[256];
 
-// printf("BuildThread::Main.0\n");
-	
-	const char *Exe = FindExe();
-// printf("BuildThread::Main.1 Exe='%s'\n", Exe);
+	GString Exe = FindExe();
 	if (Exe)
 	{
 		bool Status = false;
@@ -344,17 +398,59 @@ int BuildThread::Main()
 		if (!Proj->GetApp()->GetOptions()->GetValue(OPT_Jobs, Jobs) || Jobs.CastInt32() < 1)
 			Jobs = 2;
 
-// printf("BuildThread::Main.2 Jobs=%i\n", Jobs.CastInt32());
 		if (Compiler == VisualStudio)
 		{
-			char a[256];
-			sprintf(a, "\"%s\" /make \"All - Win32 Debug\"", Makefile.Get());
+			char a[MAX_PATH];
+			sprintf_s(a, sizeof(a), "\"%s\" /make \"All - Win32 Debug\"", Makefile.Get());
 			GProcess Make;
 			Status = Make.Run(Exe, a, 0, true, 0, this);
-
 			if (!Status)
 			{
 				Err = "Running make failed";
+				LgiTrace("%s,%i - %s.\n", _FL, Err);
+			}
+		}
+		else if (Compiler == PythonScript)
+		{
+			char a[MAX_PATH];
+			GString Path = Makefile;
+			int Pos = Path.RFind(DIR_STR);
+			if (Pos >= 0)
+				Path.Length(Pos);
+
+			GProcess Python;
+			Status = Python.Run(Exe, Makefile, Path, true, 0, this);
+			if (!Status)
+			{
+				Err = "Running python failed";
+				LgiTrace("%s,%i - %s.\n", _FL, Err);
+			}
+		}
+		else if (Compiler == IAR)
+		{
+			GString Conf;
+
+			GFile f;
+			if (f.Open(Makefile, O_READ))
+			{
+				GXmlTree t;
+				GXmlTag r;
+				if (t.Read(&r, &f))
+				{
+					GXmlTag *c = r.GetChildTag("configuration");
+					c = c ? c->GetChildTag("name") : NULL;
+					if (c)
+						Conf = c->GetContent();
+				}				
+			}
+
+			char a[MAX_PATH];
+			sprintf_s(a, sizeof(a), "\"%s\" %s -log warnings", Makefile.Get(), Conf.Get());
+			GProcess Make;
+			Status = Make.Run(Exe, a, 0, true, 0, this);
+			if (!Status)
+			{
+				Err = "Running IAR Build failed";
 				LgiTrace("%s,%i - %s.\n", _FL, Err);
 			}
 		}
@@ -403,18 +499,14 @@ int BuildThread::Main()
 			Msg.Printf("Making: %s\n", Temp.Get());
 			Proj->GetApp()->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr(Msg), 0);
 
-// printf("BuildThread::Main.3 SubProc(%s)\n", Temp.Get());
 			if (SubProc.Reset(new GSubProcess(Exe, Temp)))
 			{
-// printf("BuildThread::Main.4 SubProc(%s)\n", InitDir);
 				SubProc->SetInitFolder(InitDir);
 				if (Compiler == MingW)
 					SubProc->SetEnvironment("PATH", "c:\\MingW\\bin;C:\\MinGW\\msys\\1.0\\bin;%PATH%");
 				
-// printf("BuildThread::Main.5 SubProc starting\n");
 				if ((Status = SubProc->Start(true, false)))
 				{
-// printf("BuildThread::Main.6 SubProc reading output\n");
 					// Read all the output					
 					char Buf[256];
 					int rd;
@@ -423,14 +515,12 @@ int BuildThread::Main()
 						Write(Buf, rd);
 					}
 					
-// printf("BuildThread::Main.7 SubProc getting exit value\n");
 					uint32 ex = SubProc->Wait();
 					Print("Make exited with %i (0x%x)\n", ex, ex);
 				}
 				else
 				{
 					// Create a nice error message.
-// printf("BuildThread::Main.8 getting err\n");
 					GAutoString ErrStr = LgiErrorCodeToString(SubProc->GetErrorCode());
 					if (ErrStr)
 					{
@@ -453,7 +543,6 @@ int BuildThread::Main()
 		LgiTrace("%s,%i - %s.\n", _FL, Err);
 	}
 
-// printf("BuildThread::Main.9 posting done\n");
 	AppWnd *w = Proj->GetApp();
 	if (w)
 	{
@@ -463,7 +552,6 @@ int BuildThread::Main()
 	}
 	else LgiAssert(0);
 	
-// printf("BuildThread::Main.10 exiting\n");
 	return 0;
 }
 
@@ -996,10 +1084,8 @@ void IdeProject::CreateProject()
 	Expanded(true);	
 }
 
-bool IdeProject::OpenFile(char *FileName)
+ProjectStatus IdeProject::OpenFile(char *FileName)
 {
-	bool Status = false;
-	
 	Empty();
 
 	if (LgiIsRelativePath(FileName))
@@ -1021,13 +1107,28 @@ bool IdeProject::OpenFile(char *FileName)
 		{
 			GXmlTree x;
 			GXmlTag r;
-			if ((Status = x.Read(&r, &f)))
+			if (x.Read(&r, &f))
 			{
-				OnOpen(&r);
-				d->App->GetTree()->Insert(this);
-				Expanded(true);
+				int64 Nodes = r.CountTags();
+				GProgressDlg Prog(d->App, 500);
+				Prog.SetDescription("Loading project...");
+				Prog.SetLimits(0, Nodes);
+				Prog.SetYieldTime(200);
+				Prog.SetAlwaysOnTop(true);
 				
-				d->Settings.Serialize(&r, false /* read */);
+				OnOpen(Prog, &r);
+				if (Prog.Cancel())
+				{
+					return OpenCancel;
+				}
+				else
+				{
+					d->App->GetTree()->Insert(this);
+					Expanded(true);
+				
+					d->Settings.Serialize(&r, false /* read */);
+					return OpenOk;
+				}
 			}
 			else
 			{
@@ -1036,7 +1137,7 @@ bool IdeProject::OpenFile(char *FileName)
 		}
 	}
 
-	return Status;
+	return OpenError;
 }
 
 bool IdeProject::SaveFile(char *FileName)
@@ -1049,12 +1150,25 @@ bool IdeProject::SaveFile(char *FileName)
 		if (f.Open(Full, O_WRITE))
 		{
 			GXmlTree x;
+			GProgressDlg Prog(d->App, 1000);
+			Prog.SetAlwaysOnTop(true);
+			Prog.SetDescription("Serializing project XML...");
+			Prog.SetYieldTime(200);
+			Prog.SetCanCancel(false);
 
 			d->Settings.Serialize(this, true /* write */);
-			if (x.Write(this, &f))
+			
+			GStringPipe Buf(4096);			
+			if (x.Write(this, &Buf, &Prog))
 			{
-				d->Dirty = false;
-				return true;
+				GCopyStreamer Cp;
+				Prog.SetDescription("Writing XML...");
+				LgiYield();
+				if (Cp.Copy(&Buf, &f))
+				{
+					d->Dirty = false;
+					return true;
+				}
 			}
 		}
 	}
@@ -1065,9 +1179,10 @@ bool IdeProject::SaveFile(char *FileName)
 void IdeProject::SetDirty()
 {
 	d->Dirty = true;
+	d->App->OnProjectChange();
 }
 
-void IdeProject::SetClean()
+bool IdeProject::SetClean()
 {
 	if (d->Dirty)
 	{
@@ -1082,6 +1197,7 @@ void IdeProject::SetClean()
 				d->App->OnFile(d->FileName, true);
 				Update();
 			}
+			else return false;
 		}
 
 		SaveFile(0);
@@ -1091,6 +1207,8 @@ void IdeProject::SetClean()
 	{
 		p->SetClean();
 	}
+
+	return true;
 }
 
 char *IdeProject::GetText(int Col)
@@ -2569,8 +2687,10 @@ int IdeTree::WillAccept(List<char> &Formats, GdcPt2 p, int KeyState)
 	
 	for (char *f=Formats.First(); f; )
 	{
+		/*
 		if (First)
 			LgiTrace("    WillAccept='%s'\n", f);
+		*/
 		
 		if (stricmp(f, NODE_DROP_FORMAT) == 0 ||
 			stricmp(f, LGI_FileDropFormat) == 0)
@@ -2696,10 +2816,11 @@ int IdeTree::OnDrop(GArray<GDragData> &Data, GdcPt2 p, int KeyState)
 			IdeCommon *Dst = dynamic_cast<IdeCommon*>(Folder?Folder:Hit);
 			if (Dst)
 			{
+				AddFilesProgress Prog(this);
 				GDropFiles Df(*Data);
-				for (int i=0; i<Df.Length(); i++)
+				for (int i=0; i<Df.Length() && !Prog.Cancel; i++)
 				{
-					Dst->AddFiles(Df[i]);
+					Dst->AddFiles(&Prog, Df[i]);
 				}
 			}
 		}
@@ -2710,5 +2831,65 @@ int IdeTree::OnDrop(GArray<GDragData> &Data, GdcPt2 p, int KeyState)
 	}
 
 	return DROPEFFECT_NONE;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+AddFilesProgress::AddFilesProgress(GViewI *par)
+{
+	v = 0;
+	Cancel = false;
+	Msg = NULL;
+	SetParent(par);
+	Ts = LgiCurrentTime();
+	GRect r(0, 0, 140, 100);
+	SetPos(r);
+	MoveSameScreen(par);
+	Name("Importing files...");
+
+	GTableLayout *t = new GTableLayout(100);
+	AddView(t);
+		
+	GLayoutCell *c = t->GetCell(0, 0);
+	c->Add(new GText(-1, 0, 0, -1, -1, "Loaded:"));
+		
+	c = t->GetCell(1, 0);
+	c->Add(Msg = new GText(-1, 0, 0, -1, -1, "..."));
+		
+	c = t->GetCell(0, 1, true, 2);
+	c->TextAlign(GCss::Len(GCss::AlignRight));
+	c->Add(new GButton(IDCANCEL, 0, 0, -1, -1, "Cancel"));
+}
+
+int64 AddFilesProgress::Value()
+{
+	return v;
+}
+
+void AddFilesProgress::Value(int64 val)
+{
+	v = val;
+	if (Visible() && Msg)
+	{
+		Msg->Value(v);
+		Msg->SendNotify(GNotifyTableLayout_Refresh);
+	}
+
+	uint64 Now = LgiCurrentTime();
+	if (Visible())
+	{
+		if (Now - Ts > 150)
+			LgiYield();
+	}
+	else if (Now - Ts > 1000)
+	{
+		DoModeless();
+	}
+}
+
+int AddFilesProgress::OnNotify(GViewI *c, int f)
+{
+	if (c->GetId() == IDCANCEL)
+		Cancel = true;
+	return 0;
 }
 

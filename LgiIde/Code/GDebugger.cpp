@@ -1142,7 +1142,7 @@ public:
 	
 	bool GetVariables(bool Locals, GArray<Variable> &vars, bool Detailed)
 	{
-		GProfile Prof("GetVars");
+		// GProfile Prof("GetVars");
 		GStringPipe p(256);
 
 		if (vars.Length())
@@ -1208,17 +1208,17 @@ public:
 			if (!Cmd("info args", &p))
 				return false;
 
-			Prof.Add("ParseArgs");
+			// Prof.Add("ParseArgs");
 			
 			GAutoString a(p.NewStr());
 			ParseVariables(a, vars, Variable::Arg, Detailed);
 
-			Prof.Add("InfoLocals");
+			// Prof.Add("InfoLocals");
 
 			if (!Cmd("info locals", &p))
 				return false;
 
-			Prof.Add("ParseLocals");
+			// Prof.Add("ParseLocals");
 			
 			a.Reset(p.NewStr());
 			ParseVariables(a, vars, Variable::Local, Detailed);

@@ -91,7 +91,8 @@ public:
 			return false;
 		}
 		
-		GExecutionStatus s = Eng.Run(Obj);
+		GVariant Ret;
+		GExecutionStatus s = Eng.Run(Obj, &Ret);
 		if (s == ScriptError)
 		{
 			printf("Error: Execution failed '%s'.\n", SrcFile.Get());
@@ -103,7 +104,13 @@ public:
 			return false;
 		}
 		
-		printf("Success: %s\n", File);
+		if (Ret.CastInt32())
+			printf("Success: %s\n", File);
+		else
+		{
+			printf("Failed: %s\n", File);
+			s = ScriptError;
+		}
 		
 		if (Disassemble)
 		{

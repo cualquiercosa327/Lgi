@@ -49,7 +49,7 @@ public:
 		ProcessTxt();
 	}
 
-	void Add(char16 *w)
+	virtual void Add(char16 *w)
 	{
 		int Len;
 		

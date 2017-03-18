@@ -847,7 +847,7 @@ void GPopup::Visible(bool i)
 		#elif defined(MAC)
 	
 			GWindow::Visible(i);
-		
+	
 		#else
 		
 			HadFocus = Focus();
@@ -928,7 +928,12 @@ bool GPopup::Visible()
 	    
     #endif
 
-	return GView::Visible();
+	#if defined(MAC)
+	bool v = GWindow::Visible();
+	#else
+	bool v = GView::Visible();
+	#endif
+	return v;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////

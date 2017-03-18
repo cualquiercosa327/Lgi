@@ -15,6 +15,7 @@
 #include "GCssTools.h"
 #include "GFontCache.h"
 #include "GUnicode.h"
+#include "GDropFiles.h"
 
 #include "GHtmlCommon.h"
 #include "GHtmlParser.h"
@@ -23,7 +24,6 @@
 #define DefaultCharset              "utf-8"
 
 #define GDCF_UTF8					-1
-#define LUIS_DEBUG					0
 #define POUR_DEBUG					0
 #define PROFILE_POUR				0
 
@@ -83,8 +83,6 @@ typedef GAutoPtr<GRichTextPriv::BlockCursor> AutoCursor;
 typedef GAutoPtr<GRichTextPriv::Transaction> AutoTrans;
 
 //////////////////////////////////////////////////////////////////////
-static bool WarnAlpha = true;
-
 GRichTextEdit::GRichTextEdit(	int Id,
 								int x, int y, int cx, int cy,
 								GFontType *FontType)
@@ -122,9 +120,6 @@ GRichTextEdit::GRichTextEdit(	int Id,
 		"</body>\n"
 		"</html>\n");
 	#endif
-
-	if (WarnAlpha)
-		NeedsCapability("Alpha", "This control is still in alpha.");
 }
 
 GRichTextEdit::~GRichTextEdit()
@@ -146,7 +141,6 @@ void GRichTextEdit::OnInstall(CapsHash *Caps, bool Status)
 
 void GRichTextEdit::OnCloseInstaller()
 {
-	WarnAlpha = false;
 	d->NeedsCap.Length(0);
 	Invalidate();
 }
@@ -302,6 +296,18 @@ void GRichTextEdit::Value(int64 i)
 	Name(Str);
 }
 
+bool GRichTextEdit::GetFormattedContent(const char *MimeType, GString &Out, GArray<ContentMedia> *Media)
+{
+	if (!MimeType || _stricmp(MimeType, "text/html"))
+		return false;
+
+	if (!d->ToHtml(Media))
+		return false;
+	
+	Out = d->UtfNameCache;
+	return true;
+}
+
 char *GRichTextEdit::Name()
 {
 	d->ToHtml();
@@ -359,6 +365,9 @@ bool GRichTextEdit::Name(const char *s)
 		Body = &Root;
 
 	bool Status = d->FromHtml(Body, *d->CreationCtx);
+	
+	// d->DumpBlocks();
+	
 	if (!d->Blocks.Length())
 	{
 		d->EmptyDoc();
@@ -631,7 +640,7 @@ bool GRichTextEdit::Copy()
 bool GRichTextEdit::Paste()
 {
 	GClipBoard Cb(this);
-	GAutoWString Text(Cb.TextW());
+	char16 *Text = Cb.TextW();
 	if (!Text)
 		return false;
 	
@@ -642,12 +651,17 @@ bool GRichTextEdit::Paste()
 		return false;
 	}
 
+	AutoTrans Trans(new GRichTextPriv::Transaction);						
+
 	if (HasSelection())
-		DeleteSelection();
+	{
+		if (!d->DeleteSelection(Trans, NULL))
+			return false;
+	}
 
 	GAutoPtr<uint32,true> Utf32((uint32*)LgiNewConvertCp("utf-32", Text, LGI_WideCharset));
 	int Len = Strlen(Utf32.Get());
-	if (!d->Cursor->Blk->AddText(NoTransaction, d->Cursor->Offset, Utf32.Get(), Len))
+	if (!d->Cursor->Blk->AddText(Trans, d->Cursor->Offset, Utf32.Get(), Len))
 	{
 		LgiAssert(0);
 		SendNotify(GNotifyDocChanged);
@@ -655,10 +669,11 @@ bool GRichTextEdit::Paste()
 	}
 
 	d->Cursor->Offset += Len;
+	d->Cursor->LineHint = -1;
 	Invalidate();
 	SendNotify(GNotifyDocChanged);
 
-	return true;
+	return d->AddTrans(Trans);
 }
 
 bool GRichTextEdit::ClearDirty(bool Ask, char *FileName)
@@ -965,17 +980,18 @@ void GRichTextEdit::OnPosChange()
 
 int GRichTextEdit::WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState)
 {
+	const char *Fd = LGI_FileDropFormat;
+
 	for (char *s = Formats.First(); s; )
 	{
-		if (!_stricmp(s, "text/uri-list") ||
-			!_stricmp(s, "text/html") ||
+		if (!_stricmp(s, Fd) ||
 			!_stricmp(s, "UniformResourceLocatorW"))
 		{
 			s = Formats.Next();
 		}
 		else
 		{
-			// LgiTrace("Ignoring format '%s'\n", s);
+			LgiTrace("Ignoring format '%s'\n", s);
 			Formats.Delete(s);
 			DeleteArray(s);
 			s = Formats.Current();
@@ -987,28 +1003,82 @@ int GRichTextEdit::WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState)
 
 int GRichTextEdit::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 {
-	/* FIXME
-	if (!_stricmp(Format, "text/uri-list") ||
-		!_stricmp(Format, "text/html") ||
-		!_stricmp(Format, "UniformResourceLocatorW"))
+	int Effect = DROPEFFECT_NONE;
+
+	for (unsigned i=0; i<Data.Length(); i++)
 	{
-		if (Data->IsBinary())
+		GDragData &dd = Data[i];
+		if (dd.IsFileDrop() && d->Areas[ContentArea].Overlap(Pt.x, Pt.y))
 		{
-			char16 *e = (char16*) ((char*)Data->Value.Binary.Data + Data->Value.Binary.Length);
-			char16 *s = (char16*)Data->Value.Binary.Data;
-			int len = 0;
-			while (s < e && s[len])
+			int AddIndex = -1;
+			GdcPt2 TestPt(	Pt.x - d->Areas[ContentArea].x1,
+							Pt.y - d->Areas[ContentArea].y1);
+
+			GDropFiles Df(dd);
+			for (unsigned n=0; n<Df.Length(); n++)
 			{
-				len++;
+				const char *f = Df[n];
+				char Mt[128];
+				if (LgiGetFileMimeType(f, Mt, sizeof(Mt)) &&
+					!_strnicmp(Mt, "image/", 6))
+				{
+					if (AddIndex < 0)
+					{
+						int LineHint = -1;
+						int Idx = d->HitTest(TestPt.x, TestPt.y, LineHint);
+						if (Idx >= 0)
+						{
+							int BlkOffset;
+							int BlkIdx;
+							GRichTextPriv::Block *b = d->GetBlockByIndex(Idx, &BlkOffset, &BlkIdx);
+							if (b)
+							{
+								GRichTextPriv::Block *After = NULL;
+
+								// Split 'b' to make room for the image
+								if (BlkOffset > 0)
+								{
+									After = b->Split(NoTransaction, BlkOffset);
+									AddIndex = BlkIdx+1;									
+								}
+								else
+								{
+									// Insert before..
+									AddIndex = BlkIdx;
+								}
+
+								GRichTextPriv::ImageBlock *ImgBlk = new GRichTextPriv::ImageBlock(d);
+								if (ImgBlk)
+								{
+									d->Blocks.AddAt(AddIndex++, ImgBlk);
+									if (After)
+										d->Blocks.AddAt(AddIndex++, After);
+
+									ImgBlk->Load(f);
+									Effect = DROPEFFECT_COPY;
+								}
+							}
+						}
+					}
+
+					if (AddIndex >= 0)
+					{
+						int asd=0;
+					}
+				}
 			}
-			// Insert(Cursor, s, len);
-			Invalidate();
-			return DROPEFFECT_COPY;
+
+			break;
 		}
 	}
-	*/
 
-	return DROPEFFECT_NONE;
+	if (Effect != DROPEFFECT_NONE)
+	{
+		Invalidate();
+		SendNotify(GNotifyDocChanged);
+	}
+
+	return Effect;
 }
 
 void GRichTextEdit::OnCreate()
@@ -1055,7 +1125,7 @@ void GRichTextEdit::Undo()
 
 void GRichTextEdit::Redo()
 {
-	if (d->UndoPos < d->UndoQue.Length())
+	if (d->UndoPos < (int)d->UndoQue.Length())
 		d->SetUndoPos(d->UndoPos + 1);
 }
 
@@ -1069,32 +1139,16 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 		ClipText.Reset(NewStr(Clip.Text()));
 	}
 
-	#if LUIS_DEBUG
-	RClick.AppendItem("Dump Layout", IDM_DUMP, true);
-	RClick.AppendSeparator();
-	#endif
-
-	/*
-	GStyle *s = HitStyle(HitText(m.x, m.y));
-	if (s)
-	{
-		if (s->OnMenu(&RClick))
-		{
-			RClick.AppendSeparator();
-		}
-	}
-	*/
-
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_CUT, "Cut"), IDM_CUT, HasSelection());
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_COPY, "Copy"), IDM_COPY, HasSelection());
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_PASTE, "Paste"), IDM_PASTE, ClipText != 0);
 	RClick.AppendSeparator();
 
-	#if 0
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_UNDO, "Undo"), IDM_UNDO, false /* UndoQue.CanUndo() */);
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_REDO, "Redo"), IDM_REDO, false /* UndoQue.CanRedo() */);
 	RClick.AppendSeparator();
 
+	#if 0
 	i = RClick.AppendItem(LgiLoadString(L_TEXTCTRL_FIXED, "Fixed Width Font"), IDM_FIXED, true);
 	if (i) i->Checked(GetFixedWidthFont());
 	#endif
@@ -1112,6 +1166,23 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_TAB_SIZE, "Tab Size"), IDM_TAB_SIZE, true);
 	RClick.AppendItem("Copy Original", IDM_COPY_ORIGINAL, d->OriginalText.Get() != NULL);
 
+	GRichTextPriv::Block *Over = NULL;
+	GRect &Content = d->Areas[ContentArea];
+	GdcPt2 Doc = d->ScreenToDoc(m.x, m.y);
+	if (Content.Overlap(m.x, m.y))
+	{
+		int LineHint;
+		int Idx = d->HitTest(Doc.x, Doc.y, LineHint);
+		if (Idx >= 0)
+			Over = d->GetBlockByIndex(Idx);
+	}
+	if (Over)
+	{
+		#ifdef _DEBUG
+		RClick.AppendItem(Over->GetClass(), -1, false);
+		#endif
+		Over->DoContext(RClick, Doc);
+	}
 	if (Environment)
 		Environment->AppendItems(&RClick);
 
@@ -1119,24 +1190,6 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 	m.ToScreen();
 	switch (Id = RClick.Float(this, m.x, m.y))
 	{
-		#if LUIS_DEBUG
-		case IDM_DUMP:
-		{
-			int n=0;
-			for (GTextLine *l=Line.First(); l; l=Line.Next(), n++)
-			{
-				LgiTrace("[%i] %i,%i (%s)\n", n, l->Start, l->Len, l->r.Describe());
-
-				char *s = WideToUtf8(Text + l->Start, l->Len);
-				if (s)
-				{
-					LgiTrace("%s\n", s);
-					DeleteArray(s);
-				}
-			}
-			break;
-		}
-		#endif
 		case IDM_FIXED:
 		{
 			SetFixedWidthFont(!GetFixedWidthFont());							
@@ -1214,13 +1267,12 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 		}
 		default:
 		{
-			/*
-			if (s)
+			if (Over)
 			{
-				s->OnMenuClick(Id);
+				GMessage Cmd(M_COMMAND, Id);
+				Over->OnEvent(&Cmd);
 			}
-			*/
-
+			
 			if (Environment)
 			{
 				Environment->OnMenu(this, Id, 0);
@@ -1493,7 +1545,7 @@ bool GRichTextEdit::OnKey(GKey &k)
 								// Try and merge the two blocks...
 								int Len = Prev->Length();
 								d->Merge(Prev, d->Cursor->Blk);
-
+								
 								AutoCursor c(new BlkCursor(Prev, Len, -1));
 								d->SetCursor(c);
 							}
@@ -2017,23 +2069,57 @@ bool GRichTextEdit::OnKey(GKey &k)
 
 void GRichTextEdit::OnEnter(GKey &k)
 {
-	// enter
-	if (HasSelection())
-		DeleteSelection();
+	AutoTrans Trans(new GRichTextPriv::Transaction);						
 
+	// Enter key handling
+	bool Changed = false;
+
+	if (HasSelection())
+		Changed |= d->DeleteSelection(Trans, NULL);
+	
 	if (d->Cursor &&
 		d->Cursor->Blk)
 	{
 		GRichTextPriv::Block *b = d->Cursor->Blk;
 		const uint32 Nl[] = {'\n'};
-		if (b->AddText(NoTransaction, d->Cursor->Offset, Nl, 1))
+
+		if (b->AddText(Trans, d->Cursor->Offset, Nl, 1))
 		{
 			d->Cursor->Set(d->Cursor->Offset + 1);
-			Invalidate();
+			Changed = true;
+		}
+		else
+		{
+			// Some blocks don't take text. However a new block can be created or
+			// the text added to the start of the next block
+			if (d->Cursor->Offset == 0)
+			{
+				GRichTextPriv::Block *Prev = d->Prev(b);
+				if (Prev &&
+					Prev->AddText(Trans, Prev->Length(), Nl, 1))
+				{
+					Changed = true;
+				}
+			}
+			else if (d->Cursor->Offset == b->Length())
+			{
+				GRichTextPriv::Block *Next = d->Next(b);
+				if (Next &&
+					Next->AddText(Trans, 0, Nl, 1))
+				{
+					Changed = true;
+					d->Cursor->Set(Next, 0, -1);
+				}
+			}
 		}
 	}
 
-	SendNotify(GNotifyDocChanged);
+	if (Changed)
+	{
+		Invalidate();
+		d->AddTrans(Trans);
+		SendNotify(GNotifyDocChanged);
+	}
 }
 
 void GRichTextEdit::OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour)
@@ -2088,6 +2174,19 @@ void GRichTextEdit::OnPaint(GSurface *pDC)
 
 	d->Areas[ContentArea] = r;
 
+	#if 0
+	CGAffineTransform t1 = CGContextGetCTM(pDC->Handle());
+	CGRect rc = CGContextGetClipBoundingBox(pDC->Handle());
+	LgiTrace("d->Areas[ContentArea]=%s  %f,%f,%f,%f\n",
+		d->Areas[ContentArea].GetStr(),
+		rc.origin.x, rc.origin.y,
+		rc.size.width, rc.size.height);
+	if (rc.size.width < 20)
+	{
+		int asd=0;
+	}
+	#endif
+
 	if (d->Layout(VScroll))
 		d->Paint(pDC, VScroll);
 	// else the scroll bars changed, wait for re-paint
@@ -2110,6 +2209,16 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 		case M_PASTE:
 		{
 			Paste();
+			break;
+		}
+		case M_BLOCK_MSG:
+		{
+			GRichTextPriv::Block *b = (GRichTextPriv::Block*)Msg->A();
+			GAutoPtr<GMessage> msg((GMessage*)Msg->B());
+			if (d->Blocks.HasItem(b) && msg)
+			{
+				b->OnEvent(msg);
+			}
 			break;
 		}
 		#if defined WIN32
@@ -2362,7 +2471,7 @@ EmojiMenu::EmojiMenu(GRichTextPriv *priv, GdcPt2 p) : GPopup(priv->View)
 		int Dx = EMOJI_PAD;
 		int Dy = p.Btn.y2 + 1;
 		
-		while (p.e.Length() < PaneSz && ImgIdx <= MaxIdx)
+		while ((int)p.e.Length() < PaneSz && ImgIdx <= MaxIdx)
 		{
 			uint32 u = Map.Find(ImgIdx);
 			if (u)
@@ -2443,12 +2552,16 @@ bool EmojiMenu::InsertEmoji(uint32 Ch)
 	if (!d->Cursor || !d->Cursor->Blk)
 		return false;
 
+	AutoTrans Trans(new GRichTextPriv::Transaction);						
+
 	if (!d->Cursor->Blk->AddText(NoTransaction, d->Cursor->Offset, &Ch, 1, NULL))
 		return false;
 
 	AutoCursor c(new BlkCursor(*d->Cursor));
 	c->Offset++;
 	d->SetCursor(c);
+
+	d->AddTrans(Trans);
 						
 	d->Dirty = true;
 	d->InvalidateDoc(NULL);

@@ -14,25 +14,27 @@ IdeCommon::~IdeCommon()
 	Remove();
 }
 
-bool IdeCommon::OnOpen(GXmlTag *Src)
+bool IdeCommon::OnOpen(GProgressDlg &Prog, GXmlTag *Src)
 {
+	Prog.Value(Prog.Value() + 1);
+
 	Copy(*Src);
 	Write = false;
 	if (!Serialize())
 		return false;
 
 	List<GXmlTag>::I it = Src->Children.Start();
-	for (GXmlTag *c = *it; c; c = *++it)
+	for (GXmlTag *c = *it; c && !Prog.Cancel(); c = *++it)
 	{
+		bool Processed = false;
 		if (c->IsTag("Node"))
 		{
 			ProjectNode *pn = new ProjectNode(Project);
-			if (pn)
-			{
-				if (pn->OnOpen(c))
-					InsertTag(pn);
-			}
+			if (pn && (Processed = pn->OnOpen(Prog, c)))
+				InsertTag(pn);
 		}
+		if (!Processed)
+			Prog.Value(Prog.Value() + 1);
 	}
 	
 	return true;
@@ -129,10 +131,9 @@ void IdeCommon::RemoveTag()
 	Detach();
 }
 
-bool IdeCommon::AddFiles(const char *Path)
+bool IdeCommon::AddFiles(AddFilesProgress *Prog, const char *Path)
 {
 	bool IsDir = DirExists(Path);
-
 	if (IsDir)
 	{
 		GString s = Path;
@@ -141,7 +142,7 @@ bool IdeCommon::AddFiles(const char *Path)
 		if (Sub)
 		{
 			GDirectory d;
-			for (int b = d.First(Path); b; b = d.Next())
+			for (int b = d.First(Path); b && !Prog->Cancel; b = d.Next())
 			{
 				char p[MAX_PATH];
 				if (d.Path(p, sizeof(p)))
@@ -169,7 +170,7 @@ bool IdeCommon::AddFiles(const char *Path)
 						Name[0] != '.'
 					)
 					{
-						Sub->AddFiles(p);
+						Sub->AddFiles(Prog, p);
 					}
 				}
 			}
@@ -189,20 +190,23 @@ bool IdeCommon::AddFiles(const char *Path)
 	}
 	else
 	{
-		GProfile p("IdeCommon::AddFiles");
-		p.HideResultsIfBelow(50);
+		// GProfile p("IdeCommon::AddFiles");
+		// p.HideResultsIfBelow(50);
 		if (!Project->InProject(false, Path, false))
 		{
-			p.Add("new node");
+			// p.Add("new node");
 			ProjectNode *New = new ProjectNode(Project);
 			if (New)
 			{
-				p.Add("set filename");
+				// p.Add("set filename");
 				New->SetFileName(Path);
-				p.Add("insert");
+				// p.Add("insert");
 				InsertTag(New);
-				p.Add("set dirty");
+				// p.Add("set dirty");
 				Project->SetDirty();
+
+				if (Prog)
+					Prog->Value(Prog->Value() + 1);
 				
 				return true;
 			}

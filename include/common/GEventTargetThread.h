@@ -7,6 +7,9 @@
 
 class GEventTargetThread;
 
+/// This class is a smart pointer to a GEventTargetThread. When the
+/// GEventSinkPtr::PostEvent is safe to call even if the GEventTargetThread
+/// object could be deleted asynchronously.
 class LgiClass GEventSinkPtr : public GEventSinkI, public GMutex
 {
 	friend class GEventTargetThread;
@@ -77,7 +80,7 @@ public:
 		Run();
 	}
 	
-	~GEventTargetThread()
+	virtual ~GEventTargetThread()
 	{
 		if (Lock(_FL))
 		{

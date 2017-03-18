@@ -779,20 +779,30 @@ public:
 	void AllocConst(GVarRef &r, double d)
 	{
 		r.Scope = SCOPE_GLOBAL;
+
+		if (Code->Globals.Length())
+		{
+			// Check for existing int
+			GVariant *p = &Code->Globals[0];
+			GVariant *e = p + Code->Globals.Length();
+			while (p < e)
+			{
+				if (p->Type == GV_DOUBLE &&
+					p->Value.Dbl == d)
+				{
+					r.Index = p - &Code->Globals[0];
+					return;
+				}
+				p++;
+			}
+		}
+
 		r.Index = Code->Globals.Length();
 		Code->Globals[r.Index] = d;
 	}
 
 	/// Allocate a constant bool
 	void AllocConst(GVarRef &r, bool b)
-	{
-		r.Scope = SCOPE_GLOBAL;
-		r.Index = Code->Globals.Length();
-		Code->Globals[r.Index] = b;
-	}
-
-	/// Allocate a constant int
-	void AllocConst(GVarRef &r, int i)
 	{
 		r.Scope = SCOPE_GLOBAL;
 
@@ -803,8 +813,8 @@ public:
 			GVariant *e = p + Code->Globals.Length();
 			while (p < e)
 			{
-				if (p->Type == GV_INT32 &&
-					p->Value.Int == i)
+				if (p->Type == GV_BOOL &&
+					p->Value.Bool == b)
 				{
 					r.Index = p - &Code->Globals[0];
 					return;
@@ -813,9 +823,54 @@ public:
 			}
 		}
 
+		r.Index = Code->Globals.Length();
+		Code->Globals[r.Index] = b;
+	}
+
+	/// Allocate a constant int
+	void AllocConst(GVarRef &r, int64 i)
+	{
+		r.Scope = SCOPE_GLOBAL;
+
+		GVariantType Type = i <= INT_MAX && i >= INT_MIN ? GV_INT32 : GV_INT64;
+
+		if (Code->Globals.Length())
+		{
+			// Check for existing int
+			GVariant *p = &Code->Globals[0];
+			GVariant *e = p + Code->Globals.Length();
+			while (p < e)
+			{
+				if (p->Type == Type)
+				{
+					if (Type == GV_INT32 &&
+						p->Value.Int == i)
+					{
+						r.Index = p - &Code->Globals[0];
+						return;
+					}
+					else if (Type == GV_INT64 &&
+						p->Value.Int64 == i)
+					{
+						r.Index = p - &Code->Globals[0];
+						return;
+					}
+				}
+				p++;
+			}
+		}
+
 		// Allocate new global
 		r.Index = Code->Globals.Length();
-		Code->Globals[r.Index] = i;
+		if (Type == GV_INT32)
+			Code->Globals[r.Index] = (int32)i;
+		else
+			Code->Globals[r.Index] = i;
+	}
+
+	void AllocConst(GVarRef &r, int i)
+	{
+		AllocConst(r, (int64)i);
 	}
 
 	/// Allocate a constant string
@@ -1161,7 +1216,11 @@ public:
 		else
 		{
 			// decimal integer
-			*v = atoi(t);
+			int64 i = Atoi(t);
+			if (i <= INT_MAX && i >= INT_MIN)
+				*v = (int32)i;
+			else
+				*v = i;
 		}
 		
 		return true;
@@ -1416,7 +1475,7 @@ public:
 							else
 							{
 								// decimal integer
-								AllocConst(n.Reg, atoi(t));
+								AllocConst(n.Reg, Atoi(t));
 							}
 						}
 						break;
@@ -1664,6 +1723,11 @@ public:
 		{
 			GTokenType Tok = ExpTok.Find(t);
 			
+			if (!Stricmp(t, L"false"))
+			{
+				int asd=0;
+			}
+
 			if (Tok == TTypeId)
 			{
 				char16 *v;

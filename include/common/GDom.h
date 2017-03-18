@@ -88,6 +88,8 @@ enum GDomProperty
 	DateDateAndTime, // "yyyymmdd hhmmss"
 	DateInt64,
 	DateSetNow,
+	DateSetStr,
+	DateGetStr,
 
 	// GVariant string
 	StrJoin,

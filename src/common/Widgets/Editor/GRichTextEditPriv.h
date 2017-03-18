@@ -28,6 +28,7 @@
 #include "GColourSpace.h"
 #include "GPopup.h"
 #include "Emoji.h"
+#include "GEventTargetThread.h"
 
 #define DEBUG_LOG_CURSOR_COUNT			0
 #define DEBUG_OUTLINE_CUR_DISPLAY_STR	0
@@ -36,12 +37,19 @@
 #define DEBUG_NO_DOUBLE_BUF				0
 #define DEBUG_COVERAGE_CHECK			0
 #define DEBUG_NUMBERED_LAYOUTS			0
+#if 0 // _DEBUG
+#define LOG_FN							LgiTrace
+#else
+#define LOG_FN							d->Log->Print
+#endif
 
 #define TEXT_LINK						"Link"
 #define TEXT_REMOVE_LINK				"X"
 #define TEXT_REMOVE_STYLE				"Remove Style"
 #define TEXT_CAP_BTN					"Ok"
 #define TEXT_EMOJI						":)"
+
+#define RICH_TEXT_RESIZED_JPEG_QUALITY	83 // out of 100, high = better quality
 
 #define NoTransaction					NULL
 #define IsWordBreakChar(ch)				\
@@ -54,6 +62,15 @@
 			EmojiToIconIndex(&(ch), 1) >= 0 \
 		) \
 	)
+
+enum RtcCmds
+{
+	IDM_CLOCKWISE = 300,
+	IDM_ANTI_CLOCKWISE,
+	IDM_X_FLIP,
+	IDM_Y_FLIP,
+	IDM_SCALE_IMAGE,
+};
 
 //////////////////////////////////////////////////////////////////////
 #define PtrCheckBreak(ptr)				if (!ptr) { LgiAssert(!"Invalid ptr"); break; }
@@ -452,63 +469,11 @@ public:
 		GString Param;
 		bool Emoji;
 
-		StyleText(const StyleText *St)
-		{
-			Emoji = St->Emoji;
-			Style = NULL;
-			Element = St->Element;
-			Param = St->Param;
-			if (St->Style)
-				SetStyle(St->Style);
-			Add((uint32*)&St->ItemAt(0), St->Length());
-		}
-		
-		StyleText(const uint32 *t = NULL, int Chars = -1, GNamedStyle *style = NULL)
-		{
-			Emoji = false;
-			Style = NULL;
-			Element = CONTENT;
-			if (style)
-				SetStyle(style);
-			if (t)
-			{
-				if (Chars < 0)
-					Chars = Strlen(t);
-				Add((uint32*)t, Chars);
-			}
-		}
-
-		uint32 *At(int i)
-		{
-			if (i >= 0 && i < (int)Length())
-				return &(*this)[i];
-			LgiAssert(0);
-			return NULL;
-		}
-		
-		GNamedStyle *GetStyle()
-		{
-			return Style;
-		}
-				
-		void SetStyle(GNamedStyle *s)
-		{
-			if (Style != s)
-			{
-				Style = s;
-				Colours.Empty();
-				
-				if (Style)
-				{			
-					GCss::ColorDef c = Style->Color();
-					if (c.Type == GCss::ColorRgb)
-						Colours.Fore.Set(c.Rgb32, 32);
-					c = Style->BackgroundColor();
-					if (c.Type == GCss::ColorRgb)
-						Colours.Back.Set(c.Rgb32, 32);
-				}				
-			}
-		}
+		StyleText(const StyleText *St);
+		StyleText(const uint32 *t = NULL, int Chars = -1, GNamedStyle *style = NULL);
+		uint32 *At(int i);
+		GNamedStyle *GetStyle();
+		void SetStyle(GNamedStyle *s);
 	};
 	
 	struct PaintContext
@@ -601,9 +566,9 @@ public:
 
 	class Transaction
 	{
+	public:		
 		GArray<DocChange*> Changes;
 
-	public:		
 		~Transaction()
 		{
 			Changes.DeleteObjects();
@@ -652,7 +617,9 @@ public:
 	//////////////////////////////////////////////////////////////////////////////////////////////
 	// A Block is like a DIV in HTML, it's as wide as the page and
 	// always starts and ends on a whole line.
-	class Block 
+	class Block :
+		public GEventSinkI,
+		public GEventTargetI
 	{
 	protected:
 		int BlockUid;
@@ -684,16 +651,30 @@ public:
 			LgiAssert(Cursors == 0);
 		}
 		
+		// Events
+		bool PostEvent(int Cmd, GMessage::Param a = 0, GMessage::Param b = 0)
+		{
+			return d->View->PostEvent(	M_BLOCK_MSG,
+										(GMessage::Param)(Block*)this,
+										(GMessage::Param)new GMessage(Cmd, a, b));
+		}
+
+		GMessage::Result OnEvent(GMessage *Msg)
+		{
+			return 0;
+		}
+
 		/************************************************
 		 * Get state methods, do not modify the block   *
 		 ***********************************************/
+			virtual const char *GetClass() { return "Block"; }
 			virtual GRect GetPos() = 0;
 			virtual int Length() = 0;
 			virtual bool HitTest(HitTestResult &htr) = 0;
 			virtual bool GetPosFromIndex(BlockCursor *Cursor) = 0;
 			virtual bool OnLayout(Flow &f) = 0;
 			virtual void OnPaint(PaintContext &Ctx) = 0;
-			virtual bool ToHtml(GStream &s) = 0;
+			virtual bool ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media) = 0;
 			virtual bool OffsetToLine(int Offset, int *ColX, GArray<int> *LineY) = 0;
 			virtual int LineToOffset(int Line) = 0;
 			virtual int GetLines() = 0;
@@ -702,6 +683,7 @@ public:
 			virtual void Dump() {}
 			virtual GNamedStyle *GetStyle(int At = -1) = 0;
 			virtual int GetUid() const { return BlockUid; }
+			virtual bool DoContext(GSubMenu &s, GdcPt2 Doc) { return false; }
 			#ifdef _DEBUG
 			virtual void DumpNodes(GTreeItem *Ti) = 0;
 			#endif
@@ -768,6 +750,15 @@ public:
 				/// True if upper case is desired
 				bool Upper
 			)	{ return false; }
+
+			// Split a block
+			virtual Block *Split
+			(
+				/// Current transaction
+				Transaction *Trans,
+				/// The index to add at (-1 = the end)
+				int AtOffset
+			)	{ return NULL; }
 	};
 
 	struct BlockCursor
@@ -920,86 +911,11 @@ public:
 		GArray<uint32> Utf32;
 		#endif
 
-		EmojiDisplayStr(StyleText *src, GSurface *img, GFont *f, const uint32 *s, int l = -1) :
-			DisplayStr(src, NULL, s, l)
-		{
-			Img = img;
-			#if defined(_MSC_VER)
-			Utf16to32(Utf32, (const uint16*) StrCache.Get(), len);
-			uint32 *u = &Utf32[0];
-			#else
-			uint32 *u = (uint32*)StrCache.Get();
-			#endif
-
-			for (int i=0; i<Chars; i++)
-			{
-				int Idx = EmojiToIconIndex(u + i, Chars - i);
-				LgiAssert(Idx >= 0);
-				if (Idx >= 0)
-				{
-					int x = Idx % EMOJI_GROUP_X;
-					int y = Idx / EMOJI_GROUP_X;
-					GRect &rc = SrcRect[i];
-					rc.ZOff(EMOJI_CELL_SIZE-1, EMOJI_CELL_SIZE-1);
-					rc.Offset(x * EMOJI_CELL_SIZE, y * EMOJI_CELL_SIZE);
-				}
-			}
-
-			x = SrcRect.Length() * EMOJI_CELL_SIZE;
-			y = EMOJI_CELL_SIZE;
-			xf = IntToFixed(x);
-			yf = IntToFixed(y);
-		}
-
-		GAutoPtr<DisplayStr> Clone(int Start, int Len = -1)
-		{
-			if (Len < 0)
-				Len = Chars - Start;
-			#if defined(_MSC_VER)
-			LgiAssert(	Start >= 0 &&
-						Start < (int)Utf32.Length() &&
-						Start + Len <= (int)Utf32.Length());
-			#endif
-			GAutoPtr<DisplayStr> s(new EmojiDisplayStr(Src, Img, NULL,
-				#if defined(_MSC_VER)
-				&Utf32[Start]
-				#else
-				(uint32*)(const char16*)(*this)
-				#endif
-				, Len));
-			return s;
-		}
-
-		void Paint(GSurface *pDC, int &FixX, int FixY, GColour &Back)
-		{
-			GRect f(0, 0, x-1, y-1);
-			f.Offset(FixedToInt(FixX), FixedToInt(FixY));
-			pDC->Colour(Back);
-			pDC->Rectangle(&f);
-
-			int Op = pDC->Op(GDC_ALPHA);
-			for (unsigned i=0; i<SrcRect.Length(); i++)
-			{
-				pDC->Blt(f.x1, f.y1, Img, &SrcRect[i]);
-				f.x1 += EMOJI_CELL_SIZE;
-				FixX += IntToFixed(EMOJI_CELL_SIZE);
-			}
-			pDC->Op(Op);
-		}
-
-		double GetAscent()
-		{
-			return EMOJI_CELL_SIZE * 0.8;
-		}
-
-		int PosToIndex(int XPos, bool Nearest)
-		{
-			if (XPos >= (int)x)
-				return Chars;
-			if (XPos <= 0)
-				return 0;
-			return (XPos + (Nearest ? EMOJI_CELL_SIZE >> 1 : 0)) / EMOJI_CELL_SIZE;
-		}
+		EmojiDisplayStr(StyleText *src, GSurface *img, GFont *f, const uint32 *s, int l = -1);
+		GAutoPtr<DisplayStr> Clone(int Start, int Len = -1);
+		void Paint(GSurface *pDC, int &FixX, int FixY, GColour &Back);
+		double GetAscent();
+		int PosToIndex(int XPos, bool Nearest);
 	};
 
 	/// This structure is a layout of a full line of text. Made up of one or more
@@ -1015,64 +931,21 @@ public:
 		/// Is '1' for lines that have a new line character at the end.
 		uint8 NewLine;
 		
-		TextLine(int XOffsetPx, int WidthPx, int YOffsetPx)
-		{
-			NewLine = 0;
-			PosOff.ZOff(0, 0);
-			PosOff.Offset(XOffsetPx, YOffsetPx);
-		}
-
-		int Length()
-		{
-			int Len = NewLine;
-			for (unsigned i=0; i<Strs.Length(); i++)
-				Len += Strs[i]->Chars;
-			return Len;
-		}
+		TextLine(int XOffsetPx, int WidthPx, int YOffsetPx);
+		int Length();
 		
 		/// This runs after the layout line has been filled with display strings.
 		/// It measures the line and works out the right offsets for each strings
 		/// so that their baselines all match up correctly.
-		void LayoutOffsets(int DefaultFontHt)
-		{
-			double BaseLine = 0.0;
-			int HtPx = 0;
-			
-			for (unsigned i=0; i<Strs.Length(); i++)
-			{
-				DisplayStr *ds = Strs[i];
-				double Ascent = ds->GetAscent();
-				BaseLine = max(BaseLine, Ascent);
-				HtPx = max(HtPx, ds->Y());
-			}
-			
-			if (Strs.Length() == 0)
-				HtPx = DefaultFontHt;
-			else
-				LgiAssert(HtPx > 0);
-			
-			for (unsigned i=0; i<Strs.Length(); i++)
-			{
-				DisplayStr *ds = Strs[i];
-				double Ascent = ds->GetAscent();
-				if (Ascent > 0.0)
-					ds->OffsetY = (int)(BaseLine - Ascent);
-				LgiAssert(ds->OffsetY >= 0);
-				HtPx = max(HtPx, ds->OffsetY+ds->Y());
-			}
-			
-			PosOff.y2 = PosOff.y1 + HtPx - 1;
-		}
-
-		#ifdef _DEBUG
-		void DumpNodes(GTreeItem *Ti);
-		#endif
+		void LayoutOffsets(int DefaultFontHt);
 	};
 	
 	class TextBlock : public Block
 	{
 		GNamedStyle *Style;
 
+		bool PreEdit(Transaction *Trans);
+	
 	public:
 		GArray<StyleText*> Txt;
 		GArray<TextLine*> Layout;
@@ -1090,6 +963,7 @@ public:
 		bool IsValid();
 
 		// No state change methods
+		const char *GetClass() { return "TextBlock"; }
 		int GetLines();
 		bool OffsetToLine(int Offset, int *ColX, GArray<int> *LineY);
 		int LineToOffset(int Line);
@@ -1098,7 +972,7 @@ public:
 		GNamedStyle *GetStyle(int At = -1);
 		void SetStyle(GNamedStyle *s);
 		int Length();
-		bool ToHtml(GStream &s);
+		bool ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media);
 		bool GetPosFromIndex(BlockCursor *Cursor);
 		bool HitTest(HitTestResult &htr);
 		void OnPaint(PaintContext &Ctx);
@@ -1111,6 +985,88 @@ public:
 		#ifdef _DEBUG
 		void DumpNodes(GTreeItem *Ti);
 		#endif
+
+		// Transactional changes
+		bool AddText(Transaction *Trans, int AtOffset, const uint32 *Str, int Chars = -1, GNamedStyle *Style = NULL);
+		bool ChangeStyle(Transaction *Trans, int Offset, int Chars, GCss *Style, bool Add);
+		int DeleteAt(Transaction *Trans, int BlkOffset, int Chars, GArray<uint32> *DeletedText = NULL);
+		bool DoCase(Transaction *Trans, int StartIdx, int Chars, bool Upper);
+		Block *Split(Transaction *Trans, int AtOffset);
+	};
+
+	class ImageBlock :
+		public Block
+	{
+	public:
+		struct ScaleInf
+		{
+			GdcPt2 Sz;
+			GAutoPtr<GStreamI> Jpg;
+			int Percent;
+
+			ScaleInf()
+			{
+				Sz.x = Sz.y = 0;
+				Percent = 0;
+			}
+		};
+
+	protected:
+		GNamedStyle *Style;
+		GAutoPtr<GEventSinkPtr> Thread;
+		int Scale;
+		GRect SourceValid;
+
+		GArray<ScaleInf> Scales;
+		int ResizeIdx;
+
+		GEventSinkPtr *GetThread();
+		void UpdateDisplay(int y);
+		void UpdateDisplayImg();
+
+	public:
+		GAutoPtr<GSurface> SourceImg, DisplayImg, SelectImg;
+		GRect Margin, Border, Padding;
+		GString Source;
+		GdcPt2 Size;
+		
+		bool LayoutDirty;
+		GRect Pos; // position in document co-ordinates
+		GRect ImgPos;
+		
+		ImageBlock(GRichTextPriv *priv);
+		ImageBlock(const ImageBlock *Copy);
+		~ImageBlock();
+
+		bool IsValid();
+		bool Load(const char *Src = NULL);
+
+		// No state change methods
+		int GetLines();
+		bool OffsetToLine(int Offset, int *ColX, GArray<int> *LineY);
+		int LineToOffset(int Line);
+		GRect GetPos() { return Pos; }
+		void Dump();
+		GNamedStyle *GetStyle(int At = -1);
+		void SetStyle(GNamedStyle *s);
+		int Length();
+		bool ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media);
+		bool GetPosFromIndex(BlockCursor *Cursor);
+		bool HitTest(HitTestResult &htr);
+		void OnPaint(PaintContext &Ctx);
+		bool OnLayout(Flow &flow);
+		int GetTextAt(uint32 Offset, GArray<StyleText*> &t);
+		int CopyAt(int Offset, int Chars, GArray<uint32> *Text);
+		bool Seek(SeekType To, BlockCursor &Cursor);
+		int FindAt(int StartIdx, const uint32 *Str, GFindReplaceCommon *Params);
+		void IncAllStyleRefs();
+		bool DoContext(GSubMenu &s, GdcPt2 Doc);
+		#ifdef _DEBUG
+		void DumpNodes(GTreeItem *Ti);
+		#endif
+
+		// Events
+		GMessage::Result OnEvent(GMessage *Msg);
 
 		// Transactional changes
 		bool AddText(Transaction *Trans, int AtOffset, const uint32 *Str, int Chars = -1, GNamedStyle *Style = NULL);
@@ -1154,6 +1110,7 @@ public:
 	struct CreateContext
 	{
 		TextBlock *Tb;
+		ImageBlock *Ib;
 		GArray<uint32> Buf;
 		char16 LastChar;
 		GFontCache *FontCache;
@@ -1163,6 +1120,7 @@ public:
 		CreateContext(GFontCache *fc)
 		{
 			Tb = NULL;
+			Ib = NULL;
 			LastChar = '\n';
 			FontCache = fc;
 			StartOfLine = true;
@@ -1212,7 +1170,7 @@ public:
 	
 	GAutoPtr<CreateContext> CreationCtx;
 
-	bool ToHtml();
+	bool ToHtml(GArray<GDocView::ContentMedia> *Media = NULL);
 	void DumpBlocks();
 	bool FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentStyle = NULL, int Depth = 0);
 
