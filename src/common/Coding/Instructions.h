@@ -434,41 +434,7 @@ case IEquals:
 	GResolveRef Src = Resolve();
 
 	#ifdef VM_EXECUTE
-	
-	/*
-	switch (ComparePrecision(Src->Type, Dst->Type))
-	{
-		case GV_NULL:
-			*Dst = Dst->CastVoidPtr() == Src->CastVoidPtr();
-			break;
-		case GV_DATETIME:
-			*Dst = *Dst->Value.Date == *Src->Value.Date;
-			break;
-		case GV_DOUBLE:
-			*Dst = Dst->CastDouble() == Src->CastDouble();
-			break;
-		case GV_STRING:
-		{
-			char *d = Dst->Str();
-			char *s = Src->Str();
-			if (!d && !s)
-				*Dst = true;
-			else if (s && d)
-				*Dst = strcmp(s, d) == 0;
-			else
-				*Dst = false;
-			break;
-		}
-		case GV_INT64:
-			*Dst = Dst->CastInt64() == Src->CastInt64();
-			break;
-		default:
-			*Dst = Dst->CastInt32() == Src->CastInt32();
-			break;
-	}
-	*/
 	*Dst = CompareVariants(Dst, Src) == 0;
-
 	#endif
 	break;
 }
@@ -486,40 +452,7 @@ case INotEquals:
 	GResolveRef Src = Resolve();
 
 	#ifdef VM_EXECUTE
-	/*
-	switch (ComparePrecision(Src->Type, Dst->Type))
-	{
-		case GV_NULL:
-			*Dst = Dst->CastVoidPtr() != Src->CastVoidPtr();
-			break;
-		case GV_DATETIME:
-			*Dst = *Dst->Value.Date != *Src->Value.Date;
-			break;
-		case GV_DOUBLE:
-			*Dst = Dst->CastDouble() != Src->CastDouble();
-			break;
-		case GV_STRING:
-		{
-			char *d = Dst->Str();
-			char *s = Src->Str();
-			if (!d && !s)
-				*Dst = false;
-			else if (s && d)
-				*Dst = strcmp(s, d) != 0;
-			else
-				*Dst = true;
-			break;
-		}
-		case GV_INT64:
-			*Dst = Dst->CastInt64() != Src->CastInt64();
-			break;
-		default:
-			*Dst = Dst->CastInt32() != Src->CastInt32();
-			break;
-	}
-	*/
 	*Dst = CompareVariants(Dst, Src) != 0;
-
 	#endif
 	break;
 }
@@ -537,35 +470,7 @@ case ILessThan:
 	GResolveRef Src = Resolve();
 	
 	#ifdef VM_EXECUTE
-	/*
-	switch (ComparePrecision(Src->Type, Dst->Type))
-	{
-		case GV_DATETIME:
-			*Dst = *Dst->Value.Date < *Src->Value.Date;
-			break;
-		case GV_DOUBLE:
-			*Dst = Dst->CastDouble() < Src->CastDouble();
-			break;
-		case GV_STRING:
-		{
-			char *d = Dst->Str();
-			char *s = Src->Str();
-			if (!d || !s)
-				*Dst = false;
-			else
-				*Dst = strcmp(d, s) < 0;
-			break;
-		}
-		case GV_INT64:
-			*Dst = Dst->CastInt64() < Src->CastInt64();
-			break;
-		default:
-			*Dst = Dst->CastInt32() < Src->CastInt32();
-			break;
-	}
-	*/
 	*Dst = CompareVariants(Dst, Src) < 0;
-
 	#endif
 	break;
 }
@@ -583,35 +488,7 @@ case ILessThanEqual:
 	GResolveRef Src = Resolve();
 	
 	#ifdef VM_EXECUTE
-	/*
-	switch (ComparePrecision(Src->Type, Dst->Type))
-	{
-		case GV_DATETIME:
-			*Dst = *Dst->Value.Date <= *Src->Value.Date;
-			break;
-		case GV_DOUBLE:
-			*Dst = Dst->CastDouble() <= Src->CastDouble();
-			break;
-		case GV_STRING:
-		{
-			char *d = Dst->Str();
-			char *s = Src->Str();
-			if (!d || !s)
-				*Dst = false;
-			else
-				*Dst = strcmp(d, s) <= 0;
-			break;
-		}
-		case GV_INT64:
-			*Dst = Dst->CastInt64() <= Src->CastInt64();
-			break;
-		default:
-			*Dst = Dst->CastInt32() <= Src->CastInt32();
-			break;
-	}
-	*/
 	*Dst = CompareVariants(Dst, Src) <= 0;
-
 	#endif
 	break;
 }
@@ -629,35 +506,7 @@ case IGreaterThan:
 	GResolveRef Src = Resolve();
 	
 	#ifdef VM_EXECUTE
-	/*
-	switch (ComparePrecision(Src->Type, Dst->Type))
-	{
-		case GV_DATETIME:
-			*Dst = *Dst->Value.Date > *Src->Value.Date;
-			break;
-		case GV_DOUBLE:
-			*Dst = Dst->CastDouble() > Src->CastDouble();
-			break;
-		case GV_STRING:
-		{
-			char *d = Dst->Str();
-			char *s = Src->Str();
-			if (!d || !s)
-				*Dst = false;
-			else
-				*Dst = strcmp(d, s) > 0;
-			break;
-		}
-		case GV_INT64:
-			*Dst = Dst->CastInt64() > Src->CastInt64();
-			break;
-		default:
-			*Dst = Dst->CastInt32() > Src->CastInt32();
-			break;
-	}
-	*/
 	*Dst = CompareVariants(Dst, Src) > 0;
-
 	#endif
 	break;
 }
@@ -675,35 +524,7 @@ case IGreaterThanEqual:
 	GResolveRef Src = Resolve();
 	
 	#ifdef VM_EXECUTE
-	/*
-	switch (ComparePrecision(Src->Type, Dst->Type))
-	{
-		case GV_DATETIME:
-			*Dst = *Dst->Value.Date >= *Src->Value.Date;
-			break;
-		case GV_DOUBLE:
-			*Dst = Dst->CastDouble() >= Src->CastDouble();
-			break;
-		case GV_STRING:
-		{
-			char *d = Dst->Str();
-			char *s = Src->Str();
-			if (!d || !s)
-				*Dst = false;
-			else
-				*Dst = strcmp(d, s) >= 0;
-			break;
-		}
-		case GV_INT64:
-			*Dst = Dst->CastInt64() >= Src->CastInt64();
-			break;
-		default:
-			*Dst = Dst->CastInt32() >= Src->CastInt32();
-			break;
-	}
-	*/
 	*Dst = CompareVariants(Dst, Src) >= 0;
-
 	#endif
 	break;
 }
