@@ -56,7 +56,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 			Defs.Length(0);
 			
 			bool Status = false;
-			GString Src = (wchar_t*)Source.Get();
+			// GString Src = (wchar_t*)Source.Get();
 			char *Ext = LgiGetExtension(Path);
 			if
 			(
@@ -176,10 +176,10 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 	
 	bool ReparseFile(GString Path)
 	{
-		int Idx = GetFileIndex(Path);
-		if (Idx < 0) return false;
-		Files[Idx]->Parse();
-		return true;
+		if (!RemoveFile(Path))
+			return false;
+
+		return AddFile(Path);
 	}
 	
 	bool RemoveFile(GString Path)

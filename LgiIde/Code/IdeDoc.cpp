@@ -2043,6 +2043,13 @@ void IdeDocPrivate::OnSaveComplete(bool Status)
 {
 	IsDirty = false;
 	UpdateName();
+
+	ProjectNode *Node = dynamic_cast<ProjectNode*>(nSrc);
+	if (Node)
+	{
+		GString Full = nSrc->GetFullPath();
+		App->OnNode(Full, Node, FindSymbolSystem::FileReparse);
+	}
 }
 
 void IdeDocPrivate::CheckModTime()
