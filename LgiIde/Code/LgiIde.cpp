@@ -2071,13 +2071,13 @@ GMessage::Result AppWnd::OnEvent(GMessage *m)
 	return GWindow::OnEvent(m);
 }
 
-bool AppWnd::OnNode(const char *Path, ProjectNode *Node, bool Add)
+bool AppWnd::OnNode(const char *Path, ProjectNode *Node, FindSymbolSystem::SymAction Action)
 {
 	// This takes care of adding/removing files from the symbol search engine.
 	if (!Path || !Node)
 		return false;
 
-	d->FindSym.OnFile(Path, Add ? FindSymbolSystem::FileAdd : FindSymbolSystem::FileRemove);
+	d->FindSym.OnFile(Path, Action); // Add ? FindSymbolSystem::FileAdd : FindSymbolSystem::FileRemove);
 	return true;
 }
 

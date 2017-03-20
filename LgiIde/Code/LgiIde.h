@@ -272,7 +272,7 @@ public:
 	bool OnRequestClose(bool IsClose);
 	int OnNotify(GViewI *Ctrl, int Flags);
 	GMessage::Result OnEvent(GMessage *m);
-	bool OnNode(const char *Path, class ProjectNode *Node, bool Add);
+	bool OnNode(const char *Path, class ProjectNode *Node, FindSymbolSystem::SymAction Action);
 	void OnPulse();
 
 	// Debugging support

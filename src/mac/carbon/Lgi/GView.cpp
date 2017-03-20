@@ -1386,11 +1386,8 @@ CarbonControlProc
 							/* || k.c16 == VK_DELETE */
 						)
 						{
-							/*
-							printf("%s:%i - RawDown key=%i sh=%i,alt=%i,ctrl=%i v=%p\n",
-								_FL,
-								k.c16, k.Shift(), k.Alt(), k.Ctrl(), v->Handle());
-							*/
+							printf("%s:%i - %s key=%i sh=%i,alt=%i,ctrl=%i v=%p\n",
+								_FL, v->GetClass(), k.c16, k.Shift(), k.Alt(), k.Ctrl(), v->Handle());
 
 							GWindow *Wnd = v->GetWindow();
 							if (Wnd) Wnd->HandleViewKey(v, k);
@@ -1531,7 +1528,11 @@ CarbonControlProc
 					if (mods & 0x800) k.Alt(true);
 					if (mods & 0x100) k.System(true);
 
-					// sprintf("Key Txt=%i Len=%i Modifiers=%x\n", k.c16, actualSize, mods);
+					#if 1
+					GString Msg;
+					Msg.Printf("%s", v->GetClass());
+					k.Trace(Msg);
+					#endif
 
 					bool Processed;
 					GWindow *Wnd = v->GetWindow();

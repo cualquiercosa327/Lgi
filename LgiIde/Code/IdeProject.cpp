@@ -595,7 +595,7 @@ bool IdeProject::OnNode(const char *Path, ProjectNode *Node, bool Add)
 		Status = d->Nodes.Delete(Path);
 	
 	if (Status)
-		d->App->OnNode(Path, Node, Add);
+		d->App->OnNode(Path, Node, Add ? FindSymbolSystem::FileAdd : FindSymbolSystem::FileRemove);
 
 	return Status;
 }

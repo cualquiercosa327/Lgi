@@ -198,56 +198,371 @@
 	a = 3.45 != 2.34;
 	if (!a)
 	{
-		Print("Double equals failed\n");
+		Print("Double != failed\n");
 		return false;
 	}
 
 	a = 3.45 != 3.45;
 	if (a)
 	{
-		Print("Double equals failed\n");
+		Print("Double != failed\n");
 		return false;
 	}
 
 	a = 54294967296 != 44294967296;
 	if (!a)
 	{
-		Print("Int64 equals failed\n");
+		Print("Int64 != failed\n");
 		return false;
 	}
 
 	a = 54294967296 != 54294967296;
 	if (a)
 	{
-		Print("Int64 equals failed\n");
+		Print("Int64 != failed\n");
 		return false;
 	}
 
 	a = 4567 != 45673;
 	if (!a)
 	{
-		Print("Int32 equals failed\n");
+		Print("Int32 != failed\n");
 		return false;
 	}
 
 	a = 4567 != 4567;
 	if (a)
 	{
-		Print("Int32 equals failed\n");
+		Print("Int32 != failed\n");
 		return false;
 	}
 
 // ILessThan
 	date1 = New("DateTime");
 	date2 = New("DateTime");
+	date3 = New("DateTime");
+
 	date1.Date = "4/5/2013";
 	date2.Date = "11/12/2014";
+	date3.Date = "4/5/2013";
+
 	a = date1 < date2;
-	if (!a)
+	if (a == false)
 	{
 		Print("Date < failed.\n");
 		return false;
 	}
+
+	a = date1 < date3;
+	if (a == true)
+	{
+		Print("Date < failed.\n");
+		return false;
+	}
+
+	a = 3.45 < 4.56;
+	if (a == false)
+	{
+		Print("Double < failed.\n");
+		return false;
+	}
+
+	a = 3.45 < 3.45;
+	if (a == true)
+	{
+		Print("Double < failed.\n");
+		return false;
+	}
+
+	a = 4.56 < 3.45;
+	if (a == true)
+	{
+		Print("Double < failed.\n");
+		return false;
+	}
+
+	a = "asd" < "ASD";
+	if (a == true)
+	{
+		Print("String < failed.\n");
+		return false;
+	}
+
+	a = "ASD" < "asd";
+	if (a == false)
+	{
+		Print("String < failed.\n");
+		return false;
+	}
+
+	a = 54294967296 < 44294967296;
+	if (a == true)
+	{
+		Print("Int64 < failed\n");
+		return false;
+	}
+
+	a = 54294967296 < 54294967296;
+	if (a == true)
+	{
+		Print("Int64 < failed\n");
+		return false;
+	}
+
+	a = 4567 < 45673;
+	if (a == false)
+	{
+		Print("Int32 < failed\n");
+		return false;
+	}
+
+	a = 4567 < 4567;
+	if (a == true)
+	{
+		Print("Int32 < failed\n");
+		return false;
+	}
+
+// ILessThanEqual
+	// date1.Date = "4/5/2013";
+	// date2.Date = "11/12/2014";
+	// date3.Date = "4/5/2013";
+
+	a = date1 <= date2;
+	if (a == false)
+	{
+		Print("Date <= failed.\n");
+		return false;
+	}
+
+	a = date1 <= date3;
+	if (a == false)
+	{
+		Print("Date <= failed.\n");
+		return false;
+	}
+
+	a = 3.45 <= 4.56;
+	if (a == false)
+	{
+		Print("Double <= failed.\n");
+		return false;
+	}
+
+	a = 3.45 <= 3.45;
+	if (a == false)
+	{
+		Print("Double <= failed.\n");
+		return false;
+	}
+
+	a = 4.56 <= 3.45;
+	if (a == true)
+	{
+		Print("Double <= failed.\n");
+		return false;
+	}
+
+	a = "asd" <= "ASD";
+	if (a == true)
+	{
+		Print("String <= failed.\n");
+		return false;
+	}
+
+	a = "ASD" <= "asd";
+	if (a == false)
+	{
+		Print("String <= failed.\n");
+		return false;
+	}
+
+	a = 54294967296 <= 44294967296;
+	if (a == true)
+	{
+		Print("Int64 <= failed\n");
+		return false;
+	}
+
+	a = 54294967296 <= 54294967296;
+	if (a == false)
+	{
+		Print("Int64 <= failed\n");
+		return false;
+	}
+
+	a = 4567 <= 45673;
+	if (a == false)
+	{
+		Print("Int32 <= failed\n");
+		return false;
+	}
+
+	a = 4567 <= 4567;
+	if (a == false)
+	{
+		Print("Int32 <= failed\n");
+		return false;
+	}
+
+
+// IGreaterThan
+	a = date1 > date2;
+	if (a == true)
+	{
+		Print("Date > failed.\n");
+		return false;
+	}
+
+	a = date1 > date3;
+	if (a == true)
+	{
+		Print("Date > failed.\n");
+		return false;
+	}
+
+	a = 3.45 > 4.56;
+	if (a == true)
+	{
+		Print("Double > failed.\n");
+		return false;
+	}
+
+	a = 3.45 > 3.45;
+	if (a == true)
+	{
+		Print("Double > failed.\n");
+		return false;
+	}
+
+	a = 4.56 > 3.45;
+	if (a == false)
+	{
+		Print("Double > failed.\n");
+		return false;
+	}
+
+	a = "asd" > "ASD";
+	if (a == false)
+	{
+		Print("String > failed.\n");
+		return false;
+	}
+
+	a = "ASD" > "asd";
+	if (a == true)
+	{
+		Print("String > failed.\n");
+		return false;
+	}
+
+	a = 54294967296 > 44294967296;
+	if (a == false)
+	{
+		Print("Int64 > diff # failed\n");
+		return false;
+	}
+
+	a = 54294967296 > 54294967296;
+	if (a == true)
+	{
+		Print("Int64 > same # failed\n");
+		return false;
+	}
+
+	a = 4567 > 45673;
+	if (a == true)
+	{
+		Print("Int32 > failed\n");
+		return false;
+	}
+
+	a = 4567 > 4567;
+	if (a == true)
+	{
+		Print("Int32 > failed\n");
+		return false;
+	}
+
+// IGreaterThanEqual
+	a = date1 >= date2;
+	if (a == true)
+	{
+		Print("Date >= failed.\n");
+		return false;
+	}
+
+	a = date1 >= date3;
+	if (a == false)
+	{
+		Print("Date >= failed.\n");
+		return false;
+	}
+
+	a = 3.45 >= 4.56;
+	if (a == true)
+	{
+		Print("Double >= failed.\n");
+		return false;
+	}
+
+	a = 3.45 >= 3.45;
+	if (a == false)
+	{
+		Print("Double >= failed.\n");
+		return false;
+	}
+
+	a = 4.56 >= 3.45;
+	if (a == false)
+	{
+		Print("Double >= failed.\n");
+		return false;
+	}
+
+	a = "asd" >= "ASD";
+	if (a == false)
+	{
+		Print("String >= failed.\n");
+		return false;
+	}
+
+	a = "ASD" >= "asd";
+	if (a == true)
+	{
+		Print("String >= failed.\n");
+		return false;
+	}
+
+	a = 54294967296 >= 44294967296;
+	if (a == false)
+	{
+		Print("Int64 >= failed\n");
+		return false;
+	}
+
+	a = 54294967296 >= 54294967296;
+	if (a == false)
+	{
+		Print("Int64 >= failed\n");
+		return false;
+	}
+
+	a = 4567 >= 45673;
+	if (a == true)
+	{
+		Print("Int32 >= failed\n");
+		return false;
+	}
+
+	a = 4567 >= 4567;
+	if (a == false)
+	{
+		Print("Int32 >= failed\n");
+		return false;
+	}
+
+
 
 Print("All tests passed.\n");
 return true;

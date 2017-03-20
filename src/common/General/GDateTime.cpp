@@ -1910,7 +1910,7 @@ bool GDateTime::CallMethod(const char *Name, GVariant *ReturnValue, GArray<GVari
 
 			bool Status;
 			if (Args[0]->Type == GV_INT64)
-				Status = Set(Args[0]->Value.Int64);
+				Status = Set((uint64) Args[0]->Value.Int64);
 			else
 				Status = Set(Args[0]->Str());
 			if (ReturnValue)
