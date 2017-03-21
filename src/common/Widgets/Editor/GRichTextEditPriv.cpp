@@ -337,7 +337,7 @@ bool GRichTextPriv::DeleteSelection(Transaction *Trans, char16 **Cut)
 		End->Blk->DeleteAt(NoTransaction, 0, End->Offset, DelTxt);
 
 		// Try and merge the start and end blocks
-		Merge(Start->Blk, End->Blk);
+		Merge(Trans, Start->Blk, End->Blk);
 	}
 
 	// Set the cursor and update the screen
@@ -348,7 +348,6 @@ bool GRichTextPriv::DeleteSelection(Transaction *Trans, char16 **Cut)
 	if (Cut)
 	{
 		DelTxt->Add(0);
-		// *Cut = DelTxt->Release();
 		*Cut = (char16*)LgiNewConvertCp(LGI_WideCharset, &DelTxt->First(), "utf-32", DelTxt->Length()*sizeof(uint32));
 	}
 
@@ -965,7 +964,7 @@ GdcPt2 GRichTextPriv::DocToScreen(int x, int y)
 	return GdcPt2(x + Content.x1, y + Content.y1 - ScrollOffsetPx);
 }
 
-bool GRichTextPriv::Merge(Block *a, Block *b)
+bool GRichTextPriv::Merge(Transaction *Trans, Block *a, Block *b)
 {
 	TextBlock *ta = dynamic_cast<TextBlock*>(a);
 	TextBlock *tb = dynamic_cast<TextBlock*>(b);

@@ -951,7 +951,12 @@ bool GRichTextPriv::ImageBlock::ChangeStyle(Transaction *Trans, int Offset, int 
 
 int GRichTextPriv::ImageBlock::DeleteAt(Transaction *Trans, int BlkOffset, int Chars, GArray<uint32> *DeletedText)
 {
-	// No text to delete...
+	// The image is one "character"
+	if (BlkOffset == 0)
+	{
+		
+	}
+
 	return false;
 }
 

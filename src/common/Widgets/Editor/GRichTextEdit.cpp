@@ -1353,10 +1353,8 @@ void GRichTextEdit::OnMouseMove(GMouse &m)
 		AutoCursor c;
 		GdcPt2 Doc = d->ScreenToDoc(m.x, m.y);
 		int Idx = -1;
-		if (d->CursorFromPos(Doc.x, Doc.y, &c, &Idx))
+		if (d->CursorFromPos(Doc.x, Doc.y, &c, &Idx) && c)
 		{
-			d->SetCursor(c, m.Left());
-
 			if (d->WordSelectMode && d->Selection)
 			{
 				// Extend the selection to include the whole word
@@ -1364,39 +1362,33 @@ void GRichTextEdit::OnMouseMove(GMouse &m)
 				{
 					// Extend towards the end of the doc...
 					GArray<uint32> Txt;
-					GRichTextPriv::Block *b = d->Selection->Blk;
-					if (b->CopyAt(0, b->Length(), &Txt))
+					if (c->Blk->CopyAt(0, c->Blk->Length(), &Txt))
 					{
-						int Off = d->Cursor->Offset;
-						while (Off < (int)Txt.Length() &&
-							!IsWordBreakChar(Txt[Off]))
-							Off++;
-						if (Off != d->Cursor->Offset)
-						{
-							AutoCursor c(new BlkCursor(b, Off, -1));
-							d->SetCursor(c, true);
-						}
+						while
+						(
+							c->Offset < (int)Txt.Length() &&
+							!IsWordBreakChar(Txt[c->Offset])
+						)
+							c->Offset++;
 					}
 				}
 				else
 				{
 					// Extend towards the start of the doc...
 					GArray<uint32> Txt;
-					GRichTextPriv::Block *b = d->Selection->Blk;
-					if (b->CopyAt(0, b->Length(), &Txt))
+					if (c->Blk->CopyAt(0, c->Blk->Length(), &Txt))
 					{
-						int Off = d->Cursor->Offset;
-						while (Off > 0 &&
-							!IsWordBreakChar(Txt[Off-1]))
-							Off--;
-						if (Off != d->Cursor->Offset)
-						{
-							AutoCursor c(new BlkCursor(b, Off, -1));
-							d->SetCursor(c, true);
-						}
+						while
+						(
+							c->Offset > 0 &&
+							!IsWordBreakChar(Txt[c->Offset-1])
+						)
+							c->Offset--;
 					}
 				}
 			}
+
+			d->SetCursor(c, m.Left());
 		}
 	}
 
@@ -1518,6 +1510,8 @@ bool GRichTextEdit::OnKey(GKey &k)
 					break;
 
 				bool Changed = false;
+				AutoTrans Trans(new GRichTextPriv::Transaction);
+
 				if (k.Ctrl())
 				{
 				    // Ctrl+H
@@ -1526,25 +1520,26 @@ bool GRichTextEdit::OnKey(GKey &k)
 				{
 					if (HasSelection())
 					{
-						DeleteSelection();
+						d->DeleteSelection(Trans, NULL);
 					}
 					else if (d->Cursor &&
 							 d->Cursor->Blk)
 					{
 						if (d->Cursor->Offset > 0)
 						{
-							Changed = d->Cursor->Blk->DeleteAt(NoTransaction, d->Cursor->Offset-1, 1) > 0;
+							Changed = d->Cursor->Blk->DeleteAt(Trans, d->Cursor->Offset-1, 1) > 0;
 							if (Changed)
 								d->Cursor->Set(d->Cursor->Offset - 1);
 						}
 						else
 						{
+							// At the start of a block:
 							GRichTextPriv::Block *Prev = d->Prev(d->Cursor->Blk);
 							if (Prev)
 							{
 								// Try and merge the two blocks...
 								int Len = Prev->Length();
-								d->Merge(Prev, d->Cursor->Blk);
+								d->Merge(Trans, Prev, d->Cursor->Blk);
 								
 								AutoCursor c(new BlkCursor(Prev, Len, -1));
 								d->SetCursor(c);
@@ -1561,6 +1556,7 @@ bool GRichTextEdit::OnKey(GKey &k)
 				if (Changed)
 				{
 					Invalidate();
+					d->AddTrans(Trans);
 					SendNotify(GNotifyDocChanged);
 				}
 				return true;
@@ -1790,12 +1786,14 @@ bool GRichTextEdit::OnKey(GKey &k)
 
 				bool Changed = false;
 				GRichTextPriv::Block *b;
+				AutoTrans Trans(new GRichTextPriv::Transaction);
+
 				if (HasSelection())
 				{
 					if (k.Shift())
 						Changed |= Cut();
 					else
-						Changed |= DeleteSelection();
+						Changed |= d->DeleteSelection(Trans, NULL);
 				}
 				else if (d->Cursor &&
 						(b = d->Cursor->Blk))
@@ -1812,13 +1810,13 @@ bool GRichTextEdit::OnKey(GKey &k)
 						}
 
 						// Try and merge the blocks
-						if (d->Merge(b, next))
+						if (d->Merge(Trans, b, next))
 							Changed = true;
 						else // move the cursor to the next block							
 							d->Cursor.Reset(new GRichTextPriv::BlockCursor(b, 0, 0));
 					}
 
-					if (!Changed && b->DeleteAt(NoTransaction, d->Cursor->Offset, 1))
+					if (!Changed && b->DeleteAt(Trans, d->Cursor->Offset, 1))
 					{
 						if (b->Length() == 0)
 						{
@@ -1837,6 +1835,7 @@ bool GRichTextEdit::OnKey(GKey &k)
 				if (Changed)
 				{
 					Invalidate();
+					d->AddTrans(Trans);
 					SendNotify(GNotifyDocChanged);
 				}
 				return true;
