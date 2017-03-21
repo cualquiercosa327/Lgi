@@ -1510,6 +1510,8 @@ bool GRichTextEdit::OnKey(GKey &k)
 					break;
 
 				bool Changed = false;
+				AutoTrans Trans(new GRichTextPriv::Transaction);
+
 				if (k.Ctrl())
 				{
 				    // Ctrl+H
@@ -1518,25 +1520,26 @@ bool GRichTextEdit::OnKey(GKey &k)
 				{
 					if (HasSelection())
 					{
-						DeleteSelection();
+						d->DeleteSelection(Trans, NULL);
 					}
 					else if (d->Cursor &&
 							 d->Cursor->Blk)
 					{
 						if (d->Cursor->Offset > 0)
 						{
-							Changed = d->Cursor->Blk->DeleteAt(NoTransaction, d->Cursor->Offset-1, 1) > 0;
+							Changed = d->Cursor->Blk->DeleteAt(Trans, d->Cursor->Offset-1, 1) > 0;
 							if (Changed)
 								d->Cursor->Set(d->Cursor->Offset - 1);
 						}
 						else
 						{
+							// At the start of a block:
 							GRichTextPriv::Block *Prev = d->Prev(d->Cursor->Blk);
 							if (Prev)
 							{
 								// Try and merge the two blocks...
 								int Len = Prev->Length();
-								d->Merge(Prev, d->Cursor->Blk);
+								d->Merge(Trans, Prev, d->Cursor->Blk);
 								
 								AutoCursor c(new BlkCursor(Prev, Len, -1));
 								d->SetCursor(c);
@@ -1553,6 +1556,7 @@ bool GRichTextEdit::OnKey(GKey &k)
 				if (Changed)
 				{
 					Invalidate();
+					d->AddTrans(Trans);
 					SendNotify(GNotifyDocChanged);
 				}
 				return true;
@@ -1782,12 +1786,14 @@ bool GRichTextEdit::OnKey(GKey &k)
 
 				bool Changed = false;
 				GRichTextPriv::Block *b;
+				AutoTrans Trans(new GRichTextPriv::Transaction);
+
 				if (HasSelection())
 				{
 					if (k.Shift())
 						Changed |= Cut();
 					else
-						Changed |= DeleteSelection();
+						Changed |= d->DeleteSelection(Trans, NULL);
 				}
 				else if (d->Cursor &&
 						(b = d->Cursor->Blk))
@@ -1804,13 +1810,13 @@ bool GRichTextEdit::OnKey(GKey &k)
 						}
 
 						// Try and merge the blocks
-						if (d->Merge(b, next))
+						if (d->Merge(Trans, b, next))
 							Changed = true;
 						else // move the cursor to the next block							
 							d->Cursor.Reset(new GRichTextPriv::BlockCursor(b, 0, 0));
 					}
 
-					if (!Changed && b->DeleteAt(NoTransaction, d->Cursor->Offset, 1))
+					if (!Changed && b->DeleteAt(Trans, d->Cursor->Offset, 1))
 					{
 						if (b->Length() == 0)
 						{
@@ -1829,6 +1835,7 @@ bool GRichTextEdit::OnKey(GKey &k)
 				if (Changed)
 				{
 					Invalidate();
+					d->AddTrans(Trans);
 					SendNotify(GNotifyDocChanged);
 				}
 				return true;

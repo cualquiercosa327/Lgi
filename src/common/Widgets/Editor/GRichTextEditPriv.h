@@ -1103,7 +1103,7 @@ public:
 	GHtmlElement *CreateElement(GHtmlElement *Parent);
 	GdcPt2 ScreenToDoc(int x, int y);
 	GdcPt2 DocToScreen(int x, int y);
-	bool Merge(Block *a, Block *b);
+	bool Merge(Transaction *Trans, Block *a, Block *b);
 	GSurface *GetEmojiImage();
 	bool DeleteSelection(Transaction *t, char16 **Cut);
 
