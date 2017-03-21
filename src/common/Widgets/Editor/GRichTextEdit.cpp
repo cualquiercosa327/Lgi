@@ -1353,10 +1353,8 @@ void GRichTextEdit::OnMouseMove(GMouse &m)
 		AutoCursor c;
 		GdcPt2 Doc = d->ScreenToDoc(m.x, m.y);
 		int Idx = -1;
-		if (d->CursorFromPos(Doc.x, Doc.y, &c, &Idx))
+		if (d->CursorFromPos(Doc.x, Doc.y, &c, &Idx) && c)
 		{
-			d->SetCursor(c, m.Left());
-
 			if (d->WordSelectMode && d->Selection)
 			{
 				// Extend the selection to include the whole word
@@ -1364,39 +1362,33 @@ void GRichTextEdit::OnMouseMove(GMouse &m)
 				{
 					// Extend towards the end of the doc...
 					GArray<uint32> Txt;
-					GRichTextPriv::Block *b = d->Selection->Blk;
-					if (b->CopyAt(0, b->Length(), &Txt))
+					if (c->Blk->CopyAt(0, c->Blk->Length(), &Txt))
 					{
-						int Off = d->Cursor->Offset;
-						while (Off < (int)Txt.Length() &&
-							!IsWordBreakChar(Txt[Off]))
-							Off++;
-						if (Off != d->Cursor->Offset)
-						{
-							AutoCursor c(new BlkCursor(b, Off, -1));
-							d->SetCursor(c, true);
-						}
+						while
+						(
+							c->Offset < (int)Txt.Length() &&
+							!IsWordBreakChar(Txt[c->Offset])
+						)
+							c->Offset++;
 					}
 				}
 				else
 				{
 					// Extend towards the start of the doc...
 					GArray<uint32> Txt;
-					GRichTextPriv::Block *b = d->Selection->Blk;
-					if (b->CopyAt(0, b->Length(), &Txt))
+					if (c->Blk->CopyAt(0, c->Blk->Length(), &Txt))
 					{
-						int Off = d->Cursor->Offset;
-						while (Off > 0 &&
-							!IsWordBreakChar(Txt[Off-1]))
-							Off--;
-						if (Off != d->Cursor->Offset)
-						{
-							AutoCursor c(new BlkCursor(b, Off, -1));
-							d->SetCursor(c, true);
-						}
+						while
+						(
+							c->Offset > 0 &&
+							!IsWordBreakChar(Txt[c->Offset-1])
+						)
+							c->Offset--;
 					}
 				}
 			}
+
+			d->SetCursor(c, m.Left());
 		}
 	}
 
