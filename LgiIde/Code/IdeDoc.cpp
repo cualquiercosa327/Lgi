@@ -119,14 +119,6 @@ public:
 	
 	void GotoSearch(int CtrlId, char *InitialText = NULL)
 	{
-		if (FuncSearch && FuncSearch->GetId() == CtrlId)
-		{
-			FuncSearch->Name(InitialText);
-			FuncSearch->Focus(true);
-			if (InitialText)
-				FuncSearch->SendNotify(GNotifyDocChanged);
-		}
-
 		if (FileSearch && FileSearch->GetId() == CtrlId)
 		{
 			FileSearch->Name(InitialText);
@@ -135,6 +127,14 @@ public:
 				FileSearch->SendNotify(GNotifyDocChanged);
 		}
 		
+		if (FuncSearch && FuncSearch->GetId() == CtrlId)
+		{
+			FuncSearch->Name(InitialText);
+			FuncSearch->Focus(true);
+			if (InitialText)
+				FuncSearch->SendNotify(GNotifyDocChanged);
+		}
+
 		if (SymSearch && SymSearch->GetId() == CtrlId)
 		{
 			SymSearch->Name(InitialText);
@@ -2504,16 +2504,13 @@ int IdeDoc::OnNotify(GViewI *v, int f)
 			if (ValidStr(SearchStr))
 			{
 				if (!d->MethodPopup)
-				{
-					if (d->MethodPopup = new ProjMethodPopup(d->App, v))
-					{
-						// Populate with symbols
-						d->MethodPopup->All.Length(0);
-						BuildDefnList(GetFileName(), d->Edit->NameW(), d->MethodPopup->All, DefnFunc);
-					}
-				}
+					d->MethodPopup = new ProjMethodPopup(d->App, v);
 				if (d->MethodPopup)
 				{
+					// Populate with symbols
+					d->MethodPopup->All.Length(0);
+					BuildDefnList(GetFileName(), d->Edit->NameW(), d->MethodPopup->All, DefnFunc);
+
 					// Update list elements...
 					d->MethodPopup->OnNotify(v, f);
 				}
