@@ -200,6 +200,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 				GAutoPtr<FindSymRequest> Req((FindSymRequest*)Msg->A());
 				if (Req && Req->Sink)
 				{
+					GEventSinkI *Sink = Req->Sink;
 					GString::Array p = Req->Str.SplitDelimit(" \t");
 					if (p.Length() == 0)
 						break;
@@ -254,7 +255,6 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 						}
 					}
 					
-					GEventSinkI *Sink = Req->Sink;
 					Sink->PostEvent(M_FIND_SYM_REQUEST, (GMessage::Param) Req.Release());
 				}
 				break;
