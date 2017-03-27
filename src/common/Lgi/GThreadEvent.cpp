@@ -172,7 +172,14 @@ bool GThreadEvent::Signal()
 	#elif defined(WIN32)
 
 		if (Event)
-			SetEvent(Event);
+		{
+			BOOL b = SetEvent(Event);
+			if (!b)
+			{
+				DWORD e = GetLastError();
+				LgiTrace("%s:%i - SetEvent failed with: %u\n", _FL, e);
+			}
+		}
 		else
 		{
 			LgiAssert(!"No event handle");

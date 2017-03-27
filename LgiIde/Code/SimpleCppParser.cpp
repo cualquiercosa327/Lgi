@@ -73,7 +73,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 			else if (PrevLine != Line)
 			{
 				PrevLine = Line;
-				LgiTrace("%s:%i '%.10S'\n", FileName, Line + 1, s);
+				// LgiTrace("%s:%i '%.10S'\n", FileName, Line + 1, s);
 			}
 		}
 		#endif
