@@ -69,11 +69,22 @@ class LgiClass GEventTargetThread :
 	bool Loop;
 	GArray<GEventSinkPtr*> Ptrs;
 
+	// This makes the event name unique on windows to prevent multiple
+	// instances clashing.
+	GString ProcessName(GString obj, const char *desc)
+	{
+		OsProcessId process = LgiGetCurrentProcess();
+		OsThreadId thread = LgiGetCurrentThread();
+		GString s;
+		s.Printf("%s.%s.%i.%i", obj.Get(), desc, process, thread);
+		return s;
+	}
+
 public:
 	GEventTargetThread(GString Name) :
 		GThread(Name + ".Thread"),
 		GMutex(Name + ".Mutex"),
-		Event(Name + ".Event")
+		Event(ProcessName(Name, "Event"))
 	{
 		Loop = true;
 
