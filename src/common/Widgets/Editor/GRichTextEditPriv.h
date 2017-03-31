@@ -28,7 +28,7 @@
 #include "GColourSpace.h"
 #include "GPopup.h"
 #include "Emoji.h"
-#include "GEventTargetThread.h"
+#include "LgiSpellCheck.h"
 
 #define DEBUG_LOG_CURSOR_COUNT			0
 #define DEBUG_OUTLINE_CUR_DISPLAY_STR	0
@@ -383,6 +383,7 @@ public:
 	GHtmlStaticInst Inst;
 	int NextUid;
 	GStream *Log;
+	GSpellCheck SpellCheck;
 
 	// This is set when the user changes a style without a selection,
 	// indicating that we should start a new run when new text is entered

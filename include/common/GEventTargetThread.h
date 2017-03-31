@@ -69,8 +69,8 @@ class LgiClass GEventTargetThread :
 	bool Loop;
 	GArray<GEventSinkPtr*> Ptrs;
 
-	// This makes the event name unique on windows to prevent multiple
-	// instances clashing.
+	// This makes the event name unique on windows to 
+	// prevent multiple instances clashing.
 	GString ProcessName(GString obj, const char *desc)
 	{
 		OsProcessId process = LgiGetCurrentProcess();

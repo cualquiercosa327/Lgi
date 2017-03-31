@@ -4,6 +4,10 @@
 #include "GScrollBar.h"
 #include "GCssTools.h"
 
+#include <initguid.h>
+DEFINE_GUID(CLSID_SpellCheckerFactory,0x7AB36653,0x1796,0x484B,0xBD,0xFA,0xE7,0x4F,0x1D,0xB7,0xC1,0xDC);
+DEFINE_GUID(IID_ISpellCheckerFactory,0x8E018A9D,0x2415,0x4677,0xBF,0x08,0x79,0x4E,0xA6,0x1F,0x94,0xBB);
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Utf16to32(GArray<uint32> &Out, const uint16 *In, int Len)
 {
@@ -241,7 +245,8 @@ bool CompleteTextBlockState::Apply(GRichTextPriv *Ctx, bool Forward)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv *&Ptr) :
 	GHtmlParser(view),
-	GFontCache(SysFont)
+	GFontCache(SysFont),
+	SpellCheck(view)
 {
 	Ptr = this;
 	View = view;
@@ -280,6 +285,8 @@ GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv *&Ptr) :
 	Values[GRichTextEdit::EmojiBtn] = TEXT_EMOJI;
 
 	Padding(GCss::Len(GCss::LenPx, 4));
+
+	SpellCheck.EnumDictionaries();
 
 	EmptyDoc();
 }
