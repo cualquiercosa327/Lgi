@@ -84,6 +84,7 @@ public:
 // Process
 typedef int							OsProcess;
 typedef int							OsProcessId;
+#define LgiGetCurrentProcess()		getpid()
 
 // Threads
 typedef pthread_t					OsThreadId;
