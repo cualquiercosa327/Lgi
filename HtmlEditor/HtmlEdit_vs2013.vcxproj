@@ -293,6 +293,7 @@
     <ClInclude Include="..\include\common\GHtmlEdit.h" />
     <ClInclude Include="..\include\common\GHtmlPriv.h" />
     <ClInclude Include="..\include\common\GRichTextEdit.h" />
+    <ClInclude Include="..\include\common\LgiSpellCheck.h" />
     <ClInclude Include="..\src\common\Widgets\Editor\GRichTextEditPriv.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>

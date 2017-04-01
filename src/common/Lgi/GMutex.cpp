@@ -35,7 +35,7 @@ GMutex::GMutex(const char *name)
 	
 	#elif defined BEOS
 	
-	_Sem = create_sem(1, "LGI.GMutex");
+	_Sem = create_sem(1, _Name ? _Name :"LGI.GMutex");
 
 	#elif defined POSIX
 

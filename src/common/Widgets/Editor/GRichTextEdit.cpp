@@ -2220,6 +2220,31 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 			}
 			break;
 		}
+		case M_ENUMERATE_DICTIONARIES:
+		{
+			GAutoPtr<GString::Array> Dictionaries((GString::Array*)Msg->A());
+			if (Dictionaries)
+			{
+				GString Lang;
+				int LangScore = 0;
+
+				for (unsigned i=0; i<Dictionaries->Length(); i++)
+				{
+					GString &s = (*Dictionaries)[i];
+					int Score = s.Lower().Find("en") >= 0;
+					Score += s.Lower().Find("au") >= 0;
+					if (!Lang || Score > LangScore)
+					{
+						Lang = s;
+						LangScore = Score;
+					}
+				}
+
+				if (Lang)
+					d->SpellCheck.SetDictionary(Lang);
+			}
+			break;
+		}
 		#if defined WIN32
 		case WM_GETTEXTLENGTH:
 		{

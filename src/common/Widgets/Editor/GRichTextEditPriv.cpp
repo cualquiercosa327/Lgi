@@ -241,7 +241,8 @@ bool CompleteTextBlockState::Apply(GRichTextPriv *Ctx, bool Forward)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv *&Ptr) :
 	GHtmlParser(view),
-	GFontCache(SysFont)
+	GFontCache(SysFont),
+	SpellCheck(view)
 {
 	Ptr = this;
 	View = view;
@@ -280,6 +281,8 @@ GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv *&Ptr) :
 	Values[GRichTextEdit::EmojiBtn] = TEXT_EMOJI;
 
 	Padding(GCss::Len(GCss::LenPx, 4));
+
+	SpellCheck.EnumDictionaries();
 
 	EmptyDoc();
 }

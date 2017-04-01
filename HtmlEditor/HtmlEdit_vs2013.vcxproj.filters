@@ -27,6 +27,9 @@
     <Filter Include="Controls\RichTextEdit\Emoji">
       <UniqueIdentifier>{62a1d4c6-9ce5-466d-a6a2-65e26f62c288}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Controls\RichTextEdit\Spelling">
+      <UniqueIdentifier>{579fa028-117b-44f0-8f9d-bf0cc8ac9187}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Rich.cpp">
@@ -96,6 +99,9 @@
     </ClInclude>
     <ClInclude Include="..\include\common\Emoji.h">
       <Filter>Controls\RichTextEdit\Emoji</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\common\LgiSpellCheck.h">
+      <Filter>Controls\RichTextEdit\Spelling</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

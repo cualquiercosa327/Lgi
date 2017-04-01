@@ -119,6 +119,7 @@ typedef DWORD							OsProcessId;
 LgiExtern HINSTANCE						_lgi_app_instance;
 #define LgiProcessInst()				_lgi_app_instance
 extern p_vscprintf						lgi_vscprintf;
+#define LgiGetCurrentProcess()			GetCurrentProcessId()
 
 // Threads
 typedef DWORD							OsThreadId;
