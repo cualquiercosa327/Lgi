@@ -20,7 +20,7 @@
 			<Node File="../src/common/INet/IFtp.cpp" Type="2" Platforms="15" />
 			<Node File="../include/common/IFtp.h" Type="3" Platforms="15" />
 		</Node>
-		<Node Name="Search" Type="1" Platforms="15" Open="0">
+		<Node Name="Search" Type="1" Platforms="15" Open="1">
 			<Node File="./Code/FindInFiles.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/FindInFiles.h" Type="3" Platforms="15" />
 			<Node File="./Code/FindSymbol.cpp" Type="2" Platforms="15" />
@@ -30,7 +30,7 @@
 			<Node File="./Code/SimpleCppParser.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/SimpleCppParser.h" Type="3" Platforms="15" />
 		</Node>
-		<Node Name="Source Code" Type="1" Platforms="15" Open="0">
+		<Node Name="Source Code" Type="1" Platforms="15" Open="1">
 			<Node File="../src/common/Coding/GLexCpp.cpp" Type="2" Platforms="15" />
 			<Node File="../src/common/Coding/GParseCpp.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/SysCharSupport.cpp" Type="2" Platforms="15" />

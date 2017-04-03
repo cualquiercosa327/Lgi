@@ -413,7 +413,7 @@ int BuildThread::Main()
 		else if (Compiler == PythonScript)
 		{
 			char a[MAX_PATH];
-			GString Path = Makefile;
+			GString Path = Makefile.Get();
 			int Pos = Path.RFind(DIR_STR);
 			if (Pos >= 0)
 				Path.Length(Pos);
