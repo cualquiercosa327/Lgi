@@ -169,7 +169,7 @@
 			<Node File="./src/common/Lgi/GFontSelect.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Lgi/GInput.cpp" Type="2" Platforms="15" />
 		</Node>
-		<Node Name="Graphics" Type="1" Platforms="15" Open="1">
+		<Node Name="Graphics" Type="1" Platforms="15" Open="0">
 			<Node Name="_Core" Type="1" Platforms="15" Open="0">
 				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
 					<Node File=".\src\beos\Gdc2\Gdc2.cpp" Type="2" Platforms="8" />
@@ -214,7 +214,7 @@
 				<Node File="./src/common/Gdc2/GRect.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GRect.h" Type="3" Platforms="15" />
 			</Node>
-			<Node Name="Surfaces" Type="1" Platforms="15" Open="1">
+			<Node Name="Surfaces" Type="1" Platforms="15" Open="0">
 				<Node Name="Haiku" Type="1" Platforms="15" Open="0">
 					<Node File="./src/beos/Gdc2/GMemDC.cpp" Type="2" Platforms="8" />
 					<Node File="./src/beos/Gdc2/GPrintDC.cpp" Type="2" Platforms="8" />
@@ -226,17 +226,17 @@
 					<Node File="./src/linux/Gtk/GScreenDC.cpp" Type="2" Platforms="2" />
 					<Node File="./src/linux/Lgi/GPrinter.cpp" Type="2" Platforms="2" />
 				</Node>
-				<Node Name="Mac" Type="1" Platforms="15" Open="1">
-					<Node File=".\src\mac\carbon\Gdc2\GMemDC.cpp" Type="2" Platforms="4" />
-					<Node File=".\src\mac\carbon\Gdc2\GPrintDC.cpp" Type="2" Platforms="4" />
-					<Node File=".\src\mac\carbon\Gdc2\GScreenDC.cpp" Type="2" Platforms="4" />
+				<Node Name="Mac" Type="1" Platforms="15" Open="0">
+					<Node File="./src/mac/carbon/Gdc2/GMemDC.cpp" Type="2" Platforms="4" />
+					<Node File="./src/mac/carbon/Gdc2/GPrintDC.cpp" Type="2" Platforms="4" />
+					<Node File="./src/mac/carbon/Gdc2/GScreenDC.cpp" Type="2" Platforms="4" />
 				</Node>
 				<Node Name="Win32" Type="1" Platforms="15" Open="0">
 					<Node File="./src/win32/Gdc2/GScreenDC.cpp" Type="2" Platforms="1" />
 					<Node File="./src/win32/Gdc2/GPrintDC.cpp" Type="2" Platforms="1" />
 					<Node File="./src/win32/Gdc2/GMemDC.cpp" Type="2" Platforms="1" />
 				</Node>
-				<Node File=".\src\common\Gdc2\GSurface.cpp" Type="2" Platforms="15" />
+				<Node File="./src/common/Gdc2/GSurface.cpp" Type="2" Platforms="15" />
 			</Node>
 			<Node Name="Gdi Leak" Type="1" Platforms="15" Open="0">
 				<Node File="./src/win32/Gdc2/GdiLeak.cpp" Type="2" Platforms="1" />

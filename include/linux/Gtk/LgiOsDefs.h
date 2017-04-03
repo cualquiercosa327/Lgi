@@ -15,6 +15,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <wchar.h>
+#include <unistd.h>
 #ifdef WIN32
 	#include "winsock2.h"
 	#define WIN32GTK                    1
@@ -79,6 +80,8 @@ typedef char							OsChar;
 typedef Gtk::cairo_t					*OsPainter;
 typedef Gtk::PangoFontDescription       *OsFont;
 typedef void							*OsBitmap;
+
+#define LgiGetCurrentProcess()			getpid()
 
 // Because of namespace issues you can't use the built in GTK casting macros.
 // So this is basically the same thing:
