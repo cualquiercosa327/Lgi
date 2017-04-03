@@ -1,9 +1,6 @@
-#ifndef _SPELL_CHECK_H_
-#define _SPELL_CHECK_H_
+#ifndef _LGI_SPELL_CHECK_H_
+#define _LGI_SPELL_CHECK_H_
 
-#ifdef WINDOWS
-#include "Spellcheck.h"
-#endif
 #include "GEventTargetThread.h"
 
 enum SPELL_MSGS
@@ -13,16 +10,14 @@ enum SPELL_MSGS
 	M_SET_DICTIONARY,
 };
 
+// Spell check interface
 class GSpellCheck : public GEventTargetThread
 {
-	struct GSpellCheckPriv *d;
-	GEventSinkI *Owner;
-
 public:
-	GSpellCheck(GEventSinkI *owner);
-	~GSpellCheck();
+	virtual ~GSpellCheck() {}
 
-	GMessage::Result OnEvent(GMessage *Msg);
+	// Impl this:
+	// GMessage::Result OnEvent(GMessage *Msg);
 
 	bool EnumDictionaries()
 	{
@@ -37,6 +32,12 @@ public:
 	bool Check(GString s)
 	{
 		return PostEvent(M_CHECK_TEXT, (GMessage::Param)new GString(s));
+	}
+	
+	bool InstallDictionary()
+	{
+		LgiAssert(!"Impl.");
+		return false;
 	}
 };
 

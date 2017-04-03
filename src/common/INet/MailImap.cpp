@@ -440,7 +440,7 @@ char *Tok(char *&s)
 	return Ret;
 }
 
-char *DecodeImapString(char *s)
+char *DecodeImapString(const char *s)
 {
 	GStringPipe p;
 	while (s && *s)
@@ -449,7 +449,7 @@ char *DecodeImapString(char *s)
 		{
 			char Escape = *s++;
 			
-			char *e = s;
+			const char *e = s;
 			while (*e && *e != '-')
 			{
 				e++;
@@ -511,7 +511,7 @@ char *DecodeImapString(char *s)
 	return p.NewStr();
 }
 
-char *EncodeImapString(char *s)
+char *EncodeImapString(const char *s)
 {
 	GStringPipe p;
 	int Len = s ? strlen(s) : 0;
@@ -622,7 +622,7 @@ char *MailImapFolder::GetPath()
 	return Path;
 }
 
-void MailImapFolder::SetPath(char *s)
+void MailImapFolder::SetPath(const char *s)
 {
 	char *NewPath = DecodeImapString(s);
 	DeleteArray(Path);
@@ -647,7 +647,7 @@ char *MailImapFolder::GetName()
 	return 0;
 }
 
-void MailImapFolder::SetName(char *s)
+void MailImapFolder::SetName(const char *s)
 {
 	if (s)
 	{
@@ -2379,8 +2379,10 @@ int MailIMap::Fetch(bool ByUid,
 				}
 				else if (!Debug)
 				{
+					/*
 					if (LgiCurrentTime() - LastActivity > 10000)
 						Debug = true;
+					*/
 				}
 				
 				if (Debug)
@@ -2652,7 +2654,7 @@ bool MailIMap::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks
 	return Status;
 }
 
-bool MailIMap::Append(char *Folder, ImapMailFlags *Flags, char *Msg, GAutoString &NewUid)
+bool MailIMap::Append(const char *Folder, ImapMailFlags *Flags, const char *Msg, GString &NewUid)
 {
 	bool Status = false;
 
@@ -2663,7 +2665,7 @@ bool MailIMap::Append(char *Folder, ImapMailFlags *Flags, char *Msg, GAutoString
 
 		int Cmd = d->NextCmd++;
 		int Len = 0;
-		for (char *m = Msg; *m; m++)
+		for (const char *m = Msg; *m; m++)
 		{
 			if (*m == '\n')
 			{
@@ -2700,7 +2702,7 @@ bool MailIMap::Append(char *Folder, ImapMailFlags *Flags, char *Msg, GAutoString
 				if (GotPlus)
 				{
 					int Wrote = 0;
-					for (char *m = Msg; *m; )
+					for (const char *m = Msg; *m; )
 					{
 						while (*m == '\r' || *m == '\n')
 						{
@@ -2711,7 +2713,7 @@ bool MailIMap::Append(char *Folder, ImapMailFlags *Flags, char *Msg, GAutoString
 							m++;
 						}
 
-						char *e = m;
+						const char *e = m;
 						while (*e && *e != '\r' && *e != '\n')
 							e++;
 						if (e > m)
@@ -2744,7 +2746,7 @@ bool MailIMap::Append(char *Folder, ImapMailFlags *Flags, char *Msg, GAutoString
 									GToken t(a, " ");
 									if (t.Length() > 2 && !_stricmp(t[0], "APPENDUID"))
 									{
-										NewUid.Reset(NewStr(t[2]));
+										NewUid = t[2];
 										break;
 									}
 								}
@@ -2770,6 +2772,27 @@ bool MailIMap::Delete(int Message)
 	{
 		int Cmd = d->NextCmd++;
 		sprintf_s(Buf, sizeof(Buf), "A%4.4i STORE %i FLAGS (\\deleted)\r\n", Cmd, Message+1);
+		if (WriteBuf())
+		{
+			ClearDialog();
+			Status = ReadResponse(Cmd);
+			CommandFinished();
+ 		}
+		
+		Unlock();
+	}
+
+	return Status;
+}
+
+bool MailIMap::Delete(bool ByUid, const char *Seq)
+{
+	bool Status = false;
+
+	if (Socket && Lock(_FL))
+	{
+		int Cmd = d->NextCmd++;
+		sprintf_s(Buf, sizeof(Buf), "A%4.4i %sSTORE %s FLAGS (\\deleted)\r\n", Cmd, ByUid?"UID ":"", Seq);
 		if (WriteBuf())
 		{
 			ClearDialog();
@@ -3051,7 +3074,7 @@ char *MailIMap::EncodePath(const char *Path)
 	return EncodeImapString(Native);
 }
 
-bool MailIMap::DeleteFolder(char *Path)
+bool MailIMap::DeleteFolder(const char *Path)
 {
 	bool Status = false;
 
@@ -3090,7 +3113,7 @@ bool MailIMap::DeleteFolder(char *Path)
 	return Status;
 }
 
-bool MailIMap::RenameFolder(char *From, char *To)
+bool MailIMap::RenameFolder(const char *From, const char *To)
 {
 	bool Status = false;
 
@@ -3174,7 +3197,7 @@ bool MailIMap::SetFlagsByUid(GArray<char*> &Uids, const char *Flags)
 	return Status;
 }
 
-bool MailIMap::CopyByUid(GArray<char*> &InUids, char *DestFolder)
+bool MailIMap::CopyByUid(GArray<char*> &InUids, const char *DestFolder)
 {
 	bool Status = false;
 

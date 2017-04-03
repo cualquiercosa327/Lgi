@@ -241,8 +241,7 @@ bool CompleteTextBlockState::Apply(GRichTextPriv *Ctx, bool Forward)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv *&Ptr) :
 	GHtmlParser(view),
-	GFontCache(SysFont),
-	SpellCheck(view)
+	GFontCache(SysFont)
 {
 	Ptr = this;
 	View = view;
@@ -256,6 +255,7 @@ GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv *&Ptr) :
 	ScrollChange = false;
 	DocumentExtent.x = 0;
 	DocumentExtent.y = 0;
+	SpellCheck = NULL;
 	if (Font.Reset(new GFont))
 		*Font = *SysFont;
 
@@ -282,7 +282,8 @@ GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv *&Ptr) :
 
 	Padding(GCss::Len(GCss::LenPx, 4));
 
-	SpellCheck.EnumDictionaries();
+	if (SpellCheck)
+		SpellCheck->EnumDictionaries();
 
 	EmptyDoc();
 }

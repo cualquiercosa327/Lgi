@@ -306,7 +306,7 @@ int MailPhp::GetMessages()
 	return d->Messages;
 }
 
-bool MailPhp::Open(GSocketI *S, char *RemoteHost, int Port, char *User, char *Password, GDom *SettingStore, int Flags)
+bool MailPhp::Open(GSocketI *S, const char *RemoteHost, int Port, const char *User, const char *Password, GDom *SettingStore, int Flags)
 {
 	if (S &&
 		RemoteHost)

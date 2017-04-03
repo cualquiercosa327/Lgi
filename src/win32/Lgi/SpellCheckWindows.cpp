@@ -1,4 +1,10 @@
+#include "Lgi.h"
 #include "LgiSpellcheck.h"
+#if 0 // def WINDOWS
+#include "Spellcheck.h"
+#endif
+
+#ifdef __spellcheck_h__
 
 #include <initguid.h>
 DEFINE_GUID(CLSID_SpellCheckerFactory,0x7AB36653,0x1796,0x484B,0xBD,0xFA,0xE7,0x4F,0x1D,0xB7,0xC1,0xDC);
@@ -176,3 +182,4 @@ GMessage::Result GSpellCheck::OnEvent(GMessage *Msg)
 	return 0;
 }
 
+#endif

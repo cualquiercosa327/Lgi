@@ -46,8 +46,8 @@ extern char *DecodeBase64Str(char *Str, int Len = -1);
 extern char *DecodeQuotedPrintableStr(char *Str, int Len = -1);
 extern bool Is8Bit(char *Text);
 extern int MaxLineLen(char *Text);
-extern char *EncodeImapString(char *s);
-extern char *DecodeImapString(char *s);
+extern char *EncodeImapString(const char *s);
+extern char *DecodeImapString(const char *s);
 
 extern const char *sTextPlain;
 extern const char *sTextHtml;
@@ -769,9 +769,9 @@ public:
 	virtual ~MailImapFolder();
 
 	char *GetPath();
-	void SetPath(char *s);
+	void SetPath(const char *s);
 	char *GetName();
-	void SetName(char *s);
+	void SetName(const char *s);
 	char GetSep() { return Sep; }
 	void operator =(GHashTbl<const char*,int> &v);
 };
@@ -883,6 +883,7 @@ public:
 	bool Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks = 0);
 	int GetMessages();
 	bool Delete(int Message);
+	bool Delete(bool ByUid, const char *Seq);
 	int Sizeof(int Message);
 	bool GetSizes(GArray<int> &Sizes);
 	bool GetUid(int Message, char *Id, int IdLen);
@@ -916,13 +917,13 @@ public:
 	bool Append
 	(
 		/// The folder to write to
-		char *Folder,
+		const char *Folder,
 		/// [Optional] Flags for the message
 		ImapMailFlags *Flags,
 		/// The rfc822 body of the message
-		char *Msg,
+		const char *Msg,
 		/// [Out] The UID of the message appended (if known, can be empty if not known)
-		GAutoString &NewUid
+		GString &NewUid
 	);
 
 	bool GetFolders(GArray<MailImapFolder*> &Folders);
@@ -930,15 +931,15 @@ public:
 	char *GetSelectedFolder();
 	int GetMessages(const char *Path);
 	bool CreateFolder(MailImapFolder *f);
-	bool DeleteFolder(char *Path);
-	bool RenameFolder(char *From, char *To);
+	bool DeleteFolder(const char *Path);
+	bool RenameFolder(const char *From, const char *To);
 	bool SetFolderFlags(MailImapFolder *f);
 	
 	/// Expunges (final delete) any deleted messages the current folder.
 	bool ExpungeFolder();
 	
 	// Uid methods
-	bool CopyByUid(GArray<char*> &InUids, char *DestFolder);
+	bool CopyByUid(GArray<char*> &InUids, const char *DestFolder);
 	bool SetFlagsByUid(GArray<char*> &Uids, const char *Flags);
 
 	/// Idle processing...

@@ -383,7 +383,7 @@ public:
 	GHtmlStaticInst Inst;
 	int NextUid;
 	GStream *Log;
-	GSpellCheck SpellCheck;
+	GSpellCheck *SpellCheck;
 
 	// This is set when the user changes a style without a selection,
 	// indicating that we should start a new run when new text is entered

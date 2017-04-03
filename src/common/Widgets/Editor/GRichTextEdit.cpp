@@ -2240,8 +2240,8 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 					}
 				}
 
-				if (Lang)
-					d->SpellCheck.SetDictionary(Lang);
+				if (Lang && d->SpellCheck)
+					d->SpellCheck->SetDictionary(Lang);
 			}
 			break;
 		}
