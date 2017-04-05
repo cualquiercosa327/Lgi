@@ -78,14 +78,14 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 		}
 	};
 
-	GEventSinkPtr App;
+	int hApp;
 	GArray<GString::Array*> IncPaths;
 	GArray<FileSyms*> Files;
 	uint32 Tasks;
 	uint64 MsgTs;
 	
-	FindSymbolSystemPriv(GEventSinkI *app) :
-		App(app, false),
+	FindSymbolSystemPriv(int appSinkHnd) :
+		hApp(appSinkHnd),
 		GEventTargetThread("FindSymbolSystemPriv")
 	{
 		Tasks = 0;
@@ -106,7 +106,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 		va_end(Arg);
 		
 		if (s.Length())
-			App.PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr(s), AppWnd::BuildTab);
+			GEventSinkMap::Dispatch.PostEvent(hApp, M_APPEND_TEXT, (GMessage::Param)NewStr(s), AppWnd::BuildTab);
 	}
 	
 	int GetFileIndex(GString &Path)
@@ -479,9 +479,9 @@ int FindSymbolDlg::OnNotify(GViewI *v, int f)
 }
 
 ///////////////////////////////////////////////////////////////////////////
-FindSymbolSystem::FindSymbolSystem(GEventSinkI *app)
+FindSymbolSystem::FindSymbolSystem(int AppHnd)
 {
-	d = new FindSymbolSystemPriv(app);
+	d = new FindSymbolSystemPriv(AppHnd);
 }
 
 FindSymbolSystem::~FindSymbolSystem()

@@ -5,8 +5,7 @@
 #include "GMutex.h"
 #include "GThreadEvent.h"
 
-class GEventTargetThread;
-
+/*
 /// This class is a smart pointer to a GEventTargetThread. When the
 /// GEventSinkPtr::PostEvent is safe to call even if the GEventTargetThread
 /// object could be deleted asynchronously.
@@ -53,21 +52,157 @@ public:
 		return Status;
 	}
 };
+*/
+
+class LgiClass GEventSinkMap : public GMutex
+{
+protected:
+	GHashTbl<int,GEventSinkI*> ToPtr;
+	GHashTbl<void*,int> ToHnd;
+
+public:
+	static GEventSinkMap Dispatch;
+
+	GEventSinkMap(int SizeHint = 0) :
+		ToPtr(SizeHint, false, 0, NULL),
+		ToHnd(SizeHint, false, NULL, 0)
+	{
+	}
+
+	virtual ~GEventSinkMap()
+	{
+	}
+
+	int AddSink(GEventSinkI *s)
+	{
+		if (!s || !Lock(_FL))
+			return ToPtr.GetNullKey();
+
+		// Find free handle...
+		int Hnd;
+		while (ToPtr.Find(Hnd = LgiRand(10000) + 1))
+			;
+
+		// Add the new sink
+		ToPtr.Add(Hnd, s);
+		ToHnd.Add(s, Hnd);
+
+		Unlock();
+
+		return Hnd;
+	}
+
+	bool RemoveSink(GEventSinkI *s)
+	{
+		if (!s || !Lock(_FL))
+			return false;
+
+		bool Status = false;
+		int Hnd = ToHnd.Find(s);
+		if (Hnd > 0)
+		{
+			Status |= ToHnd.Delete(s);
+			Status &= ToPtr.Delete(Hnd);
+		}
+		else
+			LgiAssert(!"Not a member of this sink.");
+
+		Unlock();
+		return Status;
+	}
+
+	bool RemoveSink(int Hnd)
+	{
+		if (!Hnd || !Lock(_FL))
+			return false;
+
+		bool Status = false;
+		void *Ptr = ToPtr.Find(Hnd);
+		if (Ptr)
+		{
+			Status |= ToHnd.Delete(Ptr);
+			Status &= ToPtr.Delete(Hnd);
+		}
+		else
+			LgiAssert(!"Not a member of this sink.");
+
+		Unlock();
+		return Status;
+	}
+
+	bool PostEvent(int Hnd, int Cmd, GMessage::Param a = 0, GMessage::Param b = 0)
+	{
+		if (!Hnd)
+			return false;
+		if (!Lock(_FL))
+			return false;
+
+		GEventSinkI *s = (GEventSinkI*)ToPtr.Find(Hnd);
+		bool Status = false;
+		if (s)
+			Status = s->PostEvent(Cmd, a, b);
+		else
+			LgiAssert(!"Not a member of this sink.");
+
+		Unlock();
+		return false;
+	}
+};
+
+class LgiClass GMappedEventSink : public GEventSinkI
+{
+protected:
+	int Handle;
+	GEventSinkMap *Map;
+
+public:
+	GMappedEventSink()
+	{
+		Map = NULL;
+		Handle = 0;
+		SetMap(&GEventSinkMap::Dispatch);
+	}
+
+	virtual ~GMappedEventSink()
+	{
+		SetMap(NULL);
+	}
+
+	bool SetMap(GEventSinkMap *m)
+	{
+		if (Map)
+		{
+			if (!Map->RemoveSink(this))
+				return false;
+			Map = 0;
+			Handle = 0;
+		}
+		Map = m;
+		if (Map)
+		{
+			Handle = Map->AddSink(this);
+			return Handle > 0;
+		}
+		return true;
+	}
+
+	int GetHandle()
+	{
+		return Handle;
+	}
+};
 
 /// This class is a worker thread that accepts messages on it's GEventSinkI interface.
 /// To use, sub class and implement the OnEvent handler.
 class LgiClass GEventTargetThread :
 	public GThread,
 	public GMutex,
-	public GEventSinkI,
+	public GMappedEventSink,
 	public GEventTargetI // Sub-class has to implement OnEvent
 {
-	friend class GEventSinkPtr;
-
 	GArray<GMessage*> Msgs;
 	GThreadEvent Event;
 	bool Loop;
-	GArray<GEventSinkPtr*> Ptrs;
 
 	// This makes the event name unique on windows to 
 	// prevent multiple instances clashing.
@@ -93,16 +228,6 @@ public:
 	
 	virtual ~GEventTargetThread()
 	{
-		if (Lock(_FL))
-		{
-			for (unsigned i=0; i<Ptrs.Length(); i++)
-			{
-				Ptrs[i]->OnDelete(this);
-			}
-			Ptrs.Length(0);
-			Unlock();
-		}
-
 		EndThread();
 	}
 

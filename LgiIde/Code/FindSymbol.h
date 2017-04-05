@@ -1,6 +1,8 @@
 #ifndef _FIND_SYMBOL_H_
 #define _FIND_SYMBOL_H_
 
+#include "GEventTargetThread.h"
+
 struct FindSymResult
 {
 	GString Symbol, File;
@@ -55,7 +57,7 @@ public:
 		FileReparse
 	};
 
-	FindSymbolSystem(GEventSinkI *app);
+	FindSymbolSystem(int AppHnd);
 	~FindSymbolSystem();
 	
 	bool SetIncludePaths(GString::Array &Paths);

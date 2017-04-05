@@ -172,34 +172,24 @@ int FindInFiles::OnNotify(GViewI *v, int f)
 class FindInFilesThreadPrivate
 {
 public:
-	AppWnd *App;
-	FindParams *Params;
+	int AppHnd;
+	GAutoPtr<FindParams> Params;
 	bool Loop;
 	GStringPipe Pipe;
 	int64 Last;
 };
 
-FindInFilesThread::FindInFilesThread(AppWnd *App, FindParams *Params) : GThread("FindInFilesThread")
+FindInFilesThread::FindInFilesThread(int AppHnd) : GEventTargetThread("FindInFiles")
 {
 	d = new FindInFilesThreadPrivate;
-	d->App = App;
-	d->Params = new FindParams(Params); // Make copy that we own...
+	d->AppHnd = AppHnd;
 	d->Loop = true;
 	d->Last = 0;
-	
-	DeleteOnExit = true;	
-	Run();
 }
 
 FindInFilesThread::~FindInFilesThread()
 {
-	DeleteObj(d->Params);
 	DeleteObj(d);
-}
-
-void FindInFilesThread::Stop()
-{
-	d->Loop = false;
 }
 
 void FindInFilesThread::SearchFile(char *File)
@@ -269,7 +259,7 @@ void FindInFilesThread::SearchFile(char *File)
 							int64 Now = LgiCurrentTime();
 							if (Now > d->Last  + 500)
 							{
-								d->App->PostEvent(M_APPEND_TEXT, (GMessage::Param)d->Pipe.NewStr(), 2);
+								GEventSinkMap::Dispatch.PostEvent(d->AppHnd, M_APPEND_TEXT, (GMessage::Param)d->Pipe.NewStr(), 2);
 							}
 						}
 						s = Eol - 1;
@@ -307,77 +297,90 @@ bool FindInFilesCallback(void *UserData, char *Path, GDirectory *Dir)
 	return true;
 }
 
-int FindInFilesThread::Main()
+void FindInFilesThread::Stop()
 {
-	if (d->App &&
-		d->Params &&
-		ValidStr(d->Params->Text))
+	d->Loop = false;
+}
+
+GMessage::Result FindInFilesThread::OnEvent(GMessage *Msg)
+{
+	switch (Msg->Msg())
 	{
-		char Msg[256];
-
-		snprintf(Msg, sizeof(Msg), "Searching for '%s'...\n", d->Params->Text.Get());
-		d->App->PostEvent(M_APPEND_TEXT, 0, 2);
-		d->App->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr(Msg), 2);
-
-		GArray<const char*> Ext;
-		GToken e(d->Params->Ext, ";, ");
-		for (int i=0; i<e.Length(); i++)
+		case M_START_SEARCH:
 		{
-			Ext.Add(e[i]);
-		}
+			d->Params.Reset((FindParams*)Msg->A());
+			if (d->AppHnd &&
+				d->Params &&
+				ValidStr(d->Params->Text))
+			{
+				char Msg[256];
+
+				d->Loop = true;
+				snprintf(Msg, sizeof(Msg), "Searching for '%s'...\n", d->Params->Text.Get());
+				GEventSinkMap::Dispatch.PostEvent(d->AppHnd, M_APPEND_TEXT, 0, 2);
+				GEventSinkMap::Dispatch.PostEvent(d->AppHnd, M_APPEND_TEXT, (GMessage::Param)NewStr(Msg), 2);
+
+				GArray<const char*> Ext;
+				GToken e(d->Params->Ext, ";, ");
+				for (int i=0; i<e.Length(); i++)
+				{
+					Ext.Add(e[i]);
+				}
 		
-		GArray<char*> Files;
-		if (d->Params->Type == FifSearchSolution)
-		{
-			// Do the extension filtering...
-			for (unsigned i=0; i<d->Params->ProjectFiles.Length(); i++)
-			{
-				GString p = d->Params->ProjectFiles[i];
-				const char *Leaf = LgiGetLeaf(p);
-				for (unsigned n=0; n<Ext.Length(); n++)
+				GArray<char*> Files;
+				if (d->Params->Type == FifSearchSolution)
 				{
-					if (MatchStr(Ext[n], Leaf))
-						Files.Add(NewStr(p));
+					// Do the extension filtering...
+					for (unsigned i=0; i<d->Params->ProjectFiles.Length(); i++)
+					{
+						GString p = d->Params->ProjectFiles[i];
+						const char *Leaf = LgiGetLeaf(p);
+						for (unsigned n=0; n<Ext.Length(); n++)
+						{
+							if (MatchStr(Ext[n], Leaf))
+								Files.Add(NewStr(p));
+						}
+					}
+				}
+				else
+				{
+					// Find the files recursively...
+					LgiRecursiveFileSearch(d->Params->Dir, &Ext, &Files, 0, 0, FindInFilesCallback);
+				}
+
+				if (Files.Length() > 0)
+				{			
+					sprintf(Msg, "in %i files...\n", Files.Length());
+					GEventSinkMap::Dispatch.PostEvent(d->AppHnd, M_APPEND_TEXT, (GMessage::Param)NewStr(Msg), 2);
+
+					for (int i=0; i<Files.Length() && d->Loop; i++)
+					{
+						char *f = Files[i];
+						char *Dir = strrchr(f, DIR_CHAR);
+						if (!Dir || Dir[1] != '.')
+						{
+							SearchFile(f);
+						}
+					}
+			
+					char *Str = d->Pipe.NewStr();
+					if (Str)
+					{
+						GEventSinkMap::Dispatch.PostEvent(d->AppHnd, M_APPEND_TEXT, (GMessage::Param)Str, 2);
+					}
+			
+					Files.DeleteArrays();
+
+					GEventSinkMap::Dispatch.PostEvent(d->AppHnd, M_APPEND_TEXT, (GMessage::Param)NewStr("Done.\n"), 2);
+				}
+				else
+				{
+					GEventSinkMap::Dispatch.PostEvent(d->AppHnd, M_APPEND_TEXT, (GMessage::Param)NewStr("No files matched.\n"), 2);
 				}
 			}
-		}
-		else
-		{
-			// Find the files recursively...
-			LgiRecursiveFileSearch(d->Params->Dir, &Ext, &Files, 0, 0, FindInFilesCallback);
-		}
-
-		if (Files.Length() > 0)
-		{			
-			sprintf(Msg, "in %i files...\n", Files.Length());
-			d->App->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr(Msg), 2);
-
-			for (int i=0; i<Files.Length() && d->Loop; i++)
-			{
-				char *f = Files[i];
-				char *Dir = strrchr(f, DIR_CHAR);
-				if (!Dir || Dir[1] != '.')
-				{
-					SearchFile(f);
-				}
-			}
-			
-			char *Str = d->Pipe.NewStr();
-			if (Str)
-			{
-				d->App->PostEvent(M_APPEND_TEXT, (GMessage::Param)Str, 2);
-			}
-			
-			Files.DeleteArrays();
-
-			d->App->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr("Done.\n"), 2);
-		}
-		else
-		{
-			d->App->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr("No files matched.\n"), 2);
+			break;
 		}
 	}
 
-	d->App->OnFindFinished();
 	return 0;
 }

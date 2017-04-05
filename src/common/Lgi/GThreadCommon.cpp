@@ -1,6 +1,8 @@
 #include "Lgi.h"
 #include "GEventTargetThread.h"
 
+GEventSinkMap GEventSinkMap::Dispatch(128);
+
 //////////////////////////////////////////////////////////////////////////////////
 GThreadTarget::GThreadTarget()
 {
@@ -147,6 +149,7 @@ GThreadOwner::~GThreadOwner()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
+/*
 GEventSinkPtr::GEventSinkPtr(GEventTargetThread *p, bool own)
 {
 	Ptr = p;
@@ -178,3 +181,4 @@ GEventSinkPtr::~GEventSinkPtr()
 		Ptr = NULL;
 	}
 }
+*/

@@ -383,6 +383,11 @@ public:
 		DeleteArray(Table);
 	}
 
+	Key GetNullKey()
+	{
+		return NullKey;
+	}
+
 	/// Copy operator
 	GHashTbl<Key, Value> &operator =(GHashTbl<Key, Value> &c)
 	{

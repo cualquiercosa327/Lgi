@@ -78,18 +78,23 @@ public:
 	void OnCreate();
 };
 
-class FindInFilesThread : public GThread
+class FindInFilesThread : public GEventTargetThread
 {
 	class FindInFilesThreadPrivate *d;
 
 	void SearchFile(char *File);
 
 public:
-	FindInFilesThread(AppWnd *app, FindParams *Params);
+	enum Msgs
+	{
+		M_START_SEARCH = M_USER + 100, // A=(FindParams*)
+	};
+
+	FindInFilesThread(int AppHnd);
 	~FindInFilesThread();
 	
-	int Main();
 	void Stop();
+	GMessage::Result OnEvent(GMessage *Msg);
 };
 
 #endif

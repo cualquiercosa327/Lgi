@@ -791,7 +791,7 @@ public:
 	bool Building;
 	GSubMenu *WindowsMenu;
 	GSubMenu *CreateMakefileMenu;
-	FindSymbolSystem FindSym;
+	GAutoPtr<FindSymbolSystem> FindSym;
 	GArray<GAutoString> SystemIncludePaths;
 	GArray<GDebugger::BreakPoint> BreakPoints;
 	
@@ -821,7 +821,8 @@ public:
 	
 	// Find in files
 	GAutoPtr<FindParams> FindParameters;
-	FindInFilesThread *Finder;
+	GAutoPtr<FindInFilesThread> Finder;
+	int AppHnd;
 	
 	// Mru
 	List<char> RecentFiles;
@@ -831,9 +832,10 @@ public:
 
 	// Object
 	AppWndPrivate(AppWnd *a) :
-		Options(GOptionsFile::DesktopMode, AppName),
-		FindSym(a)
+		AppHnd(GEventSinkMap::Dispatch.AddSink(a)),
+		Options(GOptionsFile::DesktopMode, AppName)
 	{
+		FindSym.Reset(new FindSymbolSystem(AppHnd));
 		HistoryLoc = 0;
 		InHistorySeek = false;
 		WindowsMenu = 0;
@@ -841,7 +843,6 @@ public:
 		Sp = 0;
 		Tree = 0;
 		DbgContext = NULL;
-		Finder = 0;
 		Output = 0;
 		Debugging = false;
 		Running = false;
@@ -859,6 +860,8 @@ public:
 	
 	~AppWndPrivate()
 	{
+		FindSym.Reset();
+		Finder.Reset();
 		Output->Save();
 		App->SerializeState(&Options, "WndPos", false);
 		SerializeStringList("RecentFiles", &RecentFiles, true);
@@ -1550,11 +1553,6 @@ void AppWnd::AppendOutput(char *Txt, AppWnd::Channels Channel)
 	}
 }
 
-void AppWnd::OnFindFinished()
-{
-	d->Finder = 0;
-}
-
 void AppWnd::SaveAll()
 {
 	List<IdeDoc>::I Docs = d->Docs.Start();
@@ -1914,7 +1912,7 @@ IdeProject *AppWnd::OpenProject(char *FileName, IdeProject *ParentProj, bool Cre
 		{
 			GString::Array Inc;
 			p->BuildIncludePaths(Inc, false, PlatformCurrent);
-			d->FindSym.SetIncludePaths(Inc);
+			d->FindSym->SetIncludePaths(Inc);
 
 			p->SetParentProject(ParentProj);
 			
@@ -2077,7 +2075,7 @@ bool AppWnd::OnNode(const char *Path, ProjectNode *Node, FindSymbolSystem::SymAc
 	if (!Path || !Node)
 		return false;
 
-	d->FindSym.OnFile(Path, Action); // Add ? FindSymbolSystem::FileAdd : FindSymbolSystem::FileRemove);
+	d->FindSym->OnFile(Path, Action); // Add ? FindSymbolSystem::FileAdd : FindSymbolSystem::FileRemove);
 	return true;
 }
 
@@ -2584,32 +2582,11 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		}
 		case IDM_FIND_IN_FILES:
 		{
-			if (d->Finder)
-			{
-				d->Finder->Stop();
-
-				uint64 Start = LgiCurrentTime();
-				while (d->Finder)
-				{
-					LgiYield();
-					LgiSleep(10);
-
-					uint64 Now = LgiCurrentTime();
-					if (Now - Start > 2000)
-					{
-						LgiAssert(0);
-						return 0;
-					}
-				}
-
-				if (d->Finder)
-				{
-					LgiAssert(!"Finder failed to shutdown");
-					break;
-				}
-			}
-
 			if (!d->Finder)
+			{
+				d->Finder.Reset(new FindInFilesThread(d->AppHnd));
+			}
+			if (d->Finder)
 			{
 				if (!d->FindParameters &&
 					d->FindParameters.Reset(new FindParams))
@@ -2656,11 +2633,12 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 						}
 					}
 
-					d->Finder = new FindInFilesThread(this, Dlg.Params);
 				}
 
 				GVariant var = d->FindParameters->Type == FifSearchSolution;
 				GetOptions()->SetValue(OPT_ENTIRE_SOLUTION, var);
+
+				d->Finder->PostEvent(FindInFilesThread::M_START_SEARCH, (GMessage::Param) new FindParams(d->FindParameters));
 			}
 			break;
 		}
@@ -2673,7 +2651,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			}
 			else
 			{
-				FindSymResult r = d->FindSym.OpenSearchDlg(this);
+				FindSymResult r = d->FindSym->OpenSearchDlg(this);
 				if (r.File)
 				{
 					GotoReference(r.File, r.Line, false);
@@ -3110,7 +3088,7 @@ GStream *AppWnd::GetBuildLog()
 
 void AppWnd::FindSymbol(GEventSinkI *Results, const char *Sym)
 {
-	d->FindSym.Search(Results, Sym);
+	d->FindSym->Search(Results, Sym);
 }
 
 #include "GSubProcess.h"
