@@ -1012,16 +1012,17 @@ public:
 			}
 		};
 
+		int ThreadHnd;
+
 	protected:
 		GNamedStyle *Style;
-		GAutoPtr<GEventSinkPtr> Thread;
 		int Scale;
 		GRect SourceValid;
 
 		GArray<ScaleInf> Scales;
 		int ResizeIdx;
 
-		GEventSinkPtr *GetThread();
+		int GetThreadHandle();
 		void UpdateDisplay(int y);
 		void UpdateDisplayImg();
 

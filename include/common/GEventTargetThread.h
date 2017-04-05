@@ -5,6 +5,8 @@
 #include "GMutex.h"
 #include "GThreadEvent.h"
 
+#define PostThreadEvent GEventSinkMap::Dispatch.PostEvent
+
 /*
 /// This class is a smart pointer to a GEventTargetThread. When the
 /// GEventSinkPtr::PostEvent is safe to call even if the GEventTargetThread

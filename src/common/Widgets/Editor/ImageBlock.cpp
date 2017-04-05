@@ -172,6 +172,11 @@ public:
 				Sink->PostEvent(M_IMAGE_FLIP);
 				break;
 			}
+			case M_CLOSE:
+			{
+				EndThread();
+				break;
+			}
 		}
 
 		return 0;
@@ -180,6 +185,7 @@ public:
 
 GRichTextPriv::ImageBlock::ImageBlock(GRichTextPriv *priv) : Block(priv)
 {
+	ThreadHnd = 0;
 	LayoutDirty = false;
 	Pos.ZOff(-1, -1);
 	Style = NULL;
@@ -196,6 +202,7 @@ GRichTextPriv::ImageBlock::ImageBlock(GRichTextPriv *priv) : Block(priv)
 
 GRichTextPriv::ImageBlock::ImageBlock(const ImageBlock *Copy) : Block(Copy->d)
 {
+	ThreadHnd = 0;
 	LayoutDirty = true;
 	SourceImg.Reset(new GMemDC(Copy->SourceImg));
 	Size = Copy->Size;
@@ -207,7 +214,8 @@ GRichTextPriv::ImageBlock::ImageBlock(const ImageBlock *Copy) : Block(Copy->d)
 
 GRichTextPriv::ImageBlock::~ImageBlock()
 {
-	Thread.Reset();
+	if (ThreadHnd)
+		PostThreadEvent(ThreadHnd, M_CLOSE);
 	LgiAssert(Cursors == 0);
 }
 
@@ -271,14 +279,17 @@ bool GRichTextPriv::ImageBlock::Load(const char *Src)
 	if (!FileName && !Stream)
 		return false;
 
-	if (!Thread.Reset(new GEventSinkPtr(new ImageLoader(this), true)))
+	ImageLoader *il = new ImageLoader(this);
+	if (!il)
 		return false;
+	ThreadHnd = il->GetHandle();
+	LgiAssert(ThreadHnd > 0);
 
 	if (Stream)
-		return Thread->PostEvent(M_IMAGE_LOAD_STREAM, (GMessage::Param)Stream.Release(), (GMessage::Param) (FileName ? new GString(FileName) : NULL));
+		return PostThreadEvent(ThreadHnd, M_IMAGE_LOAD_STREAM, (GMessage::Param)Stream.Release(), (GMessage::Param) (FileName ? new GString(FileName) : NULL));
 	
 	if (FileName)
-		return Thread->PostEvent(M_IMAGE_LOAD_FILE, (GMessage::Param)new GString(FileName));
+		return PostThreadEvent(ThreadHnd, M_IMAGE_LOAD_FILE, (GMessage::Param)new GString(FileName));
 	
 	return false;
 }
@@ -780,13 +791,17 @@ void GRichTextPriv::ImageBlock::UpdateDisplay(int yy)
 	}
 }
 
-GEventSinkPtr *GRichTextPriv::ImageBlock::GetThread()
+int GRichTextPriv::ImageBlock::GetThreadHandle()
 {
-	if (!Thread.Reset(new GEventSinkPtr(new ImageLoader(this), true)))
-		return false;
-	return Thread;
-}
+	if (ThreadHnd == 0)
+	{
+		ImageLoader *il = new ImageLoader(this);
+		if (il > 0)
+			ThreadHnd = il->GetHandle();
+	}
 
+	return ThreadHnd;
+}
 
 void GRichTextPriv::ImageBlock::UpdateDisplayImg()
 {
@@ -835,25 +850,22 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 					ScaleInf &si = Scales[i];
 					ResizeIdx = i;
 
-					if (!Thread.Reset(new GEventSinkPtr(new ImageLoader(this), true)))
-						return false;
-
-					Thread->PostEvent(M_IMAGE_COMPRESS, (GMessage::Param)SourceImg.Get(), (GMessage::Param)&si);
+					PostThreadEvent(GetThreadHandle(), M_IMAGE_COMPRESS, (GMessage::Param)SourceImg.Get(), (GMessage::Param)&si);
 				}
 			}
 			else switch (Msg->A())
 			{
 				case IDM_CLOCKWISE:
-					GetThread()->PostEvent(M_IMAGE_ROTATE, (GMessage::Param) SourceImg.Get(), 1);
+					PostThreadEvent(GetThreadHandle(), M_IMAGE_ROTATE, (GMessage::Param) SourceImg.Get(), 1);
 					break;
 				case IDM_ANTI_CLOCKWISE:
-					GetThread()->PostEvent(M_IMAGE_ROTATE, (GMessage::Param) SourceImg.Get(), -1);
+					PostThreadEvent(GetThreadHandle(), M_IMAGE_ROTATE, (GMessage::Param) SourceImg.Get(), -1);
 					break;
 				case IDM_X_FLIP:
-					GetThread()->PostEvent(M_IMAGE_FLIP, (GMessage::Param) SourceImg.Get(), 1);
+					PostThreadEvent(GetThreadHandle(), M_IMAGE_FLIP, (GMessage::Param) SourceImg.Get(), 1);
 					break;
 				case IDM_Y_FLIP:
-					GetThread()->PostEvent(M_IMAGE_FLIP, (GMessage::Param) SourceImg.Get(), 0);
+					PostThreadEvent(GetThreadHandle(), M_IMAGE_FLIP, (GMessage::Param) SourceImg.Get(), 0);
 					break;
 			}
 			break;
@@ -870,7 +882,8 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 		}
 		case M_IMAGE_ERROR:
 		{
-			Thread.Reset();
+			PostThreadEvent(ThreadHnd, M_CLOSE);
+			ThreadHnd = 0;
 			break;
 		}
 		case M_IMAGE_SET_SURFACE:
@@ -907,7 +920,8 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 		case M_IMAGE_FINISHED:
 		{
 			UpdateDisplay(SourceImg->Y()-1);
-			Thread->PostEvent(M_IMAGE_RESAMPLE,
+			PostThreadEvent(GetThreadHandle(),
+							M_IMAGE_RESAMPLE,
 							(GMessage::Param)DisplayImg.Get(),
 							(GMessage::Param)SourceImg.Get());
 			break;
@@ -916,7 +930,8 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 		{
 			LayoutDirty = true;
 			d->InvalidateDoc(NULL);
-			Thread.Reset();
+			PostThreadEvent(ThreadHnd, M_CLOSE);
+			ThreadHnd = 0;
 			SourceValid.ZOff(-1, -1);
 			break;
 		}
@@ -926,9 +941,10 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 			DisplayImg.Reset();
 			UpdateDisplayImg();
 			if (DisplayImg)
-				GetThread()->PostEvent(	M_IMAGE_RESAMPLE,
-										(GMessage::Param)DisplayImg.Get(),
-										(GMessage::Param)SourceImg.Get());
+				PostThreadEvent(GetThreadHandle(),
+								M_IMAGE_RESAMPLE,
+								(GMessage::Param)DisplayImg.Get(),
+								(GMessage::Param)SourceImg.Get());
 
 			break;
 		}
