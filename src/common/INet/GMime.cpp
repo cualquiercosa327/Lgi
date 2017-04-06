@@ -1070,7 +1070,6 @@ int GMime::GMimeText::GMimeDecode::Parse(GStringPipe *Source, ParentState *State
 			int r;
 			while ((r = Source->Pop(Buf, sizeof(Buf))) > 0)
 			{
-				LgiTrace("Buf='%.*s'\n", r, Buf);
 				if (!strchr(MimeEol, Buf[0]))
 				{
 					// Store part of the headers
