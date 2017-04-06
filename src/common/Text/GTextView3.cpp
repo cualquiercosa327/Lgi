@@ -2188,13 +2188,33 @@ bool GTextView3::Open(const char *Name, const char *CharSet)
 bool GTextView3::Save(const char *Name, const char *CharSet)
 {
 	GFile f;
+	GString TmpName;
+	bool Status = false;
+
 	if (f.Open(Name, O_WRITE))
 	{
-		f.SetSize(0);
-		if (Text)
+		if (f.SetSize(0) != 0)
 		{
-			bool Status = false;
-			
+			// Can't resize file, fall back to renaming it and 
+			// writing a new file...
+			f.Close();
+			TmpName = Name;
+			TmpName += ".tmp";
+			if (!FileDev->Move(Name, TmpName))
+			{
+				LgiTrace("%s:%i - Failed to move '%s'.\n", _FL, Name);
+				return false;
+			}
+
+			if (!f.Open(Name, O_WRITE))
+			{
+				LgiTrace("%s:%i - Failed to open '%s' for writing.\n", _FL, Name);
+				return false;
+			}
+		}
+
+		if (Text)
+		{			
 			char *c8 = (char*)LgiNewConvertCp(CharSet ? CharSet : DefaultCharset, Text, LGI_WideCharset, Size * sizeof(char16));
 			if (c8)
 			{
@@ -2248,10 +2268,13 @@ bool GTextView3::Save(const char *Name, const char *CharSet)
 			}
 
 			Dirty = false;
-			return Status;
 		}
 	}
-	return false;
+
+	if (TmpName)
+		FileDev->Delete(TmpName);
+
+	return Status;
 }
 
 void GTextView3::UpdateScrollBars(bool Reset)

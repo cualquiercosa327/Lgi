@@ -1523,11 +1523,17 @@ int64 GFile::SetSize(int64 Size)
 	DWORD OldPosLow = SetFilePointer(d->hFile, 0, &OldPosHigh, SEEK_CUR);
 	
 	LONG SizeHigh = Size >> 32;
-	SetFilePointer(d->hFile, Size, &SizeHigh, FILE_BEGIN);
+	DWORD r = SetFilePointer(d->hFile, Size, &SizeHigh, FILE_BEGIN);
 	
-	SetEndOfFile(d->hFile);
+	BOOL b = SetEndOfFile(d->hFile);
+	if (!b)
+	{
+		DWORD err = GetLastError();
+		LgiTrace("%s:%i - SetSize("LGI_PrintfInt64") failed: 0x%x\n", _FL, Size, err);
+	}
 	
 	SetFilePointer(d->hFile, OldPosLow, &OldPosHigh, FILE_BEGIN);
+
 	return GetSize();
 }
 
