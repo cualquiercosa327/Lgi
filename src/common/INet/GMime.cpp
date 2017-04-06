@@ -469,9 +469,21 @@ int GMimeBuf::Pop(char *Str, int BufSize)
 					Total += r;
 				}
 			}
-			else break;
+			else
+			{
+				Src = NULL; // Source data is finished
+			}
 		}
-		else break;
+		else
+		{
+			// Is there any unterminated space in the string pipe?
+			int64 Sz = GStringPipe::GetSize();
+			if (Sz > 0)
+			{
+				Ret = GStringPipe::Read(Str, BufSize);
+			}
+			break;
+		}
 	}
 
 	return Ret;
@@ -1058,6 +1070,7 @@ int GMime::GMimeText::GMimeDecode::Parse(GStringPipe *Source, ParentState *State
 			int r;
 			while ((r = Source->Pop(Buf, sizeof(Buf))) > 0)
 			{
+				LgiTrace("Buf='%.*s'\n", r, Buf);
 				if (!strchr(MimeEol, Buf[0]))
 				{
 					// Store part of the headers
