@@ -301,38 +301,42 @@ char *DecodeQuotedPrintableStr(char *Str, int Len)
 
 char *DecodeRfc2047(char *Str)
 {
-	if (Str && strstr(Str, "=?"))
+	if (!Str)
+		return NULL;
+	
+	GStringPipe p(256);
+	for (char *s = Str; *s; )
 	{
-		GMemQueue Temp;
-		char *s = Str;
-		while (*s)
+		char *e = s;
+		bool Decode, Descape;
+		while (*e)
+		{
+			if
+			(
+				(Decode = (e[0] == '=' && e[1] == '?'))
+				||
+				(Descape = (e[0] == '\\'))
+			)
+			{
+				// Emit characters between 's' and 'e'
+				if (e > s)
+					p.Write(s, e - s);
+				break;
+			}
+			e++;
+		}
+
+		if (Decode)
 		{
 			// is there a word remaining
 			bool Encoded = false;
-			char *p = strstr(s, "=?");
-			char *First = 0;
-			char *Second = 0;
-			char *End = 0;
-			char *Cp = 0;
-			if (p)
+			char *Start  = e + 2;
+			char *First  = strchr(Start, '?');
+			char *Second = First ? strchr(First + 1, '?') : NULL;
+			char *End    = Second ? strstr(Second + 1, "?=") : NULL;
+			if (End)
 			{
-				char *CpStart = p + 2;
-				
-				First = strchr(CpStart, '?');
-				if (First)
-				{
-					Cp = NewStr(CpStart, First-CpStart);
-					Second = strchr(First+1, '?');
-					if (Second)
-					{
-						End = strstr(Second+1, "?=");
-						Encoded = End != 0;
-					}
-				}
-			}
-
-			if (Encoded)
-			{
+				GString Cp(Start, First - Start);
 				int Type = CONTENT_NONE;
 				bool StripUnderscores = false;
 				if (ToUpper(First[1]) == 'B')
@@ -349,7 +353,8 @@ char *DecodeRfc2047(char *Str)
 
 				if (Type != CONTENT_NONE)
 				{
-					char *Block = NewStr(Second+1, End-Second-1);
+					Second++;					
+					char *Block = NewStr(Second, End-Second);
 					if (Block)
 					{
 						switch (Type)
@@ -365,28 +370,16 @@ char *DecodeRfc2047(char *Str)
 						int Len = strlen(Block);
 						if (StripUnderscores)
 						{
-							for (int i=0; i<Len; i++)
+							for (char *i=Block; *i; i++)
 							{
-								if (Block[i] == '_') Block[i] = ' ';
+								if (*i == '_')
+									*i = ' ';
 							}
 						}
 
-						char *c;
-						for (c=s; c<p; c++)
-						{
-							if (!strchr(WhiteSpace, *c))
-							{
-								break;
-							}
-						}
-						if (c < p)
-						{
-							Temp.Write((uchar*)s, p-s);
-						}
-						
 						if (Cp && !_stricmp(Cp, "utf-8"))
 						{
-							Temp.Write((uchar*)Block, Len);
+							p.Write((uchar*)Block, Len);
 						}
 						else
 						{
@@ -394,49 +387,58 @@ char *DecodeRfc2047(char *Str)
 							if (Utf8)
 							{
 								if (LgiIsUtf8(Utf8))
-									Temp.Write((uchar*)Utf8.Get(), strlen(Utf8));
+									p.Write((uchar*)Utf8.Get(), strlen(Utf8));
 							}
 							else
 							{
-								Temp.Write((uchar*)Block, Len);
+								p.Write((uchar*)Block, Len);
 							}
 						}
 
 						DeleteArray(Block);
 					}
+					
 					s = End + 2;
 					if (*s == '\n')
 					{
 						s++;
 						while (*s && strchr(WhiteSpace, *s)) s++;
 					}
+					
+					Encoded = true;
 				}
 			}
 
 			if (!Encoded)
 			{
+				// Encoding error, just emit the raw string and exit.
 				int Len = strlen(s);
-				Temp.Write((uchar*) s, Len);
-				s += Len;
+				p.Write((uchar*) s, Len);
+				break;
 			}
-
-			DeleteArray(Cp);
 		}
-
-		Temp.Write((uchar*) "", 1);
-		size_t Len = (size_t)Temp.GetSize();
-		char *r = new char[Len+1];
-		if (r)
+		else if (Descape)
 		{
-			Temp.Read((uchar*) r, Len);
-			r[Len] = 0;
+			// Un-escape the string...
+			e++;
+			if (*e)
+				p.Write(e, 1);
+			else
+				break;
+			s = e + 1;
 		}
-
-		DeleteArray(Str);
-		return r;
+		else
+		{
+			// Last segment of string...
+			LgiAssert(*e == 0);
+			if (e > s)
+				p.Write(s, e - s);
+			break;
+		}
 	}
 
-	return Str;
+	DeleteArray(Str);
+	return p.NewStr();
 }
 
 #define MIME_MAX_LINE		76
@@ -467,9 +469,17 @@ char *EncodeRfc2047(char *Str, const char *CodePage, List<char> *CharsetPrefs, i
 		int Chars = 0;
 		for (int i=0; i<Len; i++)
 		{
-			if (Str[i] & 0x80) Chars++;
+			if (Str[i] & 0x80)
+				Chars++;
 		}
-		if (stristr(DestCp, "utf") || (((double)Chars/Len)  > 0.4))
+		if
+		(
+			stristr(DestCp, "utf") ||
+			(
+				Len > 0 &&
+				((double)Chars/Len) > 0.4
+			)
+		)
 		{
 			Base64 = true;
 		}
