@@ -175,10 +175,14 @@ public:
 	}
 };
 
+#endif
+
 GAutoPtr<GSpellCheck> CreateWindowsSpellCheck()
 {
-	GAutoPtr<GSpellCheck> p(new WindowsSpellCheck);
+	GAutoPtr<GSpellCheck> p;
+	#ifdef __spellcheck_h__
+	p.Reset(new WindowsSpellCheck);
+	#endif
 	return p;
 }
 
-#endif

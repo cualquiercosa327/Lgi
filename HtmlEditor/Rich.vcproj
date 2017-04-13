@@ -318,6 +318,18 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="SpellCheck"
+				>
+				<File
+					RelativePath="..\include\common\LgiSpellCheck.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\win32\Lgi\SpellCheckWindows.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Html"
