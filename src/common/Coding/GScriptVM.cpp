@@ -401,6 +401,7 @@ public:
 	GVariant UnusedReturn;
 	bool BreakCpp;
 	GArray<int> BreakPts;
+	GString TempPath;
 
 	GVirtualMachinePriv(GVirtualMachine *vm, GVmDebuggerCallback *Callback)
 	{
@@ -645,29 +646,38 @@ public:
 
 		#if 1
 		const char *SourceFileName = Code->GetFileName();
-	    char Obj[MAX_PATH];
+		char Obj[MAX_PATH];
 		if (SourceFileName)
 		{
-		    strcpy_s(Obj, sizeof(Obj), SourceFileName);
-		    char *Ext = LgiGetExtension(Obj);
-		    if (Ext)
-		        strcpy_s(Ext, sizeof(Obj)-(Ext-Obj), "asm");
-		    else
-		        strcat_s(Obj, sizeof(Obj), ".asm");
+			if (strchr(SourceFileName, DIR_CHAR))
+				strcpy_s(Obj, sizeof(Obj), SourceFileName);
+			else if (TempPath != NULL)
+				LgiMakePath(Obj, sizeof(Obj), TempPath, SourceFileName);
+			else
+			{
+				LgiGetSystemPath(LSP_TEMP, Obj, sizeof(Obj));
+				LgiMakePath(Obj, sizeof(Obj), Obj, SourceFileName);
+			}
+
+			char *Ext = LgiGetExtension(Obj);
+			if (Ext)
+				strcpy_s(Ext, sizeof(Obj)-(Ext-Obj), "asm");
+			else
+				strcat_s(Obj, sizeof(Obj), ".asm");
 		}
 		else
 		{
-		    GAutoString DataPath;
-		    if (Code->UserContext)
+			GAutoString DataPath;
+			if (Code->UserContext)
 				DataPath = Code->UserContext->GetDataFolder();
-		    if (!DataPath)
-		    {
-			    char p[256];
-			    if (LgiGetSystemPath(LSP_APP_INSTALL, p, sizeof(p)))
-				    DataPath.Reset(NewStr(p));
-		    }
-    		
-		    LgiMakePath(Obj, sizeof(Obj), DataPath, "Script.asm");
+			if (!DataPath)
+			{
+				char p[256];
+				if (LgiGetSystemPath(LSP_APP_INSTALL, p, sizeof(p)))
+					DataPath.Reset(NewStr(p));
+			}
+		
+			LgiMakePath(Obj, sizeof(Obj), DataPath, "Script.asm");
 		}
 		
 		{
@@ -693,19 +703,22 @@ public:
 					Out = &f;
 				}
 
-				GExecutionStatus Decomp = Decompile(Code->UserContext, Code, Out);
-				f.Close();
-				if (Decomp != ScriptSuccess)
+				if (Out)
 				{
-					LgiAssert(!"Decompilation failed.");
-					return ScriptError;
-				}
+					GExecutionStatus Decomp = Decompile(Code->UserContext, Code, Out);
+					f.Close();
+					if (Decomp != ScriptSuccess)
+					{
+						LgiAssert(!"Decompilation failed.");
+						return ScriptError;
+					}
 
-				if (Debugger)
-				{
-					GAutoString a(p.NewStr());
-					Debugger->OnAddress(CurrentScriptAddress);
-					Debugger->SetSource(a);
+					if (Debugger)
+					{
+						GAutoString a(p.NewStr());
+						Debugger->OnAddress(CurrentScriptAddress);
+						Debugger->SetSource(a);
+					}
 				}
 			}
 		}
@@ -1014,6 +1027,11 @@ bool GVirtualMachine::BreakPoint(int Addr, bool Add)
 void GVirtualMachine::SetBreakCpp(bool Brk)
 {
 	d->BreakCpp = Brk;
+}
+
+void GVirtualMachine::SetTempPath(const char *Path)
+{
+	d->TempPath = Path;
 }
 
 ////////////////////////////////////////////////////////////////////

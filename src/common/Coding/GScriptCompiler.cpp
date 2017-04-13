@@ -3608,7 +3608,7 @@ bool GScriptEngine::Compile(GAutoPtr<GCompiledCode> &Obj, GScriptContext *UserCo
 						Args);
 }
 
-GExecutionStatus GScriptEngine::Run(GCompiledCode *Obj, GVariant *Ret)
+GExecutionStatus GScriptEngine::Run(GCompiledCode *Obj, GVariant *Ret, const char *TempPath)
 {
 	GExecutionStatus Status = ScriptError;
 
@@ -3616,6 +3616,8 @@ GExecutionStatus GScriptEngine::Run(GCompiledCode *Obj, GVariant *Ret)
 	if (d->Code)
 	{
 		GVirtualMachine Vm(d->Callback);
+		if (TempPath)
+			Vm.SetTempPath(TempPath);
 		Status = Vm.Execute(d->Code, 0, NULL, true, Ret ? Ret : &d->ReturnValue);
 		d->Code = NULL;
 	}

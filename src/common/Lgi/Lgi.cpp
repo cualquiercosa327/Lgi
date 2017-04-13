@@ -594,9 +594,9 @@ void LgiTrace(const char *Msg, ...)
 	#if LGI_TRACE_TS
 	int Ch = sprintf_s(Buffer, sizeof(Buffer), LGI_PrintfInt64": ", LastTs?ThisTs-LastTs:0);
 	LastTs = ThisTs;
-	_vsnprintf(Buffer+Ch, sizeof(Buffer)-Ch-1, Msg, Arg);
+	Ch += _vsnprintf(Buffer+Ch, sizeof(Buffer)-Ch-1, Msg, Arg);
 	#else
-	_vsnprintf(Buffer, sizeof(Buffer)-1, Msg, Arg);
+	int Ch = _vsnprintf(Buffer, sizeof(Buffer)-1, Msg, Arg);
 	#endif
 	va_end(Arg);
 
@@ -610,7 +610,7 @@ void LgiTrace(const char *Msg, ...)
 		Output = &f;
 	}
 	if (Output)
-		Output->Write(Buffer, (int)strlen(Buffer));
+		Output->Write(Buffer, Ch);
 	if (!_LgiTraceStream)
 		f.Close();
 	#endif

@@ -308,7 +308,7 @@ public:
 					char *Script,
 					const char *FileName = NULL,
 					GDom *Args = NULL);
-	GExecutionStatus Run(GCompiledCode *Obj, GVariant *Ret = NULL);
+	GExecutionStatus Run(GCompiledCode *Obj, GVariant *Ret = NULL, const char *TempPath = NULL);
 	GExecutionStatus RunTemporary(GCompiledCode *Obj, char *Script, GVariant *Ret = NULL);
 	bool EvaluateExpression(GVariant *Result, GDom *VariableSource, char *Expression);
 	bool CallMethod(GCompiledCode *Obj, const char *Method, GVariant *Ret, ArgumentArray &Args);

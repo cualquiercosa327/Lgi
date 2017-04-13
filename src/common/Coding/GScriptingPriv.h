@@ -431,6 +431,9 @@ public:
 	bool BreakPoint(const char *File, int Line, bool Add);
 	bool BreakPoint(int Addr, bool Add);
 	void SetBreakCpp(bool Brk);
+	
+	// Properties
+	void SetTempPath(const char *Path);
 };
 
 /// Scripting engine system functions

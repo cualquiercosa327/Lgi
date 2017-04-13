@@ -30,13 +30,13 @@ char *LgiSkipDelim(char *p, const char *Delimiter, bool NotDelim)
 GToken::GToken()
 {
 	Raw = 0;
-	Strs.SetFixedLength();
+	fixed = true;
 }
 
 GToken::GToken(const char *Str, const char *Delimiters, bool GroupDelim, int Length)
 {
 	Raw = 0;
-	Strs.SetFixedLength();
+	fixed = true;
 	Parse(Str, Delimiters, GroupDelim, Length);
 }
 
@@ -65,7 +65,7 @@ void GToken::Parse(const char *Str, const char *Delimiters, bool GroupDelim, int
 		Raw = NewStr(Str, Length);
 		if (Raw)
 		{
-			Strs.SetFixedLength(false);
+			fixed = false;
 
 			if (Delimiters)
 			{
@@ -79,7 +79,7 @@ void GToken::Parse(const char *Str, const char *Delimiters, bool GroupDelim, int
 						// Emit pointer
 						if (*s)
 						{
-							Strs.Add(s);
+							Add(s);
 						}
 
 						// Skip Non-delimiters
@@ -93,7 +93,7 @@ void GToken::Parse(const char *Str, const char *Delimiters, bool GroupDelim, int
 						// Emit pointer
 						if (*s)
 						{
-							Strs.Add(Lut[(uchar)*s] ? (char*)0 : s);
+							Add(Lut[(uchar)*s] ? (char*)0 : s);
 						}
 
 						// Skip Non-delimiters
@@ -106,10 +106,10 @@ void GToken::Parse(const char *Str, const char *Delimiters, bool GroupDelim, int
 			}
 			else
 			{
-				Strs.Add(Raw);
+				Add(Raw);
 			}
 
-			Strs.SetFixedLength();
+			fixed = true;
 		}
 	}
 }
@@ -117,8 +117,7 @@ void GToken::Parse(const char *Str, const char *Delimiters, bool GroupDelim, int
 void GToken::Empty()
 {
 	DeleteArray(Raw);
-	Strs.SetFixedLength(false);
-	Strs.Length(0);
+	Length(0);
 }
 
 void GToken::AppendTokens(GArray<char*> *T)
@@ -141,7 +140,7 @@ void GToken::AppendTokens(GArray<char*> *T)
 		{
 			char *p = Buf;
 
-			Strs.SetFixedLength(false);
+			fixed = false;
 
 			for (i=0; i<Length(); i++)
 			{
@@ -159,11 +158,11 @@ void GToken::AppendTokens(GArray<char*> *T)
 				char *Ptr = (*T)[i];
 				size_t Len = strlen(Ptr) + 1;
 				memcpy(p, Ptr, Len);
-				Strs.Add(p);
+				Add(p);
 				p += Len;
 			}
 
-			Strs.SetFixedLength();
+			fixed = true;
 			Raw = Buf;
 		}
 	}
