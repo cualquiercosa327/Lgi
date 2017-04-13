@@ -286,6 +286,7 @@
     <ClCompile Include="..\src\common\Widgets\Editor\ImageBlock.cpp" />
     <ClCompile Include="..\src\common\Widgets\Editor\TextBlock.cpp" />
     <ClCompile Include="..\src\common\Widgets\GHtmlEdit.cpp" />
+    <ClCompile Include="..\src\win32\Lgi\SpellCheckWindows.cpp" />
     <ClCompile Include="Rich.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -256,6 +256,7 @@ GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv *&Ptr) :
 	DocumentExtent.x = 0;
 	DocumentExtent.y = 0;
 	SpellCheck = NULL;
+	SinkHnd = -1;
 	if (Font.Reset(new GFont))
 		*Font = *SysFont;
 
@@ -281,10 +282,6 @@ GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv *&Ptr) :
 	Values[GRichTextEdit::EmojiBtn] = TEXT_EMOJI;
 
 	Padding(GCss::Len(GCss::LenPx, 4));
-
-	if (SpellCheck)
-		SpellCheck->EnumDictionaries();
-
 	EmptyDoc();
 }
 	

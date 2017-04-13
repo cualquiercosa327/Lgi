@@ -7,55 +7,6 @@
 
 #define PostThreadEvent GEventSinkMap::Dispatch.PostEvent
 
-/*
-/// This class is a smart pointer to a GEventTargetThread. When the
-/// GEventSinkPtr::PostEvent is safe to call even if the GEventTargetThread
-/// object could be deleted asynchronously.
-class LgiClass GEventSinkPtr : public GEventSinkI, public GMutex
-{
-	friend class GEventTargetThread;
-	bool OwnPtr;
-	GEventSinkI *Ptr;
-
-	bool OnDelete(GEventSinkI *Sink)
-	{
-		if (!Lock(_FL))
-			return false;
-		bool Status = false;
-		if (Sink == Ptr)
-		{
-			Status = true;
-			Ptr = NULL;
-		}
-		else LgiAssert(0);
-		Unlock();
-		
-		return Status;
-	}
-
-public:	
-	GEventSinkPtr(GEventSinkI *p, bool own)
-	{
-		Ptr = p;
-		OwnPtr = own;
-	}
-	GEventSinkPtr(GEventTargetThread *p, bool own);
-	~GEventSinkPtr();
-
-	bool PostEvent(int Cmd, GMessage::Param a = 0, GMessage::Param b = 0)
-	{
-		bool Status = false;
-		if (Lock(_FL))
-		{
-			if (Ptr)
-				Status = Ptr->PostEvent(Cmd, a, b);
-			Unlock();
-		}
-		return Status;
-	}
-};
-*/
-
 class LgiClass GEventSinkMap : public GMutex
 {
 protected:

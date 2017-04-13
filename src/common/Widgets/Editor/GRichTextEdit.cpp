@@ -120,11 +120,22 @@ GRichTextEdit::GRichTextEdit(	int Id,
 		"</body>\n"
 		"</html>\n");
 	#endif
+
+	d->SinkHnd = GEventSinkMap::Dispatch.AddSink(this);
 }
 
 GRichTextEdit::~GRichTextEdit()
 {
+	GEventSinkMap::Dispatch.RemoveSink(this);
+
 	// 'd' is owned by the GView CSS autoptr.
+}
+
+bool GRichTextEdit::SetSpellCheck(GSpellCheck *sp)
+{
+	if (d->SpellCheck = sp)
+		d->SpellCheck->EnumDictionaries(d->SinkHnd);
+	return d->SpellCheck != NULL;
 }
 
 bool GRichTextEdit::NeedsCapability(const char *Name, const char *Param)
@@ -2241,7 +2252,7 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 				}
 
 				if (Lang && d->SpellCheck)
-					d->SpellCheck->SetDictionary(Lang);
+					d->SpellCheck->SetDictionary(d->SinkHnd, Lang);
 			}
 			break;
 		}

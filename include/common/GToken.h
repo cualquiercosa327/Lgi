@@ -61,9 +61,10 @@ bool LgiIsNumber(T *p)
 LgiFunc char *LgiSkipDelim(char *p, const char *Delimiter = " \r\n\t", bool NotDelim = false);
 
 /// A simple token parser
-class LgiClass GToken : public GArray<char*>
+class LgiClass GToken
 {
 	char *Raw;
+	GArray<char*> Strs;
 
 public:
 	GToken();
@@ -79,10 +80,15 @@ public:
 	/// Appends some tokens on the end of this list.
 	void AppendTokens(GArray<char*> *T);
 
+	int Length() const
+	{
+		return Strs.Length();
+	}
+
 	char *&operator [](uint32 i)
 	{
-		if (i < Length())
-			return GArray<char*>::operator[](i);
+		if (i < Strs.Length())
+			return Strs[i];
 
 		static char *Null = 0;
 		return Null;

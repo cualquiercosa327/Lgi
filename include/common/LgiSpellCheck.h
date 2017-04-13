@@ -10,28 +10,39 @@ enum SPELL_MSGS
 	M_SET_DICTIONARY,
 };
 
+#define SPELL_CHK_VALID_HND(hnd) \
+	if (hnd < 0)				\
+	{							\
+		LgiAssert(0);			\
+		return false;			\
+	}
+
 // Spell check interface
 class GSpellCheck : public GEventTargetThread
 {
 public:
+	GSpellCheck(GString Name) : GEventTargetThread(Name) {}
 	virtual ~GSpellCheck() {}
 
-	// Impl this:
+	// Impl OnEvent in your subclass:
 	// GMessage::Result OnEvent(GMessage *Msg);
 
-	bool EnumDictionaries()
+	bool EnumDictionaries(int ResponseHnd)
 	{
-		return PostEvent(M_ENUMERATE_DICTIONARIES);
+		SPELL_CHK_VALID_HND(ResponseHnd);
+		return PostEvent(M_ENUMERATE_DICTIONARIES, (GMessage::Param)ResponseHnd);
 	}
 
-	bool SetDictionary(const char *lang)
+	bool SetDictionary(int ResponseHnd, const char *lang)
 	{
-		return PostEvent(M_SET_DICTIONARY, (GMessage::Param)new GString(lang));
+		SPELL_CHK_VALID_HND(ResponseHnd);
+		return PostEvent(M_SET_DICTIONARY, (GMessage::Param)ResponseHnd, (GMessage::Param)new GString(lang));
 	}
 
-	bool Check(GString s)
+	bool Check(int ResponseHnd, GString s)
 	{
-		return PostEvent(M_CHECK_TEXT, (GMessage::Param)new GString(s));
+		SPELL_CHK_VALID_HND(ResponseHnd);
+		return PostEvent(M_CHECK_TEXT, (GMessage::Param)ResponseHnd, (GMessage::Param)new GString(s));
 	}
 	
 	bool InstallDictionary()
@@ -40,5 +51,11 @@ public:
 		return false;
 	}
 };
+
+// These are the various implementations of the this object. You have to include the
+// correct C++ source to get this to link.
+extern GAutoPtr<GSpellCheck> CreateWindowsSpellCheck();		// Available on Windows 8.0 and greater
+extern GAutoPtr<GSpellCheck> CreateAppleSpellCheck();		// Available on Mac OS X
+extern GAutoPtr<GSpellCheck> CreateAspellObject();			// Available anywhere.
 
 #endif

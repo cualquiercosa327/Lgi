@@ -80,6 +80,9 @@
     <ClCompile Include="..\src\common\Gdc2\Filters\Jpeg.cpp">
       <Filter>Lgi</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\win32\Lgi\SpellCheckWindows.cpp">
+      <Filter>Controls\RichTextEdit\Spelling</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">

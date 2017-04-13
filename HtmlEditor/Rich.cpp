@@ -4,6 +4,7 @@
 #include "GTabView.h"
 #include "GBox.h"
 #include "resource.h"
+#include "LgiSpellCheck.h"
 
 #if 1
 #include "GRichTextEdit.h"
@@ -63,6 +64,8 @@ class App : public GWindow
 
 	EditCtrl *Edit;
 
+	GAutoPtr<GSpellCheck> Speller;
+
 public:
 	App()
 	{
@@ -79,6 +82,7 @@ public:
 		#ifdef WIN32
 		SetIcon((const char*)IDI_APP);
 		#endif
+		Speller = CreateWindowsSpellCheck();
 		
 		if (Attach(0))
 		{
@@ -102,6 +106,7 @@ public:
 				Split->AddView(Edit = new EditCtrl(IDC_EDITOR));
 				if (Edit)
 				{
+					Edit->SetSpellCheck(Speller);
 					Edit->Sunken(true);
 					Edit->SetId(IDC_EDITOR);
 					// Edit->Name("<span style='color:#800;'>The rich editor control is not functional in this build.</span><b>This is some bold</b>");
