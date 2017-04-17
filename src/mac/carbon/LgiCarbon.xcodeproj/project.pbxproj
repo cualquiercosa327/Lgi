@@ -108,6 +108,7 @@
 		3479DB1019C1AAA800E0D1E5 /* GWindowCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3479DB0E19C1AAA800E0D1E5 /* GWindowCommon.cpp */; };
 		347CB600172A97D600AC3EA6 /* GTableLayout.h in Headers */ = {isa = PBXBuildFile; fileRef = 347CB5FF172A97D600AC3EA6 /* GTableLayout.h */; };
 		3489C3EA0DD1C4DB0095F0E1 /* GMru.h in Headers */ = {isa = PBXBuildFile; fileRef = 3489C3E90DD1C4DB0095F0E1 /* GMru.h */; };
+		348D86A01EA434DE005BA4C2 /* GEventTargetThread.h in Headers */ = {isa = PBXBuildFile; fileRef = 348D869F1EA434DE005BA4C2 /* GEventTargetThread.h */; };
 		3493304A0F60CE440092EAE8 /* GViewCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349330490F60CE440092EAE8 /* GViewCommon.cpp */; };
 		3493304C0F60CE690092EAE8 /* GViewPriv.h in Headers */ = {isa = PBXBuildFile; fileRef = 3493304B0F60CE690092EAE8 /* GViewPriv.h */; };
 		34983BE308F4A54C0054868C /* GDragAndDrop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34983BE208F4A54C0054868C /* GDragAndDrop.cpp */; };
@@ -289,6 +290,7 @@
 		3479DB0E19C1AAA800E0D1E5 /* GWindowCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GWindowCommon.cpp; path = ../../common/Lgi/GWindowCommon.cpp; sourceTree = "<group>"; };
 		347CB5FF172A97D600AC3EA6 /* GTableLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GTableLayout.h; path = ../../../include/common/GTableLayout.h; sourceTree = SOURCE_ROOT; };
 		3489C3E90DD1C4DB0095F0E1 /* GMru.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GMru.h; path = ../../../include/common/GMru.h; sourceTree = "<group>"; };
+		348D869F1EA434DE005BA4C2 /* GEventTargetThread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GEventTargetThread.h; path = ../../../include/common/GEventTargetThread.h; sourceTree = "<group>"; };
 		349330490F60CE440092EAE8 /* GViewCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GViewCommon.cpp; path = ../../common/Lgi/GViewCommon.cpp; sourceTree = "<group>"; };
 		3493304B0F60CE690092EAE8 /* GViewPriv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GViewPriv.h; path = ../../../include/common/GViewPriv.h; sourceTree = "<group>"; };
 		34983BE208F4A54C0054868C /* GDragAndDrop.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GDragAndDrop.cpp; path = Lgi/GDragAndDrop.cpp; sourceTree = "<group>"; };
@@ -712,6 +714,7 @@
 		345F9C4108F0FAA9007DAFE2 /* Threads */ = {
 			isa = PBXGroup;
 			children = (
+				348D869F1EA434DE005BA4C2 /* GEventTargetThread.h */,
 				343E950C1751C6090085611D /* GThreadEvent.cpp */,
 				34A11A7D167534A500FCC5D7 /* GMutex.h */,
 				34A11A7B1675349900FCC5D7 /* GMutex.cpp */,
@@ -916,6 +919,7 @@
 				341BE443123ED1F1009BF203 /* sha1.h in Headers */,
 				34D4D55B1250AF98000DA1FD /* GHashTable.h in Headers */,
 				3478B20A12E6F87200936EFA /* GEdit.h in Headers */,
+				348D86A01EA434DE005BA4C2 /* GEventTargetThread.h in Headers */,
 				34A8A3BD1303408000CAA8DF /* GPopup.h in Headers */,
 				3413BBC21349EC6900AE15B0 /* GXmlTree.h in Headers */,
 				34BC1E1F134DC748005451EE /* Res.h in Headers */,

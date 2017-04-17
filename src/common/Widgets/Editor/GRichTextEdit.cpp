@@ -134,7 +134,7 @@ GRichTextEdit::~GRichTextEdit()
 bool GRichTextEdit::SetSpellCheck(GSpellCheck *sp)
 {
 	if (d->SpellCheck = sp)
-		d->SpellCheck->EnumDictionaries(d->SinkHnd);
+		d->SpellCheck->EnumLanguages(d->SinkHnd);
 	return d->SpellCheck != NULL;
 }
 

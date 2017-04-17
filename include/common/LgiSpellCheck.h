@@ -6,6 +6,7 @@
 enum SPELL_MSGS
 {
 	M_CHECK_TEXT = M_USER + 100,
+	M_ENUMERATE_LANGUAGES,
 	M_ENUMERATE_DICTIONARIES,
 	M_SET_DICTIONARY,
 };
@@ -21,22 +22,58 @@ enum SPELL_MSGS
 class GSpellCheck : public GEventTargetThread
 {
 public:
+	struct LanguageId
+	{
+		GString LangCode;
+		GString EnglishName;
+		GString NativeName;
+	};
+	
+	struct DictionaryId
+	{
+		GString Lang;
+		GString Dict;
+	};
+
+
 	GSpellCheck(GString Name) : GEventTargetThread(Name) {}
 	virtual ~GSpellCheck() {}
 
 	// Impl OnEvent in your subclass:
 	// GMessage::Result OnEvent(GMessage *Msg);
 
-	bool EnumDictionaries(int ResponseHnd)
+	/// Sends a M_ENUMERATE_LANGUAGES event to 'ResponseHnd' with a heap
+	/// allocated GArray<LanguageId>.
+	bool EnumLanguages(int ResponseHnd)
 	{
 		SPELL_CHK_VALID_HND(ResponseHnd);
-		return PostEvent(M_ENUMERATE_DICTIONARIES, (GMessage::Param)ResponseHnd);
+		return PostEvent(M_ENUMERATE_LANGUAGES,
+						(GMessage::Param)ResponseHnd);
 	}
 
-	bool SetDictionary(int ResponseHnd, const char *lang)
+	/// Sends a M_ENUMERATE_DICTIONARIES event to 'ResponseHnd' with a heap
+	/// allocated GArray<DictionaryId>.
+	bool EnumDictionaries(int ResponseHnd, const char *Lang)
 	{
 		SPELL_CHK_VALID_HND(ResponseHnd);
-		return PostEvent(M_SET_DICTIONARY, (GMessage::Param)ResponseHnd, (GMessage::Param)new GString(lang));
+		return PostEvent(M_ENUMERATE_DICTIONARIES,
+						(GMessage::Param)ResponseHnd,
+						(GMessage::Param)new GString(Lang));
+	}
+
+	bool SetDictionary(int ResponseHnd, const char *Lang, const char *Dictionary = NULL)
+	{
+		SPELL_CHK_VALID_HND(ResponseHnd);
+		
+		DictionaryId *i = new DictionaryId;
+		if (!i)
+			return false;
+		i->Lang = Lang;
+		i->Dict = Dictionary;
+		
+		return PostEvent(M_SET_DICTIONARY,
+						(GMessage::Param)ResponseHnd,
+						(GMessage::Param)i);
 	}
 
 	bool Check(int ResponseHnd, GString s)
