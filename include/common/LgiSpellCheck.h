@@ -2,6 +2,7 @@
 #define _LGI_SPELL_CHECK_H_
 
 #include "GEventTargetThread.h"
+#include "GOptionsFile.h"
 
 enum SPELL_MSGS
 {
@@ -9,6 +10,7 @@ enum SPELL_MSGS
 	M_ENUMERATE_LANGUAGES,
 	M_ENUMERATE_DICTIONARIES,
 	M_SET_DICTIONARY,
+	M_SET_PARAMS,
 };
 
 #define SPELL_CHK_VALID_HND(hnd) \
@@ -35,6 +37,19 @@ public:
 		GString Dict;
 	};
 
+	struct Params
+	{
+		GOptionsFile::PortableType IsPortable;
+		GString OptionsPath;
+		GString Lang, Dict;
+		GCapabilityTarget *CapTarget;
+		
+		Params()
+		{
+			CapTarget = NULL;
+		}
+	};
+
 
 	GSpellCheck(GString Name) : GEventTargetThread(Name) {}
 	virtual ~GSpellCheck() {}
@@ -59,6 +74,11 @@ public:
 		return PostEvent(M_ENUMERATE_DICTIONARIES,
 						(GMessage::Param)ResponseHnd,
 						(GMessage::Param)new GString(Lang));
+	}
+
+	bool SetParams(GAutoPtr<Params> p)
+	{
+		return PostObject(GetHandle(), M_SET_PARAMS, p);
 	}
 
 	bool SetDictionary(int ResponseHnd, const char *Lang, const char *Dictionary = NULL)

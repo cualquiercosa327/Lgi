@@ -98,7 +98,7 @@ public:
 			LgiAssert(!"Not a member of this sink.");
 
 		Unlock();
-		return false;
+		return Status;
 	}
 };
 
@@ -168,6 +168,9 @@ class LgiClass GEventTargetThread :
 		return s;
 	}
 
+protected:
+	int PostTimeout;
+
 public:
 	GEventTargetThread(GString Name) :
 		GThread(Name + ".Thread"),
@@ -175,6 +178,7 @@ public:
 		Event(ProcessName(Name, "Event"))
 	{
 		Loop = true;
+		PostTimeout = 1000;
 
 		Run();
 	}
@@ -249,6 +253,51 @@ public:
 		}
 		
 		return 0;
+	}
+
+	template<typename T>
+	bool PostObject(int Hnd, int Cmd, GAutoPtr<T> Obj)
+	{
+		uint64 Start = LgiCurrentTime();
+		bool Status;
+		while (!(Status = GEventSinkMap::Dispatch.PostEvent(Hnd, Cmd, (GMessage::Param) Obj.Get())))
+		{
+			LgiSleep(2);
+
+			uint64 Now = LgiCurrentTime();
+			if (Now - Start >= PostTimeout)
+			{
+				break;
+			}
+		}
+		
+		if (Status)
+			Obj.Release();
+		return Status;
+	}
+
+	template<typename T>
+	bool PostObject(int Hnd, int Cmd, GAutoPtr<T> Obj1, GAutoPtr<T> Obj2)
+	{
+		uint64 Start = LgiCurrentTime();
+		bool Status;
+		while (!(Status = GEventSinkMap::Dispatch.PostEvent(Hnd, Cmd, (GMessage::Param) Obj1.Get(), (GMessage::Param) Obj2.Get())))
+		{
+			LgiSleep(2);
+
+			uint64 Now = LgiCurrentTime();
+			if (Now - Start >= PostTimeout)
+			{
+				break;
+			}
+		}
+		
+		if (Status)
+		{
+			Obj1.Release();
+			Obj2.Release();
+		}
+		return Status;
 	}
 };
 
