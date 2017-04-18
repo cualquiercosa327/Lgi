@@ -14,8 +14,8 @@ bool Utf16to32(GArray<uint32> &Out, const uint16 *In, int Len)
 	}
 
 	// Count the length of utf32 chars...
-	uint16 *Ptr = (uint16*)In;
-	int Bytes = sizeof(*In) * Len;
+	const uint16 *Ptr = In;
+	ptrdiff_t Bytes = sizeof(*In) * Len;
 	int Chars = 0;
 	while (	Bytes >= sizeof(*In) &&
 			LgiUtf16To32(Ptr, Bytes) > 0)
