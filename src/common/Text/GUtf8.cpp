@@ -12,7 +12,7 @@ GUtf8Ptr::GUtf8Ptr(void *p)
 GUtf8Ptr::operator int32()
 {
 	uint8 *p = Ptr;
-	int l = 6;
+	ptrdiff_t l = 6;
 	return LgiUtf8To32(p, l);
 }
 

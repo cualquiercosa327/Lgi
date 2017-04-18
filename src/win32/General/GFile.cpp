@@ -274,7 +274,7 @@ bool ResolveShortcut(const char *LinkFile, char *Path, int Len)
 					{
 						#ifdef UNICODE
 						TCHAR TmpPath[MAX_PATH];
-						int TpLen = _GetLongPathName(szGotPath, TmpPath, CountOf(TmpPath));
+						ptrdiff_t TpLen = _GetLongPathName(szGotPath, TmpPath, CountOf(TmpPath));
 						const void *Tp = TmpPath;
 						LgiBufConvertCp(Path, "utf-8", Len, Tp, LGI_WideCharset, TpLen);
 						#else
@@ -736,7 +736,7 @@ bool GFileSystem::Delete(GArray<const char*> &Files, GArray<int> *Status, bool T
 				GArray<char16> Name;
 				for (int i=0; i<Files.Length(); i++)
 				{
-					int InSize = strlen(Files[i]);
+					ptrdiff_t InSize = strlen(Files[i]);
 					char16 Buf[300];
 					ZeroObj(Buf);
 					const void *InPtr = Files[i];

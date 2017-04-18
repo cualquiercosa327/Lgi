@@ -60,7 +60,7 @@ extern "C"
 /// Converts a buffer of text to a different charset
 /// \ingroup Text
 /// \returns the bytes written to the location pointed to by 'Out'
-LgiFunc int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, const char *InCp, int &InLen);
+LgiFunc int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, const char *InCp, ptrdiff_t &InLen);
 
 /// \brief Converts a string to a new charset
 /// \return A dynamically allocate, null terminated string in the new charset
@@ -74,7 +74,7 @@ LgiFunc void *LgiNewConvertCp
 	/// The input data's charset
 	const char *InCp,
 	/// Bytes of valid data in the input
-	int InLen = -1
+	ptrdiff_t InLen = -1
 );
 
 /// Return true if Lgi support the charset

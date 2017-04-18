@@ -775,7 +775,7 @@ int LgiCpToAnsi(char *cp)
 	return Ansi;
 }
 
-int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, const char *InCp, int &InLen)
+int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, const char *InCp, ptrdiff_t &InLen)
 {
 	int Status = 0;
 
@@ -912,7 +912,7 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 						}
 						case CpUtf16:
 						{
-							Utf32 = LgiUtf16To32((uint16 *&)In8, InLen);
+							Utf32 = LgiUtf16To32((const uint16 *&)In8, InLen);
 
 							if (Utf32 == 0xfeff || Utf32 == 0xfffe)
 								continue;
@@ -1037,7 +1037,7 @@ T *DupeString(T *s, int Len = -1)
 	return ns;
 }
 
-void *LgiNewConvertCp(const char *OutCp, const void *In, const char *InCp, int InLen)
+void *LgiNewConvertCp(const char *OutCp, const void *In, const char *InCp, ptrdiff_t InLen)
 {
 	if (!OutCp || !In || !InCp)
 		return NULL;

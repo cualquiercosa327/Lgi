@@ -11,6 +11,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
+#include <inttypes.h>
 #ifdef _MSC_VER
 	// This fixes compile errors in VS2008/Gtk
 	#undef _SIGN_DEFINED
@@ -111,7 +113,7 @@ public:
 	}
 	
 	/// String constructor
-	GString(const char *str, int bytes)
+	GString(const char *str, ptrdiff_t bytes)
 	{
 		Str = NULL;
 		Set(str, bytes);
@@ -125,7 +127,7 @@ public:
 	}
 
 	/// const char16* constructor
-	GString(const wchar_t *str, int chars = -1)
+	GString(const wchar_t *str, ptrdiff_t chars = -1)
 	{
 		Str = NULL;
 		char *Utf = WideToUtf8(str, chars < 0 ? -1 : chars);
@@ -739,7 +741,7 @@ public:
 	}
 
 	/// Find a sub-string	
-	ptrdiff_t Find(const char *needle, int start = 0, int end = -1)
+	ptrdiff_t Find(const char *needle, ptrdiff_t start = 0, ptrdiff_t end = -1)
 	{
 		if (!needle) return -1;
 		char *c = Get();
@@ -758,7 +760,7 @@ public:
 	}
 
 	/// Reverse find a string (starting from the end)
-	ptrdiff_t RFind(const char *needle, int start = 0, int end = -1)
+	ptrdiff_t RFind(const char *needle, int start = 0, ptrdiff_t end = -1)
 	{
 		if (!needle) return -1;
 		char *c = Get();

@@ -31,7 +31,7 @@ struct GDisplayStringLayout
 
 	uint32 NextChar(char *s)
 	{
-		int Len = 0;
+		ptrdiff_t Len = 0;
 		while (s[Len] && Len < 6) Len++;
 		return LgiUtf8To32((uint8*&)s, Len);
 	}
@@ -41,7 +41,7 @@ struct GDisplayStringLayout
 		if (IsUtf8_Lead(*s) || IsUtf8_1Byte(*s))
 		{
 			s--;
-			int Len = 1;
+			ptrdiff_t Len = 1;
 			while (IsUtf8_Trail(*s) && Len < 6) { s--; Len++; }
 
 			return LgiUtf8To32((uint8*&)s, Len);

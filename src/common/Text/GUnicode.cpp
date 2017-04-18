@@ -9,7 +9,7 @@ wchar_t *Utf8ToWide(const char *In, int InLen)
 	return (wchar_t*) LgiNewConvertCp(LGI_WideCharset, In, "utf-8", InLen);
 }
 
-char *WideToUtf8(const wchar_t *In, int InLen)
+char *WideToUtf8(const wchar_t *In, ptrdiff_t InLen)
 {
 	if (!In)
 		return NULL;
