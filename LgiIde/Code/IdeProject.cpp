@@ -464,7 +464,7 @@ int BuildThread::Main()
 			{
 				char *Dir = strrchr(MakePath, DIR_CHAR);
 				#if 1
-				a.Print("/C \"%s\"", Exe);
+				a.Print("/C \"%s\"", Exe.Get());
 				
 				/*	As of MSYS v1.0.18 the support for multiple jobs causes make to hang:
 					http://sourceforge.net/p/mingw/bugs/1950/
