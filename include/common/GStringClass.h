@@ -834,15 +834,15 @@ public:
 	}
 	
 	/// Gets the string between at 'start' and 'end' (not including the end'th character)
-	GString operator() (int start, int end)
+	GString operator() (ptrdiff_t start, ptrdiff_t end)
 	{
 		GString s;
 		if (Str)
 		{
-			int start_idx = start < 0 ? Str->Len + start + 1 : start;
+			ptrdiff_t start_idx = start < 0 ? Str->Len + start + 1 : start;
 			if (start_idx >= 0 && (uint32)start_idx < Str->Len)
 			{
-				int end_idx = end < 0 ? Str->Len + end + 1 : end;
+				ptrdiff_t end_idx = end < 0 ? Str->Len + end + 1 : end;
 				if (end_idx >= start_idx && (uint32)end_idx <= Str->Len)
 					s.Set(Str->Str + start_idx, end_idx - start_idx);
 			}
