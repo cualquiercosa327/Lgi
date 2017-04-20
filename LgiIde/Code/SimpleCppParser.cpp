@@ -2,8 +2,8 @@
 #include "SimpleCppParser.h"
 
 #if 1
-#define DEBUG_FILE		"daemon.c"
-#define DEBUG_LINE		3000
+#define DEBUG_FILE		"p:\\Code\\Scribe\\trunk\\Code\\Sqlite\\v3.6.14\\sqlite3.c"
+#define DEBUG_LINE		27149
 #elif 0
 #define DEBUG_FILE		"apcp-stdin.c"
 #define DEBUG_LINE		396
@@ -316,7 +316,15 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 
 							// cache f(n) def
 							DefnType Type = HasEquals ? DefnVariable : DefnFunc;
-							if (LimitTo == DefnNone || (LimitTo & Type) != 0)
+							if
+							(
+								(
+									LimitTo == DefnNone ||
+									(LimitTo & Type) != 0
+								)
+								&&
+								*Buf != ')'
+							)
 								Defns.New().Set(Type, FileName, Buf, Line + 1);
 							DeleteArray(Buf);
 							
