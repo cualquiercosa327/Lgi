@@ -11,8 +11,10 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#if !defined(_MSC_VER) || _MSC_VER >= _MSC_VER_VS2013
 #include <stdint.h>
 #include <inttypes.h>
+#endif
 #ifdef _MSC_VER
 	// This fixes compile errors in VS2008/Gtk
 	#undef _SIGN_DEFINED
