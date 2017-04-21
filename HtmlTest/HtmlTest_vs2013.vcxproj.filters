@@ -131,8 +131,10 @@
     <None Include="Files\about.html">
       <Filter>Test cases</Filter>
     </None>
-    <None Include="..\src\common\Coding\ExternCall.asm">
-      <Filter>Source Files\Scripting</Filter>
-    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="..\src\common\Coding\ExternCall.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
   </ItemGroup>
 </Project>
