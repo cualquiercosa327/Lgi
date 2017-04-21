@@ -205,9 +205,11 @@
     <ClInclude Include="..\src\common\Coding\GScriptingPriv.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\src\common\Coding\ExternCall.asm">
+    <MASM Include="..\src\common\Coding\ExternCall.asm">
       <FileType>Document</FileType>
-    </None>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </MASM>
     <None Include="Files\about.html" />
     <None Include="Files\MailPreviewHdr.html" />
     <None Include="Files\MortgageChoice.html" />
