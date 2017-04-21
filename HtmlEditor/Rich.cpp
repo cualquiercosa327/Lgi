@@ -82,7 +82,14 @@ public:
 		#ifdef WIN32
 		SetIcon((const char*)IDI_APP);
 		#endif
+		
+		#if defined(WINDOWS)
 		Speller = CreateWindowsSpellCheck();
+		#elif defined(MAC)
+		Speller = CreateAppleSpellCheck();
+		#else
+		Speller = CreateAspellObject();
+		#endif
 		
 		if (Attach(0))
 		{
