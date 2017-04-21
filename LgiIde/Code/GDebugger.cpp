@@ -377,9 +377,6 @@ class Gdb : public GDebugger, public GThread, public Callback
 						// Ok so whats the process ID?
 						#ifdef POSIX
 						int Pid = 
-						#if 0 // def __GTK_H__
-						Gtk::
-						#endif
 						getpgid(ThreadId);
 						if (Pid > 0 && ProcessId < 0)
 						{

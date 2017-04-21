@@ -93,7 +93,7 @@ int64 GScriptUtils::atoi64(char16 *s)
 		#else
 
 		char b[64];
-		int Len = StrlenW(s) * sizeof(*s);
+		ptrdiff_t Len = StrlenW(s) * sizeof(*s);
 		int Bytes = LgiBufConvertCp(b, "utf-8", sizeof(b), (const void*&)s, LGI_WideCharset, Len);
 		b[Bytes/sizeof(*b)] = 0;
 
