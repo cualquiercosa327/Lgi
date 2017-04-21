@@ -45,7 +45,7 @@ public:
 	}
 };
 
-int InfCmp(FileInf *a, FileInf *b, int d)
+int InfCmp(FileInf *a, FileInf *b, NativeInt d)
 {
 	return -a->Date.Compare(&b->Date);
 }
@@ -406,6 +406,7 @@ public:
 					GDirectory *d = new GDirectory;
 					if (d)
 					{
+						LgiMakePath(Base, sizeof(Base), Base, "Files");
 						for (bool b = d->First(Base); b; b = d->Next())
 						{
 							if (!d->IsDir() && MatchStr("*.html", d->GetName()))

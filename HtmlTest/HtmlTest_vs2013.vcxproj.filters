@@ -1,0 +1,138 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source Files\Html">
+      <UniqueIdentifier>{51fb7f11-4172-49c5-849f-763591a13609}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Lgi">
+      <UniqueIdentifier>{fad3bc3b-8d20-447a-a9b9-a444576ab494}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Filters">
+      <UniqueIdentifier>{8025dd39-791a-4373-a2c2-5168b37eab5d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Scripting">
+      <UniqueIdentifier>{7154936b-7d0a-484e-bfb6-44d914346391}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Image Comparison">
+      <UniqueIdentifier>{09c42bbb-9297-4eed-b21d-6586d7f8bff9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Test cases">
+      <UniqueIdentifier>{55cc917e-899a-475b-9650-25b17671a18e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{682e2c92-1fcb-4ce6-875a-36e36c4f1b3f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="TestSuite.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Coding\GScriptCompiler.cpp">
+      <Filter>Source Files\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Coding\GScriptLibrary.cpp">
+      <Filter>Source Files\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Coding\GScriptVM.cpp">
+      <Filter>Source Files\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Gdc2\Tools\GdcTools.cpp">
+      <Filter>Source Files\Lgi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Text\GHtml.cpp">
+      <Filter>Source Files\Html</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Text\GHtmlCommon.cpp">
+      <Filter>Source Files\Html</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Text\GHtmlParser.cpp">
+      <Filter>Source Files\Html</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Gdc2\Filters\Gif.cpp">
+      <Filter>Source Files\Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Coding\GLexCpp.cpp">
+      <Filter>Source Files\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\General\GProperties.cpp">
+      <Filter>Source Files\Lgi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Widgets\GZoomView.cpp">
+      <Filter>Source Files\Lgi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\INet\IHttp.cpp">
+      <Filter>Source Files\Lgi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Images\Compare\ImageComparison.cpp">
+      <Filter>Source Files\Image Comparison</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Gdc2\Filters\Jpeg.cpp">
+      <Filter>Source Files\Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Lgi\LgiMain.cpp">
+      <Filter>Source Files\Lgi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Gdc2\Filters\Lzw.cpp">
+      <Filter>Source Files\Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\INet\OpenSSLSocket.cpp">
+      <Filter>Source Files\Lgi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Gdc2\Filters\Png.cpp">
+      <Filter>Source Files\Filters</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\common\GHtml.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\common\GHtmlCommon.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\common\GHtmlParser.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\common\GHtmlPriv.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\common\GScripting.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\common\Coding\GScriptingPriv.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\common\ImageComparison.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Files\MailPreviewHdr.html">
+      <Filter>Test cases</Filter>
+    </None>
+    <None Include="Files\MortgageChoice.html">
+      <Filter>Test cases</Filter>
+    </None>
+    <None Include="Files\Piotr.html">
+      <Filter>Test cases</Filter>
+    </None>
+    <None Include="Files\PlanningCenter2.html">
+      <Filter>Test cases</Filter>
+    </None>
+    <None Include="Files\spam4.html">
+      <Filter>Test cases</Filter>
+    </None>
+    <None Include="Files\WorthilyMagnify.html">
+      <Filter>Test cases</Filter>
+    </None>
+    <None Include="Files\about.html">
+      <Filter>Test cases</Filter>
+    </None>
+    <None Include="..\src\common\Coding\ExternCall.asm">
+      <Filter>Source Files\Scripting</Filter>
+    </None>
+  </ItemGroup>
+</Project>
