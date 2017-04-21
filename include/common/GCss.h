@@ -654,6 +654,8 @@ public:
 			SelMedia,
 			SelID,
 			SelPseudo,
+			SelFontFace,
+			SelPage,
 
 			CombDesc,
 			CombChild,
@@ -848,6 +850,8 @@ public:
 						break;
 					}
 					case GCss::Selector::SelMedia:
+					case GCss::Selector::SelFontFace:
+					case GCss::Selector::SelPage:
 					{
 						return false;
 						break;

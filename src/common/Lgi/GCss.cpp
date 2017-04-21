@@ -2325,6 +2325,8 @@ const char *GCss::Selector::PartTypeToString(PartType p)
 		case SelAttrib: return "Attrib";
 		case SelClass: return "Cls";
 		case SelMedia: return "Media";
+		case SelFontFace: return "FontFace";
+		case SelPage: return "Page";
 		case SelID: return "ID";
 		case SelPseudo: return "Pseudo";
 		case CombDesc: return "Desc";
@@ -2533,13 +2535,24 @@ bool GCss::Selector::Parse(const char *&s)
 			s++;
 
 			Part &n = Parts.New();
-			n.Type = SelMedia;
 			n.Media = MediaNull;
 			GAutoString Str;
 			if (!TokString(Str, s))
 				return false;
-			if (!Str || stricmp(Str, "media"))
+			if (!Str)
 				return false;
+
+			if (!_stricmp(Str, "media"))
+				n.Type = SelMedia;
+			else if (!_stricmp(Str, "font-face"))
+				n.Type = SelFontFace;
+			else if (!_stricmp(Str, "page"))
+				n.Type = SelPage;
+			else
+			{
+				LgiAssert(!"Unknown tag.");
+				return false;
+			}
 			
 			SkipWhite(s);
 			while (*s && !strchr(";{", *s))
