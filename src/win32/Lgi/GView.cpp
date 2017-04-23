@@ -31,6 +31,7 @@ HWND GViewPrivate::hPrevCapture = 0;
 
 GViewPrivate::GViewPrivate()
 {
+	SinkHnd = -1;
 	Font = 0;
 	FontOwnType = GV_FontPtr;
 	CtrlId = -1;

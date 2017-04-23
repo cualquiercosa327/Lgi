@@ -11,6 +11,7 @@
 #include "GButton.h"
 #include "GCss.h"
 #include "LgiRes.h"
+#include "GEventTargetThread.h"
 
 #if WINNATIVE
 #define GViewFlags d->WndStyle
@@ -191,6 +192,9 @@ GView::GView(OsView view)
 
 GView::~GView()
 {
+	if (d->SinkHnd >= 0)
+		GEventSinkMap::Dispatch.RemoveSink(this);
+	
 	#ifdef LGI_SDL
 	LgiAssert(ViewMap.Find(this));
 	ViewMap.Delete(this);
@@ -198,6 +202,13 @@ GView::~GView()
 
 	_Delete();
 	DeleteObj(d);
+}
+
+int GView::AddDispatch()
+{
+	if (d->SinkHnd < 0)
+		d->SinkHnd = GEventSinkMap::Dispatch.AddSink(this);
+	return d->SinkHnd;
 }
 
 GViewIterator *GView::IterateViews()

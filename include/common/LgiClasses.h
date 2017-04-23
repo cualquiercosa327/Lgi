@@ -663,6 +663,19 @@ public:
 	/// Unlocks the GWindow and that this view belongs to.
 	void Unlock();
 
+	/// Add this view to the event target sink dispatch hash table.
+	/// This allows you to use PostThreadEvent with a handle. Which
+	/// is safe even if the object is deleted (unlike the PostEvent
+	/// member function).
+	///
+	/// Calling this multiple times only adds the view once, but it
+	/// returns the same handle each time.
+	/// The view is automatically removed from the dispatch on 
+	/// deletion.
+	///
+	/// \returns the handle for PostThreadEvent.
+	int AddDispatch();
+
 	/// Called to process every message received by this window.
 	GMessage::Result OnEvent(GMessage *Msg);
 
