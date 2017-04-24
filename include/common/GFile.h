@@ -577,7 +577,7 @@ LgiExtern char *LgiGetLeaf(char *Path);
 LgiFunc bool LgiIsRelativePath(const char *Path);
 LgiClass GAutoString LgiMakeRelativePath(const char *Base, const char *Path);
 LgiFunc bool LgiMakePath(char *Str, int StrBufLen, const char *Dir, const char *File);
-LgiFunc char *LgiGetExtension(char *File);
+LgiFunc char *LgiGetExtension(const char *File);
 LgiFunc bool LgiIsFileNameExecutable(const char *FileName);
 LgiFunc bool LgiIsFileExecutable(const char *FileName, GStreamI *f, int64 Start, int64 Len);
 LgiFunc const char *GetErrorName(int e);

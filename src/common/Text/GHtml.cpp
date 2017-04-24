@@ -5595,11 +5595,6 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			}
 			default:
 			{
-				if (Debug)
-				{
-					int asd=0;
-				}
-
 				t->OnFlow(Flow, Depth + 1);
 				break;
 			}
