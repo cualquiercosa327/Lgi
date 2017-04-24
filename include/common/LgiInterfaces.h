@@ -149,6 +149,8 @@ public:
 		virtual int GetTimeout() { return -1; }
 		/// Sets the current timeout for operations in ms
 		virtual void SetTimeout(int ms) {}
+		/// Sets the continue token
+		virtual void SetContinue(bool *Token) {}
 
 
 	// State

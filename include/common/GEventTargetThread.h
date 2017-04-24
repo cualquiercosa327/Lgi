@@ -256,46 +256,49 @@ public:
 	}
 
 	template<typename T>
-	bool PostObject(int Hnd, int Cmd, GAutoPtr<T> Obj)
+	bool PostObject(int Hnd, int Cmd, GAutoPtr<T> A)
 	{
 		uint64 Start = LgiCurrentTime();
 		bool Status;
-		while (!(Status = GEventSinkMap::Dispatch.PostEvent(Hnd, Cmd, (GMessage::Param) Obj.Get())))
+		while (!(Status = GEventSinkMap::Dispatch.PostEvent(Hnd, Cmd, (GMessage::Param) A.Get())))
 		{
 			LgiSleep(2);
-
-			uint64 Now = LgiCurrentTime();
-			if (Now - Start >= PostTimeout)
-			{
-				break;
-			}
+			if (LgiCurrentTime() - Start >= PostTimeout) break;
 		}
-		
 		if (Status)
-			Obj.Release();
+			A.Release();
 		return Status;
 	}
 
 	template<typename T>
-	bool PostObject(int Hnd, int Cmd, GAutoPtr<T> Obj1, GAutoPtr<T> Obj2)
+	bool PostObject(int Hnd, int Cmd, GMessage::Param A, GAutoPtr<T> B)
 	{
 		uint64 Start = LgiCurrentTime();
 		bool Status;
-		while (!(Status = GEventSinkMap::Dispatch.PostEvent(Hnd, Cmd, (GMessage::Param) Obj1.Get(), (GMessage::Param) Obj2.Get())))
+		while (!(Status = GEventSinkMap::Dispatch.PostEvent(Hnd, Cmd, A, (GMessage::Param) B.Get())))
 		{
 			LgiSleep(2);
-
-			uint64 Now = LgiCurrentTime();
-			if (Now - Start >= PostTimeout)
-			{
-				break;
-			}
+			if (LgiCurrentTime() - Start >= PostTimeout) break;
 		}
-		
+		if (Status)
+			B.Release();
+		return Status;
+	}
+
+	template<typename T>
+	bool PostObject(int Hnd, int Cmd, GAutoPtr<T> A, GAutoPtr<T> B)
+	{
+		uint64 Start = LgiCurrentTime();
+		bool Status;
+		while (!(Status = GEventSinkMap::Dispatch.PostEvent(Hnd, Cmd, (GMessage::Param) A.Get(), (GMessage::Param) B.Get())))
+		{
+			LgiSleep(2);
+			if (LgiCurrentTime() - Start >= PostTimeout) break;
+		}
 		if (Status)
 		{
-			Obj1.Release();
-			Obj2.Release();
+			A.Release();
+			B.Release();
 		}
 		return Status;
 	}

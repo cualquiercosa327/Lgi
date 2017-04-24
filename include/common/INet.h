@@ -132,6 +132,9 @@ public:
 
 	/// Sets the current timeout for operations in ms
 	void SetTimeout(int ms);
+
+	/// Sets a continue token
+	void SetContinue(bool *Token);
 	
 	/// Returns whether there is data available for reading.
 	bool IsReadable(int TimeoutMs = 0);

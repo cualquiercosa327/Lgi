@@ -113,7 +113,8 @@ public:
 				Split->AddView(Edit = new EditCtrl(IDC_EDITOR));
 				if (Edit)
 				{
-					Edit->SetSpellCheck(Speller);
+					if (Speller)
+						Edit->SetSpellCheck(Speller);
 					Edit->Sunken(true);
 					Edit->SetId(IDC_EDITOR);
 					// Edit->Name("<span style='color:#800;'>The rich editor control is not functional in this build.</span><b>This is some bold</b>");

@@ -85,15 +85,16 @@ public:
 	{
 		SPELL_CHK_VALID_HND(ResponseHnd);
 		
-		DictionaryId *i = new DictionaryId;
+		GAutoPtr<DictionaryId> i(new DictionaryId);
 		if (!i)
 			return false;
 		i->Lang = Lang;
 		i->Dict = Dictionary;
 		
-		return PostEvent(M_SET_DICTIONARY,
-						(GMessage::Param)ResponseHnd,
-						(GMessage::Param)i);
+		return PostObject(	GetHandle(),
+							M_SET_DICTIONARY,
+							(GMessage::Param)ResponseHnd,
+							i);
 	}
 
 	bool Check(int ResponseHnd, GString s)

@@ -384,7 +384,7 @@ public:
 	int NextUid;
 	GStream *Log;
 	GSpellCheck *SpellCheck;
-	int SinkHnd;
+	bool SpellDictionaryLoaded;
 
 	// This is set when the user changes a style without a selection,
 	// indicating that we should start a new run when new text is entered

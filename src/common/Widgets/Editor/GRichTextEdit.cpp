@@ -120,21 +120,17 @@ GRichTextEdit::GRichTextEdit(	int Id,
 		"</body>\n"
 		"</html>\n");
 	#endif
-
-	d->SinkHnd = GEventSinkMap::Dispatch.AddSink(this);
 }
 
 GRichTextEdit::~GRichTextEdit()
 {
-	GEventSinkMap::Dispatch.RemoveSink(this);
-
 	// 'd' is owned by the GView CSS autoptr.
 }
 
 bool GRichTextEdit::SetSpellCheck(GSpellCheck *sp)
 {
 	if (d->SpellCheck = sp)
-		d->SpellCheck->EnumLanguages(d->SinkHnd);
+		d->SpellCheck->EnumLanguages(AddDispatch());
 	return d->SpellCheck != NULL;
 }
 
@@ -2231,29 +2227,43 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 			}
 			break;
 		}
+		case M_ENUMERATE_LANGUAGES:
+		{
+			GAutoPtr< GArray<GSpellCheck::LanguageId> > Languages((GArray<GSpellCheck::LanguageId>*)Msg->A());
+			if (!Languages)
+				break;
+			
+			for (unsigned i=0; i<Languages->Length(); i++)
+			{
+				GSpellCheck::LanguageId &s = (*Languages)[i];
+				if (s.LangCode.Equals("en"))
+				{
+					d->SpellCheck->EnumDictionaries(AddDispatch(), s.LangCode);
+					break;
+				}
+			}
+			break;
+		}
 		case M_ENUMERATE_DICTIONARIES:
 		{
-			GAutoPtr<GString::Array> Dictionaries((GString::Array*)Msg->A());
-			if (Dictionaries)
+			GAutoPtr< GArray<GSpellCheck::DictionaryId> > Dictionaries((GArray<GSpellCheck::DictionaryId>*)Msg->A());
+			if (!Dictionaries)
+				break;
+			
+			for (unsigned i=0; i<Dictionaries->Length(); i++)
 			{
-				GString Lang;
-				int LangScore = 0;
-
-				for (unsigned i=0; i<Dictionaries->Length(); i++)
+				GSpellCheck::DictionaryId &s = (*Dictionaries)[i];
+				if (s.Dict.Equals("AU"))
 				{
-					GString &s = (*Dictionaries)[i];
-					int Score = s.Lower().Find("en") >= 0;
-					Score += s.Lower().Find("au") >= 0;
-					if (!Lang || Score > LangScore)
-					{
-						Lang = s;
-						LangScore = Score;
-					}
+					d->SpellCheck->SetDictionary(AddDispatch(), s.Lang, s.Dict);
+					break;
 				}
-
-				if (Lang && d->SpellCheck)
-					d->SpellCheck->SetDictionary(d->SinkHnd, Lang);
 			}
+			break;
+		}
+		case M_SET_DICTIONARY:
+		{
+			d->SpellDictionaryLoaded = Msg->A() != 0;
 			break;
 		}
 		#if defined WIN32
