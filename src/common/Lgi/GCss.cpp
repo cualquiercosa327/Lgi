@@ -1970,10 +1970,13 @@ bool GCss::Len::Parse(const char *&s, PropType Prop, ParsingStyle ParseType)
 		else if (ParseWord(s, "em")) Type = LenEm;
 		else if (ParseWord(s, "ex")) Type = LenEx;
 		else if (ParseWord(s, "cm")) Type = LenCm;
-		/*
 		else if (IsAlpha(*s))
+		{
+			// Unknown unit, in the case of a missing ';' we should
+			// reset to "inherit" as it's less damaging to the layout
+			Type = LenInherit;
 			return false;
-		*/
+		}
 		else if (ParseType == ParseRelaxed)
 		{
 			if (Prop == PropLineHeight)
@@ -2548,6 +2551,8 @@ bool GCss::Selector::Parse(const char *&s)
 				n.Type = SelFontFace;
 			else if (!_stricmp(Str, "page"))
 				n.Type = SelPage;
+			else if (!_stricmp(Str, "list"))
+				n.Type = SelList;
 			else
 			{
 				LgiAssert(!"Unknown tag.");

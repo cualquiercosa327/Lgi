@@ -4601,7 +4601,6 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f, uint16 Depth)
 					
 					GCss::Len Ht = t->Height();
 					GFlowRegion r(Table->Html, Box, true);
-					
 					t->OnFlow(&r, Depth+1);
 					
 					if (Ht.IsValid() &&
@@ -5418,8 +5417,9 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 		// Set the width if any
 		if (Disp == DispBlock)
 		{
-			if (!IsTableCell(TagId) && Width().IsValid())
-				Size.x = Flow->ResolveX(Width(), f, false);
+			GCss::Len Wid = Width();
+			if (!IsTableCell(TagId) && Wid.IsValid())
+				Size.x = Flow->ResolveX(Wid, f, false);
 			else if (TagId != TAG_IMG)
 				Size.x = Flow->X();
 
@@ -5595,6 +5595,11 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			}
 			default:
 			{
+				if (Debug)
+				{
+					int asd=0;
+				}
+
 				t->OnFlow(Flow, Depth + 1);
 				break;
 			}
@@ -5610,18 +5615,22 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 	{		
 		GCss::Len Ht = Height();
 		GCss::Len MaxHt = MaxHeight();
-		bool AcceptHt = !IsTableCell(TagId) || Ht.Type != LenPercent;
-		if (Ht.IsValid())
+
+		bool AcceptHt = !IsTableCell(TagId) && Ht.Type != LenPercent;
+		if (AcceptHt)
 		{
-			int HtPx = Flow->ResolveY(Ht, GetFont(), false);
-			if (HtPx > Flow->y2)
-				Flow->y2 = HtPx;
-		}
-		if (MaxHt.IsValid() && AcceptHt)
-		{
-			int MaxHtPx = Flow->ResolveY(MaxHt, GetFont(), false);
-			if (MaxHtPx < Flow->y2)
-				Flow->y2 = MaxHtPx;
+			if (Ht.IsValid())
+			{
+				int HtPx = Flow->ResolveY(Ht, GetFont(), false);
+				if (HtPx > Flow->y2)
+					Flow->y2 = HtPx;
+			}
+			if (MaxHt.IsValid())
+			{
+				int MaxHtPx = Flow->ResolveY(MaxHt, GetFont(), false);
+				if (MaxHtPx < Flow->y2)
+					Flow->y2 = MaxHtPx;
+			}
 		}
 
 		if (Disp == DispBlock)

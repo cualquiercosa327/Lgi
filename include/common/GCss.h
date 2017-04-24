@@ -656,6 +656,7 @@ public:
 			SelPseudo,
 			SelFontFace,
 			SelPage,
+			SelList,
 
 			CombDesc,
 			CombChild,
@@ -852,6 +853,7 @@ public:
 					case GCss::Selector::SelMedia:
 					case GCss::Selector::SelFontFace:
 					case GCss::Selector::SelPage:
+					case GCss::Selector::SelList:
 					{
 						return false;
 						break;

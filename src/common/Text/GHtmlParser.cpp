@@ -243,7 +243,7 @@ char *GHtmlParser::ParseName(char *s, GAutoString &Name)
 {
 	SkipWhiteSpace(s);
 	char *Start = s;
-	while (*s && (IsAlpha(*s) || strchr("!-:", *s) || IsDigit(*s)))
+	while (*s && (IsAlpha(*s) || strchr("!-:\"\'", *s) || IsDigit(*s)))
 	{
 		s++;
 	}
@@ -259,20 +259,25 @@ char *GHtmlParser::ParseName(char *s, GAutoString &Name)
 
 char *GHtmlParser::ParsePropList(char *s, GHtmlElement *Obj, bool &Closed)
 {
-	while (s && *s && *s != '>')
+	while (s && *s)
 	{
-		while (*s && IsWhiteSpace(*s)) s++;
-		if (*s == '>') break;
+		while (*s && IsWhiteSpace(*s))
+			s++;
+		
+		if (*s == '/')
+		{
+			Closed = true;
+			s++;
+		}
+		if (*s == '>')
+			break;
 
 		// get name
 		char *Name = 0;
 		char *n = ParseName(s, &Name);		
-		if (*n == '/')
-		{
-			Closed = true;
-		}		
 		if (n == s)
 		{
+			// Don't get stuck...
 			s = ++n;
 		}
 		else
@@ -280,7 +285,8 @@ char *GHtmlParser::ParsePropList(char *s, GHtmlElement *Obj, bool &Closed)
 			s = n;
 		}
 
-		while (*s && IsWhiteSpace(*s)) s++;
+		while (*s && IsWhiteSpace(*s))
+			s++;
 
 		if (*s == '=')
 		{
@@ -306,6 +312,9 @@ char *GHtmlParser::ParsePropList(char *s, GHtmlElement *Obj, bool &Closed)
 		}
 
 		DeleteArray(Name);
+
+		if (*s != '>' && *s != '/' && !IsWhiteSpace(*s) && !IsAlpha(*s))
+			break;
 	}
 
 	if (*s == '>') s++;
@@ -773,6 +782,11 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 								break;
 							}
 							case TAG_HEAD:
+							{
+								ParentTags.Add(TAG_HTML);
+								break;
+							}
+							case TAG_BODY:
 							{
 								ParentTags.Add(TAG_HTML);
 								break;
