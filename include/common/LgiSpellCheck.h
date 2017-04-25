@@ -11,6 +11,7 @@ enum SPELL_MSGS
 	M_ENUMERATE_DICTIONARIES,
 	M_SET_DICTIONARY,
 	M_SET_PARAMS,
+	M_ADD_WORD,
 };
 
 #define SPELL_CHK_VALID_HND(hnd) \
@@ -48,6 +49,24 @@ public:
 		{
 			CapTarget = NULL;
 		}
+	};
+	
+	struct SpellingError
+	{
+		int Start, Len;
+		GString::Array Suggestions;
+		
+		int End() { return Start + Len; }
+	};
+	
+	struct CheckText
+	{
+		GString Text;
+		GArray<SpellingError> Errors;
+
+		// Application specific data
+		void *UserPtr;
+		int64 UserInt;
 	};
 
 
@@ -97,10 +116,15 @@ public:
 							i);
 	}
 
-	bool Check(int ResponseHnd, GString s)
+	bool Check(int ResponseHnd, GString s, int64 UserInt = 0)
 	{
 		SPELL_CHK_VALID_HND(ResponseHnd);
-		return PostEvent(M_CHECK_TEXT, (GMessage::Param)ResponseHnd, (GMessage::Param)new GString(s));
+		
+		GAutoPtr<CheckText> c(new CheckText);
+		c->Text = s;
+		c->UserInt = UserInt;
+		
+		return PostObject(GetHandle(), M_CHECK_TEXT, (GMessage::Param)ResponseHnd, c);
 	}
 	
 	bool InstallDictionary()
