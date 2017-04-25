@@ -647,8 +647,11 @@ bool GRichTextEdit::Copy()
 bool GRichTextEdit::Paste()
 {
 	GClipBoard Cb(this);
-	char16 *Text = Cb.TextW();
+	GAutoWString Text(Cb.TextW());
+	GAutoPtr<GSurface> Img;
 	if (!Text)
+		Img.Reset(Cb.Bitmap());
+	if (!Text && !Img)
 		return false;
 	
 	if (!d->Cursor ||
@@ -666,17 +669,55 @@ bool GRichTextEdit::Paste()
 			return false;
 	}
 
-	GAutoPtr<uint32,true> Utf32((uint32*)LgiNewConvertCp("utf-32", Text, LGI_WideCharset));
-	int Len = Strlen(Utf32.Get());
-	if (!d->Cursor->Blk->AddText(Trans, d->Cursor->Offset, Utf32.Get(), Len))
+	if (Text)
 	{
-		LgiAssert(0);
-		SendNotify(GNotifyDocChanged);
-		return false;
+		GAutoPtr<uint32,true> Utf32((uint32*)LgiNewConvertCp("utf-32", Text, LGI_WideCharset));
+		int Len = Strlen(Utf32.Get());
+		if (!d->Cursor->Blk->AddText(Trans, d->Cursor->Offset, Utf32.Get(), Len))
+		{
+			LgiAssert(0);
+			return false;
+		}
+
+		d->Cursor->Offset += Len;
+		d->Cursor->LineHint = -1;
+	}
+	else if (Img)
+	{
+		GRichTextPriv::Block *b = d->Cursor->Blk;
+		int BlkIdx = d->Blocks.IndexOf(b);
+		GRichTextPriv::Block *After = NULL;
+		int AddIndex;
+		
+		LgiAssert(BlkIdx >= 0);
+
+		// Split 'b' to make room for the image
+		if (d->Cursor->Offset > 0)
+		{
+			After = b->Split(Trans, d->Cursor->Offset);
+			AddIndex = BlkIdx+1;									
+		}
+		else
+		{
+			// Insert before..
+			AddIndex = BlkIdx;
+		}
+
+		GRichTextPriv::ImageBlock *ImgBlk = new GRichTextPriv::ImageBlock(d);
+		if (ImgBlk)
+		{
+			d->Blocks.AddAt(AddIndex++, ImgBlk);
+			if (After)
+				d->Blocks.AddAt(AddIndex++, After);
+
+			Img->MakeOpaque();
+			ImgBlk->SetImage(Img);
+			
+			AutoCursor c(new BlkCursor(ImgBlk, 1, -1));
+			d->SetCursor(c);			
+		}
 	}
 
-	d->Cursor->Offset += Len;
-	d->Cursor->LineHint = -1;
 	Invalidate();
 	SendNotify(GNotifyDocChanged);
 

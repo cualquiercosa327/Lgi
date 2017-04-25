@@ -1043,6 +1043,7 @@ public:
 
 		bool IsValid();
 		bool Load(const char *Src = NULL);
+		bool SetImage(GAutoPtr<GSurface> Img);
 
 		// No state change methods
 		int GetLines();

@@ -5,6 +5,8 @@
 
 #define TIMEOUT_LOAD_PROGRESS		100 // ms
 
+int ImgScales[] = { 15, 25, 50, 75, 100 };
+
 class ImageLoader : public GEventTargetThread, public Progress
 {
 	GString File;
@@ -221,6 +223,36 @@ GRichTextPriv::ImageBlock::~ImageBlock()
 
 bool GRichTextPriv::ImageBlock::IsValid()
 {
+	return true;
+}
+
+bool GRichTextPriv::ImageBlock::SetImage(GAutoPtr<GSurface> Img)
+{
+	SourceImg = Img;
+	if (!SourceImg)
+		return false;
+
+	Scales.Length(CountOf(ImgScales));
+	for (int i=0; i<CountOf(ImgScales); i++)
+	{
+		ScaleInf &si = Scales[i];
+		si.Sz.x = SourceImg->X() * ImgScales[i] / 100;
+		si.Sz.y = SourceImg->Y() * ImgScales[i] / 100;
+		si.Percent = ImgScales[i];
+	
+		if (si.Sz.x == SourceImg->X() &&
+			si.Sz.y == SourceImg->Y())
+		{
+			ResizeIdx = i;
+		}
+	}
+
+	UpdateDisplayImg();
+	if (DisplayImg)
+		PostThreadEvent(GetThreadHandle(),
+						M_IMAGE_RESAMPLE,
+						(GMessage::Param) DisplayImg.Get(),
+						(GMessage::Param) SourceImg.Get());
 	return true;
 }
 
@@ -698,7 +730,6 @@ void GRichTextPriv::ImageBlock::IncAllStyleRefs()
 		Style->RefCount++;
 }
 
-int ImgScales[] = { 15, 25, 50, 75, 100 };
 bool GRichTextPriv::ImageBlock::DoContext(GSubMenu &s, GdcPt2 Doc)
 {
 	if (SourceImg)
