@@ -12,6 +12,7 @@ enum SPELL_MSGS
 	M_SET_DICTIONARY,
 	M_SET_PARAMS,
 	M_ADD_WORD,
+	M_INSTALL_DICTIONARY,
 };
 
 #define SPELL_CHK_VALID_HND(hnd) \
@@ -142,8 +143,7 @@ public:
 	
 	bool InstallDictionary()
 	{
-		LgiAssert(!"Impl.");
-		return false;
+		return PostEvent(M_INSTALL_DICTIONARY);
 	}
 };
 
