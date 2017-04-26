@@ -62,11 +62,19 @@ public:
 	struct CheckText
 	{
 		GString Text;
+		int Len;
 		GArray<SpellingError> Errors;
 
 		// Application specific data
 		void *UserPtr;
 		int64 UserInt;
+		
+		CheckText()
+		{
+			Len = 0;
+			UserPtr = NULL;
+			UserInt = 0;
+		}
 	};
 
 
@@ -120,8 +128,13 @@ public:
 	{
 		SPELL_CHK_VALID_HND(ResponseHnd);
 		
+		if (s.Length() == 0)
+			return false;
+
 		GAutoPtr<CheckText> c(new CheckText);
+		GUtf8Str Utf(s);
 		c->Text = s;
+		c->Len = Utf.GetChars();
 		c->UserInt = UserInt;
 		
 		return PostObject(GetHandle(), M_CHECK_TEXT, (GMessage::Param)ResponseHnd, c);

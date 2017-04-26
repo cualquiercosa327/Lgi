@@ -12,7 +12,7 @@ class GHtmlParser
 protected:
 	GDocView *View;
 	GAutoString Source;
-	List<GHtmlElement> OpenTags;
+	GArray<GHtmlElement*> OpenTags;
 	GAutoString DocCharSet;
 	bool DocAndCsTheSame;
 

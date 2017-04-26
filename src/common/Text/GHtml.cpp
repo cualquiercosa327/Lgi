@@ -6890,7 +6890,7 @@ void GHtml::_Delete()
 
 	CssStore.Empty();
 	CssHref.Empty();
-	OpenTags.Empty();
+	OpenTags.Length(0);
 	Source.Reset();
 	DeleteObj(Tag);
 	DeleteObj(FontCache);
@@ -6957,7 +6957,7 @@ void GHtml::ParseDocument(const char *Doc)
 	if (Tag)
 	{
 		Tag->TagId = ROOT;
-		OpenTags.Empty();
+		OpenTags.Length(0);
 
 		if (IsHtml)
 		{
