@@ -132,6 +132,7 @@ GViewPrivate::GViewPrivate()
 	InPaint = false;
 	GotOnCreate = false;
 	WantsFocus = false;
+	SinkHnd = -1;
 }
 
 GViewPrivate::~GViewPrivate()
