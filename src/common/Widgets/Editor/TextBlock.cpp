@@ -1428,6 +1428,17 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 	LayoutDirty = true;
 	
 	IsValid();
+
+	if (d->SpellCheck &&
+		d->SpellDictionaryLoaded)
+	{
+		GArray<uint32> Text;
+		if (CopyAt(0, Length(), &Text))
+		{
+			GString s(&Text[0], Text.Length());
+			d->SpellCheck->Check(d->View->AddDispatch(), s);
+		}
+	}
 	
 	return true;
 }

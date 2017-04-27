@@ -26,6 +26,8 @@ enum SPELL_MSGS
 class GSpellCheck : public GEventTargetThread
 {
 public:
+	static const char Delimiters[];
+
 	struct LanguageId
 	{
 		GString LangCode;

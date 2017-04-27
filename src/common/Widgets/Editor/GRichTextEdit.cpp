@@ -2307,6 +2307,15 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 			d->SpellDictionaryLoaded = Msg->A() != 0;
 			break;
 		}
+		case M_CHECK_TEXT:
+		{
+			GAutoPtr<GSpellCheck::CheckText> Ct((GSpellCheck::CheckText*)Msg->A());
+			if (!Ct)
+				break;
+
+
+			break;
+		}
 		#if defined WIN32
 		case WM_GETTEXTLENGTH:
 		{

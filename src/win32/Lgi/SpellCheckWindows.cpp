@@ -184,20 +184,20 @@ public:
 			}
 			case M_CHECK_TEXT:
 			{
-				GAutoPtr<GString> Txt((GString*)Msg->A());
-				if (!Txt)
+				int ResponseHnd = (int)Msg->A();
+				GAutoPtr<CheckText> Ct((CheckText*)Msg->B());
+				if (!Ct)
 				{
 					LgiTrace("%s:%i - No text specified.\n", _FL);
 					break;
 				}
-
 				if (!Sc)
 				{
 					LgiTrace("%s:%i - No spell check loaded.\n", _FL);
 					break;
 				}
 
-				GAutoWString WTxt(Utf8ToWide(*Txt));
+				GAutoWString WTxt(Utf8ToWide(Ct->Text));
 				IEnumSpellingError *ErrEnum = NULL;
 				HRESULT r = Sc->Check(WTxt, &ErrEnum);
 				if (FAILED(r))
@@ -207,7 +207,7 @@ public:
 				}
 
 				ISpellingError *Err = NULL;
-				while (SUCCEEDED((r = ErrEnum->Next(&Err))))
+				while (SUCCEEDED((r = ErrEnum->Next(&Err))) && Err)
 				{
 					ULONG Start, Len;
 					CORRECTIVE_ACTION Action;
@@ -219,9 +219,31 @@ public:
 					r = Err->get_Replacement(&Replace);
 
 					Err->Release();
+
+					SpellingError &Se = Ct->Errors.New();
+					Se.Start = Start;
+					Se.Len = Len;
+					if (Action == CORRECTIVE_ACTION_GET_SUGGESTIONS)
+					{
+						GAutoWString Word(NewStrW(WTxt + Start, Len));
+						IEnumString *Strs = NULL;
+						r = Sc->Suggest(Word, &Strs);
+						if (SUCCEEDED(r))
+						{
+							LPOLESTR Str;
+							while (SUCCEEDED((r = Strs->Next(1, &Str, NULL))) && Str)
+							{
+								Se.Suggestions.Add(Str);
+								CoTaskMemFree(Str);
+							}
+							Strs->Release();
+						}
+					}
 				}
 
 				ErrEnum->Release();
+
+				PostObject(ResponseHnd, Msg->Msg(), Ct);
 				break;
 			}
 		}
