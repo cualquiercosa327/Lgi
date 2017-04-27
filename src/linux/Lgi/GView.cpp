@@ -586,17 +586,11 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 						cr.Offset(Client.x1, Client.y1);
 						Gtk::GdkRectangle gr = cr;
 						
-						if (_Debug)
-							printf("%s:%i - inval %i,%i - %i,%i\n", _FL, gr.x, gr.y, gr.width, gr.height);
-						
 	            		gdk_window_invalidate_rect(hnd, &gr, FALSE);
 					}
 					else
 					{
 						Gtk::GdkRectangle r = {0, 0, Pos.X(), Pos.Y()};
-
-						if (_Debug)
-							printf("%s:%i - inval %i,%i,%i,%i\n", _FL, 0, 0, Pos.X()-1, Pos.Y()-1);
 
 	            		gdk_window_invalidate_rect(hnd, &r, FALSE);
 					}
