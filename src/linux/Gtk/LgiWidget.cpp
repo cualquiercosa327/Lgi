@@ -269,7 +269,9 @@ static gboolean lgi_widget_key_event(GtkWidget *wid, GdkEventKey *e)
         k.Alt((e->state & 8) != 0);
         
         // k.IsChar = !k.Ctrl() && (k.c16 >= ' ' && k.c16 <= 0x7f);
-        k.IsChar = !k.Ctrl() && k.c16 >= ' ';
+		k.IsChar = !k.Ctrl() && 
+					(k.c16 >= ' ') &&
+					(k.c16 >> 8 != 0xff);
         if (e->keyval > 0xff && e->string != NULL)
         {
         	// Convert string to unicode char
