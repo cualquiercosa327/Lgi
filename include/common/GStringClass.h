@@ -140,7 +140,7 @@ public:
 		}
 	}
 
-	#if defined(_WIN32)
+	#if defined(_WIN32) || defined(MAC)
 	/// const uint32* constructor
 	GString(const uint32 *str, ptrdiff_t chars = -1)
 	{

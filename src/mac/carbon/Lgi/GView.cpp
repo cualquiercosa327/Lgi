@@ -239,6 +239,7 @@ GViewPrivate::GViewPrivate()
 	Popup = NULL;
 	Pulse = 0;
 	DndHandler = NULL;
+	SinkHnd = -1;
 		
 	static bool First = true;
 	if (First)
@@ -1494,8 +1495,8 @@ CarbonControlProc
 					GKey k;
 
 					UniChar *utf = text;
-					int size = actualSize;
-					k.c16 = k.vkey = LgiUtf16To32(utf, size);
+					ptrdiff_t size = actualSize;
+					k.c16 = k.vkey = LgiUtf16To32((const uint16 *&)utf, size);
 					
 					// printf("%s:%i - char=%i\n", _FL, k.c16);
 					
