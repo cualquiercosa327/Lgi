@@ -889,9 +889,15 @@ public:
 			return c;
 		}
 
-		virtual void Paint(GSurface *pDC, int &FixX, int FixY, GColour &Back)
+		virtual void Paint(GSurface *pDC, int &FixX, int FixY, GColour &Back, Range *SpellErr = NULL)
 		{
 			FDraw(pDC, FixX, FixY);
+
+			if (SpellErr)
+			{
+				
+			}
+
 			FixX += FX();
 		}
 
@@ -947,9 +953,12 @@ public:
 	{
 		GNamedStyle *Style;
 		GArray<GSpellCheck::SpellingError> SpellingErrors;
+		int ErrIdx;
+		GSpellCheck::SpellingError *SpErr;
 
 		bool PreEdit(Transaction *Trans);
 		void UpdateSpelling();
+		void DrawDisplayString(GSurface *pDC, DisplayStr *Ds, int &FixX, int FixY, GColour &Bk, int &Pos);
 	
 	public:
 		GArray<StyleText*> Txt;

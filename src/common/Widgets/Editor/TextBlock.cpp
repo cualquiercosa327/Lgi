@@ -626,9 +626,10 @@ void DrawDecor(GSurface *pDC, GRichTextPriv::DisplayStr *Ds, int Fx, int Fy, int
 	GDisplayString ds1(Ds->GetFont(), (const char16*)(*Ds), Start);
 	GDisplayString ds2(Ds->GetFont(), (const char16*)(*Ds), Start+Len);
 
-	int x = (Fx >> GDisplayString::FShift) + ds1.X();
+	int x = (Fx >> GDisplayString::FShift);
 	int y = (Fy >> GDisplayString::FShift) + (int)Ds->GetAscent() + 1;
 	int End = x + ds2.X();
+	x += ds1.X();
 	while (x < End)
 	{
 		pDC->Set(x, y+(x%2));
@@ -646,6 +647,36 @@ bool Overlap(GSpellCheck::SpellingError *e, int start, int len)
 		return false;
 	return true;
 }
+
+void GRichTextPriv::TextBlock::DrawDisplayString(GSurface *pDC, DisplayStr *Ds, int &FixX, int FixY, GColour &Bk, int &Pos)
+{
+	int OldX = FixX;
+
+	// Paint the string itself...
+	Ds->Paint(pDC, FixX, FixY, Bk);
+
+	// Does the a spelling error overlap this string?
+	int DsEnd = Pos + Ds->Chars;
+	while (Overlap(SpErr, Pos, Ds->Chars))
+	{
+		// Yes, work out the region of characters and paint the decor
+		int Start = max(SpErr->Start, Pos);
+		int Len = min(SpErr->End(), Pos + Ds->Chars) - Start;
+		
+		// Draw the decor for the error
+		DrawDecor(pDC, Ds, OldX, FixY, Start - Pos, Len);
+		
+		if (SpErr->End() < DsEnd)
+		{
+			// Are there more errors?
+			SpErr = SpellingErrors.AddressOf(++ErrIdx);
+		}
+		else break;
+	}
+
+	Pos += Ds->Chars;
+}
+
 
 void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 {
@@ -690,8 +721,8 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 	Ctx.DrawBox(r, Padding, Ctx.Colours[Unselected].Back);
 	
 	int CurY = Pos.y1;
-	int ErrIdx = 0;
-	GSpellCheck::SpellingError *SpErr = ErrIdx < SpellingErrors.Length() ? &SpellingErrors[ErrIdx] : NULL;
+	ErrIdx = 0;
+	SpErr = SpellingErrors.AddressOf(ErrIdx);
 
 	for (unsigned i=0; i<Layout.Length(); i++)
 	{
@@ -770,6 +801,7 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 			{
 				// Process string into parts based on the selection boundaries
 				int Ch = EndPoint[CurEndPoint] - CharPos;
+				int TmpPos = CharPos;
 				GAutoPtr<DisplayStr> ds1 = Ds->Clone(0, Ch);
 						
 				// First part...
@@ -777,7 +809,9 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 				if (DsFnt)
 					DsFnt->Colour(Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(), Bk);
 				if (ds1)
-					ds1->Paint(Ctx.pDC, FixX, FixY, Bk);
+					DrawDisplayString(Ctx.pDC, ds1, FixX, FixY, Bk, TmpPos);
+
+
 				Ctx.Type = Ctx.Type == Selected ? Unselected : Selected;
 				CurEndPoint++;
 						
@@ -801,7 +835,7 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 					if (DsFnt)
 						DsFnt->Colour(Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(), Bk);
 					if (ds2)
-						ds2->Paint(Ctx.pDC, FixX, FixY, Bk);
+						DrawDisplayString(Ctx.pDC, ds2, FixX, FixY, Bk, TmpPos);
 					Ctx.Type = Ctx.Type == Selected ? Unselected : Selected;
 					CurEndPoint++;
 
@@ -811,7 +845,7 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 					if (DsFnt)
 						DsFnt->Colour(Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(), Bk);
 					if (ds3)
-						ds3->Paint(Ctx.pDC, FixX, FixY, Bk);
+						DrawDisplayString(Ctx.pDC, ds3, FixX, FixY, Bk, TmpPos);
 				}
 				else if (Ch < Ds->Chars)
 				{
@@ -821,7 +855,7 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 					if (DsFnt)
 						DsFnt->Colour(Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(), Bk);
 					if (ds2)	
-						ds2->Paint(Ctx.pDC, FixX, FixY, Bk);
+						DrawDisplayString(Ctx.pDC, ds2, FixX, FixY, Bk, TmpPos);
 				}
 			}
 			else
@@ -835,17 +869,8 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 				int OldFixX = FixX;
 				#endif
 
-				int OldX = FixX;
-				Ds->Paint(Ctx.pDC, FixX, FixY, Bk);
-
-				// Does the next spelling error overlap this string?
-				if (Overlap(SpErr, CharPos, Ds->Chars))
-				{
-					// Yes, work out the region of characters and paint the decor
-					int Start = max(SpErr->Start, CharPos);
-					int End = min(SpErr->End(), CharPos + Ds->Chars);
-					DrawDecor(Ctx.pDC, Ds, OldX, FixY, Start, End - Start);
-				}
+				int TmpPos = CharPos;
+				DrawDisplayString(Ctx.pDC, Ds, FixX, FixY, Bk, TmpPos);
 
 				#if DEBUG_OUTLINE_CUR_DISPLAY_STR
 				if (Ctx.Cursor->Blk == (Block*)this &&

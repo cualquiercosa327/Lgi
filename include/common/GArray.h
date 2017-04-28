@@ -248,7 +248,13 @@ public:
 
 		static Type t;
 		return t;
-	}		
+	}
+
+	// Returns the address of an item or NULL if index is out of range
+	Type *AddressOf(uint32 i)
+	{
+		return i < len ? p + i : NULL;
+	}
 
 	/// \brief Returns a reference a given entry.
 	///
