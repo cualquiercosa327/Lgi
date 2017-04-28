@@ -127,7 +127,7 @@ public:
 							i);
 	}
 
-	bool Check(int ResponseHnd, GString s, int64 UserInt = 0)
+	bool Check(int ResponseHnd, GString s, int64 UserInt = 0, void *UserPtr = NULL)
 	{
 		SPELL_CHK_VALID_HND(ResponseHnd);
 		
@@ -139,6 +139,7 @@ public:
 		c->Text = s;
 		c->Len = Utf.GetChars();
 		c->UserInt = UserInt;
+		c->UserPtr = UserPtr;
 		
 		return PostObject(GetHandle(), M_CHECK_TEXT, (GMessage::Param)ResponseHnd, c);
 	}

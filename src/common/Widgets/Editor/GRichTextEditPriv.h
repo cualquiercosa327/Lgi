@@ -681,6 +681,7 @@ public:
 			virtual int LineToOffset(int Line) = 0;
 			virtual int GetLines() = 0;
 			virtual int FindAt(int StartIdx, const uint32 *Str, GFindReplaceCommon *Params) = 0;
+			virtual void SetSpellingErrors(GArray<GSpellCheck::SpellingError> &Errors) {}
 			virtual void IncAllStyleRefs() {}
 			virtual void Dump() {}
 			virtual GNamedStyle *GetStyle(int At = -1) = 0;
@@ -945,8 +946,10 @@ public:
 	class TextBlock : public Block
 	{
 		GNamedStyle *Style;
+		GArray<GSpellCheck::SpellingError> SpellingErrors;
 
 		bool PreEdit(Transaction *Trans);
+		void UpdateSpelling();
 	
 	public:
 		GArray<StyleText*> Txt;
@@ -984,6 +987,7 @@ public:
 		bool Seek(SeekType To, BlockCursor &Cursor);
 		int FindAt(int StartIdx, const uint32 *Str, GFindReplaceCommon *Params);
 		void IncAllStyleRefs();
+		void SetSpellingErrors(GArray<GSpellCheck::SpellingError> &Errors);
 		#ifdef _DEBUG
 		void DumpNodes(GTreeItem *Ti);
 		#endif

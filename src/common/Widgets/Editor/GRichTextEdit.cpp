@@ -2313,7 +2313,12 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 			if (!Ct)
 				break;
 
+			GRichTextPriv::Block *b = (GRichTextPriv::Block*)Ct->UserPtr;
+			if (!d->Blocks.HasItem(b))
+				break;
 
+			b->SetSpellingErrors(Ct->Errors);
+			Invalidate();
 			break;
 		}
 		#if defined WIN32

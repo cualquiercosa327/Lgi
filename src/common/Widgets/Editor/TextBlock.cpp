@@ -619,7 +619,34 @@ bool GRichTextPriv::TextBlock::HitTest(HitTestResult &htr)
 
 	return false;
 }
-		
+
+void DrawDecor(GSurface *pDC, GRichTextPriv::DisplayStr *Ds, int Fx, int Fy, int Start, int Len)
+{
+	GColour Old = pDC->Colour(GColour::Red);
+	GDisplayString ds1(Ds->GetFont(), (const char16*)(*Ds), Start);
+	GDisplayString ds2(Ds->GetFont(), (const char16*)(*Ds), Start+Len);
+
+	int x = (Fx >> GDisplayString::FShift) + ds1.X();
+	int y = (Fy >> GDisplayString::FShift) + (int)Ds->GetAscent() + 1;
+	int End = x + ds2.X();
+	while (x < End)
+	{
+		pDC->Set(x, y+(x%2));
+		x++;
+	}
+}
+
+bool Overlap(GSpellCheck::SpellingError *e, int start, int len)
+{
+	if (!e)
+		return false;
+	if (start+len <= e->Start)
+		return false;
+	if (start >= e->End())
+		return false;
+	return true;
+}
+
 void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 {
 	int CharPos = 0;
@@ -663,6 +690,9 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 	Ctx.DrawBox(r, Padding, Ctx.Colours[Unselected].Back);
 	
 	int CurY = Pos.y1;
+	int ErrIdx = 0;
+	GSpellCheck::SpellingError *SpErr = ErrIdx < SpellingErrors.Length() ? &SpellingErrors[ErrIdx] : NULL;
+
 	for (unsigned i=0; i<Layout.Length(); i++)
 	{
 		TextLine *Line = Layout[i];
@@ -805,7 +835,17 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 				int OldFixX = FixX;
 				#endif
 
+				int OldX = FixX;
 				Ds->Paint(Ctx.pDC, FixX, FixY, Bk);
+
+				// Does the next spelling error overlap this string?
+				if (Overlap(SpErr, CharPos, Ds->Chars))
+				{
+					// Yes, work out the region of characters and paint the decor
+					int Start = max(SpErr->Start, CharPos);
+					int End = min(SpErr->End(), CharPos + Ds->Chars);
+					DrawDecor(Ctx.pDC, Ds, OldX, FixY, Start, End - Start);
+				}
 
 				#if DEBUG_OUTLINE_CUR_DISPLAY_STR
 				if (Ctx.Cursor->Blk == (Block*)this &&
@@ -1280,7 +1320,10 @@ int GRichTextPriv::TextBlock::DeleteAt(Transaction *Trans, int BlkOffset, int Ch
 	}
 
 	if (Deleted > 0)
+	{
 		LayoutDirty = true;
+		UpdateSpelling();
+	}
 
 	IsValid();
 
@@ -1429,6 +1472,13 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 	
 	IsValid();
 
+	UpdateSpelling();
+	
+	return true;
+}
+
+void GRichTextPriv::TextBlock::UpdateSpelling()
+{
 	if (d->SpellCheck &&
 		d->SpellDictionaryLoaded)
 	{
@@ -1436,11 +1486,20 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 		if (CopyAt(0, Length(), &Text))
 		{
 			GString s(&Text[0], Text.Length());
-			d->SpellCheck->Check(d->View->AddDispatch(), s);
+			d->SpellCheck->Check(d->View->AddDispatch(), s, 0, (GRichTextPriv::Block*)this);
 		}
 	}
-	
-	return true;
+}
+
+int ErrSort(GSpellCheck::SpellingError *a, GSpellCheck::SpellingError *b)
+{
+	return a->Start - b->Start;
+}
+
+void GRichTextPriv::TextBlock::SetSpellingErrors(GArray<GSpellCheck::SpellingError> &Errors)
+{
+	SpellingErrors = Errors;	
+	SpellingErrors.Sort(ErrSort);
 }
 
 int GRichTextPriv::TextBlock::CopyAt(int Offset, int Chars, GArray<uint32> *Text)
