@@ -251,7 +251,7 @@ public:
 	}
 
 	// Returns the address of an item or NULL if index is out of range
-	Type *AddressOf(uint32 i)
+	Type *AddressOf(unsigned int i)
 	{
 		return i < len ? p + i : NULL;
 	}

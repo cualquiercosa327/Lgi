@@ -439,8 +439,8 @@ bool GRichTextPriv::ImageBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia
 		}
 		else
 		{
-			LgiAssert(!"No jpeg and no source?");
 			LgiTrace("%s:%i - No source or JPEG for saving image to HTML.\n", _FL);
+			return false;
 		}
 
 		if (DisplayImg &&
