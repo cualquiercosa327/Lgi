@@ -2553,6 +2553,10 @@ bool GCss::Selector::Parse(const char *&s)
 				n.Type = SelPage;
 			else if (!_stricmp(Str, "list"))
 				n.Type = SelList;
+			else if (!_stricmp(Str, "import"))
+				n.Type = SelImport;
+			else if (!_stricmp(Str, "keyframes"))
+				n.Type = SelKeyFrames;
 			else
 			{
 				LgiAssert(!"Unknown tag.");

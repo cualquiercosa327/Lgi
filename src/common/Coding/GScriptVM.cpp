@@ -146,6 +146,29 @@ inline int CompareVariants(GVariant *a, GVariant *b)
 				return -1;
 			return d > 0;
 		}
+		case GV_NULL:
+		{
+			// One or more values is NULL
+			if (a->IsNull() && b->IsNull())
+				return 0; // The same..
+			GVariant *Val = a->IsNull() ? b : a;
+			if (Val->IsNull())
+			{
+				LgiAssert(0);
+				return 0;
+			}
+			switch (Val->Type)
+			{
+				case GV_INT32:
+				case GV_INT64:
+					return Val->CastInt64() != 0;
+				case GV_STRING:
+					return Val->Str() != NULL;
+				default:
+					return Val->CastVoidPtr() != NULL;
+			}			
+			break;
+		}
 		default:
 			return a->CastInt32() - b->CastInt32();
 			break;
@@ -810,7 +833,9 @@ public:
 				
 				#ifdef BREAK_POINT
 				if (c.u8 - Base == BREAK_POINT)
-					_asm int 3
+				{
+					int asd=0;
+				}
 				#endif
 
 				switch (*c.u8++)

@@ -657,6 +657,8 @@ public:
 			SelFontFace,
 			SelPage,
 			SelList,
+			SelImport,
+			SelKeyFrames,
 
 			CombDesc,
 			CombChild,
@@ -854,6 +856,8 @@ public:
 					case GCss::Selector::SelFontFace:
 					case GCss::Selector::SelPage:
 					case GCss::Selector::SelList:
+					case GCss::Selector::SelImport:
+					case GCss::Selector::SelKeyFrames:
 					{
 						return false;
 						break;
