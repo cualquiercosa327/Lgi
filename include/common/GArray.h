@@ -62,6 +62,11 @@ class GArray
 	unsigned int len;
 	unsigned int alloc;
 
+#ifdef _DEBUG
+public:
+	int GetAlloc() { return alloc; }
+#endif
+
 protected:
 	bool fixed;
 
@@ -159,6 +164,7 @@ public:
 					return false;
 				}
 
+				memset(np + len, 0, (nalloc - len) * sizeof(Type));
 				if (p)
 				{
 					// copy across common elements
