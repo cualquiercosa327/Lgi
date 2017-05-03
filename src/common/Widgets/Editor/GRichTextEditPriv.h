@@ -63,13 +63,35 @@
 		) \
 	)
 
-enum RtcCmds
+enum RteCommands
 {
-	IDM_CLOCKWISE = 300,
+	IDM_OPEN = 10,
+	IDM_NEW,
+	IDM_COPY,
+	IDM_CUT,
+	IDM_PASTE,
+	IDM_UNDO,
+	IDM_REDO,
+	IDM_COPY_URL,
+	IDM_AUTO_INDENT,
+	IDM_UTF8,
+	IDM_PASTE_NO_CONVERT,
+	IDM_FIXED,
+	IDM_SHOW_WHITE,
+	IDM_HARD_TABS,
+	IDM_INDENT_SIZE,
+	IDM_TAB_SIZE,
+	IDM_DUMP,
+	IDM_RTL,
+	IDM_COPY_ORIGINAL,
+	IDM_CLOCKWISE,
 	IDM_ANTI_CLOCKWISE,
 	IDM_X_FLIP,
 	IDM_Y_FLIP,
 	IDM_SCALE_IMAGE,
+	CODEPAGE_BASE = 100,
+	CONVERT_CODEPAGE_BASE = 200,
+	SPELLING_BASE = 300
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -686,7 +708,7 @@ public:
 			virtual void Dump() {}
 			virtual GNamedStyle *GetStyle(int At = -1) = 0;
 			virtual int GetUid() const { return BlockUid; }
-			virtual bool DoContext(GSubMenu &s, GdcPt2 Doc) { return false; }
+			virtual bool DoContext(GSubMenu &s, GdcPt2 Doc, int Offset, bool Spelling) { return false; }
 			#ifdef _DEBUG
 			virtual void DumpNodes(GTreeItem *Ti) = 0;
 			#endif
@@ -953,7 +975,7 @@ public:
 	{
 		GNamedStyle *Style;
 		GArray<GSpellCheck::SpellingError> SpellingErrors;
-		int ErrIdx;
+		int PaintErrIdx, ClickErrIdx;
 		GSpellCheck::SpellingError *SpErr;
 
 		bool PreEdit(Transaction *Trans);
@@ -997,9 +1019,13 @@ public:
 		int FindAt(int StartIdx, const uint32 *Str, GFindReplaceCommon *Params);
 		void IncAllStyleRefs();
 		void SetSpellingErrors(GArray<GSpellCheck::SpellingError> &Errors);
+		bool DoContext(GSubMenu &s, GdcPt2 Doc, int Offset, bool Spelling);
 		#ifdef _DEBUG
 		void DumpNodes(GTreeItem *Ti);
 		#endif
+
+		// Events
+		GMessage::Result OnEvent(GMessage *Msg);
 
 		// Transactional changes
 		bool AddText(Transaction *Trans, int AtOffset, const uint32 *Str, int Chars = -1, GNamedStyle *Style = NULL);
@@ -1077,7 +1103,7 @@ public:
 		bool Seek(SeekType To, BlockCursor &Cursor);
 		int FindAt(int StartIdx, const uint32 *Str, GFindReplaceCommon *Params);
 		void IncAllStyleRefs();
-		bool DoContext(GSubMenu &s, GdcPt2 Doc);
+		bool DoContext(GSubMenu &s, GdcPt2 Doc, int Offset, bool Spelling);
 		#ifdef _DEBUG
 		void DumpNodes(GTreeItem *Ti);
 		#endif
@@ -1221,5 +1247,8 @@ struct CompleteTextBlockState : public GRichTextPriv::DocChange
 GTreeItem *PrintNode(GTreeItem *Parent, const char *Fmt, ...);
 #endif
 
+typedef GRichTextPriv::BlockCursor BlkCursor;
+typedef GAutoPtr<GRichTextPriv::BlockCursor> AutoCursor;
+typedef GAutoPtr<GRichTextPriv::Transaction> AutoTrans;
 
 #endif

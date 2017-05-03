@@ -204,6 +204,7 @@ GRichTextPriv::TextBlock::TextBlock(GRichTextPriv *priv) : Block(priv)
 	Pos.ZOff(-1, -1);
 	Style = NULL;
 	Fnt = NULL;
+	ClickErrIdx = -1;
 			
 	Margin.ZOff(0, 0);
 	Border.ZOff(0, 0);
@@ -669,7 +670,7 @@ void GRichTextPriv::TextBlock::DrawDisplayString(GSurface *pDC, DisplayStr *Ds, 
 		if (SpErr->End() < DsEnd)
 		{
 			// Are there more errors?
-			SpErr = SpellingErrors.AddressOf(++ErrIdx);
+			SpErr = SpellingErrors.AddressOf(++PaintErrIdx);
 		}
 		else break;
 	}
@@ -721,8 +722,8 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 	Ctx.DrawBox(r, Padding, Ctx.Colours[Unselected].Back);
 	
 	int CurY = Pos.y1;
-	ErrIdx = 0;
-	SpErr = SpellingErrors.AddressOf(ErrIdx);
+	PaintErrIdx = 0;
+	SpErr = SpellingErrors.AddressOf(PaintErrIdx);
 
 	for (unsigned i=0; i<Layout.Length(); i++)
 	{
@@ -1355,6 +1356,39 @@ int GRichTextPriv::TextBlock::DeleteAt(Transaction *Trans, int BlkOffset, int Ch
 	return Deleted;
 }
 		
+GMessage::Result GRichTextPriv::TextBlock::OnEvent(GMessage *Msg)
+{
+	switch (Msg->Msg())
+	{
+		case M_COMMAND:
+		{
+			GSpellCheck::SpellingError *e = SpellingErrors.AddressOf(ClickErrIdx);
+			if (e)
+			{
+				// Replacing text with spell check suggestion:
+				int i = Msg->A() - SPELLING_BASE;
+				if (i >= 0 && i < e->Suggestions.Length())
+				{
+					GString s = e->Suggestions[i];
+					AutoTrans t(new GRichTextPriv::Transaction);
+					
+					// Delete the old text...
+					DeleteAt(t, e->Start, e->Len);
+
+					// Insert the new text....
+					GAutoPtr<uint32,true> u((uint32*)LgiNewConvertCp("utf-32", s, "utf-8"));
+					AddText(t, e->Start, u.Get(), Strlen(u.Get()));
+					
+					d->AddTrans(t);
+				}
+			}
+			break;
+		}
+	}
+
+	return 0;
+}
+
 bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const uint32 *InStr, int InChars, GNamedStyle *Style)
 {
 	if (!InStr)
@@ -1519,6 +1553,35 @@ void GRichTextPriv::TextBlock::UpdateSpelling()
 int ErrSort(GSpellCheck::SpellingError *a, GSpellCheck::SpellingError *b)
 {
 	return a->Start - b->Start;
+}
+
+bool GRichTextPriv::TextBlock::DoContext(GSubMenu &s, GdcPt2 Doc, int Offset, bool Spelling)
+{
+	if (Spelling)
+	{
+		// Is there a spelling error at 'Offset'?		
+		for (unsigned i=0; i<SpellingErrors.Length(); i++)
+		{
+			GSpellCheck::SpellingError &e = SpellingErrors[i];
+			if (Offset >= e.Start && Offset < e.End())
+			{
+				ClickErrIdx = i;
+				if (e.Suggestions.Length())
+				{
+					GSubMenu *Sp = s.AppendSub("Spelling");
+					if (Sp)
+					{
+						s.AppendSeparator();
+						for (unsigned n=0; n<e.Suggestions.Length(); n++)
+							Sp->AppendItem(e.Suggestions[n], SPELLING_BASE+n);
+					}
+				}
+				break;
+			}
+		}
+	}
+
+	return true;
 }
 
 void GRichTextPriv::TextBlock::SetSpellingErrors(GArray<GSpellCheck::SpellingError> &Errors)

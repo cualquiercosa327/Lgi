@@ -30,45 +30,8 @@
 #define ALLOC_BLOCK					64
 #define IDC_VS						1000
 
-#ifndef IDM_OPEN
-#define IDM_OPEN					1
-#endif
-#ifndef IDM_NEW
-#define	IDM_NEW						2
-#endif
-#ifndef IDM_COPY
-#define IDM_COPY					3
-#endif
-#ifndef IDM_CUT
-#define IDM_CUT						4
-#endif
-#ifndef IDM_PASTE
-#define IDM_PASTE					5
-#endif
-#define IDM_COPY_URL				6
-#define IDM_AUTO_INDENT				7
-#define IDM_UTF8					8
-#define IDM_PASTE_NO_CONVERT		9
-#ifndef IDM_UNDO
-#define IDM_UNDO					10
-#endif
-#ifndef IDM_REDO
-#define IDM_REDO					11
-#endif
-#define IDM_FIXED					12
-#define IDM_SHOW_WHITE				13
-#define IDM_HARD_TABS				14
-#define IDM_INDENT_SIZE				15
-#define IDM_TAB_SIZE				16
-#define IDM_DUMP					17
-#define IDM_RTL						18
-#define IDM_COPY_ORIGINAL			19
-
 #define PAINT_BORDER				Back
 #define PAINT_AFTER_LINE			Back
-
-#define CODEPAGE_BASE				100
-#define CONVERT_CODEPAGE_BASE		200
 
 #if !defined(WIN32) && !defined(toupper)
 #define toupper(c)					(((c)>='a'&&(c)<='z') ? (c)-'a'+'A' : (c))
@@ -78,9 +41,6 @@ static char SelectWordDelim[] = " \t\n.,()[]<>=?/\\{}\"\';:+=-|!@#$%^&*";
 
 #include "GRichTextEditPriv.h"
 
-typedef GRichTextPriv::BlockCursor BlkCursor;
-typedef GAutoPtr<GRichTextPriv::BlockCursor> AutoCursor;
-typedef GAutoPtr<GRichTextPriv::Transaction> AutoTrans;
 
 //////////////////////////////////////////////////////////////////////
 GRichTextEdit::GRichTextEdit(	int Id,
@@ -1187,6 +1147,21 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 		ClipText.Reset(NewStr(Clip.Text()));
 	}
 
+	GRichTextPriv::Block *Over = NULL;
+	GRect &Content = d->Areas[ContentArea];
+	GdcPt2 Doc = d->ScreenToDoc(m.x, m.y);
+	int BlockIndex = -1;
+	int Offset = -1;
+	if (Content.Overlap(m.x, m.y))
+	{
+		int LineHint;
+		int Idx = d->HitTest(Doc.x, Doc.y, LineHint);
+		if (Idx >= 0)
+			Over = d->GetBlockByIndex(Idx, &Offset, &BlockIndex);
+	}
+	if (Over)
+		Over->DoContext(RClick, Doc, Offset, true);
+
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_CUT, "Cut"), IDM_CUT, HasSelection());
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_COPY, "Copy"), IDM_COPY, HasSelection());
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_PASTE, "Paste"), IDM_PASTE, ClipText != 0);
@@ -1214,22 +1189,12 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_TAB_SIZE, "Tab Size"), IDM_TAB_SIZE, true);
 	RClick.AppendItem("Copy Original", IDM_COPY_ORIGINAL, d->OriginalText.Get() != NULL);
 
-	GRichTextPriv::Block *Over = NULL;
-	GRect &Content = d->Areas[ContentArea];
-	GdcPt2 Doc = d->ScreenToDoc(m.x, m.y);
-	if (Content.Overlap(m.x, m.y))
-	{
-		int LineHint;
-		int Idx = d->HitTest(Doc.x, Doc.y, LineHint);
-		if (Idx >= 0)
-			Over = d->GetBlockByIndex(Idx);
-	}
 	if (Over)
 	{
 		#ifdef _DEBUG
-		RClick.AppendItem(Over->GetClass(), -1, false);
+		// RClick.AppendItem(Over->GetClass(), -1, false);
 		#endif
-		Over->DoContext(RClick, Doc);
+		Over->DoContext(RClick, Doc, Offset, false);
 	}
 	if (Environment)
 		Environment->AppendItems(&RClick);
