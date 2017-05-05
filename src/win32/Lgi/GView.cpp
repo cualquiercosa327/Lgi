@@ -1426,7 +1426,10 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 					// Find the window under the cursor... and try giving it the mouse wheel event
 					POINT Point = {xPos, yPos};
 					HWND hUnder = ::WindowFromPoint(Point);
-					if (hUnder && hUnder != _View)
+					HWND hParent = ::GetParent(hUnder);
+					if (hUnder &&
+						hUnder != _View &&	// Don't want to send ourselves a message...
+						hParent != _View)	// WM_MOUSEWHEEL will propagate back up to us and cause an infinite loop
 					{
 						// Do a post event in case the window is deleting... at least it won't crash.
 						PostMessage(hUnder, Msg->m, Msg->a, Msg->b);
