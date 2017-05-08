@@ -1975,8 +1975,9 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 					
 						// Issue the IMAP command
 						int AuthCmd = d->NextCmd++;
-						sprintf_s(Buf, sizeof(Buf), "A%4.4i AUTHENTICATE XOAUTH2 %s\r\n", AuthCmd, s.Get());
-						if (WriteBuf())
+						GString AuthStr;
+						AuthStr.Printf("A%4.4i AUTHENTICATE XOAUTH2 %s\r\n", AuthCmd, s.Get());
+						if (WriteBuf(false, AuthStr))
 						{
 							Dialog.DeleteArrays();
 							if (Read(NULL))

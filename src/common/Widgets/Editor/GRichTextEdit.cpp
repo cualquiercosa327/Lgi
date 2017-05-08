@@ -291,6 +291,40 @@ void GRichTextEdit::SetCharset(const char *s)
 	d->Charset = s;
 }
 
+bool GRichTextEdit::GetVariant(const char *Name, GVariant &Value, char *Array)
+{
+	GDomProperty p = LgiStringToDomProp(Name);
+	switch (p)
+	{
+		case HtmlImagesLinkCid:
+		{
+			Value = d->HtmlLinkAsCid;
+			break;
+		}
+		default:
+			return false;
+	}
+	
+	return true;
+}
+
+bool GRichTextEdit::SetVariant(const char *Name, GVariant &Value, char *Array)
+{
+	GDomProperty p = LgiStringToDomProp(Name);
+	switch (p)
+	{
+		case HtmlImagesLinkCid:
+		{
+			d->HtmlLinkAsCid = Value.CastInt32() != 0;
+			break;
+		}
+		default:
+			return false;
+	}
+	
+	return true;
+}
+
 static GHtmlElement *FindElement(GHtmlElement *e, HtmlTag TagId)
 {
 	if (e->TagId == TagId)

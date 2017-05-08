@@ -257,6 +257,7 @@ GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv *&Ptr) :
 	DocumentExtent.y = 0;
 	SpellCheck = NULL;
 	SpellDictionaryLoaded = false;
+	HtmlLinkAsCid = false;
 	if (Font.Reset(new GFont))
 		*Font = *SysFont;
 

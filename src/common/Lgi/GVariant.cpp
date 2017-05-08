@@ -1632,6 +1632,8 @@ struct GDomPropMap
 		
 		Define("Readable", StreamReadable);
 		Define("Writable", StreamWritable);
+		
+		Define("HtmlImagesLinkCid", HtmlImagesLinkCid);
 	}
 	
 	void Define(const char *s, GDomProperty p)

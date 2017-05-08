@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Rich", "Rich.vcproj", "{EE2A92B6-8D28-4216-AE64-E226BCACB0B7}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HtmlEdit", "HtmlEdit_vs2008.vcproj", "{EE2A92B6-8D28-4216-AE64-E226BCACB0B7}"
 	ProjectSection(ProjectDependencies) = postProject
 		{95DF9CA4-6D37-4A85-A648-80C2712E0DA1} = {95DF9CA4-6D37-4A85-A648-80C2712E0DA1}
 	EndProjectSection

@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="Rich"
+	Name="HtmlEdit"
 	ProjectGUID="{EE2A92B6-8D28-4216-AE64-E226BCACB0B7}"
 	RootNamespace="Rich"
 	TargetFrameworkVersion="0"
@@ -49,7 +49,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\include\common;..\include\win32;..\..\..\..\CodeLib\libpng;..\..\..\..\CodeLib\zlib"
+				AdditionalIncludeDirectories="..\include\common;..\include\win32;..\..\..\..\CodeLib\libpng;..\..\..\..\CodeLib\zlib;..\..\..\..\CodeLib\libjpeg"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -145,7 +145,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="1"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\include\common;..\include\win32;..\..\..\..\CodeLib\libpng;..\..\..\..\CodeLib\zlib"
+				AdditionalIncludeDirectories="..\include\common;..\include\win32;..\..\..\..\CodeLib\libpng;..\..\..\..\CodeLib\zlib;..\..\..\..\CodeLib\libjpeg"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;WINDOWS"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -242,6 +242,10 @@
 			>
 			<File
 				RelativePath="..\src\common\Gdc2\Tools\GdcTools.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\Gdc2\Filters\Jpeg.cpp"
 				>
 			</File>
 			<File

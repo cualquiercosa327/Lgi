@@ -419,6 +419,12 @@ public:
 	virtual int ReadStr(char *Buf, int Size);
 	virtual int WriteStr(char *Buf, int Size);
 
+	// Helpers
+	int Write(GString &s)
+	{
+		return Write(s.Get(), s.Length());
+	}
+
 	// Operators
 	#define GFilePre		virtual GFile &operator >> (
 	#define GFilePost		&i)

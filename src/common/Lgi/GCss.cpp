@@ -2558,10 +2558,7 @@ bool GCss::Selector::Parse(const char *&s)
 			else if (!_stricmp(Str, "keyframes"))
 				n.Type = SelKeyFrames;
 			else
-			{
-				LgiAssert(!"Unknown tag.");
-				return false;
-			}
+				n.Type = SelIgnored;
 			
 			SkipWhite(s);
 			while (*s && !strchr(";{", *s))

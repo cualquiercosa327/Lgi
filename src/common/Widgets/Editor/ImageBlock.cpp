@@ -124,11 +124,17 @@ public:
 				GSurface *img = (GSurface*)Msg->A();
 				GRichTextPriv::ImageBlock::ScaleInf *si = (GRichTextPriv::ImageBlock::ScaleInf*)Msg->B();
 				if (!img || !si)
+				{
+					Sink->PostEvent(M_IMAGE_ERROR, (GMessage::Param) new GString("Invalid pointer."));
 					break;
+				}
 				
 				GAutoPtr<GFilter> f(GFilterFactory::New("a.jpg", O_READ, NULL));
 				if (!f)
+				{
+					Sink->PostEvent(M_IMAGE_ERROR, (GMessage::Param) new GString("No JPEG filter available."));
 					break;
+				}
 
 				GAutoPtr<GSurface> scaled;
 				if (img->X() != si->Sz.x ||
@@ -146,7 +152,10 @@ public:
 				
 				GAutoPtr<GMemStream> jpg(new GMemStream(1024));
 				if (!f->WriteImage(jpg, img))
+				{
+					Sink->PostEvent(M_IMAGE_ERROR, (GMessage::Param) new GString("Image compression failed."));
 					break;
+				}
 
 				Sink->PostEvent(M_IMAGE_COMPRESS, (GMessage::Param)jpg.Release(), (GMessage::Param)si);
 				break;
@@ -405,10 +414,22 @@ bool GRichTextPriv::ImageBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia
 	{
 		bool ValidSourceFile = FileExists(Source);
 		GDocView::ContentMedia &Cm = Media->New();
-		Cm.Id.Printf("%u@memecode.com", LgiRand()%10000);
-		Cm.FileName = LgiGetLeaf(Source);
-		GAutoString mt = LgiApp->GetFileMimeType(Source);
-		Cm.MimeType = ValidSourceFile ? mt.Get() : "image/jpeg";
+		
+		int Idx = LgiRand() % 10000;
+		Cm.Id.Printf("%u@memecode.com", Idx);
+
+		if (ValidSourceFile)
+		{
+			Cm.FileName = LgiGetLeaf(Source);
+			GAutoString mt = LgiApp->GetFileMimeType(Source);
+			Cm.MimeType = mt.Get();
+		}
+		else
+		{
+			Cm.FileName.Printf("img%u.jpg", Idx);
+			Cm.MimeType = "image/jpeg";
+		}
+		
 		GString Style;
 		
 		LgiAssert(Cm.MimeType != NULL);
@@ -453,8 +474,13 @@ bool GRichTextPriv::ImageBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia
 		}
 		
 		if (Cm.Stream)
-		{		
-			s.Print("<img%s src='cid:%s'>\n", Style ? Style.Get() : "", Cm.Id.Get());
+		{
+			s.Print("<img%s src='", Style ? Style.Get() : "");
+			if (d->HtmlLinkAsCid)
+				s.Print("cid:%s", Cm.Id.Get());
+			else
+				s.Print("%s", Cm.FileName.Get());
+			s.Print("'>\n");
 			return true;
 		}
 	}
@@ -764,7 +790,7 @@ void GRichTextPriv::ImageBlock::IncAllStyleRefs()
 
 bool GRichTextPriv::ImageBlock::DoContext(GSubMenu &s, GdcPt2 Doc, int Offset, bool Spelling)
 {
-	if (SourceImg)
+	if (SourceImg && !Spelling)
 	{
 		s.AppendSeparator();
 		
@@ -946,6 +972,7 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 		}
 		case M_IMAGE_ERROR:
 		{
+			GAutoPtr<GString> ErrMsg((GString*) Msg->A());
 			PostThreadEvent(ThreadHnd, M_CLOSE);
 			ThreadHnd = 0;
 			break;

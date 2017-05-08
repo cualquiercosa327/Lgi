@@ -659,6 +659,7 @@ public:
 			SelList,
 			SelImport,
 			SelKeyFrames,
+			SelIgnored,
 
 			CombDesc,
 			CombChild,
@@ -858,6 +859,7 @@ public:
 					case GCss::Selector::SelList:
 					case GCss::Selector::SelImport:
 					case GCss::Selector::SelKeyFrames:
+					case GCss::Selector::SelIgnored:
 					{
 						return false;
 						break;

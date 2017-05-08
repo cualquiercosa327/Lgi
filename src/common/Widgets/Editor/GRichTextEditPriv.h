@@ -407,6 +407,7 @@ public:
 	GStream *Log;
 	GSpellCheck *SpellCheck;
 	bool SpellDictionaryLoaded;
+	bool HtmlLinkAsCid;
 
 	// This is set when the user changes a style without a selection,
 	// indicating that we should start a new run when new text is entered
