@@ -211,12 +211,16 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </MASM>
     <None Include="Files\about.html" />
+    <None Include="Files\covie.html" />
     <None Include="Files\MailPreviewHdr.html" />
     <None Include="Files\MortgageChoice.html" />
     <None Include="Files\Piotr.html" />
     <None Include="Files\PlanningCenter2.html" />
     <None Include="Files\spam4.html" />
     <None Include="Files\WorthilyMagnify.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="..\src\win32\General\Lgi.manifest" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

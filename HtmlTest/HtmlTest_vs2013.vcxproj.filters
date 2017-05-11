@@ -131,8 +131,18 @@
     <None Include="Files\about.html">
       <Filter>Test cases</Filter>
     </None>
-    <None Include="..\src\common\Coding\ExternCall.asm">
-      <Filter>Source Files</Filter>
+    <None Include="Files\covie.html">
+      <Filter>Test cases</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="..\src\common\Coding\ExternCall.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="..\src\win32\General\Lgi.manifest">
+      <Filter>Source Files</Filter>
+    </Manifest>
   </ItemGroup>
 </Project>
