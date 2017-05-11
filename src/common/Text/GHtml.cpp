@@ -3937,7 +3937,7 @@ bool GTag::GetWidthMetrics(GTag *Table, uint16 &Min, uint16 &Max)
 				}
 				else
 				{
-					Min = Max = w.ToPx(0, GetFont());
+					Max = w.ToPx(0, GetFont());
 				}
 			}
 			else
