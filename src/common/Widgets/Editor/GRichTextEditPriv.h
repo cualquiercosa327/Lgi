@@ -606,10 +606,23 @@ public:
 
 		bool Apply(GRichTextPriv *Ctx, bool Forward)
 		{
-			for (unsigned i=0; i<Changes.Length(); i++)
+			if (Forward)
 			{
-				if (!Changes[i]->Apply(Ctx, Forward))
-					return false;
+				for (unsigned i=0; i<Changes.Length(); i++)
+				{
+					DocChange *dc = Changes[i];
+					if (!dc->Apply(Ctx, Forward))
+						return false;
+				}
+			}
+			else
+			{
+				for (int i=Changes.Length()-1; i>=0; i--)
+				{
+					DocChange *dc = Changes[i];
+					if (!dc->Apply(Ctx, Forward))
+						return false;
+				}
 			}
 
 			return true;
@@ -1241,6 +1254,15 @@ struct CompleteTextBlockState : public GRichTextPriv::DocChange
 	GAutoPtr<GRichTextPriv::TextBlock> Blk;
 
 	CompleteTextBlockState(GRichTextPriv *Ctx, GRichTextPriv::TextBlock *Tb);
+	bool Apply(GRichTextPriv *Ctx, bool Forward);
+};
+
+struct DeletedBlockState : public GRichTextPriv::DocChange
+{
+	int Index;
+	GAutoPtr<GRichTextPriv::Block> Blk;
+	
+	DeletedBlockState(GRichTextPriv *Ctx, GRichTextPriv::Block *Block);
 	bool Apply(GRichTextPriv *Ctx, bool Forward);
 };
 

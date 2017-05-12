@@ -239,6 +239,36 @@ bool CompleteTextBlockState::Apply(GRichTextPriv *Ctx, bool Forward)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+DeletedBlockState::DeletedBlockState(GRichTextPriv *Ctx, GRichTextPriv::Block *Block)
+{
+	Index = Ctx->Blocks.IndexOf(Block);
+	if (Index >= 0)
+	{
+		Blk.Reset(Block);
+		Ctx->Blocks.DeleteAt(Index, true);
+	}
+}
+
+bool DeletedBlockState::Apply(GRichTextPriv *Ctx, bool Forward)
+{
+	if (Index < 0)
+		return false;
+	
+	if (Forward)
+	{
+		// Redo: Block goes from 'Ctx->Blocks[Index]' to 'Blk'
+		LgiAssert(Ctx->Blocks.Length() > Index);
+		Blk.Reset(Ctx->Blocks[Index]);
+		return Ctx->Blocks.DeleteAt(Index, true);
+	}
+	else
+	{
+		// Undo: Block goes from 'Blk' to 'Ctx->Blocks[Index]'
+		return Ctx->Blocks.AddAt(Index, Blk.Release());
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv *&Ptr) :
 	GHtmlParser(view),
 	GFontCache(SysFont)
@@ -315,7 +345,7 @@ bool GRichTextPriv::DeleteSelection(Transaction *Trans, char16 **Cut)
 		// 1) Delete all the content to the end of the first block
 		int StartLen = Start->Blk->Length();
 		if (Start->Offset < StartLen)
-			Start->Blk->DeleteAt(NoTransaction, Start->Offset, StartLen - Start->Offset, DelTxt);
+			Start->Blk->DeleteAt(Trans, Start->Offset, StartLen - Start->Offset, DelTxt);
 
 		// 2) Delete any blocks between 'Start' and 'End'
 		int i = Blocks.IndexOf(Start->Blk);
@@ -325,8 +355,18 @@ bool GRichTextPriv::DeleteSelection(Transaction *Trans, char16 **Cut)
 			{
 				GRichTextPriv::Block *b = Blocks[i];
 				b->CopyAt(0, -1, DelTxt);
-				Blocks.DeleteAt(i, true);
-				DeleteObj(b);
+
+				if (Trans)
+				{
+					// Add deleted block to transaction...
+					Trans->Add(new DeletedBlockState(this, b));
+				}
+				else
+				{
+					// No transaction: just straight up delete it
+					Blocks.DeleteAt(i, true);
+					DeleteObj(b);
+				}
 			}
 		}
 		else
@@ -336,7 +376,7 @@ bool GRichTextPriv::DeleteSelection(Transaction *Trans, char16 **Cut)
 		}
 
 		// 3) Delete any text up to the Cursor in the 'End' block
-		End->Blk->DeleteAt(NoTransaction, 0, End->Offset, DelTxt);
+		End->Blk->DeleteAt(Trans, 0, End->Offset, DelTxt);
 
 		// Try and merge the start and end blocks
 		Merge(Trans, Start->Blk, End->Blk);
