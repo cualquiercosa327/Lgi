@@ -839,6 +839,11 @@ bool GRichTextPriv::ImageBlock::DoContext(GSubMenu &s, GdcPt2 Doc, int Offset, b
 	return false;
 }
 
+GRichTextPriv::Block *GRichTextPriv::ImageBlock::Clone()
+{
+	return new ImageBlock(this);
+}
+
 void GRichTextPriv::ImageBlock::UpdateDisplay(int yy)
 {
 	GRect s;

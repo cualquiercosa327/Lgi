@@ -239,33 +239,111 @@ bool CompleteTextBlockState::Apply(GRichTextPriv *Ctx, bool Forward)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-DeletedBlockState::DeletedBlockState(GRichTextPriv *Ctx, GRichTextPriv::Block *Block)
+MultiBlockState::MultiBlockState(GRichTextPriv *ctx, int Start)
 {
-	Index = Ctx->Blocks.IndexOf(Block);
-	if (Index >= 0)
-	{
-		Blk.Reset(Block);
-		Ctx->Blocks.DeleteAt(Index, true);
-	}
+	Ctx = ctx;
+	Index = Start;
+	Length = -1;
 }
 
-bool DeletedBlockState::Apply(GRichTextPriv *Ctx, bool Forward)
+template<typename T>
+bool SwapArrayRange(GArray<T> &a, Range aRange, GArray<T> &b, Range bRange)
 {
-	if (Index < 0)
+	GArray<T> Tmp;
+
+	// Store entries in 'a' that will be swapped
+	Tmp.Add(a.AddressOf(aRange.Start), aRange.Len);
+
+	// Copy b's range into a
+	int Common = MIN(bRange.Len, aRange.Len);
+	int aIdx = aRange.Start;
+	int bIdx = bRange.Start;
+	for (int i=0; i<Common; i++) // First the common items
+		a[aIdx++] = b[bIdx++];
+	if (aRange.Len < bRange.Len)
+	{
+		// Grow range to fit 'b'
+		int Add = bRange.Len - aRange.Len;
+		for (int i=0; i<Add; i++)
+			if (!a.AddAt(aIdx++, b[bIdx++]))
+				return false;
+	}
+	else if (aRange.Len > bRange.Len)
+	{
+		// Shrink the range in 'a' to fit 'b'
+		int Del = aRange.Len - bRange.Len;
+		for (int i=0; i<Del; i++)
+			if (!a.DeleteAt(aIdx, true))
+				return false;
+	}
+
+	// Now copy Tmp into b
+	int TmpIdx = 0;
+	bIdx = bRange.Start;
+	for (TmpIdx=0; TmpIdx<Common; TmpIdx++) // First the common items.
+		b[bIdx++] = Tmp[TmpIdx];
+	if (aRange.Len > bRange.Len)
+	{
+		// Grow range to fit 'a'
+		int Add = aRange.Len - bRange.Len;
+		for (int i=0; i<Add; i++)
+			if (!b.AddAt(bIdx++, Tmp[TmpIdx++]))
+				return false;
+	}
+	else if (aRange.Len < bRange.Len)
+	{
+		// Shrink the range in 'a' to fit 'b'
+		int Del = bRange.Len - aRange.Len;
+		for (int i=0; i<Del; i++)
+			if (!b.DeleteAt(bIdx, true))
+				return false;
+	}
+
+	return true;
+}
+
+bool MultiBlockState::Apply(GRichTextPriv *Ctx, bool Forward)
+{
+	if (Index < 0 || Length < 0)
+	{
+		LgiAssert(!"Missing parameters");
 		return false;
+	}
 	
-	if (Forward)
-	{
-		// Redo: Block goes from 'Ctx->Blocks[Index]' to 'Blk'
-		LgiAssert(Ctx->Blocks.Length() > Index);
-		Blk.Reset(Ctx->Blocks[Index]);
-		return Ctx->Blocks.DeleteAt(Index, true);
-	}
-	else
-	{
-		// Undo: Block goes from 'Blk' to 'Ctx->Blocks[Index]'
-		return Ctx->Blocks.AddAt(Index, Blk.Release());
-	}
+	// Undo: Swap 'Length' blocks Ctx->Blocks with Blks
+	int OldLen = Blks.Length();
+	bool Status = SwapArrayRange(Blks, Range(0, OldLen), Ctx->Blocks, Range(Index, Length));
+	if (Status)
+		Length = OldLen;
+	
+	return Status;
+}
+
+bool MultiBlockState::Copy(int Idx)
+{
+	if (!Ctx->Blocks.AddressOf(Idx))
+		return false;
+
+	GRichTextPriv::Block *b = Ctx->Blocks[Idx]->Clone();
+	if (!b)
+		return false;
+
+	Blks.Add(b);
+	return true;
+}
+
+bool MultiBlockState::Cut(int Idx)
+{
+	if (!Ctx->Blocks.AddressOf(Idx))
+		return false;
+
+	GRichTextPriv::Block *b = Ctx->Blocks[Idx];
+	if (!b)
+		return false;
+
+	Blks.Add(b);
+
+	return Ctx->Blocks.DeleteAt(Idx, true);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -341,32 +419,27 @@ bool GRichTextPriv::DeleteSelection(Transaction *Trans, char16 **Cut)
 	else
 	{
 		// Multi-block delete...
+		int i = Blocks.IndexOf(Start->Blk);
+		int e = Blocks.IndexOf(End->Blk);
+		GAutoPtr<MultiBlockState> MultiState(new MultiBlockState(this, i));
 
 		// 1) Delete all the content to the end of the first block
 		int StartLen = Start->Blk->Length();
 		if (Start->Offset < StartLen)
-			Start->Blk->DeleteAt(Trans, Start->Offset, StartLen - Start->Offset, DelTxt);
+		{
+			MultiState->Copy(i++);
+			Start->Blk->DeleteAt(NoTransaction, Start->Offset, StartLen - Start->Offset, DelTxt);
+		}
 
 		// 2) Delete any blocks between 'Start' and 'End'
-		int i = Blocks.IndexOf(Start->Blk);
 		if (i >= 0)
 		{
-			for (++i; Blocks[i] != End->Blk && i < (int)Blocks.Length(); )
+			while (Blocks[i] != End->Blk && i < (int)Blocks.Length())
 			{
 				GRichTextPriv::Block *b = Blocks[i];
 				b->CopyAt(0, -1, DelTxt);
-
-				if (Trans)
-				{
-					// Add deleted block to transaction...
-					Trans->Add(new DeletedBlockState(this, b));
-				}
-				else
-				{
-					// No transaction: just straight up delete it
-					Blocks.DeleteAt(i, true);
-					DeleteObj(b);
-				}
+				MultiState->Cut(i);
+				e--;
 			}
 		}
 		else
@@ -375,11 +448,17 @@ bool GRichTextPriv::DeleteSelection(Transaction *Trans, char16 **Cut)
 			return Error(_FL, "Start block has no index.");;
 		}
 
-		// 3) Delete any text up to the Cursor in the 'End' block
-		End->Blk->DeleteAt(Trans, 0, End->Offset, DelTxt);
+		if (End->Offset > 0)
+		{
+			// 3) Delete any text up to the Cursor in the 'End' block
+			MultiState->Copy(i);
+			End->Blk->DeleteAt(NoTransaction, 0, End->Offset, DelTxt);
+		}
 
 		// Try and merge the start and end blocks
-		Merge(Trans, Start->Blk, End->Blk);
+		bool MergeOk = Merge(NoTransaction, Start->Blk, End->Blk);
+		MultiState->Length = MergeOk ? 1 : 2;
+		Trans->Add(MultiState.Release());
 	}
 
 	// Set the cursor and update the screen

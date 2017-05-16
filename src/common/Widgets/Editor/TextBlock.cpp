@@ -1584,6 +1584,11 @@ bool GRichTextPriv::TextBlock::DoContext(GSubMenu &s, GdcPt2 Doc, int Offset, bo
 	return true;
 }
 
+GRichTextPriv::Block *GRichTextPriv::TextBlock::Clone()
+{
+	return new TextBlock(this);
+}
+
 void GRichTextPriv::TextBlock::SetSpellingErrors(GArray<GSpellCheck::SpellingError> &Errors)
 {
 	SpellingErrors = Errors;	

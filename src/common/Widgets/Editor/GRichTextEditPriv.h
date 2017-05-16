@@ -606,23 +606,11 @@ public:
 
 		bool Apply(GRichTextPriv *Ctx, bool Forward)
 		{
-			if (Forward)
+			for (unsigned i=0; i<Changes.Length(); i++)
 			{
-				for (unsigned i=0; i<Changes.Length(); i++)
-				{
-					DocChange *dc = Changes[i];
-					if (!dc->Apply(Ctx, Forward))
-						return false;
-				}
-			}
-			else
-			{
-				for (int i=Changes.Length()-1; i>=0; i--)
-				{
-					DocChange *dc = Changes[i];
-					if (!dc->Apply(Ctx, Forward))
-						return false;
-				}
+				DocChange *dc = Changes[i];
+				if (!dc->Apply(Ctx, Forward))
+					return false;
 			}
 
 			return true;
@@ -726,6 +714,7 @@ public:
 			#ifdef _DEBUG
 			virtual void DumpNodes(GTreeItem *Ti) = 0;
 			#endif
+			virtual Block *Clone() = 0;
 
 			// Copy some or all of the text out
 			virtual int CopyAt(int Offset, int Chars, GArray<uint32> *Text) { return false; }
@@ -1037,6 +1026,7 @@ public:
 		#ifdef _DEBUG
 		void DumpNodes(GTreeItem *Ti);
 		#endif
+		Block *Clone();
 
 		// Events
 		GMessage::Result OnEvent(GMessage *Msg);
@@ -1121,6 +1111,7 @@ public:
 		#ifdef _DEBUG
 		void DumpNodes(GTreeItem *Ti);
 		#endif
+		Block *Clone();
 
 		// Events
 		GMessage::Result OnEvent(GMessage *Msg);
@@ -1257,13 +1248,18 @@ struct CompleteTextBlockState : public GRichTextPriv::DocChange
 	bool Apply(GRichTextPriv *Ctx, bool Forward);
 };
 
-struct DeletedBlockState : public GRichTextPriv::DocChange
+struct MultiBlockState : public GRichTextPriv::DocChange
 {
-	int Index;
-	GAutoPtr<GRichTextPriv::Block> Blk;
+	GRichTextPriv *Ctx;
+	int Index; // Number of blocks before the edit
+	int Length; // Of the other version currently in the Ctx stack
+	GArray<GRichTextPriv::Block*> Blks;
 	
-	DeletedBlockState(GRichTextPriv *Ctx, GRichTextPriv::Block *Block);
+	MultiBlockState(GRichTextPriv *ctx, int Start);
 	bool Apply(GRichTextPriv *Ctx, bool Forward);
+
+	bool Copy(int Idx);
+	bool Cut(int Idx);
 };
 
 #ifdef _DEBUG
