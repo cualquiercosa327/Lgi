@@ -374,21 +374,36 @@ GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv *&Ptr) :
 		Areas[i].ZOff(-1, -1);
 	}
 
+	ClickedBtn = GRichTextEdit::MaxArea;
+	ZeroObj(BtnState);
+
 	Values[GRichTextEdit::FontFamilyBtn] = "FontName";
+	BtnState[GRichTextEdit::FontFamilyBtn].IsMenu = true;
 	Values[GRichTextEdit::FontSizeBtn] = "14";
+	BtnState[GRichTextEdit::FontSizeBtn].IsMenu = true;
 
 	Values[GRichTextEdit::BoldBtn] = true;
+	BtnState[GRichTextEdit::BoldBtn].IsPress = true;
 	Values[GRichTextEdit::ItalicBtn] = false;
+	BtnState[GRichTextEdit::ItalicBtn].IsPress = true;
 	Values[GRichTextEdit::UnderlineBtn] = false;
+	BtnState[GRichTextEdit::UnderlineBtn].IsPress = true;
 		
 	Values[GRichTextEdit::ForegroundColourBtn] = (int64)Rgb24To32(LC_TEXT);
+	BtnState[GRichTextEdit::ForegroundColourBtn].IsMenu = true;
 	Values[GRichTextEdit::BackgroundColourBtn] = (int64)Rgb24To32(LC_WORKSPACE);
+	BtnState[GRichTextEdit::BackgroundColourBtn].IsMenu = true;
 
 	Values[GRichTextEdit::MakeLinkBtn] = TEXT_LINK;
+	BtnState[GRichTextEdit::MakeLinkBtn].IsPress = true;
 	Values[GRichTextEdit::RemoveLinkBtn] = TEXT_REMOVE_LINK;
+	BtnState[GRichTextEdit::RemoveLinkBtn].IsPress = true;
 	Values[GRichTextEdit::RemoveStyleBtn] = TEXT_REMOVE_STYLE;
+	BtnState[GRichTextEdit::RemoveStyleBtn].IsPress = true;
 	Values[GRichTextEdit::CapabilityBtn] = TEXT_CAP_BTN;
+	BtnState[GRichTextEdit::CapabilityBtn].IsPress = true;
 	Values[GRichTextEdit::EmojiBtn] = TEXT_EMOJI;
+	BtnState[GRichTextEdit::EmojiBtn].IsPress = true;
 
 	Padding(GCss::Len(GCss::LenPx, 4));
 	EmptyDoc();

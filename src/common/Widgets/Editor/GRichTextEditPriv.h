@@ -347,6 +347,14 @@ struct CtrlCap
 	}
 };
 
+struct ButtonState
+{
+	uint8 IsMenu : 1;
+	uint8 IsPress : 1;
+	uint8 Pressed : 1;
+	uint8 MouseOver : 1;
+};
+
 extern bool Utf16to32(GArray<uint32> &Out, const uint16 *In, int Len);
 
 class GRichTextPriv :
@@ -415,6 +423,8 @@ public:
 
 	// Toolbar
 	bool ShowTools;
+	GRichTextEdit::RectType ClickedBtn;
+	ButtonState BtnState[GRichTextEdit::MaxArea];
 	GRect Areas[GRichTextEdit::MaxArea];
 	GVariant Values[GRichTextEdit::MaxArea];
 

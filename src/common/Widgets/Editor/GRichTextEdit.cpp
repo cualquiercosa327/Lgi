@@ -1333,6 +1333,21 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 {
 	bool Processed = false;
 
+	RectType Clicked = MaxArea;
+	if (d->Areas[ToolsArea].Overlap(m.x, m.y) ||
+		d->Areas[CapabilityArea].Overlap(m.x, m.y))
+	{
+		for (unsigned i=CapabilityBtn; i<MaxArea; i++)
+		{
+			if (d->Areas[i].Valid() &&
+				d->Areas[i].Overlap(m.x, m.y))
+			{
+				Clicked = (RectType)i;
+				break;
+			}
+		}
+	}
+
 	if (m.Down())
 	{
 		Focus(true);
@@ -1349,15 +1364,19 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 			if (d->Areas[ToolsArea].Overlap(m.x, m.y) ||
 				d->Areas[CapabilityArea].Overlap(m.x, m.y))
 			{
-				for (unsigned i=CapabilityBtn; i<MaxArea; i++)
+				if (Clicked != MaxArea)
 				{
-					if (d->Areas[i].Valid() &&
-						d->Areas[i].Overlap(m.x, m.y))
+					if (d->BtnState[Clicked].IsPress)
 					{
-						Processed |= d->ClickBtn(m, (RectType)i);
+						d->BtnState[d->ClickedBtn = Clicked].Pressed = true;
+						Invalidate(d->Areas + Clicked);
+						Capture(true);
+					}
+					else
+					{
+						Processed |= d->ClickBtn(m, Clicked);
 					}
 				}
-				return;
 			}
 			else
 			{
@@ -1374,6 +1393,19 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 				}
 			}
 		}
+	}
+	else if (IsCapturing())
+	{
+		if (d->ClickedBtn != MaxArea)
+		{
+			d->BtnState[d->ClickedBtn].MouseOver = false;
+			d->BtnState[d->ClickedBtn].Pressed = false;
+			Invalidate(d->Areas + d->ClickedBtn);
+			Processed |= d->ClickBtn(m, Clicked);
+		}
+
+		Capture(false);
+		d->ClickedBtn = MaxArea;
 	}
 
 	if (!Processed)
