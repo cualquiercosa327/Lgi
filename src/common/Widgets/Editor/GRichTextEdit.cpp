@@ -2561,11 +2561,11 @@ EmojiMenu::EmojiMenu(GRichTextPriv *priv, GdcPt2 p) : GPopup(priv->View)
 	d->GetEmojiImage();
 
 	int MaxIdx = 0;
-	Range EmojiBlocks[2] = { Range(0x203c, 0x3299 - 0x203c + 1), Range(0x1f004, 0x1f6c5 - 0x1f004 + 1) };
+	GRange EmojiBlocks[2] = { GRange(0x203c, 0x3299 - 0x203c + 1), GRange(0x1f004, 0x1f6c5 - 0x1f004 + 1) };
 	GHashTbl<int, int> Map;
 	for (int b=0; b<CountOf(EmojiBlocks); b++)
 	{
-		Range &r = EmojiBlocks[b];
+		GRange &r = EmojiBlocks[b];
 		for (int i=0; i<r.Len; i++)
 		{
 			uint32 u = r.Start + i;

@@ -246,62 +246,6 @@ MultiBlockState::MultiBlockState(GRichTextPriv *ctx, int Start)
 	Length = -1;
 }
 
-template<typename T>
-bool SwapArrayRange(GArray<T> &a, Range aRange, GArray<T> &b, Range bRange)
-{
-	GArray<T> Tmp;
-
-	// Store entries in 'a' that will be swapped
-	Tmp.Add(a.AddressOf(aRange.Start), aRange.Len);
-
-	// Copy b's range into a
-	int Common = MIN(bRange.Len, aRange.Len);
-	int aIdx = aRange.Start;
-	int bIdx = bRange.Start;
-	for (int i=0; i<Common; i++) // First the common items
-		a[aIdx++] = b[bIdx++];
-	if (aRange.Len < bRange.Len)
-	{
-		// Grow range to fit 'b'
-		int Add = bRange.Len - aRange.Len;
-		for (int i=0; i<Add; i++)
-			if (!a.AddAt(aIdx++, b[bIdx++]))
-				return false;
-	}
-	else if (aRange.Len > bRange.Len)
-	{
-		// Shrink the range in 'a' to fit 'b'
-		int Del = aRange.Len - bRange.Len;
-		for (int i=0; i<Del; i++)
-			if (!a.DeleteAt(aIdx, true))
-				return false;
-	}
-
-	// Now copy Tmp into b
-	int TmpIdx = 0;
-	bIdx = bRange.Start;
-	for (TmpIdx=0; TmpIdx<Common; TmpIdx++) // First the common items.
-		b[bIdx++] = Tmp[TmpIdx];
-	if (aRange.Len > bRange.Len)
-	{
-		// Grow range to fit 'a'
-		int Add = aRange.Len - bRange.Len;
-		for (int i=0; i<Add; i++)
-			if (!b.AddAt(bIdx++, Tmp[TmpIdx++]))
-				return false;
-	}
-	else if (aRange.Len < bRange.Len)
-	{
-		// Shrink the range in 'a' to fit 'b'
-		int Del = bRange.Len - aRange.Len;
-		for (int i=0; i<Del; i++)
-			if (!b.DeleteAt(bIdx, true))
-				return false;
-	}
-
-	return true;
-}
-
 bool MultiBlockState::Apply(GRichTextPriv *Ctx, bool Forward)
 {
 	if (Index < 0 || Length < 0)
@@ -312,7 +256,7 @@ bool MultiBlockState::Apply(GRichTextPriv *Ctx, bool Forward)
 	
 	// Undo: Swap 'Length' blocks Ctx->Blocks with Blks
 	int OldLen = Blks.Length();
-	bool Status = SwapArrayRange(Blks, Range(0, OldLen), Ctx->Blocks, Range(Index, Length));
+	bool Status = Blks.SwapRange(GRange(0, OldLen), Ctx->Blocks, GRange(Index, Length));
 	if (Status)
 		Length = OldLen;
 	

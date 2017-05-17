@@ -1689,19 +1689,19 @@ int GRichTextPriv::TextBlock::FindAt(int StartIdx, const uint32 *Str, GFindRepla
 
 bool GRichTextPriv::TextBlock::DoCase(Transaction *Trans, int StartIdx, int Chars, bool Upper)
 {
-	Range Blk(0, Len);
-	Range Inp(StartIdx, Chars < 0 ? Len - StartIdx : Chars);
-	Range Change = Blk.Overlap(Inp);
+	GRange Blk(0, Len);
+	GRange Inp(StartIdx, Chars < 0 ? Len - StartIdx : Chars);
+	GRange Change = Blk.Overlap(Inp);
 
 	PreEdit(Trans);
 
-	Range Run(0, 0);
+	GRange Run(0, 0);
 	bool Changed = false;
 	for (unsigned i=0; i<Txt.Length(); i++)
 	{
 		StyleText *st = Txt[i];
 		Run.Len = st->Length();
-		Range Edit = Run.Overlap(Change);
+		GRange Edit = Run.Overlap(Change);
 		if (Edit.Len > 0)
 		{
 			uint32 *s = st->At(Edit.Start - Run.Start);

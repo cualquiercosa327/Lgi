@@ -158,36 +158,7 @@ int Utf16Strlen(const uint16 *s, int &len)
 */
 
 //////////////////////////////////////////////////////////////////////
-struct Range
-{
-	int Start;
-	int Len;
-
-	Range(int s, int l)
-	{
-		Start = s;
-		Len = l;
-	}
-
-	Range Overlap(const Range &r)
-	{
-		Range o(0, 0);
-		if (r.Start >= End())
-			return o;
-		if (r.End() <= Start)
-			return o;
-
-		int e = min(End(), r.End());
-		o.Start = max(r.Start, Start);
-		o.Len = e - o.Start;
-		return o; 
-	}
-
-	int End() const
-	{
-		return Start + Len;
-	}
-};
+#include "GRange.h"
 
 class GRichEditElem : public GHtmlElement
 {
@@ -924,7 +895,7 @@ public:
 			return c;
 		}
 
-		virtual void Paint(GSurface *pDC, int &FixX, int FixY, GColour &Back, Range *SpellErr = NULL)
+		virtual void Paint(GSurface *pDC, int &FixX, int FixY, GColour &Back, GRange *SpellErr = NULL)
 		{
 			FDraw(pDC, FixX, FixY);
 
