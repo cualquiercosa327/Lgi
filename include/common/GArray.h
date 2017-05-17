@@ -7,7 +7,6 @@
 
 #include <stdlib.h>
 #include <assert.h>
-#include "GRange.h"
 
 #define GARRAY_MIN_SIZE			16
 
@@ -32,12 +31,7 @@ _CRTIMP void __cdecl qsort_s(void *_Base,
 #endif
 #endif
 
-#ifndef MAX
-#define MAX(a,b) ((a) > (b) ? a : b)
-#endif
-#ifndef MIN
-#define MIN(a,b) ((a) < (b) ? a : b)
-#endif
+#include "GRange.h"
 
 /// \brief Growable type-safe array.
 /// \ingroup Base

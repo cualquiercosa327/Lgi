@@ -1,6 +1,13 @@
 #ifndef _GRANGE_H_
 #define _GRANGE_H_
 
+#ifndef MAX
+#define MAX(a,b) ((a) > (b) ? a : b)
+#endif
+#ifndef MIN
+#define MIN(a,b) ((a) < (b) ? a : b)
+#endif
+
 struct GRange
 {
 	int Start;
@@ -20,8 +27,8 @@ struct GRange
 		if (r.End() <= Start)
 			return o;
 
-		int e = min(End(), r.End());
-		o.Start = max(r.Start, Start);
+		int e = MIN(End(), r.End());
+		o.Start = MAX(r.Start, Start);
 		o.Len = e - o.Start;
 		return o; 
 	}
