@@ -1086,7 +1086,7 @@ GSurface *GRichTextPriv::GetEmojiImage()
 	return EmojiImg;
 }
 
-int GRichTextPriv::HitTest(int x, int y, int &LineHint)
+int GRichTextPriv::HitTest(int x, int y, int &LineHint, Block **Blk)
 {
 	int CharPos = 0;
 	HitTestResult r(x, y);
@@ -1097,11 +1097,14 @@ int GRichTextPriv::HitTest(int x, int y, int &LineHint)
 		return -1;
 	}
 
-	GRect rc = Blocks.First()->GetPos();
+	Block *b = Blocks.First();
+	GRect rc = b->GetPos();
 	if (y < rc.y1)
+	{
+		if (Blk) *Blk = b;
 		return 0;
+	}
 
-	Block *b;
 	for (unsigned i=0; i<Blocks.Length(); i++)
 	{
 		b = Blocks[i];
@@ -1110,6 +1113,7 @@ int GRichTextPriv::HitTest(int x, int y, int &LineHint)
 		if (b->HitTest(r))
 		{
 			LineHint = r.LineHint;
+			if (Blk) *Blk = b;
 			return CharPos + r.Idx;
 		}
 		else if (Over)
@@ -1123,7 +1127,10 @@ int GRichTextPriv::HitTest(int x, int y, int &LineHint)
 	b = Blocks.Last();
 	rc = b->GetPos();
 	if (y > rc.y2)
+	{
+		if (Blk) *Blk = b;
 		return CharPos + b->Length();
+	}
 		
 	return -1;
 }
@@ -1164,7 +1171,7 @@ GRichTextPriv::Block *GRichTextPriv::GetBlockByIndex(int Index, int *Offset, int
 		int Ln = b->GetLines();
 
 		if (Index >= CharPos &&
-			Index <= CharPos + Len)
+			Index < CharPos + Len)
 		{
 			if (BlockIdx)
 				*BlockIdx = i;

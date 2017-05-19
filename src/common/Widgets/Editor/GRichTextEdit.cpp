@@ -1189,9 +1189,7 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 	if (Content.Overlap(m.x, m.y))
 	{
 		int LineHint;
-		int Idx = d->HitTest(Doc.x, Doc.y, LineHint);
-		if (Idx >= 0)
-			Over = d->GetBlockByIndex(Idx, &Offset, &BlockIndex);
+		int Idx = d->HitTest(Doc.x, Doc.y, LineHint, &Over);
 	}
 	if (Over)
 		Over->DoContext(RClick, Doc, Offset, true);

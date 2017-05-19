@@ -1120,7 +1120,7 @@ public:
 	GRect SelectionRect();
 	bool GetSelection(GArray<char16> &Text);
 	int IndexOfCursor(BlockCursor *c);
-	int HitTest(int x, int y, int &LineHint);
+	int HitTest(int x, int y, int &LineHint, Block **Blk = NULL);
 	bool CursorFromPos(int x, int y, GAutoPtr<BlockCursor> *Cursor, int *GlobalIdx);
 	Block *GetBlockByIndex(int Index, int *Offset = NULL, int *BlockIdx = NULL, int *LineCount = NULL);
 	bool Layout(GScrollBar *&ScrollY);
