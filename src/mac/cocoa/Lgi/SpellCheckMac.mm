@@ -1,8 +1,6 @@
 // http://src.chromium.org/svn/trunk/src/chrome/browser/spellchecker_mac.mm
 #include "Lgi.h"
-#include "ScribePlugin.h"
 #include "LgiSpellCheck.h"
-#include "ScribeDefs.h"
 
 #include <Carbon/Carbon.h>
 #include <Cocoa/Cocoa.h>
@@ -111,7 +109,7 @@ static int GVariantCmp(GVariant *a, GVariant *b, NativeInt Data)
 }
 
 class Mac_SpellChecker :
-	public ScribePlugin_General
+	public GSpellCheck
 {
 	GViewI *Wnd;
 	GAutoString Dictionary;
@@ -167,19 +165,14 @@ class Mac_SpellChecker :
 	}
 
 public:
-	Mac_SpellChecker(GViewI *App, SpellCheckParams *Params)
+	Mac_SpellChecker() : GSpellCheck("Mac_SpellChecker")
 	{
-		Wnd = App;
-		Dictionary.Reset(NewStr(Params->Dict));
+		// Wnd = App;
+		// Dictionary.Reset(NewStr(Params->Dict));
 		InitializeCocoa();
 	}
 
-	void Release() { delete this; }
-
-	// Interface: General
-	char *GetDescription() { return (char*)"Mac Spell Checker"; }
-	int GetType() { return PLUGIN_TYPE_SPELLCHECKER; }
-
+	/*
 	bool GetValue(const char *Var, GVariant &Value)
 	{
 		switch (StrToDom(Var))
@@ -353,10 +346,17 @@ public:
 		}
 		
 		return false;
+	}*/
+
+	GMessage::Result OnEvent(GMessage *Msg)
+	{
+		return 0;
 	}
 };
 
-ScribePlugin_General *CreateSpellChecker(GViewI *App, SpellCheckParams *Params)
+GAutoPtr<GSpellCheck> CreateAppleSpellCheck()
 {
-	return new Mac_SpellChecker(App, Params);
+	GAutoPtr<GSpellCheck> sc;
+	sc.Reset(new Mac_SpellChecker);
+	return sc;
 }
