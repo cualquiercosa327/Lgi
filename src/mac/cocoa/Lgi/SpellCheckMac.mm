@@ -399,12 +399,6 @@ public:
 		
 		return false;
 	}*/
-
-	GMessage::Result OnEvent(GMessage *Msg)
-	{
-		return 0;
-	}
-	*/
 };
 
 GAutoPtr<GSpellCheck> CreateAppleSpellCheck()
