@@ -128,6 +128,9 @@ public:
 	// Style
 	GAutoPtr<GCss>  Css;
 
+	// Event dispatch handle
+	int				SinkHnd;
+
 	// OS Specific
 	#if WINNATIVE
 

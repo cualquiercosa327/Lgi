@@ -245,7 +245,7 @@ LgiFunc char *NewStr
 	/// The input string
 	const char *s,
 	/// The maximum number of bytes in the input string to use or -1 for the whole string.
-	NativeInt Len = -1
+	ptrdiff_t Len = -1
 );
 /// Does a wildcard match.
 LgiFunc bool MatchStr

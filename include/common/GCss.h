@@ -522,7 +522,7 @@ public:
 		ImageDef &operator =(const ImageDef &o);
 	};
 
-	class LgiClass StringsDef : public GArray<char*>
+	class StringsDef : public GArray<char*>
 	{
 	public:
 		StringsDef(char *init = 0)
@@ -532,10 +532,26 @@ public:
 			else
 				LgiAssert(init == 0);
 		}
-		StringsDef(const StringsDef &c) { *this = c; }
-		~StringsDef() { Empty(); }
-		StringsDef &operator =(const char *s) { Parse(s); return *this; }
-		void Empty() { DeleteArrays(); }
+		StringsDef(const StringsDef &c)
+		{
+			*this = c;
+		}
+		
+		~StringsDef()
+		{
+			Empty();
+		}
+		
+		StringsDef &operator =(const char *s)
+		{
+			Parse(s);
+			return *this;
+		}
+		
+		void Empty()
+		{
+			DeleteArrays();
+		}
 
 		StringsDef &operator =(const StringsDef &s)
 		{
@@ -638,6 +654,12 @@ public:
 			SelMedia,
 			SelID,
 			SelPseudo,
+			SelFontFace,
+			SelPage,
+			SelList,
+			SelImport,
+			SelKeyFrames,
+			SelIgnored,
 
 			CombDesc,
 			CombChild,
@@ -832,6 +854,12 @@ public:
 						break;
 					}
 					case GCss::Selector::SelMedia:
+					case GCss::Selector::SelFontFace:
+					case GCss::Selector::SelPage:
+					case GCss::Selector::SelList:
+					case GCss::Selector::SelImport:
+					case GCss::Selector::SelKeyFrames:
+					case GCss::Selector::SelIgnored:
 					{
 						return false;
 						break;

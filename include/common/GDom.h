@@ -133,6 +133,9 @@ enum GDomProperty
 	// GStream
 	StreamReadable,
 	StreamWritable,
+
+	// Rich text editor
+	HtmlImagesLinkCid, // output CID image links rather than files.
 };
 
 LgiFunc GDomProperty LgiStringToDomProp(const char *Str);

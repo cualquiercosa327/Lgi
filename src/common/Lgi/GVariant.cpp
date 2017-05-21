@@ -1632,6 +1632,8 @@ struct GDomPropMap
 		
 		Define("Readable", StreamReadable);
 		Define("Writable", StreamWritable);
+		
+		Define("HtmlImagesLinkCid", HtmlImagesLinkCid);
 	}
 	
 	void Define(const char *s, GDomProperty p)
@@ -2160,7 +2162,7 @@ bool GCustomType::Set(int Index, GVariant &In, uint8 *This, int ArrayIndex)
 			{
 				// utf8 -> wide conversion...
 				const void *In = Ptr;
-				int Len = strlen(s);
+				ptrdiff_t Len = strlen(s);
 				int Ch = LgiBufConvertCp(Ptr, LGI_WideCharset, Def->ArrayLen-1, In, "utf-8", Len);
 				if (Ch >= 0)
 				{
@@ -2193,7 +2195,7 @@ bool GCustomType::Set(int Index, GVariant &In, uint8 *This, int ArrayIndex)
 			{
 				// Conversion to utf-8
 				const void *In = Ptr;
-				int Len = StrlenW(w) * sizeof(char16);
+				ptrdiff_t Len = StrlenW(w) * sizeof(char16);
 				int Ch = LgiBufConvertCp(Ptr, "utf-8", Def->ArrayLen-sizeof(char16),
 										In, LGI_WideCharset, Len);
 				if (Ch >= 0)

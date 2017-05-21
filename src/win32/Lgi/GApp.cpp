@@ -13,6 +13,16 @@
 #include "GCss.h"
 #include "GFontCache.h"
 #include <stdio.h>
+#include "LgiSpellCheck.h"
+
+// Don't have a better place to put this...
+const char GSpellCheck::Delimiters[] =
+{
+	' ', '\t', '\r', '\n', ',', ',', '.', ':', ';',
+	'{', '}', '[', ']', '!', '@', '#', '$', '%', '^', '&', '*',
+	'(', ')', '_', '-', '+', '=', '|', '\\', '/', '?', '\"',
+	0
+};
 
 HINSTANCE _lgi_app_instance = 0;
 extern LPTOP_LEVEL_EXCEPTION_FILTER _PrevExceptionHandler;

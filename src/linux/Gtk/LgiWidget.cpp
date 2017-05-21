@@ -268,7 +268,18 @@ static gboolean lgi_widget_key_event(GtkWidget *wid, GdkEventKey *e)
         k.Ctrl((e->state & 4) != 0);
         k.Alt((e->state & 8) != 0);
         
-        k.IsChar = !k.Ctrl() && (k.c16 >= ' ' && k.c16 <= 0x7f);
+        // k.IsChar = !k.Ctrl() && (k.c16 >= ' ' && k.c16 <= 0x7f);
+		k.IsChar = !k.Ctrl() && 
+					(k.c16 >= ' ') &&
+					(k.c16 >> 8 != 0xff);
+        if (e->keyval > 0xff && e->string != NULL)
+        {
+        	// Convert string to unicode char
+        	uint8 *i = e->string;
+        	ptrdiff_t len = strlen(i);
+			k.c16 = LgiUtf8To32(i, len);
+        }
+        
         switch (k.vkey)
         {
             case GDK_ISO_Left_Tab:

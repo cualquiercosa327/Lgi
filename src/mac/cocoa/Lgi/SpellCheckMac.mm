@@ -108,14 +108,19 @@ static int GVariantCmp(GVariant *a, GVariant *b, NativeInt Data)
 	return stricmp(a->Str(), b->Str());
 }
 
-class Mac_SpellChecker :
+int LangCmp(GSpellCheck::LanguageId *a, GSpellCheck::LanguageId *b)
+{
+	return stricmp(a->LangCode, b->LangCode);
+}
+
+class AppleSpellChecker :
 	public GSpellCheck
 {
 	GViewI *Wnd;
-	GAutoString Dictionary;
+	GString Dictionary;
 	GString CurLang;
 
-	GAutoString ConvertLanguageCodeFromMac(NSString* lang_code)
+	GString ConvertLanguageCodeFromMac(NSString* lang_code)
 	{
 		// TODO(pwicks):figure out what to do about Multilingual
 		// Guards for strange cases.
@@ -124,17 +129,17 @@ class Mac_SpellChecker :
 		
 		// NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 		
-		GAutoString s;
+		GString s;
 		if ([lang_code length] > kShortLanguageCodeSize && [lang_code characterAtIndex:kShortLanguageCodeSize] == '_')
 		{
 			NSString *tmp = [NSString stringWithFormat:@"%@-%@",
 				[lang_code substringToIndex:kShortLanguageCodeSize],
 				[lang_code substringFromIndex:(kShortLanguageCodeSize + 1)]];
-			s.Reset(NewStr((char*)[tmp UTF8String]));
+			s = (char*)[tmp UTF8String];
 		}
 		else
 		{
-			s.Reset(NewStr((char*)[lang_code UTF8String]));
+			s = (char*)[lang_code UTF8String];
 		}
 		
 		// [pool release];
@@ -155,9 +160,9 @@ class Mac_SpellChecker :
 		for (NSString *lang_code in availableLanguages)
 		#endif
 		{
-			GAutoString lang = ConvertLanguageCodeFromMac(lang_code);
-			if (lang)
-				d.Add(lang.Release());
+			GString lang = ConvertLanguageCodeFromMac(lang_code);
+			/*if (lang)
+				d.Add(lang.Release());*/
 		}
 
 		// [pool release];
@@ -165,11 +170,58 @@ class Mac_SpellChecker :
 	}
 
 public:
-	Mac_SpellChecker() : GSpellCheck("Mac_SpellChecker")
+	AppleSpellChecker() : GSpellCheck("AppleSpellChecker")
 	{
-		// Wnd = App;
-		// Dictionary.Reset(NewStr(Params->Dict));
 		InitializeCocoa();
+	}
+	
+	GMessage::Result OnEvent(GMessage *m)
+	{
+		switch (m->Msg())
+		{
+			case M_ENUMERATE_LANGUAGES:
+			{
+				int ResponseHnd = (int)m->A();
+				if (ResponseHnd < 0)
+					break;
+				
+				NSArray *availableLanguages = [[NSSpellChecker sharedSpellChecker] availableLanguages];
+				NSEnumerator *e = [availableLanguages objectEnumerator];
+
+				NSString *lang_code;
+				GHashTbl<char*,bool> Langs;
+				while (lang_code = [e nextObject])
+				{
+					GString lang = ConvertLanguageCodeFromMac(lang_code);
+					if (lang)
+					{
+						int p = lang.Find("-");
+						if (p > 0)
+							lang.Length(p);
+						Langs.Add(lang, true);
+					}
+				}
+				
+				char *k;
+				GAutoPtr< GArray<LanguageId> > a(new GArray<LanguageId>);
+				if (!a)
+					break;
+				
+				for (bool b = Langs.First(&k); b; b = Langs.Next(&k))
+				{
+					LanguageId &i = a->New();
+					i.LangCode = k;
+					i.EnglishName = k;
+				}
+
+				a->Sort(LangCmp);
+				
+				PostThreadEvent(ResponseHnd, M_ENUMERATE_LANGUAGES, (GMessage::Param) a.Release() );
+				break;
+			}
+		}
+		
+		return 0;
 	}
 
 	/*
@@ -352,11 +404,11 @@ public:
 	{
 		return 0;
 	}
+	*/
 };
 
 GAutoPtr<GSpellCheck> CreateAppleSpellCheck()
 {
-	GAutoPtr<GSpellCheck> sc;
-	sc.Reset(new Mac_SpellChecker);
-	return sc;
+	GAutoPtr<GSpellCheck> a(new AppleSpellChecker());
+	return a;
 }

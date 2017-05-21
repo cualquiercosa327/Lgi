@@ -1766,7 +1766,7 @@ bool LgiGetExePath(char *Dst, int DstSize)
 	return LgiGetSystemPath(LSP_EXE, Dst, DstSize);
 }
 
-char *LgiGetExtension(char *File)
+char *LgiGetExtension(const char *File)
 {
 	if (File)
 	{

@@ -24,6 +24,7 @@ enum Ctrls
 	IDC_TO_NODES,
 	IDC_VIEW_IN_BROWSER,
 	IDC_SAVE_FILE,
+	IDC_SAVE,
 	IDC_EXIT
 };
 
@@ -82,7 +83,14 @@ public:
 		#ifdef WIN32
 		SetIcon((const char*)IDI_APP);
 		#endif
+		
+		#if defined(WINDOWS)
 		Speller = CreateWindowsSpellCheck();
+		#elif defined(MAC)
+		Speller = CreateAppleSpellCheck();
+		#elif !defined(LINUX)
+		Speller = CreateAspellObject();
+		#endif
 		
 		if (Attach(0))
 		{
@@ -95,7 +103,8 @@ public:
 				s->AppendItem("To &HTML", IDC_TO_HTML, true, -1, "F5");
 				s->AppendItem("To &Nodes", IDC_TO_NODES, true, -1, "F6");
 				s->AppendItem("View In &Browser", IDC_VIEW_IN_BROWSER, true, -1, "F7");
-				s->AppendItem("Save &As", IDC_SAVE_FILE, true, -1, "Ctrl+S");
+				s->AppendItem("&Save", IDC_SAVE, true, -1, "Ctrl+S");
+				s->AppendItem("Save &As", IDC_SAVE_FILE, true, -1, "Ctrl+Shift+S");
 				s->AppendSeparator();
 				s->AppendItem("E&xit", IDC_EXIT, true, -1, "Ctrl+W");
 			}
@@ -106,7 +115,8 @@ public:
 				Split->AddView(Edit = new EditCtrl(IDC_EDITOR));
 				if (Edit)
 				{
-					Edit->SetSpellCheck(Speller);
+					if (Speller)
+						Edit->SetSpellCheck(Speller);
 					Edit->Sunken(true);
 					Edit->SetId(IDC_EDITOR);
 					// Edit->Name("<span style='color:#800;'>The rich editor control is not functional in this build.</span><b>This is some bold</b>");
@@ -191,6 +201,56 @@ public:
 				s.Type("HTML", "*.html");
 				if (s.Save())
 					Edit->Save(s.Name());
+				break;
+			}
+			case IDC_SAVE:
+			{
+				if (Edit)
+				{
+					GString Html;
+					GArray<GDocView::ContentMedia> Media;
+					if (Edit->GetFormattedContent("text/html", Html, &Media))
+					{
+						GFile::Path p(LSP_APP_INSTALL);
+						p += "Output";
+						if (!p.IsFolder())
+							FileDev->CreateFolder(p);
+						p += "output.html";
+						GFile f;
+						if (f.Open(p, O_WRITE))
+						{
+							f.SetSize(0);
+							f.Write(Html);
+							f.Close();
+							
+							GString FileName = p.GetFull();
+							
+							for (unsigned i=0; i<Media.Length(); i++)
+							{
+								GDocView::ContentMedia &Cm = Media[i];
+								
+								p.Parent();
+								p += Cm.FileName;
+								if (f.Open(p, O_WRITE))
+								{
+									f.SetSize(0);
+									if (Cm.Data.IsBinary())
+										f.Write(Cm.Data.CastVoidPtr(), Cm.Data.Value.Binary.Length);
+									else if (Cm.Stream)
+									{
+										GCopyStreamer Cp;
+										Cp.Copy(Cm.Stream, &f);
+									}
+									else
+										LgiAssert(0);
+									f.Close();
+								}
+							}
+							
+							LgiExecute(FileName);
+						}
+					}
+				}
 				break;
 			}
 		}

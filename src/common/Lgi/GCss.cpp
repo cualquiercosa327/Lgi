@@ -1970,10 +1970,13 @@ bool GCss::Len::Parse(const char *&s, PropType Prop, ParsingStyle ParseType)
 		else if (ParseWord(s, "em")) Type = LenEm;
 		else if (ParseWord(s, "ex")) Type = LenEx;
 		else if (ParseWord(s, "cm")) Type = LenCm;
-		/*
 		else if (IsAlpha(*s))
+		{
+			// Unknown unit, in the case of a missing ';' we should
+			// reset to "inherit" as it's less damaging to the layout
+			Type = LenInherit;
 			return false;
-		*/
+		}
 		else if (ParseType == ParseRelaxed)
 		{
 			if (Prop == PropLineHeight)
@@ -2325,6 +2328,8 @@ const char *GCss::Selector::PartTypeToString(PartType p)
 		case SelAttrib: return "Attrib";
 		case SelClass: return "Cls";
 		case SelMedia: return "Media";
+		case SelFontFace: return "FontFace";
+		case SelPage: return "Page";
 		case SelID: return "ID";
 		case SelPseudo: return "Pseudo";
 		case CombDesc: return "Desc";
@@ -2533,13 +2538,27 @@ bool GCss::Selector::Parse(const char *&s)
 			s++;
 
 			Part &n = Parts.New();
-			n.Type = SelMedia;
 			n.Media = MediaNull;
 			GAutoString Str;
 			if (!TokString(Str, s))
 				return false;
-			if (!Str || stricmp(Str, "media"))
+			if (!Str)
 				return false;
+
+			if (!_stricmp(Str, "media"))
+				n.Type = SelMedia;
+			else if (!_stricmp(Str, "font-face"))
+				n.Type = SelFontFace;
+			else if (!_stricmp(Str, "page"))
+				n.Type = SelPage;
+			else if (!_stricmp(Str, "list"))
+				n.Type = SelList;
+			else if (!_stricmp(Str, "import"))
+				n.Type = SelImport;
+			else if (!_stricmp(Str, "keyframes"))
+				n.Type = SelKeyFrames;
+			else
+				n.Type = SelIgnored;
 			
 			SkipWhite(s);
 			while (*s && !strchr(";{", *s))

@@ -31,12 +31,7 @@ _CRTIMP void __cdecl qsort_s(void *_Base,
 #endif
 #endif
 
-#ifndef MAX
-#define MAX(a,b) ((a) > (b) ? a : b)
-#endif
-#ifndef MIN
-#define MIN(a,b) ((a) < (b) ? a : b)
-#endif
+#include "GRange.h"
 
 /// \brief Growable type-safe array.
 /// \ingroup Base
@@ -61,6 +56,11 @@ class GArray
 	Type *p;
 	unsigned int len;
 	unsigned int alloc;
+
+#ifdef _DEBUG
+public:
+	int GetAlloc() { return alloc; }
+#endif
 
 protected:
 	bool fixed;
@@ -159,6 +159,7 @@ public:
 					return false;
 				}
 
+				memset(np + len, 0, (nalloc - len) * sizeof(Type));
 				if (p)
 				{
 					// copy across common elements
@@ -248,7 +249,13 @@ public:
 
 		static Type t;
 		return t;
-	}		
+	}
+
+	// Returns the address of an item or NULL if index is out of range
+	Type *AddressOf(unsigned int i)
+	{
+		return i < len ? p + i : NULL;
+	}
 
 	/// \brief Returns a reference a given entry.
 	///
@@ -613,6 +620,70 @@ public:
 		p = 0;
 		len = alloc = 0;
 		return Ptr;
+	}
+
+	/// Swaps a range of elements between this array and 'b'
+	bool SwapRange
+	(
+		// The range of 'this' to swap out
+		GRange aRange,
+		// The other array to swap with
+		GArray<Type> &b,
+		// The range of 'b' to swap with this array
+		GRange bRange
+	)
+	{
+		GArray<Type> Tmp;
+
+		// Store entries in this that will be swapped
+		Tmp.Add(AddressOf(aRange.Start), aRange.Len);
+
+		// Copy b's range into this
+		int Common = MIN(bRange.Len, aRange.Len);
+		int aIdx = aRange.Start;
+		int bIdx = bRange.Start;
+		for (int i=0; i<Common; i++) // First the common items
+			(*this)[aIdx++] = b[bIdx++];
+		if (aRange.Len < bRange.Len)
+		{
+			// Grow range to fit 'b'
+			int Items = bRange.Len - aRange.Len;
+			for (int i=0; i<Items; i++)
+				if (!AddAt(aIdx++, b[bIdx++]))
+					return false;
+		}
+		else if (aRange.Len > bRange.Len)
+		{
+			// Shrink the range in this to fit 'b'
+			int Del = aRange.Len - bRange.Len;
+			for (int i=0; i<Del; i++)
+				if (!DeleteAt(aIdx, true))
+					return false;
+		}
+
+		// Now copy Tmp into b
+		int TmpIdx = 0;
+		bIdx = bRange.Start;
+		for (TmpIdx=0; TmpIdx<Common; TmpIdx++) // First the common items.
+			b[bIdx++] = Tmp[TmpIdx];
+		if (aRange.Len > bRange.Len)
+		{
+			// Grow range to fit this
+			int Add = aRange.Len - bRange.Len;
+			for (int i=0; i<Add; i++)
+				if (!b.AddAt(bIdx++, Tmp[TmpIdx++]))
+					return false;
+		}
+		else if (aRange.Len < bRange.Len)
+		{
+			// Shrink the range in this to fit 'b'
+			int Del = bRange.Len - aRange.Len;
+			for (int i=0; i<Del; i++)
+				if (!b.DeleteAt(bIdx, true))
+					return false;
+		}
+
+		return true;
 	}
 
 	template <class T>

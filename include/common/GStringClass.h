@@ -11,6 +11,10 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#if !defined(_MSC_VER) || _MSC_VER >= _MSC_VER_VS2013
+#include <stdint.h>
+#include <inttypes.h>
+#endif
 #ifdef _MSC_VER
 	// This fixes compile errors in VS2008/Gtk
 	#undef _SIGN_DEFINED
@@ -111,7 +115,7 @@ public:
 	}
 	
 	/// String constructor
-	GString(const char *str, int bytes)
+	GString(const char *str, ptrdiff_t bytes)
 	{
 		Str = NULL;
 		Set(str, bytes);
@@ -125,7 +129,7 @@ public:
 	}
 
 	/// const char16* constructor
-	GString(const wchar_t *str, int chars = -1)
+	GString(const wchar_t *str, ptrdiff_t chars = -1)
 	{
 		Str = NULL;
 		char *Utf = WideToUtf8(str, chars < 0 ? -1 : chars);
@@ -136,7 +140,7 @@ public:
 		}
 	}
 
-	#if defined(_WIN32)
+	#if defined(_WIN32) || defined(MAC)
 	/// const uint32* constructor
 	GString(const uint32 *str, ptrdiff_t chars = -1)
 	{
@@ -739,7 +743,7 @@ public:
 	}
 
 	/// Find a sub-string	
-	ptrdiff_t Find(const char *needle, int start = 0, int end = -1)
+	ptrdiff_t Find(const char *needle, ptrdiff_t start = 0, ptrdiff_t end = -1)
 	{
 		if (!needle) return -1;
 		char *c = Get();
@@ -758,7 +762,7 @@ public:
 	}
 
 	/// Reverse find a string (starting from the end)
-	ptrdiff_t RFind(const char *needle, int start = 0, int end = -1)
+	ptrdiff_t RFind(const char *needle, int start = 0, ptrdiff_t end = -1)
 	{
 		if (!needle) return -1;
 		char *c = Get();
@@ -832,15 +836,15 @@ public:
 	}
 	
 	/// Gets the string between at 'start' and 'end' (not including the end'th character)
-	GString operator() (int start, int end)
+	GString operator() (ptrdiff_t start, ptrdiff_t end)
 	{
 		GString s;
 		if (Str)
 		{
-			int start_idx = start < 0 ? Str->Len + start + 1 : start;
+			ptrdiff_t start_idx = start < 0 ? Str->Len + start + 1 : start;
 			if (start_idx >= 0 && (uint32)start_idx < Str->Len)
 			{
-				int end_idx = end < 0 ? Str->Len + end + 1 : end;
+				ptrdiff_t end_idx = end < 0 ? Str->Len + end + 1 : end;
 				if (end_idx >= start_idx && (uint32)end_idx <= Str->Len)
 					s.Set(Str->Str + start_idx, end_idx - start_idx);
 			}

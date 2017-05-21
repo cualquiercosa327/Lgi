@@ -364,7 +364,7 @@ bool ValidStr(const char *s)
 	return false;
 }
 
-char *NewStr(const char *s, NativeInt Len)
+char *NewStr(const char *s, ptrdiff_t Len)
 {
 	if (s)
 	{

@@ -27,6 +27,7 @@ char *LgiSkipDelim(char *p, const char *Delimiter, bool NotDelim)
 }
 
 ////////////////////////////////////////////////////////////////////////
+/*
 GToken::GToken()
 {
 	Raw = 0;
@@ -170,3 +171,4 @@ void GToken::AppendTokens(GArray<char*> *T)
 
 
 
+*/

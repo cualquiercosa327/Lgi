@@ -40,7 +40,7 @@ typedef unsigned long long uint64;
 // Stand-alone functions
 
 /// Convert a single utf-8 char to utf-32 or returns -1 on error.
-inline int32 LgiUtf8To32(uint8 *&i, int &Len)
+inline int32 LgiUtf8To32(uint8 *&i, ptrdiff_t &Len)
 {
 	int32 Out = 0;
 
@@ -189,7 +189,7 @@ inline bool LgiUtf32To8(uint32 c, uint8 *&i, int &Len)
 #define IsUtf16_Trail(c)	( ((uint16)(c) & 0xfc00) == 0xDc00 )
 
 /// Convert a single utf-16 char to utf-32
-inline uint32 LgiUtf16To32(uint16 *&i, int &Len)
+inline uint32 LgiUtf16To32(const uint16 *&i, ptrdiff_t &Len)
 {
 	if (Len > 1)
 	{
@@ -643,7 +643,7 @@ T *Stristr(const T *Data, const T *Value)
 
 /// Searches the string 'Data' for the 'Value' in a case insensitive manner
 template<typename T>
-T *Strnstr(const T *Data, const T *Value, int DataLen)
+T *Strnstr(const T *Data, const T *Value, ptrdiff_t DataLen)
 {
 	if (!Data || !Value)
 		return NULL;
@@ -745,7 +745,7 @@ LgiFunc char *WideToUtf8
 	/// Input string
 	const wchar_t *In,
 	/// [Optional] Number of wchar_t's in the input or -1 for NULL terminated
-	int InLen = -1
+	ptrdiff_t InLen = -1
 );
 
 #endif

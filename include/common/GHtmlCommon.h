@@ -196,6 +196,16 @@ public:
 		GAutoString utf8(WideToUtf8(val));
 		Set(attr, utf8);
 	}
+
+	#ifdef _DEBUG
+	bool Debug()
+	{
+		const char *sDebug = NULL;
+		if (Get("debug", sDebug))
+			return atoi(sDebug) != 0;
+		return false;
+	}
+	#endif
 };
 
 #endif

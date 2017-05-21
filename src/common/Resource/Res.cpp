@@ -1554,12 +1554,12 @@ ResObjectImpl::SStatus ResTableLayout::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 			int x = 0, y = 0;
 			for (GXmlTag *Tr = Tag->Children.First(); Tr; Tr = Tag->Children.Next())
 			{
-				if (stricmp(Tr->GetTag(), "Tr") != 0)
+				if (!Tr->IsTag("Tr"))
 					continue;
 
 				for (GXmlTag *Td = Tr->Children.First(); Td; Td = Tr->Children.Next())
 				{
-					if (stricmp(Td->GetTag(), "Td") != 0)
+					if (!Td->IsTag("Td"))
 						continue;
 
 					while (UsedCell(x, y))
@@ -1640,6 +1640,22 @@ ResObjectImpl::SStatus ResTableLayout::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 
 				y++;
 				x = 0;
+			}
+
+			for (y=0; y<Cy; y++)
+			{
+				for (x=0; x<Cx; x++)
+				{
+					if (!UsedCell(x, y))
+					{
+						// Create empty cell for unused slot
+						char CellName[32];
+						GDom *Cell = 0;
+						v = (void*) &Cell;
+						sprintf_s(CellName, sizeof(CellName), "cell[%i,%i]", x, y);
+						d->SetValue(CellName, v);
+					}
+				}
 			}
 
 			DeleteArray(Used);

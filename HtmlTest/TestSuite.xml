@@ -1,0 +1,23 @@
+<?xml version="1.0" ?>
+<Project TargetType="0" TabSize="4" IndentSize="4" UseTabs="1" ShowWhitespace="0" Makefile="./Makefile" TargetName="test-suite" IncludePaths="../../../../Lgi/include/common
+../../../../Lgi/include/linux/Xcb
+" Exe="./test-suite" Compiler="0">
+	<Node Name="Source" Type="1" Open="1" Platforms="7">
+		<Node File="./TestSuite.cpp" Type="2" Platforms="7" />
+		<Node Name="1" Type="1" Platforms="7" Open="1">
+			<Node File="../../../../Lgi/src/common/Text/GHtml.cpp" Type="2" Platforms="7" />
+			<Node File="../../../../Lgi/include/common/GHtml.h" Type="3" Platforms="7" />
+			<Node File="../../../../Lgi/include/common/GHtmlPriv.h" Type="3" Platforms="7" />
+			<Node File="../../../../Lgi/src/common/Text/GHtmlStatic.cpp" Type="2" Platforms="7" />
+		</Node>
+		<Node Name="2" Type="1" Platforms="7" Open="1">
+			<Node File="../../../../Lgi/src/common/Text/GHtml2.cpp" Type="2" Platforms="7" />
+			<Node File="../../../../Lgi/include/common/GHtml2.h" Type="3" Platforms="7" />
+			<Node File="../../../../Lgi/include/common/GHtmlPriv2.h" Type="3" Platforms="7" />
+		</Node>
+	</Node>
+	<Node Name="Lgi" Type="1" Open="1" Platforms="7">
+		<Node File="../../../../Lgi/src/common/Lgi/LgiMain.cpp" Type="2" Platforms="7" />
+	</Node>
+	<Node File="/home/matthew/Code/Lgi/Lgi.xml" Type="4" Platforms="7" />
+</Project>

@@ -20,7 +20,7 @@ static GHtmlElemInfo TagInfo[] =
 	{TAG_TD,			"td",			1,			GHtmlElemInfo::TI_BLOCK | GHtmlElemInfo::TI_TABLE},
 	{TAG_TH,			"th",			1,			GHtmlElemInfo::TI_BLOCK | GHtmlElemInfo::TI_TABLE},
 	{TAG_HEAD,			"head",			1,			GHtmlElemInfo::TI_NONE | GHtmlElemInfo::TI_SINGLETON},
-	{TAG_BODY,			"body",			0,			GHtmlElemInfo::TI_BLOCK | GHtmlElemInfo::TI_NO_TEXT | GHtmlElemInfo::TI_SINGLETON},
+	{TAG_BODY,			"body",			1,			GHtmlElemInfo::TI_BLOCK | GHtmlElemInfo::TI_NO_TEXT | GHtmlElemInfo::TI_SINGLETON},
 	{TAG_IMG,			"img",			0,			GHtmlElemInfo::TI_NEVER_CLOSES},
 	{TAG_HTML,			"html",			0,			GHtmlElemInfo::TI_BLOCK | GHtmlElemInfo::TI_NO_TEXT},
 	{TAG_DIV,			"div",			0,			GHtmlElemInfo::TI_BLOCK},

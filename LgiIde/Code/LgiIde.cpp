@@ -1685,7 +1685,24 @@ void AppWnd::DumpHistory()
 	}
 	#endif
 }
-	
+
+/*
+void CheckHistory(GArray<FileLoc> &CursorHistory)
+{
+	if (CursorHistory.Length() > 0)
+	{
+		FileLoc *loc = &CursorHistory[0];
+		for (unsigned i=CursorHistory.Length(); i<CursorHistory.GetAlloc(); i++)
+		{
+			if ((NativeInt)loc[i].File.Get() == 0xcdcdcdcdcdcdcdcd)
+			{
+				int asd=0;
+			}
+		}
+	}
+}
+*/
+
 void AppWnd::OnLocationChange(const char *File, int Line)
 {
 	if (!File)
@@ -1706,7 +1723,12 @@ void AppWnd::OnLocationChange(const char *File, int Line)
 
 			// Add new entry
 			d->HistoryLoc++;
-			d->CursorHistory[d->HistoryLoc].Set(File, Line);
+
+			FileLoc &loc = d->CursorHistory[d->HistoryLoc];
+			if ((NativeInt)loc.File.Get() == 0xcdcdcdcdcdcdcdcd)
+				LgiAssert(0); // wtf?
+			else
+				loc.Set(File, Line);
 		}
 		else
 		{

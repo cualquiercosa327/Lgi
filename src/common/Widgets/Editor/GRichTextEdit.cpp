@@ -30,45 +30,8 @@
 #define ALLOC_BLOCK					64
 #define IDC_VS						1000
 
-#ifndef IDM_OPEN
-#define IDM_OPEN					1
-#endif
-#ifndef IDM_NEW
-#define	IDM_NEW						2
-#endif
-#ifndef IDM_COPY
-#define IDM_COPY					3
-#endif
-#ifndef IDM_CUT
-#define IDM_CUT						4
-#endif
-#ifndef IDM_PASTE
-#define IDM_PASTE					5
-#endif
-#define IDM_COPY_URL				6
-#define IDM_AUTO_INDENT				7
-#define IDM_UTF8					8
-#define IDM_PASTE_NO_CONVERT		9
-#ifndef IDM_UNDO
-#define IDM_UNDO					10
-#endif
-#ifndef IDM_REDO
-#define IDM_REDO					11
-#endif
-#define IDM_FIXED					12
-#define IDM_SHOW_WHITE				13
-#define IDM_HARD_TABS				14
-#define IDM_INDENT_SIZE				15
-#define IDM_TAB_SIZE				16
-#define IDM_DUMP					17
-#define IDM_RTL						18
-#define IDM_COPY_ORIGINAL			19
-
 #define PAINT_BORDER				Back
 #define PAINT_AFTER_LINE			Back
-
-#define CODEPAGE_BASE				100
-#define CONVERT_CODEPAGE_BASE		200
 
 #if !defined(WIN32) && !defined(toupper)
 #define toupper(c)					(((c)>='a'&&(c)<='z') ? (c)-'a'+'A' : (c))
@@ -78,9 +41,6 @@ static char SelectWordDelim[] = " \t\n.,()[]<>=?/\\{}\"\';:+=-|!@#$%^&*";
 
 #include "GRichTextEditPriv.h"
 
-typedef GRichTextPriv::BlockCursor BlkCursor;
-typedef GAutoPtr<GRichTextPriv::BlockCursor> AutoCursor;
-typedef GAutoPtr<GRichTextPriv::Transaction> AutoTrans;
 
 //////////////////////////////////////////////////////////////////////
 GRichTextEdit::GRichTextEdit(	int Id,
@@ -120,21 +80,17 @@ GRichTextEdit::GRichTextEdit(	int Id,
 		"</body>\n"
 		"</html>\n");
 	#endif
-
-	d->SinkHnd = GEventSinkMap::Dispatch.AddSink(this);
 }
 
 GRichTextEdit::~GRichTextEdit()
 {
-	GEventSinkMap::Dispatch.RemoveSink(this);
-
 	// 'd' is owned by the GView CSS autoptr.
 }
 
 bool GRichTextEdit::SetSpellCheck(GSpellCheck *sp)
 {
 	if (d->SpellCheck = sp)
-		d->SpellCheck->EnumDictionaries(d->SinkHnd);
+		d->SpellCheck->EnumLanguages(AddDispatch());
 	return d->SpellCheck != NULL;
 }
 
@@ -333,6 +289,40 @@ const char *GRichTextEdit::GetCharset()
 void GRichTextEdit::SetCharset(const char *s)
 {
 	d->Charset = s;
+}
+
+bool GRichTextEdit::GetVariant(const char *Name, GVariant &Value, char *Array)
+{
+	GDomProperty p = LgiStringToDomProp(Name);
+	switch (p)
+	{
+		case HtmlImagesLinkCid:
+		{
+			Value = d->HtmlLinkAsCid;
+			break;
+		}
+		default:
+			return false;
+	}
+	
+	return true;
+}
+
+bool GRichTextEdit::SetVariant(const char *Name, GVariant &Value, char *Array)
+{
+	GDomProperty p = LgiStringToDomProp(Name);
+	switch (p)
+	{
+		case HtmlImagesLinkCid:
+		{
+			d->HtmlLinkAsCid = Value.CastInt32() != 0;
+			break;
+		}
+		default:
+			return false;
+	}
+	
+	return true;
 }
 
 static GHtmlElement *FindElement(GHtmlElement *e, HtmlTag TagId)
@@ -651,8 +641,11 @@ bool GRichTextEdit::Copy()
 bool GRichTextEdit::Paste()
 {
 	GClipBoard Cb(this);
-	char16 *Text = Cb.TextW();
+	GAutoWString Text(Cb.TextW());
+	GAutoPtr<GSurface> Img;
 	if (!Text)
+		Img.Reset(Cb.Bitmap());
+	if (!Text && !Img)
 		return false;
 	
 	if (!d->Cursor ||
@@ -670,17 +663,55 @@ bool GRichTextEdit::Paste()
 			return false;
 	}
 
-	GAutoPtr<uint32,true> Utf32((uint32*)LgiNewConvertCp("utf-32", Text, LGI_WideCharset));
-	int Len = Strlen(Utf32.Get());
-	if (!d->Cursor->Blk->AddText(Trans, d->Cursor->Offset, Utf32.Get(), Len))
+	if (Text)
 	{
-		LgiAssert(0);
-		SendNotify(GNotifyDocChanged);
-		return false;
+		GAutoPtr<uint32,true> Utf32((uint32*)LgiNewConvertCp("utf-32", Text, LGI_WideCharset));
+		int Len = Strlen(Utf32.Get());
+		if (!d->Cursor->Blk->AddText(Trans, d->Cursor->Offset, Utf32.Get(), Len))
+		{
+			LgiAssert(0);
+			return false;
+		}
+
+		d->Cursor->Offset += Len;
+		d->Cursor->LineHint = -1;
+	}
+	else if (Img)
+	{
+		GRichTextPriv::Block *b = d->Cursor->Blk;
+		int BlkIdx = d->Blocks.IndexOf(b);
+		GRichTextPriv::Block *After = NULL;
+		int AddIndex;
+		
+		LgiAssert(BlkIdx >= 0);
+
+		// Split 'b' to make room for the image
+		if (d->Cursor->Offset > 0)
+		{
+			After = b->Split(Trans, d->Cursor->Offset);
+			AddIndex = BlkIdx+1;									
+		}
+		else
+		{
+			// Insert before..
+			AddIndex = BlkIdx;
+		}
+
+		GRichTextPriv::ImageBlock *ImgBlk = new GRichTextPriv::ImageBlock(d);
+		if (ImgBlk)
+		{
+			d->Blocks.AddAt(AddIndex++, ImgBlk);
+			if (After)
+				d->Blocks.AddAt(AddIndex++, After);
+
+			Img->MakeOpaque();
+			ImgBlk->SetImage(Img);
+			
+			AutoCursor c(new BlkCursor(ImgBlk, 1, -1));
+			d->SetCursor(c);			
+		}
 	}
 
-	d->Cursor->Offset += Len;
-	d->Cursor->LineHint = -1;
 	Invalidate();
 	SendNotify(GNotifyDocChanged);
 
@@ -1150,6 +1181,19 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 		ClipText.Reset(NewStr(Clip.Text()));
 	}
 
+	GRichTextPriv::Block *Over = NULL;
+	GRect &Content = d->Areas[ContentArea];
+	GdcPt2 Doc = d->ScreenToDoc(m.x, m.y);
+	int BlockIndex = -1;
+	int Offset = -1;
+	if (Content.Overlap(m.x, m.y))
+	{
+		int LineHint;
+		int Idx = d->HitTest(Doc.x, Doc.y, LineHint, &Over);
+	}
+	if (Over)
+		Over->DoContext(RClick, Doc, Offset, true);
+
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_CUT, "Cut"), IDM_CUT, HasSelection());
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_COPY, "Copy"), IDM_COPY, HasSelection());
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_PASTE, "Paste"), IDM_PASTE, ClipText != 0);
@@ -1177,22 +1221,12 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_TAB_SIZE, "Tab Size"), IDM_TAB_SIZE, true);
 	RClick.AppendItem("Copy Original", IDM_COPY_ORIGINAL, d->OriginalText.Get() != NULL);
 
-	GRichTextPriv::Block *Over = NULL;
-	GRect &Content = d->Areas[ContentArea];
-	GdcPt2 Doc = d->ScreenToDoc(m.x, m.y);
-	if (Content.Overlap(m.x, m.y))
-	{
-		int LineHint;
-		int Idx = d->HitTest(Doc.x, Doc.y, LineHint);
-		if (Idx >= 0)
-			Over = d->GetBlockByIndex(Idx);
-	}
 	if (Over)
 	{
 		#ifdef _DEBUG
-		RClick.AppendItem(Over->GetClass(), -1, false);
+		// RClick.AppendItem(Over->GetClass(), -1, false);
 		#endif
-		Over->DoContext(RClick, Doc);
+		Over->DoContext(RClick, Doc, Offset, false);
 	}
 	if (Environment)
 		Environment->AppendItems(&RClick);
@@ -1297,6 +1331,21 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 {
 	bool Processed = false;
 
+	RectType Clicked = MaxArea;
+	if (d->Areas[ToolsArea].Overlap(m.x, m.y) ||
+		d->Areas[CapabilityArea].Overlap(m.x, m.y))
+	{
+		for (unsigned i=CapabilityBtn; i<MaxArea; i++)
+		{
+			if (d->Areas[i].Valid() &&
+				d->Areas[i].Overlap(m.x, m.y))
+			{
+				Clicked = (RectType)i;
+				break;
+			}
+		}
+	}
+
 	if (m.Down())
 	{
 		Focus(true);
@@ -1313,15 +1362,19 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 			if (d->Areas[ToolsArea].Overlap(m.x, m.y) ||
 				d->Areas[CapabilityArea].Overlap(m.x, m.y))
 			{
-				for (unsigned i=CapabilityBtn; i<MaxArea; i++)
+				if (Clicked != MaxArea)
 				{
-					if (d->Areas[i].Valid() &&
-						d->Areas[i].Overlap(m.x, m.y))
+					if (d->BtnState[Clicked].IsPress)
 					{
-						Processed |= d->ClickBtn(m, (RectType)i);
+						d->BtnState[d->ClickedBtn = Clicked].Pressed = true;
+						Invalidate(d->Areas + Clicked);
+						Capture(true);
+					}
+					else
+					{
+						Processed |= d->ClickBtn(m, Clicked);
 					}
 				}
-				return;
 			}
 			else
 			{
@@ -1338,6 +1391,19 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 				}
 			}
 		}
+	}
+	else if (IsCapturing())
+	{
+		if (d->ClickedBtn != MaxArea)
+		{
+			d->BtnState[d->ClickedBtn].MouseOver = false;
+			d->BtnState[d->ClickedBtn].Pressed = false;
+			Invalidate(d->Areas + d->ClickedBtn);
+			Processed |= d->ClickBtn(m, Clicked);
+		}
+
+		Capture(false);
+		d->ClickedBtn = MaxArea;
 	}
 
 	if (!Processed)
@@ -2231,29 +2297,57 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 			}
 			break;
 		}
+		case M_ENUMERATE_LANGUAGES:
+		{
+			GAutoPtr< GArray<GSpellCheck::LanguageId> > Languages((GArray<GSpellCheck::LanguageId>*)Msg->A());
+			if (!Languages)
+				break;
+			
+			for (unsigned i=0; i<Languages->Length(); i++)
+			{
+				GSpellCheck::LanguageId &s = (*Languages)[i];
+				if (s.LangCode.Equals("en"))
+				{
+					d->SpellCheck->EnumDictionaries(AddDispatch(), s.LangCode);
+					break;
+				}
+			}
+			break;
+		}
 		case M_ENUMERATE_DICTIONARIES:
 		{
-			GAutoPtr<GString::Array> Dictionaries((GString::Array*)Msg->A());
-			if (Dictionaries)
+			GAutoPtr< GArray<GSpellCheck::DictionaryId> > Dictionaries((GArray<GSpellCheck::DictionaryId>*)Msg->A());
+			if (!Dictionaries)
+				break;
+			
+			for (unsigned i=0; i<Dictionaries->Length(); i++)
 			{
-				GString Lang;
-				int LangScore = 0;
-
-				for (unsigned i=0; i<Dictionaries->Length(); i++)
+				GSpellCheck::DictionaryId &s = (*Dictionaries)[i];
+				if (s.Dict.Equals("AU"))
 				{
-					GString &s = (*Dictionaries)[i];
-					int Score = s.Lower().Find("en") >= 0;
-					Score += s.Lower().Find("au") >= 0;
-					if (!Lang || Score > LangScore)
-					{
-						Lang = s;
-						LangScore = Score;
-					}
+					d->SpellCheck->SetDictionary(AddDispatch(), s.Lang, s.Dict);
+					break;
 				}
-
-				if (Lang && d->SpellCheck)
-					d->SpellCheck->SetDictionary(d->SinkHnd, Lang);
 			}
+			break;
+		}
+		case M_SET_DICTIONARY:
+		{
+			d->SpellDictionaryLoaded = Msg->A() != 0;
+			break;
+		}
+		case M_CHECK_TEXT:
+		{
+			GAutoPtr<GSpellCheck::CheckText> Ct((GSpellCheck::CheckText*)Msg->A());
+			if (!Ct)
+				break;
+
+			GRichTextPriv::Block *b = (GRichTextPriv::Block*)Ct->UserPtr;
+			if (!d->Blocks.HasItem(b))
+				break;
+
+			b->SetSpellingErrors(Ct->Errors);
+			Invalidate();
 			break;
 		}
 		#if defined WIN32
@@ -2465,11 +2559,11 @@ EmojiMenu::EmojiMenu(GRichTextPriv *priv, GdcPt2 p) : GPopup(priv->View)
 	d->GetEmojiImage();
 
 	int MaxIdx = 0;
-	Range EmojiBlocks[2] = { Range(0x203c, 0x3299 - 0x203c + 1), Range(0x1f004, 0x1f6c5 - 0x1f004 + 1) };
+	GRange EmojiBlocks[2] = { GRange(0x203c, 0x3299 - 0x203c + 1), GRange(0x1f004, 0x1f6c5 - 0x1f004 + 1) };
 	GHashTbl<int, int> Map;
 	for (int b=0; b<CountOf(EmojiBlocks); b++)
 	{
-		Range &r = EmojiBlocks[b];
+		GRange &r = EmojiBlocks[b];
 		for (int i=0; i<r.Len; i++)
 		{
 			uint32 u = r.Start + i;

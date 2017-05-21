@@ -267,6 +267,7 @@ GViewPrivate::GViewPrivate()
 	Font = NULL;
 	WantsFocus = false;
 	WantsPulse = -1;
+	SinkHnd = -1;
 }
 
 GViewPrivate::~GViewPrivate()

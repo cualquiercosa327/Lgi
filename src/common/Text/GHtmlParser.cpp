@@ -35,8 +35,9 @@ GHtmlElement *GHtmlParser::GetOpenTag(const char *Tag)
 {
 	if (Tag)
 	{
-		for (GHtmlElement *t=OpenTags.Last(); t; t=OpenTags.Prev())
+		for (int i=(int)OpenTags.Length()-1; i>=0; i--)
 		{
+			GHtmlElement *t = OpenTags[i];
 			if (t->Tag)
 			{
 				if (_stricmp(t->Tag, Tag) == 0)
@@ -243,7 +244,7 @@ char *GHtmlParser::ParseName(char *s, GAutoString &Name)
 {
 	SkipWhiteSpace(s);
 	char *Start = s;
-	while (*s && (IsAlpha(*s) || strchr("!-:", *s) || IsDigit(*s)))
+	while (*s && (IsAlpha(*s) || strchr("!-:\"\'", *s) || IsDigit(*s)))
 	{
 		s++;
 	}
@@ -259,20 +260,25 @@ char *GHtmlParser::ParseName(char *s, GAutoString &Name)
 
 char *GHtmlParser::ParsePropList(char *s, GHtmlElement *Obj, bool &Closed)
 {
-	while (s && *s && *s != '>')
+	while (s && *s)
 	{
-		while (*s && IsWhiteSpace(*s)) s++;
-		if (*s == '>') break;
+		while (*s && IsWhiteSpace(*s))
+			s++;
+		
+		if (*s == '/')
+		{
+			Closed = true;
+			s++;
+		}
+		if (*s == '>')
+			break;
 
 		// get name
 		char *Name = 0;
 		char *n = ParseName(s, &Name);		
-		if (*n == '/')
-		{
-			Closed = true;
-		}		
 		if (n == s)
 		{
+			// Don't get stuck...
 			s = ++n;
 		}
 		else
@@ -280,7 +286,8 @@ char *GHtmlParser::ParsePropList(char *s, GHtmlElement *Obj, bool &Closed)
 			s = n;
 		}
 
-		while (*s && IsWhiteSpace(*s)) s++;
+		while (*s && IsWhiteSpace(*s))
+			s++;
 
 		if (*s == '=')
 		{
@@ -306,6 +313,9 @@ char *GHtmlParser::ParsePropList(char *s, GHtmlElement *Obj, bool &Closed)
 		}
 
 		DeleteArray(Name);
+
+		if (*s != '>' && *s != '/' && !IsWhiteSpace(*s) && !IsAlpha(*s))
+			break;
 	}
 
 	if (*s == '>') s++;
@@ -336,6 +346,7 @@ bool GHtmlParser::Parse(GHtmlElement *Root, const char *Doc)
 {
 	SourceData.Empty();
 	CurrentSrc = Doc;
+	OpenTags.Length(0);
 	ParseHtml(Root, (char*)Doc, 0);
 	
 	// DumpDomTree(Root);
@@ -512,9 +523,9 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 				else if (!_stricmp(Cond, "endif"))
 				{
 					GHtmlElement *MatchingIf = NULL;
-					List<GHtmlElement>::I it = OpenTags.End();
-					for (GHtmlElement *e = *it; e; e = *--it)
+					for (int i = (int)OpenTags.Length()-1; i>=0; i--)
 					{
+						GHtmlElement *e = OpenTags[i];
 						if (e->TagId == CONDITIONAL &&
 							e->Tag &&
 							!_stricmp(e->Tag, "[if]"))
@@ -585,9 +596,10 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 						if (Elem->Info->Flags & GHtmlElemInfo::TI_SINGLETON)
 						{
 							// Do singleton check... we don't want nested BODY or HEAD tags...
-							List<GHtmlElement>::I it = OpenTags.End();
-							for (GHtmlElement *e = *it; e; e = *--it)
+							for (int i = (int)OpenTags.Length() - 1; i >= 0; i--)
 							{
+								GHtmlElement *e = OpenTags[i];
+								
 								if (e->TagId == TAG_IFRAME)
 								{
 									// In the case of IFRAMEs... don't consider the parent document.
@@ -777,6 +789,11 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 								ParentTags.Add(TAG_HTML);
 								break;
 							}
+							case TAG_BODY:
+							{
+								ParentTags.Add(TAG_HTML);
+								break;
+							}
 							case TAG_TBODY:
 							{
 								ParentTags.Add(TAG_TABLE);
@@ -798,7 +815,8 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 								break;
 						}
 
-						for (GHtmlElement *p=OpenTags.Last(); p && p->TagId != TAG_TABLE; p=OpenTags.Prev())
+						GHtmlElement *p;
+						for (int TagIdx = (int)OpenTags.Length()-1; TagIdx >= 0 && (p = OpenTags[TagIdx]) && p->TagId != TAG_TABLE; TagIdx--)
 						{
 							if (p->TagId == Elem->TagId)
 							{
@@ -818,8 +836,9 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 							else
 							{
 								GHtmlElement *Parent = NULL;
-								for (GHtmlElement *t=OpenTags.Last(); t; t=OpenTags.Prev())
+								for (int TagIdx = (int)OpenTags.Length()-1; TagIdx >= 0; TagIdx--)
 								{
+									GHtmlElement *t = OpenTags[TagIdx];
 									if (t->TagId && ParentTags.HasItem(t->TagId))
 									{
 										Parent = t;
@@ -887,7 +906,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 					}
 					#endif
 
-					OpenTags.Insert(Elem);
+					OpenTags.Add(Elem);
 					
 					if (Elem->TagId == TAG_IFRAME)
 					{
@@ -1365,8 +1384,9 @@ char16 *GHtmlParser::CleanText(const char *s, int Len, bool ConversionAllowed, b
 void GHtmlParser::_TraceOpenTags()
 {
 	GStringPipe p;
-	for (GHtmlElement *t=OpenTags.First(); t; t=OpenTags.Next())
+	for (unsigned i = 0; i < OpenTags.Length(); i++)
 	{
+		GHtmlElement *t = OpenTags[i];
 		p.Print(", %s", t->Tag.Get());
 		
 		GVariant Id;

@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <errno.h>
+#include <unistd.h>
 #endif
 
 #define DEBUG_SHOW_GDB_IO		0
@@ -376,9 +377,6 @@ class Gdb : public GDebugger, public GThread, public Callback
 						// Ok so whats the process ID?
 						#ifdef POSIX
 						int Pid = 
-						#ifdef __GTK_H__
-						Gtk::
-						#endif
 						getpgid(ThreadId);
 						if (Pid > 0 && ProcessId < 0)
 						{

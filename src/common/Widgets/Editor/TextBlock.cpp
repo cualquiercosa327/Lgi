@@ -204,6 +204,7 @@ GRichTextPriv::TextBlock::TextBlock(GRichTextPriv *priv) : Block(priv)
 	Pos.ZOff(-1, -1);
 	Style = NULL;
 	Fnt = NULL;
+	ClickErrIdx = -1;
 			
 	Margin.ZOff(0, 0);
 	Border.ZOff(0, 0);
@@ -619,7 +620,65 @@ bool GRichTextPriv::TextBlock::HitTest(HitTestResult &htr)
 
 	return false;
 }
+
+void DrawDecor(GSurface *pDC, GRichTextPriv::DisplayStr *Ds, int Fx, int Fy, int Start, int Len)
+{
+	GColour Old = pDC->Colour(GColour::Red);
+	GDisplayString ds1(Ds->GetFont(), (const char16*)(*Ds), Start);
+	GDisplayString ds2(Ds->GetFont(), (const char16*)(*Ds), Start+Len);
+
+	int x = (Fx >> GDisplayString::FShift);
+	int y = (Fy >> GDisplayString::FShift) + (int)Ds->GetAscent() + 1;
+	int End = x + ds2.X();
+	x += ds1.X();
+	while (x < End)
+	{
+		pDC->Set(x, y+(x%2));
+		x++;
+	}
+}
+
+bool Overlap(GSpellCheck::SpellingError *e, int start, int len)
+{
+	if (!e)
+		return false;
+	if (start+len <= e->Start)
+		return false;
+	if (start >= e->End())
+		return false;
+	return true;
+}
+
+void GRichTextPriv::TextBlock::DrawDisplayString(GSurface *pDC, DisplayStr *Ds, int &FixX, int FixY, GColour &Bk, int &Pos)
+{
+	int OldX = FixX;
+
+	// Paint the string itself...
+	Ds->Paint(pDC, FixX, FixY, Bk);
+
+	// Does the a spelling error overlap this string?
+	int DsEnd = Pos + Ds->Chars;
+	while (Overlap(SpErr, Pos, Ds->Chars))
+	{
+		// Yes, work out the region of characters and paint the decor
+		int Start = max(SpErr->Start, Pos);
+		int Len = min(SpErr->End(), Pos + Ds->Chars) - Start;
 		
+		// Draw the decor for the error
+		DrawDecor(pDC, Ds, OldX, FixY, Start - Pos, Len);
+		
+		if (SpErr->End() < DsEnd)
+		{
+			// Are there more errors?
+			SpErr = SpellingErrors.AddressOf(++PaintErrIdx);
+		}
+		else break;
+	}
+
+	Pos += Ds->Chars;
+}
+
+
 void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 {
 	int CharPos = 0;
@@ -663,6 +722,9 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 	Ctx.DrawBox(r, Padding, Ctx.Colours[Unselected].Back);
 	
 	int CurY = Pos.y1;
+	PaintErrIdx = 0;
+	SpErr = SpellingErrors.AddressOf(PaintErrIdx);
+
 	for (unsigned i=0; i<Layout.Length(); i++)
 	{
 		TextLine *Line = Layout[i];
@@ -740,6 +802,7 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 			{
 				// Process string into parts based on the selection boundaries
 				int Ch = EndPoint[CurEndPoint] - CharPos;
+				int TmpPos = CharPos;
 				GAutoPtr<DisplayStr> ds1 = Ds->Clone(0, Ch);
 						
 				// First part...
@@ -747,7 +810,9 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 				if (DsFnt)
 					DsFnt->Colour(Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(), Bk);
 				if (ds1)
-					ds1->Paint(Ctx.pDC, FixX, FixY, Bk);
+					DrawDisplayString(Ctx.pDC, ds1, FixX, FixY, Bk, TmpPos);
+
+
 				Ctx.Type = Ctx.Type == Selected ? Unselected : Selected;
 				CurEndPoint++;
 						
@@ -771,7 +836,7 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 					if (DsFnt)
 						DsFnt->Colour(Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(), Bk);
 					if (ds2)
-						ds2->Paint(Ctx.pDC, FixX, FixY, Bk);
+						DrawDisplayString(Ctx.pDC, ds2, FixX, FixY, Bk, TmpPos);
 					Ctx.Type = Ctx.Type == Selected ? Unselected : Selected;
 					CurEndPoint++;
 
@@ -781,7 +846,7 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 					if (DsFnt)
 						DsFnt->Colour(Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(), Bk);
 					if (ds3)
-						ds3->Paint(Ctx.pDC, FixX, FixY, Bk);
+						DrawDisplayString(Ctx.pDC, ds3, FixX, FixY, Bk, TmpPos);
 				}
 				else if (Ch < Ds->Chars)
 				{
@@ -791,7 +856,7 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 					if (DsFnt)
 						DsFnt->Colour(Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(), Bk);
 					if (ds2)	
-						ds2->Paint(Ctx.pDC, FixX, FixY, Bk);
+						DrawDisplayString(Ctx.pDC, ds2, FixX, FixY, Bk, TmpPos);
 				}
 			}
 			else
@@ -805,7 +870,8 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 				int OldFixX = FixX;
 				#endif
 
-				Ds->Paint(Ctx.pDC, FixX, FixY, Bk);
+				int TmpPos = CharPos;
+				DrawDisplayString(Ctx.pDC, Ds, FixX, FixY, Bk, TmpPos);
 
 				#if DEBUG_OUTLINE_CUR_DISPLAY_STR
 				if (Ctx.Cursor->Blk == (Block*)this &&
@@ -1280,13 +1346,49 @@ int GRichTextPriv::TextBlock::DeleteAt(Transaction *Trans, int BlkOffset, int Ch
 	}
 
 	if (Deleted > 0)
+	{
 		LayoutDirty = true;
+		UpdateSpelling();
+	}
 
 	IsValid();
 
 	return Deleted;
 }
 		
+GMessage::Result GRichTextPriv::TextBlock::OnEvent(GMessage *Msg)
+{
+	switch (Msg->Msg())
+	{
+		case M_COMMAND:
+		{
+			GSpellCheck::SpellingError *e = SpellingErrors.AddressOf(ClickErrIdx);
+			if (e)
+			{
+				// Replacing text with spell check suggestion:
+				int i = Msg->A() - SPELLING_BASE;
+				if (i >= 0 && i < e->Suggestions.Length())
+				{
+					GString s = e->Suggestions[i];
+					AutoTrans t(new GRichTextPriv::Transaction);
+					
+					// Delete the old text...
+					DeleteAt(t, e->Start, e->Len);
+
+					// Insert the new text....
+					GAutoPtr<uint32,true> u((uint32*)LgiNewConvertCp("utf-32", s, "utf-8"));
+					AddText(t, e->Start, u.Get(), Strlen(u.Get()));
+					
+					d->AddTrans(t);
+				}
+			}
+			break;
+		}
+	}
+
+	return 0;
+}
+
 bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const uint32 *InStr, int InChars, GNamedStyle *Style)
 {
 	if (!InStr)
@@ -1428,8 +1530,69 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 	LayoutDirty = true;
 	
 	IsValid();
+
+	UpdateSpelling();
 	
 	return true;
+}
+
+void GRichTextPriv::TextBlock::UpdateSpelling()
+{
+	if (d->SpellCheck &&
+		d->SpellDictionaryLoaded)
+	{
+		GArray<uint32> Text;
+		if (CopyAt(0, Length(), &Text))
+		{
+			GString s(&Text[0], Text.Length());
+			d->SpellCheck->Check(d->View->AddDispatch(), s, 0, (GRichTextPriv::Block*)this);
+		}
+	}
+}
+
+int ErrSort(GSpellCheck::SpellingError *a, GSpellCheck::SpellingError *b)
+{
+	return a->Start - b->Start;
+}
+
+bool GRichTextPriv::TextBlock::DoContext(GSubMenu &s, GdcPt2 Doc, int Offset, bool Spelling)
+{
+	if (Spelling)
+	{
+		// Is there a spelling error at 'Offset'?		
+		for (unsigned i=0; i<SpellingErrors.Length(); i++)
+		{
+			GSpellCheck::SpellingError &e = SpellingErrors[i];
+			if (Offset >= e.Start && Offset < e.End())
+			{
+				ClickErrIdx = i;
+				if (e.Suggestions.Length())
+				{
+					GSubMenu *Sp = s.AppendSub("Spelling");
+					if (Sp)
+					{
+						s.AppendSeparator();
+						for (unsigned n=0; n<e.Suggestions.Length(); n++)
+							Sp->AppendItem(e.Suggestions[n], SPELLING_BASE+n);
+					}
+				}
+				break;
+			}
+		}
+	}
+
+	return true;
+}
+
+GRichTextPriv::Block *GRichTextPriv::TextBlock::Clone()
+{
+	return new TextBlock(this);
+}
+
+void GRichTextPriv::TextBlock::SetSpellingErrors(GArray<GSpellCheck::SpellingError> &Errors)
+{
+	SpellingErrors = Errors;	
+	SpellingErrors.Sort(ErrSort);
 }
 
 int GRichTextPriv::TextBlock::CopyAt(int Offset, int Chars, GArray<uint32> *Text)
@@ -1526,19 +1689,19 @@ int GRichTextPriv::TextBlock::FindAt(int StartIdx, const uint32 *Str, GFindRepla
 
 bool GRichTextPriv::TextBlock::DoCase(Transaction *Trans, int StartIdx, int Chars, bool Upper)
 {
-	Range Blk(0, Len);
-	Range Inp(StartIdx, Chars < 0 ? Len - StartIdx : Chars);
-	Range Change = Blk.Overlap(Inp);
+	GRange Blk(0, Len);
+	GRange Inp(StartIdx, Chars < 0 ? Len - StartIdx : Chars);
+	GRange Change = Blk.Overlap(Inp);
 
 	PreEdit(Trans);
 
-	Range Run(0, 0);
+	GRange Run(0, 0);
 	bool Changed = false;
 	for (unsigned i=0; i<Txt.Length(); i++)
 	{
 		StyleText *st = Txt[i];
 		Run.Len = st->Length();
-		Range Edit = Run.Overlap(Change);
+		GRange Edit = Run.Overlap(Change);
 		if (Edit.Len > 0)
 		{
 			uint32 *s = st->At(Edit.Start - Run.Start);

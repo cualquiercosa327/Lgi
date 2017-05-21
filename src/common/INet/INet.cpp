@@ -220,6 +220,7 @@ public:
 	OsSocket	Socket;
 	int			Flags;
 	int			LastError;
+	bool		*ContinueToken;
 
 	GSocketImplPrivate()
 	{	
@@ -230,11 +231,17 @@ public:
 		Socket = INVALID_SOCKET;
 		Flags = 0;
 		LastError = 0;
+		ContinueToken = NULL;
 	}
 
 	~GSocketImplPrivate()
 	{
 		DeleteArray(LogFile);
+	}
+
+	bool Loop()
+	{
+		return !ContinueToken || *ContinueToken;
 	}
 };
 
@@ -294,6 +301,11 @@ int GSocket::GetTimeout()
 void GSocket::SetTimeout(int ms)
 {
 	d->Timeout = ms;
+}
+
+void GSocket::SetContinue(bool *Token)
+{
+	d->ContinueToken = Token;
 }
 
 bool GSocket::IsReadable(int TimeoutMs)
@@ -572,6 +584,8 @@ int GSocket::Open(const char *HostAddr, int Port)
 					int Ret;
 					while
 					(
+						d->Loop()
+						&&
 						(
 							Ret
 							=
@@ -679,7 +693,9 @@ int GSocket::Open(const char *HostAddr, int Port)
 						#endif
 
 						int64 End = LgiCurrentTime() + (d->Timeout > 0 ? d->Timeout : 30000);
-						while (ValidSocket(d->Socket) && IsWouldBlock())
+						while (	d->Loop() &&
+								ValidSocket(d->Socket) &&
+								IsWouldBlock())
 						{
 							int64 Remaining = End - LgiCurrentTime();
 
@@ -833,7 +849,8 @@ bool GSocket::Accept(GSocketI *c)
 	int Loop = 0;
 	socklen_t Length = sizeof(Address);
 	uint64 Start = LgiCurrentTime();
-	while (ValidSocket(d->Socket))
+	while (	d->Loop() &&
+			ValidSocket(d->Socket))
 	{
 		if (IsReadable(100))
 		{

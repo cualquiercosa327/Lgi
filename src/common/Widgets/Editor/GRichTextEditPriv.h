@@ -63,13 +63,35 @@
 		) \
 	)
 
-enum RtcCmds
+enum RteCommands
 {
-	IDM_CLOCKWISE = 300,
+	IDM_OPEN = 10,
+	IDM_NEW,
+	IDM_COPY,
+	IDM_CUT,
+	IDM_PASTE,
+	IDM_UNDO,
+	IDM_REDO,
+	IDM_COPY_URL,
+	IDM_AUTO_INDENT,
+	IDM_UTF8,
+	IDM_PASTE_NO_CONVERT,
+	IDM_FIXED,
+	IDM_SHOW_WHITE,
+	IDM_HARD_TABS,
+	IDM_INDENT_SIZE,
+	IDM_TAB_SIZE,
+	IDM_DUMP,
+	IDM_RTL,
+	IDM_COPY_ORIGINAL,
+	IDM_CLOCKWISE,
 	IDM_ANTI_CLOCKWISE,
 	IDM_X_FLIP,
 	IDM_Y_FLIP,
 	IDM_SCALE_IMAGE,
+	CODEPAGE_BASE = 100,
+	CONVERT_CODEPAGE_BASE = 200,
+	SPELLING_BASE = 300
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -136,36 +158,7 @@ int Utf16Strlen(const uint16 *s, int &len)
 */
 
 //////////////////////////////////////////////////////////////////////
-struct Range
-{
-	int Start;
-	int Len;
-
-	Range(int s, int l)
-	{
-		Start = s;
-		Len = l;
-	}
-
-	Range Overlap(const Range &r)
-	{
-		Range o(0, 0);
-		if (r.Start >= End())
-			return o;
-		if (r.End() <= Start)
-			return o;
-
-		int e = min(End(), r.End());
-		o.Start = max(r.Start, Start);
-		o.Len = e - o.Start;
-		return o; 
-	}
-
-	int End() const
-	{
-		return Start + Len;
-	}
-};
+#include "GRange.h"
 
 class GRichEditElem : public GHtmlElement
 {
@@ -325,6 +318,14 @@ struct CtrlCap
 	}
 };
 
+struct ButtonState
+{
+	uint8 IsMenu : 1;
+	uint8 IsPress : 1;
+	uint8 Pressed : 1;
+	uint8 MouseOver : 1;
+};
+
 extern bool Utf16to32(GArray<uint32> &Out, const uint16 *In, int Len);
 
 class GRichTextPriv :
@@ -384,7 +385,8 @@ public:
 	int NextUid;
 	GStream *Log;
 	GSpellCheck *SpellCheck;
-	int SinkHnd;
+	bool SpellDictionaryLoaded;
+	bool HtmlLinkAsCid;
 
 	// This is set when the user changes a style without a selection,
 	// indicating that we should start a new run when new text is entered
@@ -392,6 +394,8 @@ public:
 
 	// Toolbar
 	bool ShowTools;
+	GRichTextEdit::RectType ClickedBtn;
+	ButtonState BtnState[GRichTextEdit::MaxArea];
 	GRect Areas[GRichTextEdit::MaxArea];
 	GVariant Values[GRichTextEdit::MaxArea];
 
@@ -585,7 +589,8 @@ public:
 		{
 			for (unsigned i=0; i<Changes.Length(); i++)
 			{
-				if (!Changes[i]->Apply(Ctx, Forward))
+				DocChange *dc = Changes[i];
+				if (!dc->Apply(Ctx, Forward))
 					return false;
 			}
 
@@ -681,14 +686,16 @@ public:
 			virtual int LineToOffset(int Line) = 0;
 			virtual int GetLines() = 0;
 			virtual int FindAt(int StartIdx, const uint32 *Str, GFindReplaceCommon *Params) = 0;
+			virtual void SetSpellingErrors(GArray<GSpellCheck::SpellingError> &Errors) {}
 			virtual void IncAllStyleRefs() {}
 			virtual void Dump() {}
 			virtual GNamedStyle *GetStyle(int At = -1) = 0;
 			virtual int GetUid() const { return BlockUid; }
-			virtual bool DoContext(GSubMenu &s, GdcPt2 Doc) { return false; }
+			virtual bool DoContext(GSubMenu &s, GdcPt2 Doc, int Offset, bool Spelling) { return false; }
 			#ifdef _DEBUG
 			virtual void DumpNodes(GTreeItem *Ti) = 0;
 			#endif
+			virtual Block *Clone() = 0;
 
 			// Copy some or all of the text out
 			virtual int CopyAt(int Offset, int Chars, GArray<uint32> *Text) { return false; }
@@ -888,9 +895,15 @@ public:
 			return c;
 		}
 
-		virtual void Paint(GSurface *pDC, int &FixX, int FixY, GColour &Back)
+		virtual void Paint(GSurface *pDC, int &FixX, int FixY, GColour &Back, GRange *SpellErr = NULL)
 		{
 			FDraw(pDC, FixX, FixY);
+
+			if (SpellErr)
+			{
+				
+			}
+
 			FixX += FX();
 		}
 
@@ -945,8 +958,13 @@ public:
 	class TextBlock : public Block
 	{
 		GNamedStyle *Style;
+		GArray<GSpellCheck::SpellingError> SpellingErrors;
+		int PaintErrIdx, ClickErrIdx;
+		GSpellCheck::SpellingError *SpErr;
 
 		bool PreEdit(Transaction *Trans);
+		void UpdateSpelling();
+		void DrawDisplayString(GSurface *pDC, DisplayStr *Ds, int &FixX, int FixY, GColour &Bk, int &Pos);
 	
 	public:
 		GArray<StyleText*> Txt;
@@ -984,9 +1002,15 @@ public:
 		bool Seek(SeekType To, BlockCursor &Cursor);
 		int FindAt(int StartIdx, const uint32 *Str, GFindReplaceCommon *Params);
 		void IncAllStyleRefs();
+		void SetSpellingErrors(GArray<GSpellCheck::SpellingError> &Errors);
+		bool DoContext(GSubMenu &s, GdcPt2 Doc, int Offset, bool Spelling);
 		#ifdef _DEBUG
 		void DumpNodes(GTreeItem *Ti);
 		#endif
+		Block *Clone();
+
+		// Events
+		GMessage::Result OnEvent(GMessage *Msg);
 
 		// Transactional changes
 		bool AddText(Transaction *Trans, int AtOffset, const uint32 *Str, int Chars = -1, GNamedStyle *Style = NULL);
@@ -1043,6 +1067,7 @@ public:
 
 		bool IsValid();
 		bool Load(const char *Src = NULL);
+		bool SetImage(GAutoPtr<GSurface> Img);
 
 		// No state change methods
 		int GetLines();
@@ -1063,10 +1088,11 @@ public:
 		bool Seek(SeekType To, BlockCursor &Cursor);
 		int FindAt(int StartIdx, const uint32 *Str, GFindReplaceCommon *Params);
 		void IncAllStyleRefs();
-		bool DoContext(GSubMenu &s, GdcPt2 Doc);
+		bool DoContext(GSubMenu &s, GdcPt2 Doc, int Offset, bool Spelling);
 		#ifdef _DEBUG
 		void DumpNodes(GTreeItem *Ti);
 		#endif
+		Block *Clone();
 
 		// Events
 		GMessage::Result OnEvent(GMessage *Msg);
@@ -1094,7 +1120,7 @@ public:
 	GRect SelectionRect();
 	bool GetSelection(GArray<char16> &Text);
 	int IndexOfCursor(BlockCursor *c);
-	int HitTest(int x, int y, int &LineHint);
+	int HitTest(int x, int y, int &LineHint, Block **Blk = NULL);
 	bool CursorFromPos(int x, int y, GAutoPtr<BlockCursor> *Cursor, int *GlobalIdx);
 	Block *GetBlockByIndex(int Index, int *Offset = NULL, int *BlockIdx = NULL, int *LineCount = NULL);
 	bool Layout(GScrollBar *&ScrollY);
@@ -1203,9 +1229,26 @@ struct CompleteTextBlockState : public GRichTextPriv::DocChange
 	bool Apply(GRichTextPriv *Ctx, bool Forward);
 };
 
+struct MultiBlockState : public GRichTextPriv::DocChange
+{
+	GRichTextPriv *Ctx;
+	int Index; // Number of blocks before the edit
+	int Length; // Of the other version currently in the Ctx stack
+	GArray<GRichTextPriv::Block*> Blks;
+	
+	MultiBlockState(GRichTextPriv *ctx, int Start);
+	bool Apply(GRichTextPriv *Ctx, bool Forward);
+
+	bool Copy(int Idx);
+	bool Cut(int Idx);
+};
+
 #ifdef _DEBUG
 GTreeItem *PrintNode(GTreeItem *Parent, const char *Fmt, ...);
 #endif
 
+typedef GRichTextPriv::BlockCursor BlkCursor;
+typedef GAutoPtr<GRichTextPriv::BlockCursor> AutoCursor;
+typedef GAutoPtr<GRichTextPriv::Transaction> AutoTrans;
 
 #endif
