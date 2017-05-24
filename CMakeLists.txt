@@ -1,5 +1,7 @@
 cmake_minimum_required (VERSION 3.5)
 
+SET (CMAKE_OSX_ARCHITECTURES "i386")
+
 project (Lgi)
 set (LGI_VERSION_MAJOR 1)
 set (LGI_VERSION_MINOR 0)
@@ -10,6 +12,11 @@ endif()
 
 if (APPLE)
 	add_definitions("-DMAC -DLGI_LIBRARY -D_DEBUG -DLGI_RES")
+	#SET(GUI_TYPE MACOSX_BUNDLE)
+	INCLUDE_DIRECTORIES ( /Developer/Headers/FlatCarbon )
+	FIND_LIBRARY(CARBON_LIBRARY Carbon)
+	MARK_AS_ADVANCED (CARBON_LIBRARY)
+	SET(EXTRA_LIBS ${CARBON_LIBRARY})
 elseif (LINUX)
 	add_definitions("-DLINUX -DLGI_LIBRARY -D_DEBUG -DLGI_RES -fPIC -w -fno-inline -fpermissive")
 	FIND_PACKAGE(GTK2 COMPONENTS gtk)
@@ -157,6 +164,34 @@ set (LinuxSource
 	src/linux/Lgi/GWindow.cpp
 	)
 
+set (MacSource
+	src/common/Widgets/GCheckBox.cpp
+	src/common/Widgets/GCombo.cpp
+	src/common/Widgets/GScrollBar.cpp
+	src/common/Widgets/GButton.cpp
+	src/common/Widgets/GRadioGroup.cpp
+	src/common/Widgets/GEdit.cpp
+	src/common/Lgi/GLayout.cpp
+	src/common/Widgets/GProgress.cpp
+	src/mac/carbon/Gdc2/Gdc2.cpp
+	src/mac/carbon/Gdc2/GMemDC.cpp
+	src/mac/carbon/Gdc2/GPrintDC.cpp
+	src/mac/carbon/Gdc2/GScreenDC.cpp
+	src/mac/carbon/General/GFile.cpp
+	src/mac/carbon/General/GMem.cpp
+	src/mac/carbon/Lgi/GApp.cpp
+	src/mac/carbon/Lgi/GClipBoard.cpp
+	src/mac/carbon/Lgi/GDragAndDrop.cpp
+	src/mac/carbon/Lgi/GGeneral.cpp
+	src/mac/carbon/Lgi/GFileSelect.cpp
+	src/mac/carbon/Lgi/GMenu.cpp
+	src/mac/carbon/Lgi/GPrinter.cpp
+	src/mac/carbon/Lgi/GThread.cpp
+	src/mac/carbon/Lgi/GView.cpp
+	src/mac/carbon/Lgi/GWidgets.cpp
+	src/mac/carbon/Lgi/GWindow.cpp
+	)
+
 if (APPLE)
 	set(Source ${CommonSource} ${MacSource})
 elseif (LINUX)
@@ -168,17 +203,18 @@ endif ()
 add_library(Lgi SHARED ${Source})
 
 if (APPLE)
-	target_include_directories(Lgi PUBLIC "include/mac/carbon")
+	target_include_directories(Lgi PUBLIC "include/mac/carbon" "include/posix")
+	target_link_libraries(Lgi ${EXTRA_LIBS})
 elseif (LINUX)
 	target_include_directories(Lgi PUBLIC "include/linux/Gtk" "include/linux" ${GTK2_INCLUDE_DIRS})
 	target_link_libraries(Lgi ${GTK2_LIBRARIES})
 elseif (MSVC)
 	target_include_directories(Lgi PUBLIC "include/win32")
 	target_link_libraries(	Lgi
-							ComCtl32.lib
-							Ws2_32.lib
-							UxTheme.lib
-							imm32.lib)
+						ComCtl32.lib
+						Ws2_32.lib
+						UxTheme.lib
+						imm32.lib)
 endif ()
 
 target_include_directories (Lgi PUBLIC
