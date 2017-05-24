@@ -1,8 +1,6 @@
 // http://src.chromium.org/svn/trunk/src/chrome/browser/spellchecker_mac.mm
 #include "Lgi.h"
-#include "ScribePlugin.h"
 #include "LgiSpellCheck.h"
-#include "ScribeDefs.h"
 
 #include <Carbon/Carbon.h>
 #include <Cocoa/Cocoa.h>
@@ -400,8 +398,7 @@ public:
 		}
 		
 		return false;
-	}
-	*/
+	}*/
 };
 
 GAutoPtr<GSpellCheck> CreateAppleSpellCheck()
