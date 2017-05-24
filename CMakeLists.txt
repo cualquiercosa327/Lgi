@@ -11,7 +11,8 @@ endif()
 if (APPLE)
 	add_definitions("-DMAC -DLGI_LIBRARY -D_DEBUG -DLGI_RES")
 elseif (LINUX)
-	add_definitions("-DLINUX -DLGI_LIBRARY -D_DEBUG -DLGI_RES")
+	add_definitions("-DLINUX -DLGI_LIBRARY -D_DEBUG -DLGI_RES -fPIC -w -fno-inline -fpermissive")
+	FIND_PACKAGE(GTK2 COMPONENTS gtk)
 elseif (MSVC)
 	add_definitions("/W2 -DWINDOWS -DWIN32 -DLGI_LIBRARY -D_DEBUG -DLGI_RES -D_WINDLL -D_UNICODE -DUNICODE")
 endif ()
@@ -134,6 +135,28 @@ set (WindowsSource
 	src/win32/Widgets/GSlider.cpp
 	)
 
+
+set (LinuxSource
+	src/linux/Gtk/Gdc2.cpp
+	src/linux/Gtk/GMemDC.cpp
+	src/linux/Gtk/GPrintDC.cpp
+	src/linux/Gtk/GScreenDC.cpp
+	src/linux/General/GFile.cpp
+	src/linux/General/GMem.cpp
+	src/linux/General/ShowFileProp_Linux.cpp
+	src/linux/Lgi/GApp.cpp
+	src/linux/Lgi/GClipBoard.cpp
+	src/linux/Lgi/GDragAndDrop.cpp
+	src/linux/Lgi/GGeneral.cpp
+	src/linux/Lgi/GLayout.cpp
+	src/linux/Lgi/GMenuGtk.cpp
+	src/linux/Lgi/GPrinter.cpp
+	src/linux/Lgi/GThread.cpp
+	src/linux/Lgi/GView.cpp
+	src/linux/Lgi/GWidgets.cpp
+	src/linux/Lgi/GWindow.cpp
+	)
+
 if (APPLE)
 	set(Source ${CommonSource} ${MacSource})
 elseif (LINUX)
@@ -142,28 +165,26 @@ elseif (MSVC)
 	set(Source ${CommonSource} ${WindowsSource})
 endif ()
 
-add_library(Lgi SHARED
-			${Source}
-			)
+add_library(Lgi SHARED ${Source})
 
 if (APPLE)
 	target_include_directories(Lgi PUBLIC "include/mac/carbon")
 elseif (LINUX)
-	target_include_directories(Lgi PUBLIC "include/linux/gtk")
+	target_include_directories(Lgi PUBLIC "include/linux/Gtk" "include/linux" ${GTK2_INCLUDE_DIRS})
+	target_link_libraries(Lgi ${GTK2_LIBRARIES})
 elseif (MSVC)
 	target_include_directories(Lgi PUBLIC "include/win32")
+	target_link_libraries(	Lgi
+							ComCtl32.lib
+							Ws2_32.lib
+							UxTheme.lib
+							imm32.lib)
 endif ()
 
-target_include_directories (
-	Lgi PUBLIC
-	"include/common"
-	"${CMAKE_CURRENT_SOURCE_DIR}/../../../CodeLib/libiconv-1.14/include"
-	)
+target_include_directories (Lgi PUBLIC
+							"include/common"
+							"${CMAKE_CURRENT_SOURCE_DIR}/../../../CodeLib/libiconv-1.14/include")
 
-target_link_libraries(Lgi
-					ComCtl32.lib
-					Ws2_32.lib
-					UxTheme.lib
-					imm32.lib)
+
 
 set_target_properties(Lgi PROPERTIES LINKER_LANGUAGE CXX)
