@@ -15,8 +15,9 @@ if (APPLE)
 	#SET(GUI_TYPE MACOSX_BUNDLE)
 	INCLUDE_DIRECTORIES ( /Developer/Headers/FlatCarbon )
 	FIND_LIBRARY(CARBON_LIBRARY Carbon)
-	MARK_AS_ADVANCED (CARBON_LIBRARY)
-	SET(EXTRA_LIBS ${CARBON_LIBRARY})
+	FIND_LIBRARY(COCOA_LIBRARY Cocoa)
+	MARK_AS_ADVANCED (CARBON_LIBRARY COCOA_LIBRARY)
+	SET(EXTRA_LIBS ${CARBON_LIBRARY} ${COCOA_LIBRARY})
 elseif (LINUX)
 	add_definitions("-DLINUX -DLGI_LIBRARY -D_DEBUG -DLGI_RES -fPIC -w -fno-inline -fpermissive")
 	FIND_PACKAGE(GTK2 COMPONENTS gtk)
@@ -173,6 +174,7 @@ set (MacSource
 	src/common/Widgets/GEdit.cpp
 	src/common/Lgi/GLayout.cpp
 	src/common/Widgets/GProgress.cpp
+	src/mac/cocoa/General/ShowFileProp_Mac.mm
 	src/mac/carbon/Gdc2/Gdc2.cpp
 	src/mac/carbon/Gdc2/GMemDC.cpp
 	src/mac/carbon/Gdc2/GPrintDC.cpp
