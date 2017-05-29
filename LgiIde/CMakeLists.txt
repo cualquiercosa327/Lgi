@@ -20,7 +20,7 @@ elseif (LINUX)
 	add_definitions("-DLINUX -DLGI_LIBRARY -D_DEBUG -DLGI_RES -fPIC -w -fno-inline -fpermissive")
 	FIND_PACKAGE(GTK2 COMPONENTS gtk)
 elseif (MSVC)
-	add_definitions("/W2 -DWINDOWS -DWIN32 -DLGI_LIBRARY -D_DEBUG -DLGI_RES -D_WINDLL -D_UNICODE -DUNICODE")
+	add_definitions("/W2 -DWINDOWS -DWIN32 -D_DEBUG -DLGI_RES -D_UNICODE -DUNICODE")
 endif ()
 
 set (CommonSource
@@ -65,8 +65,7 @@ if (APPLE)
 		Mac/English.lproj/main.nib)
 	set_source_files_properties(${RESOURCE_FILES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 
-	set(Source ${CommonSource})
-	add_executable(LgiIde MACOSX_BUNDLE ${Source} ${RESOURCE_FILES})
+	add_executable(LgiIde MACOSX_BUNDLE ${CommonSource} ${RESOURCE_FILES})
 	# set(MACOSX_BUNDLE_ICON_FILE ".icns")
 	add_custom_command(TARGET LgiIde POST_BUILD 
 					COMMAND "${CMAKE_COMMAND}" -E copy 
@@ -74,11 +73,9 @@ if (APPLE)
 						"LgiIde.app/Contents/MacOS/$<TARGET_FILE_NAME:Lgi>" 
 					COMMENT "Copying to output directory")
 elseif (LINUX)
-	set(Source ${CommonSource})
-	add_executable(LgiIde ${Source})
+	add_executable(LgiIde ${CommonSource})
 elseif (MSVC)
-	set(Source ${CommonSource})
-	add_executable(LgiIde ${Source})
+	add_executable(LgiIde WIN32 ${CommonSource})
 endif ()
 
 if (APPLE)
@@ -95,15 +92,16 @@ elseif (LINUX)
 elseif (MSVC)
 	target_include_directories(LgiIde PUBLIC "../include/win32")
 	target_link_libraries(	LgiIde
-						Lgi
-						ComCtl32.lib
-						Ws2_32.lib
-						UxTheme.lib
-						imm32.lib)
+							Lgi
+							ComCtl32.lib
+							Ws2_32.lib
+							UxTheme.lib
+							imm32.lib)
 endif ()
 
 target_include_directories (LgiIde PUBLIC
 							"../include/common"
 							"${CMAKE_CURRENT_SOURCE_DIR}/../../../../CodeLib/libpng"
+							"${CMAKE_CURRENT_SOURCE_DIR}/../../../../CodeLib/libpng-1.6.26"
 							"${CMAKE_CURRENT_SOURCE_DIR}/../../../../CodeLib/libiconv-1.14/include")
 
