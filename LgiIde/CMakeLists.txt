@@ -53,19 +53,22 @@ set (CommonSource
 	../src/common/Coding/GLexCpp.cpp
 	)
 
+set(CommonResourceFiles
+	Code/cmds-32px.png
+	Code/icons.png
+	Code/cmds-16px.png
+	Code/LgiIde.lr8
+	)
+
 
 if (APPLE)
-	set(RESOURCE_FILES
-		Code/cmds-32px.png
-		Code/icons.png
-		Code/cmds-16px.png
-		Code/LgiIde.lr8
+	set(MacResourceFiles
 		Mac/Info.plist
 		Mac/English.lproj/InfoPlist.strings
 		Mac/English.lproj/main.nib)
-	set_source_files_properties(${RESOURCE_FILES} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+	set_source_files_properties(${MacResourceFiles} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 
-	add_executable(LgiIde MACOSX_BUNDLE ${CommonSource} ${RESOURCE_FILES})
+	add_executable(LgiIde MACOSX_BUNDLE ${CommonSource} ${CommonResourceFiles} ${MacResourceFiles})
 	# set(MACOSX_BUNDLE_ICON_FILE ".icns")
 	add_custom_command(TARGET LgiIde POST_BUILD 
 					COMMAND "${CMAKE_COMMAND}" -E copy 
@@ -75,7 +78,7 @@ if (APPLE)
 elseif (LINUX)
 	add_executable(LgiIde ${CommonSource})
 elseif (MSVC)
-	add_executable(LgiIde WIN32 ${CommonSource})
+	add_executable(LgiIde WIN32 ${CommonSource} ${CommonResourceFiles})
 endif ()
 
 if (APPLE)
@@ -97,6 +100,14 @@ elseif (MSVC)
 							Ws2_32.lib
 							UxTheme.lib
 							imm32.lib)
+	foreach(infileName ${CommonResourceFiles})
+		add_custom_command(TARGET LgiIde POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/${infileName} $<TARGET_FILE_DIR:LgiIde>)
+	endforeach()
+	add_custom_command(TARGET LgiIde POST_BUILD 
+					COMMAND "${CMAKE_COMMAND}" -E copy 
+						"$<TARGET_FILE:Lgi>"
+						"$<TARGET_FILE_DIR:LgiIde>/$<TARGET_FILE_NAME:Lgi>" 
+					COMMENT "Copying Lgi to output directory")
 endif ()
 
 target_include_directories (LgiIde PUBLIC
