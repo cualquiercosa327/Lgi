@@ -641,7 +641,7 @@ bool GRichTextEdit::Copy()
 bool GRichTextEdit::Paste()
 {
 	GClipBoard Cb(this);
-	GAutoWString Text(Cb.TextW());
+	GAutoWString Text(NewStrW(Cb.TextW()));
 	GAutoPtr<GSurface> Img;
 	if (!Text)
 		Img.Reset(Cb.Bitmap());
