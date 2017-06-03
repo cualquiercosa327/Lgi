@@ -25,9 +25,9 @@
 #include <setjmp.h>
 #include "GLibraryUtils.h"
 
+#if LIBJPEG_SHARED
 #define JPEGLIB d->
-
-const char sLibrary[] = 
+const char sLibrary[] =
 	"libjpeg"
 	#if defined(WINDOWS)
 		#if _MSC_VER >= _MSC_VER_VS2015
@@ -48,8 +48,12 @@ const char sLibrary[] =
 		#endif
 	#endif
 	;
+#else
+#define JPEGLIB
+#endif
 
 // JPEG
+#if LIBJPEG_SHARED
 class LibJpeg : public GLibrary
 {
 public:
@@ -84,6 +88,7 @@ public:
 };
 
 GAutoPtr<LibJpeg> JpegLibrary;
+#endif
 
 #include <stdio.h>
 #include <string.h>
@@ -126,8 +131,10 @@ class GdcJpegFactory : public GFilterFactory
 
 	GFilter *NewObject()
 	{
+		#if LIBJPEG_SHARED
 		if (!JpegLibrary)
 			JpegLibrary.Reset(new LibJpeg);
+		#endif
 		return new GdcJpeg;
 	}
 
@@ -321,7 +328,9 @@ void j_term_source(j_decompress_ptr cinfo)
 
 GdcJpeg::GdcJpeg()
 {
+	#if LIBJPEG_SHARED
 	d = JpegLibrary;
+	#endif
 }
 
 typedef GRgb24 JpegRgb;
@@ -504,6 +513,7 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 	GFilter::IoStatus Status = IoError;
 	GVariant v;
 	
+	#if LIBJPEG_SHARED
 	if (!d->IsLoaded() && !d->Load(sLibrary))
 	{
 		if (Props)
@@ -518,6 +528,7 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 		
 		return GFilter::IoComponentMissing;
 	}
+	#endif
 
 	if (!pDC || !In)
 	{
@@ -839,6 +850,7 @@ void j_term_destination(j_compress_ptr cinfo)
 GFilter::IoStatus GdcJpeg::WriteImage(GStream *Out, GSurface *pDC)
 {
 	GVariant v;
+	#if LIBJPEG_SHARED
 	if (!d->IsLoaded() && !d->Load(sLibrary))
 	{
 		if (Props)
@@ -853,6 +865,7 @@ GFilter::IoStatus GdcJpeg::WriteImage(GStream *Out, GSurface *pDC)
 		
 		return GFilter::IoComponentMissing;
 	}
+	#endif
 
 	// bool Ok = true;
 
