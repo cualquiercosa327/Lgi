@@ -518,6 +518,8 @@ static bool SetCarbonCursor(LgiCursor CursorId)
 	return true;
 }
 
+static uint64 LastUpClick = 0;
+
 bool GView::_Mouse(GMouse &m, bool Move)
 {
 	#if 0
@@ -539,6 +541,23 @@ bool GView::_Mouse(GMouse &m, bool Move)
 	#endif
 
 	GWindow *Wnd = GetWindow();
+
+	if (!Move && !m.Down())
+	{
+		uint64 Now = LgiCurrentTime();
+		int64 Diff = Now - LastUpClick;
+		LgiTrace("Diff=" LGI_PrintfInt64 "\n", Diff);
+		if (Diff < 50)
+		{
+			// This special case is for M_MOUSE_TRACK_UP handling. Sometimes there
+			// is a duplicate "up" click that we need to get rid of. Part of the
+			// GPopup implementation. There is probably a better way but at the moment
+			// this will have to do.
+			return false;
+		}
+		
+		LastUpClick = Now;
+	}
 
 	if (_Over != this)
 	{
