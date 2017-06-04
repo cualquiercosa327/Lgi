@@ -553,6 +553,7 @@ bool GView::_Mouse(GMouse &m, bool Move)
 			// is a duplicate "up" click that we need to get rid of. Part of the
 			// GPopup implementation. There is probably a better way but at the moment
 			// this will have to do.
+			Capture(false);
 			return false;
 		}
 		
