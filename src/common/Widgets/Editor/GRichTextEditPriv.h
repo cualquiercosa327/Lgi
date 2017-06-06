@@ -394,7 +394,7 @@ public:
 
 	// Toolbar
 	bool ShowTools;
-	GRichTextEdit::RectType ClickedBtn;
+	GRichTextEdit::RectType ClickedBtn, OverBtn;
 	ButtonState BtnState[GRichTextEdit::MaxArea];
 	GRect Areas[GRichTextEdit::MaxArea];
 	GVariant Values[GRichTextEdit::MaxArea];
@@ -1135,6 +1135,7 @@ public:
 	bool Merge(Transaction *Trans, Block *a, Block *b);
 	GSurface *GetEmojiImage();
 	bool DeleteSelection(Transaction *t, char16 **Cut);
+	GRichTextEdit::RectType PosToButton(GMouse &m);
 
 	struct CreateContext
 	{

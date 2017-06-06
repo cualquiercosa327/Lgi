@@ -1330,22 +1330,7 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 void GRichTextEdit::OnMouseClick(GMouse &m)
 {
 	bool Processed = false;
-
-	RectType Clicked = MaxArea;
-	if (d->Areas[ToolsArea].Overlap(m.x, m.y) ||
-		d->Areas[CapabilityArea].Overlap(m.x, m.y))
-	{
-		for (unsigned i=CapabilityBtn; i<MaxArea; i++)
-		{
-			if (d->Areas[i].Valid() &&
-				d->Areas[i].Overlap(m.x, m.y))
-			{
-				Clicked = (RectType)i;
-				break;
-			}
-		}
-	}
-
+	RectType Clicked = 	d->PosToButton(m);
 	if (m.Down())
 	{
 		Focus(true);
@@ -1385,6 +1370,7 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 				int Idx = -1;
 				if (d->CursorFromPos(Doc.x, Doc.y, &c, &Idx))
 				{
+					d->ClickedBtn = ContentArea;
 					d->SetCursor(c, m.Shift());
 					if (d->WordSelectMode)
 						SelectWord(Idx);
@@ -1396,7 +1382,6 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 	{
 		if (d->ClickedBtn != MaxArea)
 		{
-			d->BtnState[d->ClickedBtn].MouseOver = false;
 			d->BtnState[d->ClickedBtn].Pressed = false;
 			Invalidate(d->Areas + d->ClickedBtn);
 			Processed |= d->ClickBtn(m, Clicked);
@@ -1425,47 +1410,66 @@ int GRichTextEdit::OnHitTest(int x, int y)
 
 void GRichTextEdit::OnMouseMove(GMouse &m)
 {
+	GRichTextEdit::RectType OverBtn = d->PosToButton(m);
+	if (d->OverBtn != OverBtn)
+	{
+		if (d->OverBtn < MaxArea)
+		{
+			d->BtnState[d->OverBtn].MouseOver = false;
+			Invalidate(&d->Areas[d->OverBtn]);
+		}
+		d->OverBtn = OverBtn;
+		if (d->OverBtn < MaxArea)
+		{
+			d->BtnState[d->OverBtn].MouseOver = true;
+			Invalidate(&d->Areas[d->OverBtn]);
+		}
+	}
+	
 	if (IsCapturing())
 	{
-		AutoCursor c;
-		GdcPt2 Doc = d->ScreenToDoc(m.x, m.y);
-		int Idx = -1;
-		if (d->CursorFromPos(Doc.x, Doc.y, &c, &Idx) && c)
+		if (d->ClickedBtn == ContentArea)
 		{
-			if (d->WordSelectMode && d->Selection)
+			AutoCursor c;
+			GdcPt2 Doc = d->ScreenToDoc(m.x, m.y);
+			int Idx = -1;
+			if (d->CursorFromPos(Doc.x, Doc.y, &c, &Idx) && c)
 			{
-				// Extend the selection to include the whole word
-				if (!d->CursorFirst())
+				if (d->WordSelectMode && d->Selection)
 				{
-					// Extend towards the end of the doc...
-					GArray<uint32> Txt;
-					if (c->Blk->CopyAt(0, c->Blk->Length(), &Txt))
+					// Extend the selection to include the whole word
+					if (!d->CursorFirst())
 					{
-						while
-						(
-							c->Offset < (int)Txt.Length() &&
-							!IsWordBreakChar(Txt[c->Offset])
-						)
-							c->Offset++;
+						// Extend towards the end of the doc...
+						GArray<uint32> Txt;
+						if (c->Blk->CopyAt(0, c->Blk->Length(), &Txt))
+						{
+							while
+							(
+								c->Offset < (int)Txt.Length() &&
+								!IsWordBreakChar(Txt[c->Offset])
+							)
+								c->Offset++;
+						}
+					}
+					else
+					{
+						// Extend towards the start of the doc...
+						GArray<uint32> Txt;
+						if (c->Blk->CopyAt(0, c->Blk->Length(), &Txt))
+						{
+							while
+							(
+								c->Offset > 0 &&
+								!IsWordBreakChar(Txt[c->Offset-1])
+							)
+								c->Offset--;
+						}
 					}
 				}
-				else
-				{
-					// Extend towards the start of the doc...
-					GArray<uint32> Txt;
-					if (c->Blk->CopyAt(0, c->Blk->Length(), &Txt))
-					{
-						while
-						(
-							c->Offset > 0 &&
-							!IsWordBreakChar(Txt[c->Offset-1])
-						)
-							c->Offset--;
-					}
-				}
-			}
 
-			d->SetCursor(c, m.Left());
+				d->SetCursor(c, m.Left());
+			}
 		}
 	}
 

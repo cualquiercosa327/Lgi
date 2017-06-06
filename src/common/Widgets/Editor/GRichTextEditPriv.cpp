@@ -319,6 +319,7 @@ GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv *&Ptr) :
 	}
 
 	ClickedBtn = GRichTextEdit::MaxArea;
+	OverBtn = GRichTextEdit::MaxArea;
 	ZeroObj(BtnState);
 
 	Values[GRichTextEdit::FontFamilyBtn] = "FontName";
@@ -1360,9 +1361,10 @@ void GRichTextPriv::PaintBtn(GSurface *pDC, GRichTextEdit::RectType t)
 {
 	GRect r = Areas[t];
 	GVariant &v = Values[t];
-	bool Down = v.Type == GV_BOOL && v.Value.Bool;
+	bool Down = (v.Type == GV_BOOL && v.Value.Bool) ||
+				(BtnState[t].IsPress && BtnState[t].Pressed && BtnState[t].MouseOver);
 
-	SysFont->Colour(LC_TEXT, LC_MED);
+	SysFont->Colour(LC_TEXT, BtnState[t].MouseOver ? LC_LIGHT : LC_MED);
 	SysFont->Transparent(false);
 
 	GColour Low(96, 96, 96);
@@ -1373,14 +1375,16 @@ void GRichTextPriv::PaintBtn(GSurface *pDC, GRichTextEdit::RectType t)
 	pDC->Line(r.x1, r.y1, r.x2, r.y1);
 	pDC->Line(r.x1, r.y1, r.x1, r.y2);
 	r.Size(1, 1);
-	// LgiThinBorder(pDC, r, Down ? EdgeXpSunken : EdgeXpRaised);
 	
 	switch (v.Type)
 	{
 		case GV_STRING:
 		{
 			GDisplayString Ds(SysFont, v.Str());
-			Ds.Draw(pDC, r.x1 + ((r.X()-Ds.X())>>1), r.y1 + ((r.Y()-Ds.Y())>>1), &r);
+			Ds.Draw(pDC,
+					r.x1 + ((r.X()-Ds.X())>>1) + Down,
+					r.y1 + ((r.Y()-Ds.Y())>>1) + Down,
+					&r);
 			break;
 		}
 		case GV_INT64:
@@ -1421,7 +1425,10 @@ void GRichTextPriv::PaintBtn(GSurface *pDC, GRichTextEdit::RectType t)
 			}
 			if (!Label) break;
 			GDisplayString Ds(SysFont, Label);
-			Ds.Draw(pDC, r.x1 + ((r.X()-Ds.X())>>1) + Down, r.y1 + ((r.Y()-Ds.Y())>>1) + Down, &r);
+			Ds.Draw(pDC,
+					r.x1 + ((r.X()-Ds.X())>>1) + Down,
+					r.y1 + ((r.Y()-Ds.Y())>>1) + Down,
+					&r);
 			break;
 		}
 		default:
@@ -2118,6 +2125,25 @@ bool GRichTextPriv::GetSelection(GArray<char16> &Text)
 	Text.Add(w, Strlen(w));
 	Text.Add(0);
 	return true;
+}
+
+GRichTextEdit::RectType GRichTextPriv::PosToButton(GMouse &m)
+{
+	if (Areas[GRichTextEdit::ToolsArea].Overlap(m.x, m.y) ||
+		Areas[GRichTextEdit::CapabilityArea].Overlap(m.x, m.y))
+	{
+		for (unsigned i=GRichTextEdit::CapabilityBtn; i<GRichTextEdit::MaxArea; i++)
+		{
+			if (Areas[i].Valid() &&
+				Areas[i].Overlap(m.x, m.y))
+			{
+				return (GRichTextEdit::RectType)i;
+				break;
+			}
+		}
+	}
+
+	return GRichTextEdit::MaxArea;
 }
 
 #ifdef _DEBUG
