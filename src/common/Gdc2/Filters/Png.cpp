@@ -428,8 +428,7 @@ void PNGAPI LibPngError(png_structp Png, png_const_charp Msg)
 
 void PNGAPI LibPngWarning(png_structp Png, png_const_charp Msg)
 {
-	// GdcPng *This = (GdcPng*)Png->error_ptr;
-	// LgiMsg(This->Parent, (char*)Msg, "LibPng Warning", MB_OK);
+	LgiTrace("LibPng Warning: %s\n", Msg);
 }
 
 void PNGAPI LibPngRead(png_structp Png, png_bytep Ptr, png_size_t Size)

@@ -404,7 +404,7 @@ bool LgiRecursiveFileSearch(const char *Root,
 	// enumerate the directory contents
 	for (bool Found = Dir.First(Root); Found; Found = Dir.Next())
 	{
-		char Name[256];
+		char Name[300];
 		if (!Dir.Path(Name, sizeof(Name)))
 			continue;
 
