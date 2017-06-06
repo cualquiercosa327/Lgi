@@ -180,19 +180,19 @@ public:
 	DynFunc6(	png_uint_32,
 				png_get_iCCP,
 				png_structp, png_ptr,
-				png_infop, info_ptr,
+				png_const_infop, info_ptr,
 				png_charpp, name,
 				int*, compression_type,
-				png_charpp, profile,
+				png_bytepp, profile,
 				png_uint_32*, proflen);
-
+				
 	DynFunc6(	int,
 				png_set_iCCP,
 				png_structp, png_ptr,
 				png_infop, info_ptr,
 				png_charp, name,
 				int, compression_type,
-				png_charp, profile,
+				png_const_bytep, profile,
 				png_uint_32, proflen);
 
     DynFunc5(   png_uint_32,
@@ -1033,7 +1033,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 		png_bytep ColProf = 0;
 		png_uint_32 ColProfLen = 0;
 		
-		if (png_get_iCCP(png_ptr, info_ptr, &ProfName, &CompressionType, &ColProf, &ColProfLen) && Props)
+		if (LIBPNG png_get_iCCP(png_ptr, info_ptr, &ProfName, &CompressionType, &ColProf, &ColProfLen) && Props)
 		{
 			v.SetBinary(ColProfLen, ColProf);
 			Props->SetValue(LGI_FILTER_COLOUR_PROF, v);
@@ -1258,7 +1258,7 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 				{
 					LIBPNG png_set_iCCP(png_ptr,
 								info_ptr,
-								(char*)"ColourProfile",
+								"ColourProfile",
 								NULL,
 								(png_const_bytep)ColProfile.Value.Binary.Data,
 								ColProfile.Value.Binary.Length);

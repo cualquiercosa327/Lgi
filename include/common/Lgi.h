@@ -211,11 +211,15 @@
 
 /// \brief Define as '1' if libjpeg is available else as '0'
 #define HAS_LIBJPEG							1
-#define LIBJPEG_SHARED						0
+#ifndef LIBJPEG_SHARED
+#define LIBJPEG_SHARED						1
+#endif
 
 /// \brief Define as '1' if libpng and zlib are available else as '0'
 #define HAS_LIBPNG_ZLIB						1
-#define LIBPNG_SHARED						0
+#ifndef LIBPNG_SHARED
+#define LIBPNG_SHARED						1
+#endif
 
 /// \brief Define as '1' if libsharedmime is available else as '0'
 #define HAS_SHARED_MIME						0
