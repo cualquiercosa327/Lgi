@@ -255,7 +255,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 					}
 					
 					int Hnd = Req->SinkHnd;
-					PostThreadEvent(Hnd, M_FIND_SYM_REQUEST, (GMessage::Param) Req.Release());
+					PostObject(Hnd, M_FIND_SYM_REQUEST, Req);
 				}
 				break;
 			}
