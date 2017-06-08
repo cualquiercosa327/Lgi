@@ -216,7 +216,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 							if (Debug)
 								printf("%s:%i - Searching '%s' with %i syms...\n", _FL, fs->Path.Get(), fs->Defs.Length());
 							#endif
-							
+
 							// For each symbol...
 							for (unsigned i=0; i<fs->Defs.Length(); i++)
 							{
@@ -254,8 +254,8 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 						}
 					}
 					
-
-					PostThreadEvent(Req->SinkHnd, M_FIND_SYM_REQUEST, (GMessage::Param) Req.Release());
+					int Hnd = Req->SinkHnd;
+					PostThreadEvent(Hnd, M_FIND_SYM_REQUEST, (GMessage::Param) Req.Release());
 				}
 				break;
 			}
