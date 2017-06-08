@@ -883,6 +883,13 @@ IdeDoc *ProjectNode::Open()
 
 void ProjectNode::Delete()
 {
+	if (Select())
+	{
+		GTreeItem *s = GetNext();
+		if (s || (s = GetParent()))
+			s->Select(true);
+	}
+			
 	if (nView)
 		nView->OnDelete();
 
@@ -893,21 +900,15 @@ void ProjectNode::Delete()
 
 bool ProjectNode::OnKey(GKey &k)
 {
-	if (k.Down() && k.IsChar)
+	if (k.Down())
 	{
-		if (k.vkey == VK_RETURN)
+		if (k.vkey == VK_RETURN && k.IsChar)
 		{
 			Open();
 			return true;
 		}
 		else if (k.vkey == VK_DELETE)
 		{
-			GTreeItem *s = GetNext();
-			if (s || (s = GetParent()))
-			{
-				s->Select(true);
-			}
-			
 			Delete();
 			return true;
 		}

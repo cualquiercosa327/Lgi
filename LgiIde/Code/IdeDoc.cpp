@@ -750,7 +750,7 @@ public:
 			GString s = Ctrl->Name();
 			s = s.Strip();
 			if (s.Length() > 2)
-				App->FindSymbol(Doc, s);
+				App->FindSymbol(Doc->AddDispatch(), s);
 		}
 		
 		return GPopupList<FindSymResult>::OnNotify(Ctrl, Flags);

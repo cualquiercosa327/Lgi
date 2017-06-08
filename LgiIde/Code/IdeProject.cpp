@@ -2665,7 +2665,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-IdeTree::IdeTree() : GTree(100, 0, 0, 100, 100)
+IdeTree::IdeTree() : GTree(IDC_PROJECT_TREE, 0, 0, 100, 100)
 {
 	Hit = 0;
 	MultiSelect(true);
