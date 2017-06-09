@@ -49,6 +49,11 @@ typedef GRgba32 Png32;
 typedef GRgb48  Png48;
 typedef GRgba64 Png64;
 
+#if PNG_LIBPNG_VER_MAJOR <= 1 && PNG_LIBPNG_VER_MINOR <= 2
+#define png_const_infop png_infop
+#define png_const_bytep png_bytep
+#endif
+
 #if LIBPNG_SHARED
 #define LIBPNG Lib->
 const char sLibrary[] =
