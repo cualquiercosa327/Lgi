@@ -49,6 +49,9 @@
 #define TEXT_CAP_BTN					"Ok"
 #define TEXT_EMOJI						":)"
 
+#define RTE_CURSOR_BLINK_RATE			1000
+#define RTE_PULSE_RATE					200
+
 #define RICH_TEXT_RESIZED_JPEG_QUALITY	83 // out of 100, high = better quality
 
 #define NoTransaction					NULL
@@ -387,6 +390,7 @@ public:
 	GSpellCheck *SpellCheck;
 	bool SpellDictionaryLoaded;
 	bool HtmlLinkAsCid;
+	uint64 BlinkTs;
 
 	// This is set when the user changes a style without a selection,
 	// indicating that we should start a new run when new text is entered

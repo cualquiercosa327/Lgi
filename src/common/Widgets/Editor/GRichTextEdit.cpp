@@ -1129,7 +1129,7 @@ void GRichTextEdit::OnCreate()
 	DropTarget(true);
 
 	if (Focus())
-		SetPulse(1500);
+		SetPulse(RTE_PULSE_RATE);
 }
 
 void GRichTextEdit::OnEscape(GKey &K)
@@ -1150,7 +1150,7 @@ bool GRichTextEdit::OnMouseWheel(double l)
 void GRichTextEdit::OnFocus(bool f)
 {
 	Invalidate();
-	SetPulse(f ? 500 : -1);
+	SetPulse(f ? RTE_PULSE_RATE : -1);
 }
 
 int GRichTextEdit::HitTest(int x, int y)
@@ -2428,8 +2428,38 @@ void GRichTextEdit::OnPulse()
 {
 	if (!ReadOnly && d->Cursor)
 	{
-		d->Cursor->Blink = !d->Cursor->Blink;
-		d->InvalidateDoc(&d->Cursor->Pos);
+		uint64 n = LgiCurrentTime();
+		if (d->BlinkTs - n >= RTE_CURSOR_BLINK_RATE)
+		{
+			d->BlinkTs = n;
+			d->Cursor->Blink = !d->Cursor->Blink;
+			d->InvalidateDoc(&d->Cursor->Pos);
+		}
+		
+		// Do autoscroll while the user has clicked and dragged off the control:
+		if (VScroll && IsCapturing())
+		{
+			GMouse m;
+			GetMouse(m);
+			
+			// Is the mouse outside the content window
+			GRect &r = d->Areas[ContentArea];
+			if (!r.Overlap(m.x, m.y))
+			{
+				AutoCursor c(new BlkCursor(NULL, 0, 0));
+				GdcPt2 Doc = d->ScreenToDoc(m.x, m.y);
+				int Idx = -1;
+				if (d->CursorFromPos(Doc.x, Doc.y, &c, &Idx))
+				{
+					d->SetCursor(c, true);
+					if (d->WordSelectMode)
+						SelectWord(Idx);
+				}
+				
+				// Update the screen.
+				d->InvalidateDoc(NULL);
+			}
+		}
 	}
 }
 

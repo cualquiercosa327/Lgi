@@ -296,6 +296,7 @@ GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv *&Ptr) :
 	GFontCache(SysFont)
 {
 	Ptr = this;
+	BlinkTs = 0;
 	View = view;
 	Log = &LogBuffer;
 	NextUid = 1;
