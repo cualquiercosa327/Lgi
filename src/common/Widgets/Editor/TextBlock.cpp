@@ -841,12 +841,15 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 					CurEndPoint++;
 
 					// Part 3
-					GAutoPtr<DisplayStr> ds3 = Ds->Clone(Ch2);
-					Bk = Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back();
-					if (DsFnt)
-						DsFnt->Colour(Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(), Bk);
-					if (ds3)
-						DrawDisplayString(Ctx.pDC, ds3, FixX, FixY, Bk, TmpPos);
+					if (Ch2 < Ds->Length())
+					{
+						GAutoPtr<DisplayStr> ds3 = Ds->Clone(Ch2);
+						Bk = Ctx.Type == Unselected && Cols.Back.IsValid() ? Cols.Back : Ctx.Back();
+						if (DsFnt)
+							DsFnt->Colour(Ctx.Type == Unselected && Cols.Fore.IsValid() ? Cols.Fore : Ctx.Fore(), Bk);
+						if (ds3)
+							DrawDisplayString(Ctx.pDC, ds3, FixX, FixY, Bk, TmpPos);
+					}
 				}
 				else if (Ch < Ds->Chars)
 				{

@@ -899,15 +899,9 @@ public:
 			return c;
 		}
 
-		virtual void Paint(GSurface *pDC, int &FixX, int FixY, GColour &Back, GRange *SpellErr = NULL)
+		virtual void Paint(GSurface *pDC, int &FixX, int FixY, GColour &Back)
 		{
 			FDraw(pDC, FixX, FixY);
-
-			if (SpellErr)
-			{
-				
-			}
-
 			FixX += FX();
 		}
 
