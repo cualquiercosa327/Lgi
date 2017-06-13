@@ -997,7 +997,7 @@ public:
 	
 	void OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour)
 	{
-		GTextView3::OnPaintLeftMargin(pDC, r, colour);
+		GTextView3::OnPaintLeftMargin(pDC, r, GColour(0xfa, 0xfa, 0xfa));
 		int Y = ScrollYLine();
 		
 		int TopPaddingPx = GetTopPaddingPx();
