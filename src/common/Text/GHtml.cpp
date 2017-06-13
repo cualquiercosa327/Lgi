@@ -2891,10 +2891,12 @@ void GTag::SetStyle()
 					BorderLeft(BorderDef(this, "1px solid blue"));
 					PaddingLeft(Len("0.5em"));
 					
+					/*
 					ColorDef Def;
 					Def.Type = ColorRgb;
 					Def.Rgb32 = Rgb32(0x80, 0x80, 0x80);
 					Color(Def);
+					*/
 				}
 			}
 			break;
