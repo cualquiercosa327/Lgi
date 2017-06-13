@@ -110,32 +110,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Files\MailPreviewHdr.html">
-      <Filter>Test cases</Filter>
-    </None>
-    <None Include="Files\MortgageChoice.html">
-      <Filter>Test cases</Filter>
-    </None>
-    <None Include="Files\Piotr.html">
-      <Filter>Test cases</Filter>
-    </None>
-    <None Include="Files\PlanningCenter2.html">
-      <Filter>Test cases</Filter>
-    </None>
-    <None Include="Files\spam4.html">
-      <Filter>Test cases</Filter>
-    </None>
-    <None Include="Files\WorthilyMagnify.html">
-      <Filter>Test cases</Filter>
-    </None>
-    <None Include="Files\about.html">
-      <Filter>Test cases</Filter>
-    </None>
-    <None Include="Files\covie.html">
-      <Filter>Test cases</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <MASM Include="..\src\common\Coding\ExternCall.asm">
       <Filter>Source Files</Filter>
     </MASM>
@@ -144,5 +118,13 @@
     <Manifest Include="..\src\win32\General\Lgi.manifest">
       <Filter>Source Files</Filter>
     </Manifest>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Files\menu.html">
+      <Filter>Test cases</Filter>
+    </None>
+    <None Include="Files\index.html">
+      <Filter>Test cases</Filter>
+    </None>
   </ItemGroup>
 </Project>

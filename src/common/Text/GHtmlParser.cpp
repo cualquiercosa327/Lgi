@@ -938,7 +938,11 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 											if (Child)
 											{
 												bool BackOut = false;
+												GArray<GHtmlElement*> ot = OpenTags;
+
 												ParseHtml(Child, a, Depth + 1, false, &BackOut);
+
+												OpenTags = ot;
 											}
 										}
 									}
