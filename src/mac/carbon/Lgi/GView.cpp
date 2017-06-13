@@ -546,7 +546,7 @@ bool GView::_Mouse(GMouse &m, bool Move)
 	{
 		uint64 Now = LgiCurrentTime();
 		int64 Diff = Now - LastUpClick;
-		LgiTrace("Diff=" LGI_PrintfInt64 "\n", Diff);
+		// LgiTrace("Diff=" LGI_PrintfInt64 "\n", Diff);
 		if (Diff < 50)
 		{
 			// This special case is for M_MOUSE_TRACK_UP handling. Sometimes there
