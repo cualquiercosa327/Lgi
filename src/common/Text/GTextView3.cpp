@@ -304,6 +304,7 @@ GTextView3::GTextView3(	int Id,
 	// init vars
 	GView::d->Css.Reset(d = new GTextView3Private(this));
 	
+	PourEnabled = true;
 	LineY = 1;
 	MaxX = 0;
 	TextCache = 0;
@@ -1414,8 +1415,11 @@ bool GTextView3::Insert(int At, char16 *Data, int Len)
 
 			Text[Size] = 0;
 			Dirty = true;
-			PourText(At, Len);
-			PourStyle(At, Len);
+			if (PourEnabled)
+			{
+				PourText(At, Len);
+				PourStyle(At, Len);
+			}
 			SendNotify(GNotifyDocChanged);
 
 			return true;
@@ -1441,6 +1445,7 @@ bool GTextView3::Delete(int At, int Len)
 		if (Len > 0)
 		{
 			bool HasNewLine = false;
+
 			for (int i=0; i<Len; i++)
 			{
 				if (Text[At + i] == '\n')
@@ -1481,8 +1486,11 @@ bool GTextView3::Delete(int At, int Len)
 
 			Dirty = true;
 			Status = true;
-			PourText(At, -Len);
-			PourStyle(At, -Len);
+			if (PourEnabled)
+			{
+				PourText(At, -Len);
+				PourStyle(At, -Len);
+			}
 			
 			if (Cursor >= At && Cursor <= At + Len)
 			{
@@ -2825,6 +2833,8 @@ bool GTextView3::OnMultiLineTab(bool In)
 		Max = SeekLine(Max, EndLine);
 	}
 
+	PourEnabled = false;
+
 	int *Indexes = new int[Ls];
 	if (Indexes)
 	{
@@ -2890,6 +2900,10 @@ bool GTextView3::OnMultiLineTab(bool In)
 		DeleteArray(Indexes);
 	}
 
+	PourEnabled = true;
+	PourText(Min, Max - Min);
+	PourStyle(Min, Max - Min);
+	
 	d->SetDirty(Min, Max-Min);
 	Invalidate();
 	Status = true;
