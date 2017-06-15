@@ -7,6 +7,8 @@
 #include "GPanel.h"
 
 using namespace Gtk;
+#include <gdk/gdkx.h>
+#undef Status
 #include "LgiWidget.h"
 
 #define DEBUG_SETFOCUS			0
@@ -29,6 +31,7 @@ public:
 	::GArray<HookInfo> Hooks;
 	bool SnapToEdge;
 	::GString Icon;
+	GRect Decor;
 	
 	// State
 	GdkWindowState State;
@@ -41,6 +44,7 @@ public:
 
 	GWindowPrivate()
 	{
+		Decor.ZOff(-1, -1);
 		FirstFocus = NULL;
 		Focus = NULL;
 		Active = false;
@@ -173,7 +177,18 @@ void GWindow::Visible(bool i)
 	ThreadCheck();
 
 	if (i)
+	{
 		gtk_widget_show(GTK_WIDGET(Wnd));
+
+		/*
+		static bool First = true;
+		if (First)
+		{
+			First = false;
+			RequestFrameExtents(GTK_WIDGET(Wnd));
+		}
+		*/
+	}
 	else
 		gtk_widget_hide(GTK_WIDGET(Wnd));
 }
@@ -221,6 +236,11 @@ void GWindow::OnGtkDelete()
 	// These will be destroyed by GTK after returning from GWindowCallback
 	Wnd = NULL;
 	_View = NULL;
+}
+
+GRect *GWindow::GetDecorSize()
+{
+	return d->Decor.x2 >= 0 ? &d->Decor : NULL;
 }
 
 gboolean GWindow::OnGtkEvent(GtkWidget *widget, GdkEvent *event)
@@ -271,6 +291,34 @@ gboolean GWindow::OnGtkEvent(GtkWidget *widget, GdkEvent *event)
 		case GDK_WINDOW_STATE:
 		{
 			d->State = event->window_state.new_window_state;
+			break;
+		}
+		case GDK_PROPERTY_NOTIFY:
+		{
+  			gchar *Name = gdk_atom_name (event->property.atom);
+  			if (!Name)
+  				break;
+  			if (!_stricmp(Name, "_NET_FRAME_EXTENTS"))
+  			{
+	  			// printf("PropChange: %i - %s\n", event->property.atom, Name);
+	  			unsigned long *extents = NULL;
+				if (gdk_property_get(event->property.window,
+									gdk_atom_intern ("_NET_FRAME_EXTENTS", FALSE),
+									gdk_atom_intern ("CARDINAL", FALSE),
+									0,
+									sizeof (unsigned long) * 4,
+									FALSE,
+									NULL,
+									NULL,
+									NULL,
+									(guchar **)&extents))
+				{
+					d->Decor.Set(extents[0], extents[2], extents[1], extents[3]);
+					printf("Got decor: %s for %s\n", d->Decor.GetStr(), GetClass());
+				}
+				else
+					printf("%s:%i - gdk_property_get failed.\n", _FL);
+	  		}  			
 			break;
 		}
 		case GDK_CLIENT_EVENT:
@@ -350,9 +398,13 @@ bool GWindow::Attach(GViewI *p)
 							G_CALLBACK(GtkViewCallback),
 							i);
 		g_signal_connect(	G_OBJECT(Wnd),
+							"property-notify-event",
+							G_CALLBACK(GtkViewCallback),
+							i);
+		g_signal_connect(	G_OBJECT(Wnd),
 							"realize",
 							G_CALLBACK(GtkWindowRealize),
-							i);
+							i);							
 
 		gtk_window_set_default_size(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
 		gtk_widget_add_events(GTK_WIDGET(Wnd), GDK_ALL_EVENTS_MASK);

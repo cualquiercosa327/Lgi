@@ -1434,6 +1434,7 @@ public:
 	
 		void OnMap(bool m);
 		void Quit(bool DontDelete = false);
+		GRect *GetDecorSize();
 	
 	#endif
 };
