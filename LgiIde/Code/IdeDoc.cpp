@@ -997,7 +997,8 @@ public:
 	
 	void OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour)
 	{
-		GTextView3::OnPaintLeftMargin(pDC, r, GColour(0xfa, 0xfa, 0xfa));
+		GColour GutterColour(0xfa, 0xfa, 0xfa);
+		GTextView3::OnPaintLeftMargin(pDC, r, GutterColour);
 		int Y = ScrollYLine();
 		
 		int TopPaddingPx = GetTopPaddingPx();
