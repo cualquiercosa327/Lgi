@@ -2512,6 +2512,11 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 							
 							m.Print("%s.o : %s ", Part, ToUnixPath(Rel));
 
+							if (Src.Find("AddressSelect.cpp") >= 0)
+							{
+								int asd=0;
+							}
+
 							GArray<char*> SrcDeps;
 							if (GetDependencies(Src, IncPaths, SrcDeps, Platform))
 							{
