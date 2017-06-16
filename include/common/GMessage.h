@@ -157,6 +157,7 @@ enum LgiMessages
 		M_TEXT_UPDATE_NAME,
 		M_SET_VISIBLE,
 		M_SETPOS, // A=(GRect*)Rectangle
+		M_INVALIDATE, // A=(GRect*)Rectangle
 
 		/// Minimum value for application defined message ID's
 		M_USER							= (M_SYSTEM+1000),

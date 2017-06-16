@@ -707,7 +707,14 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 
 	if (_View)
 	{
-		HIViewSetNeedsDisplay(_View, true);
+		if (LgiThreadInPaint == LgiGetCurrentThread())
+		{
+			PostEvent(M_INVALIDATE, (GMessage::Param)(r ? new GRect(r) : NULL));
+		}
+		else
+		{
+			HIViewSetNeedsDisplay(_View, true);
+		}
 		return true;
 	}
 	else
@@ -767,6 +774,15 @@ int GView::OnEvent(GMessage *Msg)
 			{
 				HIRect rc = *r;
 				HIViewSetFrame(_View, &rc);
+			}
+			break;
+		}
+		case M_INVALIDATE:
+		{
+			GAutoPtr<GRect> r((GRect*)Msg->A());
+			if (_View)
+			{
+				HIViewSetNeedsDisplay(_View, true);
 			}
 			break;
 		}
@@ -1549,7 +1565,7 @@ CarbonControlProc
 					if (mods & 0x800) k.Alt(true);
 					if (mods & 0x100) k.System(true);
 
-					#if 1
+					#if 0
 					GString Msg;
 					Msg.Printf("%s", v->GetClass());
 					k.Trace(Msg);
