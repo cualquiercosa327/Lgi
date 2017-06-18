@@ -90,7 +90,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\include\win32;..\include\common;..\..\..\..\CodeLib\libjpeg-9a;..\..\..\..\CodeLib\zlib-1.2.8;..\..\..\..\CodeLib\libpng-1.6.26;c:\Program Files (x86)\OpenSSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include\win32;..\include\common;..\..\..\..\CodeLib\libjpeg-9a;..\..\..\..\CodeLib\libpng\build\zlib_dir;..\..\..\..\CodeLib\libpng\build;..\..\..\..\CodeLib\zlib;..\..\..\..\CodeLib\libpng;c:\Program Files (x86)\OpenSSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -112,7 +112,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\include\win32;..\include\common;..\..\..\..\CodeLib\libjpeg-9a;..\..\..\..\CodeLib\zlib-1.2.8;..\..\..\..\CodeLib\libpng-1.6.26;c:\Program Files\OpenSSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include\win32;..\include\common;..\..\..\..\CodeLib\libjpeg-9a;..\..\..\..\CodeLib\libpng\build\zlib_dir;..\..\..\..\CodeLib\libpng\build;..\..\..\..\CodeLib\zlib;..\..\..\..\CodeLib\libpng;c:\Program Files\OpenSSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -133,7 +133,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\include\win32;..\include\common;..\..\..\..\CodeLib\libjpeg-9a;..\..\..\..\CodeLib\zlib-1.2.8;..\..\..\..\CodeLib\libpng-1.6.26;c:\Program Files (x86)\OpenSSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include\win32;..\include\common;..\..\..\..\CodeLib\libjpeg-9a;..\..\..\..\CodeLib\libpng\build\zlib_dir;..\..\..\..\CodeLib\libpng\build;..\..\..\..\CodeLib\zlib;..\..\..\..\CodeLib\libpng;c:\Program Files (x86)\OpenSSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeader />
@@ -154,7 +154,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\include\win32;..\include\common;..\..\..\..\CodeLib\libjpeg-9a;..\..\..\..\CodeLib\zlib-1.2.8;..\..\..\..\CodeLib\libpng-1.6.26;c:\Program Files\OpenSSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include\win32;..\include\common;..\..\..\..\CodeLib\libjpeg-9a;..\..\..\..\CodeLib\libpng\build\zlib_dir;..\..\..\..\CodeLib\libpng\build;..\..\..\..\CodeLib\zlib;..\..\..\..\CodeLib\libpng;c:\Program Files\OpenSSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeader>
@@ -210,17 +210,13 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </MASM>
-    <None Include="Files\about.html" />
-    <None Include="Files\covie.html" />
-    <None Include="Files\MailPreviewHdr.html" />
-    <None Include="Files\MortgageChoice.html" />
-    <None Include="Files\Piotr.html" />
-    <None Include="Files\PlanningCenter2.html" />
-    <None Include="Files\spam4.html" />
-    <None Include="Files\WorthilyMagnify.html" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="..\src\win32\General\Lgi.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Files\index.html" />
+    <None Include="Files\menu.html" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

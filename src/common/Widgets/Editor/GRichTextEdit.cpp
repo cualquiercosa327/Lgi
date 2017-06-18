@@ -641,7 +641,7 @@ bool GRichTextEdit::Copy()
 bool GRichTextEdit::Paste()
 {
 	GClipBoard Cb(this);
-	GAutoWString Text(Cb.TextW());
+	GAutoWString Text(NewStrW(Cb.TextW()));
 	GAutoPtr<GSurface> Img;
 	if (!Text)
 		Img.Reset(Cb.Bitmap());
@@ -1129,7 +1129,7 @@ void GRichTextEdit::OnCreate()
 	DropTarget(true);
 
 	if (Focus())
-		SetPulse(1500);
+		SetPulse(RTE_PULSE_RATE);
 }
 
 void GRichTextEdit::OnEscape(GKey &K)
@@ -1150,7 +1150,7 @@ bool GRichTextEdit::OnMouseWheel(double l)
 void GRichTextEdit::OnFocus(bool f)
 {
 	Invalidate();
-	SetPulse(f ? 500 : -1);
+	SetPulse(f ? RTE_PULSE_RATE : -1);
 }
 
 int GRichTextEdit::HitTest(int x, int y)
@@ -1189,9 +1189,7 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 	if (Content.Overlap(m.x, m.y))
 	{
 		int LineHint;
-		int Idx = d->HitTest(Doc.x, Doc.y, LineHint);
-		if (Idx >= 0)
-			Over = d->GetBlockByIndex(Idx, &Offset, &BlockIndex);
+		int Idx = d->HitTest(Doc.x, Doc.y, LineHint, &Over);
 	}
 	if (Over)
 		Over->DoContext(RClick, Doc, Offset, true);
@@ -1332,7 +1330,7 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 void GRichTextEdit::OnMouseClick(GMouse &m)
 {
 	bool Processed = false;
-
+	RectType Clicked = 	d->PosToButton(m);
 	if (m.Down())
 	{
 		Focus(true);
@@ -1349,15 +1347,19 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 			if (d->Areas[ToolsArea].Overlap(m.x, m.y) ||
 				d->Areas[CapabilityArea].Overlap(m.x, m.y))
 			{
-				for (unsigned i=CapabilityBtn; i<MaxArea; i++)
+				if (Clicked != MaxArea)
 				{
-					if (d->Areas[i].Valid() &&
-						d->Areas[i].Overlap(m.x, m.y))
+					if (d->BtnState[Clicked].IsPress)
 					{
-						Processed |= d->ClickBtn(m, (RectType)i);
+						d->BtnState[d->ClickedBtn = Clicked].Pressed = true;
+						Invalidate(d->Areas + Clicked);
+						Capture(true);
+					}
+					else
+					{
+						Processed |= d->ClickBtn(m, Clicked);
 					}
 				}
-				return;
 			}
 			else
 			{
@@ -1368,12 +1370,25 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 				int Idx = -1;
 				if (d->CursorFromPos(Doc.x, Doc.y, &c, &Idx))
 				{
+					d->ClickedBtn = ContentArea;
 					d->SetCursor(c, m.Shift());
 					if (d->WordSelectMode)
 						SelectWord(Idx);
 				}
 			}
 		}
+	}
+	else if (IsCapturing())
+	{
+		if (d->ClickedBtn != MaxArea)
+		{
+			d->BtnState[d->ClickedBtn].Pressed = false;
+			Invalidate(d->Areas + d->ClickedBtn);
+			Processed |= d->ClickBtn(m, Clicked);
+		}
+
+		Capture(false);
+		d->ClickedBtn = MaxArea;
 	}
 
 	if (!Processed)
@@ -1395,47 +1410,66 @@ int GRichTextEdit::OnHitTest(int x, int y)
 
 void GRichTextEdit::OnMouseMove(GMouse &m)
 {
+	GRichTextEdit::RectType OverBtn = d->PosToButton(m);
+	if (d->OverBtn != OverBtn)
+	{
+		if (d->OverBtn < MaxArea)
+		{
+			d->BtnState[d->OverBtn].MouseOver = false;
+			Invalidate(&d->Areas[d->OverBtn]);
+		}
+		d->OverBtn = OverBtn;
+		if (d->OverBtn < MaxArea)
+		{
+			d->BtnState[d->OverBtn].MouseOver = true;
+			Invalidate(&d->Areas[d->OverBtn]);
+		}
+	}
+	
 	if (IsCapturing())
 	{
-		AutoCursor c;
-		GdcPt2 Doc = d->ScreenToDoc(m.x, m.y);
-		int Idx = -1;
-		if (d->CursorFromPos(Doc.x, Doc.y, &c, &Idx) && c)
+		if (d->ClickedBtn == ContentArea)
 		{
-			if (d->WordSelectMode && d->Selection)
+			AutoCursor c;
+			GdcPt2 Doc = d->ScreenToDoc(m.x, m.y);
+			int Idx = -1;
+			if (d->CursorFromPos(Doc.x, Doc.y, &c, &Idx) && c)
 			{
-				// Extend the selection to include the whole word
-				if (!d->CursorFirst())
+				if (d->WordSelectMode && d->Selection)
 				{
-					// Extend towards the end of the doc...
-					GArray<uint32> Txt;
-					if (c->Blk->CopyAt(0, c->Blk->Length(), &Txt))
+					// Extend the selection to include the whole word
+					if (!d->CursorFirst())
 					{
-						while
-						(
-							c->Offset < (int)Txt.Length() &&
-							!IsWordBreakChar(Txt[c->Offset])
-						)
-							c->Offset++;
+						// Extend towards the end of the doc...
+						GArray<uint32> Txt;
+						if (c->Blk->CopyAt(0, c->Blk->Length(), &Txt))
+						{
+							while
+							(
+								c->Offset < (int)Txt.Length() &&
+								!IsWordBreakChar(Txt[c->Offset])
+							)
+								c->Offset++;
+						}
+					}
+					else
+					{
+						// Extend towards the start of the doc...
+						GArray<uint32> Txt;
+						if (c->Blk->CopyAt(0, c->Blk->Length(), &Txt))
+						{
+							while
+							(
+								c->Offset > 0 &&
+								!IsWordBreakChar(Txt[c->Offset-1])
+							)
+								c->Offset--;
+						}
 					}
 				}
-				else
-				{
-					// Extend towards the start of the doc...
-					GArray<uint32> Txt;
-					if (c->Blk->CopyAt(0, c->Blk->Length(), &Txt))
-					{
-						while
-						(
-							c->Offset > 0 &&
-							!IsWordBreakChar(Txt[c->Offset-1])
-						)
-							c->Offset--;
-					}
-				}
-			}
 
-			d->SetCursor(c, m.Left());
+				d->SetCursor(c, m.Left());
+			}
 		}
 	}
 
@@ -2394,8 +2428,38 @@ void GRichTextEdit::OnPulse()
 {
 	if (!ReadOnly && d->Cursor)
 	{
-		d->Cursor->Blink = !d->Cursor->Blink;
-		d->InvalidateDoc(&d->Cursor->Pos);
+		uint64 n = LgiCurrentTime();
+		if (d->BlinkTs - n >= RTE_CURSOR_BLINK_RATE)
+		{
+			d->BlinkTs = n;
+			d->Cursor->Blink = !d->Cursor->Blink;
+			d->InvalidateDoc(&d->Cursor->Pos);
+		}
+		
+		// Do autoscroll while the user has clicked and dragged off the control:
+		if (VScroll && IsCapturing())
+		{
+			GMouse m;
+			GetMouse(m);
+			
+			// Is the mouse outside the content window
+			GRect &r = d->Areas[ContentArea];
+			if (!r.Overlap(m.x, m.y))
+			{
+				AutoCursor c(new BlkCursor(NULL, 0, 0));
+				GdcPt2 Doc = d->ScreenToDoc(m.x, m.y);
+				int Idx = -1;
+				if (d->CursorFromPos(Doc.x, Doc.y, &c, &Idx))
+				{
+					d->SetCursor(c, true);
+					if (d->WordSelectMode)
+						SelectWord(Idx);
+				}
+				
+				// Update the screen.
+				d->InvalidateDoc(NULL);
+			}
+		}
 	}
 }
 
@@ -2529,11 +2593,11 @@ EmojiMenu::EmojiMenu(GRichTextPriv *priv, GdcPt2 p) : GPopup(priv->View)
 	d->GetEmojiImage();
 
 	int MaxIdx = 0;
-	Range EmojiBlocks[2] = { Range(0x203c, 0x3299 - 0x203c + 1), Range(0x1f004, 0x1f6c5 - 0x1f004 + 1) };
+	GRange EmojiBlocks[2] = { GRange(0x203c, 0x3299 - 0x203c + 1), GRange(0x1f004, 0x1f6c5 - 0x1f004 + 1) };
 	GHashTbl<int, int> Map;
 	for (int b=0; b<CountOf(EmojiBlocks); b++)
 	{
-		Range &r = EmojiBlocks[b];
+		GRange &r = EmojiBlocks[b];
 		for (int i=0; i<r.Len; i++)
 		{
 			uint32 u = r.Start + i;

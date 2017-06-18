@@ -198,9 +198,8 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 			case M_FIND_SYM_REQUEST:
 			{
 				GAutoPtr<FindSymRequest> Req((FindSymRequest*)Msg->A());
-				if (Req && Req->Sink)
+				if (Req && Req->SinkHnd >= 0)
 				{
-					GEventSinkI *Sink = Req->Sink;
 					GString::Array p = Req->Str.SplitDelimit(" \t");
 					if (p.Length() == 0)
 						break;
@@ -217,7 +216,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 							if (Debug)
 								printf("%s:%i - Searching '%s' with %i syms...\n", _FL, fs->Path.Get(), fs->Defs.Length());
 							#endif
-							
+
 							// For each symbol...
 							for (unsigned i=0; i<fs->Defs.Length(); i++)
 							{
@@ -255,7 +254,8 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 						}
 					}
 					
-					Sink->PostEvent(M_FIND_SYM_REQUEST, (GMessage::Param) Req.Release());
+					int Hnd = Req->SinkHnd;
+					PostObject(Hnd, M_FIND_SYM_REQUEST, Req);
 				}
 				break;
 			}
@@ -440,7 +440,7 @@ int FindSymbolDlg::OnNotify(GViewI *v, int f)
 				if (Str && strlen(Str) > 2)
 				{
 					// Create a search
-					Sys->Search(this, Str);
+					Sys->Search(AddDispatch(), Str);
 				}
 			}
 			break;
@@ -516,9 +516,9 @@ bool FindSymbolSystem::OnFile(const char *Path, SymAction Action)
 						(GMessage::Param)Action);
 }
 
-void FindSymbolSystem::Search(GEventSinkI *Results, const char *SearchStr)
+void FindSymbolSystem::Search(int ResultsSinkHnd, const char *SearchStr)
 {
-	FindSymRequest *Req = new FindSymRequest(Results);
+	FindSymRequest *Req = new FindSymRequest(ResultsSinkHnd);
 	if (Req)
 	{
 		Req->Str = SearchStr;

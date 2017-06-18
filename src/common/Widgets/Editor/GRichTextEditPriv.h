@@ -49,6 +49,9 @@
 #define TEXT_CAP_BTN					"Ok"
 #define TEXT_EMOJI						":)"
 
+#define RTE_CURSOR_BLINK_RATE			1000
+#define RTE_PULSE_RATE					200
+
 #define RICH_TEXT_RESIZED_JPEG_QUALITY	83 // out of 100, high = better quality
 
 #define NoTransaction					NULL
@@ -158,36 +161,7 @@ int Utf16Strlen(const uint16 *s, int &len)
 */
 
 //////////////////////////////////////////////////////////////////////
-struct Range
-{
-	int Start;
-	int Len;
-
-	Range(int s, int l)
-	{
-		Start = s;
-		Len = l;
-	}
-
-	Range Overlap(const Range &r)
-	{
-		Range o(0, 0);
-		if (r.Start >= End())
-			return o;
-		if (r.End() <= Start)
-			return o;
-
-		int e = min(End(), r.End());
-		o.Start = max(r.Start, Start);
-		o.Len = e - o.Start;
-		return o; 
-	}
-
-	int End() const
-	{
-		return Start + Len;
-	}
-};
+#include "GRange.h"
 
 class GRichEditElem : public GHtmlElement
 {
@@ -347,6 +321,14 @@ struct CtrlCap
 	}
 };
 
+struct ButtonState
+{
+	uint8 IsMenu : 1;
+	uint8 IsPress : 1;
+	uint8 Pressed : 1;
+	uint8 MouseOver : 1;
+};
+
 extern bool Utf16to32(GArray<uint32> &Out, const uint16 *In, int Len);
 
 class GRichTextPriv :
@@ -408,6 +390,7 @@ public:
 	GSpellCheck *SpellCheck;
 	bool SpellDictionaryLoaded;
 	bool HtmlLinkAsCid;
+	uint64 BlinkTs;
 
 	// This is set when the user changes a style without a selection,
 	// indicating that we should start a new run when new text is entered
@@ -415,6 +398,8 @@ public:
 
 	// Toolbar
 	bool ShowTools;
+	GRichTextEdit::RectType ClickedBtn, OverBtn;
+	ButtonState BtnState[GRichTextEdit::MaxArea];
 	GRect Areas[GRichTextEdit::MaxArea];
 	GVariant Values[GRichTextEdit::MaxArea];
 
@@ -606,23 +591,11 @@ public:
 
 		bool Apply(GRichTextPriv *Ctx, bool Forward)
 		{
-			if (Forward)
+			for (unsigned i=0; i<Changes.Length(); i++)
 			{
-				for (unsigned i=0; i<Changes.Length(); i++)
-				{
-					DocChange *dc = Changes[i];
-					if (!dc->Apply(Ctx, Forward))
-						return false;
-				}
-			}
-			else
-			{
-				for (int i=Changes.Length()-1; i>=0; i--)
-				{
-					DocChange *dc = Changes[i];
-					if (!dc->Apply(Ctx, Forward))
-						return false;
-				}
+				DocChange *dc = Changes[i];
+				if (!dc->Apply(Ctx, Forward))
+					return false;
 			}
 
 			return true;
@@ -726,6 +699,7 @@ public:
 			#ifdef _DEBUG
 			virtual void DumpNodes(GTreeItem *Ti) = 0;
 			#endif
+			virtual Block *Clone() = 0;
 
 			// Copy some or all of the text out
 			virtual int CopyAt(int Offset, int Chars, GArray<uint32> *Text) { return false; }
@@ -925,15 +899,9 @@ public:
 			return c;
 		}
 
-		virtual void Paint(GSurface *pDC, int &FixX, int FixY, GColour &Back, Range *SpellErr = NULL)
+		virtual void Paint(GSurface *pDC, int &FixX, int FixY, GColour &Back)
 		{
 			FDraw(pDC, FixX, FixY);
-
-			if (SpellErr)
-			{
-				
-			}
-
 			FixX += FX();
 		}
 
@@ -1037,6 +1005,7 @@ public:
 		#ifdef _DEBUG
 		void DumpNodes(GTreeItem *Ti);
 		#endif
+		Block *Clone();
 
 		// Events
 		GMessage::Result OnEvent(GMessage *Msg);
@@ -1121,6 +1090,7 @@ public:
 		#ifdef _DEBUG
 		void DumpNodes(GTreeItem *Ti);
 		#endif
+		Block *Clone();
 
 		// Events
 		GMessage::Result OnEvent(GMessage *Msg);
@@ -1148,7 +1118,7 @@ public:
 	GRect SelectionRect();
 	bool GetSelection(GArray<char16> &Text);
 	int IndexOfCursor(BlockCursor *c);
-	int HitTest(int x, int y, int &LineHint);
+	int HitTest(int x, int y, int &LineHint, Block **Blk = NULL);
 	bool CursorFromPos(int x, int y, GAutoPtr<BlockCursor> *Cursor, int *GlobalIdx);
 	Block *GetBlockByIndex(int Index, int *Offset = NULL, int *BlockIdx = NULL, int *LineCount = NULL);
 	bool Layout(GScrollBar *&ScrollY);
@@ -1163,6 +1133,7 @@ public:
 	bool Merge(Transaction *Trans, Block *a, Block *b);
 	GSurface *GetEmojiImage();
 	bool DeleteSelection(Transaction *t, char16 **Cut);
+	GRichTextEdit::RectType PosToButton(GMouse &m);
 
 	struct CreateContext
 	{
@@ -1257,13 +1228,18 @@ struct CompleteTextBlockState : public GRichTextPriv::DocChange
 	bool Apply(GRichTextPriv *Ctx, bool Forward);
 };
 
-struct DeletedBlockState : public GRichTextPriv::DocChange
+struct MultiBlockState : public GRichTextPriv::DocChange
 {
-	int Index;
-	GAutoPtr<GRichTextPriv::Block> Blk;
+	GRichTextPriv *Ctx;
+	int Index; // Number of blocks before the edit
+	int Length; // Of the other version currently in the Ctx stack
+	GArray<GRichTextPriv::Block*> Blks;
 	
-	DeletedBlockState(GRichTextPriv *Ctx, GRichTextPriv::Block *Block);
+	MultiBlockState(GRichTextPriv *ctx, int Start);
 	bool Apply(GRichTextPriv *Ctx, bool Forward);
+
+	bool Copy(int Idx);
+	bool Cut(int Idx);
 };
 
 #ifdef _DEBUG

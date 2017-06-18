@@ -239,33 +239,55 @@ bool CompleteTextBlockState::Apply(GRichTextPriv *Ctx, bool Forward)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-DeletedBlockState::DeletedBlockState(GRichTextPriv *Ctx, GRichTextPriv::Block *Block)
+MultiBlockState::MultiBlockState(GRichTextPriv *ctx, int Start)
 {
-	Index = Ctx->Blocks.IndexOf(Block);
-	if (Index >= 0)
-	{
-		Blk.Reset(Block);
-		Ctx->Blocks.DeleteAt(Index, true);
-	}
+	Ctx = ctx;
+	Index = Start;
+	Length = -1;
 }
 
-bool DeletedBlockState::Apply(GRichTextPriv *Ctx, bool Forward)
+bool MultiBlockState::Apply(GRichTextPriv *Ctx, bool Forward)
 {
-	if (Index < 0)
+	if (Index < 0 || Length < 0)
+	{
+		LgiAssert(!"Missing parameters");
 		return false;
+	}
 	
-	if (Forward)
-	{
-		// Redo: Block goes from 'Ctx->Blocks[Index]' to 'Blk'
-		LgiAssert(Ctx->Blocks.Length() > Index);
-		Blk.Reset(Ctx->Blocks[Index]);
-		return Ctx->Blocks.DeleteAt(Index, true);
-	}
-	else
-	{
-		// Undo: Block goes from 'Blk' to 'Ctx->Blocks[Index]'
-		return Ctx->Blocks.AddAt(Index, Blk.Release());
-	}
+	// Undo: Swap 'Length' blocks Ctx->Blocks with Blks
+	int OldLen = Blks.Length();
+	bool Status = Blks.SwapRange(GRange(0, OldLen), Ctx->Blocks, GRange(Index, Length));
+	if (Status)
+		Length = OldLen;
+	
+	return Status;
+}
+
+bool MultiBlockState::Copy(int Idx)
+{
+	if (!Ctx->Blocks.AddressOf(Idx))
+		return false;
+
+	GRichTextPriv::Block *b = Ctx->Blocks[Idx]->Clone();
+	if (!b)
+		return false;
+
+	Blks.Add(b);
+	return true;
+}
+
+bool MultiBlockState::Cut(int Idx)
+{
+	if (!Ctx->Blocks.AddressOf(Idx))
+		return false;
+
+	GRichTextPriv::Block *b = Ctx->Blocks[Idx];
+	if (!b)
+		return false;
+
+	Blks.Add(b);
+
+	return Ctx->Blocks.DeleteAt(Idx, true);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -274,6 +296,7 @@ GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv *&Ptr) :
 	GFontCache(SysFont)
 {
 	Ptr = this;
+	BlinkTs = 0;
 	View = view;
 	Log = &LogBuffer;
 	NextUid = 1;
@@ -296,21 +319,37 @@ GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv *&Ptr) :
 		Areas[i].ZOff(-1, -1);
 	}
 
+	ClickedBtn = GRichTextEdit::MaxArea;
+	OverBtn = GRichTextEdit::MaxArea;
+	ZeroObj(BtnState);
+
 	Values[GRichTextEdit::FontFamilyBtn] = "FontName";
+	BtnState[GRichTextEdit::FontFamilyBtn].IsMenu = true;
 	Values[GRichTextEdit::FontSizeBtn] = "14";
+	BtnState[GRichTextEdit::FontSizeBtn].IsMenu = true;
 
 	Values[GRichTextEdit::BoldBtn] = true;
+	BtnState[GRichTextEdit::BoldBtn].IsPress = true;
 	Values[GRichTextEdit::ItalicBtn] = false;
+	BtnState[GRichTextEdit::ItalicBtn].IsPress = true;
 	Values[GRichTextEdit::UnderlineBtn] = false;
+	BtnState[GRichTextEdit::UnderlineBtn].IsPress = true;
 		
 	Values[GRichTextEdit::ForegroundColourBtn] = (int64)Rgb24To32(LC_TEXT);
+	BtnState[GRichTextEdit::ForegroundColourBtn].IsMenu = true;
 	Values[GRichTextEdit::BackgroundColourBtn] = (int64)Rgb24To32(LC_WORKSPACE);
+	BtnState[GRichTextEdit::BackgroundColourBtn].IsMenu = true;
 
 	Values[GRichTextEdit::MakeLinkBtn] = TEXT_LINK;
+	BtnState[GRichTextEdit::MakeLinkBtn].IsPress = true;
 	Values[GRichTextEdit::RemoveLinkBtn] = TEXT_REMOVE_LINK;
+	BtnState[GRichTextEdit::RemoveLinkBtn].IsPress = true;
 	Values[GRichTextEdit::RemoveStyleBtn] = TEXT_REMOVE_STYLE;
+	BtnState[GRichTextEdit::RemoveStyleBtn].IsPress = true;
 	Values[GRichTextEdit::CapabilityBtn] = TEXT_CAP_BTN;
+	BtnState[GRichTextEdit::CapabilityBtn].IsPress = true;
 	Values[GRichTextEdit::EmojiBtn] = TEXT_EMOJI;
+	BtnState[GRichTextEdit::EmojiBtn].IsPress = true;
 
 	Padding(GCss::Len(GCss::LenPx, 4));
 	EmptyDoc();
@@ -341,32 +380,27 @@ bool GRichTextPriv::DeleteSelection(Transaction *Trans, char16 **Cut)
 	else
 	{
 		// Multi-block delete...
+		int i = Blocks.IndexOf(Start->Blk);
+		int e = Blocks.IndexOf(End->Blk);
+		GAutoPtr<MultiBlockState> MultiState(new MultiBlockState(this, i));
 
 		// 1) Delete all the content to the end of the first block
 		int StartLen = Start->Blk->Length();
 		if (Start->Offset < StartLen)
-			Start->Blk->DeleteAt(Trans, Start->Offset, StartLen - Start->Offset, DelTxt);
+		{
+			MultiState->Copy(i++);
+			Start->Blk->DeleteAt(NoTransaction, Start->Offset, StartLen - Start->Offset, DelTxt);
+		}
 
 		// 2) Delete any blocks between 'Start' and 'End'
-		int i = Blocks.IndexOf(Start->Blk);
 		if (i >= 0)
 		{
-			for (++i; Blocks[i] != End->Blk && i < (int)Blocks.Length(); )
+			while (Blocks[i] != End->Blk && i < (int)Blocks.Length())
 			{
 				GRichTextPriv::Block *b = Blocks[i];
 				b->CopyAt(0, -1, DelTxt);
-
-				if (Trans)
-				{
-					// Add deleted block to transaction...
-					Trans->Add(new DeletedBlockState(this, b));
-				}
-				else
-				{
-					// No transaction: just straight up delete it
-					Blocks.DeleteAt(i, true);
-					DeleteObj(b);
-				}
+				MultiState->Cut(i);
+				e--;
 			}
 		}
 		else
@@ -375,11 +409,17 @@ bool GRichTextPriv::DeleteSelection(Transaction *Trans, char16 **Cut)
 			return Error(_FL, "Start block has no index.");;
 		}
 
-		// 3) Delete any text up to the Cursor in the 'End' block
-		End->Blk->DeleteAt(Trans, 0, End->Offset, DelTxt);
+		if (End->Offset > 0)
+		{
+			// 3) Delete any text up to the Cursor in the 'End' block
+			MultiState->Copy(i);
+			End->Blk->DeleteAt(NoTransaction, 0, End->Offset, DelTxt);
+		}
 
 		// Try and merge the start and end blocks
-		Merge(Trans, Start->Blk, End->Blk);
+		bool MergeOk = Merge(NoTransaction, Start->Blk, End->Blk);
+		MultiState->Length = MergeOk ? 1 : 2;
+		Trans->Add(MultiState.Release());
 	}
 
 	// Set the cursor and update the screen
@@ -1048,7 +1088,7 @@ GSurface *GRichTextPriv::GetEmojiImage()
 	return EmojiImg;
 }
 
-int GRichTextPriv::HitTest(int x, int y, int &LineHint)
+int GRichTextPriv::HitTest(int x, int y, int &LineHint, Block **Blk)
 {
 	int CharPos = 0;
 	HitTestResult r(x, y);
@@ -1059,11 +1099,14 @@ int GRichTextPriv::HitTest(int x, int y, int &LineHint)
 		return -1;
 	}
 
-	GRect rc = Blocks.First()->GetPos();
+	Block *b = Blocks.First();
+	GRect rc = b->GetPos();
 	if (y < rc.y1)
+	{
+		if (Blk) *Blk = b;
 		return 0;
+	}
 
-	Block *b;
 	for (unsigned i=0; i<Blocks.Length(); i++)
 	{
 		b = Blocks[i];
@@ -1072,6 +1115,7 @@ int GRichTextPriv::HitTest(int x, int y, int &LineHint)
 		if (b->HitTest(r))
 		{
 			LineHint = r.LineHint;
+			if (Blk) *Blk = b;
 			return CharPos + r.Idx;
 		}
 		else if (Over)
@@ -1085,7 +1129,10 @@ int GRichTextPriv::HitTest(int x, int y, int &LineHint)
 	b = Blocks.Last();
 	rc = b->GetPos();
 	if (y > rc.y2)
+	{
+		if (Blk) *Blk = b;
 		return CharPos + b->Length();
+	}
 		
 	return -1;
 }
@@ -1126,7 +1173,7 @@ GRichTextPriv::Block *GRichTextPriv::GetBlockByIndex(int Index, int *Offset, int
 		int Ln = b->GetLines();
 
 		if (Index >= CharPos &&
-			Index <= CharPos + Len)
+			Index < CharPos + Len)
 		{
 			if (BlockIdx)
 				*BlockIdx = i;
@@ -1315,9 +1362,10 @@ void GRichTextPriv::PaintBtn(GSurface *pDC, GRichTextEdit::RectType t)
 {
 	GRect r = Areas[t];
 	GVariant &v = Values[t];
-	bool Down = v.Type == GV_BOOL && v.Value.Bool;
+	bool Down = (v.Type == GV_BOOL && v.Value.Bool) ||
+				(BtnState[t].IsPress && BtnState[t].Pressed && BtnState[t].MouseOver);
 
-	SysFont->Colour(LC_TEXT, LC_MED);
+	SysFont->Colour(LC_TEXT, BtnState[t].MouseOver ? LC_LIGHT : LC_MED);
 	SysFont->Transparent(false);
 
 	GColour Low(96, 96, 96);
@@ -1328,14 +1376,16 @@ void GRichTextPriv::PaintBtn(GSurface *pDC, GRichTextEdit::RectType t)
 	pDC->Line(r.x1, r.y1, r.x2, r.y1);
 	pDC->Line(r.x1, r.y1, r.x1, r.y2);
 	r.Size(1, 1);
-	// LgiThinBorder(pDC, r, Down ? EdgeXpSunken : EdgeXpRaised);
 	
 	switch (v.Type)
 	{
 		case GV_STRING:
 		{
 			GDisplayString Ds(SysFont, v.Str());
-			Ds.Draw(pDC, r.x1 + ((r.X()-Ds.X())>>1), r.y1 + ((r.Y()-Ds.Y())>>1), &r);
+			Ds.Draw(pDC,
+					r.x1 + ((r.X()-Ds.X())>>1) + Down,
+					r.y1 + ((r.Y()-Ds.Y())>>1) + Down,
+					&r);
 			break;
 		}
 		case GV_INT64:
@@ -1376,7 +1426,10 @@ void GRichTextPriv::PaintBtn(GSurface *pDC, GRichTextEdit::RectType t)
 			}
 			if (!Label) break;
 			GDisplayString Ds(SysFont, Label);
-			Ds.Draw(pDC, r.x1 + ((r.X()-Ds.X())>>1) + Down, r.y1 + ((r.Y()-Ds.Y())>>1) + Down, &r);
+			Ds.Draw(pDC,
+					r.x1 + ((r.X()-Ds.X())>>1) + Down,
+					r.y1 + ((r.Y()-Ds.Y())>>1) + Down,
+					&r);
 			break;
 		}
 		default:
@@ -2073,6 +2126,25 @@ bool GRichTextPriv::GetSelection(GArray<char16> &Text)
 	Text.Add(w, Strlen(w));
 	Text.Add(0);
 	return true;
+}
+
+GRichTextEdit::RectType GRichTextPriv::PosToButton(GMouse &m)
+{
+	if (Areas[GRichTextEdit::ToolsArea].Overlap(m.x, m.y) ||
+		Areas[GRichTextEdit::CapabilityArea].Overlap(m.x, m.y))
+	{
+		for (unsigned i=GRichTextEdit::CapabilityBtn; i<GRichTextEdit::MaxArea; i++)
+		{
+			if (Areas[i].Valid() &&
+				Areas[i].Overlap(m.x, m.y))
+			{
+				return (GRichTextEdit::RectType)i;
+				break;
+			}
+		}
+	}
+
+	return GRichTextEdit::MaxArea;
 }
 
 #ifdef _DEBUG

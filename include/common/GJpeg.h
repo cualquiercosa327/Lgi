@@ -14,7 +14,9 @@ public:
 
 private:
 	friend class GJpegOptions;
+	#if LIBJPEG_SHARED
 	class LibJpeg *d;
+	#endif
 
 	GFilter::IoStatus _Write(GStream *Out, GSurface *pDC, int Quality, SubSampleMode SubSample, GdcPt2 Dpi);
 

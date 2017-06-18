@@ -936,7 +936,12 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 				{
 					GMouse m;
 					GView::_Capturing->GetMouse(m, false);
-					GView::_Capturing->OnMouseClick(m);
+					
+					GView *v = GView::_Capturing->GetGView();
+					if (v)
+						v->_Mouse(m, false);
+					else
+						GView::_Capturing->OnMouseClick(m);
 				}
 				
 				result = noErr;

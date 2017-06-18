@@ -88,7 +88,7 @@ public:
 		Speller = CreateWindowsSpellCheck();
 		#elif defined(MAC)
 		Speller = CreateAppleSpellCheck();
-		#else
+		#elif !defined(LINUX)
 		Speller = CreateAspellObject();
 		#endif
 		
@@ -223,7 +223,7 @@ public:
 							f.Write(Html);
 							f.Close();
 							
-							GString FileName = p;
+							GString FileName = p.GetFull();
 							
 							for (unsigned i=0; i<Media.Length(); i++)
 							{

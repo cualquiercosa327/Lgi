@@ -2189,6 +2189,16 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 {
 	switch (Ctrl->GetId())
 	{
+		case IDC_PROJECT_TREE:
+		{
+			if (Flags == GNotify_DeleteKey)
+			{
+				ProjectNode *n = dynamic_cast<ProjectNode*>(d->Tree->Selection());
+				if (n)
+					n->Delete();
+			}
+			break;
+		}
 		case IDC_DEBUG_EDIT:
 		{
 			if (Flags == VK_RETURN && d->DbgContext)
@@ -3108,9 +3118,9 @@ GStream *AppWnd::GetBuildLog()
 	return d->Output->Txt[AppWnd::BuildTab];
 }
 
-void AppWnd::FindSymbol(GEventSinkI *Results, const char *Sym)
+void AppWnd::FindSymbol(int ResultsSinkHnd, const char *Sym)
 {
-	d->FindSym->Search(Results, Sym);
+	d->FindSym->Search(ResultsSinkHnd, Sym);
 }
 
 #include "GSubProcess.h"

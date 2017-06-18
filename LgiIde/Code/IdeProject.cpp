@@ -1555,6 +1555,8 @@ bool IdeProject::BuildIncludePaths(GArray<GString> &Paths, bool Recurse, IdePlat
 		GetChildProjects(Projects);
 	}
 	Projects.Insert(this, 0);
+
+	GHashTbl<char*, bool> Map;
 	
 	for (IdeProject *p=Projects.First(); p; p=Projects.Next())
 	{
@@ -1627,6 +1629,7 @@ bool IdeProject::BuildIncludePaths(GArray<GString> &Paths, bool Recurse, IdePlat
 					Full = Inc[i];
 				}
 				
+				#if 0
 				bool Has = false;
 				for (int n=0; n<Paths.Length(); n++)
 				{
@@ -1641,9 +1644,50 @@ bool IdeProject::BuildIncludePaths(GArray<GString> &Paths, bool Recurse, IdePlat
 				{
 					Paths.Add(NewStr(Full));
 				}
+				#else
+				if (!Map.Find(Full))
+					Map.Add(Full, true);
+				#endif
+			}
+		}
+
+		// Add paths for the headers in the project... bit of a hack but it'll
+		// help it find them if the user doesn't specify the paths in the project.
+		GArray<ProjectNode*> Nodes;
+		if (p->GetAllNodes(Nodes))
+		{
+			GAutoString Base = p->GetFullPath();
+			if (Base)
+			{
+				LgiTrimDir(Base);
+
+				for (unsigned i=0; i<Nodes.Length(); i++)
+				{
+					ProjectNode *n = Nodes[i];
+					if (n->GetType() == NodeHeader)
+					{
+						char *f = n->GetFileName();
+						char p[MAX_PATH];
+						if (f &&
+							LgiMakePath(p, sizeof(p), Base, f))
+						{
+							char *l = strrchr(p, DIR_CHAR);
+							if (l)
+								*l = 0;
+							if (!Map.Find(p))
+							{
+								Map.Add(p, true);
+							}
+						}
+					}
+				}
 			}
 		}
 	}
+
+	char *p;
+	for (bool b = Map.First(&p); b; b = Map.Next(&p))
+		Paths.Add(p);
 
 	return true;
 }
@@ -2512,6 +2556,11 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 							
 							m.Print("%s.o : %s ", Part, ToUnixPath(Rel));
 
+							if (Src.Find("AddressSelect.cpp") >= 0)
+							{
+								int asd=0;
+							}
+
 							GArray<char*> SrcDeps;
 							if (GetDependencies(Src, IncPaths, SrcDeps, Platform))
 							{
@@ -2665,7 +2714,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-IdeTree::IdeTree() : GTree(100, 0, 0, 100, 100)
+IdeTree::IdeTree() : GTree(IDC_PROJECT_TREE, 0, 0, 100, 100)
 {
 	Hit = 0;
 	MultiSelect(true);

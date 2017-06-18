@@ -750,7 +750,7 @@ public:
 			GString s = Ctrl->Name();
 			s = s.Strip();
 			if (s.Length() > 2)
-				App->FindSymbol(Doc, s);
+				App->FindSymbol(Doc->AddDispatch(), s);
 		}
 		
 		return GPopupList<FindSymResult>::OnNotify(Ctrl, Flags);
@@ -997,7 +997,8 @@ public:
 	
 	void OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour)
 	{
-		GTextView3::OnPaintLeftMargin(pDC, r, colour);
+		GColour GutterColour(0xfa, 0xfa, 0xfa);
+		GTextView3::OnPaintLeftMargin(pDC, r, GutterColour);
 		int Y = ScrollYLine();
 		
 		int TopPaddingPx = GetTopPaddingPx();

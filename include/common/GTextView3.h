@@ -185,6 +185,7 @@ protected:
 	// Options
 	bool Dirty;
 	bool CanScrollX;
+	bool PourEnabled;
 
 	// Display
 	GFont *Font;
