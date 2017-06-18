@@ -1367,7 +1367,7 @@ GMessage::Result GRichTextPriv::TextBlock::OnEvent(GMessage *Msg)
 			{
 				// Replacing text with spell check suggestion:
 				int i = Msg->A() - SPELLING_BASE;
-				if (i >= 0 && i < e->Suggestions.Length())
+				if (i >= 0 && i < (int)e->Suggestions.Length())
 				{
 					GString s = e->Suggestions[i];
 					AutoTrans t(new GRichTextPriv::Transaction);
