@@ -1578,11 +1578,15 @@ bool GRichTextPriv::TextBlock::DoContext(GSubMenu &s, GdcPt2 Doc, int Offset, bo
 						for (unsigned n=0; n<e.Suggestions.Length(); n++)
 							Sp->AppendItem(e.Suggestions[n], SPELLING_BASE+n);
 					}
+					// else printf("%s:%i - No sub menu.\n", _FL);
 				}
+				// else printf("%s:%i - No Suggestion.\n", _FL);
 				break;
 			}
+			// else printf("%s:%i - Outside area, Offset=%i e=%i,%i.\n", _FL, Offset, e.Start, e.End());
 		}
 	}
+	// else printf("%s:%i - No Spelling.\n", _FL);
 
 	return true;
 }
