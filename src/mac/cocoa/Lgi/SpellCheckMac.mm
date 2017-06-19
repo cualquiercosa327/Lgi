@@ -284,6 +284,8 @@ public:
 					char *e = s;
 					while (*e && !strchr(Delim, *e))
 						e++;
+					if (e == s)
+						break;
 					GString Word(s, e - s);
 					
 					NSString *In = [NSString stringWithUTF8String:Word.Get()];

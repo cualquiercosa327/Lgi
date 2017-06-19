@@ -39,7 +39,11 @@ GThreadEvent::GThreadEvent(const char *name)
 	#if USE_MACH_SEM
 
 		Task = mach_task_self();
+		Sem = 0;
 		kern_return_t r = semaphore_create(Task, &Sem, SYNC_POLICY_FIFO, 0);
+		#if DEBUG_THREADING
+		printf("%s:%i - semaphore_create(%x)=%i\n", _FL, (int)Sem, r);
+		#endif
 
 	#elif USE_POSIX_SEM
 	
@@ -93,7 +97,10 @@ GThreadEvent::~GThreadEvent()
 {
 	#if USE_MACH_SEM
 
-		kern_return_t r = semaphore_destroy(Task, &Sem);
+		kern_return_t r = semaphore_destroy(Task, Sem);
+		#if DEBUG_THREADING
+		printf("%s:%i - semaphore_destroy(%x)=%i\n", _FL, (int)Sem, r);
+		#endif
 
 	#elif USE_POSIX_SEM
 
@@ -153,7 +160,11 @@ bool GThreadEvent::Signal()
 {
 	#if USE_MACH_SEM
 
-		kern_return_t r = semaphore_signal(&Sem);
+		kern_return_t r = semaphore_signal(Sem);
+		#if DEBUG_THREADING
+		printf("%s:%i - semaphore_signal(%x)=%i\n", _FL, (int)Sem, r);
+		#endif
+		return r == KERN_SUCCESS;
 
 	#elif USE_POSIX_SEM
 	
@@ -216,20 +227,42 @@ GThreadEvent::WaitStatus GThreadEvent::Wait(int32 Timeout)
 {
 	#if USE_MACH_SEM
 
-		mach_timespec_t Ts;
-		Ts.tv_sec = Timeout / 1000;
-		Ts.tv_nsec = (Timeout % 1000) * 1000000;
-		while (true)
+		if (Timeout > 0)
 		{
-			kern_return_t r = semaphore_timedwait(&Sem, Ts);
+			mach_timespec_t Ts;
+			Ts.tv_sec = Timeout / 1000;
+			Ts.tv_nsec = (Timeout % 1000) * 1000000;
+			while (true)
+			{
+				kern_return_t r = semaphore_timedwait(Sem, Ts);
+				#if DEBUG_THREADING
+				printf("%s:%i - semaphore_timedwait(%x)=%i\n", _FL, (int)Sem, r);
+				#endif
+				switch(r)
+				{
+					case KERN_SUCCESS:
+						return WaitSignaled;
+					case KERN_OPERATION_TIMED_OUT:
+						return WaitTimeout;
+					case KERN_ABORTED:
+						break;
+					default:
+						return WaitError;
+				}
+			}
+		}
+		else
+		{
+			kern_return_t r = semaphore_wait(Sem);
+			#if DEBUG_THREADING
+			printf("%s:%i - semaphore_wait(%x)=%i\n", _FL, (int)Sem, r);
+			#endif
 			switch(r)
 			{
 				case KERN_SUCCESS:
 					return WaitSignaled;
 				case KERN_OPERATION_TIMED_OUT:
 					return WaitTimeout;
-				case KERN_ABORTED:
-					break;
 				default:
 					return WaitError;
 			}
