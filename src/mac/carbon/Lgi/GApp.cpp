@@ -484,7 +484,7 @@ GApp::GApp(OsAppArguments &AppArgs, const char *AppName, GAppArguments *ObjArgs)
 	Name(AppName);
 
 	// Catch and ignore SIGPIPE
-	signal(SIGPIPE, OnSigPipe);
+	signal(SIGPIPE, SIG_IGN);
 	
 #if 0
 	// Crash handler...
@@ -969,6 +969,7 @@ void GApp::OnCommandLine()
 	for (int i=1; i<GetAppArgs()->Args; i++)
 	{
 		const char *a = GetAppArgs()->Arg[i];
+		LgiTrace("Arg[%i]='%s'\n", i, a);
 		if (FileExists(a))
 		{
 			Files.Add(NewStr(a));

@@ -387,10 +387,13 @@ public:
 	GHtmlStaticInst Inst;
 	int NextUid;
 	GStream *Log;
-	GSpellCheck *SpellCheck;
-	bool SpellDictionaryLoaded;
 	bool HtmlLinkAsCid;
 	uint64 BlinkTs;
+
+	// Spell check support
+	GSpellCheck *SpellCheck;
+	bool SpellDictionaryLoaded;
+	GString SpellLang, SpellDict;
 
 	// This is set when the user changes a style without a selection,
 	// indicating that we should start a new run when new text is entered

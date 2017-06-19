@@ -1634,6 +1634,8 @@ struct GDomPropMap
 		Define("Writable", StreamWritable);
 		
 		Define("HtmlImagesLinkCid", HtmlImagesLinkCid);
+		Define("SpellCheckLanguage", SpellCheckLanguage);
+		Define("SpellCheckDictionary", SpellCheckDictionary);
 	}
 	
 	void Define(const char *s, GDomProperty p)

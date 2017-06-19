@@ -301,6 +301,16 @@ bool GRichTextEdit::GetVariant(const char *Name, GVariant &Value, char *Array)
 			Value = d->HtmlLinkAsCid;
 			break;
 		}
+		case SpellCheckLanguage:
+		{
+			Value = d->SpellLang.Get();
+			break;
+		}
+		case SpellCheckDictionary:
+		{
+			Value = d->SpellDict.Get();
+			break;
+		}
 		default:
 			return false;
 	}
@@ -316,6 +326,16 @@ bool GRichTextEdit::SetVariant(const char *Name, GVariant &Value, char *Array)
 		case HtmlImagesLinkCid:
 		{
 			d->HtmlLinkAsCid = Value.CastInt32() != 0;
+			break;
+		}
+		case SpellCheckLanguage:
+		{
+			d->SpellLang = Value.Str();
+			break;
+		}
+		case SpellCheckDictionary:
+		{
+			d->SpellDict = Value.Str();
 			break;
 		}
 		default:
@@ -2310,7 +2330,7 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 			for (unsigned i=0; i<Languages->Length(); i++)
 			{
 				GSpellCheck::LanguageId &s = (*Languages)[i];
-				if (s.LangCode.Equals("en"))
+				if (s.LangCode.Equals(d->SpellLang))
 				{
 					d->SpellCheck->EnumDictionaries(AddDispatch(), s.LangCode);
 					break;
@@ -2327,7 +2347,8 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 			for (unsigned i=0; i<Dictionaries->Length(); i++)
 			{
 				GSpellCheck::DictionaryId &s = (*Dictionaries)[i];
-				if (s.Dict.Equals("AU"))
+				printf("%s:%i - M_ENUMERATE_DICTIONARIES: %s, %s\n", _FL, s.Dict.Get(), d->SpellDict.Get());
+				if (s.Dict.Equals(d->SpellDict))
 				{
 					d->SpellCheck->SetDictionary(AddDispatch(), s.Lang, s.Dict);
 					break;
@@ -2338,6 +2359,9 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 		case M_SET_DICTIONARY:
 		{
 			d->SpellDictionaryLoaded = Msg->A() != 0;
+			#if _DEBUG
+			LgiTrace("%s:%i - M_SET_DICTIONARY=%i\n", _FL, d->SpellDictionaryLoaded);
+			#endif
 			break;
 		}
 		case M_CHECK_TEXT:
