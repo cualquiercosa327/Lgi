@@ -708,13 +708,9 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 	if (_View)
 	{
 		if (LgiThreadInPaint == LgiGetCurrentThread())
-		{
 			PostEvent(M_INVALIDATE, (GMessage::Param)(r ? new GRect(r) : NULL));
-		}
 		else
-		{
 			HIViewSetNeedsDisplay(_View, true);
-		}
 		return true;
 	}
 	else
@@ -780,10 +776,8 @@ int GView::OnEvent(GMessage *Msg)
 		case M_INVALIDATE:
 		{
 			GAutoPtr<GRect> r((GRect*)Msg->A());
-			if (_View)
-			{
+            if (_View)
 				HIViewSetNeedsDisplay(_View, true);
-			}
 			break;
 		}
 		case M_PULSE:

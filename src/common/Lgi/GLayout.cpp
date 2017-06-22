@@ -258,8 +258,11 @@ GRect &GLayout::GetClient(bool ClientSpace)
 
 int GLayout::OnEvent(GMessage *Msg)
 {
-	if (VScroll) VScroll->OnEvent(Msg);
-	if (HScroll) HScroll->OnEvent(Msg);
+    if (Msg->Msg() != M_INVALIDATE)
+    {
+        if (VScroll) VScroll->OnEvent(Msg);
+        if (HScroll) HScroll->OnEvent(Msg);
+    }
 	int Status = GView::OnEvent(Msg);
 	if (MsgCode(Msg) == M_CHANGE &&
 		Status == -1 &&
