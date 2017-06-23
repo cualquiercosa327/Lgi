@@ -1709,7 +1709,7 @@ bool DocEdit::OnKey(GKey &k)
 			return true;
 		}
 		else if (ToLower(k.vkey) == 'o' &&
-			k.Shift())
+				k.Shift())
 		{
 			if (k.Down())
 				Doc->GotoSearch(IDC_FILE_SEARCH);
@@ -2244,10 +2244,35 @@ bool IdeDoc::AddBreakPoint(int Line, bool Add)
 	return true;
 }
 
-void IdeDoc::GotoSearch(int CtrlId)
+
+void IdeDoc::GotoSearch(int CtrlId, char *InitialText)
 {
+	GString File;
+
+	if (CtrlId == IDC_SYMBOL_SEARCH)
+	{
+		// Check if the cursor is on a #include line... in which case we
+		// should look up the header and go to that instead of looking for
+		// a symbol in the code.
+		if (d->Edit)
+		{
+			// Get current line
+			GString Ln = (*d->Edit)[d->Edit->GetLine()];
+			if (Ln.Find("#include") >= 0)
+			{
+				GString::Array a = Ln.SplitDelimit(" \t", 1);
+				if (a.Length() == 2)
+				{
+					File = a[1].Strip("\'\"<>");
+					InitialText = File;
+					CtrlId = IDC_FILE_SEARCH;
+				}
+			}			
+		}
+	}
+
 	if (d->Tray)
-		d->Tray->GotoSearch(CtrlId);
+		d->Tray->GotoSearch(CtrlId, InitialText);
 }
 
 #define IsVariableChar(ch) \
@@ -2281,7 +2306,7 @@ void IdeDoc::SearchSymbol()
 				IsVariableChar(Txt[End]))
 			End++;
 		GString Word(Txt + Start, End - Start);
-		d->Tray->GotoSearch(IDC_SYMBOL_SEARCH, Word);
+		GotoSearch(IDC_SYMBOL_SEARCH, Word);
 	}
 }
 
@@ -2448,7 +2473,6 @@ int IdeDoc::OnNotify(GViewI *v, int f)
 		{
 			if (f == GNotify_EscapeKey)
 			{
-				printf("%s:%i Got GNotify_EscapeKey\n", _FL);
 				d->Edit->Focus(true);
 				break;
 			}

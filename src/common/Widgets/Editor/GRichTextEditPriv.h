@@ -964,7 +964,7 @@ public:
 		GSpellCheck::SpellingError *SpErr;
 
 		bool PreEdit(Transaction *Trans);
-		void UpdateSpelling();
+		void UpdateSpellingAndLinks(GRange r);
 		void DrawDisplayString(GSurface *pDC, DisplayStr *Ds, int &FixX, int FixY, GColour &Bk, int &Pos);
 	
 	public:

@@ -2,6 +2,7 @@
 #include "GRichTextEdit.h"
 #include "GRichTextEditPriv.h"
 #include "Emoji.h"
+#include "GDocView.h"
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 GRichTextPriv::StyleText::StyleText(const StyleText *St)
@@ -1351,7 +1352,7 @@ int GRichTextPriv::TextBlock::DeleteAt(Transaction *Trans, int BlkOffset, int Ch
 	if (Deleted > 0)
 	{
 		LayoutDirty = true;
-		UpdateSpelling();
+		UpdateSpellingAndLinks(GRange(BlkOffset, 0));
 	}
 
 	IsValid();
@@ -1530,27 +1531,52 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 		}
 	}
 
-	LayoutDirty = true;
-	
+	LayoutDirty = true;	
 	IsValid();
-
-	UpdateSpelling();
+	UpdateSpellingAndLinks(GRange(AtOffset, InChars));
 	
 	return true;
 }
 
-void GRichTextPriv::TextBlock::UpdateSpelling()
+template<typename Char>
+bool DetectUrl(Char *t, int len)
 {
+	Char *e = t + len;
+	Char *s = Strnchr(t, ':', len);
+	if (!s) return false;
+	if (s+1 < e && s[1] != '/') return false;
+	if (s+2 < e && s[2] != '/') return false;
+	s += 3;
+
+
+	return false;
+}
+
+void GRichTextPriv::TextBlock::UpdateSpellingAndLinks(GRange r)
+{
+	GArray<uint32> Text;
+	if (!CopyAt(0, Length(), &Text))
+		return;
+
+	// Spelling...
 	if (d->SpellCheck &&
 		d->SpellDictionaryLoaded)
 	{
-		GArray<uint32> Text;
-		if (CopyAt(0, Length(), &Text))
-		{
-			GString s(&Text[0], Text.Length());
-			d->SpellCheck->Check(d->View->AddDispatch(), s, 0, (GRichTextPriv::Block*)this);
-		}
+		GString s(&Text[0], Text.Length());
+		d->SpellCheck->Check(d->View->AddDispatch(), s, r.Start, (GRichTextPriv::Block*)this);
 	}
+
+	// Link detection...
+	GRange Word = r;
+	while (Word.Start > 0 && !IsWhiteSpace(Text[Word.Start]))
+	{
+		Word.Start--;
+		Word.Len++;
+	}
+	while (Word.End() < Text.Length() && !IsWhiteSpace(Text[Word.End()]))
+		Word.Len++;
+	bool IsUrl = DetectUrl(Text.AddressOf(Word.Start), Word.Len);
+	
 }
 
 int ErrSort(GSpellCheck::SpellingError *a, GSpellCheck::SpellingError *b)

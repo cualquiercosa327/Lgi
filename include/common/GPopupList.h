@@ -217,7 +217,7 @@ public:
 	{
 		if (Lst &&
 			Ctrl == Edit &&
-			!Flags)
+			(!Flags || Flags == GNotifyDocChanged))
 		{
 			char *Str = Edit->Name();
 			Name(Str);

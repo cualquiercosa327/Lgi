@@ -1593,6 +1593,19 @@ void GTextView3::Value(int64 i)
 	Name(Str);
 }
 
+GString GTextView3::operator[](int LineIdx)
+{
+	if (LineIdx <= 0 || LineIdx > GetLines())
+		return GString();
+
+	GTextLine *Ln = Line[LineIdx-1];
+	if (!Ln)
+		return GString();
+
+	GString s(Text + Ln->Start, Ln->Len);
+	return s; 
+}
+
 char *GTextView3::Name()
 {
 	UndoQue.Empty();

@@ -268,6 +268,7 @@ public:
 	void Value(int64 i);
 	const char *GetMimeType() { return "text/plain"; }
 	int GetSize() { return Size; }
+	GString operator[](int LineIdx);
 
 	int HitText(int x, int y, bool Nearest);
 	void DeleteSelection(char16 **Cut = 0);
