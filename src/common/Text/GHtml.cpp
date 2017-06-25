@@ -2792,7 +2792,7 @@ void GTag::SetStyle()
 	{
 		if ((Debug = atoi(s)))
 		{
-			LgiTrace("Debug Tag: %p '%s'\n", this, Tag ? Tag.Get() : "CONTENT");
+			// LgiTrace("Debug Tag: %p '%s'\n", this, Tag ? Tag.Get() : "CONTENT");
 		}
 	}
 	#endif

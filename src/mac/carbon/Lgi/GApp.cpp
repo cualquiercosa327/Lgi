@@ -969,7 +969,7 @@ void GApp::OnCommandLine()
 	for (int i=1; i<GetAppArgs()->Args; i++)
 	{
 		const char *a = GetAppArgs()->Arg[i];
-		LgiTrace("Arg[%i]='%s'\n", i, a);
+		// LgiTrace("Arg[%i]='%s'\n", i, a);
 		if (FileExists(a))
 		{
 			Files.Add(NewStr(a));

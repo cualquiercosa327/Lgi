@@ -1409,7 +1409,7 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 		EmojiIdx[i] = EmojiToIconIndex(InStr + i, InChars - i);
 	}
 
-	// const uint32 *End = InStr + InChars;
+	int InitialOffset = AtOffset >= 0 ? AtOffset : Len;
 	int Chars = 0; // Length of run to insert
 	int Pos = 0; // Current position in this block
 	uint32 TxtIdx = 0; // Index into Txt array
@@ -1533,23 +1533,79 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 
 	LayoutDirty = true;	
 	IsValid();
-	UpdateSpellingAndLinks(GRange(AtOffset, InChars));
+	UpdateSpellingAndLinks(GRange(InitialOffset, InChars));
 	
 	return true;
 }
 
+#define IsUrlWordChar(t) \
+	(((t) > ' ') && !strchr("./:", (t)))
+
 template<typename Char>
-bool DetectUrl(Char *t, int len)
+bool _ScanWord(Char *&t, Char *e)
 {
+	if (!IsUrlWordChar(*t))
+		return false;
+	
+	Char *s = t;
+	while (t < e && IsUrlWordChar(*t))
+		t++;
+	
+	return t > s;
+}
+
+#define ScanWord() \
+	if (t >= e || !_ScanWord(t, e)) return false
+#define ScanChar(ch) \
+	if (t >= e || *t != ch) \
+		return false; \
+	t++
+
+template<typename Char>
+bool DetectUrl(Char *t, int &len)
+{
+	#ifdef _DEBUG
+	GString str(t, len);
+	char *ss = str;
+	#endif
+	
+	Char *s = t;
 	Char *e = t + len;
-	Char *s = Strnchr(t, ':', len);
-	if (!s) return false;
-	if (s+1 < e && s[1] != '/') return false;
-	if (s+2 < e && s[2] != '/') return false;
-	s += 3;
+	ScanWord(); // Protocol
+	ScanChar(':');
+	ScanChar('/');
+	ScanChar('/');
+	ScanWord(); // Hostname or username..
+	if (t < e && *t == ':')
+	{
+		t++;
+		_ScanWord(t, e); // Don't return if missing... password optional
+		ScanChar('@');
+		ScanWord(); // First part of hostname...
+	}
 
-
-	return false;
+	// Rest of hostname
+	while (t < e && *t == '.')
+	{
+		t++;
+		ScanWord(); // Second part of hostname
+	}
+	
+	if (t < e && *t == ':') // Port number
+	{
+		t++;
+		ScanWord();
+	}
+	
+	while (t < e && *t == '/') // Path
+	{
+		t++;
+		if (t < e && IsUrlWordChar(*t))
+			ScanWord();
+	}
+	
+	len = t - s;
+	return true;
 }
 
 void GRichTextPriv::TextBlock::UpdateSpellingAndLinks(GRange r)
@@ -1567,16 +1623,67 @@ void GRichTextPriv::TextBlock::UpdateSpellingAndLinks(GRange r)
 	}
 
 	// Link detection...
-	GRange Word = r;
-	while (Word.Start > 0 && !IsWhiteSpace(Text[Word.Start]))
-	{
-		Word.Start--;
-		Word.Len++;
-	}
-	while (Word.End() < Text.Length() && !IsWhiteSpace(Text[Word.End()]))
-		Word.Len++;
-	bool IsUrl = DetectUrl(Text.AddressOf(Word.Start), Word.Len);
 	
+	// Extend the range to include whole words
+	printf("rng=%i, %i\n", r.Start, r.Len);
+	while (r.Start > 0 && !IsWhiteSpace(Text[r.Start]))
+	{
+		r.Start--;
+		r.Len++;
+	}
+	while (r.End() < Text.Length() && !IsWhiteSpace(Text[r.End()]))
+		r.Len++;
+
+	// Create array of words...
+	GArray<GRange> Words;
+	bool Ws = true;
+	for (int i = 0; i < r.Len; i++)
+	{
+		bool w = IsWhiteSpace(Text[r.Start + i]);
+		if (w ^ Ws)
+		{
+			Ws = w;
+			if (!w)
+			{
+				GRange &w = Words.New();
+				w.Start = r.Start + i;
+				printf("StartWord=%i, %i\n", w.Start, w.Len);
+			}
+			else if (Words.Length() > 0)
+			{
+				GRange &w = Words.Last();
+				w.Len = r.Start + i - w.Start;
+				printf("EndWord=%i, %i\n", w.Start, w.Len);
+			}
+		}
+	}
+	if (!Ws && Words.Length() > 0)
+	{
+		GRange &w = Words.Last();
+		w.Len = r.Start + r.Len - w.Start;
+		printf("TermWord=%i, %i Words=%i\n", w.Start, w.Len, Words.Length());
+	}
+	
+	// For each word in the range of text
+	for (unsigned i = 0; i<Words.Length(); i++)
+	{
+		GRange &w = Words[i];
+		bool IsUrl = DetectUrl(Text.AddressOf(w.Start), w.Len);
+		
+		#ifdef _DEBUG
+		{
+			GString s(Text.AddressOf(w.Start), w.Len);
+			printf("DetectUrl(%s)=%i\n", s.Get(), IsUrl);
+		}
+		#endif
+		
+		if (IsUrl)
+		{
+			// Check there is a URL at the location
+			GString Link(Text.AddressOf(w.Start), w.Len);
+			d->MakeLink(this, w.Start, w.Len, Link);
+		}
+	}
 }
 
 int ErrSort(GSpellCheck::SpellingError *a, GSpellCheck::SpellingError *b)

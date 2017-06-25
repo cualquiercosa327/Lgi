@@ -1437,6 +1437,37 @@ void GRichTextPriv::PaintBtn(GSurface *pDC, GRichTextEdit::RectType t)
 	}
 }
 
+bool GRichTextPriv::MakeLink(TextBlock *tb, int Offset, int Len, GString Link)
+{
+	if (!tb)
+		return false;
+
+	GArray<StyleText*> st;
+	if (!tb->GetTextAt(Offset, st))
+		return false;
+	
+	GAutoPtr<GNamedStyle> ns(new GNamedStyle);
+	if (ns)
+	{
+		if (st.Last()->GetStyle())
+			*ns = *st.Last()->GetStyle();
+		ns->TextDecoration(GCss::TextDecorUnderline);
+		ns->Color(GCss::ColorDef(GCss::ColorRgb, GColour::Blue.c32()));
+		
+		GAutoPtr<Transaction> Trans(new Transaction);
+
+		tb->ChangeStyle(Trans, Offset, Len, ns, true);
+
+		if (tb->GetTextAt(Offset + 1, st))
+		{
+			st.First()->Element = TAG_A;
+			st.First()->Param = Link;
+		}
+
+		AddTrans(Trans);
+	}
+}
+
 bool GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 {
 	switch (t)
@@ -1566,8 +1597,11 @@ bool GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 						LgiMsg(View, "Selection too large.", "Error");
 						return false;
 					}
+					
 					int Off = Start->Offset;
 					int Len = End->Offset - Start->Offset;
+
+					/*
 					GAutoPtr<GNamedStyle> ns(new GNamedStyle);
 					if (ns)
 					{
@@ -1588,6 +1622,9 @@ bool GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 
 						AddTrans(Trans);
 					}
+					*/
+					
+					MakeLink(tb, Off, Len, i.Str.Get());
 				}
 			}
 			break;

@@ -1128,6 +1128,7 @@ public:
 	void OnStyleChange(GRichTextEdit::RectType t);
 	bool ChangeSelectionStyle(GCss *Style, bool Add);
 	void PaintBtn(GSurface *pDC, GRichTextEdit::RectType t);
+	bool MakeLink(TextBlock *tb, int Offset, int Len, GString Link);
 	bool ClickBtn(GMouse &m, GRichTextEdit::RectType t);
 	void Paint(GSurface *pDC, GScrollBar *&ScrollY);
 	GHtmlElement *CreateElement(GHtmlElement *Parent);
