@@ -2347,7 +2347,7 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 			for (unsigned i=0; i<Dictionaries->Length(); i++)
 			{
 				GSpellCheck::DictionaryId &s = (*Dictionaries)[i];
-				printf("%s:%i - M_ENUMERATE_DICTIONARIES: %s, %s\n", _FL, s.Dict.Get(), d->SpellDict.Get());
+				// printf("%s:%i - M_ENUMERATE_DICTIONARIES: %s, %s\n", _FL, s.Dict.Get(), d->SpellDict.Get());
 				if (s.Dict.Equals(d->SpellDict))
 				{
 					d->SpellCheck->SetDictionary(AddDispatch(), s.Lang, s.Dict);

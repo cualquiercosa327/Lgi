@@ -1598,33 +1598,10 @@ bool GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 						return false;
 					}
 					
-					int Off = Start->Offset;
-					int Len = End->Offset - Start->Offset;
-
-					/*
-					GAutoPtr<GNamedStyle> ns(new GNamedStyle);
-					if (ns)
-					{
-						if (st.Last()->GetStyle())
-							*ns = *st.Last()->GetStyle();
-						ns->TextDecoration(GCss::TextDecorUnderline);
-						ns->Color(GCss::ColorDef(GCss::ColorRgb, GColour::Blue.c32()));
-						
-						GAutoPtr<Transaction> Trans(new Transaction);
-
-						tb->ChangeStyle(Trans, Off, Len, ns, true);
-
-						if (tb->GetTextAt(Off+1, st))
-						{
-							st.First()->Element = TAG_A;
-							st.First()->Param = i.Str;
-						}
-
-						AddTrans(Trans);
-					}
-					*/
-					
-					MakeLink(tb, Off, Len, i.Str.Get());
+					MakeLink(tb,
+							Start->Offset,
+							End->Offset - Start->Offset,
+							i.Str.Get());
 				}
 			}
 			break;

@@ -1352,7 +1352,7 @@ int GRichTextPriv::TextBlock::DeleteAt(Transaction *Trans, int BlkOffset, int Ch
 	if (Deleted > 0)
 	{
 		LayoutDirty = true;
-		UpdateSpellingAndLinks(GRange(BlkOffset, 0));
+		UpdateSpellingAndLinks(Trans, GRange(BlkOffset, 0));
 	}
 
 	IsValid();
@@ -1533,7 +1533,7 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const u
 
 	LayoutDirty = true;	
 	IsValid();
-	UpdateSpellingAndLinks(GRange(InitialOffset, InChars));
+	UpdateSpellingAndLinks(Trans, GRange(InitialOffset, InChars));
 	
 	return true;
 }
@@ -1552,6 +1552,19 @@ bool _ScanWord(Char *&t, Char *e)
 		t++;
 	
 	return t > s;
+}
+
+bool IsBracketed(int s, int e)
+{
+	if (s == '(' && e == ')')
+		return true;
+	if (s == '[' && e == ']')
+		return true;
+	if (s == '{' && e == '}')
+		return true;
+	if (s == '<' && e == '>')
+		return true;
+	return false;
 }
 
 #define ScanWord() \
@@ -1588,7 +1601,8 @@ bool DetectUrl(Char *t, int &len)
 	while (t < e && *t == '.')
 	{
 		t++;
-		ScanWord(); // Second part of hostname
+		if (t < e && IsUrlWordChar(*t))
+			ScanWord(); // Second part of hostname
 	}
 	
 	if (t < e && *t == ':') // Port number
@@ -1604,11 +1618,14 @@ bool DetectUrl(Char *t, int &len)
 			ScanWord();
 	}
 	
+	if (strchr("!.", t[-1]))
+		t--;
+	
 	len = t - s;
 	return true;
 }
 
-void GRichTextPriv::TextBlock::UpdateSpellingAndLinks(GRange r)
+void GRichTextPriv::TextBlock::UpdateSpellingAndLinks(Transaction *Trans, GRange r)
 {
 	GArray<uint32> Text;
 	if (!CopyAt(0, Length(), &Text))
@@ -1625,7 +1642,7 @@ void GRichTextPriv::TextBlock::UpdateSpellingAndLinks(GRange r)
 	// Link detection...
 	
 	// Extend the range to include whole words
-	printf("rng=%i, %i\n", r.Start, r.Len);
+	// printf("rng=%i, %i\n", r.Start, r.Len);
 	while (r.Start > 0 && !IsWhiteSpace(Text[r.Start]))
 	{
 		r.Start--;
@@ -1647,13 +1664,13 @@ void GRichTextPriv::TextBlock::UpdateSpellingAndLinks(GRange r)
 			{
 				GRange &w = Words.New();
 				w.Start = r.Start + i;
-				printf("StartWord=%i, %i\n", w.Start, w.Len);
+				// printf("StartWord=%i, %i\n", w.Start, w.Len);
 			}
 			else if (Words.Length() > 0)
 			{
 				GRange &w = Words.Last();
 				w.Len = r.Start + i - w.Start;
-				printf("EndWord=%i, %i\n", w.Start, w.Len);
+				// printf("EndWord=%i, %i\n", w.Start, w.Len);
 			}
 		}
 	}
@@ -1661,13 +1678,15 @@ void GRichTextPriv::TextBlock::UpdateSpellingAndLinks(GRange r)
 	{
 		GRange &w = Words.Last();
 		w.Len = r.Start + r.Len - w.Start;
-		printf("TermWord=%i, %i Words=%i\n", w.Start, w.Len, Words.Length());
+		// printf("TermWord=%i, %i Words=%i\n", w.Start, w.Len, Words.Length());
 	}
 	
 	// For each word in the range of text
 	for (unsigned i = 0; i<Words.Length(); i++)
 	{
-		GRange &w = Words[i];
+		GRange w = Words[i];
+
+		// Check there is a URL at the location
 		bool IsUrl = DetectUrl(Text.AddressOf(w.Start), w.Len);
 		
 		#ifdef _DEBUG
@@ -1679,9 +1698,23 @@ void GRichTextPriv::TextBlock::UpdateSpellingAndLinks(GRange r)
 		
 		if (IsUrl)
 		{
-			// Check there is a URL at the location
+			// Are there chars bracketing the URL?
+			if (IsBracketed(Text[w.Start], Text[w.End()-1]))
+			{
+				w.Start++;
+				w.Len -= 2;
+			}
+			
+			// Make it a link...
 			GString Link(Text.AddressOf(w.Start), w.Len);
 			d->MakeLink(this, w.Start, w.Len, Link);
+			
+			// Also unlink any of the word after the URL
+			if (w.End() < Words[i].End())
+			{
+				GCss Style;
+				ChangeStyle(Trans, w.End(), Words[i].End() - w.End(), &Style, false);
+			}
 		}
 	}
 }
