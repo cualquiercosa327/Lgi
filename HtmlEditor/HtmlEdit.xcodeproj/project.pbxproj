@@ -10,6 +10,9 @@
 		341B9A491DEAC4930011CE44 /* BlockCursor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 341B9A451DEAC4930011CE44 /* BlockCursor.cpp */; };
 		341B9A4A1DEAC4930011CE44 /* GRichTextEdit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 341B9A461DEAC4930011CE44 /* GRichTextEdit.cpp */; };
 		341B9A4B1DEAC4930011CE44 /* TextBlock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 341B9A481DEAC4930011CE44 /* TextBlock.cpp */; };
+		347E435A1F0130A8006EBF63 /* SpellCheckMac.mm in Sources */ = {isa = PBXBuildFile; fileRef = 347E43591F0130A8006EBF63 /* SpellCheckMac.mm */; };
+		347E435C1F0130E1006EBF63 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 347E435B1F0130E1006EBF63 /* Cocoa.framework */; };
+		347E435E1F013129006EBF63 /* ImageBlock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 347E435D1F013129006EBF63 /* ImageBlock.cpp */; };
 		349A13611A7F7C1B000D4C67 /* LgiMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A13601A7F7C1B000D4C67 /* LgiMain.cpp */; };
 		349A13631A7F7C2A000D4C67 /* Rich.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A13621A7F7C2A000D4C67 /* Rich.cpp */; };
 		349A136D1A7F7CEF000D4C67 /* Lgi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 349A136C1A7F7C3E000D4C67 /* Lgi.framework */; };
@@ -57,6 +60,9 @@
 		341B9A461DEAC4930011CE44 /* GRichTextEdit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GRichTextEdit.cpp; path = ../src/common/Widgets/Editor/GRichTextEdit.cpp; sourceTree = "<group>"; };
 		341B9A471DEAC4930011CE44 /* GRichTextEditPriv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GRichTextEditPriv.h; path = ../src/common/Widgets/Editor/GRichTextEditPriv.h; sourceTree = "<group>"; };
 		341B9A481DEAC4930011CE44 /* TextBlock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TextBlock.cpp; path = ../src/common/Widgets/Editor/TextBlock.cpp; sourceTree = "<group>"; };
+		347E43591F0130A8006EBF63 /* SpellCheckMac.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = SpellCheckMac.mm; path = ../src/mac/cocoa/Lgi/SpellCheckMac.mm; sourceTree = "<group>"; };
+		347E435B1F0130E1006EBF63 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
+		347E435D1F013129006EBF63 /* ImageBlock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ImageBlock.cpp; path = ../src/common/Widgets/Editor/ImageBlock.cpp; sourceTree = "<group>"; };
 		3495283A1A65F1AD004E07EF /* LgiCarbon.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LgiCarbon.xcodeproj; path = ../src/mac/carbon/LgiCarbon.xcodeproj; sourceTree = "<group>"; };
 		349A13601A7F7C1B000D4C67 /* LgiMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiMain.cpp; path = ../src/common/Lgi/LgiMain.cpp; sourceTree = "<group>"; };
 		349A13621A7F7C2A000D4C67 /* Rich.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Rich.cpp; sourceTree = "<group>"; };
@@ -82,6 +88,7 @@
 			files = (
 				8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */,
 				349A136D1A7F7CEF000D4C67 /* Lgi.framework in Frameworks */,
+				347E435C1F0130E1006EBF63 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -110,6 +117,7 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				347E43571F013096006EBF63 /* Spell Check */,
 				341B9A421DEAC4490011CE44 /* RichTextEdit */,
 				349A13771A7F7D9D000D4C67 /* GHtmlEdit.cpp */,
 				349A136F1A7F7D81000D4C67 /* GDocView.cpp */,
@@ -134,10 +142,11 @@
 		20286C32FDCF999611CA2CEA /* External Frameworks and Libraries */ = {
 			isa = PBXGroup;
 			children = (
-				3495283A1A65F1AD004E07EF /* LgiCarbon.xcodeproj */,
-				20286C33FDCF999611CA2CEA /* Carbon.framework */,
-				4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */,
 				4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */,
+				20286C33FDCF999611CA2CEA /* Carbon.framework */,
+				347E435B1F0130E1006EBF63 /* Cocoa.framework */,
+				4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */,
+				3495283A1A65F1AD004E07EF /* LgiCarbon.xcodeproj */,
 			);
 			name = "External Frameworks and Libraries";
 			sourceTree = "<group>";
@@ -145,6 +154,7 @@
 		341B9A421DEAC4490011CE44 /* RichTextEdit */ = {
 			isa = PBXGroup;
 			children = (
+				347E435D1F013129006EBF63 /* ImageBlock.cpp */,
 				341B9A451DEAC4930011CE44 /* BlockCursor.cpp */,
 				341B9A461DEAC4930011CE44 /* GRichTextEdit.cpp */,
 				34D470AC1E1468CE003AF375 /* GRichTextEditPriv.cpp */,
@@ -154,6 +164,14 @@
 				34D470A61E1468AE003AF375 /* Emoji */,
 			);
 			name = RichTextEdit;
+			sourceTree = "<group>";
+		};
+		347E43571F013096006EBF63 /* Spell Check */ = {
+			isa = PBXGroup;
+			children = (
+				347E43591F0130A8006EBF63 /* SpellCheckMac.mm */,
+			);
+			name = "Spell Check";
 			sourceTree = "<group>";
 		};
 		349A13681A7F7C3E000D4C67 /* Products */ = {
@@ -266,6 +284,7 @@
 				34D470AD1E1468CE003AF375 /* GRichTextEditPriv.cpp in Sources */,
 				34D470AB1E1468BC003AF375 /* EmojiTools.cpp in Sources */,
 				349A13611A7F7C1B000D4C67 /* LgiMain.cpp in Sources */,
+				347E435A1F0130A8006EBF63 /* SpellCheckMac.mm in Sources */,
 				341B9A491DEAC4930011CE44 /* BlockCursor.cpp in Sources */,
 				349A13631A7F7C2A000D4C67 /* Rich.cpp in Sources */,
 				349A13731A7F7D81000D4C67 /* GDocView.cpp in Sources */,
@@ -274,6 +293,7 @@
 				34D470AA1E1468BC003AF375 /* EmojiMap.cpp in Sources */,
 				349A13751A7F7D81000D4C67 /* GHtmlCommon.cpp in Sources */,
 				349A13761A7F7D81000D4C67 /* GHtmlParser.cpp in Sources */,
+				347E435E1F013129006EBF63 /* ImageBlock.cpp in Sources */,
 				349A13781A7F7D9D000D4C67 /* GHtmlEdit.cpp in Sources */,
 				349A137A1A7F7DB7000D4C67 /* GdcTools.cpp in Sources */,
 			);
