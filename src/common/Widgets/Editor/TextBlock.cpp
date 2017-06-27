@@ -2024,7 +2024,6 @@ bool GRichTextPriv::TextBlock::ChangeStyle(Transaction *Trans, int Offset, int C
 
 			GNamedStyle *CacheStyle = TmpStyle && TmpStyle->Length() ? d->AddStyleToCache(TmpStyle) : NULL;
 
-
 			if (Before && After)
 			{
 				// Split into 3 parts:
@@ -2073,6 +2072,21 @@ bool GRichTextPriv::TextBlock::ChangeStyle(Transaction *Trans, int Offset, int C
 		}
 
 		CharPos += Len;
+	}
+
+	// Merge any regions of the same style into contiguous sections
+	for (unsigned i=0; i<Txt.Length()-1; i++)
+	{
+		StyleText *a = Txt[i];
+		StyleText *b = Txt[i+1];
+		if (a->GetStyle() == b->GetStyle())
+		{
+			// Merge...
+			a->Add(b->AddressOf(0), b->Length());
+			Txt.DeleteAt(i + 1, true);
+			delete b;
+			i--;
+		}		
 	}
 
 	return true;

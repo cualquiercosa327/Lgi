@@ -1466,6 +1466,8 @@ bool GRichTextPriv::MakeLink(TextBlock *tb, int Offset, int Len, GString Link)
 
 		AddTrans(Trans);
 	}
+
+	return true;
 }
 
 bool GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
