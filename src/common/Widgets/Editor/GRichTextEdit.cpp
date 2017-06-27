@@ -2330,7 +2330,7 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 			for (unsigned i=0; i<Languages->Length(); i++)
 			{
 				GSpellCheck::LanguageId &s = (*Languages)[i];
-				if (s.LangCode.Equals(d->SpellLang))
+				if (s.EnglishName.Equals(d->SpellLang))
 				{
 					d->SpellCheck->EnumDictionaries(AddDispatch(), s.LangCode);
 					break;
