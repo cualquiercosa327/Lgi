@@ -265,6 +265,17 @@ public:
 	}
 	
 	// Equality function (default: case insensitive, as the operator== is case sensitive)
+	bool Equals(const char *b, bool CaseInsensitive = true)
+	{
+		const char *a = Get();
+		if (!a && !b)
+			return true;
+		if (!a || !b)
+			return false;
+		return !(CaseInsensitive ? _stricmp(a, b) : strcmp(a, b));
+	}
+	
+	// Equality function (default: case insensitive, as the operator== is case sensitive)
 	bool Equals(const GString &s, bool CaseInsensitive = true)
 	{
 		const char *a = Get();

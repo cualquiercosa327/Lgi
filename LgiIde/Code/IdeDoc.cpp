@@ -757,7 +757,6 @@ public:
 	}
 };
 
-
 class ProjFilePopup : public GPopupList<ProjectNode>
 {
 	AppWnd *App;
@@ -796,7 +795,11 @@ public:
 	{
 		GString::Array p = InputStr.SplitDelimit(" \t");
 		
-		GArray<ProjectNode*> Matches;
+		int InputLen = InputStr.RFind(".");
+		if (InputLen < 0)
+			InputLen = InputStr.Length();
+
+		GArray<ProjectNode*> Perfect, Partial;
 		for (unsigned i=0; i<Nodes.Length(); i++)
 		{
 			ProjectNode *Pn = Nodes[i];
@@ -817,10 +820,34 @@ public:
 					}
 				}
 				if (Match)
-					Matches.Add(Pn);
+				{
+					bool PerfectMatch = false;
+					char *Leaf = LgiGetLeaf(Fn);
+					if (Leaf)
+					{
+						char *Dot = strrchr(Leaf, '.');
+						if (Dot)
+						{
+							int Len = Dot - Leaf;
+							PerfectMatch =	Len == InputLen &&
+											strncmp(InputStr, Leaf, Len) == 0;
+						}
+						else
+						{
+							PerfectMatch = stricmp(InputStr, Leaf);
+						}
+					}
+
+					if (PerfectMatch)
+						Perfect.Add(Pn);
+					else
+						Partial.Add(Pn);
+				}
 			}
 		}
-		SetItems(Matches);
+
+		Perfect.Add(Partial);
+		SetItems(Perfect);
 	}
 	
 	int OnNotify(GViewI *Ctrl, int Flags)

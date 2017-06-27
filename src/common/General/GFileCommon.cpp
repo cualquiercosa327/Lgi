@@ -304,7 +304,13 @@ const char *LgiGetLeaf(const char *Path)
 	if (!Path)
 		return NULL;
 
-	const char *l = strrchr(Path, DIR_CHAR);
+	const char *l = NULL;
+	for (const char *s = Path; *s; s++)
+	{
+		if (*s == '/' || *s == '\\')
+			l = s;
+	}
+
 	return l ? l + 1 : Path;
 }
 
@@ -313,7 +319,13 @@ char *LgiGetLeaf(char *Path)
 	if (!Path)
 		return NULL;
 
-	char *l = strrchr(Path, DIR_CHAR);
+	char *l = NULL;
+	for (char *s = Path; *s; s++)
+	{
+		if (*s == '/' || *s == '\\')
+			l = s;
+	}
+
 	return l ? l + 1 : Path;
 }
 
