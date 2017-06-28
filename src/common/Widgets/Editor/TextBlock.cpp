@@ -1611,7 +1611,7 @@ bool DetectUrl(Char *t, int &len)
 		ScanWord();
 	}
 	
-	while (t < e && *t == '/') // Path
+	while (t < e && (*t == '/' || *t == '.')) // Path
 	{
 		t++;
 		if (t < e && IsUrlWordChar(*t))
