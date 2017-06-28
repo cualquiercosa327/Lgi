@@ -676,6 +676,10 @@ bool GView::SetPos(GRect &p, bool Repaint)
 
 		if (LgiThreadInPaint == LgiGetCurrentThread())
 		{
+			#ifdef _DEBUG
+			if (_Debug)
+				printf("%s:%i - in paint setpos -> msg\n", _FL);
+			#endif
 			PostEvent(M_SETPOS, (GMessage::Param)new GRect(r));
 		}
 		else
@@ -683,6 +687,10 @@ bool GView::SetPos(GRect &p, bool Repaint)
 			HIRect Rect;
 			Rect = r;
 			HIViewSetFrame(_View, &Rect);
+			#ifdef _DEBUG
+			if (_Debug)
+				printf("%s:%i - setpos %s\n", _FL, p.GetStr());
+			#endif
 		}
 	}
 	else if (GetParent())

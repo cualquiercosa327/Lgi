@@ -1553,7 +1553,7 @@ bool GXmlTree::Write(GXmlTag *Root, GStreamI *File, Progress *Prog)
 	{
 		File->SetSize(0);
 		d->File = File;
-		if (d->Prog = Prog)
+		if ((d->Prog = Prog))
 			d->Prog->SetLimits(0, Root->CountTags());
 
 		if (!TestFlag(d->Flags, GXT_NO_HEADER))
