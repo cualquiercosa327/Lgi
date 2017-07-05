@@ -2382,10 +2382,7 @@ bool AppWnd::IsReleaseMode()
 bool AppWnd::ShowInProject(const char *Fn)
 {
 	if (!Fn)
-	{
-		printf("%s:%i - Error: no file.\n", _FL);
 		return false;
-	}
 	
 	for (IdeProject *p=d->Projects.First(); p; p=d->Projects.Next())
 	{
@@ -2396,13 +2393,12 @@ bool AppWnd::ShowInProject(const char *Fn)
 			{
 				i->Expanded(true);
 			}
-			Node->Select(true);			
-			printf("%s:%i - '%s' found.\n", _FL, Fn);	
+			Node->Select(true);
+			Node->ScrollTo();		
 			return true;
 		}	
 	}
 	
-	printf("%s:%i - '%s' not found.\n", _FL, Fn);	
 	return false;
 }
 
