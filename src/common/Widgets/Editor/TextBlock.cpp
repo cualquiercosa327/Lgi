@@ -1689,7 +1689,7 @@ void GRichTextPriv::TextBlock::UpdateSpellingAndLinks(Transaction *Trans, GRange
 		// Check there is a URL at the location
 		bool IsUrl = DetectUrl(Text.AddressOf(w.Start), w.Len);
 		
-		#ifdef _DEBUG
+		#if 0
 		{
 			GString s(Text.AddressOf(w.Start), w.Len);
 			printf("DetectUrl(%s)=%i\n", s.Get(), IsUrl);

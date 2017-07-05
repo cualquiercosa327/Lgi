@@ -526,13 +526,41 @@ void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 		OnPaint(pDC);
 		#ifdef _DEBUG
 		if (_Debug)
-			printf("%s:%i OnPaint %s\n", _FL, r.GetStr());
+		{
+			OsPainter h = pDC->Handle();
+			CGAffineTransform t2 = CGContextGetCTM(h);
+			GRect r2;
+			CGRect new_bounds = CGContextGetClipBoundingBox(h);
+			r2 = new_bounds;
+
+			HIRect rc;
+			HIViewGetFrame(_View, &rc);
+			HIViewFeatures f;
+			HIViewGetFeatures(_View, &f);
+			bool op = (f & kHIViewIsOpaque) != 0;
+			bool vis = IsControlVisible(_View);
+			
+			if (r2.x1 >= 0)
+			{
+				printf("%s:%i %s::OnPaint %s, %s (%f,%f)\n", _FL, GetClass(),
+						r.GetStr(),
+						r2.GetStr(),
+						(double)t2.tx, (double)t2.ty);
+			}
+			else
+			{
+				printf("%s:%i %s::OnPaint %s, (%f,%f)\n", _FL, GetClass(),
+						r.GetStr(),
+						(double)t2.tx, (double)t2.ty);
+			}
+			
+			GetWindow()->_Dump();
+			int asd=0;
+		}
 		#endif
 	}
 
 	#if PAINT_VIRTUAL_CHILDREN
-	// SetClientDebug = GetId() == 1159;
-
 	// Paint any virtual children
 	List<GViewI>::I it = Children.Start(); // just in case the child access the child list
 	while (it.Each())
