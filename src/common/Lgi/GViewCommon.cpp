@@ -524,7 +524,7 @@ void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 	else
 	{
 		OnPaint(pDC);
-		#ifdef _DEBUG
+		#if defined(_DEBUG) && defined(MAC)
 		if (_Debug)
 		{
 			OsPainter h = pDC->Handle();
