@@ -107,6 +107,7 @@ public:
 ProjectNode::ProjectNode(IdeProject *p) : IdeCommon(p)
 {
 	Platforms = PLATFORM_ALL;
+	NodeId = 0;
 	Type = NodeNone;
 	ChildCount = -1;
 	File = 0;
@@ -262,6 +263,14 @@ bool ProjectNode::Save(GDocView *Edit, NodeView *Callback)
 	
 	
 	return Status;
+}
+
+int ProjectNode::GetId()
+{
+	if (!NodeId && Project)
+		NodeId = Project->AllocateId();
+
+	return NodeId;
 }
 
 bool ProjectNode::IsWeb()
@@ -522,12 +531,12 @@ void ProjectNode::OnExpand(bool b)
 {
 	if (!IgnoreExpand)
 	{
-		Project->SetDirty();
+		Project->SetExpanded(GetId(), b);
 	}
 }
 
 bool ProjectNode::Serialize()
-{
+ {
 	if (!Write && File)
 		Project->OnNode(File, this, false);
 
@@ -562,12 +571,17 @@ bool ProjectNode::Serialize()
 
 	if (Type == NodeDir)
 	{
-		int Open = Expanded();
-		SerializeAttr("Open", Open);
-		if (!Write)
+		if (Write && !NodeId)
+			GetId(); // Make sure we have an ID
+
+		SerializeAttr("Id", NodeId);
+
+		if (Write)
+			Project->SetExpanded(GetId(), Expanded());
+		else
 		{
 			IgnoreExpand = true;
-			Expanded(Open);
+			Expanded(Project->GetExpanded(GetId()));
 			IgnoreExpand = false;
 		}
 	}

@@ -47,6 +47,9 @@ LgiClass GString LgiUrlEncode(const char *s, const char *delim);
 /// URL decode a string
 LgiClass GString LgiUrlDecode(const char *s);
 
+/// Gets the current user
+LgiClass GString LgiCurrentUserName();
+
 #ifdef __cplusplus
 extern "C"
 {

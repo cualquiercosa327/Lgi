@@ -125,21 +125,29 @@ class IdeProjectPrivate
 public:
 	AppWnd *App;
 	IdeProject *Project;
-	bool Dirty;
-	GAutoString FileName;
+	bool Dirty, UserFileDirty;
+	GString FileName;
 	IdeProject *ParentProject;
 	IdeProjectSettings Settings;
 	GAutoPtr<BuildThread> Thread;
 	GHashTbl<const char*, ProjectNode*> Nodes;
+	int NextNodeId;
+
+	// User info file
+	GString UserFile;
+	GHashTbl<int,int> UserNodeFlags;
 
 	IdeProjectPrivate(AppWnd *a, IdeProject *project) :
 		Project(project),
 		Settings(project),
-		Nodes(0, false, NULL, NULL)
+		Nodes(0, false, NULL, NULL),
+		UserNodeFlags(0, false, 0, -1)
 	{
 		App = a;
 		Dirty = false;
+		UserFileDirty = false;
 		ParentProject = 0;
+		NextNodeId = 1;
 	}
 
 	void CollectAllFiles(GTreeNode *Base, GArray<ProjectNode*> &Files, bool SubProjects, int Platform);
@@ -1057,7 +1065,8 @@ void IdeProject::CreateProject()
 {
 	Empty();
 	
-	d->FileName.Reset();
+	d->FileName.Empty();
+	d->UserFile.Empty();
 	d->App->GetTree()->Insert(this);
 	
 	ProjectNode *f = new ProjectNode(this);
@@ -1088,17 +1097,19 @@ ProjectStatus IdeProject::OpenFile(char *FileName)
 {
 	Empty();
 
+	d->UserNodeFlags.Empty();
 	if (LgiIsRelativePath(FileName))
 	{
 		char p[MAX_PATH];
 		getcwd(p, sizeof(p));
 		LgiMakePath(p, sizeof(p), p, FileName);
-		d->FileName.Reset(NewStr(p));
+		d->FileName = p;
 	}
 	else
 	{
-		d->FileName.Reset(NewStr(FileName));
+		d->FileName = FileName;
 	}
+	d->UserFile = d->FileName + "." + LgiCurrentUserName();
 
 	if (d->FileName)
 	{
@@ -1115,6 +1126,21 @@ ProjectStatus IdeProject::OpenFile(char *FileName)
 				Prog.SetLimits(0, Nodes);
 				Prog.SetYieldTime(200);
 				Prog.SetAlwaysOnTop(true);
+
+				if (FileExists(d->UserFile))
+				{
+					GFile Uf;
+					if (Uf.Open(d->UserFile, O_READ))
+					{
+						GString::Array Ln = Uf.Read().SplitDelimit("\n");
+						for (unsigned i=0; i<Ln.Length(); i++)
+						{
+							GString::Array p = Ln[i].SplitDelimit(",");
+							if (p.Length() == 2)
+								d->UserNodeFlags.Add(p[0].Int(), p[1].Int(16));
+						}
+					}
+				}
 				
 				OnOpen(Prog, &r);
 				if (Prog.Cancel())
@@ -1140,13 +1166,12 @@ ProjectStatus IdeProject::OpenFile(char *FileName)
 	return OpenError;
 }
 
-bool IdeProject::SaveFile(char *FileName)
+bool IdeProject::SaveFile()
 {
 	GAutoString Full = GetFullPath();
-	if (ValidStr(Full))
+	if (ValidStr(Full) && d->Dirty)
 	{
 		GFile f;
-		
 		if (f.Open(Full, O_WRITE))
 		{
 			GXmlTree x;
@@ -1165,15 +1190,32 @@ bool IdeProject::SaveFile(char *FileName)
 				Prog.SetDescription("Writing XML...");
 				LgiYield();
 				if (Cp.Copy(&Buf, &f))
-				{
 					d->Dirty = false;
-					return true;
-				}
 			}
 		}
 	}
 
-	return false;
+	if (d->UserFileDirty)
+	{
+		GFile f;
+		LgiAssert(d->UserFile.Get());
+		if (f.Open(d->UserFile, O_WRITE))
+		{
+			f.SetSize(0);
+
+			// Save user file details..
+			int Id;
+			for (int Flags = d->UserNodeFlags.First(&Id); Flags >= 0; Flags = d->UserNodeFlags.Next(&Id))
+			{
+				f.Print("%i,%x\n", Id, Flags);
+			}
+
+			d->UserFileDirty = false;
+		}
+	}
+
+	return	!d->Dirty &&
+			!d->UserFileDirty;
 }
 
 void IdeProject::SetDirty()
@@ -1182,9 +1224,34 @@ void IdeProject::SetDirty()
 	d->App->OnProjectChange();
 }
 
+void IdeProject::SetUserFileDirty()
+{
+	d->UserFileDirty = true;
+}
+
+bool IdeProject::GetExpanded(int Id)
+{
+	int f = d->UserNodeFlags.Find(Id);
+	return f >= 0 ? f : false;
+}
+
+void IdeProject::SetExpanded(int Id, bool Exp)
+{
+	if (d->UserNodeFlags.Find(Id) != (int)Exp)
+	{
+		d->UserNodeFlags.Add(Id, Exp);
+		SetUserFileDirty();
+	}
+}
+
+int IdeProject::AllocateId()
+{
+	return d->NextNodeId++;
+}
+
 bool IdeProject::SetClean()
 {
-	if (d->Dirty)
+	if (d->Dirty || d->UserFileDirty)
 	{
 		if (!ValidStr(d->FileName))
 		{
@@ -1193,14 +1260,15 @@ bool IdeProject::SetClean()
 			s.Name("Project.xml");
 			if (s.Save())
 			{
-				d->FileName.Reset(NewStr(s.Name()));
+				d->FileName = s.Name();
+				d->UserFile = d->FileName + "." + LgiCurrentUserName();
 				d->App->OnFile(d->FileName, true);
 				Update();
 			}
 			else return false;
 		}
 
-		SaveFile(0);
+		SaveFile();
 	}
 
 	ForAllProjectNodes(p)

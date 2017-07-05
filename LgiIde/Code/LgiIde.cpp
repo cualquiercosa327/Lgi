@@ -1967,38 +1967,6 @@ IdeProject *AppWnd::OpenProject(char *FileName, IdeProject *ParentProj, bool Cre
 			}
 
 			GetTree()->Focus(true);
-
-			GArray<ProjectNode*> Files;
-			if (p && p->GetAllNodes(Files))
-			{
-
-				/* This is handling in ::OnNode now
-				GAutoString Base = p->GetBasePath();
-				for (unsigned i=0; i<Files.Length(); i++)
-				{
-					ProjectNode *n = Files[i];
-					if (n)
-					{
-						char *Fn = n->GetFileName();
-						if (Fn)
-						{
-							GFile::Path Path;
-							if (LgiIsRelativePath(Fn))
-							{
-								Path = Base;
-								Path += Fn;
-							}
-							else
-							{
-								Path = Fn;
-							}
-							
-							d->FindSym.OnFile(Path, FindSymbolSystem::FileAdd);
-						}
-					}
-				}
-				*/
-			}
 		}
 	}
 

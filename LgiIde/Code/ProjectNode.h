@@ -28,6 +28,7 @@ extern int XmlSort(GXmlTag *a, GXmlTag *b, NativeInt d);
 class ProjectNode : public IdeCommon, public GDragDropSource, public FtpCallback, public NodeSource
 {
 	NodeType Type;
+	int NodeId;
 	int Platforms;
 	char *File;
 	char *LocalCache;
@@ -56,6 +57,7 @@ public:
 	void AddNodes(GArray<ProjectNode*> &Nodes);
 	
 	// Props
+	int GetId();
 	bool IsWeb();
 	IdeProject *GetDep();
 	IdeProject *GetProject();
