@@ -1284,7 +1284,7 @@ char *IdeProject::GetText(int Col)
 	if (d->FileName)
 	{
 		char *s = strrchr(d->FileName, DIR_CHAR);
-		return s ? s + 1 : d->FileName;
+		return s ? s + 1 : d->FileName.Get();
 	}
 
 	return (char*)Untitled;
