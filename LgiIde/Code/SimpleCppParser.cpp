@@ -2,8 +2,8 @@
 #include "SimpleCppParser.h"
 
 #if 1
-#define DEBUG_FILE		"p:\\Code\\Scribe\\trunk\\Code\\Sqlite\\v3.6.14\\sqlite3.c"
-#define DEBUG_LINE		27149
+#define DEBUG_FILE		"C:\\Users\\matthew\\Audinate\\Callendar\\LCC_K60\\src\\projects\\Dante\\LCC_platform.h"
+#define DEBUG_LINE		98
 #elif 0
 #define DEBUG_FILE		"apcp-stdin.c"
 #define DEBUG_LINE		396
@@ -377,6 +377,13 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 							Start = s;
 							goto DefineStructClass;
 						}
+
+						IsEnum = !Strnicmp(StrEnum, s, StrlenW(StrEnum));
+						if (IsEnum)
+						{
+							Start = s;
+							goto DefineEnum;
+						}
 						
 						GStringPipe p;
 						char16 *i;
@@ -542,8 +549,10 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 						StrncmpW(StrEnum, Start, 4) == 0
 					)
 					{
+						DefineEnum:
+
 						IsEnum = true;
-						Start += 4;
+						s += 4;
 						defnskipws(s);
 						
 						GAutoWString t(LexCpp(s, LexStrdup));

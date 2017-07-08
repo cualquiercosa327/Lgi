@@ -247,6 +247,9 @@ public:
 	bool GetTargetFile(char *Buf, int BufSize);
 	bool BuildIncludePaths(GArray<GString> &Paths, bool Recurse, IdePlatform Platform);
 	void ShowFileProperties(const char *File);
+	bool GetExpanded(int Id);
+	void SetExpanded(int Id, bool Exp);
+	int AllocateId();
 	
 	// Nodes
 	char *FindFullPath(const char *File, class ProjectNode **Node = NULL);
@@ -260,9 +263,10 @@ public:
 	// File
 	void CreateProject();
 	ProjectStatus OpenFile(char *FileName);
-	bool SaveFile(char *FileName = 0);
+	bool SaveFile();
 	bool SetClean();
 	void SetDirty();
+	void SetUserFileDirty();
 	bool Serialize();
 	void ImportDsp(char *File);
 

@@ -49,6 +49,14 @@ void LgiSleep(DWORD i)
 	::Sleep(i);
 }
 
+GString LgiCurrentUserName()
+{
+	TCHAR username[256];
+	DWORD username_len = sizeof(username);
+	GetUserName(username, &username_len);
+	return username;
+}
+
 bool LgiGetMimeTypeExtensions(const char *Mime, GArray<char*> &Ext)
 {
 	int Start = Ext.Length();
