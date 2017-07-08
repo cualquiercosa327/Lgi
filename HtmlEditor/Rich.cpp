@@ -139,7 +139,7 @@ public:
 				Split->AddView(Tabs = new GTabView(IDC_TABS));
 				if (Tabs)
 				{
-					Tabs->Debug();
+					// Tabs->Debug();
 					
 					GTabPage *p = Tabs->Append("Html Output");
 					if (p)
