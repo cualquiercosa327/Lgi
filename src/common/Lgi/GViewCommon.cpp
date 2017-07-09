@@ -1615,7 +1615,7 @@ bool GView::AttachChildren()
 	List<GViewI>::I it = Children.Start();
 	while (it.Each())
 	{
-		GViewI *c = *it;
+		GViewI *c = *it;		
 		if (!c->IsAttached())
 		{
 			if (!c->Attach(this))

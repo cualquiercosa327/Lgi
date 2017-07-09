@@ -210,6 +210,7 @@ public:
 	void OnMouseExit(GMouse &m);
 	void OnMouseMove(GMouse &m);
 	bool Pour(GRegion &r);
+	bool OnLayout(GViewLayoutInfo &Inf);
 	void OnCreate();
 
 	#ifdef MAC

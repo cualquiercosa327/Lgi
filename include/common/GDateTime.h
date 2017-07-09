@@ -242,7 +242,7 @@ public:
 	/// Adds a number of hours to the current date/time
 	void AddHours(int Hours);
 	/// Adds a number of days to the current date/time
-	void AddDays(int Days);
+	bool AddDays(int Days);
 	/// Adds a number of months to the current date/time
 	void AddMonths(int Months);
 

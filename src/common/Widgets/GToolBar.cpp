@@ -1151,6 +1151,26 @@ GFont *GToolBar::GetFont()
 	return d->Font;
 }
 
+bool GToolBar::OnLayout(GViewLayoutInfo &Inf)
+{
+	if (Inf.Width.Min == 0)
+	{
+		// Calc width
+		GRegion r(0, 0, 10000, 10000);
+		Pour(r);
+		Inf.Width.Min = X();
+		Inf.Width.Max = X();
+		LgiTrace("Toolbar %i,%i\n", X(), Y());
+	}
+	else
+	{
+		// Calc height
+		Inf.Height.Min = Y();
+		Inf.Height.Max = Y();
+	}
+	return true;
+}
+
 #define GetBorderSpacing()	GetCss() && GetCss()->BorderSpacing().IsValid() ? \
 							GetCss()->BorderSpacing().ToPx(X(), GetFont()) : \
 							1

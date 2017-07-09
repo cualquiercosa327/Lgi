@@ -1513,28 +1513,19 @@ void GDateTime::AddHours(int Hours)
 	LgiAssert(_Hours >= 0 && _Hours < 24);
 }
 
-void GDateTime::AddDays(int Days)
+bool GDateTime::AddDays(int Days)
 {
-	_Day += Days;
+	if (!Days)
+		return true;
 
-	do
-	{
-		if (_Day < 1)
-		{
-			AddMonths(-1);
-			_Day += DaysInMonth();
-		}
-		else if (_Day > DaysInMonth())
-		{
-			_Day -= DaysInMonth();
-			AddMonths(1);
-		}
-		else
-		{
-			break;
-		}
-	}
-	while (1);
+	uint64 Ts;
+	if (!Get(Ts))
+		return false;
+
+	uint64 DayTicks = (uint64)GDateTime::Second64Bit * 60 * 60 * 24;
+	Ts += Days * DayTicks;
+	bool b = Set(Ts);
+	return b;
 }
 
 void GDateTime::AddMonths(int Months)
