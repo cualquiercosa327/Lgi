@@ -75,6 +75,8 @@ public:
 	/// Sets the text to display when the control is empty
 	void SetEmptyText(const char *EmptyText);
 
+	void SelectAll() { Select(); }
+
 	bool OnKey(GKey &k);
 	LgiCursor GetCursor(int x, int y) { return LCUR_Ibeam; }
 

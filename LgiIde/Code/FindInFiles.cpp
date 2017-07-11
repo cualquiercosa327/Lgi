@@ -6,6 +6,7 @@
 #include "GProcess.h"
 #include "GDocView.h"
 #include "GToken.h"
+#include "GEdit.h"
 
 /////////////////////////////////////////////////////////////////////////////////////
 FindInFiles::FindInFiles(AppWnd *app, FindParams *params)
@@ -108,9 +109,12 @@ void FindInFiles::OnCreate()
 		SerializeHistory(TypeHistory, "TypeHist", App->GetOptions(), false);
 		SerializeHistory(FolderHistory, "FolderHist", App->GetOptions(), false);
 
-		GViewI *v;
+		GEdit *v;
 		if (GetViewById(IDC_LOOK_FOR, v))
+		{
 			v->Focus(true);
+			v->SelectAll();
+		}
 	}
 }
 
