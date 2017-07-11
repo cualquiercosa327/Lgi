@@ -332,6 +332,8 @@ struct MonthHash : public GHashTbl<const char*,int>
 	}
 };
 
+GString::Array Zdump;
+
 bool GDateTime::GetDaylightSavingsInfo(GArray<GDstInfo> &Info, GDateTime &Start, GDateTime *End)
 {
 	bool Status = false;
@@ -396,101 +398,104 @@ bool GDateTime::GetDaylightSavingsInfo(GArray<GDstInfo> &Info, GDateTime &Start,
 	}
 	
 	#elif defined(MAC) || defined(LINUX)
-	
-	FILE *f = popen("zdump -v /etc/localtime", "r");
-	if (f)
-	{
-		char s[256];
-		size_t r;
-		GStringPipe p(1024);
-		while ((r = fread(s, 1, sizeof(s), f)) > 0)
-		{
-			p.Write(s, r);
-		}		
-		fclose(f);
-		
-		MonthHash Lut;
 
-		GAutoString ps(p.NewStr());
-		GToken t(ps, "\r\n");
-		GDateTime Prev;
-		int PrevOff = 0;
-		for (int i=0; i<t.Length(); i++)
+	if (!Zdump.Length())
+	{	
+		FILE *f = popen("zdump -v /etc/localtime", "r");
+		if (f)
 		{
-			char *Line = t[i];
-			GToken l(Line, " \t");
-			if (l.Length() >= 16 &&
-				!stricmp(l[0], "/etc/localtime"))
+			char s[256];
+			size_t r;
+			GStringPipe p(1024);
+			while ((r = fread(s, 1, sizeof(s), f)) > 0)
 			{
-				// /etc/localtime  Sat Oct  3 15:59:59 2037 UTC = Sun Oct  4 01:59:59 2037 EST isdst=0 gmtoff=36000
-				// 0               1   2    3 4        5    6   7 8   9    10 11      12   13  14      15
-				GDateTime Utc;
-				Utc.Year(atoi(l[5]));
-				GToken Tm(l[4], ":");
-				if (Tm.Length() == 3)
+				p.Write(s, r);
+			}		
+			fclose(f);
+			
+			GString ps = p.NewGStr();
+			Zdump = ps.Split("\r\n");
+		}
+	}
+		
+	MonthHash Lut;
+	GDateTime Prev;
+	int PrevOff = 0;
+	for (int i=0; i<Zdump.Length(); i++)
+	{
+		char *Line = Zdump[i];
+		GToken l(Line, " \t");
+		if (l.Length() >= 16 &&
+			!stricmp(l[0], "/etc/localtime"))
+		{
+			// /etc/localtime  Sat Oct  3 15:59:59 2037 UTC = Sun Oct  4 01:59:59 2037 EST isdst=0 gmtoff=36000
+			// 0               1   2    3 4        5    6   7 8   9    10 11      12   13  14      15
+			GDateTime Utc;
+			Utc.Year(atoi(l[5]));
+			GToken Tm(l[4], ":");
+			if (Tm.Length() == 3)
+			{
+				Utc.Hours(atoi(Tm[0]));
+				Utc.Minutes(atoi(Tm[1]));
+				Utc.Seconds(atoi(Tm[2]));
+				if (Utc.Minutes() == 0)
 				{
-					Utc.Hours(atoi(Tm[0]));
-					Utc.Minutes(atoi(Tm[1]));
-					Utc.Seconds(atoi(Tm[2]));
-					if (Utc.Minutes() == 0)
+					int m = Lut.Find(l[2]);
+					if (m)
 					{
-						int m = Lut.Find(l[2]);
-						if (m)
+						Utc.Day(atoi(l[3]));
+						Utc.Month(m);
+
+						GAutoString Var, Val;
+						if (ParseValue(l[14], Var, Val) &&
+							!stricmp(Var, "isdst"))
 						{
-							Utc.Day(atoi(l[3]));
-							Utc.Month(m);
-
-							GAutoString Var, Val;
-							if (ParseValue(l[14], Var, Val) &&
-								!stricmp(Var, "isdst"))
+							int IsDst = atoi(Val);
+							if (ParseValue(l[15], Var, Val) &&
+								!stricmp(Var, "gmtoff"))
 							{
-								int IsDst = atoi(Val);
-								if (ParseValue(l[15], Var, Val) &&
-									!stricmp(Var, "gmtoff"))
+								int Off = atoi(Val) / 60;
+
+								if (Prev.Year() &&
+									Prev < Start &&
+									Start < Utc)
 								{
-									int Off = atoi(Val) / 60;
-
-									if (Prev.Year() &&
-										Prev < Start &&
-										Start < Utc)
-									{
-										/*
-										char Tmp[64];
-										Utc.Get(Tmp, sizeof(Tmp));
-										printf("[%i] Utc=%s\n", Info.Length(), Tmp);
-										Prev.Get(Tmp, sizeof(Tmp));
-										printf("[%i] Prev=%s\n", Info.Length(), Tmp);
-										Start.Get(Tmp, sizeof(Tmp));
-										printf("[%i] Start=%s\n", Info.Length(), Tmp);
-										*/
-									
-										// Emit initial entry for 'start'
-										Info[0].UtcTimeStamp = Start;
-										Info[0].Offset = PrevOff;
-										Status = true;
-									}
-									
-									if (Utc > Start && End && Utc < *End)
-									{
-										// Emit furthur entries for DST events between start and end.
-										GDstInfo &inf = Info.New();
-										inf.UtcTimeStamp = Utc;
-										inf.Offset = Off;
-									}
-
-									Prev = Utc;
-									PrevOff = Off;
+									/*
+									char Tmp[64];
+									Utc.Get(Tmp, sizeof(Tmp));
+									printf("[%i] Utc=%s\n", Info.Length(), Tmp);
+									Prev.Get(Tmp, sizeof(Tmp));
+									printf("[%i] Prev=%s\n", Info.Length(), Tmp);
+									Start.Get(Tmp, sizeof(Tmp));
+									printf("[%i] Start=%s\n", Info.Length(), Tmp);
+									*/
+								
+									// Emit initial entry for 'start'
+									Info[0].UtcTimeStamp = Start;
+									Info[0].Offset = PrevOff;
+									Status = true;
 								}
-								else printf("%s:%i - Unknown value for isdst\n", _FL);
+								
+								if (Utc > Start && End && Utc < *End)
+								{
+									// Emit furthur entries for DST events between start and end.
+									GDstInfo &inf = Info.New();
+									inf.UtcTimeStamp = Utc;
+									inf.Offset = Off;
+								}
+
+								Prev = Utc;
+								PrevOff = Off;
 							}
 							else printf("%s:%i - Unknown value for isdst\n", _FL);
 						}
-						else printf("%s:%i - Unknown month '%s'\n", _FL, l[2]);
+						else printf("%s:%i - Unknown value for isdst\n", _FL);
 					}
-					// else printf("%s:%i - UTC min wrong %s.\n", _FL, l[4]);
+					else printf("%s:%i - Unknown month '%s'\n", _FL, l[2]);
 				}
-				else printf("%s:%i - Tm has wrong parts.\n", _FL);
+				// else printf("%s:%i - UTC min wrong %s.\n", _FL, l[4]);
 			}
+			else printf("%s:%i - Tm has wrong parts.\n", _FL);
 		}
 	}
 	
