@@ -711,16 +711,18 @@ bool GDateTime::Set(uint64 s)
 		_Seconds = System.wSecond;
 		_Thousands = System.wMilliseconds;
 
-		Status = true;
+		return true;
 	}
+	
+	return false;
+
 	#else
 
 	Set((time_t)(s / Second64Bit));
 	_Thousands = s % Second64Bit;
+	return true;
 	
 	#endif
-
-	return Status;
 }
 
 bool GDateTime::Set(time_t tt)
@@ -753,8 +755,6 @@ bool GDateTime::Set(time_t tt)
 
 bool GDateTime::Get(uint64 &s)
 {
-	bool Status = false;
-
 	#ifdef WIN32
 	FILETIME Utc, Local;
 	SYSTEMTIME System;
@@ -773,14 +773,13 @@ bool GDateTime::Get(uint64 &s)
 		(b2 = LocalFileTimeToFileTime(&Local, &Utc)))
 	{
 		s = ((uint64)Utc.dwHighDateTime << 32) | Utc.dwLowDateTime;
-		Status = true;
+		return true;
 	}
-	else
-	{
-	    DWORD Err = GetLastError();
-	    s = 0;
-	    LgiAssert(!"SystemTimeToFileTime failed."); 
-	}
+
+    DWORD Err = GetLastError();
+    s = 0;
+    LgiAssert(!"SystemTimeToFileTime failed."); 
+	return false;
 	
 	#else
 	
@@ -800,6 +799,8 @@ bool GDateTime::Get(uint64 &s)
 	we need to adjust the output to give the correct value.
 	*/
 	time_t sec = mktime(&t);
+	if (sec == -1)
+		return false;
 	
 	int CurTz = SystemTimeZone();
 	if (CurTz != _Tz)
@@ -811,9 +812,9 @@ bool GDateTime::Get(uint64 &s)
 	
 	s = (uint64)sec * Second64Bit + _Thousands;
 	
+	return true;
+	
 	#endif
-
-	return Status;
 }
 
 GString GDateTime::Get()
