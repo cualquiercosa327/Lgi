@@ -27,6 +27,7 @@
 
 extern const char *Untitled;
 
+#define STOP_BUILD_TIMEOUT			3000
 #ifdef WIN32
 #define LGI_STATIC_LIBRARY_EXT		"lib"
 #else
@@ -263,9 +264,29 @@ BuildThread::~BuildThread()
 	if (SubProc)
 		SubProc->Interrupt();
 
+	uint64 Start = LgiCurrentTime();
+	bool Killed = false;
 	while (!IsExited())
 	{
 		LgiSleep(10);
+
+		if (LgiCurrentTime() - Start > STOP_BUILD_TIMEOUT &&
+			SubProc)
+		{
+			if (Killed)
+			{
+				// Thread is stuck as well... ok kill that too!!! Argh - kill all the things!!!!
+				Terminate();
+				break;
+			}
+			else
+			{
+				// Kill the sub-process...
+				SubProc->Kill();
+				Killed = true;
+				Start = LgiCurrentTime();
+			}
+		}
 	}
 }
 
@@ -401,38 +422,24 @@ int BuildThread::Main()
 	if (Exe)
 	{
 		bool Status = false;
-		GAutoString MakePath(NewStr(Makefile));
+		GString MakePath = Makefile.Get();
+		GString InitDir = Makefile.Get();
 		GVariant Jobs;
 		if (!Proj->GetApp()->GetOptions()->GetValue(OPT_Jobs, Jobs) || Jobs.CastInt32() < 1)
 			Jobs = 2;
 
+		int Pos = InitDir.RFind(DIR_STR);
+		if (Pos)
+			InitDir.Length(Pos);
+
+		GString TmpArgs;
 		if (Compiler == VisualStudio)
 		{
-			char a[MAX_PATH];
-			sprintf_s(a, sizeof(a), "\"%s\" /make \"All - Win32 Debug\"", Makefile.Get());
-			GProcess Make;
-			Status = Make.Run(Exe, a, 0, true, 0, this);
-			if (!Status)
-			{
-				Err = "Running make failed";
-				LgiTrace("%s,%i - %s.\n", _FL, Err);
-			}
+			TmpArgs.Printf("\"%s\" /make \"All - Win32 Debug\"", Makefile.Get());
 		}
 		else if (Compiler == PythonScript)
 		{
-			char a[MAX_PATH];
-			GString Path = Makefile.Get();
-			int Pos = Path.RFind(DIR_STR);
-			if (Pos >= 0)
-				Path.Length(Pos);
-
-			GProcess Python;
-			Status = Python.Run(Exe, Makefile, Path, true, 0, this);
-			if (!Status)
-			{
-				Err = "Running python failed";
-				LgiTrace("%s,%i - %s.\n", _FL, Err);
-			}
+			TmpArgs = MakePath;
 		}
 		else if (Compiler == IAR)
 		{
@@ -452,27 +459,17 @@ int BuildThread::Main()
 				}				
 			}
 
-			char a[MAX_PATH];
-			sprintf_s(a, sizeof(a), "\"%s\" %s -log warnings", Makefile.Get(), Conf.Get());
-			GProcess Make;
-			Status = Make.Run(Exe, a, 0, true, 0, this);
-			if (!Status)
-			{
-				Err = "Running IAR Build failed";
-				LgiTrace("%s,%i - %s.\n", _FL, Err);
-			}
+			TmpArgs.Printf("\"%s\" %s -log warnings", Makefile.Get(), Conf.Get());
 		}
 		else
 		{
-			GStringPipe a;
-			char InitDir[MAX_PATH];
-			LgiMakePath(InitDir, sizeof(InitDir), MakePath, "..");
-			
 			if (Compiler == MingW)
 			{
+				GString a;
 				char *Dir = strrchr(MakePath, DIR_CHAR);
 				#if 1
-				a.Print("/C \"%s\"", Exe.Get());
+				TmpArgs.Printf("/C \"%s\"", Exe.Get());
+
 				
 				/*	As of MSYS v1.0.18 the support for multiple jobs causes make to hang:
 					http://sourceforge.net/p/mingw/bugs/1950/
@@ -485,63 +482,66 @@ int BuildThread::Main()
 				
 				*/
 				
-				a.Print(" -f \"%s\"", Dir ? Dir + 1 : MakePath.Get());
+				a.Printf(" -f \"%s\"", Dir ? Dir + 1 : MakePath.Get());
+				TmpArgs += a;
 				#else
-				a.Print("/C set");
+				TmpArgs.Printf("/C set");
 				#endif
 				Exe = "C:\\Windows\\System32\\cmd.exe";
 			}
 			else
 			{
 				if (Jobs.CastInt32())
-					a.Print("-j %i -f \"%s\"", Jobs.CastInt32(), MakePath.Get());
+					TmpArgs.Printf("-j %i -f \"%s\"", Jobs.CastInt32(), MakePath.Get());
 				else
-					a.Print("-f \"%s\"", MakePath.Get());
+					TmpArgs.Printf("-f \"%s\"", MakePath.Get());
 			}
 
 			if (Args)
-				a.Print(" %s", Args.Get());
-			GAutoString Temp(a.NewStr());
-			
-			GString Msg;
-			Msg.Printf("Making: %s\n", Temp.Get());
-			Proj->GetApp()->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr(Msg), 0);
-
-			if (SubProc.Reset(new GSubProcess(Exe, Temp)))
 			{
-				SubProc->SetInitFolder(InitDir);
-				if (Compiler == MingW)
-					SubProc->SetEnvironment("PATH", "c:\\MingW\\bin;C:\\MinGW\\msys\\1.0\\bin;%PATH%");
+				TmpArgs += " ";
+				TmpArgs += Args.Get();
+			}
+		}
+
+		GString Msg;
+		Msg.Printf("Making: %s\n", MakePath.Get());
+		Proj->GetApp()->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr(Msg), 0);
+
+		if (SubProc.Reset(new GSubProcess(Exe, TmpArgs)))
+		{
+			SubProc->SetInitFolder(InitDir);
+			if (Compiler == MingW)
+				SubProc->SetEnvironment("PATH", "c:\\MingW\\bin;C:\\MinGW\\msys\\1.0\\bin;%PATH%");
 				
-				if ((Status = SubProc->Start(true, false)))
+			if ((Status = SubProc->Start(true, false)))
+			{
+				// Read all the output					
+				char Buf[256];
+				int rd;
+				while ( (rd = SubProc->Read(Buf, sizeof(Buf))) > 0 )
 				{
-					// Read all the output					
-					char Buf[256];
-					int rd;
-					while ( (rd = SubProc->Read(Buf, sizeof(Buf))) > 0 )
-					{
-						Write(Buf, rd);
-					}
-					
-					uint32 ex = SubProc->Wait();
-					Print("Make exited with %i (0x%x)\n", ex, ex);
+					Write(Buf, rd);
 				}
-				else
+					
+				uint32 ex = SubProc->Wait();
+				Print("Make exited with %i (0x%x)\n", ex, ex);
+			}
+			else
+			{
+				// Create a nice error message.
+				GAutoString ErrStr = LgiErrorCodeToString(SubProc->GetErrorCode());
+				if (ErrStr)
 				{
-					// Create a nice error message.
-					GAutoString ErrStr = LgiErrorCodeToString(SubProc->GetErrorCode());
-					if (ErrStr)
-					{
-						char *e = ErrStr + strlen(ErrStr);
-						while (e > ErrStr && strchr(" \t\r\n.", e[-1]))
-							*(--e) = 0;
-					}
-					
-					sprintf_s(ErrBuf, sizeof(ErrBuf), "Running make failed with %i (%s)\n",
-						SubProc->GetErrorCode(),
-						ErrStr.Get());
-					Err = ErrBuf;
+					char *e = ErrStr + strlen(ErrStr);
+					while (e > ErrStr && strchr(" \t\r\n.", e[-1]))
+						*(--e) = 0;
 				}
+					
+				sprintf_s(ErrBuf, sizeof(ErrBuf), "Running make failed with %i (%s)\n",
+					SubProc->GetErrorCode(),
+					ErrStr.Get());
+				Err = ErrBuf;
 			}
 		}
 	}
