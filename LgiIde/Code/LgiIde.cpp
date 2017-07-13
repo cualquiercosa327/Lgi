@@ -25,6 +25,7 @@
 #include "GDebugger.h"
 #include "LgiRes.h"
 #include "ProjectNode.h"
+#include "GBox.h"
 
 #define IDM_RECENT_FILE			1000
 #define IDM_RECENT_PROJECT		1100
@@ -34,6 +35,8 @@
 #define USE_HAIKU_PULSE_HACK	1
 
 #define OPT_ENTIRE_SOLUTION		"SearchSolution"
+#define OPT_SPLIT_PX			"SplitPos"
+#define OPT_OUTPUT_PX			"OutputPx"
 
 //////////////////////////////////////////////////////////////////////////////////////////
 char AppName[] = "LgiIde";
@@ -344,7 +347,7 @@ void WatchItem::OnExpand(bool b)
 	}
 }
 
-class IdeOutput : public GPanel
+class IdeOutput : public GView
 {
 public:
 	AppWnd *App;
@@ -370,7 +373,7 @@ public:
 	GEdit *DebugEdit;
 	GTextLog *DebuggerLog;
 
-	IdeOutput(AppWnd *app) : GPanel("Panel", 200, true)
+	IdeOutput(AppWnd *app)
 	{
 		App = app;
 		Build = Output = Debug = Find = Ftp = 0;
@@ -406,7 +409,6 @@ public:
 			Fixed.Create();			
 		}		
 
-		Alignment(GV_EDGE_BOTTOM);
 		Children.Insert(Tab = new GTabView(100, 18, 3, 200, 200, "Output"));
 		if (Tab)
 		{
@@ -649,6 +651,17 @@ public:
 	~IdeOutput()
 	{
 	}
+
+	const char *GetClass()
+	{
+		return "IdeOutput";
+	}
+
+	void OnPaint(GSurface *pDC)
+	{
+		pDC->Colour(LC_MED, 24);
+		pDC->Rectangle();
+	}
 	
 	void Save()
 	{
@@ -683,6 +696,7 @@ public:
 		#if !USE_HAIKU_PULSE_HACK
 		SetPulse(1000);
 		#endif
+		AttachChildren();
 	}
 	
 	void OnPulse()
@@ -725,15 +739,16 @@ public:
 
 	void OnPosChange()
 	{
-		GPanel::OnPosChange();
+		GRect c = GetClient();
 		if (Tab)
 		{
 			GRect p = Tab->GetPos();
-			p.x2 = X() - 3;
-			p.y2 = Y() - 3;
+			p.x2 = c.X() - 3;
+			p.y2 = c.Y() - 3;
 			Tab->SetPos(p);
+			LgiTrace("%s:%i - OnPosChange() %s\n", _FL, c.GetStr());
 			
-			GRect c = Tab->GetTabClient();
+			c = Tab->GetTabClient();
 			c.Offset(-c.x1, -c.y1);
 			p.Size(3, 3);
 
@@ -780,7 +795,7 @@ public:
 	AppWnd *App;
 	GMdiParent *Mdi;
 	GOptionsFile Options;
-	GSplitter *Sp;
+	GBox *HBox, *VBox;
 	List<IdeDoc> Docs;
 	List<IdeProject> Projects;
 	GImageList *Icons;
@@ -840,7 +855,7 @@ public:
 		InHistorySeek = false;
 		WindowsMenu = 0;
 		App = a;
-		Sp = 0;
+		HBox = VBox = NULL;
 		Tree = 0;
 		DbgContext = NULL;
 		Output = 0;
@@ -1377,38 +1392,38 @@ AppWnd::AppWnd()
 			Tools->Attach(this);
 		}
 		
-		d->Output = new IdeOutput(this);
-		if (d->Output)
+		GVariant v = 270, OutPx = 250;
+		d->Options.GetValue(OPT_SPLIT_PX, v);
+		d->Options.GetValue(OPT_OUTPUT_PX, OutPx);
+
+		AddView(d->VBox = new GBox);
+		d->VBox->SetVertical(true);
+
+		d->HBox = new GBox;
+		d->VBox->AddView(d->HBox);
+		d->VBox->AddView(d->Output = new IdeOutput(this));
+
+		d->HBox->AddView(d->Tree = new IdeTree);
+		if (d->Tree)
 		{
-			if (Tools)
-			{
-				Pour();
-				d->Output->SetClosedSize(Tools->Y());
-			}
-			d->Output->Attach(this);
+			d->Tree->SetImageList(d->Icons, false);
+			d->Tree->Sunken(false);
+		}
+		d->HBox->AddView(d->Mdi = new GMdiParent);
+		if (d->Mdi)
+		{
+			d->Mdi->HasButton(true);
 		}
 
-		d->Sp = new GSplitter;
-		if (d->Sp)
+		d->HBox->Value(max(v.CastInt32(), 20));
+
+		GRect c = GetClient();
+		if (c.Y() > OutPx.CastInt32())
 		{
-			GVariant v = 270;
-			d->Options.GetValue("SplitPos", v);
-			
-			d->Sp->Value(max(v.CastInt32(), 20));
-			d->Sp->Attach(this);
-			d->Tree = new IdeTree;
-			if (d->Tree)
-			{
-				d->Tree->SetImageList(d->Icons, false);
-				d->Tree->Sunken(false);
-				d->Sp->SetViewA(d->Tree);
-			}
-			d->Sp->SetViewB(d->Mdi = new GMdiParent);
-			if (d->Mdi)
-			{
-				d->Mdi->HasButton(true);
-			}
+			d->VBox->Value(c.Y() - OutPx.CastInt32());
 		}
+
+		AttachChildren();
 	
 		#ifdef LINUX
 		char *f = LgiFindFile("lgiide.png");
@@ -1438,10 +1453,16 @@ AppWnd::AppWnd()
 
 AppWnd::~AppWnd()
 {
-	if (d->Sp)
+	if (d->HBox)
 	{
-		GVariant v = d->Sp->Value();
-		d->Options.SetValue("SplitPos", v);
+		GVariant v = d->HBox->Value();
+		d->Options.SetValue(OPT_SPLIT_PX, v);
+	}
+	if (d->VBox)
+	{
+		GRect c = GetClient();
+		GVariant v = c.Y() - d->VBox->Value();
+		d->Options.SetValue(OPT_OUTPUT_PX, v);
 	}
 
 	ShutdownFtpThread();

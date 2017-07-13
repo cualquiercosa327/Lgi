@@ -208,7 +208,12 @@ void GBox::OnPaint(GSurface *pDC)
 	cli = tools.PaintBorderAndPadding(pDC, cli);
 
 	GCss::ColorDef Bk(LC_MED);
-	if (GetCss()) Bk = GetCss()->BackgroundColor();
+	if (GetCss())
+	{
+		GCss::ColorDef c = GetCss()->BackgroundColor();
+		if (c.IsValid())
+			Bk = c;
+	}
 
 	int ChildViews = Children.Length();
 	if (ChildViews == 0)

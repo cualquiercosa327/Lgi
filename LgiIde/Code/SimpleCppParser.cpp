@@ -1,15 +1,9 @@
 #include "Lgi.h"
 #include "SimpleCppParser.h"
 
-#if 1
+#if 0
 #define DEBUG_FILE		"C:\\Users\\matthew\\Audinate\\Callendar\\apec3\\source\\nad_apcp.c"
 #define DEBUG_LINE		42
-#elif 0
-#define DEBUG_FILE		"apcp-stdin.c"
-#define DEBUG_LINE		396
-#else
-#define DEBUG_FILE		"korthals.c"
-#define DEBUG_LINE		130
 #endif
 
 const char *TypeToStr(DefnType t)
