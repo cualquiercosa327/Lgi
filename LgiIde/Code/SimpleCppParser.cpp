@@ -2,8 +2,8 @@
 #include "SimpleCppParser.h"
 
 #if 1
-#define DEBUG_FILE		"C:\\Users\\matthew\\Audinate\\Callendar\\LCC_K60\\src\\projects\\Dante\\LCC_platform.h"
-#define DEBUG_LINE		98
+#define DEBUG_FILE		"C:\\Users\\matthew\\Audinate\\Callendar\\apec3\\source\\nad_apcp.c"
+#define DEBUG_LINE		42
 #elif 0
 #define DEBUG_FILE		"apcp-stdin.c"
 #define DEBUG_LINE		396
@@ -382,6 +382,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 						if (IsEnum)
 						{
 							Start = s;
+							s += 4;
 							goto DefineEnum;
 						}
 						
@@ -552,7 +553,6 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 						DefineEnum:
 
 						IsEnum = true;
-						s += 4;
 						defnskipws(s);
 						
 						GAutoWString t(LexCpp(s, LexStrdup));
@@ -575,8 +575,10 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 							{
 								defnskipws(s);
 								defnskipsym(s);
+								defnskipws(s);
 								if (*s == 0 || *s == ',' || *s == '}')
 									break;
+								LgiAssert(*s != '\n');
 								s++;
 							}
 						}
