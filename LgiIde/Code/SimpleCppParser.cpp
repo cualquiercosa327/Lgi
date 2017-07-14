@@ -1,9 +1,43 @@
+/*
+Known bugs:
+
+	1) Duplicate brackets in #defines, e.g:
+
+			#if SOME_DEF
+				if (expr) {
+			#else
+				if (different_expr) {
+			#endif
+
+		Breaks the bracket counting. Causing the depth to get out of sync with capture...
+		Workaround: Move the brackets outside of the #define'd area if possible.
+
+	2) This syntax is wrongly assumed to be a structure:
+
+			struct netconn*
+			netconn_alloc(enum netconn_type t, netconn_callback callback)
+			{
+				...
+			}
+
+
+	Can't find these symbols:
+		do_recv (in api_msg.c)
+		process_apcp_msg (in ape-apcp.c)
+	Wrong position:
+		lwip_select (out by 4 lines?)
+		nad_apcp_send
+
+	tcpip_callback_with_block appears 3 times?
+	
+
+*/
 #include "Lgi.h"
 #include "SimpleCppParser.h"
 
 #if 0
-#define DEBUG_FILE		"C:\\Users\\matthew\\Audinate\\Callendar\\apec3\\source\\nad_apcp.c"
-#define DEBUG_LINE		42
+#define DEBUG_FILE		"\\udp.c"
+#define DEBUG_LINE		359
 #endif
 
 const char *TypeToStr(DefnType t)
@@ -144,9 +178,9 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 				s++;
 				Depth++;
 				FnEmit = false;
-				#if 0 // def DEBUG_FILE
+				#ifdef DEBUG_FILE
 				if (Debug)
-					LgiTrace("%s:%i - FnEmit=%i Depth=%i @ line %i\n", _FL, FnEmit, Depth, Line);
+					LgiTrace("%s:%i - FnEmit=%i Depth=%i @ line %i\n", _FL, FnEmit, Depth, Line+1);
 				#endif				
 				break;
 			}
@@ -175,7 +209,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 					CaptureLevel = 0;
 					#ifdef DEBUG_FILE
 					if (Debug)
-						LgiTrace("%s:%i - CaptureLevel=%i Depth=%i @ line %i\n", _FL, CaptureLevel, Depth, Line);
+						LgiTrace("%s:%i - CaptureLevel=%i Depth=%i @ line %i\n", _FL, CaptureLevel, Depth, Line+1);
 					#endif
 					DeleteArray(CurClassDecl);
 				}
@@ -184,7 +218,22 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 			case '}':
 			{
 				s++;
-				if (Depth > 0) Depth--;
+				if (Depth > 0)
+				{
+					Depth--;
+					#ifdef DEBUG_FILE
+					if (Debug)
+						LgiTrace("%s:%i - CaptureLevel=%i Depth=%i @ line %i\n", _FL, CaptureLevel, Depth, Line+1);
+					#endif
+				}
+				else
+				{
+					#ifdef DEBUG_FILE
+					if (Debug)
+						LgiTrace("%s:%i - ERROR Depth already=%i @ line %i\n", _FL, Depth, Line+1);
+					#endif
+				}
+
 				LastDecl = s;
 				IsEnum = false;
 				break;
@@ -326,9 +375,9 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 								End++;
 							
 							FnEmit = *End != ';';
-							#if 0 //DEBUG_FILE
+							#ifdef DEBUG_FILE
 							if (Debug)
-								LgiTrace("%s:%i - FnEmit=%i Depth=%i @ line %i\n", _FL, FnEmit, Depth, Line);
+								LgiTrace("%s:%i - FnEmit=%i Depth=%i @ line %i\n", _FL, FnEmit, Depth, Line+1);
 							#endif
 						}
 					}
@@ -490,7 +539,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 								CaptureLevel = 1;
 								#ifdef DEBUG_FILE
 								if (Debug)
-									LgiTrace("%s:%i - CaptureLevel=%i Depth=%i @ line %i\n", _FL, CaptureLevel, Depth, Line);
+									LgiTrace("%s:%i - CaptureLevel=%i Depth=%i @ line %i\n", _FL, CaptureLevel, Depth, Line+1);
 								#endif
 								
 								char16 *n = Start + (IsClass ? StrlenW(StrClass) : StrlenW(StrStruct)), *t;
@@ -529,7 +578,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 									}
 									else
 									{
-										LgiTrace("%s:%i - LexCpp failed at %s:%i.\n", _FL, FileName, Line);
+										LgiTrace("%s:%i - LexCpp failed at %s:%i.\n", _FL, FileName, Line+1);
 										break;
 									}
 								}
