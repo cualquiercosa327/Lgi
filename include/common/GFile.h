@@ -19,11 +19,6 @@
 
 #ifdef WIN32
 
-// #include <dos.h>
-// #include <sys\types.h>
-// #include <sys\stat.h>
-// #include <io.h>
-
 typedef HANDLE							OsFile;
 #define INVALID_HANDLE					INVALID_HANDLE_VALUE
 #define ValidHandle(hnd)				((hnd) != INVALID_HANDLE_VALUE)

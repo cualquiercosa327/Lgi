@@ -20,7 +20,7 @@ public:
 	/// \returns the process ID [Win32]
 	OsProcessId GetId();
 	/// \returns the value the process exited with
-	int ExitValue();
+	ulong ExitValue();
 	/// \returns the any error code
 	uint32 GetErrorCode();
 	/// Stops the process right now, use with care

@@ -118,8 +118,8 @@ public:
 			
 			if (c > s)
 			{
-				int bytes = c - s;
-				int w = Out->Write(s, bytes);
+				ptrdiff_t bytes = c - s;
+				int w = Out->Write(s, (int)bytes);
 				if (w != bytes)
 					return wr;
 				wr += w;

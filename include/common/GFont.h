@@ -460,9 +460,9 @@ public:
 	/// \returns true if iconv services are available.
 	bool HasIconv(bool Quiet);
 	/// Converts a string into a buffer using iconv
-	int IconvConvert(const char *OutCs, char *Out, int OutLen, const char *InCs, const char *&In, int InLen);
+	int IconvConvert(const char *OutCs, char *Out, int OutLen, const char *InCs, const char *&In, ptrdiff_t InLen);
 	/// Converts a string into a stream using iconv
-	int IconvConvert(const char *OutCs, GStreamI *Out, const char *InCs, const char *&In, int InLen);
+	int IconvConvert(const char *OutCs, GStreamI *Out, const char *InCs, const char *&In, ptrdiff_t InLen);
 };
 #endif
 

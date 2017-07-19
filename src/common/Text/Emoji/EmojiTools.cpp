@@ -60,7 +60,7 @@ int my_snwprintf(T *ptr, int ptr_size, const char16 *fmt, ...)
 	va_list ap;
 	va_start(ap, fmt);
 	
-	int a = 1;
+	// int a = 1;
 	while (ptr < end && *fmt)
 	{
 		if (*fmt == '%')
@@ -188,7 +188,7 @@ GAutoWString TextToEmoji(uint32 *Txt, bool IsHtml)
 			GLinkInfo &l = Links[Lnk];
 
 			// Start of embedded link, convert into <A>
-			if (s > Start) p.Write(Start, (s - Start) * sizeof(*s));
+			if (s > Start) p.Write(Start, (int) ((s - Start) * sizeof(*s)));
 			if (l.Email)
 				Ch = my_snwprintf(Buf, BUF_SIZE, mail_link, l.Len, s, l.Len, s);
 			else
@@ -202,7 +202,7 @@ GAutoWString TextToEmoji(uint32 *Txt, bool IsHtml)
 		{
 			// Eol
 			if (s > Start)
-				p.Write(Start, (s - Start) * sizeof(*s));
+				p.Write(Start, (int) ((s - Start) * sizeof(*s)));
 			p.Write(newline, StrlenW(newline) * sizeof(*newline));
 			Start = s + 1;
 		}
@@ -213,7 +213,7 @@ GAutoWString TextToEmoji(uint32 *Txt, bool IsHtml)
 			{
 				// Emoji character, convert to <IMG>
 				if (s > Start)
-					p.Write(Start, (s - Start) * sizeof(*s));
+					p.Write(Start, (int) ((s - Start) * sizeof(*s)));
 
 				int XChar = IcoIdx % EMOJI_GROUP_X;
 				int YChar = IcoIdx / EMOJI_GROUP_X;
@@ -235,7 +235,7 @@ GAutoWString TextToEmoji(uint32 *Txt, bool IsHtml)
 		}
 	}
 
-	if (s > Start) p.Write(Start, (s - Start) * sizeof(*s));
+	if (s > Start) p.Write(Start, (int) ((s - Start) * sizeof(*s)));
 
 	if (!IsHtml)
 		p.Write(h2, StrlenW(h2)*sizeof(*h2));

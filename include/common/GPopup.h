@@ -7,7 +7,7 @@
 
 /// A popup window: closes when the user clicks off-window.
 class LgiClass GPopup :
-	#ifdef MAC
+	#ifdef CARBON
 	public GWindow
 	#else
 	public GView

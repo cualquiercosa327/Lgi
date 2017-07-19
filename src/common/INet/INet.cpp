@@ -846,7 +846,7 @@ bool GSocket::Accept(GSocketI *c)
 	NewSocket = accept(d->Socket, &Address, &Length);
 	*/
 	
-	int Loop = 0;
+	// int Loop = 0;
 	socklen_t Length = sizeof(Address);
 	uint64 Start = LgiCurrentTime();
 	while (	d->Loop() &&

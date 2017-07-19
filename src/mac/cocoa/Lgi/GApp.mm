@@ -55,7 +55,7 @@ void OsAppArguments::Set(char *CmdLine)
 	Offsets.Add(0);
 	if (LgiGetExeFile(Exe, sizeof(Exe)))
 	{
-		int Len = strlen(Exe);
+		size_t Len = strlen(Exe);
 		Raw.Length(Len + 1);
 		strcpy(&Raw[0], Exe);
 	}
@@ -205,12 +205,12 @@ void OnCrash(int i)
 		exit(-1);
 	}
 	
-	int r, Used = 0;
+	ssize_t r, Used = 0;
 	char Buf[1025];
 	bool Capture = false;
 	while ((r = read(Read.Read, Buf + Used, sizeof(Buf) - Used - 1)) > 0)
 	{
-		printf("Got %i bytes\n", r);
+		printf("Got %i bytes\n", (int)r);
 		Used += r;
 		Buf[Used] = 0;
 		
@@ -220,8 +220,8 @@ void OnCrash(int i)
 			if (stristr(Buf, "(gdb)"))
 			{
 				char c[] = "info pid\n";
-				int w = write(Write.Write, c, strlen(c));
-				printf("Writing cmd %i bytes\n", w);
+				ssize_t w = write(Write.Write, c, strlen(c));
+				printf("Writing cmd %i bytes\n", (int)w);
 				Capture = true;
 				Used = 0;
 				Buf[0] = 0;
@@ -239,7 +239,7 @@ void OnCrash(int i)
 			}
 			
 			Eol += 1;
-			int Len = Eol - Buf;
+			ptrdiff_t Len = Eol - Buf;
 			memmove(Buf, Eol, Used + 1 - Len);
 			Used -= Len;
 		}
@@ -251,6 +251,9 @@ void OnCrash(int i)
 class GAppPrivate
 {
 public:
+	NSApplication *NsApp;
+
+
 	// Common
 	GXmlTag *Config;
 	GFileSystem *FileSystem;
@@ -269,6 +272,7 @@ public:
 	
 	GAppPrivate()
 	{
+		NsApp = NULL;
 		FileSystem = 0;
 		GdcSystem = 0;
 		Config = 0;
@@ -500,11 +504,14 @@ OsApplication(AppArgs.Args, AppArgs.Arg)
 	// We want our printf's NOW!
 	setvbuf(stdout,(char *)NULL,_IONBF,0); // print mesgs immediately.
 	
+	// Connect to the server
+	d->NsApp = [NSApplication sharedApplication];
+	
 	// Setup the file and graphics sub-systems
 	d->FileSystem = new GFileSystem;
 	d->GdcSystem = new GdcDevice;
 	
-	srand(LgiCurrentTime());
+	srand((unsigned)LgiCurrentTime());
 	LgiInitColours();
 	
 	SetAppArgs(AppArgs);

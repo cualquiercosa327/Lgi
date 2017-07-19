@@ -1295,7 +1295,7 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 	
 		Destroy();
 		
-		OSStatus e;
+		// OSStatus e;
 
 		if (this == SysFont)
 			LgiTrace("%s:%i - WARNING: you are re-creating the system font... this is bad!!!!\n", _FL);

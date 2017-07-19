@@ -131,6 +131,7 @@ GWindow::GWindow() :
 	}
 }
 
+#if defined(CARBON)
 GWindow::GWindow(WindowRef wr)
 {
 	d = new GWindowPrivate(this);
@@ -144,6 +145,7 @@ GWindow::GWindow(WindowRef wr)
     _Lock = new GMutex;
 	Wnd = wr;
 }
+#endif
 
 GWindow::~GWindow()
 {

@@ -37,7 +37,7 @@
 #define toupper(c)					(((c)>='a'&&(c)<='z') ? (c)-'a'+'A' : (c))
 #endif
 
-static char SelectWordDelim[] = " \t\n.,()[]<>=?/\\{}\"\';:+=-|!@#$%^&*";
+// static char SelectWordDelim[] = " \t\n.,()[]<>=?/\\{}\"\';:+=-|!@#$%^&*";
 
 #include "GRichTextEditPriv.h"
 
@@ -686,8 +686,8 @@ bool GRichTextEdit::Paste()
 	if (Text)
 	{
 		GAutoPtr<uint32,true> Utf32((uint32*)LgiNewConvertCp("utf-32", Text, LGI_WideCharset));
-		int Len = Strlen(Utf32.Get());
-		if (!d->Cursor->Blk->AddText(Trans, d->Cursor->Offset, Utf32.Get(), Len))
+		ptrdiff_t Len = Strlen(Utf32.Get());
+		if (!d->Cursor->Blk->AddText(Trans, d->Cursor->Offset, Utf32.Get(), (int)Len))
 		{
 			LgiAssert(0);
 			return false;
@@ -824,8 +824,8 @@ bool GRichTextEdit::Save(const char *FileName, const char *CharSet)
 	if (!Nm)
 		return false;
 
-	int Len = strlen(Nm);
-	return f.Write(Nm, Len) == Len;
+	size_t Len = strlen(Nm);
+	return f.Write(Nm, (int)Len) == Len;
 }
 
 void GRichTextEdit::UpdateScrollBars(bool Reset)
@@ -959,7 +959,7 @@ bool GRichTextEdit::OnFind(GFindReplaceCommon *Params)
 		int Result = b->FindAt(At, w, Params);
 		if (Result >= At)
 		{
-			int Len = Strlen(w.Get());
+			ptrdiff_t Len = Strlen(w.Get());
 			AutoCursor Sel(new BlkCursor(b, Result, -1));
 			d->SetCursor(Sel, false);
 
@@ -1122,11 +1122,6 @@ int GRichTextEdit::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 							}
 						}
 					}
-
-					if (AddIndex >= 0)
-					{
-						int asd=0;
-					}
 				}
 			}
 
@@ -1204,7 +1199,7 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 	GRichTextPriv::Block *Over = NULL;
 	GRect &Content = d->Areas[ContentArea];
 	GdcPt2 Doc = d->ScreenToDoc(m.x, m.y);
-	int BlockIndex = -1;
+	// int BlockIndex = -1;
 	int Offset = -1;
 	if (Content.Overlap(m.x, m.y))
 	{

@@ -368,7 +368,7 @@ public:
 	GString &operator =(int64 val)
 	{
 		char n[32];
-		sprintf_s(n, sizeof(n), "%"PRId64, val);
+		sprintf_s(n, sizeof(n), "%" PRId64, val);
 		Set(n);
 		return *this;
 	}

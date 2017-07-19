@@ -104,9 +104,9 @@ GView(0)
 	NSRect frame = pos;
 	Wnd = new _OsWindow;
 	Wnd->w = [[NSWindow alloc] initWithContentRect:frame
-					styleMask:NSBorderlessWindowMask
-					backing:NSBackingStoreBuffered
-					defer:NO];
+                    styleMask:NSBorderlessWindowMask
+                    backing:NSBackingStoreBuffered
+                    defer:NO];
 	// [window makeKeyAndOrderFront:NSApp];
 	
 	#if 0
@@ -420,6 +420,10 @@ void GWindow::_Delete()
 {
 	SetDragHandlers(false);
 	GView::_Delete();
+}
+
+void GWindow::SetAlwaysOnTop(bool b)
+{
 }
 
 bool GWindow::PostEvent(int Event, GMessage::Param a, GMessage::Param b)

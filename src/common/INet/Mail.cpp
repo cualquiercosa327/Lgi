@@ -1811,45 +1811,52 @@ bool MailSmtp::SendToFrom(List<AddressDescriptor> &To, AddressDescriptor *From, 
 {
 	bool AddrOk = false;
 
-	if (To.First() && From)
+	if (To.Length() == 0)
 	{
-		// send MAIL message
-		if (From && ValidStr(From->Addr))
-		{
-			sprintf_s(Buffer, sizeof(Buffer), "MAIL FROM: <%s>\r\n", From->Addr);
-		}
-		else
-		{
-			ErrMsgId = L_ERROR_ESMTP_NO_FROM;
-			ErrMsgFmt = "No 'from' address in email.";
-			ErrMsgParam.Empty();
-			return false;
-		}
+		ErrMsgId = L_ERROR_ESMTP_NO_RECIPIENT;
+		ErrMsgFmt = "No recipients to send to.";
+		ErrMsgParam.Empty();
+		return false;
+	}
 
-		VERIFY_RET_VAL(Write(0, true));
-		VERIFY_RET_VAL(ReadReply("250", 0, Err));
+	// send MAIL message
+	if (From && ValidStr(From->Addr))
+	{
+		sprintf_s(Buffer, sizeof(Buffer), "MAIL FROM: <%s>\r\n", From->Addr);
+	}
+	else
+	{
+		ErrMsgId = L_ERROR_ESMTP_NO_FROM;
+		ErrMsgFmt = "No 'from' address in email.";
+		ErrMsgParam.Empty();
+		return false;
+	}
 
-		// send RCPT message
-		AddrOk = true;
-		List<AddressDescriptor>::I Recip = To.Start();
-		for (AddressDescriptor *a = *Recip; a; a = *++Recip)
+	VERIFY_RET_VAL(Write(0, true));
+	VERIFY_RET_VAL(ReadReply("250", 0, Err));
+
+	// send RCPT message
+	AddrOk = true;
+	List<AddressDescriptor>::I Recip = To.Start();
+	for (AddressDescriptor *a = *Recip; a; a = *++Recip)
+	{
+		char *Addr = ValidStr(a->Addr) ? a->Addr : a->Name;
+		if (ValidStr(Addr))
 		{
-			char *Addr = ValidStr(a->Addr) ? a->Addr : a->Name;
-			if (ValidStr(Addr))
+			GToken Parts(Addr, ",");
+			for (unsigned p=0; p<Parts.Length(); p++)
 			{
-				GToken Parts(Addr, ",");
-				for (unsigned p=0; p<Parts.Length(); p++)
-				{
-					sprintf_s(Buffer, sizeof(Buffer), "RCPT TO: <%s>\r\n", Parts[p]);
-					VERIFY_RET_VAL(Write(0, true));
-					a->Status = ReadReply("25", 0, Err);
-					AddrOk &= a->Status != 0; // at least one address is ok
-				}
+				sprintf_s(Buffer, sizeof(Buffer), "RCPT TO: <%s>\r\n", Parts[p]);
+				VERIFY_RET_VAL(Write(0, true));
+				a->Status = ReadReply("25", 0, Err);
+				AddrOk |= a->Status != 0; // at least one address is ok
 			}
-			else
-			{
-				LgiTrace("%s:%i - Send Addr wasn't valid\n", _FL);
-			}
+		}
+		else if (Err)
+		{
+			ErrMsgId = L_ERROR_ESMTP_BAD_RECIPIENT;
+			ErrMsgFmt = "Invalid recipient '%s'.";
+			ErrMsgParam = Addr;
 		}
 	}
 
@@ -1868,7 +1875,7 @@ GStringPipe *MailSmtp::SendData(MailProtocolError *Err)
 
 GStringPipe *MailSmtp::SendStart(List<AddressDescriptor> &To, AddressDescriptor *From, MailProtocolError *Err)
 {
-	return SendToFrom(To, From, Err) ? SendData(Err) : 0;
+	return SendToFrom(To, From, Err) ? SendData(Err) : NULL;
 }
 
 bool MailSmtp::SendEnd(GStringPipe *m)
@@ -1982,7 +1989,7 @@ bool MailSmtp::ReadReply(const char *Str, GStringPipe *Pipe, MailProtocolError *
 						{
 							Err->Code = atoi(Start);
 							char *Sp = strchr(Start, ' ');
-							Err->Msg = NewStr(Sp ? Sp + 1 : Start);
+							Err->ErrMsg = Sp ? Sp + 1 : Start;
 						}
 
 						// Log

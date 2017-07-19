@@ -1265,7 +1265,7 @@ public:
 	#else
 	GWindow();
 	#endif
-	#ifdef MAC
+	#if CARBON
 	GWindow(WindowRef wr);
 	#endif
 	~GWindow();

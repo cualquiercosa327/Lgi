@@ -61,9 +61,9 @@ GThreadEvent::GThreadEvent(const char *name)
 			#endif
 		}
 	
-	#elif !defined(BEOS) && defined(POSIX)
+	#elif defined(POSIX)
 	
-		Value = 0;
+		// Value = 0;
 		pthread_mutexattr_t  mattr;
 		int e = pthread_cond_init(&Cond, NULL);
 		if (e)

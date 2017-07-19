@@ -66,17 +66,11 @@ class MailProtocol;
 struct MailProtocolError
 {
 	int Code;
-	char *Msg;
+	GString ErrMsg;
 
 	MailProtocolError()
 	{
 		Code = 0;
-		Msg = 0;
-	}
-
-	~MailProtocolError()
-	{
-		DeleteArray(Msg);
 	}
 };
 

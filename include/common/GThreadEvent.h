@@ -1,7 +1,7 @@
 #ifndef _GTHREADEVENT_H_
 #define _GTHREADEVENT_H_
 
-#if defined(MAC)
+#if defined(CARBON)
 	#define USE_MACH_SEM		1
 	#include <mach/task.h>
 	#include <mach/semaphore.h>

@@ -2254,7 +2254,7 @@ bool GTextView3::Save(const char *Name, const char *CharSet)
 					{
 					    if (b > e - 10)
 					    {
-					        int Bytes = b - Buf;
+					        ptrdiff_t Bytes = b - Buf;
 					        if (f.Write(Buf, Bytes) != Bytes)
 					        {
 					            Status = false;
@@ -2276,7 +2276,7 @@ bool GTextView3::Save(const char *Name, const char *CharSet)
 					    c++;
 					}
 
-			        int Bytes = b - Buf;
+			        ptrdiff_t Bytes = b - Buf;
 			        if (f.Write(Buf, Bytes) != Bytes)
 			            Status = false;
 				}

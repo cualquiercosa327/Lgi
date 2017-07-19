@@ -167,7 +167,7 @@ public:
 	{
 		if (T)
 		{
-			int64 Total = Length() + T->Length();
+			// int64 Total = Length() + T->Length();
 			size_t Bytes = 0;
 			unsigned i;
 			for (i=0; i<Length(); i++)

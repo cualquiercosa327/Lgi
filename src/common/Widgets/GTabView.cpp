@@ -377,7 +377,7 @@ int GTabView::HitTest(GMouse &m)
 	}
 	else
 	{
-		int Hit = -1;
+		// int Hit = -1;
 		TabIterator it(Children);
 		for (int i=0; i<it.Length(); i++)
 		{

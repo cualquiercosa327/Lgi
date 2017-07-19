@@ -877,7 +877,7 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 				while (OutLen > 0 && InLen > 0)
 				{
 					char *RewindIn = In8;
-					int RewindInLen = InLen;
+					ptrdiff_t RewindInLen = InLen;
 					
 					// Convert input char to Utf-32
 					switch (InInfo->Type)

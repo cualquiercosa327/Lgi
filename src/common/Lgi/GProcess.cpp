@@ -167,7 +167,7 @@ uint32 GProcess::GetErrorCode()
 	return d->ErrorCode;
 }
 
-int GProcess::ExitValue()
+ulong GProcess::ExitValue()
 {
 	return d->ExitValue;
 }
