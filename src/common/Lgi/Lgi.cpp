@@ -1798,6 +1798,7 @@ char *LgiFindFile(const char *Name)
 		LgiGetExePath(Exe, sizeof(Exe));
 		#else
 		LgiGetExeFile(Exe, sizeof(Exe));
+		LgiTrimDir(Exe);
 		#endif
 
 		#if DEBUG_FIND_FILE
