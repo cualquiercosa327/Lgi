@@ -89,7 +89,7 @@ GRichTextEdit::~GRichTextEdit()
 
 bool GRichTextEdit::SetSpellCheck(GSpellCheck *sp)
 {
-	if (d->SpellCheck = sp)
+	if ((d->SpellCheck = sp))
 		d->SpellCheck->EnumLanguages(AddDispatch());
 	return d->SpellCheck != NULL;
 }
