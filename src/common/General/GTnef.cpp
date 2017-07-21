@@ -292,7 +292,6 @@ bool TnefReadIndex(GStreamI *Tnef, GArray<TnefFileInfo*> &Index)
 								}
 								default:
 								{
-									int asd=0;
 									break;
 								}
 							}

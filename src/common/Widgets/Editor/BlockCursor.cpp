@@ -9,7 +9,7 @@ GRichTextPriv::BlockCursor::BlockCursor(const BlockCursor &c)
 	*this = c;
 }
 		
-GRichTextPriv::BlockCursor::BlockCursor(Block *b, int off, int line)
+GRichTextPriv::BlockCursor::BlockCursor(Block *b, ssize_t off, int line)
 {
 	Blk = NULL;
 	Offset = -1;
@@ -37,7 +37,7 @@ GRichTextPriv::BlockCursor &GRichTextPriv::BlockCursor::operator =(const BlockCu
 	return *this;
 }
 		
-void GRichTextPriv::BlockCursor::Set(int off)
+void GRichTextPriv::BlockCursor::Set(ssize_t off)
 {
 	GArray<int> Ln;
 	if (!Blk->OffsetToLine(off, NULL, &Ln))
@@ -46,7 +46,7 @@ void GRichTextPriv::BlockCursor::Set(int off)
 	Set(Blk, off, Ln.First());
 }
 
-void GRichTextPriv::BlockCursor::Set(GRichTextPriv::Block *b, int off, int line)
+void GRichTextPriv::BlockCursor::Set(GRichTextPriv::Block *b, ssize_t off, int line)
 {
 	if (Blk != b)
 	{

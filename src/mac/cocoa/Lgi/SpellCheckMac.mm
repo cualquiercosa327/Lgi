@@ -111,10 +111,12 @@ FallbackMethod:
 
 static const unsigned int kShortLanguageCodeSize = 2;
 
+/*
 static int GVariantCmp(GVariant *a, GVariant *b, NativeInt Data)
 {
 	return stricmp(a->Str(), b->Str());
 }
+*/
 
 int LangCmp(GSpellCheck::LanguageId *a, GSpellCheck::LanguageId *b)
 {

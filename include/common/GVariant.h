@@ -105,14 +105,14 @@ class LgiClass GCustomType : public GDom
 protected:
 	struct CustomField : public GDom
 	{
-		int Offset;
-		int Bytes;
-		int ArrayLen;
+		ssize_t Offset;
+		ssize_t Bytes;
+		ssize_t ArrayLen;
 		GVariantType Type;
 		GString Name;
 		GCustomType *Nested;
 
-		int Sizeof();
+		ssize_t Sizeof();
 		bool GetVariant(const char *Name, GVariant &Value, char *Array = NULL);
 	};
 
@@ -146,7 +146,7 @@ protected:
 	GHashTbl<const char*, Method*> MethodMap;
 	
 	// Private methods
-	int PadSize();	
+	ssize_t PadSize();
 
 public:
 	GCustomType(const char *name, int pack = 1);
@@ -259,6 +259,8 @@ public:
 	GVariant();
 	/// Constructor for int
 	GVariant(int i);
+	GVariant(size_t i);
+	GVariant(ssize_t i);
 	/// Constructor for int64
 	GVariant(int64 i);
 	/// Constructor for uint64
@@ -292,6 +294,8 @@ public:
 	#endif
 	/// Assign bool value
 	GVariant &operator =(bool i);
+	GVariant &operator =(size_t i);
+	GVariant &operator =(ssize_t i);
 	/// Assign 64bit int value
 	GVariant &operator =(int64 i);
 	/// Assign double value

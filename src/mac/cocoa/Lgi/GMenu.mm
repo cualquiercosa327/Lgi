@@ -16,7 +16,7 @@
 #include "GUtf8.h"
 #include "GDisplayString.h"
 
-static int NextId = 0;
+// static int NextId = 0;
 #define DEBUG_INFO		0
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -375,7 +375,7 @@ MenuCommand *ReturnFloatCommand = 0;
 
 int GSubMenu::Float(GView *From, int x, int y, bool Left)
 {
-	static int Depth = 0;
+	// static int Depth = 0;
 	
 	#if COCOA
 	return 0;
@@ -655,7 +655,7 @@ void GMenuItem::_PaintText(GSurface *pDC, int x, int y, int Width)
 						}
 					}
 					
-					int Len = e - s;
+					ptrdiff_t Len = e - s;
 					if (Len > 0)
 					{
 						// paint text till that point
@@ -952,7 +952,7 @@ bool GMenuItem::Remove()
 	{
 		if (Parent->Info && Info)
 		{
-			int Index = Parent->Items.IndexOf(this);
+			// int Index = Parent->Items.IndexOf(this);
 			
 			#ifdef COCOA
 			#else

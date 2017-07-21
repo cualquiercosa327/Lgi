@@ -182,11 +182,6 @@ bool GXmlTree::EncodeEntities(GStreamI *to, char *start, int len, const char *ex
 	if (!start || !to)
 		return 0;
 
-	if (strnistr(start, "<body", len))
-	{
-		int asd=0;
-	}
-
 	int Amp = (d->Flags & GXT_NO_ENTITIES) ? 10000000 : '&';
 
 	char *end = start + len;
@@ -202,7 +197,7 @@ bool GXmlTree::EncodeEntities(GStreamI *to, char *start, int len, const char *ex
 		
 		if (e == end || *e)
 		{
-			to->Write(s, e - s);
+			to->Write(s, (int) (e - s));
 			
 			if (e == end)
 				break;

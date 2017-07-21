@@ -1399,7 +1399,7 @@ int GStringPipe::Pop(char *Str, int BufSize)
 	return 0;
 }
 
-int GStringPipe::Push(const char *Str, int Chars)
+int GStringPipe::Push(const char *Str, ssize_t Chars)
 {
 	if (!Str)
 		return 0;
@@ -1410,7 +1410,7 @@ int GStringPipe::Push(const char *Str, int Chars)
 	return Write((void*)Str, Chars);
 }
 
-int GStringPipe::Push(const char16 *Str, int Chars)
+int GStringPipe::Push(const char16 *Str, ssize_t Chars)
 {
 	if (!Str)
 		return 0;

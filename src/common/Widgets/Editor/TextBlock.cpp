@@ -16,7 +16,7 @@ GRichTextPriv::StyleText::StyleText(const StyleText *St)
 	Add((uint32*)&St->ItemAt(0), St->Length());
 }
 		
-GRichTextPriv::StyleText::StyleText(const uint32 *t, int Chars, GNamedStyle *style)
+GRichTextPriv::StyleText::StyleText(const uint32 *t, ssize_t Chars, GNamedStyle *style)
 {
 	Emoji = false;
 	Style = NULL;
@@ -27,7 +27,7 @@ GRichTextPriv::StyleText::StyleText(const uint32 *t, int Chars, GNamedStyle *sty
 	{
 		if (Chars < 0)
 			Chars = Strlen(t);
-		Add((uint32*)t, Chars);
+		Add((uint32*)t, (int)Chars);
 	}
 }
 
@@ -64,7 +64,7 @@ void GRichTextPriv::StyleText::SetStyle(GNamedStyle *s)
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
-GRichTextPriv::EmojiDisplayStr::EmojiDisplayStr(StyleText *src, GSurface *img, GFont *f, const uint32 *s, int l) :
+GRichTextPriv::EmojiDisplayStr::EmojiDisplayStr(StyleText *src, GSurface *img, GFont *f, const uint32 *s, ssize_t l) :
 	DisplayStr(src, NULL, s, l)
 {
 	Img = img;
@@ -97,7 +97,7 @@ GRichTextPriv::EmojiDisplayStr::EmojiDisplayStr(StyleText *src, GSurface *img, G
 	yf = IntToFixed(y);
 }
 
-GAutoPtr<GRichTextPriv::DisplayStr> GRichTextPriv::EmojiDisplayStr::Clone(int Start, int Len)
+GAutoPtr<GRichTextPriv::DisplayStr> GRichTextPriv::EmojiDisplayStr::Clone(ssize_t Start, ssize_t Len)
 {
 	if (Len < 0)
 		Len = Chars - Start;
@@ -138,7 +138,7 @@ double GRichTextPriv::EmojiDisplayStr::GetAscent()
 	return EMOJI_CELL_SIZE * 0.8;
 }
 
-int GRichTextPriv::EmojiDisplayStr::PosToIndex(int XPos, bool Nearest)
+ssize_t GRichTextPriv::EmojiDisplayStr::PosToIndex(int XPos, bool Nearest)
 {
 	if (XPos >= (int)x)
 		return Chars;
@@ -467,7 +467,7 @@ bool GRichTextPriv::TextBlock::GetPosFromIndex(BlockCursor *Cursor)
 		for (unsigned n=0; n<tl->Strs.Length(); n++)
 		{
 			DisplayStr *ds = tl->Strs[n];
-			int dsChars = ds->Chars;
+			ssize_t dsChars = ds->Chars;
 					
 			if
 			(
@@ -482,7 +482,7 @@ bool GRichTextPriv::TextBlock::GetPosFromIndex(BlockCursor *Cursor)
 				)
 			)
 			{
-				int CharOffset = Cursor->Offset - CharPos;
+				ssize_t CharOffset = Cursor->Offset - CharPos;
 				if (CharOffset == 0)
 				{
 					// First char
@@ -564,7 +564,7 @@ bool GRichTextPriv::TextBlock::HitTest(HitTestResult &htr)
 	{
 		TextLine *tl = Layout[i];
 		PtrCheckBreak(tl);
-		int InitCharPos = CharPos;
+		// int InitCharPos = CharPos;
 
 		GRect r = tl->PosOff;
 		r.Offset(Pos.x1, Pos.y1);
@@ -624,7 +624,7 @@ bool GRichTextPriv::TextBlock::HitTest(HitTestResult &htr)
 
 void DrawDecor(GSurface *pDC, GRichTextPriv::DisplayStr *Ds, int Fx, int Fy, int Start, int Len)
 {
-	GColour Old = pDC->Colour(GColour::Red);
+	// GColour Old = pDC->Colour(GColour::Red);
 	GDisplayString ds1(Ds->GetFont(), (const char16*)(*Ds), Start);
 	GDisplayString ds2(Ds->GetFont(), (const char16*)(*Ds), Start+Len);
 
@@ -639,7 +639,7 @@ void DrawDecor(GSurface *pDC, GRichTextPriv::DisplayStr *Ds, int Fx, int Fy, int
 	}
 }
 
-bool Overlap(GSpellCheck::SpellingError *e, int start, int len)
+bool Overlap(GSpellCheck::SpellingError *e, int start, ssize_t len)
 {
 	if (!e)
 		return false;
@@ -658,12 +658,12 @@ void GRichTextPriv::TextBlock::DrawDisplayString(GSurface *pDC, DisplayStr *Ds, 
 	Ds->Paint(pDC, FixX, FixY, Bk);
 
 	// Does the a spelling error overlap this string?
-	int DsEnd = Pos + Ds->Chars;
+	ssize_t DsEnd = Pos + Ds->Chars;
 	while (Overlap(SpErr, Pos, Ds->Chars))
 	{
 		// Yes, work out the region of characters and paint the decor
 		int Start = max(SpErr->Start, Pos);
-		int Len = min(SpErr->End(), Pos + Ds->Chars) - Start;
+		ssize_t Len = min(SpErr->End(), Pos + Ds->Chars) - Start;
 		
 		// Draw the decor for the error
 		DrawDecor(pDC, Ds, OldX, FixY, Start - Pos, Len);
@@ -684,7 +684,7 @@ void GRichTextPriv::TextBlock::OnPaint(PaintContext &Ctx)
 {
 	int CharPos = 0;
 	int EndPoints = 0;
-	int EndPoint[2] = {-1, -1};
+	ssize_t EndPoint[2] = {-1, -1};
 	int CurEndPoint = 0;
 
 	if (Cursors > 0 && Ctx.Select)
@@ -1370,7 +1370,7 @@ GMessage::Result GRichTextPriv::TextBlock::OnEvent(GMessage *Msg)
 			if (e)
 			{
 				// Replacing text with spell check suggestion:
-				int i = Msg->A() - SPELLING_BASE;
+				int i = (int)Msg->A() - SPELLING_BASE;
 				if (i >= 0 && i < (int)e->Suggestions.Length())
 				{
 					GString s = e->Suggestions[i];
@@ -1393,7 +1393,7 @@ GMessage::Result GRichTextPriv::TextBlock::OnEvent(GMessage *Msg)
 	return 0;
 }
 
-bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const uint32 *InStr, int InChars, GNamedStyle *Style)
+bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, int AtOffset, const uint32 *InStr, ssize_t InChars, GNamedStyle *Style)
 {
 	if (!InStr)
 		return d->Error(_FL, "No input text.");
@@ -1579,7 +1579,7 @@ bool DetectUrl(Char *t, int &len)
 {
 	#ifdef _DEBUG
 	GString str(t, len);
-	char *ss = str;
+	//char *ss = str;
 	#endif
 	
 	Char *s = t;
@@ -1768,7 +1768,7 @@ void GRichTextPriv::TextBlock::SetSpellingErrors(GArray<GSpellCheck::SpellingErr
 	SpellingErrors.Sort(ErrSort);
 }
 
-int GRichTextPriv::TextBlock::CopyAt(int Offset, int Chars, GArray<uint32> *Text)
+int GRichTextPriv::TextBlock::CopyAt(int Offset, ssize_t Chars, GArray<uint32> *Text)
 {
 	if (!Text)
 		return 0;
@@ -1800,7 +1800,7 @@ int GRichTextPriv::TextBlock::FindAt(int StartIdx, const uint32 *Str, GFindRepla
 	if (!Str || !Params)
 		return -1;
 
-	int InLen = Strlen(Str);
+	ptrdiff_t InLen = Strlen(Str);
 	bool Match;
 	int CharPos = 0;
 	for (unsigned i=0; i<Txt.Length(); i++)
@@ -2263,7 +2263,7 @@ void GRichTextPriv::TextBlock::DumpNodes(GTreeItem *Ti)
 					else
 					{
 						uint8 utf8[6], *n = utf8;
-						int utf8len = sizeof(utf8);
+						ssize_t utf8len = sizeof(utf8);
 						if (LgiUtf32To8(Str[k], n, utf8len))
 							p.Write(utf8, sizeof(utf8)-utf8len);
 					}

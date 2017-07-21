@@ -220,7 +220,7 @@ bool _GetIniField(char *Grp, char *Field, char *In, char *Out, int OutSize)
 					while (*v && strchr(" \t", *v)) v++;
 					
 					// Calculate the length of the field
-					size_t flen = e-Line;
+					size_t flen = e - Line;
 					
 					// Check the current field against the input field
 					if (strnicmp(Field, Line, flen) == 0)

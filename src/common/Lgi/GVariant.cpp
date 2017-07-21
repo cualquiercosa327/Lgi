@@ -89,6 +89,18 @@ GVariant::GVariant(GVariant const &v)
 	*this = v;
 }
 
+GVariant::GVariant(size_t i)
+{
+	Type = GV_NULL;
+	*this = i;
+}
+
+GVariant::GVariant(ssize_t i)
+{
+	Type = GV_NULL;
+	*this = i;
+}
+
 GVariant::GVariant(int64 i)
 {
 	Type = GV_INT64;
@@ -293,6 +305,38 @@ GVariant &GVariant::operator =(int i)
 	Value.Int = i;
 	// if (Dirty) *Dirty = true;
 
+	return *this;
+}
+
+GVariant &GVariant::operator =(size_t i)
+{
+	Empty();
+	if (sizeof(i) > 4)
+	{
+		Type = GV_INT64;
+		Value.Int64 = i;
+	}
+	else
+	{
+		Type = GV_INT32;
+		Value.Int = (int)i;
+	}
+	return *this;
+}
+
+GVariant &GVariant::operator =(ssize_t i)
+{
+	Empty();
+	if (sizeof(i) > 4)
+	{
+		Type = GV_INT64;
+		Value.Int64 = i;
+	}
+	else
+	{
+		Type = GV_INT32;
+		Value.Int = (int)i;
+	}
 	return *this;
 }
 
@@ -1855,7 +1899,7 @@ size_t GCustomType::Sizeof()
 	return (size_t)PadSize();
 }
 
-int GCustomType::PadSize()
+ssize_t GCustomType::PadSize()
 {
 	if (Pack > 1)
 	{
@@ -1998,7 +2042,7 @@ bool GCustomType::CustomField::GetVariant(const char *Field, GVariant &Value, ch
 	return true;
 }
 
-int GCustomType::CustomField::Sizeof()
+ssize_t GCustomType::CustomField::Sizeof()
 {
 	switch (Type)
 	{
@@ -2164,8 +2208,8 @@ bool GCustomType::Set(int Index, GVariant &In, uint8 *This, int ArrayIndex)
 			{
 				// utf8 -> wide conversion...
 				const void *In = Ptr;
-				ptrdiff_t Len = strlen(s);
-				int Ch = LgiBufConvertCp(Ptr, LGI_WideCharset, Def->ArrayLen-1, In, "utf-8", Len);
+				ssize_t Len = strlen(s);
+				ssize_t Ch = LgiBufConvertCp(Ptr, LGI_WideCharset, Def->ArrayLen-1, In, "utf-8", Len);
 				if (Ch >= 0)
 				{
 					// Null terminate
@@ -2197,7 +2241,7 @@ bool GCustomType::Set(int Index, GVariant &In, uint8 *This, int ArrayIndex)
 			{
 				// Conversion to utf-8
 				const void *In = Ptr;
-				ptrdiff_t Len = StrlenW(w) * sizeof(char16);
+				ssize_t Len = StrlenW(w) * sizeof(char16);
 				int Ch = LgiBufConvertCp(Ptr, "utf-8", Def->ArrayLen-sizeof(char16),
 										In, LGI_WideCharset, Len);
 				if (Ch >= 0)

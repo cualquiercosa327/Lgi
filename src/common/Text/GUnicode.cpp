@@ -1,7 +1,7 @@
 #include "Lgi.h"
 #include "GUnicode.h"
 
-wchar_t *Utf8ToWide(const char *In, int InLen)
+wchar_t *Utf8ToWide(const char *In, ssize_t InLen)
 {
 	if (!In)
 		return NULL;

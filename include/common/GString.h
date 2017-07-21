@@ -134,7 +134,7 @@ LgiFunc char *stristr
 #if !defined(_MSC_VER)
 
 #if !defined(WIN32)
-LgiFunc int strnicmp(const char *a, const char *b, int i);
+LgiFunc int strnicmp(const char *a, const char *b, ssize_t i);
 #endif
 
 /// \brief Safe string copy
@@ -302,7 +302,7 @@ LgiFunc char16 *NewStrW
 	/// The input string
 	const char16 *s,
 	/// The maximum number of characters in the input string to use or -1 for the whole string.
-	int CharLen = -1
+	ssize_t CharLen = -1
 );
 /// Trim delimiters from a wide string. Returns a heap allocated string.
 LgiFunc char16 *TrimStrW(const char16 *s, const char16 *Delim = 0);

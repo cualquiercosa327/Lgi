@@ -1533,7 +1533,7 @@ CarbonControlProc
 					GKey k;
 
 					UniChar *utf = text;
-					ptrdiff_t size = actualSize;
+					ssize_t size = actualSize;
 					k.c16 = k.vkey = LgiUtf16To32((const uint16 *&)utf, size);
 					
 					// printf("%s:%i - char=%i\n", _FL, k.c16);

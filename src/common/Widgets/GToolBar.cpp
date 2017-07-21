@@ -56,10 +56,10 @@ GImageList *LgiLoadImageList(const char *File, int x, int y)
 		GString f = File;
 		GString leaf = f(f.RFind(DIR_STR)+1, -1);
 		GString width = leaf(leaf.RFind("-")+1, leaf.RFind("."));
-		int sep = width.Find("x");
+		ptrdiff_t sep = width.Find("x");
 		GString height = width(sep+1, -1);
 		if (sep > 0)
-			width.Length(sep);
+			width.Length((int)sep);
 		if (x < 0 && width.Get())
 			x = (int)width.Int();
 		if (y < 0 && (width.Get() || height.Get()))
@@ -1458,7 +1458,7 @@ bool GToolBar::SetImageList(GImageList *l, int bx, int by, bool Own)
 
 GToolButton *GToolBar::AppendButton(const char *Tip, int Id, int Type, int Enabled, int IconId)
 {
-	bool HasIcon = IconId != TOOL_ICO_NONE;
+	// bool HasIcon = IconId != TOOL_ICO_NONE;
 
 	GToolButton *But = new GToolButton(d->Bx, d->By);
 	if (But)

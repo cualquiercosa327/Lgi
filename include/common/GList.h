@@ -37,7 +37,7 @@ class LgiClass GListItemColumn : public GBase, public GItem, public GListItemPai
 {
 	GListItem *_Item;
 	int _Column;
-	int _Value;
+	int64 _Value;
 
 	void OnPaint(ItemPaintCtx &Ctx) {}
 

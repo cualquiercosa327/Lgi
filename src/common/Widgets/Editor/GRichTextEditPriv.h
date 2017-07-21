@@ -483,7 +483,7 @@ public:
 		bool Emoji;
 
 		StyleText(const StyleText *St);
-		StyleText(const uint32 *t = NULL, int Chars = -1, GNamedStyle *style = NULL);
+		StyleText(const uint32 *t = NULL, ssize_t Chars = -1, GNamedStyle *style = NULL);
 		uint32 *At(int i);
 		GNamedStyle *GetStyle();
 		void SetStyle(GNamedStyle *s);
@@ -705,7 +705,7 @@ public:
 			virtual Block *Clone() = 0;
 
 			// Copy some or all of the text out
-			virtual int CopyAt(int Offset, int Chars, GArray<uint32> *Text) { return false; }
+			virtual int CopyAt(int Offset, ssize_t Chars, GArray<uint32> *Text) { return false; }
 
 			/// This method moves a cursor index.
 			/// \returns the new cursor index or -1 on error.
@@ -784,7 +784,7 @@ public:
 
 		// This is the character offset of the cursor relative to
 		// the start of 'Blk'.
-		int Offset;
+		ssize_t Offset;
 
 		// In wrapped text, a given offset can either be at the end
 		// of one line or the start of the next line. This tells the
@@ -802,12 +802,12 @@ public:
 		bool Blink;
 
 		BlockCursor(const BlockCursor &c);
-		BlockCursor(Block *b, int off, int line);
+		BlockCursor(Block *b, ssize_t off, int line);
 		~BlockCursor();
 		
 		BlockCursor &operator =(const BlockCursor &c);
-		void Set(int off);
-		void Set(Block *b, int off, int line);
+		void Set(ssize_t off);
+		void Set(Block *b, ssize_t off, int line);
 		bool operator ==(const BlockCursor &c)
 		{
 			return Blk == c.Blk &&
@@ -825,12 +825,12 @@ public:
 	struct DisplayStr : public GDisplayString
 	{
 		StyleText *Src;
-		int Chars;		// The number of UTF-32 characters. This can be different to 
+		ssize_t Chars;	// The number of UTF-32 characters. This can be different to
 						// GDisplayString::Length() in the case that GDisplayString 
 						// is using UTF-16 (i.e. Windows).
 		int OffsetY;	// Offset of this string from the TextLine's box in the Y axis
 		
-		DisplayStr(StyleText *src, GFont *f, const uint32 *s, int l = -1, GSurface *pdc = NULL) :
+		DisplayStr(StyleText *src, GFont *f, const uint32 *s, ssize_t l = -1, GSurface *pdc = NULL) :
 			GDisplayString(f,
 				#ifndef WINDOWS
 				(char16*)
@@ -875,7 +875,7 @@ public:
 		}
 		
 		// Make a sub-string of this display string
-		virtual GAutoPtr<DisplayStr> Clone(int Start, int Len = -1)
+		virtual GAutoPtr<DisplayStr> Clone(ssize_t Start, ssize_t Len = -1)
 		{
 			GAutoPtr<DisplayStr> c;
 			if (len > 0 && Len != 0)
@@ -913,7 +913,7 @@ public:
 			return Font->Ascent();
 		}
 		
-		virtual int PosToIndex(int x, bool Nearest)
+		virtual ssize_t PosToIndex(int x, bool Nearest)
 		{
 			return CharAt(x);
 		}
@@ -927,11 +927,11 @@ public:
 		GArray<uint32> Utf32;
 		#endif
 
-		EmojiDisplayStr(StyleText *src, GSurface *img, GFont *f, const uint32 *s, int l = -1);
-		GAutoPtr<DisplayStr> Clone(int Start, int Len = -1);
+		EmojiDisplayStr(StyleText *src, GSurface *img, GFont *f, const uint32 *s, ssize_t l = -1);
+		GAutoPtr<DisplayStr> Clone(ssize_t Start, ssize_t Len = -1);
 		void Paint(GSurface *pDC, int &FixX, int FixY, GColour &Back);
 		double GetAscent();
-		int PosToIndex(int XPos, bool Nearest);
+		ssize_t PosToIndex(int XPos, bool Nearest);
 	};
 
 	/// This structure is a layout of a full line of text. Made up of one or more
@@ -999,7 +999,7 @@ public:
 		void OnPaint(PaintContext &Ctx);
 		bool OnLayout(Flow &flow);
 		int GetTextAt(uint32 Offset, GArray<StyleText*> &t);
-		int CopyAt(int Offset, int Chars, GArray<uint32> *Text);
+		int CopyAt(int Offset, ssize_t Chars, GArray<uint32> *Text);
 		bool Seek(SeekType To, BlockCursor &Cursor);
 		int FindAt(int StartIdx, const uint32 *Str, GFindReplaceCommon *Params);
 		void IncAllStyleRefs();
@@ -1014,7 +1014,7 @@ public:
 		GMessage::Result OnEvent(GMessage *Msg);
 
 		// Transactional changes
-		bool AddText(Transaction *Trans, int AtOffset, const uint32 *Str, int Chars = -1, GNamedStyle *Style = NULL);
+		bool AddText(Transaction *Trans, int AtOffset, const uint32 *Str, ssize_t Chars = -1, GNamedStyle *Style = NULL);
 		bool ChangeStyle(Transaction *Trans, int Offset, int Chars, GCss *Style, bool Add);
 		int DeleteAt(Transaction *Trans, int BlkOffset, int Chars, GArray<uint32> *DeletedText = NULL);
 		bool DoCase(Transaction *Trans, int StartIdx, int Chars, bool Upper);
@@ -1085,7 +1085,7 @@ public:
 		void OnPaint(PaintContext &Ctx);
 		bool OnLayout(Flow &flow);
 		int GetTextAt(uint32 Offset, GArray<StyleText*> &t);
-		int CopyAt(int Offset, int Chars, GArray<uint32> *Text);
+		int CopyAt(int Offset, ssize_t Chars, GArray<uint32> *Text);
 		bool Seek(SeekType To, BlockCursor &Cursor);
 		int FindAt(int StartIdx, const uint32 *Str, GFindReplaceCommon *Params);
 		void IncAllStyleRefs();

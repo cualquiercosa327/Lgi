@@ -1386,11 +1386,6 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 					int Min = 0, Max = 0;
 					CellFlag Flag = SizeUnknown;
 					
-					if (DebugLayout)
-					{
-						int asd=0;
-					}
-
 					if (c->Width().IsValid())
 					{
 						GCss::Len l = c->Width();
@@ -1543,11 +1538,6 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 {
 	int Cx, Cy, i;
 
-	if (DebugLayout)
-	{
-		int asd=0;
-	}
-	
 	// Do row height layout for single cells
 	for (Cy=0; Cy<Rows.Length(); Cy++)
 	{

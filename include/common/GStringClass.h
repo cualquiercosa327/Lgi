@@ -155,7 +155,7 @@ public:
 		while (c < end)
 		{
 			uint8 utf[6], *u = utf;
-			int len = sizeof(utf);
+			ssize_t len = sizeof(utf);
 			if (!LgiUtf32To8(*c++, u, len))
 				break;
 			utf_len += u - utf;
@@ -165,7 +165,7 @@ public:
 		{
 			c = str;
 			uint8 *u = (uint8*)Str->Str;
-			int len = Str->Len;
+			ssize_t len = Str->Len;
 			while (c < end)
 			{
 				if (!LgiUtf32To8(*c++, u, len))

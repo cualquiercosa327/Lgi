@@ -514,7 +514,7 @@ char *DecodeImapString(const char *s)
 char *EncodeImapString(const char *s)
 {
 	GStringPipe p;
-	ptrdiff_t Len = s ? strlen(s) : 0;
+	ssize_t Len = s ? strlen(s) : 0;
 	
 	while (s && *s)
 	{

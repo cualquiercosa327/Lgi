@@ -376,11 +376,11 @@ bool ResolveShortcut(const char *LinkFile, char *Path, int Len)
 
 void WriteStr(GFile &f, const char *s)
 {
-	uint32 Len = (s) ? strlen(s) : 0;
+	size_t Len = (s) ? strlen(s) : 0;
 	f << Len;
 	if (Len > 0)
 	{
-		f.Write(s, Len);
+		f.Write(s, (int)Len);
 	}
 }
 

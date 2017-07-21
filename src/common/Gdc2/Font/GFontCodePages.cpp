@@ -775,7 +775,7 @@ int LgiCpToAnsi(char *cp)
 	return Ansi;
 }
 
-int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, const char *InCp, ptrdiff_t &InLen)
+ssize_t LgiBufConvertCp(void *Out, const char *OutCp, ssize_t OutLen, const void *&In, const char *InCp, ssize_t &InLen)
 {
 	int Status = 0;
 
@@ -1019,7 +1019,7 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 }
 
 template<typename T>
-T *DupeString(T *s, int Len = -1)
+T *DupeString(T *s, ssize_t Len = -1)
 {
 	if (!s)
 		return NULL;
@@ -1037,7 +1037,7 @@ T *DupeString(T *s, int Len = -1)
 	return ns;
 }
 
-void *LgiNewConvertCp(const char *OutCp, const void *In, const char *InCp, ptrdiff_t InLen)
+void *LgiNewConvertCp(const char *OutCp, const void *In, const char *InCp, ssize_t InLen)
 {
 	if (!OutCp || !In || !InCp)
 		return NULL;
@@ -1131,10 +1131,10 @@ void *LgiNewConvertCp(const char *OutCp, const void *In, const char *InCp, ptrdi
 		char Buf[2 << 10];
 		while (InLen > 0)
 		{
-			int Bytes = LgiBufConvertCp(Buf, OutCp, sizeof(Buf), In, InCp, InLen);
+			ssize_t Bytes = LgiBufConvertCp(Buf, OutCp, sizeof(Buf), In, InCp, InLen);
 			if (Bytes > 0)
 			{
-				b.Write((uchar*)Buf, Bytes);
+				b.Write((uchar*)Buf, (int)Bytes);
 			}
 			else
 			{
@@ -1270,7 +1270,7 @@ const char *LgiAnsiToLgiCp(int AnsiCodePage)
 	return 0;
 }
 
-char *LgiSeekUtf8(const char *Ptr, int D, char *Start)
+char *LgiSeekUtf8(const char *Ptr, ssize_t D, char *Start)
 {
 	uchar *p = (uchar*)Ptr;
 	if (p)

@@ -535,9 +535,9 @@ bool GRichTextPriv::ImageBlock::HitTest(HitTestResult &htr)
 
 void GRichTextPriv::ImageBlock::OnPaint(PaintContext &Ctx)
 {
-	int CharPos = 0;
+	// int CharPos = 0;
 	int EndPoints = 0;
-	int EndPoint[2] = {-1, -1};
+	ssize_t EndPoint[2] = {-1, -1};
 	int CurEndPoint = 0;
 
 	if (Cursors > 0 && Ctx.Select)
@@ -552,7 +552,7 @@ void GRichTextPriv::ImageBlock::OnPaint(PaintContext &Ctx)
 		if (EndPoints > 1 &&
 			EndPoint[0] > EndPoint[1])
 		{
-			int ep = EndPoint[0];
+			ssize_t ep = EndPoint[0];
 			EndPoint[0] = EndPoint[1];
 			EndPoint[1] = ep;
 		}
@@ -728,7 +728,7 @@ int GRichTextPriv::ImageBlock::GetTextAt(uint32 Offset, GArray<StyleText*> &t)
 	return 0;
 }
 
-int GRichTextPriv::ImageBlock::CopyAt(int Offset, int Chars, GArray<uint32> *Text)
+int GRichTextPriv::ImageBlock::CopyAt(int Offset, ssize_t Chars, GArray<uint32> *Text)
 {
 	// No text to copy
 	return 0;
@@ -936,7 +936,7 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 			if (Msg->A() >= IDM_SCALE_IMAGE &&
 				Msg->A() < IDM_SCALE_IMAGE + CountOf(ImgScales))
 			{
-				int i = Msg->A() - IDM_SCALE_IMAGE;
+				int i = (int)Msg->A() - IDM_SCALE_IMAGE;
 				if (i >= 0 && i < (int)Scales.Length())
 				{
 					ScaleInf &si = Scales[i];

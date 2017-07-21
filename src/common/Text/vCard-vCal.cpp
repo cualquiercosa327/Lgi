@@ -464,8 +464,8 @@ bool VCard::Import(GDataPropI *c, GStreamI *s)
 				}
 				else if (IsVar(Field, "photo"))
 				{
-					int B64Len = strlen(Data);					
-					int BinLen = BufferLen_64ToBin(B64Len);
+					size_t B64Len = strlen(Data);
+					ssize_t BinLen = BufferLen_64ToBin(B64Len);
 					GAutoPtr<uint8> Bin(new uint8[BinLen]);
 					if (Bin)
 					{

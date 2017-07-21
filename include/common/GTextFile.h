@@ -270,7 +270,7 @@ public:
 					break;
 				default: // Utf8
 				{
-					ptrdiff_t len = (int) (End - Pos.u8);
+					ssize_t len = (int) (End - Pos.u8);
 					ch = LgiUtf8To32(Pos.u8, len);
 					break;
 				}

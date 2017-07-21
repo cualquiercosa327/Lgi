@@ -40,7 +40,7 @@ public:
 	int Sub;
 	GRect Arrow;
 	List<char> Items;
-	int LastKey;
+	uint64 LastKey;
 	GAutoString Find;
 	GSubMenu *Menu;
 	GCombo::SelectedState SelState;

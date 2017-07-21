@@ -214,7 +214,7 @@ char *strconcat(char *dst, const char *src)
 
 #endif
 
-int strnicmp(const char *a, const char *b, int i)
+int strnicmp(const char *a, const char *b, ssize_t i)
 {
 	int Cmp = -1;
 	if (a && b && i > 0)
@@ -823,7 +823,7 @@ bool MatchStrW(const char16 *a, const char16 *b)
 	return 0;
 }
 
-char16 *NewStrW(const char16 *Str, int l)
+char16 *NewStrW(const char16 *Str, ssize_t l)
 {
 	char16 *s = 0;
 	if (Str)

@@ -106,7 +106,7 @@ public:
 	GRect rPadding;
 	int PourX;
 	bool LayoutDirty;
-	int DirtyStart, DirtyLen;
+	ssize_t DirtyStart, DirtyLen;
 	bool SimpleDelete;
 	GColour UrlColour;
 	bool CenterCursor;
@@ -117,7 +117,7 @@ public:
 	GDocFindReplaceParams3 *FindReplaceParams;
 
 	// Map buffer
-	int MapLen;
+	ssize_t MapLen;
 	char16 *MapBuf;
 
 	// <RequiresLocking>
@@ -159,7 +159,7 @@ public:
 		DeleteArray(MapBuf);
 	}
 	
-	void SetDirty(int Start, int Len = 0)
+	void SetDirty(ssize_t Start, ssize_t Len = 0)
 	{
 		LayoutDirty = true;
 		DirtyStart = Start;
@@ -191,14 +191,14 @@ class GTextView3Undo : public GUndoEvent
 {
 	GTextView3 *View;
 	UndoType Type;
-	int At;
+	ssize_t At;
 	char16 *Text;
 
 public:
 	GTextView3Undo(	GTextView3 *view,
 					char16 *t,
-					int len,
-					int at,
+					ssize_t len,
+					ssize_t at,
 					UndoType type)
 	{
 		View = view;
@@ -421,7 +421,7 @@ GTextView3::~GTextView3()
 	// 'd' is owned by the GView::Css auto ptr
 }
 
-char16 *GTextView3::MapText(char16 *Str, int Len, bool RtlTrailingSpace)
+char16 *GTextView3::MapText(char16 *Str, ssize_t Len, bool RtlTrailingSpace)
 {
 	if (ObscurePassword /*|| ShowWhiteSpace*/ || RtlTrailingSpace)
 	{
@@ -643,7 +643,7 @@ void GTextView3::OnFontChange()
 	}
 }
 
-void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
+void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a delete */)
 {
 	#if PROFILE_POUR
 	int StartTime = LgiCurrentTime();
@@ -741,9 +741,9 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 							)
 
 		// tracking vars
-		int e;
+		size_t e;
 		int LastX = 0;
-		int LastChar = Start;
+		size_t LastChar = Start;
 		int WrapCol = GetWrapAtCol();
 
 		GDisplayString Sp(Font, " ", 1);
@@ -755,7 +755,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 		}
 
 		// alright... lets pour!
-		for (int i=Start; i<Size; i = e)
+		for (size_t i=Start; i<Size; i = e)
 		{
 			// seek till next char of interest
 			if (WrapType == TEXTED_WRAP_NONE)
@@ -821,7 +821,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 					}
 
 					// Seek back some characters if we are mid word
-					int OldE = e;
+					size_t OldE = e;
 					if (e < Size &&
 						Text[e] != '\n')
 					{
@@ -855,7 +855,7 @@ void GTextView3::PourText(int Start, int Length /* == 0 means it's a delete */)
 				else
 				{
 					// Wrap to edge of screen
-					int PrevExitChar = -1;
+					ssize_t PrevExitChar = -1;
 					int PrevX = -1;
 
 					while (true)
@@ -978,7 +978,7 @@ bool GTextView3::InsertStyle(GAutoPtr<GStyle> s)
 
 	LgiAssert(s->Start >= 0);
 	LgiAssert(s->Len > 0);
-	int Last = 0;
+	size_t Last = 0;
 	int n = 0;
 
 	if (Style.Length() > 0)
@@ -1030,8 +1030,8 @@ GTextView3::GStyle *GTextView3::GetNextStyle(int Where)
 	{
 		// determin whether style is relevent..
 		// styles in the selected region are ignored
-		int Min = min(SelStart, SelEnd);
-		int Max = max(SelStart, SelEnd);
+		ssize_t Min = min(SelStart, SelEnd);
+		ssize_t Max = max(SelStart, SelEnd);
 		if (SelStart >= 0 &&
 			s->Start >= Min &&
 			s->Start+s->Len < Max)
@@ -1160,7 +1160,7 @@ GTextView3::GStyle *GTextView3::HitStyle(int i)
 	return 0;	
 }
 
-void GTextView3::PourStyle(int Start, int EditSize)
+void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
 {
 	#ifdef _DEBUG
 	int64 StartTime = LgiCurrentTime();
@@ -1171,7 +1171,7 @@ void GTextView3::PourStyle(int Start, int EditSize)
 	if (!Text || Size < 1)
 		return;
 
-	int Length = max(EditSize, 0);
+	ssize_t Length = max(EditSize, 0);
 
 	// Expand re-style are to word boundaries before and after the area of change
 	while (Start > 0 && UrlChar(Text[Start-1]))
@@ -1198,7 +1198,7 @@ void GTextView3::PourStyle(int Start, int EditSize)
 					s->Start += EditSize;
 				}
 
-				if (s->Overlap(Start, abs(EditSize)))
+				if (s->Overlap(Start, EditSize < 0 ? -EditSize : EditSize))
 				{
 					Style.Delete();
 					DeleteObj(s);
@@ -1357,7 +1357,7 @@ void GTextView3::PourStyle(int Start, int EditSize)
 	#endif
 }
 
-bool GTextView3::Insert(int At, char16 *Data, int Len)
+bool GTextView3::Insert(size_t At, char16 *Data, ssize_t Len)
 {
 	LgiAssert(InThread());
 	
@@ -1367,7 +1367,7 @@ bool GTextView3::Insert(int At, char16 *Data, int Len)
 		At = min(Size, At);
 
 		// make sure we have enough memory
-		int NewAlloc = Size + Len + 1;
+		size_t NewAlloc = Size + Len + 1;
 		NewAlloc += ALLOC_BLOCK - (NewAlloc % ALLOC_BLOCK);
 		if (NewAlloc != Alloc)
 		{
@@ -1429,7 +1429,7 @@ bool GTextView3::Insert(int At, char16 *Data, int Len)
 	return false;
 }
 
-bool GTextView3::Delete(int At, int Len)
+bool GTextView3::Delete(size_t At, ssize_t Len)
 {
 	bool Status = false;
 
@@ -1455,8 +1455,8 @@ bool GTextView3::Delete(int At, int Len)
 				}
 			}
 
-			int PrevLineStart = -1;
-			int NextLineStart = -1;
+			ssize_t PrevLineStart = -1;
+			ssize_t NextLineStart = -1;
 			if (WrapType == TEXTED_WRAP_NONE)
 			{
 				d->SimpleDelete = !HasNewLine;
@@ -1543,8 +1543,8 @@ void GTextView3::DeleteSelection(char16 **Cut)
 {
 	if (SelStart >= 0)
 	{
-		int Min = min(SelStart, SelEnd);
-		int Max = max(SelStart, SelEnd);
+		ssize_t Min = min(SelStart, SelEnd);
+		ssize_t Max = max(SelStart, SelEnd);
 
 		if (Cut)
 		{
@@ -1556,7 +1556,7 @@ void GTextView3::DeleteSelection(char16 **Cut)
 	}
 }
 
-GTextView3::GTextLine *GTextView3::GetTextLine(int Offset, int *Index)
+GTextView3::GTextLine *GTextView3::GetTextLine(ssize_t Offset, int *Index)
 {
 	int i = 0;
 
@@ -1719,8 +1719,8 @@ char *GTextView3::GetSelection()
 {
 	if (HasSelection())
 	{
-		int Start = min(SelStart, SelEnd);
-		int End = max(SelStart, SelEnd);
+		ssize_t Start = min(SelStart, SelEnd);
+		ssize_t End = max(SelStart, SelEnd);
 		return (char*)LgiNewConvertCp("utf-8", Text + Start, LGI_WideCharset, (End-Start)*sizeof(Text[0]) );
 	}
 
@@ -1772,12 +1772,12 @@ bool GTextView3::GetLineColumnAtIndex(GdcPt2 &Pt, int Index)
 	if (!From)
 		return false;
 
-	Pt.x = Cursor - From->Start;
-	Pt.y = FromIndex;
+	Pt.x = (int) (Cursor - From->Start);
+	Pt.y = (int) FromIndex;
 	return true;
 }
 
-int GTextView3::GetCursor(bool Cur)
+ssize_t GTextView3::GetCursor(bool Cur)
 {
 	if (Cur)
 	{
@@ -1787,7 +1787,7 @@ int GTextView3::GetCursor(bool Cur)
 	return 0;
 }
 
-int GTextView3::IndexAt(int x, int y)
+ssize_t GTextView3::IndexAt(int x, int y)
 {
 	GTextLine *l = Line.ItemAt(y);
 	if (l)
@@ -1798,17 +1798,16 @@ int GTextView3::IndexAt(int x, int y)
 	return 0;
 }
 
-void GTextView3::SetCursor(int i, bool Select, bool ForceFullUpdate)
+void GTextView3::SetCursor(size_t i, bool Select, bool ForceFullUpdate)
 {
     // int _Start = LgiCurrentTime();
 	Blink = true;
 
 	// Bound the new cursor position to the document
-	if (i < 0) i = 0;
 	if (i > Size) i = Size;
 
 	// Store the old selection and cursor
-	int s = SelStart, e = SelEnd, c = Cursor;
+	ssize_t s = SelStart, e = SelEnd, c = Cursor;
 	
 	// If there is going to be a selected area
 	if (Select && i != SelStart)
@@ -1890,7 +1889,7 @@ void GTextView3::SetCursor(int i, bool Select, bool ForceFullUpdate)
 	{
 		// Update just the selection bounds
 		GRect Client = GetClient();
-		int Start, End;
+		size_t Start, End;
 		if (SelStart >= 0 && s >= 0)
 		{
 			// Selection has changed, union the before and after regions
@@ -1941,8 +1940,8 @@ void GTextView3::SetCursor(int i, bool Select, bool ForceFullUpdate)
 		{
 			printf("%s,%i - Couldn't get SLine and ELine: %i->%p, %i->%p\n",
 				_FL,
-				Start, SLine,
-				End, ELine);
+				(int)Start, SLine,
+				(int)End, ELine);
 			u = Client;
 		}
 
@@ -2014,8 +2013,8 @@ bool GTextView3::Copy()
 
 	if (SelStart >= 0)
 	{
-		int Min = min(SelStart, SelEnd);
-		int Max = max(SelStart, SelEnd);
+		ssize_t Min = min(SelStart, SelEnd);
+		ssize_t Max = max(SelStart, SelEnd);
 
 		char16 *Txt16 = NewStrW(Text+Min, Max-Min);
 		#ifdef WIN32
@@ -2255,7 +2254,7 @@ bool GTextView3::Save(const char *Name, const char *CharSet)
 					    if (b > e - 10)
 					    {
 					        ptrdiff_t Bytes = b - Buf;
-					        if (f.Write(Buf, Bytes) != Bytes)
+					        if (f.Write(Buf, (int)Bytes) != Bytes)
 					        {
 					            Status = false;
 					            break;
@@ -2277,7 +2276,7 @@ bool GTextView3::Save(const char *Name, const char *CharSet)
 					}
 
 			        ptrdiff_t Bytes = b - Buf;
-			        if (f.Write(Buf, Bytes) != Bytes)
+			        if (f.Write(Buf, (int)Bytes) != Bytes)
 			            Status = false;
 				}
 				else
@@ -2346,14 +2345,14 @@ bool GTextView3::DoCase(bool Upper)
 {
 	if (Text)
 	{
-		int Min = min(SelStart, SelEnd);
-		int Max = max(SelStart, SelEnd);
+		ssize_t Min = min(SelStart, SelEnd);
+		ssize_t Max = max(SelStart, SelEnd);
 
 		if (Min < Max)
 		{
 			UndoQue += new GTextView3Undo(this, Text + Min, Max-Min, Min, UndoChange);
 
-			for (int i=Min; i<Max; i++)
+			for (ssize_t i=Min; i<Max; i++)
 			{
 				if (Upper)
 				{
@@ -2385,7 +2384,7 @@ bool GTextView3::DoCase(bool Upper)
 int GTextView3::GetLine()
 {
 	int Idx = 0;
-	GTextLine *t = GetTextLine(Cursor, &Idx);
+	GetTextLine(Cursor, &Idx);
 	return Idx + 1;
 }
 
@@ -2480,8 +2479,8 @@ bool GTextView3::DoFind()
 	char *u = 0;
 	if (HasSelection())
 	{
-		int Min = min(SelStart, SelEnd);
-		int Max = max(SelStart, SelEnd);
+		ssize_t Min = min(SelStart, SelEnd);
+		ssize_t Max = max(SelStart, SelEnd);
 
 		u = WideToUtf8(Text + Min, Max - Min);
 	}
@@ -2591,14 +2590,14 @@ void GTextView3::SelectWord(int From)
 	Invalidate();
 }
 
-int GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly)
+ptrdiff_t GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly)
 {
 	if (ValidStrW(Find))
 	{
 		int FindLen = StrlenW(Find);
 		
 		// Setup range to search
-		int Begin, End;
+		ssize_t Begin, End;
 		if (SelectionOnly && HasSelection())
 		{
 			Begin = min(SelStart, SelEnd);
@@ -2727,7 +2726,7 @@ bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool Selec
 		Cursor = SelStart;
 	}
 
-	int Loc = MatchText(Find, MatchWord, MatchCase, SelectionOnly);
+	ssize_t Loc = MatchText(Find, MatchWord, MatchCase, SelectionOnly);
 	if (Loc >= 0)
 	{
 		SetCursor(Loc, false);

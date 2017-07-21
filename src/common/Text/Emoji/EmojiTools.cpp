@@ -52,7 +52,7 @@ bool HasEmoji(uint32 *Txt)
 #include <wchar.h>
 */
 template<typename T>
-int my_snwprintf(T *ptr, int ptr_size, const char16 *fmt, ...)
+ssize_t my_snwprintf(T *ptr, int ptr_size, const char16 *fmt, ...)
 {
 	T *start = ptr;
 	T *end = ptr + ptr_size - 1;
@@ -159,7 +159,8 @@ GAutoWString TextToEmoji(uint32 *Txt, bool IsHtml)
 {
 	EmojiMemQ p;
 	GArray<GLinkInfo> Links;
-	int Lnk = 0, Ch;
+	int Lnk = 0;
+	ssize_t Ch;
 	WChar Buf[BUF_SIZE];
 	char EmojiPng[MAX_PATH];
 
@@ -194,7 +195,7 @@ GAutoWString TextToEmoji(uint32 *Txt, bool IsHtml)
 			else
 				Ch = my_snwprintf(Buf, BUF_SIZE, anchor, l.Len, s, l.Len, s);
 			if (Ch > 0)
-				p.Write(Buf, Ch * sizeof(*Buf));
+				p.Write(Buf, (int) (Ch * sizeof(*Buf)));
 			Start = s + l.Len;
 			Lnk++;
 		}
@@ -223,7 +224,7 @@ GAutoWString TextToEmoji(uint32 *Txt, bool IsHtml)
 				rc.Offset(XChar * EMOJI_CELL_SIZE, YChar * EMOJI_CELL_SIZE);
 				Ch = my_snwprintf(Buf, BUF_SIZE, img, EmojiPng, rc.GetStr());
 				if (Ch > 0)
-					p.Write(Buf, Ch * sizeof(*Buf));
+					p.Write(Buf, (int) (Ch * sizeof(*Buf)));
 
 				Start = s + 1;
 				if (*Start == 0xfe0f)

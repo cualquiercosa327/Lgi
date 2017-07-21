@@ -32,7 +32,8 @@ protected:
 	GSurface *pDC;
 	OsChar *Str;
 	GFont *Font;
-	uint32 x, y, len;
+	uint32 x, y;
+	ssize_t len;
 	int xf, yf;
 	int DrawOffsetF;
 	
@@ -105,7 +106,7 @@ public:
 		/// Utf-8 input string
 		const char *s,
 		/// Number of bytes in the input string or -1 for NULL terminated.
-		int l = -1,
+		ssize_t l = -1,
 		GSurface *pdc = 0
 	);
 	/// Constructor
@@ -116,7 +117,7 @@ public:
 		/// A wide character input string
 		const char16 *s,
 		/// The number of characters in the input string (NOT the number of bytes) or -1 for NULL terminated
-		int l = -1,
+		ssize_t l = -1,
 		GSurface *pdc = 0
 	);
 	#ifdef _MSC_VER
@@ -128,7 +129,7 @@ public:
 		/// A wide character input string
 		const uint32 *s,
 		/// The number of characters in the input string (NOT the number of bytes) or -1 for NULL terminated
-		int l = -1,
+		ssize_t l = -1,
 		GSurface *pdc = 0
 	);
 	#endif
@@ -165,7 +166,7 @@ public:
 	bool IsTruncated();
 
 	/// Returns the chars in the OsChar string
-	int Length();
+	ssize_t Length();
 	/// Sets the number of chars in the OsChar string
 	void Length(int NewLen);
 
@@ -188,7 +189,7 @@ public:
 		/// Returns the width and height of the whole string
 		GdcPt2 Size();
 		/// Returns the number of characters that fit in 'x' pixels.
-		int CharAt(int x, LgiPxToIndexType Type = LgiTruncate);
+		ssize_t CharAt(int x, LgiPxToIndexType Type = LgiTruncate);
 
 		/// Draws the string onto a device surface
 		void Draw

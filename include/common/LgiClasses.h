@@ -1208,7 +1208,7 @@ class LgiClass GWindow :
 	friend class GApp;
 	friend class GWindowPrivate;
 	friend struct GDialogPriv;
-	#if defined(MAC) && !defined(COCOA)
+	#if defined(CARBON)
 	friend pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, void *inUserData);
 	#endif
 

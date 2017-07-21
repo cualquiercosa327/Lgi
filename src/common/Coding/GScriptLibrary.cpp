@@ -73,7 +73,7 @@ int GScriptUtils::atoi(char16 *s)
 	if (s)
 	{
 		char b[64];
-		ptrdiff_t Len = StrlenW(s) * sizeof(*s);
+		ssize_t Len = StrlenW(s) * sizeof(*s);
 		int Bytes = LgiBufConvertCp(b, "utf-8", sizeof(b), (const void*&)s, LGI_WideCharset, Len);
 		b[Bytes/sizeof(*b)] = 0;
 		i = ::atoi(b);
@@ -93,7 +93,7 @@ int64 GScriptUtils::atoi64(char16 *s)
 		#else
 
 		char b[64];
-		ptrdiff_t Len = StrlenW(s) * sizeof(*s);
+		ssize_t Len = StrlenW(s) * sizeof(*s);
 		int Bytes = LgiBufConvertCp(b, "utf-8", sizeof(b), (const void*&)s, LGI_WideCharset, Len);
 		b[Bytes/sizeof(*b)] = 0;
 
@@ -110,7 +110,7 @@ double GScriptUtils::atof(char16 *s)
 	if (s)
 	{
 		char b[64];
-		ptrdiff_t Len = StrlenW(s) * sizeof(*s);
+		ssize_t Len = StrlenW(s) * sizeof(*s);
 		int Bytes = LgiBufConvertCp(b, "utf-8", sizeof(b), (const void*&)s, LGI_WideCharset, Len);
 		b[Bytes/sizeof(*b)] = 0;
 		i = ::atof(b);
@@ -124,7 +124,7 @@ int GScriptUtils::htoi(char16 *s)
 	if (s)
 	{
 		char b[64];
-		ptrdiff_t Len = StrlenW(s) * sizeof(*s);
+		ssize_t Len = StrlenW(s) * sizeof(*s);
 		int Bytes = LgiBufConvertCp(b, "utf-8", sizeof(b), (const void*&)s, LGI_WideCharset, Len);
 		b[Bytes/sizeof(*b)] = 0;
 		i = ::htoi(b);
@@ -291,7 +291,7 @@ bool SystemFunctions::WriteTextFile(GVariant *Ret, ArgumentArray &Args)
 					default: break;
 					case GV_STRING:
 					{
-						int Len = strlen(v->Value.String);
+						size_t Len = strlen(v->Value.String);
 						*Ret = f.Write(v->Value.String, Len) == Len;
 						return true;
 						break;

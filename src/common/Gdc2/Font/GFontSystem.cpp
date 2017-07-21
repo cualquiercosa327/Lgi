@@ -347,7 +347,7 @@ static CFStringEncoding CharsetToEncoding(const char *cs)
 #endif
 
 
-int GFontSystem::IconvConvert(const char *OutCs, GStreamI *Out, const char *InCs, const char *&In, ptrdiff_t InLen)
+ssize_t GFontSystem::IconvConvert(const char *OutCs, GStreamI *Out, const char *InCs, const char *&In, ssize_t InLen)
 {
 	
 	LgiAssert(InLen > 0);
@@ -423,9 +423,9 @@ int GFontSystem::IconvConvert(const char *OutCs, GStreamI *Out, const char *InCs
 	return 1;
 }
 
-int GFontSystem::IconvConvert(const char *OutCs, char *Out, int OutLen, const char *InCs, const char *&In, ptrdiff_t InLen)
+ssize_t GFontSystem::IconvConvert(const char *OutCs, char *Out, ssize_t OutLen, const char *InCs, const char *&In, ssize_t InLen)
 {
-	int Status = 0;
+	ssize_t Status = 0;
 
     if (!Out || !In || !HasIconv(false))
         return 0;

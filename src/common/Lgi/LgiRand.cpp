@@ -146,5 +146,5 @@ uint LgiRand(uint Max)
 	{
 		return y % Max;
 	}
-    return y;
+    return (uint)y;
 }

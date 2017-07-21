@@ -291,6 +291,7 @@ void GWindow::SetDragHandlers(bool On)
 	#endif
 }
 
+/*
 static void _ClearChildHandles(GViewI *v)
 {
 	GViewIterator *it = v->IterateViews();
@@ -304,6 +305,7 @@ static void _ClearChildHandles(GViewI *v)
 	}
 	DeleteObj(it);
 }
+*/
 
 void GWindow::Quit(bool DontDelete)
 {
@@ -316,10 +318,10 @@ void GWindow::Quit(bool DontDelete)
 	if (Wnd)
 	{
 		SetDragHandlers(false);
-		OsWindow w = Wnd;
 		Wnd = 0;
 		_View = 0;
 		#if 0
+		OsWindow w = Wnd;
 		DisposeWindow(w);
 		#endif
 	}
@@ -387,9 +389,10 @@ void GWindow::Visible(bool i)
 		{
 			d->InitVisible = true;
 			Pour();
-			#if 0
-			ShowWindow(Wnd);
-			#endif
+
+			[Wnd->w makeKeyAndOrderFront:NULL];
+			[NSApp activateIgnoringOtherApps:YES];
+
 			SetDefaultFocus(this);
 		}
 		else
@@ -1402,7 +1405,7 @@ bool GWindow::SerializeState(GDom *Store, const char *FieldName, bool Load)
 			
 			if (Position.Valid())
 			{
-				int Sy = GdcD->Y();
+				// int Sy = GdcD->Y();
 				// Position.y2 = min(Position.y2, Sy - 50);
 				SetPos(Position);
 			}
@@ -1597,7 +1600,7 @@ void GWindow::Pour()
 			
 			if (v->Pour(Client))
 			{
-				GRect p = v->GetPos();
+				// GRect p = v->GetPos();
 				
 				if (!v->Visible())
 				{
@@ -1691,9 +1694,8 @@ GViewI *GWindow::WindowFromPoint(int x, int y, bool Debug)
 
 int GWindow::OnCommand(int Cmd, int Event, OsView SrcCtrl)
 {
-	OsView v;
-	
 	#if 0
+	OsView v;
 	switch (Cmd)
 	{
 		case kHICommandCut:

@@ -391,10 +391,10 @@ public:
 	char16 *PreText() { return PreTxt; }
 	void PreText(char16 *t) { PreTxt.Reset(t); TextPos.Empty(); }
 
-	int GetTextStart();
+	ptrdiff_t GetTextStart();
 	GAutoWString DumpW();
 	GAutoString DescribeElement();
-	char16 *CleanText(const char *s, int len, const char *SourceCs, bool ConversionAllowed = true, bool KeepWhiteSpace = false);
+	char16 *CleanText(const char *s, ssize_t len, const char *SourceCs, bool ConversionAllowed = true, bool KeepWhiteSpace = false);
 	char *ParseText(char *Doc);
 	bool ConvertToText(TextConvertState &State);
 	

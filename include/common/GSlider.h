@@ -16,8 +16,8 @@ class LgiClass GSlider :
 	#endif
 
 	bool Vertical;
-	int Min, Max;
-	int Val;
+	int64 Min, Max;
+	int64 Val;
 
 	GRect Thumb;
 	int Tx, Ty;

@@ -94,17 +94,17 @@ GStreamer::~GStreamer()
 	DeleteArray(Buf);
 }
 
-int GStreamer::GetRate()
+int64 GStreamer::GetRate()
 {
 	return (Total * GetElapsedTime()) / 1000;
 }
 
-int GStreamer::GetTotal()
+int64 GStreamer::GetTotal()
 {
 	return Total;
 }
 
-int GStreamer::GetElapsedTime()
+int64 GStreamer::GetElapsedTime()
 {
 	if (EndTime)
 	{
@@ -152,7 +152,7 @@ int GLinePrefix::IsEnd(void *v, int Len)
 					if (!*At)
 					{
 						// Sequence found
-						return Pos + 1 - (Eol ? 0 : strlen(Prefix));
+						return Pos + 1 - (Eol ? 0 : (int)strlen(Prefix));
 					}
 				}
 				else At = 0;

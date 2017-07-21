@@ -35,7 +35,7 @@ const char sMultipartRelated[] = "multipart/related";
 const char sAppOctetStream[] = "application/octet-stream";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
-LogEntry::LogEntry(const char *t, int len, COLOUR col)
+LogEntry::LogEntry(const char *t, ssize_t len, COLOUR col)
 {
 	c.Set(col, 24);
 	Text = 0;

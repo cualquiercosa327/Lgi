@@ -201,7 +201,7 @@ public:
 			char *Last = strrchr(Cur, Sep);
 			GToken t(Uri, "\\/");
 			if (*Uri != '#' && Last)
-				sprintf_s(Buf, sizeof(Buf), "%.*s", Last - Cur, Cur);
+				sprintf_s(Buf, sizeof(Buf), "%.*s", (int) (Last - Cur), Cur);
 			else
 				strcpy_s(Buf, sizeof(Buf), Cur);
 

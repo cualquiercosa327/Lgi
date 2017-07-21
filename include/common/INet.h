@@ -97,7 +97,7 @@ protected:
 	class GSocketImplPrivate *d;
 
 	// Methods
-	void Log(const char *Msg, int Ret, const char *Buf, int Len);
+	void Log(const char *Msg, ssize_t Ret, const char *Buf, ssize_t Len);
 
 public:
 	int			BytesWritten;

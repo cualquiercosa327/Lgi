@@ -63,7 +63,7 @@ GAutoString GUri::GetUri()
 	}
 	if (Host)
 	{
-		p.Write(Host, strlen(Host));
+		p.Write(Host, (int)strlen(Host));
 	}
 	if (Port)
 	{

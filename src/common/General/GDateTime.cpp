@@ -409,7 +409,7 @@ bool GDateTime::GetDaylightSavingsInfo(GArray<GDstInfo> &Info, GDateTime &Start,
 			GStringPipe p(1024);
 			while ((r = fread(s, 1, sizeof(s), f)) > 0)
 			{
-				p.Write(s, r);
+				p.Write(s, (int)r);
 			}		
 			fclose(f);
 			
@@ -450,7 +450,7 @@ bool GDateTime::GetDaylightSavingsInfo(GArray<GDstInfo> &Info, GDateTime &Start,
 						if (ParseValue(l[14], Var, Val) &&
 							!stricmp(Var, "isdst"))
 						{
-							int IsDst = atoi(Val);
+							// int IsDst = atoi(Val);
 							if (ParseValue(l[15], Var, Val) &&
 								!stricmp(Var, "gmtoff"))
 							{
@@ -626,7 +626,7 @@ GString GDateTime::GetDate()
 	return GString(s, Ch);
 }
 
-int GDateTime::GetDate(char *Str, int SLen)
+int GDateTime::GetDate(char *Str, size_t SLen)
 {
 	int Ch = 0;
 
@@ -663,7 +663,7 @@ GString GDateTime::GetTime()
 	return GString(s, Ch);
 }
 
-int GDateTime::GetTime(char *Str, int SLen)
+int GDateTime::GetTime(char *Str, size_t SLen)
 {
 	int Ch = 0;
 
@@ -697,8 +697,6 @@ uint64 GDateTime::Ts()
 
 bool GDateTime::Set(uint64 s)
 {
-	bool Status = false;
-
 	#if defined WIN32
 	FILETIME Utc, Local;
 	SYSTEMTIME System;
@@ -831,12 +829,12 @@ GString GDateTime::Get()
 	return GString(buf, Ch);
 }
 
-void GDateTime::Get(char *Str, int SLen)
+void GDateTime::Get(char *Str, size_t SLen)
 {
 	if (Str)
 	{
 		GetDate(Str, SLen);
-		int len = strlen(Str);
+		size_t len = strlen(Str);
 		if (len < SLen - 1)
 		{
 			Str[len++] = ' ';
@@ -1462,13 +1460,13 @@ void GDateTime::AddSeconds(int64 Seconds)
     
     if (s < 0)
     {
-        int m = (-s + 59) / 60;
+        int64 m = (-s + 59) / 60;
         AddMinutes(-m);
         s += m * 60;
     }
     else if (s >= 60)
     {
-        int m = s / 60;
+        int64 m = s / 60;
         AddMinutes(m);
         s -= m * 60;
     }
@@ -1477,7 +1475,7 @@ void GDateTime::AddSeconds(int64 Seconds)
 	LgiAssert(_Seconds >= 0 && _Seconds < 60);
 }
 
-void GDateTime::AddMinutes(int Minutes)
+void GDateTime::AddMinutes(int64 Minutes)
 {
 	int m = (int)_Minutes + Minutes;
 
@@ -1498,7 +1496,7 @@ void GDateTime::AddMinutes(int Minutes)
 	LgiAssert(_Minutes >= 0 && _Minutes < 60);
 }
 
-void GDateTime::AddHours(int Hours)
+void GDateTime::AddHours(int64 Hours)
 {
 	int h = _Hours + Hours;
 
@@ -1519,7 +1517,7 @@ void GDateTime::AddHours(int Hours)
 	LgiAssert(_Hours >= 0 && _Hours < 24);
 }
 
-bool GDateTime::AddDays(int Days)
+bool GDateTime::AddDays(int64 Days)
 {
 	if (!Days)
 		return true;
@@ -1534,7 +1532,7 @@ bool GDateTime::AddDays(int Days)
 	return b;
 }
 
-void GDateTime::AddMonths(int Months)
+void GDateTime::AddMonths(int64 Months)
 {
 	int m = _Month + Months;
 

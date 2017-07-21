@@ -85,9 +85,9 @@ void GEdit::SendNotify(int Data)
 		return GTextView3::SendNotify(Data);
 }
 
-bool GEdit::GetSelection(int &Start, int &Len)
+bool GEdit::GetSelection(size_t &Start, ssize_t &Len)
 {
-	int Sel = GTextView3::GetCursor(false);
+	size_t Sel = GTextView3::GetCursor(false);
 	Start = GTextView3::GetCursor();
 	if (Sel < Start)
 		Len = Start - Sel + 1;

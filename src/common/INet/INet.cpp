@@ -892,7 +892,7 @@ int GSocket::Close()
 	return true;
 }
 
-void GSocket::Log(const char *Msg, int Ret, const char *Buf, int Len)
+void GSocket::Log(const char *Msg, ssize_t Ret, const char *Buf, ssize_t Len)
 {
 	if (d->LogFile)
 	{
@@ -907,7 +907,7 @@ void GSocket::Log(const char *Msg, int Ret, const char *Buf, int Len)
 				{
 					char s[256];
 
-					f.Write(s, sprintf_s(s, sizeof(s), "%s = %i\r\n", Msg, Ret));
+					f.Write(s, sprintf_s(s, sizeof(s), "%s = %i\r\n", Msg, (int)Ret));
 
 					for (int i=0; i<Len;)
 					{
@@ -933,7 +933,7 @@ void GSocket::Log(const char *Msg, int Ret, const char *Buf, int Len)
 				}
 				case NET_LOG_ALL_BYTES:
 				{
-					f.Write(Buf, Len);
+					f.Write(Buf, (int)Len);
 					break;
 				}
 			}
@@ -986,7 +986,7 @@ int GSocket::Read(void *Data, int Len, int Flags)
 	if (!ValidSocket(d->Socket) || !Data)
 		return -1;
 
-	int Status = -1;
+	ssize_t Status = -1;
 
 	if (d->Timeout < 0 || IsReadable(d->Timeout))
 	{
@@ -997,7 +997,7 @@ int GSocket::Read(void *Data, int Len, int Flags)
 			);
 	}
 
-	Log("Read", Status, (char*)Data, Status>0 ? Status : 0);
+	Log("Read", (int)Status, (char*)Data, Status>0 ? Status : 0);
 
 	if (Status < 0)
 		Error();
@@ -1012,10 +1012,10 @@ int GSocket::Read(void *Data, int Len, int Flags)
 		}
 
 		BytesRead += Status;
-		OnRead((char*)Data, Status);
+		OnRead((char*)Data, (int)Status);
 	}
 
-	return Status;
+	return (int)Status;
 }
 
 int GSocket::Error(void *Param)
@@ -1246,17 +1246,17 @@ int GSocket::ReadUdp(void *Buffer, int Size, int Flags, uint32 *Ip, uint16 *Port
 	if (Port)
 		a.sin_port = htons(*Port);
 
-	int b = recvfrom(d->Socket, (char*)Buffer, Size, Flags, (sockaddr*)&a, &AddrSize);
+	ssize_t b = recvfrom(d->Socket, (char*)Buffer, Size, Flags, (sockaddr*)&a, &AddrSize);
 	if (b > 0)
 	{
-		OnRead((char*)Buffer, b);
+		OnRead((char*)Buffer, (int)b);
 
 		if (Ip)
 			*Ip = a.sin_addr.OsAddr;
 		if (Port)
 			*Port = ntohs(a.sin_port);
 	}
-	return b;
+	return (int)b;
 }
 
 int GSocket::WriteUdp(void *Buffer, int Size, int Flags, uint32 Ip, uint16 Port)
@@ -1282,12 +1282,12 @@ int GSocket::WriteUdp(void *Buffer, int Size, int Flags, uint32 Ip, uint16 Port)
 	a.sin_family = AF_INET;
 	a.sin_port = htons(Port);
 	a.sin_addr.OsAddr = Ip;
-	int b = sendto(d->Socket, (char*)Buffer, Size, Flags, (sockaddr*)&a, sizeof(a));
+	ssize_t b = sendto(d->Socket, (char*)Buffer, Size, Flags, (sockaddr*)&a, sizeof(a));
 	if (b > 0)
 	{
-		OnWrite((char*)Buffer, b);
+		OnWrite((char*)Buffer, (int)b);
 	}
-	return b;
+	return (int)b;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1585,7 +1585,7 @@ int GSocks5Socket::Open(char *HostAddr, int port)
 						memcpy(b, &HostPort, 2);
 						b += 2;
 
-						GSocket::Write(Buf, b - Buf, 0);
+						GSocket::Write(Buf, (int)(b - Buf), 0);
 						if (GSocket::Read(Buf, 10, 0) == 10)
 						{
 							if (Buf[0] == SOCKS5_VER)

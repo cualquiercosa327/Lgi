@@ -344,7 +344,7 @@ public:
 
 	/// Cursor=false means the other end of the selection if any. The cursor is alwasy
 	/// at one end of the selection.
-	virtual int GetCursor(bool Cursor = true) { return 0; }
+	virtual ssize_t GetCursor(bool Cursor = true) { return 0; }
 
 	/// True if there is a selection
 	virtual bool HasSelection() { return false; }
@@ -358,7 +358,7 @@ public:
 	virtual char *GetSelection() { return 0; }
 
 	/// Returns the character index at the x,y location
-	virtual int IndexAt(int x, int y) { return 0; }
+	virtual ssize_t IndexAt(int x, int y) { return 0; }
 
 	/// Index=-1 returns the x,y of the cursor, Index >=0 returns the specified x,y
 	virtual bool GetLineColumnAtIndex(GdcPt2 &Pt, int Index = -1) { return false; }
@@ -416,7 +416,7 @@ public:
 
 /// Detects links in text, returning their location and type
 template<typename T>
-bool LgiDetectLinks(GArray<GLinkInfo> &Links, T *Text, int TextCharLen = -1)
+bool LgiDetectLinks(GArray<GLinkInfo> &Links, T *Text, ssize_t TextCharLen = -1)
 {
 	if (!Text)
 		return false;

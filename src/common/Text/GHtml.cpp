@@ -1483,7 +1483,7 @@ bool GTag::SetVariant(const char *Name, GVariant &Value, char *Array)
 	return true;
 }
 
-int GTag::GetTextStart()
+ptrdiff_t GTag::GetTextStart()
 {
 	if (PreText())
 	{
@@ -1511,12 +1511,12 @@ static bool TextToStream(GStream &Out, char16 *Text)
 
 	uint8 Buf[256];
 	uint8 *s = Buf;
-	int Len = sizeof(Buf);
+	ssize_t Len = sizeof(Buf);
 	while (*Text)
 	{
 		#define WriteExistingContent() \
 			if (s > Buf) \
-				Out.Write(Buf, s - Buf); \
+				Out.Write(Buf, (int)(s - Buf)); \
 			s = Buf; \
 			Len = sizeof(Buf); \
 			Buf[0] = 0;
@@ -3375,7 +3375,7 @@ void GTag::SetCssStyle(const char *Style)
 	}
 }
 
-char16 *GTag::CleanText(const char *s, int Len, const char *SourceCs,  bool ConversionAllowed, bool KeepWhiteSpace)
+char16 *GTag::CleanText(const char *s, ssize_t Len, const char *SourceCs,  bool ConversionAllowed, bool KeepWhiteSpace)
 {
 	if (!s || Len <= 0)
 		return NULL;

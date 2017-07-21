@@ -33,7 +33,7 @@
 #endif
 
 template<typename Out, typename In>
-bool StringConvert(Out *&out, uint32 *OutLen, const In *in, int InLen)
+bool StringConvert(Out *&out, ssize_t *OutLen, const In *in, ssize_t InLen)
 {
 	char OutCs[8], InCs[8];
 	sprintf_s(OutCs, sizeof(OutCs), "utf-%i", (int)sizeof(Out)<<3);
@@ -61,7 +61,7 @@ bool StringConvert(Out *&out, uint32 *OutLen, const In *in, int InLen)
 #define VisibleTabChar				0x2192
 #define IsTabChar(c)				(c == '\t') // || (c == VisibleTabChar && VisibleTab))
 
-static OsChar GDisplayStringDots[] = {'.', '.', '.', 0};
+// static OsChar GDisplayStringDots[] = {'.', '.', '.', 0};
 
 #if COCOA
 #warning FIXME
@@ -88,7 +88,7 @@ void GDisplayString::CreateAttrStr()
 }
 #endif
 
-GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc)
+GDisplayString::GDisplayString(GFont *f, const char *s, ssize_t l, GSurface *pdc)
 {
 	pDC = pdc;
 	Font = f;
@@ -163,7 +163,7 @@ GDisplayString::GDisplayString(GFont *f, const char *s, int l, GSurface *pdc)
 	#endif
 }
 
-GDisplayString::GDisplayString(GFont *f, const char16 *s, int l, GSurface *pdc)
+GDisplayString::GDisplayString(GFont *f, const char16 *s, ssize_t l, GSurface *pdc)
 {
 	pDC = pdc;
 	Font = f;
@@ -948,7 +948,7 @@ void GDisplayString::TruncateWithDots(int Width)
 	#endif
 }
 
-int GDisplayString::CharAt(int Px, LgiPxToIndexType Type)
+ssize_t GDisplayString::CharAt(int Px, LgiPxToIndexType Type)
 {
 	int Status = -1;
 
@@ -1150,7 +1150,7 @@ int GDisplayString::CharAt(int Px, LgiPxToIndexType Type)
 	return Status;
 }
 
-int GDisplayString::Length()
+ssize_t GDisplayString::Length()
 {
 	return len;
 }

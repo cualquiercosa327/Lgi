@@ -274,10 +274,10 @@ bool GSubProcess::SetEnvironment(const char *Var, const char *Value)
 		char *e = n ? strchr(n + 1, '%') : NULL;
 		if (n && e)
 		{
-			a.Write(s, n-s);
+			a.Write(s, (int) (n-s));
 			
 			n++;
-			int bytes = e - n;				
+			ptrdiff_t bytes = e - n;
 			char Name[128];	
 			if (bytes > sizeof(Name) - 1) bytes = sizeof(Name)-1;			
 			memcpy(Name, n, bytes);
@@ -286,14 +286,14 @@ bool GSubProcess::SetEnvironment(const char *Var, const char *Value)
 			const char *existing = GetEnvironment(Name);
 			if (existing)
 			{
-				a.Write(existing, strlen(existing));
+				a.Write(existing, (int)strlen(existing));
 			}
 
 			s = e + 1;
 		}
 		else
 		{
-			a.Write(s, strlen(s));
+			a.Write(s, (int)strlen(s));
 			break;
 		}
 	}
@@ -873,7 +873,7 @@ int GSubProcess::Peek()
 int GSubProcess::Write(const void *Buf, int Size, int Flags)
 {
 	#if defined(POSIX)
-		return write(Io.Write, Buf, Size);
+		return (int)write(Io.Write, Buf, Size);
 	#else
 		DWORD Wr = -1;
 		if (!WriteFile(ChildInput.Write, Buf, Size, &Wr, NULL))

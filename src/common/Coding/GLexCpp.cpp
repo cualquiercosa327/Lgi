@@ -17,7 +17,7 @@
 								break; \
 						}
 
-char16 *LexStrdup(void *context, const char16 *start, int len)
+char16 *LexStrdup(void *context, const char16 *start, ssize_t len)
 {
 	if (len < 0)
 		len = StrlenW(start);

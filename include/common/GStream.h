@@ -109,9 +109,9 @@ public:
 	virtual ~GStreamer();
 
 	// Properties
-	int GetRate();
-	int GetTotal();
-	int GetElapsedTime();
+	int64 GetRate();
+	int64 GetTotal();
+	int64 GetElapsedTime();
 };
 
 /// API to reads from source

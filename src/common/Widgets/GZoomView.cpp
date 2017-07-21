@@ -529,12 +529,12 @@ public:
 						uint32 *dst = dst_start;
 						while (s[0] < scan_end)
 						{
-							register uint8 val = 0;
+							uint8 val = 0;
 							
 							for (int oy=0; oy<Factor && s[oy]; oy++)
 							{
-								register uint8 *src = s[oy];
-								register uint8 *px_end = src + Factor;
+								uint8 *src = s[oy];
+								uint8 *px_end = src + Factor;
 								while (src < px_end)
 								{
 									if (*src > val)

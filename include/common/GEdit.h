@@ -67,7 +67,7 @@ public:
 	/// Selects a region of text
 	void Select(int Start = 0, int Len = -1);
 	/// Get the current selection in characters
-	bool GetSelection(int &Start, int &Len);
+	bool GetSelection(size_t &Start, ssize_t &Len);
 	/// Gets the Caret position in characters
 	int GetCaret();
 	/// Sets the Caret position in characters

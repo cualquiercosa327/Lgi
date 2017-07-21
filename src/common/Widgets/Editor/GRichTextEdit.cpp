@@ -577,7 +577,7 @@ bool GRichTextEdit::GetLineColumnAtIndex(GdcPt2 &Pt, int Index)
 	return true;
 }
 
-int GRichTextEdit::GetCursor(bool Cur)
+ssize_t GRichTextEdit::GetCursor(bool Cur)
 {
 	if (!d->Cursor)
 		return -1;
@@ -602,7 +602,7 @@ bool GRichTextEdit::IndexAt(int x, int y, int &Off, int &LineHint)
 	return Off >= 0;
 }
 
-int GRichTextEdit::IndexAt(int x, int y)
+ssize_t GRichTextEdit::IndexAt(int x, int y)
 {
 	int Idx, Line;
 	if (!IndexAt(x, y, Idx, Line))

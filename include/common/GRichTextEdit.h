@@ -141,14 +141,14 @@ public:
 	
 	// State / Selection
 	void SetCursor(int i, bool Select, bool ForceFullUpdate = false);
-	int IndexAt(int x, int y);
+	ssize_t IndexAt(int x, int y);
 	bool IsDirty();
 	void IsDirty(bool d);
 	bool HasSelection();
 	void UnSelectAll();
 	void SelectWord(int From);
 	void SelectAll();
-	int GetCursor(bool Cursor = true);
+	ssize_t GetCursor(bool Cursor = true);
 	bool GetLineColumnAtIndex(GdcPt2 &Pt, int Index = -1);
 	int GetLines();
 	void GetTextExtent(int &x, int &y);
