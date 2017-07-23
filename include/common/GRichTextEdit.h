@@ -56,11 +56,11 @@ protected:
 	class GRichTextPriv *d;
 	friend class GRichTextPriv;
 
-	bool IndexAt(int x, int y, int &Off, int &LineHint);
+	bool IndexAt(int x, int y, ssize_t &Off, int &LineHint);
 	
 	// Overridables
-	virtual void PourText(int Start, int Length);
-	virtual void PourStyle(int Start, int Length);
+	virtual void PourText(ssize_t Start, ssize_t Length);
+	virtual void PourStyle(ssize_t Start, ssize_t Length);
 	virtual void OnFontChange();
 	virtual void OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour);
 
@@ -88,7 +88,7 @@ public:
 	const char *GetCharset();
 	void SetCharset(const char *s);
 
-	int HitTest(int x, int y);
+	ssize_t HitTest(int x, int y);
 	bool DeleteSelection(char16 **Cut = 0);
 	bool SetSpellCheck(class GSpellCheck *sp);
 	
@@ -146,7 +146,7 @@ public:
 	void IsDirty(bool d);
 	bool HasSelection();
 	void UnSelectAll();
-	void SelectWord(int From);
+	void SelectWord(size_t From);
 	void SelectAll();
 	ssize_t GetCursor(bool Cursor = true);
 	bool GetLineColumnAtIndex(GdcPt2 &Pt, int Index = -1);

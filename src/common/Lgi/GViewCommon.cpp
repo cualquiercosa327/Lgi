@@ -589,6 +589,7 @@ void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 					w->_Paint(pDC, &co);
 					pDC->SetClient(0);
 				}
+				/*
 				else
 				{
 					LgiTrace("%s:%i - Not updating '%s' because %i, %i (%s)\n",
@@ -596,14 +597,13 @@ void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 						Update != NULL,
 						Update ? Update->Overlap(&p) : -1,
 						p.GetStr());
-					/*
 					if (Update)
 					{
 						for (unsigned i=0; i<Update->Length(); i++)
 							LgiTrace("    [%i]=%s\n", i, (*Update)[i]->GetStr());
 					}
-					*/
 				}
+				*/
 			}
 		}
 	}

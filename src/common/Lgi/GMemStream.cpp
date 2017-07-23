@@ -47,7 +47,7 @@ GMemStream::GMemStream(GStreamI *Src, int64 Start, int64 len)
 			{
 				if ((Mem = new char[Alloc = Len]))
 				{
-					int r;
+					ssize_t r;
 					while (	Pos < Len &&
 							(r = Src->Read(Mem + Pos, Len - Pos)) > 0)
 					{
@@ -60,7 +60,7 @@ GMemStream::GMemStream(GStreamI *Src, int64 Start, int64 len)
 			{
 				char Buf[512];
 				GMemQueue p(4 << 10);
-				int r;
+				ssize_t r;
 				while ((r = Src->Read(Buf, sizeof(Buf))) > 0)
 				{
 					p.Write(Buf, r);
@@ -169,9 +169,9 @@ bool GMemStream::IsOk()
 	return Len == 0 || Mem != 0;
 }
 
-int GMemStream::Read(void *Buffer, int Size, int Flags)
+ssize_t GMemStream::Read(void *Buffer, ssize_t Size, int Flags)
 {
-	int Bytes = 0;
+	ssize_t Bytes = 0;
 	if (Buffer && Pos >= 0 && Pos < Len)
 	{
 		Bytes = min(Len - Pos, Size);
@@ -181,12 +181,12 @@ int GMemStream::Read(void *Buffer, int Size, int Flags)
 	return Bytes;
 }
 
-int GMemStream::Write(const void *Buffer, int Size, int Flags)
+ssize_t GMemStream::Write(const void *Buffer, ssize_t Size, int Flags)
 {
 	if (!Buffer || Size <= 0)
 		return 0;
 
-	int Bytes = 0;
+	ssize_t Bytes = 0;
 	if (GrowBlockSize)
 	{
 		// Allow mem stream to grow
@@ -197,7 +197,7 @@ int GMemStream::Write(const void *Buffer, int Size, int Flags)
 			{
 				// Grow the mem block
 				int64 NewSize = Pos + Size;
-				int Blocks = (NewSize + GrowBlockSize - 1) / GrowBlockSize;
+				ssize_t Blocks = (NewSize + GrowBlockSize - 1) / GrowBlockSize;
 					
 				int64 NewAlloc = Blocks * GrowBlockSize;
 				char *NewMem = new char[NewAlloc];
@@ -213,8 +213,8 @@ int GMemStream::Write(const void *Buffer, int Size, int Flags)
 			if (Pos < Alloc)
 			{
 				// Fill available mem first...
-				int Remaining = Alloc - Pos;
-				int Copy = min(Size, Remaining);
+				ssize_t Remaining = Alloc - Pos;
+				ssize_t Copy = min(Size, Remaining);
 				memcpy(Mem + Pos, Ptr, Copy);
 				Size -= Copy;
 				Ptr += Copy;
@@ -241,13 +241,13 @@ GStreamI *GMemStream::Clone()
 	return new GMemStream(Mem, Len, true);
 }
 
-int GMemStream::Write(GStream *Out, int Size)
+ssize_t GMemStream::Write(GStream *Out, ssize_t Size)
 {
-	int Wr = -1;
+	ssize_t Wr = -1;
 
 	if (Out && Size > 0)
 	{
-		int Common = min(Size, ((int)(Len-Pos)));
+		ssize_t Common = min(Size, ((int)(Len-Pos)));
 		Wr = Out->Write(Mem, Common);
 	}
 
@@ -290,14 +290,14 @@ void GTempStream::Empty()
 	s = 0;
 }
 
-int GTempStream::Write(const void *Buffer, int Size, int Flags)
+size_t GTempStream::Write(const void *Buffer, size_t Size, int Flags)
 {
 	if (s == &Null)
 	{
 		s = Mem = new GMemStream(16 << 10);
 	}
 
-	int Status = GProxyStream::Write(Buffer, Size, Flags);
+	ssize_t Status = GProxyStream::Write(Buffer, Size, Flags);
 	
 	if (Mem != 0 && s->GetSize() > MaxMemSize)
 	{
@@ -306,7 +306,7 @@ int GTempStream::Write(const void *Buffer, int Size, int Flags)
 		int i=0;
 		do
 		{
-			sprintf_s(f, sizeof(f), "GTempStream-%x.tmp", ((NativeInt)this)+i++);
+			sprintf_s(f, sizeof(f), "GTempStream-%x.tmp", (int)(((NativeInt)this)+i++));
 			
 			char *t = TmpFolder;
 			if (!TmpFolder)

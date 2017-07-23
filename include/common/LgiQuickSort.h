@@ -8,14 +8,14 @@
 //  Matthew Allen to use a callback comparison function with user data in C++.
 //
 template<typename T, typename U>
-void LgiQuickSort(T *arr, int elements, int (*comp)(T&, T&, U), U user)
+void LgiQuickSort(T *arr, ssize_t elements, int (*comp)(T&, T&, U), U user)
 {
 	#define  MAX_LEVELS  300
 
 	if (!arr || !comp)
 		return;
 
-	int beg[MAX_LEVELS], end[MAX_LEVELS], i = 0, L, R, swap;
+	ssize_t beg[MAX_LEVELS], end[MAX_LEVELS], i = 0, L, R, swap;
 	T piv;
 
 	beg[0] = 0;

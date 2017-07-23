@@ -54,7 +54,7 @@ bool GPassword::operator ==(GPassword &p)
 	return false;
 }
 
-void GPassword::Process(char *Out, char *In, int Len)
+void GPassword::Process(char *Out, char *In, ssize_t Len)
 {
 	if (Out && In && Len > 0)
 	{
@@ -101,7 +101,7 @@ void GPassword::Serialize(char *Password, int Write)
 	{
 		if (Len > 28) Len = 28;
 
-		*p++ = Len;
+		*p++ = (int)Len;
 		if (Data)
 		{
 			memcpy(p, Data, Len);

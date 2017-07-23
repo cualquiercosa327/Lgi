@@ -37,7 +37,7 @@ LgiFunc char BinToBase64(uchar c);
 // Returns:
 //	Number of bytes converted.
 //
-LgiFunc int ConvertBase64ToBinary(uchar *Binary, int OutBuf, char *Base64, int InBuf);
-LgiFunc int ConvertBinaryToBase64(char *Base64, int OutBuf, uchar *Binary, int InBuf);
+LgiFunc ssize_t ConvertBase64ToBinary(uchar *Binary, ssize_t OutBuf, char *Base64, ssize_t InBuf);
+LgiFunc ssize_t ConvertBinaryToBase64(char *Base64, ssize_t OutBuf, uchar *Binary, ssize_t InBuf);
 
 #endif

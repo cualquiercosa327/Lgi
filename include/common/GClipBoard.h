@@ -43,8 +43,8 @@ public:
 	#endif
 
 	// Binary
-	bool Binary(FormatType Format, uint8 *Ptr, int Len, bool AutoEmpty);	// Set
-	bool Binary(FormatType Format, GAutoPtr<uint8> &Ptr, int *Len);	// Get
+	bool Binary(FormatType Format, uint8 *Ptr, ssize_t Len, bool AutoEmpty);	// Set
+	bool Binary(FormatType Format, GAutoPtr<uint8> &Ptr, ssize_t *Len);	// Get
 };
 
 #endif

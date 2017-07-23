@@ -355,7 +355,7 @@ int GRichTextPriv::ImageBlock::GetLines()
 	return 1;
 }
 
-bool GRichTextPriv::ImageBlock::OffsetToLine(int Offset, int *ColX, GArray<int> *LineY)
+bool GRichTextPriv::ImageBlock::OffsetToLine(ssize_t Offset, int *ColX, GArray<int> *LineY)
 {
 	if (ColX)
 		*ColX = Offset > 0;
@@ -373,7 +373,7 @@ void GRichTextPriv::ImageBlock::Dump()
 {
 }
 
-GNamedStyle *GRichTextPriv::ImageBlock::GetStyle(int At)
+GNamedStyle *GRichTextPriv::ImageBlock::GetStyle(ssize_t At)
 {
 	return Style;
 }
@@ -403,7 +403,7 @@ void GRichTextPriv::ImageBlock::SetStyle(GNamedStyle *s)
 	}
 }
 
-int GRichTextPriv::ImageBlock::Length()
+ssize_t GRichTextPriv::ImageBlock::Length()
 {
 	return 1;
 }
@@ -722,13 +722,13 @@ bool GRichTextPriv::ImageBlock::OnLayout(Flow &flow)
 	return true;
 }
 
-int GRichTextPriv::ImageBlock::GetTextAt(uint32 Offset, GArray<StyleText*> &t)
+ssize_t GRichTextPriv::ImageBlock::GetTextAt(ssize_t Offset, GArray<StyleText*> &t)
 {
 	// No text to get
 	return 0;
 }
 
-int GRichTextPriv::ImageBlock::CopyAt(int Offset, ssize_t Chars, GArray<uint32> *Text)
+ssize_t GRichTextPriv::ImageBlock::CopyAt(ssize_t Offset, ssize_t Chars, GArray<uint32> *Text)
 {
 	// No text to copy
 	return 0;
@@ -776,7 +776,7 @@ bool GRichTextPriv::ImageBlock::Seek(SeekType To, BlockCursor &Cursor)
 	return true;
 }
 
-int GRichTextPriv::ImageBlock::FindAt(int StartIdx, const uint32 *Str, GFindReplaceCommon *Params)
+ssize_t GRichTextPriv::ImageBlock::FindAt(ssize_t StartIdx, const uint32 *Str, GFindReplaceCommon *Params)
 {
 	// No text to find in
 	return -1;
@@ -788,7 +788,7 @@ void GRichTextPriv::ImageBlock::IncAllStyleRefs()
 		Style->RefCount++;
 }
 
-bool GRichTextPriv::ImageBlock::DoContext(GSubMenu &s, GdcPt2 Doc, int Offset, bool Spelling)
+bool GRichTextPriv::ImageBlock::DoContext(GSubMenu &s, GdcPt2 Doc, ssize_t Offset, bool Spelling)
 {
 	if (SourceImg && !Spelling)
 	{
@@ -1043,19 +1043,19 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 	return 0;
 }
 
-bool GRichTextPriv::ImageBlock::AddText(Transaction *Trans, int AtOffset, const uint32 *Str, int Chars, GNamedStyle *Style)
+bool GRichTextPriv::ImageBlock::AddText(Transaction *Trans, ssize_t AtOffset, const uint32 *Str, ssize_t Chars, GNamedStyle *Style)
 {
 	// Can't add text to image block
 	return false;
 }
 
-bool GRichTextPriv::ImageBlock::ChangeStyle(Transaction *Trans, int Offset, int Chars, GCss *Style, bool Add)
+bool GRichTextPriv::ImageBlock::ChangeStyle(Transaction *Trans, ssize_t Offset, ssize_t Chars, GCss *Style, bool Add)
 {
 	// No styles to change...
 	return false;
 }
 
-int GRichTextPriv::ImageBlock::DeleteAt(Transaction *Trans, int BlkOffset, int Chars, GArray<uint32> *DeletedText)
+ssize_t GRichTextPriv::ImageBlock::DeleteAt(Transaction *Trans, ssize_t BlkOffset, ssize_t Chars, GArray<uint32> *DeletedText)
 {
 	// The image is one "character"
 	if (BlkOffset == 0)
@@ -1066,7 +1066,7 @@ int GRichTextPriv::ImageBlock::DeleteAt(Transaction *Trans, int BlkOffset, int C
 	return false;
 }
 
-bool GRichTextPriv::ImageBlock::DoCase(Transaction *Trans, int StartIdx, int Chars, bool Upper)
+bool GRichTextPriv::ImageBlock::DoCase(Transaction *Trans, ssize_t StartIdx, ssize_t Chars, bool Upper)
 {
 	// No text to change case...
 	return false;

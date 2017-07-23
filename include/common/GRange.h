@@ -10,10 +10,10 @@
 
 struct GRange
 {
-	int Start;
-	int Len;
+	ssize_t Start;
+	ssize_t Len;
 
-	GRange(int s = 0, int l = 0)
+	GRange(ssize_t s = 0, ssize_t l = 0)
 	{
 		Start = s;
 		Len = l;
@@ -27,13 +27,13 @@ struct GRange
 		if (r.End() <= Start)
 			return o;
 
-		int e = MIN(End(), r.End());
+		ssize_t e = MIN(End(), r.End());
 		o.Start = MAX(r.Start, Start);
 		o.Len = e - o.Start;
 		return o; 
 	}
 
-	int End() const
+	ssize_t End() const
 	{
 		return Start + Len;
 	}

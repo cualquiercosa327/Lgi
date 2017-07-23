@@ -26,8 +26,8 @@ class LgiClass GStream : virtual public GStreamI, virtual public GDom
 public:
 	virtual ~GStream() {}
 
-	int Read(void *Ptr, int Size, int Flags = 0) { return 0; }
-	int Write(const void *Ptr, int Size, int Flags = 0) { return 0; }
+	ssize_t Read(void *Ptr, ssize_t Size, int Flags = 0) { return 0; }
+	ssize_t Write(const void *Ptr, ssize_t Size, int Flags = 0) { return 0; }
 	
 	/// \brief Formats a string and then writes it.
 	virtual int Print(const char *Format, ...);
@@ -47,12 +47,12 @@ public:
 	/// \return The index into Data of the end of the stream, indexed
 	/// from the start of the data, not the start of the current block.
 	/// Or -1 if the end of stream is not in the data segment
-	virtual int IsEnd
+	virtual ssize_t IsEnd
 	(
 		/// The start of the current data block
 		void *Data,
 		/// The length in bytes of the current data block
-		int Len
+		ssize_t Len
 	) = 0;
 };
 
@@ -79,14 +79,14 @@ public:
 	~GLinePrefix();
 
 	void Reset();
-	int IsEnd(void *s, int Len);
+	ssize_t IsEnd(void *s, ssize_t Len);
 };
 
 /// Read a line
 class LgiClass GEndOfLine : public GStreamEnd
 {
 public:
-	int IsEnd(void *s, int Len);
+	ssize_t IsEnd(void *s, ssize_t Len);
 };
 
 /// Generic streaming operator
@@ -191,9 +191,9 @@ public:
 	int64 SetSize(int64 Size);
 
 	bool IsOk();
-	int Read(void *Buffer, int Size, int Flags = 0);
-	int Write(const void *Buffer, int Size, int Flags = 0);
-	int Write(GStream *Out, int Size);
+	ssize_t Read(void *Buffer, ssize_t Size, int Flags = 0);
+	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0);
+	ssize_t Write(GStream *Out, ssize_t Size);
 	char *GetBase() { return Mem; }
 	GStreamI *Clone();
 };
@@ -218,8 +218,8 @@ public:
 	int64 SetSize(int64 Size)			{ return s->SetSize(Size); }
 	int64 GetPos()						{ return s->GetPos(); }
 	int64 SetPos(int64 Pos)				{ return s->SetPos(Pos); }
-	int Read(void *b, int l, int f = 0) { return s->Read(b, l, f); }
-	int Write(const void *b, int l, int f = 0) { return s->Write(b, l, f); }
+	ssize_t Read(void *b, ssize_t l, int f = 0) { return s->Read(b, l, f); }
+	ssize_t Write(const void *b, ssize_t l, int f = 0) { return s->Write(b, l, f); }
 	bool GetValue(char *n, GVariant &v) { return s->GetValue(n, v); }
 	bool SetValue(char *n, GVariant &v) { return s->SetValue(n, v); }
 
@@ -244,7 +244,7 @@ public:
 	~GTempStream();
 
 	int GetMaxMemSize() { return MaxMemSize; }
-	int Write(const void *Buffer, int Size, int Flags = 0);
+	size_t Write(const void *Buffer, size_t Size, int Flags = 0);
 	void Empty();
 	int64 GetSize();
 	

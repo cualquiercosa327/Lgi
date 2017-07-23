@@ -696,7 +696,7 @@ void NextTabStop(GViewI *v, int dir)
 {
 	GArray<GViewI*> Stops;
 	BuildTabStops(Stops, v->GetWindow());
-	int Idx = Stops.IndexOf(v);
+	ssize_t Idx = Stops.IndexOf(v);
 	if (Idx >= 0)
 		Idx += dir;
 	else

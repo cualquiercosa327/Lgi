@@ -149,7 +149,7 @@ struct EmojiMemQ : GMemQueue
 	}
 	#endif
 	
-	int Write(const WChar *s, int bytes)
+	ssize_t Write(const WChar *s, int bytes)
 	{
 		return GMemQueue::Write(s, bytes);
 	}

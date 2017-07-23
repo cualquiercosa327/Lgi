@@ -180,7 +180,7 @@ public:
 	char16 *GetText() { return Txt; }
 	
 	// Heirarchy
-	bool Attach(GHtmlElement *Child, int Idx = -1);
+	bool Attach(GHtmlElement *Child, ssize_t Idx = -1);
 	void Detach();
 	bool HasChild(GHtmlElement *Child);
 

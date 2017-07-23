@@ -102,12 +102,12 @@ void GEdit::Select(int Start, int Len)
 	SetCursor(Start + (Len > 0 ? Len : 0x7fffffff) - 1, true);
 }
 
-int GEdit::GetCaret()
+ssize_t GEdit::GetCaret()
 {
 	return GTextView3::GetCursor();
 }
 
-void GEdit::SetCaret(int i)
+void GEdit::SetCaret(ssize_t i)
 {
 	SetCursor(i, false);
 }

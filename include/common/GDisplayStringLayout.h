@@ -181,7 +181,7 @@ struct GDisplayStringLayout
 		}
 
 		Min.y = f->GetHeight() * MinLines;
-		Max.y = f->GetHeight() * Strs.Length();
+		Max.y = f->GetHeight() * (int)Strs.Length();
 		
 		if (Debug)
 			LgiTrace("CreateTxtLayout(%i) min=%i,%i  max=%i,%i\n",

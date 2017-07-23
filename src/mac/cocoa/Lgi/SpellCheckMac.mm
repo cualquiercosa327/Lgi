@@ -206,7 +206,7 @@ public:
 					lang = ConvertLanguageCodeFromMac(lang_code);
 					if (lang)
 					{
-						int p = lang.Find("-");
+						ssize_t p = lang.Find("-");
 						GString l = p > 0 ? lang(0, p) : lang;
 						Map.Add(l, true);
 					}

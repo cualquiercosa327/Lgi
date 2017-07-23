@@ -167,7 +167,7 @@ bool GFile::CallMethod(const char *Name, GVariant *Dst, GArray<GVariant*> &Arg)
 				// String type
 				if ((Dst->Value.String = new char[RdLen + 1]))
 				{
-					int r = Read(Dst->Value.String, (int)RdLen);
+					ssize_t r = Read(Dst->Value.String, (int)RdLen);
 					if (r > 0)
 					{
 						Dst->Type = GV_STRING;
@@ -255,7 +255,7 @@ bool GFile::CallMethod(const char *Name, GVariant *Dst, GArray<GVariant*> &Arg)
 							}
 							else if (WrLen == 4)
 							{
-								uint32 i = v->Value.Int64;
+								uint32 i = (uint32)v->Value.Int64;
 								*Dst = Write(&i, sizeof(i));
 							}
 							else
@@ -266,7 +266,7 @@ bool GFile::CallMethod(const char *Name, GVariant *Dst, GArray<GVariant*> &Arg)
 						}
 						case GV_STRING:
 						{
-							int Max = strlen(v->Value.String) + 1;
+							size_t Max = strlen(v->Value.String) + 1;
 							*Dst = Write(&v->Value.String, min(Max, WrLen));
 							break;
 						}

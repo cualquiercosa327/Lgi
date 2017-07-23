@@ -619,7 +619,7 @@ bool GVariant::SetDomRef(GDom *obj, char *name)
 	return Value.DomRef.Name != 0;
 }
 
-bool GVariant::SetBinary(int Len, void *Data, bool Own)
+bool GVariant::SetBinary(ssize_t Len, void *Data, bool Own)
 {
 	bool Status = false;
 
@@ -1947,7 +1947,7 @@ bool GCustomType::DefineField(const char *Name, GCustomType *Type, int ArrayLen)
 		LgiAssert(!"Field already exists.");
 		return false;
 	}
-	FldMap.Add(Name, Flds.Length());
+	FldMap.Add(Name, (int)Flds.Length());
 
 	CustomField *Def;
 	Flds.Add(Def = new CustomField);
@@ -1983,7 +1983,7 @@ bool GCustomType::DefineField(const char *Name, GVariantType Type, int Bytes, in
 		LgiAssert(!"Field already exists.");
 		return false;
 	}
-	FldMap.Add(Name, Flds.Length());
+	FldMap.Add(Name, (int)Flds.Length());
 
 	CustomField *Def;
 	Flds.Add(Def = new CustomField);
@@ -2242,7 +2242,7 @@ bool GCustomType::Set(int Index, GVariant &In, uint8 *This, int ArrayIndex)
 				// Conversion to utf-8
 				const void *In = Ptr;
 				ssize_t Len = StrlenW(w) * sizeof(char16);
-				int Ch = LgiBufConvertCp(Ptr, "utf-8", Def->ArrayLen-sizeof(char16),
+				ssize_t Ch = LgiBufConvertCp(Ptr, "utf-8", Def->ArrayLen-sizeof(char16),
 										In, LGI_WideCharset, Len);
 				if (Ch >= 0)
 				{

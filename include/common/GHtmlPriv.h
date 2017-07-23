@@ -30,7 +30,7 @@ struct GTagHit
 	GdcPt2 LocalCoords;	// The position in local co-ords of the tag
 
 	GFlowRect *Block;	// Text block hit
-	int Index; // If Block!=NULL then index into text, otherwise -1.
+	ssize_t Index; // If Block!=NULL then index into text, otherwise -1.
 
 	GTagHit()
 	{
@@ -87,7 +87,7 @@ class GFlowRect : public GRect
 public:
 	GTag *Tag;
 	char16 *Text;
-	int Len;
+	ssize_t Len;
 
 	GFlowRect()
 	{
@@ -193,10 +193,10 @@ public:
 				NewLine();
 		}
 		
-		int _Write(const void *Ptr, int Bytes)
+		ssize_t _Write(const void *Ptr, ssize_t Bytes)
 		{
 			// Check if we have enough space to store the string..
-			unsigned Total = CharsOnLine + Bytes;
+			ssize_t Total = CharsOnLine + Bytes;
 			if (Buf.Length() < Total)
 			{
 				// Extend the memory buffer
@@ -211,7 +211,7 @@ public:
 			return Bytes;
 		}
 		
-		int Write(const void *Ptr, int Bytes)
+		ssize_t Write(const void *Ptr, ssize_t Bytes)
 		{
 			char *start = (char*) Ptr, *cur;
 			char *end = start + Bytes;
@@ -289,7 +289,7 @@ protected:
 
 	// Private methods
 	GFont *NewFont();
-	int NearestChar(GFlowRect *Fr, int x, int y);
+	ssize_t NearestChar(GFlowRect *Fr, int x, int y);
 	GTag *HasOpenTag(char *t);
 	GTag *PrevTag();
 	GRect ChildBounds();
@@ -319,7 +319,7 @@ public:
 	// Heirarchy
 	GHtml *Html;
 	bool IsBlock() { return Display() == GCss::DispBlock; }
-	GTag *GetBlockParent(int *Idx = 0);
+	GTag *GetBlockParent(ssize_t *Idx = 0);
 	GFont *GetFont();
 
 	// Style
@@ -370,8 +370,8 @@ public:
 	#endif
 
 	// Text
-	int Cursor; // index into text of the cursor
-	int Selection; // index into the text of the selection edge
+	ssize_t Cursor; // index into text of the cursor
+	ssize_t Selection; // index into the text of the selection edge
 	GArea TextPos;
 
 	GTag(GHtml *h, GHtmlElement *p);
@@ -391,7 +391,7 @@ public:
 	char16 *PreText() { return PreTxt; }
 	void PreText(char16 *t) { PreTxt.Reset(t); TextPos.Empty(); }
 
-	ptrdiff_t GetTextStart();
+	ssize_t GetTextStart();
 	GAutoWString DumpW();
 	GAutoString DescribeElement();
 	char16 *CleanText(const char *s, ssize_t len, const char *SourceCs, bool ConversionAllowed = true, bool KeepWhiteSpace = false);

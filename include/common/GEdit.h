@@ -69,9 +69,9 @@ public:
 	/// Get the current selection in characters
 	bool GetSelection(size_t &Start, ssize_t &Len);
 	/// Gets the Caret position in characters
-	int GetCaret();
+	ssize_t GetCaret();
 	/// Sets the Caret position in characters
-	void SetCaret(int Pos);
+	void SetCaret(ssize_t Pos);
 	/// Sets the text to display when the control is empty
 	void SetEmptyText(const char *EmptyText);
 

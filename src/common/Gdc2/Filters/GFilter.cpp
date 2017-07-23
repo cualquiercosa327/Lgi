@@ -563,7 +563,7 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 				for (int i=pMem->y-1; i>=0; i--)
 				{
 					uint8 *Ptr = pMem->Base + (pMem->Line * i);
-					int r = In->Read(Ptr, ScanSize);
+					ssize_t r = In->Read(Ptr, ScanSize);
 					if (r != ScanSize)
 					{
 						Status = IoError;
@@ -821,7 +821,7 @@ GFilter::IoStatus GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
 
 				for (int i=pMem->y-1; i>=0; i--)
 				{
-					int w = Out->Write(pMem->Base + (i * pMem->Line), Bytes);
+					ssize_t w = Out->Write(pMem->Base + (i * pMem->Line), Bytes);
 					if (w != Bytes)
 					{
 						Status = IoError;
@@ -1174,7 +1174,7 @@ GFilter::IoStatus GdcIco::WriteImage(GStream *Out, GSurface *pDC)
 	Write(Out, &BitCount, sizeof(BitCount));
 	Write(Out, &BytesInRes, sizeof(BytesInRes));
 
-	int32	ImageOffset = Out->GetPos() + sizeof(ImageOffset);
+	int32	ImageOffset = (int32)(Out->GetPos() + sizeof(ImageOffset));
 	Write(Out, &ImageOffset, sizeof(ImageOffset));
 
 	// Write icon itself
@@ -1465,7 +1465,8 @@ void GdcRleDC::Update(int UpdateFlags)
 				ulong Pixels = 0;
 				uchar *Bits = 0;
 
-				while (Get(x, y) == Key && x < X())
+				while (Get(x, y) == Key &&
+						x < X())
 				{
 					Skip++;
 					x++;

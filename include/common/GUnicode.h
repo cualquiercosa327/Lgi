@@ -415,7 +415,7 @@ T *Strupr(T *Str)
 
 // Finds the length of the string in characters
 template<typename T>
-ptrdiff_t Strlen(const T *str)
+ssize_t Strlen(const T *str)
 {
 	if (!str)
 		return 0;
@@ -451,7 +451,7 @@ int Strcmp(const T *str_a, const T *str_b)
 
 // Compares the first 'len' chars of two strings, case sensitive
 template<typename T>
-int Strncmp(const T *str_a, const T *str_b, unsigned len)
+int Strncmp(const T *str_a, const T *str_b, ssize_t len)
 {
 	if (!str_a || !str_b)
 		return -1;
@@ -500,7 +500,7 @@ int Stricmp(const T *str_a, const T *str_b)
 
 // Compares the first 'len' chars of two strings, case insensitive
 template<typename T>
-int Strnicmp(const T *str_a, const T *str_b, unsigned len)
+int Strnicmp(const T *str_a, const T *str_b, ssize_t len)
 {
 	if (!str_a || !str_b || len == 0)
 		return -1;

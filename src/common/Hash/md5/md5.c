@@ -320,10 +320,10 @@ md5_init(md5_state_t *pms)
 }
 
 void
-md5_append(md5_state_t *pms, md5_byte_t *data, int nbytes)
+md5_append(md5_state_t *pms, md5_byte_t *data, ssize_t nbytes)
 {
     const md5_byte_t *p = data;
-    int left = nbytes;
+    ssize_t left = nbytes;
     int offset = (pms->count[0] >> 3) & 63;
     md5_word_t nbits = (md5_word_t)(nbytes << 3);
 
@@ -338,7 +338,7 @@ md5_append(md5_state_t *pms, md5_byte_t *data, int nbytes)
 
     /* Process an initial partial block. */
     if (offset) {
-	int copy = (offset + nbytes > 64 ? 64 - offset : nbytes);
+	ssize_t copy = (offset + nbytes > 64 ? 64 - offset : nbytes);
 
 	memcpy(pms->buf + offset, p, copy);
 	if (offset + copy < 64)

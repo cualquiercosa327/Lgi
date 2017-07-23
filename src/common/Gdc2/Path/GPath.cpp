@@ -291,8 +291,8 @@ int VectCompareY(GVector *a, GVector *b, NativeInt Data)
 
 int VectCompareX(GVector *a, GVector *b, NativeInt Data)
 {
-	int i = Data >> SUB_SHIFT;
-	int r = Data & SUB_MASK;
+	NativeInt i = Data >> SUB_SHIFT;
+	NativeInt r = Data & SUB_MASK;
 
 	double d = a->aax[i - a->y1].x[r] - b->aax[i - b->y1].x[r];
 	
@@ -1196,7 +1196,7 @@ bool GPath::Flatten()
 					}
 
 					// Get the index into the array of point
-					int k = (c - Point) - 1;
+					int k = (int)(c - Point) - 1;
 					if (k >= 0)
 					{
 						#ifdef DEBUG_LOG
@@ -1264,7 +1264,7 @@ bool GPath::Flatten()
 		}
 
 		// Calculate the number of points in the array
-		Points = c - Point;
+		Points = (int) (c - Point);
 
 		// Set the end of the points to be a full shape
 		Outline.Add(Points);
@@ -1277,7 +1277,7 @@ bool GPath::Flatten()
 	#endif
 
 	// Create vector list
-	bool Up;
+	bool Up = false;
 	int Start = -1;
 	int VecIndex = 0;
 	int NextOutline = 0;

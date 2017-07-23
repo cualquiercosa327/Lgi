@@ -351,7 +351,7 @@ public:
 	/// Unselect all the text
 	virtual void UnSelectAll() {}
 	/// Select the word from index 'From'
-	virtual void SelectWord(int From) {}
+	virtual void SelectWord(size_t From) {}
 	/// Select all the text in the control
 	virtual void SelectAll() {}
 	/// Get the selection as a dynamicially allocated utf-8 string

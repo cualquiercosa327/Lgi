@@ -128,7 +128,7 @@ public:
 		return Name;
 	}
 	
-	uint32 GetParams()
+	size_t GetParams()
 	{
 		return Params.Length();
 	}
@@ -217,7 +217,7 @@ public:
 
 			if (create)
 			{
-				int Len = Length();
+				int Len = (int)Length();
 
 				Lut.Add(n, Len + 1);
 				Length(Len + 1);
@@ -271,7 +271,7 @@ public:
 	~GCompiledCode();
 
 	/// Size of the byte code
-	uint32 Length() { return ByteCode.Length(); }
+	size_t Length() { return ByteCode.Length(); }
 	/// Assignment operator
 	GCompiledCode &operator =(GCompiledCode &c);
 	/// Gets a method defined in the code
@@ -354,7 +354,7 @@ class GVmDebuggerWnd : public GWindow, public GVmDebugger
 {
 	struct GScriptVmDebuggerPriv *d;
 
-	void UpdateVariables(GList *Lst, GVariant *Arr, int Len, char Prefix);
+	void UpdateVariables(GList *Lst, GVariant *Arr, ssize_t Len, char Prefix);
 
 public:
 	GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVirtualMachine *Vm, const char *Script, const char *Assembly);

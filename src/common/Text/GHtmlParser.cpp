@@ -83,7 +83,7 @@ void GHtmlParser::SkipNonDisplay(char *&s)
 	}
 }
 
-char16 *GHtmlParser::DecodeEntities(const char *s, int len)
+char16 *GHtmlParser::DecodeEntities(const char *s, ssize_t len)
 {
 	char16 buf[256];
 	char16 *o = buf;
@@ -249,7 +249,7 @@ char *GHtmlParser::ParseName(char *s, GAutoString &Name)
 		s++;
 	}
 
-	int Len = s - Start;
+	ssize_t Len = s - Start;
 	if (Len > 0)
 	{
 		Name.Reset(NewStr(Start, Len));
@@ -931,7 +931,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 										if (Len > 0)
 										{
 											GAutoString a(new char[(size_t)Len+1]);
-											int r = s->Read(a, (int)Len);
+											ssize_t r = s->Read(a, (int)Len);
 											a[r] = 0;
 											
 											GHtmlElement *Child = CreateElement(Elem);
@@ -1085,7 +1085,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 			// Text child
 			PlainText:
 			char *n = NextTag(s);
-			int Len = n ? n - s : strlen(s);
+			ssize_t Len = n ? n - s : strlen(s);
 			GAutoWString WStr(CleanText(s, Len, true, InPreTag));
 			if (WStr && *WStr)
 			{
@@ -1203,7 +1203,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 	return 0;
 }
 
-char16 *GHtmlParser::CleanText(const char *s, int Len, bool ConversionAllowed, bool KeepWhiteSpace)
+char16 *GHtmlParser::CleanText(const char *s, ssize_t Len, bool ConversionAllowed, bool KeepWhiteSpace)
 {
 	static const char *DefaultCs = "iso-8859-1";
 	char16 *t = 0;
@@ -1419,7 +1419,7 @@ bool GHtmlParser::ParseColour(const char *s, GCss::ColorDef &c)
 
 			ParseHexColour:
 			int i = htoi(s);
-			int l = strlen(s);
+			size_t l = strlen(s);
 			if (l == 3)
 			{
 				int r = i >> 8;

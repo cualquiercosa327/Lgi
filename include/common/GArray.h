@@ -54,8 +54,8 @@ template <class Type>
 class GArray
 {
 	Type *p;
-	unsigned int len;
-	unsigned int alloc;
+	size_t len;
+	size_t alloc;
 
 #ifdef _DEBUG
 public:
@@ -69,14 +69,14 @@ public:
 	typedef Type ItemType;
 
 	/// Constructor
-	GArray(int PreAlloc = 0)
+	GArray(size_t PreAlloc = 0)
 	{
 		p = 0;
 		alloc = len = PreAlloc;
 		fixed = false;
 		if (alloc)
 		{
-			int Bytes = sizeof(Type) * alloc;
+			size_t Bytes = sizeof(Type) * alloc;
 			p = (Type*) malloc(Bytes);
 			if (p)
 			{
@@ -114,7 +114,7 @@ public:
 	}
 	
 	/// Returns the number of used entries
-	unsigned int Length() const
+	size_t Length() const
 	{
 		return len;
 	}
@@ -126,7 +126,7 @@ public:
 	}
 
 	/// Sets the length of available entries
-	bool Length(unsigned int i)
+	bool Length(size_t i)
 	{
 		if (i > 0)
 		{
@@ -136,7 +136,7 @@ public:
 				return false;
 			}
 
-			uint32 nalloc = alloc;
+			size_t nalloc = alloc;
 			if (i < len)
 			{
 			    // Shrinking
@@ -177,7 +177,7 @@ public:
 			}
 			else if (i < len)
 			{
-				for (uint32 n=i; n<len; n++)
+				for (size_t n=i; n<len; n++)
 				{
 					p[n].~Type();
 				}
@@ -189,8 +189,8 @@ public:
 		{
 			if (p)
 			{
-				uint32 Length = len;
-				for (uint32 i=0; i<Length; i++)
+				size_t Length = len;
+				for (size_t i=0; i<Length; i++)
 				{
 					p[i].~Type();
 				}
@@ -242,7 +242,7 @@ public:
 
 	/// This can be used instead of the [] operator in situations
 	/// where the array is const.
-	const Type &ItemAt(int i) const
+	const Type &ItemAt(size_t i) const
 	{
 		if (i >= 0 && (uint32)i < len)
 			return p[i];
@@ -252,7 +252,7 @@ public:
 	}
 
 	// Returns the address of an item or NULL if index is out of range
-	Type *AddressOf(unsigned int i)
+	Type *AddressOf(size_t i)
 	{
 		return i < len ? p + i : NULL;
 	}
@@ -261,16 +261,10 @@ public:
 	///
 	/// If the entry is off the end of the array and "fixed" is false,
 	/// it will grow to make it valid.
-	Type &operator [](int i)
+	Type &operator [](size_t i)
 	{
 		static Type t;
 
-		if (i < 0)
-		{
-			assert(!"Invalid index...");
-			return t;
-		}
-		
 		if
 		(
 			(fixed && (uint32)i >= len)
@@ -287,7 +281,7 @@ public:
 		if (i >= (int)alloc)
 		{
 			// increase array length
-			uint32 nalloc = MAX(alloc, GARRAY_MIN_SIZE);
+			size_t nalloc = MAX(alloc, GARRAY_MIN_SIZE);
 			while (nalloc <= (uint32)i)
 			{
 				nalloc <<= 1;
@@ -345,7 +339,7 @@ public:
 	{
 		if (len > 0)
 		{
-			int InitialLen = len;
+			size_t InitialLen = len;
 			delete p[0];
 			if (InitialLen == len)
 			{
@@ -379,7 +373,7 @@ public:
 	}
 	
 	/// Find the index of entry 'n'
-	int IndexOf(Type n)
+	ssize_t IndexOf(Type n)
 	{
 		for (uint i=0; i<len; i++)
 		{
@@ -407,7 +401,7 @@ public:
 	bool DeleteAt
 	(
 		/// The index of the entry to delete
-		unsigned int Index,
+		size_t Index,
 		/// true if the order of the array matters, otherwise false.
 		bool Ordered = false
 	)
@@ -450,7 +444,7 @@ public:
 		bool Ordered = false
 	)
 	{
-		int i = IndexOf(n);
+		ssize_t i = IndexOf(n);
 		if (p && i >= 0)
 		{
 			return DeleteAt(i, Ordered);
@@ -475,14 +469,14 @@ public:
 		/// Items to insert
 		Type *s,
 		/// Length of array
-		int count
+		ssize_t count
 		
 	)
 	{
 		if (!s || count < 1)
 			return false;
 			
-		int i = len;
+		ssize_t i = len;
 		if (!Length(len + count))
 			return false;
 
@@ -503,7 +497,7 @@ public:
 		
 	)
 	{
-		int old = len;
+		ssize_t old = len;
 		if (Length(len + a.Length()))
 		{
 			for (unsigned i=0; i<a.Length(); i++, old++)
@@ -523,7 +517,7 @@ public:
 	bool AddAt
 	(
 		/// Item to insert before
-		int Index,
+		size_t Index,
 		/// Item to insert
 		Type n
 	)
@@ -639,15 +633,15 @@ public:
 		Tmp.Add(AddressOf(aRange.Start), aRange.Len);
 
 		// Copy b's range into this
-		int Common = MIN(bRange.Len, aRange.Len);
-		int aIdx = aRange.Start;
-		int bIdx = bRange.Start;
+		ssize_t Common = MIN(bRange.Len, aRange.Len);
+		ssize_t aIdx = aRange.Start;
+		ssize_t bIdx = bRange.Start;
 		for (int i=0; i<Common; i++) // First the common items
 			(*this)[aIdx++] = b[bIdx++];
 		if (aRange.Len < bRange.Len)
 		{
 			// Grow range to fit 'b'
-			int Items = bRange.Len - aRange.Len;
+			ssize_t Items = bRange.Len - aRange.Len;
 			for (int i=0; i<Items; i++)
 				if (!AddAt(aIdx++, b[bIdx++]))
 					return false;
@@ -655,7 +649,7 @@ public:
 		else if (aRange.Len > bRange.Len)
 		{
 			// Shrink the range in this to fit 'b'
-			int Del = aRange.Len - bRange.Len;
+			ssize_t Del = aRange.Len - bRange.Len;
 			for (int i=0; i<Del; i++)
 				if (!DeleteAt(aIdx, true))
 					return false;

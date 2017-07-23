@@ -108,17 +108,17 @@ public:
 	/// \returns the first object (NOT thread-safe)
 	virtual T Next() = 0;
 	/// \returns the number of items in the collection
-	virtual uint32 Length() = 0;
+	virtual size_t Length() = 0;
 	/// \returns the 'nth' item in the collection
-	virtual T operator [](int idx) = 0;
+	virtual T operator [](size_t idx) = 0;
 	/// \returns the index of the given item in the collection
-	virtual int IndexOf(T n, bool NoAssert = false) = 0;
+	virtual ssize_t IndexOf(T n, bool NoAssert = false) = 0;
 	/// Deletes an item
 	/// \returns true on success
 	virtual bool Delete(T ptr) = 0;
 	/// Inserts an item at 'idx' or the end if not supplied.
 	/// \returns true on success
-	virtual bool Insert(T ptr, int idx = -1, bool NoAssert = false) = 0;
+	virtual bool Insert(T ptr, ssize_t idx = -1, bool NoAssert = false) = 0;
 	/// Clears list, but doesn't delete objects.
 	/// \returns true on success
 	virtual bool Empty() = 0;
@@ -562,12 +562,12 @@ public:
 		return (int)a.Length() > Cur ? a[Cur] : 0;
 	}
 	
-	uint32 Length()
+	size_t Length()
 	{
 		return a.Length();
 	}
 	
-	TPub *operator [](int idx)
+	TPub *operator [](size_t idx)
 	{
 		LgiAssert(State == Store3Loaded);
 		return a[idx];
@@ -583,7 +583,7 @@ public:
 			return false;
 		}
 
-		int i = a.IndexOf(priv_ptr);
+		ssize_t i = a.IndexOf(priv_ptr);
 		if (i < 0)
 			return false;
 
@@ -591,7 +591,7 @@ public:
 		return true;
 	}
 	
-	bool Insert(TPub *pub_ptr, int idx = -1, bool NoAssert = false)
+	bool Insert(TPub *pub_ptr, ssize_t idx = -1, bool NoAssert = false)
 	{
 		if (!NoAssert)
 			LgiAssert(State == Store3Loaded);
@@ -618,7 +618,7 @@ public:
 		return true;
 	}
 	
-	int IndexOf(TPub *pub_ptr, bool NoAssert = false)
+	ssize_t IndexOf(TPub *pub_ptr, bool NoAssert = false)
 	{
 		if (!NoAssert)
 			LgiAssert(State == Store3Loaded);

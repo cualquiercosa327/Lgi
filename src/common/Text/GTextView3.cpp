@@ -110,7 +110,7 @@ public:
 	bool SimpleDelete;
 	GColour UrlColour;
 	bool CenterCursor;
-	int WordSelectMode;
+	ssize_t WordSelectMode;
 
 	// Find/Replace Params
 	bool OwnFindReplaceParams;
@@ -289,7 +289,7 @@ public:
 	}
 };
 
-void GTextView3::GStyle::RefreshLayout(int Start, int Len)
+void GTextView3::GStyle::RefreshLayout(ssize_t Start, ssize_t Len)
 {
 	View->PourText(Start, Len);
 	View->PourStyle(Start, Len);
@@ -1023,7 +1023,7 @@ bool GTextView3::InsertStyle(GAutoPtr<GStyle> s)
 	return true;
 }
 
-GTextView3::GStyle *GTextView3::GetNextStyle(int Where)
+GTextView3::GStyle *GTextView3::GetNextStyle(ssize_t Where)
 {
 	GStyle *s = (Where >= 0) ? Style.First() : Style.Next();
 	while (s)
@@ -1147,7 +1147,7 @@ public:
 	}
 };
 
-GTextView3::GStyle *GTextView3::HitStyle(int i)
+GTextView3::GStyle *GTextView3::HitStyle(ssize_t i)
 {
 	for (GStyle *s=Style.First(); s; s=Style.Next())
 	{
@@ -2568,7 +2568,7 @@ bool GTextView3::DoReplace()
 	return false;
 }
 
-void GTextView3::SelectWord(int From)
+void GTextView3::SelectWord(size_t From)
 {
 	for (SelStart = From; SelStart > 0; SelStart--)
 	{
@@ -2610,7 +2610,7 @@ ptrdiff_t GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bo
 		}
 
 		// Look through text...
-		int i;
+		ssize_t i;
 		bool Wrap = false;
 		if (Cursor > End - FindLen)
 		{
@@ -2746,12 +2746,12 @@ bool GTextView3::OnReplace(char16 *Find, char16 *Replace, bool All, bool MatchWo
 		// int Max = -1;
 		int FindLen = StrlenW(Find);
 		int ReplaceLen = StrlenW(Replace);
-		int OldCursor = Cursor;
-		int First = -1;
+		// size_t OldCursor = Cursor;
+		ptrdiff_t First = -1;
 
 		while (true)
 		{
-			int Loc = MatchText(Find, MatchWord, MatchCase, SelectionOnly);
+			ptrdiff_t Loc = MatchText(Find, MatchWord, MatchCase, SelectionOnly);
 			if (First < 0)
 			{
 				First = Loc;
@@ -2763,8 +2763,8 @@ bool GTextView3::OnReplace(char16 *Find, char16 *Replace, bool All, bool MatchWo
 			
 			if (Loc >= 0)
 			{
-				int OldSelStart = SelStart;
-				int OldSelEnd = SelEnd;
+				ssize_t OldSelStart = SelStart;
+				ssize_t OldSelEnd = SelEnd;
 				
 				Delete(Loc, FindLen);
 				Insert(Loc, Replace, ReplaceLen);
@@ -2784,7 +2784,7 @@ bool GTextView3::OnReplace(char16 *Find, char16 *Replace, bool All, bool MatchWo
 	return false;
 }
 
-int GTextView3::SeekLine(int i, GTextViewSeek Where)
+ssize_t GTextView3::SeekLine(ssize_t Offset, GTextViewSeek Where)
 {
 	THREAD_CHECK();
 
@@ -2792,27 +2792,40 @@ int GTextView3::SeekLine(int i, GTextViewSeek Where)
 	{
 		case PrevLine:
 		{
-			for (; i > 0 && Text[i] != '\n'; i--);
-			if (i > 0) i--;
-			for (; i > 0 && Text[i] != '\n'; i--);
-			if (i > 0) i++;
+			for (; Offset > 0 && Text[Offset] != '\n'; Offset--)
+				;
+			
+			if (Offset > 0)
+				Offset--;
+			
+			for (; Offset > 0 && Text[Offset] != '\n'; Offset--)
+				;
+
+			if (Offset > 0)
+				Offset++;
 			break;
 		}
 		case NextLine:
 		{
-			for (; i < Size && Text[i] != '\n'; i++);
-			i++;
+			for (; Offset < Size && Text[Offset] != '\n'; Offset++)
+				;
+
+			Offset++;
 			break;
 		}
 		case StartLine:
 		{
-			for (; i > 0 && Text[i] != '\n'; i--);
-			if (i > 0) i++;
+			for (; Offset > 0 && Text[Offset] != '\n'; Offset--)
+				;
+
+			if (Offset > 0)
+				Offset++;
 			break;
 		}
  		case EndLine:
 		{
-			for (; i < Size && Text[i] != '\n'; i++);
+			for (; Offset < Size && Text[Offset] != '\n'; Offset++)
+				;
 			break;
 		}
 		default:
@@ -2822,19 +2835,20 @@ int GTextView3::SeekLine(int i, GTextViewSeek Where)
 		}
 	}
 
-	return i;
+	return Offset;
 }
 
 bool GTextView3::OnMultiLineTab(bool In)
 {
 	bool Status = false;
-	int Min = min(SelStart, SelEnd);
-	int Max = max(SelStart, SelEnd);
+	ssize_t Min = min(SelStart, SelEnd);
+	ssize_t Max = max(SelStart, SelEnd);
 
 	Min = SeekLine(Min, StartLine);
 
 	GMemQueue p;
-	int Ls = 0, i;
+	int Ls = 0;
+	ssize_t i;
 	for (i=Min; i<Max && i<Size; i=SeekLine(i, NextLine))
 	{
 		p.Write((uchar*)&i, sizeof(i));
@@ -3073,7 +3087,7 @@ void GTextView3::OnFocus(bool f)
 	SetPulse(f ? 500 : -1);
 }
 
-int GTextView3::HitText(int x, int y, bool Nearest)
+ssize_t GTextView3::HitText(int x, int y, bool Nearest)
 {
 	if (!Text)
 		return 0;
@@ -3089,7 +3103,7 @@ int GTextView3::HitText(int x, int y, bool Nearest)
 		{
 			// Over a line
 			int At = x - l->r.x1;
-			int Char = 0;
+			ssize_t Char = 0;
 				
 			GDisplayString Ds(Font, MapText(Text + l->Start, l->Len), l->Len, 0);
 			Char = Ds.CharAt(At, Nearest ? LgiNearest : LgiTruncate);
@@ -3308,7 +3322,7 @@ void GTextView3::OnMouseClick(GMouse &m)
 		{
 			Focus(true);
 
-			int Hit = HitText(m.x, m.y, true);
+			ssize_t Hit = HitText(m.x, m.y, true);
 			if (Hit >= 0)
 			{
 				SetCursor(Hit, m.Shift());
@@ -3358,7 +3372,7 @@ void GTextView3::OnMouseMove(GMouse &m)
 {
 	m.x += ScrollX;
 
-	int Hit = HitText(m.x, m.y, true);
+	ssize_t Hit = HitText(m.x, m.y, true);
 	if (IsCapturing())
 	{
 		if (d->WordSelectMode < 0)
@@ -3367,8 +3381,8 @@ void GTextView3::OnMouseMove(GMouse &m)
 		}
 		else
 		{
-			int Min = Hit < d->WordSelectMode ? Hit : d->WordSelectMode;
-			int Max = Hit > d->WordSelectMode ? Hit : d->WordSelectMode;
+			ssize_t Min = Hit < d->WordSelectMode ? Hit : d->WordSelectMode;
+			ssize_t Max = Hit > d->WordSelectMode ? Hit : d->WordSelectMode;
 
 			for (SelStart = Min; SelStart > 0; SelStart--)
 			{
@@ -3411,7 +3425,7 @@ int GTextView3::GetColumn()
 	GTextLine *l = GetTextLine(Cursor);
 	if (l)
 	{
-		for (int i=l->Start; i<Cursor; i++)
+		for (size_t i=l->Start; i<Cursor; i++)
 		{
 			if (Text[i] == '\t')
 			{
@@ -3484,8 +3498,8 @@ bool GTextView3::OnKey(GKey &k)
 							bool MultiLine = false;
 							if (k.c16 == VK_TAB)
 							{
-								int Min = min(SelStart, SelEnd), Max = max(SelStart, SelEnd);
-								for (int i=Min; i<Max; i++)
+								size_t Min = min(SelStart, SelEnd), Max = max(SelStart, SelEnd);
+								for (size_t i=Min; i<Max; i++)
 								{
 									if (Text[i] == '\n')
 									{
@@ -3507,7 +3521,7 @@ bool GTextView3::OnKey(GKey &k)
 						}
 						
 						GTextLine *l = GetTextLine(Cursor);
-						int Len = (l) ? l->Len : 0;
+						size_t Len = (l) ? l->Len : 0;
 						
 						if (l && k.c16 == VK_TAB && (!HardTabs || IndentSize != TabSize))
 						{
@@ -3517,9 +3531,9 @@ bool GTextView3::OnKey(GKey &k)
 							if (HardTabs && ((x + Add) % TabSize) == 0)
 							{
 								int Rx = x;
-								int Remove;
+								size_t Remove;
 								for (Remove = Cursor; Text[Remove - 1] == ' ' && Rx % TabSize != 0; Remove--, Rx--);
-								int Chars = Cursor - Remove;
+								ssize_t Chars = (ssize_t)Cursor - Remove;
 								Delete(Remove, Chars);
 								Insert(Remove, &k.c16, 1);
 								Cursor = Remove + 1;
@@ -3535,7 +3549,7 @@ bool GTextView3::OnKey(GKey &k)
 									if (Insert(Cursor, Sp, Add))
 									{
 										l = GetTextLine(Cursor);
-										int NewLen = (l) ? l->Len : 0;
+										size_t NewLen = (l) ? l->Len : 0;
 										SetCursor(Cursor + Add, false, Len != NewLen - 1);
 									}
 									DeleteArray(Sp);
@@ -3560,7 +3574,7 @@ bool GTextView3::OnKey(GKey &k)
 									}
 									else if (Text[Cursor-1] == ' ')
 									{
-										int Start = Cursor - 1;
+										ssize_t Start = (ssize_t)Cursor - 1;
 										while (Start >= l->Start && strchr(" \t", Text[Start-1]))
 											Start--;
 										int Depth = SpaceDepth(Text + Start, Text + Cursor);
@@ -3579,7 +3593,7 @@ bool GTextView3::OnKey(GKey &k)
 							else if (In && Insert(Cursor, &In, 1))
 							{
 								l = GetTextLine(Cursor);
-								int NewLen = (l) ? l->Len : 0;
+								size_t NewLen = (l) ? l->Len : 0;
 								SetCursor(Cursor + 1, false, Len != NewLen - 1);
 							}
 						}
@@ -3608,7 +3622,6 @@ bool GTextView3::OnKey(GKey &k)
 				if (k.Ctrl())
 				{
 				    // Ctrl+H
-				    int asd=0;
 				}
 				else if (k.Down())
 				{
@@ -3627,7 +3640,7 @@ bool GTextView3::OnKey(GKey &k)
 							int x = GetColumn();
 							int Max = x % IndentSize;
 							if (Max == 0) Max = IndentSize;
-							int i;
+							ssize_t i;
 							for (i=Cursor-1; i>=0; i--)
 							{
 								if (Max-- <= 0 || Text[i] != ' ')
@@ -3641,7 +3654,7 @@ bool GTextView3::OnKey(GKey &k)
 							
 							if (i < Cursor - 1)
 							{
-								int Del = Cursor - i;								
+								ssize_t Del = (ssize_t)Cursor - i;
 								Delete(i, Del);
 								// SetCursor(i, false, false);
 								// Invalidate();
@@ -3718,7 +3731,7 @@ bool GTextView3::OnKey(GKey &k)
 					{
 						if (k.Down())
 						{
-							int Start = Cursor;
+							ssize_t Start = Cursor;
 							while (IsWhiteSpace(Text[Cursor-1]) && Cursor > 0)
 								Cursor--;
 
@@ -3757,7 +3770,7 @@ bool GTextView3::OnKey(GKey &k)
 					}
 					else if (Cursor > 0)
 					{
-						int n = Cursor;
+						ssize_t n = Cursor;
 
 						#ifdef MAC
 						if (k.System())
@@ -3833,7 +3846,7 @@ bool GTextView3::OnKey(GKey &k)
 					}
 					else if (Cursor < Size)
 					{
-						int n = Cursor;
+						ssize_t n = Cursor;
 
 						#ifdef MAC
 						if (k.System())
@@ -3914,7 +3927,7 @@ bool GTextView3::OnKey(GKey &k)
 							int ScreenX = CurLine.X();
 
 							GDisplayString PrevLine(Font, Text + Prev->Start, Prev->Len);
-							int CharX = PrevLine.CharAt(ScreenX);
+							ssize_t CharX = PrevLine.CharAt(ScreenX);
 
 							SetCursor(Prev->Start + min(CharX, Prev->Len), k.Shift());
 						}
@@ -3945,7 +3958,7 @@ bool GTextView3::OnKey(GKey &k)
 							int ScreenX = CurLine.X();
 							
 							GDisplayString NextLine(Font, Text + Next->Start, Next->Len);
-							int CharX = NextLine.CharAt(ScreenX);
+							ssize_t CharX = NextLine.CharAt(ScreenX);
 
 							SetCursor(Next->Start + min(CharX, Next->Len), k.Shift());
 						}
@@ -3997,7 +4010,7 @@ bool GTextView3::OnKey(GKey &k)
 							char16 *s;
 							char16 SpTab[] = {' ', '\t', 0};
 							for (s = Line; (SubtractPtr(s,Line) < l->Len) && StrchrW(SpTab, *s); s++);
-							int Whitespace = SubtractPtr(s, Line);
+							ssize_t Whitespace = SubtractPtr(s, Line);
 
 							if (l->Start + Whitespace == Cursor)
 							{
@@ -4412,7 +4425,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 			24
 		);
 
-		GColour Whitespace = Fore.Mix(Back, 0.85f);
+		// GColour Whitespace = Fore.Mix(Back, 0.85f);
 		if (!Enabled())
 		{
 			Fore.Set(LC_LOW, 24);
@@ -4432,8 +4445,8 @@ void GTextView3::OnPaint(GSurface *pDC)
 			#endif
 			)
 		{
-			int SelMin = min(SelStart, SelEnd);
-			int SelMax = max(SelStart, SelEnd);
+			size_t SelMin = min(SelStart, SelEnd);
+			size_t SelMax = max(SelStart, SelEnd);
 
 			// font properties
 			Font->Colour(Fore, Back);
@@ -4454,7 +4467,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 			int k = ScrollYLine();
 			GTextLine *l=Line.ItemAt(k);
 			int Dy = (l) ? -l->r.y1 : 0;
-			int NextSelection = (SelStart != SelEnd) ? SelMin : -1; // offset where selection next changes
+			size_t NextSelection = (SelStart != SelEnd) ? SelMin : -1; // offset where selection next changes
 			if (l &&
 				SelStart >= 0 &&
 				SelStart < l->Start &&
@@ -4516,8 +4529,8 @@ void GTextView3::OnPaint(GSurface *pDC)
 				{
 					// decide how big this block is
 					int RtlTrailingSpace = 0;
-					int Cur = l->Start + Done;
-					int Block = l->Len - Done;
+					ssize_t Cur = l->Start + Done;
+					ssize_t Block = l->Len - Done;
 					
 					// check for style change
 					if (NextStyle)
@@ -4531,7 +4544,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 						}
 
 						// end
-						int StyleEnd = NextStyle->Start + NextStyle->Len;
+						ssize_t StyleEnd = NextStyle->Start + NextStyle->Len;
 						if (l->Overlap(StyleEnd) &&
 							StyleEnd > Cur &&
 							StyleEnd - Cur < Block)
@@ -4643,11 +4656,11 @@ void GTextView3::OnPaint(GSurface *pDC)
 				Tr.x1 = FX >> GDisplayString::FShift;
 
 				// eol processing
-				int EndOfLine = l->Start+l->Len;
+				ssize_t EndOfLine = l->Start+l->Len;
 				if (EndOfLine >= SelMin && EndOfLine < SelMax)
 				{
 					// draw the '\n' at the end of the line as selected
-					GColour bk = Font->Back();
+					// GColour bk = Font->Back();
 					pOut->Colour(Font->Back());
 					pOut->Rectangle(Tr.x2, Tr.y1, Tr.x2+7, Tr.y2);
 					Tr.x2 += 7;
@@ -4666,7 +4679,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 					{
 						CursorPos.ZOff(1, LineY-1);
 
-						int At = Cursor-l->Start;
+						ssize_t At = Cursor-l->Start;
 						
 						GDisplayString Ds(Font, MapText(Text+l->Start, At), At);
 						Ds.ShowVisibleTab(ShowWhiteSpace);

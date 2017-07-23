@@ -1500,7 +1500,7 @@ ResObjectImpl::SStatus ResDialogObj::Res_Write(GXmlTag *t)
 int CountNumbers(char *s)
 {
 	GToken t(s, ",");
-	return t.Length();
+	return (int)t.Length();
 }
 
 ResObjectImpl::SStatus ResTableLayout::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)

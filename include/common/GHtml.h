@@ -73,7 +73,7 @@ protected:
 	bool GetCursorVis();
 	GRect *GetCursorPos();
 	bool IsCursorFirst();
-	bool CompareTagPos(GTag *a, int AIdx, GTag *b, int BIdx);
+	bool CompareTagPos(GTag *a, ssize_t AIdx, GTag *b, ssize_t BIdx);
 	int GetTagDepth(GTag *Tag);
 	GTag *PrevTag(GTag *t);
 	GTag *NextTag(GTag *t);
@@ -89,7 +89,7 @@ public:
 
 	/// Get the tag at an x,y location
 	GTag *GetTagByPos(	int x, int y,
-						int *Index,
+						ssize_t *Index,
 						GdcPt2 *LocalCoords = NULL,
 						bool DebugLog = false);
 	/// Layout content and return size.

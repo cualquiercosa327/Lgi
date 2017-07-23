@@ -1342,7 +1342,7 @@ bool LgiMatchCharset(short *Map, char16 *Utf, bool &Has8Bit)
 	return false;
 }
 
-const char *LgiDetectCharset(const char *Utf8, int Len, List<char> *Prefs)
+const char *LgiDetectCharset(const char *Utf8, ssize_t Len, List<char> *Prefs)
 {
 	const char *Status = "utf-8"; // The default..
 

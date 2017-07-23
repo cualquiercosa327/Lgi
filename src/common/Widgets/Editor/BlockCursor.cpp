@@ -89,7 +89,7 @@ void GRichTextPriv::BlockCursor::Set(GRichTextPriv::Block *b, ssize_t off, int l
 	if (Blk)
 	{
 		GRect Line;
-		int BlkLen = Blk->Length();
+		ssize_t BlkLen = Blk->Length();
 		LgiAssert(off >= 0 && off <= BlkLen);
 		Blk->GetPosFromIndex(this);
 	}

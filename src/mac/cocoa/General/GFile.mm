@@ -268,7 +268,7 @@ char *ReadTextFile(const char *File)
 		s = new char[Len+1];
 		if (s)
 		{
-			int Read = f.Read(s, (int)Len);
+			ssize_t Read = f.Read(s, (int)Len);
 			s[Read] = 0;
 		}
 	}
@@ -369,7 +369,7 @@ bool FileExists(const char *FileName, char *CorrectCase)
 	return Status;
 }
 
-bool ResolveShortcut(const char *LinkFile, char *Path, int Len)
+bool ResolveShortcut(const char *LinkFile, char *Path, ssize_t Len)
 {
 	return readlink (LinkFile, Path, Len) > 0;
 }
@@ -426,7 +426,7 @@ char *ReadStr(GFile &f DeclDebugArgs)
 	return s;
 }
 
-int SizeofStr(const char *s)
+ssize_t SizeofStr(const char *s)
 {
 	return sizeof(uint32) + ((s) ? strlen(s) : 0);
 }
@@ -750,13 +750,13 @@ bool GFileSystem::Copy(char *From, char *To, int *ErrorCode, CopyFileCallback Ca
 	int64 i = 0;
 	while (i < Size)
 	{
-		int r = In.Read(Buf, Block);
+		ssize_t r = In.Read(Buf, Block);
 		if (r > 0)
 		{
 			int Written = 0;
 			while (Written < r)
 			{
-				int w = Out.Write(Buf + Written, r - Written);
+				ssize_t w = Out.Write(Buf + Written, r - Written);
 				if (w > 0)
 				{
 					Written += w;
@@ -1273,7 +1273,7 @@ bool GDirectory::IsReadOnly()
 
 bool GDirectory::IsSymLink()
 {
-	int a = GetAttributes();
+	long a = GetAttributes();
 	return S_ISLNK(a);
 }
 
@@ -1284,7 +1284,7 @@ bool GDirectory::IsHidden()
 
 bool GDirectory::IsDir()
 {
-	int a = GetAttributes();
+	long a = GetAttributes();
 	return !S_ISLNK(a) && S_ISDIR(a);
 }
 
@@ -1497,9 +1497,9 @@ int GFile::Close()
 
 #define CHUNK		0xFFF0
 
-int GFile::Read(void *Buffer, int Size, int Flags)
+ssize_t GFile::Read(void *Buffer, ssize_t Size, int Flags)
 {
-	int Red = 0;
+	ssize_t Red = 0;
 	
 	if (Buffer && Size > 0)
 	{
@@ -1518,9 +1518,9 @@ int GFile::Read(void *Buffer, int Size, int Flags)
 	return max(Red, 0);
 }
 
-int GFile::Write(const void *Buffer, int Size, int Flags)
+ssize_t GFile::Write(const void *Buffer, ssize_t Size, int Flags)
 {
-	int Written = 0;
+	ssize_t Written = 0;
 	
 	if (Buffer && Size > 0)
 	{
@@ -1634,9 +1634,9 @@ bool GFile::Eof()
 	return GetPos() >= GetSize();
 }
 
-int GFile::SwapRead(uchar *Buf, int Size)
+ssize_t GFile::SwapRead(uchar *Buf, ssize_t Size)
 {
-	int r = Read(Buf, Size);
+	ssize_t r = Read(Buf, Size);
 	if (r == Size)
 	{
 		uint8 *s = Buf, *e = Buf + r - 1;
@@ -1652,7 +1652,7 @@ int GFile::SwapRead(uchar *Buf, int Size)
 	return r;
 }
 
-int GFile::SwapWrite(uchar *Buf, int Size)
+ssize_t GFile::SwapWrite(uchar *Buf, ssize_t Size)
 {
 	switch (Size)
 	{
@@ -1684,7 +1684,7 @@ int GFile::SwapWrite(uchar *Buf, int Size)
 		}
 		default:
 		{
-			int i, n;
+			ssize_t i, n;
 			for (i=0, n=Size-1; i<n; i++, n--)
 			{
 				uchar c = Buf[i];
@@ -1692,7 +1692,7 @@ int GFile::SwapWrite(uchar *Buf, int Size)
 				Buf[n] = c;
 			}
 			
-			int w = Write(Buf, Size);
+			ssize_t w = Write(Buf, Size);
 			
 			for (i=0, n=Size-1; i<n; i++, n--)
 			{
@@ -1709,10 +1709,10 @@ int GFile::SwapWrite(uchar *Buf, int Size)
 	return 0;
 }
 
-int GFile::ReadStr(char *Buf, int Size)
+ssize_t GFile::ReadStr(char *Buf, ssize_t Size)
 {
-	int i = 0;
-	int r = 0;
+	ssize_t i = 0;
+	ssize_t r = 0;
 	if (Buf && Size > 0)
 	{
 		char c;
@@ -1738,10 +1738,10 @@ int GFile::ReadStr(char *Buf, int Size)
 	return i;
 }
 
-int GFile::WriteStr(char *Buf, int Size)
+ssize_t GFile::WriteStr(char *Buf, ssize_t Size)
 {
-	int i = 0;
-	int w;
+	ssize_t i = 0;
+	ssize_t w;
 	
 	while (i <= Size)
 	{

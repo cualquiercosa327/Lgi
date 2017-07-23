@@ -1842,7 +1842,7 @@ char *LgiFindFile(const char *Name)
 			{
 				LgiMakePath(Path, sizeof(Path), *Pref, Name);
 			}
-			int PathLen = strlen(Path);
+			size_t PathLen = strlen(Path);
 			LgiAssert(PathLen < sizeof(Path));
 
 			if (FileExists(Path))

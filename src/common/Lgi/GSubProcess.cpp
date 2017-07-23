@@ -816,7 +816,7 @@ int GSubProcess::Kill()
 	return true;
 }
 
-int GSubProcess::Read(void *Buf, int Size, int TimeoutMs)
+ssize_t GSubProcess::Read(void *Buf, ssize_t Size, int TimeoutMs)
 {
 	#if defined(POSIX)
 		bool DoRead = true;
@@ -870,7 +870,7 @@ int GSubProcess::Peek()
 	#endif	
 }
 
-int GSubProcess::Write(const void *Buf, int Size, int Flags)
+ssize_t GSubProcess::Write(const void *Buf, ssize_t Size, int Flags)
 {
 	#if defined(POSIX)
 		return (int)write(Io.Write, Buf, Size);

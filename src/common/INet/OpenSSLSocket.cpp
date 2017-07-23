@@ -646,7 +646,7 @@ bool SslSocket::GetVariant(const char *Name, GVariant &Val, char *Arr)
 	return false;
 }
 
-void SslSocket::Log(const char *Str, int Bytes, SocketMsgType Type)
+void SslSocket::Log(const char *Str, ssize_t Bytes, SocketMsgType Type)
 {
 	if (!ValidStr(Str))
 		return;
@@ -765,7 +765,7 @@ DebugTrace("%s:%i - BIO_get_ssl=%p\n", _FL, Ssl);
 						if (Ssl)
 						{
 							// SNI setup
-							long Result = Library->SSL_set_tlsext_host_name(Ssl, HostAddr);
+							Library->SSL_set_tlsext_host_name(Ssl, HostAddr);
 					
 							// Library->SSL_CTX_set_timeout()
 							Library->BIO_set_conn_hostname(Bio, HostAddr);
@@ -1111,7 +1111,7 @@ bool SslSocket::IsWritable(int TimeoutMs)
 	return false;
 }
 
-void SslSocket::OnWrite(const char *Data, int Len)
+void SslSocket::OnWrite(const char *Data, ssize_t Len)
 {
 	#ifdef _DEBUG
 	if (d->RawLFCheck)
@@ -1129,7 +1129,7 @@ void SslSocket::OnWrite(const char *Data, int Len)
 	// Log(Data, Len, SocketMsgSend);
 }
 
-void SslSocket::OnRead(char *Data, int Len)
+void SslSocket::OnRead(char *Data, ssize_t Len)
 {
 	#ifdef _DEBUG
 	if (d->RawLFCheck)
@@ -1147,7 +1147,7 @@ void SslSocket::OnRead(char *Data, int Len)
 	// Log(Data, Len, SocketMsgReceive);
 }
 
-int SslSocket::Write(const void *Data, int Len, int Flags)
+ssize_t SslSocket::Write(const void *Data, ssize_t Len, int Flags)
 {
 	GMutex::Auto Lck(&Lock, _FL);
 
@@ -1268,7 +1268,7 @@ int SslSocket::Write(const void *Data, int Len, int Flags)
 	return r;
 }
 
-int SslSocket::Read(void *Data, int Len, int Flags)
+ssize_t SslSocket::Read(void *Data, ssize_t Len, int Flags)
 {
 	GMutex::Auto Lck(&Lock, _FL);
 

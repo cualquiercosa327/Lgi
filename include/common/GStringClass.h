@@ -44,7 +44,7 @@ protected:
 		/// A reference count
 		int32 Refs;
 		/// The bytes in 'Str' not including the NULL terminator
-		uint32 Len;
+		size_t Len;
 		/// The first byte of the string. Further bytes are allocated
 		/// off the end of the structure using malloc. This must always
 		/// be the last element in the struct.
@@ -383,7 +383,7 @@ public:
 	GString operator +(const GString &s)
 	{
 		GString Ret;
-		int Len = Length() + s.Length();
+		size_t Len = Length() + s.Length();
 		if (Ret.Set(NULL, Len))
 		{
 			char *p = Ret.Get();
@@ -409,8 +409,8 @@ public:
 	/// Concatenation / assignment operator
 	GString &operator +=(const GString &s)
 	{
-		int Len = Length() + s.Length();
-		int Alloc = sizeof(RefStr) + Len;
+		size_t Len = Length() + s.Length();
+		size_t Alloc = sizeof(RefStr) + Len;
 		RefStr *rs = (RefStr*)malloc(Alloc);
 		if (rs)
 		{
@@ -442,12 +442,12 @@ public:
 	}
 	
 	/// Gets the length in bytes
-	uint32 Length() const
+	size_t Length() const
 	{
 		return Str ? Str->Len : 0;
 	}
 
-	uint32 Length(uint32 NewLen)
+	size_t Length(size_t NewLen)
 	{
 		if (Str)
 		{
@@ -540,8 +540,7 @@ public:
 				s += SepLen;
 			}
 			
-			int i;
-			int Last = seps.Length() - 1;
+			ssize_t i, Last = seps.Length() - 1;
 			GString p;
 			for (i=Last; i>=0; i--)
 			{
@@ -626,7 +625,7 @@ public:
 		char *Sep = Get();
 		size_t SepLen = Sep ? strlen(Sep) : 0;
 		size_t Bytes = SepLen * (a.Length() - 1);
-		GArray<unsigned> ALen;
+		GArray<size_t> ALen;
 		for (unsigned i=0; i<a.Length(); i++)
 		{
 			ALen[i] = a[i].Length();
@@ -832,11 +831,8 @@ public:
 		char *c = Str->Str;
 		if (index < 0)
 		{
-			int idx = Str->Len + index;
-			if (idx >= 0)
-			{
-				return c[idx];
-			}
+			size_t idx = Str->Len + index;
+			return c[idx];
 		}
 		else if (index < (int)Str->Len)
 		{

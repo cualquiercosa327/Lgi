@@ -365,7 +365,7 @@ public:
 	int ColumnAtX(int X, GItemColumn **Col = 0, int *Offset = 0);
 	
 	/// Returns the number of columns
-	int GetColumns() { return Columns.Length(); }
+	int GetColumns() { return (int)Columns.Length(); }
 	
 	/// Starts a column d'n'd operation with the column at index 'Index'
 	/// \sa OnColumnReindex is called when the user drops the column

@@ -41,9 +41,9 @@ extern char ConvHexToBin(char c);
 extern void DecodeAddrName(const char *Start, GAutoString &Name, GAutoString &Addr, const char *DefaultDomain);
 extern bool IsValidEmail(GString &Email);
 extern char *DecodeRfc2047(char *Str);
-extern char *EncodeRfc2047(char *Str, const char *CodePage, List<char> *CharsetPrefs, int LineLength = 0);
+extern char *EncodeRfc2047(char *Str, const char *CodePage, List<char> *CharsetPrefs, ssize_t LineLength = 0);
 extern char *DecodeBase64Str(char *Str, int Len = -1);
-extern char *DecodeQuotedPrintableStr(char *Str, int Len = -1);
+extern char *DecodeQuotedPrintableStr(char *Str, ssize_t Len = -1);
 extern bool Is8Bit(char *Text);
 extern int MaxLineLen(char *Text);
 extern char *EncodeImapString(const char *s);
@@ -79,7 +79,7 @@ class MailProtocolProgress
 public:
 	uint64 Start;
 	int Value;
-	int Range;
+	ssize_t Range;
 
 	MailProtocolProgress()
 	{
@@ -93,7 +93,7 @@ public:
 		Range = 0;
 	}
 	
-	void StartTransfer(int Size)
+	void StartTransfer(ssize_t Size)
 	{
 		Start = LgiCurrentTime();
 		Value = 0;
@@ -174,7 +174,7 @@ public:
 	void _Delete();
 
 	void Print(char *Str, int Len);
-	int Sizeof()
+	ssize_t Sizeof()
 	{
 		return	SizeofStr(Name) +
 				SizeofStr(Addr);

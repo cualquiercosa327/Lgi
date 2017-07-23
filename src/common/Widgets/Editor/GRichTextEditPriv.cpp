@@ -182,7 +182,7 @@ bool BlockCursorState::Apply(GRichTextPriv *Ctx, bool Forward)
 	if (!Bc)
 		return false;
 
-	int o = Bc->Offset;
+	ssize_t o = Bc->Offset;
 	int lh = Bc->LineHint;
 	int uid = Bc->Blk->GetUid();
 
@@ -239,7 +239,7 @@ bool CompleteTextBlockState::Apply(GRichTextPriv *Ctx, bool Forward)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-MultiBlockState::MultiBlockState(GRichTextPriv *ctx, int Start)
+MultiBlockState::MultiBlockState(GRichTextPriv *ctx, ssize_t Start)
 {
 	Ctx = ctx;
 	Index = Start;
@@ -255,7 +255,7 @@ bool MultiBlockState::Apply(GRichTextPriv *Ctx, bool Forward)
 	}
 	
 	// Undo: Swap 'Length' blocks Ctx->Blocks with Blks
-	int OldLen = Blks.Length();
+	ssize_t OldLen = Blks.Length();
 	bool Status = Blks.SwapRange(GRange(0, OldLen), Ctx->Blocks, GRange(Index, Length));
 	if (Status)
 		Length = OldLen;
@@ -263,7 +263,7 @@ bool MultiBlockState::Apply(GRichTextPriv *Ctx, bool Forward)
 	return Status;
 }
 
-bool MultiBlockState::Copy(int Idx)
+bool MultiBlockState::Copy(ssize_t Idx)
 {
 	if (!Ctx->Blocks.AddressOf(Idx))
 		return false;
@@ -276,7 +276,7 @@ bool MultiBlockState::Copy(int Idx)
 	return true;
 }
 
-bool MultiBlockState::Cut(int Idx)
+bool MultiBlockState::Cut(ssize_t Idx)
 {
 	if (!Ctx->Blocks.AddressOf(Idx))
 		return false;
@@ -374,18 +374,18 @@ bool GRichTextPriv::DeleteSelection(Transaction *Trans, char16 **Cut)
 	if (Start->Blk == End->Blk)
 	{
 		// In the same block... just delete the text
-		int Len = End->Offset - Start->Offset;
+		ssize_t Len = End->Offset - Start->Offset;
 		Start->Blk->DeleteAt(Trans, Start->Offset, Len, DelTxt);
 	}
 	else
 	{
 		// Multi-block delete...
-		int i = Blocks.IndexOf(Start->Blk);
-		int e = Blocks.IndexOf(End->Blk);
+		ssize_t i = Blocks.IndexOf(Start->Blk);
+		ssize_t e = Blocks.IndexOf(End->Blk);
 		GAutoPtr<MultiBlockState> MultiState(new MultiBlockState(this, i));
 
 		// 1) Delete all the content to the end of the first block
-		int StartLen = Start->Blk->Length();
+		ssize_t StartLen = Start->Blk->Length();
 		if (Start->Offset < StartLen)
 		{
 			MultiState->Copy(i++);
@@ -439,7 +439,7 @@ bool GRichTextPriv::DeleteSelection(Transaction *Trans, char16 **Cut)
 
 GRichTextPriv::Block *GRichTextPriv::Next(Block *b)
 {
-	int Idx = Blocks.IndexOf(b);
+	ssize_t Idx = Blocks.IndexOf(b);
 	if (Idx < 0)
 		return NULL;
 	if (++Idx >= (int)Blocks.Length())
@@ -449,7 +449,7 @@ GRichTextPriv::Block *GRichTextPriv::Next(Block *b)
 
 GRichTextPriv::Block *GRichTextPriv::Prev(Block *b)
 {
-	int Idx = Blocks.IndexOf(b);
+	ssize_t Idx = Blocks.IndexOf(b);
 	if (Idx <= 0)
 		return NULL;
 	return Blocks[--Idx];
@@ -458,7 +458,7 @@ GRichTextPriv::Block *GRichTextPriv::Prev(Block *b)
 bool GRichTextPriv::AddTrans(GAutoPtr<Transaction> &t)
 {
 	// Delete any transaction history after 'UndoPos'
-	for (unsigned i=UndoPos; i<UndoQue.Length(); i++)
+	for (ssize_t i=UndoPos; i<UndoQue.Length(); i++)
 	{
 		delete UndoQue[i];
 	}
@@ -473,7 +473,7 @@ bool GRichTextPriv::AddTrans(GAutoPtr<Transaction> &t)
 	return true;
 }
 
-bool GRichTextPriv::SetUndoPos(int Pos)
+bool GRichTextPriv::SetUndoPos(ssize_t Pos)
 {
 	Pos = limit(Pos, 0, (int)UndoQue.Length());
 	if (UndoQue.Length() == 0)
@@ -641,8 +641,8 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 			{
 				// No more lines in the current block...
 				// Move to the next block.
-				int CurIdx = Blocks.IndexOf(b);
-				int NewIdx = CurIdx - 1;
+				ssize_t CurIdx = Blocks.IndexOf(b);
+				ssize_t NewIdx = CurIdx - 1;
 				if (NewIdx >= 0)
 				{
 					Block *b = Blocks[NewIdx];
@@ -658,8 +658,8 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 			{
 				// No more lines in the current block...
 				// Move to the next block.
-				int CurIdx = Blocks.IndexOf(b);
-				int NewIdx = CurIdx + 1;
+				ssize_t CurIdx = Blocks.IndexOf(b);
+				ssize_t NewIdx = CurIdx + 1;
 				if ((unsigned)NewIdx < Blocks.Length())
 				{
 					Block *b = Blocks[NewIdx];
@@ -719,7 +719,7 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 			else // Seek to previous block
 			{
 				SeekPrevBlock:
-				int Idx = Blocks.IndexOf(c->Blk);
+				ssize_t Idx = Blocks.IndexOf(c->Blk);
 				if (Idx < 0)
 				{
 					LgiAssert(0);
@@ -753,7 +753,7 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 				GArray<uint32> a;
 				c->Blk->CopyAt(0, c->Offset, &a);
 					
-				int i = c->Offset;
+				ssize_t i = c->Offset;
 				while (i > 0 && IsWordBreakChar(a[i-1]))
 					i--;
 				while (i > 0 && !IsWordBreakChar(a[i-1]))
@@ -799,7 +799,7 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 			else // Seek to next block
 			{
 				SeekNextBlock:
-				int Idx = Blocks.IndexOf(c->Blk);
+				ssize_t Idx = Blocks.IndexOf(c->Blk);
 				if (Idx < 0)
 					return Error(_FL, "Block ptr index error.");
 
@@ -825,7 +825,7 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 			if (c->Offset < c->Blk->Length())
 			{
 				GArray<uint32> a;
-				int RemainingCh = c->Blk->Length() - c->Offset;
+				ssize_t RemainingCh = c->Blk->Length() - c->Offset;
 				c->Blk->CopyAt(c->Offset, RemainingCh, &a);
 					
 				int i = 0;
@@ -854,10 +854,10 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 			GRect &Content = Areas[GRichTextEdit::ContentArea];
 			int LineHint = -1;
 			int TargetY = In->Pos.y1 - Content.Y();
-			int Idx = HitTest(In->Pos.x1, max(TargetY, 0), LineHint);
+			ssize_t Idx = HitTest(In->Pos.x1, max(TargetY, 0), LineHint);
 			if (Idx >= 0)
 			{
-				int Offset = -1;
+				ssize_t Offset = -1;
 				Block *b = GetBlockByIndex(Idx, &Offset);
 				if (b)
 				{
@@ -874,11 +874,12 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 			GRect &Content = Areas[GRichTextEdit::ContentArea];
 			int LineHint = -1;
 			int TargetY = In->Pos.y1 + Content.Y();
-			int Idx = HitTest(In->Pos.x1, min(TargetY, DocumentExtent.y-1), LineHint);
+			ssize_t Idx = HitTest(In->Pos.x1, min(TargetY, DocumentExtent.y-1), LineHint);
 			if (Idx >= 0)
 			{
-				int Offset = -1, BlkIdx = -1;
-				int CursorBlkIdx = Blocks.IndexOf(Cursor->Blk);
+				ssize_t Offset = -1;
+				int BlkIdx = -1;
+				ssize_t CursorBlkIdx = Blocks.IndexOf(Cursor->Blk);
 				Block *b = GetBlockByIndex(Idx, &Offset, &BlkIdx);
 
 				if (!b ||
@@ -916,8 +917,8 @@ bool GRichTextPriv::CursorFirst()
 	if (!Cursor || !Selection)
 		return true;
 		
-	int CIdx = Blocks.IndexOf(Cursor->Blk);
-	int SIdx = Blocks.IndexOf(Selection->Blk);
+	ssize_t CIdx = Blocks.IndexOf(Cursor->Blk);
+	ssize_t SIdx = Blocks.IndexOf(Selection->Blk);
 	if (CIdx != SIdx)
 		return CIdx < SIdx;
 		
@@ -1013,7 +1014,7 @@ GRect GRichTextPriv::SelectionRect()
 	return SelRc;
 }
 
-int GRichTextPriv::IndexOfCursor(BlockCursor *c)
+ssize_t GRichTextPriv::IndexOfCursor(BlockCursor *c)
 {
 	if (!c || !c->Blk)
 	{
@@ -1088,7 +1089,7 @@ GSurface *GRichTextPriv::GetEmojiImage()
 	return EmojiImg;
 }
 
-int GRichTextPriv::HitTest(int x, int y, int &LineHint, Block **Blk)
+ssize_t GRichTextPriv::HitTest(int x, int y, int &LineHint, Block **Blk)
 {
 	int CharPos = 0;
 	HitTestResult r(x, y);
@@ -1137,7 +1138,7 @@ int GRichTextPriv::HitTest(int x, int y, int &LineHint, Block **Blk)
 	return -1;
 }
 	
-bool GRichTextPriv::CursorFromPos(int x, int y, GAutoPtr<BlockCursor> *Cursor, int *GlobalIdx)
+bool GRichTextPriv::CursorFromPos(int x, int y, GAutoPtr<BlockCursor> *Cursor, ssize_t *GlobalIdx)
 {
 	int CharPos = 0;
 	HitTestResult r(x, y);
@@ -1161,7 +1162,7 @@ bool GRichTextPriv::CursorFromPos(int x, int y, GAutoPtr<BlockCursor> *Cursor, i
 	return false;
 }
 
-GRichTextPriv::Block *GRichTextPriv::GetBlockByIndex(int Index, int *Offset, int *BlockIdx, int *LineCount)
+GRichTextPriv::Block *GRichTextPriv::GetBlockByIndex(ssize_t Index, ssize_t *Offset, int *BlockIdx, int *LineCount)
 {
 	int CharPos = 0;
 	int Lines = 0;
@@ -1169,7 +1170,7 @@ GRichTextPriv::Block *GRichTextPriv::GetBlockByIndex(int Index, int *Offset, int
 	for (unsigned i=0; i<Blocks.Length(); i++)
 	{
 		Block *b = Blocks[i];
-		int Len = b->Length();
+		ssize_t Len = b->Length();
 		int Ln = b->GetLines();
 
 		if (Index >= CharPos &&
@@ -1190,7 +1191,7 @@ GRichTextPriv::Block *GRichTextPriv::GetBlockByIndex(int Index, int *Offset, int
 	if (Offset)
 		*Offset = b->Length();
 	if (BlockIdx)
-		*BlockIdx = Blocks.Length() - 1;
+		*BlockIdx = (int)Blocks.Length() - 1;
 	if (LineCount)
 		*LineCount = Lines;
 
@@ -1437,7 +1438,7 @@ void GRichTextPriv::PaintBtn(GSurface *pDC, GRichTextEdit::RectType t)
 	}
 }
 
-bool GRichTextPriv::MakeLink(TextBlock *tb, int Offset, int Len, GString Link)
+bool GRichTextPriv::MakeLink(TextBlock *tb, ssize_t Offset, ssize_t Len, GString Link)
 {
 	if (!tb)
 		return false;

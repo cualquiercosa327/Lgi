@@ -155,7 +155,7 @@ public:
 	
 	size_t Sizeof();
 	const char *GetName() { return Name; }
-	int Members() { return Flds.Length(); }
+	ssize_t Members() { return Flds.Length(); }
 	int AddressOf(const char *Field);
 	int IndexOf(const char *Field);
 	bool DefineField(const char *Name, GVariantType Type, int Bytes, int ArrayLen = 1);
@@ -204,7 +204,7 @@ public:
 		/// Valid when Type == #GV_BINARY
 	    struct _Binary
 	    {
-		    int Length;
+		    ssize_t Length;
 		    void *Data;
 	    } Binary;
 		/// Valid when Type == #GV_LIST
@@ -324,7 +324,7 @@ public:
 	/// Sets the value to a DOM variable reference
 	bool SetDomRef(GDom *obj, char *name);
 	/// Sets the value to a copy of	block of binary data
-	bool SetBinary(int Len, void *Data, bool Own = false);
+	bool SetBinary(ssize_t Len, void *Data, bool Own = false);
 	/// Sets the value to a copy of the list
 	bool SetList(List<GVariant> *Lst = 0);
 	/// Sets the value to a hashtable

@@ -1595,7 +1595,7 @@ void GTree::OnMouseClick(GMouse &m)
 				else
 				{
 					DragMode = RESIZE_COLUMN;
-					d->DragData = Columns.IndexOf(Resize);
+					d->DragData = (int)Columns.IndexOf(Resize);
 					Capture(true);
 				}
 			}
@@ -1792,7 +1792,7 @@ void GTree::OnPaint(GSurface *pDC)
 	Ctx.pDC = pDC;
 	if (Columns.Length() > 0)
 	{
-		Ctx.Columns = Columns.Length();
+		Ctx.Columns = (int)Columns.Length();
 		for (int i=0; i<Columns.Length(); i++)
 			ColPx[i] = Columns[i]->Width();
 	}

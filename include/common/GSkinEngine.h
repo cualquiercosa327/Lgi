@@ -47,7 +47,7 @@ public:
 		Image = NULL;
 	}
 
-	int TextObjects()
+	size_t TextObjects()
 	{
 		if (aText)
 			return aText->Length();

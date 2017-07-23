@@ -73,7 +73,7 @@ public:
 		fixed = true;
 	}
 	
-	GToken(const char *Str, const char *Delimiters = " \r\n\t,", bool GroupDelim = true, int Length = -1)
+	GToken(const char *Str, const char *Delimiters = " \r\n\t,", bool GroupDelim = true, ssize_t Length = -1)
 	{
 		Raw = 0;
 		fixed = true;
@@ -86,7 +86,7 @@ public:
 	}
 
 	/// Parses a string with set delimiters
-	void Parse(const char *Str, const char *Delimiters = " \r\n\t,", bool GroupDelim = true, int Length = -1)
+	void Parse(const char *Str, const char *Delimiters = " \r\n\t,", bool GroupDelim = true, ssize_t Length = -1)
 	{
 		Empty();
 		if (Str)
@@ -212,7 +212,7 @@ public:
 		}
 	}
 
-	char *&operator [](uint32 i)
+	char *&operator [](size_t i)
 	{
 		if (i < Length())
 			return GArray<char*>::operator[](i);

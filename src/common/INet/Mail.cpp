@@ -210,7 +210,7 @@ void TokeniseStrList(char *Str, List<char> &Output, const char *Delim)
 				}
 			}
 
-			int Len = e ? e - s : strlen(s);
+			ssize_t Len = e ? e - s : strlen(s);
 			if (Len > 0)
 			{
 				char *Temp = new char[Len+1];
@@ -237,12 +237,12 @@ char *DecodeBase64Str(char *Str, int Len)
 {
 	if (Str)
 	{
-		int B64Len = (Len < 0) ? strlen(Str) : Len;
-		int BinLen = BufferLen_64ToBin(B64Len);
+		ssize_t B64Len = (Len < 0) ? strlen(Str) : Len;
+		ssize_t BinLen = BufferLen_64ToBin(B64Len);
 		char *s = new char[BinLen+1];
 		if (s)
 		{
-			int Converted = ConvertBase64ToBinary((uchar*)s, BinLen, Str, B64Len);
+			ssize_t Converted = ConvertBase64ToBinary((uchar*)s, BinLen, Str, B64Len);
 			s[Converted] = 0;
 			DeleteArray(Str);
 			Str = s;
@@ -251,7 +251,7 @@ char *DecodeBase64Str(char *Str, int Len)
 	return Str;
 }
 
-char *DecodeQuotedPrintableStr(char *Str, int Len)
+char *DecodeQuotedPrintableStr(char *Str, ssize_t Len)
 {
 	if (Str)
 	{
@@ -308,7 +308,7 @@ char *DecodeRfc2047(char *Str)
 	for (char *s = Str; *s; )
 	{
 		char *e = s;
-		bool Decode, Descape;
+		bool Decode = 0, Descape = 0;
 		while (*e)
 		{
 			if
@@ -367,7 +367,7 @@ char *DecodeRfc2047(char *Str)
 								break;
 						}
 
-						int Len = strlen(Block);
+						size_t Len = strlen(Block);
 						if (StripUnderscores)
 						{
 							for (char *i=Block; *i; i++)
@@ -412,7 +412,7 @@ char *DecodeRfc2047(char *Str)
 			if (!Encoded)
 			{
 				// Encoding error, just emit the raw string and exit.
-				int Len = strlen(s);
+				size_t Len = strlen(s);
 				p.Write((uchar*) s, Len);
 				break;
 			}
@@ -443,7 +443,7 @@ char *DecodeRfc2047(char *Str)
 
 #define MIME_MAX_LINE		76
 
-char *EncodeRfc2047(char *Str, const char *CodePage, List<char> *CharsetPrefs, int LineLength)
+char *EncodeRfc2047(char *Str, const char *CodePage, List<char> *CharsetPrefs, ssize_t LineLength)
 {
 	if (!CodePage)
 	{
@@ -460,7 +460,7 @@ char *EncodeRfc2047(char *Str, const char *CodePage, List<char> *CharsetPrefs, i
 		// pick an encoding
 		bool Base64 = false;
 		const char *DestCp = "utf-8";
-		int Len = strlen(Str);;
+		size_t Len = strlen(Str);;
 		if (_stricmp(CodePage, "utf-8") == 0)
 		{
 			DestCp = LgiDetectCharset(Str, Len, CharsetPrefs);
@@ -496,11 +496,11 @@ char *EncodeRfc2047(char *Str, const char *CodePage, List<char> *CharsetPrefs, i
 			if (Base64)
 			{
 				// Base64
-				int InLen = strlen(Buf);
-				int EstBytes = BufferLen_BinTo64(InLen);
+				size_t InLen = strlen(Buf);
+				// int EstBytes = BufferLen_BinTo64(InLen);
 
 				char Temp[512];
-				int Bytes = ConvertBinaryToBase64(Temp, sizeof(Temp), (uchar*)Buf, InLen);
+				ssize_t Bytes = ConvertBinaryToBase64(Temp, sizeof(Temp), (uchar*)Buf, InLen);
 				p.Push(Temp, Bytes);
 			}
 			else
@@ -753,7 +753,7 @@ struct MailAddrPart
     bool ValidEmail;
     
 
-    GAutoString RemovePairs(char *Str, int Len, CharPair *Pairs)
+    GAutoString RemovePairs(char *Str, ssize_t Len, CharPair *Pairs)
     {
 	    char *s = Str;
 	    if (Len < 0)
@@ -800,7 +800,7 @@ struct MailAddrPart
 	    return GAutoString(NewStr(s, Len));
     }
 
-    MailAddrPart(char *s, int len)
+    MailAddrPart(char *s, ssize_t len)
     {
         ValidEmail = false;
         Brackets = false;

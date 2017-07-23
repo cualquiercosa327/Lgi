@@ -31,6 +31,7 @@ private:
 	int GetAsInt(const char *Name) { return GXmlTag::GetAsInt(Name); }
 	bool SetAttr(const char *Name, char *Value) { return GXmlTag::SetAttr(Name, Value); }
 	bool SetAttr(const char *Name, int Value) { return GXmlTag::SetAttr(Name, Value); }
+	bool SetAttr(const char *Name, int64 Value) { return GXmlTag::SetAttr(Name, Value); }
 	bool DelAttr(const char *Name) { return GXmlTag::DelAttr(Name); }
 	void InsertTag(GXmlTag *t) { GXmlTag::InsertTag(t); }
 	void RemoveTag() { GXmlTag::RemoveTag(); }

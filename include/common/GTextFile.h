@@ -18,7 +18,7 @@ public:
 
 protected:
 	bool First;
-	int Used;
+	size_t Used;
 	bool InEndOfLine;
 	GPointer Pos;
 	EncodingType Type;
@@ -77,7 +77,7 @@ public:
 			GAutoPtr<uint8, true> Buf(new uint8[Sz]);
 			if (Buf)
 			{
-				int Rd = Read(Buf, Sz);
+				ssize_t Rd = Read(Buf, Sz);
 				if (Rd > 0)
 				{
 					const char *Cs = GetTypeString();
@@ -100,7 +100,7 @@ public:
 			GAutoPtr<uint8, true> Buf(new uint8[Sz]);
 			if (Buf)
 			{
-				int Rd = Read(Buf, Sz);
+				ssize_t Rd = Read(Buf, Sz);
 				if (Rd > 0)
 				{
 					const char *Cs = GetTypeString();
@@ -125,9 +125,9 @@ public:
 		return true;
 	}
 		
-	int Read(void *Buffer, int Size, int Flags = 0)
+	ssize_t Read(void *Buffer, ssize_t Size, int Flags = 0)
 	{
-		int Rd = GFile::Read(Buffer, Size, Flags);
+		ssize_t Rd = GFile::Read(Buffer, Size, Flags);
 		if (First)
 		{
 			if (Rd < 4)
@@ -200,8 +200,8 @@ public:
 		if (Buf.Length())
 		{
 			// Move any consumed data down to the start of the buffer
-			int BytePos = (int) (Pos.u8 - &Buf[0]);
-			int Remaining = (int) (Used - BytePos);
+			size_t BytePos = Pos.u8 - &Buf[0];
+			size_t Remaining = Used - BytePos;
 			if (BytePos > 0 && Remaining > 0)
 			{
 				memmove(&Buf[0], &Buf[BytePos], Remaining);
@@ -216,7 +216,7 @@ public:
 			// Now read some more data into the free space
 			Remaining = Buf.Length() - Used;
 			LgiAssert(Remaining > 0);
-			int Rd = Read(&Buf[Used], Remaining);
+			ssize_t Rd = Read(&Buf[Used], Remaining);
 			if (Rd <= 0)
 				return 0;
 			

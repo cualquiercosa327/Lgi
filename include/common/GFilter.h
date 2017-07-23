@@ -54,7 +54,7 @@ protected:
 
 	Progress *Meter;
 
-	inline void Swap(uint8 *out, const void *in, int len)
+	inline void Swap(uint8 *out, const void *in, ssize_t len)
 	{
 		#ifdef __BIG_ENDIAN__
 		// Swap the bytes...
@@ -70,12 +70,12 @@ protected:
 		#endif
 	}
 
-	bool Read(GStream *s, void *p, int len)
+	bool Read(GStream *s, void *p, ssize_t len)
 	{
 		if (Buf.Length() < (uint32)len)
 			Buf.Length(len);
 
-		int r = s->Read(&Buf[0], len);
+		ssize_t r = s->Read(&Buf[0], len);
 		if (r != len)
 			return false;
 
@@ -83,12 +83,12 @@ protected:
 		return true;
 	}
 
-	bool Write(GStream *s, const void *p, int len)
+	bool Write(GStream *s, const void *p, ssize_t len)
 	{
 		if (Buf.Length() < (uint32)len)
 			Buf.Length(len);
 		Swap(&Buf[0], p, len);
-		int w = s->Write(&Buf[0], len);
+		ssize_t w = s->Write(&Buf[0], len);
 		return w == len;
 	}
 

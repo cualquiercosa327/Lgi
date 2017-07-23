@@ -305,10 +305,10 @@ public:
 	int64 GetSize();
 	
 	/// Reads bytes off the start of the container
-	int Read(void *Buffer, int Size, int Flags = 0);
+	ssize_t Read(void *Buffer, ssize_t Size, int Flags = 0);
 	
 	/// Writes bytes to the end of the container
-	int Write(const void *Buffer, int Size, int Flags = 0);
+	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0);
 
 	#if 0
 	/// Reads data from the start of the container without removing it from
@@ -356,9 +356,9 @@ public:
 	
 	~GStringPipe() {}
 
-	virtual int Pop(char *Str, int Chars);
-	virtual int Push(const char *Str, ssize_t Chars = -1);
-	virtual int Push(const char16 *Str, ssize_t Chars = -1);
+	virtual ssize_t Pop(char *Str, ssize_t Chars);
+	virtual ssize_t Push(const char *Str, ssize_t Chars = -1);
+	virtual ssize_t Push(const char16 *Str, ssize_t Chars = -1);
 	char *NewStr() { return (char*)New(sizeof(char)); }
 	GString NewGStr();
 	char16 *NewStrW() { return (char16*)New(sizeof(char16)); }

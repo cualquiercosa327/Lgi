@@ -586,7 +586,7 @@ GDbField *SvRecordset::InsertField(const char *Name, int Type, int Length, int I
 {
 	if (Index < 0)
 	{
-		Index = F.Length();
+		Index = (int)F.Length();
 	}
 
     GAutoString n(NewStr(Name));
@@ -605,7 +605,7 @@ bool SvRecordset::DeleteField(GDbField *Fld)
 
 int SvRecordset::Fields()
 {
-	return F.Length();
+	return (int)F.Length();
 }
 
 bool SvRecordset::End()
@@ -691,7 +691,7 @@ bool SvRecordset::MoveLast()
 	if (R.Length() == 0)
 		return false;
 	
-	Cur = R.Length()-1;
+	Cur = (int)R.Length()-1;
 	return true;
 }
 
@@ -709,7 +709,7 @@ int SvRecordset::RecordIndex()
 
 int SvRecordset::Records()
 {
-	return R.Length();
+	return (int)R.Length();
 }
 
 bool SvRecordset::DeleteRecord()

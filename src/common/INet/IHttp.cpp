@@ -411,16 +411,16 @@ bool IHttp::Request
 					u.Host);
 		GAutoString c(Cmd.NewStr());
 		size_t cLen = strlen(c);
-		int r = Socket->Write(c, cLen);
+		ssize_t r = Socket->Write(c, cLen);
 		if (r == cLen)
 		{
 			int Length = 0;
 			while (Out)
 			{
-				int r = Socket ? Socket->Read(s, sizeof(s)) : -1;
+				ssize_t r = Socket ? Socket->Read(s, sizeof(s)) : -1;
 				if (r > 0)
 				{
-					int e = EndHeaders.IsEnd(s, r);
+					ssize_t e = EndHeaders.IsEnd(s, r);
 					if (e < 0)
 					{
 						Headers.Write(s, r);
@@ -479,7 +479,7 @@ bool IHttp::Request
 	if (Socket && c)
 	{
 		// Write the headers...
-		int cLen = strlen(c);
+		size_t cLen = strlen(c);
 		bool WriteOk = Socket->Write(c, cLen) == cLen;
 		c.Reset();
 		if (WriteOk)
@@ -487,10 +487,10 @@ bool IHttp::Request
 			// Write any body...
 			if (InBody)
 			{
-				int r;
+				ssize_t r;
 				while ((r = InBody->Read(s, sizeof(s))) > 0)
 				{
-					int w = Socket->Write(s, r);
+					ssize_t w = Socket->Write(s, r);
 					if (w < r)
 					{
 						return false;
@@ -499,15 +499,15 @@ bool IHttp::Request
 			}
 			
 			// Read the response
-			int Total = 0;
-			int Used = 0;
+			ssize_t Total = 0;
+			ssize_t Used = 0;
 			
 			while (Out)
 			{
-				int r = Socket ? Socket->Read(s, sizeof(s)) : -1;
+				ssize_t r = Socket ? Socket->Read(s, sizeof(s)) : -1;
 				if (r > 0)
 				{
-					int e = EndHeaders.IsEnd(s, r);
+					ssize_t e = EndHeaders.IsEnd(s, r);
 					if (e < 0)
 					{
 						Headers.Write(s, r);
@@ -575,7 +575,7 @@ bool IHttp::Request
 						char *End = strnstr(s, "\r\n", Used);
 						if (!End)
 						{
-							int r = Socket->Read(s + Used, sizeof(s) - Used);
+							ssize_t r = Socket->Read(s + Used, sizeof(s) - Used);
 							if (r < 0)
 								break;
 							
@@ -591,7 +591,7 @@ bool IHttp::Request
 
 						// Process the chunk header							
 						End += 2;
-						int HdrLen = End - s;
+						ssize_t HdrLen = End - s;
 						int ChunkSize = htoi(s);
 						if (ChunkSize <= 0)
 						{
@@ -608,10 +608,10 @@ bool IHttp::Request
 						while (Socket && ChunkDone < ChunkSize)
 						{
 							int Remaining = ChunkSize - ChunkDone;
-							int Common = min(Used, Remaining);
+							ssize_t Common = min(Used, Remaining);
 							if (Common > 0)
 							{
-								int w = Out->Write(s, Common);
+								ssize_t w = Out->Write(s, Common);
 								if (w != Common)
 								{
 									LgiAssert(!"Write failed.");
@@ -626,7 +626,7 @@ bool IHttp::Request
 									break;
 							}
 
-							int r = Socket->Read(s + Used, sizeof(s) - Used);
+							ssize_t r = Socket->Read(s + Used, sizeof(s) - Used);
 							if (r < 0)
 								break;
 							
@@ -636,7 +636,7 @@ bool IHttp::Request
 						// Loop over the CRLF postfix
 						if (Socket && Used < 2)
 						{
-							int r = Socket->Read(s + Used, sizeof(s) - Used);
+							ssize_t r = Socket->Read(s + Used, sizeof(s) - Used);
 							if (r < 0)
 								break;
 							Used += r;
@@ -657,7 +657,7 @@ bool IHttp::Request
 					int64 Written = 0;
 					if (Used > 0)
 					{
-						int w = Out->Write(s, Used);
+						ssize_t w = Out->Write(s, Used);
 						if (w >= 0)
 						{
 							Written += w;
@@ -674,11 +674,11 @@ bool IHttp::Request
 							Written < ContentLen &&
 							Socket->IsOpen())
 					{
-						int r = Socket->Read(s + Used, sizeof(s) - Used);
+						ssize_t r = Socket->Read(s + Used, sizeof(s) - Used);
 						if (r <= 0)
 							break;
 
-						int w = Out->Write(s, r);
+						ssize_t w = Out->Write(s, r);
 						if (w <= 0)
 							break;
 						

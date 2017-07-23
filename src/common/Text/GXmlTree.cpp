@@ -13,11 +13,11 @@ static char GXmlHeader[] = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
 int _Pools = 0;
 int _Normals = 0;
 
-char *GXmlAlloc::Alloc(const char *s, int len)
+char *GXmlAlloc::Alloc(const char *s, ssize_t len)
 {
 	if (!s) return NULL;
 	if (len < 0) len = (int)strlen(s);
-	int bytes = len + 1;
+	ssize_t bytes = len + 1;
 	char *p = (char*) Alloc(LGI_ALLOC_ALIGN(bytes));
 	if (!p) return 0;
 	memcpy(p, s, len);
@@ -166,7 +166,7 @@ public:
 const char *EncodeEntitiesAttr	= "\'<>\"\n";
 const char *EncodeEntitiesContent	= "\'<>\"";
 
-char *GXmlTree::EncodeEntities(char *s, int len, const char *extra_characters)
+char *GXmlTree::EncodeEntities(char *s, ssize_t len, const char *extra_characters)
 {
 	GStringPipe p;
 	if (EncodeEntities(&p, s, len, extra_characters))
@@ -177,7 +177,7 @@ char *GXmlTree::EncodeEntities(char *s, int len, const char *extra_characters)
 	return 0;
 }
 
-bool GXmlTree::EncodeEntities(GStreamI *to, char *start, int len, const char *extra_characters)
+bool GXmlTree::EncodeEntities(GStreamI *to, char *start, ssize_t len, const char *extra_characters)
 {
 	if (!start || !to)
 		return 0;
@@ -243,7 +243,7 @@ bool GXmlTree::EncodeEntities(GStreamI *to, char *start, int len, const char *ex
 	return true;
 }
 
-char *GXmlTree::DecodeEntities(GXmlAlloc *Alloc, char *In, int Len)
+char *GXmlTree::DecodeEntities(GXmlAlloc *Alloc, char *In, ssize_t Len)
 {
 	if (!In || !Alloc)
 	{
@@ -251,10 +251,10 @@ char *GXmlTree::DecodeEntities(GXmlAlloc *Alloc, char *In, int Len)
 		return NULL;
 	}
 	
-	char *OriginalIn = In;
+	// char *OriginalIn = In;
 
 	// Setup temporary buffer
-	int BufSize = Len + 32;
+	ssize_t BufSize = Len + 32;
 	int BufR = BufSize & 0xff;
 	if (BufR) BufSize += 256 - BufR;
 	if (d->Buf.Length() < BufR)
@@ -304,7 +304,7 @@ char *GXmlTree::DecodeEntities(GXmlAlloc *Alloc, char *In, int Len)
 		}
 		else
 		{
-			int len;
+			ssize_t len;
 			char *Col = strnchr(In, ';', 16);
 
 			if (Col && (len = (Col - In)) < 16)
@@ -999,11 +999,6 @@ void GXmlTag::ParseAttribute(GXmlTree *Tree, GXmlAlloc *Alloc, char *&t, bool &N
 			GXmlAttr &At = Attr.New();
 			At.Name = Alloc->Alloc(AttrName, t-AttrName);
 			
-			if (!_stricmp(At.Name, "HtmlReplyFmt"))
-			{
-				int asd=0;
-			}
-			
 			// Skip white
 			SkipWhiteSpace(t);
 			
@@ -1155,7 +1150,6 @@ ParsingStart:
 					GAutoString Tmp(Before.NewStr());
 					GAutoRefPtr<GXmlAlloc> LocalAlloc(new XmlNormalAlloc);
 					PreContent->Content = DecodeEntities(Tag ? Tag->Allocator : LocalAlloc, Tmp, strlen(Tmp));
-					int asd=0;
 				}
 
 				return PreContent;
@@ -1171,7 +1165,7 @@ ParsingStart:
 		
 		// Store tagname start
 		char *TagName = t;
-		bool TypeDef = *t == '!';
+		// bool TypeDef = *t == '!';
 
 		if (*t == '/')
 			t++;
@@ -1318,7 +1312,7 @@ bool GXmlTree::Read(GXmlTag *Root, GStreamI *File, GXmlFactory *Factory)
 			char *Str = new char[Len+1];
 			if (Str)
 			{
-				int r = File->Read(Str, Len);
+				ssize_t r = File->Read(Str, Len);
 				if (r >= 0)
 				{
 					Str[r] = 0;

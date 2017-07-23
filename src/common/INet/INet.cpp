@@ -941,7 +941,7 @@ void GSocket::Log(const char *Msg, ssize_t Ret, const char *Buf, ssize_t Len)
 	}
 }
 
-int GSocket::Write(const void *Data, int Len, int Flags)
+ssize_t GSocket::Write(const void *Data, ssize_t Len, int Flags)
 {
 	if (!ValidSocket(d->Socket) || !Data)
 		return -1;
@@ -981,7 +981,7 @@ int GSocket::Write(const void *Data, int Len, int Flags)
 	return Status;
 }
 
-int GSocket::Read(void *Data, int Len, int Flags)
+ssize_t GSocket::Read(void *Data, ssize_t Len, int Flags)
 {
 	if (!ValidSocket(d->Socket) || !Data)
 		return -1;

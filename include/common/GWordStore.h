@@ -18,7 +18,7 @@ public:
 	bool SetItems(int s);
 	bool Insert(const char *Word);
 	long GetWordCount(const char *Word);
-	int SetWordCount(const char *Word, uint32 Count);
+	int SetWordCount(const char *Word, ssize_t Count);
 	void Empty();
 	char *GetFile();
 	void SetFile(const char *file);
@@ -26,7 +26,7 @@ public:
 	// Iterate
 	const char *First();
 	const char *Next();
-	int Length();
+	unsigned long Length();
 
 	#ifdef _DEBUG
 	int64 Sizeof();

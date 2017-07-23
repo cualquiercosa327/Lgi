@@ -204,7 +204,7 @@ public:
 		}
 	}
 
-	uint32 GetQueueSize()
+	size_t GetQueueSize()
 	{
 		return Msgs.Length();
 	}

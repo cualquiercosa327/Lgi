@@ -184,12 +184,12 @@ public:
 
 	/// \brief Sends data to the remote host.
 	/// \return the number of bytes written or <= 0 on error.
-	int Write
+	ssize_t Write
 	(
 		/// Pointer to the data to write
 		const void *Data,
 		/// Numbers of bytes to write
-		int Len,
+		ssize_t Len,
 		/// Flags to pass to send
 		int Flags = 0
 	);
@@ -200,12 +200,12 @@ public:
 	/// Generally the number of bytes returned is less than the buffer size. Depending on how much data
 	/// you are expecting you will need to keep reading until you get and end of field marker or the number
 	/// of bytes your looking for.
-	int Read
+	ssize_t Read
 	(
 		/// Pointer to the buffer to write output to
 		void *Data,
 		/// The length of the receive buffer.
-		int Len,
+		ssize_t Len,
 		/// The flags to pass to recv
 		int Flags = 0
 	);

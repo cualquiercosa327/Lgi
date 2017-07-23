@@ -44,7 +44,7 @@ public:
 		friend class GUrl;
 
 	protected:
-		void RefreshLayout(int Start, int Len);
+		void RefreshLayout(ssize_t Start, ssize_t Len);
 
 	public:
 		enum StyleDecor
@@ -160,8 +160,8 @@ protected:
 	class GTextLine
 	{
 	public:
-		size_t Start;	// Start offset
-		size_t Len;		// length of text
+		ssize_t Start;	// Start offset
+		ssize_t Len;		// length of text
 		GRect r;		// Screen location
 		GColour c;		// Colour of line... transparent = default colour
 		GColour Back;	// Background colour or transparent
@@ -173,7 +173,7 @@ protected:
 			r.ZOff(-1, -1);
 		}
 		virtual ~GTextLine() {}
-		bool Overlap(int i)
+		bool Overlap(ssize_t i)
 		{
 			return i>=Start && i<=Start+Len;
 		}
@@ -209,9 +209,9 @@ protected:
 
 	// Data
 	char16 *Text;
-	size_t Cursor;
-	size_t Size;
-	size_t Alloc;
+	ssize_t Cursor;
+	ssize_t Size;
+	ssize_t Alloc;
 
 	// Undo stuff
 	bool UndoOn;
@@ -219,7 +219,7 @@ protected:
 
 	// private methods
 	GTextLine *GetTextLine(ssize_t Offset, int *Index = 0);
-	int SeekLine(int Start, GTextViewSeek Where);
+	ssize_t SeekLine(ssize_t Offset, GTextViewSeek Where);
 	int TextWidth(GFont *f, char16 *s, int Len, int x, int Origin);
 	int ScrollYLine();
 	int ScrollYPixel();
@@ -228,8 +228,8 @@ protected:
 	
 	// styles
 	bool InsertStyle(GAutoPtr<GStyle> s);
-	GStyle *GetNextStyle(int Where = -1);
-	GStyle *HitStyle(int i);
+	GStyle *GetNextStyle(ssize_t Where = -1);
+	GStyle *HitStyle(ssize_t i);
 	int GetColumn();
 	int SpaceDepth(char16 *Start, char16 *End);
 
@@ -270,7 +270,7 @@ public:
 	size_t GetSize() { return Size; }
 	GString operator[](int LineIdx);
 
-	int HitText(int x, int y, bool Nearest);
+	ssize_t HitText(int x, int y, bool Nearest);
 	void DeleteSelection(char16 **Cut = 0);
 
 	// Font
@@ -293,7 +293,7 @@ public:
 	void IsDirty(bool d) { Dirty = d; }
 	bool HasSelection();
 	void UnSelectAll();
-	void SelectWord(int From);
+	void SelectWord(size_t From);
 	void SelectAll();
 	ssize_t GetCursor(bool Cursor = true);
 	bool GetLineColumnAtIndex(GdcPt2 &Pt, int Index = -1);

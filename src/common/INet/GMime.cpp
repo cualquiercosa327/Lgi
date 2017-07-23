@@ -99,7 +99,7 @@ public:
 	{
 		if (!LastEol)
 		{
-			int w = Out->Write(MimeEol, 2);
+			ssize_t w = Out->Write(MimeEol, 2);
 			LgiAssert(w == 2);
 		}
 	}
@@ -119,7 +119,7 @@ public:
 			if (c > s)
 			{
 				ptrdiff_t bytes = c - s;
-				int w = Out->Write(s, (int)bytes);
+				ssize_t w = Out->Write(s, (int)bytes);
 				if (w != bytes)
 					return wr;
 				wr += w;
@@ -130,7 +130,7 @@ public:
 			{
 				if (*c == '\n')
 				{
-					int w = Out->Write(MimeEol, 2);
+					ssize_t w = Out->Write(MimeEol, 2);
 					if (w != 2)
 						return wr;
 					LastEol = true;
@@ -329,11 +329,11 @@ public:
 
 		int64 Len = Buf.GetSize();
 		LgiAssert(Len < sizeof(b));
-		int r = Buf.Read(b, CastInt(Len));
+		ssize_t r = Buf.Read(b, CastInt(Len));
 		if (r > 0)
 		{
 			char t[256];
-			int w = ConvertBinaryToBase64(t, sizeof(t), b, r);
+			ssize_t w = ConvertBinaryToBase64(t, sizeof(t), b, r);
 			Out->Write(t, w);
 			Out->Write(MimeEol, 2);
 		}
@@ -346,11 +346,11 @@ public:
 		while (Buf.GetSize() >= BASE64_READ_SZ)
 		{
 			uchar b[100];
-			int r = Buf.Read(b, BASE64_READ_SZ);
+			ssize_t r = Buf.Read(b, BASE64_READ_SZ);
 			if (r)
 			{
 				char t[256];
-				int w = ConvertBinaryToBase64(t, sizeof(t), b, r);
+				ssize_t w = ConvertBinaryToBase64(t, sizeof(t), b, r);
 				if (w > 0)
 				{
 					Out->Write(t, w);
@@ -409,11 +409,11 @@ public:
 			Size &= ~3;
 
 			char t[256];
-			int r = min(sizeof(t), Size);
+			ssize_t r = min(sizeof(t), Size);
 			if ((r = Buf.GMemQueue::Read((uchar*)t, r)) > 0)
 			{
 				uchar b[256];
-				int w = ConvertBase64ToBinary(b, sizeof(b), t, r);
+				ssize_t w = ConvertBase64ToBinary(b, sizeof(b), t, r);
 				Out->Write(b, w);
 				Status += w;
 			}
@@ -433,25 +433,25 @@ GMimeBuf::GMimeBuf(GStreamI *src, GStreamEnd *end)
 	Src->SetPos(0);
 }
 
-int GMimeBuf::Pop(char *Str, int BufSize)
+ssize_t GMimeBuf::Pop(char *Str, ssize_t BufSize)
 {
-	int Ret = 0;
+	ssize_t Ret = 0;
 
 	while (!(Ret = GStringPipe::Pop(Str, BufSize)))
 	{
 		if (Src)
 		{
 			char Buf[1024];
-			int r = Src ? Src->Read(Buf, sizeof(Buf)) : 0;
+			ssize_t r = Src ? Src->Read(Buf, sizeof(Buf)) : 0;
 			if (r)
 			{
 				if (End)
 				{
-					int e = End->IsEnd(Buf, r);
+					ssize_t e = End->IsEnd(Buf, r);
 					if (e >= 0)
 					{
 						// End of stream
-						int s = e - Total;
+						ssize_t s = e - Total;
 						Push(Buf, s);
 						Total += s;
 						Src = 0; // no more data anyway
@@ -1067,7 +1067,7 @@ int GMime::GMimeText::GMimeDecode::Parse(GStringPipe *Source, ParentState *State
 			// Read the headers..
 			char Buf[1024];
 			GStringPipe HeaderBuf;
-			int r;
+			ssize_t r;
 			while ((r = Source->Pop(Buf, sizeof(Buf))) > 0)
 			{
 				if (!strchr(MimeEol, Buf[0]))
@@ -1109,8 +1109,8 @@ int GMime::GMimeText::GMimeDecode::Parse(GStringPipe *Source, ParentState *State
 			while (!Done)
 			{
 				// Process existing lines
-				int Len;
-				int Written = 0;
+				ssize_t Len;
+				ssize_t Written = 0;
 
 				Status = true;
 				while ((Len = Source->Pop(Buf, sizeof(Buf))))
@@ -1166,7 +1166,7 @@ int GMime::GMimeText::GMimeDecode::Parse(GStringPipe *Source, ParentState *State
 						}
 						else
 						{
-							int w = Mime->DataStore->Write(Buf, Len);
+							ssize_t w = Mime->DataStore->Write(Buf, Len);
 							if (w > 0)
 							{
 								Written += w;
@@ -1246,8 +1246,8 @@ int GMime::GMimeText::GMimeEncode::Push(GStreamI *Dest, GStreamEnd *End)
 				int x = 0;
 				for (int i=0; i<Mime->DataSize; )
 				{
-					int m = min(Mime->DataSize - i, sizeof(Buf));
-					int r = Mime->DataStore->Read(Buf, m);
+					ssize_t m = min(Mime->DataSize - i, sizeof(Buf));
+					ssize_t r = Mime->DataStore->Read(Buf, m);
 					if (r > 0)
 					{
 						for (int n=0; n<r; n++)
@@ -1333,8 +1333,8 @@ int GMime::GMimeText::GMimeEncode::Push(GStreamI *Dest, GStreamEnd *End)
 				Status = Mime->DataSize == 0; // Nothing is a valid segment??
 				for (int i=0; i<Mime->DataSize; )
 				{
-					int m = min(Mime->DataSize-i, sizeof(Buf));
-					int r = Mime->DataStore->Read(Buf, m);
+					ssize_t m = min(Mime->DataSize-i, sizeof(Buf));
+					ssize_t r = Mime->DataStore->Read(Buf, m);
 					if (r > 0)
 					{
 						Encoder->Write(Buf, r);
@@ -1464,8 +1464,8 @@ int GMime::GMimeBinary::GMimeWrite::Push(GStreamI *Dest, GStreamEnd *End)
 		int32 Header[4] =
 		{
 			MimeMagic,
-			Mime->Headers ? (int32) strlen(Mime->Headers) : 0,
-			Mime->DataStore ? Mime->DataSize : 0,
+			Mime->Headers ? (int32)strlen(Mime->Headers) : 0,
+			Mime->DataStore ? (int32)Mime->DataSize : 0,
 			(int32) Mime->Children.Length()
 		};
 
@@ -1479,12 +1479,12 @@ int GMime::GMimeBinary::GMimeWrite::Push(GStreamI *Dest, GStreamEnd *End)
 			if (Mime->DataStore)
 			{
 				char Buf[1024];
-				int Written = 0;
-				int Read = 0;
-				int r;
+				ssize_t Written = 0;
+				ssize_t Read = 0;
+				ssize_t r;
 				while ((r = Mime->DataStore->Read(Buf, min(sizeof(Buf), Header[2]-Read) )) > 0)
 				{
-					int w;
+					ssize_t w;
 					if ((w = Dest->Write(Buf, r)) <= 0)
 					{
 						// Write error

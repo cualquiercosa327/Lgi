@@ -395,7 +395,7 @@ LgiFunc const char *LgiDetectCharset
 	/// The input text
 	const char *Utf8,
 	/// The byte length of the input text
-	int Len = -1,
+	ssize_t Len = -1,
 	/// An optional list of prefered charsets to look through first
 	List<char> *Prefs = 0
 );

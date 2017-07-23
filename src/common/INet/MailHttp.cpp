@@ -88,7 +88,7 @@ class MailSocket : public GSocket
 	GStringPipe ReadBuf, WriteBuf;
 	bool InData;
 	GFile *Temp;
-	int SepLen;
+	ssize_t SepLen;
 	bool OwnSocket;
 
 public:
@@ -212,7 +212,7 @@ public:
 		return r != 0;
 	}
 
-	int Write(const void *Buffer, int Size, int Flags = 0)
+	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0)
 	{
 		// Remove null characters
 		char *o = (char*) Buffer;
@@ -229,9 +229,9 @@ public:
 		return S->Write(Buffer, o - (char*)Buffer, Flags);
 	}
 	
-	int Read(void *Buffer, int Size, int Flags = 0)
+	ssize_t Read(void *Buffer, ssize_t Size, int Flags = 0)
 	{
-		int s = S->Read(Buffer, Size, Flags);
+		ssize_t s = S->Read(Buffer, Size, Flags);
 		if (T && s > 0)
 		{
 			T->Value += s;
@@ -509,7 +509,7 @@ bool MailPhp::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks)
 				MailTransaction *t = Trans[i];
 				if (t && t->Stream)
 				{
-					int Len = e-s;
+					ssize_t Len = e-s;
 					if (!strnstr(s, "Error: ", min(Len, 256)))
 					{
 						t->Stream->Write(s, Len - 2);
@@ -536,7 +536,7 @@ bool MailPhp::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks)
 			{
 				printf("%s:%i - Error: Only found %i of %i separators in %i bytes from server.\n",
 					__FILE__, __LINE__,
-					i, Trans.Length(),
+					i, (int)Trans.Length(),
 					(int)strlen(All));
 			}
 			
@@ -615,7 +615,7 @@ char *MailPhp::GetHeaders(int Message)
 			{
 				int n = 0;
 				char *All = Text.NewStr();
-				int AllLen = strlen(All);
+				// int AllLen = strlen(All);
 				for (char *s = All; s && *s; )
 				{
 					Msg *m = d->Msgs[n++];

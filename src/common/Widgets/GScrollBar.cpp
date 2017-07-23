@@ -615,12 +615,12 @@ void GScrollBar::SetLimits(int64 Low, int64 High)
 	}
 }
 
-int GScrollBar::Page()
+int64 GScrollBar::Page()
 {
 	return d->Page;
 }
 
-void GScrollBar::SetPage(int i)
+void GScrollBar::SetPage(int64 i)
 {
 	if (d->Page != i)
 	{

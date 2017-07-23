@@ -67,7 +67,7 @@ public:
 	GButton *Stop;
 	GButton *Search;
 	GArray<GAutoString> History;
-	uint32 CurHistory;
+	ssize_t CurHistory;
 	bool Loading;
 	GBrowser::GBrowserEvents *Events;
 	IHttp Http;
@@ -220,12 +220,12 @@ public:
 				}
 				else if (t[i][0] == '#')
 				{
-					int len = strlen(Buf);
+					size_t len = strlen(Buf);
 					sprintf_s(Buf+len, sizeof(Buf)-len, "%s", t[i]);
 				}
 				else
 				{
-					int len = strlen(Buf);
+					size_t len = strlen(Buf);
 					sprintf_s(Buf+len, sizeof(Buf)-len, "%c%s", Sep, t[i]);
 				}
 			}

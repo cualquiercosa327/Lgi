@@ -484,7 +484,7 @@ public:
 
 		StyleText(const StyleText *St);
 		StyleText(const uint32 *t = NULL, ssize_t Chars = -1, GNamedStyle *style = NULL);
-		uint32 *At(int i);
+		uint32 *At(ssize_t i);
 		GNamedStyle *GetStyle();
 		void SetStyle(GNamedStyle *s);
 	};
@@ -553,7 +553,7 @@ public:
 		GdcPt2 In;
 		Block *Blk;
 		DisplayStr *Ds;
-		int Idx;
+		ssize_t Idx;
 		int LineHint;
 		bool Near;
 		
@@ -606,10 +606,10 @@ public:
 	};
 
 	GArray<Transaction*> UndoQue;
-	int UndoPos;
+	ssize_t UndoPos;
 
 	bool AddTrans(GAutoPtr<Transaction> &t);
-	bool SetUndoPos(int Pos);
+	bool SetUndoPos(ssize_t Pos);
 
 	template<typename T>
 	bool GetBlockByUid(T *&Ptr, int Uid, int *Idx = NULL)
@@ -683,29 +683,29 @@ public:
 		 ***********************************************/
 			virtual const char *GetClass() { return "Block"; }
 			virtual GRect GetPos() = 0;
-			virtual int Length() = 0;
+			virtual ssize_t Length() = 0;
 			virtual bool HitTest(HitTestResult &htr) = 0;
 			virtual bool GetPosFromIndex(BlockCursor *Cursor) = 0;
 			virtual bool OnLayout(Flow &f) = 0;
 			virtual void OnPaint(PaintContext &Ctx) = 0;
 			virtual bool ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media) = 0;
-			virtual bool OffsetToLine(int Offset, int *ColX, GArray<int> *LineY) = 0;
+			virtual bool OffsetToLine(ssize_t Offset, int *ColX, GArray<int> *LineY) = 0;
 			virtual int LineToOffset(int Line) = 0;
 			virtual int GetLines() = 0;
-			virtual int FindAt(int StartIdx, const uint32 *Str, GFindReplaceCommon *Params) = 0;
+			virtual ssize_t FindAt(ssize_t StartIdx, const uint32 *Str, GFindReplaceCommon *Params) = 0;
 			virtual void SetSpellingErrors(GArray<GSpellCheck::SpellingError> &Errors) {}
 			virtual void IncAllStyleRefs() {}
 			virtual void Dump() {}
-			virtual GNamedStyle *GetStyle(int At = -1) = 0;
+			virtual GNamedStyle *GetStyle(ssize_t At = -1) = 0;
 			virtual int GetUid() const { return BlockUid; }
-			virtual bool DoContext(GSubMenu &s, GdcPt2 Doc, int Offset, bool Spelling) { return false; }
+			virtual bool DoContext(GSubMenu &s, GdcPt2 Doc, ssize_t Offset, bool Spelling) { return false; }
 			#ifdef _DEBUG
 			virtual void DumpNodes(GTreeItem *Ti) = 0;
 			#endif
 			virtual Block *Clone() = 0;
 
 			// Copy some or all of the text out
-			virtual int CopyAt(int Offset, ssize_t Chars, GArray<uint32> *Text) { return false; }
+			virtual ssize_t CopyAt(ssize_t Offset, ssize_t Chars, GArray<uint32> *Text) { return false; }
 
 			/// This method moves a cursor index.
 			/// \returns the new cursor index or -1 on error.
@@ -726,22 +726,22 @@ public:
 				/// Current transaction
 				Transaction *Trans,
 				/// The index to add at (-1 = the end)
-				int AtOffset,
+				ssize_t AtOffset,
 				/// The text itself
 				const uint32 *Str,
 				/// [Optional] The number of characters
-				int Chars = -1,
+				ssize_t Chars = -1,
 				/// [Optional] Style to give the text, NULL means "use the existing style"
 				GNamedStyle *Style = NULL
 			)	{ return false; }
 
 			/// Delete some chars
 			/// \returns the number of chars actually removed
-			virtual int DeleteAt
+			virtual ssize_t DeleteAt
 			(
 				Transaction *Trans,
-				int Offset,
-				int Chars,
+				ssize_t Offset,
+				ssize_t Chars,
 				GArray<uint32> *DeletedText = NULL
 			)	{ return false; }
 
@@ -749,8 +749,8 @@ public:
 			virtual bool ChangeStyle
 			(
 				Transaction *Trans,
-				int Offset,
-				int Chars,
+				ssize_t Offset,
+				ssize_t Chars,
 				GCss *Style,
 				bool Add
 			)	{ return false; }
@@ -760,9 +760,9 @@ public:
 				/// Current transaction
 				Transaction *Trans,
 				/// Start index of text to change
-				int StartIdx,
+				ssize_t StartIdx,
 				/// Number of chars to change
-				int Chars,
+				ssize_t Chars,
 				/// True if upper case is desired
 				bool Upper
 			)	{ return false; }
@@ -773,7 +773,7 @@ public:
 				/// Current transaction
 				Transaction *Trans,
 				/// The index to add at (-1 = the end)
-				int AtOffset
+				ssize_t AtOffset
 			)	{ return NULL; }
 	};
 
@@ -974,7 +974,7 @@ public:
 		GFont *Fnt;
 		
 		bool LayoutDirty;
-		int Len; // chars in the whole block (sum of all Text lengths)
+		ssize_t Len; // chars in the whole block (sum of all Text lengths)
 		GRect Pos; // position in document co-ordinates
 		
 		TextBlock(GRichTextPriv *priv);
@@ -986,25 +986,25 @@ public:
 		// No state change methods
 		const char *GetClass() { return "TextBlock"; }
 		int GetLines();
-		bool OffsetToLine(int Offset, int *ColX, GArray<int> *LineY);
+		bool OffsetToLine(ssize_t Offset, int *ColX, GArray<int> *LineY);
 		int LineToOffset(int Line);
 		GRect GetPos() { return Pos; }
 		void Dump();
-		GNamedStyle *GetStyle(int At = -1);
+		GNamedStyle *GetStyle(ssize_t At = -1);
 		void SetStyle(GNamedStyle *s);
-		int Length();
+		ssize_t Length();
 		bool ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media);
 		bool GetPosFromIndex(BlockCursor *Cursor);
 		bool HitTest(HitTestResult &htr);
 		void OnPaint(PaintContext &Ctx);
 		bool OnLayout(Flow &flow);
-		int GetTextAt(uint32 Offset, GArray<StyleText*> &t);
-		int CopyAt(int Offset, ssize_t Chars, GArray<uint32> *Text);
+		ssize_t GetTextAt(ssize_t Offset, GArray<StyleText*> &t);
+		ssize_t CopyAt(ssize_t Offset, ssize_t Chars, GArray<uint32> *Text);
 		bool Seek(SeekType To, BlockCursor &Cursor);
-		int FindAt(int StartIdx, const uint32 *Str, GFindReplaceCommon *Params);
+		ssize_t FindAt(ssize_t StartIdx, const uint32 *Str, GFindReplaceCommon *Params);
 		void IncAllStyleRefs();
 		void SetSpellingErrors(GArray<GSpellCheck::SpellingError> &Errors);
-		bool DoContext(GSubMenu &s, GdcPt2 Doc, int Offset, bool Spelling);
+		bool DoContext(GSubMenu &s, GdcPt2 Doc, ssize_t Offset, bool Spelling);
 		#ifdef _DEBUG
 		void DumpNodes(GTreeItem *Ti);
 		#endif
@@ -1014,11 +1014,11 @@ public:
 		GMessage::Result OnEvent(GMessage *Msg);
 
 		// Transactional changes
-		bool AddText(Transaction *Trans, int AtOffset, const uint32 *Str, ssize_t Chars = -1, GNamedStyle *Style = NULL);
-		bool ChangeStyle(Transaction *Trans, int Offset, int Chars, GCss *Style, bool Add);
-		int DeleteAt(Transaction *Trans, int BlkOffset, int Chars, GArray<uint32> *DeletedText = NULL);
-		bool DoCase(Transaction *Trans, int StartIdx, int Chars, bool Upper);
-		Block *Split(Transaction *Trans, int AtOffset);
+		bool AddText(Transaction *Trans, ssize_t AtOffset, const uint32 *Str, ssize_t Chars = -1, GNamedStyle *Style = NULL);
+		bool ChangeStyle(Transaction *Trans, ssize_t Offset, ssize_t Chars, GCss *Style, bool Add);
+		ssize_t DeleteAt(Transaction *Trans, ssize_t BlkOffset, ssize_t Chars, GArray<uint32> *DeletedText = NULL);
+		bool DoCase(Transaction *Trans, ssize_t StartIdx, ssize_t Chars, bool Upper);
+		Block *Split(Transaction *Trans, ssize_t AtOffset);
 	};
 
 	class ImageBlock :
@@ -1072,24 +1072,24 @@ public:
 
 		// No state change methods
 		int GetLines();
-		bool OffsetToLine(int Offset, int *ColX, GArray<int> *LineY);
+		bool OffsetToLine(ssize_t Offset, int *ColX, GArray<int> *LineY);
 		int LineToOffset(int Line);
 		GRect GetPos() { return Pos; }
 		void Dump();
-		GNamedStyle *GetStyle(int At = -1);
+		GNamedStyle *GetStyle(ssize_t At = -1);
 		void SetStyle(GNamedStyle *s);
-		int Length();
+		ssize_t Length();
 		bool ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media);
 		bool GetPosFromIndex(BlockCursor *Cursor);
 		bool HitTest(HitTestResult &htr);
 		void OnPaint(PaintContext &Ctx);
 		bool OnLayout(Flow &flow);
-		int GetTextAt(uint32 Offset, GArray<StyleText*> &t);
-		int CopyAt(int Offset, ssize_t Chars, GArray<uint32> *Text);
+		ssize_t GetTextAt(ssize_t Offset, GArray<StyleText*> &t);
+		ssize_t CopyAt(ssize_t Offset, ssize_t Chars, GArray<uint32> *Text);
 		bool Seek(SeekType To, BlockCursor &Cursor);
-		int FindAt(int StartIdx, const uint32 *Str, GFindReplaceCommon *Params);
+		ssize_t FindAt(ssize_t StartIdx, const uint32 *Str, GFindReplaceCommon *Params);
 		void IncAllStyleRefs();
-		bool DoContext(GSubMenu &s, GdcPt2 Doc, int Offset, bool Spelling);
+		bool DoContext(GSubMenu &s, GdcPt2 Doc, ssize_t Offset, bool Spelling);
 		#ifdef _DEBUG
 		void DumpNodes(GTreeItem *Ti);
 		#endif
@@ -1099,10 +1099,10 @@ public:
 		GMessage::Result OnEvent(GMessage *Msg);
 
 		// Transactional changes
-		bool AddText(Transaction *Trans, int AtOffset, const uint32 *Str, int Chars = -1, GNamedStyle *Style = NULL);
-		bool ChangeStyle(Transaction *Trans, int Offset, int Chars, GCss *Style, bool Add);
-		int DeleteAt(Transaction *Trans, int BlkOffset, int Chars, GArray<uint32> *DeletedText = NULL);
-		bool DoCase(Transaction *Trans, int StartIdx, int Chars, bool Upper);
+		bool AddText(Transaction *Trans, ssize_t AtOffset, const uint32 *Str, ssize_t Chars = -1, GNamedStyle *Style = NULL);
+		bool ChangeStyle(Transaction *Trans, ssize_t Offset, ssize_t Chars, GCss *Style, bool Add);
+		ssize_t DeleteAt(Transaction *Trans, ssize_t BlkOffset, ssize_t Chars, GArray<uint32> *DeletedText = NULL);
+		bool DoCase(Transaction *Trans, ssize_t StartIdx, ssize_t Chars, bool Upper);
 	};
 	
 	GArray<Block*> Blocks;
@@ -1120,15 +1120,15 @@ public:
 	bool SetCursor(GAutoPtr<BlockCursor> c, bool Select = false);
 	GRect SelectionRect();
 	bool GetSelection(GArray<char16> &Text);
-	int IndexOfCursor(BlockCursor *c);
-	int HitTest(int x, int y, int &LineHint, Block **Blk = NULL);
-	bool CursorFromPos(int x, int y, GAutoPtr<BlockCursor> *Cursor, int *GlobalIdx);
-	Block *GetBlockByIndex(int Index, int *Offset = NULL, int *BlockIdx = NULL, int *LineCount = NULL);
+	ssize_t IndexOfCursor(BlockCursor *c);
+	ssize_t HitTest(int x, int y, int &LineHint, Block **Blk = NULL);
+	bool CursorFromPos(int x, int y, GAutoPtr<BlockCursor> *Cursor, ssize_t *GlobalIdx);
+	Block *GetBlockByIndex(ssize_t Index, ssize_t *Offset = NULL, int *BlockIdx = NULL, int *LineCount = NULL);
 	bool Layout(GScrollBar *&ScrollY);
 	void OnStyleChange(GRichTextEdit::RectType t);
 	bool ChangeSelectionStyle(GCss *Style, bool Add);
 	void PaintBtn(GSurface *pDC, GRichTextEdit::RectType t);
-	bool MakeLink(TextBlock *tb, int Offset, int Len, GString Link);
+	bool MakeLink(TextBlock *tb, ssize_t Offset, ssize_t Len, GString Link);
 	bool ClickBtn(GMouse &m, GRichTextEdit::RectType t);
 	void Paint(GSurface *pDC, GScrollBar *&ScrollY);
 	GHtmlElement *CreateElement(GHtmlElement *Parent);
@@ -1214,7 +1214,7 @@ public:
 struct BlockCursorState
 {
 	bool Cursor;
-	int Offset;
+	ssize_t Offset;
 	int LineHint;
 	int BlockUid;
 
@@ -1235,15 +1235,15 @@ struct CompleteTextBlockState : public GRichTextPriv::DocChange
 struct MultiBlockState : public GRichTextPriv::DocChange
 {
 	GRichTextPriv *Ctx;
-	int Index; // Number of blocks before the edit
-	int Length; // Of the other version currently in the Ctx stack
+	ssize_t Index; // Number of blocks before the edit
+	ssize_t Length; // Of the other version currently in the Ctx stack
 	GArray<GRichTextPriv::Block*> Blks;
 	
-	MultiBlockState(GRichTextPriv *ctx, int Start);
+	MultiBlockState(GRichTextPriv *ctx, ssize_t Start);
 	bool Apply(GRichTextPriv *Ctx, bool Forward);
 
-	bool Copy(int Idx);
-	bool Cut(int Idx);
+	bool Copy(ssize_t Idx);
+	bool Cut(ssize_t Idx);
 };
 
 #ifdef _DEBUG

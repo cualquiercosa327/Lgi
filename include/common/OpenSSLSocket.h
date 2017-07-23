@@ -23,7 +23,7 @@ class SslSocket :
 	SSL *Ssl;
 
 	// Local stuff
-	virtual void Log(const char *Str, int Bytes, SocketMsgType Type);
+	virtual void Log(const char *Str, ssize_t Bytes, SocketMsgType Type);
 	void Error(const char *file, int line, const char *Msg);
 	GStream *GetLogStream();
 	void DebugTrace(const char *fmt, ...);
@@ -48,10 +48,10 @@ public:
 	int GetTimeout();
 	void SetTimeout(int ms);
 
-	int Write(const void *Data, int Len, int Flags = 0);
-	int Read(void *Data, int Len, int Flags = 0);
-	void OnWrite(const char *Data, int Len);
-	void OnRead(char *Data, int Len);
+	ssize_t Write(const void *Data, ssize_t Len, int Flags = 0);
+	ssize_t Read(void *Data, ssize_t Len, int Flags = 0);
+	void OnWrite(const char *Data, ssize_t Len);
+	void OnRead(char *Data, ssize_t Len);
 
 	bool IsReadable(int TimeoutMs = 0);
 	bool IsWritable(int TimeoutMs = 0);

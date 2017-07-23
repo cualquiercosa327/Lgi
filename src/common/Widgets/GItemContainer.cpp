@@ -644,7 +644,7 @@ int GItemColumn::GetIndex()
 {
 	if (d->Parent)
 	{
-		return d->Parent->Columns.IndexOf(this);
+		return (int)d->Parent->Columns.IndexOf(this);
 	}
 
 	return -1;

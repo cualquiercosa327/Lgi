@@ -1322,9 +1322,9 @@ void GZoomView::ScrollToPoint(GdcPt2 DocCoord)
 		return;
 	if (HScroll)
 	{
-		int DocX = d->pDC->X();
-		int Page = HScroll->Page();
-		int MaxVal = DocX - (Page - 1);
+		int64 DocX = d->pDC->X();
+		int64 Page = HScroll->Page();
+		int64 MaxVal = DocX - (Page - 1);
 		int64 x1 = HScroll->Value();
 		int64 x2 = x1 + Page;
 		if (DocCoord.x < x1)
@@ -1335,7 +1335,7 @@ void GZoomView::ScrollToPoint(GdcPt2 DocCoord)
 	if (VScroll)
 	{
 		int DocY = d->pDC->Y();
-		int Page = VScroll->Page();
+		int Page = (int)VScroll->Page();
 		int MaxVal = DocY - (Page - 1);
 		int64 y1 = VScroll->Value();
 		int64 y2 = y1 + Page;
