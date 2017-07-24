@@ -36,10 +36,10 @@ LgiExtern GString LgiGetSystemPath(
 );
 
 /// Removes escaping from the string
-LgiClass GString LgiUnEscapeString(const char *Chars, const char *In, int Len = -1);
+LgiClass GString LgiUnEscapeString(const char *Chars, const char *In, ssize_t Len = -1);
 
 /// Escapes all characters in 'In' specified by the set 'Chars'
-LgiClass GString LgiEscapeString(const char *Chars, const char *In, int Len = -1);
+LgiClass GString LgiEscapeString(const char *Chars, const char *In, ssize_t Len = -1);
 
 /// URL encode a string
 LgiClass GString LgiUrlEncode(const char *s, const char *delim);
@@ -110,11 +110,11 @@ LgiFunc bool LgiIsUtf8(const char *s, int len = -1);
 
 /// Converts a string to the native 8bit charset of the OS from utf-8
 /// \ingroup Text
-LgiFunc char *LgiToNativeCp(const char *In, int InLen = -1);
+LgiFunc char *LgiToNativeCp(const char *In, ssize_t InLen = -1);
 
 /// Converts a string from the native 8bit charset of the OS to utf-8
 /// \ingroup Text
-LgiFunc char *LgiFromNativeCp(const char *In, int InLen = -1);
+LgiFunc char *LgiFromNativeCp(const char *In, ssize_t InLen = -1);
 
 /// Returns the next token in a string, leaving the argument pointing to the end of the token
 /// \ingroup Text

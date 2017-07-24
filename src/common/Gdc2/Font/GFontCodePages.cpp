@@ -846,8 +846,15 @@ ssize_t LgiBufConvertCp(void *Out, const char *OutCp, ssize_t OutLen, const void
 				while (OutLen >= MB_CUR_MAX &&
 						InLen > sizeof(char16) )
 				{
+					#if 1
+					int s = 0;
+					errno_t err = wctomb_s(&s, (char*)Out, OutLen, ((char16*)In)[0]);
+					if (err || s == 0)
+						break;
+					#else
 					int s = wctomb((char*)Out, ((char16*)In)[0] );
 					if (s > 0)
+					#endif
 					{
 						((char16*&)In)++;
 						InLen -= sizeof(char16);
@@ -1392,7 +1399,7 @@ const char *LgiDetectCharset(const char *Utf8, ssize_t Len, List<char> *Prefs)
 	return Status;
 }
 
-char *LgiToNativeCp(const char *In, int InLen)
+char *LgiToNativeCp(const char *In, ssize_t InLen)
 {
 	const char *Cp = LgiAnsiToLgiCp();
 
@@ -1414,7 +1421,7 @@ char *LgiToNativeCp(const char *In, int InLen)
 			char16 *Wide = Utf8ToWide(In, InLen);
 			if (Wide)
 			{
-				int Len = wcstombs(0, Wide, StrlenW(Wide));
+				size_t Len = wcstombs(0, Wide, StrlenW(Wide));
 				char *Buf = Len > 0 ? new char[Len+1] : 0;
 				if (Buf)
 				{
@@ -1432,7 +1439,7 @@ char *LgiToNativeCp(const char *In, int InLen)
 	return (char*)LgiNewConvertCp(Cp, In, "utf-8", InLen);
 }
 
-char *LgiFromNativeCp(const char *In, int InLen)
+char *LgiFromNativeCp(const char *In, ssize_t InLen)
 {
 	const char *Cp = LgiAnsiToLgiCp();
 
@@ -1458,7 +1465,7 @@ char *LgiFromNativeCp(const char *In, int InLen)
 			else
 			{
 				// Work out how many chars 'InLen' bytes is
-				int Bytes = InLen;
+				ssize_t Bytes = InLen;
 				const char *i = In;
 				int Chars = 0;
 				while (*i && Bytes > 0)
@@ -1476,7 +1483,7 @@ char *LgiFromNativeCp(const char *In, int InLen)
 
 			}
 
-			int Len = mbstowcs(0, In, InLen);
+			size_t Len = mbstowcs(0, In, InLen);
 			if (Len)
 			{
 				char16 *Buf = new char16[Len+1];
@@ -1520,12 +1527,16 @@ GCharsetSystem::GCharsetSystem()
 	// in a hash table for O(1) lookup.
 	d = new GCharsetSystemPriv;
 	d->Charsets.SetStringPool(true);
-	LgiAssert(LgiCharsets->Charset);
+	LgiAssert(LgiCharsets->Charset != NULL);
 
 	for (GCharset *Cs = LgiCharsets; Cs->Charset; Cs++)
 	{
-		strcpy(l, Cs->Charset);
+		strcpy_s(l, sizeof(l), Cs->Charset);
+		#ifdef _MSC_VER
+		_strlwr_s(l, sizeof(l));
+		#else
 		strlwr(l);
+		#endif
 		
 		if (!stricmp(l, "utf-8"))
 			d->Utf8 = Cs;

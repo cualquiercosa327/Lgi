@@ -96,7 +96,7 @@ char *strnchr(const char *s, char c, NativeInt Len)
 {
 	if (s && Len >= 0)
 	{
-		for (size_t i=0; i<Len; i++)
+		for (ssize_t i=0; i<Len; i++)
 		{
 			if (s[i] == c)
 				return (char*)s + i;
@@ -937,7 +937,7 @@ char *LgiEncodeUri(const char *uri, int len)
 	return p.NewStr();
 }
 
-GString LgiUnEscapeString(const char *Chars, const char *In, int Len)
+GString LgiUnEscapeString(const char *Chars, const char *In, ssize_t Len)
 {
 	GString s;
 	if (Chars && In)
@@ -973,7 +973,7 @@ GString LgiUnEscapeString(const char *Chars, const char *In, int Len)
 	return s;
 }
 
-GString LgiEscapeString(const char *Chars, const char *In, int Len)
+GString LgiEscapeString(const char *Chars, const char *In, ssize_t Len)
 {
 	GString s;
 	

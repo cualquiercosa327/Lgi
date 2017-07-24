@@ -26,8 +26,8 @@ class LgiClass GStream : virtual public GStreamI, virtual public GDom
 public:
 	virtual ~GStream() {}
 
-	ssize_t Read(void *Ptr, ssize_t Size, int Flags = 0) { return 0; }
-	ssize_t Write(const void *Ptr, ssize_t Size, int Flags = 0) { return 0; }
+	ssize_t Read(void *Ptr, ssize_t Size, int Flags = 0) override { return 0; }
+	ssize_t Write(const void *Ptr, ssize_t Size, int Flags = 0) override { return 0; }
 	
 	/// \brief Formats a string and then writes it.
 	virtual int Print(const char *Format, ...);
@@ -179,23 +179,23 @@ public:
 	
 	char *GetBasePtr() { return Mem; }
 	
-	bool IsOpen() { return Mem != 0; }
-	int Close();
-	int64 GetSize() { return Len; }
-	int64 GetPos() { return Pos; }
-	int64 SetPos(int64 p) { return Pos = p; }
+	bool IsOpen() override { return Mem != 0; }
+	int Close() override;
+	int64 GetSize() override { return Len; }
+	int64 GetPos() override { return Pos; }
+	int64 SetPos(int64 p) override { return Pos = p; }
 
 	/// Opens a file and reads it all into memory
-	int Open(const char *Str, int Int);
+	int Open(const char *Str, int Int) override;
 	/// Changes the size of the memory block, keeping any common bytes
-	int64 SetSize(int64 Size);
+	int64 SetSize(int64 Size) override;
 
 	bool IsOk();
-	ssize_t Read(void *Buffer, ssize_t Size, int Flags = 0);
-	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0);
+	ssize_t Read(void *Buffer, ssize_t Size, int Flags = 0) override;
+	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0) override;
 	ssize_t Write(GStream *Out, ssize_t Size);
 	char *GetBase() { return Mem; }
-	GStreamI *Clone();
+	GStreamI *Clone() override;
 };
 
 /// Wraps another stream in a GStreamI interface. Useful for
@@ -211,19 +211,19 @@ public:
 		s = p;
 	}
 
-	int Open(const char *Str, int Int)	{ return s->Open(Str, Int); }
-	bool IsOpen()						{ return s->IsOpen(); }
-	int Close()							{ return s->Close(); }
-	int64 GetSize()						{ return s->GetSize(); }
-	int64 SetSize(int64 Size)			{ return s->SetSize(Size); }
-	int64 GetPos()						{ return s->GetPos(); }
-	int64 SetPos(int64 Pos)				{ return s->SetPos(Pos); }
-	ssize_t Read(void *b, ssize_t l, int f = 0) { return s->Read(b, l, f); }
-	ssize_t Write(const void *b, ssize_t l, int f = 0) { return s->Write(b, l, f); }
-	bool GetValue(char *n, GVariant &v) { return s->GetValue(n, v); }
-	bool SetValue(char *n, GVariant &v) { return s->SetValue(n, v); }
+	int Open(const char *Str, int Int) override	{ return s->Open(Str, Int); }
+	bool IsOpen() override { return s->IsOpen(); }
+	int Close() override { return s->Close(); }
+	int64 GetSize() override { return s->GetSize(); }
+	int64 SetSize(int64 Size) override { return s->SetSize(Size); }
+	int64 GetPos() override { return s->GetPos(); }
+	int64 SetPos(int64 Pos) override { return s->SetPos(Pos); }
+	ssize_t Read(void *b, ssize_t l, int f = 0) override { return s->Read(b, l, f); }
+	ssize_t Write(const void *b, ssize_t l, int f = 0) override { return s->Write(b, l, f); }
+	bool GetValue(const char *n, GVariant &v) override { return s->GetValue(n, v); }
+	bool SetValue(const char *n, GVariant &v) override { return s->SetValue(n, v); }
 
-	GStreamI *Clone()					{ return new GProxyStream(s); }
+	GStreamI *Clone() override { return new GProxyStream(s); }
 };
 
 /// A temporary FIFO stream that stores data in memory up until you

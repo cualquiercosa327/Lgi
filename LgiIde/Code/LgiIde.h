@@ -273,7 +273,7 @@ public:
 	int OnNotify(GViewI *Ctrl, int Flags);
 	GMessage::Result OnEvent(GMessage *m);
 	bool OnNode(const char *Path, class ProjectNode *Node, FindSymbolSystem::SymAction Action);
-	void OnPulse();
+	void OnPulse() override;
 
 	// Debugging support
 	class GDebugContext *GetDebugContext();

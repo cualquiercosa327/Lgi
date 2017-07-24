@@ -58,7 +58,7 @@ public:
 	
 	// Props
 	int GetId();
-	bool IsWeb();
+	bool IsWeb() override;
 	IdeProject *GetDep();
 	IdeProject *GetProject();
 	char *GetFileName();
@@ -72,12 +72,12 @@ public:
 	GString GetFullPath();
 	ProjectNode *FindFile(const char *In, char **Full);
 	/// \sa Some combination of PLATFORM_WIN32, PLATFORM_LINUX, PLATFORM_MAC, PLATFORM_HAIKU or PLATFORM_ALL
-	int GetPlatforms();
+	int GetPlatforms() override;
 	char *GetLocalCache();
 	
 	// Dnd
-	bool GetFormats(List<char> &Formats);
-	bool GetData(GVariant *Data, char *Format);
+	bool GetFormats(List<char> &Formats) override;
+	bool GetData(GVariant *Data, char *Format) override;
 	
 	// Ui events
 	bool OnBeginDrag(GMouse &m);

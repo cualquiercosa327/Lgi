@@ -115,7 +115,7 @@ public:
 	BuildThread(IdeProject *proj, char *mf, const char *args = 0);
 	~BuildThread();
 	
-	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0);
+	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0) override;
 	GString FindExe();
 	GAutoString WinToMingWPath(const char *path);
 	int Main();
@@ -894,7 +894,7 @@ public:
 		return 0;
 	}
 
-	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0)
+	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0) override
 	{
 		if (Len > 0)
 		{

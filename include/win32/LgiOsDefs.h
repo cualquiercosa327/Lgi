@@ -216,6 +216,9 @@ extern bool LgiToWindowsCursor(OsView Hnd, LgiCursor Cursor);
 #define snprintf					_snprintf
 //#define vsnprintf					_vsnprintf
 #define vsnwprintf					_vsnwprintf
+#define stricmp						_stricmp
+#define strlwr						_strlwr
+#define strnicmp					_strnicmp
 #endif
 #define atoi64						_atoi64
 

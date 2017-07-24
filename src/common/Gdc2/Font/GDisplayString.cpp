@@ -236,7 +236,7 @@ GDisplayString::GDisplayString(GFont *f, const uint32 *s, ssize_t l, GSurface *p
 
 	#if LGI_DSP_STR_CACHE
 
-		int Chars = l < 0 ? Strlen(s) : l;
+		size_t Chars = l < 0 ? Strlen(s) : l;
 		StrCache.Reset((char16*)LgiNewConvertCp(LGI_WideCharset, s, "utf-32", Chars*4));
 
 	#endif
@@ -678,7 +678,7 @@ void GDisplayString::Layout(bool Debug)
 							n->Create();
 					}
 
-					Info[i].Len = s - Info[i].Str;
+					Info[i].Len = (int) (s - Info[i].Str);
 					if (Info[i].Len)
 					{
 						if (WasTab)
@@ -861,7 +861,7 @@ void GDisplayString::TruncateWithDots(int Width)
 	
 	if (Width < X() + 8)
 	{
-		int c = CharAt(Width);
+		ssize_t c = CharAt(Width);
 		if (c >= 0 && c < len)
 		{
 			if (c > 0) c--; // fudge room for dots
@@ -878,7 +878,7 @@ void GDisplayString::TruncateWithDots(int Width)
 					if (c >= Pos &&
 						c < Pos + Info[i].Len)
 					{
-						Info[i].Len = c - Pos;
+						Info[i].Len = (int) (c - Pos);
 						Info[i].Str[Info[i].Len] = 0;
 
 						GFont *f = Font;
@@ -961,7 +961,7 @@ ssize_t GDisplayString::CharAt(int Px, LgiPxToIndexType Type)
 	{
 		return 0;
 	}
-	else if (Px >= x)
+	else if (Px >= (int)x)
 	{
 		#if defined __GTK_H__
 		if (Str)
@@ -1745,7 +1745,7 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r, bool Debug)
 								{
 									int Sx, Sy;
 									if (Sp < 0) f->_Measure(Sp, Sy, s, 1);
-									f->_Measure(Sx, Sy, start, s - start);
+									f->_Measure(Sx, Sy, start, (int)(s - start));
 									GRect r(0, 0, Sp-1, Sy-1);
 									r.Offset(px + Sx, py);
 									pDC->Colour(cWhitespace);

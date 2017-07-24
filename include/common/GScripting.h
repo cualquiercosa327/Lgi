@@ -77,7 +77,7 @@ struct GHostFunc : public GFunc
 		Func = proc;
 	}
 
-	GExecutionStatus Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args);
+	GExecutionStatus Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args) override;
 };
 
 struct GExternFunc : public GFunc
@@ -95,7 +95,7 @@ struct GExternFunc : public GFunc
 	ExternType ReturnType;
 	GArray<ExternType> ArgType;
 
-	GExecutionStatus Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args);
+	GExecutionStatus Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args) override;
 };
 
 class GFunctionInfo : public GRefCount

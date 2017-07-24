@@ -144,10 +144,9 @@ public:
 			else
 			{
 			    // Expanding
-			    uint32 b;
-			    for (b = 4; ((uint32)1 << b) < i; b++)
-			        ;
-			    nalloc = 1 << b;
+			    nalloc = 0x10;
+				while (nalloc < i)
+					nalloc <<= 1;
 			    assert(nalloc >= i);
 			}
 			

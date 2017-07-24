@@ -1231,8 +1231,8 @@ public:
 	int GetCurLine() { return CurLine; }
 	int GetAddr();
 	void ScrollToCurLine();
-	void PourText(ssize_t Start, ssize_t Length);
-	void OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour);
+	void PourText(size_t Start, ssize_t Length) override;
+	void OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour) override;
 	void OnPaint(GSurface *pDC);
 	bool Breakpoint(int Addr);
 };
@@ -1414,7 +1414,7 @@ void GDebugView::OnPaint(GSurface *pDC)
 	}
 }
 
-void GDebugView::PourText(ssize_t Start, ssize_t Len)
+void GDebugView::PourText(size_t Start, ssize_t Len)
 {
 	GTextView3::PourText(Start, Len);
 

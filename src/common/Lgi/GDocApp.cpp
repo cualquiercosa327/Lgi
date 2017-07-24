@@ -24,7 +24,7 @@ public:
 	GAutoString			OptionsFile;
 	GAutoString			OptionsParam;
 	char				*AppName;
-	GAutoString			CurFile;
+	GString				CurFile;
 	bool				Dirty;
 	GDocAppInstallMode	Mode;
 
@@ -516,12 +516,12 @@ char *GDocApp<OptionsFmt>::GetAppName()
 template <typename OptionsFmt>
 void GDocApp<OptionsFmt>::SetCurFile(char *f)
 {
-	if (f != d->CurFile)
+	if (!d->CurFile.Equals(f))
 	{
-		d->CurFile.Reset(NewStr(f));
+		d->CurFile = f;
 	}
 
-	GAutoString Display;
+	GString Display;
 	if (SerializeEntry(&Display, &d->CurFile, NULL))
 	{
 		char s[MAX_PATH + 100];

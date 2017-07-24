@@ -346,16 +346,16 @@ public:
 		const char *Name,
 		/// The mode to open the file with. One of O_READ, O_WRITE or O_READWRITE.
 		int Attrib
-	);
+	)	override;
 	
 	/// Returns non zero if the class is associated with an open file handle.
-	bool IsOpen();
+	bool IsOpen() override;
 
 	/// Returns the most recent error code encountered.
 	int GetError();
 	
 	/// Closes the file.
-	int Close();
+	int Close() override;
 	
 	/// Gets the mode that the file was opened with.
 	int GetOpenMode();
@@ -365,27 +365,27 @@ public:
 
 	/// \brief Gets the current file pointer.
 	/// \return The file pointer or -1 on error.
-	int64 GetPos();
+	int64 GetPos() override;
 	
 	/// \brief Sets the current file pointer.
 	/// \return The new file pointer or -1 on error.
-	int64 SetPos(int64 Pos);
+	int64 SetPos(int64 Pos) override;
 
 	/// \brief Gets the file size.
 	/// \return The file size or -1 on error.
-	int64 GetSize();
+	int64 GetSize() override;
 
 	/// \brief Sets the file size.
 	/// \return The new file size or -1 on error.
-	int64 SetSize(int64 Size);
+	int64 SetSize(int64 Size) override;
 
 	/// \brief Reads bytes into memory from the current file pointer.
 	/// \return The number of bytes read or <= 0.
-	ssize_t Read(void *Buffer, ssize_t Size, int Flags = 0);
+	ssize_t Read(void *Buffer, ssize_t Size, int Flags = 0) override;
 	
 	/// \brief Writes bytes from memory to the current file pointer.
 	/// \return The number of bytes written or <= 0.
-	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0);
+	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0) override;
 
 	/// Gets the path used to open the file
 	virtual char *GetName();

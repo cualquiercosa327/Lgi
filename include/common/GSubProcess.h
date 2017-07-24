@@ -125,9 +125,9 @@ public:
 	int Kill();
 	
 	// IO
-	ssize_t Read(void *Buf, ssize_t Size, int Flags = 0);
 	int Peek();
-	ssize_t Write(const void *Buf, ssize_t Size, int Flags = 0);
+	ssize_t Read(void *Buf, ssize_t Size, int Flags = 0) override;
+	ssize_t Write(const void *Buf, ssize_t Size, int Flags = 0) override;
 };
 
 #endif

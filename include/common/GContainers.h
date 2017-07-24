@@ -305,42 +305,10 @@ public:
 	int64 GetSize();
 	
 	/// Reads bytes off the start of the container
-	ssize_t Read(void *Buffer, ssize_t Size, int Flags = 0);
+	ssize_t Read(void *Buffer, ssize_t Size, int Flags = 0) override;
 	
 	/// Writes bytes to the end of the container
-	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0);
-
-	#if 0
-	/// Reads data from the start of the container without removing it from
-	/// the que. Returns the bytes copied.
-	virtual int64 Peek
-	(
-		/// Buffer for output
-		GStreamI *Str,
-		/// Bytes to look at
-		int Size
-	);
-
-	/// Looks for a sub-string in the buffered data
-	/// \returns the index of the start of the string or -1 if not found
-	int Find(char *Str);
-	/// Returns true if the container is empty
-	virtual bool IsEmpty() { return Mem.Length() == 0; }
-
-	/// Reads a 2 byte integer from the start
-	int Pop(short &i);
-	/// Reads a 4 byte integer from the start
-	int Pop(int &i);
-	/// Reads a double from the start
-	int Pop(double &i);
-
-	/// Writes a 2 byte int to the end
-	int Push(short i)				{ return Write((uchar*)&i, sizeof(i)); }
-	/// Writes a 2 byte int to the end
-	int Push(int i)					{ return Write((uchar*)&i, sizeof(i)); }
-	/// Writes a double to the end
-	int Push(double i)				{ return Write((uchar*)&i, sizeof(i)); }
-	#endif
+	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0) override;
 };
 
 /// A version of GBytePipe for strings. Adds some special handling for strings.
@@ -401,12 +369,12 @@ public:
 	~GMemFile();
 	
 	void Empty();
-	int64 GetSize();
-	int64 SetSize(int64 Size);
-	int64 GetPos();
-	int64 SetPos(int64 Pos);
-	ssize_t Read(void *Ptr, ssize_t Size, int Flags = 0);
-	ssize_t Write(const void *Ptr, ssize_t Size, int Flags = 0);
+	int64 GetSize() override;
+	int64 SetSize(int64 Size) override;
+	int64 GetPos() override;
+	int64 SetPos(int64 Pos) override;
+	ssize_t Read(void *Ptr, ssize_t Size, int Flags = 0) override;
+	ssize_t Write(const void *Ptr, ssize_t Size, int Flags = 0) override;
 };
 
 #endif

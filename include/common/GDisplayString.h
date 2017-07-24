@@ -76,8 +76,8 @@ protected:
 	{
 	public:
 		OsChar *Str;
-		uint16 Len;
-		uint16 X;
+		int Len;
+		int X;
 		uint8 FontId;
 		int8 SizeDelta;
 

@@ -409,8 +409,8 @@ public:
 	/// Concatenation / assignment operator
 	GString &operator +=(const GString &s)
 	{
-		size_t Len = Length() + s.Length();
-		size_t Alloc = sizeof(RefStr) + Len;
+		ssize_t Len = Length() + s.Length();
+		ssize_t Alloc = sizeof(RefStr) + Len;
 		RefStr *rs = (RefStr*)malloc(Alloc);
 		if (rs)
 		{

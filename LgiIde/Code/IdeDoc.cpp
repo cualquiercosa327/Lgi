@@ -1676,7 +1676,7 @@ public:
 		}
 	}
 
-	void PourStyle(size_t Start, ssize_t EditSize)
+	void PourStyle(size_t Start, ssize_t EditSize) override
 	{
 		if (FileType == SrcUnknown)
 		{

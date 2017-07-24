@@ -84,8 +84,8 @@ public:
 	void CollectAllSubProjects(List<IdeProject> &c);
 	void CollectAllSource(GArray<GString> &c, IdePlatform Platform);
 	void SortChildren();
-	void InsertTag(GXmlTag *t);
-	void RemoveTag();
+	void InsertTag(GXmlTag *t) override;
+	void RemoveTag() override;
 	virtual bool IsWeb() = 0;	
 	virtual int GetPlatforms() = 0;
 	bool AddFiles(AddFilesProgress *Prog, const char *Path);
@@ -156,8 +156,8 @@ public:
 	WatchItem(IdeOutput *out, const char *Init = NULL);
 	~WatchItem();
 	
-	bool SetText(const char *s, int i = 0);
-	void OnExpand(bool b);
+	bool SetText(const char *s, int i = 0) override;
+	void OnExpand(bool b) override;
 	bool SetValue(GVariant &v);
 };
 

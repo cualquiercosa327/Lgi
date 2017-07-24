@@ -74,8 +74,8 @@ public:
 	FindInFiles(AppWnd *app, FindParams *params = NULL);
 	~FindInFiles();
 	
-	int OnNotify(GViewI *v, int f);
-	void OnCreate();
+	int OnNotify(GViewI *v, int f) override;
+	void OnCreate() override;
 };
 
 class FindInFilesThread : public GEventTargetThread

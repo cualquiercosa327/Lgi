@@ -169,7 +169,7 @@ bool GFontSystem::GetDefaultGlyphSub()
 			char *GlyphSub;
 			if ((GlyphSub = FontSys->GetAttr("glyph_sub")))
 			{
-				d->DefaultGlyphSub = atoi(GlyphSub);
+				d->DefaultGlyphSub = atoi(GlyphSub) != 0;
 			}
 		}
 		d->CheckedConfig = true;
@@ -402,9 +402,9 @@ ssize_t GFontSystem::IconvConvert(const char *OutCs, GStreamI *Out, const char *
 		{
 			char *o = (char*)Buf;
 			size_t OutLen = sizeof(Buf);
-			int OldInLen = InLen;
+			ssize_t OldInLen = InLen;
 			size_t InSz = InLen;
-			int s = d->libiconv(Conv, (IconvChar**)&i, &InSz, &o, &OutLen);
+			ssize_t s = d->libiconv(Conv, (IconvChar**)&i, &InSz, &o, &OutLen);
 			InLen = InSz;
 			Out->Write((uchar*)Buf, sizeof(Buf) - OutLen);
 			if (OldInLen == InLen) break;
@@ -472,7 +472,7 @@ ssize_t GFontSystem::IconvConvert(const char *OutCs, char *Out, ssize_t OutLen, 
 
 		// Convert
 		char *Start = o;
-		int s = d->libiconv(Conv, (IconvChar**)&i, &InSz, &o, &OutSz);
+		ssize_t s = d->libiconv(Conv, (IconvChar**)&i, &InSz, &o, &OutSz);
 		InLen = InSz;
 		OutLen = OutSz;
 		d->libiconv_close(Conv);
@@ -571,7 +571,7 @@ GFont *GFontSystem::GetGlyph(int u, GFont *UserFont)
 	if (Lut[u])
 	{
 		Has = Font[Lut[u]];
-		LgiAssert(Has);
+		LgiAssert(Has != NULL);
 		if (!Has)
 		{
 			LgiTrace("%s:%i - Font table missing pointer. u=%i Lut[u]=%i\n", __FILE__, __LINE__, u, Lut[u]);
@@ -738,7 +738,7 @@ GFont *GFontSystem::GetGlyph(int u, GFont *UserFont)
 						if (_HasUnicodeGlyph(n->GetGlyphMap(), u))
 						{
 							Has = n;
-							LgiAssert(Has);
+							LgiAssert(Has != NULL);
 							break;
 						}
 					}

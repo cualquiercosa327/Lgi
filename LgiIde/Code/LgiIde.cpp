@@ -273,7 +273,7 @@ public:
 	{
 	}
 	
-	void PourText(int Start, int Len)
+	void PourText(size_t Start, ssize_t Len) override
 	{
 		GTextView3::PourText(Start, Len);
 
