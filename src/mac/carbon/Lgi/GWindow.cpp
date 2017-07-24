@@ -420,7 +420,7 @@ void GWindow::Visible(bool i)
 		if (i)
 		{
 			d->InitVisible = true;
-			Pour();
+			PourAll();
 			ShowWindow(Wnd);
 			SetDefaultFocus(this);
 		}
@@ -1525,7 +1525,7 @@ void GWindow::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 			printf("%s:%i - Ignoring GPopup in OnChildrenChanged handler.\n", _FL);
 			return;
 		}
-		Pour();
+		PourAll();
 	}
 }
 
@@ -1545,7 +1545,7 @@ void GWindow::OnPosChange()
 
 	if (d->Sx != X() ||	d->Sy != Y())
 	{
-		Pour();
+		PourAll();
 		d->Sx = X();
 		d->Sy = Y();
 	}
@@ -1558,7 +1558,7 @@ void GWindow::OnPosChange()
 		dynamic_cast<GView*>(v)->_IsToolBar \
 	)
 
-void GWindow::Pour()
+void GWindow::PourAll()
 {
 	GRect r = GetClient();
 	// printf("::Pour r=%s\n", r.GetStr());

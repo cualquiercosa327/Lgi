@@ -369,7 +369,7 @@ bool FileExists(const char *FileName, char *CorrectCase)
 	return Status;
 }
 
-bool ResolveShortcut(const char *LinkFile, char *Path, int Len)
+bool ResolveShortcut(const char *LinkFile, char *Path, ssize_t Len)
 {
 	return readlink (LinkFile, Path, Len) > 0;
 }
@@ -426,7 +426,7 @@ char *ReadStr(GFile &f DeclDebugArgs)
 	return s;
 }
 
-int SizeofStr(const char *s)
+ssize_t SizeofStr(const char *s)
 {
 	return sizeof(uint32) + ((s) ? strlen(s) : 0);
 }
@@ -1298,7 +1298,7 @@ public:
 	int hFile;
 	GString Name;
 	bool Swap;
-	int Status;
+	ssize_t Status;
 	int Attributes;
 	int LastError;
 	
@@ -1421,7 +1421,7 @@ int GFile::Close()
 
 #define CHUNK		0xFFF0
 
-int GFile::Read(void *Buffer, int Size, int Flags)
+ssize_t GFile::Read(void *Buffer, ssize_t Size, int Flags)
 {
 	int Rd = 0;
 
@@ -1434,7 +1434,7 @@ int GFile::Read(void *Buffer, int Size, int Flags)
 			d->LastError = errno;
 			const char *Err = GetErrorName(errno);
 			int64 Pos = GetPos();
-			printf("%s:%i - GFile::Read(%p,%i) err=%s, pos="LGI_PrintfInt64"\n",
+			printf("%s:%i - GFile::Read(%p,%zi) err=%s, pos="LGI_PrintfInt64"\n",
 				_FL, Buffer, Size, Err, Pos);
 		}
 		#endif
@@ -1444,7 +1444,7 @@ int GFile::Read(void *Buffer, int Size, int Flags)
 	return max(Rd, 0);
 }
 
-int GFile::Write(const void *Buffer, int Size, int Flags)
+ssize_t GFile::Write(const void *Buffer, ssize_t Size, int Flags)
 {
 	int Written = 0;
 
@@ -1560,7 +1560,7 @@ bool GFile::Eof()
 	return GetPos() >= GetSize();
 }
 
-int GFile::SwapRead(uchar *Buf, int Size)
+ssize_t GFile::SwapRead(uchar *Buf, ssize_t Size)
 {
 	int r = Read(Buf, Size);
 	if (r == Size)
@@ -1578,7 +1578,7 @@ int GFile::SwapRead(uchar *Buf, int Size)
 	return r;
 }
 
-int GFile::SwapWrite(uchar *Buf, int Size)
+ssize_t GFile::SwapWrite(uchar *Buf, ssize_t Size)
 {
 	switch (Size)
 	{
@@ -1635,7 +1635,7 @@ int GFile::SwapWrite(uchar *Buf, int Size)
 	return 0;
 }
 
-int GFile::ReadStr(char *Buf, int Size)
+ssize_t GFile::ReadStr(char *Buf, ssize_t Size)
 {
 	int i = 0;
 	int r = 0;
@@ -1664,7 +1664,7 @@ int GFile::ReadStr(char *Buf, int Size)
 	return i;
 }
 
-int GFile::WriteStr(char *Buf, int Size)
+ssize_t GFile::WriteStr(char *Buf, ssize_t Size)
 {
 	int i = 0;
 	int w;

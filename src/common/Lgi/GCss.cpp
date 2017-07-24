@@ -2865,7 +2865,7 @@ bool GCss::Store::Parse(const char *&c, int Depth)
 					if (n >= s->Parts.Length())
 					{
 						char err[256];
-						sprintf_s(err, sizeof(err), "ErrSimpleIndex %i>=%i @ '%.80s'", n, s->Parts.Length(), c);
+						sprintf_s(err, sizeof(err), "ErrSimpleIndex %i>=%zi @ '%.80s'", n, s->Parts.Length(), c);
 						Error.Reset(NewStr(err));
 						LgiAssert(!"Part index too high.");
 						return false;

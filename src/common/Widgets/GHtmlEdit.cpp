@@ -2835,7 +2835,7 @@ void DumpNode(GTag *Tag, GTreeItem *Item)
 	char16 *t = Tag->Text();
 	if (t)
 	{
-		int ch = sprintf_s(s, sizeof(s), "%i ", Tag->GetTextStart());
+		int ch = sprintf_s(s, sizeof(s), "%zi ", Tag->GetTextStart());
 		int i;
 		for (i=0; t[i] && ch < sizeof(s) - 16; i++)
 		{

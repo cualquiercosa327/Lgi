@@ -87,8 +87,8 @@ void GEdit::SendNotify(int Data)
 
 bool GEdit::GetSelection(size_t &Start, ssize_t &Len)
 {
-	size_t Sel = GTextView3::GetCursor(false);
-	Start = GTextView3::GetCursor();
+	size_t Sel = GTextView3::GetCaret(false);
+	Start = GTextView3::GetCaret();
 	if (Sel < Start)
 		Len = Start - Sel + 1;
 	else
@@ -98,8 +98,8 @@ bool GEdit::GetSelection(size_t &Start, ssize_t &Len)
 
 void GEdit::Select(int Start, int Len)
 {
-	SetCaret(Start, false);
-	SetCaret(Start + (Len > 0 ? Len : 0x7fffffff) - 1, true);
+	GTextView3::SetCaret(Start, false);
+	GTextView3::SetCaret(Start + (Len > 0 ? Len : 0x7fffffff) - 1, true);
 }
 
 ssize_t GEdit::GetCaret()
@@ -244,7 +244,7 @@ bool GEdit::Paste()
 	// insert text
 	int Len = StrlenW(t);
 	Insert(Cursor, t, Len);
-	SetCaret(Cursor+Len, false, true); // Multiline
+	GTextView3::SetCaret(Cursor+Len, false, true); // Multiline
 	
 	return true;
 }
