@@ -1768,7 +1768,7 @@ public:
 		Status = true;
 	}
 
-	int Read(void *Ptr, int Size, int Flags)
+	ssize_t Read(void *Ptr, ssize_t Size, int Flags)
 	{
 		return false;
 	}
@@ -1785,7 +1785,7 @@ public:
 		return -1;
 	}
 
-	int Write(const void *InPtr, int Size, int Flags)
+	ssize_t Write(const void *InPtr, ssize_t Size, int Flags)
 	{
 		char *Ptr = (char*)InPtr;
 		char *e = Ptr + Size;
@@ -2065,12 +2065,12 @@ public:
 		F.Close();
 	}
 
-	int Read(void *Buffer, int Size, int Flags = 0)
+	ssize_t Read(void *Buffer, ssize_t Size, int Flags = 0)
 	{
 		return F.Read(Buffer, Size, Flags);
 	}
 
-	int Write(const void *Buffer, int Size, int Flags = 0)
+	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0)
 	{
 		return F.Write(Buffer, Size, Flags);
 	}

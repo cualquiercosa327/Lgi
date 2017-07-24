@@ -104,7 +104,7 @@ public:
 		}
 	}
 
-	int Write(const void *p, int size, int f = 0)
+	ssize_t Write(const void *p, ssize_t size, int f = 0)
 	{
 		// Make sure any new lines are \r\n
 		char *s = (char*)p, *e = s + size;
@@ -174,7 +174,7 @@ public:
 		}
 	}
 
-	int Write(const void *p, int size, int f = 0)
+	ssize_t Write(const void *p, ssize_t size, int f = 0)
 	{
 		char *s = (char*)p;
 		char *e = s + size;
@@ -262,7 +262,7 @@ class GMimeQuotedPrintableDecode : public GCoderStream
 public:
 	GMimeQuotedPrintableDecode(GStreamI *o) : GCoderStream(o) {}
 
-	int Write(const void *p, int size, int f = 0)
+	ssize_t Write(const void *p, ssize_t size, int f = 0)
 	{
 		int Written = 0;
 		
@@ -339,7 +339,7 @@ public:
 		}
 	}
 
-	int Write(const void *p, int size, int f = 0)
+	ssize_t Write(const void *p, ssize_t size, int f = 0)
 	{
 		Buf.Write((uchar*)p, size);
 
@@ -383,7 +383,7 @@ public:
 		Lut['='] = 1;
 	}
 
-	int Write(const void *p, int size, int f = 0)
+	ssize_t Write(const void *p, ssize_t size, int f = 0)
 	{
 		int Status = 0;
 
