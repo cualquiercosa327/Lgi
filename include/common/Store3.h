@@ -132,16 +132,20 @@ public:
 
 typedef GDataIterator<GDataPropI*> *GDataIt;
 
-#define EmptyVirtual LgiAssert(0); return 0
+#define EmptyVirtual		LgiAssert(0); return 0
+#define Store3CopyDecl		bool CopyProps(GDataPropI &p)
+#define Store3CopyImpl(Cls)	bool Cls::CopyProps(GDataPropI &p)
 
 /// A generic interface for getting / setting properties.
 class GDataPropI : virtual public GDom
 {
+	virtual GDataPropI &operator =(GDataPropI &p) { return *this; }
+
 public:
 	virtual ~GDataPropI() {}
 
 	/// Copy all the values from 'p' over to this object
-	virtual GDataPropI &operator =(GDataPropI &p) { LgiAssert(0); return *this; }
+	virtual bool CopyProps(GDataPropI &p) { return false; }
 
 	/// Gets a string property
 	virtual char *GetStr(int id) { EmptyVirtual; }
@@ -175,10 +179,14 @@ public:
 	virtual bool SetRfc822(GStreamI *Rfc822Msg) { LgiAssert(!"Pretty sure you should be implementing this"); return false; }
 };
 
+#pragma warning(default:4263)
+
 /// This class is an interface between the UI and the backend for things
 /// like email, contacts, calendar events, groups and filters
 class GDataI : virtual public GDataPropI
 {
+	virtual GDataI &operator =(GDataI &p) { return *this; }
+
 public:
 	void *UserData;
 
@@ -223,6 +231,8 @@ public:
 /// An interface to a folder structure
 class GDataFolderI : virtual public GDataI
 {
+	virtual GDataFolderI &operator =(GDataFolderI &p) { return *this; }
+
 public:
 	virtual ~GDataFolderI() {}
 
@@ -242,6 +252,8 @@ public:
 	/// Called when the user selects a relevant context menu command
 	virtual void OnCommand(const char *Name) {}
 };
+
+#pragma warning(error:4263)
 
 /// Event callback interface. Calls to these methods may be in a worker
 /// thread, so make appropriate locking or pass the event off to the GUI
