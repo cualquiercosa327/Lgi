@@ -769,7 +769,7 @@ void GDebugContext::OnFileLine(const char *File, int Line, bool CurrentIp)
 	}
 }
 
-int GDebugContext::Write(const void *Ptr, int Size, int Flags)
+ssize_t GDebugContext::Write(const void *Ptr, ssize_t Size, int Flags)
 {
 	if (DebuggerLog && Ptr)
 	{

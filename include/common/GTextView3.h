@@ -287,7 +287,8 @@ public:
 	void SetWrapType(uint8 i);
 	
 	// State / Selection
-	void SetCursor(size_t i, bool Select, bool ForceFullUpdate = false);
+	ssize_t GetCaret(bool Cursor = true);
+	void SetCaret(size_t i, bool Select, bool ForceFullUpdate = false);
 	ssize_t IndexAt(int x, int y);
 	bool IsDirty() { return Dirty; }
 	void IsDirty(bool d) { Dirty = d; }
@@ -295,7 +296,6 @@ public:
 	void UnSelectAll();
 	void SelectWord(size_t From);
 	void SelectAll();
-	ssize_t GetCursor(bool Cursor = true);
 	bool GetLineColumnAtIndex(GdcPt2 &Pt, int Index = -1);
 	int GetLines();
 	void GetTextExtent(int &x, int &y);

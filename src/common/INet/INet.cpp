@@ -1481,7 +1481,7 @@ void GSocks5Socket::SetProxy(char *proxy, int port, char *username, char *passwo
 	Password.Reset(NewStr(password));
 }
 
-int GSocks5Socket::Open(char *HostAddr, int port)
+int GSocks5Socket::Open(const char *HostAddr, int port)
 {
 	bool Status = false;
 	if (HostAddr)

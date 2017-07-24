@@ -57,19 +57,19 @@ public:
 		Log = log;
 	}
 
-	void OnRead(char *Data, int Len)
+	void OnRead(char *Data, ssize_t Len)
 	{
 		r.Write(Data, Len);
 		Pop(r, Rgb24(0, 0xc0, 0));
 	}
 
-	void OnWrite(char *Data, int Len)
+	void OnWrite(const char *Data, ssize_t Len)
 	{
 		w.Write(Data, Len);
 		Pop(w, Rgb24(0, 0, 0xc0));
 	}
 
-	void OnError(int ErrorCode, char *ErrorDescription)
+	void OnError(int ErrorCode, const char *ErrorDescription)
 	{
 		char s[256];
 		sprintf(s, "Error(%i): %s", ErrorCode, ErrorDescription);

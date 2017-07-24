@@ -87,7 +87,7 @@ public:
 	void OnMouseEnter(GMouse &m);
 	void OnMouseExit(GMouse &m);
 
-	virtual void OnCommand();
+	virtual void SendCommand();
 	virtual bool GetDimension(int &x, int &y) { return false; }
 };
 

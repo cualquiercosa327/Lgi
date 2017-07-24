@@ -1273,7 +1273,7 @@ public:
 	const char *GetClass() { return "GWindow"; }
 
 	/// Lays out the child views into the client area.
-	virtual void Pour();
+	virtual void PourAll();
 
 	/// Returns the current menu object
 	GMenu *GetMenu() { return Menu; }

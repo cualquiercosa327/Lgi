@@ -226,10 +226,10 @@ public:
 	void OnDisconnect();
 	
 	/// Gets called when data is received.
-	void OnRead(char *Data, int Len) {}
+	void OnRead(char *Data, ssize_t Len) {}
 
 	/// Gets called when data is sent.
-	void OnWrite(const char *Data, int Len) {}
+	void OnWrite(const char *Data, ssize_t Len) {}
 	
 	/// Gets called when an error occurs.
 	void OnError(int ErrorCode, const char *ErrorDescription) {}
@@ -285,7 +285,7 @@ public:
 	// Connection
 	void SetProxy(char *proxy, int port, char *username, char *password);
 	void SetProxy(const GSocks5Socket *s);
-	int Open(char *HostAddr, int port);
+	int Open(const char *HostAddr, int port);
 
 	// Server
 	bool Listen(int Port) { return false; }

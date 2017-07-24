@@ -199,7 +199,7 @@ public:
 	void FormatMemoryDump(int WordSize, int Width, bool InHex);
 	
 	// Debugger events...
-	int Write(const void *Ptr, int Size, int Flags = 0);
+	ssize_t Write(const void *Ptr, ssize_t Size, int Flags = 0);
 	void OnState(bool Debugging, bool Running);
 	void OnFileLine(const char *File, int Line, bool CurrentIp);
 	void OnError(int Code, const char *Str);
@@ -267,7 +267,7 @@ public:
 	bool SetClean();
 	void SetDirty();
 	void SetUserFileDirty();
-	bool Serialize();
+	bool Serialize(bool Write);
 	void ImportDsp(char *File);
 
 	// Dependency calculation

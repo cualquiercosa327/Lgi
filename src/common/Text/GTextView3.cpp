@@ -1494,7 +1494,7 @@ bool GTextView3::Delete(size_t At, ssize_t Len)
 			
 			if (Cursor >= At && Cursor <= At + Len)
 			{
-				SetCursor(At, false, HasNewLine);
+				SetCaret(At, false, HasNewLine);
 			}
 
 			// Handle repainting in flowed mode, when the line starts change
@@ -1552,7 +1552,7 @@ void GTextView3::DeleteSelection(char16 **Cut)
 		}
 
 		Delete(Min, Max - Min);
-		SetCursor(Min, false, true);
+		SetCaret(Min, false, true);
 	}
 }
 
@@ -1777,7 +1777,7 @@ bool GTextView3::GetLineColumnAtIndex(GdcPt2 &Pt, int Index)
 	return true;
 }
 
-ssize_t GTextView3::GetCursor(bool Cur)
+ssize_t GTextView3::GetCaret(bool Cur)
 {
 	if (Cur)
 	{
@@ -1798,7 +1798,7 @@ ssize_t GTextView3::IndexAt(int x, int y)
 	return 0;
 }
 
-void GTextView3::SetCursor(size_t i, bool Select, bool ForceFullUpdate)
+void GTextView3::SetCaret(size_t i, bool Select, bool ForceFullUpdate)
 {
     // int _Start = LgiCurrentTime();
 	Blink = true;
@@ -2073,7 +2073,7 @@ bool GTextView3::Paste()
 	// insert text
 	int Len = StrlenW(t);
 	Insert(Cursor, t, Len);
-	SetCursor(Cursor+Len, false, true); // Multiline
+	SetCaret(Cursor+Len, false, true); // Multiline
 	
 	return true;
 }
@@ -2116,7 +2116,7 @@ bool GTextView3::Open(const char *Name, const char *CharSet)
 	{
 		DeleteArray(Text);
 		size_t Bytes = (size_t)f.GetSize();
-		SetCursor(0, false);
+		SetCaret(0, false);
 		
 		char *c8 = new char[Bytes + 4];
 		if (c8)
@@ -2394,7 +2394,7 @@ void GTextView3::SetLine(int i)
 	if (l)
 	{
 		d->CenterCursor = true;
-		SetCursor(l->Start, false);
+		SetCaret(l->Start, false);
 		d->CenterCursor = false;
 	}
 }
@@ -2729,8 +2729,8 @@ bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool Selec
 	ssize_t Loc = MatchText(Find, MatchWord, MatchCase, SelectionOnly);
 	if (Loc >= 0)
 	{
-		SetCursor(Loc, false);
-		SetCursor(Loc + StrlenW(Find), true);
+		SetCaret(Loc, false);
+		SetCaret(Loc + StrlenW(Find), true);
 		return true;
 	}
 
@@ -3325,7 +3325,7 @@ void GTextView3::OnMouseClick(GMouse &m)
 			ssize_t Hit = HitText(m.x, m.y, true);
 			if (Hit >= 0)
 			{
-				SetCursor(Hit, m.Shift());
+				SetCaret(Hit, m.Shift());
 
 				GStyle *s = HitStyle(Hit);
 				if (s)
@@ -3377,7 +3377,7 @@ void GTextView3::OnMouseMove(GMouse &m)
 	{
 		if (d->WordSelectMode < 0)
 		{
-			SetCursor(Hit, m.Left());
+			SetCaret(Hit, m.Left());
 		}
 		else
 		{
@@ -3550,7 +3550,7 @@ bool GTextView3::OnKey(GKey &k)
 									{
 										l = GetTextLine(Cursor);
 										size_t NewLen = (l) ? l->Len : 0;
-										SetCursor(Cursor + Add, false, Len != NewLen - 1);
+										SetCaret(Cursor + Add, false, Len != NewLen - 1);
 									}
 									DeleteArray(Sp);
 								}
@@ -3570,7 +3570,7 @@ bool GTextView3::OnKey(GKey &k)
 									if (Text[Cursor-1] == '\t')
 									{
 										Delete(Cursor - 1, 1);
-										SetCursor(Cursor, false, false);
+										SetCaret(Cursor, false, false);
 									}
 									else if (Text[Cursor-1] == ' ')
 									{
@@ -3585,7 +3585,7 @@ bool GTextView3::OnKey(GKey &k)
 										while (SpaceDepth(Text + Start, Text + Start + Use + 1) < NewDepth)
 											Use++;
 										Delete(Start + Use, Cursor - Start - Use);
-										SetCursor(Start + Use, false, false);
+										SetCaret(Start + Use, false, false);
 									}
 								}
 								
@@ -3594,7 +3594,7 @@ bool GTextView3::OnKey(GKey &k)
 							{
 								l = GetTextLine(Cursor);
 								size_t NewLen = (l) ? l->Len : 0;
-								SetCursor(Cursor + 1, false, Len != NewLen - 1);
+								SetCaret(Cursor + 1, false, Len != NewLen - 1);
 							}
 						}
 					}
@@ -3766,7 +3766,7 @@ bool GTextView3::OnKey(GKey &k)
 					if (SelStart >= 0 &&
 						!k.Shift())
 					{
-						SetCursor(min(SelStart, SelEnd), false);
+						SetCaret(min(SelStart, SelEnd), false);
 					}
 					else if (Cursor > 0)
 					{
@@ -3826,7 +3826,7 @@ bool GTextView3::OnKey(GKey &k)
 							n--;
 						}
 
-						SetCursor(n, k.Shift());
+						SetCaret(n, k.Shift());
 					}
 				}
 				return true;
@@ -3842,7 +3842,7 @@ bool GTextView3::OnKey(GKey &k)
 					if (SelStart >= 0 &&
 						!k.Shift())
 					{
-						SetCursor(max(SelStart, SelEnd), false);
+						SetCaret(max(SelStart, SelEnd), false);
 					}
 					else if (Cursor < Size)
 					{
@@ -3899,7 +3899,7 @@ bool GTextView3::OnKey(GKey &k)
 							n++;
 						}
 
-						SetCursor(n, k.Shift());
+						SetCaret(n, k.Shift());
 					}
 				}
 				return true;
@@ -3929,7 +3929,7 @@ bool GTextView3::OnKey(GKey &k)
 							GDisplayString PrevLine(Font, Text + Prev->Start, Prev->Len);
 							ssize_t CharX = PrevLine.CharAt(ScreenX);
 
-							SetCursor(Prev->Start + min(CharX, Prev->Len), k.Shift());
+							SetCaret(Prev->Start + min(CharX, Prev->Len), k.Shift());
 						}
 					}
 				}
@@ -3960,7 +3960,7 @@ bool GTextView3::OnKey(GKey &k)
 							GDisplayString NextLine(Font, Text + Next->Start, Next->Len);
 							ssize_t CharX = NextLine.CharAt(ScreenX);
 
-							SetCursor(Next->Start + min(CharX, Next->Len), k.Shift());
+							SetCaret(Next->Start + min(CharX, Next->Len), k.Shift());
 						}
 					}
 				}
@@ -3973,7 +3973,7 @@ bool GTextView3::OnKey(GKey &k)
 				{
 					if (k.Ctrl())
 					{
-						SetCursor(Size, k.Shift());
+						SetCaret(Size, k.Shift());
 					}
 					else
 					{
@@ -3983,7 +3983,7 @@ bool GTextView3::OnKey(GKey &k)
 						GTextLine *l = GetTextLine(Cursor);
 						if (l)
 						{
-							SetCursor(l->Start + l->Len, k.Shift());
+							SetCaret(l->Start + l->Len, k.Shift());
 						}
 					}
 				}
@@ -3996,7 +3996,7 @@ bool GTextView3::OnKey(GKey &k)
 				{
 					if (k.Ctrl())
 					{
-						SetCursor(0, k.Shift());
+						SetCaret(0, k.Shift());
 					}
 					else
 					{
@@ -4014,11 +4014,11 @@ bool GTextView3::OnKey(GKey &k)
 
 							if (l->Start + Whitespace == Cursor)
 							{
-								SetCursor(l->Start, k.Shift());
+								SetCaret(l->Start, k.Shift());
 							}
 							else
 							{
-								SetCursor(l->Start + Whitespace, k.Shift());
+								SetCaret(l->Start + Whitespace, k.Shift());
 							}
 						}
 					}
@@ -4042,7 +4042,7 @@ bool GTextView3::OnKey(GKey &k)
 						GTextLine *New = Line.ItemAt(max(CurLine - DisplayLines, 0));
 						if (New)
 						{
-							SetCursor(New->Start + min(Cursor - l->Start, New->Len), k.Shift());
+							SetCaret(New->Start + min(Cursor - l->Start, New->Len), k.Shift());
 						}
 					}
 				}
@@ -4065,7 +4065,7 @@ bool GTextView3::OnKey(GKey &k)
 						GTextLine *New = Line.ItemAt(min(CurLine + DisplayLines, GetLines()-1));
 						if (New)
 						{
-							SetCursor(New->Start + min(Cursor - l->Start, New->Len), k.Shift());
+							SetCaret(New->Start + min(Cursor - l->Start, New->Len), k.Shift());
 						}
 					}
 				}
@@ -4323,7 +4323,7 @@ void GTextView3::OnEnter(GKey &k)
 
 	if (Insert(Cursor, InsertStr, StrlenW(InsertStr)))
 	{
-		SetCursor(Cursor + StrlenW(InsertStr), false, true);
+		SetCaret(Cursor + StrlenW(InsertStr), false, true);
 	}
 }
 

@@ -340,11 +340,11 @@ public:
 	
 	/// Set the cursor position, to select an area, move the cursor with Select=false
 	/// then set the other end of the region with Select=true.
-	virtual void SetCursor(int i, bool Select, bool ForceFullUpdate = false) {}
+	virtual void SetCaret(size_t i, bool Select, bool ForceFullUpdate = false) {}
 
 	/// Cursor=false means the other end of the selection if any. The cursor is alwasy
 	/// at one end of the selection.
-	virtual ssize_t GetCursor(bool Cursor = true) { return 0; }
+	virtual ssize_t GetCaret(bool Cursor = true) { return 0; }
 
 	/// True if there is a selection
 	virtual bool HasSelection() { return false; }

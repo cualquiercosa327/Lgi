@@ -255,7 +255,7 @@ void GPanel::RePour()
 	GWindow *Top = dynamic_cast<GWindow*>(GetWindow());
 	if (Top)
 	{
-		Top->Pour();
+		Top->PourAll();
 	}
 }
 

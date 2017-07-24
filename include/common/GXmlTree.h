@@ -156,7 +156,7 @@ public:
 	void SetTag(const char *Str = NULL);
 
 	/// Read/write all your native types in here
-	virtual bool Serialize() { return false; }
+	virtual bool Serialize(bool Write) { return false; }
 	/// Returns a pointer to a child tag if present, or NULL if not.
 	GXmlTag *GetChildTag(const char *Name, bool Create = false, const char *TagSeparator = ".");
 	/// Creates a sub tag if it doesn't already exist.

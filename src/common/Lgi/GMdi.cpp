@@ -205,7 +205,7 @@ bool GMdiChild::Name(const char *n)
 	return s;
 }
 
-bool GMdiChild::Pour()
+bool GMdiChild::PourAll()
 {
 	GRect c = GetClient();
 	#if !MDI_TAB_STYLE
@@ -964,7 +964,7 @@ void GMdiParent::OnPosChange()
 
 				c->SetPos(d->Content);
 				c->Visible(true);
-				c->Pour();
+				c->PourAll();
 			}
 			else
 			{

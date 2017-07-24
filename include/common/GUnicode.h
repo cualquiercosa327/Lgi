@@ -21,11 +21,16 @@ typedef unsigned short uint16;
 typedef signed int int32;
 typedef unsigned int uint32;
 #ifdef _MSC_VER
-typedef signed __int64 int64;
-typedef unsigned __int64 uint64;
+	typedef signed __int64 int64;
+	typedef unsigned __int64 uint64;
+	#ifdef  _WIN64
+	typedef signed __int64		ssize_t;
+	#else
+	typedef signed int			ssize_t;
+	#endif
 #else
-typedef signed long long int64;
-typedef unsigned long long uint64;
+	typedef signed long long int64;
+	typedef unsigned long long uint64;
 #endif
 
 // Defines for decoding UTF8

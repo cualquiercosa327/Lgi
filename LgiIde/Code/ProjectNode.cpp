@@ -535,8 +535,8 @@ void ProjectNode::OnExpand(bool b)
 	}
 }
 
-bool ProjectNode::Serialize()
- {
+bool ProjectNode::Serialize(bool Write)
+{
 	if (!Write && File)
 		Project->OnNode(File, this, false);
 

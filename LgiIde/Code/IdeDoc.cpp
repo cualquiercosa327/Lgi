@@ -631,7 +631,7 @@ public:
 		App->GotoReference(Obj->File, Obj->Line, false);
 	}
 	
-	bool Name(char *s)
+	bool Name(const char *s)
 	{
 		GString InputStr = s;
 		GString::Array p = InputStr.SplitDelimit(" \t");
@@ -1101,7 +1101,7 @@ public:
 
 	void SetCursor(int i, bool Select, bool ForceFullUpdate = false)
 	{
-		GTextView3::SetCursor(i, Select, ForceFullUpdate);
+		GTextView3::SetCaret(i, Select, ForceFullUpdate);
 		
 		if (IsAttached())
 		{
@@ -1113,7 +1113,7 @@ public:
 		}
 	}
 	
-	bool OnMenu(GDocView *View, int Id);
+	bool OnMenu(GDocView *View, int Id, void *Context);
 	bool OnKey(GKey &k);
 	
 	char *TemplateMerge(const char *Template, char *Name, List<char> *Params)
@@ -1747,7 +1747,7 @@ bool DocEdit::OnKey(GKey &k)
 	return GTextView3::OnKey(k); 
 }
 
-bool DocEdit::OnMenu(GDocView *View, int Id)
+bool DocEdit::OnMenu(GDocView *View, int Id, void *Context)
 {
 	if (View)
 	{
@@ -1787,7 +1787,7 @@ bool DocEdit::OnMenu(GDocView *View, int Id)
 					{
 						List<char16> Tokens;
 						char16 *s;
-						char16 *p = n + GetCursor();
+						char16 *p = n + GetCaret();
 						char16 OpenBrac[] = { '(', 0 };
 						char16 CloseBrac[] = { ')', 0 };
 						int OpenBracketIndex = -1;							
@@ -2319,7 +2319,7 @@ void IdeDoc::SearchSymbol()
 		return;
 	}
 	
-	int Cur = d->Edit->GetCursor();
+	int Cur = d->Edit->GetCaret();
 	char16 *Txt = d->Edit->NameW();
 	if (Cur >= 0 &&
 		Txt != NULL)
@@ -2484,7 +2484,7 @@ int IdeDoc::OnNotify(GViewI *v, int f)
 					if (d->Tray)
 					{
 						GdcPt2 Pt;
-						if (d->Edit->GetLineColumnAtIndex(Pt, d->Edit->GetCursor()))
+						if (d->Edit->GetLineColumnAtIndex(Pt, d->Edit->GetCaret()))
 						{
 							d->Tray->Col = Pt.x;
 							d->Tray->Line = Pt.y;

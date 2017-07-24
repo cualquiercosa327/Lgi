@@ -711,7 +711,7 @@ void GMemDC::StretchBlt(GRect *Dest, GSurface *Src, GRect *s)
 	}
 }
 
-void GMemDC::HLine(int x1, int x2, int y, COLOUR a, COLOUR b)
+void GMemDC::HorzLine(int x1, int x2, int y, COLOUR a, COLOUR b)
 {
 	if (x1 > x2) LgiSwap(x1, x2);
 
@@ -743,7 +743,7 @@ void GMemDC::HLine(int x1, int x2, int y, COLOUR a, COLOUR b)
 	}
 }
 
-void GMemDC::VLine(int x, int y1, int y2, COLOUR a, COLOUR b)
+void GMemDC::VertLine(int x, int y1, int y2, COLOUR a, COLOUR b)
 {
 	if (y1 > y2) LgiSwap(y1, y2);
 	

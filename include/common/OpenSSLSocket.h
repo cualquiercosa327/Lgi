@@ -24,7 +24,7 @@ class SslSocket :
 
 	// Local stuff
 	virtual void Log(const char *Str, ssize_t Bytes, SocketMsgType Type);
-	void Error(const char *file, int line, const char *Msg);
+	void SslError(const char *file, int line, const char *Msg);
 	GStream *GetLogStream();
 	void DebugTrace(const char *fmt, ...);
 

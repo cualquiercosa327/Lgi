@@ -974,7 +974,7 @@ void IdeProject::StopBuild()
 	d->Thread.Reset();
 }
 
-bool IdeProject::Serialize()
+bool IdeProject::Serialize(bool Write)
 {
 	return true;
 }

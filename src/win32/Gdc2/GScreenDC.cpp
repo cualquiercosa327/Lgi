@@ -115,7 +115,7 @@ GScreenDC::GScreenDC(GViewI *view)
 
 	d->hWnd = view->Handle();
 	d->End = true;
-	Create(BeginPaint(d->hWnd, &d->Ps));
+	CreateFromHandle(BeginPaint(d->hWnd, &d->Ps));
 
 	RECT rc;
 	GetClientRect(d->hWnd, &rc);
@@ -129,7 +129,7 @@ GScreenDC::GScreenDC(HWND hWindow)
 
 	d->hWnd = hWindow;
 	d->End = true;
-	Create(BeginPaint(d->hWnd, &d->Ps));
+	CreateFromHandle(BeginPaint(d->hWnd, &d->Ps));
 
 	RECT rc;
 	GetClientRect(d->hWnd, &rc);
@@ -143,7 +143,7 @@ GScreenDC::GScreenDC(HDC hdc, HWND hwnd, bool Release)
 
 	LgiAssert(hdc);
 	d->hWnd = hwnd;
-	Create(hdc);
+	CreateFromHandle(hdc);
 	d->Release = Release;
 
 	RECT rc;
@@ -158,7 +158,7 @@ GScreenDC::GScreenDC(HBITMAP hbmp, int Sx, int Sy)
 	d = new GScreenPrivate;
 	ColourSpace = GdcD->GetColourSpace();
 
-	Create(CreateCompatibleDC(0));
+	CreateFromHandle(CreateCompatibleDC(0));
 	hBmp = hbmp;
 	d->hOldBitmap = (HBITMAP) SelectObject(hDC, hBmp);
 	SetSize(Sx, Sy);
@@ -244,7 +244,7 @@ void GScreenDC::SetSize(int x, int y)
 	Clip.ZOff(d->Sx-1, d->Sy-1);
 }
 
-bool GScreenDC::Create(HDC hdc)
+bool GScreenDC::CreateFromHandle(HDC hdc)
 {
 	bool Status = FALSE;
 

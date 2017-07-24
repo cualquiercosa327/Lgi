@@ -12,7 +12,7 @@ class LgiClass GSlider :
 {
 	#if WINNATIVE
 	uint32 Style();
-	int SysOnNotify(int Code);
+	// int SysOnNotify(int Msg, int Code);
 	#endif
 
 	bool Vertical;

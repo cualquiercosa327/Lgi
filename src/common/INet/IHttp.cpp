@@ -22,7 +22,7 @@ public:
 		Dest = dest;
 	}
 
-	void OnError(int ErrorCode, char *ErrorDescription)
+	void OnError(int ErrorCode, const char *ErrorDescription)
 	{
 		if (Dest && ErrorDescription)
 		{
@@ -32,7 +32,7 @@ public:
 		}
 	}
 
-	void OnInformation(char *s)
+	void OnInformation(const char *s)
 	{
 		if (Dest && s)
 		{

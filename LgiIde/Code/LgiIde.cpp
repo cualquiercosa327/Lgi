@@ -721,11 +721,11 @@ public:
 				if (OldText)
 					OldLen = StrlenW(OldText);
 
-				int Cur = Txt[Channel]->GetCursor();
+				int Cur = Txt[Channel]->GetCaret();
 				Txt[Channel]->Insert(OldLen, w, StrlenW(w));
 				if (Cur > OldLen - 1)
 				{
-					Txt[Channel]->SetCursor(OldLen + StrlenW(w), false);
+					Txt[Channel]->SetCaret(OldLen + StrlenW(w), false);
 				}
 				Changed = Channel;
 				Buf[Channel].Length(0);
@@ -1039,7 +1039,7 @@ public:
 		if (!Txt)
 			return;
 
-		int Cur = o->GetCursor();
+		ssize_t Cur = o->GetCaret();
 		char16 *Context = NULL;
 		
 		// Scan forward to the end of file for the next filename/line number separator.
@@ -1106,8 +1106,8 @@ public:
 
 		// Convert it to an integer
 		int LineNumber = atoi(NumStr);
-		o->SetCursor(Line, false);
-		o->SetCursor(NumIndex + 1, true);
+		o->SetCaret(Line, false);
+		o->SetCaret(NumIndex + 1, true);
 								
 		GString Context8 = Context;
 		ViewMsg(File, LineNumber, Context8);

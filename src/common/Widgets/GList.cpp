@@ -357,7 +357,7 @@ void GListItem::Update()
 				if (Info.y != r.Y())
 				{
 					Pos.y2 = Pos.y1 + Info.y - 1;
-					Parent->Pour();
+					Parent->PourAll();
 
 					r.y1 = min(r.y1, Pos.y1);
 					r.y2 = Parent->ItemsPos.y2;
@@ -652,7 +652,7 @@ void GList::SetMode(GListMode m)
 		
 		if (IsAttached())
 		{
-			Pour();
+			PourAll();
 			Invalidate();
 		}
 	}
@@ -2013,7 +2013,7 @@ bool GList::Insert(List<GListItem> &l, int Index, bool Update)
 		if (Update)
 		{
 			// Update screen
-			Pour();
+			PourAll();
 			Invalidate();
 
 			// Notify
@@ -2256,7 +2256,7 @@ void GList::UpdateScrollBars()
 	}
 }
 
-void GList::Pour()
+void GList::PourAll()
 {
 	#if GLIST_POUR_PROFILE
 	int Start = LgiCurrentTime();
@@ -2450,7 +2450,7 @@ void GList::OnPaint(GSurface *pDC)
 	if (Lock(_FL))
 	{
 		COLOUR Back = Enabled() ? LC_WORKSPACE : LC_MED;
-		Pour();
+		PourAll();
 		
 		#if GLIST_ONPAINT_PROFILE
 		t1 = LgiCurrentTime();

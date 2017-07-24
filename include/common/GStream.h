@@ -244,7 +244,7 @@ public:
 	~GTempStream();
 
 	int GetMaxMemSize() { return MaxMemSize; }
-	size_t Write(const void *Buffer, size_t Size, int Flags = 0);
+	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0);
 	void Empty();
 	int64 GetSize();
 	

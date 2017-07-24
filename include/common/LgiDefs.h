@@ -64,6 +64,8 @@ typedef		unsigned short				uint16;
 	typedef unsigned char bool;
 	#endif
 
+	#pragma warning(error:4263)
+
 #else
 	/// 64-bit signed int type (size safe, guaranteed to be 64 bits)
 	typedef		signed long long			int64;

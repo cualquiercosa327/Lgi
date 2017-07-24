@@ -1403,8 +1403,7 @@ bool GXmlTree::Read(GXmlTag *Root, GStreamI *File, GXmlFactory *Factory)
 							}
 							else
 							{
-								t->Write = false;
-								t->Serialize();
+								t->Serialize(t->Write = false);
 
 							    GXmlTag *NewTag = t;
 							    if (t != Root)
@@ -1458,8 +1457,7 @@ void GXmlTree::Output(GXmlTag *t, int Depth)
 
 	if (d->Prog)
 		d->Prog->Value(d->Prog->Value()+1);
-	t->Write = true;
-	t->Serialize();
+	t->Serialize(t->Write = true);
 	Tabs
 
 	// Test to see if the tag is valid

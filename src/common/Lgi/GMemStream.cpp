@@ -290,7 +290,7 @@ void GTempStream::Empty()
 	s = 0;
 }
 
-size_t GTempStream::Write(const void *Buffer, size_t Size, int Flags)
+ssize_t GTempStream::Write(const void *Buffer, ssize_t Size, int Flags)
 {
 	if (s == &Null)
 	{

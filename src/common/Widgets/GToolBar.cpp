@@ -803,7 +803,7 @@ void GToolButton::Value(int64 b)
 	}
 }
 
-void GToolButton::OnCommand()
+void GToolButton::SendCommand()
 {
 	if (GetParent())
 	{
@@ -850,7 +850,7 @@ void GToolButton::OnMouseClick(GMouse &m)
 						// char *n = Name();
 						if (m.Left())
 						{
-							OnCommand();
+							SendCommand();
 						}
 						SendNotify(m.Flags);
 					}
@@ -870,7 +870,7 @@ void GToolButton::OnMouseClick(GMouse &m)
 						if (m.Left())
 						{
 							Value(!Down);
-							OnCommand();
+							SendCommand();
 						}
 						SendNotify(m.Flags);
 					}
@@ -884,7 +884,7 @@ void GToolButton::OnMouseClick(GMouse &m)
 						if (!Down && m.Left())
 						{
 							Value(true);
-							OnCommand();
+							SendCommand();
 						}
 						SendNotify(m.Flags);
 					}
@@ -1108,7 +1108,7 @@ void GToolBar::ContextMenu(GMouse &m)
 					}
 				}
 
-				GetWindow()->Pour();
+				GetWindow()->PourAll();
 			}
 		}
 	}

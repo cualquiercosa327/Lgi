@@ -589,13 +589,7 @@ bool GWindow::Visible()
 void GWindow::Visible(bool v)
 {
 	if (v)
-	{
-		Pour();
-	}
-	else
-	{
-		int asd=0;
-	}
+		PourAll();
 
 	if (v)
 	{
@@ -663,7 +657,7 @@ void GWindow::Visible(bool v)
 	}
 }
 
-void GWindow::Pour()
+void GWindow::PourAll()
 {
 	GRegion Client(GetClient());
 	GRegion Update;
@@ -926,7 +920,7 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 		{
 			if (d->AlwaysOnTop)
 				SetAlwaysOnTop(true);
-			Pour();
+			PourAll();
 			OnCreate();
 
 			if (!_Default)
@@ -1061,7 +1055,7 @@ GRect &GWindow::GetPos()
 
 void GWindow::OnPosChange()
 {
-	Pour();
+	PourAll();
 }
 
 bool GWindow::RegisterHook(GView *Target, GWindowHookType EventType, int Priority)

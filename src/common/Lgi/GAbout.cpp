@@ -92,7 +92,7 @@ GAbout::GAbout(	GView *parent,
 			View->SetEnv(this);
 			View->GetCss(true)->BackgroundColor(GCss::ColorDef(LC_MED));
 			View->SetReadOnly(true);
-			View->SetCursor(Str ? strlen(Str) : 0, false);
+			View->SetCaret(Str ? strlen(Str) : 0, false);
 
 			int x = 0, y = 0;
 			View->GetTextExtent(x, y);

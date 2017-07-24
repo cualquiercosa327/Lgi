@@ -259,7 +259,7 @@ public:
 	GMessage::Result OnEvent(GMessage *Msg);
 	bool OnRequestClose(bool OsClose);
 	void OnPosChange();
-    void Pour() {}
+    void PourAll() {}
 	void Quit(bool DontDelete = false);
 	
 	#if defined(MAC) && !defined(LGI_SDL)

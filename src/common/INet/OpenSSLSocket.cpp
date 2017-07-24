@@ -657,7 +657,7 @@ void SslSocket::Log(const char *Str, ssize_t Bytes, SocketMsgType Type)
 		LgiTrace("%.*s", Bytes, Str);
 }
 
-void SslSocket::Error(const char *file, int line, const char *Msg)
+void SslSocket::SslError(const char *file, int line, const char *Msg)
 {
 	char *Part = strrchr((char*)file, DIR_CHAR);
 	#ifndef WIN32
@@ -822,16 +822,16 @@ DebugTrace("%s:%i - open loop finished, r=%i, Opening=%i\n", _FL, r, d->Opening)
 							else
 							{
 								GString Err = SslGetErrorAsString(Library).Strip();
-								Error(_FL, Err.Length() > 0 ? Err.Get() : "BIO_do_connect failed.");
+								SslError(_FL, Err.Length() > 0 ? Err.Get() : "BIO_do_connect failed.");
 							}
 						}
-						else Error(_FL, "BIO_get_ssl failed.");
+						else SslError(_FL, "BIO_get_ssl failed.");
 					}
-					else Error(_FL, "BIO_new_ssl_connect failed.");
+					else SslError(_FL, "BIO_new_ssl_connect failed.");
 				}
-				else Error(_FL, "SSL_CTX_load_verify_locations failed.");
+				else SslError(_FL, "SSL_CTX_load_verify_locations failed.");
 			}
-			else Error(_FL, "No Ctx.");
+			else SslError(_FL, "No Ctx.");
 		}
 		else
 		{
@@ -880,9 +880,9 @@ DebugTrace("%s:%i - open loop finished=%i\n", _FL, r);
 					sprintf_s(m, sizeof(m), "Connected to '%s'", h);
 					OnInformation(m);
 				}
-				else Error(_FL, "BIO_do_connect failed");
+				else SslError(_FL, "BIO_do_connect failed");
 			}
-			else Error(_FL, "BIO_new_connect failed");
+			else SslError(_FL, "BIO_new_connect failed");
 		}
 	}
 	
@@ -925,7 +925,7 @@ bool SslSocket::SetVariant(const char *Name, GVariant &Value, char *Arr)
 			{
 				if (!Library->Client)
 				{
-					Error(_FL, "Library->Client is null.");
+					SslError(_FL, "Library->Client is null.");
 				}
 				else
 				{
@@ -933,7 +933,7 @@ bool SslSocket::SetVariant(const char *Name, GVariant &Value, char *Arr)
 DebugTrace("%s:%i - SSL_new=%p\n", _FL, Ssl);
 					if (!Ssl)
 					{
-						Error(_FL, "SSL_new failed.");
+						SslError(_FL, "SSL_new failed.");
 					}
 					else
 					{
@@ -971,7 +971,7 @@ DebugTrace("%s:%i - X509_NAME_oneline=%s\n", _FL, Txt);
 						}
 						else
 						{
-							Error(_FL, "SSL_connect failed.");
+							SslError(_FL, "SSL_connect failed.");
 
 							r = Library->SSL_get_error(Ssl, r);
 							char *Msg = Library->ERR_error_string(r, 0);

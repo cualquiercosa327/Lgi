@@ -89,7 +89,7 @@ public:
 	// Serialization
 	bool Load(GDocView *Edit, NodeView *Callback);
 	bool Save(GDocView *Edit, NodeView *Callback);
-	bool Serialize();
+	bool Serialize(bool Write);
 };
 
 #endif
