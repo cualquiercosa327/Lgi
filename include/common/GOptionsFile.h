@@ -51,7 +51,7 @@ public:
 	bool IsValid();
 	char *GetFile() { return File; }
 	char *GetError() { return Error; }
-	bool Serialize(bool Write);
+	bool SerializeFile();
 	bool DeleteValue(const char *Name);
 
 	bool CreateTag(const char *Name);

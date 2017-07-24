@@ -1016,7 +1016,7 @@ public:
 								src++;
 							}
 							
-							((GMemDC*)Dst)->HLine(0, Dst->X(), DstY+f, Light, Dark);
+							((GMemDC*)Dst)->HorzLine(0, Dst->X(), DstY+f, Light, Dark);
 						}
 					}
 					else
@@ -1046,11 +1046,11 @@ public:
 			{
 				for (int x = Factor - 1; x<Dst->X(); x += Factor)
 				{
-					Mem->VLine(x, 0, Dst->Y(), Light, Dark);
+					Mem->VertLine(x, 0, Dst->Y(), Light, Dark);
 				}
 				for (int y = Factor - 1; y<Dst->Y(); y += Factor)
 				{
-					Mem->HLine(0, Dst->X(), y, Light, Dark);
+					Mem->HorzLine(0, Dst->X(), y, Light, Dark);
 				}
 			}
 
@@ -1087,13 +1087,13 @@ public:
 				int i = TileX - (Sx % TileX);
 				for (int x = i * Factor - 1; x<Dst->X(); x += Factor * TileX)
 				{
-					Mem->VLine(x, 0, Dst->Y(), LightBlue, DarkBlue);
+					Mem->VertLine(x, 0, Dst->Y(), LightBlue, DarkBlue);
 				}
 
 				i = TileY - (Sy % TileY);
 				for (int y = i * Factor - 1; y<Dst->Y(); y += Factor * TileY)
 				{
-					Mem->HLine(0, Dst->X(), y, LightBlue, DarkBlue);
+					Mem->HorzLine(0, Dst->X(), y, LightBlue, DarkBlue);
 				}
 			}
 		}
