@@ -115,7 +115,7 @@ public:
 	BuildThread(IdeProject *proj, char *mf, const char *args = 0);
 	~BuildThread();
 	
-	int Write(const void *Buffer, int Size, int Flags = 0);
+	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0);
 	GString FindExe();
 	GAutoString WinToMingWPath(const char *path);
 	int Main();
@@ -290,7 +290,7 @@ BuildThread::~BuildThread()
 	}
 }
 
-int BuildThread::Write(const void *Buffer, int Size, int Flags)
+ssize_t BuildThread::Write(const void *Buffer, ssize_t Size, int Flags)
 {
 	if (Proj->GetApp())
 	{
@@ -894,7 +894,7 @@ public:
 		return 0;
 	}
 
-	int Write(const void *Buffer, int Size, int Flags = 0)
+	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0)
 	{
 		if (Len > 0)
 		{

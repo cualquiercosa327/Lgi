@@ -405,8 +405,8 @@ public:
 	int64 SetSize(int64 Size);
 	int64 GetPos();
 	int64 SetPos(int64 Pos);
-	int Read(void *Ptr, int Size, int Flags = 0);
-	int Write(const void *Ptr, int Size, int Flags = 0);
+	ssize_t Read(void *Ptr, ssize_t Size, int Flags = 0);
+	ssize_t Write(const void *Ptr, ssize_t Size, int Flags = 0);
 };
 
 #endif

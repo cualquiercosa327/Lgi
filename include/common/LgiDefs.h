@@ -24,36 +24,51 @@ typedef		unsigned long				ulong;
 // Length safe typedesf, use these in new code
 
 #ifndef BEOS
-	/// 8-bit signed int type (size safe, garenteed to be 8 bits)
+	/// 8-bit signed int type (size safe, guaranteed to be 8 bits)
 	typedef		signed char				int8;
-	/// 8-bit unsigned int type (size safe, garenteed to be 8 bits)
+	/// 8-bit unsigned int type (size safe, guaranteed to be 8 bits)
 	typedef		unsigned char			uint8;
 #else
 	#include <AppKit.h>
 #endif
 
-/// 16-bit signed int type (size safe, garenteed to be 16 bits)
+/// 16-bit signed int type (size safe, guaranteed to be 16 bits)
 typedef		short						int16;
-/// 16-bit unsigned int type (size safe, garenteed to be 16 bits)
+/// 16-bit unsigned int type (size safe, guaranteed to be 16 bits)
 typedef		unsigned short				uint16;
 
 #ifndef BEOS
-	/// 32-bit signed int type (size safe, garenteed to be 32 bits)
+	/// 32-bit signed int type (size safe, guaranteed to be 32 bits)
 	typedef		int						int32;
-	/// 32-bit unsigned int type (size safe, garenteed to be 32 bits)
+	/// 32-bit unsigned int type (size safe, guaranteed to be 32 bits)
 	typedef		unsigned int			uint32;
 #endif
 
 #ifdef _MSC_VER
-/// 64-bit signed int type (size safe, garenteed to be 64 bits)
-typedef		signed __int64				int64;
-/// 64-bit unsigned int type (size safe, garenteed to be 64 bits)
-typedef		unsigned __int64			uint64;
+	/// 64-bit signed int type (size safe, guaranteed to be 64 bits)
+	typedef		signed __int64				int64;
+	/// 64-bit unsigned int type (size safe, guaranteed to be 64 bits)
+	typedef		unsigned __int64			uint64;
+
+	#ifdef  _WIN64
+	typedef signed __int64		ssize_t;
+	#else
+	typedef signed int			ssize_t;
+	#endif
+
+	#ifndef _WCHAR_T_DEFINED
+	#include <crtdefs.h>
+	#endif
+
+	#ifndef __cplusplus
+	typedef unsigned char bool;
+	#endif
+
 #else
-/// 64-bit signed int type (size safe, garenteed to be 64 bits)
-typedef		signed long long			int64;
-/// 64-bit unsigned int type (size safe, garenteed to be 64 bits)
-typedef		unsigned long long			uint64;
+	/// 64-bit signed int type (size safe, guaranteed to be 64 bits)
+	typedef		signed long long			int64;
+	/// 64-bit unsigned int type (size safe, guaranteed to be 64 bits)
+	typedef		unsigned long long			uint64;
 #endif
 
 /// \brief Wide unicode char

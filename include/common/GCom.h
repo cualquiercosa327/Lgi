@@ -236,14 +236,14 @@ public:
 		return -1;
 	}
 
-	int Read(void *Ptr, int Size, int Flags = 0)
+	ssize_t Read(void *Ptr, ssize_t Size, int Flags = 0)
 	{
 		ULONG Rd = 0;
 		HRESULT res = s->Read(Ptr, Size, &Rd);
 		return SUCCEEDED(res) ? Rd : 0;
 	}
 	
-	int Write(const void *Ptr, int Size, int Flags = 0)
+	ssize_t Write(const void *Ptr, ssize_t Size, int Flags = 0)
 	{
 		ULONG Wr = 0;
 		HRESULT res = s->Write(Ptr, Size, &Wr);

@@ -996,7 +996,7 @@ void GMdiParent::OnPosChange()
 
 GRect GMdiParent::NewPos()
 {
-	GRect Status(0, 0, X()*0.75, Y()*0.75);
+	GRect Status(0, 0, (int)(X()*0.75), (int)(Y()*0.75));
 
 	int Block = 5;
 	for (int y=0; y<Y()>>Block; y++)

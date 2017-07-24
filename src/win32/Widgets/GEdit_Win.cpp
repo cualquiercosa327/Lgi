@@ -105,7 +105,7 @@ void GEdit::Select(int Start, int Len)
 	}
 }
 
-bool GEdit::GetSelection(int &Start, int &Len)
+bool GEdit::GetSelection(size_t &Start, ssize_t &Len)
 {
 	if (!_View)
 		return false;
@@ -385,7 +385,7 @@ bool GEdit::OnKey(GKey &k)
 	return false;
 }
 
-int GEdit::GetCaret()
+ssize_t GEdit::GetCaret()
 {
 	DWORD Start, End = 0;
 	if (_View)
@@ -393,7 +393,7 @@ int GEdit::GetCaret()
 	return End;
 }
 
-void GEdit::SetCaret(int Pos)
+void GEdit::SetCaret(ssize_t Pos)
 {
 	if (_View)
 		SendMessage(_View, EM_SETSEL, Pos, Pos);

@@ -24,6 +24,7 @@ Known bugs:
 	Can't find these symbols:
 		do_recv (in api_msg.c)
 		process_apcp_msg (in ape-apcp.c)
+		recv_udp (in api_msg.c)
 	Wrong position:
 		lwip_select (out by 4 lines?)
 		nad_apcp_send

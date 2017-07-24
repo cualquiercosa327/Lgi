@@ -1607,7 +1607,7 @@ int64 GMemFile::SetPos(int64 Pos)
 	return CurPos = Pos; // Inside the last block
 }
 
-int GMemFile::Read(void *Ptr, int Size, int Flags)
+ssize_t GMemFile::Read(void *Ptr, ssize_t Size, int Flags)
 {
 	if (!Ptr || Size < 1)
 		return 0;
@@ -1642,7 +1642,7 @@ int GMemFile::Read(void *Ptr, int Size, int Flags)
 	return p - (uint8*) Ptr;
 }
 
-int GMemFile::Write(const void *Ptr, int Size, int Flags)
+ssize_t GMemFile::Write(const void *Ptr, ssize_t Size, int Flags)
 {
 	if (!Ptr || Size < 1)
 		return 0;

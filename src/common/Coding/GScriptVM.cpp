@@ -287,7 +287,7 @@ GExecutionStatus GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentA
 		return ScriptError;
 	}
 	
-	// ssize_t a = Ptr.ni - &Val[0];
+	ssize_t a = Ptr.ni - &Val[0];
 	NativeInt r = 0;
 
 	#if defined(_MSC_VER)

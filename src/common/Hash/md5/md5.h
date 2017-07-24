@@ -51,6 +51,7 @@
 #  define md5_INCLUDED
 
 #include "LgiInc.h"
+#include "LgiDefs.h"
 #include <stddef.h>
 
 #ifdef __cplusplus

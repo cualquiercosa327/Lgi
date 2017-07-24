@@ -259,8 +259,10 @@ public:
 	GVariant();
 	/// Constructor for int
 	GVariant(int i);
+	#ifndef _MSC_VER
 	GVariant(size_t i);
 	GVariant(ssize_t i);
+	#endif
 	/// Constructor for int64
 	GVariant(int64 i);
 	/// Constructor for uint64
@@ -294,8 +296,10 @@ public:
 	#endif
 	/// Assign bool value
 	GVariant &operator =(bool i);
+	#ifndef _MSC_VER
 	GVariant &operator =(size_t i);
 	GVariant &operator =(ssize_t i);
+	#endif
 	/// Assign 64bit int value
 	GVariant &operator =(int64 i);
 	/// Assign double value

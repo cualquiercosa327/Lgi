@@ -21,6 +21,10 @@
 #include "ftsynth.h"
 #endif
 
+#if WINNATIVE
+static OsChar GDisplayStringDots[] = {'.', '.', '.', 0};
+#endif
+
 //345678123456781234567812345678
 	//	2nd
 
@@ -225,7 +229,7 @@ GDisplayString::GDisplayString(GFont *f, const char16 *s, ssize_t l, GSurface *p
 }
 
 #ifdef _MSC_VER
-GDisplayString::GDisplayString(GFont *f, const uint32 *s, int l, GSurface *pdc)
+GDisplayString::GDisplayString(GFont *f, const uint32 *s, ssize_t l, GSurface *pdc)
 {
 	pDC = pdc;
 	Font = f;

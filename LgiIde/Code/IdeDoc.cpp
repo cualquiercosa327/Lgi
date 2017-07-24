@@ -376,7 +376,7 @@ void EditTray::OnFunctionList(GMouse &m)
 		int ScreenLines = ScreenHt / SysFont->GetHeight();
 		float Ratio = ScreenHt ? (float)(SysFont->GetHeight() * Funcs.Length()) / ScreenHt : 0.0f;
 		bool UseSubMenus = Ratio > 0.9f;
-		int Buckets = UseSubMenus ? ScreenLines * 0.75 : 1;
+		int Buckets = UseSubMenus ? (int)(ScreenLines * 0.75) : 1;
 		int BucketSize = max(5, Funcs.Length() / Buckets);
 		GSubMenu *Cur = NULL;
 		
@@ -930,7 +930,7 @@ public:
 		SetFindReplaceParams(GlobalFindReplace);
 		
 		CanScrollX = true;
-		GetCss(true)->PaddingLeft(GCss::Len(GCss::LenPx, LeftMarginPx + 2));
+		GetCss(true)->PaddingLeft(GCss::Len(GCss::LenPx, (float)(LeftMarginPx + 2)));
 		
 		if (!f)
 		{
@@ -1188,7 +1188,7 @@ public:
 		return true;
 	}
 
-	void StyleCpp(int Start, int EditSize)
+	void StyleCpp(ssize_t Start, ssize_t EditSize)
 	{
 		if (!Text)
 			return;
@@ -1508,7 +1508,7 @@ public:
 		// LgiTrace("PourCpp = %g, %g\n", (double)(PourTs - SetupTs) / 1000.0, (double)(DirtyTs - PourTs) / 1000.0);
 	}
 
-	void StylePython(int Start, int EditSize)
+	void StylePython(ssize_t Start, ssize_t EditSize)
 	{
 		char16 *e = Text + Size;
 		
@@ -1676,7 +1676,7 @@ public:
 		}
 	}
 
-	void PourStyle(int Start, int EditSize)
+	void PourStyle(size_t Start, ssize_t EditSize)
 	{
 		if (FileType == SrcUnknown)
 		{

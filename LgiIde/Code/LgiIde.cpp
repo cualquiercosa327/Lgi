@@ -627,7 +627,7 @@ public:
 						DebugLog->AddView(DebuggerLog = new DebugTextLog(IDC_DEBUGGER_LOG));
 						DebuggerLog->SetFont(&Small);
 						DebugLog->AddView(DebugEdit = new GEdit(IDC_DEBUG_EDIT, 0, 0, 60, 20));
-						DebugEdit->GetCss(true)->Height(GCss::Len(GCss::LenPx, SysFont->GetHeight() + 8));
+						DebugEdit->GetCss(true)->Height(GCss::Len(GCss::LenPx, (float)(SysFont->GetHeight() + 8)));
 					}
 				}
 			}

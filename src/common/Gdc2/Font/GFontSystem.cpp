@@ -349,6 +349,7 @@ static CFStringEncoding CharsetToEncoding(const char *cs)
 
 ssize_t GFontSystem::IconvConvert(const char *OutCs, GStreamI *Out, const char *InCs, const char *&In, ssize_t InLen)
 {
+	char Buf[2 << 10];
 	
 	LgiAssert(InLen > 0);
 
@@ -358,7 +359,6 @@ ssize_t GFontSystem::IconvConvert(const char *OutCs, GStreamI *Out, const char *
 #if defined(MAC)
 
 	#if !defined COCOA
-	char Buf[2 << 10];
 	CFStringEncoding InEnc = CharsetToEncoding(InCs);
 	CFStringEncoding OutEnc = CharsetToEncoding(OutCs);
 	if (InEnc != kCFStringEncodingInvalidId &&

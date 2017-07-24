@@ -53,6 +53,7 @@
 #include "SHELLAPI.H"
 #include "COMMDLG.H"
 #include "LgiInc.h"
+#include <crtdefs.h>
 
 //////////////////////////////////////////////////////////////////
 // Typedefs

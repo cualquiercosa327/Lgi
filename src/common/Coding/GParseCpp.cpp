@@ -256,7 +256,7 @@ struct GCppStringPool
 		Mem.DeleteArrays();
 	}
 	
-	char16 *Alloc(const char16 *s, int len)
+	char16 *Alloc(const char16 *s, ssize_t len)
 	{
 		if (len < 0)
 			len = StrlenW(s);
@@ -283,7 +283,7 @@ struct GCppStringPool
 	}
 };
 
-char16 *LexPoolAlloc(void *Context, const char16 *s, int len)
+char16 *LexPoolAlloc(void *Context, const char16 *s, ssize_t len)
 {
 	return ((GCppStringPool*)Context)->Alloc(s, len);
 }

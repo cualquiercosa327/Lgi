@@ -89,6 +89,7 @@ GVariant::GVariant(GVariant const &v)
 	*this = v;
 }
 
+#ifndef _MSC_VER
 GVariant::GVariant(size_t i)
 {
 	Type = GV_NULL;
@@ -100,6 +101,7 @@ GVariant::GVariant(ssize_t i)
 	Type = GV_NULL;
 	*this = i;
 }
+#endif
 
 GVariant::GVariant(int64 i)
 {
@@ -308,6 +310,7 @@ GVariant &GVariant::operator =(int i)
 	return *this;
 }
 
+#ifndef _MSC_VER
 GVariant &GVariant::operator =(size_t i)
 {
 	Empty();
@@ -339,6 +342,7 @@ GVariant &GVariant::operator =(ssize_t i)
 	}
 	return *this;
 }
+#endif
 
 #ifdef BEOS
 GVariant &GVariant::operator =(int32 i)

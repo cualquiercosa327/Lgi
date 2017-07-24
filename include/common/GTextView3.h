@@ -44,7 +44,7 @@ public:
 		friend class GUrl;
 
 	protected:
-		void RefreshLayout(ssize_t Start, ssize_t Len);
+		void RefreshLayout(size_t Start, ssize_t Len);
 
 	public:
 		enum StyleDecor

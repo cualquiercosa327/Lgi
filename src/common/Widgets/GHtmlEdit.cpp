@@ -1622,8 +1622,8 @@ public:
 			bool CursorFirst     = IsCursorFirst();
 			GTag *First          = CursorFirst ? Cursor : Selection;
 			GTag *Last           = CursorFirst ? Selection : Cursor;
-			int *FirstMarker     = CursorFirst ? &Cursor->Cursor : &Selection->Selection;
-			int FirstMarkerValue = *FirstMarker;
+			ssize_t *FirstMarker  = CursorFirst ? &Cursor->Cursor : &Selection->Selection;
+			ssize_t FirstMarkerValue = *FirstMarker;
 
 			int FirstDepth = GetTagDepth(First);
 			int LastDepth = GetTagDepth(Last);
@@ -1657,7 +1657,7 @@ public:
 						
 						// Last tag
 						t = Last->Text() + n->GetTextStart();
-						int *LastMarker = CursorFirst ? &Selection->Selection : &Cursor->Cursor;
+						ssize_t *LastMarker = CursorFirst ? &Selection->Selection : &Cursor->Cursor;
 						int Len = StrlenW(t + *LastMarker) + 1;
 						memmove(t, t + *LastMarker, Len * sizeof(*t));
 
@@ -1908,7 +1908,7 @@ public:
 			// Try and clear the styles across the selection
 			bool CursorFirst = IsCursorFirst();
 			GTag *t = CursorFirst ? Cursor : Selection;
-			int *edge = CursorFirst ? &Cursor->Cursor : &Selection->Selection;
+			ssize_t *edge = CursorFirst ? &Cursor->Cursor : &Selection->Selection;
 			GTag *end = CursorFirst ? Selection : Cursor;
 			
 			if (HasStyle(t))

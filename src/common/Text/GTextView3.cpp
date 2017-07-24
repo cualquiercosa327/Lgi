@@ -289,7 +289,7 @@ public:
 	}
 };
 
-void GTextView3::GStyle::RefreshLayout(ssize_t Start, ssize_t Len)
+void GTextView3::GStyle::RefreshLayout(size_t Start, ssize_t Len)
 {
 	View->PourText(Start, Len);
 	View->PourStyle(Start, Len);

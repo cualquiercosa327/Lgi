@@ -52,10 +52,10 @@ const char *FlagToString(CellFlag f)
 }
 
 template <class T>
-T CountRange(GArray<T> &a, size_t Start, size_t End)
+T CountRange(GArray<T> &a, ssize_t Start, ssize_t End)
 {
 	T c = 0;
-	for (size_t i=Start; i<=End; i++)
+	for (ssize_t i=Start; i<=End; i++)
 	{
 		c += a[i];
 	}
