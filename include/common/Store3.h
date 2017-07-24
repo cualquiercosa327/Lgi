@@ -160,9 +160,9 @@ public:
 	virtual bool SetDate(int id, GDateTime *i) { EmptyVirtual; }
 
 	/// Gets a variant
-	virtual GVariant *GetVariant(int id) { EmptyVirtual; }
+	virtual GVariant *GetVar(int id) { EmptyVirtual; }
 	/// Sets a variant property
-	virtual bool SetVariant(int id, GVariant *i) { EmptyVirtual; }
+	virtual bool SetVar(int id, GVariant *i) { EmptyVirtual; }
 
 	/// Gets a sub object pointer
 	virtual GDataPropI *GetObj(int id) { EmptyVirtual; }
@@ -184,9 +184,6 @@ public:
 
 	GDataI() { UserData = 0; }
 	virtual ~GDataI() { }
-
-	/// Copy all the values from 'p' over to this object
-	virtual GDataI &operator =(GDataI &p) = 0;
 
 	/// Returns the type of object
 	/// \sa MAGIC_MAIL and it's like

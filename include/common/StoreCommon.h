@@ -100,7 +100,7 @@ public:
 	void ClearSub();
 	
 	// GFile stuff
-	int Open(char *Str = 0, int Int = 0);
+	int Open(const char *Str = 0, int Int = 0);
 	bool IsOpen();
 	int Close();
 	int64 GetSize();

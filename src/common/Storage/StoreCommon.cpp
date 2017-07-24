@@ -79,7 +79,7 @@ void GSubFilePtr::ClearSub()
 	Start = Len = 0;
 }
 
-int GSubFilePtr::Open(char *Str, int Int)
+int GSubFilePtr::Open(const char *Str, int Int)
 {
 	LgiAssert(0);
 	return 0;

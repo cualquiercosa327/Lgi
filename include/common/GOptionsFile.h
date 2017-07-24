@@ -35,7 +35,7 @@ private:
 	bool DelAttr(const char *Name) { return GXmlTag::DelAttr(Name); }
 	void InsertTag(GXmlTag *t) { GXmlTag::InsertTag(t); }
 	void RemoveTag() { GXmlTag::RemoveTag(); }
-	bool Serialize(bool Write) {}
+	bool Serialize(bool Write) { return false; }
 	GXmlTag *GetChildTag(const char *Name, bool Create = false) { return GXmlTag::GetChildTag(Name, Create); }
 
 protected:

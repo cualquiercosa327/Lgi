@@ -578,7 +578,7 @@ bool GRichTextEdit::GetLineColumnAtIndex(GdcPt2 &Pt, int Index)
 	return true;
 }
 
-ssize_t GRichTextEdit::GetCursor(bool Cur)
+ssize_t GRichTextEdit::GetCaret(bool Cur)
 {
 	if (!d->Cursor)
 		return -1;

@@ -61,7 +61,7 @@ typedef		unsigned short				uint16;
 	#endif
 
 	#ifndef __cplusplus
-	typedef unsigned char bool;
+	typedef int bool;
 	#endif
 
 	#pragma warning(error:4263)

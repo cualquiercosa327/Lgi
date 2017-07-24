@@ -8598,7 +8598,7 @@ void GHtml::SetLinkDoubleClick(bool b)
 	d->LinkDoubleClick = b;
 }
 
-bool GHtml::GetFormattedContent(const char *MimeType, GAutoString &Out, GArray<GDocView::ContentMedia> *Media)
+bool GHtml::GetFormattedContent(const char *MimeType, GString &Out, GArray<GDocView::ContentMedia> *Media)
 {
 	if (!MimeType)
 	{
@@ -8650,7 +8650,7 @@ bool GHtml::GetFormattedContent(const char *MimeType, GAutoString &Out, GArray<G
 		}
 
 		// Export the HTML, including the CID's from the first step
-		Out.Reset(NewStr(Name()));
+		Out = Name();
 	}
 	else if (!_stricmp(MimeType, "text/plain"))
 	{
@@ -8661,7 +8661,7 @@ bool GHtml::GetFormattedContent(const char *MimeType, GAutoString &Out, GArray<G
 			GTag::TextConvertState State(&p);
 			Tag->ConvertToText(State);
 		}
-		Out.Reset(p.NewStr());
+		Out = p.NewGStr();
 	}
 
 	return false;

@@ -141,7 +141,7 @@ struct EmojiMemQ : GMemQueue
 	}
 	
 	#ifdef WINDOWS
-	int Write(const char16 *s, int bytes)
+	int WriteWide(const char16 *s, ssize_t bytes)
 	{
 		GAutoPtr<uint32> c((uint32*)LgiNewConvertCp("utf-32", s, LGI_WideCharset, bytes));
 		int len = Strlen(c.Get());
@@ -149,7 +149,7 @@ struct EmojiMemQ : GMemQueue
 	}
 	#endif
 	
-	ssize_t Write(const WChar *s, int bytes)
+	ssize_t WriteWide(const WChar *s, ssize_t bytes)
 	{
 		return GMemQueue::Write(s, bytes);
 	}

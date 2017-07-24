@@ -122,7 +122,7 @@ public:
 	}
 
 	// Stream
-	int Open(char *Str, int Int) { return S->Open(Str, Int); }
+	int Open(const char *Str, int Int) { return S->Open(Str, Int); }
 	bool IsOpen() { return S->IsOpen(); }
 	int Close() { return S->Close(); }
 	int64 GetSize() { return S->GetSize(); }
@@ -137,14 +137,14 @@ public:
 	int GetLocalPort() { return S->GetLocalPort(); }
 	bool GetRemoteIp(char *IpAddr) { return S->GetRemoteIp(IpAddr); }
 	int GetRemotePort() { return S->GetRemotePort(); }
-	bool IsReadable() { return S->IsReadable(); }
+	bool IsReadable(int TimeoutMs = 0) { return S->IsReadable(); }
 	bool Listen(int Port = 0) { return S->Listen(Port = 0); }
 	bool Accept(GSocketI *c) { return S->Accept(c); }
 	int Error(void *param) { return S->Error(param); }
 	void OnDisconnect() { S->OnDisconnect(); }
-	void OnError(int ErrorCode, char *ErrorDescription) { S->OnError(ErrorCode, ErrorDescription); }
-	void OnInformation(char *Str) { S->OnInformation(Str); }
-	void OnRead(char *Data, int Len)
+	void OnError(int ErrorCode, const char *ErrorDescription) { S->OnError(ErrorCode, ErrorDescription); }
+	void OnInformation(const char *Str) { S->OnInformation(Str); }
+	void OnRead(char *Data, ssize_t Len)
 	{
 		S->OnRead(Data, Len);
 
@@ -186,7 +186,7 @@ public:
 		}
 	}
 
-	void OnWrite(char *Data, int Len)
+	void OnWrite(const char *Data, ssize_t Len)
 	{
 		S->OnWrite(Data, Len);
 
@@ -202,7 +202,7 @@ public:
 		}
 	}
 
-	bool SetValue(char *Which, GVariant &What)
+	bool SetValue(const char *Which, GVariant &What)
 	{
 		int r = S->SetValue(Which, What);
 		if (T && _stricmp(Which, GSocket_TransferSize) == 0)
