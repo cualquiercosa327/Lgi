@@ -96,14 +96,46 @@ public:
 		// Set position relative to editbox
 		GRect r = GetPos();
 		GdcPt2 p(0, PosType == PopupAbove ? 0 : Edit->Y());
-		Edit->PointToScreen(p);
+
+		#ifdef __GTK_H__
+
+			GWindow *w = Edit->GetWindow();
+			if (w)
+			{
+				OsWindow h = w->WindowHandle();
+				Gtk::gint x, y;
+				Gtk::gtk_window_get_position(h, &x, &y);				
+				p.x += x;
+				p.y += y;
+				
+				Gtk::gtk_widget_translate_coordinates(	Edit->Handle(),
+														Gtk::gtk_widget_get_toplevel(Edit->Handle()),
+														0, 0,
+														&x, &y);
+				p.x += x;
+				p.y += y;
+
+				GRect *Decor = w->GetDecorSize();
+				if (Decor)
+				{
+					p.x += Decor->x1;
+					p.y += Decor->y1;
+				}
+				else printf("%s:%i - No decor size for %s\n", _FL, w->GetClass());
+			}
+			else LgiAssert(0);
+
+		#else
+		
+			Edit->PointToScreen(p);
+		
+		#endif
+
 		if (PosType == PopupAbove)
 			r.Offset(p.x - r.x1, (p.y - r.Y()) - r.y1);
 		else
 			r.Offset(p.x - r.x1, p.y - r.y1);
-		#ifdef __GTK_H__
-		r.Offset(9, -18);
-		#endif
+
 		SetPos(r);				
 	}
 	
@@ -185,7 +217,7 @@ public:
 	{
 		if (Lst &&
 			Ctrl == Edit &&
-			!Flags)
+			(!Flags || Flags == GNotifyDocChanged))
 		{
 			char *Str = Edit->Name();
 			Name(Str);

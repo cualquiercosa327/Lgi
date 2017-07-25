@@ -1,6 +1,5 @@
 //
 //  GFileCommon.cpp
-//  LgiCarbon
 //
 //  Created by Matthew Allen on 4/05/14.
 //  Copyright (c) 2014 Memecode. All rights reserved.
@@ -168,7 +167,7 @@ bool GFile::CallMethod(const char *Name, GVariant *Dst, GArray<GVariant*> &Arg)
 				// String type
 				if ((Dst->Value.String = new char[RdLen + 1]))
 				{
-					int r = Read(Dst->Value.String, (int)RdLen);
+					ssize_t r = Read(Dst->Value.String, (int)RdLen);
 					if (r > 0)
 					{
 						Dst->Type = GV_STRING;
@@ -256,7 +255,7 @@ bool GFile::CallMethod(const char *Name, GVariant *Dst, GArray<GVariant*> &Arg)
 							}
 							else if (WrLen == 4)
 							{
-								uint32 i = v->Value.Int64;
+								uint32 i = (uint32)v->Value.Int64;
 								*Dst = Write(&i, sizeof(i));
 							}
 							else
@@ -267,7 +266,7 @@ bool GFile::CallMethod(const char *Name, GVariant *Dst, GArray<GVariant*> &Arg)
 						}
 						case GV_STRING:
 						{
-							int Max = strlen(v->Value.String) + 1;
+							size_t Max = strlen(v->Value.String) + 1;
 							*Dst = Write(&v->Value.String, min(Max, WrLen));
 							break;
 						}
@@ -304,7 +303,13 @@ const char *LgiGetLeaf(const char *Path)
 	if (!Path)
 		return NULL;
 
-	const char *l = strrchr(Path, DIR_CHAR);
+	const char *l = NULL;
+	for (const char *s = Path; *s; s++)
+	{
+		if (*s == '/' || *s == '\\')
+			l = s;
+	}
+
 	return l ? l + 1 : Path;
 }
 
@@ -313,7 +318,13 @@ char *LgiGetLeaf(char *Path)
 	if (!Path)
 		return NULL;
 
-	char *l = strrchr(Path, DIR_CHAR);
+	char *l = NULL;
+	for (char *s = Path; *s; s++)
+	{
+		if (*s == '/' || *s == '\\')
+			l = s;
+	}
+
 	return l ? l + 1 : Path;
 }
 

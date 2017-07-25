@@ -120,7 +120,7 @@ private:
 		if (info->dli_sname) {
 			symbol = info->dli_sname;
 		} else {
-			snprintf(symbuf, sizeof(symbuf), "0x%x", info->dli_saddr);
+			snprintf(symbuf, sizeof(symbuf), "0x%p", info->dli_saddr);
 		}
 		
 		return snprintf(buf, size,

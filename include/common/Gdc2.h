@@ -702,7 +702,7 @@ public:
 		GScreenDC(HDC hdc, HWND hwnd, bool Release = false);
 		GScreenDC(HBITMAP hBmp, int Sx, int Sy);
 
-		bool Create(HDC hdc);
+		bool CreateFromHandle(HDC hdc);
 		void SetSize(int x, int y);
 
 	#else
@@ -988,8 +988,8 @@ public:
 	void Blt(int x, int y, GSurface *Src, GRect *a = NULL);
 	void StretchBlt(GRect *d, GSurface *Src, GRect *s = NULL);
 
-	void HLine(int x1, int x2, int y, COLOUR a, COLOUR b);
-	void VLine(int x, int y1, int y2, COLOUR a, COLOUR b);
+	void HorzLine(int x1, int x2, int y, COLOUR a, COLOUR b);
+	void VertLine(int x, int y1, int y2, COLOUR a, COLOUR b);
 };
 
 /// \brief An implemenation of GSurface to print to a printer.

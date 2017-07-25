@@ -598,7 +598,7 @@ GHtmlElement::~GHtmlElement()
 	Children.DeleteObjects();
 }
 
-bool GHtmlElement::Attach(GHtmlElement *Child, int Idx)
+bool GHtmlElement::Attach(GHtmlElement *Child, ssize_t Idx)
 {
 	if (TagId == CONTENT)
 	{

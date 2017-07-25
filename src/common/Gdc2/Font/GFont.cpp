@@ -196,7 +196,7 @@ GTypeFace::~GTypeFace()
 
 bool GTypeFace::operator ==(GTypeFace &t)
 {
-	if (Face() == 0 ^ t.Face() == 0)
+	if ((Face() == 0) ^ (t.Face() == 0))
 		return false;
 	if (Face() && t.Face() && stricmp(Face(), t.Face()) != 0)
 		return false;
@@ -220,7 +220,7 @@ void GTypeFace::Face(const char *s)
 	{
 		DeleteArray(d->_Face);
 		d->_Face = NewStr(s);
-		LgiAssert(d->_Face);
+		LgiAssert(d->_Face != NULL);
 		_OnPropChange(true);
 	}
 }
@@ -1041,7 +1041,7 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 			d->Height = Size.cy;
 		}
 
-		int Bytes = (MAX_UNICODE + 1) >> 3;
+		uint Bytes = (MAX_UNICODE + 1) >> 3;
 		if (!d->GlyphMap)
 		{
 			d->GlyphMap = new uchar[Bytes];
@@ -1094,7 +1094,7 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 						else
 						{
 							uint16 *End = (uint16*) (((char*)t)+Length);
-							int IdBytes = End - IdRangeOffset;
+							ssize_t IdBytes = End - IdRangeOffset;
 
 							for (uint u = StartCount[i]; u <= EndCount[i] && IdRangeOffset[i] != 0xffff; u++)
 							{
@@ -1154,12 +1154,12 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 					LPGLYPHSET Set = (LPGLYPHSET) new char[BufSize];
 					if (Set && GetFontUnicodeRanges(hDC, Set) > 0)
 					{
-						for (int i=0; i<Set->cRanges; i++)
+						for (DWORD i=0; i<Set->cRanges; i++)
 						{
 							WCRANGE *Range = Set->ranges + i;
 							for (int n=0; n<Range->cGlyphs; n++)
 							{
-								int u = Range->wcLow + n;
+								DWORD u = Range->wcLow + n;
 								if (u >> 3 < Bytes)
 								{
 									d->GlyphMap[u>>3] |= 1 << (u & 7);
@@ -1295,7 +1295,7 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 	
 		Destroy();
 		
-		OSStatus e;
+		// OSStatus e;
 
 		if (this == SysFont)
 			LgiTrace("%s:%i - WARNING: you are re-creating the system font... this is bad!!!!\n", _FL);
@@ -1475,8 +1475,8 @@ bool GFont::Create(GFontType *LogFont, GSurface *pSurface)
 			Face(uFace);
 			Quality(LogFont->Info.lfQuality);
 			Bold(LogFont->Info.lfWeight >= FW_BOLD);
-			Italic(LogFont->Info.lfItalic);
-			Underline(LogFont->Info.lfUnderline);
+			Italic(LogFont->Info.lfItalic != FALSE);
+			Underline(LogFont->Info.lfUnderline != FALSE);
 
 			// create the handle
 			Create(0, 0, pSurface);
@@ -1880,7 +1880,7 @@ bool GFontType::GetSystemFont(const char *Which)
 		Ver[0] <= 5)
 		info.cbSize -= 4;
 	#endif
-	bool InfoOk = SystemParametersInfo(	SPI_GETNONCLIENTMETRICS,
+	BOOL InfoOk = SystemParametersInfo(	SPI_GETNONCLIENTMETRICS,
 										info.cbSize,
 										&info,
 										0);

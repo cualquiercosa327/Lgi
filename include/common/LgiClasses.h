@@ -1208,7 +1208,7 @@ class LgiClass GWindow :
 	friend class GApp;
 	friend class GWindowPrivate;
 	friend struct GDialogPriv;
-	#if defined(MAC) && !defined(COCOA)
+	#if defined(CARBON)
 	friend pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, void *inUserData);
 	#endif
 
@@ -1265,7 +1265,7 @@ public:
 	#else
 	GWindow();
 	#endif
-	#ifdef MAC
+	#if CARBON
 	GWindow(WindowRef wr);
 	#endif
 	~GWindow();
@@ -1273,7 +1273,7 @@ public:
 	const char *GetClass() { return "GWindow"; }
 
 	/// Lays out the child views into the client area.
-	virtual void Pour();
+	virtual void PourAll();
 
 	/// Returns the current menu object
 	GMenu *GetMenu() { return Menu; }
@@ -1434,6 +1434,7 @@ public:
 	
 		void OnMap(bool m);
 		void Quit(bool DontDelete = false);
+		GRect *GetDecorSize();
 	
 	#endif
 };

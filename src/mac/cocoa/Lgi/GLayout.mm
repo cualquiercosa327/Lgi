@@ -449,8 +449,8 @@ bool GLayout::SetScrollBars(bool x, bool y)
 	{
 		Processing = true;
 		
-		int NeedsScroll = (x?1:0) + (y?1:0);
-		int HasScroll = (VScroll?1:0) + (HScroll?1:0);
+		// int NeedsScroll = (x?1:0) + (y?1:0);
+		// int HasScroll = (VScroll?1:0) + (HScroll?1:0);
 		
 		if (IsAttached())
 		{

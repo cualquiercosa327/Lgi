@@ -105,14 +105,14 @@ class LgiClass GCustomType : public GDom
 protected:
 	struct CustomField : public GDom
 	{
-		int Offset;
-		int Bytes;
-		int ArrayLen;
+		ssize_t Offset;
+		ssize_t Bytes;
+		ssize_t ArrayLen;
 		GVariantType Type;
 		GString Name;
 		GCustomType *Nested;
 
-		int Sizeof();
+		ssize_t Sizeof();
 		bool GetVariant(const char *Name, GVariant &Value, char *Array = NULL);
 	};
 
@@ -146,7 +146,7 @@ protected:
 	GHashTbl<const char*, Method*> MethodMap;
 	
 	// Private methods
-	int PadSize();	
+	ssize_t PadSize();
 
 public:
 	GCustomType(const char *name, int pack = 1);
@@ -155,7 +155,7 @@ public:
 	
 	size_t Sizeof();
 	const char *GetName() { return Name; }
-	int Members() { return Flds.Length(); }
+	ssize_t Members() { return Flds.Length(); }
 	int AddressOf(const char *Field);
 	int IndexOf(const char *Field);
 	bool DefineField(const char *Name, GVariantType Type, int Bytes, int ArrayLen = 1);
@@ -204,7 +204,7 @@ public:
 		/// Valid when Type == #GV_BINARY
 	    struct _Binary
 	    {
-		    int Length;
+		    ssize_t Length;
 		    void *Data;
 	    } Binary;
 		/// Valid when Type == #GV_LIST
@@ -259,6 +259,10 @@ public:
 	GVariant();
 	/// Constructor for int
 	GVariant(int i);
+	#ifndef _MSC_VER
+	GVariant(size_t i);
+	GVariant(ssize_t i);
+	#endif
 	/// Constructor for int64
 	GVariant(int64 i);
 	/// Constructor for uint64
@@ -292,6 +296,10 @@ public:
 	#endif
 	/// Assign bool value
 	GVariant &operator =(bool i);
+	#ifndef _MSC_VER
+	GVariant &operator =(size_t i);
+	GVariant &operator =(ssize_t i);
+	#endif
 	/// Assign 64bit int value
 	GVariant &operator =(int64 i);
 	/// Assign double value
@@ -320,7 +328,7 @@ public:
 	/// Sets the value to a DOM variable reference
 	bool SetDomRef(GDom *obj, char *name);
 	/// Sets the value to a copy of	block of binary data
-	bool SetBinary(int Len, void *Data, bool Own = false);
+	bool SetBinary(ssize_t Len, void *Data, bool Own = false);
 	/// Sets the value to a copy of the list
 	bool SetList(List<GVariant> *Lst = 0);
 	/// Sets the value to a hashtable

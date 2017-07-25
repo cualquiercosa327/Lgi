@@ -310,7 +310,7 @@ bool VCard::Import(GDataPropI *c, GStreamI *s)
 	TypesList Types;
 	char *Data = 0;
 
-	int PrefEmail = -1;
+	ssize_t PrefEmail = -1;
 	GArray<char*> Emails;
 
 	while (ReadField(*s, &Field, &Types, &Data))
@@ -464,16 +464,16 @@ bool VCard::Import(GDataPropI *c, GStreamI *s)
 				}
 				else if (IsVar(Field, "photo"))
 				{
-					int B64Len = strlen(Data);					
-					int BinLen = BufferLen_64ToBin(B64Len);
+					size_t B64Len = strlen(Data);
+					ssize_t BinLen = BufferLen_64ToBin(B64Len);
 					GAutoPtr<uint8> Bin(new uint8[BinLen]);
 					if (Bin)
 					{
-						int Bytes = ConvertBase64ToBinary(Bin.Get(), BinLen, Data, B64Len);
+						ssize_t Bytes = ConvertBase64ToBinary(Bin.Get(), BinLen, Data, B64Len);
 						GVariant v;
 						if (v.SetBinary(Bytes, Bin.Release(), true))
 						{
-							c->SetVariant(FIELD_CONTACT_IMAGE, &v);
+							c->SetVar(FIELD_CONTACT_IMAGE, &v);
 						}
 					}
 				}
@@ -833,14 +833,14 @@ bool VCard::Export(GDataPropI *c, GStreamI *o)
 		WriteField(*o, "note", 0, Note);
 	}
 	
-	GVariant *Photo = c->GetVariant(FIELD_CONTACT_IMAGE);
+	GVariant *Photo = c->GetVar(FIELD_CONTACT_IMAGE);
 	if (Photo && Photo->Type == GV_BINARY)
 	{
-		int B64Len = BufferLen_BinTo64(Photo->Value.Binary.Length);
+		ssize_t B64Len = BufferLen_BinTo64(Photo->Value.Binary.Length);
 		GAutoPtr<char> B64Buf(new char[B64Len]);
 		if (B64Buf)
 		{
-			int Bytes = ConvertBinaryToBase64(B64Buf, B64Len, (uchar*)Photo->Value.Binary.Data, Photo->Value.Binary.Length);
+			ssize_t Bytes = ConvertBinaryToBase64(B64Buf, B64Len, (uchar*)Photo->Value.Binary.Data, Photo->Value.Binary.Length);
 			if (Bytes > 0)
 			{
 				GStreamPrint(o, "photo;type=jpeg;encoding=base64:\r\n");
@@ -848,8 +848,8 @@ bool VCard::Export(GDataPropI *c, GStreamI *o)
 				int LineChar = 76;
 				for (int i=0; i<Bytes; )
 				{
-					int Remain = Bytes - i;
-					int Wr = Remain > LineChar ? LineChar : Remain;
+					ssize_t Remain = Bytes - i;
+					ssize_t Wr = Remain > LineChar ? LineChar : Remain;
 
 					o->Write(" ", 1);
 					o->Write(B64Buf + i, Wr);
@@ -879,7 +879,7 @@ bool VCal::Import(GDataPropI *c, GStreamI *In)
 	char *Field = 0;
 	TypesList Types;
 	char *Data = 0;
-	bool SetType = false;
+	// bool SetType = false;
 	bool IsEvent = false;
 	GAutoString SectionType;
 

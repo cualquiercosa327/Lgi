@@ -73,7 +73,7 @@ protected:
 	bool GetCursorVis();
 	GRect *GetCursorPos();
 	bool IsCursorFirst();
-	bool CompareTagPos(GTag *a, int AIdx, GTag *b, int BIdx);
+	bool CompareTagPos(GTag *a, ssize_t AIdx, GTag *b, ssize_t BIdx);
 	int GetTagDepth(GTag *Tag);
 	GTag *PrevTag(GTag *t);
 	GTag *NextTag(GTag *t);
@@ -85,11 +85,11 @@ public:
 
 	// Html
 	const char *GetClass() { return "GHtml"; }
-	bool GetFormattedContent(const char *MimeType, GAutoString &Out, GArray<GDocView::ContentMedia> *Media = 0);
+	bool GetFormattedContent(const char *MimeType, GString &Out, GArray<GDocView::ContentMedia> *Media = 0);
 
 	/// Get the tag at an x,y location
 	GTag *GetTagByPos(	int x, int y,
-						int *Index,
+						ssize_t *Index,
 						GdcPt2 *LocalCoords = NULL,
 						bool DebugLog = false);
 	/// Layout content and return size.

@@ -347,9 +347,9 @@ LgiTrace("%s:%i - File='%s'\n", _FL, File);
 
 		// Find the file..
 		#ifdef MAC
-		int DotApp = File.RFind(".app");
+		ssize_t DotApp = File.RFind(".app");
 		if (DotApp >= 0)
-			File.Length(DotApp);
+			File.Length((int)DotApp);
 		#endif
 
 #if DEBUG_RES_FILE
@@ -425,9 +425,6 @@ bool LgiResources::StyleElement(GViewI *v)
 		LgiResources *r = _ResourceOwner[i];
 		if (r)
 		{
-			#ifdef _DEBUG
-			const char *Cls = v->GetClass();
-			#endif
 			GCss::SelArray Selectors;
 			GViewCssCb Ctx;
 			r->CssStore.Match(Selectors, &Ctx, v);

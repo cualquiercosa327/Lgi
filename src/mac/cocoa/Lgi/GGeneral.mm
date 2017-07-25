@@ -220,7 +220,7 @@ bool _GetIniField(char *Grp, char *Field, char *In, char *Out, int OutSize)
 					while (*v && strchr(" \t", *v)) v++;
 					
 					// Calculate the length of the field
-					size_t flen = e-Line;
+					size_t flen = e - Line;
 					
 					// Check the current field against the input field
 					if (strnicmp(Field, Line, flen) == 0)
@@ -514,7 +514,7 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir, GAutoString
 	return Status;
 }
 
-CFStringRef Utf8ToCFString(char *s, int len)
+CFStringRef Utf8ToCFString(char *s, ssize_t len)
 {
 	if (s && len < 0)
 		len = strlen(s);
@@ -559,7 +559,7 @@ char *CFStringToUtf8(CFStringRef r)
 
 bool LgiGetMimeTypeExtensions(const char *Mime, GArray<char*> &Ext)
 {
-	int Start = Ext.Length();
+	size_t Start = Ext.Length();
 	
 #define HardCodeExtention(Mime, Ext1, Ext2) \
 else if (!stricmp(Mime, Mime)) \

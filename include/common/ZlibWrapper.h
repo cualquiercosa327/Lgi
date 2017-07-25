@@ -102,7 +102,7 @@ public:
 		Close();
 	}
 
-	int Open(char *Str, int Mode)
+	int Open(const char *Str, int Mode)
 	{
 		Close();
 
@@ -149,7 +149,7 @@ public:
 		return z->gzseek(f, (long)Pos, SEEK_SET);
 	}
 	
-	int Read(void *Buffer, int Size, int Flags = 0)
+	ssize_t Read(void *Buffer, ssize_t Size, int Flags = 0)
 	{
 		if (!IsOpen())
 			return -1;
@@ -157,7 +157,7 @@ public:
 		return z->gzread(f, Buffer, Size);
 	}
 	
-	int Write(const void *Buffer, int Size, int Flags = 0)
+	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0)
 	{
 		if (!IsOpen())
 			return -1;

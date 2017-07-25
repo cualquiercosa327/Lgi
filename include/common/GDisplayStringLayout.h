@@ -31,7 +31,7 @@ struct GDisplayStringLayout
 
 	uint32 NextChar(char *s)
 	{
-		ptrdiff_t Len = 0;
+		ssize_t Len = 0;
 		while (s[Len] && Len < 6) Len++;
 		return LgiUtf8To32((uint8*&)s, Len);
 	}
@@ -41,7 +41,7 @@ struct GDisplayStringLayout
 		if (IsUtf8_Lead(*s) || IsUtf8_1Byte(*s))
 		{
 			s--;
-			ptrdiff_t Len = 1;
+			ssize_t Len = 1;
 			while (IsUtf8_Trail(*s) && Len < 6) { s--; Len++; }
 
 			return LgiUtf8To32((uint8*&)s, Len);
@@ -144,7 +144,7 @@ struct GDisplayStringLayout
 				if (Wrap && n->X() > Width)
 				{
 					// If wrapping, work out the split point and the text is too long
-					int Ch = n->CharAt(Width);
+					ssize_t Ch = n->CharAt(Width);
 					if (Ch > 0)
 					{
 						// Break string into chunks
@@ -181,7 +181,7 @@ struct GDisplayStringLayout
 		}
 
 		Min.y = f->GetHeight() * MinLines;
-		Max.y = f->GetHeight() * Strs.Length();
+		Max.y = f->GetHeight() * (int)Strs.Length();
 		
 		if (Debug)
 			LgiTrace("CreateTxtLayout(%i) min=%i,%i  max=%i,%i\n",

@@ -30,7 +30,7 @@
 								}
 
 #define AddLocalSize(NewSize) \
-	int LocalsBase = Locals.Length(); \
+	size_t LocalsBase = Locals.Length(); \
 	Locals.SetFixedLength(false); \
 	/* LgiTrace("%s:%i - Locals %i -> %i\n", _FL, LocalsBase, LocalsBase + NewSize); */ \
 	Locals.Length(LocalsBase + NewSize); \
@@ -287,7 +287,7 @@ GExecutionStatus GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentA
 		return ScriptError;
 	}
 	
-	uint32 a = Ptr.ni - &Val[0];
+	ssize_t a = Ptr.ni - &Val[0];
 	NativeInt r = 0;
 
 	#if defined(_MSC_VER)
@@ -423,7 +423,7 @@ public:
 	ArgumentArray *ArgsOutput;
 	GVariant UnusedReturn;
 	bool BreakCpp;
-	GArray<int> BreakPts;
+	GArray<ssize_t> BreakPts;
 	GString TempPath;
 
 	GVirtualMachinePriv(GVirtualMachine *vm, GVmDebuggerCallback *Callback)
@@ -440,7 +440,6 @@ public:
 	
 	~GVirtualMachinePriv()
 	{
-		int asd=0;
 	}
 
 	void DumpVariant(GStream *Log, GVariant &v)
@@ -892,14 +891,14 @@ public:
 		{
 			// Stepping through code
 			// GHashTbl<int, int> &Debug = Code->Debug;
-			int Param;
+			int Param = 0;
 			switch (Type)
 			{
 				case RunStepLine:
 					Param = NearestLine(CurrentScriptAddress);
 					break;
 				case RunStepOut:
-					Param = Frames.Length();
+					Param = (int)Frames.Length();
 					break;
 				default:
 					break;
@@ -1232,8 +1231,8 @@ public:
 	int GetCurLine() { return CurLine; }
 	int GetAddr();
 	void ScrollToCurLine();
-	void PourText(int Start, int Length);
-	void OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour);
+	void PourText(size_t Start, ssize_t Length) override;
+	void OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour) override;
 	void OnPaint(GSurface *pDC);
 	bool Breakpoint(int Addr);
 };
@@ -1415,7 +1414,7 @@ void GDebugView::OnPaint(GSurface *pDC)
 	}
 }
 
-void GDebugView::PourText(int Start, int Len)
+void GDebugView::PourText(size_t Start, ssize_t Len)
 {
 	GTextView3::PourText(Start, Len);
 
@@ -1758,7 +1757,7 @@ void GVmDebuggerWnd::SetSource(const char *Mixed)
 	#endif
 }
 
-void GVmDebuggerWnd::UpdateVariables(GList *Lst, GVariant *Arr, int Len, char Prefix)
+void GVmDebuggerWnd::UpdateVariables(GList *Lst, GVariant *Arr, ssize_t Len, char Prefix)
 {
 	if (!d->Vm || !Lst || !Arr)
 		return;
@@ -1798,7 +1797,7 @@ void GVmDebuggerWnd::OnAddress(size_t Addr)
 	d->CurrentAddr = Addr;
 	if (d->Text)
 	{
-		int Sz = d->Text->GetSize();
+		ssize_t Sz = d->Text->GetSize();
 		d->Text->PourText(0, Sz);
 		d->Text->ScrollToCurLine();
 		d->Text->Invalidate();

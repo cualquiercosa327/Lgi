@@ -28,13 +28,11 @@
 
 /// This turns on the Core Text implementation.
 /// If '0' the old ATSUI implementation is used.
-/*
-#ifdef __ATSUNICODEOBJECTS__
-#define USE_CORETEXT		0
-#else
-*/
 #define USE_CORETEXT		1
-// #endif
+
+#ifndef CARBON
+#define CARBON				1
+#endif
 
 //////////////////////////////////////////////////////////////////
 // Typedefs
@@ -68,10 +66,6 @@ public:
 	void Set(char *CmdLine);
 	OsAppArguments &operator =(OsAppArguments &a);
 };
-
-//////////////////////////////////////////////////////////////////
-//
-#pragma clang diagnostic ignored "-Wtautological-undefined-compare"
 
 //////////////////////////////////////////////////////////////////
 // Defines

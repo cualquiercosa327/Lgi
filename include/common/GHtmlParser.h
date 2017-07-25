@@ -27,7 +27,7 @@ protected:
 	GHtmlElement *GetOpenTag(const char *Tag);
 	void _TraceOpenTags();
 	char *ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPreTag = false, bool *BackOut = NULL);	
-	char16 *DecodeEntities(const char *s, int len);
+	char16 *DecodeEntities(const char *s, ssize_t len);
 
 public:
 	GHtmlParser(GDocView *view)
@@ -52,7 +52,7 @@ public:
 	char *ParsePropList(char *s, GHtmlElement *Obj, bool &Closed);
 	void SkipNonDisplay(char *&s);
 	char *NextTag(char *s);
-	char16 *CleanText(const char *s, int Len, bool ConversionAllowed, bool KeepWhiteSpace);
+	char16 *CleanText(const char *s, ssize_t Len, bool ConversionAllowed, bool KeepWhiteSpace);
 	
 	// Virtual callbacks
 	virtual GHtmlElement *CreateElement(GHtmlElement *Parent) = 0;

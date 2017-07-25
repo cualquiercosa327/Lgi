@@ -466,7 +466,7 @@ public:
 		Scansize = scansize;
 	}
 
-	int Write(const void *buf, int size, int flags)
+	ssize_t Write(const void *buf, ssize_t size, int flags)
 	{
 		int Status = GMemQueue::Write(buf, size, flags);
 		Size += size;

@@ -167,7 +167,7 @@ uint32 GProcess::GetErrorCode()
 	return d->ErrorCode;
 }
 
-int GProcess::ExitValue()
+ulong GProcess::ExitValue()
 {
 	return d->ExitValue;
 }
@@ -287,10 +287,10 @@ public:
 
 	GNativeString &operator += (GNativeString &add)
 	{
-		int AddSize = add.GetSize();
+		size_t AddSize = add.GetSize();
 		if (AddSize)
 		{
-			int Len = GetSize() + AddSize;
+			size_t Len = GetSize() + AddSize;
 			if (WinNT)
 			{
 				char16 *s = new char16[Len+1];
@@ -348,7 +348,7 @@ public:
 		return 0;
 	}
 
-	int GetSize()
+	size_t GetSize()
 	{
 		if (n)
 		{
@@ -789,7 +789,7 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 
 			Status = true;
 
-			int r;
+			ssize_t r;
 			if (In && In->GetSize() > 0)
 			{
 				/*
@@ -822,7 +822,7 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 
 						// printf("stdout: %s\n", Buf);
 
-						Out->Write(Buf, r);
+						Out->Write(Buf, (int)r);
 					}
 
 					while (	TestFlag(hndstate(Error.Read), POLLIN) &&
@@ -832,7 +832,7 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 
 						// printf("stderr: %s\n", Buf);
 
-						Out->Write(Buf, r);
+						Out->Write(Buf, (int)r);
 					}
 				}
 

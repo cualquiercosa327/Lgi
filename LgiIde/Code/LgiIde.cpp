@@ -25,6 +25,7 @@
 #include "GDebugger.h"
 #include "LgiRes.h"
 #include "ProjectNode.h"
+#include "GBox.h"
 
 #define IDM_RECENT_FILE			1000
 #define IDM_RECENT_PROJECT		1100
@@ -34,6 +35,8 @@
 #define USE_HAIKU_PULSE_HACK	1
 
 #define OPT_ENTIRE_SOLUTION		"SearchSolution"
+#define OPT_SPLIT_PX			"SplitPos"
+#define OPT_OUTPUT_PX			"OutputPx"
 
 //////////////////////////////////////////////////////////////////////////////////////////
 char AppName[] = "LgiIde";
@@ -270,7 +273,7 @@ public:
 	{
 	}
 	
-	void PourText(int Start, int Len)
+	void PourText(size_t Start, ssize_t Len) override
 	{
 		GTextView3::PourText(Start, Len);
 
@@ -344,7 +347,7 @@ void WatchItem::OnExpand(bool b)
 	}
 }
 
-class IdeOutput : public GPanel
+class IdeOutput : public GView
 {
 public:
 	AppWnd *App;
@@ -370,7 +373,7 @@ public:
 	GEdit *DebugEdit;
 	GTextLog *DebuggerLog;
 
-	IdeOutput(AppWnd *app) : GPanel("Panel", 200, true)
+	IdeOutput(AppWnd *app)
 	{
 		App = app;
 		Build = Output = Debug = Find = Ftp = 0;
@@ -406,7 +409,6 @@ public:
 			Fixed.Create();			
 		}		
 
-		Alignment(GV_EDGE_BOTTOM);
 		Children.Insert(Tab = new GTabView(100, 18, 3, 200, 200, "Output"));
 		if (Tab)
 		{
@@ -625,7 +627,7 @@ public:
 						DebugLog->AddView(DebuggerLog = new DebugTextLog(IDC_DEBUGGER_LOG));
 						DebuggerLog->SetFont(&Small);
 						DebugLog->AddView(DebugEdit = new GEdit(IDC_DEBUG_EDIT, 0, 0, 60, 20));
-						DebugEdit->GetCss(true)->Height(GCss::Len(GCss::LenPx, SysFont->GetHeight() + 8));
+						DebugEdit->GetCss(true)->Height(GCss::Len(GCss::LenPx, (float)(SysFont->GetHeight() + 8)));
 					}
 				}
 			}
@@ -648,6 +650,17 @@ public:
 
 	~IdeOutput()
 	{
+	}
+
+	const char *GetClass()
+	{
+		return "IdeOutput";
+	}
+
+	void OnPaint(GSurface *pDC)
+	{
+		pDC->Colour(LC_MED, 24);
+		pDC->Rectangle();
 	}
 	
 	void Save()
@@ -683,6 +696,7 @@ public:
 		#if !USE_HAIKU_PULSE_HACK
 		SetPulse(1000);
 		#endif
+		AttachChildren();
 	}
 	
 	void OnPulse()
@@ -707,11 +721,11 @@ public:
 				if (OldText)
 					OldLen = StrlenW(OldText);
 
-				int Cur = Txt[Channel]->GetCursor();
+				int Cur = Txt[Channel]->GetCaret();
 				Txt[Channel]->Insert(OldLen, w, StrlenW(w));
 				if (Cur > OldLen - 1)
 				{
-					Txt[Channel]->SetCursor(OldLen + StrlenW(w), false);
+					Txt[Channel]->SetCaret(OldLen + StrlenW(w), false);
 				}
 				Changed = Channel;
 				Buf[Channel].Length(0);
@@ -725,15 +739,16 @@ public:
 
 	void OnPosChange()
 	{
-		GPanel::OnPosChange();
+		GRect c = GetClient();
 		if (Tab)
 		{
 			GRect p = Tab->GetPos();
-			p.x2 = X() - 3;
-			p.y2 = Y() - 3;
+			p.x2 = c.X() - 3;
+			p.y2 = c.Y() - 3;
 			Tab->SetPos(p);
+			LgiTrace("%s:%i - OnPosChange() %s\n", _FL, c.GetStr());
 			
-			GRect c = Tab->GetTabClient();
+			c = Tab->GetTabClient();
 			c.Offset(-c.x1, -c.y1);
 			p.Size(3, 3);
 
@@ -780,7 +795,7 @@ public:
 	AppWnd *App;
 	GMdiParent *Mdi;
 	GOptionsFile Options;
-	GSplitter *Sp;
+	GBox *HBox, *VBox;
 	List<IdeDoc> Docs;
 	List<IdeProject> Projects;
 	GImageList *Icons;
@@ -840,7 +855,7 @@ public:
 		InHistorySeek = false;
 		WindowsMenu = 0;
 		App = a;
-		Sp = 0;
+		HBox = VBox = NULL;
 		Tree = 0;
 		DbgContext = NULL;
 		Output = 0;
@@ -851,7 +866,7 @@ public:
 		RecentProjectsMenu = 0;
 		Icons = LgiLoadImageList("icons.png", 16, 16);
 
-		Options.Serialize(false);
+		Options.SerializeFile(false);
 		App->SerializeState(&Options, "WndPos", true);
 
 		SerializeStringList("RecentFiles", &RecentFiles, false);
@@ -866,7 +881,7 @@ public:
 		App->SerializeState(&Options, "WndPos", false);
 		SerializeStringList("RecentFiles", &RecentFiles, true);
 		SerializeStringList("RecentProjects", &RecentProjects, true);
-		Options.Serialize(true);
+		Options.SerializeFile(true);
 		
 		RecentFiles.DeleteArrays();
 		RecentProjects.DeleteArrays();
@@ -1024,7 +1039,7 @@ public:
 		if (!Txt)
 			return;
 
-		int Cur = o->GetCursor();
+		ssize_t Cur = o->GetCaret();
 		char16 *Context = NULL;
 		
 		// Scan forward to the end of file for the next filename/line number separator.
@@ -1091,8 +1106,8 @@ public:
 
 		// Convert it to an integer
 		int LineNumber = atoi(NumStr);
-		o->SetCursor(Line, false);
-		o->SetCursor(NumIndex + 1, true);
+		o->SetCaret(Line, false);
+		o->SetCaret(NumIndex + 1, true);
 								
 		GString Context8 = Context;
 		ViewMsg(File, LineNumber, Context8);
@@ -1377,38 +1392,38 @@ AppWnd::AppWnd()
 			Tools->Attach(this);
 		}
 		
-		d->Output = new IdeOutput(this);
-		if (d->Output)
+		GVariant v = 270, OutPx = 250;
+		d->Options.GetValue(OPT_SPLIT_PX, v);
+		d->Options.GetValue(OPT_OUTPUT_PX, OutPx);
+
+		AddView(d->VBox = new GBox);
+		d->VBox->SetVertical(true);
+
+		d->HBox = new GBox;
+		d->VBox->AddView(d->HBox);
+		d->VBox->AddView(d->Output = new IdeOutput(this));
+
+		d->HBox->AddView(d->Tree = new IdeTree);
+		if (d->Tree)
 		{
-			if (Tools)
-			{
-				Pour();
-				d->Output->SetClosedSize(Tools->Y());
-			}
-			d->Output->Attach(this);
+			d->Tree->SetImageList(d->Icons, false);
+			d->Tree->Sunken(false);
+		}
+		d->HBox->AddView(d->Mdi = new GMdiParent);
+		if (d->Mdi)
+		{
+			d->Mdi->HasButton(true);
 		}
 
-		d->Sp = new GSplitter;
-		if (d->Sp)
+		d->HBox->Value(max(v.CastInt32(), 20));
+
+		GRect c = GetClient();
+		if (c.Y() > OutPx.CastInt32())
 		{
-			GVariant v = 270;
-			d->Options.GetValue("SplitPos", v);
-			
-			d->Sp->Value(max(v.CastInt32(), 20));
-			d->Sp->Attach(this);
-			d->Tree = new IdeTree;
-			if (d->Tree)
-			{
-				d->Tree->SetImageList(d->Icons, false);
-				d->Tree->Sunken(false);
-				d->Sp->SetViewA(d->Tree);
-			}
-			d->Sp->SetViewB(d->Mdi = new GMdiParent);
-			if (d->Mdi)
-			{
-				d->Mdi->HasButton(true);
-			}
+			d->VBox->Value(c.Y() - OutPx.CastInt32());
 		}
+
+		AttachChildren();
 	
 		#ifdef LINUX
 		char *f = LgiFindFile("lgiide.png");
@@ -1438,10 +1453,16 @@ AppWnd::AppWnd()
 
 AppWnd::~AppWnd()
 {
-	if (d->Sp)
+	if (d->HBox)
 	{
-		GVariant v = d->Sp->Value();
-		d->Options.SetValue("SplitPos", v);
+		GVariant v = d->HBox->Value();
+		d->Options.SetValue(OPT_SPLIT_PX, v);
+	}
+	if (d->VBox)
+	{
+		GRect c = GetClient();
+		GVariant v = c.Y() - d->VBox->Value();
+		d->Options.SetValue(OPT_OUTPUT_PX, v);
 	}
 
 	ShutdownFtpThread();
@@ -1967,38 +1988,6 @@ IdeProject *AppWnd::OpenProject(char *FileName, IdeProject *ParentProj, bool Cre
 			}
 
 			GetTree()->Focus(true);
-
-			GArray<ProjectNode*> Files;
-			if (p && p->GetAllNodes(Files))
-			{
-
-				/* This is handling in ::OnNode now
-				GAutoString Base = p->GetBasePath();
-				for (unsigned i=0; i<Files.Length(); i++)
-				{
-					ProjectNode *n = Files[i];
-					if (n)
-					{
-						char *Fn = n->GetFileName();
-						if (Fn)
-						{
-							GFile::Path Path;
-							if (LgiIsRelativePath(Fn))
-							{
-								Path = Base;
-								Path += Fn;
-							}
-							else
-							{
-								Path = Fn;
-							}
-							
-							d->FindSym.OnFile(Path, FindSymbolSystem::FileAdd);
-						}
-					}
-				}
-				*/
-			}
 		}
 	}
 
@@ -2189,6 +2178,16 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 {
 	switch (Ctrl->GetId())
 	{
+		case IDC_PROJECT_TREE:
+		{
+			if (Flags == GNotify_DeleteKey)
+			{
+				ProjectNode *n = dynamic_cast<ProjectNode*>(d->Tree->Selection());
+				if (n)
+					n->Delete();
+			}
+			break;
+		}
 		case IDC_DEBUG_EDIT:
 		{
 			if (Flags == VK_RETURN && d->DbgContext)
@@ -2404,10 +2403,7 @@ bool AppWnd::IsReleaseMode()
 bool AppWnd::ShowInProject(const char *Fn)
 {
 	if (!Fn)
-	{
-		printf("%s:%i - Error: no file.\n", _FL);
 		return false;
-	}
 	
 	for (IdeProject *p=d->Projects.First(); p; p=d->Projects.Next())
 	{
@@ -2418,13 +2414,12 @@ bool AppWnd::ShowInProject(const char *Fn)
 			{
 				i->Expanded(true);
 			}
-			Node->Select(true);			
-			printf("%s:%i - '%s' found.\n", _FL, Fn);	
+			Node->Select(true);
+			Node->ScrollTo();		
 			return true;
 		}	
 	}
 	
-	printf("%s:%i - '%s' not found.\n", _FL, Fn);	
 	return false;
 }
 
@@ -3108,9 +3103,9 @@ GStream *AppWnd::GetBuildLog()
 	return d->Output->Txt[AppWnd::BuildTab];
 }
 
-void AppWnd::FindSymbol(GEventSinkI *Results, const char *Sym)
+void AppWnd::FindSymbol(int ResultsSinkHnd, const char *Sym)
 {
-	d->FindSym->Search(Results, Sym);
+	d->FindSym->Search(ResultsSinkHnd, Sym);
 }
 
 #include "GSubProcess.h"

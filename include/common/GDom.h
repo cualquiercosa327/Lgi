@@ -136,6 +136,8 @@ enum GDomProperty
 
 	// Rich text editor
 	HtmlImagesLinkCid, // output CID image links rather than files.
+	SpellCheckLanguage,
+	SpellCheckDictionary,
 };
 
 LgiFunc GDomProperty LgiStringToDomProp(const char *Str);

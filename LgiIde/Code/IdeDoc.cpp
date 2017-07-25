@@ -376,7 +376,7 @@ void EditTray::OnFunctionList(GMouse &m)
 		int ScreenLines = ScreenHt / SysFont->GetHeight();
 		float Ratio = ScreenHt ? (float)(SysFont->GetHeight() * Funcs.Length()) / ScreenHt : 0.0f;
 		bool UseSubMenus = Ratio > 0.9f;
-		int Buckets = UseSubMenus ? ScreenLines * 0.75 : 1;
+		int Buckets = UseSubMenus ? (int)(ScreenLines * 0.75) : 1;
 		int BucketSize = max(5, Funcs.Length() / Buckets);
 		GSubMenu *Cur = NULL;
 		
@@ -631,7 +631,7 @@ public:
 		App->GotoReference(Obj->File, Obj->Line, false);
 	}
 	
-	bool Name(char *s)
+	bool Name(const char *s)
 	{
 		GString InputStr = s;
 		GString::Array p = InputStr.SplitDelimit(" \t");
@@ -750,13 +750,12 @@ public:
 			GString s = Ctrl->Name();
 			s = s.Strip();
 			if (s.Length() > 2)
-				App->FindSymbol(Doc, s);
+				App->FindSymbol(Doc->AddDispatch(), s);
 		}
 		
 		return GPopupList<FindSymResult>::OnNotify(Ctrl, Flags);
 	}
 };
-
 
 class ProjFilePopup : public GPopupList<ProjectNode>
 {
@@ -796,7 +795,11 @@ public:
 	{
 		GString::Array p = InputStr.SplitDelimit(" \t");
 		
-		GArray<ProjectNode*> Matches;
+		int InputLen = InputStr.RFind(".");
+		if (InputLen < 0)
+			InputLen = InputStr.Length();
+
+		GArray<ProjectNode*> Perfect, Partial;
 		for (unsigned i=0; i<Nodes.Length(); i++)
 		{
 			ProjectNode *Pn = Nodes[i];
@@ -817,10 +820,34 @@ public:
 					}
 				}
 				if (Match)
-					Matches.Add(Pn);
+				{
+					bool PerfectMatch = false;
+					char *Leaf = LgiGetLeaf(Fn);
+					if (Leaf)
+					{
+						char *Dot = strrchr(Leaf, '.');
+						if (Dot)
+						{
+							int Len = Dot - Leaf;
+							PerfectMatch =	Len == InputLen &&
+											strncmp(InputStr, Leaf, Len) == 0;
+						}
+						else
+						{
+							PerfectMatch = stricmp(InputStr, Leaf);
+						}
+					}
+
+					if (PerfectMatch)
+						Perfect.Add(Pn);
+					else
+						Partial.Add(Pn);
+				}
 			}
 		}
-		SetItems(Matches);
+
+		Perfect.Add(Partial);
+		SetItems(Perfect);
 	}
 	
 	int OnNotify(GViewI *Ctrl, int Flags)
@@ -903,7 +930,7 @@ public:
 		SetFindReplaceParams(GlobalFindReplace);
 		
 		CanScrollX = true;
-		GetCss(true)->PaddingLeft(GCss::Len(GCss::LenPx, LeftMarginPx + 2));
+		GetCss(true)->PaddingLeft(GCss::Len(GCss::LenPx, (float)(LeftMarginPx + 2)));
 		
 		if (!f)
 		{
@@ -997,7 +1024,8 @@ public:
 	
 	void OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour)
 	{
-		GTextView3::OnPaintLeftMargin(pDC, r, colour);
+		GColour GutterColour(0xfa, 0xfa, 0xfa);
+		GTextView3::OnPaintLeftMargin(pDC, r, GutterColour);
 		int Y = ScrollYLine();
 		
 		int TopPaddingPx = GetTopPaddingPx();
@@ -1071,9 +1099,9 @@ public:
 		GTextView3::OnMouseClick(m);
 	}
 
-	void SetCursor(int i, bool Select, bool ForceFullUpdate = false)
+	void SetCaret(size_t i, bool Select, bool ForceFullUpdate = false)
 	{
-		GTextView3::SetCursor(i, Select, ForceFullUpdate);
+		GTextView3::SetCaret(i, Select, ForceFullUpdate);
 		
 		if (IsAttached())
 		{
@@ -1085,7 +1113,7 @@ public:
 		}
 	}
 	
-	bool OnMenu(GDocView *View, int Id);
+	bool OnMenu(GDocView *View, int Id, void *Context);
 	bool OnKey(GKey &k);
 	
 	char *TemplateMerge(const char *Template, char *Name, List<char> *Params)
@@ -1160,7 +1188,7 @@ public:
 		return true;
 	}
 
-	void StyleCpp(int Start, int EditSize)
+	void StyleCpp(ssize_t Start, ssize_t EditSize)
 	{
 		if (!Text)
 			return;
@@ -1480,7 +1508,7 @@ public:
 		// LgiTrace("PourCpp = %g, %g\n", (double)(PourTs - SetupTs) / 1000.0, (double)(DirtyTs - PourTs) / 1000.0);
 	}
 
-	void StylePython(int Start, int EditSize)
+	void StylePython(ssize_t Start, ssize_t EditSize)
 	{
 		char16 *e = Text + Size;
 		
@@ -1648,7 +1676,7 @@ public:
 		}
 	}
 
-	void PourStyle(int Start, int EditSize)
+	void PourStyle(size_t Start, ssize_t EditSize) override
 	{
 		if (FileType == SrcUnknown)
 		{
@@ -1708,7 +1736,7 @@ bool DocEdit::OnKey(GKey &k)
 			return true;
 		}
 		else if (ToLower(k.vkey) == 'o' &&
-			k.Shift())
+				k.Shift())
 		{
 			if (k.Down())
 				Doc->GotoSearch(IDC_FILE_SEARCH);
@@ -1719,7 +1747,7 @@ bool DocEdit::OnKey(GKey &k)
 	return GTextView3::OnKey(k); 
 }
 
-bool DocEdit::OnMenu(GDocView *View, int Id)
+bool DocEdit::OnMenu(GDocView *View, int Id, void *Context)
 {
 	if (View)
 	{
@@ -1759,7 +1787,7 @@ bool DocEdit::OnMenu(GDocView *View, int Id)
 					{
 						List<char16> Tokens;
 						char16 *s;
-						char16 *p = n + GetCursor();
+						char16 *p = n + GetCaret();
 						char16 OpenBrac[] = { '(', 0 };
 						char16 CloseBrac[] = { ')', 0 };
 						int OpenBracketIndex = -1;							
@@ -2243,10 +2271,35 @@ bool IdeDoc::AddBreakPoint(int Line, bool Add)
 	return true;
 }
 
-void IdeDoc::GotoSearch(int CtrlId)
+
+void IdeDoc::GotoSearch(int CtrlId, char *InitialText)
 {
+	GString File;
+
+	if (CtrlId == IDC_SYMBOL_SEARCH)
+	{
+		// Check if the cursor is on a #include line... in which case we
+		// should look up the header and go to that instead of looking for
+		// a symbol in the code.
+		if (d->Edit)
+		{
+			// Get current line
+			GString Ln = (*d->Edit)[d->Edit->GetLine()];
+			if (Ln.Find("#include") >= 0)
+			{
+				GString::Array a = Ln.SplitDelimit(" \t", 1);
+				if (a.Length() == 2)
+				{
+					File = a[1].Strip("\'\"<>");
+					InitialText = File;
+					CtrlId = IDC_FILE_SEARCH;
+				}
+			}			
+		}
+	}
+
 	if (d->Tray)
-		d->Tray->GotoSearch(CtrlId);
+		d->Tray->GotoSearch(CtrlId, InitialText);
 }
 
 #define IsVariableChar(ch) \
@@ -2266,7 +2319,7 @@ void IdeDoc::SearchSymbol()
 		return;
 	}
 	
-	int Cur = d->Edit->GetCursor();
+	int Cur = d->Edit->GetCaret();
 	char16 *Txt = d->Edit->NameW();
 	if (Cur >= 0 &&
 		Txt != NULL)
@@ -2280,7 +2333,7 @@ void IdeDoc::SearchSymbol()
 				IsVariableChar(Txt[End]))
 			End++;
 		GString Word(Txt + Start, End - Start);
-		d->Tray->GotoSearch(IDC_SYMBOL_SEARCH, Word);
+		GotoSearch(IDC_SYMBOL_SEARCH, Word);
 	}
 }
 
@@ -2431,7 +2484,7 @@ int IdeDoc::OnNotify(GViewI *v, int f)
 					if (d->Tray)
 					{
 						GdcPt2 Pt;
-						if (d->Edit->GetLineColumnAtIndex(Pt, d->Edit->GetCursor()))
+						if (d->Edit->GetLineColumnAtIndex(Pt, d->Edit->GetCaret()))
 						{
 							d->Tray->Col = Pt.x;
 							d->Tray->Line = Pt.y;
@@ -2447,7 +2500,6 @@ int IdeDoc::OnNotify(GViewI *v, int f)
 		{
 			if (f == GNotify_EscapeKey)
 			{
-				printf("%s:%i Got GNotify_EscapeKey\n", _FL);
 				d->Edit->Focus(true);
 				break;
 			}

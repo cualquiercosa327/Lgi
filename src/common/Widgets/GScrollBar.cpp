@@ -166,7 +166,7 @@ public:
 		return (IsVertical() ? Widget->Y() : Widget->X()) - (GetWidth() * 2);
 	}
 
-	int GetRange()
+	int64 GetRange()
 	{
 		return Max >= Min ? (int) (Max - Min + 1) : 0;
 	}
@@ -199,7 +199,7 @@ public:
 		}
 
 		// Slider
-		int Start, End;
+		int64 Start, End;
 		#if LGI_SDL
 		int MinSize = w; // Touch UI needs large slide....
 		#else
@@ -208,16 +208,16 @@ public:
 
 		if (IsValid())
 		{
-			int Range = GetRange();
-			int Size = Range ? min((int)Page, Range) * len / Range : len;
+			int64 Range = GetRange();
+			int64 Size = Range ? min((int)Page, Range) * len / Range : len;
 			if (Size < MinSize) Size = MinSize;
 			Start = Range > Page ? Value * (len - Size) / (Range - (int)Page) : 0;
 			End = Start + Size;
 
 			if (IsVertical())
 			{
-				Slide.ZOff(w-1, End-Start-1);
-				Slide.Offset(0, Sub.y2+1+Start);
+				Slide.ZOff(w-1, (int) (End-Start-1));
+				Slide.Offset(0, (int) (Sub.y2+1+Start));
 
 				if (Start > 1)
 				{
@@ -245,8 +245,8 @@ public:
 			}
 			else
 			{
-				Slide.ZOff(End-Start-1, w-1);
-				Slide.Offset(Sub.x2+1+Start, 0);
+				Slide.ZOff((int)(End-Start-1), w-1);
+				Slide.Offset((int)(Sub.x2+1+Start), 0);
 				
 				if (Start > 1)
 				{
@@ -382,7 +382,7 @@ public:
 		return false;
 	}
 
-	void SetValue(int i)
+	void SetValue(int64 i)
 	{
 		if (i < Min)
 		{
@@ -402,7 +402,7 @@ public:
 			Widget->Invalidate();
 			
 			GViewI *n = Widget->GetNotify() ? Widget->GetNotify() : Widget->GetParent();
-			if (n) n->OnNotify(Widget, Value);
+			if (n) n->OnNotify(Widget, (int)Value);
 		}
 	}
 };
@@ -540,11 +540,11 @@ void GScrollBar::OnMouseMove(GMouse &m)
 		{
 			if (d->GetLength())
 			{
-				int Range = d->GetRange();
+				int64 Range = d->GetRange();
 				int Len = d->GetLength();
 				int Size = d->IsVertical() ? d->Slide.Y() : d->Slide.X();
 				int Px = (d->IsVertical() ? m.y : m.x) - d->GetWidth() - d->SlideOffset;
-				int Value = Px * (Range - d->Page) / (Len - Size);
+				int64 Value = Px * (Range - d->Page) / (Len - Size);
 				d->SetValue(Value);
 			}
 		}
@@ -615,12 +615,12 @@ void GScrollBar::SetLimits(int64 Low, int64 High)
 	}
 }
 
-int GScrollBar::Page()
+int64 GScrollBar::Page()
 {
 	return d->Page;
 }
 
-void GScrollBar::SetPage(int i)
+void GScrollBar::SetPage(int64 i)
 {
 	if (d->Page != i)
 	{

@@ -187,20 +187,20 @@ public:
 	GString Get();
 	/// Gets the date and time as a string
 	/// \sa GDateTime::GetFormat()
-	void Get(char *Str, int SLen);
+	void Get(char *Str, size_t SLen);
 	/// Gets the data and time as a 64 bit int (os specific)
 	bool Get(uint64 &s);
 	/// Gets just the date as a string
 	/// \sa GDateTime::GetFormat()
 	/// \returns The number of characters written to 'Str'
-	int GetDate(char *Str, int SLen);
+	int GetDate(char *Str, size_t SLen);
 	/// Gets just the date as a GString
 	/// \sa GDateTime::GetFormat()
 	GString GetDate();
 	/// Gets just the time as a string
 	/// \sa GDateTime::GetFormat()
 	/// \returns The number of characters written to 'Str'
-	int GetTime(char *Str, int SLen);
+	int GetTime(char *Str, size_t SLen);
 	/// Gets just the time as a GString
 	/// \sa GDateTime::GetFormat()
 	GString GetTime();
@@ -238,13 +238,13 @@ public:
 	/// Adds a number of seconds to the current date/time
 	void AddSeconds(int64 Seconds);
 	/// Adds a number of minutes to the current date/time
-	void AddMinutes(int Minutes);
+	void AddMinutes(int64 Minutes);
 	/// Adds a number of hours to the current date/time
-	void AddHours(int Hours);
+	void AddHours(int64 Hours);
 	/// Adds a number of days to the current date/time
-	void AddDays(int Days);
+	bool AddDays(int64 Days);
 	/// Adds a number of months to the current date/time
-	void AddMonths(int Months);
+	void AddMonths(int64 Months);
 
 	/// The system timezone including daylight savings offset in minutes, +10 would return 600
 	static int SystemTimeZone(bool ForceUpdate = false);

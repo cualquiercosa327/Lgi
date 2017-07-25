@@ -34,7 +34,7 @@ class GMimeBuf : public GStringPipe
 
 public:
 	GMimeBuf(GStreamI *src, GStreamEnd *end);
-	int Pop(char *Str, int BufSize);
+	ssize_t Pop(char *Str, ssize_t BufSize);
 };
 
 class GMime
@@ -43,8 +43,8 @@ class GMime
 	char *Headers;
 
 	// Data info
-	int DataPos;
-	int DataSize;
+	ssize_t DataPos;
+	ssize_t DataSize;
 	GMutex *DataLock;
 	GStreamI *DataStore;
 	bool OwnDataStore;
@@ -72,7 +72,7 @@ public:
 	// Methods
 	bool Insert(GMime *m, int pos = -1);
 	void Remove();
-	int Length() { return Children.Length(); }
+	ssize_t Length() { return Children.Length(); }
 	GMime *operator[](uint32 i);
 	GMime *NewChild();
 	void DeleteChildren() { Children.DeleteObjects(); }
@@ -80,7 +80,7 @@ public:
 	void Empty();
 	bool SetHeaders(const char *h);
 	char *GetHeaders() { return Headers; }
-	int GetLength() { return DataSize; }
+	ssize_t GetLength() { return DataSize; }
 	GStreamI *GetData(bool Detach = false);
 	bool SetData(bool OwnStream, GStreamI *Input, int RdPos = 0, int RdSize = -1, GMutex *Lock = 0);
 	bool SetData(char *Str, int Len);

@@ -554,7 +554,7 @@ void GDebugContext::OnUserCommand(const char *Cmd)
 		d->Db->UserCommand(Cmd);
 }
 
-void NonPrintable(uint32 ch, uint8 *&out, int &len)
+void NonPrintable(uint32 ch, uint8 *&out, ssize_t &len)
 {
 	if (ch == '\r')
 	{
@@ -619,7 +619,7 @@ void GDebugContext::FormatMemoryDump(int WordSize, int Width, bool InHex)
 		
 		char Char[256] = "";
 		uint8 *ChPtr = (uint8*)Char;
-		int Len = sizeof(Char);
+		ssize_t Len = sizeof(Char);
 		
 		for (int n=0; n<DisplayWords; n++)
 		{
@@ -769,7 +769,7 @@ void GDebugContext::OnFileLine(const char *File, int Line, bool CurrentIp)
 	}
 }
 
-int GDebugContext::Write(const void *Ptr, int Size, int Flags)
+ssize_t GDebugContext::Write(const void *Ptr, ssize_t Size, int Flags)
 {
 	if (DebuggerLog && Ptr)
 	{

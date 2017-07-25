@@ -1,17 +1,22 @@
 #ifndef _GTHREADEVENT_H_
 #define _GTHREADEVENT_H_
 
-#if defined(MAC) || defined(LINUX)
-    #define USE_SEM         1
-#endif
-#if USE_SEM
+#if defined(CARBON)
+	#define USE_MACH_SEM		1
+	#include <mach/task.h>
+	#include <mach/semaphore.h>
+#elif defined(LINUX)
+    #define USE_POSIX_SEM		1
     #include <semaphore.h>
 #endif
 
 class LgiClass GThreadEvent : public GBase
 {
 	uint32 LastError;
-    #if USE_SEM
+	#if USE_MACH_SEM
+		task_t Task;
+		semaphore_t Sem;
+    #elif USE_POSIX_SEM
         sem_t *Sem;
 	#elif defined(POSIX)
         pthread_cond_t Cond;

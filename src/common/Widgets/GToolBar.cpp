@@ -56,10 +56,10 @@ GImageList *LgiLoadImageList(const char *File, int x, int y)
 		GString f = File;
 		GString leaf = f(f.RFind(DIR_STR)+1, -1);
 		GString width = leaf(leaf.RFind("-")+1, leaf.RFind("."));
-		int sep = width.Find("x");
+		ptrdiff_t sep = width.Find("x");
 		GString height = width(sep+1, -1);
 		if (sep > 0)
-			width.Length(sep);
+			width.Length((int)sep);
 		if (x < 0 && width.Get())
 			x = (int)width.Int();
 		if (y < 0 && (width.Get() || height.Get()))
@@ -803,7 +803,7 @@ void GToolButton::Value(int64 b)
 	}
 }
 
-void GToolButton::OnCommand()
+void GToolButton::SendCommand()
 {
 	if (GetParent())
 	{
@@ -850,7 +850,7 @@ void GToolButton::OnMouseClick(GMouse &m)
 						// char *n = Name();
 						if (m.Left())
 						{
-							OnCommand();
+							SendCommand();
 						}
 						SendNotify(m.Flags);
 					}
@@ -870,7 +870,7 @@ void GToolButton::OnMouseClick(GMouse &m)
 						if (m.Left())
 						{
 							Value(!Down);
-							OnCommand();
+							SendCommand();
 						}
 						SendNotify(m.Flags);
 					}
@@ -884,7 +884,7 @@ void GToolButton::OnMouseClick(GMouse &m)
 						if (!Down && m.Left())
 						{
 							Value(true);
-							OnCommand();
+							SendCommand();
 						}
 						SendNotify(m.Flags);
 					}
@@ -1108,7 +1108,7 @@ void GToolBar::ContextMenu(GMouse &m)
 					}
 				}
 
-				GetWindow()->Pour();
+				GetWindow()->PourAll();
 			}
 		}
 	}
@@ -1149,6 +1149,26 @@ void GToolBar::TextLabels(bool i)
 GFont *GToolBar::GetFont()
 {
 	return d->Font;
+}
+
+bool GToolBar::OnLayout(GViewLayoutInfo &Inf)
+{
+	if (Inf.Width.Min == 0)
+	{
+		// Calc width
+		GRegion r(0, 0, 10000, 10000);
+		Pour(r);
+		Inf.Width.Min = X();
+		Inf.Width.Max = X();
+		LgiTrace("Toolbar %i,%i\n", X(), Y());
+	}
+	else
+	{
+		// Calc height
+		Inf.Height.Min = Y();
+		Inf.Height.Max = Y();
+	}
+	return true;
 }
 
 #define GetBorderSpacing()	GetCss() && GetCss()->BorderSpacing().IsValid() ? \
@@ -1438,7 +1458,7 @@ bool GToolBar::SetImageList(GImageList *l, int bx, int by, bool Own)
 
 GToolButton *GToolBar::AppendButton(const char *Tip, int Id, int Type, int Enabled, int IconId)
 {
-	bool HasIcon = IconId != TOOL_ICO_NONE;
+	// bool HasIcon = IconId != TOOL_ICO_NONE;
 
 	GToolButton *But = new GToolButton(d->Bx, d->By);
 	if (But)

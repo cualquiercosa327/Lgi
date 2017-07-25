@@ -264,7 +264,7 @@ class TokenRanges
 	struct Range
 	{
 		int Start, End;
-		unsigned File;
+		ssize_t File;
 		int Line;
 	};
 
@@ -282,13 +282,13 @@ public:
 		Ranges.Length(0);
 	}
 
-	int Length()
+	ssize_t Length()
 	{
 		return Ranges.Length();
 	}
 
 	/// Gets the file/line at a given token
-	const char *operator [](int Tok)
+	const char *operator [](ssize_t Tok)
 	{
 		Range *r = NULL;
 		
@@ -335,7 +335,7 @@ public:
 		return fl;
 	}
 	
-	unsigned GetFileIndex(const char *FileName)
+	ssize_t GetFileIndex(const char *FileName)
 	{
 		for (unsigned i=0; i<FileNames.Length(); i++)
 		{
@@ -344,13 +344,13 @@ public:
 		}
 		
 		// Add new filename
-		unsigned i = FileNames.Length();
+		ssize_t i = FileNames.Length();
 		FileNames[i] = FileName;
 		return i;
 	}
 
 	/// Add a file/line reference for the next token
-	void Add(int TokIndex, unsigned FileId, int Line)
+	void Add(int TokIndex, ssize_t FileId, int Line)
 	{
 		Range *r = Ranges.Length() ? &Ranges.Last() : NULL;
 		if (!r || r->File != FileId || r->Line != Line)
@@ -382,7 +382,7 @@ public:
 	GCompiledCode *Code;
 	GStream *Log;
 	GArray<char16*> Tokens;	
-	TokenRanges Lines;	
+	TokenRanges Lines;
 	char16 *Script;
 	GHashTbl<char*, GFunc*> Methods;
 	int Regs;
@@ -511,7 +511,7 @@ public:
 	{
 		DebugInfo(Tok);
 
-		int Len = Code->ByteCode.Length();
+		ssize_t Len = Code->ByteCode.Length();
 		if (Code->ByteCode.Length(Len + 1))
 		{
 			GPtr p;
@@ -528,7 +528,7 @@ public:
 	{
 		DebugInfo(Tok);
 
-		int Len = Code->ByteCode.Length();
+		ssize_t Len = Code->ByteCode.Length();
 		if (Code->ByteCode.Length(Len + 5))
 		{
 			GPtr p;
@@ -546,7 +546,7 @@ public:
 	{
 		DebugInfo(Tok);
 
-		int Len = Code->ByteCode.Length();
+		ssize_t Len = Code->ByteCode.Length();
 		if (Code->ByteCode.Length(Len + 9))
 		{
 			GPtr p;
@@ -565,7 +565,7 @@ public:
 	{
 		DebugInfo(Tok);
 
-		int Len = Code->ByteCode.Length();
+		ssize_t Len = Code->ByteCode.Length();
 		if (Code->ByteCode.Length(Len + 1 + (sizeof(GVarRef) * 3) ))
 		{
 			GPtr p;
@@ -585,7 +585,7 @@ public:
 	{
 		DebugInfo(Tok);
 
-		int Len = Code->ByteCode.Length();
+		ssize_t Len = Code->ByteCode.Length();
 		if (Code->ByteCode.Length(Len + 1 + (sizeof(GVarRef) * 4) ))
 		{
 			GPtr p;
@@ -611,7 +611,7 @@ public:
 	{
 		DebugInfo(Tok);
 
-		int Len = Code->ByteCode.Length();
+		ssize_t Len = Code->ByteCode.Length();
 		if (Code->ByteCode.Length(Len + 1 + (sizeof(GVarRef) * Args.Length()) ))
 		{
 			GPtr p;
@@ -637,7 +637,7 @@ public:
 		if (!w)
 			return OnError(0, "Couldn't convert source to wide chars.");
 		
-		unsigned FileIndex = Lines.GetFileIndex(FileName);
+		ssize_t FileIndex = Lines.GetFileIndex(FileName);
 		int Line = 1;
 		char16 *s = w, *t;
 		while ((t = LexCpp(s, LexStrdup, NULL, &Line)))
@@ -731,14 +731,14 @@ public:
 				char16 *Def = DefineValue, *f;
 				while ((f = LexCpp(Def, LexStrdup)))
 				{
-					Lines.Add(Tokens.Length(), FileIndex, Line);
+					Lines.Add((int)Tokens.Length(), FileIndex, Line);
 					Tokens.Add(f);
 				}
 				DeleteArray(t);
 			}
 			else
 			{
-				Lines.Add(Tokens.Length(), FileIndex, Line);
+				Lines.Add((int)Tokens.Length(), FileIndex, Line);
 				Tokens.Add(t);
 			}
 		} // end of "while (t = LexCpp)" loop
@@ -761,7 +761,7 @@ public:
 		r.Scope = SCOPE_GLOBAL;
 
 		if (Code->Globals.NullIndex < 0)
-			Code->Globals.NullIndex = Code->Globals.Length();
+			Code->Globals.NullIndex = (int)Code->Globals.Length();
 		
 		r.Index = Code->Globals.NullIndex;
 		Code->Globals[r.Index].Type = GV_NULL;
@@ -771,7 +771,7 @@ public:
 	GVariant *PreAllocVariant(GVarRef &r)
 	{
 		r.Scope = SCOPE_GLOBAL;
-		r.Index = Code->Globals.Length();
+		r.Index = (int)Code->Globals.Length();
 		return &Code->Globals[r.Index];
 	}
 
@@ -790,14 +790,14 @@ public:
 				if (p->Type == GV_DOUBLE &&
 					p->Value.Dbl == d)
 				{
-					r.Index = p - &Code->Globals[0];
+					r.Index = (int) (p - &Code->Globals[0]);
 					return;
 				}
 				p++;
 			}
 		}
 
-		r.Index = Code->Globals.Length();
+		r.Index = (int)Code->Globals.Length();
 		Code->Globals[r.Index] = d;
 	}
 
@@ -816,7 +816,7 @@ public:
 				if (p->Type == GV_BOOL &&
 					p->Value.Bool == b)
 				{
-					r.Index = p - &Code->Globals[0];
+					r.Index = (int)(p - &Code->Globals[0]);
 					return;
 				}
 				p++;

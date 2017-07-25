@@ -226,9 +226,10 @@ void RLogView::OnPaint(GSurface *pDC)
 	}
 }
 
-void RLogView::OnNcPaint(GSurface *pDC)
+/*
+void RLogView::OnNcPaint(GSurface *pDC, GRect &r)
 {
-	GRect r(0, 0, X()-1, Y()-1);
+	// GRect r(0, 0, X()-1, Y()-1);
 	if (r.Valid())
 	{
 		pDC->Colour(LC_MED, 24);
@@ -251,11 +252,13 @@ void RLogView::OnNcCalcClient(long &x1, long &y1, long &x2, long &y2)
 	y2 -= d;
 
 }
+*/
 
 GMessage::Result RLogView::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))
 	{
+		/*
 		#ifdef WIN32
 		case WM_NCPAINT:
 		{
@@ -280,6 +283,7 @@ GMessage::Result RLogView::OnEvent(GMessage *Msg)
 			return DefWindowProc(Handle(), Msg->m, Msg->a, Msg->b);
 		}
 		#endif
+		*/
 	}
 
 	return GLayout::OnEvent(Msg);

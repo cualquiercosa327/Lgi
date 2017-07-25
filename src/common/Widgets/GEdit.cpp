@@ -85,10 +85,10 @@ void GEdit::SendNotify(int Data)
 		return GTextView3::SendNotify(Data);
 }
 
-bool GEdit::GetSelection(int &Start, int &Len)
+bool GEdit::GetSelection(size_t &Start, ssize_t &Len)
 {
-	int Sel = GTextView3::GetCursor(false);
-	Start = GTextView3::GetCursor();
+	size_t Sel = GTextView3::GetCaret(false);
+	Start = GTextView3::GetCaret();
 	if (Sel < Start)
 		Len = Start - Sel + 1;
 	else
@@ -98,18 +98,18 @@ bool GEdit::GetSelection(int &Start, int &Len)
 
 void GEdit::Select(int Start, int Len)
 {
-	SetCursor(Start, false);
-	SetCursor(Start + (Len > 0 ? Len : 0x7fffffff) - 1, true);
+	GTextView3::SetCaret(Start, false);
+	GTextView3::SetCaret(Start + (Len > 0 ? Len : 0x7fffffff) - 1, true);
 }
 
-int GEdit::GetCaret()
+ssize_t GEdit::GetCaret()
 {
-	return GTextView3::GetCursor();
+	return GTextView3::GetCaret();
 }
 
-void GEdit::SetCaret(int i)
+void GEdit::SetCaret(ssize_t i)
 {
-	SetCursor(i, false);
+	GTextView3::SetCaret(i, false);
 }
 
 void GEdit::Value(int64 i)
@@ -244,7 +244,7 @@ bool GEdit::Paste()
 	// insert text
 	int Len = StrlenW(t);
 	Insert(Cursor, t, Len);
-	SetCursor(Cursor+Len, false, true); // Multiline
+	GTextView3::SetCaret(Cursor+Len, false, true); // Multiline
 	
 	return true;
 }

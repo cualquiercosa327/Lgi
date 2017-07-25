@@ -106,7 +106,7 @@ public:
 			case GAPP_ALPHA_A:
 			{
 				int Old = alpha;
-				alpha = Value;
+				alpha = (uchar)Value;
 				oma = 0xFF - alpha;
 				return Old;
 			}
@@ -398,7 +398,7 @@ public:
 			case GAPP_ALPHA_A:
 			{
 				int Old = alpha;
-				alpha = Value;
+				alpha = (uchar)Value;
 				one_minus_alpha = 0xFF - alpha;
 				return Old;
 			}

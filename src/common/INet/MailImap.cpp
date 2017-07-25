@@ -35,11 +35,11 @@ static const char *sRfc822Size		= "RFC822.SIZE";
 bool Base64Str(GString &s)
 {
 	GString b64;
-	int Base64Len = BufferLen_BinTo64(s.Length());
+	ssize_t Base64Len = BufferLen_BinTo64(s.Length());
 	if (!b64.Set(NULL, Base64Len))
 		return false;
 	
-	int Ch = ConvertBinaryToBase64(b64.Get(), b64.Length(), (uchar*)s.Get(), s.Length());
+	ssize_t Ch = ConvertBinaryToBase64(b64.Get(), b64.Length(), (uchar*)s.Get(), s.Length());
 	LgiAssert(Ch == b64.Length());
 	s = b64;
 	return true;
@@ -48,11 +48,11 @@ bool Base64Str(GString &s)
 bool UnBase64Str(GString &s)
 {
 	GString Bin;
-	int BinLen = BufferLen_64ToBin(s.Length());
+	ssize_t BinLen = BufferLen_64ToBin(s.Length());
 	if (!Bin.Set(NULL, BinLen))
 		return false;
 	
-	int Ch = ConvertBase64ToBinary((uchar*)Bin.Get(), Bin.Length(), s.Get(), s.Length());
+	ssize_t Ch = ConvertBase64ToBinary((uchar*)Bin.Get(), Bin.Length(), s.Get(), s.Length());
 	LgiAssert(Ch <= (int)Bin.Length());
 	s = Bin;
 	s.Get()[Ch] = 0;
@@ -93,15 +93,15 @@ bool JsonDecode(GXmlTag &t, const char *s)
 
 struct StrRange
 {
-	int Start, End;
+	ssize_t Start, End;
 	
-	void Set(int s, int e)
+	void Set(ssize_t s, ssize_t e)
 	{
 		Start = s;
 		End = e;
 	}
 
-	int Len() { return End - Start; }
+	ssize_t Len() { return End - Start; }
 };
 
 #define SkipWhite(s)		while (*s && strchr(WhiteSpace, *s)) s++
@@ -109,7 +109,7 @@ struct StrRange
 #define SkipNonWhite(s)		while (*s && !strchr(WhiteSpace, *s)) s++;
 #define ExpectChar(ch)		if (*s != ch) return 0; s++
 
-unsigned ParseImapResponse(char *Buffer, int BufferLen, GArray<StrRange> &Ranges, int Names)
+ssize_t ParseImapResponse(char *Buffer, ssize_t BufferLen, GArray<StrRange> &Ranges, int Names)
 {
 	Ranges.Length(0);
 
@@ -228,7 +228,7 @@ unsigned ParseImapResponse(char *Buffer, int BufferLen, GArray<StrRange> &Ranges
 			{
 				if (*s == '\'' || *s == '\"')
 				{
-					char *Begin = s;
+					//char *Begin = s;
 					char Delim = *s++;
 					Start = s;
 					while (*s && *s != Delim)
@@ -514,7 +514,7 @@ char *DecodeImapString(const char *s)
 char *EncodeImapString(const char *s)
 {
 	GStringPipe p;
-	ptrdiff_t Len = s ? strlen(s) : 0;
+	ssize_t Len = s ? strlen(s) : 0;
 	
 	while (s && *s)
 	{

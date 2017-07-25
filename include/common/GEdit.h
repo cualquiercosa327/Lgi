@@ -67,13 +67,15 @@ public:
 	/// Selects a region of text
 	void Select(int Start = 0, int Len = -1);
 	/// Get the current selection in characters
-	bool GetSelection(int &Start, int &Len);
+	bool GetSelection(size_t &Start, ssize_t &Len);
 	/// Gets the Caret position in characters
-	int GetCaret();
+	ssize_t GetCaret();
 	/// Sets the Caret position in characters
-	void SetCaret(int Pos);
+	void SetCaret(ssize_t Pos);
 	/// Sets the text to display when the control is empty
 	void SetEmptyText(const char *EmptyText);
+
+	void SelectAll() { Select(); }
 
 	bool OnKey(GKey &k);
 	LgiCursor GetCursor(int x, int y) { return LCUR_Ibeam; }

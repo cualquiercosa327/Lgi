@@ -18,6 +18,7 @@
 #include "GToken.h"
 
 #include <errno.h>
+#include <pwd.h>
 
 #define DEBUG_GET_APPS_FOR_MIMETYPE			0
 
@@ -57,6 +58,16 @@ bool _lgi_check_file(char *Path)
 
 	return false;
 }
+
+GString LgiCurrentUserName()
+{
+	struct passwd *pw = getpwuid(geteuid());
+	if (pw)
+		return pw->pw_name;
+
+  	return "";
+}
+
 
 void LgiSleep(uint32 i)
 {

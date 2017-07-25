@@ -217,7 +217,7 @@ int GetDataType(char *str)
 		bool Float = false;
 
 		char16 w;
-		ptrdiff_t Len = strlen(str);
+		ssize_t Len = strlen(str);
 		while ((w = LgiUtf8To32((uint8*&)str, Len)))
 		{
 			if (strchr("e \t\r\n", w))

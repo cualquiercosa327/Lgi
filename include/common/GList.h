@@ -37,7 +37,7 @@ class LgiClass GListItemColumn : public GBase, public GItem, public GListItemPai
 {
 	GListItem *_Item;
 	int _Column;
-	int _Value;
+	int64 _Value;
 
 	void OnPaint(ItemPaintCtx &Ctx) {}
 
@@ -234,7 +234,7 @@ protected:
 	bool GetUpdateRegion(GListItem *i, GRegion &r);
 	GListItem *HitItem(int x, int y, int *Index = 0);
 	GRect &GetClientRect();
-	void Pour();
+	void PourAll();
 	void UpdateScrollBars();
 	void KeyScroll(int iTo, int iFrom, bool SelectItems);
 	void ClearDs(int Col);

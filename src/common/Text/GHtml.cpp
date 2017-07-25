@@ -650,7 +650,7 @@ public:
 	{
 		GFlowRegion This = *this;
 
-		int len = Stack.Length();
+		ssize_t len = Stack.Length();
 		if (len > 0)
 		{
 			GFlowStack &Fs = Stack[len-1];
@@ -678,7 +678,7 @@ public:
 	{
 		GFlowRegion This = *this;
 
-		int len = Stack.Length();
+		ssize_t len = Stack.Length();
 		if (len > 0)
 		{
 			GFlowStack &Fs = Stack[len-1];
@@ -1483,7 +1483,7 @@ bool GTag::SetVariant(const char *Name, GVariant &Value, char *Array)
 	return true;
 }
 
-int GTag::GetTextStart()
+ssize_t GTag::GetTextStart()
 {
 	if (PreText())
 	{
@@ -1511,12 +1511,12 @@ static bool TextToStream(GStream &Out, char16 *Text)
 
 	uint8 Buf[256];
 	uint8 *s = Buf;
-	int Len = sizeof(Buf);
+	ssize_t Len = sizeof(Buf);
 	while (*Text)
 	{
 		#define WriteExistingContent() \
 			if (s > Buf) \
-				Out.Write(Buf, s - Buf); \
+				Out.Write(Buf, (int)(s - Buf)); \
 			s = Buf; \
 			Len = sizeof(Buf); \
 			Buf[0] = 0;
@@ -1755,8 +1755,8 @@ GColour GTag::_Colour(bool f)
 
 void GTag::CopyClipboard(GMemQueue &p, bool &InSelection)
 {
-	int Min = -1;
-	int Max = -1;
+	ssize_t Min = -1;
+	ssize_t Max = -1;
 
 	if (Cursor >= 0 && Selection >= 0)
 	{
@@ -1772,8 +1772,8 @@ void GTag::CopyClipboard(GMemQueue &p, bool &InSelection)
 		Min = max(Cursor, Selection);
 	}
 
-	int Off = -1;
-	int Chars = 0;
+	ssize_t Off = -1;
+	ssize_t Chars = 0;
 	if (Min >= 0 && Max >= 0)
 	{
 		Off = Min;
@@ -1884,7 +1884,7 @@ void GTag::_Dump(GStringPipe &Buf, int Depth)
 		GAutoString Utf8(WideToUtf8(Tr->Text, Tr->Len));
 		if (Utf8)
 		{
-			int Len = strlen(Utf8);
+			size_t Len = strlen(Utf8);
 			if (Len > 40)
 			{
 				Utf8[40] = 0;
@@ -2001,7 +2001,7 @@ GTag *GTag::PrevTag()
 {
 	if (Parent)
 	{
-		int i = Parent->Children.IndexOf(this);
+		ssize_t i = Parent->Children.IndexOf(this);
 		if (i >= 0)
 		{
 			return ToTag(Parent->Children[i - 1]);
@@ -2192,7 +2192,7 @@ bool GTag::OnMouseClick(GMouse &m)
 	return Processed;
 }
 
-GTag *GTag::GetBlockParent(int *Idx)
+GTag *GTag::GetBlockParent(ssize_t *Idx)
 {
 	if (IsBlock())
 	{
@@ -2317,13 +2317,13 @@ static int IsNearRect(GRect *r, int x, int y)
 	return (int) sqrt( (double) ( (dx * dx) + (dy * dy) ) );
 }
 
-int GTag::NearestChar(GFlowRect *Tr, int x, int y)
+ssize_t GTag::NearestChar(GFlowRect *Tr, int x, int y)
 {
 	GFont *f = GetFont();
 	if (f)
 	{
 		GDisplayString ds(f, Tr->Text, Tr->Len);
-		int c = ds.CharAt(x - Tr->x1);
+		ssize_t c = ds.CharAt(x - Tr->x1);
 		
 		if (Tr->Text == PreText())
 		{
@@ -2792,7 +2792,7 @@ void GTag::SetStyle()
 	{
 		if ((Debug = atoi(s)))
 		{
-			LgiTrace("Debug Tag: %p '%s'\n", this, Tag ? Tag.Get() : "CONTENT");
+			// LgiTrace("Debug Tag: %p '%s'\n", this, Tag ? Tag.Get() : "CONTENT");
 		}
 	}
 	#endif
@@ -2860,7 +2860,7 @@ void GTag::SetStyle()
 							if (Len > 0)
 							{
 								GAutoString a(new char[Len+1]);
-								int r = s->Read(a, Len);
+								ssize_t r = s->Read(a, Len);
 								a[r] = 0;
 
 								Html->CssHref.Add(Href, true);
@@ -2891,10 +2891,12 @@ void GTag::SetStyle()
 					BorderLeft(BorderDef(this, "1px solid blue"));
 					PaddingLeft(Len("0.5em"));
 					
+					/*
 					ColorDef Def;
 					Def.Type = ColorRgb;
 					Def.Rgb32 = Rgb32(0x80, 0x80, 0x80);
 					Color(Def);
+					*/
 				}
 			}
 			break;
@@ -3373,7 +3375,7 @@ void GTag::SetCssStyle(const char *Style)
 	}
 }
 
-char16 *GTag::CleanText(const char *s, int Len, const char *SourceCs,  bool ConversionAllowed, bool KeepWhiteSpace)
+char16 *GTag::CleanText(const char *s, ssize_t Len, const char *SourceCs,  bool ConversionAllowed, bool KeepWhiteSpace)
 {
 	if (!s || Len <= 0)
 		return NULL;
@@ -3661,7 +3663,7 @@ bool GTag::ConvertToText(TextConvertState &State)
 			u.Reset(WideToUtf8(Txt));
 		if (u)
 		{
-			int u_len = strlen(u);
+			size_t u_len = strlen(u);
 			State.Write(u, u_len);
 		}
 	}
@@ -3695,7 +3697,7 @@ bool GTag::ConvertToText(TextConvertState &State)
 					if (_strnicmp(Href, "mailto:", 7) == 0)
 						Href += 7;
 						
-					int HrefLen = strlen(Href);
+					size_t HrefLen = strlen(Href);
 					GAutoWString h(CleanText(Href, HrefLen, "utf-8"));
 					if (h && StrcmpW(h, Txt) != 0)
 					{
@@ -3764,7 +3766,7 @@ bool GTag::OnUnhandledColor(GCss::ColorDef *def, const char *&s)
 		e++;
 
 	char tmp[256];
-	int len = e - s;
+	ssize_t len = e - s;
 	memcpy(tmp, s, len);
 	tmp[len] = 0;
 	int m = GHtmlStatic::Inst->ColourMap.Find(tmp);
@@ -3863,7 +3865,7 @@ bool GTag::GetWidthMetrics(GTag *Table, uint16 &Min, uint16 &Max)
 				while (*e && !StrchrW(WhiteW, *e)) e++;
 				
 				// Find size of the word
-				int Len = e - s;
+				ssize_t Len = e - s;
 				if (Len > 0)
 				{
 					GDisplayString ds(f, s, Len);
@@ -3937,7 +3939,7 @@ bool GTag::GetWidthMetrics(GTag *Table, uint16 &Min, uint16 &Max)
 				}
 				else
 				{
-					Min = Max = w.ToPx(0, GetFont());
+					Max = w.ToPx(0, GetFont());
 				}
 			}
 			else
@@ -4899,14 +4901,14 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, int LineHeight, 
 		Tr->Text = Text;
 
 		GDisplayString ds(Font, Text, min(1024, FullLen - (Text-Start)));
-		int Chars = ds.CharAt(Flow->X());
+		ssize_t Chars = ds.CharAt(Flow->X());
 		bool Wrap = false;
 		if (Text[Chars])
 		{
 			// Word wrap
 
 			// Seek back to the nearest break opportunity
-			int n = Chars;
+			ssize_t n = Chars;
 			while (n > 0 && !StrchrW(WhiteW, Text[n]))
 				n--;
 
@@ -5031,13 +5033,13 @@ bool GTag::Serialize(GXmlTag *t, bool Write)
 		if (Html->Cursor == this)
 		{
 			LgiAssert(Cursor >= 0);
-			t->SetAttr("cursor", Cursor);
+			t->SetAttr("cursor", (int64)Cursor);
 		}
 		else LgiAssert(Cursor < 0);
 		if (Html->Selection == this)
 		{
 			LgiAssert(Selection >= 0);
-			t->SetAttr("selection", Selection);
+			t->SetAttr("selection", (int64)Selection);
 		}
 		else LgiAssert(Selection < 0);
 		
@@ -5500,9 +5502,9 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 						default: break;
 						case ListDecimal:
 						{
-							int Index = Parent->Children.IndexOf(this);
+							ssize_t Index = Parent->Children.IndexOf(this);
 							char Txt[32];
-							sprintf_s(Txt, sizeof(Txt), "%i. ", Index + 1);
+							sprintf_s(Txt, sizeof(Txt), "%i. ", (int)(Index + 1));
 							PreText(Utf8ToWide(Txt));
 							break;
 						}
@@ -6052,7 +6054,7 @@ void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderP
 	#ifdef _DEBUG
 	if (Debug)
 	{
-		int asd=0;
+		//int asd=0;
 	}
 	#endif
 
@@ -6587,10 +6589,10 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection, uint16 Depth)
 					(Selection >= 0 || Cursor >= 0) &&
 					Selection != Cursor)
 				{
-					int Min = -1;
-					int Max = -1;
+					ssize_t Min = -1;
+					ssize_t Max = -1;
 
-					int Base = GetTextStart();
+					ssize_t Base = GetTextStart();
 					if (Cursor >= 0 && Selection >= 0)
 					{
 						Min = min(Cursor, Selection) + Base;
@@ -6611,8 +6613,8 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection, uint16 Depth)
 					for (unsigned i=0; i<TextPos.Length(); i++)
 					{
 						GFlowRect *Tr = TextPos[i];
-						int Start = Tr->Text - Text();
-						int Done = 0;
+						ssize_t Start = Tr->Text - Text();
+						ssize_t Done = 0;
 						int x = Tr->x1;
 
 						if (Tr->Len == 0)
@@ -6646,7 +6648,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection, uint16 Depth)
 
 						while (Done < Tr->Len)
 						{
-							int c = Tr->Len - Done;
+							ssize_t c = Tr->Len - Done;
 
 							FontColour(InSelection);
 
@@ -6724,11 +6726,11 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection, uint16 Depth)
 				{
 					FontColour(InSelection);
 
-					int Base = GetTextStart();
+					ssize_t Base = GetTextStart();
 					for (unsigned i=0; i<TextPos.Length(); i++)
 					{
 						GFlowRect *Tr = TextPos[i];
-						int Pos = (Tr->Text - Text()) - Base;
+						ssize_t Pos = (Tr->Text - Text()) - Base;
 
 						LgiAssert(Tr->y2 >= Tr->y1);
 						GDisplayString ds(f, Tr->Text, Tr->Len);
@@ -6749,7 +6751,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection, uint16 Depth)
 							)
 						)
 						{
-							int Off = Tr->Text == PreText() ? StrlenW(PreText()) : Cursor - Pos;
+							ssize_t Off = Tr->Text == PreText() ? StrlenW(PreText()) : Cursor - Pos;
 							pDC->Colour(LC_TEXT, 24);
 							GRect c;
 							if (Off)
@@ -7207,7 +7209,7 @@ GMessage::Result GHtml::OnEvent(GMessage *Msg)
 									{
 										int Size = (int)s->GetSize();
 										GAutoString Style(new char[Size+1]);
-										int rd = s->Read(Style, Size);
+										ssize_t rd = s->Read(Style, Size);
 										if (rd > 0)
 										{
 											Style[rd] = 0;
@@ -7472,7 +7474,7 @@ GTag *GHtml::PrevTag(GTag *t)
 		{
 			// Prev?
 			GTag *pp = ToTag(p->Parent);
-			int Idx = pp->Children.IndexOf(p);
+			ssize_t Idx = pp->Children.IndexOf(p);
 			GTag *Prev = Idx > 0 ? ToTag(pp->Children[Idx - 1]) : NULL;
 			if (Prev)
 			{
@@ -7508,7 +7510,7 @@ GTag *GHtml::NextTag(GTag *t)
 			if (p->Parent)
 			{
 				GTag *pp = ToTag(p->Parent);
-				unsigned Idx = pp->Children.IndexOf(p);
+				ssize_t Idx = pp->Children.IndexOf(p);
 				
 				GTag *Next = pp->Children.Length() > Idx + 1 ? ToTag(pp->Children[Idx + 1]) : NULL;
 				if (Next)
@@ -7540,7 +7542,7 @@ bool GHtml::IsCursorFirst()
 	return CompareTagPos(Cursor, Cursor->Cursor, Selection, Selection->Selection);
 }
 
-bool GHtml::CompareTagPos(GTag *a, int AIdx, GTag *b, int BIdx)
+bool GHtml::CompareTagPos(GTag *a, ssize_t AIdx, GTag *b, ssize_t BIdx)
 {
 	// Returns true if the 'a' is before 'b' point.
 	if (!a || !b)
@@ -7558,7 +7560,7 @@ bool GHtml::CompareTagPos(GTag *a, int AIdx, GTag *b, int BIdx)
 		for (GTag *t = b; t; t = ToTag(t->Parent))
 			BTree.AddAt(0, t);
 
-		int Depth = min(ATree.Length(), BTree.Length());
+		ssize_t Depth = min(ATree.Length(), BTree.Length());
 		for (int i=0; i<Depth; i++)
 		{
 			GTag *at = ATree[i];
@@ -7568,8 +7570,8 @@ bool GHtml::CompareTagPos(GTag *a, int AIdx, GTag *b, int BIdx)
 				LgiAssert(i > 0);
 				GTag *p = ATree[i-1];
 				LgiAssert(BTree[i-1] == p);
-				int ai = p->Children.IndexOf(at);
-				int bi = p->Children.IndexOf(bt);
+				ssize_t ai = p->Children.IndexOf(at);
+				ssize_t bi = p->Children.IndexOf(bt);
 				return ai < bi;
 			}
 		}		
@@ -7764,10 +7766,10 @@ bool GHtml::OnFind(GFindReplaceCommon *Params)
 	{
 		GArray<GTag*> Tags;
 		BuildTagList(Tags, Tag);
-		int Start = Tags.IndexOf(Cursor);
+		ssize_t Start = Tags.IndexOf(Cursor);
 		for (unsigned i=1; i<Tags.Length(); i++)
 		{
-			int Idx = (Start + i) % Tags.Length();
+			ssize_t Idx = (Start + i) % Tags.Length();
 			GTag *s = Tags[Idx];
 
 			if (s->Text())
@@ -7944,7 +7946,7 @@ void GHtml::OnMouseClick(GMouse &m)
 
 					if (Cursor->Text())
 					{
-						int Base = Cursor->GetTextStart();
+						ssize_t Base = Cursor->GetTextStart();
 						char16 *Text = Cursor->Text() + Base;
 						while (Text[Cursor->Cursor])
 						{
@@ -7958,7 +7960,7 @@ void GHtml::OnMouseClick(GMouse &m)
 					}
 					if (Selection->Text())
 					{
-						int Base = Selection->GetTextStart();
+						ssize_t Base = Selection->GetTextStart();
 						char16 *Sel = Selection->Text() + Base;
 						while (Selection->Selection > 0)
 						{
@@ -8347,7 +8349,7 @@ void GHtml::OnLoad()
 	SendNotify(GNotifyDocLoaded);
 }
 
-GTag *GHtml::GetTagByPos(int x, int y, int *Index, GdcPt2 *LocalCoords, bool DebugLog)
+GTag *GHtml::GetTagByPos(int x, int y, ssize_t *Index, GdcPt2 *LocalCoords, bool DebugLog)
 {
 	GTag *Status = NULL;
 
@@ -8387,7 +8389,7 @@ bool GHtml::OnMouseWheel(double Lines)
 LgiCursor GHtml::GetCursor(int x, int y)
 {
 	int Offset = ScrollY();
-	int Index = -1;
+	ssize_t Index = -1;
 	GdcPt2 LocalCoords;
 	GTag *Tag = GetTagByPos(x, y + Offset, &Index, &LocalCoords);
 	if (Tag)
@@ -8476,7 +8478,7 @@ void GHtml::OnMouseMove(GMouse &m)
 
 			if (d->WordSelectMode && Cursor->Text())
 			{
-				int Base = Cursor->GetTextStart();
+				ssize_t Base = Cursor->GetTextStart();
 				if (IsCursorFirst())
 				{
 					// Extend the cursor up the document to include the whole word
@@ -8596,7 +8598,7 @@ void GHtml::SetLinkDoubleClick(bool b)
 	d->LinkDoubleClick = b;
 }
 
-bool GHtml::GetFormattedContent(const char *MimeType, GAutoString &Out, GArray<GDocView::ContentMedia> *Media)
+bool GHtml::GetFormattedContent(const char *MimeType, GString &Out, GArray<GDocView::ContentMedia> *Media)
 {
 	if (!MimeType)
 	{
@@ -8620,7 +8622,7 @@ bool GHtml::GetFormattedContent(const char *MimeType, GAutoString &Out, GArray<G
 				if (!Img)
 					continue;
 				
-				const char *Cid, *Src;
+				const char *Cid = NULL, *Src;
 				if (Img->Get("src", Src) &&
 					!Img->Get("cid", Cid))
 				{
@@ -8648,7 +8650,7 @@ bool GHtml::GetFormattedContent(const char *MimeType, GAutoString &Out, GArray<G
 		}
 
 		// Export the HTML, including the CID's from the first step
-		Out.Reset(NewStr(Name()));
+		Out = Name();
 	}
 	else if (!_stricmp(MimeType, "text/plain"))
 	{
@@ -8659,7 +8661,7 @@ bool GHtml::GetFormattedContent(const char *MimeType, GAutoString &Out, GArray<G
 			GTag::TextConvertState State(&p);
 			Tag->ConvertToText(State);
 		}
-		Out.Reset(p.NewStr());
+		Out = p.NewGStr();
 	}
 
 	return false;
@@ -8874,7 +8876,7 @@ struct BuildContext
 							CurTr->TagId = TAG_TR;
 							
 
-							int Idx = t->Parent->Children.IndexOf(t);
+							ssize_t Idx = t->Parent->Children.IndexOf(t);
 							t->Parent->Attach(CurTr, Idx);
 						}
 					}
@@ -8949,7 +8951,7 @@ GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 	GTag *FakeCell = 0;
 
 	GTag *r;
-	for (unsigned i=0; i<Table->Children.Length(); i++)
+	for (ssize_t i=0; i<Table->Children.Length(); i++)
 	{
 		r = ToTag(Table->Children[i]);
 		if (r->Display() == GCss::DispNone)
@@ -8962,7 +8964,7 @@ GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 		}
 		else if (r->TagId == TAG_TBODY)
 		{
-			int Index = Table->Children.IndexOf(r);			
+			ssize_t Index = Table->Children.IndexOf(r);
 			for (unsigned n=0; n<r->Children.Length(); n++)
 			{
 				GTag *t = ToTag(r->Children[n]);
@@ -8987,7 +8989,7 @@ GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 					FakeRow->Tag.Reset(NewStr("tr"));
 					FakeRow->TagId = TAG_TR;
 
-					int Idx = Table->Children.IndexOf(r);
+					ssize_t Idx = Table->Children.IndexOf(r);
 					Table->Attach(FakeRow, Idx);
 				}
 			}
@@ -9007,7 +9009,7 @@ GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 					}
 				}
 
-				int Idx = Table->Children.IndexOf(r);
+				ssize_t Idx = Table->Children.IndexOf(r);
 				r->Detach();
 
 				if (IsTableCell(r->TagId))
@@ -9151,7 +9153,7 @@ void GHtmlTableLayout::GetAll(List<GTag> &All)
 void GHtmlTableLayout::GetSize(int &x, int &y)
 {
 	x = 0;
-	y = c.Length();
+	y = (int)c.Length();
 
 	for (unsigned i=0; i<c.Length(); i++)
 	{

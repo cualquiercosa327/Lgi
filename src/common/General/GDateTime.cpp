@@ -332,6 +332,8 @@ struct MonthHash : public GHashTbl<const char*,int>
 	}
 };
 
+GString::Array Zdump;
+
 bool GDateTime::GetDaylightSavingsInfo(GArray<GDstInfo> &Info, GDateTime &Start, GDateTime *End)
 {
 	bool Status = false;
@@ -396,101 +398,104 @@ bool GDateTime::GetDaylightSavingsInfo(GArray<GDstInfo> &Info, GDateTime &Start,
 	}
 	
 	#elif defined(MAC) || defined(LINUX)
-	
-	FILE *f = popen("zdump -v /etc/localtime", "r");
-	if (f)
-	{
-		char s[256];
-		size_t r;
-		GStringPipe p(1024);
-		while ((r = fread(s, 1, sizeof(s), f)) > 0)
-		{
-			p.Write(s, r);
-		}		
-		fclose(f);
-		
-		MonthHash Lut;
 
-		GAutoString ps(p.NewStr());
-		GToken t(ps, "\r\n");
-		GDateTime Prev;
-		int PrevOff = 0;
-		for (int i=0; i<t.Length(); i++)
+	if (!Zdump.Length())
+	{	
+		FILE *f = popen("zdump -v /etc/localtime", "r");
+		if (f)
 		{
-			char *Line = t[i];
-			GToken l(Line, " \t");
-			if (l.Length() >= 16 &&
-				!stricmp(l[0], "/etc/localtime"))
+			char s[256];
+			size_t r;
+			GStringPipe p(1024);
+			while ((r = fread(s, 1, sizeof(s), f)) > 0)
 			{
-				// /etc/localtime  Sat Oct  3 15:59:59 2037 UTC = Sun Oct  4 01:59:59 2037 EST isdst=0 gmtoff=36000
-				// 0               1   2    3 4        5    6   7 8   9    10 11      12   13  14      15
-				GDateTime Utc;
-				Utc.Year(atoi(l[5]));
-				GToken Tm(l[4], ":");
-				if (Tm.Length() == 3)
+				p.Write(s, (int)r);
+			}		
+			fclose(f);
+			
+			GString ps = p.NewGStr();
+			Zdump = ps.Split("\r\n");
+		}
+	}
+		
+	MonthHash Lut;
+	GDateTime Prev;
+	int PrevOff = 0;
+	for (int i=0; i<Zdump.Length(); i++)
+	{
+		char *Line = Zdump[i];
+		GToken l(Line, " \t");
+		if (l.Length() >= 16 &&
+			!stricmp(l[0], "/etc/localtime"))
+		{
+			// /etc/localtime  Sat Oct  3 15:59:59 2037 UTC = Sun Oct  4 01:59:59 2037 EST isdst=0 gmtoff=36000
+			// 0               1   2    3 4        5    6   7 8   9    10 11      12   13  14      15
+			GDateTime Utc;
+			Utc.Year(atoi(l[5]));
+			GToken Tm(l[4], ":");
+			if (Tm.Length() == 3)
+			{
+				Utc.Hours(atoi(Tm[0]));
+				Utc.Minutes(atoi(Tm[1]));
+				Utc.Seconds(atoi(Tm[2]));
+				if (Utc.Minutes() == 0)
 				{
-					Utc.Hours(atoi(Tm[0]));
-					Utc.Minutes(atoi(Tm[1]));
-					Utc.Seconds(atoi(Tm[2]));
-					if (Utc.Minutes() == 0)
+					int m = Lut.Find(l[2]);
+					if (m)
 					{
-						int m = Lut.Find(l[2]);
-						if (m)
+						Utc.Day(atoi(l[3]));
+						Utc.Month(m);
+
+						GAutoString Var, Val;
+						if (ParseValue(l[14], Var, Val) &&
+							!stricmp(Var, "isdst"))
 						{
-							Utc.Day(atoi(l[3]));
-							Utc.Month(m);
-
-							GAutoString Var, Val;
-							if (ParseValue(l[14], Var, Val) &&
-								!stricmp(Var, "isdst"))
+							// int IsDst = atoi(Val);
+							if (ParseValue(l[15], Var, Val) &&
+								!stricmp(Var, "gmtoff"))
 							{
-								int IsDst = atoi(Val);
-								if (ParseValue(l[15], Var, Val) &&
-									!stricmp(Var, "gmtoff"))
+								int Off = atoi(Val) / 60;
+
+								if (Prev.Year() &&
+									Prev < Start &&
+									Start < Utc)
 								{
-									int Off = atoi(Val) / 60;
-
-									if (Prev.Year() &&
-										Prev < Start &&
-										Start < Utc)
-									{
-										/*
-										char Tmp[64];
-										Utc.Get(Tmp, sizeof(Tmp));
-										printf("[%i] Utc=%s\n", Info.Length(), Tmp);
-										Prev.Get(Tmp, sizeof(Tmp));
-										printf("[%i] Prev=%s\n", Info.Length(), Tmp);
-										Start.Get(Tmp, sizeof(Tmp));
-										printf("[%i] Start=%s\n", Info.Length(), Tmp);
-										*/
-									
-										// Emit initial entry for 'start'
-										Info[0].UtcTimeStamp = Start;
-										Info[0].Offset = PrevOff;
-										Status = true;
-									}
-									
-									if (Utc > Start && End && Utc < *End)
-									{
-										// Emit furthur entries for DST events between start and end.
-										GDstInfo &inf = Info.New();
-										inf.UtcTimeStamp = Utc;
-										inf.Offset = Off;
-									}
-
-									Prev = Utc;
-									PrevOff = Off;
+									/*
+									char Tmp[64];
+									Utc.Get(Tmp, sizeof(Tmp));
+									printf("[%i] Utc=%s\n", Info.Length(), Tmp);
+									Prev.Get(Tmp, sizeof(Tmp));
+									printf("[%i] Prev=%s\n", Info.Length(), Tmp);
+									Start.Get(Tmp, sizeof(Tmp));
+									printf("[%i] Start=%s\n", Info.Length(), Tmp);
+									*/
+								
+									// Emit initial entry for 'start'
+									Info[0].UtcTimeStamp = Start;
+									Info[0].Offset = PrevOff;
+									Status = true;
 								}
-								else printf("%s:%i - Unknown value for isdst\n", _FL);
+								
+								if (Utc > Start && End && Utc < *End)
+								{
+									// Emit furthur entries for DST events between start and end.
+									GDstInfo &inf = Info.New();
+									inf.UtcTimeStamp = Utc;
+									inf.Offset = Off;
+								}
+
+								Prev = Utc;
+								PrevOff = Off;
 							}
 							else printf("%s:%i - Unknown value for isdst\n", _FL);
 						}
-						else printf("%s:%i - Unknown month '%s'\n", _FL, l[2]);
+						else printf("%s:%i - Unknown value for isdst\n", _FL);
 					}
-					// else printf("%s:%i - UTC min wrong %s.\n", _FL, l[4]);
+					else printf("%s:%i - Unknown month '%s'\n", _FL, l[2]);
 				}
-				else printf("%s:%i - Tm has wrong parts.\n", _FL);
+				// else printf("%s:%i - UTC min wrong %s.\n", _FL, l[4]);
 			}
+			else printf("%s:%i - Tm has wrong parts.\n", _FL);
 		}
 	}
 	
@@ -621,7 +626,7 @@ GString GDateTime::GetDate()
 	return GString(s, Ch);
 }
 
-int GDateTime::GetDate(char *Str, int SLen)
+int GDateTime::GetDate(char *Str, size_t SLen)
 {
 	int Ch = 0;
 
@@ -658,7 +663,7 @@ GString GDateTime::GetTime()
 	return GString(s, Ch);
 }
 
-int GDateTime::GetTime(char *Str, int SLen)
+int GDateTime::GetTime(char *Str, size_t SLen)
 {
 	int Ch = 0;
 
@@ -692,8 +697,6 @@ uint64 GDateTime::Ts()
 
 bool GDateTime::Set(uint64 s)
 {
-	bool Status = false;
-
 	#if defined WIN32
 	FILETIME Utc, Local;
 	SYSTEMTIME System;
@@ -711,16 +714,18 @@ bool GDateTime::Set(uint64 s)
 		_Seconds = System.wSecond;
 		_Thousands = System.wMilliseconds;
 
-		Status = true;
+		return true;
 	}
+	
+	return false;
+
 	#else
 
 	Set((time_t)(s / Second64Bit));
 	_Thousands = s % Second64Bit;
+	return true;
 	
 	#endif
-
-	return Status;
 }
 
 bool GDateTime::Set(time_t tt)
@@ -753,8 +758,6 @@ bool GDateTime::Set(time_t tt)
 
 bool GDateTime::Get(uint64 &s)
 {
-	bool Status = false;
-
 	#ifdef WIN32
 	FILETIME Utc, Local;
 	SYSTEMTIME System;
@@ -773,14 +776,13 @@ bool GDateTime::Get(uint64 &s)
 		(b2 = LocalFileTimeToFileTime(&Local, &Utc)))
 	{
 		s = ((uint64)Utc.dwHighDateTime << 32) | Utc.dwLowDateTime;
-		Status = true;
+		return true;
 	}
-	else
-	{
-	    DWORD Err = GetLastError();
-	    s = 0;
-	    LgiAssert(!"SystemTimeToFileTime failed."); 
-	}
+
+    DWORD Err = GetLastError();
+    s = 0;
+    LgiAssert(!"SystemTimeToFileTime failed."); 
+	return false;
 	
 	#else
 	
@@ -800,6 +802,8 @@ bool GDateTime::Get(uint64 &s)
 	we need to adjust the output to give the correct value.
 	*/
 	time_t sec = mktime(&t);
+	if (sec == -1)
+		return false;
 	
 	int CurTz = SystemTimeZone();
 	if (CurTz != _Tz)
@@ -811,9 +815,9 @@ bool GDateTime::Get(uint64 &s)
 	
 	s = (uint64)sec * Second64Bit + _Thousands;
 	
+	return true;
+	
 	#endif
-
-	return Status;
 }
 
 GString GDateTime::Get()
@@ -825,12 +829,12 @@ GString GDateTime::Get()
 	return GString(buf, Ch);
 }
 
-void GDateTime::Get(char *Str, int SLen)
+void GDateTime::Get(char *Str, size_t SLen)
 {
 	if (Str)
 	{
 		GetDate(Str, SLen);
-		int len = strlen(Str);
+		size_t len = strlen(Str);
 		if (len < SLen - 1)
 		{
 			Str[len++] = ' ';
@@ -1456,13 +1460,13 @@ void GDateTime::AddSeconds(int64 Seconds)
     
     if (s < 0)
     {
-        int m = (-s + 59) / 60;
+        int64 m = (-s + 59) / 60;
         AddMinutes(-m);
         s += m * 60;
     }
     else if (s >= 60)
     {
-        int m = s / 60;
+        int64 m = s / 60;
         AddMinutes(m);
         s -= m * 60;
     }
@@ -1471,7 +1475,7 @@ void GDateTime::AddSeconds(int64 Seconds)
 	LgiAssert(_Seconds >= 0 && _Seconds < 60);
 }
 
-void GDateTime::AddMinutes(int Minutes)
+void GDateTime::AddMinutes(int64 Minutes)
 {
 	int m = (int)_Minutes + Minutes;
 
@@ -1492,7 +1496,7 @@ void GDateTime::AddMinutes(int Minutes)
 	LgiAssert(_Minutes >= 0 && _Minutes < 60);
 }
 
-void GDateTime::AddHours(int Hours)
+void GDateTime::AddHours(int64 Hours)
 {
 	int h = _Hours + Hours;
 
@@ -1513,31 +1517,22 @@ void GDateTime::AddHours(int Hours)
 	LgiAssert(_Hours >= 0 && _Hours < 24);
 }
 
-void GDateTime::AddDays(int Days)
+bool GDateTime::AddDays(int64 Days)
 {
-	_Day += Days;
+	if (!Days)
+		return true;
 
-	do
-	{
-		if (_Day < 1)
-		{
-			AddMonths(-1);
-			_Day += DaysInMonth();
-		}
-		else if (_Day > DaysInMonth())
-		{
-			_Day -= DaysInMonth();
-			AddMonths(1);
-		}
-		else
-		{
-			break;
-		}
-	}
-	while (1);
+	uint64 Ts;
+	if (!Get(Ts))
+		return false;
+
+	uint64 DayTicks = (uint64)GDateTime::Second64Bit * 60 * 60 * 24;
+	Ts += Days * DayTicks;
+	bool b = Set(Ts);
+	return b;
 }
 
-void GDateTime::AddMonths(int Months)
+void GDateTime::AddMonths(int64 Months)
 {
 	int m = _Month + Months;
 

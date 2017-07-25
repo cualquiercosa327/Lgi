@@ -31,9 +31,11 @@ private:
 	int GetAsInt(const char *Name) { return GXmlTag::GetAsInt(Name); }
 	bool SetAttr(const char *Name, char *Value) { return GXmlTag::SetAttr(Name, Value); }
 	bool SetAttr(const char *Name, int Value) { return GXmlTag::SetAttr(Name, Value); }
+	bool SetAttr(const char *Name, int64 Value) { return GXmlTag::SetAttr(Name, Value); }
 	bool DelAttr(const char *Name) { return GXmlTag::DelAttr(Name); }
 	void InsertTag(GXmlTag *t) { GXmlTag::InsertTag(t); }
 	void RemoveTag() { GXmlTag::RemoveTag(); }
+	bool Serialize(bool Write) { return false; }
 	GXmlTag *GetChildTag(const char *Name, bool Create = false) { return GXmlTag::GetChildTag(Name, Create); }
 
 protected:
@@ -50,7 +52,7 @@ public:
 	bool IsValid();
 	char *GetFile() { return File; }
 	char *GetError() { return Error; }
-	bool Serialize(bool Write);
+	bool SerializeFile(bool Write);
 	bool DeleteValue(const char *Name);
 
 	bool CreateTag(const char *Name);

@@ -154,7 +154,7 @@ void GTabView::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 	{
 		TabIterator c(Children);
 		if (d->Current >= c.Length())
-			d->Current = c.Length() - 1;
+			d->Current = (int)c.Length() - 1;
 
 		if (Handle())
 			Invalidate();
@@ -334,7 +334,7 @@ bool GTabView::Delete(GTabPage *Page)
 	bool Status = false;
 
 	TabIterator it(Children);
-	int Index = it.IndexOf(Page);
+	ssize_t Index = it.IndexOf(Page);
 	if (Index >= 0)
 	{
 		if (Index == d->Current)
@@ -377,7 +377,7 @@ int GTabView::HitTest(GMouse &m)
 	}
 	else
 	{
-		int Hit = -1;
+		// int Hit = -1;
 		TabIterator it(Children);
 		for (int i=0; i<it.Length(); i++)
 		{

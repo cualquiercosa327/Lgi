@@ -88,6 +88,11 @@ public:
 // Posix system
 #define POSIX						1
 
+// Process
+typedef int							OsProcess;
+typedef int							OsProcessId;
+#define LgiGetCurrentProcess()		getpid()
+
 // Threads
 #define LgiGetCurrentThread()		pthread_self()
 
@@ -104,14 +109,16 @@ LgiFunc void LgiSleep(uint32 i);
 
 #define LGI_GViewMagic				0x14412662
 #define LGI_FileDropFormat			"furl" // typeFileURL
-#define LGI_StreamDropFormat		kPasteboardTypeFileURLPromise
+#define LGI_StreamDropFormat		"" // kPasteboardTypeFileURLPromise
 #define LGI_LgiDropFormat			"lgi "
 #define LGI_WideCharset				"utf-32"
 #define LGI_PrintfInt64				"%lli"
+#define LGI_PrintfHex64				"%llx"
 #define atoi64						atoll
 #define sprintf_s					snprintf
 #define vsprintf_s					vsnprintf
 #define LGI_IllegalFileNameChars	"/" // FIXME: what other characters should be in here?
+#define LGI_EXECUTABLE_EXT			// Empty
 
 // Window flags
 #define GWF_VISIBLE					0x00000001

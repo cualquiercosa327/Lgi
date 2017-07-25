@@ -4,7 +4,7 @@
 #include "LgiRes.h"
 
 #define DEFAULT_SPACER_PX			5
-#define DEFAULT_SPACER_COLOUR24		LC_MED
+// #define DEFAULT_SPACER_COLOUR24		LC_MED
 #define DEFAULT_MINIMUM_SIZE_PX		5
 #define ACTIVE_SPACER_SIZE_PX		9
 
@@ -97,7 +97,7 @@ GBox::Spacer *GBox::GetSpacer(int idx)
 		{
 			Spacer &s = d->Spacers.New();
 			s.SizePx = DEFAULT_SPACER_PX;
-			s.Colour.c24(DEFAULT_SPACER_COLOUR24);
+			// s.Colour.c24(DEFAULT_SPACER_COLOUR24);
 		}
 	}
 	
@@ -207,10 +207,18 @@ void GBox::OnPaint(GSurface *pDC)
 	GCssTools tools(GetCss(), GetFont());
 	cli = tools.PaintBorderAndPadding(pDC, cli);
 
+	GCss::ColorDef Bk(LC_MED);
+	if (GetCss())
+	{
+		GCss::ColorDef c = GetCss()->BackgroundColor();
+		if (c.IsValid())
+			Bk = c;
+	}
+
 	int ChildViews = Children.Length();
 	if (ChildViews == 0)
 	{
-		pDC->Colour(LC_MED, 24);
+		pDC->Colour(Bk);
 		pDC->Rectangle(&cli);
 	}
 	else
@@ -223,7 +231,10 @@ void GBox::OnPaint(GSurface *pDC)
 		for (int i=0; i<d->Spacers.Length(); i++)
 		{
 			Spacer &s = d->Spacers[i];
-			pDC->Colour(s.Colour);
+			if (s.Colour.IsValid())
+				pDC->Colour(s.Colour);
+			else
+				pDC->Colour(Bk);
 			pDC->Rectangle(&s.Pos);
 		}
 	}

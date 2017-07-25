@@ -56,10 +56,10 @@ public:
 	
 	struct SpellingError
 	{
-		int Start, Len;
+		ssize_t Start, Len;
 		GString::Array Suggestions;
 		
-		int End() { return Start + Len; }
+		ssize_t End() { return Start + Len; }
 	};
 	
 	struct CheckText

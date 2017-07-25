@@ -27,6 +27,7 @@
 
 extern const char *Untitled;
 
+#define STOP_BUILD_TIMEOUT			3000
 #ifdef WIN32
 #define LGI_STATIC_LIBRARY_EXT		"lib"
 #else
@@ -114,7 +115,7 @@ public:
 	BuildThread(IdeProject *proj, char *mf, const char *args = 0);
 	~BuildThread();
 	
-	int Write(const void *Buffer, int Size, int Flags = 0);
+	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0) override;
 	GString FindExe();
 	GAutoString WinToMingWPath(const char *path);
 	int Main();
@@ -125,21 +126,29 @@ class IdeProjectPrivate
 public:
 	AppWnd *App;
 	IdeProject *Project;
-	bool Dirty;
-	GAutoString FileName;
+	bool Dirty, UserFileDirty;
+	GString FileName;
 	IdeProject *ParentProject;
 	IdeProjectSettings Settings;
 	GAutoPtr<BuildThread> Thread;
 	GHashTbl<const char*, ProjectNode*> Nodes;
+	int NextNodeId;
+
+	// User info file
+	GString UserFile;
+	GHashTbl<int,int> UserNodeFlags;
 
 	IdeProjectPrivate(AppWnd *a, IdeProject *project) :
 		Project(project),
 		Settings(project),
-		Nodes(0, false, NULL, NULL)
+		Nodes(0, false, NULL, NULL),
+		UserNodeFlags(0, false, 0, -1)
 	{
 		App = a;
 		Dirty = false;
+		UserFileDirty = false;
 		ParentProject = 0;
+		NextNodeId = 1;
 	}
 
 	void CollectAllFiles(GTreeNode *Base, GArray<ProjectNode*> &Files, bool SubProjects, int Platform);
@@ -255,13 +264,33 @@ BuildThread::~BuildThread()
 	if (SubProc)
 		SubProc->Interrupt();
 
+	uint64 Start = LgiCurrentTime();
+	bool Killed = false;
 	while (!IsExited())
 	{
 		LgiSleep(10);
+
+		if (LgiCurrentTime() - Start > STOP_BUILD_TIMEOUT &&
+			SubProc)
+		{
+			if (Killed)
+			{
+				// Thread is stuck as well... ok kill that too!!! Argh - kill all the things!!!!
+				Terminate();
+				break;
+			}
+			else
+			{
+				// Kill the sub-process...
+				SubProc->Kill();
+				Killed = true;
+				Start = LgiCurrentTime();
+			}
+		}
 	}
 }
 
-int BuildThread::Write(const void *Buffer, int Size, int Flags)
+ssize_t BuildThread::Write(const void *Buffer, ssize_t Size, int Flags)
 {
 	if (Proj->GetApp())
 	{
@@ -393,38 +422,24 @@ int BuildThread::Main()
 	if (Exe)
 	{
 		bool Status = false;
-		GAutoString MakePath(NewStr(Makefile));
+		GString MakePath = Makefile.Get();
+		GString InitDir = Makefile.Get();
 		GVariant Jobs;
 		if (!Proj->GetApp()->GetOptions()->GetValue(OPT_Jobs, Jobs) || Jobs.CastInt32() < 1)
 			Jobs = 2;
 
+		int Pos = InitDir.RFind(DIR_STR);
+		if (Pos)
+			InitDir.Length(Pos);
+
+		GString TmpArgs;
 		if (Compiler == VisualStudio)
 		{
-			char a[MAX_PATH];
-			sprintf_s(a, sizeof(a), "\"%s\" /make \"All - Win32 Debug\"", Makefile.Get());
-			GProcess Make;
-			Status = Make.Run(Exe, a, 0, true, 0, this);
-			if (!Status)
-			{
-				Err = "Running make failed";
-				LgiTrace("%s,%i - %s.\n", _FL, Err);
-			}
+			TmpArgs.Printf("\"%s\" /make \"All - Win32 Debug\"", Makefile.Get());
 		}
 		else if (Compiler == PythonScript)
 		{
-			char a[MAX_PATH];
-			GString Path = Makefile.Get();
-			int Pos = Path.RFind(DIR_STR);
-			if (Pos >= 0)
-				Path.Length(Pos);
-
-			GProcess Python;
-			Status = Python.Run(Exe, Makefile, Path, true, 0, this);
-			if (!Status)
-			{
-				Err = "Running python failed";
-				LgiTrace("%s,%i - %s.\n", _FL, Err);
-			}
+			TmpArgs = MakePath;
 		}
 		else if (Compiler == IAR)
 		{
@@ -444,27 +459,17 @@ int BuildThread::Main()
 				}				
 			}
 
-			char a[MAX_PATH];
-			sprintf_s(a, sizeof(a), "\"%s\" %s -log warnings", Makefile.Get(), Conf.Get());
-			GProcess Make;
-			Status = Make.Run(Exe, a, 0, true, 0, this);
-			if (!Status)
-			{
-				Err = "Running IAR Build failed";
-				LgiTrace("%s,%i - %s.\n", _FL, Err);
-			}
+			TmpArgs.Printf("\"%s\" %s -log warnings", Makefile.Get(), Conf.Get());
 		}
 		else
 		{
-			GStringPipe a;
-			char InitDir[MAX_PATH];
-			LgiMakePath(InitDir, sizeof(InitDir), MakePath, "..");
-			
 			if (Compiler == MingW)
 			{
+				GString a;
 				char *Dir = strrchr(MakePath, DIR_CHAR);
 				#if 1
-				a.Print("/C \"%s\"", Exe.Get());
+				TmpArgs.Printf("/C \"%s\"", Exe.Get());
+
 				
 				/*	As of MSYS v1.0.18 the support for multiple jobs causes make to hang:
 					http://sourceforge.net/p/mingw/bugs/1950/
@@ -477,63 +482,66 @@ int BuildThread::Main()
 				
 				*/
 				
-				a.Print(" -f \"%s\"", Dir ? Dir + 1 : MakePath.Get());
+				a.Printf(" -f \"%s\"", Dir ? Dir + 1 : MakePath.Get());
+				TmpArgs += a;
 				#else
-				a.Print("/C set");
+				TmpArgs.Printf("/C set");
 				#endif
 				Exe = "C:\\Windows\\System32\\cmd.exe";
 			}
 			else
 			{
 				if (Jobs.CastInt32())
-					a.Print("-j %i -f \"%s\"", Jobs.CastInt32(), MakePath.Get());
+					TmpArgs.Printf("-j %i -f \"%s\"", Jobs.CastInt32(), MakePath.Get());
 				else
-					a.Print("-f \"%s\"", MakePath.Get());
+					TmpArgs.Printf("-f \"%s\"", MakePath.Get());
 			}
 
 			if (Args)
-				a.Print(" %s", Args.Get());
-			GAutoString Temp(a.NewStr());
-			
-			GString Msg;
-			Msg.Printf("Making: %s\n", Temp.Get());
-			Proj->GetApp()->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr(Msg), 0);
-
-			if (SubProc.Reset(new GSubProcess(Exe, Temp)))
 			{
-				SubProc->SetInitFolder(InitDir);
-				if (Compiler == MingW)
-					SubProc->SetEnvironment("PATH", "c:\\MingW\\bin;C:\\MinGW\\msys\\1.0\\bin;%PATH%");
+				TmpArgs += " ";
+				TmpArgs += Args.Get();
+			}
+		}
+
+		GString Msg;
+		Msg.Printf("Making: %s\n", MakePath.Get());
+		Proj->GetApp()->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr(Msg), 0);
+
+		if (SubProc.Reset(new GSubProcess(Exe, TmpArgs)))
+		{
+			SubProc->SetInitFolder(InitDir);
+			if (Compiler == MingW)
+				SubProc->SetEnvironment("PATH", "c:\\MingW\\bin;C:\\MinGW\\msys\\1.0\\bin;%PATH%");
 				
-				if ((Status = SubProc->Start(true, false)))
+			if ((Status = SubProc->Start(true, false)))
+			{
+				// Read all the output					
+				char Buf[256];
+				int rd;
+				while ( (rd = SubProc->Read(Buf, sizeof(Buf))) > 0 )
 				{
-					// Read all the output					
-					char Buf[256];
-					int rd;
-					while ( (rd = SubProc->Read(Buf, sizeof(Buf))) > 0 )
-					{
-						Write(Buf, rd);
-					}
-					
-					uint32 ex = SubProc->Wait();
-					Print("Make exited with %i (0x%x)\n", ex, ex);
+					Write(Buf, rd);
 				}
-				else
+					
+				uint32 ex = SubProc->Wait();
+				Print("Make exited with %i (0x%x)\n", ex, ex);
+			}
+			else
+			{
+				// Create a nice error message.
+				GAutoString ErrStr = LgiErrorCodeToString(SubProc->GetErrorCode());
+				if (ErrStr)
 				{
-					// Create a nice error message.
-					GAutoString ErrStr = LgiErrorCodeToString(SubProc->GetErrorCode());
-					if (ErrStr)
-					{
-						char *e = ErrStr + strlen(ErrStr);
-						while (e > ErrStr && strchr(" \t\r\n.", e[-1]))
-							*(--e) = 0;
-					}
-					
-					sprintf_s(ErrBuf, sizeof(ErrBuf), "Running make failed with %i (%s)\n",
-						SubProc->GetErrorCode(),
-						ErrStr.Get());
-					Err = ErrBuf;
+					char *e = ErrStr + strlen(ErrStr);
+					while (e > ErrStr && strchr(" \t\r\n.", e[-1]))
+						*(--e) = 0;
 				}
+					
+				sprintf_s(ErrBuf, sizeof(ErrBuf), "Running make failed with %i (%s)\n",
+					SubProc->GetErrorCode(),
+					ErrStr.Get());
+				Err = ErrBuf;
 			}
 		}
 	}
@@ -886,7 +894,7 @@ public:
 		return 0;
 	}
 
-	int Write(const void *Buffer, int Size, int Flags = 0)
+	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0) override
 	{
 		if (Len > 0)
 		{
@@ -966,7 +974,7 @@ void IdeProject::StopBuild()
 	d->Thread.Reset();
 }
 
-bool IdeProject::Serialize()
+bool IdeProject::Serialize(bool Write)
 {
 	return true;
 }
@@ -1057,7 +1065,8 @@ void IdeProject::CreateProject()
 {
 	Empty();
 	
-	d->FileName.Reset();
+	d->FileName.Empty();
+	d->UserFile.Empty();
 	d->App->GetTree()->Insert(this);
 	
 	ProjectNode *f = new ProjectNode(this);
@@ -1088,17 +1097,19 @@ ProjectStatus IdeProject::OpenFile(char *FileName)
 {
 	Empty();
 
+	d->UserNodeFlags.Empty();
 	if (LgiIsRelativePath(FileName))
 	{
 		char p[MAX_PATH];
 		getcwd(p, sizeof(p));
 		LgiMakePath(p, sizeof(p), p, FileName);
-		d->FileName.Reset(NewStr(p));
+		d->FileName = p;
 	}
 	else
 	{
-		d->FileName.Reset(NewStr(FileName));
+		d->FileName = FileName;
 	}
+	d->UserFile = d->FileName + "." + LgiCurrentUserName();
 
 	if (d->FileName)
 	{
@@ -1115,6 +1126,21 @@ ProjectStatus IdeProject::OpenFile(char *FileName)
 				Prog.SetLimits(0, Nodes);
 				Prog.SetYieldTime(200);
 				Prog.SetAlwaysOnTop(true);
+
+				if (FileExists(d->UserFile))
+				{
+					GFile Uf;
+					if (Uf.Open(d->UserFile, O_READ))
+					{
+						GString::Array Ln = Uf.Read().SplitDelimit("\n");
+						for (unsigned i=0; i<Ln.Length(); i++)
+						{
+							GString::Array p = Ln[i].SplitDelimit(",");
+							if (p.Length() == 2)
+								d->UserNodeFlags.Add(p[0].Int(), p[1].Int(16));
+						}
+					}
+				}
 				
 				OnOpen(Prog, &r);
 				if (Prog.Cancel())
@@ -1140,13 +1166,12 @@ ProjectStatus IdeProject::OpenFile(char *FileName)
 	return OpenError;
 }
 
-bool IdeProject::SaveFile(char *FileName)
+bool IdeProject::SaveFile()
 {
 	GAutoString Full = GetFullPath();
-	if (ValidStr(Full))
+	if (ValidStr(Full) && d->Dirty)
 	{
 		GFile f;
-		
 		if (f.Open(Full, O_WRITE))
 		{
 			GXmlTree x;
@@ -1165,15 +1190,32 @@ bool IdeProject::SaveFile(char *FileName)
 				Prog.SetDescription("Writing XML...");
 				LgiYield();
 				if (Cp.Copy(&Buf, &f))
-				{
 					d->Dirty = false;
-					return true;
-				}
 			}
 		}
 	}
 
-	return false;
+	if (d->UserFileDirty)
+	{
+		GFile f;
+		LgiAssert(d->UserFile.Get());
+		if (f.Open(d->UserFile, O_WRITE))
+		{
+			f.SetSize(0);
+
+			// Save user file details..
+			int Id;
+			for (int Flags = d->UserNodeFlags.First(&Id); Flags >= 0; Flags = d->UserNodeFlags.Next(&Id))
+			{
+				f.Print("%i,%x\n", Id, Flags);
+			}
+
+			d->UserFileDirty = false;
+		}
+	}
+
+	return	!d->Dirty &&
+			!d->UserFileDirty;
 }
 
 void IdeProject::SetDirty()
@@ -1182,9 +1224,34 @@ void IdeProject::SetDirty()
 	d->App->OnProjectChange();
 }
 
+void IdeProject::SetUserFileDirty()
+{
+	d->UserFileDirty = true;
+}
+
+bool IdeProject::GetExpanded(int Id)
+{
+	int f = d->UserNodeFlags.Find(Id);
+	return f >= 0 ? f : false;
+}
+
+void IdeProject::SetExpanded(int Id, bool Exp)
+{
+	if (d->UserNodeFlags.Find(Id) != (int)Exp)
+	{
+		d->UserNodeFlags.Add(Id, Exp);
+		SetUserFileDirty();
+	}
+}
+
+int IdeProject::AllocateId()
+{
+	return d->NextNodeId++;
+}
+
 bool IdeProject::SetClean()
 {
-	if (d->Dirty)
+	if (d->Dirty || d->UserFileDirty)
 	{
 		if (!ValidStr(d->FileName))
 		{
@@ -1193,14 +1260,15 @@ bool IdeProject::SetClean()
 			s.Name("Project.xml");
 			if (s.Save())
 			{
-				d->FileName.Reset(NewStr(s.Name()));
+				d->FileName = s.Name();
+				d->UserFile = d->FileName + "." + LgiCurrentUserName();
 				d->App->OnFile(d->FileName, true);
 				Update();
 			}
 			else return false;
 		}
 
-		SaveFile(0);
+		SaveFile();
 	}
 
 	ForAllProjectNodes(p)
@@ -1216,7 +1284,7 @@ char *IdeProject::GetText(int Col)
 	if (d->FileName)
 	{
 		char *s = strrchr(d->FileName, DIR_CHAR);
-		return s ? s + 1 : d->FileName;
+		return s ? s + 1 : d->FileName.Get();
 	}
 
 	return (char*)Untitled;
@@ -1555,6 +1623,8 @@ bool IdeProject::BuildIncludePaths(GArray<GString> &Paths, bool Recurse, IdePlat
 		GetChildProjects(Projects);
 	}
 	Projects.Insert(this, 0);
+
+	GHashTbl<char*, bool> Map;
 	
 	for (IdeProject *p=Projects.First(); p; p=Projects.Next())
 	{
@@ -1627,6 +1697,7 @@ bool IdeProject::BuildIncludePaths(GArray<GString> &Paths, bool Recurse, IdePlat
 					Full = Inc[i];
 				}
 				
+				#if 0
 				bool Has = false;
 				for (int n=0; n<Paths.Length(); n++)
 				{
@@ -1641,9 +1712,50 @@ bool IdeProject::BuildIncludePaths(GArray<GString> &Paths, bool Recurse, IdePlat
 				{
 					Paths.Add(NewStr(Full));
 				}
+				#else
+				if (!Map.Find(Full))
+					Map.Add(Full, true);
+				#endif
+			}
+		}
+
+		// Add paths for the headers in the project... bit of a hack but it'll
+		// help it find them if the user doesn't specify the paths in the project.
+		GArray<ProjectNode*> Nodes;
+		if (p->GetAllNodes(Nodes))
+		{
+			GAutoString Base = p->GetFullPath();
+			if (Base)
+			{
+				LgiTrimDir(Base);
+
+				for (unsigned i=0; i<Nodes.Length(); i++)
+				{
+					ProjectNode *n = Nodes[i];
+					if (n->GetType() == NodeHeader)
+					{
+						char *f = n->GetFileName();
+						char p[MAX_PATH];
+						if (f &&
+							LgiMakePath(p, sizeof(p), Base, f))
+						{
+							char *l = strrchr(p, DIR_CHAR);
+							if (l)
+								*l = 0;
+							if (!Map.Find(p))
+							{
+								Map.Add(p, true);
+							}
+						}
+					}
+				}
 			}
 		}
 	}
+
+	char *p;
+	for (bool b = Map.First(&p); b; b = Map.Next(&p))
+		Paths.Add(p);
 
 	return true;
 }
@@ -2512,6 +2624,11 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 							
 							m.Print("%s.o : %s ", Part, ToUnixPath(Rel));
 
+							if (Src.Find("AddressSelect.cpp") >= 0)
+							{
+								int asd=0;
+							}
+
 							GArray<char*> SrcDeps;
 							if (GetDependencies(Src, IncPaths, SrcDeps, Platform))
 							{
@@ -2665,7 +2782,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-IdeTree::IdeTree() : GTree(100, 0, 0, 100, 100)
+IdeTree::IdeTree() : GTree(IDC_PROJECT_TREE, 0, 0, 100, 100)
 {
 	Hit = 0;
 	MultiSelect(true);

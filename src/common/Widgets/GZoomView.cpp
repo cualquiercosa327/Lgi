@@ -529,12 +529,12 @@ public:
 						uint32 *dst = dst_start;
 						while (s[0] < scan_end)
 						{
-							register uint8 val = 0;
+							uint8 val = 0;
 							
 							for (int oy=0; oy<Factor && s[oy]; oy++)
 							{
-								register uint8 *src = s[oy];
-								register uint8 *px_end = src + Factor;
+								uint8 *src = s[oy];
+								uint8 *px_end = src + Factor;
 								while (src < px_end)
 								{
 									if (*src > val)
@@ -1016,7 +1016,7 @@ public:
 								src++;
 							}
 							
-							((GMemDC*)Dst)->HLine(0, Dst->X(), DstY+f, Light, Dark);
+							((GMemDC*)Dst)->HorzLine(0, Dst->X(), DstY+f, Light, Dark);
 						}
 					}
 					else
@@ -1046,11 +1046,11 @@ public:
 			{
 				for (int x = Factor - 1; x<Dst->X(); x += Factor)
 				{
-					Mem->VLine(x, 0, Dst->Y(), Light, Dark);
+					Mem->VertLine(x, 0, Dst->Y(), Light, Dark);
 				}
 				for (int y = Factor - 1; y<Dst->Y(); y += Factor)
 				{
-					Mem->HLine(0, Dst->X(), y, Light, Dark);
+					Mem->HorzLine(0, Dst->X(), y, Light, Dark);
 				}
 			}
 
@@ -1087,13 +1087,13 @@ public:
 				int i = TileX - (Sx % TileX);
 				for (int x = i * Factor - 1; x<Dst->X(); x += Factor * TileX)
 				{
-					Mem->VLine(x, 0, Dst->Y(), LightBlue, DarkBlue);
+					Mem->VertLine(x, 0, Dst->Y(), LightBlue, DarkBlue);
 				}
 
 				i = TileY - (Sy % TileY);
 				for (int y = i * Factor - 1; y<Dst->Y(); y += Factor * TileY)
 				{
-					Mem->HLine(0, Dst->X(), y, LightBlue, DarkBlue);
+					Mem->HorzLine(0, Dst->X(), y, LightBlue, DarkBlue);
 				}
 			}
 		}
@@ -1322,9 +1322,9 @@ void GZoomView::ScrollToPoint(GdcPt2 DocCoord)
 		return;
 	if (HScroll)
 	{
-		int DocX = d->pDC->X();
-		int Page = HScroll->Page();
-		int MaxVal = DocX - (Page - 1);
+		int64 DocX = d->pDC->X();
+		int64 Page = HScroll->Page();
+		int64 MaxVal = DocX - (Page - 1);
 		int64 x1 = HScroll->Value();
 		int64 x2 = x1 + Page;
 		if (DocCoord.x < x1)
@@ -1335,7 +1335,7 @@ void GZoomView::ScrollToPoint(GdcPt2 DocCoord)
 	if (VScroll)
 	{
 		int DocY = d->pDC->Y();
-		int Page = VScroll->Page();
+		int Page = (int)VScroll->Page();
 		int MaxVal = DocY - (Page - 1);
 		int64 y1 = VScroll->Value();
 		int64 y2 = y1 + Page;

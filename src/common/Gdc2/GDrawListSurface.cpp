@@ -194,7 +194,7 @@ GDrawListSurface::~GDrawListSurface()
 	delete d;
 }
 
-int GDrawListSurface::Length()
+ssize_t GDrawListSurface::Length()
 {
 	return d->Length();
 }

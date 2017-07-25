@@ -87,7 +87,7 @@ public:
 	void OnMouseEnter(GMouse &m);
 	void OnMouseExit(GMouse &m);
 
-	virtual void OnCommand();
+	virtual void SendCommand();
 	virtual bool GetDimension(int &x, int &y) { return false; }
 };
 
@@ -210,6 +210,7 @@ public:
 	void OnMouseExit(GMouse &m);
 	void OnMouseMove(GMouse &m);
 	bool Pour(GRegion &r);
+	bool OnLayout(GViewLayoutInfo &Inf);
 	void OnCreate();
 
 	#ifdef MAC

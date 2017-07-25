@@ -24,7 +24,7 @@ public:
 	GAutoString			OptionsFile;
 	GAutoString			OptionsParam;
 	char				*AppName;
-	GAutoString			CurFile;
+	GString				CurFile;
 	bool				Dirty;
 	GDocAppInstallMode	Mode;
 
@@ -125,7 +125,7 @@ public:
 		if (!p) return false;
 
 		p->SetFile(OptionsFile);
-		bool Result = p->Serialize(Write);
+		bool Result = p->SerializeFile(Write);
 		if (Write && !Result)
 		{
 			// Probably because we don't have write access to the install folder?
@@ -273,7 +273,7 @@ bool GDocApp<OptionsFmt>::SetLanguage(char *LangId)
 
 	GVariant v;
 	GetOptions()->SetValue(_LangOptsName, v = LangId);
-	GetOptions()->Serialize(true);
+	GetOptions()->SerializeFile(true);
 	LgiCloseApp();
 
 	char Exe[MAX_PATH];
@@ -516,12 +516,12 @@ char *GDocApp<OptionsFmt>::GetAppName()
 template <typename OptionsFmt>
 void GDocApp<OptionsFmt>::SetCurFile(char *f)
 {
-	if (f != d->CurFile)
+	if (!d->CurFile.Equals(f))
 	{
-		d->CurFile.Reset(NewStr(f));
+		d->CurFile = f;
 	}
 
-	GAutoString Display;
+	GString Display;
 	if (SerializeEntry(&Display, &d->CurFile, NULL))
 	{
 		char s[MAX_PATH + 100];

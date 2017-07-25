@@ -24,7 +24,7 @@ class GCheckBoxPrivate : public GMutex, public GDisplayStringLayout
 	GCheckBox *Ctrl;
 	
 public:
-	int Val;
+	int64 Val;
 	bool Over;
 	bool Three;
 	GRect ValuePos;
@@ -124,7 +124,7 @@ void GCheckBox::Value(int64 i)
 		d->Val = i;
 		Invalidate(&d->ValuePos);
 
-		SendNotify(d->Val);
+		SendNotify((int)d->Val);
 	}
 }
 
@@ -289,7 +289,7 @@ void GCheckBox::OnPaint(GSurface *pDC)
 	else
 	{
 		bool en = Enabled();
-		GFont *f = GetFont();
+		// GFont *f = GetFont();
 
 		GRect r = GetClient();
 		

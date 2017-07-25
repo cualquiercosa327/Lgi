@@ -113,7 +113,7 @@ public:
 					{
 						int Size = (int)Pipe->GetSize();
 						int Len = min(InBufSize, Size);
-						int r = Pipe->Read(InBuf, Len);
+						ssize_t r = Pipe->Read(InBuf, Len);
 						BitsLeft += r * 8;
 					}
 					/*
@@ -194,7 +194,7 @@ public:
 			BitPos = 0;
 			BitsLeft = 0;
 
-			int OldCode;
+			int OldCode = 0;
 			char *s;
 			int Char = 0;
 			char Buf[4000];
@@ -308,10 +308,10 @@ public:
 				*InPos++ = Datum;
 			}
 
-			int Len = InPos - InBuf;
+			ptrdiff_t Len = InPos - InBuf;
 			if (Pipe)
 			{
-				Pipe->Write(InBuf, Len);
+				Pipe->Write(InBuf, (int)Len);
 			}
 			/*
 			else

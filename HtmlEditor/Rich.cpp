@@ -88,7 +88,7 @@ public:
 		Speller = CreateWindowsSpellCheck();
 		#elif defined(MAC)
 		Speller = CreateAppleSpellCheck();
-		#else
+		#elif !defined(LINUX)
 		Speller = CreateAspellObject();
 		#endif
 		
@@ -139,6 +139,8 @@ public:
 				Split->AddView(Tabs = new GTabView(IDC_TABS));
 				if (Tabs)
 				{
+					// Tabs->Debug();
+					
 					GTabPage *p = Tabs->Append("Html Output");
 					if (p)
 					{
@@ -158,7 +160,7 @@ public:
 			}
 
 			AttachChildren();
-			Pour();
+			PourAll();
 			Visible(true);
 
 			if (Edit)
@@ -223,7 +225,7 @@ public:
 							f.Write(Html);
 							f.Close();
 							
-							GString FileName = p;
+							GString FileName = p.GetFull();
 							
 							for (unsigned i=0; i<Media.Length(); i++)
 							{

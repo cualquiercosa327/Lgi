@@ -96,7 +96,7 @@ char *strnchr(const char *s, char c, NativeInt Len)
 {
 	if (s && Len >= 0)
 	{
-		for (size_t i=0; i<Len; i++)
+		for (ssize_t i=0; i<Len; i++)
 		{
 			if (s[i] == c)
 				return (char*)s + i;
@@ -214,7 +214,7 @@ char *strconcat(char *dst, const char *src)
 
 #endif
 
-int strnicmp(const char *a, const char *b, int i)
+int strnicmp(const char *a, const char *b, ssize_t i)
 {
 	int Cmp = -1;
 	if (a && b && i > 0)
@@ -823,7 +823,7 @@ bool MatchStrW(const char16 *a, const char16 *b)
 	return 0;
 }
 
-char16 *NewStrW(const char16 *Str, int l)
+char16 *NewStrW(const char16 *Str, ssize_t l)
 {
 	char16 *s = 0;
 	if (Str)
@@ -937,7 +937,7 @@ char *LgiEncodeUri(const char *uri, int len)
 	return p.NewStr();
 }
 
-GString LgiUnEscapeString(const char *Chars, const char *In, int Len)
+GString LgiUnEscapeString(const char *Chars, const char *In, ssize_t Len)
 {
 	GString s;
 	if (Chars && In)
@@ -973,7 +973,7 @@ GString LgiUnEscapeString(const char *Chars, const char *In, int Len)
 	return s;
 }
 
-GString LgiEscapeString(const char *Chars, const char *In, int Len)
+GString LgiEscapeString(const char *Chars, const char *In, ssize_t Len)
 {
 	GString s;
 	

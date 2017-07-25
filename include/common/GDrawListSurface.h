@@ -11,7 +11,7 @@ public:
 	~GDrawListSurface();
 
 	// Calls specific to this class:
-	int Length();
+	ssize_t Length();
 	bool OnPaint(GSurface *Dest);
 	GFont *GetFont();
 	void SetFont(GFont *Font);

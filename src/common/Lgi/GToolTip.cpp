@@ -225,7 +225,12 @@ int GToolTip::NewTip(char *Name, GRect &Pos)
 		#if COCOA
 		#warning FIXME
 		#else
+	
+		#ifdef __MACHELP__
 		HMSetHelpTagsDisplayed(true);
+		#else
+		#error "__MACHELP__ not defined"
+		#endif
 
 		if (Name)
 		{

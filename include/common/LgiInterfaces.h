@@ -87,11 +87,11 @@ public:
 
 	/// \brief Read bytes out of the stream
 	/// \return > 0 on succes, which indicates the number of bytes read
-	virtual int Read(void *Buffer, int Size, int Flags = 0) = 0;
+	virtual ssize_t Read(void *Buffer, ssize_t Size, int Flags = 0) = 0;
 
 	/// \brief Write bytes to the stream
 	/// \return > 0 on succes, which indicates the number of bytes written
-	virtual int Write(const void *Buffer, int Size, int Flags = 0) = 0;
+	virtual ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0) = 0;
 
 	/// \brief Creates a dynamically allocated copy of the same type of stream.
 	/// This new stream is not connected to anything.
@@ -193,9 +193,9 @@ public:
 	/// Called when the connection is dropped
 	virtual void OnDisconnect() {}
 	/// Called when data is read
-	virtual void OnRead(char *Data, int Len) {}
+	virtual void OnRead(char *Data, ssize_t Len) {}
 	/// Called when data is written
-	virtual void OnWrite(const char *Data, int Len) {}
+	virtual void OnWrite(const char *Data, ssize_t Len) {}
 	/// Called when an error occurs
 	virtual void OnError(int ErrorCode, const char *ErrorDescription) {}
 	/// Called when some events happens

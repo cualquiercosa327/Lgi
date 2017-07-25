@@ -89,7 +89,7 @@ void GOptionsFile::SetFile(const char *f)
 	Dirty = true;
 }
 
-bool GOptionsFile::Serialize(bool Write)
+bool GOptionsFile::SerializeFile(bool Write)
 {
 	bool Status = false;
 

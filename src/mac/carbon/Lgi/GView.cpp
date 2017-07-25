@@ -518,6 +518,8 @@ static bool SetCarbonCursor(LgiCursor CursorId)
 	return true;
 }
 
+static uint64 LastUpClick = 0;
+
 bool GView::_Mouse(GMouse &m, bool Move)
 {
 	#if 0
@@ -539,6 +541,24 @@ bool GView::_Mouse(GMouse &m, bool Move)
 	#endif
 
 	GWindow *Wnd = GetWindow();
+
+	if (!Move && !m.Down())
+	{
+		uint64 Now = LgiCurrentTime();
+		int64 Diff = Now - LastUpClick;
+		// LgiTrace("Diff=" LGI_PrintfInt64 "\n", Diff);
+		if (Diff < 50)
+		{
+			// This special case is for M_MOUSE_TRACK_UP handling. Sometimes there
+			// is a duplicate "up" click that we need to get rid of. Part of the
+			// GPopup implementation. There is probably a better way but at the moment
+			// this will have to do.
+			Capture(false);
+			return false;
+		}
+		
+		LastUpClick = Now;
+	}
 
 	if (_Over != this)
 	{
@@ -656,6 +676,10 @@ bool GView::SetPos(GRect &p, bool Repaint)
 
 		if (LgiThreadInPaint == LgiGetCurrentThread())
 		{
+			#ifdef _DEBUG
+			if (_Debug)
+				printf("%s:%i - in paint setpos -> msg\n", _FL);
+			#endif
 			PostEvent(M_SETPOS, (GMessage::Param)new GRect(r));
 		}
 		else
@@ -663,6 +687,10 @@ bool GView::SetPos(GRect &p, bool Repaint)
 			HIRect Rect;
 			Rect = r;
 			HIViewSetFrame(_View, &Rect);
+			#ifdef _DEBUG
+			if (_Debug)
+				printf("%s:%i - setpos %s\n", _FL, p.GetStr());
+			#endif
 		}
 	}
 	else if (GetParent())
@@ -687,7 +715,10 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 
 	if (_View)
 	{
-		HIViewSetNeedsDisplay(_View, true);
+		if (LgiThreadInPaint == LgiGetCurrentThread())
+			PostEvent(M_INVALIDATE, (GMessage::Param)(r ? new GRect(r) : NULL));
+		else
+			HIViewSetNeedsDisplay(_View, true);
 		return true;
 	}
 	else
@@ -748,6 +779,13 @@ int GView::OnEvent(GMessage *Msg)
 				HIRect rc = *r;
 				HIViewSetFrame(_View, &rc);
 			}
+			break;
+		}
+		case M_INVALIDATE:
+		{
+			GAutoPtr<GRect> r((GRect*)Msg->A());
+            if (_View)
+				HIViewSetNeedsDisplay(_View, true);
 			break;
 		}
 		case M_PULSE:
@@ -1495,7 +1533,7 @@ CarbonControlProc
 					GKey k;
 
 					UniChar *utf = text;
-					ptrdiff_t size = actualSize;
+					ssize_t size = actualSize;
 					k.c16 = k.vkey = LgiUtf16To32((const uint16 *&)utf, size);
 					
 					// printf("%s:%i - char=%i\n", _FL, k.c16);
@@ -1529,7 +1567,7 @@ CarbonControlProc
 					if (mods & 0x800) k.Alt(true);
 					if (mods & 0x100) k.System(true);
 
-					#if 1
+					#if 0
 					GString Msg;
 					Msg.Printf("%s", v->GetClass());
 					k.Trace(Msg);

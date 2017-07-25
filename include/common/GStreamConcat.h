@@ -118,17 +118,17 @@ public:
 		return Pos;
 	}
 	
-	int Read(void *Buffer, int Size, int Flags = 0)
+	ssize_t Read(void *Buffer, ssize_t Size, int Flags = 0)
 	{
 		if (Cur >= a.Length() || Size <= 0 || !Buffer)
 			return 0;
 		
 		StreamBlock &sb = a[Cur];
-		int Rd = 0;
+		ssize_t Rd = 0;
 		if (Pos >= sb.Start && Pos < sb.End)
 		{
 			int64 Remaining = sb.End - Pos;
-			int Common = min(Size, (int)Remaining);
+			ssize_t Common = min(Size, (int)Remaining);
 			if (Common > 0)
 			{
 				int64 StrOffset = Pos - sb.Start;
@@ -152,7 +152,7 @@ public:
 		return Rd;
 	}
 	
-	int Write(const void *Buffer, int Size, int Flags = 0)
+	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0)
 	{
 		int Wr = 0;
 		LgiAssert(0);

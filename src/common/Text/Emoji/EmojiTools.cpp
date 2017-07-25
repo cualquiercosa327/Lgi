@@ -52,7 +52,7 @@ bool HasEmoji(uint32 *Txt)
 #include <wchar.h>
 */
 template<typename T>
-int my_snwprintf(T *ptr, int ptr_size, const char16 *fmt, ...)
+ssize_t my_snwprintf(T *ptr, int ptr_size, const char16 *fmt, ...)
 {
 	T *start = ptr;
 	T *end = ptr + ptr_size - 1;
@@ -60,7 +60,7 @@ int my_snwprintf(T *ptr, int ptr_size, const char16 *fmt, ...)
 	va_list ap;
 	va_start(ap, fmt);
 	
-	int a = 1;
+	// int a = 1;
 	while (ptr < end && *fmt)
 	{
 		if (*fmt == '%')
@@ -141,7 +141,7 @@ struct EmojiMemQ : GMemQueue
 	}
 	
 	#ifdef WINDOWS
-	int Write(const char16 *s, int bytes)
+	int WriteWide(const char16 *s, ssize_t bytes)
 	{
 		GAutoPtr<uint32> c((uint32*)LgiNewConvertCp("utf-32", s, LGI_WideCharset, bytes));
 		int len = Strlen(c.Get());
@@ -149,7 +149,7 @@ struct EmojiMemQ : GMemQueue
 	}
 	#endif
 	
-	int Write(const WChar *s, int bytes)
+	ssize_t WriteWide(const WChar *s, ssize_t bytes)
 	{
 		return GMemQueue::Write(s, bytes);
 	}
@@ -159,7 +159,8 @@ GAutoWString TextToEmoji(uint32 *Txt, bool IsHtml)
 {
 	EmojiMemQ p;
 	GArray<GLinkInfo> Links;
-	int Lnk = 0, Ch;
+	int Lnk = 0;
+	ssize_t Ch;
 	WChar Buf[BUF_SIZE];
 	char EmojiPng[MAX_PATH];
 
@@ -188,13 +189,13 @@ GAutoWString TextToEmoji(uint32 *Txt, bool IsHtml)
 			GLinkInfo &l = Links[Lnk];
 
 			// Start of embedded link, convert into <A>
-			if (s > Start) p.Write(Start, (s - Start) * sizeof(*s));
+			if (s > Start) p.Write(Start, (int) ((s - Start) * sizeof(*s)));
 			if (l.Email)
 				Ch = my_snwprintf(Buf, BUF_SIZE, mail_link, l.Len, s, l.Len, s);
 			else
 				Ch = my_snwprintf(Buf, BUF_SIZE, anchor, l.Len, s, l.Len, s);
 			if (Ch > 0)
-				p.Write(Buf, Ch * sizeof(*Buf));
+				p.Write(Buf, (int) (Ch * sizeof(*Buf)));
 			Start = s + l.Len;
 			Lnk++;
 		}
@@ -202,7 +203,7 @@ GAutoWString TextToEmoji(uint32 *Txt, bool IsHtml)
 		{
 			// Eol
 			if (s > Start)
-				p.Write(Start, (s - Start) * sizeof(*s));
+				p.Write(Start, (int) ((s - Start) * sizeof(*s)));
 			p.Write(newline, StrlenW(newline) * sizeof(*newline));
 			Start = s + 1;
 		}
@@ -213,7 +214,7 @@ GAutoWString TextToEmoji(uint32 *Txt, bool IsHtml)
 			{
 				// Emoji character, convert to <IMG>
 				if (s > Start)
-					p.Write(Start, (s - Start) * sizeof(*s));
+					p.Write(Start, (int) ((s - Start) * sizeof(*s)));
 
 				int XChar = IcoIdx % EMOJI_GROUP_X;
 				int YChar = IcoIdx / EMOJI_GROUP_X;
@@ -223,7 +224,7 @@ GAutoWString TextToEmoji(uint32 *Txt, bool IsHtml)
 				rc.Offset(XChar * EMOJI_CELL_SIZE, YChar * EMOJI_CELL_SIZE);
 				Ch = my_snwprintf(Buf, BUF_SIZE, img, EmojiPng, rc.GetStr());
 				if (Ch > 0)
-					p.Write(Buf, Ch * sizeof(*Buf));
+					p.Write(Buf, (int) (Ch * sizeof(*Buf)));
 
 				Start = s + 1;
 				if (*Start == 0xfe0f)
@@ -235,7 +236,7 @@ GAutoWString TextToEmoji(uint32 *Txt, bool IsHtml)
 		}
 	}
 
-	if (s > Start) p.Write(Start, (s - Start) * sizeof(*s));
+	if (s > Start) p.Write(Start, (int) ((s - Start) * sizeof(*s)));
 
 	if (!IsHtml)
 		p.Write(h2, StrlenW(h2)*sizeof(*h2));

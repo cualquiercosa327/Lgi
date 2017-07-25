@@ -404,7 +404,7 @@ bool LgiRecursiveFileSearch(const char *Root,
 	// enumerate the directory contents
 	for (bool Found = Dir.First(Root); Found; Found = Dir.Next())
 	{
-		char Name[256];
+		char Name[300];
 		if (!Dir.Path(Name, sizeof(Name)))
 			continue;
 
@@ -1798,6 +1798,7 @@ char *LgiFindFile(const char *Name)
 		LgiGetExePath(Exe, sizeof(Exe));
 		#else
 		LgiGetExeFile(Exe, sizeof(Exe));
+		LgiTrimDir(Exe);
 		#endif
 
 		#if DEBUG_FIND_FILE
@@ -1841,7 +1842,7 @@ char *LgiFindFile(const char *Name)
 			{
 				LgiMakePath(Path, sizeof(Path), *Pref, Name);
 			}
-			int PathLen = strlen(Path);
+			size_t PathLen = strlen(Path);
 			LgiAssert(PathLen < sizeof(Path));
 
 			if (FileExists(Path))

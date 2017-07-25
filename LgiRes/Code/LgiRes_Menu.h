@@ -107,7 +107,7 @@ public:
 	~ResMenuUi();
 
 	void OnPaint(GSurface *pDC);
-	void Pour();
+	void PourAll();
 	void OnPosChange();
 	void OnCreate();
 	GMessage::Result OnEvent(GMessage *Msg);

@@ -36,16 +36,19 @@ LgiExtern GString LgiGetSystemPath(
 );
 
 /// Removes escaping from the string
-LgiClass GString LgiUnEscapeString(const char *Chars, const char *In, int Len = -1);
+LgiClass GString LgiUnEscapeString(const char *Chars, const char *In, ssize_t Len = -1);
 
 /// Escapes all characters in 'In' specified by the set 'Chars'
-LgiClass GString LgiEscapeString(const char *Chars, const char *In, int Len = -1);
+LgiClass GString LgiEscapeString(const char *Chars, const char *In, ssize_t Len = -1);
 
 /// URL encode a string
 LgiClass GString LgiUrlEncode(const char *s, const char *delim);
 
 /// URL decode a string
 LgiClass GString LgiUrlDecode(const char *s);
+
+/// Gets the current user
+LgiClass GString LgiCurrentUserName();
 
 #ifdef __cplusplus
 extern "C"
@@ -60,7 +63,7 @@ extern "C"
 /// Converts a buffer of text to a different charset
 /// \ingroup Text
 /// \returns the bytes written to the location pointed to by 'Out'
-LgiFunc int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, const char *InCp, ptrdiff_t &InLen);
+LgiFunc ssize_t LgiBufConvertCp(void *Out, const char *OutCp, ssize_t OutLen, const void *&In, const char *InCp, ssize_t &InLen);
 
 /// \brief Converts a string to a new charset
 /// \return A dynamically allocate, null terminated string in the new charset
@@ -74,7 +77,7 @@ LgiFunc void *LgiNewConvertCp
 	/// The input data's charset
 	const char *InCp,
 	/// Bytes of valid data in the input
-	ptrdiff_t InLen = -1
+	ssize_t InLen = -1
 );
 
 /// Return true if Lgi support the charset
@@ -96,7 +99,7 @@ LgiFunc char *LgiSeekUtf8
 	/// Pointer to the current character
 	const char *Ptr,
 	/// The number of characters to move forward or back
-	int D,
+	ssize_t D,
 	/// The start of the memory buffer if you known
 	char *Start = 0
 );
@@ -107,11 +110,11 @@ LgiFunc bool LgiIsUtf8(const char *s, int len = -1);
 
 /// Converts a string to the native 8bit charset of the OS from utf-8
 /// \ingroup Text
-LgiFunc char *LgiToNativeCp(const char *In, int InLen = -1);
+LgiFunc char *LgiToNativeCp(const char *In, ssize_t InLen = -1);
 
 /// Converts a string from the native 8bit charset of the OS to utf-8
 /// \ingroup Text
-LgiFunc char *LgiFromNativeCp(const char *In, int InLen = -1);
+LgiFunc char *LgiFromNativeCp(const char *In, ssize_t InLen = -1);
 
 /// Returns the next token in a string, leaving the argument pointing to the end of the token
 /// \ingroup Text

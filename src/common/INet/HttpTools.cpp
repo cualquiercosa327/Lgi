@@ -819,7 +819,7 @@ char *HttpTools::Post(char *uri, char *headers, char *body, GStream *Log, GViewI
 				*e-- = 0;
 			}
 
-			int ContentLen = strlen(body);
+			size_t ContentLen = strlen(body);
 			GStringPipe p;
 			char *EncPath = u.Encode(u.Path);
 
@@ -850,14 +850,14 @@ char *HttpTools::Post(char *uri, char *headers, char *body, GStream *Log, GViewI
 			char *h = p.NewStr();
 			if (h)
 			{
-				int w = s.Write(h, (int)Len, 0);
+				ssize_t w = s.Write(h, (int)Len, 0);
 				if (w == Len)
 				{
 					w = s.Write(body, ContentLen, 0);
 					if (w == ContentLen)
 					{
 						char Buf[1024];
-						int r;
+						ssize_t r;
 						while ((r = s.Read(Buf, sizeof(Buf), 0)) > 0)
 						{
 							p.Push(Buf, r);
@@ -939,7 +939,7 @@ void CookieJar::Set(char *Headers)
 	if (Headers)
 	{
 		const char *Match = "Set-Cookie";
-		int MatchLen = strlen(Match);
+		size_t MatchLen = strlen(Match);
 
 		char Ws[] = " \t\r\n";
 		for (char *s = stristr(Headers, "\r\n"); s && *s; )
@@ -950,7 +950,7 @@ void CookieJar::Set(char *Headers)
 			while (*s && *s != ':' && !strchr(Ws, *s)) s++;
 			if (*s == ':')
 			{
-				int Len = s - Hdr;
+				ssize_t Len = s - Hdr;
 				bool IsCookie = Len == MatchLen && _strnicmp(Hdr, Match, Len) == 0;
 
 				s++;

@@ -131,6 +131,7 @@ GWindow::GWindow() :
 	}
 }
 
+#if defined(CARBON)
 GWindow::GWindow(WindowRef wr)
 {
 	d = new GWindowPrivate(this);
@@ -144,6 +145,7 @@ GWindow::GWindow(WindowRef wr)
     _Lock = new GMutex;
 	Wnd = wr;
 }
+#endif
 
 GWindow::~GWindow()
 {
@@ -418,7 +420,7 @@ void GWindow::Visible(bool i)
 		if (i)
 		{
 			d->InitVisible = true;
-			Pour();
+			PourAll();
 			ShowWindow(Wnd);
 			SetDefaultFocus(this);
 		}
@@ -936,7 +938,12 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 				{
 					GMouse m;
 					GView::_Capturing->GetMouse(m, false);
-					GView::_Capturing->OnMouseClick(m);
+					
+					GView *v = GView::_Capturing->GetGView();
+					if (v)
+						v->_Mouse(m, false);
+					else
+						GView::_Capturing->OnMouseClick(m);
 				}
 				
 				result = noErr;
@@ -1518,7 +1525,7 @@ void GWindow::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 			printf("%s:%i - Ignoring GPopup in OnChildrenChanged handler.\n", _FL);
 			return;
 		}
-		Pour();
+		PourAll();
 	}
 }
 
@@ -1538,7 +1545,7 @@ void GWindow::OnPosChange()
 
 	if (d->Sx != X() ||	d->Sy != Y())
 	{
-		Pour();
+		PourAll();
 		d->Sx = X();
 		d->Sy = Y();
 	}
@@ -1551,7 +1558,7 @@ void GWindow::OnPosChange()
 		dynamic_cast<GView*>(v)->_IsToolBar \
 	)
 
-void GWindow::Pour()
+void GWindow::PourAll()
 {
 	GRect r = GetClient();
 	// printf("::Pour r=%s\n", r.GetStr());

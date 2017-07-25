@@ -161,7 +161,7 @@ public:
 	int Open(const char *Str = 0, int Int = 0) { return IsOpen(); }
 	bool IsOpen() { return s != NULL; }
 
-	bool GetVariant(const char *Name, GVariant &Value, char *Array = NULL)
+	bool GetVariant(const char *Name, GVariant &Value, char *Array = NULL) override
 	{
 		if (!Desc) return false;
 		GDomProperty p = LgiStringToDomProp(Name);
@@ -181,13 +181,13 @@ public:
 		return false;
 	}
 	
-	bool SetVariant(const char *Name, GVariant &Value, char *Array = NULL)
+	bool SetVariant(const char *Name, GVariant &Value, char *Array = NULL) override
 	{
 		LgiAssert(!"Impl me.");
 		return false;
 	}
 
-	int Close()
+	int Close() override
 	{
 		if (s)
 		{
@@ -197,7 +197,7 @@ public:
 		return 0;
 	}
 
-	int64 GetSize()
+	int64 GetSize() override
 	{
 		STATSTG sz;
 		HRESULT res = s->Stat(&sz, STATFLAG_DEFAULT);
@@ -206,7 +206,7 @@ public:
 		return -1;
 	}
 
-	int64 SetSize(int64 Size)
+	int64 SetSize(int64 Size) override
 	{
 		ULARGE_INTEGER sz;
 		sz.QuadPart = Size;
@@ -214,7 +214,7 @@ public:
 		return SUCCEEDED(res) ? Size : -1;
 	}
 
-	int64 GetPos()
+	int64 GetPos() override
 	{
 		LARGE_INTEGER i;
 		ULARGE_INTEGER o;
@@ -225,7 +225,7 @@ public:
 		return -1;
 	}
 
-	int64 SetPos(int64 Pos)
+	int64 SetPos(int64 Pos) override
 	{
 		LARGE_INTEGER i;
 		ULARGE_INTEGER o;
@@ -236,21 +236,21 @@ public:
 		return -1;
 	}
 
-	int Read(void *Ptr, int Size, int Flags = 0)
+	ssize_t Read(void *Ptr, ssize_t Size, int Flags = 0) override
 	{
 		ULONG Rd = 0;
 		HRESULT res = s->Read(Ptr, Size, &Rd);
 		return SUCCEEDED(res) ? Rd : 0;
 	}
 	
-	int Write(const void *Ptr, int Size, int Flags = 0)
+	ssize_t Write(const void *Ptr, ssize_t Size, int Flags = 0) override
 	{
 		ULONG Wr = 0;
 		HRESULT res = s->Write(Ptr, Size, &Wr);
 		return SUCCEEDED(res) ? Wr : 0;
 	}
 
-	GStreamI *Clone()
+	GStreamI *Clone() override
 	{
 		return new IStreamWrap(s);
 	}

@@ -19,8 +19,7 @@ bool IdeCommon::OnOpen(GProgressDlg &Prog, GXmlTag *Src)
 	Prog.Value(Prog.Value() + 1);
 
 	Copy(*Src);
-	Write = false;
-	if (!Serialize())
+	if (!Serialize(Write = false))
 		return false;
 
 	List<GXmlTag>::I it = Src->Children.Start();

@@ -8,9 +8,9 @@
 class LgiClass GPassword
 {
 	char *Data; // this is binary data... may contain NULL's
-	int Len;
+	ssize_t Len;
 
-	void Process(char *Out, char *In, int Len);
+	void Process(char *Out, char *In, ssize_t Len);
 
 public:
 	GPassword(GPassword *p = 0);

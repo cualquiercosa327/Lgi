@@ -11,6 +11,12 @@ public:
 	{
 		GString Name;
 		GVariant Value;
+		
+		void Set(const char *n, int val)
+		{
+			Name = n;
+			Value = val;
+		}
 	};
 
 	class Item : public GTreeItem
@@ -45,7 +51,7 @@ public:
 		GRect &GetRect();
 		void Select(bool b);
 		void OnPaint(ItemPaintCtx &Ctx);
-		void SetEnum(GAutoPtr<EnumArr> e) { Enum = e; }
+		void SetEnum(GAutoPtr<EnumArr> e);
 		void OnVisible(bool v);
 		void PositionControls();
 	};

@@ -1,8 +1,6 @@
 // http://src.chromium.org/svn/trunk/src/chrome/browser/spellchecker_mac.mm
 #include "Lgi.h"
-#include "ScribePlugin.h"
 #include "LgiSpellCheck.h"
-#include "ScribeDefs.h"
 
 #include <Carbon/Carbon.h>
 #include <Cocoa/Cocoa.h>
@@ -11,6 +9,14 @@ enum MacSpellProps
 {
 	SPROP_NONE,
 	SPROP_DICTIONARY,
+};
+
+static char Delim[] =
+{
+	' ', '\t', '\r', '\n', ',', ',', '.', ':', ';',
+	'{', '}', '[', ']', '!', '@', '#', '$', '%', '^', '&', '*',
+	'(', ')', '_', '-', '+', '=', '|', '\\', '/', '?', '\"',
+	0
 };
 
 /*
@@ -105,10 +111,12 @@ FallbackMethod:
 
 static const unsigned int kShortLanguageCodeSize = 2;
 
+/*
 static int GVariantCmp(GVariant *a, GVariant *b, NativeInt Data)
 {
 	return stricmp(a->Str(), b->Str());
 }
+*/
 
 int LangCmp(GSpellCheck::LanguageId *a, GSpellCheck::LanguageId *b)
 {
@@ -121,6 +129,7 @@ class AppleSpellChecker :
 	GViewI *Wnd;
 	GString Dictionary;
 	GString CurLang;
+	GString::Array Dictionaries;
 
 	GString ConvertLanguageCodeFromMac(NSString* lang_code)
 	{
@@ -177,30 +186,29 @@ public:
 		InitializeCocoa();
 	}
 	
-	GMessage::Result OnEvent(GMessage *m)
+	GMessage::Result OnEvent(GMessage *Msg)
 	{
-		switch (m->Msg())
+		switch (Msg->Msg())
 		{
 			case M_ENUMERATE_LANGUAGES:
 			{
-				int ResponseHnd = (int)m->A();
-				if (ResponseHnd < 0)
-					break;
+				int ResponseHnd = (int)Msg->A();
+				GAutoPtr< GArray<LanguageId> > Langs(new GArray<LanguageId>);
 				
 				NSArray *availableLanguages = [[NSSpellChecker sharedSpellChecker] availableLanguages];
 				NSEnumerator *e = [availableLanguages objectEnumerator];
 
 				NSString *lang_code;
-				GHashTbl<char*,bool> Langs;
+				GHashTbl<char*,bool> Map;
 				while (lang_code = [e nextObject])
 				{
-					GString lang = ConvertLanguageCodeFromMac(lang_code);
+					GString &lang = Dictionaries.New();
+					lang = ConvertLanguageCodeFromMac(lang_code);
 					if (lang)
 					{
-						int p = lang.Find("-");
-						if (p > 0)
-							lang.Length(p);
-						Langs.Add(lang, true);
+						ssize_t p = lang.Find("-");
+						GString l = p > 0 ? lang(0, p) : lang;
+						Map.Add(l, true);
 					}
 				}
 				
@@ -209,16 +217,106 @@ public:
 				if (!a)
 					break;
 				
-				for (bool b = Langs.First(&k); b; b = Langs.Next(&k))
+				for (bool b = Map.First(&k); b; b = Map.Next(&k))
 				{
-					LanguageId &i = a->New();
+					LanguageId &i = Langs->New();
 					i.LangCode = k;
 					i.EnglishName = k;
 				}
 
 				a->Sort(LangCmp);
 				
-				PostThreadEvent(ResponseHnd, M_ENUMERATE_LANGUAGES, (GMessage::Param) a.Release() );
+				if (Langs && Langs->Length() > 0)
+					PostObject(ResponseHnd, Msg->Msg(), Langs);
+				break;
+			}
+			case M_ENUMERATE_DICTIONARIES:
+			{
+				int ResponseHnd = (int)Msg->A();
+				GAutoPtr<GString> Lang((GString*)Msg->B());
+				if (!Lang)
+					break;
+
+				GAutoPtr< GArray<DictionaryId> > Out(new GArray<DictionaryId>);
+				for (unsigned i=0; i<Dictionaries.Length(); i++)
+				{
+					GString Dict = Dictionaries[i];
+					GString::Array a = Dict.Split("-", 1);
+					if (a.Length() >= 1 && a[0].Equals(*Lang))
+					{
+						DictionaryId &id = Out->New();
+						id.Lang = *Lang;
+						id.Dict = Dict.Get();
+					}
+				}
+
+				if (Out && Out->Length() > 0)
+					PostObject(ResponseHnd, Msg->Msg(), Out);
+				break;
+			}
+			case M_SET_DICTIONARY:
+			{
+				int ResponseHnd = (int)Msg->A();
+				GAutoPtr<DictionaryId> Dict((DictionaryId*)Msg->B());
+				bool Success = false;
+				if (Dict)
+				{
+					char *d = Dict->Dict ? Dict->Dict : Dict->Lang;
+					NSString *ln = [NSString stringWithUTF8String:d];
+					Success = [[NSSpellChecker sharedSpellChecker] setLanguage:ln];
+				}
+
+				PostThreadEvent(ResponseHnd, M_SET_DICTIONARY, (GMessage::Param)Success);
+				break;
+			}
+			case M_CHECK_TEXT:
+			{
+				int ResponseHnd = (int)Msg->A();
+				GAutoPtr<CheckText> Ct((CheckText*)Msg->B());
+				if (!Ct)
+				{
+					LgiTrace("%s:%i - No text specified.\n", _FL);
+					break;
+				}
+
+				for (char *s = Ct->Text; s; )
+				{
+					while (*s && strchr(Delim, *s))
+						s++;
+					char *e = s;
+					while (*e && !strchr(Delim, *e))
+						e++;
+					if (e == s)
+						break;
+					GString Word(s, e - s);
+					
+					NSString *In = [NSString stringWithUTF8String:Word.Get()];
+					NSRange spell_range = [[NSSpellChecker sharedSpellChecker]
+											checkSpellingOfString:In startingAt:0
+											language:nil wrap:NO inSpellDocumentWithTag:1
+											wordCount:NULL];
+					bool Status = (spell_range.length == 0);
+					if (!Status)
+					{
+						SpellingError &Err = Ct->Errors.New();
+						Err.Start = s - Ct->Text.Get();
+						Err.Len = e - s;
+						
+						NSArray *guesses = [[NSSpellChecker sharedSpellChecker] guessesForWordRange:spell_range
+																				inString:In
+																				language:nil
+																				inSpellDocumentWithTag:0];
+						if (guesses)
+						{
+							for (NSString *g in guesses)
+								Err.Suggestions.New() = [g UTF8String];
+						}
+					}
+					
+					s = *e ? e + 1 : e;
+				}
+				
+				PostObject(ResponseHnd, Msg->Msg(), Ct);
 				break;
 			}
 		}
@@ -400,8 +498,7 @@ public:
 		}
 		
 		return false;
-	}
-	*/
+	}*/
 };
 
 GAutoPtr<GSpellCheck> CreateAppleSpellCheck()

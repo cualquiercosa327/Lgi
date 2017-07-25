@@ -44,7 +44,7 @@ protected:
 		/// A reference count
 		int32 Refs;
 		/// The bytes in 'Str' not including the NULL terminator
-		uint32 Len;
+		size_t Len;
 		/// The first byte of the string. Further bytes are allocated
 		/// off the end of the structure using malloc. This must always
 		/// be the last element in the struct.
@@ -155,7 +155,7 @@ public:
 		while (c < end)
 		{
 			uint8 utf[6], *u = utf;
-			int len = sizeof(utf);
+			ssize_t len = sizeof(utf);
 			if (!LgiUtf32To8(*c++, u, len))
 				break;
 			utf_len += u - utf;
@@ -165,7 +165,7 @@ public:
 		{
 			c = str;
 			uint8 *u = (uint8*)Str->Str;
-			int len = Str->Len;
+			ssize_t len = Str->Len;
 			while (c < end)
 			{
 				if (!LgiUtf32To8(*c++, u, len))
@@ -265,6 +265,17 @@ public:
 	}
 	
 	// Equality function (default: case insensitive, as the operator== is case sensitive)
+	bool Equals(const char *b, bool CaseInsensitive = true)
+	{
+		const char *a = Get();
+		if (!a && !b)
+			return true;
+		if (!a || !b)
+			return false;
+		return !(CaseInsensitive ? _stricmp(a, b) : strcmp(a, b));
+	}
+	
+	// Equality function (default: case insensitive, as the operator== is case sensitive)
 	bool Equals(const GString &s, bool CaseInsensitive = true)
 	{
 		const char *a = Get();
@@ -357,7 +368,7 @@ public:
 	GString &operator =(int64 val)
 	{
 		char n[32];
-		sprintf_s(n, sizeof(n), "%"PRId64, val);
+		sprintf_s(n, sizeof(n), "%" PRId64, val);
 		Set(n);
 		return *this;
 	}
@@ -372,7 +383,7 @@ public:
 	GString operator +(const GString &s)
 	{
 		GString Ret;
-		int Len = Length() + s.Length();
+		size_t Len = Length() + s.Length();
 		if (Ret.Set(NULL, Len))
 		{
 			char *p = Ret.Get();
@@ -398,8 +409,8 @@ public:
 	/// Concatenation / assignment operator
 	GString &operator +=(const GString &s)
 	{
-		int Len = Length() + s.Length();
-		int Alloc = sizeof(RefStr) + Len;
+		ssize_t Len = Length() + s.Length();
+		ssize_t Alloc = sizeof(RefStr) + Len;
 		RefStr *rs = (RefStr*)malloc(Alloc);
 		if (rs)
 		{
@@ -431,12 +442,12 @@ public:
 	}
 	
 	/// Gets the length in bytes
-	uint32 Length() const
+	size_t Length() const
 	{
 		return Str ? Str->Len : 0;
 	}
 
-	uint32 Length(uint32 NewLen)
+	size_t Length(size_t NewLen)
 	{
 		if (Str)
 		{
@@ -529,8 +540,7 @@ public:
 				s += SepLen;
 			}
 			
-			int i;
-			int Last = seps.Length() - 1;
+			ssize_t i, Last = seps.Length() - 1;
 			GString p;
 			for (i=Last; i>=0; i--)
 			{
@@ -615,7 +625,7 @@ public:
 		char *Sep = Get();
 		size_t SepLen = Sep ? strlen(Sep) : 0;
 		size_t Bytes = SepLen * (a.Length() - 1);
-		GArray<unsigned> ALen;
+		GArray<size_t> ALen;
 		for (unsigned i=0; i<a.Length(); i++)
 		{
 			ALen[i] = a[i].Length();
@@ -821,11 +831,8 @@ public:
 		char *c = Str->Str;
 		if (index < 0)
 		{
-			int idx = Str->Len + index;
-			if (idx >= 0)
-			{
-				return c[idx];
-			}
+			size_t idx = Str->Len + index;
+			return c[idx];
 		}
 		else if (index < (int)Str->Len)
 		{

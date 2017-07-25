@@ -105,7 +105,7 @@ public:
 		{
 			case GAPP_ALPHA_A:
 			{
-				ConstAlpha = Value;
+				ConstAlpha = (int)Value;
 				break;
 			}
 			case GAPP_ALPHA_PAL:

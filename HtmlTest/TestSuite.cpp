@@ -309,9 +309,24 @@ class AppWnd : public GWindow, public GDefaultDocumentEnv, public GNetwork
 			if (LgiMakePath(p, sizeof(p), Base, j->Uri) &&
 				FileExists(p))
 			{
-				j->pDC.Reset(LoadDC(p));
-				if (j->pDC)
-					return LoadImmediate;
+				GString Ext = LgiGetExtension(p);
+				if (Ext.Equals("css") ||
+					Ext.Equals("html"))
+				{
+					GAutoPtr<GFile> f(new GFile);
+					if (f && f->Open(p, O_READ))
+					{
+						j->Stream.Reset(f.Release());
+						return LoadImmediate;
+					}
+				}
+				else
+				{
+					j->pDC.Reset(LoadDC(p));
+					if (j->pDC)
+						return LoadImmediate;
+				}
+
 				return LoadError;
 			}
 		}		
@@ -607,13 +622,13 @@ public:
 		return 0;
 	}
 
-	bool OnCompileScript(char *Code, const char *Language, const char *MimeType)
+	bool OnCompileScript(GDocView *Parent, char *Script, const char *Language, const char *MimeType)
 	{
 		// return Script->Compile(Code, true);
 		return false;
 	}
 
-	bool OnExecuteScript(char *Code)
+	bool OnExecuteScript(GDocView *Parent, char *Script)
 	{
 		return false; // Script->RunTemporary(Code);
 	}

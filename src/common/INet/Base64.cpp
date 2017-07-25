@@ -77,7 +77,7 @@ char BinToBase64(uchar c)
 	return 0;
 }
 
-int ConvertBase64ToBinary(uchar *Binary, int OutBuf, char *Base64, int InBuf)
+ssize_t ConvertBase64ToBinary(uchar *Binary, ssize_t OutBuf, char *Base64, ssize_t InBuf)
 {
 	uchar *Start = Binary;
 
@@ -126,7 +126,7 @@ int ConvertBase64ToBinary(uchar *Binary, int OutBuf, char *Base64, int InBuf)
 	return (int) (Binary - Start);
 }
 
-int ConvertBinaryToBase64(char *Base64, int OutBuf, uchar *Binary, int InBuf)
+ssize_t ConvertBinaryToBase64(char *Base64, ssize_t OutBuf, uchar *Binary, ssize_t InBuf)
 {
 	char *Start = Base64;
 
@@ -141,9 +141,9 @@ int ConvertBinaryToBase64(char *Base64, int OutBuf, uchar *Binary, int InBuf)
 
 	if (Binary && OutBuf > 0 && Base64 && InBuf > 0)
 	{
-		int i = InBuf / 3;
-		int o = OutBuf / 4;
-		int Segments = min(i, o);
+		ssize_t i = InBuf / 3;
+		ssize_t o = OutBuf / 4;
+		ssize_t Segments = min(i, o);
 
 		for (int n=0; n<Segments; n++)
 		{

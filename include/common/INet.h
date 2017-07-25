@@ -97,7 +97,7 @@ protected:
 	class GSocketImplPrivate *d;
 
 	// Methods
-	void Log(const char *Msg, int Ret, const char *Buf, int Len);
+	void Log(const char *Msg, ssize_t Ret, const char *Buf, ssize_t Len);
 
 public:
 	int			BytesWritten;
@@ -184,12 +184,12 @@ public:
 
 	/// \brief Sends data to the remote host.
 	/// \return the number of bytes written or <= 0 on error.
-	int Write
+	ssize_t Write
 	(
 		/// Pointer to the data to write
 		const void *Data,
 		/// Numbers of bytes to write
-		int Len,
+		ssize_t Len,
 		/// Flags to pass to send
 		int Flags = 0
 	);
@@ -200,12 +200,12 @@ public:
 	/// Generally the number of bytes returned is less than the buffer size. Depending on how much data
 	/// you are expecting you will need to keep reading until you get and end of field marker or the number
 	/// of bytes your looking for.
-	int Read
+	ssize_t Read
 	(
 		/// Pointer to the buffer to write output to
 		void *Data,
 		/// The length of the receive buffer.
-		int Len,
+		ssize_t Len,
 		/// The flags to pass to recv
 		int Flags = 0
 	);
@@ -226,10 +226,10 @@ public:
 	void OnDisconnect();
 	
 	/// Gets called when data is received.
-	void OnRead(char *Data, int Len) {}
+	void OnRead(char *Data, ssize_t Len) {}
 
 	/// Gets called when data is sent.
-	void OnWrite(const char *Data, int Len) {}
+	void OnWrite(const char *Data, ssize_t Len) {}
 	
 	/// Gets called when an error occurs.
 	void OnError(int ErrorCode, const char *ErrorDescription) {}
@@ -285,7 +285,7 @@ public:
 	// Connection
 	void SetProxy(char *proxy, int port, char *username, char *password);
 	void SetProxy(const GSocks5Socket *s);
-	int Open(char *HostAddr, int port);
+	int Open(const char *HostAddr, int port);
 
 	// Server
 	bool Listen(int Port) { return false; }

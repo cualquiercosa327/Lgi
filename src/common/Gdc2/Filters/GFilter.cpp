@@ -563,7 +563,7 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 				for (int i=pMem->y-1; i>=0; i--)
 				{
 					uint8 *Ptr = pMem->Base + (pMem->Line * i);
-					int r = In->Read(Ptr, ScanSize);
+					ssize_t r = In->Read(Ptr, ScanSize);
 					if (r != ScanSize)
 					{
 						Status = IoError;
@@ -597,7 +597,7 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 }
 
 template<typename T>
-int SwapWrite(GStream *Out, T v)
+ssize_t SwapWrite(GStream *Out, T v)
 {
 	#if 0 // __ORDER_BIG_ENDIAN__
 	uint8 *s = (uint8*)&v;
@@ -821,7 +821,7 @@ GFilter::IoStatus GdcBmp::WriteImage(GStream *Out, GSurface *pDC)
 
 				for (int i=pMem->y-1; i>=0; i--)
 				{
-					int w = Out->Write(pMem->Base + (i * pMem->Line), Bytes);
+					ssize_t w = Out->Write(pMem->Base + (i * pMem->Line), Bytes);
 					if (w != Bytes)
 					{
 						Status = IoError;
@@ -929,7 +929,7 @@ GFilter::IoStatus GdcIco::ReadImage(GSurface *pDC, GStream *In)
 		Read(In, &BytesInRes, sizeof(BytesInRes));
 		Read(In, &ImageOffset, sizeof(ImageOffset));
 		
-		int BytesLeft = BytesInRes;
+		int64 BytesLeft = BytesInRes;
 
 		int64 CurrentPos = In->GetPos();
 		In->SetPos(ImageOffset);
@@ -1174,7 +1174,7 @@ GFilter::IoStatus GdcIco::WriteImage(GStream *Out, GSurface *pDC)
 	Write(Out, &BitCount, sizeof(BitCount));
 	Write(Out, &BytesInRes, sizeof(BytesInRes));
 
-	int32	ImageOffset = Out->GetPos() + sizeof(ImageOffset);
+	int32	ImageOffset = (int32)(Out->GetPos() + sizeof(ImageOffset));
 	Write(Out, &ImageOffset, sizeof(ImageOffset));
 
 	// Write icon itself
@@ -1457,15 +1457,16 @@ void GdcRleDC::Update(int UpdateFlags)
 		ulong Pos = 0;
 		ulong PixelSize = GetBits() / 8;
 		
-		for (ulong y=0; !Error && y<Y(); y++)
+		for (long y=0; !Error && y<Y(); y++)
 		{
-			for (ulong x=0; x<X(); )
+			for (long x=0; x<X(); )
 			{
 				ulong Skip = 0;
 				ulong Pixels = 0;
 				uchar *Bits = 0;
 
-				while (Get(x, y) == Key && x < X())
+				while (Get(x, y) == Key &&
+						x < X())
 				{
 					Skip++;
 					x++;
@@ -1539,13 +1540,13 @@ bool GdcRleDC::FindScanLines()
 		ScanLine = new uchar*[Y()];
 		if (ScanLine)
 		{
-			ulong Pos = 0;
+			long Pos = 0;
 			ulong PixelSize = GetBits() / 8;
 			
-			for (ulong y=0; !Error && y<Y(); y++)
+			for (long y=0; !Error && y<Y(); y++)
 			{
 				ScanLine[y] = Data + Pos;
-				ulong x;
+				long x;
 				for (x=0; x<X();)
 				{
 					ulong Skip = 0;
@@ -1741,7 +1742,7 @@ bool GdcRleDC::Read(GFile &F)
 		F >> y;
 		F >> bits;
 		F >> Monochrome;
-		Mono(Monochrome);
+		Mono(Monochrome != 0);
 		CreateInfo(x, y, GBitsToColourSpace(bits));
 		F.Read(Data, Len);
 		return !F.GetStatus();
@@ -2089,7 +2090,7 @@ GSurface *GdcDevice::Load(GStream *In, const char *Name, bool UseOSLoader)
 	if (FilterStatus == GFilter::IoComponentMissing)
 	{
 		const char *c = Filter->GetComponentName();
-		LgiAssert(c);
+		LgiAssert(c != NULL);
 		if (c)
 		{
 			GToken t(c, ",");
@@ -2184,7 +2185,7 @@ bool GdcDevice::Save(const char *Name, GSurface *pDC)
 			GFile File;
 			if (File.Open(Name, O_WRITE))
 			{
-				Status = F->WriteImage(&File, pDC);
+				Status = F->WriteImage(&File, pDC) == GFilter::IoSuccess;
 			}
 		}
 		else

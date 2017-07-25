@@ -36,7 +36,7 @@ public:
 	void SetLine(int Line, bool CurIp);
 	static void ClearCurrentIp();
 	bool IsCurrentIp();
-	void GotoSearch(int CtrlId);
+	void GotoSearch(int CtrlId, char *InitialText = NULL);
 	void SearchSymbol();
 
 	// Source tools

@@ -79,7 +79,7 @@ void GSubFilePtr::ClearSub()
 	Start = Len = 0;
 }
 
-int GSubFilePtr::Open(char *Str, int Int)
+int GSubFilePtr::Open(const char *Str, int Int)
 {
 	LgiAssert(0);
 	return 0;
@@ -185,7 +185,7 @@ void GSubFilePtr::SetStatus(bool s)
 	OurStatus = s;
 }
 
-int GSubFilePtr::Read(void *Buffer, int Size, int Flags)
+ssize_t GSubFilePtr::Read(void *Buffer, ssize_t Size, int Flags)
 {
 	int Status = 0;
 	
@@ -208,7 +208,7 @@ int GSubFilePtr::Read(void *Buffer, int Size, int Flags)
 	return Status;
 }
 
-int GSubFilePtr::Write(const void *Buffer, int Size, int Flags)
+ssize_t GSubFilePtr::Write(const void *Buffer, ssize_t Size, int Flags)
 {
 	int Status = 0;
 	
@@ -233,13 +233,13 @@ int GSubFilePtr::Write(const void *Buffer, int Size, int Flags)
 	return Status;
 }
 
-int GSubFilePtr::ReadStr(char *Buf, int Size)
+ssize_t GSubFilePtr::ReadStr(char *Buf, ssize_t Size)
 {
 	LgiAssert(0);
 	return 0;
 }
 
-int GSubFilePtr::WriteStr(char *Buf, int Size)
+ssize_t GSubFilePtr::WriteStr(char *Buf, ssize_t Size)
 {
 	LgiAssert(0);
 	return 0;

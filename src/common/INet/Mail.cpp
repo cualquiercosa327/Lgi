@@ -35,7 +35,7 @@ const char sMultipartRelated[] = "multipart/related";
 const char sAppOctetStream[] = "application/octet-stream";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
-LogEntry::LogEntry(const char *t, int len, COLOUR col)
+LogEntry::LogEntry(const char *t, ssize_t len, COLOUR col)
 {
 	c.Set(col, 24);
 	Text = 0;
@@ -210,7 +210,7 @@ void TokeniseStrList(char *Str, List<char> &Output, const char *Delim)
 				}
 			}
 
-			int Len = e ? e - s : strlen(s);
+			ssize_t Len = e ? e - s : strlen(s);
 			if (Len > 0)
 			{
 				char *Temp = new char[Len+1];
@@ -237,12 +237,12 @@ char *DecodeBase64Str(char *Str, int Len)
 {
 	if (Str)
 	{
-		int B64Len = (Len < 0) ? strlen(Str) : Len;
-		int BinLen = BufferLen_64ToBin(B64Len);
+		ssize_t B64Len = (Len < 0) ? strlen(Str) : Len;
+		ssize_t BinLen = BufferLen_64ToBin(B64Len);
 		char *s = new char[BinLen+1];
 		if (s)
 		{
-			int Converted = ConvertBase64ToBinary((uchar*)s, BinLen, Str, B64Len);
+			ssize_t Converted = ConvertBase64ToBinary((uchar*)s, BinLen, Str, B64Len);
 			s[Converted] = 0;
 			DeleteArray(Str);
 			Str = s;
@@ -251,7 +251,7 @@ char *DecodeBase64Str(char *Str, int Len)
 	return Str;
 }
 
-char *DecodeQuotedPrintableStr(char *Str, int Len)
+char *DecodeQuotedPrintableStr(char *Str, ssize_t Len)
 {
 	if (Str)
 	{
@@ -308,7 +308,7 @@ char *DecodeRfc2047(char *Str)
 	for (char *s = Str; *s; )
 	{
 		char *e = s;
-		bool Decode, Descape;
+		bool Decode = 0, Descape = 0;
 		while (*e)
 		{
 			if
@@ -367,7 +367,7 @@ char *DecodeRfc2047(char *Str)
 								break;
 						}
 
-						int Len = strlen(Block);
+						size_t Len = strlen(Block);
 						if (StripUnderscores)
 						{
 							for (char *i=Block; *i; i++)
@@ -412,7 +412,7 @@ char *DecodeRfc2047(char *Str)
 			if (!Encoded)
 			{
 				// Encoding error, just emit the raw string and exit.
-				int Len = strlen(s);
+				size_t Len = strlen(s);
 				p.Write((uchar*) s, Len);
 				break;
 			}
@@ -443,7 +443,7 @@ char *DecodeRfc2047(char *Str)
 
 #define MIME_MAX_LINE		76
 
-char *EncodeRfc2047(char *Str, const char *CodePage, List<char> *CharsetPrefs, int LineLength)
+char *EncodeRfc2047(char *Str, const char *CodePage, List<char> *CharsetPrefs, ssize_t LineLength)
 {
 	if (!CodePage)
 	{
@@ -460,7 +460,7 @@ char *EncodeRfc2047(char *Str, const char *CodePage, List<char> *CharsetPrefs, i
 		// pick an encoding
 		bool Base64 = false;
 		const char *DestCp = "utf-8";
-		int Len = strlen(Str);;
+		size_t Len = strlen(Str);;
 		if (_stricmp(CodePage, "utf-8") == 0)
 		{
 			DestCp = LgiDetectCharset(Str, Len, CharsetPrefs);
@@ -496,11 +496,11 @@ char *EncodeRfc2047(char *Str, const char *CodePage, List<char> *CharsetPrefs, i
 			if (Base64)
 			{
 				// Base64
-				int InLen = strlen(Buf);
-				int EstBytes = BufferLen_BinTo64(InLen);
+				size_t InLen = strlen(Buf);
+				// int EstBytes = BufferLen_BinTo64(InLen);
 
 				char Temp[512];
-				int Bytes = ConvertBinaryToBase64(Temp, sizeof(Temp), (uchar*)Buf, InLen);
+				ssize_t Bytes = ConvertBinaryToBase64(Temp, sizeof(Temp), (uchar*)Buf, InLen);
 				p.Push(Temp, Bytes);
 			}
 			else
@@ -753,7 +753,7 @@ struct MailAddrPart
     bool ValidEmail;
     
 
-    GAutoString RemovePairs(char *Str, int Len, CharPair *Pairs)
+    GAutoString RemovePairs(char *Str, ssize_t Len, CharPair *Pairs)
     {
 	    char *s = Str;
 	    if (Len < 0)
@@ -800,7 +800,7 @@ struct MailAddrPart
 	    return GAutoString(NewStr(s, Len));
     }
 
-    MailAddrPart(char *s, int len)
+    MailAddrPart(char *s, ssize_t len)
     {
         ValidEmail = false;
         Brackets = false;
@@ -1768,7 +1768,7 @@ public:
 		Status = true;
 	}
 
-	int Read(void *Ptr, int Size, int Flags)
+	ssize_t Read(void *Ptr, ssize_t Size, int Flags)
 	{
 		return false;
 	}
@@ -1785,7 +1785,7 @@ public:
 		return -1;
 	}
 
-	int Write(const void *InPtr, int Size, int Flags)
+	ssize_t Write(const void *InPtr, ssize_t Size, int Flags)
 	{
 		char *Ptr = (char*)InPtr;
 		char *e = Ptr + Size;
@@ -1811,45 +1811,52 @@ bool MailSmtp::SendToFrom(List<AddressDescriptor> &To, AddressDescriptor *From, 
 {
 	bool AddrOk = false;
 
-	if (To.First() && From)
+	if (To.Length() == 0)
 	{
-		// send MAIL message
-		if (From && ValidStr(From->Addr))
-		{
-			sprintf_s(Buffer, sizeof(Buffer), "MAIL FROM: <%s>\r\n", From->Addr);
-		}
-		else
-		{
-			ErrMsgId = L_ERROR_ESMTP_NO_FROM;
-			ErrMsgFmt = "No 'from' address in email.";
-			ErrMsgParam.Empty();
-			return false;
-		}
+		ErrMsgId = L_ERROR_ESMTP_NO_RECIPIENT;
+		ErrMsgFmt = "No recipients to send to.";
+		ErrMsgParam.Empty();
+		return false;
+	}
 
-		VERIFY_RET_VAL(Write(0, true));
-		VERIFY_RET_VAL(ReadReply("250", 0, Err));
+	// send MAIL message
+	if (From && ValidStr(From->Addr))
+	{
+		sprintf_s(Buffer, sizeof(Buffer), "MAIL FROM: <%s>\r\n", From->Addr);
+	}
+	else
+	{
+		ErrMsgId = L_ERROR_ESMTP_NO_FROM;
+		ErrMsgFmt = "No 'from' address in email.";
+		ErrMsgParam.Empty();
+		return false;
+	}
 
-		// send RCPT message
-		AddrOk = true;
-		List<AddressDescriptor>::I Recip = To.Start();
-		for (AddressDescriptor *a = *Recip; a; a = *++Recip)
+	VERIFY_RET_VAL(Write(0, true));
+	VERIFY_RET_VAL(ReadReply("250", 0, Err));
+
+	// send RCPT message
+	AddrOk = true;
+	List<AddressDescriptor>::I Recip = To.Start();
+	for (AddressDescriptor *a = *Recip; a; a = *++Recip)
+	{
+		char *Addr = ValidStr(a->Addr) ? a->Addr : a->Name;
+		if (ValidStr(Addr))
 		{
-			char *Addr = ValidStr(a->Addr) ? a->Addr : a->Name;
-			if (ValidStr(Addr))
+			GToken Parts(Addr, ",");
+			for (unsigned p=0; p<Parts.Length(); p++)
 			{
-				GToken Parts(Addr, ",");
-				for (unsigned p=0; p<Parts.Length(); p++)
-				{
-					sprintf_s(Buffer, sizeof(Buffer), "RCPT TO: <%s>\r\n", Parts[p]);
-					VERIFY_RET_VAL(Write(0, true));
-					a->Status = ReadReply("25", 0, Err);
-					AddrOk &= a->Status != 0; // at least one address is ok
-				}
+				sprintf_s(Buffer, sizeof(Buffer), "RCPT TO: <%s>\r\n", Parts[p]);
+				VERIFY_RET_VAL(Write(0, true));
+				a->Status = ReadReply("25", 0, Err);
+				AddrOk |= a->Status != 0; // at least one address is ok
 			}
-			else
-			{
-				LgiTrace("%s:%i - Send Addr wasn't valid\n", _FL);
-			}
+		}
+		else if (Err)
+		{
+			ErrMsgId = L_ERROR_ESMTP_BAD_RECIPIENT;
+			ErrMsgFmt = "Invalid recipient '%s'.";
+			ErrMsgParam = Addr;
 		}
 	}
 
@@ -1868,7 +1875,7 @@ GStringPipe *MailSmtp::SendData(MailProtocolError *Err)
 
 GStringPipe *MailSmtp::SendStart(List<AddressDescriptor> &To, AddressDescriptor *From, MailProtocolError *Err)
 {
-	return SendToFrom(To, From, Err) ? SendData(Err) : 0;
+	return SendToFrom(To, From, Err) ? SendData(Err) : NULL;
 }
 
 bool MailSmtp::SendEnd(GStringPipe *m)
@@ -1982,7 +1989,7 @@ bool MailSmtp::ReadReply(const char *Str, GStringPipe *Pipe, MailProtocolError *
 						{
 							Err->Code = atoi(Start);
 							char *Sp = strchr(Start, ' ');
-							Err->Msg = NewStr(Sp ? Sp + 1 : Start);
+							Err->ErrMsg = Sp ? Sp + 1 : Start;
 						}
 
 						// Log
@@ -2058,12 +2065,12 @@ public:
 		F.Close();
 	}
 
-	int Read(void *Buffer, int Size, int Flags = 0)
+	ssize_t Read(void *Buffer, ssize_t Size, int Flags = 0)
 	{
 		return F.Read(Buffer, Size, Flags);
 	}
 
-	int Write(const void *Buffer, int Size, int Flags = 0)
+	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0)
 	{
 		return F.Write(Buffer, Size, Flags);
 	}

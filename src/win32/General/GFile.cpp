@@ -80,8 +80,6 @@ int64 LgiFileSize(const char *FileName)
 	return Size;
 }
 
-typedef wchar_t char16;
-
 bool FileExists(const char *Name, char *CorrectCase)
 {
 	bool Status = false;
@@ -232,7 +230,7 @@ int _GetLongPathName
 	return Len;
 }
 
-bool ResolveShortcut(const char *LinkFile, char *Path, int Len) 
+bool ResolveShortcut(const char *LinkFile, char *Path, ssize_t Len) 
 {
 	bool Status = false;
 
@@ -350,7 +348,7 @@ char *ReadStr(GFile &f DeclDebugArgs)
 	return s;
 }
 
-int SizeofStr(const char *s)
+ssize_t SizeofStr(const char *s)
 {
 	return sizeof(uint32) + ((s) ? strlen(s) : 0);
 }
@@ -1555,7 +1553,7 @@ int64 GFile::SetPos(int64 Pos)
 	return PosLow | ((int64)PosHigh<<32);
 }
 
-int GFile::Read(void *Buffer, int Size, int Flags)
+ssize_t GFile::Read(void *Buffer, ssize_t Size, int Flags)
 {
 	DWORD Bytes = 0;
 	if (ReadFile(d->hFile, Buffer, Size, &Bytes, NULL))
@@ -1570,7 +1568,7 @@ int GFile::Read(void *Buffer, int Size, int Flags)
 	return Bytes;
 }
 
-int GFile::Write(const void *Buffer, int Size, int Flags)
+ssize_t GFile::Write(const void *Buffer, ssize_t Size, int Flags)
 {
 	DWORD Bytes = 0;
 	if (WriteFile(d->hFile, Buffer, Size, &Bytes, NULL))
@@ -1615,7 +1613,7 @@ bool GFile::Eof()
 	return GetPos() >= GetSize();
 }
 
-int GFile::SwapRead(uchar *Buf, int Size)
+ssize_t GFile::SwapRead(uchar *Buf, ssize_t Size)
 {
 	DWORD r = 0;
 	if (!ReadFile(d->hFile, Buf, Size, &r, NULL) || r != Size)
@@ -1635,7 +1633,7 @@ int GFile::SwapRead(uchar *Buf, int Size)
 	return r;
 }
 
-int GFile::SwapWrite(uchar *Buf, int Size)
+ssize_t GFile::SwapWrite(uchar *Buf, ssize_t Size)
 {
 	int i = 0;
 	DWORD w;
@@ -1649,7 +1647,7 @@ int GFile::SwapWrite(uchar *Buf, int Size)
 	return i;
 }
 
-int GFile::ReadStr(char *Buf, int Size)
+ssize_t GFile::ReadStr(char *Buf, ssize_t Size)
 {
 	int i = 0;
 	DWORD r;
@@ -1678,7 +1676,7 @@ int GFile::ReadStr(char *Buf, int Size)
 	return i;
 }
 
-int GFile::WriteStr(char *Buf, int Size)
+ssize_t GFile::WriteStr(char *Buf, ssize_t Size)
 {
 	int i = 0;
 	DWORD w;

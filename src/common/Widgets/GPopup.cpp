@@ -483,7 +483,7 @@ LRESULT CALLBACK GMouseHook::MouseProc(int Code, WPARAM a, LPARAM b)
 {
 	return 0;
 }
-#elif defined(MAC)
+#elif defined(CARBON)
 WindowRef CreateBorderlessWindow()
 {
 	Rect r = {0,0,100,100};
@@ -527,7 +527,7 @@ public:
 #endif
 
 GPopup::GPopup(GView *owner)
-	#ifdef MAC
+	#ifdef CARBON
 	: GWindow(CreateBorderlessWindow())
 	#endif
 {
@@ -676,7 +676,7 @@ gboolean PopupEvent(GtkWidget *widget, GdkEvent *event, GPopup *This)
 
 bool GPopup::Attach(GViewI *p)
 {
-	#if defined MAC && !defined(LGI_SDL)
+	#if defined(CARBON)
 	
 	return GWindow::Attach(NULL);
 	
@@ -844,7 +844,7 @@ void GPopup::Visible(bool i)
 			else
 				ShowWindow(Handle(), SW_SHOWNA);
 	
-		#elif defined(MAC)
+		#elif defined(CARBON)
 	
 			GWindow::Visible(i);
 	
@@ -928,7 +928,7 @@ bool GPopup::Visible()
 	    
     #endif
 
-	#if defined(MAC)
+	#if defined(CARBON)
 	bool v = GWindow::Visible();
 	#else
 	bool v = GView::Visible();

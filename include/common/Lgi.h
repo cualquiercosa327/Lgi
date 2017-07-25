@@ -207,17 +207,21 @@
 #define LGI_VER								"3.8.0"
 
 /// \brief Define as '1' if Iconv is available else as '0'
-/// \sa http://www.gnu.org/software/libiconv
 #define HAS_ICONV							1
+
 /// \brief Define as '1' if libjpeg is available else as '0'
-/// \sa http://freshmeat.net/projects/libjpeg/?topic_id=105%2C809
 #define HAS_LIBJPEG							1
+#ifndef LIBJPEG_SHARED
+#define LIBJPEG_SHARED						1
+#endif
+
 /// \brief Define as '1' if libpng and zlib are available else as '0'
-/// \sa http://www.libpng.org/pub/png/libpng.html
-/// and http://www.gzip.org/zlib
 #define HAS_LIBPNG_ZLIB						1
+#ifndef LIBPNG_SHARED
+#define LIBPNG_SHARED						1
+#endif
+
 /// \brief Define as '1' if libsharedmime is available else as '0'
-/// \sa http://www.memecode.com/libsharedmime.php
 #define HAS_SHARED_MIME						0
 #ifndef HAS_FILE_CMD
 #define HAS_FILE_CMD						0

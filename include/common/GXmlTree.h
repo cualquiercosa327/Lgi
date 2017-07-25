@@ -32,7 +32,7 @@ public:
 	virtual void Free(void *Ptr) = 0;
 	
 	// Helper allocator for strings
-	char *Alloc(const char *s, int len = -1);
+	char *Alloc(const char *s, ssize_t len = -1);
 };
 
 /// Xml attribute, a named value.
@@ -156,7 +156,7 @@ public:
 	void SetTag(const char *Str = NULL);
 
 	/// Read/write all your native types in here
-	virtual bool Serialize() { return false; }
+	virtual bool Serialize(bool Write) { return false; }
 	/// Returns a pointer to a child tag if present, or NULL if not.
 	GXmlTag *GetChildTag(const char *Name, bool Create = false, const char *TagSeparator = ".");
 	/// Creates a sub tag if it doesn't already exist.
@@ -196,7 +196,7 @@ class LgiClass GXmlTree
 
 protected:
 	GXmlTag *Parse(GXmlTag *Tag, GXmlAlloc *Alloc, char *&t, bool &NoChildren, bool InTypeDef);
-	virtual void OnParseComment(GXmlTag *Ref, const char *Comment, int Bytes) {}
+	virtual void OnParseComment(GXmlTag *Ref, const char *Comment, ssize_t Bytes) {}
 
 	void Output(GXmlTag *t, int Depth);
 
@@ -242,11 +242,11 @@ public:
 	/// Add entities
 	GHashTbl<const char*,char16> *GetEntityTable();
 	/// Decode a string with entities
-	char *DecodeEntities(GXmlAlloc *Alloc, char *s, int len = -1);
+	char *DecodeEntities(GXmlAlloc *Alloc, char *s, ssize_t len = -1);
 	/// Encode a string to use entities
-	char *EncodeEntities(char *s, int len = -1, const char *extra_characters = 0);
+	char *EncodeEntities(char *s, ssize_t len = -1, const char *extra_characters = 0);
 	/// Encode a string to use entities
-	bool EncodeEntities(GStreamI *out, char *s, int len, const char *extra_characters = 0);
+	bool EncodeEntities(GStreamI *out, char *s, ssize_t len, const char *extra_characters = 0);
 };
 
 #endif

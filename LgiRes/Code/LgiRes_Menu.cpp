@@ -697,7 +697,7 @@ void ResMenuUi::OnPaint(GSurface *pDC)
 	}
 }
 
-void ResMenuUi::Pour()
+void ResMenuUi::PourAll()
 {
 	GRegion Client(GetClient());
 	GRegion Update;
@@ -738,7 +738,7 @@ void ResMenuUi::Pour()
 
 void ResMenuUi::OnPosChange()
 {
-	Pour();
+	PourAll();
 }
 
 void ResMenuUi::OnCreate()

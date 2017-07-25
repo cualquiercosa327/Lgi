@@ -913,7 +913,7 @@ public:
 		bool MatchFullSelector(GCss::Selector *Sel, ElementCallback<T> *Context, T *Obj)
 		{
 			bool Complex = Sel->Combs.Length() > 0;
-			int CombIdx = Complex ? Sel->Combs.Length() - 1 : 0;
+			ssize_t CombIdx = Complex ? (ssize_t)Sel->Combs.Length() - 1 : 0;
 			uint32 StartIdx = (Complex) ? Sel->Combs[CombIdx] + 1 : 0;
 			
 			bool Match = MatchSimpleSelector(Sel, StartIdx, Context, Obj);

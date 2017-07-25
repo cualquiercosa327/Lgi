@@ -266,7 +266,7 @@ GRect GScreenDC::ClipRgn(GRect *Rgn)
 		CGContextClipToRect(d->Ctx, rect);
 		d->Clipped++;
 	}
-	else
+	else if (d->Clipped > 0)
 	{
 		CGContextRestoreGState(d->Ctx);			
 		d->Clipped--;

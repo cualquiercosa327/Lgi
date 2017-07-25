@@ -244,7 +244,7 @@ public:
 
 	const char *GetClass() { return "ResDialogUi"; }
 	void OnPaint(GSurface *pDC);
-	void Pour();
+	void PourAll();
 	void OnPosChange();
 	void OnCreate();
 	GMessage::Result OnEvent(GMessage *Msg);
@@ -263,7 +263,6 @@ public:
 	const char *GetClass() { return "CtrlDlg"; }
 
 	GRect &GetClient(bool InClientSpace = true);
-	GViewI *WindowFromPoint(int x, int y);
 	void _Paint(GSurface *pDC = NULL, GdcPt2 *Offset = NULL, GRegion *Update = NULL);
 };
 

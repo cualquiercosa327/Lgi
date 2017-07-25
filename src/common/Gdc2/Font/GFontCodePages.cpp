@@ -775,7 +775,7 @@ int LgiCpToAnsi(char *cp)
 	return Ansi;
 }
 
-int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, const char *InCp, ptrdiff_t &InLen)
+ssize_t LgiBufConvertCp(void *Out, const char *OutCp, ssize_t OutLen, const void *&In, const char *InCp, ssize_t &InLen)
 {
 	int Status = 0;
 
@@ -846,8 +846,15 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 				while (OutLen >= MB_CUR_MAX &&
 						InLen > sizeof(char16) )
 				{
+					#if 1
+					int s = 0;
+					errno_t err = wctomb_s(&s, (char*)Out, OutLen, ((char16*)In)[0]);
+					if (err || s == 0)
+						break;
+					#else
 					int s = wctomb((char*)Out, ((char16*)In)[0] );
 					if (s > 0)
+					#endif
 					{
 						((char16*&)In)++;
 						InLen -= sizeof(char16);
@@ -877,7 +884,7 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 				while (OutLen > 0 && InLen > 0)
 				{
 					char *RewindIn = In8;
-					int RewindInLen = InLen;
+					ptrdiff_t RewindInLen = InLen;
 					
 					// Convert input char to Utf-32
 					switch (InInfo->Type)
@@ -1019,7 +1026,7 @@ int LgiBufConvertCp(void *Out, const char *OutCp, int OutLen, const void *&In, c
 }
 
 template<typename T>
-T *DupeString(T *s, int Len = -1)
+T *DupeString(T *s, ssize_t Len = -1)
 {
 	if (!s)
 		return NULL;
@@ -1037,7 +1044,7 @@ T *DupeString(T *s, int Len = -1)
 	return ns;
 }
 
-void *LgiNewConvertCp(const char *OutCp, const void *In, const char *InCp, ptrdiff_t InLen)
+void *LgiNewConvertCp(const char *OutCp, const void *In, const char *InCp, ssize_t InLen)
 {
 	if (!OutCp || !In || !InCp)
 		return NULL;
@@ -1131,10 +1138,10 @@ void *LgiNewConvertCp(const char *OutCp, const void *In, const char *InCp, ptrdi
 		char Buf[2 << 10];
 		while (InLen > 0)
 		{
-			int Bytes = LgiBufConvertCp(Buf, OutCp, sizeof(Buf), In, InCp, InLen);
+			ssize_t Bytes = LgiBufConvertCp(Buf, OutCp, sizeof(Buf), In, InCp, InLen);
 			if (Bytes > 0)
 			{
-				b.Write((uchar*)Buf, Bytes);
+				b.Write((uchar*)Buf, (int)Bytes);
 			}
 			else
 			{
@@ -1270,7 +1277,7 @@ const char *LgiAnsiToLgiCp(int AnsiCodePage)
 	return 0;
 }
 
-char *LgiSeekUtf8(const char *Ptr, int D, char *Start)
+char *LgiSeekUtf8(const char *Ptr, ssize_t D, char *Start)
 {
 	uchar *p = (uchar*)Ptr;
 	if (p)
@@ -1342,7 +1349,7 @@ bool LgiMatchCharset(short *Map, char16 *Utf, bool &Has8Bit)
 	return false;
 }
 
-const char *LgiDetectCharset(const char *Utf8, int Len, List<char> *Prefs)
+const char *LgiDetectCharset(const char *Utf8, ssize_t Len, List<char> *Prefs)
 {
 	const char *Status = "utf-8"; // The default..
 
@@ -1392,7 +1399,7 @@ const char *LgiDetectCharset(const char *Utf8, int Len, List<char> *Prefs)
 	return Status;
 }
 
-char *LgiToNativeCp(const char *In, int InLen)
+char *LgiToNativeCp(const char *In, ssize_t InLen)
 {
 	const char *Cp = LgiAnsiToLgiCp();
 
@@ -1414,7 +1421,7 @@ char *LgiToNativeCp(const char *In, int InLen)
 			char16 *Wide = Utf8ToWide(In, InLen);
 			if (Wide)
 			{
-				int Len = wcstombs(0, Wide, StrlenW(Wide));
+				size_t Len = wcstombs(0, Wide, StrlenW(Wide));
 				char *Buf = Len > 0 ? new char[Len+1] : 0;
 				if (Buf)
 				{
@@ -1432,7 +1439,7 @@ char *LgiToNativeCp(const char *In, int InLen)
 	return (char*)LgiNewConvertCp(Cp, In, "utf-8", InLen);
 }
 
-char *LgiFromNativeCp(const char *In, int InLen)
+char *LgiFromNativeCp(const char *In, ssize_t InLen)
 {
 	const char *Cp = LgiAnsiToLgiCp();
 
@@ -1458,7 +1465,7 @@ char *LgiFromNativeCp(const char *In, int InLen)
 			else
 			{
 				// Work out how many chars 'InLen' bytes is
-				int Bytes = InLen;
+				ssize_t Bytes = InLen;
 				const char *i = In;
 				int Chars = 0;
 				while (*i && Bytes > 0)
@@ -1476,7 +1483,7 @@ char *LgiFromNativeCp(const char *In, int InLen)
 
 			}
 
-			int Len = mbstowcs(0, In, InLen);
+			size_t Len = mbstowcs(0, In, InLen);
 			if (Len)
 			{
 				char16 *Buf = new char16[Len+1];
@@ -1520,12 +1527,16 @@ GCharsetSystem::GCharsetSystem()
 	// in a hash table for O(1) lookup.
 	d = new GCharsetSystemPriv;
 	d->Charsets.SetStringPool(true);
-	LgiAssert(LgiCharsets->Charset);
+	LgiAssert(LgiCharsets->Charset != NULL);
 
 	for (GCharset *Cs = LgiCharsets; Cs->Charset; Cs++)
 	{
-		strcpy(l, Cs->Charset);
+		strcpy_s(l, sizeof(l), Cs->Charset);
+		#ifdef _MSC_VER
+		_strlwr_s(l, sizeof(l));
+		#else
 		strlwr(l);
+		#endif
 		
 		if (!stricmp(l, "utf-8"))
 			d->Utf8 = Cs;

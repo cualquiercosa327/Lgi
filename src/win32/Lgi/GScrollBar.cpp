@@ -267,12 +267,12 @@ void GScrollBar::SetLimits(int64 Low, int64 High)
 	Update();
 }
 
-int GScrollBar::Page()
+int64 GScrollBar::Page()
 {
 	return d->Page;
 }
 
-void GScrollBar::SetPage(int p)
+void GScrollBar::SetPage(int64 p)
 {
 	d->Page = p;
 	d->Info.nPage = p >> d->Shift;

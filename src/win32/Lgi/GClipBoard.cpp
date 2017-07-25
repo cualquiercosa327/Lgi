@@ -73,7 +73,7 @@ bool GClipBoard::Text(char *Str, bool AutoEmpty)
 
 char *GClipBoard::Text()
 {
-	int Len = 0;
+	ssize_t Len = 0;
 	GAutoPtr<uint8> Str;
 	if (Binary(CF_TEXT, Str, &Len))
 	{
@@ -96,7 +96,7 @@ bool GClipBoard::TextW(char16 *Str, bool AutoEmpty)
 
 char16 *GClipBoard::TextW()
 {
-	int Len = 0;
+	ssize_t Len = 0;
 	GAutoPtr<uint8> Str;
 	if (Binary(CF_UNICODETEXT, Str, &Len))
 	{
@@ -307,7 +307,7 @@ GSurface *GClipBoard::Bitmap()
 	return pDC;
 }
 
-bool GClipBoard::Binary(FormatType Format, uchar *Ptr, int Len, bool AutoEmpty)
+bool GClipBoard::Binary(FormatType Format, uchar *Ptr, ssize_t Len, bool AutoEmpty)
 {
 	bool Status = FALSE;
 
@@ -342,7 +342,7 @@ bool GClipBoard::Binary(FormatType Format, uchar *Ptr, int Len, bool AutoEmpty)
 	return Status;
 }
 
-bool GClipBoard::Binary(FormatType Format, GAutoPtr<uint8> &Ptr, int *Length)
+bool GClipBoard::Binary(FormatType Format, GAutoPtr<uint8> &Ptr, ssize_t *Length)
 {
 	bool Status = false;
 

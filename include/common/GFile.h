@@ -19,11 +19,6 @@
 
 #ifdef WIN32
 
-// #include <dos.h>
-// #include <sys\types.h>
-// #include <sys\stat.h>
-// #include <io.h>
-
 typedef HANDLE							OsFile;
 #define INVALID_HANDLE					INVALID_HANDLE_VALUE
 #define ValidHandle(hnd)				((hnd) != INVALID_HANDLE_VALUE)
@@ -334,8 +329,8 @@ class LgiClass GFile : public GStream, public GRefCount
 protected:
 	class GFilePrivate *d;
 
-	int SwapRead(uchar *Buf, int Size);
-	int SwapWrite(uchar *Buf, int Size);
+	ssize_t SwapRead(uchar *Buf, ssize_t Size);
+	ssize_t SwapWrite(uchar *Buf, ssize_t Size);
 
 public:
 	GFile();
@@ -351,16 +346,16 @@ public:
 		const char *Name,
 		/// The mode to open the file with. One of O_READ, O_WRITE or O_READWRITE.
 		int Attrib
-	);
+	)	override;
 	
 	/// Returns non zero if the class is associated with an open file handle.
-	bool IsOpen();
+	bool IsOpen() override;
 
 	/// Returns the most recent error code encountered.
 	int GetError();
 	
 	/// Closes the file.
-	int Close();
+	int Close() override;
 	
 	/// Gets the mode that the file was opened with.
 	int GetOpenMode();
@@ -370,27 +365,27 @@ public:
 
 	/// \brief Gets the current file pointer.
 	/// \return The file pointer or -1 on error.
-	int64 GetPos();
+	int64 GetPos() override;
 	
 	/// \brief Sets the current file pointer.
 	/// \return The new file pointer or -1 on error.
-	int64 SetPos(int64 Pos);
+	int64 SetPos(int64 Pos) override;
 
 	/// \brief Gets the file size.
 	/// \return The file size or -1 on error.
-	int64 GetSize();
+	int64 GetSize() override;
 
 	/// \brief Sets the file size.
 	/// \return The new file size or -1 on error.
-	int64 SetSize(int64 Size);
+	int64 SetSize(int64 Size) override;
 
 	/// \brief Reads bytes into memory from the current file pointer.
 	/// \return The number of bytes read or <= 0.
-	int Read(void *Buffer, int Size, int Flags = 0);
+	ssize_t Read(void *Buffer, ssize_t Size, int Flags = 0) override;
 	
 	/// \brief Writes bytes from memory to the current file pointer.
 	/// \return The number of bytes written or <= 0.
-	int Write(const void *Buffer, int Size, int Flags = 0);
+	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0) override;
 
 	/// Gets the path used to open the file
 	virtual char *GetName();
@@ -416,11 +411,11 @@ public:
 	virtual bool GetSwap();
 
 	// String
-	virtual int ReadStr(char *Buf, int Size);
-	virtual int WriteStr(char *Buf, int Size);
+	virtual ssize_t ReadStr(char *Buf, ssize_t Size);
+	virtual ssize_t WriteStr(char *Buf, ssize_t Size);
 
 	// Helpers
-	int Write(GString &s)
+	ssize_t Write(GString &s)
 	{
 		return Write(s.Get(), s.Length());
 	}
@@ -551,7 +546,7 @@ public:
 			for (i = 0; i < nsz; )
 			{
 				int Len = min(Block, (int) (nsz - i));
-				int rd = Read(s.Get() + i, Len);
+				ssize_t rd = Read(s.Get() + i, Len);
 				if (rd <= 0)
 					break;
 				i += rd;
@@ -572,10 +567,10 @@ LgiFunc bool FileExists(const char *File, char *CorrectCase = NULL);
 /// This function checks for the existance of a directory.
 LgiFunc bool DirExists(const char *Dir, char *CorrectCase = NULL);
 
-LgiFunc bool ResolveShortcut(const char *LinkFile, char *Path, int Len);
+LgiFunc bool ResolveShortcut(const char *LinkFile, char *Path, ssize_t Len);
 LgiFunc void WriteStr(GFile &f, const char *s);
 LgiFunc char *ReadStr(GFile &f DeclDebugArgs);
-LgiFunc int SizeofStr(const char *s);
+LgiFunc ssize_t SizeofStr(const char *s);
 LgiFunc char *ReadTextFile(const char *File);
 LgiFunc bool LgiTrimDir(char *Path);
 LgiExtern const char *LgiGetLeaf(const char *Path);

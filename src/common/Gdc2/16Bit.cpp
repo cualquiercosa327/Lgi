@@ -126,8 +126,8 @@ public:
 
 		while (y--)
 		{
-			register uint16 *d = this->Ptr.u16;
-			register uint16 *e = d + x;
+			uint16 *d = this->Ptr.u16;
+			uint16 *e = d + x;
 			
 			while (d < e)
 				*d++ = u;

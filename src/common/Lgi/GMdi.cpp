@@ -205,7 +205,7 @@ bool GMdiChild::Name(const char *n)
 	return s;
 }
 
-bool GMdiChild::Pour()
+bool GMdiChild::PourAll()
 {
 	GRect c = GetClient();
 	#if !MDI_TAB_STYLE
@@ -964,7 +964,7 @@ void GMdiParent::OnPosChange()
 
 				c->SetPos(d->Content);
 				c->Visible(true);
-				c->Pour();
+				c->PourAll();
 			}
 			else
 			{
@@ -996,7 +996,7 @@ void GMdiParent::OnPosChange()
 
 GRect GMdiParent::NewPos()
 {
-	GRect Status(0, 0, X()*0.75, Y()*0.75);
+	GRect Status(0, 0, (int)(X()*0.75), (int)(Y()*0.75));
 
 	int Block = 5;
 	for (int y=0; y<Y()>>Block; y++)

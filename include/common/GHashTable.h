@@ -226,7 +226,7 @@ class GHashTbl
 		// char
 			uint32 Hash(char *s) { return LgiHash<uint, uchar>((uchar*)s, 0, Case); }
 			char *CopyKey(char *a) { return NewStr(a); }
-			int SizeKey(char *a) { return strlen(a) + 1; }
+			size_t SizeKey(char *a) { return strlen(a) + 1; }
 			void FreeKey(char *&a)
 			{
 				if (!Pool) { DeleteArray(a); }
@@ -240,7 +240,7 @@ class GHashTbl
 		// const char
 			uint32 Hash(const char *s) { return LgiHash<uint, uchar>((uchar*)s, 0, Case); }
 			char *CopyKey(const char *a) { return NewStr(a); }
-			int SizeKey(const char *a) { return strlen(a) + 1; }
+			size_t SizeKey(const char *a) { return strlen(a) + 1; }
 			void FreeKey(const char *&a)
 			{
 				if (Pool) a = NULL;
@@ -254,7 +254,7 @@ class GHashTbl
 		// char16
 			uint32 Hash(char16 *s) { return LgiHash<uint, char16>(s, 0, Case); }
 			char16 *CopyKey(char16 *a) { return NewStrW(a); }
-			int SizeKey(char16 *a) { return StrlenW(a) + 1; }
+			size_t SizeKey(char16 *a) { return StrlenW(a) + 1; }
 			void FreeKey(char16 *&a)
 			{
 				if (Pool) a = NULL;
@@ -271,7 +271,7 @@ class GHashTbl
 		// const char16
 			uint32 Hash(const char16 *s) { return LgiHash<uint, char16>((char16*)s, 0, Case); }
 			const char16 *CopyKey(const char16 *a) { return NewStrW(a); }
-			int SizeKey(const char16 *a) { return StrlenW(a) + 1; }
+			size_t SizeKey(const char16 *a) { return StrlenW(a) + 1; }
 			void FreeKey(const char16 *&a)
 			{
 				if (Pool) a = NULL;
@@ -288,7 +288,7 @@ class GHashTbl
 		// int
 			uint32 Hash(int s) { return s; }
 			int CopyKey(int a) { return a; }
-			int SizeKey(int a) { return sizeof(a); }
+			size_t SizeKey(int a) { return sizeof(a); }
 			void FreeKey(int &a) { memcpy(&a, &NullKey, sizeof(a)); }
 			bool CmpKey(int a, int b)
 			{
@@ -298,7 +298,7 @@ class GHashTbl
 		// unsigned
 			uint32 Hash(unsigned s) { return s; }
 			int CopyKey(unsigned a) { return a; }
-			int SizeKey(unsigned a) { return sizeof(a); }
+			size_t SizeKey(unsigned a) { return sizeof(a); }
 			void FreeKey(unsigned &a) { memcpy(&a, &NullKey, sizeof(a)); }
 			bool CmpKey(unsigned a, unsigned b)
 			{
@@ -308,7 +308,7 @@ class GHashTbl
 		// int64
 			uint32 Hash(int64 s) { return (uint32)s; }
 			int64 CopyKey(int64 a) { return a; }
-			int SizeKey(int64 a) { return sizeof(a); }
+			size_t SizeKey(int64 a) { return sizeof(a); }
 			void FreeKey(int64 &a) { memcpy(&a, &NullKey, sizeof(a)); }
 			bool CmpKey(int64 a, int64 b)
 			{
@@ -316,9 +316,9 @@ class GHashTbl
 			}
 
 		// uint64
-			uint32 Hash(uint64 s) { return s; }
+			uint32 Hash(uint64 s) { return (uint32)s; }
 			uint64 CopyKey(uint64 a) { return a; }
-			int SizeKey(uint64 a) { return sizeof(a); }
+			size_t SizeKey(uint64 a) { return sizeof(a); }
 			void FreeKey(uint64 &a) { memcpy(&a, &NullKey, sizeof(a)); }
 			bool CmpKey(uint64 a, uint64 b)
 			{
@@ -328,7 +328,7 @@ class GHashTbl
 		// void*
 			uint32 Hash(void *s) { return (uint32)(((NativeInt)s)/31); }
 			void *CopyKey(void *a) { return a; }
-			int SizeKey(void *a) { return sizeof(a); }
+			size_t SizeKey(void *a) { return sizeof(a); }
 			void FreeKey(void *&a) { memcpy(&a, &NullKey, sizeof(a)); }
 			bool CmpKey(void *a, void *b)
 			{

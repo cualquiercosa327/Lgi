@@ -28,7 +28,7 @@ public:
 	bool Attach(GViewI *p);
 	bool Detach();
 
-	bool Pour();
+	bool PourAll();
 	char *Name();
 	bool Name(const char *n);
 	

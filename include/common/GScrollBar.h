@@ -52,9 +52,9 @@ public:
 	/// Sets the limits
 	void SetLimits(int64 Low, int64 High);
 	/// Gets the page size
-	int Page();
+	int64 Page();
 	/// Sets the page size
-	void SetPage(int p);
+	void SetPage(int64 p);
 	/// Returns true if the range is valid
 	bool Valid();
 

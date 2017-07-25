@@ -30,13 +30,13 @@ struct FindSymResult
 
 struct FindSymRequest
 {
-	GEventSinkI *Sink;
+	int SinkHnd;
 	GString Str;
 	GArray<FindSymResult*> Results;
 	
-	FindSymRequest(GEventSinkI *sink)
+	FindSymRequest(int sinkhnd)
 	{
-		Sink = sink;
+		SinkHnd = sinkhnd;
 	}
 	
 	~FindSymRequest()
@@ -66,7 +66,7 @@ public:
 	
 	/// This function searches the database for symbols and returns
 	/// the results as a M_FIND_SYM_REQUEST message.
-	void Search(GEventSinkI *Results, const char *SearchStr);
+	void Search(int ResultsSinkHnd, const char *SearchStr);
 };
 
 #endif

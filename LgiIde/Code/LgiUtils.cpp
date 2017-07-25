@@ -25,7 +25,7 @@ char *FindHeader(char *Short, GArray<GString> &Paths)
 
 bool BuildHeaderList(char *Cpp, GArray<char*> &Headers, GArray<GString> &IncPaths, bool Recurse)
 {
-	char Include[] = {'i', 'n', 'c', 'l', 'u', 'd', 'e', 0 };
+	char Include[] = "include";
 	
 	for (char *c = Cpp; c && *c; )
 	{

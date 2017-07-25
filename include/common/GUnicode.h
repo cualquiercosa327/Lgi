@@ -21,11 +21,16 @@ typedef unsigned short uint16;
 typedef signed int int32;
 typedef unsigned int uint32;
 #ifdef _MSC_VER
-typedef signed __int64 int64;
-typedef unsigned __int64 uint64;
+	typedef signed __int64 int64;
+	typedef unsigned __int64 uint64;
+	#ifdef  _WIN64
+	typedef signed __int64		ssize_t;
+	#else
+	typedef signed int			ssize_t;
+	#endif
 #else
-typedef signed long long int64;
-typedef unsigned long long uint64;
+	typedef signed long long int64;
+	typedef unsigned long long uint64;
 #endif
 
 // Defines for decoding UTF8
@@ -40,7 +45,7 @@ typedef unsigned long long uint64;
 // Stand-alone functions
 
 /// Convert a single utf-8 char to utf-32 or returns -1 on error.
-inline int32 LgiUtf8To32(uint8 *&i, ptrdiff_t &Len)
+inline int32 LgiUtf8To32(uint8 *&i, ssize_t &Len)
 {
 	int32 Out = 0;
 
@@ -136,7 +141,7 @@ inline int32 LgiUtf8To32(uint8 *&i, ptrdiff_t &Len)
 }
 
 /// Convert a single utf-32 char to utf-8
-inline bool LgiUtf32To8(uint32 c, uint8 *&i, int &Len)
+inline bool LgiUtf32To8(uint32 c, uint8 *&i, ssize_t &Len)
 {
 	if ((c & ~0x7f) == 0)
 	{
@@ -189,7 +194,7 @@ inline bool LgiUtf32To8(uint32 c, uint8 *&i, int &Len)
 #define IsUtf16_Trail(c)	( ((uint16)(c) & 0xfc00) == 0xDc00 )
 
 /// Convert a single utf-16 char to utf-32
-inline uint32 LgiUtf16To32(const uint16 *&i, ptrdiff_t &Len)
+inline uint32 LgiUtf16To32(const uint16 *&i, ssize_t &Len)
 {
 	if (Len > 1)
 	{
@@ -221,7 +226,7 @@ inline uint32 LgiUtf16To32(const uint16 *&i, ptrdiff_t &Len)
 }
 
 /// Convert a single utf-32 char to utf-16
-inline bool LgiUtf32To16(uint32 c, uint16 *&i, int &Len)
+inline bool LgiUtf32To16(uint32 c, uint16 *&i, ssize_t &Len)
 {
 	if (c >= 0x10000)
 	{
@@ -415,7 +420,7 @@ T *Strupr(T *Str)
 
 // Finds the length of the string in characters
 template<typename T>
-ptrdiff_t Strlen(const T *str)
+ssize_t Strlen(const T *str)
 {
 	if (!str)
 		return 0;
@@ -451,7 +456,7 @@ int Strcmp(const T *str_a, const T *str_b)
 
 // Compares the first 'len' chars of two strings, case sensitive
 template<typename T>
-int Strncmp(const T *str_a, const T *str_b, unsigned len)
+int Strncmp(const T *str_a, const T *str_b, ssize_t len)
 {
 	if (!str_a || !str_b)
 		return -1;
@@ -500,7 +505,7 @@ int Stricmp(const T *str_a, const T *str_b)
 
 // Compares the first 'len' chars of two strings, case insensitive
 template<typename T>
-int Strnicmp(const T *str_a, const T *str_b, unsigned len)
+int Strnicmp(const T *str_a, const T *str_b, ssize_t len)
 {
 	if (!str_a || !str_b || len == 0)
 		return -1;
@@ -527,7 +532,7 @@ int Strnicmp(const T *str_a, const T *str_b, unsigned len)
 
 /// Copies a string
 template<typename T>
-T *Strcpy(T *dst, unsigned dst_len, const T *src)
+T *Strcpy(T *dst, ssize_t dst_len, const T *src)
 {
 	if (!dst || !src || dst_len == 0)
 		return NULL;
@@ -735,7 +740,7 @@ LgiFunc wchar_t *Utf8ToWide
 	/// Input string
 	const char *In,
 	/// [Optional] Size of 'In' in 'chars' or -1 for NULL terminated
-	int InLen = -1
+	ssize_t InLen = -1
 );
 
 /// Converts a wide character string into a utf-8 string

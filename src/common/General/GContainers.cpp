@@ -1229,7 +1229,7 @@ void *GMemQueue::New(int AddBytes)
 	uchar *Data = Len > 0 ? new uchar[Len+AddBytes] : 0;
 	if (Data)
 	{
-		int Rd = Read(Data, Len);
+		ssize_t Rd = Read(Data, Len);
 		if (Rd >= 0 && AddBytes)
 		{
 			memset(Data+Len, 0, AddBytes);
@@ -1239,7 +1239,7 @@ void *GMemQueue::New(int AddBytes)
 	return Data;
 }
 
-int GMemQueue::Read(void *Ptr, int Size, int Flags)
+ssize_t GMemQueue::Read(void *Ptr, ssize_t Size, int Flags)
 {
 	int Status = 0;
 
@@ -1248,7 +1248,7 @@ int GMemQueue::Read(void *Ptr, int Size, int Flags)
 		Block *b = 0;
 		for (b = Mem.First(); b && Size > 0; b = Mem.Next())
 		{
-			int Copy = min(Size, b->Used - b->Next);
+			ssize_t Copy = min(Size, b->Used - b->Next);
 			if (Copy > 0)
 			{
 				memcpy(Ptr, b->Ptr() + b->Next, Copy);
@@ -1269,7 +1269,7 @@ int GMemQueue::Read(void *Ptr, int Size, int Flags)
 	return Status;
 }
 
-int GMemQueue::Write(const void *Ptr, int Size, int Flags)
+ssize_t GMemQueue::Write(const void *Ptr, ssize_t Size, int Flags)
 {
 	int Status = 0;
 
@@ -1286,7 +1286,7 @@ int GMemQueue::Write(const void *Ptr, int Size, int Flags)
 			Block *Last = Mem.Last();
 			if (Last)
 			{
-				int Len = min(Size, Last->Size - Last->Used);
+				ssize_t Len = min(Size, Last->Size - Last->Used);
 				if (Len > 0)
 				{
 					memcpy(Last->Ptr() + Last->Used, Ptr, Len);
@@ -1300,16 +1300,16 @@ int GMemQueue::Write(const void *Ptr, int Size, int Flags)
 
 		if (Size > 0)
 		{
-			int Bytes = max(PreAlloc, Size);
-			int Alloc = sizeof(Block) + Bytes;
+			ssize_t Bytes = max(PreAlloc, Size);
+			ssize_t Alloc = sizeof(Block) + Bytes;
 			Alloc = LGI_ALLOC_ALIGN(Alloc);
 			Block *b = (Block*) malloc(Alloc);
 			if (b)
 			{
 				void *p = b->Ptr();
 				memcpy(p, Ptr, Size);
-				b->Size = Bytes;
-				b->Used = Size;
+				b->Size = (int)Bytes;
+				b->Used = (int)Size;
 				b->Next = 0;
 				Mem.Insert(b);
 				Status += Size;
@@ -1330,7 +1330,7 @@ GString GStringPipe::NewGStr()
 	{
 		if (s.Length(Sz))
 		{
-			int Rd = Read(s.Get(), s.Length());
+			ssize_t Rd = Read(s.Get(), s.Length());
 			if (Rd > 0 && Rd <= Sz)
 			{
 				s.Get()[Rd] = 0;
@@ -1342,7 +1342,7 @@ GString GStringPipe::NewGStr()
 	return s;
 }
 
-int GStringPipe::Pop(char *Str, int BufSize)
+ssize_t GStringPipe::Pop(char *Str, ssize_t BufSize)
 {
 	if (Str)
 	{
@@ -1399,7 +1399,7 @@ int GStringPipe::Pop(char *Str, int BufSize)
 	return 0;
 }
 
-int GStringPipe::Push(const char *Str, int Chars)
+ssize_t GStringPipe::Push(const char *Str, ssize_t Chars)
 {
 	if (!Str)
 		return 0;
@@ -1410,7 +1410,7 @@ int GStringPipe::Push(const char *Str, int Chars)
 	return Write((void*)Str, Chars);
 }
 
-int GStringPipe::Push(const char16 *Str, int Chars)
+ssize_t GStringPipe::Push(const char16 *Str, ssize_t Chars)
 {
 	if (!Str)
 		return 0;
@@ -1498,7 +1498,7 @@ bool GMemFile::FreeBlock(Block *b)
 	if (!b)
 		return false;
 	
-	int Idx = b->Offset / BlockSize;
+	ssize_t Idx = b->Offset / BlockSize;
 	if (Idx < GMEMFILE_BLOCKS)
 	{
 		// Local block
@@ -1546,15 +1546,15 @@ int64 GMemFile::SetSize(int64 Size)
 			if (b->Used < BlockSize)
 			{
 				// Add size to last incomplete block
-				int Remaining = BlockSize - b->Used;
-				int Add = min(Diff, Remaining);
+				ssize_t Remaining = BlockSize - b->Used;
+				ssize_t Add = min(Diff, Remaining);
 				b->Used += Add;
 				Diff -= Add;
 			}
 			while (Diff > 0)
 			{
 				// Add new blocks to cover the size...
-				int Add = min(BlockSize, Diff);
+				ssize_t Add = min(BlockSize, Diff);
 				b = Create();
 				b->Used = Add;
 				Diff -= Add;
@@ -1570,7 +1570,7 @@ int64 GMemFile::SetSize(int64 Size)
 				if (!b)
 					break;
 
-				int Sub = min(b->Used, Diff);
+				ssize_t Sub = min(b->Used, Diff);
 				b->Used -= Sub;
 				Diff -= Sub;
 				if (b->Used == 0)
@@ -1592,7 +1592,7 @@ int64 GMemFile::SetPos(int64 Pos)
 	if (Pos <= 0)
 		return CurPos = 0; // Off the start of the structure
 	
-	int BlockIndex = Pos / BlockSize;
+	ssize_t BlockIndex = Pos / BlockSize;
 	if (BlockIndex >= Blocks)
 		return CurPos = GetSize(); // Off the end of the structure
 	
@@ -1607,7 +1607,7 @@ int64 GMemFile::SetPos(int64 Pos)
 	return CurPos = Pos; // Inside the last block
 }
 
-int GMemFile::Read(void *Ptr, int Size, int Flags)
+ssize_t GMemFile::Read(void *Ptr, ssize_t Size, int Flags)
 {
 	if (!Ptr || Size < 1)
 		return 0;
@@ -1642,7 +1642,7 @@ int GMemFile::Read(void *Ptr, int Size, int Flags)
 	return p - (uint8*) Ptr;
 }
 
-int GMemFile::Write(const void *Ptr, int Size, int Flags)
+ssize_t GMemFile::Write(const void *Ptr, ssize_t Size, int Flags)
 {
 	if (!Ptr || Size < 1)
 		return 0;

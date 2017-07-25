@@ -247,7 +247,7 @@ void GSlider::Value(int64 i)
 		GViewI *n = GetNotify() ? GetNotify() : GetParent();
 		if (n)
 		{
-			n->OnNotify(this, Val);
+			n->OnNotify(this, (int)Val);
 		}
 		
 		Invalidate();

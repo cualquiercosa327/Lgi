@@ -33,7 +33,7 @@ enum CellFlag
 #include "GCss.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
-// #define DEBUG_LAYOUT		102
+// #define DEBUG_LAYOUT		539
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
@@ -52,10 +52,10 @@ const char *FlagToString(CellFlag f)
 }
 
 template <class T>
-T CountRange(GArray<T> &a, int Start, int End)
+T CountRange(GArray<T> &a, ssize_t Start, ssize_t End)
 {
 	T c = 0;
-	for (int i=Start; i<=End; i++)
+	for (ssize_t i=Start; i<=End; i++)
 	{
 		c += a[i];
 	}
@@ -85,7 +85,7 @@ DistributeUnusedSpace(	GArray<int> &Min,
 						GStream *Debug = NULL)
 {
 	// Now allocate unused space
-	int Borders = Min.Length() - 1;
+	int Borders = (int)Min.Length() - 1;
 	int Sum = CountRange<int>(Min, 0, Borders) + (Borders * CellSpacing);
 	if (Sum >= Total)
 		return;
@@ -188,9 +188,10 @@ DistributeSize(	GArray<int> &a,
 		return;
 
 	// Get list of growable cells
-	GArray<int> Grow, Fill;
+	GArray<int> Grow, Fill, Fixed, Unknown;
 	int ExistingGrowPx = 0;
 	int ExistingFillPx = 0;
+	int UnknownPx = 0;
 
 	for (int i=Start; i<Start+Span; i++)
 	{
@@ -198,6 +199,17 @@ DistributeSize(	GArray<int> &a,
 	    {
 			default:
 				break;
+			case SizeUnknown:
+			{
+				Unknown.Add(i);
+				UnknownPx += a[i];
+				break;
+			}
+			case SizeFixed:
+			{
+				Fixed.Add(i);
+				break;
+			}
 	        case SizeGrow:
 		    {
 			    Grow.Add(i);
@@ -241,6 +253,21 @@ DistributeSize(	GArray<int> &a,
 			    Add = a[Cell] * AdditionalSize / ExistingGrowPx;
 			else
 			    Add = max(1, AdditionalSize / Grow.Length());
+			a[Cell] = a[Cell] + Add;
+		}
+	}
+	else if (Fixed.Length() > 0 && Unknown.Length() > 0)
+	{
+		// Distribute size amongst the unknown cells
+		int AdditionalSize = Size - Cur;
+		for (int i=0; i<Unknown.Length(); i++)
+		{
+			int Cell = Unknown[i];
+			int Add;
+			if (a[Cell] && UnknownPx)
+			    Add = a[Cell] * AdditionalSize / UnknownPx;
+			else
+			    Add = max(1, AdditionalSize / Unknown.Length());
 			a[Cell] = a[Cell] + Add;
 		}
 	}
@@ -369,7 +396,7 @@ TableCell::TableCell(GTableLayout *t, int Cx, int Cy)
 
 TableCell::Child *TableCell::HasView(GView *v)
 {
-	unsigned Len = Children.Length();
+	size_t Len = Children.Length();
 	if (!Len)
 		return NULL;
 
@@ -648,22 +675,25 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 	if (Wid.IsValid())
 	{
 		int Tx = Table->X();
-		Max = Wid.ToPx(Tx, Table->GetFont()) - Padding.x1 - Padding.x2;
 		
-		if (!Wid.IsDynamic())
-		{
-			Min = Max;
-			Flag = SizeFixed;
-
-			if (Padding.x1 + Padding.x2 > Min)
-			{
-				// Remove padding as it's going to oversize the cell
-				Padding.x1 = Padding.x2 = 0;
-			}
-		}
+		if (Wid.Type == GCss::LenAuto)
+			Flag = SizeFill;
 		else
 		{
-			Flag = SizeGrow;
+			Max = Wid.ToPx(Tx, Table->GetFont()) - Padding.x1 - Padding.x2;
+			
+			if (!Wid.IsDynamic())
+			{
+				Min = Max;
+				Flag = SizeFixed;
+
+				if (Padding.x1 + Padding.x2 > Min)
+				{
+					// Remove padding as it's going to oversize the cell
+					Padding.x1 = Padding.x2 = 0;
+				}
+			}
+			else Flag = SizeGrow;
 		}
 	}
 
@@ -860,6 +890,7 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 			Pos.y2 = MinY - 1;
 			if (Flags < SizeFixed)
 				Flags = SizeFixed;
+			return;
 		}
 	}
 	
@@ -888,8 +919,6 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 		
 		GTableLayout *Tbl = NULL;
 		// GRadioGroup *Grp = NULL;
-
-		// const char *Cls = v->GetClass();
 
 		GCss *Css = v->GetCss();
 		GCss::Len Ht;
@@ -1056,7 +1085,7 @@ void TableCell::PostLayout()
 		GView *v = c->View;
 		if (!v)
 			continue;
-
+			
 		if (Disp == DispNone)
 		{
 			v->Visible(false);
@@ -1316,8 +1345,7 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 				// Non-spanned cells
 				if (c->Cell.x1 == Cx &&
 					c->Cell.y1 == Cy &&
-					c->Cell.X() == 1 &&
-					c->Cell.Y() == 1)
+					c->Cell.X() == 1)
 				{
 					c->PreLayout(MinCol[Cx], MaxCol[Cx], ColFlags[Cx]);
 				}
@@ -1353,27 +1381,32 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 			{
 				if (c->Cell.x1 == Cx &&
 					c->Cell.y1 == Cy &&
-					(c->Cell.X() > 1 || c->Cell.Y() > 1))
+					c->Cell.X() > 1)
 				{
 					int Min = 0, Max = 0;
 					CellFlag Flag = SizeUnknown;
 					
-					if (DebugLayout)
-					{
-						int asd=0;
-					}
-
 					if (c->Width().IsValid())
 					{
 						GCss::Len l = c->Width();
-						int Px = l.ToPx(Client.X(), Ctrl->GetFont());;
-						if (l.IsDynamic())
+						if (l.Type == GCss::LenAuto)
 						{
-							c->PreLayout(Min, Max, Flag);
+							for (int i=c->Cell.x1; i<=c->Cell.x2; i++)
+							{
+								ColFlags[i] = SizeFill;
+							}
 						}
 						else
 						{
-							Min = Max = Px;
+							int Px = l.ToPx(Client.X(), Ctrl->GetFont());;
+							if (l.IsDynamic())
+							{
+								c->PreLayout(Min, Max, Flag);
+							}
+							else
+							{
+								Min = Max = Px;
+							}
 						}
 					}
 					else
@@ -1420,7 +1453,7 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 					DistributeSize(MinCol, ColFlags, c->Cell.x1, c->Cell.X(), Min, BorderSpacing);
 					
 					// This is the total size of all the px currently allocated
-					int AllPx = CountRange(MinCol, 0, Cols.Length()-1) + ((Cols.Length() - 1) * BorderSpacing);
+					int AllPx = CountRange(MinCol, 0, Cols.Length()-1) + (((int)Cols.Length() - 1) * BorderSpacing);
 					
 					// This is the minimum size of this cell's cols
 					int MyPx = CountRange(MinCol, c->Cell.x1, c->Cell.x2) + ((c->Cell.X() - 1) * BorderSpacing);
@@ -1481,7 +1514,7 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 	#endif
 	
 	// Collect together our sizes
-	int Spacing = BorderSpacing * (MinCol.Length() - 1);
+	int Spacing = BorderSpacing * ((int)MinCol.Length() - 1);
 	if (MinX)
 	{
 		int x = CountRange<int>(MinCol, 0, MinCol.Length()-1) + Spacing;
@@ -1666,12 +1699,12 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 	// Collect together our sizes
 	if (MinY)
 	{
-		int y = CountRange(MinRow, 0, MinRow.Length()-1) + ((MinRow.Length()-1) * BorderSpacing);
+		int y = CountRange(MinRow, 0, MinRow.Length()-1) + (((int)MinRow.Length()-1) * BorderSpacing);
 		*MinY = max(*MinY, y);
 	}
 	if (MaxY)
 	{
-		int y = CountRange(MaxRow, 0, MinRow.Length()-1) + ((MaxRow.Length()-1) * BorderSpacing);
+		int y = CountRange(MaxRow, 0, MinRow.Length()-1) + (((int)MaxRow.Length()-1) * BorderSpacing);
 		*MaxY = max(*MaxY, y);
 	}
 	if (Flag)
@@ -1820,12 +1853,12 @@ void GTableLayout::OnCreate()
 
 int GTableLayout::CellX()
 {
-	return d->Cols.Length();
+	return (int)d->Cols.Length();
 }
 
 int GTableLayout::CellY()
 {
-	return d->Rows.Length();
+	return (int)d->Rows.Length();
 }
 
 GLayoutCell *GTableLayout::CellAt(int x, int y)

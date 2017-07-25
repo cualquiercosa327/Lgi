@@ -21,7 +21,7 @@ class GTrayIconPrivate
 {
 public:
 	GWindow *Parent;	// parent window
-	int Val;			// which icon is currently visible
+	int64 Val;			// which icon is currently visible
 	bool Visible;
 
 	#if WINNATIVE
@@ -276,7 +276,7 @@ void GTrayIcon::Visible(bool v)
 
 			if (!d->Visible)
 			{
-				int Ico = d->Val;
+				int64 Ico = d->Val;
 				d->Val = -1;
 				Value(Ico);
 			}

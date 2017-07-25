@@ -524,15 +524,43 @@ void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 	else
 	{
 		OnPaint(pDC);
-		#ifdef _DEBUG
+		#if defined(_DEBUG) && defined(CARBON)
 		if (_Debug)
-			printf("%s:%i OnPaint %s\n", _FL, r.GetStr());
+		{
+			OsPainter h = pDC->Handle();
+			CGAffineTransform t2 = CGContextGetCTM(h);
+			GRect r2;
+			CGRect new_bounds = CGContextGetClipBoundingBox(h);
+			r2 = new_bounds;
+
+			HIRect rc;
+			HIViewGetFrame(_View, &rc);
+			HIViewFeatures f;
+			HIViewGetFeatures(_View, &f);
+			bool op = (f & kHIViewIsOpaque) != 0;
+			bool vis = IsControlVisible(_View);
+			
+			if (r2.x1 >= 0)
+			{
+				printf("%s:%i %s::OnPaint %s, %s (%f,%f)\n", _FL, GetClass(),
+						r.GetStr(),
+						r2.GetStr(),
+						(double)t2.tx, (double)t2.ty);
+			}
+			else
+			{
+				printf("%s:%i %s::OnPaint %s, (%f,%f)\n", _FL, GetClass(),
+						r.GetStr(),
+						(double)t2.tx, (double)t2.ty);
+			}
+			
+			GetWindow()->_Dump();
+			int asd=0;
+		}
 		#endif
 	}
 
 	#if PAINT_VIRTUAL_CHILDREN
-	// SetClientDebug = GetId() == 1159;
-
 	// Paint any virtual children
 	List<GViewI>::I it = Children.Start(); // just in case the child access the child list
 	while (it.Each())
@@ -561,6 +589,7 @@ void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 					w->_Paint(pDC, &co);
 					pDC->SetClient(0);
 				}
+				/*
 				else
 				{
 					LgiTrace("%s:%i - Not updating '%s' because %i, %i (%s)\n",
@@ -568,14 +597,13 @@ void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 						Update != NULL,
 						Update ? Update->Overlap(&p) : -1,
 						p.GetStr());
-					/*
 					if (Update)
 					{
 						for (unsigned i=0; i<Update->Length(); i++)
 							LgiTrace("    [%i]=%s\n", i, (*Update)[i]->GetStr());
 					}
-					*/
 				}
+				*/
 			}
 		}
 	}
@@ -1587,7 +1615,7 @@ bool GView::AttachChildren()
 	List<GViewI>::I it = Children.Start();
 	while (it.Each())
 	{
-		GViewI *c = *it;
+		GViewI *c = *it;		
 		if (!c->IsAttached())
 		{
 			if (!c->Attach(this))
@@ -2075,7 +2103,7 @@ GdcPt2 &GView::GetWindowBorderSize()
 
 #ifdef _DEBUG
 
-#ifdef MAC
+#ifdef CARBON
 void DumpHiview(HIViewRef v, int Depth = 0)
 {
 	char Sp[256];
@@ -2127,7 +2155,7 @@ void GView::_Dump(int Depth)
 				v->_Dump(Depth+1);
 		}
 	
-	#elif defined(MAC)
+	#elif defined(CARBON)
 	
 	DumpHiview(_View);
 	

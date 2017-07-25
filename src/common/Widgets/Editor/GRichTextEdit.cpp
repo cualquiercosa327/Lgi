@@ -37,7 +37,7 @@
 #define toupper(c)					(((c)>='a'&&(c)<='z') ? (c)-'a'+'A' : (c))
 #endif
 
-static char SelectWordDelim[] = " \t\n.,()[]<>=?/\\{}\"\';:+=-|!@#$%^&*";
+// static char SelectWordDelim[] = " \t\n.,()[]<>=?/\\{}\"\';:+=-|!@#$%^&*";
 
 #include "GRichTextEditPriv.h"
 
@@ -89,7 +89,7 @@ GRichTextEdit::~GRichTextEdit()
 
 bool GRichTextEdit::SetSpellCheck(GSpellCheck *sp)
 {
-	if (d->SpellCheck = sp)
+	if ((d->SpellCheck = sp))
 		d->SpellCheck->EnumLanguages(AddDispatch());
 	return d->SpellCheck != NULL;
 }
@@ -219,11 +219,11 @@ void GRichTextEdit::OnFontChange()
 {
 }
 
-void GRichTextEdit::PourText(int Start, int Length /* == 0 means it's a delete */)
+void GRichTextEdit::PourText(ssize_t Start, ssize_t Length /* == 0 means it's a delete */)
 {
 }
 
-void GRichTextEdit::PourStyle(int Start, int EditSize)
+void GRichTextEdit::PourStyle(ssize_t Start, ssize_t EditSize)
 {
 }
 
@@ -301,6 +301,16 @@ bool GRichTextEdit::GetVariant(const char *Name, GVariant &Value, char *Array)
 			Value = d->HtmlLinkAsCid;
 			break;
 		}
+		case SpellCheckLanguage:
+		{
+			Value = d->SpellLang.Get();
+			break;
+		}
+		case SpellCheckDictionary:
+		{
+			Value = d->SpellDict.Get();
+			break;
+		}
 		default:
 			return false;
 	}
@@ -316,6 +326,16 @@ bool GRichTextEdit::SetVariant(const char *Name, GVariant &Value, char *Array)
 		case HtmlImagesLinkCid:
 		{
 			d->HtmlLinkAsCid = Value.CastInt32() != 0;
+			break;
+		}
+		case SpellCheckLanguage:
+		{
+			d->SpellLang = Value.Str();
+			break;
+		}
+		case SpellCheckDictionary:
+		{
+			d->SpellDict = Value.Str();
 			break;
 		}
 		default:
@@ -472,7 +492,7 @@ int GRichTextEdit::GetLine()
 	if (!d->Cursor)
 		return -1;
 
-	int Idx = d->Blocks.IndexOf(d->Cursor->Blk);
+	ssize_t Idx = d->Blocks.IndexOf(d->Cursor->Blk);
 	if (Idx < 0)
 	{
 		LgiAssert(0);
@@ -542,7 +562,8 @@ void GRichTextEdit::GetTextExtent(int &x, int &y)
 
 bool GRichTextEdit::GetLineColumnAtIndex(GdcPt2 &Pt, int Index)
 {
-	int Offset = -1, BlockLines = -1;
+	ssize_t Offset = -1;
+	int BlockLines = -1;
 	GRichTextPriv::Block *b = d->GetBlockByIndex(Index, &Offset, NULL, &BlockLines);
 	if (!b)
 		return false;
@@ -557,7 +578,7 @@ bool GRichTextEdit::GetLineColumnAtIndex(GdcPt2 &Pt, int Index)
 	return true;
 }
 
-int GRichTextEdit::GetCursor(bool Cur)
+ssize_t GRichTextEdit::GetCaret(bool Cur)
 {
 	if (!d->Cursor)
 		return -1;
@@ -575,16 +596,17 @@ int GRichTextEdit::GetCursor(bool Cur)
 	return -1;
 }
 
-bool GRichTextEdit::IndexAt(int x, int y, int &Off, int &LineHint)
+bool GRichTextEdit::IndexAt(int x, int y, ssize_t &Off, int &LineHint)
 {
 	GdcPt2 Doc = d->ScreenToDoc(x, y);
 	Off = d->HitTest(Doc.x, Doc.y, LineHint);
 	return Off >= 0;
 }
 
-int GRichTextEdit::IndexAt(int x, int y)
+ssize_t GRichTextEdit::IndexAt(int x, int y)
 {
-	int Idx, Line;
+	ssize_t Idx;
+	int Line;
 	if (!IndexAt(x, y, Idx, Line))
 		return -1;
 	return Idx;
@@ -592,7 +614,7 @@ int GRichTextEdit::IndexAt(int x, int y)
 
 void GRichTextEdit::SetCursor(int i, bool Select, bool ForceFullUpdate)
 {
-	int Offset = -1;
+	ssize_t Offset = -1;
 	GRichTextPriv::Block *Blk = d->GetBlockByIndex(i, &Offset);
 	if (Blk)
 	{
@@ -641,7 +663,7 @@ bool GRichTextEdit::Copy()
 bool GRichTextEdit::Paste()
 {
 	GClipBoard Cb(this);
-	GAutoWString Text(Cb.TextW());
+	GAutoWString Text(NewStrW(Cb.TextW()));
 	GAutoPtr<GSurface> Img;
 	if (!Text)
 		Img.Reset(Cb.Bitmap());
@@ -666,8 +688,8 @@ bool GRichTextEdit::Paste()
 	if (Text)
 	{
 		GAutoPtr<uint32,true> Utf32((uint32*)LgiNewConvertCp("utf-32", Text, LGI_WideCharset));
-		int Len = Strlen(Utf32.Get());
-		if (!d->Cursor->Blk->AddText(Trans, d->Cursor->Offset, Utf32.Get(), Len))
+		ptrdiff_t Len = Strlen(Utf32.Get());
+		if (!d->Cursor->Blk->AddText(Trans, d->Cursor->Offset, Utf32.Get(), (int)Len))
 		{
 			LgiAssert(0);
 			return false;
@@ -679,9 +701,9 @@ bool GRichTextEdit::Paste()
 	else if (Img)
 	{
 		GRichTextPriv::Block *b = d->Cursor->Blk;
-		int BlkIdx = d->Blocks.IndexOf(b);
+		ssize_t BlkIdx = d->Blocks.IndexOf(b);
 		GRichTextPriv::Block *After = NULL;
-		int AddIndex;
+		ssize_t AddIndex;
 		
 		LgiAssert(BlkIdx >= 0);
 
@@ -804,8 +826,8 @@ bool GRichTextEdit::Save(const char *FileName, const char *CharSet)
 	if (!Nm)
 		return false;
 
-	int Len = strlen(Nm);
-	return f.Write(Nm, Len) == Len;
+	size_t Len = strlen(Nm);
+	return f.Write(Nm, (int)Len) == Len;
 }
 
 void GRichTextEdit::UpdateScrollBars(bool Reset)
@@ -828,7 +850,7 @@ bool GRichTextEdit::DoCase(bool Upper)
 	if (Start->Blk == End->Blk)
 	{
 		// In the same block...
-		int Len = End->Offset - Start->Offset;
+		ssize_t Len = End->Offset - Start->Offset;
 		Start->Blk->DoCase(NoTransaction, Start->Offset, Len, Upper);
 	}
 	else
@@ -836,12 +858,12 @@ bool GRichTextEdit::DoCase(bool Upper)
 		// Multi-block delete...
 
 		// 1) Delete all the content to the end of the first block
-		int StartLen = Start->Blk->Length();
+		ssize_t StartLen = Start->Blk->Length();
 		if (Start->Offset < StartLen)
 			Start->Blk->DoCase(NoTransaction, Start->Offset, StartLen - Start->Offset, Upper);
 
 		// 2) Delete any blocks between 'Start' and 'End'
-		int i = d->Blocks.IndexOf(Start->Blk);
+		ssize_t i = d->Blocks.IndexOf(Start->Blk);
 		if (i >= 0)
 		{
 			for (++i; d->Blocks[i] != End->Blk && i < (int)d->Blocks.Length(); )
@@ -924,7 +946,7 @@ bool GRichTextEdit::OnFind(GFindReplaceCommon *Params)
 	}
 	
 	GAutoPtr<uint32,true> w((uint32*)LgiNewConvertCp("utf-32", Params->Find, "utf-8", Params->Find.Length()));
-	int Idx = d->Blocks.IndexOf(d->Cursor->Blk);
+	ssize_t Idx = d->Blocks.IndexOf(d->Cursor->Blk);
 	if (Idx < 0)
 	{
 		LgiAssert(0);
@@ -933,13 +955,13 @@ bool GRichTextEdit::OnFind(GFindReplaceCommon *Params)
 
 	for (unsigned n = 0; n < d->Blocks.Length(); n++)
 	{
-		int i = Idx + n;
+		ssize_t i = Idx + n;
 		GRichTextPriv::Block *b = d->Blocks[i % d->Blocks.Length()];
-		int At = n ? 0 : d->Cursor->Offset;
-		int Result = b->FindAt(At, w, Params);
+		ssize_t At = n ? 0 : d->Cursor->Offset;
+		ssize_t Result = b->FindAt(At, w, Params);
 		if (Result >= At)
 		{
-			int Len = Strlen(w.Get());
+			ptrdiff_t Len = Strlen(w.Get());
 			AutoCursor Sel(new BlkCursor(b, Result, -1));
 			d->SetCursor(Sel, false);
 
@@ -963,9 +985,10 @@ bool GRichTextEdit::OnReplace(GFindReplaceCommon *Params)
 }
 
 //////////////////////////////////////////////////////////////////////////////////
-void GRichTextEdit::SelectWord(int From)
+void GRichTextEdit::SelectWord(size_t From)
 {
-	int Start, End, BlockIdx;
+	int BlockIdx;
+	ssize_t Start, End;
 	GRichTextPriv::Block *b = d->GetBlockByIndex(From, &Start, &BlockIdx);
 	if (!b)
 		return;
@@ -1067,10 +1090,10 @@ int GRichTextEdit::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 					if (AddIndex < 0)
 					{
 						int LineHint = -1;
-						int Idx = d->HitTest(TestPt.x, TestPt.y, LineHint);
+						ssize_t Idx = d->HitTest(TestPt.x, TestPt.y, LineHint);
 						if (Idx >= 0)
 						{
-							int BlkOffset;
+							ssize_t BlkOffset;
 							int BlkIdx;
 							GRichTextPriv::Block *b = d->GetBlockByIndex(Idx, &BlkOffset, &BlkIdx);
 							if (b)
@@ -1102,11 +1125,6 @@ int GRichTextEdit::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 							}
 						}
 					}
-
-					if (AddIndex >= 0)
-					{
-						int asd=0;
-					}
 				}
 			}
 
@@ -1129,7 +1147,7 @@ void GRichTextEdit::OnCreate()
 	DropTarget(true);
 
 	if (Focus())
-		SetPulse(1500);
+		SetPulse(RTE_PULSE_RATE);
 }
 
 void GRichTextEdit::OnEscape(GKey &K)
@@ -1150,10 +1168,10 @@ bool GRichTextEdit::OnMouseWheel(double l)
 void GRichTextEdit::OnFocus(bool f)
 {
 	Invalidate();
-	SetPulse(f ? 500 : -1);
+	SetPulse(f ? RTE_PULSE_RATE : -1);
 }
 
-int GRichTextEdit::HitTest(int x, int y)
+ssize_t GRichTextEdit::HitTest(int x, int y)
 {
 	int Line = -1;
 	return d->HitTest(x, y, Line);
@@ -1184,14 +1202,12 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 	GRichTextPriv::Block *Over = NULL;
 	GRect &Content = d->Areas[ContentArea];
 	GdcPt2 Doc = d->ScreenToDoc(m.x, m.y);
-	int BlockIndex = -1;
-	int Offset = -1;
+	// int BlockIndex = -1;
+	ssize_t Offset = -1;
 	if (Content.Overlap(m.x, m.y))
 	{
 		int LineHint;
-		int Idx = d->HitTest(Doc.x, Doc.y, LineHint);
-		if (Idx >= 0)
-			Over = d->GetBlockByIndex(Idx, &Offset, &BlockIndex);
+		Offset = d->HitTest(Doc.x, Doc.y, LineHint, &Over);
 	}
 	if (Over)
 		Over->DoContext(RClick, Doc, Offset, true);
@@ -1332,7 +1348,7 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 void GRichTextEdit::OnMouseClick(GMouse &m)
 {
 	bool Processed = false;
-
+	RectType Clicked = 	d->PosToButton(m);
 	if (m.Down())
 	{
 		Focus(true);
@@ -1349,15 +1365,19 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 			if (d->Areas[ToolsArea].Overlap(m.x, m.y) ||
 				d->Areas[CapabilityArea].Overlap(m.x, m.y))
 			{
-				for (unsigned i=CapabilityBtn; i<MaxArea; i++)
+				if (Clicked != MaxArea)
 				{
-					if (d->Areas[i].Valid() &&
-						d->Areas[i].Overlap(m.x, m.y))
+					if (d->BtnState[Clicked].IsPress)
 					{
-						Processed |= d->ClickBtn(m, (RectType)i);
+						d->BtnState[d->ClickedBtn = Clicked].Pressed = true;
+						Invalidate(d->Areas + Clicked);
+						Capture(true);
+					}
+					else
+					{
+						Processed |= d->ClickBtn(m, Clicked);
 					}
 				}
-				return;
 			}
 			else
 			{
@@ -1365,15 +1385,28 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 
 				AutoCursor c(new BlkCursor(NULL, 0, 0));
 				GdcPt2 Doc = d->ScreenToDoc(m.x, m.y);
-				int Idx = -1;
+				ssize_t Idx = -1;
 				if (d->CursorFromPos(Doc.x, Doc.y, &c, &Idx))
 				{
+					d->ClickedBtn = ContentArea;
 					d->SetCursor(c, m.Shift());
 					if (d->WordSelectMode)
 						SelectWord(Idx);
 				}
 			}
 		}
+	}
+	else if (IsCapturing())
+	{
+		if (d->ClickedBtn != MaxArea)
+		{
+			d->BtnState[d->ClickedBtn].Pressed = false;
+			Invalidate(d->Areas + d->ClickedBtn);
+			Processed |= d->ClickBtn(m, Clicked);
+		}
+
+		Capture(false);
+		d->ClickedBtn = MaxArea;
 	}
 
 	if (!Processed)
@@ -1395,47 +1428,66 @@ int GRichTextEdit::OnHitTest(int x, int y)
 
 void GRichTextEdit::OnMouseMove(GMouse &m)
 {
+	GRichTextEdit::RectType OverBtn = d->PosToButton(m);
+	if (d->OverBtn != OverBtn)
+	{
+		if (d->OverBtn < MaxArea)
+		{
+			d->BtnState[d->OverBtn].MouseOver = false;
+			Invalidate(&d->Areas[d->OverBtn]);
+		}
+		d->OverBtn = OverBtn;
+		if (d->OverBtn < MaxArea)
+		{
+			d->BtnState[d->OverBtn].MouseOver = true;
+			Invalidate(&d->Areas[d->OverBtn]);
+		}
+	}
+	
 	if (IsCapturing())
 	{
-		AutoCursor c;
-		GdcPt2 Doc = d->ScreenToDoc(m.x, m.y);
-		int Idx = -1;
-		if (d->CursorFromPos(Doc.x, Doc.y, &c, &Idx) && c)
+		if (d->ClickedBtn == ContentArea)
 		{
-			if (d->WordSelectMode && d->Selection)
+			AutoCursor c;
+			GdcPt2 Doc = d->ScreenToDoc(m.x, m.y);
+			ssize_t Idx = -1;
+			if (d->CursorFromPos(Doc.x, Doc.y, &c, &Idx) && c)
 			{
-				// Extend the selection to include the whole word
-				if (!d->CursorFirst())
+				if (d->WordSelectMode && d->Selection)
 				{
-					// Extend towards the end of the doc...
-					GArray<uint32> Txt;
-					if (c->Blk->CopyAt(0, c->Blk->Length(), &Txt))
+					// Extend the selection to include the whole word
+					if (!d->CursorFirst())
 					{
-						while
-						(
-							c->Offset < (int)Txt.Length() &&
-							!IsWordBreakChar(Txt[c->Offset])
-						)
-							c->Offset++;
+						// Extend towards the end of the doc...
+						GArray<uint32> Txt;
+						if (c->Blk->CopyAt(0, c->Blk->Length(), &Txt))
+						{
+							while
+							(
+								c->Offset < (int)Txt.Length() &&
+								!IsWordBreakChar(Txt[c->Offset])
+							)
+								c->Offset++;
+						}
+					}
+					else
+					{
+						// Extend towards the start of the doc...
+						GArray<uint32> Txt;
+						if (c->Blk->CopyAt(0, c->Blk->Length(), &Txt))
+						{
+							while
+							(
+								c->Offset > 0 &&
+								!IsWordBreakChar(Txt[c->Offset-1])
+							)
+								c->Offset--;
+						}
 					}
 				}
-				else
-				{
-					// Extend towards the start of the doc...
-					GArray<uint32> Txt;
-					if (c->Blk->CopyAt(0, c->Blk->Length(), &Txt))
-					{
-						while
-						(
-							c->Offset > 0 &&
-							!IsWordBreakChar(Txt[c->Offset-1])
-						)
-							c->Offset--;
-					}
-				}
-			}
 
-			d->SetCursor(c, m.Left());
+				d->SetCursor(c, m.Left());
+			}
 		}
 	}
 
@@ -1585,7 +1637,7 @@ bool GRichTextEdit::OnKey(GKey &k)
 							if (Prev)
 							{
 								// Try and merge the two blocks...
-								int Len = Prev->Length();
+								ssize_t Len = Prev->Length();
 								d->Merge(Trans, Prev, d->Cursor->Blk);
 								
 								AutoCursor c(new BlkCursor(Prev, Len, -1));
@@ -2194,7 +2246,7 @@ void GRichTextEdit::OnPaint(GSurface *pDC)
 	if (d->NeedsCap.Length() > 0 && HasSpace)
 	{
 		d->Areas[CapabilityArea] = r;
-		d->Areas[CapabilityArea].y2 = d->Areas[CapabilityArea].y1 + 4 + ((FontY + 4) * d->NeedsCap.Length());
+		d->Areas[CapabilityArea].y2 = d->Areas[CapabilityArea].y1 + 4 + ((FontY + 4) * (int)d->NeedsCap.Length());
 		r.y1 = d->Areas[CapabilityArea].y2 + 1;
 
 		d->Areas[CapabilityBtn] = d->Areas[CapabilityArea];
@@ -2276,7 +2328,7 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 			for (unsigned i=0; i<Languages->Length(); i++)
 			{
 				GSpellCheck::LanguageId &s = (*Languages)[i];
-				if (s.LangCode.Equals("en"))
+				if (s.EnglishName.Equals(d->SpellLang))
 				{
 					d->SpellCheck->EnumDictionaries(AddDispatch(), s.LangCode);
 					break;
@@ -2293,7 +2345,8 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 			for (unsigned i=0; i<Dictionaries->Length(); i++)
 			{
 				GSpellCheck::DictionaryId &s = (*Dictionaries)[i];
-				if (s.Dict.Equals("AU"))
+				// printf("%s:%i - M_ENUMERATE_DICTIONARIES: %s, %s\n", _FL, s.Dict.Get(), d->SpellDict.Get());
+				if (s.Dict.Equals(d->SpellDict))
 				{
 					d->SpellCheck->SetDictionary(AddDispatch(), s.Lang, s.Dict);
 					break;
@@ -2304,6 +2357,9 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 		case M_SET_DICTIONARY:
 		{
 			d->SpellDictionaryLoaded = Msg->A() != 0;
+			#if _DEBUG
+			LgiTrace("%s:%i - M_SET_DICTIONARY=%i\n", _FL, d->SpellDictionaryLoaded);
+			#endif
 			break;
 		}
 		case M_CHECK_TEXT:
@@ -2394,8 +2450,38 @@ void GRichTextEdit::OnPulse()
 {
 	if (!ReadOnly && d->Cursor)
 	{
-		d->Cursor->Blink = !d->Cursor->Blink;
-		d->InvalidateDoc(&d->Cursor->Pos);
+		uint64 n = LgiCurrentTime();
+		if (d->BlinkTs - n >= RTE_CURSOR_BLINK_RATE)
+		{
+			d->BlinkTs = n;
+			d->Cursor->Blink = !d->Cursor->Blink;
+			d->InvalidateDoc(&d->Cursor->Pos);
+		}
+		
+		// Do autoscroll while the user has clicked and dragged off the control:
+		if (VScroll && IsCapturing())
+		{
+			GMouse m;
+			GetMouse(m);
+			
+			// Is the mouse outside the content window
+			GRect &r = d->Areas[ContentArea];
+			if (!r.Overlap(m.x, m.y))
+			{
+				AutoCursor c(new BlkCursor(NULL, 0, 0));
+				GdcPt2 Doc = d->ScreenToDoc(m.x, m.y);
+				ssize_t Idx = -1;
+				if (d->CursorFromPos(Doc.x, Doc.y, &c, &Idx))
+				{
+					d->SetCursor(c, true);
+					if (d->WordSelectMode)
+						SelectWord(Idx);
+				}
+				
+				// Update the screen.
+				d->InvalidateDoc(NULL);
+			}
+		}
 	}
 }
 
@@ -2529,14 +2615,14 @@ EmojiMenu::EmojiMenu(GRichTextPriv *priv, GdcPt2 p) : GPopup(priv->View)
 	d->GetEmojiImage();
 
 	int MaxIdx = 0;
-	Range EmojiBlocks[2] = { Range(0x203c, 0x3299 - 0x203c + 1), Range(0x1f004, 0x1f6c5 - 0x1f004 + 1) };
+	GRange EmojiBlocks[2] = { GRange(0x203c, 0x3299 - 0x203c + 1), GRange(0x1f004, 0x1f6c5 - 0x1f004 + 1) };
 	GHashTbl<int, int> Map;
 	for (int b=0; b<CountOf(EmojiBlocks); b++)
 	{
-		Range &r = EmojiBlocks[b];
+		GRange &r = EmojiBlocks[b];
 		for (int i=0; i<r.Len; i++)
 		{
-			uint32 u = r.Start + i;
+			uint32 u = (int)r.Start + i;
 			int Idx = EmojiToIconIndex(&u, 1);
 			if (Idx >= 0)
 			{

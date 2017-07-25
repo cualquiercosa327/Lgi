@@ -28,6 +28,7 @@ extern int XmlSort(GXmlTag *a, GXmlTag *b, NativeInt d);
 class ProjectNode : public IdeCommon, public GDragDropSource, public FtpCallback, public NodeSource
 {
 	NodeType Type;
+	int NodeId;
 	int Platforms;
 	char *File;
 	char *LocalCache;
@@ -56,7 +57,8 @@ public:
 	void AddNodes(GArray<ProjectNode*> &Nodes);
 	
 	// Props
-	bool IsWeb();
+	int GetId();
+	bool IsWeb() override;
 	IdeProject *GetDep();
 	IdeProject *GetProject();
 	char *GetFileName();
@@ -70,12 +72,12 @@ public:
 	GString GetFullPath();
 	ProjectNode *FindFile(const char *In, char **Full);
 	/// \sa Some combination of PLATFORM_WIN32, PLATFORM_LINUX, PLATFORM_MAC, PLATFORM_HAIKU or PLATFORM_ALL
-	int GetPlatforms();
+	int GetPlatforms() override;
 	char *GetLocalCache();
 	
 	// Dnd
-	bool GetFormats(List<char> &Formats);
-	bool GetData(GVariant *Data, char *Format);
+	bool GetFormats(List<char> &Formats) override;
+	bool GetData(GVariant *Data, char *Format) override;
 	
 	// Ui events
 	bool OnBeginDrag(GMouse &m);
@@ -87,7 +89,7 @@ public:
 	// Serialization
 	bool Load(GDocView *Edit, NodeView *Callback);
 	bool Save(GDocView *Edit, NodeView *Callback);
-	bool Serialize();
+	bool Serialize(bool Write);
 };
 
 #endif

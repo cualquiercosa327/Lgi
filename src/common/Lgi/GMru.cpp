@@ -9,13 +9,13 @@
 
 struct GMruEntry
 {
-	GAutoString Display;
-	GAutoString Raw;
+	GString Display;
+	GString Raw;
 	
 	GMruEntry &operator =(const GMruEntry &e)
 	{
-		Display.Reset(NewStr(e.Display));
-		Raw.Reset(NewStr(e.Raw));
+		Display = e.Display;
+		Raw = e.Raw;
 		return *this;
 	}
 };
@@ -55,26 +55,26 @@ GMru::~GMru()
 bool GMru::SerializeEntry
 (
 	/// The displayable version of the reference (this should have any passwords blanked out)
-	GAutoString *Display,
+	GString *Display,
 	/// The form passed to the client software to open/save. (passwords NOT blanked)
-	GAutoString *Raw,
+	GString *Raw,
 	/// The form safe to write to disk, if a password is present it must be encrypted.
-	GAutoString *Stored
+	GString *Stored
 )
 {
 	if (Raw && Raw->Get())
 	{
 		if (Stored)
-			Stored->Reset(NewStr(*Raw));
+			*Stored = *Raw;
 		if (Display)
-			Display->Reset(NewStr(*Raw));
+			*Display = *Raw;
 	}
 	else if (Stored && Stored->Get())
 	{
 		if (Display)
-			Display->Reset(NewStr(*Stored));
+			*Display = *Stored;
 		if (Raw)
-			Raw->Reset(NewStr(*Stored));
+			*Raw = *Stored;
 	}
 	
 	return true;
@@ -216,9 +216,9 @@ char *GMru::AddFile(char *FileName, bool Update)
 			// no need to reallocate
 			
 			if (strcmp(e->Raw, FileName) &&
-				strlen(e->Raw) == strlen(FileName))
+				e->Raw.Length() == strlen(FileName))
 			{
-				strcpy(e->Raw, FileName); // This fixes any changes in case...
+				e->Raw = FileName; // This fixes any changes in case...
 			}
 			
 			d->Items.DeleteAt(i, true);
@@ -231,7 +231,7 @@ char *GMru::AddFile(char *FileName, bool Update)
 	if (!c)
 	{
 		c = new GMruEntry;
-		c->Raw.Reset(NewStr(FileName));
+		c->Raw = FileName;
 		if (SerializeEntry(&c->Display, &c->Raw, NULL))
 		{
 			d->Items.AddAt(0, c);
@@ -365,12 +365,12 @@ bool GMru::Serialize(GDom *Store, const char *Prefix, bool Write)
 			for (int i=0; i<d->Items.Length(); i++)
 			{
 				GMruEntry *e = d->Items[i];
-				LgiAssert(e->Raw.Get());
+				LgiAssert(e->Raw.Get() != NULL);
 				if (!Saved.Find(e->Raw))
 				{
 					Saved.Add(e->Raw, true);
 					
-					GAutoString Stored;
+					GString Stored;
 					if (SerializeEntry(NULL, &e->Raw, &Stored)) // Convert Raw -> Stored
 					{
 						sprintf_s(Key, sizeof(Key), "%s.Item%i", Prefix, Idx++);
@@ -401,9 +401,9 @@ bool GMru::Serialize(GDom *Store, const char *Prefix, bool Write)
 					GVariant File;
 					if (Store->GetValue(Key, File))
 					{
-						GAutoString Stored;
-						Stored.Reset(File.ReleaseStr());
-						LgiAssert(Stored);
+						GString Stored = File.Str();
+						LgiAssert(Stored.Get() != NULL);
+						
 						GAutoPtr<GMruEntry> e(new GMruEntry);
 						if (SerializeEntry(&e->Display, &e->Raw, &Stored)) // Convert Stored -> Raw
 						{

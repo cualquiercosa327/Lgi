@@ -84,8 +84,8 @@ public:
 	void CollectAllSubProjects(List<IdeProject> &c);
 	void CollectAllSource(GArray<GString> &c, IdePlatform Platform);
 	void SortChildren();
-	void InsertTag(GXmlTag *t);
-	void RemoveTag();
+	void InsertTag(GXmlTag *t) override;
+	void RemoveTag() override;
 	virtual bool IsWeb() = 0;	
 	virtual int GetPlatforms() = 0;
 	bool AddFiles(AddFilesProgress *Prog, const char *Path);
@@ -156,8 +156,8 @@ public:
 	WatchItem(IdeOutput *out, const char *Init = NULL);
 	~WatchItem();
 	
-	bool SetText(const char *s, int i = 0);
-	void OnExpand(bool b);
+	bool SetText(const char *s, int i = 0) override;
+	void OnExpand(bool b) override;
 	bool SetValue(GVariant &v);
 };
 
@@ -199,7 +199,7 @@ public:
 	void FormatMemoryDump(int WordSize, int Width, bool InHex);
 	
 	// Debugger events...
-	int Write(const void *Ptr, int Size, int Flags = 0);
+	ssize_t Write(const void *Ptr, ssize_t Size, int Flags = 0);
 	void OnState(bool Debugging, bool Running);
 	void OnFileLine(const char *File, int Line, bool CurrentIp);
 	void OnError(int Code, const char *Str);
@@ -247,6 +247,9 @@ public:
 	bool GetTargetFile(char *Buf, int BufSize);
 	bool BuildIncludePaths(GArray<GString> &Paths, bool Recurse, IdePlatform Platform);
 	void ShowFileProperties(const char *File);
+	bool GetExpanded(int Id);
+	void SetExpanded(int Id, bool Exp);
+	int AllocateId();
 	
 	// Nodes
 	char *FindFullPath(const char *File, class ProjectNode **Node = NULL);
@@ -260,10 +263,11 @@ public:
 	// File
 	void CreateProject();
 	ProjectStatus OpenFile(char *FileName);
-	bool SaveFile(char *FileName = 0);
+	bool SaveFile();
 	bool SetClean();
 	void SetDirty();
-	bool Serialize();
+	void SetUserFileDirty();
+	bool Serialize(bool Write);
 	void ImportDsp(char *File);
 
 	// Dependency calculation

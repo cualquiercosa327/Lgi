@@ -89,6 +89,20 @@ GVariant::GVariant(GVariant const &v)
 	*this = v;
 }
 
+#ifndef _MSC_VER
+GVariant::GVariant(size_t i)
+{
+	Type = GV_NULL;
+	*this = i;
+}
+
+GVariant::GVariant(ssize_t i)
+{
+	Type = GV_NULL;
+	*this = i;
+}
+#endif
+
 GVariant::GVariant(int64 i)
 {
 	Type = GV_INT64;
@@ -295,6 +309,40 @@ GVariant &GVariant::operator =(int i)
 
 	return *this;
 }
+
+#ifndef _MSC_VER
+GVariant &GVariant::operator =(size_t i)
+{
+	Empty();
+	if (sizeof(i) > 4)
+	{
+		Type = GV_INT64;
+		Value.Int64 = i;
+	}
+	else
+	{
+		Type = GV_INT32;
+		Value.Int = (int)i;
+	}
+	return *this;
+}
+
+GVariant &GVariant::operator =(ssize_t i)
+{
+	Empty();
+	if (sizeof(i) > 4)
+	{
+		Type = GV_INT64;
+		Value.Int64 = i;
+	}
+	else
+	{
+		Type = GV_INT32;
+		Value.Int = (int)i;
+	}
+	return *this;
+}
+#endif
 
 #ifdef BEOS
 GVariant &GVariant::operator =(int32 i)
@@ -575,7 +623,7 @@ bool GVariant::SetDomRef(GDom *obj, char *name)
 	return Value.DomRef.Name != 0;
 }
 
-bool GVariant::SetBinary(int Len, void *Data, bool Own)
+bool GVariant::SetBinary(ssize_t Len, void *Data, bool Own)
 {
 	bool Status = false;
 
@@ -1634,6 +1682,8 @@ struct GDomPropMap
 		Define("Writable", StreamWritable);
 		
 		Define("HtmlImagesLinkCid", HtmlImagesLinkCid);
+		Define("SpellCheckLanguage", SpellCheckLanguage);
+		Define("SpellCheckDictionary", SpellCheckDictionary);
 	}
 	
 	void Define(const char *s, GDomProperty p)
@@ -1853,7 +1903,7 @@ size_t GCustomType::Sizeof()
 	return (size_t)PadSize();
 }
 
-int GCustomType::PadSize()
+ssize_t GCustomType::PadSize()
 {
 	if (Pack > 1)
 	{
@@ -1901,7 +1951,7 @@ bool GCustomType::DefineField(const char *Name, GCustomType *Type, int ArrayLen)
 		LgiAssert(!"Field already exists.");
 		return false;
 	}
-	FldMap.Add(Name, Flds.Length());
+	FldMap.Add(Name, (int)Flds.Length());
 
 	CustomField *Def;
 	Flds.Add(Def = new CustomField);
@@ -1937,7 +1987,7 @@ bool GCustomType::DefineField(const char *Name, GVariantType Type, int Bytes, in
 		LgiAssert(!"Field already exists.");
 		return false;
 	}
-	FldMap.Add(Name, Flds.Length());
+	FldMap.Add(Name, (int)Flds.Length());
 
 	CustomField *Def;
 	Flds.Add(Def = new CustomField);
@@ -1996,7 +2046,7 @@ bool GCustomType::CustomField::GetVariant(const char *Field, GVariant &Value, ch
 	return true;
 }
 
-int GCustomType::CustomField::Sizeof()
+ssize_t GCustomType::CustomField::Sizeof()
 {
 	switch (Type)
 	{
@@ -2162,8 +2212,8 @@ bool GCustomType::Set(int Index, GVariant &In, uint8 *This, int ArrayIndex)
 			{
 				// utf8 -> wide conversion...
 				const void *In = Ptr;
-				ptrdiff_t Len = strlen(s);
-				int Ch = LgiBufConvertCp(Ptr, LGI_WideCharset, Def->ArrayLen-1, In, "utf-8", Len);
+				ssize_t Len = strlen(s);
+				ssize_t Ch = LgiBufConvertCp(Ptr, LGI_WideCharset, Def->ArrayLen-1, In, "utf-8", Len);
 				if (Ch >= 0)
 				{
 					// Null terminate
@@ -2195,8 +2245,8 @@ bool GCustomType::Set(int Index, GVariant &In, uint8 *This, int ArrayIndex)
 			{
 				// Conversion to utf-8
 				const void *In = Ptr;
-				ptrdiff_t Len = StrlenW(w) * sizeof(char16);
-				int Ch = LgiBufConvertCp(Ptr, "utf-8", Def->ArrayLen-sizeof(char16),
+				ssize_t Len = StrlenW(w) * sizeof(char16);
+				ssize_t Ch = LgiBufConvertCp(Ptr, "utf-8", Def->ArrayLen-sizeof(char16),
 										In, LGI_WideCharset, Len);
 				if (Ch >= 0)
 				{

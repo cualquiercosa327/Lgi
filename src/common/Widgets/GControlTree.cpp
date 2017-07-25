@@ -40,6 +40,12 @@ GControlTree::Item::~Item()
 {
 }
 
+void GControlTree::Item::SetEnum(GAutoPtr<EnumArr> e)
+{
+	Enum = e;
+	Type = GV_INT32;
+}
+
 void GControlTree::Item::OnVisible(bool v)
 {
 	if (Ctrl)

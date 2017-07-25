@@ -108,17 +108,17 @@ public:
 	/// \returns the first object (NOT thread-safe)
 	virtual T Next() = 0;
 	/// \returns the number of items in the collection
-	virtual uint32 Length() = 0;
+	virtual size_t Length() = 0;
 	/// \returns the 'nth' item in the collection
-	virtual T operator [](int idx) = 0;
+	virtual T operator [](size_t idx) = 0;
 	/// \returns the index of the given item in the collection
-	virtual int IndexOf(T n, bool NoAssert = false) = 0;
+	virtual ssize_t IndexOf(T n, bool NoAssert = false) = 0;
 	/// Deletes an item
 	/// \returns true on success
 	virtual bool Delete(T ptr) = 0;
 	/// Inserts an item at 'idx' or the end if not supplied.
 	/// \returns true on success
-	virtual bool Insert(T ptr, int idx = -1, bool NoAssert = false) = 0;
+	virtual bool Insert(T ptr, ssize_t idx = -1, bool NoAssert = false) = 0;
 	/// Clears list, but doesn't delete objects.
 	/// \returns true on success
 	virtual bool Empty() = 0;
@@ -132,16 +132,20 @@ public:
 
 typedef GDataIterator<GDataPropI*> *GDataIt;
 
-#define EmptyVirtual LgiAssert(0); return 0
+#define EmptyVirtual		LgiAssert(0); return 0
+#define Store3CopyDecl		bool CopyProps(GDataPropI &p)
+#define Store3CopyImpl(Cls)	bool Cls::CopyProps(GDataPropI &p)
 
 /// A generic interface for getting / setting properties.
 class GDataPropI : virtual public GDom
 {
+	virtual GDataPropI &operator =(GDataPropI &p) { return *this; }
+
 public:
 	virtual ~GDataPropI() {}
 
 	/// Copy all the values from 'p' over to this object
-	virtual GDataPropI &operator =(GDataPropI &p) { LgiAssert(0); return *this; }
+	virtual bool CopyProps(GDataPropI &p) { return false; }
 
 	/// Gets a string property
 	virtual char *GetStr(int id) { EmptyVirtual; }
@@ -160,9 +164,9 @@ public:
 	virtual bool SetDate(int id, GDateTime *i) { EmptyVirtual; }
 
 	/// Gets a variant
-	virtual GVariant *GetVariant(int id) { EmptyVirtual; }
+	virtual GVariant *GetVar(int id) { EmptyVirtual; }
 	/// Sets a variant property
-	virtual bool SetVariant(int id, GVariant *i) { EmptyVirtual; }
+	virtual bool SetVar(int id, GVariant *i) { EmptyVirtual; }
 
 	/// Gets a sub object pointer
 	virtual GDataPropI *GetObj(int id) { EmptyVirtual; }
@@ -175,18 +179,19 @@ public:
 	virtual bool SetRfc822(GStreamI *Rfc822Msg) { LgiAssert(!"Pretty sure you should be implementing this"); return false; }
 };
 
+#pragma warning(default:4263)
+
 /// This class is an interface between the UI and the backend for things
 /// like email, contacts, calendar events, groups and filters
 class GDataI : virtual public GDataPropI
 {
+	virtual GDataI &operator =(GDataI &p) { return *this; }
+
 public:
 	void *UserData;
 
 	GDataI() { UserData = 0; }
 	virtual ~GDataI() { }
-
-	/// Copy all the values from 'p' over to this object
-	virtual GDataI &operator =(GDataI &p) = 0;
 
 	/// Returns the type of object
 	/// \sa MAGIC_MAIL and it's like
@@ -226,6 +231,8 @@ public:
 /// An interface to a folder structure
 class GDataFolderI : virtual public GDataI
 {
+	virtual GDataFolderI &operator =(GDataFolderI &p) { return *this; }
+
 public:
 	virtual ~GDataFolderI() {}
 
@@ -245,6 +252,8 @@ public:
 	/// Called when the user selects a relevant context menu command
 	virtual void OnCommand(const char *Name) {}
 };
+
+#pragma warning(error:4263)
 
 /// Event callback interface. Calls to these methods may be in a worker
 /// thread, so make appropriate locking or pass the event off to the GUI
@@ -562,12 +571,12 @@ public:
 		return (int)a.Length() > Cur ? a[Cur] : 0;
 	}
 	
-	uint32 Length()
+	size_t Length()
 	{
 		return a.Length();
 	}
 	
-	TPub *operator [](int idx)
+	TPub *operator [](size_t idx)
 	{
 		LgiAssert(State == Store3Loaded);
 		return a[idx];
@@ -583,7 +592,7 @@ public:
 			return false;
 		}
 
-		int i = a.IndexOf(priv_ptr);
+		ssize_t i = a.IndexOf(priv_ptr);
 		if (i < 0)
 			return false;
 
@@ -591,7 +600,7 @@ public:
 		return true;
 	}
 	
-	bool Insert(TPub *pub_ptr, int idx = -1, bool NoAssert = false)
+	bool Insert(TPub *pub_ptr, ssize_t idx = -1, bool NoAssert = false)
 	{
 		if (!NoAssert)
 			LgiAssert(State == Store3Loaded);
@@ -618,7 +627,7 @@ public:
 		return true;
 	}
 	
-	int IndexOf(TPub *pub_ptr, bool NoAssert = false)
+	ssize_t IndexOf(TPub *pub_ptr, bool NoAssert = false)
 	{
 		if (!NoAssert)
 			LgiAssert(State == Store3Loaded);

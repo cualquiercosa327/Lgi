@@ -44,7 +44,7 @@ public:
 		friend class GUrl;
 
 	protected:
-		void RefreshLayout(int Start, int Len);
+		void RefreshLayout(size_t Start, ssize_t Len);
 
 	public:
 		enum StyleDecor
@@ -61,9 +61,9 @@ public:
 		/// will leave alone.
 		int Owner;
 		/// The start index into the text buffer of the region to style.
-		int Start;
+		ssize_t Start;
 		/// The length of the styled region
-		int Len;
+		ssize_t Len;
 		/// The font to draw the styled text in
 		GFont *Font;
 		/// The colour to draw with. If transparent, then the default 
@@ -102,7 +102,7 @@ public:
 		#endif
 		virtual CURSOR_CHAR GetCursor()  { return 0; }
 
-		int End() const { return Start + Len; }
+		size_t End() const { return Start + Len; }
 
 		/// \returns true if style is the same
 		bool operator ==(const GStyle &s)
@@ -121,7 +121,7 @@ public:
 		}
 
 		/// Returns true if this style overlaps the position of 's'
-		bool Overlap(int sStart, int sLen)
+		bool Overlap(ssize_t sStart, ssize_t sLen)
 		{
 			if (sStart + sLen - 1 < Start ||
 				sStart >= Start + Len)
@@ -160,8 +160,8 @@ protected:
 	class GTextLine
 	{
 	public:
-		int Start;		// Start offset
-		int Len;		// length of text
+		ssize_t Start;	// Start offset
+		ssize_t Len;		// length of text
 		GRect r;		// Screen location
 		GColour c;		// Colour of line... transparent = default colour
 		GColour Back;	// Background colour or transparent
@@ -173,7 +173,7 @@ protected:
 			r.ZOff(-1, -1);
 		}
 		virtual ~GTextLine() {}
-		bool Overlap(int i)
+		bool Overlap(ssize_t i)
 		{
 			return i>=Start && i<=Start+Len;
 		}
@@ -185,6 +185,7 @@ protected:
 	// Options
 	bool Dirty;
 	bool CanScrollX;
+	bool PourEnabled;
 
 	// Display
 	GFont *Font;
@@ -193,7 +194,7 @@ protected:
 
 	GFont *FixedFont;
 	int LineY;
-	int SelStart, SelEnd;
+	ssize_t SelStart, SelEnd;
 	int DocOffset;
 	int MaxX;
 	bool Blink;
@@ -208,36 +209,36 @@ protected:
 
 	// Data
 	char16 *Text;
-	int Cursor;
-	int Size;
-	int Alloc;
+	ssize_t Cursor;
+	ssize_t Size;
+	ssize_t Alloc;
 
 	// Undo stuff
 	bool UndoOn;
 	GUndo UndoQue;
 
 	// private methods
-	GTextLine *GetTextLine(int Offset, int *Index = 0);
-	int SeekLine(int Start, GTextViewSeek Where);
+	GTextLine *GetTextLine(ssize_t Offset, int *Index = 0);
+	ssize_t SeekLine(ssize_t Offset, GTextViewSeek Where);
 	int TextWidth(GFont *f, char16 *s, int Len, int x, int Origin);
 	int ScrollYLine();
 	int ScrollYPixel();
 	GRect DocToScreen(GRect r);
-	int MatchText(char16 *Text, bool MatchWord, bool MatchCase, bool SelectionOnly);
+	ptrdiff_t MatchText(char16 *Text, bool MatchWord, bool MatchCase, bool SelectionOnly);
 	
 	// styles
 	bool InsertStyle(GAutoPtr<GStyle> s);
-	GStyle *GetNextStyle(int Where = -1);
-	GStyle *HitStyle(int i);
+	GStyle *GetNextStyle(ssize_t Where = -1);
+	GStyle *HitStyle(ssize_t i);
 	int GetColumn();
 	int SpaceDepth(char16 *Start, char16 *End);
 
 	// Overridables
-	virtual void PourText(int Start, int Length);
-	virtual void PourStyle(int Start, int Length);
+	virtual void PourText(size_t Start, ssize_t Length);
+	virtual void PourStyle(size_t Start, ssize_t Length);
 	virtual void OnFontChange();
 	virtual void OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour);
-	virtual char16 *MapText(char16 *Str, int Len, bool RtlTrailingSpace = false);
+	virtual char16 *MapText(char16 *Str, ssize_t Len, bool RtlTrailingSpace = false);
 
 	#ifdef _DEBUG
 	// debug
@@ -266,9 +267,10 @@ public:
 	int64 Value();
 	void Value(int64 i);
 	const char *GetMimeType() { return "text/plain"; }
-	int GetSize() { return Size; }
+	size_t GetSize() { return Size; }
+	GString operator[](int LineIdx);
 
-	int HitText(int x, int y, bool Nearest);
+	ssize_t HitText(int x, int y, bool Nearest);
 	void DeleteSelection(char16 **Cut = 0);
 
 	// Font
@@ -285,15 +287,15 @@ public:
 	void SetWrapType(uint8 i);
 	
 	// State / Selection
-	void SetCursor(int i, bool Select, bool ForceFullUpdate = false);
-	int IndexAt(int x, int y);
+	ssize_t GetCaret(bool Cursor = true);
+	virtual void SetCaret(size_t i, bool Select, bool ForceFullUpdate = false);
+	ssize_t IndexAt(int x, int y);
 	bool IsDirty() { return Dirty; }
 	void IsDirty(bool d) { Dirty = d; }
 	bool HasSelection();
 	void UnSelectAll();
-	void SelectWord(int From);
+	void SelectWord(size_t From);
 	void SelectAll();
-	int GetCursor(bool Cursor = true);
 	bool GetLineColumnAtIndex(GdcPt2 &Pt, int Index = -1);
 	int GetLines();
 	void GetTextExtent(int &x, int &y);
@@ -355,8 +357,8 @@ public:
 	LgiCursor GetCursor(int x, int y) { return LCUR_Ibeam; }
 
 	// Virtuals
-	virtual bool Insert(int At, char16 *Data, int Len);
-	virtual bool Delete(int At, int Len);
+	virtual bool Insert(size_t At, char16 *Data, ssize_t Len);
+	virtual bool Delete(size_t At, ssize_t Len);
 	virtual void OnEnter(GKey &k);
 	virtual void OnUrl(char *Url);
 	virtual void DoContextMenu(GMouse &m);

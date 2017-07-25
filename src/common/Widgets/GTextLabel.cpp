@@ -230,7 +230,7 @@ GMessage::Result GText::OnEvent(GMessage *Msg)
 
 void GText::OnPaint(GSurface *pDC)
 {
-	bool Status = false;
+	// bool Status = false;
 
 	GColour Fore, Back;
 	Fore.Set(LC_TEXT, 24);
@@ -251,7 +251,7 @@ void GText::OnPaint(GSurface *pDC)
 			Back.Empty();
 	}
 	
-	GFont *f = GetFont();
+	// GFont *f = GetFont();
 	if (d->Lock(_FL))
 	{
 		GRect c = GetClient();

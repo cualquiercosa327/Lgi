@@ -51,6 +51,8 @@
 #  define md5_INCLUDED
 
 #include "LgiInc.h"
+#include "LgiDefs.h"
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -80,7 +82,7 @@ typedef struct md5_state_s {
 LgiFunc void md5_init(md5_state_t *pms);
 
 /* Append a string to the message. */
-LgiFunc void md5_append(md5_state_t *pms, md5_byte_t *data, int nbytes);
+LgiFunc void md5_append(md5_state_t *pms, md5_byte_t *data, ssize_t nbytes);
 
 /* Finish the message and return the digest. */
 LgiFunc void md5_finish(md5_state_t *pms, char digest[16]);

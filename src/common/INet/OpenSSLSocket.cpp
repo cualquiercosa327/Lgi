@@ -646,7 +646,7 @@ bool SslSocket::GetVariant(const char *Name, GVariant &Val, char *Arr)
 	return false;
 }
 
-void SslSocket::Log(const char *Str, int Bytes, SocketMsgType Type)
+void SslSocket::Log(const char *Str, ssize_t Bytes, SocketMsgType Type)
 {
 	if (!ValidStr(Str))
 		return;
@@ -657,7 +657,7 @@ void SslSocket::Log(const char *Str, int Bytes, SocketMsgType Type)
 		LgiTrace("%.*s", Bytes, Str);
 }
 
-void SslSocket::Error(const char *file, int line, const char *Msg)
+void SslSocket::SslError(const char *file, int line, const char *Msg)
 {
 	char *Part = strrchr((char*)file, DIR_CHAR);
 	#ifndef WIN32
@@ -765,7 +765,7 @@ DebugTrace("%s:%i - BIO_get_ssl=%p\n", _FL, Ssl);
 						if (Ssl)
 						{
 							// SNI setup
-							long Result = Library->SSL_set_tlsext_host_name(Ssl, HostAddr);
+							Library->SSL_set_tlsext_host_name(Ssl, HostAddr);
 					
 							// Library->SSL_CTX_set_timeout()
 							Library->BIO_set_conn_hostname(Bio, HostAddr);
@@ -822,16 +822,16 @@ DebugTrace("%s:%i - open loop finished, r=%i, Opening=%i\n", _FL, r, d->Opening)
 							else
 							{
 								GString Err = SslGetErrorAsString(Library).Strip();
-								Error(_FL, Err.Length() > 0 ? Err.Get() : "BIO_do_connect failed.");
+								SslError(_FL, Err.Length() > 0 ? Err.Get() : "BIO_do_connect failed.");
 							}
 						}
-						else Error(_FL, "BIO_get_ssl failed.");
+						else SslError(_FL, "BIO_get_ssl failed.");
 					}
-					else Error(_FL, "BIO_new_ssl_connect failed.");
+					else SslError(_FL, "BIO_new_ssl_connect failed.");
 				}
-				else Error(_FL, "SSL_CTX_load_verify_locations failed.");
+				else SslError(_FL, "SSL_CTX_load_verify_locations failed.");
 			}
-			else Error(_FL, "No Ctx.");
+			else SslError(_FL, "No Ctx.");
 		}
 		else
 		{
@@ -880,9 +880,9 @@ DebugTrace("%s:%i - open loop finished=%i\n", _FL, r);
 					sprintf_s(m, sizeof(m), "Connected to '%s'", h);
 					OnInformation(m);
 				}
-				else Error(_FL, "BIO_do_connect failed");
+				else SslError(_FL, "BIO_do_connect failed");
 			}
-			else Error(_FL, "BIO_new_connect failed");
+			else SslError(_FL, "BIO_new_connect failed");
 		}
 	}
 	
@@ -925,7 +925,7 @@ bool SslSocket::SetVariant(const char *Name, GVariant &Value, char *Arr)
 			{
 				if (!Library->Client)
 				{
-					Error(_FL, "Library->Client is null.");
+					SslError(_FL, "Library->Client is null.");
 				}
 				else
 				{
@@ -933,7 +933,7 @@ bool SslSocket::SetVariant(const char *Name, GVariant &Value, char *Arr)
 DebugTrace("%s:%i - SSL_new=%p\n", _FL, Ssl);
 					if (!Ssl)
 					{
-						Error(_FL, "SSL_new failed.");
+						SslError(_FL, "SSL_new failed.");
 					}
 					else
 					{
@@ -971,7 +971,7 @@ DebugTrace("%s:%i - X509_NAME_oneline=%s\n", _FL, Txt);
 						}
 						else
 						{
-							Error(_FL, "SSL_connect failed.");
+							SslError(_FL, "SSL_connect failed.");
 
 							r = Library->SSL_get_error(Ssl, r);
 							char *Msg = Library->ERR_error_string(r, 0);
@@ -1111,7 +1111,7 @@ bool SslSocket::IsWritable(int TimeoutMs)
 	return false;
 }
 
-void SslSocket::OnWrite(const char *Data, int Len)
+void SslSocket::OnWrite(const char *Data, ssize_t Len)
 {
 	#ifdef _DEBUG
 	if (d->RawLFCheck)
@@ -1129,7 +1129,7 @@ void SslSocket::OnWrite(const char *Data, int Len)
 	// Log(Data, Len, SocketMsgSend);
 }
 
-void SslSocket::OnRead(char *Data, int Len)
+void SslSocket::OnRead(char *Data, ssize_t Len)
 {
 	#ifdef _DEBUG
 	if (d->RawLFCheck)
@@ -1147,7 +1147,7 @@ void SslSocket::OnRead(char *Data, int Len)
 	// Log(Data, Len, SocketMsgReceive);
 }
 
-int SslSocket::Write(const void *Data, int Len, int Flags)
+ssize_t SslSocket::Write(const void *Data, ssize_t Len, int Flags)
 {
 	GMutex::Auto Lck(&Lock, _FL);
 
@@ -1268,7 +1268,7 @@ int SslSocket::Write(const void *Data, int Len, int Flags)
 	return r;
 }
 
-int SslSocket::Read(void *Data, int Len, int Flags)
+ssize_t SslSocket::Read(void *Data, ssize_t Len, int Flags)
 {
 	GMutex::Auto Lck(&Lock, _FL);
 

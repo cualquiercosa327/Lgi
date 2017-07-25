@@ -74,7 +74,7 @@ public:
 	char *Get(GLanguageId Lang = 0);
 	void Set(const char *s, GLanguageId Lang = 0);
 	void UnDuplicate();
-	int Compare(ResString *r, int Column);
+	int Compare(GListItem *To, int Field);
 	void CopyText();
 	void PasteText();
 	char *GetDefine() { return Define; }
@@ -178,7 +178,7 @@ public:
 	~ResStringUi();
 
 	void OnPaint(GSurface *pDC);
-	void Pour();
+	void PourAll();
 	void OnPosChange();
 	void OnCreate();
 	GMessage::Result OnEvent(GMessage *Msg);

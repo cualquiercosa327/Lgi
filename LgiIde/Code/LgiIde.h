@@ -104,6 +104,7 @@ enum IdeControls
 	IDC_FILE_SEARCH,
 	IDC_METHOD_SEARCH,
 	IDC_SYMBOL_SEARCH,
+	IDC_PROJECT_TREE
 };
 
 enum IdeMenuCmds
@@ -256,7 +257,7 @@ public:
 	GStream *GetBuildLog();
 	IdeDoc *FindOpenFile(char *FileName);
 	IdeDoc *GotoReference(const char *File, int Line, bool CurIp, bool WithHistory = true);
-	void FindSymbol(GEventSinkI *Results, const char *Sym);
+	void FindSymbol(int ResultsSinkHnd, const char *Sym);
 	bool GetSystemIncludePaths(GArray<GString> &Paths);
 	bool IsReleaseMode();
 	bool ShowInProject(const char *Fn);
@@ -272,7 +273,7 @@ public:
 	int OnNotify(GViewI *Ctrl, int Flags);
 	GMessage::Result OnEvent(GMessage *m);
 	bool OnNode(const char *Path, class ProjectNode *Node, FindSymbolSystem::SymAction Action);
-	void OnPulse();
+	void OnPulse() override;
 
 	// Debugging support
 	class GDebugContext *GetDebugContext();

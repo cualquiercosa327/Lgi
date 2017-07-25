@@ -49,7 +49,7 @@ bool GClipBoard::Text(char *Str, bool AutoEmpty)
 		Empty();
 	}
 	
-	if (!wTxt.Reset(LgiNewUtf8To16(Str)))
+	if (!wTxt.Reset(Utf8ToWide(Str)))
 		return false;
 
 	return TextW(wTxt);
@@ -58,7 +58,7 @@ bool GClipBoard::Text(char *Str, bool AutoEmpty)
 char *GClipBoard::Text()
 {
 	char16 *w = TextW();
-	Txt.Reset(LgiNewUtf16To8(w));
+	Txt.Reset(WideToUtf8(w));
 	return Txt;
 }
 
@@ -98,7 +98,7 @@ GSurface *GClipBoard::Bitmap()
 	return pDC;
 }
 
-bool GClipBoard::Binary(FormatType Format, uchar *Ptr, int Len, bool AutoEmpty)
+bool GClipBoard::Binary(FormatType Format, uchar *Ptr, ssize_t Len, bool AutoEmpty)
 {
 	bool Status = false;
 
@@ -110,7 +110,7 @@ bool GClipBoard::Binary(FormatType Format, uchar *Ptr, int Len, bool AutoEmpty)
 	return Status;
 }
 
-bool GClipBoard::Binary(FormatType Format, GAutoPtr<uint8> &Ptr, int *Len)
+bool GClipBoard::Binary(FormatType Format, GAutoPtr<uint8> &Ptr, ssize_t *Len)
 {
 	bool Status = false;
 

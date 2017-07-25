@@ -12,13 +12,13 @@ GUtf8Ptr::GUtf8Ptr(void *p)
 GUtf8Ptr::operator int32()
 {
 	uint8 *p = Ptr;
-	ptrdiff_t l = 6;
+	ssize_t l = 6;
 	return LgiUtf8To32(p, l);
 }
 
 void GUtf8Ptr::Add(wchar_t c)
 {
-	int l = 6;
+	ssize_t l = 6;
 	LgiUtf32To8(c, Ptr, l);
 }
 

@@ -140,13 +140,13 @@ public:
 		
 		GAutoString Cmd(p.NewStr());
 		int CmdLen = (int) strlen(Cmd);
-		int w = Sock->Write(Cmd, CmdLen);
+		ssize_t w = Sock->Write(Cmd, CmdLen);
 		if (w == CmdLen)
 		{
 			char In[256];
 			while (Sock->IsOpen())
 			{
-				int r = Sock->Read(In, sizeof(In));
+				ssize_t r = Sock->Read(In, sizeof(In));
 				if (r <= 0)
 					break;
 				p.Write(In, r);

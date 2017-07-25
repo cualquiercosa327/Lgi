@@ -292,7 +292,6 @@ bool TnefReadIndex(GStreamI *Tnef, GArray<TnefFileInfo*> &Index)
 								}
 								default:
 								{
-									int asd=0;
 									break;
 								}
 							}
@@ -346,7 +345,7 @@ bool TnefExtract(GStreamI *Tnef, GStream *Out, TnefFileInfo *File)
 			for (i=0; i<File->Size; )
 			{
 				int Block = min(sizeof(Buf), (int)(File->Size - i));
-				int r = Tnef->Read(Buf, Block);
+				ssize_t r = Tnef->Read(Buf, Block);
 				if (r > 0)
 				{
 					i += r;

@@ -1,7 +1,7 @@
 #include "Lgi.h"
 #include "GThreadEvent.h"
 
-#if USE_SEM
+#if USE_POSIX_SEM
 	#define SEM_NULL -1
 #endif
 #if defined(LINUX) || COCOA
@@ -36,7 +36,16 @@ GThreadEvent::GThreadEvent(const char *name)
 {
 	Name(name);
 
-	#if USE_SEM
+	#if USE_MACH_SEM
+
+		Task = mach_task_self();
+		Sem = 0;
+		kern_return_t r = semaphore_create(Task, &Sem, SYNC_POLICY_FIFO, 0);
+		#if DEBUG_THREADING
+		printf("%s:%i - semaphore_create(%x)=%i\n", _FL, (int)Sem, r);
+		#endif
+
+	#elif USE_POSIX_SEM
 	
 		char Str[256];
 		sprintf_s(Str, sizeof(Str), "lgi.sem.%p", this);
@@ -52,9 +61,9 @@ GThreadEvent::GThreadEvent(const char *name)
 			#endif
 		}
 	
-	#elif !defined(BEOS) && defined(POSIX)
+	#elif defined(POSIX)
 	
-		Value = 0;
+		// Value = 0;
 		pthread_mutexattr_t  mattr;
 		int e = pthread_cond_init(&Cond, NULL);
 		if (e)
@@ -86,7 +95,14 @@ GThreadEvent::GThreadEvent(const char *name)
 
 GThreadEvent::~GThreadEvent()
 {
-	#if USE_SEM
+	#if USE_MACH_SEM
+
+		kern_return_t r = semaphore_destroy(Task, Sem);
+		#if DEBUG_THREADING
+		printf("%s:%i - semaphore_destroy(%x)=%i\n", _FL, (int)Sem, r);
+		#endif
+
+	#elif USE_POSIX_SEM
 
 		if (Sem != SEM_FAILED)
 		{
@@ -116,7 +132,11 @@ GThreadEvent::~GThreadEvent()
 
 bool GThreadEvent::IsOk()
 {
-	#if USE_SEM
+	#if USE_MACH_SEM
+
+		return true;
+
+	#elif USE_POSIX_SEM
 
 		return Sem != SEM_FAILED;
 
@@ -138,7 +158,15 @@ bool GThreadEvent::IsOk()
 
 bool GThreadEvent::Signal()
 {
-	#if USE_SEM
+	#if USE_MACH_SEM
+
+		kern_return_t r = semaphore_signal(Sem);
+		#if DEBUG_THREADING
+		printf("%s:%i - semaphore_signal(%x)=%i\n", _FL, (int)Sem, r);
+		#endif
+		return r == KERN_SUCCESS;
+
+	#elif USE_POSIX_SEM
 	
 		if (!IsOk())
 			return false;
@@ -197,7 +225,50 @@ bool GThreadEvent::Signal()
 
 GThreadEvent::WaitStatus GThreadEvent::Wait(int32 Timeout)
 {
-	#if USE_SEM
+	#if USE_MACH_SEM
+
+		if (Timeout > 0)
+		{
+			mach_timespec_t Ts;
+			Ts.tv_sec = Timeout / 1000;
+			Ts.tv_nsec = (Timeout % 1000) * 1000000;
+			while (true)
+			{
+				kern_return_t r = semaphore_timedwait(Sem, Ts);
+				#if DEBUG_THREADING
+				printf("%s:%i - semaphore_timedwait(%x)=%i\n", _FL, (int)Sem, r);
+				#endif
+				switch(r)
+				{
+					case KERN_SUCCESS:
+						return WaitSignaled;
+					case KERN_OPERATION_TIMED_OUT:
+						return WaitTimeout;
+					case KERN_ABORTED:
+						break;
+					default:
+						return WaitError;
+				}
+			}
+		}
+		else
+		{
+			kern_return_t r = semaphore_wait(Sem);
+			#if DEBUG_THREADING
+			printf("%s:%i - semaphore_wait(%x)=%i\n", _FL, (int)Sem, r);
+			#endif
+			switch(r)
+			{
+				case KERN_SUCCESS:
+					return WaitSignaled;
+				case KERN_OPERATION_TIMED_OUT:
+					return WaitTimeout;
+				default:
+					return WaitError;
+			}
+		}
+
+	#elif USE_POSIX_SEM
 	
 		if (!IsOk())
 			return WaitError;
@@ -219,6 +290,7 @@ GThreadEvent::WaitStatus GThreadEvent::Wait(int32 Timeout)
 		}
 		else
 		{
+			/*
 			#ifdef MAC
 			
 				// No sem_timedwait, so poll instead :(
@@ -259,12 +331,13 @@ GThreadEvent::WaitStatus GThreadEvent::Wait(int32 Timeout)
 				}
 
 			#else
+			*/
 
 				timespec to;
 				TimeoutToTimespec(to, Timeout);
 				r = sem_timedwait(Sem, &to);
 
-			#endif
+			// #endif
 		}
 				
 

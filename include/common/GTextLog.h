@@ -79,7 +79,7 @@ public:
 		Insert(Size, w, Len);
 		DeleteArray(w);
 		Invalidate();
-		SetCursor(Size, false);
+		SetCaret(Size, false);
 	}
 
 	int64 SetSize(int64 s)
@@ -88,7 +88,7 @@ public:
 		return 0;
 	}
 	
-	int Write(const void *Buffer, int Size, int Flags = 0)
+	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0)
 	{
 		GAutoWString w(Utf8ToWide((char*)Buffer, Size));
 		// printf("GTextLog::Write(%p)\n", w.Get());

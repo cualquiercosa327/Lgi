@@ -100,7 +100,7 @@ public:
 	void ClearSub();
 	
 	// GFile stuff
-	int Open(char *Str = 0, int Int = 0);
+	int Open(const char *Str = 0, int Int = 0);
 	bool IsOpen();
 	int Close();
 	int64 GetSize();
@@ -112,10 +112,10 @@ public:
 	bool Eof();
 	bool GetStatus();
 	void SetStatus(bool s);
-	int Read(void *Buffer, int Size, int Flags = 0);
-	int Write(const void *Buffer, int Size, int Flags = 0);
-	int ReadStr(char *Buf, int Size);
-	int WriteStr(char *Buf, int Size);
+	ssize_t Read(void *Buffer, ssize_t Size, int Flags = 0);
+	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0);
+	ssize_t ReadStr(char *Buf, ssize_t Size);
+	ssize_t WriteStr(char *Buf, ssize_t Size);
 };
 
 class StorageItem
