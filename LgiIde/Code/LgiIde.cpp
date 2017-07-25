@@ -866,7 +866,7 @@ public:
 		RecentProjectsMenu = 0;
 		Icons = LgiLoadImageList("icons.png", 16, 16);
 
-		Options.Serialize(false);
+		Options.SerializeFile(false);
 		App->SerializeState(&Options, "WndPos", true);
 
 		SerializeStringList("RecentFiles", &RecentFiles, false);
@@ -881,7 +881,7 @@ public:
 		App->SerializeState(&Options, "WndPos", false);
 		SerializeStringList("RecentFiles", &RecentFiles, true);
 		SerializeStringList("RecentProjects", &RecentProjects, true);
-		Options.Serialize(true);
+		Options.SerializeFile(true);
 		
 		RecentFiles.DeleteArrays();
 		RecentProjects.DeleteArrays();

@@ -934,8 +934,9 @@ int ResStringGroup::GetLangIdx(GLanguageId Id)
 	return -1;
 }
 
-int ResString::Compare(ResString *r, int Column)
+int ResString::Compare(GListItem *li, int Column)
 {
+	ResString *r = dynamic_cast<ResString*>(li);
 	static const char *Empty = "";
 	bool Mod = (Column < 0) ? -1 : 1;
 	Column = abs(Column) - 1;
@@ -1583,7 +1584,7 @@ void ResStringUi::OnPaint(GSurface *pDC)
 	}
 }
 
-void ResStringUi::Pour()
+void ResStringUi::PourAll()
 {
 	GRegion Client(GetClient());
 	GRegion Update;
@@ -1624,7 +1625,7 @@ void ResStringUi::Pour()
 
 void ResStringUi::OnPosChange()
 {
-	Pour();
+	PourAll();
 }
 
 void ResStringUi::OnCreate()

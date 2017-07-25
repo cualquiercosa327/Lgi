@@ -1868,7 +1868,7 @@ void AppWnd::OnResourceSelect(Resource *r)
 			}
 			
 			LgiYield();
-			Pour();
+			PourAll();
 			Wnd->Invalidate();
 			LastRes = r;
 		}

@@ -891,11 +891,6 @@ void CtrlDlg::OnPaint(GSurface *pDC)
 	ResDialogCtrl::OnPaint(pDC);
 }
 
-GViewI *CtrlDlg::WindowFromPoint(int x, int y)
-{
-	return GView::WindowFromPoint(x, y);
-}
-
 GRect &CtrlDlg::GetClient(bool InClientSpace)
 {
 	static GRect r;
@@ -4137,7 +4132,7 @@ void ResDialogUi::OnPaint(GSurface *pDC)
 	}
 }
 
-void ResDialogUi::Pour()
+void ResDialogUi::PourAll()
 {
 	GRegion Client(GetClient());
 	GRegion Update;
@@ -4178,7 +4173,7 @@ void ResDialogUi::Pour()
 
 void ResDialogUi::OnPosChange()
 {
-	Pour();
+	PourAll();
 }
 
 void ResDialogUi::OnCreate()
@@ -4225,7 +4220,7 @@ void ResDialogUi::OnCreate()
 		Frame->Attach(this);
 	}
 	
-	Pour();
+	PourAll();
 }
 
 int ResDialogUi::CurrentTool()
