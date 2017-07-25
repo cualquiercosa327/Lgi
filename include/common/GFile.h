@@ -434,9 +434,9 @@ public:
 	#undef GFilePost
 
 	// GDom impl
-	bool GetVariant(const char *Name, GVariant &Value, char *Array = NULL);
-	bool SetVariant(const char *Name, GVariant &Value, char *Array = NULL);
-	bool CallMethod(const char *Name, GVariant *ReturnValue, GArray<GVariant*> &Args);
+	bool GetVariant(const char *Name, GVariant &Value, char *Array = NULL) override;
+	bool SetVariant(const char *Name, GVariant &Value, char *Array = NULL) override;
+	bool CallMethod(const char *Name, GVariant *ReturnValue, GArray<GVariant*> &Args) override;
 
 	// Path handling
 	class LgiClass Path : public GString::Array

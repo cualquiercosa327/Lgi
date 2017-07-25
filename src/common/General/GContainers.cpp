@@ -1483,8 +1483,10 @@ void GMemFile::Empty()
 
 int64 GMemFile::GetSize()
 {
+	#ifndef __llvm__
 	if (this == NULL)
 		return -1;
+	#endif
 	if (Blocks == 0)
 		return 0;
 

@@ -514,7 +514,7 @@ public:
 	bool IsOk()
 	{
 		bool Status =
-						#ifndef COCOA
+						#ifndef __llvm__
 						this != 0 &&
 						#endif
 						Table != 0;

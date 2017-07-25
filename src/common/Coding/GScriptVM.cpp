@@ -1233,7 +1233,7 @@ public:
 	void ScrollToCurLine();
 	void PourText(size_t Start, ssize_t Length) override;
 	void OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour) override;
-	void OnPaint(GSurface *pDC);
+	void OnPaint(GSurface *pDC) override;
 	bool Breakpoint(int Addr);
 };
 

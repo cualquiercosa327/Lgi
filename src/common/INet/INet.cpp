@@ -261,7 +261,7 @@ GSocket::~GSocket()
 bool GSocket::IsOK()
 {
 	return
-			#ifndef COCOA
+			#ifndef __llvm__
 			this != 0 &&
 			#endif
 			d != 0 &&

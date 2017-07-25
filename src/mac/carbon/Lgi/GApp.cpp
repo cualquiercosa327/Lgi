@@ -638,7 +638,10 @@ GApp *GApp::ObjInstance()
 
 bool GApp::IsOk()
 {
-	bool Status = 	(this != 0) &&
+	bool Status =
+					#ifndef __llvm__
+					(this != 0) &&
+					#endif
 					(d != 0);
 	LgiAssert(Status);
 	return Status;

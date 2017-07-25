@@ -302,7 +302,7 @@ public:
 	);
 
 	/// Gets the total bytes in the container
-	int64 GetSize();
+	int64 GetSize() override;
 	
 	/// Reads bytes off the start of the container
 	ssize_t Read(void *Buffer, ssize_t Size, int Flags = 0) override;
