@@ -1764,10 +1764,6 @@ bool GView::_Attach(GViewI *parent)
 			{
 				// Set the view position
 				GView::SetPos(Pos);
-				if (_Debug)
-				{
-					printf("%s:%i - setpos %s\n", _FL, Pos.GetStr());
-				}
 				#ifdef _DEBUG
 				const char *cls = GetClass();
 				int len = strlen(cls);

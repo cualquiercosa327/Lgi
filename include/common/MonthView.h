@@ -15,6 +15,7 @@ class MonthView
 {
 	static char Buf[256];
 
+protected:
 	GDateTime Cursor;
 	GDateTime First;	// of month
 	GDateTime Start;	// of visible
