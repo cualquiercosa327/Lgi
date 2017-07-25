@@ -288,7 +288,7 @@ public:
 	
 	// State / Selection
 	ssize_t GetCaret(bool Cursor = true);
-	void SetCaret(size_t i, bool Select, bool ForceFullUpdate = false);
+	virtual void SetCaret(size_t i, bool Select, bool ForceFullUpdate = false);
 	ssize_t IndexAt(int x, int y);
 	bool IsDirty() { return Dirty; }
 	void IsDirty(bool d) { Dirty = d; }

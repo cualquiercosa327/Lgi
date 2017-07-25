@@ -622,13 +622,13 @@ public:
 		return 0;
 	}
 
-	bool OnCompileScript(char *Code, const char *Language, const char *MimeType)
+	bool OnCompileScript(GDocView *Parent, char *Script, const char *Language, const char *MimeType)
 	{
 		// return Script->Compile(Code, true);
 		return false;
 	}
 
-	bool OnExecuteScript(char *Code)
+	bool OnExecuteScript(GDocView *Parent, char *Script)
 	{
 		return false; // Script->RunTemporary(Code);
 	}

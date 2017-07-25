@@ -160,7 +160,7 @@ public:
 			}
 
 			AttachChildren();
-			Pour();
+			PourAll();
 			Visible(true);
 
 			if (Edit)

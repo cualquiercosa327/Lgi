@@ -1099,7 +1099,7 @@ public:
 		GTextView3::OnMouseClick(m);
 	}
 
-	void SetCursor(int i, bool Select, bool ForceFullUpdate = false)
+	void SetCaret(size_t i, bool Select, bool ForceFullUpdate = false)
 	{
 		GTextView3::SetCaret(i, Select, ForceFullUpdate);
 		

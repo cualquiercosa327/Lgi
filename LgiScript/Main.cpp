@@ -6,7 +6,7 @@
 
 struct ConsoleLog : public GStream
 {
-	int Write(const void *Ptr, int Size, int Flags)
+	ssize_t Write(const void *Ptr, ssize_t Size, int Flags)
 	{
 		return printf("%.*s", Size, Ptr);
 	}
@@ -39,7 +39,7 @@ public:
 	{
 		for (int i=0; i<Files.Length(); i++)
 		{
-			if (!Run(Files[i]))
+			if (!RunScript(Files[i]))
 			{
 				Status = -1;
 			}
@@ -59,7 +59,7 @@ public:
 		return NULL;
 	}
 	
-	bool Run(const char *File)
+	bool RunScript(const char *File)
 	{
 		bool Disassemble = LgiApp->GetOption("disassemble");
 		if (!FileExists(File))
