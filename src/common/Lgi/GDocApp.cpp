@@ -125,7 +125,7 @@ public:
 		if (!p) return false;
 
 		p->SetFile(OptionsFile);
-		bool Result = p->Serialize(Write);
+		bool Result = p->SerializeFile(Write);
 		if (Write && !Result)
 		{
 			// Probably because we don't have write access to the install folder?
@@ -273,7 +273,7 @@ bool GDocApp<OptionsFmt>::SetLanguage(char *LangId)
 
 	GVariant v;
 	GetOptions()->SetValue(_LangOptsName, v = LangId);
-	GetOptions()->Serialize(true);
+	GetOptions()->SerializeFile(true);
 	LgiCloseApp();
 
 	char Exe[MAX_PATH];
