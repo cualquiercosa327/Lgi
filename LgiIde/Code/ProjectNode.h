@@ -3,6 +3,7 @@
 
 #include "FtpThread.h"
 
+// Linked to 'TypeNames' global variable, update that too.
 enum NodeType
 {
 	NodeNone,
@@ -14,6 +15,9 @@ enum NodeType
 	NodeGraphic,
 	NodeWeb,
 	NodeText,
+	NodeMakeFile,
+
+	NodeMax, // Always last
 };
 
 #define ForAllProjectNodes(Var) \
@@ -74,6 +78,7 @@ public:
 	/// \sa Some combination of PLATFORM_WIN32, PLATFORM_LINUX, PLATFORM_MAC, PLATFORM_HAIKU or PLATFORM_ALL
 	int GetPlatforms() override;
 	char *GetLocalCache();
+	void AutoDetectType();
 	
 	// Dnd
 	bool GetFormats(List<char> &Formats) override;

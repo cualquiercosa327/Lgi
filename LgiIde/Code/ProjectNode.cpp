@@ -11,6 +11,19 @@
 
 #define DEBUG_SHOW_NODE_COUNTS		0
 
+const char *TypeNames[NodeMax] = {
+	"None",
+	"Folder",
+	"Source",
+	"Header",
+	"Dependancy",
+	"Resources",
+	"Graphic",
+	"Web",
+	"Text",
+	"MakeFile",
+};
+
 //////////////////////////////////////////////////////////////////////////////////
 class FileProps : public GDialog
 {
@@ -31,14 +44,11 @@ public:
 			GCombo *c;
 			if (GetViewById(IDC_TYPE, c))
 			{
-				c->Insert("None");
-				c->Insert("Folder");
-				c->Insert("Source");
-				c->Insert("Header");
-				c->Insert("Dependency");
-				c->Insert("Resource");
-				c->Insert("Graphic");
-				c->Insert("Text");
+				for (int i=NodeNone; i<NodeMax; i++)
+				{
+					c->Insert(TypeNames[i]);
+					c->Insert("Text");
+				}
 				c->Value(Type);
 			}
 			else LgiTrace("%s:%i - Failed to get Type combo.\n", _FL);
@@ -359,6 +369,62 @@ char *ProjectNode::GetFileName()
 	return File;
 }
 
+void ProjectNode::AutoDetectType()
+{
+	GString FullPath = GetFullPath();
+	if (FullPath)
+	{
+		char MimeType[256];
+		if (LgiGetFileMimeType(FullPath, MimeType, sizeof(MimeType)) &&
+			strnicmp(MimeType, "image/", 6) == 0)
+		{
+			Type = NodeGraphic;
+		}
+	}
+		
+	if (!Type)
+	{
+		char *Ext = LgiGetExtension(File);
+
+		if (stristr(File, "makefile") ||
+			!stricmp(File, "CMakeLists.txt"))
+		{
+			Type = NodeMakeFile;
+		}
+		else if (Ext)
+		{
+			if (!stricmp(Ext, "h") ||
+				!stricmp(Ext, "hpp"))
+			{
+				Type = NodeHeader;
+			}
+			else if (stricmp(Ext, "lr8") == 0 ||
+					stricmp(Ext, "rc") == 0)
+			{
+				Type = NodeResources;
+			}
+			else if (stricmp(Ext, "cpp") == 0 ||
+					stricmp(Ext, "c") == 0)
+			{
+				Type = NodeSrc;
+			}
+			else if (stricmp(Ext, "php") == 0 ||
+					stricmp(Ext, "asp") == 0 ||
+					stricmp(Ext, "html") == 0 ||
+					stricmp(Ext, "htm") == 0 ||
+					stricmp(Ext, "css") == 0)
+			{
+				Type = NodeWeb;
+			}
+			else
+			{
+				// Fall back to text...
+				Type = NodeText;
+			}
+		}
+	}
+}
+
 void ProjectNode::SetFileName(const char *f)
 {
 	char Rel[MAX_PATH];
@@ -378,57 +444,12 @@ void ProjectNode::SetFileName(const char *f)
 
 	if (File)
 	{
-		char MimeType[256];
-
 		GString FullPath = GetFullPath();
 
 		if (Project)
 			Project->OnNode(FullPath, this, true);
 
-		if (FullPath)
-		{
-			if (LgiGetFileMimeType(FullPath, MimeType, sizeof(MimeType)) &&
-				strnicmp(MimeType, "image/", 6) == 0)
-			{
-				Type = NodeGraphic;
-			}
-		}
-		
-		if (!Type)
-		{
-			char *Ext = LgiGetExtension(File);
-
-			if ((Ext && stricmp(Ext, "h") == 0) ||
-				stristr(File, "makefile") != 0)
-			{
-				Type = NodeHeader;
-			}
-			else if (Ext)
-			{
-				if (stricmp(Ext, "lr8") == 0)
-				{
-					Type = NodeResources;
-				}
-				else if (stricmp(Ext, "cpp") == 0 ||
-						stricmp(Ext, "c") == 0 ||
-						stricmp(Ext, "h") == 0)
-				{
-					Type = NodeSrc;
-				}
-				else if (stricmp(Ext, "php") == 0 ||
-						 stricmp(Ext, "asp") == 0 ||
-						 stricmp(Ext, "html") == 0 ||
-						 stricmp(Ext, "htm") == 0 ||
-						 stricmp(Ext, "css") == 0)
-				{
-					Type = NodeWeb;
-				}
-				else if (stricmp(Ext, "txt") == 0)
-				{
-					Type = NodeText;
-				}
-			}
-		}
+		AutoDetectType();
 	}
 	
 	Project->SetDirty();
@@ -467,12 +488,10 @@ int ProjectNode::GetImage(int f)
 	{
 		default:
 			break;
+		case NodeDir:
+			return ICON_FOLDER;
 		case NodeSrc:
 			return ICON_SOURCE;
-		case NodeNone:
-		case NodeHeader:
-		case NodeWeb:
-			return ICON_HEADER;
 		case NodeDependancy:
 			return ICON_DEPENDANCY;
 		case NodeGraphic:
@@ -481,7 +500,7 @@ int ProjectNode::GetImage(int f)
 			return ICON_RESOURCE;
 	}
 
-	return ICON_FOLDER;
+	return ICON_HEADER;
 }
 
 char *ProjectNode::GetText(int c)
@@ -550,23 +569,9 @@ bool ProjectNode::Serialize(bool Write)
 	SerializeAttr("Type", (int&)Type);
 	SerializeAttr("Platforms", (int&)Platforms);
 
-	char *Ext = LgiGetExtension(File);
-
-	if (Ext)
+	if (Type == NodeNone)
 	{
-		if (stricmp(Ext, "cpp") == 0 ||
-			stricmp(Ext, "c") == 0)
-		{
-			Type = NodeSrc;
-		}
-		else if (stricmp(Ext, "h") == 0)
-		{
-			Type = NodeHeader;
-		}
-		else if (stricmp(Ext, "lr8") == 0)
-		{
-			Type = NodeResources;
-		}			
+		AutoDetectType();
 	}
 
 	if (Type == NodeDir)
