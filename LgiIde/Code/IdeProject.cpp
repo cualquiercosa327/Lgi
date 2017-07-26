@@ -322,8 +322,58 @@ GString BuildThread::FindExe()
 			char Path[MAX_PATH];
 			LgiMakePath(Path, sizeof(Path), p[i], "msdev.exe");
 			if (FileExists(Path))
-			{
 				return Path;
+
+			LgiMakePath(Path, sizeof(Path), p[i], "devenv.com");
+			if (FileExists(Path))
+				return Path;
+		}
+
+		// Didn't find the compiler in the path... but we knows where it lives...
+
+		// Find the version we need:
+		double fVer = 0.0;
+		GFile f;
+		if (f.Open(Makefile, O_READ))
+		{
+			const char *Ext = LgiGetExtension(Makefile);
+			if (Ext && !_stricmp(Ext, "vcxproj"))
+			{
+				GXmlTree Io;
+				GXmlTag r;
+				if (Io.Read(&r, &f) &&
+					r.IsTag("Project"))
+				{
+					GString sVer = r.GetAttr("ToolsVersion");
+					if (sVer.Get())
+						fVer = sVer.Float();
+				}
+			}
+			else if (Ext && !_stricmp(Ext, "sln"))
+			{
+				GString Key = "Format Version ";
+				GString::Array Ln = f.Read().SplitDelimit("\r\n");
+				for (size_t i = 0; i < Ln.Length(); i++)
+				{
+					GString s = Ln[i];
+					int Pos = s.Find(Key);
+					if (Pos > 0)
+					{
+						GString sVer = s(Pos + Key.Length(), -1);
+						fVer = sVer.Float();
+						break;
+					}
+				}
+			}
+		}
+
+		if (fVer > 0.0)
+		{
+			GString p;
+			p.Printf("C:\\Program Files (x86)\\Microsoft Visual Studio %.1f\\Common7\\IDE\\devenv.com", fVer);
+			if (FileExists(p))
+			{
+				return p;
 			}
 		}
 	}
