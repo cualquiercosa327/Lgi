@@ -417,7 +417,7 @@ bool GWindow::Attach(GViewI *p)
 		gtk_widget_realize(GTK_WIDGET(Wnd));
 		
 		// Do a rough layout of child windows
-		Pour();
+		PourAll();
 
 		// Setup default button...
 		if (!_Default)
@@ -973,7 +973,7 @@ void GWindow::OnPosChange()
 
 	//if (d->Sx != X() ||	d->Sy != Y())
 	{
-		Pour();
+		PourAll();
 		//d->Sx = X();
 		//d->Sy = Y();
 	}
@@ -986,7 +986,7 @@ void GWindow::OnPosChange()
 		dynamic_cast<GView*>(v)->_IsToolBar \
 	)
 
-void GWindow::Pour()
+void GWindow::PourAll()
 {
 	GRegion Client(GetClient());
 	GViewI *MenuView = 0;
