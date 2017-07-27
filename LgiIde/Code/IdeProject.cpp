@@ -95,9 +95,11 @@ class ProjectNode;
 class BuildThread : public GThread, public GStream
 {
 	IdeProject *Proj;
-	GAutoString Makefile;
-	GAutoString Args;
+	GString Makefile;
+	bool Clean, Release;
+	int WordSize;
 	GAutoPtr<GSubProcess> SubProc;
+	GString::Array BuildConfigs;
 
 	enum CompilerType
 	{
@@ -112,7 +114,7 @@ class BuildThread : public GThread, public GStream
 	    Compiler;
 
 public:
-	BuildThread(IdeProject *proj, char *mf, const char *args = 0);
+	BuildThread(IdeProject *proj, char *makefile, bool clean, bool Release, int wordsize);
 	~BuildThread();
 	
 	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0) override;
@@ -210,11 +212,48 @@ int XmlSort(GXmlTag *a, GXmlTag *b, NativeInt d)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-BuildThread::BuildThread(IdeProject *proj, char *mf, const char *args) : GThread("BuildThread")
+bool ReadVsProjFile(GString File, GString &Ver, GString::Array &Configs)
+{
+	const char *Ext = LgiGetExtension(File);
+	if (!Ext || _stricmp(Ext, "vcxproj"))
+		return false;
+
+	GFile f;
+	if (!f.Open(File, O_READ))
+		return false;
+
+	GXmlTree Io;
+	GXmlTag r;
+	if (Io.Read(&r, &f) &&
+		r.IsTag("Project"))
+	{
+		Ver = r.GetAttr("ToolsVersion");
+
+		GXmlTag *ItemGroup = r.GetChildTag("ItemGroup");
+		if (ItemGroup)
+			for (GXmlTag *c = ItemGroup->Children.First(); c; c = ItemGroup->Children.Next())
+			{
+				if (c->IsTag("ProjectConfiguration"))
+				{
+					char *s = c->GetAttr("Include");
+					if (s)
+						Configs.New() = s;
+				}
+			}
+	}
+	else return false;
+
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+BuildThread::BuildThread(IdeProject *proj, char *makefile, bool clean, bool release, int wordsize) : GThread("BuildThread")
 {
 	Proj = proj;
-	Makefile.Reset(NewStr(mf));
-	Args.Reset(NewStr(args));
+	Makefile = makefile;
+	Clean = clean;
+	Release = release;
+	WordSize = wordsize;
 	Compiler = DefaultCompiler;
 
 	char *Ext = LgiGetExtension(Makefile);
@@ -317,52 +356,61 @@ GString BuildThread::FindExe()
 	}
 	else if (Compiler == VisualStudio)
 	{
-		for (int i=0; i<p.Length(); i++)
-		{
-			char Path[MAX_PATH];
-			LgiMakePath(Path, sizeof(Path), p[i], "msdev.exe");
-			if (FileExists(Path))
-				return Path;
-
-			LgiMakePath(Path, sizeof(Path), p[i], "devenv.com");
-			if (FileExists(Path))
-				return Path;
-		}
-
-		// Didn't find the compiler in the path... but we knows where it lives...
-
 		// Find the version we need:
 		double fVer = 0.0;
 		GFile f;
 		if (f.Open(Makefile, O_READ))
 		{
+			GString ProjFile;
 			const char *Ext = LgiGetExtension(Makefile);
-			if (Ext && !_stricmp(Ext, "vcxproj"))
+			if (Ext && !_stricmp(Ext, "sln"))
 			{
-				GXmlTree Io;
-				GXmlTag r;
-				if (Io.Read(&r, &f) &&
-					r.IsTag("Project"))
-				{
-					GString sVer = r.GetAttr("ToolsVersion");
-					if (sVer.Get())
-						fVer = sVer.Float();
-				}
-			}
-			else if (Ext && !_stricmp(Ext, "sln"))
-			{
-				GString Key = "Format Version ";
+				GString VerKey = "Format Version ";
+				GString ProjKey = "Project(";
+				int Pos;
+
 				GString::Array Ln = f.Read().SplitDelimit("\r\n");
 				for (size_t i = 0; i < Ln.Length(); i++)
 				{
 					GString s = Ln[i];
-					int Pos = s.Find(Key);
-					if (Pos > 0)
+					if ((Pos = s.Find(VerKey)) > 0)
 					{
-						GString sVer = s(Pos + Key.Length(), -1);
+						GString sVer = s(Pos + VerKey.Length(), -1);
 						fVer = sVer.Float();
-						break;
 					}
+					else if ((Pos = s.Find(ProjKey)) >= 0)
+					{
+						GString::Array p = s.SplitDelimit("(),=");
+						if (p.Length() > 4)
+						{
+							ProjFile = p[4].Strip(" \t\'\"");
+							if (LgiIsRelativePath(ProjFile))
+							{
+								char f[MAX_PATH];
+								LgiMakePath(f, sizeof(f), Makefile, "..");
+								LgiMakePath(f, sizeof(f), f, ProjFile);
+								if (FileExists(f))
+									ProjFile = f;
+								else
+									LgiAssert(0);
+							}
+							break;
+						}
+					}
+				}
+			}
+			else if (Ext && !_stricmp(Ext, "vcxproj"))
+			{
+				ProjFile = Makefile;
+			}
+
+			if (ProjFile && FileExists(ProjFile))
+			{
+				f.Close();
+				GString sVer;
+				if (ReadVsProjFile(ProjFile, sVer, BuildConfigs))
+				{
+					fVer = sVer.Float();
 				}
 			}
 		}
@@ -485,7 +533,22 @@ int BuildThread::Main()
 		GString TmpArgs;
 		if (Compiler == VisualStudio)
 		{
-			TmpArgs.Printf("\"%s\" /make \"All - Win32 Debug\"", Makefile.Get());
+			// TmpArgs.Printf("\"%s\" /make \"All - Win32 Debug\"", Makefile.Get());
+			GString BuildConf = "All - Win32 Debug";
+			if (BuildConfigs.Length())
+			{
+				const char *Key = Release ? "Release" : "Debug";
+				for (size_t i=0; i<BuildConfigs.Length(); i++)
+				{
+					GString c = BuildConfigs[i];
+					if (c.Find(Key) >= 0)
+					{
+						BuildConf = c;
+						break;
+					}
+				}
+			}
+			TmpArgs.Printf("\"%s\" %s \"%s\"", Makefile.Get(), Clean ? "/Clean" : "/Build", BuildConf.Get());
 		}
 		else if (Compiler == PythonScript)
 		{
@@ -547,11 +610,10 @@ int BuildThread::Main()
 					TmpArgs.Printf("-f \"%s\"", MakePath.Get());
 			}
 
-			if (Args)
-			{
-				TmpArgs += " ";
-				TmpArgs += Args.Get();
-			}
+			if (Clean)
+				TmpArgs += " clean";
+			if (Release)
+				TmpArgs += " Build=Release";
 		}
 
 		GString Msg;
@@ -818,12 +880,7 @@ void IdeProject::Clean(bool Release)
 	{
 		GAutoString m = GetMakefile();
 		if (m)
-		{
-			GString a = "clean";
-			if (Release)
-				a += " Build=Release";
-			d->Thread.Reset(new BuildThread(this, m, a));
-		}
+			d->Thread.Reset(new BuildThread(this, m, true, Release, sizeof(ssize_t)*8));
 	}
 }
 
@@ -1014,7 +1071,9 @@ void IdeProject::Build(bool All, bool Release)
 		(
 			this,
 			m,
-			Release ? "Build=Release" : NULL
+			false,
+			Release,
+			sizeof(size_t)*8
 		)
 	);
 }
