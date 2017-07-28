@@ -2842,16 +2842,15 @@ bool GTextView3::OnMultiLineTab(bool In)
 {
 	bool Status = false;
 	ssize_t Min = min(SelStart, SelEnd);
-	ssize_t Max = max(SelStart, SelEnd);
+	ssize_t Max = max(SelStart, SelEnd), i;
 
 	Min = SeekLine(Min, StartLine);
 
-	GMemQueue p;
 	int Ls = 0;
-	ssize_t i;
+	GArray<ssize_t> p;
 	for (i=Min; i<Max && i<Size; i=SeekLine(i, NextLine))
 	{
-		p.Write((uchar*)&i, sizeof(i));
+		p.Add(i);
 		Ls++;
 	}
 	if (Max < i)
@@ -2861,70 +2860,66 @@ bool GTextView3::OnMultiLineTab(bool In)
 
 	PourEnabled = false;
 
-	int *Indexes = new int[Ls];
-	if (Indexes)
+	ssize_t *Indexes = p.AddressOf(0);
+	if (!Indexes)
+		return false;
+
+	for (i=Ls-1; i>=0; i--)
 	{
-		p.Read((uchar*)Indexes, Ls*sizeof(int));
-
-		for (i=Ls-1; i>=0; i--)
+		if (In)
 		{
-			if (In)
+			// <-
+			int n = Indexes[i], Space = 0;
+			for (; Space<IndentSize && n<Size; n++)
 			{
-				// <-
-				int n = Indexes[i], Space = 0;
-				for (; Space<IndentSize && n<Size; n++)
+				if (Text[n] == 9)
 				{
-					if (Text[n] == 9)
-					{
-						Space += IndentSize;
-					}
-					else if (Text[n] == ' ')
-					{
-						Space += 1;
-					}
-					else
-					{
-						break;
-					}
+					Space += IndentSize;
 				}
-
-				int Chs = n-Indexes[i];
-				Delete(Indexes[i], Chs);
-				Max -= Chs;
-			}
-			else
-			{
-				// ->
-				int Len = Indexes[i];
-				for (; Text[Len] != '\n' && Len<Size; Len++);
-				if (Len > Indexes[i])
+				else if (Text[n] == ' ')
 				{
-					if (HardTabs)
+					Space += 1;
+				}
+				else
+				{
+					break;
+				}
+			}
+
+			int Chs = n-Indexes[i];
+			Delete(Indexes[i], Chs);
+			Max -= Chs;
+		}
+		else
+		{
+			// ->
+			int Len = Indexes[i];
+			for (; Text[Len] != '\n' && Len<Size; Len++);
+			if (Len > Indexes[i])
+			{
+				if (HardTabs)
+				{
+					char16 Tab[] = {'\t', 0};
+					Insert(Indexes[i], Tab, 1);
+					Max++;
+				}
+				else
+				{
+					char16 *Sp = new char16[IndentSize];
+					if (Sp)
 					{
-						char16 Tab[] = {'\t', 0};
-						Insert(Indexes[i], Tab, 1);
-						Max++;
-					}
-					else
-					{
-						char16 *Sp = new char16[IndentSize];
-						if (Sp)
-						{
-							for (int n=0; n<IndentSize; n++)
-								Sp[n] = ' ';
-							Insert(Indexes[i], Sp, IndentSize);
-							Max += IndentSize;
-						}
+						for (int n=0; n<IndentSize; n++)
+							Sp[n] = ' ';
+						Insert(Indexes[i], Sp, IndentSize);
+						Max += IndentSize;
 					}
 				}
 			}
 		}
-
-		SelStart = Min;
-		SelEnd = Cursor = Max;
-
-		DeleteArray(Indexes);
 	}
+
+	SelStart = Min;
+	SelEnd = Cursor = Max;
 
 	PourEnabled = true;
 	PourText(Min, Max - Min);

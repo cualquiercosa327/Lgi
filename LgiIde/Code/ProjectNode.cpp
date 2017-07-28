@@ -1224,17 +1224,7 @@ void ProjectNode::OnMouseClick(GMouse &m)
 				(
 					IsWeb()
 					||
-					Type == NodeSrc
-					||
-					Type == NodeHeader
-					||
-					Type == NodeResources
-					||
-					Type == NodeGraphic
-					||
-					Type == NodeWeb
-					||
-					Type == NodeText
+					Type != NodeDir
 				)
 				&&
 				ValidStr(File)
