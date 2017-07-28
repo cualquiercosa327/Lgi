@@ -3804,6 +3804,21 @@ void GTag::ZeroTableElements()
 	}
 }
 
+void GTag::ResetCaches()
+{
+	/*
+	If during the parse process a callback causes a layout to happen then it's possible
+	to have partial information in the GHtmlTableLayout structure, like missing TD cells.
+	Because they haven't been parsed yet.
+	This is called at the end of the parsing to reset all the cached info in GHtmlTableLayout.
+	That way when the first real layout happens all the data is there.
+	*/
+	if (Cell)
+		DeleteObj(Cell->Cells);
+	for (size_t i=0; i<Children.Length(); i++)
+		ToTag(Children[i])->ResetCaches();
+}
+
 GdcPt2 GTag::GetTableSize()
 {
 	GdcPt2 s(0, 0);
@@ -7085,6 +7100,8 @@ void GHtml::ParseDocument(const char *Doc)
 	}
 
 	ViewWidth = -1;
+	if (Tag)
+		Tag->ResetCaches();
 	Invalidate();
 }
 
@@ -8965,7 +8982,7 @@ GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 		else if (r->TagId == TAG_TBODY)
 		{
 			ssize_t Index = Table->Children.IndexOf(r);
-			for (unsigned n=0; n<r->Children.Length(); n++)
+			for (ssize_t n=0; n<r->Children.Length(); n++)
 			{
 				GTag *t = ToTag(r->Children[n]);
 				Table->Children.AddAt(++Index, t);
@@ -9027,13 +9044,13 @@ GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 	}
 
 	FakeCell = NULL;
-	for (unsigned n=0; n<Table->Children.Length(); n++)
+	for (size_t n=0; n<Table->Children.Length(); n++)
 	{
 		GTag *r = ToTag(Table->Children[n]);
 		if (r->TagId == TAG_TR)
 		{
 			int x = 0;
-			for (unsigned i=0; i<r->Children.Length(); i++)
+			for (size_t i=0; i<r->Children.Length(); i++)
 			{
 				GTag *cell = ToTag(r->Children[i]);
 				if (!IsTableCell(cell->TagId))
@@ -9135,10 +9152,10 @@ void GHtmlTableLayout::Dump()
 void GHtmlTableLayout::GetAll(List<GTag> &All)
 {
 	GHashTbl<void*, bool> Added;
-	for (unsigned y=0; y<c.Length(); y++)
+	for (size_t y=0; y<c.Length(); y++)
 	{
 		CellArray &a = c[y];
-		for (unsigned x=0; x<a.Length(); x++)
+		for (size_t x=0; x<a.Length(); x++)
 		{
 			GTag *t = a[x];
 			if (t && !Added.Find(t))
@@ -9155,7 +9172,7 @@ void GHtmlTableLayout::GetSize(int &x, int &y)
 	x = 0;
 	y = (int)c.Length();
 
-	for (unsigned i=0; i<c.Length(); i++)
+	for (size_t i=0; i<c.Length(); i++)
 	{
 		x = max(x, (int) c[i].Length());
 	}

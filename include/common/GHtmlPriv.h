@@ -456,6 +456,7 @@ public:
 	// Tables
 	GTag *GetTableCell(int x, int y);
 	GdcPt2 GetTableSize();
+	void ResetCaches();
 };
 
 }
