@@ -50,27 +50,32 @@ typedef		unsigned short				uint16;
 	/// 64-bit unsigned int type (size safe, guaranteed to be 64 bits)
 	typedef		unsigned __int64			uint64;
 
-	#ifdef  _WIN64
-	typedef signed __int64		ssize_t;
-	#else
-	typedef signed int			ssize_t;
-	#endif
-
 	#ifndef _WCHAR_T_DEFINED
 	#include <crtdefs.h>
 	#endif
 
-	#ifndef __cplusplus
-	typedef int bool;
-	#endif
-
 	#pragma warning(error:4263)
+
+	#ifdef  _WIN64
+		typedef signed __int64		ssize_t;
+	#else
+		typedef signed int			ssize_t;
+	#endif
 
 #else
 	/// 64-bit signed int type (size safe, guaranteed to be 64 bits)
 	typedef		signed long long			int64;
 	/// 64-bit unsigned int type (size safe, guaranteed to be 64 bits)
 	typedef		unsigned long long			uint64;
+#endif
+
+#ifndef __cplusplus
+
+	#include <wchar.h>
+	#include <stddef.h>
+	
+	typedef int bool;
+
 #endif
 
 /// \brief Wide unicode char

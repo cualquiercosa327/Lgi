@@ -132,7 +132,7 @@ public:
 
 typedef GDataIterator<GDataPropI*> *GDataIt;
 
-#define EmptyVirtual		LgiAssert(0); return 0
+#define EmptyVirtual(t)		LgiAssert(0); return t
 #define Store3CopyDecl		bool CopyProps(GDataPropI &p)
 #define Store3CopyImpl(Cls)	bool Cls::CopyProps(GDataPropI &p)
 
@@ -148,35 +148,35 @@ public:
 	virtual bool CopyProps(GDataPropI &p) { return false; }
 
 	/// Gets a string property
-	virtual char *GetStr(int id) { EmptyVirtual; }
+	virtual char *GetStr(int id) { EmptyVirtual(false); }
 	/// Sets a string property, it will make a copy of the string, so you
 	/// still retain ownership of the string you're passing in.
-	virtual bool SetStr(int id, const char *str) { EmptyVirtual; }
+	virtual Store3Status SetStr(int id, const char *str) { EmptyVirtual(Store3Error); }
 
 	/// Gets an integer property.
-	virtual int64 GetInt(int id) { EmptyVirtual; }
+	virtual int64 GetInt(int id) { EmptyVirtual(false); }
 	/// Sets an interger property.
-	virtual bool SetInt(int id, int64 i) { EmptyVirtual; }
+	virtual Store3Status SetInt(int id, int64 i) { EmptyVirtual(Store3Error); }
 
 	/// Gets a date property
-	virtual GDateTime *GetDate(int id) { EmptyVirtual; }
+	virtual GDateTime *GetDate(int id) { EmptyVirtual(NULL); }
 	/// Sets a date property
-	virtual bool SetDate(int id, GDateTime *i) { EmptyVirtual; }
+	virtual Store3Status SetDate(int id, GDateTime *i) { EmptyVirtual(Store3Error); }
 
 	/// Gets a variant
-	virtual GVariant *GetVar(int id) { EmptyVirtual; }
+	virtual GVariant *GetVar(int id) { EmptyVirtual(NULL); }
 	/// Sets a variant property
-	virtual bool SetVar(int id, GVariant *i) { EmptyVirtual; }
+	virtual Store3Status SetVar(int id, GVariant *i) { EmptyVirtual(Store3Error); }
 
 	/// Gets a sub object pointer
-	virtual GDataPropI *GetObj(int id) { EmptyVirtual; }
+	virtual GDataPropI *GetObj(int id) { EmptyVirtual(NULL); }
 	/// Sets a sub object pointer
-	virtual bool SetObj(int id, GDataPropI *i) { EmptyVirtual; }
+	virtual Store3Status SetObj(int id, GDataPropI *i) { EmptyVirtual(Store3Error); }
 	
 	/// Gets an iterator interface to a list of sub-objects.
-	virtual GDataIt GetList(int id) { EmptyVirtual; }
+	virtual GDataIt GetList(int id) { EmptyVirtual(NULL); }
 	/// Set the mime segments
-	virtual bool SetRfc822(GStreamI *Rfc822Msg) { LgiAssert(!"Pretty sure you should be implementing this"); return false; }
+	virtual Store3Status SetRfc822(GStreamI *Rfc822Msg) { LgiAssert(!"Pretty sure you should be implementing this"); return Store3Error; }
 };
 
 #pragma warning(default:4263)

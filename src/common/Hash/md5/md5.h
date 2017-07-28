@@ -52,7 +52,10 @@
 
 #include "LgiInc.h"
 #include "LgiDefs.h"
-#include <stddef.h>
+
+#ifdef LINUX
+#include <unistd.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {

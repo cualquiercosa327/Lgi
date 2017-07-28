@@ -430,7 +430,7 @@ bool FileExists(const char *FileName, char *CorrectCase)
 	return Status;
 }
 
-bool ResolveShortcut(const char *LinkFile, char *Path, int Len)
+bool ResolveShortcut(const char *LinkFile, char *Path, ssize_t Len)
 {
 	bool Status = false;
 
@@ -489,7 +489,7 @@ char *ReadStr(GFile &f DeclDebugArgs)
 	return s;
 }
 
-int SizeofStr(const char *s)
+ssize_t SizeofStr(const char *s)
 {
 	return sizeof(ulong) + ((s) ? strlen(s) : 0);
 }
@@ -1408,7 +1408,7 @@ int GFile::Print(char *Format, ...)
 
 #define CHUNK		0xFFF0
 
-int GFile::Read(void *Buffer, int Size, int Flags)
+ssize_t GFile::Read(void *Buffer, ssize_t Size, int Flags)
 {
 	int Red = 0;
 
@@ -1421,7 +1421,7 @@ int GFile::Read(void *Buffer, int Size, int Flags)
 	return max(Red, 0);
 }
 
-int GFile::Write(const void *Buffer, int Size, int Flags)
+ssize_t GFile::Write(const void *Buffer, ssize_t Size, int Flags)
 {
 	int Written = 0;
 
@@ -1531,10 +1531,10 @@ bool GFile::Eof()
 	return GetPos() >= GetSize();
 }
 
-int GFile::SwapRead(uchar *Buf, int Size)
+ssize_t GFile::SwapRead(uchar *Buf, ssize_t Size)
 {
-	int i = 0;
-	int r = 0;
+	ssize_t i = 0;
+	ssize_t r = 0;
 	Buf = &Buf[Size-1];
 	while (Size--)
 	{
@@ -1544,10 +1544,10 @@ int GFile::SwapRead(uchar *Buf, int Size)
 	return i;
 }
 
-int GFile::SwapWrite(uchar *Buf, int Size)
+ssize_t GFile::SwapWrite(uchar *Buf, ssize_t Size)
 {
-	int i = 0;
-	int w = 0;
+	ssize_t i = 0;
+	ssize_t w = 0;
 	Buf = &Buf[Size-1];
 	while (Size--)
 	{
@@ -1557,10 +1557,10 @@ int GFile::SwapWrite(uchar *Buf, int Size)
 	return i;
 }
 
-int GFile::ReadStr(char *Buf, int Size)
+ssize_t GFile::ReadStr(char *Buf, ssize_t Size)
 {
-	int i = 0;
-	int r = 0;
+	ssize_t i = 0;
+	ssize_t r = 0;
 	if (Buf && Size > 0)
 	{
 		char c;
@@ -1586,10 +1586,10 @@ int GFile::ReadStr(char *Buf, int Size)
 	return i;
 }
 
-int GFile::WriteStr(char *Buf, int Size)
+ssize_t GFile::WriteStr(char *Buf, ssize_t Size)
 {
-	int i = 0;
-	int w;
+	ssize_t i = 0;
+	ssize_t w;
 
 	while (i <= Size)
 	{
