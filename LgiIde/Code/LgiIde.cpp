@@ -746,7 +746,7 @@ public:
 			p.x2 = c.X() - 3;
 			p.y2 = c.Y() - 3;
 			Tab->SetPos(p);
-			LgiTrace("%s:%i - OnPosChange() %s\n", _FL, c.GetStr());
+			// LgiTrace("%s:%i - OnPosChange() %s\n", _FL, c.GetStr());
 			
 			c = Tab->GetTabClient();
 			c.Offset(-c.x1, -c.y1);
