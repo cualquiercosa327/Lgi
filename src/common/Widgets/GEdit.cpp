@@ -85,15 +85,22 @@ void GEdit::SendNotify(int Data)
 		return GTextView3::SendNotify(Data);
 }
 
-bool GEdit::GetSelection(size_t &Start, ssize_t &Len)
+GRange GEdit::GetSelectionRange()
 {
-	size_t Sel = GTextView3::GetCaret(false);
-	Start = GTextView3::GetCaret();
-	if (Sel < Start)
-		Len = Start - Sel + 1;
+	GRange r;
+	ssize_t Sel = GTextView3::GetCaret(false);
+	ssize_t Cur = GTextView3::GetCaret();
+	if (Sel < Cur)
+	{
+		r.Start = Sel;
+		r.Len = Cur - Sel;
+	}
 	else
-		Len = Sel - Start + 1;
-	return true;
+	{
+		r.Start = Cur;
+		r.Len = Sel - Cur;
+	}
+	return r;
 }
 
 void GEdit::Select(int Start, int Len)
@@ -102,14 +109,14 @@ void GEdit::Select(int Start, int Len)
 	GTextView3::SetCaret(Start + (Len > 0 ? Len : 0x7fffffff) - 1, true);
 }
 
-ssize_t GEdit::GetCaret()
+ssize_t GEdit::GetCaret(bool Cursor)
 {
-	return GTextView3::GetCaret();
+	return GTextView3::GetCaret(Cursor);
 }
 
-void GEdit::SetCaret(ssize_t i)
+void GEdit::SetCaret(size_t Pos, bool Select, bool ForceFullUpdate)
 {
-	GTextView3::SetCaret(i, false);
+	GTextView3::SetCaret(Pos, Select, ForceFullUpdate);
 }
 
 void GEdit::Value(int64 i)

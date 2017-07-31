@@ -115,3 +115,8 @@ void GProgress::OnPaint(GSurface *pDC)
 		pDC->Rectangle(&r);
 	}
 }
+
+void GProgress::GetLimits(int64 *l, int64 *h)
+{
+	Progress::GetLimits(l, h);
+}

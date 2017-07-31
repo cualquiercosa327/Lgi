@@ -67,11 +67,11 @@ public:
 	/// Selects a region of text
 	void Select(int Start = 0, int Len = -1);
 	/// Get the current selection in characters
-	bool GetSelection(size_t &Start, ssize_t &Len);
+	GRange GetSelectionRange();
 	/// Gets the Caret position in characters
-	ssize_t GetCaret();
+	ssize_t GetCaret(bool Cursor = true);
 	/// Sets the Caret position in characters
-	void SetCaret(ssize_t Pos);
+	void SetCaret(size_t Pos, bool Select = false, bool ForceFullUpdate = false);
 	/// Sets the text to display when the control is empty
 	void SetEmptyText(const char *EmptyText);
 

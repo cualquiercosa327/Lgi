@@ -251,7 +251,7 @@ public:
 	}
 
 	// Returns the address of an item or NULL if index is out of range
-	Type *AddressOf(size_t i)
+	Type *AddressOf(size_t i = 0)
 	{
 		return i < len ? p + i : NULL;
 	}

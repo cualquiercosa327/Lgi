@@ -7527,7 +7527,7 @@ GTag *GHtml::NextTag(GTag *t)
 			if (p->Parent)
 			{
 				GTag *pp = ToTag(p->Parent);
-				ssize_t Idx = pp->Children.IndexOf(p);
+				size_t Idx = pp->Children.IndexOf(p);
 				
 				GTag *Next = pp->Children.Length() > Idx + 1 ? ToTag(pp->Children[Idx + 1]) : NULL;
 				if (Next)
@@ -8968,7 +8968,7 @@ GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 	GTag *FakeCell = 0;
 
 	GTag *r;
-	for (ssize_t i=0; i<Table->Children.Length(); i++)
+	for (size_t i=0; i<Table->Children.Length(); i++)
 	{
 		r = ToTag(Table->Children[i]);
 		if (r->Display() == GCss::DispNone)
@@ -8982,7 +8982,7 @@ GHtmlTableLayout::GHtmlTableLayout(GTag *table)
 		else if (r->TagId == TAG_TBODY)
 		{
 			ssize_t Index = Table->Children.IndexOf(r);
-			for (ssize_t n=0; n<r->Children.Length(); n++)
+			for (size_t n=0; n<r->Children.Length(); n++)
 			{
 				GTag *t = ToTag(r->Children[n]);
 				Table->Children.AddAt(++Index, t);

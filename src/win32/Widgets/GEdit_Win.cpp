@@ -105,19 +105,20 @@ void GEdit::Select(int Start, int Len)
 	}
 }
 
-bool GEdit::GetSelection(size_t &Start, ssize_t &Len)
+GRange GEdit::GetSelectionRange()
 {
+	GRange r;
 	if (!_View)
-		return false;
+		return r;
 
 	DWORD s = 0, e = 0;
 	SendMessage(_View, EM_GETSEL, (WPARAM)&s, (LPARAM)&e);
 	if (s == e)
-		return false;
+		return r;
 
-	Start = s;
-	Len = e - s;
-	return true;
+	r.Start = s;
+	r.Len = e - s;
+	return r;
 }
 
 bool GEdit::MultiLine()
@@ -385,7 +386,7 @@ bool GEdit::OnKey(GKey &k)
 	return false;
 }
 
-ssize_t GEdit::GetCaret()
+ssize_t GEdit::GetCaret(bool Cursor)
 {
 	DWORD Start, End = 0;
 	if (_View)
@@ -393,7 +394,7 @@ ssize_t GEdit::GetCaret()
 	return End;
 }
 
-void GEdit::SetCaret(ssize_t Pos)
+void GEdit::SetCaret(size_t Pos, bool Select, bool ForceFullUpdate)
 {
 	if (_View)
 		SendMessage(_View, EM_SETSEL, Pos, Pos);

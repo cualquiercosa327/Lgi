@@ -196,7 +196,7 @@ public:
 		ssize_t _Write(const void *Ptr, ssize_t Bytes)
 		{
 			// Check if we have enough space to store the string..
-			ssize_t Total = CharsOnLine + Bytes;
+			size_t Total = CharsOnLine + Bytes;
 			if (Buf.Length() < Total)
 			{
 				// Extend the memory buffer

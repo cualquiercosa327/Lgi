@@ -34,7 +34,7 @@ public:
 	bool SetCssStyle(const char *CssStyle);
 	#else
 	void OnPaint(GSurface *pDC);
-	void GetLimits(int64 &l, int64 &h);
+	void GetLimits(int64 *l, int64 *h);
 	void Colour(COLOUR Col);
 	COLOUR Colour();
 	#endif

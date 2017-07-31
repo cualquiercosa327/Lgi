@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\include\win32;..\include\common;&quot;..\..\..\..\CodeLib\libjpeg-9a&quot;;..\..\..\..\CodeLib\zlib;..\..\..\..\CodeLib\libpng"
+				AdditionalIncludeDirectories="..\include\win32;..\include\common;&quot;..\..\..\..\CodeLib\libjpeg-9a&quot;;..\..\..\..\CodeLib\zlib;&quot;..\..\..\..\CodeLib\libpng-1.6.26&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -117,7 +117,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\include\win32;..\include\common;&quot;..\..\..\..\CodeLib\libjpeg-9a&quot;;..\..\..\..\CodeLib\zlib;..\..\..\..\CodeLib\libpng"
+				AdditionalIncludeDirectories="..\include\win32;..\include\common;&quot;..\..\..\..\CodeLib\libjpeg-9a&quot;;..\..\..\..\CodeLib\zlib;&quot;..\..\..\..\CodeLib\libpng-1.6.26&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;WINDOWS"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"

@@ -85,13 +85,8 @@ public:
 					}
 					case VK_LEFT:
 					{
-						int Start, Len;
-						if (GetSelection(Start, Len))
-						{
-							break;
-						}
-
-						if (GetCaret() ==  0)
+						GRange r = GetSelectionRange();
+						if (r.Len && GetCaret() ==  0)
 						{
 							d->MoveCell(-1);
 							return true;
@@ -100,16 +95,14 @@ public:
 					}
 					case VK_RIGHT:
 					{
-						int Start, Len;
-						if (GetSelection(Start, Len))
-						{
+						GRange r = GetSelectionRange();
+						if (r.Len == 0)
 							break;
-						}
 
 						char16 *Txt = NameW();
-						Len = Txt ? StrlenW(Txt) : 0;
+						r.Len = Txt ? StrlenW(Txt) : 0;
 						int Cursor = GetCaret();
-						if (Cursor >= Len)
+						if (Cursor >= r.Len)
 						{
 							d->MoveCell(1);
 							return true;
