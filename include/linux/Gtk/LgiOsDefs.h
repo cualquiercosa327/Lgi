@@ -126,9 +126,10 @@ typedef CRITICAL_SECTION			OsSemaphore;
 #else
 
 typedef pthread_t					OsThread;
-typedef pthread_t					OsThreadId;
+typedef pid_t						OsThreadId;
 typedef pthread_mutex_t				OsSemaphore;
 #define LgiGetCurrentThread()		pthread_self()
+LgiFunc OsThreadId					GetCurrentThreadId();
 
 #endif
 

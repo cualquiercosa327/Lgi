@@ -199,8 +199,23 @@ public:
 			// to lock to check for messages...
 			Loop = false;
 			Event.Signal();
+			
+			uint64 Start = LgiCurrentTime();
+			
 			while (!IsExited())
+			{
 				LgiSleep(10);
+				
+				uint64 Now = LgiCurrentTime();
+				if (Now - Start > 2000)
+				{
+					printf("%s:%i - EndThread() hung waiting for %s to exit (me=%i, thd=%i).\n",
+						_FL, GThread::GetName(),
+						GetCurrentThreadId(),
+						GetId());
+					Start = Now;
+				}
+			}
 		}
 	}
 

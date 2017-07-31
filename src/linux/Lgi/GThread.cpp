@@ -1,5 +1,17 @@
 #include "Lgi.h"
 #include <errno.h>
+#include <unistd.h>
+#include <sys/syscall.h>
+
+OsThreadId GetCurrentThreadId()
+{
+	#ifdef SYS_gettid
+	return syscall(SYS_gettid);
+	#else
+	LgiAssert(0);
+	return 0;
+	#endif
+}
 
 ////////////////////////////////////////////////////////////////////////////
 void *ThreadEntryPoint(void *i)
@@ -7,6 +19,7 @@ void *ThreadEntryPoint(void *i)
 	if (i)
 	{
 		GThread *Thread = (GThread*) i;
+		Thread->ThreadId = GetCurrentThreadId();
 
 		// Make sure we have finished executing the setup
 		while (Thread->State == GThread::THREAD_INIT)
@@ -41,6 +54,7 @@ void *ThreadEntryPoint(void *i)
 GThread::GThread(const char *ThreadName)
 {
 	Name = ThreadName;
+	ThreadId = 0;
 	State = GThread::THREAD_ASLEEP;
 	ReturnValue = -1;
 	hThread = 0;

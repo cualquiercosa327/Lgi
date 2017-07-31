@@ -44,6 +44,7 @@ protected:
 
 	#elif defined POSIX
 
+	pid_t ThreadId;
 	friend void *ThreadEntryPoint(void *i);
 
 	#else
@@ -61,8 +62,11 @@ public:
 
 	// Properties
 	OsThread Handle() { return hThread; }
-	#ifdef WIN32
+	const char *GetName() { return Name; }
+	#if defined(WIN32)
 	uint GetId() { return ThreadId; }
+	#elif defined(POSIX)
+	pid_t GetId() { return ThreadId; }
 	#endif
 	ThreadState GetState() { return State; } // Volitile at best... only use for 'debug'
 	virtual int ExitCode();
