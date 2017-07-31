@@ -1251,19 +1251,20 @@ ProjectStatus IdeProject::OpenFile(char *FileName)
 					}
 				}
 				
-				OnOpen(Prog, &r);
+				if (!r.IsTag("Project"))
+					return OpenError;
+
+				bool Ok = OnOpen(Prog, &r);
 				if (Prog.Cancel())
-				{
 					return OpenCancel;
-				}
-				else
-				{
-					d->App->GetTree()->Insert(this);
-					Expanded(true);
+				else if (!Ok)
+					return OpenError;
+
+				d->App->GetTree()->Insert(this);
+				Expanded(true);
 				
-					d->Settings.Serialize(&r, false /* read */);
-					return OpenOk;
-				}
+				d->Settings.Serialize(&r, false /* read */);
+				return OpenOk;
 			}
 			else
 			{

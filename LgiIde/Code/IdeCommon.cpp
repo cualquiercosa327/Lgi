@@ -32,6 +32,8 @@ bool IdeCommon::OnOpen(GProgressDlg &Prog, GXmlTag *Src)
 			if (pn && (Processed = pn->OnOpen(Prog, c)))
 				InsertTag(pn);
 		}
+		else if (!c->IsTag("Settings"))
+			return false;
 		if (!Processed)
 			Prog.Value(Prog.Value() + 1);
 	}

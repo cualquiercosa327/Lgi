@@ -1506,7 +1506,11 @@ void AppWnd::OnReceiveFiles(GArray<char*> &Files)
 		}
 		else if (ext && !stricmp(ext, "xml"))
 		{
-			OpenProject(f, NULL);
+			IdeProject *p = OpenProject(f, NULL);
+			if (!p)
+			{
+				int asd=0;
+			}
 		}
 		else
 		{
@@ -1957,7 +1961,7 @@ IdeProject *AppWnd::OpenProject(char *FileName, IdeProject *ParentProj, bool Cre
 	
 	if (FileName && !d->IsProjectOpen(FileName))
 	{
-		d->Projects.Insert(p = new IdeProject(this));
+		p = new IdeProject(this);
 		if (p)
 		{
 			GString::Array Inc;
@@ -1969,6 +1973,7 @@ IdeProject *AppWnd::OpenProject(char *FileName, IdeProject *ParentProj, bool Cre
 			ProjectStatus Status = p->OpenFile(FileName);
 			if (Status == OpenOk)
 			{
+				d->Projects.Insert(p);
 				d->OnFile(FileName, true);
 				
 				if (!Dep)
