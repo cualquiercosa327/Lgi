@@ -1841,7 +1841,8 @@ bool IdeProject::BuildIncludePaths(GArray<GString> &Paths, bool Recurse, IdePlat
 				for (unsigned i=0; i<Nodes.Length(); i++)
 				{
 					ProjectNode *n = Nodes[i];
-					if (n->GetType() == NodeHeader)
+					if (n->GetType() == NodeHeader &&				// Only look at headers.
+						(n->GetPlatforms() & (1 << Platform)) != 0)	// Exclude files not on this platform.
 					{
 						char *f = n->GetFileName();
 						char p[MAX_PATH];
@@ -2047,7 +2048,7 @@ bool IdeProject::GetAllDependencies(GArray<char*> &Files, IdePlatform Platform)
 			    LgiMakePath(Full, sizeof(Full), Base, d->File);
 			    Src = Full;
 			}
-			
+
 			GArray<char*> SrcDeps;
 			if (GetDependencies(Src, IncPaths, SrcDeps, Platform))
 			{
