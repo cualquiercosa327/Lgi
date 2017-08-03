@@ -355,6 +355,109 @@ public:
 #define IDC_SUB_TBL					1013
 #define IDC_BOOKMARKS				1014
 
+#if 1
+#define USE_FOLDER_CTRL				1
+
+class FolderCtrl : public GView
+{
+	struct Part
+	{
+		GAutoPtr<GDisplayString> ds;
+		GRect Arrow;
+		GRect Text;
+	};
+	
+	GEdit *e;
+	GArray<Part> p;
+	
+public:
+	FolderCtrl(int id)
+	{
+		SetId(id);
+	}
+	
+	~FolderCtrl()
+	{
+	}
+	
+	const char *GetClass() { return "FolderCtrl"; }
+	
+	char *Name()
+	{
+		return GView::Name();
+	}
+	
+	bool OnLayout(GViewLayoutInfo &Inf)
+	{
+		if (Inf.Width.Min == 0)
+		{
+			Inf.Width.Min = -1;
+			Inf.Width.Max = -1;
+		}
+		else
+		{
+			Inf.Height.Min = GetFont()->GetHeight() + 4;
+			Inf.Height.Max = Inf.Height.Min;
+		}
+		return true;
+	}
+
+	bool Name(const char *n)
+	{
+		bool b = GView::Name(n);
+		
+		GString Nm(n);
+		GString::Array a = Nm.SplitDelimit(DIR_STR);
+		p.Length(0);
+		for (size_t i=0; i<a.Length(); i++)
+		{
+			Part &n = p.New();
+			n.ds.Reset(new GDisplayString(GetFont(), a[i]));
+		}
+		Invalidate();
+		return b;
+	}
+	
+	void OnPaint(GSurface *pDC)
+	{
+		GRect c = GetClient();
+		LgiThinBorder(pDC, c, EdgeWin7Sunken);
+		
+		GFont *f = GetFont();
+		f->Colour(LC_TEXT, LC_WORKSPACE);
+		f->Transparent(false);
+		
+		GDisplayString Arrow(f, ">");
+		for (unsigned i=0; i<p.Length(); i++)
+		{
+			Part &n = p[i];
+			
+			// Layout and draw arrow
+			n.Arrow.ZOff(c.Y()-1, c.Y()-1);
+			n.Arrow.Offset(Arrow.X()+1, c.y1);
+			Arrow.DrawCenter(pDC, &n.Arrow);
+			c.x1 = n.Arrow.x2 + 1;
+
+			if (n.ds)
+			{
+				// Layout and draw text
+				n.Text.ZOff(n.ds->X() + 4, c.Y()-1);
+				n.Text.Offset(c.x1, c.y1);
+				n.ds->DrawCenter(pDC, &n.Text);
+				c.x1 = n.Text.x2 + 1;
+			}
+		}
+		
+		pDC->Colour(LC_WORKSPACE, 24);
+		pDC->Rectangle(&c);
+	}
+};
+
+#else
+#define USE_FOLDER_CTRL				0
+#endif
+
+
 class GFileSelectDlg :
 	public GDialog
 {
@@ -370,7 +473,13 @@ public:
 
 	GTree *Bookmarks;
 	GText *Ctrl1;
+
+	#if USE_FOLDER_CTRL
+	FolderCtrl *Ctrl2;
+	#else
 	GEdit *Ctrl2;
+	#endif
+	
 	GFolderDrop *Ctrl3;
 	GIconButton *BackBtn;
 	GIconButton *UpBtn;
@@ -470,7 +579,11 @@ GFileSelectDlg::GFileSelectDlg(GFileSelectPrivate *select)
 	c->Add(Ctrl1 = new GText(IDC_STATIC, 0, 0, -1, -1, "Look in:"));
 	c->VerticalAlign(GCss::Len(GCss::VerticalMiddle));
 	c = Tbl->GetCell(x++, y);
+	#if USE_FOLDER_CTRL
+	c->Add(Ctrl2 = new FolderCtrl(IDC_PATH));
+	#else
 	c->Add(Ctrl2 = new GEdit(IDC_PATH, 0, 0, 245, 21, ""));
+	#endif
 	c = Tbl->GetCell(x++, y);
 	c->Add(Ctrl3 = new GFolderDrop(this, IDC_DROP, 336, 7, 16, 21));
 	c = Tbl->GetCell(x++, y);

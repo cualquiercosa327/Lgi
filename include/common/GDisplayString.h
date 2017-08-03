@@ -206,6 +206,19 @@ public:
 			bool Debug = false
 		);
 
+		/// Draws the string onto a device surface
+		void DrawCenter
+		(
+			/// The output device
+			GSurface *pDC,
+			/// An rectangle to center in. If the font is not transparent this rectangle will be filled with the background colour.
+			GRect *r
+		)
+		{
+			if (r)
+				Draw(pDC, r->x1 + ((r->X() - X()) >> 1), r->y1 + ((r->Y() - Y()) >> 1), r);
+		}
+
 	// API that uses fractional pixel sizes.
 		
 		enum
