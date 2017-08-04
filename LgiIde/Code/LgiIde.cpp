@@ -3270,30 +3270,46 @@ public:
 #include "GSubProcess.h"
 void Test()
 {
-	/*
-	int r;
-
-	#if 1
-	// Basic test
-	GSubProcess p1("grep", "-i tiff *.csv");
-	p1.SetInitFolder("c:\\Users\\matthew");
-	p1.Start(true, false);
-	#else
-	// More complex test
-	GSubProcess p1("dir");
-	GSubProcess p2("grep", "test");
-	p1.Connect(&p2);
-	p1.Start(true, false);
-	#endif
-
-	char Buf[256];
-	while ((r = p1.Read(Buf, sizeof(Buf))) > 0)
+	GDirectory d;
+	for (int b = d.First("C:\\Users\\matthew\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Cache"); b; b = d.Next())
 	{
-		// So something with 'Buf'
-		Buf[r] = 0;
-	}
-	*/
+		if (!d.IsDir())
+		{
+			char p[MAX_PATH];
+			d.Path(p, sizeof(p));
 
+			if (stristr(d.GetName(), "f_00005d"))
+			{
+				int asd=0;
+			}
+
+			GFile f;
+			if (f.Open(p, O_READ))
+			{
+				char Buf[256];
+				ssize_t Rd = f.Read(Buf, sizeof(Buf));
+				if (Rd > 3 && !strnicmp(Buf, "Ogg", 3))
+				{
+					char out[MAX_PATH];
+					f.Close();
+					LgiMakePath(out, sizeof(out), "C:\\Users\\matthew\\Desktop\\new day", d.GetName());
+					strcat(out, ".ogg");
+					if (!FileDev->Copy(p, out))
+					{
+						LgiTrace("%s:%i - Failed to copy '%s'\n", _FL, d.GetName());
+					}
+				}
+				else
+				{
+					LgiTrace("%s:%i - Not an ogg '%s'\n", _FL, d.GetName());
+				}
+			}
+			else
+			{
+				LgiTrace("%s:%i - Can't open '%s'\n", _FL, d.GetName());
+			}
+		}
+	}
 }
 
 int LgiMain(OsAppArguments &AppArgs)
@@ -3302,7 +3318,7 @@ int LgiMain(OsAppArguments &AppArgs)
 	GApp a(AppArgs, "LgiIde");
 	if (a.IsOk())
 	{
-		Test();
+		// Test();
 		
 		a.AppWnd = new AppWnd;
 		// a.AppWnd = new Test;

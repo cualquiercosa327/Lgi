@@ -57,6 +57,8 @@ class AddFilesProgress : public GDialog
 
 public:
 	bool Cancel;
+	static const char *DefaultExt;
+	GHashTbl<const char*, bool> Exts;
 
 	AddFilesProgress(GViewI *par);
 

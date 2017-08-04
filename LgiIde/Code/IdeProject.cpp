@@ -1144,7 +1144,7 @@ GAutoString IdeProject::GetFullPath()
 
 	if (!proj)
 	{
-		LgiAssert(!"All projects have a relative path?");
+		// LgiAssert(!"All projects have a relative path?");
 		return Status; // No absolute path in the parent projects?
 	}
 
@@ -3062,7 +3062,9 @@ int IdeTree::OnDrop(GArray<GDragData> &Data, GdcPt2 p, int KeyState)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
-AddFilesProgress::AddFilesProgress(GViewI *par)
+const char *AddFilesProgress::DefaultExt = "c,cpp,cxx,h,hpp,hxx,html,css,json,js,jsx,txt,png,jpg,jpeg,rc,xml";
+
+AddFilesProgress::AddFilesProgress(GViewI *par) : Exts(0, false)
 {
 	v = 0;
 	Cancel = false;
@@ -3073,6 +3075,12 @@ AddFilesProgress::AddFilesProgress(GViewI *par)
 	SetPos(r);
 	MoveSameScreen(par);
 	Name("Importing files...");
+
+	GString::Array a = GString(DefaultExt).SplitDelimit(",");
+	for (unsigned i=0; i<a.Length(); i++)
+	{
+		Exts.Add(a[i], true);
+	}
 
 	GTableLayout *t = new GTableLayout(100);
 	AddView(t);
