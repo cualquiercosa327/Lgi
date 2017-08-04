@@ -242,6 +242,9 @@ public:
 		while (Loop)
 		{
 			GThreadEvent::WaitStatus s = Event.Wait();
+			
+			LgiTrace("%s:%i - style thread = %i\n", _FL, s);
+			
 			if (s == GThreadEvent::WaitSignaled)
 			{
 				while (true)

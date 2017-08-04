@@ -424,7 +424,6 @@ public:
 		LgiThinBorder(pDC, c, EdgeWin7Sunken);
 		
 		GFont *f = GetFont();
-		f->Colour(LC_TEXT, LC_WORKSPACE);
 		f->Transparent(false);
 		
 		GDisplayString Arrow(f, ">");
@@ -433,8 +432,9 @@ public:
 			Part &n = p[i];
 			
 			// Layout and draw arrow
-			n.Arrow.ZOff(c.Y()-1, c.Y()-1);
-			n.Arrow.Offset(Arrow.X()+1, c.y1);
+			n.Arrow.ZOff(Arrow.X()+1, c.Y()-1);
+			n.Arrow.Offset(c.x1, c.y1);
+			f->Colour(Rgb24(192,192,192), LC_WORKSPACE);
 			Arrow.DrawCenter(pDC, &n.Arrow);
 			c.x1 = n.Arrow.x2 + 1;
 
@@ -443,6 +443,7 @@ public:
 				// Layout and draw text
 				n.Text.ZOff(n.ds->X() + 4, c.Y()-1);
 				n.Text.Offset(c.x1, c.y1);
+				f->Colour(LC_TEXT, LC_WORKSPACE);
 				n.ds->DrawCenter(pDC, &n.Text);
 				c.x1 = n.Text.x2 + 1;
 			}
