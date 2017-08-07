@@ -352,6 +352,11 @@ public:
 #if 1
 #define USE_FOLDER_CTRL				1
 
+enum FolderCtrlMessages
+{
+	M_DELETE_EDIT				=	M_USER + 100
+};
+
 class FolderCtrl : public GView
 {
 	struct Part
@@ -388,6 +393,7 @@ class FolderCtrl : public GView
 public:
 	FolderCtrl(int id)
 	{
+		e = NULL;
 		Cursor = 0;
 		SetId(id);
 	}
@@ -493,11 +499,33 @@ public:
 		}
 		else if (m.Left())
 		{
-			if (m.Down() && p.PtrCheck(Over))
+			if (m.Down())
 			{
-				Cursor = Over - p.AddressOf(0);
-				Invalidate();
-				SendNotify(GNotifyValueChanged);
+				if (p.PtrCheck(Over))
+				{
+					// Over a path node...
+					Cursor = Over - p.AddressOf(0);
+					Invalidate();
+					SendNotify(GNotifyValueChanged);
+				}
+				else
+				{
+					// In empty space
+					if (!e)
+					{
+						GRect c = GetClient();
+						e = new GEdit(GetId()+1, c.x1, c.y1, c.X()-1, c.Y()-1);
+						if (e)
+						{
+							e->Attach(this);
+
+							GString s = Name();
+							e->Name(s);
+							e->SetCaret(s.Length());
+							e->Focus(true);
+						}
+					}
+				}
 			}
 		}
 	}
@@ -517,6 +545,37 @@ public:
 			Over = NULL;
 			Invalidate();
 		}
+	}
+
+	int OnNotify(GViewI *c, int f)
+	{
+		if (e != NULL &&
+			c->GetId() == e->GetId())
+		{
+			if (f == VK_RETURN)
+			{
+				GString s = e->Name();
+				Name(s);
+				PostEvent(M_DELETE_EDIT);
+				SendNotify(GNotifyValueChanged);
+			}
+		}
+
+		return 0;
+	}
+
+	GMessage::Result OnEvent(GMessage *m)
+	{
+		switch (m->Msg())
+		{
+			case M_DELETE_EDIT:
+			{
+				DeleteObj(e);
+				break;
+			}
+		}
+
+		return GView::OnEvent(m);
 	}
 };
 
