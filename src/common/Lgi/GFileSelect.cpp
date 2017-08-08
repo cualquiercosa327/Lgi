@@ -354,7 +354,8 @@ public:
 
 enum FolderCtrlMessages
 {
-	M_DELETE_EDIT				=	M_USER + 100
+	M_DELETE_EDIT				=	M_USER + 100,
+	M_NOTIFY_VALUE_CHANGED,
 };
 
 class FolderCtrl : public GView
@@ -458,7 +459,7 @@ public:
 		Cursor = p.Length() - 1;
 
 		Invalidate();
-		SendNotify(GNotifyValueChanged);
+		PostEvent(M_NOTIFY_VALUE_CHANGED);
 		return b;
 	}
 	
@@ -571,7 +572,6 @@ public:
 				GString s = e->Name();
 				Name(s);
 				PostEvent(M_DELETE_EDIT);
-				SendNotify(GNotifyValueChanged);
 			}
 		}
 
@@ -586,6 +586,11 @@ public:
 			{
 				DeleteObj(e);
 				break;
+			}
+			case M_NOTIFY_VALUE_CHANGED:
+			{
+				SendNotify(GNotifyValueChanged);
+				break;			
 			}
 		}
 
