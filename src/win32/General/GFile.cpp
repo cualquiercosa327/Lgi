@@ -272,9 +272,10 @@ bool ResolveShortcut(const char *LinkFile, char *Path, ssize_t Len)
 					{
 						#ifdef UNICODE
 						TCHAR TmpPath[MAX_PATH];
-						ptrdiff_t TpLen = _GetLongPathName(szGotPath, TmpPath, CountOf(TmpPath));
+						ssize_t TpLen = _GetLongPathName(szGotPath, TmpPath, CountOf(TmpPath)) * sizeof(TmpPath[0]);
 						const void *Tp = TmpPath;
-						LgiBufConvertCp(Path, "utf-8", Len, Tp, LGI_WideCharset, TpLen);
+						ssize_t OutLen = LgiBufConvertCp(Path, "utf-8", Len-1, Tp, LGI_WideCharset, TpLen);
+						Path[OutLen] = 0;
 						#else
 						_GetLongPathName(szGotPath, Path, Len);
 						#endif

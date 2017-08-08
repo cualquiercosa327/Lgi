@@ -419,18 +419,24 @@ public:
 		return true;
 	}
 
-	char *Name()
+	GString NameAt(int Level)
 	{
 		GString n;
-		for (unsigned i=0; i<=Cursor && i<p.Length(); i++)
+		#ifndef WINDOWS
+		n += "/";
+		#endif
+		for (unsigned i=0; i<=Level && i<p.Length(); i++)
 		{
-			#ifndef WINDOWS
-			n += "/";
-			#endif
 			n += (const char16*) *(p[i].ds.Get());
 			n += DIR_STR;
 		}
 
+		return n;		
+	}
+
+	char *Name()
+	{
+		GString n = NameAt(Cursor);
 		GBase::Name(n);
 		return GBase::Name();
 	}
@@ -452,6 +458,7 @@ public:
 		Cursor = p.Length() - 1;
 
 		Invalidate();
+		SendNotify(GNotifyValueChanged);
 		return b;
 	}
 	
@@ -505,8 +512,15 @@ public:
 				{
 					// Over a path node...
 					Cursor = Over - p.AddressOf(0);
+					Part &o = p[Cursor];
 					Invalidate();
 					SendNotify(GNotifyValueChanged);
+
+					if (o.Arrow.Overlap(m.x, m.y))
+					{
+						// Show sub-menu at this level
+						ShowMenu(Cursor);
+					}
 				}
 				else
 				{
@@ -576,6 +590,40 @@ public:
 		}
 
 		return GView::OnEvent(m);
+	}
+
+	virtual bool ShowMenu(int Level)
+	{
+		if (Level <= 0)
+			return false;
+
+		GString dir = NameAt(Level-1);
+		GSubMenu s;
+		GDirectory d;
+
+		GString::Array Opts;
+		for (int b = d.First(dir); b; b = d.Next())
+		{
+			if (d.IsDir())
+			{
+				Opts.New() = d.GetName();
+				s.AppendItem(d.GetName(), Opts.Length());
+			}
+		}
+
+		Part &i = p[Level];
+		GdcPt2 pt(i.Arrow.x1, i.Arrow.y2+1);
+		PointToScreen(pt);
+		int Cmd = s.Float(this, pt.x, pt.y, true);
+		if (Cmd)
+		{
+			GString np;
+			np = dir + DIR_STR + Opts[Cmd-1];
+			Name(np);
+		}
+		else return false;
+
+		return true;
 	}
 };
 
