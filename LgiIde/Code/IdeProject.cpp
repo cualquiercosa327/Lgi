@@ -26,6 +26,8 @@
 #include "GButton.h"
 
 extern const char *Untitled;
+const char SourcePatterns[] = "*.c;*.h;*.cpp;*.cc;*.java;*.d;*.php;*.html;*.css";
+const char *AddFilesProgress::DefaultExt = "c,cpp,cc,cxx,h,hpp,hxx,html,css,json,js,jsx,txt,png,jpg,jpeg,rc,xml";
 
 #define STOP_BUILD_TIMEOUT			3000
 #ifdef WIN32
@@ -51,8 +53,6 @@ int PlatformCtrlId[] =
 	IDC_HAIKU,
 	0
 };
-
-const char SourcePatterns[] = "*.c;*.h;*.cpp;*.java;*.d;*.php;*.html;*.css";
 
 char *ToUnixPath(char *s)
 {
@@ -3062,8 +3062,6 @@ int IdeTree::OnDrop(GArray<GDragData> &Data, GdcPt2 p, int KeyState)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
-const char *AddFilesProgress::DefaultExt = "c,cpp,cxx,h,hpp,hxx,html,css,json,js,jsx,txt,png,jpg,jpeg,rc,xml";
-
 AddFilesProgress::AddFilesProgress(GViewI *par) : Exts(0, false)
 {
 	v = 0;

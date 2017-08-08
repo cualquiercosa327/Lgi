@@ -1687,6 +1687,8 @@ public:
 					||
 					!stricmp(Ext, "cpp")
 					||
+					!stricmp(Ext, "cc")
+					||
 					!stricmp(Ext, "h"))
 				FileType = SrcCpp;
 			else if (!stricmp(Ext, "py"))
