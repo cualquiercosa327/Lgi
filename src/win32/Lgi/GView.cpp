@@ -147,7 +147,7 @@ int _lgi_get_key_flags()
 int GetInputACP()
 {
 	char16 Str[16];
-	LCID Lcid = (NativeInt)GetKeyboardLayout(LgiGetCurrentThread()) & 0xffff;
+	LCID Lcid = (NativeInt)GetKeyboardLayout(GetCurrentThreadId()) & 0xffff;
 	GetLocaleInfo(Lcid, LOCALE_IDEFAULTANSICODEPAGE, Str, sizeof(Str));
 	return _wtoi(Str);
 }

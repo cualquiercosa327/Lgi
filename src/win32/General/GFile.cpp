@@ -1325,13 +1325,13 @@ const uint64 GDirectory::GetSize()
 class GFilePrivate
 {
 public:
-	OsFile	hFile;
-	char	*Name;
-	int		Attributes;
-	bool	Swap;
-	bool	Status;
-	int		CreateThread;
-	DWORD	LastError;
+	OsFile		hFile;
+	char		*Name;
+	int			Attributes;
+	bool		Swap;
+	bool		Status;
+	OsThread	CreateThread;
+	DWORD		LastError;
 
 	GFilePrivate()
 	{

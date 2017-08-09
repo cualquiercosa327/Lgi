@@ -221,7 +221,7 @@ public:
 						r,
 						val);
 					#else
-					printf("%s:%i - EndThread() hung waiting for %s to exit (caller.thread=%i, worker.thread=%i, event=%i).\n",
+					printf("%s:%i - EndThread() hung waiting for %s to exit (caller.thread=%i, worker.thread=%i, event=%p).\n",
 						_FL, GThread::GetName(),
 						(int)GetCurrentThreadId(),
 						GetId(),

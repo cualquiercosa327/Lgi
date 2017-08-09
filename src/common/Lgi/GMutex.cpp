@@ -135,7 +135,7 @@ bool GMutex::Lock(const char *file, int line)
 {
 	int64 Start = LgiCurrentTime();
 	bool Status = false;
-	OsThreadId CurrentThread = LgiGetCurrentThread();
+	OsThreadId CurrentThread = GetCurrentThreadId();
 	bool Warn = true;
 
 	while (!Status)
@@ -215,7 +215,7 @@ bool GMutex::LockWithTimeout(int Timeout, const char *file, int line)
 	{
 		if (_Lock())
 		{
-			OsThreadId CurrentThread = LgiGetCurrentThread();
+			OsThreadId CurrentThread = GetCurrentThreadId();
 			if (!_Thread ||
 				_Thread == CurrentThread)
 			{
