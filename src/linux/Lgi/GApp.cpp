@@ -195,7 +195,7 @@ public:
 	#endif
 	GLibrary *WmLib;
 	GHashTbl<int, GView*> Handles;
-	OsThreadId GuiThread;
+	OsThread GuiThread;
 	int MessageLoopDepth;
 	int CurEvent;
 	#if DEBUG_MSG_TYPES
@@ -436,9 +436,9 @@ GViewI *GApp::GetFocus()
 	return NULL;
 }
 
-OsThreadId GApp::GetGuiThread()
+OsThread GApp::GetGuiThread()
 {
-	return d->GuiThread;;
+	return d->GuiThread;
 }
 
 OsProcessId GApp::GetProcessId()

@@ -208,6 +208,7 @@ int main(int Args, char **Arg)
 			LgiTrace("\t[%i]='%s'\n", i, Arg[i]);
 		#endif
 		
+		
 		// Setup apple event handlers
 		#if COCOA
 		#else
