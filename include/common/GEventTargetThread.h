@@ -165,7 +165,7 @@ class LgiClass GEventTargetThread :
 	GString ProcessName(GString obj, const char *desc)
 	{
 		OsProcessId process = LgiGetCurrentProcess();
-		OsThreadId thread = LgiGetCurrentThread();
+		OsThreadId thread = GetCurrentThreadId();
 		GString s;
 		s.Printf("%s.%s.%i.%i", obj.Get(), desc, process, thread);
 		return s;
@@ -209,6 +209,7 @@ public:
 				uint64 Now = LgiCurrentTime();
 				if (Now - Start > 2000)
 				{
+					#ifdef LINUX
 					int val = 1111;
 					int r = sem_getvalue(Event.Handle(), &val);
 
@@ -219,6 +220,14 @@ public:
 						Event.Handle(),
 						r,
 						val);
+					#else
+					printf("%s:%i - EndThread() hung waiting for %s to exit (caller.thread=%i, worker.thread=%i, event=%i).\n",
+						_FL, GThread::GetName(),
+						(int)GetCurrentThreadId(),
+						GetId(),
+						Event.Handle());
+					#endif
+					
 					Start = Now;
 				}
 			}

@@ -6,6 +6,14 @@
 #error asd
 #endif
 
+OsThreadId GetCurrentThreadId()
+{
+	uint64_t tid = 0;
+	pthread_threadid_np(NULL, &tid);
+	return tid;
+}
+
+
 ////////////////////////////////////////////////////////////////////////////
 void *ThreadEntryPoint(void *i)
 {

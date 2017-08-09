@@ -684,7 +684,7 @@ public:
 	MailIMap::OAuthParams OAuth;
 	GViewI *ParentWnd;
 	bool *LoopState;
-	OsThreadId InCommand;
+	OsThread InCommand;
 	GString LastWrite;
 
 	MailIMapPrivate() : GMutex("MailImapSem")

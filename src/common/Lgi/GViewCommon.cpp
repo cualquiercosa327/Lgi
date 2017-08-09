@@ -1817,8 +1817,8 @@ bool GView::InThread()
 
 	#else
 
-		OsThreadId Me = LgiGetCurrentThread();
-		OsThreadId Gui = LgiApp ? LgiApp->GetGuiThread() : 0;
+		OsThread Me = LgiGetCurrentThread();
+		OsThread Gui = LgiApp ? LgiApp->GetGuiThread() : 0;
 		return Gui == Me;
 
 	#endif

@@ -709,7 +709,7 @@ GViewI *GApp::GetFocus()
 	return 0;
 }
 
-OsThreadId GApp::GetGuiThread()
+OsThread GApp::GetGuiThread()
 {
 	return d->GuiThread;
 }

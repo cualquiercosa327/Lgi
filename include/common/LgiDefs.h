@@ -73,8 +73,10 @@ typedef		unsigned short				uint16;
 
 	#include <wchar.h>
 	#include <stddef.h>
-	
-	typedef int bool;
+
+	#ifndef MAC
+		typedef int bool;
+	#endif
 
 #endif
 

@@ -81,9 +81,10 @@ typedef int							OsProcessId;
 #define LgiGetCurrentProcess()		getpid()
 
 // Threads
-typedef pthread_t					OsThreadId;
+typedef uint64_t					OsThreadId;
 typedef pthread_mutex_t				OsSemaphore;
 #define LgiGetCurrentThread()		pthread_self()
+LgiFunc OsThreadId					GetCurrentThreadId();
 
 // Sockets
 #define ValidSocket(s)				((s)>=0)
