@@ -31,6 +31,7 @@
 #endif
 
 #define DEBUG_THREADING     0
+#define USE_NAMED_SEM		0
 
 GThreadEvent::GThreadEvent(const char *name)
 {
@@ -47,6 +48,7 @@ GThreadEvent::GThreadEvent(const char *name)
 
 	#elif USE_POSIX_SEM
 	
+		#if USE_NAMED_SEM
 		char Str[256];
 		ZeroObj(Str);
 		sprintf_s(Str, sizeof(Str), "lgi.sem.%p", this);
@@ -56,6 +58,14 @@ GThreadEvent::GThreadEvent(const char *name)
 		{
 			printf("%s:%i - sem_open failed with %i.\n", _FL, errno);
 		}
+		#else
+		Sem = &Local;
+		int r = sem_init(Sem, 0, 0);
+		if (r)
+		{
+			printf("%s:%i - sem_init failed with %i\n", _FL, errno);
+		}
+		#endif
 		else
 		{
 			#if DEBUG_THREADING
@@ -106,10 +116,16 @@ GThreadEvent::~GThreadEvent()
 
 	#elif USE_POSIX_SEM
 
+		// printf("%s:%i - ~GThreadEvent %i\n", _FL, Sem);
+
 		if (Sem != SEM_FAILED)
 		{
-			printf("%s:%i - sem_close(%i) in %i\n", _FL, Sem, GetCurrentThreadId());
+			#if USE_NAMED_SEM
+			// printf("%s:%i - sem_close(%i) in %i\n", _FL, Sem, GetCurrentThreadId());
 			sem_close(Sem);
+			#else
+			sem_destroy(Sem);
+			#endif
 			Sem = SEM_FAILED;
 
 			#if DEBUG_THREADING
@@ -173,10 +189,21 @@ bool GThreadEvent::Signal()
 	
 		if (!IsOk())
 			return false;
-			
-		printf("%s:%i - calling sem_post(%i) in %i\n", _FL, Sem, GetCurrentThreadId());
-		int r = sem_post(Sem);
-		printf("%s:%i - sem_post(%i) = %i in %i\n", _FL, Sem, r, GetCurrentThreadId());
+
+		int r;
+		#if DEBUG_THREADING
+		int val = 1111;
+		r = sem_getvalue (Sem, &val);     			
+		printf("%s:%i - calling sem_post(%i) in %i (val=%i, name=%s)\n", _FL, Sem, GetCurrentThreadId(), val, Name());
+		#endif
+		
+		r = sem_post(Sem);
+		
+		#if DEBUG_THREADING
+		sem_getvalue (Sem, &val);
+		printf("%s:%i - sem_post(%i) = %i in %i (val=%i, name=%s)\n", _FL, Sem, r, GetCurrentThreadId(), val, Name());
+		#endif
+		
 		if (r)
 		{
 			printf("%s:%i - sem_post failed.\n", _FL);
@@ -281,9 +308,13 @@ GThreadEvent::WaitStatus GThreadEvent::Wait(int32 Timeout)
 		int r;
 		if (Timeout < 0)
 		{
-			printf("%s:%i - starting sem_wait(%i) in %i\n", _FL, Sem, GetCurrentThreadId());
+			#if DEBUG_THREADING
+			printf("%s:%i - starting sem_wait(%i) in %i (name=%s)\n", _FL, Sem, GetCurrentThreadId(), Name());
+			#endif
 			r = sem_wait(Sem);
-			printf("%s:%i - sem_wait(%i) = %i (in %i)\n", _FL, Sem, r, GetCurrentThreadId());
+			#if DEBUG_THREADING
+			printf("%s:%i - sem_wait(%i) = %i in %i (name=%s)\n", _FL, Sem, r, GetCurrentThreadId(), Name());
+			#endif
 			if (r)
 			{
 				printf("%s:%i - sem_wait failed with %i.\n", _FL, errno);

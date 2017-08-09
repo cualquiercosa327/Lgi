@@ -209,10 +209,16 @@ public:
 				uint64 Now = LgiCurrentTime();
 				if (Now - Start > 2000)
 				{
-					printf("%s:%i - EndThread() hung waiting for %s to exit (me=%i, thd=%i).\n",
+					int val = 1111;
+					int r = sem_getvalue(Event.Handle(), &val);
+
+					printf("%s:%i - EndThread() hung waiting for %s to exit (caller.thread=%i, worker.thread=%i, event=%i, r=%i, val=%i).\n",
 						_FL, GThread::GetName(),
 						GetCurrentThreadId(),
-						GetId());
+						GetId(),
+						Event.Handle(),
+						r,
+						val);
 					Start = Now;
 				}
 			}
@@ -242,9 +248,6 @@ public:
 		while (Loop)
 		{
 			GThreadEvent::WaitStatus s = Event.Wait();
-			
-			LgiTrace("%s:%i - style thread = %i\n", _FL, s);
-			
 			if (s == GThreadEvent::WaitSignaled)
 			{
 				while (true)
