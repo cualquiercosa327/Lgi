@@ -18,11 +18,11 @@ void *ThreadEntryPoint(void *i)
 {
 	if (i)
 	{
-		GThread *Thread = (GThread*) i;
+		LThread *Thread = (LThread*) i;
 		Thread->ThreadId = GetCurrentThreadId();
 
 		// Make sure we have finished executing the setup
-		while (Thread->State == GThread::THREAD_INIT)
+		while (Thread->State == LThread::THREAD_INIT)
 		{
 			LgiSleep(1);
 		}
@@ -39,7 +39,7 @@ void *ThreadEntryPoint(void *i)
 		Thread->OnAfterMain();
 
 		// mark thread over...
-		Thread->State = GThread::THREAD_EXITED;
+		Thread->State = LThread::THREAD_EXITED;
 
 		if (Thread->DeleteOnExit)
 		{
@@ -51,17 +51,17 @@ void *ThreadEntryPoint(void *i)
 	return 0;
 }
 
-GThread::GThread(const char *ThreadName)
+LThread::LThread(const char *ThreadName)
 {
 	Name = ThreadName;
 	ThreadId = 0;
-	State = GThread::THREAD_ASLEEP;
+	State = LThread::THREAD_ASLEEP;
 	ReturnValue = -1;
 	hThread = 0;
 	DeleteOnExit = false;
 }
 
-GThread::~GThread()
+LThread::~LThread()
 {
 	if (!IsExited())
 	{
@@ -69,28 +69,28 @@ GThread::~GThread()
 	}
 }
 
-int GThread::ExitCode()
+int LThread::ExitCode()
 {
 	return ReturnValue;
 }
 
-bool GThread::IsExited()
+bool LThread::IsExited()
 {
-	return State == GThread::THREAD_EXITED;
+	return State == LThread::THREAD_EXITED;
 }
 
-void GThread::Run()
+void LThread::Run()
 {
 	if (!hThread)
 	{
-		State = GThread::THREAD_INIT;
+		State = LThread::THREAD_INIT;
 
 		static int Creates = 0;
 		int e;
 		if (!(e = pthread_create(&hThread, NULL, ThreadEntryPoint, (void*)this)))
 		{
 			Creates++;
-			State = GThread::THREAD_RUNNING;
+			State = LThread::THREAD_RUNNING;
 		}
 		else
 		{
@@ -104,21 +104,21 @@ void GThread::Run()
 			}
 			printf("%s,%i - pthread_create failed with the error %i (%s) (After %i creates)\n", __FILE__, __LINE__, e, Err, Creates);
 			
-			State = GThread::THREAD_EXITED;
+			State = LThread::THREAD_EXITED;
 		}
 	}
 }
 
-void GThread::Terminate()
+void LThread::Terminate()
 {
 	if (hThread &&
 		pthread_cancel(hThread) == 0)
 	{
-		State = GThread::THREAD_EXITED;
+		State = LThread::THREAD_EXITED;
 	}
 }
 
-int GThread::Main()
+int LThread::Main()
 {
 	return 0;
 }

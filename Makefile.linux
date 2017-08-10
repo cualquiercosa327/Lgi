@@ -77,10 +77,10 @@ Depends =	LDateTime.o \
 			GPath.o \
 			GMemStream.o \
 			GStream.o \
-			GThread.o \
-			GThreadCommon.o \
-			GThreadEvent.o \
+			LThread.o \
 			LMutex.o \
+			LThreadCommon.o \
+			LThreadEvent.o \
 			GVariant.o \
 			GGuiUtils.o \
 			GObject.o \
@@ -291,7 +291,8 @@ GLibrary.o : ./src/common/Lgi/GLibrary.cpp ./include/common/Lgi.h \
 
 GMem.o : ./src/linux/General/GMem.cpp ./include/common/LgiDefs.h \
 	./include/linux/Gtk/LgiOsDefs.h \
-	./include/common/GMem.h
+	./include/common/GMem.h \
+	./include/common/LMutex.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -382,21 +383,21 @@ GStream.o : ./src/common/Lgi/GStream.cpp ./include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GThread.o : ./src/linux/Lgi/GThread.cpp ./include/common/Lgi.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-GThreadCommon.o : ./src/common/Lgi/GThreadCommon.cpp ./include/common/Lgi.h \
-	./include/common/GEventTargetThread.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-GThreadEvent.o : ./src/common/Lgi/GThreadEvent.cpp ./include/common/Lgi.h \
-	./include/common/GThreadEvent.h
+LThread.o : ./src/linux/Lgi/LThread.cpp ./include/common/Lgi.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 LMutex.o : ./src/common/Lgi/LMutex.cpp ./include/common/Lgi.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+LThreadCommon.o : ./src/common/Lgi/LThreadCommon.cpp ./include/common/Lgi.h \
+	./include/common/GEventTargetThread.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+LThreadEvent.o : ./src/common/Lgi/LThreadEvent.cpp ./include/common/Lgi.h \
+	./include/common/LThreadEvent.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -451,6 +452,7 @@ LgiMsg.o : ./src/common/Lgi/LgiMsg.cpp ./include/common/Lgi.h \
 GFileSelect.o : ./src/common/Lgi/GFileSelect.cpp ./include/common/Lgi.h \
 	./include/common/GPopup.h \
 	./include/common/GToken.h \
+	./include/common/LList.h \
 	./include/common/GTextLabel.h \
 	./include/common/GEdit.h \
 	./include/common/GButton.h \
@@ -633,6 +635,7 @@ GScreenDC.o : ./src/linux/Gtk/GScreenDC.cpp ./include/common/Lgi.h
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GPrinter.o : ./src/linux/Lgi/GPrinter.cpp ./include/common/Lgi.h \
+	./include/common/LList.h \
 	./include/common/GButton.h \
 	./include/common/GPrinter.h
 	@echo $(<F) [$(Build)]
@@ -789,7 +792,7 @@ GPopup.o : ./src/common/Widgets/GPopup.cpp ./include/common/Lgi.h \
 	./include/common/GPopup.h \
 	./include/common/GSkinEngine.h \
 	./include/common/GDisplayString.h \
-	./include/common/GThreadEvent.h \
+	./include/common/LThreadEvent.h \
 	./include/linux/Gtk/LgiWidget.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -986,6 +989,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ./include/common/GPanel.h : ./include/common/GDisplayString.h
 
+./include/common/LThreadEvent.h : 
+
 ./include/common/GSlider.h : 
 
 ./include/common/LgiInc.h : 
@@ -1124,14 +1129,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ./include/common/GCssTools.h : ./include/common/GCss.h
 
-./include/common/GCss.h : ./include/common/LgiInc.h \
-	./include/linux/Gtk/LgiOsDefs.h \
-	./include/common/GMem.h \
-	./include/common/Gdc2.h \
-	./include/common/GAutoPtr.h \
-	./include/common/GString.h \
-	./include/common/GHashTable.h
-
 ./include/common/GDragAndDrop.h : ./include/common/GVariant.h
 
 ./include/common/GTree.h : ./include/common/GItemContainer.h
@@ -1200,11 +1197,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	/usr/include/glib-2.0/glib/glist.h
 
 ../../../../../usr/include/glib-2.0/glib/gqsort.h : /usr/include/glib-2.0/glib/gtypes.h
-
-./include/common/GHashTable.h : ./include/common/GMem.h \
-	./include/common/GArray.h \
-	./include/common/GString.h \
-	./include/common/LgiClass.h
 
 ./include/common/Res.h : ./include/common/GXmlTree.h
 
@@ -1389,7 +1381,7 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/GFileSelect.h \
 	./include/common/GFindReplaceDlg.h \
 	./include/common/GToolBar.h \
-	./include/common/GThread.h \
+	./include/common/LThread.h \
 	./include/common/GInput.h
 
 ./include/common/LgiCommon.h : ./include/common/GMem.h \
@@ -1401,7 +1393,14 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ./include/common/LgiWidgets.h : 
 
+./include/common/LThread.h : ./include/common/LMutex.h
+
 ./include/common/GFileSelect.h : 
+
+./include/common/GHashTable.h : ./include/common/GMem.h \
+	./include/common/GArray.h \
+	./include/common/GString.h \
+	./include/common/LgiClass.h
 
 ../../../../../usr/include/cairo/cairo-deprecated.h : 
 
@@ -1411,24 +1410,9 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/GRefCount.h \
 	./include/common/GDom.h
 
-../../../../../usr/include/glib-2.0/glib/gerror.h : /usr/include/glib-2.0/glib/gquark.h
-
-../../../../../usr/include/glib-2.0/glib/gthread.h : /usr/include/glib-2.0/glib/gatomic.h \
-	/usr/include/glib-2.0/glib/gerror.h \
-	/usr/include/glib-2.0/glib/gutils.h
-
 ../../../../../usr/include/glib-2.0/glib/gcharset.h : /usr/include/glib-2.0/glib/gtypes.h
 
 ../../../../../usr/include/glib-2.0/glib/gbase64.h : /usr/include/glib-2.0/glib/gtypes.h
-
-./include/common/LList.h : ./include/common/GMem.h \
-	./include/common/GArray.h \
-	./include/common/GPopup.h \
-	./include/common/GDisplayString.h \
-	./include/common/GCss.h \
-	./include/common/GItemContainer.h
-
-./include/common/GThreadEvent.h : 
 
 ../../../../../usr/include/pango-1.0/pango/pango.h : /usr/include/pango-1.0/pango/pango-attributes.h \
 	/usr/include/pango-1.0/pango/pango-bidi-type.h \
@@ -1595,8 +1579,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	/usr/include/glib-2.0/gobject/gobject.h
 
 ../../../../../usr/include/glib-2.0/gobject/gobject-autocleanups.h : 
-
-./include/common/GThread.h : ./include/common/LMutex.h
 
 ../../../../../usr/include/glib-2.0/gobject/gvaluetypes.h : /usr/include/glib-2.0/gobject/gvalue.h
 
@@ -2105,7 +2087,20 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ../../../../../usr/include/glib-2.0/gio/gsocketaddress.h : /usr/include/glib-2.0/gio/giotypes.h
 
+../../../../../usr/include/glib-2.0/glib/gerror.h : /usr/include/glib-2.0/glib/gquark.h
+
+../../../../../usr/include/glib-2.0/glib/gthread.h : /usr/include/glib-2.0/glib/gatomic.h \
+	/usr/include/glib-2.0/glib/gerror.h \
+	/usr/include/glib-2.0/glib/gutils.h
+
 ../../../../../usr/include/glib-2.0/gio/gsimpleasyncresult.h : /usr/include/glib-2.0/gio/giotypes.h
+
+./include/common/LList.h : ./include/common/GMem.h \
+	./include/common/GArray.h \
+	./include/common/GPopup.h \
+	./include/common/GDisplayString.h \
+	./include/common/GCss.h \
+	./include/common/GItemContainer.h
 
 ./include/common/GStringClass.h : ./include/common/GUnicode.h \
 	./include/common/GArray.h
@@ -2182,9 +2177,9 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	/usr/include/glib-2.0/glib-object.h \
 	/usr/include/pango-1.0/pango/pango-types.h
 
-./include/common/GEventTargetThread.h : ./include/common/GThread.h \
+./include/common/GEventTargetThread.h : ./include/common/LThread.h \
 	./include/common/LMutex.h \
-	./include/common/GThreadEvent.h
+	./include/common/LThreadEvent.h
 
 ./include/common/INetTools.h : ./include/common/GContainers.h \
 	./include/common/LgiNetInc.h
@@ -2239,6 +2234,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ./include/common/GNotifications.h : 
 
 ../../../../../usr/include/glib-2.0/glib/gtree.h : /usr/include/glib-2.0/glib/gnode.h
+
+./include/common/LMutex.h : 
 
 ./include/common/GPath.h : ./include/common/GMatrix.h
 
@@ -2833,8 +2830,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ../../../../../usr/include/glib-2.0/glib/ghook.h : /usr/include/glib-2.0/glib/gmem.h
 
-./include/common/GThreadEvent.h : 
-
 ../../../../../usr/include/gtk-2.0/gtk/gtkfontbutton.h : /usr/include/gtk-2.0/gtk/gtkbutton.h
 
 ../../../../../usr/include/glib-2.0/glib/gthreadpool.h : /usr/include/glib-2.0/glib/gthread.h
@@ -2873,6 +2868,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ../../../../../usr/include/glib-2.0/glib/gspawn.h : /usr/include/glib-2.0/glib/gerror.h
 
 ./include/common/GInput.h : 
+
+./include/common/LThreadEvent.h : 
 
 ./include/common/GPalette.h : ./include/common/GColourSpace.h \
 	./include/common/GFile.h
@@ -2954,6 +2951,14 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/GArray.h \
 	./include/common/GRefCount.h \
 	./include/common/GStringClass.h
+
+./include/common/GCss.h : ./include/common/LgiInc.h \
+	./include/linux/Gtk/LgiOsDefs.h \
+	./include/common/GMem.h \
+	./include/common/Gdc2.h \
+	./include/common/GAutoPtr.h \
+	./include/common/GString.h \
+	./include/common/GHashTable.h
 
 ../../../../../usr/include/atk-1.0/atk/atkhyperlinkimpl.h : /usr/include/atk-1.0/atk/atkobject.h \
 	/usr/include/atk-1.0/atk/atkhyperlink.h

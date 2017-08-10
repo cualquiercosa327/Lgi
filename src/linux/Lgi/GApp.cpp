@@ -189,7 +189,7 @@ public:
 	GdcDevice *GdcSystem;
 	OsAppArguments Args;
 	GLibrary *SkinLib;
-	GHashTable MimeToApp;
+	GHashTbl<char*,AppArray*> MimeToApp;
 	#if HAS_SHARED_MIME
 	GSharedMime *Sm;
 	#endif
