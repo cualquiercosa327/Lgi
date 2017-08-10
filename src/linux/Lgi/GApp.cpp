@@ -466,7 +466,9 @@ void GApp::SetAppArgs(OsAppArguments &AppArgs)
 bool GApp::InThread()
 {
 	OsThreadId Me = LgiGetCurrentThread();
-	return GetGuiThread() == Me;
+	OsThreadId Gui = GetGuiThread();
+	// printf("Me=%i Gui=%i\n", Me, Gui);
+	return Gui == Me;
 }
 
 #ifndef WIN32
