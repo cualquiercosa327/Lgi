@@ -7,6 +7,7 @@
 #include "GOptionsFile.h"
 #include "GDebugger.h"
 #include "GProgressDlg.h"
+#include "LList.h"
 
 #define NODE_DROP_FORMAT			"Ide.ProjectNode"
 

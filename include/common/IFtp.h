@@ -4,7 +4,7 @@
 #define __IFTP_H
 
 #include "INet.h"
-#include "GDateTime.h"
+#include "LDateTime.h"
 #include "GStringClass.h"
 
 // Start ftp list parser stuff
@@ -96,7 +96,7 @@ public:
 	GString Path;
 	GString User;
 	GString Group;
-	GDateTime Date;
+	LDateTime Date;
 	void *UserData;
 
 	IFtpEntry();

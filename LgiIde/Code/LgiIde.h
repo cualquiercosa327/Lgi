@@ -19,6 +19,7 @@
 #include "GStringClass.h"
 #include "GDebugger.h"
 #include "GTextView3.h"
+#include "LList.h"
 
 #define LgiIdeVer				"1.0.0"
 
