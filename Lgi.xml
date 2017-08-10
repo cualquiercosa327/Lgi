@@ -3,8 +3,8 @@
 	<Node Name="Source Files" Type="1" Platforms="15" Open="1" Id="1">
 		<Node Name="Core" Type="1" Platforms="15" Open="1" Id="2">
 			<Node Name="DateTime" Type="1" Platforms="15" Open="0" Id="3">
-				<Node File="./src/common/General/GDateTime.cpp" Type="2" Platforms="15" />
-				<Node File="./include/common/GDateTime.h" Type="3" Platforms="15" />
+				<Node File="./src/common/General/LDateTime.cpp" Type="2" Platforms="15" />
+				<Node File="./include/common/LDateTime.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Drag and Drop" Type="1" Platforms="15" Open="0" Id="4">
 				<Node Name="Haiku" Type="1" Platforms="15" Open="1" Id="5">
@@ -295,10 +295,6 @@
 				<Node File="./include/common/GEdit.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Widgets/GItemContainer.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GItemContainer.h" Type="3" Platforms="15" />
-				<Node File="./src/common/Widgets/GList.cpp" Type="2" Platforms="15" />
-				<Node File="./include/common/GList.h" Type="3" Platforms="15" />
-				<Node File="./include/common/GListItemCheckBox.h" Type="3" Platforms="15" />
-				<Node File="./include/common/GListItemRadioBtn.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Widgets/GPanel.cpp" Type="2" Platforms="15" />
 				<Node File="./src/common/Widgets/GPopup.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GPopup.h" Type="3" Platforms="15" />
@@ -321,6 +317,10 @@
 				<Node File="./include/common/GToolBar.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Widgets/GTree.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GTree.h" Type="3" Platforms="15" />
+				<Node File="./src/common/Widgets/LList.cpp" Type="2" Platforms="15" />
+				<Node File="./include/common/LList.h" Type="3" Platforms="15" />
+				<Node File="./include/common/LListItemCheckBox.h" Type="3" Platforms="15" />
+				<Node File="./include/common/LListItemRadioBtn.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Css" Type="1" Platforms="15" Open="0" Id="64">
 				<Node File="./src/common/Lgi/GCss.cpp" Type="2" Platforms="15" />
@@ -538,6 +538,16 @@ textencoding</Release>
 			</ShowWhiteSpace>
 			<UseHardTabs>
 				<All>1</All>
+			</UseHardTabs>
+			<CommentFile />
+			<CommentFunction />
+		</Editor>
+		<Advanced>
+			<OtherMakefileRules />
+		</Advanced>
+	</Settings>
+</Project>
+<All>1</All>
 			</UseHardTabs>
 			<CommentFile />
 			<CommentFunction />

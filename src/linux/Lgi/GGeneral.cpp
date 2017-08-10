@@ -657,6 +657,7 @@ void LgiFinishXWindowsStartup(GViewI *Wnd)
 	}
 }
 
+/*
 #if HAS_GSTREAMER
 // sudo apt-get install libgstreamer1.0-dev
 using namespace Gtk;
@@ -672,3 +673,4 @@ bool LgiPlaySound(const char *FileName, int ASync)
 	#endif
 }
 
+*/

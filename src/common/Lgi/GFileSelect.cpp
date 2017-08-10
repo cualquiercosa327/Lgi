@@ -14,7 +14,7 @@
 #include "Lgi.h"
 #include "GPopup.h"
 #include "GToken.h"
-#include "GList.h"
+#include "LList.h"
 #include "GTextLabel.h"
 #include "GEdit.h"
 #include "GButton.h"
@@ -89,7 +89,7 @@ char *GFileType::DefaultExtension()
 }
 
 //////////////////////////////////////////////////////////////////////////
-class GFolderItem : public GListItem
+class GFolderItem : public LListItem
 {
 	class GFileSelectDlg *Dlg;
 	char *Path;
@@ -323,7 +323,7 @@ public:
 	}
 };
 
-class GFolderList : public GList, public GFolderView
+class GFolderList : public LList, public GFolderView
 {
 public:
 	GFolderList(GFileSelectDlg *dlg, int Id, int x, int y, int cx, int cy);
@@ -998,7 +998,7 @@ int GFileSelectDlg::OnNotify(GViewI *Ctrl, int Flags)
 					
 				if (Flags == GLIST_NOTIFY_RETURN)
 				{
-					List<GListItem> s;
+					List<LListItem> s;
 					if (FileLst->GetSelection(s))
 					{
 						GFolderItem *i = dynamic_cast<GFolderItem*>(s.First());
@@ -1179,13 +1179,13 @@ int GFileSelectDlg::OnNotify(GViewI *Ctrl, int Flags)
 				}
 				else
 				{
-					List<GListItem> Sel;
+					List<LListItem> Sel;
 					if (d->Type != TypeSaveFile &&
 						FileLst &&
 						FileLst->GetSelection(Sel) &&
 						Sel.Length() > 1)
 					{
-						for (GListItem *i=Sel.First(); i; i=Sel.Next())
+						for (LListItem *i=Sel.First(); i; i=Sel.Next())
 						{
 							LgiMakePath(f, sizeof(f), Path, i->GetText(0));
 							d->Files.Insert(NewStr(f));
@@ -1645,18 +1645,18 @@ int GFolderItemCompare(GFolderItem *a, GFolderItem *b, NativeInt Data)
 }
 
 GFolderList::GFolderList(GFileSelectDlg *dlg, int Id, int x, int y, int cx, int cy) :
-	GList(Id, x, y, cx, cy),
+	LList(Id, x, y, cx, cy),
 	GFolderView(dlg)
 {
 	SetImageList(Dlg->d->Icons, false);
 	ShowColumnHeader(false);
 	AddColumn("Name", cx-20);
-	SetMode(GListColumns);
+	SetMode(LListColumns);
 }
 
 bool GFolderList::OnKey(GKey &k)
 {
-	bool Status = GList::OnKey(k);
+	bool Status = LList::OnKey(k);
 	
 	switch (k.vkey)
 	{
@@ -1716,14 +1716,14 @@ bool GFolderList::OnKey(GKey &k)
 		{
 			if (k.Down() && !k.IsChar && GetWindow())
 			{
-				List<GListItem> Sel;
+				List<LListItem> Sel;
 				if (GetSelection(Sel))
 				{
 					GStringPipe Msg;
 					Msg.Push("Do you want to delete:\n\n");
 					
 					List<GFolderItem> Delete;
-					for (GListItem *i=Sel.First(); i; i=Sel.Next())
+					for (LListItem *i=Sel.First(); i; i=Sel.Next())
 					{
 						GFolderItem *s = dynamic_cast<GFolderItem*>(i);
 						if (s)
@@ -1825,7 +1825,7 @@ void GFolderList::OnFolder()
 	New.Sort(GFolderItemCompare, 0);
 
 	// Display items...
-	Insert((List<GListItem>&) New);
+	Insert((List<LListItem>&) New);
 }
 
 //////////////////////////////////////////////////////////////////////////

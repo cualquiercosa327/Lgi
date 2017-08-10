@@ -120,7 +120,7 @@ public:
 	virtual void OnPaint_GBitmap      (GBitmap *Ctrl,      GSkinState *State) {};
 	virtual void OnPaint_GProgress    (GProgress *Ctrl,    GSkinState *State) {};
 	virtual void OnPaint_GTree        (GTree *Ctrl,        GSkinState *State) {};
-	virtual void OnPaint_GList        (GList *Ctrl,        GSkinState *State) {};
+	virtual void OnPaint_LList        (LList *Ctrl,        GSkinState *State) {};
 	
 	// 'Col' may be NULL in the case that the GList control wants to draw the
 	// header beyond the last column. This function can use the call back
