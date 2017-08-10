@@ -54,10 +54,16 @@ int PlatformCtrlId[] =
 	0
 };
 
-GString ToUnixPath(const char *s)
+char *ToUnixPath(char *s)
 {
-	GString r = s;
-	r.Replace("\\", "/");
+	if (s)
+	{
+		char *c;
+		while ((c = strchr(s, '\\')))
+		{
+			*c = '/';
+		}
+	}
 	return s;
 }
 
@@ -1696,8 +1702,7 @@ void IdeProject::ImportDsp(char *File)
 						{
 							// Make absolute path
 							char Abs[256];
-							GString u = ToUnixPath(Src);
-							LgiMakePath(Abs, sizeof(Abs), Base, u);
+							LgiMakePath(Abs, sizeof(Abs), Base, ToUnixPath(Src));
 							
 							// Make relitive path
 							New->SetFileName(Src);
@@ -2103,7 +2108,8 @@ bool IdeProject::GetDependencies(const char *SourceFile, GArray<GString> &IncPat
 		{
 			strcpy_s(p, sizeof(p), i);
 		}
-		Files.Add(NewStr(ToUnixPath(p)));
+		ToUnixPath(p);
+		Files.Add(NewStr(p));
 	}
 	Headers.DeleteArrays();
 	
@@ -2371,12 +2377,12 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 			// Includes
 
 			// Do include paths
-			GHashTbl<const char*,bool> Inc;
+			GHashTbl<char*,bool> Inc;
 			const char *AllIncludes = d->Settings.GetStr(ProjIncludePaths, NULL, Platform);
 			if (ValidStr(AllIncludes))
 			{
 				// Add settings include paths.
-				GToken Paths(AllIncludes, "\r\n", Platform);
+				GToken Paths(AllIncludes, "\r\n");
 				for (int i=0; i<Paths.Length(); i++)
 				{
 					char *p = Paths[i];
@@ -2430,7 +2436,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 			}
 
 			List<char> Incs;
-			const char *i;
+			char *i;
 			for (bool b=Inc.First(&i); b; b=Inc.Next(&i))
 			{
 				Incs.Insert(NewStr(i));
@@ -2439,11 +2445,10 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 			for (i = Incs.First(); i; i = Incs.Next())
 			{
 				GString s;
-				GString up = ToUnixPath(i);
 				if (*i == '`')
 					s.Printf(" \\\n\t\t%s", i);
 				else
-					s.Printf(" \\\n\t\t-I%s", up.Get());
+					s.Printf(" \\\n\t\t-I%s", ToUnixPath(i));
 				sIncludes[Cfg] += s;
 			}
 		}
