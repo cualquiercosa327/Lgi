@@ -54,16 +54,10 @@ int PlatformCtrlId[] =
 	0
 };
 
-char *ToUnixPath(char *s)
+GString ToUnixPath(const char *s)
 {
-	if (s)
-	{
-		char *c;
-		while ((c = strchr(s, '\\')))
-		{
-			*c = '/';
-		}
-	}
+	GString r = s;
+	r.Replace("\\", "/");
 	return s;
 }
 
@@ -1702,7 +1696,8 @@ void IdeProject::ImportDsp(char *File)
 						{
 							// Make absolute path
 							char Abs[256];
-							LgiMakePath(Abs, sizeof(Abs), Base, ToUnixPath(Src));
+							GString u = ToUnixPath(Src);
+							LgiMakePath(Abs, sizeof(Abs), Base, u);
 							
 							// Make relitive path
 							New->SetFileName(Src);
@@ -2108,8 +2103,7 @@ bool IdeProject::GetDependencies(const char *SourceFile, GArray<GString> &IncPat
 		{
 			strcpy_s(p, sizeof(p), i);
 		}
-		ToUnixPath(p);
-		Files.Add(NewStr(p));
+		Files.Add(NewStr(ToUnixPath(p)));
 	}
 	Headers.DeleteArrays();
 	
@@ -2377,7 +2371,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 			// Includes
 
 			// Do include paths
-			GHashTable Inc;
+			GHashTbl<const char*,bool> Inc;
 			const char *AllIncludes = d->Settings.GetStr(ProjIncludePaths, NULL, Platform);
 			if (ValidStr(AllIncludes))
 			{
@@ -2389,7 +2383,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 					GAutoString pn = ToNativePath(p);
 					if (!Inc.Find(pn))
 					{
-						Inc.Add(pn);
+						Inc.Add(pn, true);
 					}
 				}
 			}
@@ -2428,7 +2422,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 							GAutoString RelN = ToNativePath(Rel);
 							if (!Inc.Find(RelN))
 							{
-								Inc.Add(RelN);
+								Inc.Add(RelN, true);
 							}
 						}
 					}
@@ -2436,8 +2430,8 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 			}
 
 			List<char> Incs;
-			char *i;
-			for (void *b=Inc.First(&i); b; b=Inc.Next(&i))
+			const char *i;
+			for (bool b=Inc.First(&i); b; b=Inc.Next(&i))
 			{
 				Incs.Insert(NewStr(i));
 			}
@@ -2445,10 +2439,11 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 			for (i = Incs.First(); i; i = Incs.Next())
 			{
 				GString s;
+				GString up = ToUnixPath(i);
 				if (*i == '`')
 					s.Printf(" \\\n\t\t%s", i);
 				else
-					s.Printf(" \\\n\t\t-I%s", ToUnixPath(i));
+					s.Printf(" \\\n\t\t-I%s", up.Get());
 				sIncludes[Cfg] += s;
 			}
 		}
@@ -2511,7 +2506,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 				// Write out the target stuff
 				m.Print("# Target\n");
 
-				GHashTable DepFiles;
+				GHashTbl<char*,bool> DepFiles;
 
 				if (TargetType)
 				{
@@ -2569,7 +2564,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 									
 									// Add these dependencies to this makefiles dep list
 									if (!DepFiles.Find(f))
-										DepFiles.Add(f);
+										DepFiles.Add(f, true);
 								}
 								
 								AllDeps.DeleteArrays();
@@ -2753,7 +2748,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 										m.Print("%s", SDep);
 										if (!DepFiles.Find(SDep))
 										{
-											DepFiles.Add(SDep);
+											DepFiles.Add(SDep, true);
 										}
 									}
 									else printf("%s:%i - not add dep: '%s' '%s'\n", _FL, Src.Get(), SDep);
@@ -2775,19 +2770,19 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 				
 				// Do remaining include file dependencies
 				bool Done = false;
-				GHashTable Processed;
+				GHashTbl<char*,bool> Processed;
 				GAutoString Base = GetBasePath();
 				while (!Done)
 				{
 					Done = true;
 					char *Src;
-					for (void *b=DepFiles.First(&Src); b; b=DepFiles.Next(&Src))
+					for (bool b=DepFiles.First(&Src); b; b=DepFiles.Next(&Src))
 					{
 						if (Processed.Find(Src))
 							continue;
 
 						Done = false;
-						Processed.Add(Src);
+						Processed.Add(Src, true);
 						
 						char Full[MAX_PATH], Rel[MAX_PATH];
 						if (LgiIsRelativePath(Src))
@@ -2837,7 +2832,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 									
 									if (!DepFiles.Find(i))
 									{
-										DepFiles.Add(i);
+										DepFiles.Add(i, true);
 									}
 								}
 								Headers.DeleteArrays();

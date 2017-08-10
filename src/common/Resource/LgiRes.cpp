@@ -32,14 +32,15 @@
 #define DEBUG_RES_FILE						0
 #define CastToGWnd(RObj)					((RObj != 0) ? dynamic_cast<GView*>(RObj) : 0)
 
-class TagHash : public GHashTable, public ResReadCtx
+class TagHash : public GHashTbl<char*,bool>, public ResReadCtx
 {
+	GToken Toks;
+
 public:
-	TagHash(const char *TagList)
+	TagHash(const char *TagList) : Toks(TagList)
 	{
-		GToken Toks(TagList);
 		for (int i=0; i<Toks.Length(); i++)
-			Add(Toks[i]);
+			Add(Toks[i], true);
 	}
 
 	bool Check(const char *Tags)

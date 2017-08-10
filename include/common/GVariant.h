@@ -175,10 +175,13 @@ public:
 	bool CallMethod(const char *MethodName, GVariant *ReturnValue, GArray<GVariant*> &Args);
 };
 
+typedef GHashTbl<const char*,GVariant*> GVariantHash;
+
 /// A class that can be different types
 class LgiClass GVariant
 {
 public:
+
 	/// The type of the variant
     GVariantType Type;
 
@@ -210,7 +213,7 @@ public:
 		/// Valid when Type == #GV_LIST
 	    List<GVariant> *Lst;
 		/// Valid when Type == #GV_HASHTABLE
-	    GHashTable *Hash;
+	    GVariantHash *Hash;
 		/// Valid when Type == #GV_DATETIME
 		LDateTime *Date;
 		/// Valid when Type == #GV_CUSTOM
@@ -332,7 +335,7 @@ public:
 	/// Sets the value to a copy of the list
 	bool SetList(List<GVariant> *Lst = 0);
 	/// Sets the value to a hashtable
-	bool SetHashTable(GHashTable *Table = 0, bool Copy = true);
+	bool SetHashTable(GVariantHash *Table = 0, bool Copy = true);
     /// Set the value to a surface
     bool SetSurface(class GSurface *Ptr, bool Own);
     /// Set the value to a stream

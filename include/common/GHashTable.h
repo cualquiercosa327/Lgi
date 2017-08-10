@@ -870,6 +870,7 @@ public:
 	}
 };
 
+/* Deprecated...
 class LgiClass GHashTable : public GHashTbl<char*, void*>
 {
 public:
@@ -884,5 +885,6 @@ public:
 	}
 	
 };
+*/
 
 #endif
