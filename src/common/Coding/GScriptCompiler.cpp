@@ -435,7 +435,7 @@ public:
 		Types.Add("char", GV_STRING);
 		Types.Add("GDom", GV_DOM);
 		Types.Add("void", GV_VOID_PTR);
-		Types.Add("GDateTime", GV_DATETIME);
+		Types.Add("LDateTime", GV_DATETIME);
 		Types.Add("GHashTable", GV_HASHTABLE);
 		Types.Add("GOperator", GV_OPERATOR);
 		Types.Add("GView", GV_GVIEW);

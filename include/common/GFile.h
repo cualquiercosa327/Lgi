@@ -146,13 +146,13 @@ public:
 		bool Group
 	);
 	
-	/// Gets the entries creation time. You can convert this to an easy to read for using GDateTime.
+	/// Gets the entries creation time. You can convert this to an easy to read for using LDateTime.
 	virtual const uint64 GetCreationTime();
 
-	/// Gets the entries last access time. You can convert this to an easy to read for using GDateTime.
+	/// Gets the entries last access time. You can convert this to an easy to read for using LDateTime.
 	virtual const uint64 GetLastAccessTime();
 
-	/// Gets the entries last modified time.  You can convert this to an easy to read for using GDateTime.
+	/// Gets the entries last modified time.  You can convert this to an easy to read for using LDateTime.
 	virtual const uint64 GetLastWriteTime();
 
 	/// Returns the size of the entry.

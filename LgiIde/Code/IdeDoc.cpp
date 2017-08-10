@@ -572,7 +572,7 @@ public:
 	AppWnd *App;
 	IdeProject *Project;
 	bool IsDirty;
-	GDateTime ModTs;
+	LDateTime ModTs;
 	class DocEdit *Edit;
 	EditTray *Tray;
 	GHashTbl<int, bool> BreakPoints;
@@ -591,9 +591,9 @@ public:
 	bool Save();
 	void OnSaveComplete(bool Status);
 
-	GDateTime GetModTime()
+	LDateTime GetModTime()
 	{
-		GDateTime Ts;
+		LDateTime Ts;
 
 		GString Full = nSrc ? nSrc->GetFullPath() : FileName;
 		if (Full)
@@ -2087,7 +2087,7 @@ void IdeDocPrivate::CheckModTime()
 	if (!ModTs.IsValid())
 		return;
 
-	GDateTime Ts = GetModTime();
+	LDateTime Ts = GetModTime();
 	if (Ts.IsValid() && Ts > ModTs)
 	{
 		static bool InCheckModTime = false;

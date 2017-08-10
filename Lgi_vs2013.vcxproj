@@ -434,11 +434,11 @@
     <ClCompile Include="src\common\Gdc2\Path\GPath.cpp" />
     <ClCompile Include="src\common\Gdc2\Tools\GColourReduce.cpp" />
     <ClCompile Include="src\common\General\GContainers.cpp" />
-    <ClCompile Include="src\common\General\GDateTime.cpp" />
     <ClCompile Include="src\common\General\GExeCheck.cpp" />
     <ClCompile Include="src\common\General\GFileCommon.cpp" />
     <ClCompile Include="src\common\General\GGrowl.cpp" />
     <ClCompile Include="src\common\General\GPassword.cpp" />
+    <ClCompile Include="src\common\General\LDateTime.cpp" />
     <ClCompile Include="src\common\Hash\md5\md5.c" />
     <ClCompile Include="src\common\Hash\sha1\sha1.c" />
     <ClCompile Include="src\common\INet\Base64.cpp" />
@@ -580,7 +580,6 @@
     <ClInclude Include="include\common\GContainers.h" />
     <ClInclude Include="include\common\GCss.h" />
     <ClInclude Include="include\common\GCssTools.h" />
-    <ClInclude Include="include\common\GDateTime.h" />
     <ClInclude Include="include\common\Gdc2.h" />
     <ClInclude Include="include\common\GdiLeak.h" />
     <ClInclude Include="include\common\GDisplayStringLayout.h" />
@@ -630,6 +629,7 @@
     <ClInclude Include="include\common\GViewPriv.h" />
     <ClInclude Include="include\common\INet.h" />
     <ClInclude Include="include\common\INetTools.h" />
+    <ClInclude Include="include\common\LDateTime.h" />
     <ClInclude Include="include\common\Lgi.h" />
     <ClInclude Include="include\common\LgiClass.h" />
     <ClInclude Include="include\common\LgiClasses.h" />

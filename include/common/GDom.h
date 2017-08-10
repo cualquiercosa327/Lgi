@@ -75,7 +75,7 @@ enum GDomProperty
 	TypeDouble,
 	TypeString,
 
-	// GDateTime
+	// LDateTime
 	DateNone,
 	DateYear,
 	DateMonth,

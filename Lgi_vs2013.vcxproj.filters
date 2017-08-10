@@ -182,9 +182,6 @@
     <ClCompile Include="src\common\Lgi\GStream.cpp">
       <Filter>Source Files\Core\Stream</Filter>
     </ClCompile>
-    <ClCompile Include="src\common\General\GDateTime.cpp">
-      <Filter>Source Files\Core\DateTime</Filter>
-    </ClCompile>
     <ClCompile Include="src\common\General\GContainers.cpp">
       <Filter>Source Files\Core\Memory Subsystem</Filter>
     </ClCompile>
@@ -476,6 +473,9 @@
     <ClCompile Include="src\common\Widgets\LList.cpp">
       <Filter>Source Files\Widgets\Container</Filter>
     </ClCompile>
+    <ClCompile Include="src\common\General\LDateTime.cpp">
+      <Filter>Source Files\Core\DateTime</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\common\GLibrary.h">
@@ -516,9 +516,6 @@
     </ClInclude>
     <ClInclude Include="include\common\GStream.h">
       <Filter>Source Files\Core\Stream</Filter>
-    </ClInclude>
-    <ClInclude Include="include\common\GDateTime.h">
-      <Filter>Source Files\Core\DateTime</Filter>
     </ClInclude>
     <ClInclude Include="include\common\GArray.h">
       <Filter>Source Files\Core\Memory Subsystem</Filter>
@@ -717,6 +714,9 @@
     </ClInclude>
     <ClInclude Include="include\common\LList.h">
       <Filter>Source Files\Widgets\Container</Filter>
+    </ClInclude>
+    <ClInclude Include="include\common\LDateTime.h">
+      <Filter>Source Files\Core\DateTime</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

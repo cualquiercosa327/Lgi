@@ -151,7 +151,7 @@ GVariant::GVariant(GDom *p, char *name)
 	SetDomRef(p, name);
 }
 
-GVariant::GVariant(GDateTime *d)
+GVariant::GVariant(LDateTime *d)
 {
 	Type = GV_NULL;
 	*this = d;
@@ -272,14 +272,14 @@ bool GVariant::operator ==(GVariant &v)
 	return false;
 }
 
-GVariant &GVariant::operator =(GDateTime *d)
+GVariant &GVariant::operator =(LDateTime *d)
 {
 	Empty();
 
 	if (d)
 	{
 		Type = GV_DATETIME;
-		Value.Date = new GDateTime;
+		Value.Date = new LDateTime;
 		if (Value.Date)
 		{
 			*Value.Date = *d;
@@ -545,7 +545,7 @@ GVariant &GVariant::operator =(GVariant const &i)
 		{
 			if (i.Value.Date)
 			{
-				Value.Date = new GDateTime;
+				Value.Date = new LDateTime;
 				if (Value.Date)
 				{
 					*Value.Date = *i.Value.Date;
@@ -1055,8 +1055,8 @@ GVariant &GVariant::Cast(GVariantType NewType)
 				{
 					case GV_STRING:
 					{
-						// String -> GDateTime
-						GDateTime *Dt = new GDateTime;
+						// String -> LDateTime
+						LDateTime *Dt = new LDateTime;
 						if (Dt)
 						{
 							Dt->Set(Value.String);
@@ -1068,8 +1068,8 @@ GVariant &GVariant::Cast(GVariantType NewType)
 					}
 					case GV_INT64:
 					{
-						// Int64 (system date) -> GDateTime
-						GDateTime *Dt = new GDateTime;
+						// Int64 (system date) -> LDateTime
+						LDateTime *Dt = new LDateTime;
 						if (Dt)
 						{
 							Dt->Set((uint64)Value.Int64);
@@ -2061,7 +2061,7 @@ ssize_t GCustomType::CustomField::Sizeof()
 		case GV_STRING:
 			return sizeof(char);
 		case GV_DATETIME:
-			return sizeof(GDateTime);
+			return sizeof(LDateTime);
 		case GV_HASHTABLE:
 			return sizeof(GHashTable);
 		case GV_OPERATOR:

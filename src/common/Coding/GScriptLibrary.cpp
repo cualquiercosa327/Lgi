@@ -457,7 +457,7 @@ bool SystemFunctions::Now(GVariant *Ret, ArgumentArray &Args)
 {
 	Ret->Empty();
 	Ret->Type = GV_DATETIME;
-	Ret->Value.Date = new GDateTime;
+	Ret->Value.Date = new LDateTime;
 	Ret->Value.Date->SetNow();
 	return true;
 }
@@ -530,7 +530,7 @@ bool SystemFunctions::New(GVariant *Ret, ArgumentArray &Args)
 		{
 			Ret->Empty();
 			Ret->Type = GV_DATETIME;
-			Ret->Value.Date = new GDateTime;
+			Ret->Value.Date = new LDateTime;
 			break;
 		}
 		default:
@@ -584,7 +584,7 @@ class GFileListEntry : public GDom
 	bool Folder;
 	GVariant Name;
 	int64 Size;
-	GDateTime Modified;
+	LDateTime Modified;
 
 public:
 	GFileListEntry(GDirectory *d)
