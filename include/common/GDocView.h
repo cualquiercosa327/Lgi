@@ -59,7 +59,7 @@ class GDocView;
 
 /// An environment class to handle requests from the text view to the outside world.
 class LgiClass
-GDocumentEnv : public GThreadOwner
+GDocumentEnv : public LThreadOwner
 {
 	GArray<GDocView*> Viewers;
 
@@ -79,7 +79,7 @@ public:
 	#ifdef MAC
 	LgiClass
 	#endif
-	LoadJob : public GThreadJob
+	LoadJob : public LThreadJob
 	{
 		enum PrefFormat
 		{
@@ -118,7 +118,7 @@ public:
 		GString Error;
 		JobStatus Status;
 
-		LoadJob(GThreadTarget *o) : GThreadJob(o)
+		LoadJob(LThreadTarget *o) : LThreadJob(o)
 		{
 			Env = NULL;
 			UserUid = 0;
@@ -183,7 +183,7 @@ public:
 	/// If the GetContent implementation takes ownership of the job pointer then it should set 'j' to NULL.
 	virtual LoadType GetContent(LoadJob *&j) { return LoadNotImpl; }
 	/// After the env's thread loads the resource it calls this to pass it to the doc
-	void OnDone(GAutoPtr<GThreadJob> j);
+	void OnDone(GAutoPtr<LThreadJob> j);
 	
 	/// Handle a click on URI
 	virtual bool OnNavigate(GDocView *Parent, const char *Uri) { return false; }

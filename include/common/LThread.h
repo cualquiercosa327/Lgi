@@ -85,68 +85,68 @@ public:
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////
-class GThreadOwner;
-class GThreadTarget;
-class GThreadWorker;
+class LThreadOwner;
+class LThreadTarget;
+class LThreadWorker;
 
 /// A generic threaded job parent class.
-class LgiClass GThreadJob
+class LgiClass LThreadJob
 {
-	friend class GThreadWorker;
-	GThreadTarget *Owner;
+	friend class LThreadWorker;
+	LThreadTarget *Owner;
 
 public:
-	GThreadJob(GThreadTarget *o) { Owner = o; }
-	virtual ~GThreadJob() {}
+	LThreadJob(LThreadTarget *o) { Owner = o; }
+	virtual ~LThreadJob() {}
 	virtual void Do() {}
 };
 
 /// The thread target is a virtual API to receive work units executed 
 /// in the worker thread.
-class LgiClass GThreadTarget : public LMutex
+class LgiClass LThreadTarget : public LMutex
 {
-	friend class GThreadWorker;
+	friend class LThreadWorker;
 
 protected:
 	/// The thread doing the work.
-	GThreadWorker *Worker;
+	LThreadWorker *Worker;
 
 public:
-	GThreadTarget();
-	virtual ~GThreadTarget() {}
+	LThreadTarget();
+	virtual ~LThreadTarget() {}
 	
-	virtual void SetWorker(GThreadWorker *w);
+	virtual void SetWorker(LThreadWorker *w);
 	virtual void Detach();
 	
 	/// This function gets called when the job is finished
-	virtual void OnDone(GAutoPtr<GThreadJob> j) {}
+	virtual void OnDone(GAutoPtr<LThreadJob> j) {}
 };
 
 #undef AddJob
 
 /// This parent class does the actual work of processing jobs.
-class LgiClass GThreadWorker : public LThread, public LMutex
+class LgiClass LThreadWorker : public LThread, public LMutex
 {
-	GArray<GThreadTarget*> Owners;
-	GArray<GThreadJob*> Jobs;
+	GArray<LThreadTarget*> Owners;
+	GArray<LThreadJob*> Jobs;
 	bool Loop;
 
 public:
-	GThreadWorker(GThreadTarget *First, const char *ThreadName);
-	virtual ~GThreadWorker();
+	LThreadWorker(LThreadTarget *First, const char *ThreadName);
+	virtual ~LThreadWorker();
 	
 	void Stop();
-	void Attach(GThreadTarget *o);
-	void Detach(GThreadTarget *o);
-	virtual void AddJob(GThreadJob *j);
-	virtual void DoJob(GThreadJob *j);
+	void Attach(LThreadTarget *o);
+	void Detach(LThreadTarget *o);
+	virtual void AddJob(LThreadJob *j);
+	virtual void DoJob(LThreadJob *j);
 	int Main();
 };
 
-class LgiClass GThreadOwner : public GThreadTarget
+class LgiClass LThreadOwner : public LThreadTarget
 {
 public:
-	virtual ~GThreadOwner();
+	virtual ~LThreadOwner();
 };
 
 #endif

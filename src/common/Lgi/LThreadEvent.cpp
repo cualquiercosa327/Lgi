@@ -69,7 +69,7 @@ LThreadEvent::LThreadEvent(const char *name)
 		else
 		{
 			#if DEBUG_THREADING
-			printf("%p::GThreadEvent init\n", this);
+			printf("%p::LThreadEvent init\n", this);
 			#endif
 		}
 	
@@ -116,7 +116,7 @@ LThreadEvent::~LThreadEvent()
 
 	#elif USE_POSIX_SEM
 
-		// printf("%s:%i - ~GThreadEvent %i\n", _FL, Sem);
+		// printf("%s:%i - ~LThreadEvent %i\n", _FL, Sem);
 
 		if (Sem != SEM_FAILED)
 		{
@@ -129,7 +129,7 @@ LThreadEvent::~LThreadEvent()
 			Sem = SEM_FAILED;
 
 			#if DEBUG_THREADING
-			printf("%p::~GThreadEvent destroy\n", this);
+			printf("%p::~LThreadEvent destroy\n", this);
 			#endif
 		}
 
@@ -212,7 +212,7 @@ bool LThreadEvent::Signal()
 		else
 		{
 			#if DEBUG_THREADING
-			printf("%p::GThreadEvent signal\n", this);
+			printf("%p::LThreadEvent signal\n", this);
 			#endif
 		}
 
@@ -322,7 +322,7 @@ LThreadEvent::WaitStatus LThreadEvent::Wait(int32 Timeout)
 			}
 
 			#if DEBUG_THREADING
-			printf("%p::GThreadEvent signalled\n", this);
+			printf("%p::LThreadEvent signalled\n", this);
 			#endif
 		}
 		else
