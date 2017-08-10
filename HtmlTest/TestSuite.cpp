@@ -1,7 +1,7 @@
 #include "Lgi.h"
 #include "GHtml.h"
-#include "GList.h"
-#include "GDateTime.h"
+#include "LList.h"
+#include "LDateTime.h"
 #include "GClipBoard.h"
 #include "GScripting.h"
 #include "GBox.h"
@@ -9,7 +9,6 @@
 #include "resdefs.h"
 #include "GProgressDlg.h"
 #include "GCombo.h"
-#include "GList.h"
 #include "INet.h"
 #include "IHttp.h"
 #include "GFilter.h"
@@ -32,7 +31,7 @@ class FileInf
 {
 public:
 	char *File;
-	GDateTime Date;
+	LDateTime Date;
 
 	FileInf()
 	{
@@ -50,7 +49,7 @@ int InfCmp(FileInf *a, FileInf *b, NativeInt d)
 	return -a->Date.Compare(&b->Date);
 }
 
-class HtmlItem : public GListItem
+class HtmlItem : public LListItem
 {
     char *Base;
     
@@ -136,13 +135,13 @@ GHostFunc HtmlScriptContext::Methods[] =
 	GHostFunc(0, 0, 0),
 };
 
-class HtmlImageLoader : public GThread, public GMutex
+class HtmlImageLoader : public LThread, public LMutex
 {
 	bool Loop;
 	GArray<GDocumentEnv::LoadJob*> In;
 
 public:
-	HtmlImageLoader() : GThread("HtmlImageLoader")
+	HtmlImageLoader() : LThread("HtmlImageLoader")
 	{
 		Loop = true;
 		Run();
@@ -183,7 +182,7 @@ public:
 	{
 		while (Loop)
 		{
-			GAutoPtr<GThreadJob> j;
+			GAutoPtr<LThreadJob> j;
 			if (Lock(_FL))
 			{
 				if (In.Length())
@@ -293,7 +292,7 @@ public:
 
 class AppWnd : public GWindow, public GDefaultDocumentEnv, public GNetwork
 {
-	GList *Lst;
+	LList *Lst;
     HtmlScriptContext *Html;
     GTextView3 *Text;
 	char Base[256];
@@ -367,7 +366,7 @@ public:
 			GBox *s = new GBox;
 			if (s)
 			{
-				s->AddView(Lst = new GList(IDC_LIST, 0, 0, 100, 100));
+				s->AddView(Lst = new LList(IDC_LIST, 0, 0, 100, 100));
 				Lst->Sunken(false);
 				Lst->AddColumn("File", 400);
 				Lst->SetCssStyle("width: 200px;");
@@ -489,7 +488,7 @@ public:
 				Ext.Add("*.htm");				
 				if (LgiRecursiveFileSearch(p, &Ext, &Files))
 				{
-					GDateTime Now;
+					LDateTime Now;
 					Now.SetNow();
 					char OutPath[MAX_PATH], NowStr[32];
 					sprintf_s(	NowStr, sizeof(NowStr),
@@ -578,7 +577,7 @@ public:
 			{
 				if (f == GNotifyItem_Select)
 				{
-					GListItem *s = Lst->GetSelected();
+					LListItem *s = Lst->GetSelected();
 					if (s)
 					{
 						char p[256];
