@@ -3,7 +3,7 @@
 #include "GPopup.h"
 #include "GSkinEngine.h"
 #include "GDisplayString.h"
-#include "GThreadEvent.h"
+#include "LThreadEvent.h"
 
 enum PopupNotifications
 {
@@ -73,7 +73,7 @@ uint32 LgiGetViewPid(OsView View)
 	return LgiProcessId();
 }
 
-class GMouseHookPrivate : public ::LMutex, public ::GThread
+class GMouseHookPrivate : public ::LMutex, public ::LThread
 {
 public:
 	bool Loop;
@@ -81,10 +81,10 @@ public:
 	List<GPopup> Popups;
 	#ifdef MAC
 	OsView ViewHandle;
-	GThreadEvent Event;
+	LThreadEvent Event;
 	#endif
 
-	GMouseHookPrivate() : LMutex("MouseHookLock"), GThread("MouseHook")
+	GMouseHookPrivate() : LMutex("MouseHookLock"), LThread("MouseHook")
 	{
 		Loop = false;
 		hMouseOver = 0;
@@ -132,8 +132,8 @@ public:
 			#if defined(MAC) && !defined(LGI_SDL)
 			
 			// Wait for the down click...
-			GThreadEvent::WaitStatus s = Event.Wait();
-			if (!Loop || s != GThreadEvent::WaitSignaled)
+			LThreadEvent::WaitStatus s = Event.Wait();
+			if (!Loop || s != LThreadEvent::WaitSignaled)
 			{
 				break;
 			}

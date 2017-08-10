@@ -11,7 +11,7 @@ class LgiClass GBitmap :
 	public ResObject
 {
 	GSurface *pDC;
-	class GThread *pThread;
+	class LThread *pThread;
 
 public:
 	/// Construct the bitmap control with the usual parameters

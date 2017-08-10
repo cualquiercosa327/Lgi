@@ -42,7 +42,7 @@ public:
 };
 
 #if !WINNATIVE
-class GPulseThread : public GThread
+class GPulseThread : public LThread
 {
 	GView *View;
 	int Length;
@@ -50,7 +50,7 @@ class GPulseThread : public GThread
 public:
 	bool Loop;
 
-	GPulseThread(GView *view, int len) : GThread("GPulseThread")
+	GPulseThread(GView *view, int len) : LThread("GPulseThread")
 	{
 		LgiAssert(view);
 		

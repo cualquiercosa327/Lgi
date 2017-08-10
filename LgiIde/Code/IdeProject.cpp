@@ -92,7 +92,7 @@ GAutoString ToNativePath(const char *s)
 //////////////////////////////////////////////////////////////////////////////////
 class ProjectNode;
 
-class BuildThread : public GThread, public GStream
+class BuildThread : public LThread, public GStream
 {
 	IdeProject *Proj;
 	GString Makefile;
@@ -247,7 +247,7 @@ bool ReadVsProjFile(GString File, GString &Ver, GString::Array &Configs)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-BuildThread::BuildThread(IdeProject *proj, char *makefile, bool clean, bool release, int wordsize) : GThread("BuildThread")
+BuildThread::BuildThread(IdeProject *proj, char *makefile, bool clean, bool release, int wordsize) : LThread("BuildThread")
 {
 	Proj = proj;
 	Makefile = makefile;
@@ -899,7 +899,7 @@ char *QuoteStr(char *s)
 	return p.NewStr();
 }
 
-class ExecuteThread : public GThread, public GStream
+class ExecuteThread : public LThread, public GStream
 {
 	IdeProject *Proj;
 	char *Exe, *Args, *Path;
@@ -907,7 +907,7 @@ class ExecuteThread : public GThread, public GStream
 	ExeAction Act;
 
 public:
-	ExecuteThread(IdeProject *proj, const char *exe, const char *args, char *path, ExeAction act) : GThread("ExecuteThread")
+	ExecuteThread(IdeProject *proj, const char *exe, const char *args, char *path, ExeAction act) : LThread("ExecuteThread")
 	{
 		Len = 32 << 10;
 		Proj = proj;

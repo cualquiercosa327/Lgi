@@ -68,7 +68,7 @@ public:
 	}
 };
 
-class Gdb : public GDebugger, public GThread, public Callback
+class Gdb : public GDebugger, public LThread, public Callback
 {
 	GDebugEvents *Events;
 	GAutoPtr<GSubProcess> Sp;
@@ -620,7 +620,7 @@ class Gdb : public GDebugger, public GThread, public Callback
 	}
 	
 public:
-	Gdb() : GThread("Gdb")
+	Gdb() : LThread("Gdb")
 	{
 		Events = NULL;
 		State = Init;

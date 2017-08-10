@@ -10,7 +10,7 @@
     #include <semaphore.h>
 #endif
 
-class LgiClass GThreadEvent : public GBase
+class LgiClass LThreadEvent : public GBase
 {
 	uint32 LastError;
 	#if USE_MACH_SEM
@@ -34,8 +34,8 @@ public:
 		WaitSignaled,
 	};
 	
-	GThreadEvent(const char *name = NULL);
-	~GThreadEvent();
+	LThreadEvent(const char *name = NULL);
+	~LThreadEvent();
 
 	#if USE_MACH_SEM
 	semaphore_t Handle() { return Sem; }

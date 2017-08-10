@@ -241,7 +241,7 @@ struct FtpThreadPriv : public LMutex, public GNetwork
 	}
 };
 
-FtpThread::FtpThread() : GThread("FtpThread")
+FtpThread::FtpThread() : LThread("FtpThread")
 {
 	d = new FtpThreadPriv;
 	Run();

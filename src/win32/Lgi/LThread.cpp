@@ -27,14 +27,14 @@ struct THREADNAME_INFO
 uint WINAPI ThreadEntryPoint(void *i)
 {
 #if defined(_MT) || defined(__MINGW32__)
-	GThread *Thread = (GThread*) i;
+	LThread *Thread = (LThread*) i;
 	if (Thread)
 	{
 		// Wait for it...
 		int Status = 0;
 		int Start = LgiCurrentTime();
 
-        while (Thread->State == GThread::THREAD_INIT)
+        while (Thread->State == LThread::THREAD_INIT)
 		{
 			LgiSleep(5);
 			if (LgiCurrentTime() - Start > 2000)
@@ -47,7 +47,7 @@ uint WINAPI ThreadEntryPoint(void *i)
 			}
 		}
 
-		if (Thread->State == GThread::THREAD_RUNNING)
+		if (Thread->State == LThread::THREAD_RUNNING)
 		{
 			#ifdef _MSC_VER
             // Set the name if provided...
@@ -74,7 +74,7 @@ uint WINAPI ThreadEntryPoint(void *i)
 
 		// Shutdown...
 		ThreadError:
-		Thread->State = GThread::THREAD_EXITED;
+		Thread->State = LThread::THREAD_EXITED;
 		if (Thread->DeleteOnExit)
 		{
 			DeleteObj(Thread);
@@ -86,7 +86,7 @@ uint WINAPI ThreadEntryPoint(void *i)
 	return 0;
 }
 
-GThread::GThread(const char *name)
+LThread::LThread(const char *name)
 {
 	State = THREAD_INIT;
 	hThread = 0;
@@ -98,7 +98,7 @@ GThread::GThread(const char *name)
 	Create(this, hThread, ThreadId);
 }
 
-GThread::~GThread()
+LThread::~LThread()
 {
 	LgiAssert(State == THREAD_INIT || State == THREAD_EXITED);
 	if (hThread)
@@ -108,7 +108,7 @@ GThread::~GThread()
 	}
 }
 
-void GThread::Create(GThread *Thread, OsThread &hThread, uint &ThreadId)
+void LThread::Create(LThread *Thread, OsThread &hThread, uint &ThreadId)
 {
 #if defined(_MT) || defined(__MINGW32__)
 
@@ -127,12 +127,12 @@ void GThread::Create(GThread *Thread, OsThread &hThread, uint &ThreadId)
 
 #else
 
-	#error "You are tryed to compile GThread support without the WIN32 multithreaded libs.";
+	#error "You are tryed to compile LThread support without the WIN32 multithreaded libs.";
 
 #endif
 }
 
-bool GThread::IsExited()
+bool LThread::IsExited()
 {
 	if (State == THREAD_INIT)
 		return true;
@@ -159,7 +159,7 @@ bool GThread::IsExited()
 	return false;
 }
 
-void GThread::Run()
+void LThread::Run()
 {
 	if (State == THREAD_EXITED)
 	{
@@ -197,7 +197,7 @@ void GThread::Run()
 	}
 }
 
-void GThread::Terminate()
+void LThread::Terminate()
 {
 	if (hThread)
 	{
@@ -206,7 +206,7 @@ void GThread::Terminate()
 	}
 }
 
-int GThread::ExitCode()
+int LThread::ExitCode()
 {
 	DWORD d;
 	GetExitCodeThread(hThread, &d);
@@ -214,7 +214,7 @@ int GThread::ExitCode()
 	return ReturnValue;
 }
 
-int GThread::Main()
+int LThread::Main()
 {
 	return 0;
 }

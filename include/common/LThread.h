@@ -5,7 +5,7 @@
 // Thread types are defined in GMutex.h
 #include "LMutex.h"
 
-class LgiClass GThread
+class LgiClass LThread
 {
 public:
     enum ThreadState
@@ -36,7 +36,7 @@ protected:
 
 	friend uint WINAPI ThreadEntryPoint(void *i);
 	uint ThreadId;
-    void Create(class GThread *Thread, OsThread &hThread, uint &ThreadId);
+    void Create(class LThread *Thread, OsThread &hThread, uint &ThreadId);
 
 	#elif defined BEOS
 
@@ -57,8 +57,8 @@ protected:
 	bool DeleteOnExit;
 
 public:
-	GThread(const char *Name);
-	virtual ~GThread();
+	LThread(const char *Name);
+	virtual ~LThread();
 
 	// Properties
 	OsThread Handle() { return hThread; }
@@ -125,7 +125,7 @@ public:
 #undef AddJob
 
 /// This parent class does the actual work of processing jobs.
-class LgiClass GThreadWorker : public GThread, public LMutex
+class LgiClass GThreadWorker : public LThread, public LMutex
 {
 	GArray<GThreadTarget*> Owners;
 	GArray<GThreadJob*> Jobs;

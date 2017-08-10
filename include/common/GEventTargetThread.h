@@ -1,9 +1,9 @@
 #ifndef _GEVENTTARGETTHREAD_H_
 #define _GEVENTTARGETTHREAD_H_
 
-#include "GThread.h"
+#include "LThread.h"
 #include "LMutex.h"
-#include "GThreadEvent.h"
+#include "LThreadEvent.h"
 
 #define PostThreadEvent GEventSinkMap::Dispatch.PostEvent
 
@@ -151,13 +151,13 @@ public:
 /// This class is a worker thread that accepts messages on it's GEventSinkI interface.
 /// To use, sub class and implement the OnEvent handler.
 class LgiClass GEventTargetThread :
-	public GThread,
+	public LThread,
 	public LMutex,
 	public GMappedEventSink,
 	public GEventTargetI // Sub-class has to implement OnEvent
 {
 	GArray<GMessage*> Msgs;
-	GThreadEvent Event;
+	LThreadEvent Event;
 	bool Loop;
 
 	// This makes the event name unique on windows to 
@@ -176,7 +176,7 @@ protected:
 
 public:
 	GEventTargetThread(GString Name) :
-		GThread(Name + ".Thread"),
+		LThread(Name + ".Thread"),
 		LMutex(Name + ".Mutex"),
 		Event(ProcessName(Name, "Event"))
 	{
@@ -214,7 +214,7 @@ public:
 					int r = sem_getvalue(Event.Handle(), &val);
 
 					printf("%s:%i - EndThread() hung waiting for %s to exit (caller.thread=%i, worker.thread=%i, event=%i, r=%i, val=%i).\n",
-						_FL, GThread::GetName(),
+						_FL, LThread::GetName(),
 						GetCurrentThreadId(),
 						GetId(),
 						Event.Handle(),
@@ -222,7 +222,7 @@ public:
 						val);
 					#else
 					printf("%s:%i - EndThread() hung waiting for %s to exit (caller.thread=%i, worker.thread=%i, event=%p).\n",
-						_FL, GThread::GetName(),
+						_FL, LThread::GetName(),
 						(int)GetCurrentThreadId(),
 						GetId(),
 						Event.Handle());
@@ -256,8 +256,8 @@ public:
 	{
 		while (Loop)
 		{
-			GThreadEvent::WaitStatus s = Event.Wait();
-			if (s == GThreadEvent::WaitSignaled)
+			LThreadEvent::WaitStatus s = Event.Wait();
+			if (s == LThreadEvent::WaitSignaled)
 			{
 				while (true)
 				{

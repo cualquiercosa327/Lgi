@@ -29,7 +29,7 @@ void GThreadTarget::Detach()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 GThreadWorker::GThreadWorker(GThreadTarget *First, const char *ThreadName) :
-	GThread(ThreadName),
+	LThread(ThreadName),
 	LMutex("GThreadWorker")
 {
 	Loop = false;

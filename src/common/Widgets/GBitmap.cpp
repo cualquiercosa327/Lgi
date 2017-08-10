@@ -5,14 +5,14 @@
 
 //////////////////////////////////////////////////////////////////////////////////
 #ifdef _MT
-class GBitmapThread : public GThread
+class GBitmapThread : public LThread
 {
 	GBitmap *Bmp;
 	char *File;
-	GThread **Owner;
+	LThread **Owner;
 
 public:
-	GBitmapThread(GBitmap *bmp, char *file, GThread **owner) : GThread("GBitmapThread")
+	GBitmapThread(GBitmap *bmp, char *file, LThread **owner) : LThread("GBitmapThread")
 	{
 		Bmp = bmp;
 		File = NewStr(file);

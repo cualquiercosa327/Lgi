@@ -1,5 +1,5 @@
 #include "Lgi.h"
-#include "GThreadEvent.h"
+#include "LThreadEvent.h"
 
 #if USE_POSIX_SEM
 	#define SEM_NULL -1
@@ -33,7 +33,7 @@
 #define DEBUG_THREADING     0
 #define USE_NAMED_SEM		0
 
-GThreadEvent::GThreadEvent(const char *name)
+LThreadEvent::LThreadEvent(const char *name)
 {
 	Name(name);
 
@@ -105,7 +105,7 @@ GThreadEvent::GThreadEvent(const char *name)
 	#endif
 }
 
-GThreadEvent::~GThreadEvent()
+LThreadEvent::~LThreadEvent()
 {
 	#if USE_MACH_SEM
 
@@ -149,7 +149,7 @@ GThreadEvent::~GThreadEvent()
 	#endif
 }
 
-bool GThreadEvent::IsOk()
+bool LThreadEvent::IsOk()
 {
 	#if USE_MACH_SEM
 
@@ -175,7 +175,7 @@ bool GThreadEvent::IsOk()
 	#endif
 }
 
-bool GThreadEvent::Signal()
+bool LThreadEvent::Signal()
 {
 	#if USE_MACH_SEM
 
@@ -255,7 +255,7 @@ bool GThreadEvent::Signal()
 	return true;
 }
 
-GThreadEvent::WaitStatus GThreadEvent::Wait(int32 Timeout)
+LThreadEvent::WaitStatus LThreadEvent::Wait(int32 Timeout)
 {
 	#if USE_MACH_SEM
 
@@ -397,7 +397,7 @@ GThreadEvent::WaitStatus GThreadEvent::Wait(int32 Timeout)
 	return WaitError;
 }
 
-uint32 GThreadEvent::GetError()
+uint32 LThreadEvent::GetError()
 {
 	return LastError;
 }

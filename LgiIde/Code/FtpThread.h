@@ -42,7 +42,7 @@ public:
 	void Error(const char *e);
 };
 
-class FtpThread : public GThread
+class FtpThread : public LThread
 {
 	struct FtpThreadPriv *d;
 

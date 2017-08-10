@@ -83,13 +83,13 @@ public:
 	}
 };
 
-class NativeTipThread : public GThread
+class NativeTipThread : public LThread
 {
 	bool Loop;
 	List<NativeTip> *Tips;
 
 public:
-	NativeTipThread(List<NativeTip> *tips) : GThread("NativeTipThread")
+	NativeTipThread(List<NativeTip> *tips) : LThread("NativeTipThread")
 	{
 		Loop = true;
 		Tips = tips;
@@ -184,7 +184,7 @@ public:
 	#elif NATIVE_TIPS
 	List<NativeTip> Tips;
 	GViewI *Parent;
-	GThread *Thread;
+	LThread *Thread;
 	#endif
 	
 	GToolTipPrivate()

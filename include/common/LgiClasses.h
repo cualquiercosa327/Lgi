@@ -1478,7 +1478,7 @@ public:
 #include "GFileSelect.h"
 #include "GFindReplaceDlg.h"
 #include "GToolBar.h"
-#include "GThread.h"
+#include "LThread.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
