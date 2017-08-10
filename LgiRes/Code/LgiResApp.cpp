@@ -1979,7 +1979,7 @@ public:
 			}
 		}
 
-		GHashTable a(0, false);		
+		GHashTbl<char*,GXmlAttr*> a(0, false);		
 		for (int i=0; i<t1->Attr.Length(); i++)
 		{
 			GXmlAttr *a1 = &t1->Attr[i];
@@ -2817,7 +2817,7 @@ bool AppWnd::WriteDefines(GFile &Defs)
 	if (ListObjects(Lst))
 	{
 		GHashTbl<char*,int> Def;
-		GHashTable Ident;
+		GHashTbl<char*,char*> Ident;
 
 		for (Resource *r = Lst.First(); r; r = Lst.Next())
 		{
@@ -2852,7 +2852,7 @@ bool AppWnd::WriteDefines(GFile &Defs)
 							char IdStr[32];
 							sprintf(IdStr, "%i", s->GetId());
 							char *Define;
-							if ((Define = (char*)Ident.Find(IdStr)))
+							if ((Define = Ident.Find(IdStr)))
 							{
 								if (strcmp(Define, s->GetDefine()))
 								{

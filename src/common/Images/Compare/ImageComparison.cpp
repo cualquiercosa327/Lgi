@@ -236,7 +236,7 @@ GAutoPtr<GMemDC> CreateDiff(GViewI *Parent, GSurface *A, GSurface *B)
 	return C;
 }
 
-class ThreadLoader : public GThread
+class ThreadLoader : public LThread
 {
 	GView *Owner;
 	GAutoString File;
@@ -245,7 +245,7 @@ public:
 	GAutoPtr<GSurface> Img;
 	GMessage::Param Param;
 
-	ThreadLoader(GView *owner, GAutoString file, GMessage::Param param) : GThread("ThreadLoader")
+	ThreadLoader(GView *owner, GAutoString file, GMessage::Param param) : LThread("ThreadLoader")
 	{
 		Owner = owner;
 		File = file;
@@ -770,12 +770,12 @@ void CmpZoomView::OnMouseMove(GMouse &m)
 	View->UserMouseMove(m);
 }
 
-struct CompareThread : public GThread
+struct CompareThread : public LThread
 {
 	LList *lst;
 	bool loop;
 	
-	CompareThread(LList *l) : GThread("CompareThread")
+	CompareThread(LList *l) : LThread("CompareThread")
 	{
 		lst = l;
 		loop = true;

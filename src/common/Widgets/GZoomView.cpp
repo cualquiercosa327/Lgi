@@ -10,7 +10,7 @@ Notes:
 #include "Lgi.h"
 #include "GZoomView.h"
 #include "GScrollBar.h"
-#include "GThreadEvent.h"
+#include "LThreadEvent.h"
 #include "GPalette.h"
 
 #define MAX_FACTOR				32
