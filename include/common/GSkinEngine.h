@@ -1,7 +1,7 @@
 #ifndef _GSKIN_ENGINE_H_
 #define _GSKIN_ENGINE_H_
 
-#include "GList.h"
+#include "LList.h"
 
 // Feature support flags
 #define GSKIN_COLOUR		0x00000001

@@ -80,7 +80,7 @@ int GStream::Print(const char *Format, ...)
 }
 
 /////////////////////////////////////////////////////////////////
-GStreamer::GStreamer(int BufSize)
+GStreamOp::GStreamOp(int BufSize)
 {
 	StartTime = 0;
 	EndTime = 0;
@@ -89,22 +89,22 @@ GStreamer::GStreamer(int BufSize)
 	Buf = new char[Size];
 }
 
-GStreamer::~GStreamer()
+GStreamOp::~GStreamOp()
 {
 	DeleteArray(Buf);
 }
 
-int64 GStreamer::GetRate()
+int64 GStreamOp::GetRate()
 {
 	return (Total * GetElapsedTime()) / 1000;
 }
 
-int64 GStreamer::GetTotal()
+int64 GStreamOp::GetTotal()
 {
 	return Total;
 }
 
-int64 GStreamer::GetElapsedTime()
+int64 GStreamOp::GetElapsedTime()
 {
 	if (EndTime)
 	{

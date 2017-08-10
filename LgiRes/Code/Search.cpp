@@ -194,7 +194,7 @@ int Search::OnNotify(GViewI *c, int f)
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Results window
-class Result : public GListItem
+class Result : public LListItem
 {
 public:
 	AppWnd *App;
@@ -271,7 +271,7 @@ public:
 	int CtrlId;
 	bool Searching;
 	bool Running;
-	GList *Lst;
+	LList *Lst;
 
 	bool HasContent(char *s)
 	{

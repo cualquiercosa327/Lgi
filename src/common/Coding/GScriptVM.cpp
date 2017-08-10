@@ -5,7 +5,7 @@
 #include "GBox.h"
 #include "GTabView.h"
 #include "GTextLog.h"
-#include "GList.h"
+#include "LList.h"
 #include "GToolBar.h"
 #include "GToken.h"
 #include "GTableLayout.h"
@@ -490,7 +490,7 @@ public:
 			}
 			case GV_LIST:
 			{
-				Log->Print("(GList*) %p {", v.Value.Lst);
+				Log->Print("(LList*) %p {", v.Value.Lst);
 
 				int n=0; 
 				for (GVariant *i=v.Value.Lst->First(); i; i = v.Value.Lst->Next(), n++)
@@ -1255,10 +1255,10 @@ struct GScriptVmDebuggerPriv
 	GView *Parent;
 	GBox *Main;
 	GBox *Sub;
-	GList *SourceLst;
+	LList *SourceLst;
 	GTabView *Tabs;
 	GDebugView *Text;
-	GList *Locals, *Globals, *Registers, *Stack;
+	LList *Locals, *Globals, *Registers, *Stack;
 	GTextLog *Log;
 	GToolBar *Tools;
 	GTableLayout *VarsTbl;
@@ -1514,7 +1514,7 @@ GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVi
 		d->Main->AddView(d->Sub = new GBox(IDC_BOX2));
 		d->Sub->SetVertical(false);
 		
-		d->Sub->AddView(d->SourceLst = new GList(IDC_SOURCE_LST, 0, 0, 100, 100));
+		d->Sub->AddView(d->SourceLst = new LList(IDC_SOURCE_LST, 0, 0, 100, 100));
 		d->SourceLst->GetCss(true)->Width(GCss::Len("200px"));
 		d->SourceLst->AddColumn("Source", 200);
 		d->Sub->AddView(d->Text = new GDebugView(d));
@@ -1535,20 +1535,20 @@ GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVi
 
 		x = 0; y++;
 		c = d->VarsTbl->GetCell(x++, y);
-		c->Add(d->Globals = new GList(IDC_GLOBALS, 0, 0, 100, 100));
+		c->Add(d->Globals = new LList(IDC_GLOBALS, 0, 0, 100, 100));
 		d->Globals->AddColumn("Name",100);
 		d->Globals->AddColumn("Value",400);
 		c = d->VarsTbl->GetCell(x++, y);
-		c->Add(d->Locals = new GList(IDC_LOCALS, 0, 0, 100, 100));
+		c->Add(d->Locals = new LList(IDC_LOCALS, 0, 0, 100, 100));
 		d->Locals->AddColumn("Name",100);
 		d->Locals->AddColumn("Value",400);
 		c = d->VarsTbl->GetCell(x++, y);
-		c->Add(d->Registers = new GList(IDC_REGISTERS, 0, 0, 100, 100));
+		c->Add(d->Registers = new LList(IDC_REGISTERS, 0, 0, 100, 100));
 		d->Registers->AddColumn("Name",100);
 		d->Registers->AddColumn("Value",400);
 
 		p = d->Tabs->Append("Stack");
-		p->Append(d->Stack = new GList(IDC_STACK, 0, 0, 100, 100));
+		p->Append(d->Stack = new LList(IDC_STACK, 0, 0, 100, 100));
 		d->Stack->SetPourLargest(true);
 		d->Stack->AddColumn("Address", 100);
 		d->Stack->AddColumn("Function", 300);
@@ -1572,7 +1572,7 @@ GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVi
 					if (stristr(n, ".script") &&
 						dir.Path(p, sizeof(p)))
 					{
-						GListItem *it = new GListItem;
+						LListItem *it = new LListItem;
 						it->SetText(dir.GetName(), 0);
 						it->SetText(p, 1);
 						d->SourceLst->Insert(it);
@@ -1757,15 +1757,15 @@ void GVmDebuggerWnd::SetSource(const char *Mixed)
 	#endif
 }
 
-void GVmDebuggerWnd::UpdateVariables(GList *Lst, GVariant *Arr, ssize_t Len, char Prefix)
+void GVmDebuggerWnd::UpdateVariables(LList *Lst, GVariant *Arr, ssize_t Len, char Prefix)
 {
 	if (!d->Vm || !Lst || !Arr)
 		return;
 
-	List<GListItem> all;
+	List<LListItem> all;
 	Lst->GetAll(all);
 	
-	GListItem *it;
+	LListItem *it;
 	for (int i=0; i<Len; i++)
 	{
 		GVariant *v = Arr + i;
@@ -1777,7 +1777,7 @@ void GVmDebuggerWnd::UpdateVariables(GList *Lst, GVariant *Arr, ssize_t Len, cha
 		
 		if (i >= all.Length())
 		{
-			it = new GListItem;
+			it = new LListItem;
 			all.Insert(it);
 			Lst->Insert(it);
 		}
@@ -1977,7 +1977,7 @@ int GVmDebuggerWnd::OnNotify(GViewI *Ctrl, int Flags)
 					for (int i=(int)Frames.Length()-1; i>=0; i--)
 					{
 						GVirtualMachinePriv::StackFrame &Sf = Frames[i];
-						GListItem *li = new GListItem;
+						LListItem *li = new LListItem;
 						GString s;
 						s.Printf("%p/%i", Sf.ReturnIp, Sf.ReturnIp);
 						li->SetText(s, 0);
@@ -2000,7 +2000,7 @@ int GVmDebuggerWnd::OnNotify(GViewI *Ctrl, int Flags)
 		{
 			if (Flags == GNotifyItem_Select)
 			{
-				GListItem *it = d->SourceLst->GetSelected();
+				LListItem *it = d->SourceLst->GetSelected();
 				if (!it)
 					break;
 

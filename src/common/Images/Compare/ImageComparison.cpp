@@ -1,5 +1,5 @@
 #include "Lgi.h"
-#include "GList.h"
+#include "LList.h"
 #include "GCombo.h"
 #include "GEdit.h"
 #include "GPalette.h"
@@ -772,10 +772,10 @@ void CmpZoomView::OnMouseMove(GMouse &m)
 
 struct CompareThread : public GThread
 {
-	GList *lst;
+	LList *lst;
 	bool loop;
 	
-	CompareThread(GList *l) : GThread("CompareThread")
+	CompareThread(LList *l) : GThread("CompareThread")
 	{
 		lst = l;
 		loop = true;
@@ -791,13 +791,13 @@ struct CompareThread : public GThread
 	
 	int Main()
 	{
-		List<GListItem> items;
+		List<LListItem> items;
 		lst->GetAll(items);
-		List<GListItem>::I it = items.Start();
+		List<LListItem>::I it = items.Start();
 		
 		while (loop)
 		{
-			GListItem *i = *it;
+			LListItem *i = *it;
 
 			if (i)
 			{
@@ -849,7 +849,7 @@ struct CompareThread : public GThread
 struct ImageCompareDlgPriv : public GZoomViewCallback
 {
 	GCombo *l, *r;
-	GList *lst;
+	LList *lst;
 	GTabView *tabs;
 	GAutoPtr<CompareThread> Thread;
 
@@ -950,7 +950,7 @@ int ImageCompareDlg::OnNotify(GViewI *Ctrl, int Flags)
 		{
 			if (Flags == GNotifyItem_DoubleClick)
 			{
-				GListItem *s = d->lst->GetSelected();
+				LListItem *s = d->lst->GetSelected();
 				if (s)
 				{
 					char *left = s->GetText(0);
@@ -1007,7 +1007,7 @@ int ImageCompareDlg::OnNotify(GViewI *Ctrl, int Flags)
 				if (LeftFile)
 				{
 					RDir.Path(p, sizeof(p));
-					GListItem *l = new GListItem;
+					LListItem *l = new LListItem;
 					l->SetText(LeftFile, 0);
 					l->SetText(p, 1);
 					l->SetText("Processing...", 2);

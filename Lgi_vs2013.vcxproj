@@ -516,7 +516,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\common\Widgets\GItemContainer.cpp" />
-    <ClCompile Include="src\common\Widgets\GList.cpp" />
     <ClCompile Include="src\common\Widgets\GPanel.cpp" />
     <ClCompile Include="src\common\Widgets\GPopup.cpp" />
     <ClCompile Include="src\common\Widgets\GProgressDlg.cpp" />
@@ -535,6 +534,7 @@
     <ClCompile Include="src\common\Widgets\GTextLabel.cpp" />
     <ClCompile Include="src\common\Widgets\GToolBar.cpp" />
     <ClCompile Include="src\common\Widgets\GTree.cpp" />
+    <ClCompile Include="src\common\Widgets\LList.cpp" />
     <ClCompile Include="src\win32\Gdc2\Gdc2.cpp" />
     <ClCompile Include="src\win32\Gdc2\GdiLeak.cpp" />
     <ClCompile Include="src\win32\Gdc2\GMemDC.cpp" />
@@ -598,7 +598,6 @@
     <ClInclude Include="include\common\GImageList.h" />
     <ClInclude Include="include\common\GItemContainer.h" />
     <ClInclude Include="include\common\GLibrary.h" />
-    <ClInclude Include="include\common\GList.h" />
     <ClInclude Include="include\common\GListItemCheckBox.h" />
     <ClInclude Include="include\common\GListItemRadioBtn.h" />
     <ClInclude Include="include\common\GMatrix.h" />
@@ -639,6 +638,7 @@
     <ClInclude Include="include\common\LgiInc.h" />
     <ClInclude Include="include\common\LgiInterfaces.h" />
     <ClInclude Include="include\common\LgiRes.h" />
+    <ClInclude Include="include\common\LList.h" />
     <ClInclude Include="include\common\LMutex.h" />
     <ClInclude Include="include\common\Res.h" />
     <ClInclude Include="include\win32\GCom.h" />

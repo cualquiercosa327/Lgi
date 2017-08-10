@@ -18,7 +18,7 @@ class SslSocket :
 	friend class OpenSSL;
 	struct SslSocketPriv *d;
 	
-	GMutex Lock;
+	LMutex Lock;
 	BIO *Bio;
 	SSL *Ssl;
 

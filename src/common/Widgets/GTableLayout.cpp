@@ -22,7 +22,7 @@ enum CellFlag
 #include "GButton.h"
 #include "GEdit.h"
 #include "GCombo.h"
-#include "GList.h"
+#include "LList.h"
 #include "GTree.h"
 #include "GCheckBox.h"
 #include "GRadioGroup.h"
@@ -805,9 +805,9 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 						Flag = SizeFill;
 				}
 			}
-			else if (Izza(GList))
+			else if (Izza(LList))
 			{
-				GList *Lst = Izza(GList);
+				LList *Lst = Izza(LList);
 				int m = 0;
 				for (int i=0; i<Lst->GetColumns(); i++)
 				{
@@ -1025,7 +1025,7 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 
 			Pos.y2 += y;
 		}
-		else if (Izza(GList) ||
+		else if (Izza(LList) ||
 				 Izza(GTree) ||
 				 Izza(GTabView))
 		{
@@ -1136,7 +1136,7 @@ void TableCell::PostLayout()
 		}
 		else if
 		(
-			Izza(GList) ||
+			Izza(LList) ||
 			Izza(GTree) ||
 			Izza(GTabView) ||
 			(Izza(GEdit) && Izza(GEdit)->MultiLine())

@@ -253,7 +253,7 @@ public:
 	int GetBuildMode();
 	GTree *GetTree();
 	GOptionsFile *GetOptions();
-	GList *GetFtpLog();
+	LList *GetFtpLog();
 	GStream *GetBuildLog();
 	IdeDoc *FindOpenFile(char *FileName);
 	IdeDoc *GotoReference(const char *File, int Line, bool CurIp, bool WithHistory = true);

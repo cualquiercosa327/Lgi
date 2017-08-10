@@ -2,25 +2,25 @@
 /// \author Matthew Allen (fret@memecode.com)
 /// \brief A checkbox for a list item
 
-#ifndef __GLIST_ITEM_CHECKBOX_H
-#define __GLIST_ITEM_CHECKBOX_H
+#ifndef __LList_ITEM_CHECKBOX_H
+#define __LList_ITEM_CHECKBOX_H
 
-#include "GList.h"
+#include "LList.h"
 
-/// A checkbox suitable for a GListItem.
-class GListItemCheckBox : public GListItemColumn
+/// A checkbox suitable for a LListItem.
+class LListItemCheckBox : public LListItemColumn
 {
 public:
 	/// Constructor
-	GListItemCheckBox
+	LListItemCheckBox
 	(
 		/// The hosting list item.
-		GListItem *host,
+		LListItem *host,
 		/// The column to draw in.
 		int column,
 		// The initial value.
 		bool value = false
-	) : GListItemColumn(host, column)
+	) : LListItemColumn(host, column)
 	{
 		Value(value);
 	}
@@ -57,16 +57,16 @@ public:
 	{
 		if (m.Down() && m.Left())
 		{
-			GList *l = GetList();
-			List<GListItem> Sel;
+			LList *l = GetList();
+			List<LListItem> Sel;
 			if (l->GetSelection(Sel) && Sel.First())
 			{
 				bool v = !Value();
 				Sel.Delete(GetItem());
 
-				for (GListItem *i=Sel.First(); i; i=Sel.Next())
+				for (LListItem *i=Sel.First(); i; i=Sel.Next())
 				{
-					GListItemColumn *c = GetItemCol(i, GetColumn());
+					LListItemColumn *c = GetItemCol(i, GetColumn());
 					if (c)
 					{
 						c->Value(v);

@@ -271,7 +271,7 @@ class OpenSSL :
 
 public:
 	SSL_CTX *Client;
-	GArray<GMutex*> Locks;
+	GArray<LMutex*> Locks;
 	GAutoString ErrorMsg;
 
     bool IsLoaded()
@@ -448,7 +448,7 @@ SSL_locking_function(int mode, int n, const char *file, int line)
 			sprintf_s(Buf, sizeof(Buf), "SSL[%i] create\n", n);
 			OutputDebugStr(Buf);
 			#endif
-			Library->Locks[n] = new GMutex;
+			Library->Locks[n] = new LMutex;
 		}
 
 		#ifdef SSL_DEBUG_LOCKING
@@ -480,7 +480,7 @@ SSL_id_function()
 
 bool StartSSL(GAutoString &ErrorMsg, SslSocket *sock)
 {
-	static GMutex Lock;
+	static LMutex Lock;
 	
 	if (Lock.Lock(_FL))
 	{
@@ -733,7 +733,7 @@ GString SslGetErrorAsString(OpenSSL *Library)
 int SslSocket::Open(const char *HostAddr, int Port)
 {
 	bool Status = false;
-	GMutex::Auto Lck(&Lock, _FL);
+	LMutex::Auto Lck(&Lock, _FL);
 
 DebugTrace("%s:%i - SslSocket::Open(%s,%i)\n", _FL, HostAddr, Port);
 	
@@ -992,7 +992,7 @@ DebugTrace("%s:%i - X509_NAME_oneline=%s\n", _FL, Txt);
 int SslSocket::Close()
 {
 	d->Opening = false;
-	GMutex::Auto Lck(&Lock, _FL);
+	LMutex::Auto Lck(&Lock, _FL);
 
 	if (Library)
 	{
@@ -1149,7 +1149,7 @@ void SslSocket::OnRead(char *Data, ssize_t Len)
 
 ssize_t SslSocket::Write(const void *Data, ssize_t Len, int Flags)
 {
-	GMutex::Auto Lck(&Lock, _FL);
+	LMutex::Auto Lck(&Lock, _FL);
 
 	if (!Library)
 	{
@@ -1270,7 +1270,7 @@ ssize_t SslSocket::Write(const void *Data, ssize_t Len, int Flags)
 
 ssize_t SslSocket::Read(void *Data, ssize_t Len, int Flags)
 {
-	GMutex::Auto Lck(&Lock, _FL);
+	LMutex::Auto Lck(&Lock, _FL);
 
 	if (!Library)
 		return -1;

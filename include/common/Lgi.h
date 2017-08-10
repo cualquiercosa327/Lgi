@@ -129,7 +129,7 @@
 		<li> GStatusBar
 		<li> GLayout
 		<li> GButton
-		<li> GList
+		<li> LList
 		<li> GTree
 		<li> etc...
 	</ul>
@@ -143,7 +143,7 @@
 		<li> GView::FindLargestEdge
 	</ul>
 	Usually you attach a GToolBar first, as it will automatically slide in below the menu (if any). Then a
-	GStatusBar, if your going to need one. And finally a GSplitter or GList to fill out the rest of the space.
+	GStatusBar, if your going to need one. And finally a GSplitter or LList to fill out the rest of the space.
 	The standard method of attaching a view to a GWindow in the constructor of your window:
 	\code
 	GSplitter *s = new GSplitter;
@@ -189,7 +189,7 @@
 		<li> GSlider (Select a position)
 		<li> GBitmap (Display an image)
 		<li> GProgress (Show a progress)
-		<li> GList (List containing GListItem)
+		<li> LList (List containing LListItem)
 		<li> GTree (Heirarchy of GTreeItem)
 		<li> GRadioGroup (One of many selection using GRadioButton)
 		<li> GTabView (Containing GTabPage)

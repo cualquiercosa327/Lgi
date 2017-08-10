@@ -3,6 +3,7 @@
 #define _LGI_SCRIPTING_H_
 
 #include "GVariant.h"
+#include "LList.h"
 
 class GScriptContext;
 class GScriptEnginePrivate;
@@ -354,7 +355,7 @@ class GVmDebuggerWnd : public GWindow, public GVmDebugger
 {
 	struct GScriptVmDebuggerPriv *d;
 
-	void UpdateVariables(GList *Lst, GVariant *Arr, ssize_t Len, char Prefix);
+	void UpdateVariables(LList *Lst, GVariant *Arr, ssize_t Len, char Prefix);
 
 public:
 	GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVirtualMachine *Vm, const char *Script, const char *Assembly);

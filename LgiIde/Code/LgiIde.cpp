@@ -362,7 +362,7 @@ public:
 	GTabPage *Debug;
 	GTabPage *Find;
 	GTabPage *Ftp;
-	GList *FtpLog;
+	LList *FtpLog;
 	GTextLog *Txt[3];
 	GArray<char> Buf[3];
 	GFont Small;
@@ -371,7 +371,7 @@ public:
 	GTabView *DebugTab;
 	GBox *DebugBox;
 	GBox *DebugLog;
-	GList *Locals, *CallStack, *Threads;
+	LList *Locals, *CallStack, *Threads;
 	GTree *Watch;
 	GTextLog *ObjectDump, *MemoryDump, *Registers;
 	GTableLayout *MemTable;
@@ -437,7 +437,7 @@ public:
 			if (Find)
 				Find->Append(Txt[AppWnd::FindTab] = new GTextLog(IDC_FIND_LOG));
 			if (Ftp)
-				Ftp->Append(FtpLog = new GList(104, 0, 0, 100, 100));
+				Ftp->Append(FtpLog = new LList(104, 0, 0, 100, 100));
 			if (Debug)
 			{
 				Debug->Append(DebugBox = new GBox);
@@ -454,7 +454,7 @@ public:
 						if ((Page = DebugTab->Append("Locals")))
 						{
 							Page->SetFont(&Small);
-							if ((Locals = new GList(IDC_LOCALS_LIST, 0, 0, 100, 100, "Locals List")))
+							if ((Locals = new LList(IDC_LOCALS_LIST, 0, 0, 100, 100, "Locals List")))
 							{
 								Locals->SetFont(&Small);
 								Locals->AddColumn("", 30);
@@ -587,7 +587,7 @@ public:
 						if ((Page = DebugTab->Append("Threads")))
 						{
 							Page->SetFont(&Small);
-							if ((Threads = new GList(IDC_THREADS, 0, 0, 100, 100, "Threads")))
+							if ((Threads = new LList(IDC_THREADS, 0, 0, 100, 100, "Threads")))
 							{
 								Threads->SetFont(&Small);
 								Threads->AddColumn("", 20);
@@ -601,7 +601,7 @@ public:
 						if ((Page = DebugTab->Append("Call Stack")))
 						{
 							Page->SetFont(&Small);
-							if ((CallStack = new GList(IDC_CALL_STACK, 0, 0, 100, 100, "Call Stack")))
+							if ((CallStack = new LList(IDC_CALL_STACK, 0, 0, 100, 100, "Call Stack")))
 							{
 								CallStack->SetFont(&Small);
 								CallStack->AddColumn("", 20);
@@ -2294,7 +2294,7 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 				Flags == GNotifyItem_DoubleClick &&
 				d->DbgContext)
 			{
-				GListItem *it = d->Output->Locals->GetSelected();
+				LListItem *it = d->Output->Locals->GetSelected();
 				if (it)
 				{
 					char *Var = it->GetText(2);
@@ -2322,7 +2322,7 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 				// This takes the user to a given call stack reference
 				if (d->Output->CallStack && d->DbgContext)
 				{
-					GListItem *item = d->Output->CallStack->GetSelected();
+					LListItem *item = d->Output->CallStack->GetSelected();
 					if (item)
 					{
 						GAutoString File;
@@ -2386,7 +2386,7 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 				// This takes the user to a given thread
 				if (d->Output->Threads && d->DbgContext)
 				{
-					GListItem *item = d->Output->Threads->GetSelected();
+					LListItem *item = d->Output->Threads->GetSelected();
 					if (item)
 					{
 						GString sId = item->GetText(0);
@@ -3105,7 +3105,7 @@ int AppWnd::GetBuildMode()
 	return BUILD_TYPE_DEBUG;
 }
 
-GList *AppWnd::GetFtpLog()
+LList *AppWnd::GetFtpLog()
 {
 	return d->Output->FtpLog;
 }

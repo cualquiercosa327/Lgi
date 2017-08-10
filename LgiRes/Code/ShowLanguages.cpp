@@ -1,21 +1,21 @@
 #include "Lgi.h"
 #include "LgiResEdit.h"
-#include "GList.h"
+#include "LList.h"
 #include "GButton.h"
-#include "GListItemCheckBox.h"
+#include "LListItemCheckBox.h"
 
 class ShowLanguagesDlgPriv
 {
 public:
 	AppWnd *App;
-	GList *Lst;
+	LList *Lst;
 };
 
-class Lang : public GListItem
+class Lang : public LListItem
 {
 	GLanguage *L;
 	int Index;
-	GListItemCheckBox *Val;
+	LListItemCheckBox *Val;
 
 public:
 	Lang(AppWnd *App, GLanguage *l, int i)
@@ -24,7 +24,7 @@ public:
 		Index = i;
 		SetText(l->Id, 1);
 		SetText(l->Name, 2);
-		Val = new GListItemCheckBox(this, 0, App->ShowLang(L->Id));
+		Val = new LListItemCheckBox(this, 0, App->ShowLang(L->Id));
 	}
 
 	GLanguage *GetLang()
@@ -38,7 +38,7 @@ public:
 	}
 };
 
-int Cmp(GListItem *a, GListItem *b, NativeInt d)
+int Cmp(LListItem *a, LListItem *b, NativeInt d)
 {
 	return stricmp(a->GetText(2), b->GetText(2));
 }
@@ -53,7 +53,7 @@ ShowLanguagesDlg::ShowLanguagesDlg(AppWnd *app)
 	MoveToCenter();
 	Name("Show Languages");
 	r = GetClient();
-	Children.Insert(d->Lst = new GList(100, 10, 10, r.X() - 20, r.Y() - 50));
+	Children.Insert(d->Lst = new LList(100, 10, 10, r.X() - 20, r.Y() - 50));
 	Children.Insert(new GButton(IDOK, r.X() - 140, r.Y() - 30, 60, 20, "Ok"));
 	Children.Insert(new GButton(IDCANCEL, r.X() - 70, r.Y() - 30, 60, 20, "Cancel"));
 

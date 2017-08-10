@@ -2,7 +2,7 @@
 #include "LgiIde.h"
 #include "IdeProject.h"
 #include "GTextLog.h"
-#include "GList.h"
+#include "LList.h"
 
 enum DebugMessages
 {
@@ -79,7 +79,7 @@ public:
 				if (*Sp)
 				{
 					*Sp++ = 0;
-					GListItem *it = new GListItem;
+					LListItem *it = new LListItem;
 					
 					int ThreadId = atoi(f);
 					it->SetText(f, 0);
@@ -104,7 +104,7 @@ public:
 				Ctx->CallStack->Empty();
 				for (int i=0; i<Stack.Length(); i++)
 				{
-					GListItem *it = new GListItem;
+					LListItem *it = new LListItem;
 					char *f = Stack[i];
 					if (*f == '#')
 					{
@@ -294,7 +294,7 @@ bool GDebugContext::UpdateLocals()
 	for (int i=0; i<Vars.Length(); i++)
 	{
 		GDebugger::Variable &v = Vars[i];
-		GListItem *it = new GListItem;
+		LListItem *it = new LListItem;
 		if (it)
 		{
 			switch (v.Scope)

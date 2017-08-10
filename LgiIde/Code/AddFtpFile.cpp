@@ -69,11 +69,11 @@ int AddFtpFile::OnNotify(GViewI *c, int f)
 	{
 		case IDOK:
 		{
-			List<GListItem> a;
+			List<LListItem> a;
 			if (Files)
 			{
 				Files->GetAll(a);
-				for (GListItem *i=a.First(); i; i=a.Next())
+				for (LListItem *i=a.First(); i; i=a.Next())
 				{
 					FtpFile *f=dynamic_cast<FtpFile*>(i);
 					if (!f) break;

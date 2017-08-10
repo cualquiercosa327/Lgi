@@ -10,7 +10,7 @@
 #include "GScrollBar.h"
 #include "LgiRes.h"
 #include "GEdit.h"
-#include "GList.h"
+#include "LList.h"
 #include "GPopupList.h"
 #include "GTableLayout.h"
 #include "ProjectNode.h"

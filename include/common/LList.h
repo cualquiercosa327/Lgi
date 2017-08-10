@@ -2,8 +2,8 @@
 /// \author Matthew Allen (fret@memecode.com)
 /// \brief A list control
 
-#ifndef __GLIST2_H
-#define __GLIST2_H
+#ifndef __LList_H
+#define __LList_H
 
 // Includes
 #include "GMem.h"
@@ -13,44 +13,47 @@
 #include "GCss.h"
 #include "GItemContainer.h"
 
+class LList;
+class LListItem;
+
 // Messages
 #define WM_END_EDIT_LABEL			(WM_USER+0x556)
 
 //////////////////////////////////////////////////////////////////////////////
 
 /// View modes for the list control
-enum GListMode
+enum LListMode
 {
-	GListDetails,
-	GListColumns,
-	GListSpacial,
+	LListDetails,
+	LListColumns,
+	LListSpacial,
 };
 
-class LgiClass GListItemPainter
+class LgiClass LListItemPainter
 {
 public:
 	// Overridable
 	virtual void OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GItemColumn *c) = 0;
 };
 
-class LgiClass GListItemColumn : public GBase, public GItem, public GListItemPainter
+class LgiClass LListItemColumn : public GBase, public GItem, public LListItemPainter
 {
-	GListItem *_Item;
+	LListItem *_Item;
 	int _Column;
 	int64 _Value;
 
 	void OnPaint(ItemPaintCtx &Ctx) {}
 
 protected:
-	List<GListItem> *GetAllItems();
-	GListItemColumn *GetItemCol(GListItem *i, int Col);
+	List<LListItem> *GetAllItems();
+	LListItemColumn *GetItemCol(LListItem *i, int Col);
 
 public:
-	GListItemColumn(GListItem *item, int col);
+	LListItemColumn(LListItem *item, int col);
 
 	// Other objects
-	GListItem *GetItem() { return _Item; }
-	GList *GetList();
+	LListItem *GetItem() { return _Item; }
+	LList *GetList();
 	GItemContainer *GetContainer();
 
 	// Props
@@ -60,18 +63,18 @@ public:
 	virtual void Value(int64 i);
 };
 
-/// GItem for populating a GList
-class LgiClass GListItem : public GItem, public GListItemPainter
+/// GItem for populating a LList
+class LgiClass LListItem : public GItem, public LListItemPainter
 {
-	friend class GList;
-	friend class GListItemColumn;
+	friend class LList;
+	friend class LListItemColumn;
 	friend class GItemColumn;
 
 protected:
 	// Data
-	class GListItemPrivate *d;
+	class LListItemPrivate *d;
 	GRect Pos;
-	GList *Parent;
+	LList *Parent;
 
 	// Methods
 	bool GridLines();
@@ -86,14 +89,14 @@ public:
 	};
 
 	// Object
-	GListItem();
-	virtual ~GListItem();
+	LListItem();
+	virtual ~LListItem();
 
 	GItemContainer *GetContainer();
 	/// Get the owning list
-	GList *GetList() { return Parent; }
-	/// Gets the GListItemColumn's.
-	List<GListItemColumn> *GetItemCols();
+	LList *GetList() { return Parent; }
+	/// Gets the LListItemColumn's.
+	List<LListItemColumn> *GetItemCols();
 
 	// Properties
 	
@@ -102,7 +105,7 @@ public:
 
 	/// \brief Get the text for a given column.
 	///
-	/// Override this in your GListItem based class to
+	/// Override this in your LListItem based class to
 	/// return the text for a column. Otherwise call SetText to store the text in the
 	/// control.
 	/// 
@@ -114,7 +117,7 @@ public:
 	);
 
 	/// Get the icon index to display in the '0th' column. The image list is stored in
-	/// the parent GList.
+	/// the parent LList.
 	int GetImage(int Flags = 0);
 	/// Sets the icon index
 	void SetImage(int i);
@@ -142,24 +145,24 @@ public:
 	void OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GItemColumn *c);
 
 	// Overridable
-	virtual int Compare(GListItem *To, int Field) { return 0; }
+	virtual int Compare(LListItem *To, int Field) { return 0; }
 	virtual void OnColumnNotify(int Col, int Data) { Update(); }
 };
 
-typedef int (*GListCompareFunc)(GListItem *a, GListItem *b, NativeInt Data);
+typedef int (*LListCompareFunc)(LListItem *a, LListItem *b, NativeInt Data);
 
-class GListItems
+class LListItems
 {
 protected:
-	List<GListItem> Items;
+	List<LListItem> Items;
 
 public:
 	template<class T>
 	bool GetSelection(List<T> &n)
 	{
 		n.Empty();
-		List<GListItem>::I It = Items.Start();
-		for (GListItem *i=*It; i; i=*++It)
+		List<LListItem>::I It = Items.Start();
+		for (LListItem *i=*It; i; i=*++It)
 		{
 			if (i->Select())
 			{
@@ -175,8 +178,8 @@ public:
 	bool GetAll(List<T> &n)
 	{
 		n.Empty();
-		List<GListItem>::I It = Items.Start();
-		for (GListItem *i=*It; i; i=*++It)
+		List<LListItem>::I It = Items.Start();
+		for (LListItem *i=*It; i; i=*++It)
 		{
 			T *ptr = dynamic_cast<T*>(i);
 			if (ptr)
@@ -185,33 +188,33 @@ public:
 		return n.Length() > 0;
 	}
 
-	List<GListItem>::I Start()
+	List<LListItem>::I Start()
 	{
 		return Items.Start();
 	}
 
-	List<GListItem>::I End()
+	List<LListItem>::I End()
 	{
 		return Items.End();
 	}
 };
 
 /// List widget
-class LgiClass GList :
+class LgiClass LList :
 	public GItemContainer,
 	public ResObject,
-	public GListItems
+	public LListItems
 {
-	friend class GListItem;
+	friend class LListItem;
 	friend class GItemColumn;
-	friend class GListItemColumn;
+	friend class LListItemColumn;
 
 	#ifdef WIN32
 	HCURSOR Cursor;
 	#endif
 	
 protected:
-	class GListPrivate *d;
+	class LListPrivate *d;
 
 	// Contents
 	int Keyboard; // index of the item with keyboard focus
@@ -231,8 +234,8 @@ protected:
 	int CompletelyVisible;
 
 	// Misc
-	bool GetUpdateRegion(GListItem *i, GRegion &r);
-	GListItem *HitItem(int x, int y, int *Index = 0);
+	bool GetUpdateRegion(LListItem *i, GRegion &r);
+	LListItem *HitItem(int x, int y, int *Index = 0);
 	GRect &GetClientRect();
 	void PourAll();
 	void UpdateScrollBars();
@@ -241,7 +244,7 @@ protected:
 
 public:
 	/// Constructor
-	GList
+	LList
 	(
 		/// The control's ID
 		int id,
@@ -256,9 +259,9 @@ public:
 		/// An unseen descriptor of the control
 		const char *name = "List"
 	);
-	~GList();
+	~LList();
 
-	const char *GetClass() { return "GList"; }
+	const char *GetClass() { return "LList"; }
 
 	// Overridables
 	
@@ -266,7 +269,7 @@ public:
 	virtual void OnItemClick
 	(
 		/// The item clicked
-		GListItem *Item,
+		LListItem *Item,
 		/// The mouse parameters for the click
 		GMouse &m
 	);
@@ -274,7 +277,7 @@ public:
 	virtual void OnItemBeginDrag
 	(
 		/// The item being dragged
-		GListItem *Item,
+		LListItem *Item,
 		/// The mouse parameters at the time
 		GMouse &m
 	);
@@ -284,7 +287,7 @@ public:
 	virtual void OnItemSelect
 	(
 		/// The item selected
-		GArray<GListItem*> &Items
+		GArray<LListItem*> &Items
 	);
 	/// Called when a column is dragged somewhere
 	virtual void OnColumnDrag
@@ -338,20 +341,20 @@ public:
 	// Methods
 	
 	/// Get the display mode.
-	/// \sa GListMode
-	GListMode GetMode();
+	/// \sa LListMode
+	LListMode GetMode();
 	/// Set the display mode.
-	/// \sa GListMode
-	void SetMode(GListMode m);	
+	/// \sa LListMode
+	void SetMode(LListMode m);	
 
 	/// Returns the index of the first selected item
 	int64 Value();
 	/// Selects the item at index 'i'
 	void Value(int64 i);
 	/// Selects 'obj'
-	bool Select(GListItem *Obj);
+	bool Select(LListItem *Obj);
 	/// Gets the first selected object
-	GListItem *GetSelected();
+	LListItem *GetSelected();
 	/// Select all the item in the list
 	void SelectAll();
 	/// Scrolls the view to the first selected item if not in view
@@ -368,14 +371,14 @@ public:
 	/// Deletes the item at index 'Index'
 	bool Delete(int Index);
 	/// Deletes the item 'p'
-	virtual bool Delete(GListItem *p);
+	virtual bool Delete(LListItem *p);
 	/// Remove the item 'Obj' but don't delete it
-	virtual bool Remove(GListItem *Obj);
+	virtual bool Remove(LListItem *Obj);
 	/// Inserts the item 'p' at index 'Index'.
 	bool Insert
 	(
 		/// The item to insert
-		GListItem *p,
+		LListItem *p,
 		/// The index to insert at or -1 for append
 		int Index = -1,
 		/// True if you want the list to update immediately. If you are inserting a lot of items quickly
@@ -386,7 +389,7 @@ public:
 	virtual bool Insert
 	(
 		/// The items to insert
-		List<GListItem> &l,
+		List<LListItem> &l,
 		/// The starting index to insert at
 		int Index = -1,
 		/// True if you want the list to update immediately. If you are inserting a lot of item list quickly
@@ -394,16 +397,16 @@ public:
 		bool Update = true
 	);
 	/// Return true if the item 'Obj' is in the list
-	bool HasItem(GListItem *Obj);
+	bool HasItem(LListItem *Obj);
 	/// Return the index of the item 'Obj' or -1 if not present
-	int IndexOf(GListItem *Obj);
+	int IndexOf(LListItem *Obj);
 	/// Returns the item at index 'Index'
-	GListItem *ItemAt(int Index);
+	LListItem *ItemAt(int Index);
 	/// Sort the list
 	void Sort
 	(
 		/// The comparision function. Should return a integer greater then > 0 if the first item item is greater in value.
-		GListCompareFunc Compare,
+		LListCompareFunc Compare,
 		/// User defined 32-bit value passed through to the 'Compare' function
 		NativeInt Data
 	);

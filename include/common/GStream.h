@@ -106,7 +106,7 @@ public:
 		// Buffer size in bytes, 4 KB by default
 		int BufSize = 4 << 10
 	);
-	virtual GStreamOp();
+	virtual ~GStreamOp();
 
 	// Properties
 	int64 GetRate();

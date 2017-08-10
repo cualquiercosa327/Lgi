@@ -4,11 +4,11 @@
 #include "GToken.h"
 #include "GEdit.h"
 #include "GProgressDlg.h"
-#include "GList.h"
+#include "LList.h"
 
 #define IDC_LIST 100
 
-class DumpItem : public GListItem
+class DumpItem : public LListItem
 {
 public:
 	int Size;
@@ -56,7 +56,7 @@ public:
 	}
 };
 
-int Cmp(GListItem *A, GListItem *B, NativeInt d)
+int Cmp(LListItem *A, LListItem *B, NativeInt d)
 {
 	DumpItem *a = (DumpItem*) A;
 	DumpItem *b = (DumpItem*) B;
@@ -116,7 +116,7 @@ char *Strnstr(char *s, const char *find, int len)
 class DumpView : public GWindow
 {
 	AppWnd *App;
-	GList *Lst;
+	LList *Lst;
 	GEdit *Ed;
 
 public:
@@ -134,7 +134,7 @@ public:
 			Split->Value(400);
 			Split->IsVertical(false);
 
-			Split->SetViewA(Lst = new GList(IDC_LIST, 0, 0, 100, 100), false);
+			Split->SetViewA(Lst = new LList(IDC_LIST, 0, 0, 100, 100), false);
 			Lst->AddColumn("Size", 200);
 			Lst->AddColumn("Location", 300);
 			Lst->AddColumn("Count", 100);
@@ -172,7 +172,7 @@ public:
 				{
 					case GNotifyItem_Select:
 					{
-						GListItem *s = Lst->GetSelected();
+						LListItem *s = Lst->GetSelected();
 						if (s)
 						{
 							DumpItem *di = dynamic_cast<DumpItem*>(s);
@@ -365,7 +365,7 @@ public:
 				}
 			}
 
-			List<GListItem> Items;
+			List<LListItem> Items;
 			for (void *p = h.First(); p; p = h.Next())
 			{
 				Items.Insert((DumpItem*)p);

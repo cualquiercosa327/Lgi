@@ -13,7 +13,7 @@
 #define __LGIRES_STRING_H
 
 #include "Res.h"
-#include "GList.h"
+#include "LList.h"
 
 ////////////////////////////////////////////////////////////////
 class ResStringGroup;
@@ -39,7 +39,7 @@ public:
 	bool operator !=(GLanguageId LangId);
 };
 
-class ResString : public GListItem, public FieldSource
+class ResString : public LListItem, public FieldSource
 {
 	friend class ResStringGroup;
 	friend class ResStringView;
@@ -74,7 +74,7 @@ public:
 	char *Get(GLanguageId Lang = 0);
 	void Set(const char *s, GLanguageId Lang = 0);
 	void UnDuplicate();
-	int Compare(GListItem *To, int Field);
+	int Compare(LListItem *To, int Field);
 	void CopyText();
 	void PasteText();
 	char *GetDefine() { return Define; }
@@ -100,7 +100,7 @@ public:
 #define RESIZE_X2			0x0004
 #define RESIZE_Y2			0x0008
 
-class ResStringGroup : public Resource, public GList
+class ResStringGroup : public Resource, public LList
 {
 	friend class ResString;
 	friend class ResStringView;
@@ -122,7 +122,7 @@ public:
 	~ResStringGroup();
 
 	GView *Wnd() { return dynamic_cast<GView*>(this); }
-	bool Attach(GViewI *Parent) { return GList::Attach(Parent); }
+	bool Attach(GViewI *Parent) { return LList::Attach(Parent); }
 	ResStringGroup *GetStringGroup() { return this; }
 
 	// Methods
@@ -161,9 +161,9 @@ public:
 	bool Write(GXmlTag *t, SerialiseContext &Ctx);
 	ResStringGroup *IsStringGroup() { return this; }
 
-	// GList
-	void OnItemClick(GListItem *Item, GMouse &m);
-	void OnItemSelect(GArray<GListItem*> &Items);
+	// LList
+	void OnItemClick(LListItem *Item, GMouse &m);
+	void OnItemSelect(GArray<LListItem*> &Items);
 };
 
 class ResStringUi : public GLayout

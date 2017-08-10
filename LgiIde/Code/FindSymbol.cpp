@@ -4,7 +4,7 @@
 #include "Lgi.h"
 #include "LgiIde.h"
 #include "FindSymbol.h"
-#include "GList.h"
+#include "LList.h"
 #include "GProcess.h"
 #include "GToken.h"
 #include "GEventTargetThread.h"
@@ -26,7 +26,7 @@
 class FindSymbolDlg : public GDialog
 {
 	AppWnd *App;
-	GList *Lst;
+	LList *Lst;
 	FindSymbolSystem *Sys;
 
 public:
@@ -306,7 +306,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 	}	
 };
 
-int AlphaCmp(GListItem *a, GListItem *b, NativeInt d)
+int AlphaCmp(LListItem *a, LListItem *b, NativeInt d)
 {
 	return stricmp(a->GetText(0), b->GetText(0));
 }
@@ -366,7 +366,7 @@ GMessage::Result FindSymbolDlg::OnEvent(GMessage *m)
 				if (Str == Req->Str)
 				{
 					Lst->Empty();
-					List<GListItem> Ls;
+					List<LListItem> Ls;
 
 					GString s;
 					int CommonPathLen = 0;					
@@ -404,7 +404,7 @@ GMessage::Result FindSymbolDlg::OnEvent(GMessage *m)
 					for (unsigned i=0; i<Req->Results.Length(); i++)
 					{
 						FindSymResult *r = Req->Results[i];
-						GListItem *it = new GListItem;
+						LListItem *it = new LListItem;
 						if (it)
 						{
 							GString Ln;
@@ -457,7 +457,7 @@ int FindSymbolDlg::OnNotify(GViewI *v, int f)
 		{
 			if (Lst)
 			{
-				GListItem *i = Lst->GetSelected();
+				LListItem *i = Lst->GetSelected();
 				if (i)
 				{
 					Result.File = i->GetText(0);

@@ -6,8 +6,8 @@
 class AddFtpFile : public GDialog, public FtpCallback
 {
 	GUri *Base;
-	GList *Files;
-	GList *Log;
+	LList *Files;
+	LList *Log;
 	FtpThread *Thread;
 
 public:

@@ -169,9 +169,9 @@ class GDebugContext : public GDebugEvents
 	
 public:
 	GTree *Watch;
-	GList *Locals;
-	GList *CallStack;
-	GList *Threads;
+	LList *Locals;
+	LList *CallStack;
+	LList *Threads;
 	class GTextLog *ObjectDump;
 	class GTextLog *MemoryDump;
 	class GTextLog *DebuggerLog;

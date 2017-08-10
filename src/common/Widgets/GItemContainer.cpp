@@ -103,7 +103,7 @@ void GItemContainer::PaintColumnHeadings(GSurface *pDC)
 				ColDC = pDC;
 			}
 
-			printf("GList::OnPaint ***START*** %s %i\n",
+			printf("LList::OnPaint ***START*** %s %i\n",
 				GColourSpaceToString(ColDC->GetColourSpace()), ColDC->SupportsAlphaCompositing());
 		}
 		else
@@ -183,7 +183,7 @@ void GItemContainer::PaintColumnHeadings(GSurface *pDC)
 		}
 
 		#if DOUBLE_BUFFER_COLUMN_DRAWING
-		printf("GList::OnPaint ***END*** %s %i\n",
+		printf("LList::OnPaint ***END*** %s %i\n",
 			GColourSpaceToString(ColDC->GetColourSpace()), ColDC->SupportsAlphaCompositing());
 
 		if (!pDC->SupportsAlphaCompositing())
@@ -667,7 +667,7 @@ void GItemColumn::Width(int i)
 			/* FIXME
 			 int MyIndex = GetIndex();
 			// Clear all the cached strings for this column
-			for (List<GListItem>::I it=d->Parent->Items.Start(); it.In(); it++)
+			for (List<LListItem>::I it=d->Parent->Items.Start(); it.In(); it++)
 			{
 				DeleteObj((*it)->d->Display[MyIndex]);
 			}

@@ -5,7 +5,7 @@
 
 static FtpThread *Ftp = 0;
 
-class Line : public GListItem
+class Line : public LListItem
 {
 	GColour c;
 
@@ -20,7 +20,7 @@ public:
 	{
 		if (!Select())
 			Ctx.Fore = c;
-		GListItem::OnPaint(Ctx);
+		LListItem::OnPaint(Ctx);
 	}
 };
 
@@ -42,7 +42,7 @@ class LogSock : public GSocket
 			
 			if (Log)
 			{
-				GListItem *i;
+				LListItem *i;
 				Log->Insert(i = new Line(s, c));
 				i->ScrollTo();
 			}
@@ -50,9 +50,9 @@ class LogSock : public GSocket
 	}
 
 public:
-	GList *Log;
+	LList *Log;
 
-	LogSock(GList *log)
+	LogSock(LList *log)
 	{
 		Log = log;
 	}
@@ -89,7 +89,7 @@ struct FtpConn
 		Sock = 0;
 	}
 
-	void SetLog(GList *l)
+	void SetLog(LList *l)
 	{
 		if (Sock)
 			Sock->Log = l;
@@ -112,7 +112,7 @@ struct FtpConn
 		return false;
 	}
 
-	bool Open(GList *Watch)
+	bool Open(LList *Watch)
 	{
 		if (Base)
 		{
@@ -206,7 +206,7 @@ struct FtpThreadPriv : public LMutex, public GNetwork
 		DeleteObj(Redir);
 	}
 
-	FtpConn *GetConn(char *Uri, GList *Watch = 0)
+	FtpConn *GetConn(char *Uri, LList *Watch = 0)
 	{
 		// Look for existing connection
 		for (int i=0; i<Conn.Length(); i++)

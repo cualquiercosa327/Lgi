@@ -272,9 +272,6 @@
     <ClCompile Include="src\common\Widgets\GItemContainer.cpp">
       <Filter>Source Files\Widgets\Container</Filter>
     </ClCompile>
-    <ClCompile Include="src\common\Widgets\GList.cpp">
-      <Filter>Source Files\Widgets\Container</Filter>
-    </ClCompile>
     <ClCompile Include="src\common\Widgets\GTree.cpp">
       <Filter>Source Files\Widgets\Container</Filter>
     </ClCompile>
@@ -476,6 +473,9 @@
     <ClCompile Include="src\common\Lgi\LMutex.cpp">
       <Filter>Source Files\Core\Mutex</Filter>
     </ClCompile>
+    <ClCompile Include="src\common\Widgets\LList.cpp">
+      <Filter>Source Files\Widgets\Container</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\common\GLibrary.h">
@@ -584,9 +584,6 @@
       <Filter>Source Files\Widgets\Layout</Filter>
     </ClInclude>
     <ClInclude Include="include\common\GItemContainer.h">
-      <Filter>Source Files\Widgets\Container</Filter>
-    </ClInclude>
-    <ClInclude Include="include\common\GList.h">
       <Filter>Source Files\Widgets\Container</Filter>
     </ClInclude>
     <ClInclude Include="include\common\GTree.h">
@@ -717,6 +714,9 @@
     </ClInclude>
     <ClInclude Include="include\common\LMutex.h">
       <Filter>Source Files\Core\Mutex</Filter>
+    </ClInclude>
+    <ClInclude Include="include\common\LList.h">
+      <Filter>Source Files\Widgets\Container</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

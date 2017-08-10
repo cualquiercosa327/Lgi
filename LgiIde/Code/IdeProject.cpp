@@ -13,7 +13,7 @@
 #include "GProcess.h"
 #include "GCombo.h"
 #include "INet.h"
-#include "GListItemCheckBox.h"
+#include "LListItemCheckBox.h"
 #include "FtpThread.h"
 #include "GClipBoard.h"
 #include "GDropFiles.h"

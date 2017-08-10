@@ -15,7 +15,7 @@
 
 #include "Lgi.h"
 #include "GToken.h"
-#include "GList.h"
+#include "LList.h"
 #include "GTableLayout.h"
 #if defined(LINUX) && !defined(LGI_SDL)
 #include "LgiWinManGlue.h"
@@ -721,8 +721,8 @@ ResObject *LgiResources::CreateObject(GXmlTag *t, ResObject *Parent)
 		}
 		else if (stricmp(t->GetTag(), Res_ListView) == 0)
 		{
-			GList *w;
-			Wnd = w = new GList(0, 0, 0, -1, -1, "");
+			LList *w;
+			Wnd = w = new LList(0, 0, 0, -1, -1, "");
 			if (w)
 			{
 				w->Sunken(true);
@@ -732,7 +732,7 @@ ResObject *LgiResources::CreateObject(GXmlTag *t, ResObject *Parent)
 		{
 			if (Parent)
 			{
-				GList *Lst = dynamic_cast<GList*>(Parent);
+				LList *Lst = dynamic_cast<LList*>(Parent);
 
 				LgiAssert(Lst);
 
@@ -1057,7 +1057,7 @@ void LgiResources::Res_Append(ResObject *Obj, ResObject *Parent)
 	if (Obj && Parent)
 	{
 		GItemColumn *Col = dynamic_cast<GItemColumn*>(Obj);
-		GList *Lst = dynamic_cast<GList*>(Parent);
+		LList *Lst = dynamic_cast<LList*>(Parent);
 		if (Lst && Col)
 		{
 			Lst->AddColumn(Col);
@@ -1076,7 +1076,7 @@ bool LgiResources::Res_GetItems(ResObject *Obj, List<ResObject> *l)
 {
 	if (Obj && l)
 	{
-		GList *Lst = dynamic_cast<GList*>(Obj);
+		LList *Lst = dynamic_cast<LList*>(Obj);
 		if (Lst)
 		{
 			for (int i=0; i<Lst->GetColumns(); i++)
