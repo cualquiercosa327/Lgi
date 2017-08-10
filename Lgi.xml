@@ -128,22 +128,20 @@
 				<Node File="./include/common/GStream.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Threads" Type="1" Platforms="15" Open="0" Id="31">
-				<Node Name="Haiku" Type="1" Platforms="15" Open="0" Id="32">
-					<Node File=".\src\beos\Lgi\GThread.cpp" Type="2" Platforms="8" />
-				</Node>
+				<Node Name="Haiku" Type="1" Platforms="15" Open="0" Id="32" />
 				<Node Name="Linux" Type="1" Platforms="15" Open="0" Id="33">
-					<Node File="./src/linux/Lgi/GThread.cpp" Type="2" Platforms="2" />
+					<Node File="./src/linux/Lgi/LThread.cpp" Type="2" Platforms="2" />
 				</Node>
 				<Node Name="Win32" Type="1" Platforms="15" Open="0" Id="34">
-					<Node File=".\src\win32\Lgi\GThread.cpp" Type="2" Platforms="1" />
+					<Node File="./src/win32/Lgi/LThread.cpp" Type="2" Platforms="1" />
 				</Node>
 				<Node File="./include/common/GEventTargetThread.h" Type="3" Platforms="15" />
-				<Node File="./include/common/GThread.h" Type="3" Platforms="15" />
-				<Node File="./src/common/Lgi/GThreadCommon.cpp" Type="2" Platforms="15" />
-				<Node File="./src/common/Lgi/GThreadEvent.cpp" Type="2" Platforms="15" />
-				<Node File="./include/common/GThreadEvent.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Lgi/LMutex.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/LMutex.h" Type="3" Platforms="15" />
+				<Node File="./include/common/LThread.h" Type="3" Platforms="15" />
+				<Node File="./src/common/Lgi/LThreadCommon.cpp" Type="2" Platforms="15" />
+				<Node File="./src/common/Lgi/LThreadEvent.cpp" Type="2" Platforms="15" />
+				<Node File="./include/common/LThreadEvent.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Variant" Type="1" Platforms="15" Open="0" Id="35">
 				<Node File=".\src\common\Lgi\GVariant.cpp" Type="2" Platforms="15" />
@@ -542,6 +540,12 @@ textencoding</Release>
 			<CommentFile />
 			<CommentFunction />
 		</Editor>
+		<Advanced>
+			<OtherMakefileRules />
+		</Advanced>
+	</Settings>
+</Project>
+or>
 		<Advanced>
 			<OtherMakefileRules />
 		</Advanced>
