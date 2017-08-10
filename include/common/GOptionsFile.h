@@ -3,9 +3,9 @@
 
 #include "GVariant.h"
 #include "GXmlTree.h"
-#include "GMutex.h"
+#include "LMutex.h"
 
-class LgiClass GOptionsFile : public GXmlTag, public GMutex
+class LgiClass GOptionsFile : public GXmlTag, public LMutex
 {
 public:
 	enum PortableType

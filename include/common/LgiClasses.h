@@ -15,7 +15,7 @@
 #include <string.h>
 #endif
 
-#include "GMutex.h"
+#include "LMutex.h"
 #include "LgiOsClasses.h"
 #include "GMem.h"
 #include "GArray.h"
@@ -457,7 +457,7 @@ protected:
 
 	OsView				_View; // OS specific handle to view object
 	GView				*_Window;
-	GMutex				*_Lock;
+	LMutex				*_Lock;
 	uint16				_BorderSize;
 	uint16				_IsToolBar;
 	int					WndFlags;

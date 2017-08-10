@@ -456,7 +456,6 @@
     <ClCompile Include="src\common\Lgi\GLibrary.cpp" />
     <ClCompile Include="src\common\Lgi\GMemStream.cpp" />
     <ClCompile Include="src\common\Lgi\GMru.cpp" />
-    <ClCompile Include="src\common\Lgi\GMutex.cpp" />
     <ClCompile Include="src\common\Lgi\GObject.cpp" />
     <ClCompile Include="src\common\Lgi\GOptionsFile.cpp" />
     <ClCompile Include="src\common\Lgi\GProcess.cpp" />
@@ -471,6 +470,7 @@
     <ClCompile Include="src\common\Lgi\Lgi.cpp" />
     <ClCompile Include="src\common\Lgi\LgiMsg.cpp" />
     <ClCompile Include="src\common\Lgi\LgiRand.cpp" />
+    <ClCompile Include="src\common\Lgi\LMutex.cpp" />
     <ClCompile Include="src\common\Resource\LgiRes.cpp" />
     <ClCompile Include="src\common\Resource\Res.cpp" />
     <ClCompile Include="src\common\Skins\Gel\Gel.cpp" />
@@ -606,7 +606,6 @@
     <ClInclude Include="include\common\GMenu.h" />
     <ClInclude Include="include\common\GMessage.h" />
     <ClInclude Include="include\common\GMru.h" />
-    <ClInclude Include="include\common\GMutex.h" />
     <ClInclude Include="include\common\GNotifications.h" />
     <ClInclude Include="include\common\GPalette.h" />
     <ClInclude Include="include\common\GPixelRops.h" />
@@ -640,6 +639,7 @@
     <ClInclude Include="include\common\LgiInc.h" />
     <ClInclude Include="include\common\LgiInterfaces.h" />
     <ClInclude Include="include\common\LgiRes.h" />
+    <ClInclude Include="include\common\LMutex.h" />
     <ClInclude Include="include\common\Res.h" />
     <ClInclude Include="include\win32\GCom.h" />
     <ClInclude Include="include\win32\LgiOsClasses.h" />

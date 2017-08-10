@@ -35,7 +35,7 @@
 #include "GLibrary.h"
 #include "GToken.h"
 #include "LgiCommon.h"
-#include "GMutex.h"
+#include "LMutex.h"
 #include "GString.h"
 #include "GLibrary.h"
 

@@ -96,7 +96,7 @@ GWindow::GWindow() : GView(0)
 	Visible(false);
 
 	_Default = 0;
-	_Lock = new GMutex("GWindow");
+	_Lock = new LMutex("GWindow");
 	_QuitOnClose = false;
 }
 

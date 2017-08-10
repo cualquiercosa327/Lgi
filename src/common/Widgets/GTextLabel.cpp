@@ -8,7 +8,7 @@
 #include "GNotifications.h"
 #include "LgiRes.h"
 
-class GTextPrivate : public GDisplayStringLayout, public GMutex
+class GTextPrivate : public GDisplayStringLayout, public LMutex
 {
 	GText *Ctrl;
 
@@ -18,7 +18,7 @@ public:
 	/// to load it into the ctrl.
 	GAutoString ThreadName;
 
-	GTextPrivate(GText *ctrl) : GMutex("GTextPrivate")
+	GTextPrivate(GText *ctrl) : LMutex("GTextPrivate")
 	{
 		Ctrl = ctrl;
 	}

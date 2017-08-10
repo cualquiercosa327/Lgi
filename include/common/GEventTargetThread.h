@@ -2,12 +2,12 @@
 #define _GEVENTTARGETTHREAD_H_
 
 #include "GThread.h"
-#include "GMutex.h"
+#include "LMutex.h"
 #include "GThreadEvent.h"
 
 #define PostThreadEvent GEventSinkMap::Dispatch.PostEvent
 
-class LgiClass GEventSinkMap : public GMutex
+class LgiClass GEventSinkMap : public LMutex
 {
 protected:
 	GHashTbl<int,GEventSinkI*> ToPtr;
@@ -152,7 +152,7 @@ public:
 /// To use, sub class and implement the OnEvent handler.
 class LgiClass GEventTargetThread :
 	public GThread,
-	public GMutex,
+	public LMutex,
 	public GMappedEventSink,
 	public GEventTargetI // Sub-class has to implement OnEvent
 {
@@ -177,7 +177,7 @@ protected:
 public:
 	GEventTargetThread(GString Name) :
 		GThread(Name + ".Thread"),
-		GMutex(Name + ".Mutex"),
+		LMutex(Name + ".Mutex"),
 		Event(ProcessName(Name, "Event"))
 	{
 		Loop = true;

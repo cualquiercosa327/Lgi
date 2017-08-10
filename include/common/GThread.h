@@ -3,7 +3,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // Thread types are defined in GMutex.h
-#include "GMutex.h"
+#include "LMutex.h"
 
 class LgiClass GThread
 {
@@ -103,7 +103,7 @@ public:
 
 /// The thread target is a virtual API to receive work units executed 
 /// in the worker thread.
-class LgiClass GThreadTarget : public GMutex
+class LgiClass GThreadTarget : public LMutex
 {
 	friend class GThreadWorker;
 
@@ -125,7 +125,7 @@ public:
 #undef AddJob
 
 /// This parent class does the actual work of processing jobs.
-class LgiClass GThreadWorker : public GThread, public GMutex
+class LgiClass GThreadWorker : public GThread, public LMutex
 {
 	GArray<GThreadTarget*> Owners;
 	GArray<GThreadJob*> Jobs;

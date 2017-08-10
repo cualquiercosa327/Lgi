@@ -11,7 +11,7 @@ class GTextLog : public GTextView3, public GStream
 {
 protected:
     bool RemoveReturns;
-    GMutex Sem;
+    LMutex Sem;
     GArray<char16*> Txt;
 
 	void ProcessTxt()

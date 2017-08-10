@@ -2,7 +2,7 @@
 #include "GGrowl.h"
 #include "INet.h"
 
-class GGrowlPriv : public GThread, public GMutex
+class GGrowlPriv : public GThread, public LMutex
 {
 	bool Loop;
 	bool Async;
@@ -11,7 +11,7 @@ class GGrowlPriv : public GThread, public GMutex
 	GArray<GGrowl::GNotify*> Notes;
 	
 public:
-	GGrowlPriv(bool async) : GThread("GGrowl"), GMutex("GGrowlSem")
+	GGrowlPriv(bool async) : GThread("GGrowl"), LMutex("GGrowlSem")
 	{
 	    Async = async;
 		Loop = true;

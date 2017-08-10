@@ -155,9 +155,6 @@
     <ClCompile Include="src\common\Lgi\GLibrary.cpp">
       <Filter>Source Files\Core\Libraries</Filter>
     </ClCompile>
-    <ClCompile Include="src\common\Lgi\GMutex.cpp">
-      <Filter>Source Files\Core\Mutex</Filter>
-    </ClCompile>
     <ClCompile Include="src\win32\Lgi\GDragAndDrop.cpp">
       <Filter>Source Files\Core\Drag and Drop</Filter>
     </ClCompile>
@@ -476,13 +473,13 @@
     <ClCompile Include="src\common\Lgi\GWindowCommon.cpp">
       <Filter>Source Files\Interface</Filter>
     </ClCompile>
+    <ClCompile Include="src\common\Lgi\LMutex.cpp">
+      <Filter>Source Files\Core\Mutex</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\common\GLibrary.h">
       <Filter>Source Files\Core\Libraries</Filter>
-    </ClInclude>
-    <ClInclude Include="include\common\GMutex.h">
-      <Filter>Source Files\Core\Mutex</Filter>
     </ClInclude>
     <ClInclude Include="include\win32\GCom.h">
       <Filter>Source Files\Core\Drag and Drop</Filter>
@@ -717,6 +714,9 @@
     </ClInclude>
     <ClInclude Include="include\win32\LgiOsDefs.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\common\LMutex.h">
+      <Filter>Source Files\Core\Mutex</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

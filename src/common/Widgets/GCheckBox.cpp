@@ -19,7 +19,7 @@ static int TextYOffset = 0;
 #endif
 static int MinYSize = 16;
 
-class GCheckBoxPrivate : public GMutex, public GDisplayStringLayout
+class GCheckBoxPrivate : public LMutex, public GDisplayStringLayout
 {
 	GCheckBox *Ctrl;
 	
@@ -29,7 +29,7 @@ public:
 	bool Three;
 	GRect ValuePos;
 
-	GCheckBoxPrivate(GCheckBox *ctrl) : GMutex("GCheckBoxPrivate")
+	GCheckBoxPrivate(GCheckBox *ctrl) : LMutex("GCheckBoxPrivate")
 	{
 		Ctrl = ctrl;
 		Val = 0;

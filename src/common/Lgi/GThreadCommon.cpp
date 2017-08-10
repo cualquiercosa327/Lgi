@@ -30,7 +30,7 @@ void GThreadTarget::Detach()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 GThreadWorker::GThreadWorker(GThreadTarget *First, const char *ThreadName) :
 	GThread(ThreadName),
-	GMutex("GThreadWorker")
+	LMutex("GThreadWorker")
 {
 	Loop = false;
 	if (First)
@@ -60,7 +60,7 @@ void GThreadWorker::Stop()
 
 void GThreadWorker::Attach(GThreadTarget *o)
 {
-	GMutex::Auto a(this, _FL);
+	LMutex::Auto a(this, _FL);
 	if (!Owners.HasItem(o))
 	{
 		LgiAssert(o->Worker == this);
@@ -75,7 +75,7 @@ void GThreadWorker::Attach(GThreadTarget *o)
 
 void GThreadWorker::Detach(GThreadTarget *o)
 {
-	GMutex::Auto a(this, _FL);
+	LMutex::Auto a(this, _FL);
 	LgiAssert(Owners.HasItem(o));
 	Owners.Delete(o);
 }

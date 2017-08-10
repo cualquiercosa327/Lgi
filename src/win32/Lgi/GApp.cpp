@@ -883,7 +883,7 @@ int GApp::GetShow()
 class GWnd
 {
 public:
-	GMutex *GetLock(GWindow *w)
+	LMutex *GetLock(GWindow *w)
 	{
 		return w->_Lock;
 	}

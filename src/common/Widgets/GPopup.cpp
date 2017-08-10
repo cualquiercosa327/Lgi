@@ -73,7 +73,7 @@ uint32 LgiGetViewPid(OsView View)
 	return LgiProcessId();
 }
 
-class GMouseHookPrivate : public ::GMutex, public ::GThread
+class GMouseHookPrivate : public ::LMutex, public ::GThread
 {
 public:
 	bool Loop;
@@ -84,7 +84,7 @@ public:
 	GThreadEvent Event;
 	#endif
 
-	GMouseHookPrivate() : GMutex("MouseHookLock"), GThread("MouseHook")
+	GMouseHookPrivate() : LMutex("MouseHookLock"), GThread("MouseHook")
 	{
 		Loop = false;
 		hMouseOver = 0;

@@ -85,7 +85,7 @@ class Gdb : public GDebugger, public GThread, public Callback
 	bool SuppressNextFileLine;
 	GArray<Visualizer*> Vis;
 
-	GMutex StateMutex;
+	LMutex StateMutex;
 	bool DebuggingProcess;
 	bool Running;
 

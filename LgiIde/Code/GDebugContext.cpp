@@ -11,7 +11,7 @@ enum DebugMessages
 	M_FILE_LINE,
 };
 
-class GDebugContextPriv : public GMutex
+class GDebugContextPriv : public LMutex
 {
 public:
 	GDebugContext *Ctx;
@@ -29,7 +29,7 @@ public:
 	NativeInt MemDumpStart;
 	GArray<uint8> MemDump;
 
-	GDebugContextPriv(GDebugContext *ctx) : GMutex("GDebugContextPriv")
+	GDebugContextPriv(GDebugContext *ctx) : LMutex("GDebugContextPriv")
 	{
 		Ctx = ctx;
 		MemDumpStart = 0;
@@ -198,7 +198,7 @@ GMessage::Param GDebugContext::OnEvent(GMessage *m)
 			#endif
 			GString File;
 			{
-				GMutex::Auto a(d, _FL);
+				LMutex::Auto a(d, _FL);
 				File = d->SeekFile;
 			}
 			
@@ -756,7 +756,7 @@ void GDebugContext::OnFileLine(const char *File, int Line, bool CurrentIp)
 	else
 	{
 		{
-			GMutex::Auto a(d, _FL);
+			LMutex::Auto a(d, _FL);
 			if (File)
 				d->SeekFile = File;
 			d->SeekLine = Line;
