@@ -6,7 +6,7 @@
 #include "GPopup.h"
 #include "MonthView.h"
 #include "GToken.h"
-#include "GList.h"
+#include "LList.h"
 #include "GEdit.h"
 #include "GDateTimeCtrls.h"
 
@@ -23,7 +23,7 @@ int GTimeDropDown::OnNotify(GViewI *Ctrl, int Flags)
 	{
 		GAutoString a = Drop->GetTime();
 		
-		GDateTime ts;
+		LDateTime ts;
 		char *str = DateSrc->Name();
 		ts.Set(str);
 		ts.SetTime(a);
@@ -64,7 +64,7 @@ void GTimeDropDown::SetDate(char *d)
 	GViewI *n = GetNotify();
 	if (n && d)
 	{
-		GDateTime New;
+		LDateTime New;
 		New.SetNow();
 		char *Old = n->Name();
 		if (ValidStr(Old))
@@ -104,7 +104,7 @@ void GTimeDropDown::OnMouseClick(GMouse &m)
 			GViewI *n = GetNotify();
 			if (n)
 			{
-				GDateTime New;
+				LDateTime New;
 				char *Old = n->Name();
 				if (Old &&
 					New.Set(Old))
@@ -125,7 +125,7 @@ GTimePopup::GTimePopup(GView *owner) : GPopup(owner)
 	Owner = owner;
 	Ignore = true;
 	
-	Children.Insert(Times = new GList(100, 1, 1, 50, 50));
+	Children.Insert(Times = new LList(100, 1, 1, 50, 50));
 	if (Times)
 	{
 		Times->Sunken(false);
@@ -134,7 +134,7 @@ GTimePopup::GTimePopup(GView *owner) : GPopup(owner)
 		Times->MultiSelect(false);
 
 		// Build the list of times...
-		GDateTime Dt;
+		LDateTime Dt;
 		for (int t=0; t<24; t++)
 		{
 			int Time;
@@ -151,7 +151,7 @@ GTimePopup::GTimePopup(GView *owner) : GPopup(owner)
 
 			char s[256];
 			
-			GListItem *i = new GListItem;
+			LListItem *i = new LListItem;
 			if (i)
 			{
 				if (Dt.GetFormat() & GDTF_24HOUR)
@@ -165,7 +165,7 @@ GTimePopup::GTimePopup(GView *owner) : GPopup(owner)
 				i->SetText(s);
 				Times->Insert(i);
 			}
-			i = new GListItem;
+			i = new LListItem;
 			if (i)
 			{
 				if (Dt.GetFormat() & GDTF_24HOUR)
@@ -182,7 +182,7 @@ GTimePopup::GTimePopup(GView *owner) : GPopup(owner)
 		}
 	}
 
-	GDateTime Now;
+	LDateTime Now;
 	if (owner)
 		Now.SetTime(owner->Name());
 	else
@@ -232,7 +232,7 @@ int GTimePopup::OnNotify(GViewI *c, int f)
 	{
 		if (f == GNotifyItem_Click || f == GNotify_ReturnKey)
 		{
-			GListItem *Sel = Times->GetSelected();
+			LListItem *Sel = Times->GetSelected();
 			if (Sel)
 			{
 				char *t = Sel->GetText(0);
@@ -262,7 +262,7 @@ GAutoString GTimePopup::GetTime()
 	GAutoString a;
 	if (Times)
 	{
-		GListItem *s = Times->GetSelected();
+		LListItem *s = Times->GetSelected();
 		if (s)
 		{
 			a.Reset(NewStr(s->GetText(0)));
@@ -271,17 +271,17 @@ GAutoString GTimePopup::GetTime()
 	return a;
 }
 
-void GTimePopup::SetTime(GDateTime *t)
+void GTimePopup::SetTime(LDateTime *t)
 {
 	if (t && Times)
 	{
-		List<GListItem>::I All = Times->Start();
-		for (GListItem *i=*All; i; i=*++All)
+		List<LListItem>::I All = Times->Start();
+		for (LListItem *i=*All; i; i=*++All)
 		{
 			char *s = i->GetText(0);
 			if (s)
 			{
-				GDateTime p;
+				LDateTime p;
 				p.SetTime(s);
 
 				if (p.Hours() == t->Hours())

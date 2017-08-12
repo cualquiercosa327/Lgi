@@ -42,8 +42,8 @@ protected:
 
 	VIoPriv *d;
 
-	bool ParseDate(GDateTime &out, char *in);
-	bool ParseDuration(GDateTime &Out, int &Sign, char *In);
+	bool ParseDate(LDateTime &out, char *in);
+	bool ParseDuration(LDateTime &Out, int &Sign, char *In);
 
 	void Fold(GStreamI &o, char *i, int pre_chars = 0);
 	char *Unfold(char *In);

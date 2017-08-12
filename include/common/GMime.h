@@ -45,7 +45,7 @@ class GMime
 	// Data info
 	ssize_t DataPos;
 	ssize_t DataSize;
-	GMutex *DataLock;
+	LMutex *DataLock;
 	GStreamI *DataStore;
 	bool OwnDataStore;
 
@@ -82,7 +82,7 @@ public:
 	char *GetHeaders() { return Headers; }
 	ssize_t GetLength() { return DataSize; }
 	GStreamI *GetData(bool Detach = false);
-	bool SetData(bool OwnStream, GStreamI *Input, int RdPos = 0, int RdSize = -1, GMutex *Lock = 0);
+	bool SetData(bool OwnStream, GStreamI *Input, int RdPos = 0, int RdSize = -1, LMutex *Lock = 0);
 	bool SetData(char *Str, int Len);
 
 	// Simple Header Management

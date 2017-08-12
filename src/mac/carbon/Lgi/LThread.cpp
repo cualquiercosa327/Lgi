@@ -19,10 +19,10 @@ void *ThreadEntryPoint(void *i)
 {
 	if (i)
 	{
-		GThread *Thread = (GThread*) i;
+		LThread *Thread = (LThread*) i;
 
 		// Make sure we have finished executing the setup
-		while (Thread->State == GThread::THREAD_INIT)
+		while (Thread->State == LThread::THREAD_INIT)
 		{
 			LgiSleep(5);
 		}
@@ -35,7 +35,7 @@ void *ThreadEntryPoint(void *i)
 		Thread->OnAfterMain();
 
 		// mark thread over...
-		Thread->State = GThread::THREAD_EXITED;
+		Thread->State = LThread::THREAD_EXITED;
 
 		if (Thread->DeleteOnExit)
 		{
@@ -47,7 +47,7 @@ void *ThreadEntryPoint(void *i)
 	return 0;
 }
 
-GThread::GThread(const char *name)
+LThread::LThread(const char *name)
 {
 	State = THREAD_INIT;
 	ReturnValue = -1;
@@ -56,7 +56,7 @@ GThread::GThread(const char *name)
 	Priority = ThreadPriorityNormal;
 }
 
-GThread::~GThread()
+LThread::~LThread()
 {
 	if (!IsExited())
 	{
@@ -64,17 +64,17 @@ GThread::~GThread()
 	}
 }
 
-int GThread::ExitCode()
+int LThread::ExitCode()
 {
 	return ReturnValue;
 }
 
-bool GThread::IsExited()
+bool LThread::IsExited()
 {
 	return State == THREAD_EXITED;
 }
 
-void GThread::Run()
+void LThread::Run()
 {
 	if (!hThread)
 	{
@@ -129,7 +129,7 @@ void GThread::Run()
 	}
 }
 
-void GThread::Terminate()
+void LThread::Terminate()
 {
 	if (hThread &&
 		pthread_cancel(hThread) == 0)
@@ -138,7 +138,7 @@ void GThread::Terminate()
 	}
 }
 
-int GThread::Main()
+int LThread::Main()
 {
 	return 0;
 }

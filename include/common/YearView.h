@@ -3,7 +3,7 @@
 #ifndef __YEAR_VIEW_H
 #define __YEAR_VIEW_H
 
-#include "GDateTime.h"
+#include "LDateTime.h"
 
 /////////////////////////////////////////////////////////////////////////////////////
 class YearView
@@ -16,11 +16,11 @@ class YearView
 	int Update();
 
 public:
-	YearView(GDateTime *dt = 0);
+	YearView(LDateTime *dt = 0);
 
 	// Set
-	void Set(GDateTime *dt);
-	GDateTime &Get();
+	void Set(LDateTime *dt);
+	LDateTime &Get();
 	void SetCursor(int x, int y);
 	void SelectCell(int x, int y);
 	

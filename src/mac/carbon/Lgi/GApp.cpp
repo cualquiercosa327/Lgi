@@ -10,7 +10,7 @@
 #include "GSkinEngine.h"
 #include "GArray.h"
 #include "GToken.h"
-#include "GThread.h"
+#include "LThread.h"
 #include "GXmlTree.h"
 #include "GSymLookup.h"
 #include "GFontCache.h"
@@ -255,7 +255,7 @@ public:
 	GdcDevice *GdcSystem;
 	OsAppArguments Args;
 	GLibrary *SkinLib;
-	GHashTable MimeToApp;
+	GHashTbl<char*,AppArray*> MimeToApp;
 	OsThread GuiThread;
 	GSymLookup SymLookup;
 	GAutoString Mime;
@@ -278,9 +278,8 @@ public:
 	{
 		DeleteObj(SkinLib);
 		
-		for (void *p = MimeToApp.First(); p; p = MimeToApp.Next())
+		for (AppArray *a = MimeToApp.First(); a; a = MimeToApp.Next())
 		{
-			AppArray *a = (AppArray*)p;
 			a->DeleteObjects();
 			DeleteObj(a);
 		}

@@ -8,14 +8,14 @@ const char *ShortMonthNames[12];
 const char *FullMonthNames[12];
 char MonthView::Buf[256];
 
-MonthView::MonthView(GDateTime *dt)
+MonthView::MonthView(LDateTime *dt)
 {
 	MonthX = MonthY = 0;
 	Sx = Sy = 0;
 	Set(dt);
 }
 
-void MonthView::Set(GDateTime *dt)
+void MonthView::Set(LDateTime *dt)
 {
 	if (dt)
 	{
@@ -31,7 +31,7 @@ void MonthView::Set(GDateTime *dt)
 	}
 }
 
-GDateTime &MonthView::Get()
+LDateTime &MonthView::Get()
 {
 	return Cursor;
 }
@@ -50,7 +50,7 @@ void MonthView::SetCursor(int x, int y)
 		x = 0;
 	}
 
-	GDateTime n = Start;
+	LDateTime n = Start;
 	n.AddDays( (y * MonthX) + x );
 	Set(&n);
 }
@@ -59,7 +59,7 @@ void MonthView::GetCursor(int &x, int &y)
 {
 	x = Cursor.DayOfWeek();
 	
-	GDateTime t = Cursor;
+	LDateTime t = Cursor;
 	t.Day(1);
 	int BaseOffset = t.DayOfWeek();
 	y = (Cursor.Day() - 1 + BaseOffset) / 7;
@@ -115,7 +115,7 @@ bool MonthView::IsMonth()
 
 bool MonthView::IsToday()
 {
-	GDateTime Now;
+	LDateTime Now;
 	Now.SetNow();
 	return	Now.Day() == Cell.Day() &&
 			Now.Month() == Cell.Month() &&

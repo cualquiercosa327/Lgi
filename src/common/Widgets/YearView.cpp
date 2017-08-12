@@ -2,7 +2,7 @@
 #include "YearView.h"
 
 /////////////////////////////////////////////////////////////////////////////////////
-YearView::YearView(GDateTime *dt)
+YearView::YearView(LDateTime *dt)
 {
 	Sx = 0;
 	Sy = 12;
@@ -10,7 +10,7 @@ YearView::YearView(GDateTime *dt)
 	Set(dt);
 }
 
-void YearView::Set(GDateTime *dt)
+void YearView::Set(LDateTime *dt)
 {
 	if (dt)
 	{
@@ -18,7 +18,7 @@ void YearView::Set(GDateTime *dt)
 	}
 	else
 	{
-		GDateTime n;
+		LDateTime n;
 		n.SetNow();
 		Year = n.Year();
 	}
@@ -26,7 +26,7 @@ void YearView::Set(GDateTime *dt)
 	int Day[12], Min = 7;
 	for (int i=0; i<12; i++)
 	{
-		GDateTime t;
+		LDateTime t;
 		t.Day(1);
 		t.Month(i+1);
 		t.Year(Year);
@@ -42,9 +42,9 @@ void YearView::Set(GDateTime *dt)
 	}
 }
 
-GDateTime &YearView::Get()
+LDateTime &YearView::Get()
 {
-	static GDateTime t;
+	static LDateTime t;
 	int d = Cx - Start[Cy];
 	t.Month(Cy + 1);
 	t.Year(Year);

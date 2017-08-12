@@ -27,7 +27,7 @@ struct GSoftwareUpdatePriv
 		Error.Reset(NewStr(LgiLoadString(Id, Def)));
 	}
 
-	class UpdateThread : public GThread
+	class UpdateThread : public LThread
 	{
 		GSoftwareUpdatePriv *d;
 		GSocket *s;
@@ -39,7 +39,7 @@ struct GSoftwareUpdatePriv
 		bool Status;
 
 		UpdateThread(GSoftwareUpdatePriv *priv, GSoftwareUpdate::UpdateInfo *info, bool betas) :
-		    GThread("SoftwareUpdateThread")
+		    LThread("SoftwareUpdateThread")
 		{
 			Info = info;
 			d = priv;
@@ -206,7 +206,7 @@ struct GSoftwareUpdatePriv
 		}
 	};
 
-	class UpdateDownload : public GThread
+	class UpdateDownload : public LThread
 	{
 		GSoftwareUpdate::UpdateInfo *Info;
 		GUri *Uri;
@@ -221,7 +221,7 @@ struct GSoftwareUpdatePriv
 		                GUri *proxy,		                
 		                GStream *local,
 		                GAutoString *err,
-		                int *status) : GThread("UpdateDownload")
+		                int *status) : LThread("UpdateDownload")
 		{
 			Info = info;
 			Uri = uri;

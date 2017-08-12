@@ -166,31 +166,33 @@ LgiFunc void LgiSleep(uint32 i);
 #define kEventParamLgiA				'Lgia'
 #define kEventParamLgiB				'Lgib'
 
-/// Standard ID for an "Ok" button.
+/// ID's returned by LgiMsg.
 /// \sa LgiMsg
-#define IDOK						1
-/// Standard ID for a "Cancel" button.
-/// \sa LgiMsg
-#define IDCANCEL					2
-/// Standard ID for a "Yes" button.
-/// \sa LgiMsg
-#define IDYES						3
-/// Standard ID for a "No" button.
-/// \sa LgiMsg
-#define IDNO						4
+enum MessageBoxResponse
+{
+	IDOK = 1,
+	IDCANCEL = 2,
+	IDABORT = 3,
+	IDRETRY = 4,
+	IDIGNORE = 5,
+	IDYES = 6,
+	IDNO = 7,
+	IDTRYAGAIN = 10,
+	IDCONTINUE = 11,
+};
 
-/// Standard message box with an Ok button.
+/// Standard message box types.
 /// \sa LgiMsg
-#define MB_OK						5
-/// Standard message box with Ok and Cancel buttons.
-/// \sa LgiMsg
-#define MB_OKCANCEL					6
-/// Standard message box with Yes and No buttons.
-/// \sa LgiMsg
-#define MB_YESNO					7
-/// Standard message box with Yes, No and Cancel buttons.
-/// \sa LgiMsg
-#define MB_YESNOCANCEL				8
+enum MessageBoxType
+{
+	MB_OK = 0,
+	MB_OKCANCEL = 1,
+	MB_ABORTRETRYIGNORE = 2,
+	MB_YESNOCANCEL = 3,
+	MB_YESNO = 4,
+	MB_RETRYCANCEL = 5,
+	MB_CANCELTRYCONTINUE = 6
+};
 
 #define MB_SYSTEMMODAL				0x1000
 

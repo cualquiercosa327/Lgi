@@ -247,32 +247,33 @@ LgiFunc void LgiSleep(uint32 i);
 /// Tests a char for being a quote
 #define IsQuote(c)					(((c)=='\"')||((c)=='\''))
 
-/// Standard ID for an "Ok" button.
+/// ID's returned by LgiMsg.
 /// \sa LgiMsg
-#define IDOK						1
-/// Standard ID for a "Cancel" button.
-/// \sa LgiMsg
-#define IDCANCEL					2
-/// Standard ID for a "Yes" button.
-/// \sa LgiMsg
-#define IDYES						6
-/// Standard ID for a "No" button.
-/// \sa LgiMsg
-#define IDNO						7
+enum MessageBoxResponse
+{
+	IDOK = 1,
+	IDCANCEL = 2,
+	IDABORT = 3,
+	IDRETRY = 4,
+	IDIGNORE = 5,
+	IDYES = 6,
+	IDNO = 7,
+	IDTRYAGAIN = 10,
+	IDCONTINUE = 11,
+};
 
-#ifndef WIN32
-/// Standard message box with an Ok button.
+/// Standard message box types.
 /// \sa LgiMsg
-#define MB_OK						0
-/// Standard message box with Ok and Cancel buttons.
-/// \sa LgiMsg
-#define MB_OKCANCEL					1
-/// Standard message box with Yes, No and Cancel buttons.
-/// \sa LgiMsg
-#define MB_YESNOCANCEL				3
-/// Standard message box with Yes and No buttons.
-/// \sa LgiMsg
-#define MB_YESNO					4
+enum MessageBoxType
+{
+	MB_OK = 0,
+	MB_OKCANCEL = 1,
+	MB_ABORTRETRYIGNORE = 2,
+	MB_YESNOCANCEL = 3,
+	MB_YESNO = 4,
+	MB_RETRYCANCEL = 5,
+	MB_CANCELTRYCONTINUE = 6
+};
 
 #define MB_SYSTEMMODAL				0x1000
 #endif

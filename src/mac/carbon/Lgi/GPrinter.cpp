@@ -1,5 +1,5 @@
 #include "Lgi.h"
-#include "GList.h"
+#include "LList.h"
 #include "GButton.h"
 #include "GPrinter.h"
 

@@ -46,7 +46,7 @@ struct FormPost
 	GXmlTag *GetField(char *n);
 };
 
-class CookieJar : public GHashTable
+class CookieJar : public GHashTbl<char*,char*>
 {
 public:
 	~CookieJar() { Empty(); }
