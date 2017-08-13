@@ -2,12 +2,12 @@
 /// \author Matthew Allen (fret@memecode.com)
 /// \brief A radio button for a list item
 
-#ifndef __GLIST_ITEM_RADIO_H
-#define __GLIST_ITEM_RADIO_H
+#ifndef __LLIST_ITEM_RADIO_H
+#define __LLIST_ITEM_RADIO_H
 
-/// A radio button control for use in a GListItem. It will select one option amongst many rows.
+/// A radio button control for use in a LListItem. It will select one option amongst many rows.
 /// (Not one option amongst many columns)
-class GListItemRadioBtn : public GListItemColumn
+class LListItemRadioBtn : public LListItemColumn
 {
 public:
 	enum RadioExclusion
@@ -17,20 +17,20 @@ public:
 	}	Type;
 
 	/// Constructor
-	GListItemRadioBtn
+	LListItemRadioBtn
 	(
 		/// The host list item.
-		GListItem *host,
+		LListItem *host,
 		/// The column to draw in.
 		int column,
 		/// Type of exclusion
 		RadioExclusion type,
 		/// The initial value.
 		bool value = false
-	) : GListItemColumn(host, column)
+	) : LListItemColumn(host, column)
 	{
 		Type = type;
-		GListItemColumn::Value(value);
+		LListItemColumn::Value(value);
 	}
 
 	void OnPaintColumn(ItemPaintCtx &r, int i, GItemColumn *Col)
@@ -64,13 +64,13 @@ public:
 
 	int64 Value()
 	{
-		return GListItemColumn::Value();
+		return LListItemColumn::Value();
 	}
 
 	void Value(int64 i)
 	{
 		// Set me
-		GListItemColumn::Value(i);
+		LListItemColumn::Value(i);
 
 		if (i)
 		{
@@ -79,15 +79,15 @@ public:
 			{
 				if (!GetList())
 					return;
-				List<GListItem>::I Items = GetAllItems()->Start();
-				for (GListItem *i=*Items; i; i=*++Items)
+				List<LListItem>::I Items = GetAllItems()->Start();
+				for (LListItem *i=*Items; i; i=*++Items)
 				{
-					List<GListItemColumn>::I Cols = i->GetItemCols()->Start();
-					for (GListItemColumn *c=*Cols; c; c=*++Cols)
+					List<LListItemColumn>::I Cols = i->GetItemCols()->Start();
+					for (LListItemColumn *c=*Cols; c; c=*++Cols)
 					{
 						if (c->GetColumn() == GetColumn())
 						{
-							GListItemRadioBtn *r = dynamic_cast<GListItemRadioBtn*>(c);
+							LListItemRadioBtn *r = dynamic_cast<LListItemRadioBtn*>(c);
 							if (r != this)
 							{
 								r->Value(0);
@@ -99,10 +99,10 @@ public:
 			}
 			else if (Type == ItemExclusive)
 			{
-				List<GListItemColumn>::I Cols = GetItem()->GetItemCols()->Start();
-				for (GListItemColumn *c=*Cols; c; c=*++Cols)
+				List<LListItemColumn>::I Cols = GetItem()->GetItemCols()->Start();
+				for (LListItemColumn *c=*Cols; c; c=*++Cols)
 				{
-					GListItemRadioBtn *r = dynamic_cast<GListItemRadioBtn*>(c);
+					LListItemRadioBtn *r = dynamic_cast<LListItemRadioBtn*>(c);
 					if (r && r != this)
 					{
 						r->Value(false);

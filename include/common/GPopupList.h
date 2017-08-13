@@ -1,7 +1,7 @@
 #ifndef _POPUP_LIST_H_
 #define _POPUP_LIST_H_
 
-#include "GList.h"
+#include "LList.h"
 #include "GCss.h"
 #include "GCssTools.h"
 
@@ -26,7 +26,7 @@ public:
 		PopupBelow,
 	};
 
-	class Item : public GListItem
+	class Item : public LListItem
 	{
 	public:
 		T *Value;
@@ -38,7 +38,7 @@ public:
 	};
 
 protected:
-	GList *Lst;
+	LList *Lst;
 	GViewI *Edit;
 	bool Registered;
 	PositionType PosType;
@@ -52,7 +52,7 @@ public:
 		GRect r(width - 1, height - 1);
 		Edit = edit;
 		SetPos(r);
-		AddView(Lst = new GList(IDC_BROWSE_LIST, r.x1+1, r.y1+1, r.X()-3, r.Y()-3));
+		AddView(Lst = new LList(IDC_BROWSE_LIST, r.x1+1, r.y1+1, r.X()-3, r.Y()-3));
 		Lst->Sunken(false);
 		Lst->AddColumn("Name", r.X());
 		Lst->ShowColumnHeader(false);

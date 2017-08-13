@@ -671,7 +671,7 @@ void MailImapFolder::SetName(const char *s)
 }
 
 /////////////////////////////////////////////
-class MailIMapPrivate : public GMutex
+class MailIMapPrivate : public LMutex
 {
 public:
 	int NextCmd;
@@ -680,15 +680,15 @@ public:
 	char FolderSep;
 	char *Current;
 	char *Flags;
-	GHashTable Capability;
+	GHashTbl<char*,bool> Capability;
 	GString WebLoginUri;
 	MailIMap::OAuthParams OAuth;
 	GViewI *ParentWnd;
 	bool *LoopState;
-	OsThreadId InCommand;
+	OsThread InCommand;
 	GString LastWrite;
 
-	MailIMapPrivate() : GMutex("MailImapSem")
+	MailIMapPrivate() : LMutex("MailImapSem")
 	{
 		ParentWnd = NULL;
 		LoopState = NULL;
@@ -1000,7 +1000,7 @@ int GsaslCallback(Gsasl *ctx, Gsasl_session *sctx, Gsasl_property prop)
 }
 #endif
 
-class OAuthWebServer : public GThread, public GMutex
+class OAuthWebServer : public LThread, public LMutex
 {
 	bool Loop;
 	int Port;
@@ -1011,8 +1011,8 @@ class OAuthWebServer : public GThread, public GMutex
 
 public:
 	OAuthWebServer(int DesiredPort = 0) :
-		GThread("OAuthWebServerThread"),
-		GMutex("OAuthWebServerMutex")
+		LThread("OAuthWebServerThread"),
+		LMutex("OAuthWebServerMutex")
 	{
 		Loop = true;
 		if (Listen.Listen(DesiredPort))
@@ -1233,7 +1233,7 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 									AddIfMissing(Auths, Type);
 								}
 
-								d->Capability.Add(T[i]);
+								d->Capability.Add(T[i], true);
 							}
 						}
 					}
@@ -2132,7 +2132,7 @@ bool MailIMap::Close()
 bool MailIMap::GetCapabilities(GArray<char*> &s)
 {
 	char *k = 0;
-	for (void *p=d->Capability.First(&k); p; p=d->Capability.Next(&k))
+	for (bool p=d->Capability.First(&k); p; p=d->Capability.Next(&k))
 	{
 		s.Add(k);
 	}

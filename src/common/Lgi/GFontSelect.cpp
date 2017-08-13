@@ -6,7 +6,7 @@
 #include "GToken.h"
 #include "GCheckBox.h"
 #include "GButton.h"
-#include "GList.h"
+#include "LList.h"
 #include "GRadioGroup.h"
 #include "GEdit.h"
 #include "GCombo.h"
@@ -31,7 +31,7 @@ int FontSizes[] = { 8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 48, 72, 100, 0
 struct GFontSelectPriv
 {
 	GTableLayout *Tbl;
-	GList *Lst;
+	LList *Lst;
 	GBitmap *Bmp;
 	GCombo *PtSizes;
 	bool Running;
@@ -72,7 +72,7 @@ GFontSelect::GFontSelect(GView *Parent, void *Init, int InitLen)
 
 	GRadioGroup *rg;
 	GLayoutCell *c = d->Tbl->GetCell(0, 0, true, 1, 2);
-		c->Add(d->Lst = new GList(IDC_FONT, 14, 14, 161, 147));
+		c->Add(d->Lst = new LList(IDC_FONT, 14, 14, 161, 147));
 		d->Lst->AddColumn(LgiLoadString(L_FONTUI_FACE, "Face"), 140);
 		d->Lst->MultiSelect(false);
 	
@@ -127,7 +127,7 @@ GFontSelect::~GFontSelect()
 
 char *GFontSelect::GetSelectedFace()
 {
-	GListItem *i = d->Lst->GetSelected();
+	LListItem *i = d->Lst->GetSelected();
 	if (i)
 	{
 		return i->GetText(0);
@@ -139,7 +139,7 @@ void GFontSelect::InsertFont(const char *f)
 {
 	if (f && f[0] != '@')
 	{
-		GListItem *i = new GListItem;
+		LListItem *i = new LListItem;
 		if (i)
 		{
 			i->SetText(f, 0);
@@ -153,7 +153,7 @@ void GFontSelect::InsertFont(const char *f)
 	}
 }
 
-int SortFunc(GListItem *a, GListItem *b, NativeInt Data)
+int SortFunc(LListItem *a, LListItem *b, NativeInt Data)
 {
 	char *A = a->GetText(0);
 	char *B = b->GetText(0);
@@ -239,7 +239,7 @@ void GFontSelect::UpdatePreview()
 
 void GFontSelect::OnCreate()
 {
-	GListItem *i = d->Lst->GetSelected();
+	LListItem *i = d->Lst->GetSelected();
 	if (i)
 	{
 		i->ScrollTo();

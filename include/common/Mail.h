@@ -125,7 +125,7 @@ protected:
 	GStreamI *Embeded;
 	bool OwnEmbeded;
 	int64 Offset;
-	GMutex *Lock;
+	LMutex *Lock;
 
 	// Write to memory
 	uchar *Data;
@@ -138,8 +138,8 @@ public:
 	FileDescriptor();
 	~FileDescriptor();
 
-	void SetLock(GMutex *l);
-	GMutex *GetLock();
+	void SetLock(LMutex *l);
+	LMutex *GetLock();
 	void SetOwnEmbeded(bool i);
 
 	// Access functions
@@ -266,7 +266,7 @@ class MailProtocol
 {
 protected:
 	char Buffer[4<<10];
-	GMutex SocketLock;
+	LMutex SocketLock;
 	GAutoPtr<GSocketI> Socket;
 
 	bool Error(const char *file, int line, const char *msg, ...);
@@ -303,7 +303,7 @@ public:
 	/// Thread safe hard close (quit now)
 	bool CloseSocket()
 	{
-		GMutex::Auto l(&SocketLock, _FL);
+		LMutex::Auto l(&SocketLock, _FL);
 
 		if (Socket != NULL)
 			return Socket->Close() != 0;

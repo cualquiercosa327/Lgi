@@ -1,7 +1,7 @@
 #include "GMem.h"
 #include "GFile.h"
 #include "GProperties.h"
-#include "GDateTime.h"
+#include "LDateTime.h"
 
 // From HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones
 

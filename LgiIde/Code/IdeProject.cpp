@@ -13,7 +13,7 @@
 #include "GProcess.h"
 #include "GCombo.h"
 #include "INet.h"
-#include "GListItemCheckBox.h"
+#include "LListItemCheckBox.h"
 #include "FtpThread.h"
 #include "GClipBoard.h"
 #include "GDropFiles.h"
@@ -26,6 +26,8 @@
 #include "GButton.h"
 
 extern const char *Untitled;
+const char SourcePatterns[] = "*.c;*.h;*.cpp;*.cc;*.java;*.d;*.php;*.html;*.css";
+const char *AddFilesProgress::DefaultExt = "c,cpp,cc,cxx,h,hpp,hxx,html,css,json,js,jsx,txt,png,jpg,jpeg,rc,xml";
 
 #define STOP_BUILD_TIMEOUT			3000
 #ifdef WIN32
@@ -51,8 +53,6 @@ int PlatformCtrlId[] =
 	IDC_HAIKU,
 	0
 };
-
-const char SourcePatterns[] = "*.c;*.h;*.cpp;*.java;*.d;*.php;*.html;*.css";
 
 char *ToUnixPath(char *s)
 {
@@ -92,7 +92,7 @@ GAutoString ToNativePath(const char *s)
 //////////////////////////////////////////////////////////////////////////////////
 class ProjectNode;
 
-class BuildThread : public GThread, public GStream
+class BuildThread : public LThread, public GStream
 {
 	IdeProject *Proj;
 	GString Makefile;
@@ -247,7 +247,7 @@ bool ReadVsProjFile(GString File, GString &Ver, GString::Array &Configs)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-BuildThread::BuildThread(IdeProject *proj, char *makefile, bool clean, bool release, int wordsize) : GThread("BuildThread")
+BuildThread::BuildThread(IdeProject *proj, char *makefile, bool clean, bool release, int wordsize) : LThread("BuildThread")
 {
 	Proj = proj;
 	Makefile = makefile;
@@ -899,7 +899,7 @@ char *QuoteStr(char *s)
 	return p.NewStr();
 }
 
-class ExecuteThread : public GThread, public GStream
+class ExecuteThread : public LThread, public GStream
 {
 	IdeProject *Proj;
 	char *Exe, *Args, *Path;
@@ -907,7 +907,7 @@ class ExecuteThread : public GThread, public GStream
 	ExeAction Act;
 
 public:
-	ExecuteThread(IdeProject *proj, const char *exe, const char *args, char *path, ExeAction act) : GThread("ExecuteThread")
+	ExecuteThread(IdeProject *proj, const char *exe, const char *args, char *path, ExeAction act) : LThread("ExecuteThread")
 	{
 		Len = 32 << 10;
 		Proj = proj;
@@ -1144,7 +1144,7 @@ GAutoString IdeProject::GetFullPath()
 
 	if (!proj)
 	{
-		LgiAssert(!"All projects have a relative path?");
+		// LgiAssert(!"All projects have a relative path?");
 		return Status; // No absolute path in the parent projects?
 	}
 
@@ -2377,19 +2377,19 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 			// Includes
 
 			// Do include paths
-			GHashTable Inc;
+			GHashTbl<char*,bool> Inc;
 			const char *AllIncludes = d->Settings.GetStr(ProjIncludePaths, NULL, Platform);
 			if (ValidStr(AllIncludes))
 			{
 				// Add settings include paths.
-				GToken Paths(AllIncludes, "\r\n", Platform);
+				GToken Paths(AllIncludes, "\r\n");
 				for (int i=0; i<Paths.Length(); i++)
 				{
 					char *p = Paths[i];
 					GAutoString pn = ToNativePath(p);
 					if (!Inc.Find(pn))
 					{
-						Inc.Add(pn);
+						Inc.Add(pn, true);
 					}
 				}
 			}
@@ -2428,7 +2428,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 							GAutoString RelN = ToNativePath(Rel);
 							if (!Inc.Find(RelN))
 							{
-								Inc.Add(RelN);
+								Inc.Add(RelN, true);
 							}
 						}
 					}
@@ -2437,7 +2437,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 
 			List<char> Incs;
 			char *i;
-			for (void *b=Inc.First(&i); b; b=Inc.Next(&i))
+			for (bool b=Inc.First(&i); b; b=Inc.Next(&i))
 			{
 				Incs.Insert(NewStr(i));
 			}
@@ -2511,7 +2511,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 				// Write out the target stuff
 				m.Print("# Target\n");
 
-				GHashTable DepFiles;
+				GHashTbl<char*,bool> DepFiles;
 
 				if (TargetType)
 				{
@@ -2569,7 +2569,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 									
 									// Add these dependencies to this makefiles dep list
 									if (!DepFiles.Find(f))
-										DepFiles.Add(f);
+										DepFiles.Add(f, true);
 								}
 								
 								AllDeps.DeleteArrays();
@@ -2753,7 +2753,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 										m.Print("%s", SDep);
 										if (!DepFiles.Find(SDep))
 										{
-											DepFiles.Add(SDep);
+											DepFiles.Add(SDep, true);
 										}
 									}
 									else printf("%s:%i - not add dep: '%s' '%s'\n", _FL, Src.Get(), SDep);
@@ -2775,19 +2775,19 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 				
 				// Do remaining include file dependencies
 				bool Done = false;
-				GHashTable Processed;
+				GHashTbl<char*,bool> Processed;
 				GAutoString Base = GetBasePath();
 				while (!Done)
 				{
 					Done = true;
 					char *Src;
-					for (void *b=DepFiles.First(&Src); b; b=DepFiles.Next(&Src))
+					for (bool b=DepFiles.First(&Src); b; b=DepFiles.Next(&Src))
 					{
 						if (Processed.Find(Src))
 							continue;
 
 						Done = false;
-						Processed.Add(Src);
+						Processed.Add(Src, true);
 						
 						char Full[MAX_PATH], Rel[MAX_PATH];
 						if (LgiIsRelativePath(Src))
@@ -2837,7 +2837,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 									
 									if (!DepFiles.Find(i))
 									{
-										DepFiles.Add(i);
+										DepFiles.Add(i, true);
 									}
 								}
 								Headers.DeleteArrays();
@@ -3062,7 +3062,7 @@ int IdeTree::OnDrop(GArray<GDragData> &Data, GdcPt2 p, int KeyState)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
-AddFilesProgress::AddFilesProgress(GViewI *par)
+AddFilesProgress::AddFilesProgress(GViewI *par) : Exts(0, false)
 {
 	v = 0;
 	Cancel = false;
@@ -3073,6 +3073,12 @@ AddFilesProgress::AddFilesProgress(GViewI *par)
 	SetPos(r);
 	MoveSameScreen(par);
 	Name("Importing files...");
+
+	GString::Array a = GString(DefaultExt).SplitDelimit(",");
+	for (unsigned i=0; i<a.Length(); i++)
+	{
+		Exts.Add(a[i], true);
+	}
 
 	GTableLayout *t = new GTableLayout(100);
 	AddView(t);

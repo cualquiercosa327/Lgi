@@ -86,8 +86,8 @@ void ParseIdList(char *In, List<char> &Out);
 	bool Set##name(const char *val) { LgiAssert(Object != NULL); return Object ? Object->SetStr(id, val) : false; }
 
 #define GDATA_DATE_PROP(name, id) \
-	GDateTime *Get##name() { LgiAssert(Object != NULL); return (Object ? Object->GetDate(id) : 0); } \
-	bool Set##name(GDateTime *val) { LgiAssert(Object != NULL); return Object ? Object->SetDate(id, val) : false; }
+	LDateTime *Get##name() { LgiAssert(Object != NULL); return (Object ? Object->GetDate(id) : 0); } \
+	bool Set##name(LDateTime *val) { LgiAssert(Object != NULL); return Object ? Object->SetDate(id, val) : false; }
 
 #define GDATA_PERM_PROP(name, id) \
 	ScribePerm Get##name() { LgiAssert(Object != NULL); return (ScribePerm) (Object ? Object->GetInt(id) : 0); } \
@@ -159,9 +159,9 @@ public:
 	virtual Store3Status SetInt(int id, int64 i) { EmptyVirtual(Store3Error); }
 
 	/// Gets a date property
-	virtual GDateTime *GetDate(int id) { EmptyVirtual(NULL); }
+	virtual LDateTime *GetDate(int id) { EmptyVirtual(NULL); }
 	/// Sets a date property
-	virtual Store3Status SetDate(int id, GDateTime *i) { EmptyVirtual(Store3Error); }
+	virtual Store3Status SetDate(int id, LDateTime *i) { EmptyVirtual(Store3Error); }
 
 	/// Gets a variant
 	virtual GVariant *GetVar(int id) { EmptyVirtual(NULL); }

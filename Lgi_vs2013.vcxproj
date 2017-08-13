@@ -434,11 +434,11 @@
     <ClCompile Include="src\common\Gdc2\Path\GPath.cpp" />
     <ClCompile Include="src\common\Gdc2\Tools\GColourReduce.cpp" />
     <ClCompile Include="src\common\General\GContainers.cpp" />
-    <ClCompile Include="src\common\General\GDateTime.cpp" />
     <ClCompile Include="src\common\General\GExeCheck.cpp" />
     <ClCompile Include="src\common\General\GFileCommon.cpp" />
     <ClCompile Include="src\common\General\GGrowl.cpp" />
     <ClCompile Include="src\common\General\GPassword.cpp" />
+    <ClCompile Include="src\common\General\LDateTime.cpp" />
     <ClCompile Include="src\common\Hash\md5\md5.c" />
     <ClCompile Include="src\common\Hash\sha1\sha1.c" />
     <ClCompile Include="src\common\INet\Base64.cpp" />
@@ -456,13 +456,10 @@
     <ClCompile Include="src\common\Lgi\GLibrary.cpp" />
     <ClCompile Include="src\common\Lgi\GMemStream.cpp" />
     <ClCompile Include="src\common\Lgi\GMru.cpp" />
-    <ClCompile Include="src\common\Lgi\GMutex.cpp" />
     <ClCompile Include="src\common\Lgi\GObject.cpp" />
     <ClCompile Include="src\common\Lgi\GOptionsFile.cpp" />
     <ClCompile Include="src\common\Lgi\GProcess.cpp" />
     <ClCompile Include="src\common\Lgi\GStream.cpp" />
-    <ClCompile Include="src\common\Lgi\GThreadCommon.cpp" />
-    <ClCompile Include="src\common\Lgi\GThreadEvent.cpp" />
     <ClCompile Include="src\common\Lgi\GToolTip.cpp" />
     <ClCompile Include="src\common\Lgi\GTrayIcon.cpp" />
     <ClCompile Include="src\common\Lgi\GVariant.cpp" />
@@ -471,6 +468,9 @@
     <ClCompile Include="src\common\Lgi\Lgi.cpp" />
     <ClCompile Include="src\common\Lgi\LgiMsg.cpp" />
     <ClCompile Include="src\common\Lgi\LgiRand.cpp" />
+    <ClCompile Include="src\common\Lgi\LMutex.cpp" />
+    <ClCompile Include="src\common\Lgi\LThreadCommon.cpp" />
+    <ClCompile Include="src\common\Lgi\LThreadEvent.cpp" />
     <ClCompile Include="src\common\Resource\LgiRes.cpp" />
     <ClCompile Include="src\common\Resource\Res.cpp" />
     <ClCompile Include="src\common\Skins\Gel\Gel.cpp" />
@@ -516,7 +516,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\common\Widgets\GItemContainer.cpp" />
-    <ClCompile Include="src\common\Widgets\GList.cpp" />
     <ClCompile Include="src\common\Widgets\GPanel.cpp" />
     <ClCompile Include="src\common\Widgets\GPopup.cpp" />
     <ClCompile Include="src\common\Widgets\GProgressDlg.cpp" />
@@ -535,6 +534,7 @@
     <ClCompile Include="src\common\Widgets\GTextLabel.cpp" />
     <ClCompile Include="src\common\Widgets\GToolBar.cpp" />
     <ClCompile Include="src\common\Widgets\GTree.cpp" />
+    <ClCompile Include="src\common\Widgets\LList.cpp" />
     <ClCompile Include="src\win32\Gdc2\Gdc2.cpp" />
     <ClCompile Include="src\win32\Gdc2\GdiLeak.cpp" />
     <ClCompile Include="src\win32\Gdc2\GMemDC.cpp" />
@@ -553,10 +553,10 @@
     <ClCompile Include="src\win32\Lgi\GMenu.cpp" />
     <ClCompile Include="src\win32\Lgi\GPrinter.cpp" />
     <ClCompile Include="src\win32\Lgi\GScrollBar.cpp" />
-    <ClCompile Include="src\win32\Lgi\GThread.cpp" />
     <ClCompile Include="src\win32\Lgi\GView.cpp" />
     <ClCompile Include="src\win32\Lgi\GWindow.cpp" />
     <ClCompile Include="src\win32\Lgi\LgiException.cpp" />
+    <ClCompile Include="src\win32\Lgi\LThread.cpp" />
     <ClCompile Include="src\win32\Widgets\GButton_Win.cpp" />
     <ClCompile Include="src\win32\Widgets\GCheckBox_Win.cpp" />
     <ClCompile Include="src\win32\Widgets\GCombo_Win.cpp" />
@@ -580,7 +580,6 @@
     <ClInclude Include="include\common\GContainers.h" />
     <ClInclude Include="include\common\GCss.h" />
     <ClInclude Include="include\common\GCssTools.h" />
-    <ClInclude Include="include\common\GDateTime.h" />
     <ClInclude Include="include\common\Gdc2.h" />
     <ClInclude Include="include\common\GdiLeak.h" />
     <ClInclude Include="include\common\GDisplayStringLayout.h" />
@@ -598,7 +597,6 @@
     <ClInclude Include="include\common\GImageList.h" />
     <ClInclude Include="include\common\GItemContainer.h" />
     <ClInclude Include="include\common\GLibrary.h" />
-    <ClInclude Include="include\common\GList.h" />
     <ClInclude Include="include\common\GListItemCheckBox.h" />
     <ClInclude Include="include\common\GListItemRadioBtn.h" />
     <ClInclude Include="include\common\GMatrix.h" />
@@ -606,7 +604,6 @@
     <ClInclude Include="include\common\GMenu.h" />
     <ClInclude Include="include\common\GMessage.h" />
     <ClInclude Include="include\common\GMru.h" />
-    <ClInclude Include="include\common\GMutex.h" />
     <ClInclude Include="include\common\GNotifications.h" />
     <ClInclude Include="include\common\GPalette.h" />
     <ClInclude Include="include\common\GPixelRops.h" />
@@ -623,8 +620,6 @@
     <ClInclude Include="include\common\GTableLayout.h" />
     <ClInclude Include="include\common\GTabView.h" />
     <ClInclude Include="include\common\GTextLabel.h" />
-    <ClInclude Include="include\common\GThread.h" />
-    <ClInclude Include="include\common\GThreadEvent.h" />
     <ClInclude Include="include\common\GToolBar.h" />
     <ClInclude Include="include\common\GTree.h" />
     <ClInclude Include="include\common\GUnicode.h" />
@@ -632,6 +627,7 @@
     <ClInclude Include="include\common\GViewPriv.h" />
     <ClInclude Include="include\common\INet.h" />
     <ClInclude Include="include\common\INetTools.h" />
+    <ClInclude Include="include\common\LDateTime.h" />
     <ClInclude Include="include\common\Lgi.h" />
     <ClInclude Include="include\common\LgiClass.h" />
     <ClInclude Include="include\common\LgiClasses.h" />
@@ -640,6 +636,10 @@
     <ClInclude Include="include\common\LgiInc.h" />
     <ClInclude Include="include\common\LgiInterfaces.h" />
     <ClInclude Include="include\common\LgiRes.h" />
+    <ClInclude Include="include\common\LList.h" />
+    <ClInclude Include="include\common\LMutex.h" />
+    <ClInclude Include="include\common\LThread.h" />
+    <ClInclude Include="include\common\LThreadEvent.h" />
     <ClInclude Include="include\common\Res.h" />
     <ClInclude Include="include\win32\GCom.h" />
     <ClInclude Include="include\win32\LgiOsClasses.h" />

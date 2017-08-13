@@ -1,7 +1,7 @@
 #ifndef _GSKIN_ENGINE_H_
 #define _GSKIN_ENGINE_H_
 
-#include "GList.h"
+#include "LList.h"
 
 // Feature support flags
 #define GSKIN_COLOUR		0x00000001
@@ -120,7 +120,7 @@ public:
 	virtual void OnPaint_GBitmap      (GBitmap *Ctrl,      GSkinState *State) {};
 	virtual void OnPaint_GProgress    (GProgress *Ctrl,    GSkinState *State) {};
 	virtual void OnPaint_GTree        (GTree *Ctrl,        GSkinState *State) {};
-	virtual void OnPaint_GList        (GList *Ctrl,        GSkinState *State) {};
+	virtual void OnPaint_LList        (LList *Ctrl,        GSkinState *State) {};
 	
 	// 'Col' may be NULL in the case that the GList control wants to draw the
 	// header beyond the last column. This function can use the call back

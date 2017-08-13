@@ -15,7 +15,7 @@
 #include <string.h>
 #endif
 
-#include "GMutex.h"
+#include "LMutex.h"
 #include "LgiOsClasses.h"
 #include "GMem.h"
 #include "GArray.h"
@@ -165,7 +165,7 @@ public:
 	OsProcessId GetProcessId();
 	
 	/// Returns the thread currently running the active message loop
-	OsThreadId GetGuiThread();
+	OsThread GetGuiThread();
 	
 	/// Returns the number of CPU cores the machine has
 	int GetCpuCount();
@@ -457,7 +457,7 @@ protected:
 
 	OsView				_View; // OS specific handle to view object
 	GView				*_Window;
-	GMutex				*_Lock;
+	LMutex				*_Lock;
 	uint16				_BorderSize;
 	uint16				_IsToolBar;
 	int					WndFlags;
@@ -1478,7 +1478,7 @@ public:
 #include "GFileSelect.h"
 #include "GFindReplaceDlg.h"
 #include "GToolBar.h"
-#include "GThread.h"
+#include "LThread.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 

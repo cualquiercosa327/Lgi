@@ -21,7 +21,7 @@ enum {
 };
 
 class GBrowserPriv;
-class GBrowserThread : public GThread, public GMutex
+class GBrowserThread : public LThread, public LMutex
 {
 	GBrowserPriv *d;
 	GArray<GAutoString> Work;
@@ -41,11 +41,11 @@ class GBrowserPriv : public GDocumentEnv
 public:
 	typedef GHashTbl<char*,GStream*> Collection;
 
-	struct FileLock : public GMutex::Auto
+	struct FileLock : public LMutex::Auto
 	{
 		Collection *Files;
 
-		FileLock(GMutex *s, const char *file, int line) : GMutex::Auto(s, file, line)
+		FileLock(LMutex *s, const char *file, int line) : LMutex::Auto(s, file, line)
 		{
 			Files = 0;
 		}
@@ -306,7 +306,7 @@ public:
 	}
 };
 
-GBrowserThread::GBrowserThread(GBrowserPriv *priv) : GThread("GBrowserThread")
+GBrowserThread::GBrowserThread(GBrowserPriv *priv) : LThread("GBrowserThread")
 {
 	Loop = true;
 	d = priv;

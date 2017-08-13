@@ -58,11 +58,11 @@
 /// are in milliseconds since January 1, 1970 UTC. This is just unix time * 1000. If you are serializing
 /// these 64bit values you should take that into account, they are NOT cross platform. The GDirectory class
 /// uses the same 64bit values as accepted here for the file's last modified timestamp etc. To convert the
-/// 64bit values to seconds, divide by GDateTime::Second64Bit, useful for calculating the time in seconds
-/// between 2 GDateTime objects.
+/// 64bit values to seconds, divide by LDateTime::Second64Bit, useful for calculating the time in seconds
+/// between 2 LDateTime objects.
 ///
 /// \ingroup Time
-class LgiClass GDateTime // This class can't have a virtual table, because it's used in 
+class LgiClass LDateTime // This class can't have a virtual table, because it's used in 
 						 // GArray's which initialize with all zero bytes.
 {
 	/// 1 - DaysInMonth
@@ -92,13 +92,13 @@ class LgiClass GDateTime // This class can't have a virtual table, because it's 
 	static char DefaultSeparator;
 
 public:
-	GDateTime();
-	~GDateTime();
+	LDateTime();
+	~LDateTime();
 
     enum 
     {
         /// Resolution of a second when using 64 bit int's
-        /// \sa GDateTime::Get(int64), GDateTime::Set(int64)
+        /// \sa LDateTime::Get(int64), LDateTime::Set(int64)
         #ifdef WIN32
         Second64Bit = 10000000,
         #else
@@ -186,23 +186,23 @@ public:
 	/// Gets the data and time as a GString
 	GString Get();
 	/// Gets the date and time as a string
-	/// \sa GDateTime::GetFormat()
+	/// \sa LDateTime::GetFormat()
 	void Get(char *Str, size_t SLen);
 	/// Gets the data and time as a 64 bit int (os specific)
 	bool Get(uint64 &s);
 	/// Gets just the date as a string
-	/// \sa GDateTime::GetFormat()
+	/// \sa LDateTime::GetFormat()
 	/// \returns The number of characters written to 'Str'
 	int GetDate(char *Str, size_t SLen);
 	/// Gets just the date as a GString
-	/// \sa GDateTime::GetFormat()
+	/// \sa LDateTime::GetFormat()
 	GString GetDate();
 	/// Gets just the time as a string
-	/// \sa GDateTime::GetFormat()
+	/// \sa LDateTime::GetFormat()
 	/// \returns The number of characters written to 'Str'
 	int GetTime(char *Str, size_t SLen);
 	/// Gets just the time as a GString
-	/// \sa GDateTime::GetFormat()
+	/// \sa LDateTime::GetFormat()
 	GString GetTime();
 	
 	/// Returns the 64bit timestamp.
@@ -211,17 +211,17 @@ public:
 	/// Sets the date and time to the system clock
 	void SetNow();
 	/// Parses a date time from a string
-	/// \sa GDateTime::GetFormat()
+	/// \sa LDateTime::GetFormat()
 	bool Set(const char *Str);
 	/// Sets the date and time from a 64 bit int (os specific)
 	bool Set(uint64 s);
 	/// Sets the time from a time_t
 	bool Set(time_t tt);
 	/// Parses the date from a string
-	/// \sa GDateTime::GetFormat()
+	/// \sa LDateTime::GetFormat()
 	bool SetDate(const char *Str);
 	/// Parses the time from a string
-	/// \sa GDateTime::GetFormat()
+	/// \sa LDateTime::GetFormat()
 	bool SetTime(const char *Str);
 
 	/// \returns whether a year is a leap year or not
@@ -231,7 +231,7 @@ public:
 		int Year = -1
 	);
 	/// \returns true if 'd' is on the same day as this object
-	bool IsSameDay(GDateTime &d);
+	bool IsSameDay(LDateTime &d);
 	/// \returns the number of days in the current month
 	int DaysInMonth();
 	
@@ -260,7 +260,7 @@ public:
 		/// The new offset in minutes (e.g. 600 = +10 hours)
 		int Offset;
 
-		GDateTime GetLocal();
+		LDateTime GetLocal();
 	};
 
 	/// Retreives daylight savings start and end events for a given period. One event will be emitted
@@ -273,9 +273,9 @@ public:
 		/// matching the TZ in place for the start datetime.
 		GArray<GDstInfo> &Out,
 		/// [In] The start date that you want DST info for.
-		GDateTime &Start,
+		LDateTime &Start,
 		/// [Optional In] The end of the period you want DST info for.
-		GDateTime *End = 0
+		LDateTime *End = 0
 	);
 
 
@@ -291,17 +291,17 @@ public:
 	bool Serialize(class GDom *Props, char *Name, bool Write);
 
 	// operators
-	bool operator <(GDateTime &dt);
-	bool operator <=(GDateTime &dt);
-	bool operator >(GDateTime &dt);
-	bool operator >=(GDateTime &dt);
-	bool operator ==(GDateTime &dt);
-	bool operator !=(GDateTime &dt);
-	int Compare(const GDateTime *d);
+	bool operator <(LDateTime &dt);
+	bool operator <=(LDateTime &dt);
+	bool operator >(LDateTime &dt);
+	bool operator >=(LDateTime &dt);
+	bool operator ==(LDateTime &dt);
+	bool operator !=(LDateTime &dt);
+	int Compare(const LDateTime *d);
 
-	GDateTime operator -(GDateTime &dt);
-	GDateTime operator +(GDateTime &dt);
-	GDateTime DiffMonths(GDateTime &dt);
+	LDateTime operator -(LDateTime &dt);
+	LDateTime operator +(LDateTime &dt);
+	LDateTime DiffMonths(LDateTime &dt);
 
 	operator uint64()
 	{
@@ -310,18 +310,18 @@ public:
 		return ts;
 	}
 
-	GDateTime &operator =(uint64 ts)
+	LDateTime &operator =(uint64 ts)
 	{
 		Set(ts);
 		return *this;
 	}
 
-	GDateTime &operator =(struct tm *t);
+	LDateTime &operator =(struct tm *t);
 	
 	/// GDom interface.
 	///
 	/// Even though we don't inherit from a GDom class this class supports the same
-	/// interface for ease of use. Currently there are cases where GDateTime is used
+	/// interface for ease of use. Currently there are cases where LDateTime is used
 	/// in GArray's which don't implement calling a constructor (they init with all
 	/// zeros).
 	bool GetVariant(const char *Name, class GVariant &Value, char *Array = NULL);

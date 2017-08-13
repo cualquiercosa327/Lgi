@@ -98,7 +98,7 @@ VIo::~VIo()
 	DeleteObj(d);
 }
 
-bool VIo::ParseDate(GDateTime &Out, char *In)
+bool VIo::ParseDate(LDateTime &Out, char *In)
 {
 	bool Status = false;
 
@@ -138,7 +138,7 @@ bool VIo::ParseDate(GDateTime &Out, char *In)
 	return Status;
 }
 
-bool VIo::ParseDuration(GDateTime &Out, int &Sign, char *In)
+bool VIo::ParseDuration(LDateTime &Out, int &Sign, char *In)
 {
 	bool Status = false;
 
@@ -905,7 +905,7 @@ bool VCal::Import(GDataPropI *c, GStreamI *In)
 				
 				if (IsVar(Field, "dtstart"))
 				{
-					GDateTime d;
+					LDateTime d;
 					if (ParseDate(d, Data))
 					{
 						c->SetDate(FIELD_CAL_START_UTC, &d);
@@ -913,7 +913,7 @@ bool VCal::Import(GDataPropI *c, GStreamI *In)
 				}
 				else if (IsVar(Field, "dtend"))
 				{
-					GDateTime d;
+					LDateTime d;
 					if (ParseDate(d, Data))
 					{
 						c->SetDate(FIELD_CAL_END_UTC, &d);
@@ -1085,7 +1085,7 @@ bool VCal::Export(GDataPropI *c, GStreamI *o)
 			GStreamPrint(o, "UID:%s\r\n", Uid);
 		}
 
-		GDateTime *Dt;
+		LDateTime *Dt;
 		if ((Dt = c->GetDate(FIELD_CAL_START_UTC)))
 		{
 			Dt->ToUtc();

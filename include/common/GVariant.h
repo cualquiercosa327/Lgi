@@ -10,7 +10,7 @@
 
 #include "GDom.h"
 #undef Bool
-#include "GDateTime.h"
+#include "LDateTime.h"
 #include "GContainers.h"
 #include "GHashTable.h"
 #include "GString.h"
@@ -44,7 +44,7 @@ enum GVariantType
 	GV_DOMREF,
 	/// Untyped pointer
 	GV_VOID_PTR,
-	/// GDateTime class.
+	/// LDateTime class.
 	GV_DATETIME,
 	/// Hash table class, containing pointers to GVariants
 	GV_HASHTABLE,
@@ -175,10 +175,13 @@ public:
 	bool CallMethod(const char *MethodName, GVariant *ReturnValue, GArray<GVariant*> &Args);
 };
 
+typedef GHashTbl<const char*,GVariant*> GVariantHash;
+
 /// A class that can be different types
 class LgiClass GVariant
 {
 public:
+
 	/// The type of the variant
     GVariantType Type;
 
@@ -210,9 +213,9 @@ public:
 		/// Valid when Type == #GV_LIST
 	    List<GVariant> *Lst;
 		/// Valid when Type == #GV_HASHTABLE
-	    GHashTable *Hash;
+	    GVariantHash *Hash;
 		/// Valid when Type == #GV_DATETIME
-		GDateTime *Date;
+		LDateTime *Date;
 		/// Valid when Type == #GV_CUSTOM
 		struct _Custom
 		{
@@ -280,7 +283,7 @@ public:
 	/// Constructor for DOM variable reference
 	GVariant(GDom *p, char *name);
 	/// Constructor for date
-	GVariant(GDateTime *d);
+	GVariant(LDateTime *d);
 	/// Constructor for variant
 	GVariant(GVariant const &v);
 	/// Construtor for operator
@@ -315,7 +318,7 @@ public:
 	/// Assign value to DOM ptr
 	GVariant &operator =(GDom *p);
 	/// Assign value to be a date/time
-	GVariant &operator =(GDateTime *d);
+	GVariant &operator =(LDateTime *d);
 
 	GVariant &operator =(class GView *p);
 	GVariant &operator =(class GMouse *p);
@@ -332,7 +335,7 @@ public:
 	/// Sets the value to a copy of the list
 	bool SetList(List<GVariant> *Lst = 0);
 	/// Sets the value to a hashtable
-	bool SetHashTable(GHashTable *Table = 0, bool Copy = true);
+	bool SetHashTable(GVariantHash *Table = 0, bool Copy = true);
     /// Set the value to a surface
     bool SetSurface(class GSurface *Ptr, bool Own);
     /// Set the value to a stream

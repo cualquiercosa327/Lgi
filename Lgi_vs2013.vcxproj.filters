@@ -155,9 +155,6 @@
     <ClCompile Include="src\common\Lgi\GLibrary.cpp">
       <Filter>Source Files\Core\Libraries</Filter>
     </ClCompile>
-    <ClCompile Include="src\common\Lgi\GMutex.cpp">
-      <Filter>Source Files\Core\Mutex</Filter>
-    </ClCompile>
     <ClCompile Include="src\win32\Lgi\GDragAndDrop.cpp">
       <Filter>Source Files\Core\Drag and Drop</Filter>
     </ClCompile>
@@ -170,23 +167,11 @@
     <ClCompile Include="src\common\Resource\Res.cpp">
       <Filter>Source Files\Core\Resources</Filter>
     </ClCompile>
-    <ClCompile Include="src\win32\Lgi\GThread.cpp">
-      <Filter>Source Files\Core\Threads</Filter>
-    </ClCompile>
-    <ClCompile Include="src\common\Lgi\GThreadCommon.cpp">
-      <Filter>Source Files\Core\Threads</Filter>
-    </ClCompile>
-    <ClCompile Include="src\common\Lgi\GThreadEvent.cpp">
-      <Filter>Source Files\Core\Threads</Filter>
-    </ClCompile>
     <ClCompile Include="src\common\Lgi\GVariant.cpp">
       <Filter>Source Files\Core\Variant</Filter>
     </ClCompile>
     <ClCompile Include="src\common\Lgi\GStream.cpp">
       <Filter>Source Files\Core\Stream</Filter>
-    </ClCompile>
-    <ClCompile Include="src\common\General\GDateTime.cpp">
-      <Filter>Source Files\Core\DateTime</Filter>
     </ClCompile>
     <ClCompile Include="src\common\General\GContainers.cpp">
       <Filter>Source Files\Core\Memory Subsystem</Filter>
@@ -273,9 +258,6 @@
       <Filter>Source Files\Widgets\Layout</Filter>
     </ClCompile>
     <ClCompile Include="src\common\Widgets\GItemContainer.cpp">
-      <Filter>Source Files\Widgets\Container</Filter>
-    </ClCompile>
-    <ClCompile Include="src\common\Widgets\GList.cpp">
       <Filter>Source Files\Widgets\Container</Filter>
     </ClCompile>
     <ClCompile Include="src\common\Widgets\GTree.cpp">
@@ -476,13 +458,28 @@
     <ClCompile Include="src\common\Lgi\GWindowCommon.cpp">
       <Filter>Source Files\Interface</Filter>
     </ClCompile>
+    <ClCompile Include="src\common\Lgi\LMutex.cpp">
+      <Filter>Source Files\Core\Mutex</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Widgets\LList.cpp">
+      <Filter>Source Files\Widgets\Container</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\General\LDateTime.cpp">
+      <Filter>Source Files\Core\DateTime</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Lgi\LThreadCommon.cpp">
+      <Filter>Source Files\Core\Threads</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Lgi\LThreadEvent.cpp">
+      <Filter>Source Files\Core\Threads</Filter>
+    </ClCompile>
+    <ClCompile Include="src\win32\Lgi\LThread.cpp">
+      <Filter>Source Files\Core\Threads</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\common\GLibrary.h">
       <Filter>Source Files\Core\Libraries</Filter>
-    </ClInclude>
-    <ClInclude Include="include\common\GMutex.h">
-      <Filter>Source Files\Core\Mutex</Filter>
     </ClInclude>
     <ClInclude Include="include\win32\GCom.h">
       <Filter>Source Files\Core\Drag and Drop</Filter>
@@ -505,12 +502,6 @@
     <ClInclude Include="include\common\GEventTargetThread.h">
       <Filter>Source Files\Core\Threads</Filter>
     </ClInclude>
-    <ClInclude Include="include\common\GThread.h">
-      <Filter>Source Files\Core\Threads</Filter>
-    </ClInclude>
-    <ClInclude Include="include\common\GThreadEvent.h">
-      <Filter>Source Files\Core\Threads</Filter>
-    </ClInclude>
     <ClInclude Include="include\common\GVariant.h">
       <Filter>Source Files\Core\Variant</Filter>
     </ClInclude>
@@ -519,9 +510,6 @@
     </ClInclude>
     <ClInclude Include="include\common\GStream.h">
       <Filter>Source Files\Core\Stream</Filter>
-    </ClInclude>
-    <ClInclude Include="include\common\GDateTime.h">
-      <Filter>Source Files\Core\DateTime</Filter>
     </ClInclude>
     <ClInclude Include="include\common\GArray.h">
       <Filter>Source Files\Core\Memory Subsystem</Filter>
@@ -587,9 +575,6 @@
       <Filter>Source Files\Widgets\Layout</Filter>
     </ClInclude>
     <ClInclude Include="include\common\GItemContainer.h">
-      <Filter>Source Files\Widgets\Container</Filter>
-    </ClInclude>
-    <ClInclude Include="include\common\GList.h">
       <Filter>Source Files\Widgets\Container</Filter>
     </ClInclude>
     <ClInclude Include="include\common\GTree.h">
@@ -717,6 +702,21 @@
     </ClInclude>
     <ClInclude Include="include\win32\LgiOsDefs.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\common\LMutex.h">
+      <Filter>Source Files\Core\Mutex</Filter>
+    </ClInclude>
+    <ClInclude Include="include\common\LList.h">
+      <Filter>Source Files\Widgets\Container</Filter>
+    </ClInclude>
+    <ClInclude Include="include\common\LDateTime.h">
+      <Filter>Source Files\Core\DateTime</Filter>
+    </ClInclude>
+    <ClInclude Include="include\common\LThread.h">
+      <Filter>Source Files\Core\Threads</Filter>
+    </ClInclude>
+    <ClInclude Include="include\common\LThreadEvent.h">
+      <Filter>Source Files\Core\Threads</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

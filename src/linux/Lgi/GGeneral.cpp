@@ -341,11 +341,6 @@ int LgiRand(int Limit)
 	return rand() % Limit;
 }
 
-bool LgiPlaySound(const char *FileName, int ASync)
-{
-	return LgiExecute(FileName);
-}
-
 GAutoString LgiErrorCodeToString(uint32 ErrorCode)
 {
 	GAutoString e;
@@ -662,3 +657,17 @@ void LgiFinishXWindowsStartup(GViewI *Wnd)
 	}
 }
 
+#if HAS_GSTREAMER
+// sudo apt-get install libgstreamer1.0-dev
+using namespace Gtk;
+#include <gst/gst.h>
+#endif
+
+bool LgiPlaySound(const char *FileName, int ASync)
+{
+	#if HAS_GSTREAMER
+	
+	#else
+	return LgiExecute(FileName);
+	#endif
+}

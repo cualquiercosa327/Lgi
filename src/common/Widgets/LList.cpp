@@ -1,5 +1,5 @@
 /*hdr
-**      FILE:           GList.cpp
+**      FILE:           LList.cpp
 **      AUTHOR:         Matthew Allen
 **      DATE:           14/2/2000
 **      DESCRIPTION:    Lgi self-drawn listbox
@@ -14,7 +14,7 @@
 
 #include "Lgi.h"
 #include "GSkinEngine.h"
-#include "GList.h"
+#include "LList.h"
 #include "GScrollBar.h"
 #include "GDisplayString.h"
 #include "LgiRes.h"
@@ -26,23 +26,23 @@
 #define DRAG_THRESHOLD					4
 
 // Switches for various profiling code..
-#define GLIST_POUR_PROFILE				0
-#define GLIST_ONPAINT_PROFILE			0
+#define LList_POUR_PROFILE				0
+#define LList_ONPAINT_PROFILE			0
 
 // Options
 #define DOUBLE_BUFFER_PAINT				0
 #define DOUBLE_BUFFER_COLUMN_DRAWING	0
 
-#define ForAllItems(Var)				List<GListItem>::I it = Items.Start(); for (GListItem *Var = *it; it.In(); it++, Var = *it)
-#define ForAllItemsReverse(Var)			Iterator<GListItem> ItemIter(&Items); for (GListItem *Var = ItemIter.Last(); Var; Var = ItemIter.Prev())
+#define ForAllItems(Var)				List<LListItem>::I it = Items.Start(); for (LListItem *Var = *it; it.In(); it++, Var = *it)
+#define ForAllItemsReverse(Var)			Iterator<LListItem> ItemIter(&Items); for (LListItem *Var = ItemIter.Last(); Var; Var = ItemIter.Prev())
 #define VisibleItems()					CompletelyVisible // (LastVisible - FirstVisible + 1)
 #define MaxScroll()						max(Items.Length() - CompletelyVisible, 0)
 
-class GListPrivate
+class LListPrivate
 {
 public:
 	// Mode
-	GListMode Mode;
+	LListMode Mode;
 	int Columns;
 	int VisibleColumns;
 
@@ -66,18 +66,18 @@ public:
 	char16 *KeyBuf;
 	
 	// Class
-	GListPrivate()
+	LListPrivate()
 	{
 		DragData = 0;
 		KeyBuf = 0;
 		DeleteFlag = 0;
 		Columns = 0;
 		VisibleColumns = 0;
-		Mode = GListDetails;
+		Mode = LListDetails;
 		NoSelectEvent = false;
 	}
 	
-	~GListPrivate()
+	~LListPrivate()
 	{
 		if (DeleteFlag)
 			*DeleteFlag = true;
@@ -85,24 +85,24 @@ public:
 	}
 };
 
-class GListItemPrivate
+class LListItemPrivate
 {
 public:
 	bool Selected;
 	int ListItem_Image;
-	List<GListItemColumn> Cols;
+	List<LListItemColumn> Cols;
 	GArray<char*> Str;
 	GArray<GDisplayString*> Display;
 	int16 LayoutColumn;
 
-	GListItemPrivate()
+	LListItemPrivate()
 	{
 		Selected = 0;
 		ListItem_Image = -1;
 		LayoutColumn = -1;
 	}
 
-	~GListItemPrivate()
+	~LListItemPrivate()
 	{
 		Cols.DeleteObjects();
 		EmptyStrings();
@@ -129,7 +129,7 @@ public:
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-GListItemColumn::GListItemColumn(GListItem *item, int col)
+LListItemColumn::LListItemColumn(LListItem *item, int col)
 {
 	_Column = col;
 	_Item = item;
@@ -137,22 +137,22 @@ GListItemColumn::GListItemColumn(GListItem *item, int col)
 	_Item->d->Cols.Insert(this);
 }
 
-GList *GListItemColumn::GetList()
+LList *LListItemColumn::GetList()
 {
 	return _Item ? _Item->Parent : 0;
 }
 
-GItemContainer *GListItemColumn::GetContainer()
+GItemContainer *LListItemColumn::GetContainer()
 {
 	return GetList();
 }
 
-List<GListItem> *GListItemColumn::GetAllItems()
+List<LListItem> *LListItemColumn::GetAllItems()
 {
 	return GetList() ? &GetList()->Items : 0;
 }
 
-void GListItemColumn::Value(int64 i)
+void LListItemColumn::Value(int64 i)
 {
 	if (i != _Value)
 	{
@@ -161,11 +161,11 @@ void GListItemColumn::Value(int64 i)
 	}
 }
 
-GListItemColumn *GListItemColumn::GetItemCol(GListItem *i, int Col)
+LListItemColumn *LListItemColumn::GetItemCol(LListItem *i, int Col)
 {
 	if (i)
 	{
-		for (GListItemColumn *c=i->d->Cols.First(); c; c=i->d->Cols.Next())
+		for (LListItemColumn *c=i->d->Cols.First(); c; c=i->d->Cols.Next())
 		{
 			if (c->_Column == Col)
 			{
@@ -179,14 +179,14 @@ GListItemColumn *GListItemColumn::GetItemCol(GListItem *i, int Col)
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 // List item
-GListItem::GListItem()
+LListItem::LListItem()
 {
-	d = new GListItemPrivate;
+	d = new LListItemPrivate;
 	Pos.ZOff(-1, -1);
 	Parent = 0;
 }
 
-GListItem::~GListItem()
+LListItem::~LListItem()
 {
 	if (Parent)
 	{
@@ -196,22 +196,22 @@ GListItem::~GListItem()
 	DeleteObj(d);
 }
 
-void GListItem::SetImage(int i)
+void LListItem::SetImage(int i)
 {
 	d->ListItem_Image = i;
 }
 
-int GListItem::GetImage(int Flags)
+int LListItem::GetImage(int Flags)
 {
 	return d->ListItem_Image;
 }
 
-GItemContainer *GListItem::GetContainer()
+GItemContainer *LListItem::GetContainer()
 {
 	return Parent;
 }
 
-List<GListItemColumn> *GListItem::GetItemCols()
+List<LListItemColumn> *LListItem::GetItemCols()
 {
 	return &d->Cols;
 }
@@ -221,7 +221,7 @@ Calling this to store your data is optional. Just override the
 "GetText" function to return your own data to avoid duplication
 in memory.
 */
-bool GListItem::SetText(const char *s, int i)
+bool LListItem::SetText(const char *s, int i)
 {
 	if (i < 0)
 		return false;
@@ -237,23 +237,23 @@ bool GListItem::SetText(const char *s, int i)
 }
 
 // User can override this if they want to use their own data
-char *GListItem::GetText(int i)
+char *LListItem::GetText(int i)
 {
 	return d->Str[i];
 }
 
-bool GListItem::Select()
+bool LListItem::Select()
 {
 	return d->Selected;
 }
 
-GRect *GListItem::GetPos(int Col)
+GRect *LListItem::GetPos(int Col)
 {
 	static GRect r;
 
 	r = Pos;
 
-	if (Parent->GetMode() == GListDetails)
+	if (Parent->GetMode() == LListDetails)
 	{
 		if (Col >= 0)
 		{
@@ -285,7 +285,7 @@ GRect *GListItem::GetPos(int Col)
 	return &r;
 }
 
-void GListItem::Select(bool b)
+void LListItem::Select(bool b)
 {
 	if (d->Selected != b)
 	{
@@ -296,18 +296,18 @@ void GListItem::Select(bool b)
 			d->Selected &&
 			!Parent->d->NoSelectEvent)
 		{
-			GArray<GListItem*> Items;
+			GArray<LListItem*> Items;
 			Items.Add(this);
 			Parent->OnItemSelect(Items);
 		}
 	}
 }
 
-void GListItem::ScrollTo()
+void LListItem::ScrollTo()
 {
 	if (Parent)
 	{
-		if (Parent->GetMode() == GListDetails && Parent->VScroll)
+		if (Parent->GetMode() == LListDetails && Parent->VScroll)
 		{
 			int n = Parent->Items.IndexOf(this);
 			if (n < Parent->FirstVisible)
@@ -321,7 +321,7 @@ void GListItem::ScrollTo()
 				Parent->Invalidate(&Parent->ItemsPos);
 			}
 		}
-		else if (Parent->GetMode() == GListColumns && Parent->HScroll)
+		else if (Parent->GetMode() == LListColumns && Parent->HScroll)
 		{
 			int n = Parent->Items.IndexOf(this);
 			if (n < Parent->FirstVisible)
@@ -340,7 +340,7 @@ void GListItem::ScrollTo()
 	}
 }
 
-void GListItem::Update()
+void LListItem::Update()
 {
 	if (Parent)
 	{
@@ -375,12 +375,12 @@ void GListItem::Update()
 	}
 }
 
-void GListItem::OnMeasure(GdcPt2 *Info)
+void LListItem::OnMeasure(GdcPt2 *Info)
 {
 	if (Info)
 	{
 		if (Parent &&
-			Parent->GetMode() == GListDetails)
+			Parent->GetMode() == LListDetails)
 		{
 			Info->x = 1024;
 		}
@@ -395,15 +395,15 @@ void GListItem::OnMeasure(GdcPt2 *Info)
 	}
 }
 
-bool GListItem::GridLines()
+bool LListItem::GridLines()
 {
 	return (Parent) ? Parent->GridLines : false;
 }
 
-void GListItem::OnMouseClick(GMouse &m)
+void LListItem::OnMouseClick(GMouse &m)
 {
 	int Col = Parent->ColumnAtX(m.x);
-	for (GListItemColumn *h = d->Cols.First(); h; h=d->Cols.Next())
+	for (LListItemColumn *h = d->Cols.First(); h; h=d->Cols.Next())
 	{
 		if (Col == h->GetColumn())
 		{
@@ -412,7 +412,7 @@ void GListItem::OnMouseClick(GMouse &m)
 	}
 }
 
-GDisplayString *GListItem::GetDs(int Col, int FitTo)
+GDisplayString *LListItem::GetDs(int Col, int FitTo)
 {
 	if (!d->Display[Col])
 	{
@@ -432,7 +432,7 @@ GDisplayString *GListItem::GetDs(int Col, int FitTo)
 	return d->Display[Col];
 }
 
-void GListItem::ClearDs(int Col)
+void LListItem::ClearDs(int Col)
 {
 	if (Col >= 0)
 	{
@@ -444,7 +444,7 @@ void GListItem::ClearDs(int Col)
 	}
 }
 
-void GListItem::OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GItemColumn *c)
+void LListItem::OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GItemColumn *c)
 {
 	GSurface *&pDC = Ctx.pDC;
 	if (pDC && c)
@@ -460,7 +460,7 @@ void GListItem::OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GItemColumn *c)
 		{
 			GColour Background = Ctx.Back;
 
-			if (Parent->GetMode() == GListDetails &&
+			if (Parent->GetMode() == LListDetails &&
 				c->Mark() &&
 				!d->Selected)
 			{
@@ -530,7 +530,7 @@ void GListItem::OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GItemColumn *c)
 	}
 }
 
-void GListItem::OnPaint(GItem::ItemPaintCtx &Ctx)
+void LListItem::OnPaint(GItem::ItemPaintCtx &Ctx)
 {
 	if (!Parent)
 	    return;
@@ -564,13 +564,13 @@ void GListItem::OnPaint(GItem::ItemPaintCtx &Ctx)
 	}
 	
 	// draw columns
-	GListItemColumn *h = d->Cols.First();
+	LListItemColumn *h = d->Cols.First();
 	GItem::ItemPaintCtx ColCtx = Ctx;
 	
 	for (int i=0; i<Parent->Columns.Length(); i++)
 	{
 		GItemColumn *c = Parent->Columns[i];
-		if (Parent->GetMode() == GListColumns)
+		if (Parent->GetMode() == LListColumns)
 			ColCtx.Set(x, Ctx.y1, Ctx.x2, Ctx.y2);
 		else
 			ColCtx.Set(x, Ctx.y1, x + c->Width()-1, Ctx.y2);
@@ -584,7 +584,7 @@ void GListItem::OnPaint(GItem::ItemPaintCtx &Ctx)
 		}
 		x = ColCtx.x2 + 1;
 		
-		if (Parent->GetMode() == GListColumns)
+		if (Parent->GetMode() == LListColumns)
 			break;
 	}
 	
@@ -598,10 +598,10 @@ void GListItem::OnPaint(GItem::ItemPaintCtx &Ctx)
 
 //////////////////////////////////////////////////////////////////////////////
 // List control
-GList::GList(int id, int x, int y, int cx, int cy, const char *name)
+LList::LList(int id, int x, int y, int cx, int cy, const char *name)
 	: ResObject(Res_ListView)
 {
-	d = new GListPrivate;
+	d = new LListPrivate;
 	SetId(id);
 	Name(name);
 	
@@ -615,7 +615,7 @@ GList::GList(int id, int x, int y, int cx, int cy, const char *name)
 	CompletelyVisible = 0;
 	Keyboard = -1;
 	Sunken(true);
-	Name("GList");
+	Name("LList");
 
 	#if WINNATIVE
 	SetStyle(GetStyle() | WS_TABSTOP);
@@ -631,7 +631,7 @@ GList::GList(int id, int x, int y, int cx, int cy, const char *name)
 	LgiResources::StyleElement(this);
 }
 
-GList::~GList()
+LList::~LList()
 {
 	DeleteObj(Buf);
 	Empty();
@@ -639,12 +639,12 @@ GList::~GList()
 	DeleteObj(d);
 }
 
-GListMode GList::GetMode()
+LListMode LList::GetMode()
 {
 	return d->Mode;
 }
 
-void GList::SetMode(GListMode m)
+void LList::SetMode(LListMode m)
 {
 	if (d->Mode ^ m)
 	{
@@ -658,19 +658,19 @@ void GList::SetMode(GListMode m)
 	}
 }
 
-void GList::OnItemClick(GListItem *Item, GMouse &m)
+void LList::OnItemClick(LListItem *Item, GMouse &m)
 {
 	if (Item)
 		Item->OnMouseClick(m);
 }
 
-void GList::OnItemBeginDrag(GListItem *Item, GMouse &m)
+void LList::OnItemBeginDrag(LListItem *Item, GMouse &m)
 {
 	if (Item)
 		Item->OnBeginDrag(m);
 }
 
-void GList::OnItemSelect(GArray<GListItem*> &It)
+void LList::OnItemSelect(GArray<LListItem*> &It)
 {
 	if (It.Length())
 	{
@@ -732,7 +732,7 @@ bool GItemContainer::DeleteColumn(GItemColumn *Col)
 	return Status;
 }
 
-GMessage::Result GList::OnEvent(GMessage *Msg)
+GMessage::Result LList::OnEvent(GMessage *Msg)
 {
 	switch (Msg->Msg())
 	{
@@ -749,7 +749,7 @@ GMessage::Result GList::OnEvent(GMessage *Msg)
 	return GLayout::OnEvent(Msg);
 }
 
-int GList::OnNotify(GViewI *Ctrl, int Flags)
+int LList::OnNotify(GViewI *Ctrl, int Flags)
 {
 	if
 	(
@@ -764,7 +764,7 @@ int GList::OnNotify(GViewI *Ctrl, int Flags)
 	return GLayout::OnNotify(Ctrl, Flags);
 }
 
-GRect &GList::GetClientRect()
+GRect &LList::GetClientRect()
 {
 	static GRect r;
 
@@ -774,7 +774,7 @@ GRect &GList::GetClientRect()
 	return r;
 }
 
-GListItem *GList::HitItem(int x, int y, int *Index)
+LListItem *LList::HitItem(int x, int y, int *Index)
 {
 	int n=0;
 	ForAllItems(i)
@@ -786,7 +786,7 @@ GListItem *GList::HitItem(int x, int y, int *Index)
 				// This helps with multi-selection when the cursor falls outside
 				// the window's bounds but is still receiving mouse move messages
 				// because of mouse capture.
-				d->Mode == GListDetails
+				d->Mode == LListDetails
 				&&
 				y >= i->Pos.y1
 				&&
@@ -807,7 +807,7 @@ GListItem *GList::HitItem(int x, int y, int *Index)
 	return NULL;
 }
 
-void GList::ClearDs(int Col)
+void LList::ClearDs(int Col)
 {
 	ForAllItems(i)
 	{
@@ -815,7 +815,7 @@ void GList::ClearDs(int Col)
 	}
 }
 
-void GList::KeyScroll(int iTo, int iFrom, bool SelectItems)
+void LList::KeyScroll(int iTo, int iFrom, bool SelectItems)
 {
 	int Start = -1, End = -1, i = 0;
 	{
@@ -842,13 +842,13 @@ void GList::KeyScroll(int iTo, int iFrom, bool SelectItems)
 
 	iTo = limit(iTo, 0, Items.Length()-1);
 	iFrom = limit(iFrom, 0, Items.Length()-1);
-	GListItem *To = Items.ItemAt(iTo);
-	GListItem *From = Items.ItemAt(iFrom);
+	LListItem *To = Items.ItemAt(iTo);
+	LListItem *From = Items.ItemAt(iFrom);
 	int Inc = (iTo < iFrom) ? -1 : 1;
 
 	if (To && From && iTo != iFrom)
 	{
-		GListItem *Item = 0;
+		LListItem *Item = 0;
 		if (SelectItems)
 		{
 			int OtherEnd = Keyboard == End ? Start : End;
@@ -857,7 +857,7 @@ void GList::KeyScroll(int iTo, int iFrom, bool SelectItems)
 			i = 0;
 
 			d->NoSelectEvent = true;
-			GArray<GListItem*> Sel;
+			GArray<LListItem*> Sel;
 			ForAllItems(n)
 			{
 				bool s = i>=Min && i<=Max;
@@ -880,7 +880,7 @@ void GList::KeyScroll(int iTo, int iFrom, bool SelectItems)
 	}
 }
 
-bool GList::OnMouseWheel(double Lines)
+bool LList::OnMouseWheel(double Lines)
 {
 	if (VScroll)
 	{
@@ -905,11 +905,11 @@ bool GList::OnMouseWheel(double Lines)
 	return true;
 }
 
-bool GList::OnKey(GKey &k)
+bool LList::OnKey(GKey &k)
 {
 	bool Status = false;
 	
-	GListItem *Item = GetSelected();
+	LListItem *Item = GetSelected();
 	if (Item)
 	{
 		Status = Item->OnKey(k);
@@ -970,9 +970,9 @@ bool GList::OnKey(GKey &k)
 					// int i = Value();
 					#ifdef MAC
 					if (k.Ctrl())
-						goto GList_PageUp;
+						goto LList_PageUp;
 					else if (k.System())
-						goto GList_Home;
+						goto LList_Home;
 					#endif
 					
 					KeyScroll(Keyboard-1, Keyboard, k.Shift());
@@ -983,9 +983,9 @@ bool GList::OnKey(GKey &k)
 				{
 					#ifdef MAC
 					if (k.Ctrl())
-						goto GList_PageDown;
+						goto LList_PageDown;
 					else if (k.System())
-						goto GList_End;
+						goto LList_End;
 					#endif
 
 					KeyScroll(Keyboard+1, Keyboard, k.Shift());
@@ -994,15 +994,15 @@ bool GList::OnKey(GKey &k)
 				}
 				case VK_LEFT:
 				{
-					if (GetMode() == GListColumns)
+					if (GetMode() == LListColumns)
 					{
-						GListItem *Hit = GetSelected();
+						LListItem *Hit = GetSelected();
 						if (Hit)
 						{
-							GListItem *To = 0;
+							LListItem *To = 0;
 							int ToDist = 0x7fffffff;
 							
-							for (GListItem *i=Items[FirstVisible]; i && i->Pos.Valid(); i=Items.Next())
+							for (LListItem *i=Items[FirstVisible]; i && i->Pos.Valid(); i=Items.Next())
 							{
 								if (i->Pos.x2 < Hit->Pos.x1)
 								{
@@ -1023,9 +1023,9 @@ bool GList::OnKey(GKey &k)
 								{
 									// Seek back to the start of the column before the 
 									// first visible column
-									for (List<GListItem>::I it = Items.Start(FirstVisible); it.In(); it--)
+									for (List<LListItem>::I it = Items.Start(FirstVisible); it.In(); it--)
 									{
-										GListItem *i = *it;
+										LListItem *i = *it;
 										if (i->d->LayoutColumn < HScroll->Value())
 										{
 											it++;
@@ -1050,15 +1050,15 @@ bool GList::OnKey(GKey &k)
 				}
 				case VK_RIGHT:
 				{
-					if (GetMode() == GListColumns)
+					if (GetMode() == LListColumns)
 					{
-						GListItem *Hit = GetSelected();
+						LListItem *Hit = GetSelected();
 						if (Hit)
 						{
-							GListItem *To = 0;
+							LListItem *To = 0;
 							int ToDist = 0x7fffffff;
 							
-							for (GListItem *i=Items[FirstVisible]; i && i->Pos.Valid(); i=Items.Next())
+							for (LListItem *i=Items[FirstVisible]; i && i->Pos.Valid(); i=Items.Next())
 							{
 								if (i->Pos.x1 > Hit->Pos.x2)
 								{
@@ -1086,7 +1086,7 @@ bool GList::OnKey(GKey &k)
 				}
 				case VK_PAGEUP:
 				{
-					GList_PageUp:
+					LList_PageUp:
 					int Vis = VisibleItems();
 					Vis = max(Vis, 0);
 
@@ -1096,7 +1096,7 @@ bool GList::OnKey(GKey &k)
 				}
 				case VK_PAGEDOWN:
 				{
-					GList_PageDown:
+					LList_PageDown:
 					int Vis = VisibleItems();
 					Vis = max(Vis, 0);
 					KeyScroll(Keyboard+Vis, Keyboard, k.Shift());
@@ -1105,7 +1105,7 @@ bool GList::OnKey(GKey &k)
 				}
 				case VK_END:
 				{
-					GList_End:
+					LList_End:
 					printf("End handler\n");
 					KeyScroll(Items.Length()-1, Keyboard, k.Shift());
 					Status = true;
@@ -1113,7 +1113,7 @@ bool GList::OnKey(GKey &k)
 				}
 				case VK_HOME:
 				{
-					GList_Home:
+					LList_Home:
 					KeyScroll(0, Keyboard, k.Shift());
 					Status = true;
 					break;
@@ -1121,14 +1121,14 @@ bool GList::OnKey(GKey &k)
 				#ifdef VK_APPS
 				case VK_APPS:
 				{
-					GListItem *s = GetSelected();
+					LListItem *s = GetSelected();
 					if (s)
 					{
 						GRect *r = &s->Pos;
 						if (r)
 						{
 							GMouse m;
-							GListItem *FirstVisible = ItemAt((VScroll) ? VScroll->Value() : 0);
+							LListItem *FirstVisible = ItemAt((VScroll) ? VScroll->Value() : 0);
 
 							m.x = 32 + ItemsPos.x1;
 							m.y = r->y1 + (r->Y() >> 1) - (FirstVisible ? FirstVisible->Pos.y1 : 0) + ItemsPos.y1;
@@ -1192,8 +1192,8 @@ bool GList::OnKey(GKey &k)
 								}
 								
 								bool Selected = false;
-								List<GListItem>::I It = Ascend ? Items.Start() : Items.End();
-								for (GListItem *i = *It; It.In(); i = Ascend ? *++It : *--It)
+								List<LListItem>::I It = Ascend ? Items.Start() : Items.End();
+								for (LListItem *i = *It; It.In(); i = Ascend ? *++It : *--It)
 								{
 									if (!Selected)
 									{
@@ -1229,7 +1229,7 @@ bool GList::OnKey(GKey &k)
 	return Status;
 }
 
-LgiCursor GList::GetCursor(int x, int y)
+LgiCursor LList::GetCursor(int x, int y)
 {
 	GItemColumn *Resize, *Over;
 	HitColumn(x, y, Resize, Over);
@@ -1239,7 +1239,7 @@ LgiCursor GList::GetCursor(int x, int y)
 	return LCUR_Normal;
 }
 
-void GList::OnMouseClick(GMouse &m)
+void LList::OnMouseClick(GMouse &m)
 {
 	if (Lock(_FL))
 	{
@@ -1314,7 +1314,7 @@ void GList::OnMouseClick(GMouse &m)
 				// Clicked in the items area
 				bool HandlerHung = false;
 				int ItemIndex = -1;
-				GListItem *Item = HitItem(m.x, m.y, &ItemIndex);
+				LListItem *Item = HitItem(m.x, m.y, &ItemIndex);
 				GViewI *Notify = Item ? (GetNotify()) ? GetNotify() : GetParent() : 0;
 				d->DragData = ItemIndex;
 
@@ -1376,7 +1376,7 @@ void GList::OnMouseClick(GMouse &m)
 						int n = 0;
 						int a = min(ItemIndex, Keyboard);
 						int b = max(ItemIndex, Keyboard);
-						GArray<GListItem*> Sel;
+						GArray<LListItem*> Sel;
 
 						ForAllItems(i)
 						{
@@ -1502,12 +1502,12 @@ void GList::OnMouseClick(GMouse &m)
 					//
 					// However we also do not want this to select items after the
 					// contents of the list box have changed since the down click
-					GListItem *Item = Items.ItemAt(d->DragData);
+					LListItem *Item = Items.ItemAt(d->DragData);
 					if (Item)
 					{
 						bool Change = false;
 						
-						GArray<GListItem*> s;
+						GArray<LListItem*> s;
 						ForAllItems(i)
 						{
 							bool Sel = Item == i;
@@ -1575,7 +1575,7 @@ void GList::OnMouseClick(GMouse &m)
 				}
 			}
 
-			GListItem *Item = HitItem(m.x, m.y);
+			LListItem *Item = HitItem(m.x, m.y);
 			if (Item)
 			{
 				OnItemClick(Item, m);
@@ -1593,7 +1593,7 @@ void GList::OnMouseClick(GMouse &m)
 	}
 }
 
-void GList::OnPulse()
+void LList::OnPulse()
 {
 	if (Lock(_FL))
 	{
@@ -1609,14 +1609,14 @@ void GList::OnPulse()
 					case SELECT_ITEMS:
 					{
 						int OverIndex = 0;
-						GListItem *Over = 0;
+						LListItem *Over = 0;
 
 						if (m.y < 0)
 						{
 							int Space = -m.y;
 
 							int n = FirstVisible - 1;
-							for (GListItem *i = Items[n]; i; i=Items.Prev(), n--)
+							for (LListItem *i = Items[n]; i; i=Items.Prev(), n--)
 							{
 								GdcPt2 Info;
 								i->OnMeasure(&Info);
@@ -1642,7 +1642,7 @@ void GList::OnPulse()
 						{
 							int Space = m.y - Y();
 							int n = LastVisible + 1;
-							for (GListItem *i = Items[n]; i; i=Items.Next(), n++)
+							for (LListItem *i = Items[n]; i; i=Items.Next(), n++)
 							{
 								GdcPt2 Info;
 								i->OnMeasure(&Info);
@@ -1668,7 +1668,7 @@ void GList::OnPulse()
 						int Min = min(d->DragData, OverIndex);
 						int Max = max(d->DragData, OverIndex);
 						int n = Min;
-						for (GListItem *i = Items[Min]; i && n <= Max; i=Items.Next(), n++)
+						for (LListItem *i = Items[Min]; i && n <= Max; i=Items.Next(), n++)
 						{
 							if (!i->Select())
 								i->Select(true);
@@ -1693,7 +1693,7 @@ void GList::OnPulse()
 	}
 }
 
-void GList::OnMouseMove(GMouse &m)
+void LList::OnMouseMove(GMouse &m)
 {
 	if (Lock(_FL))
 	{
@@ -1771,7 +1771,7 @@ void GList::OnMouseMove(GMouse &m)
 					{
 						int Over = -1;
 						
-						GListItem *h = HitItem(m.x, m.y, &Over);
+						LListItem *h = HitItem(m.x, m.y, &Over);
 
 						/*
 						if (m.y < ItemsPos.y1 && FirstVisible == 0)
@@ -1780,9 +1780,9 @@ void GList::OnMouseMove(GMouse &m)
 						}
 						else
 						{
-							Iterator<GListItem> Iter(&Items);
+							Iterator<LListItem> Iter(&Items);
 							int n = FirstVisible;
-							for (GListItem *k=Iter[n]; k && k->OnScreen(); k=Iter.Next())
+							for (LListItem *k=Iter[n]; k && k->OnScreen(); k=Iter.Next())
 							{
 								if ((m.y >= k->Pos.y1) && (m.y <= k->Pos.y2))
 								{
@@ -1821,7 +1821,7 @@ void GList::OnMouseMove(GMouse &m)
 			}
 			case CLICK_ITEM:
 			{
-				GListItem *Cur = Items.ItemAt(d->DragData);
+				LListItem *Cur = Items.ItemAt(d->DragData);
 				if (Cur)
 				{
 					Cur->OnMouseMove(m);
@@ -1839,10 +1839,10 @@ void GList::OnMouseMove(GMouse &m)
 			}
 			default:
 			{
-				List<GListItem> s;
+				List<LListItem> s;
 				if (GetSelection(s))
 				{
-					for (GListItem *c=s.First(); c; c=s.Next())
+					for (LListItem *c=s.First(); c; c=s.Next())
 					{
 						GMouse ms = m;
 						ms.x -= c->Pos.x1;
@@ -1858,7 +1858,7 @@ void GList::OnMouseMove(GMouse &m)
 	}
 }
 
-int64 GList::Value()
+int64 LList::Value()
 {
 	int n=0;
 	ForAllItems(i)
@@ -1872,7 +1872,7 @@ int64 GList::Value()
 	return -1;
 }
 
-void GList::Value(int64 Index)
+void LList::Value(int64 Index)
 {
 	int n=0;
 	ForAllItems(i)
@@ -1890,7 +1890,7 @@ void GList::Value(int64 Index)
 	}
 }
 
-void GList::SelectAll()
+void LList::SelectAll()
 {
 	if (Lock(_FL))
 	{
@@ -1905,7 +1905,7 @@ void GList::SelectAll()
 	}
 }
 
-bool GList::Select(GListItem *Obj)
+bool LList::Select(LListItem *Obj)
 {
 	bool Status = false;
 	ForAllItems(i)
@@ -1916,9 +1916,9 @@ bool GList::Select(GListItem *Obj)
 	return true;
 }
 
-GListItem *GList::GetSelected()
+LListItem *LList::GetSelected()
 {
-	GListItem *n = 0;
+	LListItem *n = 0;
 
 	if (Lock(_FL))
 	{
@@ -1937,11 +1937,11 @@ GListItem *GList::GetSelected()
 	return n;
 }
 
-bool GList::GetUpdateRegion(GListItem *i, GRegion &r)
+bool LList::GetUpdateRegion(LListItem *i, GRegion &r)
 {
 	r.Empty();
 
-	if (d->Mode == GListDetails)
+	if (d->Mode == LListDetails)
 	{
 		if (i->Pos.Valid())
 		{
@@ -1952,7 +1952,7 @@ bool GList::GetUpdateRegion(GListItem *i, GRegion &r)
 			return true;
 		}
 	}
-	else if (d->Mode == GListColumns)
+	else if (d->Mode == LListColumns)
 	{
 		if (i->Pos.Valid())
 		{
@@ -1971,14 +1971,14 @@ bool GList::GetUpdateRegion(GListItem *i, GRegion &r)
 	return false;
 }
 
-bool GList::Insert(GListItem *i, int Index, bool Update)
+bool LList::Insert(LListItem *i, int Index, bool Update)
 {
-	List<GListItem> l;
+	List<LListItem> l;
 	l.Insert(i);
 	return Insert(l, Index, Update);
 }
 
-bool GList::Insert(List<GListItem> &l, int Index, bool Update)
+bool LList::Insert(List<LListItem> &l, int Index, bool Update)
 {
 	bool Status = false;
 
@@ -1987,7 +1987,7 @@ bool GList::Insert(List<GListItem> &l, int Index, bool Update)
 		bool First = Items.Length() == 0;
 		
 		// Insert list of items
-		for (GListItem *i=l.First(); i; i=l.Next())
+		for (LListItem *i=l.First(); i; i=l.Next())
 		{
 			if (i->Parent != this)
 			{
@@ -2024,17 +2024,17 @@ bool GList::Insert(List<GListItem> &l, int Index, bool Update)
 	return Status;
 }
 
-bool GList::Delete()
+bool LList::Delete()
 {
 	return Delete(Items.Current());
 }
 
-bool GList::Delete(int Index)
+bool LList::Delete(int Index)
 {
 	return Delete(Items.ItemAt(Index));
 }
 
-bool GList::Delete(GListItem *i)
+bool LList::Delete(LListItem *i)
 {
 	bool Status = false;
 	if (Lock(_FL))
@@ -2051,7 +2051,7 @@ bool GList::Delete(GListItem *i)
 	return Status;
 }
 
-bool GList::Remove(GListItem *i)
+bool LList::Remove(LListItem *i)
 {
 	bool Status = false;
 
@@ -2089,7 +2089,7 @@ bool GList::Remove(GListItem *i)
 			{
 				if (Selected)
 				{
-					GArray<GListItem*> s;
+					GArray<LListItem*> s;
 					OnItemSelect(s);
 				}
 
@@ -2105,22 +2105,22 @@ bool GList::Remove(GListItem *i)
 	return Status;
 }
 
-bool GList::HasItem(GListItem *Obj)
+bool LList::HasItem(LListItem *Obj)
 {
 	return Items.HasItem(Obj);
 }
 
-int GList::IndexOf(GListItem *Obj)
+int LList::IndexOf(LListItem *Obj)
 {
 	return Items.IndexOf(Obj);
 }
 
-GListItem *GList::ItemAt(int Index)
+LListItem *LList::ItemAt(int Index)
 {
 	return Items.ItemAt(Index);
 }
 
-void GList::ScrollToSelection()
+void LList::ScrollToSelection()
 {
 	if (VScroll)
 	{
@@ -2143,7 +2143,7 @@ void GList::ScrollToSelection()
 	}
 }
 
-void GList::Sort(GListCompareFunc Compare, NativeInt Data)
+void LList::Sort(LListCompareFunc Compare, NativeInt Data)
 {
 	if (Lock(_FL))
 	{
@@ -2157,7 +2157,7 @@ void GList::Sort(GListCompareFunc Compare, NativeInt Data)
 	}
 }
 
-void GList::Empty()
+void LList::Empty()
 {
 	if (Lock(_FL))
 	{
@@ -2185,17 +2185,17 @@ void GList::Empty()
 	}
 }
 
-void GList::RemoveAll()
+void LList::RemoveAll()
 {
 	if (Lock(_FL))
 	{
 		if (Items.Length())
 		{
-			GArray<GListItem*> s;
+			GArray<LListItem*> s;
 			OnItemSelect(s);
 		}
 
-		for (GListItem *i = Items.First(); i; i = Items.Next())
+		for (LListItem *i = Items.First(); i; i = Items.Next())
 		{
 			i->OnRemove();
 			i->Parent = 0;
@@ -2219,12 +2219,12 @@ void GList::RemoveAll()
 	}
 }
 
-void GList::OnPosChange()
+void LList::OnPosChange()
 {
 	GLayout::OnPosChange();
 }
 
-void GList::UpdateScrollBars()
+void LList::UpdateScrollBars()
 {
 	static bool Processing = false;
 	
@@ -2256,9 +2256,9 @@ void GList::UpdateScrollBars()
 	}
 }
 
-void GList::PourAll()
+void LList::PourAll()
 {
-	#if GLIST_POUR_PROFILE
+	#if LList_POUR_PROFILE
 	int Start = LgiCurrentTime();
 	#endif
 
@@ -2266,7 +2266,7 @@ void GList::PourAll()
 	GRect Client = GetClient();
 	GFont *Font = GetFont();
 
-	if (d->Mode == GListDetails)
+	if (d->Mode == LListDetails)
 	{
 		if (ColumnHeaders)
 		{
@@ -2340,7 +2340,7 @@ void GList::PourAll()
 		SetScrollBars(false, SomeHidden);
 		UpdateScrollBars();
 	}
-	else if (d->Mode == GListColumns)
+	else if (d->Mode == LListColumns)
 	{
 		ColumnHeader.ZOff(-1, -1);
 		ItemsPos = Client;
@@ -2349,7 +2349,7 @@ void GList::PourAll()
 		int CurX = 0;
 		int CurY = 0;
 		int MaxX = 16;
-		GArray<GListItem*> Col;
+		GArray<LListItem*> Col;
 		d->Columns = 1;
 		d->VisibleColumns = 0;
 		int64 ScrollX = HScroll ? HScroll->Value() : 0;
@@ -2436,14 +2436,14 @@ void GList::PourAll()
 		UpdateScrollBars();
 	}
 	
-	#if GLIST_POUR_PROFILE
-	printf("GList::Pour() %i ms\n", LgiCurrentTime() - Start);
+	#if LList_POUR_PROFILE
+	printf("LList::Pour() %i ms\n", LgiCurrentTime() - Start);
 	#endif
 }
 
-void GList::OnPaint(GSurface *pDC)
+void LList::OnPaint(GSurface *pDC)
 {
-	#if GLIST_ONPAINT_PROFILE
+	#if LList_ONPAINT_PROFILE
 	int Start = LgiCurrentTime(), t1, t2, t3, t4, t5;
 	#endif
 	
@@ -2452,7 +2452,7 @@ void GList::OnPaint(GSurface *pDC)
 		COLOUR Back = Enabled() ? LC_WORKSPACE : LC_MED;
 		PourAll();
 		
-		#if GLIST_ONPAINT_PROFILE
+		#if LList_ONPAINT_PROFILE
 		t1 = LgiCurrentTime();
 		#endif
 
@@ -2471,7 +2471,7 @@ void GList::OnPaint(GSurface *pDC)
 
 		PaintColumnHeadings(pDC);
 
-		#if GLIST_ONPAINT_PROFILE
+		#if LList_ONPAINT_PROFILE
 		t2 = LgiCurrentTime();
 		#endif
 
@@ -2493,7 +2493,7 @@ void GList::OnPaint(GSurface *pDC)
 		Ctx.pDC = pDC;
 
 		GRegion Rgn(ItemsPos);
-		for (GListItem *i = Items.ItemAt(n); i; i = Items.Next(), n++)
+		for (LListItem *i = Items.ItemAt(n); i; i = Items.Next(), n++)
 		{
 			if (i->Pos.Valid())
 			{
@@ -2547,15 +2547,15 @@ void GList::OnPaint(GSurface *pDC)
 		Unlock();
 	}
 
-	#if GLIST_ONPAINT_PROFILE
+	#if LList_ONPAINT_PROFILE
 	int64 End = LgiCurrentTime();
-	printf("GList::OnPaint() pour=%i headers=%i items=%i\n", (int) (t1-Start), (int) (t2-t1), (int) (End-t2));
+	printf("LList::OnPaint() pour=%i headers=%i items=%i\n", (int) (t1-Start), (int) (t2-t1), (int) (End-t2));
 	#endif
 }
 
-void GList::OnFocus(bool b)
+void LList::OnFocus(bool b)
 {
-	GListItem *s = GetSelected();
+	LListItem *s = GetSelected();
 	if (!s)
 	{
 		s = Items.First();
@@ -2565,7 +2565,7 @@ void GList::OnFocus(bool b)
 		}
 	}
 
-	for (GListItem *i = Items.ItemAt(FirstVisible); i; i = Items.Next())
+	for (LListItem *i = Items.ItemAt(FirstVisible); i; i = Items.Next())
 	{
 		if (i->Pos.Valid() &&
 			i->d->Selected)
@@ -2582,7 +2582,7 @@ void GList::OnFocus(bool b)
 	}
 }
 
-void GList::UpdateAllItems()
+void LList::UpdateAllItems()
 {
     if (Lock(_FL))
     {
@@ -2615,13 +2615,13 @@ bool GItemContainer::GetColumnClickInfo(int &Col, GMouse &m)
 	return false;	
 }
 
-int GList::GetContentSize(int Index)
+int LList::GetContentSize(int Index)
 {
 	int Max = 0;
 
-	for (List<GListItem>::I It = Items.Start(); It.In(); It++)
+	for (List<LListItem>::I It = Items.Start(); It.In(); It++)
 	{
-		GListItem *i = *It;
+		LListItem *i = *It;
 		GDisplayString *s = i->d->Display[Index];
 		GDisplayString *Mem = 0;
 		

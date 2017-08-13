@@ -7,6 +7,7 @@
 #include "GOptionsFile.h"
 #include "GDebugger.h"
 #include "GProgressDlg.h"
+#include "LList.h"
 
 #define NODE_DROP_FORMAT			"Ide.ProjectNode"
 
@@ -57,6 +58,8 @@ class AddFilesProgress : public GDialog
 
 public:
 	bool Cancel;
+	static const char *DefaultExt;
+	GHashTbl<const char*, bool> Exts;
 
 	AddFilesProgress(GViewI *par);
 
@@ -167,9 +170,9 @@ class GDebugContext : public GDebugEvents
 	
 public:
 	GTree *Watch;
-	GList *Locals;
-	GList *CallStack;
-	GList *Threads;
+	LList *Locals;
+	LList *CallStack;
+	LList *Threads;
 	class GTextLog *ObjectDump;
 	class GTextLog *MemoryDump;
 	class GTextLog *DebuggerLog;

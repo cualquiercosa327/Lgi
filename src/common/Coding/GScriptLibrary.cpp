@@ -176,9 +176,6 @@ bool SystemFunctions::LoadString(GVariant *Ret, ArgumentArray &Args)
 
 bool SystemFunctions::Sprintf(GVariant *Ret, ArgumentArray &Args)
 {
-    #ifdef __GNUC__
-    return false;
-    #else
 	if (Args.Length() < 1)
 		return false;
 	char *Fmt = Args[0]->Str();
@@ -256,7 +253,6 @@ bool SystemFunctions::Sprintf(GVariant *Ret, ArgumentArray &Args)
 	*Ret = Buf;
 
 	return true;
-	#endif
 }
 
 bool SystemFunctions::ReadTextFile(GVariant *Ret, ArgumentArray &Args)
@@ -457,7 +453,7 @@ bool SystemFunctions::Now(GVariant *Ret, ArgumentArray &Args)
 {
 	Ret->Empty();
 	Ret->Type = GV_DATETIME;
-	Ret->Value.Date = new GDateTime;
+	Ret->Value.Date = new LDateTime;
 	Ret->Value.Date->SetNow();
 	return true;
 }
@@ -530,7 +526,7 @@ bool SystemFunctions::New(GVariant *Ret, ArgumentArray &Args)
 		{
 			Ret->Empty();
 			Ret->Type = GV_DATETIME;
-			Ret->Value.Date = new GDateTime;
+			Ret->Value.Date = new LDateTime;
 			break;
 		}
 		default:
@@ -584,7 +580,7 @@ class GFileListEntry : public GDom
 	bool Folder;
 	GVariant Name;
 	int64 Size;
-	GDateTime Modified;
+	LDateTime Modified;
 
 public:
 	GFileListEntry(GDirectory *d)

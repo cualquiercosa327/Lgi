@@ -10,13 +10,14 @@
     #include <semaphore.h>
 #endif
 
-class LgiClass GThreadEvent : public GBase
+class LgiClass LThreadEvent : public GBase
 {
 	uint32 LastError;
 	#if USE_MACH_SEM
 		task_t Task;
 		semaphore_t Sem;
     #elif USE_POSIX_SEM
+        sem_t Local;
         sem_t *Sem;
 	#elif defined(POSIX)
         pthread_cond_t Cond;
@@ -33,9 +34,19 @@ public:
 		WaitSignaled,
 	};
 	
-	GThreadEvent(const char *name = NULL);
-	~GThreadEvent();
-	
+	LThreadEvent(const char *name = NULL);
+	~LThreadEvent();
+
+	#if USE_MACH_SEM
+	semaphore_t Handle() { return Sem; }
+    #elif USE_POSIX_SEM
+    sem_t *Handle() { return Sem; }
+	#elif defined(POSIX)
+	// ?
+	#elif defined(WIN32)
+    HANDLE Handle() { return Event; }
+	#endif
+		
 	bool IsOk();
 	bool Signal();
 	WaitStatus Wait(int32 Timeout = -1);

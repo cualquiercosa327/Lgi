@@ -4,12 +4,12 @@
 GEventSinkMap GEventSinkMap::Dispatch(128);
 
 //////////////////////////////////////////////////////////////////////////////////
-GThreadTarget::GThreadTarget()
+LThreadTarget::LThreadTarget()
 {
 	Worker = 0;
 }
 
-void GThreadTarget::SetWorker(GThreadWorker *w)
+void LThreadTarget::SetWorker(LThreadWorker *w)
 {
 	if (w && Lock(_FL))
 	{
@@ -18,7 +18,7 @@ void GThreadTarget::SetWorker(GThreadWorker *w)
 	}
 }
 
-void GThreadTarget::Detach()
+void LThreadTarget::Detach()
 {
 	if (Lock(_FL))
 	{
@@ -28,21 +28,21 @@ void GThreadTarget::Detach()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-GThreadWorker::GThreadWorker(GThreadTarget *First, const char *ThreadName) :
-	GThread(ThreadName),
-	GMutex("GThreadWorker")
+LThreadWorker::LThreadWorker(LThreadTarget *First, const char *ThreadName) :
+	LThread(ThreadName),
+	LMutex("LThreadWorker")
 {
 	Loop = false;
 	if (First)
 		Attach(First);
 }
 
-GThreadWorker::~GThreadWorker()
+LThreadWorker::~LThreadWorker()
 {
 	Stop();
 }
 
-void GThreadWorker::Stop()
+void LThreadWorker::Stop()
 {
 	if (Loop)
 	{
@@ -58,9 +58,9 @@ void GThreadWorker::Stop()
 	}
 }
 
-void GThreadWorker::Attach(GThreadTarget *o)
+void LThreadWorker::Attach(LThreadTarget *o)
 {
-	GMutex::Auto a(this, _FL);
+	LMutex::Auto a(this, _FL);
 	if (!Owners.HasItem(o))
 	{
 		LgiAssert(o->Worker == this);
@@ -73,14 +73,14 @@ void GThreadWorker::Attach(GThreadTarget *o)
 	}
 }
 
-void GThreadWorker::Detach(GThreadTarget *o)
+void LThreadWorker::Detach(LThreadTarget *o)
 {
-	GMutex::Auto a(this, _FL);
+	LMutex::Auto a(this, _FL);
 	LgiAssert(Owners.HasItem(o));
 	Owners.Delete(o);
 }
 
-void GThreadWorker::AddJob(GThreadJob *j)
+void LThreadWorker::AddJob(LThreadJob *j)
 {
 	if (Lock(_FL))
 	{
@@ -93,16 +93,16 @@ void GThreadWorker::AddJob(GThreadJob *j)
 	}
 }
 
-void GThreadWorker::DoJob(GThreadJob *j)
+void LThreadWorker::DoJob(LThreadJob *j)
 {
 	j->Do();
 }
 
-int GThreadWorker::Main()
+int LThreadWorker::Main()
 {
 	while (Loop)
 	{
-		GAutoPtr<GThreadJob> j;
+		GAutoPtr<LThreadJob> j;
 		if (Lock(_FL))
 		{
 			if (Jobs.Length())
@@ -138,7 +138,7 @@ int GThreadWorker::Main()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-GThreadOwner::~GThreadOwner()
+LThreadOwner::~LThreadOwner()
 {
 	if (Lock(_FL))
 	{

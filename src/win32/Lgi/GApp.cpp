@@ -99,7 +99,7 @@ public:
 	GdcDevice *GdcSystem;
 	OsAppArguments Args;
 	GLibrary *SkinLib;
-	OsThreadId GuiThread;
+	OsThread GuiThread;
 	int LinuxWine;
 	GAutoString Mime, ProductId;
 	bool ThemeAware;
@@ -423,7 +423,7 @@ DumpTime("fonts");
 
 	// Other vars and init
 	hNormalCursor = LoadCursor(NULL, IDC_ARROW);
-	LgiRandomize(LgiCurrentTime()*LgiGetCurrentThread());
+	LgiRandomize(LgiCurrentTime()*GetCurrentThreadId());
 	MouseRollMsg = RegisterWindowMessage(L"MSWHEEL_ROLLMSG");
 
 DumpTime("cursor/rand/msg");
@@ -554,7 +554,7 @@ int GApp::GetCpuCount()
 	return si.dwNumberOfProcessors ? si.dwNumberOfProcessors : -1;
 }
 
-OsThreadId GApp::GetGuiThread()
+OsThread GApp::GetGuiThread()
 {
 	return d->GuiThread;
 }
@@ -883,7 +883,7 @@ int GApp::GetShow()
 class GWnd
 {
 public:
-	GMutex *GetLock(GWindow *w)
+	LMutex *GetLock(GWindow *w)
 	{
 		return w->_Lock;
 	}

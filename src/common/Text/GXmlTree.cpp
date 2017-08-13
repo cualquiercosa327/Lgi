@@ -124,7 +124,7 @@ public:
 	char *Error;
 	int Flags;
 	GHashTbl<const char*,char16> Entities;
-	GHashTable NoChildTags;
+	GHashTbl<const char*,bool> NoChildTags;
 	GArray<char> Buf;
 	Progress *Prog;
 	
@@ -1563,7 +1563,7 @@ char *GXmlTree::GetErrorMsg()
 	return d->Error;
 }
 
-GHashTable *GXmlTree::NoChildTags()
+GHashTbl<const char*,bool> *GXmlTree::NoChildTags()
 {
 	return &d->NoChildTags;
 }

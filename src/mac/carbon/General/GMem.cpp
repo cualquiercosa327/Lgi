@@ -13,7 +13,7 @@
 
 #include "LgiOsDefs.h"
 #include "GMem.h"
-#include "GMutex.h"
+#include "LMutex.h"
 
 bool LgiCheckHeap()
 {

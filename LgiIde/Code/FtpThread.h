@@ -1,7 +1,7 @@
 #ifndef _FTP_THREAD_H_
 #define _FTP_THREAD_H_
 
-#include "GList.h"
+#include "LList.h"
 #include "IFtp.h"
 
 enum FtpCommand
@@ -26,7 +26,7 @@ public:
 	// Input
 	FtpCommand Cmd;
 	char *Uri;
-	GList *Watch;
+	LList *Watch;
 
 	// Output
 	bool Status;
@@ -42,7 +42,7 @@ public:
 	void Error(const char *e);
 };
 
-class FtpThread : public GThread
+class FtpThread : public LThread
 {
 	struct FtpThreadPriv *d;
 

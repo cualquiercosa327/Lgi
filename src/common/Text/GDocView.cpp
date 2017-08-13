@@ -25,7 +25,7 @@ GDocumentEnv::~GDocumentEnv()
 	}
 }
 
-void GDocumentEnv::OnDone(GAutoPtr<GThreadJob> j)
+void GDocumentEnv::OnDone(GAutoPtr<LThreadJob> j)
 {
 	LoadJob *ld = dynamic_cast<LoadJob*>(j.Get());
 	if (ld)

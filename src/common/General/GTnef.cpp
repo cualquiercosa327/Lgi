@@ -148,7 +148,7 @@ public:
 					if (sizeof(d) == Size &&
 						s->Read(&d, sizeof(d)))
 					{
-						GDateTime dt;
+						LDateTime dt;
 						dt.Year(d.wYear);
 						dt.Month(d.wMonth);
 						dt.Day(d.wDay);

@@ -1,7 +1,7 @@
 #ifndef _SOFTWARE_UPDATE_H_
 #define _SOFTWARE_UPDATE_H_
 
-#include "GDateTime.h"
+#include "LDateTime.h"
 
 class GSoftwareUpdate
 {
@@ -15,7 +15,7 @@ public:
 		GAutoString Build;
 		GAutoString Uri;
 		GAutoString Proxy;
-		GDateTime Date;
+		LDateTime Date;
 		bool Cancel;
 		
 		UpdateInfo()

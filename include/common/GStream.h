@@ -90,7 +90,7 @@ public:
 };
 
 /// Generic streaming operator
-class LgiClass GStreamer
+class LgiClass GStreamOp
 {
 protected:
 	uint64 StartTime;
@@ -101,12 +101,12 @@ protected:
 
 public:
 	/// Constructor
-	GStreamer
+	GStreamOp
 	(
 		// Buffer size in bytes, 4 KB by default
 		int BufSize = 4 << 10
 	);
-	virtual ~GStreamer();
+	virtual ~GStreamOp();
 
 	// Properties
 	int64 GetRate();
@@ -115,24 +115,24 @@ public:
 };
 
 /// API to reads from source
-class LgiClass GPullStreamer : public GStreamer
+class LgiClass GPullStreamer : public GStreamOp
 {
 public:
 	virtual int Pull(GStreamI *Source, GStreamEnd *End = 0) = 0;
 };
 
 /// API to writes to a destination
-class LgiClass GPushStreamer : public GStreamer
+class LgiClass GPushStreamer : public GStreamOp
 {
 public:
 	virtual int Push(GStreamI *Dest, GStreamEnd *End = 0) = 0;
 };
 
 /// API to read from source and then write to a destination
-class LgiClass GCopyStreamer : public GStreamer
+class LgiClass GCopyStreamer : public GStreamOp
 {
 public:
-	GCopyStreamer(int BufSize = 4 << 10) : GStreamer(BufSize) {}
+	GCopyStreamer(int BufSize = 4 << 10) : GStreamOp(BufSize) {}
 	virtual int64 Copy(GStreamI *Source, GStreamI *Dest, GStreamEnd *End = 0);
 };
 

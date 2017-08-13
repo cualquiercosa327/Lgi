@@ -290,7 +290,7 @@ public:
 	*/
 };
 
-class InitLibPng : public GMutex
+class InitLibPng : public LMutex
 {
 	GAutoPtr<LibPng> Png;
 

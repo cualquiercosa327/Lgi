@@ -233,7 +233,7 @@ public:
 	/// Gets the last error message.
 	char *GetErrorMsg();
 	/// A hash of tags that can't have children.
-	GHashTable *NoChildTags();
+	GHashTbl<const char*,bool> *NoChildTags();
 	/// Gets the associated style file
 	char *GetStyleFile(char **StyleType = 0);
 	/// Sets the associated css file

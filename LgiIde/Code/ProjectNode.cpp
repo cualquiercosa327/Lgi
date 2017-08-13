@@ -47,7 +47,6 @@ public:
 				for (int i=NodeNone; i<NodeMax; i++)
 				{
 					c->Insert(TypeNames[i]);
-					c->Insert("Text");
 				}
 				c->Value(Type);
 			}
@@ -404,6 +403,7 @@ void ProjectNode::AutoDetectType()
 				Type = NodeResources;
 			}
 			else if (stricmp(Ext, "cpp") == 0 ||
+					stricmp(Ext, "cc") == 0 ||
 					stricmp(Ext, "c") == 0)
 			{
 				Type = NodeSrc;

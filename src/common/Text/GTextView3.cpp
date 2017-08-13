@@ -81,7 +81,7 @@ static char SelectWordDelim[] = " \t\n.,()[]<>=?/\\{}\"\';:+=-|!@#$%^&*";
 //////////////////////////////////////////////////////////////////////
 class GDocFindReplaceParams3 :
 	public GDocFindReplaceParams,
-	public GMutex
+	public LMutex
 {
 public:
 	// Find/Replace History
@@ -99,7 +99,7 @@ public:
 	}
 };
 
-class GTextView3Private : public GCss, public GMutex
+class GTextView3Private : public GCss, public LMutex
 {
 public:
 	GTextView3 *View;
@@ -125,7 +125,7 @@ public:
 		GString SetName;
 	// </RequiresLocking>
 
-	GTextView3Private(GTextView3 *view) : GMutex("GTextView3Private")
+	GTextView3Private(GTextView3 *view) : LMutex("GTextView3Private")
 	{
 		View = view;
 		SimpleDelete = false;

@@ -40,7 +40,7 @@ void ProgressList::Unlock()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-Progress::Progress() : GMutex("ProgressObj")
+Progress::Progress() : LMutex("ProgressObj")
 {
 	Start = 0;
 	Val = Low = 0;

@@ -2,7 +2,7 @@
 #include "LgiIde.h"
 #include "IdeProject.h"
 #include "GTextLog.h"
-#include "GList.h"
+#include "LList.h"
 
 enum DebugMessages
 {
@@ -11,7 +11,7 @@ enum DebugMessages
 	M_FILE_LINE,
 };
 
-class GDebugContextPriv : public GMutex
+class GDebugContextPriv : public LMutex
 {
 public:
 	GDebugContext *Ctx;
@@ -29,7 +29,7 @@ public:
 	NativeInt MemDumpStart;
 	GArray<uint8> MemDump;
 
-	GDebugContextPriv(GDebugContext *ctx) : GMutex("GDebugContextPriv")
+	GDebugContextPriv(GDebugContext *ctx) : LMutex("GDebugContextPriv")
 	{
 		Ctx = ctx;
 		MemDumpStart = 0;
@@ -79,7 +79,7 @@ public:
 				if (*Sp)
 				{
 					*Sp++ = 0;
-					GListItem *it = new GListItem;
+					LListItem *it = new LListItem;
 					
 					int ThreadId = atoi(f);
 					it->SetText(f, 0);
@@ -104,7 +104,7 @@ public:
 				Ctx->CallStack->Empty();
 				for (int i=0; i<Stack.Length(); i++)
 				{
-					GListItem *it = new GListItem;
+					LListItem *it = new LListItem;
 					char *f = Stack[i];
 					if (*f == '#')
 					{
@@ -198,7 +198,7 @@ GMessage::Param GDebugContext::OnEvent(GMessage *m)
 			#endif
 			GString File;
 			{
-				GMutex::Auto a(d, _FL);
+				LMutex::Auto a(d, _FL);
 				File = d->SeekFile;
 			}
 			
@@ -294,7 +294,7 @@ bool GDebugContext::UpdateLocals()
 	for (int i=0; i<Vars.Length(); i++)
 	{
 		GDebugger::Variable &v = Vars[i];
-		GListItem *it = new GListItem;
+		LListItem *it = new LListItem;
 		if (it)
 		{
 			switch (v.Scope)
@@ -756,7 +756,7 @@ void GDebugContext::OnFileLine(const char *File, int Line, bool CurrentIp)
 	else
 	{
 		{
-			GMutex::Auto a(d, _FL);
+			LMutex::Auto a(d, _FL);
 			if (File)
 				d->SeekFile = File;
 			d->SeekLine = Line;

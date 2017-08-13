@@ -1,13 +1,13 @@
 #ifndef _GEVENTTARGETTHREAD_H_
 #define _GEVENTTARGETTHREAD_H_
 
-#include "GThread.h"
-#include "GMutex.h"
-#include "GThreadEvent.h"
+#include "LThread.h"
+#include "LMutex.h"
+#include "LThreadEvent.h"
 
 #define PostThreadEvent GEventSinkMap::Dispatch.PostEvent
 
-class LgiClass GEventSinkMap : public GMutex
+class LgiClass GEventSinkMap : public LMutex
 {
 protected:
 	GHashTbl<int,GEventSinkI*> ToPtr;
@@ -151,13 +151,13 @@ public:
 /// This class is a worker thread that accepts messages on it's GEventSinkI interface.
 /// To use, sub class and implement the OnEvent handler.
 class LgiClass GEventTargetThread :
-	public GThread,
-	public GMutex,
+	public LThread,
+	public LMutex,
 	public GMappedEventSink,
 	public GEventTargetI // Sub-class has to implement OnEvent
 {
 	GArray<GMessage*> Msgs;
-	GThreadEvent Event;
+	LThreadEvent Event;
 	bool Loop;
 
 	// This makes the event name unique on windows to 
@@ -165,7 +165,7 @@ class LgiClass GEventTargetThread :
 	GString ProcessName(GString obj, const char *desc)
 	{
 		OsProcessId process = LgiGetCurrentProcess();
-		OsThreadId thread = LgiGetCurrentThread();
+		OsThreadId thread = GetCurrentThreadId();
 		GString s;
 		s.Printf("%s.%s.%i.%i", obj.Get(), desc, process, thread);
 		return s;
@@ -176,8 +176,8 @@ protected:
 
 public:
 	GEventTargetThread(GString Name) :
-		GThread(Name + ".Thread"),
-		GMutex(Name + ".Mutex"),
+		LThread(Name + ".Thread"),
+		LMutex(Name + ".Mutex"),
 		Event(ProcessName(Name, "Event"))
 	{
 		Loop = true;
@@ -209,10 +209,25 @@ public:
 				uint64 Now = LgiCurrentTime();
 				if (Now - Start > 2000)
 				{
-					printf("%s:%i - EndThread() hung waiting for %s to exit (me=%i, thd=%i).\n",
-						_FL, GThread::GetName(),
+					#ifdef LINUX
+					int val = 1111;
+					int r = sem_getvalue(Event.Handle(), &val);
+
+					printf("%s:%i - EndThread() hung waiting for %s to exit (caller.thread=%i, worker.thread=%i, event=%i, r=%i, val=%i).\n",
+						_FL, LThread::GetName(),
 						GetCurrentThreadId(),
-						GetId());
+						GetId(),
+						Event.Handle(),
+						r,
+						val);
+					#else
+					printf("%s:%i - EndThread() hung waiting for %s to exit (caller.thread=%i, worker.thread=%i, event=%u).\n",
+						_FL, LThread::GetName(),
+						(int)GetCurrentThreadId(),
+						GetId(),
+						Event.Handle());
+					#endif
+					
 					Start = Now;
 				}
 			}
@@ -241,8 +256,8 @@ public:
 	{
 		while (Loop)
 		{
-			GThreadEvent::WaitStatus s = Event.Wait();
-			if (s == GThreadEvent::WaitSignaled)
+			LThreadEvent::WaitStatus s = Event.Wait();
+			if (s == LThreadEvent::WaitSignaled)
 			{
 				while (true)
 				{

@@ -267,12 +267,12 @@ bool GXmlTreeUi::Convert(GDom *Tag, GViewI *Ui, bool ToUI)
 					{
 						GXmlTag *t = Xml->GetChildTag(Attr);
 						if (!t) continue;
-						GList *Lst;
+						LList *Lst;
 						if (!Ui->GetViewById(Map->Id, Lst)) continue;
 						Lst->Empty();
 						for (GXmlTag *c=t->Children.First(); c; c=t->Children.Next())
 						{
-							GListItem *i = Map->ListItemFactory(Map->User);
+							LListItem *i = Map->ListItemFactory(Map->User);
 							if (i)
 							{
 								i->XmlIo(c, false);
@@ -345,14 +345,14 @@ bool GXmlTreeUi::Convert(GDom *Tag, GViewI *Ui, bool ToUI)
 							if (!Xml) break;
 							GXmlTag *Child = Xml->GetChildTag(Attr, true);
 							if (!Child) break;
-							GList *Lst = dynamic_cast<GList*>(c);
+							LList *Lst = dynamic_cast<LList*>(c);
 							if (!Lst) break;
 							Child->Empty(true);
 							Child->SetTag(Attr);
 
-							List<GListItem> All;
+							List<LListItem> All;
 							Lst->GetAll(All);
-							for (GListItem *i = All.First(); i; i = All.Next())
+							for (LListItem *i = All.First(); i; i = All.Next())
 							{
 								GXmlTag *n = new GXmlTag(Map->ChildElements.Str());
 								if (n)

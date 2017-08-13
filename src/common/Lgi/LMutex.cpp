@@ -17,7 +17,7 @@ char *SemPrint(OsSemaphore *s)
 	return Buf;
 }
 
-GMutex::GMutex(const char *name)
+LMutex::LMutex(const char *name)
 {
 	_Thread = 0;
 	_Count = 0;
@@ -48,7 +48,7 @@ GMutex::GMutex(const char *name)
 	#endif
 }
 
-GMutex::~GMutex()
+LMutex::~LMutex()
 {
 	#if defined WIN32
 
@@ -73,18 +73,18 @@ GMutex::~GMutex()
 	DeleteArray(_Name);
 }
 
-char *GMutex::GetName()
+char *LMutex::GetName()
 {
 	return _Name;
 }
 
-void GMutex::SetName(const char *s)
+void LMutex::SetName(const char *s)
 {
 	DeleteArray(_Name);
 	_Name = NewStr(s);
 }
 
-bool GMutex::_Lock()
+bool LMutex::_Lock()
 {
 	#if defined WIN32
 
@@ -110,7 +110,7 @@ bool GMutex::_Lock()
 	#endif
 }
 
-void GMutex::_Unlock()
+void LMutex::_Unlock()
 {
 	#if defined WIN32
 
@@ -131,11 +131,11 @@ void GMutex::_Unlock()
 	#endif
 }
 
-bool GMutex::Lock(const char *file, int line)
+bool LMutex::Lock(const char *file, int line)
 {
 	int64 Start = LgiCurrentTime();
 	bool Status = false;
-	OsThreadId CurrentThread = LgiGetCurrentThread();
+	OsThreadId CurrentThread = GetCurrentThreadId();
 	bool Warn = true;
 
 	while (!Status)
@@ -205,7 +205,7 @@ bool GMutex::Lock(const char *file, int line)
 	return Status;
 }
 
-bool GMutex::LockWithTimeout(int Timeout, const char *file, int line)
+bool LMutex::LockWithTimeout(int Timeout, const char *file, int line)
 {
 	int64 Start = LgiCurrentTime();
 	bool Status = false;
@@ -215,7 +215,7 @@ bool GMutex::LockWithTimeout(int Timeout, const char *file, int line)
 	{
 		if (_Lock())
 		{
-			OsThreadId CurrentThread = LgiGetCurrentThread();
+			OsThreadId CurrentThread = GetCurrentThreadId();
 			if (!_Thread ||
 				_Thread == CurrentThread)
 			{
@@ -243,7 +243,7 @@ bool GMutex::LockWithTimeout(int Timeout, const char *file, int line)
 	return Status;
 }
 
-void GMutex::Unlock()
+void LMutex::Unlock()
 {
 	#ifdef _DEBUG
     /*

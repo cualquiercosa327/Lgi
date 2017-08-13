@@ -1510,7 +1510,7 @@ struct GCharsetSystemPriv
 {
 	GCharset *Utf8;
 	GCharset *Utf16; 
-	GHashTable Charsets;
+	GHashTbl<const char*, GCharset*> Charsets;
 
 	GCharsetSystemPriv() : Charsets(512)
 	{

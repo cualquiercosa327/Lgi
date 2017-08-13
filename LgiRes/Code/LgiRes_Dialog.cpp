@@ -48,8 +48,8 @@ NameMap[] =
 	{UI_RADIO,			"GRadioButton",	Res_RadioBox,		true},
 	{UI_TABS,			"GTabView",		Res_TabView,		true},
 	{UI_TAB,			"GTabPage",		Res_Tab,			false},
-	{UI_LIST,			"GList",		Res_ListView,		true},
-	{UI_COLUMN,			"GListColumn",	Res_Column,			false},
+	{UI_LIST,			"LList",		Res_ListView,		true},
+	{UI_COLUMN,			"LListColumn",	Res_Column,			false},
 	{UI_COMBO,			"GCombo",		Res_ComboBox,		true},
 	{UI_TREE,			"GTree",		Res_TreeView,		true},
 	{UI_BITMAP,			"GBitmap",		Res_Bitmap,			true},
@@ -63,7 +63,7 @@ NameMap[] =
 	{0, 0, 0, 0}
 };
 
-class CtrlItem : public GListItem
+class CtrlItem : public LListItem
 {
 	friend class TabOrder;
 
@@ -107,7 +107,7 @@ public:
 class TabOrder : public GDialog
 {
 	ResDialogCtrl *Top;
-	GList *Lst;
+	LList *Lst;
 	GButton *Ok;
 	GButton *Cancel;
 	GButton *Up;
@@ -119,7 +119,7 @@ public:
 		Top = top;
 		SetParent(Parent);
 
-		Children.Insert(Lst = new GList(IDC_LIST, 10, 10, 350, 300));
+		Children.Insert(Lst = new LList(IDC_LIST, 10, 10, 350, 300));
 		Children.Insert(Ok = new GButton(IDOK, Lst->GetPos().x2 + 10, 10, 60, 20, "Ok"));
 		Children.Insert(Cancel = new GButton(IDCANCEL, Lst->GetPos().x2 + 10, Ok->GetPos().y2 + 5, 60, 20, "Cancel"));
 		Children.Insert(Up = new GButton(IDC_UP, Lst->GetPos().x2 + 10, Cancel->GetPos().y2 + 15, 60, 20, "Up"));

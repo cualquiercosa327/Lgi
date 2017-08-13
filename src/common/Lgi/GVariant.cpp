@@ -151,7 +151,7 @@ GVariant::GVariant(GDom *p, char *name)
 	SetDomRef(p, name);
 }
 
-GVariant::GVariant(GDateTime *d)
+GVariant::GVariant(LDateTime *d)
 {
 	Type = GV_NULL;
 	*this = d;
@@ -272,14 +272,14 @@ bool GVariant::operator ==(GVariant &v)
 	return false;
 }
 
-GVariant &GVariant::operator =(GDateTime *d)
+GVariant &GVariant::operator =(LDateTime *d)
 {
 	Empty();
 
 	if (d)
 	{
 		Type = GV_DATETIME;
-		Value.Date = new GDateTime;
+		Value.Date = new LDateTime;
 		if (Value.Date)
 		{
 			*Value.Date = *d;
@@ -545,7 +545,7 @@ GVariant &GVariant::operator =(GVariant const &i)
 		{
 			if (i.Value.Date)
 			{
-				Value.Date = new GDateTime;
+				Value.Date = new LDateTime;
 				if (Value.Date)
 				{
 					*Value.Date = *i.Value.Date;
@@ -555,14 +555,13 @@ GVariant &GVariant::operator =(GVariant const &i)
 		}
 		case GV_HASHTABLE:
 		{
-			if ((Value.Hash = new GHashTable))
+			if ((Value.Hash = new GVariantHash))
 			{
-				char *k;
+				const char *k;
 				if (i.Value.Hash)
 				{
-					for (void *p = i.Value.Hash->First(&k); p; p = i.Value.Hash->Next(&k))
+					for (GVariant *var = i.Value.Hash->First(&k); var; var = i.Value.Hash->Next(&k))
 					{
-						GVariant *var = (GVariant*)p;
 						Value.Hash->Add(k, new GVariant(*var));
 					}
 				}
@@ -673,17 +672,17 @@ bool GVariant::SetList(List<GVariant> *Lst)
 	return Value.Lst != 0;
 }
 
-bool GVariant::SetHashTable(GHashTable *Table, bool Copy)
+bool GVariant::SetHashTable(GVariantHash *Table, bool Copy)
 {
 	Empty();
 	Type = GV_HASHTABLE;
 
 	if (Copy && Table)
 	{
-		if ((Value.Hash = new GHashTable))
+		if ((Value.Hash = new GVariantHash))
 		{
-			char *k;
-			for (void *p = Table->First(&k); p; p = Table->Next(&k))
+			const char *k;
+			for (GVariant *p = Table->First(&k); p; p = Table->Next(&k))
 			{
 				Value.Hash->Add(k, p);
 			}
@@ -691,7 +690,7 @@ bool GVariant::SetHashTable(GHashTable *Table, bool Copy)
 	}
 	else
 	{
-		Value.Hash = Table ? Table : new GHashTable;
+		Value.Hash = Table ? Table : new GVariantHash;
 	}
 
 	return Value.Hash != 0;
@@ -1055,8 +1054,8 @@ GVariant &GVariant::Cast(GVariantType NewType)
 				{
 					case GV_STRING:
 					{
-						// String -> GDateTime
-						GDateTime *Dt = new GDateTime;
+						// String -> LDateTime
+						LDateTime *Dt = new LDateTime;
 						if (Dt)
 						{
 							Dt->Set(Value.String);
@@ -1068,8 +1067,8 @@ GVariant &GVariant::Cast(GVariantType NewType)
 					}
 					case GV_INT64:
 					{
-						// Int64 (system date) -> GDateTime
-						GDateTime *Dt = new GDateTime;
+						// Int64 (system date) -> LDateTime
+						LDateTime *Dt = new LDateTime;
 						if (Dt)
 						{
 							Dt->Set((uint64)Value.Int64);
@@ -1374,11 +1373,11 @@ char *GVariant::CastString()
 
 			p.Print("{");
 			
-			char *k;
+			const char *k;
 			bool First = true;
-			for (GVariant *v = (GVariant*)Value.Hash->First(&k);
+			for (GVariant *v = Value.Hash->First(&k);
 				v;
-				v = (GVariant*)Value.Hash->Next(&k))
+				v = Value.Hash->Next(&k))
 			{
 				p.Print("%s%s = %s", First ? "" : ", ", k, v->CastString());
 				First = false;
@@ -2061,9 +2060,9 @@ ssize_t GCustomType::CustomField::Sizeof()
 		case GV_STRING:
 			return sizeof(char);
 		case GV_DATETIME:
-			return sizeof(GDateTime);
+			return sizeof(LDateTime);
 		case GV_HASHTABLE:
-			return sizeof(GHashTable);
+			return sizeof(GVariantHash);
 		case GV_OPERATOR:
 			return sizeof(GOperator);
 		case GV_GMOUSE:

@@ -1,12 +1,12 @@
 #ifndef _FTP_FILE_H_
 #define _FTP_FILE_H_
 
-#include "GListItemCheckBox.h"
+#include "LListItemCheckBox.h"
 
-class FtpFile : public GListItem
+class FtpFile : public LListItem
 {
 	IFtpEntry *e;
-	GListItemCheckBox *v;
+	LListItemCheckBox *v;
 	GAutoString Uri;
 	
 public:
@@ -14,7 +14,7 @@ public:
 	{
 		Uri.Reset(NewStr(uri));
 		e = entry;
-		v = new GListItemCheckBox(this, 0);
+		v = new LListItemCheckBox(this, 0);
 	}
 
 	char *GetText(int c)

@@ -1,5 +1,5 @@
 /*
-**	FILE:		GDateTime.cpp
+**	FILE:		LDateTime.cpp
 **	AUTHOR:		Matthew Allen
 **	DATE:		11/11/98
 **	DESCRIPTION:	Scribe Date Time Object
@@ -23,15 +23,15 @@
 #endif
 
 #include "Lgi.h"
-#include "GDateTime.h"
+#include "LDateTime.h"
 #include "GToken.h"
 #include "GDocView.h"
 
 //////////////////////////////////////////////////////////////////////////////
-uint16 GDateTime::DefaultFormat = GDTF_DEFAULT;
-char GDateTime::DefaultSeparator = '/';
+uint16 LDateTime::DefaultFormat = GDTF_DEFAULT;
+char LDateTime::DefaultSeparator = '/';
 
-uint16 GDateTime::GetDefaultFormat()
+uint16 LDateTime::GetDefaultFormat()
 {
 	if (DefaultFormat == GDTF_DEFAULT)
 	{
@@ -96,7 +96,7 @@ uint16 GDateTime::GetDefaultFormat()
 static int CurTz			= NO_ZONE;
 static int CurTzOff			= NO_ZONE;
 
-GDateTime::GDateTime()
+LDateTime::LDateTime()
 {
 	_Day = 0;
 	_Month = 0;
@@ -114,11 +114,11 @@ GDateTime::GDateTime()
 	_Format = GetDefaultFormat();
 }
 
-GDateTime::~GDateTime()
+LDateTime::~LDateTime()
 {
 }
 
-void GDateTime::Empty()
+void LDateTime::Empty()
 {
 	_Year = 0;
 	_Month = 0;
@@ -130,7 +130,7 @@ void GDateTime::Empty()
 }
 
 #define InRange(v, low, high) ((v) >= low && (v) <= high)
-bool GDateTime::IsValid()
+bool LDateTime::IsValid()
 {
 	return	InRange(_Day, 1, 31) &&
 			InRange(_Year, 1600, 2100) &&
@@ -142,7 +142,7 @@ bool GDateTime::IsValid()
 			InRange(_Tz, -720, 720);
 }
 
-void GDateTime::SetTimeZone(int NewTz, bool ConvertTime)
+void LDateTime::SetTimeZone(int NewTz, bool ConvertTime)
 {
 	if (ConvertTime && NewTz != _Tz)
 	{
@@ -152,7 +152,7 @@ void GDateTime::SetTimeZone(int NewTz, bool ConvertTime)
 	_Tz = NewTz;
 }
 
-int GDateTime::SystemTimeZone(bool ForceUpdate)
+int LDateTime::SystemTimeZone(bool ForceUpdate)
 {
 	if (ForceUpdate || CurTz == NO_ZONE)
 	{
@@ -203,7 +203,7 @@ int GDateTime::SystemTimeZone(bool ForceUpdate)
 	return CurTz + CurTzOff;
 }
 
-int GDateTime::SystemTimeZoneOffset()
+int LDateTime::SystemTimeZoneOffset()
 {
 	if (CurTz == NO_ZONE)
 		SystemTimeZone();
@@ -212,9 +212,9 @@ int GDateTime::SystemTimeZoneOffset()
 }
 
 #if defined WIN32
-GDateTime ConvertSysTime(SYSTEMTIME &st, int year)
+LDateTime ConvertSysTime(SYSTEMTIME &st, int year)
 {
-	GDateTime n;
+	LDateTime n;
 	if (st.wYear)
 	{
 		n.Year(st.wYear);
@@ -228,7 +228,7 @@ GDateTime ConvertSysTime(SYSTEMTIME &st, int year)
 		
 		// Find the 'nth' matching weekday, starting from the first day in the month
 		n.Day(1);
-		GDateTime c = n;
+		LDateTime c = n;
 		for (int i=0; i<st.wDay && c.Month() == n.Month(); i++)
 		{
 			while (c.DayOfWeek() != st.wDayOfWeek)
@@ -246,7 +246,7 @@ GDateTime ConvertSysTime(SYSTEMTIME &st, int year)
 	return n;
 }
 
-int GDateCmp(GDateTime *a, GDateTime *b)
+int GDateCmp(LDateTime *a, LDateTime *b)
 {
 	return a->Compare(b);
 }
@@ -271,17 +271,17 @@ static bool ParseValue(char *s, GAutoString &var, GAutoString &val)
 #endif
 
 /* Testing code...
-	GDateTime Start, End;
-	GArray<GDateTime::GDstInfo> Info;
+	LDateTime Start, End;
+	GArray<LDateTime::GDstInfo> Info;
 
 	Start.Set("1/1/2010");
 	End.Set("31/12/2014");
-	GDateTime::GetDaylightSavingsInfo(Info, Start, &End);
+	LDateTime::GetDaylightSavingsInfo(Info, Start, &End);
 
 	GStringPipe p;
 	for (int i=0; i<Info.Length(); i++)
 	{
-		GDateTime dt;
+		LDateTime dt;
 		dt = Info[i].UtcTimeStamp;
 		char s[64];
 		dt.Get(s);
@@ -291,9 +291,9 @@ static bool ParseValue(char *s, GAutoString &var, GAutoString &val)
 	LgiMsg(0, s, "Test");
 */
 
-GDateTime GDateTime::GDstInfo::GetLocal()
+LDateTime LDateTime::GDstInfo::GetLocal()
 {
-	GDateTime d;
+	LDateTime d;
 	d = UtcTimeStamp;
 	d.SetTimeZone(0, false);
 	d.SetTimeZone(Offset, true);
@@ -334,7 +334,7 @@ struct MonthHash : public GHashTbl<const char*,int>
 
 GString::Array Zdump;
 
-bool GDateTime::GetDaylightSavingsInfo(GArray<GDstInfo> &Info, GDateTime &Start, GDateTime *End)
+bool LDateTime::GetDaylightSavingsInfo(GArray<GDstInfo> &Info, LDateTime &Start, LDateTime *End)
 {
 	bool Status = false;
 	
@@ -346,9 +346,9 @@ bool GDateTime::GetDaylightSavingsInfo(GArray<GDstInfo> &Info, GDateTime &Start,
 		Info.Length(0);
 
 		// Find the DST->Normal date in the same year as Start
-		GDateTime n = ConvertSysTime(Tzi.StandardDate, Start.Year());
+		LDateTime n = ConvertSysTime(Tzi.StandardDate, Start.Year());
 		// Find the Normal->DST date in the same year as Start
-		GDateTime d = ConvertSysTime(Tzi.DaylightDate, Start.Year());
+		LDateTime d = ConvertSysTime(Tzi.DaylightDate, Start.Year());
 
 		// Create initial Info entry
 		Info[0].UtcTimeStamp = Start;
@@ -363,7 +363,7 @@ bool GDateTime::GetDaylightSavingsInfo(GArray<GDstInfo> &Info, GDateTime &Start,
 		if (End)
 		{
 			// Build list of DST change dates
-			GArray<GDateTime> c;
+			GArray<LDateTime> c;
 			c.Add(n);
 			c.Add(d);
 			for (int y = Start.Year() + 1; y <= End->Year(); y++)
@@ -377,7 +377,7 @@ bool GDateTime::GetDaylightSavingsInfo(GArray<GDstInfo> &Info, GDateTime &Start,
 			// Itererate over the list to generate further Info entries
 			for (int i=0; i<c.Length(); i++)
 			{
-				GDateTime &dt = c[i];
+				LDateTime &dt = c[i];
 				if (dt > Start && dt < *End)
 				{
 					IsDst = !IsDst;
@@ -419,7 +419,7 @@ bool GDateTime::GetDaylightSavingsInfo(GArray<GDstInfo> &Info, GDateTime &Start,
 	}
 		
 	MonthHash Lut;
-	GDateTime Prev;
+	LDateTime Prev;
 	int PrevOff = 0;
 	for (int i=0; i<Zdump.Length(); i++)
 	{
@@ -430,7 +430,7 @@ bool GDateTime::GetDaylightSavingsInfo(GArray<GDstInfo> &Info, GDateTime &Start,
 		{
 			// /etc/localtime  Sat Oct  3 15:59:59 2037 UTC = Sun Oct  4 01:59:59 2037 EST isdst=0 gmtoff=36000
 			// 0               1   2    3 4        5    6   7 8   9    10 11      12   13  14      15
-			GDateTime Utc;
+			LDateTime Utc;
 			Utc.Year(atoi(l[5]));
 			GToken Tm(l[4], ":");
 			if (Tm.Length() == 3)
@@ -512,7 +512,7 @@ bool GDateTime::GetDaylightSavingsInfo(GArray<GDstInfo> &Info, GDateTime &Start,
 	return Status;
 }
 
-int GDateTime::DayOfWeek()
+int LDateTime::DayOfWeek()
 {
 	int Index = 0;
 	int Day = IsLeapYear() ? 29 : 28;
@@ -587,7 +587,7 @@ int GDateTime::DayOfWeek()
 	return Diff % 7;
 }
 
-void GDateTime::SetNow()
+void LDateTime::SetNow()
 {
     #ifdef WIN32
 
@@ -619,14 +619,14 @@ void GDateTime::SetNow()
 #define Convert24HrTo12Hr(h)			( (h) == 0 ? 12 : (h) > 12 ? (h) % 12 : (h) )
 #define Convert24HrToAmPm(h)		( (h) >= 12 ? "p" : "a" )
 
-GString GDateTime::GetDate()
+GString LDateTime::GetDate()
 {
 	char s[32];
 	int Ch = GetDate(s, sizeof(s));
 	return GString(s, Ch);
 }
 
-int GDateTime::GetDate(char *Str, size_t SLen)
+int LDateTime::GetDate(char *Str, size_t SLen)
 {
 	int Ch = 0;
 
@@ -656,14 +656,14 @@ int GDateTime::GetDate(char *Str, size_t SLen)
 	return Ch;
 }
 
-GString GDateTime::GetTime()
+GString LDateTime::GetTime()
 {
 	char s[32];
 	int Ch = GetTime(s, sizeof(s));
 	return GString(s, Ch);
 }
 
-int GDateTime::GetTime(char *Str, size_t SLen)
+int LDateTime::GetTime(char *Str, size_t SLen)
 {
 	int Ch = 0;
 
@@ -688,14 +688,14 @@ int GDateTime::GetTime(char *Str, size_t SLen)
 	return Ch;
 }
 
-uint64 GDateTime::Ts()
+uint64 LDateTime::Ts()
 {
 	uint64 ts;
 	Get(ts);
 	return ts;
 }
 
-bool GDateTime::Set(uint64 s)
+bool LDateTime::Set(uint64 s)
 {
 	#if defined WIN32
 	FILETIME Utc, Local;
@@ -728,7 +728,7 @@ bool GDateTime::Set(uint64 s)
 	#endif
 }
 
-bool GDateTime::Set(time_t tt)
+bool LDateTime::Set(time_t tt)
 {
 	struct tm *t;
 	#if !defined(_MSC_VER) || _MSC_VER < _MSC_VER_VS2005
@@ -756,7 +756,7 @@ bool GDateTime::Set(time_t tt)
 	return false;
 }
 
-bool GDateTime::Get(uint64 &s)
+bool LDateTime::Get(uint64 &s)
 {
 	#ifdef WIN32
 	FILETIME Utc, Local;
@@ -820,7 +820,7 @@ bool GDateTime::Get(uint64 &s)
 	#endif
 }
 
-GString GDateTime::Get()
+GString LDateTime::Get()
 {
 	char buf[32];
 	int Ch = GetDate(buf, sizeof(buf));
@@ -829,7 +829,7 @@ GString GDateTime::Get()
 	return GString(buf, Ch);
 }
 
-void GDateTime::Get(char *Str, size_t SLen)
+void LDateTime::Get(char *Str, size_t SLen)
 {
 	if (Str)
 	{
@@ -843,7 +843,7 @@ void GDateTime::Get(char *Str, size_t SLen)
 	}
 }
 
-bool GDateTime::Set(const char *Str)
+bool LDateTime::Set(const char *Str)
 {
 	bool Status = false;
 
@@ -864,7 +864,7 @@ bool GDateTime::Set(const char *Str)
 	return Status;
 }
 
-void GDateTime::Month(char *m)
+void LDateTime::Month(char *m)
 {
 	#define IsMonth(a, i) else if (!stricmp(#a, m)) _Month = i;
 
@@ -883,7 +883,7 @@ void GDateTime::Month(char *m)
 	IsMonth(dec, 12)
 }
 
-bool GDateTime::SetDate(const char *Str)
+bool LDateTime::SetDate(const char *Str)
 {
 	bool Status = false;
 
@@ -1023,7 +1023,7 @@ bool GDateTime::SetDate(const char *Str)
 			}
 			else
 			{
-				GDateTime Now;
+				LDateTime Now;
 				Now.SetNow();
 				Year(Now.Year());
 			}
@@ -1033,7 +1033,7 @@ bool GDateTime::SetDate(const char *Str)
 	return Status;
 }
 
-bool GDateTime::SetTime(const char *Str)
+bool LDateTime::SetTime(const char *Str)
 {
 	bool Status = false;
 
@@ -1076,12 +1076,12 @@ bool GDateTime::SetTime(const char *Str)
 	return Status;
 }
 
-int GDateTime::Sizeof()
+int LDateTime::Sizeof()
 {
 	return sizeof(int) * 7;
 }
 
-bool GDateTime::Serialize(GFile &f, bool Write)
+bool LDateTime::Serialize(GFile &f, bool Write)
 {
 	int32 i;
 
@@ -1112,7 +1112,7 @@ bool GDateTime::Serialize(GFile &f, bool Write)
 }
 
 /*
-bool GDateTime::Serialize(ObjProperties *Props, char *Name, bool Write)
+bool LDateTime::Serialize(ObjProperties *Props, char *Name, bool Write)
 {
 	#ifndef LGI_STATIC
 	if (Props && Name)
@@ -1170,7 +1170,7 @@ bool GDateTime::Serialize(ObjProperties *Props, char *Name, bool Write)
 }
 */
 
-int GDateTime::Compare(const GDateTime *d)
+int LDateTime::Compare(const LDateTime *d)
 {
 	int c = 0;
 	if (d)
@@ -1204,7 +1204,7 @@ int GDateTime::Compare(const GDateTime *d)
 	return c;
 }
 
-bool GDateTime::operator <(GDateTime &dt)
+bool LDateTime::operator <(LDateTime &dt)
 {
 	if (_Year < dt._Year) return true;
 	else if (_Year > dt._Year) return false;
@@ -1230,12 +1230,12 @@ bool GDateTime::operator <(GDateTime &dt)
 	return false;
 }
 
-bool GDateTime::operator <=(GDateTime &dt)
+bool LDateTime::operator <=(LDateTime &dt)
 {
 	return !(*this > dt);
 }
 
-bool GDateTime::operator >(GDateTime &dt)
+bool LDateTime::operator >(LDateTime &dt)
 {
 	if (_Year > dt._Year) return true;
 	else if (_Year < dt._Year) return false;
@@ -1261,12 +1261,12 @@ bool GDateTime::operator >(GDateTime &dt)
 	return false;
 }
 
-bool GDateTime::operator >=(GDateTime &dt)
+bool LDateTime::operator >=(LDateTime &dt)
 {
 	return !(*this < dt);
 }
 
-bool GDateTime::operator ==(GDateTime &dt)
+bool LDateTime::operator ==(LDateTime &dt)
 {
 	return	_Year == dt._Year &&
 			_Month == dt._Month &&
@@ -1277,7 +1277,7 @@ bool GDateTime::operator ==(GDateTime &dt)
 			_Thousands == dt._Thousands;
 }
 
-bool GDateTime::operator !=(GDateTime &dt)
+bool LDateTime::operator !=(LDateTime &dt)
 {
 	return	_Year != dt._Year ||
 			_Month != dt._Month ||
@@ -1288,9 +1288,9 @@ bool GDateTime::operator !=(GDateTime &dt)
 			_Thousands != dt._Thousands;
 }
 
-GDateTime GDateTime::DiffMonths(GDateTime &dt)
+LDateTime LDateTime::DiffMonths(LDateTime &dt)
 {
-	GDateTime s;
+	LDateTime s;
 
 	int Months = 0;
 	s._Year = _Year;
@@ -1351,7 +1351,7 @@ GDateTime GDateTime::DiffMonths(GDateTime &dt)
 	return s;
 }
 
-GDateTime GDateTime::operator -(GDateTime &dt)
+LDateTime LDateTime::operator -(LDateTime &dt)
 {
     uint64 a, b;
     Get(a);
@@ -1364,7 +1364,7 @@ GDateTime GDateTime::operator -(GDateTime &dt)
     int64 Day = 24 * Hr;
     
     uint64 d = a - b;
-    GDateTime r;
+    LDateTime r;
     r._Day = d / Day;
     d -= r._Day * Day;
     r._Hours = d / Hr;
@@ -1382,9 +1382,9 @@ GDateTime GDateTime::operator -(GDateTime &dt)
 	return r;
 }
 
-GDateTime GDateTime::operator +(GDateTime &dt)
+LDateTime LDateTime::operator +(LDateTime &dt)
 {
-	GDateTime s = *this;
+	LDateTime s = *this;
 
 	s.AddMonths(dt.Month());
 	s.AddDays(dt.Day());
@@ -1395,7 +1395,7 @@ GDateTime GDateTime::operator +(GDateTime &dt)
 	return s;
 }
 
-GDateTime &GDateTime::operator =(struct tm *time)
+LDateTime &LDateTime::operator =(struct tm *time)
 {
 	if (time)
 	{
@@ -1411,14 +1411,14 @@ GDateTime &GDateTime::operator =(struct tm *time)
 	return *this;
 }
 
-bool GDateTime::IsSameDay(GDateTime &d)
+bool LDateTime::IsSameDay(LDateTime &d)
 {
 	return	Day() == d.Day() &&
 			Month() == d.Month() &&
 			Year() == d.Year();
 }
 
-bool GDateTime::IsLeapYear(int Year)
+bool LDateTime::IsLeapYear(int Year)
 {
 	if (Year < 0) Year = _Year;
 
@@ -1440,7 +1440,7 @@ bool GDateTime::IsLeapYear(int Year)
 	return true;
 }
 
-int GDateTime::DaysInMonth()
+int LDateTime::DaysInMonth()
 {
 	if (_Month == 2 &&
 		IsLeapYear())
@@ -1454,7 +1454,7 @@ int GDateTime::DaysInMonth()
 
 #define MinutesInDay (60*24)
 
-void GDateTime::AddSeconds(int64 Seconds)
+void LDateTime::AddSeconds(int64 Seconds)
 {
     int64 s = (int64)_Seconds + Seconds;
     
@@ -1475,7 +1475,7 @@ void GDateTime::AddSeconds(int64 Seconds)
 	LgiAssert(_Seconds >= 0 && _Seconds < 60);
 }
 
-void GDateTime::AddMinutes(int64 Minutes)
+void LDateTime::AddMinutes(int64 Minutes)
 {
 	int m = (int)_Minutes + Minutes;
 
@@ -1496,7 +1496,7 @@ void GDateTime::AddMinutes(int64 Minutes)
 	LgiAssert(_Minutes >= 0 && _Minutes < 60);
 }
 
-void GDateTime::AddHours(int64 Hours)
+void LDateTime::AddHours(int64 Hours)
 {
 	int h = _Hours + Hours;
 
@@ -1517,7 +1517,7 @@ void GDateTime::AddHours(int64 Hours)
 	LgiAssert(_Hours >= 0 && _Hours < 24);
 }
 
-bool GDateTime::AddDays(int64 Days)
+bool LDateTime::AddDays(int64 Days)
 {
 	if (!Days)
 		return true;
@@ -1526,13 +1526,13 @@ bool GDateTime::AddDays(int64 Days)
 	if (!Get(Ts))
 		return false;
 
-	uint64 DayTicks = (uint64)GDateTime::Second64Bit * 60 * 60 * 24;
+	uint64 DayTicks = (uint64)LDateTime::Second64Bit * 60 * 60 * 24;
 	Ts += Days * DayTicks;
 	bool b = Set(Ts);
 	return b;
 }
 
-void GDateTime::AddMonths(int64 Months)
+void LDateTime::AddMonths(int64 Months)
 {
 	int m = _Month + Months;
 
@@ -1560,7 +1560,7 @@ void GDateTime::AddMonths(int64 Months)
 		_Day = DaysInMonth();
 }
 
-int GDateTime::MonthFromName(const char *Name)
+int LDateTime::MonthFromName(const char *Name)
 {
 	if (Name)
 	{
@@ -1581,7 +1581,7 @@ int GDateTime::MonthFromName(const char *Name)
 	return -1;
 }
 
-bool GDateTime::Decode(const char *In)
+bool LDateTime::Decode(const char *In)
 {
 	// Test data:
 	//
@@ -1636,7 +1636,7 @@ bool GDateTime::Decode(const char *In)
 						}
 						else
 						{
-							GDateTime Now;
+							LDateTime Now;
 							Now.SetNow();
 							if (Yr + 2000 <= Now.Year())
 							{
@@ -1702,7 +1702,7 @@ bool GDateTime::Decode(const char *In)
 						{
 							// We already have a day... so this might be
 							// a 2 digit year...
-							GDateTime Now;
+							LDateTime Now;
 							Now.SetNow();
 							int Yr = atoi(s);
 							if (2000 + Yr <= Now.Year())
@@ -1741,7 +1741,7 @@ bool GDateTime::Decode(const char *In)
 				{
 					// timezone
 					DoTimeZone:
-					GDateTime Now;
+					LDateTime Now;
 					double OurTmz = (double)Now.SystemTimeZone() / 60;
 
 					if (s &&
@@ -1789,7 +1789,7 @@ bool GDateTime::Decode(const char *In)
 	return Status;
 }
 
-bool GDateTime::GetVariant(const char *Name, GVariant &Dst, char *Array)
+bool LDateTime::GetVariant(const char *Name, GVariant &Dst, char *Array)
 {
 	GDomProperty p = LgiStringToDomProp(Name);
 	switch (p)
@@ -1848,7 +1848,7 @@ bool GDateTime::GetVariant(const char *Name, GVariant &Dst, char *Array)
 	return true;
 }
 
-bool GDateTime::SetVariant(const char *Name, GVariant &Value, char *Array)
+bool LDateTime::SetVariant(const char *Name, GVariant &Value, char *Array)
 {
 	GDomProperty p = LgiStringToDomProp(Name);
 	switch (p)
@@ -1890,7 +1890,7 @@ bool GDateTime::SetVariant(const char *Name, GVariant &Value, char *Array)
 	return true;
 }
 
-bool GDateTime::CallMethod(const char *Name, GVariant *ReturnValue, GArray<GVariant*> &Args)
+bool LDateTime::CallMethod(const char *Name, GVariant *ReturnValue, GArray<GVariant*> &Args)
 {
 	switch (LgiStringToDomProp(Name))
 	{

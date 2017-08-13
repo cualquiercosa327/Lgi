@@ -362,7 +362,7 @@ public:
 	GTabPage *Debug;
 	GTabPage *Find;
 	GTabPage *Ftp;
-	GList *FtpLog;
+	LList *FtpLog;
 	GTextLog *Txt[3];
 	GArray<char> Buf[3];
 	GFont Small;
@@ -371,7 +371,7 @@ public:
 	GTabView *DebugTab;
 	GBox *DebugBox;
 	GBox *DebugLog;
-	GList *Locals, *CallStack, *Threads;
+	LList *Locals, *CallStack, *Threads;
 	GTree *Watch;
 	GTextLog *ObjectDump, *MemoryDump, *Registers;
 	GTableLayout *MemTable;
@@ -437,7 +437,7 @@ public:
 			if (Find)
 				Find->Append(Txt[AppWnd::FindTab] = new GTextLog(IDC_FIND_LOG));
 			if (Ftp)
-				Ftp->Append(FtpLog = new GList(104, 0, 0, 100, 100));
+				Ftp->Append(FtpLog = new LList(104, 0, 0, 100, 100));
 			if (Debug)
 			{
 				Debug->Append(DebugBox = new GBox);
@@ -454,7 +454,7 @@ public:
 						if ((Page = DebugTab->Append("Locals")))
 						{
 							Page->SetFont(&Small);
-							if ((Locals = new GList(IDC_LOCALS_LIST, 0, 0, 100, 100, "Locals List")))
+							if ((Locals = new LList(IDC_LOCALS_LIST, 0, 0, 100, 100, "Locals List")))
 							{
 								Locals->SetFont(&Small);
 								Locals->AddColumn("", 30);
@@ -587,7 +587,7 @@ public:
 						if ((Page = DebugTab->Append("Threads")))
 						{
 							Page->SetFont(&Small);
-							if ((Threads = new GList(IDC_THREADS, 0, 0, 100, 100, "Threads")))
+							if ((Threads = new LList(IDC_THREADS, 0, 0, 100, 100, "Threads")))
 							{
 								Threads->SetFont(&Small);
 								Threads->AddColumn("", 20);
@@ -601,7 +601,7 @@ public:
 						if ((Page = DebugTab->Append("Call Stack")))
 						{
 							Page->SetFont(&Small);
-							if ((CallStack = new GList(IDC_CALL_STACK, 0, 0, 100, 100, "Call Stack")))
+							if ((CallStack = new LList(IDC_CALL_STACK, 0, 0, 100, 100, "Call Stack")))
 							{
 								CallStack->SetFont(&Small);
 								CallStack->AddColumn("", 20);
@@ -2294,7 +2294,7 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 				Flags == GNotifyItem_DoubleClick &&
 				d->DbgContext)
 			{
-				GListItem *it = d->Output->Locals->GetSelected();
+				LListItem *it = d->Output->Locals->GetSelected();
 				if (it)
 				{
 					char *Var = it->GetText(2);
@@ -2322,7 +2322,7 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 				// This takes the user to a given call stack reference
 				if (d->Output->CallStack && d->DbgContext)
 				{
-					GListItem *item = d->Output->CallStack->GetSelected();
+					LListItem *item = d->Output->CallStack->GetSelected();
 					if (item)
 					{
 						GAutoString File;
@@ -2386,7 +2386,7 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 				// This takes the user to a given thread
 				if (d->Output->Threads && d->DbgContext)
 				{
-					GListItem *item = d->Output->Threads->GetSelected();
+					LListItem *item = d->Output->Threads->GetSelected();
 					if (item)
 					{
 						GString sId = item->GetText(0);
@@ -3105,7 +3105,7 @@ int AppWnd::GetBuildMode()
 	return BUILD_TYPE_DEBUG;
 }
 
-GList *AppWnd::GetFtpLog()
+LList *AppWnd::GetFtpLog()
 {
 	return d->Output->FtpLog;
 }
@@ -3270,30 +3270,46 @@ public:
 #include "GSubProcess.h"
 void Test()
 {
-	/*
-	int r;
-
-	#if 1
-	// Basic test
-	GSubProcess p1("grep", "-i tiff *.csv");
-	p1.SetInitFolder("c:\\Users\\matthew");
-	p1.Start(true, false);
-	#else
-	// More complex test
-	GSubProcess p1("dir");
-	GSubProcess p2("grep", "test");
-	p1.Connect(&p2);
-	p1.Start(true, false);
-	#endif
-
-	char Buf[256];
-	while ((r = p1.Read(Buf, sizeof(Buf))) > 0)
+	GDirectory d;
+	for (int b = d.First("C:\\Users\\matthew\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Cache"); b; b = d.Next())
 	{
-		// So something with 'Buf'
-		Buf[r] = 0;
-	}
-	*/
+		if (!d.IsDir())
+		{
+			char p[MAX_PATH];
+			d.Path(p, sizeof(p));
 
+			if (stristr(d.GetName(), "f_00005d"))
+			{
+				int asd=0;
+			}
+
+			GFile f;
+			if (f.Open(p, O_READ))
+			{
+				char Buf[256];
+				ssize_t Rd = f.Read(Buf, sizeof(Buf));
+				if (Rd > 3 && !strnicmp(Buf, "Ogg", 3))
+				{
+					char out[MAX_PATH];
+					f.Close();
+					LgiMakePath(out, sizeof(out), "C:\\Users\\matthew\\Desktop\\new day", d.GetName());
+					strcat(out, ".ogg");
+					if (!FileDev->Copy(p, out))
+					{
+						LgiTrace("%s:%i - Failed to copy '%s'\n", _FL, d.GetName());
+					}
+				}
+				else
+				{
+					LgiTrace("%s:%i - Not an ogg '%s'\n", _FL, d.GetName());
+				}
+			}
+			else
+			{
+				LgiTrace("%s:%i - Can't open '%s'\n", _FL, d.GetName());
+			}
+		}
+	}
 }
 
 int LgiMain(OsAppArguments &AppArgs)
@@ -3302,7 +3318,7 @@ int LgiMain(OsAppArguments &AppArgs)
 	GApp a(AppArgs, "LgiIde");
 	if (a.IsOk())
 	{
-		Test();
+		// Test();
 		
 		a.AppWnd = new AppWnd;
 		// a.AppWnd = new Test;

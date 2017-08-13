@@ -574,7 +574,7 @@ void LgiTrace(const char *Msg, ...)
 	#endif
 
 	#ifdef WIN32
-	static GMutex Sem;
+	static LMutex Sem;
 	Sem.Lock(_FL);
 	#endif
 

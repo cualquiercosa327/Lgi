@@ -15,7 +15,7 @@ void GOptionsFile::_Init()
 	}
 }
 
-GOptionsFile::GOptionsFile(const char *FileName) : GMutex("GOptionsFile")
+GOptionsFile::GOptionsFile(const char *FileName) : LMutex("GOptionsFile")
 {
 	_Init();
 
@@ -25,7 +25,7 @@ GOptionsFile::GOptionsFile(const char *FileName) : GMutex("GOptionsFile")
 		SetMode(PortableMode);
 }
 
-GOptionsFile::GOptionsFile(PortableType Mode, const char *BaseName) : GMutex("GOptionsFile")
+GOptionsFile::GOptionsFile(PortableType Mode, const char *BaseName) : LMutex("GOptionsFile")
 {
 	_Init();
 

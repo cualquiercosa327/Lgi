@@ -1,13 +1,13 @@
 #include "Lgi.h"
 #include "GHistory.h"
-#include "GList.h"
+#include "LList.h"
 
 //////////////////////////////////////////////////////////////
 // GHistoryPopup
 class GHistoryPopup : public GPopup
 {
 public:
-	GList *Lst;
+	LList *Lst;
 	GString Str;
 	int64 Index;
 	bool Ignore;
@@ -19,7 +19,7 @@ public:
 		GRect r(0, 0, 300, 300);
 		SetPos(r);
 
-		Children.Insert(Lst = new GList(1, 1, 1, 100, 100));
+		Children.Insert(Lst = new LList(1, 1, 1, 100, 100));
 		if (Lst)
 		{
 			Lst->MultiSelect(false);
@@ -58,7 +58,7 @@ public:
 		{
 			if (Flags == GNotifyItem_Select)
 			{
-				GListItem *li = Lst->GetSelected();
+				LListItem *li = Lst->GetSelected();
 				if (li)
 				{
 					Str = li->GetText(0);
@@ -139,7 +139,7 @@ void GHistory::Value(int64 i)
 	{
 		d->Popup->Lst->Value(i);
 		
-		GListItem *li = d->Popup->Lst->GetSelected();
+		LListItem *li = d->Popup->Lst->GetSelected();
 		if (li)
 		{
 			d->Popup->Str = li->GetText(0);
@@ -167,7 +167,7 @@ int GHistory::Add(char *Str)
 	Insert(NewStr(Str));
 	if (d->Popup && d->Popup->Lst)
 	{
-		GListItem *li = new GListItem;
+		LListItem *li = new LListItem;
 		if (li)
 		{
 			li->SetText(Str);
@@ -180,13 +180,13 @@ int GHistory::Add(char *Str)
 
 void GHistory::Update()
 {
-	GList *Lst = d->Popup ? d->Popup->Lst : 0;
+	LList *Lst = d->Popup ? d->Popup->Lst : 0;
 	if (Lst)
 	{
 		Lst->Empty();
 		for (char *s=First(); s; s=Next())
 		{
-			GListItem *i = new GListItem;
+			LListItem *i = new LListItem;
 			if (i)
 			{
 				i->SetText(s);

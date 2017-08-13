@@ -189,13 +189,13 @@ public:
 	GdcDevice *GdcSystem;
 	OsAppArguments Args;
 	GLibrary *SkinLib;
-	GHashTable MimeToApp;
+	GHashTbl<char*,AppArray*> MimeToApp;
 	#if HAS_SHARED_MIME
 	GSharedMime *Sm;
 	#endif
 	GLibrary *WmLib;
 	GHashTbl<int, GView*> Handles;
-	OsThreadId GuiThread;
+	OsThread GuiThread;
 	int MessageLoopDepth;
 	int CurEvent;
 	#if DEBUG_MSG_TYPES
@@ -436,9 +436,9 @@ GViewI *GApp::GetFocus()
 	return NULL;
 }
 
-OsThreadId GApp::GetGuiThread()
+OsThread GApp::GetGuiThread()
 {
-	return d->GuiThread;;
+	return d->GuiThread;
 }
 
 OsProcessId GApp::GetProcessId()
@@ -466,7 +466,9 @@ void GApp::SetAppArgs(OsAppArguments &AppArgs)
 bool GApp::InThread()
 {
 	OsThreadId Me = LgiGetCurrentThread();
-	return GetGuiThread() == Me;
+	OsThreadId Gui = GetGuiThread();
+	// printf("Me=%i Gui=%i\n", Me, Gui);
+	return Gui == Me;
 }
 
 #ifndef WIN32

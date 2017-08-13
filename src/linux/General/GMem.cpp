@@ -14,7 +14,7 @@
 #include "LgiDefs.h"
 #include "LgiOsDefs.h"
 #include "GMem.h"
-#include "GMutex.h"
+#include "LMutex.h"
 
 #ifdef MEMORY_DEBUG
 

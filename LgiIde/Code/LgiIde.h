@@ -19,6 +19,7 @@
 #include "GStringClass.h"
 #include "GDebugger.h"
 #include "GTextView3.h"
+#include "LList.h"
 
 #define LgiIdeVer				"1.0.0"
 
@@ -253,7 +254,7 @@ public:
 	int GetBuildMode();
 	GTree *GetTree();
 	GOptionsFile *GetOptions();
-	GList *GetFtpLog();
+	LList *GetFtpLog();
 	GStream *GetBuildLog();
 	IdeDoc *FindOpenFile(char *FileName);
 	IdeDoc *GotoReference(const char *File, int Line, bool CurIp, bool WithHistory = true);

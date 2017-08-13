@@ -2,11 +2,11 @@
 
 #include "Lgi.h"
 #include "LgiIde.h"
-#include "GList.h"
+#include "LList.h"
 #include "GUtf8.h"
 #include "GDisplayString.h"
 
-class CharItem : public GListItem
+class CharItem : public LListItem
 {
 	GSurface *pDC;
 
@@ -23,7 +23,7 @@ public:
 
 	void OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GItemColumn *c)
 	{
-		GListItem::OnPaintColumn(Ctx, i, c);
+		LListItem::OnPaintColumn(Ctx, i, c);
 
 		if (i == 1)
 		{
@@ -33,7 +33,7 @@ public:
 
 	void OnMeasure(GdcPt2 *Info)
 	{
-		GListItem::OnMeasure(Info);
+		LListItem::OnMeasure(Info);
 		if (pDC)
 			Info->y = max(Info->y, pDC->Y());
 	}
@@ -42,7 +42,7 @@ public:
 class SysCharSupportPriv : public GLgiRes
 {
 public:
-	GList *Match, *NonMatch;
+	LList *Match, *NonMatch;
 
 	SysCharSupportPriv()
 	{
@@ -78,7 +78,7 @@ public:
 
 							if (Fnt->Create(f, 16))
 							{
-								GList *m = _HasUnicodeGlyph(Fnt->GetGlyphMap(), c) ? Match : NonMatch;
+								LList *m = _HasUnicodeGlyph(Fnt->GetGlyphMap(), c) ? Match : NonMatch;
 
 								GMemDC *pDC = new GMemDC;
 								if (pDC)
@@ -93,7 +93,7 @@ public:
 									}
 								}
 
-								GListItem *i;
+								LListItem *i;
 								m->Insert(i = new CharItem(pDC));
 								if (i)
 								{

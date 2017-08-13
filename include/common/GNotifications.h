@@ -7,31 +7,31 @@ enum GNotifyType
 
 	// GItemContainer notification flags
 	/// Item inserted
-	/// \sa GList, GView::OnNotify
+	/// \sa LList, GView::OnNotify
 	GNotifyItem_Insert = 0x100,
 	/// Item deleted
-	/// \sa GList, GView::OnNotify
+	/// \sa LList, GView::OnNotify
 	GNotifyItem_Delete,
 	/// Item selected
-	/// \sa GList, GView::OnNotify
+	/// \sa LList, GView::OnNotify
 	GNotifyItem_Select,
 	/// Item clicked
-	/// \sa GList, GView::OnNotify
+	/// \sa LList, GView::OnNotify
 	GNotifyItem_Click,
 	/// Item double clicked
-	/// \sa GList, GView::OnNotify
+	/// \sa LList, GView::OnNotify
 	GNotifyItem_DoubleClick,
 	/// Item changed
-	/// \sa GList, GView::OnNotify
+	/// \sa LList, GView::OnNotify
 	GNotifyItem_Change,
 	/// Column changed
-	/// \sa GList, GView::OnNotify
+	/// \sa LList, GView::OnNotify
 	GNotifyItem_ColumnsChanged,
 	/// Column sized
-	/// \sa GList, GView::OnNotify
+	/// \sa LList, GView::OnNotify
 	GNotifyItem_ColumnsResized,
 	/// Column clicks
-	/// \sa GList, GView::OnNotify
+	/// \sa LList, GView::OnNotify
 	GNotifyItem_ColumnClicked,
 	/// Items dropped on the control
 	GNotifyItem_ItemsDropped,
@@ -70,16 +70,16 @@ enum GNotifyType
 	GNotifyScrollBar_Destroy,
 
 	/// Return/Enter pressed
-	/// \sa GList, GView::OnNotify
+	/// \sa LList, GView::OnNotify
 	GNotify_ReturnKey = VK_RETURN,
 	/// Backspace pressed
-	/// \sa GList, GView::OnNotify
+	/// \sa LList, GView::OnNotify
 	GNotify_BackspaceKey = VK_BACKSPACE,
 	/// Delete pressed
-	/// \sa GList, GView::OnNotify
+	/// \sa LList, GView::OnNotify
 	GNotify_DeleteKey = VK_DELETE,
 	/// Escape pressed
-	/// \sa GList, GView::OnNotify
+	/// \sa LList, GView::OnNotify
 	GNotify_EscapeKey = VK_ESCAPE,
 	
 	

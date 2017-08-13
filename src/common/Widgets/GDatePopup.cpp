@@ -9,7 +9,7 @@ GDatePopup::GDatePopup(GView *owner) : GPopup(owner)
 	SetParent(owner);
 	Owner = owner;
 	
-	GDateTime Now;
+	LDateTime Now;
 	if (owner)
 		Now.SetDate(owner->Name());
 	else
@@ -29,12 +29,12 @@ GDatePopup::~GDatePopup()
 	}
 }
 
-GDateTime GDatePopup::Get()
+LDateTime GDatePopup::Get()
 {
 	return Mv.Get();
 }
 
-void GDatePopup::Set(GDateTime &Ts)
+void GDatePopup::Set(LDateTime &Ts)
 {
 	Mv.Set(&Ts);
 }
@@ -133,14 +133,14 @@ void GDatePopup::OnMouseClick(GMouse &m)
 	{
 		if (Next.Overlap(m.x, m.y))
 		{
-			GDateTime &c = Mv.Get();
+			LDateTime &c = Mv.Get();
 			c.AddMonths(1);
 			Mv.Set(&c);
 			Invalidate();
 		}
 		else if (Prev.Overlap(m.x, m.y))
 		{
-			GDateTime &c = Mv.Get();
+			LDateTime &c = Mv.Get();
 			c.AddMonths(-1);
 			Mv.Set(&c);
 			Invalidate();
@@ -261,7 +261,7 @@ int GDateDropDown::OnNotify(GViewI *Wnd, int Flags)
 	if (Wnd == (GViewI*)Drop)
 	{
 		char s[256];
-		GDateTime Ts = Drop->Get();
+		LDateTime Ts = Drop->Get();
 		Ts.Get(s, sizeof(s));
 		SetDate(s);
 	}
@@ -297,7 +297,7 @@ void GDateDropDown::SetDate(char *d)
 	GViewI *n = GetNotify();
 	if (n && d)
 	{
-		GDateTime New;
+		LDateTime New;
 		char *Old = n->Name();
 		if (Old)
 		{
@@ -333,7 +333,7 @@ void GDateDropDown::OnMouseClick(GMouse &m)
 			GViewI *n = GetNotify();
 			if (n)
 			{
-				GDateTime New;
+				LDateTime New;
 				char *Old = n->Name();
 				if (!ValidStr(Old) && DateSrc)
 				{

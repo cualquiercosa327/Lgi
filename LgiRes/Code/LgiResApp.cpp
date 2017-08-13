@@ -1894,7 +1894,7 @@ char *TagName(GXmlTag *t)
 
 class ResCompare : public GWindow, public GLgiRes
 {
-	GList *Lst;
+	LList *Lst;
 
 public:
 	ResCompare(char *File1, char *File2)
@@ -1970,7 +1970,7 @@ public:
 		if (stricmp(t1->GetTag(), t2->GetTag()) != 0)
 		{
 			sprintf(s, "Different Tag: '%s' <-> '%s'", t1->GetTag(), t2->GetTag());
-			GListItem *i = new GListItem;
+			LListItem *i = new LListItem;
 			if (i)
 			{
 				i->SetText(s);
@@ -1979,7 +1979,7 @@ public:
 			}
 		}
 
-		GHashTable a(0, false);		
+		GHashTbl<char*,GXmlAttr*> a(0, false);		
 		for (int i=0; i<t1->Attr.Length(); i++)
 		{
 			GXmlAttr *a1 = &t1->Attr[i];
@@ -1995,7 +1995,7 @@ public:
 				if (strcmp(a1->GetValue(), a2->GetValue()) != 0)
 				{
 					sprintf(s, "Different Attr Value: '%s' <-> '%s'", a1->GetValue(), a2->GetValue());
-					GListItem *i = new GListItem;
+					LListItem *i = new LListItem;
 					if (i)
 					{
 						i->SetText(s);
@@ -2010,7 +2010,7 @@ public:
 			else
 			{
 				sprintf(s, "[Right] Missing Attr: '%s' = '%s'", a2->GetName(), a2->GetValue());
-				GListItem *i = new GListItem;
+				LListItem *i = new LListItem;
 				if (i)
 				{
 					i->SetText(s);
@@ -2025,7 +2025,7 @@ public:
 		{
 			GXmlAttr *a1 = (GXmlAttr *)v;
 			sprintf(s, "[Left] Missing Attr: '%s' = '%s'", a1->GetName(), a1->GetValue());
-			GListItem *i = new GListItem;
+			LListItem *i = new LListItem;
 			if (i)
 			{
 				i->SetText(s);
@@ -2073,7 +2073,7 @@ public:
 				else if (r1[i])
 				{
 					sprintf(s, "[Right] Missing String: Ref=%s, Def=%s", r1[i]->GetAttr("ref"), r1[i]->GetAttr("Define"));
-					GListItem *n = new GListItem;
+					LListItem *n = new LListItem;
 					if (n)
 					{
 						n->SetText(s);
@@ -2084,7 +2084,7 @@ public:
 				else if (r2[i])
 				{
 					sprintf(s, "[Left] Missing String: Ref=%s, Def=%s", r2[i]->GetAttr("ref"), r2[i]->GetAttr("Define"));
-					GListItem *n = new GListItem;
+					LListItem *n = new LListItem;
 					if (n)
 					{
 						n->SetText(s);
@@ -2817,7 +2817,7 @@ bool AppWnd::WriteDefines(GFile &Defs)
 	if (ListObjects(Lst))
 	{
 		GHashTbl<char*,int> Def;
-		GHashTable Ident;
+		GHashTbl<char*,char*> Ident;
 
 		for (Resource *r = Lst.First(); r; r = Lst.Next())
 		{
@@ -2852,7 +2852,7 @@ bool AppWnd::WriteDefines(GFile &Defs)
 							char IdStr[32];
 							sprintf(IdStr, "%i", s->GetId());
 							char *Define;
-							if ((Define = (char*)Ident.Find(IdStr)))
+							if ((Define = Ident.Find(IdStr)))
 							{
 								if (strcmp(Define, s->GetDefine()))
 								{
@@ -3378,7 +3378,7 @@ bool AppWnd::LoadWin32(char *FileName)
 			GLanguageId LanguageId = 0;
 
 			// Dialogs
-			List<ResDialog> DlgList;
+			List<ResDialog> DlLList;
 			CtrlDlg *Dlg = 0;
 
 			// Menus
@@ -3857,7 +3857,7 @@ bool AppWnd::LoadWin32(char *FileName)
 								// another language
 								ResDialog *Match = 0;
 								CtrlDlg *MatchObj = 0;
-								for (ResDialog *d = DlgList.First(); d; d = DlgList.Next())
+								for (ResDialog *d = DlLList.First(); d; d = DlLList.Next())
 								{
 									GAutoPtr<GViewIterator> It(d->IterateViews());
 									GViewI *Wnd = It->First();
@@ -3964,7 +3964,7 @@ bool AppWnd::LoadWin32(char *FileName)
 								{
 									// Insert the dialog
 									InsertObject(TYPE_DIALOG, Dialog, false);
-									DlgList.Insert(Dialog);
+									DlLList.Insert(Dialog);
 								}
 
 								Dialog = 0;

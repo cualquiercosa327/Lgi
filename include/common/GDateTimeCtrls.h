@@ -10,7 +10,7 @@
 class GTimePopup : public GPopup
 {
 	GView *Owner;
-	GList *Times;
+	LList *Times;
 	bool Ignore;
 
 public:
@@ -19,7 +19,7 @@ public:
 
 	const char *GetClass() { return "GTimePopup"; }
 
-	void SetTime(GDateTime *t);
+	void SetTime(LDateTime *t);
 	GAutoString GetTime();
 
 	void OnCreate();
@@ -69,8 +69,8 @@ public:
 
 	const char *GetClass() { return "GDatePopup"; }
 
-	GDateTime Get();
-	void Set(GDateTime &Ts);
+	LDateTime Get();
+	void Set(LDateTime &Ts);
 	void OnPaint(GSurface *pDC);
 	void OnMouseClick(GMouse &m);
 	void Move(int Dx, int Dy);

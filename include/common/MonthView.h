@@ -3,7 +3,7 @@
 #ifndef __MONTH_VIEW_H
 #define __MONTH_VIEW_H
 
-#include "GDateTime.h"
+#include "LDateTime.h"
 
 /////////////////////////////////////////////////////////////////////////////////////
 extern const char *ShortDayNames[7];
@@ -16,20 +16,20 @@ class MonthView
 	static char Buf[256];
 
 protected:
-	GDateTime Cursor;
-	GDateTime First;	// of month
-	GDateTime Start;	// of visible
-	GDateTime Cell;
+	LDateTime Cursor;
+	LDateTime First;	// of month
+	LDateTime Start;	// of visible
+	LDateTime Cell;
 
 	int Sx, Sy;
 	int MonthX, MonthY;
 
 public:
-	MonthView(GDateTime *dt = 0);
+	MonthView(LDateTime *dt = 0);
 
 	// Set
-	void Set(GDateTime *dt);
-	GDateTime &Get();
+	void Set(LDateTime *dt);
+	LDateTime &Get();
 	void SetCursor(int x, int y);
 	void GetCursor(int &x, int &y);
 	void SelectCell(int x, int y);

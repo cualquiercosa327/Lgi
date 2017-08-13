@@ -1390,7 +1390,7 @@ class TableLayoutTest : public GDialog
 	GView *Msg;
 	GTree *Tree;
 	class DlgContainer *View;
-	GAutoPtr<GThread> Worker;
+	GAutoPtr<LThread> Worker;
 	GAutoString Base;
 	
 public:
@@ -1471,14 +1471,14 @@ public:
 	}
 };
 
-class Lr8Search : public GThread
+class Lr8Search : public LThread
 {
     TableLayoutTest *Wnd;
 	char *Base;
 	GTree *Tree;
 	
 public:
-	Lr8Search(TableLayoutTest *w, char *base, GTree *tree) : GThread("Lr8Search")
+	Lr8Search(TableLayoutTest *w, char *base, GTree *tree) : LThread("Lr8Search")
 	{
 	    Wnd = w;
 		Base = base;

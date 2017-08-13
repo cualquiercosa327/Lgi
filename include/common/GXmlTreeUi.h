@@ -5,7 +5,7 @@
 #define _GXML_TREE_UI_H_
 
 #include "GVariant.h"
-#include "GList.h"
+#include "LList.h"
 
 /// This class allows you to serialize data between the user interface and a
 /// GDom instance. Useful for storing user visible application settings in
@@ -18,7 +18,7 @@ public:
 	GXmlTreeUi();
 	virtual ~GXmlTreeUi();
 
-	typedef GListItem *(*CreateListItem)(void *User);
+	typedef LListItem *(*CreateListItem)(void *User);
 	typedef GTreeItem *(*CreateTreeItem)(void *User);
 
 	/// Create attribute <-> UI element mapping for generic control

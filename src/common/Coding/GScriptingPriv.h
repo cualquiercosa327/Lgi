@@ -492,7 +492,7 @@ public:
 		///		Name - File/dir name
 		///		Size - Size of entry
 		///		Folder - bool, true if folder
-		///		Modified - GDateTime, modified time
+		///		Modified - LDateTime, modified time
 		bool ListFiles(GVariant *Ret, ArgumentArray &Args);
 		/// Deletes a file
 		bool DeleteFile(GVariant *Ret, ArgumentArray &Args);

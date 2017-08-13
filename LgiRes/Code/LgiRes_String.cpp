@@ -142,7 +142,7 @@ ResString::ResString(ResStringGroup *grp, int init_ref)
 		LgiAssert(!Group->Strs.HasItem(this));
 
 		Group->Strs.Insert(this);
-		Group->GList::Insert(this);
+		Group->LList::Insert(this);
 	}
 	else
 	{
@@ -163,7 +163,7 @@ ResString::~ResString()
 			LgiAssert(0);
 		}
 
-		Group->GList::Remove(this);
+		Group->LList::Remove(this);
 	}
 
 	for (StrLang *s = Items.First(); s; s = Items.Next())
@@ -891,7 +891,7 @@ void ResString::PasteText()
 ////////////////////////////////////////////////////////////////////
 ResStringGroup::ResStringGroup(AppWnd *w, int type) : 
 	Resource(w, type),
-	GList(90, 0, 0, 200, 200)
+	LList(90, 0, 0, 200, 200)
 {
 	Ui = 0;
 	Wnd()->Name("<untitled>");
@@ -934,7 +934,7 @@ int ResStringGroup::GetLangIdx(GLanguageId Id)
 	return -1;
 }
 
-int ResString::Compare(GListItem *li, int Column)
+int ResString::Compare(LListItem *li, int Column)
 {
 	ResString *r = dynamic_cast<ResString*>(li);
 	static const char *Empty = "";
@@ -979,7 +979,7 @@ int ResString::Compare(GListItem *li, int Column)
 	return -1;
 }
 
-int ResStringCompareFunc(GListItem *a, GListItem *b, NativeInt Data)
+int ResStringCompareFunc(LListItem *a, LListItem *b, NativeInt Data)
 {
 	ResString *A = dynamic_cast<ResString*>(a);
 	if (A)
@@ -1001,21 +1001,21 @@ void ResStringGroup::OnColumnClick(int Col, GMouse &m)
 		SortAscend = true;
 	}
 
-	GList::Sort(ResStringCompareFunc, (SortCol + 1) * ((SortAscend) ? 1 : -1));
+	LList::Sort(ResStringCompareFunc, (SortCol + 1) * ((SortAscend) ? 1 : -1));
 
-	GListItem *Sel = GetSelected();
+	LListItem *Sel = GetSelected();
 	if (Sel)
 	{
 		Sel->ScrollTo();
 	}
 }
 
-void ResStringGroup::OnItemClick(GListItem *Item, GMouse &m)
+void ResStringGroup::OnItemClick(LListItem *Item, GMouse &m)
 {
-	GList::OnItemClick(Item, m);
+	LList::OnItemClick(Item, m);
 }
 
-void ResStringGroup::OnItemSelect(GArray<GListItem*> &Items)
+void ResStringGroup::OnItemSelect(GArray<LListItem*> &Items)
 {
 	if (IsAttached())
 	{
@@ -1133,7 +1133,7 @@ int ResStringGroup::OnCommand(int Cmd, int Event, OsView hWnd)
 		}
 		case IDM_DELETE:
 		{
-			List<GListItem> l;
+			List<LListItem> l;
 			if (GetSelection(l))
 			{
 				for (	ResString *s = dynamic_cast<ResString*>(l.First());
@@ -1447,7 +1447,7 @@ bool ResStringGroup::Write(GXmlTag *t, SerialiseContext &Ctx)
 	t->SetAttr("Name", n);
 	DeleteArray(n);
 
-	for (GListItem *i = Strs.First(); i; i = Strs.Next())
+	for (LListItem *i = Strs.First(); i; i = Strs.Next())
 	{
 		ResString *s = dynamic_cast<ResString*>(i);
 		if (s && (s->Define || s->Items.Length() > 0))

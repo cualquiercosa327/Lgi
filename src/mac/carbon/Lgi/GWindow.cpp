@@ -110,7 +110,7 @@ GWindow::GWindow() :
 	WndFlags |= GWND_CREATE;
 	GView::Visible(false);
 
-    _Lock = new GMutex;
+    _Lock = new LMutex;
 
 	GRect pos(0, 50, 200, 100);
 	Rect r = pos;
@@ -142,7 +142,7 @@ GWindow::GWindow(WindowRef wr)
 	_Window = this;
 	WndFlags |= GWND_CREATE;
 	GView::Visible(false);
-    _Lock = new GMutex;
+    _Lock = new LMutex;
 	Wnd = wr;
 }
 #endif

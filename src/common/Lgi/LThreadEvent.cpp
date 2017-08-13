@@ -1,5 +1,5 @@
 #include "Lgi.h"
-#include "GThreadEvent.h"
+#include "LThreadEvent.h"
 
 #if USE_POSIX_SEM
 	#define SEM_NULL -1
@@ -31,8 +31,9 @@
 #endif
 
 #define DEBUG_THREADING     0
+#define USE_NAMED_SEM		0
 
-GThreadEvent::GThreadEvent(const char *name)
+LThreadEvent::LThreadEvent(const char *name)
 {
 	Name(name);
 
@@ -47,17 +48,28 @@ GThreadEvent::GThreadEvent(const char *name)
 
 	#elif USE_POSIX_SEM
 	
+		#if USE_NAMED_SEM
 		char Str[256];
+		ZeroObj(Str);
 		sprintf_s(Str, sizeof(Str), "lgi.sem.%p", this);
+		printf("Str=%p - %p\n", Str, Str+sizeof(Str));
 		Sem = sem_open(Str, O_CREAT, 0666, 0);
 		if (Sem == SEM_FAILED)
 		{
 			printf("%s:%i - sem_open failed with %i.\n", _FL, errno);
 		}
+		#else
+		Sem = &Local;
+		int r = sem_init(Sem, 0, 0);
+		if (r)
+		{
+			printf("%s:%i - sem_init failed with %i\n", _FL, errno);
+		}
+		#endif
 		else
 		{
 			#if DEBUG_THREADING
-			printf("%p::GThreadEvent init\n", this);
+			printf("%p::LThreadEvent init\n", this);
 			#endif
 		}
 	
@@ -93,7 +105,7 @@ GThreadEvent::GThreadEvent(const char *name)
 	#endif
 }
 
-GThreadEvent::~GThreadEvent()
+LThreadEvent::~LThreadEvent()
 {
 	#if USE_MACH_SEM
 
@@ -104,13 +116,20 @@ GThreadEvent::~GThreadEvent()
 
 	#elif USE_POSIX_SEM
 
+		// printf("%s:%i - ~LThreadEvent %i\n", _FL, Sem);
+
 		if (Sem != SEM_FAILED)
 		{
+			#if USE_NAMED_SEM
+			// printf("%s:%i - sem_close(%i) in %i\n", _FL, Sem, GetCurrentThreadId());
 			sem_close(Sem);
+			#else
+			sem_destroy(Sem);
+			#endif
 			Sem = SEM_FAILED;
 
 			#if DEBUG_THREADING
-			printf("%p::~GThreadEvent destroy\n", this);
+			printf("%p::~LThreadEvent destroy\n", this);
 			#endif
 		}
 
@@ -130,7 +149,7 @@ GThreadEvent::~GThreadEvent()
 	#endif
 }
 
-bool GThreadEvent::IsOk()
+bool LThreadEvent::IsOk()
 {
 	#if USE_MACH_SEM
 
@@ -156,7 +175,7 @@ bool GThreadEvent::IsOk()
 	#endif
 }
 
-bool GThreadEvent::Signal()
+bool LThreadEvent::Signal()
 {
 	#if USE_MACH_SEM
 
@@ -170,8 +189,21 @@ bool GThreadEvent::Signal()
 	
 		if (!IsOk())
 			return false;
-			
-		int r = sem_post(Sem);
+
+		int r;
+		#if DEBUG_THREADING
+		int val = 1111;
+		r = sem_getvalue (Sem, &val);     			
+		printf("%s:%i - calling sem_post(%i) in %i (val=%i, name=%s)\n", _FL, Sem, GetCurrentThreadId(), val, Name());
+		#endif
+		
+		r = sem_post(Sem);
+		
+		#if DEBUG_THREADING
+		sem_getvalue (Sem, &val);
+		printf("%s:%i - sem_post(%i) = %i in %i (val=%i, name=%s)\n", _FL, Sem, r, GetCurrentThreadId(), val, Name());
+		#endif
+		
 		if (r)
 		{
 			printf("%s:%i - sem_post failed.\n", _FL);
@@ -180,7 +212,7 @@ bool GThreadEvent::Signal()
 		else
 		{
 			#if DEBUG_THREADING
-			printf("%p::GThreadEvent signal\n", this);
+			printf("%p::LThreadEvent signal\n", this);
 			#endif
 		}
 
@@ -223,7 +255,7 @@ bool GThreadEvent::Signal()
 	return true;
 }
 
-GThreadEvent::WaitStatus GThreadEvent::Wait(int32 Timeout)
+LThreadEvent::WaitStatus LThreadEvent::Wait(int32 Timeout)
 {
 	#if USE_MACH_SEM
 
@@ -276,7 +308,13 @@ GThreadEvent::WaitStatus GThreadEvent::Wait(int32 Timeout)
 		int r;
 		if (Timeout < 0)
 		{
+			#if DEBUG_THREADING
+			printf("%s:%i - starting sem_wait(%i) in %i (name=%s)\n", _FL, Sem, GetCurrentThreadId(), Name());
+			#endif
 			r = sem_wait(Sem);
+			#if DEBUG_THREADING
+			printf("%s:%i - sem_wait(%i) = %i in %i (name=%s)\n", _FL, Sem, r, GetCurrentThreadId(), Name());
+			#endif
 			if (r)
 			{
 				printf("%s:%i - sem_wait failed with %i.\n", _FL, errno);
@@ -284,61 +322,27 @@ GThreadEvent::WaitStatus GThreadEvent::Wait(int32 Timeout)
 			}
 
 			#if DEBUG_THREADING
-			printf("%p::GThreadEvent signalled\n", this);
+			printf("%p::LThreadEvent signalled\n", this);
 			#endif
-			return WaitSignaled;
 		}
 		else
 		{
-			/*
-			#ifdef MAC
-			
-				// No sem_timedwait, so poll instead :(
+			timespec to;
+			TimeoutToTimespec(to, Timeout);
 
-				#if DEBUG_THREADING
-				printf("%p::GThreadEvent starting sem_trywait loop...\n", this);
-				#endif
-
-				uint64 Start = LgiCurrentTime();
-				while (true)
-				{
-					r = sem_trywait(Sem);
-					if (r)
-					{
-						if (errno != EAGAIN)
-						{
-							printf("%s:%i - sem_trywait failed with %i.\n", _FL, errno);
-							return WaitError;
-						}
-					}
-					else
-					{
-						#if DEBUG_THREADING
-						printf("%p::GThreadEvent signalled\n", this);
-						#endif
-						return WaitSignaled;
-					}
-					
-					if (LgiCurrentTime() - Start >= Timeout)
-					{
-						#if DEBUG_THREADING
-						printf("%p::GThreadEvent timed out\n", this);
-						#endif
-						return WaitTimeout;
-					}
-					
-					LgiSleep(1);
-				}
-
-			#else
-			*/
-
-				timespec to;
-				TimeoutToTimespec(to, Timeout);
-				r = sem_timedwait(Sem, &to);
-
-			// #endif
+			printf("%s:%i - starting sem_timedwait(%i) in %i\n", _FL, Sem, GetCurrentThreadId());
+			r = sem_timedwait(Sem, &to);
+			printf("%s:%i - sem_timedwait(%i) = %i (in %i)\n", _FL, Sem, r, GetCurrentThreadId());
+			if (r == ETIMEDOUT)
+				return WaitTimeout;
+			if (r)
+			{
+				// printf("%s:%i - sem_wait failed with %i.\n", _FL, errno);
+				return WaitError;
+			}
 		}
+
+		return WaitSignaled;
 				
 
 	#elif defined(POSIX)
@@ -393,7 +397,7 @@ GThreadEvent::WaitStatus GThreadEvent::Wait(int32 Timeout)
 	return WaitError;
 }
 
-uint32 GThreadEvent::GetError()
+uint32 LThreadEvent::GetError()
 {
 	return LastError;
 }

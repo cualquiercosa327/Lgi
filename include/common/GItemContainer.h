@@ -178,7 +178,7 @@ class LgiClass GItemColumn :
 {
 	class GItemColumnPrivate *d;
 	friend class GDragColumn;
-	friend class GListItem;
+	friend class LListItem;
 	friend class GItemContainer;
 
 public:
@@ -346,16 +346,16 @@ public:
 	/// Adds a preexisting column to the control
 	bool AddColumn
 	(
-		/// The column object. The object once added is owned by the GList
+		/// The column object. The object once added is owned by the LList
 		GItemColumn *Col,
 		/// The location to insert or -1 to append
 		int Where = -1
 	);
 	
-	/// Deletes a column from the GList
+	/// Deletes a column from the LList
 	bool DeleteColumn(GItemColumn *Col);
 	
-	/// Deletes all the columns of the GList
+	/// Deletes all the columns of the LList
 	void EmptyColumns();
 	
 	/// Returns the column at index 'Index'

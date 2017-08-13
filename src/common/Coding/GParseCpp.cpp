@@ -3,7 +3,7 @@
 
 #include "Lgi.h"
 #include "GParseCpp.h"
-#include "GThreadEvent.h"
+#include "LThreadEvent.h"
 #include "GLexCpp.h"
 #include "GVariant.h"
 #include "GScriptingPriv.h"

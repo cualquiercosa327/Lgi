@@ -14,7 +14,7 @@
 #include "Lgi.h"
 #include "GPopup.h"
 #include "GToken.h"
-#include "GList.h"
+#include "LList.h"
 #include "GTextLabel.h"
 #include "GEdit.h"
 #include "GButton.h"
@@ -89,7 +89,7 @@ char *GFileType::DefaultExtension()
 }
 
 //////////////////////////////////////////////////////////////////////////
-class GFolderItem : public GListItem
+class GFolderItem : public LListItem
 {
 	class GFileSelectDlg *Dlg;
 	char *Path;
@@ -157,13 +157,7 @@ public:
 		CurrentType = -1;
 
 		if (!Icons)
-		{
 			Icons = new GImageList(16, 16, FileSelectIcons.Create(0xF81F));
-			#if WINNATIVE
-			if (Icons)
-				Icons->Create(pDC->X(), pDC->Y(), pDC->GetBits());
-			#endif
-		}
 	}
 
 	virtual ~GFileSelectPrivate()
@@ -329,7 +323,7 @@ public:
 	}
 };
 
-class GFolderList : public GList, public GFolderView
+class GFolderList : public LList, public GFolderView
 {
 public:
 	GFolderList(GFileSelectDlg *dlg, int Id, int x, int y, int cx, int cy);
@@ -355,6 +349,294 @@ public:
 #define IDC_SUB_TBL					1013
 #define IDC_BOOKMARKS				1014
 
+#if 1
+#define USE_FOLDER_CTRL				1
+
+enum FolderCtrlMessages
+{
+	M_DELETE_EDIT				=	M_USER + 100,
+	M_NOTIFY_VALUE_CHANGED,
+};
+
+class FolderCtrl : public GView
+{
+	struct Part
+	{
+		GAutoPtr<GDisplayString> ds;
+		GRect Arrow;
+		GRect Text;
+	};
+	
+	GEdit *e;
+	GArray<Part> p;
+	Part *Over;
+	int Cursor;
+
+	Part *HitPart(int x, int y, int *Sub = NULL)
+	{
+		for (unsigned i=0; i<p.Length(); i++)
+		{
+			if (p[i].Arrow.Overlap(x, y))
+			{
+				if (Sub) *Sub = 1;
+				return p.AddressOf(i);
+			}
+			if (p[i].Text.Overlap(x, y))
+			{
+				if (Sub) *Sub = 0;
+				return p.AddressOf(i);
+			}
+		}
+
+		return NULL;
+	}
+	
+public:
+	FolderCtrl(int id)
+	{
+		e = NULL;
+		Cursor = 0;
+		SetId(id);
+	}
+	
+	~FolderCtrl()
+	{
+	}
+	
+	const char *GetClass() { return "FolderCtrl"; }
+	
+	bool OnLayout(GViewLayoutInfo &Inf)
+	{
+		if (Inf.Width.Min == 0)
+		{
+			Inf.Width.Min = -1;
+			Inf.Width.Max = -1;
+		}
+		else
+		{
+			Inf.Height.Min = GetFont()->GetHeight() + 4;
+			Inf.Height.Max = Inf.Height.Min;
+		}
+		return true;
+	}
+
+	GString NameAt(int Level)
+	{
+		GString n;
+		#ifndef WINDOWS
+		n += "/";
+		#endif
+		for (unsigned i=0; i<=Level && i<p.Length(); i++)
+		{
+			n += (const char16*) *(p[i].ds.Get());
+			n += DIR_STR;
+		}
+
+		return n;		
+	}
+
+	char *Name()
+	{
+		GString n = NameAt(Cursor);
+		GBase::Name(n);
+		return GBase::Name();
+	}
+	
+	bool Name(const char *n)
+	{
+		bool b = GView::Name(n);
+		
+		Over = NULL;
+		GString Nm(n);
+		GString::Array a = Nm.SplitDelimit(DIR_STR);
+		p.Length(0);
+		for (size_t i=0; i<a.Length(); i++)
+		{
+			Part &n = p.New();
+			n.ds.Reset(new GDisplayString(GetFont(), a[i]));
+		}
+
+		Cursor = p.Length() - 1;
+
+		Invalidate();
+		PostEvent(M_NOTIFY_VALUE_CHANGED);
+		return b;
+	}
+	
+	void OnPaint(GSurface *pDC)
+	{
+		GRect c = GetClient();
+		LgiThinBorder(pDC, c, EdgeWin7Sunken);
+		
+		GFont *f = GetFont();
+		f->Transparent(false);
+		
+		GDisplayString Arrow(f, ">");
+		for (unsigned i=0; i<p.Length(); i++)
+		{
+			Part *n = p.AddressOf(i);
+			COLOUR Fore = Cursor == i ? LC_FOCUS_SEL_FORE : LC_TEXT;
+			COLOUR Bk = Cursor == i ? LC_FOCUS_SEL_BACK : (n == Over ? GdcMixColour(LC_FOCUS_SEL_BACK, LC_WORKSPACE, 0.15f) : LC_WORKSPACE);
+			
+			// Layout and draw arrow
+			n->Arrow.ZOff(Arrow.X()+1, c.Y()-1);
+			n->Arrow.Offset(c.x1, c.y1);
+			f->Colour(Rgb24(192,192,192), Bk);
+			Arrow.DrawCenter(pDC, &n->Arrow);
+			c.x1 = n->Arrow.x2 + 1;
+
+			if (n->ds)
+			{
+				// Layout and draw text
+				n->Text.ZOff(n->ds->X() + 4, c.Y()-1);
+				n->Text.Offset(c.x1, c.y1);
+				f->Colour(Fore, Bk);
+				n->ds->DrawCenter(pDC, &n->Text);
+				c.x1 = n->Text.x2 + 1;
+			}
+		}
+		
+		pDC->Colour(LC_WORKSPACE, 24);
+		pDC->Rectangle(&c);
+	}
+
+	void OnMouseClick(GMouse &m)
+	{
+		if (m.IsContextMenu())
+		{
+		}
+		else if (m.Left())
+		{
+			if (m.Down())
+			{
+				if (p.PtrCheck(Over))
+				{
+					// Over a path node...
+					Cursor = Over - p.AddressOf(0);
+					Part &o = p[Cursor];
+					Invalidate();
+					SendNotify(GNotifyValueChanged);
+
+					if (o.Arrow.Overlap(m.x, m.y))
+					{
+						// Show sub-menu at this level
+						ShowMenu(Cursor);
+					}
+				}
+				else
+				{
+					// In empty space
+					if (!e)
+					{
+						GRect c = GetClient();
+						e = new GEdit(GetId()+1, c.x1, c.y1, c.X()-1, c.Y()-1);
+						if (e)
+						{
+							e->Attach(this);
+
+							GString s = Name();
+							e->Name(s);
+							e->SetCaret(s.Length());
+							e->Focus(true);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	void OnMouseMove(GMouse &m)
+	{
+		Part *o = Over;
+		Over = HitPart(m.x, m.y);
+		if (o != Over)
+			Invalidate();
+	}
+	
+	void OnMouseExit(GMouse &m)
+	{
+		if (Over)
+		{
+			Over = NULL;
+			Invalidate();
+		}
+	}
+
+	int OnNotify(GViewI *c, int f)
+	{
+		if (e != NULL &&
+			c->GetId() == e->GetId())
+		{
+			if (f == VK_RETURN)
+			{
+				GString s = e->Name();
+				Name(s);
+				PostEvent(M_DELETE_EDIT);
+			}
+		}
+
+		return 0;
+	}
+
+	GMessage::Result OnEvent(GMessage *m)
+	{
+		switch (m->Msg())
+		{
+			case M_DELETE_EDIT:
+			{
+				DeleteObj(e);
+				break;
+			}
+			case M_NOTIFY_VALUE_CHANGED:
+			{
+				SendNotify(GNotifyValueChanged);
+				break;			
+			}
+		}
+
+		return GView::OnEvent(m);
+	}
+
+	virtual bool ShowMenu(int Level)
+	{
+		if (Level <= 0)
+			return false;
+
+		GString dir = NameAt(Level-1);
+		GSubMenu s;
+		GDirectory d;
+
+		GString::Array Opts;
+		for (int b = d.First(dir); b; b = d.Next())
+		{
+			if (d.IsDir())
+			{
+				Opts.New() = d.GetName();
+				s.AppendItem(d.GetName(), Opts.Length());
+			}
+		}
+
+		Part &i = p[Level];
+		GdcPt2 pt(i.Arrow.x1, i.Arrow.y2+1);
+		PointToScreen(pt);
+		int Cmd = s.Float(this, pt.x, pt.y, true);
+		if (Cmd)
+		{
+			GString np;
+			np = dir + DIR_STR + Opts[Cmd-1];
+			Name(np);
+		}
+		else return false;
+
+		return true;
+	}
+};
+
+#else
+#define USE_FOLDER_CTRL				0
+#endif
+
+
 class GFileSelectDlg :
 	public GDialog
 {
@@ -370,7 +652,13 @@ public:
 
 	GTree *Bookmarks;
 	GText *Ctrl1;
+
+	#if USE_FOLDER_CTRL
+	FolderCtrl *Ctrl2;
+	#else
 	GEdit *Ctrl2;
+	#endif
+	
 	GFolderDrop *Ctrl3;
 	GIconButton *BackBtn;
 	GIconButton *UpBtn;
@@ -470,7 +758,11 @@ GFileSelectDlg::GFileSelectDlg(GFileSelectPrivate *select)
 	c->Add(Ctrl1 = new GText(IDC_STATIC, 0, 0, -1, -1, "Look in:"));
 	c->VerticalAlign(GCss::Len(GCss::VerticalMiddle));
 	c = Tbl->GetCell(x++, y);
+	#if USE_FOLDER_CTRL
+	c->Add(Ctrl2 = new FolderCtrl(IDC_PATH));
+	#else
 	c->Add(Ctrl2 = new GEdit(IDC_PATH, 0, 0, 245, 21, ""));
+	#endif
 	c = Tbl->GetCell(x++, y);
 	c->Add(Ctrl3 = new GFolderDrop(this, IDC_DROP, 336, 7, 16, 21));
 	c = Tbl->GetCell(x++, y);
@@ -687,7 +979,8 @@ int GFileSelectDlg::OnNotify(GViewI *Ctrl, int Flags)
 		}
 		case IDC_PATH:
 		{
-			if (Flags == VK_RETURN)
+			// if (Flags == VK_RETURN)
+			if (Flags == GNotifyValueChanged)
 			{
 				// Skip the IDOK message generated by the default button
 				d->EatClose = true;
@@ -705,7 +998,7 @@ int GFileSelectDlg::OnNotify(GViewI *Ctrl, int Flags)
 					
 				if (Flags == GLIST_NOTIFY_RETURN)
 				{
-					List<GListItem> s;
+					List<LListItem> s;
 					if (FileLst->GetSelection(s))
 					{
 						GFolderItem *i = dynamic_cast<GFolderItem*>(s.First());
@@ -886,13 +1179,13 @@ int GFileSelectDlg::OnNotify(GViewI *Ctrl, int Flags)
 				}
 				else
 				{
-					List<GListItem> Sel;
+					List<LListItem> Sel;
 					if (d->Type != TypeSaveFile &&
 						FileLst &&
 						FileLst->GetSelection(Sel) &&
 						Sel.Length() > 1)
 					{
-						for (GListItem *i=Sel.First(); i; i=Sel.Next())
+						for (LListItem *i=Sel.First(); i; i=Sel.Next())
 						{
 							LgiMakePath(f, sizeof(f), Path, i->GetText(0));
 							d->Files.Insert(NewStr(f));
@@ -1333,7 +1626,7 @@ void GFolderItem::OnMouseClick(GMouse &m)
 	}
 }
 
-int GFolderItemCompare(GFolderItem *a, GFolderItem *b, int Data)
+int GFolderItemCompare(GFolderItem *a, GFolderItem *b, NativeInt Data)
 {
 	if (a && b)
 	{
@@ -1352,18 +1645,18 @@ int GFolderItemCompare(GFolderItem *a, GFolderItem *b, int Data)
 }
 
 GFolderList::GFolderList(GFileSelectDlg *dlg, int Id, int x, int y, int cx, int cy) :
-	GList(Id, x, y, cx, cy),
+	LList(Id, x, y, cx, cy),
 	GFolderView(dlg)
 {
 	SetImageList(Dlg->d->Icons, false);
 	ShowColumnHeader(false);
 	AddColumn("Name", cx-20);
-	SetMode(GListColumns);
+	SetMode(LListColumns);
 }
 
 bool GFolderList::OnKey(GKey &k)
 {
-	bool Status = GList::OnKey(k);
+	bool Status = LList::OnKey(k);
 	
 	switch (k.vkey)
 	{
@@ -1423,14 +1716,14 @@ bool GFolderList::OnKey(GKey &k)
 		{
 			if (k.Down() && !k.IsChar && GetWindow())
 			{
-				List<GListItem> Sel;
+				List<LListItem> Sel;
 				if (GetSelection(Sel))
 				{
 					GStringPipe Msg;
 					Msg.Push("Do you want to delete:\n\n");
 					
 					List<GFolderItem> Delete;
-					for (GListItem *i=Sel.First(); i; i=Sel.Next())
+					for (LListItem *i=Sel.First(); i; i=Sel.Next())
 					{
 						GFolderItem *s = dynamic_cast<GFolderItem*>(i);
 						if (s)
@@ -1532,7 +1825,7 @@ void GFolderList::OnFolder()
 	New.Sort(GFolderItemCompare, 0);
 
 	// Display items...
-	Insert((List<GListItem>&) New);
+	Insert((List<LListItem>&) New);
 }
 
 //////////////////////////////////////////////////////////////////////////

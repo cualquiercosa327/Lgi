@@ -392,8 +392,8 @@ char *FormPost::GetActionUri()
 char *FormPost::EncodeFields(GStream *Debug, char *RealFields, bool EncodePlus)
 {
 	GStringPipe p;
-	GHashTable Done;
-	GHashTable Real;
+	GHashTbl<char*,bool> Done;
+	GHashTbl<char*,bool> Real;
 
 	if (RealFields)
 	{
@@ -431,7 +431,7 @@ char *FormPost::EncodeFields(GStream *Debug, char *RealFields, bool EncodePlus)
 
 			if (!Done.Find(v->Field))
 			{
-				Done.Add(v->Field);
+				Done.Add(v->Field, true);
 
 				if (p.GetSize())
 					p.Push("&");
@@ -470,7 +470,7 @@ char *FormPost::EncodeFields(GStream *Debug, char *RealFields, bool EncodePlus)
 	if (Debug && RealFields)
 	{
 		char *k;
-		for (void *p = Real.First(&k); p; p = Real.Next(&k))
+		for (bool p = Real.First(&k); p; p = Real.Next(&k))
 		{
 			Debug->Print("\tMissing field: %s = %s\n", k, p);
 		}
@@ -490,7 +490,7 @@ char *FormPost::EncodeFields(GStream *Debug, char *RealFields, bool EncodePlus)
 			{
 				if (!Done.Find(Name))
 				{
-					Done.Add(Name);
+					Done.Add(Name, true);
 
 					if (p.GetSize())
 						p.Push("&");
