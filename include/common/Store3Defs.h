@@ -196,7 +196,7 @@ enum Store3Fields
 	FIELD_SUBJECT = 6,					// (char*) Subject of the message
 	FIELD_TEXT = 7,						// (char*) Textual body
 	FIELD_MESSAGE_ID = 8,				// (char*) The message ID
-	FIELD_DATE_RECEIVED = 9,			// (GDateTime*) Received date
+	FIELD_DATE_RECEIVED = 9,			// (LDateTime*) Received date
 	FIELD_INTERNET_HEADER = 10,			// (char*) The internet headers
 
 	// Contact fields
@@ -222,7 +222,7 @@ enum Store3Fields
 
 	// More fields
 	FIELD_SIZE = 29,					// (uint64)
-	FIELD_DATE_SENT = 30,				// (GDateTime*)
+	FIELD_DATE_SENT = 30,				// (LDateTime*)
 	FIELD_COLUMN = 31,					// (uint64)
 	// FIELD_BCC = 32,					// Deprecated
 	FIELD_MIME_TYPE = 33,				// (char*) The MIME type
@@ -268,11 +268,11 @@ enum Store3Fields
 	FIELD_CAL_NOTES = 73,				// (char*) Textual notes
 	FIELD_CAL_TYPE = 74,				// (CalendarType) The type of event
 	FIELD_CAL_COMPLETED = 75,			// (int) 0 -> 100%
-	FIELD_CAL_START_UTC = 76,			// (GDateTime*) The start time and date
-	FIELD_CAL_END_UTC = 77,				// (GDateTime*) The end time and date
+	FIELD_CAL_START_UTC = 76,			// (LDateTime*) The start time and date
+	FIELD_CAL_END_UTC = 77,				// (LDateTime*) The end time and date
 
 	FIELD_CAL_RECUR_FILTER_POS = 78,	// (char*) Comma separated list of integers defining positions in the month to filter on.
-	FIELD_CAL_RECUR_END_DATE = 79,		// (GDateTime*) The end of recurence if FIELD_CAL_RECUR_END_TYPE == CalEndOnDate.
+	FIELD_CAL_RECUR_END_DATE = 79,		// (LDateTime*) The end of recurence if FIELD_CAL_RECUR_END_TYPE == CalEndOnDate.
 	FIELD_CAL_RECUR_END_COUNT = 80,		// (int) Times to recur if FIELD_CAL_RECUR_END_TYPE == CalEndOnCount.
 	FIELD_CAL_RECUR_END_TYPE = 81,		// (CalRecurEndType) Which ending to use... needs an enum
 	FIELD_CAL_RECUR = 82,				// (int) true if the event recurs.

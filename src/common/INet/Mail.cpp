@@ -3593,7 +3593,7 @@ bool MailMessage::EncodeHeaders(GStreamI &Out, MailProtocol *Protocol, bool Mime
 	// Construct date
 	const char *Weekday[7] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
 	const char *Month[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-	GDateTime Dt;
+	LDateTime Dt;
 	int TimeZone = Dt.SystemTimeZone();
 	Dt.SetNow();
 	int Len = sprintf_s(Buffer, sizeof(Buffer),

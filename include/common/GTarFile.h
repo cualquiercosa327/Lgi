@@ -18,7 +18,7 @@ public:
 	{
 		GString Dir;
 		GString Name;
-		GDateTime Modified;
+		LDateTime Modified;
 		int64 Size;
 
 		int64 Blocks()
