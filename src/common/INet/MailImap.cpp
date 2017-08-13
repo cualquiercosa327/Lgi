@@ -130,15 +130,16 @@ ssize_t ParseImapResponse(char *Buffer, ssize_t BufferLen, GArray<StrRange> &Ran
 	
 	// Look for start of block
 	SkipSpaces(s);
-	if (s[0] == '\r' &&
-		s[1] == '\n')
-	{
-		s += 2;
-		return s - Buffer;
-	}
-
 	if (*s != '(')
+	{
+		char *Eol = strnstr(Buffer, "\r\n", BufferLen);
+		if (Eol)
+		{
+			s = Eol + 2;
+			return s - Buffer;
+		}
 		return 0;
+	}
 	s++;
 
 	// Parse fields
@@ -2499,7 +2500,7 @@ int MailIMap::Fetch(bool ByUid,
 						char *r = t[0];
 						if (*r == 'A')
 						{
-							bool Status = !_stricmp(t[1], "Ok");
+							Status = !_stricmp(t[1], "Ok");
 							int Response = atoi(r + 1);
 							Log(Line, Status ? GSocketI::SocketMsgReceive : GSocketI::SocketMsgError);
 							if (Response == Cmd)
