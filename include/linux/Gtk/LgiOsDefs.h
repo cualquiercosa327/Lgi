@@ -276,7 +276,6 @@ enum MessageBoxType
 };
 
 #define MB_SYSTEMMODAL				0x1000
-#endif
 
 /// The CTRL key is pressed
 /// \sa GKey
@@ -317,213 +316,220 @@ enum MessageBoxType
 #define abs(a)						( (a) < 0 ? -(a) : (a) )
 
 #ifndef WIN32
-#include <gdk/gdkkeysyms-compat.h>
 
-typedef enum {
-	/* The keyboard syms have been cleverly chosen to map to ASCII */
-	VK_UNKNOWN		= 0,
-	VK_FIRST		= 0,
-	VK_BACKSPACE	= 8,
-	VK_TAB			= 9,
-	VK_CLEAR		= GDK_Clear,
-	VK_RETURN		= 13,
-	VK_PAUSE		= GDK_Pause,
-	VK_ESCAPE		= GDK_Escape,
-	VK_SPACE		= 32,
-	VK_EXCLAIM		= 33,
-	VK_QUOTEDBL		= 34,
-	VK_HASH			= 35,
-	VK_DOLLAR		= 36,
-	VK_AMPERSAND	= 38,
-	VK_QUOTE		= 39,
-	VK_LEFTPAREN	= 40,
-	VK_RIGHTPAREN	= 41,
-	VK_ASTERISK		= 42,
-	VK_PLUS			= 43,
-	VK_COMMA		= 44,
-	VK_MINUS		= 45,
-	VK_PERIOD		= 46,
-	VK_SLASH		= 47,
-	VK_0			= 48,
-	VK_1			= 49,
-	VK_2			= 50,
-	VK_3			= 51,
-	VK_4			= 52,
-	VK_5			= 53,
-	VK_6			= 54,
-	VK_7			= 55,
-	VK_8			= 56,
-	VK_9			= 57,
-	VK_COLON		= 58,
-	VK_SEMICOLON	= 59,
-	VK_LESS			= 60,
-	VK_EQUALS		= 61,
-	VK_GREATER		= 62,
-	VK_QUESTION		= 63,
-	VK_AT			= 64,
-	/* 
-	   Skip uppercase letters
-	 */
-	VK_LEFTBRACKET	= GDK_bracketleft,
-	VK_BACKSLASH	= GDK_backslash,
-	VK_RIGHTBRACKET	= GDK_bracketright,
-	VK_CARET		= 94,
-	VK_UNDERSCORE	= GDK_underscore,
-	VK_BACKQUOTE	= 96,
-	VK_a			= GDK_a,
-	VK_b			= GDK_b,
-	VK_c			= GDK_c,
-	VK_d			= GDK_d,
-	VK_e			= GDK_e,
-	VK_f			= GDK_f,
-	VK_g			= GDK_g,
-	VK_h			= GDK_h,
-	VK_i			= GDK_i,
-	VK_j			= GDK_j,
-	VK_k			= GDK_k,
-	VK_l			= GDK_l,
-	VK_m			= GDK_m,
-	VK_n			= GDK_n,
-	VK_o			= GDK_o,
-	VK_p			= GDK_p,
-	VK_q			= GDK_q,
-	VK_r			= GDK_r,
-	VK_s			= GDK_s,
-	VK_t			= GDK_t,
-	VK_u			= GDK_u,
-	VK_v			= GDK_v,
-	VK_w			= GDK_w,
-	VK_x			= GDK_x,
-	VK_y			= GDK_y,
-	VK_z			= GDK_z,
-	/* End of ASCII mapped keysyms */
+	#include <gdk/gdkkeysyms-compat.h>
 
-	/* Numeric keypad */
-	VK_KP_ENTER		= GDK_KP_Enter,
-	VK_KP0			= GDK_KP_0,
-	VK_KP1			= GDK_KP_1,
-	VK_KP2			= GDK_KP_2,
-	VK_KP3			= GDK_KP_3,
-	VK_KP4			= GDK_KP_4,
-	VK_KP5			= GDK_KP_5,
-	VK_KP6			= GDK_KP_6,
-	VK_KP7			= GDK_KP_7,
-	VK_KP8			= GDK_KP_8,
-	VK_KP9			= GDK_KP_9,
-	VK_KP_PERIOD	= GDK_KP_Decimal,
-	VK_KP_DELETE	= GDK_KP_Delete,
-	VK_KP_MULTIPLY	= GDK_KP_Multiply,
-	VK_KP_PLUS		= GDK_KP_Add,
-	VK_KP_MINUS		= GDK_KP_Subtract,
-	VK_KP_DIVIDE	= GDK_KP_Divide,
-	VK_KP_EQUALS	= GDK_KP_Equal,
+	typedef enum {
+		/* The keyboard syms have been cleverly chosen to map to ASCII */
+		VK_UNKNOWN		= 0,
+		VK_FIRST		= 0,
+		VK_BACKSPACE	= 8,
+		VK_TAB			= 9,
+		VK_CLEAR		= GDK_Clear,
+		VK_RETURN		= 13,
+		VK_PAUSE		= GDK_Pause,
+		VK_ESCAPE		= GDK_Escape,
+		VK_SPACE		= 32,
+		VK_EXCLAIM		= 33,
+		VK_QUOTEDBL		= 34,
+		VK_HASH			= 35,
+		VK_DOLLAR		= 36,
+		VK_AMPERSAND	= 38,
+		VK_QUOTE		= 39,
+		VK_LEFTPAREN	= 40,
+		VK_RIGHTPAREN	= 41,
+		VK_ASTERISK		= 42,
+		VK_PLUS			= 43,
+		VK_COMMA		= 44,
+		VK_MINUS		= 45,
+		VK_PERIOD		= 46,
+		VK_SLASH		= 47,
+		VK_0			= 48,
+		VK_1			= 49,
+		VK_2			= 50,
+		VK_3			= 51,
+		VK_4			= 52,
+		VK_5			= 53,
+		VK_6			= 54,
+		VK_7			= 55,
+		VK_8			= 56,
+		VK_9			= 57,
+		VK_COLON		= 58,
+		VK_SEMICOLON	= 59,
+		VK_LESS			= 60,
+		VK_EQUALS		= 61,
+		VK_GREATER		= 62,
+		VK_QUESTION		= 63,
+		VK_AT			= 64,
+		/* 
+		   Skip uppercase letters
+		 */
+		VK_LEFTBRACKET	= GDK_bracketleft,
+		VK_BACKSLASH	= GDK_backslash,
+		VK_RIGHTBRACKET	= GDK_bracketright,
+		VK_CARET		= 94,
+		VK_UNDERSCORE	= GDK_underscore,
+		VK_BACKQUOTE	= 96,
+		VK_a			= GDK_a,
+		VK_b			= GDK_b,
+		VK_c			= GDK_c,
+		VK_d			= GDK_d,
+		VK_e			= GDK_e,
+		VK_f			= GDK_f,
+		VK_g			= GDK_g,
+		VK_h			= GDK_h,
+		VK_i			= GDK_i,
+		VK_j			= GDK_j,
+		VK_k			= GDK_k,
+		VK_l			= GDK_l,
+		VK_m			= GDK_m,
+		VK_n			= GDK_n,
+		VK_o			= GDK_o,
+		VK_p			= GDK_p,
+		VK_q			= GDK_q,
+		VK_r			= GDK_r,
+		VK_s			= GDK_s,
+		VK_t			= GDK_t,
+		VK_u			= GDK_u,
+		VK_v			= GDK_v,
+		VK_w			= GDK_w,
+		VK_x			= GDK_x,
+		VK_y			= GDK_y,
+		VK_z			= GDK_z,
+		/* End of ASCII mapped keysyms */
 
-	/* Arrows + Home/End pad */
-	VK_HOME			= GDK_Home,
-	VK_LEFT			= GDK_Left,
-	VK_UP			= GDK_Up,
-	VK_RIGHT		= GDK_Right,
-	VK_DOWN			= GDK_Down,
-	VK_PAGEUP		= GDK_Page_Up,
-	VK_PAGEDOWN		= GDK_Page_Down,
-	VK_END			= GDK_End,
-	VK_INSERT		= GDK_Insert,
+		/* Numeric keypad */
+		VK_KP_ENTER		= GDK_KP_Enter,
+		VK_KP0			= GDK_KP_0,
+		VK_KP1			= GDK_KP_1,
+		VK_KP2			= GDK_KP_2,
+		VK_KP3			= GDK_KP_3,
+		VK_KP4			= GDK_KP_4,
+		VK_KP5			= GDK_KP_5,
+		VK_KP6			= GDK_KP_6,
+		VK_KP7			= GDK_KP_7,
+		VK_KP8			= GDK_KP_8,
+		VK_KP9			= GDK_KP_9,
+		VK_KP_PERIOD	= GDK_KP_Decimal,
+		VK_KP_DELETE	= GDK_KP_Delete,
+		VK_KP_MULTIPLY	= GDK_KP_Multiply,
+		VK_KP_PLUS		= GDK_KP_Add,
+		VK_KP_MINUS		= GDK_KP_Subtract,
+		VK_KP_DIVIDE	= GDK_KP_Divide,
+		VK_KP_EQUALS	= GDK_KP_Equal,
 
-	/* Function keys */
-	VK_F1			= GDK_F1,
-	VK_F2			= GDK_F2,
-	VK_F3			= GDK_F3,
-	VK_F4			= GDK_F4,
-	VK_F5			= GDK_F5,
-	VK_F6			= GDK_F6,
-	VK_F7			= GDK_F7,
-	VK_F8			= GDK_F8,
-	VK_F9			= GDK_F9,
-	VK_F10			= GDK_F10,
-	VK_F11			= GDK_F11,
-	VK_F12			= GDK_F12,
-	VK_F13			= GDK_F13,
-	VK_F14			= GDK_F14,
-	VK_F15			= GDK_F15,
+		/* Arrows + Home/End pad */
+		VK_HOME			= GDK_Home,
+		VK_LEFT			= GDK_Left,
+		VK_UP			= GDK_Up,
+		VK_RIGHT		= GDK_Right,
+		VK_DOWN			= GDK_Down,
+		VK_PAGEUP		= GDK_Page_Up,
+		VK_PAGEDOWN		= GDK_Page_Down,
+		VK_END			= GDK_End,
+		VK_INSERT		= GDK_Insert,
 
-	/* Key state modifier keys */
-	VK_NUMLOCK		= GDK_Num_Lock,
-	VK_CAPSLOCK		= GDK_Caps_Lock,
-	VK_SCROLLOCK	= GDK_Scroll_Lock,
-	VK_LSHIFT		= GDK_Shift_L,
-	VK_RSHIFT		= GDK_Shift_R,
-	VK_LCTRL		= GDK_Control_L,
-	VK_RCTRL		= GDK_Control_R,
-	VK_LALT			= GDK_Alt_L,
-	VK_RALT			= GDK_Alt_R,
-	VK_LMETA		= GDK_Hyper_L,
-	VK_RMETA		= GDK_Hyper_R,
-	VK_LSUPER		= GDK_Super_L, /* "Windows" key */
-	VK_RSUPER		= GDK_Super_R,
+		/* Function keys */
+		VK_F1			= GDK_F1,
+		VK_F2			= GDK_F2,
+		VK_F3			= GDK_F3,
+		VK_F4			= GDK_F4,
+		VK_F5			= GDK_F5,
+		VK_F6			= GDK_F6,
+		VK_F7			= GDK_F7,
+		VK_F8			= GDK_F8,
+		VK_F9			= GDK_F9,
+		VK_F10			= GDK_F10,
+		VK_F11			= GDK_F11,
+		VK_F12			= GDK_F12,
+		VK_F13			= GDK_F13,
+		VK_F14			= GDK_F14,
+		VK_F15			= GDK_F15,
 
-	/* Miscellaneous function keys */
-	VK_HELP			= GDK_Help,
-	VK_PRINT		= GDK_Print,
-	VK_SYSREQ		= GDK_Sys_Req,
-	VK_BREAK		= GDK_Break,
-	VK_MENU			= GDK_Menu,
-	VK_UNDO			= GDK_Undo,
-	VK_REDO			= GDK_Redo,
-	VK_EURO			= GDK_EuroSign, /* Some european keyboards */
-	VK_COMPOSE		= GDK_Multi_key, /* Multi-key compose key */
-	VK_MODE			= GDK_Mode_switch, /* "Alt Gr" key (could be wrong) */
-	VK_DELETE		= GDK_Delete,
-	VK_POWER		= 0x10000,	/* Power Macintosh power key */
+		/* Key state modifier keys */
+		VK_NUMLOCK		= GDK_Num_Lock,
+		VK_CAPSLOCK		= GDK_Caps_Lock,
+		VK_SCROLLOCK	= GDK_Scroll_Lock,
+		VK_LSHIFT		= GDK_Shift_L,
+		VK_RSHIFT		= GDK_Shift_R,
+		VK_LCTRL		= GDK_Control_L,
+		VK_RCTRL		= GDK_Control_R,
+		VK_LALT			= GDK_Alt_L,
+		VK_RALT			= GDK_Alt_R,
+		VK_LMETA		= GDK_Hyper_L,
+		VK_RMETA		= GDK_Hyper_R,
+		VK_LSUPER		= GDK_Super_L, /* "Windows" key */
+		VK_RSUPER		= GDK_Super_R,
 
-	/* Add any other keys here */
-	VK_LAST
-} LgiKey;
+		/* Miscellaneous function keys */
+		VK_HELP			= GDK_Help,
+		VK_PRINT		= GDK_Print,
+		VK_SYSREQ		= GDK_Sys_Req,
+		VK_BREAK		= GDK_Break,
+		VK_MENU			= GDK_Menu,
+		VK_UNDO			= GDK_Undo,
+		VK_REDO			= GDK_Redo,
+		VK_EURO			= GDK_EuroSign, /* Some european keyboards */
+		VK_COMPOSE		= GDK_Multi_key, /* Multi-key compose key */
+		VK_MODE			= GDK_Mode_switch, /* "Alt Gr" key (could be wrong) */
+		VK_DELETE		= GDK_Delete,
+		VK_POWER		= 0x10000,	/* Power Macintosh power key */
+
+		/* Add any other keys here */
+		VK_LAST
+	} LgiKey;
+
 #else
-#define VK_BACKSPACE    VK_BACK
-#define VK_PAGEUP       VK_PRIOR
-#define VK_PAGEDOWN     VK_NEXT
-#define VK_RALT         VK_MENU
-#define VK_LALT         VK_MENU
-#define VK_RCTRL        VK_CONTROL
-#define VK_LCTRL        VK_CONTROL
+
+	#define VK_BACKSPACE    VK_BACK
+	#define VK_PAGEUP       VK_PRIOR
+	#define VK_PAGEDOWN     VK_NEXT
+	#define VK_RALT         VK_MENU
+	#define VK_LALT         VK_MENU
+	#define VK_RCTRL        VK_CONTROL
+	#define VK_LCTRL        VK_CONTROL
+
 #endif
 
 /////////////////////////////////////////////////////////////////////////////////////
 // Externs
 #define vsprintf_s		vsnprintf
 #define swprintf_s		swprintf
+
 #ifndef WIN32 // __CYGWIN__
-// LgiFunc char *strnistr(char *a, char *b, int n);
-#define _strnicmp strncasecmp // LgiFunc int _strnicmp(char *a, char *b, int i);
-LgiFunc char *strupr(char *a);
-LgiFunc char *strlwr(char *a);
-LgiFunc int stricmp(const char *a, const char *b);
-#define _stricmp strcasecmp // LgiFunc int _stricmp(const char *a, const char *b);
-#define sprintf_s snprintf
+
+	// LgiFunc char *strnistr(char *a, char *b, int n);
+	#define _strnicmp strncasecmp // LgiFunc int _strnicmp(char *a, char *b, int i);
+	LgiFunc char *strupr(char *a);
+	LgiFunc char *strlwr(char *a);
+	LgiFunc int stricmp(const char *a, const char *b);
+	#define _stricmp strcasecmp // LgiFunc int _stricmp(const char *a, const char *b);
+	#define sprintf_s snprintf
+
 #else
-LgiFunc class GViewI *GWindowFromHandle(OsView hWnd);
-LgiFunc int GetMouseWheelLines();
-LgiFunc int WinPointToHeight(int Pt, HDC hDC = NULL);
-LgiFunc int WinHeightToPoint(int Ht, HDC hDC = NULL);
-LgiExtern class GString WinGetSpecialFolderPath(int Id);
 
-typedef BOOL (__stdcall *pSHGetSpecialFolderPathA)(HWND hwndOwner, LPSTR lpszPath, int nFolder, BOOL fCreate);
-typedef BOOL (__stdcall *pSHGetSpecialFolderPathW)(HWND hwndOwner, LPWSTR lpszPath, int nFolder, BOOL fCreate);
-typedef int (__stdcall *pSHFileOperationA)(LPSHFILEOPSTRUCTA lpFileOp);
-typedef int (__stdcall *pSHFileOperationW)(LPSHFILEOPSTRUCTW lpFileOp);
-typedef int (__stdcall *p_vscprintf)(const char *format, va_list argptr);
+	LgiFunc class GViewI *GWindowFromHandle(OsView hWnd);
+	LgiFunc int GetMouseWheelLines();
+	LgiFunc int WinPointToHeight(int Pt, HDC hDC = NULL);
+	LgiFunc int WinHeightToPoint(int Ht, HDC hDC = NULL);
+	LgiExtern class GString WinGetSpecialFolderPath(int Id);
 
-#if _MSC_VER >= 1400
-#define snprintf sprintf_s
+	typedef BOOL (__stdcall *pSHGetSpecialFolderPathA)(HWND hwndOwner, LPSTR lpszPath, int nFolder, BOOL fCreate);
+	typedef BOOL (__stdcall *pSHGetSpecialFolderPathW)(HWND hwndOwner, LPWSTR lpszPath, int nFolder, BOOL fCreate);
+	typedef int (__stdcall *pSHFileOperationA)(LPSHFILEOPSTRUCTA lpFileOp);
+	typedef int (__stdcall *pSHFileOperationW)(LPSHFILEOPSTRUCTW lpFileOp);
+	typedef int (__stdcall *p_vscprintf)(const char *format, va_list argptr);
+
+	#if _MSC_VER >= 1400
+		#define snprintf sprintf_s
+	#endif
+
+	/// Convert a string d'n'd format to an OS dependant integer.
+	LgiFunc int FormatToInt(char *s);
+	/// Convert a Os dependant integer d'n'd format to a string.
+	LgiFunc char *FormatToStr(int f);
+
 #endif
-
-#endif
-
-/// Convert a string d'n'd format to an OS dependant integer.
-LgiFunc int FormatToInt(char *s);
-/// Convert a Os dependant integer d'n'd format to a string.
-LgiFunc char *FormatToStr(int f);
-
 
 #endif
 
