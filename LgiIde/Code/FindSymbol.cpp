@@ -83,6 +83,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 	GArray<FileSyms*> Files;
 	uint32 Tasks;
 	uint64 MsgTs;
+	bool DoingProgress;
 	
 	FindSymbolSystemPriv(int appSinkHnd) :
 		hApp(appSinkHnd),
@@ -90,6 +91,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 	{
 		Tasks = 0;
 		MsgTs = 0;
+		DoingProgress = false;
 	}
 
 	~FindSymbolSystemPriv()
@@ -278,13 +280,19 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 				if (Now - MsgTs > MSG_TIME_MS)
 				{
 					MsgTs = Now;
+					DoingProgress = true;
 					uint32 Remaining = Tasks - GetQueueSize();
 					Log("FindSym: %i of %i (%.1f%%)\n", Remaining, Tasks, (double)Remaining * 100.0 / max(Tasks, 1));
 				}
 				else if (GetQueueSize() == 0 && MsgTs)
 				{
-					Log("FindSym: Done.\n");
+					if (DoingProgress)
+					{
+						Log("FindSym: Done.\n");
+						DoingProgress = false;
+					}
 					MsgTs = 0;
+					Tasks = 0;
 				}
 				break;
 			}
@@ -509,6 +517,8 @@ bool FindSymbolSystem::OnFile(const char *Path, SymAction Action)
 {
 	GString *s = new GString(Path);
 
+	if (d->Tasks == 0)
+		d->MsgTs = LgiCurrentTime();
 	d->Tasks++;
 	
 	return d->PostEvent(M_FIND_SYM_FILE,
