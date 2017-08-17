@@ -134,6 +134,8 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 
 		if (Idx >= 0)
 			return true;
+		if (!FileExists(Path))
+			return false;
 			
 		LgiAssert(!LgiIsRelativePath(Path));
 

@@ -1220,60 +1220,64 @@ ProjectStatus IdeProject::OpenFile(char *FileName)
 	}
 	d->UserFile = d->FileName + "." + LgiCurrentUserName();
 
-	if (d->FileName)
+	if (!d->FileName)
 	{
-		GFile f;
-		if (f.Open(d->FileName, O_READWRITE))
+		LgiTrace("%s:%i - No filename.\n", _FL);
+		return OpenError;
+	}
+	
+	GFile f;
+	if (!f.Open(d->FileName, O_READWRITE))
+	{
+		LgiTrace("%s:%i - Error: Can't open '%s'.\n", _FL, d->FileName);
+		return OpenError;
+	}
+
+	GXmlTree x;
+	GXmlTag r;
+	if (!x.Read(&r, &f))
+	{
+		LgiTrace("%s:%i - Error: Can't read XML: %s\n", _FL, x.GetErrorMsg());
+		LgiMsg(Tree, x.GetErrorMsg(), AppName);
+		return OpenError;
+	}
+
+	int64 Nodes = r.CountTags();
+	GProgressDlg Prog(d->App, 500);
+	Prog.SetDescription("Loading project...");
+	Prog.SetLimits(0, Nodes);
+	Prog.SetYieldTime(200);
+	Prog.SetAlwaysOnTop(true);
+
+	if (FileExists(d->UserFile))
+	{
+		GFile Uf;
+		if (Uf.Open(d->UserFile, O_READ))
 		{
-			GXmlTree x;
-			GXmlTag r;
-			if (x.Read(&r, &f))
+			GString::Array Ln = Uf.Read().SplitDelimit("\n");
+			for (unsigned i=0; i<Ln.Length(); i++)
 			{
-				int64 Nodes = r.CountTags();
-				GProgressDlg Prog(d->App, 500);
-				Prog.SetDescription("Loading project...");
-				Prog.SetLimits(0, Nodes);
-				Prog.SetYieldTime(200);
-				Prog.SetAlwaysOnTop(true);
-
-				if (FileExists(d->UserFile))
-				{
-					GFile Uf;
-					if (Uf.Open(d->UserFile, O_READ))
-					{
-						GString::Array Ln = Uf.Read().SplitDelimit("\n");
-						for (unsigned i=0; i<Ln.Length(); i++)
-						{
-							GString::Array p = Ln[i].SplitDelimit(",");
-							if (p.Length() == 2)
-								d->UserNodeFlags.Add(p[0].Int(), p[1].Int(16));
-						}
-					}
-				}
-				
-				if (!r.IsTag("Project"))
-					return OpenError;
-
-				bool Ok = OnOpen(Prog, &r);
-				if (Prog.Cancel())
-					return OpenCancel;
-				else if (!Ok)
-					return OpenError;
-
-				d->App->GetTree()->Insert(this);
-				Expanded(true);
-				
-				d->Settings.Serialize(&r, false /* read */);
-				return OpenOk;
-			}
-			else
-			{
-				LgiMsg(Tree, x.GetErrorMsg(), AppName);
+				GString::Array p = Ln[i].SplitDelimit(",");
+				if (p.Length() == 2)
+					d->UserNodeFlags.Add(p[0].Int(), p[1].Int(16));
 			}
 		}
 	}
+	
+	if (!r.IsTag("Project"))
+		return OpenError;
 
-	return OpenError;
+	bool Ok = OnOpen(Prog, &r);
+	if (Prog.Cancel())
+		return OpenCancel;
+	else if (!Ok)
+		return OpenError;
+
+	d->App->GetTree()->Insert(this);
+	Expanded(true);
+	
+	d->Settings.Serialize(&r, false /* read */);
+	return OpenOk;
 }
 
 bool IdeProject::SaveFile()

@@ -516,7 +516,7 @@ bool LgiResources::Load(char *FileName)
 	GAutoPtr<GXmlTag> Root(new GXmlTag);
 	if (!x.Read(Root, &F, 0))
 	{
-		LgiTrace("%s:%i - ParseXmlFile failed\n", _FL);
+		LgiTrace("%s:%i - ParseXmlFile failed: %s\n", _FL, x.GetErrorMsg());
 		// LgiAssert(0);
 		return false;
 	}

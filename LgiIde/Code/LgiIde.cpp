@@ -1865,75 +1865,78 @@ IdeDoc *AppWnd::OpenFile(const char *FileName, NodeSource *Src)
 	IdeDoc *Doc = 0;
 	
 	const char *File = Src ? Src->GetFileName() : FileName;
-	if (Src || ValidStr(File))
+	if (!Src && !ValidStr(File))
 	{
-		GString FullPath;
-		if (LgiIsRelativePath(File))
+		LgiTrace("%s:%i - No source or file?\n", _FL);
+		return NULL;
+	}
+	
+	GString FullPath;
+	if (LgiIsRelativePath(File))
+	{
+		IdeProject *Proj = Src && Src->GetProject() ? Src->GetProject() : RootProject();
+		if (Proj)
 		{
-			IdeProject *Proj = Src && Src->GetProject() ? Src->GetProject() : RootProject();
-			if (Proj)
+			GAutoString ProjPath = Proj->GetBasePath();
+			char p[MAX_PATH];
+			LgiMakePath(p, sizeof(p), ProjPath, File);
+			if (FileExists(p))
 			{
-				GAutoString ProjPath = Proj->GetBasePath();
-				char p[MAX_PATH];
-				LgiMakePath(p, sizeof(p), ProjPath, File);
-				if (FileExists(p))
-				{
-					FullPath = p;
-					File = FullPath;
-				}
+				FullPath = p;
+				File = FullPath;
 			}
 		}
-			
-		Doc = d->IsFileOpen(File);
-		if (!Doc)
+	}
+		
+	Doc = d->IsFileOpen(File);
+	if (!Doc)
+	{
+		if (Src)
 		{
-			if (Src)
-			{
-				Doc = NewDocWnd(File, Src);
-			}
-			else if (!DoingProjectFind)
-			{
-				DoingProjectFind = true;
-				List<IdeProject>::I Proj = d->Projects.Start();
-				for (IdeProject *p=*Proj; p && !Doc; p=*++Proj)
-				{
-					p->InProject(LgiIsRelativePath(File), File, true, &Doc);				
-				}
-				DoingProjectFind = false;
-
-				d->OnFile(File);
-			}
+			Doc = NewDocWnd(File, Src);
 		}
-
-		if (!Doc && FileExists(File))
+		else if (!DoingProjectFind)
 		{
-			Doc = new IdeDoc(this, 0, File);
-			if (Doc)
+			DoingProjectFind = true;
+			List<IdeProject>::I Proj = d->Projects.Start();
+			for (IdeProject *p=*Proj; p && !Doc; p=*++Proj)
 			{
-				GRect p = d->Mdi->NewPos();
-				Doc->SetPos(p);
-				d->Docs.Insert(Doc);
-				d->OnFile(File);
+				p->InProject(LgiIsRelativePath(File), File, true, &Doc);				
 			}
-		}
+			DoingProjectFind = false;
 
+			d->OnFile(File);
+		}
+	}
+
+	if (!Doc && FileExists(File))
+	{
+		Doc = new IdeDoc(this, 0, File);
 		if (Doc)
 		{
-			#ifdef BEOS
-			BView *h = Doc->Handle();
-			BWindow *w = h ? h->Window() : 0;
-			bool att = Doc->IsAttached();
-			printf("%s:%i - att=%i h=%p w=%p\n", _FL, att, h, w);
-			#endif
-			
-			if (!Doc->IsAttached())
-			{
-				Doc->Attach(d->Mdi);
-			}
-
-			Doc->Focus(true);
-			Doc->Raise();
+			GRect p = d->Mdi->NewPos();
+			Doc->SetPos(p);
+			d->Docs.Insert(Doc);
+			d->OnFile(File);
 		}
+	}
+
+	if (Doc)
+	{
+		#ifdef BEOS
+		BView *h = Doc->Handle();
+		BWindow *w = h ? h->Window() : 0;
+		bool att = Doc->IsAttached();
+		printf("%s:%i - att=%i h=%p w=%p\n", _FL, att, h, w);
+		#endif
+		
+		if (!Doc->IsAttached())
+		{
+			Doc->Attach(d->Mdi);
+		}
+
+		Doc->Focus(true);
+		Doc->Raise();
 	}
 	
 	return Doc;
@@ -1957,51 +1960,65 @@ IdeProject *AppWnd::RootProject()
 
 IdeProject *AppWnd::OpenProject(char *FileName, IdeProject *ParentProj, bool Create, bool Dep)
 {
-	IdeProject *p = 0;
 	
-	if (FileName && !d->IsProjectOpen(FileName))
+	if (!FileName)
 	{
-		p = new IdeProject(this);
-		if (p)
+		LgiTrace("%s:%i - Error: No filename.\n", _FL);
+		return NULL;
+	}
+	
+	if (d->IsProjectOpen(FileName))
+	{
+		LgiTrace("%s:%i - Warning: Project already open.\n", _FL);
+		return NULL;
+	}
+	
+
+	IdeProject *p = new IdeProject(this);
+	if (!p)
+	{
+		LgiTrace("%s:%i - Error: mem alloc.\n", _FL);
+		return NULL;
+	}
+	
+	GString::Array Inc;
+	p->BuildIncludePaths(Inc, false, PlatformCurrent);
+	d->FindSym->SetIncludePaths(Inc);
+
+	p->SetParentProject(ParentProj);
+	
+	ProjectStatus Status = p->OpenFile(FileName);
+	if (Status == OpenOk)
+	{
+		d->Projects.Insert(p);
+		d->OnFile(FileName, true);
+		
+		if (!Dep)
 		{
-			GString::Array Inc;
-			p->BuildIncludePaths(Inc, false, PlatformCurrent);
-			d->FindSym->SetIncludePaths(Inc);
-
-			p->SetParentProject(ParentProj);
-			
-			ProjectStatus Status = p->OpenFile(FileName);
-			if (Status == OpenOk)
+			char *d = strrchr(FileName, DIR_CHAR);
+			if (d++)
 			{
-				d->Projects.Insert(p);
-				d->OnFile(FileName, true);
-				
-				if (!Dep)
-				{
-					char *d = strrchr(FileName, DIR_CHAR);
-					if (d++)
-					{
-						char n[256];
-						sprintf(n, "%s [%s]", AppName, d);
-						Name(n);						
-					}
-				}
+				char n[256];
+				sprintf(n, "%s [%s]", AppName, d);
+				Name(n);						
 			}
-			else
-			{
-				DeleteObj(p);
-				if (Status == OpenError)
-					d->RemoveRecent(FileName);
-			}
-
-			if (!GetTree()->Selection())
-			{
-				GetTree()->Select(GetTree()->GetChild());
-			}
-
-			GetTree()->Focus(true);
 		}
 	}
+	else
+	{
+		LgiTrace("%s:%i - Failed to open '%s'\n", _FL, FileName);
+
+		DeleteObj(p);
+		if (Status == OpenError)
+			d->RemoveRecent(FileName);
+	}
+
+	if (!GetTree()->Selection())
+	{
+		GetTree()->Select(GetTree()->GetChild());
+	}
+
+	GetTree()->Focus(true);
 
 	return p;
 }

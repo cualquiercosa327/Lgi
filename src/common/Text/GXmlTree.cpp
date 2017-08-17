@@ -121,7 +121,7 @@ public:
 	GXmlFactory *Factory;
 	GXmlTag *Current;
 	GStreamI *File;
-	char *Error;
+	GString Error;
 	int Flags;
 	GHashTbl<const char*,char16> Entities;
 	GHashTbl<const char*,bool> NoChildTags;
@@ -140,7 +140,6 @@ public:
 	{
 		Factory = 0;
 		File = 0;
-		Error = 0;
 		Flags = 0;
 		StyleFile = 0;
 		StyleType = 0;
@@ -156,7 +155,6 @@ public:
 	
 	~GXmlTreePrivate()
 	{
-		DeleteArray(Error);
 		DeleteArray(StyleType);
 		DeleteArray(StyleFile);
 	}
@@ -1299,155 +1297,150 @@ ParsingStart:
 
 bool GXmlTree::Read(GXmlTag *Root, GStreamI *File, GXmlFactory *Factory)
 {
-	bool Status = false;
-	
-	if (Root && File)
+	if (!Root)
 	{
-		GAutoRefPtr<GXmlAlloc> Allocator(new XmlPoolAlloc);
-		Root->Allocator = Allocator;
+		d->Error = "No root argument.";
+		return false;
+	}
 
-		int64 Len = File->GetSize();
-		if (Len > 0)
+	if (!File)
+	{
+		d->Error = "No input stream argument.";
+		return false;
+	}
+	
+	GAutoRefPtr<GXmlAlloc> Allocator(new XmlPoolAlloc);
+	Root->Allocator = Allocator;
+
+	int64 Len = File->GetSize();
+	if (Len <= 0)
+	{
+		d->Error.Printf("Input stream is empty: %" PRId64 " bytes.\n", Len);
+		return false;
+	}
+
+	char *Str = new char[Len+1];
+	if (!Str)
+	{
+		d->Error = "Alloc error.";
+		return false;
+	}
+
+	ssize_t r = File->Read(Str, Len);
+	if (r <= 0)
+	{
+		d->Error.Printf("Failed to read from input stream: %zd\n", r);
+		return false;
+	}
+	Str[r] = 0;
+					
+	char *Ptr = Str;
+	d->Factory = Factory;
+	d->Current = Root;
+					
+	bool First = true;
+	while (d->Current && Ptr && *Ptr)
+	{
+		bool NoChildren;
+		
+		GAutoPtr<GXmlTag> t
+		(
+		    Parse(  First && !TestFlag(d->Flags, GXT_NO_DOM) ? Root : 0,
+					Allocator,
+					Ptr,
+					NoChildren,
+					false)
+		);
+					
+		First = false;
+		if (t)
 		{
-			char *Str = new char[Len+1];
-			if (Str)
+			if (t->Tag &&
+				t->Tag[0] == '!' &&
+				strcmp(t->Tag, "!DOCTYPE") == 0)
 			{
-				ssize_t r = File->Read(Str, Len);
-				if (r >= 0)
+				for (GXmlTag *c=t->Children.First(); c; c=t->Children.Next())
 				{
-					Str[r] = 0;
-					
-					char *Ptr = Str;
-					d->Factory = Factory;
-					d->Current = Root;
-					
-					Status = true;
-					bool First = true;
-					while (d->Current && Ptr && *Ptr)
+					if (c->Tag &&
+						strcmp(c->Tag, "!ENTITY") == 0)
 					{
-						bool NoChildren;
-						
-						GAutoPtr<GXmlTag> t
-						(
-						    Parse(  First && !TestFlag(d->Flags, GXT_NO_DOM) ? Root : 0,
-									Allocator,
-									Ptr,
-									NoChildren,
-									false)
-						);
-						
-						First = false;
-						if (t)
+						if (c->Attr.Length() == 2)
 						{
-							if (t->Tag &&
-								t->Tag[0] == '!' &&
-								strcmp(t->Tag, "!DOCTYPE") == 0)
+							GXmlAttr &Ent = c->Attr[0];
+							GXmlAttr &Value = c->Attr[1];
+							if (Ent.Name &&
+								Value.Name &&
+								!d->Entities.Find(Ent.Name))
 							{
-								for (GXmlTag *c=t->Children.First(); c; c=t->Children.Next())
-								{
-									if (c->Tag &&
-										strcmp(c->Tag, "!ENTITY") == 0)
-									{
-										if (c->Attr.Length() == 2)
-										{
-											GXmlAttr &Ent = c->Attr[0];
-											GXmlAttr &Value = c->Attr[1];
-											if (Ent.Name &&
-												Value.Name &&
-												!d->Entities.Find(Ent.Name))
-											{
-												GVariant v(Value.Name);
-												char16 *w = v.WStr();
-												if (w)
-													d->Entities.Add(Ent.Name, *w);
+								GVariant v(Value.Name);
+								char16 *w = v.WStr();
+								if (w)
+									d->Entities.Add(Ent.Name, *w);
 
-											}
-										}
-									}
-								}
 							}
-
-							if (t->Tag && t->Tag[0] == '/' && d->Current->Tag)
-							{
-								// End tag
-								if (stricmp(t->Tag + 1, d->Current->Tag) == 0)
-								{
-									d->Current = d->Current->Parent;
-								}
-								else
-								{
-									int Lines = 1;
-									for (char *k = Ptr; k >= Str; k--)
-									{
-										if (*k == '\n') Lines++;
-									}
-
-									char s[256];
-									sprintf_s(s, sizeof(s), "Mismatched '%s' tag, got '%s' instead (Line %i).\n", t->Tag, d->Current->Tag, Lines);
-									printf("%s:%i - XmlTree error %s\n", _FL, s);
-									d->Error = NewStr(s);
-									Status = false;
-
-									#ifdef _DEBUG
-									GXmlTree Dbg;
-									GFile Out;
-									if (Out.Open("c:\\temp\\out.xml", O_WRITE))
-									{
-										Dbg.Write(Root, &Out);
-									}
-									#endif
-									break;
-								}
-
-								t.Reset();
-							}
-							else
-							{
-								t->Serialize(t->Write = false);
-
-							    GXmlTag *NewTag = t;
-							    if (t != Root)
-								    d->Current->InsertTag(t.Release());
-							    else
-							        t.Release();
-
-								if (!TestFlag(d->Flags, GXT_NO_DOM) &&
-									!NoChildren &&
-									!d->NoChildTags.Find(NewTag->Tag))
-								{
-									d->Current = NewTag;
-								}
-							}
-						}
-						else
-						{
-						    break;
 						}
 					}
-					
-					d->Factory = 0;
+				}
+			}
+
+			if (t->Tag && t->Tag[0] == '/' && d->Current->Tag)
+			{
+				// End tag
+				if (stricmp(t->Tag + 1, d->Current->Tag) == 0)
+				{
+					d->Current = d->Current->Parent;
 				}
 				else
 				{
-					printf("%s:%i - Error.\n", _FL);
+					int Lines = 1;
+					for (char *k = Ptr; k >= Str; k--)
+					{
+						if (*k == '\n') Lines++;
+					}
+
+					d->Error.Printf("Mismatched '%s' tag, got '%s' instead (Line %i).\n", t->Tag, d->Current->Tag, Lines);
+
+					#ifdef _DEBUG
+					GXmlTree Dbg;
+					GFile Out;
+					if (Out.Open("c:\\temp\\out.xml", O_WRITE))
+					{
+						Dbg.Write(Root, &Out);
+					}
+					#endif
+					break;
 				}
-				
-				DeleteArray(Str);
+
+				t.Reset();
 			}
 			else
 			{
-				printf("%s:%i - Error.\n", _FL);
+				t->Serialize(t->Write = false);
+
+			    GXmlTag *NewTag = t;
+			    if (t != Root)
+				    d->Current->InsertTag(t.Release());
+			    else
+			        t.Release();
+
+				if (!TestFlag(d->Flags, GXT_NO_DOM) &&
+					!NoChildren &&
+					!d->NoChildTags.Find(NewTag->Tag))
+				{
+					d->Current = NewTag;
+				}
 			}
-			
-			// Root->Dump();
+		}
+		else
+		{
+		    break;
 		}
 	}
-	else
-	{
-		printf("%s:%i - Error.\n", _FL);
-	}
 	
-	return Status;
+	d->Factory = 0;
+	DeleteArray(Str);
+	
+	return true;
 }
 
 void GXmlTree::Output(GXmlTag *t, int Depth)
