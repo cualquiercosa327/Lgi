@@ -90,7 +90,7 @@ struct GGraphPriv
 				break;
 			case GV_DATETIME:
 			{
-				GDateTime dt;
+				LDateTime dt;
 				dt.SetFormat(0);
 				dt.Set(in);
 				v = &dt;
@@ -251,7 +251,7 @@ struct GGraphPriv
 					    min.Value.Date->Get(s);
 					    max.Value.Date->Get(e);
 					    int64 period = e - s;
-                        double days = (double)period / GDateTime::Second64Bit / 24 / 60 / 60;
+                        double days = (double)period / LDateTime::Second64Bit / 24 / 60 / 60;
 					    if (days > 7)
 					        date_inc = (int) (days / 5);
 					    else

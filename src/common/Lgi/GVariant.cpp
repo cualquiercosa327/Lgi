@@ -1749,7 +1749,7 @@ bool GDom::SetValue(const char *Var, GVariant &Value)
 
 	if (Var)
 	{
-		// GMutex *Sem = dynamic_cast<GMutex*>(this);
+		// LMutex *Sem = dynamic_cast<LMutex*>(this);
 		if (_OnAccess(true))
 		{
 			char Name[256], Arr[256] = "";

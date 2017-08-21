@@ -420,12 +420,12 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////
-class DeleterThread : public GThread
+class DeleterThread : public LThread
 {
 	char *File;
 	
 public:
-	DeleterThread(char *f) : GThread("DeleterThread")
+	DeleterThread(char *f) : LThread("DeleterThread")
 	{
 		File = NewStr(f);
 		DeleteOnExit = true;

@@ -369,7 +369,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="src\common\General\GDateTime.cpp"
+				RelativePath="src\common\General\LDateTime.cpp"
 				>
 				<FileConfiguration
 					Name="Release|Win32"
@@ -613,7 +613,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\src\common\Lgi\GMutex.cpp"
+				RelativePath=".\src\common\Lgi\LMutex.cpp"
 				>
 			</File>
 			<File
@@ -737,7 +737,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="src\win32\Lgi\GThread.cpp"
+				RelativePath="src\win32\Lgi\LThread.cpp"
 				>
 				<FileConfiguration
 					Name="Release|Win32"

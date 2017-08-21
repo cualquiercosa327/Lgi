@@ -1,5 +1,5 @@
 #ifdef WIN32
-class GChar : public GListItem
+class GChar : public LListItem
 {
 	ushort i;
 	GFont *Fnt;
@@ -24,7 +24,7 @@ public:
 		}
 		else
 		{
-			GListItem::OnPaintColumn(pDC, r, Col, c, Fore, Back);
+			LListItem::OnPaintColumn(pDC, r, Col, c, Fore, Back);
 		}
 	}
 

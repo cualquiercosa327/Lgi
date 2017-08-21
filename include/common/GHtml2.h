@@ -53,11 +53,11 @@ protected:
 	GSurface			*MemDC;
 
 	// This lock is separate from the window lock to avoid deadlocks.
-	struct GJobSem : public GMutex
+	struct GJobSem : public LMutex
 	{
     	// Data that has to be accessed under Lock
 	    GArray<GDocumentEnv::LoadJob*> Jobs;	    
-	    GJobSem() : GMutex("GJobSem") {}
+	    GJobSem() : LMutex("GJobSem") {}
 	} JobSem;
 
 	// Methods

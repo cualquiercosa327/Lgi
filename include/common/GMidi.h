@@ -15,7 +15,7 @@
 #define MIDI_SYSEX_START	0xf0
 #define MIDI_SYSEX_END		0xf7
 
-class GMidi : public GMutex
+class GMidi : public LMutex
 {
 	struct GMidiPriv *d;
 

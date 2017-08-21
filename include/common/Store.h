@@ -117,7 +117,7 @@ namespace Storage1
 		friend class StorageItemImpl;
 
 	private:
-		GMutex Lock;
+		LMutex Lock;
 		char *FileName;
 		GSubFile File;
 		bool Status;
@@ -150,7 +150,7 @@ namespace Storage1
 		uint64 GetFileSize();
 		bool GetPassword(GPassword *p) { return false; }
 		bool SetPassword(GPassword *p) { return false; }
-		GMutex *GetLock() { return &Lock; }
+		LMutex *GetLock() { return &Lock; }
 		char *GetFileName() { return FileName; }
 		
 		StorageItem *GetRoot();

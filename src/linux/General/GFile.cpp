@@ -1294,7 +1294,7 @@ bool GFile::IsOpen()
 #define DEBUG_OPEN_FILES 	0
 
 #if DEBUG_OPEN_FILES
-GMutex Lck;
+LMutex Lck;
 GArray<GFile*> OpenFiles;
 #endif
 

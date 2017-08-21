@@ -241,7 +241,7 @@ void CALLBACK MidiInProc(HMIDIIN hmi, UINT wMsg, MIDI_TYPE dwInstance, MIDI_TYPE
 
 #endif
 
-GMidi::GMidi() : GMutex("GMidi")
+GMidi::GMidi() : LMutex("GMidi")
 {
 	d = new GMidiPriv(this);
 

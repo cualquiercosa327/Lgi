@@ -19,7 +19,7 @@ class GDialog;
 #if defined WIN32
 class GDlgFunc;
 #endif
-class GListItem;
+class LListItem;
 class GTreeItem;
 
 class GButton;
@@ -200,7 +200,7 @@ public:
 ///		<li> GSlider (Select a position)
 ///		<li> GBitmap (Display an image)
 ///		<li> GProgress (Show a progress)
-///		<li> GList (List containing GListItem)
+///		<li> GList (List containing LListItem)
 ///		<li> GTree (Heirarchy of GTreeItem)
 ///		<li> GRadioGroup (One of many selection using GRadioButton)
 ///		<li> GTabView (Containing GTabPage)

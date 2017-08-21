@@ -19,11 +19,11 @@ struct GDataGridPriv
 	int Col;
 	GView *e;
 	GView *DeleteLater;
-	GListItem *Cur;
+	LListItem *Cur;
 	bool Dirty, PosDirty;
 	GArray<GDataGrid::GDataGridFlags> Flags;
 	GArray<GVariant> ColumnArgs;
-	GListItem *NewRecord;
+	LListItem *NewRecord;
 	GDataGrid::ItemFactory Factory;
 	void *UserData;
 	GDataGrid::ItemArray Dropped;
@@ -38,12 +38,12 @@ struct GDataGridPriv
 	void MoveCell(int dx);
 	void Invalidate();
 
-	GListItem *NewItem()
+	LListItem *NewItem()
 	{
 		if (Factory)
 			return Factory(UserData);
 		
-		return new GListItem;
+		return new LListItem;
 	}
 };
 
@@ -71,7 +71,7 @@ public:
 				{
 					case VK_RETURN:
 					{
-						GListItem *s = d->This->GetSelected();
+						LListItem *s = d->This->GetSelected();
 						int Idx = s ? d->This->IndexOf(s) : -1;
 						d->Save();
 						if (Idx >= 0)
@@ -257,7 +257,7 @@ void GDataGridPriv::Create(int NewCol)
 	if (!This->IsAttached())
 		return;
 
-	GListItem *i = This->GetSelected();
+	LListItem *i = This->GetSelected();
 	if (!i)
 		return;
 
@@ -366,7 +366,7 @@ void GDataGridPriv::Create(int NewCol)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 GDataGrid::GDataGrid(int CtrlId, ItemFactory Func, void *userdata) :
-	GList(CtrlId, 0, 0, 1000, 1000)
+	LList(CtrlId, 0, 0, 1000, 1000)
 {
 	_ObjName = Res_Custom;
 
@@ -382,14 +382,14 @@ GDataGrid::~GDataGrid()
 	DeleteObj(d);
 }
 
-bool GDataGrid::Remove(GListItem *Obj)
+bool GDataGrid::Remove(LListItem *Obj)
 {
 	if (Obj == d->Cur)
 	{
 		DeleteObj(d->e);
 		d->Cur = 0;
 	}
-	return GList::Remove(Obj);
+	return LList::Remove(Obj);
 }
 
 void GDataGrid::Empty()
@@ -398,10 +398,10 @@ void GDataGrid::Empty()
 	d->Cur = 0;
 	DeleteObj(d->e);
 	
-	GList::Empty();
+	LList::Empty();
 }
 
-void GDataGrid::OnItemSelect(GArray<GListItem*> &Items)
+void GDataGrid::OnItemSelect(GArray<LListItem*> &Items)
 {
 	if (Items.Length() == 1)
 	{
@@ -415,10 +415,10 @@ void GDataGrid::OnItemSelect(GArray<GListItem*> &Items)
 		PostEvent(M_DELETE_LATER);
 	}
 
-	GList::OnItemSelect(Items);
+	LList::OnItemSelect(Items);
 }
 
-void GDataGrid::OnItemClick(GListItem *Item, GMouse &m)
+void GDataGrid::OnItemClick(LListItem *Item, GMouse &m)
 {
 	if (m.IsContextMenu())
 	{
@@ -430,11 +430,11 @@ void GDataGrid::OnItemClick(GListItem *Item, GMouse &m)
 		{
 			case IDC_COPY:
 			{
-				List<GListItem> Sel;
+				List<LListItem> Sel;
 				GetSelection(Sel);
 				GStringPipe p(256);
 				int Cols = GetColumns();
-				for (GListItem *i=Sel.First(); i; i=Sel.Next())
+				for (LListItem *i=Sel.First(); i; i=Sel.Next())
 				{
 					for (int c=0; c<Cols; c++)
 					{
@@ -449,10 +449,10 @@ void GDataGrid::OnItemClick(GListItem *Item, GMouse &m)
 			}
 			case IDC_DELETE:
 			{
-				List<GListItem> Sel;
+				List<LListItem> Sel;
 				GetSelection(Sel);
 				d->Deleted.Length(0);
-				for (GListItem *i=Sel.First(); i; i=Sel.Next())
+				for (LListItem *i=Sel.First(); i; i=Sel.Next())
 				{
 					d->Deleted.Add(IndexOf(i));
 				}
@@ -492,7 +492,7 @@ GMessage::Result GDataGrid::OnEvent(GMessage *Msg)
 		}
 	}
 
-	return GList::OnEvent(Msg);
+	return LList::OnEvent(Msg);
 }
 
 int GDataGrid::OnNotify(GViewI *c, int f)
@@ -511,7 +511,7 @@ int GDataGrid::OnNotify(GViewI *c, int f)
 		}
 	}
 
-	return GList::OnNotify(c, f);
+	return LList::OnNotify(c, f);
 }
 
 void GDataGrid::SetColFlag(int Col, GDataGridFlags Flags, GVariant *Arg)
@@ -523,14 +523,14 @@ void GDataGrid::SetColFlag(int Col, GDataGridFlags Flags, GVariant *Arg)
 
 bool GDataGrid::OnMouseWheel(double Lines)
 {
-	GList::OnMouseWheel(Lines);
+	LList::OnMouseWheel(Lines);
 	d->UpdatePos();
 	return true;
 }
 
 void GDataGrid::OnPaint(GSurface *pDC)
 {
-	GList::OnPaint(pDC);
+	LList::OnPaint(pDC);
 
 	d->UpdatePos();
 	if (d->e && !(d->Flags[d->Col] & GDG_INTEGER))
@@ -575,7 +575,7 @@ void GDataGrid::CanAddRecord(bool b)
 	}
 }
 
-GListItem *GDataGrid::NewItem()
+LListItem *GDataGrid::NewItem()
 {
 	return d->NewItem();
 }
@@ -628,8 +628,8 @@ int GDataGrid::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 			GVariant *Data = &dd.Data.First();
 			if (Data->Type == GV_BINARY)
 			{
-				GListItem **Item = (GListItem**)Data->Value.Binary.Data;
-				int Items = Data->Value.Binary.Length / sizeof(GListItem*);
+				LListItem **Item = (LListItem**)Data->Value.Binary.Data;
+				int Items = Data->Value.Binary.Length / sizeof(LListItem*);
 				d->Dropped.Length(0);
 				for (int i=0; i<Items; i++)
 				{
@@ -644,7 +644,7 @@ int GDataGrid::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 	return DROPEFFECT_NONE;
 }
 
-void GDataGrid::OnItemBeginDrag(GListItem *Item, GMouse &m)
+void GDataGrid::OnItemBeginDrag(LListItem *Item, GMouse &m)
 {
 	Drag(this, DROPEFFECT_COPY);
 }
@@ -660,15 +660,15 @@ bool GDataGrid::GetFormats(List<char> &Formats)
 
 bool GDataGrid::GetData(GVariant *Data, char *Format)
 {
-	List<GListItem> s;
+	List<LListItem> s;
 	if (GetSelection(s))
 	{
-		GArray<GListItem*> a;
-		for (GListItem *i=s.First(); i; i=s.Next())
+		GArray<LListItem*> a;
+		for (LListItem *i=s.First(); i; i=s.Next())
 		{
 			a.Add(i);
 		}
-		Data->SetBinary(sizeof(GListItem*)*a.Length(), &a[0]);
+		Data->SetBinary(sizeof(LListItem*)*a.Length(), &a[0]);
 	}
 
 	return true;

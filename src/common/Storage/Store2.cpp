@@ -1593,7 +1593,7 @@ namespace Storage2
 }
 
 ///////////////////////////////////////////////////////////////////////////
-StorageKitImpl::StorageKitImpl(char *filename) : GMutex("StorageKitImpl2")
+StorageKitImpl::StorageKitImpl(char *filename) : LMutex("StorageKitImpl2")
 {
 	d = new StorageKitImplPrivate(this);
 	File = new GSubFile(this, false);
@@ -2200,7 +2200,7 @@ bool StorageKitImpl::AttachItem(StorageItem *ItemVirtual, StorageItem *ToVirtual
 	return Status;
 }
 
-GMutex *StorageKitImpl::GetLock()
+LMutex *StorageKitImpl::GetLock()
 {
 	return this;
 }

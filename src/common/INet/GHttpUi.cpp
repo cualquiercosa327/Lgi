@@ -7,7 +7,7 @@ struct GHttpServerPriv;
 
 #define LOG_HTTP            0
 
-class GHttpThread : public GThread
+class GHttpThread : public LThread
 {
 	GSocket *s;
 	GHttpServerPriv *p;
@@ -31,7 +31,7 @@ public:
 	}
 };
 
-struct GHttpServerPriv : public GThread
+struct GHttpServerPriv : public LThread
 {
 	GHttpCallback *Callback;
 	GHttpServer_TraceSocket Listen;

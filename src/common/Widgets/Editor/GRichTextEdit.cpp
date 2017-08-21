@@ -1212,13 +1212,13 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 	if (Over)
 		Over->DoContext(RClick, Doc, Offset, true);
 
-	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_CUT, "Cut"), IDM_CUT, HasSelection());
-	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_COPY, "Copy"), IDM_COPY, HasSelection());
-	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_PASTE, "Paste"), IDM_PASTE, ClipText != 0);
+	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_CUT, "Cut"), IDM_RTE_CUT, HasSelection());
+	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_COPY, "Copy"), IDM_RTE_COPY, HasSelection());
+	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_PASTE, "Paste"), IDM_RTE_PASTE, ClipText != 0);
 	RClick.AppendSeparator();
 
-	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_UNDO, "Undo"), IDM_UNDO, false /* UndoQue.CanUndo() */);
-	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_REDO, "Redo"), IDM_REDO, false /* UndoQue.CanRedo() */);
+	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_UNDO, "Undo"), IDM_RTE_UNDO, false /* UndoQue.CanUndo() */);
+	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_REDO, "Redo"), IDM_RTE_REDO, false /* UndoQue.CanRedo() */);
 	RClick.AppendSeparator();
 
 	#if 0
@@ -1259,27 +1259,27 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 			SendNotify(GNotifyFixedWidthChanged);
 			break;
 		}
-		case IDM_CUT:
+		case IDM_RTE_CUT:
 		{
 			Cut();
 			break;
 		}
-		case IDM_COPY:
+		case IDM_RTE_COPY:
 		{
 			Copy();
 			break;
 		}
-		case IDM_PASTE:
+		case IDM_RTE_PASTE:
 		{
 			Paste();
 			break;
 		}
-		case IDM_UNDO:
+		case IDM_RTE_UNDO:
 		{
 			Undo();
 			break;
 		}
-		case IDM_REDO:
+		case IDM_RTE_REDO:
 		{
 			Redo();
 			break;

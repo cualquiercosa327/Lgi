@@ -1065,14 +1065,14 @@ bool GRichTextPriv::Merge(Transaction *Trans, Block *a, Block *b)
 	return true;
 }
 
-GSurface *GRichTextPriv::GetEmojiImage()
+GSurface *GEmojiContext::GetEmojiImage()
 {
 	if (!EmojiImg)
 	{
 		GString p = LgiGetSystemPath(LSP_APP_INSTALL);
 		if (!p)
 		{
-			Error(_FL, "No app install path.");
+			LgiTrace("%s:%i - No app install path.\n", _FL);
 			return NULL;
 		}
 

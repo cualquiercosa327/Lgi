@@ -111,7 +111,8 @@ public:
 typedef HANDLE  					OsThread;
 typedef DWORD						OsThreadId;
 typedef CRITICAL_SECTION			OsSemaphore;
-#define LgiGetCurrentThread()		GetCurrentThreadId()
+#define LgiGetCurrentThread()		GetCurrentThread()
+#define GetCurrentThreadId()		GetCurrentThreadId()
 #define LgiGetCurrentProcess()		GetCurrentProcessId()
 
 #elif defined POSIX

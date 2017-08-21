@@ -141,7 +141,7 @@ typedef GArray<GAppInfo*> AppArray;
 #define XK_Caps_Lock                     0xffe5
 #endif
 
-class GAppPrivate : public GSymLookup, public GMutex
+class GAppPrivate : public GSymLookup, public LMutex
 {
 public:
 	// Common
@@ -150,12 +150,12 @@ public:
 	GdcDevice *GdcSystem;
 	OsAppArguments Args;
 	GLibrary *SkinLib;
-	GHashTable MimeToApp;
+	GHashTbl<char*,AppArray*> MimeToApp;
 	#if HAS_SHARED_MIME
 	GSharedMime *Sm;
 	#endif
 	GHashTbl<int, GView*> Handles;
-	OsThreadId GuiThread;
+	OsThread GuiThread;
 	int MessageLoopDepth;
 	int CurEvent;
 	#if DEBUG_MSG_TYPES
@@ -214,9 +214,8 @@ public:
 		DeleteObj(Sm);
 		#endif
 		
-		for (void *p = MimeToApp.First(); p; p = MimeToApp.Next())
+		for (AppArray *a = MimeToApp.First(); a; a = MimeToApp.Next())
 		{
-			AppArray *a = (AppArray*)p;
 			a->DeleteObjects();
 			DeleteObj(a);
 		}
@@ -371,9 +370,9 @@ GViewI *GApp::GetFocus()
 	return 0;
 }
 
-OsThreadId GApp::GetGuiThread()
+OsThread GApp::GetGuiThread()
 {
-	return d->GuiThread;;
+	return d->GuiThread;
 }
 
 OsProcessId GApp::GetProcessId()
@@ -397,7 +396,6 @@ void GApp::SetAppArgs(OsAppArguments &AppArgs)
 		d->Args = AppArgs;
 	}
 }
-
 
 struct GtkIdle
 {

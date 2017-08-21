@@ -139,7 +139,7 @@ namespace Storage2
 	class StorageKitImpl :
 		public GBase,
 		public StorageKit,
-		public GMutex
+		public LMutex
 	{
 		friend class StorageItemImpl;
 		friend class StorageKitImplPrivate;
@@ -176,7 +176,7 @@ namespace Storage2
 		uint64 GetFileSize();
 		bool GetPassword(GPassword *p);
 		bool SetPassword(GPassword *p);
-		GMutex *GetLock();
+		LMutex *GetLock();
 		char *GetFileName() { return FileName; }
 		
 		StorageItem *GetRoot();
