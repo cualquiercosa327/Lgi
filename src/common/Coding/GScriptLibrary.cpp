@@ -179,9 +179,71 @@ bool SystemFunctions::Sprintf(GVariant *Ret, ArgumentArray &Args)
 	if (Args.Length() < 1)
 		return false;
 	char *Fmt = Args[0]->Str();
-	if (!Fmt)
+	if (!Fmt || !Ret)
 		return false;
 
+	#ifdef LINUX
+	
+	// No support for sprintf with generated args... hack a string up
+	// Formatting widths etc not supported.
+	GArray<char> s;
+	int i = 1;
+	for (char *f = Fmt; *f; f++)
+	{
+		if (f[0] == '%' && f[1] != '%')
+		{
+			f++; // Skip '%'
+			
+			char *Fmt = f;
+			while (*f && !IsAlpha(*f))
+				f++; // Skip formatting..
+			
+			if (i >= Args.Length())
+				break; // No more arguments...
+				
+			switch (*f)
+			{
+				case 's':
+				{
+					// String...
+					char *v = Args[i]->CastString();
+					if (!v) v = "(null)";
+					s.Add(v, strlen(v));
+					break;
+				}
+				case 'c':
+				{
+					char *Str = Args[i]->Str();
+					s.Add(Str ? *Str : '?');
+					break;
+				}
+				case 'f':
+				case 'g':
+				{
+					break;
+				}
+				case 'u':
+				case 'd':
+				case 'i':
+				{
+					// Int...
+					GString v;
+					v.Printf("%i", Args[i]->CastInt32());
+					s.Add(v.Get(), v.Length());
+					break;
+				}
+			}
+			f++;
+			i++;
+		}
+		else s.Add(*f);
+	}
+	
+	s.Add(0); // NULL terminate
+	*Ret = s.AddressOf();
+	
+	#else
+	
 	GArray<UNativeInt> Params;
 	va_list a;
 
@@ -251,6 +313,8 @@ bool SystemFunctions::Sprintf(GVariant *Ret, ArgumentArray &Args)
 	char Buf[1024];
 	vsprintf_s(Buf, sizeof(Buf), Fmt, a);
 	*Ret = Buf;
+	
+	#endif
 
 	return true;
 }
