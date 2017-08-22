@@ -587,7 +587,7 @@ class _vmem_metrics
 
 	int Length;
 	_metric *m;
-	GMutex Lock;
+	LMutex Lock;
 
 public:
 	_vmem_metrics()

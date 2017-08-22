@@ -12,7 +12,7 @@ int Cmp(GLanguage *a, GLanguage *b, int d)
 	return stricmp(a->Name, b->Name);
 }
 
-class LangInc : public GListItem
+class LangInc : public LListItem
 {
 	GLanguage *Lang;
 	GListItemCheckBox *Inc;

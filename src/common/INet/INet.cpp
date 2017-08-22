@@ -1287,6 +1287,10 @@ int GSocket::WriteUdp(void *Buffer, int Size, int Flags, uint32 Ip, uint16 Port)
 	{
 		OnWrite((char*)Buffer, (int)b);
 	}
+    else
+    {
+        printf("%s:%i - sendto failed with %i.\n", _FL, errno);
+    }
 	return (int)b;
 }
 

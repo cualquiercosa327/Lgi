@@ -61,7 +61,7 @@ struct ZoomTile : public GMemDC
 
 typedef ZoomTile *SuperTilePtr;
 
-class GZoomViewPriv // : public GThread, public GMutex
+class GZoomViewPriv // : public LThread, public LMutex
 {
 	int Zoom;
 	GAutoPtr<GMemDC> TileCache;

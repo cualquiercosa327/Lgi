@@ -24,7 +24,7 @@ public:
 	virtual int GetData(List<GDom> &Lst) = 0;
 };
 
-class ILdapServer : public GThread
+class ILdapServer : public LThread
 {
 	GView *Parent;
 	ILdapServerDb *Db;

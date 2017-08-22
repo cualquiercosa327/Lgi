@@ -1229,7 +1229,7 @@ ProjectStatus IdeProject::OpenFile(char *FileName)
 	GFile f;
 	if (!f.Open(d->FileName, O_READWRITE))
 	{
-		LgiTrace("%s:%i - Error: Can't open '%s'.\n", _FL, d->FileName);
+		LgiTrace("%s:%i - Error: Can't open '%s'.\n", _FL, d->FileName.Get());
 		return OpenError;
 	}
 

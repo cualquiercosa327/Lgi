@@ -1,7 +1,7 @@
 #include "Lgi.h"
 #include "GFindInFiles.h"
 #include "GPopup.h"
-#include "GList.h"
+#include "LList.h"
 #include "GButton.h"
 #include "GTableLayout.h"
 #include "GTextLabel.h"
@@ -30,7 +30,7 @@ class GHistory;
 class GHistoryPopup : public GPopup
 {
 	GHistory *History;
-	GList *Lst;
+	LList *Lst;
 
 public:
 	GHistoryPopup(GHistory *h);
@@ -107,13 +107,13 @@ GHistoryPopup::GHistoryPopup(GHistory *h) : GPopup(h)
 	GRect r(0, 0, 300, 200);
 	SetPos(r);
 	r.Size(1, 1);
-	AddView(Lst = new GList(100, r.x1, r.y1, r.X()-1, r.Y()-1));
+	AddView(Lst = new LList(100, r.x1, r.y1, r.X()-1, r.Y()-1));
 	Lst->Sunken(false);
 	Lst->ShowColumnHeader(false);
 	
 	for (int i=0; i<History->Strs.Length(); i++)
 	{
-		GListItem *it = new GListItem;
+		LListItem *it = new LListItem;
 		it->SetText(History->Strs[i]);
 		Lst->Insert(it);
 	}

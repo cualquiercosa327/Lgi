@@ -12,7 +12,7 @@
 
 // Includes
 #include "INet.h"
-#include "GDateTime.h"
+#include "LDateTime.h"
 #include "GProperties.h"
 
 // The standard port for SCP..
@@ -79,8 +79,8 @@ class IScpSearch
 public:
 	int UserId;			// Owner of calendar
 	ScpObject Type;		// Type of object to return
-	GDateTime Start;	// Optional start time
-	GDateTime End;		// Optional end time
+	LDateTime Start;	// Optional start time
+	LDateTime End;		// Optional end time
 	char *Param;		// Optional string parameter
 
 	IScpSearch();

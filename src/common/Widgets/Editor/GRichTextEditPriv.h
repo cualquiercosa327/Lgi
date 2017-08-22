@@ -68,13 +68,13 @@
 
 enum RteCommands
 {
-	IDM_OPEN = 10,
-	IDM_NEW,
-	IDM_COPY,
-	IDM_CUT,
-	IDM_PASTE,
-	IDM_UNDO,
-	IDM_REDO,
+	// IDM_OPEN = 10,
+	IDM_NEW = 2000,
+	IDM_RTE_COPY,
+	IDM_RTE_CUT,
+	IDM_RTE_PASTE,
+	IDM_RTE_UNDO,
+	IDM_RTE_REDO,
 	IDM_COPY_URL,
 	IDM_AUTO_INDENT,
 	IDM_UTF8,
@@ -331,14 +331,22 @@ struct ButtonState
 
 extern bool Utf16to32(GArray<uint32> &Out, const uint16 *In, int Len);
 
+class GEmojiContext
+{
+	GAutoPtr<GSurface> EmojiImg;
+
+public:
+	GSurface *GetEmojiImage();
+};
+
 class GRichTextPriv :
 	public GCss,
 	public GHtmlParser,
 	public GHtmlStaticInst,
 	public GCssCache,
-	public GFontCache
+	public GFontCache,
+	public GEmojiContext
 {
-	GAutoPtr<GSurface> EmojiImg;
 	GStringPipe LogBuffer;
 
 public:
@@ -1135,7 +1143,6 @@ public:
 	GdcPt2 ScreenToDoc(int x, int y);
 	GdcPt2 DocToScreen(int x, int y);
 	bool Merge(Transaction *Trans, Block *a, Block *b);
-	GSurface *GetEmojiImage();
 	bool DeleteSelection(Transaction *t, char16 **Cut);
 	GRichTextEdit::RectType PosToButton(GMouse &m);
 

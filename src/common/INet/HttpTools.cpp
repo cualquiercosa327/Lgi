@@ -393,7 +393,7 @@ char *FormPost::EncodeFields(GStream *Debug, char *RealFields, bool EncodePlus)
 {
 	GStringPipe p;
 	GHashTbl<char*,bool> Done;
-	GHashTbl<char*,bool> Real;
+	GHashTbl<char*,char*> Real;
 
 	if (RealFields)
 	{
@@ -448,7 +448,7 @@ char *FormPost::EncodeFields(GStream *Debug, char *RealFields, bool EncodePlus)
 
 				if (Debug && RealFields)
 				{
-					char *Value = (char*) Real.Find(v->Field);
+					char *Value = Real.Find(v->Field);
 					if (Value)
 					{
 						if (_stricmp(Value, v->Value) != 0)

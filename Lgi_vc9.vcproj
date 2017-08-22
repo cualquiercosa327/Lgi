@@ -671,7 +671,7 @@
 						>
 					</File>
 					<File
-						RelativePath=".\include\common\GLibrary.h"
+						RelativePath=".\include\common\LLibrary.h"
 						>
 					</File>
 				</Filter>
@@ -679,7 +679,7 @@
 					Name="Mutex"
 					>
 					<File
-						RelativePath=".\src\common\Lgi\GMutex.cpp"
+						RelativePath=".\src\common\Lgi\LMutex.cpp"
 						>
 					</File>
 					<File
@@ -747,23 +747,23 @@
 						>
 					</File>
 					<File
-						RelativePath=".\src\win32\Lgi\GThread.cpp"
+						RelativePath=".\src\win32\Lgi\LThread.cpp"
 						>
 					</File>
 					<File
-						RelativePath=".\include\common\GThread.h"
+						RelativePath=".\include\common\LThread.h"
 						>
 					</File>
 					<File
-						RelativePath=".\src\common\Lgi\GThreadCommon.cpp"
+						RelativePath=".\src\common\Lgi\LThreadCommon.cpp"
 						>
 					</File>
 					<File
-						RelativePath=".\src\common\Lgi\GThreadEvent.cpp"
+						RelativePath=".\src\common\Lgi\LThreadEvent.cpp"
 						>
 					</File>
 					<File
-						RelativePath=".\include\common\GThreadEvent.h"
+						RelativePath=".\include\common\LThreadEvent.h"
 						>
 					</File>
 				</Filter>
@@ -799,7 +799,7 @@
 					Name="DateTime"
 					>
 					<File
-						RelativePath=".\src\common\General\GDateTime.cpp"
+						RelativePath=".\src\common\General\LDateTime.cpp"
 						>
 					</File>
 					<File
@@ -908,11 +908,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\common\GListItemCheckBox.h"
+					RelativePath=".\include\common\LListItemCheckBox.h"
 					>
 				</File>
 				<File
-					RelativePath=".\include\common\GListItemRadioBtn.h"
+					RelativePath=".\include\common\LListItemRadioBtn.h"
 					>
 				</File>
 				<File
@@ -1043,11 +1043,11 @@
 						>
 					</File>
 					<File
-						RelativePath=".\src\common\Widgets\GList.cpp"
+						RelativePath=".\src\common\Widgets\LList.cpp"
 						>
 					</File>
 					<File
-						RelativePath=".\include\common\GList.h"
+						RelativePath=".\include\common\LList.h"
 						>
 					</File>
 					<File

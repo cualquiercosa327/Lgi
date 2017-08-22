@@ -366,7 +366,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\common\General\GDateTime.cpp"
+					RelativePath="..\common\General\LDateTime.cpp"
 					>
 				</File>
 				<File
@@ -378,7 +378,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\common\Lgi\GMutex.cpp"
+					RelativePath="..\common\Lgi\LMutex.cpp"
 					>
 				</File>
 				<File
@@ -470,7 +470,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\common\Widgets\GList.cpp"
+					RelativePath="..\common\Widgets\LList.cpp"
 					>
 				</File>
 				<File
@@ -546,15 +546,15 @@
 					>
 				</File>
 				<File
-					RelativePath="..\win32\Lgi\GThread.cpp"
+					RelativePath="..\win32\Lgi\LThread.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\common\Lgi\GThreadCommon.cpp"
+					RelativePath="..\common\Lgi\LThreadCommon.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\common\Lgi\GThreadEvent.cpp"
+					RelativePath="..\common\Lgi\LThreadEvent.cpp"
 					>
 				</File>
 			</Filter>

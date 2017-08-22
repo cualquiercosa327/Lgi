@@ -35,14 +35,14 @@ LMutex::LMutex(const char *name)
 	
 	#elif defined BEOS
 	
-	_Sem = create_sem(1, _Name ? _Name :"LGI.GMutex");
+	_Sem = create_sem(1, _Name ? _Name :"LGI.LMutex");
 
 	#elif defined POSIX
 
 	ZeroObj(_Sem);
 	if (pthread_mutex_init(&_Sem, 0))
 	{
-		LgiTrace("%s:%i - Couldn't create mutex for GMutex\n", __FILE__, __LINE__);
+		LgiTrace("%s:%i - Couldn't create mutex for LMutex\n", __FILE__, __LINE__);
 	}
 
 	#endif
@@ -173,7 +173,7 @@ bool LMutex::Lock(const char *file, int line)
 		int64 Now = LgiCurrentTime();
 		if (Warn && Now > Start + 5000)
 		{
-			LgiTrace("GMutex=%p(%s): Can't lock after %ims... LockingThread=%i ThisThread=%x Count=%x Locker=%s:%i.\n",
+			LgiTrace("LMutex=%p(%s): Can't lock after %ims... LockingThread=%i ThisThread=%x Count=%x Locker=%s:%i.\n",
 					this,
 					_Name,
 					(int)(Now - Start),

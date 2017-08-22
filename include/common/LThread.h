@@ -2,7 +2,7 @@
 #define __GTHREAD_H
 
 //////////////////////////////////////////////////////////////////////////
-// Thread types are defined in GMutex.h
+// Thread types are defined in LMutex.h
 #include "LMutex.h"
 
 class LgiClass LThread
