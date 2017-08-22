@@ -58,17 +58,40 @@ bool GClipBoard::Empty()
 
 bool GClipBoard::Text(char *Str, bool AutoEmpty)
 {
-	bool Status = false;
-
-	if (AutoEmpty)
-	{
-		Empty();
-	}
-	
-	if (!wTxt.Reset(Utf8ToWide(Str)))
-		return false;
-
-	return TextW(wTxt);
+    bool Status = false;
+    
+    if (AutoEmpty)
+        Empty();
+    
+    if (Str && Owner && d->Pb)
+    {
+        if (Txt.Get() != Str)
+            Txt.Reset(NewStr(Str));
+        
+        if (Txt)
+        {
+            OSStatus e;
+            
+            CFDataRef Data = CFDataCreate(kCFAllocatorDefault, (UInt8*)Txt.Get(), strlen(Txt));
+            if (!Data) printf("%s:%i - CFDataCreate failed\n", _FL);
+            else
+            {
+                e = PasteboardClear(d->Pb);
+                if (e) printf("%s:%i - PasteboardClear failed with %i\n", _FL, (int)e);
+                
+                e = PasteboardPutItemFlavor(d->Pb, (PasteboardItemID)1, CFSTR("public.utf8-plain-text"), Data, 0);
+                if (e) printf("%s:%i - PasteboardPutItemFlavor failed with %i\n", _FL, (int)e);
+                else
+                {
+                    Status = true;
+                }
+                
+                CFRelease(Data);
+            }
+        }
+    }
+    
+    return Status;
 }
 
 char *GClipBoard::Text()
