@@ -38,6 +38,11 @@ GClipBoard::~GClipBoard()
 	DeleteObj(d);
 }
 
+bool GClipBoard::EnumFormats(GArray<FormatType> &Formats)
+{
+	return false;
+}
+
 bool GClipBoard::Empty()
 {
 	bool Status = false;
