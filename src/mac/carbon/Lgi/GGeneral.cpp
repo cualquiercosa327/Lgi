@@ -15,6 +15,10 @@
 #include <Carbon/Carbon.h>
 #include "INet.h"
 
+#include <sys/types.h>
+#include <pwd.h>
+#include <uuid/uuid.h>
+
 ////////////////////////////////////////////////////////////////
 // Local helper functions
 bool _lgi_check_file(char *Path)
@@ -572,4 +576,13 @@ bool LgiGetMimeTypeExtensions(const char *Mime, GArray<char*> &Ext)
 	HardCodeExtention("text/mbox", "mbx", "mbox");
 
 	return Ext.Length() > Start;
+}
+
+GString LgiCurrentUserName()
+{
+    struct passwd *pw = getpwuid(geteuid());
+    if (pw)
+        return pw->pw_name;
+    
+    return "";
 }

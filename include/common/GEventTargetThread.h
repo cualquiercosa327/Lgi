@@ -225,7 +225,7 @@ public:
 						_FL, LThread::GetName(),
 						(int)GetCurrentThreadId(),
 						GetId(),
-						Event.Handle());
+						(void*)Event.Handle());
 					#endif
 					
 					Start = Now;
