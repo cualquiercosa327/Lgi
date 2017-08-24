@@ -6,6 +6,8 @@
 class GClipBoardPriv
 {
 public:
+	GAutoString Utf8;
+	GAutoWString Wide;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -48,6 +50,9 @@ bool GClipBoard::EnumFormats(GArray<FormatType> &Formats)
 
 bool GClipBoard::Empty()
 {
+	d->Utf8.Reset();
+	d->Wide.Reset();
+
 	return EmptyClipboard();
 }
 
@@ -58,11 +63,10 @@ bool GClipBoard::Text(char *Str, bool AutoEmpty)
 
 	if (Str)
 	{
-		char *n = LgiToNativeCp(Str);
-		if (n)
+		GAutoString Native(LgiToNativeCp(Str));
+		if (Native)
 		{
-			Status = Binary(CF_TEXT, (uchar*)n, strlen(n)+1, AutoEmpty);
-			DeleteArray(n);
+			Status = Binary(CF_TEXT, (uchar*)Native.Get(), strlen(Native)+1, AutoEmpty);
 		}
 		else LgiTrace("%s:%i - Conversion to native cs failed.\n", _FL);
 	}
@@ -77,10 +81,11 @@ char *GClipBoard::Text()
 	GAutoPtr<uint8> Str;
 	if (Binary(CF_TEXT, Str, &Len))
 	{
-		return LgiFromNativeCp((char*)Str.Get());
+		d->Utf8.Reset(LgiFromNativeCp((char*)Str.Get()));
+		return d->Utf8;
 	}
 
-	return 0;
+	return NULL;
 }
 
 bool GClipBoard::TextW(char16 *Str, bool AutoEmpty)
@@ -100,10 +105,11 @@ char16 *GClipBoard::TextW()
 	GAutoPtr<uint8> Str;
 	if (Binary(CF_UNICODETEXT, Str, &Len))
 	{
-		return NewStrW((char16*) Str.Get(), Len / 2);
+		d->Wide.Reset(NewStrW((char16*) Str.Get(), Len / 2));
+		return d->Wide;
 	}
 
-	return 0;
+	return NULL;
 }
 
 // Bitmap
