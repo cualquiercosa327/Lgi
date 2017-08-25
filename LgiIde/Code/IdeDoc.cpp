@@ -39,7 +39,8 @@ enum SourceType
 	SrcUnknown,
 	SrcPlainText,
 	SrcCpp,
-	SrcPython
+	SrcPython,
+	SrcXml,
 };
 
 struct LanguageParams
@@ -57,8 +58,8 @@ const char *CppTypes[] = {	"int", "char", "unsigned", "double", "float", "bool",
 							"GArray", "GHashTbl", "List", "GString", "GAutoString", "GAutoWString",
 							"GAutoPtr",
 							NULL};
-
 const char *PythonKeywords[] = {"def", "try", "except", "import", "if", "for", NULL};
+const char *XmlTypes[] = {	NULL};
 
 LanguageParams LangParam[] =
 {
@@ -70,6 +71,8 @@ LanguageParams LangParam[] =
 	{CppKeywords, CppTypes},
 	// Python
 	{PythonKeywords, NULL},
+	// Xml
+	{NULL, XmlTypes}
 };
 
 GAutoPtr<GDocFindReplaceParams> GlobalFindReplace;
@@ -1660,6 +1663,176 @@ public:
 			}
 		}
 	}
+
+	void StyleXml(ssize_t Start, ssize_t EditSize)
+	{
+		char16 *e = Text + Size;
+		
+		Style.DeleteObjects();
+		for (char16 *s = Text; s < e; s++)
+		{
+			switch (*s)
+			{
+				case '\"':
+				case '\'':
+				{
+					GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+					if (st)
+					{
+						st->View = this;
+						st->Start = s - Text;
+						st->Font = GetFont();
+
+						char16 Delim = *s++;
+						while (s < e && *s != Delim)
+						{
+							if (*s == '\\')
+								s++;
+							s++;
+						}
+						st->Len = (s - Text) - st->Start + 1;
+						st->c = ColourLiteral;
+						InsertStyle(st);
+					}
+					break;
+				}
+				case '0':
+				case '1':
+				case '2':
+				case '3':
+				case '4':
+				case '5':
+				case '6':
+				case '7':
+				case '8':
+				case '9':
+				{
+					if (s == Text || !IsSymbolChar(s[-1]))
+					{
+						GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+						if (st)
+						{
+							st->View = this;
+							st->Start = s - Text;
+							st->Font = GetFont();
+
+							bool IsHex = false;
+							if (s[0] == '0' &&
+								ToLower(s[1]) == 'x')
+							{
+								s += 2;
+								IsHex = true;
+							}
+							
+							while (s < e)
+							{
+								if
+								(
+									IsDigit(*s)
+									||
+									*s == '.'
+									||
+									(
+										IsHex
+										&&
+										(
+											(*s >= 'a' && *s <= 'f')
+											||
+											(*s >= 'A' && *s <= 'F')
+										)
+									)
+								)
+									s++;
+								else
+									break;
+							}
+							
+							st->Len = (s - Text) - st->Start;
+							st->c = ColourLiteral;
+							InsertStyle(st);
+							s--;
+						}
+					}
+					while (s < e - 1 && IsDigit(s[1]))
+						s++;
+					break;
+				}
+				case '<':
+				{
+					if (s[1] == '!' &&
+						s[2] == '-' &&
+						s[3] == '-')
+					{
+						GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+						if (st)
+						{
+							st->View = this;
+							st->Start = s - Text;
+							st->Font = GetFont();
+							s += 2;
+							while
+							(
+								s < e
+								&&
+								!
+								(
+									s[-3] == '-'
+									&&
+									s[-2] == '-'
+									&&
+									s[-1] == '>'
+								)
+							)
+								s++;
+							st->Len = (s - Text) - st->Start;
+							st->c = ColourComment;
+							InsertStyle(st);
+							s--;
+						}
+					}
+					break;
+				}
+				default:
+				{
+					if (*s >= 'a' && *s <= 'z')
+					{
+						Keyword *k;
+						if (k = HasKeyword[*s - 'a'])
+						{
+							do
+							{
+								if (!Strncmp(k->Word, s, k->Len))
+									break;
+							}
+							while (k = k->Next);
+
+							if
+							(
+								k
+								&&
+								(s == Text || !IsSymbolChar(s[-1]))
+								&&
+								!IsSymbolChar(s[k->Len])
+							)
+							{
+								GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+								if (st)
+								{
+									st->View = this;
+									st->Start = s - Text;
+									st->Font = Bold;
+									st->Len = k->Len;
+									st->c = ColourKeyword;
+									InsertStyle(st);
+									s += k->Len - 1;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 	
 	void AddKeywords(const char **keys, bool IsType)
 	{
@@ -1693,6 +1866,8 @@ public:
 				FileType = SrcCpp;
 			else if (!stricmp(Ext, "py"))
 				FileType = SrcPython;
+			else if (!stricmp(Ext, "xml"))
+				FileType = SrcXml;
 			else
 				FileType = SrcPlainText;
 
@@ -1710,6 +1885,9 @@ public:
 				break;
 			case SrcPython:
 				StylePython(Start, EditSize);
+				break;
+			case SrcXml:
+				StyleXml(Start, EditSize);
 				break;
 		}		
 	}
