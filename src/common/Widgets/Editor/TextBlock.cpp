@@ -1147,7 +1147,8 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 			
 	if (CurLine && CurLine->Strs.Length() > 0)
 	{
-		CurLine->LayoutOffsets(d->View->GetFont()->GetHeight());
+		GFont *f = d->View ? d->View->GetFont() : SysFont;
+		CurLine->LayoutOffsets(f->GetHeight());
 		Pos.y2 = max(Pos.y2, Pos.y1 + CurLine->PosOff.y2);
 		Layout.Add(CurLine.Release());
 	}

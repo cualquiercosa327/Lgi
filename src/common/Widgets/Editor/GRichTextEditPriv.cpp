@@ -291,11 +291,11 @@ bool MultiBlockState::Cut(ssize_t Idx)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv *&Ptr) :
+GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv **Ptr) :
 	GHtmlParser(view),
 	GFontCache(SysFont)
 {
-	Ptr = this;
+	if (Ptr) *Ptr = this;
 	BlinkTs = 0;
 	View = view;
 	Log = &LogBuffer;
@@ -540,7 +540,14 @@ void GRichTextPriv::UpdateStyleUI()
 		b->GetTextAt(Cursor->Offset, Styles);
 	StyleText *st = Styles.Length() ? Styles.First() : NULL;
 
-	GFont *f = st ? GetFont(st->GetStyle()) : View->GetFont();
+	GFont *f = NULL;
+	if (st)
+		f = GetFont(st->GetStyle());
+	else if (View)
+		f = View->GetFont();
+	else if (LgiApp)
+		f = SysFont;
+		
 	if (f)
 	{
 		Values[GRichTextEdit::FontFamilyBtn] = f->Face();
@@ -558,7 +565,8 @@ void GRichTextPriv::UpdateStyleUI()
 	Values[GRichTextEdit::ForegroundColourBtn] = (int64) (st && st->Colours.Fore.IsValid() ? st->Colours.Fore.c32() : TextColour.c32());
 	Values[GRichTextEdit::BackgroundColourBtn] = (int64) (st && st->Colours.Back.IsValid() ? st->Colours.Back.c32() : 0);
 
-	View->Invalidate(Areas + GRichTextEdit::ToolsArea);
+	if (View)
+		View->Invalidate(Areas + GRichTextEdit::ToolsArea);
 }
 
 void GRichTextPriv::ScrollTo(GRect r)

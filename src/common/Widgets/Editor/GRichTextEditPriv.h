@@ -426,7 +426,7 @@ public:
 	GArray<GRect> DebugRects;
 
 	// Constructor
-	GRichTextPriv(GRichTextEdit *view, GRichTextPriv *&Ptr);	
+	GRichTextPriv(GRichTextEdit *view, GRichTextPriv **Ptr);
 	~GRichTextPriv();
 	
 	bool Error(const char *file, int line, const char *fmt, ...);

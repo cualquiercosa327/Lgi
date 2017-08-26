@@ -49,7 +49,7 @@ GRichTextEdit::GRichTextEdit(	int Id,
 	: ResObject(Res_Custom)
 {
 	// init vars
-	GView::d->Css.Reset(new GRichTextPriv(this, d));
+	GView::d->Css.Reset(new GRichTextPriv(this, &d));
 
 	// setup window
 	SetId(Id);
