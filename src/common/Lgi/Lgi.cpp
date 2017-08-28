@@ -1867,7 +1867,6 @@ char *LgiFindFile(const char *Name)
 		printf("%s:%i - Exe='%s'\n", _FL, Exe);
 		#endif
 
-        printf("LgiRecursiveFileSearch searching %s\n", Exe);
 		if (LgiRecursiveFileSearch(Exe, &Ext, &Files) &&
 			Files.Length())
 		{

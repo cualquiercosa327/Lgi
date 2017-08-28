@@ -63,6 +63,9 @@ Depends =	GDebugContext.o \
 			WebFldDlg.o \
 			FtpThread.o \
 			IFtp.o \
+			IdeProject.o \
+			IdeProjectSettings.o \
+			ProjectNode.o \
 			FindInFiles.o \
 			FindSymbol.o \
 			GHistory.o \
@@ -72,12 +75,9 @@ Depends =	GDebugContext.o \
 			SysCharSupport.o \
 			IdeCommon.o \
 			IdeDoc.o \
-			IdeProject.o \
-			IdeProjectSettings.o \
 			LgiIde.o \
 			LgiUtils.o \
 			MemDumpViewer.o \
-			ProjectNode.o \
 			SpaceTabConv.o \
 			GDocView.o \
 			GMdi.o \
@@ -1014,6 +1014,54 @@ IFtp.o : ../src/common/INet/IFtp.cpp ../include/common/Gdc2.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
+IdeProject.o : ./Code/IdeProject.cpp ../include/common/Lgi.h \
+	./Code/LgiIde.h \
+	../include/common/GDragAndDrop.h \
+	../include/common/GToken.h \
+	./Code/resdefs.h \
+	../include/common/GProcess.h \
+	../include/common/GCombo.h \
+	../include/common/INet.h \
+	../include/common/LListItemCheckBox.h \
+	./Code/FtpThread.h \
+	../include/common/GClipBoard.h \
+	../include/common/GDropFiles.h \
+	../include/common/GSubProcess.h \
+	./Code/ProjectNode.h \
+	./Code/WebFldDlg.h \
+	../include/common/GCss.h \
+	../include/common/GTableLayout.h \
+	../include/common/GTextLabel.h \
+	../include/common/GButton.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+IdeProjectSettings.o : ./Code/IdeProjectSettings.cpp ../include/common/Lgi.h \
+	./Code/LgiIde.h \
+	./Code/IdeProject.h \
+	../include/common/GTableLayout.h \
+	./Code/resdefs.h \
+	../include/common/GTextLabel.h \
+	../include/common/GEdit.h \
+	../include/common/GCheckBox.h \
+	../include/common/GCombo.h \
+	../include/common/GButton.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+ProjectNode.o : ./Code/ProjectNode.cpp ../include/common/Lgi.h \
+	./Code/LgiIde.h \
+	./Code/IdeProject.h \
+	./Code/ProjectNode.h \
+	./Code/AddFtpFile.h \
+	../include/common/GToken.h \
+	../include/common/GCombo.h \
+	./Code/WebFldDlg.h \
+	../include/common/GClipBoard.h \
+	../include/common/GTableLayout.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
 FindInFiles.o : ./Code/FindInFiles.cpp ../include/common/Lgi.h \
 	./Code/LgiIde.h \
 	../include/common/GProcess.h \
@@ -1094,41 +1142,6 @@ IdeDoc.o : ./Code/IdeDoc.cpp ../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-IdeProject.o : ./Code/IdeProject.cpp ../include/common/Lgi.h \
-	./Code/LgiIde.h \
-	../include/common/GDragAndDrop.h \
-	../include/common/GToken.h \
-	./Code/resdefs.h \
-	../include/common/GProcess.h \
-	../include/common/GCombo.h \
-	../include/common/INet.h \
-	../include/common/LListItemCheckBox.h \
-	./Code/FtpThread.h \
-	../include/common/GClipBoard.h \
-	../include/common/GDropFiles.h \
-	../include/common/GSubProcess.h \
-	./Code/ProjectNode.h \
-	./Code/WebFldDlg.h \
-	../include/common/GCss.h \
-	../include/common/GTableLayout.h \
-	../include/common/GTextLabel.h \
-	../include/common/GButton.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-IdeProjectSettings.o : ./Code/IdeProjectSettings.cpp ../include/common/Lgi.h \
-	./Code/LgiIde.h \
-	./Code/IdeProject.h \
-	../include/common/GTableLayout.h \
-	./Code/resdefs.h \
-	../include/common/GTextLabel.h \
-	../include/common/GEdit.h \
-	../include/common/GCheckBox.h \
-	../include/common/GCombo.h \
-	../include/common/GButton.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
 LgiIde.o : ./Code/LgiIde.cpp ../include/common/Lgi.h \
 	./Code/LgiIde.h \
 	../include/common/GMdi.h \
@@ -1167,19 +1180,6 @@ MemDumpViewer.o : ./Code/MemDumpViewer.cpp ../include/common/Lgi.h \
 	../include/common/GEdit.h \
 	../include/common/GProgressDlg.h \
 	../include/common/LList.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-ProjectNode.o : ./Code/ProjectNode.cpp ../include/common/Lgi.h \
-	./Code/LgiIde.h \
-	./Code/IdeProject.h \
-	./Code/ProjectNode.h \
-	./Code/AddFtpFile.h \
-	../include/common/GToken.h \
-	../include/common/GCombo.h \
-	./Code/WebFldDlg.h \
-	../include/common/GClipBoard.h \
-	../include/common/GTableLayout.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -3217,7 +3217,11 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GOptionsFile.h \
 	./Code/GDebugger.h \
 	../include/common/GProgressDlg.h \
-	../include/common/LList.h
+	../include/common/LList.h \
+	./Code/IdeProjectSettings.h \
+	./Code/GDebugContext.h
+
+./Code/GDebugContext.h : 
 
 ../../../../../../usr/include/libpng12/png.h : /usr/include/libpng12/pngconf.h
 
@@ -4087,7 +4091,9 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/common/GOptionsFile.h \
 	./Code/GDebugger.h \
 	../include/common/GProgressDlg.h \
-	../include/common/LList.h
+	../include/common/LList.h \
+	./Code/IdeProjectSettings.h \
+	./Code/GDebugContext.h
 
 ./Code/FindInFiles.h : ./Code/GHistory.h
 
@@ -4411,6 +4417,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	/usr/include/glib-2.0/gio/gconverter.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkgamma.h : /usr/include/gtk-2.0/gtk/gtkvbox.h
+
+./Code/IdeProjectSettings.h : 
 
 ../../../../../../usr/include/gstreamer-1.0/gst/gstobject.h : /usr/include/glib-2.0/glib-object.h
 

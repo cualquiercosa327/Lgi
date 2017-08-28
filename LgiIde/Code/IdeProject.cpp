@@ -291,9 +291,6 @@ BuildThread::BuildThread(IdeProject *proj, char *makefile, bool clean, bool rele
 		Compiler = Gcc;
 		#endif
 	}
-		
-	if (Proj->GetApp())
-		Proj->GetApp()->PostEvent(M_APPEND_TEXT, 0, 0);
 
 	Run();
 }
@@ -1065,6 +1062,37 @@ void IdeProject::Build(bool All, bool Release)
 		return;
 	}
 
+	if (GetApp())
+		GetApp()->PostEvent(M_APPEND_TEXT, 0, 0);
+
+	// Is the project file modified after the makefile?
+	GAutoString Proj = GetFullPath();
+	uint64 ProjModTime = 0, MakeModTime = 0;
+	GDirectory dir;
+	if (dir.First(Proj))
+	{
+		ProjModTime = dir.GetLastWriteTime();
+		dir.Close();
+	}
+	if (dir.First(m))
+	{
+		MakeModTime = dir.GetLastWriteTime();
+		dir.Close();
+	}
+
+	int Cur = PLATFORM_CURRENT;
+	printf("%s:%i - Cur = %x\n", _FL, Cur);
+	
+	// printf("%s:%i - " LGI_PrintfInt64 ", " LGI_PrintfInt64 "\n", _FL, ProjModTime, MakeModTime);
+	if (ProjModTime != 0 &&
+		MakeModTime != 0 &&
+		ProjModTime > MakeModTime)
+	{
+		// Need to rebuild the makefile...
+		CreateMakefile(GetCurrentPlatform());
+	}
+	
+	// Start the build thread...
 	d->Thread.Reset
 	(
 		new BuildThread
@@ -2157,7 +2185,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 	if (!Log)
 		return false;
 	
-	Log->Print("CreateMakefile...\n");
+	Log->Print("CreateMakefile for '%s'...\n", PlatformName);
 	
 	if (Platform == PlatformWin32)
 	{

@@ -3,6 +3,7 @@
 	<Node Name="Source Files" Type="1" Platforms="15" Open="1" Id="1">
 		<Node Name="Debugger" Type="1" Platforms="15" Open="0" Id="2">
 			<Node File="./Code/GDebugContext.cpp" Type="2" Platforms="15" />
+			<Node File="./Code/GDebugContext.h" Type="3" Platforms="15" />
 			<Node File="./Code/GDebugger.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/GDebugger.h" Type="3" Platforms="15" />
 			<Node File="../src/common/Lgi/GSubProcess.cpp" Type="2" Platforms="15" />
@@ -19,6 +20,14 @@
 			<Node File="./Code/FtpThread.h" Type="3" Platforms="15" />
 			<Node File="../src/common/INet/IFtp.cpp" Type="2" Platforms="15" />
 			<Node File="../include/common/IFtp.h" Type="3" Platforms="15" />
+		</Node>
+		<Node Name="Projects" Type="1" Platforms="15" Id="1">
+			<Node File="./Code/IdeProject.cpp" Type="2" Platforms="15" />
+			<Node File="./Code/IdeProject.h" Type="3" Platforms="15" />
+			<Node File="./Code/IdeProjectSettings.cpp" Type="2" Platforms="15" />
+			<Node File="./Code/IdeProjectSettings.h" Type="3" Platforms="15" />
+			<Node File="./Code/ProjectNode.cpp" Type="2" Platforms="15" />
+			<Node File="./Code/ProjectNode.h" Type="3" Platforms="15" />
 		</Node>
 		<Node Name="Search" Type="1" Platforms="15" Open="1" Id="5">
 			<Node File="./Code/FindInFiles.cpp" Type="2" Platforms="15" />
@@ -38,15 +47,10 @@
 		<Node File="./Code/IdeCommon.cpp" Type="2" Platforms="15" />
 		<Node File="./Code/IdeDoc.cpp" Type="2" Platforms="15" />
 		<Node File="./Code/IdeDoc.h" Type="3" Platforms="15" />
-		<Node File="./Code/IdeProject.cpp" Type="2" Platforms="15" />
-		<Node File="./Code/IdeProject.h" Type="3" Platforms="15" />
-		<Node File="./Code/IdeProjectSettings.cpp" Type="2" Platforms="15" />
 		<Node File="./Code/LgiIde.cpp" Type="2" Platforms="15" />
 		<Node File="./Code/LgiIde.h" Type="3" Platforms="15" />
 		<Node File="./Code/LgiUtils.cpp" Type="2" Platforms="15" />
 		<Node File="./Code/MemDumpViewer.cpp" Type="2" Platforms="15" />
-		<Node File="./Code/ProjectNode.cpp" Type="2" Platforms="15" />
-		<Node File="./Code/ProjectNode.h" Type="3" Platforms="15" />
 		<Node File="./Code/SpaceTabConv.cpp" Type="2" Platforms="15" />
 		<Node File="./Code/SpaceTabConv.h" Type="3" Platforms="15" />
 	</Node>
