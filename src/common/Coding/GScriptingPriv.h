@@ -411,14 +411,12 @@ public:
 		GCompiledCode *Code,
 		/// [In] The function to execute
 		GFunctionInfo *Func,
-		/// [In] The function's arguments
-		ArgumentArray &ArgsIn,
-		/// [Out] The return value of the function
-		GVariant *Ret,
+		/// [In/Out] The function's arguments
+		LScriptArguments &Args,
 		/// [Optional] Log file for execution
 		GStream *Log = NULL,
 		/// [Optional] Copy arguments back to this array
-		ArgumentArray *ArgsOut = NULL
+		LScriptArguments *ArgsOut = NULL
 	);
 
 	// Debugging commands
@@ -463,28 +461,28 @@ public:
 	GHostFunc *GetCommands();
 
 	// String
-		bool LoadString(GVariant *Ret, ArgumentArray &Args);
+		bool LoadString(LScriptArguments &Args);
 		/// Formats a string
-		bool Sprintf(GVariant *Ret, ArgumentArray &Args);
+		bool Sprintf(LScriptArguments &Args);
 		/// Formats a file size
-		bool FormatSize(GVariant *Ret, ArgumentArray &Args);
+		bool FormatSize(LScriptArguments &Args);
 		/// Prints items to the console
-		bool Print(GVariant *Ret, ArgumentArray &Args);
+		bool Print(LScriptArguments &Args);
 
 	// Object creation/deletion
-		bool New(GVariant *Ret, ArgumentArray &Args);
-		bool Delete(GVariant *Ret, ArgumentArray &Args);
+		bool New(LScriptArguments &Args);
+		bool Delete(LScriptArguments &Args);
 
 	// File
 		/// Reads a text file into a variable
-		bool ReadTextFile(GVariant *Ret, ArgumentArray &Args);
+		bool ReadTextFile(LScriptArguments &Args);
 		/// Writes a text file from a variable
-		bool WriteTextFile(GVariant *Ret, ArgumentArray &Args);
+		bool WriteTextFile(LScriptArguments &Args);
 		/// \brief Opens a file open dialog to select files.
 		///
 		/// Args: GView *Parent, char *Patterns, 
 		///		  char *InitFolder, bool Multiselect
-		bool SelectFiles(GVariant *Ret, ArgumentArray &Args);
+		bool SelectFiles(LScriptArguments &Args);
 		/// Lists file in folder
 		///
 		/// Args; char *Path, [optional] char *Pattern
@@ -493,50 +491,50 @@ public:
 		///		Size - Size of entry
 		///		Folder - bool, true if folder
 		///		Modified - LDateTime, modified time
-		bool ListFiles(GVariant *Ret, ArgumentArray &Args);
+		bool ListFiles(LScriptArguments &Args);
 		/// Deletes a file
-		bool DeleteFile(GVariant *Ret, ArgumentArray &Args);
+		bool DeleteFile(LScriptArguments &Args);
 		/// Gets the current script path.
-		bool CurrentScript(GVariant *Ret, ArgumentArray &Args);
+		bool CurrentScript(LScriptArguments &Args);
 		/// Finds out if a path exists.
-		bool PathExists(GVariant *Ret, ArgumentArray &Args);
+		bool PathExists(LScriptArguments &Args);
 		/// Joins path segments together.
-		bool PathJoin(GVariant *Ret, ArgumentArray &Args);
+		bool PathJoin(LScriptArguments &Args);
 		/// Returns the current OS path separator.
-		bool PathSep(GVariant *Ret, ArgumentArray &Args);
+		bool PathSep(LScriptArguments &Args);
 
 	// Time
 		/// Sleeps a number of milliseconds
-		bool Sleep(GVariant *Ret, ArgumentArray &Args);
+		bool Sleep(LScriptArguments &Args);
 		/// Get the current tick count
-		bool ClockTick(GVariant *Ret, ArgumentArray &Args);
+		bool ClockTick(LScriptArguments &Args);
 		/// Get the date time
-		bool Now(GVariant *Ret, ArgumentArray &Args);
+		bool Now(LScriptArguments &Args);
 
 	// Bitmaps
 		/// Creates a memory context
-		bool CreateSurface(GVariant *Ret, ArgumentArray &Args);
+		bool CreateSurface(LScriptArguments &Args);
 
 	// User interface
 		/// Standard alert message box
-		bool MessageDlg(GVariant *Ret, ArgumentArray &Args);
+		bool MessageDlg(LScriptArguments &Args);
 		/// Gets an input string from the user
 		/// String GetInputDlg(Window Parent, String InitialValue, String Question, String Title[, bool IsPassword]);
-		bool GetInputDlg(GVariant *Ret, ArgumentArray &Args);
+		bool GetInputDlg(LScriptArguments &Args);
 		/// Gets a view by id
-		bool GetViewById(GVariant *Ret, ArgumentArray &Args);
+		bool GetViewById(LScriptArguments &Args);
 
 	// System
 		/// Executes a command, waits for it to finish, then returns it's output:
 		/// String Execute(String Application, String CmdLine);
-		bool Execute(GVariant *Ret, ArgumentArray &Args);
+		bool Execute(LScriptArguments &Args);
 		/// Executes a command and doesn't wait for it to return:
 		/// Bool System(String Application, String CmdLine);
-		bool System(GVariant *Ret, ArgumentArray &Args);
+		bool System(LScriptArguments &Args);
 		/// Gets the operating system name.
-		bool OsName(GVariant *Ret, ArgumentArray &Args);
+		bool OsName(LScriptArguments &Args);
 		/// Gets the operating system version.
-		bool OsVersion(GVariant *Ret, ArgumentArray &Args);
+		bool OsVersion(LScriptArguments &Args);
 };
 
 #endif

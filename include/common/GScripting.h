@@ -9,8 +9,24 @@ class GScriptContext;
 class GScriptEnginePrivate;
 class GVmDebuggerCallback;
 
-typedef GArray<GVariant*> ArgumentArray;
-typedef bool (GScriptContext::*ScriptCmd)(GVariant *Ret, ArgumentArray &Args);
+class LScriptArguments : public GArray<GVariant*>
+{
+	GVariant _Return;
+	GVariant *PtrRet;
+
+public:
+	LScriptArguments(GVariant *ret = NULL)
+	{
+		if (ret)
+			PtrRet = ret;
+		else
+			PtrRet = &_Return;
+	}
+
+	GVariant *GetReturn() { return PtrRet; }
+};
+
+typedef bool (GScriptContext::*ScriptCmd)(LScriptArguments &Args);
 
 #define SCOPE_REGISTER		0
 #define SCOPE_LOCAL			1
@@ -55,7 +71,7 @@ struct GFunc
 	{
 	}
 
-	virtual GExecutionStatus Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args) = 0;
+	virtual GExecutionStatus Call(GScriptContext *Ctx, LScriptArguments &Args) = 0;
 };
 
 struct GHostFunc : public GFunc
@@ -78,7 +94,7 @@ struct GHostFunc : public GFunc
 		Func = proc;
 	}
 
-	GExecutionStatus Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args) override;
+	GExecutionStatus Call(GScriptContext *Ctx, LScriptArguments &Args) override;
 };
 
 struct GExternFunc : public GFunc
@@ -96,7 +112,7 @@ struct GExternFunc : public GFunc
 	ExternType ReturnType;
 	GArray<ExternType> ArgType;
 
-	GExecutionStatus Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args) override;
+	GExecutionStatus Call(GScriptContext *Ctx, LScriptArguments &Args) override;
 };
 
 class GFunctionInfo : public GRefCount
@@ -312,7 +328,7 @@ public:
 	GExecutionStatus Run(GCompiledCode *Obj, GVariant *Ret = NULL, const char *TempPath = NULL);
 	GExecutionStatus RunTemporary(GCompiledCode *Obj, char *Script, GVariant *Ret = NULL);
 	bool EvaluateExpression(GVariant *Result, GDom *VariableSource, char *Expression);
-	bool CallMethod(GCompiledCode *Obj, const char *Method, GVariant *Ret, ArgumentArray &Args);
+	bool CallMethod(GCompiledCode *Obj, const char *Method, LScriptArguments &Args);
 	GScriptContext *GetSystemContext();
 };
 

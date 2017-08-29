@@ -175,7 +175,7 @@ inline int CompareVariants(GVariant *a, GVariant *b)
 	}
 }
 
-GExecutionStatus GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args)
+GExecutionStatus GExternFunc::Call(GScriptContext *Ctx, LScriptArguments &Args)
 {
 	if (!Lib || !Method)
 		return ScriptError;
@@ -338,7 +338,7 @@ GExecutionStatus GExternFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentA
 		LgiAssert(0);
 	#endif
 
-	if (Ret) (*Ret) = (int) r;
+	*Args.GetReturn() = (int) r;
 	for (unsigned i=0; i<Args.Length(); i++)
 	{
 		GVariant *v = Args[i];
@@ -420,8 +420,7 @@ public:
 	GVmDebuggerCallback *DbgCallback;
 	GVmDebugger *Debugger;
 	GVirtualMachine *Vm;
-	ArgumentArray *ArgsOutput;
-	GVariant UnusedReturn;
+	LScriptArguments *ArgsOutput;
 	bool BreakCpp;
 	GArray<ssize_t> BreakPts;
 	GString TempPath;
@@ -639,7 +638,7 @@ public:
 		return Status;
 	}
 
-	GExecutionStatus Setup(GCompiledCode *code, uint32 StartOffset, GStream *log, GFunctionInfo *Func, ArgumentArray *Args, GVariant *Ret)
+	GExecutionStatus Setup(GCompiledCode *code, uint32 StartOffset, GStream *log, GFunctionInfo *Func, LScriptArguments *Args)
 	{
 		Status = ScriptSuccess;
 		
@@ -664,7 +663,7 @@ public:
 		Scope[SCOPE_LOCAL] = NULL;
 		Scope[SCOPE_GLOBAL] = &Code->Globals[0];
 		Scope[SCOPE_OBJECT] = NULL;
-		Scope[SCOPE_RETURN] = Ret ? Ret : &UnusedReturn;
+		Scope[SCOPE_RETURN] = Args->GetReturn();
 
 		#if 1
 		const char *SourceFileName = Code->GetFileName();
@@ -971,20 +970,21 @@ GExecutionStatus GVirtualMachine::Execute(GCompiledCode *Code, uint32 StartOffse
 	if (!Code)
 		return ScriptError;
 
-	GExecutionStatus s = d->Setup(Code, StartOffset, Log, NULL, NULL, Return);
+	LScriptArguments Args(Return);
+	GExecutionStatus s = d->Setup(Code, StartOffset, Log, NULL, &Args);
 	if (s != ScriptSuccess || !StartImmediately)
 		return s;
 
 	return d->Run(GVirtualMachinePriv::RunContinue);
 }
 
-GExecutionStatus GVirtualMachine::ExecuteFunction(GCompiledCode *Code, GFunctionInfo *Func, ArgumentArray &Args, GVariant *Ret, GStream *Log, ArgumentArray *ArgsOut)
+GExecutionStatus GVirtualMachine::ExecuteFunction(GCompiledCode *Code, GFunctionInfo *Func, LScriptArguments &Args, GStream *Log, LScriptArguments *ArgsOut)
 {
 	GCompiledCode *Cc = dynamic_cast<GCompiledCode*>(Code);
 	if (!Cc)
 		return ScriptError;
 
-	GExecutionStatus s = d->Setup(Cc, 0, Log, Func, &Args, Ret);
+	GExecutionStatus s = d->Setup(Cc, 0, Log, Func, &Args);
 	if (s != ScriptSuccess)
 		return s;
 
@@ -1833,7 +1833,9 @@ void GVmDebuggerWnd::LoadFile(const char *File)
 		{
 			d->Return.Empty();
 			d->Vm->d->Frames.Length(0);
-			d->Vm->d->Setup(Code, 0, d->Log, NULL, NULL, &d->Return);
+
+			LScriptArguments Args(&d->Return);
+			d->Vm->d->Setup(Code, 0, d->Log, NULL, &Args);
 		}
 	}
 }

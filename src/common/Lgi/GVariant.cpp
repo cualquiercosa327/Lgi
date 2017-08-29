@@ -723,18 +723,26 @@ bool GVariant::SetStream(class GStream *Ptr, bool Own)
     return true;
 }
 
-void GVariant::OwnStr(char *s)
+bool GVariant::OwnStr(char *s)
 {
 	Empty();
-	Type = s ? GV_STRING : GV_NULL;
+	if (!s)
+		return false;
+
+	Type = GV_STRING;
 	Value.String = s;
+	return true;
 }
 
-void GVariant::OwnStr(char16 *w)
+bool GVariant::OwnStr(char16 *w)
 {
 	Empty();
-	Type = w ? GV_WSTRING : GV_NULL;
+	if (!w)
+		return false;
+
+	Type = GV_WSTRING;
 	Value.WString = w;
+	return true;
 }
 
 char *GVariant::ReleaseStr()
@@ -1359,7 +1367,11 @@ char *GVariant::CastString()
 			p.Print("{");
 			for (GVariant *v = *it; v; v = *++it)
 			{
-				p.Print("%s%s", First ? "" : ", ", v->CastString());
+				if (v->Type == GV_STRING ||
+					v->Type == GV_WSTRING)
+					p.Print("%s\"%s\"", First ? "" : ", ", v->CastString());
+				else
+					p.Print("%s%s", First ? "" : ", ", v->CastString());
 				First = false;
 			}
 			p.Print("}");

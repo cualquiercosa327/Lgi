@@ -3704,7 +3704,7 @@ bool GScriptEngine::SetConsole(GStream *t)
 	return true;
 }
 
-bool GScriptEngine::CallMethod(GCompiledCode *Obj, const char *Method, GVariant *Ret, ArgumentArray &Args)
+bool GScriptEngine::CallMethod(GCompiledCode *Obj, const char *Method, LScriptArguments &Args)
 {
 	GCompiledCode *Code = dynamic_cast<GCompiledCode*>(Obj);
 	if (!Code || !Method)
@@ -3715,7 +3715,7 @@ bool GScriptEngine::CallMethod(GCompiledCode *Obj, const char *Method, GVariant 
 		return false;
 
 	GVirtualMachine Vm(d->Callback);
-	GExecutionStatus Status = Vm.ExecuteFunction(Code, i, Args, Ret, NULL);
+	GExecutionStatus Status = Vm.ExecuteFunction(Code, i, Args, NULL);
 	return Status != ScriptError;
 }
 

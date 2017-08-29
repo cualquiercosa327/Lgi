@@ -8,3 +8,9 @@ extern "Kernel32.dll" int GetWindowsDirectoryA(_out_ char *Folder, int Size);
 
 buf = New(256);
 r = GetWindowsDirectoryA(buf, buf.length);
+
+Print("Buf=" + buf + "\n");
+if (!buf.length)
+	return false;
+
+return true;

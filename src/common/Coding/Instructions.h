@@ -553,7 +553,7 @@ case ICallMethod:
 	uint16 Args = *c.u16++;
 
 	#ifdef VM_EXECUTE			
-	GArray<GVariant*> Arg;
+	LScriptArguments Arg(Ret);
 	#endif
 	
 	for (int i=0; i<Args; i++)
@@ -580,7 +580,7 @@ case ICallMethod:
 	GHostFunc *Hf = dynamic_cast<GHostFunc*>(Meth);
 	if (Hf)
 	{
-		if (!(Hf->Context->*(Hf->Func))(Ret, Arg))
+		if (!(Hf->Context->*(Hf->Func))(Arg))
 		{
 			if (Log)
 				Log->Print(	"%s ICallMethod error: Method '%s' failed.\n",
@@ -592,7 +592,7 @@ case ICallMethod:
 	else
 	{
 		// Fixme
-		if (!Meth->Call(NULL, Ret, Arg))
+		if (!Meth->Call(NULL, Arg))
 		{
 			if (Log)
 				Log->Print(	"%s ICallMethod error: Method '%s' failed.\n",

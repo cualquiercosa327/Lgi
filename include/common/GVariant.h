@@ -352,9 +352,9 @@ public:
 	/// changing this GVariant to GV_NULL.
 	char16 *ReleaseWStr();
 	/// Sets the variant to a heap string and takes ownership of it
-	void OwnStr(char *s);
+	bool OwnStr(char *s);
 	/// Sets the variant to a wide heap string and takes ownership of it
-	void OwnStr(char16 *s);
+	bool OwnStr(char16 *s);
 	/// Sets the variant to NULL
 	void Empty();
 	/// Returns the byte length of the data

@@ -7,9 +7,13 @@ function Func()
 	if (!Id) // This was turning 'Id' to 'true' instead of using a register.
 		return Id;
 
-	return "Success";	
+	return "Failed";
 }
 
 
 t = Func();
 Print("t=", t, "\n");
+
+if (t)
+	return false;
+return true;

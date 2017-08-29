@@ -47,9 +47,9 @@ char16 sStartCurlyBracket[]	= { '{', 0 };
 char16 sEndCurlyBracket[]	= { '}', 0 };
 
 //////////////////////////////////////////////////////////////////////////////////////
-GExecutionStatus GHostFunc::Call(GScriptContext *Ctx, GVariant *Ret, ArgumentArray &Args)
+GExecutionStatus GHostFunc::Call(GScriptContext *Ctx, LScriptArguments &Args)
 {
-	return (Ctx->*(Func))(Ret, Args) ? ScriptSuccess : ScriptError;
+	return (Ctx->*(Func))(Args) ? ScriptSuccess : ScriptError;
 }
 
 const char *InstToString(GInstruction i)
@@ -165,21 +165,21 @@ void SystemFunctions::SetEngine(GScriptEngine *Eng)
 	Engine = Eng;
 }
 
-bool SystemFunctions::LoadString(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::LoadString(LScriptArguments &Args)
 {
 	if (Args.Length() != 1)
 		return false;
 
-	*Ret = LgiLoadString(Args[0]->CastInt32());
+	*Args.GetReturn() = LgiLoadString(Args[0]->CastInt32());
 	return true;	
 }
 
-bool SystemFunctions::Sprintf(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::Sprintf(LScriptArguments &Args)
 {
 	if (Args.Length() < 1)
 		return false;
 	char *Fmt = Args[0]->Str();
-	if (!Fmt || !Ret)
+	if (!Fmt)
 		return false;
 
 	#ifdef LINUX
@@ -240,7 +240,7 @@ bool SystemFunctions::Sprintf(GVariant *Ret, ArgumentArray &Args)
 	}
 	
 	s.Add(0); // NULL terminate
-	*Ret = s.AddressOf();
+	*Args.GetReturn() = s.AddressOf();
 	
 	#else
 	
@@ -312,29 +312,26 @@ bool SystemFunctions::Sprintf(GVariant *Ret, ArgumentArray &Args)
 
 	char Buf[1024];
 	vsprintf_s(Buf, sizeof(Buf), Fmt, a);
-	*Ret = Buf;
+	*Args.GetReturn() = Buf;
 	
 	#endif
 
 	return true;
 }
 
-bool SystemFunctions::ReadTextFile(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::ReadTextFile(LScriptArguments &Args)
 {
 	if (Args.Length() == 1 &&
 		FileExists(Args[0]->CastString()))
 	{
-		if ((Ret->Value.String = ::ReadTextFile(Args[0]->CastString())))
-		{
-			Ret->Type = GV_STRING;
+		if (Args.GetReturn()->OwnStr(::ReadTextFile(Args[0]->CastString())))
 			return true;
-		}
 	}
 
 	return false;
 }
 
-bool SystemFunctions::WriteTextFile(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::WriteTextFile(LScriptArguments &Args)
 {
 	if (Args.Length() == 2)
 	{
@@ -352,13 +349,13 @@ bool SystemFunctions::WriteTextFile(GVariant *Ret, ArgumentArray &Args)
 					case GV_STRING:
 					{
 						size_t Len = strlen(v->Value.String);
-						*Ret = f.Write(v->Value.String, Len) == Len;
+						*Args.GetReturn() = f.Write(v->Value.String, Len) == Len;
 						return true;
 						break;
 					}
 					case GV_BINARY:
 					{
-						*Ret = f.Write(v->Value.Binary.Data, v->Value.Binary.Length) == v->Value.Binary.Length;
+						*Args.GetReturn() = f.Write(v->Value.Binary.Data, v->Value.Binary.Length) == v->Value.Binary.Length;
 						return true;
 						break;
 					}
@@ -383,7 +380,7 @@ GView *SystemFunctions::CastGView(GVariant &v)
 	return 0;
 }
 
-bool SystemFunctions::SelectFiles(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::SelectFiles(LScriptArguments &Args)
 {
 	GFileSelect s;
 	
@@ -418,17 +415,17 @@ bool SystemFunctions::SelectFiles(GVariant *Ret, ArgumentArray &Args)
 
 	if (s.Open())
 	{
-		Ret->SetList();
+		Args.GetReturn()->SetList();
 		for (int i=0; i<s.Length(); i++)
 		{
-			Ret->Value.Lst->Insert(new GVariant(s[i]));
+			Args.GetReturn()->Value.Lst->Insert(new GVariant(s[i]));
 		}
 	}
 
 	return true;
 }
 
-bool SystemFunctions::Sleep(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::Sleep(LScriptArguments &Args)
 {
 	if (Args.Length() != 1)
 		return false;
@@ -437,7 +434,7 @@ bool SystemFunctions::Sleep(GVariant *Ret, ArgumentArray &Args)
 	return true;
 }
 
-bool SystemFunctions::Print(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::Print(LScriptArguments &Args)
 {
 	GStream *Out = Log ? Log : (Engine ? Engine->GetConsole() : NULL);
 
@@ -496,38 +493,38 @@ bool SystemFunctions::Print(GVariant *Ret, ArgumentArray &Args)
 	return true;
 }
 
-bool SystemFunctions::FormatSize(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::FormatSize(LScriptArguments &Args)
 {
 	if (Args.Length() != 1)
 		return false;
 
 	char s[64];
 	LgiFormatSize(s, sizeof(s), Args[0]->CastInt64());
-	*Ret = s;
+	*Args.GetReturn() = s;
 	return true;
 }
 
-bool SystemFunctions::ClockTick(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::ClockTick(LScriptArguments &Args)
 {
-	*Ret = (int64)LgiCurrentTime();
+	*Args.GetReturn() = (int64)LgiCurrentTime();
 	return true;
 }
 
-bool SystemFunctions::Now(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::Now(LScriptArguments &Args)
 {
-	Ret->Empty();
-	Ret->Type = GV_DATETIME;
-	Ret->Value.Date = new LDateTime;
-	Ret->Value.Date->SetNow();
+	Args.GetReturn()->Empty();
+	Args.GetReturn()->Type = GV_DATETIME;
+	Args.GetReturn()->Value.Date = new LDateTime;
+	Args.GetReturn()->Value.Date->SetNow();
 	return true;
 }
 
-bool SystemFunctions::New(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::New(LScriptArguments &Args)
 {
-	if (Args.Length() < 1 || !Args[0] || !Ret)
+	if (Args.Length() < 1 || !Args[0])
 		return false;
 
-	Ret->Empty();
+	Args.GetReturn()->Empty();
 	char *sType = Args[0]->CastString();
 	if (!sType)
 		return false;
@@ -539,9 +536,10 @@ bool SystemFunctions::New(GVariant *Ret, ArgumentArray &Args)
 		if (!Bytes)
 			return false;
 		
-		return Ret->SetBinary(Bytes, new char[Bytes], true);
+		return Args.GetReturn()->SetBinary(Bytes, new char[Bytes], true);
 	}
 
+	GVariant *Ret = Args.GetReturn();
 	GDomProperty Type = LgiStringToDomProp(sType);
 	switch (Type)
 	{	
@@ -619,7 +617,7 @@ bool SystemFunctions::New(GVariant *Ret, ArgumentArray &Args)
 	return true;
 }
 
-bool SystemFunctions::Delete(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::Delete(LScriptArguments &Args)
 {
 	if (Args.Length() != 1)
 		return false;
@@ -635,7 +633,7 @@ bool SystemFunctions::Delete(GVariant *Ret, ArgumentArray &Args)
 		v->Empty();
 	}
 
-	*Ret = true;
+	*Args.GetReturn() = true;
 	return true;
 }
 
@@ -679,32 +677,32 @@ public:
 	}
 };
 
-bool SystemFunctions::DeleteFile(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::DeleteFile(LScriptArguments &Args)
 {
 	if (Args.Length() != 1)
 		return false;
 
 	char *f = Args[0]->CastString();
 	if (f)
-		*Ret = FileDev->Delete(Args[0]->CastString());
+		*Args.GetReturn() = FileDev->Delete(Args[0]->CastString());
 	else
-		*Ret = false;
+		*Args.GetReturn() = false;
 	return true;
 }
 
-bool SystemFunctions::CurrentScript(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::CurrentScript(LScriptArguments &Args)
 {
 	GCompiledCode *Code;
 	if (Engine &&
 		(Code = Engine->GetCurrentCode()))
 	{
-		*Ret = Code->GetFileName();
+		*Args.GetReturn() = Code->GetFileName();
 		return true;
 	}
 	return false;
 }
 
-bool SystemFunctions::PathExists(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::PathExists(LScriptArguments &Args)
 {
 	if (Args.Length() == 0)
 		return false;
@@ -713,19 +711,19 @@ bool SystemFunctions::PathExists(GVariant *Ret, ArgumentArray &Args)
 	if (d.First(Args[0]->CastString(), NULL))
 	{
 		if (d.IsDir())
-			*Ret = 2;
+			*Args.GetReturn() = 2;
 		else
-			*Ret = 1;
+			*Args.GetReturn() = 1;
 	}
 	else
 	{
-		*Ret = 0;
+		*Args.GetReturn() = 0;
 	}
 	
 	return true;		
 }
 
-bool SystemFunctions::PathJoin(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::PathJoin(LScriptArguments &Args)
 {
 	char p[MAX_PATH] = "";
 	for (unsigned i=0; i<Args.Length(); i++)
@@ -738,24 +736,24 @@ bool SystemFunctions::PathJoin(GVariant *Ret, ArgumentArray &Args)
 	}
 	
 	if (*p)
-		*Ret = p;
+		*Args.GetReturn() = p;
 	else
-		Ret->Empty();
+		Args.GetReturn()->Empty();
 	return true;
 }
 
-bool SystemFunctions::PathSep(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::PathSep(LScriptArguments &Args)
 {
-	*Ret = DIR_STR;
+	*Args.GetReturn() = DIR_STR;
 	return true;
 }
 
-bool SystemFunctions::ListFiles(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::ListFiles(LScriptArguments &Args)
 {
 	if (Args.Length() < 1)
 		return false;
 
-	Ret->SetList();
+	Args.GetReturn()->SetList();
 	GDirectory d;
 	char *Pattern = Args.Length() > 1 ? Args[1]->CastString() : 0;
 	
@@ -764,16 +762,16 @@ bool SystemFunctions::ListFiles(GVariant *Ret, ArgumentArray &Args)
 	{
 		if (!Pattern || MatchStr(Pattern, d.GetName()))
 		{
-			Ret->Value.Lst->Insert(new GVariant(new GFileListEntry(&d)));
+			Args.GetReturn()->Value.Lst->Insert(new GVariant(new GFileListEntry(&d)));
 		}
 	}
 
 	return true;
 }
 
-bool SystemFunctions::CreateSurface(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::CreateSurface(LScriptArguments &Args)
 {
-	Ret->Empty();
+	Args.GetReturn()->Empty();
 
 	if (Args.Length() < 2)
 		return false;
@@ -801,17 +799,17 @@ bool SystemFunctions::CreateSurface(GVariant *Ret, ArgumentArray &Args)
 	if (!Cs) // Catch all error cases and make it the default screen depth.
 		Cs = GdcD->GetColourSpace();
 
-	if ((Ret->Value.Surface.Ptr = new GMemDC(x, y, Cs)))
+	if ((Args.GetReturn()->Value.Surface.Ptr = new GMemDC(x, y, Cs)))
 	{
-		Ret->Type = GV_GSURFACE;
-		Ret->Value.Surface.Own = true;
-		Ret->Value.Surface.Ptr->AddRef();
+		Args.GetReturn()->Type = GV_GSURFACE;
+		Args.GetReturn()->Value.Surface.Own = true;
+		Args.GetReturn()->Value.Surface.Ptr->AddRef();
 	}
 
 	return true;
 }
 
-bool SystemFunctions::MessageDlg(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::MessageDlg(LScriptArguments &Args)
 {
 	if (Args.Length() < 4)
 		return false;
@@ -822,13 +820,12 @@ bool SystemFunctions::MessageDlg(GVariant *Ret, ArgumentArray &Args)
 	uint32 Btns = Args[3]->CastInt32();
 
 	int Btn = LgiMsg(Parent, Msg, Title, Btns);
-	if (Ret)
-		*Ret = Btn;
+	*Args.GetReturn() = Btn;
 
 	return true;
 }
 
-bool SystemFunctions::GetInputDlg(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::GetInputDlg(LScriptArguments &Args)
 {
 	if (Args.Length() < 4)
 		return false;
@@ -841,15 +838,15 @@ bool SystemFunctions::GetInputDlg(GVariant *Ret, ArgumentArray &Args)
 	GInput Dlg(Parent, InitVal, Msg, Title, Pass);
 	if (Dlg.DoModal())
 	{
-		*Ret = Dlg.Str;
+		*Args.GetReturn() = Dlg.Str;
 	}
 
 	return true;
 }
 
-bool SystemFunctions::GetViewById(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::GetViewById(LScriptArguments &Args)
 {
-	Ret->Empty();
+	Args.GetReturn()->Empty();
 
 	if (Args.Length() < 2)
 		return false;
@@ -859,15 +856,15 @@ bool SystemFunctions::GetViewById(GVariant *Ret, ArgumentArray &Args)
 	if (!Parent || Id <= 0)
 		return false;
 
-	if (Parent->GetViewById(Id, Ret->Value.View))
+	if (Parent->GetViewById(Id, Args.GetReturn()->Value.View))
 	{
-		Ret->Type = GV_GVIEW;
+		Args.GetReturn()->Type = GV_GVIEW;
 	}
 
 	return true;
 }
 
-bool SystemFunctions::Execute(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::Execute(LScriptArguments &Args)
 {
 	if (Args.Length() < 2)
 		return false;
@@ -880,7 +877,7 @@ bool SystemFunctions::Execute(GVariant *Ret, ArgumentArray &Args)
 	if (Status)
 	{
 		GAutoString o(p.NewStr());
-		*Ret = o;
+		*Args.GetReturn() = o;
 	}
 	else if (Log)
 	{
@@ -895,32 +892,30 @@ bool SystemFunctions::Execute(GVariant *Ret, ArgumentArray &Args)
 	return Status;
 }
 
-bool SystemFunctions::System(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::System(LScriptArguments &Args)
 {
 	if (Args.Length() < 2)
 		return false;
 
 	char *Exe = Args[0]->Str();
 	char *Arg = Args[1]->Str();
-	*Ret = LgiExecute(Exe, Arg);
+	*Args.GetReturn() = LgiExecute(Exe, Arg);
 	return true;
 }
 
-bool SystemFunctions::OsName(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::OsName(LScriptArguments &Args)
 {
-	*Ret = LgiGetOsName();
+	*Args.GetReturn() = LgiGetOsName();
 	return true;
 }
 
-bool SystemFunctions::OsVersion(GVariant *Ret, ArgumentArray &Args)
+bool SystemFunctions::OsVersion(LScriptArguments &Args)
 {
-	Ret->Empty();
-
 	GArray<int> Ver;
 	LgiGetOs(&Ver);
-	Ret->SetList();
+	Args.GetReturn()->SetList();
 	for (int i=0; i<3; i++)
-		Ret->Value.Lst->Insert(new GVariant(Ver[i]));
+		Args.GetReturn()->Value.Lst->Insert(new GVariant(Ver[i]));
 
 	return true;
 }

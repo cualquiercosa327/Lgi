@@ -198,6 +198,7 @@
     <None Include="Scripts\CustomType.script" />
     <None Include="Scripts\DateTime.script" />
     <None Include="Scripts\ExpressionTest.script" />
+    <None Include="Scripts\ExternTest.script" />
     <None Include="Scripts\FileSystem.script" />
     <None Include="Scripts\LValue Test.script" />
     <None Include="Scripts\NumericOps.script" />
