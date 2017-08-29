@@ -1080,10 +1080,6 @@ void IdeProject::Build(bool All, bool Release)
 		dir.Close();
 	}
 
-	int Cur = PLATFORM_CURRENT;
-	printf("%s:%i - Cur = %x\n", _FL, Cur);
-	
-	// printf("%s:%i - " LGI_PrintfInt64 ", " LGI_PrintfInt64 "\n", _FL, ProjModTime, MakeModTime);
 	if (ProjModTime != 0 &&
 		MakeModTime != 0 &&
 		ProjModTime > MakeModTime)
