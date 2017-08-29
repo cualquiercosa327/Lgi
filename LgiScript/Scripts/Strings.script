@@ -2,14 +2,6 @@
 // fret@memecode.com
 #include "../Resources/resdefs.h"
 
-Print("asd");
-a = "123";
-b = 123;
-if (a != b)
-{
-	Print("asd");
-}
-
 // Global methods
 	s = LoadString(IDS_TEST_STRING);
 	if (s != "This is a test")
