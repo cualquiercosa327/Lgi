@@ -11,19 +11,28 @@ class GVmDebuggerCallback;
 
 class LScriptArguments : public GArray<GVariant*>
 {
+	GStream *Console;
 	GVariant _Return;
 	GVariant *PtrRet;
 
 public:
-	LScriptArguments(GVariant *ret = NULL)
+	static GStream NullConsole;
+
+	LScriptArguments(GVariant *ret = NULL, GStream *console = NULL)
 	{
 		if (ret)
 			PtrRet = ret;
 		else
 			PtrRet = &_Return;
+		
+		if (console)
+			Console = console;
+		else
+			Console = &NullConsole;
 	}
 
 	GVariant *GetReturn() { return PtrRet; }
+	GStream *GetConsole() { return Console; }
 };
 
 typedef bool (GScriptContext::*ScriptCmd)(LScriptArguments &Args);

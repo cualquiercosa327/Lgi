@@ -66,6 +66,8 @@ const char *InstToString(GInstruction i)
 	return "#err";
 }
 
+GStream LScriptArguments::NullConsole;
+
 //////////////////////////////////////////////////////////////////////////////////////
 int GScriptUtils::atoi(char16 *s)
 {
