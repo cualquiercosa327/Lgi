@@ -565,15 +565,21 @@ bool LgiGetMimeTypeExtensions(const char *Mime, GArray<char*> &Ext)
 {
 	int Start = Ext.Length();
 
-	#define HardCodeExtention(Mime, Ext1, Ext2) \
-		else if (!stricmp(Mime, Mime)) \
+	#define HardCodeExtention(chk, Ext1, Ext2) \
+		else if (!stricmp(chk, Mime)) \
 		{	if (Ext1) Ext.Add(NewStr(Ext1)); \
 			if (Ext2) Ext.Add(NewStr(Ext2)); }
 
 	if (!Mime);
 	HardCodeExtention("text/calendar", "ics", 0)
 	HardCodeExtention("text/x-vcard", "vcf", 0)
-	HardCodeExtention("text/mbox", "mbx", "mbox");
+	HardCodeExtention("text/mbox", "mbx", "mbox")
+	HardCodeExtention("application/pdf", "pdf", 0)
+	HardCodeExtention("image/jpg", "jpg", 0)
+	HardCodeExtention("image/jpeg", "jpg", 0)
+	HardCodeExtention("image/png", "png", 0)
+	else
+		LgiTrace("%s:%i - Unknown mime type '%s'\n", _FL, Mime);
 
 	return Ext.Length() > Start;
 }
