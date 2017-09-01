@@ -37,8 +37,7 @@ enum IdeMessages
 	M_FIND_SYM_REQUEST,
 	
 	/// Send a file to the worker thread...
-	/// GAutoPtr<GString> File((GString*)Msg->A());
-	/// FindSymbolSystem::SymAction Action = (FindSymbolSystem::SymAction)Msg->B();
+	/// FindSymbolSystem::SymFileParams *Params = (FindSymbolSystem::SymFileParams*)Msg->A();
 	M_FIND_SYM_FILE,
 
 	/// Send a file to the worker thread...
@@ -105,7 +104,8 @@ enum IdeControls
 	IDC_FILE_SEARCH,
 	IDC_METHOD_SEARCH,
 	IDC_SYMBOL_SEARCH,
-	IDC_PROJECT_TREE
+	IDC_PROJECT_TREE,
+	IDC_ALL_PLATFORMS,
 };
 
 enum IdeMenuCmds
@@ -258,7 +258,7 @@ public:
 	GStream *GetBuildLog();
 	IdeDoc *FindOpenFile(char *FileName);
 	IdeDoc *GotoReference(const char *File, int Line, bool CurIp, bool WithHistory = true);
-	void FindSymbol(int ResultsSinkHnd, const char *Sym);
+	void FindSymbol(int ResultsSinkHnd, const char *Sym, bool AllPlatforms);
 	bool GetSystemIncludePaths(GArray<GString> &Paths);
 	bool IsReleaseMode();
 	bool ShowInProject(const char *Fn);

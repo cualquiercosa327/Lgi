@@ -560,14 +560,12 @@ bool ProjectNode::Serialize(bool Write)
 		Project->OnNode(File, this, false);
 
 	SerializeAttr("File", File);
-	
-	if (!Write && File)
-		Project->OnNode(File, this, true);
-
-	
 	SerializeAttr("Name", Name);
 	SerializeAttr("Type", (int&)Type);
 	SerializeAttr("Platforms", (int&)Platforms);
+	
+	if (!Write && File)
+		Project->OnNode(File, this, true);
 
 	if (Type == NodeNone)
 	{

@@ -47,6 +47,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 	struct FileSyms
 	{
 		GString Path;
+		int Platforms;
 		GString::Array *Inc;
 		GAutoWString Source;
 		GArray<DefnInfo> Defs;
@@ -73,7 +74,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 			{
 				Status = BuildDefnList(Path, Source, Defs, DefnNone);
 			}
-			
+
 			return Status;
 		}
 	};
@@ -121,7 +122,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 		return -1;
 	}
 	
-	bool AddFile(GString Path)
+	bool AddFile(GString Path, int Platforms)
 	{
 		// Already added?
 		int Idx = GetFileIndex(Path);
@@ -133,7 +134,11 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 		#endif
 
 		if (Idx >= 0)
+		{
+			if (Platforms && Files[Idx]->Platforms == 0)
+				Files[Idx]->Platforms = Platforms;
 			return true;
+		}
 		if (!FileExists(Path))
 			return false;
 			
@@ -143,6 +148,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 		FileSyms *f = new FileSyms;
 		if (!f) return false;	
 		f->Path = Path;
+		f->Platforms = Platforms;
 		f->Inc = IncPaths.Length() ? IncPaths.Last() : NULL;
 		Files.Add(f);
 		
@@ -162,7 +168,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 		{
 			for (unsigned i=0; i<Headers.Length(); i++)
 			{
-				AddFile(Headers[i]);
+				AddFile(Headers[i], 0);
 			}
 		}
 		Headers.DeleteArrays();
@@ -180,10 +186,13 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 	
 	bool ReparseFile(GString Path)
 	{
+		int Idx = GetFileIndex(Path);
+		int Platform = Idx >= 0 ? Files[Idx]->Platforms : 0;
+		
 		if (!RemoveFile(Path))
 			return false;
 
-		return AddFile(Path);
+		return AddFile(Path, Platform);
 	}
 	
 	bool RemoveFile(GString Path)
@@ -202,6 +211,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 			case M_FIND_SYM_REQUEST:
 			{
 				GAutoPtr<FindSymRequest> Req((FindSymRequest*)Msg->A());
+				bool AllPlatforms = (bool)Msg->B();
 				if (Req && Req->SinkHnd >= 0)
 				{
 					GString::Array p = Req->Str.SplitDelimit(" \t");
@@ -220,6 +230,11 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 							if (Debug)
 								printf("%s:%i - Searching '%s' with %i syms...\n", _FL, fs->Path.Get(), fs->Defs.Length());
 							#endif
+
+							// Check platforms...
+							if (!AllPlatforms &&
+								(fs->Platforms & PLATFORM_CURRENT) == 0)
+								continue;
 
 							// For each symbol...
 							for (unsigned i=0; i<fs->Defs.Length(); i++)
@@ -248,6 +263,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 									FindSymResult *r = new FindSymResult();
 									if (r)
 									{
+										r->Score = Def.Type == DefnClass;
 										r->File = Def.File.Get();
 										r->Symbol = Def.Name.Get();
 										r->Line = Def.Line;
@@ -266,17 +282,15 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 			case M_FIND_SYM_FILE:
 			{
 				uint64 Now = LgiCurrentTime();
-				GAutoPtr<GString> File((GString*)Msg->A());
-				if (File)
+				GAutoPtr<FindSymbolSystem::SymFileParams> Params((FindSymbolSystem::SymFileParams*)Msg->A());
+				if (Params)
 				{
-					FindSymbolSystem::SymAction Action = (FindSymbolSystem::SymAction)Msg->B();
-
-					if (Action == FindSymbolSystem::FileAdd)
-						AddFile(*File);
-					else if (Action == FindSymbolSystem::FileRemove)
-						RemoveFile(*File);
-					else if (Action == FindSymbolSystem::FileReparse)
-						ReparseFile(*File);
+					if (Params->Action == FindSymbolSystem::FileAdd)
+						AddFile(Params->File, Params->Platforms);
+					else if (Params->Action == FindSymbolSystem::FileRemove)
+						RemoveFile(Params->File);
+					else if (Params->Action == FindSymbolSystem::FileReparse)
+						ReparseFile(Params->File);
 				}
 
 				if (Now - MsgTs > MSG_TIME_MS)
@@ -450,7 +464,7 @@ int FindSymbolDlg::OnNotify(GViewI *v, int f)
 				if (Str && strlen(Str) > 2)
 				{
 					// Create a search
-					Sys->Search(AddDispatch(), Str);
+					Sys->Search(AddDispatch(), Str, true);
 				}
 			}
 			break;
@@ -515,25 +529,27 @@ bool FindSymbolSystem::SetIncludePaths(GString::Array &Paths)
 	return d->PostEvent(M_FIND_SYM_INC_PATHS, (GMessage::Param)a);
 }
 
-bool FindSymbolSystem::OnFile(const char *Path, SymAction Action)
+bool FindSymbolSystem::OnFile(const char *Path, SymAction Action, int Platforms)
 {
-	GString *s = new GString(Path);
-
 	if (d->Tasks == 0)
 		d->MsgTs = LgiCurrentTime();
 	d->Tasks++;
 	
+	FindSymbolSystem::SymFileParams *Params = new FindSymbolSystem::SymFileParams;
+	Params->File = Path;
+	Params->Action = Action;
+	Params->Platforms = Platforms;
+
 	return d->PostEvent(M_FIND_SYM_FILE,
-						(GMessage::Param)s,
-						(GMessage::Param)Action);
+						(GMessage::Param)Params);
 }
 
-void FindSymbolSystem::Search(int ResultsSinkHnd, const char *SearchStr)
+void FindSymbolSystem::Search(int ResultsSinkHnd, const char *SearchStr, bool AllPlat)
 {
 	FindSymRequest *Req = new FindSymRequest(ResultsSinkHnd);
 	if (Req)
 	{
 		Req->Str = SearchStr;
-		d->PostEvent(M_FIND_SYM_REQUEST, (GMessage::Param)Req);
+		d->PostEvent(M_FIND_SYM_REQUEST, (GMessage::Param)Req, (GMessage::Param)AllPlat);
 	}
 }

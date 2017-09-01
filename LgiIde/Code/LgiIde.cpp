@@ -2115,7 +2115,7 @@ bool AppWnd::OnNode(const char *Path, ProjectNode *Node, FindSymbolSystem::SymAc
 	if (!Path || !Node)
 		return false;
 
-	d->FindSym->OnFile(Path, Action); // Add ? FindSymbolSystem::FileAdd : FindSymbolSystem::FileRemove);
+	d->FindSym->OnFile(Path, Action, Node->GetPlatforms());
 	return true;
 }
 
@@ -3132,9 +3132,9 @@ GStream *AppWnd::GetBuildLog()
 	return d->Output->Txt[AppWnd::BuildTab];
 }
 
-void AppWnd::FindSymbol(int ResultsSinkHnd, const char *Sym)
+void AppWnd::FindSymbol(int ResultsSinkHnd, const char *Sym, bool AllPlatforms)
 {
-	d->FindSym->Search(ResultsSinkHnd, Sym);
+	d->FindSym->Search(ResultsSinkHnd, Sym, AllPlatforms);
 }
 
 #include "GSubProcess.h"

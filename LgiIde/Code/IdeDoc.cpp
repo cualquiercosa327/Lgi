@@ -15,6 +15,7 @@
 #include "GTableLayout.h"
 #include "ProjectNode.h"
 #include "GEventTargetThread.h"
+#include "GCheckBox.h"
 
 const char *Untitled = "[untitled]";
 static const char *White = " \r\t\n";
@@ -95,6 +96,8 @@ class EditTray : public GLayout
 	GRect SymBtn;
 	GEdit *SymSearch;
 
+	GCheckBox *AllPlatforms;
+
 	GRect TextMsg;
 
 	GTextView3 *Ctrl;
@@ -111,9 +114,11 @@ public:
 		FuncBtn.ZOff(-1, -1);
 		SymBtn.ZOff(-1, -1);
 		
-		AddView(FileSearch = new GEdit(IDC_FILE_SEARCH, 0, 0, 120, SysFont->GetHeight() + 6));
-		AddView(FuncSearch = new GEdit(IDC_METHOD_SEARCH, 0, 0, 120, SysFont->GetHeight() + 6));
-		AddView(SymSearch = new GEdit(IDC_SYMBOL_SEARCH, 0, 0, 120, SysFont->GetHeight() + 6));
+		int Ht = SysFont->GetHeight() + 6;
+		AddView(FileSearch = new GEdit(IDC_FILE_SEARCH, 0, 0, 120, Ht));
+		AddView(FuncSearch = new GEdit(IDC_METHOD_SEARCH, 0, 0, 120, Ht));
+		AddView(SymSearch = new GEdit(IDC_SYMBOL_SEARCH, 0, 0, 120, Ht));
+		AddView(AllPlatforms = new GCheckBox(IDC_ALL_PLATFORMS, 0, 0, 20, Ht, "All Platforms"));
 	}
 	
 	~EditTray()
@@ -171,6 +176,13 @@ public:
 		if (SymSearch)
 			c.Left(SymSearch, EditPx);
 		c.x1 += 8;
+
+		if (AllPlatforms)
+		{
+			GViewLayoutInfo Inf;
+			AllPlatforms->OnLayout(Inf);
+			c.Left(AllPlatforms, Inf.Width.Max);
+		}
 		
 		c.Remaining(TextMsg);
 	}
@@ -751,9 +763,10 @@ public:
 		{
 			// Kick off search...
 			GString s = Ctrl->Name();
+			int64 AllPlatforms = Ctrl->GetParent()->GetCtrlValue(IDC_ALL_PLATFORMS);
 			s = s.Strip();
 			if (s.Length() > 2)
-				App->FindSymbol(Doc->AddDispatch(), s);
+				App->FindSymbol(Doc->AddDispatch(), s, AllPlatforms != 0);
 		}
 		
 		return GPopupList<FindSymResult>::OnNotify(Ctrl, Flags);
@@ -2598,6 +2611,11 @@ void IdeDoc::Focus(bool f)
 	d->Edit->Focus(f);
 }
 
+int FindSymResultCmp(FindSymResult **a, FindSymResult **b)
+{
+	return (*a)->Compare(*b);
+}
+
 GMessage::Result IdeDoc::OnEvent(GMessage *Msg)
 {
 	switch (Msg->Msg())
@@ -2616,6 +2634,7 @@ GMessage::Result IdeDoc::OnEvent(GMessage *Msg)
 						d->SymPopup->All = Resp->Results;
 						Resp->Results.Length(0);
 						d->SymPopup->FindCommonPathLength();
+						d->SymPopup->All.Sort(FindSymResultCmp);
 						d->SymPopup->SetItems(d->SymPopup->All);
 						d->SymPopup->Visible(true);
 					}

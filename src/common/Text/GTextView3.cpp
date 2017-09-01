@@ -1715,13 +1715,24 @@ bool GTextView3::NameW(const char16 *s)
 	return true;
 }
 
-char *GTextView3::GetSelection()
+GRange GTextView3::GetSelectionRange()
 {
+	GRange r;
 	if (HasSelection())
 	{
-		ssize_t Start = min(SelStart, SelEnd);
+		r.Start = min(SelStart, SelEnd);
 		ssize_t End = max(SelStart, SelEnd);
-		return (char*)LgiNewConvertCp("utf-8", Text + Start, LGI_WideCharset, (End-Start)*sizeof(Text[0]) );
+		r.Len = End - r.Start;
+	}
+	return r;
+}
+
+char *GTextView3::GetSelection()
+{
+	GRange s = GetSelectionRange();
+	if (s.Len > 0)
+	{
+		return (char*)LgiNewConvertCp("utf-8", Text + s.Start, LGI_WideCharset, s.Len*sizeof(Text[0]) );
 	}
 
 	return 0;
@@ -2510,7 +2521,22 @@ bool GTextView3::DoFind()
 
 bool GTextView3::DoReplace()
 {
-	char *LastFind8 = HasSelection() ? GetSelection() : WideToUtf8(d->FindReplaceParams->LastFind);
+	bool SingleLineSelection = false;
+	SingleLineSelection = HasSelection();
+	if (SingleLineSelection)
+	{
+		GRange Sel = GetSelectionRange();
+		for (ssize_t i = Sel.Start; i < Sel.End(); i++)
+		{
+			if (Text[i] == '\n')
+			{
+				SingleLineSelection = false;
+				break;
+			}
+		}
+	}
+
+	char *LastFind8 = SingleLineSelection ? GetSelection() : WideToUtf8(d->FindReplaceParams->LastFind);
 	char *LastReplace8 = WideToUtf8(d->FindReplaceParams->LastReplace);
 	
 	GReplaceDlg Dlg(this, LastFind8, LastReplace8);
@@ -2531,15 +2557,6 @@ bool GTextView3::DoReplace()
 		d->FindReplaceParams->MatchWord = Dlg.MatchWord;
 		d->FindReplaceParams->MatchCase = Dlg.MatchCase;
 		d->FindReplaceParams->SelectionOnly = Dlg.SelectionOnly;
-		
-		/*
-		printf("DoReplace '%S'->'%S' %i,%i,%i\n",
-			d->FindReplaceParams->LastFind,
-			d->FindReplaceParams->LastReplace,
-			d->FindReplaceParams->MatchWord,
-			d->FindReplaceParams->MatchCase,
-			d->FindReplaceParams->SelectionOnly);
-		*/
 	}
 
 	switch (Action)
