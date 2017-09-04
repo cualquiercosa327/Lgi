@@ -18,6 +18,10 @@
 
 #if defined WIN32
 
+#elif defined MAC
+
+    #include <netinet/in.h>
+
 #elif defined BEOS
 
 	#include <sys/socket.h>
