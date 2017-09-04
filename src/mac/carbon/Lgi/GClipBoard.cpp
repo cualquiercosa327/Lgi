@@ -233,11 +233,56 @@ char16 *GClipBoard::TextW()
 bool GClipBoard::Bitmap(GSurface *pDC, bool AutoEmpty)
 {
 	bool Status = false;
-	if (pDC && Owner)
+
+	if (AutoEmpty)
+		Empty();
+	
+	if (!pDC || !Owner || !d->Pb)
+		return false;
+
+
+	GMemDC *pMem = dynamic_cast<GMemDC*>(pDC);
+	if (!pMem)
+		return false;
+
+	GRect b = pDC->Bounds();
+	GAutoPtr<CGImg> Img(pMem->GetImg(&b));
+	if (!Img)
+		return false;
+
+	CFMutableDataRef url = CFDataCreateMutable(kCFAllocatorDefault, 0);
+	
+	CFStringRef type = kUTTypeTIFF;
+	size_t count = 1; 
+	CFDictionaryRef options = NULL;
+	CGImageDestinationRef dest = CGImageDestinationCreateWithData(url, type, count, options);
+	if (!dest)
+		return false;
+	
+	CGImageDestinationAddImage(dest, *Img, NULL);
+	CGImageDestinationFinalize(dest);
+	
+	if (!url)
 	{
-		LgiAssert(!"Not impl");
+		printf("%s:%i - CFDataCreate failed\n", _FL);
+		return false;
 	}
-	return Status;
+
+	OSStatus e = PasteboardClear(d->Pb);
+	if (e)
+	{
+		printf("%s:%i - PasteboardClear failed with %i\n", _FL, (int)e);
+		return false;
+	}
+
+	e = PasteboardPutItemFlavor(d->Pb, (PasteboardItemID)1, type, url, 0);
+	if (e)
+	{
+		printf("%s:%i - PasteboardPutItemFlavor failed with %i\n", _FL, (int)e);
+		return false;
+	}
+
+	return true;
 }
 
 GSurface *GClipBoard::Bitmap()
