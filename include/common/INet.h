@@ -343,5 +343,73 @@ public:
 	GProxyUri();
 };
 
+#define MAX_UDP_SIZE		512
+
+class LUdpListener : public GSocket
+{
+public:
+	LUdpListener(int port)
+	{
+		SetUdp(true);
+
+		struct sockaddr_in addr;
+		ZeroObj(addr);
+		addr.sin_family = AF_INET;
+		addr.sin_port = htons(port);
+		#ifdef WIN32
+		addr.sin_addr.S_un.S_addr = INADDR_ANY;
+		#else
+		addr.sin_addr.s_addr = INADDR_ANY;
+		#endif
+		int r = bind(Handle(), (struct sockaddr*)&addr, sizeof(addr));
+		if (r)
+		{
+			#ifdef WIN32
+			int err = WSAGetLastError();
+			OnError(err, NULL);
+			#endif
+		}
+	}
+
+	bool ReadPacket(GString &d, uint32 &Ip, uint16 &Port)
+	{
+		if (!IsReadable(10))
+			return false;
+
+		char Data[MAX_UDP_SIZE];
+		int Rd = ReadUdp(Data, sizeof(Data), 0, &Ip, &Port);
+		if (Rd <= 0)
+			return false;
+
+		d.Set(Data, Rd);
+		return true;
+	}
+};
+
+class LUdpBroadcast : public GSocket
+{
+public:
+	LUdpBroadcast()
+	{
+        SetBroadcast();
+		SetUdp(true);
+	}
+
+	bool BroadcastPacket(GString Data, uint32 Ip, uint16 Port)
+	{
+		return BroadcastPacket(Data.Get(), Data.Length(), Ip, Port);
+	}
+
+	bool BroadcastPacket(void *Ptr, unsigned Size, uint32 Ip, uint16 Port)
+	{
+		if (Size > MAX_UDP_SIZE)
+			return false;
+		
+		uint32 BroadcastIp = Ip | 0xff000000;
+		int wr = WriteUdp(Ptr, Size, 0, BroadcastIp, Port);
+		return wr == Size;
+	}
+};
+
 #endif
 
