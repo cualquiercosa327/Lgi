@@ -240,7 +240,6 @@ bool GClipBoard::Bitmap(GSurface *pDC, bool AutoEmpty)
 	if (!pDC || !Owner || !d->Pb)
 		return false;
 
-
 	GMemDC *pMem = dynamic_cast<GMemDC*>(pDC);
 	if (!pMem)
 		return false;
@@ -287,9 +286,74 @@ bool GClipBoard::Bitmap(GSurface *pDC, bool AutoEmpty)
 
 GSurface *GClipBoard::Bitmap()
 {
+	ItemCount Items;
+	OSStatus e = PasteboardGetItemCount(d->Pb, &Items);
+	if (e)
+	{
+		printf("%s:%i - PasteboardGetItemCount failed with %i\n", _FL, (int)e);
+		return NULL;
+	}
+	
 	GSurface *pDC = NULL;
+	for (UInt32 i=1; i<=Items; i++)
+	{
+		PasteboardItemID Id;
+		
+		e = PasteboardGetItemIdentifier(d->Pb, i, &Id);
+		if (e)
+		{
+			printf("%s:%i - PasteboardGetItemIdentifier failed with %i\n", _FL, (int)e);
+			continue;
+		}
+		
+		CFArrayRef Flavours;
+		e = PasteboardCopyItemFlavors(d->Pb, Id, &Flavours);
+		if (e)
+		{
+			printf("%s:%i - PasteboardCopyItemFlavors failed with %i\n", _FL, (int)e);
+			continue;
+		}
+		
+		int FCount = CFArrayGetCount(Flavours);
+		for (CFIndex f=0; f<FCount; f++)
+		{
+			CFStringRef Type = (CFStringRef)CFArrayGetValueAtIndex(Flavours, f);
+			GString sType = Type;
+			
+			if (UTTypeConformsTo(Type, kUTTypeTIFF))
+			{
+				CFDataRef Data;
+				e = PasteboardCopyItemFlavorData(d->Pb, Id, Type, &Data);
+				if (e)
+				{
+					printf("%s:%i - PasteboardCopyItemFlavorData failed with %i\n", _FL, (int)e);
+					continue;
+				}
+				
+				CFIndex Size = CFDataGetLength(Data);
+				UInt8 *buffer = (UInt8*)malloc(Size);
+				if (buffer)
+				{
+					CFDataGetBytes(Data, CFRangeMake(0, Size), buffer);
 
-	LgiAssert(!"Not impl");
+					// Make a temporary stream wrapper
+					GMemStream ms(buffer, Size, false);
+					
+					// Convert the tiff to a GSurface
+					pDC = GdcD->Load(&ms, "file.tiff");
+
+					/*
+					if (pDC)
+						GdcD->Save("/Users/mallen/test.bmp", pDC);
+					*/
+					
+					free(buffer);
+				}
+				CFRelease(Data);
+				break;
+			}
+		}
+	}
 	
 	return pDC;
 }
