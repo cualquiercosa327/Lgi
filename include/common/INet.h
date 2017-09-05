@@ -18,7 +18,7 @@
 
 #if defined WIN32
 
-#elif defined MAC
+#elif defined POSIX
 
     #include <netinet/in.h>
 
