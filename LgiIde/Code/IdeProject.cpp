@@ -2273,10 +2273,10 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 		1 << Platform
 	);
 	
-	GAutoString Target = GetTargetName(Platform);
-	if (Target)
+	const char *Exe = GetExecutable();
+	if (Exe)
 	{
-		m.Print("Target = %s\n", Target.Get());
+		m.Print("Target = %s\n", Exe);
 
 		// Output the build mode, flags and some paths
 		int BuildMode = d->App->GetBuildMode();
