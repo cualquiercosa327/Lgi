@@ -250,7 +250,7 @@ public:
 	GTextView3 *FocusEdit();
 	void AppendOutput(char *Txt, Channels Channel);
 	void UpdateState(int Debugging = -1, int Building = -1);
-	void OnReceiveFiles(GArray<char*> &Files);
+	void OnReceiveFiles(GArray<char*> &Files) override;
 	int GetBuildMode();
 	GTree *GetTree();
 	GOptionsFile *GetOptions();
@@ -265,14 +265,14 @@ public:
 	
 	// Events
 	void OnLocationChange(const char *File, int Line);
-	int OnCommand(int Cmd, int Event, OsView Wnd);
+	int OnCommand(int Cmd, int Event, OsView Wnd) override;
 	void OnDocDestroy(IdeDoc *Doc);
 	void OnProjectDestroy(IdeProject *Proj);
 	void OnProjectChange();
 	void OnFile(char *File, bool IsProject = false);
-	bool OnRequestClose(bool IsClose);
-	int OnNotify(GViewI *Ctrl, int Flags);
-	GMessage::Result OnEvent(GMessage *m);
+	bool OnRequestClose(bool IsClose) override;
+	int OnNotify(GViewI *Ctrl, int Flags) override;
+	GMessage::Result OnEvent(GMessage *m) override;
 	bool OnNode(const char *Path, class ProjectNode *Node, FindSymbolSystem::SymAction Action);
 	void OnPulse() override;
 

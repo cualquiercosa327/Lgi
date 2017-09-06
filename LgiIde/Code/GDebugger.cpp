@@ -289,7 +289,7 @@ class Gdb : public GDebugger, public LThread, public Callback
 				else printf("Error: no ':' in '%s'. (%s:%i)\n", k.Get(), _FL);
 			}
 		}
-		else printf("Error: %i parts (%s:%i).\n", a.Length(), _FL);
+		else printf("Error: %i parts (%s:%i).\n", (int)a.Length(), _FL);
 
 		if (File && Line > 0)
 		{

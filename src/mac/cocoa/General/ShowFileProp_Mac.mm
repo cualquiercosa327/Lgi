@@ -21,11 +21,12 @@ bool LgiBrowseToFile(const char *Filename)
 {
 	GString s;
 	s.Printf("/usr/bin/osascript "
-			"-e set asd to POSIX file \"%s\" as string "
-			"-e tell application \"Finder\" "
-			"-e reveal asd "
-			"-e end tell" ,
+			"-e 'set asd to POSIX file \"%s\" as string\n"
+			"tell application \"Finder\"\n"
+			"	reveal asd\n"
+			"	activate\n"
+			"end tell'",
 			Filename);
-	printf("s='%s'\n", s.Get());
+	// printf("s='%s'\n", s.Get());
 	return system(s) >= 0;
 }

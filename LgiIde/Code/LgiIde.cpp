@@ -1755,9 +1755,11 @@ void AppWnd::OnLocationChange(const char *File, int Line)
 			d->HistoryLoc++;
 
 			FileLoc &loc = d->CursorHistory[d->HistoryLoc];
+			#ifdef WIN64
 			if ((NativeInt)loc.File.Get() == 0xcdcdcdcdcdcdcdcd)
 				LgiAssert(0); // wtf?
 			else
+			#endif
 				loc.Set(File, Line);
 		}
 		else

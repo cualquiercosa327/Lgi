@@ -391,7 +391,7 @@ bool GDebugContext::UpdateWatches()
 		v.Type = i->GetText(1);
 	}
 	
-	printf("Update watches %i\n", Vars.Length());
+	printf("Update watches %i\n", (int)Vars.Length());
 	if (!d->Db->GetVariables(false, Vars, false))
 		return false;
 	

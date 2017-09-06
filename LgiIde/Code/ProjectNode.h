@@ -43,7 +43,7 @@ class ProjectNode : public IdeCommon, public GDragDropSource, public FtpCallback
 	GString Label;
 
 	void OpenLocalCache(IdeDoc *&Doc);
-	void OnCmdComplete(FtpCmd *Cmd);
+	void OnCmdComplete(FtpCmd *Cmd) override;
 	int64 CountNodes();
 
 public:
@@ -64,20 +64,20 @@ public:
 	int GetId();
 	bool IsWeb() override;
 	IdeProject *GetDep();
-	IdeProject *GetProject();
-	char *GetFileName();
+	IdeProject *GetProject() override;
+	char *GetFileName() override;
 	void SetFileName(const char *f);
 	char *GetName();
 	void SetName(const char *f);
 	NodeType GetType();
 	void SetType(NodeType t);
-	int GetImage(int f);
-	char *GetText(int c);
-	GString GetFullPath();
+	int GetImage(int f) override;
+	char *GetText(int c) override;
+	GString GetFullPath() override;
 	ProjectNode *FindFile(const char *In, char **Full);
 	/// \sa Some combination of PLATFORM_WIN32, PLATFORM_LINUX, PLATFORM_MAC, PLATFORM_HAIKU or PLATFORM_ALL
 	int GetPlatforms() override;
-	char *GetLocalCache();
+	char *GetLocalCache() override;
 	void AutoDetectType();
 	
 	// Dnd
@@ -85,16 +85,16 @@ public:
 	bool GetData(GVariant *Data, char *Format) override;
 	
 	// Ui events
-	bool OnBeginDrag(GMouse &m);
-	bool OnKey(GKey &k);
-	void OnExpand(bool b);
-	void OnMouseClick(GMouse &m);
+	bool OnBeginDrag(GMouse &m) override;
+	bool OnKey(GKey &k) override;
+	void OnExpand(bool b) override;
+	void OnMouseClick(GMouse &m) override;
 	void OnProperties();
 
 	// Serialization
-	bool Load(GDocView *Edit, NodeView *Callback);
-	bool Save(GDocView *Edit, NodeView *Callback);
-	bool Serialize(bool Write);
+	bool Load(GDocView *Edit, NodeView *Callback) override;
+	bool Save(GDocView *Edit, NodeView *Callback) override;
+	bool Serialize(bool Write) override;
 };
 
 #endif

@@ -972,7 +972,7 @@ public:
 	
 	#define IDM_FILE_COMMENT			100
 	#define IDM_FUNC_COMMENT			101
-	bool AppendItems(GSubMenu *Menu, int Base)
+	bool AppendItems(GSubMenu *Menu, int Base) override
 	{
 		GSubMenu *Insert = Menu->AppendSub("Insert...");
 		if (Insert)
@@ -993,7 +993,7 @@ public:
 		}
 	}
 
-	bool DoGoto()
+	bool DoGoto() override
 	{
 		GInput Dlg(this, "", LgiLoadString(L_TEXTCTRL_GOTO_LINE, "Goto [file:]line:"), "Text");
 		if (Dlg.DoModal() != IDOK || !ValidStr(Dlg.Str))
@@ -1038,7 +1038,7 @@ public:
 		}
 	}
 	
-	void OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour)
+	void OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour) override
 	{
 		GColour GutterColour(0xfa, 0xfa, 0xfa);
 		GTextView3::OnPaintLeftMargin(pDC, r, GutterColour);
@@ -1077,7 +1077,7 @@ public:
 		}
 	}
 
-	void OnMouseClick(GMouse &m)
+	void OnMouseClick(GMouse &m) override
 	{
 		if (m.Down())
 		{
@@ -1115,7 +1115,7 @@ public:
 		GTextView3::OnMouseClick(m);
 	}
 
-	void SetCaret(size_t i, bool Select, bool ForceFullUpdate = false)
+	void SetCaret(size_t i, bool Select, bool ForceFullUpdate = false) override
 	{
 		GTextView3::SetCaret(i, Select, ForceFullUpdate);
 		
@@ -1129,8 +1129,8 @@ public:
 		}
 	}
 	
-	bool OnMenu(GDocView *View, int Id, void *Context);
-	bool OnKey(GKey &k);
+	bool OnMenu(GDocView *View, int Id, void *Context) override;
+	bool OnKey(GKey &k) override;
 	
 	char *TemplateMerge(const char *Template, char *Name, List<char> *Params)
 	{
@@ -1401,14 +1401,14 @@ public:
 					if (Ch >= 'a' && Ch <= 'z')
 					{
 						Keyword *k;
-						if (k = HasKeyword[Ch - 'a'])
+						if ((k = HasKeyword[Ch - 'a']))
 						{
 							do
 							{
 								if (!StrnicmpW(k->Word, s, k->Len))
 									break;
 							}
-							while (k = k->Next);
+							while ((k = k->Next));
 
 							if
 							(
@@ -1640,14 +1640,14 @@ public:
 					if (*s >= 'a' && *s <= 'z')
 					{
 						Keyword *k;
-						if (k = HasKeyword[*s - 'a'])
+						if ((k = HasKeyword[*s - 'a']))
 						{
 							do
 							{
 								if (!Strncmp(k->Word, s, k->Len))
 									break;
 							}
-							while (k = k->Next);
+							while ((k = k->Next));
 
 							if
 							(
@@ -1810,14 +1810,14 @@ public:
 					if (*s >= 'a' && *s <= 'z')
 					{
 						Keyword *k;
-						if (k = HasKeyword[*s - 'a'])
+						if ((k = HasKeyword[*s - 'a']))
 						{
 							do
 							{
 								if (!Strncmp(k->Word, s, k->Len))
 									break;
 							}
-							while (k = k->Next);
+							while ((k = k->Next));
 
 							if
 							(
@@ -1902,10 +1902,12 @@ public:
 			case SrcXml:
 				StyleXml(Start, EditSize);
 				break;
+			default:
+				break;
 		}		
 	}
 
-	bool Pour(GRegion &r)
+	bool Pour(GRegion &r) override
 	{
 		GRect c = r.Bound();
 
@@ -2708,7 +2710,7 @@ int IdeDoc::OnNotify(GViewI *v, int f)
 			{
 				if (!d->FilePopup)
 				{
-					if (d->FilePopup = new ProjFilePopup(d->App, v))
+					if ((d->FilePopup = new ProjFilePopup(d->App, v)))
 					{
 						// Populate with files from the project...
 						

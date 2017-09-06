@@ -125,8 +125,9 @@ public:
 	(
 		/// Fill out as many GDragData structures as you need.
 		GArray<GDragData> &Data
-	);
+	) { return false; }
 
+	/*
 	/// [Deprecated] This is the old API for compatibility.
 	/// The new GDragData version by default will call this
 	/// method.
@@ -143,6 +144,7 @@ public:
 		return false;
 	}
 	DEPRECATED_POST
+	*/
 
 	/// This is called to see what formats your support
 	/// Insert into the list dynamically allocated strings
@@ -258,6 +260,7 @@ public:
 		int KeyState
 	) = 0;
 
+	/*
 	/// [Deprecated] Old version of the drop handler.
 	DEPRECATED_PRE
 	virtual int OnDrop
@@ -276,6 +279,7 @@ public:
 		LgiAssert(!"Impl the proper handler.");
 		return DROPEFFECT_NONE;
 	}
+	*/
 
 	#ifdef MAC
 		#if defined COCOA

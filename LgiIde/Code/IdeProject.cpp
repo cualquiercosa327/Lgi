@@ -120,7 +120,7 @@ public:
 	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0) override;
 	GString FindExe();
 	GAutoString WinToMingWPath(const char *path);
-	int Main();
+	int Main() override;
 };
 
 class IdeProjectPrivate
@@ -923,7 +923,7 @@ public:
 		DeleteArray(Path);
 	}
 	
-	int Main()
+	int Main() override
 	{
 		if (Proj->GetApp())
 		{
