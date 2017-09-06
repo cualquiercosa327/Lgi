@@ -264,6 +264,7 @@ GDragDropSource::~GDragDropSource()
 	DeleteObj(d);
 }
 
+/*
 bool GDragDropSource::GetData(GArray<GDragData> &DragData)
 {
 	if (DragData.Length() == 0)
@@ -277,6 +278,7 @@ bool GDragDropSource::GetData(GArray<GDragData> &DragData)
 
 	return GetData(v, fmt);
 }
+*/
 
 bool GDragDropSource::CreateFileDrop(GDragData *OutputData, GMouse &m, List<char> &Files)
 {
@@ -664,6 +666,7 @@ HRESULT STDMETHODCALLTYPE GDragDropTarget::DragLeave()
 	return S_OK;
 }
 
+/*
 int GDragDropTarget::OnDrop(GArray<GDragData> &DropData,
 							GdcPt2 Pt,
 							int KeyState)
@@ -676,6 +679,7 @@ int GDragDropTarget::OnDrop(GArray<GDragData> &DropData,
 	GVariant *Var = &DropData[0].Data[0];
 	return OnDrop(Fmt, Var, Pt, KeyState);
 }
+*/
 
 HRESULT STDMETHODCALLTYPE GDragDropTarget::Drop(IDataObject *pDataObject, DWORD grfKeyState, POINTL pt, DWORD *pdwEffect)
 {
