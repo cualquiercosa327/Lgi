@@ -946,7 +946,7 @@ public:
 			else if (Act == ExeValgrind)
 			{
 				#ifdef LINUX
-				if (Proj->GetExecutable())
+				if (Proj->GetExecutable(GetCurrentPlatform()))
 				{
 					char Path[256];
 					strcpy_s(Path, sizeof(Path), Exe);
@@ -971,7 +971,7 @@ public:
 					
 					if (Term && WorkDir && Execute)
 					{					
-						char *e = QuoteStr(Proj->GetExecutable());
+						char *e = QuoteStr(Proj->GetExecutable(GetCurrentPlatform()));
 						char *p = QuoteStr(Path);
 						char *a = Proj->GetExeArgs() ? Proj->GetExeArgs() : (char*)"";
 						char Args[512];
