@@ -2937,7 +2937,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			IdeProject *p = RootProject();
 			if (p)
 			{
-				const char *Exe = p->GetExecutable();
+				const char *Exe = p->GetExecutable(GetCurrentPlatform());
 				if (FileExists(Exe))
 				{
 					Depends Dlg(this, Exe);

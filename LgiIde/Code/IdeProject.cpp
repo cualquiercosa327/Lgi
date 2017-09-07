@@ -1132,9 +1132,9 @@ const char *IdeProject::GetExeArgs()
 	return d->Settings.GetStr(ProjArgs);
 }
 
-const char *IdeProject::GetExecutable()
+const char *IdeProject::GetExecutable(IdePlatform Platform)
 {
-	return d->Settings.GetStr(ProjExe);
+	return d->Settings.GetStr(ProjExe, NULL, Platform);
 }
 
 char *IdeProject::GetFileName()
@@ -2275,8 +2275,8 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 	
 	if (IsExecutableTarget)
 	{
-		const char *Exe = GetExecutable();
-		if (!Exe)
+		const char *Exe = GetExecutable(Platform);
+		if (Exe)
 			m.Print("Target = %s\n", Exe);
 		else
 		{
