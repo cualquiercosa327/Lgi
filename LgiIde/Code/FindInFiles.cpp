@@ -363,6 +363,11 @@ GMessage::Result FindInFilesThread::OnEvent(GMessage *Msg)
 						char *Dir = strrchr(f, DIR_CHAR);
 						if (!Dir || Dir[1] != '.')
 						{
+							/*
+							sprintf(Msg, "%s\n", f);
+							GEventSinkMap::Dispatch.PostEvent(d->AppHnd, M_APPEND_TEXT, (GMessage::Param)NewStr(Msg), 2);
+							*/
+
 							SearchFile(f);
 						}
 					}

@@ -82,7 +82,7 @@ public:
 	
 	// Dnd
 	bool GetFormats(List<char> &Formats) override;
-	bool GetData(GVariant *Data, char *Format) override;
+	bool GetData(GArray<GDragData> &Data) override;
 	
 	// Ui events
 	bool OnBeginDrag(GMouse &m) override;
