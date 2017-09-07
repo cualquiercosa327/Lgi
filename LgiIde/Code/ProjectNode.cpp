@@ -354,7 +354,7 @@ bool ProjectNode::GetData(GArray<GDragData> &Data)
 		if (dd.IsFormat(NODE_DROP_FORMAT))
 		{
 			void *t = this;
-			dd.Data[0].SetBinary(sizeof(this), (void*) &t);
+			dd.Data.New().SetBinary(sizeof(this), (void*) &t);
 			return true;
 		}
 	}

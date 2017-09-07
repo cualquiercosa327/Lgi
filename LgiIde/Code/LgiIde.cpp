@@ -2671,14 +2671,17 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 					{
 						Dlg.Params->ProjectFiles.Length(0);
 
+						
+						List<IdeProject> Projects;
+						Projects.Insert(p);
+						p->GetChildProjects(Projects);
+
 						GArray<ProjectNode*> Nodes;
-						if (p->GetAllNodes(Nodes))
-						{
-							for (unsigned i=0; i<Nodes.Length(); i++)
-							{
-								Dlg.Params->ProjectFiles.Add(Nodes[i]->GetFullPath());
-							}
-						}
+						for (IdeProject *p = Projects.First(); p; p = Projects.Next())
+							p->GetAllNodes(Nodes);
+
+						for (unsigned i=0; i<Nodes.Length(); i++)
+							Dlg.Params->ProjectFiles.Add(Nodes[i]->GetFullPath());
 					}
 
 				}

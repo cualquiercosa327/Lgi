@@ -1574,7 +1574,6 @@ bool IdeProject::GetAllNodes(GArray<ProjectNode*> &Nodes)
 	{
 		c->AddNodes(Nodes);
 	}
-	
 	return true;
 }
 
