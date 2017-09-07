@@ -1227,13 +1227,9 @@ void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
 	}
 
 	if (UrlDetect)
-	{
-		#if 1
-		
-		GArray<GLinkInfo> Links;
-		
-		LgiAssert(Start + Length <= Size);
-		
+	{		
+		GArray<GLinkInfo> Links;		
+		LgiAssert(Start + Length <= Size);		
 		if (LgiDetectLinks(Links, Text + Start, Length))
 		{
 			for (uint32 i=0; i<Links.Length(); i++)
@@ -1254,102 +1250,6 @@ void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
 				}
 			}
 		}
-
-		#else
-
-		char16 Http[] = {'h', 't', 't', 'p', ':', '/', '/', 0 };
-		char16 Https[] = {'h', 't', 't', 'p', 's', ':', '/', '/', 0};
-
-		for (int i=0; i<Size; i++)
-		{
-			switch (Text[i])
-			{
-				case 'h':
-				case 'H':
-				{
-					if (StrnicmpW(Text+i, Http, 6) == 0 ||
-						StrnicmpW(Text+i, Https, 7) == 0)
-					{
-						// find end
-						char16 *s = Text + i;
-						char16 *e = s + 6;
-						for ( ; (SubtractPtr(e, Text) < Size) && 
-								UrlChar(*e); e++);
-						
-						while
-						(
-							e > s &&
-							!
-							(
-								IsAlpha(e[-1]) ||
-								IsDigit(e[-1]) ||
-								e[-1] == '/'
-							)
-						)
-							e--;
-
-						GUrl *Url = new GUrl(0);
-						if (Url)
-						{
-							Url->Email = false;
-							Url->View = this;
-							Url->Start = SubtractPtr(s, Text);
-							Url->Len = SubtractPtr(e, s);
-							Url->Font = Underline;
-							Url->c = d->UrlColour;
-
-							InsertStyle(Url);
-						}
-						i = SubtractPtr(e, Text);
-					}
-					break;
-				}
-				case '@':
-				{
-					// find start
-					char16 *s = Text + (max(i, 1) - 1);
-					
-					for ( ; s > Text && EmailChar(*s); s--)
-						;
-
-					if (s < Text + i)
-					{
-						if (!EmailChar(*s))
-							s++;
-
-						bool FoundDot = false;
-						char16 *Start = Text + i + 1;
-						char16 *e = Start;
-						for ( ; (SubtractPtr(e, Text) < Size) && 
-								EmailChar(*e); e++)
-						{
-							if (*e == '.') FoundDot = true;
-						}
-						while (e > Start && e[-1] == '.') e--;
-
-						if (FoundDot)
-						{
-							GUrl *Url = new GUrl(0);
-							if (Url)
-							{
-								Url->Email = true;
-								Url->View = this;
-								Url->Start = SubtractPtr(s, Text);
-								Url->Len = SubtractPtr(e, s);
-								Url->Font = Underline;
-								Url->c = d->UrlColour;
-
-								InsertStyle(Url);
-							}
-							i = SubtractPtr(e, Text);
-						}
-					}
-					break;
-				}
-			}
-		}
-
-		#endif
 	}
 
 	#ifdef _DEBUG
