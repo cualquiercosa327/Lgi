@@ -885,7 +885,6 @@ class GStyleThread : public GEventTargetThread
 public:
 	GStyleThread() : GEventTargetThread("StyleThread")
 	{
-		int asd=0;
 	}
 	
 	GMessage::Result OnEvent(GMessage *Msg)
@@ -1487,7 +1486,7 @@ public:
 				// LgiTrace("Dirty rgn: %i + %i = %i\n", Dirty.Start, Dirty.Len, Dirty.End());
 
 				int CurLine = -1, DirtyStartLine = -1, DirtyEndLine = -1;
-				GTextLine *CursorLine = GetTextLine(Cursor, &CurLine);
+				GetTextLine(Cursor, &CurLine);
 				GTextLine *Start = GetTextLine(Dirty.Start, &DirtyStartLine);
 				GTextLine *End = GetTextLine(min(Size, Dirty.End()), &DirtyEndLine);
 				if (CurLine >= 0 &&
@@ -2413,8 +2412,8 @@ void IdeDoc::OnTitleClick(GMouse &m)
 			}
 			case IDM_BROWSE:
 			{
-				char Args[MAX_PATH];
 				#if defined(WIN32)
+				char Args[MAX_PATH];
 				sprintf(Args, "/e,/select,\"%s\"", Full);
 				LgiExecute("explorer", Args);
 				#elif defined(LINUX)
@@ -2952,7 +2951,7 @@ bool MatchSymbol(DefnInfo *Def, char16 *Symbol)
 
 	char16 *Sep = StristrW(Name, Dots);
 	char16 *Start = Sep ? Sep : Name;
-	char16 *End = StrchrW(Start, '(');
+	// char16 *End = StrchrW(Start, '(');
 	int Len = StrlenW(Symbol);
 	char16 *Match = StristrW(Start, Symbol);
 
@@ -3049,7 +3048,10 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 		char *FileName = GetFileName();
 		if (BuildDefnList(FileName, Source, Defns, DefnNone))
 		{
+			#if DEBUG_FIND_DEFN
 			bool Found = false;
+			#endif
+			
 			for (unsigned i=0; i<Defns.Length(); i++)
 			{
 				DefnInfo &Def = Defns[i];

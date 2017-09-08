@@ -229,8 +229,6 @@ bool GMdiChild::PourAll()
 
 			if (w->Pour(Client))
 			{
-				GRect p = w->GetPos();
-				
 				if (!w->IsAttached())
 					w->Attach(this);
 
