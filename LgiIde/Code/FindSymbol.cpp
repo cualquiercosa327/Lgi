@@ -127,8 +127,8 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 		// Already added?
 		int Idx = GetFileIndex(Path);
 
-		bool Debug = false;
 		#ifdef DEBUG_FILE
+		bool Debug = false;
 		if ((Debug = Path.Find(DEBUG_FILE) >= 0))
 			printf("%s:%i - AddFile(%s) = %i\n", _FL, Path.Get(), Idx);
 		#endif
@@ -224,8 +224,8 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 						FileSyms *fs = Files[f];
 						if (fs)
 						{
-							bool Debug = false;
 							#ifdef DEBUG_FILE
+							bool Debug = false;
 							Debug = fs->Path.Find(DEBUG_FILE) >= 0;
 							if (Debug)
 								printf("%s:%i - Searching '%s' with %i syms...\n", _FL, fs->Path.Get(), fs->Defs.Length());

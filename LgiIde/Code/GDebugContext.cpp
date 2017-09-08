@@ -554,7 +554,7 @@ void GDebugContext::OnUserCommand(const char *Cmd)
 		d->Db->UserCommand(Cmd);
 }
 
-void NonPrintable(uint32 ch, uint8 *&out, ssize_t &len)
+void NonPrintable(uint64 ch, uint8 *&out, ssize_t &len)
 {
 	if (ch == '\r')
 	{
@@ -611,7 +611,7 @@ void GDebugContext::FormatMemoryDump(int WordSize, int Width, bool InHex)
 	
 	for (NativeInt i = 0; i < d->MemDump.Length(); i += LineBytes)
 	{
-		GPointer Start = ptr;
+		// GPointer Start = ptr;
 		int DisplayBytes = min(d->MemDump.Length() - i, LineBytes);
 		int DisplayWords = DisplayBytes / WordSize;			
 		NativeInt iAddr = d->MemDumpStart + i;
@@ -666,7 +666,7 @@ void GDebugContext::FormatMemoryDump(int WordSize, int Width, bool InHex)
 					if (*ptr.u64 < ' ')
 						NonPrintable(*ptr.u64, ChPtr, Len);
 					else
-						LgiUtf32To8(*ptr.u64, ChPtr, Len);
+						LgiUtf32To8((uint32)*ptr.u64, ChPtr, Len);
 
 					if (InHex)
 						#ifdef WIN32
@@ -700,7 +700,7 @@ void GDebugContext::OnMemoryDump(const char *Addr, int WordSize, int Width, bool
 		GString ErrMsg;		
 		if (d->Db->ReadMemory(d->MemDumpAddr = Addr, 1024, d->MemDump, &ErrMsg))
 		{
-			d->MemDumpStart = d->MemDumpAddr.Int(16);
+			d->MemDumpStart = (int)d->MemDumpAddr.Int(16);
 			FormatMemoryDump(WordSize, Width, IsHex);
 		}
 		else

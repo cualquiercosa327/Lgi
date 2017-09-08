@@ -130,7 +130,7 @@ public:
 } Iso2022Jp;
 
 /////////////////////////////////////////////////////////////////////////////////////
-bool LgiIsUtf8(const char *s, int len)
+bool LgiIsUtf8(const char *s, ssize_t len)
 {
 	#define LenCheck(Need) \
 		if (len >= 0 && (len - (s - Start)) < Need) \

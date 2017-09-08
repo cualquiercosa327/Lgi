@@ -18,7 +18,7 @@
 #include "GCheckBox.h"
 
 const char *Untitled = "[untitled]";
-static const char *White = " \r\t\n";
+// static const char *White = " \r\t\n";
 
 #define USE_OLD_FIND_DEFN	1
 #define POPUP_WIDTH			700 // px
@@ -330,7 +330,7 @@ void EditTray::OnHeaderList(GMouse &m)
 					for (int i=0; i<Headers.Length(); i++)
 					{
 						char *h = Headers[i];
-						char *f = LgiGetLeaf(h);
+						// char *f = LgiGetLeaf(h);
 						
 						Map.Add(h, i + 1);
 					}
@@ -385,8 +385,7 @@ void EditTray::OnFunctionList(GMouse &m)
 	{
 		GSubMenu s;
 		GArray<DefnInfo*> a;					
-		int n=1;
-
+		
 		int ScreenHt = GdcD->Y();
 		int ScreenLines = ScreenHt / SysFont->GetHeight();
 		float Ratio = ScreenHt ? (float)(SysFont->GetHeight() * Funcs.Length()) / ScreenHt : 0.0f;
@@ -1004,12 +1003,12 @@ public:
 		if (p.Length() == 2)
 		{
 			GString file = p[0];
-			int line = p[1].Int();
+			int line = (int)p[1].Int();
 			Doc->GetApp()->GotoReference(file, line, false, true);
 		}
 		else if (p.Length() == 1)
 		{
-			int line = p[0].Int();
+			int line = (int)p[0].Int();
 			if (line > 0)
 				SetLine(line);
 			else
@@ -2357,7 +2356,7 @@ void IdeDoc::OnTitleClick(GMouse &m)
 					LgiMakePath(Full, sizeof(Full), Base, Fn);
 			}
 			
-			Dir = Full ? strrchr(Full, DIR_CHAR) : NULL;
+			Dir = strrchr(Full, DIR_CHAR);
 			if (Dir)
 				sprintf_s(sFile, sizeof(sFile), "Copy '%s'", Dir + 1);
 			sprintf_s(sFull, sizeof(sFull), "Copy '%s'", Full);

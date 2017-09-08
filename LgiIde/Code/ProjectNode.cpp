@@ -83,7 +83,7 @@ public:
 		{
 			case IDOK:
 			{
-				int t = GetCtrlValue(IDC_TYPE);
+				int64 t = GetCtrlValue(IDC_TYPE);
 				if (t >= NodeSrc)
 				{
 					Type = (NodeType) t;
