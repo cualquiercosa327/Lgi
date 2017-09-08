@@ -424,7 +424,7 @@ GString BuildThread::FindExe()
 	}
 	else if (Compiler == IAR)
 	{
-		const char *Def = "c:\\Program Files (x86)\\IAR Systems\\Embedded Workbench 7.0\\common\\bin\\IarBuild.exe";
+		// const char *Def = "c:\\Program Files (x86)\\IAR Systems\\Embedded Workbench 7.0\\common\\bin\\IarBuild.exe";
 		
 		GString ProgFiles = LgiGetSystemPath(LSP_USER_APPS, 32);
 		char p[MAX_PATH];
@@ -720,7 +720,7 @@ bool IdeProject::OnNode(const char *Path, ProjectNode *Node, bool Add)
 void IdeProject::ShowFileProperties(const char *File)
 {
 	ProjectNode *Node = NULL;
-	char *fp = FindFullPath(File, &Node);
+	// char *fp = FindFullPath(File, &Node);
 	if (Node)
 	{
 		Node->OnProperties();
@@ -1283,7 +1283,7 @@ ProjectStatus IdeProject::OpenFile(char *FileName)
 			{
 				GString::Array p = Ln[i].SplitDelimit(",");
 				if (p.Length() == 2)
-					d->UserNodeFlags.Add(p[0].Int(), p[1].Int(16));
+					d->UserNodeFlags.Add((int)p[0].Int(), (int)p[1].Int(16));
 			}
 		}
 	}
@@ -1450,7 +1450,7 @@ void IdeProject::Empty()
 GXmlTag *IdeProject::Create(char *Tag)
 {
 	if (!stricmp(Tag, TagSettings))
-		return false;
+		return NULL;
 
 	return new ProjectNode(this);
 }
@@ -2143,6 +2143,7 @@ bool IdeProject::GetDependencies(const char *SourceFile, GArray<GString> &IncPat
 	return true;
 }
 
+/*
 static bool RenameMakefileForPlatform(GAutoString &MakeFile, IdePlatform Platform)
 {
 	if (!MakeFile)
@@ -2161,6 +2162,7 @@ static bool RenameMakefileForPlatform(GAutoString &MakeFile, IdePlatform Platfor
 	
 	return true;
 }
+*/
 
 bool IdeProject::CreateMakefile(IdePlatform Platform)
 {
@@ -2527,7 +2529,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 	
 	if (Files.First())
 	{
-		ProjectNode *n;
+		// ProjectNode *n;
 		
 		GArray<GString> IncPaths;
 		if (BuildIncludePaths(IncPaths, false, Platform))
@@ -2780,11 +2782,6 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 						}
 						
 						m.Print("%s.o : %s ", Part, ToUnixPath(Rel));
-
-						if (Src.Find("AddressSelect.cpp") >= 0)
-						{
-							int asd=0;
-						}
 
 						GArray<char*> SrcDeps;
 						if (GetDependencies(Src, IncPaths, SrcDeps, Platform))

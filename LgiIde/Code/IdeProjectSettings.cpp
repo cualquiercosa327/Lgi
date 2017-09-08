@@ -10,7 +10,7 @@
 #include "GButton.h"
 
 const char TagSettings[] = "Settings";
-const char TagConfigs[] = "Configurations";
+// const char TagConfigs[] = "Configurations";
 
 const char sGeneral[] = "General";
 const char sBuild[] = "Build";
@@ -418,7 +418,7 @@ public:
 		
 		if (Setting)
 		{
-			GLayoutCell *c;
+			// GLayoutCell *c;
 			
 			if (Setting->Flag.ConfigSpecific)
 			{
@@ -915,7 +915,7 @@ const char *IdeProjectSettings::GetStr(ProjSetting Setting, const char *Default,
 	if (!d->StrBuf.Reset(new char[Bytes]))
 		return Default;
 
-	char *c = d->StrBuf;
+	// char *c = d->StrBuf;
 	int ch = 0;
 	for (int i=0; i<Strs.Length(); i++)
 	{

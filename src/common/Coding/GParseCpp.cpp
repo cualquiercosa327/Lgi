@@ -1600,7 +1600,6 @@ GSourceFile *GCppParserWorker::ParseCpp(const char *Path)
 
 GSymbol *GCppParserWorker::ParseDecl(GSourceFile *sf, char16 *t)
 {
-	char16 *First = t;
 	PreprocessBlock *blk = sf->Current();
 	int ExternC = CmpToken(t, "extern") ? 1 : 0;
 	GSymbol *sym = new GSymbol(_FL);
