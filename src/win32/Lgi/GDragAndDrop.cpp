@@ -264,22 +264,6 @@ GDragDropSource::~GDragDropSource()
 	DeleteObj(d);
 }
 
-/*
-bool GDragDropSource::GetData(GArray<GDragData> &DragData)
-{
-	if (DragData.Length() == 0)
-		return false;
-
-	// Call the deprecated version of 'GetData'
-	GVariant *v = &DragData[0].Data[0];
-	char *fmt = DragData[0].Format;
-	if (!v || !fmt)
-		return false;
-
-	return GetData(v, fmt);
-}
-*/
-
 bool GDragDropSource::CreateFileDrop(GDragData *OutputData, GMouse &m, List<char> &Files)
 {
 	if (!OutputData || !Files.First())
