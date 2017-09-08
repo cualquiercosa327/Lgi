@@ -106,7 +106,7 @@ LgiFunc char *LgiSeekUtf8
 
 /// Return true if the string is valid utf-8
 /// \ingroup Text
-LgiFunc bool LgiIsUtf8(const char *s, int len = -1);
+LgiFunc bool LgiIsUtf8(const char *s, ssize_t len = -1);
 
 /// Converts a string to the native 8bit charset of the OS from utf-8
 /// \ingroup Text

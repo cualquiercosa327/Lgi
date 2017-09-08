@@ -77,7 +77,10 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 	char16 *s = Cpp;
 	char16 *LastDecl = s;
 	int Depth = 0;
-	int Line = 0, PrevLine = 0;
+	int Line = 0;
+	#ifdef DEBUG_LINE
+	int PrevLine = 0;
+	#endif
 	int CaptureLevel = 0;
 	int InClass = false;	// true if we're in a class definition			
 	char16 *CurClassDecl = 0;

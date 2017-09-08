@@ -150,14 +150,14 @@ bool GMdiChild::Attach(GViewI *p)
 	if (par->d->Children.HasItem(this))
 	{
 		LgiTrace("%s:%i - Already attached:\n", _FL);
+		#ifdef BEOS
 		for (unsigned i=0; i<par->d->Children.Length(); i++)
 		{
 			GMdiChild *c = par->d->Children[i];
-			#ifdef BEOS
 			printf("[%i]=%p %p %p %s\n",
 				i, c, c->Handle(), c->Handle()?c->Handle()->Window():0, c->Name());
-			#endif
 		}
+		#endif
 		
 		return false;
 	}
@@ -229,8 +229,6 @@ bool GMdiChild::PourAll()
 
 			if (w->Pour(Client))
 			{
-				GRect p = w->GetPos();
-				
 				if (!w->IsAttached())
 					w->Attach(this);
 

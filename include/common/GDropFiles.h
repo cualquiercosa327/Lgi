@@ -151,6 +151,11 @@ public:
 					GAutoString a = u.Decode(u.Path);
 					Add(a.Release());
 				}
+				else if (!u.Protocol &&
+						FileExists(s))
+				{
+					Add(NewStr(s));
+				}
 			}
 		}
 		#endif

@@ -354,7 +354,7 @@ GMessage::Result FindInFilesThread::OnEvent(GMessage *Msg)
 
 				if (Files.Length() > 0)
 				{			
-					sprintf(Msg, "in %i files...\n", Files.Length());
+					sprintf(Msg, "in %i files...\n", (int)Files.Length());
 					GEventSinkMap::Dispatch.PostEvent(d->AppHnd, M_APPEND_TEXT, (GMessage::Param)NewStr(Msg), 2);
 
 					for (int i=0; i<Files.Length() && d->Loop; i++)
@@ -363,6 +363,11 @@ GMessage::Result FindInFilesThread::OnEvent(GMessage *Msg)
 						char *Dir = strrchr(f, DIR_CHAR);
 						if (!Dir || Dir[1] != '.')
 						{
+							/*
+							sprintf(Msg, "%s\n", f);
+							GEventSinkMap::Dispatch.PostEvent(d->AppHnd, M_APPEND_TEXT, (GMessage::Param)NewStr(Msg), 2);
+							*/
+
 							SearchFile(f);
 						}
 					}

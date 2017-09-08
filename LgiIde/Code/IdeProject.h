@@ -132,7 +132,7 @@ public:
 	GAutoString GetBasePath(); // A non-relative path to the folder containing the project
 
 	AppWnd *GetApp();
-	const char *GetExecutable();
+	const char *GetExecutable(IdePlatform Platform);
 	const char *GetExeArgs();
 	const char *GetIncludePaths();
 	const char *GetPreDefinedValues();

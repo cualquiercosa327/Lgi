@@ -18,16 +18,16 @@
 #include "GPalette.h"
 
 #ifndef WIN32
-#define BI_RGB			0L
-#define BI_RLE8			1L
-#define BI_RLE4			2L
-#define BI_BITFIELDS	3L
+	#define BI_RGB			0L
+	#define BI_RLE8			1L
+	#define BI_RLE4			2L
+	#define BI_BITFIELDS	3L
 #else
-#include "Lgi.h"
-#include <objbase.h>
-#ifdef _MSC_VER
-#include <IImgCtx.h>
-#endif
+	#include "Lgi.h"
+	#include <objbase.h>
+	#ifdef _MSC_VER
+		#include <IImgCtx.h>
+	#endif
 #endif
 
 int FindHeader(int Offset, const char *Str, GStream *f)
@@ -1969,7 +1969,8 @@ GSurface *GdcDevice::Load(GStream *In, const char *Name, bool UseOSLoader)
 		
 		#elif defined MAC && !defined COCOA
 		
-		if (Name)
+		CGImageRef Img = NULL;
+		if (FileExists(Name))
 		{
 			CFURLRef FileUrl = CFURLCreateFromFileSystemRepresentation(0, (const UInt8*)Name, strlen(Name), false);
 			if (!FileUrl)
@@ -1981,38 +1982,55 @@ GSurface *GdcDevice::Load(GStream *In, const char *Name, bool UseOSLoader)
 					LgiTrace("%s:%i - CGImageSourceCreateWithURL failed.\n", _FL);
 				else
 				{
-					CGImageRef Img = CGImageSourceCreateImageAtIndex(Src, 0, 0);
+					Img = CGImageSourceCreateImageAtIndex(Src, 0, 0);
 					if (!Img)
 						LgiTrace("%s:%i - CGImageSourceCreateImageAtIndex failed.\n", _FL);
-					else
-					{
-						size_t x = CGImageGetWidth(Img);
-						size_t y = CGImageGetHeight(Img);
-						size_t bits = CGImageGetBitsPerPixel(Img);
-						
-						if (pDC.Reset(new GMemDC) &&
-							pDC->Create(x, y, System32BitColourSpace))
-						{
-							pDC->Colour(0);
-							pDC->Rectangle();
-							
-							CGRect r = {{0, 0}, {x, y}};
-							CGContextDrawImage(pDC->Handle(), r, Img);
-						}
-						else
-						{
-							LgiTrace("%s:%i - pMemDC->Create failed.\n", _FL);
-							pDC.Reset();
-						}
-						
-						CGImageRelease(Img);
-					}
 					
 					CFRelease(Src);
 				}
 
 				CFRelease(FileUrl);
 			}
+		}
+		else
+		{
+			GMemStream ms(In, 0, -1);
+			CFDataRef data = CFDataCreate(NULL, (const UInt8 *)ms.GetBasePtr(), ms.GetSize());
+			CGImageSourceRef Src = CGImageSourceCreateWithData(data, NULL);
+			if (!Src)
+				LgiTrace("%s:%i - CGImageSourceCreateWithURL failed.\n", _FL);
+			else
+			{
+				Img = CGImageSourceCreateImageAtIndex(Src, 0, 0);
+				if (!Img)
+					LgiTrace("%s:%i - CGImageSourceCreateImageAtIndex failed.\n", _FL);
+				
+				CFRelease(Src);
+			}
+		}
+
+		if (Img)
+		{
+			size_t x = CGImageGetWidth(Img);
+			size_t y = CGImageGetHeight(Img);
+			size_t bits = CGImageGetBitsPerPixel(Img);
+			
+			if (pDC.Reset(new GMemDC) &&
+				pDC->Create(x, y, System32BitColourSpace))
+			{
+				pDC->Colour(0);
+				pDC->Rectangle();
+				
+				CGRect r = {{0, 0}, {x, y}};
+				CGContextDrawImage(pDC->Handle(), r, Img);
+			}
+			else
+			{
+				LgiTrace("%s:%i - pMemDC->Create failed.\n", _FL);
+				pDC.Reset();
+			}
+			
+			CGImageRelease(Img);
 		}
 
 		#elif WINNATIVE && defined(_MSC_VER)

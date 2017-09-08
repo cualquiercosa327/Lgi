@@ -284,10 +284,8 @@ public:
 
 		for (GTextLine *l=Line.First(); l; l=Line.Next())
 		{
-			int n=0;
 			char16 *t = Text + l->Start;
-			char16 *e = t + l->Len;
-
+			
 			if (l->Len > 5 && !StrnicmpW(t, L"(gdb)", 5))
 			{
 				l->c.Rgb(0, 160, 0);
@@ -327,7 +325,7 @@ bool WatchItem::SetText(const char *s, int i)
 {
 	if (ValidStr(s))
 	{
-		bool status = GTreeItem::SetText(s, i);
+		GTreeItem::SetText(s, i);
 
 		if (i == 0 && Tree && Tree->GetWindow())
 		{
@@ -714,13 +712,13 @@ public:
 			if (Size)
 			{
 				char *Utf = &Buf[Channel][0];
-				if (!LgiIsUtf8(Utf, Size))
+				if (!LgiIsUtf8(Utf, (ssize_t)Size))
 				{
 					LgiTrace("Ch %i not utf len="LGI_PrintfInt64"\n", Channel, Size);
 					continue;
 				}
 				
-				GAutoPtr<char16, true> w(Utf8ToWide(Utf, Size));
+				GAutoPtr<char16, true> w(Utf8ToWide(Utf, (ssize_t)Size));
 				char16 *OldText = Txt[Channel]->NameW();
 				int OldLen = 0;
 				if (OldText)
@@ -972,7 +970,7 @@ public:
 		GAutoString Full;
 		if (FindSource(Full, File, Context))
 		{
-			IdeDoc *Doc = App->GotoReference(Full, Line, false);			
+			App->GotoReference(Full, Line, false);
 		}
 	}
 	
@@ -1030,12 +1028,12 @@ public:
 		IdeProject *p = App->RootProject();
 		if (p)
 			p ->GetSettings()->GetStr(ProjCompiler);
-		bool IsIAR = Comp.Equals("IAR");
+		// bool IsIAR = Comp.Equals("IAR");
 		
 		if (!Output || !Output->Tab)
 			return;
 
-		int Current = Output->Tab->Value();
+		int64 Current = Output->Tab->Value();
 		GTextView3 *o = Current < CountOf(Output->Txt) ? Output->Txt[Current] : 0;
 		if (!o)
 			return;
@@ -1280,7 +1278,7 @@ public:
 				p.Write((uchar*)s, strlen(s)+1);
 			}
 			
-			int Size = p.GetSize();
+			ssize_t Size = (ssize_t)p.GetSize();
 			
 			v.SetBinary(Size, p.New(), true);
 			Options.SetValue(Opt, v);
@@ -1496,7 +1494,7 @@ void AppWnd::OnReceiveFiles(GArray<char*> &Files)
 	for (int i=0; i<Files.Length(); i++)
 	{
 		char *f = Files[i];
-		char *d = strrchr(f, DIR_CHAR);
+		// char *d = strrchr(f, DIR_CHAR);
 		
 		char *ext = LgiGetExtension(f);
 		if (ext && !stricmp(ext, "mem"))
@@ -1506,11 +1504,7 @@ void AppWnd::OnReceiveFiles(GArray<char*> &Files)
 		}
 		else if (ext && !stricmp(ext, "xml"))
 		{
-			IdeProject *p = OpenProject(f, NULL);
-			if (!p)
-			{
-				int asd=0;
-			}
+			OpenProject(f, NULL);
 		}
 		else
 		{
@@ -1755,9 +1749,11 @@ void AppWnd::OnLocationChange(const char *File, int Line)
 			d->HistoryLoc++;
 
 			FileLoc &loc = d->CursorHistory[d->HistoryLoc];
+			#ifdef WIN64
 			if ((NativeInt)loc.File.Get() == 0xcdcdcdcdcdcdcdcd)
 				LgiAssert(0); // wtf?
 			else
+			#endif
 				loc.Set(File, Line);
 		}
 		else
@@ -2199,7 +2195,7 @@ void AppWnd::UpdateMemoryDump()
 		int64 RowLen = GetCtrlValue(IDC_MEM_ROW_LEN);
 		bool InHex = GetCtrlValue(IDC_MEM_HEX) != 0;
 
-		d->DbgContext->FormatMemoryDump(iWord, RowLen, InHex);
+		d->DbgContext->FormatMemoryDump(iWord, (int)RowLen, InHex);
 	}
 }
 
@@ -2241,7 +2237,7 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 					{
 						char *sWord = GetCtrlName(IDC_MEM_SIZE);
 						int iWord = sWord ? atoi(sWord) : 1;
-						d->DbgContext->OnMemoryDump(s, iWord, GetCtrlValue(IDC_MEM_ROW_LEN), GetCtrlValue(IDC_MEM_HEX) != 0);
+						d->DbgContext->OnMemoryDump(s, iWord, (int)GetCtrlValue(IDC_MEM_ROW_LEN), GetCtrlValue(IDC_MEM_HEX) != 0);
 					}
 					else if (d->DbgContext->MemoryDump)
 					{
@@ -2407,7 +2403,7 @@ int AppWnd::OnNotify(GViewI *Ctrl, int Flags)
 					if (item)
 					{
 						GString sId = item->GetText(0);
-						int ThreadId = sId.Int();
+						int ThreadId = (int)sId.Int();
 						if (ThreadId > 0)
 						{
 							d->DbgContext->SelectThread(ThreadId);
@@ -2669,14 +2665,17 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 					{
 						Dlg.Params->ProjectFiles.Length(0);
 
+						
+						List<IdeProject> Projects;
+						Projects.Insert(p);
+						p->GetChildProjects(Projects);
+
 						GArray<ProjectNode*> Nodes;
-						if (p->GetAllNodes(Nodes))
-						{
-							for (unsigned i=0; i<Nodes.Length(); i++)
-							{
-								Dlg.Params->ProjectFiles.Add(Nodes[i]->GetFullPath());
-							}
-						}
+						for (IdeProject *p = Projects.First(); p; p = Projects.Next())
+							p->GetAllNodes(Nodes);
+
+						for (unsigned i=0; i<Nodes.Length(); i++)
+							Dlg.Params->ProjectFiles.Add(Nodes[i]->GetFullPath());
 					}
 
 				}
@@ -2932,7 +2931,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			IdeProject *p = RootProject();
 			if (p)
 			{
-				const char *Exe = p->GetExecutable();
+				const char *Exe = p->GetExecutable(GetCurrentPlatform());
 				if (FileExists(Exe))
 				{
 					Depends Dlg(this, Exe);
@@ -3251,39 +3250,6 @@ bool AppWnd::GetSystemIncludePaths(::GArray<GString> &Paths)
 }
 
 /*
-class Test : public GWindow
-{
-public:
-	Test()
-	{
-		GRect r(100, 100, 900, 700);
-		SetPos(r);
-		Name("Test");
-		SetQuitOnClose(true);
-		
-		if (Attach(0))
-		{
-			Visible(true);
-		}
-	}
-	
-	void OnPaint(GSurface *pDC)
-	{
-		pDC->Colour(LC_WORKSPACE, 24);
-		pDC->Rectangle();
-		
-		for (int i=0; i<6; i++)
-		{
-			GDisplayString d1(SysFont, "test1");
-			d1.Draw(pDC, 10, 10+(i*45));
-
-			GDisplayString d2(SysBold, "test2");
-			d2.Draw(pDC, 10, 30+(i*45));
-		}
-	}
-};
-*/
-
 #include "GSubProcess.h"
 void Test()
 {
@@ -3294,12 +3260,7 @@ void Test()
 		{
 			char p[MAX_PATH];
 			d.Path(p, sizeof(p));
-
-			if (stristr(d.GetName(), "f_00005d"))
-			{
-				int asd=0;
-			}
-
+			
 			GFile f;
 			if (f.Open(p, O_READ))
 			{
@@ -3328,6 +3289,7 @@ void Test()
 		}
 	}
 }
+*/
 
 int LgiMain(OsAppArguments &AppArgs)
 {
@@ -3335,10 +3297,7 @@ int LgiMain(OsAppArguments &AppArgs)
 	GApp a(AppArgs, "LgiIde");
 	if (a.IsOk())
 	{
-		// Test();
-		
 		a.AppWnd = new AppWnd;
-		// a.AppWnd = new Test;
 		a.Run();
 	}
 

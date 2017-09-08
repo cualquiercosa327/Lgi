@@ -8,7 +8,7 @@
 
 CC = gcc
 CPP = g++
-Target = lgiide
+Target = ./lgiide
 ifndef Build
 	Build = Debug
 endif
@@ -1138,7 +1138,8 @@ IdeDoc.o : ./Code/IdeDoc.cpp ../include/common/Lgi.h \
 	../include/common/GPopupList.h \
 	../include/common/GTableLayout.h \
 	./Code/ProjectNode.h \
-	../include/common/GEventTargetThread.h
+	../include/common/GEventTargetThread.h \
+	../include/common/GCheckBox.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 

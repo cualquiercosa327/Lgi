@@ -111,17 +111,6 @@ GDragDropSource::~GDragDropSource()
 	DeleteObj(d);
 }
 
-bool GDragDropSource::GetData(::GArray<GDragData> &DragData)
-{
-	if (DragData.Length() == 0)
-		return false;
-
-	// Call the deprecated version of 'GetData'
-	::GVariant *v = &DragData[0].Data[0];
-	char *fmt = DragData[0].Format;
-	return GetData(v, fmt);
-}
-
 bool GDragDropSource::SetIcon(GSurface *Img, GRect *SubRgn)
 {
 	return false;
@@ -317,16 +306,4 @@ void GDragDropTarget::SetWindow(GView *to)
 	}
 }
 
-int GDragDropTarget::OnDrop(::GArray<GDragData> &DropData,
-							GdcPt2 Pt,
-							int KeyState)
-{
-	if (DropData.Length() == 0 ||
-		DropData[0].Data.Length() == 0)
-		return DROPEFFECT_NONE;
-	
-	char *Fmt = DropData[0].Format;
-	::GVariant *Var = &DropData[0].Data[0];
-	return OnDrop(Fmt, Var, Pt, KeyState);
-}
 

@@ -153,13 +153,13 @@ class Gdb : public GDebugger, public LThread, public Callback
 					GString::Array ref = a[At+1].Split(":");
 					if (ref.Length() == 2)
 					{
-						OnFileLine(NativePath(ref[0]), ref[1].Int(), true);
+						OnFileLine(NativePath(ref[0]), (int)ref[1].Int(), true);
 						return true;
 					}
 				}
 				else
 				{
-					int Line = a[0].Int();
+					int Line = (int)a[0].Int();
 					if (Line)
 					{
 						OnFileLine(NULL, Line, true);
@@ -289,11 +289,11 @@ class Gdb : public GDebugger, public LThread, public Callback
 				else printf("Error: no ':' in '%s'. (%s:%i)\n", k.Get(), _FL);
 			}
 		}
-		else printf("Error: %i parts (%s:%i).\n", a.Length(), _FL);
+		else printf("Error: %i parts (%s:%i).\n", (int)a.Length(), _FL);
 
 		if (File && Line > 0)
 		{
-			OnFileLine(NativePath(File), Line.Int(), true);
+			OnFileLine(NativePath(File), (int)Line.Int(), true);
 		}
 		else
 		{
@@ -368,7 +368,7 @@ class Gdb : public GDebugger, public LThread, public Callback
 					{
 						if (a[i] == GString("LWP") && i < a.Length() - 1)
 						{
-							ThreadId = a[i+1].Int();
+							ThreadId = (int)a[i+1].Int();
 							break;
 						}
 					}
@@ -598,7 +598,7 @@ class Gdb : public GDebugger, public LThread, public Callback
 		OutLines = Arr;		
 		AtPrompt = false;
 
-		uint64 Start = LgiCurrentTime();
+		// uint64 Start = LgiCurrentTime();
 		int Wr = Sp->Write(str, ch);
 		if (Wr != ch)
 			return false;
@@ -862,7 +862,7 @@ public:
 							{
 								if (a[i].Equals("process"))
 								{
-									int Id = a[i+1].Int();
+									int Id = (int)a[i+1].Int();
 									if (Id >= 0)
 									{
 										ProcessId = Id;
@@ -937,7 +937,7 @@ public:
 				if (p.Length() >= 2 &&
 					!_stricmp(p[0], "breakpoint"))
 				{
-					int Idx = p[1].Int();
+					int Idx = (int)p[1].Int();
 					if (Idx)
 					{
 						bp.Index = Idx;
@@ -1304,7 +1304,7 @@ public:
 		GString::Array Out;
 		char c[256];
 		int words = Length >> 2;
-		int bytes = Length % 4;
+		// int bytes = Length % 4;
 		
 		if (BaseAddr.Find("0x") >= 0)
 		{

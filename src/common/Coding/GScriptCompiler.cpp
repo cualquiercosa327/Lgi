@@ -1723,11 +1723,6 @@ public:
 		{
 			GTokenType Tok = ExpTok.Find(t);
 			
-			if (!Stricmp(t, L"false"))
-			{
-				int asd=0;
-			}
-
 			if (Tok == TTypeId)
 			{
 				char16 *v;

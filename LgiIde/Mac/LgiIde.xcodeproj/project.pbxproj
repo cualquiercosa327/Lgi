@@ -43,6 +43,7 @@
 		8D0C4E8D0486CD37000505A6 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0867D6AAFE840B52C02AAC07 /* InfoPlist.strings */; };
 		8D0C4E8E0486CD37000505A6 /* main.nib in Resources */ = {isa = PBXBuildFile; fileRef = 02345980000FD03B11CA0E72 /* main.nib */; };
 		8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20286C33FDCF999611CA2CEA /* Carbon.framework */; };
+		FF7C285F1F62489E00C5E198 /* lgiide.icns in Resources */ = {isa = PBXBuildFile; fileRef = FF7C285E1F62489E00C5E198 /* lgiide.icns */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -121,6 +122,7 @@
 		4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
 		8D0C4E960486CD37000505A6 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D0C4E970486CD37000505A6 /* LgiIde.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LgiIde.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		FF7C285E1F62489E00C5E198 /* lgiide.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = lgiide.icns; path = ../Code/lgiide.icns; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -158,32 +160,18 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				341B9A501DEACA310011CE44 /* SimpleCppParser.cpp */,
-				341B9A511DEACA310011CE44 /* SimpleCppParser.h */,
-				34D20B7E1CB2866600730172 /* WebFldDlg.cpp */,
-				34D20B7F1CB2866600730172 /* WebFldDlg.h */,
 				34D20B7C1CB2864700730172 /* IdeCommon.cpp */,
-				34D20B791CB2862E00730172 /* AddFtpFile.cpp */,
-				34D20B7A1CB2862E00730172 /* AddFtpFile.h */,
-				34D20B751CB2861600730172 /* ProjectNode.cpp */,
-				34D20B761CB2861600730172 /* ProjectNode.h */,
 				349A25031A5E3D1D00F4263E /* IdeDoc.cpp */,
-				349A25051A5E3D1D00F4263E /* IdeProject.cpp */,
-				349A25071A5E3D1D00F4263E /* IdeProjectSettings.cpp */,
 				349A25081A5E3D1D00F4263E /* LgiIde.cpp */,
 				349A250A1A5E3D1D00F4263E /* LgiUtils.cpp */,
-				349A250B1A5E3D1D00F4263E /* MemDumpViewer.cpp */,
-				349A250C1A5E3D1D00F4263E /* SpaceTabConv.cpp */,
-				349A250E1A5E3D1D00F4263E /* SysCharSupport.cpp */,
 				349A25041A5E3D1D00F4263E /* IdeDoc.h */,
-				349A25061A5E3D1D00F4263E /* IdeProject.h */,
-				349A250D1A5E3D1D00F4263E /* SpaceTabConv.h */,
-				32DBCF6D0370B57F00C91783 /* LgiIde_Prefix.pch */,
 				349A25351A5E483B00F4263E /* Debugger */,
 				349A25361A5E485800F4263E /* Find */,
 				349A25341A5E482500F4263E /* Ftp */,
 				34B7EA6B0A64B4DE00657E69 /* Lgi */,
+				FFF26C141F5E7C0D0087526F /* Project */,
 				349A25221A5E3FFD00F4263E /* Source */,
+				FFF26C151F5E7C160087526F /* Ui */,
 			);
 			name = Sources;
 			sourceTree = "<group>";
@@ -191,6 +179,8 @@
 		20286C2CFDCF999611CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				FF7C285E1F62489E00C5E198 /* lgiide.icns */,
+				32DBCF6D0370B57F00C91783 /* LgiIde_Prefix.pch */,
 				341B9A4E1DEACA060011CE44 /* cmds-32px.png */,
 				3412BAC41A6256E60096412F /* icons.png */,
 				349A25321A5E440100F4263E /* cmds-16px.png */,
@@ -224,8 +214,11 @@
 		349A25221A5E3FFD00F4263E /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				349A25271A5E408D00F4263E /* GParseCpp.cpp */,
 				349A25231A5E401100F4263E /* GLexCpp.cpp */,
+				349A25271A5E408D00F4263E /* GParseCpp.cpp */,
+				349A250C1A5E3D1D00F4263E /* SpaceTabConv.cpp */,
+				349A250E1A5E3D1D00F4263E /* SysCharSupport.cpp */,
+				349A250D1A5E3D1D00F4263E /* SpaceTabConv.h */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -253,6 +246,8 @@
 		349A25361A5E485800F4263E /* Find */ = {
 			isa = PBXGroup;
 			children = (
+				341B9A501DEACA310011CE44 /* SimpleCppParser.cpp */,
+				341B9A511DEACA310011CE44 /* SimpleCppParser.h */,
 				349A25011A5E3D1D00F4263E /* GHistory.cpp */,
 				349A25021A5E3D1D00F4263E /* GHistory.h */,
 				349A24F81A5E3D1D00F4263E /* FindInFiles.cpp */,
@@ -273,6 +268,30 @@
 				342D773911FA48B6005BADBD /* GControlTree.cpp */,
 			);
 			name = Lgi;
+			sourceTree = "<group>";
+		};
+		FFF26C141F5E7C0D0087526F /* Project */ = {
+			isa = PBXGroup;
+			children = (
+				349A25051A5E3D1D00F4263E /* IdeProject.cpp */,
+				349A25071A5E3D1D00F4263E /* IdeProjectSettings.cpp */,
+				34D20B751CB2861600730172 /* ProjectNode.cpp */,
+				349A25061A5E3D1D00F4263E /* IdeProject.h */,
+				34D20B761CB2861600730172 /* ProjectNode.h */,
+			);
+			name = Project;
+			sourceTree = "<group>";
+		};
+		FFF26C151F5E7C160087526F /* Ui */ = {
+			isa = PBXGroup;
+			children = (
+				349A250B1A5E3D1D00F4263E /* MemDumpViewer.cpp */,
+				34D20B791CB2862E00730172 /* AddFtpFile.cpp */,
+				34D20B7A1CB2862E00730172 /* AddFtpFile.h */,
+				34D20B7E1CB2866600730172 /* WebFldDlg.cpp */,
+				34D20B7F1CB2866600730172 /* WebFldDlg.h */,
+			);
+			name = Ui;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -303,7 +322,7 @@
 		20286C28FDCF999611CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0620;
+				LastUpgradeCheck = 0830;
 			};
 			buildConfigurationList = 34BA95070B33B2BB00493CD3 /* Build configuration list for PBXProject "LgiIde" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -349,6 +368,7 @@
 				341B9A4F1DEACA060011CE44 /* cmds-32px.png in Resources */,
 				8D0C4E8E0486CD37000505A6 /* main.nib in Resources */,
 				349A25191A5E3D1D00F4263E /* LgiIde.lr8 in Resources */,
+				FF7C285F1F62489E00C5E198 /* lgiide.icns in Resources */,
 				349A25331A5E440100F4263E /* cmds-16px.png in Resources */,
 				3412BAC51A6256E60096412F /* icons.png in Resources */,
 			);
@@ -416,9 +436,10 @@
 		34BA95040B33B2BB00493CD3 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LIBRARY = "libc++";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = ../../src/mac/carbon/build/Debug;
+				FRAMEWORK_SEARCH_PATHS = ./build/Debug;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -427,8 +448,9 @@
 				GCC_PREPROCESSOR_DEFINITIONS = MAC;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
-				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.memecode.lgiide;
 				PRODUCT_NAME = LgiIde;
 				SDKROOT = macosx;
 				USER_HEADER_SEARCH_PATHS = "../../include/mac/carbon ../../include/common ../Code ../../../../../CodeLib/libpng";
@@ -440,17 +462,19 @@
 		34BA95050B33B2BB00493CD3 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LIBRARY = "libc++";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
-				FRAMEWORK_SEARCH_PATHS = ../../src/mac/carbon/build/Release;
+				FRAMEWORK_SEARCH_PATHS = ./build/Release;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = LgiIde_Prefix.pch;
 				GCC_PREPROCESSOR_DEFINITIONS = MAC;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
-				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.memecode.lgiide;
 				PRODUCT_NAME = LgiIde;
 				SDKROOT = macosx;
 				USER_HEADER_SEARCH_PATHS = "../../include/mac/carbon ../../include/common ../Code ../../../../../CodeLib/libpng";
@@ -463,8 +487,28 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
 				FRAMEWORK_SEARCH_PATHS = ../../src/mac/carbon/build/Debug;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
 					"-DMAC",
 					"-D_DEBUG",
@@ -479,7 +523,25 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				FRAMEWORK_SEARCH_PATHS = ../../src/mac/carbon/build/Release;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_CFLAGS = "-DMAC";
 				SDKROOT = macosx;

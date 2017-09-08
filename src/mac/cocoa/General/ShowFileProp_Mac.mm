@@ -1,4 +1,5 @@
 #include "Lgi.h"
+#include <stdlib.h>
 #import <Cocoa/Cocoa.h>
 
 void LgiShowFileProperties(OsView Parent, const char *Filename)
@@ -18,5 +19,14 @@ void LgiShowFileProperties(OsView Parent, const char *Filename)
 
 bool LgiBrowseToFile(const char *Filename)
 {
-	return false;
+	GString s;
+	s.Printf("/usr/bin/osascript "
+			"-e 'set asd to POSIX file \"%s\" as string\n"
+			"tell application \"Finder\"\n"
+			"	reveal asd\n"
+			"	activate\n"
+			"end tell'",
+			Filename);
+	// printf("s='%s'\n", s.Get());
+	return system(s) >= 0;
 }

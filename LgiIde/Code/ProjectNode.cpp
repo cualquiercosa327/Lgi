@@ -83,7 +83,7 @@ public:
 		{
 			case IDOK:
 			{
-				int t = GetCtrlValue(IDC_TYPE);
+				int64 t = GetCtrlValue(IDC_TYPE);
 				if (t >= NodeSrc)
 				{
 					Type = (NodeType) t;
@@ -346,13 +346,17 @@ bool ProjectNode::GetFormats(List<char> &Formats)
 	return true;
 }
 
-bool ProjectNode::GetData(GVariant *Data, char *Format)
+bool ProjectNode::GetData(GArray<GDragData> &Data)
 {
-	if (Format && stricmp(Format, NODE_DROP_FORMAT) == 0)
+	for (unsigned i=0; i<Data.Length(); i++)
 	{
-		void *t = this;
-		Data->SetBinary(sizeof(this), (void*) &t);
-		return true;
+		GDragData &dd = Data[i];
+		if (dd.IsFormat(NODE_DROP_FORMAT))
+		{
+			void *t = this;
+			dd.Data.New().SetBinary(sizeof(this), (void*) &t);
+			return true;
+		}
 	}
 	
 	return false;

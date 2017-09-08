@@ -18,7 +18,7 @@
 #include "GCheckBox.h"
 
 const char *Untitled = "[untitled]";
-static const char *White = " \r\t\n";
+// static const char *White = " \r\t\n";
 
 #define USE_OLD_FIND_DEFN	1
 #define POPUP_WIDTH			700 // px
@@ -330,7 +330,7 @@ void EditTray::OnHeaderList(GMouse &m)
 					for (int i=0; i<Headers.Length(); i++)
 					{
 						char *h = Headers[i];
-						char *f = LgiGetLeaf(h);
+						// char *f = LgiGetLeaf(h);
 						
 						Map.Add(h, i + 1);
 					}
@@ -385,8 +385,7 @@ void EditTray::OnFunctionList(GMouse &m)
 	{
 		GSubMenu s;
 		GArray<DefnInfo*> a;					
-		int n=1;
-
+		
 		int ScreenHt = GdcD->Y();
 		int ScreenLines = ScreenHt / SysFont->GetHeight();
 		float Ratio = ScreenHt ? (float)(SysFont->GetHeight() * Funcs.Length()) / ScreenHt : 0.0f;
@@ -886,7 +885,6 @@ class GStyleThread : public GEventTargetThread
 public:
 	GStyleThread() : GEventTargetThread("StyleThread")
 	{
-		int asd=0;
 	}
 	
 	GMessage::Result OnEvent(GMessage *Msg)
@@ -972,7 +970,7 @@ public:
 	
 	#define IDM_FILE_COMMENT			100
 	#define IDM_FUNC_COMMENT			101
-	bool AppendItems(GSubMenu *Menu, int Base)
+	bool AppendItems(GSubMenu *Menu, int Base) override
 	{
 		GSubMenu *Insert = Menu->AppendSub("Insert...");
 		if (Insert)
@@ -993,7 +991,7 @@ public:
 		}
 	}
 
-	bool DoGoto()
+	bool DoGoto() override
 	{
 		GInput Dlg(this, "", LgiLoadString(L_TEXTCTRL_GOTO_LINE, "Goto [file:]line:"), "Text");
 		if (Dlg.DoModal() != IDOK || !ValidStr(Dlg.Str))
@@ -1004,12 +1002,12 @@ public:
 		if (p.Length() == 2)
 		{
 			GString file = p[0];
-			int line = p[1].Int();
+			int line = (int)p[1].Int();
 			Doc->GetApp()->GotoReference(file, line, false, true);
 		}
 		else if (p.Length() == 1)
 		{
-			int line = p[0].Int();
+			int line = (int)p[0].Int();
 			if (line > 0)
 				SetLine(line);
 			else
@@ -1038,7 +1036,7 @@ public:
 		}
 	}
 	
-	void OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour)
+	void OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour) override
 	{
 		GColour GutterColour(0xfa, 0xfa, 0xfa);
 		GTextView3::OnPaintLeftMargin(pDC, r, GutterColour);
@@ -1077,7 +1075,7 @@ public:
 		}
 	}
 
-	void OnMouseClick(GMouse &m)
+	void OnMouseClick(GMouse &m) override
 	{
 		if (m.Down())
 		{
@@ -1115,7 +1113,7 @@ public:
 		GTextView3::OnMouseClick(m);
 	}
 
-	void SetCaret(size_t i, bool Select, bool ForceFullUpdate = false)
+	void SetCaret(size_t i, bool Select, bool ForceFullUpdate = false) override
 	{
 		GTextView3::SetCaret(i, Select, ForceFullUpdate);
 		
@@ -1129,8 +1127,8 @@ public:
 		}
 	}
 	
-	bool OnMenu(GDocView *View, int Id, void *Context);
-	bool OnKey(GKey &k);
+	bool OnMenu(GDocView *View, int Id, void *Context) override;
+	bool OnKey(GKey &k) override;
 	
 	char *TemplateMerge(const char *Template, char *Name, List<char> *Params)
 	{
@@ -1401,14 +1399,14 @@ public:
 					if (Ch >= 'a' && Ch <= 'z')
 					{
 						Keyword *k;
-						if (k = HasKeyword[Ch - 'a'])
+						if ((k = HasKeyword[Ch - 'a']))
 						{
 							do
 							{
 								if (!StrnicmpW(k->Word, s, k->Len))
 									break;
 							}
-							while (k = k->Next);
+							while ((k = k->Next));
 
 							if
 							(
@@ -1488,7 +1486,7 @@ public:
 				// LgiTrace("Dirty rgn: %i + %i = %i\n", Dirty.Start, Dirty.Len, Dirty.End());
 
 				int CurLine = -1, DirtyStartLine = -1, DirtyEndLine = -1;
-				GTextLine *CursorLine = GetTextLine(Cursor, &CurLine);
+				GetTextLine(Cursor, &CurLine);
 				GTextLine *Start = GetTextLine(Dirty.Start, &DirtyStartLine);
 				GTextLine *End = GetTextLine(min(Size, Dirty.End()), &DirtyEndLine);
 				if (CurLine >= 0 &&
@@ -1640,14 +1638,14 @@ public:
 					if (*s >= 'a' && *s <= 'z')
 					{
 						Keyword *k;
-						if (k = HasKeyword[*s - 'a'])
+						if ((k = HasKeyword[*s - 'a']))
 						{
 							do
 							{
 								if (!Strncmp(k->Word, s, k->Len))
 									break;
 							}
-							while (k = k->Next);
+							while ((k = k->Next));
 
 							if
 							(
@@ -1810,14 +1808,14 @@ public:
 					if (*s >= 'a' && *s <= 'z')
 					{
 						Keyword *k;
-						if (k = HasKeyword[*s - 'a'])
+						if ((k = HasKeyword[*s - 'a']))
 						{
 							do
 							{
 								if (!Strncmp(k->Word, s, k->Len))
 									break;
 							}
-							while (k = k->Next);
+							while ((k = k->Next));
 
 							if
 							(
@@ -1902,10 +1900,12 @@ public:
 			case SrcXml:
 				StyleXml(Start, EditSize);
 				break;
+			default:
+				break;
 		}		
 	}
 
-	bool Pour(GRegion &r)
+	bool Pour(GRegion &r) override
 	{
 		GRect c = r.Bound();
 
@@ -2355,7 +2355,7 @@ void IdeDoc::OnTitleClick(GMouse &m)
 					LgiMakePath(Full, sizeof(Full), Base, Fn);
 			}
 			
-			Dir = Full ? strrchr(Full, DIR_CHAR) : NULL;
+			Dir = strrchr(Full, DIR_CHAR);
 			if (Dir)
 				sprintf_s(sFile, sizeof(sFile), "Copy '%s'", Dir + 1);
 			sprintf_s(sFull, sizeof(sFull), "Copy '%s'", Full);
@@ -2412,8 +2412,8 @@ void IdeDoc::OnTitleClick(GMouse &m)
 			}
 			case IDM_BROWSE:
 			{
-				char Args[MAX_PATH];
 				#if defined(WIN32)
+				char Args[MAX_PATH];
 				sprintf(Args, "/e,/select,\"%s\"", Full);
 				LgiExecute("explorer", Args);
 				#elif defined(LINUX)
@@ -2708,7 +2708,7 @@ int IdeDoc::OnNotify(GViewI *v, int f)
 			{
 				if (!d->FilePopup)
 				{
-					if (d->FilePopup = new ProjFilePopup(d->App, v))
+					if ((d->FilePopup = new ProjFilePopup(d->App, v)))
 					{
 						// Populate with files from the project...
 						
@@ -2951,7 +2951,7 @@ bool MatchSymbol(DefnInfo *Def, char16 *Symbol)
 
 	char16 *Sep = StristrW(Name, Dots);
 	char16 *Start = Sep ? Sep : Name;
-	char16 *End = StrchrW(Start, '(');
+	// char16 *End = StrchrW(Start, '(');
 	int Len = StrlenW(Symbol);
 	char16 *Match = StristrW(Start, Symbol);
 
@@ -3048,7 +3048,10 @@ bool IdeDoc::FindDefn(char16 *Symbol, char16 *Source, List<DefnInfo> &Matches)
 		char *FileName = GetFileName();
 		if (BuildDefnList(FileName, Source, Defns, DefnNone))
 		{
+			#if DEBUG_FIND_DEFN
 			bool Found = false;
+			#endif
+			
 			for (unsigned i=0; i<Defns.Length(); i++)
 			{
 				DefnInfo &Def = Defns[i];

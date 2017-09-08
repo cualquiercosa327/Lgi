@@ -939,7 +939,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 
 					if (RequestBits == 32)
 					{
-						bool IsPreMul = pDC->IsPreMultipliedAlpha();
+						// bool IsPreMul = pDC->IsPreMultipliedAlpha();
 						#if defined(WINNATIVE)
 						pDC->ConvertPreMulAlpha(true);
 						#endif

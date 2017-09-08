@@ -387,7 +387,7 @@ bool GFileSelect::Open()
 			o.optionFlags |= kNavAllowMultipleFiles;
 		
 		NavEventUPP EventUPP = NewNavEventUPP(Lgi_NavEventProc);
-		NavObjectFilterUPP ObjectUPP = NewNavObjectFilterUPP(Lgi_NavObjectFilterProc);
+		// NavObjectFilterUPP ObjectUPP = NewNavObjectFilterUPP(Lgi_NavObjectFilterProc);
 		NavDialogRef Dlg = 0;
 		e = NavCreateGetFileDialog(	&o,
 									0, // NavTypeListHandle inTypeList,
@@ -412,7 +412,7 @@ bool GFileSelect::Open()
 		}
 
 		DisposeNavEventUPP(EventUPP);
-		DisposeNavObjectFilterUPP(ObjectUPP);
+		// DisposeNavObjectFilterUPP(ObjectUPP);
 	}
 
 	return Status;

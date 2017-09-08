@@ -10,7 +10,7 @@ using namespace Gtk;
 class GClipBoardPriv
 {
 public:
-    GtkClipboard *c;
+	GtkClipboard *c;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -34,14 +34,14 @@ GClipBoard::~GClipBoard()
 
 bool GClipBoard::Empty()
 {
-    if (d->c)
-    {
-        gtk_clipboard_clear(d->c);
-        #if DEBUG_CLIPBOARD
-        printf("gtk_clipboard_clear(%i)\n", d->c);
-        #endif
-        return true;
-    }
+	if (d->c)
+	{
+		gtk_clipboard_clear(d->c);
+		#if DEBUG_CLIPBOARD
+		printf("gtk_clipboard_clear(%i)\n", d->c);
+		#endif
+		return true;
+	}
 
 	return false;
 }
@@ -59,8 +59,8 @@ bool GClipBoard::Text(char *Str, bool AutoEmpty)
 	{
 		gtk_clipboard_set_text(d->c, Str, strlen(Str));
 		#if DEBUG_CLIPBOARD
-        printf("gtk_clipboard_set_text(%i,%s,%i)\n", d->c, Str, strlen(Str));
-        #endif
+		printf("gtk_clipboard_set_text(%i,%s,%i)\n", d->c, Str, strlen(Str));
+		#endif
 		Status = true;
 	}
 
@@ -69,34 +69,34 @@ bool GClipBoard::Text(char *Str, bool AutoEmpty)
 
 char *GClipBoard::Text()
 {
-    char *t = 0;
-    
-    if (d->c)
-    {
-        gchar *txt = gtk_clipboard_wait_for_text(d->c);
-        #if DEBUG_CLIPBOARD
-        printf("gtk_clipboard_wait_for_text(%i)='%s'\n", d->c, txt);
-        #endif
-        if (txt)
-        {
-            t = NewStr(txt);
-            g_free(txt);
-        }
-    }
+	char *t = 0;
+	
+	if (d->c)
+	{
+		gchar *txt = gtk_clipboard_wait_for_text(d->c);
+		#if DEBUG_CLIPBOARD
+		printf("gtk_clipboard_wait_for_text(%i)='%s'\n", d->c, txt);
+		#endif
+		if (txt)
+		{
+			t = NewStr(txt);
+			g_free(txt);
+		}
+	}
 	
 	return t;
 }
 
 bool GClipBoard::TextW(char16 *Str, bool AutoEmpty)
 {
-    GAutoString u(WideToUtf8(Str));
-    return Text(u, AutoEmpty);
+	GAutoString u(WideToUtf8(Str));
+	return Text(u, AutoEmpty);
 }
 
 char16 *GClipBoard::TextW()
 {
-    GAutoString u(Text());
-    return Utf8ToWide(u);
+	GAutoString u(Text());
+	return Utf8ToWide(u);
 }
 
 bool GClipBoard::Bitmap(GSurface *pDC, bool AutoEmpty)
@@ -104,6 +104,22 @@ bool GClipBoard::Bitmap(GSurface *pDC, bool AutoEmpty)
 	bool Status = false;
 	if (pDC && d->c)
 	{
+		GMemDC *Mem = dynamic_cast<GMemDC*>(pDC);
+		if (Mem)
+		{
+			/*
+			GdkPixbuf *pb = gdk_pixbuf_new_from_data (	const guchar *data,
+														GDK_COLORSPACE_RGB,
+														gboolean has_alpha,
+														int bits_per_sample,
+														int width,
+														int height,
+														int rowstride,
+														GdkPixbufDestroyNotify destroy_fn,
+														gpointer destroy_fn_data);
+			// gtk_clipboard_set_image(d->c, pb);
+			*/
+		}
 	}
 	return Status;
 }

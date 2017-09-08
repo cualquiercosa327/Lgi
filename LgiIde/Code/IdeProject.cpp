@@ -111,7 +111,7 @@ class BuildThread : public LThread, public GStream
 		PythonScript,
 		IAR
 	}
-	    Compiler;
+		Compiler;
 
 public:
 	BuildThread(IdeProject *proj, char *makefile, bool clean, bool Release, int wordsize);
@@ -120,7 +120,7 @@ public:
 	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0) override;
 	GString FindExe();
 	GAutoString WinToMingWPath(const char *path);
-	int Main();
+	int Main() override;
 };
 
 class IdeProjectPrivate
@@ -424,7 +424,7 @@ GString BuildThread::FindExe()
 	}
 	else if (Compiler == IAR)
 	{
-		const char *Def = "c:\\Program Files (x86)\\IAR Systems\\Embedded Workbench 7.0\\common\\bin\\IarBuild.exe";
+		// const char *Def = "c:\\Program Files (x86)\\IAR Systems\\Embedded Workbench 7.0\\common\\bin\\IarBuild.exe";
 		
 		GString ProgFiles = LgiGetSystemPath(LSP_USER_APPS, 32);
 		char p[MAX_PATH];
@@ -720,7 +720,7 @@ bool IdeProject::OnNode(const char *Path, ProjectNode *Node, bool Add)
 void IdeProject::ShowFileProperties(const char *File)
 {
 	ProjectNode *Node = NULL;
-	char *fp = FindFullPath(File, &Node);
+	// char *fp = FindFullPath(File, &Node);
 	if (Node)
 	{
 		Node->OnProperties();
@@ -760,7 +760,7 @@ bool IdeProject::RelativePath(char *Out, const char *In, bool Debug)
 		GAutoString Base = GetBasePath();
 		if (Base)
 		{
-if (Debug) LgiTrace("XmlBase='%s'\n     In='%s'\n", Base.Get(), In);
+if (Debug) LgiTrace("XmlBase='%s'\n		In='%s'\n", Base.Get(), In);
 			
 			GToken b(Base, DIR_STR);
 			GToken i(In, DIR_STR);
@@ -923,7 +923,7 @@ public:
 		DeleteArray(Path);
 	}
 	
-	int Main()
+	int Main() override
 	{
 		if (Proj->GetApp())
 		{
@@ -946,7 +946,7 @@ public:
 			else if (Act == ExeValgrind)
 			{
 				#ifdef LINUX
-				if (Proj->GetExecutable())
+				if (Proj->GetExecutable(GetCurrentPlatform()))
 				{
 					char Path[256];
 					strcpy_s(Path, sizeof(Path), Exe);
@@ -971,7 +971,7 @@ public:
 					
 					if (Term && WorkDir && Execute)
 					{					
-						char *e = QuoteStr(Proj->GetExecutable());
+						char *e = QuoteStr(Proj->GetExecutable(GetCurrentPlatform()));
 						char *p = QuoteStr(Path);
 						char *a = Proj->GetExeArgs() ? Proj->GetExeArgs() : (char*)"";
 						char Args[512];
@@ -1156,9 +1156,9 @@ const char *IdeProject::GetExeArgs()
 	return d->Settings.GetStr(ProjArgs);
 }
 
-const char *IdeProject::GetExecutable()
+const char *IdeProject::GetExecutable(IdePlatform Platform)
 {
-	return d->Settings.GetStr(ProjExe);
+	return d->Settings.GetStr(ProjExe, NULL, Platform);
 }
 
 char *IdeProject::GetFileName()
@@ -1307,7 +1307,7 @@ ProjectStatus IdeProject::OpenFile(char *FileName)
 			{
 				GString::Array p = Ln[i].SplitDelimit(",");
 				if (p.Length() == 2)
-					d->UserNodeFlags.Add(p[0].Int(), p[1].Int(16));
+					d->UserNodeFlags.Add((int)p[0].Int(), (int)p[1].Int(16));
 			}
 		}
 	}
@@ -1474,7 +1474,7 @@ void IdeProject::Empty()
 GXmlTag *IdeProject::Create(char *Tag)
 {
 	if (!stricmp(Tag, TagSettings))
-		return false;
+		return NULL;
 
 	return new ProjectNode(this);
 }
@@ -1598,7 +1598,6 @@ bool IdeProject::GetAllNodes(GArray<ProjectNode*> &Nodes)
 	{
 		c->AddNodes(Nodes);
 	}
-	
 	return true;
 }
 
@@ -2098,8 +2097,8 @@ bool IdeProject::GetAllDependencies(GArray<char*> &Files, IdePlatform Platform)
 			char Full[MAX_PATH];
 			if (LgiIsRelativePath(d->File))
 			{
-			    LgiMakePath(Full, sizeof(Full), Base, d->File);
-			    Src = Full;
+				LgiMakePath(Full, sizeof(Full), Base, d->File);
+				Src = Full;
 			}
 
 			GArray<char*> SrcDeps;
@@ -2138,11 +2137,11 @@ bool IdeProject::GetAllDependencies(GArray<char*> &Files, IdePlatform Platform)
 
 bool IdeProject::GetDependencies(const char *SourceFile, GArray<GString> &IncPaths, GArray<char*> &Files, IdePlatform Platform)
 {
-    if (!FileExists(SourceFile))
-    {
-        LgiTrace("%s:%i - can't read '%s'\n", _FL, SourceFile);
-        return false;
-    }
+	if (!FileExists(SourceFile))
+	{
+		LgiTrace("%s:%i - can't read '%s'\n", _FL, SourceFile);
+		return false;
+	}
 
 	GAutoString c8(ReadTextFile(SourceFile));
 	if (!c8)
@@ -2168,6 +2167,7 @@ bool IdeProject::GetDependencies(const char *SourceFile, GArray<GString> &IncPat
 	return true;
 }
 
+/*
 static bool RenameMakefileForPlatform(GAutoString &MakeFile, IdePlatform Platform)
 {
 	if (!MakeFile)
@@ -2186,6 +2186,7 @@ static bool RenameMakefileForPlatform(GAutoString &MakeFile, IdePlatform Platfor
 	
 	return true;
 }
+*/
 
 bool IdeProject::CreateMakefile(IdePlatform Platform)
 {
@@ -2198,8 +2199,9 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 	const char *CompilerName = d->Settings.GetStr(ProjCompiler);
 	const char *CCompilerBinary = "gcc";
 	const char *CppCompilerBinary = "g++";
-	bool IsDynamicLibrary = TargetType != NULL && !stricmp(TargetType, "DynamicLibrary");
 	GStream *Log = d->App->GetBuildLog();
+	bool IsExecutableTarget = TargetType && !stricmp(TargetType, "Executable");
+	bool IsDynamicLibrary	= TargetType && !stricmp(TargetType, "DynamicLibrary");
 	
 	LgiAssert(Log);
 	if (!Log)
@@ -2249,21 +2251,21 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 			break;
 	}
 
-    if (CompilerName)
-    {
-        if (!stricmp(CompilerName, "cross"))
-        {
-            const char *CrossCompilerBin = d->Settings.GetStr(ProjCrossCompiler, NULL, Platform);
-            if (FileExists(CrossCompilerBin))
-            {
-                CppCompilerBinary = CrossCompilerBin;
-            }
-            else
-            {
-                Log->Print("%s:%i - Error: cross compiler '%s' not found.\n", _FL, CrossCompilerBin);
-            }
-        }
-    }
+	if (CompilerName)
+	{
+		if (!stricmp(CompilerName, "cross"))
+		{
+			const char *CrossCompilerBin = d->Settings.GetStr(ProjCrossCompiler, NULL, Platform);
+			if (FileExists(CrossCompilerBin))
+			{
+				CppCompilerBinary = CrossCompilerBin;
+			}
+			else
+			{
+				Log->Print("%s:%i - Error: cross compiler '%s' not found.\n", _FL, CrossCompilerBin);
+			}
+		}
+	}
 	
 	GFile m;
 	if (!m.Open(MakeFile, O_WRITE))
@@ -2297,646 +2299,658 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 		1 << Platform
 	);
 	
-	GAutoString Target = GetTargetName(Platform);
-	if (Target)
+	if (IsExecutableTarget)
 	{
-		m.Print("Target = %s\n", Target.Get());
-
-		// Output the build mode, flags and some paths
-		int BuildMode = d->App->GetBuildMode();
-		char *BuildModeName = BuildMode ? (char*)"Release" : (char*)"Debug";
-		m.Print("ifndef Build\n"
-				"	Build = %s\n"
-				"endif\n",
-				BuildModeName);
-		
-		GString sDefines[2];
-		GString sLibs[2];
-		GString sIncludes[2];
-		const char *ExtraLinkFlags = NULL;
-		const char *ExeFlags = NULL;
-		if (Platform == PlatformWin32)
-		{
-			ExtraLinkFlags = "";
-			ExeFlags = " -mwindows";
-			m.Print("BuildDir = $(Build)\n"
-					"\n"
-					"Flags = -fPIC -w -fno-inline -fpermissive\n");
-			
-			const char *DefDefs = "-DWIN32 -D_REENTRANT";
-			sDefines[0] = DefDefs;
-			sDefines[1] = DefDefs;
-		}
+		const char *Exe = GetExecutable(Platform);
+		if (Exe)
+			m.Print("Target = %s\n", Exe);
 		else
 		{
-			char PlatformCap[32];
-			strcpy_s(	PlatformCap,
-						sizeof(PlatformCap),
-						Platform == PlatformHaiku ? "BEOS" : PlatformName);
-			strupr(PlatformCap);
-			
-			ExtraLinkFlags = "";
-			ExeFlags = "";
-			m.Print("BuildDir = $(Build)\n"
-					"\n"
-					"Flags = -fPIC -w -fno-inline -fpermissive\n" // -fexceptions
-					);
-			sDefines[0].Printf("-D%s -D_REENTRANT", PlatformCap);
-			#ifdef LINUX
-			sDefines[0] += " -D_FILE_OFFSET_BITS=64"; // >:-(
-			sDefines[0] += " -DPOSIX";
-			#endif
-			sDefines[1] = sDefines[0];
+			Log->Print("%s:%i - Error: No executable name specified (%s, %s).\n", _FL, TargetType, d->FileName.Get());
+			return false;
 		}
-
-		List<IdeProject> Deps;
-		GetChildProjects(Deps);
-
-		const char *sConfig[] = {"Debug", "Release"};
-		for (int Cfg = 0; Cfg < CountOf(sConfig); Cfg++)
+	}
+	else
+	{
+		GAutoString Target = GetTargetName(Platform);
+		if (Target)
+			m.Print("Target = %s\n", Target.Get());
+		else
 		{
-			// Set the config
-			d->Settings.SetCurrentConfig(sConfig[Cfg]);
+			Log->Print("%s:%i - Error: No target name specified.\n", _FL);
+			return false;
+		}
+	}
+
+	// Output the build mode, flags and some paths
+	int BuildMode = d->App->GetBuildMode();
+	char *BuildModeName = BuildMode ? (char*)"Release" : (char*)"Debug";
+	m.Print("ifndef Build\n"
+			"	Build = %s\n"
+			"endif\n",
+			BuildModeName);
+	
+	GString sDefines[2];
+	GString sLibs[2];
+	GString sIncludes[2];
+	const char *ExtraLinkFlags = NULL;
+	const char *ExeFlags = NULL;
+	if (Platform == PlatformWin32)
+	{
+		ExtraLinkFlags = "";
+		ExeFlags = " -mwindows";
+		m.Print("BuildDir = $(Build)\n"
+				"\n"
+				"Flags = -fPIC -w -fno-inline -fpermissive\n");
 		
-			// Get the defines setup
-			const char *PDefs = d->Settings.GetStr(ProjDefines, NULL, Platform);
-			if (ValidStr(PDefs))
-			{
-				GToken Defs(PDefs, " ;,\r\n");
-				for (int i=0; i<Defs.Length(); i++)
-				{
-					GString s;
-					s.Printf(" -D%s", Defs[i]);
-					sDefines[Cfg] += s;
-				}
-			}
+		const char *DefDefs = "-DWIN32 -D_REENTRANT";
+		sDefines[0] = DefDefs;
+		sDefines[1] = DefDefs;
+	}
+	else
+	{
+		char PlatformCap[32];
+		strcpy_s(	PlatformCap,
+					sizeof(PlatformCap),
+					Platform == PlatformHaiku ? "BEOS" : PlatformName);
+		strupr(PlatformCap);
 		
-			// Collect all dependencies, output their lib names and paths
-			const char *PLibPaths = d->Settings.GetStr(ProjLibraryPaths, NULL, Platform);
-			if (ValidStr(PLibPaths))
-			{
-				GToken LibPaths(PLibPaths, " \r\n");
-				for (int i=0; i<LibPaths.Length(); i++)
-				{
-					GString s;
-					s.Printf(" \\\n\t\t-L%s", ToUnixPath(LibPaths[i]));
-					sLibs[Cfg] += s;
-				}
-			}
+		ExtraLinkFlags = "";
+		ExeFlags = "";
+		m.Print("BuildDir = $(Build)\n"
+				"\n"
+				"Flags = -fPIC -w -fno-inline -fpermissive\n" // -fexceptions
+				);
+		sDefines[0].Printf("-D%s -D_REENTRANT", PlatformCap);
+		#ifdef LINUX
+		sDefines[0] += " -D_FILE_OFFSET_BITS=64"; // >:-(
+		sDefines[0] += " -DPOSIX";
+		#endif
+		sDefines[1] = sDefines[0];
+	}
 
-			const char *PLibs = d->Settings.GetStr(ProjLibraries, NULL, Platform);
-			if (ValidStr(PLibs))
-			{
-				GToken Libs(PLibs, "\r\n");
-				for (int i=0; i<Libs.Length(); i++)
-				{
-					char *l = Libs[i];
-					GString s;
-					if (*l == '`' || *l == '-')
-						s.Printf(" \\\n\t\t%s", Libs[i]);
-					else
-						s.Printf(" \\\n\t\t-l%s", ToUnixPath(Libs[i]));
-					sLibs[Cfg] += s;
-				}
-			}
+	List<IdeProject> Deps;
+	GetChildProjects(Deps);
 
-			for (IdeProject *dep=Deps.First(); dep; dep=Deps.Next())
-			{
-				GAutoString Target = dep->GetTargetName(Platform);
-				if (Target)
-				{
-					char t[MAX_PATH];
-					strcpy_s(t, sizeof(t), Target);
-					if (!strnicmp(t, "lib", 3))
-						memmove(t, t + 3, strlen(t + 3) + 1);
-					char *dot = strrchr(t, '.');
-					if (dot)
-						*dot = 0;
-													
-					GString s;
-					s.Printf(" \\\n\t\t-l%s$(Tag)", ToUnixPath(t));
-					sLibs[Cfg] += s;
-
-					GAutoString Base = dep->GetBasePath();
-					if (Base)
-					{
-						s.Printf(" \\\n\t\t-L%s/$(BuildDir)", ToUnixPath(Base));
-						sLibs[Cfg] += s;
-					}
-				}
-			}
-			
-			// Includes
-
-			// Do include paths
-			GHashTbl<char*,bool> Inc;
-			const char *AllIncludes = d->Settings.GetStr(ProjIncludePaths, NULL, Platform);
-			if (ValidStr(AllIncludes))
-			{
-				// Add settings include paths.
-				GToken Paths(AllIncludes, "\r\n");
-				for (int i=0; i<Paths.Length(); i++)
-				{
-					char *p = Paths[i];
-					GAutoString pn = ToNativePath(p);
-					if (!Inc.Find(pn))
-					{
-						Inc.Add(pn, true);
-					}
-				}
-			}
-			
-			// Add paths of headers
-			for (int i=0; i<Files.Length(); i++)
-			{
-				ProjectNode *n = Files[i];
-				
-				if (n->GetFileName())
-				{
-					char *e = LgiGetExtension(n->GetFileName());
-					if (e && stricmp(e, "h") == 0)
-					{
-						for (char *Dir=n->GetFileName(); *Dir; Dir++)
-						{
-							if (*Dir == '/' || *Dir == '\\')
-							{
-								*Dir = DIR_CHAR;
-							}
-						}						
-
-						char Path[256];
-						strcpy_s(Path, sizeof(Path), n->GetFileName());
-
-						LgiTrimDir(Path);
-					
-						char Rel[256];
-						if (!RelativePath(Rel, Path))
-						{
-							strcpy(Rel, Path);
-						}
-						
-						if (stricmp(Rel, ".") != 0)
-						{
-							GAutoString RelN = ToNativePath(Rel);
-							if (!Inc.Find(RelN))
-							{
-								Inc.Add(RelN, true);
-							}
-						}
-					}
-				}
-			}
-
-			List<char> Incs;
-			char *i;
-			for (bool b=Inc.First(&i); b; b=Inc.Next(&i))
-			{
-				Incs.Insert(NewStr(i));
-			}
-			Incs.Sort(StrCmp, 0);
-			for (i = Incs.First(); i; i = Incs.Next())
+	const char *sConfig[] = {"Debug", "Release"};
+	for (int Cfg = 0; Cfg < CountOf(sConfig); Cfg++)
+	{
+		// Set the config
+		d->Settings.SetCurrentConfig(sConfig[Cfg]);
+	
+		// Get the defines setup
+		const char *PDefs = d->Settings.GetStr(ProjDefines, NULL, Platform);
+		if (ValidStr(PDefs))
+		{
+			GToken Defs(PDefs, " ;,\r\n");
+			for (int i=0; i<Defs.Length(); i++)
 			{
 				GString s;
-				if (*i == '`')
-					s.Printf(" \\\n\t\t%s", i);
-				else
-					s.Printf(" \\\n\t\t-I%s", ToUnixPath(i));
-				sIncludes[Cfg] += s;
+				s.Printf(" -D%s", Defs[i]);
+				sDefines[Cfg] += s;
 			}
 		}
-
-		// Output the defs section for Debug and Release		
-
-		// Debug specific
-		m.Print("\n"
-				"ifeq ($(Build),Debug)\n"
-				"	Flags += -g\n"
-				"	Tag = d\n"
-				"	Defs = -D_DEBUG %s\n"
-				"	Libs = %s\n"
-				"	Inc = %s\n",
-					CastEmpty(sDefines[0].Get()),
-					CastEmpty(sLibs[0].Get()),
-					CastEmpty(sIncludes[0].Get()));
-		
-		// Release specific
-		m.Print("else\n"
-				"	Flags += -s -Os\n"
-				"	Defs = %s\n"
-				"	Libs = %s\n"
-				"	Inc = %s\n"
-				"endif\n"
-				"\n",
-					CastEmpty(sDefines[1].Get()),
-					CastEmpty(sLibs[1].Get()),
-					CastEmpty(sIncludes[1].Get()));
-		
-		if (Files.First())
+	
+		// Collect all dependencies, output their lib names and paths
+		const char *PLibPaths = d->Settings.GetStr(ProjLibraryPaths, NULL, Platform);
+		if (ValidStr(PLibPaths))
 		{
-			ProjectNode *n;
-			
-			GArray<GString> IncPaths;
-			if (BuildIncludePaths(IncPaths, false, Platform))
+			GToken LibPaths(PLibPaths, " \r\n");
+			for (int i=0; i<LibPaths.Length(); i++)
 			{
-				// Do dependencies
-				m.Print("# Dependencies\n"
-						"Depends =\t");
-				
-				for (int c = 0; c < Files.Length(); c++)
-				{
-					ProjectNode *n = Files[c];
-					if (n->GetType() == NodeSrc)
-					{
-						GAutoString f = ToNativePath(n->GetFileName());
-						char *d = f ? strrchr(f, DIR_CHAR) : 0;
-						char *file = d ? d + 1 : f;
-						d = file ? strrchr(file, '.') : 0;
-						if (d)
-						{
-							if (c) m.Print(" \\\n\t\t\t");
-							m.Print("%.*s.o", d - file, file);
-						}
-					}
-				}
-				m.Print("\n\n");
-
-				// Write out the target stuff
-				m.Print("# Target\n");
-
-				GHashTbl<char*,bool> DepFiles;
-
-				if (TargetType)
-				{
-					if (!stricmp(TargetType, "Executable"))
-					{
-						m.Print("# Executable target\n"
-								"$(Target) :");
-								
-						GStringPipe Rules;
-						IdeProject *Dep;
-						for (Dep=Deps.First(); Dep; Dep=Deps.Next())
-						{
-							// Get dependency to create it's own makefile...
-							Dep->CreateMakefile(Platform);
-						
-							// Build a rule to make the dependency if any of the source changes...
-							char t[MAX_PATH] = "";
-							GAutoString DepBase = Dep->GetBasePath();
-							GAutoString Base = GetBasePath();
-							
-							if (DepBase && Base && Dep->GetTargetFile(t, sizeof(t)))
-							{
-								char Rel[MAX_PATH] = "";
-								if (!RelativePath(Rel, DepBase))
-								{
-									strcpy_s(Rel, sizeof(Rel), DepBase);
-								}
-								ToUnixPath(Rel);
-								
-								// Add tag to target name
-								GToken Parts(t, ".");
-								if (Parts.Length() == 2)
-									sprintf_s(t, sizeof(t), "lib%s$(Tag).%s", Parts[0], Parts[1]);
-								else
-									sprintf_s(t, sizeof(t), "%s", Parts[0]);
-
-								sprintf(Buf, "%s/$(BuildDir)/%s", Rel, t);
-								m.Print(" %s", Buf);
-								
-								GArray<char*> AllDeps;
-								Dep->GetAllDependencies(AllDeps, Platform);
-								LgiAssert(AllDeps.Length() > 0);
-								AllDeps.Sort(StrSort);
-
-								Rules.Print("%s : ", Buf);
-								for (int i=0; i<AllDeps.Length(); i++)
-								{
-									if (i)
-										Rules.Print(" \\\n\t");
-									
-									char Rel[MAX_PATH];
-									char *f = RelativePath(Rel, AllDeps[i]) ? Rel : AllDeps[i];
-									ToUnixPath(f);
-									Rules.Print("%s", f);
-									
-									// Add these dependencies to this makefiles dep list
-									if (!DepFiles.Find(f))
-										DepFiles.Add(f, true);
-								}
-								
-								AllDeps.DeleteArrays();
-								
-								Rules.Print("\n\texport Build=$(Build); \\\n"
-											"\t$(MAKE) -C %s",
-											Rel);
-
-								GAutoString Mk = Dep->GetMakefile();
-								// RenameMakefileForPlatform(Mk, Platform);
-
-								char *DepMakefile = strrchr(Mk, DIR_CHAR);
-								if (DepMakefile)
-								{
-									Rules.Print(" -f %s", DepMakefile + 1);
-								}
-
-								Rules.Print("\n\n");
-							}
-						}
-
-						m.Print(" outputfolder $(Depends)\n"
-								"	@echo Linking $(Target) [$(Build)]...\n"
-								"	$(CPP)%s%s %s%s -o \\\n"
-								"		$(Target) $(addprefix $(BuildDir)/,$(Depends)) $(Libs)\n",
-								ExtraLinkFlags,
-								ExeFlags,
-								ValidStr(LinkerFlags) ? "-Wl" : "", LinkerFlags.Get());
-
-						if (Platform == PlatformHaiku)
-						{
-							// Is there an application icon configured?
-							const char *AppIcon = d->Settings.GetStr(ProjApplicationIcon, NULL, Platform);
-							if (AppIcon)
-							{
-								m.Print("	addattr -f %s -t \"'VICN'\" \"BEOS:ICON\" $(Target)\n", AppIcon);
-							}							
-						}
-
-						m.Print("	@echo Done.\n"
-								"\n");
-
-						GAutoString r(Rules.NewStr());
-						if (r)
-						{
-							m.Write(r, strlen(r));
-						}
-
-						// Various fairly global rules
-						m.Print("# Create the output folder\n"
-								"outputfolder :\n"
-								"	-mkdir -p $(BuildDir) 2> /dev/null\n"
-								"\n");
-							
-						m.Print("# Clean out targets\n"
-								"clean :\n"
-								"	rm -f $(BuildDir)/*.o $(Target)%s\n"
-								"	@echo Cleaned $(BuildDir)\n",
-								LGI_EXECUTABLE_EXT);
-						
-						for (IdeProject *d=Deps.First(); d; d=Deps.Next())
-						{
-							GAutoString mk = d->GetMakefile();
-							if (mk)
-							{
-								GAutoString my_base = GetBasePath();
-								GAutoString dep_base = d->GetBasePath();
-								GAutoString rel_dir = LgiMakeRelativePath(my_base, dep_base);
-								char *mk_leaf = strrchr(mk, DIR_CHAR);
-								m.Print("	+make -C \"%s\" -f \"%s\" clean\n",
-									ToUnixPath(rel_dir ? rel_dir.Get() : dep_base.Get()),
-									ToUnixPath(mk_leaf ? mk_leaf + 1 : mk.Get()));
-							}
-						}
-						m.Print("\n");
-					}
-					// Shared library
-					else if (!stricmp(TargetType, "DynamicLibrary"))
-					{
-						m.Print("TargetFile = lib$(Target)$(Tag).%s\n"
-								"$(TargetFile) : outputfolder $(Depends)\n"
-								"	@echo Linking $(TargetFile) [$(Build)]...\n"
-								"	$(CPP)$s -shared \\\n"
-								"		%s%s \\\n"
-								"		-o $(BuildDir)/$(TargetFile) \\\n"
-								"		$(addprefix $(BuildDir)/,$(Depends)) \\\n"
-								"		$(Libs)\n"
-								"	@echo Done.\n"
-								"\n",
-								PlatformLibraryExt,
-								ValidStr(ExtraLinkFlags) ? "-Wl" : "", ExtraLinkFlags,
-								LinkerFlags.Get());
-
-						// Cleaning target
-						m.Print("# Create the output folder\n"
-								"outputfolder :\n"
-								"	-mkdir -p $(BuildDir) 2> /dev/null\n"
-								"\n"
-								"# Clean out targets\n"
-								"clean :\n"
-								"	rm -f $(BuildDir)/*.o $(BuildDir)/$(TargetFile)\n"
-								"	@echo Cleaned $(BuildDir)\n"
-								"\n",
-								PlatformLibraryExt);
-					}
-					// Static library
-					else if (!stricmp(TargetType, "StaticLibrary"))
-					{
-						m.Print("TargetFile = lib$(Target)$(Tag).%s\n"
-								"$(TargetFile) : outputfolder $(Depends)\n"
-								"	@echo Linking $(TargetFile) [$(Build)]...\n"
-								"	ar rcs $(BuildDir)/$(TargetFile) $(addprefix $(BuildDir)/,$(Depends))\n"
-								"	@echo Done.\n"
-								"\n",
-								PlatformStaticLibExt);
-
-						// Cleaning target
-						m.Print("# Create the output folder\n"
-								"outputfolder :\n"
-								"	-mkdir -p $(BuildDir) 2> /dev/null\n"
-								"\n"
-								"# Clean out targets\n"
-								"clean :\n"
-								"	rm -f $(BuildDir)/*.o $(BuildDir)/$(TargetFile)\n"
-								"	@echo Cleaned $(BuildDir)\n"
-								"\n",
-								PlatformStaticLibExt);
-					}
-				}
-
-				// Create dependency tree, starting with all the source files.
-				for (int idx=0; idx<Files.Length(); idx++)
-				{
-					ProjectNode *n = Files[idx];
-					if (n->GetType() == NodeSrc)
-					{
-						GString Src = n->GetFullPath();
-						if (Src)
-						{
-							char Part[256];
-							
-							char *d = strrchr(Src, DIR_CHAR);
-							d = d ? d + 1 : Src.Get();
-							strcpy(Part, d);
-							char *Dot = strrchr(Part, '.');
-							if (Dot) *Dot = 0;
-
-							char Rel[MAX_PATH];
-							
-							if (Platform != PlatformHaiku)
-							{
-								if (!RelativePath(Rel, Src))
-						 			strcpy_s(Rel, sizeof(Rel), Src);
-							}
-							else
-							{
-								// Use full path for Haiku because the Debugger needs it to
-								// find the source correctly. As there are duplicate filenames
-								// for different platforms it's better to rely on full paths
-								// rather than filename index to find the right file.
-					 			strcpy_s(Rel, sizeof(Rel), Src);
-							}
-							
-							m.Print("%s.o : %s ", Part, ToUnixPath(Rel));
-
-							if (Src.Find("AddressSelect.cpp") >= 0)
-							{
-								int asd=0;
-							}
-
-							GArray<char*> SrcDeps;
-							if (GetDependencies(Src, IncPaths, SrcDeps, Platform))
-							{
-								for (int i=0; i<SrcDeps.Length(); i++)
-								{
-									char *SDep = SrcDeps[i];
-									
-									if (stricmp(Src.Get(), SDep) != 0)
-									{
-										if (i) m.Print(" \\\n\t");
-										m.Print("%s", SDep);
-										if (!DepFiles.Find(SDep))
-										{
-											DepFiles.Add(SDep, true);
-										}
-									}
-									else printf("%s:%i - not add dep: '%s' '%s'\n", _FL, Src.Get(), SDep);
-								}
-								SrcDeps.DeleteArrays();
-							}
-
-							char *Ext = LgiGetExtension(Src);
-							const char *Compiler = Src && !stricmp(Ext, "c") ? "CC" : "CPP";
-
-							m.Print("\n"
-									"	@echo $(<F) [$(Build)]\n"
-									"	$(%s) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)\n"
-									"\n",
-									Compiler);
-						}
-					}
-				}
-				
-				// Do remaining include file dependencies
-				bool Done = false;
-				GHashTbl<char*,bool> Processed;
-				GAutoString Base = GetBasePath();
-				while (!Done)
-				{
-					Done = true;
-					char *Src;
-					for (bool b=DepFiles.First(&Src); b; b=DepFiles.Next(&Src))
-					{
-						if (Processed.Find(Src))
-							continue;
-
-						Done = false;
-						Processed.Add(Src, true);
-						
-						char Full[MAX_PATH], Rel[MAX_PATH];
-						if (LgiIsRelativePath(Src))
-						{
-							LgiMakePath(Full, sizeof(Full), Base, Src);
-							strcpy_s(Rel, sizeof(Rel), Src);
-						}
-						else
-						{
-							strcpy_s(Full, sizeof(Full), Src);
-							GAutoString a = LgiMakeRelativePath(Base, Src);
-							if (a)
-							{
-								strcpy_s(Rel, sizeof(Rel), a);
-							}
-							else
-							{
-								strcpy_s(Rel, sizeof(Rel), a);
-								LgiTrace("%s:%i - Failed to make relative path '%s' '%s'\n",
-									_FL,
-									Base.Get(), Src);
-							}
-						}
-						
-						char *c8 = ReadTextFile(Full);
-						if (c8)
-						{
-							GArray<char*> Headers;
-							if (BuildHeaderList(c8, Headers, IncPaths, false))
-							{
-								m.Print("%s : ", Rel);
-
-								for (int n=0; n<Headers.Length(); n++)
-								{
-									char *i = Headers[n];
-									
-									if (n) m.Print(" \\\n\t");
-									
-									char Rel[MAX_PATH];
-									if (!RelativePath(Rel, i))
-									{
-				 						strcpy(Rel, i);
-									}
-
-									if (stricmp(i, Full) != 0)
-										m.Print("%s", ToUnixPath(Rel));
-									
-									if (!DepFiles.Find(i))
-									{
-										DepFiles.Add(i, true);
-									}
-								}
-								Headers.DeleteArrays();
-
-								m.Print("\n\n");
-							}
-							else LgiTrace("%s:%i - Error: BuildHeaderList failed for '%s'\n", _FL, Full);
-							
-							DeleteArray(c8);
-						}
-						else LgiTrace("%s:%i - Error: Failed to read '%s'\n", _FL, Full);
-						
-						break;
-					}
-				}
-
-				// Output VPATH
-				m.Print("VPATH=%%.cpp \\\n");
-				for (int i=0; i<IncPaths.Length(); i++)
-				{
-					char *p = IncPaths[i];
-					if (p && !strchr(p, '`'))
-					{
-						if (!LgiIsRelativePath(p))
-						{
-							GAutoString a = LgiMakeRelativePath(Base, p);
-							m.Print("\t%s \\\n", a?a:p);
-						}
-						else
-						{
-							m.Print("\t%s \\\n", p);
-						}
-					}
-				}
-				m.Print("\t$(BuildDir)\n\n");
-
-				const char *OtherMakefileRules = d->Settings.GetStr(ProjMakefileRules, NULL, Platform);
-				if (ValidStr(OtherMakefileRules))
-				{
-					m.Print("\n%s\n", OtherMakefileRules);
-				}					
+				GString s;
+				s.Printf(" \\\n\t\t-L%s", ToUnixPath(LibPaths[i]));
+				sLibs[Cfg] += s;
 			}
 		}
-		else
+
+		const char *PLibs = d->Settings.GetStr(ProjLibraries, NULL, Platform);
+		if (ValidStr(PLibs))
 		{
-			m.Print("# No files require building.\n");
-		}			
+			GToken Libs(PLibs, "\r\n");
+			for (int i=0; i<Libs.Length(); i++)
+			{
+				char *l = Libs[i];
+				GString s;
+				if (*l == '`' || *l == '-')
+					s.Printf(" \\\n\t\t%s", Libs[i]);
+				else
+					s.Printf(" \\\n\t\t-l%s", ToUnixPath(Libs[i]));
+				sLibs[Cfg] += s;
+			}
+		}
+
+		for (IdeProject *dep=Deps.First(); dep; dep=Deps.Next())
+		{
+			GAutoString Target = dep->GetTargetName(Platform);
+			if (Target)
+			{
+				char t[MAX_PATH];
+				strcpy_s(t, sizeof(t), Target);
+				if (!strnicmp(t, "lib", 3))
+					memmove(t, t + 3, strlen(t + 3) + 1);
+				char *dot = strrchr(t, '.');
+				if (dot)
+					*dot = 0;
+												
+				GString s;
+				s.Printf(" \\\n\t\t-l%s$(Tag)", ToUnixPath(t));
+				sLibs[Cfg] += s;
+
+				GAutoString Base = dep->GetBasePath();
+				if (Base)
+				{
+					s.Printf(" \\\n\t\t-L%s/$(BuildDir)", ToUnixPath(Base));
+					sLibs[Cfg] += s;
+				}
+			}
+		}
+		
+		// Includes
+
+		// Do include paths
+		GHashTbl<char*,bool> Inc;
+		const char *AllIncludes = d->Settings.GetStr(ProjIncludePaths, NULL, Platform);
+		if (ValidStr(AllIncludes))
+		{
+			// Add settings include paths.
+			GToken Paths(AllIncludes, "\r\n");
+			for (int i=0; i<Paths.Length(); i++)
+			{
+				char *p = Paths[i];
+				GAutoString pn = ToNativePath(p);
+				if (!Inc.Find(pn))
+				{
+					Inc.Add(pn, true);
+				}
+			}
+		}
+		
+		// Add paths of headers
+		for (int i=0; i<Files.Length(); i++)
+		{
+			ProjectNode *n = Files[i];
+			
+			if (n->GetFileName())
+			{
+				char *e = LgiGetExtension(n->GetFileName());
+				if (e && stricmp(e, "h") == 0)
+				{
+					for (char *Dir=n->GetFileName(); *Dir; Dir++)
+					{
+						if (*Dir == '/' || *Dir == '\\')
+						{
+							*Dir = DIR_CHAR;
+						}
+					}						
+
+					char Path[256];
+					strcpy_s(Path, sizeof(Path), n->GetFileName());
+
+					LgiTrimDir(Path);
+				
+					char Rel[256];
+					if (!RelativePath(Rel, Path))
+					{
+						strcpy(Rel, Path);
+					}
+					
+					if (stricmp(Rel, ".") != 0)
+					{
+						GAutoString RelN = ToNativePath(Rel);
+						if (!Inc.Find(RelN))
+						{
+							Inc.Add(RelN, true);
+						}
+					}
+				}
+			}
+		}
+
+		List<char> Incs;
+		char *i;
+		for (bool b=Inc.First(&i); b; b=Inc.Next(&i))
+		{
+			Incs.Insert(NewStr(i));
+		}
+		Incs.Sort(StrCmp, 0);
+		for (i = Incs.First(); i; i = Incs.Next())
+		{
+			GString s;
+			if (*i == '`')
+				s.Printf(" \\\n\t\t%s", i);
+			else
+				s.Printf(" \\\n\t\t-I%s", ToUnixPath(i));
+			sIncludes[Cfg] += s;
+		}
+	}
+
+	// Output the defs section for Debug and Release		
+
+	// Debug specific
+	m.Print("\n"
+			"ifeq ($(Build),Debug)\n"
+			"	Flags += -g\n"
+			"	Tag = d\n"
+			"	Defs = -D_DEBUG %s\n"
+			"	Libs = %s\n"
+			"	Inc = %s\n",
+				CastEmpty(sDefines[0].Get()),
+				CastEmpty(sLibs[0].Get()),
+				CastEmpty(sIncludes[0].Get()));
+	
+	// Release specific
+	m.Print("else\n"
+			"	Flags += -s -Os\n"
+			"	Defs = %s\n"
+			"	Libs = %s\n"
+			"	Inc = %s\n"
+			"endif\n"
+			"\n",
+				CastEmpty(sDefines[1].Get()),
+				CastEmpty(sLibs[1].Get()),
+				CastEmpty(sIncludes[1].Get()));
+	
+	if (Files.First())
+	{
+		// ProjectNode *n;
+		
+		GArray<GString> IncPaths;
+		if (BuildIncludePaths(IncPaths, false, Platform))
+		{
+			// Do dependencies
+			m.Print("# Dependencies\n"
+					"Depends =\t");
+			
+			for (int c = 0; c < Files.Length(); c++)
+			{
+				ProjectNode *n = Files[c];
+				if (n->GetType() == NodeSrc)
+				{
+					GAutoString f = ToNativePath(n->GetFileName());
+					char *d = f ? strrchr(f, DIR_CHAR) : 0;
+					char *file = d ? d + 1 : f;
+					d = file ? strrchr(file, '.') : 0;
+					if (d)
+					{
+						if (c) m.Print(" \\\n\t\t\t");
+						m.Print("%.*s.o", d - file, file);
+					}
+				}
+			}
+			m.Print("\n\n");
+
+			// Write out the target stuff
+			m.Print("# Target\n");
+
+			GHashTbl<char*,bool> DepFiles;
+
+			if (TargetType)
+			{
+				if (IsExecutableTarget)
+				{
+					m.Print("# Executable target\n"
+							"$(Target) :");
+							
+					GStringPipe Rules;
+					IdeProject *Dep;
+					for (Dep=Deps.First(); Dep; Dep=Deps.Next())
+					{
+						// Get dependency to create it's own makefile...
+						Dep->CreateMakefile(Platform);
+					
+						// Build a rule to make the dependency if any of the source changes...
+						char t[MAX_PATH] = "";
+						GAutoString DepBase = Dep->GetBasePath();
+						GAutoString Base = GetBasePath();
+						
+						if (DepBase && Base && Dep->GetTargetFile(t, sizeof(t)))
+						{
+							char Rel[MAX_PATH] = "";
+							if (!RelativePath(Rel, DepBase))
+							{
+								strcpy_s(Rel, sizeof(Rel), DepBase);
+							}
+							ToUnixPath(Rel);
+							
+							// Add tag to target name
+							GToken Parts(t, ".");
+							if (Parts.Length() == 2)
+								sprintf_s(t, sizeof(t), "lib%s$(Tag).%s", Parts[0], Parts[1]);
+							else
+								sprintf_s(t, sizeof(t), "%s", Parts[0]);
+
+							sprintf(Buf, "%s/$(BuildDir)/%s", Rel, t);
+							m.Print(" %s", Buf);
+							
+							GArray<char*> AllDeps;
+							Dep->GetAllDependencies(AllDeps, Platform);
+							LgiAssert(AllDeps.Length() > 0);
+							AllDeps.Sort(StrSort);
+
+							Rules.Print("%s : ", Buf);
+							for (int i=0; i<AllDeps.Length(); i++)
+							{
+								if (i)
+									Rules.Print(" \\\n\t");
+								
+								char Rel[MAX_PATH];
+								char *f = RelativePath(Rel, AllDeps[i]) ? Rel : AllDeps[i];
+								ToUnixPath(f);
+								Rules.Print("%s", f);
+								
+								// Add these dependencies to this makefiles dep list
+								if (!DepFiles.Find(f))
+									DepFiles.Add(f, true);
+							}
+							
+							AllDeps.DeleteArrays();
+							
+							Rules.Print("\n\texport Build=$(Build); \\\n"
+										"\t$(MAKE) -C %s",
+										Rel);
+
+							GAutoString Mk = Dep->GetMakefile();
+							// RenameMakefileForPlatform(Mk, Platform);
+
+							char *DepMakefile = strrchr(Mk, DIR_CHAR);
+							if (DepMakefile)
+							{
+								Rules.Print(" -f %s", DepMakefile + 1);
+							}
+
+							Rules.Print("\n\n");
+						}
+					}
+
+					m.Print(" outputfolder $(Depends)\n"
+							"	@echo Linking $(Target) [$(Build)]...\n"
+							"	$(CPP)%s%s %s%s -o \\\n"
+							"		$(Target) $(addprefix $(BuildDir)/,$(Depends)) $(Libs)\n",
+							ExtraLinkFlags,
+							ExeFlags,
+							ValidStr(LinkerFlags) ? "-Wl" : "", LinkerFlags.Get());
+
+					if (Platform == PlatformHaiku)
+					{
+						// Is there an application icon configured?
+						const char *AppIcon = d->Settings.GetStr(ProjApplicationIcon, NULL, Platform);
+						if (AppIcon)
+						{
+							m.Print("	addattr -f %s -t \"'VICN'\" \"BEOS:ICON\" $(Target)\n", AppIcon);
+						}							
+					}
+
+					m.Print("	@echo Done.\n"
+							"\n");
+
+					GAutoString r(Rules.NewStr());
+					if (r)
+					{
+						m.Write(r, strlen(r));
+					}
+
+					// Various fairly global rules
+					m.Print("# Create the output folder\n"
+							"outputfolder :\n"
+							"	-mkdir -p $(BuildDir) 2> /dev/null\n"
+							"\n");
+						
+					m.Print("# Clean out targets\n"
+							"clean :\n"
+							"	rm -f $(BuildDir)/*.o $(Target)%s\n"
+							"	@echo Cleaned $(BuildDir)\n",
+							LGI_EXECUTABLE_EXT);
+					
+					for (IdeProject *d=Deps.First(); d; d=Deps.Next())
+					{
+						GAutoString mk = d->GetMakefile();
+						if (mk)
+						{
+							GAutoString my_base = GetBasePath();
+							GAutoString dep_base = d->GetBasePath();
+							GAutoString rel_dir = LgiMakeRelativePath(my_base, dep_base);
+							char *mk_leaf = strrchr(mk, DIR_CHAR);
+							m.Print("	+make -C \"%s\" -f \"%s\" clean\n",
+								ToUnixPath(rel_dir ? rel_dir.Get() : dep_base.Get()),
+								ToUnixPath(mk_leaf ? mk_leaf + 1 : mk.Get()));
+						}
+					}
+					m.Print("\n");
+				}
+				// Shared library
+				else if (!stricmp(TargetType, "DynamicLibrary"))
+				{
+					m.Print("TargetFile = lib$(Target)$(Tag).%s\n"
+							"$(TargetFile) : outputfolder $(Depends)\n"
+							"	@echo Linking $(TargetFile) [$(Build)]...\n"
+							"	$(CPP)$s -shared \\\n"
+							"		%s%s \\\n"
+							"		-o $(BuildDir)/$(TargetFile) \\\n"
+							"		$(addprefix $(BuildDir)/,$(Depends)) \\\n"
+							"		$(Libs)\n"
+							"	@echo Done.\n"
+							"\n",
+							PlatformLibraryExt,
+							ValidStr(ExtraLinkFlags) ? "-Wl" : "", ExtraLinkFlags,
+							LinkerFlags.Get());
+
+					// Cleaning target
+					m.Print("# Create the output folder\n"
+							"outputfolder :\n"
+							"	-mkdir -p $(BuildDir) 2> /dev/null\n"
+							"\n"
+							"# Clean out targets\n"
+							"clean :\n"
+							"	rm -f $(BuildDir)/*.o $(BuildDir)/$(TargetFile)\n"
+							"	@echo Cleaned $(BuildDir)\n"
+							"\n",
+							PlatformLibraryExt);
+				}
+				// Static library
+				else if (!stricmp(TargetType, "StaticLibrary"))
+				{
+					m.Print("TargetFile = lib$(Target)$(Tag).%s\n"
+							"$(TargetFile) : outputfolder $(Depends)\n"
+							"	@echo Linking $(TargetFile) [$(Build)]...\n"
+							"	ar rcs $(BuildDir)/$(TargetFile) $(addprefix $(BuildDir)/,$(Depends))\n"
+							"	@echo Done.\n"
+							"\n",
+							PlatformStaticLibExt);
+
+					// Cleaning target
+					m.Print("# Create the output folder\n"
+							"outputfolder :\n"
+							"	-mkdir -p $(BuildDir) 2> /dev/null\n"
+							"\n"
+							"# Clean out targets\n"
+							"clean :\n"
+							"	rm -f $(BuildDir)/*.o $(BuildDir)/$(TargetFile)\n"
+							"	@echo Cleaned $(BuildDir)\n"
+							"\n",
+							PlatformStaticLibExt);
+				}
+			}
+
+			// Create dependency tree, starting with all the source files.
+			for (int idx=0; idx<Files.Length(); idx++)
+			{
+				ProjectNode *n = Files[idx];
+				if (n->GetType() == NodeSrc)
+				{
+					GString Src = n->GetFullPath();
+					if (Src)
+					{
+						char Part[256];
+						
+						char *d = strrchr(Src, DIR_CHAR);
+						d = d ? d + 1 : Src.Get();
+						strcpy(Part, d);
+						char *Dot = strrchr(Part, '.');
+						if (Dot) *Dot = 0;
+
+						char Rel[MAX_PATH];
+						
+						if (Platform != PlatformHaiku)
+						{
+							if (!RelativePath(Rel, Src))
+					 			strcpy_s(Rel, sizeof(Rel), Src);
+						}
+						else
+						{
+							// Use full path for Haiku because the Debugger needs it to
+							// find the source correctly. As there are duplicate filenames
+							// for different platforms it's better to rely on full paths
+							// rather than filename index to find the right file.
+				 			strcpy_s(Rel, sizeof(Rel), Src);
+						}
+						
+						m.Print("%s.o : %s ", Part, ToUnixPath(Rel));
+
+						GArray<char*> SrcDeps;
+						if (GetDependencies(Src, IncPaths, SrcDeps, Platform))
+						{
+							for (int i=0; i<SrcDeps.Length(); i++)
+							{
+								char *SDep = SrcDeps[i];
+								
+								if (stricmp(Src.Get(), SDep) != 0)
+								{
+									if (i) m.Print(" \\\n\t");
+									m.Print("%s", SDep);
+									if (!DepFiles.Find(SDep))
+									{
+										DepFiles.Add(SDep, true);
+									}
+								}
+								else printf("%s:%i - not add dep: '%s' '%s'\n", _FL, Src.Get(), SDep);
+							}
+							SrcDeps.DeleteArrays();
+						}
+
+						char *Ext = LgiGetExtension(Src);
+						const char *Compiler = Src && !stricmp(Ext, "c") ? "CC" : "CPP";
+
+						m.Print("\n"
+								"	@echo $(<F) [$(Build)]\n"
+								"	$(%s) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)\n"
+								"\n",
+								Compiler);
+					}
+				}
+			}
+			
+			// Do remaining include file dependencies
+			bool Done = false;
+			GHashTbl<char*,bool> Processed;
+			GAutoString Base = GetBasePath();
+			while (!Done)
+			{
+				Done = true;
+				char *Src;
+				for (bool b=DepFiles.First(&Src); b; b=DepFiles.Next(&Src))
+				{
+					if (Processed.Find(Src))
+						continue;
+
+					Done = false;
+					Processed.Add(Src, true);
+					
+					char Full[MAX_PATH], Rel[MAX_PATH];
+					if (LgiIsRelativePath(Src))
+					{
+						LgiMakePath(Full, sizeof(Full), Base, Src);
+						strcpy_s(Rel, sizeof(Rel), Src);
+					}
+					else
+					{
+						strcpy_s(Full, sizeof(Full), Src);
+						GAutoString a = LgiMakeRelativePath(Base, Src);
+						if (a)
+						{
+							strcpy_s(Rel, sizeof(Rel), a);
+						}
+						else
+						{
+							strcpy_s(Rel, sizeof(Rel), a);
+							LgiTrace("%s:%i - Failed to make relative path '%s' '%s'\n",
+								_FL,
+								Base.Get(), Src);
+						}
+					}
+					
+					char *c8 = ReadTextFile(Full);
+					if (c8)
+					{
+						GArray<char*> Headers;
+						if (BuildHeaderList(c8, Headers, IncPaths, false))
+						{
+							m.Print("%s : ", Rel);
+
+							for (int n=0; n<Headers.Length(); n++)
+							{
+								char *i = Headers[n];
+								
+								if (n) m.Print(" \\\n\t");
+								
+								char Rel[MAX_PATH];
+								if (!RelativePath(Rel, i))
+								{
+			 						strcpy(Rel, i);
+								}
+
+								if (stricmp(i, Full) != 0)
+									m.Print("%s", ToUnixPath(Rel));
+								
+								if (!DepFiles.Find(i))
+								{
+									DepFiles.Add(i, true);
+								}
+							}
+							Headers.DeleteArrays();
+
+							m.Print("\n\n");
+						}
+						else LgiTrace("%s:%i - Error: BuildHeaderList failed for '%s'\n", _FL, Full);
+						
+						DeleteArray(c8);
+					}
+					else LgiTrace("%s:%i - Error: Failed to read '%s'\n", _FL, Full);
+					
+					break;
+				}
+			}
+
+			// Output VPATH
+			m.Print("VPATH=%%.cpp \\\n");
+			for (int i=0; i<IncPaths.Length(); i++)
+			{
+				char *p = IncPaths[i];
+				if (p && !strchr(p, '`'))
+				{
+					if (!LgiIsRelativePath(p))
+					{
+						GAutoString a = LgiMakeRelativePath(Base, p);
+						m.Print("\t%s \\\n", a?a:p);
+					}
+					else
+					{
+						m.Print("\t%s \\\n", p);
+					}
+				}
+			}
+			m.Print("\t$(BuildDir)\n\n");
+
+			const char *OtherMakefileRules = d->Settings.GetStr(ProjMakefileRules, NULL, Platform);
+			if (ValidStr(OtherMakefileRules))
+			{
+				m.Print("\n%s\n", OtherMakefileRules);
+			}					
+		}
+	}
+	else
+	{
+		m.Print("# No files require building.\n");
 	}
 
 	Log->Print("...Done: '%s'\n", MakeFile.Get());
@@ -2969,7 +2983,7 @@ int IdeTree::WillAccept(List<char> &Formats, GdcPt2 p, int KeyState)
 	{
 		/*
 		if (First)
-			LgiTrace("    WillAccept='%s'\n", f);
+			LgiTrace("	  WillAccept='%s'\n", f);
 		*/
 		
 		if (stricmp(f, NODE_DROP_FORMAT) == 0 ||

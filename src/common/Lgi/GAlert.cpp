@@ -77,6 +77,13 @@ void GAlert::SetAppModal()
 {
     #if WINNATIVE
     SetExStyle(GetExStyle() | WS_EX_TOPMOST);
+	#elif defined(MAC)
+	if (Handle())
+	{
+		OSStatus e = HIWindowChangeClass(WindowHandle(), kMovableModalWindowClass);
+		if (e)
+			printf("%s:%i - Error: HIWindowChangeClass=%i\n", _FL, (int)e);
+	}
     #elif !defined(_MSC_VER)
     #warning "Impl me."
     #endif
