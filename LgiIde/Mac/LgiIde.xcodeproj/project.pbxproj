@@ -43,6 +43,7 @@
 		8D0C4E8D0486CD37000505A6 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0867D6AAFE840B52C02AAC07 /* InfoPlist.strings */; };
 		8D0C4E8E0486CD37000505A6 /* main.nib in Resources */ = {isa = PBXBuildFile; fileRef = 02345980000FD03B11CA0E72 /* main.nib */; };
 		8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20286C33FDCF999611CA2CEA /* Carbon.framework */; };
+		FF7C285F1F62489E00C5E198 /* lgiide.icns in Resources */ = {isa = PBXBuildFile; fileRef = FF7C285E1F62489E00C5E198 /* lgiide.icns */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -121,6 +122,7 @@
 		4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
 		8D0C4E960486CD37000505A6 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D0C4E970486CD37000505A6 /* LgiIde.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LgiIde.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		FF7C285E1F62489E00C5E198 /* lgiide.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = lgiide.icns; path = ../Code/lgiide.icns; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -177,6 +179,7 @@
 		20286C2CFDCF999611CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				FF7C285E1F62489E00C5E198 /* lgiide.icns */,
 				32DBCF6D0370B57F00C91783 /* LgiIde_Prefix.pch */,
 				341B9A4E1DEACA060011CE44 /* cmds-32px.png */,
 				3412BAC41A6256E60096412F /* icons.png */,
@@ -365,6 +368,7 @@
 				341B9A4F1DEACA060011CE44 /* cmds-32px.png in Resources */,
 				8D0C4E8E0486CD37000505A6 /* main.nib in Resources */,
 				349A25191A5E3D1D00F4263E /* LgiIde.lr8 in Resources */,
+				FF7C285F1F62489E00C5E198 /* lgiide.icns in Resources */,
 				349A25331A5E440100F4263E /* cmds-16px.png in Resources */,
 				3412BAC51A6256E60096412F /* icons.png in Resources */,
 			);
