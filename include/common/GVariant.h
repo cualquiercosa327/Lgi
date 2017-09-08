@@ -264,7 +264,9 @@ public:
 	GVariant(int i);
 	#ifndef _MSC_VER
 	GVariant(size_t i);
+	#ifndef LGI_SDL
 	GVariant(ssize_t i);
+	#endif
 	#endif
 	/// Constructor for int64
 	GVariant(int64 i);
@@ -301,7 +303,9 @@ public:
 	GVariant &operator =(bool i);
 	#ifndef _MSC_VER
 	GVariant &operator =(size_t i);
+	#ifndef LGI_SDL
 	GVariant &operator =(ssize_t i);
+	#endif
 	#endif
 	/// Assign 64bit int value
 	GVariant &operator =(int64 i);

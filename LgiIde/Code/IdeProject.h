@@ -149,6 +149,7 @@ public:
 	bool InProject(bool FuzzyMatch, const char *Path, bool Open, class IdeDoc **Doc = 0);
 	const char *GetFileComment();
 	const char *GetFunctionComment();
+	bool IsMakefileUpToDate();
 	bool CreateMakefile(IdePlatform Platform);
 	GAutoString GetTargetName(IdePlatform Platform);
 	bool GetTargetFile(char *Buf, int BufSize);

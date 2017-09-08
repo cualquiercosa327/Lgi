@@ -229,7 +229,6 @@
 #define HAS_SHARED_OBJECT_SKIN				0
 #define HAS_LIBGSASL						0
 #define HAS_LIB_MAGIC						1
-#define HAS_GSTREAMER						1
 
 // My includes
 #include "LgiInc.h"							// Xp
@@ -249,5 +248,10 @@
 #include "LgiClasses.h" 					// Xp
 #include "LgiCommon.h"						// Xp
 
+#ifdef LGI_SDL
+#define HAS_GSTREAMER						0
+#else
+#define HAS_GSTREAMER						1
+#endif
 
 #endif

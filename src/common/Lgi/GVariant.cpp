@@ -96,11 +96,13 @@ GVariant::GVariant(size_t i)
 	*this = i;
 }
 
+#ifndef LGI_SDL
 GVariant::GVariant(ssize_t i)
 {
 	Type = GV_NULL;
 	*this = i;
 }
+#endif
 #endif
 
 GVariant::GVariant(int64 i)
@@ -327,6 +329,7 @@ GVariant &GVariant::operator =(size_t i)
 	return *this;
 }
 
+#ifndef LGI_SDL
 GVariant &GVariant::operator =(ssize_t i)
 {
 	Empty();
@@ -342,6 +345,7 @@ GVariant &GVariant::operator =(ssize_t i)
 	}
 	return *this;
 }
+#endif
 #endif
 
 #ifdef BEOS

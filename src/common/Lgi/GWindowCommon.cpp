@@ -115,6 +115,7 @@ bool GWindow::MoveSameScreen(GViewI *wnd)
 	return true;
 }
 
+
 int GWindow::WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState)
 {
 	int Status = DROPEFFECT_NONE;

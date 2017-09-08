@@ -1047,6 +1047,50 @@ GDebugContext *IdeProject::Execute(ExeAction Act)
 	return NULL;
 }
 
+bool IdeProject::IsMakefileUpToDate()
+{
+	List<IdeProject> Children;
+	if (GetChildProjects(Children))
+	{
+		for (IdeProject *p = Children.First(); p; p = Children.Next())
+		{
+			// Is the project file modified after the makefile?
+			GAutoString Proj = p->GetFullPath();
+			uint64 ProjModTime = 0, MakeModTime = 0;
+			GDirectory dir;
+			if (dir.First(Proj))
+			{
+				ProjModTime = dir.GetLastWriteTime();
+				dir.Close();
+			}
+
+			GAutoString m = p->GetMakefile();
+			if (!m)
+			{		
+				d->App->GetBuildLog()->Print("Error: no makefile? (%s:%i)\n", _FL);
+				break;
+			}
+
+			if (dir.First(m))
+			{
+				MakeModTime = dir.GetLastWriteTime();
+				dir.Close();
+			}
+
+			// printf("Proj=%s - Timestamps " LGI_PrintfInt64 " - " LGI_PrintfInt64 "\n", Proj.Get(), ProjModTime, MakeModTime);
+			if (ProjModTime != 0 &&
+				MakeModTime != 0 &&
+				ProjModTime > MakeModTime)
+			{
+				// Need to rebuild the makefile...
+				return false;
+			}
+		}
+	}
+	
+	return true;
+}
+
 void IdeProject::Build(bool All, bool Release)
 {
 	if (d->Thread)
@@ -1065,29 +1109,9 @@ void IdeProject::Build(bool All, bool Release)
 	if (GetApp())
 		GetApp()->PostEvent(M_APPEND_TEXT, 0, 0);
 
-	// Is the project file modified after the makefile?
-	GAutoString Proj = GetFullPath();
-	uint64 ProjModTime = 0, MakeModTime = 0;
-	GDirectory dir;
-	if (dir.First(Proj))
-	{
-		ProjModTime = dir.GetLastWriteTime();
-		dir.Close();
-	}
-	if (dir.First(m))
-	{
-		MakeModTime = dir.GetLastWriteTime();
-		dir.Close();
-	}
-
-	if (ProjModTime != 0 &&
-		MakeModTime != 0 &&
-		ProjModTime > MakeModTime)
-	{
-		// Need to rebuild the makefile...
+	if (!IsMakefileUpToDate())
 		CreateMakefile(GetCurrentPlatform());
-	}
-	
+
 	// Start the build thread...
 	d->Thread.Reset
 	(

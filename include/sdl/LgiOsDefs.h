@@ -121,6 +121,7 @@ typedef pthread_t					OsThread;
 typedef pthread_t					OsThreadId;
 typedef pthread_mutex_t				OsSemaphore;
 #define LgiGetCurrentThread()		pthread_self()
+LgiFunc OsThreadId					GetCurrentThreadId();
 #define LgiGetCurrentProcess()		getpid()
 
 #else

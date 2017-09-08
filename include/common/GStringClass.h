@@ -11,10 +11,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
-#if !defined(_MSC_VER) || _MSC_VER >= _MSC_VER_VS2013
-#include <stdint.h>
-#include <inttypes.h>
-#endif
 #ifdef _MSC_VER
 	// This fixes compile errors in VS2008/Gtk
 	#undef _SIGN_DEFINED
@@ -25,8 +21,13 @@
 	#include <xmath.h>
 	#define PRId64 "I64i"
 #else
+	#define __STDC_FORMAT_MACROS 1
 	#include <stdint.h>
 	#include <inttypes.h>
+	#ifndef PRId64
+		#warning "PRId64 not defined."
+		#define PRId64 "Ld"
+	#endif
 #endif
 #include "GUnicode.h"
 #include "GArray.h"

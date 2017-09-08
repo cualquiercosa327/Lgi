@@ -6,8 +6,8 @@
 
 .SILENT :
 
-CC = arm-linux-gnueabihf-gcc
-CPP = arm-linux-gnueabihf-g++
+CC = gcc
+CPP = /opt/cross/x-tools/arm-unknown-linux-gnueabi/bin/arm-unknown-linux-gnueabi-g++
 Target = lgi_sdl
 ifndef Build
 	Build = Debug
@@ -21,38 +21,34 @@ ifeq ($(Build),Debug)
 	Tag = d
 	Defs = -D_DEBUG -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64 -DPOSIX -DLGI_LIBRARY -DHAS_FILE_CMD=1
 	Libs =  \
-		--sysroot=$(HOME)/rpi \
-		-L/usr/lib \
-		-L/usr/lib/arm-linux-gnueabihf \
-		-L/rpi/lib \
-		-L/lib/arm-linux-gnueabihf \
-		-L/opt/vc/lib \
 		-lSDL \
-		-lfreetype
+		-lfreetype \
+		-static-libgcc
 	Inc =  \
 		-I../../include/common \
 		-I../../include/sdl \
-		-I$(HOME)/rpi/usr/include \
-		-I$(HOME)/rpi/usr/include/SDL \
-		-I$(HOME)/rpi/usr/include/freetype2 \
-		-I$(HOME)/rpi/usr/include/arm-linux-gnueabihf
+		-I/usr/include \
+		-I/usr/include/freetype2 \
+		-I/usr/include/gstreamer-1.0 \
+		-I/usr/include/SDL
 else
 	Flags += -s -Os
 	Defs = -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64 -DPOSIX -DLGI_LIBRARY -DHAS_FILE_CMD=1
 	Libs =  \
-		-L/opt/cross/lib \
 		-lSDL \
-		-lfreetype
+		-lfreetype \
+		-static-libgcc
 	Inc =  \
 		-I../../include/common \
 		-I../../include/sdl \
-		-I/media/rpi-include/SDL \
-		-I/media/rpi-include/freetype2 \
-		-I/media/include/arm-linux-gnueabihf
+		-I/usr/include \
+		-I/usr/include/freetype2 \
+		-I/usr/include/gstreamer-1.0 \
+		-I/usr/include/SDL
 endif
 
 # Dependencies
-Depends =	GDateTime.o \
+Depends =	LDateTime.o \
 			GDragAndDrop.o \
 			GFile.o \
 			GExeCheck.o \
@@ -73,13 +69,9 @@ Depends =	GDateTime.o \
 			LgiRes.o \
 			Res.o \
 			Gel.o \
-			GPath.o \
 			GMemStream.o \
 			GStream.o \
-			GThread.o \
-			GMutex.o \
-			GThreadCommon.o \
-			GThreadEvent.o \
+			LThread.o \
 			GVariant.o \
 			GGuiUtils.o \
 			GObject.o \
@@ -115,6 +107,7 @@ Depends =	GDateTime.o \
 			GPrintDC.o \
 			GScreenDC.o \
 			GSurface.o \
+			GPath.o \
 			GClipBoard.o \
 			GPassword.o \
 			GMru.o \
@@ -133,7 +126,6 @@ Depends =	GDateTime.o \
 			GDocView.o \
 			GEdit.o \
 			GItemContainer.o \
-			GList.o \
 			GPanel.o \
 			GPopup.o \
 			GProgress.o \
@@ -146,6 +138,7 @@ Depends =	GDateTime.o \
 			GTextView3.o \
 			GToolBar.o \
 			GTree.o \
+			LList.o \
 			GCss.o \
 			GCssTools.o \
 			GLayout.o \
@@ -153,20 +146,21 @@ Depends =	GDateTime.o \
 			GBox.o \
 			GSplitter.o \
 			GTableLayout.o \
+			GUri.o \
 			INet.o \
 			INetTools.o \
 			md5.o \
-			GUri.o \
 			MDStringToDigest.o
 
 # Target
 TargetFile = lib$(Target)$(Tag).so
 $(TargetFile) : outputfolder $(Depends)
 	@echo Linking $(TargetFile) [$(Build)]...
-	$(CPP) -shared -o $(BuildDir)/$(TargetFile) \
+	$(CPP)$s -shared \
+		 \
+		-o $(BuildDir)/$(TargetFile) \
 		$(addprefix $(BuildDir)/,$(Depends)) \
 		$(Libs)
-	cp $(BuildDir)/$(TargetFile) /media/rpi-home/Code/Lgi/trunk/src/sdl/$(Build)
 	@echo Done.
 
 # Create the output folder
@@ -178,29 +172,45 @@ clean :
 	rm -f $(BuildDir)/*.o $(BuildDir)/$(TargetFile)
 	@echo Cleaned $(BuildDir)
 
-GDateTime.o : ../common/General/GDateTime.cpp ../../include/common/Lgi.h \
-	../../include/common/GDateTime.h \
+LDateTime.o : ../common/General/LDateTime.cpp /usr/include/time.h \
+	/usr/include/stdlib.h \
+	/usr/include/stdio.h \
+	/usr/include/sys/timeb.h \
+	/usr/include/sys/time.h \
+	../../include/common/Lgi.h \
+	../../include/common/LDateTime.h \
 	../../include/common/GToken.h \
 	../../include/common/GDocView.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GDragAndDrop.o : ./Lgi/GDragAndDrop.cpp ../../include/common/Lgi.h \
+GDragAndDrop.o : ./Lgi/GDragAndDrop.cpp /usr/include/stdio.h \
+	../../include/common/Lgi.h \
 	../../include/common/GDragAndDrop.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GFile.o : ../linux/General/GFile.cpp ../../include/common/LgiDefs.h \
+GFile.o : ../linux/General/GFile.cpp /usr/include/sys/types.h \
+	/usr/include/sys/stat.h \
+	/usr/include/fcntl.h \
+	/usr/include/errno.h \
+	/usr/include/stdio.h \
+	/usr/include/ctype.h \
+	/usr/include/dirent.h \
+	/usr/include/unistd.h \
+	../../include/common/LgiDefs.h \
 	../../include/common/GFile.h \
 	../../include/common/GContainers.h \
 	../../include/common/GToken.h \
 	../../include/common/Gdc2.h \
 	../../include/common/LgiCommon.h \
-	../../include/common/GString.h
+	../../include/common/GString.h \
+	/usr/include/pwd.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GExeCheck.o : ../common/General/GExeCheck.cpp ../../include/common/Lgi.h
+GExeCheck.o : ../common/General/GExeCheck.cpp /usr/include/stdio.h \
+	../../include/common/Lgi.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -209,7 +219,14 @@ GFileCommon.o : ../common/General/GFileCommon.cpp ../../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GApp.o : ./Lgi/GApp.cpp ../../include/common/Lgi.h \
+GApp.o : ./Lgi/GApp.cpp /usr/include/stdio.h \
+	/usr/include/stdlib.h \
+	/usr/include/signal.h \
+	/usr/include/sys/types.h \
+	/usr/include/sys/wait.h \
+	/usr/include/unistd.h \
+	/usr/include/ctype.h \
+	../../include/common/Lgi.h \
 	../../include/common/GProcess.h \
 	../../include/common/GSkinEngine.h \
 	../../include/common/GArray.h \
@@ -218,7 +235,9 @@ GApp.o : ./Lgi/GApp.cpp ../../include/common/Lgi.h \
 	../../include/linux/GSymLookup.h \
 	../../include/common/GToken.h \
 	../../include/common/GUtf8.h \
-	../../include/common/GViewPriv.h
+	../../include/common/GViewPriv.h \
+	../../include/common/GRegionClipDC.h \
+	../../include/common/GFontCache.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -228,7 +247,9 @@ GPrinter.o : ./Lgi/GPrinter.cpp ../../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GView.o : ./Lgi/GView.cpp ../../include/common/Lgi.h \
+GView.o : ./Lgi/GView.cpp /usr/include/stdio.h \
+	/usr/include/time.h \
+	../../include/common/Lgi.h \
 	../../include/common/Base64.h \
 	../../include/common/GDragAndDrop.h \
 	../../include/common/GDropFiles.h \
@@ -237,7 +258,8 @@ GView.o : ./Lgi/GView.cpp ../../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GWindow.o : ./Lgi/GWindow.cpp ../../include/common/Lgi.h \
+GWindow.o : ./Lgi/GWindow.cpp /usr/include/stdio.h \
+	../../include/common/Lgi.h \
 	../../include/common/GDragAndDrop.h \
 	../../include/common/GToken.h \
 	../../include/common/GPopup.h \
@@ -245,70 +267,110 @@ GWindow.o : ./Lgi/GWindow.cpp ../../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GGeneral.o : ../linux/Lgi/GGeneral.cpp ../../include/common/Lgi.h \
+GGeneral.o : ../linux/Lgi/GGeneral.cpp /usr/include/stdlib.h \
+	/usr/include/stdio.h \
+	/usr/include/ctype.h \
+	/usr/include/unistd.h \
+	/usr/include/time.h \
+	../../include/common/Lgi.h \
 	../../include/common/GProcess.h \
 	../../include/common/GTextLabel.h \
 	../../include/common/GButton.h \
-	../../include/common/GToken.h
+	../../include/common/GToken.h \
+	/usr/include/errno.h \
+	/usr/include/pwd.h \
+	/usr/include/gstreamer-1.0/gst/gst.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GViewCommon.o : ../common/Lgi/GViewCommon.cpp ../../include/common/Lgi.h \
+GViewCommon.o : ../common/Lgi/GViewCommon.cpp /usr/include/unistd.h \
+	../../include/common/Lgi.h \
 	../../include/common/GViewPriv.h \
 	../../include/common/GDragAndDrop.h \
 	../../include/common/GTableLayout.h \
 	../../include/common/GButton.h \
-	../../include/common/GCss.h
+	../../include/common/GCss.h \
+	../../include/common/LgiRes.h \
+	../../include/common/GEventTargetThread.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GWindowCommon.o : ../common/Lgi/GWindowCommon.cpp ../../include/common/Lgi.h
+GWindowCommon.o : ../common/Lgi/GWindowCommon.cpp ../../include/common/Lgi.h \
+	../../include/common/INet.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GLibrary.o : ../common/Lgi/GLibrary.cpp ../../include/common/Lgi.h \
+GLibrary.o : ../common/Lgi/GLibrary.cpp /usr/include/stdio.h \
+	../../include/common/Lgi.h \
+	/usr/include/dlfcn.h \
 	../../include/common/GToken.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GMem.o : ../linux/General/GMem.cpp ../../include/common/LgiDefs.h \
+GMem.o : ../linux/General/GMem.cpp /usr/include/stdio.h \
+	/usr/include/string.h \
+	../../include/common/LgiDefs.h \
 	../../include/sdl/LgiOsDefs.h \
 	../../include/common/GMem.h \
-	../../include/common/GMutex.h
+	../../include/common/LMutex.h \
+	/usr/include/ctype.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GContainers.o : ../common/General/GContainers.cpp ../../include/common/GMem.h \
+GContainers.o : ../common/General/GContainers.cpp /usr/include/wchar.h \
+	/usr/include/stdio.h \
+	/usr/include/stdlib.h \
+	/usr/include/ctype.h \
+	../../include/common/GMem.h \
 	../../include/common/GContainers.h \
 	../../include/common/GString.h \
 	../../include/common/LgiCommon.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GMenu.o : ./Lgi/GMenu.cpp ../../include/common/Lgi.h \
+GMenu.o : ./Lgi/GMenu.cpp /usr/include/stdio.h \
+	/usr/include/ctype.h \
+	/usr/include/math.h \
+	../../include/common/Lgi.h \
 	../../include/common/GToken.h \
 	../../include/common/GUtf8.h \
 	../../include/common/GDisplayString.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GMenuImpl.o : ../common/Lgi/GMenuImpl.cpp ../../include/common/Lgi.h \
+GMenuImpl.o : ../common/Lgi/GMenuImpl.cpp /usr/include/math.h \
+	../../include/common/Lgi.h \
 	../../include/common/GMenu.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GProcess.o : ../common/Lgi/GProcess.cpp ../../include/common/Lgi.h \
+GProcess.o : ../common/Lgi/GProcess.cpp /usr/include/stdio.h \
+	/usr/include/string.h \
+	/usr/include/stdlib.h \
+	/usr/include/signal.h \
+	/usr/include/unistd.h \
+	../../include/common/Lgi.h \
 	../../include/common/GProcess.h \
-	../../include/common/GToken.h
+	../../include/common/GToken.h \
+	/usr/include/sys/wait.h \
+	/usr/include/sys/poll.h \
+	/usr/include/sys/types.h \
+	/usr/include/sys/time.h \
+	/usr/include/sys/resource.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-LgiRes.o : ../common/Resource/LgiRes.cpp ../../include/common/Lgi.h \
+LgiRes.o : ../common/Resource/LgiRes.cpp /usr/include/stdio.h \
+	/usr/include/stdlib.h \
+	/usr/include/time.h \
+	/usr/include/ctype.h \
+	../../include/common/Lgi.h \
 	../../include/common/GToken.h \
-	../../include/common/GList.h \
+	../../include/common/LList.h \
 	../../include/common/GTableLayout.h \
 	../../include/common/GVariant.h \
 	../../include/common/GDisplayString.h \
+	../../include/common/LgiRes.h \
 	../../include/common/GTextLabel.h \
 	../../include/common/GEdit.h \
 	../../include/common/GCheckBox.h \
@@ -323,14 +385,19 @@ LgiRes.o : ../common/Resource/LgiRes.cpp ../../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-Res.o : ../common/Resource/Res.cpp ../../include/common/Lgi.h \
+Res.o : ../common/Resource/Res.cpp /usr/include/stdio.h \
+	/usr/include/stdlib.h \
+	/usr/include/ctype.h \
+	../../include/common/Lgi.h \
 	../../include/common/Res.h \
 	../../include/common/GVariant.h \
 	../../include/common/GToken.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-Gel.o : ../common/Skins/Gel/Gel.cpp ../../include/common/Lgi.h \
+Gel.o : ../common/Skins/Gel/Gel.cpp /usr/include/math.h \
+	/usr/include/stdio.h \
+	../../include/common/Lgi.h \
 	../../include/common/GSkinEngine.h \
 	../../include/common/GPath.h \
 	../../include/common/GButton.h \
@@ -342,47 +409,37 @@ Gel.o : ../common/Skins/Gel/Gel.cpp ../../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GPath.o : ../common/Gdc2/Path/GPath.cpp ../../include/common/Lgi.h \
-	../../include/common/GPath.h \
-	../../include/common/GdiLeak.h \
-	../../include/common/GDisplayString.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-GMemStream.o : ../common/Lgi/GMemStream.cpp ../../include/common/Lgi.h \
+GMemStream.o : ../common/Lgi/GMemStream.cpp /usr/include/ctype.h \
+	/usr/include/stdio.h \
+	../../include/common/Lgi.h \
 	../../include/common/GStream.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GStream.o : ../common/Lgi/GStream.cpp ../../include/common/Lgi.h \
+GStream.o : ../common/Lgi/GStream.cpp /usr/include/ctype.h \
+	/usr/include/stdio.h \
+	../../include/common/Lgi.h \
 	../../include/common/GStream.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GThread.o : ../linux/Lgi/GThread.cpp ../../include/common/Lgi.h
+LThread.o : ../linux/Lgi/LThread.cpp ../../include/common/Lgi.h \
+	/usr/include/errno.h \
+	/usr/include/unistd.h \
+	/usr/include/sys/syscall.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GMutex.o : ../common/Lgi/GMutex.cpp ../../include/common/Lgi.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-GThreadCommon.o : ../common/Lgi/GThreadCommon.cpp ../../include/common/Lgi.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-GThreadEvent.o : ../common/Lgi/GThreadEvent.cpp ../../include/common/Lgi.h \
-	../../include/common/GThreadEvent.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-GVariant.o : ../common/Lgi/GVariant.cpp ../../include/common/Lgi.h \
+GVariant.o : ../common/Lgi/GVariant.cpp /usr/include/stdlib.h \
+	/usr/include/stdio.h \
+	../../include/common/Lgi.h \
 	../../include/common/GVariant.h \
 	../../include/common/GToken.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GGuiUtils.o : ../common/Lgi/GGuiUtils.cpp ../../include/common/Lgi.h \
+GGuiUtils.o : ../common/Lgi/GGuiUtils.cpp /usr/include/stdio.h \
+	../../include/common/Lgi.h \
 	../../include/common/GSkinEngine.h \
 	../../include/common/GToken.h
 	@echo $(<F) [$(Build)]
@@ -403,10 +460,19 @@ GTrayIcon.o : ../common/Lgi/GTrayIcon.cpp ../../include/common/Lgi.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-Lgi.o : ../common/Lgi/Lgi.cpp ../../include/common/GRegKey.h \
+Lgi.o : ../common/Lgi/Lgi.cpp /usr/include/time.h \
+	/usr/include/stdio.h \
+	/usr/include/ctype.h \
+	/usr/include/fcntl.h \
+	../../include/common/GRegKey.h \
+	/usr/include/unistd.h \
 	../../include/common/Lgi.h \
 	../../include/common/GToken.h \
 	../../include/common/GCapabilities.h \
+	/usr/include/sys/time.h \
+	/usr/include/sys/types.h \
+	/usr/include/pwd.h \
+	/usr/include/sys/utsname.h \
 	../../include/common/GProcess.h \
 	../../include/win32/GSymLookup.h \
 	../../include/linux/GSymLookup.h \
@@ -414,16 +480,19 @@ Lgi.o : ../common/Lgi/Lgi.cpp ../../include/common/GRegKey.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-LgiMsg.o : ../common/Lgi/LgiMsg.cpp ../../include/common/Lgi.h \
+LgiMsg.o : ../common/Lgi/LgiMsg.cpp /usr/include/stdio.h \
+	../../include/common/Lgi.h \
 	../../include/common/GTextLabel.h \
 	../../include/common/GButton.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GFileSelect.o : ../common/Lgi/GFileSelect.cpp ../../include/common/Lgi.h \
+GFileSelect.o : ../common/Lgi/GFileSelect.cpp /usr/include/stdio.h \
+	/usr/include/stdlib.h \
+	../../include/common/Lgi.h \
 	../../include/common/GPopup.h \
 	../../include/common/GToken.h \
-	../../include/common/GList.h \
+	../../include/common/LList.h \
 	../../include/common/GTextLabel.h \
 	../../include/common/GEdit.h \
 	../../include/common/GButton.h \
@@ -443,22 +512,26 @@ GAlert.o : ../common/Lgi/GAlert.cpp ../../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GFindReplace.o : ../common/Lgi/GFindReplace.cpp ../../include/common/Lgi.h \
+GFindReplace.o : ../common/Lgi/GFindReplace.cpp /usr/include/stdio.h \
+	../../include/common/Lgi.h \
 	../../include/common/GTextView3.h \
 	../../include/common/GTextLabel.h \
 	../../include/common/GEdit.h \
 	../../include/common/GCheckBox.h \
 	../../include/common/GButton.h \
-	../../include/common/GTableLayout.h
+	../../include/common/GTableLayout.h \
+	../../include/common/LgiRes.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GFontSelect.o : ../common/Lgi/GFontSelect.cpp ../../include/common/Lgi.h \
+GFontSelect.o : ../common/Lgi/GFontSelect.cpp /usr/include/stdio.h \
+	/usr/include/stdlib.h \
+	../../include/common/Lgi.h \
 	../../include/common/GFontSelect.h \
 	../../include/common/GToken.h \
 	../../include/common/GCheckBox.h \
 	../../include/common/GButton.h \
-	../../include/common/GList.h \
+	../../include/common/LList.h \
 	../../include/common/GRadioGroup.h \
 	../../include/common/GEdit.h \
 	../../include/common/GCombo.h \
@@ -466,20 +539,30 @@ GFontSelect.o : ../common/Lgi/GFontSelect.cpp ../../include/common/Lgi.h \
 	../../include/common/GTextLabel.h \
 	../../include/common/GDisplayString.h \
 	../../include/common/GdiLeak.h \
+	../../include/common/GTableLayout.h \
+	../../include/common/LgiRes.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GInput.o : ../common/Lgi/GInput.cpp /usr/include/stdio.h \
+	../../include/common/Lgi.h \
+	../../include/common/GTextLabel.h \
+	../../include/common/GEdit.h \
+	../../include/common/GButton.h \
+	../../include/common/GDisplayString.h \
+	../../include/common/LgiRes.h \
 	../../include/common/GTableLayout.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GInput.o : ../common/Lgi/GInput.cpp ../../include/common/Lgi.h \
-	../../include/common/GTextLabel.h \
-	../../include/common/GEdit.h \
-	../../include/common/GButton.h \
-	../../include/common/GDisplayString.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-Gdc2.o : ./Gdc2/Gdc2.cpp ../../include/common/Lgi.h \
-	../../include/common/GPalette.h
+Gdc2.o : ./Gdc2/Gdc2.cpp /usr/include/stdio.h \
+	/usr/include/stdlib.h \
+	/usr/include/string.h \
+	/usr/include/math.h \
+	../../include/common/Lgi.h \
+	../../include/common/GPalette.h \
+	/usr/include/sys/ioctl.h \
+	/usr/include/sys/kd.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -488,7 +571,8 @@ GColour.o : ../common/Gdc2/GColour.cpp ../../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GColourReduce.o : ../common/Gdc2/Tools/GColourReduce.cpp ../../include/common/Gdc2.h \
+GColourReduce.o : ../common/Gdc2/Tools/GColourReduce.cpp /usr/include/math.h \
+	../../include/common/Gdc2.h \
 	../../include/common/GPalette.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -500,13 +584,18 @@ GdcCommon.o : ../common/Gdc2/GdcCommon.cpp ../../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GdcTools.o : ../common/Gdc2/Tools/GdcTools.cpp ../../include/common/Gdc2.h \
+GdcTools.o : ../common/Gdc2/Tools/GdcTools.cpp /usr/include/math.h \
+	../../include/common/Gdc2.h \
 	../../include/common/GdcTools.h \
 	../../include/common/GPalette.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GDisplayString.o : ../common/Gdc2/Font/GDisplayString.cpp ../../include/common/Lgi.h \
+GDisplayString.o : ../common/Gdc2/Font/GDisplayString.cpp /usr/include/stdio.h \
+	/usr/include/stdlib.h \
+	/usr/include/string.h \
+	/usr/include/math.h \
+	../../include/common/Lgi.h \
 	../../include/common/GVariant.h \
 	../../include/common/GFontSelect.h \
 	../../include/common/GdiLeak.h \
@@ -517,75 +606,122 @@ GDisplayString.o : ../common/Gdc2/Font/GDisplayString.cpp ../../include/common/L
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GFont.o : ../common/Gdc2/Font/GFont.cpp ../../include/common/Lgi.h \
+GFont.o : ../common/Gdc2/Font/GFont.cpp /usr/include/stdio.h \
+	/usr/include/stdlib.h \
+	/usr/include/string.h \
+	/usr/include/math.h \
+	../../include/common/Lgi.h \
 	../../include/common/GVariant.h \
 	../../include/common/GFontSelect.h \
 	../../include/common/GDisplayString.h \
 	../../include/common/GdiLeak.h \
 	../../include/common/GStringClass.h \
+	../../include/common/GCss.h \
 	../../include/common/GUtf8.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GFont_A.o : ../common/Gdc2/Font/GFont_A.cpp ../../include/common/Lgi.h \
+GFont_A.o : ../common/Gdc2/Font/GFont_A.cpp /usr/include/stdio.h \
+	/usr/include/stdlib.h \
+	/usr/include/string.h \
+	/usr/include/math.h \
+	../../include/common/Lgi.h \
 	../../include/common/GFontSelect.h \
 	../../include/common/GdiLeak.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GFont_W.o : ../common/Gdc2/Font/GFont_W.cpp ../../include/common/Lgi.h \
+GFont_W.o : ../common/Gdc2/Font/GFont_W.cpp /usr/include/stdio.h \
+	/usr/include/stdlib.h \
+	/usr/include/string.h \
+	/usr/include/math.h \
+	../../include/common/Lgi.h \
 	../../include/common/GFontSelect.h \
 	../../include/common/GdiLeak.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GFontCodePages.o : ../common/Gdc2/Font/GFontCodePages.cpp ../../include/common/Lgi.h \
+GFontCodePages.o : ../common/Gdc2/Font/GFontCodePages.cpp /usr/include/locale.h \
+	/usr/include/stdlib.h \
+	/usr/include/stdio.h \
+	../../include/common/Lgi.h \
 	../../include/common/GToken.h \
 	../../include/common/GUtf8.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GFontSystem.o : ../common/Gdc2/Font/GFontSystem.cpp ../../include/common/Lgi.h \
+GFontSystem.o : ../common/Gdc2/Font/GFontSystem.cpp /usr/include/stdlib.h \
+	/usr/include/locale.h \
+	../../include/common/Lgi.h \
 	../../include/common/GToken.h \
 	../../include/common/GLibrary.h \
-	../../include/common/GLibraryUtils.h
+	../../include/common/GLibraryUtils.h \
+	/usr/include/iconv.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-15Bit.o : ../common/Gdc2/15Bit.cpp ../../include/common/Gdc2.h \
+15Bit.o : ../common/Gdc2/15Bit.cpp /usr/include/stdio.h \
+	/usr/include/stdlib.h \
+	/usr/include/string.h \
+	/usr/include/math.h \
+	../../include/common/Gdc2.h \
 	../../include/common/GPalette.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-16Bit.o : ../common/Gdc2/16Bit.cpp ../../include/common/Gdc2.h \
+16Bit.o : ../common/Gdc2/16Bit.cpp /usr/include/stdio.h \
+	/usr/include/stdlib.h \
+	/usr/include/string.h \
+	/usr/include/math.h \
+	../../include/common/Gdc2.h \
 	../../include/common/GPalette.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-24Bit.o : ../common/Gdc2/24Bit.cpp ../../include/common/Gdc2.h \
+24Bit.o : ../common/Gdc2/24Bit.cpp /usr/include/stdio.h \
+	/usr/include/stdlib.h \
+	/usr/include/string.h \
+	/usr/include/math.h \
+	../../include/common/Gdc2.h \
 	../../include/common/GPalette.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-32Bit.o : ../common/Gdc2/32Bit.cpp ../../include/common/Gdc2.h \
+32Bit.o : ../common/Gdc2/32Bit.cpp /usr/include/stdio.h \
+	/usr/include/stdlib.h \
+	/usr/include/string.h \
+	/usr/include/math.h \
+	../../include/common/Gdc2.h \
 	../../include/common/GPalette.h \
 	../../include/common/GPixelRops.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-8Bit.o : ../common/Gdc2/8Bit.cpp ../../include/common/Gdc2.h \
+8Bit.o : ../common/Gdc2/8Bit.cpp /usr/include/stdio.h \
+	/usr/include/stdlib.h \
+	/usr/include/string.h \
+	/usr/include/math.h \
+	../../include/common/Gdc2.h \
 	../../include/common/GPalette.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-Alpha.o : ../common/Gdc2/Alpha.cpp ../../include/common/Gdc2.h \
+Alpha.o : ../common/Gdc2/Alpha.cpp /usr/include/stdio.h \
+	/usr/include/stdlib.h \
+	/usr/include/string.h \
+	/usr/include/math.h \
+	../../include/common/Gdc2.h \
 	../../include/common/GPath.h \
 	../../include/common/GPixelRops.h \
 	../../include/common/GPalette.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GFilter.o : ../common/Gdc2/Filters/GFilter.cpp ../../include/common/Gdc2.h \
+GFilter.o : ../common/Gdc2/Filters/GFilter.cpp /usr/include/stdio.h \
+	/usr/include/stdlib.h \
+	/usr/include/string.h \
+	/usr/include/math.h \
+	../../include/common/Gdc2.h \
 	../../include/common/GString.h \
 	../../include/common/GVariant.h \
 	../../include/common/GClipBoard.h \
@@ -595,12 +731,16 @@ GFilter.o : ../common/Gdc2/Filters/GFilter.cpp ../../include/common/Gdc2.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GRect.o : ../common/Gdc2/GRect.cpp ../../include/common/Gdc2.h \
+GRect.o : ../common/Gdc2/GRect.cpp /usr/include/stdio.h \
+	/usr/include/math.h \
+	../../include/common/Gdc2.h \
 	../../include/common/GToken.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GMemDC.o : ./Gdc2/GMemDC.cpp ../../include/common/Gdc2.h \
+GMemDC.o : ./Gdc2/GMemDC.cpp /usr/include/stdio.h \
+	/usr/include/math.h \
+	../../include/common/Gdc2.h \
 	../../include/common/GdiLeak.h \
 	../../include/common/GPalette.h
 	@echo $(<F) [$(Build)]
@@ -611,15 +751,32 @@ GPrintDC.o : ./Gdc2/GPrintDC.cpp ../../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GScreenDC.o : ./Gdc2/GScreenDC.cpp ../../include/common/Gdc2.h \
+GScreenDC.o : ./Gdc2/GScreenDC.cpp /usr/include/stdio.h \
+	/usr/include/math.h \
+	../../include/common/Gdc2.h \
 	../../include/common/GPalette.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GSurface.o : ../common/Gdc2/GSurface.cpp ../../include/common/Gdc2.h \
+GSurface.o : ../common/Gdc2/GSurface.cpp /usr/include/stdio.h \
+	/usr/include/stdlib.h \
+	/usr/include/string.h \
+	/usr/include/math.h \
+	/usr/include/ctype.h \
+	../../include/common/Gdc2.h \
 	../../include/common/GdiLeak.h \
 	../../include/common/GPalette.h \
 	../../include/common/GVariant.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GPath.o : ../common/Gdc2/Path/GPath.cpp /usr/include/math.h \
+	/usr/include/stdlib.h \
+	/usr/include/stdio.h \
+	../../include/common/Lgi.h \
+	../../include/common/GPath.h \
+	../../include/common/GdiLeak.h \
+	../../include/common/GDisplayString.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -635,7 +792,8 @@ GPassword.o : ../common/General/GPassword.cpp ../../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GMru.o : ../common/Lgi/GMru.cpp ../../include/common/Lgi.h \
+GMru.o : ../common/Lgi/GMru.cpp /usr/include/stdio.h \
+	../../include/common/Lgi.h \
 	../../include/common/GMru.h \
 	../../include/common/GVariant.h
 	@echo $(<F) [$(Build)]
@@ -655,11 +813,15 @@ GOptionsFile.o : ../common/Lgi/GOptionsFile.cpp ../../include/common/Lgi.h \
 LgiRand.o : ../common/Lgi/LgiRand.cpp ../../include/common/GMem.h \
 	../../include/common/GFile.h \
 	../../include/common/GContainers.h \
-	../../include/common/LgiCommon.h
+	../../include/common/LgiCommon.h \
+	/usr/include/stdio.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GString.o : ../common/Text/GString.cpp ../../include/common/GMem.h \
+GString.o : ../common/Text/GString.cpp /usr/include/stdio.h \
+	/usr/include/string.h \
+	/usr/include/ctype.h \
+	../../include/common/GMem.h \
 	../../include/sdl/LgiOsDefs.h \
 	../../include/common/GString.h \
 	../../include/common/GContainers.h \
@@ -667,14 +829,16 @@ GString.o : ../common/Text/GString.cpp ../../include/common/GMem.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GToken.o : ../common/Text/GToken.cpp ../../include/common/GMem.h \
+GToken.o : ../common/Text/GToken.cpp /usr/include/string.h \
+	../../include/common/GMem.h \
 	../../include/common/GContainers.h \
 	../../include/common/GToken.h \
 	../../include/common/GString.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GUnicode.o : ../common/Text/GUnicode.cpp ../../include/common/Lgi.h
+GUnicode.o : ../common/Text/GUnicode.cpp ../../include/common/Lgi.h \
+	../../include/common/GUnicode.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -683,7 +847,10 @@ GUtf8.o : ../common/Text/GUtf8.cpp ../../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GXmlTree.o : ../common/Text/GXmlTree.cpp ../../include/common/Lgi.h \
+GXmlTree.o : ../common/Text/GXmlTree.cpp /usr/include/stdio.h \
+	/usr/include/stdlib.h \
+	/usr/include/ctype.h \
+	../../include/common/Lgi.h \
 	../../include/common/GXmlTree.h \
 	../../include/common/GVariant.h \
 	../../include/common/GToken.h
@@ -692,36 +859,47 @@ GXmlTree.o : ../common/Text/GXmlTree.cpp ../../include/common/Lgi.h \
 
 GBitmap.o : ../common/Widgets/GBitmap.cpp ../../include/common/Lgi.h \
 	../../include/common/GBitmap.h \
-	../../include/common/GTableLayout.h
+	../../include/common/GTableLayout.h \
+	../../include/common/LgiRes.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GButton.o : ../common/Widgets/GButton.cpp ../../include/common/Lgi.h \
+GButton.o : ../common/Widgets/GButton.cpp /usr/include/stdlib.h \
+	/usr/include/stdio.h \
+	../../include/common/Lgi.h \
 	../../include/common/GSkinEngine.h \
 	../../include/common/GButton.h \
 	../../include/common/GDisplayString.h \
-	../../include/common/GTableLayout.h
+	../../include/common/GTableLayout.h \
+	../../include/common/LgiRes.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GCheckBox.o : ../common/Widgets/GCheckBox.cpp ../../include/common/Lgi.h \
+GCheckBox.o : ../common/Widgets/GCheckBox.cpp /usr/include/stdlib.h \
+	/usr/include/stdio.h \
+	../../include/common/Lgi.h \
 	../../include/common/GSkinEngine.h \
 	../../include/common/GCheckBox.h \
 	../../include/common/GDisplayString.h \
-	../../include/common/GDisplayStringLayout.h
+	../../include/common/GDisplayStringLayout.h \
+	../../include/common/LgiRes.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GCombo.o : ../common/Widgets/GCombo.cpp ../../include/common/Lgi.h \
+GCombo.o : ../common/Widgets/GCombo.cpp /usr/include/stdlib.h \
+	/usr/include/stdio.h \
+	../../include/common/Lgi.h \
 	../../include/common/GVariant.h \
 	../../include/common/GSkinEngine.h \
 	../../include/common/GCombo.h \
 	../../include/common/GDisplayString.h \
-	../../include/common/GUtf8.h
+	../../include/common/GUtf8.h \
+	../../include/common/LgiRes.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GDocView.o : ../common/Text/GDocView.cpp ../../include/common/Lgi.h \
+GDocView.o : ../common/Text/GDocView.cpp /usr/include/stdio.h \
+	../../include/common/Lgi.h \
 	../../include/common/GDocView.h \
 	../../include/common/INet.h
 	@echo $(<F) [$(Build)]
@@ -731,6 +909,7 @@ GEdit.o : ../common/Widgets/GEdit.cpp ../../include/common/Lgi.h \
 	../../include/common/GEdit.h \
 	../../include/common/GClipBoard.h \
 	../../include/common/GDisplayString.h \
+	../../include/common/LgiRes.h \
 	../../include/common/GTextView3.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -739,30 +918,25 @@ GItemContainer.o : ../common/Widgets/GItemContainer.cpp ../../include/common/Lgi
 	../../include/common/GItemContainer.h \
 	../../include/common/GDisplayString.h \
 	../../include/common/GSkinEngine.h \
-	../../include/common/GScrollBar.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-GList.o : ../common/Widgets/GList.cpp ../../include/common/Lgi.h \
-	../../include/common/GSkinEngine.h \
-	../../include/common/GList.h \
-	../../include/common/GEdit.h \
 	../../include/common/GScrollBar.h \
-	../../include/common/GDisplayString.h
+	../../include/common/GEdit.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GPanel.o : ../common/Widgets/GPanel.cpp ../../include/common/Lgi.h \
+GPanel.o : ../common/Widgets/GPanel.cpp /usr/include/stdio.h \
+	../../include/common/Lgi.h \
 	../../include/common/GPanel.h \
-	../../include/common/GDisplayString.h
+	../../include/common/GDisplayString.h \
+	../../include/common/LgiRes.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GPopup.o : ../common/Widgets/GPopup.cpp ../../include/common/Lgi.h \
+GPopup.o : ../common/Widgets/GPopup.cpp /usr/include/stdio.h \
+	../../include/common/Lgi.h \
 	../../include/common/GPopup.h \
 	../../include/common/GSkinEngine.h \
 	../../include/common/GDisplayString.h \
-	../../include/common/GThreadEvent.h
+	../../include/common/LThreadEvent.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -772,7 +946,9 @@ GProgress.o : ../common/Widgets/GProgress.cpp ../../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GProgressDlg.o : ../common/Widgets/GProgressDlg.cpp ../../include/common/Lgi.h \
+GProgressDlg.o : ../common/Widgets/GProgressDlg.cpp /usr/include/stdio.h \
+	/usr/include/time.h \
+	../../include/common/Lgi.h \
 	../../include/common/GProgressDlg.h \
 	../../include/common/GTextLabel.h \
 	../../include/common/GButton.h \
@@ -780,69 +956,101 @@ GProgressDlg.o : ../common/Widgets/GProgressDlg.cpp ../../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GRadioGroup.o : ../common/Widgets/GRadioGroup.cpp ../../include/common/Lgi.h \
+GRadioGroup.o : ../common/Widgets/GRadioGroup.cpp /usr/include/stdlib.h \
+	/usr/include/stdio.h \
+	../../include/common/Lgi.h \
 	../../include/common/GSkinEngine.h \
 	../../include/common/GRadioGroup.h \
 	../../include/common/GCheckBox.h \
-	../../include/common/GDisplayString.h
+	../../include/common/GDisplayString.h \
+	../../include/common/LgiRes.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GScrollBar.o : ../common/Widgets/GScrollBar.cpp ../../include/common/Lgi.h \
-	../../include/common/GScrollBar.h
+	../../include/common/GScrollBar.h \
+	../../include/common/LgiRes.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GStatusBar.o : ../common/Widgets/GStatusBar.cpp ../../include/common/Lgi.h \
-	../../include/common/GDisplayString.h
+	../../include/common/GDisplayString.h \
+	../../include/common/LgiRes.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GTabView.o : ../common/Widgets/GTabView.cpp ../../include/common/Lgi.h \
+GTabView.o : ../common/Widgets/GTabView.cpp /usr/include/stdio.h \
+	../../include/common/Lgi.h \
 	../../include/common/GTabView.h \
 	../../include/common/GSkinEngine.h \
 	../../include/common/GDisplayString.h \
-	../../include/common/GTableLayout.h
+	../../include/common/GTableLayout.h \
+	../../include/common/LgiRes.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GTextLabel.o : ../common/Widgets/GTextLabel.cpp ../../include/common/Lgi.h \
+GTextLabel.o : ../common/Widgets/GTextLabel.cpp /usr/include/stdlib.h \
+	/usr/include/stdio.h \
+	../../include/common/Lgi.h \
 	../../include/common/GTextLabel.h \
 	../../include/common/GDisplayStringLayout.h \
 	../../include/common/GVariant.h \
-	../../include/common/GNotifications.h
+	../../include/common/GNotifications.h \
+	../../include/common/LgiRes.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GTextView3.o : ../common/Text/GTextView3.cpp ../../include/common/Lgi.h \
+GTextView3.o : ../common/Text/GTextView3.cpp /usr/include/stdlib.h \
+	/usr/include/stdio.h \
+	/usr/include/ctype.h \
+	../../include/common/Lgi.h \
 	../../include/common/GTextView3.h \
 	../../include/common/GInput.h \
 	../../include/common/GScrollBar.h \
 	../../include/common/GClipBoard.h \
 	../../include/common/GDisplayString.h \
 	../../include/common/GViewPriv.h \
-	../../include/common/GCssTools.h
+	../../include/common/GCssTools.h \
+	../../include/common/LgiRes.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GToolBar.o : ../common/Widgets/GToolBar.cpp ../../include/common/Lgi.h \
+GToolBar.o : ../common/Widgets/GToolBar.cpp /usr/include/stdlib.h \
+	/usr/include/stdio.h \
+	../../include/common/Lgi.h \
 	../../include/common/GToken.h \
 	../../include/common/GVariant.h \
 	../../include/common/GDisplayString.h \
 	../../include/common/GPalette.h \
-	../../include/common/GNotifications.h
+	../../include/common/GNotifications.h \
+	../../include/common/LgiRes.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GTree.o : ../common/Widgets/GTree.cpp ../../include/common/Lgi.h \
+GTree.o : ../common/Widgets/GTree.cpp /usr/include/math.h \
+	../../include/common/Lgi.h \
 	../../include/common/GTree.h \
 	../../include/common/GScrollBar.h \
 	../../include/common/GDisplayString.h \
-	../../include/common/GPalette.h
+	../../include/common/GPalette.h \
+	../../include/common/LgiRes.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GCss.o : ../common/Lgi/GCss.cpp ../../include/common/GCss.h \
+LList.o : ../common/Widgets/LList.cpp /usr/include/math.h \
+	/usr/include/stdio.h \
+	/usr/include/ctype.h \
+	../../include/common/Lgi.h \
+	../../include/common/GSkinEngine.h \
+	../../include/common/LList.h \
+	../../include/common/GScrollBar.h \
+	../../include/common/GDisplayString.h \
+	../../include/common/LgiRes.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GCss.o : ../common/Lgi/GCss.cpp /usr/include/ctype.h \
+	../../include/common/GCss.h \
 	../../include/common/LgiCommon.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -852,12 +1060,15 @@ GCssTools.o : ../common/Lgi/GCssTools.cpp ../../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GLayout.o : ./Lgi/GLayout.cpp ../../include/common/Lgi.h \
+GLayout.o : ./Lgi/GLayout.cpp /usr/include/stdio.h \
+	../../include/common/Lgi.h \
 	../../include/common/GScrollBar.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GWidgets.o : ./Lgi/GWidgets.cpp ../../include/common/Lgi.h \
+GWidgets.o : ./Lgi/GWidgets.cpp /usr/include/stdlib.h \
+	/usr/include/stdio.h \
+	../../include/common/Lgi.h \
 	../../include/common/GSlider.h \
 	../../include/common/GBitmap.h \
 	../../include/common/GTableLayout.h \
@@ -867,11 +1078,13 @@ GWidgets.o : ./Lgi/GWidgets.cpp ../../include/common/Lgi.h \
 
 GBox.o : ../common/Widgets/GBox.cpp ../../include/common/Lgi.h \
 	../../include/common/GBox.h \
-	../../include/common/GCssTools.h
+	../../include/common/GCssTools.h \
+	../../include/common/LgiRes.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GSplitter.o : ../common/Widgets/GSplitter.cpp ../../include/common/Lgi.h
+GSplitter.o : ../common/Widgets/GSplitter.cpp ../../include/common/Lgi.h \
+	../../include/common/LgiRes.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -879,13 +1092,14 @@ GTableLayout.o : ../common/Widgets/GTableLayout.cpp ../../include/common/Lgi.h \
 	../../include/common/GTableLayout.h \
 	../../include/common/GCssTools.h \
 	../../include/common/GDisplayString.h \
+	../../include/common/LgiRes.h \
 	../../include/common/GToken.h \
 	../../include/common/GVariant.h \
 	../../include/common/GTextLabel.h \
 	../../include/common/GButton.h \
 	../../include/common/GEdit.h \
 	../../include/common/GCombo.h \
-	../../include/common/GList.h \
+	../../include/common/LList.h \
 	../../include/common/GTree.h \
 	../../include/common/GCheckBox.h \
 	../../include/common/GRadioGroup.h \
@@ -897,40 +1111,108 @@ GTableLayout.o : ../common/Widgets/GTableLayout.cpp ../../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-INet.o : ../common/INet/INet.cpp ../../include/common/GFile.h \
+GUri.o : ../common/INet/GUri.cpp ../../include/common/Lgi.h \
+	../../include/common/INet.h \
+	../../include/common/GRegKey.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+INet.o : ../common/INet/INet.cpp /usr/include/netinet/tcp.h \
+	/usr/include/unistd.h \
+	/usr/include/poll.h \
+	/usr/include/ctype.h \
+	../../include/common/GFile.h \
 	../../include/common/INet.h \
 	../../include/common/GToken.h \
 	../../include/common/GString.h \
 	../../include/common/LgiCommon.h \
 	../../include/sdl/LgiOsClasses.h \
-	../common/Hash/md5/md5.h \
 	../../include/common/GRegKey.h \
+	/usr/include/sys/types.h \
+	/usr/include/sys/socket.h \
+	/usr/include/ifaddrs.h \
+	/usr/include/stdio.h \
+	/usr/include/stdlib.h \
+	/usr/include/sys/time.h \
+	/usr/include/errno.h \
+	/usr/include/netinet/in.h \
+	/usr/include/arpa/inet.h \
+	/usr/include/netdb.h \
 	../../include/common/LgiNetInc.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-INetTools.o : ../common/INet/INetTools.cpp ../../include/common/GMem.h \
+INetTools.o : ../common/INet/INetTools.cpp /usr/include/string.h \
+	/usr/include/ctype.h \
+	../../include/common/GMem.h \
 	../../include/sdl/LgiOsDefs.h \
 	../../include/common/INetTools.h \
 	../../include/common/GString.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GUri.o : ../common/INet/GUri.cpp ../../include/common/Lgi.h \
-	../../include/common/INet.h
+md5.o : ../common/Hash/md5/md5.c /usr/include/string.h
 	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+	$(CC) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lgi.h \
 	../../include/common/INet.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-md5.o : ../common/Hash/md5/md5.c 
-	@echo $(<F) [$(Build)]
-	$(CC) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+../../../../../../../usr/include/sys/types.h : /usr/include/features.h \
+	/usr/include/bits/types.h \
+	/usr/include/time.h
 
-../../include/common/GList.h : ../../include/common/GMem.h \
+../../include/common/GRegionClipDC.h : 
+
+../../../../../../../usr/include/features.h : /usr/include/stdc-predef.h \
+	/usr/include/gnu/stubs.h
+
+../../include/common/GToken.h : ../../include/common/GArray.h \
+	../../include/common/GString.h
+
+../../include/common/GTextView3.h : ../../include/common/GDocView.h \
+	../../include/common/GUndo.h \
+	../../include/common/GDragAndDrop.h
+
+../../../../../../../usr/include/dlfcn.h : /usr/include/features.h \
+	/usr/include/bits/dlfcn.h
+
+../../include/common/GVariant.h : ../../include/common/GDom.h \
+	../../include/common/LDateTime.h \
+	../../include/common/GContainers.h \
+	../../include/common/GHashTable.h \
+	../../include/common/GString.h
+
+../../include/common/GUtf8.h : 
+
+../../include/common/GDropFiles.h : ../../include/common/GToken.h \
+	../../include/common/INet.h \
+	../../include/common/GVariant.h
+
+../../../../../../../usr/include/sys/time.h : /usr/include/features.h \
+	/usr/include/bits/types.h \
+	/usr/include/time.h \
+	/usr/include/bits/time.h \
+	/usr/include/sys/select.h
+
+../../include/common/GLibraryUtils.h : 
+
+../../include/common/INetTools.h : ../../include/common/GContainers.h \
+	../../include/common/LgiNetInc.h
+
+../../include/common/GTabView.h : 
+
+../../include/common/GString.h : ../../include/common/LgiDefs.h \
+	../../include/sdl/LgiOsDefs.h
+
+../../../../../../../usr/include/pwd.h : /usr/include/features.h \
+	/usr/include/bits/types.h
+
+../../include/common/Base64.h : ../../include/common/LgiDefs.h
+
+../../include/common/LList.h : ../../include/common/GMem.h \
 	../../include/common/GArray.h \
 	../../include/common/GPopup.h \
 	../../include/common/GDisplayString.h \
@@ -945,49 +1227,48 @@ md5.o : ../common/Hash/md5/md5.c
 	../../include/common/GString.h \
 	../../include/common/GHashTable.h
 
-../../include/common/GToken.h : ../../include/common/GArray.h
+../../../../../../../usr/include/bits/dlfcn.h : 
 
-../../include/common/GMutex.h : 
+../../../../../../../usr/include/stdlib.h : /usr/include/features.h \
+	/usr/include/bits/stdlib-float.h
 
-../../include/common/GTextView3.h : ../../include/common/GDocView.h \
-	../../include/common/GUndo.h \
-	../../include/common/GDragAndDrop.h
+../../../../../../../usr/include/bits/stdlib-float.h : 
 
-../../include/common/GVariant.h : ../../include/common/GDom.h \
-	../../include/common/GDateTime.h \
-	../../include/common/GContainers.h \
-	../../include/common/GHashTable.h
+../../../../../../../usr/include/netinet/in.h : /usr/include/features.h \
+	/usr/include/stdint.h \
+	/usr/include/sys/socket.h \
+	/usr/include/bits/types.h \
+	/usr/include/bits/in.h \
+	/usr/include/endian.h \
+	/usr/include/bits/byteswap.h
 
-../../include/common/GUtf8.h : 
+../../../../../../../usr/include/bits/byteswap.h : /usr/include/features.h \
+	/usr/include/bits/types.h \
+	/usr/include/bits/wordsize.h \
+	/usr/include/bits/byteswap-16.h
 
-../../include/common/GDropFiles.h : ../../include/common/GToken.h \
-	../../include/common/INet.h \
-	../../include/common/GVariant.h
+../../../../../../../usr/include/bits/in.h : 
 
-../../include/common/GLibraryUtils.h : 
+../../../../../../../usr/include/endian.h : /usr/include/features.h \
+	/usr/include/bits/endian.h
 
-../common/Hash/md5/md5.h : ../../include/common/LgiInc.h
+../../include/common/GArray.h : /usr/include/stdlib.h \
+	/usr/include/assert.h \
+	../../include/common/GRange.h
 
-../../include/common/INetTools.h : ../../include/common/GContainers.h \
-	../../include/common/LgiNetInc.h
-
-../../include/common/GTabView.h : 
-
-../../include/common/GString.h : ../../include/common/LgiDefs.h \
-	../../include/sdl/LgiOsDefs.h
-
-../../include/common/Base64.h : ../../include/common/LgiDefs.h
-
-../../include/common/GArray.h : ../../include/common/LgiDefs.h
+../../include/common/GRange.h : 
 
 ../../include/common/INet.h : ../../include/common/GMem.h \
 	../../include/common/GContainers.h \
 	../../include/common/LgiNetInc.h \
 	../../include/common/GStream.h \
 	../../include/common/LgiInterfaces.h \
-	../../include/common/GString.h
+	../../include/common/GString.h \
+	/usr/include/sys/socket.h \
+	/usr/include/netdb.h
 
 ../../include/common/LgiDefs.h : ../../include/common/LgiInc.h \
+	/usr/include/wchar.h \
 	../../include/common/GAutoPtr.h
 
 ../../include/common/GCombo.h : 
@@ -995,16 +1276,34 @@ md5.o : ../common/Hash/md5/md5.c
 ../common/Gdc2/GRopsCases.cpp : 
 
 ../../include/common/GMem.h : ../../include/common/LgiInc.h \
-	../../include/sdl/LgiOsDefs.h
+	../../include/sdl/LgiOsDefs.h \
+	/usr/include/stdlib.h \
+	/usr/include/string.h
+
+../../../../../../../usr/include/sys/kd.h : /usr/include/linux/kd.h
+
+../../../../../../../usr/include/linux/kd.h : /usr/include/linux/types.h
+
+../../../../../../../usr/include/iconv.h : /usr/include/features.h
 
 ../../include/common/GTableLayout.h : ../../include/common/GCss.h \
 	../../include/common/GNotifications.h
 
-../../include/common/GArray.h : ../../include/common/LgiDefs.h
+../../include/common/GArray.h : /usr/include/stdlib.h \
+	/usr/include/assert.h \
+	../../include/common/GRange.h
 
 ../../include/common/GPrinter.h : 
 
+../../include/common/LMutex.h : 
+
+../../include/common/GUnicode.h : ../../include/common/LgiInc.h
+
 ../../include/common/GEdit.h : ../../include/common/GTextView3.h
+
+../../../../../../../usr/include/sys/syscall.h : /usr/include/asm/unistd.h
+
+../../../../../../../usr/include/asm/unistd.h : 
 
 ../../include/common/GPixelRops.h : 
 
@@ -1016,19 +1315,31 @@ md5.o : ../common/Hash/md5/md5.c
 	../../include/sdl/LgiOsDefs.h \
 	../../include/common/GColour.h
 
-../../include/common/GThreadEvent.h : 
+../../../../../../../usr/include/sys/socket.h : /usr/include/features.h \
+	/usr/include/sys/uio.h \
+	/usr/include/bits/socket.h
 
 ../../include/common/GMenu.h : ../../include/common/GMenuImpl.h \
 	../../include/common/GXmlTree.h \
 	../../include/common/Res.h \
 	../../include/common/GImageList.h
 
+../../include/common/LDateTime.h : /usr/include/time.h \
+	../../include/common/GStringClass.h
+
 ../../include/common/GOptionsFile.h : ../../include/common/GVariant.h \
 	../../include/common/GXmlTree.h \
-	../../include/common/GMutex.h
+	../../include/common/LMutex.h
+
+../../include/common/LMutex.h : 
 
 ../../include/common/GPalette.h : ../../include/common/GColourSpace.h \
 	../../include/common/GFile.h
+
+../../../../../../../usr/include/sys/poll.h : /usr/include/features.h \
+	/usr/include/bits/poll.h
+
+../../../../../../../usr/include/bits/poll.h : 
 
 ../../include/common/GdcTools.h : 
 
@@ -1038,20 +1349,49 @@ md5.o : ../common/Hash/md5/md5.c
 
 ../../include/common/Res.h : ../../include/common/GXmlTree.h
 
-../../include/common/GHashTable.h : ../../include/common/GMem.h \
+../../../../../../../usr/include/math.h : /usr/include/features.h \
+	/usr/include/bits/huge_val.h \
+	/usr/include/bits/mathdef.h \
+	/usr/include/bits/mathcalls.h
+
+../../../../../../../usr/include/bits/huge_val.h : 
+
+../../include/common/LThreadEvent.h : /usr/include/semaphore.h
+
+../../../../../../../usr/include/semaphore.h : /usr/include/features.h \
+	/usr/include/sys/types.h \
+	/usr/include/bits/semaphore.h
+
+../../../../../../../usr/include/bits/semaphore.h : /usr/include/bits/wordsize.h
+
+../../include/common/GHashTable.h : /usr/include/ctype.h \
+	../../include/common/GMem.h \
 	../../include/common/GArray.h \
 	../../include/common/GString.h \
 	../../include/common/LgiClass.h
+
+../../../../../../../usr/include/sys/uio.h : /usr/include/features.h \
+	/usr/include/sys/types.h \
+	/usr/include/bits/uio.h
+
+../../../../../../../usr/include/bits/uio.h : /usr/include/sys/types.h
+
+../../../../../../../usr/include/netdb.h : /usr/include/features.h \
+	/usr/include/netinet/in.h \
+	/usr/include/stdint.h \
+	/usr/include/bits/netdb.h
+
+../../../../../../../usr/include/gnu/stubs.h : 
 
 ../../../../../../../usr/include/freetype2/ftsynth.h : /usr/include/freetype2/ft2build.h
 
 ../../include/common/GAutoPtr.h : 
 
-../../include/common/GDateTime.h : 
+../../../../../../../usr/include/sys/wait.h : /usr/include/features.h \
+	/usr/include/signal.h
 
-../../include/common/GProgressDlg.h : ../../include/common/GTableLayout.h
-
-../../include/common/Gdc2.h : ../../include/sdl/LgiOsDefs.h \
+../../include/common/Gdc2.h : /usr/include/stdio.h \
+	../../include/sdl/LgiOsDefs.h \
 	../../include/common/LgiInc.h \
 	../../include/common/LgiClass.h \
 	../../include/common/Progress.h \
@@ -1069,28 +1409,50 @@ md5.o : ../common/Hash/md5/md5.c
 	../../include/common/GColour.h \
 	../../include/common/GFilter.h
 
-../../include/common/GFont.h : ../../include/common/GRect.h \
+../../include/common/GFont.h : /usr/include/string.h \
+	../../include/common/GRect.h \
 	../../include/sdl/LgiOsClasses.h \
 	../../include/common/GColour.h \
 	../../include/common/GCapabilities.h
 
 ../../include/common/GRect.h : ../../include/common/GPoint.h
 
+../../include/common/GProgressDlg.h : ../../include/common/GTableLayout.h
+
+../../include/common/GEventTargetThread.h : ../../include/common/LThread.h \
+	../../include/common/LMutex.h \
+	../../include/common/LThreadEvent.h
+
+../../include/common/LThread.h : ../../include/common/LMutex.h
+
 ../../include/common/GColour.h : ../../include/common/GColourSpace.h
 
-../../include/common/Core.h : 
-
 ../../include/common/GCheckBox.h : 
+
+../../include/common/Core.h : 
 
 ../../include/sdl/LgiOsClasses.h : 
 
 ../../include/common/GLibrary.h : 
 
-../../include/win32/GSymLookup.h : 
+../../include/win32/GSymLookup.h : /usr/include/stdio.h
 
 ../../include/common/GRegKey.h : ../../include/common/GContainers.h
 
 ../../include/common/GFontSelect.h : 
+
+../../../../../../../usr/include/stdio.h : /usr/include/libio.h \
+	/usr/include/bits/stdio_lim.h \
+	/usr/include/bits/sys_errlist.h
+
+../../../../../../../usr/include/bits/stdio_lim.h : 
+
+../../../../../../../usr/include/libio.h : /usr/include/_G_config.h
+
+../../../../../../../usr/include/_G_config.h : /usr/include/bits/types.h \
+	/usr/include/wchar.h
+
+../../../../../../../usr/include/bits/sys_errlist.h : 
 
 ../../include/common/GProgress.h : 
 
@@ -1102,10 +1464,39 @@ md5.o : ../common/Hash/md5/md5.c
 
 ../../include/common/GMenuImpl.h : ../../include/common/GPopup.h
 
-../../include/common/GBox.h : 
+../../include/common/GBox.h : ../../include/common/GCss.h
 
-../../include/common/GDragAndDrop.h : ../../include/common/GVariant.h \
-	../../include/common/GCom.h
+../../../../../../../usr/include/bits/netdb.h : 
+
+../../include/common/GDragAndDrop.h : ../../include/common/GVariant.h
+
+../../include/common/GStringClass.h : /usr/include/stdio.h \
+	/usr/include/string.h \
+	/usr/include/math.h \
+	/usr/include/stdint.h \
+	/usr/include/inttypes.h \
+	../../include/common/GUnicode.h \
+	../../include/common/GArray.h
+
+../../../../../../../usr/include/inttypes.h : /usr/include/features.h \
+	/usr/include/stdint.h
+
+../../../../../../../usr/include/bits/socket.h : /usr/include/sys/types.h \
+	/usr/include/bits/socket_type.h \
+	/usr/include/bits/sockaddr.h \
+	/usr/include/asm/socket.h
+
+../../../../../../../usr/include/asm/socket.h : /usr/include/asm-generic/socket.h
+
+../../../../../../../usr/include/bits/sockaddr.h : 
+
+../../../../../../../usr/include/asm-generic/socket.h : /usr/include/asm/sockios.h
+
+../../../../../../../usr/include/asm/sockios.h : /usr/include/asm-generic/sockios.h
+
+../../../../../../../usr/include/asm-generic/sockios.h : 
+
+../../../../../../../usr/include/errno.h : /usr/include/bits/errno.h
 
 ../../include/common/GDisplayString.h : 
 
@@ -1113,23 +1504,45 @@ md5.o : ../common/Hash/md5/md5.c
 	../../include/sdl/LgiOsDefs.h \
 	../../include/common/GStream.h
 
+../../../../../../../usr/include/bits/types.h : /usr/include/features.h \
+	/usr/include/bits/wordsize.h \
+	/usr/include/bits/typesizes.h
+
+../../../../../../../usr/include/bits/typesizes.h : 
+
 ../../include/common/Res.h : ../../include/common/GXmlTree.h
 
 ../../include/common/GVariant.h : ../../include/common/GDom.h \
-	../../include/common/GDateTime.h \
+	../../include/common/LDateTime.h \
 	../../include/common/GContainers.h \
-	../../include/common/GHashTable.h
+	../../include/common/GHashTable.h \
+	../../include/common/GString.h
 
 ../../include/common/GTree.h : ../../include/common/GItemContainer.h
+
+../../include/common/GFontCache.h : 
 
 ../../include/common/GDisplayString.h : 
 
 ../../include/common/GSlider.h : 
 
+../../../../../../../usr/include/sys/utsname.h : /usr/include/features.h \
+	/usr/include/bits/utsname.h
+
+../../../../../../../usr/include/dirent.h : /usr/include/features.h \
+	/usr/include/bits/types.h \
+	/usr/include/bits/dirent.h
+
+../../../../../../../usr/include/netinet/tcp.h : /usr/include/features.h
+
 ../../include/common/GDisplayStringLayout.h : ../../include/common/GUtf8.h \
 	../../include/common/GDisplayString.h
 
 ../../include/common/GUtf8.h : 
+
+../../../../../../../usr/include/bits/endian.h : 
+
+../../../../../../../usr/include/assert.h : /usr/include/features.h
 
 ../../include/common/GCss.h : ../../include/common/LgiInc.h \
 	../../include/sdl/LgiOsDefs.h \
@@ -1141,9 +1554,23 @@ md5.o : ../common/Hash/md5/md5.c
 
 ../../include/common/GButton.h : 
 
+../../../../../../../usr/include/time.h : 
+
+../../include/common/LDateTime.h : /usr/include/time.h \
+	../../include/common/GStringClass.h
+
 ../../include/common/GCapabilities.h : ../../include/common/GHashTable.h
 
+../../../../../../../usr/include/string.h : /usr/include/features.h
+
 ../../include/common/GNotifications.h : 
+
+../../../../../../../usr/include/locale.h : /usr/include/features.h \
+	/usr/include/bits/locale.h
+
+../../../../../../../usr/include/bits/locale.h : 
+
+../../../../../../../usr/include/bits/errno.h : 
 
 ../../include/common/Lgi.h : ../../include/common/LgiInc.h \
 	../../include/sdl/LgiOsDefs.h \
@@ -1155,17 +1582,18 @@ md5.o : ../common/Hash/md5/md5.c
 	../../include/common/Progress.h \
 	../../include/common/GFile.h \
 	../../include/common/Gdc2.h \
-	../../include/common/LgiRes.h \
 	../../include/common/LgiClasses.h \
 	../../include/common/LgiCommon.h
 
-../../include/common/LgiClasses.h : ../../include/common/GMutex.h \
+../../include/common/LgiClasses.h : /usr/include/string.h \
+	../../include/common/LMutex.h \
 	../../include/sdl/LgiOsClasses.h \
 	../../include/common/GMem.h \
 	../../include/common/GArray.h \
 	../../include/common/LgiCommon.h \
 	../../include/common/GXmlTree.h \
 	../../include/common/GDragAndDrop.h \
+	../../include/common/GHashTable.h \
 	../../include/common/GMenu.h \
 	../../include/common/LgiWidgets.h \
 	../../include/common/Progress.h \
@@ -1173,10 +1601,11 @@ md5.o : ../common/Hash/md5/md5.c
 	../../include/common/GFileSelect.h \
 	../../include/common/GFindReplaceDlg.h \
 	../../include/common/GToolBar.h \
-	../../include/common/GThread.h \
+	../../include/common/LThread.h \
 	../../include/common/GInput.h
 
-../../include/common/LgiCommon.h : ../../include/common/GMem.h \
+../../include/common/LgiCommon.h : /usr/include/sys/time.h \
+	../../include/common/GMem.h \
 	../../include/common/GArray.h \
 	../../include/common/LgiClass.h \
 	../../include/common/GStringClass.h
@@ -1187,10 +1616,6 @@ md5.o : ../common/Hash/md5/md5.c
 
 ../../include/common/GFileSelect.h : 
 
-../../include/common/GStringClass.h : ../../include/common/GUtf8.h \
-	../../include/common/GString.h \
-	../../include/common/GUnicode.h
-
 ../../include/common/LgiMsgs.h : 
 
 ../../include/common/GMenu.h : ../../include/common/GMenuImpl.h \
@@ -1200,24 +1625,35 @@ md5.o : ../common/Hash/md5/md5.c
 
 ../../include/common/GFindReplaceDlg.h : 
 
+../../../../../../../usr/include/ifaddrs.h : /usr/include/features.h \
+	/usr/include/sys/socket.h
+
+../../../../../../../usr/include/stdint.h : /usr/include/features.h \
+	/usr/include/bits/wchar.h \
+	/usr/include/bits/wordsize.h
+
 ../../include/common/GNotifications.h : 
 
 ../../include/common/GMru.h : ../../include/common/GProperties.h
+
+../../../../../../../usr/include/bits/utsname.h : 
 
 ../../include/common/GClipBoard.h : 
 
 ../../include/common/LgiNetInc.h : 
 
-../../include/common/Progress.h : ../../include/common/GMutex.h
+../../../../../../../usr/include/bits/mathcalls.h : 
+
+../../include/common/Progress.h : ../../include/common/LMutex.h
 
 ../../include/common/GMem.h : ../../include/common/LgiInc.h \
-	../../include/sdl/LgiOsDefs.h
+	../../include/sdl/LgiOsDefs.h \
+	/usr/include/stdlib.h \
+	/usr/include/string.h
 
 ../../include/common/LgiInc.h : 
 
 ../../include/common/GPanel.h : ../../include/common/GDisplayString.h
-
-../../include/common/GDateTime.h : 
 
 ../../include/common/GTableLayout.h : ../../include/common/GCss.h \
 	../../include/common/GNotifications.h
@@ -1230,39 +1666,64 @@ md5.o : ../common/Hash/md5/md5.c
 
 ../../include/sdl/LgiOsClasses.h : 
 
-../../include/common/GFile.h : ../../include/common/GMem.h \
+../../include/common/GFile.h : /usr/include/fcntl.h \
+	../../include/common/GMem.h \
 	../../include/common/GStream.h \
 	../../include/common/GArray.h \
 	../../include/common/GRefCount.h \
-	../../include/common/GStringClass.h
+	../../include/common/GStringClass.h \
+	/usr/include/sys/types.h \
+	/usr/include/sys/stat.h \
+	/usr/include/dirent.h \
+	/usr/include/unistd.h
 
 ../../include/common/GProgress.h : 
 
+../../../../../../../usr/include/ctype.h : /usr/include/features.h \
+	/usr/include/bits/types.h
+
 ../../include/common/LgiInc.h : 
 
-../../include/common/GItemContainer.h : ../../include/common/GPopup.h \
-	../../include/common/GNotifications.h
+../../../../../../../usr/include/linux/types.h : /usr/include/asm/types.h \
+	/usr/include/linux/posix_types.h
+
+../../../../../../../usr/include/linux/posix_types.h : /usr/include/linux/stddef.h \
+	/usr/include/asm/posix_types.h
+
+../../../../../../../usr/include/arpa/inet.h : /usr/include/features.h \
+	/usr/include/netinet/in.h
 
 ../../include/common/INet.h : ../../include/common/GMem.h \
 	../../include/common/GContainers.h \
 	../../include/common/LgiNetInc.h \
 	../../include/common/GStream.h \
 	../../include/common/LgiInterfaces.h \
-	../../include/common/GString.h
+	../../include/common/GString.h \
+	/usr/include/sys/socket.h \
+	/usr/include/netdb.h
 
-../../include/common/GProperties.h : ../../include/common/GContainers.h \
+../../include/common/GItemContainer.h : ../../include/common/GPopup.h \
+	../../include/common/GNotifications.h \
+	../../include/common/GCss.h
+
+../../include/common/GProperties.h : /usr/include/string.h \
+	../../include/common/GContainers.h \
 	../../include/common/LgiClass.h \
 	../../include/common/GString.h
 
-../../include/common/GFilter.h : ../../include/common/GContainers.h
+../../include/common/GFilter.h : /usr/include/string.h \
+	../../include/common/GContainers.h
 
 ../../include/common/GStream.h : ../../include/common/GDom.h \
 	../../include/common/GStringClass.h
 
-../../include/common/GCssTools.h : 
+../../include/common/GCssTools.h : ../../include/common/GCss.h
+
+../../../../../../../usr/include/bits/wordsize.h : 
 
 ../../include/common/GItemContainer.h : ../../include/common/GPopup.h \
-	../../include/common/GNotifications.h
+	../../include/common/GNotifications.h \
+	../../include/common/GCss.h
 
 ../../include/common/GProcess.h : ../../include/common/GStream.h
 
@@ -1270,14 +1731,32 @@ md5.o : ../common/Hash/md5/md5.c
 	../../include/common/GMem.h \
 	../../include/common/GArray.h
 
-../../include/common/GThread.h : ../../include/common/GMutex.h
+../../../../../../../usr/include/bits/mathdef.h : 
 
 ../../include/common/GInput.h : 
+
+../../include/common/LThreadEvent.h : /usr/include/semaphore.h
+
+../../../../../../../usr/include/poll.h : /usr/include/sys/poll.h
 
 ../../include/common/GDocView.h : ../../include/common/GVariant.h \
 	../../include/common/GNotifications.h
 
 ../../include/common/GImageList.h : 
+
+../../../../../../../usr/include/wchar.h : 
+
+../../../../../../../usr/include/bits/byteswap-16.h : 
+
+../../include/common/GInput.h : 
+
+../../../../../../../usr/include/sys/resource.h : /usr/include/features.h \
+	/usr/include/bits/resource.h
+
+../../../../../../../usr/include/bits/resource.h : /usr/include/bits/types.h \
+	/usr/include/bits/time.h
+
+../../include/common/GRadioGroup.h : 
 
 ../../include/common/LgiRes.h : ../../include/common/Res.h \
 	../../include/common/GContainers.h \
@@ -1287,17 +1766,14 @@ md5.o : ../common/Hash/md5/md5.c
 
 ../../include/common/GFontCache.h : 
 
-../../include/common/GInput.h : 
-
-../../include/common/GRadioGroup.h : 
-
 ../../include/common/LgiClass.h : ../../include/common/LgiInc.h \
 	../../include/common/LgiDefs.h \
 	../../include/common/GAutoPtr.h
 
 ../../include/common/GCapabilities.h : ../../include/common/GHashTable.h
 
-../../include/common/Gdc2.h : ../../include/sdl/LgiOsDefs.h \
+../../include/common/Gdc2.h : /usr/include/stdio.h \
+	../../include/sdl/LgiOsDefs.h \
 	../../include/common/LgiInc.h \
 	../../include/common/LgiClass.h \
 	../../include/common/Progress.h \
@@ -1315,14 +1791,26 @@ md5.o : ../common/Hash/md5/md5.c
 	../../include/common/GColour.h \
 	../../include/common/GFilter.h
 
+../../../../../../../usr/include/asm/types.h : /usr/include/asm-generic/types.h
+
+../../../../../../../usr/include/asm-generic/types.h : /usr/include/asm-generic/int-ll64.h
+
+../../../../../../../usr/include/asm-generic/int-ll64.h : /usr/include/asm/bitsperlong.h
+
+../../../../../../../usr/include/asm/posix_types.h : 
+
 ../../include/common/GRefCount.h : 
 
-../../include/common/LgiCommon.h : ../../include/common/GMem.h \
+../../include/common/LgiCommon.h : /usr/include/sys/time.h \
+	../../include/common/GMem.h \
 	../../include/common/GArray.h \
 	../../include/common/LgiClass.h \
 	../../include/common/GStringClass.h
 
-../../include/linux/GSymLookup.h : ../../include/common/GProcess.h
+../../include/linux/GSymLookup.h : /usr/include/execinfo.h \
+	../../include/common/GProcess.h
+
+../../../../../../../usr/include/execinfo.h : /usr/include/features.h
 
 ../../include/common/GProcess.h : ../../include/common/GStream.h
 
@@ -1332,30 +1820,90 @@ md5.o : ../common/Hash/md5/md5.c
 
 ../../include/common/GLibrary.h : 
 
+../../../../../../../usr/include/sys/timeb.h : /usr/include/features.h \
+	/usr/include/time.h
+
+../../../../../../../usr/include/sys/ioctl.h : /usr/include/features.h \
+	/usr/include/bits/ioctls.h \
+	/usr/include/bits/ioctl-types.h \
+	/usr/include/sys/ttydefaults.h
+
+../../../../../../../usr/include/bits/ioctl-types.h : /usr/include/asm/ioctls.h
+
+../../../../../../../usr/include/asm/ioctls.h : /usr/include/asm-generic/ioctls.h
+
+../../../../../../../usr/include/asm-generic/ioctls.h : /usr/include/linux/ioctl.h
+
+../../../../../../../usr/include/bits/ioctls.h : /usr/include/asm/ioctls.h
+
+../../../../../../../usr/include/sys/ttydefaults.h : 
+
+../../../../../../../usr/include/linux/ioctl.h : /usr/include/asm/ioctl.h
+
+../../../../../../../usr/include/asm/ioctl.h : /usr/include/asm-generic/ioctl.h
+
+../../../../../../../usr/include/asm-generic/ioctl.h : 
+
+../../../../../../../usr/include/unistd.h : /usr/include/features.h \
+	/usr/include/bits/posix_opt.h \
+	/usr/include/bits/types.h \
+	/usr/include/bits/confname.h
+
+../../../../../../../usr/include/bits/confname.h : 
+
 ../../include/common/GPassword.h : 
 
-../../include/common/GSkinEngine.h : ../../include/common/GList.h
+../../../../../../../usr/include/bits/time.h : 
 
-../../include/common/GList.h : ../../include/common/GMem.h \
+../../include/common/GSkinEngine.h : ../../include/common/LList.h
+
+../../include/common/LList.h : ../../include/common/GMem.h \
 	../../include/common/GArray.h \
 	../../include/common/GPopup.h \
 	../../include/common/GDisplayString.h \
 	../../include/common/GCss.h \
 	../../include/common/GItemContainer.h
 
-../../include/common/GPath.h : ../../include/common/GMatrix.h
+../../../../../../../usr/include/bits/socket_type.h : 
+
+../../include/common/GPath.h : /usr/include/math.h \
+	../../include/common/GMatrix.h
 
 ../../include/common/GMatrix.h : 
 
 ../../include/common/GString.h : ../../include/common/LgiDefs.h \
 	../../include/sdl/LgiOsDefs.h
 
+../../../../../../../usr/include/sys/select.h : /usr/include/features.h \
+	/usr/include/bits/types.h \
+	/usr/include/bits/select.h \
+	/usr/include/bits/sigset.h \
+	/usr/include/time.h \
+	/usr/include/bits/time.h
+
+../../../../../../../usr/include/bits/select.h : /usr/include/bits/wordsize.h
+
 ../../include/common/GdiLeak.h : 
 
 ../../include/common/GPoint.h : 
 
-../../include/common/GDragAndDrop.h : ../../include/common/GVariant.h \
-	../../include/common/GCom.h
+../../include/common/GDragAndDrop.h : ../../include/common/GVariant.h
+
+../../../../../../../usr/include/bits/wchar.h : 
+
+../../../../../../../usr/include/linux/stddef.h : 
+
+../../../../../../../usr/include/asm/bitsperlong.h : /usr/include/asm-generic/bitsperlong.h
+
+../../../../../../../usr/include/asm-generic/bitsperlong.h : 
+
+../../../../../../../usr/include/fcntl.h : /usr/include/features.h \
+	/usr/include/bits/types.h \
+	/usr/include/bits/fcntl.h
+
+../../../../../../../usr/include/bits/fcntl.h : /usr/include/bits/fcntl-linux.h
+
+../../../../../../../usr/include/bits/fcntl-linux.h : 
 
 ../../include/common/GBitmap.h : 
 
@@ -1363,7 +1911,17 @@ md5.o : ../common/Hash/md5/md5.c
 
 ../../include/common/GViewPriv.h : 
 
+../../../../../../../usr/include/stdc-predef.h : 
+
 ../../include/common/LgiNetInc.h : 
+
+../../../../../../../usr/include/sys/stat.h : /usr/include/features.h \
+	/usr/include/bits/types.h \
+	/usr/include/bits/stat.h
+
+../../../../../../../usr/include/bits/stat.h : 
+
+../../../../../../../usr/include/bits/sigset.h : 
 
 ../../include/common/GStream.h : ../../include/common/GDom.h \
 	../../include/common/GStringClass.h
@@ -1378,10 +1936,72 @@ md5.o : ../common/Hash/md5/md5.c
 
 ../../include/common/GPopup.h : 
 
-../../include/sdl/LgiOsDefs.h : ../../include/common/LgiDefs.h \
+../../include/sdl/LgiOsDefs.h : /usr/include/string.h \
+	/usr/include/assert.h \
+	../../include/common/LgiDefs.h \
+	/usr/include/stdlib.h \
+	/usr/include/stdio.h \
+	/usr/include/wchar.h \
+	/usr/include/pthread.h \
 	/usr/include/SDL/SDL.h \
 	/usr/include/freetype2/ft2build.h \
-	../../include/common/LgiInc.h
+	../../include/common/LgiInc.h \
+	../../include/common/GMessage.h
+
+../../include/common/GMessage.h : 
+
+../../../../../../../usr/include/pthread.h : /usr/include/features.h \
+	/usr/include/endian.h \
+	/usr/include/sched.h \
+	/usr/include/time.h \
+	/usr/include/bits/pthreadtypes.h \
+	/usr/include/bits/setjmp.h \
+	/usr/include/bits/wordsize.h
+
+../../../../../../../usr/include/bits/pthreadtypes.h : /usr/include/bits/wordsize.h
+
+../../../../../../../usr/include/bits/setjmp.h : /usr/include/bits/wordsize.h
+
+../../../../../../../usr/include/sched.h : /usr/include/features.h \
+	/usr/include/bits/types.h \
+	/usr/include/time.h \
+	/usr/include/bits/sched.h
+
+../../../../../../../usr/include/bits/sched.h : 
+
+../../include/common/LgiDefs.h : ../../include/common/LgiInc.h \
+	/usr/include/wchar.h \
+	../../include/common/GAutoPtr.h
+
+../../../../../../../usr/include/bits/dirent.h : 
+
+../../../../../../../usr/include/signal.h : /usr/include/features.h \
+	/usr/include/bits/sigset.h \
+	/usr/include/bits/types.h \
+	/usr/include/bits/signum.h
+
+../../../../../../../usr/include/bits/signum.h : 
+
+../../include/common/GToken.h : ../../include/common/GArray.h \
+	../../include/common/GString.h
+
+../../../../../../../usr/include/bits/posix_opt.h : 
+
+../../include/common/GTextView3.h : ../../include/common/GDocView.h \
+	../../include/common/GUndo.h \
+	../../include/common/GDragAndDrop.h
+
+../../include/sdl/LgiOsDefs.h : /usr/include/string.h \
+	/usr/include/assert.h \
+	../../include/common/LgiDefs.h \
+	/usr/include/stdlib.h \
+	/usr/include/stdio.h \
+	/usr/include/wchar.h \
+	/usr/include/pthread.h \
+	/usr/include/SDL/SDL.h \
+	/usr/include/freetype2/ft2build.h \
+	../../include/common/LgiInc.h \
+	../../include/common/GMessage.h
 
 ../../../../../../../usr/include/SDL/SDL.h : /usr/include/SDL/SDL_main.h \
 	/usr/include/SDL/SDL_stdinc.h \
@@ -1411,13 +2031,6 @@ md5.o : ../common/Hash/md5/md5.c
 	/usr/include/SDL/begin_code.h \
 	/usr/include/SDL/close_code.h
 
-../../../../../../../usr/include/SDL/SDL_quit.h : /usr/include/SDL/SDL_stdinc.h \
-	/usr/include/SDL/SDL_error.h
-
-../../../../../../../usr/include/SDL/SDL_endian.h : /usr/include/SDL/SDL_stdinc.h \
-	/usr/include/SDL/begin_code.h \
-	/usr/include/SDL/close_code.h
-
 ../../../../../../../usr/include/SDL/SDL_rwops.h : /usr/include/SDL/SDL_stdinc.h \
 	/usr/include/SDL/SDL_error.h \
 	/usr/include/SDL/begin_code.h \
@@ -1427,16 +2040,7 @@ md5.o : ../common/Hash/md5/md5.c
 	/usr/include/SDL/begin_code.h \
 	/usr/include/SDL/close_code.h
 
-../../../../../../../usr/include/SDL/SDL_version.h : /usr/include/SDL/SDL_stdinc.h \
-	/usr/include/SDL/begin_code.h \
-	/usr/include/SDL/close_code.h
-
 ../../../../../../../usr/include/SDL/close_code.h : 
-
-../../../../../../../usr/include/SDL/SDL_loadso.h : /usr/include/SDL/SDL_stdinc.h \
-	/usr/include/SDL/SDL_error.h \
-	/usr/include/SDL/begin_code.h \
-	/usr/include/SDL/close_code.h
 
 ../../../../../../../usr/include/SDL/begin_code.h : 
 
@@ -1446,14 +2050,56 @@ md5.o : ../common/Hash/md5/md5.c
 	/usr/include/SDL/begin_code.h \
 	/usr/include/SDL/close_code.h
 
-../../../../../../../usr/include/SDL/SDL_active.h : /usr/include/SDL/SDL_stdinc.h \
+../../../../../../../usr/include/SDL/SDL_thread.h : /usr/include/SDL/SDL_stdinc.h \
+	/usr/include/SDL/SDL_error.h \
+	/usr/include/SDL/SDL_mutex.h \
+	/usr/include/SDL/begin_code.h \
+	/usr/include/SDL/close_code.h
+
+../../../../../../../usr/include/SDL/SDL_keyboard.h : /usr/include/SDL/SDL_stdinc.h \
+	/usr/include/SDL/SDL_error.h \
+	/usr/include/SDL/SDL_keysym.h \
+	/usr/include/SDL/begin_code.h \
+	/usr/include/SDL/close_code.h
+
+../../../../../../../usr/include/SDL/SDL_joystick.h : /usr/include/SDL/SDL_stdinc.h \
 	/usr/include/SDL/SDL_error.h \
 	/usr/include/SDL/begin_code.h \
 	/usr/include/SDL/close_code.h
 
-../../../../../../../usr/include/SDL/SDL_thread.h : /usr/include/SDL/SDL_stdinc.h \
+../../../../../../../usr/include/SDL/SDL_error.h : /usr/include/SDL/SDL_stdinc.h \
+	/usr/include/SDL/begin_code.h \
+	/usr/include/SDL/close_code.h
+
+../../../../../../../usr/include/SDL/SDL_stdinc.h : /usr/include/SDL/SDL_config.h \
+	/usr/include/sys/types.h \
+	/usr/include/stdio.h \
+	/usr/include/SDL/begin_code.h \
+	/usr/include/SDL/close_code.h
+
+../../../../../../../usr/include/SDL/SDL_config.h : /usr/include/SDL/SDL_platform.h
+
+../../../../../../../usr/include/SDL/SDL_quit.h : /usr/include/SDL/SDL_stdinc.h \
+	/usr/include/SDL/SDL_error.h
+
+../../../../../../../usr/include/SDL/SDL_endian.h : /usr/include/SDL/SDL_stdinc.h \
+	/usr/include/endian.h \
+	/usr/include/SDL/begin_code.h \
+	/usr/include/SDL/close_code.h
+
+../../../../../../../usr/include/SDL/SDL_version.h : /usr/include/SDL/SDL_stdinc.h \
+	/usr/include/SDL/begin_code.h \
+	/usr/include/SDL/close_code.h
+
+../../../../../../../usr/include/SDL/SDL_loadso.h : /usr/include/SDL/SDL_stdinc.h \
 	/usr/include/SDL/SDL_error.h \
-	/usr/include/SDL/SDL_mutex.h \
+	/usr/include/SDL/begin_code.h \
+	/usr/include/SDL/close_code.h
+
+../../../../../../../usr/include/SDL/SDL_platform.h : 
+
+../../../../../../../usr/include/SDL/SDL_active.h : /usr/include/SDL/SDL_stdinc.h \
+	/usr/include/SDL/SDL_error.h \
 	/usr/include/SDL/begin_code.h \
 	/usr/include/SDL/close_code.h
 
@@ -1472,35 +2118,12 @@ md5.o : ../common/Hash/md5/md5.c
 	/usr/include/SDL/begin_code.h \
 	/usr/include/SDL/close_code.h
 
-../../../../../../../usr/include/SDL/SDL_keyboard.h : /usr/include/SDL/SDL_stdinc.h \
-	/usr/include/SDL/SDL_error.h \
-	/usr/include/SDL/SDL_keysym.h \
-	/usr/include/SDL/begin_code.h \
-	/usr/include/SDL/close_code.h
-
-../../../../../../../usr/include/SDL/SDL_joystick.h : /usr/include/SDL/SDL_stdinc.h \
-	/usr/include/SDL/SDL_error.h \
-	/usr/include/SDL/begin_code.h \
-	/usr/include/SDL/close_code.h
-
 ../../../../../../../usr/include/SDL/SDL_keysym.h : 
 
 ../../../../../../../usr/include/SDL/SDL_timer.h : /usr/include/SDL/SDL_stdinc.h \
 	/usr/include/SDL/SDL_error.h \
 	/usr/include/SDL/begin_code.h \
 	/usr/include/SDL/close_code.h
-
-../../../../../../../usr/include/SDL/SDL_error.h : /usr/include/SDL/SDL_stdinc.h \
-	/usr/include/SDL/begin_code.h \
-	/usr/include/SDL/close_code.h
-
-../../../../../../../usr/include/SDL/SDL_stdinc.h : /usr/include/SDL/SDL_config.h \
-	/usr/include/SDL/begin_code.h \
-	/usr/include/SDL/close_code.h
-
-../../../../../../../usr/include/SDL/SDL_config.h : /usr/include/SDL/SDL_platform.h
-
-../../../../../../../usr/include/SDL/SDL_platform.h : 
 
 ../../../../../../../usr/include/SDL/SDL_cdrom.h : /usr/include/SDL/SDL_stdinc.h \
 	/usr/include/SDL/SDL_error.h \
@@ -1516,41 +2139,306 @@ md5.o : ../common/Hash/md5/md5.c
 	/usr/include/SDL/begin_code.h \
 	/usr/include/SDL/close_code.h
 
-../../include/common/LgiDefs.h : ../../include/common/LgiInc.h \
-	../../include/common/GAutoPtr.h
-
-../../include/common/GFile.h : ../../include/common/GMem.h \
+../../include/common/GFile.h : /usr/include/fcntl.h \
+	../../include/common/GMem.h \
 	../../include/common/GStream.h \
 	../../include/common/GArray.h \
 	../../include/common/GRefCount.h \
-	../../include/common/GStringClass.h
+	../../include/common/GStringClass.h \
+	/usr/include/sys/types.h \
+	/usr/include/sys/stat.h \
+	/usr/include/dirent.h \
+	/usr/include/unistd.h
 
-../../include/common/GToken.h : ../../include/common/GArray.h
+../../../../../../../usr/include/gstreamer-1.0/gst/gst.h : /usr/include/gstreamer-1.0/gst/glib-compat.h \
+	/usr/include/gstreamer-1.0/gst/gstenumtypes.h \
+	/usr/include/gstreamer-1.0/gst/gstversion.h \
+	/usr/include/gstreamer-1.0/gst/gstbin.h \
+	/usr/include/gstreamer-1.0/gst/gstbuffer.h \
+	/usr/include/gstreamer-1.0/gst/gstbufferlist.h \
+	/usr/include/gstreamer-1.0/gst/gstbufferpool.h \
+	/usr/include/gstreamer-1.0/gst/gstcaps.h \
+	/usr/include/gstreamer-1.0/gst/gstcapsfeatures.h \
+	/usr/include/gstreamer-1.0/gst/gstchildproxy.h \
+	/usr/include/gstreamer-1.0/gst/gstclock.h \
+	/usr/include/gstreamer-1.0/gst/gstcontrolsource.h \
+	/usr/include/gstreamer-1.0/gst/gstdatetime.h \
+	/usr/include/gstreamer-1.0/gst/gstdebugutils.h \
+	/usr/include/gstreamer-1.0/gst/gstelement.h \
+	/usr/include/gstreamer-1.0/gst/gstelementmetadata.h \
+	/usr/include/gstreamer-1.0/gst/gsterror.h \
+	/usr/include/gstreamer-1.0/gst/gstevent.h \
+	/usr/include/gstreamer-1.0/gst/gstghostpad.h \
+	/usr/include/gstreamer-1.0/gst/gstinfo.h \
+	/usr/include/gstreamer-1.0/gst/gstiterator.h \
+	/usr/include/gstreamer-1.0/gst/gstmessage.h \
+	/usr/include/gstreamer-1.0/gst/gstmemory.h \
+	/usr/include/gstreamer-1.0/gst/gstmeta.h \
+	/usr/include/gstreamer-1.0/gst/gstminiobject.h \
+	/usr/include/gstreamer-1.0/gst/gstobject.h \
+	/usr/include/gstreamer-1.0/gst/gstpad.h \
+	/usr/include/gstreamer-1.0/gst/gstparamspecs.h \
+	/usr/include/gstreamer-1.0/gst/gstpipeline.h \
+	/usr/include/gstreamer-1.0/gst/gstplugin.h \
+	/usr/include/gstreamer-1.0/gst/gstpoll.h \
+	/usr/include/gstreamer-1.0/gst/gstpreset.h \
+	/usr/include/gstreamer-1.0/gst/gstquery.h \
+	/usr/include/gstreamer-1.0/gst/gstregistry.h \
+	/usr/include/gstreamer-1.0/gst/gstsample.h \
+	/usr/include/gstreamer-1.0/gst/gstsegment.h \
+	/usr/include/gstreamer-1.0/gst/gststructure.h \
+	/usr/include/gstreamer-1.0/gst/gstsystemclock.h \
+	/usr/include/gstreamer-1.0/gst/gsttaglist.h \
+	/usr/include/gstreamer-1.0/gst/gsttagsetter.h \
+	/usr/include/gstreamer-1.0/gst/gsttask.h \
+	/usr/include/gstreamer-1.0/gst/gsttaskpool.h \
+	/usr/include/gstreamer-1.0/gst/gsttoc.h \
+	/usr/include/gstreamer-1.0/gst/gsttocsetter.h \
+	/usr/include/gstreamer-1.0/gst/gsttypefind.h \
+	/usr/include/gstreamer-1.0/gst/gsttypefindfactory.h \
+	/usr/include/gstreamer-1.0/gst/gsturi.h \
+	/usr/include/gstreamer-1.0/gst/gstutils.h \
+	/usr/include/gstreamer-1.0/gst/gstvalue.h \
+	/usr/include/gstreamer-1.0/gst/gstparse.h \
+	/usr/include/gstreamer-1.0/gst/gstcompat.h
 
-../../include/common/GStringClass.h : ../../include/common/GUtf8.h \
-	../../include/common/GString.h \
-	../../include/common/GUnicode.h
+../../../../../../../usr/include/gstreamer-1.0/gst/gsttypefind.h : /usr/include/gstreamer-1.0/gst/gstcaps.h \
+	/usr/include/gstreamer-1.0/gst/gstplugin.h \
+	/usr/include/gstreamer-1.0/gst/gstpluginfeature.h
 
-../../include/common/GMutex.h : 
+../../../../../../../usr/include/gstreamer-1.0/gst/gsttocsetter.h : /usr/include/gstreamer-1.0/gst/gst.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstmemory.h : /usr/include/gstreamer-1.0/gst/gstconfig.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstenumtypes.h : 
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstchildproxy.h : /usr/include/gstreamer-1.0/gst/gst.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gsturi.h : /usr/include/gstreamer-1.0/gst/gstelement.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstsystemclock.h : /usr/include/gstreamer-1.0/gst/gstclock.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gsttagsetter.h : /usr/include/gstreamer-1.0/gst/gst.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gsttaglist.h : /usr/include/gstreamer-1.0/gst/gstdatetime.h \
+	/usr/include/gstreamer-1.0/gst/gstsample.h \
+	/usr/include/gstreamer-1.0/gst/gstbuffer.h \
+	/usr/include/gstreamer-1.0/gst/glib-compat.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gsterror.h : /usr/include/errno.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstdebugutils.h : /usr/include/gstreamer-1.0/gst/gstconfig.h \
+	/usr/include/gstreamer-1.0/gst/gstbin.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstevent.h : /usr/include/gstreamer-1.0/gst/gstminiobject.h \
+	/usr/include/gstreamer-1.0/gst/gstformat.h \
+	/usr/include/gstreamer-1.0/gst/gstobject.h \
+	/usr/include/gstreamer-1.0/gst/gstclock.h \
+	/usr/include/gstreamer-1.0/gst/gststructure.h \
+	/usr/include/gstreamer-1.0/gst/gsttaglist.h \
+	/usr/include/gstreamer-1.0/gst/gstsegment.h \
+	/usr/include/gstreamer-1.0/gst/gstmessage.h \
+	/usr/include/gstreamer-1.0/gst/gstcontext.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstcaps.h : /usr/include/gstreamer-1.0/gst/gstconfig.h \
+	/usr/include/gstreamer-1.0/gst/gstminiobject.h \
+	/usr/include/gstreamer-1.0/gst/gststructure.h \
+	/usr/include/gstreamer-1.0/gst/gstcapsfeatures.h \
+	/usr/include/gstreamer-1.0/gst/glib-compat.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/glib-compat.h : 
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstutils.h : /usr/include/gstreamer-1.0/gst/gstconfig.h \
+	/usr/include/gstreamer-1.0/gst/gstbin.h \
+	/usr/include/gstreamer-1.0/gst/gstparse.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstbin.h : /usr/include/gstreamer-1.0/gst/gstelement.h \
+	/usr/include/gstreamer-1.0/gst/gstiterator.h \
+	/usr/include/gstreamer-1.0/gst/gstbus.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstbus.h : /usr/include/gstreamer-1.0/gst/gstmessage.h \
+	/usr/include/gstreamer-1.0/gst/gstclock.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gsttoc.h : /usr/include/gstreamer-1.0/gst/gstconfig.h \
+	/usr/include/gstreamer-1.0/gst/gstminiobject.h \
+	/usr/include/gstreamer-1.0/gst/gststructure.h \
+	/usr/include/gstreamer-1.0/gst/gsttaglist.h \
+	/usr/include/gstreamer-1.0/gst/gstformat.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstclock.h : /usr/include/gstreamer-1.0/gst/gstobject.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstcontext.h : /usr/include/gstreamer-1.0/gst/gstminiobject.h \
+	/usr/include/gstreamer-1.0/gst/gststructure.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstcontrolsource.h : /usr/include/gstreamer-1.0/gst/gstconfig.h \
+	/usr/include/gstreamer-1.0/gst/gstclock.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstdatetime.h : /usr/include/time.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstiterator.h : /usr/include/gstreamer-1.0/gst/gstconfig.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstmessage.h : /usr/include/gstreamer-1.0/gst/gstminiobject.h \
+	/usr/include/gstreamer-1.0/gst/gstobject.h \
+	/usr/include/gstreamer-1.0/gst/gstelement.h \
+	/usr/include/gstreamer-1.0/gst/gsttaglist.h \
+	/usr/include/gstreamer-1.0/gst/gststructure.h \
+	/usr/include/gstreamer-1.0/gst/gstquery.h \
+	/usr/include/gstreamer-1.0/gst/gsttoc.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstformat.h : /usr/include/gstreamer-1.0/gst/gstiterator.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstpad.h : /usr/include/gstreamer-1.0/gst/gstconfig.h \
+	/usr/include/gstreamer-1.0/gst/gstobject.h \
+	/usr/include/gstreamer-1.0/gst/gstbuffer.h \
+	/usr/include/gstreamer-1.0/gst/gstbufferlist.h \
+	/usr/include/gstreamer-1.0/gst/gstcaps.h \
+	/usr/include/gstreamer-1.0/gst/gstpadtemplate.h \
+	/usr/include/gstreamer-1.0/gst/gstevent.h \
+	/usr/include/gstreamer-1.0/gst/gstquery.h \
+	/usr/include/gstreamer-1.0/gst/gsttask.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstregistry.h : /usr/include/gstreamer-1.0/gst/gstconfig.h \
+	/usr/include/gstreamer-1.0/gst/gstplugin.h \
+	/usr/include/gstreamer-1.0/gst/gstpluginfeature.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstelementmetadata.h : 
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstvalue.h : /usr/include/gstreamer-1.0/gst/gstconfig.h \
+	/usr/include/gstreamer-1.0/gst/gstcaps.h \
+	/usr/include/gstreamer-1.0/gst/gststructure.h \
+	/usr/include/gstreamer-1.0/gst/gstcapsfeatures.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstsegment.h : /usr/include/gstreamer-1.0/gst/gstformat.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstcapsfeatures.h : /usr/include/gstreamer-1.0/gst/gstconfig.h \
+	/usr/include/gstreamer-1.0/gst/glib-compat.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstplugin.h : /usr/include/gstreamer-1.0/gst/gstconfig.h \
+	/usr/include/gstreamer-1.0/gst/gstobject.h \
+	/usr/include/gstreamer-1.0/gst/gstmacros.h \
+	/usr/include/gstreamer-1.0/gst/gststructure.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstmacros.h : 
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstpoll.h : /usr/include/gstreamer-1.0/gst/gstclock.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstversion.h : 
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstconfig.h : 
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gsttypefindfactory.h : /usr/include/gstreamer-1.0/gst/gstcaps.h \
+	/usr/include/gstreamer-1.0/gst/gstplugin.h \
+	/usr/include/gstreamer-1.0/gst/gstpluginfeature.h \
+	/usr/include/gstreamer-1.0/gst/gsttypefind.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstcompat.h : 
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gsttask.h : /usr/include/gstreamer-1.0/gst/gstobject.h \
+	/usr/include/gstreamer-1.0/gst/gsttaskpool.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstparse.h : /usr/include/gstreamer-1.0/gst/gstelement.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstpreset.h : /usr/include/gstreamer-1.0/gst/gstconfig.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstsample.h : /usr/include/gstreamer-1.0/gst/gstbuffer.h \
+	/usr/include/gstreamer-1.0/gst/gstcaps.h \
+	/usr/include/gstreamer-1.0/gst/gstsegment.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstminiobject.h : /usr/include/gstreamer-1.0/gst/gstconfig.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gststructure.h : /usr/include/gstreamer-1.0/gst/gstconfig.h \
+	/usr/include/gstreamer-1.0/gst/gstclock.h \
+	/usr/include/gstreamer-1.0/gst/gstdatetime.h \
+	/usr/include/gstreamer-1.0/gst/glib-compat.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstpipeline.h : /usr/include/gstreamer-1.0/gst/gstbin.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstparamspecs.h : /usr/include/gstreamer-1.0/gst/gstvalue.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstobject.h : /usr/include/gstreamer-1.0/gst/gstconfig.h \
+	/usr/include/gstreamer-1.0/gst/gstcontrolbinding.h \
+	/usr/include/gstreamer-1.0/gst/gstcontrolsource.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstcontrolbinding.h : /usr/include/gstreamer-1.0/gst/gstconfig.h \
+	/usr/include/gstreamer-1.0/gst/gstcontrolsource.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstmeta.h : 
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstpluginfeature.h : /usr/include/gstreamer-1.0/gst/gstobject.h \
+	/usr/include/gstreamer-1.0/gst/gstplugin.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstbufferpool.h : /usr/include/gstreamer-1.0/gst/gstminiobject.h \
+	/usr/include/gstreamer-1.0/gst/gstpad.h \
+	/usr/include/gstreamer-1.0/gst/gstbuffer.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstbufferlist.h : /usr/include/gstreamer-1.0/gst/gstbuffer.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstelement.h : /usr/include/gstreamer-1.0/gst/gstconfig.h \
+	/usr/include/gstreamer-1.0/gst/gstobject.h \
+	/usr/include/gstreamer-1.0/gst/gstpad.h \
+	/usr/include/gstreamer-1.0/gst/gstbus.h \
+	/usr/include/gstreamer-1.0/gst/gstclock.h \
+	/usr/include/gstreamer-1.0/gst/gstelementfactory.h \
+	/usr/include/gstreamer-1.0/gst/gstplugin.h \
+	/usr/include/gstreamer-1.0/gst/gstpluginfeature.h \
+	/usr/include/gstreamer-1.0/gst/gstiterator.h \
+	/usr/include/gstreamer-1.0/gst/gstmessage.h \
+	/usr/include/gstreamer-1.0/gst/gstquery.h \
+	/usr/include/gstreamer-1.0/gst/gsttaglist.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstghostpad.h : /usr/include/gstreamer-1.0/gst/gstpad.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstinfo.h : /usr/include/gstreamer-1.0/gst/gstconfig.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstquery.h : /usr/include/gstreamer-1.0/gst/gstiterator.h \
+	/usr/include/gstreamer-1.0/gst/gstminiobject.h \
+	/usr/include/gstreamer-1.0/gst/gststructure.h \
+	/usr/include/gstreamer-1.0/gst/gstformat.h \
+	/usr/include/gstreamer-1.0/gst/gstpad.h \
+	/usr/include/gstreamer-1.0/gst/gstallocator.h \
+	/usr/include/gstreamer-1.0/gst/gsttoc.h \
+	/usr/include/gstreamer-1.0/gst/gstcontext.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstallocator.h : /usr/include/gstreamer-1.0/gst/gstmemory.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstelementfactory.h : /usr/include/gstreamer-1.0/gst/gstconfig.h \
+	/usr/include/gstreamer-1.0/gst/gstelement.h \
+	/usr/include/gstreamer-1.0/gst/gstpad.h \
+	/usr/include/gstreamer-1.0/gst/gstplugin.h \
+	/usr/include/gstreamer-1.0/gst/gstpluginfeature.h \
+	/usr/include/gstreamer-1.0/gst/gsturi.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gsttaskpool.h : /usr/include/gstreamer-1.0/gst/gstobject.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstpadtemplate.h : /usr/include/gstreamer-1.0/gst/gstconfig.h \
+	/usr/include/gstreamer-1.0/gst/gstobject.h \
+	/usr/include/gstreamer-1.0/gst/gstbuffer.h \
+	/usr/include/gstreamer-1.0/gst/gstcaps.h \
+	/usr/include/gstreamer-1.0/gst/gstevent.h \
+	/usr/include/gstreamer-1.0/gst/gstquery.h \
+	/usr/include/gstreamer-1.0/gst/gsttask.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstbuffer.h : /usr/include/gstreamer-1.0/gst/gstminiobject.h \
+	/usr/include/gstreamer-1.0/gst/gstclock.h \
+	/usr/include/gstreamer-1.0/gst/gstallocator.h \
+	/usr/include/gstreamer-1.0/gst/gstmeta.h
+
+../../include/common/GStringClass.h : /usr/include/stdio.h \
+	/usr/include/string.h \
+	/usr/include/math.h \
+	/usr/include/stdint.h \
+	/usr/include/inttypes.h \
+	../../include/common/GUnicode.h \
+	../../include/common/GArray.h
 
 ../../include/common/GPopup.h : 
 
-../../include/common/GTextView3.h : ../../include/common/GDocView.h \
-	../../include/common/GUndo.h \
-	../../include/common/GDragAndDrop.h
-
-../../include/common/GCom.h : ../../include/common/GContainers.h \
-	../../include/common/GVariant.h
-
-../../include/sdl/LgiOsDefs.h : ../../include/common/LgiDefs.h \
-	/usr/include/SDL/SDL.h \
-	/usr/include/freetype2/ft2build.h \
-	../../include/common/LgiInc.h
-
 VPATH=%.cpp \
-	../../include/common \
-	../../include/sdl \
-	../../../../../../../usr/include/SDL \
 	../../../../../../../usr/include/freetype2 \
+	../../../../../../../usr/include/SDL \
+	../../include/sdl \
+	../../../../../../../usr/include/gstreamer-1.0 \
+	../../include/common \
+	../../../../../../../usr/include \
 	$(BuildDir)
 
