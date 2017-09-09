@@ -409,7 +409,14 @@ public:
 		if (Size > MAX_UDP_SIZE)
 			return false;
 		
-		uint32 BroadcastIp = Ip | 0xff000000;
+		uint32 BroadcastIp = Ip | 0xff;
+		#if 1
+		printf("Broadcast %i.%i.%i.%i\n", 
+			(BroadcastIp >> 24) & 0xff,
+			(BroadcastIp >> 16) & 0xff,
+			(BroadcastIp >> 8) & 0xff,
+			(BroadcastIp) & 0xff);
+		#endif
 		int wr = WriteUdp(Ptr, Size, 0, BroadcastIp, Port);
 		return wr == Size;
 	}

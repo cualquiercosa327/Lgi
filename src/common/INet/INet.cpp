@@ -1281,7 +1281,7 @@ int GSocket::WriteUdp(void *Buffer, int Size, int Flags, uint32 Ip, uint16 Port)
 	ZeroObj(a);
 	a.sin_family = AF_INET;
 	a.sin_port = htons(Port);
-	a.sin_addr.OsAddr = Ip;
+	a.sin_addr.OsAddr = htonl(Ip);
 	ssize_t b = sendto(d->Socket, (char*)Buffer, Size, Flags, (sockaddr*)&a, sizeof(a));
 	if (b > 0)
 	{
