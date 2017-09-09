@@ -658,20 +658,27 @@ bool GDataGrid::GetFormats(List<char> &Formats)
 	return true;
 }
 
-bool GDataGrid::GetData(GVariant *Data, char *Format)
+bool GDataGrid::GetData(GArray<GDragData> &Data)
 {
-	List<LListItem> s;
-	if (GetSelection(s))
+	for (unsigned i=0; i<Data.Length(); i++)
 	{
-		GArray<LListItem*> a;
-		for (LListItem *i=s.First(); i; i=s.Next())
+		if (Data[i].IsFormat(d->SrcFmt))
 		{
-			a.Add(i);
+			List<LListItem> s;
+			if (GetSelection(s))
+			{
+				GArray<LListItem*> a;
+				for (LListItem *it=s.First(); it; it=s.Next())
+				{
+					a.Add(it);
+				}
+				Data[i].Data.New().SetBinary(sizeof(LListItem*)*a.Length(), &a[0]);
+				return true;
+			}
 		}
-		Data->SetBinary(sizeof(LListItem*)*a.Length(), &a[0]);
 	}
 
-	return true;
+	return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
