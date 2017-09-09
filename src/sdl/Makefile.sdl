@@ -6,7 +6,7 @@
 
 .SILENT :
 
-CC = gcc
+CC = /opt/cross/x-tools/arm-unknown-linux-gnueabi/bin/arm-unknown-linux-gnueabi-gcc
 CPP = /opt/cross/x-tools/arm-unknown-linux-gnueabi/bin/arm-unknown-linux-gnueabi-g++
 Target = lgi_sdl
 ifndef Build
@@ -27,10 +27,9 @@ ifeq ($(Build),Debug)
 	Inc =  \
 		-I../../include/common \
 		-I../../include/sdl \
-		-I/usr/include \
-		-I/usr/include/freetype2 \
-		-I/usr/include/gstreamer-1.0 \
-		-I/usr/include/SDL
+		-I/home/matthew/rpi/usr/include/freetype2 \
+		-I/home/matthew/rpi/usr/include/gstreamer-1.0 \
+		-I/home/matthew/rpi/usr/include/SDL
 else
 	Flags += -s -Os
 	Defs = -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64 -DPOSIX -DLGI_LIBRARY -DHAS_FILE_CMD=1
@@ -79,6 +78,7 @@ Depends =	LDateTime.o \
 			GTrayIcon.o \
 			Lgi.o \
 			LgiMsg.o \
+			LMutex.o \
 			GFileSelect.o \
 			GAlert.o \
 			GFindReplace.o \
@@ -181,6 +181,10 @@ LDateTime.o : ../common/General/LDateTime.cpp /usr/include/time.h \
 	../../include/common/LDateTime.h \
 	../../include/common/GToken.h \
 	../../include/common/GDocView.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+LMutex.o : ../common/Lgi/LMutex.cpp ../../include/common/Lgi.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
