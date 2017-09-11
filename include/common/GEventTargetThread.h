@@ -198,37 +198,49 @@ public:
 			// We can't be locked here, because GEventTargetThread::Main needs
 			// to lock to check for messages...
 			Loop = false;
-			Event.Signal();
 			
-			uint64 Start = LgiCurrentTime();
-			
-			while (!IsExited())
+			if (GetCurrentThreadId() == LThread::GetId())
 			{
-				LgiSleep(10);
+				// Being called from within the thread, in which case we can't signal 
+				// the event because we'll be stuck in this loop and not waitin on it.
+				#ifdef _DEBUG
+				LgiTrace("%s:%i - EndThread called from inside thread.\n", _FL);
+				#endif
+			}
+			else
+			{			
+				Event.Signal();
 				
-				uint64 Now = LgiCurrentTime();
-				if (Now - Start > 2000)
+				uint64 Start = LgiCurrentTime();
+				
+				while (!IsExited())
 				{
-					#ifdef LINUX
-					int val = 1111;
-					int r = sem_getvalue(Event.Handle(), &val);
-
-					printf("%s:%i - EndThread() hung waiting for %s to exit (caller.thread=%i, worker.thread=%i, event=%i, r=%i, val=%i).\n",
-						_FL, LThread::GetName(),
-						GetCurrentThreadId(),
-						GetId(),
-						Event.Handle(),
-						r,
-						val);
-					#else
-					printf("%s:%i - EndThread() hung waiting for %s to exit (caller.thread=%i, worker.thread=%i, event=%p).\n",
-						_FL, LThread::GetName(),
-						(int)GetCurrentThreadId(),
-						GetId(),
-						(void*)Event.Handle());
-					#endif
+					LgiSleep(10);
 					
-					Start = Now;
+					uint64 Now = LgiCurrentTime();
+					if (Now - Start > 2000)
+					{
+						#ifdef LINUX
+						int val = 1111;
+						int r = sem_getvalue(Event.Handle(), &val);
+
+						printf("%s:%i - EndThread() hung waiting for %s to exit (caller.thread=%i, worker.thread=%i, event=%i, r=%i, val=%i).\n",
+							_FL, LThread::GetName(),
+							GetCurrentThreadId(),
+							GetId(),
+							Event.Handle(),
+							r,
+							val);
+						#else
+						printf("%s:%i - EndThread() hung waiting for %s to exit (caller.thread=%i, worker.thread=%i, event=%p).\n",
+							_FL, LThread::GetName(),
+							(int)GetCurrentThreadId(),
+							GetId(),
+							(void*)Event.Handle());
+						#endif
+						
+						Start = Now;
+					}
 				}
 			}
 		}

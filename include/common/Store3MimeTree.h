@@ -183,6 +183,7 @@ public:
 					return false;
 				Alternative->SetStr(FIELD_MIME_TYPE, sMultipartAlternative);
 			}
+			/*
 			if (Alternative != Root)
 			{
 				if (Root && Root->IsMultipart())
@@ -190,6 +191,7 @@ public:
 				else
 					Root = Alternative;
 			}
+			*/
 			
 			MsgHtml->AttachTo(Alternative);
 			MsgText->AttachTo(Alternative);
@@ -213,17 +215,19 @@ public:
 					if (!Related)
 						return false;
 					Related->SetStr(FIELD_MIME_TYPE, sMultipartRelated);
-					
-					if (Alternative)
-						Related->AttachTo(Alternative);
-					else if (Root && Root->IsMultipart())
-						Related->AttachTo(Root);
-					else
-						Root = Related;
 				}
-				
-				if (MsgHtml)
+
+				if (Alternative)
+					// MsgHtml is already attach to the alternative seg
+					Alternative->AttachTo(Related);
+				else
 					MsgHtml->AttachTo(Related);
+					
+				if (Root && Root->IsMultipart())
+					Related->AttachTo(Root);
+				else
+					Root = Related;
+				
 				
 				for (unsigned i=0; i<MsgHtmlRelated.Length(); i++)
 					MsgHtmlRelated[i]->AttachTo(Related);
@@ -231,7 +235,7 @@ public:
 			else
 			{
 				if (Alternative)
-					MsgHtml->AttachTo(Alternative);
+					Root = Alternative; // MsgHtml is already attach to the alternative seg
 				else if (Root && Root->IsMultipart())
 					MsgHtml->AttachTo(Root);
 				else
