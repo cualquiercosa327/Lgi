@@ -115,7 +115,6 @@ bool GWindow::MoveSameScreen(GViewI *wnd)
 	return true;
 }
 
-
 int GWindow::WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState)
 {
 	int Status = DROPEFFECT_NONE;
@@ -189,12 +188,6 @@ int GWindow::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 			{
 				char *File = Uri[i].Strip().Get();
 				GUri u(File);
-				/*
-				if (strnicmp(File, "file:", 5) == 0)
-					File += 5;
-				if (strnicmp(File, "//localhost", 11) == 0)
-					File += 11;
-				*/
 				
 				char *in = u.Path, *out = u.Path;
 				while (*in)

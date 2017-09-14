@@ -50,7 +50,8 @@ struct LanguageParams
 	const char **Types;
 };
 
-const char *CppKeywords[] = {"extern", "class", "struct", "static", "default", "case", "break", 
+const char *DefaultKeywords[] = {"if", "elseif", "endif", "else", NULL};
+const char *CppKeywords[] = {"extern", "class", "struct", "static", "default", "case", "break",
 							"switch", "new", "delete", "sizeof", "return", "enum", "else",
 							"if", "for", "while", "do", NULL};
 const char *CppTypes[] = {	"int", "char", "unsigned", "double", "float", "bool", "const", "void",
@@ -67,7 +68,7 @@ LanguageParams LangParam[] =
 	// Unknown
 	{NULL, NULL},
 	// Plain text
-	{NULL, NULL},
+	{DefaultKeywords, NULL},
 	// C/C++
 	{CppKeywords, CppTypes},
 	// Python
@@ -1670,6 +1671,161 @@ public:
 							}
 						}
 					}
+					break;
+				}
+			}
+		}
+	}
+
+	void StyleDefault(ssize_t Start, ssize_t EditSize)
+	{
+		char16 *e = Text + Size;
+		
+		Style.DeleteObjects();
+		for (char16 *s = Text; s < e; s++)
+		{
+			switch (*s)
+			{
+				case '\"':
+				case '\'':
+				{
+					GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+					if (st)
+					{
+						st->View = this;
+						st->Start = s - Text;
+						st->Font = GetFont();
+
+						char16 Delim = *s++;
+						while (s < e && *s != Delim)
+						{
+							if (*s == '\\')
+								s++;
+							s++;
+						}
+						st->Len = (s - Text) - st->Start + 1;
+						st->c = ColourLiteral;
+						InsertStyle(st);
+					}
+					break;
+				}
+				case '#':
+				{
+					// Single line comment
+					GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+					if (st)
+					{
+						st->View = this;
+						st->Start = s - Text;
+						st->Font = GetFont();
+						while (s < e && *s != '\n')
+							s++;
+						st->Len = (s - Text) - st->Start;
+						st->c = ColourComment;
+						InsertStyle(st);
+						s--;
+					}
+					break;
+				}
+				case '0':
+				case '1':
+				case '2':
+				case '3':
+				case '4':
+				case '5':
+				case '6':
+				case '7':
+				case '8':
+				case '9':
+				{
+					if (s == Text || !IsSymbolChar(s[-1]))
+					{
+						GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+						if (st)
+						{
+							st->View = this;
+							st->Start = s - Text;
+							st->Font = GetFont();
+
+							bool IsHex = false;
+							if (s[0] == '0' &&
+								ToLower(s[1]) == 'x')
+							{
+								s += 2;
+								IsHex = true;
+							}
+							
+							while (s < e)
+							{
+								if
+								(
+									IsDigit(*s)
+									||
+									*s == '.'
+									||
+									(
+										IsHex
+										&&
+										(
+											(*s >= 'a' && *s <= 'f')
+											||
+											(*s >= 'A' && *s <= 'F')
+										)
+									)
+								)
+									s++;
+								else
+									break;
+							}
+							
+							st->Len = (s - Text) - st->Start;
+							st->c = ColourLiteral;
+							InsertStyle(st);
+							s--;
+						}
+					}
+					while (s < e - 1 && IsDigit(s[1]))
+						s++;
+					break;
+				}
+				default:
+				{
+					if (*s >= 'a' && *s <= 'z')
+					{
+						Keyword *k;
+						if ((k = HasKeyword[*s - 'a']))
+						{
+							do
+							{
+								if (!Strncmp(k->Word, s, k->Len))
+									break;
+							}
+							while ((k = k->Next));
+
+							if
+							(
+								k
+								&&
+								(s == Text || !IsSymbolChar(s[-1]))
+								&&
+								!IsSymbolChar(s[k->Len])
+							)
+							{
+								GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+								if (st)
+								{
+									st->View = this;
+									st->Start = s - Text;
+									st->Font = Bold;
+									st->Len = k->Len;
+									st->c = ColourKeyword;
+									InsertStyle(st);
+									s += k->Len - 1;
+								}
+							}
+						}
+					}
+					break;
 				}
 			}
 		}
@@ -1840,6 +1996,7 @@ public:
 							}
 						}
 					}
+					break;
 				}
 			}
 		}
@@ -1901,6 +2058,7 @@ public:
 				StyleXml(Start, EditSize);
 				break;
 			default:
+				StyleDefault(Start, EditSize);
 				break;
 		}		
 	}
