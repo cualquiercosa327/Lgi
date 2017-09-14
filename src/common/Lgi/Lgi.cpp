@@ -631,7 +631,13 @@ void LgiStackTrace(const char *Msg, ...)
 {
 	GSymLookup::Addr Stack[STACK_SIZE];
 	ZeroObj(Stack);
-	GSymLookup *Lu = LgiApp->GetSymLookup();
+	GSymLookup *Lu = LgiApp ? LgiApp->GetSymLookup() : NULL;
+	if (!Lu)
+	{
+		printf("%s:%i - Failed to get sym lookup object.\n", _FL);
+		return;
+	}
+	
 	int Frames = Lu ? Lu->BackTrace(0, 0, Stack, STACK_SIZE) : 0;
 	if (Msg)
 	{
@@ -1116,12 +1122,31 @@ GString GFile::Path::GetSystem(LgiSystemPath Which, int WordSize = 0)
 		case LSP_APP_ROOT:
 		{
 			#ifndef LGI_STATIC
-			if (!LgiApp)
+			char *Name = NULL, Exe[MAX_PATH];
+			
+			// Try and get the configured app name:
+			if (LgiApp)
+				Name = LgiApp->GBase::Name();
+			
+			if (!Name)
 			{
-				LgiAssert(0);
-				break;
+				// Use the exe name?
+				char Exe[MAX_PATH];
+				if (LgiGetExeFile(Exe, sizeof(Exe)))
+				{
+					char *l = LgiGetLeaf(Exe);
+					if (l)
+					{
+						char *d = strrchr(l, '.');
+						#ifdef WIN32
+						*d = NULL;
+						#endif
+						Name = l;
+						printf("%s:%i - name '%s'\n", _FL, Name);
+					}
+				}
 			}
-			char *Name = LgiApp->GBase::Name();
+			
 			if (!Name)
 			{
 				LgiAssert(0);
