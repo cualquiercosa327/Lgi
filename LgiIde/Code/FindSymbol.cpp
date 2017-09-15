@@ -69,6 +69,8 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 					!_stricmp(Ext, "cpp")
 					||
 					!_stricmp(Ext, "h")
+					||
+					!_stricmp(Ext, "hpp")
 				)
 			)
 			{

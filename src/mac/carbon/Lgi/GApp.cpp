@@ -1077,7 +1077,7 @@ bool GApp::GetAppsForMimeType(char *Mime, GArray<GAppInfo*> &Apps)
 
 GSymLookup *GApp::GetSymLookup()
 {
-	return &d->SymLookup;
+	return d ? &d->SymLookup : NULL;
 }
 
 bool GApp::IsElevated()
