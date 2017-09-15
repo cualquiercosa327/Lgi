@@ -127,25 +127,6 @@ public:
 		GArray<GDragData> &Data
 	) { return false; }
 
-	/*
-	/// [Deprecated] This is the old API for compatibility.
-	/// The new GDragData version by default will call this
-	/// method.
-	DEPRECATED_PRE
-	virtual bool GetData
-	(
-		/// [out] the data retreived
-		GVariant *Data,
-		/// [in] the format to get
-		char *Format
-	)
-	{
-		LgiAssert(!"Impl the proper handler.");
-		return false;
-	}
-	DEPRECATED_POST
-	*/
-
 	/// This is called to see what formats your support
 	/// Insert into the list dynamically allocated strings
 	/// that describe the formats you can supply data in.
@@ -259,27 +240,6 @@ public:
 		/// \sa #LGI_EF_CTRL, #LGI_EF_ALT, #LGI_EF_SHIFT
 		int KeyState
 	) = 0;
-
-	/*
-	/// [Deprecated] Old version of the drop handler.
-	DEPRECATED_PRE
-	virtual int OnDrop
-	(
-		/// The selected format
-		char *Format,
-		/// The data for the drop
-		GVariant *Data,
-		/// The mouse coords
-		GdcPt2 Pt,
-		/// The keyboard modifiers
-		/// \sa #LGI_EF_CTRL, #LGI_EF_ALT, #LGI_EF_SHIFT
-		int KeyState
-	) DEPRECATED_POST
-	{
-		LgiAssert(!"Impl the proper handler.");
-		return DROPEFFECT_NONE;
-	}
-	*/
 
 	#ifdef MAC
 		#if defined COCOA

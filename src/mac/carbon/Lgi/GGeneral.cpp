@@ -105,8 +105,18 @@ struct GLgiAssert
 static void *_LgiAssert(void *Param)
 {
 	GLgiAssert *Assert = (GLgiAssert*) Param;
-	GAlert a(0, "Assert Failed", Assert->Msg, "Abort", "Debug", "Ignore");
-	Assert->Result = a.DoModal();
+
+	if (LgiApp)
+	{
+		GAlert a(0, "Assert Failed", Assert->Msg, "Abort", "Debug", "Ignore");
+		Assert->Result = a.DoModal();
+	}
+	else
+	{
+		printf("%s:%i - AssertBeforeRun: %s\n", _FL, Assert->Msg.Get());
+		Assert->Result = 1;
+	}
+	
 	return Assert;
 }
 

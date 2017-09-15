@@ -27,7 +27,6 @@
 		349A251B1A5E3D1D00F4263E /* MemDumpViewer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A250B1A5E3D1D00F4263E /* MemDumpViewer.cpp */; };
 		349A251C1A5E3D1D00F4263E /* SpaceTabConv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A250C1A5E3D1D00F4263E /* SpaceTabConv.cpp */; };
 		349A251D1A5E3D1D00F4263E /* SysCharSupport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A250E1A5E3D1D00F4263E /* SysCharSupport.cpp */; };
-		349A25201A5E3FE000F4263E /* Lgi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 349A24F61A5E3C5D00F4263E /* Lgi.framework */; };
 		349A25211A5E3FE300F4263E /* Lgi.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 349A24F61A5E3C5D00F4263E /* Lgi.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		349A25241A5E401100F4263E /* GLexCpp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A25231A5E401100F4263E /* GLexCpp.cpp */; };
 		349A25281A5E408D00F4263E /* GParseCpp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A25271A5E408D00F4263E /* GParseCpp.cpp */; };
@@ -131,7 +130,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */,
-				349A25201A5E3FE000F4263E /* Lgi.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -439,8 +437,7 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = ./build/Debug;
-				GCC_DYNAMIC_NO_PIC = NO;
+				FRAMEWORK_SEARCH_PATHS = /Users/mallen/Code/Lgi/trunk/src/mac/carbon/build/Debug;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -450,6 +447,10 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = (
+					"-framework",
+					Lgi,
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.memecode.lgiide;
 				PRODUCT_NAME = LgiIde;
 				SDKROOT = macosx;
@@ -464,9 +465,9 @@
 			buildSettings = {
 				CLANG_CXX_LIBRARY = "libc++";
 				COMBINE_HIDPI_IMAGES = YES;
-				COPY_PHASE_STRIP = YES;
-				FRAMEWORK_SEARCH_PATHS = ./build/Release;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = ../../src/mac/carbon/build/Release;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = LgiIde_Prefix.pch;
 				GCC_PREPROCESSOR_DEFINITIONS = MAC;
@@ -474,6 +475,10 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = (
+					"-framework",
+					Lgi,
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.memecode.lgiide;
 				PRODUCT_NAME = LgiIde;
 				SDKROOT = macosx;
