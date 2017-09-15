@@ -1873,7 +1873,10 @@ public:
 					||
 					!stricmp(Ext, "cc")
 					||
-					!stricmp(Ext, "h"))
+					!stricmp(Ext, "h")
+					||
+					!stricmp(Ext, "hpp")
+					)
 				FileType = SrcCpp;
 			else if (!stricmp(Ext, "py"))
 				FileType = SrcPython;
