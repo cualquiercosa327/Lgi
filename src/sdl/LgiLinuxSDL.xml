@@ -214,6 +214,7 @@
 				<Node File="../common/Widgets/GItemContainer.cpp" Type="2" Platforms="15" />
 				<Node File="../common/Widgets/GPanel.cpp" Type="2" Platforms="15" />
 				<Node File="../common/Widgets/GPopup.cpp" Type="2" Platforms="15" />
+				<Node File="../../include/common/GPopup.h" Type="3" Platforms="15" />
 				<Node File="../common/Widgets/GProgress.cpp" Type="2" Platforms="14" />
 				<Node File="../common/Widgets/GProgressDlg.cpp" Type="2" Platforms="15" />
 				<Node File="../common/Widgets/GRadioGroup.cpp" Type="2" Platforms="15" />
@@ -421,11 +422,7 @@ freetype</Release>
 		</Advanced>
 	</Settings>
 </Project>
-		</TabSize>
-			<IndentSize>
-				<All>4</All>
-			</IndentSize>
-			<ShowWhiteSpace>
+teSpace>
 				<All>0</All>
 			</ShowWhiteSpace>
 			<UseHardTabs>

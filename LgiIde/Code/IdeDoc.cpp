@@ -50,7 +50,7 @@ struct LanguageParams
 	const char **Types;
 };
 
-const char *DefaultKeywords[] = {"if", "elseif", "endif", "else", NULL};
+const char *DefaultKeywords[] = {"if", "elseif", "endif", "else", "ifeq", "ifndef", NULL};
 const char *CppKeywords[] = {"extern", "class", "struct", "static", "default", "case", "break",
 							"switch", "new", "delete", "sizeof", "return", "enum", "else",
 							"if", "for", "while", "do", "continue", NULL};

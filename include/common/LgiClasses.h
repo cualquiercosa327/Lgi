@@ -1198,7 +1198,10 @@ enum GWindowHookType
 class LgiClass GWindow :
 	public GView,
 	// This needs to be second otherwise is causes v-table problems.
-	virtual public GDragDropTarget
+	#ifndef LGI_SDL
+	virtual
+	#endif
+	public GDragDropTarget
 {
 	friend class BViewRedir;
 	friend class GView;
