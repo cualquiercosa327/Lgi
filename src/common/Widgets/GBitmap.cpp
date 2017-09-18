@@ -120,7 +120,15 @@ void GBitmap::SetDC(GSurface *pNewDC)
 		pDC = new GMemDC;
 		if (pDC && pDC->Create(pNewDC->X(), pNewDC->Y(), GdcD->GetColourSpace()))
 		{
-			pDC->Colour(LC_WORKSPACE, 24);
+			GColour Bk(LC_WORKSPACE, 24);
+			if (GetCss())
+			{
+				GCss::ColorDef b = GetCss()->BackgroundColor();
+				if (b.IsValid())
+					Bk = b;
+			}
+
+			pDC->Colour(Bk);
 			pDC->Rectangle();
 
 			pDC->Op(GDC_ALPHA);

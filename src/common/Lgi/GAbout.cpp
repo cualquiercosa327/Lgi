@@ -48,6 +48,8 @@ GAbout::GAbout(	GView *parent,
 	if (Email) p.Print("Email:\n\t%s\n", Email);
 	if (Text) p.Write((char*)Text, strlen(Text));
 
+	GCss::ColorDef Bk(GCss::ColorRgb, Rgb24To32(LC_MED));
+
 	GView *Img = 0;
 	int x = 10;
 	if (AboutGraphic)
@@ -56,9 +58,11 @@ GAbout::GAbout(	GView *parent,
 		if (FileName)
 		{
 			Children.Insert(Img = new GBitmap(IDM_BMP, 4, 4, FileName, true));
+			Img->GetCss(true)->BackgroundColor(Bk);
+
 			DeleteArray(FileName);
 			x += 10 + Img->X();
-			Img->Sunken(true);
+			// Img->Sunken(true);
 			Img->SetNotify(this);
 		}
 	}
@@ -74,29 +78,20 @@ GAbout::GAbout(	GView *parent,
 		Ctrl->SetId(IDM_MESSAGE);
 		Ctrl->SetPos(r);
 		Ctrl->SetNotify(this);
-		char *Str = p.NewStr();
+		GAutoString Str(p.NewStr());
 		Ctrl->Name(Str);
-
-		GFontType Type;
-		Type.GetSystemFont("System");
-		GFont *f = Type.Create();
-		if (f)
-		{
-			Ctrl->SetFont(f);
-			DeleteObj(f);
-		}
+		Ctrl->SetFont(SysFont);
 
 		GDocView *View = dynamic_cast<GDocView*>(Ctrl);
 		if (View)
 		{
 			View->SetEnv(this);
-			View->GetCss(true)->BackgroundColor(GCss::ColorDef(LC_MED));
+			View->GetCss(true)->BackgroundColor(Bk);
 			View->SetReadOnly(true);
 			View->SetCaret(Str ? strlen(Str) : 0, false);
 
 			int x = 0, y = 0;
 			View->GetTextExtent(x, y);
-			printf("x=%i, y=%i\n", x, y);
 			x += 4;
 			y += 4;
 			x = max(x, 100);
@@ -106,8 +101,6 @@ GAbout::GAbout(	GView *parent,
 			Ctrl->SetPos(rc);
 		}
 		else LgiAssert(!"You need to fix RTTI for your build of Lgi");
-
-		DeleteArray(Str);
 	}
 
 	GRect BtnPos(rc.x2 - 60, rc.y2 + 10, rc.x2, rc.y2 + 30);

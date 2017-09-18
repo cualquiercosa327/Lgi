@@ -4331,7 +4331,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 		GColour Fore(ForeDef.Type ==  GCss::ColorRgb ? Rgb32To24(ForeDef.Rgb32) : LC_TEXT, 24);
 		GColour Back
 		(
-			!ReadOnly && BkDef.Type == GCss::ColorRgb
+			/*!ReadOnly &&*/ BkDef.Type == GCss::ColorRgb
 			?
 			Rgb32To24(BkDef.Rgb32)
 			:

@@ -28,11 +28,13 @@ Section ""
   SetOutPath $INSTDIR
   
   ; Program files
-  File ..\lib\Lgi9x32.dll
-  File .\Win32Release\LgiRes.exe
+  File ..\lib\Lgi12x64.dll
+  File .\x64Release12\LgiRes.exe
+  File ..\..\..\..\CodeLib\libpng\build\MinSizeRel\libpng15.dll
 
   ; Resources
-  File .\Code\lgires.lr8
+  File .\Resources\lgires.lr8
+  File .\Resources\icon64.png
   File .\Code\*.gif
 
   ; Uninstaller
