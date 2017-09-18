@@ -6,10 +6,8 @@
 
 .SILENT :
 
-# CC = arm-linux-gnueabihf-gcc
-# CPP = arm-linux-gnueabihf-g++
-CC = armv6-unknown-linux-gnueabihf-gcc
-CPP = armv6-unknown-linux-gnueabihf-g++
+CC = arm-linux-gnueabihf-gcc
+CPP = arm-linux-gnueabihf-g++
 Target = lgi_sdl
 ifndef Build
 	Build = Debug
@@ -21,15 +19,21 @@ Flags = -fPIC -w -fno-inline -fpermissive
 #		`sdl-config --cflags`
 #		-Wl,-rpath-link,/lib/arm-linux-gnueabihf \
 #		-Wl,-rpath-link,/lib/usr/arm-linux-gnueabihf \
+#-Wl,--verbose
+#		-L/home/matthew/rpi/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/arm-linux-gnueabihf/libc \
+#		-L/home/matthew/rpi/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/arm-linux-gnueabihf/lib \
+#		-L/home/matthew/rpi/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/arm-linux-gnueabihf/libc/usr/lib/arm-linux-gnueabihf \
 
 ifeq ($(Build),Debug)
 	Flags += -g
 	Tag = d
 	Defs = -D_DEBUG -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64 -DPOSIX -DLGI_LIBRARY -DHAS_FILE_CMD=1
 	Libs = \
-		-L/media/rpi-root/usr/local/lib \
+		--sysroot=/media/rpi-root \
 		-L/media/rpi-root/lib \
+		-L/media/rpi-root/lib/arm-linux-gnueabihf \
 		-L/media/rpi-root/usr/lib \
+		-L/media/rpi-root/usr/local/lib \
 		-L/media/rpi-root/usr/lib/arm-linux-gnueabihf \
 		-lSDL \
 		-lfreetype

@@ -39,6 +39,7 @@ GViewPrivate::GViewPrivate()
 	Notify = 0;
 	IsThemed = true;
 	PulseId = NULL;
+	SinkHnd = -1;
 }
 
 GViewPrivate::~GViewPrivate()

@@ -81,6 +81,7 @@
 					<Node File="../linux/Lgi/LThread.cpp" Type="2" Platforms="15" />
 				</Node>
 				<Node Name="Win32" Type="1" Platforms="15" Open="0" Id="24" />
+				<Node File="../../include/common/GEventTargetThread.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Variant" Type="1" Platforms="15" Open="0" Id="25">
 				<Node File="../common/Lgi/GVariant.cpp" Type="2" Platforms="15" />
@@ -422,12 +423,7 @@ freetype</Release>
 		</Advanced>
 	</Settings>
 </Project>
-teSpace>
-				<All>0</All>
-			</ShowWhiteSpace>
-			<UseHardTabs>
-				<All>1</All>
-			</UseHardTabs>
+UseHardTabs>
 			<CommentFile />
 			<CommentFunction />
 		</Editor>
