@@ -532,22 +532,22 @@ public:
 	int y2;						// Maximum used y position
 	int cx;						// Current insertion point
 	int my;						// How much of the area above y2 was just margin
-	int max_cx;					// Max value of cx
+	GdcPt2 max;					// Max dimensions
 
 	bool InBody;
 
 	GFlowRegion(GHtml *html, bool inbody)
 	{
 		Html = html;
-		x1 = x2 = y1 = y2 = cx = my = max_cx = 0;
+		x1 = x2 = y1 = y2 = cx = my = 0;
 		InBody = inbody;
 	}
 
 	GFlowRegion(GHtml *html, GRect r, bool inbody)
 	{
 		Html = html;
-		max_cx = cx = x1 = r.x1;
-		y1 = y2 = r.y1;
+		max.x = cx = x1 = r.x1;
+		max.y = y1 = y2 = r.y1;
 		x2 = r.x2;
 		my = 0;
 		InBody = inbody;
@@ -559,8 +559,8 @@ public:
 		x1 = r.x1;
 		x2 = r.x2;
 		y1 = r.y1;
-		y2 = r.y2;
-		max_cx = cx = r.cx;
+		max.x = cx = r.cx;
+		max.y = y2 = r.y2;
 		my = r.my;
 		InBody = r.InBody; 
 	}
@@ -4618,7 +4618,14 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f, uint16 Depth)
 					
 					GCss::Len Ht = t->Height();
 					GFlowRegion r(Table->Html, Box, true);
+
 					t->OnFlow(&r, Depth+1);
+
+					if (r.max.y > r.y2)
+					{
+						t->Size.y = max(r.max.y, t->Size.y);
+					}
+
 					
 					if (Ht.IsValid() &&
 						Ht.Type != GCss::LenPercent)
@@ -4757,7 +4764,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f, uint16 Depth)
 		Cx = BorderX1 + CellSpacing;
 		Cy += MaxRow[y] + CellSpacing;
 	}
-	
+
 	switch (Table->Cell->XAlign ? Table->Cell->XAlign : ToTag(Table->Parent)->GetAlign(true))
 	{
 		case GCss::AlignCenter:
@@ -4993,7 +5000,8 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, int LineHeight, 
 
 		Tag->Size.x = max(Tag->Size.x, Tr->x2);
 		Tag->Size.y = max(Tag->Size.y, Tr->y2);
-		Flow->max_cx = max(Flow->max_cx, Tr->x2);
+		Flow->max.x = max(Flow->max.x, Tr->x2);
+		Flow->max.y = max(Flow->max.y, Tr->y2);
 
 		if (Tr->Len == 0)
 			break;
@@ -5395,6 +5403,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			Flow->y2 = Flow->y1;
 			Flow->cx = Flow->x1;
 			Flow->my = 0;
+			Flow->max.y = max(Flow->max.y, Flow->y2);
 
 			Flow->Outdent(f, left, top, right, bottom, true);
 			BoundParents();
@@ -5608,6 +5617,8 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 				Flow->cx = old.cx;
 				Flow->y1 = old.y1;
 				Flow->y2 = old.y2;
+				Flow->max.x = max(Flow->max.x, old.max.x);
+				Flow->max.y = max(Flow->max.y, old.max.y);
 				break;
 			}
 			default:
@@ -5660,7 +5671,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			int NewFlowSize = Flow->x2 - Flow->x1 + 1;
 			int Diff = NewFlowSize - OldFlowSize;
 			if (Diff)
-				Flow->max_cx += Diff;
+				Flow->max.x += Diff;
 			
 			Flow->y1 = Flow->y2;
 			Flow->x2 = Flow->x1 + BlockFlowWidth;
@@ -5736,29 +5747,6 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			}
 			case TAG_IMG:
 			{
-				/*
-				Len Ht = Height();
-				if (Ht.IsValid() && Ht.Type != LenAuto)
-				{
-					if (Image)
-						Size.y = Ht.ToPx(Image->Y(), GetFont());
-					else
-						Size.y = Flow->ResolveY(Ht, f, false);
-				}
-				else if (Image)
-				{
-					Size.y = Image->Y();
-				}
-				else if (ValidStr(ImgAltText))
-				{
-					Size.y = Html->GetFont()->GetHeight() + 4;
-				}
-				else
-				{
-					Size.y = DefaultImgSize;
-				}
-				*/
-
 				Flow->cx += Size.x;
 				Flow->y2 = max(Flow->y2, Flow->y1 + Size.y - 1);
 				break;
@@ -5789,6 +5777,8 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 
 		Flow->y1 += Pos.y;
 		Flow->y2 += Pos.y;
+		Flow->max.y = max(Flow->max.y, Flow->y2);
+		// LgiTrace("%s: %i\n", Tag.Get(), Flow->max.y);
 	}
 
 	if (TagId == TAG_BODY)
@@ -5829,20 +5819,20 @@ GTag *GTag::GetTable()
 
 void GTag::BoundParents()
 {
-	if (Parent)
+	if (!Parent)
+		return;
+
+	GTag *np;
+	for (GTag *n=this; n; n = np)
 	{
-		for (GTag *n=this; n; n=ToTag(n->Parent))
-		{
-			if (n->Parent)
-			{
-				if (n->Parent->TagId == TAG_IFRAME)
-					break;
+		np = ToTag(n->Parent);
+
+		if (!np ||
+			n->Parent->TagId == TAG_IFRAME)
+			break;
 				
-				GTag *np = ToTag(n->Parent);
-				np->Size.x = max(np->Size.x, n->Pos.x + n->Size.x);
-				np->Size.y = max(np->Size.y, n->Pos.y + n->Size.y);
-			}
-		}
+		np->Size.x = max(np->Size.x, n->Pos.x + n->Size.x);
+		np->Size.y = max(np->Size.y, n->Pos.y + n->Size.y);
 	}
 }
 
@@ -7305,8 +7295,8 @@ GdcPt2 GHtml::Layout(bool ForceLayout)
 		// Flow text, width is different
 		Tag->OnFlow(&f, 0);
 		ViewWidth = Client.X();
-		d->Content.x = f.max_cx + 1;
-		d->Content.y = f.y2;
+		d->Content.x = f.max.x + 1;
+		d->Content.y = f.max.y + 1;
 
 		// Set up scroll box
 		bool Sy = f.y2 > Y();

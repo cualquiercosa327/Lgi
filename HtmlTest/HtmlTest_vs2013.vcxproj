@@ -217,6 +217,7 @@
   <ItemGroup>
     <None Include="Files\index.html" />
     <None Include="Files\menu.html" />
+    <None Include="Files\suncorp.html" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
