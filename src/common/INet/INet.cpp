@@ -1245,6 +1245,7 @@ int GSocket::ReadUdp(void *Buffer, int Size, int Flags, uint32 *Ip, uint16 *Port
 	a.sin_family = AF_INET;
 	if (Port)
 		a.sin_port = htons(*Port);
+	a.sin_addr.S_un.S_addr = INADDR_ANY;
 
 	ssize_t b = recvfrom(d->Socket, (char*)Buffer, Size, Flags, (sockaddr*)&a, &AddrSize);
 	if (b > 0)

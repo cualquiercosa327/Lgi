@@ -90,7 +90,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\include\win32;..\include\common;..\..\..\..\CodeLib\libjpeg-9a;..\..\..\..\CodeLib\libpng\build\zlib_dir;..\..\..\..\CodeLib\libpng\build;..\..\..\..\CodeLib\zlib;..\..\..\..\CodeLib\libpng;c:\Program Files (x86)\OpenSSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include\win32;..\include\common;..\..\..\..\CodeLib\libjpeg-9a;..\..\..\..\CodeLib\libpng\build\zlib_dir;..\..\..\..\CodeLib\libpng\build;..\..\..\..\CodeLib\zlib;..\..\..\..\CodeLib\libpng;c:\Program Files (x86)\OpenSSL\include;c:\Program Files (x86)\OpenSSL-Win32\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -112,7 +112,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\include\win32;..\include\common;..\..\..\..\CodeLib\libjpeg-9a;..\..\..\..\CodeLib\libpng\build\zlib_dir;..\..\..\..\CodeLib\libpng\build;..\..\..\..\CodeLib\zlib;..\..\..\..\CodeLib\libpng;c:\Program Files\OpenSSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include\win32;..\include\common;..\..\..\..\CodeLib\libjpeg-9a;..\..\..\..\CodeLib\libpng\build\zlib_dir;..\..\..\..\CodeLib\libpng\build;..\..\..\..\CodeLib\zlib;..\..\..\..\CodeLib\libpng;c:\Program Files\OpenSSL\include;c:\Program Files\OpenSSL-Win64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -133,7 +133,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\include\win32;..\include\common;..\..\..\..\CodeLib\libjpeg-9a;..\..\..\..\CodeLib\libpng\build\zlib_dir;..\..\..\..\CodeLib\libpng\build;..\..\..\..\CodeLib\zlib;..\..\..\..\CodeLib\libpng;c:\Program Files (x86)\OpenSSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include\win32;..\include\common;..\..\..\..\CodeLib\libjpeg-9a;..\..\..\..\CodeLib\libpng\build\zlib_dir;..\..\..\..\CodeLib\libpng\build;..\..\..\..\CodeLib\zlib;..\..\..\..\CodeLib\libpng;c:\Program Files (x86)\OpenSSL\include;c:\Program Files (x86)\OpenSSL-Win32\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeader />
@@ -154,7 +154,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\include\win32;..\include\common;..\..\..\..\CodeLib\libjpeg-9a;..\..\..\..\CodeLib\libpng\build\zlib_dir;..\..\..\..\CodeLib\libpng\build;..\..\..\..\CodeLib\zlib;..\..\..\..\CodeLib\libpng;c:\Program Files\OpenSSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include\win32;..\include\common;..\..\..\..\CodeLib\libjpeg-9a;..\..\..\..\CodeLib\libpng\build\zlib_dir;..\..\..\..\CodeLib\libpng\build;..\..\..\..\CodeLib\zlib;..\..\..\..\CodeLib\libpng;c:\Program Files\OpenSSL\include;c:\Program Files\OpenSSL-Win64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeader>
