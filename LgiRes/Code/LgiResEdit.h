@@ -21,7 +21,7 @@
 // Defines
 
 // version
-#define APP_VER						"3.6.0"
+#define APP_VER						"4.0.0"
 
 // window messages
 #define	IDM_UNDO					201

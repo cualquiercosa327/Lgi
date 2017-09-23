@@ -81,6 +81,7 @@
 					<Node File="../linux/Lgi/LThread.cpp" Type="2" Platforms="15" />
 				</Node>
 				<Node Name="Win32" Type="1" Platforms="15" Open="0" Id="24" />
+				<Node File="../../include/common/GEventTargetThread.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Variant" Type="1" Platforms="15" Open="0" Id="25">
 				<Node File="../common/Lgi/GVariant.cpp" Type="2" Platforms="15" />
@@ -214,6 +215,7 @@
 				<Node File="../common/Widgets/GItemContainer.cpp" Type="2" Platforms="15" />
 				<Node File="../common/Widgets/GPanel.cpp" Type="2" Platforms="15" />
 				<Node File="../common/Widgets/GPopup.cpp" Type="2" Platforms="15" />
+				<Node File="../../include/common/GPopup.h" Type="3" Platforms="15" />
 				<Node File="../common/Widgets/GProgress.cpp" Type="2" Platforms="14" />
 				<Node File="../common/Widgets/GProgressDlg.cpp" Type="2" Platforms="15" />
 				<Node File="../common/Widgets/GRadioGroup.cpp" Type="2" Platforms="15" />
@@ -421,16 +423,7 @@ freetype</Release>
 		</Advanced>
 	</Settings>
 </Project>
-		</TabSize>
-			<IndentSize>
-				<All>4</All>
-			</IndentSize>
-			<ShowWhiteSpace>
-				<All>0</All>
-			</ShowWhiteSpace>
-			<UseHardTabs>
-				<All>1</All>
-			</UseHardTabs>
+UseHardTabs>
 			<CommentFile />
 			<CommentFunction />
 		</Editor>

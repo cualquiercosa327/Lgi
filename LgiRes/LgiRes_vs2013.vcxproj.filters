@@ -93,7 +93,7 @@
     </Manifest>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Code\Script1.rc">
+    <ResourceCompile Include="Resources\Script1.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

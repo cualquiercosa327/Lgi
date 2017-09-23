@@ -37,21 +37,18 @@
     <Filter Include="Lgi">
       <UniqueIdentifier>{0823126b-5e9f-417c-b233-7025ea646dad}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Docs">
+      <UniqueIdentifier>{2be01d30-b91b-466c-8aaf-bb656db55afb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Projects">
+      <UniqueIdentifier>{404b5cc0-5e53-4ae3-945c-274b0fc3f889}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Utils">
+      <UniqueIdentifier>{29793244-2c02-4203-b755-49237ba42e24}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Code\FtpFile.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Code\IdeDoc.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Code\IdeProject.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="Code\LgiIde.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Code\ProjectNode.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Code\FindInFiles.h">
@@ -105,45 +102,24 @@
     <ClInclude Include="..\include\common\GEventTargetThread.h">
       <Filter>Lgi</Filter>
     </ClInclude>
+    <ClInclude Include="Code\IdeProject.h">
+      <Filter>Source Files\Projects</Filter>
+    </ClInclude>
+    <ClInclude Include="Code\ProjectNode.h">
+      <Filter>Source Files\Projects</Filter>
+    </ClInclude>
+    <ClInclude Include="Code\IdeDoc.h">
+      <Filter>Source Files\Docs</Filter>
+    </ClInclude>
+    <ClInclude Include="Code\FtpFile.h">
+      <Filter>Source Files\Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Code\FtpThread.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Code\GHistory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\common\Coding\GLexCpp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Code\IdeCommon.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Code\IdeDoc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Code\IdeProject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Code\IdeProjectSettings.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Code\LgiIde.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Code\LgiUtils.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Code\MemDumpViewer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Code\ProjectNode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Code\SpaceTabConv.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Code\SysCharSupport.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Code\FindInFiles.cpp">
@@ -193,6 +169,39 @@
     </ClCompile>
     <ClCompile Include="..\src\common\Gdc2\Filters\Png.cpp">
       <Filter>Lgi</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\IdeProject.cpp">
+      <Filter>Source Files\Projects</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\IdeProjectSettings.cpp">
+      <Filter>Source Files\Projects</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\ProjectNode.cpp">
+      <Filter>Source Files\Projects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Coding\GLexCpp.cpp">
+      <Filter>Source Files\Search</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\IdeDoc.cpp">
+      <Filter>Source Files\Docs</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\LgiUtils.cpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\MemDumpViewer.cpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\SpaceTabConv.cpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\SysCharSupport.cpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\FtpThread.cpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\GHistory.cpp">
+      <Filter>Source Files\Utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

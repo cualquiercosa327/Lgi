@@ -270,7 +270,7 @@ public:
 							#endif
 
 							if (Close)
-								w->PostEvent(M_SET_VISIBLE, false);
+								w->PostEvent(M_SET_VISIBLE, (GMessage::Param)false);
 						}
 					}
 				}

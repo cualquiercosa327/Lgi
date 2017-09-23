@@ -126,5 +126,8 @@
     <None Include="Files\index.html">
       <Filter>Test cases</Filter>
     </None>
+    <None Include="Files\suncorp.html">
+      <Filter>Test cases</Filter>
+    </None>
   </ItemGroup>
 </Project>

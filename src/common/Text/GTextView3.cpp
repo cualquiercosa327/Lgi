@@ -1473,7 +1473,7 @@ GTextView3::GTextLine *GTextView3::GetTextLine(ssize_t Offset, int *Index)
 		}
 	}
 
-	return 0;
+	return NULL;
 }
 
 int64 GTextView3::Value()
@@ -1849,10 +1849,12 @@ void GTextView3::SetCaret(size_t i, bool Select, bool ForceFullUpdate)
 		}
 		else
 		{
+			/*
 			printf("%s,%i - Couldn't get SLine and ELine: %i->%p, %i->%p\n",
 				_FL,
 				(int)Start, SLine,
 				(int)End, ELine);
+			*/
 			u = Client;
 		}
 
@@ -4329,7 +4331,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 		GColour Fore(ForeDef.Type ==  GCss::ColorRgb ? Rgb32To24(ForeDef.Rgb32) : LC_TEXT, 24);
 		GColour Back
 		(
-			!ReadOnly && BkDef.Type == GCss::ColorRgb
+			/*!ReadOnly &&*/ BkDef.Type == GCss::ColorRgb
 			?
 			Rgb32To24(BkDef.Rgb32)
 			:

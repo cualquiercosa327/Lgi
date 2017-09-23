@@ -1335,7 +1335,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Handle)
 						AppName,
 						APP_VER,
 						"\nLgi Resource Editor.",
-						"_about.gif",
+						"icon64.png",
 						"http://www.memecode.com/lgires.php",
 						"fret@memecode.com");
 			break;

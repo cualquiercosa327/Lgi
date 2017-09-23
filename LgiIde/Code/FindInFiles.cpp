@@ -178,7 +178,7 @@ class FindInFilesThreadPrivate
 public:
 	int AppHnd;
 	GAutoPtr<FindParams> Params;
-	bool Loop;
+	bool Loop, Busy;
 	GStringPipe Pipe;
 	int64 Last;
 };
@@ -188,6 +188,7 @@ FindInFilesThread::FindInFilesThread(int AppHnd) : GEventTargetThread("FindInFil
 	d = new FindInFilesThreadPrivate;
 	d->AppHnd = AppHnd;
 	d->Loop = true;
+	d->Busy = false;
 	d->Last = 0;
 }
 
@@ -304,6 +305,8 @@ bool FindInFilesCallback(void *UserData, char *Path, GDirectory *Dir)
 void FindInFilesThread::Stop()
 {
 	d->Loop = false;
+	while (d->Busy)
+		LgiSleep(1);
 }
 
 GMessage::Result FindInFilesThread::OnEvent(GMessage *Msg)
@@ -320,6 +323,7 @@ GMessage::Result FindInFilesThread::OnEvent(GMessage *Msg)
 				char Msg[256];
 
 				d->Loop = true;
+				d->Busy = true;
 				snprintf(Msg, sizeof(Msg), "Searching for '%s'...\n", d->Params->Text.Get());
 				GEventSinkMap::Dispatch.PostEvent(d->AppHnd, M_APPEND_TEXT, 0, 2);
 				GEventSinkMap::Dispatch.PostEvent(d->AppHnd, M_APPEND_TEXT, (GMessage::Param)NewStr(Msg), 2);
@@ -386,6 +390,8 @@ GMessage::Result FindInFilesThread::OnEvent(GMessage *Msg)
 				{
 					GEventSinkMap::Dispatch.PostEvent(d->AppHnd, M_APPEND_TEXT, (GMessage::Param)NewStr("No files matched.\n"), 2);
 				}
+				
+				d->Busy = false;
 			}
 			break;
 		}
