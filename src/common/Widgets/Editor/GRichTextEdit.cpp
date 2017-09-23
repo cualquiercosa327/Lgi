@@ -2459,7 +2459,7 @@ void GRichTextEdit::OnPulse()
 		}
 		
 		// Do autoscroll while the user has clicked and dragged off the control:
-		if (VScroll && IsCapturing())
+		if (VScroll && IsCapturing() && d->ClickedBtn == GRichTextEdit::ContentArea)
 		{
 			GMouse m;
 			GetMouse(m);

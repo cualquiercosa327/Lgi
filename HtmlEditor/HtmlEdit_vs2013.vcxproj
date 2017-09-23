@@ -285,13 +285,11 @@
     <ClCompile Include="..\src\common\Widgets\Editor\GRichTextEditPriv.cpp" />
     <ClCompile Include="..\src\common\Widgets\Editor\ImageBlock.cpp" />
     <ClCompile Include="..\src\common\Widgets\Editor\TextBlock.cpp" />
-    <ClCompile Include="..\src\common\Widgets\GHtmlEdit.cpp" />
     <ClCompile Include="..\src\win32\Lgi\SpellCheckWindows.cpp" />
     <ClCompile Include="Rich.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\common\Emoji.h" />
-    <ClInclude Include="..\include\common\GHtmlEdit.h" />
     <ClInclude Include="..\include\common\GHtmlPriv.h" />
     <ClInclude Include="..\include\common\GRichTextEdit.h" />
     <ClInclude Include="..\include\common\LgiSpellCheck.h" />
