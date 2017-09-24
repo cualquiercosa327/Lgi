@@ -2,6 +2,7 @@
 #include "GBox.h"
 #include "GCssTools.h"
 #include "LgiRes.h"
+#include "GPopup.h"
 
 #define DEFAULT_SPACER_PX			5
 // #define DEFAULT_SPACER_COLOUR24		LC_MED
@@ -168,6 +169,9 @@ bool GBox::OnViewMouse(GView *v, GMouse &m)
 		GMouse Local = m;
 		while (v && v != (GView*)this && v->GetParent())
 		{
+			if (dynamic_cast<GPopup*>(v))
+				return true;
+
 			GRect p = v->GetPos();
 			Local.x += p.x1;
 			Local.y += p.y1;

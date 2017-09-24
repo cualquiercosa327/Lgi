@@ -431,7 +431,8 @@ bool GWindow::HandleViewMouse(GView *v, GMouse &m)
 	{
 		if (d->Hooks[i].Flags & GMouseEvents)
 		{
-			if (!d->Hooks[i].Target->OnViewMouse(v, m))
+			GView *t = d->Hooks[i].Target;
+			if (!t->OnViewMouse(v, m))
 			{
 				#if DEBUG_HANDLE_VIEW_MOUSE
 				if (!m.IsMove())
