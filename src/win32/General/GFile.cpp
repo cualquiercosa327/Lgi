@@ -579,16 +579,12 @@ GFileSystem *GFileSystem::Instance = 0;
 class GFileSystemPrivate
 {
 public:
-	GLibrary *Shell;
-
 	GFileSystemPrivate()
 	{
-		Shell = 0;
 	}
 
 	~GFileSystemPrivate()
 	{
-		DeleteObj(Shell);
 	}
 };
 
@@ -720,50 +716,31 @@ bool GFileSystem::Delete(GArray<const char*> &Files, GArray<int> *Status, bool T
 
 	if (ToTrash)
 	{
-		if (!d->Shell)
+		GArray<char16> Name;
+		for (int i=0; i<Files.Length(); i++)
 		{
-			d->Shell = new GLibrary("Shell32");
+			GAutoPtr<wchar_t> w(Utf8ToWide(Files[i]));
+			int Chars = StrlenW(w);
+			int Len = Name.Length();
+			Name.Length(Len + Chars + 1);
+			StrcpyW(Name.AddressOf(Len), w.Get());
 		}
+		Name.Add(0);
 
-		if (d->Shell)
+		SHFILEOPSTRUCTW s;
+		ZeroObj(s);
+		s.hwnd = 0;
+		s.wFunc = FO_DELETE;
+		s.pFrom = Name.AddressOf();
+		s.fFlags = FOF_NOCONFIRMATION; // FOF_ALLOWUNDO;
+
+		int e = SHFileOperationW(&s);
+		Ret = e == 0;
+		if (Status && e)
 		{
-			int e;
-
-			pSHFileOperationW f = (pSHFileOperationW) d->Shell->GetAddress("SHFileOperationW");
-			if (f)
+			for (int i=0; i<Files.Length(); i++)
 			{
-				GArray<char16> Name;
-				for (int i=0; i<Files.Length(); i++)
-				{
-					ptrdiff_t InSize = strlen(Files[i]);
-					char16 Buf[300];
-					ZeroObj(Buf);
-					const void *InPtr = Files[i];
-					LgiBufConvertCp(Buf, LGI_WideCharset, sizeof(Buf), InPtr, "utf-8", InSize);
-					int Chars = StrlenW(Buf);
-					int Len = Name.Length();
-					Name.Length(Len + Chars + 1);
-					StrcpyW(&Name[Len], Buf);
-				}
-				Name.Add(0);
-
-				SHFILEOPSTRUCTW s;
-				ZeroObj(s);
-				s.hwnd = 0;
-				s.wFunc = FO_DELETE;
-				s.pFrom = &Name[0];
-				s.fFlags = FOF_ALLOWUNDO;
-
-				e = f(&s);
-			}
-
-			Ret = e == 0;
-			if (Status && e)
-			{
-				for (int i=0; i<Files.Length(); i++)
-				{
-					(*Status)[i] = e;
-				}
+				(*Status)[i] = e;
 			}
 		}
 	}
