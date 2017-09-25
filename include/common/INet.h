@@ -410,7 +410,7 @@ public:
 			return false;
 		
 		uint32 BroadcastIp = Ip | 0xff;
-		#if 1
+		#if 0
 		printf("Broadcast %i.%i.%i.%i\n", 
 			(BroadcastIp >> 24) & 0xff,
 			(BroadcastIp >> 16) & 0xff,

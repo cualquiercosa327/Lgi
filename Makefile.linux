@@ -918,7 +918,8 @@ GWidgets.o : ./src/linux/Lgi/GWidgets.cpp ./include/common/Lgi.h \
 GBox.o : ./src/common/Widgets/GBox.cpp ./include/common/Lgi.h \
 	./include/common/GBox.h \
 	./include/common/GCssTools.h \
-	./include/common/LgiRes.h
+	./include/common/LgiRes.h \
+	./include/common/GPopup.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 

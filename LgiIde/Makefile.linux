@@ -1533,7 +1533,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../src/common/Widgets/GBox.cpp : ../include/common/Lgi.h \
 	../include/common/GBox.h \
 	../include/common/GCssTools.h \
-	../include/common/LgiRes.h
+	../include/common/LgiRes.h \
+	../include/common/GPopup.h
 
 ../src/common/Lgi/LThreadEvent.cpp : ../include/common/Lgi.h \
 	../include/common/LThreadEvent.h

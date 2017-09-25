@@ -186,7 +186,7 @@ int GWindow::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 			
 			for (int i=0; i<Uri.Length(); i++)
 			{
-				char *File = Uri[i].Strip().Get();
+				GString File = Uri[i].Strip();
 				GUri u(File);
 				
 				char *in = u.Path, *out = u.Path;
