@@ -16,10 +16,45 @@
 
 // #define DND_DEBUG_TRACE
 
+class GDataObject : public GUnknownImpl<IDataObject>
+{
+	friend class GDndSourcePriv;
+	GDragDropSource *Source;
+
+public:
+	GDataObject(GDragDropSource *source);
+	~GDataObject();
+
+	// IDataObject
+	HRESULT STDMETHODCALLTYPE GetData(FORMATETC *pFormatEtc, STGMEDIUM *PMedium);
+	HRESULT STDMETHODCALLTYPE QueryGetData(FORMATETC *pFormatEtc);
+	HRESULT STDMETHODCALLTYPE EnumFormatEtc(DWORD dwDirection, IEnumFORMATETC **ppFormatEtc);
+
+	// Not impl
+	HRESULT STDMETHODCALLTYPE SetData(FORMATETC *pFormatetc, STGMEDIUM *pmedium, BOOL fRelease) { return E_NOTIMPL; }
+	HRESULT STDMETHODCALLTYPE GetDataHere(FORMATETC *pFormatEtc, STGMEDIUM *PMedium) { return E_NOTIMPL; }
+	HRESULT STDMETHODCALLTYPE DAdvise(FORMATETC *pFormatetc, DWORD advf, IAdviseSink *pAdvSink, DWORD *pdwConnection) { return E_NOTIMPL; }
+	HRESULT STDMETHODCALLTYPE DUnadvise(DWORD dwConnection) { return E_NOTIMPL; }
+	HRESULT STDMETHODCALLTYPE EnumDAdvise(IEnumSTATDATA **ppenumAdvise) { return E_NOTIMPL; }
+	HRESULT STDMETHODCALLTYPE GetCanonicalFormatEtc(FORMATETC * pFormatetcIn, FORMATETC * pFormatetcOut) { return E_NOTIMPL; }
+};
+
 class GDndSourcePriv
 {
 public:
 	GArray<GDragData> CurData;
+	GDataObject *InDrag;
+
+	GDndSourcePriv()
+	{
+		InDrag = NULL;
+	}
+
+	~GDndSourcePriv()
+	{
+		if (InDrag)
+			InDrag->Source = NULL;
+	}
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -51,38 +86,21 @@ char *FormatToStr(int f)
 	return 0;
 }
 
-class GDataObject : public GUnknownImpl<IDataObject>
-{
-	GDragDropSource *Source;
-
-public:
-	GDataObject(GDragDropSource *source);
-	~GDataObject();
-
-	// IDataObject
-	HRESULT STDMETHODCALLTYPE GetData(FORMATETC *pFormatEtc, STGMEDIUM *PMedium);
-	HRESULT STDMETHODCALLTYPE QueryGetData(FORMATETC *pFormatEtc);
-	HRESULT STDMETHODCALLTYPE EnumFormatEtc(DWORD dwDirection, IEnumFORMATETC **ppFormatEtc);
-
-	// Not impl
-	HRESULT STDMETHODCALLTYPE SetData(FORMATETC *pFormatetc, STGMEDIUM *pmedium, BOOL fRelease) { return E_NOTIMPL; }
-	HRESULT STDMETHODCALLTYPE GetDataHere(FORMATETC *pFormatEtc, STGMEDIUM *PMedium) { return E_NOTIMPL; }
-	HRESULT STDMETHODCALLTYPE DAdvise(FORMATETC *pFormatetc, DWORD advf, IAdviseSink *pAdvSink, DWORD *pdwConnection) { return E_NOTIMPL; }
-	HRESULT STDMETHODCALLTYPE DUnadvise(DWORD dwConnection) { return E_NOTIMPL; }
-	HRESULT STDMETHODCALLTYPE EnumDAdvise(IEnumSTATDATA **ppenumAdvise) { return E_NOTIMPL; }
-	HRESULT STDMETHODCALLTYPE GetCanonicalFormatEtc(FORMATETC * pFormatetcIn, FORMATETC * pFormatetcOut) { return E_NOTIMPL; }
-};
-
 GDataObject::GDataObject(GDragDropSource *source)
 {
 	AddInterface(IID_IDataObject, this);
 	Source = source;
+	Source->d->InDrag = this;
 	Source->OnStartData();
 }
 
 GDataObject::~GDataObject()
 {
-	Source->OnEndData();
+	if (Source)
+	{
+		Source->OnEndData();
+		Source->d->InDrag = NULL;
+	}
 }
 
 HRESULT GDataObject::EnumFormatEtc(DWORD dwDirection, IEnumFORMATETC **ppFormatEtc)
