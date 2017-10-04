@@ -1480,7 +1480,8 @@ ResObjectImpl::SStatus ResDialogObj::Res_Write(GXmlTag *t)
 			GXmlTag *a = new GXmlTag;
 			if (a)
 			{
-				if (c->Res_Write(a))
+				ResObjectImpl::SStatus r = c->Res_Write(a);
+				if (r == SOk)
 				{
 					t->InsertTag(a);
 				}
@@ -1488,6 +1489,9 @@ ResObjectImpl::SStatus ResDialogObj::Res_Write(GXmlTag *t)
 				{
 					LgiAssert(0);
 					DeleteObj(a);
+					
+					LgiTrace("%s:%i - Res_Write returned %i\n", _FL, r);
+					return r;
 				}
 			}
 		}
