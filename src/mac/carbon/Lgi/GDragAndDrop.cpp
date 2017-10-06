@@ -501,10 +501,10 @@ struct DragParams
 				
 				if (ItemFlavors.Length())
 				{
-					for (unsigned i=0; i<ItemFlavors.Length(); i++)
+					for (unsigned f=0; f<ItemFlavors.Length(); f++)
 					{
 						CFDataRef Ref;
-						DropItemFlavor &Fl = ItemFlavors[i];
+						DropItemFlavor &Fl = ItemFlavors[f];
 						e = PasteboardCopyItemFlavorData(Pb, Fl.ItemId, Fl.Flavor, &Ref);
 						if (e)
 						{

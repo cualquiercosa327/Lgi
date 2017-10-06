@@ -3111,7 +3111,7 @@ int IdeTree::OnDrop(GArray<GDragData> &Data, GdcPt2 p, int KeyState)
 			if (Dst)
 			{
 				AddFilesProgress Prog(this);
-				GDropFiles Df(*Data);
+				GDropFiles Df(dd);
 				for (int i=0; i<Df.Length() && !Prog.Cancel; i++)
 				{
 					Dst->AddFiles(&Prog, Df[i]);
