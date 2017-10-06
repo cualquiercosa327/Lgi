@@ -307,6 +307,7 @@
 				<Node File="./src/common/Widgets/GProgress.cpp" Type="2" Platforms="14" />
 				<Node File="./include/common/GProgress.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Widgets/GProgressDlg.cpp" Type="2" Platforms="15" />
+				<Node File="./include/common/GProgressDlg.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Widgets/GRadioGroup.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GRadioGroup.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Widgets/GScrollBar.cpp" Type="2" Platforms="14" />
@@ -553,12 +554,7 @@ textencoding</Release>
 		</Advanced>
 	</Settings>
 </Project>
-Advanced>
-	</Settings>
-</Project>
-or>
-		<Advanced>
-			<OtherMakefileRules />
+
 		</Advanced>
 	</Settings>
 </Project>

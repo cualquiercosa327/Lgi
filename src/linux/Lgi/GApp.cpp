@@ -540,11 +540,8 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 	}
 	else
 	{
-		int ev = Gtk::gtk_events_pending();
-	    while (ev-- > 0)
-	    {
-	        Gtk::gtk_main_iteration();
-	    }
+		printf("gtk_main_iteration_do\n");
+	    Gtk::gtk_main_iteration_do(false);
 	}
 
 	return false;
@@ -1398,4 +1395,5 @@ GMessage::Param GMessage::B()
 	return 0;
 }
 #endif
+
 
