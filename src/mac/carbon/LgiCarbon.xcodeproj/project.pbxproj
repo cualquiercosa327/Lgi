@@ -243,7 +243,7 @@
 		344AF3D608E04BE0004ED88C /* GLibrary.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GLibrary.h; path = ../../../include/common/GLibrary.h; sourceTree = "<group>"; };
 		344AF3DC08E04C75004ED88C /* GObject.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GObject.cpp; path = ../../common/Lgi/GObject.cpp; sourceTree = "<group>"; };
 		344B736308D83E8300D49457 /* Lgi.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Lgi.h; path = ../../../include/common/Lgi.h; sourceTree = "<group>"; };
-		344B736B08D83F1800D49457 /* GGeneral.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GGeneral.cpp; path = Lgi/GGeneral.cpp; sourceTree = "<group>"; };
+		344B736B08D83F1800D49457 /* GGeneral.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 30; name = GGeneral.cpp; path = Lgi/GGeneral.cpp; sourceTree = "<group>"; };
 		344B737708D83F6C00D49457 /* LgiClasses.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiClasses.h; path = ../../../include/common/LgiClasses.h; sourceTree = "<group>"; };
 		344B737A08D8401600D49457 /* Lgi.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Lgi.cpp; path = ../../common/Lgi/Lgi.cpp; sourceTree = "<group>"; };
 		344B738008D8406900D49457 /* GdcCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GdcCommon.cpp; path = ../../common/Gdc2/GdcCommon.cpp; sourceTree = "<group>"; };
