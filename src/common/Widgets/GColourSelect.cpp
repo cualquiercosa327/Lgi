@@ -54,7 +54,7 @@ public:
 	{
 		GRect r = GetClient();
 		r.Size(2, 2);
-		if (r.Overlap(m.x, m.y))
+		if (m.Down() && r.Overlap(m.x, m.y))
 		{
 			int i = m.y / Ly;
 			if (i == 0)

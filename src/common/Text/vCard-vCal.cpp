@@ -1101,6 +1101,8 @@ bool VCal::Export(GDataPropI *c, GStreamI *o)
 					Dt->Hours(), Dt->Minutes(), Dt->Seconds());
 		}
 
+		#warning "FIXME: add export for reminder."
+		/*
 		int64 AlarmAction;
 		int AlarmTime;
 		if ((AlarmAction = c->GetInt(FIELD_CAL_REMINDER_ACTION)) &&
@@ -1112,7 +1114,6 @@ bool VCal::Export(GDataPropI *c, GStreamI *o)
 			o->Push((char*)"END:VALARM\r\n");
 		}
 
-		/*
 		List<GDataPropI> Attendees;
 		if (c->GetAttendees(Attendees))
 		{
