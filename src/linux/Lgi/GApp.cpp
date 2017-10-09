@@ -540,7 +540,7 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 	}
 	else
 	{
-		printf("gtk_main_iteration_do\n");
+		// printf("gtk_main_iteration_do\n");
 	    Gtk::gtk_main_iteration_do(false);
 	}
 

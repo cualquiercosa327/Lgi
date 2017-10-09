@@ -29,7 +29,6 @@ ifeq ($(Build),Debug)
 		-llgi$(Tag) \
 		-L/home/matthew/Code/Lgi/trunk/$(BuildDir)
 	Inc =  \
-		-I../../../../CodeLib/libpng \
 		-I../include/common \
 		-I../include/linux \
 		-I../include/linux/Gtk \
@@ -47,7 +46,6 @@ else
 		-llgi$(Tag) \
 		-L/home/matthew/Code/Lgi/trunk/$(BuildDir)
 	Inc =  \
-		-I../../../../CodeLib/libpng \
 		-I../include/common \
 		-I../include/linux \
 		-I../include/linux/Gtk \
@@ -4761,7 +4759,6 @@ VPATH=%.cpp \
 	../../../../../../usr/include/gdk-pixbuf-2.0 \
 	../../../../../../usr/include/glib-2.0 \
 	../include/common \
-	../../../../CodeLib/libpng \
 	../../../../../../usr/include/atk-1.0 \
 	../../../../../../usr/include/pixman-1 \
 	../../../../../../usr/include/cairo \
