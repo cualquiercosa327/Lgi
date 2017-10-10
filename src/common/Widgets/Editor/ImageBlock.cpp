@@ -890,7 +890,7 @@ int GRichTextPriv::ImageBlock::GetThreadHandle()
 	if (ThreadHnd == 0)
 	{
 		ImageLoader *il = new ImageLoader(this);
-		if (il > 0)
+		if (il != NULL)
 			ThreadHnd = il->GetHandle();
 	}
 
