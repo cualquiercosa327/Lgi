@@ -145,7 +145,7 @@ public:
 	void OnPaintColumn(GItem::ItemPaintCtx &Ctx, int i, GItemColumn *c);
 
 	// Overridable
-	virtual int Compare(LListItem *To, int Field) { return 0; }
+	virtual int Compare(LListItem *To, int Field = 0) { return 0; }
 	virtual void OnColumnNotify(int Col, int Data) { Update(); }
 };
 
@@ -408,7 +408,7 @@ public:
 		/// The comparision function. Should return a integer greater then > 0 if the first item item is greater in value.
 		LListCompareFunc Compare,
 		/// User defined 32-bit value passed through to the 'Compare' function
-		NativeInt Data
+		NativeInt Data = 0
 	);
 
 	/// Removes all items from list and delete the objects.

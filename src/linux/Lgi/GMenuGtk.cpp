@@ -124,7 +124,10 @@ GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 		LgiAssert(item);
 		if (item)
 		{
-			Gtk::gtk_menu_shell_append(Info, item);
+			if (Where < 0)
+				Gtk::gtk_menu_shell_append(Info, item);
+			else
+				Gtk::gtk_menu_shell_insert(Info, item, Where);
 			Gtk::gtk_widget_show(item);
 		}
 

@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project TabSize="4" IndentSize="4" UseTabs="1" ShowWhitespace="0" Makefile="./Makefile" Exe="./lgires" TargetType="0" TargetName="lgires" IncludePaths="../include/common&#10;../include/linux/X&#10;./Code&#10;" Compiler="0">
-	<Node Name="Resources" Type="1" Open="0" Platforms="7">
+	<Node Name="Resources" Type="1" Open="0" Platforms="7" Id="1">
 		<Node File="./Code/lgires.lr8" Type="5" Platforms="7" />
 	</Node>
-	<Node Name="Objects" Type="1" Open="1" Platforms="7">
-		<Node Name="Dialog" Type="1" Open="0" Platforms="7">
+	<Node Name="Objects" Type="1" Open="1" Platforms="7" Id="2">
+		<Node Name="Dialog" Type="1" Open="0" Platforms="7" Id="3">
 			<Node File="./Code/LgiRes_ControlTree.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/LgiRes_Dialog.cpp" Type="2" Platforms="7" />
 			<Node File="./Code/LgiRes_Dialog.h" Type="3" Platforms="7" />
 			<Node File="./Code/LgiRes_TableLayout.cpp" Type="2" Platforms="7" />
 		</Node>
-		<Node Name="Menu" Type="1" Open="0" Platforms="7">
+		<Node Name="Menu" Type="1" Open="0" Platforms="7" Id="4">
 			<Node File="./Code/LgiRes_Menu.cpp" Type="2" Platforms="7" />
 			<Node File="./Code/LgiRes_Menu.h" Type="3" Platforms="7" />
 		</Node>
-		<Node Name="String" Type="1" Open="0" Platforms="7">
+		<Node Name="String" Type="1" Open="0" Platforms="7" Id="5">
 			<Node File="./Code/LgiRes_String.cpp" Type="2" Platforms="7" />
 			<Node File="./Code/LgiRes_String.h" Type="3" Platforms="7" />
 		</Node>
@@ -24,7 +24,7 @@
 		<Node File="./Code/Search.cpp" Type="2" Platforms="7" />
 		<Node File="./Code/ShowLanguages.cpp" Type="2" Platforms="7" />
 	</Node>
-	<Node Name="Lgi" Type="1" Open="1" Platforms="7">
+	<Node Name="Lgi" Type="1" Open="1" Platforms="7" Id="6">
 		<Node File="../src/common/Lgi/GAbout.cpp" Type="2" Platforms="7" />
 		<Node File="../src/common/Lgi/GDocApp.cpp" Type="2" Platforms="15" />
 		<Node File="../src/common/Gdc2/Filters/Gif.cpp" Type="2" Platforms="15" />
@@ -58,8 +58,10 @@
 		<Build>
 			<IncludePaths>
 				<All>
-					<Debug>../include/common</Debug>
-					<Release>../include/common</Release>
+					<Debug>../include/common
+Resources</Debug>
+					<Release>../include/common
+Resources</Release>
 				</All>
 				<Linux>
 					<Debug>../include/linux
@@ -109,6 +111,10 @@
 		</Editor>
 		<Advanced>
 			<OtherMakefileRules />
+		</Advanced>
+	</Settings>
+</Project>
+	<OtherMakefileRules />
 		</Advanced>
 	</Settings>
 </Project>

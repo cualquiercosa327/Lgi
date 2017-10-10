@@ -3761,6 +3761,7 @@ bool ResDialog::Write(GXmlTag *t, SerialiseContext &Ctx)
 			Status = Res_Write(Ctrl, t);
 		}
 	}
+	else LgiTrace("%s:%i - Not a ResDialogCtrl.\n", _FL);
 
 	return Status;
 }

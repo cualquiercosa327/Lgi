@@ -567,7 +567,7 @@ T *Strchr(T *str, int ch)
 
 /// Finds the first instance of a character in the string
 template<typename T>
-T *Strnchr(T *str, int ch, unsigned len)
+T *Strnchr(T *str, int ch, size_t len)
 {
 	if (!str || len == 0)
 		return NULL;

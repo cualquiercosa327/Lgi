@@ -3039,6 +3039,7 @@ bool AppWnd::SaveLgi(char *FileName)
 						}
 						else
 						{
+							r->Write(c, Ctx);
 							LgiAssert(0);
 							DeleteObj(c);
 						}
