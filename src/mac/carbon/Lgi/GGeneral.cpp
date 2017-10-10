@@ -451,10 +451,10 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir, GAutoString
 			{
 				// Is this an app bundle?
 				bool IsAppBundle = false;
-				char *Last = strrchr(File, '/');
+				const char *Last = strrchr(File, '/');
 				if (Last)
 				{
-					char *Dot = strrchr(Last, '.');
+					const char *Dot = strrchr(Last, '.');
 					IsAppBundle = Dot && !stricmp(Dot, ".app");
 					
 					/* Ideally in OSX before 10.6 we'd convert to calling the executable in

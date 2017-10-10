@@ -339,7 +339,7 @@ bool FileExists(const char *FileName, char *CorrectCase)
 							try
 							{
 								// Tell the calling program the actual case of the file...
-								e = strrchr(FileName, DIR_CHAR);
+								e = (char*)strrchr(FileName, DIR_CHAR);
 								
 								// If this crashes because the argument is read only then we get caught by the try catch
 								strcpy(e+1, De->d_name);

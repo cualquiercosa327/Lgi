@@ -197,7 +197,6 @@ pascal OSErr AppEventHandler(const AppleEvent *ae, AppleEvent *reply, SRefCon ha
 
 int main(int Args, char **Arg)
 {
-    printf("hey...\n");
 	int Status = 0;
 	OsAppArguments AppArgs(Args, (const char**)Arg);
 	
