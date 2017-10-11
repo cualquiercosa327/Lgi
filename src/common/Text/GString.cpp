@@ -555,7 +555,7 @@ char16 *StristrW(char16 *a, const char16 *b)
 	return 0;
 }
 
-char16 *StrnstrW(char16 *a, const char16 *b, int n)
+char16 *StrnstrW(char16 *a, const char16 *b, ssize_t n)
 {
 	if (a && b)
 	{
@@ -574,7 +574,7 @@ char16 *StrnstrW(char16 *a, const char16 *b, int n)
 	return 0;
 }
 
-char16 *StrnistrW(char16 *a, const char16 *b, int n)
+char16 *StrnistrW(char16 *a, const char16 *b, ssize_t n)
 {
 	if (a && b)
 	{
@@ -634,7 +634,7 @@ int StricmpW(const char16 *a, const char16 *b)
 	return -1;
 }
 
-int StrncmpW(const char16 *a, const char16 *b, int n)
+int StrncmpW(const char16 *a, const char16 *b, ssize_t n)
 {
 	if (a && b)
 	{
@@ -654,7 +654,7 @@ int StrncmpW(const char16 *a, const char16 *b, int n)
 	return -1;
 }
 
-int StrnicmpW(const char16 *a, const char16 *b, int n)
+int StrnicmpW(const char16 *a, const char16 *b, ssize_t n)
 {
 	if (a && b)
 	{
@@ -693,7 +693,7 @@ char16 *StrcpyW(char16 *a, const char16 *b)
 	return a;
 }
 
-char16 *StrncpyW(char16 *a, const char16 *b, int n)
+char16 *StrncpyW(char16 *a, const char16 *b, ssize_t n)
 {
 	if (a && b && n > 0)
 	{

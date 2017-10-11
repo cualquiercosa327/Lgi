@@ -268,23 +268,23 @@ LgiFunc char16 *StrstrW(char16 *a, const char16 *b);
 /// Find a sub-string in a wide string (case insensitive)
 LgiFunc char16 *StristrW(char16 *a, const char16 *b);
 /// Find a sub-string in the first 'n' characters of a wide string (case sensitive)
-LgiFunc char16 *StrnstrW(char16 *a, const char16 *b, int n);
+LgiFunc char16 *StrnstrW(char16 *a, const char16 *b, ssize_t n);
 /// Find a sub-string in the first 'n' characters of a wide string (case insensitive)
-LgiFunc char16 *StrnistrW(char16 *a, const char16 *b, int n);
+LgiFunc char16 *StrnistrW(char16 *a, const char16 *b, ssize_t n);
 
 /// Compare wide strings (case sensitive)
 LgiFunc int StrcmpW(const char16 *a, const char16 *b);
 /// Compare wide strings (case insensitive)
 LgiFunc int StricmpW(const char16 *a, const char16 *b);
 /// Compare 'n' characters of 2 wide strings (case sensitive)
-LgiFunc int StrncmpW(const char16 *a, const char16 *b, int n);
+LgiFunc int StrncmpW(const char16 *a, const char16 *b, ssize_t n);
 /// Compare 'n' characters of 2 wide strings (case insensitive)
-LgiFunc int StrnicmpW(const char16 *a, const char16 *b, int n);
+LgiFunc int StrnicmpW(const char16 *a, const char16 *b, ssize_t n);
 
 /// String copy one wide string to another
 LgiFunc char16 *StrcpyW(char16 *a, const char16 *b);
 /// String copy a maximum of 'n' characters of one wide string to another
-LgiFunc char16 *StrncpyW(char16 *a, const char16 *b, int n);
+LgiFunc char16 *StrncpyW(char16 *a, const char16 *b, ssize_t n);
 
 /// Count the number of char16's in a wide string
 LgiFunc int StrlenW(const char16 *a);
