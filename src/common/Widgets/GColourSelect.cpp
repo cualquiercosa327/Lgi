@@ -123,6 +123,7 @@ void GColourSelect::OnPaint(GSurface *pDC)
 	GDropDown::OnPaint(pDC);
 
 	GRect r = GetClient();
+	r.x1 += 2;
 	r.x2 -= 14;
 	r.Size(5, 5);
 	if (IsOpen()) r.Offset(1, 1);
