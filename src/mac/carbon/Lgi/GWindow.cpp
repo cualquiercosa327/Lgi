@@ -12,6 +12,8 @@ extern void SetDefaultFocus(GViewI *v);
 #define DEBUG_KEYS			0
 #define DEBUG_SETFOCUS		0
 
+WindowGroupRef OnTopGroup = NULL;
+
 ///////////////////////////////////////////////////////////////////////
 class HookInfo
 {
@@ -461,6 +463,24 @@ bool GWindow::GetAlwaysOnTop()
 
 void GWindow::SetAlwaysOnTop(bool b)
 {
+	OSStatus e;
+	
+	if (!OnTopGroup)
+	{
+		e = CreateWindowGroup(kWindowGroupAttrSelectAsLayer, &OnTopGroup);
+		if (e) printf("%s:%i - CreateWindowGroup failed with %i\n", _FL, (int)e);
+		else
+		{
+			e = SetWindowGroupLevel(OnTopGroup, kCGPopUpMenuWindowLevel);
+			if (e) printf("%s:%i - SetWindowGroupLevel failed with %i\n", _FL, (int)e);
+		}
+	}
+	
+	if (OnTopGroup)
+	{
+		e = SetWindowGroup(Wnd, OnTopGroup);
+		if (e) printf("%s:%i - SetWindowGroup failed with %i\n", _FL, (int)e);
+	}
 }
 
 bool GWindow::PostEvent(int Event, int a, int b)
