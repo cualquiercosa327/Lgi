@@ -437,7 +437,7 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = /Users/mallen/Code/Lgi/trunk/src/mac/carbon/build/Debug;
+				FRAMEWORK_SEARCH_PATHS = ../../src/mac/carbon/build/Debug;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -454,7 +454,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.memecode.lgiide;
 				PRODUCT_NAME = LgiIde;
 				SDKROOT = macosx;
-				USER_HEADER_SEARCH_PATHS = "../../include/mac/carbon ../../include/common ../Code ../../../../../CodeLib/libpng";
+				USER_HEADER_SEARCH_PATHS = "../../include/mac/carbon ../../include/common ../Code ../../../../../CodeLib/libpng ../../../../../CodeLib/libpng/build";
 				VALID_ARCHS = i386;
 				WRAPPER_EXTENSION = app;
 			};
@@ -482,7 +482,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.memecode.lgiide;
 				PRODUCT_NAME = LgiIde;
 				SDKROOT = macosx;
-				USER_HEADER_SEARCH_PATHS = "../../include/mac/carbon ../../include/common ../Code ../../../../../CodeLib/libpng";
+				USER_HEADER_SEARCH_PATHS = "../../include/mac/carbon ../../include/common ../Code ../../../../../CodeLib/libpng ../../../../../CodeLib/libpng/build";
 				VALID_ARCHS = i386;
 				WRAPPER_EXTENSION = app;
 			};

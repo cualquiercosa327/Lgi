@@ -528,7 +528,7 @@ struct DragParams
 									memcpy(Cp, Ptr, Len);
 									Cp[Len] = 0;
 									
-									GVariant *v = &dd.Data[i];
+									GVariant *v = &dd.Data[i-1];
 									if (!_stricmp(LGI_LgiDropFormat, DropFormat))
 									{
 										GDragDropSource *Src = NULL;
