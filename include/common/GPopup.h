@@ -37,7 +37,7 @@ protected:
 public:
 	GPopup(GView *owner);
 	~GPopup();
-
+	
 	/// Sets whether the popup should take the focus when it's shown.
 	/// The default is 'true'
 	void TakeFocus(bool Take);

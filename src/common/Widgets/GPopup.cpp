@@ -1085,7 +1085,6 @@ void GDropDown::OnPaint(GSurface *pDC)
 
 void GDropDown::Activate()
 {
-	printf("%s:%i - activate %i\n", _FL, IsOpen());
 	if (IsOpen())
 	{
 		// Hide
@@ -1099,7 +1098,6 @@ void GDropDown::Activate()
 		GRect r(p.x-Popup->X()+1, p.y, p.x, p.y+Popup->Y()-1);
 		
 		// Show the popup
-		printf("%s:%i - Popup->IsAttached()=%i r=%s\n", _FL, Popup->IsAttached(), r.GetStr());
 		if (!Popup->IsAttached())
 		{
 			Popup->Attach(this);
@@ -1139,7 +1137,6 @@ bool GDropDown::OnKey(GKey &k)
 
 void GDropDown::OnMouseClick(GMouse &m)
 {
-	printf("%s:%i - click %p, %i\n", _FL, Popup, m.Down());
 	if (Popup && m.Down())
 	{
 		Focus(true);

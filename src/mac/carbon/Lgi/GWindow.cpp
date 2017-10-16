@@ -40,6 +40,7 @@ public:
 	DragReceiveHandlerUPP ReceiveHandler;
 	uint64 LastMinimize;
 	bool CloseRequestDone;
+	bool SetOnTop;
 	uint64 LastDragDrop;
 
 	GMenu *EmptyMenu;
@@ -48,6 +49,7 @@ public:
 
 	GWindowPrivate(GWindow *wnd)
 	{
+		SetOnTop = false;
 		Focus = NULL;
 		InitVisible = false;
 		LastMinimize = 0;
@@ -458,28 +460,40 @@ void GWindow::_Delete()
 
 bool GWindow::GetAlwaysOnTop()
 {
-	return false;
+	return d->SetOnTop;
 }
 
 void GWindow::SetAlwaysOnTop(bool b)
 {
-	OSStatus e;
-	
-	if (!OnTopGroup)
+	if (b ^ d->SetOnTop)
 	{
-		e = CreateWindowGroup(kWindowGroupAttrSelectAsLayer, &OnTopGroup);
-		if (e) printf("%s:%i - CreateWindowGroup failed with %i\n", _FL, (int)e);
-		else
+		OSStatus e;
+		d->SetOnTop = b;
+
+		if (b)
 		{
-			e = SetWindowGroupLevel(OnTopGroup, kCGPopUpMenuWindowLevel);
-			if (e) printf("%s:%i - SetWindowGroupLevel failed with %i\n", _FL, (int)e);
+			if (!OnTopGroup)
+			{
+				e = CreateWindowGroup(kWindowGroupAttrSelectAsLayer, &OnTopGroup);
+				if (e) printf("%s:%i - CreateWindowGroup failed with %i\n", _FL, (int)e);
+				else
+				{
+					e = SetWindowGroupLevel(OnTopGroup, kCGPopUpMenuWindowLevel);
+					if (e) printf("%s:%i - SetWindowGroupLevel failed with %i\n", _FL, (int)e);
+				}
+			}
+			
+			if (OnTopGroup)
+			{
+				e = SetWindowGroup(Wnd, OnTopGroup);
+				if (e) printf("%s:%i - SetWindowGroup failed with %i\n", _FL, (int)e);
+			}
 		}
-	}
-	
-	if (OnTopGroup)
-	{
-		e = SetWindowGroup(Wnd, OnTopGroup);
-		if (e) printf("%s:%i - SetWindowGroup failed with %i\n", _FL, (int)e);
+		else if (OnTopGroup)
+		{
+			e = SetWindowGroup(Wnd, NULL);
+			if (e) printf("%s:%i - SetWindowGroup failed with %i\n", _FL, (int)e);
+		}
 	}
 }
 
@@ -649,7 +663,7 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 			{
 				case kEventWindowDispose:
 				{
-					GWindow *w = v->GetWindow();
+					GWindow *w = dynamic_cast<GWindow*>(v);
 					v->OnDestroy();
 					
 					if (w && w->d && w->d->DeleteWhenDone)
