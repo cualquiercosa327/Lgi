@@ -224,8 +224,7 @@ int main(int Args, char **Arg)
 									NewAEEventHandlerUPP(AppEventHandler),
 									0,
 									false);
-		if (e) LgiTrace("%s:%i - AEInstallEventHandler = %i\n", _FL, e);
-		else LgiTrace("AEInstallEventHandler installed...\n");
+		if (e) LgiTrace("%s:%i - AEInstallEventHandler error %i\n", _FL, e);
 		#endif
 	
 	#elif 1 && defined(__GTK_H__) && defined(_DEBUG)

@@ -357,6 +357,30 @@ GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv **Ptr) :
 	
 GRichTextPriv::~GRichTextPriv()
 {
+	if (IsBusy(true))
+	{
+		uint64 Start = LgiCurrentTime();
+		uint64 Msg = Start;
+		while (IsBusy())
+		{
+			uint64 Now = LgiCurrentTime();
+			LgiSleep(10);
+			LgiYield();
+
+			if (Now - Msg > 1000)
+			{
+				printf("%s:%i - Waiting for blocks: %i\n", _FL, (int)(Now-Start));
+				Msg = Now;
+			}
+
+			if (Now - Start > 10000)
+			{
+				LgiAssert(0);
+				Start = Now;
+			}
+		}
+	}
+	
 	Empty();
 }
 	
@@ -504,6 +528,16 @@ bool GRichTextPriv::SetUndoPos(ssize_t Pos)
 	Dirty = true;
 	InvalidateDoc(NULL);
 	return true;
+}
+
+bool GRichTextPriv::IsBusy(bool Stop)
+{
+	for (unsigned i=0; i<Blocks.Length(); i++)
+	{
+		if (Blocks[i]->IsBusy(Stop))
+			return true;
+	}
+	return false;
 }
 
 bool GRichTextPriv::Error(const char *file, int line, const char *fmt, ...)

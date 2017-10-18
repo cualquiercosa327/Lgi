@@ -430,6 +430,7 @@ public:
 	~GRichTextPriv();
 	
 	bool Error(const char *file, int line, const char *fmt, ...);
+	bool IsBusy(bool Stop = false);
 
 	struct Flow
 	{
@@ -710,6 +711,8 @@ public:
 			#ifdef _DEBUG
 			virtual void DumpNodes(GTreeItem *Ti) = 0;
 			#endif
+			virtual bool IsValid() { return false; }
+			virtual bool IsBusy(bool Stop = false) { return false; }
 			virtual Block *Clone() = 0;
 
 			// Copy some or all of the text out
@@ -1055,10 +1058,13 @@ public:
 
 		GArray<ScaleInf> Scales;
 		int ResizeIdx;
+		int ThreadBusy;
+		void UpdateThreadBusy(const char *File, int Line, int Off);
 
 		int GetThreadHandle();
 		void UpdateDisplay(int y);
 		void UpdateDisplayImg();
+		
 
 	public:
 		GAutoPtr<GSurface> SourceImg, DisplayImg, SelectImg;
@@ -1075,6 +1081,7 @@ public:
 		~ImageBlock();
 
 		bool IsValid();
+		bool IsBusy(bool Stop = false) { return ThreadBusy != 0; }
 		bool Load(const char *Src = NULL);
 		bool SetImage(GAutoPtr<GSurface> Img);
 

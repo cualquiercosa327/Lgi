@@ -1837,8 +1837,7 @@ bool GView::PostEvent(int Cmd, GMessage::Param a, GMessage::Param b)
 		#if WINNATIVE
 		return PostMessage(_View, Cmd, a, b);
 		#else
-		bool Ret = LgiPostEvent(_View, Cmd, a, b);
-		return Ret;
+		return LgiPostEvent(_View, Cmd, a, b);
 		#endif
 	}
 	else if (InThread())

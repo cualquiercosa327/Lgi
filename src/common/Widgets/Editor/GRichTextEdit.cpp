@@ -1056,7 +1056,7 @@ int GRichTextEdit::WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState)
 		}
 		else
 		{
-			LgiTrace("Ignoring format '%s'\n", s);
+			// LgiTrace("Ignoring format '%s'\n", s);
 			Formats.Delete(s);
 			DeleteArray(s);
 			s = Formats.Current();
@@ -2317,6 +2317,7 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 			{
 				b->OnEvent(msg);
 			}
+			else printf("%s:%i - No block to receive M_BLOCK_MSG.\n", _FL);
 			break;
 		}
 		case M_ENUMERATE_LANGUAGES:

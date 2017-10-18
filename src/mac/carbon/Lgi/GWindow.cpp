@@ -966,6 +966,8 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 				status = GetEventParameter(inEvent, kEventParamLgiA, typeUInt32, NULL, sizeof(UInt32), NULL, &m.a);
 				status = GetEventParameter(inEvent, kEventParamLgiB, typeUInt32, NULL, sizeof(UInt32), NULL, &m.b);
 				
+				// printf("kEventClassUser.window = %i,%i,%i\n", m.m, m.a, m.b);
+				
 				v->OnEvent(&m);
 				
 				if (m.m == M_MOUSE_TRACK_UP && GView::_Capturing)
