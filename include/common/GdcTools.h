@@ -73,13 +73,13 @@ extern bool GreyScaleDC(GSurface *pDest, GSurface *pSrc);
 extern bool InvertDC(GSurface *pDC);
 
 // rotate dc
-extern bool RotateDC(GSurface *pDC, double Angle);
+extern bool RotateDC(GSurface *pDC, double Angle, Progress *Prog = NULL);
 
 // flip dc
-extern bool FlipXDC(GSurface *pDC);
-extern bool FlipYDC(GSurface *pDC);
+extern bool FlipXDC(GSurface *pDC, Progress *Prog = NULL);
+extern bool FlipYDC(GSurface *pDC, Progress *Prog = NULL);
 
 // resample the dc
-extern bool ResampleDC(GSurface *pTo, GSurface *pFrom, GRect *FromRgn = 0, Progress *Prog = 0);
+extern bool ResampleDC(GSurface *pTo, GSurface *pFrom, GRect *FromRgn = 0, Progress *Prog = NULL);
 
 #endif

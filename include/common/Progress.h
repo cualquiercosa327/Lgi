@@ -4,9 +4,12 @@
 #define __PROGRESS_H
 
 #include "LMutex.h"
+#include "LCancel.h"
 
 /// Generic progress class, keeps track of how far through a task you are.
-class LgiClass Progress : public LMutex
+class LgiClass Progress :
+	public LMutex,
+	public LCancel
 {
 protected:
 	GAutoString Description;
@@ -15,7 +18,6 @@ protected:
 	int64 Low, High;
 	const char *Type;
 	double Scale;
-	bool Canceled;
 
 public:
 	uint64 UserData;
@@ -34,11 +36,7 @@ public:
 	virtual void SetScale(double s) { Scale = s; }
 	virtual const char *GetType() { return Type; }
 	virtual void SetType(const char *t) { Type = t; }
-	
-	virtual bool Cancel() { return Canceled; }
-	virtual void Cancel(bool i) { Canceled = i; }
 	virtual void SetParameter(int Which, int What) {}
-
 	virtual Progress &operator =(Progress &p);
 };
 

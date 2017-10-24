@@ -129,6 +129,7 @@
 		349C23A01D1E33DA0006793D /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 349C239F1D1E33DA0006793D /* CoreText.framework */; };
 		349C23AC1D1E42690006793D /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 349C23AB1D1E42690006793D /* CoreFoundation.framework */; };
 		349C23AE1D1E42BE0006793D /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 349C23AD1D1E42BE0006793D /* ApplicationServices.framework */; };
+		349D78001F98B4DA00E192B6 /* LCancel.h in Headers */ = {isa = PBXBuildFile; fileRef = 349D77FF1F98B4DA00E192B6 /* LCancel.h */; };
 		34A11A7C1675349900FCC5D7 /* LMutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34A11A7B1675349900FCC5D7 /* LMutex.cpp */; };
 		34A11A7E167534A500FCC5D7 /* LMutex.h in Headers */ = {isa = PBXBuildFile; fileRef = 34A11A7D167534A500FCC5D7 /* LMutex.h */; };
 		34A3ABF70EF5AA0A009A5E95 /* GDisplayString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34A3ABF60EF5AA0A009A5E95 /* GDisplayString.cpp */; };
@@ -311,6 +312,7 @@
 		349C239F1D1E33DA0006793D /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
 		349C23AB1D1E42690006793D /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		349C23AD1D1E42BE0006793D /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = System/Library/Frameworks/ApplicationServices.framework; sourceTree = SDKROOT; };
+		349D77FF1F98B4DA00E192B6 /* LCancel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LCancel.h; path = /Users/matthew/Code/Scribe/trunk/../../Lgi/trunk/include/common/LCancel.h; sourceTree = "<absolute>"; };
 		34A11A7B1675349900FCC5D7 /* LMutex.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LMutex.cpp; path = ../../common/Lgi/LMutex.cpp; sourceTree = "<group>"; };
 		34A11A7D167534A500FCC5D7 /* LMutex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LMutex.h; path = ../../../include/common/LMutex.h; sourceTree = "<group>"; };
 		34A3ABF60EF5AA0A009A5E95 /* GDisplayString.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GDisplayString.cpp; path = ../../common/Gdc2/Font/GDisplayString.cpp; sourceTree = "<group>"; };
@@ -596,6 +598,7 @@
 				344B737A08D8401600D49457 /* Lgi.cpp */,
 				34983C2308F548DF0054868C /* LgiRand.cpp */,
 				3493304B0F60CE690092EAE8 /* GViewPriv.h */,
+				349D77FF1F98B4DA00E192B6 /* LCancel.h */,
 				344D1B5208F4A52200228075 /* D'n'd */,
 				344AF36408E0328B004ED88C /* Date/Time */,
 				34E9BF35121AA21800C1F0FA /* Exceptions */,
@@ -877,6 +880,7 @@
 				344B737808D83F6C00D49457 /* LgiClasses.h in Headers */,
 				344AF3C308E04A94004ED88C /* LgiDefs.h in Headers */,
 				344AF3D708E04BE0004ED88C /* GLibrary.h in Headers */,
+				349D78001F98B4DA00E192B6 /* LCancel.h in Headers */,
 				34D2CC7308F115AD0009968C /* GFont.h in Headers */,
 				344D1B0608F4A26300228075 /* GSlider.h in Headers */,
 				34B9545D0939DB5A00477A2D /* GString.h in Headers */,

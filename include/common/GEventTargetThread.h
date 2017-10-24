@@ -4,6 +4,7 @@
 #include "LThread.h"
 #include "LMutex.h"
 #include "LThreadEvent.h"
+#include "LCancel.h"
 
 #define PostThreadEvent GEventSinkMap::Dispatch.PostEvent
 

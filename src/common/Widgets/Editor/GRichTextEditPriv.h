@@ -1081,7 +1081,7 @@ public:
 		~ImageBlock();
 
 		bool IsValid();
-		bool IsBusy(bool Stop = false) { return ThreadBusy != 0; }
+		bool IsBusy(bool Stop = false);
 		bool Load(const char *Src = NULL);
 		bool SetImage(GAutoPtr<GSurface> Img);
 

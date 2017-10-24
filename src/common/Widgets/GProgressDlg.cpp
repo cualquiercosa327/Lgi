@@ -47,7 +47,6 @@ Progress::Progress() : LMutex("ProgressObj")
 	High = 0;
 	Type = 0;
 	Scale = 1.0;
-	Canceled = false;
 	UserData = 0;
 }
 
@@ -118,7 +117,6 @@ GProgressPane::GProgressPane()
 	SetPos(r);
 	Name("Progress");
 	SetId(IDC_PANE);
-	Canceled = false;
 	Ref = 0;
 
 	if (AddView(t = new GTableLayout(IDC_TABLE)))
@@ -623,7 +621,7 @@ bool GProgressDlg::Cancel()
 {
 	for (GProgressPane *p=Progri.First(); p; p=Progri.Next())
 	{
-		if (p->Cancel()) return true;
+		if (p->IsCancelled()) return true;
 	}
 	return false;
 }
@@ -661,9 +659,9 @@ void GProgressDlg::OnSync(ProgressList *Prg)
 						Pane->Value(p->Value());
 					}
 
-					if (Pane->Cancel() != p->Cancel())
+					if (Pane->IsCancelled() != p->IsCancelled())
 					{
-						p->Cancel(Pane->Cancel());
+						p->Cancel(Pane->IsCancelled());
 					}
 				}
 			}

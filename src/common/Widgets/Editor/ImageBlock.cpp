@@ -115,7 +115,7 @@ public:
 				GSurface *Src = (GSurface*) Msg->B();
 				if (Src && Dst)
 				{
-					ResampleDC(Dst, Src, NULL, NULL);
+					ResampleDC(Dst, Src, NULL, this);
 					if (!Sink->PostEvent(M_IMAGE_RESAMPLE))
 						printf("%s:%i - Error sending resample msg.\n", _FL);
 				}
@@ -238,6 +238,13 @@ GRichTextPriv::ImageBlock::~ImageBlock()
 bool GRichTextPriv::ImageBlock::IsValid()
 {
 	return true;
+}
+
+bool GRichTextPriv::ImageBlock::IsBusy(bool Stop)
+{
+	//if (Stop && Thread)
+	//	Thread->Cancel(true);
+	return ThreadBusy != 0;
 }
 
 bool GRichTextPriv::ImageBlock::SetImage(GAutoPtr<GSurface> Img)
