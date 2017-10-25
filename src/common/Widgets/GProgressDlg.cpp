@@ -617,7 +617,7 @@ void GProgressDlg::SetType(const char *t)
 	if (Pane) Pane->SetType(t);
 }
 
-bool GProgressDlg::Cancel()
+bool GProgressDlg::IsCancelled()
 {
 	for (GProgressPane *p=Progri.First(); p; p=Progri.Next())
 	{
