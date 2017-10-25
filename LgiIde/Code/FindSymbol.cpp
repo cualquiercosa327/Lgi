@@ -245,13 +245,17 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 								
 								// For each search term...
 								bool Match = true;
+								int ScoreSum = Def.Type == DefnClass;
 								for (unsigned n=0; n<p.Length(); n++)
 								{
-									if (!stristr(Def.Name, p[n]))
+									int Score = Def.Find(p[n]);
+									if (!Score)
 									{
 										Match = false;
 										break;
 									}
+
+									ScoreSum += Score;
 								}
 
 								#ifdef DEBUG_FILE
@@ -265,7 +269,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 									FindSymResult *r = new FindSymResult();
 									if (r)
 									{
-										r->Score = Def.Type == DefnClass;
+										r->Score = ScoreSum;
 										r->File = Def.File.Get();
 										r->Symbol = Def.Name.Get();
 										r->Line = Def.Line;
@@ -379,6 +383,21 @@ bool FindSymbolDlg::OnViewKey(GView *v, GKey &k)
 	return false;
 }
 
+bool IsHeader(const char *f)
+{
+	char *d = LgiGetExtension(f);
+	return d ? !_stricmp(d, "h") || !_stricmp(d, "hpp") || !_stricmp(d, "hxx") : false;
+}
+
+int ResultCompare(LListItem *a, LListItem *b, NativeInt data)
+{
+	int as = atoi(a->GetText(3));
+	int bs = atoi(b->GetText(3));
+	if (as != bs)
+		return bs - as;
+	return 0;
+}
+
 GMessage::Result FindSymbolDlg::OnEvent(GMessage *m)
 {
 	switch (m->Msg())
@@ -433,16 +452,19 @@ GMessage::Result FindSymbolDlg::OnEvent(GMessage *m)
 						LListItem *it = new LListItem;
 						if (it)
 						{
-							GString Ln;
+							GString Ln, Score;
 							Ln.Printf("%i", r->Line);
+							Score.Printf("%i", r->Score + IsHeader(r->File));
 							
 							it->SetText(r->File.Get() + CommonPathLen, 0);
 							it->SetText(Ln, 1);
 							it->SetText(r->Symbol, 2);
+							it->SetText(Score, 3);
 							Ls.Insert(it);
 						}
 					}
-					
+
+					Ls.Sort(ResultCompare, 0);
 					Lst->Insert(Ls);
 					Lst->ResizeColumnsToContent();
 				}
