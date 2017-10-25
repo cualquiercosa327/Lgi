@@ -1101,7 +1101,12 @@ bool VCal::Export(GDataPropI *c, GStreamI *o)
 					Dt->Hours(), Dt->Minutes(), Dt->Seconds());
 		}
 
+		#ifdef _MSC_VER
+		#pragma message("FIXME: add export for reminder.")
+		#else
 		#warning "FIXME: add export for reminder."
+		#endif
+
 		/*
 		int64 AlarmAction;
 		int AlarmTime;
