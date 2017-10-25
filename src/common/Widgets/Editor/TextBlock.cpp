@@ -1001,6 +1001,7 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 	for (unsigned i=0; i<Txt.Length(); i++)
 	{
 		StyleText *t = Txt[i];
+		GNamedStyle *tstyle = t->GetStyle();
 				
 		if (t->Length() == 0)
 			continue;
@@ -1013,6 +1014,7 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 		GFont *f = flow.d->GetFont(t->GetStyle());
 		if (!f)
 			return flow.d->Error(_FL, "font creation failed.");
+		GCss::WordWrapType WrapType = tstyle ? tstyle->WordWrap() : GCss::WrapNormal;
 		
 		uint32 *sStart = t->At(0);
 		uint32 *sEnd = sStart + t->Length();
@@ -1061,7 +1063,8 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 			if (!Ds)
 				return flow.d->Error(_FL, "display str creation failed.");
 
-			if (FixedToInt(FixX) + Ds->X() > AvailableX)
+			if (WrapType != GCss::WrapNone &&
+				FixX + Ds->X() > AvailableX)
 			{
 				// Wrap the string onto the line...
 				int AvailablePx = AvailableX - FixedToInt(FixX);

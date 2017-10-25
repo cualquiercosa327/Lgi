@@ -17,6 +17,8 @@
 #include "GString.h"
 
 #if defined WIN32
+	
+	#include "ws2ipdef.h"
 
 #elif defined POSIX
 
@@ -354,14 +356,18 @@ class LUdpListener : public GSocket
 public:
 	LUdpListener(int port)
 	{
+		SetBroadcast();
 		SetUdp(true);
 
 		struct sockaddr_in addr;
 		ZeroObj(addr);
 		addr.sin_family = AF_INET;
 		addr.sin_port = htons(port);
-		#ifdef WIN32
+		#ifdef WINDOWS
 		addr.sin_addr.S_un.S_addr = INADDR_ANY;
+
+		// DWORD b = true;
+		// setsockopt(Handle(), IPPROTO_IP, IP_RECEIVE_BROADCAST, (char *) &b, sizeof b);
 		#else
 		addr.sin_addr.s_addr = INADDR_ANY;
 		#endif

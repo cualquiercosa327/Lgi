@@ -70,28 +70,28 @@ void ParseIdList(char *In, List<char> &Out);
 #define FIELD_PROFILE_IMAP_SELECT	-102
 
 #define GDATA_INT32_PROP(name, id) \
-	int32 Get##name() { LgiAssert(Object != NULL); return Object ? (int32)Object->GetInt(id) : 0; } \
-	bool Set##name(int32 val) { LgiAssert(Object != NULL); return Object ? Object->SetInt(id, val) : false; }
+	int32 Get##name() { LgiAssert(Object != NULL); return Object != NULL ? (int32)Object->GetInt(id) : 0; } \
+	bool Set##name(int32 val) { LgiAssert(Object != NULL); return Object ? Object->SetInt(id, val) >= Store3Delayed : false; }
 
 #define GDATA_INT64_PROP(name, id) \
-	int64 Get##name() { LgiAssert(Object != NULL); return Object ? Object->GetInt(id) : 0; } \
-	bool Set##name(int64 val) { LgiAssert(Object != NULL); return Object ? Object->SetInt(id, val) : false; }
+	int64 Get##name() { LgiAssert(Object != NULL); return Object != NULL ? Object->GetInt(id) : 0; } \
+	bool Set##name(int64 val) { LgiAssert(Object != NULL); return Object ? Object->SetInt(id, val) >= Store3Delayed : false; }
 
 #define GDATA_ENUM_PROP(name, id, type) \
-	type Get##name() { LgiAssert(Object != NULL); return (type) (Object ? Object->GetInt(id) : 0); } \
-	bool Set##name(type val) { LgiAssert(Object != NULL); return Object ? Object->SetInt(id, (int)val) : false; }
+	type Get##name() { LgiAssert(Object != NULL); return (type) (Object != NULL ? Object->GetInt(id) : 0); } \
+	bool Set##name(type val) { LgiAssert(Object != NULL); return Object != NULL ? Object->SetInt(id, (int)val) >= Store3Delayed : false; }
 
 #define GDATA_STR_PROP(name, id) \
-	char *Get##name() { LgiAssert(Object != NULL); return Object ? Object->GetStr(id) : 0; } \
-	bool Set##name(const char *val) { LgiAssert(Object != NULL); return Object ? Object->SetStr(id, val) : false; }
+	char *Get##name() { LgiAssert(Object != NULL); return Object != NULL ? Object->GetStr(id) : 0; } \
+	bool Set##name(const char *val) { LgiAssert(Object != NULL); return Object != NULL ? Object->SetStr(id, val) >= Store3Delayed : false; }
 
 #define GDATA_DATE_PROP(name, id) \
-	LDateTime *Get##name() { LgiAssert(Object != NULL); return (Object ? Object->GetDate(id) : 0); } \
-	bool Set##name(LDateTime *val) { LgiAssert(Object != NULL); return Object ? Object->SetDate(id, val) : false; }
+	LDateTime *Get##name() { LgiAssert(Object != NULL); return (Object != NULL ? Object->GetDate(id) : 0); } \
+	bool Set##name(LDateTime *val) { LgiAssert(Object != NULL); return Object != NULL ? Object->SetDate(id, val) >= Store3Delayed : false; }
 
 #define GDATA_PERM_PROP(name, id) \
-	ScribePerm Get##name() { LgiAssert(Object != NULL); return (ScribePerm) (Object ? Object->GetInt(id) : 0); } \
-	bool Set##name(ScribePerm val) { LgiAssert(Object != NULL); return Object ? Object->SetInt(id, val) : false; }
+	ScribePerm Get##name() { LgiAssert(Object != NULL); return (ScribePerm) (Object != NULL ? Object->GetInt(id) : 0); } \
+	bool Set##name(ScribePerm val) { LgiAssert(Object != NULL); return Object != NULL ? Object->SetInt(id, val) >= Store3Delayed : false; }
 
 
 /// This class is an interface to a collection of objects (NOT thread-safe).
