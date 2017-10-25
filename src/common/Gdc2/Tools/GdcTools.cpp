@@ -338,7 +338,7 @@ bool FlipDC(GSurface *pDC, int Dir)
 	return Status;
 }
 
-bool RotateDC(GSurface *pDC, double Angle)
+bool RotateDC(GSurface *pDC, double Angle, Progress *Prog)
 {
 	if (!pDC)
 		return false;
@@ -351,7 +351,7 @@ bool RotateDC(GSurface *pDC, double Angle)
 		GSurface *pOldAlpha = pOld->AlphaDC();
 		GSurface *pAlpha = pDC->AlphaDC();
 
-		for (int y=0; y<pOld->Y(); y++)
+		for (int y=0; y<pOld->Y() && (!Prog || !Prog->IsCancelled()); y++)
 		{
 			for (int x=0; x<pOld->X(); x++)
 			{
@@ -380,7 +380,7 @@ bool RotateDC(GSurface *pDC, double Angle)
 		GSurface *pAlpha = pDC->AlphaDC();
 		if (Angle == 90)
 		{
-			for (int y=0; y<pOld->Y(); y++)
+			for (int y=0; y<pOld->Y() && (!Prog || !Prog->IsCancelled()); y++)
 			{
 				for (int x=0; x<pOld->X(); x++)
 				{
@@ -400,7 +400,7 @@ bool RotateDC(GSurface *pDC, double Angle)
 			for (int y=0; y<pOld->Y(); y++)
 			{
 				int Dy = pDC->Y() - 1;
-				for (int x=0; x<pOld->X(); x++, Dy--)
+				for (int x=0; x<pOld->X() && (!Prog || !Prog->IsCancelled()); x++, Dy--)
 				{
 					pDC->Colour(pOld->Get(x, y));
 					pDC->Set(y, Dy);
@@ -423,12 +423,12 @@ bool RotateDC(GSurface *pDC, double Angle)
 	return true;
 }
 
-bool FlipXDC(GSurface *pDC)
+bool FlipXDC(GSurface *pDC, Progress *Prog)
 {
 	bool Status = false;
 	if (pDC)
 	{
-		for (int y=0; y<pDC->Y(); y++)
+		for (int y=0; y<pDC->Y() && (!Prog || !Prog->IsCancelled()); y++)
 		{
 			int Sx = 0;
 			int Ex = pDC->X()-1;
@@ -446,12 +446,12 @@ bool FlipXDC(GSurface *pDC)
 	return Status;
 }
 
-bool FlipYDC(GSurface *pDC)
+bool FlipYDC(GSurface *pDC, Progress *Prog)
 {
 	bool Status = false;
 	if (pDC)
 	{
-		for (int x=0; x<pDC->X(); x++)
+		for (int x=0; x<pDC->X() && (!Prog || !Prog->IsCancelled()); x++)
 		{
 			int Sy = 0;
 			int Ey = pDC->Y()-1;

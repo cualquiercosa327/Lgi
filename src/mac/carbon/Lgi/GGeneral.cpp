@@ -19,6 +19,9 @@
 #include <pwd.h>
 #include <uuid/uuid.h>
 
+
+#import <Cocoa/Cocoa.h>
+
 ////////////////////////////////////////////////////////////////
 // Local helper functions
 bool _lgi_check_file(char *Path)
@@ -120,6 +123,13 @@ static void *_LgiAssert(void *Param)
 	return Assert;
 }
 
+/*
+(IBAction)DoAssertDlg:(id)sender
+{
+	
+}
+*/
+
 void _lgi_assert(bool b, const char *test, const char *file, int line)
 {
 	static bool Asserting = false;
@@ -136,11 +146,11 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 		GLgiAssert Assert;
 		Assert.Msg.Reset(p.NewStr());
 
-		#ifdef MAC
-		MPRemoteCall(_LgiAssert, &Assert, kMPOwningProcessRemoteContext);
+		#if 0
+		// MPRemoteCall(_LgiAssert, &Assert, kMPOwningProcessRemoteContext);
 		#else
-		GAlert a(0, "Assert Failed", Assert.Msg, "Abort", "Debug", "Ignore");
-		Assert.Result = a.DoModal();
+		NSApplication *app = [NSApplication sharedApplication];
+		[app performSelectorOnMainThread:@selector(DoAssertDlg:) withObject:NULL waitUntilDone:true];
 		#endif
 		
 		switch (Assert.Result)
@@ -451,10 +461,10 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir, GAutoString
 			{
 				// Is this an app bundle?
 				bool IsAppBundle = false;
-				char *Last = strrchr(File, '/');
+				const char *Last = strrchr(File, '/');
 				if (Last)
 				{
-					char *Dot = strrchr(Last, '.');
+					const char *Dot = strrchr(Last, '.');
 					IsAppBundle = Dot && !stricmp(Dot, ".app");
 					
 					/* Ideally in OSX before 10.6 we'd convert to calling the executable in

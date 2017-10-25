@@ -29,6 +29,7 @@ public:
 	~ImageLoader()
 	{
 		Cancel(true);
+		printf("~ImageLoader()\n");
 	}
 
 	void Value(int64 v)
@@ -114,8 +115,9 @@ public:
 				GSurface *Src = (GSurface*) Msg->B();
 				if (Src && Dst)
 				{
-					ResampleDC(Dst, Src, NULL, NULL);
-					Sink->PostEvent(M_IMAGE_RESAMPLE);
+					ResampleDC(Dst, Src, NULL, this);
+					if (!Sink->PostEvent(M_IMAGE_RESAMPLE))
+						printf("%s:%i - Error sending resample msg.\n", _FL);
 				}
 				break;
 			}
@@ -205,6 +207,7 @@ GRichTextPriv::ImageBlock::ImageBlock(GRichTextPriv *priv) : Block(priv)
 	Scale = 1;
 	SourceValid.ZOff(-1, -1);
 	ResizeIdx = -1;
+	ThreadBusy = 0;
 
 	Margin.ZOff(0, 0);
 	Border.ZOff(0, 0);
@@ -214,6 +217,7 @@ GRichTextPriv::ImageBlock::ImageBlock(GRichTextPriv *priv) : Block(priv)
 GRichTextPriv::ImageBlock::ImageBlock(const ImageBlock *Copy) : Block(Copy->d)
 {
 	ThreadHnd = 0;
+	ThreadBusy = 0;
 	LayoutDirty = true;
 	SourceImg.Reset(new GMemDC(Copy->SourceImg));
 	Size = Copy->Size;
@@ -225,6 +229,7 @@ GRichTextPriv::ImageBlock::ImageBlock(const ImageBlock *Copy) : Block(Copy->d)
 
 GRichTextPriv::ImageBlock::~ImageBlock()
 {
+	LgiAssert(ThreadBusy == 0);
 	if (ThreadHnd)
 		PostThreadEvent(ThreadHnd, M_CLOSE);
 	LgiAssert(Cursors == 0);
@@ -233,6 +238,13 @@ GRichTextPriv::ImageBlock::~ImageBlock()
 bool GRichTextPriv::ImageBlock::IsValid()
 {
 	return true;
+}
+
+bool GRichTextPriv::ImageBlock::IsBusy(bool Stop)
+{
+	//if (Stop && Thread)
+	//	Thread->Cancel(true);
+	return ThreadBusy != 0;
 }
 
 bool GRichTextPriv::ImageBlock::SetImage(GAutoPtr<GSurface> Img)
@@ -261,10 +273,11 @@ bool GRichTextPriv::ImageBlock::SetImage(GAutoPtr<GSurface> Img)
 	if (DisplayImg)
 	{
 		// Update the display image by scaling it from the source...
-		PostThreadEvent(GetThreadHandle(),
-						M_IMAGE_RESAMPLE,
-						(GMessage::Param) DisplayImg.Get(),
-						(GMessage::Param) SourceImg.Get());
+		if (PostThreadEvent(GetThreadHandle(),
+							M_IMAGE_RESAMPLE,
+							(GMessage::Param) DisplayImg.Get(),
+							(GMessage::Param) SourceImg.Get()))
+			UpdateThreadBusy(_FL, 1);
 
 	}
 	else LayoutDirty = true;
@@ -274,7 +287,8 @@ bool GRichTextPriv::ImageBlock::SetImage(GAutoPtr<GSurface> Img)
 	if (ResizeIdx >= 0 && ResizeIdx < (int)Scales.Length())
 	{
 		ScaleInf &si = Scales[ResizeIdx];
-		PostThreadEvent(GetThreadHandle(), M_IMAGE_COMPRESS, (GMessage::Param)SourceImg.Get(), (GMessage::Param)&si);
+		if (PostThreadEvent(GetThreadHandle(), M_IMAGE_COMPRESS, (GMessage::Param)SourceImg.Get(), (GMessage::Param)&si))
+			UpdateThreadBusy(_FL, 1);
 	}
 	
 	return true;
@@ -825,7 +839,7 @@ bool GRichTextPriv::ImageBlock::DoContext(GSubMenu &s, GdcPt2 Doc, ssize_t Offse
 					m += s;
 				}
 				
-				GMenuItem *mi = c->AppendItem(m, IDM_SCALE_IMAGE+i);
+				GMenuItem *mi = c->AppendItem(m, IDM_SCALE_IMAGE+i, !IsBusy());
 				if (mi && ResizeIdx == i)
 				{
 					mi->Checked(true);
@@ -890,7 +904,7 @@ int GRichTextPriv::ImageBlock::GetThreadHandle()
 	if (ThreadHnd == 0)
 	{
 		ImageLoader *il = new ImageLoader(this);
-		if (il > 0)
+		if (il != NULL)
 			ThreadHnd = il->GetHandle();
 	}
 
@@ -925,6 +939,14 @@ void GRichTextPriv::ImageBlock::UpdateDisplayImg()
 	}
 }
 
+void GRichTextPriv::ImageBlock::UpdateThreadBusy(const char *File, int Line, int Off)
+{
+	ThreadBusy += Off;
+	#ifdef _DEBUG
+	// printf("%s:%i - ThreadBusy=%i\n", File, Line, ThreadBusy);
+	#endif
+}
+
 GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 {
 	switch (Msg->Msg())
@@ -942,22 +964,27 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 					ScaleInf &si = Scales[i];
 					ResizeIdx = i;
 
-					PostThreadEvent(GetThreadHandle(), M_IMAGE_COMPRESS, (GMessage::Param)SourceImg.Get(), (GMessage::Param)&si);
+					if (PostThreadEvent(GetThreadHandle(), M_IMAGE_COMPRESS, (GMessage::Param)SourceImg.Get(), (GMessage::Param)&si))
+						UpdateThreadBusy(_FL, 1);
 				}
 			}
 			else switch (Msg->A())
 			{
 				case IDM_CLOCKWISE:
-					PostThreadEvent(GetThreadHandle(), M_IMAGE_ROTATE, (GMessage::Param) SourceImg.Get(), 1);
+					if (PostThreadEvent(GetThreadHandle(), M_IMAGE_ROTATE, (GMessage::Param) SourceImg.Get(), 1))
+						UpdateThreadBusy(_FL, 1);
 					break;
 				case IDM_ANTI_CLOCKWISE:
-					PostThreadEvent(GetThreadHandle(), M_IMAGE_ROTATE, (GMessage::Param) SourceImg.Get(), -1);
+					if (PostThreadEvent(GetThreadHandle(), M_IMAGE_ROTATE, (GMessage::Param) SourceImg.Get(), -1))
+						UpdateThreadBusy(_FL, 1);
 					break;
 				case IDM_X_FLIP:
-					PostThreadEvent(GetThreadHandle(), M_IMAGE_FLIP, (GMessage::Param) SourceImg.Get(), 1);
+					if (PostThreadEvent(GetThreadHandle(), M_IMAGE_FLIP, (GMessage::Param) SourceImg.Get(), 1))
+						UpdateThreadBusy(_FL, 1);
 					break;
 				case IDM_Y_FLIP:
-					PostThreadEvent(GetThreadHandle(), M_IMAGE_FLIP, (GMessage::Param) SourceImg.Get(), 0);
+					if (PostThreadEvent(GetThreadHandle(), M_IMAGE_FLIP, (GMessage::Param) SourceImg.Get(), 0))
+						UpdateThreadBusy(_FL, 1);
 					break;
 			}
 			break;
@@ -973,6 +1000,7 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 			}
 
 			Si->Jpg.Reset(Jpg.Release());
+			UpdateThreadBusy(_FL, -1);
 			break;
 		}
 		case M_IMAGE_ERROR:
@@ -980,6 +1008,7 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 			GAutoPtr<GString> ErrMsg((GString*) Msg->A());
 			PostThreadEvent(ThreadHnd, M_CLOSE);
 			ThreadHnd = 0;
+			UpdateThreadBusy(_FL, -1);
 			break;
 		}
 		case M_IMAGE_SET_SURFACE:
@@ -1016,15 +1045,18 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 		case M_IMAGE_FINISHED:
 		{
 			UpdateDisplay(SourceImg->Y()-1);
-			PostThreadEvent(GetThreadHandle(),
-							M_IMAGE_RESAMPLE,
-							(GMessage::Param)DisplayImg.Get(),
-							(GMessage::Param)SourceImg.Get());
+
+			if (PostThreadEvent(GetThreadHandle(),
+								M_IMAGE_RESAMPLE,
+								(GMessage::Param)DisplayImg.Get(),
+								(GMessage::Param)SourceImg.Get()))
+				UpdateThreadBusy(_FL, 1);
 			break;
 		}
 		case M_IMAGE_RESAMPLE:
 		{
 			LayoutDirty = true;
+			UpdateThreadBusy(_FL, -1);
 			d->InvalidateDoc(NULL);
 			PostThreadEvent(ThreadHnd, M_CLOSE);
 			ThreadHnd = 0;
@@ -1035,6 +1067,7 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 		case M_IMAGE_FLIP:
 		{
 			GAutoPtr<GSurface> Img = SourceImg;
+			UpdateThreadBusy(_FL, -1);
 			SetImage(Img);
 			break;
 		}

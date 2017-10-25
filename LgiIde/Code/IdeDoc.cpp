@@ -1797,7 +1797,8 @@ public:
 						{
 							do
 							{
-								if (!Strncmp(k->Word, s, k->Len))
+								if (!Strncmp(k->Word, s, k->Len) &&
+									!IsSymbolChar(s[k->Len]))
 									break;
 							}
 							while ((k = k->Next));

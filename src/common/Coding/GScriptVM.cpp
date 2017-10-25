@@ -340,7 +340,7 @@ GExecutionStatus GExternFunc::Call(GScriptContext *Ctx, LScriptArguments &Args)
 				"call *%1;"
 				:"=a"(r)				/* output */
 				:"r"(c), "r"(a), "r"(b)	/* input */
-				:"%eax", "%ecx", "%ebx"	/* clobbered register */
+				:/*"%eax",*/ "%ecx", "%ebx"	/* clobbered register */
 				);
 		#endif
 	#else

@@ -44,6 +44,7 @@ public:
 	GAutoString Find;
 	GSubMenu *Menu;
 	GCombo::SelectedState SelState;
+	bool LayoutDirty;
 
 	#if defined MAC && !defined COCOA
 	ThemeButtonDrawInfo Cur;
@@ -51,6 +52,7 @@ public:
 
 	GComboPrivate()
 	{
+		LayoutDirty = false;
 		SelState = GCombo::SelectedDisable;
 		SortItems = false;
 		Sub = false;
@@ -249,6 +251,7 @@ bool GCombo::Delete(char *p)
 	{
 		d->Items.Delete(p);
 		DeleteArray(p);
+		d->LayoutDirty = true;
 		return true;
 	}
 	return false;
@@ -262,6 +265,7 @@ bool GCombo::Insert(const char *p, int Index)
 		Status = d->Items.Insert(NewStr(p), Index);
 		if (Status)
 		{
+			d->LayoutDirty = true;
 			Invalidate();
 		}
 	}
@@ -525,6 +529,12 @@ void GCombo::OnPosChange()
 
 void GCombo::OnPaint(GSurface *pDC)
 {
+	if (d->LayoutDirty)
+	{
+		d->LayoutDirty = false;
+		SendNotify(GNotifyTableLayout_Refresh);
+	}
+	
 	if (!d->GetText(_FL))
 	{
 		char *n = Name();

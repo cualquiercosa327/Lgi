@@ -28,7 +28,8 @@ void *ThreadEntryPoint(void *i)
 		}
 		
 		pthread_detach(Thread->hThread);
-
+		Thread->ThreadId = GetCurrentThreadId();
+		
 		// Do thread's work
 		Thread->OnBeforeMain();
 		Thread->ReturnValue = Thread->Main();
@@ -52,6 +53,8 @@ LThread::LThread(const char *name)
 	State = THREAD_INIT;
 	ReturnValue = -1;
 	hThread = 0;
+	ThreadId = 0;
+	Name = name;
 	DeleteOnExit = false;
 	Priority = ThreadPriorityNormal;
 }

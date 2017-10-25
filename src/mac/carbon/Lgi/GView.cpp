@@ -1679,7 +1679,7 @@ CarbonControlProc
 				status = GetEventParameter(inEvent, kEventParamLgiA, typeUInt32, NULL, sizeof(UInt32), NULL, &m.a);
 				status = GetEventParameter(inEvent, kEventParamLgiB, typeUInt32, NULL, sizeof(UInt32), NULL, &m.b);
 
-				// printf("Received event %x,%x,%x (%s:%i)\n", m.m, m.a, m.b, _FL);
+				// printf("kEventClassUser.view %i,%i,%i (%s:%i)\n", m.m, m.a, m.b, _FL);
 				
 				v->OnEvent(&m);
 				

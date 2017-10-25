@@ -940,9 +940,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 					if (RequestBits == 32)
 					{
 						// bool IsPreMul = pDC->IsPreMultipliedAlpha();
-						#if defined(WINNATIVE)
 						pDC->ConvertPreMulAlpha(true);
-						#endif
 					}
 
 					if (ActualBits <= 8)
@@ -1262,7 +1260,7 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 				{
 					LIBPNG png_set_iCCP(png_ptr,
 								info_ptr,
-								"ColourProfile",
+								(png_charp)"ColourProfile",
 								NULL,
 								(png_const_bytep)ColProfile.Value.Binary.Data,
 								ColProfile.Value.Binary.Length);

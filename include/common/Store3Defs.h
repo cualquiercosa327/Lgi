@@ -127,6 +127,7 @@ enum CalendarReminderType
 {
 	CalEmail,
 	CalPopup,
+	CalMaxType,
 };
 
 enum CalendarReminderUnits
@@ -134,7 +135,8 @@ enum CalendarReminderUnits
 	CalMinutes,
 	CalHours,
 	CalDays,
-	CalWeeks
+	CalWeeks,
+	CalMaxUnit,
 };
 
 enum CalendarShowTimeAs
@@ -254,9 +256,9 @@ enum Store3Fields
 	// FIELD_CAL_END_LOCAL = 61,		// **deprecated**
 	FIELD_CAL_SUBJECT = 62,				// (char*) event title
 	FIELD_CAL_LOCATION = 63,			// (char*) location of event
-	FIELD_CAL_REMINDER_TIME = 64,		// (int64) minutes before event to remind user
-	FIELD_CAL_REMINDER_ACTION = 65,		// (CalendarReminderType) The reminder type
-	FIELD_CAL_REMINDER_UNIT = 66,		// (CalendarReminderUnits) The unit of time
+	// FIELD_CAL_REMINDER_TIME = 64,	// **deprecated**
+	// FIELD_CAL_REMINDER_ACTION = 65,	// **deprecated** (CalendarReminderType) The reminder type
+	// FIELD_CAL_REMINDER_UNIT = 66,	// **deprecated** (CalendarReminderUnits) The unit of time
 	FIELD_CAL_SHOW_TIME_AS = 67,		// (CalendarShowTimeAs) Busy/Free etc
 
 	FIELD_CAL_RECUR_FREQ = 68,			// (CalRecurFreq) Base time unit of recurring: e.g. Day/Week/Month/Year.
@@ -369,6 +371,9 @@ enum Store3Fields
 	FIELD_HTML_RELATED,					// Array of related attachments for the HTML content.
 										// Pass this to an email's SetObj member to add a
 										// related attachment.
+	FIELD_CAL_REMINDERS,				// Individual reminders as CSV, fields are:
+										// Number, CalendarReminderUnits, CalendarReminderType
+	FIELD_CAL_LAST_CHECK,				// (LDateTime) Ts the calendar event was last checked for reminders
 
 	FIELD_MAX,
 };

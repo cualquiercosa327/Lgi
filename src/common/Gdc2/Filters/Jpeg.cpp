@@ -801,7 +801,7 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 				if (Meter)
 				{
 					Meter->Value(cinfo.output_scanline);
-					if (Meter->Cancel())
+					if (Meter->IsCancelled())
 						Status = IoCancel;
 				}
 			}

@@ -846,6 +846,7 @@ void GPopup::Visible(bool i)
 	
 		#elif defined(CARBON)
 	
+			SetAlwaysOnTop(true);
 			GWindow::Visible(i);
 	
 		#else
@@ -982,6 +983,44 @@ void GDropDown::OnPaint(GSurface *pDC)
 	if (!r.Valid())
 		return;
 
+	#if defined(MAC) && !defined(COCOA) && !defined(LGI_SDL)
+	GColour NoPaintColour(LC_MED, 24);
+	if (GetCss())
+	{
+		GCss::ColorDef NoPaint = GetCss()->NoPaintColor();
+		if (NoPaint.Type == GCss::ColorRgb)
+			NoPaintColour.Set(NoPaint.Rgb32, 32);
+		else if (NoPaint.Type == GCss::ColorTransparent)
+			NoPaintColour.Empty();
+	}
+	if (!NoPaintColour.IsTransparent())
+	{
+		pDC->Colour(NoPaintColour);
+		pDC->Rectangle();
+	}
+	
+	GRect rc = GetClient();
+	rc.x1 += 2;
+	rc.y2 -= 1;
+	rc.x2 -= 1;
+	HIRect Bounds = rc;
+	HIThemeButtonDrawInfo Info;
+	HIRect LabelRect;
+	
+	Info.version = 0;
+	Info.state = Enabled() ? kThemeStateActive : kThemeStateInactive;
+	Info.kind = kThemePushButton;
+	Info.value = kThemeButtonOff;
+	Info.adornment = Focus() ? kThemeAdornmentFocus : kThemeAdornmentNone;
+	
+	OSStatus e = HIThemeDrawButton(	  &Bounds,
+									  &Info,
+									  pDC->Handle(),
+									  kHIThemeOrientationNormal,
+									  &LabelRect);
+	
+	if (e) printf("%s:%i - HIThemeDrawButton failed %li\n", _FL, e);
+	#else
 	if (GApp::SkinEngine &&
 		TestFlag(GApp::SkinEngine->GetFeatures(), GSKIN_BUTTON))
 	{
@@ -1016,6 +1055,7 @@ void GDropDown::OnPaint(GSurface *pDC)
 			#endif
 		}
 	}
+	#endif
 
     int ArrowWidth = 5;
     double Aspect = (double)r.X() / r.Y();

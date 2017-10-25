@@ -578,23 +578,6 @@ GApp::GApp(OsAppArguments &AppArgs, const char *AppName, GAppArguments *ObjArgs)
 	}
 	
 	OSStatus e;
-	
-	// Setup apple event handlers
-	/*
-	e = AEInstallEventHandler(	kInternetEventClass,
-								kAEGetURL,
-								NewAEEventHandlerUPP(AppleEventProc),
-								(SRefCon)this,
-								false);
-	printf("AEInstallEventHandler(kInternetEventClass, kAEGetURL, ...)=%i\n", (int)e);
-	if (e) LgiTrace("%s:%i - AEInstallEventHandler = %i\n", _FL, e);
-	e = AEInstallEventHandler(	kCoreEventClass,
-								kAEOpenApplication,
-								NewAEEventHandlerUPP(AppleEventProc),
-								(SRefCon)this,
-								false);
-	LgiTrace("%s:%i - AEInstallEventHandler = %i\n", _FL, e);
-	*/
 
 	#if 1
 	// Setup application handler

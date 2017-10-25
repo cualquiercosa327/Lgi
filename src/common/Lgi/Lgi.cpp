@@ -174,38 +174,30 @@ bool LgiPostEvent(OsView Wnd, int Event, GMessage::Param a, GMessage::Param b)
 							&Ev);
 	if (e)
 	{
-		printf("%s:%i - CreateEvent failed with %i\n", __FILE__, __LINE__, (int)e);
+		printf("%s:%i - CreateEvent failed with %i\n", _FL, (int)e);
 	}
 	else
 	{
 		EventTargetRef t = GetControlEventTarget(Wnd);
 		
 		e = SetEventParameter(Ev, kEventParamLgiEvent, typeUInt32, sizeof(Event), &Event);
-		if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, (int)e);
+		if (e) printf("%s:%i - error %i\n", _FL, (int)e);
 		e = SetEventParameter(Ev, kEventParamLgiA, typeUInt32, sizeof(a), &a);
-		if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, (int)e);
+		if (e) printf("%s:%i - error %i\n", _FL, (int)e);
 		e = SetEventParameter(Ev, kEventParamLgiB, typeUInt32, sizeof(b), &b);
-		if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, (int)e);
+		if (e) printf("%s:%i - error %i\n", _FL, (int)e);
 		
-		// printf("Sent event %x,%x,%x\n", Event, a, b);
 		bool Status = false;
+		EventQueueRef q = GetMainEventQueue();
 
-		#if 1
-		
 		e = SetEventParameter(Ev, kEventParamPostTarget, typeEventTargetRef, sizeof(t), &t);
-		if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, (int)e);
-		e = PostEventToQueue(GetMainEventQueue(), Ev, kEventPriorityStandard);
-		if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, (int)e);
+		if (e) printf("%s:%i - error %i\n", _FL, (int)e);
+		e = PostEventToQueue(q, Ev, kEventPriorityStandard);
+		if (e) printf("%s:%i - error %i\n", _FL, (int)e);
 		else Status = true;
 		
-		#else
-
-		e = SendEventToEventTarget(Ev, GetControlEventTarget(Wnd));
-		if (e) printf("%s:%i - error %i\n", __FILE__, __LINE__, e);
-		else Status = true;
+		// printf("PostEventToQueue %i,%i,%i -> %p\n", Event, a, b, q);
 		
-		#endif
-
 		ReleaseEvent(Ev);
 		
 		return Status;

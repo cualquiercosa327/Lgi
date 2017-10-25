@@ -12,6 +12,8 @@ extern void SetDefaultFocus(GViewI *v);
 #define DEBUG_KEYS			0
 #define DEBUG_SETFOCUS		0
 
+WindowGroupRef OnTopGroup = NULL;
+
 ///////////////////////////////////////////////////////////////////////
 class HookInfo
 {
@@ -38,6 +40,7 @@ public:
 	DragReceiveHandlerUPP ReceiveHandler;
 	uint64 LastMinimize;
 	bool CloseRequestDone;
+	bool SetOnTop;
 	uint64 LastDragDrop;
 
 	GMenu *EmptyMenu;
@@ -46,6 +49,7 @@ public:
 
 	GWindowPrivate(GWindow *wnd)
 	{
+		SetOnTop = false;
 		Focus = NULL;
 		InitVisible = false;
 		LastMinimize = 0;
@@ -456,11 +460,41 @@ void GWindow::_Delete()
 
 bool GWindow::GetAlwaysOnTop()
 {
-	return false;
+	return d->SetOnTop;
 }
 
 void GWindow::SetAlwaysOnTop(bool b)
 {
+	if (b ^ d->SetOnTop)
+	{
+		OSStatus e;
+		d->SetOnTop = b;
+
+		if (b)
+		{
+			if (!OnTopGroup)
+			{
+				e = CreateWindowGroup(kWindowGroupAttrSelectAsLayer, &OnTopGroup);
+				if (e) printf("%s:%i - CreateWindowGroup failed with %i\n", _FL, (int)e);
+				else
+				{
+					e = SetWindowGroupLevel(OnTopGroup, kCGPopUpMenuWindowLevel);
+					if (e) printf("%s:%i - SetWindowGroupLevel failed with %i\n", _FL, (int)e);
+				}
+			}
+			
+			if (OnTopGroup)
+			{
+				e = SetWindowGroup(Wnd, OnTopGroup);
+				if (e) printf("%s:%i - SetWindowGroup failed with %i\n", _FL, (int)e);
+			}
+		}
+		else if (OnTopGroup)
+		{
+			e = SetWindowGroup(Wnd, NULL);
+			if (e) printf("%s:%i - SetWindowGroup failed with %i\n", _FL, (int)e);
+		}
+	}
 }
 
 bool GWindow::PostEvent(int Event, int a, int b)
@@ -629,7 +663,7 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 			{
 				case kEventWindowDispose:
 				{
-					GWindow *w = v->GetWindow();
+					GWindow *w = dynamic_cast<GWindow*>(v);
 					v->OnDestroy();
 					
 					if (w && w->d && w->d->DeleteWhenDone)
@@ -931,6 +965,8 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 				OSStatus status = GetEventParameter(inEvent, kEventParamLgiEvent, typeUInt32, NULL, sizeof(UInt32), NULL, &m.m);
 				status = GetEventParameter(inEvent, kEventParamLgiA, typeUInt32, NULL, sizeof(UInt32), NULL, &m.a);
 				status = GetEventParameter(inEvent, kEventParamLgiB, typeUInt32, NULL, sizeof(UInt32), NULL, &m.b);
+				
+				// printf("kEventClassUser.window = %i,%i,%i\n", m.m, m.a, m.b);
 				
 				v->OnEvent(&m);
 				

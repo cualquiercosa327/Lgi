@@ -4,6 +4,7 @@
 #include "LThread.h"
 #include "LMutex.h"
 #include "LThreadEvent.h"
+#include "LCancel.h"
 
 #define PostThreadEvent GEventSinkMap::Dispatch.PostEvent
 
@@ -232,10 +233,10 @@ public:
 							r,
 							val);
 						#else
-						printf("%s:%i - EndThread() hung waiting for %s to exit (caller.thread=%i, worker.thread=%i, event=%p).\n",
+						printf("%s:%i - EndThread() hung waiting for %s to exit (caller.thread=0x%x, worker.thread=0x%x, event=%p).\n",
 							_FL, LThread::GetName(),
 							(int)GetCurrentThreadId(),
-							GetId(),
+							(int)GetId(),
 							(void*)Event.Handle());
 						#endif
 						

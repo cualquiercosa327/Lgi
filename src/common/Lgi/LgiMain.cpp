@@ -7,6 +7,9 @@
 #ifdef LGI_SDL
 #include <SDL.h>
 #endif
+#if defined(WINDOWS) && defined(_DEBUG)
+#include "crtdbg.h"
+#endif
 
 /** \brief The main entry point of a Lgi program
 
@@ -75,6 +78,10 @@ WINAPI
 WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 #endif
 {
+	#ifdef _DEBUG
+	_CrtSetDbgFlag(_CRTDBG_CHECK_ALWAYS_DF);
+	#endif
+
 	int Status = 0;
 	#if !_CONSOLE && WINNATIVE
 	_lgi_app_instance = hInstance;
@@ -217,8 +224,7 @@ int main(int Args, char **Arg)
 									NewAEEventHandlerUPP(AppEventHandler),
 									0,
 									false);
-		if (e) LgiTrace("%s:%i - AEInstallEventHandler = %i\n", _FL, e);
-		else LgiTrace("AEInstallEventHandler installed...\n");
+		if (e) LgiTrace("%s:%i - AEInstallEventHandler error %i\n", _FL, e);
 		#endif
 	
 	#elif 1 && defined(__GTK_H__) && defined(_DEBUG)

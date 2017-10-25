@@ -1001,7 +1001,7 @@ bool IFtp::TransferFile(const char *Local, const char *Remote, int64 Size, bool 
 									(Size < 0 || Processed < Size) &&
 									!Error &&
 									!AbortTransfer &&
-									(!Meter || !Meter->Cancel()))
+									(!Meter || !Meter->IsCancelled()))
 							{
 								if (Meter)
 								{
@@ -1040,7 +1040,7 @@ bool IFtp::TransferFile(const char *Local, const char *Remote, int64 Size, bool 
 											}
 										}
 
-										if (Meter && Meter->Cancel())
+										if (Meter && Meter->IsCancelled())
 										{
 											printf("%s:%i - Upload canceled.\n", _FL);
 											break;
@@ -1077,7 +1077,7 @@ bool IFtp::TransferFile(const char *Local, const char *Remote, int64 Size, bool 
 										{
 											Meter->Value(Meter->Value() + Len);
 
-											if (Meter->Cancel())
+											if (Meter->IsCancelled())
 												break;
 										}
 									}
@@ -1087,7 +1087,7 @@ bool IFtp::TransferFile(const char *Local, const char *Remote, int64 Size, bool 
 								}
 							}
 							
-							if (AbortTransfer || (Meter && Meter->Cancel()))
+							if (AbortTransfer || (Meter && Meter->IsCancelled()))
 							{
 								// send abort command
 								sprintf_s(d->OutBuf, sizeof(d->OutBuf), "ABOR\r\n");

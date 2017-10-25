@@ -1316,7 +1316,7 @@ ProjectStatus IdeProject::OpenFile(char *FileName)
 		return OpenError;
 
 	bool Ok = OnOpen(Prog, &r);
-	if (Prog.Cancel())
+	if (Prog.IsCancelled())
 		return OpenCancel;
 	else if (!Ok)
 		return OpenError;

@@ -54,7 +54,7 @@ public:
 	{
 		GRect r = GetClient();
 		r.Size(2, 2);
-		if (r.Overlap(m.x, m.y))
+		if (m.Down() && r.Overlap(m.x, m.y))
 		{
 			int i = m.y / Ly;
 			if (i == 0)
@@ -123,6 +123,7 @@ void GColourSelect::OnPaint(GSurface *pDC)
 	GDropDown::OnPaint(pDC);
 
 	GRect r = GetClient();
+	r.x1 += 2;
 	r.x2 -= 14;
 	r.Size(5, 5);
 	if (IsOpen()) r.Offset(1, 1);

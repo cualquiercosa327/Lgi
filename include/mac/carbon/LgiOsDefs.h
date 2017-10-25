@@ -160,7 +160,7 @@ LgiFunc void LgiSleep(uint32 i);
 
 // Carbon user events
 #define GViewThisPtr				'gvtp'
-#define kEventClassUser				'user'
+#define kEventClassUser				'User'
 #define kEventUser					1
 #define kEventParamLgiEvent			'Lgie'
 #define kEventParamLgiA				'Lgia'
