@@ -2774,11 +2774,6 @@ void IdeDoc::Focus(bool f)
 	d->Edit->Focus(f);
 }
 
-int FindSymResultCmp(FindSymResult **a, FindSymResult **b)
-{
-	return (*a)->Compare(*b);
-}
-
 GMessage::Result IdeDoc::OnEvent(GMessage *Msg)
 {
 	switch (Msg->Msg())
@@ -2797,7 +2792,6 @@ GMessage::Result IdeDoc::OnEvent(GMessage *Msg)
 						d->SymPopup->All = Resp->Results;
 						Resp->Results.Length(0);
 						d->SymPopup->FindCommonPathLength();
-						d->SymPopup->All.Sort(FindSymResultCmp);
 						d->SymPopup->SetItems(d->SymPopup->All);
 						d->SymPopup->Visible(true);
 					}

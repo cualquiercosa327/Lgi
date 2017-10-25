@@ -41,6 +41,10 @@ public:
 	GMessage::Result OnEvent(GMessage *m);
 };
 
+int ScoreCmp(FindSymResult **a, FindSymResult **b)
+{
+	return (*b)->Score - (*a)->Score;
+}
 
 struct FindSymbolSystemPriv : public GEventTargetThread
 {
@@ -51,30 +55,34 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 		GString::Array *Inc;
 		GAutoWString Source;
 		GArray<DefnInfo> Defs;
+		bool IsSource;
+		bool IsHeader;
 		
 		bool Parse()
 		{
+			IsSource = false;
+			IsHeader = false;
 			Defs.Length(0);
 			
 			bool Status = false;
 			// GString Src = (wchar_t*)Source.Get();
 			char *Ext = LgiGetExtension(Path);
-			if
-			(
-				Ext
-				&&
-				(
-					!_stricmp(Ext, "c")
-					||
-					!_stricmp(Ext, "cpp")
-					||
-					!_stricmp(Ext, "h")
-					||
-					!_stricmp(Ext, "hpp")
-				)
-			)
+			if (Ext)
 			{
-				Status = BuildDefnList(Path, Source, Defs, DefnNone);
+				IsSource =	!_stricmp(Ext, "c")
+							||
+							!_stricmp(Ext, "cpp")
+							||
+							!_stricmp(Ext, "cxx");
+				IsHeader =	!_stricmp(Ext, "h")
+							||
+							!_stricmp(Ext, "hpp")
+							||
+							!_stricmp(Ext, "hxx");
+				if (IsSource || IsHeader)
+				{
+					Status = BuildDefnList(Path, Source, Defs, DefnNone);
+				}
 			}
 
 			return Status;
@@ -220,6 +228,10 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 					if (p.Length() == 0)
 						break;
 					
+					GArray<FindSymResult*> ClassMatches;
+					GArray<FindSymResult*> HdrMatches;
+					GArray<FindSymResult*> SrcMatches;
+
 					// For each file...
 					for (unsigned f=0; f<Files.Length(); f++)
 					{
@@ -245,7 +257,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 								
 								// For each search term...
 								bool Match = true;
-								int ScoreSum = Def.Type == DefnClass;
+								int ScoreSum = 0;
 								for (unsigned n=0; n<p.Length(); n++)
 								{
 									int Score = Def.Find(p[n]);
@@ -273,12 +285,23 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 										r->File = Def.File.Get();
 										r->Symbol = Def.Name.Get();
 										r->Line = Def.Line;
-										Req->Results.Add(r);
+
+										if (Def.Type == DefnClass)
+											ClassMatches.Add(r);
+										else if (fs->IsHeader)
+											HdrMatches.Add(r);
+										else
+											SrcMatches.Add(r);
 									}
 								}
 							}
 						}
 					}
+
+					ClassMatches.Sort(ScoreCmp);
+					Req->Results.Add(ClassMatches);
+					Req->Results.Add(HdrMatches);
+					Req->Results.Add(SrcMatches);
 					
 					int Hnd = Req->SinkHnd;
 					PostObject(Hnd, M_FIND_SYM_REQUEST, Req);
@@ -383,21 +406,6 @@ bool FindSymbolDlg::OnViewKey(GView *v, GKey &k)
 	return false;
 }
 
-bool IsHeader(const char *f)
-{
-	char *d = LgiGetExtension(f);
-	return d ? !_stricmp(d, "h") || !_stricmp(d, "hpp") || !_stricmp(d, "hxx") : false;
-}
-
-int ResultCompare(LListItem *a, LListItem *b, NativeInt data)
-{
-	int as = atoi(a->GetText(3));
-	int bs = atoi(b->GetText(3));
-	if (as != bs)
-		return bs - as;
-	return 0;
-}
-
 GMessage::Result FindSymbolDlg::OnEvent(GMessage *m)
 {
 	switch (m->Msg())
@@ -452,19 +460,16 @@ GMessage::Result FindSymbolDlg::OnEvent(GMessage *m)
 						LListItem *it = new LListItem;
 						if (it)
 						{
-							GString Ln, Score;
+							GString Ln;
 							Ln.Printf("%i", r->Line);
-							Score.Printf("%i", r->Score + IsHeader(r->File));
 							
 							it->SetText(r->File.Get() + CommonPathLen, 0);
 							it->SetText(Ln, 1);
 							it->SetText(r->Symbol, 2);
-							it->SetText(Score, 3);
 							Ls.Insert(it);
 						}
 					}
 
-					Ls.Sort(ResultCompare, 0);
 					Lst->Insert(Ls);
 					Lst->ResizeColumnsToContent();
 				}
