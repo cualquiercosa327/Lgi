@@ -19,6 +19,7 @@ enum RichEditMsgs
 	M_IMAGE_LOAD_FILE,
 	M_IMAGE_SET_SURFACE,
 	M_IMAGE_ERROR,
+	M_IMAGE_COMPONENT_MISSING,
 	M_IMAGE_PROGRESS,
 	M_IMAGE_RESAMPLE,
 	M_IMAGE_FINISHED,
@@ -197,7 +198,7 @@ public:
 	bool OnMouseWheel(double Lines);
 
 	// Capability target stuff
-	bool NeedsCapability(const char *Name, const char *Param);
+	bool NeedsCapability(const char *Name, const char *Param = NULL);
 	void OnInstall(CapsHash *Caps, bool Status);
 	void OnCloseInstaller();
 

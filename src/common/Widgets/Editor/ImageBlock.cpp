@@ -2,6 +2,7 @@
 #include "GRichTextEdit.h"
 #include "GRichTextEditPriv.h"
 #include "GdcTools.h"
+#include "GToken.h"
 
 #define TIMEOUT_LOAD_PROGRESS		100 // ms
 
@@ -74,7 +75,15 @@ public:
 				Ts = LgiCurrentTime();
 				GFilter::IoStatus Status = Filter->ReadImage(Img, In);
 				if (Status != GFilter::IoSuccess)
+				{
+					if (Status == GFilter::IoComponentMissing)
+					{
+						GString *s = new GString(Filter->GetComponentName());
+						return Sink->PostEvent(M_IMAGE_COMPONENT_MISSING, (GMessage::Param)s);
+					}
+
 					return Sink->PostEvent(M_IMAGE_ERROR);
+				}
 
 				if (!SurfaceSent)
 					Sink->PostEvent(M_IMAGE_SET_SURFACE, (GMessage::Param)Img, (GMessage::Param)In.Release());
@@ -1009,6 +1018,22 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 			PostThreadEvent(ThreadHnd, M_CLOSE);
 			ThreadHnd = 0;
 			UpdateThreadBusy(_FL, -1);
+			break;
+		}
+		case M_IMAGE_COMPONENT_MISSING:
+		{
+			GAutoPtr<GString> Component((GString*) Msg->A());
+			PostThreadEvent(ThreadHnd, M_CLOSE);
+			ThreadHnd = 0;
+			UpdateThreadBusy(_FL, -1);
+
+			if (Component)
+			{
+				GToken t(*Component, ",");
+				for (int i=0; i<t.Length(); i++)
+					d->View->NeedsCapability(t[i]);
+			}
+			else LgiAssert(!"Missing component name.");
 			break;
 		}
 		case M_IMAGE_SET_SURFACE:

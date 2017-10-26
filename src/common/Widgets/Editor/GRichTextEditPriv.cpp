@@ -1724,7 +1724,7 @@ void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
 		for (unsigned i=0; i<NeedsCap.Length(); i++)
 		{
 			CtrlCap &cc = NeedsCap[i];
-			GDisplayString Ds(SysFont, cc.Param);
+			GDisplayString Ds(SysFont, cc.Name);
 			SysFont->Transparent(true);
 			SysFont->Colour(GColour::White, GColour::Red);
 			Ds.Draw(pDC, t.x1 + 4, y);

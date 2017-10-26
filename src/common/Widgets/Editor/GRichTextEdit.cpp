@@ -96,6 +96,12 @@ bool GRichTextEdit::SetSpellCheck(GSpellCheck *sp)
 
 bool GRichTextEdit::NeedsCapability(const char *Name, const char *Param)
 {
+	for (unsigned i=0; i<d->NeedsCap.Length(); i++)
+	{
+		if (d->NeedsCap[i].Name.Equals(Name))
+			return true;
+	}
+
 	d->NeedsCap.New().Set(Name, Param);
 	Invalidate();
 	return true;
