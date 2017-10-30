@@ -40,7 +40,7 @@ class
 	public GDocView,
 	public ResObject,
 	public GDragDropTarget,
-	public GCapabilityTarget
+	public GCapabilityClient
 {
 	friend bool RichText_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User);
 
@@ -114,8 +114,8 @@ public:
 	{
 		ContentArea,
 		ToolsArea,
-		CapabilityArea,
-		CapabilityBtn,
+		// CapabilityArea,
+		// CapabilityBtn,
 
 		FontFamilyBtn,
 		FontSizeBtn,
@@ -198,9 +198,9 @@ public:
 	bool OnMouseWheel(double Lines);
 
 	// Capability target stuff
-	bool NeedsCapability(const char *Name, const char *Param = NULL);
-	void OnInstall(CapsHash *Caps, bool Status);
-	void OnCloseInstaller();
+	// bool NeedsCapability(const char *Name, const char *Param = NULL);
+	// void OnInstall(CapsHash *Caps, bool Status);
+	// void OnCloseInstaller();
 
 	// Window Events
 	void OnFocus(bool f);

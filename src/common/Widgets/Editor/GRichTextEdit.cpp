@@ -94,6 +94,7 @@ bool GRichTextEdit::SetSpellCheck(GSpellCheck *sp)
 	return d->SpellCheck != NULL;
 }
 
+/*
 bool GRichTextEdit::NeedsCapability(const char *Name, const char *Param)
 {
 	for (unsigned i=0; i<d->NeedsCap.Length(); i++)
@@ -117,6 +118,7 @@ void GRichTextEdit::OnCloseInstaller()
 	d->NeedsCap.Length(0);
 	Invalidate();
 }
+*/
 
 bool GRichTextEdit::IsDirty()
 {
@@ -1368,8 +1370,9 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 		{
 			Focus(true);
 
-			if (d->Areas[ToolsArea].Overlap(m.x, m.y) ||
-				d->Areas[CapabilityArea].Overlap(m.x, m.y))
+			if (d->Areas[ToolsArea].Overlap(m.x, m.y)
+				// || d->Areas[CapabilityArea].Overlap(m.x, m.y)
+				)
 			{
 				if (Clicked != MaxArea)
 				{
@@ -2249,6 +2252,7 @@ void GRichTextEdit::OnPaint(GSurface *pDC)
 	r = ct.PaintBorder(pDC, r);
 
 	bool HasSpace = r.Y() > (FontY * 3);
+	/*
 	if (d->NeedsCap.Length() > 0 && HasSpace)
 	{
 		d->Areas[CapabilityArea] = r;
@@ -2264,6 +2268,7 @@ void GRichTextEdit::OnPaint(GSurface *pDC)
 		d->Areas[CapabilityArea].ZOff(-1, -1);
 		d->Areas[CapabilityBtn].ZOff(-1, -1);
 	}
+	*/
 
 	if (d->ShowTools && HasSpace)
 	{

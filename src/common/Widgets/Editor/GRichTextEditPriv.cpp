@@ -346,8 +346,8 @@ GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv **Ptr) :
 	BtnState[GRichTextEdit::RemoveLinkBtn].IsPress = true;
 	Values[GRichTextEdit::RemoveStyleBtn] = TEXT_REMOVE_STYLE;
 	BtnState[GRichTextEdit::RemoveStyleBtn].IsPress = true;
-	Values[GRichTextEdit::CapabilityBtn] = TEXT_CAP_BTN;
-	BtnState[GRichTextEdit::CapabilityBtn].IsPress = true;
+	//Values[GRichTextEdit::CapabilityBtn] = TEXT_CAP_BTN;
+	//BtnState[GRichTextEdit::CapabilityBtn].IsPress = true;
 	Values[GRichTextEdit::EmojiBtn] = TEXT_EMOJI;
 	BtnState[GRichTextEdit::EmojiBtn].IsPress = true;
 
@@ -1694,11 +1694,13 @@ bool GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 			ChangeSelectionStyle(&s, false);
 			break;
 		}
+		/*
 		case GRichTextEdit::CapabilityBtn:
 		{
 			View->OnCloseInstaller();
 			break;
 		}
+		*/
 		case GRichTextEdit::EmojiBtn:
 		{
 			GdcPt2 p(Areas[t].x1, Areas[t].y2 + 1);
@@ -1715,6 +1717,7 @@ bool GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 	
 void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
 {
+	/*
 	if (Areas[GRichTextEdit::CapabilityArea].Valid())
 	{
 		GRect &t = Areas[GRichTextEdit::CapabilityArea];
@@ -1733,6 +1736,7 @@ void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
 
 		PaintBtn(pDC, GRichTextEdit::CapabilityBtn);
 	}
+	*/
 
 	if (Areas[GRichTextEdit::ToolsArea].Valid())
 	{
@@ -2189,10 +2193,11 @@ bool GRichTextPriv::GetSelection(GArray<char16> &Text)
 
 GRichTextEdit::RectType GRichTextPriv::PosToButton(GMouse &m)
 {
-	if (Areas[GRichTextEdit::ToolsArea].Overlap(m.x, m.y) ||
-		Areas[GRichTextEdit::CapabilityArea].Overlap(m.x, m.y))
+	if (Areas[GRichTextEdit::ToolsArea].Overlap(m.x, m.y)
+		// || Areas[GRichTextEdit::CapabilityArea].Overlap(m.x, m.y)
+		)
 	{
-		for (unsigned i=GRichTextEdit::CapabilityBtn; i<GRichTextEdit::MaxArea; i++)
+		for (unsigned i=GRichTextEdit::FontFamilyBtn; i<GRichTextEdit::MaxArea; i++)
 		{
 			if (Areas[i].Valid() &&
 				Areas[i].Overlap(m.x, m.y))

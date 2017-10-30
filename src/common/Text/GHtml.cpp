@@ -2617,7 +2617,6 @@ void GTag::LoadImage(const char *Uri)
 						!_stricmp(u.Protocol, "https") ||
 						!_stricmp(u.Protocol, "ftp")
 					);
-
 	if (IsRemote && !LdImg)
 	{
 		Html->NeedsCapability("RemoteContent");

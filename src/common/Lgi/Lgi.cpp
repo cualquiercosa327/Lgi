@@ -2141,138 +2141,6 @@ bool DoEvery::DoNow()
 	return false;
 }
 
-///////////////////////////////////////////////////////////////////////////////////
-#if 0
-GViewFill::GViewFill(GColour c)
-{
-	Type = Solid;
-	Col = c;
-	#ifdef WIN32
-	hBrush = NULL;
-	#endif
-}
-
-GViewFill::GViewFill(COLOUR c, int Bits)
-{
-	Type = Solid;
-	Col.c32(CBit(32, c, Bits));
-	#ifdef WIN32
-	hBrush = NULL;
-	#endif
-}
-
-GViewFill::GViewFill(GSurface *dc, bool Copy)
-{
-    Col.c32(0);
-	Type = Copy ? OwnBitmap : RefBitmap;
-	#ifndef LGI_STATIC
-	if (Copy)
-		pDC = new GMemDC(dc);
-	else
-		pDC = dc;
-	#endif
-
-	#ifdef WIN32
-	hBrush = NULL;
-	#endif
-}
-
-GViewFill::GViewFill(const GViewFill &f)
-{
-	Col = f.GetFlat();
-	Type = f.Type;
-	if (Type == OwnBitmap)
-	{
-		#ifndef LGI_STATIC
-    	pDC = new GMemDC(f.pDC);
-		#endif
-	}
-	else if (Type == RefBitmap)
-	{
-    	pDC = f.pDC;
-	}
-
-	#ifdef WIN32
-	hBrush = NULL;
-	#endif
-}
-
-GViewFill::~GViewFill()
-{
-    Empty();
-}
-
-void GViewFill::Empty()
-{
-	if (Type == OwnBitmap)
-    	DeleteObj(pDC);
-
-    Type = None;
-    pDC = 0;
-    Col.c32(0);
-
-	#ifdef WIN32
-	if (hBrush)
-	{
-		DeleteObject(hBrush);
-		hBrush = NULL;
-	}
-	#endif
-}
-
-void GViewFill::Fill(GSurface *pDC, GRect *r, GdcPt2 *Origin)
-{
-	#ifndef LGI_STATIC
-	if (Type == Solid)
-	{
-		pDC->Colour(Col);
-		pDC->Rectangle(r);
-	}
-	else if (Type == OwnBitmap || Type == RefBitmap)
-	{
-		if (pDC)
-		{
-			GRect a;
-			if (!r)
-			{
-				a.ZOff(pDC->X()-1, pDC->Y()-1);
-				r = &a;
-			}
-
-			for (int y = Origin ? (Origin->y % pDC->Y()) - pDC->Y() : 0; y < r->Y(); y += pDC->Y())
-			{
-				for (int x = Origin ? (Origin->x % pDC->X()) - pDC->X() : 0; x<r->X(); x += pDC->X())
-				{
-					pDC->Blt(r->x1 + x, r->y1 + y, pDC);
-				}
-			}
-		}
-		else
-		{
-			LgiAssert(0);
-		}
-	}
-	#endif
-}
-
-#ifdef WIN32
-/*
-HBRUSH GViewFill::GetBrush()
-{
-	if (!hBrush)
-	{
-		LOGBRUSH LogBrush;
-		LogBrush.lbStyle = BS_SOLID;
-		LogBrush.lbColor = GetFlat().c24();
-		LogBrush.lbHatch = 0;
-		hBrush = CreateBrushIndirect(&LogBrush);
-	}
-	return hBrush;
-}
-*/
-#endif
-#endif
-
 //////////////////////////////////////////////////////////////////////
 bool GCapabilityClient::NeedsCapability(const char *Name, const char *Param)
 {
@@ -2289,7 +2157,7 @@ GCapabilityClient::~GCapabilityClient()
 
 void GCapabilityClient::Register(GCapabilityTarget *t)
 {
-    if (t)
+    if (t && !Targets.HasItem(t))
     {
         Targets.Add(t);
         t->Clients.Add(this);

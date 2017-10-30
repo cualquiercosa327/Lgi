@@ -420,7 +420,7 @@ public:
 	bool ScrollChange;
 
 	// Capabilities
-	GArray<CtrlCap> NeedsCap;
+	// GArray<CtrlCap> NeedsCap;
 
 	// Debug stuff
 	GArray<GRect> DebugRects;
