@@ -773,6 +773,64 @@ public:
 	}
 };
 
+void FilterFiles(GArray<ProjectNode*> &Perfect, GArray<ProjectNode*> &Nodes, GString InputStr)
+{
+	GString::Array p = InputStr.SplitDelimit(" \t");
+		
+	int InputLen = InputStr.RFind(".");
+	if (InputLen < 0)
+		InputLen = InputStr.Length();
+
+	GArray<ProjectNode*> Partial;
+	for (unsigned i=0; i<Nodes.Length(); i++)
+	{
+		ProjectNode *Pn = Nodes[i];
+		char *Fn = Pn->GetFileName();
+		if (Fn)
+		{
+			char *Dir = strchr(Fn, '/');
+			if (!Dir) Dir = strchr(Fn, '\\');
+			char *Leaf = Dir ? strrchr(Fn, *Dir) : Fn;
+				
+			bool Match = true;
+			for (unsigned n=0; n<p.Length(); n++)
+			{
+				if (!stristr(Leaf, p[n]))
+				{
+					Match = false;
+					break;
+				}
+			}
+			if (Match)
+			{
+				bool PerfectMatch = false;
+				char *Leaf = LgiGetLeaf(Fn);
+				if (Leaf)
+				{
+					char *Dot = strrchr(Leaf, '.');
+					if (Dot)
+					{
+						int Len = Dot - Leaf;
+						PerfectMatch =	Len == InputLen &&
+										strncmp(InputStr, Leaf, Len) == 0;
+					}
+					else
+					{
+						PerfectMatch = stricmp(InputStr, Leaf);
+					}
+				}
+
+				if (PerfectMatch)
+					Perfect.Add(Pn);
+				else
+					Partial.Add(Pn);
+			}
+		}
+	}
+
+	Perfect.Add(Partial);
+}
+
 class ProjFilePopup : public GPopupList<ProjectNode>
 {
 	AppWnd *App;
@@ -809,61 +867,9 @@ public:
 	
 	void Update(GString InputStr)
 	{
-		GString::Array p = InputStr.SplitDelimit(" \t");
-		
-		int InputLen = InputStr.RFind(".");
-		if (InputLen < 0)
-			InputLen = InputStr.Length();
-
-		GArray<ProjectNode*> Perfect, Partial;
-		for (unsigned i=0; i<Nodes.Length(); i++)
-		{
-			ProjectNode *Pn = Nodes[i];
-			char *Fn = Pn->GetFileName();
-			if (Fn)
-			{
-				char *Dir = strchr(Fn, '/');
-				if (!Dir) Dir = strchr(Fn, '\\');
-				char *Leaf = Dir ? strrchr(Fn, *Dir) : Fn;
-				
-				bool Match = true;
-				for (unsigned n=0; n<p.Length(); n++)
-				{
-					if (!stristr(Leaf, p[n]))
-					{
-						Match = false;
-						break;
-					}
-				}
-				if (Match)
-				{
-					bool PerfectMatch = false;
-					char *Leaf = LgiGetLeaf(Fn);
-					if (Leaf)
-					{
-						char *Dot = strrchr(Leaf, '.');
-						if (Dot)
-						{
-							int Len = Dot - Leaf;
-							PerfectMatch =	Len == InputLen &&
-											strncmp(InputStr, Leaf, Len) == 0;
-						}
-						else
-						{
-							PerfectMatch = stricmp(InputStr, Leaf);
-						}
-					}
-
-					if (PerfectMatch)
-						Perfect.Add(Pn);
-					else
-						Partial.Add(Pn);
-				}
-			}
-		}
-
-		Perfect.Add(Partial);
-		SetItems(Perfect);
+		GArray<ProjectNode*> Matches;
+		FilterFiles(Matches, Nodes, InputStr);
+		SetItems(Matches);
 	}
 	
 	int OnNotify(GViewI *Ctrl, int Flags)
@@ -2691,6 +2697,11 @@ void IdeDoc::SearchSymbol()
 		GString Word(Txt + Start, End - Start);
 		GotoSearch(IDC_SYMBOL_SEARCH, Word);
 	}
+}
+
+void IdeDoc::SearchFile()
+{
+	GotoSearch(IDC_FILE_SEARCH, NULL);
 }
 
 bool IdeDoc::IsCurrentIp()

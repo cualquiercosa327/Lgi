@@ -84,6 +84,10 @@
 #define IDC_BROWSE								232
 #define IDC_233									233
 #define IDC_ENTIRE_SOLUTION						234
+#define IDC_FIND_PROJECT_FILE					239
+#define IDC_240									240
+#define IDC_242									242
+#define IDC_TEXT								243
 #define IDC_TAB_SIZE							500
 #define IDC_SHOW_WHITESPACE						501
 #define IDM_OPEN								502
@@ -168,3 +172,4 @@
 #define IDM_RESTART_DEBUGGING					581
 #define IDM_RUN_TO								582
 #define IDM_PREV_MSG							583
+#define IDM_FIND_PROJECT_FILE					584

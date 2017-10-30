@@ -39,6 +39,118 @@
 #define OPT_OUTPUT_PX			"OutputPx"
 
 //////////////////////////////////////////////////////////////////////////////////////////
+class FindInProject : public GDialog
+{
+	AppWnd *App;
+	LList *Lst;
+
+public:
+	FindInProject(AppWnd *app)
+	{
+		Lst = NULL;
+		App = app;
+		if (LoadFromResource(IDC_FIND_PROJECT_FILE))
+		{
+			MoveSameScreen(App);
+
+			GViewI *v;
+			if (GetViewById(IDC_TEXT, v))
+				v->Focus(true);
+			if (!GetViewById(IDC_FILES, Lst))
+				return;
+
+			RegisterHook(this, GKeyEvents, 0);
+		}
+	}
+
+	bool OnViewKey(GView *v, GKey &k)
+	{
+		switch (k.vkey)
+		{
+			case VK_UP:
+			case VK_DOWN:
+			case VK_PAGEDOWN:
+			case VK_PAGEUP:
+			{
+				return Lst->OnKey(k);
+				break;
+			}
+			case VK_RETURN:
+			{
+				LListItem *i = Lst->GetSelected();
+				if (i)
+					App->GotoReference(i->GetText(0), 1, false);
+				EndModal(1);
+				break;
+			}
+			case VK_ESCAPE:
+			{
+				EndModal(0);
+				break;
+			}
+		}
+	
+		return false;
+	}
+
+	void Search(const char *s)
+	{
+		IdeProject *p = App->RootProject();
+		if (!p || !s)
+			return;
+		
+		GArray<ProjectNode*> Matches, Nodes;
+
+		List<IdeProject> All;
+		p->GetChildProjects(All);
+		All.Insert(p);							
+		for (p=All.First(); p; p=All.Next())
+		{
+			p->GetAllNodes(Nodes);
+		}
+
+		FilterFiles(Matches, Nodes, s);
+
+		Lst->Empty();
+		for (unsigned i=0; i<Matches.Length(); i++)
+		{
+			LListItem *li = new LListItem;
+			li->SetText(Matches[i]->GetFileName());
+			Lst->Insert(li);
+		}
+
+		Lst->ResizeColumnsToContent();
+	}
+
+	int OnNotify(GViewI *c, int f)
+	{
+		switch (c->GetId())
+		{
+			case IDC_FILES:
+				if (f == GNotifyItem_DoubleClick)
+				{
+					LListItem *i = Lst->GetSelected();
+					if (i)
+					{
+						App->GotoReference(i->GetText(0), 1, false);
+						EndModal(1);
+					}
+				}
+				break;
+			case IDC_TEXT:
+				if (f != GNotify_ReturnKey)
+					Search(c->Name());
+				break;
+			case IDCANCEL:
+				EndModal(0);
+				break;
+		}
+
+		return 0;
+	}
+};
+
+//////////////////////////////////////////////////////////////////////////////////////////
 char AppName[] = "LgiIde";
 
 char *dirchar(char *s, bool rev = false)
@@ -2711,6 +2823,20 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			if (Doc)
 			{
 				Doc->SearchSymbol();
+			}
+			break;
+		}
+		case IDM_FIND_PROJECT_FILE:
+		{
+			IdeDoc *Doc = FocusDoc();
+			if (Doc)
+			{
+				Doc->SearchSymbol();
+			}
+			else
+			{
+				FindInProject Dlg(this);
+				Dlg.DoModal();
 			}
 			break;
 		}

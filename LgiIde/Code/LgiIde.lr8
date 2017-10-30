@@ -161,6 +161,13 @@
 		<String Ref="232" Cid="232" Define="IDC_BROWSE" en="..." />
 		<String Ref="233" Cid="233" Define="IDC_233" en="Symbol" />
 		<String Ref="234" Cid="234" Define="IDC_ENTIRE_SOLUTION" en="Entire Solution" />
+		<String Ref="239" Cid="239" Define="IDC_FIND_PROJECT_FILE" en="Find File in Project" />
+		<String Ref="240" Cid="240" Define="IDC_240" />
+		<String Ref="241" Cid="113" Define="IDC_FILES" />
+		<String Ref="242" Cid="242" Define="IDC_242" en="File" />
+		<String Ref="243" Cid="243" Define="IDC_TEXT" />
+		<String Ref="244" Cid="202" Define="IDC_SEARCH" en="Search" />
+		<String Ref="245" Cid="2" Define="IDCANCEL" en="Cancel" />
 	</string-group>
 	<style name="General">.fixed {
 	width: 18px;
@@ -173,6 +180,26 @@
 .settings_tree {
 	width: 30%;
 }</style>
+	<Dialog pos="7,7,765,406" ref="239">
+		<TableLayout pos="7,7,748,356" ref="240" cols="0.500,0.500" rows="0.500,0.500">
+			<tr>
+				<td colspan="2">
+					<ListView pos="14,14,447,94" ref="241">
+						<Column ref="242" width="383" />
+					</ListView>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<EditBox Pos="7,184,209,211" ref="243" />
+				</td>
+				<td>
+					<Button pos="396,192,458,212" ref="244" />
+					<Button pos="396,227,465,247" ref="245" />
+				</td>
+			</tr>
+		</TableLayout>
+	</Dialog>
 	<Dialog pos="7,7,553,426" ref="82">
 		<EditBox Pos="7,21,160,41" ref="83" />
 		<StaticText pos="7,7,104,20" ref="84" />
@@ -740,6 +767,7 @@
 			<String Ref="235" Cid="569" Define="IDM_SAVE" en="&Save" />
 			<String Ref="236" Cid="580" Define="IDM_MENU_580" />
 			<String Ref="237" Cid="583" Define="IDM_PREV_MSG" en="Previous Message" />
+			<String Ref="238" Cid="584" Define="IDM_FIND_PROJECT_FILE" en="Find File in Project" />
 		</string-group>
 		<submenu Ref="175">
 			<menuitem Ref="174" Shortcut="Ctrl+N" />
@@ -804,6 +832,7 @@
 			<menuitem Sep="1" />
 			<menuitem Ref="137" Shortcut="F4" />
 			<menuitem Ref="237" Shortcut="Shift+F4" />
+			<menuitem Ref="238" Shortcut="Shift+Alt+O" />
 			<menuitem Sep="1" />
 			<menuitem Ref="135" Shortcut="Ctrl+F5" />
 			<menuitem Ref="134" Shortcut="Ctrl+Shift+V" />
