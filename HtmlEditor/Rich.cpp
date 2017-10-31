@@ -5,6 +5,8 @@
 #include "GBox.h"
 #include "resource.h"
 #include "LgiSpellCheck.h"
+#include "GDisplayString.h"
+#include "GButton.h"
 
 #if 1
 #include "GRichTextEdit.h"
@@ -25,7 +27,8 @@ enum Ctrls
 	IDC_VIEW_IN_BROWSER,
 	IDC_SAVE_FILE,
 	IDC_SAVE,
-	IDC_EXIT
+	IDC_EXIT,
+	IDC_INSTALL
 };
 
 #define LOAD_DOC 1
@@ -55,7 +58,71 @@ char Src[] =
 
 #endif
 
-class App : public GWindow
+class CapsBar : public GView
+{
+	GCapabilityTarget::CapsHash *Caps;
+	GButton *Ok, *Install;
+
+public:
+	CapsBar(GViewI *Parent, GCapabilityTarget::CapsHash *caps)
+	{
+		Caps = caps;
+		Ok = new GButton(IDOK, 0, 0, -1, -1, "Ok");
+		Install = new GButton(IDC_INSTALL, 0, 0, -1, -1, "Install");
+	}
+
+	bool Pour(GRegion &r)
+	{
+		GRect *rc = FindLargestEdge(r, GV_EDGE_TOP);
+		if (!rc)
+			return false;
+
+		GRect p = *rc;
+		p.y2 = p.y1 + SysFont->GetHeight() + 11;
+		SetPos(p);
+		return true;	
+	}
+
+	void OnPaint(GSurface *pDC)
+	{
+		pDC->Colour(GColour::Red);
+		pDC->Rectangle();
+
+		const char *k;
+		SysFont->Colour(GColour::White, GColour::Red);
+		SysFont->Transparent(true);
+
+		GString s = "Missing components: ";
+		for (bool b = Caps->First(&k); b; b = Caps->Next(&k))
+		{
+			s += k;
+			s += " ";
+		}
+
+		GDisplayString d(SysFont, s);
+		d.Draw(pDC, 6, 6);
+
+		if (Ok && Install)
+		{
+			int x = GetClient().x2 - 6;
+			if (!Ok->IsAttached())
+				Ok->Attach(this);
+			GRect r;
+			r.Set(0, 0, Ok->X()-1, Ok->Y()-1);
+			r.Offset(x - r.X(), (Y() - r.Y()) >> 1);
+			Ok->SetPos(r);			
+
+			if (!Install->IsAttached())
+				Install->Attach(this);
+			r.Set(0, 0, Install->X()-1, Install->Y()-1);
+			r.Offset(Ok->GetPos().x1 - 6 - r.X(), (Y() - r.Y()) >> 1);
+			Install->SetPos(r);
+		}
+			
+	}
+};
+
+class App : public GWindow, public GCapabilityTarget
 {
 	GBox *Split;
 	GTextView3 *Txt;
@@ -66,6 +133,8 @@ class App : public GWindow
 	EditCtrl *Edit;
 
 	GAutoPtr<GSpellCheck> Speller;
+	CapsBar *Bar;
+	GCapabilityTarget::CapsHash Caps;
 
 public:
 	App()
@@ -73,6 +142,7 @@ public:
 		LastChange = 0;
 		Edit = 0;
 		Txt = 0;
+		Bar = NULL;
 		Tabs = NULL;
 		Tree = NULL;
 		Name("Rich Text Testbed");
@@ -119,6 +189,7 @@ public:
 						Edit->SetSpellCheck(Speller);
 					Edit->Sunken(true);
 					Edit->SetId(IDC_EDITOR);
+					Edit->Register(this);
 					// Edit->Name("<span style='color:#800;'>The rich editor control is not functional in this build.</span><b>This is some bold</b>");
 
 					#if LOAD_DOC
@@ -166,6 +237,38 @@ public:
 			if (Edit)
 				Edit->Focus(true);
 		}
+	}
+
+	bool NeedsCapability(const char *Name, const char *Param = NULL)
+	{
+		if (Caps.Find(Name))
+			return true;
+
+		Caps.Add(Name, true);
+
+		if (!Bar)
+		{
+			Bar = new CapsBar(this, &Caps);
+			if (Bar)
+			{
+				AddView(Bar, 0);
+				AttachChildren();
+				
+				PourAll();
+				Invalidate();
+			}
+		}
+		return true;
+	}
+	
+	void OnInstall(CapsHash *Caps, bool Status)
+	{
+		DeleteObj(Bar);
+	}
+
+	void OnCloseInstaller()
+	{
+		DeleteObj(Bar);
 	}
 
 	int OnCommand(int Cmd, int Event, OsView Wnd)
