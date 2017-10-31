@@ -4,6 +4,7 @@
 #include "GdcTools.h"
 #include "GToken.h"
 
+#define LOADER_THREAD_LOGGING		1
 #define TIMEOUT_LOAD_PROGRESS		100 // ms
 
 int ImgScales[] = { 15, 25, 50, 75, 100 };
@@ -30,7 +31,9 @@ public:
 	~ImageLoader()
 	{
 		Cancel(true);
-		printf("~ImageLoader()\n");
+		#if LOADER_THREAD_LOGGING
+		LgiTrace("%s:%i - ~ImageLoader\n", _FL);
+		#endif
 	}
 
 	void Value(int64 v)
@@ -59,16 +62,35 @@ public:
 			{
 				GAutoPtr<GString> Str((GString*)Msg->A());
 				File = *Str;
+
+				#if LOADER_THREAD_LOGGING
+				LgiTrace("%s:%i - Thread.Receive(M_IMAGE_LOAD_FILE): '%s'\n", _FL, File.Get());
+				#endif
 				
 				if (!Filter.Reset(GFilterFactory::New(File, O_READ, NULL)))
+				{
+					#if LOADER_THREAD_LOGGING
+					LgiTrace("%s:%i - Thread.Send(M_IMAGE_ERROR): no filter\n", _FL);
+					#endif
 					return Sink->PostEvent(M_IMAGE_ERROR);
+				}
 
 				if (!In.Reset(new GFile) ||
 					!In->Open(File, O_READ))
+				{
+					#if LOADER_THREAD_LOGGING
+					LgiTrace("%s:%i - Thread.Send(M_IMAGE_ERROR): can't read\n", _FL);
+					#endif
 					return Sink->PostEvent(M_IMAGE_ERROR);
+				}
 
 				if (!(Img = new GMemDC))
+				{
+					#if LOADER_THREAD_LOGGING
+					LgiTrace("%s:%i - Thread.Send(M_IMAGE_ERROR): alloc err\n", _FL);
+					#endif
 					return Sink->PostEvent(M_IMAGE_ERROR);
+				}
 
 				Filter->SetProgress(this);
 
@@ -79,15 +101,29 @@ public:
 					if (Status == GFilter::IoComponentMissing)
 					{
 						GString *s = new GString(Filter->GetComponentName());
+						#if LOADER_THREAD_LOGGING
+						LgiTrace("%s:%i - Thread.Send(M_IMAGE_COMPONENT_MISSING)\n", _FL);
+						#endif
 						return Sink->PostEvent(M_IMAGE_COMPONENT_MISSING, (GMessage::Param)s);
 					}
 
+					#if LOADER_THREAD_LOGGING
+					LgiTrace("%s:%i - Thread.Send(M_IMAGE_ERROR): Filter::ReadImage err\n", _FL);
+					#endif
 					return Sink->PostEvent(M_IMAGE_ERROR);
 				}
 
 				if (!SurfaceSent)
+				{
+					#if LOADER_THREAD_LOGGING
+					LgiTrace("%s:%i - Thread.Send(M_IMAGE_SET_SURFACE)\n", _FL);
+					#endif
 					Sink->PostEvent(M_IMAGE_SET_SURFACE, (GMessage::Param)Img, (GMessage::Param)In.Release());
+				}
 
+				#if LOADER_THREAD_LOGGING
+				LgiTrace("%s:%i - Thread.Send(M_IMAGE_FINISHED)\n", _FL);
+				#endif
 				Sink->PostEvent(M_IMAGE_FINISHED);
 				break;
 			}
@@ -95,26 +131,64 @@ public:
 			{
 				GAutoPtr<GStreamI> Stream((GStreamI*)Msg->A());
 				GAutoPtr<GString> FileName((GString*)Msg->B());
+				#if LOADER_THREAD_LOGGING
+				LgiTrace("%s:%i - Thread.Receive(M_IMAGE_LOAD_STREAM)\n", _FL);
+				#endif
 				if (!Stream)
-					break;
+				{
+					LgiAssert(!"No stream.");
+					return Sink->PostEvent(M_IMAGE_ERROR);
+				}
 				
 				GMemStream Mem(Stream, 0, -1);				
 				if (!Filter.Reset(GFilterFactory::New(FileName ? *FileName : 0, O_READ, (const uchar*)Mem.GetBasePtr())))
+				{
+					#if LOADER_THREAD_LOGGING
+					LgiTrace("%s:%i - Thread.Send(M_IMAGE_ERROR): no filter\n", _FL);
+					#endif
 					return Sink->PostEvent(M_IMAGE_ERROR);
+				}
 
 				if (!(Img = new GMemDC))
+				{
+					#if LOADER_THREAD_LOGGING
+					LgiTrace("%s:%i - Thread.Send(M_IMAGE_ERROR): alloc err\n", _FL);
+					#endif
 					return Sink->PostEvent(M_IMAGE_ERROR);
+				}
 
 				Filter->SetProgress(this);
 
 				Ts = LgiCurrentTime();
 				GFilter::IoStatus Status = Filter->ReadImage(Img, &Mem);
 				if (Status != GFilter::IoSuccess)
+				{
+					if (Status == GFilter::IoComponentMissing)
+					{
+						GString *s = new GString(Filter->GetComponentName());
+						#if LOADER_THREAD_LOGGING
+						LgiTrace("%s:%i - Thread.Send(M_IMAGE_COMPONENT_MISSING)\n", _FL);
+						#endif
+						return Sink->PostEvent(M_IMAGE_COMPONENT_MISSING, (GMessage::Param)s);
+					}
+
+					#if LOADER_THREAD_LOGGING
+					LgiTrace("%s:%i - Thread.Send(M_IMAGE_ERROR): Filter::ReadImage err\n", _FL);
+					#endif
 					return Sink->PostEvent(M_IMAGE_ERROR);
+				}
 
 				if (!SurfaceSent)
+				{
+					#if LOADER_THREAD_LOGGING
+					LgiTrace("%s:%i - Thread.Send(M_IMAGE_SET_SURFACE)\n", _FL);
+					#endif
 					Sink->PostEvent(M_IMAGE_SET_SURFACE, (GMessage::Param)Img, (GMessage::Param)In.Release());
+				}
 
+				#if LOADER_THREAD_LOGGING
+				LgiTrace("%s:%i - Thread.Send(M_IMAGE_FINISHED)\n", _FL);
+				#endif
 				Sink->PostEvent(M_IMAGE_FINISHED);
 				break;
 			}
@@ -122,11 +196,26 @@ public:
 			{
 				GSurface *Dst = (GSurface*) Msg->A();
 				GSurface *Src = (GSurface*) Msg->B();
+				#if LOADER_THREAD_LOGGING
+				LgiTrace("%s:%i - Thread.Receive(M_IMAGE_RESAMPLE)\n", _FL);
+				#endif
 				if (Src && Dst)
 				{
 					ResampleDC(Dst, Src, NULL, this);
-					if (!Sink->PostEvent(M_IMAGE_RESAMPLE))
-						printf("%s:%i - Error sending resample msg.\n", _FL);
+					if (Sink->PostEvent(M_IMAGE_RESAMPLE))
+					{
+						#if LOADER_THREAD_LOGGING
+						LgiTrace("%s:%i - Thread.Send(M_IMAGE_RESAMPLE)\n", _FL);
+						#endif
+					}
+					else LgiTrace("%s:%i - Error sending re-sample msg.\n", _FL);
+				}
+				else
+				{
+					#if LOADER_THREAD_LOGGING
+					LgiTrace("%s:%i - Thread.Send(M_IMAGE_ERROR): invalid ptrs\n", _FL);
+					#endif
+					return Sink->PostEvent(M_IMAGE_ERROR);
 				}
 				break;
 			}
@@ -134,8 +223,14 @@ public:
 			{
 				GSurface *img = (GSurface*)Msg->A();
 				GRichTextPriv::ImageBlock::ScaleInf *si = (GRichTextPriv::ImageBlock::ScaleInf*)Msg->B();
+				#if LOADER_THREAD_LOGGING
+				LgiTrace("%s:%i - Thread.Receive(M_IMAGE_COMPRESS)\n", _FL);
+				#endif
 				if (!img || !si)
 				{
+					#if LOADER_THREAD_LOGGING
+					LgiTrace("%s:%i - Thread.Send(M_IMAGE_ERROR): invalid ptr\n", _FL);
+					#endif
 					Sink->PostEvent(M_IMAGE_ERROR, (GMessage::Param) new GString("Invalid pointer."));
 					break;
 				}
@@ -143,6 +238,9 @@ public:
 				GAutoPtr<GFilter> f(GFilterFactory::New("a.jpg", O_READ, NULL));
 				if (!f)
 				{
+					#if LOADER_THREAD_LOGGING
+					LgiTrace("%s:%i - Thread.Send(M_IMAGE_ERROR): No JPEG filter available\n", _FL);
+					#endif
 					Sink->PostEvent(M_IMAGE_ERROR, (GMessage::Param) new GString("No JPEG filter available."));
 					break;
 				}
@@ -164,38 +262,65 @@ public:
 				GAutoPtr<GMemStream> jpg(new GMemStream(1024));
 				if (!f->WriteImage(jpg, img))
 				{
+					#if LOADER_THREAD_LOGGING
+					LgiTrace("%s:%i - Thread.Send(M_IMAGE_ERROR): Image compression failed\n", _FL);
+					#endif
 					Sink->PostEvent(M_IMAGE_ERROR, (GMessage::Param) new GString("Image compression failed."));
 					break;
 				}
 
+				#if LOADER_THREAD_LOGGING
+				LgiTrace("%s:%i - Thread.Send(M_IMAGE_COMPRESS)\n", _FL);
+				#endif
 				Sink->PostEvent(M_IMAGE_COMPRESS, (GMessage::Param)jpg.Release(), (GMessage::Param)si);
 				break;
 			}
 			case M_IMAGE_ROTATE:
 			{
+				#if LOADER_THREAD_LOGGING
+				LgiTrace("%s:%i - Thread.Receive(M_IMAGE_ROTATE)\n", _FL);
+				#endif
 				GSurface *Img = (GSurface*)Msg->A();
 				if (!Img)
+				{
+					LgiAssert(!"No image.");
 					break;
+				}
 
 				RotateDC(Img, Msg->B() == 1 ? 90 : 270);
+				#if LOADER_THREAD_LOGGING
+				LgiTrace("%s:%i - Thread.Send(M_IMAGE_ROTATE)\n", _FL);
+				#endif
 				Sink->PostEvent(M_IMAGE_ROTATE);
 				break;
 			}
 			case M_IMAGE_FLIP:
 			{
+				#if LOADER_THREAD_LOGGING
+				LgiTrace("%s:%i - Thread.Receive(M_IMAGE_FLIP)\n", _FL);
+				#endif
 				GSurface *Img = (GSurface*)Msg->A();
 				if (!Img)
+				{
+					LgiAssert(!"No image.");
 					break;
+				}
 
 				if (Msg->B() == 1)
 					FlipXDC(Img);
 				else
 					FlipYDC(Img);
+				#if LOADER_THREAD_LOGGING
+				LgiTrace("%s:%i - Thread.Send(M_IMAGE_FLIP)\n", _FL);
+				#endif
 				Sink->PostEvent(M_IMAGE_FLIP);
 				break;
 			}
 			case M_CLOSE:
 			{
+				#if LOADER_THREAD_LOGGING
+				LgiTrace("%s:%i - Thread.Receive(M_CLOSE)\n", _FL);
+				#endif
 				EndThread();
 				break;
 			}
@@ -951,8 +1076,8 @@ void GRichTextPriv::ImageBlock::UpdateDisplayImg()
 void GRichTextPriv::ImageBlock::UpdateThreadBusy(const char *File, int Line, int Off)
 {
 	ThreadBusy += Off;
-	#ifdef _DEBUG
-	// printf("%s:%i - ThreadBusy=%i\n", File, Line, ThreadBusy);
+	#if LOADER_THREAD_LOGGING
+	LgiTrace("%s:%i - ThreadBusy=%i\n", File, Line, ThreadBusy);
 	#endif
 }
 
