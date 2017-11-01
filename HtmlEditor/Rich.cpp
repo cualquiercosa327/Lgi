@@ -58,14 +58,22 @@ char Src[] =
 
 #endif
 
+class GCapabilityInstallTarget : public GCapabilityTarget
+{
+public:
+	virtual void StartInstall(CapsHash *Caps) = 0;
+};
+
 class CapsBar : public GView
 {
+	GCapabilityInstallTarget *App;
 	GCapabilityTarget::CapsHash *Caps;
 	GButton *Ok, *Install;
 
 public:
-	CapsBar(GViewI *Parent, GCapabilityTarget::CapsHash *caps)
+	CapsBar(GCapabilityInstallTarget *Parent, GCapabilityTarget::CapsHash *caps)
 	{
+		App = Parent;
 		Caps = caps;
 		Ok = new GButton(IDOK, 0, 0, -1, -1, "Ok");
 		Install = new GButton(IDC_INSTALL, 0, 0, -1, -1, "Install");
@@ -81,6 +89,24 @@ public:
 		p.y2 = p.y1 + SysFont->GetHeight() + 11;
 		SetPos(p);
 		return true;	
+	}
+
+	int OnNotify(GViewI *Ctrl, int Flags)
+	{
+		switch (Ctrl->GetId())
+		{
+			case IDOK:
+			{
+				App->OnCloseInstaller();
+				break;
+			}
+			case IDC_INSTALL:
+			{
+				App->StartInstall(Caps);
+				break;
+			}
+		}
+		return 0;
 	}
 
 	void OnPaint(GSurface *pDC)
@@ -122,7 +148,27 @@ public:
 	}
 };
 
-class App : public GWindow, public GCapabilityTarget
+class InstallThread : public LThread
+{
+	GString Component;
+
+public:
+	InstallThread(const char *component) : LThread("InstallThread")
+	{
+		Component = component;
+	}
+
+	int Main()
+	{
+		const char *Base = "http://memecode.com/components/lookup.php?app=Scribe&wordsize=%i&component=%s&os=win64&version=2.2.0";
+		GString s;
+		s.Printf(Base, sizeof(int)*8, Component.Get());
+
+		return 0;
+	}
+};
+
+class App : public GWindow, public GCapabilityInstallTarget
 {
 	GBox *Split;
 	GTextView3 *Txt;
@@ -261,6 +307,10 @@ public:
 		return true;
 	}
 	
+	void StartInstall(CapsHash *Caps)
+	{
+	}
+
 	void OnInstall(CapsHash *Caps, bool Status)
 	{
 		DeleteObj(Bar);

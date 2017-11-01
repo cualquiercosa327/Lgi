@@ -40,7 +40,7 @@ public:
 	/// This is called to install a dependency.
 	virtual bool NeedsCapability(const char *Name, const char *Param) = 0;
 	
-	/// This is called after the dependcy is installed.
+	/// This is called after the dependancy is installed.
 	virtual void OnInstall(CapsHash *Caps, bool Status) = 0;
 
 	/// This is called if the user closes the capability bar...
