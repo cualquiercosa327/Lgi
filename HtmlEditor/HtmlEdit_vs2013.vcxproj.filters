@@ -77,6 +77,12 @@
     <ClCompile Include="..\src\win32\Lgi\SpellCheckWindows.cpp">
       <Filter>Controls\RichTextEdit\Spelling</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\common\INet\IHttp.cpp">
+      <Filter>Lgi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\INet\OpenSSLSocket.cpp">
+      <Filter>Lgi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">

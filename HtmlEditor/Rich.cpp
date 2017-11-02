@@ -7,6 +7,7 @@
 #include "LgiSpellCheck.h"
 #include "GDisplayString.h"
 #include "GButton.h"
+#include "IHttp.h"
 
 #if 1
 #include "GRichTextEdit.h"
@@ -29,6 +30,11 @@ enum Ctrls
 	IDC_SAVE,
 	IDC_EXIT,
 	IDC_INSTALL
+};
+
+enum Messages
+{
+	M_INSTALL = M_USER + 200,
 };
 
 #define LOAD_DOC 1
@@ -148,27 +154,66 @@ public:
 	}
 };
 
-class InstallThread : public LThread
+class InstallThread : public GEventTargetThread
 {
-	GString Component;
+	int AppHnd;
 
 public:
-	InstallThread(const char *component) : LThread("InstallThread")
+	InstallThread(int appHnd) : GEventTargetThread("InstallThread")
 	{
-		Component = component;
+		AppHnd = appHnd;
 	}
 
-	int Main()
+	GMessage::Result OnEvent(GMessage *m)
 	{
-		const char *Base = "http://memecode.com/components/lookup.php?app=Scribe&wordsize=%i&component=%s&os=win64&version=2.2.0";
-		GString s;
-		s.Printf(Base, sizeof(int)*8, Component.Get());
+		switch (m->Msg())
+		{
+			case M_INSTALL:
+			{
+				GAutoPtr<GString> Component((GString*)m->A());
+				const char *Base = "http://memecode.com/components/lookup.php?app=Scribe&wordsize=%i&component=%s&os=win64&version=2.2.0";
+				GString s;
+				s.Printf(Base, sizeof(int)*8, Component->Get());
+
+				GMemStream o(1024);
+				GString err;
+				if (LgiGetUri(&o, &err, s))
+				{
+					GXmlTree t;
+					GXmlTag r;
+					o.SetPos(0);
+					if (t.Read(&r, &o))
+					{
+						if (r.IsTag("components"))
+						{
+							for (GXmlTag *c = r.Children.First(); c; c = r.Children.Next())
+							{
+								if (c->IsTag("file"))
+								{
+									int Bytes = c->GetAsInt("size");
+									const char *Link = c->GetContent();
+									GMemStream File(1024);
+									if (LgiGetUri(&File, &err, Link))
+									{
+									}
+									else LgiTrace("%s:%i - Link download failed.\n", _FL);
+								}
+							}
+						}
+						else LgiTrace("%s:%i - No components tag.\n", _FL);
+					}
+					else LgiTrace("%s:%i - Bad XML.\n", _FL);
+				}
+				else LgiTrace("%s:%i - Get URI failed.\n", _FL);
+				break;
+			}
+		}
 
 		return 0;
 	}
 };
 
-class App : public GWindow, public GCapabilityInstallTarget
+class App : public GWindow, public GCapabilityInstallTarget, public GNetwork
 {
 	GBox *Split;
 	GTextView3 *Txt;
@@ -181,6 +226,7 @@ class App : public GWindow, public GCapabilityInstallTarget
 	GAutoPtr<GSpellCheck> Speller;
 	CapsBar *Bar;
 	GCapabilityTarget::CapsHash Caps;
+	GAutoPtr<GEventTargetThread> Installer;
 
 public:
 	App()
@@ -285,6 +331,11 @@ public:
 		}
 	}
 
+	~App()
+	{
+		Installer.Reset();
+	}
+
 	bool NeedsCapability(const char *Name, const char *Param = NULL)
 	{
 		if (Caps.Find(Name))
@@ -309,6 +360,17 @@ public:
 	
 	void StartInstall(CapsHash *Caps)
 	{
+		if (!Installer)
+			Installer.Reset(new InstallThread(AddDispatch()));
+		if (Installer)
+		{
+			const char *c;
+			for (bool b = Caps->First(&c); b; b = Caps->Next(&c))
+			{
+				GAutoPtr<GString> s(new GString(c));
+				Installer->PostObject(Installer->GetHandle(), M_INSTALL, s);
+			}
+		}
 	}
 
 	void OnInstall(CapsHash *Caps, bool Status)

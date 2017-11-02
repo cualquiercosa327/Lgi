@@ -221,6 +221,7 @@ public:
 	int			Flags;
 	int			LastError;
 	bool		*ContinueToken;
+	GString		ErrStr;
 
 	GSocketImplPrivate()
 	{	
@@ -1016,6 +1017,16 @@ ssize_t GSocket::Read(void *Data, ssize_t Len, int Flags)
 	}
 
 	return (int)Status;
+}
+
+void GSocket::OnError(int ErrorCode, const char *ErrorDescription)
+{
+	d->ErrStr.Printf("Error(%i): %s", ErrorCode, ErrorDescription);
+}
+
+const char *GSocket::GetErrorString()
+{
+	return d->ErrStr;
 }
 
 int GSocket::Error(void *Param)

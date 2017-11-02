@@ -218,6 +218,7 @@ public:
 	
 	/// Returns the last error or 0.
 	int Error(void *Param = 0);
+	const char *GetErrorString();
 
 	/// Not supported
 	int64 GetSize() { return -1; }
@@ -238,7 +239,7 @@ public:
 	void OnWrite(const char *Data, ssize_t Len) {}
 	
 	/// Gets called when an error occurs.
-	void OnError(int ErrorCode, const char *ErrorDescription) {}
+	void OnError(int ErrorCode, const char *ErrorDescription);
 	
 	/// Gets called when some information is available.
 	void OnInformation(const char *Str) {}
