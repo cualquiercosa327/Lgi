@@ -103,12 +103,14 @@ public:
 
 class LogEntry
 {
-public:
-	char *Text;
 	GColour c;
 
-	LogEntry(const char *t, ssize_t len, COLOUR col);
-	~LogEntry();
+public:
+	GArray<char16> Txt;
+	LogEntry(GColour col);
+
+	GColour GetColour() { return c; }
+	bool Add(const char *t, ssize_t len = -1);
 };
 
 /// Attachment descriptor

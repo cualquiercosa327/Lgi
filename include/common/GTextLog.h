@@ -49,35 +49,30 @@ public:
 		ProcessTxt();
 	}
 
-	virtual void Add(char16 *w)
+	virtual void Add(char16 *w, ssize_t chars = -1)
 	{
-		int Len;
+		int Len = chars >= 0 ? chars : StrlenW(w);
 		
 		if (RemoveReturns)
 		{
-		    char16 *i = w, *o = w;
-		    while (*i)
-		    {
-		        if (*i != '\r')
-		        {
-		            *o++ = *i++;
-		        }
-		        else
-		        {
-		            i++;
-		        }
-		    }
-		    *o = 0;
-		    Len = (int) (o - w);
+			char16 *end = w + Len;
+			for (char16 *s = w; *s; )
+			{
+				char16 *e = s;
+				while (e < end && *e != '\r')
+					e++;
+				if (e > s)
+					Insert(Size, s, e - s);
+				if (e >= end)
+					break;
+				s = e + 1;
+			}
 		}
 		else
 		{
-		    Len = StrlenW(w);
+			Insert(Size, w, Len);
 		}
 		
-		// LgiTrace("Insert '%.*S' at %i\n", Len, w, Size);
-		Insert(Size, w, Len);
-		DeleteArray(w);
 		Invalidate();
 		SetCaret(Size, false);
 	}
