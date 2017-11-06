@@ -38,6 +38,8 @@
 #define OPT_SPLIT_PX			"SplitPos"
 #define OPT_OUTPUT_PX			"OutputPx"
 
+#define IsSymbolChar(c)			( IsDigit(c) || IsAlpha(c) || strchr("-_", c) )
+
 //////////////////////////////////////////////////////////////////////////////////////////
 class FindInProject : public GDialog
 {
@@ -2842,7 +2844,56 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		}
 		case IDM_FIND_REFERENCES:
 		{
-			LgiMsg(this, "Not implemented yet.", AppName);
+			GViewI *f = LgiApp->GetFocus();
+			GDocView *doc = dynamic_cast<GDocView*>(f);
+			if (!doc)
+				break;
+
+			ssize_t c = doc->GetCaret();
+			if (c < 0)
+				break;
+
+			GString Txt = doc->Name();
+			char *s = Txt.Get() + c;
+			char *e = s;
+			while (	s > Txt.Get() &&
+					IsSymbolChar(s[-1]))
+				s--;
+			while (*e &&
+					IsSymbolChar(*e))
+				e++;
+			if (e <= s)
+				break;
+
+			GString Word(s, e - s);
+
+			if (!d->Finder)
+				d->Finder.Reset(new FindInFilesThread(d->AppHnd));
+			if (!d->Finder)
+				break;
+
+			IdeProject *p = RootProject();
+			if (!p)
+				break;
+			List<IdeProject> Projects;
+			Projects.Insert(p);
+			p->GetChildProjects(Projects);
+
+			GArray<ProjectNode*> Nodes;
+			for (p = Projects.First(); p; p = Projects.Next())
+				p->GetAllNodes(Nodes);
+
+			GAutoPtr<FindParams> Params(new FindParams);
+			Params->Type = FifSearchSolution;
+			Params->MatchWord = true;
+			Params->Text = Word;
+			for (unsigned i = 0; i < Nodes.Length(); i++)
+			{
+				Params->ProjectFiles.New() = Nodes[i]->GetFullPath();
+			}
+
+			d->Finder->Stop();
+			d->Finder->PostEvent(FindInFilesThread::M_START_SEARCH, (GMessage::Param) Params.Release());
 			break;
 		}
 		case IDM_PREV_LOCATION:
