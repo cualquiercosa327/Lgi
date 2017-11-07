@@ -25,6 +25,14 @@ Example valid mime trees:
 			text/html
 		application/octet-stream
 
+	multipart/mixed
+		multipart/alternative
+			text/plain
+			multipart/related
+				text/html
+				image/jpeg
+				image/png
+		application/octet-stream
 
 	multipart/related
 		text/html
@@ -172,38 +180,8 @@ public:
 					Attachments[i]->AttachTo(Mixed);
 			}
 		}
-
-		if (MsgHtml && MsgText)
-		{
-			// We need an alternative
-			if (!Alternative)
-			{
-				Alternative = new TAttachment(Store);
-				if (!Alternative)
-					return false;
-				Alternative->SetStr(FIELD_MIME_TYPE, sMultipartAlternative);
-			}
-			/*
-			if (Alternative != Root)
-			{
-				if (Root && Root->IsMultipart())
-					Alternative->AttachTo(Root);
-				else
-					Root = Alternative;
-			}
-			*/
-			
-			MsgHtml->AttachTo(Alternative);
-			MsgText->AttachTo(Alternative);
-		}
-		else if (MsgText)
-		{
-			if (Root && Root->IsMultipart())
-				MsgText->AttachTo(Root);
-			else
-				Root = MsgText;
-		}
 		
+		TAttachment *Html = NULL;
 		if (MsgHtml)
 		{
 			if (MsgHtmlRelated.Length() > 0)
@@ -217,34 +195,55 @@ public:
 					Related->SetStr(FIELD_MIME_TYPE, sMultipartRelated);
 				}
 
-				if (Alternative)
-					// MsgHtml is already attach to the alternative seg
-					Alternative->AttachTo(Related);
-				else
-					MsgHtml->AttachTo(Related);
-					
-				if (Root && Root->IsMultipart())
-					Related->AttachTo(Root);
-				else
-					Root = Related;
-				
-				
+				MsgHtml->AttachTo(Related);
 				for (unsigned i=0; i<MsgHtmlRelated.Length(); i++)
 					MsgHtmlRelated[i]->AttachTo(Related);
+				
+				Html = Related;
 			}
 			else
 			{
-				if (Alternative)
-					Root = Alternative; // MsgHtml is already attach to the alternative seg
-				else if (Root && Root->IsMultipart())
-					MsgHtml->AttachTo(Root);
-				else
-					Root = MsgHtml;					
+				Html = MsgHtml;
 			}
+		}		
+
+		if (Html && MsgText)
+		{
+			// We need an alternative
+			if (!Alternative)
+			{
+				Alternative = new TAttachment(Store);
+				if (!Alternative)
+					return false;
+				Alternative->SetStr(FIELD_MIME_TYPE, sMultipartAlternative);
+			}
+			
+			Html->AttachTo(Alternative);
+			MsgText->AttachTo(Alternative);
+			if (Root && Root->IsMultipart())
+				Alternative->AttachTo(Root);
+			else
+				Root = Alternative;
+		}
+		else if (MsgText)
+		{
+			if (Root && Root->IsMultipart())
+				MsgText->AttachTo(Root);
+			else
+				Root = MsgText;
+		}
+		else if (Html)
+		{
+			if (Root && Root->IsMultipart())
+				Html->AttachTo(Root);
+			else
+				Root = Html;
 		}
 		
 		if (Root)
 			Root->AttachTo(Mail);
+		else
+			return false;
 		
 		// What to do with the Unknown segments?
 		for (unsigned i=0; i<Unknown.Length(); i++)
@@ -256,6 +255,98 @@ public:
 		
 		return true;
 	}	
+
+	#ifdef _DEBUG
+	bool UnitTests(TStore *Store, TMail *Mail)
+	{
+		const char *Tests[] = {
+			"text/plain",
+			
+			"text/html",
+			
+			"multipart/alternative\n"
+			"	text/plain\n"
+			"	text/html\n",
+			
+			"multipart/mixed\n"
+			"	text/plain\n"
+			"	application/pdf\n"
+			"	application/octet-stream\n",
+			
+			"multipart/mixed\n"
+			"	multipart/alternative\n"
+			"		text/plain\n"
+			"		text/html\n"
+			"	application/octet-stream\n",
+			
+			"multipart/mixed\n"
+			"	multipart/alternative\n"
+			"		text/plain\n"
+			"		multipart/related\n"
+			"			text/html\n"
+			"			image/jpeg\n"
+			"			image/png\n"
+			"	application/octet-stream\n",
+			
+			"multipart/related\n"
+			"	text/html\n"
+			"	image/jpeg\n"
+			"	image/png\n"
+		};
+		
+		for (unsigned int i=0; i<CountOf(Tests); i++)
+		{
+			TAttachment *Root = NULL;
+
+			Store3MimeTree<TStore, TMail, TAttachment> t(Mail, Root);
+			
+			GString Src = Tests[i];
+			GString::Array Lines = Src.SplitDelimit(" \t\r\n");
+			printf("Test %i\n", i);
+			for (unsigned i = 0; i < Lines.Length(); i++)
+			{
+				TAttachment *a = new TAttachment(Store);
+				if (!a)
+				{
+					LgiTrace("%s:%i - Alloc err\n", _FL);
+					return false;
+				}
+				a->SetStr(FIELD_MIME_TYPE, Lines[i]);
+
+				if (Lines[i].Find("multipart") >= 0)
+				{ DeleteObj(a); }// no-op
+				else if (Lines[i].Find("application/") >= 0)
+					t.Attachments.Add(a);
+				else if (Lines[i].Find("html") >= 0)
+					t.MsgHtml = a;
+				else if (Lines[i].Find("plain") >= 0)
+					t.MsgText = a;
+				else if (Lines[i].Find("image") >= 0)
+					t.MsgHtmlRelated.Add(a);
+				else
+					DeleteObj(a)
+			}			
+			
+			if (!t.Build())
+			{
+				LgiTrace("%s:%i - Failed to build tree for test %i:\n%s\n", _FL, i, Tests[i]);
+				return false;
+			}
+
+			for (unsigned n = 0; n < Lines.Length(); n++)
+			{
+				GArray<TAttachment*> Results;
+				if (!Root->FindSegs(Lines[n], Results))
+				{
+					LgiTrace("%s:%i - Failed to find '%s' in test %i:\n%s\n", _FL, Lines[n].Get(), i, Tests[i]);
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+	#endif
 };
 
 #endif // _STORE3_MIME_TREE_H_

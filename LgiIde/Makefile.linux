@@ -182,6 +182,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../include/common/GXmlTree.h \
 	../include/common/INet.h \
 	../include/common/INetTools.h \
+	../include/common/LCancel.h \
 	../include/common/LDateTime.h \
 	../include/common/Lgi.h \
 	../include/common/LgiClass.h \
@@ -2309,7 +2310,10 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 	../include/linux/Gtk/LgiOsDefs.h \
 	../include/common/GColour.h
 
-../include/common/Progress.h : ../include/common/LMutex.h
+../include/common/Progress.h : ../include/common/LMutex.h \
+	../include/common/LCancel.h
+
+../include/common/LCancel.h : 
 
 ../../../../../../usr/include/glib-2.0/gio/gmountoperation.h : /usr/include/glib-2.0/gio/giotypes.h
 
@@ -2602,6 +2606,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 ../../../../../../usr/include/glib-2.0/gio/gfileinfo.h : /usr/include/glib-2.0/gio/giotypes.h
 
 ../../../../../../usr/include/glib-2.0/gio/gdataoutputstream.h : /usr/include/glib-2.0/gio/gfilteroutputstream.h
+
+../include/common/LCancel.h : 
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkcelleditable.h : /usr/include/gtk-2.0/gtk/gtkwidget.h
 
@@ -3273,7 +3279,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../include/common/GEventTargetThread.h : ../include/common/LThread.h \
 	../include/common/LMutex.h \
-	../include/common/LThreadEvent.h
+	../include/common/LThreadEvent.h \
+	../include/common/LCancel.h
 
 ../../../../../../usr/lib/x86_64-linux-gnu/gstreamer-1.0/include/gst/gstconfig.h : 
 
@@ -3557,7 +3564,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkeditable.h : /usr/include/gtk-2.0/gtk/gtkwidget.h
 
-../include/common/Progress.h : ../include/common/LMutex.h
+../include/common/Progress.h : ../include/common/LMutex.h \
+	../include/common/LCancel.h
 
 ../../../../../../usr/include/glib-2.0/glib/gregex.h : /usr/include/glib-2.0/glib/gerror.h \
 	/usr/include/glib-2.0/glib/gstring.h
@@ -4559,7 +4567,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp /usr/include/libpng12/png.h \
 
 ../include/common/GEventTargetThread.h : ../include/common/LThread.h \
 	../include/common/LMutex.h \
-	../include/common/LThreadEvent.h
+	../include/common/LThreadEvent.h \
+	../include/common/LCancel.h
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkmessagedialog.h : /usr/include/gtk-2.0/gtk/gtkdialog.h \
 	/usr/include/gtk-2.0/gtk/gtkenums.h
