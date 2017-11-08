@@ -1543,7 +1543,10 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ./include/common/GPixelRops.h : 
 
-./include/common/Progress.h : ./include/common/LMutex.h
+./include/common/Progress.h : ./include/common/LMutex.h \
+	./include/common/LCancel.h
+
+./include/common/LCancel.h : 
 
 ../../../../../usr/include/glib-2.0/glib/gregex.h : /usr/include/glib-2.0/glib/gerror.h \
 	/usr/include/glib-2.0/glib/gstring.h
@@ -2180,7 +2183,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ./include/common/GEventTargetThread.h : ./include/common/LThread.h \
 	./include/common/LMutex.h \
-	./include/common/LThreadEvent.h
+	./include/common/LThreadEvent.h \
+	./include/common/LCancel.h
 
 ./include/common/INetTools.h : ./include/common/GContainers.h \
 	./include/common/LgiNetInc.h
