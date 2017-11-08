@@ -182,9 +182,6 @@
     <ClCompile Include="..\src\common\Coding\GLexCpp.cpp">
       <Filter>Source Files\Search</Filter>
     </ClCompile>
-    <ClCompile Include="Code\IdeDoc.cpp">
-      <Filter>Source Files\Docs</Filter>
-    </ClCompile>
     <ClCompile Include="Code\LgiUtils.cpp">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
@@ -202,6 +199,9 @@
     </ClCompile>
     <ClCompile Include="Code\GHistory.cpp">
       <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\IdeDoc.cpp">
+      <Filter>Source Files\Process</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

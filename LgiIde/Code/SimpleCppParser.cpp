@@ -38,8 +38,8 @@ Known bugs:
 
 #if 1
 // #define DEBUG_FILE		"\\ape-apcp.c"
-#define DEBUG_FILE		"lwip-1.3.2\\src\\api\\sockets.c"
-#define DEBUG_LINE		10
+#define DEBUG_FILE		"donna_c64\\smult_curve25519_donna_c64.c"
+#define DEBUG_LINE		204
 #endif
 
 const char *TypeToStr(DefnType t)
@@ -173,6 +173,9 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 					
 				}
 
+				char16 *Eol = Strchr(s, '\n');
+				if (!Eol) Eol = s + Strlen(s);
+
 				if (Debug && Line >= 808)
 				{
 					int asd=0;
@@ -192,7 +195,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 					ConditionalDepth++;
 					ConditionalFirst = IsFirst(ConditionalIndex, ConditionalDepth);
 					if (Debug)
-						LgiTrace("%s:%i - ConditionalDepth++=%i Line=%i\n", _FL, ConditionalDepth, Line+1);
+						LgiTrace("%s:%i - ConditionalDepth++=%i Line=%i\n%.*S\n", _FL, ConditionalDepth, Line+1, Eol - s + 1, s - 1);
 				}
 				else if
 				(
@@ -205,7 +208,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 					ConditionalIndex[ConditionalDepth-1]++;
 					ConditionalFirst = IsFirst(ConditionalIndex, ConditionalDepth);
 					if (Debug)
-						LgiTrace("%s:%i - ConditionalDepth=%i Idx++ Line=%i\n", _FL, ConditionalDepth, Line+1);
+						LgiTrace("%s:%i - ConditionalDepth=%i Idx++ Line=%i\n%.*S\n", _FL, ConditionalDepth, Line+1, Eol - s + 1, s - 1);
 				}
 				else if
 				(
@@ -217,7 +220,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 						ConditionalDepth--;
 					ConditionalFirst = IsFirst(ConditionalIndex, ConditionalDepth);
 					if (Debug)
-						LgiTrace("%s:%i - ConditionalDepth--=%i Line=%i\n", _FL, ConditionalDepth, Line+1);
+						LgiTrace("%s:%i - ConditionalDepth--=%i Line=%i\n%.*S\n", _FL, ConditionalDepth, Line+1, Eol - s + 1, s - 1);
 				}
 
 				int asd=0;
@@ -257,7 +260,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 				if (ConditionalFirst)
 					Depth++;
 				FnEmit = false;
-				#ifdef DEBUG_FILE
+				#if 0 // def DEBUG_FILE
 				if (Debug)
 					LgiTrace("%s:%i - FnEmit=%i Depth=%i @ line %i\n", _FL, FnEmit, Depth, Line+1);
 				#endif				
@@ -272,14 +275,14 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 					if (Depth > 0)
 					{
 						Depth--;
-						#ifdef DEBUG_FILE
+						#if 0 // def DEBUG_FILE
 						if (Debug)
 							LgiTrace("%s:%i - CaptureLevel=%i Depth=%i @ line %i\n", _FL, CaptureLevel, Depth, Line+1);
 						#endif
 					}
 					else
 					{
-						#ifdef DEBUG_FILE
+						#if 0 // def DEBUG_FILE
 						if (Debug)
 							LgiTrace("%s:%i - ERROR Depth already=%i @ line %i\n", _FL, Depth, Line+1);
 						#endif
@@ -314,7 +317,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 					// End the class def
 					InClass = false;
 					CaptureLevel = 0;
-					#ifdef DEBUG_FILE
+					#if 0 // def DEBUG_FILE
 					if (Debug)
 						LgiTrace("%s:%i - CaptureLevel=%i Depth=%i @ line %i\n", _FL, CaptureLevel, Depth, Line+1);
 					#endif
@@ -353,17 +356,39 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 			case '(':
 			{
 				s++;
-				if (Depth == CaptureLevel && !FnEmit && LastDecl)
+				if (Depth == CaptureLevel && !FnEmit && LastDecl && ConditionalFirst)
 				{
 					// function?
 					
 					// find start:
 					char16 *Start = LastDecl;
 					skipws(Start);
+					if (Strnstr(Start, L"__attribute__", s - Start))
+						break;
 					
-					// find end
-					char16 *End = StrchrW(Start, ')');
-					if (End)
+					// find end (matching closing bracket)
+					int RoundDepth = 1;
+					char16 *End = s;
+					while (*End)
+					{
+						if (*End == '/' &&
+							End[1] == '/')
+						{
+							End = Strchr(End, '\n');
+							if (!End) break;
+						}
+						if (*End == '(')
+						{
+							RoundDepth++;
+						}
+						else if (*End == ')')
+						{
+							if (--RoundDepth == 0)
+								break;
+						}
+						End++;
+					}
+					if (End && *End)
 					{
 						End++;
 
@@ -455,11 +480,18 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 								Defns.New().Set(Type, FileName, Buf, Line + 1);
 							DeleteArray(Buf);
 							
-							while (*End && *End != ';' && *End != ':')
+							while (*End && !strchr(";:{#", *End))
 								End++;
-							
+
+							while (s < End)
+							{
+								if (*s == '\n')
+									Line++;
+								s++;
+							}
+
 							FnEmit = *End != ';';
-							#ifdef DEBUG_FILE
+							#if 0 // def DEBUG_FILE
 							if (Debug)
 								LgiTrace("%s:%i - FnEmit=%i Depth=%i @ line %i\n", _FL, FnEmit, Depth, Line+1);
 							#endif
@@ -621,7 +653,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 							{
 								InClass = true;
 								CaptureLevel = 1;
-								#ifdef DEBUG_FILE
+								#if 0 // def DEBUG_FILE
 								if (Debug)
 									LgiTrace("%s:%i - CaptureLevel=%i Depth=%i @ line %i\n", _FL, CaptureLevel, Depth, Line+1);
 								#endif
