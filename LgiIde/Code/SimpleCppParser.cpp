@@ -36,9 +36,10 @@ Known bugs:
 #include "Lgi.h"
 #include "SimpleCppParser.h"
 
-#if 0
-#define DEBUG_FILE		"\\udp.c"
-#define DEBUG_LINE		359
+#if 1
+// #define DEBUG_FILE		"\\ape-apcp.c"
+#define DEBUG_FILE		"lwip-1.3.2\\src\\api\\sockets.c"
+#define DEBUG_LINE		10
 #endif
 
 const char *TypeToStr(DefnType t)
@@ -57,6 +58,17 @@ const char *TypeToStr(DefnType t)
 	}
 }
 
+bool IsFirst(GArray<int> &a, int depth)
+{
+	if (depth == 0)
+		return true;
+
+	for (int i=0; i<depth; i++)
+		if (a[i] > 1)
+			return false;
+
+	return true;
+}
 
 bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int LimitTo, bool Debug)
 {
@@ -73,6 +85,8 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 	static char16 StrExtern[]		= {'e', 'x', 't', 'e', 'r', 'n', 0};
 	static char16 StrTypedef[]		= {'t', 'y', 'p', 'e', 'd', 'e', 'f', 0};
 	static char16 StrC[]			= {'\"', 'C', '\"', 0};
+
+	char WhiteSpace[] = " \t\r\n";
 	
 	char16 *s = Cpp;
 	char16 *LastDecl = s;
@@ -87,6 +101,9 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 	bool IsEnum = 0, IsClass = false, IsStruct = false;
 	bool FnEmit = false;	// don't emit functions between a f(n) and the next '{'
 							// they are only parent class initializers
+	GArray<int> ConditionalIndex;
+	int ConditionalDepth = 0;
+	bool ConditionalFirst = true;
 
 	#ifdef DEBUG_FILE
 	Debug |= FileName && stristr(FileName, DEBUG_FILE) != NULL;
@@ -126,6 +143,12 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 				char16 *Hash = s;
 				
 				s++;
+				skipws(s)
+
+				char16 *End = s;
+				while (*End && IsAlpha(*End))
+					End++;
+
 				if
 				(
 					(
@@ -133,6 +156,8 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 						||
 						(LimitTo & DefnDefine) != 0
 					)
+					&&
+					(End - s) == 6
 					&&
 					StrncmpW(StrDefine, s, 6) == 0
 				)
@@ -147,6 +172,55 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 					*s = r;
 					
 				}
+
+				if (Debug && Line >= 808)
+				{
+					int asd=0;
+				}
+
+				bool IsIf = false, IsElse = false, IsElseIf = false;
+				if
+				(
+					((End - s) == 2 && !Strncmp(L"if", s, End - s))
+					||
+					((End - s) == 5 && !Strncmp(L"ifdef", s, End - s))
+					||
+					((End - s) == 6 && !Strncmp(L"ifndef", s, End - s))
+				)
+				{
+					ConditionalIndex[ConditionalDepth] = 1;
+					ConditionalDepth++;
+					ConditionalFirst = IsFirst(ConditionalIndex, ConditionalDepth);
+					if (Debug)
+						LgiTrace("%s:%i - ConditionalDepth++=%i Line=%i\n", _FL, ConditionalDepth, Line+1);
+				}
+				else if
+				(
+					((End - s) == 4 && !Strncmp(L"else", s, End - s))
+					||
+					((End - s) == 7 && !Strncmp(L"else if", s, 7))
+				)
+				{
+					LgiAssert(ConditionalDepth > 0);
+					ConditionalIndex[ConditionalDepth-1]++;
+					ConditionalFirst = IsFirst(ConditionalIndex, ConditionalDepth);
+					if (Debug)
+						LgiTrace("%s:%i - ConditionalDepth=%i Idx++ Line=%i\n", _FL, ConditionalDepth, Line+1);
+				}
+				else if
+				(
+					((End - s) == 5 && !Strncmp(L"endif", s, End - s))
+				)
+				{
+					LgiAssert(ConditionalDepth > 0);
+					if (ConditionalDepth > 0)
+						ConditionalDepth--;
+					ConditionalFirst = IsFirst(ConditionalIndex, ConditionalDepth);
+					if (Debug)
+						LgiTrace("%s:%i - ConditionalDepth--=%i Line=%i\n", _FL, ConditionalDepth, Line+1);
+				}
+
+				int asd=0;
 				
 				while (*s)
 				{
@@ -180,12 +254,41 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 			case '{':
 			{
 				s++;
-				Depth++;
+				if (ConditionalFirst)
+					Depth++;
 				FnEmit = false;
 				#ifdef DEBUG_FILE
 				if (Debug)
 					LgiTrace("%s:%i - FnEmit=%i Depth=%i @ line %i\n", _FL, FnEmit, Depth, Line+1);
 				#endif				
+				break;
+			}
+			case '}':
+			{
+				s++;
+
+				if (ConditionalFirst)
+				{
+					if (Depth > 0)
+					{
+						Depth--;
+						#ifdef DEBUG_FILE
+						if (Debug)
+							LgiTrace("%s:%i - CaptureLevel=%i Depth=%i @ line %i\n", _FL, CaptureLevel, Depth, Line+1);
+						#endif
+					}
+					else
+					{
+						#ifdef DEBUG_FILE
+						if (Debug)
+							LgiTrace("%s:%i - ERROR Depth already=%i @ line %i\n", _FL, Depth, Line+1);
+						#endif
+					}
+
+				}
+
+				LastDecl = s;
+				IsEnum = false;
 				break;
 			}
 			case ';':
@@ -217,29 +320,6 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 					#endif
 					DeleteArray(CurClassDecl);
 				}
-				break;
-			}
-			case '}':
-			{
-				s++;
-				if (Depth > 0)
-				{
-					Depth--;
-					#ifdef DEBUG_FILE
-					if (Debug)
-						LgiTrace("%s:%i - CaptureLevel=%i Depth=%i @ line %i\n", _FL, CaptureLevel, Depth, Line+1);
-					#endif
-				}
-				else
-				{
-					#ifdef DEBUG_FILE
-					if (Debug)
-						LgiTrace("%s:%i - ERROR Depth already=%i @ line %i\n", _FL, Depth, Line+1);
-					#endif
-				}
-
-				LastDecl = s;
-				IsEnum = false;
 				break;
 			}
 			case '/':
@@ -329,7 +409,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 									(
 										b > Str
 										&&
-										strchr(" \t\r\n", b[-1])																									
+										strchr(WhiteSpace, b[-1])																									
 									)
 									{
 										b--;
@@ -344,7 +424,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 										&&
 										b[-1] != '&'
 										&&
-										!strchr(" \t\r\n", b[-1])																									
+										!strchr(WhiteSpace, b[-1])																									
 									)
 									{
 										b--;
