@@ -36,10 +36,10 @@ Known bugs:
 #include "Lgi.h"
 #include "SimpleCppParser.h"
 
-#if 1
+#if 0
 // #define DEBUG_FILE		"\\ape-apcp.c"
-#define DEBUG_FILE		"donna_c64\\smult_curve25519_donna_c64.c"
-#define DEBUG_LINE		204
+#define DEBUG_FILE		"GDragAndDrop.h"
+#define DEBUG_LINE		159
 #endif
 
 const char *TypeToStr(DefnType t)
@@ -66,6 +66,24 @@ bool IsFirst(GArray<int> &a, int depth)
 	for (int i=0; i<depth; i++)
 		if (a[i] > 1)
 			return false;
+
+	return true;
+}
+
+bool SeekPtr(char16 *&s, char16 *end, int &Line)
+{
+	if (s > end)
+	{
+		LgiAssert(0);
+		return false;
+	}
+
+	while (s < end)
+	{
+		if (*s == '\n')
+			Line++;
+		s++;
+	}
 
 	return true;
 }
@@ -483,12 +501,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 							while (*End && !strchr(";:{#", *End))
 								End++;
 
-							while (s < End)
-							{
-								if (*s == '\n')
-									Line++;
-								s++;
-							}
+							SeekPtr(s, End, Line);
 
 							FnEmit = *End != ';';
 							#if 0 // def DEBUG_FILE
@@ -683,7 +696,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 												*Last = 0;
 												Defns.New().Set(DefnClass, FileName, Start, Line + 1);
 												*Last = r;
-												s = Last;
+												SeekPtr(s, next, Line);
 											}
 											break;
 										}

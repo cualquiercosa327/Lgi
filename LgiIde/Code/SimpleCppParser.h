@@ -82,7 +82,10 @@ public:
 	int Find(const char *Str)
 	{
 		int Slen = strlen(Str);
-		int Idx = Name.Find(Str);
+		char *Match = stristr(Name, Str);
+		if (!Match)
+			return 0;
+		int Idx = Match - Name.Get();
 		if (Idx < 0)
 			return 0;
 

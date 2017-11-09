@@ -260,8 +260,18 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 								int ScoreSum = 0;
 								for (unsigned n=0; n<p.Length(); n++)
 								{
-									int Score = Def.Find(p[n]);
-									if (!Score)
+									const char *Part = p[n];
+									bool Not = *Part == '-';
+									if (Not)
+										Part++;
+
+									int Score = Def.Find(Part);
+									if
+									(
+										(Not && Score != 0)
+										||
+										(!Not && Score == 0)
+									)
 									{
 										Match = false;
 										break;
