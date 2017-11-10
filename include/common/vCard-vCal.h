@@ -10,28 +10,56 @@
 class VIoPriv;
 class VIo
 {
-protected:
-	class TypesList : public GArray<GAutoString>
+public:
+	struct Parameter
+	{
+		GString Field;
+		GString Value;
+		
+		void Set(const char *f, const char *v)
+		{
+			Field = f;
+			Value = v;
+		}
+	};
+	
+	struct TimeZoneSection
+	{
+		int From, To;
+		LDateTime Start;
+		GString Rule;
+	};
+	
+	struct TimeZoneInfo
+	{
+		GString Name;
+		TimeZoneSection Normal;
+		TimeZoneSection Daylight;
+	};
+
+	class ParamArray : public GArray<Parameter>
 	{
 	public:
-		TypesList(const char *init = 0)
+		ParamArray(const char *Init = NULL)
 		{
-			if (init)
+			if (Init)
 			{
-				GToken t(init, ",");
-				for (uint32 i=0; i<t.Length(); i++)
-					New().Reset(NewStr(t[i]));
+				GString s = Init;
+				GString::Array a = s.SplitDelimit(",");
+				for (unsigned i=0; i<a.Length(); i++)
+					New().Set("type", a[i]);
 			}
 		}
-
-		bool Find(const char *s)
+	
+		const char *Find(const char *s)
 		{
-			for (uint32 i=0; i<Length(); i++)
+			for (unsigned i=0; i<Length(); i++)
 			{
-				if (_stricmp((*this)[i], s) == 0)
-					return true;
+				Parameter &p = (*this)[i];
+				if (p.Field.Equals(s))
+					return p.Value;
 			}
-			return false;
+			return NULL;
 		}
 
 		void Empty()
@@ -40,6 +68,7 @@ protected:
 		}
 	};
 
+protected:
 	VIoPriv *d;
 
 	bool ParseDate(LDateTime &out, char *in);
@@ -49,8 +78,8 @@ protected:
 	char *Unfold(char *In);
 	char *UnMultiLine(char *In);
 
-	bool ReadField(GStreamI &s, char **Name, TypesList *Type, char **Data);
-	void WriteField(GStreamI &s, const char *Name, TypesList *Type, char *Data);
+	bool ReadField(GStreamI &s, GString &Name, ParamArray *Type, GString &Data);
+	void WriteField(GStreamI &s, const char *Name, ParamArray *Type, char *Data);
 
 public:
 	VIo();
