@@ -159,10 +159,18 @@ public:
 	);
 	/// Set this object to UTC timezone, changing the other members as
 	/// needed
-	void ToUtc() { SetTimeZone(0, true); }
+	void ToUtc(bool AssumeLocal = false)
+	{
+		if (AssumeLocal) _Tz = SystemTimeZone();
+		SetTimeZone(0, true);
+	}
 	/// Changes the timezone to the local zone, changing other members
 	/// as needed.
-	void ToLocal() { SetTimeZone(SystemTimeZone(), true); }
+	void ToLocal(bool AssumeUtc = false)
+	{
+		if (AssumeUtc) _Tz = 0;
+		SetTimeZone(SystemTimeZone(), true);
+	}
 
 	/// Gets the current formatting of the date, the format only effects
 	/// the representation of the date when converted to/from a string.

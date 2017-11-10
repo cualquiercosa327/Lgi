@@ -185,19 +185,9 @@ int LDateTime::SystemTimeZone(bool ForceUpdate)
 		
 		#else
 		
-		#if 0 // buggy on ubuntu
 		timeb tbTime;
 		ftime(&tbTime);
 		CurTz = -tbTime.timezone;
-		#else
-		struct timeval tv;
-		struct timezone tz;
-		int r = gettimeofday(&tv, &tz);
-		if (r)
-			return NO_ZONE;
-		
-		CurTz = tz.tz_minuteswest;
-		#endif
 
 		#ifdef WIN32
 		TIME_ZONE_INFORMATION Tzi;

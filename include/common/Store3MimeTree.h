@@ -303,7 +303,7 @@ public:
 			GString Src = Tests[i];
 			GString::Array Lines = Src.SplitDelimit(" \t\r\n");
 			printf("Test %i\n", i);
-			for (unsigned i = 0; i < Lines.Length(); i++)
+			for (unsigned ln = 0; ln < Lines.Length(); ln++)
 			{
 				TAttachment *a = new TAttachment(Store);
 				if (!a)
@@ -311,17 +311,17 @@ public:
 					LgiTrace("%s:%i - Alloc err\n", _FL);
 					return false;
 				}
-				a->SetStr(FIELD_MIME_TYPE, Lines[i]);
+				a->SetStr(FIELD_MIME_TYPE, Lines[ln]);
 
-				if (Lines[i].Find("multipart") >= 0)
+				if (Lines[ln].Find("multipart") >= 0)
 				{ DeleteObj(a); }// no-op
-				else if (Lines[i].Find("application/") >= 0)
+				else if (Lines[ln].Find("application/") >= 0)
 					t.Attachments.Add(a);
-				else if (Lines[i].Find("html") >= 0)
+				else if (Lines[ln].Find("html") >= 0)
 					t.MsgHtml = a;
-				else if (Lines[i].Find("plain") >= 0)
+				else if (Lines[ln].Find("plain") >= 0)
 					t.MsgText = a;
-				else if (Lines[i].Find("image") >= 0)
+				else if (Lines[ln].Find("image") >= 0)
 					t.MsgHtmlRelated.Add(a);
 				else
 					DeleteObj(a)
