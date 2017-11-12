@@ -793,11 +793,24 @@ protected:
 	void CommandFinished();
 
 public:
+	struct StrRange
+	{
+		ssize_t Start, End;
+	
+		void Set(ssize_t s, ssize_t e)
+		{
+			Start = s;
+			End = e;
+		}
+
+		ssize_t Len() { return End - Start; }
+	};
+
 	// Typedefs
 	struct Untagged
 	{
-		GAutoString Cmd;
-		GAutoString Param;
+		GString Cmd;
+		GString Param;
 		int Id;
 	};
 	
@@ -869,6 +882,7 @@ public:
 	void SetOAuthParams(OAuthParams &p);
 	void SetParentWindow(GViewI *wnd);
 	void SetLoopState(bool *LoopState);
+	ssize_t ParseImapResponse(char *Buffer, ssize_t BufferLen, GArray<StrRange> &Ranges, int Names);
 
 	// Connection
 	bool Open(GSocketI *S, const char *RemoteHost, int Port, const char *User, const char *Password, GDom *SettingStore, int Flags = 0);
