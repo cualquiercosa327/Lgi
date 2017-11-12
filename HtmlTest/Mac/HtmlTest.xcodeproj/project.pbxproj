@@ -8,9 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		342D52A50F0CBA2F002A1C7C /* LgiMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 342D52A40F0CBA2F002A1C7C /* LgiMain.cpp */; };
+		347D1D241FB07CB200E7B04D /* Lgi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 347D1D221FB079BF00E7B04D /* Lgi.framework */; };
 		34F93C711AB6FDCB00B557EC /* TestSuite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34F93C701AB6FDCB00B557EC /* TestSuite.cpp */; };
-		34F93C9C1AB705CB00B557EC /* Lgi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34F93C7A1AB6FDF300B557EC /* Lgi.framework */; };
-		34F93C9D1AB705D000B557EC /* Lgi.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 34F93C7A1AB6FDF300B557EC /* Lgi.framework */; };
 		34F93CA31AB705FE00B557EC /* GLexCpp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34F93C9F1AB705FE00B557EC /* GLexCpp.cpp */; };
 		34F93CA41AB705FE00B557EC /* GScriptCompiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34F93CA01AB705FE00B557EC /* GScriptCompiler.cpp */; };
 		34F93CA51AB705FE00B557EC /* GScriptLibrary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34F93CA11AB705FE00B557EC /* GScriptLibrary.cpp */; };
@@ -32,7 +31,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		34F93C791AB6FDF300B557EC /* PBXContainerItemProxy */ = {
+		347D1D211FB079BF00E7B04D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 348335CE1AA190D1006BD4F9 /* LgiCarbon.xcodeproj */;
 			proxyType = 2;
@@ -48,7 +47,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				34F93C9D1AB705D000B557EC /* Lgi.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -58,25 +56,25 @@
 		0867D6ABFE840B52C02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		1870340FFE93FCAF11CA0CD7 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/main.nib; sourceTree = "<group>"; };
 		20286C33FDCF999611CA2CEA /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
-		32DBCF6D0370B57F00C91783 /* HtmlTest_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HtmlTest_Prefix.pch; sourceTree = "<group>"; };
-		342D52A40F0CBA2F002A1C7C /* LgiMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiMain.cpp; path = ../../../../../Lgi/trunk/src/common/Lgi/LgiMain.cpp; sourceTree = SOURCE_ROOT; };
-		348335CE1AA190D1006BD4F9 /* LgiCarbon.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LgiCarbon.xcodeproj; path = ../../../../../Lgi/trunk/src/mac/carbon/LgiCarbon.xcodeproj; sourceTree = "<group>"; };
+		342D52A40F0CBA2F002A1C7C /* LgiMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiMain.cpp; path = ../../src/common/Lgi/LgiMain.cpp; sourceTree = SOURCE_ROOT; };
+		347D1D231FB07AD500E7B04D /* HtmlTest_Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HtmlTest_Prefix.pch; sourceTree = "<group>"; };
+		348335CE1AA190D1006BD4F9 /* LgiCarbon.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LgiCarbon.xcodeproj; path = ../../src/mac/carbon/LgiCarbon.xcodeproj; sourceTree = "<group>"; };
 		34F93C701AB6FDCB00B557EC /* TestSuite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TestSuite.cpp; path = ../TestSuite.cpp; sourceTree = "<group>"; };
-		34F93C9F1AB705FE00B557EC /* GLexCpp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GLexCpp.cpp; path = ../../../../../Lgi/trunk/src/common/Coding/GLexCpp.cpp; sourceTree = "<group>"; };
-		34F93CA01AB705FE00B557EC /* GScriptCompiler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GScriptCompiler.cpp; path = ../../../../../Lgi/trunk/src/common/Coding/GScriptCompiler.cpp; sourceTree = "<group>"; };
-		34F93CA11AB705FE00B557EC /* GScriptLibrary.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GScriptLibrary.cpp; path = ../../../../../Lgi/trunk/src/common/Coding/GScriptLibrary.cpp; sourceTree = "<group>"; };
-		34F93CA21AB705FE00B557EC /* GScriptVM.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GScriptVM.cpp; path = ../../../../../Lgi/trunk/src/common/Coding/GScriptVM.cpp; sourceTree = "<group>"; };
-		34F93CA81AB7062700B557EC /* GHtml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GHtml.cpp; path = ../../../../../Lgi/trunk/src/common/Text/GHtml.cpp; sourceTree = "<group>"; };
-		34F93CA91AB7062700B557EC /* GHtmlCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GHtmlCommon.cpp; path = ../../../../../Lgi/trunk/src/common/Text/GHtmlCommon.cpp; sourceTree = "<group>"; };
-		34F93CAA1AB7062700B557EC /* GHtmlParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GHtmlParser.cpp; path = ../../../../../Lgi/trunk/src/common/Text/GHtmlParser.cpp; sourceTree = "<group>"; };
-		34F93CAE1AB7065500B557EC /* IHttp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IHttp.cpp; path = ../../../../../Lgi/trunk/src/common/INet/IHttp.cpp; sourceTree = "<group>"; };
-		34F93CB01AB7067300B557EC /* GdcTools.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GdcTools.cpp; path = ../../../../../Lgi/trunk/src/common/Gdc2/Tools/GdcTools.cpp; sourceTree = "<group>"; };
-		34F93CB21AB7068800B557EC /* GColourReduce.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GColourReduce.cpp; path = ../../../../../Lgi/trunk/src/common/Gdc2/Tools/GColourReduce.cpp; sourceTree = "<group>"; };
-		34F93CB41AB706A300B557EC /* OpenSSLSocket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OpenSSLSocket.cpp; path = ../../../../../Lgi/trunk/src/common/INet/OpenSSLSocket.cpp; sourceTree = "<group>"; };
+		34F93C9F1AB705FE00B557EC /* GLexCpp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GLexCpp.cpp; path = ../../src/common/Coding/GLexCpp.cpp; sourceTree = "<group>"; };
+		34F93CA01AB705FE00B557EC /* GScriptCompiler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GScriptCompiler.cpp; path = ../../src/common/Coding/GScriptCompiler.cpp; sourceTree = "<group>"; };
+		34F93CA11AB705FE00B557EC /* GScriptLibrary.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GScriptLibrary.cpp; path = ../../src/common/Coding/GScriptLibrary.cpp; sourceTree = "<group>"; };
+		34F93CA21AB705FE00B557EC /* GScriptVM.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GScriptVM.cpp; path = ../../src/common/Coding/GScriptVM.cpp; sourceTree = "<group>"; };
+		34F93CA81AB7062700B557EC /* GHtml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GHtml.cpp; path = ../../src/common/Text/GHtml.cpp; sourceTree = "<group>"; };
+		34F93CA91AB7062700B557EC /* GHtmlCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GHtmlCommon.cpp; path = ../../src/common/Text/GHtmlCommon.cpp; sourceTree = "<group>"; };
+		34F93CAA1AB7062700B557EC /* GHtmlParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GHtmlParser.cpp; path = ../../src/common/Text/GHtmlParser.cpp; sourceTree = "<group>"; };
+		34F93CAE1AB7065500B557EC /* IHttp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IHttp.cpp; path = ../../src/common/INet/IHttp.cpp; sourceTree = "<group>"; };
+		34F93CB01AB7067300B557EC /* GdcTools.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GdcTools.cpp; path = ../../src/common/Gdc2/Tools/GdcTools.cpp; sourceTree = "<group>"; };
+		34F93CB21AB7068800B557EC /* GColourReduce.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GColourReduce.cpp; path = ../../src/common/Gdc2/Tools/GColourReduce.cpp; sourceTree = "<group>"; };
+		34F93CB41AB706A300B557EC /* OpenSSLSocket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OpenSSLSocket.cpp; path = ../../src/common/INet/OpenSSLSocket.cpp; sourceTree = "<group>"; };
 		34F93CB61AB706CA00B557EC /* HtmlTestSuite.lr8 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = HtmlTestSuite.lr8; path = ../HtmlTestSuite.lr8; sourceTree = "<group>"; };
-		34F93CB81AB7070F00B557EC /* Png.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Png.cpp; path = ../../../../../Lgi/trunk/src/common/Gdc2/Filters/Png.cpp; sourceTree = "<group>"; };
-		34F93CDD1AB707E000B557EC /* ImageComparison.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ImageComparison.cpp; path = ../../../../../Lgi/trunk/src/common/Images/Compare/ImageComparison.cpp; sourceTree = "<group>"; };
-		34F93CDF1AB7081300B557EC /* GZoomView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GZoomView.cpp; path = ../../../../../Lgi/trunk/src/common/Widgets/GZoomView.cpp; sourceTree = "<group>"; };
+		34F93CB81AB7070F00B557EC /* Png.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Png.cpp; path = ../../src/common/Gdc2/Filters/Png.cpp; sourceTree = "<group>"; };
+		34F93CDD1AB707E000B557EC /* ImageComparison.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ImageComparison.cpp; path = ../../src/common/Images/Compare/ImageComparison.cpp; sourceTree = "<group>"; };
+		34F93CDF1AB7081300B557EC /* GZoomView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GZoomView.cpp; path = ../../src/common/Widgets/GZoomView.cpp; sourceTree = "<group>"; };
 		4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
 		4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
 		8D0C4E960486CD37000505A6 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -89,7 +87,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */,
-				34F93C9C1AB705CB00B557EC /* Lgi.framework in Frameworks */,
+				347D1D241FB07CB200E7B04D /* Lgi.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -120,7 +118,7 @@
 			children = (
 				34F93CDD1AB707E000B557EC /* ImageComparison.cpp */,
 				34F93C701AB6FDCB00B557EC /* TestSuite.cpp */,
-				32DBCF6D0370B57F00C91783 /* HtmlTest_Prefix.pch */,
+				347D1D231FB07AD500E7B04D /* HtmlTest_Prefix.pch */,
 				34F93CA71AB7061200B557EC /* Html */,
 				342D52A30F0CBA07002A1C7C /* Lgi */,
 				34F93C9E1AB705E100B557EC /* Scripting */,
@@ -164,10 +162,10 @@
 			name = Lgi;
 			sourceTree = "<group>";
 		};
-		34F93C761AB6FDF300B557EC /* Products */ = {
+		347D1D1E1FB079BF00E7B04D /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				34F93C7A1AB6FDF300B557EC /* Lgi.framework */,
+				347D1D221FB079BF00E7B04D /* Lgi.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -234,7 +232,7 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = 34F93C761AB6FDF300B557EC /* Products */;
+					ProductGroup = 347D1D1E1FB079BF00E7B04D /* Products */;
 					ProjectRef = 348335CE1AA190D1006BD4F9 /* LgiCarbon.xcodeproj */;
 				},
 			);
@@ -246,11 +244,11 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		34F93C7A1AB6FDF300B557EC /* Lgi.framework */ = {
+		347D1D221FB079BF00E7B04D /* Lgi.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
 			path = Lgi.framework;
-			remoteRef = 34F93C791AB6FDF300B557EC /* PBXContainerItemProxy */;
+			remoteRef = 347D1D211FB079BF00E7B04D /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -334,6 +332,7 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				PRODUCT_BUNDLE_IDENTIFIER = com.memecode.i.Hex;
 				PRODUCT_NAME = HtmlTest;
+				USER_HEADER_SEARCH_PATHS = "../../include/common ../../include/mac/carbon";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -356,6 +355,7 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				PRODUCT_BUNDLE_IDENTIFIER = com.memecode.i.Hex;
 				PRODUCT_NAME = HtmlTest;
+				USER_HEADER_SEARCH_PATHS = "../../include/common ../../include/mac/carbon";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

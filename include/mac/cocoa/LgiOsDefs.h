@@ -95,6 +95,7 @@ typedef int							OsProcessId;
 
 // Threads
 #define LgiGetCurrentThread()		pthread_self()
+#define GetCurrentThreadId
 
 // Sockets
 #define ValidSocket(s)				((s)>=0)

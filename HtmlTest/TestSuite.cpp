@@ -504,7 +504,7 @@ public:
 					
 					Prog.SetDescription("Saving renders...");
 					Prog.SetLimits(0, Files.Length());
-					for (int i=0; i<Files.Length() && !Prog.Cancel(); i++)
+					for (int i=0; i<Files.Length() && !Prog.IsCancelled(); i++)
 					{
 						char *File = Files[i];
 						GAutoString Content(ReadTextFile(File));

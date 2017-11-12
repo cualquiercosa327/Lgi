@@ -1,8 +1,8 @@
 #include "Lgi.h"
 #include "LgiOsDefs.h"
-#include "GMutex.h"
+#include "LMutex.h"
 #include "GStringClass.h"
-#include "GThread.h"
+#include "LThread.h"
 #include <errno.h>
 
 #include <pthread.h>

@@ -22,7 +22,6 @@
 		34F3E97D148730F7009D9AC5 /* GAbout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34F3E97C148730F7009D9AC5 /* GAbout.cpp */; };
 		34F3EA4014873111009D9AC5 /* GDocApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34F3EA3F14873111009D9AC5 /* GDocApp.cpp */; };
 		34F3EA5814873137009D9AC5 /* lgires.lr8 in Resources */ = {isa = PBXBuildFile; fileRef = 34F3EA5714873137009D9AC5 /* lgires.lr8 */; };
-		34F3EA5E14873146009D9AC5 /* _about.gif in Resources */ = {isa = PBXBuildFile; fileRef = 34F3EA5914873146009D9AC5 /* _about.gif */; };
 		34F3EA5F14873146009D9AC5 /* _DialogIcons.gif in Resources */ = {isa = PBXBuildFile; fileRef = 34F3EA5A14873146009D9AC5 /* _DialogIcons.gif */; };
 		34F3EA6014873146009D9AC5 /* _Icons.gif in Resources */ = {isa = PBXBuildFile; fileRef = 34F3EA5B14873146009D9AC5 /* _Icons.gif */; };
 		34F3EA6114873146009D9AC5 /* _MenuIcons.gif in Resources */ = {isa = PBXBuildFile; fileRef = 34F3EA5C14873146009D9AC5 /* _MenuIcons.gif */; };
@@ -80,15 +79,14 @@
 		34F3E971148730DA009D9AC5 /* ShowLanguages.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ShowLanguages.cpp; path = Code/ShowLanguages.cpp; sourceTree = "<group>"; };
 		34F3E97C148730F7009D9AC5 /* GAbout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GAbout.cpp; path = ../src/common/Lgi/GAbout.cpp; sourceTree = SOURCE_ROOT; };
 		34F3EA3F14873111009D9AC5 /* GDocApp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GDocApp.cpp; path = ../src/common/Lgi/GDocApp.cpp; sourceTree = SOURCE_ROOT; };
-		34F3EA5714873137009D9AC5 /* lgires.lr8 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = lgires.lr8; path = Code/lgires.lr8; sourceTree = "<group>"; };
-		34F3EA5914873146009D9AC5 /* _about.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = _about.gif; path = Code/_about.gif; sourceTree = "<group>"; };
+		34F3EA5714873137009D9AC5 /* lgires.lr8 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = lgires.lr8; path = Resources/lgires.lr8; sourceTree = "<group>"; };
 		34F3EA5A14873146009D9AC5 /* _DialogIcons.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = _DialogIcons.gif; path = Code/_DialogIcons.gif; sourceTree = "<group>"; };
 		34F3EA5B14873146009D9AC5 /* _Icons.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = _Icons.gif; path = Code/_Icons.gif; sourceTree = "<group>"; };
 		34F3EA5C14873146009D9AC5 /* _MenuIcons.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = _MenuIcons.gif; path = Code/_MenuIcons.gif; sourceTree = "<group>"; };
 		34F3EA5D14873146009D9AC5 /* _StringIcons.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = _StringIcons.gif; path = Code/_StringIcons.gif; sourceTree = "<group>"; };
 		34F3EA631487315E009D9AC5 /* Gif.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Gif.cpp; path = ../src/common/Gdc2/Filters/Gif.cpp; sourceTree = SOURCE_ROOT; };
 		34F3EA641487315E009D9AC5 /* Lzw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Lzw.cpp; path = ../src/common/Gdc2/Filters/Lzw.cpp; sourceTree = SOURCE_ROOT; };
-		34F3EA76148732FA009D9AC5 /* mac-icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "mac-icon.icns"; path = "Code/mac-icon.icns"; sourceTree = "<group>"; };
+		34F3EA76148732FA009D9AC5 /* mac-icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "mac-icon.icns"; path = "Resources/mac-icon.icns"; sourceTree = "<group>"; };
 		4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
 		4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
 		8D0C4E960486CD37000505A6 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -153,7 +151,6 @@
 			isa = PBXGroup;
 			children = (
 				34F3EA76148732FA009D9AC5 /* mac-icon.icns */,
-				34F3EA5914873146009D9AC5 /* _about.gif */,
 				34F3EA5A14873146009D9AC5 /* _DialogIcons.gif */,
 				34F3EA5B14873146009D9AC5 /* _Icons.gif */,
 				34F3EA5C14873146009D9AC5 /* _MenuIcons.gif */,
@@ -270,7 +267,6 @@
 				8D0C4E8D0486CD37000505A6 /* InfoPlist.strings in Resources */,
 				8D0C4E8E0486CD37000505A6 /* main.nib in Resources */,
 				34F3EA5814873137009D9AC5 /* lgires.lr8 in Resources */,
-				34F3EA5E14873146009D9AC5 /* _about.gif in Resources */,
 				34F3EA5F14873146009D9AC5 /* _DialogIcons.gif in Resources */,
 				34F3EA6014873146009D9AC5 /* _Icons.gif in Resources */,
 				34F3EA6114873146009D9AC5 /* _MenuIcons.gif in Resources */,
@@ -393,7 +389,7 @@
 					"-fvisibility=default",
 				);
 				SDKROOT = macosx;
-				USER_HEADER_SEARCH_PATHS = "../include/mac/carbon ../include/common";
+				USER_HEADER_SEARCH_PATHS = "../include/mac/carbon ../include/common Resources";
 				VALID_ARCHS = i386;
 			};
 			name = Development;
@@ -408,7 +404,7 @@
 					"-fvisibility=default",
 				);
 				SDKROOT = macosx;
-				USER_HEADER_SEARCH_PATHS = "../include/mac/carbon ../include/common";
+				USER_HEADER_SEARCH_PATHS = "../include/mac/carbon ../include/common Resources";
 				VALID_ARCHS = i386;
 			};
 			name = Deployment;

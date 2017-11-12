@@ -50,6 +50,7 @@
 #ifndef md5_INCLUDED
 #  define md5_INCLUDED
 
+#include <stdbool.h>
 #include "LgiInc.h"
 #include "LgiDefs.h"
 
