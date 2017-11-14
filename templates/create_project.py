@@ -2,6 +2,7 @@
 #!/usr/bin/env python
 import os
 import sys
+import pprint
 
 def process(s, vars):
 	i = 0
@@ -51,7 +52,7 @@ def process_folder(out_folder, in_folder, vars):
 			out_path = os.path.abspath(os.path.join(out_folder, process(f, vars)))
 			# print("out_path:", out_path)
 
-			in_data = open(in_path, "r").read()
+			in_data = open(in_path, "r", encoding='latin-1').read()
 			out_data = process(in_data, vars)
 			open(out_path, "w").write(out_data)
 			print("Wrote:", out_path)
