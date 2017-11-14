@@ -161,41 +161,67 @@ int LDateTime::SystemTimeZone(bool ForceUpdate)
 
 		#ifdef MAC
 
-		#ifdef COCOA
-		LgiAssert(!"Fixme");
+			#ifdef COCOA
+
+				LgiAssert(!"Fixme");
+
+			#else
+			
+				CFTimeZoneRef tz = CFTimeZoneCopySystem();
+				CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
+				Boolean dst = CFTimeZoneIsDaylightSavingTime(tz, now);
+				if (dst)
+				{
+					CFAbsoluteTime next = CFTimeZoneGetNextDaylightSavingTimeTransition(tz, now);
+					CurTz = CFTimeZoneGetSecondsFromGMT(tz, next + 100) / 60;
+				}
+				else
+				{
+					CurTz = CFTimeZoneGetSecondsFromGMT(tz, now) / 60;
+				}
+
+				CurTzOff = CFTimeZoneGetDaylightSavingTimeOffset(tz, now) / 60;
+				CFRelease(tz);
+			
+			#endif
+		
+		#elif defined(WIN32)
+		
+			timeb tbTime;
+			ftime(&tbTime);
+			CurTz = -tbTime.timezone;
+
+			TIME_ZONE_INFORMATION Tzi;
+			if (GetTimeZoneInformation(&Tzi) == TIME_ZONE_ID_DAYLIGHT)
+				CurTzOff = -Tzi.DaylightBias;
+		
+		#elif defined(LINUX)
+
+			int six_months = (365 * 24 * 60 * 60) / 2;
+			time_t now = 0, then = 0;
+			time (&now);
+			then = now - six_months;
+			
+			tm now_tz, then_tz;
+			tm *t = localtime_r(&now, &now_tz);
+			if (t)
+			{
+				localtime_r(&then, &then_tz);
+				
+				CurTz = now_tz.tm_gmtoff / 60;
+				if (now_tz.tm_isdst)
+				{
+					CurTzOff = (now_tz.tm_gmtoff - then_tz.tm_gmtoff) / 60;
+					CurTz = then_tz.tm_gmtoff / 60;
+				}
+				else
+					CurTzOff = (then_tz.tm_gmtoff - now_tz.tm_gmtoff) / 60;
+			}
+			else return NO_ZONE;
+		
 		#else
 		
-		CFTimeZoneRef tz = CFTimeZoneCopySystem();
-		CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
-		Boolean dst = CFTimeZoneIsDaylightSavingTime(tz, now);
-		if (dst)
-		{
-			CFAbsoluteTime next = CFTimeZoneGetNextDaylightSavingTimeTransition(tz, now);
-			CurTz = CFTimeZoneGetSecondsFromGMT(tz, next + 100) / 60;
-		}
-		else
-		{
-			CurTz = CFTimeZoneGetSecondsFromGMT(tz, now) / 60;
-		}
-
-		CurTzOff = CFTimeZoneGetDaylightSavingTimeOffset(tz, now) / 60;
-		CFRelease(tz);
-		
-		#endif
-		
-		#else
-		
-		timeb tbTime;
-		ftime(&tbTime);
-		CurTz = -tbTime.timezone;
-
-		#ifdef WIN32
-		TIME_ZONE_INFORMATION Tzi;
-		if (GetTimeZoneInformation(&Tzi) == TIME_ZONE_ID_DAYLIGHT)
-		{
-			CurTzOff = -Tzi.DaylightBias;
-		}
-		#endif
+			#error "Impl me."
 		
 		#endif
 	}
