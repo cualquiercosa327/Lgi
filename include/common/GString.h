@@ -287,7 +287,7 @@ LgiFunc char16 *StrcpyW(char16 *a, const char16 *b);
 LgiFunc char16 *StrncpyW(char16 *a, const char16 *b, ssize_t n);
 
 /// Count the number of char16's in a wide string
-LgiFunc int StrlenW(const char16 *a);
+LgiFunc ssize_t StrlenW(const char16 *a);
 /// Append a wide string to another
 LgiFunc void StrcatW(char16 *a, const char16 *b);
 /// Convert a wide string to an integer

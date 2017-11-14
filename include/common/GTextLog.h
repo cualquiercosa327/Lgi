@@ -51,7 +51,7 @@ public:
 
 	virtual void Add(char16 *w, ssize_t chars = -1)
 	{
-		int Len = chars >= 0 ? chars : StrlenW(w);
+		ssize_t Len = chars >= 0 ? chars : StrlenW(w);
 		
 		if (RemoveReturns)
 		{
