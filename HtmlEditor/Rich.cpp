@@ -171,9 +171,10 @@ public:
 			case M_INSTALL:
 			{
 				GAutoPtr<GString> Component((GString*)m->A());
-				const char *Base = "http://memecode.com/components/lookup.php?app=Scribe&wordsize=%i&component=%s&os=win64&version=2.2.0";
+				const char *Base = "http://memecode.com/components/lookup.php?app=Scribe&wordsize=%i&component=%s&os=win64&version=2.2.0&tags=vc12";
 				GString s;
-				s.Printf(Base, sizeof(int)*8, Component->Get());
+				s.Printf(Base, sizeof(NativeInt)*8, Component->Get());
+				LgiTrace("Url='%s'\n", s.Get());
 
 				GMemStream o(1024);
 				GString err;
