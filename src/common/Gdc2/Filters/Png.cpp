@@ -681,12 +681,16 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 	if (!Lib->IsLoaded() && !Lib->Load(sLibrary))
 	{
 		if (Props)
-			Props->SetValue(LGI_FILTER_ERROR, v = "Can't load libpng");
+		{
+			GString s;
+			s.Printf("libpng is missing (%s.%s)", sLibrary, LGI_LIBRARY_EXT);
+			Props->SetValue(LGI_FILTER_ERROR, v = s);
+		}
 
 		static bool Warn = true;
 		if (Warn)
 		{
-		    LgiTrace("%s:%i - Unabled to load libpng.\n", _FL);
+		    LgiTrace("%s:%i - Unable to load libpng (%s.%s).\n", _FL, sLibrary, LGI_LIBRARY_EXT);
 		    Warn = false;
 		}
 		

@@ -517,12 +517,16 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 	if (!d->IsLoaded() && !d->Load(sLibrary))
 	{
 		if (Props)
-			Props->SetValue(LGI_FILTER_ERROR, v = "libjpeg library isn't installed or wasn't usable.");
+		{
+			GString s;
+			s.Printf("libjpeg is missing (%s.%s)", sLibrary, LGI_LIBRARY_EXT);
+			Props->SetValue(LGI_FILTER_ERROR, v = s);
+		}
 		
 		static bool Warn = true;
 		if (Warn)
 		{
-		    LgiTrace("%s:%i - Unabled to load libjpeg.\n", _FL);
+		    LgiTrace("%s:%i - Unable to load libjpg (%s.%s).\n", _FL, sLibrary, LGI_LIBRARY_EXT);
 		    Warn = false;
 		}
 		
