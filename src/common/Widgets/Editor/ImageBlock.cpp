@@ -201,7 +201,7 @@ public:
 				#endif
 				if (Src && Dst)
 				{
-					ResampleDC(Dst, Src, NULL, this);
+					ResampleDC(Dst, Src);
 					if (Sink->PostEvent(M_IMAGE_RESAMPLE))
 					{
 						#if LOADER_THREAD_LOGGING
@@ -1036,7 +1036,7 @@ void GRichTextPriv::ImageBlock::UpdateDisplay(int yy)
 				Dst->Set(x, y);
 			}
 		}
-					
+
 		LayoutDirty = true;
 		this->d->InvalidateDoc(NULL);
 	}

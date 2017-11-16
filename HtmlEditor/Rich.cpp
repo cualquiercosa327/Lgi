@@ -183,53 +183,59 @@ public:
 				GMemStream o(1024);
 				GString err;
 				int Installed = 0;
-				if (LgiGetUri(&o, &err, s))
+				if (!LgiGetUri(&o, &err, s))
 				{
-					GXmlTree t;
-					GXmlTag r;
-					o.SetPos(0);
-					if (t.Read(&r, &o))
-					{
-						if (r.IsTag("components"))
-						{
-							for (GXmlTag *c = r.Children.First(); c; c = r.Children.Next())
-							{
-								if (c->IsTag("file"))
-								{
-									int Bytes = c->GetAsInt("size");
-									const char *Link = c->GetContent();
-									GMemStream File(1024);
-									if (LgiGetUri(&File, &err, Link))
-									{
-										char p[MAX_PATH];
-										LgiGetExeFile(p, sizeof(p));
-										LgiTrimDir(p);
-										LgiMakePath(p, sizeof(p), p, LgiGetLeaf(Link));
-
-										GFile f;
-										if (f.Open(p, O_WRITE))
-										{
-											f.SetSize(0);
-											if (f.Write(File.GetBasePtr(), File.GetSize()) == File.GetSize())
-											{
-												GAutoPtr<GString> comp(new GString(*Component));
-												PostObject(AppHnd, M_INSTALL, comp);
-												Installed++;
-											}
-											else
-												LgiTrace("%s:%i - Couldn't write to '%p'.\n", _FL, p);
-										}
-										else LgiTrace("%s:%i - Can't open '%s' for writing.\n", _FL, p);
-									}
-									else LgiTrace("%s:%i - Link download failed.\n", _FL);
-								}
-							}
-						}
-						else LgiTrace("%s:%i - No components tag.\n", _FL);
-					}
-					else LgiTrace("%s:%i - Bad XML.\n", _FL);
+					LgiTrace("%s:%i - Get URI failed.\n", _FL);
+					break;
 				}
-				else LgiTrace("%s:%i - Get URI failed.\n", _FL);
+
+				GXmlTree t;
+				GXmlTag r;
+				o.SetPos(0);
+				if (!t.Read(&r, &o))
+				{
+					LgiTrace("%s:%i - Bad XML.\n", _FL);
+					break;
+				}
+
+				if (!r.IsTag("components"))
+				{
+					LgiTrace("%s:%i - No components tag.\n", _FL);
+					break;
+				}
+
+				for (GXmlTag *c = r.Children.First(); c; c = r.Children.Next())
+				{
+					if (c->IsTag("file"))
+					{
+						int Bytes = c->GetAsInt("size");
+						const char *Link = c->GetContent();
+						GMemStream File(1024);
+						if (LgiGetUri(&File, &err, Link))
+						{
+							char p[MAX_PATH];
+							LgiGetExeFile(p, sizeof(p));
+							LgiTrimDir(p);
+							LgiMakePath(p, sizeof(p), p, LgiGetLeaf(Link));
+
+							GFile f;
+							if (f.Open(p, O_WRITE))
+							{
+								f.SetSize(0);
+								if (f.Write(File.GetBasePtr(), File.GetSize()) == File.GetSize())
+								{
+									GAutoPtr<GString> comp(new GString(*Component));
+									PostObject(AppHnd, M_INSTALL, comp);
+									Installed++;
+								}
+								else
+									LgiTrace("%s:%i - Couldn't write to '%p'.\n", _FL, p);
+							}
+							else LgiTrace("%s:%i - Can't open '%s' for writing.\n", _FL, p);
+						}
+						else LgiTrace("%s:%i - Link download failed.\n", _FL);
+					}
+				}
 
 				if (Installed == 0)
 				{
