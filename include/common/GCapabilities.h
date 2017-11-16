@@ -6,7 +6,7 @@
 
 #include "GHashTable.h"
 
-#define DEBUG_CAPABILITIES		0
+#define DEBUG_CAPABILITIES		1
 
 class GCapabilityTarget;
 

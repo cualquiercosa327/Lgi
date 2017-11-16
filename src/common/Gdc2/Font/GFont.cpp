@@ -428,6 +428,10 @@ typedef double OsTextSize;
 class GFontPrivate
 {
 public:
+	#ifdef WINDOWS
+	static GLibrary Gdi32;
+	#endif
+
 	// Data
 	OsFont			hFont;
 	int				Height;
@@ -486,6 +490,10 @@ public:
 		#endif
 	}
 };
+
+#ifdef WINDOWS
+GLibrary GFontPrivate::Gdi32("Gdi32");
+#endif
 
 GFont::GFont(const char *face, int point)
 {
@@ -1145,9 +1153,8 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 			else
 			{
 				typedef DWORD (WINAPI *Proc_GetFontUnicodeRanges)(HDC, LPGLYPHSET);
-				GLibrary Gdi32("Gdi32");
 
-				Proc_GetFontUnicodeRanges GetFontUnicodeRanges = (Proc_GetFontUnicodeRanges)Gdi32.GetAddress("GetFontUnicodeRanges");
+				Proc_GetFontUnicodeRanges GetFontUnicodeRanges = (Proc_GetFontUnicodeRanges)d->Gdi32.GetAddress("GetFontUnicodeRanges");
 				if (GetFontUnicodeRanges)
 				{
 					DWORD BufSize = GetFontUnicodeRanges(hDC, 0);

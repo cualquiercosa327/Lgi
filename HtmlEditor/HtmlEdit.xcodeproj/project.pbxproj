@@ -324,6 +324,7 @@
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				PRODUCT_NAME = HtmlEdit;
+				USER_HEADER_SEARCH_PATHS = "../include/common ../include/mac/carbon /opt/local/include";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -340,6 +341,7 @@
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				PRODUCT_NAME = HtmlEdit;
+				USER_HEADER_SEARCH_PATHS = "../include/common ../include/mac/carbon /opt/local/include";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

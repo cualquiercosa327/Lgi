@@ -332,7 +332,7 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				PRODUCT_BUNDLE_IDENTIFIER = com.memecode.i.Hex;
 				PRODUCT_NAME = HtmlTest;
-				USER_HEADER_SEARCH_PATHS = "../../include/common ../../include/mac/carbon";
+				USER_HEADER_SEARCH_PATHS = "../../include/common ../../include/mac/carbon ../../../../../CodeLib/libpng";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -355,7 +355,7 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				PRODUCT_BUNDLE_IDENTIFIER = com.memecode.i.Hex;
 				PRODUCT_NAME = HtmlTest;
-				USER_HEADER_SEARCH_PATHS = "../../include/common ../../include/mac/carbon";
+				USER_HEADER_SEARCH_PATHS = "../../include/common ../../include/mac/carbon ../../../../../CodeLib/libpng";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
