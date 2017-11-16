@@ -2410,6 +2410,13 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 			}
 			return 0;
 		}
+		case M_COMPONENT_INSTALLED:
+		{
+			GAutoPtr<GString> Comp((GString*)Msg->A());
+			if (Comp)
+				d->OnComponentInstall(*Comp);
+			break;
+		}
 
 		/* This is broken... the IME returns garbage in the buffer. :(
 		case WM_IME_COMPOSITION:

@@ -714,6 +714,7 @@ public:
 			virtual bool IsValid() { return false; }
 			virtual bool IsBusy(bool Stop = false) { return false; }
 			virtual Block *Clone() = 0;
+			virtual void OnComponentInstall(GString Name) {}
 
 			// Copy some or all of the text out
 			virtual ssize_t CopyAt(ssize_t Offset, ssize_t Chars, GArray<uint32> *Text) { return false; }
@@ -1109,6 +1110,7 @@ public:
 		void DumpNodes(GTreeItem *Ti);
 		#endif
 		Block *Clone();
+		void OnComponentInstall(GString Name);
 
 		// Events
 		GMessage::Result OnEvent(GMessage *Msg);
@@ -1152,6 +1154,7 @@ public:
 	bool Merge(Transaction *Trans, Block *a, Block *b);
 	bool DeleteSelection(Transaction *t, char16 **Cut);
 	GRichTextEdit::RectType PosToButton(GMouse &m);
+	void OnComponentInstall(GString Name);
 
 	struct CreateContext
 	{

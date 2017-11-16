@@ -992,6 +992,15 @@ GRichTextPriv::Block *GRichTextPriv::ImageBlock::Clone()
 	return new ImageBlock(this);
 }
 
+void GRichTextPriv::ImageBlock::OnComponentInstall(GString Name)
+{
+	if (Source && !SourceImg)
+	{
+		// Retry the load?
+		Load(Source);
+	}
+}
+
 void GRichTextPriv::ImageBlock::UpdateDisplay(int yy)
 {
 	GRect s;

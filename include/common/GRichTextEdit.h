@@ -27,6 +27,7 @@ enum RichEditMsgs
 	M_IMAGE_ROTATE,
 	M_IMAGE_FLIP,
 	M_IMAGE_LOAD_STREAM,
+	M_COMPONENT_INSTALLED, // A = GString *ComponentName
 };
 
 extern char Delimiters[];

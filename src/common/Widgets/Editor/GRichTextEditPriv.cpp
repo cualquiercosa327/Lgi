@@ -2211,6 +2211,14 @@ GRichTextEdit::RectType GRichTextPriv::PosToButton(GMouse &m)
 	return GRichTextEdit::MaxArea;
 }
 
+void GRichTextPriv::OnComponentInstall(GString Name)
+{
+	for (unsigned i=0; i<Blocks.Length(); i++)
+	{
+		Blocks[i]->OnComponentInstall(Name);
+	}
+}
+
 #ifdef _DEBUG
 void GRichTextPriv::DumpNodes(GTree *Root)
 {

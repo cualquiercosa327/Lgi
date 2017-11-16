@@ -753,11 +753,17 @@ public:
 		/// The command ID.
 		/// \sa Should be M_USER or higher for custom events.
 		int Cmd,
-		/// The first 32-bits of data. Equivilent to wParam on Win32.
+		/// The first 32-bits of data. Equivalent to wParam on Win32.
 		GMessage::Param a = 0,
-		/// The second 32-bits of data. Equivilent to lParam on Win32.
+		/// The second 32-bits of data. Equivalent to lParam on Win32.
 		GMessage::Param b = 0
 	);
+
+	template<typename T>
+	bool PostEvent(int Cmd, T *Ptr)
+	{
+		return PostEvent(Cmd, (GMessage::Param)Ptr, 0);
+	}	
 
 	/// \brief Sets the utf-8 text associated with this view
 	///

@@ -173,10 +173,16 @@ public:
 				GAutoPtr<GString> Component((GString*)m->A());
 				const char *Base = "http://memecode.com/components/lookup.php?app=Scribe&wordsize=%i&component=%s&os=win64&version=2.2.0";
 				GString s;
-				s.Printf(Base, sizeof(int)*8, Component->Get());
+				s.Printf(Base, sizeof(NativeInt)*8, Component->Get());
+				#if _MSC_VER == _MSC_VER_VS2013
+				s += "&tags=vc12";
+				#elif _MSC_VER == _MSC_VER_VS2008
+				s += "&tags=vc9";
+				#endif
 
 				GMemStream o(1024);
 				GString err;
+				int Installed = 0;
 				if (LgiGetUri(&o, &err, s))
 				{
 					GXmlTree t;
@@ -195,6 +201,25 @@ public:
 									GMemStream File(1024);
 									if (LgiGetUri(&File, &err, Link))
 									{
+										char p[MAX_PATH];
+										LgiGetExeFile(p, sizeof(p));
+										LgiTrimDir(p);
+										LgiMakePath(p, sizeof(p), p, LgiGetLeaf(Link));
+
+										GFile f;
+										if (f.Open(p, O_WRITE))
+										{
+											f.SetSize(0);
+											if (f.Write(File.GetBasePtr(), File.GetSize()) == File.GetSize())
+											{
+												GAutoPtr<GString> comp(new GString(*Component));
+												PostObject(AppHnd, M_INSTALL, comp);
+												Installed++;
+											}
+											else
+												LgiTrace("%s:%i - Couldn't write to '%p'.\n", _FL, p);
+										}
+										else LgiTrace("%s:%i - Can't open '%s' for writing.\n", _FL, p);
 									}
 									else LgiTrace("%s:%i - Link download failed.\n", _FL);
 								}
@@ -205,6 +230,11 @@ public:
 					else LgiTrace("%s:%i - Bad XML.\n", _FL);
 				}
 				else LgiTrace("%s:%i - Get URI failed.\n", _FL);
+
+				if (Installed == 0)
+				{
+					LgiTrace("%s:%i - No installed components from URI:\n%s\n", _FL, s.Get());
+				}
 				break;
 			}
 		}
@@ -376,11 +406,19 @@ public:
 	void OnInstall(CapsHash *Caps, bool Status)
 	{
 		DeleteObj(Bar);
+		if (Edit && Caps && Status)
+		{
+			const char *k;
+			for (bool b = Caps->First(&k); b; b = Caps->Next(&k))
+				Edit->PostEvent(M_COMPONENT_INSTALLED, new GString(k));
+		}
+		PourAll();
 	}
 
 	void OnCloseInstaller()
 	{
 		DeleteObj(Bar);
+		PourAll();
 	}
 
 	int OnCommand(int Cmd, int Event, OsView Wnd)
@@ -500,6 +538,22 @@ public:
 			if (t)
 				Edit->Name(t);
 		}
+	}
+
+	GMessage::Result OnEvent(GMessage *m)
+	{
+		if (m->Msg() == M_INSTALL)
+		{
+			GAutoPtr<GString> c((GString*)m->A());
+			if (c)
+			{
+				GCapabilityTarget::CapsHash h;
+				h.Add(*c, true);
+				OnInstall(&h, true);
+			}
+		}
+
+		return GWindow::OnEvent(m);
 	}
 };
 
