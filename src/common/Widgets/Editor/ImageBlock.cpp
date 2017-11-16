@@ -4,7 +4,7 @@
 #include "GdcTools.h"
 #include "GToken.h"
 
-#define LOADER_THREAD_LOGGING		1
+#define LOADER_THREAD_LOGGING		0
 #define TIMEOUT_LOAD_PROGRESS		100 // ms
 
 int ImgScales[] = { 15, 25, 50, 75, 100 };
@@ -490,10 +490,28 @@ bool GRichTextPriv::ImageBlock::Load(const char *Src)
 	LgiAssert(ThreadHnd > 0);
 
 	if (Stream)
-		return PostThreadEvent(ThreadHnd, M_IMAGE_LOAD_STREAM, (GMessage::Param)Stream.Release(), (GMessage::Param) (FileName ? new GString(FileName) : NULL));
+	{
+		#if LOADER_THREAD_LOGGING
+		LgiTrace("%s:%i - Posting M_IMAGE_LOAD_STREAM\n", _FL);
+		#endif
+		if (PostThreadEvent(ThreadHnd, M_IMAGE_LOAD_STREAM, (GMessage::Param)Stream.Release(), (GMessage::Param) (FileName ? new GString(FileName) : NULL)))
+		{
+			UpdateThreadBusy(_FL, 1);
+			return true;
+		}
+	}
 	
 	if (FileName)
-		return PostThreadEvent(ThreadHnd, M_IMAGE_LOAD_FILE, (GMessage::Param)new GString(FileName));
+	{
+		#if LOADER_THREAD_LOGGING
+		LgiTrace("%s:%i - Posting M_IMAGE_LOAD_FILE\n", _FL);
+		#endif
+		if (PostThreadEvent(ThreadHnd, M_IMAGE_LOAD_FILE, (GMessage::Param)new GString(FileName)))
+		{
+			UpdateThreadBusy(_FL, 1);
+			return true;
+		}
+	}
 	
 	return false;
 }
@@ -1084,10 +1102,20 @@ void GRichTextPriv::ImageBlock::UpdateDisplayImg()
 
 void GRichTextPriv::ImageBlock::UpdateThreadBusy(const char *File, int Line, int Off)
 {
-	ThreadBusy += Off;
-	#if LOADER_THREAD_LOGGING
-	LgiTrace("%s:%i - ThreadBusy=%i\n", File, Line, ThreadBusy);
-	#endif
+	if (ThreadBusy + Off >= 0)
+	{
+		ThreadBusy += Off;
+		#if LOADER_THREAD_LOGGING
+		LgiTrace("%s:%i - ThreadBusy=%i\n", File, Line, ThreadBusy);
+		#endif
+	}
+	else
+	{
+		#if LOADER_THREAD_LOGGING
+		LgiTrace("%s:%i - Error: ThreadBusy=%i\n", File, Line, ThreadBusy, ThreadBusy + Off);
+		#endif
+		LgiAssert(0);
+	}
 }
 
 GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
@@ -1107,6 +1135,9 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 					ScaleInf &si = Scales[i];
 					ResizeIdx = i;
 
+					#if LOADER_THREAD_LOGGING
+					LgiTrace("%s:%i - Posting M_IMAGE_COMPRESS\n", _FL);
+					#endif
 					if (PostThreadEvent(GetThreadHandle(), M_IMAGE_COMPRESS, (GMessage::Param)SourceImg.Get(), (GMessage::Param)&si))
 						UpdateThreadBusy(_FL, 1);
 				}
@@ -1114,18 +1145,30 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 			else switch (Msg->A())
 			{
 				case IDM_CLOCKWISE:
+					#if LOADER_THREAD_LOGGING
+					LgiTrace("%s:%i - Posting M_IMAGE_ROTATE\n", _FL);
+					#endif
 					if (PostThreadEvent(GetThreadHandle(), M_IMAGE_ROTATE, (GMessage::Param) SourceImg.Get(), 1))
 						UpdateThreadBusy(_FL, 1);
 					break;
 				case IDM_ANTI_CLOCKWISE:
+					#if LOADER_THREAD_LOGGING
+					LgiTrace("%s:%i - Posting M_IMAGE_ROTATE\n", _FL);
+					#endif
 					if (PostThreadEvent(GetThreadHandle(), M_IMAGE_ROTATE, (GMessage::Param) SourceImg.Get(), -1))
 						UpdateThreadBusy(_FL, 1);
 					break;
 				case IDM_X_FLIP:
+					#if LOADER_THREAD_LOGGING
+					LgiTrace("%s:%i - Posting M_IMAGE_FLIP\n", _FL);
+					#endif
 					if (PostThreadEvent(GetThreadHandle(), M_IMAGE_FLIP, (GMessage::Param) SourceImg.Get(), 1))
 						UpdateThreadBusy(_FL, 1);
 					break;
 				case IDM_Y_FLIP:
+					#if LOADER_THREAD_LOGGING
+					LgiTrace("%s:%i - Posting M_IMAGE_FLIP\n", _FL);
+					#endif
 					if (PostThreadEvent(GetThreadHandle(), M_IMAGE_FLIP, (GMessage::Param) SourceImg.Get(), 0))
 						UpdateThreadBusy(_FL, 1);
 					break;
@@ -1139,9 +1182,15 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 			if (!Jpg || !Si)
 			{
 				LgiAssert(0);
+				#if LOADER_THREAD_LOGGING
+				LgiTrace("%s:%i - Error: M_IMAGE_COMPRESS bad arg\n", _FL);
+				#endif
 				break;
 			}
 
+			#if LOADER_THREAD_LOGGING
+			LgiTrace("%s:%i - Received M_IMAGE_COMPRESS\n", _FL);
+			#endif
 			Si->Jpg.Reset(Jpg.Release());
 			UpdateThreadBusy(_FL, -1);
 			break;
@@ -1149,6 +1198,9 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 		case M_IMAGE_ERROR:
 		{
 			GAutoPtr<GString> ErrMsg((GString*) Msg->A());
+			#if LOADER_THREAD_LOGGING
+			LgiTrace("%s:%i - Received M_IMAGE_ERROR, posting M_CLOSE\n", _FL);
+			#endif
 			PostThreadEvent(ThreadHnd, M_CLOSE);
 			ThreadHnd = 0;
 			UpdateThreadBusy(_FL, -1);
@@ -1157,6 +1209,9 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 		case M_IMAGE_COMPONENT_MISSING:
 		{
 			GAutoPtr<GString> Component((GString*) Msg->A());
+			#if LOADER_THREAD_LOGGING
+			LgiTrace("%s:%i - Received M_IMAGE_COMPONENT_MISSING, posting M_CLOSE\n", _FL);
+			#endif
 			PostThreadEvent(ThreadHnd, M_CLOSE);
 			ThreadHnd = 0;
 			UpdateThreadBusy(_FL, -1);
@@ -1173,6 +1228,10 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 		case M_IMAGE_SET_SURFACE:
 		{
 			GAutoPtr<GFile> Jpeg((GFile*)Msg->B());
+
+			#if LOADER_THREAD_LOGGING
+			LgiTrace("%s:%i - Received M_IMAGE_SET_SURFACE\n", _FL);
+			#endif
 
 			if (SourceImg.Reset((GSurface*)Msg->A()))
 			{
@@ -1198,11 +1257,19 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 		}
 		case M_IMAGE_PROGRESS:
 		{
+			#if LOADER_THREAD_LOGGING
+			LgiTrace("%s:%i - Received M_IMAGE_PROGRESS\n", _FL);
+			#endif
+
 			UpdateDisplay((int)Msg->A());
 			break;
 		}
 		case M_IMAGE_FINISHED:
 		{
+			#if LOADER_THREAD_LOGGING
+			LgiTrace("%s:%i - Received M_IMAGE_FINISHED\n", _FL);
+			#endif
+
 			UpdateDisplay(SourceImg->Y()-1);
 
 			if (PostThreadEvent(GetThreadHandle(),
@@ -1214,6 +1281,10 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 		}
 		case M_IMAGE_RESAMPLE:
 		{
+			#if LOADER_THREAD_LOGGING
+			LgiTrace("%s:%i - Received M_IMAGE_RESAMPLE\n", _FL);
+			#endif
+
 			LayoutDirty = true;
 			UpdateThreadBusy(_FL, -1);
 			d->InvalidateDoc(NULL);
@@ -1225,6 +1296,10 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 		case M_IMAGE_ROTATE:
 		case M_IMAGE_FLIP:
 		{
+			#if LOADER_THREAD_LOGGING
+			LgiTrace("%s:%i - Received %s\n", _FL, Msg->Msg()==M_IMAGE_ROTATE?"M_IMAGE_ROTATE":"M_IMAGE_FLIP");
+			#endif
+
 			GAutoPtr<GSurface> Img = SourceImg;
 			UpdateThreadBusy(_FL, -1);
 			SetImage(Img);
