@@ -289,6 +289,7 @@ public:
 						break;
 
 					OnEvent(Msg);
+					// LgiTrace("Msgs=%i\n", (int)Msgs.Length());
 				}
 			}
 			else

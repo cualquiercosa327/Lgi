@@ -78,6 +78,7 @@ GItemContainer::~GItemContainer()
 {
 	DeleteObj(ItemEdit);
 	DeleteObj(DragCol);
+	Columns.DeleteObjects();
 }
 
 void GItemContainer::PaintColumnHeadings(GSurface *pDC)

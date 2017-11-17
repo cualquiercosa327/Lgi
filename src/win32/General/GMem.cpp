@@ -22,6 +22,7 @@
 #include "LgiDefs.h"
 #include "ImageHlp.h"
 #include <direct.h>
+#include "GSymLookup.h"
 
 #undef malloc
 #undef realloc
@@ -128,40 +129,42 @@ void *lgi_malloc(size_t size)
 
 			void *_ebp = 0;
 			#ifndef _WIN64
-			_asm {
-				mov eax, ebp
-				mov _ebp, eax
-			}
+				_asm {
+					mov eax, ebp
+					mov _ebp, eax
+				}
 
-			#if 1
-			PCALL_FRAME frame = (PCALL_FRAME)_ebp;
-			__try
-			{
-				for (int i=0; i<=MEM_STACK_SIZE; i++)
+				#if 1
+				PCALL_FRAME frame = (PCALL_FRAME)_ebp;
+				__try
 				{
-					if (!frame || (NativeInt)frame < 0x1000 || (*((unsigned*)frame) & 0x3))
+					for (int i=0; i<=MEM_STACK_SIZE; i++)
+					{
+						if (!frame || (NativeInt)frame < 0x1000 || (*((unsigned*)frame) & 0x3))
+							break;
+
+						if (i)
+							b->Stack[i-1].Ip = (UNativeInt) *((uint8**)frame + 1);
+						frame = frame->Next;
+					}
+				}
+				__except(StackwalkExceptionHandler(GetExceptionInformation()))
+				{
+				}
+				#else
+				for (int i=-1; i<MEM_STACK_SIZE; i++)
+				{
+					if ((RegEbp & 3) != 0 ||
+						IsBadReadPtr( (void*)RegEbp, 8 ))
 						break;
 
-					if (i)
-						b->Stack[i-1].Ip = (UNativeInt) *((uint8**)frame + 1);
-					frame = frame->Next;
+					if (i >= 0)
+						b->Stack[i].Ip = (uint) *((uint8**)RegEbp + 1);
+					RegEbp = *(uint*)RegEbp;
 				}
-			}
-			__except(StackwalkExceptionHandler(GetExceptionInformation()))
-			{
-			}
+				#endif
 			#else
-			for (int i=-1; i<MEM_STACK_SIZE; i++)
-			{
-				if ((RegEbp & 3) != 0 ||
-					IsBadReadPtr( (void*)RegEbp, 8 ))
-					break;
-
-				if (i >= 0)
-					b->Stack[i].Ip = (uint) *((uint8**)RegEbp + 1);
-				RegEbp = *(uint*)RegEbp;
-			}
-			#endif
+			USHORT r = CaptureStackBackTrace(2, MEM_STACK_SIZE, (PVOID*)b->Stack, NULL);
 			#endif
 
 			// Add to linked list
@@ -329,7 +332,7 @@ bool LgiDumpMemoryStats(char *filename)
 {
 	bool Status = true;
 
-	HMODULE DbgHelp = LoadLibrary("dbghelp.dll");
+	HMODULE DbgHelp = LoadLibraryA("dbghelp.dll");
 	if (DbgHelp)
 	{
 		HANDLE hProcess = GetCurrentProcess();
@@ -339,8 +342,13 @@ bool LgiDumpMemoryStats(char *filename)
 		STACKWALKPROC				StackWalk;
 		SYMFUNCTIONTABLEACCESSPROC	SymFunctionTableAccess;
 		SYMGETMODULEBASEPROC		SymGetModuleBase;
+		#ifdef _WIN64
+		pSymFromAddr				SymFromAddr;
+		pSymGetLineFromAddr64		SymGetLineFromAddr64;
+		#else
 		SYMGETSYMFROMADDRPROC		SymGetSymFromAddr;
 		proc_SymGetLineFromAddr		SymGetLineFromAddr;
+		#endif
 		proc_SymGetOptions			SymGetOptions;
 		proc_SymSetOptions			SymSetOptions;
 
@@ -349,8 +357,13 @@ bool LgiDumpMemoryStats(char *filename)
 		StackWalk = (STACKWALKPROC) GetProcAddress(DbgHelp, "StackWalk");
 		SymFunctionTableAccess = (SYMFUNCTIONTABLEACCESSPROC) GetProcAddress(DbgHelp, "SymFunctionTableAccess");
 		SymGetModuleBase = (SYMGETMODULEBASEPROC) GetProcAddress(DbgHelp, "SymGetModuleBase");
+		#ifdef _WIN64
+		SymFromAddr = (pSymFromAddr) GetProcAddress(DbgHelp, "SymFromAddr");
+		SymGetLineFromAddr64 = (pSymGetLineFromAddr64) GetProcAddress(DbgHelp, "SymGetLineFromAddr64");
+		#else
 		SymGetSymFromAddr = (SYMGETSYMFROMADDRPROC) GetProcAddress(DbgHelp, "SymGetSymFromAddr");
 		SymGetLineFromAddr = (proc_SymGetLineFromAddr) GetProcAddress(DbgHelp, "SymGetLineFromAddr");
+		#endif
 		SymGetOptions = (proc_SymGetOptions) GetProcAddress(DbgHelp, "SymGetOptions");
 		SymSetOptions = (proc_SymSetOptions) GetProcAddress(DbgHelp, "SymSetOptions");
 
@@ -358,7 +371,7 @@ bool LgiDumpMemoryStats(char *filename)
 		DWORD Set = SymSetOptions(dwOpts | SYMOPT_LOAD_LINES | SYMOPT_OMAP_FIND_NEAREST);
 
 		char s[512] = "";
-		GetModuleFileName(NULL, s, sizeof(s));
+		GetModuleFileNameA(NULL, s, sizeof(s));
 		char *end = strrchr(s, '\\');
 		if (end)
 		{
@@ -394,9 +407,11 @@ bool LgiDumpMemoryStats(char *filename)
 						TotalBytes += b->Size;
 					}
 
-					sprintf_s(s, sizeof(s), "%i bytes (%.1f MB) in %i blocks:\n\n", TotalBytes, (double)TotalBytes / 1024 / 1024, BlockCount);
+					sprintf_s(s, sizeof(s), "%i bytes (%.1f MB) in %i blocks:\n%s\n",
+						TotalBytes, (double)TotalBytes / 1024 / 1024, BlockCount,
+						FullPath);
 					fwrite(s, 1, strlen(s), f);
-					OutputDebugString(s);
+					OutputDebugStringA(s);
 
 					int64 Start = GetTickCount();
 					int64 Last = Start;
@@ -414,7 +429,7 @@ bool LgiDumpMemoryStats(char *filename)
 										Current,
 										BlockCount,
 										(int)(Current/Sec));
-							OutputDebugString(s);
+							OutputDebugStringA(s);
 						}
 
 						uint8 *Data = (uint8*)(b + 1);
@@ -447,16 +462,26 @@ bool LgiDumpMemoryStats(char *filename)
 							HINSTANCE Pid = (HINSTANCE)mbi.AllocationBase;
 
 							char module[256] = "";
-							if (GetModuleFileName(Pid, module, sizeof(module)))
+							if (GetModuleFileNameA(Pid, module, sizeof(module)))
 							{
+								DWORD Offset = b->Stack[i].Ip - (UNativeInt)Pid;
+								#ifdef _WIN64
+								BYTE symbolBuffer[ sizeof(SYMBOL_INFO) + 512 ];
+								PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)symbolBuffer;
+								IMAGEHLP_LINE64 Line;
+
+								ZeroObj(symbolBuffer);
+								pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+								pSymbol->MaxNameLen = 512;
+								#else
 								BYTE symbolBuffer[ sizeof(IMAGEHLP_SYMBOL) + 512 ];
 								PIMAGEHLP_SYMBOL pSymbol = (PIMAGEHLP_SYMBOL)symbolBuffer;
-								DWORD symDisplacement = 0;
 								IMAGEHLP_LINE Line;
-								DWORD Offset = b->Stack[i].Ip - (UNativeInt)Pid;
 
 								pSymbol->SizeOfStruct = sizeof(symbolBuffer);
 								pSymbol->MaxNameLength = 512;
+								#endif
+
 								memset(&Line, 0, sizeof(Line));
 								Line.SizeOfStruct = sizeof(Line);
 
@@ -464,12 +489,30 @@ bool LgiDumpMemoryStats(char *filename)
 								if (mod) mod++;
 								else mod = module;
 
+								#ifdef _WIN64
+								DWORD64 symDisplacement = 0;
+								if (SymFromAddr(hProcess, b->Stack[i].Ip, &symDisplacement, pSymbol))
+								{
+									DWORD Displacement = symDisplacement;
+									if (SymGetLineFromAddr64(hProcess, b->Stack[i].Ip, &Displacement, &Line))
+										sprintf_s(s, sizeof(s), "\t%s %s:%i\n", mod, Line.FileName, Line.LineNumber);
+									else
+									{
+										if (pSymbol->Name[0] == '$')
+											break;
+
+										sprintf_s(s, sizeof(s), "\t%s %s+0x" LGI_PrintfHex64 "\n", mod, pSymbol->Name, symDisplacement);
+										// dumpBuffer.Printf("%p: %s Offset: 0x%X (%hs)\n", caller, module, symDisplacement, pSymbol->Name);
+									}
+								}
+								else
+									sprintf_s(s, sizeof(s), "\t%s 0x" LGI_PrintfHex64 "\n", mod, b->Stack[i].Ip);
+								#else
+								DWORD symDisplacement = 0;
 								if (SymGetSymFromAddr(hProcess, b->Stack[i].Ip, &symDisplacement, pSymbol))
 								{
 									if (SymGetLineFromAddr(hProcess, b->Stack[i].Ip, &symDisplacement, &Line))
-									{
 										sprintf_s(s, sizeof(s), "\t%s %s:%i\n", mod, Line.FileName, Line.LineNumber);
-									}
 									else
 									{
 										if (pSymbol->Name[0] == '$')
@@ -480,9 +523,8 @@ bool LgiDumpMemoryStats(char *filename)
 									}
 								}
 								else
-								{
 									sprintf_s(s, sizeof(s), "\t%s 0x%x\n", mod, b->Stack[i].Ip);
-								}
+								#endif
 
 								fwrite(s, 1, strlen(s), f);
 							}

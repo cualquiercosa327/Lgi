@@ -23,6 +23,9 @@
 #define DEBUG_NO_THREAD			1
 // #define DEBUG_FILE				"dante_config_common.h"
 
+int SYM_FILE_SENT = 0;
+
+
 class FindSymbolDlg : public GDialog
 {
 	AppWnd *App;
@@ -107,7 +110,15 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 
 	~FindSymbolSystemPriv()
 	{
+		// Wait for the queue of messages to complete...
+		while (GetQueueSize())
+			LgiSleep(1);
+
+		// End the thread...
 		EndThread();
+
+		// Clean up mem
+		Files.DeleteObjects();
 	}
 
 	void Log(const char *Fmt, ...)
@@ -349,6 +360,8 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 					MsgTs = 0;
 					Tasks = 0;
 				}
+
+				SYM_FILE_SENT--;
 				break;
 			}
 			case M_FIND_SYM_INC_PATHS:
@@ -574,13 +587,16 @@ bool FindSymbolSystem::OnFile(const char *Path, SymAction Action, int Platforms)
 		d->MsgTs = LgiCurrentTime();
 	d->Tasks++;
 	
-	FindSymbolSystem::SymFileParams *Params = new FindSymbolSystem::SymFileParams;
+	GAutoPtr<FindSymbolSystem::SymFileParams> Params(new FindSymbolSystem::SymFileParams);
 	Params->File = Path;
 	Params->Action = Action;
 	Params->Platforms = Platforms;
 
-	return d->PostEvent(M_FIND_SYM_FILE,
-						(GMessage::Param)Params);
+	if (d->PostObject(d->GetHandle(), M_FIND_SYM_FILE, Params))
+	{
+		SYM_FILE_SENT++;
+	}
+	return false;
 }
 
 void FindSymbolSystem::Search(int ResultsSinkHnd, const char *SearchStr, bool AllPlat)
