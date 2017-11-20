@@ -202,6 +202,7 @@ public:
 
 	~GImageListPriv()
 	{
+		Cache.DeleteObjects();
 	}
 };
 

@@ -222,18 +222,21 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 					((End - s) == 7 && !Strncmp(L"else if", s, 7))
 				)
 				{
-					LgiAssert(ConditionalDepth > 0);
-					ConditionalIndex[ConditionalDepth-1]++;
-					ConditionalFirst = IsFirst(ConditionalIndex, ConditionalDepth);
-					if (Debug)
-						LgiTrace("%s:%i - ConditionalDepth=%i Idx++ Line=%i\n%.*S\n", _FL, ConditionalDepth, Line+1, Eol - s + 1, s - 1);
+					// LgiAssert(ConditionalDepth > 0);
+					if (ConditionalDepth > 0)
+					{
+						ConditionalIndex[ConditionalDepth-1]++;
+						ConditionalFirst = IsFirst(ConditionalIndex, ConditionalDepth);
+						if (Debug)
+							LgiTrace("%s:%i - ConditionalDepth=%i Idx++ Line=%i\n%.*S\n", _FL, ConditionalDepth, Line+1, Eol - s + 1, s - 1);
+					}
 				}
 				else if
 				(
 					((End - s) == 5 && !Strncmp(L"endif", s, End - s))
 				)
 				{
-					LgiAssert(ConditionalDepth > 0);
+					// LgiAssert(ConditionalDepth > 0);
 					if (ConditionalDepth > 0)
 						ConditionalDepth--;
 					ConditionalFirst = IsFirst(ConditionalIndex, ConditionalDepth);
@@ -681,6 +684,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 									{
 										if (StrcmpW(t, StrSemiColon) == 0)
 										{
+											DeleteArray(t);
 											break;
 										}
 										else if (StrcmpW(t, StrOpenBracket) == 0 ||
@@ -698,6 +702,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 												*Last = r;
 												SeekPtr(s, next, Line);
 											}
+											DeleteArray(t);
 											break;
 										}
 										else

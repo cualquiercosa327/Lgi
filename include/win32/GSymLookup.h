@@ -36,13 +36,19 @@ typedef DWORD (__stdcall *SYMGETMODULEBASEPROC)( HANDLE, DWORD );
 typedef BOOL (__stdcall *SYMGETSYMFROMADDRPROC)
 							 ( HANDLE, DWORD, PDWORD, PIMAGEHLP_SYMBOL );
 
+#ifdef _WIN64
+typedef BOOL (WINAPI *pSymGetLineFromAddr64)(HANDLE hProcess, DWORD64 dwAddr, PDWORD pdwDisplacement, PIMAGEHLP_LINE64 Line);
+#else
 typedef BOOL (__stdcall *proc_SymGetLineFromAddr)(	HANDLE hProcess,
 													DWORD dwAddr,
 													PDWORD pdwDisplacement,
 													PIMAGEHLP_LINE Line);
+#endif
 
 typedef DWORD (__stdcall *proc_SymGetOptions)(VOID);
 typedef DWORD (__stdcall *proc_SymSetOptions)(DWORD SymOptions);
+
+typedef BOOL (WINAPI *pSymFromAddr)(HANDLE hProcess, DWORD64 Address, PDWORD64 Displacement, PSYMBOL_INFO Symbol);
 
 /// Lookup the file/line information for an instruction pointer value
 class GSymLookup
@@ -56,7 +62,11 @@ class GSymLookup
 	SYMFUNCTIONTABLEACCESSPROC  SymFunctionTableAccess;
 	SYMGETMODULEBASEPROC        SymGetModuleBase;
 	SYMGETSYMFROMADDRPROC       SymGetSymFromAddr;
+	#ifdef _WIN64
+	pSymGetLineFromAddr64		SymGetLineFromAddr64;
+	#else
 	proc_SymGetLineFromAddr     SymGetLineFromAddr;
+	#endif	
 	proc_SymGetOptions          SymGetOptions;
 	proc_SymSetOptions          SymSetOptions;
 
@@ -78,7 +88,11 @@ public:
 			SymFunctionTableAccess = (SYMFUNCTIONTABLEACCESSPROC) GetProcAddress(DbgHelp, "SymFunctionTableAccess");
 			SymGetModuleBase = (SYMGETMODULEBASEPROC) GetProcAddress(DbgHelp, "SymGetModuleBase");
 			SymGetSymFromAddr = (SYMGETSYMFROMADDRPROC) GetProcAddress(DbgHelp, "SymGetSymFromAddr");
+			#ifdef _WIN64
+			SymGetLineFromAddr64 = (pSymGetLineFromAddr64) GetProcAddress(DbgHelp, "SymGetLineFromAddr64");
+			#else
 			SymGetLineFromAddr = (proc_SymGetLineFromAddr) GetProcAddress(DbgHelp, "SymGetLineFromAddr");
+			#endif
 			SymGetOptions = (proc_SymGetOptions) GetProcAddress(DbgHelp, "SymGetOptions");
 			SymSetOptions = (proc_SymSetOptions) GetProcAddress(DbgHelp, "SymSetOptions");
 
