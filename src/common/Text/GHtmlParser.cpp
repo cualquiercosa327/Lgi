@@ -1046,7 +1046,8 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 						while ((t = OpenTags.Last()))
 						{
 							CloseTag(t);
-							if (t == Elem)
+							if (t == Elem ||
+								OpenTags.Length() == 0)
 							{
 								break;
 							}

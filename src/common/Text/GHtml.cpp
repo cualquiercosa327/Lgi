@@ -6734,6 +6734,8 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection, uint16 Depth)
 					for (unsigned i=0; i<TextPos.Length(); i++)
 					{
 						GFlowRect *Tr = TextPos[i];
+						if (!Tr)
+							break;
 						ssize_t Pos = (Tr->Text - Text()) - Base;
 
 						LgiAssert(Tr->y2 >= Tr->y1);
