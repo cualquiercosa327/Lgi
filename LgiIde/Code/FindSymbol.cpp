@@ -49,6 +49,8 @@ int ScoreCmp(FindSymResult **a, FindSymResult **b)
 	return (*b)->Score - (*a)->Score;
 }
 
+#define USE_HASH	1
+
 struct FindSymbolSystemPriv : public GEventTargetThread
 {
 	struct FileSyms
@@ -94,7 +96,13 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 
 	int hApp;
 	GArray<GString::Array*> IncPaths;
+	
+	#if USE_HASH
+	GHashTbl<const char*, FileSyms*> Files;
+	#else
 	GArray<FileSyms*> Files;
+	#endif	
+	
 	uint32 Tasks;
 	uint64 MsgTs;
 	bool DoingProgress;
@@ -133,6 +141,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 			GEventSinkMap::Dispatch.PostEvent(hApp, M_APPEND_TEXT, (GMessage::Param)NewStr(s), AppWnd::BuildTab);
 	}
 	
+	#if !USE_HASH
 	int GetFileIndex(GString &Path)
 	{
 		for (unsigned i=0; i<Files.Length(); i++)
@@ -142,10 +151,20 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 		}
 		return -1;
 	}
+	#endif
 	
 	bool AddFile(GString Path, int Platforms)
 	{
 		// Already added?
+		#if USE_HASH
+		FileSyms *f = Files.Find(Path);
+		if (f)
+		{
+			if (Platforms && f->Platforms == 0)
+				f->Platforms = Platforms;
+			return true;
+		}
+		#else
 		int Idx = GetFileIndex(Path);
 
 		#ifdef DEBUG_FILE
@@ -160,18 +179,27 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 				Files[Idx]->Platforms = Platforms;
 			return true;
 		}
+
+		FileSyms *f;
+		#endif
+
 		if (!FileExists(Path))
 			return false;
 			
 		LgiAssert(!LgiIsRelativePath(Path));
 
 		// Setup the file sym data...
-		FileSyms *f = new FileSyms;
+		f = new FileSyms;
 		if (!f) return false;	
 		f->Path = Path;
 		f->Platforms = Platforms;
 		f->Inc = IncPaths.Length() ? IncPaths.Last() : NULL;
+
+		#if USE_HASH
+		Files.Add(Path, f);
+		#else
 		Files.Add(f);
+		#endif
 		
 		// Parse for headers...
 		GTextFile Tf;
@@ -207,8 +235,13 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 	
 	bool ReparseFile(GString Path)
 	{
+		#if USE_HASH
+		FileSyms *f = Files.Find(Path);
+		int Platform = f ? f->Platforms : 0;
+		#else
 		int Idx = GetFileIndex(Path);
 		int Platform = Idx >= 0 ? Files[Idx]->Platforms : 0;
+		#endif
 		
 		if (!RemoveFile(Path))
 			return false;
@@ -218,10 +251,18 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 	
 	bool RemoveFile(GString Path)
 	{
+		#if USE_HASH
+		FileSyms *f = Files.Find(Path);
+		if (!f) return false;
+		Files.Delete(Path);
+		delete f;
+		#else
 		int Idx = GetFileIndex(Path);
 		if (Idx < 0) return false;
 		delete Files[Idx];
 		Files.DeleteAt(Idx);
+		#endif
+
 		return true;
 	}
 
@@ -244,9 +285,15 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 					GArray<FindSymResult*> SrcMatches;
 
 					// For each file...
+					#if USE_HASH
+					const char *Path;
+					for (FileSyms *fs = Files.First(&Path); fs; fs = Files.Next(&Path))
+					{
+					#else
 					for (unsigned f=0; f<Files.Length(); f++)
 					{
 						FileSyms *fs = Files[f];
+					#endif
 						if (fs)
 						{
 							#ifdef DEBUG_FILE
