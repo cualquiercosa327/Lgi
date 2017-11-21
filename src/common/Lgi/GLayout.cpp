@@ -115,14 +115,14 @@ void GLayout::AttachScrollBars()
 {
 	if (HScroll && !HScroll->IsAttached())
 	{
-		GRect r = HScroll->GetPos();
+		// GRect r = HScroll->GetPos();
 		HScroll->Attach(this);
 		HScroll->SetNotify(this);
 	}
 
 	if (VScroll && !VScroll->IsAttached())
 	{
-		GRect r = VScroll->GetPos();
+		// GRect r = VScroll->GetPos();
 		VScroll->Attach(this);
 		VScroll->SetNotify(this);
 	}
@@ -185,7 +185,7 @@ int GLayout::OnNotify(GViewI *c, int f)
 
 void GLayout::OnPosChange()
 {
-	int Edge = (Sunken() || Raised()) ? _BorderSize : 0;
+	// int Edge = (Sunken() || Raised()) ? _BorderSize : 0;
 	GRect r = GView::GetClient();
 	#ifndef MAC
 	r.Offset(Edge, Edge);

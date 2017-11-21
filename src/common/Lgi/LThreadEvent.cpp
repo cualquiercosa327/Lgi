@@ -41,7 +41,10 @@ LThreadEvent::LThreadEvent(const char *name)
 
 		Task = mach_task_self();
 		Sem = 0;
-		kern_return_t r = semaphore_create(Task, &Sem, SYNC_POLICY_FIFO, 0);
+		#if DEBUG_THREADING
+		kern_return_t r =
+		#endif
+			semaphore_create(Task, &Sem, SYNC_POLICY_FIFO, 0);
 		#if DEBUG_THREADING
 		printf("%s:%i - semaphore_create(%x)=%i\n", _FL, (int)Sem, r);
 		#endif
@@ -109,7 +112,10 @@ LThreadEvent::~LThreadEvent()
 {
 	#if USE_MACH_SEM
 
-		kern_return_t r = semaphore_destroy(Task, Sem);
+		#if DEBUG_THREADING
+		kern_return_t r =
+		#endif
+			semaphore_destroy(Task, Sem);
 		#if DEBUG_THREADING
 		printf("%s:%i - semaphore_destroy(%x)=%i\n", _FL, (int)Sem, r);
 		#endif

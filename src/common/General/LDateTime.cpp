@@ -1621,7 +1621,6 @@ bool LDateTime::Decode(const char *In)
 		GToken T(In);
 		if (T.Length() >= 2)
 		{
-			int n = 0;
 			bool GotDate = false;
 
 			for (int i=0; i<T.Length(); i++)

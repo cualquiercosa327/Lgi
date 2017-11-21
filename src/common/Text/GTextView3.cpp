@@ -1819,7 +1819,11 @@ void GTextView3::SetCaret(size_t i, bool Select, bool ForceFullUpdate)
 			Start = min(s, e);
 			End = max(s, e);
 		}
-		else LgiAssert(0);
+		else
+		{
+			LgiAssert(0);
+			return;
+		}
 
 		GTextLine *SLine = GetTextLine(Start);
 		GTextLine *ELine = GetTextLine(End);

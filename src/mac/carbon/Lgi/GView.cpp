@@ -205,7 +205,7 @@ GViewProc
 		printf("%s:%i - No GView ptr.\n", __FILE__, __LINE__);
 		return 0;
 	}
-	UInt32 eventClass = GetEventClass( inEvent );
+	// UInt32 eventClass = GetEventClass( inEvent );
 	UInt32 eventKind = GetEventKind( inEvent );
 	
 	switch (eventKind)
@@ -1151,6 +1151,8 @@ static int GetIsChar(GKey &k, int mods)
 		k.c16 == VK_TAB ||
 		k.c16 == VK_BACKSPACE
 	);
+	
+	return k.IsChar;
 }
 
 struct WasteOfSpace
@@ -1793,8 +1795,6 @@ bool GView::_Attach(GViewI *parent)
 		GWindow *w = GetWindow();
 		if (w)
 		{
-			OSStatus e;
-
 			if (!_View)
 				_View = _CreateCustomView();
 				
@@ -1824,7 +1824,7 @@ bool GView::_Attach(GViewI *parent)
 						HIViewRef ViewRef = HIViewGetRoot(Wnd);
 						if (ViewRef)
 						{
-							e = HIViewFindByID(ViewRef, kHIViewWindowContentID, &Par);
+							OSStatus e = HIViewFindByID(ViewRef, kHIViewWindowContentID, &Par);
 							if (e) LgiTrace("%s:%i - HIViewFindByID(%p,%p) failed with '%i'.\n", _FL, Par, _View, e);
 						}
 						else LgiTrace("%s:%i - HIViewGetRoot failed.\n", _FL);
@@ -1835,7 +1835,7 @@ bool GView::_Attach(GViewI *parent)
 				if (Par)
 				{
 					// Attach the view to the parent view
-					e = HIViewAddSubview(Par, _View);
+					OSStatus e = HIViewAddSubview(Par, _View);
 					if (e) LgiTrace("%s:%i - HIViewAddSubview(%p,%p) failed with '%i' (name=%s).\n",
 									_FL, Par, _View, e, Name());
 					else
@@ -1860,7 +1860,7 @@ bool GView::_Attach(GViewI *parent)
 				}
 				else printf("%s:%i - No parent to attach to\n", _FL);
 			}
-			else printf("%s:%i - HIObjectCreate failed (%i)\n", _FL, (int)e);
+			else printf("%s:%i - HIObjectCreate failed.\n", _FL);
 		}
 		else printf("%s:%i - No window to attach to.\n", _FL);
 	}

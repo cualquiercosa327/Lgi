@@ -425,7 +425,7 @@ void GSurface::Line(int x1, int y1, int x2, int y2)
 		
 		int dx = abs(x2-x1);
 		int dy = abs(y2-y1);
-		int EInc, ENoInc, E, Inc = 1, Pos = 1;
+		int EInc, ENoInc, E, Inc = 1;
 	
 		// printf("Dx: %i\nDy: %i\n", dx, dy);
 
@@ -1903,7 +1903,7 @@ void ConvertToPreMul(Px *src, int x)
 template<typename Px>
 void ConvertFromPreMul(Px *src, int x)
 {
-	register uchar *DivLut = Div255Lut;
+	// register uchar *DivLut = Div255Lut;
 	register Px *s = src;
 	register Px *e = s + x;
 	while (s < e)

@@ -2013,7 +2013,7 @@ GSurface *GdcDevice::Load(GStream *In, const char *Name, bool UseOSLoader)
 		{
 			size_t x = CGImageGetWidth(Img);
 			size_t y = CGImageGetHeight(Img);
-			size_t bits = CGImageGetBitsPerPixel(Img);
+			// size_t bits = CGImageGetBitsPerPixel(Img);
 			
 			if (pDC.Reset(new GMemDC) &&
 				pDC->Create(x, y, System32BitColourSpace))
@@ -2126,7 +2126,7 @@ GSurface *GdcDevice::Load(GStream *In, const char *Name, bool UseOSLoader)
 			PromoteTo != pDC->GetBits())
 		{
 			GAutoPtr<GSurface> pOld;;
-			GPalette *pPal = pDC->Palette();
+			// GPalette *pPal = pDC->Palette();
 
 			pOld = pDC;
 			pDC.Reset(new GMemDC);
