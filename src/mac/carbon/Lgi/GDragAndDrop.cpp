@@ -695,7 +695,6 @@ OSStatus GDragDropTarget::OnDragWithin(GView *v, DragRef Drag)
 
 OSStatus GDragDropTarget::OnDragReceive(GView *v, DragRef Drag)
 {
-	int Accept = 0;
 	GView *DropView = NULL;
 	for (GView *p = v; p; p = p->GetParent() ? p->GetParent()->GetGView() : NULL)
 	{

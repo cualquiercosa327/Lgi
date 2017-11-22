@@ -122,6 +122,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 	GArray<int> ConditionalIndex;
 	int ConditionalDepth = 0;
 	bool ConditionalFirst = true;
+	bool ConditionParsingErr = false;
 
 	#ifdef DEBUG_FILE
 	Debug |= FileName && stristr(FileName, DEBUG_FILE) != NULL;
@@ -222,7 +223,13 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 					((End - s) == 7 && !Strncmp(L"else if", s, 7))
 				)
 				{
-					// LgiAssert(ConditionalDepth > 0);
+					if (ConditionalDepth <= 0 &&
+						!ConditionParsingErr)
+					{
+						ConditionParsingErr = true;
+						LgiTrace("%s:%i - Error parsing pre-processor conditions: %s:%i\n", _FL, FileName, Line+1);
+					}
+
 					if (ConditionalDepth > 0)
 					{
 						ConditionalIndex[ConditionalDepth-1]++;
@@ -236,7 +243,13 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 					((End - s) == 5 && !Strncmp(L"endif", s, End - s))
 				)
 				{
-					// LgiAssert(ConditionalDepth > 0);
+					if (ConditionalDepth <= 0 &&
+						!ConditionParsingErr)
+					{
+						ConditionParsingErr = true;
+						LgiTrace("%s:%i - Error parsing pre-processor conditions: %s:%i\n", _FL, FileName, Line+1);
+					}
+
 					if (ConditionalDepth > 0)
 						ConditionalDepth--;
 					ConditionalFirst = IsFirst(ConditionalIndex, ConditionalDepth);

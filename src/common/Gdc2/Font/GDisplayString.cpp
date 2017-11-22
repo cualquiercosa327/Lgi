@@ -982,8 +982,6 @@ ssize_t GDisplayString::CharAt(int Px, LgiPxToIndexType Type)
 		#else
 			if (Hnd && Str)
 			{
-				UniCharArrayOffset Off = 0, Off2 = 0;
-				Boolean IsLeading;
 				
 				#if USE_CORETEXT
 
@@ -1003,19 +1001,20 @@ ssize_t GDisplayString::CharAt(int Px, LgiPxToIndexType Type)
 						// printf("CharAt(%i) = %i\n", Px, (int)count);
 						return count;
 					}
-				
+
+					Status = Off;
+
 					#endif
 
 				#else
 
+					UniCharArrayOffset Off = 0;
+					// Boolean IsLeading;
 					OSStatus e = ATSUPositionToOffset(Hnd, FloatToFixed(Px), FloatToFixed(y / 2), &Off, &IsLeading, &Off2);
 					if (e) printf("%s:%i - ATSUPositionToOffset failed with %i, CharAt(%i) x=%i len=%i\n", _FL, (int)e, Px, x, len);
-					else
+					else Status = Off;
 
 				#endif
-				{
-					Status = Off;
-				}
 			}
 		#endif
 	
@@ -2046,7 +2045,6 @@ void GDisplayString::FDraw(GSurface *pDC, int fx, int fy, GRect *frc, bool Debug
 	
 	if (Hnd && pDC && len > 0)
 	{
-		OSStatus e;
 		OsPainter				dc = pDC->Handle();
 
 		#if USE_CORETEXT

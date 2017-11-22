@@ -393,7 +393,7 @@ pascal OSStatus AppProc(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, 
 pascal OSErr AppleEventProc(const AppleEvent *ae, AppleEvent *reply, SRefCon handlerRefcon)
 {
 	OSErr err = eventNotHandledErr;
-	GApp *App = (GApp*) handlerRefcon;
+	// GApp *App = (GApp*) handlerRefcon;
 
 	printf("********** AppleEventProc called ***************\n");
 	#if 0

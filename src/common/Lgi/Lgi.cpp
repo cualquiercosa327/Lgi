@@ -1123,18 +1123,17 @@ GString GFile::Path::GetSystem(LgiSystemPath Which, int WordSize = 0)
 			if (!Name)
 			{
 				// Use the exe name?
-				char Exe[MAX_PATH];
 				if (LgiGetExeFile(Exe, sizeof(Exe)))
 				{
 					char *l = LgiGetLeaf(Exe);
 					if (l)
 					{
-						char *d = strrchr(l, '.');
 						#ifdef WIN32
+						char *d = strrchr(l, '.');
 						*d = NULL;
 						#endif
 						Name = l;
-						printf("%s:%i - name '%s'\n", _FL, Name);
+						// printf("%s:%i - name '%s'\n", _FL, Name);
 					}
 				}
 			}

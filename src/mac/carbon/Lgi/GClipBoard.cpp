@@ -232,8 +232,6 @@ char16 *GClipBoard::TextW()
 
 bool GClipBoard::Bitmap(GSurface *pDC, bool AutoEmpty)
 {
-	bool Status = false;
-
 	if (AutoEmpty)
 		Empty();
 	

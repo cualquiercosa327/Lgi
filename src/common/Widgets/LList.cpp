@@ -535,7 +535,6 @@ void LListItem::OnPaint(GItem::ItemPaintCtx &Ctx)
 	if (!Parent)
 	    return;
 
-	int i = 0;
 	int x = Ctx.x1;
 
 	if (GetCss())
@@ -844,11 +843,11 @@ void LList::KeyScroll(int iTo, int iFrom, bool SelectItems)
 	iFrom = limit(iFrom, 0, Items.Length()-1);
 	LListItem *To = Items.ItemAt(iTo);
 	LListItem *From = Items.ItemAt(iFrom);
-	int Inc = (iTo < iFrom) ? -1 : 1;
+	// int Inc = (iTo < iFrom) ? -1 : 1;
 
 	if (To && From && iTo != iFrom)
 	{
-		LListItem *Item = 0;
+		// LListItem *Item = 0;
 		if (SelectItems)
 		{
 			int OtherEnd = Keyboard == End ? Start : End;

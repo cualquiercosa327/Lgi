@@ -162,12 +162,12 @@ void GScreenDC::SetClient(GRect *c)
 		{
 			CGContextSaveGState(d->Ctx);
 
-			int Ox = 0, Oy = 0;
+			// int Ox = 0, Oy = 0;
 
 			d->Stack.Add(d->Rc);
 			d->Rc = *c;
 
-			#if 1
+			#if 0
 			CGAffineTransform t1 = CGContextGetCTM(d->Ctx);
 			CGRect old_bounds = CGContextGetClipBoundingBox(d->Ctx);
 			#endif

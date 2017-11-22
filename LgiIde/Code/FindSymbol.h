@@ -96,7 +96,8 @@ public:
 	{
 		FileAdd,
 		FileRemove,
-		FileReparse
+		FileReparse,
+		FileRemoveAll,
 	};
 
 	struct SymFileParams

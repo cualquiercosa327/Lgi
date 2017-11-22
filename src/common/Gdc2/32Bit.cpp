@@ -603,6 +603,7 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
+ //, a = this->p32.a
 #define CreateOpNoAlpha(name, opcode, alpha)													\
 	template<typename Pixel, GColourSpace ColourSpace>											\
 	class App32##name##alpha : public App32Base<Pixel, ColourSpace>								\
@@ -613,7 +614,7 @@ public:
 		COLOUR Get() { return Rgb32(this->p->r, this->p->g, this->p->b); }						\
 		void VLine(int height)																	\
 		{																						\
-			REG uint8 r = this->p32.r, g = this->p32.g, b = this->p32.b, a = this->p32.a;	\
+			REG uint8 r = this->p32.r, g = this->p32.g, b = this->p32.b;	\
 			while (height-- > 0)																\
 			{																					\
 				this->p->r opcode r; this->p->g opcode g; this->p->b opcode b;					\

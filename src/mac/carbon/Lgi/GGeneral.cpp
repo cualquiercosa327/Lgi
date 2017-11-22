@@ -105,6 +105,7 @@ struct GLgiAssert
 	GLgiAssert() { Result = 0; }
 };
 
+/*
 static void *_LgiAssert(void *Param)
 {
 	GLgiAssert *Assert = (GLgiAssert*) Param;
@@ -123,7 +124,6 @@ static void *_LgiAssert(void *Param)
 	return Assert;
 }
 
-/*
 (IBAction)DoAssertDlg:(id)sender
 {
 	
