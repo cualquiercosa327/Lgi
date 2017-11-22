@@ -2759,7 +2759,7 @@ bool MailPop3::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks
 								Ok = Buffer[0] == '+';
 								if (Ok)
 								{
-									Log(Buffer, GSocketI::SocketMsgReceive);
+									// Log(Buffer, GSocketI::SocketMsgReceive);
 
 									// The Buffer was zero'd at the beginning garrenteeing
 									// NULL termination

@@ -302,7 +302,6 @@ public:
 			
 			GString Src = Tests[i];
 			GString::Array Lines = Src.SplitDelimit(" \t\r\n");
-			printf("Test %i\n", i);
 			for (unsigned ln = 0; ln < Lines.Length(); ln++)
 			{
 				TAttachment *a = new TAttachment(Store);
