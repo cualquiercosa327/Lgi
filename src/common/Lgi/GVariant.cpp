@@ -96,7 +96,7 @@ GVariant::GVariant(size_t i)
 	*this = i;
 }
 
-#ifndef LGI_SDL
+#if LGI_64BIT
 GVariant::GVariant(ssize_t i)
 {
 	Type = GV_NULL;
@@ -329,7 +329,7 @@ GVariant &GVariant::operator =(size_t i)
 	return *this;
 }
 
-#ifndef LGI_SDL
+#if LGI_64BIT
 GVariant &GVariant::operator =(ssize_t i)
 {
 	Empty();
