@@ -1109,6 +1109,8 @@ void IdeProject::Build(bool All, bool Release)
 	if (GetApp())
 		GetApp()->PostEvent(M_APPEND_TEXT, 0, 0);
 
+	SetClean();
+
 	if (!IsMakefileUpToDate())
 		CreateMakefile(GetCurrentPlatform());
 

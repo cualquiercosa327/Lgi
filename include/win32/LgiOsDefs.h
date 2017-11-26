@@ -19,10 +19,12 @@
 	#error "Define WINDOWS in your project"
 #endif
 #ifdef _WIN64
+	#define LGI_64BIT				1
 	#ifndef WIN64
 		#define WIN64				1
 	#endif
 #else
+	#define LGI_32BIT				1
 	#ifndef WIN32
 		#define WIN32				1
 	#endif
