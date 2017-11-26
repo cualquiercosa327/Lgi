@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project TargetType="0" TabSize="4" IndentSize="4" UseTabs="1" ShowWhitespace="0" Compiler="0" Makefile="./Makefile" IncludePaths="../include/common&#10;../include/linux/Xcb&#10;">
 	<Node Name="Source" Type="1" Platforms="7" Open="1" Id="1">
-		<Node File="../src/common/Lgi/LgiMain.cpp" Type="2" Platforms="7" />
 		<Node File="./Rich.cpp" Type="2" Platforms="7" />
 		<Node Name="Rich Text Editor" Type="1" Platforms="15" Open="1" Id="2">
 			<Node Name="Emoji" Type="1" Platforms="15" Open="0" Id="3">
@@ -22,6 +21,15 @@
 			<Node File="../src/common/Text/GHtml.cpp" Type="2" Platforms="15" />
 			<Node File="../src/common/Text/GHtmlCommon.cpp" Type="2" Platforms="15" />
 			<Node File="../src/common/Text/GHtmlParser.cpp" Type="2" Platforms="15" />
+		</Node>
+		<Node Name="Lgi" Type="1" Platforms="15" Id="1">
+			<Node File="../src/common/Gdc2/Tools/GdcTools.cpp" Type="2" Platforms="15" />
+			<Node File="../src/common/Gdc2/Filters/Gif.cpp" Type="2" Platforms="15" />
+			<Node File="../src/common/INet/IHttp.cpp" Type="2" Platforms="15" />
+			<Node File="../src/common/Gdc2/Filters/Jpeg.cpp" Type="2" Platforms="15" />
+			<Node File="../src/common/Lgi/LgiMain.cpp" Type="2" Platforms="7" />
+			<Node File="../src/common/Gdc2/Filters/Lzw.cpp" Type="2" Platforms="15" />
+			<Node File="../src/common/Gdc2/Filters/Png.cpp" Type="2" Platforms="15" />
 		</Node>
 	</Node>
 	<Node File="../Lgi.xml" Type="4" Platforms="15" />
@@ -100,6 +108,12 @@
 			<CommentFile />
 			<CommentFunction />
 		</Editor>
+		<Advanced>
+			<OtherMakefileRules />
+		</Advanced>
+	</Settings>
+</Project>
+r>
 		<Advanced>
 			<OtherMakefileRules />
 		</Advanced>

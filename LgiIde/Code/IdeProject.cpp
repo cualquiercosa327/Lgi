@@ -30,7 +30,7 @@ const char SourcePatterns[] = "*.c;*.h;*.cpp;*.cc;*.java;*.d;*.php;*.html;*.css"
 const char *AddFilesProgress::DefaultExt = "c,cpp,cc,cxx,h,hpp,hxx,html,css,json,js,jsx,txt,png,jpg,jpeg,rc,xml";
 
 #define STOP_BUILD_TIMEOUT			3000
-#ifdef WIN32
+#ifdef WINDOWS
 #define LGI_STATIC_LIBRARY_EXT		"lib"
 #else
 #define LGI_STATIC_LIBRARY_EXT		"a"
