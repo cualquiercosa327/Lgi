@@ -854,7 +854,7 @@ void GPopup::Visible(bool i)
 	
 		#else
 		
-			HadFocus = Focus();
+			bool HadFocus = Focus();
 			GView::Visible(i);
 	
 		#endif
