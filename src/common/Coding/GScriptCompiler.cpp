@@ -3710,7 +3710,9 @@ bool GScriptEngine::CallMethod(GCompiledCode *Obj, const char *Method, LScriptAr
 		return false;
 
 	GVirtualMachine Vm(d->Callback);
+	Args.Vm = &Vm;
 	GExecutionStatus Status = Vm.ExecuteFunction(Code, i, Args, NULL);
+	Args.Vm = NULL;
 	return Status != ScriptError;
 }
 

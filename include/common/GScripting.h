@@ -8,9 +8,14 @@
 class GScriptContext;
 class GScriptEnginePrivate;
 class GVmDebuggerCallback;
+class GVirtualMachine;
 
 class LScriptArguments : public GArray<GVariant*>
 {
+	friend class GScriptEngine;
+	friend class GVirtualMachine;
+
+	GVirtualMachine *Vm;
 	GStream *Console;
 	GVariant _Return;
 	GVariant *PtrRet;
@@ -18,8 +23,9 @@ class LScriptArguments : public GArray<GVariant*>
 public:
 	static GStream NullConsole;
 
-	LScriptArguments(GVariant *ret = NULL, GStream *console = NULL)
+	LScriptArguments(GVirtualMachine *vm, GVariant *ret = NULL, GStream *console = NULL)
 	{
+		Vm = vm;
 		if (ret)
 			PtrRet = ret;
 		else
@@ -33,6 +39,7 @@ public:
 
 	GVariant *GetReturn() { return PtrRet; }
 	GStream *GetConsole() { return Console; }
+	bool Throw(const char *File, int Line, const char *Msg, ...);
 };
 
 typedef bool (GScriptContext::*ScriptCmd)(LScriptArguments &Args);
