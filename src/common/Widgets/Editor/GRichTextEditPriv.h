@@ -677,9 +677,14 @@ public:
 		// Events
 		bool PostEvent(int Cmd, GMessage::Param a = 0, GMessage::Param b = 0)
 		{
-			return d->View->PostEvent(	M_BLOCK_MSG,
+			bool r = d->View->PostEvent(M_BLOCK_MSG,
 										(GMessage::Param)(Block*)this,
 										(GMessage::Param)new GMessage(Cmd, a, b));
+			#if defined(_DEBUG)
+			if (!r)
+				LgiTrace("%s:%i - Warning: PostEvent failed..\n", _FL);
+			#endif
+			return r;
 		}
 
 		GMessage::Result OnEvent(GMessage *Msg)

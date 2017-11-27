@@ -220,7 +220,7 @@ public:
 			
 			Html->AttachTo(Alternative);
 			MsgText->AttachTo(Alternative);
-			if (Root && Root->IsMultipart())
+			if (Root && Root->IsMultipart() && Root != Alternative)
 				Alternative->AttachTo(Root);
 			else
 				Root = Alternative;
