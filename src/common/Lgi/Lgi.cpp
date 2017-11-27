@@ -684,6 +684,13 @@ bool LgiTrimDir(char *Path)
 	char *p = strrchr(Path, DIR_CHAR);
 	if (!p)
 		return false;
+	if (p[1] == 0) // Trailing DIR_CHAR doesn't count... do it again.
+	{
+		*p = 0;
+		p = strrchr(Path, DIR_CHAR);
+		if (!p)
+			return false;
+	}
 
 	*p = 0;
 	return true;

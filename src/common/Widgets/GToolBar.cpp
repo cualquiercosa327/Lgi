@@ -239,7 +239,7 @@ GImageList::GImageList(int x, int y, GSurface *pDC)
 		Blt(0, 0, pDC);
 		Op(Old);
 		
-		#if 1
+		#if 0
 		printf("Toolbar input image is %s, has_alpha=%i, has_pad=%i\n",
 			GColourSpaceToString(pDC->GetColourSpace()),
 			pDC->HasAlpha(),
