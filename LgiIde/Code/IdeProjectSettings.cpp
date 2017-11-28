@@ -110,7 +110,7 @@ struct SettingInfo
 
 SettingInfo AllSettings[] =
 {
-	{ProjMakefile,				GV_STRING,		"Makefile",			sGeneral,	SF_PLATFORM_SPECIFC},
+	{ProjMakefile,				GV_STRING,		"Makefile",			sGeneral,	SF_PLATFORM_SPECIFC|SF_FILE_SELECT},
 	{ProjExe,					GV_STRING,		"Executable",		sGeneral,	SF_PLATFORM_SPECIFC|SF_CONFIG_SPECIFIC},
 	{ProjArgs,					GV_STRING,		"Arguments",		sGeneral,	SF_CROSSPLATFORM|SF_CONFIG_SPECIFIC},
 	{ProjDebugAdmin,			GV_BOOL,		"DebugAdmin",		sGeneral,	SF_CROSSPLATFORM},
@@ -493,7 +493,7 @@ public:
 		DefLockOut = 0;
 		d = priv;
 		SetParent(parent);
-		if (LoadFromResource(IDD_PROJECT_SETTINGS2))
+		if (LoadFromResource(IDD_PROJECT_SETTINGS))
 		{
 			MoveToCenter();
 			
