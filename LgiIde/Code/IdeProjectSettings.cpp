@@ -637,6 +637,12 @@ public:
 					{
 						GFileSelect s;
 						s.Parent(this);
+
+						GFile::Path p(e->Name());
+						p.Parent();
+						if (DirExists(p))
+							s.InitialDir(p);
+
 						if (s.Open())
 						{
 							const char *Base = GetCtrlName(IDC_PATH);
