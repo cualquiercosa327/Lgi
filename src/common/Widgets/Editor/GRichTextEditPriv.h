@@ -1045,7 +1045,8 @@ public:
 		struct ScaleInf
 		{
 			GdcPt2 Sz;
-			GAutoPtr<GStreamI> Jpg;
+			GString MimeType;
+			GAutoPtr<GStreamI> Compressed;
 			int Percent;
 
 			ScaleInf()
@@ -1061,6 +1062,7 @@ public:
 		GNamedStyle *Style;
 		int Scale;
 		GRect SourceValid;
+		GAutoString FileMimeType;
 
 		GArray<ScaleInf> Scales;
 		int ResizeIdx;

@@ -389,8 +389,6 @@ bool GRichTextPriv::ImageBlock::IsValid()
 
 bool GRichTextPriv::ImageBlock::IsBusy(bool Stop)
 {
-	//if (Stop && Thread)
-	//	Thread->Cancel(true);
 	return ThreadBusy != 0;
 }
 
@@ -437,6 +435,7 @@ bool GRichTextPriv::ImageBlock::SetImage(GAutoPtr<GSurface> Img)
 		if (PostThreadEvent(GetThreadHandle(), M_IMAGE_COMPRESS, (GMessage::Param)SourceImg.Get(), (GMessage::Param)&si))
 			UpdateThreadBusy(_FL, 1);
 	}
+	else LgiAssert(!"ResizeIdx should be valid.");
 	
 	return true;
 }
@@ -489,6 +488,7 @@ bool GRichTextPriv::ImageBlock::Load(const char *Src)
 	else if (FileExists(Source))
 	{
 		FileName = Source;
+		FileMimeType = LgiApp->GetFileMimeType(Source);
 	}
 	else
 		return false;
@@ -597,32 +597,37 @@ bool GRichTextPriv::ImageBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia
 		int Idx = LgiRand() % 10000;
 		Cm.Id.Printf("%u@memecode.com", Idx);
 
-		if (ValidSourceFile)
-		{
-			Cm.FileName = LgiGetLeaf(Source);
-			GAutoString mt = LgiApp->GetFileMimeType(Source);
-			Cm.MimeType = mt.Get();
-		}
-		else
-		{
-			Cm.FileName.Printf("img%u.jpg", Idx);
-			Cm.MimeType = "image/jpeg";
-		}
-		
 		GString Style;
-		
-		LgiAssert(Cm.MimeType != NULL);
-		
 		ScaleInf *Si = ResizeIdx >= 0 && ResizeIdx < (int)Scales.Length() ? &Scales[ResizeIdx] : NULL;
-		if (Si && Si->Jpg)
+		if (Si && Si->Compressed)
 		{
 			// Attach a copy of the resized jpeg...
-			Si->Jpg->SetPos(0);
-			Cm.Stream.Reset(new GMemStream(Si->Jpg, 0, -1));
+			Si->Compressed->SetPos(0);
+			Cm.Stream.Reset(new GMemStream(Si->Compressed, 0, -1));
+			Cm.MimeType = Si->MimeType;
+			if (Cm.MimeType.Equals("image/jpeg"))
+				Cm.FileName.Printf("img%u.jpg", Idx);
+			else if (Cm.MimeType.Equals("image/png"))
+				Cm.FileName.Printf("img%u.png", Idx);
+			else if (Cm.MimeType.Equals("image/tiff"))
+				Cm.FileName.Printf("img%u.tiff", Idx);
+			else if (Cm.MimeType.Equals("image/gif"))
+				Cm.FileName.Printf("img%u.gif", Idx);
+			else if (Cm.MimeType.Equals("image/bmp"))
+				Cm.FileName.Printf("img%u.bmp", Idx);
+			else
+			{
+				LgiAssert(!"Unknown image mime type?");
+				Cm.FileName.Printf("img%u", Idx);
+			}
 		}
 		else if (ValidSourceFile)
 		{
 			// Attach the original file...
+			GAutoString mt = LgiApp->GetFileMimeType(Source);
+			Cm.MimeType = mt.Get();
+			Cm.FileName = LgiGetLeaf(Source);
+
 			GFile *f = new GFile;
 			if (f)
 			{
@@ -642,6 +647,8 @@ bool GRichTextPriv::ImageBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia
 			LgiTrace("%s:%i - No source or JPEG for saving image to HTML.\n", _FL);
 			return false;
 		}
+
+		LgiAssert(Cm.MimeType != NULL);
 
 		if (DisplayImg &&
 			SourceImg &&
@@ -995,10 +1002,10 @@ bool GRichTextPriv::ImageBlock::DoContext(GSubMenu &s, GdcPt2 Doc, ssize_t Offse
 				si.Percent = ImgScales[i];
 				
 				m.Printf("%i x %i, %i%% ", si.Sz.x, si.Sz.y, ImgScales[i]);
-				if (si.Jpg)
+				if (si.Compressed)
 				{
 					char Sz[128];
-					LgiFormatSize(Sz, sizeof(Sz), si.Jpg->GetSize());
+					LgiFormatSize(Sz, sizeof(Sz), si.Compressed->GetSize());
 					GString s;
 					s.Printf(" (%s)", Sz);
 					m += s;
@@ -1067,10 +1074,10 @@ void GRichTextPriv::ImageBlock::UpdateDisplay(int yy)
 				Dst->Set(x, y);
 			}
 		}
-
-		LayoutDirty = true;
-		this->d->InvalidateDoc(NULL);
 	}
+
+	LayoutDirty = true;
+	this->d->InvalidateDoc(NULL);
 }
 
 int GRichTextPriv::ImageBlock::GetThreadHandle()
@@ -1204,7 +1211,8 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 			#if LOADER_THREAD_LOGGING
 			LgiTrace("%s:%i - Received M_IMAGE_COMPRESS\n", _FL);
 			#endif
-			Si->Jpg.Reset(Jpg.Release());
+			Si->Compressed.Reset(Jpg.Release());
+			Si->MimeType = "image/jpeg";
 			UpdateThreadBusy(_FL, -1);
 			break;
 		}
@@ -1240,7 +1248,7 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 		}
 		case M_IMAGE_SET_SURFACE:
 		{
-			GAutoPtr<GFile> Jpeg((GFile*)Msg->B());
+			GAutoPtr<GFile> File((GFile*)Msg->B());
 
 			#if LOADER_THREAD_LOGGING
 			LgiTrace("%s:%i - Received M_IMAGE_SET_SURFACE\n", _FL);
@@ -1260,7 +1268,12 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 						si.Sz.y == SourceImg->Y())
 					{
 						ResizeIdx = i;
-						si.Jpg.Reset(Jpeg.Release());
+						si.Compressed.Reset(File.Release());
+						if (FileMimeType)
+						{
+							si.MimeType = FileMimeType.Get();
+							FileMimeType.Reset();
+						}
 					}
 				}
 
