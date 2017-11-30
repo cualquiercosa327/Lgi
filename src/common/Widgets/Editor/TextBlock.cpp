@@ -632,6 +632,7 @@ void DrawDecor(GSurface *pDC, GRichTextPriv::DisplayStr *Ds, int Fx, int Fy, ssi
 	int y = (Fy >> GDisplayString::FShift) + (int)Ds->GetAscent() + 1;
 	int End = x + ds2.X();
 	x += ds1.X();
+	pDC->Colour(GColour::Red);
 	while (x < End)
 	{
 		pDC->Set(x, y+(x%2));
