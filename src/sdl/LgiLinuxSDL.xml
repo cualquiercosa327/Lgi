@@ -423,12 +423,3 @@ freetype</Release>
 		</Advanced>
 	</Settings>
 </Project>
-UseHardTabs>
-			<CommentFile />
-			<CommentFunction />
-		</Editor>
-		<Advanced>
-			<OtherMakefileRules />
-		</Advanced>
-	</Settings>
-</Project>
