@@ -606,7 +606,7 @@ void GMidi::SendMidi(uint8 *ptr, int len, bool quiet)
 			midiOutUnprepareHeader(d->hOut, &Hdr, sizeof(Hdr));
 		}
 	}
-	#else
+	#elif defined MAC
 	if (d->OutPort)
 	{
 		struct MIDIPacketList p;
@@ -626,6 +626,8 @@ void GMidi::SendMidi(uint8 *ptr, int len, bool quiet)
 			    OnMidiOut(ptr, len);
 		}
 	}
+	#elif defined LINUX
+		#warning "Impl me"
 	#endif
 }
 
