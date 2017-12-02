@@ -167,32 +167,15 @@ bool GView::Attach(GViewI *p)
 	if (Parent && !_Window)
 		_Window = Parent->_Window;
 
-	if (0)
-	{
-		// Real window with HWND
-		bool Enab = Enabled();
-
-		LgiAssert(!Parent || Parent->Handle() != 0);
-
-		if (_View)
-		{
-			Status = (_View != 0);
-		}
-
-		OnAttach();
-
-	}
-	else
-	{
-		// Virtual window (no HWND)
-		Status = true;
-	}
+	// Virtual window (no HWND)
+	Status = true;
 
 	if (Status && d->Parent)
 	{
 		if (!d->Parent->HasView(this))
 		{
 			d->Parent->AddView(this);
+			OnAttach();
 		}
 		d->Parent->OnChildrenChanged(this, true);
 	}

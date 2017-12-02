@@ -58,6 +58,7 @@ public:
 	GMessage::Result OnEvent(GMessage *Msg);
 	void OnPaint(GSurface *pDC);
 	void OnPosChange();
+	void OnAttach();
 	bool OnLayout(GViewLayoutInfo &Inf);
 	bool SetVariant(const char *Name, GVariant &Value, char *Array = NULL);
 };

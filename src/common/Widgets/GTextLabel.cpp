@@ -63,12 +63,17 @@ GText::GText(int id, int x, int y, int cx, int cy, const char *name) :
 	GRect r(x, y, x+cx, y+cy);
 	SetPos(r);
 	SetId(id);
-	LgiResources::StyleElement(this);
 }
 
 GText::~GText()
 {
 	DeleteObj(d);
+}
+
+void GText::OnAttach()
+{
+	LgiResources::StyleElement(this);
+	GView::OnAttach();
 }
 
 bool GText::SetVariant(const char *Name, GVariant &Value, char *Array)

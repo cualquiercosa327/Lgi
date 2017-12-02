@@ -18,7 +18,7 @@
 #endif
 
 #ifdef LGI_SDL
-#include "freetype/ftsynth.h"
+#include "ftsynth.h"
 #endif
 
 #if WINNATIVE

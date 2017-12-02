@@ -73,7 +73,13 @@ typedef		unsigned short				uint16;
 
 	#include <wchar.h>
 	#include <stddef.h>
-	#include <stdbool.h>
+	#if defined(_MSC_VER) && _MSC_VER<1800
+		typedef unsigned char bool;
+		#define true	1
+		#define false	0
+	#else
+		#include <stdbool.h>
+	#endif
 
 #endif
 

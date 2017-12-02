@@ -541,7 +541,7 @@ bool TableCell::SetVariant(const char *Name, GVariant &Value, char *Array)
 						if (gv)
 						{
 							Children.New().View = gv;
-							Table->Children.Insert(gv);
+							Table->AddView(gv);
 							gv->SetParent(Table);
 
 							GText *t = dynamic_cast<GText*>(gv);
@@ -1054,6 +1054,7 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 			GRect r;
 			r.ZOff(Width-1, Table->Y()-1);
 			Tbl->d->InitBorderSpacing();
+			Tbl->d->LayoutHorizontal(r);
 			Tbl->d->LayoutVertical(r, &MinY, &MaxY, &Flags);
 			Pos.y2 += MinY;
 			

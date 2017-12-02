@@ -229,6 +229,7 @@ bool GView::AddView(GViewI *v, int Where)
 			gv->_Window = _Window;
 		}
 		v->SetParent(this);
+		v->OnAttach();
 	}
 	return Add;
 }
@@ -333,7 +334,6 @@ void GView::OnAttach()
 	List<GViewI>::I it = Children.Start();
 	for (GViewI *v = *it; v; v = *++it)
 	{
-
 		if (!v->GetParent())
 			v->SetParent(this);
 	}

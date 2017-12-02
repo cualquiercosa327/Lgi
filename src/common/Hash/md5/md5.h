@@ -50,7 +50,17 @@
 #ifndef md5_INCLUDED
 #  define md5_INCLUDED
 
+#if defined(_MSC_VER) && _MSC_VER<1800
+	#ifndef __cplusplus
+
+	typedef unsigned char bool;
+	#define true	1
+	#define false	0
+
+	#endif /* __cplusplus */
+#else
 #include <stdbool.h>
+#endif
 #include "LgiInc.h"
 #include "LgiDefs.h"
 
