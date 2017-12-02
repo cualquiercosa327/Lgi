@@ -336,9 +336,13 @@ LThreadEvent::WaitStatus LThreadEvent::Wait(int32 Timeout)
 			timespec to;
 			TimeoutToTimespec(to, Timeout);
 
+			#if DEBUG_THREADING
 			printf("%s:%i - starting sem_timedwait(%i) in %i\n", _FL, Sem, GetCurrentThreadId());
+			#endif
 			r = sem_timedwait(Sem, &to);
+			#if DEBUG_THREADING
 			printf("%s:%i - sem_timedwait(%i) = %i (in %i)\n", _FL, Sem, r, GetCurrentThreadId());
+			#endif
 			if (r == ETIMEDOUT)
 				return WaitTimeout;
 			if (r)

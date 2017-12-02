@@ -1475,9 +1475,9 @@ bool CompositeText5NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 	{
 		for (int a=0; a<256; a++)
 		{
-			map[a].r = ((a * fore_px.r) / 255) >> 3;
-			map[a].g = ((a * fore_px.g) / 255) >> 2;
-			map[a].b = ((a * fore_px.b) / 255) >> 3;
+			map[a].r = (int)Div255[a * fore_px.r] >> 3;
+			map[a].g = (int)Div255[a * fore_px.g] >> 2;
+			map[a].b = (int)Div255[a * fore_px.b] >> 3;
 		}
 	}
 	else
@@ -1532,14 +1532,28 @@ bool CompositeText5NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 					default:
 					{
 						// Blend
+						#if 0
+						uint8 oma = 255 - a;
+						src = map + a;
+						GRgb24 d = { G5bitTo8bit(dst->r),
+									 G6bitTo8bit(dst->g),
+									 G5bitTo8bit(dst->b)};
+						GRgb24 s = { G5bitTo8bit(src->r),
+									 G6bitTo8bit(src->g),
+									 G5bitTo8bit(src->b)};
+						dst->r = Div255[(oma * d.r) + (a * s.r)] >> 3;
+						dst->g = Div255[(oma * d.g) + (a * s.g)] >> 2;
+						dst->b = Div255[(oma * d.b) + (a * s.b)] >> 3;
+						#else
 						register uint8 a5 = a >> 3;
 						register uint8 a6 = a >> 2;
 						register uint8 oma5 = MASK_5BIT - a5;
 						register uint8 oma6 = MASK_6BIT - a6;
 						src = map + a;
-						dst->r = ((oma5 * dst->r) + (a5 * src->r)) / MASK_5BIT;
-						dst->g = ((oma6 * dst->g) + (a6 * src->g)) / MASK_6BIT;
-						dst->b = ((oma5 * dst->b) + (a5 * src->b)) / MASK_5BIT;
+						dst->r = ((oma5 * (uint8)dst->r) + (a5 * (uint8)src->r)) / MASK_5BIT;
+						dst->g = ((oma6 * (uint8)dst->g) + (a6 * (uint8)src->g)) / MASK_6BIT;
+						dst->b = ((oma5 * (uint8)dst->b) + (a5 * (uint8)src->b)) / MASK_5BIT;
+						#endif
 						break;
 					}
 				}
