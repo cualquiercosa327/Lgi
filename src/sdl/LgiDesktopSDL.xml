@@ -314,8 +314,10 @@ WINDOWS</Release>
 		<Build>
 			<IncludePaths>
 				<All>
-					<Debug>../../include/common</Debug>
-					<Release>../../include/common</Release>
+					<Debug>../../include/common
+/usr/include/freetype2/freetype</Debug>
+					<Release>../../include/common
+/usr/include/freetype2/freetype</Release>
 				</All>
 				<Windows>
 					<Debug>include/win32

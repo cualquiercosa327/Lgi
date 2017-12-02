@@ -426,11 +426,6 @@ bool LgiResources::StyleElement(GViewI *v)
 		LgiResources *r = _ResourceOwner[i];
 		if (r)
 		{
-			if (!_stricmp("GTextLabel", v->GetClass()))
-			{
-				printf("Styling %s\n", v->GetClass());
-			}
-		
 			GCss::SelArray Selectors;
 			GViewCssCb Ctx;
 			r->CssStore.Match(Selectors, &Ctx, v);
