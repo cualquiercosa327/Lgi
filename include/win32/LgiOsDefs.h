@@ -46,6 +46,18 @@
 #define _MSC_VER_VC6	1200 // MSVC++ 6.0
 #define _MSC_VER_VC5	1100 // MSVC++ 5.0
 
+#if _MSC_VER >= _MSC_VER_VS2015
+#define _MSC_VER_STR	"14"
+#elif _MSC_VER >= _MSC_VER_VS2013
+#define _MSC_VER_STR	"12"
+#elif _MSC_VER >= _MSC_VER_VS2012
+#define _MSC_VER_STR	"11"
+#elif _MSC_VER >= _MSC_VER_VS2010
+#define _MSC_VER_STR	"10"
+#else
+#define _MSC_VER_STR	"9"
+#endif
+
 //////////////////////////////////////////////////////////////////
 // Includes
 #define WIN32_LEAN_AND_MEAN
