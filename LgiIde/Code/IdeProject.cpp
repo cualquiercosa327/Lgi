@@ -2976,7 +2976,7 @@ IdeTree::IdeTree() : GTree(IDC_PROJECT_TREE, 0, 0, 100, 100)
 	MultiSelect(true);
 }
 
-void IdeTree::OnAttach()
+void IdeTree::OnCreate()
 {
 	SetWindow(this);
 }
