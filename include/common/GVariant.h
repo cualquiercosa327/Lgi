@@ -264,7 +264,7 @@ public:
 	GVariant(int i);
 	#ifndef _MSC_VER
 	GVariant(size_t i);
-	#if LGI_64BIT
+	#if LGI_64BIT || defined(MAC)
 	GVariant(ssize_t i);
 	#endif
 	#endif
@@ -303,7 +303,7 @@ public:
 	GVariant &operator =(bool i);
 	#ifndef _MSC_VER
 	GVariant &operator =(size_t i);
-	#if LGI_64BIT
+	#if LGI_64BIT || defined(MAC)
 	GVariant &operator =(ssize_t i);
 	#endif
 	#endif
