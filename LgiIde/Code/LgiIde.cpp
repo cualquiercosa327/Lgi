@@ -2792,13 +2792,12 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 							Dlg.Params->ProjectFiles.Add(Nodes[i]->GetFullPath());
 					}
 
+					GVariant var = d->FindParameters->Type == FifSearchSolution;
+					GetOptions()->SetValue(OPT_ENTIRE_SOLUTION, var);
+
+					d->Finder->Stop();
+					d->Finder->PostEvent(FindInFilesThread::M_START_SEARCH, (GMessage::Param) new FindParams(d->FindParameters));
 				}
-
-				GVariant var = d->FindParameters->Type == FifSearchSolution;
-				GetOptions()->SetValue(OPT_ENTIRE_SOLUTION, var);
-
-				d->Finder->Stop();
-				d->Finder->PostEvent(FindInFilesThread::M_START_SEARCH, (GMessage::Param) new FindParams(d->FindParameters));
 			}
 			break;
 		}
