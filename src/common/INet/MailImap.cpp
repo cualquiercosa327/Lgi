@@ -2487,9 +2487,9 @@ int MailIMap::Fetch(bool ByUid,
 						char *r = t[0];
 						if (*r == 'A')
 						{
-							Status = !_stricmp(t[1], "Ok");
+							bool IsOk = !_stricmp(t[1], "Ok");
 							int Response = atoi(r + 1);
-							Log(Line, Status ? GSocketI::SocketMsgReceive : GSocketI::SocketMsgError);
+							Log(Line, IsOk ? GSocketI::SocketMsgReceive : GSocketI::SocketMsgError);
 							if (Response == Cmd)
 							{
 								Done = true;
