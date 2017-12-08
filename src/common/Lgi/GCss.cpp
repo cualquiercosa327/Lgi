@@ -2773,7 +2773,7 @@ bool GCss::Store::Parse(const char *&c, int Depth)
 		c += 4;
 	}
 
-	for (; c && *c; )
+	while (c && *c)
 	{
 		c = SkipComment(c);
 
@@ -2834,8 +2834,9 @@ bool GCss::Store::Parse(const char *&c, int Depth)
 		SkipWhiteSpace(c);
 
 		// read styles
-		if (*c++ == '{')
+		if (*c == '{')
 		{
+			c++;
 			SkipWhiteSpace(c);
 			
 			if (Cur && Cur->IsAtMedia())
