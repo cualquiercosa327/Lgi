@@ -201,7 +201,7 @@
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
     <ClCompile Include="Code\IdeDoc.cpp">
-      <Filter>Source Files\Process</Filter>
+      <Filter>Source Files\Docs</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

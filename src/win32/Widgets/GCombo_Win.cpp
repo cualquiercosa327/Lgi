@@ -348,7 +348,7 @@ bool GCombo::SetPos(GRect &p, bool Repaint)
 
 int GCombo::SysOnNotify(int Msg, int Code)
 {
-	LgiTrace("%s:%i - GCombo::SysOnNotify %i %i\n", _FL, Msg==WM_COMMAND, Code);
+	// LgiTrace("%s:%i - GCombo::SysOnNotify %i %i\n", _FL, Msg==WM_COMMAND, Code);
 	
 	if (Msg == WM_COMMAND)
 	{
