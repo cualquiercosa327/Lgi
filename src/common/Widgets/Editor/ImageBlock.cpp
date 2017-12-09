@@ -242,8 +242,11 @@ bool GRichTextPriv::ImageBlock::IsValid()
 
 bool GRichTextPriv::ImageBlock::IsBusy(bool Stop)
 {
-	//if (Stop && Thread)
-	//	Thread->Cancel(true);
+	if (Stop && ThreadHnd)
+	{
+		bool s = GEventSinkMap::Dispatch.CancelThread(ThreadHnd);
+		LgiAssert(s);
+	}
 	return ThreadBusy != 0;
 }
 
@@ -930,11 +933,14 @@ void GRichTextPriv::ImageBlock::UpdateDisplayImg()
 
 			Size.x = (int)ceil((double)SourceImg->X() / Scale);
 			Size.y = (int)ceil((double)SourceImg->Y() / Scale);
+			
+			printf("Resetting DisplayImg.\n");
 			if (DisplayImg.Reset(new GMemDC(Size.x, Size.y, SourceImg->GetColourSpace())))
 			{
 				DisplayImg->Colour(LC_MED, 24);
 				DisplayImg->Rectangle();
 			}
+			printf("...Resetting DisplayImg.\n");
 		}
 	}
 }

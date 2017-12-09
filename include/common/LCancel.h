@@ -21,7 +21,7 @@ public:
 	
 	virtual ~LCancel() {}
 	virtual bool IsCancelled() { return Cancelled; }
-	virtual void Cancel(bool b) { Cancelled = b; }
+	virtual bool Cancel(bool b) { Cancelled = b; return true; }
 };
 
 

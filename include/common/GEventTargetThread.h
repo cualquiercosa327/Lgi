@@ -104,6 +104,33 @@ public:
 		Unlock();
 		return Status;
 	}
+	
+	bool CancelThread(int Hnd)
+	{
+		if (!Hnd)
+			return false;
+		
+		if (!Lock(_FL))
+			return false;
+		
+		GEventSinkI *s = (GEventSinkI*)ToPtr.Find(Hnd);
+		bool Status = false;
+		if (s)
+		{
+			LCancel *c = dynamic_cast<LCancel*>(s);
+			if (c)
+			{
+				Status = c->Cancel(true);
+			}
+			else
+			{
+				LgiTrace("%s:%i - GEventSinkI is not an LCancel object.\n", _FL);
+			}
+		}
+		
+		Unlock();
+		return Status;
+	}
 };
 
 class LgiClass GMappedEventSink : public GEventSinkI
