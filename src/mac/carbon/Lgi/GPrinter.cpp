@@ -77,7 +77,7 @@ bool GPrinter::Print(GPrintEvents *Events, const char *PrintJobName, int MaxPage
 	PMPrintSession ps = NULL;
 	PMPageFormat PageFmt = NULL;
 	PMPrintSettings PrintSettings = NULL;
-	GWindow *Wnd = Parent ? Parent->GetWindow() : NULL;
+	// GWindow *Wnd = Parent ? Parent->GetWindow() : NULL;
 	Boolean Accepted = false;
 	Boolean Changed = false;
 	GAutoPtr<GPrintDC> dc;

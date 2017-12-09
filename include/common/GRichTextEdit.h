@@ -19,6 +19,7 @@ enum RichEditMsgs
 	M_IMAGE_LOAD_FILE,
 	M_IMAGE_SET_SURFACE,
 	M_IMAGE_ERROR,
+	M_IMAGE_COMPONENT_MISSING,
 	M_IMAGE_PROGRESS,
 	M_IMAGE_RESAMPLE,
 	M_IMAGE_FINISHED,
@@ -26,6 +27,7 @@ enum RichEditMsgs
 	M_IMAGE_ROTATE,
 	M_IMAGE_FLIP,
 	M_IMAGE_LOAD_STREAM,
+	M_COMPONENT_INSTALLED, // A = GString *ComponentName
 };
 
 extern char Delimiters[];
@@ -39,7 +41,7 @@ class
 	public GDocView,
 	public ResObject,
 	public GDragDropTarget,
-	public GCapabilityTarget
+	public GCapabilityClient
 {
 	friend bool RichText_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User);
 
@@ -113,8 +115,8 @@ public:
 	{
 		ContentArea,
 		ToolsArea,
-		CapabilityArea,
-		CapabilityBtn,
+		// CapabilityArea,
+		// CapabilityBtn,
 
 		FontFamilyBtn,
 		FontSizeBtn,
@@ -197,9 +199,9 @@ public:
 	bool OnMouseWheel(double Lines);
 
 	// Capability target stuff
-	bool NeedsCapability(const char *Name, const char *Param);
-	void OnInstall(CapsHash *Caps, bool Status);
-	void OnCloseInstaller();
+	// bool NeedsCapability(const char *Name, const char *Param = NULL);
+	// void OnInstall(CapsHash *Caps, bool Status);
+	// void OnCloseInstaller();
 
 	// Window Events
 	void OnFocus(bool f);

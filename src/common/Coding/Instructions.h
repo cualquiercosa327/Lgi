@@ -553,7 +553,7 @@ case ICallMethod:
 	uint16 Args = *c.u16++;
 
 	#ifdef VM_EXECUTE			
-	LScriptArguments Arg(Ret);
+	LScriptArguments Arg(Vm, Ret);
 	#endif
 	
 	for (int i=0; i<Args; i++)

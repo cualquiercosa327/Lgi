@@ -684,6 +684,13 @@ bool LgiTrimDir(char *Path)
 	char *p = strrchr(Path, DIR_CHAR);
 	if (!p)
 		return false;
+	if (p[1] == 0) // Trailing DIR_CHAR doesn't count... do it again.
+	{
+		*p = 0;
+		p = strrchr(Path, DIR_CHAR);
+		if (!p)
+			return false;
+	}
 
 	*p = 0;
 	return true;
@@ -1123,18 +1130,17 @@ GString GFile::Path::GetSystem(LgiSystemPath Which, int WordSize = 0)
 			if (!Name)
 			{
 				// Use the exe name?
-				char Exe[MAX_PATH];
 				if (LgiGetExeFile(Exe, sizeof(Exe)))
 				{
 					char *l = LgiGetLeaf(Exe);
 					if (l)
 					{
-						char *d = strrchr(l, '.');
 						#ifdef WIN32
+						char *d = strrchr(l, '.');
 						*d = NULL;
 						#endif
 						Name = l;
-						printf("%s:%i - name '%s'\n", _FL, Name);
+						// printf("%s:%i - name '%s'\n", _FL, Name);
 					}
 				}
 			}
@@ -2141,138 +2147,6 @@ bool DoEvery::DoNow()
 	return false;
 }
 
-///////////////////////////////////////////////////////////////////////////////////
-#if 0
-GViewFill::GViewFill(GColour c)
-{
-	Type = Solid;
-	Col = c;
-	#ifdef WIN32
-	hBrush = NULL;
-	#endif
-}
-
-GViewFill::GViewFill(COLOUR c, int Bits)
-{
-	Type = Solid;
-	Col.c32(CBit(32, c, Bits));
-	#ifdef WIN32
-	hBrush = NULL;
-	#endif
-}
-
-GViewFill::GViewFill(GSurface *dc, bool Copy)
-{
-    Col.c32(0);
-	Type = Copy ? OwnBitmap : RefBitmap;
-	#ifndef LGI_STATIC
-	if (Copy)
-		pDC = new GMemDC(dc);
-	else
-		pDC = dc;
-	#endif
-
-	#ifdef WIN32
-	hBrush = NULL;
-	#endif
-}
-
-GViewFill::GViewFill(const GViewFill &f)
-{
-	Col = f.GetFlat();
-	Type = f.Type;
-	if (Type == OwnBitmap)
-	{
-		#ifndef LGI_STATIC
-    	pDC = new GMemDC(f.pDC);
-		#endif
-	}
-	else if (Type == RefBitmap)
-	{
-    	pDC = f.pDC;
-	}
-
-	#ifdef WIN32
-	hBrush = NULL;
-	#endif
-}
-
-GViewFill::~GViewFill()
-{
-    Empty();
-}
-
-void GViewFill::Empty()
-{
-	if (Type == OwnBitmap)
-    	DeleteObj(pDC);
-
-    Type = None;
-    pDC = 0;
-    Col.c32(0);
-
-	#ifdef WIN32
-	if (hBrush)
-	{
-		DeleteObject(hBrush);
-		hBrush = NULL;
-	}
-	#endif
-}
-
-void GViewFill::Fill(GSurface *pDC, GRect *r, GdcPt2 *Origin)
-{
-	#ifndef LGI_STATIC
-	if (Type == Solid)
-	{
-		pDC->Colour(Col);
-		pDC->Rectangle(r);
-	}
-	else if (Type == OwnBitmap || Type == RefBitmap)
-	{
-		if (pDC)
-		{
-			GRect a;
-			if (!r)
-			{
-				a.ZOff(pDC->X()-1, pDC->Y()-1);
-				r = &a;
-			}
-
-			for (int y = Origin ? (Origin->y % pDC->Y()) - pDC->Y() : 0; y < r->Y(); y += pDC->Y())
-			{
-				for (int x = Origin ? (Origin->x % pDC->X()) - pDC->X() : 0; x<r->X(); x += pDC->X())
-				{
-					pDC->Blt(r->x1 + x, r->y1 + y, pDC);
-				}
-			}
-		}
-		else
-		{
-			LgiAssert(0);
-		}
-	}
-	#endif
-}
-
-#ifdef WIN32
-/*
-HBRUSH GViewFill::GetBrush()
-{
-	if (!hBrush)
-	{
-		LOGBRUSH LogBrush;
-		LogBrush.lbStyle = BS_SOLID;
-		LogBrush.lbColor = GetFlat().c24();
-		LogBrush.lbHatch = 0;
-		hBrush = CreateBrushIndirect(&LogBrush);
-	}
-	return hBrush;
-}
-*/
-#endif
-#endif
-
 //////////////////////////////////////////////////////////////////////
 bool GCapabilityClient::NeedsCapability(const char *Name, const char *Param)
 {
@@ -2289,7 +2163,7 @@ GCapabilityClient::~GCapabilityClient()
 
 void GCapabilityClient::Register(GCapabilityTarget *t)
 {
-    if (t)
+    if (t && !Targets.HasItem(t))
     {
         Targets.Add(t);
         t->Clients.Add(this);

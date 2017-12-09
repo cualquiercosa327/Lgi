@@ -19,10 +19,12 @@
 	#error "Define WINDOWS in your project"
 #endif
 #ifdef _WIN64
+	#define LGI_64BIT				1
 	#ifndef WIN64
 		#define WIN64				1
 	#endif
 #else
+	#define LGI_32BIT				1
 	#ifndef WIN32
 		#define WIN32				1
 	#endif
@@ -43,6 +45,18 @@
 #define _MSC_VER_VC7	1300 // MSVC++ 7.0
 #define _MSC_VER_VC6	1200 // MSVC++ 6.0
 #define _MSC_VER_VC5	1100 // MSVC++ 5.0
+
+#if _MSC_VER >= _MSC_VER_VS2015
+#define _MSC_VER_STR	"14"
+#elif _MSC_VER >= _MSC_VER_VS2013
+#define _MSC_VER_STR	"12"
+#elif _MSC_VER >= _MSC_VER_VS2012
+#define _MSC_VER_STR	"11"
+#elif _MSC_VER >= _MSC_VER_VS2010
+#define _MSC_VER_STR	"10"
+#else
+#define _MSC_VER_STR	"9"
+#endif
 
 //////////////////////////////////////////////////////////////////
 // Includes

@@ -23,6 +23,9 @@
 #define DEBUG_NO_THREAD			1
 // #define DEBUG_FILE				"dante_config_common.h"
 
+int SYM_FILE_SENT = 0;
+
+
 class FindSymbolDlg : public GDialog
 {
 	AppWnd *App;
@@ -41,6 +44,12 @@ public:
 	GMessage::Result OnEvent(GMessage *m);
 };
 
+int ScoreCmp(FindSymResult **a, FindSymResult **b)
+{
+	return (*b)->Score - (*a)->Score;
+}
+
+#define USE_HASH	1
 
 struct FindSymbolSystemPriv : public GEventTargetThread
 {
@@ -51,30 +60,34 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 		GString::Array *Inc;
 		GAutoWString Source;
 		GArray<DefnInfo> Defs;
+		bool IsSource;
+		bool IsHeader;
 		
 		bool Parse()
 		{
+			IsSource = false;
+			IsHeader = false;
 			Defs.Length(0);
 			
 			bool Status = false;
 			// GString Src = (wchar_t*)Source.Get();
 			char *Ext = LgiGetExtension(Path);
-			if
-			(
-				Ext
-				&&
-				(
-					!_stricmp(Ext, "c")
-					||
-					!_stricmp(Ext, "cpp")
-					||
-					!_stricmp(Ext, "h")
-					||
-					!_stricmp(Ext, "hpp")
-				)
-			)
+			if (Ext)
 			{
-				Status = BuildDefnList(Path, Source, Defs, DefnNone);
+				IsSource =	!_stricmp(Ext, "c")
+							||
+							!_stricmp(Ext, "cpp")
+							||
+							!_stricmp(Ext, "cxx");
+				IsHeader =	!_stricmp(Ext, "h")
+							||
+							!_stricmp(Ext, "hpp")
+							||
+							!_stricmp(Ext, "hxx");
+				if (IsSource || IsHeader)
+				{
+					Status = BuildDefnList(Path, Source, Defs, DefnNone);
+				}
 			}
 
 			return Status;
@@ -83,7 +96,13 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 
 	int hApp;
 	GArray<GString::Array*> IncPaths;
+	
+	#if USE_HASH
+	GHashTbl<const char*, FileSyms*> Files;
+	#else
 	GArray<FileSyms*> Files;
+	#endif	
+	
 	uint32 Tasks;
 	uint64 MsgTs;
 	bool DoingProgress;
@@ -99,7 +118,15 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 
 	~FindSymbolSystemPriv()
 	{
+		// Wait for the queue of messages to complete...
+		while (GetQueueSize())
+			LgiSleep(1);
+
+		// End the thread...
 		EndThread();
+
+		// Clean up mem
+		Files.DeleteObjects();
 	}
 
 	void Log(const char *Fmt, ...)
@@ -114,6 +141,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 			GEventSinkMap::Dispatch.PostEvent(hApp, M_APPEND_TEXT, (GMessage::Param)NewStr(s), AppWnd::BuildTab);
 	}
 	
+	#if !USE_HASH
 	int GetFileIndex(GString &Path)
 	{
 		for (unsigned i=0; i<Files.Length(); i++)
@@ -123,10 +151,20 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 		}
 		return -1;
 	}
+	#endif
 	
 	bool AddFile(GString Path, int Platforms)
 	{
 		// Already added?
+		#if USE_HASH
+		FileSyms *f = Files.Find(Path);
+		if (f)
+		{
+			if (Platforms && f->Platforms == 0)
+				f->Platforms = Platforms;
+			return true;
+		}
+		#else
 		int Idx = GetFileIndex(Path);
 
 		#ifdef DEBUG_FILE
@@ -141,18 +179,27 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 				Files[Idx]->Platforms = Platforms;
 			return true;
 		}
+
+		FileSyms *f;
+		#endif
+
 		if (!FileExists(Path))
 			return false;
 			
 		LgiAssert(!LgiIsRelativePath(Path));
 
 		// Setup the file sym data...
-		FileSyms *f = new FileSyms;
+		f = new FileSyms;
 		if (!f) return false;	
 		f->Path = Path;
 		f->Platforms = Platforms;
 		f->Inc = IncPaths.Length() ? IncPaths.Last() : NULL;
+
+		#if USE_HASH
+		Files.Add(Path, f);
+		#else
 		Files.Add(f);
+		#endif
 		
 		// Parse for headers...
 		GTextFile Tf;
@@ -188,8 +235,13 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 	
 	bool ReparseFile(GString Path)
 	{
+		#if USE_HASH
+		FileSyms *f = Files.Find(Path);
+		int Platform = f ? f->Platforms : 0;
+		#else
 		int Idx = GetFileIndex(Path);
 		int Platform = Idx >= 0 ? Files[Idx]->Platforms : 0;
+		#endif
 		
 		if (!RemoveFile(Path))
 			return false;
@@ -199,10 +251,18 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 	
 	bool RemoveFile(GString Path)
 	{
+		#if USE_HASH
+		FileSyms *f = Files.Find(Path);
+		if (!f) return false;
+		Files.Delete(Path);
+		delete f;
+		#else
 		int Idx = GetFileIndex(Path);
 		if (Idx < 0) return false;
 		delete Files[Idx];
 		Files.DeleteAt(Idx);
+		#endif
+
 		return true;
 	}
 
@@ -220,10 +280,20 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 					if (p.Length() == 0)
 						break;
 					
+					GArray<FindSymResult*> ClassMatches;
+					GArray<FindSymResult*> HdrMatches;
+					GArray<FindSymResult*> SrcMatches;
+
 					// For each file...
+					#if USE_HASH
+					const char *Path;
+					for (FileSyms *fs = Files.First(&Path); fs; fs = Files.Next(&Path))
+					{
+					#else
 					for (unsigned f=0; f<Files.Length(); f++)
 					{
 						FileSyms *fs = Files[f];
+					#endif
 						if (fs)
 						{
 							#ifdef DEBUG_FILE
@@ -245,13 +315,27 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 								
 								// For each search term...
 								bool Match = true;
+								int ScoreSum = 0;
 								for (unsigned n=0; n<p.Length(); n++)
 								{
-									if (!stristr(Def.Name, p[n]))
+									const char *Part = p[n];
+									bool Not = *Part == '-';
+									if (Not)
+										Part++;
+
+									int Score = Def.Find(Part);
+									if
+									(
+										(Not && Score != 0)
+										||
+										(!Not && Score == 0)
+									)
 									{
 										Match = false;
 										break;
 									}
+
+									ScoreSum += Score;
 								}
 
 								#ifdef DEBUG_FILE
@@ -265,16 +349,27 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 									FindSymResult *r = new FindSymResult();
 									if (r)
 									{
-										r->Score = Def.Type == DefnClass;
+										r->Score = ScoreSum;
 										r->File = Def.File.Get();
 										r->Symbol = Def.Name.Get();
 										r->Line = Def.Line;
-										Req->Results.Add(r);
+
+										if (Def.Type == DefnClass)
+											ClassMatches.Add(r);
+										else if (fs->IsHeader)
+											HdrMatches.Add(r);
+										else
+											SrcMatches.Add(r);
 									}
 								}
 							}
 						}
 					}
+
+					ClassMatches.Sort(ScoreCmp);
+					Req->Results.Add(ClassMatches);
+					Req->Results.Add(HdrMatches);
+					Req->Results.Add(SrcMatches);
 					
 					int Hnd = Req->SinkHnd;
 					PostObject(Hnd, M_FIND_SYM_REQUEST, Req);
@@ -312,6 +407,8 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 					MsgTs = 0;
 					Tasks = 0;
 				}
+
+				SYM_FILE_SENT--;
 				break;
 			}
 			case M_FIND_SYM_INC_PATHS:
@@ -442,7 +539,7 @@ GMessage::Result FindSymbolDlg::OnEvent(GMessage *m)
 							Ls.Insert(it);
 						}
 					}
-					
+
 					Lst->Insert(Ls);
 					Lst->ResizeColumnsToContent();
 				}
@@ -537,13 +634,16 @@ bool FindSymbolSystem::OnFile(const char *Path, SymAction Action, int Platforms)
 		d->MsgTs = LgiCurrentTime();
 	d->Tasks++;
 	
-	FindSymbolSystem::SymFileParams *Params = new FindSymbolSystem::SymFileParams;
+	GAutoPtr<FindSymbolSystem::SymFileParams> Params(new FindSymbolSystem::SymFileParams);
 	Params->File = Path;
 	Params->Action = Action;
 	Params->Platforms = Platforms;
 
-	return d->PostEvent(M_FIND_SYM_FILE,
-						(GMessage::Param)Params);
+	if (d->PostObject(d->GetHandle(), M_FIND_SYM_FILE, Params))
+	{
+		SYM_FILE_SENT++;
+	}
+	return false;
 }
 
 void FindSymbolSystem::Search(int ResultsSinkHnd, const char *SearchStr, bool AllPlat)

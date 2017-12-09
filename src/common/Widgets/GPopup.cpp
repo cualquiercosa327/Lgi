@@ -770,8 +770,6 @@ bool GPopup::Attach(GViewI *p)
 
 void GPopup::Visible(bool i)
 {
-	bool HadFocus = false;
-
 	#if defined __GTK_H__
 	
 		if (i && !Wnd)
@@ -803,6 +801,10 @@ void GPopup::Visible(bool i)
 		
 	#else
 
+		#ifdef WINNATIVE
+		bool HadFocus = false;
+		#endif
+	
 		#ifdef LGI_SDL
 			GWindow *TopWnd = LgiApp->AppWnd;
 			if (i && TopWnd)
@@ -811,6 +813,7 @@ void GPopup::Visible(bool i)
 					TopWnd->AddView(this);
 			}
 		#else
+
 			if (!Handle() && i)
 			{
 				#if WINNATIVE
@@ -851,7 +854,7 @@ void GPopup::Visible(bool i)
 	
 		#else
 		
-			HadFocus = Focus();
+			bool HadFocus = Focus();
 			GView::Visible(i);
 	
 		#endif

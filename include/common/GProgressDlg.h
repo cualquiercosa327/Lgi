@@ -108,7 +108,7 @@ public:
 	/// Sets the type description of the first pane
 	void SetType(const char *t);
 	/// Returns whether the user has cancelled the operation
-	bool Cancel();
+	bool IsCancelled();
 	/// Syncs an external list of progress objects with the dialog
 	void OnSync(ProgressList *Prg);
 

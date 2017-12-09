@@ -86,6 +86,7 @@ public:
 	bool OnKey(GKey &k);
 	void OnFocus(bool f);
 	void OnPaint(GSurface *pDC);
+	void OnCreate();
 	void OnAttach();
 	virtual void OnClick();
 

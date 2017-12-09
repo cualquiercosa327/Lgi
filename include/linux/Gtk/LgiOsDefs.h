@@ -20,12 +20,28 @@
 	#include "winsock2.h"
 	#define WIN32GTK                    1
 	#define WINNATIVE					0
+	#ifdef _WIN64
+		#define LGI_64BIT				1
+	#else
+		#define LGI_32BIT				1
+	#endif
 #else
 	#define _MULTI_THREADED
 	#include <pthread.h>
 	#define LINUX						1
 	#define XP_CTRLS					1
 	#define POSIX						1
+
+	#ifdef __arm__
+		#define LGI_RPI					1
+		#define LGI_32BIT				1
+	#elif __GNUC__
+	#if __x86_64__ || __ppc64__
+		#define LGI_64BIT				1
+	#else
+		#define LGI_32BIT				1
+	#endif
+	#endif
 #endif
 
 #undef stricmp

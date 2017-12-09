@@ -53,32 +53,18 @@ bool GLibrary::Load(const char *File, bool Quiet)
 			#if defined WIN32
 
 			SetErrorMode(SEM_NOOPENFILEERRORBOX | SEM_FAILCRITICALERRORS);
-			if (LgiGetOs() == LGI_OS_WIN9X)
+
+			GAutoWString w(Utf8ToWide(f));
+			if (w)
 			{
-				GAutoString a(LgiToNativeCp(f));
-				if (a)
-				{
-					hLib = LoadLibraryA(a);
-					#if defined(_DEBUG) && DEBUG_LIB_MSGS
-					if (!hLib)
-						LgiTrace("LoadLibraryA(%s) failed with %i\n", a.Get(), GetLastError());
-					#endif
-				}
-				else LgiTrace("%s:%i - Failed to convert string to native.\n", _FL);
+				hLib = LoadLibraryW(w);
+				#if defined(_DEBUG) && DEBUG_LIB_MSGS
+				if (!hLib)
+					LgiTrace("LoadLibraryW(%S) failed with %i\n", w.Get(), GetLastError());
+				#endif
 			}
-			else
-			{
-				GAutoWString w(Utf8ToWide(f));
-				if (w)
-				{
-					hLib = LoadLibraryW(w);
-					#if defined(_DEBUG) && DEBUG_LIB_MSGS
-					if (!hLib)
-						LgiTrace("LoadLibraryW(%S) failed with %i\n", w.Get(), GetLastError());
-					#endif
-				}
-				else LgiTrace("%s:%i - Failed to convert string to wide.\n", _FL);
-			}
+			else LgiTrace("%s:%i - Failed to convert string to wide.\n", _FL);
+
 			SetErrorMode(0);
 
 

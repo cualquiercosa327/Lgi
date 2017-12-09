@@ -5,6 +5,8 @@
 #include "GTextView3.h"
 #include "SimpleCppParser.h"
 
+extern void FilterFiles(GArray<ProjectNode*> &Perfect, GArray<ProjectNode*> &Nodes, GString InputStr);
+
 class IdeDoc : public GMdiChild
 {
 	friend class DocEdit;
@@ -38,6 +40,7 @@ public:
 	bool IsCurrentIp();
 	void GotoSearch(int CtrlId, char *InitialText = NULL);
 	void SearchSymbol();
+	void SearchFile();
 
 	// Source tools
 	bool BuildIncludePaths(GArray<GString> &Paths, IdePlatform Platform, bool IncludeSysPaths);

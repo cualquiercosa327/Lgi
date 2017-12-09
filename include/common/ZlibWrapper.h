@@ -15,7 +15,18 @@ public:
 	{
 		return
 				#ifdef WINDOWS
-                    "zlib9"
+                    "zlib"
+					#if _MSC_VER >= _MSC_VER_VS2015
+					"14"
+					#elif _MSC_VER >= _MSC_VER_VS2013
+					"12"
+					#elif _MSC_VER >= _MSC_VER_VS2012
+					"11"
+					#elif _MSC_VER >= _MSC_VER_VS2010
+					"10"
+					#else
+					"9"
+					#endif
 					#if WIN64
 					"x64"
 					#else

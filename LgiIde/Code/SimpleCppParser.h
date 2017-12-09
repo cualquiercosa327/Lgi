@@ -3,11 +3,12 @@
 
 #include "GLexCpp.h"
 
-#define isword(s)			(s && (isdigit(s) || isalpha(s) || (s) == '_') )
-#define iswhite(s)			(s && strchr(WhiteSpace, s) != 0)
-#define skipws(s)			while (iswhite(*s)) s++;
-#define defnskipws(s)		while (iswhite(*s)) { if (*s == '\n') Line++; s++; }
-#define defnskipsym(s)		while (IsAlpha(*s) || IsDigit(*s) || strchr("_:.~", *s)) { s++; }
+#define isword(s)				(s && (isdigit(s) || isalpha(s) || (s) == '_') )
+#define iswhite(s)				(s && strchr(WhiteSpace, s) != 0)
+#define skipws(s)				while (iswhite(*s)) s++;
+#define defnskipws(s)			while (iswhite(*s)) { if (*s == '\n') Line++; s++; }
+#define defnskipsym(s)			while (IsAlpha(*s) || IsDigit(*s) || strchr("_:.~", *s)) { s++; }
+#define IsValidVariableChar(ch)	(IsAlpha(ch) || IsDigit(ch) || strchr("_", ch) != NULL)
 
 enum DefnType
 {
@@ -76,6 +77,37 @@ public:
 				*t = ' ';
 			}
 		}		
+	}
+
+	int Find(const char *Str)
+	{
+		int Slen = strlen(Str);
+		char *Match = stristr(Name, Str);
+		if (!Match)
+			return 0;
+		int Idx = Match - Name.Get();
+		if (Idx < 0)
+			return 0;
+
+		int Score = 1;
+		
+		// Is it an exact match?
+		bool Exact =
+			(	// Start:
+				Idx == 0
+				||
+				!IsValidVariableChar(Name(Idx-1))
+			)
+			&&
+			(
+				Idx+Slen >= Name.Length()
+				||
+				!IsValidVariableChar(Name(Idx+Slen))
+			);
+		if (Exact)
+			Score++;
+
+		return Score;
 	}
 };
 

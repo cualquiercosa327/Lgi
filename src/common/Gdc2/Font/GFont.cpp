@@ -428,6 +428,10 @@ typedef double OsTextSize;
 class GFontPrivate
 {
 public:
+	#ifdef WINDOWS
+	static GAutoPtr<GLibrary> Gdi32;
+	#endif
+
 	// Data
 	OsFont			hFont;
 	int				Height;
@@ -486,6 +490,10 @@ public:
 		#endif
 	}
 };
+
+#ifdef WINDOWS
+GAutoPtr<GLibrary> GFontPrivate::Gdi32;
+#endif
 
 GFont::GFont(const char *face, int point)
 {
@@ -1145,30 +1153,34 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 			else
 			{
 				typedef DWORD (WINAPI *Proc_GetFontUnicodeRanges)(HDC, LPGLYPHSET);
-				GLibrary Gdi32("Gdi32");
 
-				Proc_GetFontUnicodeRanges GetFontUnicodeRanges = (Proc_GetFontUnicodeRanges)Gdi32.GetAddress("GetFontUnicodeRanges");
-				if (GetFontUnicodeRanges)
+				if (!d->Gdi32)
+					d->Gdi32.Reset(new GLibrary("Gdi32"));
+				if (d->Gdi32)
 				{
-					DWORD BufSize = GetFontUnicodeRanges(hDC, 0);
-					LPGLYPHSET Set = (LPGLYPHSET) new char[BufSize];
-					if (Set && GetFontUnicodeRanges(hDC, Set) > 0)
+					Proc_GetFontUnicodeRanges GetFontUnicodeRanges = (Proc_GetFontUnicodeRanges)d->Gdi32->GetAddress("GetFontUnicodeRanges");
+					if (GetFontUnicodeRanges)
 					{
-						for (DWORD i=0; i<Set->cRanges; i++)
+						DWORD BufSize = GetFontUnicodeRanges(hDC, 0);
+						LPGLYPHSET Set = (LPGLYPHSET) new char[BufSize];
+						if (Set && GetFontUnicodeRanges(hDC, Set) > 0)
 						{
-							WCRANGE *Range = Set->ranges + i;
-							for (int n=0; n<Range->cGlyphs; n++)
+							for (DWORD i=0; i<Set->cRanges; i++)
 							{
-								DWORD u = Range->wcLow + n;
-								if (u >> 3 < Bytes)
+								WCRANGE *Range = Set->ranges + i;
+								for (int n=0; n<Range->cGlyphs; n++)
 								{
-									d->GlyphMap[u>>3] |= 1 << (u & 7);
+									DWORD u = Range->wcLow + n;
+									if (u >> 3 < Bytes)
+									{
+										d->GlyphMap[u>>3] |= 1 << (u & 7);
+									}
 								}
 							}
 						}
-					}
 
-					DeleteArray((char*&)Set);
+						DeleteArray((char*&)Set);
+					}
 				}
 				
 				if (GTypeFace::d->IsSymbol)

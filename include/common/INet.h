@@ -17,6 +17,8 @@
 #include "GString.h"
 
 #if defined WIN32
+	
+	#include "ws2ipdef.h"
 
 #elif defined POSIX
 
@@ -216,6 +218,7 @@ public:
 	
 	/// Returns the last error or 0.
 	int Error(void *Param = 0);
+	const char *GetErrorString();
 
 	/// Not supported
 	int64 GetSize() { return -1; }
@@ -236,7 +239,7 @@ public:
 	void OnWrite(const char *Data, ssize_t Len) {}
 	
 	/// Gets called when an error occurs.
-	void OnError(int ErrorCode, const char *ErrorDescription) {}
+	void OnError(int ErrorCode, const char *ErrorDescription);
 	
 	/// Gets called when some information is available.
 	void OnInformation(const char *Str) {}
@@ -354,14 +357,18 @@ class LUdpListener : public GSocket
 public:
 	LUdpListener(int port)
 	{
+		SetBroadcast();
 		SetUdp(true);
 
 		struct sockaddr_in addr;
 		ZeroObj(addr);
 		addr.sin_family = AF_INET;
 		addr.sin_port = htons(port);
-		#ifdef WIN32
+		#ifdef WINDOWS
 		addr.sin_addr.S_un.S_addr = INADDR_ANY;
+
+		// DWORD b = true;
+		// setsockopt(Handle(), IPPROTO_IP, IP_RECEIVE_BROADCAST, (char *) &b, sizeof b);
 		#else
 		addr.sin_addr.s_addr = INADDR_ANY;
 		#endif

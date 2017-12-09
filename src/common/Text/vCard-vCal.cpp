@@ -10,12 +10,12 @@
 #define Push(s) Write(s, (int)strlen(s))
 
 #define ClearFields() \
-	DeleteArray(Field); \
-	Types.Empty(); \
-	DeleteArray(Data)
+	Field.Empty(); \
+	Params.Empty(); \
+	Data.Empty()
 
 
-#define IsType(str) (Types.Find(str) != 0)
+#define IsType(str) (Params.Find(str) != 0)
 
 #if 1
 bool IsVar(char *field, const char *s)
@@ -306,19 +306,19 @@ bool VCard::Import(GDataPropI *c, GStreamI *s)
 	if (!c || !s)
 		return false;
 
-	char *Field = 0;
-	TypesList Types;
-	char *Data = 0;
+	GString Field;
+	ParamArray Params;
+	GString Data;
 
 	ssize_t PrefEmail = -1;
 	GArray<char*> Emails;
 
-	while (ReadField(*s, &Field, &Types, &Data))
+	while (ReadField(*s, Field, &Params, Data))
 	{
 		if (_stricmp(Field, "begin") == 0 &&
 			_stricmp(Data, "vcard") == 0)
 		{
-			while (ReadField(*s, &Field, &Types, &Data))
+			while (ReadField(*s, Field, &Params, Data))
 			{
 				if (_stricmp(Field, "end") == 0 &&
 					_stricmp(Data, "vcard") == 0)
@@ -513,170 +513,167 @@ bool VCard::Import(GDataPropI *c, GStreamI *s)
 	return Status;
 }
 
-bool VIo::ReadField(GStreamI &s, char **Name, TypesList *Type, char **Data)
+bool VIo::ReadField(GStreamI &s, GString &Name, ParamArray *Params, GString &Data)
 {
 	bool Status = false;
+	ParamArray LocalParams;
 
-	DeleteArray(*Name);
-	if (Type) Type->Empty();
-	DeleteArray(*Data);
+	Name.Empty();
+	Data.Empty();
 
-	if (Name && Data)
+	if (Params) Params->Empty();
+	else Params = &LocalParams;
+
+	char Temp[256];
+	GArray<char> p;
+	bool Done = false;
+
+	while (!Done)
 	{
-		char Temp[256];
-		GArray<char> p;
-		bool Done = false;
-
-		while (!Done)
+		bool EatNext = false;
+		ReadNextLine:
+		
+		Temp[0] = 0;
+		int64 r = d->Buf.Pop(Temp, sizeof(Temp));
+		if (r <= 0)
 		{
-			bool EatNext = false;
-			ReadNextLine:
-			
-			Temp[0] = 0;
-			int64 r = d->Buf.Pop(Temp, sizeof(Temp));
-			if (r <= 0)
-			{
-				// Try reading more data...
-				r = s.Read(Temp, sizeof(Temp));
-				if (r > 0)
-					d->Buf.Write(Temp, (int)r);
-				else
-					break;
-
-				r = d->Buf.Pop(Temp, sizeof(Temp));
-			}
-
-			if (r <= 0)
+			// Try reading more data...
+			r = s.Read(Temp, sizeof(Temp));
+			if (r > 0)
+				d->Buf.Write(Temp, (int)r);
+			else
 				break;
 
-			// Unfold
-			for (char *c = Temp; *c; c++)
-			{
-				if (*c == '\r')
-				{
-					// do nothing
-				}
-				else if (*c == '\n')
-				{
-					char Next;
-					r = d->Buf.Peek((uchar*) &Next, 1);
-					if (r == 0)
-					{
-						r = s.Read(Temp, sizeof(Temp));
-						if (r <= 0)
-							break;
+			r = d->Buf.Pop(Temp, sizeof(Temp));
+		}
 
-						d->Buf.Write(Temp, (int)r);
-						r = d->Buf.Peek((uchar*) &Next, 1);
-					}
-					
-					if (r == 1)
+		if (r <= 0)
+			break;
+
+		// Unfold
+		for (char *c = Temp; *c; c++)
+		{
+			if (*c == '\r')
+			{
+				// do nothing
+			}
+			else if (*c == '\n')
+			{
+				char Next;
+				r = d->Buf.Peek((uchar*) &Next, 1);
+				if (r == 0)
+				{
+					r = s.Read(Temp, sizeof(Temp));
+					if (r <= 0)
+						break;
+
+					d->Buf.Write(Temp, (int)r);
+					r = d->Buf.Peek((uchar*) &Next, 1);
+				}
+				
+				if (r == 1)
+				{
+					if (Next == ' ' || Next == '\t')
 					{
-						if (Next == ' ' || Next == '\t')
-						{
-							// Wrapped, do nothing
-							EatNext = true;
-							goto ReadNextLine;
-						}
-						else
-						{
-							Done = true;
-							break;
-						}
+						// Wrapped, do nothing
+						EatNext = true;
+						goto ReadNextLine;
 					}
 					else
 					{
+						Done = true;
 						break;
 					}
 				}
-				else if (EatNext)
-				{
-					EatNext = false;
-				}
 				else
 				{
-					p.Add(*c);
+					break;
 				}
 			}
-		}
-
-
-		p.Add(0);
-		char *f = p.Length() > 1 ? &p[0] : 0;
-		if (f)
-		{
-			GHashTbl<const char*, char*> Mod(0, false);
-			char *e = strchr(f, ':');
-			if (e)
+			else if (EatNext)
 			{
-				*e++ = 0;
-				GToken t(f, ";");
-				if (t.Length() > 0)
-				{
-					*Name = NewStr(t[0]);
-					for (uint32 i=1; i<t.Length(); i++)
-					{
-						char *var = t[i];
-						char *val = strchr(var, '=');
-						if (val)
-						{
-							*val++ = 0;
-
-							if (Type && !_stricmp(var, "type"))
-								Type->New().Reset(NewStr(val));
-							else
-								Mod.Add(var, NewStr(val));
-						}
-					}
-				}
-			}
-
-			bool QuotedPrintable = false;
-			char *Enc = Mod.Find("encoding");
-			if (Enc)
-			{
-				if (_stricmp(Enc, "quoted-printable") == 0)
-				{
-					QuotedPrintable = true;
-				}
-				else LgiTrace("%s:%i - Unknown encoding '%s'\n", __FILE__, __LINE__, Enc);
-			}
-
-			DeEscape(e, QuotedPrintable);
-
-			char *Charset = Mod.Find("charset");
-			if (Charset)
-			{
-				*Data = (char*)LgiNewConvertCp("utf-8", e, Charset);
+				EatNext = false;
 			}
 			else
 			{
-				*Data = NewStr(e);
-			}
-
-			Status = *Data != 0;
-
-			for (char *m = Mod.First(); m; m = Mod.Next())
-			{
-				DeleteArray(m);
+				p.Add(*c);
 			}
 		}
+	}
+
+
+	p.Add(0);
+	char *f = p.Length() > 1 ? &p[0] : 0;
+	if (f)
+	{
+		char *e = strchr(f, ':');
+		if (e)
+		{
+			*e++ = 0;
+			GToken t(f, ";");
+			if (t.Length() > 0)
+			{
+				Name = t[0];
+				for (uint32 i=1; i<t.Length(); i++)
+				{
+					char *var = t[i];
+					char *val = strchr(var, '=');
+					if (val)
+					{
+						*val++ = 0;
+
+						Parameter &p = Params->New();
+						p.Field = var;
+						p.Value = val;
+					}
+				}
+			}
+		}
+
+		bool QuotedPrintable = false;
+		const char *Enc = Params->Find("encoding");
+		if (Enc)
+		{
+			if (_stricmp(Enc, "quoted-printable") == 0)
+			{
+				QuotedPrintable = true;
+			}
+			else LgiTrace("%s:%i - Unknown encoding '%s'\n", __FILE__, __LINE__, Enc);
+		}
+
+		DeEscape(e, QuotedPrintable);
+
+		const char *Charset = Params->Find("charset");
+		if (Charset)
+		{
+			GAutoString u((char*)LgiNewConvertCp("utf-8", e, Charset));
+			Data = u.Get();
+		}
+		else
+		{
+			Data = e;
+		}
+
+		Status = *Data != 0;
 	}
 
 	return Status;
 }
 
-void VIo::WriteField(GStreamI &s, const char *Name, TypesList *Type, char *Data)
+void VIo::WriteField(GStreamI &s, const char *Name, ParamArray *Params, char *Data)
 {
 	if (Name && Data)
 	{
 		int64 Size = s.GetSize();
 
 		GStreamPrint(&s, "%s", Name);
-		if (Type)
+		if (Params)
 		{
-			for (uint32 i=0; i<Type->Length(); i++)
-				GStreamPrint(&s, "%stype=%s", i?"":";", (*Type)[i].Get());
+			for (uint32 i=0; i<Params->Length(); i++)
+			{
+				Parameter &p = (*Params)[i];
+				GStreamPrint(&s, "%s%s=%s", i?"":";", p.Field.Get(), p.Value.Get());
+			}
 		}
 		
 		bool Is8Bit = false;
@@ -744,9 +741,9 @@ bool VCard::Export(GDataPropI *c, GStreamI *o)
 			WriteField(*o, Field, 0, str);				\
 		} }
 
-	TypesList Work("Work"), WorkCell("Work,Cell"), WorkFax("Work,Fax");
-	TypesList Home("Home"), HomeCell("Home,Cell"), HomeFax("Home,Fax");
-	TypesList InetPref("internet,pref"), Inet("internet");
+	ParamArray Work("Work"), WorkCell("Work,Cell"), WorkFax("Work,Fax");
+	ParamArray Home("Home"), HomeCell("Home,Cell"), HomeFax("Home,Fax");
+	ParamArray InetPref("internet,pref"), Inet("internet");
 	OutputTypedField("tel", FIELD_WORK_PHONE, &Work);
 	OutputTypedField("tel", FIELD_WORK_MOBILE, &WorkCell);
 	OutputTypedField("tel", FIELD_WORK_FAX, &WorkFax);
@@ -869,6 +866,79 @@ bool VCard::Export(GDataPropI *c, GStreamI *o)
 
 /////////////////////////////////////////////////////////////
 // VCal class
+int StringToWeekDay(const char *s)
+{
+	const char *days[] = {"SU","MO","TU","WE","TH","FR","SA"};
+	for (unsigned i=0; i<CountOf(days); i++)
+	{
+		if (!_strnicmp(days[i], s, 2))
+			return i;
+	}
+	return -1;
+}
+
+bool EvalRule(LDateTime &out, VIo::TimeZoneSection &tz, int yr)
+{
+	GString::Array p = tz.Rule.SplitDelimit(";");
+	VIo::ParamArray Params;
+	for (unsigned i=0; i<p.Length(); i++)
+	{
+		GString::Array v = p[i].SplitDelimit("=", 1);
+		if (v.Length() == 2)
+			Params.New().Set(v[0], v[1]);
+	}
+	
+	const char *ByDay = Params.Find("byday");
+	const char *ByMonth = Params.Find("bymonth");
+	if (!ByDay || !ByMonth)
+	{
+		LgiTrace("%s:%i - Missing byday/bymonth\n", _FL);
+		return false;
+	}
+
+	out.Year(yr);
+
+//	RRULE:FREQ=YEARLY;INTERVAL=1;BYDAY=2SU;BYMONTH=3
+	if (!IsDigit(*ByMonth))
+	{
+		LgiTrace("%s:%i - Unexpected format for ByMonth: %s\n", _FL, ByMonth);
+		return false;
+	}
+
+	out.Month(atoi(ByMonth));
+	
+	if (!IsDigit(*ByDay))
+	{
+		LgiTrace("%s:%i - Unexpected format for ByDay: %s\n", _FL, ByDay);
+		return false;
+	}
+	
+	int Idx = atoi(ByDay);
+	while (*ByDay && IsDigit(*ByDay))
+		ByDay++;
+		
+	int WeekDay = StringToWeekDay(ByDay);
+	if (WeekDay < 0)
+	{
+		LgiTrace("%s:%i - No week day in ByDay: %s\n", _FL, ByDay);
+		return false;
+	}
+	
+	int Pos = 1;
+	for (int day = 1; day <= out.DaysInMonth(); day++)
+	{
+		out.Day(day);
+		if (out.DayOfWeek() == WeekDay)
+		{
+			if (Idx == Pos)
+				break;
+			Pos++;
+		}
+	}
+	
+	return true;
+}
+
 bool VCal::Import(GDataPropI *c, GStreamI *In)
 {
 	bool Status = false;
@@ -876,146 +946,286 @@ bool VCal::Import(GDataPropI *c, GStreamI *In)
 	if (!c || !In)
 		return false;
 
-	char *Field = 0;
-	TypesList Types;
-	char *Data = 0;
-	// bool SetType = false;
+	GString Field, Data;
+	ParamArray Params;
+
 	bool IsEvent = false;
-	GAutoString SectionType;
+	bool IsTimeZone = false;
+	GString SectionType;
+	LDateTime EventStart, EventEnd;
+	
+	GString StartTz, EndTz;
+	GArray<TimeZoneInfo> TzInfos;
+	TimeZoneInfo *TzInfo = NULL;
+	bool IsNormalTz = false, IsDaylightTz = false;
 
-	while (ReadField(*In, &Field, &Types, &Data))
+	while (ReadField(*In, Field, &Params, Data))
 	{
-		if (IsCal)
+		if (!_stricmp(Field, "begin"))
 		{
-		    if (_stricmp(Field, "end") == 0 &&
-			    _stricmp(Data, "vcalendar") == 0)
-		    {
-		        IsCal = false;
-		        break;
-		    }
-		    
-		    if (IsEvent)
-		    {
-		        if (_stricmp(Field, "end") == 0 &&
-			        _stricmp(Data, SectionType) == 0)
-		        {
-		            Status = true;
-			        break;
-		        }
-				
-				if (IsVar(Field, "dtstart"))
-				{
-					LDateTime d;
-					if (ParseDate(d, Data))
-					{
-						c->SetDate(FIELD_CAL_START_UTC, &d);
-					}
-				}
-				else if (IsVar(Field, "dtend"))
-				{
-					LDateTime d;
-					if (ParseDate(d, Data))
-					{
-						c->SetDate(FIELD_CAL_END_UTC, &d);
-					}
-				}
-				else if (IsVar(Field, "summary"))
-				{
-					c->SetStr(FIELD_CAL_SUBJECT, Data);
-				}
-				else if (IsVar(Field, "description"))
-				{
-				    GAutoString Sum(UnMultiLine(Data));
-				    if (Sum)
-						c->SetStr(FIELD_CAL_NOTES, Sum);
-				}
-				else if (IsVar(Field, "location"))
-				{
-					c->SetStr(FIELD_CAL_LOCATION, Data);
-				}
-				else if (IsVar(Field, "uid"))
-				{
-					char *Uid = Data;
-					c->SetStr(FIELD_UID, Uid);
-				}
-				else if (IsVar(Field, "x-showas"))
-				{
-					char *n = Data;
-
-					if (_stricmp(n, "TENTATIVE") == 0)
-					{
-						c->SetInt(FIELD_CAL_SHOW_TIME_AS, 1);
-					}
-					else if (_stricmp(n, "BUSY") == 0)
-					{
-						c->SetInt(FIELD_CAL_SHOW_TIME_AS, 2);
-					}
-					else if (_stricmp(n, "OUT") == 0)
-					{
-						c->SetInt(FIELD_CAL_SHOW_TIME_AS, 3);
-					}
-					else
-					{
-						c->SetInt(FIELD_CAL_SHOW_TIME_AS, 0);
-					}
-				}
-				else if (IsVar(Field, "attendee"))
-				{
-					char *e = stristr(Data, "mailto=");
-					if (e)
-					{
-						e += 7;
-
-						/*
-						char *Name = Variables["CN"];
-						char *Role = Variables["Role"];
-
-						GDataPropI *a = c->CreateAttendee();
-						if (a)
-						{
-							a->SetStr(FIELD_ATTENDEE_NAME, Name);
-							a->SetStr(FIELD_ATTENDEE_EMAIL, e);
-							if (_stricmp(Role, "CHAIR") == 0)
-							{
-								a->SetStr(FIELD_ATTENDEE_ATTENDENCE, 1);
-							}
-							else if (_stricmp(Role, "REQ-PARTICIPANT") == 0)
-							{
-								a->SetStr(FIELD_ATTENDEE_ATTENDENCE, 2);
-							}
-							else if (_stricmp(Role, "OPT-PARTICIPANT") == 0)
-							{
-								a->SetStr(FIELD_ATTENDEE_ATTENDENCE, 3);
-							}
-						}
-						*/
-					}
-				}
-			}
-		    else if
-		    (
-		        _stricmp(Field, "begin") == 0
-			    &&
-			    (
-				    _stricmp(Data, "vevent") == 0
-				    ||
-				    _stricmp(Data, "vtodo") == 0
-			    )
-		    )
-		    {
-		        IsEvent = true;
-		        SectionType.Reset(NewStr(Data));
+			if (_stricmp(Data, "vevent") == 0
+				||
+				_stricmp(Data, "vtodo") == 0)
+			{
+				IsEvent = true;
+				SectionType = Data;
 
 				int Type = _stricmp(Data, "vtodo") == 0 ? 1 : 0;
 				c->SetInt(FIELD_CAL_TYPE, Type);
-		    }
+			}
+			else if (!_stricmp(Data, "vtimezone"))
+			{
+				IsTimeZone = true;
+				TzInfo = &TzInfos.New();
+			}
+			else if (_stricmp(Data, "vcalendar") == 0)
+				IsCal = true;
+			else if (!_stricmp(Data, "standard"))
+				IsNormalTz = true;
+			else if (!_stricmp(Data, "daylight"))
+				IsDaylightTz = true;
 		}
-		else if (_stricmp(Field, "begin") == 0 &&
-			_stricmp(Data, "vcalendar") == 0)
+		else if (_stricmp(Field, "end") == 0)
 		{
-		    IsCal = true;
+			if (_stricmp(Data, "vcalendar") == 0)
+			{
+				IsCal = false;
+			}
+			else if (SectionType && _stricmp(Data, SectionType) == 0)
+			{
+				Status = true;
+				IsEvent = false;
+				break; // exit loop
+			}
+			else if (!_stricmp(Data, "vtimezone"))
+			{
+				IsTimeZone = false;
+				TzInfo = NULL;
+			}
+			else if (!_stricmp(Data, "standard"))
+				IsNormalTz = false;
+			else if (!_stricmp(Data, "daylight"))
+				IsDaylightTz = false;
+		}
+		else if (IsEvent)
+		{
+			if (IsVar(Field, "dtstart"))
+			{
+				ParseDate(EventStart, Data);
+				StartTz = Params.Find("TZID");
+			}
+			else if (IsVar(Field, "dtend"))
+			{
+				ParseDate(EventEnd, Data);
+				EndTz = Params.Find("TZID");
+			}
+			else if (IsVar(Field, "summary"))
+			{
+				c->SetStr(FIELD_CAL_SUBJECT, Data);
+			}
+			else if (IsVar(Field, "description"))
+			{
+				GAutoString Sum(UnMultiLine(Data));
+				if (Sum)
+					c->SetStr(FIELD_CAL_NOTES, Sum);
+			}
+			else if (IsVar(Field, "location"))
+			{
+				c->SetStr(FIELD_CAL_LOCATION, Data);
+			}
+			else if (IsVar(Field, "uid"))
+			{
+				char *Uid = Data;
+				c->SetStr(FIELD_UID, Uid);
+			}
+			else if (IsVar(Field, "x-showas"))
+			{
+				char *n = Data;
+
+				if (_stricmp(n, "TENTATIVE") == 0)
+				{
+					c->SetInt(FIELD_CAL_SHOW_TIME_AS, 1);
+				}
+				else if (_stricmp(n, "BUSY") == 0)
+				{
+					c->SetInt(FIELD_CAL_SHOW_TIME_AS, 2);
+				}
+				else if (_stricmp(n, "OUT") == 0)
+				{
+					c->SetInt(FIELD_CAL_SHOW_TIME_AS, 3);
+				}
+				else
+				{
+					c->SetInt(FIELD_CAL_SHOW_TIME_AS, 0);
+				}
+			}
+			else if (IsVar(Field, "attendee"))
+			{
+				char *e = stristr(Data, "mailto=");
+				if (e)
+				{
+					e += 7;
+
+					/*
+					char *Name = Variables["CN"];
+					char *Role = Variables["Role"];
+
+					GDataPropI *a = c->CreateAttendee();
+					if (a)
+					{
+						a->SetStr(FIELD_ATTENDEE_NAME, Name);
+						a->SetStr(FIELD_ATTENDEE_EMAIL, e);
+						if (_stricmp(Role, "CHAIR") == 0)
+						{
+							a->SetStr(FIELD_ATTENDEE_ATTENDENCE, 1);
+						}
+						else if (_stricmp(Role, "REQ-PARTICIPANT") == 0)
+						{
+							a->SetStr(FIELD_ATTENDEE_ATTENDENCE, 2);
+						}
+						else if (_stricmp(Role, "OPT-PARTICIPANT") == 0)
+						{
+							a->SetStr(FIELD_ATTENDEE_ATTENDENCE, 3);
+						}
+					}
+					*/
+				}
+			}
+		}
+		else if (IsTimeZone && TzInfo)
+		{
+			/* e.g.:
+			
+			TZID:Pacific Standard Time
+
+			BEGIN:STANDARD
+				DTSTART:16010101T020000
+				TZOFFSETFROM:-0700
+				TZOFFSETTO:-0800
+				RRULE:FREQ=YEARLY;INTERVAL=1;BYDAY=1SU;BYMONTH=11
+			END:STANDARD
+
+			BEGIN:DAYLIGHT
+				DTSTART:16010101T020000
+				TZOFFSETFROM:-0800
+				TZOFFSETTO:-0700
+				RRULE:FREQ=YEARLY;INTERVAL=1;BYDAY=2SU;BYMONTH=3
+			END:DAYLIGHT
+			
+			*/
+			
+			if (IsVar(Field, "TZID"))
+			{
+				TzInfo->Name = Data;
+			}
+			else if (IsNormalTz || IsDaylightTz)
+			{
+				TimeZoneSection &Sect = IsNormalTz ? TzInfo->Normal : TzInfo->Daylight;
+				if (IsVar(Field, "DTSTART"))
+					ParseDate(Sect.Start, Data);
+				else if (IsVar(Field, "TZOFFSETFROM"))
+					Sect.From = Data.Int();
+				else if (IsVar(Field, "TZOFFSETTO"))
+					Sect.To = Data.Int();
+				else if (IsVar(Field, "RRULE"))
+					Sect.Rule = Data;				
+			}			
 		}
 	}
+	
+	if (StartTz || EndTz)
+	{
+		// Did we get a timezone defn?
+		TimeZoneInfo *Match = NULL;
+		for (unsigned i=0; i<TzInfos.Length(); i++)
+		{
+			if (TzInfos[i].Name.Equals(StartTz))
+			{
+				Match = &TzInfos[i];
+				break;
+			}
+		}
+
+		// Set the TZ
+		int EffectiveTz = 0;
+		LDateTime *Start = c->GetDate(FIELD_CAL_START_UTC);
+		if (Match && Start)
+		{
+			LDateTime Norm, Dst;
+			if (EvalRule(Norm, Match->Normal, Start->Year()) &&
+				EvalRule(Dst, Match->Daylight, Start->Year()))
+			{
+				bool IsDst = false;
+				if (Norm > Dst)
+				{
+					// DST over summer
+					if (*Start >= Dst && *Start <= Norm)
+						IsDst = true;
+				}
+				else
+				{
+					// DST over winter
+					if (*Start >= Norm && *Start <= Dst)
+						IsDst = false;
+					else
+						IsDst = true;
+				}
+				
+				#ifdef _DEBUG
+				LgiTrace("Eval Start=%s, Norm=%s, Dst=%s, IsDst=%i\n", Start->Get().Get(), Norm.Get().Get(), Dst.Get().Get(), IsDst);
+				#endif
+				
+				EffectiveTz = IsDst ? Match->Daylight.To : Match->Normal.To;
+				GString sTz;
+				sTz.Printf("%4.4i,%s", EffectiveTz, StartTz.Get());
+				c->SetStr(FIELD_CAL_TIMEZONE, sTz);
+			}
+			else goto StoreStringTz;
+		}
+		else
+		{
+			// Store whatever they gave us
+			StoreStringTz:
+			if (StartTz.Equals(EndTz))
+				c->SetStr(FIELD_CAL_TIMEZONE, StartTz);
+			else if (StartTz.Get() && EndTz.Get())
+			{
+				GString s;
+				s.Printf("%s,%s", StartTz.Get(), EndTz.Get());
+				c->SetStr(FIELD_CAL_TIMEZONE, s);
+			}
+			else if (StartTz)
+				c->SetStr(FIELD_CAL_TIMEZONE, StartTz);
+			else if (EndTz)
+				c->SetStr(FIELD_CAL_TIMEZONE, EndTz);
+			
+			if (StartTz)
+			{
+				EffectiveTz = atoi(StartTz);
+			}
+		}
+		
+		if (EffectiveTz)
+		{
+			// Convert the event to UTC
+			int e = abs(EffectiveTz);
+			int Mins = (((e / 100) * 60) + (e % 100)) * (EffectiveTz < 0 ? -1 : 1);
+			LgiTrace("%s:%i - EffectiveTz=%i, Mins=%i\n", _FL, EffectiveTz, Mins);
+			if (EventStart.IsValid())
+			{
+				LgiTrace("EventStart=%s\n", EventStart.Get().Get());
+				EventStart.AddMinutes(-Mins);
+				LgiTrace("EventStart=%s\n", EventStart.Get().Get());
+			}
+			if (EventEnd.IsValid())
+				EventEnd.AddMinutes(-Mins);
+		}
+	}
+	
+	if (EventStart.IsValid())
+		c->SetDate(FIELD_CAL_START_UTC, &EventStart);
+	if (EventEnd.IsValid())
+		c->SetDate(FIELD_CAL_END_UTC, &EventEnd);
 
 	ClearFields();
 
@@ -1101,7 +1311,12 @@ bool VCal::Export(GDataPropI *c, GStreamI *o)
 					Dt->Hours(), Dt->Minutes(), Dt->Seconds());
 		}
 
+		#ifdef _MSC_VER
+		#pragma message("FIXME: add export for reminder.")
+		#else
 		#warning "FIXME: add export for reminder."
+		#endif
+
 		/*
 		int64 AlarmAction;
 		int AlarmTime;

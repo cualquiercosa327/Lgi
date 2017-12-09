@@ -74,7 +74,7 @@ public:
 				}
 
 				Value(v);
-				Update();
+				GetItem()->Update();
 			}
 		}
 	}

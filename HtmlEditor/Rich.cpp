@@ -5,6 +5,9 @@
 #include "GBox.h"
 #include "resource.h"
 #include "LgiSpellCheck.h"
+#include "GDisplayString.h"
+#include "GButton.h"
+#include "IHttp.h"
 
 #if 1
 #include "GRichTextEdit.h"
@@ -25,7 +28,13 @@ enum Ctrls
 	IDC_VIEW_IN_BROWSER,
 	IDC_SAVE_FILE,
 	IDC_SAVE,
-	IDC_EXIT
+	IDC_EXIT,
+	IDC_INSTALL
+};
+
+enum Messages
+{
+	M_INSTALL = M_USER + 200,
 };
 
 #define LOAD_DOC 1
@@ -55,7 +64,192 @@ char Src[] =
 
 #endif
 
-class App : public GWindow
+class GCapabilityInstallTarget : public GCapabilityTarget
+{
+public:
+	virtual void StartInstall(CapsHash *Caps) = 0;
+};
+
+class CapsBar : public GView
+{
+	GCapabilityInstallTarget *App;
+	GCapabilityTarget::CapsHash *Caps;
+	GButton *Ok, *Install;
+
+public:
+	CapsBar(GCapabilityInstallTarget *Parent, GCapabilityTarget::CapsHash *caps)
+	{
+		App = Parent;
+		Caps = caps;
+		Ok = new GButton(IDOK, 0, 0, -1, -1, "Ok");
+		Install = new GButton(IDC_INSTALL, 0, 0, -1, -1, "Install");
+	}
+
+	bool Pour(GRegion &r)
+	{
+		GRect *rc = FindLargestEdge(r, GV_EDGE_TOP);
+		if (!rc)
+			return false;
+
+		GRect p = *rc;
+		p.y2 = p.y1 + SysFont->GetHeight() + 11;
+		SetPos(p);
+		return true;	
+	}
+
+	int OnNotify(GViewI *Ctrl, int Flags)
+	{
+		switch (Ctrl->GetId())
+		{
+			case IDOK:
+			{
+				App->OnCloseInstaller();
+				break;
+			}
+			case IDC_INSTALL:
+			{
+				App->StartInstall(Caps);
+				break;
+			}
+		}
+		return 0;
+	}
+
+	void OnPaint(GSurface *pDC)
+	{
+		pDC->Colour(GColour::Red);
+		pDC->Rectangle();
+
+		const char *k;
+		SysFont->Colour(GColour::White, GColour::Red);
+		SysFont->Transparent(true);
+
+		GString s = "Missing components: ";
+		for (bool b = Caps->First(&k); b; b = Caps->Next(&k))
+		{
+			s += k;
+			s += " ";
+		}
+
+		GDisplayString d(SysFont, s);
+		d.Draw(pDC, 6, 6);
+
+		if (Ok && Install)
+		{
+			int x = GetClient().x2 - 6;
+			if (!Ok->IsAttached())
+				Ok->Attach(this);
+			GRect r;
+			r.Set(0, 0, Ok->X()-1, Ok->Y()-1);
+			r.Offset(x - r.X(), (Y() - r.Y()) >> 1);
+			Ok->SetPos(r);			
+
+			if (!Install->IsAttached())
+				Install->Attach(this);
+			r.Set(0, 0, Install->X()-1, Install->Y()-1);
+			r.Offset(Ok->GetPos().x1 - 6 - r.X(), (Y() - r.Y()) >> 1);
+			Install->SetPos(r);
+		}
+			
+	}
+};
+
+class InstallThread : public GEventTargetThread
+{
+	int AppHnd;
+
+public:
+	InstallThread(int appHnd) : GEventTargetThread("InstallThread")
+	{
+		AppHnd = appHnd;
+	}
+
+	GMessage::Result OnEvent(GMessage *m)
+	{
+		switch (m->Msg())
+		{
+			case M_INSTALL:
+			{
+				GAutoPtr<GString> Component((GString*)m->A());
+				const char *Base = "http://memecode.com/components/lookup.php?app=Scribe&wordsize=%i&component=%s&os=win64&version=2.2.0";
+				GString s;
+				s.Printf(Base, sizeof(NativeInt)*8, Component->Get());
+				#if _MSC_VER == _MSC_VER_VS2013
+				s += "&tags=vc12";
+				#elif _MSC_VER == _MSC_VER_VS2008
+				s += "&tags=vc9";
+				#endif
+
+				GMemStream o(1024);
+				GString err;
+				int Installed = 0;
+				if (!LgiGetUri(&o, &err, s))
+				{
+					LgiTrace("%s:%i - Get URI failed.\n", _FL);
+					break;
+				}
+
+				GXmlTree t;
+				GXmlTag r;
+				o.SetPos(0);
+				if (!t.Read(&r, &o))
+				{
+					LgiTrace("%s:%i - Bad XML.\n", _FL);
+					break;
+				}
+
+				if (!r.IsTag("components"))
+				{
+					LgiTrace("%s:%i - No components tag.\n", _FL);
+					break;
+				}
+
+				for (GXmlTag *c = r.Children.First(); c; c = r.Children.Next())
+				{
+					if (c->IsTag("file"))
+					{
+						int Bytes = c->GetAsInt("size");
+						const char *Link = c->GetContent();
+						GMemStream File(1024);
+						if (LgiGetUri(&File, &err, Link))
+						{
+							char p[MAX_PATH];
+							LgiGetExeFile(p, sizeof(p));
+							LgiTrimDir(p);
+							LgiMakePath(p, sizeof(p), p, LgiGetLeaf(Link));
+
+							GFile f;
+							if (f.Open(p, O_WRITE))
+							{
+								f.SetSize(0);
+								if (f.Write(File.GetBasePtr(), File.GetSize()) == File.GetSize())
+								{
+									GAutoPtr<GString> comp(new GString(*Component));
+									PostObject(AppHnd, M_INSTALL, comp);
+									Installed++;
+								}
+								else
+									LgiTrace("%s:%i - Couldn't write to '%p'.\n", _FL, p);
+							}
+							else LgiTrace("%s:%i - Can't open '%s' for writing.\n", _FL, p);
+						}
+						else LgiTrace("%s:%i - Link download failed.\n", _FL);
+					}
+				}
+
+				if (Installed == 0)
+				{
+					LgiTrace("%s:%i - No installed components from URI:\n%s\n", _FL, s.Get());
+				}
+				break;
+			}
+		}
+
+		return 0;
+	}
+};
+
+class App : public GWindow, public GCapabilityInstallTarget, public GNetwork
 {
 	GBox *Split;
 	GTextView3 *Txt;
@@ -66,6 +260,9 @@ class App : public GWindow
 	EditCtrl *Edit;
 
 	GAutoPtr<GSpellCheck> Speller;
+	CapsBar *Bar;
+	GCapabilityTarget::CapsHash Caps;
+	GAutoPtr<GEventTargetThread> Installer;
 
 public:
 	App()
@@ -73,6 +270,7 @@ public:
 		LastChange = 0;
 		Edit = 0;
 		Txt = 0;
+		Bar = NULL;
 		Tabs = NULL;
 		Tree = NULL;
 		Name("Rich Text Testbed");
@@ -119,6 +317,7 @@ public:
 						Edit->SetSpellCheck(Speller);
 					Edit->Sunken(true);
 					Edit->SetId(IDC_EDITOR);
+					Edit->Register(this);
 					// Edit->Name("<span style='color:#800;'>The rich editor control is not functional in this build.</span><b>This is some bold</b>");
 
 					#if LOAD_DOC
@@ -166,6 +365,66 @@ public:
 			if (Edit)
 				Edit->Focus(true);
 		}
+	}
+
+	~App()
+	{
+		Installer.Reset();
+	}
+
+	bool NeedsCapability(const char *Name, const char *Param = NULL)
+	{
+		if (Caps.Find(Name))
+			return true;
+
+		Caps.Add(Name, true);
+
+		if (!Bar)
+		{
+			Bar = new CapsBar(this, &Caps);
+			if (Bar)
+			{
+				AddView(Bar, 0);
+				AttachChildren();
+				
+				PourAll();
+				Invalidate();
+			}
+		}
+		return true;
+	}
+	
+	void StartInstall(CapsHash *Caps)
+	{
+		if (!Installer)
+			Installer.Reset(new InstallThread(AddDispatch()));
+		if (Installer)
+		{
+			const char *c;
+			for (bool b = Caps->First(&c); b; b = Caps->Next(&c))
+			{
+				GAutoPtr<GString> s(new GString(c));
+				Installer->PostObject(Installer->GetHandle(), M_INSTALL, s);
+			}
+		}
+	}
+
+	void OnInstall(CapsHash *Caps, bool Status)
+	{
+		DeleteObj(Bar);
+		if (Edit && Caps && Status)
+		{
+			const char *k;
+			for (bool b = Caps->First(&k); b; b = Caps->Next(&k))
+				Edit->PostEvent(M_COMPONENT_INSTALLED, new GString(k));
+		}
+		PourAll();
+	}
+
+	void OnCloseInstaller()
+	{
+		DeleteObj(Bar);
+		PourAll();
 	}
 
 	int OnCommand(int Cmd, int Event, OsView Wnd)
@@ -285,6 +544,22 @@ public:
 			if (t)
 				Edit->Name(t);
 		}
+	}
+
+	GMessage::Result OnEvent(GMessage *m)
+	{
+		if (m->Msg() == M_INSTALL)
+		{
+			GAutoPtr<GString> c((GString*)m->A());
+			if (c)
+			{
+				GCapabilityTarget::CapsHash h;
+				h.Add(*c, true);
+				OnInstall(&h, true);
+			}
+		}
+
+		return GWindow::OnEvent(m);
 	}
 };
 

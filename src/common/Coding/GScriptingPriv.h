@@ -382,6 +382,8 @@ public:
 class GVirtualMachine : public GScriptUtils
 {
 	friend class GVmDebuggerWnd;
+	friend class LScriptArguments;
+	
 	class GVirtualMachinePriv *d;
 
 public:

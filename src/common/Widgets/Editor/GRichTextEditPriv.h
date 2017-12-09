@@ -420,7 +420,7 @@ public:
 	bool ScrollChange;
 
 	// Capabilities
-	GArray<CtrlCap> NeedsCap;
+	// GArray<CtrlCap> NeedsCap;
 
 	// Debug stuff
 	GArray<GRect> DebugRects;
@@ -677,9 +677,14 @@ public:
 		// Events
 		bool PostEvent(int Cmd, GMessage::Param a = 0, GMessage::Param b = 0)
 		{
-			return d->View->PostEvent(	M_BLOCK_MSG,
+			bool r = d->View->PostEvent(M_BLOCK_MSG,
 										(GMessage::Param)(Block*)this,
 										(GMessage::Param)new GMessage(Cmd, a, b));
+			#if defined(_DEBUG)
+			if (!r)
+				LgiTrace("%s:%i - Warning: PostEvent failed..\n", _FL);
+			#endif
+			return r;
 		}
 
 		GMessage::Result OnEvent(GMessage *Msg)
@@ -714,6 +719,7 @@ public:
 			virtual bool IsValid() { return false; }
 			virtual bool IsBusy(bool Stop = false) { return false; }
 			virtual Block *Clone() = 0;
+			virtual void OnComponentInstall(GString Name) {}
 
 			// Copy some or all of the text out
 			virtual ssize_t CopyAt(ssize_t Offset, ssize_t Chars, GArray<uint32> *Text) { return false; }
@@ -1039,7 +1045,8 @@ public:
 		struct ScaleInf
 		{
 			GdcPt2 Sz;
-			GAutoPtr<GStreamI> Jpg;
+			GString MimeType;
+			GAutoPtr<GStreamI> Compressed;
 			int Percent;
 
 			ScaleInf()
@@ -1055,6 +1062,7 @@ public:
 		GNamedStyle *Style;
 		int Scale;
 		GRect SourceValid;
+		GAutoString FileMimeType;
 
 		GArray<ScaleInf> Scales;
 		int ResizeIdx;
@@ -1109,6 +1117,7 @@ public:
 		void DumpNodes(GTreeItem *Ti);
 		#endif
 		Block *Clone();
+		void OnComponentInstall(GString Name);
 
 		// Events
 		GMessage::Result OnEvent(GMessage *Msg);
@@ -1152,6 +1161,7 @@ public:
 	bool Merge(Transaction *Trans, Block *a, Block *b);
 	bool DeleteSelection(Transaction *t, char16 **Cut);
 	GRichTextEdit::RectType PosToButton(GMouse &m);
+	void OnComponentInstall(GString Name);
 
 	struct CreateContext
 	{

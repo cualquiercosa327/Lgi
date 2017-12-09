@@ -118,6 +118,10 @@ bool IHttp::Open(GAutoPtr<GSocketI> S, const char *RemoteHost, int Port)
 		{
 			return true;
 		}
+		else
+		{
+			LgiTrace("%s:%i - %s\n", _FL, Socket->GetErrorString());
+		}
 	}
 
 	return false;

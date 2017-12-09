@@ -30,7 +30,7 @@ const char SourcePatterns[] = "*.c;*.h;*.cpp;*.cc;*.java;*.d;*.php;*.html;*.css"
 const char *AddFilesProgress::DefaultExt = "c,cpp,cc,cxx,h,hpp,hxx,html,css,json,js,jsx,txt,png,jpg,jpeg,rc,xml";
 
 #define STOP_BUILD_TIMEOUT			3000
-#ifdef WIN32
+#ifdef WINDOWS
 #define LGI_STATIC_LIBRARY_EXT		"lib"
 #else
 #define LGI_STATIC_LIBRARY_EXT		"a"
@@ -1049,10 +1049,12 @@ GDebugContext *IdeProject::Execute(ExeAction Act)
 
 bool IdeProject::IsMakefileUpToDate()
 {
-	List<IdeProject> Children;
-	if (GetChildProjects(Children))
+	List<IdeProject> Proj;
+	if (GetChildProjects(Proj))
 	{
-		for (IdeProject *p = Children.First(); p; p = Children.Next())
+		Proj.Insert(this);
+		
+		for (IdeProject *p = Proj.First(); p; p = Proj.Next())
 		{
 			// Is the project file modified after the makefile?
 			GAutoString Proj = p->GetFullPath();
@@ -1077,7 +1079,7 @@ bool IdeProject::IsMakefileUpToDate()
 				dir.Close();
 			}
 
-			// printf("Proj=%s - Timestamps " LGI_PrintfInt64 " - " LGI_PrintfInt64 "\n", Proj.Get(), ProjModTime, MakeModTime);
+			printf("Proj=%s - Timestamps " LGI_PrintfInt64 " - " LGI_PrintfInt64 "\n", Proj.Get(), ProjModTime, MakeModTime);
 			if (ProjModTime != 0 &&
 				MakeModTime != 0 &&
 				ProjModTime > MakeModTime)
@@ -1108,6 +1110,8 @@ void IdeProject::Build(bool All, bool Release)
 
 	if (GetApp())
 		GetApp()->PostEvent(M_APPEND_TEXT, 0, 0);
+
+	SetClean();
 
 	if (!IsMakefileUpToDate())
 		CreateMakefile(GetCurrentPlatform());
@@ -1316,7 +1320,7 @@ ProjectStatus IdeProject::OpenFile(char *FileName)
 		return OpenError;
 
 	bool Ok = OnOpen(Prog, &r);
-	if (Prog.Cancel())
+	if (Prog.IsCancelled())
 		return OpenCancel;
 	else if (!Ok)
 		return OpenError;
@@ -1331,6 +1335,8 @@ ProjectStatus IdeProject::OpenFile(char *FileName)
 bool IdeProject::SaveFile()
 {
 	GAutoString Full = GetFullPath();
+
+	printf("IdeProject::SaveFile %s %i\n", Full.Get(), d->Dirty);
 	if (ValidStr(Full) && d->Dirty)
 	{
 		GFile f;
@@ -1354,7 +1360,9 @@ bool IdeProject::SaveFile()
 				if (Cp.Copy(&Buf, &f))
 					d->Dirty = false;
 			}
+			else LgiTrace("%s:%i - Failed to write XML.\n", _FL);
 		}
+		else LgiTrace("%s:%i - Couldn't open '%s' for writing.\n", _FL, Full.Get());
 	}
 
 	if (d->UserFileDirty)
@@ -1375,6 +1383,8 @@ bool IdeProject::SaveFile()
 			d->UserFileDirty = false;
 		}
 	}
+
+	printf("\tIdeProject::SaveFile %i %i\n", d->Dirty, d->UserFileDirty);
 
 	return	!d->Dirty &&
 			!d->UserFileDirty;
@@ -1413,6 +1423,7 @@ int IdeProject::AllocateId()
 
 bool IdeProject::SetClean()
 {
+	// printf("IdeProject::SetClean %i %i\n", d->Dirty, d->UserFileDirty);
 	if (d->Dirty || d->UserFileDirty)
 	{
 		if (!ValidStr(d->FileName))
@@ -2965,7 +2976,7 @@ IdeTree::IdeTree() : GTree(IDC_PROJECT_TREE, 0, 0, 100, 100)
 	MultiSelect(true);
 }
 
-void IdeTree::OnAttach()
+void IdeTree::OnCreate()
 {
 	SetWindow(this);
 }

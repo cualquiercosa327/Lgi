@@ -34,6 +34,8 @@
 #define CARBON				1
 #endif
 
+#define LGI_32BIT			1
+
 //////////////////////////////////////////////////////////////////
 // Typedefs
 typedef WindowRef			OsWindow;

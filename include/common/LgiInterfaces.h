@@ -203,6 +203,7 @@ public:
 
 	/// Process an error
 	virtual int Error(void *Param) { return 0; }
+	virtual const char *GetErrorString() { return NULL; }
 };
 
 class GAppI

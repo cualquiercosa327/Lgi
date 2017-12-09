@@ -95,7 +95,7 @@ bool GUri::Set(const char *uri)
 	// Scan ahead and check for protocol...
 	const char *p = s;
 	while (*s && IsAlpha(*s)) s++;
-	if (s[0] == ':') // && s[1] == '/' && s[2] == '/'
+	if (s[0] == ':' && (s - p) > 1)
 	{
 		Protocol = NewStr(p, s - p);
 		s++;

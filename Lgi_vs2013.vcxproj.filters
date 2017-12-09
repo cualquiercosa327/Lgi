@@ -535,12 +535,6 @@
     <ClInclude Include="include\common\GImageList.h">
       <Filter>Source Files\Widgets</Filter>
     </ClInclude>
-    <ClInclude Include="include\common\GListItemCheckBox.h">
-      <Filter>Source Files\Widgets</Filter>
-    </ClInclude>
-    <ClInclude Include="include\common\GListItemRadioBtn.h">
-      <Filter>Source Files\Widgets</Filter>
-    </ClInclude>
     <ClInclude Include="include\common\GPopup.h">
       <Filter>Source Files\Widgets</Filter>
     </ClInclude>
@@ -717,6 +711,12 @@
     </ClInclude>
     <ClInclude Include="include\common\LThreadEvent.h">
       <Filter>Source Files\Core\Threads</Filter>
+    </ClInclude>
+    <ClInclude Include="include\common\LListItemCheckBox.h">
+      <Filter>Source Files\Widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="include\common\LListItemRadioBtn.h">
+      <Filter>Source Files\Widgets</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

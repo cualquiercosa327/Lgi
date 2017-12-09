@@ -458,7 +458,9 @@ public:
 		
 		printf("Screen: %i x %i @ %i bpp (%s)\n", ScrX, ScrY, ScrBits, GColourSpaceToString(ScrColourSpace));
 		
+		#if !LGI_RPI
 		OptVal[GDC_PROMOTE_ON_LOAD] = ScrBits;
+		#endif
 
 		// Calcuate lookups
 		CharSquareData = new ulong[255+255+1];

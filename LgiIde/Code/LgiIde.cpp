@@ -38,6 +38,120 @@
 #define OPT_SPLIT_PX			"SplitPos"
 #define OPT_OUTPUT_PX			"OutputPx"
 
+#define IsSymbolChar(c)			( IsDigit(c) || IsAlpha(c) || strchr("-_", c) )
+
+//////////////////////////////////////////////////////////////////////////////////////////
+class FindInProject : public GDialog
+{
+	AppWnd *App;
+	LList *Lst;
+
+public:
+	FindInProject(AppWnd *app)
+	{
+		Lst = NULL;
+		App = app;
+		if (LoadFromResource(IDC_FIND_PROJECT_FILE))
+		{
+			MoveSameScreen(App);
+
+			GViewI *v;
+			if (GetViewById(IDC_TEXT, v))
+				v->Focus(true);
+			if (!GetViewById(IDC_FILES, Lst))
+				return;
+
+			RegisterHook(this, GKeyEvents, 0);
+		}
+	}
+
+	bool OnViewKey(GView *v, GKey &k)
+	{
+		switch (k.vkey)
+		{
+			case VK_UP:
+			case VK_DOWN:
+			case VK_PAGEDOWN:
+			case VK_PAGEUP:
+			{
+				return Lst->OnKey(k);
+				break;
+			}
+			case VK_RETURN:
+			{
+				LListItem *i = Lst->GetSelected();
+				if (i)
+					App->GotoReference(i->GetText(0), 1, false);
+				EndModal(1);
+				break;
+			}
+			case VK_ESCAPE:
+			{
+				EndModal(0);
+				break;
+			}
+		}
+	
+		return false;
+	}
+
+	void Search(const char *s)
+	{
+		IdeProject *p = App->RootProject();
+		if (!p || !s)
+			return;
+		
+		GArray<ProjectNode*> Matches, Nodes;
+
+		List<IdeProject> All;
+		p->GetChildProjects(All);
+		All.Insert(p);							
+		for (p=All.First(); p; p=All.Next())
+		{
+			p->GetAllNodes(Nodes);
+		}
+
+		FilterFiles(Matches, Nodes, s);
+
+		Lst->Empty();
+		for (unsigned i=0; i<Matches.Length(); i++)
+		{
+			LListItem *li = new LListItem;
+			li->SetText(Matches[i]->GetFileName());
+			Lst->Insert(li);
+		}
+
+		Lst->ResizeColumnsToContent();
+	}
+
+	int OnNotify(GViewI *c, int f)
+	{
+		switch (c->GetId())
+		{
+			case IDC_FILES:
+				if (f == GNotifyItem_DoubleClick)
+				{
+					LListItem *i = Lst->GetSelected();
+					if (i)
+					{
+						App->GotoReference(i->GetText(0), 1, false);
+						EndModal(1);
+					}
+				}
+				break;
+			case IDC_TEXT:
+				if (f != GNotify_ReturnKey)
+					Search(c->Name());
+				break;
+			case IDCANCEL:
+				EndModal(0);
+				break;
+		}
+
+		return 0;
+	}
+};
+
 //////////////////////////////////////////////////////////////////////////////////////////
 char AppName[] = "LgiIde";
 
@@ -2678,13 +2792,12 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 							Dlg.Params->ProjectFiles.Add(Nodes[i]->GetFullPath());
 					}
 
+					GVariant var = d->FindParameters->Type == FifSearchSolution;
+					GetOptions()->SetValue(OPT_ENTIRE_SOLUTION, var);
+
+					d->Finder->Stop();
+					d->Finder->PostEvent(FindInFilesThread::M_START_SEARCH, (GMessage::Param) new FindParams(d->FindParameters));
 				}
-
-				GVariant var = d->FindParameters->Type == FifSearchSolution;
-				GetOptions()->SetValue(OPT_ENTIRE_SOLUTION, var);
-
-				d->Finder->Stop();
-				d->Finder->PostEvent(FindInFilesThread::M_START_SEARCH, (GMessage::Param) new FindParams(d->FindParameters));
 			}
 			break;
 		}
@@ -2714,9 +2827,72 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			}
 			break;
 		}
+		case IDM_FIND_PROJECT_FILE:
+		{
+			IdeDoc *Doc = FocusDoc();
+			if (Doc)
+			{
+				Doc->SearchSymbol();
+			}
+			else
+			{
+				FindInProject Dlg(this);
+				Dlg.DoModal();
+			}
+			break;
+		}
 		case IDM_FIND_REFERENCES:
 		{
-			LgiMsg(this, "Not implemented yet.", AppName);
+			GViewI *f = LgiApp->GetFocus();
+			GDocView *doc = dynamic_cast<GDocView*>(f);
+			if (!doc)
+				break;
+
+			ssize_t c = doc->GetCaret();
+			if (c < 0)
+				break;
+
+			GString Txt = doc->Name();
+			char *s = Txt.Get() + c;
+			char *e = s;
+			while (	s > Txt.Get() &&
+					IsSymbolChar(s[-1]))
+				s--;
+			while (*e &&
+					IsSymbolChar(*e))
+				e++;
+			if (e <= s)
+				break;
+
+			GString Word(s, e - s);
+
+			if (!d->Finder)
+				d->Finder.Reset(new FindInFilesThread(d->AppHnd));
+			if (!d->Finder)
+				break;
+
+			IdeProject *p = RootProject();
+			if (!p)
+				break;
+			List<IdeProject> Projects;
+			Projects.Insert(p);
+			p->GetChildProjects(Projects);
+
+			GArray<ProjectNode*> Nodes;
+			for (p = Projects.First(); p; p = Projects.Next())
+				p->GetAllNodes(Nodes);
+
+			GAutoPtr<FindParams> Params(new FindParams);
+			Params->Type = FifSearchSolution;
+			Params->MatchWord = true;
+			Params->Text = Word;
+			for (unsigned i = 0; i < Nodes.Length(); i++)
+			{
+				Params->ProjectFiles.New() = Nodes[i]->GetFullPath();
+			}
+
+			d->Finder->Stop();
+			d->Finder->PostEvent(FindInFilesThread::M_START_SEARCH, (GMessage::Param) Params.Release());
 			break;
 		}
 		case IDM_PREV_LOCATION:

@@ -2617,7 +2617,6 @@ void GTag::LoadImage(const char *Uri)
 						!_stricmp(u.Protocol, "https") ||
 						!_stricmp(u.Protocol, "ftp")
 					);
-
 	if (IsRemote && !LdImg)
 	{
 		Html->NeedsCapability("RemoteContent");
@@ -6735,6 +6734,8 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection, uint16 Depth)
 					for (unsigned i=0; i<TextPos.Length(); i++)
 					{
 						GFlowRect *Tr = TextPos[i];
+						if (!Tr)
+							break;
 						ssize_t Pos = (Tr->Text - Text()) - Base;
 
 						LgiAssert(Tr->y2 >= Tr->y1);

@@ -253,7 +253,23 @@ int GSubMenu::Float(GView *From, int x, int y, bool Left)
 						NULL, NULL, NULL, NULL,
 						Left ? 1 : 3,
 						Gtk::gtk_get_current_event_time());
-	Gtk::gtk_main();
+
+	// In the case where there is no mouse button down, the popup menu can fail to 
+	// show. If that happens and we enter the gtk_main loop then the application will
+	// be a bad state. No GSubMenuDeactivate event will get called to exit the float
+	// loop. There may be a better way to do this.
+	Gtk::GdkScreen *screen = NULL;
+	Gtk::gint mx, my;
+	Gtk::GdkModifierType mask;
+	Gtk::gdk_display_get_pointer(Gtk::gdk_display_get_default(),
+								&screen,
+								&mx,
+								&my,
+								&mask);
+	if (mask & (GDK_BUTTON1_MASK|GDK_BUTTON2_MASK|GDK_BUTTON3_MASK|GDK_BUTTON4_MASK|GDK_BUTTON5_MASK))
+		Gtk::gtk_main();
+	else
+		LgiTrace("%s:%i - Popup loop avoided, no button down?\n", _FL);
 
 	_ContextMenuId = NULL;
 	return MenuId;

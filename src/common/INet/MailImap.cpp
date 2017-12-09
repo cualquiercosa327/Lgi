@@ -91,25 +91,12 @@ bool JsonDecode(GXmlTag &t, const char *s)
 	return true;
 }
 
-struct StrRange
-{
-	ssize_t Start, End;
-	
-	void Set(ssize_t s, ssize_t e)
-	{
-		Start = s;
-		End = e;
-	}
-
-	ssize_t Len() { return End - Start; }
-};
-
 #define SkipWhite(s)		while (*s && strchr(WhiteSpace, *s)) s++
 #define SkipSpaces(s)		while (*s && strchr(" \t", *s)) s++
 #define SkipNonWhite(s)		while (*s && !strchr(WhiteSpace, *s)) s++;
 #define ExpectChar(ch)		if (*s != ch) return 0; s++
 
-ssize_t ParseImapResponse(char *Buffer, ssize_t BufferLen, GArray<StrRange> &Ranges, int Names)
+ssize_t MailIMap::ParseImapResponse(char *Buffer, ssize_t BufferLen, GArray<StrRange> &Ranges, int Names)
 {
 	Ranges.Length(0);
 
@@ -2500,9 +2487,9 @@ int MailIMap::Fetch(bool ByUid,
 						char *r = t[0];
 						if (*r == 'A')
 						{
-							Status = !_stricmp(t[1], "Ok");
+							bool IsOk = !_stricmp(t[1], "Ok");
 							int Response = atoi(r + 1);
-							Log(Line, Status ? GSocketI::SocketMsgReceive : GSocketI::SocketMsgError);
+							Log(Line, IsOk ? GSocketI::SocketMsgReceive : GSocketI::SocketMsgError);
 							if (Response == Cmd)
 							{
 								Done = true;
@@ -3430,14 +3417,14 @@ bool MailIMap::OnIdle(int Timeout, GArray<Untagged> &Resp)
 					Untagged &u = Resp.New();
 					if (IsDigit(a[0]))
 					{
-						u.Cmd = b;
+						u.Cmd = b.Get();
 						u.Id = atoi(a);
 						if (ValidStr(s))
-							u.Param.Reset(NewStr(s));
+							u.Param = s;
 					}
 					else
 					{
-						u.Param.Reset(NewStr(Dlg+2));
+						u.Param = Dlg + 2;
 					}
 
 					Status = true;

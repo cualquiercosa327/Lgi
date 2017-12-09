@@ -1353,7 +1353,7 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 		PropType PropId = Lut.Find(Prop);
 		PropTypes PropType = (PropTypes)((int)PropId >> 8);
 		SkipWhite(s);
-		const char *ValueStart = s;
+		// const char *ValueStart = s;
 
 		// Do the data parsing based on type
 		switch (PropType)
@@ -2288,7 +2288,7 @@ GCss::Selector &GCss::Selector::operator =(const GCss::Selector &s)
 
 bool GCss::Selector::TokString(GAutoString &a, const char *&s)
 {
-	const char *Init = s;
+	// const char *Init = s;
 	const char *e = s;
 	while
 	(
@@ -2766,14 +2766,14 @@ bool GCss::Store::Parse(const char *&c, int Depth)
 	if (!c)
 		return false;
 
-	const char *Start = c;
+	// const char *Start = c;
 	c = SkipComment(c);
 	if (!strncmp(c, "<!--", 4))
 	{
 		c += 4;
 	}
 
-	for (; c && *c; )
+	while (c && *c)
 	{
 		c = SkipComment(c);
 
@@ -2834,8 +2834,9 @@ bool GCss::Store::Parse(const char *&c, int Depth)
 		SkipWhiteSpace(c);
 
 		// read styles
-		if (*c++ == '{')
+		if (*c == '{')
 		{
+			c++;
 			SkipWhiteSpace(c);
 			
 			if (Cur && Cur->IsAtMedia())

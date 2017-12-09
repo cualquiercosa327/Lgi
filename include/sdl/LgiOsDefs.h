@@ -45,6 +45,12 @@
 	#define POSIX			1
 #endif
 
+#ifdef __x86_64
+	#define LGI_64BIT		1
+#else
+	#define LGI_32BIT		1
+#endif
+
 // Include SDL, if it's missing:
 // sudo apt-get install libsdl1.2-dev
 #include <SDL.h>

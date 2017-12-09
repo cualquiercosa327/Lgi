@@ -128,7 +128,7 @@ class GFileSelectPrivate
 		else
 			Info.Flags |= OFN_HIDEREADONLY;
 
-		Info.Flags |= OFN_EXPLORER | OFN_ENABLESIZING;
+		Info.Flags |= OFN_EXPLORER | OFN_ENABLESIZING | OFN_NOCHANGEDIR;
 		Files.DeleteArrays();
 	}
 

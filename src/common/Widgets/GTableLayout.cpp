@@ -33,7 +33,7 @@ enum CellFlag
 #include "GCss.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
-// #define DEBUG_LAYOUT		539
+// #define DEBUG_LAYOUT		24
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
@@ -541,7 +541,7 @@ bool TableCell::SetVariant(const char *Name, GVariant &Value, char *Array)
 						if (gv)
 						{
 							Children.New().View = gv;
-							Table->Children.Insert(gv);
+							Table->AddView(gv);
 							gv->SetParent(Table);
 
 							GText *t = dynamic_cast<GText*>(gv);
@@ -682,9 +682,8 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 		{
 			Max = Wid.ToPx(Tx, Table->GetFont()) - Padding.x1 - Padding.x2;
 			
-			if (!Wid.IsDynamic())
+			if (Wid.Type == GCss::LenPercent  || !Wid.IsDynamic())
 			{
-				Min = Max;
 				Flag = SizeFixed;
 
 				if (Padding.x1 + Padding.x2 > Min)
@@ -693,11 +692,14 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 					Padding.x1 = Padding.x2 = 0;
 				}
 			}
-			else Flag = SizeGrow;
+			else
+			{
+				Flag = SizeGrow;
+			}
 		}
 	}
 
-	if (!Wid.IsValid() || Wid.IsDynamic())
+	if (!Wid.IsValid() || Flag != SizeFixed)
 	{
 		Child *c = &Children[0];
 		for (int i=0; i<Children.Length(); i++, c++)
@@ -1052,6 +1054,7 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 			GRect r;
 			r.ZOff(Width-1, Table->Y()-1);
 			Tbl->d->InitBorderSpacing();
+			Tbl->d->LayoutHorizontal(r);
 			Tbl->d->LayoutVertical(r, &MinY, &MaxY, &Flags);
 			Pos.y2 += MinY;
 			
@@ -1348,7 +1351,10 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 					c->Cell.y1 == Cy &&
 					c->Cell.X() == 1)
 				{
-					c->PreLayout(MinCol[Cx], MaxCol[Cx], ColFlags[Cx]);
+					int &MinC = MinCol[Cx];
+					int &MaxC = MaxCol[Cx];
+					CellFlag &ColF = ColFlags[Cx];
+					c->PreLayout(MinC, MaxC, ColF);
 				}
 
 				Cx += c->Cell.X();

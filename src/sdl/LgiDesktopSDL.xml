@@ -82,6 +82,9 @@
 				</Node>
 				<Node Name="Win32" Type="1" Platforms="15" Open="0" Id="24" />
 				<Node File="../../include/common/GEventTargetThread.h" Type="3" Platforms="15" />
+				<Node File="../common/Lgi/LMutex.cpp" Type="2" Platforms="15" />
+				<Node File="../common/Lgi/LThreadCommon.cpp" Type="2" Platforms="15" />
+				<Node File="../common/Lgi/LThreadEvent.cpp" Type="2" Platforms="15" />
 			</Node>
 			<Node Name="Variant" Type="1" Platforms="15" Open="0" Id="25">
 				<Node File="../common/Lgi/GVariant.cpp" Type="2" Platforms="15" />
@@ -174,15 +177,16 @@
 		</Node>
 		<Node Name="General" Type="1" Platforms="15" Open="0" Id="44">
 			<Node Name="Clipboard" Type="1" Platforms="15" Open="0" Id="45">
-				<Node Name="Win32" Type="1" Platforms="15" Open="0" Id="46">
-					<Node File="./Lgi/GClipBoard.cpp" Type="2" Platforms="1" />
+				<Node Name="Haiku" Type="1" Platforms="15" Open="0" Id="48">
+					<Node File="./Lgi/GClipBoard.cpp" Type="2" Platforms="8" />
 				</Node>
 				<Node Name="Linux" Type="1" Platforms="15" Open="0" Id="47">
 					<Node File="./Lgi/GClipBoard.cpp" Type="2" Platforms="2" />
 				</Node>
-				<Node Name="Haiku" Type="1" Platforms="15" Open="0" Id="48">
-					<Node File="./Lgi/GClipBoard.cpp" Type="2" Platforms="8" />
+				<Node Name="Win32" Type="1" Platforms="15" Open="0" Id="46">
+					<Node File="./Lgi/GClipBoard.cpp" Type="2" Platforms="1" />
 				</Node>
+				<Node File="../../include/common/GClipBoard.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Data Dlg" Type="1" Platforms="15" Open="0" Id="49">
 				<Node File="../common/General/GPassword.cpp" Type="2" Platforms="15" />
@@ -267,22 +271,24 @@
 		<Node File="../../include/sdl/LgiOsDefs.h" Type="3" Platforms="2" />
 	</Node>
 	<Node Name="Build" Type="1" Platforms="15" Id="1">
-		<Node File="./Makefile.sdl" Type="9" Platforms="15" />
+		<Node File="./MakefileDesktop.sdl" Type="9" Platforms="15" />
 	</Node>
 	<Settings>
 		<General>
 			<Makefile>
 				<Windows>.\Makefile.windows</Windows>
-				<Linux>./Makefile.sdl</Linux>
+				<Linux>./MakefileDesktop.sdl</Linux>
 				<Haiku>Makefile.beos</Haiku>
 				<Mac>Makefile.macosx</Mac>
 			</Makefile>
 			<Defines>
 				<All>
 					<Debug>LGI_LIBRARY
-HAS_FILE_CMD=1</Debug>
+HAS_FILE_CMD=1
+USE_POSIX_SEM=1</Debug>
 					<Release>LGI_LIBRARY
-HAS_FILE_CMD=1</Release>
+HAS_FILE_CMD=1
+USE_POSIX_SEM=1</Release>
 				</All>
 				<Windows>
 					<Debug>WINNATIVE
@@ -294,11 +300,9 @@ WINDOWS</Release>
 			</Defines>
 			<Compiler>
 				<Windows>MingW</Windows>
-				<Linux>cross</Linux>
+				<Linux>gcc</Linux>
 			</Compiler>
-			<CrossCompiler>
-				<Linux>/opt/cross/x-tools/arm-unknown-linux-gnueabi/bin/arm-unknown-linux-gnueabi-g++</Linux>
-			</CrossCompiler>
+			<CrossCompiler />
 			<Executable>
 				<Linux />
 			</Executable>
@@ -310,8 +314,10 @@ WINDOWS</Release>
 		<Build>
 			<IncludePaths>
 				<All>
-					<Debug>../../include/common</Debug>
-					<Release>../../include/common</Release>
+					<Debug>../../include/common
+/usr/include/freetype2/freetype</Debug>
+					<Release>../../include/common
+/usr/include/freetype2/freetype</Release>
 				</All>
 				<Windows>
 					<Debug>include/win32
@@ -389,8 +395,8 @@ freetype</Release>
 					<Release>lgi</Release>
 				</Windows>
 				<Linux>
-					<Debug>lgi_sdl</Debug>
-					<Release>lgi_sdl</Release>
+					<Debug>lgi_sdl_desktop</Debug>
+					<Release>lgi_sdl_desktop</Release>
 				</Linux>
 			</TargetName>
 			<SystemIncludes>
@@ -415,15 +421,6 @@ freetype</Release>
 			<UseHardTabs>
 				<All>1</All>
 			</UseHardTabs>
-			<CommentFile />
-			<CommentFunction />
-		</Editor>
-		<Advanced>
-			<OtherMakefileRules />
-		</Advanced>
-	</Settings>
-</Project>
-UseHardTabs>
 			<CommentFile />
 			<CommentFunction />
 		</Editor>

@@ -201,6 +201,7 @@ class LgiClass GEventTargetThread :
 
 protected:
 	int PostTimeout;
+	int Processing;
 
 public:
 	GEventTargetThread(GString Name) :
@@ -210,6 +211,7 @@ public:
 	{
 		Loop = true;
 		PostTimeout = 1000;
+		Processing = 0;
 
 		Run();
 	}
@@ -276,7 +278,7 @@ public:
 
 	size_t GetQueueSize()
 	{
-		return Msgs.Length();
+		return Msgs.Length() + Processing;
 	}
 
 	bool PostEvent(int Cmd, GMessage::Param a = 0, GMessage::Param b = 0)
@@ -299,24 +301,24 @@ public:
 			LThreadEvent::WaitStatus s = Event.Wait();
 			if (s == LThreadEvent::WaitSignaled)
 			{
-				while (true)
+				GArray<GMessage*> m;
+				if (Lock(_FL))
 				{
-					GAutoPtr<GMessage> Msg;
-					if (Lock(_FL))
+					if (Msgs.Length())
 					{
-						if (Msgs.Length())
-						{
-							Msg.Reset(Msgs.First());
-							Msgs.DeleteAt(0, true);
-						}
-						Unlock();
+						m = Msgs;
+						Msgs.Length(0);
 					}
-
-					if (!Loop || !Msg)
-						break;
-
-					OnEvent(Msg);
+					Unlock();
 				}
+
+				Processing = m.Length();
+				for (unsigned i=0; Loop && i < m.Length(); i++)
+				{
+					Processing--;
+					OnEvent(m[i]);
+				}
+				m.DeleteObjects();
 			}
 			else
 			{

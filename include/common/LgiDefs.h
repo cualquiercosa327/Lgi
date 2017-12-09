@@ -73,9 +73,12 @@ typedef		unsigned short				uint16;
 
 	#include <wchar.h>
 	#include <stddef.h>
-
-	#ifndef MAC
-		typedef int bool;
+	#if defined(_MSC_VER) && _MSC_VER<1800
+		typedef unsigned char bool;
+		#define true	1
+		#define false	0
+	#else
+		#include <stdbool.h>
 	#endif
 
 #endif
@@ -202,8 +205,16 @@ typedef union
 
 /// Returns true if 'c' is an ascii character
 #define IsAlpha(c)					    (((c) >= 'a' && (c) <= 'z') || ((c) >= 'A' && (c) <= 'Z'))
+
 /// Returns true if 'c' is a digit (number)
 #define IsDigit(c)					    ((c) >= '0' && (c) <= '9')
+
+/// Returns true if 'c' is a hexadecimal digit
+#define IsHexDigit(c)					( \
+											((c) >= '0' && (c) <= '9') || \
+											((c) >= 'a' && (c) <= 'f') || \
+											((c) >= 'A' && (c) <= 'F') \
+										)
 
 // Byte swapping
 #define LgiSwap16(a)					( (((a) & 0xff00) >> 8) | \

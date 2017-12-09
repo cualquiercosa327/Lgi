@@ -202,6 +202,7 @@ public:
 
 	~GImageListPriv()
 	{
+		Cache.DeleteObjects();
 	}
 };
 
@@ -238,11 +239,12 @@ GImageList::GImageList(int x, int y, GSurface *pDC)
 		Blt(0, 0, pDC);
 		Op(Old);
 		
-		/*
-		printf("Toolbar input image is %s, has_alpha=%i\n",
+		#if 0
+		printf("Toolbar input image is %s, has_alpha=%i, has_pad=%i\n",
 			GColourSpaceToString(pDC->GetColourSpace()),
-			pDC->HasAlpha());
-		*/
+			pDC->HasAlpha(),
+			HasPad(pDC->GetColourSpace()));
+		#endif
 				
 		if (pDC->GetBits() < 32 || HasPad(pDC->GetColourSpace()))
 		{

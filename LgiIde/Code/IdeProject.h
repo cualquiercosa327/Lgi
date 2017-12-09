@@ -198,7 +198,7 @@ class IdeTree : public GTree, public GDragDropTarget
 public:
 	IdeTree();
 	
-	void OnAttach();
+	void OnCreate();
 	void OnDragExit();
 	int WillAccept(List<char> &Formats, GdcPt2 p, int KeyState);
 	int OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState);

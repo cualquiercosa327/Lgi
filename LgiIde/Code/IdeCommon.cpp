@@ -23,7 +23,7 @@ bool IdeCommon::OnOpen(GProgressDlg &Prog, GXmlTag *Src)
 		return false;
 
 	List<GXmlTag>::I it = Src->Children.Start();
-	for (GXmlTag *c = *it; c && !Prog.Cancel(); c = *++it)
+	for (GXmlTag *c = *it; c && !Prog.IsCancelled(); c = *++it)
 	{
 		bool Processed = false;
 		if (c->IsTag("Node"))

@@ -947,12 +947,15 @@ void GFileSelectDlg::OnUpFolder()
 	char *Cur = GetCtrlName(IDC_PATH);
 	if (Cur)
 	{
-		char Dir[256];
+		char Dir[MAX_PATH];
 		strcpy(Dir, Cur);
 		if (strlen(Dir) > 3)
 		{
 			LgiTrimDir(Dir);
-			if (!strchr(Dir, DIR_CHAR)) strcat(Dir, DIR_STR);
+
+			if (!strchr(Dir, DIR_CHAR))
+				strcat(Dir, DIR_STR);
+
 			SetFolder(Dir);
 			OnFolder();
 		}

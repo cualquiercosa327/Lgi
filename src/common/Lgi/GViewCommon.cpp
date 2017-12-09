@@ -229,6 +229,7 @@ bool GView::AddView(GViewI *v, int Where)
 			gv->_Window = _Window;
 		}
 		v->SetParent(this);
+		v->OnAttach();
 	}
 	return Add;
 }
@@ -333,7 +334,6 @@ void GView::OnAttach()
 	List<GViewI>::I it = Children.Start();
 	for (GViewI *v = *it; v; v = *++it)
 	{
-
 		if (!v->GetParent())
 			v->SetParent(this);
 	}
@@ -537,8 +537,8 @@ void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 			HIViewGetFrame(_View, &rc);
 			HIViewFeatures f;
 			HIViewGetFeatures(_View, &f);
-			bool op = (f & kHIViewIsOpaque) != 0;
-			bool vis = IsControlVisible(_View);
+			// bool op = (f & kHIViewIsOpaque) != 0;
+			// bool vis = IsControlVisible(_View);
 			
 			if (r2.x1 >= 0)
 			{
@@ -555,7 +555,6 @@ void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 			}
 			
 			GetWindow()->_Dump();
-			int asd=0;
 		}
 		#endif
 	}

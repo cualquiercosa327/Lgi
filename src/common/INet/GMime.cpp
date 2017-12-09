@@ -26,6 +26,28 @@ int CastInt(T in)
 	return out;
 }
 
+int AltScore(char *Mt)
+{
+	int Score = 0;
+	if (Mt)
+	{
+		if (stristr(Mt, "/html"))
+			Score = 1;
+		else if (stristr(Mt, "/related"))
+			Score = 2;
+	}
+	printf("Score '%s' = %i\n", Mt, Score);
+	DeleteArray(Mt);
+	return Score;
+}
+
+int AltSortCmp(GMime **a, GMime **b)
+{
+	int a_score = AltScore((*a)->GetMimeType());
+	int b_score = AltScore((*b)->GetMimeType());
+	return a_score - b_score;
+}
+
 ///////////////////////////////////////////////////////////////////////
 enum MimeBoundary
 {
@@ -1355,6 +1377,13 @@ int GMime::GMimeText::GMimeEncode::Push(GStreamI *Dest, GStreamEnd *End)
 		// Write children
 		if (Mime->Children.Length() && Boundary)
 		{
+			GAutoString Mt(Mime->GetMimeType());
+			if (Mt && !_stricmp(Mt, "multipart/alternative"))
+			{
+				// Sort the children to order richer content at the bottom...
+				Mime->Children.Sort(AltSortCmp);
+			}
+			
 			for (unsigned i=0; i<Mime->Children.Length(); i++)
 			{
 				Ch = sprintf_s(Buf, sizeof(Buf), "--%s\r\n", Boundary);

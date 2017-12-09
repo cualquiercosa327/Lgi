@@ -7,6 +7,7 @@
 #include "Lgi.h"
 #include "GSkinEngine.h"
 #include "GButton.h"
+#include "LgiRes.h"
 
 // Size of extra pixels, beyond the size of the text itself.
 GdcPt2 GButton::Overhead =
@@ -110,13 +111,18 @@ void GButton::SetIsToggle(bool toggle)
 	}
 }
 
-void GButton::OnAttach()
+void GButton::OnCreate()
 {
 	SetFont(SysFont);
 	if (d->WantsDefault && GetWindow())
 	{
 		GetWindow()->SetDefault(this);
 	}
+}
+
+void GButton::OnAttach()
+{
+	LgiResources::StyleElement(this);
 }
 
 bool GButton::Default()

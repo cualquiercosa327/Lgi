@@ -145,6 +145,7 @@ public:
 	enum WordWrapType {
 		WrapNormal,
 		WrapBreakWord,
+		WrapNone, // Not in the CSS standard but useful for apps anyway.
 	};
 
 	enum DisplayType {
@@ -1148,6 +1149,7 @@ public:
 	Accessor(FontVariant, FontVariantType, FontVariantInherit, PropNull);
 	Accessor(FontWeight, FontWeightType, FontWeightInherit, PropNull);
 	Accessor(TextDecoration, TextDecorType, TextDecorInherit, PropNull);
+	Accessor(WordWrap, WordWrapType, WrapNormal, PropNull);
 
 	Accessor(Color, ColorDef, ColorDef(), PropNull);
 	Accessor(NoPaintColor, ColorDef, ColorDef(), PropNull);

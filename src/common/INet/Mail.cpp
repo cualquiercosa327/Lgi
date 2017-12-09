@@ -35,45 +35,31 @@ const char sMultipartRelated[] = "multipart/related";
 const char sAppOctetStream[] = "application/octet-stream";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
-LogEntry::LogEntry(const char *t, ssize_t len, COLOUR col)
+LogEntry::LogEntry(GColour col)
 {
-	c.Set(col, 24);
-	Text = 0;
-	
-	if (t)
-	{
-		if (len < 0)
-			len = strlen(t);
-
-		// Strip off any whitespace on the end of the line.
-		while (len > 0 && strchr(" \t\r\n", t[len-1]))
-			len--;
-		
-
-		#if 0 // Debug weird characters in log file.
-		GStringPipe p(256);
-		for (char *s = t; *s; s++)
-		{
-			if (IsAlpha(*s) || IsDigit(*s))
-			{
-				p.Write(s, 1);
-			}
-			else
-			{
-				p.Print("%%%.2x", *s);
-			}
-		}
-		
-		Text = p.NewStr();
-		#else
-		Text = NewStr(t, len);
-		#endif
-	}
+	c = col;
 }
 
-LogEntry::~LogEntry()
+bool LogEntry::Add(const char *t, ssize_t len)
 {
-	DeleteArray(Text);
+	if (!t)
+		return false;
+
+	if (len < 0)
+		len = strlen(t);
+
+	/*
+	// Strip off any whitespace on the end of the line.
+	while (len > 0 && strchr(" \t\r\n", t[len-1]))
+		len--;
+	*/
+
+	GAutoWString w(Utf8ToWide(t, len));
+	if (!w)
+		return false;
+
+	size_t ch = StrlenW(w);
+	return Txt.Add(w, ch);	
 }
 	
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -467,7 +453,7 @@ char *EncodeRfc2047(char *Str, const char *CodePage, List<char> *CharsetPrefs, s
 		}
 
 		int Chars = 0;
-		for (int i=0; i<Len; i++)
+		for (unsigned i=0; i<Len; i++)
 		{
 			if (Str[i] & 0x80)
 				Chars++;
@@ -2773,7 +2759,7 @@ bool MailPop3::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks
 								Ok = Buffer[0] == '+';
 								if (Ok)
 								{
-									Log(Buffer, GSocketI::SocketMsgReceive);
+									// Log(Buffer, GSocketI::SocketMsgReceive);
 
 									// The Buffer was zero'd at the beginning garrenteeing
 									// NULL termination

@@ -597,8 +597,6 @@
     <ClInclude Include="include\common\GImageList.h" />
     <ClInclude Include="include\common\GItemContainer.h" />
     <ClInclude Include="include\common\GLibrary.h" />
-    <ClInclude Include="include\common\GListItemCheckBox.h" />
-    <ClInclude Include="include\common\GListItemRadioBtn.h" />
     <ClInclude Include="include\common\GMatrix.h" />
     <ClInclude Include="include\common\GMem.h" />
     <ClInclude Include="include\common\GMenu.h" />
@@ -637,6 +635,8 @@
     <ClInclude Include="include\common\LgiInterfaces.h" />
     <ClInclude Include="include\common\LgiRes.h" />
     <ClInclude Include="include\common\LList.h" />
+    <ClInclude Include="include\common\LListItemCheckBox.h" />
+    <ClInclude Include="include\common\LListItemRadioBtn.h" />
     <ClInclude Include="include\common\LMutex.h" />
     <ClInclude Include="include\common\LThread.h" />
     <ClInclude Include="include\common\LThreadEvent.h" />

@@ -733,12 +733,12 @@ void StrcatW(char16 *a, const char16 *b)
 	}
 }
 
-int StrlenW(const char16 *a)
+ssize_t StrlenW(const char16 *a)
 {
 	if (!a)
 		return 0;
 
-	int i = 0;
+	ssize_t i = 0;
 	while (*a++)
 	{
 		i++;

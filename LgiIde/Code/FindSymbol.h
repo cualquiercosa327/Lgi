@@ -50,7 +50,11 @@ struct FindSymResult
 	// Sort symbol results by:
 	int Compare(FindSymResult *r)
 	{
-		// Headers first...
+		// Score first...
+		if (Score != r->Score)
+			return r->Score - Score;
+
+		// Then headers...
 		int c1 = Class();
 		int c2 = r->Class();
 		if (c1 != c2)
@@ -92,7 +96,8 @@ public:
 	{
 		FileAdd,
 		FileRemove,
-		FileReparse
+		FileReparse,
+		FileRemoveAll,
 	};
 
 	struct SymFileParams

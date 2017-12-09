@@ -69,9 +69,6 @@ GRadioGroup::~GRadioGroup()
 
 void GRadioGroup::OnAttach()
 {
-	SetFont(SysFont);
-	AttachChildren();
-	Value(d->InitVal);
 }
 
 GMessage::Result GRadioGroup::OnEvent(GMessage *Msg)
@@ -112,6 +109,9 @@ void GRadioGroup::SetFont(GFont *Fnt, bool OwnIt)
 
 void GRadioGroup::OnCreate()
 {
+	SetFont(SysFont);
+	AttachChildren();
+	Value(d->InitVal);
 }
 
 int64 GRadioGroup::Value()

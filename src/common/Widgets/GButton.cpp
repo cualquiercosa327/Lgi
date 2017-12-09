@@ -83,12 +83,9 @@ GButton::GButton(int id, int x, int y, int cx, int cy, const char *name) :
 	#ifndef MAC
 	SetFont(SysBold, false);
 	#endif
-	LgiResources::StyleElement(this);
 	
 	if (LgiApp->SkinEngine)
-	{
 		SetFont(LgiApp->SkinEngine->GetDefaultFont(_ObjName));
-	}
 }
 
 GButton::~GButton()
@@ -500,8 +497,13 @@ void GButton::Value(int64 i)
 	Invalidate();
 }
 
+void GButton::OnCreate()
+{
+}
+
 void GButton::OnAttach()
 {
+	LgiResources::StyleElement(this);
 	if (d->WantsDefault)
 	{
 		d->WantsDefault = false;
