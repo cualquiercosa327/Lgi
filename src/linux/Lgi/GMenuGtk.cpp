@@ -219,7 +219,7 @@ void GSubMenu::OnDeactivate()
 	Gtk::gtk_main_quit();
 }
                                                          
-int GSubMenu::Float(GView *From, int x, int y, bool Left)
+int GSubMenu::Float(GView *From, int x, int y, int Button)
 {
 	static int Depth = 0;
 
@@ -251,7 +251,7 @@ int GSubMenu::Float(GView *From, int x, int y, bool Left)
 	GdcPt2 Pos(x, y);
 	Gtk::gtk_menu_popup(GtkCast(Info, gtk_menu, GtkMenu),
 						NULL, NULL, NULL, NULL,
-						Left ? 1 : 3,
+						Button,
 						Gtk::gtk_get_current_event_time());
 
 	// In the case where there is no mouse button down, the popup menu can fail to 
@@ -266,7 +266,14 @@ int GSubMenu::Float(GView *From, int x, int y, bool Left)
 								&mx,
 								&my,
 								&mask);
-	if (mask & (GDK_BUTTON1_MASK|GDK_BUTTON2_MASK|GDK_BUTTON3_MASK|GDK_BUTTON4_MASK|GDK_BUTTON5_MASK))
+	if
+	(
+		Button == 0
+		||
+		(
+			mask & (GDK_BUTTON1_MASK|GDK_BUTTON2_MASK|GDK_BUTTON3_MASK|GDK_BUTTON4_MASK|GDK_BUTTON5_MASK)
+		)
+	)
 		Gtk::gtk_main();
 	else
 		LgiTrace("%s:%i - Popup loop avoided, no button down?\n", _FL);

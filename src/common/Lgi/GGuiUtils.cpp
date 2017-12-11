@@ -7,13 +7,15 @@
 #endif
 
 //////////////////////////////////////////////////////////////////////////////////
+/*
 #ifndef VK_CONTEXTKEY
 #define VK_CONTEXTKEY 0x5d
 #endif
+*/
 
 bool GKey::IsContextMenu()
 {
-	#if WINNATIVE
+	#if WINNATIVE || defined(LINUX)
 	return !IsChar && vkey == VK_CONTEXTKEY;
 	#else
 	return false;

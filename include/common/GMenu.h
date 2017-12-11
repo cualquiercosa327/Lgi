@@ -223,6 +223,13 @@ public:
 		int Id
 	);
 
+	enum 
+	{
+		BtnLeft = 1,
+		BtnMiddle = 2,
+		BtnRight = 3,
+	};
+
 	/// Floats the submenu anywhere on the screen
 	int Float
 	(
@@ -233,7 +240,7 @@ public:
 		/// The y coord of the top-left corner
 		int y,
 		/// True if the menu is tracking the left button, else it tracks the right button
-		bool Left = false
+		int Button = 0
 	);
 	
 	/// Returns the parent menu item

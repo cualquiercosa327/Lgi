@@ -490,6 +490,7 @@ enum MessageBoxType
 		VK_MODE			= GDK_Mode_switch, /* "Alt Gr" key (could be wrong) */
 		VK_DELETE		= GDK_Delete,
 		VK_POWER		= 0x10000,	/* Power Macintosh power key */
+		VK_CONTEXTKEY	= GDK_Menu,
 
 		/* Add any other keys here */
 		VK_LAST
