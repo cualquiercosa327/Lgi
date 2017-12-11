@@ -3123,7 +3123,7 @@ void GTextView3::DoContextMenu(GMouse &m)
 
 	int Id = 0;
 	m.ToScreen();
-	switch (Id = RClick.Float(this, m.x, m.y))
+	switch (Id = RClick.Float(this, m))
 	{
 		#if LUIS_DEBUG
 		case IDM_DUMP:

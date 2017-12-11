@@ -1288,7 +1288,7 @@ void GWindow::OnTrayClick(GMouse &m)
 			#if WINNATIVE
 			SetForegroundWindow(Handle());
 			#endif
-			int Result = RClick.Float(this, m.x, m.y);
+			int Result = RClick.Float(this, m);
 			#if WINNATIVE
 			PostMessage(Handle(), WM_NULL, 0, 0);
 			#endif

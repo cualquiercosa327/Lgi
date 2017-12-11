@@ -211,7 +211,7 @@ bool GSubMenu::RemoveItem(GMenuItem *Item)
 	return false;
 }
 
-int GSubMenu::Float(GView *From, int x, int y, bool Left)
+int GSubMenu::Float(GView *From, int x, int y, int Button)
 {
 	int Cmd = 0;
 
@@ -229,7 +229,7 @@ int GSubMenu::Float(GView *From, int x, int y, bool Left)
 									TPM_LEFTALIGN |
 									TPM_TOPALIGN |
 									TPM_RETURNCMD |
-									((Left)?TPM_LEFTBUTTON:TPM_RIGHTBUTTON),
+									((Button == BtnLeft) ? TPM_LEFTBUTTON : TPM_RIGHTBUTTON),
 									x,
 									y,
 									0,

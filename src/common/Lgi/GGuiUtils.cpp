@@ -7,11 +7,9 @@
 #endif
 
 //////////////////////////////////////////////////////////////////////////////////
-/*
-#ifndef VK_CONTEXTKEY
+#if !defined(VK_CONTEXTKEY) && defined(WINDOWS)
 #define VK_CONTEXTKEY 0x5d
 #endif
-*/
 
 bool GKey::IsContextMenu()
 {

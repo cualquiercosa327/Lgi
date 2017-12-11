@@ -279,7 +279,7 @@ void GCombo::DoMenu()
 
 	if (d->Menu)
 	{
-		int Result = d->Menu->Float(this, p.x, p.y, true);
+		int Result = d->Menu->Float(this, p.x, p.y, GSubMenu::BtnLeft);
 		if (Result)
 		{
 			GetWindow()->OnCommand(Result, 0, Handle());
@@ -401,7 +401,7 @@ void GCombo::DoMenu()
 			RClick.AppendItem("", Base+i, false);
 		}
 
-		int Result = RClick.Float(this, p.x, p.y, true);
+		int Result = RClick.Float(this, p.x, p.y, GSubMenu::BtnLeft);
 		if (Result >= Base)
 		{
 			d->Current = Result - Base;

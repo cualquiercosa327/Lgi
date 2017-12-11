@@ -1053,7 +1053,7 @@ void GToolBar::ContextMenu(GMouse &m)
 			Txt->Checked(d->Text);
 
 			bool Save = false;
-			int Pick = Sub->Float(this, m.x, m.y);
+			int Pick = Sub->Float(this, m);
 			switch (Pick)
 			{
 				case 1000:

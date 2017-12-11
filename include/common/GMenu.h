@@ -240,9 +240,22 @@ public:
 		/// The y coord of the top-left corner
 		int y,
 		/// True if the menu is tracking the left button, else it tracks the right button
-		int Button = 0
+		int Button = BtnRight
 	);
-	
+
+	int Float(GView *Parent, GMouse m)
+	{
+		int Btn = 0;
+		if (m.Left())
+			Btn = BtnLeft;
+		else if (m.Middle())
+			Btn = BtnMiddle;
+		else if (m.Right())
+			Btn = BtnRight;
+		m.ToScreen();
+		return Float(Parent, m.x, m.y, Btn);
+	}
+
 	/// Returns the parent menu item
 	GMenuItem *GetParent() { return Parent; }
 	
