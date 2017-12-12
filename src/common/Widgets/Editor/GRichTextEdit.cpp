@@ -2220,20 +2220,34 @@ void GRichTextEdit::OnEnter(GKey &k)
 			if (d->Cursor->Offset == 0)
 			{
 				GRichTextPriv::Block *Prev = d->Prev(b);
-				if (Prev &&
-					Prev->AddText(Trans, Prev->Length(), Nl, 1))
+				if (Prev)
+					Changed = Prev->AddText(Trans, Prev->Length(), Nl, 1);
+				else // No previous... must by first block... create new block:
 				{
-					Changed = true;
+					GRichTextPriv::TextBlock *tb = new GRichTextPriv::TextBlock(d);
+					if (tb)
+					{
+						Changed = tb->AddText(Trans, 0, Nl, 1);
+						d->Blocks.AddAt(0, tb);
+					}
 				}
 			}
 			else if (d->Cursor->Offset == b->Length())
 			{
 				GRichTextPriv::Block *Next = d->Next(b);
-				if (Next &&
-					Next->AddText(Trans, 0, Nl, 1))
+				if (Next)
 				{
-					Changed = true;
-					d->Cursor->Set(Next, 0, -1);
+					if ((Changed = Next->AddText(Trans, 0, Nl, 1)))
+						d->Cursor->Set(Next, 0, -1);
+				}
+				else // No next block. Create one:
+				{
+					GRichTextPriv::TextBlock *tb = new GRichTextPriv::TextBlock(d);
+					if (tb)
+					{
+						Changed = tb->AddText(Trans, 0, Nl, 1);
+						d->Blocks.Add(tb);
+					}
 				}
 			}
 		}

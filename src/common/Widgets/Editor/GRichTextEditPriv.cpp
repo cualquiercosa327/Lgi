@@ -311,6 +311,7 @@ GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv **Ptr) :
 	SpellCheck = NULL;
 	SpellDictionaryLoaded = false;
 	HtmlLinkAsCid = false;
+	ScrollLinePx = SysFont->GetHeight();
 	if (Font.Reset(new GFont))
 		*Font = *SysFont;
 
@@ -610,17 +611,20 @@ void GRichTextPriv::ScrollTo(GRect r)
 	GRect Content = Areas[GRichTextEdit::ContentArea];
 	Content.Offset(-Content.x1, ScrollOffsetPx-Content.y1);
 
-	if (r.y1 < Content.y1)
+	if (ScrollLinePx > 0)
 	{
-		int OffsetPx = max(r.y1, 0);
-		View->SetScrollPos(0, OffsetPx / ScrollLinePx);
-		InvalidateDoc(NULL);
-	}
-	if (r.y2 > Content.y2)
-	{
-		int OffsetPx = r.y2 - Content.Y();
-		View->SetScrollPos(0, (OffsetPx + ScrollLinePx - 1) / ScrollLinePx);
-		InvalidateDoc(NULL);
+		if (r.y1 < Content.y1)
+		{
+			int OffsetPx = max(r.y1, 0);
+			View->SetScrollPos(0, OffsetPx / ScrollLinePx);
+			InvalidateDoc(NULL);
+		}
+		if (r.y2 > Content.y2)
+		{
+			int OffsetPx = r.y2 - Content.Y();
+			View->SetScrollPos(0, (OffsetPx + ScrollLinePx - 1) / ScrollLinePx);
+			InvalidateDoc(NULL);
+		}
 	}
 }
 
@@ -1247,6 +1251,9 @@ bool GRichTextPriv::Layout(GScrollBar *&ScrollY)
 	Flow f(this);
 	
 	ScrollLinePx = View->GetFont()->GetHeight();
+	LgiAssert(ScrollLinePx > 0);
+	if (ScrollLinePx <= 0)
+		ScrollLinePx = 16;
 
 	GRect Client = Areas[GRichTextEdit::ContentArea];
 	Client.Offset(-Client.x1, -Client.y1);
