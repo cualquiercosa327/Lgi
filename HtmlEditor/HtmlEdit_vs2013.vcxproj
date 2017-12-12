@@ -285,6 +285,7 @@
     <ClCompile Include="..\src\common\Widgets\Editor\BlockCursor.cpp" />
     <ClCompile Include="..\src\common\Widgets\Editor\GRichTextEdit.cpp" />
     <ClCompile Include="..\src\common\Widgets\Editor\GRichTextEditPriv.cpp" />
+    <ClCompile Include="..\src\common\Widgets\Editor\HorzRuleBlock.cpp" />
     <ClCompile Include="..\src\common\Widgets\Editor\ImageBlock.cpp" />
     <ClCompile Include="..\src\common\Widgets\Editor\TextBlock.cpp" />
     <ClCompile Include="..\src\win32\Lgi\SpellCheckWindows.cpp" />

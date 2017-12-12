@@ -346,6 +346,7 @@ public:
 GRichTextPriv::ImageBlock::ImageBlock(GRichTextPriv *priv) : Block(priv)
 {
 	ThreadHnd = 0;
+	IsDeleted = false;
 	LayoutDirty = false;
 	Pos.ZOff(-1, -1);
 	Style = NULL;
@@ -368,6 +369,7 @@ GRichTextPriv::ImageBlock::ImageBlock(const ImageBlock *Copy) : Block(Copy->d)
 	LayoutDirty = true;
 	SourceImg.Reset(new GMemDC(Copy->SourceImg));
 	Size = Copy->Size;
+	IsDeleted = false;
 
 	Margin = Copy->Margin;
 	Border = Copy->Border;
@@ -584,7 +586,7 @@ void GRichTextPriv::ImageBlock::SetStyle(GNamedStyle *s)
 
 ssize_t GRichTextPriv::ImageBlock::Length()
 {
-	return 1;
+	return IsDeleted ? 0 : 1;
 }
 
 bool GRichTextPriv::ImageBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media)
@@ -1353,10 +1355,9 @@ bool GRichTextPriv::ImageBlock::ChangeStyle(Transaction *Trans, ssize_t Offset, 
 ssize_t GRichTextPriv::ImageBlock::DeleteAt(Transaction *Trans, ssize_t BlkOffset, ssize_t Chars, GArray<uint32> *DeletedText)
 {
 	// The image is one "character"
-	if (BlkOffset == 0)
-	{
-		
-	}
+	IsDeleted = BlkOffset == 0;
+	if (IsDeleted)
+		return true;
 
 	return false;
 }

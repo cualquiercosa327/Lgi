@@ -48,6 +48,7 @@
 #define TEXT_REMOVE_STYLE				"Remove Style"
 #define TEXT_CAP_BTN					"Ok"
 #define TEXT_EMOJI						":)"
+#define TEXT_HORZRULE					"HR"
 
 #define RTE_CURSOR_BLINK_RATE			1000
 #define RTE_PULSE_RATE					200
@@ -1038,6 +1039,56 @@ public:
 		Block *Split(Transaction *Trans, ssize_t AtOffset);
 	};
 
+	class HorzRuleBlock : public Block
+	{
+		GRect Pos;
+		bool IsDeleted;
+
+	public:
+		HorzRuleBlock(GRichTextPriv *priv);
+		HorzRuleBlock(const HorzRuleBlock *Copy);
+		~HorzRuleBlock();
+
+		bool IsValid();
+
+		// No state change methods
+		const char *GetClass() { return "HorzRuleBlock"; }
+		int GetLines();
+		bool OffsetToLine(ssize_t Offset, int *ColX, GArray<int> *LineY);
+		int LineToOffset(int Line);
+		GRect GetPos() { return Pos; }
+		void Dump();
+		GNamedStyle *GetStyle(ssize_t At = -1);
+		void SetStyle(GNamedStyle *s);
+		ssize_t Length();
+		bool ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media);
+		bool GetPosFromIndex(BlockCursor *Cursor);
+		bool HitTest(HitTestResult &htr);
+		void OnPaint(PaintContext &Ctx);
+		bool OnLayout(Flow &flow);
+		ssize_t GetTextAt(ssize_t Offset, GArray<StyleText*> &t);
+		ssize_t CopyAt(ssize_t Offset, ssize_t Chars, GArray<uint32> *Text);
+		bool Seek(SeekType To, BlockCursor &Cursor);
+		ssize_t FindAt(ssize_t StartIdx, const uint32 *Str, GFindReplaceCommon *Params);
+		void IncAllStyleRefs();
+		void SetSpellingErrors(GArray<GSpellCheck::SpellingError> &Errors);
+		bool DoContext(GSubMenu &s, GdcPt2 Doc, ssize_t Offset, bool Spelling);
+		#ifdef _DEBUG
+		void DumpNodes(GTreeItem *Ti);
+		#endif
+		Block *Clone();
+
+		// Events
+		GMessage::Result OnEvent(GMessage *Msg);
+
+		// Transactional changes
+		bool AddText(Transaction *Trans, ssize_t AtOffset, const uint32 *Str, ssize_t Chars = -1, GNamedStyle *Style = NULL);
+		bool ChangeStyle(Transaction *Trans, ssize_t Offset, ssize_t Chars, GCss *Style, bool Add);
+		ssize_t DeleteAt(Transaction *Trans, ssize_t BlkOffset, ssize_t Chars, GArray<uint32> *DeletedText = NULL);
+		bool DoCase(Transaction *Trans, ssize_t StartIdx, ssize_t Chars, bool Upper);
+		Block *Split(Transaction *Trans, ssize_t AtOffset);
+	};
+
 	class ImageBlock :
 		public Block
 	{
@@ -1067,6 +1118,7 @@ public:
 		GArray<ScaleInf> Scales;
 		int ResizeIdx;
 		int ThreadBusy;
+		bool IsDeleted;
 		void UpdateThreadBusy(const char *File, int Line, int Off);
 
 		int GetThreadHandle();
@@ -1167,6 +1219,7 @@ public:
 	{
 		TextBlock *Tb;
 		ImageBlock *Ib;
+		HorzRuleBlock *Hrb;
 		GArray<uint32> Buf;
 		char16 LastChar;
 		GFontCache *FontCache;
@@ -1177,6 +1230,7 @@ public:
 		{
 			Tb = NULL;
 			Ib = NULL;
+			Hrb = NULL;
 			LastChar = '\n';
 			FontCache = fc;
 			StartOfLine = true;

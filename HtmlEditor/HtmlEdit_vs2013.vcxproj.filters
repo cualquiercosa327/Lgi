@@ -83,6 +83,9 @@
     <ClCompile Include="..\src\common\INet\OpenSSLSocket.cpp">
       <Filter>Lgi</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\common\Widgets\Editor\HorzRuleBlock.cpp">
+      <Filter>Controls\RichTextEdit</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">

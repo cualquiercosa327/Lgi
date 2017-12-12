@@ -350,6 +350,8 @@ GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv **Ptr) :
 	//BtnState[GRichTextEdit::CapabilityBtn].IsPress = true;
 	Values[GRichTextEdit::EmojiBtn] = TEXT_EMOJI;
 	BtnState[GRichTextEdit::EmojiBtn].IsPress = true;
+	Values[GRichTextEdit::HorzRuleBtn] = TEXT_HORZRULE;
+	BtnState[GRichTextEdit::HorzRuleBtn].IsPress = true;
 
 	Padding(GCss::Len(GCss::LenPx, 4));
 	EmptyDoc();
@@ -1708,6 +1710,32 @@ bool GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 			new EmojiMenu(this, p);
 			break;
 		}
+		case GRichTextEdit::HorzRuleBtn:
+		{
+			if (!Cursor || !Cursor->Blk)
+				break;
+
+			TextBlock *tb = dynamic_cast<TextBlock*>(Cursor->Blk);
+			if (!tb)
+				break;
+
+			GAutoPtr<Transaction> Trans(new Transaction);
+			int InsertIdx = Blocks.IndexOf(tb) + 1;
+			GRichTextPriv::Block *After = NULL;
+			if (Cursor->Offset < tb->Length())
+			{
+				After = tb->Split(Trans, Cursor->Offset);
+				if (!After)
+					break;
+			}
+			Blocks.AddAt(InsertIdx++, new HorzRuleBlock(this));
+			if (After)
+				Blocks.AddAt(InsertIdx++, After);
+
+			AddTrans(Trans);
+			InvalidateDoc(NULL);
+			break;
+		}
 		default:
 			return false;
 	}
@@ -1775,9 +1803,10 @@ void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
 			GDisplayString Ds(SysFont, TEXT_REMOVE_STYLE);
 			Areas[GRichTextEdit::RemoveStyleBtn] = AllocPx(Ds.X() + 12, 6);
 		}
+		for (unsigned int i=GRichTextEdit::EmojiBtn; i<GRichTextEdit::MaxArea; i++)
 		{
-			GDisplayString Ds(SysFont, TEXT_EMOJI);
-			Areas[GRichTextEdit::EmojiBtn] = AllocPx(Ds.X() + 12, 6);
+			GDisplayString Ds(SysFont, Values[i].Str());
+			Areas[i] = AllocPx(Ds.X() + 12, 6);
 		}
 
 		for (unsigned i = GRichTextEdit::FontFamilyBtn; i < GRichTextEdit::MaxArea; i++)
@@ -1912,7 +1941,7 @@ bool GRichTextPriv::ToHtml(GArray<GDocView::ContentMedia> *Media)
 		b->ToHtml(p, Media);
 	}
 		
-	p.Print("</body>\n");
+	p.Print("</body>\n</html>\n");
 	return UtfNameCache.Reset(p.NewStr());
 }
 	
@@ -1980,6 +2009,7 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 				break;
 			}
 			case TAG_IMG:
+			case TAG_HR:
 			{
 				ctx.Tb = NULL;
 				IsBlock = true;
@@ -2024,32 +2054,31 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 		}
 
 		GNamedStyle *CachedStyle = AddStyleToCache(Style);			
+
 		if
 		(
-			(
-				IsBlock
-				&&
-				ctx.LastChar != '\n'
-			)
+			(IsBlock && ctx.LastChar != '\n')
 			||
 			c->TagId == TAG_BR
 		)
 		{
+			/* This breaks IMG and HR layout
 			if (!ctx.Tb)
 			{
 				Blocks.Add(ctx.Tb = new TextBlock(this));
 				if (CachedStyle && ctx.Tb)
 					ctx.Tb->SetStyle(CachedStyle);
 			}
+			*/
 			if (ctx.Tb)
 			{
 				const uint32 Nl[] = {'\n', 0};
-				ctx.Tb->AddText(NoTransaction, -1, Nl, 1, NULL/*CachedStyle*/);
+				ctx.Tb->AddText(NoTransaction, -1, Nl, 1, NULL);
 				ctx.LastChar = '\n';
 				ctx.StartOfLine = true;
 			}
 		}
-
+		
 		bool EndStyleChange = false;
 
 		if (c->TagId == TAG_IMG)
@@ -2080,6 +2109,10 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 
 				ctx.Ib->Load();
 			}
+		}
+		else if (c->TagId == TAG_HR)
+		{
+			Blocks.Add(ctx.Hrb = new HorzRuleBlock(this));
 		}
 		else if (c->TagId == TAG_A)
 		{

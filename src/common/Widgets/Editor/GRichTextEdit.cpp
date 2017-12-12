@@ -1626,18 +1626,36 @@ bool GRichTextEdit::OnKey(GKey &k)
 				}
 				else if (k.Down())
 				{
+					GRichTextPriv::Block *b;
+
 					if (HasSelection())
 					{
 						d->DeleteSelection(Trans, NULL);
 					}
 					else if (d->Cursor &&
-							 d->Cursor->Blk)
+							 (b = d->Cursor->Blk))
 					{
 						if (d->Cursor->Offset > 0)
 						{
-							Changed = d->Cursor->Blk->DeleteAt(Trans, d->Cursor->Offset-1, 1) > 0;
+							Changed = b->DeleteAt(Trans, d->Cursor->Offset-1, 1) > 0;
 							if (Changed)
-								d->Cursor->Set(d->Cursor->Offset - 1);
+							{
+								// Has block size reached 0?
+								if (b->Length() == 0)
+								{
+									// Then delete it...
+									GRichTextPriv::Block *n = d->Next(b);
+									if (n)
+									{
+										d->Blocks.Delete(b, true);
+										d->Cursor.Reset(new GRichTextPriv::BlockCursor(n, 0, 0));
+									}
+								}
+								else
+								{
+									d->Cursor->Set(d->Cursor->Offset - 1);
+								}
+							}
 						}
 						else
 						{
