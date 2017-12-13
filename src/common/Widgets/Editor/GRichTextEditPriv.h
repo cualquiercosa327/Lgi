@@ -1023,6 +1023,7 @@ public:
 		void IncAllStyleRefs();
 		void SetSpellingErrors(GArray<GSpellCheck::SpellingError> &Errors);
 		bool DoContext(GSubMenu &s, GdcPt2 Doc, ssize_t Offset, bool Spelling);
+		bool StripLast(char *Set = " \t\r\n"); // Strip trailing new line if present..
 		#ifdef _DEBUG
 		void DumpNodes(GTreeItem *Ti);
 		#endif

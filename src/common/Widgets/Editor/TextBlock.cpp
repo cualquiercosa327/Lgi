@@ -1729,6 +1729,22 @@ int ErrSort(GSpellCheck::SpellingError *a, GSpellCheck::SpellingError *b)
 	return (int) (a->Start - b->Start);
 }
 
+bool GRichTextPriv::TextBlock::StripLast(char *Set)
+{
+	StyleText *l = Txt.Last();
+	if (!l || l->Length() <= 0)
+		return false;
+
+	if (!strchr(Set, l->Last()))
+		return false;
+	
+	if (!l->PopLast())
+		return false;
+
+	Len--;
+	return true;
+}
+
 bool GRichTextPriv::TextBlock::DoContext(GSubMenu &s, GdcPt2 Doc, ssize_t Offset, bool Spelling)
 {
 	if (Spelling)

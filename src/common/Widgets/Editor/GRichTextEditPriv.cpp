@@ -402,7 +402,21 @@ bool GRichTextPriv::DeleteSelection(Transaction *Trans, char16 **Cut)
 	{
 		// In the same block... just delete the text
 		ssize_t Len = End->Offset - Start->Offset;
-		Start->Blk->DeleteAt(Trans, Start->Offset, Len, DelTxt);
+		GRichTextPriv::Block *NextBlk = Next(Start->Blk);
+		if (Len >= Start->Blk->Length() && NextBlk)
+		{
+			// Delete entire block
+			ssize_t i = Blocks.IndexOf(Start->Blk);
+			GAutoPtr<MultiBlockState> MultiState(new MultiBlockState(this, i));
+			MultiState->Cut(i);
+			MultiState->Length = 0;
+			Start->Set(NextBlk, 0, 0);
+			Trans->Add(MultiState.Release());
+		}
+		else
+		{
+			Start->Blk->DeleteAt(Trans, Start->Offset, Len, DelTxt);
+		}
 	}
 	else
 	{
@@ -2015,8 +2029,13 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 				}
 				break;
 			}
-			case TAG_IMG:
 			case TAG_HR:
+			{
+				if (ctx.Tb)
+					ctx.Tb->StripLast();
+				// Fall through
+			}
+			case TAG_IMG:
 			{
 				ctx.Tb = NULL;
 				IsBlock = true;
