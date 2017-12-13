@@ -1146,7 +1146,9 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 	{
 		// Empty node case
 		int y = Pos.y1 + flow.d->View->GetFont()->GetHeight() - 1;
-		Pos.y2 = max(Pos.y2, y);
+		CurLine->PosOff.y2 = Pos.y2 = max(Pos.y2, y);
+
+		Layout.Add(CurLine.Release());
 	}
 			
 	if (CurLine && CurLine->Strs.Length() > 0)

@@ -2227,7 +2227,7 @@ void GRichTextEdit::OnEnter(GKey &k)
 					GRichTextPriv::TextBlock *tb = new GRichTextPriv::TextBlock(d);
 					if (tb)
 					{
-						Changed = tb->AddText(Trans, 0, Nl, 1);
+						Changed = true; // tb->AddText(Trans, 0, Nl, 1);
 						d->Blocks.AddAt(0, tb);
 					}
 				}
@@ -2245,7 +2245,7 @@ void GRichTextEdit::OnEnter(GKey &k)
 					GRichTextPriv::TextBlock *tb = new GRichTextPriv::TextBlock(d);
 					if (tb)
 					{
-						Changed = tb->AddText(Trans, 0, Nl, 1);
+						Changed = true; // tb->AddText(Trans, 0, Nl, 1);
 						d->Blocks.Add(tb);
 					}
 				}
