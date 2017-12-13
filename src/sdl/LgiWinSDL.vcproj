@@ -366,19 +366,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\common\General\LDateTime.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\Lgi\GGeneral.cpp"
 					>
 				</File>
 				<File
 					RelativePath="..\common\Lgi\GGuiUtils.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\common\Lgi\LMutex.cpp"
 					>
 				</File>
 				<File
@@ -394,7 +386,15 @@
 					>
 				</File>
 				<File
+					RelativePath="..\common\General\LDateTime.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\common\Lgi\Lgi.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\common\Lgi\LMutex.cpp"
 					>
 				</File>
 				<File
@@ -470,10 +470,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\common\Widgets\LList.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\common\Widgets\GPanel.cpp"
 					>
 				</File>
@@ -535,6 +531,10 @@
 				</File>
 				<File
 					RelativePath="..\common\Widgets\GTree.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\common\Widgets\LList.cpp"
 					>
 				</File>
 			</Filter>
@@ -651,6 +651,10 @@
 				</File>
 				<File
 					RelativePath="..\common\INet\INet.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\common\INet\INetTools.cpp"
 					>
 				</File>
 				<File

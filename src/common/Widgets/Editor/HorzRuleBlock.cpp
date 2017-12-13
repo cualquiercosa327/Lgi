@@ -100,6 +100,38 @@ bool GRichTextPriv::HorzRuleBlock::HitTest(HitTestResult &htr)
 
 void GRichTextPriv::HorzRuleBlock::OnPaint(PaintContext &Ctx)
 {
+	int EndPoints = 0;
+	ssize_t EndPoint[2] = {-1, -1};
+	int CurEndPoint = 0;
+
+	if (Cursors > 0 && Ctx.Select)
+	{
+		// Selection end point checks...
+		if (Ctx.Cursor && Ctx.Cursor->Blk == this)
+			EndPoint[EndPoints++] = Ctx.Cursor->Offset;
+		if (Ctx.Select && Ctx.Select->Blk == this)
+			EndPoint[EndPoints++] = Ctx.Select->Offset;
+				
+		// Sort the end points
+		if (EndPoints > 1 &&
+			EndPoint[0] > EndPoint[1])
+		{
+			ssize_t ep = EndPoint[0];
+			EndPoint[0] = EndPoint[1];
+			EndPoint[1] = ep;
+		}
+	}
+	
+	// Before HR selection end point
+	if (CurEndPoint < EndPoints &&
+		EndPoint[CurEndPoint] == 0)
+	{
+		Ctx.Type = Ctx.Type == Selected ? Unselected : Selected;
+		CurEndPoint++;
+	}
+
+	bool HrSelected = Ctx.Type == Selected;
+
 	GColour Fore, Back = Ctx.Back();
 	Fore = Ctx.Fore().Mix(Back, 0.75f);
 	Ctx.pDC->Colour(Back);
@@ -116,6 +148,14 @@ void GRichTextPriv::HorzRuleBlock::OnPaint(PaintContext &Ctx)
 		GRect &p = Ctx.Cursor->Pos;
 		Ctx.pDC->Colour(Ctx.Fore());
 		Ctx.pDC->Rectangle(&p);
+	}
+
+	// After HR selection end point
+	if (CurEndPoint < EndPoints &&
+		EndPoint[CurEndPoint] == 1)
+	{
+		Ctx.Type = Ctx.Type == Selected ? Unselected : Selected;
+		CurEndPoint++;
 	}
 }
 

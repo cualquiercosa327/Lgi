@@ -372,7 +372,7 @@ GRichTextPriv::~GRichTextPriv()
 
 			if (Now - Msg > 1000)
 			{
-				printf("%s:%i - Waiting for blocks: %i\n", _FL, (int)(Now-Start));
+				LgiTrace("%s:%i - Waiting for blocks: %i\n", _FL, (int)(Now-Start));
 				Msg = Now;
 			}
 
