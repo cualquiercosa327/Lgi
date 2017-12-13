@@ -506,6 +506,10 @@ public:
 		SelectModeType Type;
 		ColourPair Colours[2];
 		BlockCursor *Cursor, *Select;
+
+		// Cursor stuff
+		int CurEndPoint;
+		GArray<ssize_t> EndPoints;
 		
 		PaintContext()
 		{
@@ -514,6 +518,7 @@ public:
 			Type = Unselected;
 			Cursor = NULL;
 			Select = NULL;
+			CurEndPoint = 0;
 		}
 		
 		GColour &Fore()
@@ -555,6 +560,52 @@ public:
 					r.x2 -= Edge.x2;
 				}
 			}
+		}
+
+		bool SelectBeforePaint(class GRichTextPriv::Block *b)
+		{
+			CurEndPoint = 0;
+
+			if (b->Cursors > 0 && Select)
+			{
+				// Selection end point checks...
+				if (Cursor && Cursor->Blk == b)
+					EndPoints.Add(Cursor->Offset);
+				if (Select && Select->Blk == b)
+					EndPoints.Add(Select->Offset);
+				
+				// Sort the end points
+				if (EndPoints.Length() > 1 &&
+					EndPoints[0] > EndPoints[1])
+				{
+					ssize_t ep = EndPoints[0];
+					EndPoints[0] = EndPoints[1];
+					EndPoints[1] = ep;
+				}
+			}
+
+			// Before selection end point
+			if (CurEndPoint < EndPoints.Length() &&
+				EndPoints[CurEndPoint] == 0)
+			{
+				Type = Type == Selected ? Unselected : Selected;
+				CurEndPoint++;
+			}
+
+			return Type == Selected;
+		}
+
+		bool SelectAfterPaint(class GRichTextPriv::Block *b)
+		{
+			// After image selection end point
+			if (CurEndPoint < EndPoints.Length() &&
+				EndPoints[CurEndPoint] == 1)
+			{
+				Type = Type == Selected ? Unselected : Selected;
+				CurEndPoint++;
+			}
+
+			return Type == Selected;
 		}
 	};
 

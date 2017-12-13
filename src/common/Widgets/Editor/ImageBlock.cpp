@@ -723,28 +723,7 @@ bool GRichTextPriv::ImageBlock::HitTest(HitTestResult &htr)
 
 void GRichTextPriv::ImageBlock::OnPaint(PaintContext &Ctx)
 {
-	// int CharPos = 0;
-	int EndPoints = 0;
-	ssize_t EndPoint[2] = {-1, -1};
-	int CurEndPoint = 0;
-
-	if (Cursors > 0 && Ctx.Select)
-	{
-		// Selection end point checks...
-		if (Ctx.Cursor && Ctx.Cursor->Blk == this)
-			EndPoint[EndPoints++] = Ctx.Cursor->Offset;
-		if (Ctx.Select && Ctx.Select->Blk == this)
-			EndPoint[EndPoints++] = Ctx.Select->Offset;
-				
-		// Sort the end points
-		if (EndPoints > 1 &&
-			EndPoint[0] > EndPoint[1])
-		{
-			ssize_t ep = EndPoint[0];
-			EndPoint[0] = EndPoint[1];
-			EndPoint[1] = ep;
-		}
-	}
+	bool ImgSelected = Ctx.SelectBeforePaint(this);
 			
 	// Paint margins, borders and padding...
 	GRect r = Pos;
@@ -762,16 +741,6 @@ void GRichTextPriv::ImageBlock::OnPaint(PaintContext &Ctx)
 	Ctx.DrawBox(r, Margin, Ctx.Colours[Unselected].Back);
 	Ctx.DrawBox(r, Border, BorderCol);
 	Ctx.DrawBox(r, Padding, Ctx.Colours[Unselected].Back);
-
-	// After image selection end point
-	if (CurEndPoint < EndPoints &&
-		EndPoint[CurEndPoint] == 0)
-	{
-		Ctx.Type = Ctx.Type == Selected ? Unselected : Selected;
-		CurEndPoint++;
-	}
-
-	bool ImgSelected = Ctx.Type == Selected;
 
 	if (!DisplayImg &&
 		SourceImg &&
@@ -848,15 +817,9 @@ void GRichTextPriv::ImageBlock::OnPaint(PaintContext &Ctx)
 		Ctx.pDC->Line(Cx + Sz, Cy - Sz + 1, Cx - Sz + 1, Cy + Sz);
 	}
 
-	// After image selection end point
-	if (CurEndPoint < EndPoints &&
-		EndPoint[CurEndPoint] == 1)
-	{
-		Ctx.Type = Ctx.Type == Selected ? Unselected : Selected;
-		CurEndPoint++;
-	}
+	ImgSelected = Ctx.SelectAfterPaint(this);
 
-	if (Ctx.Type == Selected)
+	if (ImgSelected)
 	{
 		Ctx.pDC->Colour(Ctx.Colours[Selected].Back);
 		Ctx.pDC->Rectangle(ImgPos.x2 + 1, ImgPos.y1, ImgPos.x2 + 7, ImgPos.y2);
