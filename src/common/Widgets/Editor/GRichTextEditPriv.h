@@ -1207,6 +1207,7 @@ public:
 	void PaintBtn(GSurface *pDC, GRichTextEdit::RectType t);
 	bool MakeLink(TextBlock *tb, ssize_t Offset, ssize_t Len, GString Link);
 	bool ClickBtn(GMouse &m, GRichTextEdit::RectType t);
+	bool InsertHorzRule();
 	void Paint(GSurface *pDC, GScrollBar *&ScrollY);
 	GHtmlElement *CreateElement(GHtmlElement *Parent);
 	GdcPt2 ScreenToDoc(int x, int y);

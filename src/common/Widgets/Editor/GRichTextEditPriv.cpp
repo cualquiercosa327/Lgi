@@ -1733,28 +1733,7 @@ bool GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 		}
 		case GRichTextEdit::HorzRuleBtn:
 		{
-			if (!Cursor || !Cursor->Blk)
-				break;
-
-			TextBlock *tb = dynamic_cast<TextBlock*>(Cursor->Blk);
-			if (!tb)
-				break;
-
-			GAutoPtr<Transaction> Trans(new Transaction);
-			int InsertIdx = Blocks.IndexOf(tb) + 1;
-			GRichTextPriv::Block *After = NULL;
-			if (Cursor->Offset < tb->Length())
-			{
-				After = tb->Split(Trans, Cursor->Offset);
-				if (!After)
-					break;
-			}
-			Blocks.AddAt(InsertIdx++, new HorzRuleBlock(this));
-			if (After)
-				Blocks.AddAt(InsertIdx++, After);
-
-			AddTrans(Trans);
-			InvalidateDoc(NULL);
+			InsertHorzRule();
 			break;
 		}
 		default:
@@ -1762,6 +1741,40 @@ bool GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 	}
 
 	return true;
+}
+
+bool GRichTextPriv::InsertHorzRule()
+{
+	if (!Cursor || !Cursor->Blk)
+		return false;
+
+	TextBlock *tb = dynamic_cast<TextBlock*>(Cursor->Blk);
+	if (!tb)
+		return false;
+
+	GAutoPtr<Transaction> Trans(new Transaction);
+	int InsertIdx = Blocks.IndexOf(tb) + 1;
+	GRichTextPriv::Block *After = NULL;
+	if (Cursor->Offset < tb->Length())
+	{
+		After = tb->Split(Trans, Cursor->Offset);
+		if (!After)
+			return false;
+		tb->StripLast();
+	}
+	HorzRuleBlock *Hr = new HorzRuleBlock(this);
+	if (!Hr)
+		return false;
+
+	Blocks.AddAt(InsertIdx++, Hr);
+	if (After)
+		Blocks.AddAt(InsertIdx++, After);
+
+	AddTrans(Trans);
+	InvalidateDoc(NULL);
+
+	GAutoPtr<BlockCursor> c(new BlockCursor(Hr, 0, 0));
+	return SetCursor(c);
 }
 	
 void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
