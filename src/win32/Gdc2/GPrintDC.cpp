@@ -64,7 +64,11 @@ GPrintDC::GPrintDC(void *Handle, const char *PrintJobName, const char *PrinterNa
 		}
 
 		d->DocOpen = StartDoc(hDC, &Info) > 0;
-		if (!d->DocOpen)
+		if (d->DocOpen)
+		{
+			SetSize(X(), Y());
+		}
+		else
 		{
 			DeleteDC(hDC);
 			hDC = 0;
