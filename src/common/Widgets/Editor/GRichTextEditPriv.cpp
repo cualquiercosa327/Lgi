@@ -2157,7 +2157,8 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 		{
 			ctx.StartOfLine |= ctx.AddText(CachedStyle, c->GetText());
 			
-			if (ctx.Tb->Txt.Length())
+			if (ctx.Tb &&
+				ctx.Tb->Txt.Length())
 			{
 				StyleText *st = ctx.Tb->Txt.Last();
 
