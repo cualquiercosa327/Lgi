@@ -562,6 +562,9 @@ public:
 			}
 		}
 
+		// This handles calculating the selection stuff for simple "one char" blocks
+		// like images and HR. Call this at the start of the OnPaint.
+		// \return TRUE if the content should be drawn selected.
 		bool SelectBeforePaint(class GRichTextPriv::Block *b)
 		{
 			CurEndPoint = 0;
@@ -595,6 +598,8 @@ public:
 			return Type == Selected;
 		}
 
+		// Call this after the OnPaint
+		// \return TRUE if the content after the block is selected.
 		bool SelectAfterPaint(class GRichTextPriv::Block *b)
 		{
 			// After image selection end point
