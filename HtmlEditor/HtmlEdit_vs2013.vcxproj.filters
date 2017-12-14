@@ -27,6 +27,9 @@
     <Filter Include="Controls\RichTextEdit\Spelling">
       <UniqueIdentifier>{579fa028-117b-44f0-8f9d-bf0cc8ac9187}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Test Files">
+      <UniqueIdentifier>{d072fbae-b32a-44a9-9f14-9aae81a47698}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Rich.cpp">
@@ -116,5 +119,16 @@
     <ResourceCompile Include="Rich.rc">
       <Filter>Resources</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TestCases\hr.html">
+      <Filter>Test Files</Filter>
+    </None>
+    <None Include="TestCases\sig.html">
+      <Filter>Test Files</Filter>
+    </None>
+    <None Include="TestCases\example.html">
+      <Filter>Test Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

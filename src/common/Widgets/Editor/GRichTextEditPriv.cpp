@@ -1760,7 +1760,7 @@ bool GRichTextPriv::InsertHorzRule()
 		After = tb->Split(Trans, Cursor->Offset);
 		if (!After)
 			return false;
-		tb->StripLast();
+		tb->StripLast(Trans);
 	}
 	HorzRuleBlock *Hr = new HorzRuleBlock(this);
 	if (!Hr)
@@ -2045,7 +2045,7 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 			case TAG_HR:
 			{
 				if (ctx.Tb)
-					ctx.Tb->StripLast();
+					ctx.Tb->StripLast(NoTransaction);
 				// Fall through
 			}
 			case TAG_IMG:

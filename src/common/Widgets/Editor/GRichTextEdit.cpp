@@ -1938,8 +1938,17 @@ bool GRichTextEdit::OnKey(GKey &k)
 						// Try and merge the blocks
 						if (d->Merge(Trans, b, next))
 							Changed = true;
-						else // move the cursor to the next block							
-							d->Cursor.Reset(new GRichTextPriv::BlockCursor(b, 0, 0));
+						else
+						{
+							// If the cursor is on the last empty line of a text block,
+							// we should delete that '\n' first
+							GRichTextPriv::TextBlock *tb = dynamic_cast<GRichTextPriv::TextBlock*>(b);
+							if (tb && tb->IsEmptyLine(d->Cursor))
+								Changed = tb->StripLast(Trans);
+
+							// move the cursor to the next block
+							d->Cursor.Reset(new GRichTextPriv::BlockCursor(b = next, 0, 0));
+						}
 					}
 
 					if (!Changed && b->DeleteAt(Trans, d->Cursor->Offset, 1))
