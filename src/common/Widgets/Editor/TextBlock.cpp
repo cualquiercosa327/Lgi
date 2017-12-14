@@ -1731,7 +1731,7 @@ int ErrSort(GSpellCheck::SpellingError *a, GSpellCheck::SpellingError *b)
 	return (int) (a->Start - b->Start);
 }
 
-bool GRichTextPriv::TextBlock::StripLast(char *Set)
+bool GRichTextPriv::TextBlock::StripLast(Transaction *Trans, char *Set)
 {
 	StyleText *l = Txt.Last();
 	if (!l || l->Length() <= 0)
@@ -1740,9 +1740,11 @@ bool GRichTextPriv::TextBlock::StripLast(char *Set)
 	if (!strchr(Set, l->Last()))
 		return false;
 	
+	PreEdit(Trans);
 	if (!l->PopLast())
 		return false;
 
+	LayoutDirty = true;
 	Len--;
 	return true;
 }
@@ -1778,6 +1780,19 @@ bool GRichTextPriv::TextBlock::DoContext(GSubMenu &s, GdcPt2 Doc, ssize_t Offset
 	// else printf("%s:%i - No Spelling.\n", _FL);
 
 	return true;
+}
+
+bool GRichTextPriv::TextBlock::IsEmptyLine(BlockCursor *Cursor)
+{
+	if (!Cursor)
+		return false;
+
+	TextLine *Line = Layout.AddressOf(Cursor->LineHint) ? Layout[Cursor->LineHint] : NULL;
+	if (!Line)
+		return false;
+
+	int LineLen = Line->Length();
+	return LineLen == 0;
 }
 
 GRichTextPriv::Block *GRichTextPriv::TextBlock::Clone()

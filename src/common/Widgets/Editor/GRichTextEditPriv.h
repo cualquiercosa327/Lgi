@@ -1079,11 +1079,11 @@ public:
 		void IncAllStyleRefs();
 		void SetSpellingErrors(GArray<GSpellCheck::SpellingError> &Errors);
 		bool DoContext(GSubMenu &s, GdcPt2 Doc, ssize_t Offset, bool Spelling);
-		bool StripLast(char *Set = " \t\r\n"); // Strip trailing new line if present..
 		#ifdef _DEBUG
 		void DumpNodes(GTreeItem *Ti);
 		#endif
 		Block *Clone();
+		bool IsEmptyLine(BlockCursor *Cursor);
 
 		// Events
 		GMessage::Result OnEvent(GMessage *Msg);
@@ -1094,6 +1094,7 @@ public:
 		ssize_t DeleteAt(Transaction *Trans, ssize_t BlkOffset, ssize_t Chars, GArray<uint32> *DeletedText = NULL);
 		bool DoCase(Transaction *Trans, ssize_t StartIdx, ssize_t Chars, bool Upper);
 		Block *Split(Transaction *Trans, ssize_t AtOffset);
+		bool StripLast(Transaction *Trans, char *Set = " \t\r\n"); // Strip trailing new line if present..
 	};
 
 	class HorzRuleBlock : public Block
