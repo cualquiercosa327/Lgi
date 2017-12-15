@@ -113,7 +113,8 @@ void GRichTextPriv::HorzRuleBlock::OnPaint(PaintContext &Ctx)
 
 	if (Ctx.Cursor != NULL &&
 		Ctx.Cursor->Blk == (Block*)this &&
-		Ctx.Cursor->Blink)
+		Ctx.Cursor->Blink &&
+		d->View->Focus())
 	{
 		GRect &p = Ctx.Cursor->Pos;
 		Ctx.pDC->Colour(Ctx.Fore());

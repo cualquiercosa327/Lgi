@@ -256,7 +256,7 @@ enum Store3Fields
 	// FIELD_CAL_END_LOCAL = 61,		// **deprecated**
 	FIELD_CAL_SUBJECT = 62,				// (char*) event title
 	FIELD_CAL_LOCATION = 63,			// (char*) location of event
-	// FIELD_CAL_REMINDER_TIME = 64,	// **deprecated**
+	FIELD_CAL_ALL_DAY = 64,				// (bool) All Day setting
 	// FIELD_CAL_REMINDER_ACTION = 65,	// **deprecated** (CalendarReminderType) The reminder type
 	// FIELD_CAL_REMINDER_UNIT = 66,	// **deprecated** (CalendarReminderUnits) The unit of time
 	FIELD_CAL_SHOW_TIME_AS = 67,		// (CalendarShowTimeAs) Busy/Free etc

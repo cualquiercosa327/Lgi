@@ -14,6 +14,7 @@
 			<Node File="../src/common/Widgets/Editor/GRichTextEdit.cpp" Type="2" Platforms="15" />
 			<Node File="../src/common/Widgets/Editor/GRichTextEditPriv.cpp" Type="2" Platforms="15" />
 			<Node File="../src/common/Widgets/Editor/GRichTextEditPriv.h" Type="3" Platforms="15" />
+			<Node File="../src/common/Widgets/Editor/HorzRuleBlock.cpp" Type="2" Platforms="15" />
 			<Node File="../src/common/Widgets/Editor/ImageBlock.cpp" Type="2" Platforms="15" />
 			<Node File="../src/common/Widgets/Editor/TextBlock.cpp" Type="2" Platforms="15" />
 		</Node>
@@ -49,7 +50,10 @@
 				<Linux>gcc</Linux>
 			</Compiler>
 			<Arguments>
-				<All />
+				<All>
+					<Debug>./TestCases/test.html</Debug>
+					<Release>./TestCases/test.html</Release>
+				</All>
 			</Arguments>
 			<Defines>
 				<All />

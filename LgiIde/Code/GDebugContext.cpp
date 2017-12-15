@@ -166,7 +166,10 @@ GDebugContext::GDebugContext(AppWnd *App, IdeProject *Proj, const char *Exe, con
 	
 	if (d->Db.Reset(CreateGdbDebugger()))
 	{
-		if (!d->Db->Load(this, Exe, Args, RunAsAdmin, NULL))
+		GFile::Path p = Exe;
+		p.Parent();
+	
+		if (!d->Db->Load(this, Exe, Args, RunAsAdmin, p))
 		{
 			d->Log("Failed to load '%s' into debugger.\n", d->Exe.Get());
 			d->Db.Reset();
