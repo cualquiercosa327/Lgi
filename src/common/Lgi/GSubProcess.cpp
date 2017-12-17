@@ -93,7 +93,7 @@ GSubProcess::GSubProcess(const char *exe, const char *args)
 	#endif
 	ErrorCode = 0;
 	Parent = Child = NULL;
-	Exe.Reset(NewStr(exe));
+	Exe = exe;
 	Args.Add(Exe);
 	EnvironmentChanged = false;
 
@@ -249,7 +249,7 @@ uint32 GSubProcess::GetExitValue()
 
 void GSubProcess::SetInitFolder(const char *f)
 {
-	InitialFolder.Reset(NewStr(f));
+	InitialFolder = f;
 }
 
 const char *GSubProcess::GetEnvironment(const char *Var)

@@ -913,6 +913,7 @@ public:
 		Args = NewStr(args);
 		Path = NewStr(path);
 		DeleteOnExit = true;
+		
 		Run();
 	}
 	

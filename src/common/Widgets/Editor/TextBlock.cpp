@@ -4,6 +4,8 @@
 #include "Emoji.h"
 #include "GDocView.h"
 
+#define DEBUG_LAYOUT				0
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 GRichTextPriv::StyleText::StyleText(const StyleText *St)
 {
@@ -1020,9 +1022,14 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 		uint32 *sStart = t->At(0);
 		uint32 *sEnd = sStart + t->Length();
 		for (unsigned Off = 0; Off < t->Length(); )
-		{					
+		{
 			// How much of 't' is on the same line?
 			uint32 *s = sStart + Off;
+
+			#if DEBUG_LAYOUT
+			LgiTrace("Txt[%i][%i]: FixX=%i, Txt='%.*S'\n", i, Off, FixX, t->Length() - Off, s);
+			#endif
+
 			if (*s == '\n')
 			{
 				// New line handling...
@@ -1032,9 +1039,11 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 				CurLine->LayoutOffsets(f->GetHeight());
 				Pos.y2 = max(Pos.y2, Pos.y1 + CurLine->PosOff.y2);
 				CurLine->NewLine = 1;
-						
-				// LgiTrace("        [%i] = %s\n", Layout.Length(), CurLine->PosOff.GetStr());
-						
+				
+				#if DEBUG_LAYOUT
+				LgiTrace("\tNewLineChar.\n");
+				#endif
+				
 				Layout.Add(CurLine.Release());
 				CurLine.Reset(new TextLine(flow.Left - Pos.x1, flow.X(), Pos.Y()));
 
@@ -1065,13 +1074,20 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 				return flow.d->Error(_FL, "display str creation failed.");
 
 			if (WrapType != GCss::WrapNone &&
-				FixX + Ds->X() > AvailableX)
+				FixX + Ds->FX() > IntToFixed(AvailableX))
 			{
+				#if DEBUG_LAYOUT
+				LgiTrace("\tNeedToWrap: %i, %i + %i > %i\n", WrapType, FixX, Ds->FX(), IntToFixed(AvailableX));
+				#endif
+
 				// Wrap the string onto the line...
 				int AvailablePx = AvailableX - FixedToInt(FixX);
 				ssize_t FitChars = Ds->PosToIndex(AvailablePx, false);
 				if (FitChars < 0)
 				{
+					#if DEBUG_LAYOUT
+					LgiTrace("\tFitChars error: %i\n", FitChars);
+					#endif
 					flow.d->Error(_FL, "PosToIndex(%i) failed.", AvailablePx);
 					LgiAssert(0);
 				}
@@ -1084,6 +1100,9 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 						if (IsWordBreakChar(s[ch-1]))
 							break;
 					}
+					#if DEBUG_LAYOUT
+					LgiTrace("\tWindBack: %i\n", (int)ch);
+					#endif
 					if (ch == 0)
 					{
 						// One word minimum per line

@@ -72,7 +72,7 @@ class Gdb : public GDebugger, public LThread, public Callback
 {
 	GDebugEvents *Events;
 	GAutoPtr<GSubProcess> Sp;
-	GAutoString Exe, Args, InitDir;
+	GString Exe, Args, InitDir;
 	bool RunAsAdmin;
 	bool AtPrompt;
 	char Line[256], *LinePtr;
@@ -472,10 +472,17 @@ class Gdb : public GDebugger, public LThread, public Callback
 		#endif
 		GString p;
 		if (RunAsAdmin)
-			p.Printf("pkexec %s \"%s\"", Path, Exe.Get());
+			p.Printf("pkexec %s --args \"%s\"", Path, Exe.Get());
 		else
-			p.Printf("%s \"%s\"", Path, Exe.Get());
+			p.Printf("%s --args \"%s\"", Path, Exe.Get());
+		if (Args)
+		{
+			p += " ";
+			p += Args;
+		}
 		GString::Array a = p.Split(" ", 1);
+
+		printf("Starting Debugger: %s %s\n", a[0].Get(), a[1].Get());
 
 		if (!Sp.Reset(new GSubProcess(a[0], a[1])))
 			return false;
@@ -662,10 +669,10 @@ public:
 	bool Load(GDebugEvents *EventHandler, const char *exe, const char *args, bool runAsAdmin, const char *initDir)
 	{
 		Events = EventHandler;
-		Exe.Reset(NewStr(exe));
-		Args.Reset(NewStr(args));
+		Exe = exe;
+		Args = args;
 		RunAsAdmin = runAsAdmin;
-		InitDir.Reset(NewStr(initDir));
+		InitDir = initDir;
 		Running = false;
 		Run();
 		
@@ -789,7 +796,7 @@ public:
 		GString a;
 		if (Args)
 			a.Printf("r %s", Args.Get());
-		else if (Args)
+		else
 			a = "r";
 
 		bool Status = Cmd(a);
