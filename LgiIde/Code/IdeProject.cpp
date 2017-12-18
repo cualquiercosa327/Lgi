@@ -335,21 +335,50 @@ ssize_t BuildThread::Write(const void *Buffer, ssize_t Size, int Flags)
 	return Size;
 }
 
+#pragma comment(lib, "version.lib")
+
 GString BuildThread::FindExe()
 {
 	GToken p(getenv("PATH"), LGI_PATH_SEPARATOR);
-	
+
 	if (Compiler == PythonScript)
 	{
+		uint32 BestVer = 0;
+		GString Best;
+
 		for (int i=0; i<p.Length(); i++)
 		{
 			char Path[MAX_PATH];
 			LgiMakePath(Path, sizeof(Path), p[i], "python"LGI_EXECUTABLE_EXT);
 			if (FileExists(Path))
 			{
-				return Path;
+				// Check version
+				DWORD Sz = GetFileVersionInfoSizeA(Path, NULL);
+				void *Buf = malloc(Sz);
+				if (GetFileVersionInfoA(Path, NULL, Sz, Buf))
+				{
+					LPVOID Ptr = NULL;
+					UINT Bytes;
+					if (VerQueryValueA(Buf, "\\", &Ptr, &Bytes))
+					{
+						VS_FIXEDFILEINFO *v = (VS_FIXEDFILEINFO *)Ptr;
+						if (v->dwProductVersionMS > BestVer)
+						{
+							BestVer = v->dwProductVersionMS;
+							Best = Path;
+						}
+					}
+				}
+				else if (!Best)
+				{
+					Best = Path;
+				}
+				free(Buf);
 			}
+
 		}
+
+		return Best;
 	}
 	else if (Compiler == VisualStudio)
 	{

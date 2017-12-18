@@ -101,7 +101,7 @@ GSubProcess::GSubProcess(const char *exe, const char *args)
 	ExternOut = NULL_PIPE;
 
 	#if DEBUG_SUBPROCESS
-	printf("%s:%i - %p::GSubProcess('%s','%s')\n", _FL, this, exe, args);
+	LgiTrace("%s:%i - %p::GSubProcess('%s','%s')\n", _FL, this, exe, args);
 	#endif
 	
 	char *s;
@@ -465,7 +465,7 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 	#else
 	
 		#if DEBUG_SUBPROCESS
-		printf("%s:%i - %p::Start(%i,%i,%i)\n", _FL, this, ReadAccess, WriteAccess, MapStderrToStdout);
+		LgiTrace("%s:%i - %p::Start(%i,%i,%i)\n", _FL, this, ReadAccess, WriteAccess, MapStderrToStdout);
 		#endif
 		
 		// Find the end of the process list
@@ -491,7 +491,7 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 		Pipes.Length(Kids);
 		Pipes[0].Create(&Attr);
 		#if DEBUG_SUBPROCESS
-		printf("%s:%i - *PARENT* pipe[%i].create %i,%i\n", _FL, 0, Pipes[0].Read, Pipes[0].Write);
+		LgiTrace("%s:%i - *PARENT* pipe[%i].create %i,%i\n", _FL, 0, Pipes[0].Read, Pipes[0].Write);
 		#endif
 
 		Status = true;
@@ -500,7 +500,7 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 			Pipes[i].Create(&Attr);
 			
 			#if DEBUG_SUBPROCESS
-			printf("%s:%i - *PARENT* pipe[%i].create %i,%i\n", _FL, i, Pipes[i].Read, Pipes[i].Write);
+			LgiTrace("%s:%i - *PARENT* pipe[%i].create %i,%i\n", _FL, i, Pipes[i].Read, Pipes[i].Write);
 			#endif
 			
 			GSubProcess *sp = p[i-1];
@@ -522,7 +522,7 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 				for (int j = 0; j < i-1; j++)
 				{
 					#if DEBUG_SUBPROCESS
-					printf("%s:%i - *CHILD* pipe[%i].close %i,%i\n", _FL, j, Pipes[j].Read, Pipes[j].Write);
+					LgiTrace("%s:%i - *CHILD* pipe[%i].close %i,%i\n", _FL, j, Pipes[j].Read, Pipes[j].Write);
 					#endif
 					Pipes[j].Close();
 				}
@@ -653,6 +653,10 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 				}
 			}
 		}		
+
+		#if DEBUG_SUBPROCESS
+		LgiTrace("%s:%i - Exe='%S'\n", _FL, WExe.Get());
+		#endif
 		
 		char16 WArg[512];
 		int Ch = 0;
@@ -671,10 +675,18 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 			else
 				Ch += swprintf_s(WArg+Ch, CountOf(WArg)-Ch, L"%s", aw.Get());
 		}
+
+		#if DEBUG_SUBPROCESS
+		LgiTrace("%s:%i - Args='%S'\n", _FL, WArg);
+		#endif
 		
 		HANDLE OldStdout = GetStdHandle(STD_OUTPUT_HANDLE);
 		HANDLE OldStdin = GetStdHandle(STD_INPUT_HANDLE);
 		bool HasExternIn = ExternIn != NULL_PIPE;
+
+		#if DEBUG_SUBPROCESS
+		LgiTrace("%s:%i - Oringinal handles, out=%p, in=%p, HasExternIn=%i\n", _FL, OldStdout, OldStdin, HasExternIn);
+		#endif
 		
 		if (ChildOutput.Create(&Attr) &&
 			(HasExternIn || ChildInput.Create(&Attr)) &&
@@ -686,6 +698,12 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 			
 			if (!HasExternIn && !SetHandleInformation(ChildInput.Write, HANDLE_FLAG_INHERIT, 0))
 				LgiTrace("%s:%i - SetHandleInformation failed.\n", _FL);
+
+			#if DEBUG_SUBPROCESS
+			LgiTrace("%s:%i - Output Pipe: rd=%p, wr=%p\n", _FL, ChildOutput.Read, ChildOutput.Write);
+			if (!HasExternIn)
+				LgiTrace("%s:%i - Input Pipe: rd=%p, wr=%p\n", _FL, ChildInput.Read, ChildInput.Write);
+			#endif
 
 			STARTUPINFOW Info;
 			ZeroObj(Info);
@@ -700,6 +718,10 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 			if (MapStderrToStdout)
 				Info.hStdError = ChildOutput.Write;
 			GAutoWString WInitialFolder(Utf8ToWide(InitialFolder));
+
+			#if DEBUG_SUBPROCESS
+			LgiTrace("%s:%i - WInitialFolder=%S, EnvironmentChanged=%i\n", _FL, WInitialFolder.Get(), EnvironmentChanged);
+			#endif
 
 			GAutoWString WEnv;
 			if (EnvironmentChanged)
@@ -730,6 +752,11 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 			{
 				ChildPid = ProcInfo.dwProcessId;
 				ChildHnd = ProcInfo.hProcess;
+
+				#if DEBUG_SUBPROCESS
+				LgiTrace("%s:%i - CreateProcessW OK, ChildPid=%p, ChildHnd=%p\n", _FL, ChildPid, ChildHnd);
+				#endif
+
 				Status = true;
 			}
 			else
@@ -739,9 +766,16 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 					_FL, WExe.Get(), WArg, ErrorCode);
 			}
 			
+			#if DEBUG_SUBPROCESS
+			LgiTrace("%s:%i - Closing handles: %p, %p\n", _FL, ChildOutput.Write, ChildInput.Read);
+			#endif
 			CloseHandle(ChildOutput.Write);
 			CloseHandle(ChildInput.Read);
 		}
+
+		#if DEBUG_SUBPROCESS
+		LgiTrace("%s:%i - Restoring original handles\n", _FL, OldStdout, OldStdin);
+		#endif
 
 		SetStdHandle(STD_OUTPUT_HANDLE, OldStdout);
 		SetStdHandle(STD_INPUT_HANDLE, OldStdin);
