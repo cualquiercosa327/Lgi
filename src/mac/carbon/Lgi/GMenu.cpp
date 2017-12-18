@@ -364,7 +364,7 @@ bool IsOverMenu(XEvent *e)
 #endif
 
 MenuCommand *ReturnFloatCommand = 0;
-int GSubMenu::Float(GView *From, int x, int y, bool Left)
+int GSubMenu::Float(GView *From, int x, int y, int Btns)
 {
 	static int Depth = 0;
 
