@@ -1753,15 +1753,23 @@ bool GRichTextPriv::InsertHorzRule()
 		return false;
 
 	GAutoPtr<Transaction> Trans(new Transaction);
+
+	DeleteSelection(Trans, NULL);
+
 	int InsertIdx = Blocks.IndexOf(tb) + 1;
 	GRichTextPriv::Block *After = NULL;
-	if (Cursor->Offset < tb->Length())
+	if (Cursor->Offset == 0)
+	{
+		InsertIdx--;
+	}
+	else if (Cursor->Offset < tb->Length())
 	{
 		After = tb->Split(Trans, Cursor->Offset);
 		if (!After)
 			return false;
 		tb->StripLast(Trans);
 	}
+
 	HorzRuleBlock *Hr = new HorzRuleBlock(this);
 	if (!Hr)
 		return false;

@@ -1752,6 +1752,9 @@ int ErrSort(GSpellCheck::SpellingError *a, GSpellCheck::SpellingError *b)
 
 bool GRichTextPriv::TextBlock::StripLast(Transaction *Trans, char *Set)
 {
+	if (Txt.Length() == 0)
+		return false;
+
 	StyleText *l = Txt.Last();
 	if (!l || l->Length() <= 0)
 		return false;
@@ -2000,6 +2003,10 @@ GRichTextPriv::Block *GRichTextPriv::TextBlock::Split(Transaction *Trans, ssize_
 
 				After->Txt.Add(AfterText);
 				After->Len += AfterText->Length();
+			}
+			else
+			{
+				Len = Pos;
 			}
 			break;
 		}
