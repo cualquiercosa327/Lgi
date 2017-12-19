@@ -1400,6 +1400,14 @@ public:
 					}
 					break;
 				}
+				case '-':
+				{
+					const wchar_t *t = L"-DVERSION=\\\"3.0_ColdFire_FlexCAN\\\"";
+					if (Strnicmp(s, t, Strlen(t)) == 0)
+					{
+						int asd=0;
+					}
+				}
 				default:
 				{
 					wchar_t Ch = ToLower(*s);
@@ -1694,19 +1702,34 @@ public:
 			{
 				case '\"':
 				case '\'':
+				case '`':
 				{
 					GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
 					if (st)
 					{
+						bool Quoted = s > Text && s[-1] == '\\';
+
 						st->View = this;
-						st->Start = s - Text;
+						st->Start = s - Text - Quoted;
 						st->Font = GetFont();
 
 						char16 Delim = *s++;
-						while (s < e && *s != Delim)
+						while
+						(
+							s < e
+							&&
+							*s != Delim
+							&&
+							!(Delim == '`' && *s == '\'')
+						)
 						{
 							if (*s == '\\')
-								s++;
+							{
+								if (!Quoted || s[1] != Delim)
+									s++;
+							}
+							else if (*s == '\n')
+								break;
 							s++;
 						}
 						st->Len = (s - Text) - st->Start + 1;
@@ -1750,7 +1773,7 @@ public:
 						if (st)
 						{
 							st->View = this;
-							st->Start = s - Text;
+							st->Start = s - Text - ((s > Text && strchr("-+", s[-1])) ? 1 : 0);
 							st->Font = GetFont();
 
 							bool IsHex = false;
@@ -1783,6 +1806,8 @@ public:
 								else
 									break;
 							}
+							if (*s == '%')
+								s++;
 							
 							st->Len = (s - Text) - st->Start;
 							st->c = ColourLiteral;
