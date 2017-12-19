@@ -815,6 +815,38 @@ public:
 		#endif
 		AttachChildren();
 	}
+
+	void RemoveAnsi(GArray<char> &a)
+	{
+		char *s = a.AddressOf();
+		char *e = s + a.Length();
+		while (s < e)
+		{
+			if
+			(
+				*s == 0x1b
+				&&
+				s[1] >= 0x40
+				&&
+				s[1] <= 0x5f
+			)
+			{
+				// ANSI seq
+				char *end = s + 2;
+				while (end < e && !IsAlpha(*end))
+				{
+					end++;
+				}
+				if (*end) end++;
+
+				int len = end - s;
+				memmove(s, end, e - end);
+				a.Length(a.Length() - len);
+				s--;
+			}
+			s++;
+		}
+	}
 	
 	void OnPulse()
 	{
@@ -826,11 +858,15 @@ public:
 			if (Size)
 			{
 				char *Utf = &Buf[Channel][0];
+				#ifdef _DEBUG
 				if (!LgiIsUtf8(Utf, (ssize_t)Size))
 				{
 					LgiTrace("Ch %i not utf len="LGI_PrintfInt64"\n", Channel, Size);
 					continue;
 				}
+				#endif
+
+				RemoveAnsi(Buf[Channel]);
 				
 				GAutoPtr<char16, true> w(Utf8ToWide(Utf, (ssize_t)Size));
 				char16 *OldText = Txt[Channel]->NameW();
