@@ -353,6 +353,7 @@ GString BuildThread::FindExe()
 			if (FileExists(Path))
 			{
 				// Check version
+				#if defined(WINDOWS)
 				DWORD Sz = GetFileVersionInfoSizeA(Path, NULL);
 				void *Buf = malloc(Sz);
 				if (GetFileVersionInfoA(Path, NULL, Sz, Buf))
@@ -374,6 +375,10 @@ GString BuildThread::FindExe()
 					Best = Path;
 				}
 				free(Buf);
+				#else
+				Best = Path;
+				break;
+				#endif
 			}
 
 		}
