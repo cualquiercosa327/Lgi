@@ -282,6 +282,7 @@ public:
 	void SetTabSize(uint8 i);
 	void SetBorder(int b);
 	void SetReadOnly(bool i);
+	void SetCrLf(bool crlf);
 
 	/// Sets the wrapping on the control, use #TEXTED_WRAP_NONE or #TEXTED_WRAP_REFLOW
 	void SetWrapType(uint8 i);

@@ -22,6 +22,8 @@
 			<Node File="../include/common/IFtp.h" Type="3" Platforms="15" />
 		</Node>
 		<Node Name="Projects" Type="1" Platforms="15" Id="1">
+			<Node File="./Code/IdeDoc.cpp" Type="2" Platforms="15" />
+			<Node File="./Code/IdeDoc.h" Type="3" Platforms="15" />
 			<Node File="./Code/IdeProject.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/IdeProject.h" Type="3" Platforms="15" />
 			<Node File="./Code/IdeProjectSettings.cpp" Type="2" Platforms="15" />
@@ -45,8 +47,6 @@
 			<Node File="./Code/SysCharSupport.cpp" Type="2" Platforms="15" />
 		</Node>
 		<Node File="./Code/IdeCommon.cpp" Type="2" Platforms="15" />
-		<Node File="./Code/IdeDoc.cpp" Type="2" Platforms="15" />
-		<Node File="./Code/IdeDoc.h" Type="3" Platforms="15" />
 		<Node File="./Code/LgiIde.cpp" Type="2" Platforms="15" />
 		<Node File="./Code/LgiIde.h" Type="3" Platforms="15" />
 		<Node File="./Code/LgiUtils.cpp" Type="2" Platforms="15" />
@@ -218,7 +218,7 @@ C:\Data\CodeLib\Gtk\include\gtk-2.0\gdk</Release>
 		</Advanced>
 	</Settings>
 </Project>
-akefileRules />
+efileRules />
 		</Advanced>
 	</Settings>
 </Project>

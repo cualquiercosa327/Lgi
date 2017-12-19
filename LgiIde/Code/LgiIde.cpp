@@ -3158,6 +3158,28 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			}
 			break;
 		}
+		case IDM_EOL_LF:
+		{
+			IdeDoc *Doc = FocusDoc();
+			if (!Doc)
+				break;
+			GTextView3 *Text = Doc->GetEdit();
+			if (!Text)
+				break;
+			Text->SetCrLf(false);
+			break;
+		}
+		case IDM_EOL_CRLF:
+		{
+			IdeDoc *Doc = FocusDoc();
+			if (!Doc)
+				break;
+			GTextView3 *Text = Doc->GetEdit();
+			if (!Text)
+				break;
+			Text->SetCrLf(true);
+			break;
+		}
 		case IDM_LOAD_MEMDUMP:
 		{
 			NewMemDumpViewer(this);

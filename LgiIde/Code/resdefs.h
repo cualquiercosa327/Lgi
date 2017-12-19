@@ -61,6 +61,8 @@
 #define IDC_240									240
 #define IDC_242									242
 #define IDC_TEXT								243
+#define IDM_EOL_LF								500
+#define IDM_MENU_501							501
 #define IDM_OPEN								502
 #define IDM_SAVE_ALL							503
 #define IDM_NEW									504
@@ -104,6 +106,7 @@
 #define IDC_SEARCH_DIR							542
 #define IDM_VALGRIND							543
 #define IDC_PLATFORMS							544
+#define IDM_EOL_CRLF							545
 #define IDD_FILE_PROPS							551
 #define IDM_LOAD_MEMDUMP						552
 #define IDM_SYS_CHAR_SUPPORT					553

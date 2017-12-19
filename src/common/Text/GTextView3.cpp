@@ -111,6 +111,7 @@ public:
 	GColour UrlColour;
 	bool CenterCursor;
 	ssize_t WordSelectMode;
+	GString Eol;
 
 	// Find/Replace Params
 	bool OwnFindReplaceParams;
@@ -524,6 +525,11 @@ void GTextView3::SetReadOnly(bool i)
 	#if WINNATIVE
 	SetDlgCode(i ? DLGC_WANTARROWS : DLGC_WANTALLKEYS);
 	#endif
+}
+
+void GTextView3::SetCrLf(bool crlf)
+{
+	CrLf = crlf;
 }
 
 void GTextView3::SetTabSize(uint8 i)

@@ -331,7 +331,7 @@
 		</TableLayout>
 	</Dialog>
 	<Dialog pos="7,7,656,579" ref="199">
-		<TableLayout pos="7,7,636,538" ref="208" CellStyle="width: 35%;" cols="0.500,0.500" rows="0.333,0.333,0.333">
+		<TableLayout pos="7,7,636,538" ref="208" cols="0.500,0.500" rows="0.333,0.333,0.333">
 			<tr>
 				<td colspan="2">
 					<TableLayout pos="21,21,461,118" ref="206" cols="0.333,0.333,0.333" rows="0.500,0.500">
@@ -517,6 +517,9 @@
 			<String Ref="236" Cid="580" Define="IDM_MENU_580" />
 			<String Ref="237" Cid="583" Define="IDM_PREV_MSG" en="Previous Message" />
 			<String Ref="238" Cid="584" Define="IDM_FIND_PROJECT_FILE" en="Find File in Project" />
+			<String Ref="1" Cid="500" Define="IDM_EOL_LF" en="End of line: LF" />
+			<String Ref="3" Cid="501" Define="IDM_MENU_501" />
+			<String Ref="5" Cid="545" Define="IDM_EOL_CRLF" en="End of line: CRLF" />
 		</string-group>
 		<submenu Ref="175">
 			<menuitem Ref="174" Shortcut="Ctrl+N" />
@@ -606,6 +609,9 @@
 			<menuitem Sep="1" />
 			<menuitem Ref="131" />
 			<menuitem Ref="130" />
+			<menuitem Sep="1" />
+			<menuitem Ref="1" />
+			<menuitem Ref="5" />
 			<menuitem Sep="1" />
 			<menuitem Ref="129" />
 			<menuitem Ref="128" />
