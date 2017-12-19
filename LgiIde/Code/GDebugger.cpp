@@ -833,6 +833,7 @@ public:
 			{
 				SetAsmType = true;
 				Cmd("set disassembly-flavor intel");
+				Cmd("handle SIGTTIN nostop");
 			}
 			
 			GString a;

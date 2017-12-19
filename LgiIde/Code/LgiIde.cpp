@@ -822,7 +822,12 @@ public:
 		char *e = s + a.Length();
 		while (s < e)
 		{
-			if
+			if (*s == 0x7)
+			{
+				a.DeleteAt(s - a.AddressOf(), true);
+				s--;
+			}
+			else if
 			(
 				*s == 0x1b
 				&&
@@ -832,12 +837,20 @@ public:
 			)
 			{
 				// ANSI seq
-				char *end = s + 2;
-				while (end < e && !IsAlpha(*end))
+				char *end;
+				if (s[1] == '[' &&
+					s[2] == '0' &&
+					s[3] == ';')
+					end = s + 4;
+				else
 				{
-					end++;
+					end = s + 2;
+					while (end < e && !IsAlpha(*end))
+					{
+						end++;
+					}
+					if (*end) end++;
 				}
-				if (*end) end++;
 
 				int len = end - s;
 				memmove(s, end, e - end);

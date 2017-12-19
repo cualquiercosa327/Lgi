@@ -61,6 +61,7 @@ Depends =	GDebugContext.o \
 			WebFldDlg.o \
 			FtpThread.o \
 			IFtp.o \
+			IdeDoc.o \
 			IdeProject.o \
 			IdeProjectSettings.o \
 			ProjectNode.o \
@@ -72,7 +73,6 @@ Depends =	GDebugContext.o \
 			GParseCpp.o \
 			SysCharSupport.o \
 			IdeCommon.o \
-			IdeDoc.o \
 			LgiIde.o \
 			LgiUtils.o \
 			MemDumpViewer.o \
@@ -1013,6 +1013,24 @@ IFtp.o : ../src/common/INet/IFtp.cpp ../include/common/Gdc2.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
+IdeDoc.o : ./Code/IdeDoc.cpp ../include/common/Lgi.h \
+	./Code/LgiIde.h \
+	../include/common/GToken.h \
+	../include/common/INet.h \
+	../include/common/GClipBoard.h \
+	../include/common/GDisplayString.h \
+	../include/common/GScrollBar.h \
+	../include/common/LgiRes.h \
+	../include/common/GEdit.h \
+	../include/common/LList.h \
+	../include/common/GPopupList.h \
+	../include/common/GTableLayout.h \
+	./Code/ProjectNode.h \
+	../include/common/GEventTargetThread.h \
+	../include/common/GCheckBox.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
 IdeProject.o : ./Code/IdeProject.cpp ../include/common/Lgi.h \
 	./Code/LgiIde.h \
 	../include/common/GDragAndDrop.h \
@@ -1121,24 +1139,6 @@ IdeCommon.o : ./Code/IdeCommon.cpp ../include/common/Lgi.h \
 	./Code/LgiIde.h \
 	./Code/resdefs.h \
 	./Code/ProjectNode.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-IdeDoc.o : ./Code/IdeDoc.cpp ../include/common/Lgi.h \
-	./Code/LgiIde.h \
-	../include/common/GToken.h \
-	../include/common/INet.h \
-	../include/common/GClipBoard.h \
-	../include/common/GDisplayString.h \
-	../include/common/GScrollBar.h \
-	../include/common/LgiRes.h \
-	../include/common/GEdit.h \
-	../include/common/LList.h \
-	../include/common/GPopupList.h \
-	../include/common/GTableLayout.h \
-	./Code/ProjectNode.h \
-	../include/common/GEventTargetThread.h \
-	../include/common/GCheckBox.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
