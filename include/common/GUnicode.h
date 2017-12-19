@@ -660,10 +660,41 @@ T *Strnstr(const T *Data, const T *Value, ptrdiff_t DataLen)
 	
 	while (*Data && DataLen >= ValLen)
 	{
-		if (Tolower(*Data) == v)
+		if (*Data == v)
 		{
 			int i;
 			for (i=1; Data[i] && Data[i] == Value[i]; i++)
+				;
+
+			if (Value[i] == 0)
+				return (T*)Data;
+		}
+
+		Data++;
+		DataLen--;
+	}
+
+	return NULL;
+}
+
+/// Searches the string 'Data' for the 'Value' in a case insensitive manner
+template<typename T>
+T *Strnistr(const T *Data, const T *Value, ptrdiff_t DataLen)
+{
+	if (!Data || !Value)
+		return NULL;
+
+	const T v = Tolower(*Value);
+	ptrdiff_t ValLen = Strlen(Value);
+	if (ValLen > DataLen)
+		return NULL;
+	
+	while (*Data && DataLen >= ValLen)
+	{
+		if (Tolower(*Data) == v)
+		{
+			int i;
+			for (i=1; Data[i] && Tolower(Data[i]) == Tolower(Value[i]); i++)
 				;
 
 			if (Value[i] == 0)

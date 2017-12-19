@@ -464,6 +464,32 @@ void WatchItem::OnExpand(bool b)
 	}
 }
 
+class BuildLog : public GTextLog
+{
+public:
+	BuildLog(int id) : GTextLog(id)
+	{
+	}
+
+	void PourStyle(size_t Start, ssize_t Length)
+	{
+		List<GTextLine>::I it = GTextView3::Line.Start();
+		for (GTextLine *ln = *it; ln; ln = *++it)
+		{
+			if (!ln->c.IsValid())
+			{
+				char16 *t = Text + ln->Start;
+				if (Strnistr(t, L"error:", ln->Len))
+					ln->c.Rgb(222, 0, 0);
+				else if (Strnistr(t, L"warning:", ln->Len))
+					ln->c.Rgb(255, 128, 0);
+				else
+					ln->c.Set(LC_TEXT, 24);
+			}
+		}
+	}
+};
+
 class IdeOutput : public GView
 {
 public:
@@ -543,7 +569,7 @@ public:
 			Debug->SetFont(&Small);
 			
 			if (Build)
-				Build->Append(Txt[AppWnd::BuildTab] = new GTextLog(IDC_BUILD_LOG));
+				Build->Append(Txt[AppWnd::BuildTab] = new BuildLog(IDC_BUILD_LOG));
 			if (Output)
 				Output->Append(Txt[AppWnd::OutputTab] = new GTextLog(IDC_OUTPUT_LOG));
 			if (Find)
