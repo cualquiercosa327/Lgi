@@ -342,12 +342,22 @@ GMessage::Result FindInFilesThread::OnEvent(GMessage *Msg)
 					for (unsigned i=0; i<d->Params->ProjectFiles.Length(); i++)
 					{
 						GString p = d->Params->ProjectFiles[i];
-						const char *Leaf = LgiGetLeaf(p);
-						for (unsigned n=0; n<Ext.Length(); n++)
+						if (p)
 						{
-							if (MatchStr(Ext[n], Leaf))
-								Files.Add(NewStr(p));
+							const char *Leaf = LgiGetLeaf(p);
+							for (unsigned n=0; n<Ext.Length(); n++)
+							{
+								if (MatchStr(Ext[n], Leaf))
+								{
+									char *np = NewStr(p);
+									if (np)
+										Files.Add(np);
+									else
+										LgiTrace("%s:%i - Can't dup '%s'\n", _FL, p);
+								}
+							}
 						}
+						else LgiTrace("%s:%i - Null string in project files array.\n", _FL);
 					}
 				}
 				else
@@ -364,16 +374,20 @@ GMessage::Result FindInFilesThread::OnEvent(GMessage *Msg)
 					for (int i=0; i<Files.Length() && d->Loop; i++)
 					{
 						char *f = Files[i];
-						char *Dir = strrchr(f, DIR_CHAR);
-						if (!Dir || Dir[1] != '.')
+						if (f)
 						{
-							/*
-							sprintf(Msg, "%s\n", f);
-							GEventSinkMap::Dispatch.PostEvent(d->AppHnd, M_APPEND_TEXT, (GMessage::Param)NewStr(Msg), 2);
-							*/
+							char *Dir = strrchr(f, DIR_CHAR);
+							if (!Dir || Dir[1] != '.')
+							{
+								/*
+								sprintf(Msg, "%s\n", f);
+								GEventSinkMap::Dispatch.PostEvent(d->AppHnd, M_APPEND_TEXT, (GMessage::Param)NewStr(Msg), 2);
+								*/
 
-							SearchFile(f);
+								SearchFile(f);
+							}
 						}
+						else LgiTrace("%s:%i - NULL Ptr in list????", _FL);
 					}
 			
 					char *Str = d->Pipe.NewStr();

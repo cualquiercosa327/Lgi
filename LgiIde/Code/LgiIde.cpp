@@ -2865,7 +2865,11 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 							p->GetAllNodes(Nodes);
 
 						for (unsigned i=0; i<Nodes.Length(); i++)
-							Dlg.Params->ProjectFiles.Add(Nodes[i]->GetFullPath());
+						{
+							GString s = Nodes[i]->GetFullPath();
+							if (s)
+								Dlg.Params->ProjectFiles.Add(s);
+						}
 					}
 
 					GVariant var = d->FindParameters->Type == FifSearchSolution;
