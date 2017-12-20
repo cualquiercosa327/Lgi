@@ -92,7 +92,7 @@ class LgiClass LDateTime // This class can't have a virtual table, because it's 
 	static char DefaultSeparator;
 
 public:
-	LDateTime();
+	LDateTime(const char *Init = NULL);
 	~LDateTime();
 
     enum 
@@ -349,5 +349,9 @@ public:
 
 /// A list of all known timezones.
 extern GTimeZone GTimeZones[];
+
+#ifdef _DEBUG
+LgiFunc bool LDateTime_Test();
+#endif
 
 #endif

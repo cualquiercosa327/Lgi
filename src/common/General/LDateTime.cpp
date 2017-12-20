@@ -96,7 +96,7 @@ uint16 LDateTime::GetDefaultFormat()
 static int CurTz			= NO_ZONE;
 static int CurTzOff			= NO_ZONE;
 
-LDateTime::LDateTime()
+LDateTime::LDateTime(const char *Init)
 {
 	_Day = 0;
 	_Month = 0;
@@ -112,6 +112,8 @@ LDateTime::LDateTime()
 		_Tz = CurTz + CurTzOff;
 
 	_Format = GetDefaultFormat();
+	if (Init)
+		Set(Init);
 }
 
 LDateTime::~LDateTime()
@@ -146,6 +148,7 @@ void LDateTime::SetTimeZone(int NewTz, bool ConvertTime)
 {
 	if (ConvertTime && NewTz != _Tz)
 	{
+		// printf("SetTimeZone: %i\n", NewTz - _Tz);
 		AddMinutes(NewTz - _Tz);
 	}
 
@@ -831,13 +834,18 @@ bool LDateTime::Get(uint64 &s)
 	if (sec == -1)
 		return false;
 	
+	/*
 	int CurTz = SystemTimeZone();
 	if (CurTz != _Tz)
 	{
 		// Adjust the output to the correct time zone..
-		int Diff = CurTz - _Tz;
+		int Diff = _Tz - CurTz;
 		sec += Diff * 60;
+		printf("Adjusting += %i (%i -> %i)\n", Diff * 60, CurTz, _Tz);
 	}
+	else
+		printf("No Adjusting\n");
+		*/
 	
 	s = (uint64)sec * Second64Bit + _Thousands;
 	
@@ -1495,7 +1503,9 @@ void LDateTime::AddMinutes(int64 Minutes)
 	uint64 i;
 	if (Get(i))
 	{
-		i += Minutes * 60 * Second64Bit;
+		int64 delta = Minutes * 60 * Second64Bit;
+		uint64 n = i + delta;
+		// printf("AddMin " LGI_PrintfInt64 " + " LGI_PrintfInt64 " = " LGI_PrintfInt64 "\n", i, delta, n);
 		Set(i);
 	}
 }
@@ -1917,3 +1927,38 @@ bool LDateTime::CallMethod(const char *Name, GVariant *ReturnValue, GArray<GVari
 
 	return true;
 }
+
+#ifdef _DEBUG
+#define DATE_ASSERT(i) \
+	if (!(i)) \
+	{ \
+		LgiAssert(!"LDateTime unit test failed."); \
+		return false; \
+	}
+
+bool LDateTime_Test()
+{
+	// Check 64bit get/set
+	LDateTime t("1/1/2017 0:0:0");
+	uint64 i;
+	DATE_ASSERT(t.Get(i));
+	printf("Get='%s'\n", t.Get().Get());
+	uint64 i2 = i + (24 * 60 * 60 * LDateTime::Second64Bit);
+	LDateTime t2;
+	t2.Set(i2);
+	GString s = t2.Get();
+	printf("Set='%s'\n", s.Get());
+	DATE_ASSERT(!stricmp(s, "2/1/2017 12:00:00a"));
+	
+	t.SetNow();
+	printf("Now.Local=%s Tz=%.2f\n", t.Get().Get(), t.GetTimeZoneHours());
+	t2 = t;
+	t2.ToUtc();
+	printf("Now.Utc=%s Tz=%.2f\n", t2.Get().Get(), t2.GetTimeZoneHours());
+	t2.ToLocal();
+	printf("Now.Local=%s Tz=%.2f\n", t2.Get().Get(), t2.GetTimeZoneHours());
+	DATE_ASSERT(t == t2);
+	
+	return true;
+}
+#endif
