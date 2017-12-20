@@ -1942,21 +1942,22 @@ bool LDateTime_Test()
 	LDateTime t("1/1/2017 0:0:0");
 	uint64 i;
 	DATE_ASSERT(t.Get(i));
-	printf("Get='%s'\n", t.Get().Get());
+	LgiTrace("Get='%s'\n", t.Get().Get());
 	uint64 i2 = i + (24ULL * 60 * 60 * LDateTime::Second64Bit);
 	LDateTime t2;
 	t2.Set(i2);
 	GString s = t2.Get();
-	printf("Set='%s'\n", s.Get());
-	DATE_ASSERT(!stricmp(s, "2/1/2017 12:00:00a"));
+	LgiTrace("Set='%s'\n", s.Get());
+	DATE_ASSERT(!stricmp(s, "2/1/2017 12:00:00a") ||
+				!stricmp(s, "2/01/2017 12:00:00a"));
 	
 	t.SetNow();
-	printf("Now.Local=%s Tz=%.2f\n", t.Get().Get(), t.GetTimeZoneHours());
+	LgiTrace("Now.Local=%s Tz=%.2f\n", t.Get().Get(), t.GetTimeZoneHours());
 	t2 = t;
 	t2.ToUtc();
-	printf("Now.Utc=%s Tz=%.2f\n", t2.Get().Get(), t2.GetTimeZoneHours());
+	LgiTrace("Now.Utc=%s Tz=%.2f\n", t2.Get().Get(), t2.GetTimeZoneHours());
 	t2.ToLocal();
-	printf("Now.Local=%s Tz=%.2f\n", t2.Get().Get(), t2.GetTimeZoneHours());
+	LgiTrace("Now.Local=%s Tz=%.2f\n", t2.Get().Get(), t2.GetTimeZoneHours());
 	DATE_ASSERT(t == t2);
 	
 	return true;
