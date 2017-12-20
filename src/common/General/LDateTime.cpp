@@ -1943,7 +1943,7 @@ bool LDateTime_Test()
 	uint64 i;
 	DATE_ASSERT(t.Get(i));
 	printf("Get='%s'\n", t.Get().Get());
-	uint64 i2 = i + (24 * 60 * 60 * LDateTime::Second64Bit);
+	uint64 i2 = i + (24ULL * 60 * 60 * LDateTime::Second64Bit);
 	LDateTime t2;
 	t2.Set(i2);
 	GString s = t2.Get();
