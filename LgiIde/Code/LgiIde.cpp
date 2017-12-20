@@ -479,7 +479,8 @@ public:
 			if (!ln->c.IsValid())
 			{
 				char16 *t = Text + ln->Start;
-				if (Strnistr(t, L"error:", ln->Len))
+				if (Strnistr(t, L"error:", ln->Len) ||
+					Strnistr(t, L"undefined reference", ln->Len))
 					ln->c.Rgb(222, 0, 0);
 				else if (Strnistr(t, L"warning:", ln->Len))
 					ln->c.Rgb(255, 128, 0);

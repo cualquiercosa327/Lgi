@@ -155,7 +155,7 @@ bool IdeCommon::AddFiles(AddFilesProgress *Prog, const char *Path)
 						(
 							d.IsDir()
 							||
-							Prog->Exts.Find(Ext)
+							Prog->Exts.Find(Ext ? Ext : Name)
 						)
 						&&
 						Name != NULL
