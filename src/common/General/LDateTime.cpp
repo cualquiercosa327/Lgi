@@ -440,7 +440,7 @@ bool LDateTime::GetDaylightSavingsInfo(GArray<GDstInfo> &Info, LDateTime &Start,
 			fclose(f);
 			
 			GString ps = p.NewGStr();
-			Zdump = ps.Split("\r\n");
+			Zdump = ps.Split("\n");
 		}
 	}
 		
@@ -521,7 +521,7 @@ bool LDateTime::GetDaylightSavingsInfo(GArray<GDstInfo> &Info, LDateTime &Start,
 				}
 				// else printf("%s:%i - UTC min wrong %s.\n", _FL, l[4]);
 			}
-			else printf("%s:%i - Tm has wrong parts.\n", _FL);
+			else printf("%s:%i - Tm '%s' has wrong parts: %s\n", _FL, l[4], Line);
 		}
 	}
 	
@@ -1482,65 +1482,32 @@ int LDateTime::DaysInMonth()
 
 void LDateTime::AddSeconds(int64 Seconds)
 {
-    int64 s = (int64)_Seconds + Seconds;
-    
-    if (s < 0)
-    {
-        int64 m = (-s + 59) / 60;
-        AddMinutes(-m);
-        s += m * 60;
-    }
-    else if (s >= 60)
-    {
-        int64 m = s / 60;
-        AddMinutes(m);
-        s -= m * 60;
-    }
-    
-    _Seconds = s;
-	LgiAssert(_Seconds >= 0 && _Seconds < 60);
+	uint64 i;
+	if (Get(i))
+	{
+		i += Seconds * Second64Bit;
+		Set(i);
+	}
 }
 
 void LDateTime::AddMinutes(int64 Minutes)
 {
-	int m = (int)_Minutes + Minutes;
-
-	if (m < 0)
+	uint64 i;
+	if (Get(i))
 	{
-	    int h = (-m + 59) / 60;
-		AddHours(-h);
-		m += h * 60;
+		i += Minutes * 60 * Second64Bit;
+		Set(i);
 	}
-	else if (m >= 60)
-	{
-	    int h = m / 60;
-		AddHours(h);
-		m -= h * 60;
-	}
-
-	_Minutes = m;
-	LgiAssert(_Minutes >= 0 && _Minutes < 60);
 }
 
 void LDateTime::AddHours(int64 Hours)
 {
-	int h = _Hours + Hours;
-
-	if (h < 0)
+	uint64 i;
+	if (Get(i))
 	{
-	    int d = (-h + 23) / 24;
-		AddDays(-d);
-		h += d * 24;
+		i += Hours * 3600 * Second64Bit;
+		Set(i);
 	}
-	else if (h >= 24)
-	{
-	    int d = h / 24;
-		AddDays(d);
-		h -= d * 24;
-	}
-
-	_Hours = h;
-	LgiAssert(_Hours >= 0 && _Hours < 24);
 }
 
 bool LDateTime::AddDays(int64 Days)
