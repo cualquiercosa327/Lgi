@@ -2090,6 +2090,7 @@ struct Dependency
 	
 	Dependency(const char *f)
 	{
+		Scanned = false;
 		File.Reset(NewStr(f));
 	}
 };

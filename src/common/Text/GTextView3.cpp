@@ -2038,7 +2038,10 @@ bool GTextView3::Open(const char *Name, const char *CharSet)
 	if (f.Open(Name, O_READ|O_SHARE))
 	{
 		DeleteArray(Text);
-		size_t Bytes = (size_t)f.GetSize();
+		int64 Bytes = f.GetSize();
+		if (Bytes < 0)
+			return false;
+			
 		SetCaret(0, false);
 		
 		char *c8 = new char[Bytes + 4];
