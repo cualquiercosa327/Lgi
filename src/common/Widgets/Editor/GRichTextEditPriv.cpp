@@ -2109,14 +2109,14 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 			c->TagId == TAG_BR
 		)
 		{
-			/* This breaks IMG and HR layout
-			if (!ctx.Tb)
+			if (!ctx.Tb && c->TagId == TAG_BR)
 			{
+				// Don't do this for IMG and HR layout.
 				Blocks.Add(ctx.Tb = new TextBlock(this));
 				if (CachedStyle && ctx.Tb)
 					ctx.Tb->SetStyle(CachedStyle);
 			}
-			*/
+
 			if (ctx.Tb)
 			{
 				const uint32 Nl[] = {'\n', 0};
