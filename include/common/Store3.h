@@ -283,7 +283,7 @@ public:
 	/// Get the logging stream
 	virtual GStreamI *GetLogger(GDataStoreI *store) { return 0; }
 	/// Search for a object by type and name
-	virtual bool Match(GDataStoreI *store, GDataPropI *Addr, int ObjectType, GArray<GDataI*> &Matches) { return 0; }
+	virtual bool Match(GDataStoreI *store, GDataPropI *Addr, int ObjectType, GArray<GDom*> &Matches) { return 0; }
 
 	#ifdef _DEBUG
 	virtual void DebugDelete(GDataI *Obj) {}

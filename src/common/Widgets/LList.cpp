@@ -1314,7 +1314,7 @@ void LList::OnMouseClick(GMouse &m)
 				bool HandlerHung = false;
 				int ItemIndex = -1;
 				LListItem *Item = HitItem(m.x, m.y, &ItemIndex);
-				GViewI *Notify = Item ? (GetNotify()) ? GetNotify() : GetParent() : 0;
+				// GViewI *Notify = Item ? (GetNotify()) ? GetNotify() : GetParent() : 0;
 				d->DragData = ItemIndex;
 
 				if (Item && Item->Select())
@@ -1723,7 +1723,7 @@ void LList::OnMouseMove(GMouse &m)
 				GItemColumn *c = Columns[d->DragData];
 				if (c)
 				{
-					int OldWidth = c->Width();
+					// int OldWidth = c->Width();
 					int NewWidth = m.x - c->GetPos().x1;
 
 					c->Width(max(NewWidth, 4));
@@ -1734,7 +1734,6 @@ void LList::OnMouseMove(GMouse &m)
 			}
 			case CLICK_COLUMN:
 			{
-				bool Update = false;
 				if (d->DragData < 0 || d->DragData >= Columns.Length())
 					break;
 					
@@ -1762,7 +1761,7 @@ void LList::OnMouseMove(GMouse &m)
 			case SELECT_ITEMS:
 			{
 				int n=0;
-				bool Selected = m.y < ItemsPos.y1;
+				// bool Selected = m.y < ItemsPos.y1;
 
 				if (IsCapturing())
 				{
@@ -1770,9 +1769,8 @@ void LList::OnMouseMove(GMouse &m)
 					{
 						int Over = -1;
 						
-						LListItem *h = HitItem(m.x, m.y, &Over);
-
 						/*
+						LListItem *h = HitItem(m.x, m.y, &Over);
 						if (m.y < ItemsPos.y1 && FirstVisible == 0)
 						{
 							Over = 0;
@@ -2289,11 +2287,6 @@ void LList::PourAll()
 		LastVisible = 0x7FFFFFFF;
 		CompletelyVisible = 0;
 		bool SomeHidden = false;
-
-		if (Items.Length() == 4)
-		{
-			int asd=0;
-		}
 
 		ForAllItems(i)
 		{

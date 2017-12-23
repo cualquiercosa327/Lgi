@@ -1750,7 +1750,7 @@ int ErrSort(GSpellCheck::SpellingError *a, GSpellCheck::SpellingError *b)
 	return (int) (a->Start - b->Start);
 }
 
-bool GRichTextPriv::TextBlock::StripLast(Transaction *Trans, char *Set)
+bool GRichTextPriv::TextBlock::StripLast(Transaction *Trans, const char *Set)
 {
 	if (Txt.Length() == 0)
 		return false;
