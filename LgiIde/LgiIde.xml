@@ -110,6 +110,8 @@ WINNATIVE</Release>
 			</Arguments>
 			<CrossCompiler />
 			<DebugAdmin />
+			<CCrossCompiler />
+			<CppCrossCompiler />
 		</General>
 		<Build>
 			<IncludePaths>
@@ -215,10 +217,7 @@ C:\Data\CodeLib\Gtk\include\gtk-2.0\gdk</Release>
 		</Editor>
 		<Advanced>
 			<OtherMakefileRules />
-		</Advanced>
-	</Settings>
-</Project>
-efileRules />
+			<PostBuildCommands />
 		</Advanced>
 	</Settings>
 </Project>

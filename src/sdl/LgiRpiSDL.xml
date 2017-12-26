@@ -78,10 +78,12 @@
 			<Node Name="Threads" Type="1" Platforms="15" Open="0" Id="21">
 				<Node Name="Haiku" Type="1" Platforms="15" Open="0" Id="22" />
 				<Node Name="Linux" Type="1" Platforms="15" Open="0" Id="23">
+					<Node File="../common/Lgi/LMutex.cpp" Type="2" Platforms="15" />
 					<Node File="../linux/Lgi/LThread.cpp" Type="2" Platforms="15" />
 				</Node>
 				<Node Name="Win32" Type="1" Platforms="15" Open="0" Id="24" />
 				<Node File="../../include/common/GEventTargetThread.h" Type="3" Platforms="15" />
+				<Node File="../common/Lgi/LThreadCommon.cpp" Type="2" Platforms="15" />
 			</Node>
 			<Node Name="Variant" Type="1" Platforms="15" Open="0" Id="25">
 				<Node File="../common/Lgi/GVariant.cpp" Type="2" Platforms="15" />
@@ -297,7 +299,7 @@ WINDOWS</Release>
 				<Linux>cross</Linux>
 			</Compiler>
 			<CrossCompiler>
-				<Linux>/opt/cross/x-tools/arm-unknown-linux-gnueabi/bin/arm-unknown-linux-gnueabi-g++</Linux>
+				<Linux>arm-linux-gnueabihf-g++</Linux>
 			</CrossCompiler>
 			<Executable>
 				<Linux />
@@ -306,6 +308,12 @@ WINDOWS</Release>
 				<All />
 			</Arguments>
 			<DebugAdmin />
+			<CCrossCompiler>
+				<Linux>arm-linux-gnueabihf-gcc</Linux>
+			</CCrossCompiler>
+			<CppCrossCompiler>
+				<Linux>arm-linux-gnueabihf-g++</Linux>
+			</CppCrossCompiler>
 		</General>
 		<Build>
 			<IncludePaths>
@@ -321,15 +329,21 @@ WINDOWS</Release>
 				</Windows>
 				<Linux>
 					<Debug>../../include/sdl
-/usr/include/SDL
-/usr/include/freetype2
-/usr/include/gstreamer-1.0
-/usr/include</Debug>
+/media/rpi-include/freetype2
+/media/rpi-include/SDL
+/media/rpi-root/usr/include
+/media/rpi-root/usr/include/arm-linux-gnueabihf
+/media/rpi-root/usr/lib/gcc/arm-linux-gnueabihf/4.9/include
+/media/rpi-root/usr/lib/gcc/arm-linux-gnueabihf/4.9/include-fixed
+/media/rpi-root/usr/local/include</Debug>
 					<Release>../../include/sdl
-/usr/include/SDL
-/usr/include/freetype2
-/usr/include/gstreamer-1.0
-/usr/include</Release>
+/media/rpi-include/freetype2
+/media/rpi-include/SDL
+/media/rpi-root/usr/include
+/media/rpi-root/usr/include/arm-linux-gnueabihf
+/media/rpi-root/usr/lib/gcc/arm-linux-gnueabihf/4.9/include
+/media/rpi-root/usr/lib/gcc/arm-linux-gnueabihf/4.9/include-fixed
+/media/rpi-root/usr/local/include</Release>
 				</Linux>
 				<Haiku>
 					<Debug>include/beos
@@ -371,7 +385,8 @@ textencoding</Release>
 				</Haiku>
 				<All>
 					<Debug>SDL
-freetype</Debug>
+freetype
+</Debug>
 					<Release>SDL
 freetype</Release>
 				</All>
@@ -397,7 +412,24 @@ freetype</Release>
 				<Linux />
 			</SystemIncludes>
 			<LibraryPaths>
-				<All />
+				<All>
+					<Debug>--sysroot=/media/rpi-root
+/media/rpi-root/lib
+/media/rpi-root/lib/arm-linux-gnueabihf
+/media/rpi-root/usr/lib
+/media/rpi-root/usr/local/lib
+/media/rpi-root/usr/lib/arm-linux-gnueabihf
+-static-libgcc
+</Debug>
+					<Release>--sysroot=/media/rpi-root
+/media/rpi-root/lib
+/media/rpi-root/lib/arm-linux-gnueabihf
+/media/rpi-root/usr/lib
+/media/rpi-root/usr/local/lib
+/media/rpi-root/usr/lib/arm-linux-gnueabihf
+-static-libgcc
+</Release>
+				</All>
 				<Linux />
 			</LibraryPaths>
 			<ApplicationIcon />
@@ -420,6 +452,11 @@ freetype</Release>
 		</Editor>
 		<Advanced>
 			<OtherMakefileRules />
+			<PostBuildCommands>
+				<All>@echo &quot;Copying $(TargetFile) to rpi...&quot;
+cp $(BuildDir)/$(TargetFile) /media/rpi-home/Code/Lgi/trunk/src/sdl/Debug
+</All>
+			</PostBuildCommands>
 		</Advanced>
 	</Settings>
 </Project>

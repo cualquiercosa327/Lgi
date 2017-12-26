@@ -436,6 +436,8 @@ WINDOWS</Release>
 			</Arguments>
 			<CrossCompiler />
 			<DebugAdmin />
+			<CCrossCompiler />
+			<CppCrossCompiler />
 		</General>
 		<Build>
 			<IncludePaths>
@@ -551,16 +553,11 @@ textencoding</Release>
 		</Editor>
 		<Advanced>
 			<OtherMakefileRules />
+			<PostBuildCommands />
 		</Advanced>
 	</Settings>
 </Project>
-
-		</Advanced>
-	</Settings>
-</Project>
-<All>1</All>
-			</UseHardTabs>
-			<CommentFile />
+		<CommentFile />
 			<CommentFunction />
 		</Editor>
 		<Advanced>

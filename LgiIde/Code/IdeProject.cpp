@@ -1128,6 +1128,11 @@ bool IdeProject::IsMakefileUpToDate()
 	return true;
 }
 
+bool IdeProject::FixMissingFiles()
+{
+	return true;
+}
+
 void IdeProject::Build(bool All, bool Release)
 {
 	if (d->Thread)
@@ -2214,26 +2219,22 @@ bool IdeProject::GetDependencies(const char *SourceFile, GArray<GString> &IncPat
 	return true;
 }
 
-/*
-static bool RenameMakefileForPlatform(GAutoString &MakeFile, IdePlatform Platform)
+bool FindInPath(GString &Exe)
 {
-	if (!MakeFile)
-		return false;
-
-	char *Dot = strrchr(MakeFile, '.');
-	if (Dot && stricmp(sCurrentPlatform, ++Dot) != 0)
+	GString::Array Path = GString(getenv("PATH")).Split(LGI_PATH_SEPARATOR);
+	for (unsigned i=0; i<Path.Length(); i++)
 	{
-		char mk[MAX_PATH];
-		*Dot = 0;
-		sprintf_s(mk, sizeof(mk), "%s%s", MakeFile.Get(), PlatformNames[Platform]);
-		if ((Dot = strrchr(mk, '.')))
-			strlwr(Dot);
-		MakeFile.Reset(NewStr(mk));
+		char p[MAX_PATH];
+		LgiMakePath(p, sizeof(p), Path[i], Exe);
+		if (FileExists(p))
+		{
+			Exe = p;
+			return true;
+		}
 	}
 	
-	return true;
+	return false;
 }
-*/
 
 bool IdeProject::CreateMakefile(IdePlatform Platform)
 {
@@ -2244,8 +2245,8 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 	GString LinkerFlags;
 	const char *TargetType = d->Settings.GetStr(ProjTargetType, NULL, Platform);
 	const char *CompilerName = d->Settings.GetStr(ProjCompiler);
-	const char *CCompilerBinary = "gcc";
-	const char *CppCompilerBinary = "g++";
+	GString CCompilerBinary = "gcc";
+	GString CppCompilerBinary = "g++";
 	GStream *Log = d->App->GetBuildLog();
 	bool IsExecutableTarget = TargetType && !stricmp(TargetType, "Executable");
 	bool IsDynamicLibrary	= TargetType && !stricmp(TargetType, "DynamicLibrary");
@@ -2302,15 +2303,21 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 	{
 		if (!stricmp(CompilerName, "cross"))
 		{
-			const char *CrossCompilerBin = d->Settings.GetStr(ProjCrossCompiler, NULL, Platform);
-			if (FileExists(CrossCompilerBin))
-			{
-				CppCompilerBinary = CrossCompilerBin;
-			}
+			GString CBin = d->Settings.GetStr(ProjCCrossCompiler, NULL, Platform);
+			if (!FileExists(CBin))
+				FindInPath(CBin);
+			if (FileExists(CBin))
+				CCompilerBinary = CBin;
 			else
-			{
-				Log->Print("%s:%i - Error: cross compiler '%s' not found.\n", _FL, CrossCompilerBin);
-			}
+				Log->Print("%s:%i - Error: C cross compiler '%s' not found.\n", _FL, CBin.Get());
+			
+			GString CppBin = d->Settings.GetStr(ProjCppCrossCompiler, NULL, Platform);
+			if (!FileExists(CppBin))
+				FindInPath(CppBin);
+			if (FileExists(CppBin))
+				CppCompilerBinary = CppBin;
+			else
+				Log->Print("%s:%i - Error: C++ cross compiler '%s' not found.\n", _FL, CppBin.Get());
 		}
 	}
 	
@@ -2333,8 +2340,8 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 			"\n"
 			"CC = %s\n"
 			"CPP = %s\n",
-			CCompilerBinary,
-			CppCompilerBinary);
+			CCompilerBinary.Get(),
+			CppCompilerBinary.Get());
 
 	// Collect all files that require building
 	GArray<ProjectNode*> Files;
@@ -2439,14 +2446,20 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 		}
 	
 		// Collect all dependencies, output their lib names and paths
-		const char *PLibPaths = d->Settings.GetStr(ProjLibraryPaths, NULL, Platform);
+		GString PLibPaths = d->Settings.GetStr(ProjLibraryPaths, NULL, Platform);
 		if (ValidStr(PLibPaths))
 		{
-			GToken LibPaths(PLibPaths, " \r\n");
-			for (int i=0; i<LibPaths.Length(); i++)
+			GString::Array LibPaths = PLibPaths.Split("\n");
+			for (unsigned i=0; i<LibPaths.Length(); i++)
 			{
-				GString s;
-				s.Printf(" \\\n\t\t-L%s", ToUnixPath(LibPaths[i]));
+				GString s, in = LibPaths[i].Strip();
+				if (!in.Length())
+					continue;
+				
+				if (in(0) == '-')
+					s.Printf(" \\\n\t\t%s", in.Get());
+				else
+					s.Printf(" \\\n\t\t-L%s", ToUnixPath(in.Get()));
 				sLibs[Cfg] += s;
 			}
 		}
@@ -2641,7 +2654,10 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 							
 					GStringPipe Rules;
 					IdeProject *Dep;
-					for (Dep=Deps.First(); Dep; Dep=Deps.Next())
+					
+					uint64 Last = LgiCurrentTime();
+					int Count = 0;
+					for (Dep=Deps.First(); Dep; Dep=Deps.Next(), Count++)
 					{
 						// Get dependency to create it's own makefile...
 						Dep->CreateMakefile(Platform);
@@ -2708,6 +2724,13 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 
 							Rules.Print("\n\n");
 						}
+						
+						uint64 Now = LgiCurrentTime();
+						if (Now - Last > 1000)
+						{
+							Last = Now;
+							Log->Print("Building deps %i%%...\n", (int) (((int64)Count+1)*100/Deps.Length()));
+						}
 					}
 
 					m.Print(" outputfolder $(Depends)\n"
@@ -2726,6 +2749,14 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 						{
 							m.Print("	addattr -f %s -t \"'VICN'\" \"BEOS:ICON\" $(Target)\n", AppIcon);
 						}							
+					}
+					
+					GString PostBuildCmds = d->Settings.GetStr(ProjPostBuildCommands, NULL, Platform);
+					if (ValidStr(PostBuildCmds))
+					{
+						GString::Array a = PostBuildCmds.Split("\n");
+						for (unsigned i=0; i<a.Length(); i++)
+							m.Print("\t%s\n", a[i].Strip().Get());
 					}
 
 					m.Print("	@echo Done.\n"
@@ -2775,12 +2806,21 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 							"		%s%s \\\n"
 							"		-o $(BuildDir)/$(TargetFile) \\\n"
 							"		$(addprefix $(BuildDir)/,$(Depends)) \\\n"
-							"		$(Libs)\n"
-							"	@echo Done.\n"
-							"\n",
+							"		$(Libs)\n",
 							PlatformLibraryExt,
 							ValidStr(ExtraLinkFlags) ? "-Wl" : "", ExtraLinkFlags,
 							LinkerFlags.Get());
+
+					GString PostBuildCmds = d->Settings.GetStr(ProjPostBuildCommands, NULL, Platform);
+					if (ValidStr(PostBuildCmds))
+					{
+						GString::Array a = PostBuildCmds.Split("\n");
+						for (unsigned i=0; i<a.Length(); i++)
+							m.Print("\t%s\n", a[i].Strip().Get());
+					}
+
+					m.Print("	@echo Done.\n"
+							"\n");
 
 					// Cleaning target
 					m.Print("# Create the output folder\n"
@@ -2800,10 +2840,19 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 					m.Print("TargetFile = lib$(Target)$(Tag).%s\n"
 							"$(TargetFile) : outputfolder $(Depends)\n"
 							"	@echo Linking $(TargetFile) [$(Build)]...\n"
-							"	ar rcs $(BuildDir)/$(TargetFile) $(addprefix $(BuildDir)/,$(Depends))\n"
-							"	@echo Done.\n"
-							"\n",
+							"	ar rcs $(BuildDir)/$(TargetFile) $(addprefix $(BuildDir)/,$(Depends))\n",
 							PlatformStaticLibExt);
+
+					GString PostBuildCmds = d->Settings.GetStr(ProjPostBuildCommands, NULL, Platform);
+					if (ValidStr(PostBuildCmds))
+					{
+						GString::Array a = PostBuildCmds.Split("\n");
+						for (unsigned i=0; i<a.Length(); i++)
+							m.Print("\t%s\n", a[i].Strip().Get());
+					}
+
+					m.Print("	@echo Done.\n"
+							"\n");
 
 					// Cleaning target
 					m.Print("# Create the output folder\n"
@@ -2992,7 +3041,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 			if (ValidStr(OtherMakefileRules))
 			{
 				m.Print("\n%s\n", OtherMakefileRules);
-			}					
+			}
 		}
 	}
 	else

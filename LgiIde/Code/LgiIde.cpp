@@ -3051,7 +3051,14 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 				p->Execute(ExeValgrind);
 			}
 			break;
-		}		
+		}
+		case IDM_FIX_MISSING_FILES:
+		{
+			IdeProject *p = RootProject();
+			if (p)
+				p->FixMissingFiles();
+			break;
+		}
 		case IDM_START_DEBUG:
 		{
 			SaveAll();
@@ -3087,13 +3094,8 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		case IDM_TOGGLE_BREAKPOINT:
 		{
 			IdeDoc *Cur = GetCurrentDoc();
-			if (Cur)
-			{
-				if (Cur->GetEdit())
-				{
-					ToggleBreakpoint(Cur->GetFileName(), Cur->GetEdit()->GetLine());
-				}
-			}
+			if (Cur && Cur->GetEdit())
+				ToggleBreakpoint(Cur->GetFileName(), Cur->GetEdit()->GetLine());
 			break;
 		}
 		case IDM_ATTACH_TO_PROCESS:
@@ -3142,9 +3144,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			SaveAll();
 			IdeProject *p = RootProject();
 			if (p)
-			{
 				p->Clean(IsReleaseMode());
-			}
 			break;
 		}
 		case IDM_NEXT_MSG:

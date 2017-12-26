@@ -520,6 +520,7 @@
 			<String Ref="1" Cid="500" Define="IDM_EOL_LF" en="End of line: LF" />
 			<String Ref="3" Cid="501" Define="IDM_MENU_501" />
 			<String Ref="5" Cid="545" Define="IDM_EOL_CRLF" en="End of line: CRLF" />
+			<String Ref="6" Cid="546" Define="IDM_FIX_MISSING_FILES" en="Fix Missing Files" />
 		</string-group>
 		<submenu Ref="175">
 			<menuitem Ref="174" Shortcut="Ctrl+N" />
@@ -575,6 +576,7 @@
 				<menuitem Ref="144" />
 				<menuitem Ref="143" />
 			</submenu>
+			<menuitem Ref="6" />
 			<menuitem Sep="1" />
 			<menuitem Ref="142" />
 			<menuitem Ref="141" />

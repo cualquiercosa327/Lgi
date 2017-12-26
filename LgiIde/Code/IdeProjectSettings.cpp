@@ -116,7 +116,8 @@ SettingInfo AllSettings[] =
 	{ProjDebugAdmin,			GV_BOOL,		"DebugAdmin",		sGeneral,	SF_CROSSPLATFORM},
 	{ProjDefines,				GV_STRING,		"Defines",			sGeneral,	SF_MULTILINE|SF_CONFIG_SPECIFIC},
 	{ProjCompiler,				GV_INT32,		"Compiler",			sGeneral,	SF_PLATFORM_SPECIFC|SF_ENUM},
-	{ProjCrossCompiler,			GV_STRING,		"CrossCompiler",	sGeneral,	SF_PLATFORM_SPECIFC|SF_FILE_SELECT},
+	{ProjCCrossCompiler,		GV_STRING,		"CCrossCompiler",	sGeneral,	SF_PLATFORM_SPECIFC|SF_FILE_SELECT},
+	{ProjCppCrossCompiler,		GV_STRING,		"CppCrossCompiler",	sGeneral,	SF_PLATFORM_SPECIFC|SF_FILE_SELECT},
 	{ProjIncludePaths,			GV_STRING,		"IncludePaths",		sBuild,		SF_MULTILINE|SF_CONFIG_SPECIFIC},
 	{ProjSystemIncludes,		GV_STRING,		"SystemIncludes",	sBuild,		SF_MULTILINE|SF_CONFIG_SPECIFIC|SF_PLATFORM_SPECIFC},
 	{ProjLibraries,				GV_STRING,		"Libraries",		sBuild,		SF_MULTILINE|SF_CONFIG_SPECIFIC},
@@ -131,6 +132,7 @@ SettingInfo AllSettings[] =
 	{ProjCommentFile,			GV_STRING,		"CommentFile",		sEditor,	SF_MULTILINE|SF_CROSSPLATFORM},
 	{ProjCommentFunction,		GV_STRING,		"CommentFunction",	sEditor,	SF_MULTILINE|SF_CROSSPLATFORM},
 	{ProjMakefileRules,			GV_STRING,		"OtherMakefileRules", sAdvanced, SF_MULTILINE},
+	{ProjPostBuildCommands,		GV_STRING,		"PostBuildCommands", sAdvanced, SF_MULTILINE},
 	{ProjNone,					GV_NULL,		NULL,				NULL,		0},
 };
 

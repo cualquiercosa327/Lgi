@@ -866,12 +866,22 @@ IdeDoc *ProjectNode::Open()
 									Doc->SetProject(Project);
 									
 									IdeProjectSettings *Settings = Project->GetSettings();
+									
 									int i = Settings->GetInt(ProjEditorIndentSize);
+									// printf("Indent=%i\n", i);
 									Doc->GetEdit()->SetIndentSize(i > 0 ? i : 4);
+									
 									i = Settings->GetInt(ProjEditorTabSize);
+									// printf("Tabsize=%i\n", i);
 									Doc->GetEdit()->SetTabSize(i > 0 ? i : 4);
-									Doc->GetEdit()->SetHardTabs(Settings->GetInt(ProjEditorUseHardTabs));
-									Doc->GetEdit()->SetShowWhiteSpace(Settings->GetInt(ProjEditorShowWhiteSpace));
+
+									i = Settings->GetInt(ProjEditorUseHardTabs);
+									// printf("HardTabs=%i\n", i);
+									Doc->GetEdit()->SetHardTabs(i);
+
+									i = Settings->GetInt(ProjEditorShowWhiteSpace);
+									// printf("WhiteSpace=%i\n", i);
+									Doc->GetEdit()->SetShowWhiteSpace(i);
 
 									Doc->GetEdit()->Invalidate();
 								}

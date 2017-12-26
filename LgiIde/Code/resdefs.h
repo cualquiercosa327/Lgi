@@ -107,6 +107,7 @@
 #define IDM_VALGRIND							543
 #define IDC_PLATFORMS							544
 #define IDM_EOL_CRLF							545
+#define IDM_FIX_MISSING_FILES					546
 #define IDD_FILE_PROPS							551
 #define IDM_LOAD_MEMDUMP						552
 #define IDM_SYS_CHAR_SUPPORT					553
