@@ -127,7 +127,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>imm32.lib;Mincore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
       <AdditionalLibraryDirectories>..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -170,7 +170,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>imm32.lib;Mincore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
       <AdditionalLibraryDirectories>..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -198,6 +198,7 @@
     <ClInclude Include="Code\GHistory.h" />
     <ClInclude Include="Code\IdeDoc.h" />
     <ClInclude Include="Code\IdeProject.h" />
+    <ClInclude Include="Code\levenshtein.h" />
     <ClInclude Include="Code\LgiIde.h" />
     <ClInclude Include="Code\ProjectNode.h" />
     <ClInclude Include="Code\resdefs.h" />
@@ -228,9 +229,11 @@
     <ClCompile Include="Code\IdeDoc.cpp" />
     <ClCompile Include="Code\IdeProject.cpp" />
     <ClCompile Include="Code\IdeProjectSettings.cpp" />
+    <ClCompile Include="Code\levenshtein.c" />
     <ClCompile Include="Code\LgiIde.cpp" />
     <ClCompile Include="Code\LgiUtils.cpp" />
     <ClCompile Include="Code\MemDumpViewer.cpp" />
+    <ClCompile Include="Code\MissingFiles.cpp" />
     <ClCompile Include="Code\ProjectNode.cpp" />
     <ClCompile Include="Code\SimpleCppParser.cpp" />
     <ClCompile Include="Code\SpaceTabConv.cpp" />

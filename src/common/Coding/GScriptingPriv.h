@@ -422,7 +422,7 @@ public:
 	);
 
 	// Debugging commands
-	GVmDebugger *OpenDebugger(const char *Script = NULL);
+	GVmDebugger *OpenDebugger(GCompiledCode *Code = NULL, const char *Assembly = NULL);
 	bool StepInstruction();
 	bool StepLine();
 	bool StepOut();

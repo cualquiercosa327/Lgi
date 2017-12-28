@@ -676,12 +676,12 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 	#if LIBPNG_SHARED
 	if (!Lib->IsLoaded() && !Lib->Load(sLibrary))
 	{
+		GString s;
+		s.Printf("libpng is missing (%s.%s)", sLibrary, LGI_LIBRARY_EXT);
 		if (Props)
-		{
-			GString s;
-			s.Printf("libpng is missing (%s.%s)", sLibrary, LGI_LIBRARY_EXT);
 			Props->SetValue(LGI_FILTER_ERROR, v = s);
-		}
+		else
+			LgiTrace("%s:%i - %s\n", _FL, s.Get());
 
 		static bool Warn = true;
 		if (Warn)

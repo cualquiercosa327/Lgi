@@ -559,9 +559,7 @@ public:
 			Log->Print("%s Exception: %s (%s:%i)\n", Code->AddrToSourceRef(Address), Msg, Last?Last+1:File, Line);
 		}
 		
-		const char *Fn = Code->GetFileName();
-		GAutoString Src(ReadTextFile(Fn));
-		if (Vm && Vm->OpenDebugger(Src))
+		if (Vm && Vm->OpenDebugger(Code))
 		{
 			if (!Debugger->GetCode())
 			{
@@ -1006,14 +1004,14 @@ GExecutionStatus GVirtualMachine::ExecuteFunction(GCompiledCode *Code, GFunction
 	return r;
 }
 
-GVmDebugger *GVirtualMachine::OpenDebugger(const char *Script)
+GVmDebugger *GVirtualMachine::OpenDebugger(GCompiledCode *Code, const char *Assembly)
 {
 	if (!d->Debugger)
 	{
 		if (!d->DbgCallback)
 			return NULL;
 		
-		d->Debugger = d->DbgCallback->AttachVm(this, Script, NULL);
+		d->Debugger = d->DbgCallback->AttachVm(this, Code, Assembly);
 	}
 	
 	return d->Debugger;
@@ -1257,12 +1255,13 @@ struct GScriptVmDebuggerPriv
 	bool OwnVm;
 	GAutoPtr<GVirtualMachine> Vm;
 	GVmDebuggerCallback *Callback;
-	GAutoString Script, Assembly;
+	GString Script, Assembly;
 	GArray<CodeBlock> Blocks;
 	size_t CurrentAddr;
 	GArray<bool> LineIsAsm;
 	GAutoPtr<GCompiledCode> Obj;
 	GVariant Return;
+	bool AcceptNotify;
 
 	// Ui
 	bool RunLoop;
@@ -1467,15 +1466,17 @@ void GDebugView::PourText(size_t Start, ssize_t Len)
 	}
 }
 
-GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVirtualMachine *Vm, const char *Script, const char *Assembly)
+GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVirtualMachine *Vm, GCompiledCode *Code, const char *Assembly)
 {
 	d = new GScriptVmDebuggerPriv;
 	d->Parent = Parent;
+	d->AcceptNotify = false;
 	if (Vm)
 		d->Vm.Reset(new GVirtualMachine(Vm));
 	d->Callback = Callback;
-	d->Script.Reset(NewStr(Script));
-	d->Assembly.Reset(NewStr(Assembly));
+	if (Code)
+		d->Script = Code->GetSource();
+	d->Assembly = Assembly;
 	
 	GRect r(0, 0, 1000, 900);
 	SetPos(r);
@@ -1578,6 +1579,10 @@ GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVi
 			LgiGetExePath(p, sizeof(p));
 			LgiMakePath(p, sizeof(p), p, "../Scripts");
 			GDirectory dir;
+			LListItem *Match = NULL;
+
+			d->SourceLst->MultiSelect(false);
+
 			for (int b = dir.First(p); b; b = dir.Next())
 			{
 				if (!dir.IsDir())
@@ -1589,12 +1594,33 @@ GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVi
 						LListItem *it = new LListItem;
 						it->SetText(dir.GetName(), 0);
 						it->SetText(p, 1);
+
+						if (Code && Code->GetFileName())
+						{
+							if (_stricmp(p, Code->GetFileName()) == 0)
+								Match = it;
+						}
+
 						d->SourceLst->Insert(it);
 					}
 				}
 			}
+
+			if (!Match && Code)
+			{
+				LListItem *it = new LListItem;
+				if (it)
+				{
+					it->SetText(LgiGetLeaf(Code->GetFileName()), 0);
+					it->SetText(Code->GetFileName(), 1);
+					d->SourceLst->Insert(it);
+					it->Select(true);
+				}
+			}
 		}
 	}
+
+	d->AcceptNotify = true;
 }
 
 GVmDebuggerWnd::~GVmDebuggerWnd()
@@ -1838,7 +1864,11 @@ void GVmDebuggerWnd::LoadFile(const char *File)
 		return;
 	}
 
-	d->Script.Reset(ReadTextFile(File));
+	GFile f;
+	if (f.Open(File, O_READ))
+		d->Script = f.Read();
+	else
+		d->Script.Empty();
 	d->Obj.Reset();
 	if (d->Callback->CompileScript(d->Obj, File, d->Script))
 	{
@@ -1954,6 +1984,9 @@ int GVmDebuggerWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 
 int GVmDebuggerWnd::OnNotify(GViewI *Ctrl, int Flags)
 {
+	if (!d->AcceptNotify)
+		return 0;
+
 	switch (Ctrl->GetId())
 	{
 		case IDC_TABS:

@@ -206,5 +206,6 @@ public:
 };
 
 extern const char TagSettings[];
+extern void FixMissingFilesDlg(IdeProject *Proj);
 
 #endif

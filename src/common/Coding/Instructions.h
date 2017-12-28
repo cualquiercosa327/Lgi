@@ -1050,8 +1050,14 @@ case IDomGet:
 			}
 			case GV_NULL:
 			{
+				#if 1
+				if (Log)
+					Log->Print("%s IDomGet warning: Can't deref NULL object.\n",
+								Code->AddrToSourceRef(CurrentScriptAddress));
+				#else // If you want exceptions on NULL deref
 				OnException(_FL, CurrentScriptAddress-1, "NULL Dom Ptr");
-				return ScriptWarning;
+				#endif
+				Status = ScriptWarning;
 				break;
 			}
 			default:

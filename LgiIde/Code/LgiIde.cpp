@@ -3057,6 +3057,8 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			IdeProject *p = RootProject();
 			if (p)
 				p->FixMissingFiles();
+			else
+				LgiMsg(this, "No project loaded.", AppName);
 			break;
 		}
 		case IDM_START_DEBUG:

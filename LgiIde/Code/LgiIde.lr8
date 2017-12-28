@@ -3,12 +3,23 @@
 	<string-group Name="_Dialog Symbols_">
 		<String Ref="2" Cid="1" Define="IDOK" en="Ok" />
 		<String Ref="4" Cid="2" Define="IDCANCEL" en="Cancel" />
+		<String Ref="7" Cid="7" Define="IDD_MISSING_FILES" en="Fix Missing Files" />
+		<String Ref="8" Cid="8" Define="IDC_TABLE" />
+		<String Ref="9" Cid="-1" Define="IDC_STATIC" en="Missing project file:" />
+		<String Ref="10" Cid="10" Define="IDC_MISSING" />
+		<String Ref="11" Cid="-1" Define="IDC_STATIC" en="Select a potential replacement:" />
+		<String Ref="12" Cid="12" Define="IDC_RESULTS" />
+		<String Ref="13" Cid="-1" Define="IDC_STATIC" en="-or-" />
+		<String Ref="14" Cid="14" Define="IDC_BROWSE" en="Browse" />
+		<String Ref="15" Cid="1" Define="IDOK" en="Ok" />
+		<String Ref="16" Cid="2" Define="IDCANCEL" en="Cancel" />
+		<String Ref="17" Cid="17" Define="IDC_17" en="File" />
 		<String Ref="19" Cid="19" Define="IDD_FIND_IN_FILES" en="Find In Files" />
 		<String Ref="20" Cid="21" Define="IDC_LOOK_FOR" />
 		<String Ref="21" Cid="-1" Define="IDC_STATIC" en="In file types:" />
 		<String Ref="22" Cid="23" Define="IDC_FILE_TYPES" />
 		<String Ref="23" Cid="69" Define="IDC_FOLDER_HISTORY" />
-		<String Ref="24" Cid="24" Define="IDC_TABLE" />
+		<String Ref="24" Cid="8" Define="IDC_TABLE" />
 		<String Ref="25" Cid="26" Define="IDC_SET_DIR" en="..." />
 		<String Ref="26" Cid="31" Define="IDC_SUB_DIRS" en="Search sub directories" />
 		<String Ref="27" Cid="25" Define="IDC_DIR" />
@@ -79,8 +90,8 @@
 		<String Ref="177" Cid="2" Define="IDCANCEL" en="Cancel" />
 		<String Ref="178" Cid="1" Define="IDOK" en="Save" />
 		<String Ref="179" Cid="179" Define="IDD_FIND_SYMBOL" en="Find Symbol" />
-		<String Ref="180" Cid="24" Define="IDC_TABLE" />
-		<String Ref="181" Cid="181" Define="IDC_RESULTS" />
+		<String Ref="180" Cid="8" Define="IDC_TABLE" />
+		<String Ref="181" Cid="12" Define="IDC_RESULTS" />
 		<String Ref="182" Cid="182" Define="IDC_182" en="File" />
 		<String Ref="183" Cid="183" Define="IDC_183" en="Line" />
 		<String Ref="192" Cid="192" Define="IDC_STR" />
@@ -96,12 +107,12 @@
 		<String Ref="204" Cid="563" Define="IDC_SETTINGS" />
 		<String Ref="206" Cid="206" Define="IDC_SUB_TABLE" />
 		<String Ref="207" Cid="564" Define="IDC_DETAIL" />
-		<String Ref="208" Cid="24" Define="IDC_TABLE" />
+		<String Ref="208" Cid="8" Define="IDC_TABLE" />
 		<String Ref="209" Cid="-1" Define="IDC_STATIC" en="Search for setting:" />
 		<String Ref="212" Cid="-1" Define="IDC_STATIC" en="Concurrent jobs:" />
 		<String Ref="213" Cid="213" Define="IDC_JOBS" />
 		<String Ref="231" Cid="97" Define="IDC_PATH" />
-		<String Ref="232" Cid="232" Define="IDC_BROWSE" en="..." />
+		<String Ref="232" Cid="14" Define="IDC_BROWSE" en="..." />
 		<String Ref="233" Cid="233" Define="IDC_233" en="Symbol" />
 		<String Ref="234" Cid="234" Define="IDC_ENTIRE_SOLUTION" en="Entire Solution" />
 		<String Ref="239" Cid="239" Define="IDC_FIND_PROJECT_FILE" en="Find File in Project" />
@@ -299,6 +310,44 @@
 		</ListView>
 		<Button pos="336,364,405,384" ref="119" />
 		<Button pos="413,364,482,384" ref="120" />
+	</Dialog>
+	<Dialog pos="7,7,506,406" ref="7">
+		<TableLayout pos="7,7,482,363" ref="8" cols="0.333,0.333,0.333" rows="0.200,0.200,0.200,0.200,0.200">
+			<tr>
+				<td colspan="3">
+					<StaticText pos="21,14,174,34" ref="9" />
+				</td>
+			</tr>
+			<tr>
+				<td colspan="3">
+					<EditBox Pos="14,81,286,101" ref="10" />
+				</td>
+			</tr>
+			<tr>
+				<td colspan="3">
+					<StaticText pos="14,154,279,174" ref="11" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<ListView pos="7,217,139,265" ref="12">
+						<Column ref="17" width="111" />
+					</ListView>
+				</td>
+				<td>
+					<StaticText pos="196,224,237,244" ref="13" />
+				</td>
+				<td>
+					<Button pos="322,217,412,237" ref="14" />
+				</td>
+			</tr>
+			<tr>
+				<td colspan="3" align="Max">
+					<Button pos="245,287,314,307" ref="15" />
+					<Button pos="343,294,412,314" ref="16" />
+				</td>
+			</tr>
+		</TableLayout>
 	</Dialog>
 	<Dialog pos="7,7,294,134" ref="63">
 		<TableLayout pos="7,7,272,97" ref="75" cols="0.333,0.333,0.333" rows="0.333,0.333,0.333">

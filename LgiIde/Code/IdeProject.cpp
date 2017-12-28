@@ -1130,6 +1130,7 @@ bool IdeProject::IsMakefileUpToDate()
 
 bool IdeProject::FixMissingFiles()
 {
+	FixMissingFilesDlg(this);
 	return true;
 }
 
