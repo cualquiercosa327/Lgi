@@ -10,6 +10,8 @@ enum Msgs
 	M_ADD_SEARCH_PATH,
 	M_SEARCH,
 	M_RESULTS,
+	M_RECURSE,
+
 };
 
 struct SearchResults
@@ -45,6 +47,23 @@ public:
 	}
 };
 
+bool IsParentFolder(GString p, GString c)
+{
+	GString::Array d1 = p.Split(DIR_STR);
+	GString::Array d2 = p.Split(DIR_STR);
+
+	if (d1.Length() > d2.Length())
+		return false;
+
+	for (unsigned i=0; i<d1.Length(); i++)
+	{
+		if (!d1[i].Equals(d2[i]))
+			return false;
+	}
+
+	return true;
+}
+
 class SearchThread : public GEventTargetThread
 {
 	int Hnd;
@@ -69,14 +88,28 @@ public:
 			case M_ADD_SEARCH_PATH:
 			{
 				GAutoPtr<GString> p((GString*)Msg->A());
-				Search.New() = *p;
+				bool IsParent = false;
+				for (unsigned i=0; i<Search.Length(); i++)
+				{
+					if (IsParent = IsParentFolder(Search[i], *p))
+						break;
+				}
+				if (!IsParent)
+					Search.New() = *p;
+				break;
+			}
+			case M_RECURSE:
+			{
+				for (unsigned i=0; i<Search.Length(); i++)
+				{
+					GArray<const char*> Ext;
+					Ext.Add("*.h");
+					Ext.Add("*.hpp");
+					Ext.Add("*.c");
+					Ext.Add("*.cpp");
 
-				GArray<const char*> Ext;
-				Ext.Add("*.h");
-				Ext.Add("*.hpp");
-				Ext.Add("*.c");
-				Ext.Add("*.cpp");
-				LgiRecursiveFileSearch(*p, &Ext, &Files);
+					LgiRecursiveFileSearch(Search[i], &Ext, &Files);
+				}
 				break;
 			}
 			case M_SEARCH:
@@ -108,7 +141,7 @@ class MissingFiles : public GDialog
 	int SearchHnd;
 	int ExistsHnd;
 	LList *Lst;
-	GAutoPtr<SearchResults> Matches;
+	GArray<SearchResults*> Files;
 
 public:
 	MissingFiles(IdeProject *proj)
@@ -151,6 +184,7 @@ public:
 				if (s)
 					PostThreadEvent(SearchHnd, M_ADD_SEARCH_PATH, (GMessage::Param) new GString(s));						
 			}
+			PostThreadEvent(SearchHnd, M_RECURSE);
 		}
 	}
 
@@ -162,14 +196,86 @@ public:
 			GEventSinkMap::Dispatch.CancelThread(ExistsHnd);
 	}
 
+	void OnReplace(const char *NewPath)
+	{
+		SearchResults *Sr = Files.First();
+		if (!Sr) return;
+
+		ProjectNode *n = NULL;
+		if (Proj->FindFullPath(Sr->Path, &n))
+		{
+			n->SetFileName(NewPath);
+		}
+
+		Files.DeleteAt(0, true);
+		delete Sr;
+
+		OnFile();
+	}
+
+	void OnFile()
+	{
+		bool Has = Files.Length() > 0;
+
+		SetCtrlEnabled(IDC_MISSING, Has);
+		SetCtrlEnabled(IDC_BROWSE, Has);
+		SetCtrlEnabled(IDC_RESULTS, Has);
+		Lst->Empty();
+
+		if (Has)
+		{
+			SetCtrlName(IDC_MISSING, Files[0]->Path);
+
+			for (unsigned i=0; i<Files[0]->Matches.Length(); i++)
+			{
+				LListItem *li = new LListItem;
+				li->SetText(Files[0]->Matches[i]);
+				Lst->Insert(li);
+			}
+
+			Lst->ResizeColumnsToContent();
+		}
+		else
+		{
+			SetCtrlName(IDC_MISSING, NULL);
+		}
+	}
+
 	int OnNotify(GViewI *Ctrl, int Flags)
 	{
 		switch (Ctrl->GetId())
 		{
-			case IDOK:
-			case IDCANCEL:
+			case IDC_BROWSE:
 			{
-				EndModal(Ctrl->GetId() == IDOK);
+				GFileSelect s;
+				GAutoString Dir = Proj->GetBasePath();
+				s.Parent(this);
+				s.InitialDir(Dir);
+				if (s.Open())
+				{
+					OnReplace(s.Name());
+				}
+				break;
+			}
+			case IDC_RESULTS:
+			{
+				switch (Flags)
+				{
+					case GNotifyItem_DoubleClick:
+					{
+						LListItem *li = Lst->GetSelected();
+						if (li)
+						{
+							OnReplace(li->GetText(0));
+						}
+						break;
+					}
+				}
+				break;
+			}
+			case IDOK:
+			{
+				EndModal();
 				break;
 			}
 		}
@@ -184,26 +290,18 @@ public:
 			case M_MISSING_FILE:
 			{
 				GAutoPtr<GString> p((GString*)Msg->A());
-				SetCtrlEnabled(IDC_MISSING, true);
-				SetCtrlEnabled(IDC_BROWSE, true);
-				SetCtrlName(IDC_MISSING, *p);
-
-				SearchResults *Sr = new SearchResults;
-				Sr->Path = *p;
-				PostThreadEvent(SearchHnd, M_SEARCH, (GMessage::Param) Sr);
+				if (p)
+				{
+					SearchResults *Sr = new SearchResults;
+					Sr->Path = *p;
+					PostThreadEvent(SearchHnd, M_SEARCH, (GMessage::Param) Sr);
+				}
 				break;
 			}
 			case M_RESULTS:
 			{
-				Matches.Reset((SearchResults*)Msg->A());
-				SetCtrlEnabled(IDC_RESULTS, true);
-				for (unsigned i=0; i<Matches->Matches.Length(); i++)
-				{
-					LListItem *li = new LListItem;
-					li->SetText(Matches->Matches[i]);
-					Lst->Insert(li);
-				}
-				Lst->ResizeColumnsToContent();
+				Files.Add((SearchResults*)Msg->A());
+				OnFile();
 				break;
 			}
 		}

@@ -11,8 +11,7 @@
 		<String Ref="12" Cid="12" Define="IDC_RESULTS" />
 		<String Ref="13" Cid="-1" Define="IDC_STATIC" en="-or-" />
 		<String Ref="14" Cid="14" Define="IDC_BROWSE" en="Browse" />
-		<String Ref="15" Cid="1" Define="IDOK" en="Ok" />
-		<String Ref="16" Cid="2" Define="IDCANCEL" en="Cancel" />
+		<String Ref="15" Cid="1" Define="IDOK" en="Close" />
 		<String Ref="17" Cid="17" Define="IDC_17" en="File" />
 		<String Ref="19" Cid="19" Define="IDD_FIND_IN_FILES" en="Find In Files" />
 		<String Ref="20" Cid="21" Define="IDC_LOOK_FOR" />
@@ -343,8 +342,7 @@
 			</tr>
 			<tr>
 				<td colspan="3" align="Max">
-					<Button pos="245,287,314,307" ref="15" />
-					<Button pos="343,294,412,314" ref="16" />
+					<Button pos="371,294,440,314" ref="15" />
 				</td>
 			</tr>
 		</TableLayout>
