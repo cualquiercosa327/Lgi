@@ -5,6 +5,7 @@
 #define IDC_MISSING								10
 #define IDC_RESULTS								12
 #define IDC_BROWSE								14
+#define IDC_DELETE								16
 #define IDC_17									17
 #define IDD_FIND_IN_FILES						19
 #define IDC_LOOK_FOR							21

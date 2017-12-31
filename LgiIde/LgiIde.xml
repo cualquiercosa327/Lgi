@@ -28,6 +28,9 @@
 			<Node File="./Code/IdeProject.h" Type="3" Platforms="15" />
 			<Node File="./Code/IdeProjectSettings.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/IdeProjectSettings.h" Type="3" Platforms="15" />
+			<Node File="./Code/levenshtein.c" Type="2" Platforms="15" />
+			<Node File="./Code/levenshtein.h" Type="3" Platforms="15" />
+			<Node File="./Code/MissingFiles.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/ProjectNode.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/ProjectNode.h" Type="3" Platforms="15" />
 		</Node>

@@ -307,7 +307,9 @@ WINDOWS</Release>
 			<Arguments>
 				<All />
 			</Arguments>
-			<DebugAdmin />
+			<DebugAdmin>
+				<All>0</All>
+			</DebugAdmin>
 			<CCrossCompiler>
 				<Linux>arm-linux-gnueabihf-gcc</Linux>
 			</CCrossCompiler>

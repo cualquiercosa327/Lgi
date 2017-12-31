@@ -13,6 +13,7 @@
 		<String Ref="14" Cid="14" Define="IDC_BROWSE" en="Browse" />
 		<String Ref="15" Cid="1" Define="IDOK" en="Close" />
 		<String Ref="17" Cid="17" Define="IDC_17" en="File" />
+		<String Ref="18" Cid="16" Define="IDC_DELETE" en="Delete" />
 		<String Ref="19" Cid="19" Define="IDD_FIND_IN_FILES" en="Find In Files" />
 		<String Ref="20" Cid="21" Define="IDC_LOOK_FOR" />
 		<String Ref="21" Cid="-1" Define="IDC_STATIC" en="In file types:" />
@@ -311,7 +312,7 @@
 		<Button pos="413,364,482,384" ref="120" />
 	</Dialog>
 	<Dialog pos="7,7,506,406" ref="7">
-		<TableLayout pos="7,7,482,363" ref="8" cols="0.333,0.333,0.333" rows="0.200,0.200,0.200,0.200,0.200">
+		<TableLayout pos="7,7,482,363" ref="8" cols="0.333,0.333,0.333" rows="0.167,0.167,0.167,0.167,0.167,0.167">
 			<tr>
 				<td colspan="3">
 					<StaticText pos="21,14,174,34" ref="9" />
@@ -319,30 +320,35 @@
 			</tr>
 			<tr>
 				<td colspan="3">
-					<EditBox Pos="14,81,286,101" ref="10" />
+					<EditBox Pos="14,69,286,89" ref="10" />
 				</td>
 			</tr>
 			<tr>
 				<td colspan="3">
-					<StaticText pos="14,154,279,174" ref="11" />
+					<StaticText pos="14,130,279,150" ref="11" />
+				</td>
+			</tr>
+			<tr>
+				<td rowspan="2">
+					<ListView pos="7,175,139,265" ref="12">
+						<Column ref="17" width="111" />
+					</ListView>
+				</td>
+				<td rowspan="2">
+					<StaticText pos="196,188,237,208" ref="13" />
+				</td>
+				<td>
+					<Button pos="322,181,412,201" ref="14" />
 				</td>
 			</tr>
 			<tr>
 				<td>
-					<ListView pos="7,217,139,265" ref="12">
-						<Column ref="17" width="111" />
-					</ListView>
-				</td>
-				<td>
-					<StaticText pos="196,224,237,244" ref="13" />
-				</td>
-				<td>
-					<Button pos="322,217,412,237" ref="14" />
+					<Button pos="322,238,419,258" ref="18" />
 				</td>
 			</tr>
 			<tr>
 				<td colspan="3" align="Max">
-					<Button pos="371,294,440,314" ref="15" />
+					<Button pos="371,303,440,323" ref="15" />
 				</td>
 			</tr>
 		</TableLayout>
