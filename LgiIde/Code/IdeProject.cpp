@@ -274,17 +274,17 @@ public:
 			if (!stricmp(CompilerName, "cross"))
 			{
 				GString CBin = d->Settings.GetStr(ProjCCrossCompiler, NULL, Platform);
-				if (!FileExists(CBin))
+				if (CBin && !FileExists(CBin))
 					FindInPath(CBin);
-				if (FileExists(CBin))
+				if (CBin && FileExists(CBin))
 					CCompilerBinary = CBin;
 				else
 					Log->Print("%s:%i - Error: C cross compiler '%s' not found.\n", _FL, CBin.Get());
 				
 				GString CppBin = d->Settings.GetStr(ProjCppCrossCompiler, NULL, Platform);
-				if (!FileExists(CppBin))
+				if (CppBin && !FileExists(CppBin))
 					FindInPath(CppBin);
-				if (FileExists(CppBin))
+				if (CppBin && FileExists(CppBin))
 					CppCompilerBinary = CppBin;
 				else
 					Log->Print("%s:%i - Error: C++ cross compiler '%s' not found.\n", _FL, CppBin.Get());

@@ -60,7 +60,7 @@ const char *CppTypes[] = {	"int", "char", "unsigned", "double", "float", "bool",
 							"GArray", "GHashTbl", "List", "GString", "GAutoString", "GAutoWString",
 							"GAutoPtr",
 							NULL};
-const char *PythonKeywords[] = {"def", "try", "except", "import", "if", "for", "elif", NULL};
+const char *PythonKeywords[] = {"def", "try", "except", "import", "if", "for", "elif", "else", NULL};
 const char *XmlTypes[] = {	NULL};
 
 LanguageParams LangParam[] =
