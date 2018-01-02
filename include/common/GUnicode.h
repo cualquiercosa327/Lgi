@@ -721,6 +721,8 @@ int64 Atoi(const T *s, int Base = 10, int64 DefaultValue = -1)
 		Minus = true;
 		s++;
 	}
+	else if (*s == '+')
+		s++;
 
 	int64 v = 0;
 	const T *Start = s;

@@ -176,6 +176,18 @@ public:
 				if (Mnth >= 0)
 					d.Month(Mnth + 1);
 			}
+			else if (*c == '-' || *c == '+')
+			{
+				c++;
+				if (strlen(c) == 4)
+				{
+					// Timezone..
+					int64 Tz = a[i].Int();
+					int Hrs = (int) (Tz / 100);
+					int Min = (int) (Tz % 100);
+					d.SetTimeZone(Hrs * 60 + Min, false);
+				}
+			}
 		}
 
 		return d;
