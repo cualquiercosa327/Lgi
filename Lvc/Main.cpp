@@ -107,10 +107,12 @@ public:
 
 	int IsWeekDay(const char *s)
 	{
-		static const char *ShortDays[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-		for (unsigned n=0; n<CountOf(ShortDays); n++)
+		static const char *Short[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+		static const char *Long[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+		for (unsigned n=0; n<CountOf(Short); n++)
 		{
-			if (!_stricmp(ShortDays[n], s))
+			if (!_stricmp(Short[n], s) ||
+				!_stricmp(Long[n], s))
 				return n;
 		}
 		return -1;
@@ -119,9 +121,11 @@ public:
 	int IsMonth(const char *s)
 	{
 		static const char *Short[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+		static const char *Long[] = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
 		for (unsigned n=0; n<CountOf(Short); n++)
 		{
-			if (!_stricmp(Short[n], s))
+			if (!_stricmp(Short[n], s) ||
+				!_stricmp(Long[n], s))
 				return n;
 		}
 		return -1;
@@ -161,7 +165,6 @@ public:
 					d.Year((int)a[i].Int());
 				else if (!d.Day())
 					d.Day((int)a[i].Int());
-
 			}
 			else if (IsAlpha(*c))
 			{
