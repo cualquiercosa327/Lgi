@@ -12,6 +12,16 @@
 
 extern const char *AppName;
 
+enum AppIds
+{
+	IDC_LIST = 100,
+	IDC_BOX,
+	IDC_TREE,
+
+	IDM_ADD = 200,
+	IDM_UPDATE,
+};
+
 enum VersionCtrl
 {
 	VcNone,

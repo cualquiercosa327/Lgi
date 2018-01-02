@@ -5,15 +5,6 @@
 //////////////////////////////////////////////////////////////////
 const char *AppName = "Lvc";
 
-enum Ctrls
-{
-	IDC_LIST = 100,
-	IDC_BOX,
-	IDC_TREE,
-
-	IDM_ADD = 200,
-};
-
 VersionCtrl DetectVcs(const char *Path)
 {
 	char p[MAX_PATH];

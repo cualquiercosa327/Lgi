@@ -1,6 +1,8 @@
 #ifndef _VcCommit_h_
 #define _VcCommit_h_
 
+class VcFolder;
+
 class VcCommit : public LListItem
 {
 	AppPriv *d;
@@ -8,7 +10,7 @@ class VcCommit : public LListItem
 	GString Rev;
 	GString Author;
 	LDateTime Ts;
-	GString TsCache;
+	GString Cache;
 	GString Msg;
 
 public:
@@ -19,6 +21,10 @@ public:
 	char *GetText(int Col);
 	bool GitParse(GString s);
 	bool SvnParse(GString s);
+	VcFolder *GetFolder();
+
+	// Events
+	void OnMouseClick(GMouse &m);
 };
 
 #endif

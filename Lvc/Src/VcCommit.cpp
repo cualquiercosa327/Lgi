@@ -27,10 +27,11 @@ char *VcCommit::GetText(int Col)
 		case 2:
 			return Author;
 		case 3:
-			TsCache = Ts.Get();
-			return TsCache;
+			Cache = Ts.Get();
+			return Cache;
 		case 4:
-			return Msg;
+			Cache = Msg.Split("\n", 1)[0];
+			return Cache;
 	}
 
 	return NULL;
@@ -65,7 +66,7 @@ bool VcCommit::GitParse(GString s)
 bool VcCommit::SvnParse(GString s)
 {
 	GString::Array lines = s.Split("\n");
-	if (lines.Length() < 3)
+	if (lines.Length() < 1)
 		return false;
 
 	for (unsigned ln = 0; ln < lines.Length(); ln++)
@@ -89,6 +90,36 @@ bool VcCommit::SvnParse(GString s)
 		}
 	}
 
-	return Author && Msg && Rev;
+	return Author && Rev && Ts.IsValid();
 }
 
+VcFolder *VcCommit::GetFolder()
+{
+	GTreeItem *i = d->Tree->Selection();
+	return dynamic_cast<VcFolder*>(i);
+}
+
+void VcCommit::OnMouseClick(GMouse &m)
+{
+	if (m.IsContextMenu())
+	{
+		GSubMenu s;
+		s.AppendItem("Update", IDM_UPDATE, !Current);
+		int Cmd = s.Float(GetList(), m);
+		switch (Cmd)
+		{
+			case IDM_UPDATE:
+			{
+				VcFolder *f = GetFolder();
+				if (!f)
+				{
+					LgiAssert(!"No folder?");
+					break;
+				}
+
+				f->OnUpdate(Rev);
+				break;
+			}
+		}
+	}
+}

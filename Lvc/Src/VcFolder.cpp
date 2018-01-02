@@ -90,6 +90,8 @@ GXmlTag *VcFolder::Save()
 
 void VcFolder::Select(bool b)
 {
+	GTreeItem::Select(b);
+	
 	if (b)
 	{
 		if (Log.Length() == 0 && !ReadLog && LogBuf.GetSize() == 0)
@@ -99,7 +101,7 @@ void VcFolder::Select(bool b)
 			switch (GetType())
 			{
 				case VcGit:
-					Process = new GSubProcess("git", "log HEAD");
+					Process = new GSubProcess("git", "log master");
 					break;
 				case VcSvn:
 					Process = new GSubProcess("svn", "log");
@@ -191,11 +193,15 @@ void VcFolder::ParseLog(GString s)
 		case VcSvn:
 		{
 			GString::Array c = s.Split("------------------------------------------------------------------------");
+			printf("c=%i\n", c.Length());
 			for (unsigned i=0; i<c.Length(); i++)
 			{
 				GAutoPtr<VcCommit> Rev(new VcCommit(d));
-				if (Rev->SvnParse(c[i].Strip()))
+				GString Raw = c[i].Strip();
+				if (Rev->SvnParse(Raw))
 					Log.Add(Rev.Release());
+				else
+					printf("Failed:\n%s\n\n", Raw.Get());
 			}
 			break;
 		}			
@@ -243,11 +249,16 @@ void VcFolder::OnPulse()
 		ReadLog.Reset();
 		Reselect = true;
 	}
-
 	if (ReadCurrent && ReadCurrent->IsExited())
 	{
 		ParseInfo(InfoBuf.NewGStr());
 		ReadCurrent.Reset();
+		Reselect = true;
+	}
+	if (UpdateCmd && UpdateCmd->IsExited())
+	{
+		UpdateCmd.Reset();
+		CurrentCommit = NewRev;
 		Reselect = true;
 	}
 
@@ -258,3 +269,33 @@ void VcFolder::OnPulse()
 	}
 }
 
+void VcFolder::OnUpdate(const char *Rev)
+{
+	if (!Rev) return;
+	
+	if (!UpdateCmd)
+	{
+		GSubProcess *Process = NULL;
+		GString Exe, Args;
+
+		switch (GetType())
+		{
+			case VcGit:
+				Exe = "git";			
+				Args.Printf("checkout %s", Rev);
+				break;
+			case VcSvn:
+				Exe = "svn";
+				Args.Printf("up -r %s", Rev);
+				break;
+		}
+			
+		Process = new GSubProcess(Exe, Args);
+		if (Process)
+		{
+			Process->SetInitFolder(Path);
+			UpdateCmd.Reset(new ReaderThread(Process, &UpBuf));
+			NewRev = Rev;
+		}
+	}
+}

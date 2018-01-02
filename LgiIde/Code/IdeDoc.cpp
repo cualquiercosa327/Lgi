@@ -53,7 +53,9 @@ struct LanguageParams
 const char *DefaultKeywords[] = {"if", "elseif", "endif", "else", "ifeq", "ifdef", "ifndef", "ifneq", "include", NULL};
 const char *CppKeywords[] = {"extern", "class", "struct", "static", "default", "case", "break",
 							"switch", "new", "delete", "sizeof", "return", "enum", "else",
-							"if", "for", "while", "do", "continue", NULL};
+							"if", "for", "while", "do", "continue", "public", "virtual", 
+							"protected", "friend", "union", "template", "typedef", "dynamic_cast",
+							NULL};
 const char *CppTypes[] = {	"int", "char", "unsigned", "double", "float", "bool", "const", "void",
 							"int8", "int16", "int32", "int64",
 							"uint8", "uint16", "uint32", "uint64",
