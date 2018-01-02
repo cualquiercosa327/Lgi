@@ -20,6 +20,41 @@ enum Ctrls
 	IDM_ADD = 200,
 };
 
+enum VersionCtrl
+{
+	VcNone,
+	VcCvs,
+	VcSvn,
+	VcGit,
+	VcHg,
+};
+
+VersionCtrl DetectVcs(const char *Path)
+{
+	char p[MAX_PATH];
+
+	if (!Path)
+		return VcNone;
+
+	if (LgiMakePath(p, sizeof(p), Path, ".git") &&
+		DirExists(p))
+		return VcGit;
+
+	if (LgiMakePath(p, sizeof(p), Path, ".svn") &&
+		DirExists(p))
+		return VcSvn;
+
+	if (LgiMakePath(p, sizeof(p), Path, ".hg") &&
+		DirExists(p))
+		return VcHg;
+
+	if (LgiMakePath(p, sizeof(p), Path, "CVS") &&
+		DirExists(p))
+		return VcCvs;
+
+	return VcNone;
+}
+
 struct AppPriv
 {
 	GTree *Tree;
@@ -112,6 +147,16 @@ public:
 						d.Seconds((int)t[2].Int());
 					}
 				}
+				else if (strchr(c, '-'))
+				{
+					GString::Array t = a[i].Split("-");
+					if (t.Length() == 3)
+					{
+						d.Year((int)t[0].Int());
+						d.Month((int)t[1].Int());
+						d.Day((int)t[2].Int());
+					}
+				}
 				else if (a[i].Length() == 4)
 					d.Year((int)a[i].Int());
 				else if (!d.Day())
@@ -158,35 +203,123 @@ public:
 
 		return Author && Msg && Rev;
 	}
+
+	bool SvnParse(GString s)
+	{
+		GString::Array lines = s.Split("\n");
+		if (lines.Length() < 3)
+			return false;
+
+		for (unsigned ln = 0; ln < lines.Length(); ln++)
+		{
+			GString &l = lines[ln];
+			if (ln == 0)
+			{
+				GString::Array a = l.Split("|");
+				if (a.Length() > 3)
+				{
+					Rev = a[0].Strip();
+					Author = a[1].Strip();
+					Ts = ParseDate(a[2]);
+				}
+			}
+			else
+			{
+				if (Msg)
+					Msg += "\n";
+				Msg += l.Strip();
+			}
+		}
+
+		return Author && Msg && Rev;
+	}
 };
 
-class VcFolder : public GTreeItem
+class ReaderThread : public LThread
+{
+	GStream *Out;
+	GSubProcess *Process;
+
+public:
+	ReaderThread(GSubProcess *p, GStream *out) : LThread("ReaderThread")
+	{
+		Process = p;
+		Out = out;
+		Run();
+	}
+
+	~ReaderThread()
+	{
+		Out = NULL;
+		while (!IsExited())
+			LgiSleep(1);
+	}
+
+	int Main()
+	{
+		Process->Start(true, false);
+
+		while (Process->IsRunning())
+		{
+			if (Out)
+			{
+				char Buf[1024];
+				int r = Process->Read(Buf, sizeof(Buf));
+				if (r > 0)
+					Out->Write(Buf, r);
+			}
+			else
+			{
+				Process->Kill();
+				break;
+			}
+		}
+
+		return 0;
+	}
+};
+
+class VcFolder : public GTreeItem, public GStream
 {
 	AppPriv *d;
+	VersionCtrl Type;
 	GString Path;
 	GArray<VcCommit*> Log;
-	GSubProcess *Process;
 	GString Cache;
 	GArray<char> Out;
+	GAutoPtr<LThread> Worker;
 	
 public:
 	VcFolder(AppPriv *priv, const char *p)
 	{
 		d = priv;
 		Path = p;
-		Process = NULL;
+		Type = VcNone;
 	}
 
 	VcFolder(AppPriv *priv, GXmlTag *t)
 	{
 		d = priv;
-		Process = NULL;
+		Type = VcNone;
 		Serialize(t, false);
+	}
+
+	VersionCtrl GetType()
+	{
+		if (Type == VcNone)
+			Type = DetectVcs(Path);
+		return Type;
+	}
+
+	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0)
+	{
+		Out.Add((char*)Buffer, Size);
+		return Size;
 	}
 
 	char *GetText(int Col)
 	{
-		if (Process)
+		if (Worker)
 		{
 			Cache = Path;
 			Cache += " (loading...)";
@@ -217,12 +350,23 @@ public:
 	{
 		if (b)
 		{
-			if (Log.Length() == 0 && !Process)
+			if (Log.Length() == 0 && !Worker)
 			{
-				Process = new GSubProcess("git", "log HEAD");
+				GSubProcess *Process = NULL;
+
+				switch (GetType())
+				{
+					case VcGit:
+						Process = new GSubProcess("git", "log HEAD");
+						break;
+					case VcSvn:
+						Process = new GSubProcess("svn", "log");
+						break;
+				}				
 				if (Process)
 				{
-					Process->Start(true, false);
+					Process->SetInitFolder(Path);
+					Worker.Reset(new ReaderThread(Process, this));
 					Update();
 				}
 			}
@@ -232,42 +376,55 @@ public:
 			for (unsigned i=0; i<Log.Length(); i++)
 				it.Insert(Log[i]);
 			d->Lst->Insert(it);
+			if (GetType() == VcSvn)
+				d->Lst->ResizeColumnsToContent();
 		}
 	}
 
 	void ParseLog(GString s)
 	{
-		GString::Array c = s.Split("commit");
-		for (unsigned i=0; i<c.Length(); i++)
+		switch (GetType())
 		{
-			GAutoPtr<VcCommit> Rev(new VcCommit(d));
-			if (Rev->GitParse(c[i]))
-				Log.Add(Rev.Release());
+			case VcGit:
+			{
+				GString::Array c = s.Split("commit");
+				for (unsigned i=0; i<c.Length(); i++)
+				{
+					GAutoPtr<VcCommit> Rev(new VcCommit(d));
+					if (Rev->GitParse(c[i]))
+						Log.Add(Rev.Release());
+				}
+				break;
+			}
+			case VcSvn:
+			{
+				GString::Array c = s.Split("------------------------------------------------------------------------");
+				for (unsigned i=0; i<c.Length(); i++)
+				{
+					GAutoPtr<VcCommit> Rev(new VcCommit(d));
+					if (Rev->SvnParse(c[i].Strip()))
+						Log.Add(Rev.Release());
+				}
+				break;
+			}			
+			default:
+				LgiAssert(!"Impl me.");
+				break;
 		}
 	}
 
 	void OnPulse()
 	{
-		if (Process && Process->Peek())
+		if (Worker && Worker->IsExited())
 		{
-			char Buf[1024];
-			int r;
-			while ((r = Process->Read(Buf, sizeof(Buf))) > 0)
-			{
-				Out.Add(Buf, r);
-				// LgiTrace("%.*s", r, Buf);
-			}
+			Out.Add(0);
+			ParseLog(Out.AddressOf());
+			Update();
+			Out.Length(0);
 
-			if (!Process->IsRunning())
-			{
-				DeleteObj(Process);
+			Select(true);
 
-				Out.Add(0);
-				ParseLog(Out.AddressOf());
-				Update();
-
-				Select(true);
-			}
+			Worker.Reset();
 		}
 	}
 };
