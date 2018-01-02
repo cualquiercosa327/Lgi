@@ -900,21 +900,9 @@ bool LDateTime::Set(const char *Str)
 
 void LDateTime::Month(char *m)
 {
-	#define IsMonth(a, i) else if (!stricmp(#a, m)) _Month = i;
-
-	if (!m) return;
-	IsMonth(jan, 1)
-	IsMonth(feb, 2)
-	IsMonth(mar, 3)
-	IsMonth(apr, 4)
-	IsMonth(may, 5)
-	IsMonth(jun, 6)
-	IsMonth(jul, 7)
-	IsMonth(aug, 8)
-	IsMonth(sep, 9)
-	IsMonth(oct, 10)
-	IsMonth(nov, 11)
-	IsMonth(dec, 12)
+	int i = IsMonth(m);
+	if (i >= 0)
+		_Month = i + 1;	
 }
 
 bool LDateTime::SetDate(const char *Str)
@@ -1108,6 +1096,95 @@ bool LDateTime::SetTime(const char *Str)
 	}
 
 	return Status;
+}
+
+int LDateTime::IsWeekDay(const char *s)
+{
+	static const char *Short[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+	static const char *Long[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+	for (unsigned n=0; n<CountOf(Short); n++)
+	{
+		if (!_stricmp(Short[n], s) ||
+			!_stricmp(Long[n], s))
+			return n;
+	}
+	return -1;
+}
+
+int LDateTime::IsMonth(const char *s)
+{
+	static const char *Short[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+	static const char *Long[] = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
+	for (unsigned n=0; n<CountOf(Short); n++)
+	{
+		if (!_stricmp(Short[n], s) ||
+			!_stricmp(Long[n], s))
+			return n;
+	}
+	return -1;
+}
+
+bool LDateTime::Parse(GString s)
+{
+	GString::Array a = s.Split(" ");
+
+	Empty();
+
+	for (unsigned i=0; i<a.Length(); i++)
+	{
+		const char *c = a[i];
+		if (IsDigit(*c))
+		{
+			if (strchr(c, ':'))
+			{
+				GString::Array t = a[i].Split(":");
+				if (t.Length() == 3)
+				{
+					Hours((int)t[0].Int());
+					Minutes((int)t[1].Int());
+					Seconds((int)t[2].Int());
+				}
+			}
+			else if (strchr(c, '-'))
+			{
+				GString::Array t = a[i].Split("-");
+				if (t.Length() == 3)
+				{
+					Year((int)t[0].Int());
+					Month((int)t[1].Int());
+					Day((int)t[2].Int());
+				}
+			}
+			else if (a[i].Length() == 4)
+				Year((int)a[i].Int());
+			else if (!Day())
+				Day((int)a[i].Int());
+		}
+		else if (IsAlpha(*c))
+		{
+			int WkDay = IsWeekDay(c);
+			if (WkDay >= 0)
+				continue;
+				
+			int Mnth = IsMonth(c);
+			if (Mnth >= 0)
+				Month(Mnth + 1);
+		}
+		else if (*c == '-' || *c == '+')
+		{
+			c++;
+			if (strlen(c) == 4)
+			{
+				// Timezone..
+				int64 Tz = a[i].Int();
+				int Hrs = (int) (Tz / 100);
+				int Min = (int) (Tz % 100);
+				SetTimeZone(Hrs * 60 + Min, false);
+			}
+		}
+	}
+
+	return IsValid();
 }
 
 int LDateTime::Sizeof()
