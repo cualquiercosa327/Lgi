@@ -1,6 +1,7 @@
 #include "Lgi.h"
 #include "resdefs.h"
 #include "Lvc.h"
+#include "../Resources/resource.h"
 
 //////////////////////////////////////////////////////////////////
 const char *AppName = "Lvc";
@@ -53,6 +54,12 @@ public:
         SetPos(r);
         MoveToCenter();
         SetQuitOnClose(true);
+
+		#ifdef WINDOWS
+		SetIcon(MAKEINTRESOURCEA(IDI_ICON1));
+		#else
+		SetIcon("icon32.png");
+		#endif
 
         if (Attach(0))
         {
