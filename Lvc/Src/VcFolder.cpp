@@ -1,0 +1,260 @@
+#include "Lvc.h"
+
+ReaderThread::ReaderThread(GSubProcess *p, GStream *out) : LThread("ReaderThread")
+{
+	Process = p;
+	Out = out;
+	Run();
+}
+
+ReaderThread::~ReaderThread()
+{
+	Out = NULL;
+	while (!IsExited())
+		LgiSleep(1);
+}
+
+int ReaderThread::Main()
+{
+	Process->Start(true, false);
+
+	while (Process->IsRunning())
+	{
+		if (Out)
+		{
+			char Buf[1024];
+			int r = Process->Read(Buf, sizeof(Buf));
+			if (r > 0)
+				Out->Write(Buf, r);
+		}
+		else
+		{
+			Process->Kill();
+			break;
+		}
+	}
+
+	return 0;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+VcFolder::VcFolder(AppPriv *priv, const char *p)
+{
+	d = priv;
+	Path = p;
+	Type = VcNone;
+}
+
+VcFolder::VcFolder(AppPriv *priv, GXmlTag *t)
+{
+	d = priv;
+	Type = VcNone;
+	Serialize(t, false);
+}
+
+VersionCtrl VcFolder::GetType()
+{
+	if (Type == VcNone)
+		Type = DetectVcs(Path);
+	return Type;
+}
+
+char *VcFolder::GetText(int Col)
+{
+	if (ReadCurrent || ReadLog)
+	{
+		Cache = Path;
+		Cache += " (loading...)";
+		return Cache;
+	}
+
+	return Path;
+}
+
+bool VcFolder::Serialize(GXmlTag *t, bool Write)
+{
+	if (Write)
+		t->SetContent(Path);
+	else
+		Path = t->GetContent();
+	return true;
+}
+
+GXmlTag *VcFolder::Save()
+{
+	GXmlTag *t = new GXmlTag(OPT_Folder);
+	if (t)
+		Serialize(t, true);
+	return t;
+}
+
+void VcFolder::Select(bool b)
+{
+	if (b)
+	{
+		if (Log.Length() == 0 && !ReadLog && LogBuf.GetSize() == 0)
+		{
+			GSubProcess *Process = NULL;
+
+			switch (GetType())
+			{
+				case VcGit:
+					Process = new GSubProcess("git", "log HEAD");
+					break;
+				case VcSvn:
+					Process = new GSubProcess("svn", "log");
+					break;
+			}				
+			if (Process)
+			{
+				Process->SetInitFolder(Path);
+				ReadLog.Reset(new ReaderThread(Process, &LogBuf));
+				Update();
+			}
+		}
+
+		d->Lst->RemoveAll();
+		List<LListItem> it;
+		int64 CurRev = Atoi(CurrentCommit.Get());
+		LgiTrace("%s:%i - CurrentCommit = %s\n", _FL, CurrentCommit.Get());
+		for (unsigned i=0; i<Log.Length(); i++)
+		{
+			if (CurrentCommit &&
+				Log[i]->GetRev())
+			{
+				switch (GetType())
+				{
+					case VcSvn:
+					{
+						int64 LogRev = Atoi(Log[i]->GetRev());
+						if (CurRev >= 0 && CurRev >= LogRev)
+						{
+							CurRev = -1;
+							Log[i]->SetCurrent(true);
+						}
+						else
+						{
+							Log[i]->SetCurrent(false);
+						}
+						break;
+					}
+					default:
+						Log[i]->SetCurrent(!_stricmp(CurrentCommit, Log[i]->GetRev()));
+						break;
+				}
+			}
+			it.Insert(Log[i]);
+		}
+		d->Lst->Insert(it);
+		if (GetType() == VcSvn)
+			d->Lst->ResizeColumnsToContent();
+		d->Lst->UpdateAllItems();
+
+		if (!CurrentCommit && !ReadCurrent && InfoBuf.GetSize() == 0)
+		{
+			GSubProcess *Process = NULL;
+
+			switch (GetType())
+			{
+				case VcGit:
+					Process = new GSubProcess("git", "rev-parse HEAD");
+					break;
+				case VcSvn:
+					Process = new GSubProcess("svn", "info");
+					break;
+			}				
+			if (Process)
+			{
+				Process->SetInitFolder(Path);
+				ReadCurrent.Reset(new ReaderThread(Process, &InfoBuf));
+				Update();
+			}
+		}
+	}
+}
+
+void VcFolder::ParseLog(GString s)
+{
+	switch (GetType())
+	{
+		case VcGit:
+		{
+			GString::Array c = s.Split("commit");
+			for (unsigned i=0; i<c.Length(); i++)
+			{
+				GAutoPtr<VcCommit> Rev(new VcCommit(d));
+				if (Rev->GitParse(c[i]))
+					Log.Add(Rev.Release());
+			}
+			break;
+		}
+		case VcSvn:
+		{
+			GString::Array c = s.Split("------------------------------------------------------------------------");
+			for (unsigned i=0; i<c.Length(); i++)
+			{
+				GAutoPtr<VcCommit> Rev(new VcCommit(d));
+				if (Rev->SvnParse(c[i].Strip()))
+					Log.Add(Rev.Release());
+			}
+			break;
+		}			
+		default:
+			LgiAssert(!"Impl me.");
+			break;
+	}
+}
+
+void VcFolder::ParseInfo(GString s)
+{
+	switch (GetType())
+	{
+		case VcGit:
+		{
+			CurrentCommit = s.Strip();
+			break;
+		}
+		case VcSvn:
+		{
+			GString::Array c = s.Split("\n");
+			for (unsigned i=0; i<c.Length(); i++)
+			{
+				if (c[i].Find("Revision:") >= 0)
+				{
+					CurrentCommit = c[i].Split(":", 1)[1].Strip();
+					break;
+				}
+			}
+			break;
+		}			
+		default:
+			LgiAssert(!"Impl me.");
+			break;
+	}
+}
+
+void VcFolder::OnPulse()
+{
+	bool Reselect = false;
+		
+	if (ReadLog && ReadLog->IsExited())
+	{
+		ParseLog(LogBuf.NewGStr());
+		ReadLog.Reset();
+		Reselect = true;
+	}
+
+	if (ReadCurrent && ReadCurrent->IsExited())
+	{
+		ParseInfo(InfoBuf.NewGStr());
+		ReadCurrent.Reset();
+		Reselect = true;
+	}
+
+	if (Reselect)
+	{
+		Select(true);
+		Update();
+	}
+}
+
