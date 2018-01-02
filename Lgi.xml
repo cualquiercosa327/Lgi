@@ -58,11 +58,11 @@
 					<Node File="./include/linux/Gtk/LgiWidget.h" Type="3" Platforms="15" />
 				</Node>
 				<Node Name="Mac" Type="1" Platforms="15" Id="1">
-					<Node File=".\src\mac\carbon\Lgi\GGeneral.cpp" Type="2" Platforms="4" />
-					<Node File=".\src\mac\carbon\Lgi\GApp.cpp" Type="2" Platforms="4" />
-					<Node File=".\src\mac\carbon\Lgi\GPrinter.cpp" Type="2" Platforms="4" />
-					<Node File=".\src\mac\carbon\Lgi\GView.cpp" Type="2" Platforms="4" />
-					<Node File=".\src\mac\carbon\Lgi\GWindow.cpp" Type="2" Platforms="4" />
+					<Node File="./src/mac/carbon/Lgi/GGeneral.cpp" Type="2" Platforms="4" />
+					<Node File="./src/mac/carbon/Lgi/GApp.cpp" Type="2" Platforms="4" />
+					<Node File="./src/mac/carbon/Lgi/GPrinter.cpp" Type="2" Platforms="4" />
+					<Node File="./src/mac/carbon/Lgi/GView.cpp" Type="2" Platforms="4" />
+					<Node File="./src/mac/carbon/Lgi/GWindow.cpp" Type="2" Platforms="4" />
 				</Node>
 				<Node Name="Win32" Type="1" Platforms="15" Open="0" Id="16">
 					<Node File=".\src\win32\Lgi\GApp.cpp" Type="2" Platforms="1" />
@@ -72,10 +72,10 @@
 					<Node File=".\src\win32\Lgi\GWindow.cpp" Type="2" Platforms="1" />
 					<Node File=".\src\win32\Lgi\LgiException.cpp" Type="2" Platforms="1" />
 				</Node>
-				<Node File=".\include\common\GMessage.h" Type="3" Platforms="15" />
-				<Node File=".\src\common\Lgi\GViewCommon.cpp" Type="2" Platforms="15" />
-				<Node File=".\include\common\GViewPriv.h" Type="3" Platforms="15" />
-				<Node File=".\src\common\Lgi\GWindowCommon.cpp" Type="2" Platforms="15" />
+				<Node File="./include/common/GMessage.h" Type="3" Platforms="15" />
+				<Node File="./src/common/Lgi/GViewCommon.cpp" Type="2" Platforms="15" />
+				<Node File="./include/common/GViewPriv.h" Type="3" Platforms="15" />
+				<Node File="./src/common/Lgi/GWindowCommon.cpp" Type="2" Platforms="15" />
 			</Node>
 			<Node Name="Libraries" Type="1" Platforms="15" Open="1" Id="17">
 				<Node File="./src/common/Lgi/GLibrary.cpp" Type="2" Platforms="15" />
@@ -154,12 +154,12 @@
 				<Node File=".\src\common\Lgi\GVariant.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GVariant.h" Type="3" Platforms="15" />
 			</Node>
-			<Node File=".\src\common\Lgi\GGuiUtils.cpp" Type="2" Platforms="15" />
-			<Node File=".\src\common\Lgi\GObject.cpp" Type="2" Platforms="15" />
-			<Node File=".\src\common\Lgi\GToolTip.cpp" Type="2" Platforms="15" />
-			<Node File=".\src\common\Lgi\GTrayIcon.cpp" Type="2" Platforms="15" />
-			<Node File=".\src\common\Lgi\Lgi.cpp" Type="2" Platforms="15" />
-			<Node File=".\src\common\Lgi\LgiMsg.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/GGuiUtils.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/GObject.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/GToolTip.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/GTrayIcon.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/Lgi.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/LgiMsg.cpp" Type="2" Platforms="15" />
 		</Node>
 		<Node Name="Dialogs" Type="1" Platforms="15" Open="0" Id="36">
 			<Node Name="File Select XP" Type="1" Platforms="15" Open="0" Id="37">
@@ -391,6 +391,7 @@
 		</Node>
 		<Node File="./include/common/GNotifications.h" Type="3" Platforms="15" />
 		<Node File="./include/common/Lgi.h" Type="3" Platforms="15" />
+		<Node File="./include/common/LgiClass.h" Type="3" Platforms="15" />
 		<Node File="./include/common/LgiClasses.h" Type="3" Platforms="15" />
 		<Node File="./include/common/LgiDefs.h" Type="3" Platforms="15" />
 		<Node File="./include/common/LgiInc.h" Type="3" Platforms="15" />
@@ -557,11 +558,7 @@ textencoding</Release>
 		</Advanced>
 	</Settings>
 </Project>
-		<CommentFile />
-			<CommentFunction />
-		</Editor>
-		<Advanced>
-			<OtherMakefileRules />
+OtherMakefileRules />
 		</Advanced>
 	</Settings>
 </Project>

@@ -21,12 +21,13 @@ class VcFolder : public GTreeItem
 	VersionCtrl Type;
 	GString Path, CurrentCommit;
 	GArray<VcCommit*> Log;
-	GString Cache;
+	GString Cache, NewRev;
 	
-	GStringPipe LogBuf, InfoBuf;
+	GStringPipe LogBuf, InfoBuf, UpBuf;
 
 	GAutoPtr<LThread> ReadCurrent;
 	GAutoPtr<LThread> ReadLog;
+	GAutoPtr<LThread> UpdateCmd;
 	
 public:
 	VcFolder(AppPriv *priv, const char *p);
@@ -40,6 +41,7 @@ public:
 	void ParseLog(GString s);
 	void ParseInfo(GString s);
 	void OnPulse();
+	void OnUpdate(const char *Rev);
 };
 
 #endif
