@@ -16,6 +16,9 @@
     <ClCompile Include="..\src\common\Lgi\LgiMain.cpp">
       <Filter>Source Files\Lgi</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\common\Lgi\GSubProcess.cpp">
+      <Filter>Source Files\Lgi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="..\src\win32\General\Lgi.manifest">
