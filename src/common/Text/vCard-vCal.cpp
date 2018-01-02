@@ -654,7 +654,7 @@ bool VIo::ReadField(GStreamI &s, GString &Name, ParamArray *Params, GString &Dat
 			Data = e;
 		}
 
-		Status = *Data != 0;
+		Status = Name.Length() > 0;
 	}
 
 	return Status;

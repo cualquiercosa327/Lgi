@@ -727,12 +727,15 @@ uint64 LDateTime::Ts()
 bool LDateTime::Set(uint64 s)
 {
 	#if defined WIN32
-	FILETIME Utc, Local;
+	FILETIME Utc;
 	SYSTEMTIME System;
-	Utc.dwHighDateTime = s >> 32;
-	Utc.dwLowDateTime = s & 0xffffffff;
-	if (FileTimeToLocalFileTime(&Utc, &Local) &&
-		FileTimeToSystemTime(&Local, &System))
+
+	// Adjust to the desired timezone
+	uint64 u = s + ((int64)_Tz * 60 * Second64Bit);
+
+	Utc.dwHighDateTime = u >> 32;
+	Utc.dwLowDateTime = u & 0xffffffff;
+	if (FileTimeToSystemTime(&Utc, &System))
 	{
 		_Year = System.wYear;
 		_Month = System.wMonth;
@@ -788,7 +791,7 @@ bool LDateTime::Set(time_t tt)
 bool LDateTime::Get(uint64 &s)
 {
 	#ifdef WIN32
-	FILETIME Utc, Local;
+	FILETIME Utc;
 	SYSTEMTIME System;
 
 	System.wYear = _Year;
@@ -801,10 +804,14 @@ bool LDateTime::Get(uint64 &s)
 	System.wDayOfWeek = DayOfWeek();
 
 	BOOL b1, b2;
-	if ((b1 = SystemTimeToFileTime(&System, &Local)) &&
-		(b2 = LocalFileTimeToFileTime(&Local, &Utc)))
+	if (b1 = SystemTimeToFileTime(&System, &Utc))
 	{
+		// Convert to 64bit
 		s = ((uint64)Utc.dwHighDateTime << 32) | Utc.dwLowDateTime;
+
+		// Adjust for timezone
+		s -= (int64)_Tz * 60 * Second64Bit;
+
 		return true;
 	}
 
@@ -1583,7 +1590,7 @@ void LDateTime::AddMinutes(int64 Minutes)
 		int64 delta = Minutes * 60 * Second64Bit;
 		uint64 n = i + delta;
 		// printf("AddMin " LGI_PrintfInt64 " + " LGI_PrintfInt64 " = " LGI_PrintfInt64 "\n", i, delta, n);
-		Set(i);
+		Set(n);
 	}
 }
 
