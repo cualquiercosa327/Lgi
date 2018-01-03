@@ -1,4 +1,5 @@
 #include "Lvc.h"
+#include "GClipBoard.h"
 
 VcCommit::VcCommit(AppPriv *priv)
 {
@@ -105,6 +106,7 @@ void VcCommit::OnMouseClick(GMouse &m)
 	{
 		GSubMenu s;
 		s.AppendItem("Update", IDM_UPDATE, !Current);
+		s.AppendItem("Copy Revision", IDM_COPY_REV);
 		int Cmd = s.Float(GetList(), m);
 		switch (Cmd)
 		{
@@ -118,6 +120,12 @@ void VcCommit::OnMouseClick(GMouse &m)
 				}
 
 				f->OnUpdate(Rev);
+				break;
+			}
+			case IDM_COPY_REV:
+			{
+				GClipBoard c(GetList());
+				c.Text(Rev);
 				break;
 			}
 		}

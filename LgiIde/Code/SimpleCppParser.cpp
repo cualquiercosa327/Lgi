@@ -72,9 +72,9 @@ bool IsFirst(GArray<int> &a, int depth)
 
 bool IsFuncNameChar(char c)
 {
-	return c == '_' ||
-		IsAlpha(c) ||
-		IsDigit(c);
+	return	strchr("_:=~[]<>-+", c) ||
+			IsAlpha(c) ||
+			IsDigit(c);
 }
 
 #define IsWhiteSpace(c) (strchr(" \r\t\n", c) != NULL)
