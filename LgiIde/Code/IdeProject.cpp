@@ -480,11 +480,11 @@ public:
 
 			// Do include paths
 			GHashTbl<char*,bool> Inc;
-			const char *AllIncludes = d->Settings.GetStr(ProjIncludePaths, NULL, Platform);
-			if (ValidStr(AllIncludes))
+			const char *ProjIncludes = d->Settings.GetStr(ProjIncludePaths, NULL, Platform);
+			if (ValidStr(ProjIncludes))
 			{
 				// Add settings include paths.
-				GToken Paths(AllIncludes, "\r\n");
+				GToken Paths(ProjIncludes, "\r\n");
 				for (int i=0; i<Paths.Length(); i++)
 				{
 					char *p = Paths[i];
@@ -495,6 +495,22 @@ public:
 					}
 				}
 			}
+			const char *SysIncludes = d->Settings.GetStr(ProjSystemIncludes, NULL, Platform);
+			if (ValidStr(SysIncludes))
+			{
+				// Add settings include paths.
+				GToken Paths(SysIncludes, "\r\n");
+				for (int i=0; i<Paths.Length(); i++)
+				{
+					char *p = Paths[i];
+					GAutoString pn = ToNativePath(p);
+					if (!Inc.Find(pn))
+					{
+						Inc.Add(pn, true);
+					}
+				}
+			}
+
 			
 			// Add paths of headers
 			for (int i=0; i<Files.Length(); i++)
@@ -583,15 +599,13 @@ public:
 		
 		if (Files.First())
 		{
-			// ProjectNode *n;
-			
 			GArray<GString> IncPaths;
-			if (Proj->BuildIncludePaths(IncPaths, false, Platform))
+			if (Proj->BuildIncludePaths(IncPaths, false, false, Platform))
 			{
 				// Do dependencies
 				m.Print("# Dependencies\n"
 						"Depends =\t");
-				
+					
 				for (int c = 0; c < Files.Length(); c++)
 				{
 					ProjectNode *n = Files[c];
@@ -2698,7 +2712,7 @@ IdeProjectSettings *IdeProject::GetSettings()
 	return &d->Settings;
 }
 
-bool IdeProject::BuildIncludePaths(GArray<GString> &Paths, bool Recurse, IdePlatform Platform)
+bool IdeProject::BuildIncludePaths(GArray<GString> &Paths, bool Recurse, bool IncludeSystem, IdePlatform Platform)
 {
 	List<IdeProject> Projects;
 	if (Recurse)
@@ -2711,95 +2725,103 @@ bool IdeProject::BuildIncludePaths(GArray<GString> &Paths, bool Recurse, IdePlat
 	
 	for (IdeProject *p=Projects.First(); p; p=Projects.Next())
 	{
-		const char *AllIncludes = d->Settings.GetStr(ProjIncludePaths, NULL, Platform);
-		GAutoString IncludePaths = ToNativePath(AllIncludes);
-		if (IncludePaths)
+		GString ProjInclude = d->Settings.GetStr(ProjIncludePaths, NULL, Platform);
+		GAutoString Base = p->GetBasePath();
+		
+		const char *Delim = ",;\r\n";
+		GString::Array In, Out;
+		GString::Array a = ProjInclude.SplitDelimit(Delim);
+		In = a;
+		
+		if (IncludeSystem)
 		{
-			GAutoString Base = p->GetBasePath();
-			
-			GArray<GAutoString> Inc;
-			GToken Parts(IncludePaths, (char*)",;\r\n");
-			for (int i=0; i<Parts.Length(); i++)
+			GString SysInclude = d->Settings.GetStr(ProjSystemIncludes, NULL, Platform);
+			a = SysInclude.SplitDelimit(Delim);
+			In.SetFixedLength(false);
+			In.Add(a);
+		}
+		
+		for (unsigned i=0; i<In.Length(); i++)
+		{
+			GString p;
+			if (DIR_CHAR == '\\')
+				p = In[i].Replace("/", "\\").Strip();
+			else
+				p = In[i].Replace("\\", "/").Strip();
+
+			char *Path = p;
+			if (*Path == '`')
 			{
-				char *Path = Parts[i];
-				while (*Path && strchr(WhiteSpace, *Path))
-					Path++;
-				
-				if (*Path == '`')
+				// Run config app to get the full path list...
+				p = p.Strip("`");
+				GString::Array a = p.Split(" ", 1);
+				GProcess Proc;
+				GStringPipe Buf;
+				if (Proc.Run(a[0], a.Length() > 1 ? a[1].Get() : NULL, NULL, true, NULL, &Buf))
 				{
-					// Run config app to get the full path list...
-					GAutoString a(TrimStr(Path, "`"));
-					char *Args = strchr(a, ' ');
-					if (Args)
-						*Args++ = 0;
-					GProcess p;
-					GStringPipe Out;
-					if (p.Run(a, Args, NULL, true, NULL, &Out))
+					GString result = Buf.NewGStr();
+					a = result.Split(" \t\r\n");
+					for (int i=0; i<a.Length(); i++)
 					{
-						GAutoString result(Out.NewStr());
-						GToken t(result, " \t\r\n");
-						for (int i=0; i<t.Length(); i++)
+						char *inc = a[i];
+						if (inc[0] == '-' &&
+							inc[1] == 'I')
 						{
-							char *inc = t[i];
-							if (inc[0] == '-' &&
-								inc[1] == 'I')
-							{
-								Inc.New().Reset(NewStr(inc + 2));
-							}
+							Out.New() = a[i](2,-1);
 						}
 					}
-					else LgiTrace("%s:%i - Error: failed to run process for '%s'\n", _FL, a.Get());
 				}
-				else
+				else LgiTrace("%s:%i - Error: failed to run process for '%s'\n", _FL, p.Get());
+			}
+			else
+			{
+				// Add path literal
+				Out.New() = Path;
+			}
+		}
+			
+		for (int i=0; i<Out.Length(); i++)
+		{
+			char *Path = Out[i];
+			char *Full = 0, Buf[MAX_PATH];
+			if
+			(
+				*Path != '/'
+				&&
+				!(
+					IsAlpha(*Path)
+					&&
+					Path[1] == ':'
+				)
+			)
+			{
+				LgiMakePath(Buf, sizeof(Buf), Base, Path);
+				Full = Buf;
+			}
+			else
+			{
+				Full = Out[i];
+			}
+			
+			#if 0
+			bool Has = false;
+			for (int n=0; n<Paths.Length(); n++)
+			{
+				if (stricmp(Paths[n], Full) == 0)
 				{
-					// Add path literal
-					Inc.New().Reset(NewStr(Path));
+					Has = true;
+					break;
 				}
 			}
 			
-			for (int i=0; i<Inc.Length(); i++)
+			if (!Has)
 			{
-				char *Path = Inc[i];
-				char *Full = 0, Buf[MAX_PATH];
-				if
-				(
-					*Path != '/'
-					&&
-					!(
-						IsAlpha(*Path)
-						&&
-						Path[1] == ':'
-					)
-				)
-				{
-					LgiMakePath(Buf, sizeof(Buf), Base, Path);
-					Full = Buf;
-				}
-				else
-				{
-					Full = Inc[i];
-				}
-				
-				#if 0
-				bool Has = false;
-				for (int n=0; n<Paths.Length(); n++)
-				{
-					if (stricmp(Paths[n], Full) == 0)
-					{
-						Has = true;
-						break;
-					}
-				}
-				
-				if (!Has)
-				{
-					Paths.Add(NewStr(Full));
-				}
-				#else
-				if (!Map.Find(Full))
-					Map.Add(Full, true);
-				#endif
+				Paths.Add(NewStr(Full));
 			}
+			#else
+			if (!Map.Find(Full))
+				Map.Add(Full, true);
+			#endif
 		}
 
 		// Add paths for the headers in the project... bit of a hack but it'll
@@ -2972,7 +2994,7 @@ bool IdeProject::GetAllDependencies(GArray<char*> &Files, IdePlatform Platform)
 	
 	// Get all include paths
 	GArray<GString> IncPaths;
-	BuildIncludePaths(IncPaths, false, Platform);
+	BuildIncludePaths(IncPaths, false, false, Platform);
 	
 	// Add all source to dependencies
 	for (int i=0; i<Src.Length(); i++)

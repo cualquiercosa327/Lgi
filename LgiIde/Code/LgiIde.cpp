@@ -2168,7 +2168,7 @@ IdeProject *AppWnd::OpenProject(char *FileName, IdeProject *ParentProj, bool Cre
 	}
 	
 	GString::Array Inc;
-	p->BuildIncludePaths(Inc, false, PlatformCurrent);
+	p->BuildIncludePaths(Inc, false, false, PlatformCurrent);
 	d->FindSym->SetIncludePaths(Inc);
 
 	p->SetParentProject(ParentProj);

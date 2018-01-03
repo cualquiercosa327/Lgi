@@ -1,7 +1,9 @@
 #include "Lgi.h"
 #include "resdefs.h"
 #include "Lvc.h"
+#ifdef WINDOWS
 #include "../Resources/resource.h"
+#endif
 
 //////////////////////////////////////////////////////////////////
 const char *AppName = "Lvc";

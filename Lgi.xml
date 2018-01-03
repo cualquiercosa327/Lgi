@@ -455,14 +455,9 @@ WINDOWS</Release>
 				<Linux>
 					<Debug>include/linux
 include/linux/Gtk
-/usr/include/gstreamer-1.0
-/usr/lib/x86_64-linux-gnu/gstreamer-1.0/include
-`pkg-config --cflags gtk+-2.0`</Debug>
+</Debug>
 					<Release>include/linux
-include/linux/Gtk
-/usr/include/gstreamer-1.0
-/usr/lib/x86_64-linux-gnu/gstreamer-1.0/include
-`pkg-config --cflags gtk+-2.0`</Release>
+include/linux/Gtk</Release>
 				</Linux>
 				<Haiku>
 					<Debug>include/beos
@@ -526,7 +521,14 @@ textencoding</Release>
 				</Linux>
 			</TargetName>
 			<SystemIncludes>
-				<Linux />
+				<Linux>
+					<Debug>/usr/include/gstreamer-1.0
+/usr/lib/x86_64-linux-gnu/gstreamer-1.0/include
+`pkg-config --cflags gtk+-2.0`</Debug>
+					<Release>/usr/include/gstreamer-1.0
+/usr/lib/x86_64-linux-gnu/gstreamer-1.0/include
+`pkg-config --cflags gtk+-2.0`</Release>
+				</Linux>
 				<Windows />
 			</SystemIncludes>
 			<LibraryPaths>
@@ -558,7 +560,4 @@ textencoding</Release>
 		</Advanced>
 	</Settings>
 </Project>
-OtherMakefileRules />
-		</Advanced>
-	</Settings>
-</Project>
+ct>

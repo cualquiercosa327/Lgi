@@ -939,7 +939,8 @@ clean :
 
 Main.o : ./Src/Main.cpp ../include/common/Lgi.h \
 	./Src/resdefs.h \
-	./Src/Lvc.h
+	./Src/Lvc.h \
+	./Resources/resource.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -1004,6 +1005,8 @@ LgiMain.o : ../src/common/Lgi/LgiMain.cpp ../include/common/Lgi.h \
 
 ../../../../../../usr/include/gtk-2.0/gtk/gtkstatusicon.h : /usr/include/gtk-2.0/gtk/gtkimage.h \
 	/usr/include/gtk-2.0/gtk/gtkmenu.h
+
+./Resources/resource.h : 
 
 ../../../../../../usr/include/atk-1.0/atk/atkstreamablecontent.h : /usr/include/atk-1.0/atk/atkobject.h
 

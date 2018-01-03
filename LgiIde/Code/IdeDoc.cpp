@@ -3113,7 +3113,7 @@ bool IdeDoc::BuildIncludePaths(GArray<GString> &Paths, IdePlatform Platform, boo
 		return false;
 	}
 
-	bool Status = GetProject()->BuildIncludePaths(Paths, true, Platform);
+	bool Status = GetProject()->BuildIncludePaths(Paths, true, IncludeSysPaths, Platform);
 	if (Status)
 	{
 		if (IncludeSysPaths)

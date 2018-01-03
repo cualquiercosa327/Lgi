@@ -133,10 +133,9 @@ WINNATIVE</Release>
 				<Linux>
 					<Debug>../include/linux
 ../include/linux/Gtk
-`pkg-config --cflags gtk+-2.0`</Debug>
+</Debug>
 					<Release>../include/linux
-../include/linux/Gtk
-`pkg-config --cflags gtk+-2.0`</Release>
+../include/linux/Gtk</Release>
 				</Linux>
 				<Haiku>
 					<Debug>../include/beos</Debug>
@@ -196,7 +195,10 @@ C:\Data\CodeLib\Gtk\include\gtk-2.0\gdk</Debug>
 					<Release>C:\Data\CodeLib\Gtk\include\gtk-2.0\gtk
 C:\Data\CodeLib\Gtk\include\gtk-2.0\gdk</Release>
 				</Windows>
-				<Linux />
+				<Linux>
+					<Debug>`pkg-config --cflags gtk+-2.0`</Debug>
+					<Release>`pkg-config --cflags gtk+-2.0`</Release>
+				</Linux>
 			</SystemIncludes>
 			<ApplicationIcon>
 				<Haiku>./Code/icon-haiku</Haiku>

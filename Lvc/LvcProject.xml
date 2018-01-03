@@ -16,6 +16,10 @@
 		</Node>
 	</Node>
 	<Node File="../Lgi.xml" Type="4" Platforms="15" />
+	<Node Name="Resources" Type="1" Platforms="15" Id="1">
+		<Node File="./Resources/icon32.png" Type="6" Platforms="15" />
+		<Node File="./Makefile.linux" Type="9" Platforms="15" />
+	</Node>
 	<Settings>
 		<General>
 			<Makefile>
@@ -27,14 +31,21 @@
 					<Release>lvc</Release>
 				</Linux>
 			</Executable>
-			<Arguments />
-			<Defines />
+			<Arguments>
+				<All />
+			</Arguments>
+			<Defines>
+				<All />
+				<Linux />
+			</Defines>
 			<DebugAdmin>
 				<All>0</All>
 			</DebugAdmin>
 			<Compiler>
 				<Linux>gcc</Linux>
 			</Compiler>
+			<CCrossCompiler />
+			<CppCrossCompiler />
 		</General>
 		<Build>
 			<IncludePaths>
@@ -57,13 +68,24 @@
 `pkg-config --cflags gtk+-2.0`</Release>
 				</Linux>
 			</IncludePaths>
-			<SystemIncludes />
-			<Libraries />
-			<LibraryPaths />
+			<SystemIncludes>
+				<Linux />
+			</SystemIncludes>
+			<Libraries>
+				<All />
+				<Linux />
+			</Libraries>
+			<LibraryPaths>
+				<All />
+				<Linux />
+			</LibraryPaths>
 			<TargetType>
 				<All>Executable</All>
 			</TargetType>
-			<TargetName />
+			<TargetName>
+				<Linux />
+			</TargetName>
+			<ApplicationIcon />
 		</Build>
 		<Editor>
 			<TabSize>
@@ -75,10 +97,13 @@
 			<UseHardTabs>
 				<All>1</All>
 			</UseHardTabs>
+			<ShowWhiteSpace />
+			<CommentFile />
+			<CommentFunction />
 		</Editor>
-		<Advanced />
+		<Advanced>
+			<OtherMakefileRules />
+			<PostBuildCommands />
+		</Advanced>
 	</Settings>
-	<Node Name="Resources" Type="1" Platforms="15" Id="1">
-		<Node File="./Makefile.linux" Type="9" Platforms="15" />
-	</Node>
 </Project>
