@@ -36,10 +36,10 @@ Known bugs:
 #include "Lgi.h"
 #include "SimpleCppParser.h"
 
-#if 0
+#if 1
 // #define DEBUG_FILE		"\\ape-apcp.c"
-#define DEBUG_FILE		"GDragAndDrop.h"
-#define DEBUG_LINE		159
+#define DEBUG_FILE		"dante\\dante_common.h"
+#define DEBUG_LINE		339
 #endif
 
 const char *TypeToStr(DefnType t)
@@ -66,6 +66,74 @@ bool IsFirst(GArray<int> &a, int depth)
 	for (int i=0; i<depth; i++)
 		if (a[i] > 1)
 			return false;
+
+	return true;
+}
+
+bool IsFuncNameChar(char c)
+{
+	return c == '_' ||
+		IsAlpha(c) ||
+		IsDigit(c);
+}
+
+#define IsWhiteSpace(c) (strchr(" \r\t\n", c) != NULL)
+
+bool ParseFunction(GRange &Return, GRange &Name, GRange &Args, const char *Defn)
+{
+	if (!Defn)
+		return false;
+
+	int Depth = 0;
+	const char *c, *Last = NULL;
+	for (c = Defn; *c; c++)
+	{
+		if (*c == '(')
+		{
+			if (Depth == 0)
+				Last = c;
+			Depth++;
+		}
+		else if (*c == ')')
+		{
+			if (Depth > 0)
+				Depth--;
+			else
+			{
+				LgiTrace("%s:%i - Fn parse error '%s' (%i)\n", _FL, Defn, (int)(c - Defn));
+				return false;
+			}
+		}
+	}
+
+	if (!Last)
+		return false;
+
+	Args.Start = Last - Defn;
+	Args.Len = c - Last;
+
+	while (Last > Defn &&
+		IsWhiteSpace(Last[-1]))
+		Last--;
+
+	while (Last > Defn &&
+		IsFuncNameChar(Last[-1]))
+		Last--;
+
+	Return.Start = 0;
+	Return.Len = Last - Defn;
+	Name.Start = Last - Defn;
+	Name.Len = Args.Start - Name.Start;
+
+	if (Name.Len == 0 ||
+		Args.Len == 0)
+	{
+		LgiTrace("%s:%i - Fn parse empty section '%s' (%i,%i,%i)\n", _FL, Defn,
+			(int)Return.Len,
+			(int)Name.Len,
+			(int)Args.Len);
+		return false;
+	}
 
 	return true;
 }
@@ -324,8 +392,19 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 
 				}
 
+				defnskipws(s);
 				LastDecl = s;
-				IsEnum = false;
+				if (IsEnum)
+				{
+					if (IsAlpha(*s)) // typedef'd enum?
+					{
+						GAutoWString t(LexCpp(s, LexStrdup));
+						if (t)
+							Defns.New().Set(DefnEnum, FileName, t.Get(), Line + 1);
+					}
+
+					IsEnum = false;
+				}
 				break;
 			}
 			case ';':

@@ -479,10 +479,18 @@ public:
 			if (!ln->c.IsValid())
 			{
 				char16 *t = Text + ln->Start;
-				if (Strnistr(t, L"error:", ln->Len) ||
-					Strnistr(t, L"undefined reference", ln->Len))
+				char16 *Err = Strnistr(t, L"error", ln->Len);
+				char16 *Undef = Strnistr(t, L"undefined reference", ln->Len);
+				char16 *Warn = Strnistr(t, L"warning", ln->Len);
+				
+				if
+				(
+					(Err && strchr(":[", Err[5]))
+					||
+					(Undef != NULL)
+				)
 					ln->c.Rgb(222, 0, 0);
-				else if (Strnistr(t, L"warning:", ln->Len))
+				else if (Warn && strchr(":[", Warn[7]))
 					ln->c.Rgb(255, 128, 0);
 				else
 					ln->c.Set(LC_TEXT, 24);
