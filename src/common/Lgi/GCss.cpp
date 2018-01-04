@@ -2177,7 +2177,7 @@ bool GCss::ImageDef::Parse(const char *&s)
 		char *e = strchr((char*)s, ')');
 		if (!e)
 			return false;
-		Uri.Reset(NewStr(s, e - s));
+		Uri.Set(s, e - s);
 		s = e + 1;
 		Type = ImageRef;
 	}
@@ -2194,8 +2194,8 @@ bool GCss::ImageDef::operator !=(const ImageDef &i)
 {
 	if (Type != i.Type)
 		return false;
-	if (Uri && i.Uri)
-		return stricmp(Uri, i.Uri) == 0;
+	if (Uri.Get() && i.Uri.Get())
+		return Uri.Equals(i.Uri);
 	return true;
 }
 
@@ -2209,7 +2209,7 @@ GCss::ImageDef &GCss::ImageDef::operator =(const ImageDef &o)
 		Img = o.Img;
 		Type = ImageRef;
 	}
-	else if (Uri.Reset(NewStr(o.Uri)))
+	else if (Uri = o.Uri)
 	{
 		Type = ImageUri;
 	}

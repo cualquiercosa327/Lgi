@@ -330,11 +330,15 @@ public:
 
 class CtrlButton : public ResDialogCtrl, public GView
 {
+	GString Image;
+
 public:
 	CtrlButton(ResDialog *dlg, GXmlTag *load);
 
 	DECL_DIALOG_CTRL(UI_BUTTON)
 	const char *GetClass() { return "CtrlButton"; }
+	bool GetFields(FieldTree &Fields);
+	bool Serialize(FieldTree &Fields);
 };
 
 class CtrlGroup : public ResDialogCtrl, public GView

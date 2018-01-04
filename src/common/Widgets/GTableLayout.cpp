@@ -33,7 +33,7 @@ enum CellFlag
 #include "GCss.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
-// #define DEBUG_LAYOUT		24
+// #define DEBUG_LAYOUT		999
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
@@ -1696,7 +1696,7 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 		}
 		for (i=0; i<Cols.Length(); i++)
 		{
-			Dbg.Print("\tLayoutVertical.Final[%i]=%i\n", i, MinCol[i]);
+			Dbg.Print("\tLayoutHorizontal.Final[%i]=%i\n", i, MinCol[i]);
 		}
 		GAutoString DbgStr(Dbg.NewStr());
 		LgiTrace("%s", DbgStr.Get());
@@ -1766,13 +1766,23 @@ void GTableLayoutPrivate::LayoutPost(GRect &Client)
 					c->PostLayout();
 
 					MaxY = max(MaxY, c->Pos.y2);
+
+					/*
+					#if DEBUG_LAYOUT
+					if (DebugLayout)
+						LgiTrace("\tCell[%i][%i]: %ix%i, %s\n", Cx, Cy, c->Cell.X(), c->Cell.Y(), c->Pos.GetStr());
+					#endif
+					*/
 				}
 
 				Px = c->Pos.x2 + BorderSpacing - Client.x1 + 1;
 				Cx += c->Cell.X();
 			}
 			else
+			{
+				Px = MinCol[Cx] + BorderSpacing;
 				Cx++;
+			}
 		}
 
 		Py += MinRow[Cy] + BorderSpacing;

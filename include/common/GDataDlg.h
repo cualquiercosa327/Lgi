@@ -16,9 +16,10 @@ enum DataDlgType
 	DATA_INT,
 	DATA_FLOAT,
 	DATA_PASSWORD,
-	DATA_STR_SYSTEM		// Operating system specific string. Has the OS
+	DATA_STR_SYSTEM,	// Operating system specific string. Has the OS
 						// tag automatically appended to the option name
 						// e.g. SomeProperty-Win32
+	DATA_FILENAME,
 };
 
 class DataDlgTools;

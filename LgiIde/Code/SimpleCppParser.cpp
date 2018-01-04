@@ -36,7 +36,7 @@ Known bugs:
 #include "Lgi.h"
 #include "SimpleCppParser.h"
 
-#if 1
+#if 0
 // #define DEBUG_FILE		"\\ape-apcp.c"
 #define DEBUG_FILE		"dante\\dante_common.h"
 #define DEBUG_LINE		339

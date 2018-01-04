@@ -967,22 +967,10 @@ public:
 	void Res_SetPos(GXmlTag *t);
 	bool Res_SetStrRef(GXmlTag *t, ResReadCtx *Ctx);
 	void Res_SetFlags(GXmlTag *t);
-	void Common(GXmlTag *t, ResReadCtx *Ctx)
-	{
-		Res_SetPos(t);
-		Res_SetStrRef(t, Ctx);
-		Res_SetFlags(t);
-	}
 
 	void WritePos(GXmlTag *t);
 	void WriteStrRef(GXmlTag *t);
 	void WriteFlags(GXmlTag *t);
-	void WriteCommon(GXmlTag *t)
-	{
-		WritePos(t);
-		WriteStrRef(t);
-		WriteFlags(t);
-	}
 
 	// Children
 	void Res_Attach(ResObjectImpl *Parent);
@@ -1277,7 +1265,10 @@ ResObjectImpl::SStatus ResObjectImpl::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 ResObjectImpl::SStatus ResObjectImpl::Res_Write(GXmlTag *t)
 {
 	t->SetTag(Object->GetObjectName());
-	WriteCommon(t);
+	WritePos(t);
+	WriteStrRef(t);
+	WriteFlags(t);
+
 	return SOk;
 }
 
@@ -1469,8 +1460,7 @@ ResObjectImpl::SStatus ResDialogObj::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 
 ResObjectImpl::SStatus ResDialogObj::Res_Write(GXmlTag *t)
 {
-	t->SetTag(Res_Dialog);
-	WriteCommon(t);
+	ResObjectImpl::SStatus s = ResObjectImpl::Res_Write(t);
 
 	List<ResObjectImpl> Children;
 	if (Res_GetChildren(&Children, false))
@@ -1497,7 +1487,7 @@ ResObjectImpl::SStatus ResDialogObj::Res_Write(GXmlTag *t)
 		}
 	}
 
-	return SOk;
+	return s;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1671,9 +1661,7 @@ ResObjectImpl::SStatus ResTableLayout::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 
 ResObjectImpl::SStatus ResTableLayout::Res_Write(GXmlTag *t)
 {
-	t->SetTag(Res_Table);
-	
-	WriteCommon(t);
+	ResObjectImpl::SStatus s = ResObjectImpl::Res_Write(t);
 
 	GDom *d = Factory->Res_GetDom(Object);
 	if (d)
@@ -1779,7 +1767,7 @@ ResObjectImpl::SStatus ResTableLayout::Res_Write(GXmlTag *t)
 		}
 	}
 
-	return SOk;
+	return s;
 }
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -1805,24 +1793,13 @@ ResObjectImpl::SStatus ResEditBox::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 ResObjectImpl::SStatus ResEditBox::Res_Write(GXmlTag *t)
 {
 	Factory->Res_GetProperties(Object, t);
-	t->SetTag(Res_EditBox);
-	WriteCommon(t);
-
-	return SOk;
+	return ResObjectImpl::Res_Write(t);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 ResObjectImpl::SStatus ResGroup::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 {
-	if (!Tag || !Tag->IsTag(Res_Group))
-	{
-		LgiAssert(0);
-		return SError;
-	}
-
-	Res_SetPos(Tag);
-	if (!Res_SetStrRef(Tag, &Ctx))
-		return SExclude;
+	ResObjectImpl::SStatus s = ResObjectImpl::Res_Read(Tag, Ctx);
 
 	for (GXmlTag *t = Tag->Children.First(); t; t = t = Tag->Children.Next())
 	{
@@ -1838,13 +1815,12 @@ ResObjectImpl::SStatus ResGroup::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 		}
 	}
 
-	return SOk;
+	return s;
 }
 
 ResObjectImpl::SStatus ResGroup::Res_Write(GXmlTag *t)
 {
-	t->SetTag(Res_Group);
-	WriteCommon(t);
+	ResObjectImpl::SStatus s = ResObjectImpl::Res_Write(t);
 
 	List<ResObjectImpl> Children;
 	if (Res_GetChildren(&Children, false))
@@ -1860,7 +1836,7 @@ ResObjectImpl::SStatus ResGroup::Res_Write(GXmlTag *t)
 		}
 	}
 
-	return SOk;
+	return s;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -1962,8 +1938,7 @@ ResObjectImpl::SStatus ResTabView::Res_Read(GXmlTag *Tag, ResReadCtx &Ctx)
 
 ResObjectImpl::SStatus ResTabView::Res_Write(GXmlTag *t)
 {
-	t->SetTag(Res_TabView);
-	WriteCommon(t);
+	ResObjectImpl::SStatus s = ResObjectImpl::Res_Write(t);
 	
 	List<ResObjectImpl> Items;
 	if (Res_GetItems(&Items))
@@ -1979,7 +1954,7 @@ ResObjectImpl::SStatus ResTabView::Res_Write(GXmlTag *t)
 		}
 	}
 
-	return SOk;
+	return s;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -2058,9 +2033,7 @@ ResObjectImpl::SStatus ResListView::Res_Read(GXmlTag *t, ResReadCtx &Ctx)
 
 ResObjectImpl::SStatus ResListView::Res_Write(GXmlTag *t)
 {
-	t->SetTag(Res_ListView);
-	WriteCommon(t);
-
+	ResObjectImpl::SStatus s = ResObjectImpl::Res_Write(t);
 
 	List<ResObjectImpl> Items;
 	if (Res_GetItems(&Items))
@@ -2076,7 +2049,7 @@ ResObjectImpl::SStatus ResListView::Res_Write(GXmlTag *t)
 		}
 	}
 
-	return SOk;
+	return s;
 }
 
 /////////////////////////////////////////////////////////////
@@ -2101,11 +2074,10 @@ ResObjectImpl::SStatus ResCustom::Res_Write(GXmlTag *t)
 	char Tabs[256];
 	TabString(Tabs);
 
-	t->SetTag(Res_Custom);
-	WriteCommon(t);
+	ResObjectImpl::SStatus s = ResObjectImpl::Res_Write(t);
 	Factory->Res_GetProperties(Object, t);
 
-	return SOk;
+	return s;
 }
 
 /////////////////////////////////////////////////////////////
@@ -2135,8 +2107,7 @@ ResObjectImpl::SStatus ResControlTree::Res_Read(GXmlTag *t, ResReadCtx &Ctx)
 
 ResObjectImpl::SStatus ResControlTree::Res_Write(GXmlTag *t)
 {
-	t->SetTag(Object->GetObjectName());
-	WriteCommon(t);
+	ResObjectImpl::SStatus s = ResObjectImpl::Res_Write(t);
 
 	LgiAssert(!t->GetAttr("id"));
 
@@ -2161,7 +2132,7 @@ ResObjectImpl::SStatus ResControlTree::Res_Write(GXmlTag *t)
 		}
 	}
 
-	return SOk;
+	return s;
 }
 
 

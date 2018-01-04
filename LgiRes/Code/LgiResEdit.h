@@ -65,6 +65,7 @@
 
 #define IDM_LANG_BASE				2000
 
+#define	IDC_TABLE					999
 #define	IDC_CHAT_MSG				1000
 
 #define	STATUS_NORMAL				0
@@ -92,6 +93,7 @@
 #define VAL_HorizontalAlign			"align"
 #define VAL_Children				"children"
 #define VAL_Span					"span"
+#define VAL_Image					"image"
 
 // Misc
 #define	MainWnd						((AppWnd*)GApp::ObjInstance()->AppWnd)
@@ -540,6 +542,34 @@ public:
 		}
 	}
 
+	void Serialize(void *Token, const char *FieldName, GString &s)
+	{
+		Field *f = GetField(Token, FieldName);
+		if (!f) return;
+		GVariant v;
+
+		switch (Mode)
+		{
+			case ObjToUi:
+				View->SetCtrlName(f->Id, s);
+				break;
+			case UiToObj:
+				s = View->GetCtrlName(f->Id);
+				break;
+			case StoreToObj:
+				if (Store->GetValue(FieldName, v))
+					s = v.Str();
+				else
+					s.Empty();
+				break;
+			case ObjToStore:
+				Store->SetValue(FieldName, v = s.Get());
+				break;
+			default:
+				LgiAssert(0);
+		}
+	}
+
 	void Serialize(void *Token, const char *FieldName, GRect &r)
 	{
 		Field *f = GetField(Token, FieldName);
@@ -630,11 +660,11 @@ public:
 
 	void Serialize(bool Write);
 
+	void OnPosChange();
 	void OnSelect(FieldSource *s);
 	GMessage::Result OnEvent(GMessage *m);
 	void OnPaint(GSurface *pDC);
 	int OnNotify(GViewI *Ctrl, int Flags);
-	void OnPosChange();
 };
 
 #include "LgiRes_String.h"
