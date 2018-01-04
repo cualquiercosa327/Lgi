@@ -277,6 +277,38 @@ void VcFolder::ParseFiles(GString s)
 			}
 			break;
 		}
+		case VcSvn:
+		{
+			GString::Array a = s.Split("\n");
+			bool In = false;
+			for (unsigned i=1; i<a.Length(); i++)
+			{
+				if (In)
+				{
+					if (a[i].Strip().Length() == 0)
+						In = false;
+					else
+					{
+						const char *s = a[i];
+						while (*s && strchr(" \t\r", *s))
+							s++;
+						if (IsAlpha(*s))
+						{
+							s++;
+							while (*s && strchr(" \t\r", *s))
+								s++;
+
+							LListItem *li = new LListItem;
+							li->SetText(s);
+							d->Files->Insert(li);
+						}
+					}
+				}
+				else if (a[i].Find("Changed paths:") >= 0)
+					In = true;
+			}
+			break;
+		}
 	}
 }
 
@@ -370,6 +402,7 @@ void VcFolder::ListCommit(const char *Rev)
 		{
 			Process->SetInitFolder(Path);
 			FilesCmd.Reset(new ReaderThread(Process, &FilesBuf));
+			d->Files->Empty();
 		}
 	}
 }

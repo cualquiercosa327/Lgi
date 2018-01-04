@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<resources Offset="1">
+	<string-group Name="_Dialog Symbols_">
+		<String Ref="1" Cid="1" Define="IDD_TOOLBAR" en="Toolbar" />
+		<String Ref="2" Cid="2" Define="IDC_TABLE" />
+		<String Ref="3" Cid="3" Define="IDC_COMMIT" en="Commit" />
+		<String Ref="4" Cid="4" Define="IDC_PULL" en="Pull" />
+		<String Ref="5" Cid="5" Define="IDC_PUSH" en="Push" />
+		<String Ref="6" Cid="-1" Define="IDC_STATIC" en="Filter:" />
+		<String Ref="7" Cid="7" Define="IDC_FILTER" />
+		<String Ref="8" Cid="8" Define="IDC_CLEAR_FILTER" en="X" />
+	</string-group>
+	<Dialog pos="7,7,705,143" ref="1">
+		<TableLayout pos="7,7,685,97" ref="2" Style="padding-top: 3px;" cols="0.167,0.167,0.167,0.167,0.167,0.167" rows="1.000">
+			<tr>
+				<td>
+					<Button pos="28,14,83,55" ref="3" />
+				</td>
+				<td>
+					<Button pos="139,14,201,55" ref="4" />
+				</td>
+				<td>
+					<Button pos="257,14,319,55" ref="5" />
+				</td>
+				<td valign="Center" style="padding-left: 2em;">
+					<StaticText pos="361,21,423,41" ref="6" />
+				</td>
+				<td>
+					<EditBox Pos="462,21,538,48" ref="7" />
+				</td>
+				<td>
+					<Button pos="588,21,615,48" ref="8" />
+				</td>
+			</tr>
+		</TableLayout>
+	</Dialog>
+</resources>
