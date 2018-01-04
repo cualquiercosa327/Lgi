@@ -1,4 +1,5 @@
 #include "Lvc.h"
+#include "../Resources/resdefs.h"
 
 ReaderThread::ReaderThread(GSubProcess *p, GStream *out) : LThread("ReaderThread")
 {
@@ -115,10 +116,12 @@ void VcFolder::Select(bool b)
 			}
 		}
 
+		char *Ctrl = d->Lst->GetWindow()->GetCtrlName(IDC_FILTER);
+		GString Filter = ValidStr(Ctrl) ? Ctrl : NULL;
+
 		d->Lst->RemoveAll();
 		List<LListItem> it;
 		int64 CurRev = Atoi(CurrentCommit.Get());
-		LgiTrace("%s:%i - CurrentCommit = %s\n", _FL, CurrentCommit.Get());
 		for (unsigned i=0; i<Log.Length(); i++)
 		{
 			if (CurrentCommit &&
@@ -145,7 +148,25 @@ void VcFolder::Select(bool b)
 						break;
 				}
 			}
-			it.Insert(Log[i]);
+
+			bool Add = !Filter;
+			if (Filter)
+			{
+				const char *s = Log[i]->GetRev();
+				if (s && strstr(s, Filter) != NULL)
+					Add = true;
+
+				s = Log[i]->GetAuthor();
+				if (s && stristr(s, Filter) != NULL)
+					Add = true;
+				
+				s = Log[i]->GetMsg();
+				if (s && stristr(s, Filter) != NULL)
+					Add = true;
+				
+			}
+			if (Add)
+				it.Insert(Log[i]);
 		}
 		d->Lst->Insert(it);
 		if (GetType() == VcSvn)
@@ -239,6 +260,26 @@ void VcFolder::ParseInfo(GString s)
 	}
 }
 
+void VcFolder::ParseFiles(GString s)
+{
+	d->Files->Empty();
+
+	switch (GetType())
+	{
+		case VcGit:
+		{
+			GString::Array a = s.Split("\n");
+			for (unsigned i=1; i<a.Length(); i++)
+			{
+				LListItem *li = new LListItem;
+				li->SetText(a[i]);
+				d->Files->Insert(li);
+			}
+			break;
+		}
+	}
+}
+
 void VcFolder::OnPulse()
 {
 	bool Reselect = false;
@@ -260,6 +301,11 @@ void VcFolder::OnPulse()
 		UpdateCmd.Reset();
 		CurrentCommit = NewRev;
 		Reselect = true;
+	}
+	if (FilesCmd && FilesCmd->IsExited())
+	{
+		ParseFiles(FilesBuf.NewGStr());
+		FilesCmd.Reset();
 	}
 
 	if (Reselect)
@@ -296,6 +342,34 @@ void VcFolder::OnUpdate(const char *Rev)
 			Process->SetInitFolder(Path);
 			UpdateCmd.Reset(new ReaderThread(Process, &UpBuf));
 			NewRev = Rev;
+		}
+	}
+}
+
+void VcFolder::ListCommit(const char *Rev)
+{
+	if (!FilesCmd)
+	{
+		GSubProcess *Process = NULL;
+		GString Exe, Args;
+
+		switch (GetType())
+		{
+			case VcGit:
+				Exe = "git";			
+				Args.Printf("show --oneline --name-only %s", Rev);
+				break;
+			case VcSvn:
+				Exe = "svn";
+				Args.Printf("log --verbose -r %s", Rev);
+				break;
+		}
+			
+		Process = new GSubProcess(Exe, Args);
+		if (Process)
+		{
+			Process->SetInitFolder(Path);
+			FilesCmd.Reset(new ReaderThread(Process, &FilesBuf));
 		}
 	}
 }

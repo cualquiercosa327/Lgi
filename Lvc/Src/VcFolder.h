@@ -23,11 +23,12 @@ class VcFolder : public GTreeItem
 	GArray<VcCommit*> Log;
 	GString Cache, NewRev;
 	
-	GStringPipe LogBuf, InfoBuf, UpBuf;
+	GStringPipe LogBuf, InfoBuf, UpBuf, FilesBuf;
 
 	GAutoPtr<LThread> ReadCurrent;
 	GAutoPtr<LThread> ReadLog;
 	GAutoPtr<LThread> UpdateCmd;
+	GAutoPtr<LThread> FilesCmd;
 	
 public:
 	VcFolder(AppPriv *priv, const char *p);
@@ -40,8 +41,10 @@ public:
 	void Select(bool b);
 	void ParseLog(GString s);
 	void ParseInfo(GString s);
+	void ParseFiles(GString s);
 	void OnPulse();
 	void OnUpdate(const char *Rev);
+	void ListCommit(const char *Rev);
 };
 
 #endif

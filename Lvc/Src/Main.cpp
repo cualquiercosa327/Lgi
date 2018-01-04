@@ -1,6 +1,7 @@
 #include "Lgi.h"
-#include "resdefs.h"
+#include "../Resources/resdefs.h"
 #include "Lvc.h"
+#include "GTableLayout.h"
 #ifdef WINDOWS
 #include "../Resources/resource.h"
 #endif
@@ -34,10 +35,37 @@ VersionCtrl DetectVcs(const char *Path)
 	return VcNone;
 }
 
+class ToolBar : public GLayout, public GLgiRes
+{
+public:
+	ToolBar()
+	{
+		GAutoString Name;
+		GRect Pos;
+		if (LoadFromResource(IDD_TOOLBAR, this, &Pos, &Name))
+		{
+			GTableLayout *v;
+			if (GetViewById(IDC_TABLE, v))
+			{
+				GRect r = v->GetPos();
+				r.Offset(-r.x1, -r.y1);
+				v->SetPos(r);
+				
+				v->OnPosChange();
+				r = v->GetUsedArea();
+				GetCss(true)->Height(GCss::Len(GCss::LenPx, (float)r.Y()+3));
+			}
+		}
+	}
+
+	void OnCreate()
+	{
+		AttachChildren();
+	}
+};
+
 class App : public GWindow, public AppPriv
 {
-	GBox *Box;
-
 public:
     App()
     {
@@ -56,22 +84,34 @@ public:
 
         if (Attach(0))
         {
-			Box = new GBox(IDC_BOX);
-			Box->Attach(this);
+			GBox *ToolsBox = new GBox(IDC_TOOLS_BOX, true);
+			GBox *FoldersBox = new GBox(IDC_FOLDERS_BOX, false);
+			GBox *CommitsBox = new GBox(IDC_COMMITS_BOX, true);
+
+			ToolBar *Tools = new ToolBar;
+
+			ToolsBox->Attach(this);
+			Tools->Attach(ToolsBox);
+			FoldersBox->Attach(ToolsBox);
 
 			Tree = new GTree(IDC_TREE, 0, 0, 200, 200);
 			Tree->GetCss(true)->Width(GCss::Len("300px"));
-			Tree->Attach(Box);
+			Tree->Attach(FoldersBox);
+			CommitsBox->Attach(FoldersBox);
 
 			Lst = new LList(IDC_LIST, 0, 0, 200, 200);
-			Lst->SetPourLargest(true);
-			Lst->Attach(Box);
+			Lst->Attach(CommitsBox);
 			Lst->AddColumn("---", 40);
 			Lst->AddColumn("Commit", 270);
 			Lst->AddColumn("Author", 240);
 			Lst->AddColumn("Date", 130);
 			Lst->AddColumn("Message", 400);
 
+			Files = new LList(IDC_FILES, 0, 0, 200, 200);
+			Files->Attach(CommitsBox);
+			Files->AddColumn("Name", 400);
+
+			AttachChildren();
             Visible(true);
         }
 
@@ -144,6 +184,18 @@ public:
 						}
 					}
 				}
+				break;
+			}
+			case IDC_CLEAR_FILTER:
+			{
+				SetCtrlName(IDC_FILTER, NULL);
+				// Fall through
+			}
+			case IDC_FILTER:
+			{
+				VcFolder *f = dynamic_cast<VcFolder*>(Tree->Selection());
+				if (f)
+					f->Select(true);
 				break;
 			}
 		}

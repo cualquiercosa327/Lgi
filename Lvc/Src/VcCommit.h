@@ -17,6 +17,9 @@ public:
 	VcCommit(AppPriv *priv);
 
 	char *GetRev();
+	char *GetAuthor();
+	char *GetMsg();
+
 	void SetCurrent(bool b);
 	char *GetText(int Col);
 	bool GitParse(GString s);
@@ -25,6 +28,7 @@ public:
 
 	// Events
 	void OnMouseClick(GMouse &m);
+	void Select(bool);
 };
 
 #endif

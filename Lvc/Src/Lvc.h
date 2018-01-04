@@ -15,8 +15,11 @@ extern const char *AppName;
 enum AppIds
 {
 	IDC_LIST = 100,
-	IDC_BOX,
+	IDC_TOOLS_BOX,
+	IDC_FOLDERS_BOX,
+	IDC_COMMITS_BOX,
 	IDC_TREE,
+	IDC_FILES,
 
 	IDM_ADD = 200,
 	IDM_UPDATE,
@@ -36,12 +39,14 @@ struct AppPriv
 {
 	GTree *Tree;
 	LList *Lst;
+	LList *Files;
 	GOptionsFile Opts;
 
 	AppPriv()  : Opts(GOptionsFile::PortableMode, AppName)
 	{
 		Lst = NULL;
 		Tree = NULL;
+		Files = NULL;
 	}
 };
 

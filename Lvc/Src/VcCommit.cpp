@@ -12,6 +12,16 @@ char *VcCommit::GetRev()
 	return Rev;
 }
 
+char *VcCommit::GetAuthor()
+{
+	return Author;
+}
+
+char *VcCommit::GetMsg()
+{
+	return Msg;
+}
+
 void VcCommit::SetCurrent(bool b)
 {
 	Current = b;
@@ -98,6 +108,19 @@ VcFolder *VcCommit::GetFolder()
 {
 	GTreeItem *i = d->Tree->Selection();
 	return dynamic_cast<VcFolder*>(i);
+}
+
+void VcCommit::Select(bool b)
+{
+	LListItem::Select(b);
+	if (Rev)
+	{
+		VcFolder *f = GetFolder();
+		if (f)
+		{
+			f->ListCommit(Rev);
+		}		
+	}
 }
 
 void VcCommit::OnMouseClick(GMouse &m)
