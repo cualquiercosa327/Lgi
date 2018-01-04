@@ -20,6 +20,7 @@ enum AppIds
 
 	IDM_ADD = 200,
 	IDM_UPDATE,
+	IDM_COPY_REV,
 };
 
 enum VersionCtrl
