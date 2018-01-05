@@ -26,6 +26,7 @@ const char *Untitled = "[untitled]";
 
 #define EDIT_TRAY_HEIGHT	(SysFont->GetHeight() + 10)
 #define EDIT_LEFT_MARGIN	16 // gutter for debug break points
+#define EDIT_CTRL_WIDTH		200
 
 #define IsSymbolChar(ch)	(IsAlpha(ch) || (ch) == '_')
 
@@ -118,9 +119,9 @@ public:
 		SymBtn.ZOff(-1, -1);
 		
 		int Ht = SysFont->GetHeight() + 6;
-		AddView(FileSearch = new GEdit(IDC_FILE_SEARCH, 0, 0, 120, Ht));
-		AddView(FuncSearch = new GEdit(IDC_METHOD_SEARCH, 0, 0, 120, Ht));
-		AddView(SymSearch = new GEdit(IDC_SYMBOL_SEARCH, 0, 0, 120, Ht));
+		AddView(FileSearch = new GEdit(IDC_FILE_SEARCH, 0, 0, EDIT_CTRL_WIDTH, Ht));
+		AddView(FuncSearch = new GEdit(IDC_METHOD_SEARCH, 0, 0, EDIT_CTRL_WIDTH, Ht));
+		AddView(SymSearch = new GEdit(IDC_SYMBOL_SEARCH, 0, 0, EDIT_CTRL_WIDTH, Ht));
 		AddView(AllPlatforms = new GCheckBox(IDC_ALL_PLATFORMS, 0, 0, 20, Ht, "All Platforms"));
 	}
 	
@@ -162,22 +163,21 @@ public:
 	
 	void OnPosChange()
 	{
-		int EditPx = 120;
 		GLayoutRect c(this, 2);
 
 		c.Left(FileBtn, 20);
 		if (FileSearch)
-			c.Left(FileSearch, EditPx);
+			c.Left(FileSearch, EDIT_CTRL_WIDTH);
 		c.x1 += 8;
 
 		c.Left(FuncBtn, 20);
 		if (FuncSearch)
-			c.Left(FuncSearch, EditPx);
+			c.Left(FuncSearch, EDIT_CTRL_WIDTH);
 		c.x1 += 8;
 
 		c.Left(SymBtn, 20);
 		if (SymSearch)
-			c.Left(SymSearch, EditPx);
+			c.Left(SymSearch, EDIT_CTRL_WIDTH);
 		c.x1 += 8;
 
 		if (AllPlatforms)

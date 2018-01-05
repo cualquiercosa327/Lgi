@@ -7,6 +7,8 @@
 #include "GDocView.h"
 #include "GToken.h"
 #include "GEdit.h"
+#include "GCheckBox.h"
+#include "GTextLabel.h"
 
 /////////////////////////////////////////////////////////////////////////////////////
 FindInFiles::FindInFiles(AppWnd *app, FindParams *params)
@@ -37,12 +39,50 @@ FindInFiles::FindInFiles(AppWnd *app, FindParams *params)
 		if (GetViewById(IDC_FOLDER_HISTORY, FolderHistory))
 			FolderHistory->SetTargetId(IDC_DIR);
 	}
+
+	RegisterHook(this, GKeyEvents);
 }
 
 FindInFiles::~FindInFiles()
 {
 	if (OwnParams)
 		DeleteObj(Params);
+}
+
+bool FindInFiles::OnViewKey(GView *v, GKey &k)
+{
+	if (k.Down() &&
+		k.Alt())
+	{
+		GViewI *Tbl;
+		if (GetViewById(IDC_TABLE, Tbl))
+		{
+			GAutoPtr<GViewIterator> Ch(Tbl->IterateViews());
+			for (GViewI *c = Ch->First(); c; c = Ch->Next())
+			{
+				char *n = c->Name(), *amp;
+				if (!n || !(amp = strchr(n, '&')))
+					continue;
+
+				if (ToLower(amp[1]) != ToLower(k.c16))
+					continue;
+
+				if (dynamic_cast<GCheckBox*>(c))
+					c->Value(!c->Value());
+				else if (dynamic_cast<GText*>(c))
+				{
+					GEdit *e = dynamic_cast<GEdit*>(Ch->Next());
+					if (e)
+						e->Focus(true);
+				}
+				else
+					c->Value(1);
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 void SerializeHistory(GHistory *h, const char *opt, GOptionsFile *p, bool Write)

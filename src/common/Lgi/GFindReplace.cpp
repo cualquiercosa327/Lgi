@@ -35,6 +35,7 @@ GFindReplaceCommon::GFindReplaceCommon()
 #define IDC_PREV_SEARCH				1006
 #define IDC_SELECTION_ONLY			1007
 #define IDC_FIND_TABLE              1008
+#define IDC_SEARCH_UP				1009
 
 class GFindDlgPrivate
 {
@@ -60,10 +61,8 @@ GFindDlg::GFindDlg(GView *Parent, char *Init, GFrCallback Callback, void *UserDa
 	MoveSameScreen(Parent);
 
     GTableLayout *t;
-    if (AddView(t = new GTableLayout()))
-    {
-        t->SetId(IDC_FIND_TABLE);
-        
+    if (AddView(t = new GTableLayout(IDC_FIND_TABLE)))
+    {        
         int Row = 0;
         GLayoutCell *c = t->GetCell(0, Row);
         c->Add(new GText(IDS_16, 14, 14, -1, -1, LgiLoadString(L_FR_FIND_WHAT, "Find what:")));
@@ -75,16 +74,19 @@ GFindDlg::GFindDlg(GView *Parent, char *Init, GFrCallback Callback, void *UserDa
     	c->Add(new GButton(IDOK, 294, 7, 70, 21, LgiLoadString(L_FR_FIND_NEXT, "Find Next")));
     	
     	c = t->GetCell(0, Row, true, 2, 1);
-    	c->Add(new GCheckBox(IDC_MATCH_WORD, 14, 42, -1, -1, LgiLoadString(L_FR_MATCH_WORD, "Match whole word only")));
+    	c->Add(new GCheckBox(IDC_MATCH_WORD, 14, 42, -1, -1, LgiLoadString(L_FR_MATCH_WORD, "Match &whole word only")));
     	
     	c = t->GetCell(2, Row++);
 	    c->Add(new GButton(IDCANCEL, 294, 35, 70, 21, LgiLoadString(L_BTN_CANCEL, "Cancel")));
 	    
 	    c = t->GetCell(0, Row++, true, 2, 1);
-	    c->Add(new GCheckBox(IDC_MATCH_CASE, 14, 63, -1, -1, LgiLoadString(L_FR_MATCH_CASE, "Match case")));
+	    c->Add(new GCheckBox(IDC_MATCH_CASE, 14, 63, -1, -1, LgiLoadString(L_FR_MATCH_CASE, "Match &case")));
 	    
-	    c = t->GetCell(0, Row++, true, 2, 1);
-	    c->Add(new GCheckBox(IDC_SELECTION_ONLY, 14, 84, -1, -1, LgiLoadString(L_FR_SELECTION_ONLY, "Selection only")));
+	    c = t->GetCell(0, Row);
+	    c->Add(new GCheckBox(IDC_SELECTION_ONLY, 14, 84, -1, -1, LgiLoadString(L_FR_SELECTION_ONLY, "&Selection only")));
+
+	    c = t->GetCell(1, Row++);
+	    c->Add(new GCheckBox(IDC_SEARCH_UP, 0, 0, -1, -1, "Search &upwards"));
 	    
 	    OnPosChange();
 	    
@@ -101,11 +103,49 @@ GFindDlg::GFindDlg(GView *Parent, char *Init, GFrCallback Callback, void *UserDa
     
 	if (d->Edit)
 		d->Edit->Focus(true);
+
+	RegisterHook(this, GKeyEvents);
 }
 
 GFindDlg::~GFindDlg()
 {
 	DeleteObj(d);
+}
+
+bool GFindReplaceCommon::OnViewKey(GView *v, GKey &k)
+{
+	if (k.Down() &&
+		k.Alt())
+	{
+		GViewI *Tbl;
+		if (GetViewById(IDC_FIND_TABLE, Tbl))
+		{
+			GAutoPtr<GViewIterator> Ch(Tbl->IterateViews());
+			for (GViewI *c = Ch->First(); c; c = Ch->Next())
+			{
+				char *n = c->Name(), *amp;
+				if (!n || !(amp = strchr(n, '&')))
+					continue;
+
+				if (ToLower(amp[1]) != ToLower(k.c16))
+					continue;
+
+				if (dynamic_cast<GCheckBox*>(c))
+					c->Value(!c->Value());
+				else if (dynamic_cast<GText*>(c))
+				{
+					GEdit *e = dynamic_cast<GEdit*>(Ch->Next());
+					if (e)
+						e->Focus(true);
+				}
+				else
+					c->Value(1);
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 void GFindDlg::OnPosChange()
@@ -197,44 +237,13 @@ GReplaceDlg::GReplaceDlg(GView *Parent, char *InitFind, char *InitReplace, GFrCa
 
 	GView *f = 0;
 	
-	#if 0
-	
-	GRect r(0, 0, 385, 160);
-	SetPos(r);
-	MoveToCenter();
-
-	Children.Insert(new GText(IDS_16, 14, 14, -1, -1, LgiLoadString(L_FR_FIND_WHAT, "Find what:")));
-	Children.Insert(new GText(IDS_33, 14, 42, -1, -1, LgiLoadString(L_FR_REPLACE_WITH, "Replace with:")));
-	
-	int EditX = 100;
-	int ComboX = EditX + 170;
-	Children.Insert(f = new GEdit(IDC_TEXT, EditX, 7, 168, 21, ""));
-	//Children.Insert(new GCombo(IDC_PREV_SEARCH, ComboX, 7, 17, 21, ""));
-	
-	Children.Insert(new GEdit(IDC_REPLACE_WITH, EditX, 35, 168, 21, ""));
-	//Children.Insert(new GCombo(IDC_PREV_REPLACE, ComboX, 35, 17, 21, ""));
-
-	Children.Insert(new GCheckBox(IDC_MATCH_WORD, 14, 70, -1, -1, LgiLoadString(L_FR_MATCH_WORD, "Match whole word only")));
-	Children.Insert(new GCheckBox(IDC_MATCH_CASE, 14, 91, -1, -1, LgiLoadString(L_FR_MATCH_CASE, "Match case")));
-	Children.Insert(new GCheckBox(IDC_SELECTION_ONLY, 14, 112, -1, -1, LgiLoadString(L_FR_SELECTION_ONLY, "Selection only")));
-	
-	int BtnX = 80;
-	Children.Insert(new GButton(IDC_FR_FIND, 294, 7, BtnX, 21, LgiLoadString(L_FR_FIND_NEXT, "Find Next")));
-	Children.Insert(new GButton(IDC_FR_REPLACE, 294, 35, BtnX, 21, LgiLoadString(L_FR_REPLACE, "Replace")));
-	Children.Insert(new GButton(IDOK, 294, 63, BtnX, 21, LgiLoadString(L_FR_REPLACE_ALL, "Replace All")));
-	Children.Insert(new GButton(IDCANCEL, 294, 91, BtnX, 21, LgiLoadString(L_BTN_CANCEL, "Cancel")));
-	
-	#else
-
 	GRect r(0, 0, 450, 300);
 	SetPos(r);
 	MoveToCenter();
 	
 	GTableLayout *t;
-	if (AddView(t = new GTableLayout()))
+	if (AddView(t = new GTableLayout(IDC_FIND_TABLE)))
 	{
-	    t->SetId(IDC_FIND_TABLE);
-	    
 	    int Row = 0;
         GLayoutCell *c = t->GetCell(0, Row);
     	c->Add(new GText(-1, 14, 14, -1, -1, LgiLoadString(L_FR_FIND_WHAT, "Find what:")));
@@ -255,19 +264,22 @@ GReplaceDlg::GReplaceDlg(GView *Parent, char *InitFind, char *InitReplace, GFrCa
     	c->Add(new GButton(IDC_FR_REPLACE, 0, 0, -1, -1, LgiLoadString(L_FR_REPLACE, "Replace")));
 
         c = t->GetCell(0, Row, true, 2);
-    	c->Add(new GCheckBox(IDC_MATCH_WORD, 14, 70, -1, -1, LgiLoadString(L_FR_MATCH_WORD, "Match whole word only")));
+    	c->Add(new GCheckBox(IDC_MATCH_WORD, 14, 70, -1, -1, LgiLoadString(L_FR_MATCH_WORD, "Match whole &word only")));
 
         c = t->GetCell(2, Row++);	
     	c->Add(new GButton(IDOK, 0, 0, -1, -1, LgiLoadString(L_FR_REPLACE_ALL, "Replace All")));
 
         c = t->GetCell(0, Row, true, 2);
-    	c->Add(new GCheckBox(IDC_MATCH_CASE, 14, 91, -1, -1, LgiLoadString(L_FR_MATCH_CASE, "Match case")));
+    	c->Add(new GCheckBox(IDC_MATCH_CASE, 14, 91, -1, -1, LgiLoadString(L_FR_MATCH_CASE, "Match &case")));
 
         c = t->GetCell(2, Row++);	
     	c->Add(new GButton(IDCANCEL, 0, 0, -1, -1, LgiLoadString(L_BTN_CANCEL, "Cancel")));
 
-        c = t->GetCell(0, Row, true, 2);
-	    c->Add(new GCheckBox(IDC_SELECTION_ONLY, 14, 112, -1, -1, LgiLoadString(L_FR_SELECTION_ONLY, "Selection only")));
+        c = t->GetCell(0, Row);
+	    c->Add(new GCheckBox(IDC_SELECTION_ONLY, 14, 112, -1, -1, LgiLoadString(L_FR_SELECTION_ONLY, "&Selection only")));
+        c = t->GetCell(1, Row);
+    	c->Add(new GCheckBox(IDC_SEARCH_UP, 14, 91, -1, -1, "Search &upwards"));
+
 	
 	    OnPosChange();
 	    
@@ -278,9 +290,9 @@ GReplaceDlg::GReplaceDlg(GView *Parent, char *InitFind, char *InitReplace, GFrCa
 	    SetPos(r);
 	}
 	
-	#endif
-	
 	if (f) f->Focus(true);
+
+	RegisterHook(this, GKeyEvents);
 }
 
 GReplaceDlg::~GReplaceDlg()
@@ -297,6 +309,7 @@ void GReplaceDlg::OnCreate()
 	SetCtrlValue(IDC_MATCH_WORD, MatchWord);
 	SetCtrlValue(IDC_MATCH_CASE, MatchCase);
 	SetCtrlValue(IDC_SELECTION_ONLY, SelectionOnly);
+	SetCtrlValue(IDC_SEARCH_UP, SearchUpwards);
 }
 
 int GReplaceDlg::OnNotify(GViewI *Ctrl, int Flags)
@@ -312,6 +325,7 @@ int GReplaceDlg::OnNotify(GViewI *Ctrl, int Flags)
 			MatchWord = GetCtrlValue(IDC_MATCH_WORD);
 			MatchCase = GetCtrlValue(IDC_MATCH_CASE);
 			SelectionOnly = GetCtrlValue(IDC_SELECTION_ONLY);
+			SearchUpwards = GetCtrlValue(IDC_SEARCH_UP);
 
 			if (d->Callback)
 			{

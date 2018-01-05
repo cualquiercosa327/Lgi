@@ -19,7 +19,6 @@
 #define IDC_MSG									36
 #define IDC_TYPE								37
 #define IDD_OPTIONS								63
-#define IDC_64									64
 #define IDC_FONT								65
 #define IDC_SET_FONT							66
 #define IDC_FOLDER_HISTORY						69

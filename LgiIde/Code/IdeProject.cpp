@@ -1487,7 +1487,7 @@ int BuildThread::Main()
 				}				
 			}
 
-			TmpArgs.Printf("\"%s\" %s %s -log warnings", Makefile.Get(), Clean ? "-clean" : "-build", Conf.Get());
+			TmpArgs.Printf("\"%s\" %s %s -log warnings", Makefile.Get(), Clean ? "-clean" : "-make", Conf.Get());
 		}
 		else
 		{

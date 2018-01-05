@@ -21,25 +21,25 @@
 		<String Ref="23" Cid="69" Define="IDC_FOLDER_HISTORY" />
 		<String Ref="24" Cid="8" Define="IDC_TABLE" />
 		<String Ref="25" Cid="26" Define="IDC_SET_DIR" en="..." />
-		<String Ref="26" Cid="31" Define="IDC_SUB_DIRS" en="Search sub directories" />
+		<String Ref="26" Cid="31" Define="IDC_SUB_DIRS" en="Search &sub directories" />
 		<String Ref="27" Cid="25" Define="IDC_DIR" />
-		<String Ref="28" Cid="1" Define="IDOK" en="Find" />
-		<String Ref="29" Cid="29" Define="IDC_WHOLE_WORD" en="Match whole word" />
+		<String Ref="28" Cid="1" Define="IDOK" en="&Find" />
+		<String Ref="29" Cid="29" Define="IDC_WHOLE_WORD" en="Match &whole word" />
 		<String Ref="30" Cid="36" Define="IDC_MSG" en="..." />
-		<String Ref="31" Cid="30" Define="IDC_CASE" en="Match case" />
+		<String Ref="31" Cid="30" Define="IDC_CASE" en="Match &case" />
 		<String Ref="33" Cid="551" Define="IDD_FILE_PROPS" en="Properties" />
 		<String Ref="35" Cid="34" Define="IDC_COPY_PATH" en="Copy Path" />
 		<String Ref="36" Cid="-1" Define="IDC_STATIC" en="File type:" />
 		<String Ref="37" Cid="544" Define="IDC_PLATFORMS" en="Platforms:" />
 		<String Ref="38" Cid="37" Define="IDC_TYPE" />
 		<String Ref="63" Cid="63" Define="IDD_OPTIONS" en="Options" />
-		<String Ref="64" Cid="64" Define="IDC_64" />
+		<String Ref="64" Cid="8" Define="IDC_TABLE" />
 		<String Ref="65" Cid="-1" Define="IDC_STATIC" en="Editor font:" />
 		<String Ref="66" Cid="65" Define="IDC_FONT" />
 		<String Ref="67" Cid="66" Define="IDC_SET_FONT" en="..." />
 		<String Ref="68" Cid="1" Define="IDOK" en="Ok" />
 		<String Ref="69" Cid="70" Define="IDC_TYPE_HISTORY" />
-		<String Ref="70" Cid="542" Define="IDC_SEARCH_DIR" en="Directory:" />
+		<String Ref="70" Cid="542" Define="IDC_SEARCH_DIR" en="&Directory:" />
 		<String Ref="75" Cid="558" Define="IDC_75" />
 		<String Ref="78" Cid="79" Define="IDC_WIN32" en="Windows" />
 		<String Ref="79" Cid="80" Define="IDC_LINUX" en="Linux" />
@@ -114,7 +114,7 @@
 		<String Ref="231" Cid="97" Define="IDC_PATH" />
 		<String Ref="232" Cid="14" Define="IDC_BROWSE" en="..." />
 		<String Ref="233" Cid="233" Define="IDC_233" en="Symbol" />
-		<String Ref="234" Cid="234" Define="IDC_ENTIRE_SOLUTION" en="Entire Solution" />
+		<String Ref="234" Cid="234" Define="IDC_ENTIRE_SOLUTION" en="&Entire Solution" />
 		<String Ref="239" Cid="239" Define="IDC_FIND_PROJECT_FILE" en="Find File in Project" />
 		<String Ref="240" Cid="240" Define="IDC_240" />
 		<String Ref="241" Cid="113" Define="IDC_FILES" />
