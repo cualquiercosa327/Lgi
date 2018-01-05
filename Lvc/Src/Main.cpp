@@ -49,13 +49,20 @@ public:
 			{
 				GRect r = v->GetPos();
 				r.Offset(-r.x1, -r.y1);
+				r.x2++;
+				printf("pos=%s\n", r.GetStr());
 				v->SetPos(r);
 				
 				v->OnPosChange();
 				r = v->GetUsedArea();
+				if (r.Y() <= 1)
+					r.Set(0, 0, 30, 30);
+				printf("r=%s\n", r.GetStr());
 				GetCss(true)->Height(GCss::Len(GCss::LenPx, (float)r.Y()+3));
 			}
+			else LgiAssert(!"Missing table ctrl");
 		}
+		else LgiAssert(!"Missing toolbar resource");
 	}
 
 	void OnCreate()
