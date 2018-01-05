@@ -24,7 +24,7 @@ int ReaderThread::Main()
 		if (Out)
 		{
 			char Buf[1024];
-			int r = Process->Read(Buf, sizeof(Buf));
+			ssize_t r = Process->Read(Buf, sizeof(Buf));
 			if (r > 0)
 				Out->Write(Buf, r);
 		}
@@ -344,6 +344,47 @@ void VcFolder::OnPulse()
 	{
 		Select(true);
 		Update();
+	}
+}
+
+void VcFolder::OnRemove()
+{
+	GXmlTag *t = d->Opts.LockTag(NULL, _FL);
+	if (t)
+	{
+		for (GXmlTag *c = t->Children.First(); c; c = t->Children.Next())
+		{
+			if (c->IsTag(OPT_Folder) &&
+				c->GetContent() &&
+				!_stricmp(c->GetContent(), Path))
+			{
+				c->RemoveTag();
+				delete c;
+				break;
+			}
+		}
+		d->Opts.Unlock();
+	}
+}
+
+void VcFolder::OnMouseClick(GMouse &m)
+{
+	if (m.IsContextMenu())
+	{
+		GSubMenu s;
+		s.AppendItem("Remove", IDM_REMOVE);
+		int Cmd = s.Float(GetTree(), m);
+		switch (Cmd)
+		{
+			case IDM_REMOVE:
+			{
+				OnRemove();
+				delete this;
+				break;
+			}
+			default:
+				break;
+		}
 	}
 }
 

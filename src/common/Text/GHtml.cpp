@@ -2818,7 +2818,7 @@ void GTag::SetStyle()
 			GCss::ImageDef Img;
 			
 			Img.Type = ImageUri;
-			Img.Uri.Reset(NewStr(s));
+			Img.Uri = s;
 			
 			BackgroundImage(Img);
 			BackgroundRepeat(RepeatBoth);

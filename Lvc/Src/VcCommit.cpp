@@ -41,6 +41,8 @@ char *VcCommit::GetText(int Col)
 			Cache = Ts.Get();
 			return Cache;
 		case 4:
+			if (!Msg)
+				return NULL;
 			Cache = Msg.Split("\n", 1)[0];
 			return Cache;
 	}

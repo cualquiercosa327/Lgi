@@ -178,7 +178,10 @@ public:
 								s.Parent(c);
 								if (s.OpenFolder())
 								{
-									Tree->Insert(new VcFolder(this, s.Name()));
+									if (DetectVcs(s.Name()))
+										Tree->Insert(new VcFolder(this, s.Name()));
+									else
+										LgiMsg(this, "Folder not under version control.", AppName);
 								}
 							}
 						}

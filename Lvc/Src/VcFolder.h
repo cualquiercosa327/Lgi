@@ -42,9 +42,12 @@ public:
 	void ParseLog(GString s);
 	void ParseInfo(GString s);
 	void ParseFiles(GString s);
+	void ListCommit(const char *Rev);
+
 	void OnPulse();
 	void OnUpdate(const char *Rev);
-	void ListCommit(const char *Rev);
+	void OnMouseClick(GMouse &m);
+	void OnRemove();
 };
 
 #endif
