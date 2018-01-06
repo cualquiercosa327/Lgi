@@ -33,7 +33,7 @@ enum CellFlag
 #include "GCss.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
-// #define DEBUG_LAYOUT		999
+// #define DEBUG_LAYOUT		5556
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
@@ -1224,7 +1224,11 @@ void TableCell::PostLayout()
 		#if DEBUG_LAYOUT
 		if (Table->d->DebugLayout)
 		{
-			Table->d->Dbg.Print("\t\tView[%i]=%s Offy=%i\n", n, New[n].GetStr(), OffsetY);
+			Table->d->Dbg.Print("\t\t%s[%i]=%s, %ix%i, Offy=%i\n",
+				v->GetClass(), n,
+				New[n].GetStr(),
+				New[n].X(), New[n].Y(),
+				OffsetY);
 		}
 		#endif
 
@@ -1698,8 +1702,6 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 		{
 			Dbg.Print("\tLayoutHorizontal.Final[%i]=%i\n", i, MinCol[i]);
 		}
-		GAutoString DbgStr(Dbg.NewStr());
-		LgiTrace("%s", DbgStr.Get());
 	}
 	#endif
 
@@ -1834,6 +1836,14 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	Ctrl->SendNotify(GNotifyTableLayout_LayoutChanged);
 	#if DEBUG_PROFILE
 	LgiTrace("GTableLayout::Layout = %i ms\n", (int)(LgiCurrentTime()-Start));
+	#endif
+
+	#if DEBUG_LAYOUT
+	if (DebugLayout)
+	{
+		GAutoString DbgStr(Dbg.NewStr());
+		LgiTrace("%s", DbgStr.Get());
+	}
 	#endif
 	
 	InLayout = false;

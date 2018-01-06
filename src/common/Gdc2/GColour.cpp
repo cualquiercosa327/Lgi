@@ -252,6 +252,9 @@ uint32 GColour::c32() const
 	else if (space == CsHls32)
 	{
 		// Convert from HLS back to RGB
+		GColour tmp = *this;
+		tmp.ToRGB();
+		return tmp.c32();
 	}
 
 	// Transparent?

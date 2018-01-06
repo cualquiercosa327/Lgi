@@ -284,13 +284,7 @@ bool GView::SetPos(GRect &p, bool Repaint)
 	if (Pos != p)
 	{
 		Pos = p;
-		if (_View)
-		{
-		}
-		else if (GetParent())
-		{
-			OnPosChange();
-		}
+		OnPosChange();
 		
 		if (Repaint)
 		{
