@@ -688,6 +688,7 @@ void FieldView::OnSelect(FieldSource *s)
 							Cell->Add(Tv = new TextViewEdit(c->Id, 0, 0, 100, 20, &Sys));
 							if (Tv)
 							{
+								Tv->Multiline = c->Multiline;
 								Tv->GetCss(true)->Height(GCss::Len(GCss::LenPx, c->Multiline ? SysFont->GetHeight() * 8 : SysFont->GetHeight() + 8));
 								Tv->SetWrapType(TEXTED_WRAP_NONE);
 								Tv->Sunken(true);
