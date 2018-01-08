@@ -145,7 +145,7 @@ GSubProcess::Variable *GSubProcess::GetEnvVar(const char *Var, bool Create)
 				if (!eq)
 					break;
 
-				int NameChars = eq - s;
+				ptrdiff_t NameChars = eq - s;
 				if (NameChars > 0)
 				{					
 					Variable &v = Environment.New();
@@ -475,7 +475,7 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 			LgiAssert(!s->Child || s->Child->Parent == s);
 			p.Add(s);
 		}
-		int Kids = p.Length() + 1;
+		size_t Kids = p.Length() + 1;
 
 		#ifdef WIN32
 		SECURITY_ATTRIBUTES Attr;
@@ -881,8 +881,8 @@ ssize_t GSubProcess::Read(void *Buf, ssize_t Size, int TimeoutMs)
 		
 		return (int)read(Io.Read, Buf, Size);
 	#else		
-		DWORD Rd = -1;
-		if (!ReadFile(ChildOutput.Read, Buf, Size, &Rd, NULL))
+		DWORD Rd = -1, Sz;
+		if (!ReadFile(ChildOutput.Read, Buf, AssertCast(Sz, Size), &Rd, NULL))
 			return -1;
 		return Rd;
 	#endif
@@ -909,8 +909,8 @@ ssize_t GSubProcess::Write(const void *Buf, ssize_t Size, int Flags)
 	#if defined(POSIX)
 		return (int)write(Io.Write, Buf, Size);
 	#else
-		DWORD Wr = -1;
-		if (!WriteFile(ChildInput.Write, Buf, Size, &Wr, NULL))
+		DWORD Wr = -1, Sz;
+		if (!WriteFile(ChildInput.Write, Buf, AssertCast(Sz, Size), &Wr, NULL))
 			return -1;
 		return Wr;
 	#endif

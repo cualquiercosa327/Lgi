@@ -17,18 +17,32 @@ public:
 
 class VcFolder : public GTreeItem
 {
+	typedef bool (VcFolder::*ParseFn)(GString);
+	
+	struct Cmd
+	{
+		GStringPipe Buf;
+		GAutoPtr<LThread> Rd;
+		ParseFn PostOp;
+	};
+
 	AppPriv *d;
 	VersionCtrl Type;
 	GString Path, CurrentCommit;
 	GArray<VcCommit*> Log;
 	GString Cache, NewRev;
 	
-	GStringPipe LogBuf, InfoBuf, UpBuf, FilesBuf;
+	GArray<Cmd*> Cmds;
+	bool IsLogging, IsGetCur, IsUpdate, IsFilesCmd;
 
-	GAutoPtr<LThread> ReadCurrent;
-	GAutoPtr<LThread> ReadLog;
-	GAutoPtr<LThread> UpdateCmd;
-	GAutoPtr<LThread> FilesCmd;
+	void Init(AppPriv *priv);
+	const char *GetVcName();
+	bool StartCmd(const char *Args, ParseFn Parser);
+
+	bool ParseLog(GString s);
+	bool ParseInfo(GString s);
+	bool ParseFiles(GString s);
+	bool ParseUpdate(GString s);
 	
 public:
 	VcFolder(AppPriv *priv, const char *p);
@@ -39,9 +53,6 @@ public:
 	bool Serialize(GXmlTag *t, bool Write);
 	GXmlTag *Save();
 	void Select(bool b);
-	void ParseLog(GString s);
-	void ParseInfo(GString s);
-	void ParseFiles(GString s);
 	void ListCommit(const char *Rev);
 
 	void OnPulse();

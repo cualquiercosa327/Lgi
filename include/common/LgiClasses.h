@@ -1882,6 +1882,15 @@ public:
 	virtual void Add(const char *Name);
 };
 
+// This code will assert if the cast fails.
+template<typename A, typename B>
+A &AssertCast(A &a, B b)
+{
+	a = (A) b;	 // If this breaks it'll assert.
+	LgiAssert((B)a == b);
+	return a;
+}
+
 #endif
 
 

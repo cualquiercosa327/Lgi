@@ -33,6 +33,12 @@ struct GRange
 		return o; 
 	}
 
+	bool Overlap(ssize_t Val)
+	{
+		return Val >= Start &&
+				Val <= End();
+	}
+
 	ssize_t End() const
 	{
 		return Start + Len;

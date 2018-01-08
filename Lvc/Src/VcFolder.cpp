@@ -1,6 +1,8 @@
 #include "Lvc.h"
 #include "../Resources/resdefs.h"
 
+#define CALL_MEMBER_FN(object,ptrToMember)  ((object).*(ptrToMember))
+
 ReaderThread::ReaderThread(GSubProcess *p, GStream *out) : LThread("ReaderThread")
 {
 	Process = p;
@@ -39,17 +41,27 @@ int ReaderThread::Main()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
-VcFolder::VcFolder(AppPriv *priv, const char *p)
+void VcFolder::Init(AppPriv *priv)
 {
 	d = priv;
-	Path = p;
+	IsLogging = false;
+	IsGetCur = false;
+	IsUpdate = false;
+	IsFilesCmd = false;
 	Type = VcNone;
+
+	LgiAssert(d != NULL);
+}
+
+VcFolder::VcFolder(AppPriv *priv, const char *p)
+{
+	Init(priv);
+	Path = p;
 }
 
 VcFolder::VcFolder(AppPriv *priv, GXmlTag *t)
 {
-	d = priv;
-	Type = VcNone;
+	Init(priv);
 	Serialize(t, false);
 }
 
@@ -62,10 +74,10 @@ VersionCtrl VcFolder::GetType()
 
 char *VcFolder::GetText(int Col)
 {
-	if (ReadCurrent || ReadLog)
+	if (Cmds.Length())
 	{
 		Cache = Path;
-		Cache += " (loading...)";
+		Cache += " (...)";
 		return Cache;
 	}
 
@@ -89,31 +101,69 @@ GXmlTag *VcFolder::Save()
 	return t;
 }
 
+const char *VcFolder::GetVcName()
+{
+	switch (GetType())
+	{
+		case VcGit:
+			return "git";
+		case VcSvn:
+			return "svn";
+		case VcHg:
+			return "hg";
+		default:
+			LgiAssert(!"Impl me.");
+			break;
+	}				
+
+	return NULL;
+}
+
+bool VcFolder::StartCmd(const char *Args, ParseFn Parser)
+{
+	const char *Exe = GetVcName();
+	if (!Exe)
+		return false;
+
+	GAutoPtr<GSubProcess> Process(new GSubProcess(Exe, Args));
+	if (!Process)
+		return false;
+
+	Process->SetInitFolder(Path);
+
+	GAutoPtr<Cmd> c(new Cmd);
+	if (!c)
+		return false;
+
+	c->PostOp = Parser;
+	c->Rd.Reset(new ReaderThread(Process.Release(), &c->Buf));
+	Cmds.Add(c.Release());
+
+	Update();
+
+	return true;
+}
+
 void VcFolder::Select(bool b)
 {
 	GTreeItem::Select(b);
 	
 	if (b)
 	{
-		if (Log.Length() == 0 && !ReadLog && LogBuf.GetSize() == 0)
+		if (Log.Length() == 0 && !IsLogging)
 		{
-			GSubProcess *Process = NULL;
-
 			switch (GetType())
 			{
 				case VcGit:
-					Process = new GSubProcess("git", "log master");
+					IsLogging = StartCmd("log master", &VcFolder::ParseLog);
 					break;
 				case VcSvn:
-					Process = new GSubProcess("svn", "log");
+					IsLogging = StartCmd("log", &VcFolder::ParseLog);
+					break;
+				default:
+					LgiAssert(!"Impl me.");
 					break;
 			}				
-			if (Process)
-			{
-				Process->SetInitFolder(Path);
-				ReadLog.Reset(new ReaderThread(Process, &LogBuf));
-				Update();
-			}
 		}
 
 		char *Ctrl = d->Lst->GetWindow()->GetCtrlName(IDC_FILTER);
@@ -173,30 +223,25 @@ void VcFolder::Select(bool b)
 			d->Lst->ResizeColumnsToContent();
 		d->Lst->UpdateAllItems();
 
-		if (!CurrentCommit && !ReadCurrent && InfoBuf.GetSize() == 0)
+		if (!CurrentCommit && !IsGetCur)
 		{
-			GSubProcess *Process = NULL;
-
 			switch (GetType())
 			{
 				case VcGit:
-					Process = new GSubProcess("git", "rev-parse HEAD");
+					IsGetCur = StartCmd("rev-parse HEAD", &VcFolder::ParseInfo);
 					break;
 				case VcSvn:
-					Process = new GSubProcess("svn", "info");
+					IsGetCur = StartCmd("info", &VcFolder::ParseInfo);
+					break;
+				default:
+					LgiAssert(!"Impl me.");
 					break;
 			}				
-			if (Process)
-			{
-				Process->SetInitFolder(Path);
-				ReadCurrent.Reset(new ReaderThread(Process, &InfoBuf));
-				Update();
-			}
 		}
 	}
 }
 
-void VcFolder::ParseLog(GString s)
+bool VcFolder::ParseLog(GString s)
 {
 	switch (GetType())
 	{
@@ -230,9 +275,13 @@ void VcFolder::ParseLog(GString s)
 			LgiAssert(!"Impl me.");
 			break;
 	}
+
+	IsLogging = false;
+
+	return true;
 }
 
-void VcFolder::ParseInfo(GString s)
+bool VcFolder::ParseInfo(GString s)
 {
 	switch (GetType())
 	{
@@ -258,9 +307,20 @@ void VcFolder::ParseInfo(GString s)
 			LgiAssert(!"Impl me.");
 			break;
 	}
+
+	IsGetCur = false;
+
+	return true;
 }
 
-void VcFolder::ParseFiles(GString s)
+bool VcFolder::ParseUpdate(GString s)
+{
+	CurrentCommit = NewRev;
+	IsUpdate = false;
+	return true;
+}
+
+bool VcFolder::ParseFiles(GString s)
 {
 	d->Files->Empty();
 
@@ -310,34 +370,26 @@ void VcFolder::ParseFiles(GString s)
 			break;
 		}
 	}
+
+	IsFilesCmd = false;
+
+	return false;
 }
 
 void VcFolder::OnPulse()
 {
 	bool Reselect = false;
 		
-	if (ReadLog && ReadLog->IsExited())
+	for (unsigned i=0; i<Cmds.Length(); i++)
 	{
-		ParseLog(LogBuf.NewGStr());
-		ReadLog.Reset();
-		Reselect = true;
-	}
-	if (ReadCurrent && ReadCurrent->IsExited())
-	{
-		ParseInfo(InfoBuf.NewGStr());
-		ReadCurrent.Reset();
-		Reselect = true;
-	}
-	if (UpdateCmd && UpdateCmd->IsExited())
-	{
-		UpdateCmd.Reset();
-		CurrentCommit = NewRev;
-		Reselect = true;
-	}
-	if (FilesCmd && FilesCmd->IsExited())
-	{
-		ParseFiles(FilesBuf.NewGStr());
-		FilesCmd.Reset();
+		Cmd *c = Cmds[i];
+		if (c && c->Rd->IsExited())
+		{
+			GString s = c->Buf.NewGStr();
+			Reselect |= CALL_MEMBER_FN(*this, c->PostOp)(s);
+			Cmds.DeleteAt(i--, true);
+			delete c;
+		}
 	}
 
 	if (Reselect)
@@ -390,60 +442,47 @@ void VcFolder::OnMouseClick(GMouse &m)
 
 void VcFolder::OnUpdate(const char *Rev)
 {
-	if (!Rev) return;
+	if (!Rev)
+		return;
 	
-	if (!UpdateCmd)
+	if (!IsUpdate)
 	{
-		GSubProcess *Process = NULL;
-		GString Exe, Args;
+		GString Args;
 
+		NewRev = Rev;
 		switch (GetType())
 		{
 			case VcGit:
-				Exe = "git";			
 				Args.Printf("checkout %s", Rev);
+				IsUpdate = StartCmd(Args, &VcFolder::ParseUpdate);
 				break;
 			case VcSvn:
-				Exe = "svn";
 				Args.Printf("up -r %s", Rev);
+				IsUpdate = StartCmd(Args, &VcFolder::ParseUpdate);
 				break;
-		}
-			
-		Process = new GSubProcess(Exe, Args);
-		if (Process)
-		{
-			Process->SetInitFolder(Path);
-			UpdateCmd.Reset(new ReaderThread(Process, &UpBuf));
-			NewRev = Rev;
 		}
 	}
 }
 
 void VcFolder::ListCommit(const char *Rev)
 {
-	if (!FilesCmd)
+	if (!IsFilesCmd)
 	{
-		GSubProcess *Process = NULL;
-		GString Exe, Args;
+		GString Args;
 
 		switch (GetType())
 		{
 			case VcGit:
-				Exe = "git";			
 				Args.Printf("show --oneline --name-only %s", Rev);
+				IsFilesCmd = StartCmd(Args, &VcFolder::ParseFiles);
 				break;
 			case VcSvn:
-				Exe = "svn";
 				Args.Printf("log --verbose -r %s", Rev);
+				IsFilesCmd = StartCmd(Args, &VcFolder::ParseFiles);
 				break;
 		}
-			
-		Process = new GSubProcess(Exe, Args);
-		if (Process)
-		{
-			Process->SetInitFolder(Path);
-			FilesCmd.Reset(new ReaderThread(Process, &FilesBuf));
+
+		if (IsFilesCmd)
 			d->Files->Empty();
-		}
 	}
 }
