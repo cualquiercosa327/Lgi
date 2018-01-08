@@ -26,14 +26,29 @@ class VcFolder : public GTreeItem
 		ParseFn PostOp;
 	};
 
+	class UncommitedItem : public LListItem
+	{
+		AppPriv *d;
+
+	public:
+		UncommitedItem(AppPriv *priv)
+		{
+			d = priv;
+		}
+
+		void OnPaint(GItem::ItemPaintCtx &Ctx);
+		void Select(bool b);
+	};
+
 	AppPriv *d;
 	VersionCtrl Type;
 	GString Path, CurrentCommit;
 	GArray<VcCommit*> Log;
+	GAutoPtr<UncommitedItem> Uncommit;
 	GString Cache, NewRev;
 	
 	GArray<Cmd*> Cmds;
-	bool IsLogging, IsGetCur, IsUpdate, IsFilesCmd;
+	bool IsLogging, IsGetCur, IsUpdate, IsFilesCmd, IsWorkingFld;
 
 	void Init(AppPriv *priv);
 	const char *GetVcName();
@@ -42,6 +57,7 @@ class VcFolder : public GTreeItem
 	bool ParseLog(GString s);
 	bool ParseInfo(GString s);
 	bool ParseFiles(GString s);
+	bool ParseWorking(GString s);
 	bool ParseUpdate(GString s);
 	
 public:
@@ -54,6 +70,7 @@ public:
 	GXmlTag *Save();
 	void Select(bool b);
 	void ListCommit(const char *Rev);
+	void ListWorkingFolder();
 
 	void OnPulse();
 	void OnUpdate(const char *Rev);

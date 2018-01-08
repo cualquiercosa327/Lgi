@@ -48,6 +48,7 @@ void VcFolder::Init(AppPriv *priv)
 	IsGetCur = false;
 	IsUpdate = false;
 	IsFilesCmd = false;
+	IsWorkingFld = false;
 	Type = VcNone;
 
 	LgiAssert(d != NULL);
@@ -171,6 +172,10 @@ void VcFolder::Select(bool b)
 
 		d->Lst->RemoveAll();
 		List<LListItem> it;
+		if (!Uncommit)
+			Uncommit.Reset(new UncommitedItem(d));
+		it.Add(Uncommit);
+
 		int64 CurRev = Atoi(CurrentCommit.Get());
 		for (unsigned i=0; i<Log.Length(); i++)
 		{
@@ -318,6 +323,66 @@ bool VcFolder::ParseUpdate(GString s)
 	CurrentCommit = NewRev;
 	IsUpdate = false;
 	return true;
+}
+
+bool VcFolder::ParseWorking(GString s)
+{
+	d->Files->Empty();
+
+	switch (GetType())
+	{
+		case VcGit:
+		{
+			GString::Array a = s.Split("\n");
+			bool InChanges = false;
+			for (unsigned i=0; i<a.Length(); i++)
+			{
+				GString Ln = a[i].Strip();
+
+				if (!InChanges)
+				{
+					if (Ln.Find("Changes") == 0)
+						InChanges = true;
+				}
+				else if (Ln.Find("Untracked") == 0)
+				{
+					InChanges = false;
+				}
+				else if (Ln.Find("(") == 0)
+					; // Do nothing
+				else
+				{
+					LListItem *li = new LListItem;
+					li->SetText(Ln);
+					d->Files->Insert(li);
+				}
+			}
+			break;
+		}
+		case VcSvn:
+		{
+			GString::Array a = s.Split("\n");
+			for (unsigned i=0; i<a.Length(); i++)
+			{
+				GString Ln = a[i].Strip();
+				if (Ln.Length() == 0)
+					continue;
+				if (Ln(0) == '?')
+					; // Ignore
+				else
+				{
+					LListItem *li = new LListItem;
+					li->SetText(Ln);
+					d->Files->Insert(li);
+				}
+			}
+			break;
+		}
+	}
+
+	IsWorkingFld = false;
+
+	return false;
 }
 
 bool VcFolder::ParseFiles(GString s)
@@ -469,7 +534,6 @@ void VcFolder::ListCommit(const char *Rev)
 	if (!IsFilesCmd)
 	{
 		GString Args;
-
 		switch (GetType())
 		{
 			case VcGit:
@@ -483,6 +547,49 @@ void VcFolder::ListCommit(const char *Rev)
 		}
 
 		if (IsFilesCmd)
-			d->Files->Empty();
+			d->Files->RemoveAll();
 	}
+}
+
+void VcFolder::ListWorkingFolder()
+{
+	if (!IsWorkingFld)
+	{
+		GString Args;
+		switch (GetType())
+		{
+			case VcGit:
+				IsWorkingFld = StartCmd("status", &VcFolder::ParseWorking);
+				break;
+			case VcSvn:
+				IsWorkingFld = StartCmd("status", &VcFolder::ParseWorking);
+				break;
+		}
+
+		if (IsWorkingFld)
+			d->Files->RemoveAll();
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////
+void VcFolder::UncommitedItem::Select(bool b)
+{
+	LListItem::Select(b);
+	if (b)
+	{
+		GTreeItem *i = d->Tree->Selection();
+		VcFolder *f = dynamic_cast<VcFolder*>(i);
+		if (f)
+			f->ListWorkingFolder();
+	}
+}
+
+void VcFolder::UncommitedItem::OnPaint(GItem::ItemPaintCtx &Ctx)
+{
+	GFont *f = GetList()->GetFont();
+	f->Transparent(false);
+	f->Colour(Ctx.Fore, Ctx.Back);
+	
+	GDisplayString ds(f, "(working folder)");
+	ds.Draw(Ctx.pDC, Ctx.x1 + ((Ctx.X() - ds.X()) / 2), Ctx.y1 + ((Ctx.Y() - ds.Y()) / 2), &Ctx);
 }

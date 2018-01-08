@@ -115,7 +115,7 @@ VcFolder *VcCommit::GetFolder()
 void VcCommit::Select(bool b)
 {
 	LListItem::Select(b);
-	if (Rev)
+	if (Rev && b)
 	{
 		VcFolder *f = GetFolder();
 		if (f)

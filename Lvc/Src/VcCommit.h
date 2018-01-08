@@ -28,7 +28,7 @@ public:
 
 	// Events
 	void OnMouseClick(GMouse &m);
-	void Select(bool);
+	void Select(bool b);
 };
 
 #endif
