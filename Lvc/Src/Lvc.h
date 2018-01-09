@@ -6,6 +6,7 @@
 #include "GBox.h"
 #include "GTree.h"
 #include "GOptionsFile.h"
+#include "GTextView3.h"
 
 #define OPT_Folders	"Folders"
 #define OPT_Folder	"Folder"
@@ -20,6 +21,8 @@ enum AppIds
 	IDC_COMMITS_BOX,
 	IDC_TREE,
 	IDC_FILES,
+	IDC_FILES_BOX,
+	IDC_TXT,
 
 	IDM_ADD = 200,
 	IDM_UPDATE,
@@ -42,17 +45,20 @@ struct AppPriv
 	LList *Lst;
 	LList *Files;
 	GOptionsFile Opts;
+	GTextView3 *Txt;
 
 	AppPriv()  : Opts(GOptionsFile::PortableMode, AppName)
 	{
 		Lst = NULL;
 		Tree = NULL;
 		Files = NULL;
+		Txt = NULL;
 	}
 };
 
 extern VersionCtrl DetectVcs(const char *Path);
 
+#include "VcFile.h"
 #include "VcCommit.h"
 #include "VcFolder.h"
 

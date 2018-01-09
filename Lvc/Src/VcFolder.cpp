@@ -142,6 +142,8 @@ bool VcFolder::StartCmd(const char *Args, ParseFn Parser)
 
 	Update();
 
+	LgiTrace("Cmd: %s %s\n", Exe, Args);
+
 	return true;
 }
 
@@ -333,28 +335,38 @@ bool VcFolder::ParseWorking(GString s)
 	{
 		case VcGit:
 		{
-			GString::Array a = s.Split("\n");
-			bool InChanges = false;
-			for (unsigned i=0; i<a.Length(); i++)
+			GString::Array a = s.Split("\n\n");
+			for (unsigned i=0; i<a.Length()-1; i += 2)
 			{
-				GString Ln = a[i].Strip();
+				GString::Array Hdr = a[i].Split("\n");
+				GString::Array Body = a[i+1].Split("\n");
+				GString Type;
 
-				if (!InChanges)
+				for (unsigned h=0; h<Hdr.Length(); h++)
 				{
-					if (Ln.Find("Changes") == 0)
-						InChanges = true;
+					if (Hdr[h].Strip()(-1) == ':')
+					{
+						Type = Hdr[h].Split(":")[0].Strip();
+						int asd=0;
+					}
 				}
-				else if (Ln.Find("Untracked") == 0)
+
+				bool InChanges = Type.Find("Changes") >= 0;
+				if (InChanges)
 				{
-					InChanges = false;
-				}
-				else if (Ln.Find("(") == 0)
-					; // Do nothing
-				else
-				{
-					LListItem *li = new LListItem;
-					li->SetText(Ln);
-					d->Files->Insert(li);
+					for (unsigned b=0; b<Body.Length(); b++)
+					{
+						GString::Array Fn = Body[b].Strip().Split(":", 1);
+						VcFile *f = new VcFile(d);
+						if (Fn.Length() > 1)
+						{
+							f->SetText(Fn[0]);
+							f->SetText(Fn[1].Strip(), 1);
+						}
+						else
+							f->SetText(Fn[0], 1);
+						d->Files->Insert(f);
+					}
 				}
 			}
 			break;
@@ -381,6 +393,7 @@ bool VcFolder::ParseWorking(GString s)
 	}
 
 	IsWorkingFld = false;
+	d->Files->ResizeColumnsToContent();
 
 	return false;
 }
@@ -394,11 +407,44 @@ bool VcFolder::ParseFiles(GString s)
 		case VcGit:
 		{
 			GString::Array a = s.Split("\n");
-			for (unsigned i=1; i<a.Length(); i++)
+			GString Diff;
+			VcFile *f = NULL;
+			for (unsigned i=0; i<a.Length(); i++)
 			{
-				LListItem *li = new LListItem;
-				li->SetText(a[i]);
-				d->Files->Insert(li);
+				const char *Ln = a[i];
+				if (!_strnicmp(Ln, "diff", 4))
+				{
+					if (f)
+					{
+						f->SetDiff(Diff);
+						f->Select(false);
+					}
+					Diff.Empty();
+
+					GString Fn = a[i].Split(" ").Last()(2, -1);
+					f = new VcFile(d);
+					f->SetText(Fn, 1);
+					d->Files->Insert(f);
+				}
+				else if (!_strnicmp(Ln, "index", 5) ||
+						 !_strnicmp(Ln, "commit", 6)   ||
+						 !_strnicmp(Ln, "Author:", 7)   ||
+						 !_strnicmp(Ln, "Date:", 5)   ||
+						 !_strnicmp(Ln, "+++", 3)   ||
+						 !_strnicmp(Ln, "---", 3))
+				{
+					// Ignore
+				}
+				else
+				{
+					if (Diff) Diff += "\n";
+					Diff += a[i];
+				}
+			}
+			if (f && Diff)
+			{
+				f->SetDiff(Diff);
+				Diff.Empty();
 			}
 			break;
 		}
@@ -423,9 +469,16 @@ bool VcFolder::ParseFiles(GString s)
 							while (*s && strchr(" \t\r", *s))
 								s++;
 
-							LListItem *li = new LListItem;
-							li->SetText(s);
-							d->Files->Insert(li);
+							GString::Array fn = a[i].Strip().Split(" ", 1);
+							VcFile *f = new VcFile(d);
+							if (fn.Length() > 1)
+							{
+								f->SetText(fn[0]);
+								f->SetText(fn[1].Strip(), 1);
+							}
+							else
+								f->SetText(fn[0]);
+							d->Files->Insert(f);
 						}
 					}
 				}
@@ -437,6 +490,7 @@ bool VcFolder::ParseFiles(GString s)
 	}
 
 	IsFilesCmd = false;
+	d->Files->ResizeColumnsToContent();
 
 	return false;
 }
@@ -537,7 +591,8 @@ void VcFolder::ListCommit(const char *Rev)
 		switch (GetType())
 		{
 			case VcGit:
-				Args.Printf("show --oneline --name-only %s", Rev);
+				// Args.Printf("show --oneline --name-only %s", Rev);
+				Args.Printf("show %s", Rev);
 				IsFilesCmd = StartCmd(Args, &VcFolder::ParseFiles);
 				break;
 			case VcSvn:

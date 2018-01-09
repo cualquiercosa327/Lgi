@@ -57,7 +57,6 @@ public:
 				r = v->GetUsedArea();
 				if (r.Y() <= 1)
 					r.Set(0, 0, 30, 30);
-				printf("r=%s\n", r.GetStr());
 				GetCss(true)->Height(GCss::Len(GCss::LenPx, (float)r.Y()+3));
 			}
 			else LgiAssert(!"Missing table ctrl");
@@ -114,9 +113,18 @@ public:
 			Lst->AddColumn("Date", 130);
 			Lst->AddColumn("Message", 400);
 
+			GBox *FilesBox = new GBox(IDC_FILES_BOX, false);
+			FilesBox->Attach(CommitsBox);
+
 			Files = new LList(IDC_FILES, 0, 0, 200, 200);
-			Files->Attach(CommitsBox);
+			Files->Attach(FilesBox);
+			Files->AddColumn("State", 100);
 			Files->AddColumn("Name", 400);
+
+			Txt = new GTextView3(IDC_TXT, 0, 0, 200, 200);
+			Txt->Sunken(true);
+			Txt->SetWrapType(TEXTED_WRAP_NONE);
+			Txt->Attach(FilesBox);
 
 			AttachChildren();
             Visible(true);

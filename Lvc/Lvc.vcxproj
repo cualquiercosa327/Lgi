@@ -173,6 +173,7 @@
     <ClCompile Include="..\src\common\Lgi\LgiMain.cpp" />
     <ClCompile Include="Src\Main.cpp" />
     <ClCompile Include="Src\VcCommit.cpp" />
+    <ClCompile Include="Src\VcFile.cpp" />
     <ClCompile Include="Src\VcFolder.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -187,6 +188,7 @@
   <ItemGroup>
     <ClInclude Include="Src\Lvc.h" />
     <ClInclude Include="Src\VcCommit.h" />
+    <ClInclude Include="Src\VcFile.h" />
     <ClInclude Include="Src\VcFolder.h" />
   </ItemGroup>
   <ItemGroup>
