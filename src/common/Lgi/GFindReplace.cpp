@@ -184,6 +184,8 @@ int GFindDlg::OnNotify(GViewI *Ctrl, int Flags)
 			Find = GetCtrlName(IDC_TEXT);
 			MatchWord = GetCtrlValue(IDC_MATCH_WORD);
 			MatchCase = GetCtrlValue(IDC_MATCH_CASE);
+			SelectionOnly = GetCtrlValue(IDC_SELECTION_ONLY);
+			SearchUpwards = GetCtrlValue(IDC_SEARCH_UP);
 			
 			// printf("%s:%i Find OnNot %s, %i, %i\n", _FL, Find, MatchWord, MatchCase);
 

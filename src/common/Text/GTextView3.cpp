@@ -2569,14 +2569,7 @@ ptrdiff_t GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bo
 		
 	if (MatchCase)
 	{
-		while
-		(
-			SearchUpwards
-			?
-			i >= Begin
-			:
-			i <= End - FindLen
-		)
+		for (; SearchUpwards ? i >= Begin : i <= End - FindLen; i += SearchUpwards ? -1 : 1)
 		{
 			if (Text[i] == Find[0])
 			{
@@ -2590,16 +2583,12 @@ ptrdiff_t GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bo
 						if (Possible > Text) // Check off the start
 						{
 							if (!IsWordBoundry(Possible[-1]))
-							{
 								continue;
-							}
 						}
 						if (i + FindLen < Size) // Check off the end
 						{
 							if (!IsWordBoundry(Possible[FindLen]))
-							{
 								continue;
-							}
 						}
 					}
 						
@@ -2615,21 +2604,12 @@ ptrdiff_t GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bo
 				i = Begin;
 				End = Cursor;
 			}
-
-			i += SearchUpwards ? -1 : 1;
 		}
 	}
 	else
 	{
 		// printf("i=%i s=%i e=%i c=%i flen=%i sz=%i\n", i, Begin, End, Cursor, FindLen, Size);
-		while
-		(
-			SearchUpwards
-			?
-			i >= Begin
-			:
-			i <= End - FindLen
-		)
+		for(; SearchUpwards ? i >= Begin : i <= End - FindLen; i += SearchUpwards ? -1 : 1)
 		{
 			if (toupper(Text[i]) == toupper(Find[0]))
 			{
@@ -2644,16 +2624,12 @@ ptrdiff_t GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bo
 						if (Possible > Text) // Check off the start
 						{
 							if (!IsWordBoundry(Possible[-1]))
-							{
 								continue;
-							}
 						}
 						if (i + FindLen < Size) // Check off the end
 						{
 							if (!IsWordBoundry(Possible[FindLen]))
-							{
 								continue;
-							}
 						}
 					}
 						
@@ -2669,8 +2645,6 @@ ptrdiff_t GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bo
 				i = Begin;
 				End = Cursor;
 			}
-
-			i += SearchUpwards ? -1 : 1;
 		}
 	}
 	
