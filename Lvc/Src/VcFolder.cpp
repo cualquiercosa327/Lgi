@@ -450,40 +450,56 @@ bool VcFolder::ParseFiles(GString s)
 		}
 		case VcSvn:
 		{
-			GString::Array a = s.Split("\n");
-			bool In = false;
-			for (unsigned i=1; i<a.Length(); i++)
+			GString::Array a = s.Replace("\r").Split("\n");
+			GString Diff;
+			VcFile *f = NULL;
+			bool InPreamble = false;
+			bool InDiff = false;
+			for (unsigned i=0; i<a.Length(); i++)
 			{
-				if (In)
+				const char *Ln = a[i];
+				if (!_strnicmp(Ln, "Index:", 6))
 				{
-					if (a[i].Strip().Length() == 0)
-						In = false;
+					if (f)
+					{
+						f->SetDiff(Diff);
+						f->Select(false);
+					}
+					Diff.Empty();
+					InDiff = false;
+					InPreamble = false;
+
+					GString Fn = a[i].Split(":", 1).Last().Strip();
+					f = new VcFile(d);
+					f->SetText(Fn, 1);
+					d->Files->Insert(f);
+				}
+				else if (!_strnicmp(Ln, "------", 6))
+				{
+					InPreamble = !InPreamble;
+				}
+				else if (!_strnicmp(Ln, "======", 6))
+				{
+					InPreamble = false;
+					InDiff = true;
+				}
+				else if (InDiff)
+				{
+					if (!strncmp(Ln, "--- ", 4) ||
+						!strncmp(Ln, "+++ ", 4))
+					{
+					}
 					else
 					{
-						const char *s = a[i];
-						while (*s && strchr(" \t\r", *s))
-							s++;
-						if (IsAlpha(*s))
-						{
-							s++;
-							while (*s && strchr(" \t\r", *s))
-								s++;
-
-							GString::Array fn = a[i].Strip().Split(" ", 1);
-							VcFile *f = new VcFile(d);
-							if (fn.Length() > 1)
-							{
-								f->SetText(fn[0]);
-								f->SetText(fn[1].Strip(), 1);
-							}
-							else
-								f->SetText(fn[0]);
-							d->Files->Insert(f);
-						}
+						if (Diff) Diff += "\n";
+						Diff += a[i];
 					}
 				}
-				else if (a[i].Find("Changed paths:") >= 0)
-					In = true;
+			}
+			if (f && Diff)
+			{
+				f->SetDiff(Diff);
+				Diff.Empty();
 			}
 			break;
 		}
@@ -596,7 +612,7 @@ void VcFolder::ListCommit(const char *Rev)
 				IsFilesCmd = StartCmd(Args, &VcFolder::ParseFiles);
 				break;
 			case VcSvn:
-				Args.Printf("log --verbose -r %s", Rev);
+				Args.Printf("log --verbose --diff -r %s", Rev);
 				IsFilesCmd = StartCmd(Args, &VcFolder::ParseFiles);
 				break;
 		}
