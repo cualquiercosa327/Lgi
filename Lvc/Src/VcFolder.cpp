@@ -329,7 +329,7 @@ bool VcFolder::ParseUpdate(GString s)
 
 bool VcFolder::ParseWorking(GString s)
 {
-	d->Files->Empty();
+	d->ClearFiles();
 
 	switch (GetType())
 	{
@@ -400,7 +400,7 @@ bool VcFolder::ParseWorking(GString s)
 
 bool VcFolder::ParseFiles(GString s)
 {
-	d->Files->Empty();
+	d->ClearFiles();
 
 	switch (GetType())
 	{
@@ -618,7 +618,7 @@ void VcFolder::ListCommit(const char *Rev)
 		}
 
 		if (IsFilesCmd)
-			d->Files->RemoveAll();
+			d->ClearFiles();
 	}
 }
 
@@ -638,7 +638,7 @@ void VcFolder::ListWorkingFolder()
 		}
 
 		if (IsWorkingFld)
-			d->Files->RemoveAll();
+			d->ClearFiles();
 	}
 }
 

@@ -5,6 +5,7 @@
 #ifdef WINDOWS
 #include "../Resources/resource.h"
 #endif
+#include "GTextLog.h"
 
 //////////////////////////////////////////////////////////////////
 const char *AppName = "Lvc";
@@ -34,6 +35,45 @@ VersionCtrl DetectVcs(const char *Path)
 
 	return VcNone;
 }
+
+
+class DiffView : public GTextLog
+{
+public:
+	DiffView(int id) : GTextLog(id)
+	{
+	}
+
+	void PourStyle(size_t Start, ssize_t Length)
+	{
+		List<GTextLine>::I it = GTextView3::Line.Start();
+		for (GTextLine *ln = *it; ln; ln = *++it)
+		{
+			if (!ln->c.IsValid())
+			{
+				char16 *t = Text + ln->Start;
+				
+				if (*t == '+')
+				{
+					ln->c = GColour::Green;
+					ln->Back.Rgb(245, 255, 245);
+				}
+				else if (*t == '-')
+				{
+					ln->c = GColour::Red;
+					ln->Back.Rgb(255, 245, 245);
+				}
+				else if (*t == '@')
+				{
+					ln->c.Rgb(128, 128, 128);
+					ln->Back.Rgb(235, 235, 235);
+				}
+				else
+					ln->c.Set(LC_TEXT, 24);
+			}
+		}
+	}
+};
 
 class ToolBar : public GLayout, public GLgiRes
 {
@@ -121,7 +161,7 @@ public:
 			Files->AddColumn("State", 100);
 			Files->AddColumn("Name", 400);
 
-			Txt = new GTextView3(IDC_TXT, 0, 0, 200, 200);
+			Txt = new DiffView(IDC_TXT);
 			Txt->Sunken(true);
 			Txt->SetWrapType(TEXTED_WRAP_NONE);
 			Txt->Attach(FilesBox);

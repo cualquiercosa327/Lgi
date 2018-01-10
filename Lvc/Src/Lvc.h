@@ -54,6 +54,14 @@ struct AppPriv
 		Files = NULL;
 		Txt = NULL;
 	}
+
+	void ClearFiles()
+	{
+		if (Files)
+			Files->Empty();
+		if (Txt)
+			Txt->Name(NULL);
+	}
 };
 
 extern VersionCtrl DetectVcs(const char *Path);
