@@ -4,6 +4,26 @@
 #include "GUtf8.h"
 #include "GDisplayString.h"
 
+#if defined WINDOWS
+	#define AMP_TO_UNDERLINE	0
+#else
+	#define AMP_TO_UNDERLINE	1
+#endif
+
+struct LayoutString : public GDisplayString
+{
+	int Fx, y;
+	
+	LayoutString(GFont *f,
+				const char *s,
+				ssize_t l = -1,
+				GSurface *pdc = 0) :
+		GDisplayString(f, s, l, pdc)
+	{
+		Fx = y = 0;
+	}
+};
+
 struct GDisplayStringLayout
 {
 	// Min and max bounds
@@ -15,6 +35,26 @@ struct GDisplayStringLayout
 
 	// Array of words... NULL ptr for new line
 	GArray<GDisplayString*> Strs;
+	
+	#if AMP_TO_UNDERLINE
+	GFont *PrevFont;
+	GAutoPtr<GFont> Under;
+
+	void RemoveAmp(GString &s)
+	{
+		char *i = s.Get(), *o = s.Get();
+		while (*i)
+		{
+			if (*i == '&' && i[1] != '&')
+				;
+			else
+				*o++ = *i;
+			
+			i++;
+		}
+		s.Length(o - s.Get());
+	}
+	#endif
 
 	GDisplayStringLayout()
 	{
@@ -22,6 +62,10 @@ struct GDisplayStringLayout
 		Min.y = Max.y = 0;
 		MinLines = 0;		
 		Wrap = false;
+
+		#if AMP_TO_UNDERLINE
+		PrevFont = NULL;
+		#endif
 	}
 	
 	~GDisplayStringLayout()
@@ -56,59 +100,78 @@ struct GDisplayStringLayout
 		Min = 0;
 		Max = 0;
 		
-		if (t && f)
-		{
-			char *LineStart = t;
-			char White[] = " \t\r\n";
-			char *s = t;
-			while (*s)
-			{
-				while (*s && strchr(White, *s))
-				{
-					if (*s == '\n')
-					{
-						GDisplayString Line(f, LineStart, s - LineStart);
-						Max = max(Max, Line.X());
-						LineStart = s + 1;
-					}
-					s++;
-				}
+		if (!t || !f)
+			return;
 
-				char *e = s;
-				while (*e)
+		#if AMP_TO_UNDERLINE
+		if (PrevFont != f)
+		{
+			PrevFont = f;
+			if (Under.Reset(new GFont))
+			{
+				*Under = *f;
+				Under->Underline(true);
+				Under->Create();
+			}
+		}
+		#endif
+
+		#if AMP_TO_UNDERLINE
+		GString Str = t;
+		RemoveAmp(Str);
+		t = Str.Get();
+		#endif
+		
+		char *LineStart = t;
+		char White[] = " \t\r\n";
+		char *s = t;
+		while (*s)
+		{
+			while (*s && strchr(White, *s))
+			{
+				if (*s == '\n')
 				{
-					uint32 c = NextChar(e);
-					if (c == 0)
-						break;
-					if (e > s && LGI_BreakableChar(c))
-						break;
-					
-					char *cur = e;
-					e = LgiSeekUtf8(e, 1);
-					if (e == cur) // sanity check...
-					{
-						LgiAssert(!"LgiSeekUtf8 broke.");
-						break;
-					}
+					GDisplayString Line(f, LineStart, s - LineStart);
+					Max = max(Max, Line.X());
+					LineStart = s + 1;
 				}
+				s++;
+			}
+
+			char *e = s;
+			while (*e)
+			{
+				uint32 c = NextChar(e);
+				if (c == 0)
+					break;
+				if (e > s && LGI_BreakableChar(c))
+					break;
 				
-				if (e == s)
+				char *cur = e;
+				e = LgiSeekUtf8(e, 1);
+				if (e == cur) // sanity check...
 				{
-					LgiAssert(0);
+					LgiAssert(!"LgiSeekUtf8 broke.");
 					break;
 				}
-
-				GDisplayString d(f, s, (int) (e - s));
-				Min = max(d.X(), Min);
-
-				s = *e && strchr(White, *e) ? e + 1 : e;
 			}
 			
-			if (s > LineStart)
+			if (e == s)
 			{
-				GDisplayString Line(f, LineStart, s - LineStart);
-				Max = max(Max, Line.X());
+				LgiAssert(0);
+				break;
 			}
+
+			GDisplayString d(f, s, (int) (e - s));
+			Min = max(d.X(), Min);
+
+			s = *e && strchr(White, *e) ? e + 1 : e;
+		}
+		
+		if (s > LineStart)
+		{
+			GDisplayString Line(f, LineStart, s - LineStart);
+			Max = max(Max, Line.X());
 		}
 	}	
 
@@ -126,25 +189,55 @@ struct GDisplayStringLayout
 			return false;
 
 		// Loop over input
+		int Fx = 0, y = 0;
+		int LineFX = 0;
+		int Shift = GDisplayString::FShift;
+		MinLines = 1;
 		while (*s)
 		{
-			char *e = strchr(s, '\n');
-			if (!e) e = s + strlen(s);
+			char *e = s;
+			GFont *Fnt = f;
+			#if AMP_TO_UNDERLINE
+			bool IsUnderline = *s == '&' && s[1] != '&';
+			if (IsUnderline)
+			{
+				s = LgiSeekUtf8(s, 1);
+				Fnt = Under;
+			}
+			else
+			#endif
+			{
+				while (*e)
+				{
+					if
+					(
+						#if AMP_TO_UNDERLINE
+						(*e == '&' && e[1] != '&')
+						||
+						#endif
+						(*e == '\n')
+					)					
+						break;
+				}			
+			}
 			size_t Len = e - s;
-			MinLines++;
 
-			// Create a display string for the entire line
-			GDisplayString *n = new GDisplayString(f, Len ? s : (char*)"", Len ? (int)Len : 1);
+			// Create a display string for the segment
+			LayoutString *n = new LayoutString(Fnt, Len ? s : (char*)"", Len ? (int)Len : 1);
 			if (n)
 			{
+				n->Fx = LineFX;
+				n->y = y;
+				LineFX += n->FX();
+				
 				// Do min / max size calculation
-				Min.x = Min.x ? min(Min.x, n->X()) : n->X();
-				Max.x = max(Max.x, n->X());
+				Min.x = Min.x ? min(Min.x, LineFX) : LineFX;
+				Max.x = max(Max.x, LineFX);
 			
-				if (Wrap && n->X() > Width)
+				if (Wrap && LineFX > Width)
 				{
 					// If wrapping, work out the split point and the text is too long
-					ssize_t Ch = n->CharAt(Width);
+					ssize_t Ch = n->CharAt(Width - (n->Fx >> Shift));
 					if (Ch > 0)
 					{
 						// Break string into chunks
@@ -168,16 +261,23 @@ struct GDisplayStringLayout
 							}
 						}
 
+						LineFX -= n->FX();
 						DeleteObj(n);
 						n = new GDisplayString(f, s, (int) (e - s));
-						MinLines--;
+						LineFX += n->FX();
 					}
 				}
 
 				Strs.Add(n);
 			}
 			
-			s = *e == '\n' ? e + 1 : e;
+			if (*e == '\n')
+			{
+				MinLines++;
+				s = e + 1;
+			}
+			else
+				s = e;
 		}
 
 		Min.y = f->GetHeight() * MinLines;
@@ -199,49 +299,72 @@ struct GDisplayStringLayout
 				GColour &Back,
 				bool Enabled)
 	{
-		GRegion Rgn(rc);
-		
 		if (!pDC)
 			return;
+
+		#ifdef WINDOWS
+		GRegion Rgn(rc);
+		#else
+		// Fill the background...
+		if (!Back.IsTransparent())
+		{
+			pDC->Colour(Back);
+			pDC->Rectangle(&rc);
+		}
+		int Shift = GDisplayString::FShift;
+		#endif		
 		
 		// Draw all the text
-		int y = pt.y;
-		for (unsigned i=0; i<Strs.Length(); i++)
+		for (LayoutString *s = NULL; Strs.IteratePtr(s); )
 		{
-			GDisplayString *s = Strs[i];
 			GFont *f = s->GetFont();
-			GRect r(rc.x1, y, rc.x2, y + s->Y() - 1);
+			#ifdef WINDOWS
+			GRect r(pt.x + s->Fx, y,
+					pt.x + s->Fx + s->FX() - 1, y + s->Y() - 1);
 			Rgn.Subtract(&r);
+			f->Transparent(Back.IsTransparent());
+			#else
+			f->Transparent(true);
+			#endif
 
 			if (Enabled)
 			{
-				f->Transparent(Back.IsTransparent());
 				f->Colour(Fore, Back);
-				s->Draw(pDC, rc.x1, y, &r);
+				#ifdef WINDOWS
+				s->Draw(pDC, pt.x + s->Fx, pt.y, &r);
+				#else
+				s->FDraw(pDC, (pt.x << Shift) + s->Fx, (pt.y + s->y) << Shift);
+				#endif
 			}
 			else
 			{
 				f->Transparent(Back.IsTransparent());
 				f->Colour(GColour(LC_LIGHT, 24), Back);
+				#ifdef WINDOWS
 				s->Draw(pDC, pt.x+1, y+1, &r);
+				#else
+				s->FDraw(pDC, ((pt.x+1) << Shift) + s->Fx, (pt.y + 1 + s->y) << Shift);
+				#endif
 				
 				f->Transparent(true);
 				f->Colour(LC_LOW, LC_MED);
+				#ifdef WINDOWS
 				s->Draw(pDC, pt.x, y, &r);
+				#else
+				s->FDraw(pDC, (pt.x << Shift) + s->Fx, (pt.y + s->y) << Shift);
+				#endif
 			}
-			
-			y += s->Y();
 		}
 
+		#ifdef WINDOWS
 		// Fill any remaining area with background...
 		if (!Back.IsTransparent())
 		{
 			pDC->Colour(Back);
 			for (GRect *r=Rgn.First(); r; r=Rgn.Next())
-			{
 				pDC->Rectangle(r);
-			}
 		}
+		#endif
 	}
 };
 

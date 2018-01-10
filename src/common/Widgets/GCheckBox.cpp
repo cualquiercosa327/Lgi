@@ -289,8 +289,6 @@ void GCheckBox::OnPaint(GSurface *pDC)
 	else
 	{
 		bool en = Enabled();
-		// GFont *f = GetFont();
-
 		GRect r = GetClient();
 		
 		#if defined MAC && !defined COCOA

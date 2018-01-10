@@ -151,7 +151,7 @@ public:
 	const char *GetFileComment();
 	const char *GetFunctionComment();
 	bool IsMakefileUpToDate();
-	bool CreateMakefile(IdePlatform Platform);
+	bool CreateMakefile(IdePlatform Platform, bool BuildAfterwards);
 	GAutoString GetTargetName(IdePlatform Platform);
 	bool GetTargetFile(char *Buf, int BufSize);
 	bool BuildIncludePaths(GArray<GString> &Paths, bool Recurse, bool IncludeSystem, IdePlatform Platform);

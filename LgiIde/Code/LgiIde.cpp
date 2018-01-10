@@ -2221,6 +2221,10 @@ GMessage::Result AppWnd::OnEvent(GMessage *m)
 {
 	switch (MsgCode(m))
 	{
+		case M_START_BUILD:
+		{
+			break;
+		}
 		case M_BUILD_DONE:
 		{
 			UpdateState(-1, false);
@@ -2621,6 +2625,22 @@ bool AppWnd::IsReleaseMode()
 	GMenuItem *Release = GetMenu()->FindItem(IDM_RELEASE_MODE);
 	bool IsRelease = Release ? Release->Checked() : false;
 	return IsRelease;
+}
+
+bool AppWnd::Build()
+{
+	SaveAll();
+	IdeProject *p = RootProject();
+	if (!p)
+		return false;
+
+	UpdateState(-1, true);
+
+	GMenuItem *Release = GetMenu()->FindItem(IDM_RELEASE_MODE);
+	bool IsRelease = Release ? Release->Checked() : false;
+	p->Build(false, IsRelease);
+
+	return true;
 }
 
 bool AppWnd::ShowInProject(const char *Fn)
@@ -3130,16 +3150,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		}
 		case IDM_BUILD:
 		{
-			SaveAll();
-			IdeProject *p = RootProject();
-			if (p)
-			{
-				UpdateState(-1, true);
-
-				GMenuItem *Release = GetMenu()->FindItem(IDM_RELEASE_MODE);
-				bool IsRelease = Release ? Release->Checked() : false;
-				p->Build(false, IsRelease);
-			}
+			Build();
 			break;			
 		}
 		case IDM_STOP_BUILD:
@@ -3324,7 +3335,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 				IdeProject *p = RootProject();
 				if (p)
 				{
-					p->CreateMakefile(PlatIdx);
+					p->CreateMakefile(PlatIdx, false);
 				}
 			}
 			break;

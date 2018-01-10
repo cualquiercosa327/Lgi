@@ -465,7 +465,9 @@ FindInFiles.o : ./Code/FindInFiles.cpp ../include/common/Lgi.h \
 	../include/common/GProcess.h \
 	../include/common/GDocView.h \
 	../include/common/GToken.h \
-	../include/common/GEdit.h
+	../include/common/GEdit.h \
+	../include/common/GCheckBox.h \
+	../include/common/GTextLabel.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 

@@ -715,44 +715,46 @@ public:
 	I Start() { return I(this, 0); }
 	I End() { return I(this, Length()-1); }
 
-	/* To use this iteration method in a for loop:
+	/*
+	To use this iteration method in a for loop:
 
-		for (T *Ptr = NULL; Array.Iterate(Ptr); )
-		{
-			// Use 'Ptr' here
-		}
-
+	for (T *Ptr = NULL; Array.Iterate(Ptr); )
+	{
+		// Use 'Ptr' here
+	}
 	*/
-	bool Iterate(Type *&Ptr)
+	template<typename T>
+	bool IteratePtr(T &Ptr)
 	{
 		if (!len || !p)
 			return false;
 		
 		if (!Ptr)
 		{
-			Ptr = p;
+			Ptr = dynamic_cast<T>(*p);
 			return true;
 		}
 
-		Ptr++;
-		return PtrCheck(Ptr);		
+		return PtrCheck(++Ptr);
 	}
 
-	/* To use this iteration method in a for loop:
+	/*
+	To use this iteration method in a for loop:
 
-		for (T *Ptr = NULL, size_t Idx; Array.Iterate(Idx, Ptr); )
-		{
-			// Use 'Ptr' here
-		}
+	for (T *Ptr = NULL, size_t Idx; Array.Iterate(Idx, Ptr); )
+	{
+		// Use 'Ptr' here
+	}
 	*/
-	bool Iterate(size_t &Idx, Type *&Ptr)
+	template<typename T>
+	bool IteratePtr(size_t &Idx, T &Ptr)
 	{
 		if (!len || !p)
 			return false;
 		
 		if (!Ptr)
 		{
-			Ptr = p;
+			Ptr = dynamic_cast<T>(*p);
 			Idx = 0;
 			return true;
 		}

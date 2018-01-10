@@ -196,13 +196,16 @@ class MakefileThread : public LThread
 	IdeProjectPrivate *d;
 	IdeProject *Proj;
 	IdePlatform Platform;
+	bool BuildAfterwards;
 	
 public:
-	MakefileThread(IdeProjectPrivate *priv, IdePlatform platform) : LThread("MakefileThread")
+	MakefileThread(IdeProjectPrivate *priv, IdePlatform platform, bool Build) : LThread("MakefileThread")
 	{
 		d = priv;
 		Proj = d->Project;
 		Platform = platform;
+		BuildAfterwards = Build;
+		
 		Run();
 	}
 
@@ -644,7 +647,7 @@ public:
 						for (Dep=Deps.First(); Dep; Dep=Deps.Next(), Count++)
 						{
 							// Get dependency to create it's own makefile...
-							Dep->CreateMakefile(Platform);
+							Dep->CreateMakefile(Platform, false);
 						
 							// Build a rule to make the dependency if any of the source changes...
 							char t[MAX_PATH] = "";
@@ -1034,6 +1037,9 @@ public:
 		}
 
 		Log->Print("...Done: '%s'\n", MakeFile.Get());
+
+		if (BuildAfterwards)
+			Proj->GetApp()->PostEvent(M_START_BUILD);
 
 		return true;
 	}
@@ -2039,20 +2045,20 @@ void IdeProject::Build(bool All, bool Release)
 	SetClean();
 
 	if (!IsMakefileUpToDate())
-		CreateMakefile(GetCurrentPlatform());
-
-	// Start the build thread...
-	d->Thread.Reset
-	(
-		new BuildThread
+		CreateMakefile(GetCurrentPlatform(), true);
+	else
+		// Start the build thread...
+		d->Thread.Reset
 		(
-			this,
-			m,
-			false,
-			Release,
-			sizeof(size_t)*8
-		)
-	);
+			new BuildThread
+			(
+				this,
+				m,
+				false,
+				Release,
+				sizeof(size_t)*8
+			)
+		);
 }
 
 void IdeProject::StopBuild()
@@ -3097,7 +3103,7 @@ bool IdeProject::GetDependencies(const char *SourceFile, GArray<GString> &IncPat
 	return true;
 }
 
-bool IdeProject::CreateMakefile(IdePlatform Platform)
+bool IdeProject::CreateMakefile(IdePlatform Platform, bool BuildAfterwards)
 {
 	if (d->CreateMakefile)
 	{
@@ -3110,7 +3116,7 @@ bool IdeProject::CreateMakefile(IdePlatform Platform)
 		}
 	}		
 
-	return d->CreateMakefile.Reset(new MakefileThread(d, Platform));
+	return d->CreateMakefile.Reset(new MakefileThread(d, Platform, BuildAfterwards));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////

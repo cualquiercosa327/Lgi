@@ -28,6 +28,7 @@
 enum IdeMessages
 {
 	M_APPEND_TEXT = M_USER+200,
+	M_START_BUILD,
 	M_BUILD_ERR,
 	M_BUILD_DONE,
 	M_DEBUG_ON_STATE,
@@ -262,6 +263,7 @@ public:
 	bool GetSystemIncludePaths(GArray<GString> &Paths);
 	bool IsReleaseMode();
 	bool ShowInProject(const char *Fn);
+	bool Build();
 	
 	// Events
 	void OnLocationChange(const char *File, int Line);
