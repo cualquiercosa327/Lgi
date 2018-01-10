@@ -16,7 +16,7 @@
 		<String Ref="18" Cid="16" Define="IDC_DELETE" en="Delete" />
 		<String Ref="19" Cid="19" Define="IDD_FIND_IN_FILES" en="Find In Files" />
 		<String Ref="20" Cid="21" Define="IDC_LOOK_FOR" />
-		<String Ref="21" Cid="-1" Define="IDC_STATIC" en="In file types:" />
+		<String Ref="21" Cid="-1" Define="IDC_STATIC" en="In file &types:" />
 		<String Ref="22" Cid="23" Define="IDC_FILE_TYPES" />
 		<String Ref="23" Cid="69" Define="IDC_FOLDER_HISTORY" />
 		<String Ref="24" Cid="8" Define="IDC_TABLE" />
@@ -84,7 +84,7 @@
 		<String Ref="119" Cid="1" Define="IDOK" en="Ok" />
 		<String Ref="120" Cid="2" Define="IDCANCEL" en="Cancel" />
 		<String Ref="121" Cid="121" Define="IDS_121" en="Add" />
-		<String Ref="122" Cid="-1" Define="IDC_STATIC" en="Look for:" />
+		<String Ref="122" Cid="-1" Define="IDC_STATIC" en="&Look for:" />
 		<String Ref="136" Cid="-1" Define="IDC_STATIC" en="Path:" />
 		<String Ref="176" Cid="2" Define="IDCANCEL" en="Cancel" />
 		<String Ref="177" Cid="2" Define="IDCANCEL" en="Cancel" />

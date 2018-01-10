@@ -723,19 +723,16 @@ public:
 		// Use 'Ptr' here
 	}
 	*/
-	template<typename T>
-	bool IteratePtr(T &Ptr)
+	bool Iterate(Type *&Ptr)
 	{
 		if (!len || !p)
 			return false;
 		
-		if (!Ptr)
-		{
-			Ptr = dynamic_cast<T>(*p);
-			return true;
-		}
-
-		return PtrCheck(++Ptr);
+		return	Ptr
+				?
+				PtrCheck(++Ptr)
+				:
+				(Ptr = p) != NULL;
 	}
 
 	/*

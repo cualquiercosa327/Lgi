@@ -4,11 +4,7 @@
 #include "GUtf8.h"
 #include "GDisplayString.h"
 
-#if defined WINDOWS
-	#define AMP_TO_UNDERLINE	0
-#else
-	#define AMP_TO_UNDERLINE	1
-#endif
+#define AMP_TO_UNDERLINE	1
 
 struct LayoutString : public GDisplayString
 {
@@ -94,17 +90,10 @@ struct GDisplayStringLayout
 		return 0;
 	}
 
-	// Pre-layout min/max calculation
-	void DoPreLayout(GFont *f, char *t, int32 &Min, int32 &Max)
-	{		
-		Min = 0;
-		Max = 0;
-		
-		if (!t || !f)
-			return;
-
+	GFont *GetUnderlineFont(GFont *f)
+	{
 		#if AMP_TO_UNDERLINE
-		if (PrevFont != f)
+		if (PrevFont != f || !Under)
 		{
 			PrevFont = f;
 			if (Under.Reset(new GFont))
@@ -114,7 +103,20 @@ struct GDisplayStringLayout
 				Under->Create();
 			}
 		}
+		return Under;
+		#else
+		return NULL;
 		#endif
+	}
+
+	// Pre-layout min/max calculation
+	void DoPreLayout(GFont *f, char *t, int32 &Min, int32 &Max)
+	{		
+		Min = 0;
+		Max = 0;
+		
+		if (!t || !f)
+			return;
 
 		#if AMP_TO_UNDERLINE
 		GString Str = t;
@@ -201,13 +203,14 @@ struct GDisplayStringLayout
 			bool IsUnderline = *s == '&' && s[1] != '&';
 			if (IsUnderline)
 			{
-				s = LgiSeekUtf8(s, 1);
-				Fnt = Under;
+				s++;
+				e = LgiSeekUtf8(s, 1);
+				Fnt = GetUnderlineFont(f);
 			}
 			else
 			#endif
 			{
-				while (*e)
+				for (; *e; e++)
 				{
 					if
 					(
@@ -263,8 +266,11 @@ struct GDisplayStringLayout
 
 						LineFX -= n->FX();
 						DeleteObj(n);
-						n = new GDisplayString(f, s, (int) (e - s));
-						LineFX += n->FX();
+						n = new LayoutString(f, s, (int) (e - s));
+						
+						LineFX = 0;
+						MinLines++;
+						y += f->GetHeight();
 					}
 				}
 
@@ -274,6 +280,7 @@ struct GDisplayStringLayout
 			if (*e == '\n')
 			{
 				MinLines++;
+				y += f->GetHeight();
 				s = e + 1;
 			}
 			else
@@ -281,7 +288,7 @@ struct GDisplayStringLayout
 		}
 
 		Min.y = f->GetHeight() * MinLines;
-		Max.y = f->GetHeight() * (int)Strs.Length();
+		Max.y = y + f->GetHeight();
 		
 		if (Debug)
 			LgiTrace("CreateTxtLayout(%i) min=%i,%i  max=%i,%i\n",
@@ -302,6 +309,7 @@ struct GDisplayStringLayout
 		if (!pDC)
 			return;
 
+		int y = pt.y;
 		#ifdef WINDOWS
 		GRegion Rgn(rc);
 		#else
@@ -315,8 +323,9 @@ struct GDisplayStringLayout
 		#endif		
 		
 		// Draw all the text
-		for (LayoutString *s = NULL; Strs.IteratePtr(s); )
+		for (GDisplayString **ds = NULL; Strs.Iterate(ds); )
 		{
+			LayoutString *s = dynamic_cast<LayoutString*>(*ds);
 			GFont *f = s->GetFont();
 			#ifdef WINDOWS
 			GRect r(pt.x + s->Fx, y,
