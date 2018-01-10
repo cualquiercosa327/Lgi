@@ -6,6 +6,7 @@
 #include "../Resources/resource.h"
 #endif
 #include "GTextLog.h"
+#include "GButton.h"
 
 //////////////////////////////////////////////////////////////////
 const char *AppName = "Lvc";
@@ -110,6 +111,47 @@ public:
 	}
 };
 
+class CommitCtrls : public GLayout, public GLgiRes
+{
+public:
+	CommitCtrls()
+	{
+		GAutoString Name;
+		GRect Pos;
+		if (LoadFromResource(IDD_COMMIT, this, &Pos, &Name))
+		{
+			GTableLayout *v;
+			if (GetViewById(IDC_TABLE, v))
+			{
+				GRect r = v->GetPos();
+				r.Offset(-r.x1, -r.y1);
+				r.x2++;
+				v->SetPos(r);
+				
+				v->OnPosChange();
+				r = v->GetUsedArea();
+				if (r.Y() <= 1)
+					r.Set(0, 0, 30, 30);
+				GetCss(true)->Height(GCss::Len(GCss::LenPx, (float)r.Y()));
+			}
+			else LgiAssert(!"Missing table ctrl");
+		}
+		else LgiAssert(!"Missing toolbar resource");
+	}
+
+	void OnPosChange()
+	{
+		GTableLayout *v;
+		if (GetViewById(IDC_TABLE, v))
+			v->SetPos(GetClient());
+	}
+
+	void OnCreate()
+	{
+		AttachChildren();
+	}
+};
+
 class App : public GWindow, public AppPriv
 {
 public:
@@ -158,13 +200,26 @@ public:
 
 			Files = new LList(IDC_FILES, 0, 0, 200, 200);
 			Files->Attach(FilesBox);
+			Files->AddColumn("[ ]", 30);
 			Files->AddColumn("State", 100);
 			Files->AddColumn("Name", 400);
+
+			GBox *MsgBox = new GBox(IDC_MSG_BOX, true);
+			MsgBox->Attach(FilesBox);
+
+			CommitCtrls *Commit = new CommitCtrls;
+			Commit->Attach(MsgBox);
+
+			Msg = new GTextView3(IDC_MSG, 0, 0, 200, 200);
+			Msg->Sunken(true);
+			Msg->SetWrapType(TEXTED_WRAP_NONE);
+			Msg->Attach(MsgBox);
+			Msg->GetCss(true)->Height(GCss::Len("100px"));
 
 			Txt = new DiffView(IDC_TXT);
 			Txt->Sunken(true);
 			Txt->SetWrapType(TEXTED_WRAP_NONE);
-			Txt->Attach(FilesBox);
+			Txt->Attach(MsgBox);
 
 			AttachChildren();
             Visible(true);
@@ -214,6 +269,35 @@ public:
 	{
 		switch (c->GetId())
 		{
+			case IDC_FILES:
+			{
+				switch (flag)
+				{
+					case GNotifyItem_ColumnClicked:
+					{
+						int Col = -1;
+						GMouse m;
+						if (Files->GetColumnClickInfo(Col, m))
+						{
+							if (Col == 0)
+							{
+								// Select / deselect all checkboxes..
+								List<VcFile> n;
+								if (Files->GetAll(n))
+								{
+									bool Checked = false;
+									for (VcFile *f = n.First(); f; f = n.Next())
+										Checked |= f->Checked() > 0;
+									for (VcFile *f = n.First(); f; f = n.Next())
+										f->Checked(Checked ? 0 : 1);
+								}
+							}
+						}
+						break;
+					}
+				}
+				break;
+			}
 			case IDC_TREE:
 			{
 				if (flag == GNotifyContainer_Click)

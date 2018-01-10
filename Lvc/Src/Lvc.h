@@ -13,6 +13,13 @@
 
 extern const char *AppName;
 
+enum FileColumns
+{
+	COL_CHECKBOX,
+	COL_STATE,
+	COL_FILENAME,
+};
+
 enum AppIds
 {
 	IDC_LIST = 100,
@@ -23,6 +30,8 @@ enum AppIds
 	IDC_FILES,
 	IDC_FILES_BOX,
 	IDC_TXT,
+	IDC_MSG,
+	IDC_MSG_BOX,
 
 	IDM_ADD = 200,
 	IDM_UPDATE,
@@ -45,7 +54,7 @@ struct AppPriv
 	LList *Lst;
 	LList *Files;
 	GOptionsFile Opts;
-	GTextView3 *Txt;
+	GTextView3 *Txt, *Msg;
 
 	AppPriv()  : Opts(GOptionsFile::PortableMode, AppName)
 	{
@@ -53,6 +62,7 @@ struct AppPriv
 		Tree = NULL;
 		Files = NULL;
 		Txt = NULL;
+		Msg = NULL;
 	}
 
 	void ClearFiles()

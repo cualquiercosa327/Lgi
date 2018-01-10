@@ -714,6 +714,52 @@ public:
 	typedef Iter<Type> I;
 	I Start() { return I(this, 0); }
 	I End() { return I(this, Length()-1); }
+
+	/* To use this iteration method in a for loop:
+
+		for (T *Ptr = NULL; Array.Iterate(Ptr); )
+		{
+			// Use 'Ptr' here
+		}
+
+	*/
+	bool Iterate(Type *&Ptr)
+	{
+		if (!len || !p)
+			return false;
+		
+		if (!Ptr)
+		{
+			Ptr = p;
+			return true;
+		}
+
+		Ptr++;
+		return PtrCheck(Ptr);		
+	}
+
+	/* To use this iteration method in a for loop:
+
+		for (T *Ptr = NULL, size_t Idx; Array.Iterate(Idx, Ptr); )
+		{
+			// Use 'Ptr' here
+		}
+	*/
+	bool Iterate(size_t &Idx, Type *&Ptr)
+	{
+		if (!len || !p)
+			return false;
+		
+		if (!Ptr)
+		{
+			Ptr = p;
+			Idx = 0;
+			return true;
+		}
+
+		Ptr = p + (++Idx);
+		return PtrCheck(Ptr);		
+	}
 };
 
 #endif

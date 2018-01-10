@@ -698,10 +698,7 @@ void ResString::OnMouseClick(GMouse &m)
 				GClipBoard c(Parent);
 				Clip = c.Text();
 				if (Clip)
-				{
 					PasteTranslations = strstr(Clip, TranslationStrMagic);
-					DeleteArray(Clip);
-				}
 			}
 
 			RClick->AppendItem("Copy Text", IDM_COPY_TEXT, true);

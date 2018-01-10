@@ -1,5 +1,6 @@
 #include "Lvc.h"
 #include "GClipBoard.h"
+#include "../Resources/resdefs.h"
 
 VcCommit::VcCommit(AppPriv *priv)
 {
@@ -119,9 +120,13 @@ void VcCommit::Select(bool b)
 	{
 		VcFolder *f = GetFolder();
 		if (f)
-		{
 			f->ListCommit(Rev);
-		}		
+
+		if (d->Msg)
+		{
+			d->Msg->Name(Msg);
+			d->Msg->GetWindow()->SetCtrlEnabled(IDC_COMMIT, false);
+		}
 	}
 }
 

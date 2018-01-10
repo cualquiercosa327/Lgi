@@ -357,14 +357,14 @@ bool VcFolder::ParseWorking(GString s)
 					for (unsigned b=0; b<Body.Length(); b++)
 					{
 						GString::Array Fn = Body[b].Strip().Split(":", 1);
-						VcFile *f = new VcFile(d);
+						VcFile *f = new VcFile(d, true);
 						if (Fn.Length() > 1)
 						{
-							f->SetText(Fn[0]);
-							f->SetText(Fn[1].Strip(), 1);
+							f->SetText(Fn[0], COL_STATE);
+							f->SetText(Fn[1].Strip(), COL_FILENAME);
 						}
 						else
-							f->SetText(Fn[0], 1);
+							f->SetText(Fn[0], COL_FILENAME);
 						d->Files->Insert(f);
 					}
 				}
@@ -383,8 +383,8 @@ bool VcFolder::ParseWorking(GString s)
 					; // Ignore
 				else
 				{
-					LListItem *li = new LListItem;
-					li->SetText(Ln);
+					VcFile *li = new VcFile(d, true);
+					li->SetText(Ln, COL_FILENAME);
 					d->Files->Insert(li);
 				}
 			}
@@ -423,7 +423,7 @@ bool VcFolder::ParseFiles(GString s)
 
 					GString Fn = a[i].Split(" ").Last()(2, -1);
 					f = new VcFile(d);
-					f->SetText(Fn, 1);
+					f->SetText(Fn, COL_FILENAME);
 					d->Files->Insert(f);
 				}
 				else if (!_strnicmp(Ln, "index", 5) ||
@@ -471,7 +471,7 @@ bool VcFolder::ParseFiles(GString s)
 
 					GString Fn = a[i].Split(":", 1).Last().Strip();
 					f = new VcFile(d);
-					f->SetText(Fn, 1);
+					f->SetText(Fn, COL_FILENAME);
 					d->Files->Insert(f);
 				}
 				else if (!_strnicmp(Ln, "------", 6))
@@ -652,6 +652,12 @@ void VcFolder::UncommitedItem::Select(bool b)
 		VcFolder *f = dynamic_cast<VcFolder*>(i);
 		if (f)
 			f->ListWorkingFolder();
+
+		if (d->Msg)
+		{
+			d->Msg->Name(NULL);
+			d->Msg->GetWindow()->SetCtrlEnabled(IDC_COMMIT, true);
+		}
 	}
 }
 

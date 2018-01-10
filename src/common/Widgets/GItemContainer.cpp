@@ -336,6 +336,25 @@ DeclGArrayCompare(ColInfoCmp, GItemContainer::ColInfo, void)
 	return AGrowPx - BGrowPx;
 }
 
+void GItemContainer::OnColumnClick(int Col, GMouse &m)
+{
+	ColClick = Col;
+	ColMouse = m;
+	SendNotify(GNotifyItem_ColumnClicked);
+}
+
+bool GItemContainer::GetColumnClickInfo(int &Col, GMouse &m)
+{
+	if (ColClick >= 0)
+	{
+		Col = ColClick;
+		m = ColMouse;
+		return true;
+	}
+	
+	return false;	
+}
+
 void GItemContainer::GetColumnSizes(ColSizes &cs)
 {
 	// Read in the current sizes

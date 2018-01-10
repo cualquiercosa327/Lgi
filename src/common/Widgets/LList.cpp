@@ -2588,25 +2588,6 @@ void LList::UpdateAllItems()
 	Invalidate();
 }
 
-void GItemContainer::OnColumnClick(int Col, GMouse &m)
-{
-	ColClick = Col;
-	ColMouse = m;
-	SendNotify(GNotifyItem_ColumnClicked);
-}
-
-bool GItemContainer::GetColumnClickInfo(int &Col, GMouse &m)
-{
-	if (ColClick >= 0)
-	{
-		Col = ColClick;
-		m = ColMouse;
-		return true;
-	}
-	
-	return false;	
-}
-
 int LList::GetContentSize(int Index)
 {
 	int Max = 0;
