@@ -103,6 +103,7 @@ public:
 	const char *GetClass() { return "ResDialogCtrl"; }
 	virtual GView *View() = 0;
 	ResDialogCtrl *ParentCtrl() { return dynamic_cast<ResDialogCtrl*>(View()->GetParent()); }
+	ResDialog *GetDlg() { return Dlg; }
 
 	bool IsContainer() { return AcceptChildren; }
 	void OnPaint(GSurface *pDC);

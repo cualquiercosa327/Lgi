@@ -2140,15 +2140,21 @@ void LList::ScrollToSelection()
 	}
 }
 
+int ListStringCompare(LListItem *a, LListItem *b, NativeInt data)
+{
+	char *ATxt = (a)->GetText(data);
+	char *BTxt = (b)->GetText(data);
+	if (ATxt && BTxt)
+		return stricmp(ATxt, BTxt);
+	return 0;
+}
+
 void LList::Sort(LListCompareFunc Compare, NativeInt Data)
 {
 	if (Lock(_FL))
 	{
-		if (Compare)
-		{
-			Items.Sort(Compare, Data);
-			Invalidate(&ItemsPos);
-		}
+		Items.Sort(Compare ? Compare : ListStringCompare, Data);
+		Invalidate(&ItemsPos);
 
 		Unlock();
 	}

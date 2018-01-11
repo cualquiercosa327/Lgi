@@ -904,6 +904,7 @@ AppWnd::AppWnd() :
 	LastRes = 0;
 	Fields = 0;
 	ViewMenu = 0;
+	ShortCuts = 0;
 	CurLang = -1;
 	ShowLanguages.Add("en", true);
 
@@ -1373,6 +1374,12 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Handle)
 				
 				LgiTrimDir(ExeName);
 			}
+			break;
+		}
+		case IDM_SHOW_SHORTCUTS:
+		{
+			if (!ShortCuts)
+				ShortCuts = new ShortCutView(this);
 			break;
 		}
 		case IDM_ABOUT:
@@ -4417,6 +4424,108 @@ public:
 	bool Remove(GView *v) { return false; }
 };
 
+//////////////////////////////////////////////////////////////////////
+ShortCutView::ShortCutView(AppWnd *app)
+{
+	App = app;
+	GRect r(0, 0, 300, 600);
+	SetPos(r);
+	MoveSameScreen(App);
+	Name("Dialog Shortcuts");
+	if (Attach(0))
+	{
+		Lst = new LList(100, 0, 0, 100, 100);
+		Lst->Attach(this);
+		Lst->SetPourLargest(true);
+		Lst->AddColumn("Key", 50);
+		Lst->AddColumn("Ref", 80);
+		Lst->AddColumn("Control", 150);
+
+		Visible(true);
+	}
+}
+
+ShortCutView::~ShortCutView()
+{
+	App->OnCloseView(this);
+}
+
+void FindShortCuts(LList *Out, GViewI *In)
+{
+	GAutoPtr<GViewIterator> it(In->IterateViews());
+	for (GViewI *c = it->First(); c; c = it->Next())
+	{
+		ResDialogCtrl *rdc = dynamic_cast<ResDialogCtrl*>(c);
+		if (!rdc || !rdc->Str)
+			continue;
+
+		char *n = rdc->Str->Get();
+		if (n)
+		{
+			char *a = strchr(n, '&');
+			if (a && a[1] != '&')
+			{
+				LListItem *li = new LListItem;
+				GString s(++a, 1);
+				GString id;
+				id.Printf("%i", rdc->Str->GetRef());
+				li->SetText(s.Upper(), 0);
+				li->SetText(id, 1);
+				li->SetText(rdc->GetClass(), 2);
+				li->_UserPtr = rdc;
+				Out->Insert(li);
+			}
+		}
+
+		FindShortCuts(Out, c);
+	}
+}
+
+int ShortCutView::OnNotify(GViewI *Ctrl, int Flags)
+{
+	if (Ctrl->GetId() == Lst->GetId())
+	{
+		switch (Flags)
+		{
+			case GNotifyItem_Click:
+			{
+				LListItem *li = Lst->GetSelected();
+				if (li)
+				{
+					GString s = li->GetText(1);
+					ResDialogCtrl *c = (ResDialogCtrl*) li->_UserPtr;
+					if (c)
+						App->GotoObject(c->Str, NULL, c->GetDlg(), NULL, c);
+				}
+				break;
+			}
+		}
+	}
+
+	return GWindow::OnNotify(Ctrl, Flags);
+}
+
+void ShortCutView::OnDialogChange(ResDialog *Dlg)
+{
+	Lst->Empty();
+	if (!Dlg)
+		return;
+	FindShortCuts(Lst, Dlg);
+	Lst->Sort(NULL, 0);
+}
+
+ShortCutView *AppWnd::GetShortCutView()
+{
+	return ShortCuts;
+}
+
+void AppWnd::OnCloseView(ShortCutView *v)
+{
+	if (v == ShortCuts)
+		ShortCuts = NULL;
+}
+
+//////////////////////////////////////////////////////////////////////
 void TestFunc()
 {
 	/*

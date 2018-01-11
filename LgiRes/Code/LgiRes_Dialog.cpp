@@ -4124,6 +4124,9 @@ ResDialogUi::ResDialogUi(ResDialog *Res)
 	if (Res)
 	{
 		Res->OnSelect(Res->Selection.First());
+		ShortCutView *scv = Res->App()->GetShortCutView();
+		if (scv)
+			scv->OnDialogChange(Res);
 	}
 }
 
@@ -4131,6 +4134,9 @@ ResDialogUi::~ResDialogUi()
 {
 	if (Dialog)
 	{
+		ShortCutView *scv = Dialog->App()->GetShortCutView();
+		if (scv)
+			scv->OnDialogChange(NULL);
 		Dialog->Ui = 0;
 	}
 }

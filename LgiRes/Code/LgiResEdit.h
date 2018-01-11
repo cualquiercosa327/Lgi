@@ -96,6 +96,7 @@
 #define VAL_Image					"image"
 
 // Misc
+class AppWnd;
 #define	MainWnd						((AppWnd*)GApp::ObjInstance()->AppWnd)
 
 // App
@@ -667,6 +668,19 @@ public:
 	int OnNotify(GViewI *Ctrl, int Flags);
 };
 
+class ShortCutView : public GWindow
+{
+	AppWnd *App;
+	LList *Lst;
+
+public:
+	ShortCutView(AppWnd *app);
+	~ShortCutView();
+
+	void OnDialogChange(ResDialog *Dlg);
+	int OnNotify(GViewI *Ctrl, int Flags);
+};
+
 #include "LgiRes_String.h"
 
 class AppWnd : public GDocApp<GOptionsFile>
@@ -682,6 +696,8 @@ protected:
 
 	GStatusBar		*Status;
 	GStatusPane		*StatusInfo[STATUS_MAX];
+
+	ShortCutView	*ShortCuts;
 
 	// App
 	ObjContainer	*Objs;
@@ -730,6 +746,9 @@ public:
 					ResDialog *d,
 					ResMenuItem *m,
 					ResDialogCtrl *c);
+	
+	ShortCutView *GetShortCutView();
+	void OnCloseView(ShortCutView *v);
 
 	// ---------------------------------------------------------------------
 	// Methods
