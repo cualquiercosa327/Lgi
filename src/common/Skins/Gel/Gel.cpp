@@ -10,6 +10,7 @@
 #include "GRadioGroup.h"
 #include "GDisplayString.h"
 #include "GCssTools.h"
+#include "GDisplayStringLayout.h"
 
 #ifdef WIN32
 #define BTN_TEXT_OFFSET_Y	-1
@@ -448,22 +449,20 @@ class GelSkin : public GSkinEngine
 		GSurface *pDC = State->pScreen;
 		if (Text && Text->Length() > 0 && rcFill.X() > 3)
 		{
-			GFont *f = Text->First()->GetFont();
-			
-			if (Enabled)
-				f->Colour(Fore, Back);
-			
-			int yOff = 0;
 			for (unsigned i=0; i<Text->Length(); i++)
 			{
-				GDisplayString *t = (*Text)[i];
+				LayoutString *t = dynamic_cast<LayoutString*>((*Text)[i]);
+				if (!t)
+					break;
 				GRect c;
 				c.ZOff(t->X() - 1, t->Y() - 1);
-				c.Offset(x, y + yOff);
+				c.Offset(x + (t->Fx >> GDisplayString::FShift), y + t->y);
 				Rgn.Subtract(&c);
 				
+				GFont *f = t->GetFont();
 				if (Enabled)
 				{
+					f->Colour(Fore, Back);
 					if (Ctrl->Focus())
 					{
 						pDC->Colour(LC_MIDGREY, 24);
@@ -486,14 +485,12 @@ class GelSkin : public GSkinEngine
 				{
 					f->Transparent(!Back.IsValid());
 					f->Colour(Light, Back);
-					t->Draw(pDC, x + 1, y + 1, &c);
+					t->Draw(pDC, c.x1 + 1, c.y1 + 1, &c);
 
 					f->Transparent(true);
 					f->Colour(Low, Back);
-					t->Draw(pDC, x, y, &c);
+					t->Draw(pDC, c.x1, c.y1, &c);
 				}
-				
-				yOff += t->Y();
 			}
 		}
 		

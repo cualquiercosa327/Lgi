@@ -76,7 +76,7 @@ GCheckBox::GCheckBox(int id, int x, int y, int cx, int cy, const char *name, int
 	ResObject(Res_CheckBox)
 {
 	d = new GCheckBoxPrivate(this);
-    Name(name);
+	Name(name);
 	if (cx < 0) cx = d->Max.x + PadX1Px + PadX2Px;
 	if (cy < 0) cy = max(d->Max.y, MinYSize) + PadYPx;
 
@@ -226,18 +226,18 @@ void GCheckBox::OnMouseExit(GMouse &m)
 
 bool GCheckBox::OnKey(GKey &k)
 {
-    switch (k.vkey)
-    {
-        case ' ':
-        {
-            if (!k.Down())
-            {
-                Value(!Value());
-            }
+	switch (k.vkey)
+	{
+		case ' ':
+		{
+			if (!k.Down())
+			{
+				Value(!Value());
+			}
 
-            return true;
-        }
-    }
+			return true;
+		}
+	}
 	
 	return false;
 }
@@ -266,7 +266,7 @@ bool GCheckBox::OnLayout(GViewLayoutInfo &Inf)
 		Inf.Height.Min = d->Min.y + PadYPx;
 		Inf.Height.Max = d->Max.y + PadYPx;
 	}
-	return true;    
+	return true;	
 }
 
 void GCheckBox::OnPaint(GSurface *pDC)
@@ -276,7 +276,7 @@ void GCheckBox::OnPaint(GSurface *pDC)
 	pDC->Rectangle();
 	#endif
 	
-    if (GApp::SkinEngine &&
+	if (GApp::SkinEngine &&
 		TestFlag(GApp::SkinEngine->GetFeatures(), GSKIN_CHECKBOX))
 	{
 		GSkinState State;
@@ -305,8 +305,8 @@ void GCheckBox::OnPaint(GSurface *pDC)
 
 		GRect t = r;
 		t.x1 = d->ValuePos.x2 + 1;
-        GColour cFore(LC_TEXT, 24);
-        GColour cBack(LC_MED, 24);
+		GColour cFore(LC_TEXT, 24);
+		GColour cBack(LC_MED, 24);
 
 		if (d->Lock(_FL))
 		{
@@ -315,7 +315,7 @@ void GCheckBox::OnPaint(GSurface *pDC)
 			d->Unlock();
 		}
 
-        #if defined MAC && !defined COCOA && !defined(LGI_SDL)
+		#if defined MAC && !defined COCOA && !defined(LGI_SDL)
 
 			GColour Background(LC_MED, 24);
 			if (GetCss())
@@ -360,8 +360,8 @@ void GCheckBox::OnPaint(GSurface *pDC)
 			if (e) printf("%s:%i - HIThemeDrawButton failed %li\n", _FL, e);
 		
 		
-        #else
-    
+		#else
+	
 			LgiWideBorder(pDC, d->ValuePos, DefaultSunkenEdge);
 			pDC->Colour(d->Over || !en ? LC_MED : LC_WORKSPACE, 24);
 			pDC->Rectangle(&d->ValuePos);
@@ -390,8 +390,8 @@ void GCheckBox::OnPaint(GSurface *pDC)
 				pDC->Line(d->ValuePos.x1+1, d->ValuePos.y2-2, d->ValuePos.x2-2, d->ValuePos.y1+1);
 				pDC->Line(d->ValuePos.x1+2, d->ValuePos.y2-1, d->ValuePos.x2-1, d->ValuePos.y1+2);
 			}
-        
-        #endif
+		
+		#endif
 	}
 }
 

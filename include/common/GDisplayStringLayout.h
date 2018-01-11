@@ -29,8 +29,9 @@ struct GDisplayStringLayout
 	// Wrap setting
 	bool Wrap;
 
-	// Array of words... NULL ptr for new line
+	// Array of display strings...
 	GArray<GDisplayString*> Strs;
+	GRect StrBounds;
 	
 	#if AMP_TO_UNDERLINE
 	GFont *PrevFont;
@@ -195,6 +196,8 @@ struct GDisplayStringLayout
 		int LineFX = 0;
 		int Shift = GDisplayString::FShift;
 		MinLines = 1;
+
+		printf("Pre:'%s'\n", s);
 		while (*s)
 		{
 			char *e = s;
@@ -224,6 +227,8 @@ struct GDisplayStringLayout
 				}			
 			}
 			size_t Len = e - s;
+			
+			printf("\t'%.*s'\n", (int)Len, s);
 
 			// Create a display string for the segment
 			LayoutString *n = new LayoutString(Fnt, Len ? s : (char*)"", Len ? (int)Len : 1);
@@ -237,10 +242,11 @@ struct GDisplayStringLayout
 				Min.x = Min.x ? min(Min.x, LineFX) : LineFX;
 				Max.x = max(Max.x, LineFX);
 			
-				if (Wrap && LineFX > Width)
+				if (Wrap && (LineFX >> Shift) > Width)
 				{
 					// If wrapping, work out the split point and the text is too long
 					ssize_t Ch = n->CharAt(Width - (n->Fx >> Shift));
+					printf("\tWrap: %i\n", (int)Ch);
 					if (Ch > 0)
 					{
 						// Break string into chunks
@@ -273,6 +279,11 @@ struct GDisplayStringLayout
 						y += f->GetHeight();
 					}
 				}
+
+				GRect Sr(0, 0, n->X()-1, n->Y()-1);
+				Sr.Offset(n->Fx >> Shift, n->y);
+				if (Strs.Length()) StrBounds.Union(&Sr);
+				else StrBounds = Sr;
 
 				Strs.Add(n);
 			}
@@ -342,7 +353,11 @@ struct GDisplayStringLayout
 				#ifdef WINDOWS
 				s->Draw(pDC, pt.x + s->Fx, pt.y, &r);
 				#else
-				s->FDraw(pDC, (pt.x << Shift) + s->Fx, (pt.y + s->y) << Shift);
+				GdcPt2 k((pt.x << Shift) + s->Fx, (pt.y + s->y) << Shift);
+				printf("enabled='%S', %i,%i (%f,%f)\n", (const char16*)*s,
+					k.x, k.y,
+					(double)k.x / GDisplayString::FScale, (double)k.y / GDisplayString::FScale);
+				s->FDraw(pDC, k.x, k.y);
 				#endif
 			}
 			else
@@ -352,7 +367,11 @@ struct GDisplayStringLayout
 				#ifdef WINDOWS
 				s->Draw(pDC, pt.x+1, y+1, &r);
 				#else
-				s->FDraw(pDC, ((pt.x+1) << Shift) + s->Fx, (pt.y + 1 + s->y) << Shift);
+				GdcPt2 k(((pt.x+1) << Shift) + s->Fx, (pt.y + 1 + s->y) << Shift);
+				printf("disabled='%S', %i,%i (%f,%f)\n", (const char16*)*s,
+					k.x, k.y,
+					(double)k.x / GDisplayString::FScale, (double)k.y / GDisplayString::FScale);
+				s->FDraw(pDC, k.x, k.y);
 				#endif
 				
 				f->Transparent(true);
