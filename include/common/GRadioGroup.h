@@ -74,6 +74,7 @@ public:
 	int64 Value();
 	void Value(int64 i);
 	bool OnLayout(GViewLayoutInfo &Inf);
+	int OnNotify(GViewI *Ctrl, int Flags);
 
 	// Events
 	void OnAttach();

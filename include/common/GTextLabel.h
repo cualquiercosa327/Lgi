@@ -56,6 +56,7 @@ public:
 	
 	// Events
 	GMessage::Result OnEvent(GMessage *Msg);
+	int OnNotify(GViewI *Ctrl, int Flags);
 	void OnPaint(GSurface *pDC);
 	void OnPosChange();
 	void OnAttach();

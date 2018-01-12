@@ -408,7 +408,15 @@ void GView::OnPaint(GSurface *pDC)
 
 int GView::OnNotify(GViewI *Ctrl, int Flags)
 {
-	if (Ctrl && d && d->Parent)
+	if (!Ctrl)
+		return 0;
+
+	if (Ctrl == (GViewI*)this && Flags == GNotify_Activate)
+	{
+		// Default activation is to focus the current control.
+		Focus(true);
+	}
+	else if (d && d->Parent)
 	{
 		// default behaviour is just to pass the 
 		// notification up to the parent

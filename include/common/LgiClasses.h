@@ -1369,6 +1369,9 @@ public:
 		bool Load
 	);
 
+	/// Builds a map of keyboard short cuts.
+	void BuildShortcuts(GHashTbl<int,GViewI*> &Map, GViewI *v = NULL);
+
 	////////////////////// Events ///////////////////////////////
 	
 	/// Called when the window zoom state changes.

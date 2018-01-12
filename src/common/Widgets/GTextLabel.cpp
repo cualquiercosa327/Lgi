@@ -233,6 +233,25 @@ GMessage::Result GText::OnEvent(GMessage *Msg)
 	return GView::OnEvent(Msg);
 }
 
+int GText::OnNotify(GViewI *Ctrl, int Flags)
+{
+	if (Ctrl == (GViewI*)this &&
+		Flags == GNotify_Activate &&
+		GetParent())
+	{
+		GAutoPtr<GViewIterator> c(GetParent()->IterateViews());
+		if (c)
+		{
+			int Idx = c->IndexOf(this);
+			GViewI *n = (*c)[++Idx];
+			if (n)
+				n->OnNotify(n, Flags);
+		}
+	}
+
+	return 0;
+}
+
 void GText::OnPaint(GSurface *pDC)
 {
 	// bool Status = false;

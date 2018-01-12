@@ -68,8 +68,6 @@ class FindInFiles : public GDialog
 	GHistory *FolderHistory;
 	bool OwnParams;
 
-	bool OnViewKey(GView *v, GKey &k);
-
 public:
 	FindParams *Params;
 	

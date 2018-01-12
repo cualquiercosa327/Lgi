@@ -504,6 +504,16 @@ bool GRadioButton::OnLayout(GViewLayoutInfo &Inf)
 	return true;	
 }
 
+int GRadioButton::OnNotify(GViewI *Ctrl, int Flags)
+{
+	if (Ctrl == (GViewI*)this && flags == GNotify_Activate)
+	{
+		Value(true);
+	}
+
+	return 0;
+}
+
 int64 GRadioButton::Value()
 {
 	return d->Val;
