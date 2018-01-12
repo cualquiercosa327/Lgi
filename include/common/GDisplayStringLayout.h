@@ -197,7 +197,6 @@ struct GDisplayStringLayout
 		int Shift = GDisplayString::FShift;
 		MinLines = 1;
 
-		printf("Pre:'%s'\n", s);
 		while (*s)
 		{
 			char *e = s;
@@ -228,8 +227,6 @@ struct GDisplayStringLayout
 			}
 			size_t Len = e - s;
 			
-			printf("\t'%.*s'\n", (int)Len, s);
-
 			// Create a display string for the segment
 			LayoutString *n = new LayoutString(Fnt, Len ? s : (char*)"", Len ? (int)Len : 1);
 			if (n)
@@ -246,7 +243,6 @@ struct GDisplayStringLayout
 				{
 					// If wrapping, work out the split point and the text is too long
 					ssize_t Ch = n->CharAt(Width - (n->Fx >> Shift));
-					printf("\tWrap: %i\n", (int)Ch);
 					if (Ch > 0)
 					{
 						// Break string into chunks
@@ -354,9 +350,6 @@ struct GDisplayStringLayout
 				s->Draw(pDC, pt.x + s->Fx, pt.y, &r);
 				#else
 				GdcPt2 k((pt.x << Shift) + s->Fx, (pt.y + s->y) << Shift);
-				printf("enabled='%S', %i,%i (%f,%f)\n", (const char16*)*s,
-					k.x, k.y,
-					(double)k.x / GDisplayString::FScale, (double)k.y / GDisplayString::FScale);
 				s->FDraw(pDC, k.x, k.y);
 				#endif
 			}
@@ -368,9 +361,6 @@ struct GDisplayStringLayout
 				s->Draw(pDC, pt.x+1, y+1, &r);
 				#else
 				GdcPt2 k(((pt.x+1) << Shift) + s->Fx, (pt.y + 1 + s->y) << Shift);
-				printf("disabled='%S', %i,%i (%f,%f)\n", (const char16*)*s,
-					k.x, k.y,
-					(double)k.x / GDisplayString::FScale, (double)k.y / GDisplayString::FScale);
 				s->FDraw(pDC, k.x, k.y);
 				#endif
 				

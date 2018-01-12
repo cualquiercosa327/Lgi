@@ -99,7 +99,7 @@ void GCheckBox::OnAttach()
 
 int GCheckBox::OnNotify(GViewI *Ctrl, int Flags)
 {
-	if (Ctrl == (GViewI*)this && flags == GNotify_Activate)
+	if (Ctrl == (GViewI*)this && Flags == GNotify_Activate)
 	{
 		Value(!Value());
 	}
