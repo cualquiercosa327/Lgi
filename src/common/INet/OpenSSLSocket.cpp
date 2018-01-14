@@ -511,7 +511,6 @@ struct SslSocketPriv
 	bool SslOnConnect;
 	bool IsSSL;
 	bool UseSSLrw;
-	bool Opening;
 	int Timeout;
 	bool RawLFCheck;
 	#ifdef _DEBUG
@@ -533,7 +532,6 @@ struct SslSocketPriv
 		LastWasCR = false;
 		#endif
 		Timeout = 20 * 1000;
-		Opening = false;
 		IsSSL = false;
 		UseSSLrw = false;
 		LogFormat = 0;
@@ -704,10 +702,12 @@ OsSocket SslSocket::Handle(OsSocket Set)
 	else if (Bio)
 	{
 		Library->BIO_get_fd(Bio, &h);
+		/* Do we need this anymore?
 		#ifdef _WIN64
 		#pragma message(__LOC__"Hack to get OpenSSL working on _WIN64")
 		h &= 0xffffffff;
 		#endif
+		*/
 	}
 	
 	return h;
@@ -780,13 +780,12 @@ DebugTrace("%s:%i - BIO_get_ssl=%p\n", _FL, Ssl);
 							// Do non-block connect
 							uint64 Start = LgiCurrentTime();
 							int To = GetTimeout();
-							d->Opening = true;
 							
 							IsBlocking(false);
 							
 							r = Library->SSL_connect(Ssl);
 DebugTrace("%s:%i - initial SSL_connect=%i\n", _FL, r);
-							while (r != 1 && d->Opening)
+							while (r != 1 && !IsCancelled())
 							{
 								int err = Library->SSL_get_error(Ssl, r);
 								if (err != SSL_ERROR_WANT_CONNECT)
@@ -798,15 +797,15 @@ DebugTrace("%s:%i - SSL_get_error=%i\n", _FL, err);
 								r = Library->SSL_connect(Ssl);
 DebugTrace("%s:%i - SSL_connect=%i (%i of %i ms)\n", _FL, r, (int)(LgiCurrentTime() - Start), (int)To);
 
-								if (r == -1 && !HasntTimedOut())
+								bool TimeOut = !HasntTimedOut();
+								if (TimeOut)
 								{
 DebugTrace("%s:%i - SSL connect timeout, to=%i\n", _FL, To);
 									OnError(0, "Connection timeout.");
 									break;
 								}
 							}
-DebugTrace("%s:%i - open loop finished, r=%i, Opening=%i\n", _FL, r, d->Opening);
-							d->Opening = false;
+DebugTrace("%s:%i - open loop finished, r=%i, Cancelled=%i\n", _FL, r, IsCancelled());
 
 							if (r == 1)
 							{
@@ -843,13 +842,12 @@ DebugTrace("%s:%i - BIO_new_connect=%p\n", _FL, Bio);
 				// can quit out of the connect loop.
 				IsBlocking(false);
 
-				d->Opening = true;
 				uint64 Start = LgiCurrentTime();
 				int To = GetTimeout();
 
 				long r = Library->BIO_do_connect(Bio);
 DebugTrace("%s:%i - BIO_do_connect=%i\n", _FL, r);
-				while (r != 1 && d->Opening)
+				while (r != 1 && !IsCancelled())
 				{
 					if (!Library->BIO_should_retry(Bio))
 					{
@@ -867,7 +865,6 @@ DebugTrace("%s:%i - open timeout, to=%i\n", _FL, To);
 						break;
 					}
 				}
-				d->Opening = false;
 
 DebugTrace("%s:%i - open loop finished=%i\n", _FL, r);
 
@@ -991,7 +988,7 @@ DebugTrace("%s:%i - X509_NAME_oneline=%s\n", _FL, Txt);
 
 int SslSocket::Close()
 {
-	d->Opening = false;
+	Cancel(true);
 	LMutex::Auto Lck(&Lock, _FL);
 
 	if (Library)
