@@ -81,8 +81,6 @@ class LgiNetClass GSocket :
 	public GSocketI,
 	public GStream
 {
-	friend class GNetwork;
-
 protected:
 	class GSocketImplPrivate *d;
 

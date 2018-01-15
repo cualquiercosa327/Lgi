@@ -249,7 +249,7 @@ public:
 	}
 };
 
-class App : public GWindow, public GCapabilityInstallTarget, public GNetwork
+class App : public GWindow, public GCapabilityInstallTarget
 {
 	GBox *Split;
 	GTextView3 *Txt;

@@ -188,7 +188,7 @@ public:
 	}
 };
 
-struct FtpThreadPriv : public LMutex, public GNetwork
+struct FtpThreadPriv : public LMutex
 {
 	bool Loop;
 	GArray<FtpConn*> Conn;
