@@ -51,11 +51,12 @@ endif
 
 # Dependencies
 Depends =	 \
+			GSubProcess.o \
+			LgiMain.o \
 			Main.o \
 			VcCommit.o \
-			VcFolder.o \
-			GSubProcess.o \
-			LgiMain.o
+			VcFile.o \
+			VcFolder.o
 
 # Target
 # Executable target
@@ -263,8 +264,13 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../src/common/Widgets/GPopup.cpp \
 	../src/common/Widgets/GProgress.cpp \
 	../src/common/Widgets/GProgressDlg.cpp \
+	../src/common/Widgets/GRadioGroup.cpp \
+	../src/common/Widgets/GScrollBar.cpp \
 	../src/common/Widgets/GSplitter.cpp \
+	../src/common/Widgets/GStatusBar.cpp \
 	../src/common/Widgets/GTableLayout.cpp \
+	../src/common/Widgets/GTabView.cpp \
+	../src/common/Widgets/GTextLabel.cpp \
 	../src/common/Widgets/GToolBar.cpp \
 	../src/common/Widgets/GTree.cpp \
 	../src/common/Widgets/LList.cpp \
@@ -300,24 +306,6 @@ clean :
 	@echo Cleaned $(BuildDir)
 	+make -C "../" -f "Makefile.linux" clean
 
-Main.o : ./Src/Main.cpp ../include/common/Lgi.h \
-	./Resources/resdefs.h \
-	./Src/Lvc.h \
-	../include/common/GTableLayout.h \
-	./Resources/resource.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-VcCommit.o : ./Src/VcCommit.cpp ./Src/Lvc.h \
-	../include/common/GClipBoard.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
-VcFolder.o : ./Src/VcFolder.cpp ./Src/Lvc.h \
-	./Resources/resdefs.h
-	@echo $(<F) [$(Build)]
-	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
-
 GSubProcess.o : ../src/common/Lgi/GSubProcess.cpp ../include/common/Lgi.h \
 	../include/common/GSubProcess.h \
 	../include/common/GToken.h
@@ -326,6 +314,31 @@ GSubProcess.o : ../src/common/Lgi/GSubProcess.cpp ../include/common/Lgi.h \
 
 LgiMain.o : ../src/common/Lgi/LgiMain.cpp ../include/common/Lgi.h \
 	../include/common/GToken.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+Main.o : ./Src/Main.cpp ../include/common/Lgi.h \
+	./Resources/resdefs.h \
+	./Src/Lvc.h \
+	../include/common/GTableLayout.h \
+	./Resources/resource.h \
+	../include/common/GTextLog.h \
+	../include/common/GButton.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+VcCommit.o : ./Src/VcCommit.cpp ./Src/Lvc.h \
+	../include/common/GClipBoard.h \
+	./Resources/resdefs.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+VcFile.o : ./Src/VcFile.cpp ./Src/Lvc.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+VcFolder.o : ./Src/VcFolder.cpp ./Src/Lvc.h \
+	./Resources/resdefs.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -347,7 +360,13 @@ LgiMain.o : ../src/common/Lgi/LgiMain.cpp ../include/common/Lgi.h \
 	../include/common/LThread.h \
 	../include/common/GInput.h
 
+../include/common/GTextLog.h : ../include/common/GTextView3.h
+
 ../include/common/GSubProcess.h : 
+
+../include/common/GTextView3.h : ../include/common/GDocView.h \
+	../include/common/GUndo.h \
+	../include/common/GDragAndDrop.h
 
 ../include/common/GString.h : ../include/common/LgiDefs.h \
 	../include/linux/Gtk/LgiOsDefs.h
@@ -361,24 +380,6 @@ LgiMain.o : ../src/common/Lgi/LgiMain.cpp ../include/common/Lgi.h \
 ../include/common/GPopupList.h : ../include/common/LList.h \
 	../include/common/GCss.h \
 	../include/common/GCssTools.h
-
-../include/common/GCss.h : ../include/common/LgiInc.h \
-	../include/linux/Gtk/LgiOsDefs.h \
-	../include/common/GMem.h \
-	../include/common/Gdc2.h \
-	../include/common/GAutoPtr.h \
-	../include/common/GString.h \
-	../include/common/GHashTable.h
-
-../src/common/Gdc2/GdcCommon.cpp : ../include/common/Lgi.h \
-	../include/common/GPalette.h \
-	../include/common/GRops.h \
-	../src/common/Gdc2/GRopsCases.cpp
-
-../src/common/Gdc2/Path/GPath.cpp : ../include/common/Lgi.h \
-	../include/common/GPath.h \
-	../include/common/GdiLeak.h \
-	../include/common/GDisplayString.h
 
 ../include/common/GMenu.h : ../include/common/GMenuImpl.h \
 	../include/common/GXmlTree.h \
@@ -446,8 +447,6 @@ LgiMain.o : ../src/common/Lgi/LgiMain.cpp ../include/common/Lgi.h \
 	../include/common/GContainers.h \
 	../include/common/LgiCommon.h
 
-../include/common/GPath.h : ../include/common/GMatrix.h
-
 ../src/common/Lgi/GTrayIcon.cpp : ../include/common/Lgi.h
 
 ../include/common/GRegKey.h : ../include/common/GContainers.h
@@ -487,12 +486,23 @@ LgiMain.o : ../src/common/Lgi/LgiMain.cpp ../include/common/Lgi.h \
 
 ../include/common/Base64.h : ../include/common/LgiDefs.h
 
+../src/common/Widgets/GStatusBar.cpp : ../include/common/Lgi.h \
+	../include/common/GDisplayString.h \
+	../include/common/LgiRes.h
+
 ../include/common/GHashTable.h : ../include/common/GMem.h \
 	../include/common/GArray.h \
 	../include/common/GString.h \
 	../include/common/LgiClass.h
 
 ../include/common/GdcTools.h : 
+
+../src/common/Widgets/GTextLabel.cpp : ../include/common/Lgi.h \
+	../include/common/GTextLabel.h \
+	../include/common/GDisplayStringLayout.h \
+	../include/common/GVariant.h \
+	../include/common/GNotifications.h \
+	../include/common/LgiRes.h
 
 ../src/linux/General/ShowFileProp_Linux.cpp : ../include/common/Lgi.h
 
@@ -508,6 +518,14 @@ LgiMain.o : ../src/common/Lgi/LgiMain.cpp ../include/common/Lgi.h \
 	../include/common/GCssTools.h
 
 ../include/common/GButton.h : 
+
+../src/common/Widgets/GRadioGroup.cpp : ../include/common/Lgi.h \
+	../include/common/GSkinEngine.h \
+	../include/common/GRadioGroup.h \
+	../include/common/GCheckBox.h \
+	../include/common/GDisplayString.h \
+	../include/common/LgiRes.h \
+	../include/common/GDisplayStringLayout.h
 
 ../include/common/GArray.h : ../include/common/GRange.h
 
@@ -774,6 +792,12 @@ LgiMain.o : ../src/common/Lgi/LgiMain.cpp ../include/common/Lgi.h \
 ../src/common/Lgi/GCss.cpp : ../include/common/GCss.h \
 	../include/common/LgiCommon.h
 
+../include/common/GUndo.h : 
+
+../src/common/Widgets/GScrollBar.cpp : ../include/common/Lgi.h \
+	../include/common/GScrollBar.h \
+	../include/common/LgiRes.h
+
 ../include/common/GdiLeak.h : 
 
 ../include/common/GProgress.h : 
@@ -925,14 +949,17 @@ LgiMain.o : ../src/common/Lgi/LgiMain.cpp ../include/common/Lgi.h \
 	../include/common/GUndo.h \
 	../include/common/GDragAndDrop.h
 
-../include/common/GUndo.h : 
-
 ../include/common/GInput.h : 
 
 ../include/common/LgiDefs.h : ../include/common/LgiInc.h \
 	../include/common/GAutoPtr.h
 
-../src/common/Gdc2/GRopsCases.cpp : 
+../src/common/Widgets/GTabView.cpp : ../include/common/Lgi.h \
+	../include/common/GTabView.h \
+	../include/common/GSkinEngine.h \
+	../include/common/GDisplayString.h \
+	../include/common/GTableLayout.h \
+	../include/common/LgiRes.h
 
 ../src/common/Gdc2/GSurface.cpp : ../include/common/Gdc2.h \
 	../include/common/GdiLeak.h \
@@ -980,14 +1007,24 @@ LgiMain.o : ../src/common/Lgi/LgiMain.cpp ../include/common/Lgi.h \
 
 ../include/common/GEdit.h : ../include/common/GTextView3.h
 
-../include/common/GTextView3.h : ../include/common/GDocView.h \
-	../include/common/GUndo.h \
-	../include/common/GDragAndDrop.h
-
 ../include/common/GFont.h : ../include/common/GRect.h \
 	../include/linux/Gtk/LgiOsClasses.h \
 	../include/common/GColour.h \
 	../include/common/GCapabilities.h
+
+../src/common/Gdc2/GdcCommon.cpp : ../include/common/Lgi.h \
+	../include/common/GPalette.h \
+	../include/common/GRops.h \
+	../src/common/Gdc2/GRopsCases.cpp
+
+../src/common/Gdc2/GRopsCases.cpp : 
+
+../src/common/Gdc2/Path/GPath.cpp : ../include/common/Lgi.h \
+	../include/common/GPath.h \
+	../include/common/GdiLeak.h \
+	../include/common/GDisplayString.h
+
+../include/common/GPath.h : ../include/common/GMatrix.h
 
 ../include/common/GCssTools.h : ../include/common/GCss.h
 
@@ -1301,6 +1338,8 @@ LgiMain.o : ../src/common/Lgi/LgiMain.cpp ../include/common/Lgi.h \
 	../include/common/GBox.h \
 	../include/common/GTree.h \
 	../include/common/GOptionsFile.h \
+	../include/common/GTextView3.h \
+	./Src/VcFile.h \
 	./Src/VcCommit.h \
 	./Src/VcFolder.h
 
@@ -1318,6 +1357,8 @@ LgiMain.o : ../src/common/Lgi/LgiMain.cpp ../include/common/Lgi.h \
 	../include/common/GXmlTree.h \
 	../include/common/Res.h \
 	../include/common/GImageList.h
+
+./Src/VcFile.h : ../include/common/LListItemCheckBox.h
 
 ../include/common/GFindReplaceDlg.h : 
 
@@ -1452,7 +1493,8 @@ LgiMain.o : ../src/common/Lgi/LgiMain.cpp ../include/common/Lgi.h \
 	../include/common/GCheckBox.h \
 	../include/common/GRadioGroup.h \
 	../include/common/GDisplayString.h \
-	../include/common/GCssTools.h
+	../include/common/GCssTools.h \
+	../include/common/GDisplayStringLayout.h
 
 ../src/common/Text/GDocView.cpp : ../include/common/Lgi.h \
 	../include/common/GDocView.h \
@@ -1567,6 +1609,8 @@ LgiMain.o : ../src/common/Lgi/LgiMain.cpp ../include/common/Lgi.h \
 	../include/linux/Gtk/LgiWidget.h
 
 ../include/common/GPoint.h : 
+
+../include/common/LListItemCheckBox.h : ../include/common/LList.h
 
 ../include/common/LList.h : ../include/common/GMem.h \
 	../include/common/GArray.h \
@@ -1939,6 +1983,14 @@ LgiMain.o : ../src/common/Lgi/LgiMain.cpp ../include/common/Lgi.h \
 	../include/common/LgiNetInc.h
 
 ../include/common/GTextFile.h : ../include/common/GUtf8.h
+
+../include/common/GCss.h : ../include/common/LgiInc.h \
+	../include/linux/Gtk/LgiOsDefs.h \
+	../include/common/GMem.h \
+	../include/common/Gdc2.h \
+	../include/common/GAutoPtr.h \
+	../include/common/GString.h \
+	../include/common/GHashTable.h
 
 VPATH=%.cpp \
 	../include/linux/Gtk \

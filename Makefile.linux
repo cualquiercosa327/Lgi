@@ -357,7 +357,8 @@ Gel.o : ./src/common/Skins/Gel/Gel.cpp ./include/common/Lgi.h \
 	./include/common/GCheckBox.h \
 	./include/common/GRadioGroup.h \
 	./include/common/GDisplayString.h \
-	./include/common/GCssTools.h
+	./include/common/GCssTools.h \
+	./include/common/GDisplayStringLayout.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -809,7 +810,8 @@ GRadioGroup.o : ./src/common/Widgets/GRadioGroup.cpp ./include/common/Lgi.h \
 	./include/common/GRadioGroup.h \
 	./include/common/GCheckBox.h \
 	./include/common/GDisplayString.h \
-	./include/common/LgiRes.h
+	./include/common/LgiRes.h \
+	./include/common/GDisplayStringLayout.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 

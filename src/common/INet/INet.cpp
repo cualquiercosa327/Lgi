@@ -45,6 +45,7 @@
 	typedef HOSTENT HostEnt;
 	typedef int socklen_t;
 	typedef unsigned long in_addr_t;
+	typedef BOOL option_t;
 
 	#define MSG_NOSIGNAL		0
 	#define EWOULDBLOCK			WSAEWOULDBLOCK
@@ -65,6 +66,7 @@
 	#define MSG_NOSIGNAL 0
 
 	typedef struct hostent HostEnt;
+	typedef int option_t;
 	// typedef int socklen_t;
 	#define OsAddr				s_addr
 
@@ -83,6 +85,7 @@
 	
 	#define SOCKET_ERROR -1
 	typedef hostent HostEnt;
+	typedef int option_t;
 	#define OsAddr				s_addr
 	
 #endif
@@ -432,7 +435,7 @@ void GSocket::IsDelayed(bool Delay)
 	{
 		d->NoDelay = NoDelay;
 	
-		BOOL i = d->NoDelay != 0;
+		option_t i = d->NoDelay != 0;
 		setsockopt(d->Socket, IPPROTO_TCP, TCP_NODELAY, (const char*)&i, sizeof(i));
 	}
 }
@@ -542,7 +545,7 @@ int GSocket::Open(const char *HostAddr, int Port)
 			GArray<char> Buf(512);
 
 			#if !defined(MAC) && !defined(BEOS)
-			BOOL i;
+			option_t i;
 			int sz = sizeof(i);
 			int r = getsockopt(d->Socket, IPPROTO_TCP, TCP_NODELAY, (char*)&i, &sz);
 			if (d->NoDelay ^ i)
@@ -593,7 +596,7 @@ int GSocket::Open(const char *HostAddr, int Port)
 					int Ret;
 					while
 					(
-						d->Loop()
+						!IsCancelled()
 						&&
 						(
 							Ret
@@ -1238,7 +1241,7 @@ void GSocket::SetUdp(bool b)
 
 		if (d->Broadcast)
 		{
-			int enabled = d->Broadcast != 0;
+			option_t enabled = d->Broadcast != 0;
 			setsockopt(Handle(), SOL_SOCKET, SO_BROADCAST, (char*)&enabled, sizeof(enabled));
 		}
 	}
@@ -1299,7 +1302,7 @@ int GSocket::WriteUdp(void *Buffer, int Size, int Flags, uint32 Ip, uint16 Port)
 
 		if (d->Broadcast)
 		{
-			int enabled = d->Broadcast != 0;
+			option_t enabled = d->Broadcast != 0;
 			setsockopt(Handle(), SOL_SOCKET, SO_BROADCAST, (char*)&enabled, sizeof(enabled));
 		}
 	}
