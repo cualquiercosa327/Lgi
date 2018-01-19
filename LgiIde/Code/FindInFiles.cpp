@@ -10,6 +10,8 @@
 #include "GCheckBox.h"
 #include "GTextLabel.h"
 
+#define DEBUG_HIST		1
+
 /////////////////////////////////////////////////////////////////////////////////////
 FindInFiles::FindInFiles(AppWnd *app, FindParams *params)
 {
@@ -54,38 +56,57 @@ void SerializeHistory(GHistory *h, const char *opt, GOptionsFile *p, bool Write)
 		GString last;
 		last.Printf("%sSelect", opt);
 		
+		#if DEBUG_HIST
+		LgiTrace("%s:%i - SerializeHistory '%s'\n", _FL, last.Get());
+		#endif
+
 		GVariant v;
 		if (Write)
 		{
-			GStringPipe b;
-			for (char *s=h->First(); s; s=h->Next())
+			GString::Array a;
+			a.SetFixedLength(false);
+			int i=0;
+			for (char *s=h->First(); s; s=h->Next(), i++)
 			{
-				if (b.GetSize()) b.Push("|");
-				b.Push(s);
+				a.Add(s);
+				#if DEBUG_HIST
+				LgiTrace("\t[%i]='%s'\n", i, s);
+				#endif
 			}
-			GAutoString strs;
-			if (strs.Reset(b.NewStr()))
-			{
-				p->SetValue(opt, v = strs.Get());
-				p->SetValue(last, v = h->Value());
-			}
+
+			GString strs = GString("|").Join(a);
+			p->SetValue(opt, v = strs.Get());
+			#if DEBUG_HIST
+			LgiTrace("\tstrs='%s'\n", strs.Get());
+			#endif
+			
+			p->SetValue(last, v = h->Value());
+			#if DEBUG_HIST
+			LgiTrace("\tv=%i\n", v.CastInt32());
+			#endif
 		}
 		else
 		{
 			if (p->GetValue(opt, v))
 			{
-				GToken t(v.Str(), "|");
+				GString raw(v.Str());
+				GString::Array t = raw.Split("|");
 				h->DeleteArrays();
-				for (int i=0; i<t.Length(); i++)
+				for (unsigned i=0; i<t.Length(); i++)
 				{
 					h->Insert(NewStr(t[i]));
+					#if DEBUG_HIST
+					LgiTrace("\t[%i]='%s'\n", i, t[i].Get());
+					#endif
 				}
 				h->Update();
 				
 				if (p->GetValue(last, v))
 				{
 					h->Value(v.CastInt64());
-					// printf("Selecting '%s' -> %i\n", last.Get(), v.CastInt32());
+					#if DEBUG_HIST
+					LgiTrace("\tValue=%i\n", v.CastInt32());
+					#endif
 				}
 				else LgiTrace("%s:%i - No option '%s'\n", _FL, last.Get());
 			}
