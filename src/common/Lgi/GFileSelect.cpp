@@ -1081,6 +1081,22 @@ int GFileSelectDlg::OnNotify(GViewI *Ctrl, int Flags)
 					printf("%s:%i - eat close true\n", _FL);
 					break;
 				}
+				
+				if (DirExists(f))
+				{
+					// Switch to the folder...
+					SetCtrlName(IDC_PATH, f);
+					OnFolder();
+					Ctrl->Name(NULL);
+					d->EatClose = true;
+				}
+				else if (FileExists(f))
+				{
+					// Select the file...
+					d->Files.Insert(NewStr(f));
+					EndModal(IDOK);
+					break;
+				}
 			}
 			
 			bool HasFile = ValidStr(f);

@@ -2041,8 +2041,11 @@ bool GTextView3::Open(const char *Name, const char *CharSet)
 	{
 		DeleteArray(Text);
 		int64 Bytes = f.GetSize();
-		if (Bytes < 0)
+		if (Bytes < 0 || Bytes & 0xffff000000000000LL)
+		{
+			LgiTrace("%s:%i - Invalid file size: " LGI_PrintfInt64 "\n", _FL, Bytes);
 			return false;
+		}
 			
 		SetCaret(0, false);
 		
