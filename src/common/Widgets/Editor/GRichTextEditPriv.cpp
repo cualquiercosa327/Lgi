@@ -2345,7 +2345,7 @@ GTreeItem *PrintNode(GTreeItem *Parent, const char *Fmt, ...)
 
 	va_list Arg;
 	va_start(Arg, Fmt);
-	int Ch = s.Printf(Arg, Fmt);
+	s.Printf(Arg, Fmt);
 	va_end(Arg);
 	s = s.Replace("\n", "\\n");
 

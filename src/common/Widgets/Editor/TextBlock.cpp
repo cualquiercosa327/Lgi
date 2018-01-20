@@ -2350,10 +2350,17 @@ void GRichTextPriv::TextBlock::DumpNodes(GTreeItem *Ti)
 	GTreeItem *LayoutRoot = PrintNode(Ti, "Layout(%i)", Layout.Length());
 	if (LayoutRoot)
 	{
+		int Pos = 0;
 		for (unsigned i=0; i<Layout.Length(); i++)
 		{
 			TextLine *Tl = Layout[i];
-			GTreeItem *Elem = PrintNode(LayoutRoot, "[%i] len=%i", i, Tl->Length());
+			GTreeItem *Elem = PrintNode(LayoutRoot,
+										"[%i] chars=%i-%i, len=%i, newline=%i, pos=%s",
+										i,
+										Pos, Pos + Tl->Length() - 1,
+										Tl->Length(),
+										Tl->NewLine,
+										Tl->PosOff.GetStr());
 			for (unsigned n=0; n<Tl->Strs.Length(); n++)
 			{
 				DisplayStr *Ds = Tl->Strs[n];
@@ -2364,6 +2371,8 @@ void GRichTextPriv::TextBlock::DumpNodes(GTreeItem *Ti)
 							Ds->Length(),
 							(const char16*) (*Ds));
 			}
+			
+			Pos += Tl->Length();
 		}
 	}
 }

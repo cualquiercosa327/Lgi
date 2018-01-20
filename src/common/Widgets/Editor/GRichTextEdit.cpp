@@ -1197,6 +1197,25 @@ void GRichTextEdit::Redo()
 		d->SetUndoPos(d->UndoPos + 1);
 }
 
+#ifdef _DEBUG
+class NodeView : public GWindow
+{
+public:
+	GTree *Tree;
+	
+	NodeView(GViewI *w)
+	{
+		Tree = new GTree(100, 0, 0, 100, 100);
+		Tree->Attach(this);
+		Tree->SetPourLargest(true);
+		GRect r(0, 0, 500, 600);
+		SetPos(r);
+		MoveSameScreen(w);
+		Attach(0);
+	}
+};
+#endif
+
 void GRichTextEdit::DoContextMenu(GMouse &m)
 {
 	GMenuItem *i;
@@ -1245,7 +1264,17 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 	
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_INDENT_SIZE, "Indent Size"), IDM_INDENT_SIZE, true);
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_TAB_SIZE, "Tab Size"), IDM_TAB_SIZE, true);
-	RClick.AppendItem("Copy Original", IDM_COPY_ORIGINAL, d->OriginalText.Get() != NULL);
+	
+	GSubMenu *Src = RClick.AppendSub("Source");
+	if (Src)
+	{
+		Src->AppendItem("Copy Original", IDM_COPY_ORIGINAL, d->OriginalText.Get() != NULL);
+		Src->AppendItem("Copy Current", IDM_COPY_CURRENT);
+		#ifdef _DEBUG
+		Src->AppendItem("Dump Nodes", IDM_DUMP_NODES);
+		// Edit->DumpNodes(Tree);
+		#endif
+	}
 
 	if (Over)
 	{
@@ -1334,6 +1363,21 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 		{
 			GClipBoard c(this);
 			c.Text(d->OriginalText);
+			break;
+		}
+		case IDM_COPY_CURRENT:
+		{
+			GClipBoard c(this);
+			c.Text(Name());
+			break;
+		}
+		case IDM_DUMP_NODES:
+		{
+			#ifdef _DEBUG
+			NodeView *nv = new NodeView(GetWindow());
+			DumpNodes(nv->Tree);
+			nv->Visible(true);
+			#endif
 			break;
 		}
 		default:
