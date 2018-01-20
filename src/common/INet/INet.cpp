@@ -80,6 +80,7 @@
 	#include <ctype.h>
 	#include <netdb.h>
 	#include <errno.h>
+	#include <netinet/tcp.h>
     #include "LgiCommon.h"
 	#include <ifaddrs.h>
 	

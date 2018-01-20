@@ -335,6 +335,7 @@ void GWindow::SetDragHandlers(bool On)
 		SetAutomaticControlDragTrackingEnabledForWindow(Wnd, On);
 }
 
+/*
 static void _ClearChildHandles(GViewI *v)
 {
 	GViewIterator *it = v->IterateViews();
@@ -348,6 +349,7 @@ static void _ClearChildHandles(GViewI *v)
 	}
 	DeleteObj(it);
 }
+*/
 
 void GWindow::Quit(bool DontDelete)
 {
@@ -1675,7 +1677,7 @@ void GWindow::PourAll()
 
 			if (v->Pour(Client))
 			{
-				GRect p = v->GetPos();
+				// GRect p = v->GetPos();
 
 				if (!v->Visible())
 				{

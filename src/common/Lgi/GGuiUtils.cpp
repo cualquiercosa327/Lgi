@@ -10,6 +10,8 @@
 #if !defined(VK_CONTEXTKEY)
 	#if defined(WINDOWS)
 		#define VK_CONTEXTKEY 0x5d
+	#elif defined(MAC)
+		#define VK_CONTEXTKEY VK_APPS
 	#else
 		#define VK_CONTEXTKEY 0x5d
 		#warning "Check local platform def for app menu key."

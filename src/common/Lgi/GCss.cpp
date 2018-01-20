@@ -2209,7 +2209,7 @@ GCss::ImageDef &GCss::ImageDef::operator =(const ImageDef &o)
 		Img = o.Img;
 		Type = ImageRef;
 	}
-	else if (Uri = o.Uri)
+	else if ((Uri = o.Uri))
 	{
 		Type = ImageUri;
 	}

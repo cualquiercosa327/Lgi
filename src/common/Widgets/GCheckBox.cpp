@@ -77,7 +77,7 @@ GCheckBox::GCheckBox(int id, int x, int y, int cx, int cy, const char *name, int
 {
 	d = new GCheckBoxPrivate(this);
 	Name(name);
-	if (cx < 0) cx = d->Max.x + PadX1Px + PadX2Px;
+	if (cx < 0) cx = (d->Max.x >> GDisplayString::FShift) + PadX1Px + PadX2Px;
 	if (cy < 0) cy = max(d->Max.y, MinYSize) + PadYPx;
 
 	d->Val = InitState;

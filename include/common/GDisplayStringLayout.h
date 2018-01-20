@@ -192,7 +192,7 @@ struct GDisplayStringLayout
 			return false;
 
 		// Loop over input
-		int Fx = 0, y = 0;
+		int /*Fx = 0,*/ y = 0;
 		int LineFX = 0;
 		int Shift = GDisplayString::FShift;
 		MinLines = 1;
@@ -316,8 +316,8 @@ struct GDisplayStringLayout
 		if (!pDC)
 			return;
 
-		int y = pt.y;
 		#ifdef WINDOWS
+		int y = pt.y;
 		GRegion Rgn(rc);
 		#else
 		// Fill the background...

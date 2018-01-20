@@ -57,7 +57,7 @@ GText::GText(int id, int x, int y, int cx, int cy, const char *name) :
 	d = new GTextPrivate(this);
 	Name(name);
 
-	if (cx < 0) cx = d->Max.x;
+	if (cx < 0) cx = d->Max.x >> GDisplayString::FShift;
 	if (cy < 0) cy = d->Max.y;
 
 	GRect r(x, y, x+cx, y+cy);
