@@ -578,6 +578,9 @@ bool GRichTextPriv::TextBlock::HitTest(HitTestResult &htr)
 			htr.Near = true;
 			htr.Idx = CharPos;
 			htr.LineHint = i;
+			
+			LgiAssert(htr.Idx <= Length());
+			
 			return true;
 		}
 		
@@ -602,6 +605,9 @@ bool GRichTextPriv::TextBlock::HitTest(HitTestResult &htr)
 				htr.Ds = ds;
 				htr.Idx = CharPos + OffChar;
 				htr.LineHint = i;
+
+				LgiAssert(htr.Idx <= Length());
+
 				return true;
 			}
 					
@@ -615,6 +621,9 @@ bool GRichTextPriv::TextBlock::HitTest(HitTestResult &htr)
 			htr.Near = true;
 			htr.Idx = CharPos;
 			htr.LineHint = i;
+			
+			LgiAssert(htr.Idx <= Length());
+
 			return true;
 		}
 				
@@ -1001,11 +1010,15 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 	if (!CurLine)
 		return flow.d->Error(_FL, "alloc failed.");
 
+	int LayoutSize = 0;
+	int TextSize = 0;
 	for (unsigned i=0; i<Txt.Length(); i++)
 	{
 		StyleText *t = Txt[i];
 		GNamedStyle *tstyle = t->GetStyle();
-				
+		LgiAssert(t->Length() >= 0);			
+		TextSize += t->Length();
+		
 		if (t->Length() == 0)
 			continue;
 
@@ -1040,8 +1053,10 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 				Pos.y2 = max(Pos.y2, Pos.y1 + CurLine->PosOff.y2);
 				CurLine->NewLine = 1;
 				
+				LayoutSize += CurLine->Length();
+				
 				#if DEBUG_LAYOUT
-				LgiTrace("\tNewLineChar.\n");
+				LgiTrace("\tNewLineChar, LayoutSize=%i, TextSize=%i\n", LayoutSize, TextSize);
 				#endif
 				
 				Layout.Add(CurLine.Release());
@@ -1139,7 +1154,12 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 
 					CurLine->LayoutOffsets(d->Font->GetHeight());
 					Pos.y2 = max(Pos.y2, Pos.y1 + CurLine->PosOff.y2);
+					LayoutSize += CurLine->Length();
 					Layout.Add(CurLine.Release());
+
+					#if DEBUG_LAYOUT
+					LgiTrace("\tWrap, LayoutSize=%i TextSize=%i\n", LayoutSize, TextSize);
+					#endif
 					
 					// New line...
 					CurLine.Reset(new TextLine(flow.Left - Pos.x1, flow.X(), Pos.Y()));
@@ -1166,6 +1186,7 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 		// Empty node case
 		int y = Pos.y1 + flow.d->View->GetFont()->GetHeight() - 1;
 		CurLine->PosOff.y2 = Pos.y2 = max(Pos.y2, y);
+		LayoutSize += CurLine->Length();
 
 		Layout.Add(CurLine.Release());
 	}
@@ -1175,8 +1196,16 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 		GFont *f = d->View ? d->View->GetFont() : SysFont;
 		CurLine->LayoutOffsets(f->GetHeight());
 		Pos.y2 = max(Pos.y2, Pos.y1 + CurLine->PosOff.y2);
+		LayoutSize += CurLine->Length();
+
+		#if DEBUG_LAYOUT
+		LgiTrace("\tRemaining, LayoutSize=%i, TextSize=%i\n", LayoutSize, TextSize);
+		#endif
+
 		Layout.Add(CurLine.Release());
 	}
+	
+	LgiAssert(LayoutSize == Len);
 			
 	flow.CurY = Pos.y2 + 1 + Margin.y2 + Border.y2 + Padding.y2;
 	flow.Left -= Margin.x1 + Border.x1 + Padding.x1;
@@ -1431,9 +1460,7 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, ssize_t AtOffset, con
 	GArray<int> EmojiIdx;
 	EmojiIdx.Length(InChars);
 	for (int i=0; i<InChars; i++)
-	{
 		EmojiIdx[i] = EmojiToIconIndex(InStr + i, InChars - i);
-	}
 
 	ssize_t InitialOffset = AtOffset >= 0 ? AtOffset : Len;
 	int Chars = 0; // Length of run to insert
@@ -2143,7 +2170,8 @@ bool GRichTextPriv::TextBlock::ChangeStyle(Transaction *Trans, ssize_t Offset, s
 	{
 		StyleText *a = Txt[i];
 		StyleText *b = Txt[i+1];
-		if (a->GetStyle() == b->GetStyle())
+		if (a->GetStyle() == b->GetStyle() &&
+			a->Emoji == b->Emoji)
 		{
 			// Merge...
 			a->Add(b->AddressOf(0), b->Length());
@@ -2355,7 +2383,7 @@ void GRichTextPriv::TextBlock::DumpNodes(GTreeItem *Ti)
 		{
 			TextLine *Tl = Layout[i];
 			GTreeItem *Elem = PrintNode(LayoutRoot,
-										"[%i] chars=%i-%i, len=%i, newline=%i, pos=%s",
+										"[%i] chars=%i-%i, len=%i + %i, pos=%s",
 										i,
 										Pos, Pos + Tl->Length() - 1,
 										Tl->Length(),
@@ -2372,7 +2400,7 @@ void GRichTextPriv::TextBlock::DumpNodes(GTreeItem *Ti)
 							(const char16*) (*Ds));
 			}
 			
-			Pos += Tl->Length();
+			Pos += Tl->Length() + Tl->NewLine;
 		}
 	}
 }

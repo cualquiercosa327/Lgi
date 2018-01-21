@@ -601,7 +601,7 @@ void LgiTrace(const char *Msg, ...)
 		f.Seek(0, SEEK_END);
 		Output = &f;
 	}
-	if (Output)
+	if (Output && Ch > 0)
 		Output->Write(Buffer, Ch);
 	if (!_LgiTraceStream)
 		f.Close();
