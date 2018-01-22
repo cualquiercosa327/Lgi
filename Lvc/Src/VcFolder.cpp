@@ -324,7 +324,10 @@ bool VcFolder::ParseInfo(GString s)
 bool VcFolder::ParseCommit(GString s)
 {
 	Select(true);
+	
 	Log.DeleteObjects();
+	CurrentCommit.Empty();
+
 	IsCommit = false;
 	return true;
 }
