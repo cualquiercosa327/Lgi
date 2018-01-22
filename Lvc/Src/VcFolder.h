@@ -48,17 +48,19 @@ class VcFolder : public GTreeItem
 	GString Cache, NewRev;
 	
 	GArray<Cmd*> Cmds;
-	bool IsLogging, IsGetCur, IsUpdate, IsFilesCmd, IsWorkingFld;
+	bool IsLogging, IsGetCur, IsUpdate, IsFilesCmd, IsWorkingFld, IsCommit;
 
 	void Init(AppPriv *priv);
 	const char *GetVcName();
 	bool StartCmd(const char *Args, ParseFn Parser);
 
+	bool ParseDiffs(GString s, bool IsWorking);
 	bool ParseLog(GString s);
 	bool ParseInfo(GString s);
 	bool ParseFiles(GString s);
 	bool ParseWorking(GString s);
 	bool ParseUpdate(GString s);
+	bool ParseCommit(GString s);
 	
 public:
 	VcFolder(AppPriv *priv, const char *p);
@@ -71,6 +73,7 @@ public:
 	void Select(bool b);
 	void ListCommit(const char *Rev);
 	void ListWorkingFolder();
+	void Commit(const char *Msg);
 
 	void OnPulse();
 	void OnUpdate(const char *Rev);

@@ -20,7 +20,15 @@ int VcFile::Checked(int Set)
 
 	if (Set >= 0)
 		Chk->Value(Set);
+
 	return (int)Chk->Value();
+}
+
+void VcFile::SetDiff(GString diff)
+{
+	Diff = diff;
+	if (LListItem::Select())
+		d->Txt->Name(Diff);
 }
 
 void VcFile::Select(bool b)

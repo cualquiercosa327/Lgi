@@ -44,6 +44,7 @@ int ReaderThread::Main()
 void VcFolder::Init(AppPriv *priv)
 {
 	d = priv;
+	IsCommit = false;
 	IsLogging = false;
 	IsGetCur = false;
 	IsUpdate = false;
@@ -320,6 +321,13 @@ bool VcFolder::ParseInfo(GString s)
 	return true;
 }
 
+bool VcFolder::ParseCommit(GString s)
+{
+	Select(true);
+	IsCommit = false;
+	return true;
+}
+
 bool VcFolder::ParseUpdate(GString s)
 {
 	CurrentCommit = NewRev;
@@ -335,40 +343,7 @@ bool VcFolder::ParseWorking(GString s)
 	{
 		case VcGit:
 		{
-			GString::Array a = s.Split("\n\n");
-			for (unsigned i=0; i<a.Length()-1; i += 2)
-			{
-				GString::Array Hdr = a[i].Split("\n");
-				GString::Array Body = a[i+1].Split("\n");
-				GString Type;
-
-				for (unsigned h=0; h<Hdr.Length(); h++)
-				{
-					if (Hdr[h].Strip()(-1) == ':')
-					{
-						Type = Hdr[h].Split(":")[0].Strip();
-						int asd=0;
-					}
-				}
-
-				bool InChanges = Type.Find("Changes") >= 0;
-				if (InChanges)
-				{
-					for (unsigned b=0; b<Body.Length(); b++)
-					{
-						GString::Array Fn = Body[b].Strip().Split(":", 1);
-						VcFile *f = new VcFile(d, true);
-						if (Fn.Length() > 1)
-						{
-							f->SetText(Fn[0], COL_STATE);
-							f->SetText(Fn[1].Strip(), COL_FILENAME);
-						}
-						else
-							f->SetText(Fn[0], COL_FILENAME);
-						d->Files->Insert(f);
-					}
-				}
-			}
+			ParseDiffs(s, true);
 			break;
 		}
 		case VcSvn:
@@ -398,10 +373,8 @@ bool VcFolder::ParseWorking(GString s)
 	return false;
 }
 
-bool VcFolder::ParseFiles(GString s)
+bool VcFolder::ParseDiffs(GString s, bool IsWorking)
 {
-	d->ClearFiles();
-
 	switch (GetType())
 	{
 		case VcGit:
@@ -415,14 +388,11 @@ bool VcFolder::ParseFiles(GString s)
 				if (!_strnicmp(Ln, "diff", 4))
 				{
 					if (f)
-					{
 						f->SetDiff(Diff);
-						f->Select(false);
-					}
 					Diff.Empty();
 
 					GString Fn = a[i].Split(" ").Last()(2, -1);
-					f = new VcFile(d);
+					f = new VcFile(d, IsWorking);
 					f->SetText(Fn, COL_FILENAME);
 					d->Files->Insert(f);
 				}
@@ -470,7 +440,7 @@ bool VcFolder::ParseFiles(GString s)
 					InPreamble = false;
 
 					GString Fn = a[i].Split(":", 1).Last().Strip();
-					f = new VcFile(d);
+					f = new VcFile(d, IsWorking);
 					f->SetText(Fn, COL_FILENAME);
 					d->Files->Insert(f);
 				}
@@ -505,6 +475,13 @@ bool VcFolder::ParseFiles(GString s)
 		}
 	}
 
+	return true;
+}
+
+bool VcFolder::ParseFiles(GString s)
+{
+	d->ClearFiles();
+	ParseDiffs(s, false);
 	IsFilesCmd = false;
 	d->Files->ResizeColumnsToContent();
 
@@ -626,19 +603,46 @@ void VcFolder::ListWorkingFolder()
 {
 	if (!IsWorkingFld)
 	{
-		GString Args;
+		d->ClearFiles();
+
 		switch (GetType())
 		{
 			case VcGit:
-				IsWorkingFld = StartCmd("status", &VcFolder::ParseWorking);
+				IsWorkingFld = StartCmd("diff", &VcFolder::ParseWorking);
 				break;
 			case VcSvn:
 				IsWorkingFld = StartCmd("status", &VcFolder::ParseWorking);
 				break;
 		}
+	}
+}
 
-		if (IsWorkingFld)
-			d->ClearFiles();
+void VcFolder::Commit(const char *Msg)
+{
+	VcFile *f = NULL;
+	GArray<VcFile*> Add;
+	bool Partial = false;
+	while (d->Files->Iterate(f))
+	{
+		int c = f->Checked();
+		if (c > 0)
+			Add.Add(f);
+		else
+			Partial = true;
+	}
+
+	if (!IsCommit)
+	{
+		GString Args;
+		switch (GetType())
+		{
+			case VcGit:
+				Args.Printf("commit -am \"%s\"", Msg);
+				IsCommit = StartCmd(Args, &VcFolder::ParseCommit);
+				break;
+			case VcSvn:
+				break;
+		}
 	}
 }
 
