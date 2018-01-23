@@ -505,7 +505,7 @@ bool TableCell::GetVariant(const char *Name, GVariant &Value, char *Array)
 			Value.OwnStr(ToString());
 			break;
 		}
-		case ObjDebug:
+		case ObjDebug: // Type: Boolean
 		{
 			Value = Debug;
 			break;

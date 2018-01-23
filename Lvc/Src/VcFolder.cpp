@@ -626,19 +626,18 @@ void VcFolder::ListWorkingFolder()
 {
 	if (!IsWorkingFld)
 	{
+		d->ClearFiles();
+
 		GString Args;
 		switch (GetType())
 		{
 			case VcGit:
-				IsWorkingFld = StartCmd("status", &VcFolder::ParseWorking);
+				IsWorkingFld = StartCmd("diff", &VcFolder::ParseFiles);
 				break;
 			case VcSvn:
 				IsWorkingFld = StartCmd("status", &VcFolder::ParseWorking);
 				break;
 		}
-
-		if (IsWorkingFld)
-			d->ClearFiles();
 	}
 }
 
