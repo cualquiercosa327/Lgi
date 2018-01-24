@@ -376,7 +376,7 @@ GMessage::Result FindInFilesThread::OnEvent(GMessage *Msg)
 									if (np)
 										Files.Add(np);
 									else
-										LgiTrace("%s:%i - Can't dup '%s'\n", _FL, p);
+										LgiTrace("%s:%i - Can't dup '%s'\n", _FL, p.Get());
 								}
 							}
 						}
