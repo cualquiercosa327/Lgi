@@ -501,7 +501,7 @@ public:
 			if (a.Length() == 0)
 				return *this;
 
-			if (!a[0].Equals(".") && !a[0].Equals(".."))
+			if (!a[0u].Equals(".") && !a[0u].Equals(".."))
 				Length(0);
 
 			for (unsigned i=0; i<a.Length(); i++)
