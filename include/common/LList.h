@@ -197,6 +197,19 @@ public:
 	{
 		return Items.End();
 	}
+
+	template<typename T>
+	bool Iterate(T *&Ptr)
+	{
+		if (Ptr)
+			// Next
+			Ptr = dynamic_cast<T*>(Items.Next());
+		else
+			// First
+			Ptr = dynamic_cast<T*>(Items.First());
+
+		return Ptr != NULL;
+	}
 };
 
 /// List widget

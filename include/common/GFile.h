@@ -444,11 +444,25 @@ public:
 		GString Full;
 		
 	public:
+		enum State
+		{
+			TypeNone = 0,
+			TypeFolder = 1,
+			TypeFile = 2,
+		};
+
 		Path(const char *init = NULL)
 		{
 			SetFixedLength(false);
 			if (init)
 				*this = init;
+		}
+
+		Path(GAutoString Init)
+		{
+			SetFixedLength(false);
+			if (Init)
+				*this = Init.Get();
 		}
 		
 		Path(LgiSystemPath Which, int WordSize = 0)
@@ -480,27 +494,53 @@ public:
 			return *this;
 		}
 		
-		Path &operator +=(const GString &p)
+		Path &operator +=(Path &a)
 		{
-			GString::Array a = p.SplitDelimit("\\/");
 			SetFixedLength(false);
+
+			if (a.Length() == 0)
+				return *this;
+
+			if (!a[0u].Equals(".") && !a[0u].Equals(".."))
+				Length(0);
+
 			for (unsigned i=0; i<a.Length(); i++)
 			{
 				GString &s = a[i];
 				if (!_stricmp(s, "."))
 					;
 				else if (!_stricmp(s, ".."))
-					Parent();
+					(*this)--;
 				else
 					New() = s;
 			}
+
+			return *this;
+		}
+
+		Path &operator +=(const GString &p)
+		{
+			Path a(p);
+			*this += a;
 			return *this;
 		}
 		
-		Path &Parent()
+		Path GetParent()
 		{
-			if (Length() > 0)
-				Length(Length()-1);
+			Path p = *this;
+			p.PopLast();
+			return p;
+		}
+
+		Path &operator --()
+		{
+			PopLast();
+			return *this;
+		}
+
+		Path &operator --(int i)
+		{
+			PopLast();
 			return *this;
 		}
 		
@@ -526,8 +566,9 @@ public:
 			return Full;
 		}
 
-		bool IsFile();
-		bool IsFolder();
+		State Exists();
+		bool IsFile() { return Exists() == TypeFile; }
+		bool IsFolder() { return Exists() == TypeFolder; }
 		static GString GetSystem(LgiSystemPath Which, int WordSize);
 	};
 

@@ -15,8 +15,8 @@ public:
 
 	int Checked(int Set = -1);
 	const char *GetDiff() { return Diff; }
-	void SetDiff(GString d) { Diff = d; }
-
+	
+	void SetDiff(GString d);
 	void Select(bool b);
 };
 

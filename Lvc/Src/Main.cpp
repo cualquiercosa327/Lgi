@@ -340,6 +340,20 @@ public:
 					f->Select(true);
 				break;
 			}
+			case IDC_COMMIT:
+			{
+				const char *Msg = GetCtrlName(IDC_MSG);
+				if (ValidStr(Msg))
+				{
+					VcFolder *f = dynamic_cast<VcFolder*>(Tree->Selection());
+					if (f)
+					{
+						f->Commit(Msg);
+					}
+				}
+				else LgiMsg(this, "No message for commit.", AppName);
+				break;
+			}
 		}
 
 		return 0;

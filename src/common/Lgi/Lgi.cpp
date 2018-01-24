@@ -16,6 +16,8 @@
 #include <winsock2.h>
 #include <shlobj.h>
 #include "GRegKey.h"
+#include <sys/types.h>
+#include <sys/stat.h>
 #else
 #include <unistd.h>
 #endif
@@ -849,14 +851,33 @@ GString LgiGetSystemPath(LgiSystemPath Which, int WordSize)
 	return p.GetSystem(Which, WordSize);
 }
 
-bool GFile::Path::IsFile()
+GFile::Path::State GFile::Path::Exists()
 {
-	return FileExists(GetFull());
-}
+	#ifdef WINDOWS
+	struct _stat64 s;
+	int r = _stat64(GetFull(), &s);
+	if (r)
+		return TypeNone;
+	
+	if (s.st_mode & _S_IFDIR)
+		return TypeFolder;
 
-bool GFile::Path::IsFolder()
-{
-	return DirExists(GetFull());
+	if (s.st_mode & _S_IFREG)
+		return TypeFile;
+	#else
+	struct stat s;
+	int r = stat(GetFull(), &s);
+	if (r)
+		return TypeNone;
+	
+	if (S_ISDIR(s.st_mode))
+		return TypeFolder;
+
+	if (S_ISREG(s.st_mode))
+		return TypeFile;
+	#endif
+		
+	return TypeNone;
 }
 
 GString GFile::Path::GetSystem(LgiSystemPath Which, int WordSize = 0)

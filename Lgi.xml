@@ -162,16 +162,17 @@
 			<Node File="./src/common/Lgi/LgiMsg.cpp" Type="2" Platforms="15" />
 		</Node>
 		<Node Name="Dialogs" Type="1" Platforms="15" Open="0" Id="36">
+			<Node Name="File Select Win" Type="1" Platforms="15" Open="0" Id="38">
+				<Node File="./src/win32/Lgi/GFileSelect.cpp" Type="2" Platforms="1" />
+			</Node>
 			<Node Name="File Select XP" Type="1" Platforms="15" Open="0" Id="37">
 				<Node File="./src/common/Lgi/GFileSelect.cpp" Type="2" Platforms="14" />
 				<Node File="./include/common/GFileSelect.h" Type="3" Platforms="15" />
 			</Node>
-			<Node Name="File Select Win" Type="1" Platforms="15" Open="0" Id="38">
-				<Node File="./src/win32/Lgi/GFileSelect.cpp" Type="2" Platforms="1" />
-			</Node>
 			<Node File="./src/common/Lgi/GAlert.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Lgi/GFindReplace.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Lgi/GFontSelect.cpp" Type="2" Platforms="15" />
+			<Node File="./include/common/GFontSelect.h" Type="3" Platforms="15" />
 			<Node File="./src/common/Lgi/GInput.cpp" Type="2" Platforms="15" />
 		</Node>
 		<Node Name="Graphics" Type="1" Platforms="15" Open="0" Id="39">
@@ -560,4 +561,3 @@ textencoding</Release>
 		</Advanced>
 	</Settings>
 </Project>
-ct>

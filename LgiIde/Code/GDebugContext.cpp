@@ -167,7 +167,7 @@ GDebugContext::GDebugContext(AppWnd *App, IdeProject *Proj, const char *Exe, con
 	if (d->Db.Reset(CreateGdbDebugger()))
 	{
 		GFile::Path p = Exe;
-		p.Parent();
+		p--;
 	
 		if (!d->Db->Load(this, Exe, Args, RunAsAdmin, p))
 		{

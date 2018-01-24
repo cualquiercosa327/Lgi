@@ -380,6 +380,11 @@ public:
 		return Str ? Str->Str : NULL;
 	}
 
+	operator const char *() const
+	{
+		return Str ? Str->Str : NULL;
+	}
+
 	/// Concatenation operator
 	GString operator +(const GString &s)
 	{

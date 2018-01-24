@@ -640,10 +640,12 @@ public:
 						GFileSelect s;
 						s.Parent(this);
 
-						GFile::Path p(e->Name());
-						p.Parent();
-						if (DirExists(p))
-							s.InitialDir(p);
+						GFile::Path Path(d->Project->GetBasePath());
+						GFile::Path Cur(e->Name());
+						Path += Cur;
+						Path--;
+						if (Path.Exists())
+							s.InitialDir(Path);
 
 						if (s.Open())
 						{
@@ -652,7 +654,7 @@ public:
 							if (Base)
 							{
 								GFile::Path p = Base;
-								Rel = LgiMakeRelativePath(p.Parent(), s.Name());
+								Rel = LgiMakeRelativePath(--p, s.Name());
 							}
 							e->Name(Rel ? Rel : s.Name());
 						}
