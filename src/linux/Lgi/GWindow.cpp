@@ -32,6 +32,7 @@ public:
 	bool SnapToEdge;
 	::GString Icon;
 	GRect Decor;
+	gulong DestroySig;
 	
 	// State
 	GdkWindowState State;
@@ -44,6 +45,7 @@ public:
 
 	GWindowPrivate()
 	{
+		DestroySig = 0;
 		Decor.ZOff(-1, -1);
 		FirstFocus = NULL;
 		Focus = NULL;
@@ -101,6 +103,11 @@ GWindow::GWindow(GtkWidget *w) : GView(0)
 
 GWindow::~GWindow()
 {
+	if (Wnd && d->DestroySig > 0)
+	{
+		g_signal_handler_disconnect(Wnd, d->DestroySig);
+	}
+
 	if (LgiApp->AppWnd == this)
 		LgiApp->AppWnd = NULL;
 
@@ -362,7 +369,8 @@ bool GWindow::Attach(GViewI *p)
 		_View = GTK_WIDGET(Wnd);
 		GView *i = this;
 		
-		g_signal_connect(	G_OBJECT(Wnd),
+		d->DestroySig = g_signal_connect(
+							G_OBJECT(Wnd),
 							"destroy",
 							G_CALLBACK(GtkWindowDestroy),
 							this);
