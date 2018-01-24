@@ -782,7 +782,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GRadioGroup.h \
 	../include/common/GCheckBox.h \
 	../include/common/GDisplayString.h \
-	../include/common/LgiRes.h
+	../include/common/LgiRes.h \
+	../include/common/GDisplayStringLayout.h
 
 ../include/common/GArray.h : ../include/common/GRange.h
 
@@ -1249,17 +1250,19 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 ../src/common/Widgets/GSplitter.cpp : ../include/common/Lgi.h \
 	../include/common/LgiRes.h
 
-../include/common/INet.h : ../include/common/GMem.h \
-	../include/common/GContainers.h \
-	../include/common/LgiNetInc.h \
-	../include/common/GStream.h \
+../include/common/INet.h : ../include/common/LgiNetInc.h \
 	../include/common/LgiInterfaces.h \
-	../include/common/GString.h
+	../include/common/GMem.h \
+	../include/common/GContainers.h \
+	../include/common/GStream.h \
+	../include/common/GString.h \
+	../include/common/LCancel.h
 
 ../include/common/LgiInterfaces.h : ../include/common/GMem.h \
 	../include/common/GArray.h \
 	../include/linux/Gtk/LgiOsDefs.h \
-	../include/common/GColour.h
+	../include/common/GColour.h \
+	../include/common/LCancel.h
 
 ../include/common/GEdit.h : ../include/common/GTextView3.h
 
@@ -1453,12 +1456,13 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 
 ../include/common/GToolBar.h : ../include/common/GImageList.h
 
-../include/common/INet.h : ../include/common/GMem.h \
-	../include/common/GContainers.h \
-	../include/common/LgiNetInc.h \
-	../include/common/GStream.h \
+../include/common/INet.h : ../include/common/LgiNetInc.h \
 	../include/common/LgiInterfaces.h \
-	../include/common/GString.h
+	../include/common/GMem.h \
+	../include/common/GContainers.h \
+	../include/common/GStream.h \
+	../include/common/GString.h \
+	../include/common/LCancel.h
 
 ../include/common/GRect.h : ../include/common/GPoint.h
 
@@ -1488,7 +1492,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 ../include/common/LgiInterfaces.h : ../include/common/GMem.h \
 	../include/common/GArray.h \
 	../include/linux/Gtk/LgiOsDefs.h \
-	../include/common/GColour.h
+	../include/common/GColour.h \
+	../include/common/LCancel.h
 
 ../include/common/Progress.h : ../include/common/LMutex.h \
 	../include/common/LCancel.h
@@ -1812,7 +1817,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GCheckBox.h \
 	../include/common/GRadioGroup.h \
 	../include/common/GDisplayString.h \
-	../include/common/GCssTools.h
+	../include/common/GCssTools.h \
+	../include/common/GDisplayStringLayout.h
 
 ../src/common/Text/GDocView.cpp : ../include/common/Lgi.h \
 	../include/common/GDocView.h \

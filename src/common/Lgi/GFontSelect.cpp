@@ -328,8 +328,7 @@ bool GFontSelect::Serialize(void *Data, int DataLen, bool Write)
 		GToken T((char*)Data, ",");
 		if (T[0])
 		{
-			DeleteArray(Face);
-			Face = NewStr(T[0]);
+			Face = T[0];
 		}
 		if (T[1])
 		{
