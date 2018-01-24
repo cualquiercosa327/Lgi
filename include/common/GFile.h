@@ -510,7 +510,7 @@ public:
 				if (!_stricmp(s, "."))
 					;
 				else if (!_stricmp(s, ".."))
-					Parent();
+					(*this)--;
 				else
 					New() = s;
 			}
@@ -525,10 +525,22 @@ public:
 			return *this;
 		}
 		
-		Path &Parent()
+		Path GetParent()
 		{
-			if (Length() > 0)
-				Length(Length()-1);
+			Path p = *this;
+			p.PopLast();
+			return p;
+		}
+
+		Path &operator --()
+		{
+			PopLast();
+			return *this;
+		}
+
+		Path &operator --(int i)
+		{
+			PopLast();
 			return *this;
 		}
 		

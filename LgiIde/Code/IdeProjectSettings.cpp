@@ -643,7 +643,7 @@ public:
 						GFile::Path Path(d->Project->GetBasePath());
 						GFile::Path Cur(e->Name());
 						Path += Cur;
-						Path.Parent();
+						Path--;
 						if (Path.Exists())
 							s.InitialDir(Path);
 
@@ -654,7 +654,7 @@ public:
 							if (Base)
 							{
 								GFile::Path p = Base;
-								Rel = LgiMakeRelativePath(p.Parent(), s.Name());
+								Rel = LgiMakeRelativePath(--p, s.Name());
 							}
 							e->Name(Rel ? Rel : s.Name());
 						}
