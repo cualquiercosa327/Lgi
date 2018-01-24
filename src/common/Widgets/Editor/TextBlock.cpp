@@ -688,6 +688,13 @@ void GRichTextPriv::TextBlock::DrawDisplayString(GSurface *pDC, DisplayStr *Ds, 
 		else break;
 	}
 
+	while (SpErr && SpErr->End() < DsEnd)
+	{
+		// Are there more errors?
+		SpErr = SpellingErrors.AddressOf(++PaintErrIdx);
+	}
+
+
 	Pos += Ds->Chars;
 }
 
@@ -1591,6 +1598,12 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, ssize_t AtOffset, con
 	return true;
 }
 
+bool GRichTextPriv::TextBlock::OnDictionary(Transaction *Trans)
+{
+	UpdateSpellingAndLinks(Trans, GRange(0, Length()));
+	return true;
+}
+
 #define IsUrlWordChar(t) \
 	(((t) > ' ') && !strchr("./:", (t)))
 
@@ -1695,7 +1708,6 @@ void GRichTextPriv::TextBlock::UpdateSpellingAndLinks(Transaction *Trans, GRange
 	// Link detection...
 	
 	// Extend the range to include whole words
-	// printf("rng=%i, %i\n", r.Start, r.Len);
 	while (r.Start > 0 && !IsWhiteSpace(Text[r.Start]))
 	{
 		r.Start--;

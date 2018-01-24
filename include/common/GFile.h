@@ -501,9 +501,6 @@ public:
 			if (a.Length() == 0)
 				return *this;
 
-			if (!a[0u].Equals(".") && !a[0u].Equals(".."))
-				Length(0);
-
 			for (unsigned i=0; i<a.Length(); i++)
 			{
 				GString &s = a[i];
@@ -515,6 +512,17 @@ public:
 					New() = s;
 			}
 
+			return *this;
+		}
+
+		Path Join(const GString p)
+		{
+			Path a(p);
+			if (a.Length() == 0)
+				return *this;
+			if (!a[0u].Equals(".") && !a[0u].Equals(".."))
+				Length(0);
+			*this += a;
 			return *this;
 		}
 

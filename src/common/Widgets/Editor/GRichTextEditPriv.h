@@ -851,6 +851,8 @@ public:
 				/// The index to add at (-1 = the end)
 				ssize_t AtOffset
 			)	{ return NULL; }
+			// Event called on dictionary load
+			virtual bool OnDictionary(Transaction *Trans) { return false; }
 	};
 
 	struct BlockCursor
@@ -1097,6 +1099,7 @@ public:
 		bool DoCase(Transaction *Trans, ssize_t StartIdx, ssize_t Chars, bool Upper);
 		Block *Split(Transaction *Trans, ssize_t AtOffset);
 		bool StripLast(Transaction *Trans, const char *Set = " \t\r\n"); // Strip trailing new line if present..
+		bool OnDictionary(Transaction *Trans);
 	};
 
 	class HorzRuleBlock : public Block
