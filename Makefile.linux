@@ -1337,7 +1337,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ./include/common/LgiInterfaces.h : ./include/common/GMem.h \
 	./include/common/GArray.h \
 	./include/linux/Gtk/LgiOsDefs.h \
-	./include/common/GColour.h
+	./include/common/GColour.h \
+	./include/common/LCancel.h
 
 ./include/linux/Gtk/LgiOsClasses.h : 
 
@@ -1440,12 +1441,13 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ./include/common/GPopup.h : 
 
-./include/common/INet.h : ./include/common/GMem.h \
-	./include/common/GContainers.h \
-	./include/common/LgiNetInc.h \
-	./include/common/GStream.h \
+./include/common/INet.h : ./include/common/LgiNetInc.h \
 	./include/common/LgiInterfaces.h \
-	./include/common/GString.h
+	./include/common/GMem.h \
+	./include/common/GContainers.h \
+	./include/common/GStream.h \
+	./include/common/GString.h \
+	./include/common/LCancel.h
 
 ./include/common/LgiDefs.h : ./include/common/LgiInc.h \
 	./include/common/GAutoPtr.h
