@@ -105,6 +105,8 @@ GWindow::~GWindow()
 {
 	if (Wnd && d->DestroySig > 0)
 	{
+		// As we are already in the destructor, we don't want
+		// GtkWindowDestroy to try and delete the object again.
 		g_signal_handler_disconnect(Wnd, d->DestroySig);
 	}
 
