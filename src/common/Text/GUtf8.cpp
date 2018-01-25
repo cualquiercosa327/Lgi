@@ -4,7 +4,7 @@
 /////////////////////////////////////////////////////////////////////////////
 static bool Warn = true;
 
-GUtf8Ptr::GUtf8Ptr(void *p)
+GUtf8Ptr::GUtf8Ptr(const void *p)
 {
 	Ptr = (uint8*)p;
 }

@@ -287,7 +287,7 @@ protected:
 	uint8 *Ptr;
 
 public:
-	GUtf8Ptr(void *p = 0);
+	GUtf8Ptr(const void *p = 0);
 
 	/// Assign a new pointer to the string
 	GUtf8Ptr &operator =(char *s) { Ptr = (uint8*)s; return *this; }

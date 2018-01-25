@@ -3,14 +3,15 @@
 
 #include "Lgi.h"
 #include "GTextLabel.h"
-#include "GDisplayStringLayout.h"
+#include "LStringLayout.h"
 #include "GVariant.h"
 #include "GNotifications.h"
 #include "LgiRes.h"
 
-class GTextPrivate : public GDisplayStringLayout, public LMutex
+class GTextPrivate : public LStringLayout, public LMutex
 {
 	GText *Ctrl;
+	GFontCache Cache;
 
 public:
 	/// When GText::Name(W) is called out of thread, the string is put
@@ -18,16 +19,17 @@ public:
 	/// to load it into the ctrl.
 	GAutoString ThreadName;
 
-	GTextPrivate(GText *ctrl) : LMutex("GTextPrivate")
+	GTextPrivate(GText *ctrl) : Cache(), LStringLayout(&Cache), LMutex("GTextPrivate")
 	{
 		Ctrl = ctrl;
+		AmpersandToUnderline = true;
 	}
 
 	bool PreLayout(int32 &Min, int32 &Max)
 	{
 		if (Lock(_FL))
 		{
-			DoPreLayout(Ctrl->GetFont(), Ctrl->GBase::Name(), Min, Max);
+			DoPreLayout(Min, Max);
 			Unlock();
 		}
 		else return false;
@@ -57,8 +59,8 @@ GText::GText(int id, int x, int y, int cx, int cy, const char *name) :
 	d = new GTextPrivate(this);
 	Name(name);
 
-	if (cx < 0) cx = d->Max.x >> GDisplayString::FShift;
-	if (cy < 0) cy = d->Max.y;
+	if (cx < 0) cx = d->GetMax().x >> GDisplayString::FShift;
+	if (cy < 0) cy = d->GetMax().y;
 
 	GRect r(x, y, x+cx, y+cy);
 	SetPos(r);
@@ -94,40 +96,26 @@ bool GText::SetVariant(const char *Name, GVariant &Value, char *Array)
 
 bool GText::GetWrap()
 {
-	return d->Wrap;
+	return d->GetWrap();
 }
 
 void GText::SetWrap(bool b)
 {
-	d->Wrap = b;
+	d->SetWrap(b);
 	d->Layout(X());
 	Invalidate();
 }
 
 bool GText::Name(const char *n)
 {
-	if (!_View || InThread())
+	if (d->Lock(_FL))
 	{
+		d->Empty();
+		d->Add(n, NULL);
+		d->Unlock();
+
 		if (!GView::Name(n))
 			return false;
-		d->Layout(X());
-		Invalidate();
-	}
-	else if (d->Lock(_FL))
-	{
-		d->ThreadName.Reset(NewStr(n));
-		d->Unlock();
-		if (IsAttached())
-			PostEvent(M_TEXT_UPDATE_NAME);
-		else
-		{
-			#ifndef BEOS
-			LgiAssert(!"Can't update name.");
-			#endif
-			if (!GView::Name(n))
-				return false;
-			return false;
-		}
 	}	
 	else return false;
 	
@@ -186,10 +174,8 @@ void GText::Value(int64 i)
 
 void GText::OnPosChange()
 {
-	if (d->Wrap)
-	{
+	if (d->GetWrap())
 		d->Layout(X());
-	}
 }
 
 bool GText::OnLayout(GViewLayoutInfo &Inf)
@@ -202,8 +188,8 @@ bool GText::OnLayout(GViewLayoutInfo &Inf)
 	else
 	{
 		d->Layout(Inf.Width.Max);
-		Inf.Height.Min = d->Min.y;
-		Inf.Height.Max = d->Max.y;
+		Inf.Height.Min = d->GetMin().y;
+		Inf.Height.Max = d->GetMax().y;
 	}
 	
 	return true;

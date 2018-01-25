@@ -3,14 +3,29 @@
 
 #include "GUtf8.h"
 #include "GDisplayString.h"
+#include "GCss.h"
+#include "GFontCache.h"
 
-#define AMP_TO_UNDERLINE	1
+struct LLayoutRun : public GCss
+{
+	GString Text;
 
-struct LayoutString : public GDisplayString
+	LLayoutRun(GCss *Style)
+	{
+		if (Style)
+		{
+			GCss *This = this;
+			*This = *Style;
+		}
+	}
+};
+
+struct LLayoutString : public GDisplayString
 {
 	int Fx, y;
+	GColour Fore, Back;
 	
-	LayoutString(GFont *f,
+	LLayoutString(GFont *f,
 				const char *s,
 				ssize_t l = -1,
 				GSurface *pdc = 0) :
@@ -20,54 +35,96 @@ struct LayoutString : public GDisplayString
 	}
 };
 
-struct GDisplayStringLayout
+class LStringLayout
 {
+protected:
+	GFontCache *FontCache;
+
 	// Min and max bounds
 	GdcPt2 Min, Max;
 	int MinLines;
 	
-	// Wrap setting
+	// Setting
 	bool Wrap;
+	bool AmpersandToUnderline;
 
 	// Array of display strings...
+	GArray<LLayoutRun*> Text;
 	GArray<GDisplayString*> Strs;
-	GRect StrBounds;
-	
-	#if AMP_TO_UNDERLINE
-	GFont *PrevFont;
-	GAutoPtr<GFont> Under;
+	GRect Bounds;
 
-	void RemoveAmp(GString &s)
+public:
+	LStringLayout(GFontCache *fc)
 	{
-		char *i = s.Get(), *o = s.Get();
-		while (*i)
-		{
-			if (*i == '&' && i[1] != '&')
-				;
-			else
-				*o++ = *i;
-			
-			i++;
-		}
-		s.Length(o - s.Get());
-	}
-	#endif
-
-	GDisplayStringLayout()
-	{
-		Min.x = Max.x = 0;
-		Min.y = Max.y = 0;
-		MinLines = 0;		
+		FontCache = fc;
 		Wrap = false;
-
-		#if AMP_TO_UNDERLINE
-		PrevFont = NULL;
-		#endif
+		AmpersandToUnderline = false;
+		Empty();
 	}
 	
-	~GDisplayStringLayout()
+	~LStringLayout()
 	{
+		Empty();
+	}
+
+	void Empty()
+	{
+		Min.Zero();
+		Max.Zero();
+		MinLines = 0;
+		Bounds.ZOff(-1, -1);
 		Strs.DeleteObjects();
+		Text.DeleteObjects();
+	}
+
+	bool GetWrap() { return Wrap; }
+	void SetWrap(bool b) { Wrap = b; }
+	GdcPt2 GetMin() { return Min; }
+	GdcPt2 GetMax() { return Max; }
+
+	/// Adds a run of text with the same style
+	bool Add(const char *Str, GCss *Style)
+	{
+		if (!Str)
+			return false;
+
+		if (AmpersandToUnderline)
+		{
+			for (const char *s = Str; *s; )
+			{
+				const char *e = s;
+				// Find '&' or end of string
+				while (*e && !(e[0] == '&' && e[1] != '&'))
+					e++;
+				if (e == s) break; // end of string
+
+				// Add text before '&'
+				LLayoutRun *r = new LLayoutRun(Style);
+				r->Text.Set(s, e - s);
+				Text.Add(r);
+
+				if (!e) break; // End of string
+
+				// Add '&'ed char
+				r = new LLayoutRun(Style);
+				r->TextDecoration(GCss::TextDecorUnderline);
+				s++; // Skip the '&' itself
+				GUtf8Ptr p(s); // Find the end of the next unicode char
+				p++;
+				if ((const char*)p.GetPtr() == s)
+					break; // No more text: exit
+				r->Text.Set(s, (const char*)p.GetPtr()-s);
+				s = (const char*) p.GetPtr();
+			}
+		}
+		else // No parsing required
+		{
+			LLayoutRun *r = new LLayoutRun(Style);
+			r->Text = Str;
+			Text.Add(r);
+		}
+
+		return true;
 	}
 
 	uint32 NextChar(char *s)
@@ -91,90 +148,69 @@ struct GDisplayStringLayout
 		return 0;
 	}
 
-	GFont *GetUnderlineFont(GFont *f)
-	{
-		#if AMP_TO_UNDERLINE
-		if (PrevFont != f || !Under)
-		{
-			PrevFont = f;
-			if (Under.Reset(new GFont))
-			{
-				*Under = *f;
-				Under->Underline(true);
-				Under->Create();
-			}
-		}
-		return Under;
-		#else
-		return NULL;
-		#endif
-	}
-
 	// Pre-layout min/max calculation
-	void DoPreLayout(GFont *f, char *t, int32 &Min, int32 &Max)
+	void DoPreLayout(int32 &MinX, int32 &MaxX)
 	{		
-		Min = 0;
-		Max = 0;
+		MinX = 0;
+		MaxX = 0;
 		
-		if (!t || !f)
+		GFont *f = FontCache ? FontCache->GetDefaultFont() : SysFont;
+		if (!Text.Length() || !f)
 			return;
 
-		#if AMP_TO_UNDERLINE
-		GString Str = t;
-		RemoveAmp(Str);
-		t = Str.Get();
-		#endif
-		
-		char *LineStart = t;
 		char White[] = " \t\r\n";
-		char *s = t;
-		while (*s)
+		char *LineStart = NULL;
+		for (LLayoutRun **Run = NULL; Text.Iterate(Run); )
 		{
-			while (*s && strchr(White, *s))
+			char *s = (*Run)->Text;
+			while (*s)
 			{
-				if (*s == '\n')
+				while (*s && strchr(White, *s))
 				{
-					GDisplayString Line(f, LineStart, s - LineStart);
-					Max = max(Max, Line.X());
-					LineStart = s + 1;
+					if (*s == '\n')
+					{
+						GDisplayString Line(f, LineStart, s - LineStart);
+						MaxX = max(MaxX, Line.X());
+						LineStart = s + 1;
+					}
+					s++;
 				}
-				s++;
-			}
 
-			char *e = s;
-			while (*e)
-			{
-				uint32 c = NextChar(e);
-				if (c == 0)
-					break;
-				if (e > s && LGI_BreakableChar(c))
-					break;
+				char *e = s;
+				while (*e)
+				{
+					uint32 c = NextChar(e);
+					if (c == 0)
+						break;
+					if (e > s && LGI_BreakableChar(c))
+						break;
 				
-				char *cur = e;
-				e = LgiSeekUtf8(e, 1);
-				if (e == cur) // sanity check...
+					char *cur = e;
+					e = LgiSeekUtf8(e, 1);
+					if (e == cur) // sanity check...
+					{
+						LgiAssert(!"LgiSeekUtf8 broke.");
+						break;
+					}
+				}
+			
+				if (e == s)
 				{
-					LgiAssert(!"LgiSeekUtf8 broke.");
+					LgiAssert(0);
 					break;
 				}
-			}
-			
-			if (e == s)
-			{
-				LgiAssert(0);
-				break;
-			}
 
-			GDisplayString d(f, s, (int) (e - s));
-			Min = max(d.X(), Min);
+				GDisplayString d(f, s, (int) (e - s));
+				MinX = max(d.X(), MinX);
 
-			s = *e && strchr(White, *e) ? e + 1 : e;
-		}
+				s = *e && strchr(White, *e) ? e + 1 : e;
+			}
 		
-		if (s > LineStart)
-		{
-			GDisplayString Line(f, LineStart, s - LineStart);
-			Max = max(Max, Line.X());
+			if (s > LineStart)
+			{
+				GDisplayString Line(f, LineStart, s - LineStart);
+				MaxX = max(MaxX, Line.X());
+			}
 		}
 	}	
 
@@ -228,7 +264,7 @@ struct GDisplayStringLayout
 			size_t Len = e - s;
 			
 			// Create a display string for the segment
-			LayoutString *n = new LayoutString(Fnt, Len ? s : (char*)"", Len ? (int)Len : 1);
+			LLayoutString *n = new LLayoutString(Fnt, Len ? s : (char*)"", Len ? (int)Len : 1);
 			if (n)
 			{
 				n->Fx = LineFX;
@@ -268,7 +304,7 @@ struct GDisplayStringLayout
 
 						LineFX -= n->FX();
 						DeleteObj(n);
-						n = new LayoutString(f, s, (int) (e - s));
+						n = new LLayoutString(f, s, (int) (e - s));
 						
 						LineFX = 0;
 						MinLines++;
@@ -278,8 +314,8 @@ struct GDisplayStringLayout
 
 				GRect Sr(0, 0, n->X()-1, n->Y()-1);
 				Sr.Offset(n->Fx >> Shift, n->y);
-				if (Strs.Length()) StrBounds.Union(&Sr);
-				else StrBounds = Sr;
+				if (Strs.Length()) Bounds.Union(&Sr);
+				else Bounds = Sr;
 
 				Strs.Add(n);
 			}
@@ -332,7 +368,7 @@ struct GDisplayStringLayout
 		// Draw all the text
 		for (GDisplayString **ds = NULL; Strs.Iterate(ds); )
 		{
-			LayoutString *s = dynamic_cast<LayoutString*>(*ds);
+			LLayoutString *s = dynamic_cast<LLayoutString*>(*ds);
 			GFont *f = s->GetFont();
 			#ifdef WINDOWS
 			GRect r(pt.x + s->Fx, y,
@@ -385,5 +421,46 @@ struct GDisplayStringLayout
 		#endif
 	}
 };
+
+#if AMP_TO_UNDERLINE
+GFont *PrevFont;
+GAutoPtr<GFont> Under;
+
+void RemoveAmp(GString &s)
+{
+	char *i = s.Get(), *o = s.Get();
+	while (*i)
+	{
+		if (*i == '&' && i[1] != '&')
+			;
+		else
+			*o++ = *i;
+			
+		i++;
+	}
+	s.Length(o - s.Get());
+}
+GFont *GetUnderlineFont(GFont *f)
+{
+	#if AMP_TO_UNDERLINE
+	if (PrevFont != f || !Under)
+	{
+		PrevFont = f;
+		if (Under.Reset(new GFont))
+		{
+			*Under = *f;
+			Under->Underline(true);
+			Under->Create();
+		}
+	}
+	return Under;
+	#else
+	return NULL;
+	#endif
+}
+
+
+#endif
+
 
 #endif

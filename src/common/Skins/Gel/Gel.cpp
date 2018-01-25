@@ -10,7 +10,7 @@
 #include "GRadioGroup.h"
 #include "GDisplayString.h"
 #include "GCssTools.h"
-#include "GDisplayStringLayout.h"
+#include "LStringLayout.h"
 
 #ifdef WIN32
 #define BTN_TEXT_OFFSET_Y	-1
@@ -451,7 +451,7 @@ class GelSkin : public GSkinEngine
 		{
 			for (unsigned i=0; i<Text->Length(); i++)
 			{
-				LayoutString *t = dynamic_cast<LayoutString*>((*Text)[i]);
+				LLayoutString *t = dynamic_cast<LLayoutString*>((*Text)[i]);
 				if (!t)
 					break;
 				GRect c;

@@ -19,7 +19,7 @@ static int TextYOffset = 0;
 #endif
 static int MinYSize = 16;
 
-class GCheckBoxPrivate : public LMutex, public GDisplayStringLayout
+class GCheckBoxPrivate : public LMutex, public LStringLayout
 {
 	GCheckBox *Ctrl;
 	

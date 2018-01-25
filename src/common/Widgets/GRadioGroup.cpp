@@ -15,7 +15,7 @@
 // Radio group
 static int MinYSize = 16;
 
-class GRadioGroupPrivate : public LMutex, public GDisplayStringLayout
+class GRadioGroupPrivate : public LMutex, public LStringLayout
 {
 	GRadioGroup *Ctrl;
 	
@@ -359,7 +359,7 @@ GRadioButton *GRadioGroup::Append(int x, int y, const char *name)
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Radio button
-struct GRadioButtonPrivate : public LMutex, public GDisplayStringLayout
+struct GRadioButtonPrivate : public LMutex, public LStringLayout
 {
 	GRadioButton *Ctrl;
 	bool Val;
