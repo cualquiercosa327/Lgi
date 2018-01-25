@@ -32,6 +32,7 @@ protected:
 	GText *Rate;
 	GProgress *Bar;
 	GButton *But;
+	bool UiDirty;
 
 public:
 	GProgressPane();
@@ -44,6 +45,7 @@ public:
 	int64 Value() { return Progress::Value(); }
 	void Value(int64 v);
 	GFont *GetFont();
+	void UpdateUI();
 
 	void OnCreate();
 	int OnNotify(GViewI *Ctrl, int Flags);
@@ -58,7 +60,7 @@ class LgiClass GProgressDlg : public GDialog, public Progress
 
 protected:
 	uint64 Ts, Timeout, YieldTs;
-	List<GProgressPane> Progri;
+	GArray<GProgressPane*> Panes;
 	bool CanCancel;
 
 	void Resize();
@@ -83,7 +85,7 @@ public:
 
 	/// Sets up the Value function to yield every so often
 	/// to update the screen
-	void SetYieldTime(uint64 yt) { YieldTs = yt; }
+	void SetYieldTime(uint64 yt) { SetPulse(YieldTs = yt); }
 	/// Set ability to cancel
 	void SetCanCancel(bool cc);
 
@@ -109,8 +111,11 @@ public:
 	void SetType(const char *t);
 	/// Returns whether the user has cancelled the operation
 	bool IsCancelled();
+	
+	/*
 	/// Syncs an external list of progress objects with the dialog
 	void OnSync(ProgressList *Prg);
+	*/
 
 	int OnNotify(GViewI *Ctrl, int Flags);
 	GMessage::Result OnEvent(GMessage *Msg);
@@ -118,6 +123,7 @@ public:
 	void OnCreate();
 	void OnPosChange();
 	bool OnRequestClose(bool OsClose);
+	void OnPulse();
 };
 
 #endif

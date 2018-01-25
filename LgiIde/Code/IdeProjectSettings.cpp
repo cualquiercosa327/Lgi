@@ -642,7 +642,7 @@ public:
 
 						GFile::Path Path(d->Project->GetBasePath());
 						GFile::Path Cur(e->Name());
-						Path += Cur;
+						Path.Join(Cur.GetFull());
 						Path--;
 						if (Path.Exists())
 							s.InitialDir(Path);

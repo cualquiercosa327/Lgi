@@ -490,7 +490,7 @@ public:
 							{
 								GDocView::ContentMedia &Cm = Media[i];
 								
-								p.Parent();
+								p--;
 								p += Cm.FileName;
 								if (f.Open(p, O_WRITE))
 								{

@@ -1205,13 +1205,16 @@ public:
 	
 	NodeView(GViewI *w)
 	{
-		Tree = new GTree(100, 0, 0, 100, 100);
-		Tree->Attach(this);
-		Tree->SetPourLargest(true);
 		GRect r(0, 0, 500, 600);
 		SetPos(r);
 		MoveSameScreen(w);
 		Attach(0);
+
+		if ((Tree = new GTree(100, 0, 0, 100, 100)))
+		{
+			Tree->SetPourLargest(true);
+			Tree->Attach(this);
+		}
 	}
 };
 #endif
@@ -2457,6 +2460,20 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 			#if _DEBUG
 			LgiTrace("%s:%i - M_SET_DICTIONARY=%i\n", _FL, d->SpellDictionaryLoaded);
 			#endif
+			if (d->SpellDictionaryLoaded)
+			{
+				AutoTrans Trans(new GRichTextPriv::Transaction);
+
+				// Get any loaded text blocks to check their spelling
+				bool Status = false;
+				for (unsigned i=0; i<d->Blocks.Length(); i++)
+				{
+					Status |= d->Blocks[i]->OnDictionary(Trans);
+				}
+
+				if (Status)
+					d->AddTrans(Trans);
+			}
 			break;
 		}
 		case M_CHECK_TEXT:

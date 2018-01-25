@@ -798,7 +798,7 @@ int FieldView::OnNotify(GViewI *Ctrl, int Flags)
 						if (File)
 						{
 							GFile::Path p = File;
-							p.Parent();
+							p--;
 							GAutoString Rel = LgiMakeRelativePath(p, s.Name());
 							if (Rel)
 								SetCtrlName(c->Id, Rel);
