@@ -14,16 +14,17 @@ IdeCommon::~IdeCommon()
 	Remove();
 }
 
-bool IdeCommon::OnOpen(GProgressDlg &Prog, GXmlTag *Src)
+bool IdeCommon::OnOpen(GProgressDlg *Prog, GXmlTag *Src)
 {
-	Prog.Value(Prog.Value() + 1);
+	if (Prog)
+		Prog->Value(Prog->Value() + 1);
 
 	Copy(*Src);
 	if (!Serialize(Write = false))
 		return false;
 
 	List<GXmlTag>::I it = Src->Children.Start();
-	for (GXmlTag *c = *it; c && !Prog.IsCancelled(); c = *++it)
+	for (GXmlTag *c = *it; c && (!Prog || !Prog->IsCancelled()); c = *++it)
 	{
 		bool Processed = false;
 		if (c->IsTag("Node"))
@@ -34,8 +35,8 @@ bool IdeCommon::OnOpen(GProgressDlg &Prog, GXmlTag *Src)
 		}
 		else if (!c->IsTag("Settings"))
 			return false;
-		if (!Processed)
-			Prog.Value(Prog.Value() + 1);
+		if (!Processed && Prog)
+			Prog->Value(Prog->Value() + 1);
 	}
 	
 	return true;

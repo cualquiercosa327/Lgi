@@ -29,6 +29,8 @@ extern const char *Untitled;
 const char SourcePatterns[] = "*.c;*.h;*.cpp;*.cc;*.java;*.d;*.php;*.html;*.css";
 const char *AddFilesProgress::DefaultExt = "c,cpp,cc,cxx,h,hpp,hxx,html,css,json,js,jsx,txt,png,jpg,jpeg,rc,xml,mk,paths,makefile";
 
+#define USE_OPEN_PROGRESS			1
+
 #define STOP_BUILD_TIMEOUT			3000
 #ifdef WINDOWS
 #define LGI_STATIC_LIBRARY_EXT		"lib"
@@ -2187,7 +2189,11 @@ void IdeProject::CreateProject()
 
 ProjectStatus IdeProject::OpenFile(char *FileName)
 {
+	GProfile Prof("IdeProject::OpenFile");
+
 	Empty();
+
+	Prof.Add("Init");
 
 	d->UserNodeFlags.Empty();
 	if (LgiIsRelativePath(FileName))
@@ -2209,12 +2215,16 @@ ProjectStatus IdeProject::OpenFile(char *FileName)
 		return OpenError;
 	}
 	
+	Prof.Add("FileOpen");
+
 	GFile f;
 	if (!f.Open(d->FileName, O_READWRITE))
 	{
 		LgiTrace("%s:%i - Error: Can't open '%s'.\n", _FL, d->FileName.Get());
 		return OpenError;
 	}
+
+	Prof.Add("Xml");
 
 	GXmlTree x;
 	GXmlTag r;
@@ -2226,11 +2236,18 @@ ProjectStatus IdeProject::OpenFile(char *FileName)
 	}
 
 	int64 Nodes = r.CountTags();
-	GProgressDlg Prog(d->App, 500);
+
+	Prof.Add("Progress Setup");
+
+	#if DEBUG_OPEN_PROGRESS
+	GProgressDlg Prog(d->App, 1000);
 	Prog.SetDescription("Loading project...");
 	Prog.SetLimits(0, Nodes);
-	Prog.SetYieldTime(200);
+	Prog.SetYieldTime(1000);
 	Prog.SetAlwaysOnTop(true);
+	#endif
+
+	Prof.Add("UserFile");
 
 	if (FileExists(d->UserFile))
 	{
@@ -2250,14 +2267,29 @@ ProjectStatus IdeProject::OpenFile(char *FileName)
 	if (!r.IsTag("Project"))
 		return OpenError;
 
-	bool Ok = OnOpen(Prog, &r);
+	Prof.Add("OnOpen");
+
+	bool Ok = OnOpen(
+		#if DEBUG_OPEN_PROGRESS
+		&Prog,
+		#else
+		NULL,
+		#endif
+		&r);
+	#if DEBUG_OPEN_PROGRESS
 	if (Prog.IsCancelled())
 		return OpenCancel;
-	else if (!Ok)
+	else 
+	#endif
+	if (!Ok)
 		return OpenError;
+
+	Prof.Add("Insert");
 
 	d->App->GetTree()->Insert(this);
 	Expanded(true);
+
+	Prof.Add("Serialize");
 	
 	d->Settings.Serialize(&r, false /* read */);
 	return OpenOk;

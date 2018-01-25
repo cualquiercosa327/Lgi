@@ -113,6 +113,7 @@ Progress &Progress::operator =(Progress &p)
 GProgressPane::GProgressPane()
 {
 	t = NULL;
+	UiDirty = false;
 	GRect r(0, 0, PANE_X-1, PANE_Y-1);
 	SetPos(r);
 	Name("Progress");
@@ -181,32 +182,32 @@ void GProgressPane::SetLimits(int64 l, int64 h)
 		But->Enabled(Pd->CanCancel);
 }
 
-void GProgressPane::Value(int64 v)
+void GProgressPane::UpdateUI()
 {
-	char Str[256];
-	bool Update = false;
+	if (!UiDirty)
+		return;
 
-	Progress::Value(v);
+	char Str[256];
+
+	bool Update = false;
+	UiDirty = false;
+
+	uint64 Now = LgiCurrentTime();
 	if (Start == 0)
 	{
 		// initialize the clock
-		Start = LgiCurrentTime();
+		Start = Now;
 	}
 	else if (Rate)
 	{
 		// calc rate
-		uint64 Now = LgiCurrentTime();
 		double Secs = ((double)(int64)(Now - Start)) / 1000.0;
 		double PerSec;
 		
 		if (Secs != 0.0)
-		{
 			PerSec = ((double) Val - Low) / Secs;
-		}
 		else
-		{
 			PerSec = 0;
-		}
 		
 		sprintf_s(Str, sizeof(Str), "@ %.2f %s / sec", PerSec * Scale, (Type) ? Type : "");
 		Update |= Rate->Name(Str);
@@ -240,7 +241,7 @@ void GProgressPane::Value(int64 v)
 			double Raw = ((double) v - Low) / ((double) High - Low);
 			Bar->Value((int)(Raw * ALT_SCALE));
 			#else
-			Bar->Value(v);
+			Bar->Value(Value());
 			#endif
 
 			Bar->Invalidate();
@@ -253,6 +254,12 @@ void GProgressPane::Value(int64 v)
 	
 	if (ValText)
 		ValText->SendNotify(GNotifyTableLayout_Refresh);
+}
+
+void GProgressPane::Value(int64 v)
+{
+	Progress::Value(v);
+	UiDirty = true;
 }
 
 void GProgressPane::OnCreate()
@@ -373,13 +380,9 @@ GProgressDlg::~GProgressDlg()
 
 bool GProgressDlg::OnRequestClose(bool OsClose)
 {
-	for (int i=0; i<Progri.Length(); i++)
+	for (GProgressPane **p = NULL; Panes.Iterate(p); )
 	{
-		GProgressPane *pp = Progri[i];
-		if (pp)
-		{
-			pp->Cancel(true);
-		}
+		(*p)->Cancel(true);
 	}
 		
 	return false;
@@ -393,7 +396,7 @@ void GProgressDlg::Resize()
 	int DecorX = LgiApp->GetMetric(LGI_MET_DECOR_X);
 	int DecorY = LgiApp->GetMetric(LGI_MET_DECOR_Y);
 
-	int Items = max(1, Progri.Length());
+	int Items = max(1, Panes.Length());
 	int Width = DecorX + PANE_X;
 	int Height = DecorY + (PANE_Y * Items);
 
@@ -403,23 +406,27 @@ void GProgressDlg::Resize()
 
 	// Layout all the panes...
 	int y = 0;
-	for (int i=0; i<Progri.Length(); i++)
+	for (GProgressPane **p = NULL; Panes.Iterate(p); )
 	{
-		GProgressPane *p = Progri[i];
-		if (p)
-		{
-			GRect r(0, y, PANE_X - 1, y + PANE_Y - 1);
-			p->SetPos(r);
-			p->Visible(true);
-			y = r.y2 + 1;
-		}
+		GRect r(0, y, PANE_X - 1, y + PANE_Y - 1);
+		(*p)->SetPos(r);
+		(*p)->Visible(true);
+		y = r.y2 + 1;
 	}
 }
 
 void GProgressDlg::OnCreate()
 {
-	if (Progri.Length() == 0)
+	if (Panes.Length() == 0)
 		Push();
+}
+
+void GProgressDlg::OnPulse()
+{
+	for (GProgressPane **p = NULL; Panes.Iterate(p); )
+	{
+		(*p)->UpdateUI();
+	}
 }
 
 void GProgressDlg::OnPosChange()
@@ -428,20 +435,16 @@ void GProgressDlg::OnPosChange()
 	
 	// Layout all the panes...
 	int y = 0;
-	for (int i=0; i<Progri.Length(); i++)
+	for (GProgressPane **p = NULL; Panes.Iterate(p); )
 	{
-		GProgressPane *p = Progri[i];
-		if (p)
-		{
-			GRect r = p->GetPos();
-			r.Offset(0, y-r.y1);
-			r.x2 = c.x2;
+		GRect r = (*p)->GetPos();
+		r.Offset(0, y-r.y1);
+		r.x2 = c.x2;
 			
-			p->SetPos(r);
-			p->Visible(true);
+		(*p)->SetPos(r);
+		(*p)->Visible(true);
 			
-			y = r.y2 + 1;
-		}
+		y = r.y2 + 1;
 	}
 }
 
@@ -453,15 +456,11 @@ int GProgressDlg::OnNotify(GViewI *Ctrl, int Flags)
 		// This code recalculates the size needed by all the progress panes
 		// and then resizes the window to contain them all.
 		GRect u(0, 0, -1, -1);
-		for (int i=0; i<Progri.Length(); i++)
+		for (GProgressPane **p = NULL; Panes.Iterate(p); )
 		{
-			GProgressPane *p = Progri[i];
-			if (p)
-			{
-				GRect r = p->GetPos();
-				if (u.Valid()) u.Union(&r);
-				else u = r;
-			}
+			GRect r = (*p)->GetPos();
+			if (u.Valid()) u.Union(&r);
+			else u = r;
 		}
 
 		if (u.Valid())
@@ -495,7 +494,7 @@ GMessage::Result GProgressDlg::OnEvent(GMessage *Msg)
 
 GProgressPane *GProgressDlg::ItemAt(int i)
 {
-	return Progri.ItemAt(i);
+	return Panes.ItemAt(i);
 }
 
 GProgressPane *GProgressDlg::Push()
@@ -508,7 +507,7 @@ GProgressPane *GProgressDlg::Push()
 			Pane->Attach(this);
 		else
 			AddView(Pane);
-		Progri.Insert(Pane);
+		Panes.Add(Pane);
 		Resize();
 	}
 
@@ -517,11 +516,11 @@ GProgressPane *GProgressDlg::Push()
 
 void GProgressDlg::Pop(GProgressPane *p)
 {
-	GProgressPane *Pane = (p) ? p : Progri.Last();
+	GProgressPane *Pane = (p) ? p : Panes.Last();
 	if (Pane)
 	{
 		Pane->Detach();
-		Progri.Delete(Pane);
+		Panes.Delete(Pane);
 		GView::Invalidate();
 		DeleteObj(Pane);
 		Resize();
@@ -535,21 +534,19 @@ void GProgressDlg::SetCanCancel(bool cc)
 
 char *GProgressDlg::GetDescription()
 {
-	GProgressPane *Pane = Progri.First();
-	return (Pane) ? Pane->GetDescription() : 0;
+	return Panes.Length() ? Panes.First()->GetDescription() : NULL;
 }
 
 void GProgressDlg::SetDescription(const char *d)
 {
-	GProgressPane *Pane = Progri.First();
-	if (Pane)
-		Pane->SetDescription(d);
+	if (Panes.Length())
+		Panes.First()->SetDescription(d);
 }
 
 void GProgressDlg::GetLimits(int64 *l, int64 *h)
 {
-	GProgressPane *Pane = Progri.First();
-	if (Pane) Pane->GetLimits(l, h);
+	if (Panes.Length())
+		Panes.First()->GetLimits(l, h);
 	else
 	{
 		if (l) *l = 0;
@@ -559,14 +556,13 @@ void GProgressDlg::GetLimits(int64 *l, int64 *h)
 
 void GProgressDlg::SetLimits(int64 l, int64 h)
 {
-	GProgressPane *Pane = Progri.First();
-	if (Pane) Pane->SetLimits(l, h);
+	if (Panes.Length())
+		Panes.First()->SetLimits(l, h);
 }
 
 int64 GProgressDlg::Value()
 {
-	GProgressPane *Pane = Progri.First();
-	return (Pane) ? Pane->Value() : 0;
+	return Panes.Length() ? Panes.First()->Value() : -1;
 }
 
 void GProgressDlg::Value(int64 v)
@@ -589,39 +585,38 @@ void GProgressDlg::Value(int64 v)
 		}
 	}
 
-	GProgressPane *Pane = Progri.First();
-	if (Pane) Pane->Value(v);
+	if (Panes.Length())
+		Panes.First()->Value(v);
 }
 
 double GProgressDlg::GetScale()
 {
-	GProgressPane *Pane = Progri.First();
-	return (Pane) ? Pane->GetScale() : 0;
+	return Panes.Length() ? Panes.First()->GetScale() : 0.0;
 }
 
 void GProgressDlg::SetScale(double s)
 {
-	GProgressPane *Pane = Progri.First();
-	if (Pane) Pane->Progress::SetScale(s);
+	if (Panes.Length())
+		Panes.First()->SetScale(s);
 }
 
 const char *GProgressDlg::GetType()
 {
-	GProgressPane *Pane = Progri.First();
-	return (Pane) ? Pane->GetType() : 0;
+	return Panes.Length() ? Panes.First()->GetType() : NULL;
 }
 
 void GProgressDlg::SetType(const char *t)
 {
-	GProgressPane *Pane = Progri.First();
-	if (Pane) Pane->SetType(t);
+	if (Panes.Length())
+		Panes.First()->SetType(t);
 }
 
 bool GProgressDlg::IsCancelled()
 {
-	for (GProgressPane *p=Progri.First(); p; p=Progri.Next())
+	for (GProgressPane **p = NULL; Panes.Iterate(p); )
 	{
-		if (p->IsCancelled()) return true;
+		if ((*p)->IsCancelled())
+			return true;
 	}
 	return false;
 }
@@ -632,6 +627,7 @@ void GProgressDlg::OnPaint(GSurface *pDC)
 	pDC->Rectangle();
 }
 
+/*
 // Sync this window with the contents of a list.
 void GProgressDlg::OnSync(ProgressList *Prg)
 {
@@ -702,5 +698,4 @@ void GProgressDlg::OnSync(ProgressList *Prg)
 		Prg->Unlock();
 	}
 }
-
-
+*/
