@@ -4,6 +4,7 @@
 #include "GDisplayString.h"
 #include "GTextLabel.h"
 #include "GCss.h"
+#include "GTableLayout.h"
 
 const char *AppName = "Lgi Test App";
 
@@ -159,6 +160,7 @@ class App : public GWindow
 	GEdit *e;
 	GEdit *e2;
 	GText *Txt;
+	GTableLayout *Tbl;
 
 public:
 	App()
@@ -166,6 +168,7 @@ public:
 		e = 0;
 		e2 = 0;
 		Txt = 0;
+		Tbl = 0;
 
 		GRect r(0, 0, 1000, 800);
 		SetPos(r);
@@ -177,13 +180,19 @@ public:
 		{
 			#if 1
 
-			AddView(Txt = new GText(IDC_TXT, 0, 0, -1, -1, "This is a test string. &For like\ntesting and stuff. It has multiple\nlines to test wrapping."));
+			AddView(Tbl = new GTableLayout(100));
+			GLayoutCell *c = Tbl->GetCell(0, 0);
+
+			c->Add(Txt = new GText(IDC_TXT, 0, 0, -1, -1, "This is a test string. &For like\ntesting and stuff. It has multiple\nlines to test wrapping."));
 			Txt->SetWrap(true);
 			//Txt->GetCss(true)->Color(GCss::ColorDef(GColour::Red));
 			// Txt->GetCss(true)->FontWeight(GCss::FontWeightBold);
 			// Txt->GetCss(true)->FontStyle(GCss::FontStyleItalic);
 			Txt->GetCss(true)->FontSize(GCss::Len("22pt"));
 			Txt->OnStyleChange();
+
+			c = Tbl->GetCell(1, 0);
+			c->Add(new GEdit(IDC_EDIT1, 0, 0, -1, -1));
 
 			#else
 
@@ -203,11 +212,11 @@ public:
 
 	void OnPosChange()
 	{
-		if (Txt)
+		if (Tbl)
 		{
 			GRect c = GetClient();
 			c.Size(10, 10);
-			Txt->SetPos(c);
+			Tbl->SetPos(c);
 		}
 	}
 

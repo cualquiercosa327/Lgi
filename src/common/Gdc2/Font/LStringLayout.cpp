@@ -1,6 +1,8 @@
 #include "Lgi.h"
 #include "LStringLayout.h"
 
+#define DEBUG_PROFILE_LAYOUT		0
+
 static char White[] = " \t\r\n";
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -125,6 +127,8 @@ void LStringLayout::SetBaseFont(GFont *f)
 		FontCache->SetDefaultFont(f);
 }
 
+typedef GArray<LLayoutString*> LayoutArray;
+
 // Pre-layout min/max calculation
 void LStringLayout::DoPreLayout(int32 &MinX, int32 &MaxX)
 {		
@@ -135,23 +139,32 @@ void LStringLayout::DoPreLayout(int32 &MinX, int32 &MaxX)
 	if (!Text.Length() || !f)
 		return;
 
-	char *LineStart = NULL;
+	GArray<LayoutArray> Lines;
+	int Line = 0;
 
 	for (LLayoutRun **Run = NULL; Text.Iterate(Run); )
 	{
 		char *s = (*Run)->Text;
+		GFont *f = FontCache ? FontCache->GetFont(*Run) : SysFont;
+
+		char *Start = s;
+		while (*s)
+		{
+			if (*s == '\n')
+			{
+				Lines[Line++].Add(new LLayoutString(f, Start, s - Start));
+				Start = s + 1;
+			}
+			s++;
+		}
+		if (s > Start)
+			Lines[Line].Add(new LLayoutString(f, Start, s - Start));
+
+		s = (*Run)->Text;
 		while (*s)
 		{
 			while (*s && strchr(White, *s))
-			{
-				if (*s == '\n')
-				{
-					GDisplayString Line(f, LineStart, s - LineStart);
-					MaxX = max(MaxX, Line.X());
-					LineStart = s + 1;
-				}
 				s++;
-			}
 
 			char *e = s;
 			while (*e)
@@ -172,22 +185,27 @@ void LStringLayout::DoPreLayout(int32 &MinX, int32 &MaxX)
 			}
 			
 			if (e == s)
-			{
-				LgiAssert(0);
 				break;
-			}
 
 			GDisplayString d(f, s, (int) (e - s));
 			MinX = max(d.X(), MinX);
 
-			s = *e && strchr(White, *e) ? e + 1 : e;
+			s = e;
 		}
-		
-		if (s > LineStart)
+	}
+
+	for (unsigned i=0; i<Lines.Length(); i++)
+	{
+		int Fx = 0;
+		LayoutArray &Ln = Lines[i];
+		for (unsigned n=0; n<Ln.Length(); n++)
 		{
-			GDisplayString Line(f, LineStart, s - LineStart);
-			MaxX = max(MaxX, Line.X());
+			LLayoutString *s = Ln[n];
+			Fx += s->FX();
 		}
+
+		int LineX = Fx >> GDisplayString::FShift;
+		MaxX = max(MaxX, LineX);
 	}
 }	
 
@@ -213,8 +231,10 @@ struct Break
 // Create the lines from text
 bool LStringLayout::DoLayout(int Width, bool Debug)
 {
+	#if DEBUG_PROFILE_LAYOUT
 	GProfile Prof("LStringLayout::DoLayout");
 	Prof.HideResultsIfBelow(100);
+	#endif
 
 	// Empty
 	Min.x = Max.x = 0;
@@ -224,7 +244,7 @@ bool LStringLayout::DoLayout(int Width, bool Debug)
 
 	// Param validation
 	GFont *f = GetBaseFont();
-	if (!f || !Text.Length())
+	if (!f || !Text.Length() || Width <= 0)
 		return false;
 
 	// Loop over input
@@ -250,9 +270,11 @@ bool LStringLayout::DoLayout(int Width, bool Debug)
 		GUtf8Ptr s(Start);
 
 		// LgiTrace("    Run='%s' %p\n", s.GetPtr(), *Run);
+		#if DEBUG_PROFILE_LAYOUT
 		GString Pm;
 		Pm.Printf("[%i] Run = '%.*s'\n", (int) (Run - Text.AddressOf()), max(20, (*Run)->Text.Length()), s.GetPtr());
 		Prof.Add(Pm);
+		#endif
 
 		while (s)
 		{
@@ -276,7 +298,9 @@ bool LStringLayout::DoLayout(int Width, bool Debug)
 			if (!Fnt)
 				Fnt = f;
 
+			#if DEBUG_PROFILE_LAYOUT
 			Prof.Add("CreateStr");
+			#endif
 
 			// Create a display string for the segment
 			LLayoutString *n = new LLayoutString(Fnt, Bytes ? (char*)s.GetPtr() : (char*)"", Bytes ? (int)Bytes : 1);
@@ -296,7 +320,9 @@ bool LStringLayout::DoLayout(int Width, bool Debug)
 
 					if (Breaks.Length() > 0)
 					{
+						#if DEBUG_PROFILE_LAYOUT
 						Prof.Add("WrapWithBreaks");
+						#endif
 
 						// Break at previous word break
 						Strs.Add(n);
@@ -333,7 +359,8 @@ bool LStringLayout::DoLayout(int Width, bool Debug)
 
 							// LgiTrace("        Len=%i of %i\n", FixX, Width);
 
-							if ((FixX >> Shift) <= Width)
+							if ((FixX >> Shift) <= Width ||
+								i == 0)
 							{
 								// Found a good fit...
 								// LgiTrace("        Found a fit\n");
@@ -378,7 +405,9 @@ bool LStringLayout::DoLayout(int Width, bool Debug)
 					}
 					else
 					{
+						#if DEBUG_PROFILE_LAYOUT
 						Prof.Add("WrapNoBreaks");
+						#endif
 
 						// Break at next word break
 						e = s;
@@ -400,7 +429,9 @@ bool LStringLayout::DoLayout(int Width, bool Debug)
 					GotoNextLine();
 				}
 
+				#if DEBUG_PROFILE_LAYOUT
 				Prof.Add("Bounds");
+				#endif
 
 				GRect Sr(0, 0, n->X()-1, n->Y()-1);
 				Sr.Offset(n->Fx >> Shift, n->y);
@@ -414,7 +445,9 @@ bool LStringLayout::DoLayout(int Width, bool Debug)
 			if (e == '\n')
 			{
 				s = ++e;
+				#if DEBUG_PROFILE_LAYOUT
 				Prof.Add("NewLine");
+				#endif
 				GotoNextLine();
 			}
 			else
@@ -422,7 +455,9 @@ bool LStringLayout::DoLayout(int Width, bool Debug)
 		}
 	}
 
+	#if DEBUG_PROFILE_LAYOUT
 	Prof.Add("Post");
+	#endif
 
 	Min.y = LineHeight * MinLines;
 	Max.y = y + LineHeight;
