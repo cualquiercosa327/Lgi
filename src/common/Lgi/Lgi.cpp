@@ -2198,9 +2198,13 @@ GCapabilityTarget::~GCapabilityTarget()
 }
 
 /////////////////////////////////////////////////////////////////////
+#define BUF_SIZE (4 << 10)
+
 GProfile::GProfile(const char *Name)
 {
 	MinMs = -1;
+	Used = 0;
+	Buf = NULL;
 	Add(Name);
 }
 
@@ -2223,6 +2227,8 @@ GProfile::~GProfile()
 		Sample &b = s[i+1];
 		LgiTrace("%s%s = %i ms\n", i ? "    " : "", a.Name, (int)(b.Time - a.Time));
 	}
+
+	DeleteArray(Buf);
 }
 
 void GProfile::HideResultsIfBelow(int Ms)
@@ -2232,5 +2238,20 @@ void GProfile::HideResultsIfBelow(int Ms)
 
 void GProfile::Add(const char *Name)
 {
+	s.Add(Sample(LgiCurrentTime(), Name));
+}
+
+void GProfile::Add(const char *File, int Line)
+{
+	if (!Buf)
+		if (!(Buf = new char[BUF_SIZE]))
+			return;
+	if (Used > BUF_SIZE - 64)
+	{
+		LgiAssert(0);
+		return;
+	}
+	char *Name = Buf + Used;
+	Used += sprintf(Name, "%s:%i", File, Line) + 1;
 	s.Add(Sample(LgiCurrentTime(), Name));
 }

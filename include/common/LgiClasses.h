@@ -1875,6 +1875,8 @@ class LgiClass GProfile
 	};
 	
 	GArray<Sample> s;
+	char *Buf;
+	int Used;
 	int MinMs;
 	
 public:
@@ -1883,6 +1885,7 @@ public:
 	
 	void HideResultsIfBelow(int Ms);
 	virtual void Add(const char *Name);
+	virtual void Add(const char *File, int Line);
 };
 
 // This code will assert if the cast fails.
