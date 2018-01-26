@@ -33,6 +33,19 @@ struct LLayoutString : public GDisplayString
 	{
 		Fx = y = 0;
 	}
+
+	void SetColours(GCss *Style)
+	{
+		GCss::ColorDef Fill = Style->Color();
+		if (Fill.Type == GCss::ColorRgb)
+			Fore.Set(Fill.Rgb32, 32);
+		else if (Fill.Type != GCss::ColorTransparent)
+			Fore.Set(LC_TEXT, 24);
+			
+		Fill = Style->BackgroundColor();
+		if (Fill.Type == GCss::ColorRgb)
+			Back.Set(Fill.Rgb32, 32);
+	}
 };
 
 class LStringLayout
@@ -103,17 +116,19 @@ public:
 				r->Text.Set(s, e - s);
 				Text.Add(r);
 
-				if (!e) break; // End of string
+				if (!*e)
+					break; // End of string
 
 				// Add '&'ed char
 				r = new LLayoutRun(Style);
 				r->TextDecoration(GCss::TextDecorUnderline);
-				s++; // Skip the '&' itself
+				s = e + 1; // Skip the '&' itself
 				GUtf8Ptr p(s); // Find the end of the next unicode char
 				p++;
 				if ((const char*)p.GetPtr() == s)
 					break; // No more text: exit
 				r->Text.Set(s, (const char*)p.GetPtr()-s);
+				Text.Add(r);
 				s = (const char*) p.GetPtr();
 			}
 		}
@@ -148,13 +163,24 @@ public:
 		return 0;
 	}
 
+	GFont *GetBaseFont()
+	{
+		return FontCache && FontCache->GetDefaultFont() ? FontCache->GetDefaultFont() : SysFont;
+	}
+
+	void SetBaseFont(GFont *f)
+	{
+		if (FontCache)
+			FontCache->SetDefaultFont(f);
+	}
+
 	// Pre-layout min/max calculation
 	void DoPreLayout(int32 &MinX, int32 &MaxX)
 	{		
 		MinX = 0;
 		MaxX = 0;
 		
-		GFont *f = FontCache ? FontCache->GetDefaultFont() : SysFont;
+		GFont *f = GetBaseFont();
 		if (!Text.Length() || !f)
 			return;
 
@@ -215,7 +241,7 @@ public:
 	}	
 
 	// Create the lines from text
-	bool DoLayout(GFont *f, char *s, int Width, bool Debug = false)
+	bool DoLayout(int Width, bool Debug = false)
 	{
 		// Empty
 		Min.x = Max.x = 0;
@@ -224,136 +250,130 @@ public:
 		Strs.DeleteObjects();
 
 		// Param validation
-		if (!f || !s || !*s)
+		GFont *f = GetBaseFont();
+		if (!f || !Text.Length())
 			return false;
 
 		// Loop over input
 		int /*Fx = 0,*/ y = 0;
 		int LineFX = 0;
+		int LineHeight = 0;
 		int Shift = GDisplayString::FShift;
 		MinLines = 1;
 
-		while (*s)
+		for (LLayoutRun **Run = NULL; Text.Iterate(Run); )
 		{
-			char *e = s;
-			GFont *Fnt = f;
-			#if AMP_TO_UNDERLINE
-			bool IsUnderline = *s == '&' && s[1] != '&';
-			if (IsUnderline)
+			char *s = (*Run)->Text;
+			while (*s)
 			{
-				s++;
-				e = LgiSeekUtf8(s, 1);
-				Fnt = GetUnderlineFont(f);
-			}
-			else
-			#endif
-			{
-				for (; *e; e++)
+				char *e = s;
+				while (*e && *e != '\n')
+					e++;
+				size_t Len = e - s;
+
+				GFont *Fnt;
+				if (FontCache)
+					Fnt = FontCache->GetFont(*Run);
+				if (!Fnt)
+					Fnt = f;
+
+				// Create a display string for the segment
+				LLayoutString *n = new LLayoutString(Fnt, Len ? s : (char*)"", Len ? (int)Len : 1);
+				if (n)
 				{
-					if
-					(
-						#if AMP_TO_UNDERLINE
-						(*e == '&' && e[1] != '&')
-						||
-						#endif
-						(*e == '\n')
-					)					
-						break;
-				}			
-			}
-			size_t Len = e - s;
-			
-			// Create a display string for the segment
-			LLayoutString *n = new LLayoutString(Fnt, Len ? s : (char*)"", Len ? (int)Len : 1);
-			if (n)
-			{
-				n->Fx = LineFX;
-				n->y = y;
-				LineFX += n->FX();
+					n->Fx = LineFX;
+					n->y = y;
+					n->SetColours(*Run);
+					LineFX += n->FX();
 				
-				// Do min / max size calculation
-				Min.x = Min.x ? min(Min.x, LineFX) : LineFX;
-				Max.x = max(Max.x, LineFX);
+					// Do min / max size calculation
+					Min.x = Min.x ? min(Min.x, LineFX) : LineFX;
+					Max.x = max(Max.x, LineFX);
 			
-				if (Wrap && (LineFX >> Shift) > Width)
-				{
-					// If wrapping, work out the split point and the text is too long
-					ssize_t Ch = n->CharAt(Width - (n->Fx >> Shift));
-					if (Ch > 0)
+					if (Wrap && (LineFX >> Shift) > Width)
 					{
-						// Break string into chunks
-						e = LgiSeekUtf8(s, Ch);
-						while (e > s)
+						// If wrapping, work out the split point and the text is too long
+						ssize_t Ch = n->CharAt(Width - (n->Fx >> Shift));
+						if (Ch > 0)
 						{
-							uint32 n = PrevChar(e);
-							if (LGI_BreakableChar(n))
-								break;
-							e = LgiSeekUtf8(e, -1, s);
-						}
-						if (e == s)
-						{
+							// Break string into chunks
 							e = LgiSeekUtf8(s, Ch);
-							while (*e)
+							while (e > s)
 							{
-								uint32 n = NextChar(e);
+								uint32 n = PrevChar(e);
 								if (LGI_BreakableChar(n))
 									break;
-								e = LgiSeekUtf8(e, 1);
+								e = LgiSeekUtf8(e, -1, s);
 							}
+							if (e == s)
+							{
+								e = LgiSeekUtf8(s, Ch);
+								while (*e)
+								{
+									uint32 n = NextChar(e);
+									if (LGI_BreakableChar(n))
+										break;
+									e = LgiSeekUtf8(e, 1);
+								}
+							}
+
+							LineFX -= n->FX();
+							DeleteObj(n);
+		
+							n = new LLayoutString(Fnt, s, (int) (e - s));
+							n->Fx = LineFX;
+							n->y = y;
+							n->SetColours(*Run);
+							LineHeight = max(LineHeight, n->Y());
+
+							LineFX = 0;
+							MinLines++;
+							y += LineHeight;
 						}
-
-						LineFX -= n->FX();
-						DeleteObj(n);
-						n = new LLayoutString(f, s, (int) (e - s));
-						
-						LineFX = 0;
-						MinLines++;
-						y += f->GetHeight();
 					}
+
+					GRect Sr(0, 0, n->X()-1, n->Y()-1);
+					Sr.Offset(n->Fx >> Shift, n->y);
+					if (Strs.Length()) Bounds.Union(&Sr);
+					else Bounds = Sr;
+					LineHeight = max(LineHeight, Sr.Y());
+
+					Strs.Add(n);
 				}
-
-				GRect Sr(0, 0, n->X()-1, n->Y()-1);
-				Sr.Offset(n->Fx >> Shift, n->y);
-				if (Strs.Length()) Bounds.Union(&Sr);
-				else Bounds = Sr;
-
-				Strs.Add(n);
-			}
 			
-			if (*e == '\n')
-			{
-				MinLines++;
-				y += f->GetHeight();
-				s = e + 1;
+				if (*e == '\n')
+				{
+					MinLines++;
+					y += LineHeight;
+					s = e + 1;
+				}
+				else
+					s = e;
 			}
-			else
-				s = e;
+
+			Min.y = LineHeight * MinLines;
+			Max.y = y + LineHeight;
+		
+			if (Debug)
+				LgiTrace("CreateTxtLayout(%i) min=%i,%i  max=%i,%i\n",
+					Width,
+					Min.x, Min.y,
+					Max.x, Min.y);
 		}
 
-		Min.y = f->GetHeight() * MinLines;
-		Max.y = y + f->GetHeight();
-		
-		if (Debug)
-			LgiTrace("CreateTxtLayout(%i) min=%i,%i  max=%i,%i\n",
-				Width,
-				Min.x, Min.y,
-				Max.x, Min.y);
-		
 		return true;
 	}
 	
 	void Paint(	GSurface *pDC,
 				GdcPt2 pt,
+				GColour Back,
 				GRect &rc,
-				GColour &Fore,
-				GColour &Back,
 				bool Enabled)
 	{
 		if (!pDC)
 			return;
 
 		#ifdef WINDOWS
-		int y = pt.y;
 		GRegion Rgn(rc);
 		#else
 		// Fill the background...
@@ -364,26 +384,31 @@ public:
 		}
 		int Shift = GDisplayString::FShift;
 		#endif		
-		
+
 		// Draw all the text
 		for (GDisplayString **ds = NULL; Strs.Iterate(ds); )
 		{
 			LLayoutString *s = dynamic_cast<LLayoutString*>(*ds);
 			GFont *f = s->GetFont();
+			GColour Bk = s->Back.IsTransparent() ? Back : s->Back;
+
 			#ifdef WINDOWS
+			int y = pt.y + s->y;
 			GRect r(pt.x + s->Fx, y,
 					pt.x + s->Fx + s->FX() - 1, y + s->Y() - 1);
 			Rgn.Subtract(&r);
-			f->Transparent(Back.IsTransparent());
+			f->Transparent(Bk.IsTransparent());
 			#else
 			f->Transparent(true);
 			#endif
 
+			// LgiTrace("'%S' @ %i,%i\n", (const char16*)(**ds), r.x1, r.y1);
+
 			if (Enabled)
 			{
-				f->Colour(Fore, Back);
+				f->Colour(s->Fore, Bk);
 				#ifdef WINDOWS
-				s->Draw(pDC, pt.x + s->Fx, pt.y, &r);
+				s->Draw(pDC, r.x1, r.y1, &r);
 				#else
 				GdcPt2 k((pt.x << Shift) + s->Fx, (pt.y + s->y) << Shift);
 				s->FDraw(pDC, k.x, k.y);
@@ -391,10 +416,10 @@ public:
 			}
 			else
 			{
-				f->Transparent(Back.IsTransparent());
-				f->Colour(GColour(LC_LIGHT, 24), Back);
+				f->Transparent(Bk.IsTransparent());
+				f->Colour(GColour(LC_LIGHT, 24), Bk);
 				#ifdef WINDOWS
-				s->Draw(pDC, pt.x+1, y+1, &r);
+				s->Draw(pDC, r.x1+1, r.y1+1, &r);
 				#else
 				GdcPt2 k(((pt.x+1) << Shift) + s->Fx, (pt.y + 1 + s->y) << Shift);
 				s->FDraw(pDC, k.x, k.y);
@@ -403,7 +428,7 @@ public:
 				f->Transparent(true);
 				f->Colour(LC_LOW, LC_MED);
 				#ifdef WINDOWS
-				s->Draw(pDC, pt.x, y, &r);
+				s->Draw(pDC, r.x1, r.y1, &r);
 				#else
 				s->FDraw(pDC, (pt.x << Shift) + s->Fx, (pt.y + s->y) << Shift);
 				#endif

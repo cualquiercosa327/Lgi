@@ -2,14 +2,17 @@
 #include "GEdit.h"
 #include "GButton.h"
 #include "GDisplayString.h"
+#include "GTextLabel.h"
+#include "GCss.h"
 
-#include "GStringClass.h"
+const char *AppName = "Lgi Test App";
 
 enum Ctrls
 {
 	IDC_EDIT1 = 100,
 	IDC_EDIT2,
 	IDC_BLT_TEST,
+	IDC_TXT,
 };
 
 void GStringTest()
@@ -155,27 +158,63 @@ class App : public GWindow
 {
 	GEdit *e;
 	GEdit *e2;
+	GText *Txt;
 
 public:
 	App()
 	{
+		e = 0;
+		e2 = 0;
+		Txt = 0;
+
 		GRect r(0, 0, 1000, 800);
 		SetPos(r);
+		Name(AppName);
 		MoveToCenter();
 		SetQuitOnClose(true);
 		
 		if (Attach(0))
 		{
+			#if 1
+
+			AddView(Txt = new GText(IDC_TXT, 0, 0, -1, -1, "This is a test string. &For like testing and stuff."));
+			Txt->SetWrap(true);
+			// Txt->GetCss(true)->Color(GCss::ColorDef(GColour::Red));
+			// Txt->GetCss(true)->FontWeight(GCss::FontWeightBold);
+			Txt->GetCss(true)->FontStyle(GCss::FontStyleItalic);
+			Txt->GetCss(true)->FontSize(GCss::Len("32pt"));
+			Txt->OnStyleChange();
+
+			#else
+
 			AddView(e = new GEdit(IDC_EDIT1, 10, 10, 200, 22));
 			AddView(e2 = new GEdit(IDC_EDIT1, 10, 50, 200, 22));
 			AddView(new GButton(IDC_BLT_TEST, 10, 200, -1, -1, "Blt Test"));
 			// e->Focus(true);
 			e->Password(true);
 			e->SetEmptyText("(this is a test)");
+
+			#endif
 			
 			AttachChildren();
 			Visible(true);
 		}
+	}
+
+	void OnPosChange()
+	{
+		if (Txt)
+		{
+			GRect c = GetClient();
+			c.Size(10, 10);
+			Txt->SetPos(c);
+		}
+	}
+
+	void OnPaint(GSurface *pDC)
+	{
+		pDC->Colour(LC_LOW, 24);
+		pDC->Rectangle();
 	}
 	
 	int OnNotify(GViewI *Ctrl, int Flags)

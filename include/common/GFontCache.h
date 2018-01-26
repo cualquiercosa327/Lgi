@@ -90,7 +90,7 @@ public:
 
 	GFont *GetFont(GCss *Style)
 	{
-		if (!Style)
+		if (!Style || !DefaultFont)
 			return DefaultFont;
 		
 		GCss::StringsDef Fam = Style->FontFamily();

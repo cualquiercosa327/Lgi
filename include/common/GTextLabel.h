@@ -61,6 +61,7 @@ public:
 	void OnPosChange();
 	void OnAttach();
 	bool OnLayout(GViewLayoutInfo &Inf);
+	void OnStyleChange();
 	bool SetVariant(const char *Name, GVariant &Value, char *Array = NULL);
 };
 

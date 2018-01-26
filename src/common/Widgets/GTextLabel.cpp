@@ -17,7 +17,7 @@ public:
 	/// When GText::Name(W) is called out of thread, the string is put
 	/// here first and then a message is posted over to the GUI thread
 	/// to load it into the ctrl.
-	GAutoString ThreadName;
+	GString ThreadName;
 
 	GTextPrivate(GText *ctrl) : Cache(), LStringLayout(&Cache), LMutex("GTextPrivate")
 	{
@@ -36,16 +36,12 @@ public:
 		return true;
 	}
 
-	bool Layout(int Px)
+	bool Layout(GFont *Base, int Px)
 	{		
 		if (Lock(_FL))
 		{
-			GFont *f = Ctrl->GetFont() &&
-						Ctrl->GetFont()->Handle() ?
-						Ctrl->GetFont() :
-						SysFont;
-				
-			DoLayout(f, Ctrl->GBase::Name(), Px);
+			SetBaseFont(Base);
+			DoLayout(Px);
 			Unlock();
 		}
 		else return false;
@@ -102,56 +98,70 @@ bool GText::GetWrap()
 void GText::SetWrap(bool b)
 {
 	d->SetWrap(b);
-	d->Layout(X());
+	d->Layout(GetFont(), X());
 	Invalidate();
 }
 
 bool GText::Name(const char *n)
 {
-	if (d->Lock(_FL))
-	{
-		d->Empty();
-		d->Add(n, NULL);
-		d->Unlock();
+	if (!d->Lock(_FL))
+		return false;
 
-		if (!GView::Name(n))
-			return false;
-	}	
-	else return false;
-	
+	if (InThread())
+	{
+		GView::Name(n);
+
+		d->Empty();
+		d->Add(n, GetCss());
+		d->Layout(GetFont(), X());
+
+		Invalidate();
+		SendNotify(GNotifyTableLayout_Refresh);
+	}
+	else if (IsAttached())
+	{
+		d->ThreadName = n;
+		PostEvent(M_TEXT_UPDATE_NAME);
+	}
+	else LgiAssert(!"Can't update name.");
+
+	d->Unlock();
+
 	return true;
 }
 
 bool GText::NameW(const char16 *n)
 {
+	if (!d->Lock(_FL))
+		return false;
+
 	if (InThread())
 	{
-		if (!GView::NameW(n))
-			return false;
-		d->Layout(X());
+		GView::NameW(n);
+
+		d->Empty();
+		d->Add(GView::Name(), GetCss());
+		d->Layout(GetFont(), X());
+
 		Invalidate();
+		SendNotify(GNotifyTableLayout_Refresh);
 	}
-	else if (d->Lock(_FL))
+	else if (IsAttached())
 	{
-		d->ThreadName.Reset(WideToUtf8(n));
-		d->Unlock();
-		if (IsAttached())
-			PostEvent(M_TEXT_UPDATE_NAME);
-		else
-		{
-			LgiAssert(!"Can't update name.");
-			return false;
-		}
-	}	
-	else return false;
-	
+		d->ThreadName = n;
+		PostEvent(M_TEXT_UPDATE_NAME);
+	}
+	else LgiAssert(!"Can't update name.");
+
+	d->Unlock();
+
 	return true;
 }
 
 void GText::SetFont(GFont *Fnt, bool OwnIt)
 {
 	GView::SetFont(Fnt, OwnIt);
-	d->Layout(X());
+	d->Layout(GetFont(), X());
 	Invalidate();
 }
 
@@ -172,10 +182,20 @@ void GText::Value(int64 i)
 	Name(Str);
 }
 
+void GText::OnStyleChange()
+{
+	if (d->Lock(_FL))
+	{
+		d->Empty();
+		d->Add(GView::Name(), GetCss());
+		d->Unlock();
+	}
+}
+
 void GText::OnPosChange()
 {
 	if (d->GetWrap())
-		d->Layout(X());
+		d->Layout(GetFont(), X());
 }
 
 bool GText::OnLayout(GViewLayoutInfo &Inf)
@@ -187,7 +207,7 @@ bool GText::OnLayout(GViewLayoutInfo &Inf)
 	}
 	else
 	{
-		d->Layout(Inf.Width.Max);
+		d->Layout(GetFont(), Inf.Width.Max);
 		Inf.Height.Min = d->GetMin().y;
 		Inf.Height.Max = d->GetMax().y;
 	}
@@ -203,14 +223,11 @@ GMessage::Result GText::OnEvent(GMessage *Msg)
 		{
 			if (d->Lock(_FL))
 			{
-				GAutoString s = d->ThreadName;
+				GString s = d->ThreadName;
+				d->ThreadName.Empty();
 				d->Unlock();
 				
-				if (s)
-				{
-					Name(s);
-					SendNotify(GNotifyTableLayout_Refresh);
-				}
+				Name(s);
 			}
 			break;
 		}
@@ -242,31 +259,22 @@ void GText::OnPaint(GSurface *pDC)
 {
 	// bool Status = false;
 
-	GColour Fore, Back;
-	Fore.Set(LC_TEXT, 24);
+	GColour Back;
 	Back.Set(LC_MED, 24);
-
 	if (GetCss())
 	{
-		GCss::ColorDef Fill = GetCss()->Color();
-		if (Fill.Type == GCss::ColorRgb)
-			Fore.Set(Fill.Rgb32, 32);
-		else if (Fill.Type == GCss::ColorTransparent)
-			Fore.Empty();
-			
-		Fill = GetCss()->BackgroundColor();
+		GCss::ColorDef Fill = GetCss()->BackgroundColor();
 		if (Fill.Type == GCss::ColorRgb)
 			Back.Set(Fill.Rgb32, 32);
 		else if (Fill.Type == GCss::ColorTransparent)
 			Back.Empty();
 	}
-	
-	// GFont *f = GetFont();
+
 	if (d->Lock(_FL))
 	{
 		GRect c = GetClient();
 		GdcPt2 pt(c.x1, c.y1);
-		d->Paint(pDC, pt, c, Fore, Back, Enabled());
+		d->Paint(pDC, pt, Back, c, Enabled());
 		d->Unlock();
 	}
 	else if (!Back.IsTransparent())
