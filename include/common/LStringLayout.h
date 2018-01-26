@@ -24,8 +24,10 @@ struct LLayoutRun : public GCss
 /// Display string of a certain style.
 struct LLayoutString : public GDisplayString
 {
-	int Fx, y;
+	int Fx, y, Line;
 	GColour Fore, Back;
+	ssize_t Offset;
+	LLayoutRun *Src;
 	
 	LLayoutString(GFont *f,
 				const char *s,
@@ -33,10 +35,26 @@ struct LLayoutString : public GDisplayString
 				GSurface *pdc = 0) :
 		GDisplayString(f, s, l, pdc)
 	{
+		Offset = 0;
 		Fx = y = 0;
+		Src = NULL;
 	}
 
-	void SetColours(GCss *Style);
+	LLayoutString(LLayoutString *Ls,
+				const char *s,
+				ssize_t l = -1) :
+		GDisplayString(Ls->GetFont(), s, l)
+	{
+		Fx = Ls->Fx;
+		y = Ls->y;
+		Fore = Ls->Fore;
+		Back = Ls->Back;
+		Line = Ls->Line;
+		Offset = Ls->Offset;
+		Src = Ls->Src;
+	}
+
+	void Set(int LineIdx, int FixX, int YPx, LLayoutRun *Lr, ssize_t Start);
 };
 
 /// This class lays out a block of text according to the given styles. It

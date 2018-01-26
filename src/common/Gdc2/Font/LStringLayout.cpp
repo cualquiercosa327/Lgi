@@ -1,16 +1,24 @@
 #include "Lgi.h"
 #include "LStringLayout.h"
 
+static char White[] = " \t\r\n";
+
 ////////////////////////////////////////////////////////////////////////////////////
-void LLayoutString::SetColours(GCss *Style)
+void LLayoutString::Set(int LineIdx, int FixX, int YPx, LLayoutRun *Lr, ssize_t Start)
 {
-	GCss::ColorDef Fill = Style->Color();
+	Line = LineIdx;
+	Src = Lr;
+	Fx = FixX;
+	y = YPx;
+	Offset = Start;
+
+	GCss::ColorDef Fill = Src->Color();
 	if (Fill.Type == GCss::ColorRgb)
 		Fore.Set(Fill.Rgb32, 32);
 	else if (Fill.Type != GCss::ColorTransparent)
 		Fore.Set(LC_TEXT, 24);
 			
-	Fill = Style->BackgroundColor();
+	Fill = Src->BackgroundColor();
 	if (Fill.Type == GCss::ColorRgb)
 		Back.Set(Fill.Rgb32, 32);
 }
@@ -127,8 +135,8 @@ void LStringLayout::DoPreLayout(int32 &MinX, int32 &MaxX)
 	if (!Text.Length() || !f)
 		return;
 
-	char White[] = " \t\r\n";
 	char *LineStart = NULL;
+
 	for (LLayoutRun **Run = NULL; Text.Iterate(Run); )
 	{
 		char *s = (*Run)->Text;
@@ -183,9 +191,31 @@ void LStringLayout::DoPreLayout(int32 &MinX, int32 &MaxX)
 	}
 }	
 
+struct Break
+{
+	LLayoutRun *Run;
+	ssize_t Bytes;
+
+	void Set(LLayoutRun *r, ssize_t b)
+	{
+		Run = r;
+		Bytes = b;
+	}
+};
+
+#define GotoNextLine()			\
+	LineFX = 0;					\
+	MinLines++;					\
+	y += LineHeight;			\
+	StartLine = Strs.Length();	\
+	Breaks.Empty();
+
 // Create the lines from text
 bool LStringLayout::DoLayout(int Width, bool Debug)
 {
+	GProfile Prof("LStringLayout::DoLayout");
+	Prof.HideResultsIfBelow(100);
+
 	// Empty
 	Min.x = Max.x = 0;
 	Min.y = Max.y = 0;
@@ -198,21 +228,47 @@ bool LStringLayout::DoLayout(int Width, bool Debug)
 		return false;
 
 	// Loop over input
-	int /*Fx = 0,*/ y = 0;
+	int y = 0;
 	int LineFX = 0;
 	int LineHeight = 0;
 	int Shift = GDisplayString::FShift;
+
+	// By definition these potential break points are all
+	// on the same line. Clear the array on each new line.
+	GArray<Break> Breaks;
+	
+	/// Index of the display string starting the line
+	int StartLine = 0;
+
+	/// There is alway one line of text... even if it's empty
 	MinLines = 1;
 
+	// LgiTrace("Text.Len=%i\n", Text.Length());
 	for (LLayoutRun **Run = NULL; Text.Iterate(Run); )
 	{
-		char *s = (*Run)->Text;
-		while (*s)
+		char *Start = (*Run)->Text;
+		GUtf8Ptr s(Start);
+
+		// LgiTrace("    Run='%s' %p\n", s.GetPtr(), *Run);
+		GString Pm;
+		Pm.Printf("[%i] Run = '%.*s'\n", (int) (Run - Text.AddressOf()), max(20, (*Run)->Text.Length()), s.GetPtr());
+		Prof.Add(Pm);
+
+		while (s)
 		{
-			char *e = s;
-			while (*e && *e != '\n')
-				e++;
-			size_t Len = e - s;
+			GUtf8Ptr e(s);
+			ssize_t StartOffset = (char*)s.GetPtr() - Start;
+			for (uint32 Ch; Ch = e; e++)
+			{
+				if (Ch == '\n')
+					break;
+
+				if ((char*)e.GetPtr() > Start &&
+					LGI_BreakableChar(Ch))
+					Breaks.New().Set(*Run, (char*)e.GetPtr() - Start);
+			}
+
+			ssize_t Bytes = e - s;
 
 			GFont *Fnt;
 			if (FontCache)
@@ -220,13 +276,13 @@ bool LStringLayout::DoLayout(int Width, bool Debug)
 			if (!Fnt)
 				Fnt = f;
 
+			Prof.Add("CreateStr");
+
 			// Create a display string for the segment
-			LLayoutString *n = new LLayoutString(Fnt, Len ? s : (char*)"", Len ? (int)Len : 1);
+			LLayoutString *n = new LLayoutString(Fnt, Bytes ? (char*)s.GetPtr() : (char*)"", Bytes ? (int)Bytes : 1);
 			if (n)
 			{
-				n->Fx = LineFX;
-				n->y = y;
-				n->SetColours(*Run);
+				n->Set(MinLines - 1, LineFX, y, *Run, StartOffset);
 				LineFX += n->FX();
 				
 				// Do min / max size calculation
@@ -236,44 +292,115 @@ bool LStringLayout::DoLayout(int Width, bool Debug)
 				if (Wrap && (LineFX >> Shift) > Width)
 				{
 					// If wrapping, work out the split point and the text is too long
-					ssize_t Ch = n->CharAt(Width - (n->Fx >> Shift));
-					if (Ch > 0)
+					ssize_t Chars = n->CharAt(Width - (n->Fx >> Shift));
+
+					if (Breaks.Length() > 0)
 					{
-						// Break string into chunks
-						e = LgiSeekUtf8(s, Ch);
-						while (e > s)
+						Prof.Add("WrapWithBreaks");
+
+						// Break at previous word break
+						Strs.Add(n);
+							
+						// Roll back till we get a break point that fits
+						LLayoutString *r = NULL;
+						for (int i = Breaks.Length() - 1; i >= 0; i--)
 						{
-							uint32 n = PrevChar(e);
-							if (LGI_BreakableChar(n))
-								break;
-							e = LgiSeekUtf8(e, -1, s);
-						}
-						if (e == s)
-						{
-							e = LgiSeekUtf8(s, Ch);
-							while (*e)
+							Break &b = Breaks[i];
+
+							// LgiTrace("        Testing Break %i: %p %i\n", i, b.Run, b.Bytes);
+
+							// Calc line width from 'StartLine' to 'Break[i]'
+							int FixX = 0;
+							GAutoPtr<LLayoutString> Broken;
+							unsigned k;
+							for (k=StartLine; k<Strs.Length(); k++)
 							{
-								uint32 n = NextChar(e);
-								if (LGI_BreakableChar(n))
+								LLayoutString *Ls = dynamic_cast<LLayoutString*>(Strs[k]);
+								if (!Ls) return false;
+
+								if (b.Run == Ls->Src &&
+									b.Bytes >= Ls->Offset)
+								{
+									// Add just the part till the break
+									if (Broken.Reset(new LLayoutString(Ls, b.Run->Text.Get() + Ls->Offset, b.Bytes - Ls->Offset)))
+										FixX += Broken->X();
 									break;
-								e = LgiSeekUtf8(e, 1);
+								}
+								else
+									// Add whole string
+									FixX += Ls->FX();
+							}
+
+							// LgiTrace("        Len=%i of %i\n", FixX, Width);
+
+							if ((FixX >> Shift) <= Width)
+							{
+								// Found a good fit...
+								// LgiTrace("        Found a fit\n");
+
+								// So we want to keep 'StartLine' to 'k-1' as is...
+								while (Strs.Length() > k)
+								{
+									delete Strs.Last();
+									Strs.PopLast();
+								}
+
+								if (Broken)
+								{
+									// Then change out from 'k' onwards for 'Broken'
+									LineHeight = max(LineHeight, Broken->Y());
+									Strs.Add(Broken.Release());
+								}
+
+								LineFX = FixX;
+								s = b.Run->Text.Get() + b.Bytes;
+
+								int Idx = Text.IndexOf(b.Run);
+								if (Idx < 0)
+								{
+									LgiAssert(0);
+									return false;
+								}
+
+								Run = Text.AddressOf(Idx);
+								break;
 							}
 						}
 
-						LineFX -= n->FX();
-						DeleteObj(n);
-		
-						n = new LLayoutString(Fnt, s, (int) (e - s));
-						n->Fx = LineFX;
-						n->y = y;
-						n->SetColours(*Run);
-						LineHeight = max(LineHeight, n->Y());
+						// Start pouring from the break pos...
+						// s = BreakRun->Text.Get() + BreakBytes;
+						while (s && strchr(White, s))
+							s++;
 
-						LineFX = 0;
-						MinLines++;
-						y += LineHeight;
+						// Move to the next line...
+						GotoNextLine();
+						continue;
 					}
+					else
+					{
+						Prof.Add("WrapNoBreaks");
+
+						// Break at next word break
+						e = s;
+						e += Chars;
+						for (uint32 Ch; Ch = e; e++)
+						{
+							if (LGI_BreakableChar(Ch))
+								break;
+						}
+					}
+
+					LineFX -= n->FX();
+					DeleteObj(n);
+		
+					n = new LLayoutString(Fnt, (char*)s.GetPtr(), e - s);
+					n->Set(MinLines - 1, LineFX, y, *Run, (char*)s.GetPtr() - Start);
+					LineHeight = max(LineHeight, n->Y());
+
+					GotoNextLine();
 				}
+
+				Prof.Add("Bounds");
 
 				GRect Sr(0, 0, n->X()-1, n->Y()-1);
 				Sr.Offset(n->Fx >> Shift, n->y);
@@ -284,26 +411,27 @@ bool LStringLayout::DoLayout(int Width, bool Debug)
 				Strs.Add(n);
 			}
 			
-			if (*e == '\n')
+			if (e == '\n')
 			{
-				MinLines++;
-				y += LineHeight;
-				s = e + 1;
-				LineFX = 0;
+				s = ++e;
+				Prof.Add("NewLine");
+				GotoNextLine();
 			}
 			else
 				s = e;
 		}
-
-		Min.y = LineHeight * MinLines;
-		Max.y = y + LineHeight;
-		
-		if (Debug)
-			LgiTrace("CreateTxtLayout(%i) min=%i,%i  max=%i,%i\n",
-				Width,
-				Min.x, Min.y,
-				Max.x, Min.y);
 	}
+
+	Prof.Add("Post");
+
+	Min.y = LineHeight * MinLines;
+	Max.y = y + LineHeight;
+		
+	if (Debug)
+		LgiTrace("CreateTxtLayout(%i) min=%i,%i  max=%i,%i\n",
+			Width,
+			Min.x, Min.y,
+			Max.x, Min.y);
 
 	return true;
 }

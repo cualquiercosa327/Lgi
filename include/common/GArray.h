@@ -125,6 +125,12 @@ public:
 		fixed = fix;
 	}
 
+	/// Emtpies the array of all objects.
+	bool Empty()
+	{
+		return Length(0);
+	}
+
 	/// Sets the length of available entries
 	bool Length(size_t i)
 	{

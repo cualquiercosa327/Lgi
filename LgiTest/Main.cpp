@@ -179,10 +179,10 @@ public:
 
 			AddView(Txt = new GText(IDC_TXT, 0, 0, -1, -1, "This is a test string. &For like\ntesting and stuff. It has multiple\nlines to test wrapping."));
 			Txt->SetWrap(true);
-			// Txt->GetCss(true)->Color(GCss::ColorDef(GColour::Red));
+			//Txt->GetCss(true)->Color(GCss::ColorDef(GColour::Red));
 			// Txt->GetCss(true)->FontWeight(GCss::FontWeightBold);
-			Txt->GetCss(true)->FontStyle(GCss::FontStyleItalic);
-			Txt->GetCss(true)->FontSize(GCss::Len("32pt"));
+			// Txt->GetCss(true)->FontStyle(GCss::FontStyleItalic);
+			Txt->GetCss(true)->FontSize(GCss::Len("22pt"));
 			Txt->OnStyleChange();
 
 			#else

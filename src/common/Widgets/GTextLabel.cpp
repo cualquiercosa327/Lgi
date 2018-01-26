@@ -194,8 +194,8 @@ void GText::OnStyleChange()
 
 void GText::OnPosChange()
 {
-	if (d->GetWrap())
-		d->Layout(GetFont(), X());
+	// if (d->GetWrap())
+	d->Layout(GetFont(), X());
 }
 
 bool GText::OnLayout(GViewLayoutInfo &Inf)
