@@ -427,6 +427,7 @@
     <ClCompile Include="src\common\Gdc2\Font\GFontSystem.cpp" />
     <ClCompile Include="src\common\Gdc2\Font\GFont_A.cpp" />
     <ClCompile Include="src\common\Gdc2\Font\GFont_W.cpp" />
+    <ClCompile Include="src\common\Gdc2\Font\LStringLayout.cpp" />
     <ClCompile Include="src\common\Gdc2\GColour.cpp" />
     <ClCompile Include="src\common\Gdc2\GdcCommon.cpp" />
     <ClCompile Include="src\common\Gdc2\GRect.cpp" />
@@ -638,6 +639,7 @@
     <ClInclude Include="include\common\LListItemCheckBox.h" />
     <ClInclude Include="include\common\LListItemRadioBtn.h" />
     <ClInclude Include="include\common\LMutex.h" />
+    <ClInclude Include="include\common\LStringLayout.h" />
     <ClInclude Include="include\common\LThread.h" />
     <ClInclude Include="include\common\LThreadEvent.h" />
     <ClInclude Include="include\common\Res.h" />

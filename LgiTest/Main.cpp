@@ -177,7 +177,7 @@ public:
 		{
 			#if 1
 
-			AddView(Txt = new GText(IDC_TXT, 0, 0, -1, -1, "This is a test string. &For like testing and stuff."));
+			AddView(Txt = new GText(IDC_TXT, 0, 0, -1, -1, "This is a test string. &For like\ntesting and stuff. It has multiple\nlines to test wrapping."));
 			Txt->SetWrap(true);
 			// Txt->GetCss(true)->Color(GCss::ColorDef(GColour::Red));
 			// Txt->GetCss(true)->FontWeight(GCss::FontWeightBold);
