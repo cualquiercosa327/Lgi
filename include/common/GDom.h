@@ -52,92 +52,10 @@ public:
 /// object properties inside the SetVariant, GetVariant and CallMethod handlers.
 enum GDomProperty
 {
-	ObjNone,
-	
-	// Common
-	ObjLength,
-	ObjType,
-	ObjName,
-	ObjStyle,
-	ObjClass,
-	ObjField,
-	ObjDebug,
-	ObjTextContent,
-	ObjInnerHtml,
-	
-	// Types
-	TypeList,
-	TypeHashTable,
-	TypeFile,
-	TypeSurface,
-	TypeDateTime,
-	TypeInt,
-	TypeDouble,
-	TypeString,
-
-	// LDateTime
-	DateNone,
-	DateYear,
-	DateMonth,
-	DateDay,
-	DateHour,
-	DateMin,
-	DateSec,
-	DateDate, // "yyyymmdd"
-	DateTime, // "hhmmss"
-	DateDateAndTime, // "yyyymmdd hhmmss"
-	DateInt64,
-	DateSetNow,
-	DateSetStr,
-	DateGetStr,
-
-	// GVariant string
-	StrJoin,
-	StrSplit,
-	StrFind,
-	StrRfind,
-	StrLower,
-	StrUpper,
-	StrStrip,
-	StrInt,
-	StrDouble,
-	StrSub,
-	
-	// GSurface
-	SurfaceX,
-	SurfaceY,
-	SurfaceBits,
-	SurfaceColourSpace,
-	SurfaceIncludeCursor,
-	
-	// List, GHashTbl
-	ContainerAdd,
-	ContainerDelete,
-	ContainerHasKey,
-	ContainerSort,
-	ContainerChildren,
-	ContainerSpan,
-	ContainerAlign,
-	ContainerVAlign,
-	
-	// GFile
-	FileOpen,
-	FileRead,
-	FileWrite,
-	FilePos,
-	FileClose,
-	FileModified,
-	FileFolder,
-	FileEncoding,
-	
-	// GStream
-	StreamReadable,
-	StreamWritable,
-
-	// Rich text editor
-	HtmlImagesLinkCid, // output CID image links rather than files.
-	SpellCheckLanguage,
-	SpellCheckDictionary,
+	#undef _
+	#define _(symbol) symbol,
+	#include "LDomFields.h"
+	#undef _
 };
 
 LgiFunc GDomProperty LgiStringToDomProp(const char *Str);

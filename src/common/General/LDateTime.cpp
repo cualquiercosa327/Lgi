@@ -1892,10 +1892,10 @@ bool LDateTime::GetVariant(const char *Name, GVariant &Dst, char *Array)
 		case DateHour: // Type: Int32
 			Dst = Hours();
 			break;
-		case DateMin: // Type: Int32
+		case DateMinute: // Type: Int32
 			Dst = Minutes();
 			break;
-		case DateSec: // Type: Int32
+		case DateSecond: // Type: Int32
 			Dst = Seconds();
 			break;
 		case DateDate: // Type: String
@@ -1919,7 +1919,7 @@ bool LDateTime::GetVariant(const char *Name, GVariant &Dst, char *Array)
 			Dst = s;
 			break;
 		}
-		case DateInt64: // Type: Int64
+		case DateTimestamp: // Type: Int64
 		{
 			uint64 i = 0;
 			Get(i);
@@ -1951,10 +1951,10 @@ bool LDateTime::SetVariant(const char *Name, GVariant &Value, char *Array)
 		case DateHour:
 			Hours(Value.CastInt32());
 			break;
-		case DateMin:
+		case DateMinute:
 			Minutes(Value.CastInt32());
 			break;
-		case DateSec:
+		case DateSecond:
 			Seconds(Value.CastInt32());
 			break;
 		case DateDate:
@@ -1966,7 +1966,7 @@ bool LDateTime::SetVariant(const char *Name, GVariant &Value, char *Array)
 		case DateDateAndTime:
 			Set(Value.Str());
 			break;
-		case DateInt64:
+		case DateTimestamp:
 			Set((uint64)Value.CastInt64());
 			break;
 		default:

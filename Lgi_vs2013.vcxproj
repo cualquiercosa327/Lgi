@@ -627,6 +627,7 @@
     <ClInclude Include="include\common\INet.h" />
     <ClInclude Include="include\common\INetTools.h" />
     <ClInclude Include="include\common\LDateTime.h" />
+    <ClInclude Include="include\common\LDomFields.h" />
     <ClInclude Include="include\common\Lgi.h" />
     <ClInclude Include="include\common\LgiClass.h" />
     <ClInclude Include="include\common\LgiClasses.h" />

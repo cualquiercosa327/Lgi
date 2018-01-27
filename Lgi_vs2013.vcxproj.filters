@@ -724,5 +724,8 @@
     <ClInclude Include="include\common\LStringLayout.h">
       <Filter>Source Files\Graphics\Font</Filter>
     </ClInclude>
+    <ClInclude Include="include\common\LDomFields.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

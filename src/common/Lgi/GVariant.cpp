@@ -1627,82 +1627,106 @@ struct GDomPropMap
 		ToProp(0, false, NULL, ObjNone),
 		ToString(0, true, ObjNone, NULL)
 	{
-		Define("Length", ObjLength);
-		Define("Type", ObjType);
-		Define("Name", ObjName);
-		Define("Style", ObjStyle);
-		Define("Class", ObjClass);
-		Define("Field", ObjField);
-		Define("Debug", ObjDebug);
-		Define("textContent", ObjTextContent);
-		Define("innerHTML", ObjInnerHtml);
+		#undef _
+		#define _(symbol) Define(#symbol, symbol);
+		#include "LDomFields.h"
+		#undef _
 
-		Define("List", TypeList);
-		Define("HashTable", TypeHashTable);
-		Define("File", TypeFile);
-		Define("Surface", TypeSurface);
-		Define("Int", TypeInt);
-		Define("Double", TypeDouble);
-		Define("String", TypeString);
-		Define("DateTime", TypeDateTime);
-		
-		Define("Year", DateYear);
-		Define("Month", DateMonth);
-		Define("Day", DateDay);
-		Define("Hour", DateHour);
-		Define("Minute", DateMin);
-		Define("Second", DateSec);
-		Define("Date", DateDate);
-		Define("Time", DateTime);
-		Define("DateAndTime", DateDateAndTime);
-		Define("DateInt64", DateInt64);
-		Define("SetNow", DateSetNow);
-		Define("SetStr", DateSetStr);
-		Define("GetStr", DateGetStr);
+		Check("Length", ObjLength);
+		Check("Type", ObjType);
+		Check("Name", ObjName);
+		Check("Style", ObjStyle);
+		Check("Class", ObjClass);
+		Check("Field", ObjField);
+		Check("Debug", ObjDebug);
+		Check("textContent", ObjTextContent);
+		Check("innerHTML", ObjInnerHtml);
 
-		Define("Join", StrJoin);
-		Define("Split", StrSplit);
-		Define("Find", StrFind);
-		Define("Rfind", StrRfind);
-		Define("Lower", StrLower);
-		Define("Upper", StrUpper);
-		Define("Strip", StrStrip);
-		Define("Sub", StrSub);
+		Check("List", TypeList);
+		Check("HashTable", TypeHashTable);
+		Check("File", TypeFile);
+		Check("Surface", TypeSurface);
+		Check("Int", TypeInt);
+		Check("Double", TypeDouble);
+		Check("String", TypeString);
+		Check("DateTime", TypeDateTime);
 		
-		Define("X", SurfaceX);
-		Define("Y", SurfaceY);
-		Define("Bits", SurfaceBits);
-		Define("ColourSpace", SurfaceColourSpace);
-		Define("IncludeCursor", SurfaceIncludeCursor);
+		Check("Year", DateYear);
+		Check("Month", DateMonth);
+		Check("Day", DateDay);
+		Check("Hour", DateHour);
+		Check("Minute", DateMinute);
+		Check("Second", DateSecond);
+		Check("Date", DateDate);
+		Check("Time", DateTime);
+		Check("DateAndTime", DateDateAndTime);
+		Check("Timestamp", DateTimestamp);
+		Check("SetNow", DateSetNow);
+		Check("SetStr", DateSetStr);
+		Check("GetStr", DateGetStr);
 
-		Define("Add", ContainerAdd);
-		Define("Delete", ContainerDelete);
-		Define("HasKey", ContainerHasKey);
-		Define("Sort", ContainerSort);
-		Define("Children", ContainerChildren);
-		Define("Span", ContainerSpan);
-		Define("Align", ContainerAlign);
-		Define("VAlign", ContainerVAlign);
+		Check("Join", StrJoin);
+		Check("Split", StrSplit);
+		Check("Find", StrFind);
+		Check("Rfind", StrRfind);
+		Check("Lower", StrLower);
+		Check("Upper", StrUpper);
+		Check("Strip", StrStrip);
+		Check("Sub", StrSub);
+		
+		Check("X", SurfaceX);
+		Check("Y", SurfaceY);
+		Check("Bits", SurfaceBits);
+		Check("ColourSpace", SurfaceColourSpace);
+		Check("IncludeCursor", SurfaceIncludeCursor);
 
-		Define("Open", FileOpen);
-		Define("Read", FileRead);
-		Define("Write", FileWrite);
-		Define("Pos", FilePos);
-		Define("Close", FileClose);
-		Define("Modified", FileModified);
-		Define("Folder", FileFolder);
-		Define("Encoding", FileEncoding);
+		Check("Add", ContainerAdd);
+		Check("Delete", ContainerDelete);
+		Check("HasKey", ContainerHasKey);
+		Check("Sort", ContainerSort);
+		Check("Children", ContainerChildren);
+		Check("Span", ContainerSpan);
+		Check("Align", ContainerAlign);
+		Check("VAlign", ContainerVAlign);
+
+		Check("Open", FileOpen);
+		Check("Read", FileRead);
+		Check("Write", FileWrite);
+		Check("Pos", FilePos);
+		Check("Close", FileClose);
+		Check("Modified", FileModified);
+		Check("Folder", FileFolder);
+		Check("Encoding", FileEncoding);
 		
-		Define("Readable", StreamReadable);
-		Define("Writable", StreamWritable);
+		Check("Readable", StreamReadable);
+		Check("Writable", StreamWritable);
 		
-		Define("HtmlImagesLinkCid", HtmlImagesLinkCid);
-		Define("SpellCheckLanguage", SpellCheckLanguage);
-		Define("SpellCheckDictionary", SpellCheckDictionary);
+		Check("HtmlImagesLinkCid", HtmlImagesLinkCid);
+		Check("SpellCheckLanguage", SpellCheckLanguage);
+		Check("SpellCheckDictionary", SpellCheckDictionary);
+
+		Check("AppendSeparator", AppendSeparator);
+		Check("AppendItem", AppendItem);
+		Check("AppendSubmenu", AppendSubmenu);
 	}
 	
 	void Define(const char *s, GDomProperty p)
 	{
+		static const char *Prefixes[] = { "Obj", "File", "Date", "Type", "Surface", "Stream", "Str", "Container" };
+		
+		if (!p)
+			return;
+
+		for (unsigned i=0; i<CountOf(Prefixes); i++)
+		{
+			size_t len = strlen(Prefixes[i]);
+			if (_strnicmp(s, Prefixes[i], len) == 0)
+			{
+				s += len;
+				break;
+			}
+		}
+
 		#if defined(_DEBUG)
 		GDomProperty e = ToProp.Find(s);
 		LgiAssert(e == ObjNone);
@@ -1711,6 +1735,12 @@ struct GDomPropMap
 		ToProp.Add(s, p);
 		ToString.Add(p, s);
 	} 
+
+	void Check(const char *s, GDomProperty p)
+	{
+		LgiAssert(ToProp.Find(s) == p);
+		LgiAssert(!_stricmp(ToString.Find(p), s));
+	}
 	
 } DomPropMap;
 
