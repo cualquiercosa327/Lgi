@@ -1232,8 +1232,9 @@ void TableCell::PostLayout()
 		}
 		#endif
 
-		v->SetPos(New[n]);		
-		v->Visible(true);
+		v->SetPos(New[n]);	
+		// What if you want the control to stay invisible?	
+		// v->Visible(true);
 	}
 }
 
