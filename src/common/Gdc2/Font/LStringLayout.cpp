@@ -229,7 +229,7 @@ struct Break
 	Breaks.Empty();
 
 // Create the lines from text
-bool LStringLayout::DoLayout(int Width, bool Debug)
+bool LStringLayout::DoLayout(int Width, int MinYSize, bool Debug)
 {
 	#if DEBUG_PROFILE_LAYOUT
 	GProfile Prof("LStringLayout::DoLayout");
@@ -280,7 +280,7 @@ bool LStringLayout::DoLayout(int Width, bool Debug)
 		{
 			GUtf8Ptr e(s);
 			ssize_t StartOffset = (char*)s.GetPtr() - Start;
-			for (uint32 Ch; Ch = e; e++)
+			for (uint32 Ch; (Ch = e); e++)
 			{
 				if (Ch == '\n')
 					break;
@@ -292,7 +292,7 @@ bool LStringLayout::DoLayout(int Width, bool Debug)
 
 			ssize_t Bytes = e - s;
 
-			GFont *Fnt;
+			GFont *Fnt = NULL;
 			if (FontCache)
 				Fnt = FontCache->GetFont(*Run);
 			if (!Fnt)
@@ -328,7 +328,6 @@ bool LStringLayout::DoLayout(int Width, bool Debug)
 						Strs.Add(n);
 							
 						// Roll back till we get a break point that fits
-						LLayoutString *r = NULL;
 						for (int i = Breaks.Length() - 1; i >= 0; i--)
 						{
 							Break &b = Breaks[i];
@@ -412,7 +411,7 @@ bool LStringLayout::DoLayout(int Width, bool Debug)
 						// Break at next word break
 						e = s;
 						e += Chars;
-						for (uint32 Ch; Ch = e; e++)
+						for (uint32 Ch; (Ch = e); e++)
 						{
 							if (LGI_BreakableChar(Ch))
 								break;
@@ -460,8 +459,12 @@ bool LStringLayout::DoLayout(int Width, bool Debug)
 	#endif
 
 	Min.y = LineHeight * MinLines;
+	if (Min.y < MinYSize)
+		Min.y = MinYSize;
 	Max.y = y + LineHeight;
-		
+	if (Max.y < MinYSize)
+		Max.y = MinYSize;
+	
 	if (Debug)
 		LgiTrace("CreateTxtLayout(%i) min=%i,%i  max=%i,%i\n",
 			Width,

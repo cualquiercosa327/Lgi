@@ -5,7 +5,7 @@
 #include "GSkinEngine.h"
 #include "GCheckBox.h"
 #include "GDisplayString.h"
-#include "GDisplayStringLayout.h"
+#include "LStringLayout.h"
 #include "LgiRes.h"
 
 static int PadX1Px = 20;
@@ -22,6 +22,7 @@ static int MinYSize = 16;
 class GCheckBoxPrivate : public LMutex, public LStringLayout
 {
 	GCheckBox *Ctrl;
+	GFontCache Cache;
 	
 public:
 	int64 Val;
@@ -29,7 +30,9 @@ public:
 	bool Three;
 	GRect ValuePos;
 
-	GCheckBoxPrivate(GCheckBox *ctrl) : LMutex("GCheckBoxPrivate")
+	GCheckBoxPrivate(GCheckBox *ctrl) :
+		LMutex("GCheckBoxPrivate"),
+		LStringLayout(&Cache)
 	{
 		Ctrl = ctrl;
 		Val = 0;
@@ -43,9 +46,7 @@ public:
 	{
 		if (Lock(_FL))
 		{
-			GFont *f = Ctrl->GetFont();
-			char *s = Ctrl->GBase::Name();
-			DoPreLayout(f, s, Min, Max);
+			DoPreLayout(Min, Max);
 			Unlock();
 		}
 		else return false;
@@ -56,14 +57,8 @@ public:
 	{		
 		if (Lock(_FL))
 		{
-			GFont *f = Ctrl->GetFont();
-			char *s = Ctrl->GBase::Name();
-			DoLayout(f, s, Px);
+			DoLayout(Px, MinYSize);
 			Unlock();
-			if (Min.y < MinYSize)
-				Min.y = MinYSize;
-			if (Max.y < MinYSize)
-				Max.y = MinYSize;
 		}
 		else return false;
 		return true;
@@ -77,8 +72,9 @@ GCheckBox::GCheckBox(int id, int x, int y, int cx, int cy, const char *name, int
 {
 	d = new GCheckBoxPrivate(this);
 	Name(name);
-	if (cx < 0) cx = (d->Max.x >> GDisplayString::FShift) + PadX1Px + PadX2Px;
-	if (cy < 0) cy = max(d->Max.y, MinYSize) + PadYPx;
+	GdcPt2 Max = d->GetMax();
+	if (cx < 0) cx = Max.x + PadX1Px + PadX2Px;
+	if (cy < 0) cy = max(Max.y, MinYSize) + PadYPx;
 
 	d->Val = InitState;
 	GRect r(x, y, x+cx, y+cy);
@@ -264,19 +260,20 @@ void GCheckBox::OnPosChange()
 
 bool GCheckBox::OnLayout(GViewLayoutInfo &Inf)
 {
-	if (!Inf.Width.Max)
+	if (!Inf.Width.Min)
 	{
-		d->PreLayout(Inf.Width.Min, Inf.Width.Max);
+		d->PreLayout(Inf.Width.Min,
+					 Inf.Width.Max);
 		Inf.Width.Min += PadX1Px + PadX2Px;
 		Inf.Width.Max += PadX1Px + PadX2Px;
 	}
 	else
 	{
 		d->Layout(Inf.Width.Max);
-		Inf.Height.Min = d->Min.y + PadYPx;
-		Inf.Height.Max = d->Max.y + PadYPx;
+		Inf.Height.Min = d->GetMin().y + PadYPx;
+		Inf.Height.Max = d->GetMax().y + PadYPx;
 	}
-	return true;	
+	return true;
 }
 
 void GCheckBox::OnPaint(GSurface *pDC)
@@ -292,7 +289,7 @@ void GCheckBox::OnPaint(GSurface *pDC)
 		GSkinState State;
 		State.pScreen = pDC;
 		State.MouseOver = d->Over;
-		State.aText = &d->Strs;
+		State.aText = d->GetStrs();
 		d->ValuePos.Set(0, 0, 15, 15);
 		GApp::SkinEngine->OnPaint_GCheckBox(this, &State);
 	}
@@ -321,7 +318,8 @@ void GCheckBox::OnPaint(GSurface *pDC)
 		if (d->Lock(_FL))
 		{
 			GdcPt2 pt(t.x1, t.y1 + TextYOffset);
-			d->Paint(pDC, pt, t, cFore, cBack, en);
+					
+			d->Paint(pDC, pt, cBack, t, en);
 			d->Unlock();
 		}
 

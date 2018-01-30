@@ -7,7 +7,7 @@
 #include "GCheckBox.h"
 #include "GDisplayString.h"
 #include "LgiRes.h"
-#include "GDisplayStringLayout.h"
+#include "LStringLayout.h"
 
 #define RADIO_GRID	2
 
@@ -18,6 +18,7 @@ static int MinYSize = 16;
 class GRadioGroupPrivate : public LMutex, public LStringLayout
 {
 	GRadioGroup *Ctrl;
+	GFontCache Cache;
 	
 public:
 	static int NextId;
@@ -25,7 +26,9 @@ public:
 	int MaxLayoutWidth;
 	GHashTbl<void*,GViewLayoutInfo*> Info;
 
-	GRadioGroupPrivate(GRadioGroup *g) : LMutex("GRadioGroupPrivate")
+	GRadioGroupPrivate(GRadioGroup *g) :
+		LMutex("GRadioGroupPrivate"),
+		LStringLayout(&Cache)
 	{
 		Ctrl = g;
 		Val = 0;
@@ -41,9 +44,7 @@ public:
 	{
 		if (Lock(_FL))
 		{
-			GFont *f = Ctrl->GetFont();
-			char *s = Ctrl->GBase::Name();
-			DoPreLayout(f, s, Min, Max);
+			DoPreLayout(Min, Max);
 			Unlock();
 		}
 		else return false;
@@ -54,14 +55,8 @@ public:
 	{		
 		if (Lock(_FL))
 		{
-			GFont *f = Ctrl->GetFont();
-			char *s = Ctrl->GBase::Name();
-			DoLayout(f, s, Px);
+			DoLayout(Px, MinYSize);
 			Unlock();
-			if (Min.y < MinYSize)
-				Min.y = MinYSize;
-			if (Max.y < MinYSize)
-				Max.y = MinYSize;
 		}
 		else return false;
 		return true;
@@ -129,14 +124,14 @@ bool GRadioGroup::OnLayout(GViewLayoutInfo &Inf)
 	else
 	{
 		d->Layout(Inf.Width.Max);
-		Inf.Height.Min = d->Min.y + MinPx;
-		Inf.Height.Max = d->Max.y + MinPx;
+		Inf.Height.Min = d->GetMin().y + MinPx;
+		Inf.Height.Max = d->GetMax().y + MinPx;
 		
 		// Working out the height, and positioning the controls
 		// Inf.Height.Min = d->Txt ? d->Txt->Y() : 16;
 		
 		bool Horiz = d->MaxLayoutWidth <= Inf.Width.Max;
-		int Cx = BORDER_PX + RADIO_GRID, Cy = d->Min.y;
+		int Cx = BORDER_PX + RADIO_GRID, Cy = d->GetMin().y;
 		int LastY = 0;
 		for (GViewI *w = it->First(); w; w = it->Next())
 		{
@@ -305,7 +300,7 @@ void GRadioGroup::OnPaint(GSurface *pDC)
 		GSkinState State;
 		State.pScreen = pDC;
 		State.MouseOver = false;
-		State.aText = &d->Strs;
+		State.aText = d->GetStrs();
 		GApp::SkinEngine->OnPaint_GRadioGroup(this, &State);
 	}
 	else
@@ -335,14 +330,14 @@ void GRadioGroup::OnPaint(GSurface *pDC)
 			pDC->Rectangle();
 		}
 
-		int y = d->Min.y;
+		int y = d->GetMin().y;
 		GRect b(0, y/2, X()-1, Y()-1);
 		LgiWideBorder(pDC, b, EdgeXpChisel);
 
 		GdcPt2 TxtPt(6, 0);
-		GRect TxtRc = d->StrBounds;
+		GRect TxtRc = d->GetBounds();
 		TxtRc.Offset(TxtPt.x, TxtPt.y);		
-		d->Paint(pDC, TxtPt, TxtRc, Fore, Back, Enabled());
+		d->Paint(pDC, TxtPt, Back, TxtRc, Enabled());
 	}
 }
 
@@ -364,8 +359,11 @@ struct GRadioButtonPrivate : public LMutex, public LStringLayout
 	GRadioButton *Ctrl;
 	bool Val;
 	bool Over;
+	GFontCache Cache;
 
-	GRadioButtonPrivate(GRadioButton *c) : LMutex("GRadioButtonPrivate")
+	GRadioButtonPrivate(GRadioButton *c) :
+		LMutex("GRadioButtonPrivate"),
+		LStringLayout(&Cache)
 	{
 		Ctrl = c;
 		Val = 0;
@@ -380,9 +378,7 @@ struct GRadioButtonPrivate : public LMutex, public LStringLayout
 	{
 		if (Lock(_FL))
 		{
-			GFont *f = Ctrl->GetFont();
-			char *s = Ctrl->GBase::Name();
-			DoPreLayout(f, s, Min, Max);
+			DoPreLayout(Min, Max);
 			Unlock();
 		}
 		else return false;
@@ -393,14 +389,14 @@ struct GRadioButtonPrivate : public LMutex, public LStringLayout
 	{		
 		if (Lock(_FL))
 		{
-			GFont *f = Ctrl->GetFont();
-			char *s = Ctrl->GBase::Name();
-			DoLayout(f, s, Px);
+			DoLayout(Px);
 			Unlock();
+			/*
 			if (Min.y < MinYSize)
 				Min.y = MinYSize;
 			if (Max.y < MinYSize)
 				Max.y = MinYSize;
+				*/
 		}
 		else return false;
 		return true;
@@ -419,8 +415,8 @@ GRadioButton::GRadioButton(int id, int x, int y, int cx, int cy, const char *nam
 {
 	d = new GRadioButtonPrivate(this);
 	Name(name);
-	if (cx < 0) cx = d->StrBounds.X() + PadXPx;
-	if (cy < 0) cy = d->StrBounds.Y() + PadYPx;
+	if (cx < 0) cx = d->GetBounds().X() + PadXPx;
+	if (cy < 0) cy = d->GetBounds().Y() + PadYPx;
 
 	GRect r(x, y, x+cx, y+cy);
 	SetPos(r);
@@ -497,8 +493,8 @@ bool GRadioButton::OnLayout(GViewLayoutInfo &Inf)
 	else
 	{
 		d->Layout(Inf.Width.Max);
-		Inf.Height.Min = d->Min.y + PadYPx;
-		Inf.Height.Max = d->Max.y + PadYPx;
+		Inf.Height.Min = d->GetMin().y + PadYPx;
+		Inf.Height.Max = d->GetMax().y + PadYPx;
 	}
 	
 	return true;	
@@ -681,7 +677,7 @@ void GRadioButton::OnPaint(GSurface *pDC)
 		GSkinState State;
 		State.pScreen = pDC;
 		State.MouseOver = d->Over;
-		State.aText = &d->Strs;
+		State.aText = d->GetStrs();
 		GApp::SkinEngine->OnPaint_GRadioButton(this, &State);
 	}
 	else
@@ -709,8 +705,8 @@ void GRadioButton::OnPaint(GSurface *pDC)
 		
 		// bool e = Enabled();
 		GRect fill(c.x2 + 1, r.y1, r.x2, r.x2);
-		GdcPt2 TxtPt(c.x2 + 11, (r.Y() - d->StrBounds.Y()) >> 1);
-		d->Paint(pDC, TxtPt, fill, Fore, Back, Enabled());
+		GdcPt2 TxtPt(c.x2 + 11, (r.Y() - d->GetBounds().Y()) >> 1);
+		d->Paint(pDC, TxtPt, Back, fill, Enabled());
 		
 		#if defined MAC && !defined COCOA && !defined(LGI_SDL)
 

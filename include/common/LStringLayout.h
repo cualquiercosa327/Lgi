@@ -87,6 +87,8 @@ public:
 	void SetWrap(bool b) { Wrap = b; }
 	GdcPt2 GetMin() { return Min; }
 	GdcPt2 GetMax() { return Max; }
+	GArray<GDisplayString*> *GetStrs() { return &Strs; }
+	GRect GetBounds() { return Bounds; }
 
 	/// Adds a run of text with the same style
 	bool Add(const char *Str, GCss *Style);
@@ -99,7 +101,7 @@ public:
 	void DoPreLayout(int32 &MinX, int32 &MaxX);
 
 	// Creates the layout of from the runs in 'Text'
-	bool DoLayout(int Width, bool Debug = false);
+	bool DoLayout(int Width, int MinYSize = 0, bool Debug = false);
 	
 	/// Paints the laid out strings at 'pt'.
 	void Paint(	GSurface *pDC,
