@@ -84,7 +84,7 @@
 		<String Ref="119" Cid="1" Define="IDOK" en="Ok" />
 		<String Ref="120" Cid="2" Define="IDCANCEL" en="Cancel" />
 		<String Ref="121" Cid="121" Define="IDS_121" en="Add" />
-		<String Ref="122" Cid="547" Define="IDC_LOOK_FOR" en="&Look for:" />
+		<String Ref="122" Cid="-1" Define="IDC_STATIC" en="&Look for:" />
 		<String Ref="136" Cid="-1" Define="IDC_STATIC" en="Path:" />
 		<String Ref="176" Cid="2" Define="IDCANCEL" en="Cancel" />
 		<String Ref="177" Cid="2" Define="IDCANCEL" en="Cancel" />
@@ -205,7 +205,7 @@
 	<Dialog pos="7,7,436,221" ref="19">
 		<TableLayout pos="7,7,419,174" ref="64" cols="0.334,0.295,0.218,0.153" rows="0.167,0.167,0.167,0.167,0.167,0.167">
 			<tr>
-				<td>
+				<td valign="Center">
 					<StaticText pos="0,0,76,13" ref="122" />
 				</td>
 				<td colspan="3">
@@ -213,7 +213,7 @@
 				</td>
 			</tr>
 			<tr>
-				<td>
+				<td valign="Center">
 					<StaticText pos="0,26,76,39" ref="21" />
 				</td>
 				<td colspan="2">
@@ -231,7 +231,7 @@
 				<td />
 			</tr>
 			<tr>
-				<td>
+				<td valign="Center">
 					<RadioBox pos="7,84,90,97" ref="70" />
 				</td>
 				<td>

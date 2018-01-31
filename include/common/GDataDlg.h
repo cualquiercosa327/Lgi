@@ -82,7 +82,7 @@ template <class Record, class Lst>
 class DRecordSetCtrls : public DataDlgTools
 {
 	// Controls
-	GText *Description;
+	GTextLabel *Description;
 	GScrollBar *Scroll;
 	int NewRecordId;
 	int DeleteRecordId;
