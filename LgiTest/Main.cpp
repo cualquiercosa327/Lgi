@@ -159,7 +159,7 @@ class App : public GWindow
 {
 	GEdit *e;
 	GEdit *e2;
-	GText *Txt;
+	GTextLabel *Txt;
 	GTableLayout *Tbl;
 
 public:
@@ -183,7 +183,7 @@ public:
 			AddView(Tbl = new GTableLayout(100));
 			GLayoutCell *c = Tbl->GetCell(0, 0);
 
-			c->Add(Txt = new GText(IDC_TXT, 0, 0, -1, -1, "This is a test string. &For like\ntesting and stuff. It has multiple\nlines to test wrapping."));
+			c->Add(Txt = new GTextLabel(IDC_TXT, 0, 0, -1, -1, "This is a test string. &For like\ntesting and stuff. It has multiple\nlines to test wrapping."));
 			Txt->SetWrap(true);
 			//Txt->GetCss(true)->Color(GCss::ColorDef(GColour::Red));
 			// Txt->GetCss(true)->FontWeight(GCss::FontWeightBold);

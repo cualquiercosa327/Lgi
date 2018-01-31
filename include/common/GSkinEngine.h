@@ -108,7 +108,7 @@ public:
 
 	// Do painting for the various controls, the relevant GSKIN_??? flag needs to
 	// be returned from GetFeatures before you can call any of these.
-	virtual void OnPaint_GText        (GText *Ctrl,        GSkinState *State) {};
+	virtual void OnPaint_GText        (GTextLabel *Ctrl,   GSkinState *State) {};
 	virtual void OnPaint_GButton      (GButton *Ctrl,      GSkinState *State) {};
 	virtual void OnPaint_GEdit        (GEdit *Ctrl,        GSkinState *State) {};
 	virtual void OnPaint_GCheckBox    (GCheckBox *Ctrl,    GSkinState *State) {};
