@@ -738,6 +738,19 @@ public:
 			return Atoi(Str->Str, Base);
 		return -1;
 	}
+
+	/// Checks if the string is a number
+	bool IsNumeric()
+	{
+		if (!Str)
+			return false;
+		for (char *s = Str->Str; *s; s++)
+		{
+			if (!IsDigit(*s) || strchr("e-+.", *s))
+				return false;
+		}
+		return true;
+	}
 	
 	/// Reverses all the characters in the string
 	GString Reverse()

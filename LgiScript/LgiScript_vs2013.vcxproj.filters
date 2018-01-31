@@ -81,6 +81,9 @@
     <None Include="Scripts\ExternTest.script">
       <Filter>Source Files\Test Scripts</Filter>
     </None>
+    <None Include="Scripts\FunctionScope.script">
+      <Filter>Source Files\Test Scripts</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\common\GScripting.h">

@@ -937,7 +937,7 @@ public:
 	);
 
 	bool GetFolders(GArray<MailImapFolder*> &Folders);
-	bool SelectFolder(const char *Path, GHashTbl<const char*,int> *Values = 0);
+	bool SelectFolder(const char *Path, GHashTbl<const char*,GString> *Values = 0);
 	char *GetSelectedFolder();
 	int GetMessages(const char *Path);
 	bool CreateFolder(MailImapFolder *f);
