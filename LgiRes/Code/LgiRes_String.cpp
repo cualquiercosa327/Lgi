@@ -31,7 +31,7 @@ LangDlg::LangDlg(GView *parent, List<GLanguage> &l, int Init)
 	MoveToCenter();
 	Name("Language");
 
-	Children.Insert(new GText(-1, 10, 10, -1, -1, "Select language:"));
+	Children.Insert(new GTextLabel(-1, 10, 10, -1, -1, "Select language:"));
 	Children.Insert(Sel = new GCombo(-1, 20, 30, 150, 20, ""));
 	if (Sel)
 	{

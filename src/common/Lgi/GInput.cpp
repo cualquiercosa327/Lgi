@@ -41,7 +41,7 @@ GInput::GInput(GViewI *parent, const char *InitStr, const char *Msg, const char 
 
 	GLayoutCell *c = Tbl->GetCell(0, 0, true);
 	GView *Txt;
-	c->Add(Txt = new GText(-1, 5, 5, -1, -1, Msg));
+	c->Add(Txt = new GTextLabel(-1, 5, 5, -1, -1, Msg));
 
 	GDisplayString MsgDs(SysFont, ValidStr(InitStr)?InitStr:"A");
 	int Dx = LgiApp->GetMetric(LGI_MET_DECOR_X) + 10;

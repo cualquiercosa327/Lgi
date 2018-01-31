@@ -479,6 +479,9 @@
     <ClCompile Include="src\common\Gdc2\Font\LStringLayout.cpp">
       <Filter>Source Files\Graphics\Font</Filter>
     </ClCompile>
+    <ClCompile Include="src\common\Lgi\GMenuCommon.cpp">
+      <Filter>Source Files\Core\Menus</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\common\GLibrary.h">

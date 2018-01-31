@@ -10,16 +10,16 @@
 
 class GTextPrivate : public LStringLayout, public LMutex
 {
-	GText *Ctrl;
+	GTextLabel *Ctrl;
 	GFontCache Cache;
 
 public:
-	/// When GText::Name(W) is called out of thread, the string is put
+	/// When GTextLabel::Name(W) is called out of thread, the string is put
 	/// here first and then a message is posted over to the GUI thread
 	/// to load it into the ctrl.
 	GString ThreadName;
 
-	GTextPrivate(GText *ctrl) : Cache(), LStringLayout(&Cache), LMutex("GTextPrivate")
+	GTextPrivate(GTextLabel *ctrl) : Cache(), LStringLayout(&Cache), LMutex("GTextPrivate")
 	{
 		Ctrl = ctrl;
 		AmpersandToUnderline = true;
@@ -49,11 +49,12 @@ public:
 	}
 };
 
-GText::GText(int id, int x, int y, int cx, int cy, const char *name) :
+GTextLabel::GTextLabel(int id, int x, int y, int cx, int cy, const char *name) :
 	ResObject(Res_StaticText)
 {
 	d = new GTextPrivate(this);
-	Name(name);
+	if (name)
+		Name(name);
 
 	if (cx < 0) cx = d->GetMax().x >> GDisplayString::FShift;
 	if (cy < 0) cy = d->GetMax().y;
@@ -63,18 +64,18 @@ GText::GText(int id, int x, int y, int cx, int cy, const char *name) :
 	SetId(id);
 }
 
-GText::~GText()
+GTextLabel::~GTextLabel()
 {
 	DeleteObj(d);
 }
 
-void GText::OnAttach()
+void GTextLabel::OnAttach()
 {
 	LgiResources::StyleElement(this);
 	GView::OnAttach();
 }
 
-bool GText::SetVariant(const char *Name, GVariant &Value, char *Array)
+bool GTextLabel::SetVariant(const char *Name, GVariant &Value, char *Array)
 {
 	GDomProperty p = LgiStringToDomProp(Name);
 	if (p == ObjStyle)
@@ -90,19 +91,19 @@ bool GText::SetVariant(const char *Name, GVariant &Value, char *Array)
 	return false;
 }
 
-bool GText::GetWrap()
+bool GTextLabel::GetWrap()
 {
 	return d->GetWrap();
 }
 
-void GText::SetWrap(bool b)
+void GTextLabel::SetWrap(bool b)
 {
 	d->SetWrap(b);
 	d->Layout(GetFont(), X());
 	Invalidate();
 }
 
-bool GText::Name(const char *n)
+bool GTextLabel::Name(const char *n)
 {
 	if (!d->Lock(_FL))
 		return false;
@@ -130,7 +131,7 @@ bool GText::Name(const char *n)
 	return true;
 }
 
-bool GText::NameW(const char16 *n)
+bool GTextLabel::NameW(const char16 *n)
 {
 	if (!d->Lock(_FL))
 		return false;
@@ -158,14 +159,14 @@ bool GText::NameW(const char16 *n)
 	return true;
 }
 
-void GText::SetFont(GFont *Fnt, bool OwnIt)
+void GTextLabel::SetFont(GFont *Fnt, bool OwnIt)
 {
 	GView::SetFont(Fnt, OwnIt);
 	d->Layout(GetFont(), X());
 	Invalidate();
 }
 
-int64 GText::Value()
+int64 GTextLabel::Value()
 {
 	char *n = Name();
 	#ifdef _MSC_VER
@@ -175,14 +176,14 @@ int64 GText::Value()
 	#endif
 }
 
-void GText::Value(int64 i)
+void GTextLabel::Value(int64 i)
 {
 	char Str[32];
 	sprintf_s(Str, sizeof(Str), LGI_PrintfInt64, i);
 	Name(Str);
 }
 
-void GText::OnStyleChange()
+void GTextLabel::OnStyleChange()
 {
 	if (d->Lock(_FL))
 	{
@@ -192,13 +193,13 @@ void GText::OnStyleChange()
 	}
 }
 
-void GText::OnPosChange()
+void GTextLabel::OnPosChange()
 {
 	// if (d->GetWrap())
 	d->Layout(GetFont(), X());
 }
 
-bool GText::OnLayout(GViewLayoutInfo &Inf)
+bool GTextLabel::OnLayout(GViewLayoutInfo &Inf)
 {
 	if (!Inf.Width.Min)
 	{
@@ -215,7 +216,7 @@ bool GText::OnLayout(GViewLayoutInfo &Inf)
 	return true;
 }
 
-GMessage::Result GText::OnEvent(GMessage *Msg)
+GMessage::Result GTextLabel::OnEvent(GMessage *Msg)
 {
 	switch (Msg->Msg())
 	{
@@ -236,7 +237,7 @@ GMessage::Result GText::OnEvent(GMessage *Msg)
 	return GView::OnEvent(Msg);
 }
 
-int GText::OnNotify(GViewI *Ctrl, int Flags)
+int GTextLabel::OnNotify(GViewI *Ctrl, int Flags)
 {
 	if (Ctrl == (GViewI*)this &&
 		Flags == GNotify_Activate &&
@@ -255,7 +256,7 @@ int GText::OnNotify(GViewI *Ctrl, int Flags)
 	return 0;
 }
 
-void GText::OnPaint(GSurface *pDC)
+void GTextLabel::OnPaint(GSurface *pDC)
 {
 	// bool Status = false;
 

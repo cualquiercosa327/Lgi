@@ -131,19 +131,19 @@ GProgressPane::GProgressPane()
 		#ifdef PAD
 		c->Padding(GCss::Len(GCss::LenPx, PAD));
 		#endif
-		c->Add(Desc = new GText(IDC_DESCRIPTION, 0, 0, -1, -1, "##"));
+		c->Add(Desc = new GTextLabel(IDC_DESCRIPTION, 0, 0, -1, -1, "##"));
 
 		c = t->GetCell(0, Row);
 		#ifdef PAD
 		c->Padding(GCss::Len(GCss::LenPx, PAD));
 		#endif
-		c->Add(ValText = new GText(IDC_VALUE, 0, 0, -1, -1, "##"));
+		c->Add(ValText = new GTextLabel(IDC_VALUE, 0, 0, -1, -1, "##"));
 
 		c = t->GetCell(1, Row++);
 		#ifdef PAD
 		c->Padding(GCss::Len(GCss::LenPx, PAD));
 		#endif
-		c->Add(Rate = new GText(IDC_RATE, 0, 0, -1, -1, "##"));
+		c->Add(Rate = new GTextLabel(IDC_RATE, 0, 0, -1, -1, "##"));
 
 		c = t->GetCell(0, Row++, true, 2, 1);
 		#ifdef PAD

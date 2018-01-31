@@ -8,7 +8,6 @@
 #define IDC_DELETE								16
 #define IDC_17									17
 #define IDD_FIND_IN_FILES						19
-#define IDC_LOOK_FOR							21
 #define IDC_FILE_TYPES							23
 #define IDC_DIR									25
 #define IDC_SET_DIR								26
@@ -111,6 +110,7 @@
 #define IDC_PLATFORMS							544
 #define IDM_EOL_CRLF							545
 #define IDM_FIX_MISSING_FILES					546
+#define IDC_LOOK_FOR							547
 #define IDD_FILE_PROPS							551
 #define IDM_LOAD_MEMDUMP						552
 #define IDM_SYS_CHAR_SUPPORT					553

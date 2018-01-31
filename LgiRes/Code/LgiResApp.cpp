@@ -681,7 +681,7 @@ void FieldView::OnSelect(FieldSource *s)
 						case DATA_FILENAME:
 						{
 							Cell = t->GetCell(0, Row);
-							Cell->Add(new GText(-1, 0, 0, -1, -1, c->Label));
+							Cell->Add(new GTextLabel(-1, 0, 0, -1, -1, c->Label));
 
 							TextViewEdit *Tv;
 							Cell = t->GetCell(1, Row, true, c->Type == DATA_FILENAME ? 1 : 2);

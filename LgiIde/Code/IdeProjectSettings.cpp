@@ -252,7 +252,7 @@ class GSettingDetail : public GLayout, public ResObject
 	
 	struct CtrlInfo
 	{
-		GText *Text;
+		GTextLabel *Text;
 		GEdit *Edit;
 		GCheckBox *Chk;
 		GCombo *Cbo;
@@ -309,7 +309,7 @@ public:
 		
 		// Do label cell
 		GLayoutCell *c = Tbl->GetCell(0, CellY);
-		c->Add(Ctrls[i].Text = new GText(IDC_TEXT_BASE + i, 0, 0, -1, -1, Path = d->BuildPath(Setting->Setting, Flags, PlatformCurrent, Config)));
+		c->Add(Ctrls[i].Text = new GTextLabel(IDC_TEXT_BASE + i, 0, 0, -1, -1, Path = d->BuildPath(Setting->Setting, Flags, PlatformCurrent, Config)));
 		
 		// Do value cell
 		c = Tbl->GetCell(0, CellY + 1);

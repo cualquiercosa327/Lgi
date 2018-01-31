@@ -19,8 +19,8 @@ GAlert::GAlert(	GViewI *parent,
 				const char *Btn2,
 				const char *Btn3)
 {
-	GText *t = 0;
-	Children.Insert(t = new GText(-1, 8, 8, -1, -1, (char*)Text));
+	GTextLabel *t = 0;
+	Children.Insert(t = new GTextLabel(-1, 8, 8, -1, -1, (char*)Text));
 	if (t)
 	{
 		// Setup dialog

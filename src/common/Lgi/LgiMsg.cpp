@@ -180,7 +180,7 @@ int LgiMsg(GViewI *Parent, const char *Str, const char *Title, int Type, ...)
 		Dlg.SetParent(Parent);
 		Dlg.Name((char*)(Title ? Title : "Message"));
 
-		GText *Text = new GText(-1, 10, 10, -1, -1, Buffer);
+		GTextLabel *Text = new GTextLabel(-1, 10, 10, -1, -1, Buffer);
 		DeleteArray(Buffer);
 		Dlg.AddView(Text);
 

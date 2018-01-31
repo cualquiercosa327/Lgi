@@ -1583,7 +1583,7 @@ TableLayoutTest::TableLayoutTest(GViewI *par)
 	GLayoutCell *c;
 
 	c = Tbl->GetCell(0, 0, true, 2);
-	c->Add(Msg = new GText(100, 0, 0, -1, -1, "Searching for files..."));
+	c->Add(Msg = new GTextLabel(100, 0, 0, -1, -1, "Searching for files..."));
 
 	c = Tbl->GetCell(0, 1);
 	c->Add(Tree = new GTree(101, 0, 0, 100, 100));

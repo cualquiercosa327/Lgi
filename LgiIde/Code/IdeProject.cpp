@@ -3343,10 +3343,10 @@ AddFilesProgress::AddFilesProgress(GViewI *par) : Exts(0, false)
 	AddView(t);
 		
 	GLayoutCell *c = t->GetCell(0, 0);
-	c->Add(new GText(-1, 0, 0, -1, -1, "Loaded:"));
+	c->Add(new GTextLabel(-1, 0, 0, -1, -1, "Loaded:"));
 		
 	c = t->GetCell(1, 0);
-	c->Add(Msg = new GText(-1, 0, 0, -1, -1, "..."));
+	c->Add(Msg = new GTextLabel(-1, 0, 0, -1, -1, "..."));
 		
 	c = t->GetCell(0, 1, true, 2);
 	c->TextAlign(GCss::Len(GCss::AlignRight));

@@ -5,6 +5,7 @@
 #ifndef __GPROGRESSDLG_H
 #define __GPROGRESSDLG_H
 
+#include "GTextLabel.h"
 #include "GTableLayout.h"
 
 class LgiClass ProgressList : public List<Progress>
@@ -27,9 +28,9 @@ class LgiClass GProgressPane : public Progress, public GLayout
 
 protected:
 	GTableLayout *t;
-	GText *Desc;
-	GText *ValText;
-	GText *Rate;
+	GTextLabel *Desc;
+	GTextLabel *ValText;
+	GTextLabel *Rate;
 	GProgress *Bar;
 	GButton *But;
 	bool UiDirty;

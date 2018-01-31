@@ -10,7 +10,7 @@
 #include "GCheckBox.h"
 #include "GTextLabel.h"
 
-#define DEBUG_HIST		1
+#define DEBUG_HIST		0
 
 /////////////////////////////////////////////////////////////////////////////////////
 FindInFiles::FindInFiles(AppWnd *app, FindParams *params)

@@ -456,6 +456,7 @@
     <ClCompile Include="src\common\Lgi\GInput.cpp" />
     <ClCompile Include="src\common\Lgi\GLibrary.cpp" />
     <ClCompile Include="src\common\Lgi\GMemStream.cpp" />
+    <ClCompile Include="src\common\Lgi\GMenuCommon.cpp" />
     <ClCompile Include="src\common\Lgi\GMru.cpp" />
     <ClCompile Include="src\common\Lgi\GObject.cpp" />
     <ClCompile Include="src\common\Lgi\GOptionsFile.cpp" />

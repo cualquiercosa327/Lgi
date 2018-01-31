@@ -33,9 +33,9 @@ enum CellFlag
 #include "GCss.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
-// #define DEBUG_LAYOUT		100
+#define DEBUG_LAYOUT		8
 #define DEBUG_PROFILE		0
-#define DEBUG_DRAW_CELLS	0
+#define DEBUG_DRAW_CELLS	1
 
 int GTableLayout::CellSpacing = 4;
 
@@ -544,7 +544,7 @@ bool TableCell::SetVariant(const char *Name, GVariant &Value, char *Array)
 							Table->AddView(gv);
 							gv->SetParent(Table);
 
-							GText *t = dynamic_cast<GText*>(gv);
+							GTextLabel *t = dynamic_cast<GTextLabel*>(gv);
 							if (t)
 							{
 								t->SetWrap(true);
@@ -1098,6 +1098,10 @@ void TableCell::PostLayout()
 		
 		GTableLayout *Tbl = Izza(GTableLayout);
 		GRect r = v->GetPos();
+		if (Izza(GTextLabel))
+		{
+			int asd=0;
+		}
 
 		if (i > 0 && Cx + r.X() > Pos.X())
 		{
@@ -1131,7 +1135,9 @@ void TableCell::PostLayout()
 			c->Inf.Height.Max = HeightPx;
 
 		if (r.Y() > HeightPx)
+		{
 			r.y2 = r.y1 + HeightPx - 1;
+		}
 
 		if (Tbl)
 		{
@@ -1165,6 +1171,10 @@ void TableCell::PostLayout()
 				r.x2 = r.x1 + c->Inf.Width.Max - 1;
 		}
 
+		if (r.y2 < 0)
+		{
+			int asd=0;
+		}
 		New[i] = r;
 		MaxY = max(MaxY, r.y2 - Pos.y1);
 		Cx += r.X() + Table->d->BorderSpacing;
@@ -1224,11 +1234,12 @@ void TableCell::PostLayout()
 		#if DEBUG_LAYOUT
 		if (Table->d->DebugLayout)
 		{
-			Table->d->Dbg.Print("\t\t%s[%i]=%s, %ix%i, Offy=%i\n",
+			Table->d->Dbg.Print("\t\t%s[%i]=%s, %ix%i, Offy=%i %s\n",
 				v->GetClass(), n,
 				New[n].GetStr(),
 				New[n].X(), New[n].Y(),
-				OffsetY);
+				OffsetY,
+				v->Name());
 		}
 		#endif
 

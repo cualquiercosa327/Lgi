@@ -684,7 +684,7 @@ ResObject *LgiResources::CreateObject(GXmlTag *t, ResObject *Parent)
 		
 		if (stricmp(t->GetTag(), Res_StaticText) == 0)
 		{
-			Wnd = new GText(0, 0, 0, -1, -1, "");
+			Wnd = new GTextLabel(0, 0, 0, -1, -1, NULL);
 		}
 		else if (stricmp(t->GetTag(), Res_EditBox) == 0)
 		{

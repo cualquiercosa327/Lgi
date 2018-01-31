@@ -56,19 +56,22 @@ bool LStringLayout::Add(const char *Str, GCss *Style)
 
 	if (AmpersandToUnderline)
 	{
+		LLayoutRun *r;
+
 		for (const char *s = Str; *s; )
 		{
 			const char *e = s;
 			// Find '&' or end of string
 			while (*e && !(e[0] == '&' && e[1] != '&'))
 				e++;
-			if (e == s) break; // end of string
 
-			// Add text before '&'
-			LLayoutRun *r = new LLayoutRun(Style);
-			r->Text.Set(s, e - s);
-			Text.Add(r);
-
+			if (e > s)
+			{
+				// Add text before '&'
+				r = new LLayoutRun(Style);
+				r->Text.Set(s, e - s);
+				Text.Add(r);
+			}
 			if (!*e)
 				break; // End of string
 
@@ -245,7 +248,10 @@ bool LStringLayout::DoLayout(int Width, int MinYSize, bool Debug)
 	// Param validation
 	GFont *f = GetBaseFont();
 	if (!f || !Text.Length() || Width <= 0)
+	{
+		Min.y = Max.y = max((f ? f : SysFont)->GetHeight(), MinYSize);
 		return false;
+	}
 
 	// Loop over input
 	int y = 0;

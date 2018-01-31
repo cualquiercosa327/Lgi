@@ -88,7 +88,7 @@ GFontSelect::GFontSelect(GView *Parent, void *Init, int InitLen)
 		rg->AddView(d->PtSizes = new GCombo(IDC_SELECT_SIZE, 0, 0, 20, 20, ""));
 	
 	c = d->Tbl->GetCell(0, 2, true, 2, 1);
-		c->Add(new GText(IDM_STATIC, 0, 0, -1, -1, LgiLoadString(L_FONTUI_PREVIEW, "Preview:")));
+		c->Add(new GTextLabel(IDM_STATIC, 0, 0, -1, -1, LgiLoadString(L_FONTUI_PREVIEW, "Preview:")));
 	
 	c = d->Tbl->GetCell(0, 3, true, 2, 1);
 		c->Add(d->Bmp = new GBitmap(IDC_PREVIEW, 14, 182, 0));

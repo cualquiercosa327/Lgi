@@ -665,7 +665,7 @@ public:
 							{
 								GCombo *cbo;
 								GCheckBox *chk;
-								GText *txt;
+								GTextLabel *txt;
 								GEdit *ed;
 								MemTable->SetFont(&Small);
 							
@@ -674,7 +674,7 @@ public:
 								if (c)
 								{
 									c->VerticalAlign(GCss::VerticalMiddle);
-									c->Add(txt = new GText(IDC_STATIC, 0, 0, -1, -1, "Address:"));
+									c->Add(txt = new GTextLabel(IDC_STATIC, 0, 0, -1, -1, "Address:"));
 									txt->SetFont(&Small);
 								}
 								c = MemTable->GetCell(x++, y);
@@ -699,7 +699,7 @@ public:
 								if (c)
 								{
 									c->VerticalAlign(GCss::VerticalMiddle);
-									c->Add(txt = new GText(IDC_STATIC, 0, 0, -1, -1, "Page width:"));
+									c->Add(txt = new GTextLabel(IDC_STATIC, 0, 0, -1, -1, "Page width:"));
 									txt->SetFont(&Small);
 								}
 								c = MemTable->GetCell(x++, y);
@@ -3598,6 +3598,10 @@ int LgiMain(OsAppArguments &AppArgs)
 	if (a.IsOk())
 	{
 		a.AppWnd = new AppWnd;
+
+		int *ptr = 0;
+		// *ptr = 0;
+
 		a.Run();
 	}
 

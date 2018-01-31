@@ -65,7 +65,7 @@ GFindDlg::GFindDlg(GView *Parent, char *Init, GFrCallback Callback, void *UserDa
     {        
         int Row = 0;
         GLayoutCell *c = t->GetCell(0, Row);
-        c->Add(new GText(IDS_16, 14, 14, -1, -1, LgiLoadString(L_FR_FIND_WHAT, "Find what:")));
+        c->Add(new GTextLabel(IDS_16, 14, 14, -1, -1, LgiLoadString(L_FR_FIND_WHAT, "Find what:")));
         
         c = t->GetCell(1, Row);
     	c->Add(d->Edit = new GEdit(IDC_TEXT, 91, 7, 168, 21, ""));
@@ -132,7 +132,7 @@ bool GFindReplaceCommon::OnViewKey(GView *v, GKey &k)
 
 				if (dynamic_cast<GCheckBox*>(c))
 					c->Value(!c->Value());
-				else if (dynamic_cast<GText*>(c))
+				else if (dynamic_cast<GTextLabel*>(c))
 				{
 					GEdit *e = dynamic_cast<GEdit*>(Ch->Next());
 					if (e)
@@ -248,7 +248,7 @@ GReplaceDlg::GReplaceDlg(GView *Parent, char *InitFind, char *InitReplace, GFrCa
 	{
 	    int Row = 0;
         GLayoutCell *c = t->GetCell(0, Row);
-    	c->Add(new GText(-1, 14, 14, -1, -1, LgiLoadString(L_FR_FIND_WHAT, "Find what:")));
+    	c->Add(new GTextLabel(-1, 14, 14, -1, -1, LgiLoadString(L_FR_FIND_WHAT, "Find what:")));
 
         c = t->GetCell(1, Row);
     	c->Add(f = new GEdit(IDC_TEXT, 0, 0, 60, 20, ""));
@@ -257,7 +257,7 @@ GReplaceDlg::GReplaceDlg(GView *Parent, char *InitFind, char *InitReplace, GFrCa
     	c->Add(new GButton(IDC_FR_FIND, 0, 0, -1, -1, LgiLoadString(L_FR_FIND_NEXT, "Find Next")));
 	
         c = t->GetCell(0, Row);	
-	    c->Add(new GText(-1, 0, 0, -1, -1, LgiLoadString(L_FR_REPLACE_WITH, "Replace with:")));
+	    c->Add(new GTextLabel(-1, 0, 0, -1, -1, LgiLoadString(L_FR_REPLACE_WITH, "Replace with:")));
 
         c = t->GetCell(1, Row);	
     	c->Add(new GEdit(IDC_REPLACE_WITH, 0, 0, -1, -1, ""));

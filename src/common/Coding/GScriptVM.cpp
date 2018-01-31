@@ -7035,11 +7035,11 @@ GVmDebuggerWnd::GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVi
 		
 		int x = 0, y = 0;
 		GLayoutCell *c = d->VarsTbl->GetCell(x++, y);
-		c->Add(new GText(IDC_STATIC, 0, 0, -1, -1, "Globals:"));
+		c->Add(new GTextLabel(IDC_STATIC, 0, 0, -1, -1, "Globals:"));
 		c = d->VarsTbl->GetCell(x++, y);
-		c->Add(new GText(IDC_STATIC, 0, 0, -1, -1, "Locals:"));
+		c->Add(new GTextLabel(IDC_STATIC, 0, 0, -1, -1, "Locals:"));
 		c = d->VarsTbl->GetCell(x++, y);
-		c->Add(new GText(IDC_STATIC, 0, 0, -1, -1, "Registers:"));
+		c->Add(new GTextLabel(IDC_STATIC, 0, 0, -1, -1, "Registers:"));
 
 		x = 0; y++;
 		c = d->VarsTbl->GetCell(x++, y);
