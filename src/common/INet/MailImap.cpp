@@ -2220,7 +2220,7 @@ int MailIMap::GetMessages(const char *Path)
 		{
 			GString Exists = f.Find("exists");
 			if (Exists && Exists.Int() >= 0)
-				Status = Exists.Int();
+				Status = (int)Exists.Int();
 			else
 				LgiTrace("%s:%i - Failed to get 'exists' value.\n", _FL);
 		}
@@ -2663,7 +2663,7 @@ bool MailIMap::Append(const char *Folder, ImapMailFlags *Flags, const char *Msg,
 
 	if (Folder && Msg && Lock(_FL))
 	{
-		GAutoString Flag(Flags ? Flags->Get() : 0);
+		GAutoString Flag(Flags ? Flags->Get() : NULL);
 		GAutoString Path(EncodePath(Folder));
 
 		int Cmd = d->NextCmd++;
