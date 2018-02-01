@@ -113,6 +113,7 @@
 					<Node File="./src/win32/Lgi/GMenu.cpp" Type="2" Platforms="1" />
 				</Node>
 				<Node File="./include/common/GMenu.h" Type="3" Platforms="15" />
+				<Node File="./src/common/Lgi/GMenuCommon.cpp" Type="2" Platforms="15" />
 			</Node>
 			<Node Name="Process" Type="1" Platforms="15" Open="0" Id="27">
 				<Node File="./src/common/Lgi/GProcess.cpp" Type="2" Platforms="15" />
@@ -204,6 +205,7 @@
 				<Node File="./src/common/Gdc2/Font/GFont_W.cpp" Type="2" Platforms="1" />
 				<Node File="./src/common/Gdc2/Font/GFontCodePages.cpp" Type="2" Platforms="15" />
 				<Node File="./src/common/Gdc2/Font/GFontSystem.cpp" Type="2" Platforms="15" />
+				<Node File="./src/common/Gdc2/Font/LStringLayout.cpp" Type="2" Platforms="15" />
 			</Node>
 			<Node Name="Applicators" Type="1" Platforms="15" Open="0" Id="45">
 				<Node File="./src/common/Gdc2/15Bit.cpp" Type="2" Platforms="15" />

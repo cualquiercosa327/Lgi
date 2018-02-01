@@ -114,7 +114,6 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../include/common/GdcTools.h \
 	../include/common/GdiLeak.h \
 	../include/common/GDisplayString.h \
-	../include/common/GDisplayStringLayout.h \
 	../include/common/GDocView.h \
 	../include/common/GDom.h \
 	../include/common/GDragAndDrop.h \
@@ -186,6 +185,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../include/common/INetTools.h \
 	../include/common/LCancel.h \
 	../include/common/LDateTime.h \
+	../include/common/LDomFields.h \
 	../include/common/Lgi.h \
 	../include/common/LgiClass.h \
 	../include/common/LgiClasses.h \
@@ -201,6 +201,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../include/common/LListItemCheckBox.h \
 	../include/common/LListItemRadioBtn.h \
 	../include/common/LMutex.h \
+	../include/common/LStringLayout.h \
 	../include/common/LThread.h \
 	../include/common/LThreadEvent.h \
 	../include/common/Progress.h \
@@ -222,6 +223,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../src/common/Gdc2/Font/GFont.cpp \
 	../src/common/Gdc2/Font/GFontCodePages.cpp \
 	../src/common/Gdc2/Font/GFontSystem.cpp \
+	../src/common/Gdc2/Font/LStringLayout.cpp \
 	../src/common/Gdc2/GColour.cpp \
 	../src/common/Gdc2/GdcCommon.cpp \
 	../src/common/Gdc2/GRect.cpp \
@@ -253,6 +255,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../src/common/Lgi/GInput.cpp \
 	../src/common/Lgi/GLibrary.cpp \
 	../src/common/Lgi/GMemStream.cpp \
+	../src/common/Lgi/GMenuCommon.cpp \
 	../src/common/Lgi/GMru.cpp \
 	../src/common/Lgi/GObject.cpp \
 	../src/common/Lgi/GOptionsFile.cpp \
@@ -742,6 +745,11 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 
 ../include/common/LDateTime.h : ../include/common/GStringClass.h
 
+../include/common/LStringLayout.h : ../include/common/GUtf8.h \
+	../include/common/GDisplayString.h \
+	../include/common/GCss.h \
+	../include/common/GFontCache.h
+
 ../include/common/Base64.h : ../include/common/LgiDefs.h
 
 ../src/common/Widgets/GStatusBar.cpp : ../include/common/Lgi.h \
@@ -757,7 +765,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 
 ../src/common/Widgets/GTextLabel.cpp : ../include/common/Lgi.h \
 	../include/common/GTextLabel.h \
-	../include/common/GDisplayStringLayout.h \
+	../include/common/LStringLayout.h \
 	../include/common/GVariant.h \
 	../include/common/GNotifications.h \
 	../include/common/LgiRes.h
@@ -777,13 +785,15 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 
 ../include/common/GButton.h : 
 
+../include/common/GUtf8.h : 
+
 ../src/common/Widgets/GRadioGroup.cpp : ../include/common/Lgi.h \
 	../include/common/GSkinEngine.h \
 	../include/common/GRadioGroup.h \
 	../include/common/GCheckBox.h \
 	../include/common/GDisplayString.h \
 	../include/common/LgiRes.h \
-	../include/common/GDisplayStringLayout.h
+	../include/common/LStringLayout.h
 
 ../include/common/GArray.h : ../include/common/GRange.h
 
@@ -842,14 +852,15 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GSkinEngine.h \
 	../include/common/GCheckBox.h \
 	../include/common/GDisplayString.h \
-	../include/common/GDisplayStringLayout.h \
+	../include/common/LStringLayout.h \
 	../include/common/LgiRes.h
 
 ../include/common/GLibrary.h : 
 
 ../src/common/Lgi/GVariant.cpp : ../include/common/Lgi.h \
 	../include/common/GVariant.h \
-	../include/common/GToken.h
+	../include/common/GToken.h \
+	../include/common/LDomFields.h
 
 ../src/common/Resource/LgiRes.cpp : ../include/common/Lgi.h \
 	../include/common/GToken.h \
@@ -888,8 +899,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GCss.h \
 	../include/common/GUtf8.h
 
-../include/common/GUtf8.h : 
-
 ../src/common/Lgi/LThreadEvent.cpp : ../include/common/Lgi.h \
 	../include/common/LThreadEvent.h
 
@@ -898,6 +907,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GArray.h \
 	../include/common/GRefCount.h \
 	../include/common/GStringClass.h
+
+../include/common/GFontCache.h : 
 
 ../src/common/Widgets/GToolBar.cpp : ../include/common/Lgi.h \
 	../include/common/GToken.h \
@@ -1003,8 +1014,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GUtf8.h \
 	../include/common/GFontCache.h
 
-../include/common/GFontCache.h : 
-
 ../include/common/Progress.h : ../include/common/LMutex.h \
 	../include/common/LCancel.h
 
@@ -1087,9 +1096,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GNotifications.h
 
 ../include/common/GTree.h : ../include/common/GItemContainer.h
-
-../include/common/GDisplayStringLayout.h : ../include/common/GUtf8.h \
-	../include/common/GDisplayString.h
 
 ../src/common/Gdc2/Tools/GColourReduce.cpp : ../include/common/Gdc2.h \
 	../include/common/GPalette.h
@@ -1444,7 +1450,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 
 ../include/common/GMenuImpl.h : ../include/common/GPopup.h
 
-../include/common/GProgressDlg.h : ../include/common/GTableLayout.h
+../include/common/GProgressDlg.h : ../include/common/GTextLabel.h \
+	../include/common/GTableLayout.h
 
 ../include/common/GPassword.h : 
 
@@ -1560,6 +1567,11 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 ../include/common/GFileSelect.h : 
 
 ../include/common/GTree.h : ../include/common/GItemContainer.h
+
+../include/common/LStringLayout.h : ../include/common/GUtf8.h \
+	../include/common/GDisplayString.h \
+	../include/common/GCss.h \
+	../include/common/GFontCache.h
 
 ../include/common/GSlider.h : 
 
@@ -1691,7 +1703,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 
 ../include/common/GDom.h : ../include/common/LgiInterfaces.h \
 	../include/common/GMem.h \
-	../include/common/GArray.h
+	../include/common/GArray.h \
+	../include/common/LDomFields.h
 
 ../include/common/GNotifications.h : 
 
@@ -1706,10 +1719,15 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 
 ../include/common/LCancel.h : 
 
+../src/common/Gdc2/Font/LStringLayout.cpp : ../include/common/Lgi.h \
+	../include/common/LStringLayout.h
+
 ../src/common/Lgi/GAlert.cpp : ../include/common/Lgi.h \
 	../include/common/GTextLabel.h \
 	../include/common/GButton.h \
 	../include/common/GDisplayString.h
+
+../src/common/Lgi/GMenuCommon.cpp : ../include/common/Lgi.h
 
 ../src/linux/Lgi/GPrinter.cpp : ../include/common/Lgi.h \
 	../include/common/LList.h \
@@ -1807,7 +1825,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 
 ../include/common/GDom.h : ../include/common/LgiInterfaces.h \
 	../include/common/GMem.h \
-	../include/common/GArray.h
+	../include/common/GArray.h \
+	../include/common/LDomFields.h
 
 ../src/common/Skins/Gel/Gel.cpp : ../include/common/Lgi.h \
 	../include/common/GSkinEngine.h \
@@ -1818,7 +1837,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GRadioGroup.h \
 	../include/common/GDisplayString.h \
 	../include/common/GCssTools.h \
-	../include/common/GDisplayStringLayout.h
+	../include/common/LStringLayout.h
 
 ../src/common/Text/GDocView.cpp : ../include/common/Lgi.h \
 	../include/common/GDocView.h \
@@ -1897,7 +1916,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/LgiDefs.h \
 	../include/common/GAutoPtr.h
 
-../include/common/GProgressDlg.h : ../include/common/GTableLayout.h
+../include/common/GProgressDlg.h : ../include/common/GTextLabel.h \
+	../include/common/GTableLayout.h
 
 ../include/common/GStream.h : ../include/common/GDom.h \
 	../include/common/GStringClass.h
@@ -1950,6 +1970,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GCss.h \
 	../include/common/GItemContainer.h
 
+../include/common/LDomFields.h : 
+
 ../src/common/Text/GXmlTree.cpp : ../include/common/Lgi.h \
 	../include/common/GXmlTree.h \
 	../include/common/GVariant.h \
@@ -1981,6 +2003,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 
 ../include/common/GMdi.h : 
 
+../include/common/LDomFields.h : 
+
 ../include/common/GFile.h : ../include/common/GMem.h \
 	../include/common/GStream.h \
 	../include/common/GArray.h \
@@ -1991,9 +2015,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GUtf8.h
 
 ../include/common/GTextLog.h : ../include/common/GTextView3.h
-
-../include/common/GDisplayStringLayout.h : ../include/common/GUtf8.h \
-	../include/common/GDisplayString.h
 
 ../src/common/INet/INet.cpp : ../include/common/GFile.h \
 	../include/common/INet.h \

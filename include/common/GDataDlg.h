@@ -115,7 +115,7 @@ public:
 
 		if (Dlg)
 		{
-			Description = dynamic_cast<GText*>(Dlg->FindControl(DescId));
+			Description = dynamic_cast<GTextLabel*>(Dlg->FindControl(DescId));
 			Scroll = dynamic_cast<GScrollBar*>(Dlg->FindControl(ScrollId));
 			OnMoveRecord(dynamic_cast<Record*>(Records->First()));
 		}

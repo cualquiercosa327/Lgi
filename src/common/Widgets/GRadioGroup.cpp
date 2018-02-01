@@ -33,6 +33,7 @@ public:
 		Ctrl = g;
 		Val = 0;
 		MaxLayoutWidth = 0;
+		AmpersandToUnderline = true;
 	}
 
 	~GRadioGroupPrivate()
@@ -194,9 +195,15 @@ bool GRadioGroup::Name(const char *n)
 	if (d->Lock(_FL))
 	{
 		Status = GView::Name(n);
+
+		d->Empty();
+		d->Add(n, GetCss());
+		d->SetBaseFont(GetFont());
+		d->DoLayout(X());
+		
 		d->Unlock();
 	}
-	d->Layout(X());
+
 	return Status;
 }
 
@@ -206,9 +213,15 @@ bool GRadioGroup::NameW(const char16 *n)
 	if (d->Lock(_FL))
 	{
 		Status = GView::NameW(n);
+
+		d->Empty();
+		d->Add(GBase::Name(), GetCss());
+		d->SetBaseFont(GetFont());
+		d->DoLayout(X());
+
 		d->Unlock();
 	}
-	d->Layout(X());
+
 	return Status;
 }
 
@@ -368,6 +381,7 @@ struct GRadioButtonPrivate : public LMutex, public LStringLayout
 		Ctrl = c;
 		Val = 0;
 		Over = 0;
+		AmpersandToUnderline = true;
 	}
 
 	~GRadioButtonPrivate()
@@ -451,9 +465,15 @@ bool GRadioButton::Name(const char *n)
 	if (d->Lock(_FL))
 	{
 		Status = GView::Name(n);
+
+		d->Empty();
+		d->Add(n, GetCss());
+		d->SetBaseFont(GetFont());
+		d->DoLayout(X());
+
 		d->Unlock();
 	}
-	d->Layout(X());
+
 	return Status;
 }
 
@@ -463,9 +483,15 @@ bool GRadioButton::NameW(const char16 *n)
 	if (d->Lock(_FL))
 	{
 		Status = GView::NameW(n);
+
+		d->Empty();
+		d->Add(GBase::Name(), GetCss());
+		d->SetBaseFont(GetFont());
+		d->DoLayout(X());
+
 		d->Unlock();
 	}
-	d->Layout(X());
+
 	return Status;
 }
 

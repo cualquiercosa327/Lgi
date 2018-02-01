@@ -39,6 +39,7 @@ public:
 		Over = false;
 		Three = false;
 		Wrap = true;
+		AmpersandToUnderline = true;
 		ValuePos.ZOff(-1, -1);
 	}
 
@@ -140,9 +141,15 @@ bool GCheckBox::Name(const char *n)
 	if (d->Lock(_FL))
 	{
 		Status = GView::Name(n);
+		
+		d->Empty();
+		d->Add(n, GetCss());
+		d->SetBaseFont(GetFont());
+		d->DoLayout(X());
+		
 		d->Unlock();
 	}
-	d->Layout(X());
+
 	return Status;
 }
 

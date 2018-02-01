@@ -8,6 +8,7 @@
 
 #include "Lgi.h"
 
+
 bool GSubMenu::GetVariant(const char *Name, GVariant &Value, char *Array)
 {
 	GDomProperty p = LgiStringToDomProp(Name);
@@ -38,12 +39,12 @@ bool GSubMenu::CallMethod(const char *MethodName, GVariant *ReturnValue, GArray<
 	GDomProperty Method = LgiStringToDomProp(MethodName);	
 	switch (Method)
 	{
-		case GDomProperty::AppendSeparator:
+		case ::AppendSeparator:
 		{
 			*ReturnValue = AppendSeparator();
 			break;
 		}
-		case GDomProperty::AppendItem:
+		case ::AppendItem:
 		{
 			char *Str		= Args.Length() > 0 ? Args[0]->CastString() : NULL;
 			int Id			= Args.Length() > 1 ? Args[1]->CastInt32() : -1;
