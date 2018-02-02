@@ -610,7 +610,7 @@ public:
 // Functions
 LgiFunc int64 LgiFileSize(const char *FileName);
 
-/// This function checks for the existance of a file.
+/// This function checks for the existance of a file (will return false for a folder).
 LgiFunc bool FileExists(const char *File, char *CorrectCase = NULL);
 
 /// This function checks for the existance of a directory.

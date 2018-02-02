@@ -2190,6 +2190,7 @@ void IdeProject::CreateProject()
 ProjectStatus IdeProject::OpenFile(char *FileName)
 {
 	GProfile Prof("IdeProject::OpenFile");
+	Prof.HideResultsIfBelow(1000);
 
 	Empty();
 
