@@ -31,6 +31,9 @@
 #endif
 #include "GUnicode.h"
 #include "GArray.h"
+#ifndef IsDigit
+	#define IsDigit(ch) ((ch) >= '0' && (ch) <= '9')
+#endif
 
 LgiExtern int LgiPrintf(class GString &Str, const char *Format, va_list &Arg);
 

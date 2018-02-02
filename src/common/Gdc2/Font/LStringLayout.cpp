@@ -149,6 +149,7 @@ void LStringLayout::DoPreLayout(int32 &MinX, int32 &MaxX)
 	{
 		char *s = (*Run)->Text;
 		GFont *f = FontCache ? FontCache->GetFont(*Run) : SysFont;
+		LgiAssert(f != NULL);
 
 		char *Start = s;
 		while (*s)

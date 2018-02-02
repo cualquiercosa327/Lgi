@@ -37,6 +37,7 @@ struct LLayoutString : public GDisplayString
 	{
 		Offset = 0;
 		Fx = y = 0;
+		Layout();
 		Src = NULL;
 	}
 

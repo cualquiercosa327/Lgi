@@ -38,14 +38,14 @@ public:
 
 	bool Layout(GFont *Base, int Px)
 	{		
-		if (Lock(_FL))
-		{
-			SetBaseFont(Base);
-			DoLayout(Px);
-			Unlock();
-		}
-		else return false;
-		return true;
+		if (!Lock(_FL))
+			return false;
+
+		SetBaseFont(Base);
+		bool Status = DoLayout(Px);
+		Unlock();
+
+		return Status;
 	}
 };
 
@@ -114,7 +114,8 @@ bool GTextLabel::Name(const char *n)
 
 		d->Empty();
 		d->Add(n, GetCss());
-		d->Layout(GetFont(), X());
+		int Wid = X();
+		d->Layout(GetFont(), Wid ? Wid : GdcD->X());
 
 		Invalidate();
 		SendNotify(GNotifyTableLayout_Refresh);

@@ -1171,10 +1171,6 @@ void TableCell::PostLayout()
 				r.x2 = r.x1 + c->Inf.Width.Max - 1;
 		}
 
-		if (r.y2 < 0)
-		{
-			int asd=0;
-		}
 		New[i] = r;
 		MaxY = max(MaxY, r.y2 - Pos.y1);
 		Cx += r.X() + Table->d->BorderSpacing;
