@@ -357,7 +357,6 @@
 			<Node Name="Layout" Type="1" Platforms="15" Open="0" Id="68">
 				<Node File="./src/common/Widgets/GBox.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GBox.h" Type="3" Platforms="15" />
-				<Node File="./include/common/GDisplayStringLayout.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Widgets/GSplitter.cpp" Type="2" Platforms="15" />
 				<Node File="./src/common/Widgets/GTableLayout.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GTableLayout.h" Type="3" Platforms="15" />

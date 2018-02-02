@@ -1725,7 +1725,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 ../src/common/Lgi/GAlert.cpp : ../include/common/Lgi.h \
 	../include/common/GTextLabel.h \
 	../include/common/GButton.h \
-	../include/common/GDisplayString.h
+	../include/common/GDisplayString.h \
+	../include/common/GTableLayout.h
 
 ../src/common/Lgi/GMenuCommon.cpp : ../include/common/Lgi.h
 
