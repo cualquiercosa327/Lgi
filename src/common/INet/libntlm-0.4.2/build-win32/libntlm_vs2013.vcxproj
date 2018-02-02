@@ -211,7 +211,7 @@
       <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
-      <ImportLibrary>../../../../../lib/libntlm64d.lib</ImportLibrary>
+      <ImportLibrary>../../../../../lib/$(TargetName).lib</ImportLibrary>
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
     <Bscmake>
@@ -293,7 +293,7 @@
       <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
-      <ImportLibrary>../../../../../lib/libntlm64.lib</ImportLibrary>
+      <ImportLibrary>../../../../../lib/$(TargetName).lib</ImportLibrary>
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
     <Bscmake>
@@ -375,7 +375,7 @@
       <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
-      <ImportLibrary>../../../../../lib/libntlm64.lib</ImportLibrary>
+      <ImportLibrary>../../../../../lib/$(TargetName).lib</ImportLibrary>
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
     <Bscmake>
@@ -405,23 +405,6 @@
     <ClInclude Include="..\ntlm.h" />
     <ClInclude Include="stdbool.h" />
     <ClInclude Include="stdint.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="..\..\..\..\..\..\..\Scribe\trunk\Resources\Icons\app.ico" />
-    <Image Include="..\..\..\..\..\..\..\Scribe\trunk\Resources\Icons\Blank.ico" />
-    <Image Include="..\..\..\..\..\..\..\Scribe\trunk\Resources\Icons\calender.ico" />
-    <Image Include="..\..\..\..\..\..\..\Scribe\trunk\Resources\Icons\contact.ico" />
-    <Image Include="..\..\..\..\..\..\..\Scribe\trunk\Resources\Icons\error.ico" />
-    <Image Include="..\..\..\..\..\..\..\Scribe\trunk\Resources\Icons\event.ico" />
-    <Image Include="..\..\..\..\..\..\..\Scribe\trunk\Resources\Icons\filter.ico" />
-    <Image Include="..\..\..\..\..\..\..\Scribe\trunk\Resources\Icons\Mail.ico" />
-    <Image Include="..\..\..\..\..\..\..\Scribe\trunk\Resources\Icons\Small.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="..\..\..\..\..\..\..\Scribe\trunk\Code\Resource.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <Manifest Include="..\..\..\..\..\..\..\Scribe\trunk\Resources\ScribeWindows.manifest" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
