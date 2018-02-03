@@ -1679,106 +1679,87 @@ bool LDateTime::Decode(const char *In)
 	if (In)
 	{
 		// Tokenize delimited by whitespace
-		GToken T(In);
+		GString::Array T = GString(In).SplitDelimit();
 		if (T.Length() >= 2)
 		{
 			bool GotDate = false;
 
-			for (int i=0; i<T.Length(); i++)
+			for (unsigned i=0; i<T.Length(); i++)
 			{
-				char *s = T[i];
+				GString &s = T[i];
 				
-				if
-				(
-					*s &&
-					(
-						strchr(s+1, '.') ||
-						strchr(s+1, '-')
-					)
-				)
+				GString::Array Date;
+				if (!GotDate)
+					Date = s.SplitDelimit(".-/\\");
+				if (Date.Length() == 3)
 				{
-					// whole date
-					GToken Date(s, ".-");
-					if (Date.Length() == 3)
+					Day((int)Date[0].Int());
+					if (Date[1].IsNumeric())
+						Month((int)Date[1].Int());
+					else
 					{
-						Day(atoi(Date[0]));
-						if (IsDigit(Date[1][0]))
-						{
-							Month(atoi(Date[1]));
-						}
-						else
-						{
-							int m = MonthFromName(Date[1]);
-							if (m > 0)
-							{
-								Month(m);
-							}
-						}
-
-						int Yr = atoi(Date[2]);
-						if (Yr >= 100)
-						{
-							Year(Yr);
-						}
-						else
-						{
-							LDateTime Now;
-							Now.SetNow();
-							if (Yr + 2000 <= Now.Year())
-							{
-								Year(2000 + Yr);
-							}
-							else
-							{
-								Year(1900 + Yr);
-							}
-							// else ... ?
-						}
-						
-						GotDate = true;
-						Status = true;
+						int m = MonthFromName(Date[1]);
+						if (m > 0)
+							Month(m);
 					}
+
+					int Yr = (int)Date[2].Int();
+					if (Yr >= 100)
+					{
+						Year(Yr);
+					}
+					else
+					{
+						LDateTime Now;
+						Now.SetNow();
+						if (Yr + 2000 <= Now.Year())
+						{
+							Year(2000 + Yr);
+						}
+						else
+						{
+							Year(1900 + Yr);
+						}
+						// else ... ?
+					}
+						
+					GotDate = true;
+					Status = true;
 				}
-				else if (strchr(s, ':'))
+				else if (s.Find(":") >= 0)
 				{
 					// whole time
-					GToken Time(s, ":");
+					GString::Array Time = s.Split(":");
 					if (Time.Length() == 2 ||
 						Time.Length() == 3)
 					{
 						// Hour (24hr time)
-						Hours(atoi(Time[0]));
+						Hours((int)Time[0].Int());
 
 						// Minute
-						Minutes(atoi(Time[1]));
+						Minutes((int)Time[1].Int());
 
 						if (Time.Length() == 3)
-						{
 							// Second
-							Seconds(atoi(Time[2]));
-						}
+							Seconds((int)Time[2].Int());
 						
 						Status = true;
 					}
 				}
-				else if (IsAlpha(*s))
+				else if (IsAlpha(s(0)))
 				{
 					// text
 					int m = MonthFromName(s);
 					if (m > 0)
-					{
 						Month(m);
-					}
 				}
-				else if (IsDigit(*s))
+				else if (s.IsNumeric())
 				{
 					int Count = 0;
 					for (char *c = s; *c; c++)
 					{
 						if (!IsDigit(*c))
-						{
 							break;
-						}
 						Count++;
 					}
 					
@@ -1792,18 +1773,14 @@ bool LDateTime::Decode(const char *In)
 							Now.SetNow();
 							int Yr = atoi(s);
 							if (2000 + Yr <= Now.Year())
-							{
 								Year(2000 + Yr);
-							}
 							else
-							{
 								Year(1900 + Yr);
-							}
 						}
 						else
 						{
 							// A day number (hopefully)?
-							Day(atoi(s));
+							Day((int)s.Int());
 						}
 					}
 					else if (Count == 4)
@@ -1811,7 +1788,7 @@ bool LDateTime::Decode(const char *In)
 						if (!Year())
 						{
 							// A year!
-							Year(atoi(s));
+							Year((int)s.Int());
 							Status = true;
 						}
 						else

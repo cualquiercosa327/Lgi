@@ -331,10 +331,23 @@ public:
 
 		if (Ver < MinimumVer)
 		{
-			Err.Print("%s:%i - SSL version '%s' is too old (minimum '%s')\n",
+			#if WINDOWS
+			char FileName[MAX_PATH] = "";
+			DWORD r = GetModuleFileNameA(LibEAY::Handle(), FileName, sizeof(FileName));
+			#endif
+
+			Err.Print("%s:%i - SSL version '%s' is too old (minimum '%s')\n"
+				#if WINDOWS
+				"%s\n"
+				#endif
+				,
 				_FL,
 				t[1],
-				MinimumVersion);
+				MinimumVersion
+				#if WINDOWS
+				,FileName
+				#endif
+				);
 			goto OnError;
 		}
 		
@@ -352,7 +365,8 @@ public:
 
 	OnError:
 		ErrorMsg.Reset(Err.NewStr());
-		sock->DebugTrace("%s", ErrorMsg.Get());
+		if (sock)
+			sock->DebugTrace("%s", ErrorMsg.Get());
 		return false;
     }
 
@@ -701,13 +715,9 @@ OsSocket SslSocket::Handle(OsSocket Set)
 	}
 	else if (Bio)
 	{
-		Library->BIO_get_fd(Bio, &h);
-		/* Do we need this anymore?
-		#ifdef _WIN64
-		#pragma message(__LOC__"Hack to get OpenSSL working on _WIN64")
-		h &= 0xffffffff;
-		#endif
-		*/
+		uint32 hnd = INVALID_SOCKET;
+		Library->BIO_get_fd(Bio, &hnd);
+		h = hnd;
 	}
 	
 	return h;

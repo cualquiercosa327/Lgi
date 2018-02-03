@@ -3409,7 +3409,18 @@ bool MailIMap::OnIdle(int Timeout, GArray<Untagged> &Resp)
 
 	if (Lock(_FL))
 	{
-		if (Socket->IsReadable(Timeout))
+		#ifdef _DEBUG
+		uint64 Start = LgiCurrentTime();
+		#endif
+		bool Readable = Socket->IsReadable(Timeout);
+		#ifdef _DEBUG
+		uint64 End = LgiCurrentTime();
+		if (!Readable && (End - Start) < (Timeout * 0.8))
+		{
+			LgiAssert(!"IsReadable is broken.");
+		}
+		#endif
+		if (Readable)
 		{
 			Read();
 		}

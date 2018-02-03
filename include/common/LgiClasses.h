@@ -1880,7 +1880,7 @@ class LgiClass GProfile
 	int MinMs;
 	
 public:
-	GProfile(const char *Name);
+	GProfile(const char *Name, int HideMs = -1);
 	virtual ~GProfile();
 	
 	void HideResultsIfBelow(int Ms);
