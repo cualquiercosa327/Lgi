@@ -1,13 +1,62 @@
 #include "Lgi.h"
 #include "LDbTable.h"
 
+///////////////////////////////////////////////////////////////////
+#define MAGIC(v) LgiSwap32(v)
+
+#define OBJ_HEAD(magic) \
+	char *Start = p.c; \
+	uint32 *Sz = NULL; \
+	if (Write) \
+	{ \
+		*p.u32++ = magic; \
+		Sz = p.u32++; \
+	} \
+	else if (*p.u32 != FieldMagic) \
+		return false; \
+	else \
+	{ \
+		p.u32++; \
+		Sz = p.u32++; \
+	}
+
+#define SERIALIZE(type, var) \
+	if (Write) *p.type++ = var; \
+	else var = *p.type++;
+
+#define SERIALIZE_FN(fn, type) \
+	if (Write) *p.type++ = fn(); \
+	else fn(*p.type++);
+
+#define SERIALIZE_CAST(cast, type, var) \
+	if (Write) *p.type++ = var; \
+	else var = (cast) *p.type++;
+
+#define OBJ_TAIL() \
+	if (Write) \
+		*Sz = p.c - Start; \
+	else \
+		p.c = Start + *Sz; \
+	LgiAssert(Sizeof() == *Sz); \
+	return true;
+
+#define DB_DATE_SZ \
+	( \
+		2 + /* Year  */ \
+		1 + /* Month */ \
+		1 + /* Day   */ \
+		1 + /* Hour  */ \
+		1 + /* Min   */ \
+		1 + /* Sec   */ \
+		2   /* TimeZone */ \
+	)
+
+///////////////////////////////////////////////////////////////////
 enum OffType
 {
 	VariableOff,
 	FixedOff
 };
-
-#define MAGIC(v) LgiSwap32(v)
 
 enum DbMagic
 {
@@ -16,6 +65,7 @@ enum DbMagic
 	RowMagic = MAGIC('row\0'),
 };
 
+///////////////////////////////////////////////////////////////////
 inline bool IsFixed(GVariantType t)
 {
 	return	t != GV_STRING &&
@@ -86,11 +136,11 @@ struct DbTablePriv
 		{
 			LDbField &f = Fields[i];
 			f.Offset = Pos;
-			Pos += IsFixed(f.Type) ? f.Size() : sizeof(uint32);
+			Pos += IsFixed(f.Type) ? f.DataSize() : sizeof(uint32);
 			
 			if (IsFixed(f.Type))
 			{
-				FixedSz += f.Size();
+				FixedSz += f.DataSize();
 				FixedOffsets[Fixed] = f.Offset;
 				Map.Add(f.Id, Info(f.Type, Fixed++));
 			}
@@ -177,36 +227,72 @@ struct DbTablePriv
 };
 
 ///////////////////////////////////////////////////////////////////////////////////
-#define SERIALIZE(type, var) \
-	if (Write) *p.type++ = var; \
-	else var = *p.type++;
+size_t LDbDate::Sizeof()
+{
+	return DB_DATE_SZ;
+}
 
-#define SERIALIZE_CAST(cast, type, var) \
-	if (Write) *p.type++ = var; \
-	else var = (cast) *p.type++;
+bool LDbDate::Serialize(GPointer &p, bool Write)
+{
+	#ifdef _DEBUG
+	char *Start = p.c;
+	#endif
+
+	SERIALIZE_FN(Year, u16);
+	SERIALIZE_FN(Month, u8);
+	SERIALIZE_FN(Day, u8);
+
+	SERIALIZE_FN(Hours, u8);
+	SERIALIZE_FN(Minutes, u8);
+	SERIALIZE_FN(Seconds, u8);
+
+	uint16 Tz = GetTimeZone();
+	SERIALIZE(u16, Tz);
+	if (!Write) SetTimeZone(Tz, false);
+
+	LgiAssert(p.c - Start == DB_DATE_SZ);
+	return true;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////
+int LDbField::DataSize()
+{
+	switch (Type)
+	{
+		case GV_BOOL:
+			return 1;
+		case GV_INT32:
+			return 4;
+		case GV_INT64:
+			return 8;
+		case GV_DATETIME:
+			return DB_DATE_SZ;
+		default:
+			LgiAssert(!"Impl me.");
+			break;
+	}
+
+	return 0;
+}
+
+size_t LDbField::Sizeof()
+{
+	return	8 +
+			sizeof(Id) +
+			2 + // Type
+			sizeof(Offset);
+}
 
 bool LDbField::Serialize(GPointer &p, bool Write)
 {
-	char *Start = p.c;
-	uint32 *Sz = NULL;
-	if (Write)
-	{
-		*p.u32++ = FieldMagic;
-		Sz = p.u32++;
-	}
-	else if (*p.u32 != FieldMagic)
-		return false;
-	else
-		Sz = ++p.u32;
+	OBJ_HEAD(FieldMagic);
 		
 	SERIALIZE(s32, Id);
+	SERIALIZE(s32, Offset);
 	SERIALIZE_CAST(GVariantType, u16, Type);
 
-	if (Write)
-		*Sz = p.c - Start;
-	else
-		p.c = Start + *Sz;
-	return true;
+	OBJ_TAIL();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -218,7 +304,6 @@ LDbRow::LDbRow(DbTablePriv *priv)
 	Next = NULL;
 	Prev = NULL;
 	Pos = -1;
-	Size = HeaderSz + d->FixedSz + (d->Variable * sizeof(uint32));
 	Base.c = NULL;
 	Offsets[FixedOff] = d->FixedOffsets.AddressOf();
 	Offsets[VariableOff] = NULL;
@@ -236,6 +321,73 @@ int LDbRow::GetFields()
 LDbField &LDbRow::GetField(int Idx)
 {
 	return d->Fields[Idx];
+}
+
+struct VarBlock
+{
+	int Index;
+	size_t Start;
+	size_t Len;
+	int End() { return Start + Len; }
+};
+
+int VarCmp(VarBlock *a, VarBlock *b)
+{
+	return a->Start - b->Start;
+}
+
+size_t LDbRow::GetInitialSize()
+{
+	return HeaderSz + d->FixedSz + (d->Variable * sizeof(uint32));
+}
+
+bool LDbRow::Compact()
+{
+	if (Edit.Length())
+	{
+		// The variable sized fields can get fragmented, this function removes unused space.
+		GArray<VarBlock> v;
+		v.Length(d->Variable);
+		for (unsigned i=0; i<d->Variable; i++)
+		{
+			VarBlock &b = v[i];
+			b.Index = i;
+			b.Start = Offsets[VariableOff][i];
+			b.Len = strlen(Base.c + b.Start) + 1;
+		}
+		v.Sort(VarCmp);
+		size_t Pos = GetInitialSize();
+		for (unsigned i=0; i<v.Length(); i++)
+		{
+			VarBlock &b = v[i];
+			if (b.Start > Pos)
+			{
+				// Move block down
+				memcpy(Base.c + Pos, Base.c + b.Start, b.Len);
+				Offsets[VariableOff][b.Index] = Pos;
+				b.Start = Pos;
+			}
+			Pos = b.Start + b.Len;
+		}
+		if (Base.u32[1] > Pos)
+			Base.u32[1] = Pos;
+	}
+
+	return true;
+}
+
+uint32 LDbRow::Size(uint32 Set)
+{
+	if (Base.c)
+	{
+		if (Set)
+			Base.u32[1] = Set;
+
+		return Base.u32[1];
+	}
+
+	LgiAssert(0);
+	return 0;
 }
 
 bool LDbRow::Delete()
@@ -275,23 +427,27 @@ bool LDbRow::StartEdit()
 {
 	if (Edit.Length() == 0)
 	{
-		if (!Edit.Length(Size))
-			return false;
-
 		if (Base.c)
 		{
-			memcpy(Edit.AddressOf(), Base.c, Size);
+			if (!Edit.Length(Base.u32[1]))
+				return false;
+
+			memcpy(Edit.AddressOf(), Base.c, Base.u32[1]);
 		}
 		else
 		{
-			// Initialize fixed fields to zero
-			memset(Edit.AddressOf(), 0, d->FixedSz);
-			// And the variable offset table to -1
-			memset(Edit.AddressOf() + d->FixedSz, 0xff, Size - d->FixedSz);
+			int InitialSize = GetInitialSize();
+			if (!Edit.Length(InitialSize))
+				return false;
 
 			Base.c = Edit.AddressOf();
 			Base.u32[0] = RowMagic;
-			Base.u32[1] = Size;
+			Base.u32[1] = InitialSize;
+
+			// Initialize fixed fields to zero
+			memset(Base.c + 8, 0, d->FixedSz);
+			// And the variable offset table to -1
+			memset(Base.c + 8 + d->FixedSz, 0xff, InitialSize - d->FixedSz);
 		}
 
 		PostEdit();
@@ -303,8 +459,11 @@ bool LDbRow::StartEdit()
 void LDbRow::PostEdit()
 {
 	Base.c = Edit.AddressOf();
-	Offsets[VariableOff] = (int32*) Edit.AddressOf(d->FixedSz);
-	Size = Edit.Length();
+	if (Base.c)
+	{
+		Size(Edit.Length());
+		Offsets[VariableOff] = (int32*) Edit.AddressOf(8 + d->FixedSz);
+	}
 }
 
 Store3Status LDbRow::SetStr(int id, const char *str)
@@ -417,6 +576,8 @@ Store3Status LDbRow::SetRfc822(GStreamI *Rfc822Msg)
 LDbTable::LDbTable(const char *File)
 {
 	d = new DbTablePriv;
+	if (File)
+		Serialize(File, false);
 }
 
 LDbTable::~LDbTable()
@@ -501,6 +662,13 @@ bool LDbTable::Empty()
 
 	d->First = d->Last = NULL;
 	d->Rows = 0;
+	d->Fixed = 0;
+	d->FixedSz = 0;
+	d->Variable = 0;
+	d->Fields.Empty();
+	d->FixedOffsets.Empty();
+	d->Map.Empty();
+	d->Data.Empty();
 
 	return true;
 }
@@ -521,35 +689,41 @@ bool LDbTable::Serialize(const char *Path, bool Write)
 
 	if (Write)
 	{
-		size_t Sz = sizeof(uint32) +
-			d->Fields.Length() * (8 + 6);
-		if (d->Data.Length() < Sz)
-			d->Data.Length(Sz);
-		GPointer p = {(int8*)d->Data.AddressOf()};
-		*p.u32++ = TableMagic;
-		for (unsigned i=0; i<d->Fields.Length(); i++)
+		if (d->Fields.Length() > 0)
 		{
-			if (!d->Fields[i].Serialize(p, true))
+			size_t Sz = sizeof(uint32) +
+				d->Fields.Length() * d->Fields[0].Sizeof();
+			if (d->Data.Length() < Sz)
+				d->Data.Length(Sz);
+			GPointer p = {(int8*)d->Data.AddressOf()};
+			*p.u32++ = TableMagic;
+			for (unsigned i=0; i<d->Fields.Length(); i++)
+			{
+				if (!d->Fields[i].Serialize(p, true))
+					return false;
+			}
+			f.SetSize(0);
+		
+			size_t Bytes = p.c - d->Data.AddressOf();
+			LgiAssert(Bytes == Sz);
+			if (f.Write(d->Data.AddressOf(), Bytes) != Bytes)
 				return false;
 		}
-		f.SetSize(0);
-		
-		size_t Bytes = p.c - d->Data.AddressOf();
-		LgiAssert(Bytes == Sz);
-		if (f.Write(d->Data.AddressOf(), Bytes) != Bytes)
-			return false;
 
 		for (LDbRow *r = d->First; r; r = r->Next)
 		{
 			// Fix the size before we write
 			LgiAssert(r->Base.u32[0] == RowMagic);
-			r->Base.u32[1] = r->Size;
-			if (f.Write(r->Base.c, r->Size) != r->Size)
+			if (r->Edit.Length())
+				r->Compact();
+			if (f.Write(r->Base.c, r->Size()) != r->Size())
 				return false;
 		}
 	}
 	else
 	{
+		Empty();
+
 		// Read all the data into memory
 		if (!d->Data.Length((size_t)f.GetSize()))
 			return false;
@@ -561,9 +735,53 @@ bool LDbTable::Serialize(const char *Path, bool Write)
 			return false;
 
 		// Create all the fields
-		while (*p.u32 == FieldMagic)
-			d->Fields.New().Serialize(p, false);
-		d->OffsetFields();
+		char *End = p.c + d->Data.Length();
+		d->Fixed = 0;
+		d->FixedSz = 0;
+		d->Variable = 0;
+		d->Map.Empty();
+		d->FixedOffsets.Empty();
+		while (p.c < End - 8 && *p.u32 == FieldMagic)
+		{
+			LDbField &f = d->Fields.New();
+			if (!f.Serialize(p, false))
+				return false;
+			if (IsFixed(f.Type))
+			{
+				d->FixedSz += f.DataSize();
+				d->FixedOffsets[d->Fixed] = f.Offset;
+				d->Map.Add(f.Id, Info(f.Type, d->Fixed++));
+			}
+			else
+			{
+				d->Map.Add(f.Id, Info(f.Type, d->Variable++));
+			}
+		}
+
+		// Create the rows
+		d->Rows = 0;
+		while (p.c < End - 8 && *p.u32 == RowMagic)
+		{
+			LDbRow *r = new LDbRow(d);
+			if (!r)
+				return false;
+			r->Base = p;
+			r->Offsets[FixedOff] = d->FixedOffsets.AddressOf();
+			r->Offsets[VariableOff] = (int32*) (r->Base.c + 8 + d->FixedSz);
+			if (d->Last)
+			{
+				r->Prev = d->Last;
+				d->Last->Next = r;
+				d->Last = r;
+				d->Rows++;
+			}
+			else
+			{
+				d->First = d->Last = r;
+				d->Rows = 1;
+			}
+			p.c += p.u32[1];
+		}
 	}
 
 	return true;
@@ -607,16 +825,72 @@ bool LDbTable::UnitTests()
 		}
 	}
 
+	LgiTrace("Export table:\n");
 	for (LDbRow *r = NULL; t.Iterate(r); )
 	{
 		int64 Id = r->GetInt(TestUid);
 		int64 Int = r->GetInt(TestInt32);
 		char *s = r->GetStr(TestString);
 		char *s2 = r->GetStr(TestString2);
-		LgiTrace("%i: %i, %s, %s\n", (int)Id, (int)Int, s, s2);
+		LgiTrace("\t%i: %i, %s, %s\n", (int)Id, (int)Int, s, s2);
 	}
 
-	t.Serialize("test.db", true);
+	const char *File = "test.db";
+	t.Serialize(File, true);
 
-	return false;
+	LDbTable in;
+	if (!in.Serialize(File, false))
+		return false;
+
+	LgiTrace("Import table:\n");
+	LDbRow *Nine = NULL;
+	for (LDbRow *r = NULL; in.Iterate(r); )
+	{
+		int64 Start = LgiMicroTime();
+		int64 Id = r->GetInt(TestUid);
+		int64 Int = r->GetInt(TestInt32);
+		char *s = r->GetStr(TestString);
+		char *s2 = r->GetStr(TestString2);
+		int64 Time = LgiMicroTime()-Start;
+		LgiTrace("\t%i: %i, %s, %s (%.4fms)\n", (int)Id, (int)Int, s, s2, (double)Time/1000.0);
+
+		if (Int == 9)
+			Nine = r;
+		else if (Int == 12)
+			r->SetStr(TestString2, "This is a new string.");
+		else if (Int == 15)
+			r->SetStr(TestString, NULL);
+		else if (Int == 6)
+			r->SetInt(TestInt32, 66);
+	}
+
+	if (!Nine)
+		return false;
+	in.DeleteRow(Nine);
+	LgiTrace("Post delete:\n");
+	for (LDbRow *r = NULL; in.Iterate(r); )
+	{
+		int64 Id = r->GetInt(TestUid);
+		int64 Int = r->GetInt(TestInt32);
+		char *s = r->GetStr(TestString);
+		char *s2 = r->GetStr(TestString2);
+		LgiTrace("\t%i: %i, %s, %s\n", (int)Id, (int)Int, s, s2);
+	}
+
+	if (!in.Serialize(File, true))
+		return false;
+	if (!t.Serialize(File, false))
+		return false;
+
+	LgiTrace("Reread:\n");
+	for (LDbRow *r = NULL; t.Iterate(r); )
+	{
+		int64 Id = r->GetInt(TestUid);
+		int64 Int = r->GetInt(TestInt32);
+		char *s = r->GetStr(TestString);
+		char *s2 = r->GetStr(TestString2);
+		LgiTrace("\t%i: %i, %s, %s\n", (int)Id, (int)Int, s, s2);
+	}
+
+	return true;
 }

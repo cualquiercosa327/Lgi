@@ -7,11 +7,19 @@
 struct DbTablePriv;
 class LDbTable;
 
-struct LDateStore
+class LDbObj
 {
-	uint16 Year;
-	uint16 TimeZone;
-	uint8 Day, Month, Hour, Minute, Second, Flags;
+public:
+	virtual ~LDbObj() {}
+
+	virtual size_t Sizeof() = 0;
+	virtual bool Serialize(GPointer &p, bool Write) = 0;
+};
+
+struct LDbDate : public LDbObj, public LDateTime
+{
+	size_t Sizeof();
+	bool Serialize(GPointer &p, bool Write);
 };
 
 struct LDbField
@@ -20,26 +28,8 @@ struct LDbField
 	GVariantType Type;
 	int Offset;
 
-	int Size()
-	{
-		switch (Type)
-		{
-			case GV_BOOL:
-				return 1;
-			case GV_INT32:
-				return 4;
-			case GV_INT64:
-				return 8;
-			case GV_DATETIME:
-				return sizeof(LDateStore);
-			default:
-				LgiAssert(!"Impl me.");
-				break;
-		}
-
-		return 0;
-	}
-
+	int DataSize();
+	size_t Sizeof();
 	bool Serialize(GPointer &p, bool Write);
 };
 
@@ -57,9 +47,6 @@ class LDbRow : public GDataPropI
 	// This is the position in the tables read-only data
 	// for this row.
 	ssize_t Pos;
-
-	// This is the total size of the row
-	ssize_t Size;
 
 	// When editing a record, it can grow in size, so we copy the
 	// Read-only data in the table into an edit buffer own by this
@@ -82,6 +69,8 @@ class LDbRow : public GDataPropI
 	LDbRow(struct DbTablePriv *priv);
 	bool StartEdit();
 	void PostEdit();
+	bool Compact();
+	size_t GetInitialSize();
 
 public:
 	static int HeaderSz;
@@ -94,6 +83,7 @@ public:
 
 	// Row level op
 	bool Delete();
+	uint32 Size(uint32 Set = 0);
 
 	// Data access
 	bool CopyProps(GDataPropI &p);
