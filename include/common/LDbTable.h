@@ -39,6 +39,8 @@ struct LDbField
 
 		return 0;
 	}
+
+	bool Serialize(GPointer &p, bool Write);
 };
 
 class LDbRow : public GDataPropI
@@ -46,17 +48,44 @@ class LDbRow : public GDataPropI
 	friend class LDbTable;
 	friend struct DbTablePriv;
 
+	// Global table specific data
 	DbTablePriv *d;
+
+	// The doubly linked list of rows.
 	LDbRow *Next, *Prev;
 	
+	// This is the position in the tables read-only data
+	// for this row.
 	ssize_t Pos;
+
+	// This is the total size of the row
+	ssize_t Size;
+
+	// When editing a record, it can grow in size, so we copy the
+	// Read-only data in the table into an edit buffer own by this
+	// record.
 	GArray<char> Edit;
-	char *Fix;
-	int32 *Var;
+
+	// This pointers to the record data.
+	// Format
+	//		uint32 Magic;
+	//		char FixedSizeData[d->FixedSz]
+	//		uint32 VariableOffsets[d->Variable]
+	//		char VariableData[??]
+	GPointer Base;
+
+	// This points to the offset data:
+	// [0] -> Variable offset table (part of this record)
+	// [1] -> Fixed offset table (owned by 'd')
+	int32 *Offsets[2];
 	
 	LDbRow(struct DbTablePriv *priv);
+	bool StartEdit();
+	void PostEdit();
 
 public:
+	static int HeaderSz;
+
 	~LDbRow();
 
 	// Fields
@@ -102,6 +131,12 @@ public:
 	int GetRows();
 	LDbRow *NewRow();
 	bool DeleteRow(LDbRow *r);
+
+	// IO
+	bool Serialize(const char *Path, bool Write);
+
+	// Testing
+	static bool UnitTests();
 };
 
 

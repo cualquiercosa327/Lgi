@@ -5,6 +5,7 @@
 #include "GTextLabel.h"
 #include "GCss.h"
 #include "GTableLayout.h"
+#include "LDbTable.h"
 
 const char *AppName = "Lgi Test App";
 
@@ -245,6 +246,7 @@ int LgiMain(OsAppArguments &AppArgs)
 	if (a.IsOk())
 	{
 		GStringTest();
+		LDbTable::UnitTests();
 		a.AppWnd = new App;
 		a.Run();
 	}
