@@ -378,13 +378,20 @@ public:
 
 struct ImapMailFlags
 {
-	uint8 ImapAnswered : 1;
-	uint8 ImapDeleted : 1;
-	uint8 ImapDraft : 1;
-	uint8 ImapFlagged : 1;
-	uint8 ImapRecent : 1;
-	uint8 ImapSeen : 1;
-	uint8 ImapExpunged :1;
+	union
+	{
+		struct
+		{
+			uint8 ImapAnswered : 1;
+			uint8 ImapDeleted : 1;
+			uint8 ImapDraft : 1;
+			uint8 ImapFlagged : 1;
+			uint8 ImapRecent : 1;
+			uint8 ImapSeen : 1;
+			uint8 ImapExpunged :1;
+		};
+		uint16 All;
+	};
 
 	ImapMailFlags(char *init = 0)
 	{
@@ -422,13 +429,7 @@ struct ImapMailFlags
 
 	void Set(const char *s)
 	{
-		ImapAnswered = false;
-		ImapDeleted = false;
-		ImapDraft = false;
-		ImapFlagged = false;
-		ImapRecent = false;
-		ImapSeen = false;
-		ImapExpunged = false;
+		All = 0;
 
 		if (!s) s = "";
 		while (*s)

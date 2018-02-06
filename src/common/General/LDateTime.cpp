@@ -1693,7 +1693,44 @@ bool LDateTime::Decode(const char *In)
 					Date = s.SplitDelimit(".-/\\");
 				if (Date.Length() == 3)
 				{
-					Day((int)Date[0].Int());
+					if (Date[0].Int() > 31)
+					{
+						// Y/M/D?
+						Year((int)Date[0].Int());
+						Day((int)Date[2].Int());
+					}
+					else if (Date[2].Int() > 31)
+					{
+						// D/M/Y?
+						Day((int)Date[0].Int());
+						Year((int)Date[2].Int());
+					}
+					else
+					{
+						// Ambiguous year...
+						bool YrFirst = true;
+						if (Date[0].Length() == 1)
+							YrFirst = false;
+						// else we really can't tell.. just go with year first
+						if (YrFirst)
+						{
+							Year((int)Date[0].Int());
+							Day((int)Date[2].Int());
+						}
+						else
+						{
+							Day((int)Date[0].Int());
+							Year((int)Date[2].Int());
+						}
+
+						LDateTime Now;
+						Now.SetNow();
+						if (Year() + 2000 <= Now.Year())
+							Year(2000 + Year());
+						else
+							Year(1900 + Year());
+					}
+
 					if (Date[1].IsNumeric())
 						Month((int)Date[1].Int());
 					else
@@ -1701,26 +1738,6 @@ bool LDateTime::Decode(const char *In)
 						int m = MonthFromName(Date[1]);
 						if (m > 0)
 							Month(m);
-					}
-
-					int Yr = (int)Date[2].Int();
-					if (Yr >= 100)
-					{
-						Year(Yr);
-					}
-					else
-					{
-						LDateTime Now;
-						Now.SetNow();
-						if (Yr + 2000 <= Now.Year())
-						{
-							Year(2000 + Yr);
-						}
-						else
-						{
-							Year(1900 + Yr);
-						}
-						// else ... ?
 					}
 						
 					GotDate = true;

@@ -7,19 +7,10 @@
 struct DbTablePriv;
 class LDbTable;
 
-class LDbObj
-{
-public:
-	virtual ~LDbObj() {}
-
-	virtual size_t Sizeof() = 0;
-	virtual bool Serialize(GPointer &p, bool Write) = 0;
-};
-
-struct LDbDate : public LDbObj, public LDateTime
+struct LDbDate
 {
 	size_t Sizeof();
-	bool Serialize(GPointer &p, bool Write);
+	bool Serialize(GPointer &p, LDateTime &dt, bool Write);
 };
 
 struct LDbField
@@ -65,6 +56,9 @@ class LDbRow : public GDataPropI
 	// [0] -> Variable offset table (part of this record)
 	// [1] -> Fixed offset table (owned by 'd')
 	int32 *Offsets[2];
+
+	// Date cache
+	LDateTime Cache;
 	
 	LDbRow(struct DbTablePriv *priv);
 	bool StartEdit();
@@ -84,6 +78,7 @@ public:
 	// Row level op
 	bool Delete();
 	uint32 Size(uint32 Set = 0);
+	GString ToString();
 
 	// Data access
 	bool CopyProps(GDataPropI &p);
@@ -126,6 +121,7 @@ public:
 	bool Serialize(const char *Path, bool Write);
 
 	// Testing
+	GString ToString();
 	static bool UnitTests();
 };
 

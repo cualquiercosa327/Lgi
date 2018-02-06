@@ -232,23 +232,23 @@ size_t LDbDate::Sizeof()
 	return DB_DATE_SZ;
 }
 
-bool LDbDate::Serialize(GPointer &p, bool Write)
+bool LDbDate::Serialize(GPointer &p, LDateTime &dt, bool Write)
 {
 	#ifdef _DEBUG
 	char *Start = p.c;
 	#endif
 
-	SERIALIZE_FN(Year, u16);
-	SERIALIZE_FN(Month, u8);
-	SERIALIZE_FN(Day, u8);
+	SERIALIZE_FN(dt.Year, u16);
+	SERIALIZE_FN(dt.Month, u8);
+	SERIALIZE_FN(dt.Day, u8);
 
-	SERIALIZE_FN(Hours, u8);
-	SERIALIZE_FN(Minutes, u8);
-	SERIALIZE_FN(Seconds, u8);
+	SERIALIZE_FN(dt.Hours, u8);
+	SERIALIZE_FN(dt.Minutes, u8);
+	SERIALIZE_FN(dt.Seconds, u8);
 
-	uint16 Tz = GetTimeZone();
+	uint16 Tz = dt.GetTimeZone();
 	SERIALIZE(u16, Tz);
-	if (!Write) SetTimeZone(Tz, false);
+	if (!Write) dt.SetTimeZone(Tz, false);
 
 	LgiAssert(p.c - Start == DB_DATE_SZ);
 	return true;
@@ -347,13 +347,15 @@ bool LDbRow::Compact()
 	{
 		// The variable sized fields can get fragmented, this function removes unused space.
 		GArray<VarBlock> v;
-		v.Length(d->Variable);
 		for (unsigned i=0; i<d->Variable; i++)
 		{
-			VarBlock &b = v[i];
-			b.Index = i;
-			b.Start = Offsets[VariableOff][i];
-			b.Len = strlen(Base.c + b.Start) + 1;
+			if (Offsets[VariableOff][i] >= 0)
+			{
+				VarBlock &b = v.New();
+				b.Index = i;
+				b.Start = Offsets[VariableOff][i];
+				b.Len = strlen(Base.c + b.Start) + 1;
+			}
 		}
 		v.Sort(VarCmp);
 		size_t Pos = GetInitialSize();
@@ -374,6 +376,47 @@ bool LDbRow::Compact()
 	}
 
 	return true;
+}
+
+GString LDbRow::ToString()
+{
+	GString::Array a;
+	a.SetFixedLength(false);
+	for (unsigned i=0; i<d->Fields.Length(); i++)
+	{
+		LDbField &f = d->Fields[i];
+		switch (f.Type)
+		{
+			case GV_INT32:
+			case GV_INT64:
+				a.New().Printf(LGI_PrintfInt64, GetInt(f.Id));
+				break;
+			case GV_STRING:
+			{
+				GString s = GetStr(f.Id);
+				if (s.Length() > 0)
+					a.New() = s;
+				else
+					a.New() = "NULL";
+				break;
+			}
+			case GV_DATETIME:
+			{
+				LDateTime *dt = GetDate(f.Id);
+				if (dt)
+					a.New() = dt->Get();
+				else
+					a.New() = "NULL";
+				break;
+			}
+			default:
+				LgiAssert(0);
+				break;
+		}
+	}
+
+	GString Sep(", ");
+	return Sep.Join(a);
 }
 
 uint32 LDbRow::Size(uint32 Set)
@@ -492,7 +535,7 @@ int64 LDbRow::GetInt(int id)
 {
 	Info i = d->Map.Find(id);
 	if (i.Index < 0 || !Base.c)
-		return NULL;
+		return -1;
 	GPointer p = { Base.s8 + Offsets[FixedOff][i.Index] };
 	if (i.Type == GV_INT32)
 		return *p.s32;
@@ -526,14 +569,34 @@ Store3Status LDbRow::SetInt(int id, int64 val)
 
 LDateTime *LDbRow::GetDate(int id)
 {
-	LgiAssert(0);
-	return NULL;
+	Info i = d->Map.Find(id);
+	if (i.Index < 0 || !Base.c)
+		return NULL;
+	GPointer p = { Base.s8 + Offsets[FixedOff][i.Index] };
+	if (i.Type != GV_DATETIME)
+		return NULL;
+
+	LDbDate dd;
+	dd.Serialize(p, Cache, false);	
+	return &Cache;
 }
 
-Store3Status LDbRow::SetDate(int id, LDateTime *i)
+Store3Status LDbRow::SetDate(int id, LDateTime *dt)
 {
-	LgiAssert(0);
-	return Store3Error;
+	Info i = d->Map.Find(id);
+	if (i.Index < 0 || !dt)
+		return Store3Error;
+	if (!Base.c)
+		StartEdit();
+	GPointer p = { Base.s8 + Offsets[FixedOff][i.Index] };
+	if (i.Type != GV_DATETIME)
+		return Store3Error;
+
+	LDbDate dd;
+	dd.Serialize(p, *dt, true);
+	d->SetDirty();
+	
+	return Store3Success;
 }
 
 GVariant *LDbRow::GetVar(int id)
@@ -796,6 +859,21 @@ enum TestFields
 	TestDate,
 	TestString2,
 };
+
+GString LDbTable::ToString()
+{
+	GString::Array a;
+	a.SetFixedLength(false);
+
+	for (LDbRow *r = NULL; Iterate(r); )
+	{
+		GString s = r->ToString();
+		a.Add(s);
+	}
+
+	GString Sep("\n");
+	return Sep.Join(a);
+}
 
 bool LDbTable::UnitTests()
 {
