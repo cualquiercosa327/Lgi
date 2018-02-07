@@ -16,6 +16,7 @@
 #include "ProjectNode.h"
 #include "GEventTargetThread.h"
 #include "GCheckBox.h"
+#include "SpaceTabConv.h"
 
 const char *Untitled = "[untitled]";
 // static const char *White = " \r\t\n";
@@ -527,7 +528,7 @@ void EditTray::OnSymbolList(GMouse &m)
 
 							if (Doc)
 							{
-								Doc->GetEdit()->SetLine(Def->Line);
+								Doc->SetLine(Def->Line, false);
 							}
 							else
 							{
@@ -2726,6 +2727,12 @@ void IdeDoc::SearchSymbol()
 	}
 }
 
+void IdeDoc::UpdateControl()
+{
+	if (d->Edit)
+		d->Edit->Invalidate();
+}
+
 void IdeDoc::SearchFile()
 {
 	GotoSearch(IDC_FILE_SEARCH, NULL);
@@ -2744,6 +2751,45 @@ void IdeDoc::ClearCurrentIp()
 {
 	CurIpDoc.Empty();
 	CurIpLine = -1;
+}
+
+void IdeDoc::SetCrLf(bool CrLf)
+{
+	if (d->Edit)
+		d->Edit->SetCrLf(CrLf);
+}
+
+bool IdeDoc::HasFocus(int Set)
+{
+	if (!d->Edit)
+		return false;
+
+	if (Set)
+		d->Edit->Focus(Set);
+
+	return d->Edit->Focus();
+}
+
+void IdeDoc::ConvertWhiteSpace(bool ToTabs)
+{
+	if (!d->Edit)
+		return;
+
+	GAutoString Sp(
+		ToTabs ?
+		SpacesToTabs(d->Edit->Name(), d->Edit->GetTabSize()) :
+		TabsToSpaces(d->Edit->Name(), d->Edit->GetTabSize())
+		);
+	if (Sp)
+	{
+		Text->Name(d->Edit);
+		SetDirty();
+	}
+}
+
+int IdeDoc::GetLine()
+{
+	return d->Edit ? d->Edit->GetLine() : -1;
 }
 
 void IdeDoc::SetLine(int Line, bool CurIp)
@@ -3100,10 +3146,12 @@ bool IdeDoc::OnRequestClose(bool OsShuttingDown)
 	return true;
 }
 
+/*
 GTextView3 *IdeDoc::GetEdit()
 {
 	return d->Edit;
 }
+*/
 
 bool IdeDoc::BuildIncludePaths(GArray<GString> &Paths, IdePlatform Platform, bool IncludeSysPaths)
 {
