@@ -8,6 +8,11 @@
 class GMsgDlg : public GDialog
 {
 public:
+	GMsgDlg()
+	{
+		RegisterHook(this, GKeyEvents);
+	}
+
 	bool OnViewKey(GView *v, GKey &k)
 	{
 		if (k.Down())

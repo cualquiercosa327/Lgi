@@ -921,6 +921,25 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 			}
 			break;
 		}
+		case kEventClassKeyboard:
+		{
+			switch (eventKind)
+			{
+				case kEventRawKeyDown:
+				{
+					break;
+				}
+				case kEventRawKeyRepeat:
+				{
+					break;
+				}
+				case kEventRawKeyUp:
+				{
+					break;
+				}
+			}
+			break;
+		}
 		case kEventClassControl:
 		{
 			switch (eventKind)
@@ -1032,6 +1051,26 @@ pascal OSStatus LgiRootCtrlProc(EventHandlerCallRef inHandlerCallRef, EventRef i
 					{
 						LgiTrace("%s:%i - No context.\n", __FILE__, __LINE__);
 					}
+					break;
+				}
+				case kEventClassKeyboard:
+				{
+					switch (eventKind)
+					{
+						case kEventRawKeyDown:
+						{
+							break;
+						}
+						case kEventRawKeyRepeat:
+						{
+							break;
+						}
+						case kEventRawKeyUp:
+						{
+							break;
+						}
+					}
+					
 					break;
 				}
 			}
@@ -1312,7 +1351,8 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 	}
 
 AllDone:
-	d->LastKey = k;
+	if (d)
+		d->LastKey = k;
 
 	return Status;
 }
