@@ -367,8 +367,9 @@ GRadioButton *GRadioGroup::Append(int x, int y, const char *name)
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Radio button
-struct GRadioButtonPrivate : public LMutex, public LStringLayout
+class GRadioButtonPrivate : public LMutex, public LStringLayout
 {
+public:
 	GRadioButton *Ctrl;
 	bool Val;
 	bool Over;
