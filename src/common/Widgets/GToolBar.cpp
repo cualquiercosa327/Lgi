@@ -1340,7 +1340,7 @@ bool GToolBar::Pour(GRegion &r)
 		n.Bound(Best);
 		SetPos(n, true);
 		
-		_Dump();
+		// _Dump();
 		return true;
 	}
 
