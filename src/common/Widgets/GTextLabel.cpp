@@ -72,6 +72,7 @@ GTextLabel::~GTextLabel()
 void GTextLabel::OnAttach()
 {
 	LgiResources::StyleElement(this);
+	OnStyleChange();
 	GView::OnAttach();
 }
 
@@ -105,6 +106,11 @@ void GTextLabel::SetWrap(bool b)
 
 bool GTextLabel::Name(const char *n)
 {
+	if (GetId() == 544)
+	{
+		int asd=0;
+	}
+
 	if (!d->Lock(_FL))
 		return false;
 
@@ -134,6 +140,11 @@ bool GTextLabel::Name(const char *n)
 
 bool GTextLabel::NameW(const char16 *n)
 {
+	if (GetId() == 544)
+	{
+		int asd=0;
+	}
+
 	if (!d->Lock(_FL))
 		return false;
 
@@ -191,6 +202,7 @@ void GTextLabel::OnStyleChange()
 		d->Empty();
 		d->Add(GView::Name(), GetCss());
 		d->Unlock();
+		Invalidate();
 	}
 }
 
@@ -259,7 +271,10 @@ int GTextLabel::OnNotify(GViewI *Ctrl, int Flags)
 
 void GTextLabel::OnPaint(GSurface *pDC)
 {
-	// bool Status = false;
+	if (GetId() == 544)
+	{
+		int asd=0;
+	}
 
 	GColour Back;
 	Back.Set(LC_MED, 24);

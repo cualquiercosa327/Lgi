@@ -443,7 +443,6 @@ GRadioButton::GRadioButton(int id, int x, int y, int cx, int cy, const char *nam
 	#if WINNATIVE
 	SetDlgCode(GetDlgCode() | DLGC_WANTARROWS);
 	#endif
-	LgiResources::StyleElement(this);
 }
 
 GRadioButton::~GRadioButton()
@@ -453,11 +452,20 @@ GRadioButton::~GRadioButton()
 
 void GRadioButton::OnAttach()
 {
+	LgiResources::StyleElement(this);
+	OnStyleChange();
+	GView::OnAttach();
 }
 
-GMessage::Result GRadioButton::OnEvent(GMessage *m)
+void GRadioButton::OnStyleChange()
 {
-	return GView::OnEvent(m);
+	if (d->Lock(_FL))
+	{
+		d->Empty();
+		d->Add(GView::Name(), GetCss());
+		d->Unlock();
+		Invalidate();
+	}
 }
 
 bool GRadioButton::Name(const char *n)

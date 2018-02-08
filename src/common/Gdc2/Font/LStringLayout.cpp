@@ -482,10 +482,10 @@ bool LStringLayout::DoLayout(int Width, int MinYSize, bool Debug)
 }
 	
 void LStringLayout::Paint(	GSurface *pDC,
-			GdcPt2 pt,
-			GColour Back,
-			GRect &rc,
-			bool Enabled)
+							GdcPt2 pt,
+							GColour Back,
+							GRect &rc,
+							bool Enabled)
 {
 	if (!pDC)
 		return;
