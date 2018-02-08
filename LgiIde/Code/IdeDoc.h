@@ -34,6 +34,8 @@ public:
 	bool IsFile(const char *File);
 	bool AddBreakPoint(int Line, bool Add);
 	
+	bool OpenFile(const char *File);
+	void SetEditorParams(int IndentSize, int TabSize, bool HardTabs, bool ShowWhiteSpace);
 	bool HasFocus(int Set = -1);
 	void ConvertWhiteSpace(bool ToTabs);
 	void SetCrLf(bool CrLf);

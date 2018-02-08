@@ -795,8 +795,8 @@ bool LDateTime::Get(uint64 &s)
 	SYSTEMTIME System;
 
 	System.wYear = _Year;
-	System.wMonth = _Month;
-	System.wDay = _Day;
+	System.wMonth = max(_Month, 1);
+	System.wDay = max(_Day, 1);
 	System.wHour = _Hours;
 	System.wMinute = _Minutes;
 	System.wSecond = _Seconds;
@@ -1675,197 +1675,207 @@ bool LDateTime::Decode(const char *In)
 	//		Tue, 6 Dec 2005 1:25:32 -0800
 	Empty();
 
-	bool Status = false;
-	if (In)
+	if (!In)
 	{
-		// Tokenize delimited by whitespace
-		GString::Array T = GString(In).SplitDelimit();
-		if (T.Length() >= 2)
-		{
-			bool GotDate = false;
+		LgiAssert(0);
+		return false;
+	}
 
-			for (unsigned i=0; i<T.Length(); i++)
-			{
-				GString &s = T[i];
+	bool Status = false;
+
+	// Tokenize delimited by whitespace
+	GString::Array T = GString(In).SplitDelimit();
+	if (T.Length() >= 2)
+	{
+		bool GotDate = false;
+
+		for (unsigned i=0; i<T.Length(); i++)
+		{
+			GString &s = T[i];
 				
-				GString::Array Date;
-				if (!GotDate)
-					Date = s.SplitDelimit(".-/\\");
-				if (Date.Length() == 3)
+			GString::Array Date;
+			if (!GotDate)
+				Date = s.SplitDelimit(".-/\\");
+			if (Date.Length() == 3)
+			{
+				if (Date[0].Int() > 31)
 				{
-					if (Date[0].Int() > 31)
+					// Y/M/D?
+					Year((int)Date[0].Int());
+					Day((int)Date[2].Int());
+				}
+				else if (Date[2].Int() > 31)
+				{
+					// D/M/Y?
+					Day((int)Date[0].Int());
+					Year((int)Date[2].Int());
+				}
+				else
+				{
+					// Ambiguous year...
+					bool YrFirst = true;
+					if (Date[0].Length() == 1)
+						YrFirst = false;
+					// else we really can't tell.. just go with year first
+					if (YrFirst)
 					{
-						// Y/M/D?
 						Year((int)Date[0].Int());
 						Day((int)Date[2].Int());
 					}
-					else if (Date[2].Int() > 31)
+					else
 					{
-						// D/M/Y?
 						Day((int)Date[0].Int());
 						Year((int)Date[2].Int());
 					}
+
+					LDateTime Now;
+					Now.SetNow();
+					if (Year() + 2000 <= Now.Year())
+						Year(2000 + Year());
 					else
-					{
-						// Ambiguous year...
-						bool YrFirst = true;
-						if (Date[0].Length() == 1)
-							YrFirst = false;
-						// else we really can't tell.. just go with year first
-						if (YrFirst)
-						{
-							Year((int)Date[0].Int());
-							Day((int)Date[2].Int());
-						}
-						else
-						{
-							Day((int)Date[0].Int());
-							Year((int)Date[2].Int());
-						}
-
-						LDateTime Now;
-						Now.SetNow();
-						if (Year() + 2000 <= Now.Year())
-							Year(2000 + Year());
-						else
-							Year(1900 + Year());
-					}
-
-					if (Date[1].IsNumeric())
-						Month((int)Date[1].Int());
-					else
-					{
-						int m = MonthFromName(Date[1]);
-						if (m > 0)
-							Month(m);
-					}
-						
-					GotDate = true;
-					Status = true;
+						Year(1900 + Year());
 				}
-				else if (s.Find(":") >= 0)
-				{
-					// whole time
-					GString::Array Time = s.Split(":");
-					if (Time.Length() == 2 ||
-						Time.Length() == 3)
-					{
-						// Hour (24hr time)
-						Hours((int)Time[0].Int());
 
-						// Minute
-						Minutes((int)Time[1].Int());
-
-						if (Time.Length() == 3)
-							// Second
-							Seconds((int)Time[2].Int());
-						
-						Status = true;
-					}
-				}
-				else if (IsAlpha(s(0)))
+				if (Date[1].IsNumeric())
+					Month((int)Date[1].Int());
+				else
 				{
-					// text
-					int m = MonthFromName(s);
+					int m = MonthFromName(Date[1]);
 					if (m > 0)
 						Month(m);
 				}
-				else if (s.IsNumeric())
-				{
-					int Count = 0;
-					for (char *c = s; *c; c++)
-					{
-						if (!IsDigit(*c))
-							break;
-						Count++;
-					}
-					
-					if (Count <= 2)
-					{
-						if (Day())
-						{
-							// We already have a day... so this might be
-							// a 2 digit year...
-							LDateTime Now;
-							Now.SetNow();
-							int Yr = atoi(s);
-							if (2000 + Yr <= Now.Year())
-								Year(2000 + Yr);
-							else
-								Year(1900 + Yr);
-						}
-						else
-						{
-							// A day number (hopefully)?
-							Day((int)s.Int());
-						}
-					}
-					else if (Count == 4)
-					{
-						if (!Year())
-						{
-							// A year!
-							Year((int)s.Int());
-							Status = true;
-						}
-						else
-						{
-							goto DoTimeZone;
-						}
 						
-						// My one and only Y2K fix
-						// d.Year((Yr < 100) ? (Yr > 50) ? 1900+Yr : 2000+Yr : Yr);
-					}
-				}
-				else if (strchr("+-", *s))
+				GotDate = true;
+				Status = true;
+			}
+			else if (s.Find(":") >= 0)
+			{
+				// whole time
+				GString::Array Time = s.Split(":");
+				if (Time.Length() == 2 ||
+					Time.Length() == 3)
 				{
-					// timezone
-					DoTimeZone:
-					LDateTime Now;
-					double OurTmz = (double)Now.SystemTimeZone() / 60;
-
-					if (s &&
-						strchr("-+", *s) &&
-						strlen(s) == 5)
+					// Hour
+					Hours((int)Time[0].Int());
+					if (s.Lower().Find("p") >= 0)
 					{
-						#if 1
+						if (Hours() < 12)
+							Hours(Hours() + 12);
+					}
 
-						int i = atoi(s);
-						int hr = i / 100;
-						int min = i % 100;
-						SetTimeZone(hr * 60 + min, false);
+					// Minute
+					Minutes((int)Time[1].Int());
 
-						#else
-
-						// adjust for timezone
-						char Buf[32];
-						memcpy(Buf, s, 3);
-						Buf[3] = 0;
-
-						double TheirTmz = atof(Buf);
-						memcpy(Buf+1, s + 3, 2);
-
-						TheirTmz += (atof(Buf) / 60);
-						if (Tz)
-						{
-							*Tz = TheirTmz;
-						}
-
-						double AdjustHours = OurTmz - TheirTmz;
-
-						AddMinutes((int) (AdjustHours * 60));
-
-						#endif
+					if (Time.Length() == 3)
+						// Second
+						Seconds((int)Time[2].Int());
+						
+					Status = true;
+				}
+			}
+			else if (IsAlpha(s(0)))
+			{
+				// text
+				int m = MonthFromName(s);
+				if (m > 0)
+					Month(m);
+			}
+			else if (s.IsNumeric())
+			{
+				int Count = 0;
+				for (char *c = s; *c; c++)
+				{
+					if (!IsDigit(*c))
+						break;
+					Count++;
+				}
+					
+				if (Count <= 2)
+				{
+					if (Day())
+					{
+						// We already have a day... so this might be
+						// a 2 digit year...
+						LDateTime Now;
+						Now.SetNow();
+						int Yr = atoi(s);
+						if (2000 + Yr <= Now.Year())
+							Year(2000 + Yr);
+						else
+							Year(1900 + Yr);
 					}
 					else
 					{
-						// assume GMT
-						AddMinutes((int) (OurTmz * 60));
+						// A day number (hopefully)?
+						Day((int)s.Int());
 					}
+				}
+				else if (Count == 4)
+				{
+					if (!Year())
+					{
+						// A year!
+						Year((int)s.Int());
+						Status = true;
+					}
+					else
+					{
+						goto DoTimeZone;
+					}
+						
+					// My one and only Y2K fix
+					// d.Year((Yr < 100) ? (Yr > 50) ? 1900+Yr : 2000+Yr : Yr);
+				}
+			}
+			else if (strchr("+-", *s))
+			{
+				// timezone
+				DoTimeZone:
+				LDateTime Now;
+				double OurTmz = (double)Now.SystemTimeZone() / 60;
+
+				if (s &&
+					strchr("-+", *s) &&
+					strlen(s) == 5)
+				{
+					#if 1
+
+					int i = atoi(s);
+					int hr = i / 100;
+					int min = i % 100;
+					SetTimeZone(hr * 60 + min, false);
+
+					#else
+
+					// adjust for timezone
+					char Buf[32];
+					memcpy(Buf, s, 3);
+					Buf[3] = 0;
+
+					double TheirTmz = atof(Buf);
+					memcpy(Buf+1, s + 3, 2);
+
+					TheirTmz += (atof(Buf) / 60);
+					if (Tz)
+					{
+						*Tz = TheirTmz;
+					}
+
+					double AdjustHours = OurTmz - TheirTmz;
+
+					AddMinutes((int) (AdjustHours * 60));
+
+					#endif
+				}
+				else
+				{
+					// assume GMT
+					AddMinutes((int) (OurTmz * 60));
 				}
 			}
 		}
 	}
+
 	return Status;
 }
 

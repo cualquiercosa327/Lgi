@@ -90,6 +90,7 @@ struct Info
 	}
 };
 
+//////////////////////////////////////////////////////////////////////////////////////
 struct DbTablePriv
 {
 	// Fields
@@ -106,6 +107,9 @@ struct DbTablePriv
 	GArray<char> Data;
 	bool Dirty;
 
+	// Indexes
+	GArray<DbIndex*> Indexes;
+
 	// Methods
 	DbTablePriv() : Map(0, false, -1, {GV_NULL, -1})
 	{
@@ -117,9 +121,24 @@ struct DbTablePriv
 		Dirty = false;
 	}
 
+	~DbTablePriv()
+	{
+		Indexes.DeleteObjects();
+	}
+
 	void SetDirty(bool b = true)
 	{
 		Dirty = b;
+	}
+
+	LDbField *FindField(int Id)
+	{
+		for (unsigned i=0; i<Fields.Length(); i++)
+		{
+			if (Fields[i].Id == Id)
+				return Fields.AddressOf(i);
+		}
+		return NULL;
 	}
 
 	// This is called when the fields change
@@ -225,6 +244,126 @@ struct DbTablePriv
 		return true;
 	}
 };
+
+//////////////////////////////////////////////////////////////////////////////////////
+DbIndex::DbIndex(DbTablePriv *priv)
+{
+	d = priv;
+}
+
+DbIndex::~DbIndex()
+{
+	LgiAssert(d->Indexes.HasItem(this));
+	d->Indexes.Delete(this);
+}
+
+DbArrayIndex::DbArrayIndex(DbTablePriv *priv) : DbIndex(priv)
+{
+	Fld.Id = -1;
+	Fld.Type = GV_NULL;
+	Fld.Offset = -1;
+}
+
+bool DbArrayIndex::OnNew(LDbRow *r)
+{
+	return Delete(r);
+}
+
+bool DbArrayIndex::OnDelete(LDbRow *r)
+{
+	Add(r);
+	return true;
+}
+
+struct CompareParams
+{
+	int Id;
+	bool Ascend;
+
+	CompareParams(int i, bool a)
+	{
+		Id = i;
+		Ascend = a;
+	}
+};
+
+DeclGArrayCompare(RowIntCompare, LDbRow*, CompareParams)
+{
+	int64 A = (*a)->GetInt(param->Id);
+	int64 B = (*b)->GetInt(param->Id);
+	return (int) (param->Ascend ? A - B : B - A);
+}
+
+DeclGArrayCompare(RowStrCompare, LDbRow*, CompareParams)
+{
+	const char *A = (*a)->GetStr(param->Id);
+	if (!A) A = "";
+
+	const char *B = (*b)->GetStr(param->Id);
+	if (!B) B = "";
+
+	return param->Ascend ? stricmp(A, B) : stricmp(B, A);
+}
+
+DeclGArrayCompare(RowDateCompare, LDbRow*, CompareParams)
+{
+	LDateTime *A = (*a)->GetDate(param->Id);
+	LDateTime *B = (*b)->GetDate(param->Id);
+	if (!A || !B)
+	{
+		LgiAssert(0);
+		return 0;
+	}
+
+	uint64 UtcA, UtcB;
+	if (!A->Get(UtcA) ||
+		!B->Get(UtcB))
+	{
+		LgiAssert(0);
+		return 0;
+	}
+
+	int64 r = param->Ascend ? UtcA - UtcB : UtcB - UtcA;
+	if (r < 0)
+		return -1;
+	if (r > 0)
+		return 1;
+	return 0;
+}
+
+bool DbArrayIndex::Sort(LDbField *fld, bool ascend)
+{
+	if (!fld)
+		return false;
+
+	Fld = *fld;
+	Ascend = ascend;
+
+	CompareParams p(Fld.Id, Ascend);
+	switch (Fld.Type)
+	{
+		case GV_INT32:
+		case GV_INT64:
+			GArray<LDbRow*>::Sort(RowIntCompare, &p);
+			break;
+		case GV_STRING:
+			GArray<LDbRow*>::Sort(RowStrCompare, &p);
+			break;
+		case GV_DATETIME:
+			GArray<LDbRow*>::Sort(RowDateCompare, &p);
+			break;
+		default:
+			LgiAssert(0);
+			return false;
+	}
+
+	return true;
+}
+
+bool DbArrayIndex::Resort()
+{
+	return Sort(&Fld, Ascend);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////
 size_t LDbDate::Sizeof()
@@ -711,11 +850,16 @@ LDbRow *LDbTable::NewRow()
 		d->Rows = 1;
 	}
 
+	for (unsigned i=0; i<d->Indexes.Length(); i++)
+		d->Indexes[i]->OnNew(r);
+
 	return r;
 }
 
 bool LDbTable::Empty()
 {
+	d->Indexes.DeleteObjects();
+
 	LDbRow *n;
 	for (LDbRow *r = d->First; r; r = n)
 	{
@@ -741,7 +885,40 @@ bool LDbTable::DeleteRow(LDbRow *r)
 	if (!r || r->d != d)
 		return false;
 
+	for (unsigned i=0; i<d->Indexes.Length(); i++)
+		d->Indexes[i]->OnDelete(r);
+
 	return d->DeleteRow(r);
+}
+
+DbArrayIndex *LDbTable::Sort(int Id, bool Ascending)
+{
+	LDbField *f = d->FindField(Id);
+	if (!f)
+		return NULL;
+
+	// Collect all the records
+	DbArrayIndex *i = new DbArrayIndex(d);
+	if (!i)
+		return NULL;
+	if (!i->Length(d->Rows))
+	{
+		delete i;
+		return NULL;
+	}
+	int Idx = 0;
+	for (LDbRow *r = d->First; r; r = r->Next)
+		(*i)[Idx++] = r;
+
+	LgiAssert(Idx == d->Rows);
+
+	// Sort them
+	i->Sort(f, Ascending);
+
+	// Save the index
+	d->Indexes.Add(i);
+
+	return i;
 }
 
 bool LDbTable::Serialize(const char *Path, bool Write)

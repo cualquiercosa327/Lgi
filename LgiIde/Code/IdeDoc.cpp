@@ -2759,6 +2759,28 @@ void IdeDoc::SetCrLf(bool CrLf)
 		d->Edit->SetCrLf(CrLf);
 }
 
+bool IdeDoc::OpenFile(const char *File)
+{
+	if (d->Edit)
+	{
+		return d->Edit->Open(File);
+	}
+
+	return false;
+}
+
+void IdeDoc::SetEditorParams(int IndentSize, int TabSize, bool HardTabs, bool ShowWhiteSpace)
+{
+	if (d->Edit)
+	{
+		d->Edit->SetIndentSize(IndentSize > 0 ? IndentSize : 4);
+		d->Edit->SetTabSize(TabSize > 0 ? TabSize : 4);
+		d->Edit->SetHardTabs(HardTabs);
+		d->Edit->SetShowWhiteSpace(ShowWhiteSpace);
+		d->Edit->Invalidate();
+	}
+}
+
 bool IdeDoc::HasFocus(int Set)
 {
 	if (!d->Edit)
@@ -2782,7 +2804,7 @@ void IdeDoc::ConvertWhiteSpace(bool ToTabs)
 		);
 	if (Sp)
 	{
-		Text->Name(d->Edit);
+		d->Edit->Name(Sp);
 		SetDirty();
 	}
 }

@@ -96,6 +96,32 @@ public:
 	Store3Status SetRfc822(GStreamI *Rfc822Msg);
 };
 
+class DbIndex
+{
+	DbTablePriv *d;
+
+public:
+	DbIndex(DbTablePriv *priv);
+	virtual ~DbIndex();
+	virtual bool OnNew(LDbRow *r) = 0;
+	virtual bool OnDelete(LDbRow *r) = 0;
+};
+
+class DbArrayIndex : public DbIndex, public GArray<LDbRow*>
+{
+	friend class LDbTable;
+
+	LDbField Fld;
+	bool Ascend;
+
+	DbArrayIndex(DbTablePriv *priv);
+	bool Sort(LDbField *fld, bool ascend);
+
+public:
+	bool OnNew(LDbRow *r);
+	bool OnDelete(LDbRow *r);
+	bool Resort();
+};
 class LDbTable
 {
 	struct DbTablePriv *d;
@@ -116,6 +142,11 @@ public:
 	int GetRows();
 	LDbRow *NewRow();
 	bool DeleteRow(LDbRow *r);
+	
+	/// This returns a sorted array of rows according to the specified
+	/// id and sort direction. The array remains the property of the 
+	/// table. When done just free the index object.
+	DbArrayIndex *Sort(int Id, bool Ascending = true);
 
 	// IO
 	bool Serialize(const char *Path, bool Write);

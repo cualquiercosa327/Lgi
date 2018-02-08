@@ -256,9 +256,15 @@ bool DbTesting()
 {
 	// LDbTable::UnitTests();
 
-	const char *FileXml = "C:\\Users\\matthew\\AppData\\Roaming\\Scribe\\ImapCache\\378651814\\INBOX\\Folder.xml";
-	const char *FileDb = "C:\\Users\\matthew\\AppData\\Roaming\\Scribe\\ImapCache\\378651814\\INBOX\\Folder.db";
-	const char *FileDebug = "C:\\Users\\matthew\\AppData\\Roaming\\Scribe\\ImapCache\\378651814\\INBOX\\Debug.txt";
+	#if 1
+	const char *BaseFolder = "C:\\Users\\Matthew\\AppData\\Roaming\\Scribe\\ImapCache\\1434419972\\INBOX";
+	#else
+	const char *BaseFolder = "C:\\Users\\matthew\\AppData\\Roaming\\Scribe\\ImapCache\\378651814\\INBOX";
+	#endif
+
+	GFile::Path FileXml(BaseFolder, "Folder.xml");
+	GFile::Path FileDb(BaseFolder, "Folder.db");
+	GFile::Path FileDebug(BaseFolder, "Debug.txt");
 	GFile In;
 	if (!In.Open(FileXml, O_READ))
 		return false;	
@@ -300,8 +306,18 @@ bool DbTesting()
 		{
 			LDateTime Dt;
 			if (Dt.Decode(Date))
-				m->SetDate(M_DATE, &Dt);
+			{
+				if (!m->SetDate(M_DATE, &Dt))
+				{
+					LgiAssert(0);
+				}
+			}
+			else
+			{
+				LgiAssert(0);
+			}
 		}
+		else LgiAssert(0);
 		
 		m->SetStr(M_LABEL, c->GetAttr("Label"));
 		m->SetInt(M_COLOUR, c->GetAsInt("Colour"));
@@ -321,24 +337,37 @@ bool DbTesting()
 		return false;
 	uint64 ReadTime = LgiMicroTime() - Start;
 
+	Start = LgiMicroTime();
+	GAutoPtr<DbArrayIndex> Idx(Test.Sort(M_FILENAME));
+	uint64 SortTime = LgiMicroTime() - Start;
+	if (Idx)
+	{
+		GFile Out;
+		if (Out.Open(FileDebug, O_WRITE))
+		{
+			Out.SetSize(0);
+			for (unsigned i=0; i<Idx->Length(); i++)
+			{
+				GString s = Idx->ItemAt(i)->ToString();
+				s += "\n";
+				Out.Write(s);
+			}
+			Out.Close();
+		}
+	}
+
 	LgiTrace("DbTest: %i -> %i\n"
 		"\tXmlReadTime=%.3f\n"
 		"\tConvertTime=%.3f\n"
 		"\tWriteTime=%.3f\n"
-		"\tReadTime=%.3f\n",
+		"\tReadTime=%.3f\n"
+		"\tSortTime=%.3f\n",
 		Tbl.GetRows(), Test.GetRows(),
 		(double)XmlReadTime/1000.0,
 		(double)ConvertTime/1000.0,
 		(double)WriteTime/1000.0,
-		(double)ReadTime/1000.0);
-
-	GString s = Test.ToString();
-	GFile Out;
-	if (Out.Open(FileDebug, O_WRITE))
-	{
-		Out.Write(s);
-		Out.Close();
-	}
+		(double)ReadTime/1000.0,
+		(double)SortTime/1000.0);
 
 	return true;
 }

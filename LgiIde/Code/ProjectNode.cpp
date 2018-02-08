@@ -149,18 +149,15 @@ void ProjectNode::OpenLocalCache(IdeDoc *&Doc)
 		Doc = Project->GetApp()->OpenFile(LocalCache, this);
 		if (Doc)
 		{
-			if (Doc && Doc->GetEdit())
+			if (Doc)
 			{
 				Doc->SetProject(Project);
 				
 				IdeProjectSettings *Settings = Project->GetSettings();
-				int i = Settings->GetInt(ProjEditorIndentSize);
-				Doc->GetEdit()->SetIndentSize(i > 0 ? i : 4);
-				i = Settings->GetInt(ProjEditorTabSize);
-				Doc->GetEdit()->SetTabSize(i > 0 ? i : 4);
-				Doc->GetEdit()->SetHardTabs(Settings->GetInt(ProjEditorUseHardTabs));
-				Doc->GetEdit()->SetShowWhiteSpace(Settings->GetInt(ProjEditorShowWhiteSpace));
-				Doc->GetEdit()->Invalidate();
+				Doc->SetEditorParams(Settings->GetInt(ProjEditorIndentSize),
+									Settings->GetInt(ProjEditorTabSize),
+									Settings->GetInt(ProjEditorUseHardTabs),
+									Settings->GetInt(ProjEditorShowWhiteSpace));
 			}
 		}
 		else
@@ -859,31 +856,17 @@ IdeDoc *ProjectNode::Open()
 						if (!Doc)
 						{
 							Doc = Project->GetApp()->NewDocWnd(0, this);
-							if (Doc && Doc->GetEdit())
+							if (Doc)
 							{
-								if (Doc->GetEdit()->Open(FullPath))
+								if (Doc->OpenFile(FullPath))
 								{
-									Doc->SetProject(Project);
-									
 									IdeProjectSettings *Settings = Project->GetSettings();
-									
-									int i = Settings->GetInt(ProjEditorIndentSize);
-									// printf("Indent=%i\n", i);
-									Doc->GetEdit()->SetIndentSize(i > 0 ? i : 4);
-									
-									i = Settings->GetInt(ProjEditorTabSize);
-									// printf("Tabsize=%i\n", i);
-									Doc->GetEdit()->SetTabSize(i > 0 ? i : 4);
 
-									i = Settings->GetInt(ProjEditorUseHardTabs);
-									// printf("HardTabs=%i\n", i);
-									Doc->GetEdit()->SetHardTabs(i);
-
-									i = Settings->GetInt(ProjEditorShowWhiteSpace);
-									// printf("WhiteSpace=%i\n", i);
-									Doc->GetEdit()->SetShowWhiteSpace(i);
-
-									Doc->GetEdit()->Invalidate();
+									Doc->SetProject(Project);
+									Doc->SetEditorParams(Settings->GetInt(ProjEditorIndentSize),
+														Settings->GetInt(ProjEditorTabSize),
+														Settings->GetInt(ProjEditorUseHardTabs),
+														Settings->GetInt(ProjEditorShowWhiteSpace));
 								}
 								else
 								{
