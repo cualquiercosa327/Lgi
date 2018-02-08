@@ -3417,7 +3417,7 @@ bool MailIMap::OnIdle(int Timeout, GArray<Untagged> &Resp)
 		uint64 End = LgiCurrentTime();
 		if (!Readable && (End - Start) < (Timeout * 0.8))
 		{
-			LgiAssert(!"IsReadable is broken.");
+			// LgiAssert(!"IsReadable is broken.");
 		}
 		#endif
 		if (Readable)
