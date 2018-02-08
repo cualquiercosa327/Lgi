@@ -400,7 +400,8 @@ IdeDoc.o : ./Code/IdeDoc.cpp ../include/common/Lgi.h \
 	../include/common/GTableLayout.h \
 	./Code/ProjectNode.h \
 	../include/common/GEventTargetThread.h \
-	../include/common/GCheckBox.h
+	../include/common/GCheckBox.h \
+	./Code/SpaceTabConv.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -535,7 +536,6 @@ LgiIde.o : ./Code/LgiIde.cpp ../include/common/Lgi.h \
 	../include/common/GXmlTree.h \
 	../include/common/GPanel.h \
 	../include/common/GProcess.h \
-	./Code/SpaceTabConv.h \
 	../include/common/GButton.h \
 	../include/common/GTabView.h \
 	./Code/FtpThread.h \
@@ -1725,7 +1725,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 ../src/common/Lgi/GAlert.cpp : ../include/common/Lgi.h \
 	../include/common/GTextLabel.h \
 	../include/common/GButton.h \
-	../include/common/GDisplayString.h
+	../include/common/GDisplayString.h \
+	../include/common/GTableLayout.h
 
 ../src/common/Lgi/GMenuCommon.cpp : ../include/common/Lgi.h
 

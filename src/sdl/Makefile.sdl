@@ -84,6 +84,7 @@ Depends =	LDateTime.o \
 			GMem.o \
 			GContainers.o \
 			GMenu.o \
+			GMenuCommon.o \
 			GMenuImpl.o \
 			GProcess.o \
 			LgiRes.o \
@@ -117,6 +118,7 @@ Depends =	LDateTime.o \
 			GFont_W.o \
 			GFontCodePages.o \
 			GFontSystem.o \
+			LStringLayout.o \
 			15Bit.o \
 			16Bit.o \
 			24Bit.o \
@@ -365,6 +367,10 @@ GMenu.o : ./Lgi/GMenu.cpp /media/rpi-root/usr/include/stdio.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
+GMenuCommon.o : ../common/Lgi/GMenuCommon.cpp ../../include/common/Lgi.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
 GMenuImpl.o : ../common/Lgi/GMenuImpl.cpp /media/rpi-root/usr/include/math.h \
 	../../include/common/Lgi.h \
 	../../include/common/GMenu.h
@@ -432,7 +438,8 @@ Gel.o : ../common/Skins/Gel/Gel.cpp /media/rpi-root/usr/include/math.h \
 	../../include/common/GCheckBox.h \
 	../../include/common/GRadioGroup.h \
 	../../include/common/GDisplayString.h \
-	../../include/common/GCssTools.h
+	../../include/common/GCssTools.h \
+	../../include/common/LStringLayout.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -474,7 +481,8 @@ GVariant.o : ../common/Lgi/GVariant.cpp /media/rpi-root/usr/include/stdlib.h \
 	/media/rpi-root/usr/include/stdio.h \
 	../../include/common/Lgi.h \
 	../../include/common/GVariant.h \
-	../../include/common/GToken.h
+	../../include/common/GToken.h \
+	../../include/common/LDomFields.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -505,12 +513,13 @@ Lgi.o : ../common/Lgi/Lgi.cpp /media/rpi-root/usr/include/time.h \
 	/media/rpi-root/usr/include/ctype.h \
 	/media/rpi-root/usr/include/fcntl.h \
 	../../include/common/GRegKey.h \
+	/media/rpi-root/usr/include/arm-linux-gnueabihf/sys/types.h \
+	/media/rpi-root/usr/include/arm-linux-gnueabihf/sys/stat.h \
 	/media/rpi-root/usr/include/unistd.h \
 	../../include/common/Lgi.h \
 	../../include/common/GToken.h \
 	../../include/common/GCapabilities.h \
 	/media/rpi-root/usr/include/arm-linux-gnueabihf/sys/time.h \
-	/media/rpi-root/usr/include/arm-linux-gnueabihf/sys/types.h \
 	/media/rpi-root/usr/include/pwd.h \
 	/media/rpi-root/usr/include/arm-linux-gnueabihf/sys/utsname.h \
 	../../include/common/GProcess.h \
@@ -548,7 +557,8 @@ GFileSelect.o : ../common/Lgi/GFileSelect.cpp /media/rpi-root/usr/include/stdio.
 GAlert.o : ../common/Lgi/GAlert.cpp ../../include/common/Lgi.h \
 	../../include/common/GTextLabel.h \
 	../../include/common/GButton.h \
-	../../include/common/GDisplayString.h
+	../../include/common/GDisplayString.h \
+	../../include/common/GTableLayout.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -697,6 +707,11 @@ GFontSystem.o : ../common/Gdc2/Font/GFontSystem.cpp /media/rpi-root/usr/include/
 	../../include/common/GLibrary.h \
 	../../include/common/GLibraryUtils.h \
 	/media/rpi-root/usr/include/iconv.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+LStringLayout.o : ../common/Gdc2/Font/LStringLayout.cpp ../../include/common/Lgi.h \
+	../../include/common/LStringLayout.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -921,7 +936,7 @@ GCheckBox.o : ../common/Widgets/GCheckBox.cpp /media/rpi-root/usr/include/stdlib
 	../../include/common/GSkinEngine.h \
 	../../include/common/GCheckBox.h \
 	../../include/common/GDisplayString.h \
-	../../include/common/GDisplayStringLayout.h \
+	../../include/common/LStringLayout.h \
 	../../include/common/LgiRes.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -1003,7 +1018,8 @@ GRadioGroup.o : ../common/Widgets/GRadioGroup.cpp /media/rpi-root/usr/include/st
 	../../include/common/GRadioGroup.h \
 	../../include/common/GCheckBox.h \
 	../../include/common/GDisplayString.h \
-	../../include/common/LgiRes.h
+	../../include/common/LgiRes.h \
+	../../include/common/LStringLayout.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -1033,7 +1049,7 @@ GTextLabel.o : ../common/Widgets/GTextLabel.cpp /media/rpi-root/usr/include/stdl
 	/media/rpi-root/usr/include/stdio.h \
 	../../include/common/Lgi.h \
 	../../include/common/GTextLabel.h \
-	../../include/common/GDisplayStringLayout.h \
+	../../include/common/LStringLayout.h \
 	../../include/common/GVariant.h \
 	../../include/common/GNotifications.h \
 	../../include/common/LgiRes.h
@@ -1205,6 +1221,21 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	/media/rpi-root/usr/include/arm-linux-gnueabihf/bits/types.h \
 	/media/rpi-root/usr/lib/gcc/arm-linux-gnueabihf/4.9/include/stddef.h
 
+../../include/common/LStringLayout.h : ../../include/common/GUtf8.h \
+	../../include/common/GDisplayString.h \
+	../../include/common/GCss.h \
+	../../include/common/GFontCache.h
+
+../../include/common/GCss.h : ../../include/common/LgiInc.h \
+	../../include/sdl/LgiOsDefs.h \
+	../../include/common/GMem.h \
+	../../include/common/Gdc2.h \
+	../../include/common/GAutoPtr.h \
+	../../include/common/GString.h \
+	../../include/common/GHashTable.h
+
+../../include/common/LDomFields.h : 
+
 ../../include/common/GRegionClipDC.h : 
 
 ../../include/common/GToken.h : ../../include/common/GArray.h \
@@ -1255,14 +1286,6 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	../../include/common/GCss.h \
 	../../include/common/GItemContainer.h
 
-../../include/common/GCss.h : ../../include/common/LgiInc.h \
-	../../include/sdl/LgiOsDefs.h \
-	../../include/common/GMem.h \
-	../../include/common/Gdc2.h \
-	../../include/common/GAutoPtr.h \
-	../../include/common/GString.h \
-	../../include/common/GHashTable.h
-
 ../../../../../../../media/rpi-root/usr/include/arm-linux-gnueabihf/sys/socket.h : /media/rpi-root/usr/include/features.h \
 	/media/rpi-root/usr/include/arm-linux-gnueabihf/sys/uio.h \
 	/media/rpi-root/usr/lib/gcc/arm-linux-gnueabihf/4.9/include/stddef.h \
@@ -1284,12 +1307,13 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	/media/rpi-root/usr/include/arm-linux-gnueabihf/sys/types.h \
 	/media/rpi-root/usr/include/arm-linux-gnueabihf/bits/uio.h
 
-../../include/common/INet.h : ../../include/common/GMem.h \
-	../../include/common/GContainers.h \
-	../../include/common/LgiNetInc.h \
-	../../include/common/GStream.h \
+../../include/common/INet.h : ../../include/common/LgiNetInc.h \
 	../../include/common/LgiInterfaces.h \
+	../../include/common/GMem.h \
+	../../include/common/GContainers.h \
+	../../include/common/GStream.h \
 	../../include/common/GString.h \
+	../../include/common/LCancel.h \
 	/media/rpi-root/usr/include/netinet/in.h \
 	/media/rpi-root/usr/include/arm-linux-gnueabihf/sys/socket.h \
 	/media/rpi-root/usr/include/netdb.h
@@ -1351,7 +1375,8 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 ../../include/common/LgiInterfaces.h : ../../include/common/GMem.h \
 	../../include/common/GArray.h \
 	../../include/sdl/LgiOsDefs.h \
-	../../include/common/GColour.h
+	../../include/common/GColour.h \
+	../../include/common/LCancel.h
 
 ../../../../../../../media/rpi-root/usr/lib/gcc/arm-linux-gnueabihf/4.9/include/stddef.h : 
 
@@ -1426,6 +1451,8 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 ../../../../../../../media/rpi-root/usr/include/arpa/inet.h : /media/rpi-root/usr/include/features.h \
 	/media/rpi-root/usr/include/netinet/in.h
 
+../../include/common/GUtf8.h : 
+
 ../../../../../../../media/rpi-root/usr/include/arm-linux-gnueabihf/sys/stat.h : /media/rpi-root/usr/include/features.h \
 	/media/rpi-root/usr/include/arm-linux-gnueabihf/bits/types.h \
 	/media/rpi-root/usr/include/arm-linux-gnueabihf/bits/stat.h
@@ -1444,7 +1471,8 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 
 ../../include/common/GAutoPtr.h : 
 
-../../include/common/GProgressDlg.h : ../../include/common/GTableLayout.h
+../../include/common/GProgressDlg.h : ../../include/common/GTextLabel.h \
+	../../include/common/GTableLayout.h
 
 ../../include/common/Gdc2.h : /media/rpi-root/usr/include/stdio.h \
 	../../include/sdl/LgiOsDefs.h \
@@ -1566,6 +1594,8 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 
 ../../include/common/GDisplayString.h : 
 
+../../include/common/GFontCache.h : 
+
 ../../../../../../../media/rpi-root/usr/include/asm-generic/ioctls.h : /media/rpi-root/usr/include/linux/ioctl.h
 
 ../../../../../../../media/rpi-root/usr/include/linux/ioctl.h : /media/rpi-root/usr/include/arm-linux-gnueabihf/asm/ioctl.h
@@ -1596,11 +1626,6 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 
 ../../../../../../../media/rpi-root/usr/include/features.h : /media/rpi-root/usr/include/stdc-predef.h \
 	/media/rpi-root/usr/include/arm-linux-gnueabihf/gnu/stubs.h
-
-../../include/common/GDisplayStringLayout.h : ../../include/common/GUtf8.h \
-	../../include/common/GDisplayString.h
-
-../../include/common/GUtf8.h : 
 
 ../../../../../../../media/rpi-root/usr/include/stdio.h : /media/rpi-root/usr/include/libio.h \
 	/media/rpi-root/usr/include/arm-linux-gnueabihf/bits/stdio_lim.h \
@@ -1705,6 +1730,8 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 
 ../../include/common/GMru.h : ../../include/common/GProperties.h
 
+../../include/common/GTextLabel.h : 
+
 ../../include/common/GClipBoard.h : 
 
 ../../../../../../../media/rpi-root/usr/include/asm-generic/socket.h : /media/rpi-root/usr/include/arm-linux-gnueabihf/asm/sockios.h
@@ -1775,12 +1802,13 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	../../include/common/GNotifications.h \
 	../../include/common/GCss.h
 
-../../include/common/INet.h : ../../include/common/GMem.h \
-	../../include/common/GContainers.h \
-	../../include/common/LgiNetInc.h \
-	../../include/common/GStream.h \
+../../include/common/INet.h : ../../include/common/LgiNetInc.h \
 	../../include/common/LgiInterfaces.h \
+	../../include/common/GMem.h \
+	../../include/common/GContainers.h \
+	../../include/common/GStream.h \
 	../../include/common/GString.h \
+	../../include/common/LCancel.h \
 	/media/rpi-root/usr/include/netinet/in.h \
 	/media/rpi-root/usr/include/arm-linux-gnueabihf/sys/socket.h \
 	/media/rpi-root/usr/include/netdb.h
@@ -1817,7 +1845,8 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 
 ../../include/common/GDom.h : ../../include/common/LgiInterfaces.h \
 	../../include/common/GMem.h \
-	../../include/common/GArray.h
+	../../include/common/GArray.h \
+	../../include/common/LDomFields.h
 
 ../../include/common/GInput.h : 
 
@@ -1868,8 +1897,6 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	../../include/common/GCss.h \
 	../../include/common/GAutoPtr.h \
 	../../include/common/GFontCache.h
-
-../../include/common/GFontCache.h : 
 
 ../../../../../../../media/rpi-root/usr/include/endian.h : /media/rpi-root/usr/include/features.h \
 	/media/rpi-root/usr/include/arm-linux-gnueabihf/bits/endian.h
@@ -1963,45 +1990,9 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	/media/rpi-root/usr/lib/gcc/arm-linux-gnueabihf/4.9/include/stddef.h \
 	/media/rpi-root/usr/include/arm-linux-gnueabihf/bits/stdlib-float.h
 
-../../../../../../../media/rpi-root/usr/include/arm-linux-gnueabihf/bits/stdlib-float.h : 
-
-../../../../../../../media/rpi-root/usr/include/arm-linux-gnueabihf/bits/semaphore.h : 
-
 ../../include/common/GBitmap.h : 
 
 ../../../../../../../media/rpi-root/usr/include/wchar.h : 
-
-../../include/common/GScrollBar.h : 
-
-../../../../../../../media/rpi-root/usr/include/arm-linux-gnueabihf/bits/fcntl.h : /media/rpi-root/usr/include/arm-linux-gnueabihf/bits/fcntl-linux.h
-
-../../../../../../../media/rpi-root/usr/include/arm-linux-gnueabihf/bits/fcntl-linux.h : 
-
-../../include/common/GViewPriv.h : 
-
-../../include/common/LgiNetInc.h : 
-
-../../../../../../../media/rpi-root/usr/include/arm-linux-gnueabihf/bits/select.h : 
-
-../../include/common/GStream.h : ../../include/common/GDom.h \
-	../../include/common/GStringClass.h
-
-../../include/common/GRops.h : ../../include/common/GPixelRops.h
-
-../../include/common/GPixelRops.h : 
-
-../../include/common/GXmlTree.h : ../../include/common/GHashTable.h \
-	../../include/common/GRefCount.h \
-	../../include/common/GDom.h
-
-../../include/common/GPopup.h : 
-
-../../../../../../../media/rpi-root/usr/include/arm-linux-gnueabihf/bits/stdio_lim.h : 
-
-../../../../../../../media/rpi-root/usr/include/linux/posix_types.h : /media/rpi-root/usr/include/linux/stddef.h \
-	/media/rpi-root/usr/include/arm-linux-gnueabihf/asm/posix_types.h
-
-../../../../../../../media/rpi-root/usr/include/arm-linux-gnueabihf/asm/posix_types.h : /media/rpi-root/usr/include/asm-generic/posix_types.h
 
 ../../include/sdl/LgiOsDefs.h : /media/rpi-root/usr/include/string.h \
 	/media/rpi-root/usr/include/assert.h \
@@ -2182,6 +2173,8 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 
 ../../../../../../../media/rpi-include/SDL/SDL_platform.h : 
 
+../../../../../../../media/rpi-root/usr/include/arm-linux-gnueabihf/bits/stdlib-float.h : 
+
 ../../../../../../../media/rpi-root/usr/include/arm-linux-gnueabihf/bits/setjmp.h : 
 
 ../../../../../../../media/rpi-include/SDL/SDL_loadso.h : /media/rpi-include/SDL/SDL_stdinc.h \
@@ -2199,6 +2192,40 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	/media/rpi-include/SDL/begin_code.h \
 	/media/rpi-include/SDL/close_code.h
 
+../../../../../../../media/rpi-root/usr/include/arm-linux-gnueabihf/bits/semaphore.h : 
+
+../../include/common/GScrollBar.h : 
+
+../../../../../../../media/rpi-root/usr/include/arm-linux-gnueabihf/bits/fcntl.h : /media/rpi-root/usr/include/arm-linux-gnueabihf/bits/fcntl-linux.h
+
+../../../../../../../media/rpi-root/usr/include/arm-linux-gnueabihf/bits/fcntl-linux.h : 
+
+../../include/common/GViewPriv.h : 
+
+../../include/common/LgiNetInc.h : 
+
+../../../../../../../media/rpi-root/usr/include/arm-linux-gnueabihf/bits/select.h : 
+
+../../include/common/GStream.h : ../../include/common/GDom.h \
+	../../include/common/GStringClass.h
+
+../../include/common/GRops.h : ../../include/common/GPixelRops.h
+
+../../include/common/GPixelRops.h : 
+
+../../include/common/GXmlTree.h : ../../include/common/GHashTable.h \
+	../../include/common/GRefCount.h \
+	../../include/common/GDom.h
+
+../../include/common/GPopup.h : 
+
+../../../../../../../media/rpi-root/usr/include/arm-linux-gnueabihf/bits/stdio_lim.h : 
+
+../../../../../../../media/rpi-root/usr/include/linux/posix_types.h : /media/rpi-root/usr/include/linux/stddef.h \
+	/media/rpi-root/usr/include/arm-linux-gnueabihf/asm/posix_types.h
+
+../../../../../../../media/rpi-root/usr/include/arm-linux-gnueabihf/asm/posix_types.h : /media/rpi-root/usr/include/asm-generic/posix_types.h
+
 ../../../../../../../media/rpi-root/usr/include/linux/stddef.h : 
 
 ../../../../../../../media/rpi-root/usr/include/ifaddrs.h : /media/rpi-root/usr/include/features.h \
@@ -2207,6 +2234,8 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 ../../../../../../../media/rpi-root/usr/include/arm-linux-gnueabihf/asm/sockios.h : /media/rpi-root/usr/include/asm-generic/sockios.h
 
 ../../../../../../../media/rpi-root/usr/include/asm-generic/sockios.h : 
+
+../../include/common/LDomFields.h : 
 
 ../../include/common/GFile.h : /media/rpi-root/usr/include/fcntl.h \
 	../../include/common/GMem.h \
