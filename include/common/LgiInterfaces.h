@@ -9,6 +9,7 @@
 #include "LgiOsDefs.h"
 #include "GColour.h"
 #include "LCancel.h"
+#include "GStringClass.h"
 
 // Fwd defs
 class GXmlTag;
@@ -458,6 +459,7 @@ public:
 	virtual int64 Value() = 0;
 	virtual void Value(int64 i) = 0;
 	virtual const char *GetClass() { return "GViewI"; } // mainly for debugging
+	virtual GString::Array *CssClasses() { return NULL; }
 
 	// Size and position	
 	virtual GRect &GetPos() = 0;

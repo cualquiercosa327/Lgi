@@ -211,6 +211,11 @@ int GView::AddDispatch()
 	return d->SinkHnd;
 }
 
+GString::Array *GView::CssClasses()
+{
+	return &d->Classes;
+}
+
 GViewIterator *GView::IterateViews()
 {
 	return new GViewIter(this);

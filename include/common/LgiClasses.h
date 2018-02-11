@@ -834,6 +834,9 @@ public:
 	/// \returns the Class' name for debugging
 	const char *GetClass() { return "GView"; }
 
+	/// The array of CSS class names.
+	GString::Array *CssClasses();
+
 	/// \brief Captures all mouse events to this view
 	///
 	/// Once you have mouse capture all mouse events will be passed to this
