@@ -1206,12 +1206,17 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Handle)
 			ShowLanguagesDlg Dlg(this);
 			break;
 		}
-		case IDM_NEW_DLG:
+		case IDM_NEW_CSS:
+		{
+			NewObject(Ctx, 0, TYPE_CSS);
+			break;
+		}
+		case IDM_NEW_DIALOG:
 		{
 			NewObject(Ctx, 0, TYPE_DIALOG);
 			break;
 		}
-		case IDM_NEW_STRGRP:
+		case IDM_NEW_STRING_GRP:
 		{
 			NewObject(Ctx, 0, TYPE_STRING);
 			break;

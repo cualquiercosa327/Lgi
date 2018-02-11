@@ -463,6 +463,7 @@ void GRadioButton::OnStyleChange()
 	{
 		d->Empty();
 		d->Add(GView::Name(), GetCss());
+		d->DoLayout(X());
 		d->Unlock();
 		Invalidate();
 	}

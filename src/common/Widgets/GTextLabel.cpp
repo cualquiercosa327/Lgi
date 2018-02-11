@@ -18,10 +18,12 @@ public:
 	/// here first and then a message is posted over to the GUI thread
 	/// to load it into the ctrl.
 	GString ThreadName;
+	int PrevX;
 
 	GTextPrivate(GTextLabel *ctrl) : Cache(), LStringLayout(&Cache), LMutex("GTextPrivate")
 	{
 		Ctrl = ctrl;
+		PrevX = -1;
 		AmpersandToUnderline = true;
 	}
 
@@ -44,6 +46,7 @@ public:
 		SetBaseFont(Base);
 		bool Status = DoLayout(Px);
 		Unlock();
+		PrevX = Px;
 
 		return Status;
 	}
@@ -106,11 +109,6 @@ void GTextLabel::SetWrap(bool b)
 
 bool GTextLabel::Name(const char *n)
 {
-	if (GetId() == 544)
-	{
-		int asd=0;
-	}
-
 	if (!d->Lock(_FL))
 		return false;
 
@@ -201,6 +199,7 @@ void GTextLabel::OnStyleChange()
 	{
 		d->Empty();
 		d->Add(GView::Name(), GetCss());
+		d->DoLayout(X());
 		d->Unlock();
 		Invalidate();
 	}
@@ -208,8 +207,8 @@ void GTextLabel::OnStyleChange()
 
 void GTextLabel::OnPosChange()
 {
-	// if (d->GetWrap())
-	d->Layout(GetFont(), X());
+	if (d->PrevX != X())
+		d->Layout(GetFont(), X());
 }
 
 bool GTextLabel::OnLayout(GViewLayoutInfo &Inf)
@@ -271,11 +270,6 @@ int GTextLabel::OnNotify(GViewI *Ctrl, int Flags)
 
 void GTextLabel::OnPaint(GSurface *pDC)
 {
-	if (GetId() == 544)
-	{
-		int asd=0;
-	}
-
 	GColour Back;
 	Back.Set(LC_MED, 24);
 	if (GetCss())
