@@ -1369,6 +1369,9 @@ public:
 		bool Load
 	);
 
+	/// Builds a map of keyboard short cuts.
+	void BuildShortcuts(GHashTbl<int,GViewI*> &Map, GViewI *v = NULL);
+
 	////////////////////// Events ///////////////////////////////
 	
 	/// Called when the window zoom state changes.
@@ -1872,15 +1875,27 @@ class LgiClass GProfile
 	};
 	
 	GArray<Sample> s;
+	char *Buf;
+	int Used;
 	int MinMs;
 	
 public:
-	GProfile(const char *Name);
+	GProfile(const char *Name, int HideMs = -1);
 	virtual ~GProfile();
 	
 	void HideResultsIfBelow(int Ms);
 	virtual void Add(const char *Name);
+	virtual void Add(const char *File, int Line);
 };
+
+// This code will assert if the cast fails.
+template<typename A, typename B>
+A &AssertCast(A &a, B b)
+{
+	a = (A) b;	 // If this breaks it'll assert.
+	LgiAssert((B)a == b);
+	return a;
+}
 
 #endif
 

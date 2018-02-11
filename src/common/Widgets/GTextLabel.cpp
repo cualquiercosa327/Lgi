@@ -3,80 +3,80 @@
 
 #include "Lgi.h"
 #include "GTextLabel.h"
-#include "GDisplayStringLayout.h"
+#include "LStringLayout.h"
 #include "GVariant.h"
 #include "GNotifications.h"
 #include "LgiRes.h"
 
-class GTextPrivate : public GDisplayStringLayout, public LMutex
+class GTextPrivate : public LStringLayout, public LMutex
 {
-	GText *Ctrl;
+	GTextLabel *Ctrl;
+	GFontCache Cache;
 
 public:
-	/// When GText::Name(W) is called out of thread, the string is put
+	/// When GTextLabel::Name(W) is called out of thread, the string is put
 	/// here first and then a message is posted over to the GUI thread
 	/// to load it into the ctrl.
-	GAutoString ThreadName;
+	GString ThreadName;
 
-	GTextPrivate(GText *ctrl) : LMutex("GTextPrivate")
+	GTextPrivate(GTextLabel *ctrl) : Cache(), LStringLayout(&Cache), LMutex("GTextPrivate")
 	{
 		Ctrl = ctrl;
+		AmpersandToUnderline = true;
 	}
 
 	bool PreLayout(int32 &Min, int32 &Max)
 	{
 		if (Lock(_FL))
 		{
-			DoPreLayout(Ctrl->GetFont(), Ctrl->GBase::Name(), Min, Max);
+			DoPreLayout(Min, Max);
 			Unlock();
 		}
 		else return false;
 		return true;
 	}
 
-	bool Layout(int Px)
+	bool Layout(GFont *Base, int Px)
 	{		
-		if (Lock(_FL))
-		{
-			GFont *f = Ctrl->GetFont() &&
-						Ctrl->GetFont()->Handle() ?
-						Ctrl->GetFont() :
-						SysFont;
-				
-			DoLayout(f, Ctrl->GBase::Name(), Px);
-			Unlock();
-		}
-		else return false;
-		return true;
+		if (!Lock(_FL))
+			return false;
+
+		SetBaseFont(Base);
+		bool Status = DoLayout(Px);
+		Unlock();
+
+		return Status;
 	}
 };
 
-GText::GText(int id, int x, int y, int cx, int cy, const char *name) :
+GTextLabel::GTextLabel(int id, int x, int y, int cx, int cy, const char *name) :
 	ResObject(Res_StaticText)
 {
 	d = new GTextPrivate(this);
-	Name(name);
+	if (name)
+		Name(name);
 
-	if (cx < 0) cx = d->Max.x;
-	if (cy < 0) cy = d->Max.y;
+	if (cx < 0) cx = d->GetMax().x >> GDisplayString::FShift;
+	if (cy < 0) cy = d->GetMax().y;
 
 	GRect r(x, y, x+cx, y+cy);
 	SetPos(r);
 	SetId(id);
 }
 
-GText::~GText()
+GTextLabel::~GTextLabel()
 {
 	DeleteObj(d);
 }
 
-void GText::OnAttach()
+void GTextLabel::OnAttach()
 {
 	LgiResources::StyleElement(this);
+	OnStyleChange();
 	GView::OnAttach();
 }
 
-bool GText::SetVariant(const char *Name, GVariant &Value, char *Array)
+bool GTextLabel::SetVariant(const char *Name, GVariant &Value, char *Array)
 {
 	GDomProperty p = LgiStringToDomProp(Name);
 	if (p == ObjStyle)
@@ -92,82 +92,93 @@ bool GText::SetVariant(const char *Name, GVariant &Value, char *Array)
 	return false;
 }
 
-bool GText::GetWrap()
+bool GTextLabel::GetWrap()
 {
-	return d->Wrap;
+	return d->GetWrap();
 }
 
-void GText::SetWrap(bool b)
+void GTextLabel::SetWrap(bool b)
 {
-	d->Wrap = b;
-	d->Layout(X());
+	d->SetWrap(b);
+	d->Layout(GetFont(), X());
 	Invalidate();
 }
 
-bool GText::Name(const char *n)
+bool GTextLabel::Name(const char *n)
 {
-	if (!_View || InThread())
+	if (GetId() == 544)
 	{
-		if (!GView::Name(n))
-			return false;
-		d->Layout(X());
-		Invalidate();
+		int asd=0;
 	}
-	else if (d->Lock(_FL))
-	{
-		d->ThreadName.Reset(NewStr(n));
-		d->Unlock();
-		if (IsAttached())
-			PostEvent(M_TEXT_UPDATE_NAME);
-		else
-		{
-			#ifndef BEOS
-			LgiAssert(!"Can't update name.");
-			#endif
-			if (!GView::Name(n))
-				return false;
-			return false;
-		}
-	}	
-	else return false;
-	
-	return true;
-}
 
-bool GText::NameW(const char16 *n)
-{
+	if (!d->Lock(_FL))
+		return false;
+
 	if (InThread())
 	{
-		if (!GView::NameW(n))
-			return false;
-		d->Layout(X());
+		GView::Name(n);
+
+		d->Empty();
+		d->Add(n, GetCss());
+		int Wid = X();
+		d->Layout(GetFont(), Wid ? Wid : GdcD->X());
+
 		Invalidate();
+		SendNotify(GNotifyTableLayout_Refresh);
 	}
-	else if (d->Lock(_FL))
+	else if (IsAttached())
 	{
-		d->ThreadName.Reset(WideToUtf8(n));
-		d->Unlock();
-		if (IsAttached())
-			PostEvent(M_TEXT_UPDATE_NAME);
-		else
-		{
-			LgiAssert(!"Can't update name.");
-			return false;
-		}
-	}	
-	else return false;
-	
+		d->ThreadName = n;
+		PostEvent(M_TEXT_UPDATE_NAME);
+	}
+	else LgiAssert(!"Can't update name.");
+
+	d->Unlock();
+
 	return true;
 }
 
-void GText::SetFont(GFont *Fnt, bool OwnIt)
+bool GTextLabel::NameW(const char16 *n)
+{
+	if (GetId() == 544)
+	{
+		int asd=0;
+	}
+
+	if (!d->Lock(_FL))
+		return false;
+
+	if (InThread())
+	{
+		GView::NameW(n);
+
+		d->Empty();
+		d->Add(GView::Name(), GetCss());
+		d->Layout(GetFont(), X());
+
+		Invalidate();
+		SendNotify(GNotifyTableLayout_Refresh);
+	}
+	else if (IsAttached())
+	{
+		d->ThreadName = n;
+		PostEvent(M_TEXT_UPDATE_NAME);
+	}
+	else LgiAssert(!"Can't update name.");
+
+	d->Unlock();
+
+	return true;
+}
+
+void GTextLabel::SetFont(GFont *Fnt, bool OwnIt)
 {
 	GView::SetFont(Fnt, OwnIt);
-	d->Layout(X());
+	d->Layout(GetFont(), X());
 	Invalidate();
 }
 
-int64 GText::Value()
+int64 GTextLabel::Value()
 {
 	char *n = Name();
 	#ifdef _MSC_VER
@@ -177,22 +188,31 @@ int64 GText::Value()
 	#endif
 }
 
-void GText::Value(int64 i)
+void GTextLabel::Value(int64 i)
 {
 	char Str[32];
 	sprintf_s(Str, sizeof(Str), LGI_PrintfInt64, i);
 	Name(Str);
 }
 
-void GText::OnPosChange()
+void GTextLabel::OnStyleChange()
 {
-	if (d->Wrap)
+	if (d->Lock(_FL))
 	{
-		d->Layout(X());
+		d->Empty();
+		d->Add(GView::Name(), GetCss());
+		d->Unlock();
+		Invalidate();
 	}
 }
 
-bool GText::OnLayout(GViewLayoutInfo &Inf)
+void GTextLabel::OnPosChange()
+{
+	// if (d->GetWrap())
+	d->Layout(GetFont(), X());
+}
+
+bool GTextLabel::OnLayout(GViewLayoutInfo &Inf)
 {
 	if (!Inf.Width.Min)
 	{
@@ -201,15 +221,15 @@ bool GText::OnLayout(GViewLayoutInfo &Inf)
 	}
 	else
 	{
-		d->Layout(Inf.Width.Max);
-		Inf.Height.Min = d->Min.y;
-		Inf.Height.Max = d->Max.y;
+		d->Layout(GetFont(), Inf.Width.Max);
+		Inf.Height.Min = d->GetMin().y;
+		Inf.Height.Max = d->GetMax().y;
 	}
 	
 	return true;
 }
 
-GMessage::Result GText::OnEvent(GMessage *Msg)
+GMessage::Result GTextLabel::OnEvent(GMessage *Msg)
 {
 	switch (Msg->Msg())
 	{
@@ -217,14 +237,11 @@ GMessage::Result GText::OnEvent(GMessage *Msg)
 		{
 			if (d->Lock(_FL))
 			{
-				GAutoString s = d->ThreadName;
+				GString s = d->ThreadName;
+				d->ThreadName.Empty();
 				d->Unlock();
 				
-				if (s)
-				{
-					Name(s);
-					SendNotify(GNotifyTableLayout_Refresh);
-				}
+				Name(s);
 			}
 			break;
 		}
@@ -233,35 +250,48 @@ GMessage::Result GText::OnEvent(GMessage *Msg)
 	return GView::OnEvent(Msg);
 }
 
-void GText::OnPaint(GSurface *pDC)
+int GTextLabel::OnNotify(GViewI *Ctrl, int Flags)
 {
-	// bool Status = false;
+	if (Ctrl == (GViewI*)this &&
+		Flags == GNotify_Activate &&
+		GetParent())
+	{
+		GAutoPtr<GViewIterator> c(GetParent()->IterateViews());
+		if (c)
+		{
+			int Idx = c->IndexOf(this);
+			GViewI *n = (*c)[++Idx];
+			if (n)
+				n->OnNotify(n, Flags);
+		}
+	}
 
-	GColour Fore, Back;
-	Fore.Set(LC_TEXT, 24);
+	return 0;
+}
+
+void GTextLabel::OnPaint(GSurface *pDC)
+{
+	if (GetId() == 544)
+	{
+		int asd=0;
+	}
+
+	GColour Back;
 	Back.Set(LC_MED, 24);
-
 	if (GetCss())
 	{
-		GCss::ColorDef Fill = GetCss()->Color();
-		if (Fill.Type == GCss::ColorRgb)
-			Fore.Set(Fill.Rgb32, 32);
-		else if (Fill.Type == GCss::ColorTransparent)
-			Fore.Empty();
-			
-		Fill = GetCss()->BackgroundColor();
+		GCss::ColorDef Fill = GetCss()->BackgroundColor();
 		if (Fill.Type == GCss::ColorRgb)
 			Back.Set(Fill.Rgb32, 32);
 		else if (Fill.Type == GCss::ColorTransparent)
 			Back.Empty();
 	}
-	
-	// GFont *f = GetFont();
+
 	if (d->Lock(_FL))
 	{
 		GRect c = GetClient();
 		GdcPt2 pt(c.x1, c.y1);
-		d->Paint(pDC, pt, c, Fore, Back, Enabled());
+		d->Paint(pDC, pt, Back, c, Enabled());
 		d->Unlock();
 	}
 	else if (!Back.IsTransparent())

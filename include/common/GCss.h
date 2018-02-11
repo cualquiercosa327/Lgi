@@ -496,13 +496,19 @@ public:
 	struct LgiClass ImageDef
 	{
 		ImageType Type;
-		GAutoString Uri;
+		GString Uri;
 		GSurface *Img;
 
-		ImageDef()
+		ImageDef(const char *Init = NULL)
 		{
 			Img = NULL;
-			Type = ImageInherit;
+			if (Init)
+			{
+				Type = ImageUri;
+				Uri = Init;
+			}
+			else
+				Type = ImageInherit;
 		}
 
 		ImageDef(const ImageDef &o)

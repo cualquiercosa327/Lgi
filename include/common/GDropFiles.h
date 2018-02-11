@@ -102,7 +102,8 @@ public:
 					*out++ = 0;
 
 					// Check file exists..
-					if (FileExists(File))
+					GFile::Path p(File);
+					if (p.Exists())
 					{
 						Add(NewStr(File));
 					}

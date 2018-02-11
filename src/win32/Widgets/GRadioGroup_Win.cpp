@@ -7,6 +7,7 @@
 #include "Lgi.h"
 #include "GRadioGroup.h"
 #include "GDisplayString.h"
+#include "GNotifications.h"
 
 #define RADIO_GRID  2
 static int PadXPx = 30;
@@ -423,6 +424,16 @@ bool GRadioButton::OnLayout(GViewLayoutInfo &Inf)
     }
 	
     return true;    
+}
+
+int GRadioButton::OnNotify(GViewI *Ctrl, int Flags)
+{
+	if (Ctrl == (GViewI*)this && Flags == GNotify_Activate)
+	{
+		Value(true);
+	}
+
+	return 0;
 }
 
 bool GRadioButton::OnKey(GKey &k)

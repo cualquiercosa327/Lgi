@@ -2,6 +2,7 @@
 #define _OPEN_SSL_SOCKET_H_
 
 #include "GLibraryUtils.h"
+#include "LCancel.h"
 
 // If you get a compile error on Linux:
 // sudo apt-get install libssl-dev
@@ -13,7 +14,8 @@
 #define SslSocket_LogFormat				"LogFmt"
 
 class SslSocket :
-	public GSocketI, virtual public GDom
+	public GSocketI,
+	virtual public GDom
 {
 	friend class OpenSSL;
 	struct SslSocketPriv *d;

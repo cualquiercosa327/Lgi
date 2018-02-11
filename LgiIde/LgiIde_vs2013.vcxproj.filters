@@ -46,6 +46,9 @@
     <Filter Include="Source Files\Utils">
       <UniqueIdentifier>{29793244-2c02-4203-b755-49237ba42e24}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\levenshtein">
+      <UniqueIdentifier>{f793da4b-cf25-40f4-a90c-4a549d33d87e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Code\LgiIde.h">
@@ -113,6 +116,9 @@
     </ClInclude>
     <ClInclude Include="Code\FtpFile.h">
       <Filter>Source Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Code\levenshtein.h">
+      <Filter>Source Files\levenshtein</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -202,6 +208,12 @@
     </ClCompile>
     <ClCompile Include="Code\IdeDoc.cpp">
       <Filter>Source Files\Docs</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\MissingFiles.cpp">
+      <Filter>Source Files\Projects</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\levenshtein.c">
+      <Filter>Source Files\levenshtein</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

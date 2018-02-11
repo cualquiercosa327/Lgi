@@ -377,7 +377,7 @@ bool FileExists(const char *FileName, char *CorrectCase)
 		// Check for exact match...
 		if (stat(FileName, &s) == 0)
 		{
-			Status = true;
+			Status = !S_ISDIR(s.st_mode);
 		}
 		else if (CorrectCase)
 		{
@@ -395,7 +395,8 @@ bool FileExists(const char *FileName, char *CorrectCase)
 					dirent *De;
 					while (De = readdir(Dir))
 					{
-						if (stricmp(De->d_name, e) == 0)
+						if (De->d_type != DT_DIR &&
+							stricmp(De->d_name, e) == 0)
 						{
 							try
 							{

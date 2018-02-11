@@ -31,6 +31,9 @@
 #endif
 #include "GUnicode.h"
 #include "GArray.h"
+#ifndef IsDigit
+	#define IsDigit(ch) ((ch) >= '0' && (ch) <= '9')
+#endif
 
 LgiExtern int LgiPrintf(class GString &Str, const char *Format, va_list &Arg);
 
@@ -376,6 +379,11 @@ public:
 	
 	/// Cast to C string operator
 	operator char *()
+	{
+		return Str ? Str->Str : NULL;
+	}
+
+	operator const char *() const
 	{
 		return Str ? Str->Str : NULL;
 	}
@@ -732,6 +740,19 @@ public:
 		if (Str)
 			return Atoi(Str->Str, Base);
 		return -1;
+	}
+
+	/// Checks if the string is a number
+	bool IsNumeric()
+	{
+		if (!Str)
+			return false;
+		for (char *s = Str->Str; *s; s++)
+		{
+			if (!IsDigit(*s) || strchr("e-+.", *s))
+				return false;
+		}
+		return true;
 	}
 	
 	/// Reverses all the characters in the string

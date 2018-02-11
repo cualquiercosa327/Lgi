@@ -10,7 +10,8 @@ enum ProjSetting
 	ProjDebugAdmin,
 	ProjDefines,
 	ProjCompiler,
-	ProjCrossCompiler,
+	ProjCCrossCompiler,
+	ProjCppCrossCompiler,
 	ProjIncludePaths,
 	ProjSystemIncludes,
 	ProjLibraries,
@@ -24,7 +25,8 @@ enum ProjSetting
 	ProjCommentFile,
 	ProjCommentFunction,
 	ProjMakefileRules,
-	ProjApplicationIcon
+	ProjApplicationIcon,
+	ProjPostBuildCommands
 };
 
 class IdeProjectSettings

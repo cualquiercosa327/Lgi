@@ -96,6 +96,7 @@ public:
 	bool Name(const char *n);
 	bool NameW(const char16 *n);
 	void SetFont(GFont *Fnt, bool OwnIt = false);
+	int OnNotify(GViewI *Ctrl, int Flags);
 
 	#if WINNATIVE
 	int SysOnNotify(int Msg, int Code);

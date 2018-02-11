@@ -476,6 +476,12 @@
     <ClCompile Include="src\win32\Lgi\LThread.cpp">
       <Filter>Source Files\Core\Threads</Filter>
     </ClCompile>
+    <ClCompile Include="src\common\Gdc2\Font\LStringLayout.cpp">
+      <Filter>Source Files\Graphics\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Lgi\GMenuCommon.cpp">
+      <Filter>Source Files\Core\Menus</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\common\GLibrary.h">
@@ -717,6 +723,12 @@
     </ClInclude>
     <ClInclude Include="include\common\LListItemRadioBtn.h">
       <Filter>Source Files\Widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="include\common\LStringLayout.h">
+      <Filter>Source Files\Graphics\Font</Filter>
+    </ClInclude>
+    <ClInclude Include="include\common\LDomFields.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

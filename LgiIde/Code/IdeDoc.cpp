@@ -16,6 +16,7 @@
 #include "ProjectNode.h"
 #include "GEventTargetThread.h"
 #include "GCheckBox.h"
+#include "SpaceTabConv.h"
 
 const char *Untitled = "[untitled]";
 // static const char *White = " \r\t\n";
@@ -26,6 +27,7 @@ const char *Untitled = "[untitled]";
 
 #define EDIT_TRAY_HEIGHT	(SysFont->GetHeight() + 10)
 #define EDIT_LEFT_MARGIN	16 // gutter for debug break points
+#define EDIT_CTRL_WIDTH		200
 
 #define IsSymbolChar(ch)	(IsAlpha(ch) || (ch) == '_')
 
@@ -50,17 +52,19 @@ struct LanguageParams
 	const char **Types;
 };
 
-const char *DefaultKeywords[] = {"if", "elseif", "endif", "else", "ifeq", "ifndef", NULL};
+const char *DefaultKeywords[] = {"if", "elseif", "endif", "else", "ifeq", "ifdef", "ifndef", "ifneq", "include", NULL};
 const char *CppKeywords[] = {"extern", "class", "struct", "static", "default", "case", "break",
 							"switch", "new", "delete", "sizeof", "return", "enum", "else",
-							"if", "for", "while", "do", "continue", NULL};
+							"if", "for", "while", "do", "continue", "public", "virtual", 
+							"protected", "friend", "union", "template", "typedef", "dynamic_cast",
+							NULL};
 const char *CppTypes[] = {	"int", "char", "unsigned", "double", "float", "bool", "const", "void",
 							"int8", "int16", "int32", "int64",
 							"uint8", "uint16", "uint32", "uint64",
 							"GArray", "GHashTbl", "List", "GString", "GAutoString", "GAutoWString",
 							"GAutoPtr",
 							NULL};
-const char *PythonKeywords[] = {"def", "try", "except", "import", "if", "for", "elif", NULL};
+const char *PythonKeywords[] = {"def", "try", "except", "import", "if", "for", "elif", "else", NULL};
 const char *XmlTypes[] = {	NULL};
 
 LanguageParams LangParam[] =
@@ -116,9 +120,9 @@ public:
 		SymBtn.ZOff(-1, -1);
 		
 		int Ht = SysFont->GetHeight() + 6;
-		AddView(FileSearch = new GEdit(IDC_FILE_SEARCH, 0, 0, 120, Ht));
-		AddView(FuncSearch = new GEdit(IDC_METHOD_SEARCH, 0, 0, 120, Ht));
-		AddView(SymSearch = new GEdit(IDC_SYMBOL_SEARCH, 0, 0, 120, Ht));
+		AddView(FileSearch = new GEdit(IDC_FILE_SEARCH, 0, 0, EDIT_CTRL_WIDTH, Ht));
+		AddView(FuncSearch = new GEdit(IDC_METHOD_SEARCH, 0, 0, EDIT_CTRL_WIDTH, Ht));
+		AddView(SymSearch = new GEdit(IDC_SYMBOL_SEARCH, 0, 0, EDIT_CTRL_WIDTH, Ht));
 		AddView(AllPlatforms = new GCheckBox(IDC_ALL_PLATFORMS, 0, 0, 20, Ht, "All Platforms"));
 	}
 	
@@ -160,22 +164,21 @@ public:
 	
 	void OnPosChange()
 	{
-		int EditPx = 120;
 		GLayoutRect c(this, 2);
 
 		c.Left(FileBtn, 20);
 		if (FileSearch)
-			c.Left(FileSearch, EditPx);
+			c.Left(FileSearch, EDIT_CTRL_WIDTH);
 		c.x1 += 8;
 
 		c.Left(FuncBtn, 20);
 		if (FuncSearch)
-			c.Left(FuncSearch, EditPx);
+			c.Left(FuncSearch, EDIT_CTRL_WIDTH);
 		c.x1 += 8;
 
 		c.Left(SymBtn, 20);
 		if (SymSearch)
-			c.Left(SymSearch, EditPx);
+			c.Left(SymSearch, EDIT_CTRL_WIDTH);
 		c.x1 += 8;
 
 		if (AllPlatforms)
@@ -525,7 +528,7 @@ void EditTray::OnSymbolList(GMouse &m)
 
 							if (Doc)
 							{
-								Doc->GetEdit()->SetLine(Def->Line);
+								Doc->SetLine(Def->Line, false);
 							}
 							else
 							{
@@ -1400,6 +1403,14 @@ public:
 					}
 					break;
 				}
+				case '-':
+				{
+					const wchar_t *t = L"-DVERSION=\\\"3.0_ColdFire_FlexCAN\\\"";
+					if (Strnicmp(s, t, Strlen(t)) == 0)
+					{
+						int asd=0;
+					}
+				}
 				default:
 				{
 					wchar_t Ch = ToLower(*s);
@@ -1694,19 +1705,34 @@ public:
 			{
 				case '\"':
 				case '\'':
+				case '`':
 				{
 					GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
 					if (st)
 					{
+						bool Quoted = s > Text && s[-1] == '\\';
+
 						st->View = this;
-						st->Start = s - Text;
+						st->Start = s - Text - Quoted;
 						st->Font = GetFont();
 
 						char16 Delim = *s++;
-						while (s < e && *s != Delim)
+						while
+						(
+							s < e
+							&&
+							*s != Delim
+							&&
+							!(Delim == '`' && *s == '\'')
+						)
 						{
 							if (*s == '\\')
-								s++;
+							{
+								if (!Quoted || s[1] != Delim)
+									s++;
+							}
+							else if (*s == '\n')
+								break;
 							s++;
 						}
 						st->Len = (s - Text) - st->Start + 1;
@@ -1750,7 +1776,7 @@ public:
 						if (st)
 						{
 							st->View = this;
-							st->Start = s - Text;
+							st->Start = s - Text - ((s > Text && strchr("-+", s[-1])) ? 1 : 0);
 							st->Font = GetFont();
 
 							bool IsHex = false;
@@ -1783,6 +1809,8 @@ public:
 								else
 									break;
 							}
+							if (*s == '%')
+								s++;
 							
 							st->Len = (s - Text) - st->Start;
 							st->c = ColourLiteral;
@@ -2699,6 +2727,12 @@ void IdeDoc::SearchSymbol()
 	}
 }
 
+void IdeDoc::UpdateControl()
+{
+	if (d->Edit)
+		d->Edit->Invalidate();
+}
+
 void IdeDoc::SearchFile()
 {
 	GotoSearch(IDC_FILE_SEARCH, NULL);
@@ -2717,6 +2751,67 @@ void IdeDoc::ClearCurrentIp()
 {
 	CurIpDoc.Empty();
 	CurIpLine = -1;
+}
+
+void IdeDoc::SetCrLf(bool CrLf)
+{
+	if (d->Edit)
+		d->Edit->SetCrLf(CrLf);
+}
+
+bool IdeDoc::OpenFile(const char *File)
+{
+	if (d->Edit)
+	{
+		return d->Edit->Open(File);
+	}
+
+	return false;
+}
+
+void IdeDoc::SetEditorParams(int IndentSize, int TabSize, bool HardTabs, bool ShowWhiteSpace)
+{
+	if (d->Edit)
+	{
+		d->Edit->SetIndentSize(IndentSize > 0 ? IndentSize : 4);
+		d->Edit->SetTabSize(TabSize > 0 ? TabSize : 4);
+		d->Edit->SetHardTabs(HardTabs);
+		d->Edit->SetShowWhiteSpace(ShowWhiteSpace);
+		d->Edit->Invalidate();
+	}
+}
+
+bool IdeDoc::HasFocus(int Set)
+{
+	if (!d->Edit)
+		return false;
+
+	if (Set)
+		d->Edit->Focus(Set);
+
+	return d->Edit->Focus();
+}
+
+void IdeDoc::ConvertWhiteSpace(bool ToTabs)
+{
+	if (!d->Edit)
+		return;
+
+	GAutoString Sp(
+		ToTabs ?
+		SpacesToTabs(d->Edit->Name(), d->Edit->GetTabSize()) :
+		TabsToSpaces(d->Edit->Name(), d->Edit->GetTabSize())
+		);
+	if (Sp)
+	{
+		d->Edit->Name(Sp);
+		SetDirty();
+	}
+}
+
+int IdeDoc::GetLine()
+{
+	return d->Edit ? d->Edit->GetLine() : -1;
 }
 
 void IdeDoc::SetLine(int Line, bool CurIp)
@@ -3073,10 +3168,12 @@ bool IdeDoc::OnRequestClose(bool OsShuttingDown)
 	return true;
 }
 
+/*
 GTextView3 *IdeDoc::GetEdit()
 {
 	return d->Edit;
 }
+*/
 
 bool IdeDoc::BuildIncludePaths(GArray<GString> &Paths, IdePlatform Platform, bool IncludeSysPaths)
 {
@@ -3086,7 +3183,7 @@ bool IdeDoc::BuildIncludePaths(GArray<GString> &Paths, IdePlatform Platform, boo
 		return false;
 	}
 
-	bool Status = GetProject()->BuildIncludePaths(Paths, true, Platform);
+	bool Status = GetProject()->BuildIncludePaths(Paths, true, IncludeSysPaths, Platform);
 	if (Status)
 	{
 		if (IncludeSysPaths)

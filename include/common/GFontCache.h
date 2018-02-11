@@ -23,6 +23,16 @@ public:
 	{
 		Fonts.DeleteObjects();
 	}
+
+	GFont *GetDefaultFont()
+	{
+		return DefaultFont;
+	}
+
+	void SetDefaultFont(GFont *Def)
+	{
+		DefaultFont = Def;
+	}
 	
 	/// This defines a text label that links to a font-face. On multi-platform
 	/// software sometimes you need to have one CSS font Label that links to 
@@ -80,7 +90,7 @@ public:
 
 	GFont *GetFont(GCss *Style)
 	{
-		if (!Style)
+		if (!Style || !DefaultFont)
 			return DefaultFont;
 		
 		GCss::StringsDef Fam = Style->FontFamily();

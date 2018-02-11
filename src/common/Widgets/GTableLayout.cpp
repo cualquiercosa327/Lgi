@@ -33,7 +33,7 @@ enum CellFlag
 #include "GCss.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
-// #define DEBUG_LAYOUT		24
+// #define DEBUG_LAYOUT		8
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
@@ -505,7 +505,7 @@ bool TableCell::GetVariant(const char *Name, GVariant &Value, char *Array)
 			Value.OwnStr(ToString());
 			break;
 		}
-		case ObjDebug:
+		case ObjDebug: // Type: Boolean
 		{
 			Value = Debug;
 			break;
@@ -544,7 +544,7 @@ bool TableCell::SetVariant(const char *Name, GVariant &Value, char *Array)
 							Table->AddView(gv);
 							gv->SetParent(Table);
 
-							GText *t = dynamic_cast<GText*>(gv);
+							GTextLabel *t = dynamic_cast<GTextLabel*>(gv);
 							if (t)
 							{
 								t->SetWrap(true);
@@ -1098,6 +1098,10 @@ void TableCell::PostLayout()
 		
 		GTableLayout *Tbl = Izza(GTableLayout);
 		GRect r = v->GetPos();
+		if (Izza(GTextLabel))
+		{
+			int asd=0;
+		}
 
 		if (i > 0 && Cx + r.X() > Pos.X())
 		{
@@ -1131,7 +1135,9 @@ void TableCell::PostLayout()
 			c->Inf.Height.Max = HeightPx;
 
 		if (r.Y() > HeightPx)
+		{
 			r.y2 = r.y1 + HeightPx - 1;
+		}
 
 		if (Tbl)
 		{
@@ -1224,12 +1230,18 @@ void TableCell::PostLayout()
 		#if DEBUG_LAYOUT
 		if (Table->d->DebugLayout)
 		{
-			Table->d->Dbg.Print("\t\tView[%i]=%s Offy=%i\n", n, New[n].GetStr(), OffsetY);
+			Table->d->Dbg.Print("\t\t%s[%i]=%s, %ix%i, Offy=%i %s\n",
+				v->GetClass(), n,
+				New[n].GetStr(),
+				New[n].X(), New[n].Y(),
+				OffsetY,
+				v->Name());
 		}
 		#endif
 
-		v->SetPos(New[n]);		
-		v->Visible(true);
+		v->SetPos(New[n]);	
+		// What if you want the control to stay invisible?	
+		// v->Visible(true);
 	}
 }
 
@@ -1696,10 +1708,8 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 		}
 		for (i=0; i<Cols.Length(); i++)
 		{
-			Dbg.Print("\tLayoutVertical.Final[%i]=%i\n", i, MinCol[i]);
+			Dbg.Print("\tLayoutHorizontal.Final[%i]=%i\n", i, MinCol[i]);
 		}
-		GAutoString DbgStr(Dbg.NewStr());
-		LgiTrace("%s", DbgStr.Get());
 	}
 	#endif
 
@@ -1766,13 +1776,23 @@ void GTableLayoutPrivate::LayoutPost(GRect &Client)
 					c->PostLayout();
 
 					MaxY = max(MaxY, c->Pos.y2);
+
+					/*
+					#if DEBUG_LAYOUT
+					if (DebugLayout)
+						LgiTrace("\tCell[%i][%i]: %ix%i, %s\n", Cx, Cy, c->Cell.X(), c->Cell.Y(), c->Pos.GetStr());
+					#endif
+					*/
 				}
 
 				Px = c->Pos.x2 + BorderSpacing - Client.x1 + 1;
 				Cx += c->Cell.X();
 			}
 			else
+			{
+				Px = MinCol[Cx] + BorderSpacing;
 				Cx++;
+			}
 		}
 
 		Py += MinRow[Cy] + BorderSpacing;
@@ -1824,6 +1844,14 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	Ctrl->SendNotify(GNotifyTableLayout_LayoutChanged);
 	#if DEBUG_PROFILE
 	LgiTrace("GTableLayout::Layout = %i ms\n", (int)(LgiCurrentTime()-Start));
+	#endif
+
+	#if DEBUG_LAYOUT
+	if (DebugLayout)
+	{
+		GAutoString DbgStr(Dbg.NewStr());
+		LgiTrace("%s", DbgStr.Get());
+	}
 	#endif
 	
 	InLayout = false;

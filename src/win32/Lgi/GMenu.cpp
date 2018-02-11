@@ -118,6 +118,7 @@ GSubMenu::~GSubMenu()
 	}
 }
 
+
 GMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where, const char *Shortcut)
 {
 	int Pos = Where < 0 ? Items.Length() : min(Where, Items.Length());

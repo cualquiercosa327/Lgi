@@ -16,9 +16,10 @@ enum DataDlgType
 	DATA_INT,
 	DATA_FLOAT,
 	DATA_PASSWORD,
-	DATA_STR_SYSTEM		// Operating system specific string. Has the OS
+	DATA_STR_SYSTEM,	// Operating system specific string. Has the OS
 						// tag automatically appended to the option name
 						// e.g. SomeProperty-Win32
+	DATA_FILENAME,
 };
 
 class DataDlgTools;
@@ -81,7 +82,7 @@ template <class Record, class Lst>
 class DRecordSetCtrls : public DataDlgTools
 {
 	// Controls
-	GText *Description;
+	GTextLabel *Description;
 	GScrollBar *Scroll;
 	int NewRecordId;
 	int DeleteRecordId;
@@ -114,7 +115,7 @@ public:
 
 		if (Dlg)
 		{
-			Description = dynamic_cast<GText*>(Dlg->FindControl(DescId));
+			Description = dynamic_cast<GTextLabel*>(Dlg->FindControl(DescId));
 			Scroll = dynamic_cast<GScrollBar*>(Dlg->FindControl(ScrollId));
 			OnMoveRecord(dynamic_cast<Record*>(Records->First()));
 		}

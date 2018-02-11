@@ -8,6 +8,7 @@
 #include "GArray.h"
 #include "LgiOsDefs.h"
 #include "GColour.h"
+#include "LCancel.h"
 
 // Fwd defs
 class GXmlTag;
@@ -112,7 +113,9 @@ enum GSocketLogTypes
 
 /// Virtual base class for a socket. See the documentation for GSocket for a more
 /// through treatment of this object's API.
-class GSocketI : virtual public GStreamI
+class GSocketI :
+	virtual public GStreamI,
+	public LCancel
 {
 public:
 	enum SocketMsgType

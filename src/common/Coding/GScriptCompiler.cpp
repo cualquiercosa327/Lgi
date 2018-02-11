@@ -155,7 +155,8 @@ GCompiledCode &GCompiledCode::operator =(GCompiledCode &c)
 	Types = c.Types;
 	Debug = c.Debug;
 	Methods = c.Methods;
-	FileName.Reset(NewStr(c.FileName));
+	FileName = c.FileName;
+	Source = c.Source;
 
 	return *this;
 }
@@ -3525,7 +3526,7 @@ bool GCompiler::Compile
 	{
 		d->Code->UserContext = UserContext;
 		d->Code->SysContext = SysContext;
-		d->Code->SetFileName(FileName);
+		d->Code->SetSource(FileName, Script);
 		
 		bool LexResult = d->Lex((char*)Script, FileName);
 		if (LexResult)

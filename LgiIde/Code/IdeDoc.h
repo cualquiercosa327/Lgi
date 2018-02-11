@@ -29,18 +29,24 @@ public:
 	bool SetClean();
 	void SetDirty();
 	bool OnRequestClose(bool OsShuttingDown);
-	GTextView3 *GetEdit();
 	void OnPosChange();
 	void OnPaint(GSurface *pDC);
 	bool IsFile(const char *File);
 	bool AddBreakPoint(int Line, bool Add);
 	
+	bool OpenFile(const char *File);
+	void SetEditorParams(int IndentSize, int TabSize, bool HardTabs, bool ShowWhiteSpace);
+	bool HasFocus(int Set = -1);
+	void ConvertWhiteSpace(bool ToTabs);
+	void SetCrLf(bool CrLf);
+	int GetLine();
 	void SetLine(int Line, bool CurIp);
 	static void ClearCurrentIp();
 	bool IsCurrentIp();
 	void GotoSearch(int CtrlId, char *InitialText = NULL);
 	void SearchSymbol();
 	void SearchFile();
+	void UpdateControl();
 
 	// Source tools
 	bool BuildIncludePaths(GArray<GString> &Paths, IdePlatform Platform, bool IncludeSysPaths);

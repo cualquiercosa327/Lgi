@@ -9,7 +9,6 @@
 #include "GXmlTree.h"
 #include "GPanel.h"
 #include "GProcess.h"
-#include "SpaceTabConv.h"
 #include "GButton.h"
 #include "GTabView.h"
 #include "FtpThread.h"
@@ -464,6 +463,41 @@ void WatchItem::OnExpand(bool b)
 	}
 }
 
+class BuildLog : public GTextLog
+{
+public:
+	BuildLog(int id) : GTextLog(id)
+	{
+	}
+
+	void PourStyle(size_t Start, ssize_t Length)
+	{
+		List<GTextLine>::I it = GTextView3::Line.Start();
+		for (GTextLine *ln = *it; ln; ln = *++it)
+		{
+			if (!ln->c.IsValid())
+			{
+				char16 *t = Text + ln->Start;
+				char16 *Err = Strnistr(t, L"error", ln->Len);
+				char16 *Undef = Strnistr(t, L"undefined reference", ln->Len);
+				char16 *Warn = Strnistr(t, L"warning", ln->Len);
+				
+				if
+				(
+					(Err && strchr(":[", Err[5]))
+					||
+					(Undef != NULL)
+				)
+					ln->c.Rgb(222, 0, 0);
+				else if (Warn && strchr(":[", Warn[7]))
+					ln->c.Rgb(255, 128, 0);
+				else
+					ln->c.Set(LC_TEXT, 24);
+			}
+		}
+	}
+};
+
 class IdeOutput : public GView
 {
 public:
@@ -543,7 +577,7 @@ public:
 			Debug->SetFont(&Small);
 			
 			if (Build)
-				Build->Append(Txt[AppWnd::BuildTab] = new GTextLog(IDC_BUILD_LOG));
+				Build->Append(Txt[AppWnd::BuildTab] = new BuildLog(IDC_BUILD_LOG));
 			if (Output)
 				Output->Append(Txt[AppWnd::OutputTab] = new GTextLog(IDC_OUTPUT_LOG));
 			if (Find)
@@ -630,7 +664,7 @@ public:
 							{
 								GCombo *cbo;
 								GCheckBox *chk;
-								GText *txt;
+								GTextLabel *txt;
 								GEdit *ed;
 								MemTable->SetFont(&Small);
 							
@@ -639,7 +673,7 @@ public:
 								if (c)
 								{
 									c->VerticalAlign(GCss::VerticalMiddle);
-									c->Add(txt = new GText(IDC_STATIC, 0, 0, -1, -1, "Address:"));
+									c->Add(txt = new GTextLabel(IDC_STATIC, 0, 0, -1, -1, "Address:"));
 									txt->SetFont(&Small);
 								}
 								c = MemTable->GetCell(x++, y);
@@ -664,7 +698,7 @@ public:
 								if (c)
 								{
 									c->VerticalAlign(GCss::VerticalMiddle);
-									c->Add(txt = new GText(IDC_STATIC, 0, 0, -1, -1, "Page width:"));
+									c->Add(txt = new GTextLabel(IDC_STATIC, 0, 0, -1, -1, "Page width:"));
 									txt->SetFont(&Small);
 								}
 								c = MemTable->GetCell(x++, y);
@@ -815,6 +849,51 @@ public:
 		#endif
 		AttachChildren();
 	}
+
+	void RemoveAnsi(GArray<char> &a)
+	{
+		char *s = a.AddressOf();
+		char *e = s + a.Length();
+		while (s < e)
+		{
+			if (*s == 0x7)
+			{
+				a.DeleteAt(s - a.AddressOf(), true);
+				s--;
+			}
+			else if
+			(
+				*s == 0x1b
+				&&
+				s[1] >= 0x40
+				&&
+				s[1] <= 0x5f
+			)
+			{
+				// ANSI seq
+				char *end;
+				if (s[1] == '[' &&
+					s[2] == '0' &&
+					s[3] == ';')
+					end = s + 4;
+				else
+				{
+					end = s + 2;
+					while (end < e && !IsAlpha(*end))
+					{
+						end++;
+					}
+					if (*end) end++;
+				}
+
+				int len = end - s;
+				memmove(s, end, e - end);
+				a.Length(a.Length() - len);
+				s--;
+			}
+			s++;
+		}
+	}
 	
 	void OnPulse()
 	{
@@ -826,11 +905,15 @@ public:
 			if (Size)
 			{
 				char *Utf = &Buf[Channel][0];
+				#ifdef _DEBUG
 				if (!LgiIsUtf8(Utf, (ssize_t)Size))
 				{
 					LgiTrace("Ch %i not utf len="LGI_PrintfInt64"\n", Channel, Size);
 					continue;
 				}
+				#endif
+
+				RemoveAnsi(Buf[Channel]);
 				
 				GAutoPtr<char16, true> w(Utf8ToWide(Utf, (ssize_t)Size));
 				char16 *OldText = Txt[Channel]->NameW();
@@ -2092,7 +2175,7 @@ IdeProject *AppWnd::OpenProject(char *FileName, IdeProject *ParentProj, bool Cre
 	}
 	
 	GString::Array Inc;
-	p->BuildIncludePaths(Inc, false, PlatformCurrent);
+	p->BuildIncludePaths(Inc, false, false, PlatformCurrent);
 	d->FindSym->SetIncludePaths(Inc);
 
 	p->SetParentProject(ParentProj);
@@ -2137,6 +2220,10 @@ GMessage::Result AppWnd::OnEvent(GMessage *m)
 {
 	switch (MsgCode(m))
 	{
+		case M_START_BUILD:
+		{
+			break;
+		}
 		case M_BUILD_DONE:
 		{
 			UpdateState(-1, false);
@@ -2189,8 +2276,8 @@ GMessage::Result AppWnd::OnEvent(GMessage *m)
 				{
 					IdeDoc::ClearCurrentIp();
 					IdeDoc *c = GetCurrentDoc();
-					if (c && c->GetEdit())
-						c->GetEdit()->Invalidate();
+					if (c)
+						c->UpdateControl();
 						
 					// Shutdown the debug context and free the memory
 					DeleteObj(d->DbgContext);
@@ -2539,6 +2626,22 @@ bool AppWnd::IsReleaseMode()
 	return IsRelease;
 }
 
+bool AppWnd::Build()
+{
+	SaveAll();
+	IdeProject *p = RootProject();
+	if (!p)
+		return false;
+
+	UpdateState(-1, true);
+
+	GMenuItem *Release = GetMenu()->FindItem(IDM_RELEASE_MODE);
+	bool IsRelease = Release ? Release->Checked() : false;
+	p->Build(false, IsRelease);
+
+	return true;
+}
+
 bool AppWnd::ShowInProject(const char *Fn)
 {
 	if (!Fn)
@@ -2789,7 +2892,11 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 							p->GetAllNodes(Nodes);
 
 						for (unsigned i=0; i<Nodes.Length(); i++)
-							Dlg.Params->ProjectFiles.Add(Nodes[i]->GetFullPath());
+						{
+							GString s = Nodes[i]->GetFullPath();
+							if (s)
+								Dlg.Params->ProjectFiles.Add(s);
+						}
 					}
 
 					GVariant var = d->FindParameters->Type == FifSearchSolution;
@@ -2971,7 +3078,16 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 				p->Execute(ExeValgrind);
 			}
 			break;
-		}		
+		}
+		case IDM_FIX_MISSING_FILES:
+		{
+			IdeProject *p = RootProject();
+			if (p)
+				p->FixMissingFiles();
+			else
+				LgiMsg(this, "No project loaded.", AppName);
+			break;
+		}
 		case IDM_START_DEBUG:
 		{
 			SaveAll();
@@ -3008,12 +3124,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		{
 			IdeDoc *Cur = GetCurrentDoc();
 			if (Cur)
-			{
-				if (Cur->GetEdit())
-				{
-					ToggleBreakpoint(Cur->GetFileName(), Cur->GetEdit()->GetLine());
-				}
-			}
+				ToggleBreakpoint(Cur->GetFileName(), Cur->GetLine());
 			break;
 		}
 		case IDM_ATTACH_TO_PROCESS:
@@ -3038,16 +3149,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		}
 		case IDM_BUILD:
 		{
-			SaveAll();
-			IdeProject *p = RootProject();
-			if (p)
-			{
-				UpdateState(-1, true);
-
-				GMenuItem *Release = GetMenu()->FindItem(IDM_RELEASE_MODE);
-				bool IsRelease = Release ? Release->Checked() : false;
-				p->Build(false, IsRelease);
-			}
+			Build();
 			break;			
 		}
 		case IDM_STOP_BUILD:
@@ -3062,9 +3164,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			SaveAll();
 			IdeProject *p = RootProject();
 			if (p)
-			{
 				p->Clean(IsReleaseMode());
-			}
 			break;
 		}
 		case IDM_NEXT_MSG:
@@ -3124,38 +3224,30 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		{
 			IdeDoc *Doc = FocusDoc();
 			if (Doc)
-			{
-				GTextView3 *Text = Doc->GetEdit();
-				if (Text)
-				{
-					char *Sp = SpacesToTabs(Text->Name(), Text->GetTabSize());
-					if (Sp)
-					{
-						Text->Name(Sp);
-						Doc->SetDirty();
-						DeleteArray(Sp);
-					}
-				}
-			}
+				Doc->ConvertWhiteSpace(true);
 			break;
 		}
 		case IDM_TAB_TO_SP:
 		{
 			IdeDoc *Doc = FocusDoc();
 			if (Doc)
-			{
-				GTextView3 *Text = Doc->GetEdit();
-				if (Text)
-				{
-					char *Sp = TabsToSpaces(Text->Name(), Text->GetTabSize());
-					if (Sp)
-					{
-						Text->Name(Sp);
-						Doc->SetDirty();
-						DeleteArray(Sp);
-					}
-				}
-			}
+				Doc->ConvertWhiteSpace(false);
+			break;
+		}
+		case IDM_EOL_LF:
+		{
+			IdeDoc *Doc = FocusDoc();
+			if (!Doc)
+				break;
+			Doc->SetCrLf(false);
+			break;
+		}
+		case IDM_EOL_CRLF:
+		{
+			IdeDoc *Doc = FocusDoc();
+			if (!Doc)
+				break;
+			Doc->SetCrLf(true);
 			break;
 		}
 		case IDM_LOAD_MEMDUMP:
@@ -3212,7 +3304,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 				IdeProject *p = RootProject();
 				if (p)
 				{
-					p->CreateMakefile(PlatIdx);
+					p->CreateMakefile(PlatIdx, false);
 				}
 			}
 			break;
@@ -3240,18 +3332,17 @@ GTextView3 *AppWnd::FocusEdit()
 IdeDoc *AppWnd::FocusDoc()
 {
 	IdeDoc *Doc = TopDoc();
-	if (Doc && Doc->GetEdit())
+	if (Doc)
 	{
-		if (Doc->GetEdit()->Focus())
+		if (Doc->HasFocus())
 		{
 			return Doc;
 		}
 		else
 		{
 			GViewI *f = GetFocus();
-			LgiTrace("%s:%i - Edit doesn't have focus, f=%p %s doc.edit=%p %s\n",
+			LgiTrace("%s:%i - Edit doesn't have focus, f=%p %s doc.edit=%s\n",
 				_FL, f, f ? f->GetClass() : 0,
-				Doc->GetEdit(),
 				Doc->Name());
 		}
 	}
@@ -3475,6 +3566,10 @@ int LgiMain(OsAppArguments &AppArgs)
 	if (a.IsOk())
 	{
 		a.AppWnd = new AppWnd;
+
+		int *ptr = 0;
+		// *ptr = 0;
+
 		a.Run();
 	}
 

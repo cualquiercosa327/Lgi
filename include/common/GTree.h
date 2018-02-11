@@ -55,6 +55,17 @@ public:
 	int IndexOf();
 	/// \returns number of child.
 	int GetItems();
+
+	/// Iterate all children
+	template<typename T>
+	bool Iterate(T *&ptr)
+	{
+		if (ptr)
+			ptr = dynamic_cast<T*>(ptr->GetNext());
+		else
+			ptr = dynamic_cast<T*>(GetChild());
+		return ptr != NULL;
+	}
 	
 	/// Sorts the child items
 	template<typename T>

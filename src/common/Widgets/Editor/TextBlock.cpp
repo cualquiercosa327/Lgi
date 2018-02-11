@@ -4,6 +4,8 @@
 #include "Emoji.h"
 #include "GDocView.h"
 
+#define DEBUG_LAYOUT				0
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 GRichTextPriv::StyleText::StyleText(const StyleText *St)
 {
@@ -576,6 +578,9 @@ bool GRichTextPriv::TextBlock::HitTest(HitTestResult &htr)
 			htr.Near = true;
 			htr.Idx = CharPos;
 			htr.LineHint = i;
+			
+			LgiAssert(htr.Idx <= Length());
+			
 			return true;
 		}
 		
@@ -600,6 +605,9 @@ bool GRichTextPriv::TextBlock::HitTest(HitTestResult &htr)
 				htr.Ds = ds;
 				htr.Idx = CharPos + OffChar;
 				htr.LineHint = i;
+
+				LgiAssert(htr.Idx <= Length());
+
 				return true;
 			}
 					
@@ -613,6 +621,9 @@ bool GRichTextPriv::TextBlock::HitTest(HitTestResult &htr)
 			htr.Near = true;
 			htr.Idx = CharPos;
 			htr.LineHint = i;
+			
+			LgiAssert(htr.Idx <= Length());
+
 			return true;
 		}
 				
@@ -676,6 +687,13 @@ void GRichTextPriv::TextBlock::DrawDisplayString(GSurface *pDC, DisplayStr *Ds, 
 		}
 		else break;
 	}
+
+	while (SpErr && SpErr->End() < DsEnd)
+	{
+		// Are there more errors?
+		SpErr = SpellingErrors.AddressOf(++PaintErrIdx);
+	}
+
 
 	Pos += Ds->Chars;
 }
@@ -999,11 +1017,15 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 	if (!CurLine)
 		return flow.d->Error(_FL, "alloc failed.");
 
+	int LayoutSize = 0;
+	int TextSize = 0;
 	for (unsigned i=0; i<Txt.Length(); i++)
 	{
 		StyleText *t = Txt[i];
 		GNamedStyle *tstyle = t->GetStyle();
-				
+		LgiAssert(t->Length() >= 0);			
+		TextSize += t->Length();
+		
 		if (t->Length() == 0)
 			continue;
 
@@ -1020,9 +1042,14 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 		uint32 *sStart = t->At(0);
 		uint32 *sEnd = sStart + t->Length();
 		for (unsigned Off = 0; Off < t->Length(); )
-		{					
+		{
 			// How much of 't' is on the same line?
 			uint32 *s = sStart + Off;
+
+			#if DEBUG_LAYOUT
+			LgiTrace("Txt[%i][%i]: FixX=%i, Txt='%.*S'\n", i, Off, FixX, t->Length() - Off, s);
+			#endif
+
 			if (*s == '\n')
 			{
 				// New line handling...
@@ -1032,9 +1059,13 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 				CurLine->LayoutOffsets(f->GetHeight());
 				Pos.y2 = max(Pos.y2, Pos.y1 + CurLine->PosOff.y2);
 				CurLine->NewLine = 1;
-						
-				// LgiTrace("        [%i] = %s\n", Layout.Length(), CurLine->PosOff.GetStr());
-						
+				
+				LayoutSize += CurLine->Length();
+				
+				#if DEBUG_LAYOUT
+				LgiTrace("\tNewLineChar, LayoutSize=%i, TextSize=%i\n", LayoutSize, TextSize);
+				#endif
+				
 				Layout.Add(CurLine.Release());
 				CurLine.Reset(new TextLine(flow.Left - Pos.x1, flow.X(), Pos.Y()));
 
@@ -1065,13 +1096,20 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 				return flow.d->Error(_FL, "display str creation failed.");
 
 			if (WrapType != GCss::WrapNone &&
-				FixX + Ds->X() > AvailableX)
+				FixX + Ds->FX() > IntToFixed(AvailableX))
 			{
+				#if DEBUG_LAYOUT
+				LgiTrace("\tNeedToWrap: %i, %i + %i > %i\n", WrapType, FixX, Ds->FX(), IntToFixed(AvailableX));
+				#endif
+
 				// Wrap the string onto the line...
 				int AvailablePx = AvailableX - FixedToInt(FixX);
 				ssize_t FitChars = Ds->PosToIndex(AvailablePx, false);
 				if (FitChars < 0)
 				{
+					#if DEBUG_LAYOUT
+					LgiTrace("\tFitChars error: %i\n", FitChars);
+					#endif
 					flow.d->Error(_FL, "PosToIndex(%i) failed.", AvailablePx);
 					LgiAssert(0);
 				}
@@ -1084,6 +1122,9 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 						if (IsWordBreakChar(s[ch-1]))
 							break;
 					}
+					#if DEBUG_LAYOUT
+					LgiTrace("\tWindBack: %i\n", (int)ch);
+					#endif
 					if (ch == 0)
 					{
 						// One word minimum per line
@@ -1120,7 +1161,12 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 
 					CurLine->LayoutOffsets(d->Font->GetHeight());
 					Pos.y2 = max(Pos.y2, Pos.y1 + CurLine->PosOff.y2);
+					LayoutSize += CurLine->Length();
 					Layout.Add(CurLine.Release());
+
+					#if DEBUG_LAYOUT
+					LgiTrace("\tWrap, LayoutSize=%i TextSize=%i\n", LayoutSize, TextSize);
+					#endif
 					
 					// New line...
 					CurLine.Reset(new TextLine(flow.Left - Pos.x1, flow.X(), Pos.Y()));
@@ -1146,7 +1192,10 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 	{
 		// Empty node case
 		int y = Pos.y1 + flow.d->View->GetFont()->GetHeight() - 1;
-		Pos.y2 = max(Pos.y2, y);
+		CurLine->PosOff.y2 = Pos.y2 = max(Pos.y2, y);
+		LayoutSize += CurLine->Length();
+
+		Layout.Add(CurLine.Release());
 	}
 			
 	if (CurLine && CurLine->Strs.Length() > 0)
@@ -1154,8 +1203,16 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 		GFont *f = d->View ? d->View->GetFont() : SysFont;
 		CurLine->LayoutOffsets(f->GetHeight());
 		Pos.y2 = max(Pos.y2, Pos.y1 + CurLine->PosOff.y2);
+		LayoutSize += CurLine->Length();
+
+		#if DEBUG_LAYOUT
+		LgiTrace("\tRemaining, LayoutSize=%i, TextSize=%i\n", LayoutSize, TextSize);
+		#endif
+
 		Layout.Add(CurLine.Release());
 	}
+	
+	LgiAssert(LayoutSize == Len);
 			
 	flow.CurY = Pos.y2 + 1 + Margin.y2 + Border.y2 + Padding.y2;
 	flow.Left -= Margin.x1 + Border.x1 + Padding.x1;
@@ -1410,9 +1467,7 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, ssize_t AtOffset, con
 	GArray<int> EmojiIdx;
 	EmojiIdx.Length(InChars);
 	for (int i=0; i<InChars; i++)
-	{
 		EmojiIdx[i] = EmojiToIconIndex(InStr + i, InChars - i);
-	}
 
 	ssize_t InitialOffset = AtOffset >= 0 ? AtOffset : Len;
 	int Chars = 0; // Length of run to insert
@@ -1543,6 +1598,12 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, ssize_t AtOffset, con
 	return true;
 }
 
+bool GRichTextPriv::TextBlock::OnDictionary(Transaction *Trans)
+{
+	UpdateSpellingAndLinks(Trans, GRange(0, Length()));
+	return true;
+}
+
 #define IsUrlWordChar(t) \
 	(((t) > ' ') && !strchr("./:", (t)))
 
@@ -1647,7 +1708,6 @@ void GRichTextPriv::TextBlock::UpdateSpellingAndLinks(Transaction *Trans, GRange
 	// Link detection...
 	
 	// Extend the range to include whole words
-	// printf("rng=%i, %i\n", r.Start, r.Len);
 	while (r.Start > 0 && !IsWhiteSpace(Text[r.Start]))
 	{
 		r.Start--;
@@ -1729,6 +1789,27 @@ int ErrSort(GSpellCheck::SpellingError *a, GSpellCheck::SpellingError *b)
 	return (int) (a->Start - b->Start);
 }
 
+bool GRichTextPriv::TextBlock::StripLast(Transaction *Trans, const char *Set)
+{
+	if (Txt.Length() == 0)
+		return false;
+
+	StyleText *l = Txt.Last();
+	if (!l || l->Length() <= 0)
+		return false;
+
+	if (!strchr(Set, l->Last()))
+		return false;
+	
+	PreEdit(Trans);
+	if (!l->PopLast())
+		return false;
+
+	LayoutDirty = true;
+	Len--;
+	return true;
+}
+
 bool GRichTextPriv::TextBlock::DoContext(GSubMenu &s, GdcPt2 Doc, ssize_t Offset, bool Spelling)
 {
 	if (Spelling)
@@ -1760,6 +1841,19 @@ bool GRichTextPriv::TextBlock::DoContext(GSubMenu &s, GdcPt2 Doc, ssize_t Offset
 	// else printf("%s:%i - No Spelling.\n", _FL);
 
 	return true;
+}
+
+bool GRichTextPriv::TextBlock::IsEmptyLine(BlockCursor *Cursor)
+{
+	if (!Cursor)
+		return false;
+
+	TextLine *Line = Layout.AddressOf(Cursor->LineHint) ? Layout[Cursor->LineHint] : NULL;
+	if (!Line)
+		return false;
+
+	int LineLen = Line->Length();
+	return LineLen == 0;
 }
 
 GRichTextPriv::Block *GRichTextPriv::TextBlock::Clone()
@@ -1949,6 +2043,10 @@ GRichTextPriv::Block *GRichTextPriv::TextBlock::Split(Transaction *Trans, ssize_
 				After->Txt.Add(AfterText);
 				After->Len += AfterText->Length();
 			}
+			else
+			{
+				Len = Pos;
+			}
 			break;
 		}
 
@@ -2084,7 +2182,8 @@ bool GRichTextPriv::TextBlock::ChangeStyle(Transaction *Trans, ssize_t Offset, s
 	{
 		StyleText *a = Txt[i];
 		StyleText *b = Txt[i+1];
-		if (a->GetStyle() == b->GetStyle())
+		if (a->GetStyle() == b->GetStyle() &&
+			a->Emoji == b->Emoji)
 		{
 			// Merge...
 			a->Add(b->AddressOf(0), b->Length());
@@ -2291,10 +2390,17 @@ void GRichTextPriv::TextBlock::DumpNodes(GTreeItem *Ti)
 	GTreeItem *LayoutRoot = PrintNode(Ti, "Layout(%i)", Layout.Length());
 	if (LayoutRoot)
 	{
+		int Pos = 0;
 		for (unsigned i=0; i<Layout.Length(); i++)
 		{
 			TextLine *Tl = Layout[i];
-			GTreeItem *Elem = PrintNode(LayoutRoot, "[%i] len=%i", i, Tl->Length());
+			GTreeItem *Elem = PrintNode(LayoutRoot,
+										"[%i] chars=%i-%i, len=%i + %i, pos=%s",
+										i,
+										Pos, Pos + Tl->Length() - 1,
+										Tl->Length(),
+										Tl->NewLine,
+										Tl->PosOff.GetStr());
 			for (unsigned n=0; n<Tl->Strs.Length(); n++)
 			{
 				DisplayStr *Ds = Tl->Strs[n];
@@ -2305,6 +2411,8 @@ void GRichTextPriv::TextBlock::DumpNodes(GTreeItem *Ti)
 							Ds->Length(),
 							(const char16*) (*Ds));
 			}
+			
+			Pos += Tl->Length() + Tl->NewLine;
 		}
 	}
 }

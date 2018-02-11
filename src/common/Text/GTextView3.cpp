@@ -90,12 +90,14 @@ public:
 	bool MatchCase;
 	bool MatchWord;
 	bool SelectionOnly;
+	bool SearchUpwards;
 	
 	GDocFindReplaceParams3()
 	{
 		MatchCase = false;
 		MatchWord = false;
 		SelectionOnly = false;
+		SearchUpwards = false;
 	}
 };
 
@@ -111,6 +113,7 @@ public:
 	GColour UrlColour;
 	bool CenterCursor;
 	ssize_t WordSelectMode;
+	GString Eol;
 
 	// Find/Replace Params
 	bool OwnFindReplaceParams;
@@ -524,6 +527,11 @@ void GTextView3::SetReadOnly(bool i)
 	#if WINNATIVE
 	SetDlgCode(i ? DLGC_WANTARROWS : DLGC_WANTALLKEYS);
 	#endif
+}
+
+void GTextView3::SetCrLf(bool crlf)
+{
+	CrLf = crlf;
 }
 
 void GTextView3::SetTabSize(uint8 i)
@@ -2032,7 +2040,13 @@ bool GTextView3::Open(const char *Name, const char *CharSet)
 	if (f.Open(Name, O_READ|O_SHARE))
 	{
 		DeleteArray(Text);
-		size_t Bytes = (size_t)f.GetSize();
+		int64 Bytes = f.GetSize();
+		if (Bytes < 0 || Bytes & 0xffff000000000000LL)
+		{
+			LgiTrace("%s:%i - Invalid file size: " LGI_PrintfInt64 "\n", _FL, Bytes);
+			return false;
+		}
+			
 		SetCaret(0, false);
 		
 		char *c8 = new char[Bytes + 4];
@@ -2359,7 +2373,8 @@ bool GTextView3::DoFindNext()
 				Status = OnFind(d->FindReplaceParams->LastFind,
 								d->FindReplaceParams->MatchWord,
 								d->FindReplaceParams->MatchCase,
-								d->FindReplaceParams->SelectionOnly);
+								d->FindReplaceParams->SelectionOnly,
+								d->FindReplaceParams->SearchUpwards);
 							
 			d->FindReplaceParams->Unlock();
 		}
@@ -2383,6 +2398,7 @@ Text3_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User)
 		v->d->FindReplaceParams->MatchWord = Dlg->MatchWord;
 		v->d->FindReplaceParams->MatchCase = Dlg->MatchCase;
 		v->d->FindReplaceParams->SelectionOnly = Dlg->SelectionOnly;
+		v->d->FindReplaceParams->SearchUpwards = Dlg->SearchUpwards;
 		v->d->FindReplaceParams->LastFind.Reset(Utf8ToWide(Dlg->Find));
 		
 		v->d->FindReplaceParams->Unlock();
@@ -2472,7 +2488,8 @@ bool GTextView3::DoReplace()
 			OnFind(	d->FindReplaceParams->LastFind,
 					d->FindReplaceParams->MatchWord,
 					d->FindReplaceParams->MatchCase,
-					d->FindReplaceParams->SelectionOnly);
+					d->FindReplaceParams->SelectionOnly,
+					d->FindReplaceParams->SearchUpwards);
 			break;
 		}
 		case IDOK:
@@ -2483,7 +2500,8 @@ bool GTextView3::DoReplace()
 						Action == IDOK,
 						d->FindReplaceParams->MatchWord,
 						d->FindReplaceParams->MatchCase,
-						d->FindReplaceParams->SelectionOnly);
+						d->FindReplaceParams->SelectionOnly,
+						d->FindReplaceParams->SearchUpwards);
 			break;
 		}
 	}
@@ -2513,124 +2531,122 @@ void GTextView3::SelectWord(size_t From)
 	Invalidate();
 }
 
-ptrdiff_t GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly)
+ptrdiff_t GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly, bool SearchUpwards)
 {
-	if (ValidStrW(Find))
-	{
-		int FindLen = StrlenW(Find);
-		
-		// Setup range to search
-		ssize_t Begin, End;
-		if (SelectionOnly && HasSelection())
-		{
-			Begin = min(SelStart, SelEnd);
-			End = max(SelStart, SelEnd);
-		}
-		else
-		{
-			Begin = 0;
-			End = Size;
-		}
+	if (!ValidStrW(Find))
+		return -1;
 
-		// Look through text...
-		ssize_t i;
-		bool Wrap = false;
-		if (Cursor > End - FindLen)
-		{
-			Wrap = true;
-			i = Begin;
-		}
+	int FindLen = StrlenW(Find);
+		
+	// Setup range to search
+	ssize_t Begin, End;
+	if (SelectionOnly && HasSelection())
+	{
+		Begin = min(SelStart, SelEnd);
+		End = max(SelStart, SelEnd);
+	}
+	else
+	{
+		Begin = 0;
+		End = Size;
+	}
+
+	// Look through text...
+	ssize_t i;
+	bool Wrap = false;
+	if (Cursor > End - FindLen)
+	{
+		Wrap = true;
+		if (SearchUpwards)
+			i = End - FindLen;
 		else
-		{
-			i = Cursor;
-		}
+			i = Begin;
+	}
+	else
+	{
+		i = Cursor;
+	}
 		
-		if (i < Begin) i = Begin;
-		if (i > End) i = End;
+	if (i < Begin) i = Begin;
+	if (i > End) i = End;
 		
-		if (MatchCase)
+	if (MatchCase)
+	{
+		for (; SearchUpwards ? i >= Begin : i <= End - FindLen; i += SearchUpwards ? -1 : 1)
 		{
-			for (; i<=End-FindLen; i++)
+			if (Text[i] == Find[0])
 			{
-				if (Text[i] == Find[0])
+				char16 *Possible = Text + i;;
+				if (StrncmpW(Possible, Find, FindLen) == 0)
 				{
-					char16 *Possible = Text + i;;
-					if (StrncmpW(Possible, Find, FindLen) == 0)
+					if (MatchWord)
 					{
-						if (MatchWord)
-						{
-							// Check boundaries
+						// Check boundaries
 							
-							if (Possible > Text) // Check off the start
-							{
-								if (!IsWordBoundry(Possible[-1]))
-								{
-									continue;
-								}
-							}
-							if (i + FindLen < Size) // Check off the end
-							{
-								if (!IsWordBoundry(Possible[FindLen]))
-								{
-									continue;
-								}
-							}
+						if (Possible > Text) // Check off the start
+						{
+							if (!IsWordBoundry(Possible[-1]))
+								continue;
 						}
-						
-						return SubtractPtr(Possible, Text);
-						break;
+						if (i + FindLen < Size) // Check off the end
+						{
+							if (!IsWordBoundry(Possible[FindLen]))
+								continue;
+						}
 					}
-				}
-				
-				if (!Wrap && (i + 1 > End - FindLen))
-				{
-					Wrap = true;
-					i = Begin;
-					End = Cursor;
+						
+					GRange r(Possible - Text, FindLen);
+					if (!r.Overlap(Cursor))
+						return r.Start;
 				}
 			}
-		}
-		else
-		{
-			// printf("i=%i s=%i e=%i c=%i flen=%i sz=%i\n", i, Begin, End, Cursor, FindLen, Size);
-			for (; i<=End-FindLen; i++)
+				
+			if (!Wrap && (i + 1 > End - FindLen))
 			{
-				if (toupper(Text[i]) == toupper(Find[0]))
+				Wrap = true;
+				i = Begin;
+				End = Cursor;
+			}
+		}
+	}
+	else
+	{
+		// printf("i=%i s=%i e=%i c=%i flen=%i sz=%i\n", i, Begin, End, Cursor, FindLen, Size);
+		for(; SearchUpwards ? i >= Begin : i <= End - FindLen; i += SearchUpwards ? -1 : 1)
+		{
+			if (toupper(Text[i]) == toupper(Find[0]))
+			{
+				char16 *Possible = Text + i;
+
+				if (StrnicmpW(Possible, Find, FindLen) == 0)
 				{
-					char16 *Possible = Text + i;
-					if (StrnicmpW(Possible, Find, FindLen) == 0)
+					if (MatchWord)
 					{
-						if (MatchWord)
-						{
-							// Check boundaries
+						// Check boundaries
 							
-							if (Possible > Text) // Check off the start
-							{
-								if (!IsWordBoundry(Possible[-1]))
-								{
-									continue;
-								}
-							}
-							if (i + FindLen < Size) // Check off the end
-							{
-								if (!IsWordBoundry(Possible[FindLen]))
-								{
-									continue;
-								}
-							}
+						if (Possible > Text) // Check off the start
+						{
+							if (!IsWordBoundry(Possible[-1]))
+								continue;
 						}
-						
-						return SubtractPtr(Possible, Text);
-						break;
+						if (i + FindLen < Size) // Check off the end
+						{
+							if (!IsWordBoundry(Possible[FindLen]))
+								continue;
+						}
 					}
+						
+					GRange r(Possible - Text, FindLen);
+					if (!r.Overlap(Cursor))
+						return r.Start;
 				}
+			}
 			
-				if (!Wrap && (i + 1 > End - FindLen))
-				{
-					Wrap = true;
-					i = Begin;
-					End = Cursor;
-				}
+			if (!Wrap && (i + 1 > End - FindLen))
+			{
+				Wrap = true;
+				i = Begin;
+				End = Cursor;
 			}
 		}
 	}
@@ -2638,7 +2654,7 @@ ptrdiff_t GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bo
 	return -1;
 }
 
-bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly)
+bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly, bool SearchUpwards)
 {
 	THREAD_CHECK();
 
@@ -2649,7 +2665,7 @@ bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool Selec
 		Cursor = SelStart;
 	}
 
-	ssize_t Loc = MatchText(Find, MatchWord, MatchCase, SelectionOnly);
+	ssize_t Loc = MatchText(Find, MatchWord, MatchCase, SelectionOnly, SearchUpwards);
 	if (Loc >= 0)
 	{
 		SetCaret(Loc, false);
@@ -2660,7 +2676,7 @@ bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool Selec
 	return false;
 }
 
-bool GTextView3::OnReplace(char16 *Find, char16 *Replace, bool All, bool MatchWord, bool MatchCase, bool SelectionOnly)
+bool GTextView3::OnReplace(char16 *Find, char16 *Replace, bool All, bool MatchWord, bool MatchCase, bool SelectionOnly, bool SearchUpwards)
 {
 	THREAD_CHECK();
 
@@ -2674,7 +2690,7 @@ bool GTextView3::OnReplace(char16 *Find, char16 *Replace, bool All, bool MatchWo
 
 		while (true)
 		{
-			ptrdiff_t Loc = MatchText(Find, MatchWord, MatchCase, SelectionOnly);
+			ptrdiff_t Loc = MatchText(Find, MatchWord, MatchCase, SelectionOnly, SearchUpwards);
 			if (First < 0)
 			{
 				First = Loc;

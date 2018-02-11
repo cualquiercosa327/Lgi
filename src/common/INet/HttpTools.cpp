@@ -470,7 +470,7 @@ char *FormPost::EncodeFields(GStream *Debug, char *RealFields, bool EncodePlus)
 	if (Debug && RealFields)
 	{
 		char *k;
-		for (bool p = Real.First(&k); p; p = Real.Next(&k))
+		for (char *p = Real.First(&k); p; p = Real.Next(&k))
 		{
 			Debug->Print("\tMissing field: %s = %s\n", k, p);
 		}

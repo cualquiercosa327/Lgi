@@ -280,6 +280,10 @@
 						RelativePath="..\common\Gdc2\Font\GFontSystem.cpp"
 						>
 					</File>
+					<File
+						RelativePath="..\common\Gdc2\Font\LStringLayout.cpp"
+						>
+					</File>
 				</Filter>
 				<Filter
 					Name="Applicators"
@@ -366,19 +370,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\common\General\LDateTime.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\Lgi\GGeneral.cpp"
 					>
 				</File>
 				<File
 					RelativePath="..\common\Lgi\GGuiUtils.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\common\Lgi\LMutex.cpp"
 					>
 				</File>
 				<File
@@ -394,7 +390,15 @@
 					>
 				</File>
 				<File
+					RelativePath="..\common\General\LDateTime.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\common\Lgi\Lgi.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\common\Lgi\LMutex.cpp"
 					>
 				</File>
 				<File
@@ -470,10 +474,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\common\Widgets\LList.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\common\Widgets\GPanel.cpp"
 					>
 				</File>
@@ -537,6 +537,10 @@
 					RelativePath="..\common\Widgets\GTree.cpp"
 					>
 				</File>
+				<File
+					RelativePath="..\common\Widgets\LList.cpp"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="Theads/Libraries"
@@ -591,6 +595,10 @@
 				</File>
 				<File
 					RelativePath=".\Lgi\GMenu.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\common\Lgi\GMenuCommon.cpp"
 					>
 				</File>
 				<File
@@ -651,6 +659,10 @@
 				</File>
 				<File
 					RelativePath="..\common\INet\INet.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\common\INet\INetTools.cpp"
 					>
 				</File>
 				<File

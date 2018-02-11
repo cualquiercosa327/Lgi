@@ -200,6 +200,7 @@
     <None Include="Scripts\ExpressionTest.script" />
     <None Include="Scripts\ExternTest.script" />
     <None Include="Scripts\FileSystem.script" />
+    <None Include="Scripts\FunctionScope.script" />
     <None Include="Scripts\LValue Test.script" />
     <None Include="Scripts\NumericOps.script" />
     <None Include="Scripts\Object.script" />

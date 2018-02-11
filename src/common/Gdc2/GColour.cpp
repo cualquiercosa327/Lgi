@@ -4,7 +4,7 @@
 const GColour GColour::Black(0, 0, 0);
 const GColour GColour::White(255, 255, 255);
 const GColour GColour::Red(255, 0, 0);
-const GColour GColour::Green(0, 222, 0);
+const GColour GColour::Green(0, 192, 0);
 const GColour GColour::Blue(0, 0, 255);
 
 GColour::GColour()
@@ -252,6 +252,9 @@ uint32 GColour::c32() const
 	else if (space == CsHls32)
 	{
 		// Convert from HLS back to RGB
+		GColour tmp = *this;
+		tmp.ToRGB();
+		return tmp.c32();
 	}
 
 	// Transparent?

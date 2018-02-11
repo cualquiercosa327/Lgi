@@ -9,6 +9,7 @@
 #include "GVariant.h"
 #include "GToken.h"
 #include "GButton.h"
+#include "GNotifications.h"
 
 #define DEBUG_WINDOW_PLACEMENT				0
 #define DEBUG_HANDLE_VIEW_KEY				0
@@ -463,7 +464,7 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 		int asd=0;
 	}
 
-	// Any window in a popup always gets the key...
+	// Any window in a pop up always gets the key...
 	GViewI *p;
 	for (p = v->GetParent(); p; p = p->GetParent())
 	{
@@ -538,6 +539,19 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 		LgiTrace("    Menu handled key.\n");
 		#endif
 		return true;
+	}
+
+	// Control shortcut?
+	if (k.Down() && k.Alt() && k.c16 > ' ')
+	{
+		GHashTbl<int,GViewI*> Map;
+		BuildShortcuts(Map);
+		GViewI *c = Map.Find(ToUpper(k.c16));
+		if (c)
+		{
+			c->OnNotify(c, GNotify_Activate);
+			return true;
+		}
 	}
 
 	#if DEBUG_HANDLE_VIEW_KEY

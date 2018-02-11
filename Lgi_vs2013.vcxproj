@@ -427,6 +427,7 @@
     <ClCompile Include="src\common\Gdc2\Font\GFontSystem.cpp" />
     <ClCompile Include="src\common\Gdc2\Font\GFont_A.cpp" />
     <ClCompile Include="src\common\Gdc2\Font\GFont_W.cpp" />
+    <ClCompile Include="src\common\Gdc2\Font\LStringLayout.cpp" />
     <ClCompile Include="src\common\Gdc2\GColour.cpp" />
     <ClCompile Include="src\common\Gdc2\GdcCommon.cpp" />
     <ClCompile Include="src\common\Gdc2\GRect.cpp" />
@@ -455,6 +456,7 @@
     <ClCompile Include="src\common\Lgi\GInput.cpp" />
     <ClCompile Include="src\common\Lgi\GLibrary.cpp" />
     <ClCompile Include="src\common\Lgi\GMemStream.cpp" />
+    <ClCompile Include="src\common\Lgi\GMenuCommon.cpp" />
     <ClCompile Include="src\common\Lgi\GMru.cpp" />
     <ClCompile Include="src\common\Lgi\GObject.cpp" />
     <ClCompile Include="src\common\Lgi\GOptionsFile.cpp" />
@@ -626,6 +628,7 @@
     <ClInclude Include="include\common\INet.h" />
     <ClInclude Include="include\common\INetTools.h" />
     <ClInclude Include="include\common\LDateTime.h" />
+    <ClInclude Include="include\common\LDomFields.h" />
     <ClInclude Include="include\common\Lgi.h" />
     <ClInclude Include="include\common\LgiClass.h" />
     <ClInclude Include="include\common\LgiClasses.h" />
@@ -638,6 +641,7 @@
     <ClInclude Include="include\common\LListItemCheckBox.h" />
     <ClInclude Include="include\common\LListItemRadioBtn.h" />
     <ClInclude Include="include\common\LMutex.h" />
+    <ClInclude Include="include\common\LStringLayout.h" />
     <ClInclude Include="include\common\LThread.h" />
     <ClInclude Include="include\common\LThreadEvent.h" />
     <ClInclude Include="include\common\Res.h" />

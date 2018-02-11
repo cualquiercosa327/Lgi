@@ -183,7 +183,7 @@
 	<ul>
 		<li> GButton (Push button)
 		<li> GEdit (Editbox for text entry)
-		<li> GText (Static label)
+		<li> GTextLabel (Static label)
 		<li> GCheckBox (Independant boolean)
 		<li> GCombo (Select one from many)
 		<li> GSlider (Select a position)

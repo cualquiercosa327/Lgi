@@ -106,7 +106,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\include\common;..\include\win32;..\..\..\..\CodeLib\libjpeg-9a;..\..\..\..\CodeLib\libpng;..\..\..\..\CodeLib\libpng\build;..\..\..\..\CodeLib\libpng\build\zlib_dir;..\..\..\..\CodeLib\zlib;c:\Program Files (x86)\OpenSSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include\common;..\include\win32;..\..\..\..\CodeLib\libjpeg-9a;..\..\..\..\CodeLib\libpng;..\..\..\..\CodeLib\libpng\build32;..\..\..\..\CodeLib\libpng\build32\zlib_dir;..\..\..\..\CodeLib\zlib;c:\Program Files (x86)\OpenSSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -150,7 +150,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\include\common;..\include\win32;..\..\..\..\CodeLib\libjpeg-9a;..\..\..\..\CodeLib\libpng;..\..\..\..\CodeLib\zlib;..\..\..\..\CodeLib\libpng\build;..\..\..\..\CodeLib\libpng\build\zlib_dir;c:\Program Files\OpenSSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include\common;..\include\win32;..\..\..\..\CodeLib\libjpeg-9a;..\..\..\..\CodeLib\libpng;..\..\..\..\CodeLib\zlib;..\..\..\..\CodeLib\libpng\build64;..\..\..\..\CodeLib\libpng\build64\zlib_dir;c:\Program Files\OpenSSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -194,7 +194,7 @@
     <ClCompile>
       <Optimization>MinSpace</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\include\common;..\include\win32;..\..\..\..\CodeLib\libjpeg-9a;..\..\..\..\CodeLib\libpng;..\..\..\..\CodeLib\libpng\build;..\..\..\..\CodeLib\libpng\build\zlib_dir;..\..\..\..\CodeLib\zlib;c:\Program Files (x86)\OpenSSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include\common;..\include\win32;..\..\..\..\CodeLib\libjpeg-9a;..\..\..\..\CodeLib\libpng;..\..\..\..\CodeLib\libpng\build32;..\..\..\..\CodeLib\libpng\build32\zlib_dir;..\..\..\..\CodeLib\zlib;c:\Program Files (x86)\OpenSSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -238,7 +238,7 @@
     <ClCompile>
       <Optimization>MinSpace</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\include\common;..\include\win32;..\..\..\..\CodeLib\libjpeg-9a;..\..\..\..\CodeLib\libpng;..\..\..\..\CodeLib\zlib;..\..\..\..\CodeLib\libpng\build;..\..\..\..\CodeLib\libpng\build\zlib_dir;c:\Program Files\OpenSSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include\common;..\include\win32;..\..\..\..\CodeLib\libjpeg-9a;..\..\..\..\CodeLib\libpng;..\..\..\..\CodeLib\zlib;..\..\..\..\CodeLib\libpng\build64;..\..\..\..\CodeLib\libpng\build64\zlib_dir;c:\Program Files\OpenSSL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -285,6 +285,7 @@
     <ClCompile Include="..\src\common\Widgets\Editor\BlockCursor.cpp" />
     <ClCompile Include="..\src\common\Widgets\Editor\GRichTextEdit.cpp" />
     <ClCompile Include="..\src\common\Widgets\Editor\GRichTextEditPriv.cpp" />
+    <ClCompile Include="..\src\common\Widgets\Editor\HorzRuleBlock.cpp" />
     <ClCompile Include="..\src\common\Widgets\Editor\ImageBlock.cpp" />
     <ClCompile Include="..\src\common\Widgets\Editor\TextBlock.cpp" />
     <ClCompile Include="..\src\win32\Lgi\SpellCheckWindows.cpp" />
@@ -309,6 +310,11 @@
       <Project>{95df9ca4-6d37-4a85-a648-80c2712e0da1}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TestCases\example.html" />
+    <None Include="TestCases\hr.html" />
+    <None Include="TestCases\sig.html" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

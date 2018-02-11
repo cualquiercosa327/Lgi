@@ -201,8 +201,21 @@ void LThread::Terminate()
 {
 	if (hThread)
 	{
-		TerminateThread(hThread, 0);
-		while (!IsExited());
+		TerminateThread(hThread, 1);
+
+		uint64 Start = LgiCurrentTime();
+		while (!IsExited())
+		{
+			uint32 Now = LgiCurrentTime();
+			if (Now - Start > 2000)
+			{
+				LgiTrace("%s:%i - TerminateThread didn't work for '%s'\n", _FL, Name.Get());
+				LgiAssert(!"TerminateThread failure?");
+				break;
+			}
+
+			LgiSleep(10);
+		}
 	}
 }
 

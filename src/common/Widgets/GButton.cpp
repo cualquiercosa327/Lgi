@@ -99,6 +99,16 @@ GButton::~GButton()
 	DeleteObj(d);
 }
 
+int GButton::OnNotify(GViewI *Ctrl, int Flags)
+{
+	if (Ctrl == (GViewI*)this && Flags == GNotify_Activate)
+	{
+		OnClick();
+	}
+
+	return 0;
+}
+
 bool GButton::Default()
 {
 	if (GetWindow())

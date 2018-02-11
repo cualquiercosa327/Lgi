@@ -6,6 +6,8 @@
 /// Common find/replace window parameters
 class LgiClass GFindReplaceCommon : public GDialog
 {
+	bool OnViewKey(GView *v, GKey &k);
+
 public:
 	/// The string to find
 	GString Find;
@@ -15,6 +17,8 @@ public:
 	bool MatchCase;
 	/// Whether to search only in the selection
 	bool SelectionOnly;
+	/// Whether to search only in the selection
+	bool SearchUpwards;
 	
 	GFindReplaceCommon();
 };

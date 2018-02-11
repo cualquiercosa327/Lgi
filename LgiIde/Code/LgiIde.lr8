@@ -3,32 +3,43 @@
 	<string-group Name="_Dialog Symbols_">
 		<String Ref="2" Cid="1" Define="IDOK" en="Ok" />
 		<String Ref="4" Cid="2" Define="IDCANCEL" en="Cancel" />
+		<String Ref="7" Cid="7" Define="IDD_MISSING_FILES" en="Fix Missing Files" />
+		<String Ref="8" Cid="8" Define="IDC_TABLE" />
+		<String Ref="9" Cid="-1" Define="IDC_STATIC" en="Missing project file:" />
+		<String Ref="10" Cid="10" Define="IDC_MISSING" />
+		<String Ref="11" Cid="-1" Define="IDC_STATIC" en="Select a potential replacement:" />
+		<String Ref="12" Cid="12" Define="IDC_RESULTS" />
+		<String Ref="13" Cid="-1" Define="IDC_STATIC" en="-or-" />
+		<String Ref="14" Cid="14" Define="IDC_BROWSE" en="Browse" />
+		<String Ref="15" Cid="1" Define="IDOK" en="Close" />
+		<String Ref="17" Cid="17" Define="IDC_17" en="File" />
+		<String Ref="18" Cid="16" Define="IDC_DELETE" en="Delete" />
 		<String Ref="19" Cid="19" Define="IDD_FIND_IN_FILES" en="Find In Files" />
-		<String Ref="20" Cid="21" Define="IDC_LOOK_FOR" />
-		<String Ref="21" Cid="-1" Define="IDC_STATIC" en="In file types:" />
+		<String Ref="20" Cid="547" Define="IDC_LOOK_FOR" />
+		<String Ref="21" Cid="-1" Define="IDC_STATIC" en="In file &types:" />
 		<String Ref="22" Cid="23" Define="IDC_FILE_TYPES" />
 		<String Ref="23" Cid="69" Define="IDC_FOLDER_HISTORY" />
-		<String Ref="24" Cid="24" Define="IDC_TABLE" />
+		<String Ref="24" Cid="8" Define="IDC_TABLE" />
 		<String Ref="25" Cid="26" Define="IDC_SET_DIR" en="..." />
-		<String Ref="26" Cid="31" Define="IDC_SUB_DIRS" en="Search sub directories" />
+		<String Ref="26" Cid="31" Define="IDC_SUB_DIRS" en="Search &sub directories" />
 		<String Ref="27" Cid="25" Define="IDC_DIR" />
-		<String Ref="28" Cid="1" Define="IDOK" en="Find" />
-		<String Ref="29" Cid="29" Define="IDC_WHOLE_WORD" en="Match whole word" />
+		<String Ref="28" Cid="1" Define="IDOK" en="&Find" />
+		<String Ref="29" Cid="29" Define="IDC_WHOLE_WORD" en="Match &whole word" />
 		<String Ref="30" Cid="36" Define="IDC_MSG" en="..." />
-		<String Ref="31" Cid="30" Define="IDC_CASE" en="Match case" />
+		<String Ref="31" Cid="30" Define="IDC_CASE" en="Match &case" />
 		<String Ref="33" Cid="551" Define="IDD_FILE_PROPS" en="Properties" />
 		<String Ref="35" Cid="34" Define="IDC_COPY_PATH" en="Copy Path" />
 		<String Ref="36" Cid="-1" Define="IDC_STATIC" en="File type:" />
 		<String Ref="37" Cid="544" Define="IDC_PLATFORMS" en="Platforms:" />
 		<String Ref="38" Cid="37" Define="IDC_TYPE" />
 		<String Ref="63" Cid="63" Define="IDD_OPTIONS" en="Options" />
-		<String Ref="64" Cid="64" Define="IDC_64" />
+		<String Ref="64" Cid="8" Define="IDC_TABLE" />
 		<String Ref="65" Cid="-1" Define="IDC_STATIC" en="Editor font:" />
 		<String Ref="66" Cid="65" Define="IDC_FONT" />
 		<String Ref="67" Cid="66" Define="IDC_SET_FONT" en="..." />
 		<String Ref="68" Cid="1" Define="IDOK" en="Ok" />
 		<String Ref="69" Cid="70" Define="IDC_TYPE_HISTORY" />
-		<String Ref="70" Cid="542" Define="IDC_SEARCH_DIR" en="Directory:" />
+		<String Ref="70" Cid="542" Define="IDC_SEARCH_DIR" en="&Directory:" />
 		<String Ref="75" Cid="558" Define="IDC_75" />
 		<String Ref="78" Cid="79" Define="IDC_WIN32" en="Windows" />
 		<String Ref="79" Cid="80" Define="IDC_LINUX" en="Linux" />
@@ -73,14 +84,14 @@
 		<String Ref="119" Cid="1" Define="IDOK" en="Ok" />
 		<String Ref="120" Cid="2" Define="IDCANCEL" en="Cancel" />
 		<String Ref="121" Cid="121" Define="IDS_121" en="Add" />
-		<String Ref="122" Cid="-1" Define="IDC_STATIC" en="Look for:" />
+		<String Ref="122" Cid="-1" Define="IDC_STATIC" en="&Look for:" />
 		<String Ref="136" Cid="-1" Define="IDC_STATIC" en="Path:" />
 		<String Ref="176" Cid="2" Define="IDCANCEL" en="Cancel" />
 		<String Ref="177" Cid="2" Define="IDCANCEL" en="Cancel" />
 		<String Ref="178" Cid="1" Define="IDOK" en="Save" />
 		<String Ref="179" Cid="179" Define="IDD_FIND_SYMBOL" en="Find Symbol" />
-		<String Ref="180" Cid="24" Define="IDC_TABLE" />
-		<String Ref="181" Cid="181" Define="IDC_RESULTS" />
+		<String Ref="180" Cid="8" Define="IDC_TABLE" />
+		<String Ref="181" Cid="12" Define="IDC_RESULTS" />
 		<String Ref="182" Cid="182" Define="IDC_182" en="File" />
 		<String Ref="183" Cid="183" Define="IDC_183" en="Line" />
 		<String Ref="192" Cid="192" Define="IDC_STR" />
@@ -96,14 +107,14 @@
 		<String Ref="204" Cid="563" Define="IDC_SETTINGS" />
 		<String Ref="206" Cid="206" Define="IDC_SUB_TABLE" />
 		<String Ref="207" Cid="564" Define="IDC_DETAIL" />
-		<String Ref="208" Cid="24" Define="IDC_TABLE" />
+		<String Ref="208" Cid="8" Define="IDC_TABLE" />
 		<String Ref="209" Cid="-1" Define="IDC_STATIC" en="Search for setting:" />
 		<String Ref="212" Cid="-1" Define="IDC_STATIC" en="Concurrent jobs:" />
 		<String Ref="213" Cid="213" Define="IDC_JOBS" />
 		<String Ref="231" Cid="97" Define="IDC_PATH" />
-		<String Ref="232" Cid="232" Define="IDC_BROWSE" en="..." />
+		<String Ref="232" Cid="14" Define="IDC_BROWSE" en="..." />
 		<String Ref="233" Cid="233" Define="IDC_233" en="Symbol" />
-		<String Ref="234" Cid="234" Define="IDC_ENTIRE_SOLUTION" en="Entire Solution" />
+		<String Ref="234" Cid="234" Define="IDC_ENTIRE_SOLUTION" en="&Entire Solution" />
 		<String Ref="239" Cid="239" Define="IDC_FIND_PROJECT_FILE" en="Find File in Project" />
 		<String Ref="240" Cid="240" Define="IDC_240" />
 		<String Ref="241" Cid="113" Define="IDC_FILES" />
@@ -194,7 +205,7 @@
 	<Dialog pos="7,7,436,221" ref="19">
 		<TableLayout pos="7,7,419,174" ref="64" cols="0.334,0.295,0.218,0.153" rows="0.167,0.167,0.167,0.167,0.167,0.167">
 			<tr>
-				<td>
+				<td valign="Center">
 					<StaticText pos="0,0,76,13" ref="122" />
 				</td>
 				<td colspan="3">
@@ -202,7 +213,7 @@
 				</td>
 			</tr>
 			<tr>
-				<td>
+				<td valign="Center">
 					<StaticText pos="0,26,76,39" ref="21" />
 				</td>
 				<td colspan="2">
@@ -220,7 +231,7 @@
 				<td />
 			</tr>
 			<tr>
-				<td>
+				<td valign="Center">
 					<RadioBox pos="7,84,90,97" ref="70" />
 				</td>
 				<td>
@@ -300,6 +311,48 @@
 		<Button pos="336,364,405,384" ref="119" />
 		<Button pos="413,364,482,384" ref="120" />
 	</Dialog>
+	<Dialog pos="7,7,506,406" ref="7">
+		<TableLayout pos="7,7,482,363" ref="8" cols="0.333,0.333,0.333" rows="0.167,0.167,0.167,0.167,0.167,0.167">
+			<tr>
+				<td colspan="3">
+					<StaticText pos="21,14,174,34" ref="9" />
+				</td>
+			</tr>
+			<tr>
+				<td colspan="3">
+					<EditBox Pos="14,69,286,89" ref="10" />
+				</td>
+			</tr>
+			<tr>
+				<td colspan="3">
+					<StaticText pos="14,130,279,150" ref="11" />
+				</td>
+			</tr>
+			<tr>
+				<td rowspan="2">
+					<ListView pos="7,175,139,265" ref="12">
+						<Column ref="17" width="111" />
+					</ListView>
+				</td>
+				<td rowspan="2">
+					<StaticText pos="196,188,237,208" ref="13" />
+				</td>
+				<td>
+					<Button pos="322,181,412,201" ref="14" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<Button pos="322,238,419,258" ref="18" />
+				</td>
+			</tr>
+			<tr>
+				<td colspan="3" align="Max">
+					<Button pos="371,303,440,323" ref="15" />
+				</td>
+			</tr>
+		</TableLayout>
+	</Dialog>
 	<Dialog pos="7,7,294,134" ref="63">
 		<TableLayout pos="7,7,272,97" ref="75" cols="0.333,0.333,0.333" rows="0.333,0.333,0.333">
 			<tr>
@@ -331,7 +384,7 @@
 		</TableLayout>
 	</Dialog>
 	<Dialog pos="7,7,656,579" ref="199">
-		<TableLayout pos="7,7,636,538" ref="208" CellStyle="width: 35%;" cols="0.500,0.500" rows="0.333,0.333,0.333">
+		<TableLayout pos="7,7,636,538" ref="208" cols="0.500,0.500" rows="0.333,0.333,0.333">
 			<tr>
 				<td colspan="2">
 					<TableLayout pos="21,21,461,118" ref="206" cols="0.333,0.333,0.333" rows="0.500,0.500">
@@ -517,6 +570,10 @@
 			<String Ref="236" Cid="580" Define="IDM_MENU_580" />
 			<String Ref="237" Cid="583" Define="IDM_PREV_MSG" en="Previous Message" />
 			<String Ref="238" Cid="584" Define="IDM_FIND_PROJECT_FILE" en="Find File in Project" />
+			<String Ref="1" Cid="500" Define="IDM_EOL_LF" en="End of line: LF" />
+			<String Ref="3" Cid="501" Define="IDM_MENU_501" />
+			<String Ref="5" Cid="545" Define="IDM_EOL_CRLF" en="End of line: CRLF" />
+			<String Ref="6" Cid="546" Define="IDM_FIX_MISSING_FILES" en="Fix Missing Files" />
 		</string-group>
 		<submenu Ref="175">
 			<menuitem Ref="174" Shortcut="Ctrl+N" />
@@ -572,6 +629,7 @@
 				<menuitem Ref="144" />
 				<menuitem Ref="143" />
 			</submenu>
+			<menuitem Ref="6" />
 			<menuitem Sep="1" />
 			<menuitem Ref="142" />
 			<menuitem Ref="141" />
@@ -606,6 +664,9 @@
 			<menuitem Sep="1" />
 			<menuitem Ref="131" />
 			<menuitem Ref="130" />
+			<menuitem Sep="1" />
+			<menuitem Ref="1" />
+			<menuitem Ref="5" />
 			<menuitem Sep="1" />
 			<menuitem Ref="129" />
 			<menuitem Ref="128" />

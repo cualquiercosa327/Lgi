@@ -44,3 +44,4 @@
 #define IDM_COPY								525
 #define IDM_PASTE								526
 #define IDM_MENU_527							527
+#define IDM_SHOW_SHORTCUTS						528

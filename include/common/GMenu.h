@@ -82,7 +82,8 @@ public:
 class LgiClass GSubMenu :
 	public GBase,
 	public GMenuLoader,
-	public GImageListOwner
+	public GImageListOwner,
+	public GDom
 {
 	friend class GMenuItem;
 	friend class GMenu;
@@ -261,11 +262,17 @@ public:
 	
 	/// Returns the menu that this belongs to
 	GMenu *GetMenu() { return Menu; }
+
+	// Dom impl
+	bool GetVariant(const char *Name, GVariant &Value, char *Arr = NULL);
+	bool SetVariant(const char *Name, GVariant &Value, char *Arr = NULL);
+	bool CallMethod(const char *MethodName, GVariant *ReturnValue, GArray<GVariant*> &Args);
 };
 
 /// An item an a menu
 class LgiClass GMenuItem :
-	public GBase
+	public GBase,
+	public GDom
 {
 	friend class GSubMenu;
 	friend class GMenu;

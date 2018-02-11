@@ -60,8 +60,8 @@ bool GPrinter::Serialize(char *&Str, bool Write)
 	}
 	else
 	{
-		DeleteArray(d->Printer);
-		d->Printer = NewStr(Str);
+		d->Printer = Str;
+		DeleteArray(Str);
 	}
 
 	return true;

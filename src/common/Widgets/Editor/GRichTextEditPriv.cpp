@@ -311,6 +311,7 @@ GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv **Ptr) :
 	SpellCheck = NULL;
 	SpellDictionaryLoaded = false;
 	HtmlLinkAsCid = false;
+	ScrollLinePx = SysFont->GetHeight();
 	if (Font.Reset(new GFont))
 		*Font = *SysFont;
 
@@ -350,6 +351,8 @@ GRichTextPriv::GRichTextPriv(GRichTextEdit *view, GRichTextPriv **Ptr) :
 	//BtnState[GRichTextEdit::CapabilityBtn].IsPress = true;
 	Values[GRichTextEdit::EmojiBtn] = TEXT_EMOJI;
 	BtnState[GRichTextEdit::EmojiBtn].IsPress = true;
+	Values[GRichTextEdit::HorzRuleBtn] = TEXT_HORZRULE;
+	BtnState[GRichTextEdit::HorzRuleBtn].IsPress = true;
 
 	Padding(GCss::Len(GCss::LenPx, 4));
 	EmptyDoc();
@@ -369,7 +372,7 @@ GRichTextPriv::~GRichTextPriv()
 
 			if (Now - Msg > 1000)
 			{
-				printf("%s:%i - Waiting for blocks: %i\n", _FL, (int)(Now-Start));
+				LgiTrace("%s:%i - Waiting for blocks: %i\n", _FL, (int)(Now-Start));
 				Msg = Now;
 			}
 
@@ -399,7 +402,21 @@ bool GRichTextPriv::DeleteSelection(Transaction *Trans, char16 **Cut)
 	{
 		// In the same block... just delete the text
 		ssize_t Len = End->Offset - Start->Offset;
-		Start->Blk->DeleteAt(Trans, Start->Offset, Len, DelTxt);
+		GRichTextPriv::Block *NextBlk = Next(Start->Blk);
+		if (Len >= Start->Blk->Length() && NextBlk)
+		{
+			// Delete entire block
+			ssize_t i = Blocks.IndexOf(Start->Blk);
+			GAutoPtr<MultiBlockState> MultiState(new MultiBlockState(this, i));
+			MultiState->Cut(i);
+			MultiState->Length = 0;
+			Start->Set(NextBlk, 0, 0);
+			Trans->Add(MultiState.Release());
+		}
+		else
+		{
+			Start->Blk->DeleteAt(Trans, Start->Offset, Len, DelTxt);
+		}
 	}
 	else
 	{
@@ -608,17 +625,20 @@ void GRichTextPriv::ScrollTo(GRect r)
 	GRect Content = Areas[GRichTextEdit::ContentArea];
 	Content.Offset(-Content.x1, ScrollOffsetPx-Content.y1);
 
-	if (r.y1 < Content.y1)
+	if (ScrollLinePx > 0)
 	{
-		int OffsetPx = max(r.y1, 0);
-		View->SetScrollPos(0, OffsetPx / ScrollLinePx);
-		InvalidateDoc(NULL);
-	}
-	if (r.y2 > Content.y2)
-	{
-		int OffsetPx = r.y2 - Content.Y();
-		View->SetScrollPos(0, (OffsetPx + ScrollLinePx - 1) / ScrollLinePx);
-		InvalidateDoc(NULL);
+		if (r.y1 < Content.y1)
+		{
+			int OffsetPx = max(r.y1, 0);
+			View->SetScrollPos(0, OffsetPx / ScrollLinePx);
+			InvalidateDoc(NULL);
+		}
+		if (r.y2 > Content.y2)
+		{
+			int OffsetPx = r.y2 - Content.Y();
+			View->SetScrollPos(0, (OffsetPx + ScrollLinePx - 1) / ScrollLinePx);
+			InvalidateDoc(NULL);
+		}
 	}
 }
 
@@ -1245,6 +1265,9 @@ bool GRichTextPriv::Layout(GScrollBar *&ScrollY)
 	Flow f(this);
 	
 	ScrollLinePx = View->GetFont()->GetHeight();
+	LgiAssert(ScrollLinePx > 0);
+	if (ScrollLinePx <= 0)
+		ScrollLinePx = 16;
 
 	GRect Client = Areas[GRichTextEdit::ContentArea];
 	Client.Offset(-Client.x1, -Client.y1);
@@ -1708,11 +1731,58 @@ bool GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 			new EmojiMenu(this, p);
 			break;
 		}
+		case GRichTextEdit::HorzRuleBtn:
+		{
+			InsertHorzRule();
+			break;
+		}
 		default:
 			return false;
 	}
 
 	return true;
+}
+
+bool GRichTextPriv::InsertHorzRule()
+{
+	if (!Cursor || !Cursor->Blk)
+		return false;
+
+	TextBlock *tb = dynamic_cast<TextBlock*>(Cursor->Blk);
+	if (!tb)
+		return false;
+
+	GAutoPtr<Transaction> Trans(new Transaction);
+
+	DeleteSelection(Trans, NULL);
+
+	int InsertIdx = Blocks.IndexOf(tb) + 1;
+	GRichTextPriv::Block *After = NULL;
+	if (Cursor->Offset == 0)
+	{
+		InsertIdx--;
+	}
+	else if (Cursor->Offset < tb->Length())
+	{
+		After = tb->Split(Trans, Cursor->Offset);
+		if (!After)
+			return false;
+		tb->StripLast(Trans);
+	}
+
+	HorzRuleBlock *Hr = new HorzRuleBlock(this);
+	if (!Hr)
+		return false;
+
+	Blocks.AddAt(InsertIdx++, Hr);
+	if (After)
+		Blocks.AddAt(InsertIdx++, After);
+
+	AddTrans(Trans);
+	InvalidateDoc(NULL);
+
+	GAutoPtr<BlockCursor> c(new BlockCursor(Hr, 0, 0));
+	return SetCursor(c);
 }
 	
 void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
@@ -1775,9 +1845,10 @@ void GRichTextPriv::Paint(GSurface *pDC, GScrollBar *&ScrollY)
 			GDisplayString Ds(SysFont, TEXT_REMOVE_STYLE);
 			Areas[GRichTextEdit::RemoveStyleBtn] = AllocPx(Ds.X() + 12, 6);
 		}
+		for (unsigned int i=GRichTextEdit::EmojiBtn; i<GRichTextEdit::MaxArea; i++)
 		{
-			GDisplayString Ds(SysFont, TEXT_EMOJI);
-			Areas[GRichTextEdit::EmojiBtn] = AllocPx(Ds.X() + 12, 6);
+			GDisplayString Ds(SysFont, Values[i].Str());
+			Areas[i] = AllocPx(Ds.X() + 12, 6);
 		}
 
 		for (unsigned i = GRichTextEdit::FontFamilyBtn; i < GRichTextEdit::MaxArea; i++)
@@ -1912,7 +1983,7 @@ bool GRichTextPriv::ToHtml(GArray<GDocView::ContentMedia> *Media)
 		b->ToHtml(p, Media);
 	}
 		
-	p.Print("</body>\n");
+	p.Print("</body>\n</html>\n");
 	return UtfNameCache.Reset(p.NewStr());
 }
 	
@@ -1979,6 +2050,12 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 				}
 				break;
 			}
+			case TAG_HR:
+			{
+				if (ctx.Tb)
+					ctx.Tb->StripLast(NoTransaction);
+				// Fall through
+			}
 			case TAG_IMG:
 			{
 				ctx.Tb = NULL;
@@ -2024,32 +2101,31 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 		}
 
 		GNamedStyle *CachedStyle = AddStyleToCache(Style);			
+
 		if
 		(
-			(
-				IsBlock
-				&&
-				ctx.LastChar != '\n'
-			)
+			(IsBlock && ctx.LastChar != '\n')
 			||
 			c->TagId == TAG_BR
 		)
 		{
-			if (!ctx.Tb)
+			if (!ctx.Tb && c->TagId == TAG_BR)
 			{
+				// Don't do this for IMG and HR layout.
 				Blocks.Add(ctx.Tb = new TextBlock(this));
 				if (CachedStyle && ctx.Tb)
 					ctx.Tb->SetStyle(CachedStyle);
 			}
+
 			if (ctx.Tb)
 			{
 				const uint32 Nl[] = {'\n', 0};
-				ctx.Tb->AddText(NoTransaction, -1, Nl, 1, NULL/*CachedStyle*/);
+				ctx.Tb->AddText(NoTransaction, -1, Nl, 1, NULL);
 				ctx.LastChar = '\n';
 				ctx.StartOfLine = true;
 			}
 		}
-
+		
 		bool EndStyleChange = false;
 
 		if (c->TagId == TAG_IMG)
@@ -2081,11 +2157,16 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 				ctx.Ib->Load();
 			}
 		}
+		else if (c->TagId == TAG_HR)
+		{
+			Blocks.Add(ctx.Hrb = new HorzRuleBlock(this));
+		}
 		else if (c->TagId == TAG_A)
 		{
 			ctx.StartOfLine |= ctx.AddText(CachedStyle, c->GetText());
 			
-			if (ctx.Tb->Txt.Length())
+			if (ctx.Tb &&
+				ctx.Tb->Txt.Length())
 			{
 				StyleText *st = ctx.Tb->Txt.Last();
 
@@ -2264,7 +2345,7 @@ GTreeItem *PrintNode(GTreeItem *Parent, const char *Fmt, ...)
 
 	va_list Arg;
 	va_start(Arg, Fmt);
-	int Ch = s.Printf(Arg, Fmt);
+	s.Printf(Arg, Fmt);
 	va_end(Arg);
 	s = s.Replace("\n", "\\n");
 

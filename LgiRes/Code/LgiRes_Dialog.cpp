@@ -1123,6 +1123,24 @@ CtrlButton::CtrlButton(ResDialog *dlg, GXmlTag *load) :
 
 IMPL_DIALOG_CTRL(CtrlButton)
 
+bool CtrlButton::GetFields(FieldTree &Fields)
+{
+	bool Status = ResDialogCtrl::GetFields(Fields);
+	
+	int Id = 160;
+	Fields.Insert(this, DATA_FILENAME, Id++, VAL_Image, "Image");
+	
+	return Status;
+}
+
+bool CtrlButton::Serialize(FieldTree &Fields)
+{
+	bool Status = ResDialogCtrl::Serialize(Fields);
+	if (Status)
+		Fields.Serialize(this, VAL_Image, Image);
+	return Status;
+}
+
 void CtrlButton::OnPaint(GSurface *pDC)
 {
 	Client.ZOff(X()-1, Y()-1);
@@ -4106,6 +4124,9 @@ ResDialogUi::ResDialogUi(ResDialog *Res)
 	if (Res)
 	{
 		Res->OnSelect(Res->Selection.First());
+		ShortCutView *scv = Res->App()->GetShortCutView();
+		if (scv)
+			scv->OnDialogChange(Res);
 	}
 }
 
@@ -4113,6 +4134,9 @@ ResDialogUi::~ResDialogUi()
 {
 	if (Dialog)
 	{
+		ShortCutView *scv = Dialog->App()->GetShortCutView();
+		if (scv)
+			scv->OnDialogChange(NULL);
 		Dialog->Ui = 0;
 	}
 }

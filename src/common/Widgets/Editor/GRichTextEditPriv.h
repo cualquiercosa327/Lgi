@@ -48,6 +48,7 @@
 #define TEXT_REMOVE_STYLE				"Remove Style"
 #define TEXT_CAP_BTN					"Ok"
 #define TEXT_EMOJI						":)"
+#define TEXT_HORZRULE					"HR"
 
 #define RTE_CURSOR_BLINK_RATE			1000
 #define RTE_PULSE_RATE					200
@@ -87,6 +88,8 @@ enum RteCommands
 	IDM_DUMP,
 	IDM_RTL,
 	IDM_COPY_ORIGINAL,
+	IDM_COPY_CURRENT,
+	IDM_DUMP_NODES,
 	IDM_CLOCKWISE,
 	IDM_ANTI_CLOCKWISE,
 	IDM_X_FLIP,
@@ -505,6 +508,10 @@ public:
 		SelectModeType Type;
 		ColourPair Colours[2];
 		BlockCursor *Cursor, *Select;
+
+		// Cursor stuff
+		int CurEndPoint;
+		GArray<ssize_t> EndPoints;
 		
 		PaintContext()
 		{
@@ -513,6 +520,7 @@ public:
 			Type = Unselected;
 			Cursor = NULL;
 			Select = NULL;
+			CurEndPoint = 0;
 		}
 		
 		GColour &Fore()
@@ -554,6 +562,57 @@ public:
 					r.x2 -= Edge.x2;
 				}
 			}
+		}
+
+		// This handles calculating the selection stuff for simple "one char" blocks
+		// like images and HR. Call this at the start of the OnPaint.
+		// \return TRUE if the content should be drawn selected.
+		bool SelectBeforePaint(class GRichTextPriv::Block *b)
+		{
+			CurEndPoint = 0;
+
+			if (b->Cursors > 0 && Select)
+			{
+				// Selection end point checks...
+				if (Cursor && Cursor->Blk == b)
+					EndPoints.Add(Cursor->Offset);
+				if (Select && Select->Blk == b)
+					EndPoints.Add(Select->Offset);
+				
+				// Sort the end points
+				if (EndPoints.Length() > 1 &&
+					EndPoints[0] > EndPoints[1])
+				{
+					ssize_t ep = EndPoints[0];
+					EndPoints[0] = EndPoints[1];
+					EndPoints[1] = ep;
+				}
+			}
+
+			// Before selection end point
+			if (CurEndPoint < EndPoints.Length() &&
+				EndPoints[CurEndPoint] == 0)
+			{
+				Type = Type == Selected ? Unselected : Selected;
+				CurEndPoint++;
+			}
+
+			return Type == Selected;
+		}
+
+		// Call this after the OnPaint
+		// \return TRUE if the content after the block is selected.
+		bool SelectAfterPaint(class GRichTextPriv::Block *b)
+		{
+			// After image selection end point
+			if (CurEndPoint < EndPoints.Length() &&
+				EndPoints[CurEndPoint] == 1)
+			{
+				Type = Type == Selected ? Unselected : Selected;
+				CurEndPoint++;
+			}
+
+			return Type == Selected;
 		}
 	};
 
@@ -792,6 +851,8 @@ public:
 				/// The index to add at (-1 = the end)
 				ssize_t AtOffset
 			)	{ return NULL; }
+			// Event called on dictionary load
+			virtual bool OnDictionary(Transaction *Trans) { return false; }
 	};
 
 	struct BlockCursor
@@ -1026,6 +1087,59 @@ public:
 		void DumpNodes(GTreeItem *Ti);
 		#endif
 		Block *Clone();
+		bool IsEmptyLine(BlockCursor *Cursor);
+
+		// Events
+		GMessage::Result OnEvent(GMessage *Msg);
+
+		// Transactional changes
+		bool AddText(Transaction *Trans, ssize_t AtOffset, const uint32 *Str, ssize_t Chars = -1, GNamedStyle *Style = NULL);
+		bool ChangeStyle(Transaction *Trans, ssize_t Offset, ssize_t Chars, GCss *Style, bool Add);
+		ssize_t DeleteAt(Transaction *Trans, ssize_t BlkOffset, ssize_t Chars, GArray<uint32> *DeletedText = NULL);
+		bool DoCase(Transaction *Trans, ssize_t StartIdx, ssize_t Chars, bool Upper);
+		Block *Split(Transaction *Trans, ssize_t AtOffset);
+		bool StripLast(Transaction *Trans, const char *Set = " \t\r\n"); // Strip trailing new line if present..
+		bool OnDictionary(Transaction *Trans);
+	};
+
+	class HorzRuleBlock : public Block
+	{
+		GRect Pos;
+		bool IsDeleted;
+
+	public:
+		HorzRuleBlock(GRichTextPriv *priv);
+		HorzRuleBlock(const HorzRuleBlock *Copy);
+		~HorzRuleBlock();
+
+		bool IsValid();
+
+		// No state change methods
+		const char *GetClass() { return "HorzRuleBlock"; }
+		int GetLines();
+		bool OffsetToLine(ssize_t Offset, int *ColX, GArray<int> *LineY);
+		int LineToOffset(int Line);
+		GRect GetPos() { return Pos; }
+		void Dump();
+		GNamedStyle *GetStyle(ssize_t At = -1);
+		void SetStyle(GNamedStyle *s);
+		ssize_t Length();
+		bool ToHtml(GStream &s, GArray<GDocView::ContentMedia> *Media);
+		bool GetPosFromIndex(BlockCursor *Cursor);
+		bool HitTest(HitTestResult &htr);
+		void OnPaint(PaintContext &Ctx);
+		bool OnLayout(Flow &flow);
+		ssize_t GetTextAt(ssize_t Offset, GArray<StyleText*> &t);
+		ssize_t CopyAt(ssize_t Offset, ssize_t Chars, GArray<uint32> *Text);
+		bool Seek(SeekType To, BlockCursor &Cursor);
+		ssize_t FindAt(ssize_t StartIdx, const uint32 *Str, GFindReplaceCommon *Params);
+		void IncAllStyleRefs();
+		void SetSpellingErrors(GArray<GSpellCheck::SpellingError> &Errors);
+		bool DoContext(GSubMenu &s, GdcPt2 Doc, ssize_t Offset, bool Spelling);
+		#ifdef _DEBUG
+		void DumpNodes(GTreeItem *Ti);
+		#endif
+		Block *Clone();
 
 		// Events
 		GMessage::Result OnEvent(GMessage *Msg);
@@ -1067,6 +1181,7 @@ public:
 		GArray<ScaleInf> Scales;
 		int ResizeIdx;
 		int ThreadBusy;
+		bool IsDeleted;
 		void UpdateThreadBusy(const char *File, int Line, int Off);
 
 		int GetThreadHandle();
@@ -1154,6 +1269,7 @@ public:
 	void PaintBtn(GSurface *pDC, GRichTextEdit::RectType t);
 	bool MakeLink(TextBlock *tb, ssize_t Offset, ssize_t Len, GString Link);
 	bool ClickBtn(GMouse &m, GRichTextEdit::RectType t);
+	bool InsertHorzRule();
 	void Paint(GSurface *pDC, GScrollBar *&ScrollY);
 	GHtmlElement *CreateElement(GHtmlElement *Parent);
 	GdcPt2 ScreenToDoc(int x, int y);
@@ -1167,6 +1283,7 @@ public:
 	{
 		TextBlock *Tb;
 		ImageBlock *Ib;
+		HorzRuleBlock *Hrb;
 		GArray<uint32> Buf;
 		char16 LastChar;
 		GFontCache *FontCache;
@@ -1177,6 +1294,7 @@ public:
 		{
 			Tb = NULL;
 			Ib = NULL;
+			Hrb = NULL;
 			LastChar = '\n';
 			FontCache = fc;
 			StartOfLine = true;

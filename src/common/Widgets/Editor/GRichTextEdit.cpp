@@ -1197,6 +1197,28 @@ void GRichTextEdit::Redo()
 		d->SetUndoPos(d->UndoPos + 1);
 }
 
+#ifdef _DEBUG
+class NodeView : public GWindow
+{
+public:
+	GTree *Tree;
+	
+	NodeView(GViewI *w)
+	{
+		GRect r(0, 0, 500, 600);
+		SetPos(r);
+		MoveSameScreen(w);
+		Attach(0);
+
+		if ((Tree = new GTree(100, 0, 0, 100, 100)))
+		{
+			Tree->SetPourLargest(true);
+			Tree->Attach(this);
+		}
+	}
+};
+#endif
+
 void GRichTextEdit::DoContextMenu(GMouse &m)
 {
 	GMenuItem *i;
@@ -1245,7 +1267,17 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 	
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_INDENT_SIZE, "Indent Size"), IDM_INDENT_SIZE, true);
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_TAB_SIZE, "Tab Size"), IDM_TAB_SIZE, true);
-	RClick.AppendItem("Copy Original", IDM_COPY_ORIGINAL, d->OriginalText.Get() != NULL);
+	
+	GSubMenu *Src = RClick.AppendSub("Source");
+	if (Src)
+	{
+		Src->AppendItem("Copy Original", IDM_COPY_ORIGINAL, d->OriginalText.Get() != NULL);
+		Src->AppendItem("Copy Current", IDM_COPY_CURRENT);
+		#ifdef _DEBUG
+		Src->AppendItem("Dump Nodes", IDM_DUMP_NODES);
+		// Edit->DumpNodes(Tree);
+		#endif
+	}
 
 	if (Over)
 	{
@@ -1334,6 +1366,21 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 		{
 			GClipBoard c(this);
 			c.Text(d->OriginalText);
+			break;
+		}
+		case IDM_COPY_CURRENT:
+		{
+			GClipBoard c(this);
+			c.Text(Name());
+			break;
+		}
+		case IDM_DUMP_NODES:
+		{
+			#ifdef _DEBUG
+			NodeView *nv = new NodeView(GetWindow());
+			DumpNodes(nv->Tree);
+			nv->Visible(true);
+			#endif
 			break;
 		}
 		default:
@@ -1626,18 +1673,36 @@ bool GRichTextEdit::OnKey(GKey &k)
 				}
 				else if (k.Down())
 				{
+					GRichTextPriv::Block *b;
+
 					if (HasSelection())
 					{
 						d->DeleteSelection(Trans, NULL);
 					}
 					else if (d->Cursor &&
-							 d->Cursor->Blk)
+							 (b = d->Cursor->Blk))
 					{
 						if (d->Cursor->Offset > 0)
 						{
-							Changed = d->Cursor->Blk->DeleteAt(Trans, d->Cursor->Offset-1, 1) > 0;
+							Changed = b->DeleteAt(Trans, d->Cursor->Offset-1, 1) > 0;
 							if (Changed)
-								d->Cursor->Set(d->Cursor->Offset - 1);
+							{
+								// Has block size reached 0?
+								if (b->Length() == 0)
+								{
+									// Then delete it...
+									GRichTextPriv::Block *n = d->Next(b);
+									if (n)
+									{
+										d->Blocks.Delete(b, true);
+										d->Cursor.Reset(new GRichTextPriv::BlockCursor(n, 0, 0));
+									}
+								}
+								else
+								{
+									d->Cursor->Set(d->Cursor->Offset - 1);
+								}
+							}
 						}
 						else
 						{
@@ -1920,8 +1985,17 @@ bool GRichTextEdit::OnKey(GKey &k)
 						// Try and merge the blocks
 						if (d->Merge(Trans, b, next))
 							Changed = true;
-						else // move the cursor to the next block							
-							d->Cursor.Reset(new GRichTextPriv::BlockCursor(b, 0, 0));
+						else
+						{
+							// If the cursor is on the last empty line of a text block,
+							// we should delete that '\n' first
+							GRichTextPriv::TextBlock *tb = dynamic_cast<GRichTextPriv::TextBlock*>(b);
+							if (tb && tb->IsEmptyLine(d->Cursor))
+								Changed = tb->StripLast(Trans);
+
+							// move the cursor to the next block
+							d->Cursor.Reset(new GRichTextPriv::BlockCursor(b = next, 0, 0));
+						}
 					}
 
 					if (!Changed && b->DeleteAt(Trans, d->Cursor->Offset, 1))
@@ -2202,20 +2276,34 @@ void GRichTextEdit::OnEnter(GKey &k)
 			if (d->Cursor->Offset == 0)
 			{
 				GRichTextPriv::Block *Prev = d->Prev(b);
-				if (Prev &&
-					Prev->AddText(Trans, Prev->Length(), Nl, 1))
+				if (Prev)
+					Changed = Prev->AddText(Trans, Prev->Length(), Nl, 1);
+				else // No previous... must by first block... create new block:
 				{
-					Changed = true;
+					GRichTextPriv::TextBlock *tb = new GRichTextPriv::TextBlock(d);
+					if (tb)
+					{
+						Changed = true; // tb->AddText(Trans, 0, Nl, 1);
+						d->Blocks.AddAt(0, tb);
+					}
 				}
 			}
 			else if (d->Cursor->Offset == b->Length())
 			{
 				GRichTextPriv::Block *Next = d->Next(b);
-				if (Next &&
-					Next->AddText(Trans, 0, Nl, 1))
+				if (Next)
 				{
-					Changed = true;
-					d->Cursor->Set(Next, 0, -1);
+					if ((Changed = Next->AddText(Trans, 0, Nl, 1)))
+						d->Cursor->Set(Next, 0, -1);
+				}
+				else // No next block. Create one:
+				{
+					GRichTextPriv::TextBlock *tb = new GRichTextPriv::TextBlock(d);
+					if (tb)
+					{
+						Changed = true; // tb->AddText(Trans, 0, Nl, 1);
+						d->Blocks.Add(tb);
+					}
 				}
 			}
 		}
@@ -2372,6 +2460,20 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 			#if _DEBUG
 			LgiTrace("%s:%i - M_SET_DICTIONARY=%i\n", _FL, d->SpellDictionaryLoaded);
 			#endif
+			if (d->SpellDictionaryLoaded)
+			{
+				AutoTrans Trans(new GRichTextPriv::Transaction);
+
+				// Get any loaded text blocks to check their spelling
+				bool Status = false;
+				for (unsigned i=0; i<d->Blocks.Length(); i++)
+				{
+					Status |= d->Blocks[i]->OnDictionary(Trans);
+				}
+
+				if (Status)
+					d->AddTrans(Trans);
+			}
 			break;
 		}
 		case M_CHECK_TEXT:

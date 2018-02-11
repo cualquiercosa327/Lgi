@@ -146,6 +146,7 @@
 			<String Ref="45" Cid="525" Define="IDM_COPY" en="Copy" />
 			<String Ref="46" Cid="526" Define="IDM_PASTE" en="Paste" />
 			<String Ref="47" Cid="527" Define="IDM_MENU_527" />
+			<String Ref="48" Cid="528" Define="IDM_SHOW_SHORTCUTS" en="Show Dialog Shortcuts" />
 		</string-group>
 		<submenu Ref="15">
 			<menuitem Ref="44" Shortcut="Ctrl+X" />
@@ -166,6 +167,7 @@
 		</submenu>
 		<submenu Ref="42">
 			<menuitem Ref="43" Shortcut="F5" />
+			<menuitem Ref="48" />
 		</submenu>
 		<submenu Ref="38">
 			<menuitem Ref="40" Shortcut="F1" />

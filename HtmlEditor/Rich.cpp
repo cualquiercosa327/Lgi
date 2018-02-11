@@ -208,7 +208,7 @@ public:
 				{
 					if (c->IsTag("file"))
 					{
-						int Bytes = c->GetAsInt("size");
+						// int Bytes = c->GetAsInt("size");
 						const char *Link = c->GetContent();
 						GMemStream File(1024);
 						if (LgiGetUri(&File, &err, Link))
@@ -249,7 +249,7 @@ public:
 	}
 };
 
-class App : public GWindow, public GCapabilityInstallTarget, public GNetwork
+class App : public GWindow, public GCapabilityInstallTarget
 {
 	GBox *Split;
 	GTextView3 *Txt;
@@ -490,7 +490,7 @@ public:
 							{
 								GDocView::ContentMedia &Cm = Media[i];
 								
-								p.Parent();
+								p--;
 								p += Cm.FileName;
 								if (f.Open(p, O_WRITE))
 								{

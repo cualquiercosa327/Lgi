@@ -66,9 +66,9 @@ public:
 	};
 
 protected:
-	GAutoString Exe;
+	GString Exe;
 	GArray<char*> Args;
-	GAutoString InitialFolder;
+	GString InitialFolder;
 	
 	struct Variable
 	{

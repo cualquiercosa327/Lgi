@@ -2,6 +2,7 @@
 #include "INet.h"
 #include "GRegKey.h"
 
+
 /////////////////////////////////////////////////////////////////////////////////
 static const char *Ws = " \t\r\n";
 #define SkipWs(s) while (*s && strchr(Ws, *s)) s++;

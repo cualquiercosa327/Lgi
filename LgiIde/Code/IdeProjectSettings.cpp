@@ -116,7 +116,8 @@ SettingInfo AllSettings[] =
 	{ProjDebugAdmin,			GV_BOOL,		"DebugAdmin",		sGeneral,	SF_CROSSPLATFORM},
 	{ProjDefines,				GV_STRING,		"Defines",			sGeneral,	SF_MULTILINE|SF_CONFIG_SPECIFIC},
 	{ProjCompiler,				GV_INT32,		"Compiler",			sGeneral,	SF_PLATFORM_SPECIFC|SF_ENUM},
-	{ProjCrossCompiler,			GV_STRING,		"CrossCompiler",	sGeneral,	SF_PLATFORM_SPECIFC|SF_FILE_SELECT},
+	{ProjCCrossCompiler,		GV_STRING,		"CCrossCompiler",	sGeneral,	SF_PLATFORM_SPECIFC|SF_FILE_SELECT},
+	{ProjCppCrossCompiler,		GV_STRING,		"CppCrossCompiler",	sGeneral,	SF_PLATFORM_SPECIFC|SF_FILE_SELECT},
 	{ProjIncludePaths,			GV_STRING,		"IncludePaths",		sBuild,		SF_MULTILINE|SF_CONFIG_SPECIFIC},
 	{ProjSystemIncludes,		GV_STRING,		"SystemIncludes",	sBuild,		SF_MULTILINE|SF_CONFIG_SPECIFIC|SF_PLATFORM_SPECIFC},
 	{ProjLibraries,				GV_STRING,		"Libraries",		sBuild,		SF_MULTILINE|SF_CONFIG_SPECIFIC},
@@ -131,6 +132,7 @@ SettingInfo AllSettings[] =
 	{ProjCommentFile,			GV_STRING,		"CommentFile",		sEditor,	SF_MULTILINE|SF_CROSSPLATFORM},
 	{ProjCommentFunction,		GV_STRING,		"CommentFunction",	sEditor,	SF_MULTILINE|SF_CROSSPLATFORM},
 	{ProjMakefileRules,			GV_STRING,		"OtherMakefileRules", sAdvanced, SF_MULTILINE},
+	{ProjPostBuildCommands,		GV_STRING,		"PostBuildCommands", sAdvanced, SF_MULTILINE},
 	{ProjNone,					GV_NULL,		NULL,				NULL,		0},
 };
 
@@ -250,7 +252,7 @@ class GSettingDetail : public GLayout, public ResObject
 	
 	struct CtrlInfo
 	{
-		GText *Text;
+		GTextLabel *Text;
 		GEdit *Edit;
 		GCheckBox *Chk;
 		GCombo *Cbo;
@@ -307,7 +309,7 @@ public:
 		
 		// Do label cell
 		GLayoutCell *c = Tbl->GetCell(0, CellY);
-		c->Add(Ctrls[i].Text = new GText(IDC_TEXT_BASE + i, 0, 0, -1, -1, Path = d->BuildPath(Setting->Setting, Flags, PlatformCurrent, Config)));
+		c->Add(Ctrls[i].Text = new GTextLabel(IDC_TEXT_BASE + i, 0, 0, -1, -1, Path = d->BuildPath(Setting->Setting, Flags, PlatformCurrent, Config)));
 		
 		// Do value cell
 		c = Tbl->GetCell(0, CellY + 1);
@@ -638,10 +640,12 @@ public:
 						GFileSelect s;
 						s.Parent(this);
 
-						GFile::Path p(e->Name());
-						p.Parent();
-						if (DirExists(p))
-							s.InitialDir(p);
+						GFile::Path Path(d->Project->GetBasePath());
+						GFile::Path Cur(e->Name());
+						Path.Join(Cur.GetFull());
+						Path--;
+						if (Path.Exists())
+							s.InitialDir(Path);
 
 						if (s.Open())
 						{
@@ -650,7 +654,7 @@ public:
 							if (Base)
 							{
 								GFile::Path p = Base;
-								Rel = LgiMakeRelativePath(p.Parent(), s.Name());
+								Rel = LgiMakeRelativePath(--p, s.Name());
 							}
 							e->Name(Rel ? Rel : s.Name());
 						}

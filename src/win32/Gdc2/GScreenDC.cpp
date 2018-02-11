@@ -325,6 +325,8 @@ GRect GScreenDC::ClipRgn(GRect *Rgn)
 		Clip.x2 = min(Rgn->x2 - Origin.x, d->Sx-1);
 		Clip.y2 = min(Rgn->y2 - Origin.y, d->Sy-1);
 
+		LgiAssert(d->Sx > 0 && d->Sy > 0);
+
 		HRGN hRgn = CreateRectRgn(Clip.x1, Clip.y1, Clip.x2+1, Clip.y2+1);
 		if (hRgn)
 		{

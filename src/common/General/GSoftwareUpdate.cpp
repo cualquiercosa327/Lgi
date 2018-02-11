@@ -152,12 +152,11 @@ struct GSoftwareUpdatePriv
 			Name("Software Update");
 
 			GRect c = GetClient();
-			GText *t = new GText(-1,
-								10,
-								10,
-								c.X()-20,
-								-1,
-								LgiLoadString(L_SOFTUP_CHECKING, "Checking for software update..."));
+			GTextLabel *t = new GTextLabel(	-1,
+											10, 10,
+											c.X()-20,
+											-1,
+											LgiLoadString(L_SOFTUP_CHECKING, "Checking for software update..."));
 			if (t)
 			{
 				AddView(t);

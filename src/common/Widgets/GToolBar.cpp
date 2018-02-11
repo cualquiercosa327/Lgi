@@ -733,6 +733,11 @@ void GToolButton::OnPaint(GSurface *pDC)
 			}
 		}
 	}
+
+	#if 0 // def _DEBUG
+	pDC->Colour(GColour(255, 0, 255));
+	pDC->Box();
+	#endif
 }
 
 void GToolButton::Image(int i)
@@ -1288,7 +1293,7 @@ bool GToolBar::Pour(GRegion &r)
 		}
 		else
 		{
-			GRect p(0, 0, 0, 0);
+			GRect p(-100, -100, -90, -90);
 			But->SetPos(p);
 		}
 		
@@ -1334,6 +1339,8 @@ bool GToolBar::Pour(GRegion &r)
 		n.Offset(Best->x1, Best->y1);
 		n.Bound(Best);
 		SetPos(n, true);
+		
+		// _Dump();
 		return true;
 	}
 

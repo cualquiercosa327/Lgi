@@ -22,6 +22,8 @@ enum DefnType
 	DefnVariable = 0x40,
 };
 
+extern bool ParseFunction(GRange &Return, GRange &Name, GRange &Args, const char *Defn);
+
 class DefnInfo
 {
 public:
@@ -29,6 +31,7 @@ public:
 	GString Name;
 	GString File;
 	int Line;
+	GRange FnName;
 	
 	DefnInfo()
 	{
@@ -55,18 +58,22 @@ public:
 		Name = s.Strip();
 		if (Name && Type == DefnFunc)
 		{
-			if (strlen(Name) > 42)
+			GRange Return, Args;
+			if (ParseFunction(Return, FnName, Args, Name))
 			{
-				char *b = strchr(Name, '(');
-				if (b)
+				if (strlen(Name) > 42)
 				{
-					if (strlen(b) > 5)
+					char *b = strchr(Name, '(');
+					if (b)
 					{
-						strcpy(b, "(...)");
-					}
-					else
-					{
-						*b = 0;
+						if (strlen(b) > 5)
+						{
+							strcpy(b, "(...)");
+						}
+						else
+						{
+							*b = 0;
+						}
 					}
 				}
 			}
@@ -82,10 +89,17 @@ public:
 	int Find(const char *Str)
 	{
 		int Slen = strlen(Str);
-		char *Match = stristr(Name, Str);
+		GString Src;
+
+		if (Type == DefnFunc)
+			Src = Name(FnName.Start, FnName.End());
+		else
+			Src = Name;
+
+		char *Match = stristr(Src, Str);
 		if (!Match)
 			return 0;
-		int Idx = Match - Name.Get();
+		int Idx = Match - Src.Get();
 		if (Idx < 0)
 			return 0;
 
@@ -96,13 +110,13 @@ public:
 			(	// Start:
 				Idx == 0
 				||
-				!IsValidVariableChar(Name(Idx-1))
+				!IsValidVariableChar(Src(Idx-1))
 			)
 			&&
 			(
 				Idx+Slen >= Name.Length()
 				||
-				!IsValidVariableChar(Name(Idx+Slen))
+				!IsValidVariableChar(Src(Idx+Slen))
 			);
 		if (Exact)
 			Score++;

@@ -64,6 +64,18 @@ public:
 		y /= factor;
 		return *this;
 	}
+
+	void Set(int X, int Y)
+	{
+		x = X;
+		y = Y;
+	}
+
+	void Zero()
+	{
+		x = 0;
+		y = 0;
+	}
 };
 
 /// 3d Point

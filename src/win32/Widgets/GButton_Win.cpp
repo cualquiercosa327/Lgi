@@ -166,6 +166,16 @@ void GButton::SetFont(GFont *Fnt, bool OwnIt)
 	GView::SetFont(Fnt, OwnIt);
 }
 
+int GButton::OnNotify(GViewI *Ctrl, int Flags)
+{
+	if (Ctrl == (GViewI*)this && Flags == GNotify_Activate)
+	{
+		OnClick();
+	}
+
+	return 0;
+}
+
 int GButton::SysOnNotify(int Msg, int Code)
 {
 	if (Msg == WM_COMMAND &&

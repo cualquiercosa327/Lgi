@@ -229,7 +229,7 @@ int GFindInFiles::OnNotify(GViewI *Ctrl, int Flags)
 			{
 				GFile::Path p = s.Name();
 				if (p.IsFile())
-					p.Parent();
+					p--;
 				SetCtrlName(IDC_WHERE, p.GetFull());
 			}
 			break;

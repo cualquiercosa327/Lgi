@@ -5,7 +5,7 @@
 #include "GSkinEngine.h"
 #include "GCheckBox.h"
 #include "GDisplayString.h"
-#include "GDisplayStringLayout.h"
+#include "LStringLayout.h"
 #include "LgiRes.h"
 
 static int PadX1Px = 20;
@@ -19,9 +19,10 @@ static int TextYOffset = 0;
 #endif
 static int MinYSize = 16;
 
-class GCheckBoxPrivate : public LMutex, public GDisplayStringLayout
+class GCheckBoxPrivate : public LMutex, public LStringLayout
 {
 	GCheckBox *Ctrl;
+	GFontCache Cache;
 	
 public:
 	int64 Val;
@@ -29,13 +30,16 @@ public:
 	bool Three;
 	GRect ValuePos;
 
-	GCheckBoxPrivate(GCheckBox *ctrl) : LMutex("GCheckBoxPrivate")
+	GCheckBoxPrivate(GCheckBox *ctrl) :
+		LMutex("GCheckBoxPrivate"),
+		LStringLayout(&Cache)
 	{
 		Ctrl = ctrl;
 		Val = 0;
 		Over = false;
 		Three = false;
 		Wrap = true;
+		AmpersandToUnderline = true;
 		ValuePos.ZOff(-1, -1);
 	}
 
@@ -43,9 +47,7 @@ public:
 	{
 		if (Lock(_FL))
 		{
-			GFont *f = Ctrl->GetFont();
-			char *s = Ctrl->GBase::Name();
-			DoPreLayout(f, s, Min, Max);
+			DoPreLayout(Min, Max);
 			Unlock();
 		}
 		else return false;
@@ -56,14 +58,8 @@ public:
 	{		
 		if (Lock(_FL))
 		{
-			GFont *f = Ctrl->GetFont();
-			char *s = Ctrl->GBase::Name();
-			DoLayout(f, s, Px);
+			DoLayout(Px, MinYSize);
 			Unlock();
-			if (Min.y < MinYSize)
-				Min.y = MinYSize;
-			if (Max.y < MinYSize)
-				Max.y = MinYSize;
 		}
 		else return false;
 		return true;
@@ -76,16 +72,16 @@ GCheckBox::GCheckBox(int id, int x, int y, int cx, int cy, const char *name, int
 	ResObject(Res_CheckBox)
 {
 	d = new GCheckBoxPrivate(this);
-    Name(name);
-	if (cx < 0) cx = d->Max.x + PadX1Px + PadX2Px;
-	if (cy < 0) cy = max(d->Max.y, MinYSize) + PadYPx;
+	Name(name);
+	GdcPt2 Max = d->GetMax();
+	if (cx < 0) cx = Max.x + PadX1Px + PadX2Px;
+	if (cy < 0) cy = max(Max.y, MinYSize) + PadYPx;
 
 	d->Val = InitState;
 	GRect r(x, y, x+cx, y+cy);
 	SetPos(r);
 	SetId(id);
 	SetTabStop(true);
-	LgiResources::StyleElement(this);
 }
 
 GCheckBox::~GCheckBox()
@@ -95,6 +91,30 @@ GCheckBox::~GCheckBox()
 
 void GCheckBox::OnAttach()
 {
+	LgiResources::StyleElement(this);
+	OnStyleChange();
+	GView::OnAttach();
+}
+
+void GCheckBox::OnStyleChange()
+{
+	if (d->Lock(_FL))
+	{
+		d->Empty();
+		d->Add(GView::Name(), GetCss());
+		d->Unlock();
+		Invalidate();
+	}
+}
+
+int GCheckBox::OnNotify(GViewI *Ctrl, int Flags)
+{
+	if (Ctrl == (GViewI*)this && Flags == GNotify_Activate)
+	{
+		Value(!Value());
+	}
+
+	return 0;
 }
 
 GMessage::Result GCheckBox::OnEvent(GMessage *m)
@@ -134,9 +154,15 @@ bool GCheckBox::Name(const char *n)
 	if (d->Lock(_FL))
 	{
 		Status = GView::Name(n);
+		
+		d->Empty();
+		d->Add(n, GetCss());
+		d->SetBaseFont(GetFont());
+		d->DoLayout(X());
+		
 		d->Unlock();
 	}
-	d->Layout(X());
+
 	return Status;
 }
 
@@ -226,18 +252,18 @@ void GCheckBox::OnMouseExit(GMouse &m)
 
 bool GCheckBox::OnKey(GKey &k)
 {
-    switch (k.vkey)
-    {
-        case ' ':
-        {
-            if (!k.Down())
-            {
-                Value(!Value());
-            }
+	switch (k.vkey)
+	{
+		case ' ':
+		{
+			if (!k.Down())
+			{
+				Value(!Value());
+			}
 
-            return true;
-        }
-    }
+			return true;
+		}
+	}
 	
 	return false;
 }
@@ -254,19 +280,20 @@ void GCheckBox::OnPosChange()
 
 bool GCheckBox::OnLayout(GViewLayoutInfo &Inf)
 {
-	if (!Inf.Width.Max)
+	if (!Inf.Width.Min)
 	{
-		d->PreLayout(Inf.Width.Min, Inf.Width.Max);
+		d->PreLayout(Inf.Width.Min,
+					 Inf.Width.Max);
 		Inf.Width.Min += PadX1Px + PadX2Px;
 		Inf.Width.Max += PadX1Px + PadX2Px;
 	}
 	else
 	{
 		d->Layout(Inf.Width.Max);
-		Inf.Height.Min = d->Min.y + PadYPx;
-		Inf.Height.Max = d->Max.y + PadYPx;
+		Inf.Height.Min = d->GetMin().y + PadYPx;
+		Inf.Height.Max = d->GetMax().y + PadYPx;
 	}
-	return true;    
+	return true;
 }
 
 void GCheckBox::OnPaint(GSurface *pDC)
@@ -276,21 +303,19 @@ void GCheckBox::OnPaint(GSurface *pDC)
 	pDC->Rectangle();
 	#endif
 	
-    if (GApp::SkinEngine &&
+	if (GApp::SkinEngine &&
 		TestFlag(GApp::SkinEngine->GetFeatures(), GSKIN_CHECKBOX))
 	{
 		GSkinState State;
 		State.pScreen = pDC;
 		State.MouseOver = d->Over;
-		State.aText = &d->Strs;
+		State.aText = d->GetStrs();
 		d->ValuePos.Set(0, 0, 15, 15);
 		GApp::SkinEngine->OnPaint_GCheckBox(this, &State);
 	}
 	else
 	{
 		bool en = Enabled();
-		// GFont *f = GetFont();
-
 		GRect r = GetClient();
 		
 		#if defined MAC && !defined COCOA
@@ -307,17 +332,18 @@ void GCheckBox::OnPaint(GSurface *pDC)
 
 		GRect t = r;
 		t.x1 = d->ValuePos.x2 + 1;
-        GColour cFore(LC_TEXT, 24);
-        GColour cBack(LC_MED, 24);
+		GColour cFore(LC_TEXT, 24);
+		GColour cBack(LC_MED, 24);
 
 		if (d->Lock(_FL))
 		{
 			GdcPt2 pt(t.x1, t.y1 + TextYOffset);
-			d->Paint(pDC, pt, t, cFore, cBack, en);
+					
+			d->Paint(pDC, pt, cBack, t, en);
 			d->Unlock();
 		}
 
-        #if defined MAC && !defined COCOA && !defined(LGI_SDL)
+		#if defined MAC && !defined COCOA && !defined(LGI_SDL)
 
 			GColour Background(LC_MED, 24);
 			if (GetCss())
@@ -362,8 +388,8 @@ void GCheckBox::OnPaint(GSurface *pDC)
 			if (e) printf("%s:%i - HIThemeDrawButton failed %li\n", _FL, e);
 		
 		
-        #else
-    
+		#else
+	
 			LgiWideBorder(pDC, d->ValuePos, DefaultSunkenEdge);
 			pDC->Colour(d->Over || !en ? LC_MED : LC_WORKSPACE, 24);
 			pDC->Rectangle(&d->ValuePos);
@@ -392,8 +418,8 @@ void GCheckBox::OnPaint(GSurface *pDC)
 				pDC->Line(d->ValuePos.x1+1, d->ValuePos.y2-2, d->ValuePos.x2-2, d->ValuePos.y1+1);
 				pDC->Line(d->ValuePos.x1+2, d->ValuePos.y2-1, d->ValuePos.x2-1, d->ValuePos.y1+2);
 			}
-        
-        #endif
+		
+		#endif
 	}
 }
 

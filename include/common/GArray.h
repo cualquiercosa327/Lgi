@@ -125,6 +125,12 @@ public:
 		fixed = fix;
 	}
 
+	/// Emtpies the array of all objects.
+	bool Empty()
+	{
+		return Length(0);
+	}
+
 	/// Sets the length of available entries
 	bool Length(size_t i)
 	{
@@ -714,6 +720,51 @@ public:
 	typedef Iter<Type> I;
 	I Start() { return I(this, 0); }
 	I End() { return I(this, Length()-1); }
+
+	/*
+	To use this iteration method in a for loop:
+
+	for (T *Ptr = NULL; Array.Iterate(Ptr); )
+	{
+		// Use 'Ptr' here
+	}
+	*/
+	bool Iterate(Type *&Ptr)
+	{
+		if (!len || !p)
+			return false;
+		
+		return	Ptr
+				?
+				PtrCheck(++Ptr)
+				:
+				(Ptr = p) != NULL;
+	}
+
+	/*
+	To use this iteration method in a for loop:
+
+	for (T *Ptr = NULL, size_t Idx; Array.Iterate(Idx, Ptr); )
+	{
+		// Use 'Ptr' here
+	}
+	*/
+	template<typename T>
+	bool IteratePtr(size_t &Idx, T &Ptr)
+	{
+		if (!len || !p)
+			return false;
+		
+		if (!Ptr)
+		{
+			Ptr = dynamic_cast<T>(*p);
+			Idx = 0;
+			return true;
+		}
+
+		Ptr = p + (++Idx);
+		return PtrCheck(Ptr);		
+	}
 };
 
 #endif

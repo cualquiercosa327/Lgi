@@ -19,7 +19,7 @@ public:
 		uint32 SizePx; // Size in pixels
 	};
 
-	GBox(int Id = -1);
+	GBox(int Id = -1, bool Vertical = false);
 	~GBox();
 
 	const char *GetClass() { return "GBox"; }

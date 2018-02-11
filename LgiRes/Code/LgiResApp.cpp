@@ -21,6 +21,7 @@
 #include "resdefs.h"
 #include "GToken.h"
 #include "GDataDlg.h"
+#include "GButton.h"
 
 char AppName[]				= "Lgi Resource Editor";
 char HelpFile[]				= "Help.html";
@@ -615,6 +616,15 @@ public:
 		GRect c = GetClient();
 		LgiThinBorder(pDC, c, DefaultSunkenEdge);
 	}
+
+	bool OnLayout(GViewLayoutInfo &Inf)
+	{
+		if (Inf.Width.Min)
+			Inf.Height.Min = Inf.Height.Max = 2;
+		else
+			Inf.Width.Min = Inf.Width.Max = -1;
+		return true;
+	}
 };
 
 void FieldView::OnSelect(FieldSource *s)
@@ -643,19 +653,23 @@ void FieldView::OnSelect(FieldSource *s)
 		Source = s;
 		Source->_FieldView = Handle();
 
+
 		if (Source->GetFields(Fields))
 		{
 			GFontType Sys;
 			Sys.GetSystemFont("System");
-			int Dy = SysFont->GetHeight() + 14;
-			int y = 10;
+
+			GTableLayout *t = new GTableLayout(IDC_TABLE);
+
+			int Row = 0;
+			GLayoutCell *Cell;
 
 			GArray<FieldTree::FieldArr*> a;
 			Fields.GetAll(a);
 			for (int i=0; i<a.Length(); i++)
 			{
 				FieldTree::FieldArr *b = a[i];
-				for (int n=0; n<b->Length(); n++)
+				for (int n=0; n<b->Length(); n++, Row++)
 				{
 					FieldTree::Field *c = (*b)[n];
 
@@ -664,38 +678,51 @@ void FieldView::OnSelect(FieldSource *s)
 						case DATA_STR:
 						case DATA_FLOAT:
 						case DATA_INT:
+						case DATA_FILENAME:
 						{
-							AddView(new GText(-1, 10, y + 4, 50, 20, c->Label));
+							Cell = t->GetCell(0, Row);
+							Cell->Add(new GTextLabel(-1, 0, 0, -1, -1, c->Label));
+
 							TextViewEdit *Tv;
-							AddView(Tv = new TextViewEdit(c->Id, 70, y, 100, c->Multiline ? SysFont->GetHeight() * 8 : Dy - 8, &Sys));
+							Cell = t->GetCell(1, Row, true, c->Type == DATA_FILENAME ? 1 : 2);
+							Cell->Add(Tv = new TextViewEdit(c->Id, 0, 0, 100, 20, &Sys));
 							if (Tv)
 							{
-							    if ((Tv->Multiline = c->Multiline))
-							        y += Tv->Y() + 8 - Dy;
+								Tv->Multiline = c->Multiline;
+								Tv->GetCss(true)->Height(GCss::Len(GCss::LenPx, c->Multiline ? SysFont->GetHeight() * 8 : SysFont->GetHeight() + 8));
 								Tv->SetWrapType(TEXTED_WRAP_NONE);
 								Tv->Sunken(true);
+							}
+
+							if (c->Type == DATA_FILENAME)
+							{
+								Cell = t->GetCell(2, Row);
+								Cell->Add(new GButton(-c->Id, 0, 0, 21, 21, "..."));
 							}
 							break;
 						}
 						case DATA_BOOL:
 						{
-							AddView(new GCheckBox(c->Id, 70, y, 100, 20, c->Label));
+							Cell = t->GetCell(1, Row, true, 2);
+							Cell->Add(new GCheckBox(c->Id, 0, 0, -1, -1, c->Label));
 							break;
 						}
+						default:
+							LgiAssert(!"Impl me.");
+							break;
 					}
-
-					y += Dy;
 				}
 
 				if (i < a.Length() - 1)
 				{
-					AddView(new Hr(10, y, X()-1));
-					y += 10;
+					Cell = t->GetCell(0, Row++, true, 3);
+					Cell->Add(new Hr(0, 0, X()-1));
 				}
 			}
 
-			AttachChildren();
+			AddView(t);
 			OnPosChange();
+			AttachChildren();
 		}
 
 		Serialize(false);
@@ -705,16 +732,12 @@ void FieldView::OnSelect(FieldSource *s)
 
 void FieldView::OnPosChange()
 {
-	for (GViewI *w = Children.First(); w; w = Children.Next())
-	{
-		GText *e = dynamic_cast<GText*>(w);
-		if (!e)
-		{
-			GRect r = w->GetPos();
-			r.x2 = X()-10;
-			w->SetPos(r);
-		}
-	}
+	GRect c = GetClient();
+	c.Size(6, 6);
+
+	GViewI *v;
+	if (GetViewById(IDC_TABLE, v))
+		v->SetPos(c);
 }
 
 GMessage::Result FieldView::OnEvent(GMessage *m)
@@ -763,10 +786,33 @@ int FieldView::OnNotify(GViewI *Ctrl, int Flags)
 					Fields.SetView(this);
 					Source->Serialize(Fields);
 
-					// Escape the loops
-					i = a.Length();
-					n = b->Length();
-					break;
+					return 0;
+				}
+				else if (c->Id == -Ctrl->GetId())
+				{
+					GFileSelect s;
+					s.Parent(this);
+					if (s.Open())
+					{
+						char *File = App->GetCurFile();
+						if (File)
+						{
+							GFile::Path p = File;
+							p--;
+							GAutoString Rel = LgiMakeRelativePath(p, s.Name());
+							if (Rel)
+								SetCtrlName(c->Id, Rel);
+							else
+								SetCtrlName(c->Id, s.Name());
+						}
+						else SetCtrlName(c->Id, s.Name());
+
+						Fields.SetMode(FieldTree::UiToObj);
+						Fields.SetView(this);
+						Source->Serialize(Fields);
+
+						return 0;
+					}
 				}
 			}
 		}
@@ -858,6 +904,7 @@ AppWnd::AppWnd() :
 	LastRes = 0;
 	Fields = 0;
 	ViewMenu = 0;
+	ShortCuts = 0;
 	CurLang = -1;
 	ShowLanguages.Add("en", true);
 
@@ -1327,6 +1374,12 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Handle)
 				
 				LgiTrimDir(ExeName);
 			}
+			break;
+		}
+		case IDM_SHOW_SHORTCUTS:
+		{
+			if (!ShortCuts)
+				ShortCuts = new ShortCutView(this);
 			break;
 		}
 		case IDM_ABOUT:
@@ -4371,6 +4424,108 @@ public:
 	bool Remove(GView *v) { return false; }
 };
 
+//////////////////////////////////////////////////////////////////////
+ShortCutView::ShortCutView(AppWnd *app)
+{
+	App = app;
+	GRect r(0, 0, 300, 600);
+	SetPos(r);
+	MoveSameScreen(App);
+	Name("Dialog Shortcuts");
+	if (Attach(0))
+	{
+		Lst = new LList(100, 0, 0, 100, 100);
+		Lst->Attach(this);
+		Lst->SetPourLargest(true);
+		Lst->AddColumn("Key", 50);
+		Lst->AddColumn("Ref", 80);
+		Lst->AddColumn("Control", 150);
+
+		Visible(true);
+	}
+}
+
+ShortCutView::~ShortCutView()
+{
+	App->OnCloseView(this);
+}
+
+void FindShortCuts(LList *Out, GViewI *In)
+{
+	GAutoPtr<GViewIterator> it(In->IterateViews());
+	for (GViewI *c = it->First(); c; c = it->Next())
+	{
+		ResDialogCtrl *rdc = dynamic_cast<ResDialogCtrl*>(c);
+		if (!rdc || !rdc->Str)
+			continue;
+
+		char *n = rdc->Str->Get();
+		if (n)
+		{
+			char *a = strchr(n, '&');
+			if (a && a[1] != '&')
+			{
+				LListItem *li = new LListItem;
+				GString s(++a, 1);
+				GString id;
+				id.Printf("%i", rdc->Str->GetRef());
+				li->SetText(s.Upper(), 0);
+				li->SetText(id, 1);
+				li->SetText(rdc->GetClass(), 2);
+				li->_UserPtr = rdc;
+				Out->Insert(li);
+			}
+		}
+
+		FindShortCuts(Out, c);
+	}
+}
+
+int ShortCutView::OnNotify(GViewI *Ctrl, int Flags)
+{
+	if (Ctrl->GetId() == Lst->GetId())
+	{
+		switch (Flags)
+		{
+			case GNotifyItem_Click:
+			{
+				LListItem *li = Lst->GetSelected();
+				if (li)
+				{
+					GString s = li->GetText(1);
+					ResDialogCtrl *c = (ResDialogCtrl*) li->_UserPtr;
+					if (c)
+						App->GotoObject(c->Str, NULL, c->GetDlg(), NULL, c);
+				}
+				break;
+			}
+		}
+	}
+
+	return GWindow::OnNotify(Ctrl, Flags);
+}
+
+void ShortCutView::OnDialogChange(ResDialog *Dlg)
+{
+	Lst->Empty();
+	if (!Dlg)
+		return;
+	FindShortCuts(Lst, Dlg);
+	Lst->Sort(NULL, 0);
+}
+
+ShortCutView *AppWnd::GetShortCutView()
+{
+	return ShortCuts;
+}
+
+void AppWnd::OnCloseView(ShortCutView *v)
+{
+	if (v == ShortCuts)
+		ShortCuts = NULL;
+}
+
+//////////////////////////////////////////////////////////////////////
 void TestFunc()
 {
 	/*

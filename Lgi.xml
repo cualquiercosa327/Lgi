@@ -58,11 +58,11 @@
 					<Node File="./include/linux/Gtk/LgiWidget.h" Type="3" Platforms="15" />
 				</Node>
 				<Node Name="Mac" Type="1" Platforms="15" Id="1">
-					<Node File=".\src\mac\carbon\Lgi\GGeneral.cpp" Type="2" Platforms="4" />
-					<Node File=".\src\mac\carbon\Lgi\GApp.cpp" Type="2" Platforms="4" />
-					<Node File=".\src\mac\carbon\Lgi\GPrinter.cpp" Type="2" Platforms="4" />
-					<Node File=".\src\mac\carbon\Lgi\GView.cpp" Type="2" Platforms="4" />
-					<Node File=".\src\mac\carbon\Lgi\GWindow.cpp" Type="2" Platforms="4" />
+					<Node File="./src/mac/carbon/Lgi/GGeneral.cpp" Type="2" Platforms="4" />
+					<Node File="./src/mac/carbon/Lgi/GApp.cpp" Type="2" Platforms="4" />
+					<Node File="./src/mac/carbon/Lgi/GPrinter.cpp" Type="2" Platforms="4" />
+					<Node File="./src/mac/carbon/Lgi/GView.cpp" Type="2" Platforms="4" />
+					<Node File="./src/mac/carbon/Lgi/GWindow.cpp" Type="2" Platforms="4" />
 				</Node>
 				<Node Name="Win32" Type="1" Platforms="15" Open="0" Id="16">
 					<Node File=".\src\win32\Lgi\GApp.cpp" Type="2" Platforms="1" />
@@ -72,10 +72,10 @@
 					<Node File=".\src\win32\Lgi\GWindow.cpp" Type="2" Platforms="1" />
 					<Node File=".\src\win32\Lgi\LgiException.cpp" Type="2" Platforms="1" />
 				</Node>
-				<Node File=".\include\common\GMessage.h" Type="3" Platforms="15" />
-				<Node File=".\src\common\Lgi\GViewCommon.cpp" Type="2" Platforms="15" />
-				<Node File=".\include\common\GViewPriv.h" Type="3" Platforms="15" />
-				<Node File=".\src\common\Lgi\GWindowCommon.cpp" Type="2" Platforms="15" />
+				<Node File="./include/common/GMessage.h" Type="3" Platforms="15" />
+				<Node File="./src/common/Lgi/GViewCommon.cpp" Type="2" Platforms="15" />
+				<Node File="./include/common/GViewPriv.h" Type="3" Platforms="15" />
+				<Node File="./src/common/Lgi/GWindowCommon.cpp" Type="2" Platforms="15" />
 			</Node>
 			<Node Name="Libraries" Type="1" Platforms="15" Open="1" Id="17">
 				<Node File="./src/common/Lgi/GLibrary.cpp" Type="2" Platforms="15" />
@@ -113,6 +113,7 @@
 					<Node File="./src/win32/Lgi/GMenu.cpp" Type="2" Platforms="1" />
 				</Node>
 				<Node File="./include/common/GMenu.h" Type="3" Platforms="15" />
+				<Node File="./src/common/Lgi/GMenuCommon.cpp" Type="2" Platforms="15" />
 			</Node>
 			<Node Name="Process" Type="1" Platforms="15" Open="0" Id="27">
 				<Node File="./src/common/Lgi/GProcess.cpp" Type="2" Platforms="15" />
@@ -154,24 +155,25 @@
 				<Node File=".\src\common\Lgi\GVariant.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GVariant.h" Type="3" Platforms="15" />
 			</Node>
-			<Node File=".\src\common\Lgi\GGuiUtils.cpp" Type="2" Platforms="15" />
-			<Node File=".\src\common\Lgi\GObject.cpp" Type="2" Platforms="15" />
-			<Node File=".\src\common\Lgi\GToolTip.cpp" Type="2" Platforms="15" />
-			<Node File=".\src\common\Lgi\GTrayIcon.cpp" Type="2" Platforms="15" />
-			<Node File=".\src\common\Lgi\Lgi.cpp" Type="2" Platforms="15" />
-			<Node File=".\src\common\Lgi\LgiMsg.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/GGuiUtils.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/GObject.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/GToolTip.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/GTrayIcon.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/Lgi.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/LgiMsg.cpp" Type="2" Platforms="15" />
 		</Node>
 		<Node Name="Dialogs" Type="1" Platforms="15" Open="0" Id="36">
+			<Node Name="File Select Win" Type="1" Platforms="15" Open="0" Id="38">
+				<Node File="./src/win32/Lgi/GFileSelect.cpp" Type="2" Platforms="1" />
+			</Node>
 			<Node Name="File Select XP" Type="1" Platforms="15" Open="0" Id="37">
 				<Node File="./src/common/Lgi/GFileSelect.cpp" Type="2" Platforms="14" />
 				<Node File="./include/common/GFileSelect.h" Type="3" Platforms="15" />
 			</Node>
-			<Node Name="File Select Win" Type="1" Platforms="15" Open="0" Id="38">
-				<Node File="./src/win32/Lgi/GFileSelect.cpp" Type="2" Platforms="1" />
-			</Node>
 			<Node File="./src/common/Lgi/GAlert.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Lgi/GFindReplace.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Lgi/GFontSelect.cpp" Type="2" Platforms="15" />
+			<Node File="./include/common/GFontSelect.h" Type="3" Platforms="15" />
 			<Node File="./src/common/Lgi/GInput.cpp" Type="2" Platforms="15" />
 		</Node>
 		<Node Name="Graphics" Type="1" Platforms="15" Open="0" Id="39">
@@ -203,6 +205,7 @@
 				<Node File="./src/common/Gdc2/Font/GFont_W.cpp" Type="2" Platforms="1" />
 				<Node File="./src/common/Gdc2/Font/GFontCodePages.cpp" Type="2" Platforms="15" />
 				<Node File="./src/common/Gdc2/Font/GFontSystem.cpp" Type="2" Platforms="15" />
+				<Node File="./src/common/Gdc2/Font/LStringLayout.cpp" Type="2" Platforms="15" />
 			</Node>
 			<Node Name="Applicators" Type="1" Platforms="15" Open="0" Id="45">
 				<Node File="./src/common/Gdc2/15Bit.cpp" Type="2" Platforms="15" />
@@ -354,7 +357,6 @@
 			<Node Name="Layout" Type="1" Platforms="15" Open="0" Id="68">
 				<Node File="./src/common/Widgets/GBox.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GBox.h" Type="3" Platforms="15" />
-				<Node File="./include/common/GDisplayStringLayout.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Widgets/GSplitter.cpp" Type="2" Platforms="15" />
 				<Node File="./src/common/Widgets/GTableLayout.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GTableLayout.h" Type="3" Platforms="15" />
@@ -391,6 +393,7 @@
 		</Node>
 		<Node File="./include/common/GNotifications.h" Type="3" Platforms="15" />
 		<Node File="./include/common/Lgi.h" Type="3" Platforms="15" />
+		<Node File="./include/common/LgiClass.h" Type="3" Platforms="15" />
 		<Node File="./include/common/LgiClasses.h" Type="3" Platforms="15" />
 		<Node File="./include/common/LgiDefs.h" Type="3" Platforms="15" />
 		<Node File="./include/common/LgiInc.h" Type="3" Platforms="15" />
@@ -436,6 +439,8 @@ WINDOWS</Release>
 			</Arguments>
 			<CrossCompiler />
 			<DebugAdmin />
+			<CCrossCompiler />
+			<CppCrossCompiler />
 		</General>
 		<Build>
 			<IncludePaths>
@@ -452,14 +457,9 @@ WINDOWS</Release>
 				<Linux>
 					<Debug>include/linux
 include/linux/Gtk
-/usr/include/gstreamer-1.0
-/usr/lib/x86_64-linux-gnu/gstreamer-1.0/include
-`pkg-config --cflags gtk+-2.0`</Debug>
+</Debug>
 					<Release>include/linux
-include/linux/Gtk
-/usr/include/gstreamer-1.0
-/usr/lib/x86_64-linux-gnu/gstreamer-1.0/include
-`pkg-config --cflags gtk+-2.0`</Release>
+include/linux/Gtk</Release>
 				</Linux>
 				<Haiku>
 					<Debug>include/beos
@@ -523,7 +523,14 @@ textencoding</Release>
 				</Linux>
 			</TargetName>
 			<SystemIncludes>
-				<Linux />
+				<Linux>
+					<Debug>/usr/include/gstreamer-1.0
+/usr/lib/x86_64-linux-gnu/gstreamer-1.0/include
+`pkg-config --cflags gtk+-2.0`</Debug>
+					<Release>/usr/include/gstreamer-1.0
+/usr/lib/x86_64-linux-gnu/gstreamer-1.0/include
+`pkg-config --cflags gtk+-2.0`</Release>
+				</Linux>
 				<Windows />
 			</SystemIncludes>
 			<LibraryPaths>
@@ -551,20 +558,7 @@ textencoding</Release>
 		</Editor>
 		<Advanced>
 			<OtherMakefileRules />
-		</Advanced>
-	</Settings>
-</Project>
-
-		</Advanced>
-	</Settings>
-</Project>
-<All>1</All>
-			</UseHardTabs>
-			<CommentFile />
-			<CommentFunction />
-		</Editor>
-		<Advanced>
-			<OtherMakefileRules />
+			<PostBuildCommands />
 		</Advanced>
 	</Settings>
 </Project>

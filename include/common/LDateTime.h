@@ -92,7 +92,7 @@ class LgiClass LDateTime // This class can't have a virtual table, because it's 
 	static char DefaultSeparator;
 
 public:
-	LDateTime();
+	LDateTime(const char *Init = NULL);
 	~LDateTime();
 
     enum 
@@ -231,6 +231,8 @@ public:
 	/// Parses the time from a string
 	/// \sa LDateTime::GetFormat()
 	bool SetTime(const char *Str);
+	/// Parses the date time from a free form string
+	bool Parse(GString s);
 
 	/// \returns whether a year is a leap year or not
 	bool IsLeapYear
@@ -240,6 +242,10 @@ public:
 	);
 	/// \returns true if 'd' is on the same day as this object
 	bool IsSameDay(LDateTime &d);
+	/// \returns zero based index of weekday, or -1 if not found.
+	static int IsWeekDay(const char *s);
+	/// \returns zero based index of month, or -1 if not found.
+	static int IsMonth(const char *s);
 	/// \returns the number of days in the current month
 	int DaysInMonth();
 	
@@ -349,5 +355,9 @@ public:
 
 /// A list of all known timezones.
 extern GTimeZone GTimeZones[];
+
+#ifdef _DEBUG
+LgiFunc bool LDateTime_Test();
+#endif
 
 #endif

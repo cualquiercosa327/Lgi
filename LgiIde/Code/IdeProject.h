@@ -84,7 +84,7 @@ public:
 	~IdeCommon();
 
 	IdeProject *GetProject() { return Project; }
-	bool OnOpen(GProgressDlg &Prog, GXmlTag *Src);	
+	bool OnOpen(GProgressDlg *Prog, GXmlTag *Src);	
 	void CollectAllSubProjects(List<IdeProject> &c);
 	void CollectAllSource(GArray<GString> &c, IdePlatform Platform);
 	void SortChildren();
@@ -146,14 +146,15 @@ public:
 	void StopBuild();
 	void Clean(bool Release);
 	GDebugContext *Execute(ExeAction Act = ExeRun);
+	bool FixMissingFiles();
 	bool InProject(bool FuzzyMatch, const char *Path, bool Open, class IdeDoc **Doc = 0);
 	const char *GetFileComment();
 	const char *GetFunctionComment();
 	bool IsMakefileUpToDate();
-	bool CreateMakefile(IdePlatform Platform);
+	bool CreateMakefile(IdePlatform Platform, bool BuildAfterwards);
 	GAutoString GetTargetName(IdePlatform Platform);
 	bool GetTargetFile(char *Buf, int BufSize);
-	bool BuildIncludePaths(GArray<GString> &Paths, bool Recurse, IdePlatform Platform);
+	bool BuildIncludePaths(GArray<GString> &Paths, bool Recurse, bool IncludeSystem, IdePlatform Platform);
 	void ShowFileProperties(const char *File);
 	bool GetExpanded(int Id);
 	void SetExpanded(int Id, bool Exp);
@@ -205,5 +206,6 @@ public:
 };
 
 extern const char TagSettings[];
+extern void FixMissingFilesDlg(IdeProject *Proj);
 
 #endif

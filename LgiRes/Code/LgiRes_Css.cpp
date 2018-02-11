@@ -25,7 +25,7 @@ public:
         GLayoutCell *c;
         
         if ((c = GetCell(0, y++)))
-            c->Add(new GText(IDC_STATIC, 0, 0, -1, -1, "Name:"));
+            c->Add(new GTextLabel(IDC_STATIC, 0, 0, -1, -1, "Name:"));
 
         if ((c = GetCell(0, y++)))
         {
@@ -34,7 +34,7 @@ public:
         }
 
         if ((c = GetCell(0, y++)))
-            c->Add(new GText(IDC_STATIC, 0, 0, -1, -1, "Style:"));
+            c->Add(new GTextLabel(IDC_STATIC, 0, 0, -1, -1, "Style:"));
 
         if ((c = GetCell(0, y++)))
         {

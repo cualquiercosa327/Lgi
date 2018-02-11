@@ -96,7 +96,7 @@ uint16 LDateTime::GetDefaultFormat()
 static int CurTz			= NO_ZONE;
 static int CurTzOff			= NO_ZONE;
 
-LDateTime::LDateTime()
+LDateTime::LDateTime(const char *Init)
 {
 	_Day = 0;
 	_Month = 0;
@@ -112,6 +112,8 @@ LDateTime::LDateTime()
 		_Tz = CurTz + CurTzOff;
 
 	_Format = GetDefaultFormat();
+	if (Init)
+		Set(Init);
 }
 
 LDateTime::~LDateTime()
@@ -146,6 +148,7 @@ void LDateTime::SetTimeZone(int NewTz, bool ConvertTime)
 {
 	if (ConvertTime && NewTz != _Tz)
 	{
+		// printf("SetTimeZone: %i\n", NewTz - _Tz);
 		AddMinutes(NewTz - _Tz);
 	}
 
@@ -440,7 +443,7 @@ bool LDateTime::GetDaylightSavingsInfo(GArray<GDstInfo> &Info, LDateTime &Start,
 			fclose(f);
 			
 			GString ps = p.NewGStr();
-			Zdump = ps.Split("\r\n");
+			Zdump = ps.Split("\n");
 		}
 	}
 		
@@ -521,7 +524,7 @@ bool LDateTime::GetDaylightSavingsInfo(GArray<GDstInfo> &Info, LDateTime &Start,
 				}
 				// else printf("%s:%i - UTC min wrong %s.\n", _FL, l[4]);
 			}
-			else printf("%s:%i - Tm has wrong parts.\n", _FL);
+			else printf("%s:%i - Tm '%s' has wrong parts: %s\n", _FL, l[4], Line);
 		}
 	}
 	
@@ -724,12 +727,15 @@ uint64 LDateTime::Ts()
 bool LDateTime::Set(uint64 s)
 {
 	#if defined WIN32
-	FILETIME Utc, Local;
+	FILETIME Utc;
 	SYSTEMTIME System;
-	Utc.dwHighDateTime = s >> 32;
-	Utc.dwLowDateTime = s & 0xffffffff;
-	if (FileTimeToLocalFileTime(&Utc, &Local) &&
-		FileTimeToSystemTime(&Local, &System))
+
+	// Adjust to the desired timezone
+	uint64 u = s + ((int64)_Tz * 60 * Second64Bit);
+
+	Utc.dwHighDateTime = u >> 32;
+	Utc.dwLowDateTime = u & 0xffffffff;
+	if (FileTimeToSystemTime(&Utc, &System))
 	{
 		_Year = System.wYear;
 		_Month = System.wMonth;
@@ -785,12 +791,12 @@ bool LDateTime::Set(time_t tt)
 bool LDateTime::Get(uint64 &s)
 {
 	#ifdef WIN32
-	FILETIME Utc, Local;
+	FILETIME Utc;
 	SYSTEMTIME System;
 
 	System.wYear = _Year;
-	System.wMonth = _Month;
-	System.wDay = _Day;
+	System.wMonth = max(_Month, 1);
+	System.wDay = max(_Day, 1);
 	System.wHour = _Hours;
 	System.wMinute = _Minutes;
 	System.wSecond = _Seconds;
@@ -798,10 +804,14 @@ bool LDateTime::Get(uint64 &s)
 	System.wDayOfWeek = DayOfWeek();
 
 	BOOL b1, b2;
-	if ((b1 = SystemTimeToFileTime(&System, &Local)) &&
-		(b2 = LocalFileTimeToFileTime(&Local, &Utc)))
+	if (b1 = SystemTimeToFileTime(&System, &Utc))
 	{
+		// Convert to 64bit
 		s = ((uint64)Utc.dwHighDateTime << 32) | Utc.dwLowDateTime;
+
+		// Adjust for timezone
+		s -= (int64)_Tz * 60 * Second64Bit;
+
 		return true;
 	}
 
@@ -831,13 +841,18 @@ bool LDateTime::Get(uint64 &s)
 	if (sec == -1)
 		return false;
 	
+	/*
 	int CurTz = SystemTimeZone();
 	if (CurTz != _Tz)
 	{
 		// Adjust the output to the correct time zone..
-		int Diff = CurTz - _Tz;
+		int Diff = _Tz - CurTz;
 		sec += Diff * 60;
+		printf("Adjusting += %i (%i -> %i)\n", Diff * 60, CurTz, _Tz);
 	}
+	else
+		printf("No Adjusting\n");
+		*/
 	
 	s = (uint64)sec * Second64Bit + _Thousands;
 	
@@ -892,21 +907,9 @@ bool LDateTime::Set(const char *Str)
 
 void LDateTime::Month(char *m)
 {
-	#define IsMonth(a, i) else if (!stricmp(#a, m)) _Month = i;
-
-	if (!m) return;
-	IsMonth(jan, 1)
-	IsMonth(feb, 2)
-	IsMonth(mar, 3)
-	IsMonth(apr, 4)
-	IsMonth(may, 5)
-	IsMonth(jun, 6)
-	IsMonth(jul, 7)
-	IsMonth(aug, 8)
-	IsMonth(sep, 9)
-	IsMonth(oct, 10)
-	IsMonth(nov, 11)
-	IsMonth(dec, 12)
+	int i = IsMonth(m);
+	if (i >= 0)
+		_Month = i + 1;	
 }
 
 bool LDateTime::SetDate(const char *Str)
@@ -1100,6 +1103,95 @@ bool LDateTime::SetTime(const char *Str)
 	}
 
 	return Status;
+}
+
+int LDateTime::IsWeekDay(const char *s)
+{
+	static const char *Short[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+	static const char *Long[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+	for (unsigned n=0; n<CountOf(Short); n++)
+	{
+		if (!_stricmp(Short[n], s) ||
+			!_stricmp(Long[n], s))
+			return n;
+	}
+	return -1;
+}
+
+int LDateTime::IsMonth(const char *s)
+{
+	static const char *Short[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+	static const char *Long[] = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
+	for (unsigned n=0; n<CountOf(Short); n++)
+	{
+		if (!_stricmp(Short[n], s) ||
+			!_stricmp(Long[n], s))
+			return n;
+	}
+	return -1;
+}
+
+bool LDateTime::Parse(GString s)
+{
+	GString::Array a = s.Split(" ");
+
+	Empty();
+
+	for (unsigned i=0; i<a.Length(); i++)
+	{
+		const char *c = a[i];
+		if (IsDigit(*c))
+		{
+			if (strchr(c, ':'))
+			{
+				GString::Array t = a[i].Split(":");
+				if (t.Length() == 3)
+				{
+					Hours((int)t[0].Int());
+					Minutes((int)t[1].Int());
+					Seconds((int)t[2].Int());
+				}
+			}
+			else if (strchr(c, '-'))
+			{
+				GString::Array t = a[i].Split("-");
+				if (t.Length() == 3)
+				{
+					Year((int)t[0].Int());
+					Month((int)t[1].Int());
+					Day((int)t[2].Int());
+				}
+			}
+			else if (a[i].Length() == 4)
+				Year((int)a[i].Int());
+			else if (!Day())
+				Day((int)a[i].Int());
+		}
+		else if (IsAlpha(*c))
+		{
+			int WkDay = IsWeekDay(c);
+			if (WkDay >= 0)
+				continue;
+				
+			int Mnth = IsMonth(c);
+			if (Mnth >= 0)
+				Month(Mnth + 1);
+		}
+		else if (*c == '-' || *c == '+')
+		{
+			c++;
+			if (strlen(c) == 4)
+			{
+				// Timezone..
+				int64 Tz = a[i].Int();
+				int Hrs = (int) (Tz / 100);
+				int Min = (int) (Tz % 100);
+				SetTimeZone(Hrs * 60 + Min, false);
+			}
+		}
+	}
+
+	return IsValid();
 }
 
 int LDateTime::Sizeof()
@@ -1482,65 +1574,34 @@ int LDateTime::DaysInMonth()
 
 void LDateTime::AddSeconds(int64 Seconds)
 {
-    int64 s = (int64)_Seconds + Seconds;
-    
-    if (s < 0)
-    {
-        int64 m = (-s + 59) / 60;
-        AddMinutes(-m);
-        s += m * 60;
-    }
-    else if (s >= 60)
-    {
-        int64 m = s / 60;
-        AddMinutes(m);
-        s -= m * 60;
-    }
-    
-    _Seconds = s;
-	LgiAssert(_Seconds >= 0 && _Seconds < 60);
+	uint64 i;
+	if (Get(i))
+	{
+		i += Seconds * Second64Bit;
+		Set(i);
+	}
 }
 
 void LDateTime::AddMinutes(int64 Minutes)
 {
-	int m = (int)_Minutes + Minutes;
-
-	if (m < 0)
+	uint64 i;
+	if (Get(i))
 	{
-	    int h = (-m + 59) / 60;
-		AddHours(-h);
-		m += h * 60;
+		int64 delta = Minutes * 60 * Second64Bit;
+		uint64 n = i + delta;
+		// printf("AddMin " LGI_PrintfInt64 " + " LGI_PrintfInt64 " = " LGI_PrintfInt64 "\n", i, delta, n);
+		Set(n);
 	}
-	else if (m >= 60)
-	{
-	    int h = m / 60;
-		AddHours(h);
-		m -= h * 60;
-	}
-
-	_Minutes = m;
-	LgiAssert(_Minutes >= 0 && _Minutes < 60);
 }
 
 void LDateTime::AddHours(int64 Hours)
 {
-	int h = _Hours + Hours;
-
-	if (h < 0)
+	uint64 i;
+	if (Get(i))
 	{
-	    int d = (-h + 23) / 24;
-		AddDays(-d);
-		h += d * 24;
+		i += Hours * 3600 * Second64Bit;
+		Set(i);
 	}
-	else if (h >= 24)
-	{
-	    int d = h / 24;
-		AddDays(d);
-		h -= d * 24;
-	}
-
-	_Hours = h;
-	LgiAssert(_Hours >= 0 && _Hours < 24);
 }
 
 bool LDateTime::AddDays(int64 Days)
@@ -1614,203 +1675,207 @@ bool LDateTime::Decode(const char *In)
 	//		Tue, 6 Dec 2005 1:25:32 -0800
 	Empty();
 
-	bool Status = false;
-	if (In)
+	if (!In)
 	{
-		// Tokenize delimited by whitespace
-		GToken T(In);
-		if (T.Length() >= 2)
+		LgiAssert(0);
+		return false;
+	}
+
+	bool Status = false;
+
+	// Tokenize delimited by whitespace
+	GString::Array T = GString(In).SplitDelimit();
+	if (T.Length() >= 2)
+	{
+		bool GotDate = false;
+
+		for (unsigned i=0; i<T.Length(); i++)
 		{
-			bool GotDate = false;
-
-			for (int i=0; i<T.Length(); i++)
-			{
-				char *s = T[i];
+			GString &s = T[i];
 				
-				if
-				(
-					*s &&
-					(
-						strchr(s+1, '.') ||
-						strchr(s+1, '-')
-					)
-				)
+			GString::Array Date;
+			if (!GotDate)
+				Date = s.SplitDelimit(".-/\\");
+			if (Date.Length() == 3)
+			{
+				if (Date[0].Int() > 31)
 				{
-					// whole date
-					GToken Date(s, ".-");
-					if (Date.Length() == 3)
-					{
-						Day(atoi(Date[0]));
-						if (IsDigit(Date[1][0]))
-						{
-							Month(atoi(Date[1]));
-						}
-						else
-						{
-							int m = MonthFromName(Date[1]);
-							if (m > 0)
-							{
-								Month(m);
-							}
-						}
-
-						int Yr = atoi(Date[2]);
-						if (Yr >= 100)
-						{
-							Year(Yr);
-						}
-						else
-						{
-							LDateTime Now;
-							Now.SetNow();
-							if (Yr + 2000 <= Now.Year())
-							{
-								Year(2000 + Yr);
-							}
-							else
-							{
-								Year(1900 + Yr);
-							}
-							// else ... ?
-						}
-						
-						GotDate = true;
-						Status = true;
-					}
+					// Y/M/D?
+					Year((int)Date[0].Int());
+					Day((int)Date[2].Int());
 				}
-				else if (strchr(s, ':'))
+				else if (Date[2].Int() > 31)
 				{
-					// whole time
-					GToken Time(s, ":");
-					if (Time.Length() == 2 ||
-						Time.Length() == 3)
-					{
-						// Hour (24hr time)
-						Hours(atoi(Time[0]));
-
-						// Minute
-						Minutes(atoi(Time[1]));
-
-						if (Time.Length() == 3)
-						{
-							// Second
-							Seconds(atoi(Time[2]));
-						}
-						
-						Status = true;
-					}
+					// D/M/Y?
+					Day((int)Date[0].Int());
+					Year((int)Date[2].Int());
 				}
-				else if (IsAlpha(*s))
+				else
 				{
-					// text
-					int m = MonthFromName(s);
-					if (m > 0)
+					// Ambiguous year...
+					bool YrFirst = true;
+					if (Date[0].Length() == 1)
+						YrFirst = false;
+					// else we really can't tell.. just go with year first
+					if (YrFirst)
 					{
-						Month(m);
-					}
-				}
-				else if (IsDigit(*s))
-				{
-					int Count = 0;
-					for (char *c = s; *c; c++)
-					{
-						if (!IsDigit(*c))
-						{
-							break;
-						}
-						Count++;
-					}
-					
-					if (Count <= 2)
-					{
-						if (Day())
-						{
-							// We already have a day... so this might be
-							// a 2 digit year...
-							LDateTime Now;
-							Now.SetNow();
-							int Yr = atoi(s);
-							if (2000 + Yr <= Now.Year())
-							{
-								Year(2000 + Yr);
-							}
-							else
-							{
-								Year(1900 + Yr);
-							}
-						}
-						else
-						{
-							// A day number (hopefully)?
-							Day(atoi(s));
-						}
-					}
-					else if (Count == 4)
-					{
-						if (!Year())
-						{
-							// A year!
-							Year(atoi(s));
-							Status = true;
-						}
-						else
-						{
-							goto DoTimeZone;
-						}
-						
-						// My one and only Y2K fix
-						// d.Year((Yr < 100) ? (Yr > 50) ? 1900+Yr : 2000+Yr : Yr);
-					}
-				}
-				else if (strchr("+-", *s))
-				{
-					// timezone
-					DoTimeZone:
-					LDateTime Now;
-					double OurTmz = (double)Now.SystemTimeZone() / 60;
-
-					if (s &&
-						strchr("-+", *s) &&
-						strlen(s) == 5)
-					{
-						#if 1
-
-						int i = atoi(s);
-						int hr = i / 100;
-						int min = i % 100;
-						SetTimeZone(hr * 60 + min, false);
-
-						#else
-
-						// adjust for timezone
-						char Buf[32];
-						memcpy(Buf, s, 3);
-						Buf[3] = 0;
-
-						double TheirTmz = atof(Buf);
-						memcpy(Buf+1, s + 3, 2);
-
-						TheirTmz += (atof(Buf) / 60);
-						if (Tz)
-						{
-							*Tz = TheirTmz;
-						}
-
-						double AdjustHours = OurTmz - TheirTmz;
-
-						AddMinutes((int) (AdjustHours * 60));
-
-						#endif
+						Year((int)Date[0].Int());
+						Day((int)Date[2].Int());
 					}
 					else
 					{
-						// assume GMT
-						AddMinutes((int) (OurTmz * 60));
+						Day((int)Date[0].Int());
+						Year((int)Date[2].Int());
 					}
+
+					LDateTime Now;
+					Now.SetNow();
+					if (Year() + 2000 <= Now.Year())
+						Year(2000 + Year());
+					else
+						Year(1900 + Year());
+				}
+
+				if (Date[1].IsNumeric())
+					Month((int)Date[1].Int());
+				else
+				{
+					int m = MonthFromName(Date[1]);
+					if (m > 0)
+						Month(m);
+				}
+						
+				GotDate = true;
+				Status = true;
+			}
+			else if (s.Find(":") >= 0)
+			{
+				// whole time
+				GString::Array Time = s.Split(":");
+				if (Time.Length() == 2 ||
+					Time.Length() == 3)
+				{
+					// Hour
+					Hours((int)Time[0].Int());
+					if (s.Lower().Find("p") >= 0)
+					{
+						if (Hours() < 12)
+							Hours(Hours() + 12);
+					}
+
+					// Minute
+					Minutes((int)Time[1].Int());
+
+					if (Time.Length() == 3)
+						// Second
+						Seconds((int)Time[2].Int());
+						
+					Status = true;
+				}
+			}
+			else if (IsAlpha(s(0)))
+			{
+				// text
+				int m = MonthFromName(s);
+				if (m > 0)
+					Month(m);
+			}
+			else if (s.IsNumeric())
+			{
+				int Count = 0;
+				for (char *c = s; *c; c++)
+				{
+					if (!IsDigit(*c))
+						break;
+					Count++;
+				}
+					
+				if (Count <= 2)
+				{
+					if (Day())
+					{
+						// We already have a day... so this might be
+						// a 2 digit year...
+						LDateTime Now;
+						Now.SetNow();
+						int Yr = atoi(s);
+						if (2000 + Yr <= Now.Year())
+							Year(2000 + Yr);
+						else
+							Year(1900 + Yr);
+					}
+					else
+					{
+						// A day number (hopefully)?
+						Day((int)s.Int());
+					}
+				}
+				else if (Count == 4)
+				{
+					if (!Year())
+					{
+						// A year!
+						Year((int)s.Int());
+						Status = true;
+					}
+					else
+					{
+						goto DoTimeZone;
+					}
+						
+					// My one and only Y2K fix
+					// d.Year((Yr < 100) ? (Yr > 50) ? 1900+Yr : 2000+Yr : Yr);
+				}
+			}
+			else if (strchr("+-", *s))
+			{
+				// timezone
+				DoTimeZone:
+				LDateTime Now;
+				double OurTmz = (double)Now.SystemTimeZone() / 60;
+
+				if (s &&
+					strchr("-+", *s) &&
+					strlen(s) == 5)
+				{
+					#if 1
+
+					int i = atoi(s);
+					int hr = i / 100;
+					int min = i % 100;
+					SetTimeZone(hr * 60 + min, false);
+
+					#else
+
+					// adjust for timezone
+					char Buf[32];
+					memcpy(Buf, s, 3);
+					Buf[3] = 0;
+
+					double TheirTmz = atof(Buf);
+					memcpy(Buf+1, s + 3, 2);
+
+					TheirTmz += (atof(Buf) / 60);
+					if (Tz)
+					{
+						*Tz = TheirTmz;
+					}
+
+					double AdjustHours = OurTmz - TheirTmz;
+
+					AddMinutes((int) (AdjustHours * 60));
+
+					#endif
+				}
+				else
+				{
+					// assume GMT
+					AddMinutes((int) (OurTmz * 60));
 				}
 			}
 		}
 	}
+
 	return Status;
 }
 
@@ -1831,10 +1896,10 @@ bool LDateTime::GetVariant(const char *Name, GVariant &Dst, char *Array)
 		case DateHour: // Type: Int32
 			Dst = Hours();
 			break;
-		case DateMin: // Type: Int32
+		case DateMinute: // Type: Int32
 			Dst = Minutes();
 			break;
-		case DateSec: // Type: Int32
+		case DateSecond: // Type: Int32
 			Dst = Seconds();
 			break;
 		case DateDate: // Type: String
@@ -1858,7 +1923,7 @@ bool LDateTime::GetVariant(const char *Name, GVariant &Dst, char *Array)
 			Dst = s;
 			break;
 		}
-		case DateInt64: // Type: Int64
+		case DateTimestamp: // Type: Int64
 		{
 			uint64 i = 0;
 			Get(i);
@@ -1890,10 +1955,10 @@ bool LDateTime::SetVariant(const char *Name, GVariant &Value, char *Array)
 		case DateHour:
 			Hours(Value.CastInt32());
 			break;
-		case DateMin:
+		case DateMinute:
 			Minutes(Value.CastInt32());
 			break;
-		case DateSec:
+		case DateSecond:
 			Seconds(Value.CastInt32());
 			break;
 		case DateDate:
@@ -1905,7 +1970,7 @@ bool LDateTime::SetVariant(const char *Name, GVariant &Value, char *Array)
 		case DateDateAndTime:
 			Set(Value.Str());
 			break;
-		case DateInt64:
+		case DateTimestamp:
 			Set((uint64)Value.CastInt64());
 			break;
 		default:
@@ -1950,3 +2015,39 @@ bool LDateTime::CallMethod(const char *Name, GVariant *ReturnValue, GArray<GVari
 
 	return true;
 }
+
+#ifdef _DEBUG
+#define DATE_ASSERT(i) \
+	if (!(i)) \
+	{ \
+		LgiAssert(!"LDateTime unit test failed."); \
+		return false; \
+	}
+
+bool LDateTime_Test()
+{
+	// Check 64bit get/set
+	LDateTime t("1/1/2017 0:0:0");
+	uint64 i;
+	DATE_ASSERT(t.Get(i));
+	LgiTrace("Get='%s'\n", t.Get().Get());
+	uint64 i2 = i + (24ULL * 60 * 60 * LDateTime::Second64Bit);
+	LDateTime t2;
+	t2.Set(i2);
+	GString s = t2.Get();
+	LgiTrace("Set='%s'\n", s.Get());
+	DATE_ASSERT(!stricmp(s, "2/1/2017 12:00:00a") ||
+				!stricmp(s, "2/01/2017 12:00:00a"));
+	
+	t.SetNow();
+	LgiTrace("Now.Local=%s Tz=%.2f\n", t.Get().Get(), t.GetTimeZoneHours());
+	t2 = t;
+	t2.ToUtc();
+	LgiTrace("Now.Utc=%s Tz=%.2f\n", t2.Get().Get(), t2.GetTimeZoneHours());
+	t2.ToLocal();
+	LgiTrace("Now.Local=%s Tz=%.2f\n", t2.Get().Get(), t2.GetTimeZoneHours());
+	DATE_ASSERT(t == t2);
+	
+	return true;
+}
+#endif

@@ -50,7 +50,7 @@ GPrintDC::GPrintDC(void *Handle, const char *PrintJobName, const char *PrinterNa
 			{
 				for (unsigned i=1; i<1000; i++)
 				{
-					p.Parent();
+					p--;
 					FileName.Printf("%s%i.xps", PrintJobName, i);
 					p += FileName;
 					if (!FileExists(p.GetFull()))
@@ -64,7 +64,11 @@ GPrintDC::GPrintDC(void *Handle, const char *PrintJobName, const char *PrinterNa
 		}
 
 		d->DocOpen = StartDoc(hDC, &Info) > 0;
-		if (!d->DocOpen)
+		if (d->DocOpen)
+		{
+			SetSize(X(), Y());
+		}
+		else
 		{
 			DeleteDC(hDC);
 			hDC = 0;

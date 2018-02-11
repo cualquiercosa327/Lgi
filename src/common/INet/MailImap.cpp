@@ -2137,7 +2137,7 @@ char *MailIMap::GetSelectedFolder()
 	return d->Current;
 }
 
-bool MailIMap::SelectFolder(const char *Path, GHashTbl<const char*,int> *Values)
+bool MailIMap::SelectFolder(const char *Path, GHashTbl<const char*,GString> *Values)
 {
 	bool Status = false;
 
@@ -2158,25 +2158,39 @@ bool MailIMap::SelectFolder(const char *Path, GHashTbl<const char*,int> *Values)
 				if (Values)
 				{
 					Values->IsCase(false);
-					for (char *Dlg = Dialog.First(); Dlg; Dlg=Dialog.Next())
+					for (GString Dlg = Dialog.First(); Dlg; Dlg = Dialog.Next())
 					{
-						GToken t(Dlg, " []");
-						if (!_stricmp(t[0], "*") && t.Length() > 2)
+						GString::Array t = Dlg.SplitDelimit(" []");
+						if (t.Length() > 0 &&
+							t[0].Equals("*"))
 						{
-							char *key = t[2];
-							char *sValue = t[1];
-							int iValue = atoi(sValue);
-							if (_stricmp(key, "exists") == 0)
+							for (unsigned i=1; i<t.Length(); i++)
 							{
-								Values->Add(key, iValue);
-							}
-							else if (_stricmp(key, "recent") == 0)
-							{
-								Values->Add(key, iValue);
-							}
-							else if (_stricmp(key, "unseen") == 0)
-							{
-								Values->Add(key, iValue);
+								char *var = t[i];
+
+								if (t[i].Equals("exists") ||
+									t[i].Equals("recent"))
+								{
+									char *val = t[i-1];
+									if (t[i-1].IsNumeric())
+										Values->Add(t[i], t[i-1]);
+								}
+								else if (t[i].Equals("unseen"))
+								{
+									char *val = t[i+1];
+									if (t[i+1].IsNumeric())
+										Values->Add(t[i], t[i+1]);
+								}
+								else if (t[i].Equals("flags"))
+								{
+									ssize_t s = Dlg.Find("(");
+									ssize_t e = Dlg.Find(")", s + 1);
+									if (e >= 0)
+									{
+										GString Val = Dlg(s+1, e);
+										Values->Add(t[i], Val);
+									}
+								}
 							}
 						}
 					}
@@ -2201,12 +2215,12 @@ int MailIMap::GetMessages(const char *Path)
 
 	if (Socket && Lock(_FL))
 	{
-		GHashTbl<const char*,int> f(0, false, NULL, -1);
+		GHashTbl<const char*,GString> f(0, false);
 		if (SelectFolder(Path, &f))
 		{
-			int Exists = f.Find("exists");
-			if (Exists >= 0)
-				Status = Exists;
+			GString Exists = f.Find("exists");
+			if (Exists && Exists.Int() >= 0)
+				Status = (int)Exists.Int();
 			else
 				LgiTrace("%s:%i - Failed to get 'exists' value.\n", _FL);
 		}
@@ -2649,7 +2663,7 @@ bool MailIMap::Append(const char *Folder, ImapMailFlags *Flags, const char *Msg,
 
 	if (Folder && Msg && Lock(_FL))
 	{
-		GAutoString Flag(Flags ? Flags->Get() : 0);
+		GAutoString Flag(Flags ? Flags->Get() : NULL);
 		GAutoString Path(EncodePath(Folder));
 
 		int Cmd = d->NextCmd++;
@@ -3395,7 +3409,18 @@ bool MailIMap::OnIdle(int Timeout, GArray<Untagged> &Resp)
 
 	if (Lock(_FL))
 	{
-		if (Socket->IsReadable(Timeout))
+		#ifdef _DEBUG
+		uint64 Start = LgiCurrentTime();
+		#endif
+		bool Readable = Socket->IsReadable(Timeout);
+		#ifdef _DEBUG
+		uint64 End = LgiCurrentTime();
+		if (!Readable && (End - Start) < (Timeout * 0.8))
+		{
+			// LgiAssert(!"IsReadable is broken.");
+		}
+		#endif
+		if (Readable)
 		{
 			Read();
 		}
