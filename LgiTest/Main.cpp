@@ -5,6 +5,8 @@
 #include "GTextLabel.h"
 #include "GCss.h"
 #include "GTableLayout.h"
+#include "LDbTable.h"
+#include "GXmlTree.h"
 
 const char *AppName = "Lgi Test App";
 
@@ -239,12 +241,145 @@ public:
 	}
 };
 
+enum EmailFields
+{
+	M_UID = 100,
+	M_FLAGS,
+	M_DATE,
+	M_LABEL,
+	M_COLOUR,
+	M_SIZE,
+	M_FILENAME,
+};
+
+bool DbTesting()
+{
+	// LDbTable::UnitTests();
+
+	#if 1
+	const char *BaseFolder = "C:\\Users\\Matthew\\AppData\\Roaming\\Scribe\\ImapCache\\1434419972\\INBOX";
+	#else
+	const char *BaseFolder = "C:\\Users\\matthew\\AppData\\Roaming\\Scribe\\ImapCache\\378651814\\INBOX";
+	#endif
+
+	GFile::Path FileXml(BaseFolder, "Folder.xml");
+	GFile::Path FileDb(BaseFolder, "Folder.db");
+	GFile::Path FileDebug(BaseFolder, "Debug.txt");
+	GFile In;
+	if (!In.Open(FileXml, O_READ))
+		return false;	
+	
+	// Read XML
+	GXmlTag r;
+	GXmlTree t;
+	uint64 Start = LgiMicroTime();
+	if (!t.Read(&r, &In))
+		return false;
+	uint64 XmlReadTime = LgiMicroTime() - Start;
+
+
+	// Convert XML to DB
+	LDbTable Tbl;
+	Tbl.AddField(M_UID, GV_INT32);
+	Tbl.AddField(M_FLAGS, GV_INT32);
+	Tbl.AddField(M_DATE, GV_DATETIME);
+	Tbl.AddField(M_LABEL, GV_STRING);
+	Tbl.AddField(M_COLOUR, GV_INT32);
+	Tbl.AddField(M_SIZE, GV_INT64);
+	Tbl.AddField(M_FILENAME, GV_STRING);
+
+	Start = LgiMicroTime();
+	GXmlTag *Emails = r.GetChildTag("Emails");
+	if (!Emails)
+		return false;
+	for (GXmlTag *c = Emails->Children.First(); c; c = Emails->Children.Next())
+	{
+		LDbRow *m = Tbl.NewRow();
+		m->SetInt(M_UID, c->GetAsInt("Uid"));
+		
+		ImapMailFlags Flgs;
+		Flgs.Set(c->GetAttr("Flags"));
+		m->SetInt(M_FLAGS, Flgs.All);
+		
+		char *Date = c->GetAttr("Date");
+		if (Date)
+		{
+			LDateTime Dt;
+			if (Dt.Decode(Date))
+			{
+				if (!m->SetDate(M_DATE, &Dt))
+				{
+					LgiAssert(0);
+				}
+			}
+			else
+			{
+				LgiAssert(0);
+			}
+		}
+		else LgiAssert(0);
+		
+		m->SetStr(M_LABEL, c->GetAttr("Label"));
+		m->SetInt(M_COLOUR, c->GetAsInt("Colour"));
+		m->SetInt(M_SIZE, Atoi(c->GetAttr("Size")));
+		m->SetStr(M_FILENAME, GString(c->GetContent()).Strip());
+	}
+	uint64 ConvertTime = LgiMicroTime() - Start;
+
+	Start = LgiMicroTime();
+	if (!Tbl.Serialize(FileDb, true))
+		return false;
+	uint64 WriteTime = LgiMicroTime() - Start;
+
+	LDbTable Test;
+	Start = LgiMicroTime();
+	if (!Test.Serialize(FileDb, false))
+		return false;
+	uint64 ReadTime = LgiMicroTime() - Start;
+
+	Start = LgiMicroTime();
+	GAutoPtr<DbArrayIndex> Idx(Test.Sort(M_FILENAME));
+	uint64 SortTime = LgiMicroTime() - Start;
+	if (Idx)
+	{
+		GFile Out;
+		if (Out.Open(FileDebug, O_WRITE))
+		{
+			Out.SetSize(0);
+			for (unsigned i=0; i<Idx->Length(); i++)
+			{
+				GString s = Idx->ItemAt(i)->ToString();
+				s += "\n";
+				Out.Write(s);
+			}
+			Out.Close();
+		}
+	}
+
+	LgiTrace("DbTest: %i -> %i\n"
+		"\tXmlReadTime=%.3f\n"
+		"\tConvertTime=%.3f\n"
+		"\tWriteTime=%.3f\n"
+		"\tReadTime=%.3f\n"
+		"\tSortTime=%.3f\n",
+		Tbl.GetRows(), Test.GetRows(),
+		(double)XmlReadTime/1000.0,
+		(double)ConvertTime/1000.0,
+		(double)WriteTime/1000.0,
+		(double)ReadTime/1000.0,
+		(double)SortTime/1000.0);
+
+	return true;
+}
+
 int LgiMain(OsAppArguments &AppArgs)
 {
 	GApp a(AppArgs, "Lgi Test");
 	if (a.IsOk())
 	{
 		GStringTest();
+		DbTesting();
+
 		a.AppWnd = new App;
 		a.Run();
 	}

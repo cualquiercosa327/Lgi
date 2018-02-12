@@ -92,6 +92,7 @@ public:
 	~OsAppArguments();
 
 	void Set(const char *CmdLine);
+	bool Get(const char *Arg, class GString *Value = NULL);
 	OsAppArguments &operator =(OsAppArguments &a);
 };
 

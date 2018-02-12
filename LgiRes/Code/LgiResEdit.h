@@ -60,9 +60,6 @@
 #define IDM_REF_EQ_ID				326
 #define IDM_ID_EQ_REF				327
 
-#define	IDM_NEW_DLG					400
-#define	IDM_NEW_STRGRP				401
-
 #define IDM_LANG_BASE				2000
 
 #define	IDC_TABLE					999

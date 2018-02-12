@@ -9,7 +9,6 @@
 #include "GXmlTree.h"
 #include "GPanel.h"
 #include "GProcess.h"
-#include "SpaceTabConv.h"
 #include "GButton.h"
 #include "GTabView.h"
 #include "FtpThread.h"
@@ -2277,8 +2276,8 @@ GMessage::Result AppWnd::OnEvent(GMessage *m)
 				{
 					IdeDoc::ClearCurrentIp();
 					IdeDoc *c = GetCurrentDoc();
-					if (c && c->GetEdit())
-						c->GetEdit()->Invalidate();
+					if (c)
+						c->UpdateControl();
 						
 					// Shutdown the debug context and free the memory
 					DeleteObj(d->DbgContext);
@@ -3124,8 +3123,8 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		case IDM_TOGGLE_BREAKPOINT:
 		{
 			IdeDoc *Cur = GetCurrentDoc();
-			if (Cur && Cur->GetEdit())
-				ToggleBreakpoint(Cur->GetFileName(), Cur->GetEdit()->GetLine());
+			if (Cur)
+				ToggleBreakpoint(Cur->GetFileName(), Cur->GetLine());
 			break;
 		}
 		case IDM_ATTACH_TO_PROCESS:
@@ -3225,38 +3224,14 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		{
 			IdeDoc *Doc = FocusDoc();
 			if (Doc)
-			{
-				GTextView3 *Text = Doc->GetEdit();
-				if (Text)
-				{
-					char *Sp = SpacesToTabs(Text->Name(), Text->GetTabSize());
-					if (Sp)
-					{
-						Text->Name(Sp);
-						Doc->SetDirty();
-						DeleteArray(Sp);
-					}
-				}
-			}
+				Doc->ConvertWhiteSpace(true);
 			break;
 		}
 		case IDM_TAB_TO_SP:
 		{
 			IdeDoc *Doc = FocusDoc();
 			if (Doc)
-			{
-				GTextView3 *Text = Doc->GetEdit();
-				if (Text)
-				{
-					char *Sp = TabsToSpaces(Text->Name(), Text->GetTabSize());
-					if (Sp)
-					{
-						Text->Name(Sp);
-						Doc->SetDirty();
-						DeleteArray(Sp);
-					}
-				}
-			}
+				Doc->ConvertWhiteSpace(false);
 			break;
 		}
 		case IDM_EOL_LF:
@@ -3264,10 +3239,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			IdeDoc *Doc = FocusDoc();
 			if (!Doc)
 				break;
-			GTextView3 *Text = Doc->GetEdit();
-			if (!Text)
-				break;
-			Text->SetCrLf(false);
+			Doc->SetCrLf(false);
 			break;
 		}
 		case IDM_EOL_CRLF:
@@ -3275,10 +3247,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			IdeDoc *Doc = FocusDoc();
 			if (!Doc)
 				break;
-			GTextView3 *Text = Doc->GetEdit();
-			if (!Text)
-				break;
-			Text->SetCrLf(true);
+			Doc->SetCrLf(true);
 			break;
 		}
 		case IDM_LOAD_MEMDUMP:
@@ -3363,18 +3332,17 @@ GTextView3 *AppWnd::FocusEdit()
 IdeDoc *AppWnd::FocusDoc()
 {
 	IdeDoc *Doc = TopDoc();
-	if (Doc && Doc->GetEdit())
+	if (Doc)
 	{
-		if (Doc->GetEdit()->Focus())
+		if (Doc->HasFocus())
 		{
 			return Doc;
 		}
 		else
 		{
 			GViewI *f = GetFocus();
-			LgiTrace("%s:%i - Edit doesn't have focus, f=%p %s doc.edit=%p %s\n",
+			LgiTrace("%s:%i - Edit doesn't have focus, f=%p %s doc.edit=%s\n",
 				_FL, f, f ? f->GetClass() : 0,
-				Doc->GetEdit(),
 				Doc->Name());
 		}
 	}

@@ -13,10 +13,16 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
+    <Filter Include="Source Files\Db">
+      <UniqueIdentifier>{581764da-a8db-4bff-ad6c-17ae9fb22914}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\common\GStringClass.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\common\LDbTable.h">
+      <Filter>Source Files\Db</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -25,6 +31,9 @@
     </ClCompile>
     <ClCompile Include="Main.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Db\LDbTable.cpp">
+      <Filter>Source Files\Db</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

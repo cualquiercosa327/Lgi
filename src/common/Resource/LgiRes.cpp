@@ -874,10 +874,10 @@ struct ResObjectCallback : public GCss::ElementCallback<ResObject>
 		return v.Str();
 	}
 	
-	bool GetClasses(GArray<const char *> &Classes, ResObject *obj)
+	bool GetClasses(GString::Array &Classes, ResObject *obj)
 	{
 		if (Props->GetValue("class", v))
-			Classes.Add(v.Str());
+			Classes.New() = v.Str();
 		return Classes.Length() > 0;
 	}
 	
@@ -912,6 +912,13 @@ bool LgiResources::Res_SetProperties(ResObject *Obj, GDom *Props)
 
 	if (Props->GetValue("class", i))
 	{
+		GString::Array *a = v->CssClasses();
+		if (a)
+			(*a) = GString(i.Str()).SplitDelimit(" \t");
+		
+		/*	Lets resolve the CSS styles at runtime, when the object 
+			is in position.
+			
 		ResObjectCallback Cb(Props);
 		GCss::SelArray a;
 		if (CssStore.Match(a, &Cb, Obj))
@@ -926,6 +933,7 @@ bool LgiResources::Res_SetProperties(ResObject *Obj, GDom *Props)
 				}
 			}
 		}
+		*/
 	}
 
 	if (Props->GetValue("image", i))
@@ -972,9 +980,9 @@ bool LgiResources::Res_SetStrRef(ResObject *Obj, int Ref, ResReadCtx *Ctx)
 	GView *w = CastToGWnd(Obj);
 	if (w)
 	{
+		w->SetId(s->Id);
 		if (ValidStr(s->Str))
 			w->Name(s->Str);
-		w->SetId(s->Id);
 	}
 	else if (Obj)
 	{

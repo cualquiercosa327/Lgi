@@ -111,6 +111,8 @@
 		3479DB1019C1AAA800E0D1E5 /* GWindowCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3479DB0E19C1AAA800E0D1E5 /* GWindowCommon.cpp */; };
 		347CB600172A97D600AC3EA6 /* GTableLayout.h in Headers */ = {isa = PBXBuildFile; fileRef = 347CB5FF172A97D600AC3EA6 /* GTableLayout.h */; };
 		3489C3EA0DD1C4DB0095F0E1 /* GMru.h in Headers */ = {isa = PBXBuildFile; fileRef = 3489C3E90DD1C4DB0095F0E1 /* GMru.h */; };
+		348BFBE1202C0F0E00B87DD7 /* LListItemCheckBox.h in Headers */ = {isa = PBXBuildFile; fileRef = 348BFBDF202C0F0E00B87DD7 /* LListItemCheckBox.h */; };
+		348BFBE2202C0F0E00B87DD7 /* LListItemRadioBtn.h in Headers */ = {isa = PBXBuildFile; fileRef = 348BFBE0202C0F0E00B87DD7 /* LListItemRadioBtn.h */; };
 		348D86A01EA434DE005BA4C2 /* GEventTargetThread.h in Headers */ = {isa = PBXBuildFile; fileRef = 348D869F1EA434DE005BA4C2 /* GEventTargetThread.h */; };
 		3493304A0F60CE440092EAE8 /* GViewCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349330490F60CE440092EAE8 /* GViewCommon.cpp */; };
 		3493304C0F60CE690092EAE8 /* GViewPriv.h in Headers */ = {isa = PBXBuildFile; fileRef = 3493304B0F60CE690092EAE8 /* GViewPriv.h */; };
@@ -295,6 +297,8 @@
 		3479DB0E19C1AAA800E0D1E5 /* GWindowCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GWindowCommon.cpp; path = ../../common/Lgi/GWindowCommon.cpp; sourceTree = "<group>"; };
 		347CB5FF172A97D600AC3EA6 /* GTableLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GTableLayout.h; path = ../../../include/common/GTableLayout.h; sourceTree = SOURCE_ROOT; };
 		3489C3E90DD1C4DB0095F0E1 /* GMru.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GMru.h; path = ../../../include/common/GMru.h; sourceTree = "<group>"; };
+		348BFBDF202C0F0E00B87DD7 /* LListItemCheckBox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LListItemCheckBox.h; path = ../../../include/common/LListItemCheckBox.h; sourceTree = "<group>"; };
+		348BFBE0202C0F0E00B87DD7 /* LListItemRadioBtn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LListItemRadioBtn.h; path = ../../../include/common/LListItemRadioBtn.h; sourceTree = "<group>"; };
 		348D869F1EA434DE005BA4C2 /* GEventTargetThread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GEventTargetThread.h; path = ../../../include/common/GEventTargetThread.h; sourceTree = "<group>"; };
 		349330490F60CE440092EAE8 /* GViewCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GViewCommon.cpp; path = ../../common/Lgi/GViewCommon.cpp; sourceTree = "<group>"; };
 		3493304B0F60CE690092EAE8 /* GViewPriv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GViewPriv.h; path = ../../../include/common/GViewPriv.h; sourceTree = "<group>"; };
@@ -705,6 +709,8 @@
 		345303751A688B90004EC2A8 /* Containers */ = {
 			isa = PBXGroup;
 			children = (
+				348BFBDF202C0F0E00B87DD7 /* LListItemCheckBox.h */,
+				348BFBE0202C0F0E00B87DD7 /* LListItemRadioBtn.h */,
 				345303781A688BC1004EC2A8 /* GItemContainer.h */,
 				345303761A688BB7004EC2A8 /* GItemContainer.cpp */,
 				344D1B1B08F4A36300228075 /* LList.cpp */,
@@ -920,6 +926,7 @@
 				342D78F111FAD1AF005BADBD /* GStream.h in Headers */,
 				34463F2511FBE25E009BB91F /* GTextView3.h in Headers */,
 				3427C3BE11FC02AE002AC215 /* LgiInc.h in Headers */,
+				348BFBE2202C0F0E00B87DD7 /* LListItemRadioBtn.h in Headers */,
 				342CE46211FDAB57000B1F3C /* LgiRes.h in Headers */,
 				341BE43F123ED1E6009BF203 /* md5.h in Headers */,
 				341BE443123ED1F1009BF203 /* sha1.h in Headers */,
@@ -935,6 +942,7 @@
 				347CB600172A97D600AC3EA6 /* GTableLayout.h in Headers */,
 				34F45B9E18C161E40040FD99 /* GPixelRops.h in Headers */,
 				3433784B19178B09007A4DC5 /* GColourSpace.h in Headers */,
+				348BFBE1202C0F0E00B87DD7 /* LListItemCheckBox.h in Headers */,
 				341B7C491956D3AA00AAA225 /* GCheckBox.h in Headers */,
 				34101C041D3B64CE00818D24 /* GMessage.h in Headers */,
 				341B7C4B1956E08500AAA225 /* GRadioGroup.h in Headers */,

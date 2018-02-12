@@ -82,7 +82,6 @@ GCheckBox::GCheckBox(int id, int x, int y, int cx, int cy, const char *name, int
 	SetPos(r);
 	SetId(id);
 	SetTabStop(true);
-	LgiResources::StyleElement(this);
 }
 
 GCheckBox::~GCheckBox()
@@ -92,6 +91,21 @@ GCheckBox::~GCheckBox()
 
 void GCheckBox::OnAttach()
 {
+	LgiResources::StyleElement(this);
+	OnStyleChange();
+	GView::OnAttach();
+}
+
+void GCheckBox::OnStyleChange()
+{
+	if (d->Lock(_FL))
+	{
+		d->Empty();
+		d->Add(GView::Name(), GetCss());
+		d->DoLayout(X());
+		d->Unlock();
+		Invalidate();
+	}
 }
 
 int GCheckBox::OnNotify(GViewI *Ctrl, int Flags)

@@ -2199,10 +2199,11 @@ GCapabilityTarget::~GCapabilityTarget()
 
 /////////////////////////////////////////////////////////////////////
 #define BUF_SIZE (4 << 10)
+#define PROFILE_MICRO	1
 
-GProfile::GProfile(const char *Name)
+GProfile::GProfile(const char *Name, int HideMs)
 {
-	MinMs = -1;
+	MinMs = HideMs;
 	Used = 0;
 	Buf = NULL;
 	Add(Name);
@@ -2215,7 +2216,11 @@ GProfile::~GProfile()
 	if (MinMs > 0)
 	{
 		uint64 TotalMs = s.Last().Time - s[0].Time;
-		if (TotalMs < MinMs)
+		if (TotalMs < MinMs
+			#if PROFILE_MICRO
+			* 1000
+			#endif
+			)
 		{
 			return;
 		}
@@ -2225,7 +2230,11 @@ GProfile::~GProfile()
 	{
 		Sample &a = s[i];
 		Sample &b = s[i+1];
+		#if PROFILE_MICRO
+		LgiTrace("%s%s = %.2f ms\n", i ? "    " : "", a.Name, (double)(b.Time - a.Time)/1000.0);
+		#else
 		LgiTrace("%s%s = %i ms\n", i ? "    " : "", a.Name, (int)(b.Time - a.Time));
+		#endif
 	}
 
 	DeleteArray(Buf);
@@ -2238,7 +2247,13 @@ void GProfile::HideResultsIfBelow(int Ms)
 
 void GProfile::Add(const char *Name)
 {
-	s.Add(Sample(LgiCurrentTime(), Name));
+	s.Add(Sample(
+		#if PROFILE_MICRO
+		LgiMicroTime(),
+		#else
+		LgiCurrentTime(),
+		#endif
+		Name));
 }
 
 void GProfile::Add(const char *File, int Line)
@@ -2253,5 +2268,11 @@ void GProfile::Add(const char *File, int Line)
 	}
 	char *Name = Buf + Used;
 	Used += sprintf(Name, "%s:%i", File, Line) + 1;
-	s.Add(Sample(LgiCurrentTime(), Name));
+	s.Add(Sample(
+		#if PROFILE_MICRO
+		LgiMicroTime(),
+		#else
+		LgiCurrentTime(),
+		#endif
+		Name));
 }

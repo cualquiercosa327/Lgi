@@ -451,11 +451,13 @@ public:
 			TypeFile = 2,
 		};
 
-		Path(const char *init = NULL)
+		Path(const char *init = NULL, const char *join = NULL)
 		{
 			SetFixedLength(false);
 			if (init)
 				*this = init;
+			if (join)
+				*this += join;
 		}
 
 		Path(GAutoString Init)

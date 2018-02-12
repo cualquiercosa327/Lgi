@@ -127,6 +127,7 @@ public:
 	
 	// Style
 	GAutoPtr<GCss>  Css;
+	GString::Array	Classes;
 
 	// Event dispatch handle
 	int				SinkHnd;
