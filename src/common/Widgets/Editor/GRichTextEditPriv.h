@@ -208,7 +208,7 @@ struct GRichEditElemContext : public GCss::ElementCallback<GRichEditElem>
 	/// Returns the document unque element ID
 	const char *GetAttr(GRichEditElem *obj, const char *Attr);
 	/// Returns the class
-	bool GetClasses(GArray<const char *> &Classes, GRichEditElem *obj);
+	bool GetClasses(GString::Array &Classes, GRichEditElem *obj);
 	/// Returns the parent object
 	GRichEditElem *GetParent(GRichEditElem *obj);
 	/// Returns an array of child objects

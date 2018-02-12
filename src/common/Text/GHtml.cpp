@@ -2708,11 +2708,10 @@ struct GTagElementCallback : public GCss::ElementCallback<GTag>
 		return NULL;
 	}
 	
-	bool GetClasses(GArray<const char *> &Classes, GTag *obj) 
+	bool GetClasses(GString::Array &Classes, GTag *obj) 
 	{
-		for (unsigned i=0; i<obj->Class.Length(); i++)
-			Classes.Add(obj->Class[i]);
-		return true;
+		Classes = obj->Class;
+		return Classes.Length() > 0;
 	}
 	
 	GTag *GetParent(GTag *obj)
@@ -3060,7 +3059,7 @@ void GTag::SetStyle()
 
 	if (Get("class", s))
 	{
-		Class.Parse(s);
+		Class = GString(s).SplitDelimit(" \t");
 	}
 
 	Restyle();

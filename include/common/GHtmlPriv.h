@@ -310,7 +310,7 @@ protected:
 
 public:
 	// Object
-	GToken Class;
+	GString::Array Class;
 	const char *HtmlId;
 
 	GAutoString Condition;

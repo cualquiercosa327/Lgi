@@ -52,17 +52,15 @@ const char *GRichEditElemContext::GetAttr(GRichEditElem *obj, const char *Attr)
 	return a;
 }
 
-bool GRichEditElemContext::GetClasses(GArray<const char *> &Classes, GRichEditElem *obj)
+bool GRichEditElemContext::GetClasses(GString::Array &Classes, GRichEditElem *obj)
 {
 	const char *c;
 	if (!obj->Get("class", c))
 		return false;
 		
 	GString cls = c;
-	GString::Array classes = cls.Split(" ");
-	for (unsigned i=0; i<classes.Length(); i++)
-		Classes.Add(NewStr(classes[i]));
-	return true;
+	Classes = cls.Split(" ");
+	return Classes.Length() > 0;
 }
 
 GRichEditElem *GRichEditElemContext::GetParent(GRichEditElem *obj)
