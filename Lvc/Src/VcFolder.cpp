@@ -121,11 +121,13 @@ const char *VcFolder::GetVcName()
 	return NULL;
 }
 
-bool VcFolder::StartCmd(const char *Args, ParseFn Parser)
+bool VcFolder::StartCmd(const char *Args, ParseFn Parser, bool Debug)
 {
 	const char *Exe = GetVcName();
 	if (!Exe)
 		return false;
+	if (Debug)
+		Exe = "C:\\Users\\matthew\\Code\\ArgLog\\Debug\\ArgLog.exe";
 
 	GAutoPtr<GSubProcess> Process(new GSubProcess(Exe, Args));
 	if (!Process)

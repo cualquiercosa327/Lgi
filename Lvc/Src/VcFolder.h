@@ -52,7 +52,7 @@ class VcFolder : public GTreeItem
 
 	void Init(AppPriv *priv);
 	const char *GetVcName();
-	bool StartCmd(const char *Args, ParseFn Parser);
+	bool StartCmd(const char *Args, ParseFn Parser, bool Debug = false);
 
 	bool ParseDiffs(GString s, bool IsWorking);
 	bool ParseLog(GString s);
