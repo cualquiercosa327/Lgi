@@ -645,6 +645,8 @@ void VcFolder::Commit(const char *Msg)
 				IsCommit = StartCmd(Args, &VcFolder::ParseCommit);
 				break;
 			case VcSvn:
+				Args.Printf("commit -m \"%s\"", Msg);
+				IsCommit = StartCmd(Args, &VcFolder::ParseCommit);
 				break;
 		}
 	}
