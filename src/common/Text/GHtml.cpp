@@ -1929,7 +1929,7 @@ GAutoString GTag::DescribeElement()
 	if (HtmlId)
 		s.Print("#%s", HtmlId);
 	for (unsigned i=0; i<Class.Length(); i++)
-		s.Print(".%s", Class[i]);
+		s.Print(".%s", Class[i].Get());
 	return GAutoString(s.NewStr());
 }
 
@@ -2105,7 +2105,7 @@ bool GTag::OnMouseClick(GMouse &m)
 				p.Print("Class(es): ");
 				for (unsigned i=0; i<Class.Length(); i++)
 				{
-					p.Print("%s%s", i?", ":"", Class[i]);
+					p.Print("%s%s", i?", ":"", Class[i].Get());
 				}
 				p.Print("\n");
 			}
@@ -2131,7 +2131,7 @@ bool GTag::OnMouseClick(GMouse &m)
 				}
 				for (unsigned i=0; i<t->Class.Length(); i++)
 				{
-					Tmp.Print(".%s", t->Class[i]);
+					Tmp.Print(".%s", t->Class[i].Get());
 				}
 				GAutoString Txt(Tmp.NewStr());
 				p.Print("%s", Txt.Get());

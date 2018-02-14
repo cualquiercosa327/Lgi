@@ -121,11 +121,14 @@ const char *VcFolder::GetVcName()
 	return NULL;
 }
 
-bool VcFolder::StartCmd(const char *Args, ParseFn Parser)
+bool VcFolder::StartCmd(const char *Args, ParseFn Parser, bool LogCmd)
 {
 	const char *Exe = GetVcName();
 	if (!Exe)
 		return false;
+
+	if (d->Log && LogCmd)
+		d->Log->Print("%s %s\n", Exe, Args);
 
 	GAutoPtr<GSubProcess> Process(new GSubProcess(Exe, Args));
 	if (!Process)
@@ -133,12 +136,12 @@ bool VcFolder::StartCmd(const char *Args, ParseFn Parser)
 
 	Process->SetInitFolder(Path);
 
-	GAutoPtr<Cmd> c(new Cmd);
+	GAutoPtr<Cmd> c(new Cmd(LogCmd ? d->Log : NULL));
 	if (!c)
 		return false;
 
 	c->PostOp = Parser;
-	c->Rd.Reset(new ReaderThread(Process.Release(), &c->Buf));
+	c->Rd.Reset(new ReaderThread(Process.Release(), c));
 	Cmds.Add(c.Release());
 
 	Update();
@@ -227,8 +230,15 @@ void VcFolder::Select(bool b)
 				it.Insert(Log[i]);
 		}
 		d->Lst->Insert(it);
-		if (GetType() == VcSvn)
-			d->Lst->ResizeColumnsToContent();
+		if (GetType() == VcGit)
+		{
+			d->Lst->ColumnAt(0)->Width(40);
+			d->Lst->ColumnAt(1)->Width(270);
+			d->Lst->ColumnAt(2)->Width(240);
+			d->Lst->ColumnAt(3)->Width(130);
+			d->Lst->ColumnAt(4)->Width(400);
+		}
+		else d->Lst->ResizeColumnsToContent();
 		d->Lst->UpdateAllItems();
 
 		if (!CurrentCommit && !IsGetCur)
@@ -342,35 +352,7 @@ bool VcFolder::ParseUpdate(GString s)
 bool VcFolder::ParseWorking(GString s)
 {
 	d->ClearFiles();
-
-	switch (GetType())
-	{
-		case VcGit:
-		{
-			ParseDiffs(s, true);
-			break;
-		}
-		case VcSvn:
-		{
-			GString::Array a = s.Split("\n");
-			for (unsigned i=0; i<a.Length(); i++)
-			{
-				GString Ln = a[i].Strip();
-				if (Ln.Length() == 0)
-					continue;
-				if (Ln(0) == '?')
-					; // Ignore
-				else
-				{
-					VcFile *li = new VcFile(d, true);
-					li->SetText(Ln, COL_FILENAME);
-					d->Files->Insert(li);
-				}
-			}
-			break;
-		}
-	}
-
+	ParseDiffs(s, true);
 	IsWorkingFld = false;
 	d->Files->ResizeColumnsToContent();
 
@@ -494,7 +476,7 @@ bool VcFolder::ParseFiles(GString s)
 
 void VcFolder::OnPulse()
 {
-	bool Reselect = false;
+	bool Reselect = false, CmdsChanged = false;
 		
 	for (unsigned i=0; i<Cmds.Length(); i++)
 	{
@@ -505,14 +487,14 @@ void VcFolder::OnPulse()
 			Reselect |= CALL_MEMBER_FN(*this, c->PostOp)(s);
 			Cmds.DeleteAt(i--, true);
 			delete c;
+			CmdsChanged = true;
 		}
 	}
 
 	if (Reselect)
-	{
 		Select(true);
+	if (CmdsChanged)
 		Update();
-	}
 }
 
 void VcFolder::OnRemove()
@@ -608,16 +590,7 @@ void VcFolder::ListWorkingFolder()
 	if (!IsWorkingFld)
 	{
 		d->ClearFiles();
-
-		switch (GetType())
-		{
-			case VcGit:
-				IsWorkingFld = StartCmd("diff", &VcFolder::ParseWorking);
-				break;
-			case VcSvn:
-				IsWorkingFld = StartCmd("status", &VcFolder::ParseWorking);
-				break;
-		}
+		IsWorkingFld = StartCmd("diff", &VcFolder::ParseWorking);
 	}
 }
 
@@ -641,13 +614,103 @@ void VcFolder::Commit(const char *Msg)
 		switch (GetType())
 		{
 			case VcGit:
-				Args.Printf("commit -am \"%s\"", Msg);
-				IsCommit = StartCmd(Args, &VcFolder::ParseCommit);
+				if (Partial)
+				{
+					LgiMsg(GetTree(), "%s:%i - Not impl.", AppName, MB_OK, _FL);
+					break;
+				}
+				else Args.Printf("commit -am \"%s\"", Msg);
+				IsCommit = StartCmd(Args, &VcFolder::ParseCommit, true);
 				break;
 			case VcSvn:
+			{
+				GString::Array a;
+				a.New().Printf("commit -m \"%s\"", Msg);
+				for (VcFile **pf = NULL; Add.Iterate(pf); )
+					a.New() = (*pf)->GetFileName();
+
+				Args = GString(" ").Join(a);
+				IsCommit = StartCmd(Args, &VcFolder::ParseCommit, true);
 				break;
+			}
 		}
 	}
+}
+
+void VcFolder::Push()
+{
+	if (!Cmds.Length())
+	{
+		GString Args;
+		bool Working = false;
+		switch (GetType())
+		{
+			case VcGit:
+				Working = StartCmd("push", &VcFolder::ParsePush, true);
+				break;
+			case VcSvn:
+				// Nothing to do here.. the commit pushed the data already
+				break;
+		}
+
+		if (d->Tabs && Working)
+		{
+			d->Tabs->Value(1);
+			GetTree()->SendNotify(LvcCommandStart);
+		}
+	}
+}
+
+bool VcFolder::ParsePush(GString s)
+{
+	switch (GetType())
+	{
+		case VcGit:
+			break;
+		case VcSvn:
+			break;
+	}
+
+	GetTree()->SendNotify(LvcCommandEnd);
+	return false; // no reselect
+}
+
+void VcFolder::Pull()
+{
+	if (!Cmds.Length())
+	{
+		GString Args;
+		bool Status = false;
+		switch (GetType())
+		{
+			case VcGit:
+				Status = StartCmd("pull", &VcFolder::ParsePull, true);
+				break;
+			case VcSvn:
+				Status = StartCmd("up", &VcFolder::ParsePull, true);
+				break;
+		}
+
+		if (d->Tabs && Status)
+		{
+			d->Tabs->Value(1);
+			GetTree()->SendNotify(LvcCommandStart);
+		}
+	}
+}
+
+bool VcFolder::ParsePull(GString s)
+{
+	switch (GetType())
+	{
+		case VcGit:
+			break;
+		case VcSvn:
+			break;
+	}
+
+	GetTree()->SendNotify(LvcCommandEnd);
+	return true; // Yes - reselect and update
 }
 
 ///////////////////////////////////////////////////////////////////////////////////

@@ -7,11 +7,20 @@
 #include "GTree.h"
 #include "GOptionsFile.h"
 #include "GTextView3.h"
+#include "GTextLog.h"
+#include "GTabView.h"
 
 #define OPT_Folders	"Folders"
 #define OPT_Folder	"Folder"
 
 extern const char *AppName;
+
+enum LvcNotify
+{
+	 LvcBase = GNotifyUserApp,
+	 LvcCommandStart,
+	 LvcCommandEnd
+};
 
 enum FileColumns
 {
@@ -30,8 +39,10 @@ enum AppIds
 	IDC_FILES,
 	IDC_FILES_BOX,
 	IDC_TXT,
+	IDC_LOG,
 	IDC_MSG,
 	IDC_MSG_BOX,
+	IDC_TAB_VIEW,
 
 	IDM_ADD = 200,
 	IDM_UPDATE,
@@ -54,23 +65,28 @@ struct AppPriv
 	LList *Lst;
 	LList *Files;
 	GOptionsFile Opts;
-	GTextView3 *Txt, *Msg;
+	GTextView3 *Msg;
+	GTextLog *Diff;
+	GTextLog *Log;
+	GTabView *Tabs;
 
 	AppPriv()  : Opts(GOptionsFile::PortableMode, AppName)
 	{
 		Lst = NULL;
 		Tree = NULL;
 		Files = NULL;
-		Txt = NULL;
+		Diff = NULL;
+		Log = NULL;
 		Msg = NULL;
+		Tabs = NULL;
 	}
 
 	void ClearFiles()
 	{
 		if (Files)
 			Files->Empty();
-		if (Txt)
-			Txt->Name(NULL);
+		if (Diff)
+			Diff->Name(NULL);		
 	}
 };
 

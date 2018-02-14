@@ -109,6 +109,12 @@ public:
 	{
 		AttachChildren();
 	}
+
+	void OnPaint(GSurface *pDC)
+	{
+		pDC->Colour(LC_MED, 24);
+		pDC->Rectangle();
+	}
 };
 
 class CommitCtrls : public GLayout, public GLgiRes
@@ -216,10 +222,18 @@ public:
 			Msg->Attach(MsgBox);
 			Msg->GetCss(true)->Height(GCss::Len("100px"));
 
-			Txt = new DiffView(IDC_TXT);
-			Txt->Sunken(true);
-			Txt->SetWrapType(TEXTED_WRAP_NONE);
-			Txt->Attach(MsgBox);
+			Tabs = new GTabView(IDC_TAB_VIEW);
+			Tabs->Attach(MsgBox);
+
+			GTabPage *p = Tabs->Append("Diff");
+			p->Append(Diff = new DiffView(IDC_TXT));
+			// Diff->Sunken(true);
+			Diff->SetWrapType(TEXTED_WRAP_NONE);
+
+			p = Tabs->Append("Log");
+			p->Append(Log = new GTextLog(IDC_LOG));
+			// Log->Sunken(true);
+			Log->SetWrapType(TEXTED_WRAP_NONE);
 
 			AttachChildren();
             Visible(true);
@@ -300,30 +314,46 @@ public:
 			}
 			case IDC_TREE:
 			{
-				if (flag == GNotifyContainer_Click)
+				switch (flag)
 				{
-					GMouse m;
-					c->GetMouse(m);
-					if (m.Right())
+					case GNotifyContainer_Click:
 					{
-						GSubMenu s;
-						s.AppendItem("Add", IDM_ADD);
-						int Cmd = s.Float(c->GetGView(), m);
-						switch (Cmd)
+						GMouse m;
+						c->GetMouse(m);
+						if (m.Right())
 						{
-							case IDM_ADD:
+							GSubMenu s;
+							s.AppendItem("Add", IDM_ADD);
+							int Cmd = s.Float(c->GetGView(), m);
+							switch (Cmd)
 							{
-								GFileSelect s;
-								s.Parent(c);
-								if (s.OpenFolder())
+								case IDM_ADD:
 								{
-									if (DetectVcs(s.Name()))
-										Tree->Insert(new VcFolder(this, s.Name()));
-									else
-										LgiMsg(this, "Folder not under version control.", AppName);
+									GFileSelect s;
+									s.Parent(c);
+									if (s.OpenFolder())
+									{
+										if (DetectVcs(s.Name()))
+											Tree->Insert(new VcFolder(this, s.Name()));
+										else
+											LgiMsg(this, "Folder not under version control.", AppName);
+									}
 								}
 							}
 						}
+						break;
+					}
+					case LvcCommandStart:
+					{
+						SetCtrlEnabled(IDC_PUSH, false);
+						SetCtrlEnabled(IDC_PULL, false);
+						break;
+					}
+					case LvcCommandEnd:
+					{
+						SetCtrlEnabled(IDC_PUSH, true);
+						SetCtrlEnabled(IDC_PULL, true);
+						break;
 					}
 				}
 				break;
@@ -352,6 +382,20 @@ public:
 					}
 				}
 				else LgiMsg(this, "No message for commit.", AppName);
+				break;
+			}
+			case IDC_PUSH:
+			{
+				VcFolder *f = dynamic_cast<VcFolder*>(Tree->Selection());
+				if (f)
+					f->Push();
+				break;
+			}
+			case IDC_PULL:
+			{
+				VcFolder *f = dynamic_cast<VcFolder*>(Tree->Selection());
+				if (f)
+					f->Pull();
 				break;
 			}
 		}
