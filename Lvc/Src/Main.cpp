@@ -109,6 +109,12 @@ public:
 	{
 		AttachChildren();
 	}
+
+	void OnPaint(GSurface *pDC)
+	{
+		pDC->Colour(LC_MED, 24);
+		pDC->Rectangle();
+	}
 };
 
 class CommitCtrls : public GLayout, public GLgiRes

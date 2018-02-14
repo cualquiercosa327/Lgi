@@ -227,8 +227,15 @@ void VcFolder::Select(bool b)
 				it.Insert(Log[i]);
 		}
 		d->Lst->Insert(it);
-		if (GetType() == VcSvn)
-			d->Lst->ResizeColumnsToContent();
+		if (GetType() == VcGit)
+		{
+			d->Lst->ColumnAt(0)->Width(40);
+			d->Lst->ColumnAt(1)->Width(270);
+			d->Lst->ColumnAt(2)->Width(240);
+			d->Lst->ColumnAt(3)->Width(130);
+			d->Lst->ColumnAt(4)->Width(400);
+		}
+		else d->Lst->ResizeColumnsToContent();
 		d->Lst->UpdateAllItems();
 
 		if (!CurrentCommit && !IsGetCur)
@@ -494,7 +501,7 @@ bool VcFolder::ParseFiles(GString s)
 
 void VcFolder::OnPulse()
 {
-	bool Reselect = false;
+	bool Reselect = false, CmdsChanged = false;
 		
 	for (unsigned i=0; i<Cmds.Length(); i++)
 	{
@@ -505,14 +512,14 @@ void VcFolder::OnPulse()
 			Reselect |= CALL_MEMBER_FN(*this, c->PostOp)(s);
 			Cmds.DeleteAt(i--, true);
 			delete c;
+			CmdsChanged = true;
 		}
 	}
 
 	if (Reselect)
-	{
 		Select(true);
+	if (CmdsChanged)
 		Update();
-	}
 }
 
 void VcFolder::OnRemove()
