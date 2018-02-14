@@ -15,6 +15,7 @@ public:
 
 	int Checked(int Set = -1);
 	const char *GetDiff() { return Diff; }
+	const char *GetFileName() { return GetText(COL_FILENAME); }
 	
 	void SetDiff(GString d);
 	void Select(bool b);

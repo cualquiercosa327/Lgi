@@ -352,35 +352,7 @@ bool VcFolder::ParseUpdate(GString s)
 bool VcFolder::ParseWorking(GString s)
 {
 	d->ClearFiles();
-
-	switch (GetType())
-	{
-		case VcGit:
-		{
-			ParseDiffs(s, true);
-			break;
-		}
-		case VcSvn:
-		{
-			GString::Array a = s.Split("\n");
-			for (unsigned i=0; i<a.Length(); i++)
-			{
-				GString Ln = a[i].Strip();
-				if (Ln.Length() == 0)
-					continue;
-				if (Ln(0) == '?')
-					; // Ignore
-				else
-				{
-					VcFile *li = new VcFile(d, true);
-					li->SetText(Ln, COL_FILENAME);
-					d->Files->Insert(li);
-				}
-			}
-			break;
-		}
-	}
-
+	ParseDiffs(s, true);
 	IsWorkingFld = false;
 	d->Files->ResizeColumnsToContent();
 
@@ -618,16 +590,7 @@ void VcFolder::ListWorkingFolder()
 	if (!IsWorkingFld)
 	{
 		d->ClearFiles();
-
-		switch (GetType())
-		{
-			case VcGit:
-				IsWorkingFld = StartCmd("diff", &VcFolder::ParseWorking);
-				break;
-			case VcSvn:
-				IsWorkingFld = StartCmd("status", &VcFolder::ParseWorking);
-				break;
-		}
+		IsWorkingFld = StartCmd("diff", &VcFolder::ParseWorking);
 	}
 }
 
@@ -660,14 +623,18 @@ void VcFolder::Commit(const char *Msg)
 				IsCommit = StartCmd(Args, &VcFolder::ParseCommit, true);
 				break;
 			case VcSvn:
-				if (Partial)
+			{
+				GString::Array a;
+				a.New().Printf("commit -m \"%s\"", Msg);
+				for (VcFile **pf = NULL; Add.Iterate(pf); )
 				{
-					LgiMsg(GetTree(), "%s:%i - Not impl.", AppName, MB_OK, _FL);
-					break;
+					a.New() = (*pf)->GetFileName();
 				}
-				else Args.Printf("commit -m \"%s\"", Msg);
+
+				Args = GString(" ").Join(a);
 				IsCommit = StartCmd(Args, &VcFolder::ParseCommit, true);
 				break;
+			}
 		}
 	}
 }
