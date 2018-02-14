@@ -695,6 +695,11 @@ bool VcFolder::ParsePush(GString s)
 		case VcSvn:
 			break;
 	}
+
+	if (d->Log)
+		d->Log->Name(s);
+	if (d->Tabs)
+		d->Tabs->Value(1);
 	
 	return false; // no reselect
 }
@@ -725,6 +730,11 @@ bool VcFolder::ParsePull(GString s)
 		case VcSvn:
 			break;
 	}
+
+	if (d->Log)
+		d->Log->Name(s);
+	if (d->Tabs)
+		d->Tabs->Value(1);
 
 	return true; // Yes - reselect and update
 }

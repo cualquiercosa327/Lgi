@@ -222,10 +222,18 @@ public:
 			Msg->Attach(MsgBox);
 			Msg->GetCss(true)->Height(GCss::Len("100px"));
 
-			Txt = new DiffView(IDC_TXT);
-			Txt->Sunken(true);
-			Txt->SetWrapType(TEXTED_WRAP_NONE);
-			Txt->Attach(MsgBox);
+			Tabs = new GTabView(IDC_TAB_VIEW);
+			Tabs->Attach(MsgBox);
+
+			GTabPage *p = Tabs->Append("Diff");
+			p->Append(Diff = new DiffView(IDC_TXT));
+			// Diff->Sunken(true);
+			Diff->SetWrapType(TEXTED_WRAP_NONE);
+
+			p = Tabs->Append("Log");
+			p->Append(Log = new GTextLog(IDC_LOG));
+			// Log->Sunken(true);
+			Log->SetWrapType(TEXTED_WRAP_NONE);
 
 			AttachChildren();
             Visible(true);
@@ -365,6 +373,13 @@ public:
 				VcFolder *f = dynamic_cast<VcFolder*>(Tree->Selection());
 				if (f)
 					f->Push();
+				break;
+			}
+			case IDC_PULL:
+			{
+				VcFolder *f = dynamic_cast<VcFolder*>(Tree->Selection());
+				if (f)
+					f->Pull();
 				break;
 			}
 		}
