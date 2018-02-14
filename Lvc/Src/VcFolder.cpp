@@ -627,9 +627,7 @@ void VcFolder::Commit(const char *Msg)
 				GString::Array a;
 				a.New().Printf("commit -m \"%s\"", Msg);
 				for (VcFile **pf = NULL; Add.Iterate(pf); )
-				{
 					a.New() = (*pf)->GetFileName();
-				}
 
 				Args = GString(" ").Join(a);
 				IsCommit = StartCmd(Args, &VcFolder::ParseCommit, true);
@@ -644,18 +642,22 @@ void VcFolder::Push()
 	if (!Cmds.Length())
 	{
 		GString Args;
+		bool Working = false;
 		switch (GetType())
 		{
 			case VcGit:
-				StartCmd("push", &VcFolder::ParsePush, true);
+				Working = StartCmd("push", &VcFolder::ParsePush, true);
 				break;
 			case VcSvn:
 				// Nothing to do here.. the commit pushed the data already
 				break;
 		}
 
-		if (d->Tabs)
+		if (d->Tabs && Working)
+		{
 			d->Tabs->Value(1);
+			GetTree()->SendNotify(LvcCommandStart);
+		}
 	}
 }
 
@@ -669,6 +671,7 @@ bool VcFolder::ParsePush(GString s)
 			break;
 	}
 
+	GetTree()->SendNotify(LvcCommandEnd);
 	return false; // no reselect
 }
 
@@ -677,18 +680,22 @@ void VcFolder::Pull()
 	if (!Cmds.Length())
 	{
 		GString Args;
+		bool Status = false;
 		switch (GetType())
 		{
 			case VcGit:
-				StartCmd("pull", &VcFolder::ParsePull, true);
+				Status = StartCmd("pull", &VcFolder::ParsePull, true);
 				break;
 			case VcSvn:
-				StartCmd("up", &VcFolder::ParsePull, true);
+				Status = StartCmd("up", &VcFolder::ParsePull, true);
 				break;
 		}
 
-		if (d->Tabs)
+		if (d->Tabs && Status)
+		{
 			d->Tabs->Value(1);
+			GetTree()->SendNotify(LvcCommandStart);
+		}
 	}
 }
 
@@ -702,6 +709,7 @@ bool VcFolder::ParsePull(GString s)
 			break;
 	}
 
+	GetTree()->SendNotify(LvcCommandEnd);
 	return true; // Yes - reselect and update
 }
 

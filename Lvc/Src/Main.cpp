@@ -314,30 +314,46 @@ public:
 			}
 			case IDC_TREE:
 			{
-				if (flag == GNotifyContainer_Click)
+				switch (flag)
 				{
-					GMouse m;
-					c->GetMouse(m);
-					if (m.Right())
+					case GNotifyContainer_Click:
 					{
-						GSubMenu s;
-						s.AppendItem("Add", IDM_ADD);
-						int Cmd = s.Float(c->GetGView(), m);
-						switch (Cmd)
+						GMouse m;
+						c->GetMouse(m);
+						if (m.Right())
 						{
-							case IDM_ADD:
+							GSubMenu s;
+							s.AppendItem("Add", IDM_ADD);
+							int Cmd = s.Float(c->GetGView(), m);
+							switch (Cmd)
 							{
-								GFileSelect s;
-								s.Parent(c);
-								if (s.OpenFolder())
+								case IDM_ADD:
 								{
-									if (DetectVcs(s.Name()))
-										Tree->Insert(new VcFolder(this, s.Name()));
-									else
-										LgiMsg(this, "Folder not under version control.", AppName);
+									GFileSelect s;
+									s.Parent(c);
+									if (s.OpenFolder())
+									{
+										if (DetectVcs(s.Name()))
+											Tree->Insert(new VcFolder(this, s.Name()));
+										else
+											LgiMsg(this, "Folder not under version control.", AppName);
+									}
 								}
 							}
 						}
+						break;
+					}
+					case LvcCommandStart:
+					{
+						SetCtrlEnabled(IDC_PUSH, false);
+						SetCtrlEnabled(IDC_PULL, false);
+						break;
+					}
+					case LvcCommandEnd:
+					{
+						SetCtrlEnabled(IDC_PUSH, true);
+						SetCtrlEnabled(IDC_PULL, true);
+						break;
 					}
 				}
 				break;

@@ -15,6 +15,13 @@
 
 extern const char *AppName;
 
+enum LvcNotify
+{
+	 LvcBase = GNotifyUserApp,
+	 LvcCommandStart,
+	 LvcCommandEnd
+};
+
 enum FileColumns
 {
 	COL_CHECKBOX,
