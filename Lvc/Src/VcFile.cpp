@@ -28,19 +28,18 @@ void VcFile::SetDiff(GString diff)
 {
 	Diff = diff;
 	if (LListItem::Select())
-	{
 		d->Diff->Name(Diff);
-		d->Tabs->Value(0);
-	}
 }
 
 void VcFile::Select(bool b)
 {
 	LListItem::Select(b);
 	if (b)
-	{
 		d->Diff->Name(Diff);
-		d->Tabs->Value(0);
-	}
 }
 
+void VcFile::OnMouseClick(GMouse &m)
+{
+	if (m.Left() && m.Down() && d->Tabs)
+		d->Tabs->Value(0);
+}

@@ -18,6 +18,7 @@ public:
 	
 	void SetDiff(GString d);
 	void Select(bool b);
+	void OnMouseClick(GMouse &m);
 };
 
 #endif

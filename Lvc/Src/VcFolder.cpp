@@ -121,11 +121,14 @@ const char *VcFolder::GetVcName()
 	return NULL;
 }
 
-bool VcFolder::StartCmd(const char *Args, ParseFn Parser, bool Debug)
+bool VcFolder::StartCmd(const char *Args, ParseFn Parser, bool LogCmd)
 {
 	const char *Exe = GetVcName();
 	if (!Exe)
 		return false;
+
+	if (d->Log && LogCmd)
+		d->Log->Print("%s %s\n", Exe, Args);
 
 	GAutoPtr<GSubProcess> Process(new GSubProcess(Exe, Args));
 	if (!Process)
@@ -133,12 +136,12 @@ bool VcFolder::StartCmd(const char *Args, ParseFn Parser, bool Debug)
 
 	Process->SetInitFolder(Path);
 
-	GAutoPtr<Cmd> c(new Cmd);
+	GAutoPtr<Cmd> c(new Cmd(LogCmd ? d->Log : NULL));
 	if (!c)
 		return false;
 
 	c->PostOp = Parser;
-	c->Rd.Reset(new ReaderThread(Process.Release(), &c->Buf));
+	c->Rd.Reset(new ReaderThread(Process.Release(), c));
 	Cmds.Add(c.Release());
 
 	Update();
@@ -677,12 +680,15 @@ void VcFolder::Push()
 		switch (GetType())
 		{
 			case VcGit:
-				StartCmd("push", &VcFolder::ParsePush);
+				StartCmd("push", &VcFolder::ParsePush, true);
 				break;
 			case VcSvn:
 				// Nothing to do here.. the commit pushed the data already
 				break;
 		}
+
+		if (d->Tabs)
+			d->Tabs->Value(1);
 	}
 }
 
@@ -696,11 +702,6 @@ bool VcFolder::ParsePush(GString s)
 			break;
 	}
 
-	if (d->Log)
-		d->Log->Name(s);
-	if (d->Tabs)
-		d->Tabs->Value(1);
-	
 	return false; // no reselect
 }
 
@@ -712,12 +713,15 @@ void VcFolder::Pull()
 		switch (GetType())
 		{
 			case VcGit:
-				StartCmd("pull", &VcFolder::ParsePull);
+				StartCmd("pull", &VcFolder::ParsePull, true);
 				break;
 			case VcSvn:
-				StartCmd("up", &VcFolder::ParsePull);
+				StartCmd("up", &VcFolder::ParsePull, true);
 				break;
 		}
+
+		if (d->Tabs)
+			d->Tabs->Value(1);
 	}
 }
 
@@ -730,11 +734,6 @@ bool VcFolder::ParsePull(GString s)
 		case VcSvn:
 			break;
 	}
-
-	if (d->Log)
-		d->Log->Name(s);
-	if (d->Tabs)
-		d->Tabs->Value(1);
 
 	return true; // Yes - reselect and update
 }

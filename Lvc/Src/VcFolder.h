@@ -19,11 +19,24 @@ class VcFolder : public GTreeItem
 {
 	typedef bool (VcFolder::*ParseFn)(GString);
 	
-	struct Cmd
+	struct Cmd : public GStream
 	{
 		GStringPipe Buf;
+		GStream *Log;
 		GAutoPtr<LThread> Rd;
 		ParseFn PostOp;
+
+		Cmd(GStream *log)
+		{
+			Log = log;
+		}
+
+		ssize_t Write(const void *Ptr, ssize_t Size, int Flags = 0)
+		{
+			ssize_t Wr = Buf.Write(Ptr, Size, Flags);
+			if (Log) Log->Write(Ptr, Size, Flags);
+			return Wr;
+		}
 	};
 
 	class UncommitedItem : public LListItem
@@ -52,7 +65,7 @@ class VcFolder : public GTreeItem
 
 	void Init(AppPriv *priv);
 	const char *GetVcName();
-	bool StartCmd(const char *Args, ParseFn Parser, bool Debug = false);
+	bool StartCmd(const char *Args, ParseFn Parser, bool LogCmd = false);
 
 	bool ParseDiffs(GString s, bool IsWorking);
 	bool ParseLog(GString s);
