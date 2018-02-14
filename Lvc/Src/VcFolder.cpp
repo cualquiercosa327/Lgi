@@ -657,7 +657,7 @@ void VcFolder::Commit(const char *Msg)
 					break;
 				}
 				else Args.Printf("commit -am \"%s\"", Msg);
-				IsCommit = StartCmd(Args, &VcFolder::ParseCommit);
+				IsCommit = StartCmd(Args, &VcFolder::ParseCommit, true);
 				break;
 			case VcSvn:
 				if (Partial)
@@ -666,7 +666,7 @@ void VcFolder::Commit(const char *Msg)
 					break;
 				}
 				else Args.Printf("commit -m \"%s\"", Msg);
-				IsCommit = StartCmd(Args, &VcFolder::ParseCommit);
+				IsCommit = StartCmd(Args, &VcFolder::ParseCommit, true);
 				break;
 		}
 	}
