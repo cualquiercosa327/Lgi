@@ -648,15 +648,85 @@ void VcFolder::Commit(const char *Msg)
 		switch (GetType())
 		{
 			case VcGit:
-				Args.Printf("commit -am \"%s\"", Msg);
+				if (Partial)
+				{
+					LgiMsg(GetTree(), "%s:%i - Not impl.", AppName, MB_OK, _FL);
+					break;
+				}
+				else Args.Printf("commit -am \"%s\"", Msg);
 				IsCommit = StartCmd(Args, &VcFolder::ParseCommit);
 				break;
 			case VcSvn:
-				Args.Printf("commit -m \"%s\"", Msg);
+				if (Partial)
+				{
+					LgiMsg(GetTree(), "%s:%i - Not impl.", AppName, MB_OK, _FL);
+					break;
+				}
+				else Args.Printf("commit -m \"%s\"", Msg);
 				IsCommit = StartCmd(Args, &VcFolder::ParseCommit);
 				break;
 		}
 	}
+}
+
+void VcFolder::Push()
+{
+	if (!Cmds.Length())
+	{
+		GString Args;
+		switch (GetType())
+		{
+			case VcGit:
+				StartCmd("push", &VcFolder::ParsePush);
+				break;
+			case VcSvn:
+				// Nothing to do here.. the commit pushed the data already
+				break;
+		}
+	}
+}
+
+bool VcFolder::ParsePush(GString s)
+{
+	switch (GetType())
+	{
+		case VcGit:
+			break;
+		case VcSvn:
+			break;
+	}
+	
+	return false; // no reselect
+}
+
+void VcFolder::Pull()
+{
+	if (!Cmds.Length())
+	{
+		GString Args;
+		switch (GetType())
+		{
+			case VcGit:
+				StartCmd("pull", &VcFolder::ParsePull);
+				break;
+			case VcSvn:
+				StartCmd("up", &VcFolder::ParsePull);
+				break;
+		}
+	}
+}
+
+bool VcFolder::ParsePull(GString s)
+{
+	switch (GetType())
+	{
+		case VcGit:
+			break;
+		case VcSvn:
+			break;
+	}
+
+	return true; // Yes - reselect and update
 }
 
 ///////////////////////////////////////////////////////////////////////////////////

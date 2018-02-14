@@ -61,6 +61,8 @@ class VcFolder : public GTreeItem
 	bool ParseWorking(GString s);
 	bool ParseUpdate(GString s);
 	bool ParseCommit(GString s);
+	bool ParsePush(GString s);
+	bool ParsePull(GString s);
 	
 public:
 	VcFolder(AppPriv *priv, const char *p);
@@ -74,6 +76,8 @@ public:
 	void ListCommit(const char *Rev);
 	void ListWorkingFolder();
 	void Commit(const char *Msg);
+	void Push();
+	void Pull();
 
 	void OnPulse();
 	void OnUpdate(const char *Rev);

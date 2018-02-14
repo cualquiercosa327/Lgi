@@ -360,6 +360,13 @@ public:
 				else LgiMsg(this, "No message for commit.", AppName);
 				break;
 			}
+			case IDC_PUSH:
+			{
+				VcFolder *f = dynamic_cast<VcFolder*>(Tree->Selection());
+				if (f)
+					f->Push();
+				break;
+			}
 		}
 
 		return 0;
