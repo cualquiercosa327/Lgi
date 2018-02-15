@@ -55,7 +55,7 @@ class VcFolder : public GTreeItem
 
 	AppPriv *d;
 	VersionCtrl Type;
-	GString Path, CurrentCommit;
+	GString Path, CurrentCommit, RepoUrl;
 	GArray<VcCommit*> Log;
 	GAutoPtr<UncommitedItem> Uncommit;
 	GString Cache, NewRev;

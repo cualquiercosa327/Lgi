@@ -215,7 +215,7 @@ void VcFolder::Select(bool b)
 					IsUpdatingCounts = StartCmd("cherry -v", &VcFolder::ParseCounts);
 					break;
 				case VcSvn:
-					// IsUpdatingCounts = StartCmd("log", &VcFolder::ParseLog);
+					IsUpdatingCounts = StartCmd("status -u", &VcFolder::ParseCounts);
 					break;
 				default:
 					LgiAssert(!"Impl me.");
@@ -421,11 +421,11 @@ bool VcFolder::ParseInfo(int Result, GString s)
 			GString::Array c = s.Split("\n");
 			for (unsigned i=0; i<c.Length(); i++)
 			{
-				if (c[i].Find("Revision:") >= 0)
-				{
-					CurrentCommit = c[i].Split(":", 1)[1].Strip();
-					break;
-				}
+				GString::Array a = c[i].SplitDelimit(":", 1);
+				if (a.First().Strip().Equals("Revision"))
+					CurrentCommit = a[1].Strip();
+				else if (a.First().Strip().Equals("URL"))
+					RepoUrl = a[1].Strip();
 			}
 			break;
 		}			
@@ -469,6 +469,12 @@ bool VcFolder::ParseWorking(int Result, GString s)
 	ParseDiffs(s, true);
 	IsWorkingFld = false;
 	d->Files->ResizeColumnsToContent();
+
+	if (GetType() == VcSvn)
+	{
+		Unpushed = d->Files->Length() > 0 ? 1 : 0;
+		Update();
+	}
 
 	return false;
 }
@@ -840,12 +846,37 @@ bool VcFolder::ParseCounts(int Result, GString s)
 	switch (GetType())
 	{
 		case VcGit:
+		{
 			Unpushed = (int) s.Strip().Split("\n").Length();
 			break;
+		}
 		case VcSvn:
+		{
+			int64 ServerRev = 0;
+			bool HasUpdate = false;
+
+			GString::Array c = s.Split("\n");
+			for (unsigned i=0; i<c.Length(); i++)
+			{
+				GString::Array a = c[i].SplitDelimit();
+				if (a.Length() > 1 && a[0].Equals("Status"))
+					ServerRev = a.Last().Int();
+				else if (a[0].Equals("*"))
+					HasUpdate = true;
+			}
+
+			if (ServerRev > 0 && HasUpdate)
+			{
+				int64 CurRev = CurrentCommit.Int();
+				Unpulled = (int) (ServerRev - CurRev);
+			}
+			else Unpulled = 0;
+			Update();
 			break;
+		}
 	}
 
+	IsUpdatingCounts = false;
 	Update();
 	return false; // No re-select
 }
