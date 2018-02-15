@@ -212,7 +212,7 @@ void VcFolder::Select(bool b)
 			switch (GetType())
 			{
 				case VcGit:
-					IsUpdatingCounts = StartCmd("git cherry -v", &VcFolder::ParseCounts);
+					IsUpdatingCounts = StartCmd("cherry -v", &VcFolder::ParseCounts);
 					break;
 				case VcSvn:
 					// IsUpdatingCounts = StartCmd("log", &VcFolder::ParseLog);
@@ -784,6 +784,12 @@ bool VcFolder::ParsePush(int Result, GString s)
 			break;
 		case VcSvn:
 			break;
+	}
+
+	if (Result == 0)
+	{
+		Unpushed = 0;
+		Update();
 	}
 
 	GetTree()->SendNotify(LvcCommandEnd);
