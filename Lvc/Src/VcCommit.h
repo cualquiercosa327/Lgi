@@ -19,6 +19,7 @@ public:
 	char *GetRev();
 	char *GetAuthor();
 	char *GetMsg();
+	LDateTime &GetTs() { return Ts; }
 
 	void SetCurrent(bool b);
 	char *GetText(int Col);
