@@ -175,6 +175,7 @@ void VcFolder::Select(bool b)
 	{
 		if ((Log.Length() == 0 || CommitListDirty) && !IsLogging)
 		{
+			CommitListDirty = false;
 			switch (GetType())
 			{
 				case VcGit:
