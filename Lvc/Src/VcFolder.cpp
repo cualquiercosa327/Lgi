@@ -33,17 +33,19 @@ int ReaderThread::Main()
 		else
 		{
 			Process->Kill();
+			return -1;
 			break;
 		}
 	}
 
-	return 0;
+	return (int) Process->GetExitValue();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 void VcFolder::Init(AppPriv *priv)
 {
 	d = priv;
+	
 	IsCommit = false;
 	IsLogging = false;
 	IsGetCur = false;
@@ -51,6 +53,9 @@ void VcFolder::Init(AppPriv *priv)
 	IsFilesCmd = false;
 	IsWorkingFld = false;
 	CommitListDirty = false;
+	IsUpdatingCounts = false;
+
+	Unpushed = Unpulled = -1;
 	Type = VcNone;
 
 	LgiAssert(d != NULL);
@@ -77,14 +82,27 @@ VersionCtrl VcFolder::GetType()
 
 char *VcFolder::GetText(int Col)
 {
-	if (Cmds.Length())
+	switch (Col)
 	{
-		Cache = Path;
-		Cache += " (...)";
-		return Cache;
+		case 0:
+		{
+			if (Cmds.Length())
+			{
+				Cache = Path;
+				Cache += " (...)";
+				return Cache;
+			}
+			return Path;
+		}
+		case 1:
+		{
+			CountCache.Printf("%i/%i", Unpulled, Unpushed);
+			CountCache = CountCache.Replace("-1", "--");
+			return CountCache;
+		}
 	}
 
-	return Path;
+	return NULL;
 }
 
 bool VcFolder::Serialize(GXmlTag *t, bool Write)
@@ -179,10 +197,25 @@ void VcFolder::Select(bool b)
 			switch (GetType())
 			{
 				case VcGit:
-					IsLogging = StartCmd("log master", &VcFolder::ParseLog);
+					IsLogging = StartCmd("log origin", &VcFolder::ParseLog);
 					break;
 				case VcSvn:
 					IsLogging = StartCmd("log", &VcFolder::ParseLog);
+					break;
+				default:
+					LgiAssert(!"Impl me.");
+					break;
+			}				
+		}
+		if (!IsUpdatingCounts && Unpushed < 0)
+		{			
+			switch (GetType())
+			{
+				case VcGit:
+					IsUpdatingCounts = StartCmd("git cherry -v", &VcFolder::ParseCounts);
+					break;
+				case VcSvn:
+					// IsUpdatingCounts = StartCmd("log", &VcFolder::ParseLog);
 					break;
 				default:
 					LgiAssert(!"Impl me.");
@@ -291,7 +324,7 @@ void VcFolder::Select(bool b)
 	}
 }
 
-bool VcFolder::ParseLog(GString s)
+bool VcFolder::ParseLog(int Result, GString s)
 {
 	GHashTbl<char*, VcCommit*> Map;
 	for (VcCommit **pc = NULL; Log.Iterate(pc); )
@@ -374,7 +407,7 @@ bool VcFolder::ParseLog(GString s)
 	return true;
 }
 
-bool VcFolder::ParseInfo(GString s)
+bool VcFolder::ParseInfo(int Result, GString s)
 {
 	switch (GetType())
 	{
@@ -406,25 +439,31 @@ bool VcFolder::ParseInfo(GString s)
 	return true;
 }
 
-bool VcFolder::ParseCommit(GString s)
+bool VcFolder::ParseCommit(int Result, GString s)
 {
 	Select(true);
 	
 	CommitListDirty = true;
 	CurrentCommit.Empty();
 
+	if (Result == 0 && GetType() != VcSvn)
+	{
+		Unpushed++;
+		Update();
+	}		
+
 	IsCommit = false;
 	return true;
 }
 
-bool VcFolder::ParseUpdate(GString s)
+bool VcFolder::ParseUpdate(int Result, GString s)
 {
 	CurrentCommit = NewRev;
 	IsUpdate = false;
 	return true;
 }
 
-bool VcFolder::ParseWorking(GString s)
+bool VcFolder::ParseWorking(int Result, GString s)
 {
 	d->ClearFiles();
 	ParseDiffs(s, true);
@@ -539,7 +578,7 @@ bool VcFolder::ParseDiffs(GString s, bool IsWorking)
 	return true;
 }
 
-bool VcFolder::ParseFiles(GString s)
+bool VcFolder::ParseFiles(int Result, GString s)
 {
 	d->ClearFiles();
 	ParseDiffs(s, false);
@@ -559,7 +598,8 @@ void VcFolder::OnPulse()
 		if (c && c->Rd->IsExited())
 		{
 			GString s = c->Buf.NewGStr();
-			Reselect |= CALL_MEMBER_FN(*this, c->PostOp)(s);
+			int Result = c->Rd->ExitCode();
+			Reselect |= CALL_MEMBER_FN(*this, c->PostOp)(Result, s);
 			Cmds.DeleteAt(i--, true);
 			delete c;
 			CmdsChanged = true;
@@ -736,7 +776,7 @@ void VcFolder::Push()
 	}
 }
 
-bool VcFolder::ParsePush(GString s)
+bool VcFolder::ParsePush(int Result, GString s)
 {
 	switch (GetType())
 	{
@@ -759,7 +799,7 @@ void VcFolder::Pull()
 		switch (GetType())
 		{
 			case VcGit:
-				Status = StartCmd("pull", &VcFolder::ParsePull, true);
+				Status = StartCmd("fetch", &VcFolder::ParsePull, true);
 				break;
 			case VcSvn:
 				Status = StartCmd("up", &VcFolder::ParsePull, true);
@@ -774,7 +814,7 @@ void VcFolder::Pull()
 	}
 }
 
-bool VcFolder::ParsePull(GString s)
+bool VcFolder::ParsePull(int Result, GString s)
 {
 	switch (GetType())
 	{
@@ -785,7 +825,23 @@ bool VcFolder::ParsePull(GString s)
 	}
 
 	GetTree()->SendNotify(LvcCommandEnd);
+	CommitListDirty = true;
 	return true; // Yes - reselect and update
+}
+
+bool VcFolder::ParseCounts(int Result, GString s)
+{
+	switch (GetType())
+	{
+		case VcGit:
+			Unpushed = (int) s.Strip().Split("\n").Length();
+			break;
+		case VcSvn:
+			break;
+	}
+
+	Update();
+	return false; // No re-select
 }
 
 ///////////////////////////////////////////////////////////////////////////////////

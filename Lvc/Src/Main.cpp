@@ -190,6 +190,8 @@ public:
 
 			Tree = new GTree(IDC_TREE, 0, 0, 200, 200);
 			Tree->GetCss(true)->Width(GCss::Len("300px"));
+			Tree->AddColumn("Folder", 250);
+			Tree->AddColumn("Counts", 50);
 			Tree->Attach(FoldersBox);
 			CommitsBox->Attach(FoldersBox);
 

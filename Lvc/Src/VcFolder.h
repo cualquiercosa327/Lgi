@@ -17,7 +17,7 @@ public:
 
 class VcFolder : public GTreeItem
 {
-	typedef bool (VcFolder::*ParseFn)(GString);
+	typedef bool (VcFolder::*ParseFn)(int, GString);
 	
 	struct Cmd : public GStream
 	{
@@ -60,23 +60,26 @@ class VcFolder : public GTreeItem
 	GAutoPtr<UncommitedItem> Uncommit;
 	GString Cache, NewRev;
 	bool CommitListDirty;
+	int Unpushed, Unpulled;
+	GString CountCache;
 	
 	GArray<Cmd*> Cmds;
-	bool IsLogging, IsGetCur, IsUpdate, IsFilesCmd, IsWorkingFld, IsCommit;
+	bool IsLogging, IsGetCur, IsUpdate, IsFilesCmd, IsWorkingFld, IsCommit, IsUpdatingCounts;
 
 	void Init(AppPriv *priv);
 	const char *GetVcName();
 	bool StartCmd(const char *Args, ParseFn Parser, bool LogCmd = false);
 
 	bool ParseDiffs(GString s, bool IsWorking);
-	bool ParseLog(GString s);
-	bool ParseInfo(GString s);
-	bool ParseFiles(GString s);
-	bool ParseWorking(GString s);
-	bool ParseUpdate(GString s);
-	bool ParseCommit(GString s);
-	bool ParsePush(GString s);
-	bool ParsePull(GString s);
+	bool ParseLog(int Result, GString s);
+	bool ParseInfo(int Result, GString s);
+	bool ParseFiles(int Result, GString s);
+	bool ParseWorking(int Result, GString s);
+	bool ParseUpdate(int Result, GString s);
+	bool ParseCommit(int Result, GString s);
+	bool ParsePush(int Result, GString s);
+	bool ParsePull(int Result, GString s);
+	bool ParseCounts(int Result, GString s);
 	
 public:
 	VcFolder(AppPriv *priv, const char *p);
