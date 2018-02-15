@@ -40,6 +40,7 @@ void VcFile::Select(bool b)
 
 void VcFile::OnMouseClick(GMouse &m)
 {
+	LListItem::OnMouseClick(m);
 	if (m.Left() && m.Down() && d->Tabs)
 		d->Tabs->Value(0);
 }

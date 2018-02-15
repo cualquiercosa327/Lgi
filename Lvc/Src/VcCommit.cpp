@@ -104,6 +104,8 @@ bool VcCommit::SvnParse(GString s)
 		}
 	}
 
+	Msg = Msg.Strip();
+
 	return Author && Rev && Ts.IsValid();
 }
 
@@ -132,6 +134,8 @@ void VcCommit::Select(bool b)
 
 void VcCommit::OnMouseClick(GMouse &m)
 {
+	LListItem::OnMouseClick(m);
+
 	if (m.IsContextMenu())
 	{
 		GSubMenu s;
