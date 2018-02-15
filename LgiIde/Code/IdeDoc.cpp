@@ -18,8 +18,6 @@
 #include "GCheckBox.h"
 #include "SpaceTabConv.h"
 
-
-
 const char *Untitled = "[untitled]";
 // static const char *White = " \r\t\n";
 
