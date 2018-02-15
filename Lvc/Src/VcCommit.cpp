@@ -54,14 +54,14 @@ char *VcCommit::GetText(int Col)
 bool VcCommit::GitParse(GString s)
 {
 	GString::Array lines = s.Split("\n");
-	if (lines.Length() <= 3)
+	if (lines.Length() < 3)
 		return false;
 
 	for (unsigned ln = 0; ln < lines.Length(); ln++)
 	{
 		GString &l = lines[ln];
 		if (ln == 0)
-			Rev = l.Strip();
+			Rev = l.SplitDelimit().Last();
 		else if (l.Find("Author:") >= 0)
 			Author = l.Split(":", 1)[1].Strip();
 		else if (l.Find("Date:") >= 0)
@@ -74,7 +74,7 @@ bool VcCommit::GitParse(GString s)
 		}
 	}
 
-	return Author && Msg && Rev;
+	return Author && Rev;
 }
 
 bool VcCommit::SvnParse(GString s)

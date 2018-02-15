@@ -50,6 +50,7 @@ void VcFolder::Init(AppPriv *priv)
 	IsUpdate = false;
 	IsFilesCmd = false;
 	IsWorkingFld = false;
+	CommitListDirty = false;
 	Type = VcNone;
 
 	LgiAssert(d != NULL);
@@ -151,13 +152,28 @@ bool VcFolder::StartCmd(const char *Args, ParseFn Parser, bool LogCmd)
 	return true;
 }
 
+int LogDateCmp(LListItem *a, LListItem *b, NativeInt Data)
+{
+	VcCommit *A = dynamic_cast<VcCommit*>(a);
+	VcCommit *B = dynamic_cast<VcCommit*>(b);
+
+	if ((A != NULL) ^ (B != NULL))
+	{
+		// This handles keeping the "working folder" list item at the top
+		return (A != NULL) - (B != NULL);
+	}
+
+	// Sort the by date from most recent to least
+	return -A->GetTs().Compare(&B->GetTs());
+}
+
 void VcFolder::Select(bool b)
 {
 	GTreeItem::Select(b);
 	
 	if (b)
 	{
-		if (Log.Length() == 0 && !IsLogging)
+		if ((Log.Length() == 0 || CommitListDirty) && !IsLogging)
 		{
 			switch (GetType())
 			{
@@ -176,13 +192,18 @@ void VcFolder::Select(bool b)
 		char *Ctrl = d->Lst->GetWindow()->GetCtrlName(IDC_FILTER);
 		GString Filter = ValidStr(Ctrl) ? Ctrl : NULL;
 
-		d->Lst->RemoveAll();
-		List<LListItem> it;
+		if (d->CurFolder != this)
+		{
+			d->CurFolder = this;
+			d->Lst->RemoveAll();
+		}
+
 		if (!Uncommit)
 			Uncommit.Reset(new UncommitedItem(d));
-		it.Add(Uncommit);
+		d->Lst->Insert(Uncommit, 0);
 
 		int64 CurRev = Atoi(CurrentCommit.Get());
+		List<LListItem> Ls;
 		for (unsigned i=0; i<Log.Length(); i++)
 		{
 			if (CurrentCommit &&
@@ -226,10 +247,20 @@ void VcFolder::Select(bool b)
 					Add = true;
 				
 			}
-			if (Add)
-				it.Insert(Log[i]);
+
+			LList *CurOwner = Log[i]->GetList();
+			if (Add ^ (CurOwner != NULL))
+			{
+				if (Add)
+					Ls.Insert(Log[i]);
+				else
+					d->Lst->Remove(Log[i]);
+			}
 		}
-		d->Lst->Insert(it);
+
+		d->Lst->Insert(Ls);
+		d->Lst->Sort(LogDateCmp);
+
 		if (GetType() == VcGit)
 		{
 			d->Lst->ColumnAt(0)->Width(40);
@@ -261,31 +292,73 @@ void VcFolder::Select(bool b)
 
 bool VcFolder::ParseLog(GString s)
 {
+	GHashTbl<char*, VcCommit*> Map;
+	for (VcCommit **pc = NULL; Log.Iterate(pc); )
+		Map.Add((*pc)->GetRev(), *pc);
+
+	int Skipped = 0, Errors = 0;
 	switch (GetType())
 	{
 		case VcGit:
 		{
-			GString::Array c = s.Split("commit");
+			GString::Array c;
+			c.SetFixedLength(false);
+			char *prev = s.Get();
+
+			for (char *i = s.Get(); *i; )
+			{
+				if (!strnicmp(i, "commit ", 7))
+				{
+					if (i > prev)
+					{
+						c.New().Set(prev, i - prev);
+						// LgiTrace("commit=%i\n", (int)(i - prev));
+					}
+					prev = i;
+				}
+
+				while (*i)
+				{
+					if (*i++ == '\n')
+						break;
+				}
+			}
+
 			for (unsigned i=0; i<c.Length(); i++)
 			{
 				GAutoPtr<VcCommit> Rev(new VcCommit(d));
 				if (Rev->GitParse(c[i]))
-					Log.Add(Rev.Release());
+				{
+					if (!Map.Find(Rev->GetRev()))
+						Log.Add(Rev.Release());
+					else
+						Skipped++;
+				}
+				else
+				{
+					LgiTrace("%s:%i - Failed:\n%s\n\n", _FL, c[i].Get());
+					Errors++;
+				}
 			}
 			break;
 		}
 		case VcSvn:
 		{
 			GString::Array c = s.Split("------------------------------------------------------------------------");
-			printf("c=%i\n", c.Length());
 			for (unsigned i=0; i<c.Length(); i++)
 			{
 				GAutoPtr<VcCommit> Rev(new VcCommit(d));
 				GString Raw = c[i].Strip();
 				if (Rev->SvnParse(Raw))
-					Log.Add(Rev.Release());
+				{
+					if (!Map.Find(Rev->GetRev()))
+						Log.Add(Rev.Release());
+				}
 				else
-					printf("Failed:\n%s\n\n", Raw.Get());
+				{
+					LgiTrace("%s:%i - Failed:\n%s\n\n", _FL, Raw.Get());
+					Errors++;
+				}
 			}
 			break;
 		}			
@@ -294,6 +367,7 @@ bool VcFolder::ParseLog(GString s)
 			break;
 	}
 
+	LgiTrace("%s:%i - ParseLog: Skip=%i, Error=%i\n", _FL, Skipped, Errors);
 	IsLogging = false;
 
 	return true;
@@ -335,7 +409,7 @@ bool VcFolder::ParseCommit(GString s)
 {
 	Select(true);
 	
-	Log.DeleteObjects();
+	CommitListDirty = true;
 	CurrentCommit.Empty();
 
 	IsCommit = false;

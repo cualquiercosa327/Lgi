@@ -59,6 +59,7 @@ class VcFolder : public GTreeItem
 	GArray<VcCommit*> Log;
 	GAutoPtr<UncommitedItem> Uncommit;
 	GString Cache, NewRev;
+	bool CommitListDirty;
 	
 	GArray<Cmd*> Cmds;
 	bool IsLogging, IsGetCur, IsUpdate, IsFilesCmd, IsWorkingFld, IsCommit;

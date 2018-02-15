@@ -59,9 +59,12 @@ enum VersionCtrl
 	VcHg,
 };
 
+class VcFolder;
+
 struct AppPriv
 {
 	GTree *Tree;
+	VcFolder *CurFolder;
 	LList *Lst;
 	LList *Files;
 	GOptionsFile Opts;
@@ -79,6 +82,7 @@ struct AppPriv
 		Log = NULL;
 		Msg = NULL;
 		Tabs = NULL;
+		CurFolder = NULL;
 	}
 
 	void ClearFiles()
