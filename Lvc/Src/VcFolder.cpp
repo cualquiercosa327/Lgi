@@ -301,7 +301,29 @@ bool VcFolder::ParseLog(GString s)
 	{
 		case VcGit:
 		{
-			GString::Array c = s.Split("commit");
+			GString::Array c;
+			c.SetFixedLength(false);
+			char *prev = s.Get();
+
+			for (char *i = s.Get(); *i; )
+			{
+				if (!strnicmp(i, "commit ", 7))
+				{
+					if (i > prev)
+					{
+						c.New().Set(prev, i - prev);
+						// LgiTrace("commit=%i\n", (int)(i - prev));
+					}
+					prev = i;
+				}
+
+				while (*i)
+				{
+					if (*i++ == '\n')
+						break;
+				}
+			}
+
 			for (unsigned i=0; i<c.Length(); i++)
 			{
 				GAutoPtr<VcCommit> Rev(new VcCommit(d));
