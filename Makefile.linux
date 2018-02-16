@@ -1362,7 +1362,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/GArray.h \
 	./include/linux/Gtk/LgiOsDefs.h \
 	./include/common/GColour.h \
-	./include/common/LCancel.h
+	./include/common/LCancel.h \
+	./include/common/GStringClass.h
 
 ./include/linux/Gtk/LgiOsClasses.h : 
 
