@@ -1294,7 +1294,7 @@ public:
 			{
 				System24BitPixel c[256];
 				
-				if (SPal->GetSize() == 0)
+				if (SPal && SPal->GetSize() == 0)
 					return false;
 				
 				CreatePaletteLut(c, SPal, this->alpha);
