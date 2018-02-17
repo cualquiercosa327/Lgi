@@ -247,10 +247,15 @@ public:
 		SearchResults *Sr = Files.First();
 		if (!Sr) return;
 
-		Sr->Node->Delete();
+		bool Has = Proj->HasNode(Sr->Node);
+		if (Has)
+			Sr->Node->Delete();
+			
 
 		Files.DeleteAt(0, true);
-		delete Sr;
+
+		if (Has)
+			delete Sr;
 
 		OnFile();
 	}
@@ -346,8 +351,23 @@ public:
 			}
 			case M_RESULTS:
 			{
-				Files.Add((SearchResults*)Msg->A());
-				OnFile();
+				SearchResults *Sr = (SearchResults*)Msg->A();
+				bool HasNode = false;
+				for (unsigned i=0; i<Files.Length(); i++)
+				{
+					if (Files[i]->Node == Sr->Node)
+					{
+						LgiTrace("%s:%i - Node already in Files.\n", _FL);
+						HasNode = true;
+						break;
+					}
+				}
+				
+				if (!HasNode)
+				{
+					Files.Add((SearchResults*)Msg->A());
+					OnFile();
+				}
 				break;
 			}
 		}

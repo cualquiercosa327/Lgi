@@ -2567,6 +2567,16 @@ char *IdeProject::FindFullPath(const char *File, ProjectNode **Node)
 	return Full;
 }
 
+bool IdeProject::HasNode(ProjectNode *Node)
+{
+	ForAllProjectNodes(c)
+	{
+		if (c->HasNode(Node))
+			return true;
+	}
+	return false;
+}
+
 bool IdeProject::GetAllNodes(GArray<ProjectNode*> &Nodes)
 {
 	ForAllProjectNodes(c)

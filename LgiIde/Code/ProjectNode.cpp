@@ -305,6 +305,20 @@ ProjectNode *ProjectNode::NextNode()
 	return dynamic_cast<ProjectNode*>(GetNext());
 }
 
+bool ProjectNode::HasNode(ProjectNode *Node)
+{
+	if (this == Node)
+		return true;
+
+	for (ProjectNode *c = ChildNode(); c; c = c->NextNode())
+	{
+		if (c->HasNode(Node))
+			return true;
+	}
+
+	return false;
+}
+
 void ProjectNode::AddNodes(GArray<ProjectNode*> &Nodes)
 {
 	Nodes.Add(this);

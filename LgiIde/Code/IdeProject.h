@@ -163,6 +163,7 @@ public:
 	// Nodes
 	char *FindFullPath(const char *File, class ProjectNode **Node = NULL);
 	bool GetAllNodes(GArray<ProjectNode*> &Nodes);
+	bool HasNode(ProjectNode *Node);
 
 	// Project heirarchy
 	IdeProject *GetParentProject();
