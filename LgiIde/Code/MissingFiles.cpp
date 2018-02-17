@@ -43,7 +43,7 @@ public:
 			{
 				GAutoPtr<SearchResults> Sr((SearchResults*)Msg->A());
 				bool e = FileExists(Sr->Path);
-				printf("Checking '%s' = %i\n", Sr->Path.Get(), e);
+				// printf("Checking '%s' = %i\n", Sr->Path.Get(), e);
 				if (!e)
 					PostObject(Hnd, M_MISSING_FILE, Sr);
 				break;
@@ -120,7 +120,7 @@ public:
 					Ext.Add("*.c");
 					Ext.Add("*.cpp");
 
-					printf("Recursing '%s'\n", Search[i].Get());
+					// printf("Recursing '%s'\n", Search[i].Get());
 					LgiRecursiveFileSearch(Search[i], &Ext, &Files);
 				}
 				break;
@@ -250,7 +250,6 @@ public:
 		bool Has = Proj->HasNode(Sr->Node);
 		if (Has)
 			Sr->Node->Delete();
-			
 
 		Files.DeleteAt(0, true);
 

@@ -161,13 +161,27 @@ public:
 
 			uint8 *o = (uint8*)Str->Str;
 			ssize_t OutLen = Str->Len;
-
-			for (uint32 ch; ch = *str; str++)
+			if (wchars >= 0)
 			{
-				if (!LgiUtf32To8(ch, o, OutLen))
+				wchar_t *end = str + wchars;
+				for (wchar_t *ch = str; ch < end; ch++)
 				{
-					*o = 0;
-					break;
+					if (!LgiUtf32To8(*ch, o, OutLen))
+					{
+						*o = 0;
+						break;
+					}
+				}
+			}
+			else
+			{
+				for (wchar_t *ch = str; *ch; ch++)
+				{
+					if (!LgiUtf32To8(*ch, o, OutLen))
+					{
+						*o = 0;
+						break;
+					}
 				}
 			}
 
@@ -180,23 +194,32 @@ public:
 	static size_t WcharToUtfLength(const wchar_t *s, ptrdiff_t wchars = -1)
 	{
 		if (!s) return 0;
+		size_t Out = 0;
+		uint8 Buf[6];
+
 		#ifdef _MSC_VER
 		const uint16 *i = (const uint16*) s;
 		ssize_t Len = wchars >= 0 ? wchars << 1 : 0x7fffffff;
-		size_t Out = 0;
-		uint8 Buf[6];
 		for (uint32 ch; ch = LgiUtf16To32(i, Len); )
 		{
 			uint8 *b = Buf;
 			ssize_t len = sizeof(Buf);
 			if (!LgiUtf32To8(ch, b, len))
 				break;
-			Out += sizeof(Buf) - len;			
+			Out += sizeof(Buf) - len;
 		}
-		return Out;
 		#else
-		return Strlen(s);
+		for (uint32 ch = 0; ch = *s; s++)
+		{
+			uint8 *b = Buf;
+			ssize_t len = sizeof(Buf);
+			if (!LgiUtf32To8(ch, b, len))
+				break;
+			Out += sizeof(Buf) - len;
+		}
 		#endif
+
+		return Out;
 	}
 
 	#if defined(_WIN32) || defined(MAC)

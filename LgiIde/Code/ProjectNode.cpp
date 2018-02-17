@@ -307,7 +307,11 @@ ProjectNode *ProjectNode::NextNode()
 
 bool ProjectNode::HasNode(ProjectNode *Node)
 {
+	printf("Has %s %s %p\n", File, Name, Dep);
+
 	if (this == Node)
+		return true;
+	if (Dep && Dep->HasNode(Node))
 		return true;
 
 	for (ProjectNode *c = ChildNode(); c; c = c->NextNode())

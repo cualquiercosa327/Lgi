@@ -458,7 +458,11 @@ bool VcFolder::ParseCommit(int Result, GString s)
 
 bool VcFolder::ParseUpdate(int Result, GString s)
 {
-	CurrentCommit = NewRev;
+	if (Result == 0)
+	{
+		CurrentCommit = NewRev;
+	}
+	
 	IsUpdate = false;
 	return true;
 }
@@ -673,11 +677,11 @@ void VcFolder::OnUpdate(const char *Rev)
 		{
 			case VcGit:
 				Args.Printf("checkout %s", Rev);
-				IsUpdate = StartCmd(Args, &VcFolder::ParseUpdate);
+				IsUpdate = StartCmd(Args, &VcFolder::ParseUpdate, true);
 				break;
 			case VcSvn:
 				Args.Printf("up -r %s", Rev);
-				IsUpdate = StartCmd(Args, &VcFolder::ParseUpdate);
+				IsUpdate = StartCmd(Args, &VcFolder::ParseUpdate, true);
 				break;
 		}
 	}
