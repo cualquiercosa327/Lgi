@@ -163,8 +163,8 @@ public:
 			ssize_t OutLen = Str->Len;
 			if (wchars >= 0)
 			{
-				wchar_t *end = str + wchars;
-				for (wchar_t *ch = str; ch < end; ch++)
+				const wchar_t *end = str + wchars;
+				for (const wchar_t *ch = str; ch < end; ch++)
 				{
 					if (!LgiUtf32To8(*ch, o, OutLen))
 					{
@@ -175,7 +175,7 @@ public:
 			}
 			else
 			{
-				for (wchar_t *ch = str; *ch; ch++)
+				for (const wchar_t *ch = str; *ch; ch++)
 				{
 					if (!LgiUtf32To8(*ch, o, OutLen))
 					{
@@ -209,7 +209,7 @@ public:
 			Out += sizeof(Buf) - len;
 		}
 		#else
-		for (uint32 ch = 0; ch = *s; s++)
+		for (uint32 ch = 0; (ch = *s); s++)
 		{
 			uint8 *b = Buf;
 			ssize_t len = sizeof(Buf);
