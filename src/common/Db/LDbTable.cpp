@@ -628,8 +628,11 @@ bool LDbRow::StartEdit()
 
 			// Initialize fixed fields to zero
 			memset(Base.c + 8, 0, d->FixedSz);
-			// And the variable offset table to -1
-			memset(Base.c + 8 + d->FixedSz, 0xff, InitialSize - d->FixedSz);
+			if (d->Variable > 0)
+			{
+				// And the variable offset table to -1
+				memset(Base.c + 8 + d->FixedSz, 0xff, InitialSize - d->FixedSz);
+			}
 		}
 
 		PostEdit();

@@ -1376,7 +1376,8 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	../../include/common/GArray.h \
 	../../include/sdl/LgiOsDefs.h \
 	../../include/common/GColour.h \
-	../../include/common/LCancel.h
+	../../include/common/LCancel.h \
+	../../include/common/GStringClass.h
 
 ../../../../../../../media/rpi-root/usr/lib/gcc/arm-linux-gnueabihf/4.9/include/stddef.h : 
 
