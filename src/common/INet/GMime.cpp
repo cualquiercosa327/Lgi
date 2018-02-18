@@ -36,7 +36,7 @@ int AltScore(char *Mt)
 		else if (stristr(Mt, "/related"))
 			Score = 2;
 	}
-	printf("Score '%s' = %i\n", Mt, Score);
+	// printf("Score '%s' = %i\n", Mt, Score);
 	DeleteArray(Mt);
 	return Score;
 }
