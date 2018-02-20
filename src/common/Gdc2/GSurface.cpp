@@ -1692,7 +1692,7 @@ GColour GSurface::Colour(GColour c)
 			break;
 	}
 
-	#if MAC
+	#if defined(MAC) && !defined(LGI_SDL)
 	{
 		// Update the current colour of the drawing context if present.
 		OsPainter Hnd = Handle();
