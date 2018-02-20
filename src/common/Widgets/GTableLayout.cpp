@@ -2121,7 +2121,7 @@ int GTableLayout::OnNotify(GViewI *c, int f)
     if (f == GNotifyTableLayout_Refresh)
     {
 		d->PrevWidth = -1;
-        OnPosChange();
+        // OnPosChange();
         Invalidate();
         return 0;
     }
