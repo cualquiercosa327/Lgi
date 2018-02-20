@@ -1159,7 +1159,12 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 	if (Socket &&
 		ValidStr(RemoteHost) &&
 		ValidStr(User) &&
-		ValidStr(Password) &&
+		(
+			ValidStr(Password)
+			||
+			d->OAuth.IsValid()
+		)
+		&&
 		Lock(_FL))
 	{
 		// prepare address

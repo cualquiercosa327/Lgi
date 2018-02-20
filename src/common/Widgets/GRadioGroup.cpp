@@ -753,6 +753,9 @@ void GRadioButton::OnPaint(GSurface *pDC)
 			cli.Offset(p.x1, p.y1);
 		}
 		
+		pDC->Colour(LC_MED, 24);
+		pDC->Rectangle(cli.x1, cli.y1, c.x2, cli.y2);
+		
 		GRect rc(c.x1, c.y1 + 4, c.x2 - 1, c.y2 - 1);
 		HIRect Bounds = rc;
 		HIThemeButtonDrawInfo Info;
