@@ -386,8 +386,6 @@ bool GProgressDlg::OnRequestClose(bool OsClose)
 	}
 		
 	return false;
-	
-	// return GDialog::OnRequestClose(OsClose);
 }
 
 void GProgressDlg::Resize()
@@ -419,6 +417,7 @@ void GProgressDlg::OnCreate()
 {
 	if (Panes.Length() == 0)
 		Push();
+	SetPulse(500);
 }
 
 void GProgressDlg::OnPulse()
