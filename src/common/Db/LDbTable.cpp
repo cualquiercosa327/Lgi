@@ -111,7 +111,7 @@ struct DbTablePriv
 	GArray<DbIndex*> Indexes;
 
 	// Methods
-	DbTablePriv() : Map(0, false, -1, {GV_NULL, -1})
+	DbTablePriv() : Map(0, false, -1, Info())
 	{
 		First = Last = NULL;
 		Rows = 0;
@@ -665,7 +665,7 @@ Store3Status LDbRow::SetStr(int id, const char *str)
 	if (str)
 		Edit.Add((char*)str, len);
 	else
-		Edit.Add("", 1);
+		Edit.Add((char*)"", 1);
 
 	PostEdit();
 	d->SetDirty();
