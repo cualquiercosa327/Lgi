@@ -665,7 +665,7 @@ Store3Status LDbRow::SetStr(int id, const char *str)
 	if (str)
 		Edit.Add((char*)str, len);
 	else
-		Edit.Add("", 1);
+		Edit.Add((char*)"", 1);
 
 	PostEdit();
 	d->SetDirty();

@@ -1245,7 +1245,7 @@ GdcPt2 GDisplayString::Size()
 #if defined LGI_SDL
 
 template<typename OutPx>
-bool CompositeText8Alpha(GSurface *Out, GSurface *In, GFont *Font, int px, int py)
+bool CompositeText8Alpha(GSurface *Out, GSurface *In, GFont *Font, int px, int py, GBlitRegions &Clip)
 {
 	OutPx map[256];
 
@@ -1292,12 +1292,12 @@ bool CompositeText8Alpha(GSurface *Out, GSurface *In, GFont *Font, int px, int p
 	uint8 *StartOfBuffer = (*Out)[0];
 	uint8 *EndOfBuffer = StartOfBuffer + (Out->GetRowStep() * Out->Y());
 
-	for (unsigned y=0; y<In->Y(); y++)
+	for (unsigned y=Clip.SrcClip.y1; y<=Clip.SrcClip.y2; y++)
 	{
-		register OutPx *d = ((OutPx*) (*Out)[py + y]) + px;
+		register OutPx *d = ((OutPx*) (*Out)[py + y]) + Clip.DstClip.x1;
 		register uint8 *i = (*In)[y];
 		if (!i) return false;
-		register uint8 *e = i + In->X();
+		register uint8 *e = i + Clip.DstClip.X();
 
 		LgiAssert((uint8*)d >= StartOfBuffer);
 		
@@ -1347,7 +1347,7 @@ bool CompositeText8Alpha(GSurface *Out, GSurface *In, GFont *Font, int px, int p
 }
 
 template<typename OutPx>
-bool CompositeText8NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int py)
+bool CompositeText8NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int py, GBlitRegions &Clip)
 {
 	GRgba32 map[256];
 
@@ -1394,18 +1394,18 @@ bool CompositeText8NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 	uint8 *StartOfBuffer = (*Out)[0];
 	uint8 *EndOfBuffer = StartOfBuffer + (Out->GetRowStep() * Out->Y());
 
-	for (unsigned y=0; y<In->Y(); y++)
+	for (unsigned y=Clip.SrcClip.y1; y<=Clip.SrcClip.y2; y++)
 	{
 		register OutPx *dst = (OutPx*) (*Out)[py + y];
 		if (!dst)
 			continue;
-		dst += px;
+		dst += Clip.DstClip.x1;
 		if ((uint8*)dst < StartOfBuffer)
 			continue;
 		
 		register uint8 *i = (*In)[y];
 		if (!i) return false;
-		register uint8 *e = i + In->X();
+		register uint8 *e = i + Clip.DstClip.X();
 		register GRgba32 *src;
 
 		LgiAssert((uint8*)dst >= StartOfBuffer);
@@ -1457,7 +1457,7 @@ bool CompositeText8NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 }
 
 template<typename OutPx>
-bool CompositeText5NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int py)
+bool CompositeText5NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int py, GBlitRegions &Clip)
 {
 	OutPx map[256];
 
@@ -1504,15 +1504,15 @@ bool CompositeText5NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 	uint8 *StartOfBuffer = (*Out)[0];
 	uint8 *EndOfBuffer = StartOfBuffer + (Out->GetRowStep() * Out->Y());
 
-	for (unsigned y=0; y<In->Y(); y++)
+	for (unsigned y=Clip.SrcClip.y1; y<=Clip.SrcClip.y2; y++)
 	{
 		register OutPx *dst = ((OutPx*) (*Out)[py + y]);
 		if (!dst)
 			continue;
-		dst += px;		
+		dst += Clip.DstClip.x1;
 		register uint8 *i = (*In)[y];
 		if (!i) return false;
-		register uint8 *e = i + In->X();
+		register uint8 *e = i + Clip.DstClip.X();
 
 		LgiAssert((uint8*)dst >= StartOfBuffer);
 		
@@ -1611,28 +1611,13 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r, bool Debug)
 	{
 		int Ox = 0, Oy = 0;
 		pDC->GetOrigin(Ox, Oy);
-
-		/*
-		if (!Font->Transparent())
-		{
-			GRect Fill;
-			if (r)
-				Fill = *r;
-			else
-			{
-				Fill.ZOff(x-1, y-1);
-				Fill.Offset(px, py);
-			}
-			Fill.Offset(-Ox, -Oy);		
-		}
-		*/
-
+		GBlitRegions Clip(pDC, px-Ox, py-Oy, Img, r);
 		GColourSpace DstCs = pDC->GetColourSpace();
 		switch (DstCs)
 		{
 			#define DspStrCase(px_fmt, comp)											\
 				case Cs##px_fmt:														\
-					CompositeText##comp<G##px_fmt>(pDC, Img, Font, px-Ox, py-Oy);	\
+					CompositeText##comp<G##px_fmt>(pDC, Img, Font, px-Ox, py-Oy, Clip);	\
 					break;
 			
 			DspStrCase(Rgb16, 5NoAlpha)
