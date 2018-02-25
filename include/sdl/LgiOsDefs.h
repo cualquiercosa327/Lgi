@@ -555,6 +555,7 @@ typedef int (__stdcall *p_vscprintf)(const char *format, va_list argptr);
 
 #if _MSC_VER >= 1400
 #define snprintf sprintf_s
+#define stricmp _stricmp
 #endif
 
 #endif

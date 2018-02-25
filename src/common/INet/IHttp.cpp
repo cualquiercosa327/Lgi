@@ -418,7 +418,7 @@ bool IHttp::Request
 		ssize_t r = Socket->Write(c, cLen);
 		if (r == cLen)
 		{
-			int Length = 0;
+			ssize_t Length = 0;
 			while (Out)
 			{
 				ssize_t r = Socket ? Socket->Read(s, sizeof(s)) : -1;
@@ -604,14 +604,14 @@ bool IHttp::Request
 							break;
 						}
 						
-						int ChunkDone = 0;
+						ssize_t ChunkDone = 0;
 						memmove(s, End, Used - HdrLen);
 						Used -= HdrLen;
 						
 						// Loop over the body of the chunk
 						while (Socket && ChunkDone < ChunkSize)
 						{
-							int Remaining = ChunkSize - ChunkDone;
+							ssize_t Remaining = ChunkSize - ChunkDone;
 							ssize_t Common = min(Used, Remaining);
 							if (Common > 0)
 							{

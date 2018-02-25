@@ -137,7 +137,7 @@ class GHashTbl
 		
 	    char16 *New(char16 *s)
 	    {
-		    int Len = (StrlenW(s) + 1) * sizeof(char16);
+		    size_t Len = (StrlenW(s) + 1) * sizeof(char16);
 		    if (Used < Size - Len)
 		    {
 			    char16 *p = (char16*) (Mem + Used);
@@ -150,7 +150,7 @@ class GHashTbl
 
 	    char16 *New(const char16 *s)
 	    {
-		    int Len = (StrlenW(s) + 1) * sizeof(char16);
+		    size_t Len = (StrlenW(s) + 1) * sizeof(char16);
 		    if (Used < Size - Len)
 		    {
 			    char16 *p = (char16*) (Mem + Used);

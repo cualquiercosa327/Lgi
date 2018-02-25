@@ -111,7 +111,7 @@ struct DbTablePriv
 	GArray<DbIndex*> Indexes;
 
 	// Methods
-	DbTablePriv() : Map(0, false, -1, {GV_NULL, -1})
+	DbTablePriv() : Map(0, false, -1, Info())
 	{
 		First = Last = NULL;
 		Rows = 0;

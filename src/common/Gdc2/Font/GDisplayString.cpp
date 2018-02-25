@@ -641,7 +641,6 @@ void GDisplayString::Layout(bool Debug)
 		if (Sys && Str)
 		{
 			GFont *f = Font;
-			OsChar *s;
 			bool GlyphSub = Font->SubGlyphs();
 
 			Info[i].Str = Str;
@@ -660,13 +659,18 @@ void GDisplayString::Layout(bool Debug)
 
 			bool Debug = WasTab;
 			
-			for (s=Str; true; NextOsChar(s))
+			const uint16 *u16;
+			uint32 u32;
+			ssize_t Len = len << 1;
+			for (u16 = (const uint16*)Str; true;)
 			{
-				GFont *n = GlyphSub ? Sys->GetGlyph(*s, Font) : Font;
-				bool Change =	n != f ||					// The font changed
-								(IsTabChar(*s) ^ WasTab) ||	// Entering/leaving a run of tabs
-								!*s ||						// Hit a NULL character
-								(s - Info[i].Str) >= 1000;	// This is to stop very long segments not rendering
+				OsChar *s = (OsChar*)u16;
+				u32 = LgiUtf16To32(u16, Len);
+				GFont *n = GlyphSub ? Sys->GetGlyph(u32, Font) : Font;
+				bool Change =	n != f ||						// The font changed
+								(IsTabChar(u32) ^ WasTab) ||	// Entering/leaving a run of tabs
+								!u32 ||							// Hit a NULL character
+								(s - Info[i].Str) >= 1000;		// This is to stop very long segments not rendering
 				if (Change)
 				{
 					// End last segment
@@ -728,11 +732,11 @@ void GDisplayString::Layout(bool Debug)
 					f = n;
 
 					// Start next segment
-					WasTab = IsTabChar(*s);
+					WasTab = IsTabChar(u32);
 					Info[i].Str = s;
 				}
 
-				if (!*s) break;
+				if (!u32) break;
 			}
 
 			if (Info.Length() > 0 && Info.Last().Len == 0)
