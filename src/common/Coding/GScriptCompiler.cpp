@@ -2810,6 +2810,7 @@ public:
 		}
 
 		Asm1(StartTok, IRet, ReturnValue);
+		DeallocReg(ReturnValue);
 		Cur++;
 		return true;
 	}
