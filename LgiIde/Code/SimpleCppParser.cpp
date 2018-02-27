@@ -569,13 +569,21 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 									}
 									
 									int ClsLen = StrlenW(CurClassDecl);
-									memmove(b + ClsLen + 2, b, sizeof(*b) * (StrlenW(b)+1));
-									memcpy(b, CurClassDecl, sizeof(*b) * ClsLen);
-									b += ClsLen;
-									*b++ = ':';
-									*b++ = ':';
-									DeleteArray(Buf);
-									Buf = NewStrW(Str);
+									int BLen = StrlenW(b);
+									if (ClsLen + BLen + 1 > CountOf(Str))
+									{
+										LgiTrace("%s:%i - Defn too long: %i\n", _FL, ClsLen + BLen + 1);
+									}
+									else
+									{
+										memmove(b + ClsLen + 2, b, sizeof(*b) * (BLen+1));
+										memcpy(b, CurClassDecl, sizeof(*b) * ClsLen);
+										b += ClsLen;
+										*b++ = ':';
+										*b++ = ':';
+										DeleteArray(Buf);
+										Buf = NewStrW(Str);
+									}
 								}
 							}
 
