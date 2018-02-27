@@ -2405,6 +2405,11 @@ public:
 				{
 					if (!DoExpression(Cur, 0))
 						return false;
+
+					GTokenType Tok = ExpTok.Find(GetTok(Cur));
+					if (Tok == TSemiColon)
+						Cur++;
+
 					if (LastWasReturn)
 						*LastWasReturn = false;
 					break;
