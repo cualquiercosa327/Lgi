@@ -1650,7 +1650,7 @@ case IDomCall:
 						break;
 					}
 
-					size_t sLen = strlen(s);
+					ssize_t sLen = strlen(s);
 					const char *sub = Arg[0]->Str();
 					int start_idx = Arg.Length() > 1 ? Arg[1]->CastInt32() : 0;
 					int end_idx = Arg.Length() > 2 ? Arg[2]->CastInt32() : -1;								
