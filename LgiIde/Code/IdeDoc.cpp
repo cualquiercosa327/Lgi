@@ -1236,7 +1236,7 @@ public:
 				case '\"':
 				case '\'':
 				{
-					GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+					GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
 					if (st)
 					{
 						st->View = this;
@@ -1251,7 +1251,7 @@ public:
 							s++;
 						}
 						st->Len = (s - Text) - st->Start + 1;
-						st->c = ColourLiteral;
+						st->Fore = ColourLiteral;
 						InsertStyle(st);
 					}
 					break;
@@ -1271,7 +1271,7 @@ public:
 
 					if (IsWhite)
 					{
-						GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+						GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
 						if (st)
 						{
 							st->View = this;
@@ -1298,7 +1298,7 @@ public:
 							}
 							
 							st->Len = (s - Text) - st->Start;
-							st->c = ColourHashDef;
+							st->Fore = ColourHashDef;
 							InsertStyle(st);
 							s--;
 						}
@@ -1318,7 +1318,7 @@ public:
 				{
 					if (s == Text || !IsSymbolChar(s[-1]))
 					{
-						GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+						GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
 						if (st)
 						{
 							st->View = this;
@@ -1357,7 +1357,7 @@ public:
 							}
 							
 							st->Len = (s - Text) - st->Start;
-							st->c = ColourLiteral;
+							st->Fore = ColourLiteral;
 							InsertStyle(st);
 							s--;
 						}
@@ -1370,7 +1370,7 @@ public:
 				{
 					if (s[1] == '/')
 					{
-						GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+						GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
 						if (st)
 						{
 							st->View = this;
@@ -1379,14 +1379,14 @@ public:
 							while (s < e && *s != '\n')
 								s++;
 							st->Len = (s - Text) - st->Start;
-							st->c = ColourComment;
+							st->Fore = ColourComment;
 							InsertStyle(st);
 							s--;
 						}
 					}
 					else if (s[1] == '*')
 					{
-						GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+						GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
 						if (st)
 						{
 							st->View = this;
@@ -1396,7 +1396,7 @@ public:
 							while (s < e && !(s[-2] == '*' && s[-1] == '/'))
 								s++;
 							st->Len = (s - Text) - st->Start;
-							st->c = ColourComment;
+							st->Fore = ColourComment;
 							InsertStyle(st);
 							s--;
 						}
@@ -1435,14 +1435,14 @@ public:
 								!IsSymbolChar(s[k->Len])
 							)
 							{
-								GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+								GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
 								if (st)
 								{
 									st->View = this;
 									st->Start = s - Text;
 									st->Font = k->IsType ? Font : Bold;
 									st->Len = k->Len;
-									st->c = k->IsType ? ColourType : ColourKeyword;
+									st->Fore = k->IsType ? ColourType : ColourKeyword;
 									InsertStyle(st);
 									s += k->Len - 1;
 								}
@@ -1456,7 +1456,7 @@ public:
 		// uint64 PourTs = LgiMicroTime();
 
 		#if COMP_STYLE
-		GStyle Vis(0);
+		GStyle Vis(STYLE_NONE);
 		if (GetVisible(Vis))
 		{
 			GArray<GStyle*> Old, Cur;
@@ -1475,7 +1475,7 @@ public:
 					break;
 			}
 
-			GStyle Dirty(0);
+			GStyle Dirty(STYLE_NONE);
 			for (int o=0; o<Old.Length(); o++)
 			{
 				bool Match = false;
@@ -1552,7 +1552,7 @@ public:
 				case '\"':
 				case '\'':
 				{
-					GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+					GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
 					if (st)
 					{
 						st->View = this;
@@ -1567,7 +1567,7 @@ public:
 							s++;
 						}
 						st->Len = (s - Text) - st->Start + 1;
-						st->c = ColourLiteral;
+						st->Fore = ColourLiteral;
 						InsertStyle(st);
 					}
 					break;
@@ -1575,7 +1575,7 @@ public:
 				case '#':
 				{
 					// Single line comment
-					GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+					GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
 					if (st)
 					{
 						st->View = this;
@@ -1584,7 +1584,7 @@ public:
 						while (s < e && *s != '\n')
 							s++;
 						st->Len = (s - Text) - st->Start;
-						st->c = ColourComment;
+						st->Fore = ColourComment;
 						InsertStyle(st);
 						s--;
 					}
@@ -1603,7 +1603,7 @@ public:
 				{
 					if (s == Text || !IsSymbolChar(s[-1]))
 					{
-						GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+						GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
 						if (st)
 						{
 							st->View = this;
@@ -1642,7 +1642,7 @@ public:
 							}
 							
 							st->Len = (s - Text) - st->Start;
-							st->c = ColourLiteral;
+							st->Fore = ColourLiteral;
 							InsertStyle(st);
 							s--;
 						}
@@ -1674,14 +1674,14 @@ public:
 								!IsSymbolChar(s[k->Len])
 							)
 							{
-								GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+								GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
 								if (st)
 								{
 									st->View = this;
 									st->Start = s - Text;
 									st->Font = Bold;
 									st->Len = k->Len;
-									st->c = ColourKeyword;
+									st->Fore = ColourKeyword;
 									InsertStyle(st);
 									s += k->Len - 1;
 								}
@@ -1707,7 +1707,7 @@ public:
 				case '\'':
 				case '`':
 				{
-					GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+					GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
 					if (st)
 					{
 						bool Quoted = s > Text && s[-1] == '\\';
@@ -1736,7 +1736,7 @@ public:
 							s++;
 						}
 						st->Len = (s - Text) - st->Start + 1;
-						st->c = ColourLiteral;
+						st->Fore = ColourLiteral;
 						InsertStyle(st);
 					}
 					break;
@@ -1744,7 +1744,7 @@ public:
 				case '#':
 				{
 					// Single line comment
-					GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+					GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
 					if (st)
 					{
 						st->View = this;
@@ -1753,7 +1753,7 @@ public:
 						while (s < e && *s != '\n')
 							s++;
 						st->Len = (s - Text) - st->Start;
-						st->c = ColourComment;
+						st->Fore = ColourComment;
 						InsertStyle(st);
 						s--;
 					}
@@ -1772,7 +1772,7 @@ public:
 				{
 					if (s == Text || !IsSymbolChar(s[-1]))
 					{
-						GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+						GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
 						if (st)
 						{
 							st->View = this;
@@ -1813,7 +1813,7 @@ public:
 								s++;
 							
 							st->Len = (s - Text) - st->Start;
-							st->c = ColourLiteral;
+							st->Fore = ColourLiteral;
 							InsertStyle(st);
 							s--;
 						}
@@ -1846,14 +1846,14 @@ public:
 								!IsSymbolChar(s[k->Len])
 							)
 							{
-								GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+								GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
 								if (st)
 								{
 									st->View = this;
 									st->Start = s - Text;
 									st->Font = Bold;
 									st->Len = k->Len;
-									st->c = ColourKeyword;
+									st->Fore = ColourKeyword;
 									InsertStyle(st);
 									s += k->Len - 1;
 								}
@@ -1878,7 +1878,7 @@ public:
 				case '\"':
 				case '\'':
 				{
-					GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+					GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
 					if (st)
 					{
 						st->View = this;
@@ -1893,7 +1893,7 @@ public:
 							s++;
 						}
 						st->Len = (s - Text) - st->Start + 1;
-						st->c = ColourLiteral;
+						st->Fore = ColourLiteral;
 						InsertStyle(st);
 					}
 					break;
@@ -1911,7 +1911,7 @@ public:
 				{
 					if (s == Text || !IsSymbolChar(s[-1]))
 					{
-						GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+						GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
 						if (st)
 						{
 							st->View = this;
@@ -1950,7 +1950,7 @@ public:
 							}
 							
 							st->Len = (s - Text) - st->Start;
-							st->c = ColourLiteral;
+							st->Fore = ColourLiteral;
 							InsertStyle(st);
 							s--;
 						}
@@ -1965,7 +1965,7 @@ public:
 						s[2] == '-' &&
 						s[3] == '-')
 					{
-						GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+						GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
 						if (st)
 						{
 							st->View = this;
@@ -1987,7 +1987,7 @@ public:
 							)
 								s++;
 							st->Len = (s - Text) - st->Start;
-							st->c = ColourComment;
+							st->Fore = ColourComment;
 							InsertStyle(st);
 							s--;
 						}
@@ -2017,14 +2017,14 @@ public:
 								!IsSymbolChar(s[k->Len])
 							)
 							{
-								GAutoPtr<GStyle> st(new GTextView3::GStyle(1));
+								GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
 								if (st)
 								{
 									st->View = this;
 									st->Start = s - Text;
 									st->Font = Bold;
 									st->Len = k->Len;
-									st->c = ColourKeyword;
+									st->Fore = ColourKeyword;
 									InsertStyle(st);
 									s += k->Len - 1;
 								}

@@ -730,5 +730,8 @@
     <ClInclude Include="include\common\LDomFields.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\common\GTextView3.h">
+      <Filter>Source Files\Widgets</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
