@@ -1704,7 +1704,7 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 					{
 						if (!d->OAuth.IsValid())
 						{
-							sprintf_s(Buf, sizeof(Buf), "Error: Unknown OAUTH2 server '%s' (ask fret@memecode.com to fix)", RemoteHost);
+							sprintf_s(Buf, sizeof(Buf), "Error: Unknown OAUTH2 server '%s' (ask fret@memecode.com to add)", RemoteHost);
 							Log(Buf, GSocketI::SocketMsgError);
 							continue;
 						}
@@ -1721,7 +1721,7 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 							}
 							
 							#if DEBUG_OAUTH2
-							LgiTrace("%s:%i - AuthCode=%s\n", _FL, AuthCode.Str());
+							LgiTrace("%s:%i - AccessToken=%s\n", _FL, AuthCode.Str());
 							#endif
 						}
 						
