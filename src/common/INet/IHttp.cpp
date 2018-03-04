@@ -113,16 +113,17 @@ bool IHttp::Open(GAutoPtr<GSocketI> S, const char *RemoteHost, int Port)
 		if (!u.Port && Port)
 			u.Port = Port;
 
-		if (Socket &&
-			Socket->Open(u.Host, u.Port > 0 ? u.Port : HTTP_PORT))
-		{
+		if (!Socket)
+			ErrorMsg = "No socket object.";
+		else if (Socket->Open(u.Host, u.Port > 0 ? u.Port : HTTP_PORT))
 			return true;
-		}
 		else
-		{
-			LgiTrace("%s:%i - %s\n", _FL, Socket->GetErrorString());
-		}
+			ErrorMsg = Socket->GetErrorString();
 	}
+	else
+		ErrorMsg = "No remote host.";
+
+	LgiTrace("%s:%i - %s.\n", _FL, ErrorMsg.Get());
 
 	return false;
 }

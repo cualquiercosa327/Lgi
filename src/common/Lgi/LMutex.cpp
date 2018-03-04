@@ -131,7 +131,7 @@ void LMutex::_Unlock()
 	#endif
 }
 
-bool LMutex::Lock(const char *file, int line)
+bool LMutex::Lock(const char *file, int line, bool NoTrace)
 {
 	int64 Start = LgiCurrentTime();
 	bool Status = false;
@@ -171,7 +171,7 @@ bool LMutex::Lock(const char *file, int line)
 
 		#if 1 // _DEBUG
 		int64 Now = LgiCurrentTime();
-		if (Warn && Now > Start + 5000)
+		if (Warn && Now > Start + 5000 && !NoTrace)
 		{
 			LgiTrace("LMutex=%p(%s): Can't lock after %ims... LockingThread=%i ThisThread=%x Count=%x Locker=%s:%i.\n",
 					this,
@@ -187,7 +187,7 @@ bool LMutex::Lock(const char *file, int line)
 			// Warn = false;
 		}
 		
-		if (LgiCurrentTime() > Start + (2 * 60 * 1000))
+		if (LgiCurrentTime() > Start + (2 * 60 * 1000) && !NoTrace)
 		{
 			// Obviously we've locked up and to un-deadlock things we'll fail the lock
 			LgiTrace("::Lock timeout ask_thread=%i hold_thread=%i sem=%i count=%i\n", _Thread, CurrentThread, _Sem, _Count);

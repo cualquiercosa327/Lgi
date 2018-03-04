@@ -13,11 +13,15 @@
 #include "IHttp.h"
 #include "HttpTools.h"
 #include "OpenSSLSocket.h"
+#include "LJson.h"
 
 #define DEBUG_OAUTH2				1
 #define DEBUG_FETCH					0
 #define OPT_ImapOAuth2AccessToken	"OAuth2AccessTok"
 
+
+#undef _FL
+#define _FL LgiGetLeaf(__FILE__), __LINE__
 
 ////////////////////////////////////////////////////////////////////////////
 #if GPL_COMPATIBLE
@@ -59,6 +63,7 @@ bool UnBase64Str(GString &s)
 	return true;
 }
 
+/*
 #define SkipWhiteSpace(s)			while (*s && IsWhiteSpace(*s)) s++;
 bool JsonDecode(GXmlTag &t, const char *s)
 {
@@ -90,6 +95,7 @@ bool JsonDecode(GXmlTag &t, const char *s)
 	s++;
 	return true;
 }
+*/
 
 #define SkipWhite(s)		while (*s && strchr(WhiteSpace, *s)) s++
 #define SkipSpaces(s)		while (*s && strchr(" \t", *s)) s++
@@ -671,14 +677,13 @@ public:
 	GString WebLoginUri;
 	MailIMap::OAuthParams OAuth;
 	GViewI *ParentWnd;
-	bool *LoopState;
+	LCancel *Cancel;
 	OsThread InCommand;
 	GString LastWrite;
 
 	MailIMapPrivate() : LMutex("MailImapSem")
 	{
 		ParentWnd = NULL;
-		LoopState = NULL;
 		FolderSep = '/';
 		NextCmd = 1;
 		Logging = true;
@@ -686,6 +691,7 @@ public:
 		Current = 0;
 		Flags = 0;
 		InCommand = 0;
+		Cancel = NULL;
 	}
 
 	~MailIMapPrivate()
@@ -731,9 +737,9 @@ void MailIMap::Unlock()
 	d->InCommand = 0;
 }
 
-void MailIMap::SetLoopState(bool *LoopState)
+void MailIMap::SetCancel(LCancel *Cancel)
 {
-	d->LoopState = LoopState;
+	d->Cancel = Cancel;
 }
 
 void MailIMap::SetParentWindow(GViewI *wnd)
@@ -877,11 +883,7 @@ bool MailIMap::Read(GStreamI *Out)
 				}
 			}
 		}
-		else
-		{
-			// LgiTrace("%s:%i - Socket->Read failed: %i\n", _FL, r);
-			break;
-		}
+		else break;
 	}
 
 	return Lines > 0;
@@ -1023,11 +1025,12 @@ public:
 		return Port;
 	}
 
-	GString GetRequest(bool *Loop)
+	GString GetRequest(LCancel *Loop, uint64 TimeoutMs = 0)
 	{
 		GString r;
 		
-		while (!r && (!Loop || *Loop))
+		uint64 Start = LgiCurrentTime();
+		while (!r && (!Loop || !Loop->IsCancelled()))
 		{
 			if (Lock(_FL))
 			{
@@ -1036,6 +1039,13 @@ public:
 				Unlock();
 			}
 			
+			if (TimeoutMs)
+			{
+				uint64 Now = LgiCurrentTime();
+				if (Now - Start >= TimeoutMs)
+					break;
+			}
+
 			if (!r)
 				LgiSleep(50);
 		}
@@ -1711,25 +1721,26 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 
 						GString Uri;
 						GString RedirUri;
-						GVariant AuthCode;
+						GString AuthCode;
+						GString SessionState;
+						#if DEBUG_OAUTH2
+						LgiTrace("%s:%i - SettingStore=%p\n", _FL, SettingStore);
+						#endif
 						if (SettingStore)
 						{
 							GVariant v;
 							if (SettingStore->GetValue(OPT_ImapOAuth2AccessToken, v))
-							{
 								d->OAuth.AccessToken = v.Str();
-							}
-							
-							#if DEBUG_OAUTH2
-							LgiTrace("%s:%i - AccessToken=%s\n", _FL, AuthCode.Str());
-							#endif
 						}
 						
+						#if DEBUG_OAUTH2
+						LgiTrace("%s:%i - AccessToken=%s\n", _FL, d->OAuth.AccessToken.Get());
+						#endif
 						if (!d->OAuth.AccessToken)
 						{						
 							OAuthWebServer WebServer(55220);
 						
-							// Launch browser to get Access Token
+							// Launch browser to get an authorization code
 							bool UsingLocalhost = WebServer.GetPort() > 0;
 							#if DEBUG_OAUTH2
 							LgiTrace("%s:%i - UsingLocalhost=%i\n", _FL, UsingLocalhost);
@@ -1774,16 +1785,17 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 							#endif
 							bool ExResult = LgiExecute(Uri);
 							#if DEBUG_OAUTH2
-							LgiTrace("%s:%i - ExResult=%i\n", _FL, ExResult);
+							LgiTrace("%s:%i - LgiExecute(%s)=%i\n", _FL, Uri.Get(), ExResult);
 							#endif
 							
 							if (UsingLocalhost)
 							{
 								// Wait for localhost web server to receive the response
-								GString Req = WebServer.GetRequest(d->LoopState);
+								LCancel LocalCancel;
+								GString Req = WebServer.GetRequest(d->Cancel ? d->Cancel : &LocalCancel);
 								if (Req)
 								{
-									GXmlTag t;
+									GHashTbl<char*,GString> Map;
 									GString::Array a = Req.Split("\r\n");
 									if (a.Length() > 0)
 									{
@@ -1800,16 +1812,21 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 													GString::Array v = a[i].Split("=");
 													if (v.Length() == 2)
 													{
-														t.SetAttr(v[0], v[1]);
+														Map.Add(v[0], v[1]);
 													}												
 												}
 											}
 										}
 									}
 									
-									AuthCode = t.GetAttr("code");
+									/*
+									GString admin_consent = Map.Find("admin_consent");
+									GString state = Map.Find("state");
+									*/
+									SessionState = Map.Find("session_state");
+									AuthCode = Map.Find("code");
 									#if DEBUG_OAUTH2
-									LgiTrace("%s:%i - AuthCode=%s\n", _FL, AuthCode.Str());
+									LgiTrace("%s:%i - AuthCode=%s\n", _FL, AuthCode.Get());
 									#endif
 									
 									GString Resp;
@@ -1824,7 +1841,7 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 												"</head>\n"
 												"<body>OAuth2Client: %s</body>\n"
 												"</html>\n",
-												AuthCode.Str() ? "Received auth code OK" : "Failed to get auth code");
+												AuthCode.Get() ? "Received auth code OK" : "Failed to get auth code");
 									
 									WebServer.SetResponse(Resp);
 									
@@ -1846,29 +1863,35 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 								{
 									AuthCode = Dlg.Str.Get();
 									#if DEBUG_OAUTH2
-									LgiTrace("%s:%i - AuthCode=%s\n", _FL, AuthCode.Str());
+									LgiTrace("%s:%i - AuthCode=%s\n", _FL, AuthCode.Get());
 									#endif
 								}
 							}
 
-							if (ValidStr(AuthCode.Str()) &&
+							if (ValidStr(AuthCode) &&
 								ValidStr(RedirUri))
 							{
-								// Now exchange the Auth Token for an Access Token (omg this is so complicated).
+								// Now exchange the Auth Token for an Access Token (OMG this is so complicated).
 								Uri = d->OAuth.ApiUri;
 								GUri u(Uri);
 								
 								IHttp Http;
 								GStringPipe In, Out;
+								
 								In.Print("code=");
-								StrFormEncode(In, AuthCode.Str(), true);
+								StrFormEncode(In, AuthCode, true);
+								
 								In.Print("&redirect_uri=");
 								StrFormEncode(In, RedirUri, true);
+								
 								In.Print("&client_id=");
 								StrFormEncode(In, d->OAuth.ClientID, true);
-								In.Print("&scope=");
+								
+								// In.Print("&scope=");
+								
 								In.Print("&client_secret=");
 								StrFormEncode(In, d->OAuth.ClientSecret, true);
+								
 								In.Print("&grant_type=authorization_code");
 								
 								if (d->OAuth.Proxy.Host)
@@ -1901,17 +1924,20 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 												"Content-Length: %i\r\n",
 												ContentLength);
 										bool Result = Http.Post(Uri, &In, &StatusCode, &Out, NULL, Hdrs);
-										GAutoString sOut(Out.NewStr());
-										GXmlTag t;
-										if (Result && JsonDecode(t, sOut))
+										GString sOut = Out.NewGStr();
+										LJson Json;
+
+										LgiTrace("Json=%s\n", sOut.Get());
+
+										if (Result && Json.SetJson(sOut))
 										{
-											d->OAuth.AccessToken = t.GetAttr("access_token");
+											d->OAuth.AccessToken = Json.Get("access_token");
 											if (d->OAuth.AccessToken)
 											{
-												d->OAuth.RefreshToken = t.GetAttr("refresh_token");
-												d->OAuth.ExpiresIn = t.GetAsInt("expires_in");
+												d->OAuth.RefreshToken = Json.Get("refresh_token");
+												d->OAuth.ExpiresIn = Json.Get("expires_in").Int();
 												#if DEBUG_OAUTH2
-												LgiTrace("%s:%i - OAuth(AccessToken=%s, RefreshToken=%s, Expires=%i)\n",
+												LgiTrace("%s:%i - OAuth:\n\tAccessToken=%s\n\tRefreshToken=%s\n\tExpires=%i\n",
 													_FL,
 													d->OAuth.AccessToken.Get(),
 													d->OAuth.RefreshToken.Get(),
@@ -1920,10 +1946,10 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 											}
 											else
 											{
-												GString Err = t.GetAttr("error");
+												GString Err = Json.Get("error");
 												if (Err)
 												{
-													GString Description = t.GetAttr("error_description");
+													GString Description = Json.Get("error_description");
 													#if DEBUG_OAUTH2
 													LgiTrace("%s:%i - Error: %s (%s)\n",
 														_FL,
@@ -1938,9 +1964,14 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 										else
 										{
 											#if DEBUG_OAUTH2
-											LgiTrace("%s:%i - Error getting JSON\n", _FL);
+											LgiTrace("%s:%i - Error getting or parsing JSON:\n%s\n", _FL, sOut.Get());
 											#endif
+											Log("Failed to parse JSON.", GSocketI::SocketMsgError);
 										}
+									}
+									else
+									{
+										Log(Http.GetErrorString(), GSocketI::SocketMsgError);
 									}
 								}
 							}
@@ -1955,14 +1986,14 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 							LgiTrace("%s:%i - %s.\n", _FL, Buf);
 							#endif
 							Log(Buf, GSocketI::SocketMsgWarning);
-							continue;
+							break;
 						}
 						
 						// Construct the XOAUTH2 parameter
 						GString s;
 						s.Printf("user=%s\001auth=Bearer %s\001\001", User, d->OAuth.AccessToken.Get());
 						#if DEBUG_OAUTH2
-						LgiTrace("%s:%i - s=%s.\n", _FL, s.Get());
+						LgiTrace("%s:%i - s=%s.\n", _FL, s.Replace("\001", "%01").Get());
 						#endif
 						Base64Str(s);						
 					
@@ -1986,9 +2017,10 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 										UnBase64Str(s);
 										Log(s, GSocketI::SocketMsgError);
 										
-										GXmlTag t;
-										JsonDecode(t, s);
-										int StatusCode = t.GetAsInt("status");
+										LJson t;
+										t.SetJson(s);
+										int StatusCode = t.Get("status").Int();
+										LgiTrace("%s:%i - HTTP status: %i\n%s\n", _FL, StatusCode, s);
 
 										sprintf_s(Buf, sizeof(Buf), "\r\n");
 										WriteBuf(false, NULL, true);
@@ -2000,12 +2032,15 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 									}
 									else if (*l == '*')
 									{
+										Log(l, GSocketI::SocketMsgReceive);
 									}
 									else
 									{
 										if (IsResponse(l, AuthCmd, LoggedIn) &&
 											LoggedIn)
 										{
+											Log(l, GSocketI::SocketMsgReceive);
+	
 											if (SettingStore)
 											{
 												// Login successful, so persist the AuthCode for next time
@@ -2018,6 +2053,10 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 											}
 											break;
 										}
+										else
+										{
+											Log(l, GSocketI::SocketMsgError);
+										}
 									}
 								}
 							}
@@ -2028,12 +2067,13 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 						{
 							GVariant v;
 							SettingStore->SetValue(OPT_ImapOAuth2AccessToken, v);
+							break;
 						}
 					}
 					else
 					{
 						char s[256];
-						sprintf_s(s, sizeof(s), "Warning: Unsupport auth type '%s'", AuthType);
+						sprintf_s(s, sizeof(s), "Warning: Unsupported authentication type '%s'", AuthType);
 						Log(s, GSocketI::SocketMsgWarning);
 					}
 				}
