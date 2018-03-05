@@ -290,7 +290,7 @@ public:
 		return Default;
 	}
 
-	bool SetBinary(int Id, void *Ptr, uint32 Size)
+	bool SetBinary(int Id, void *Ptr, ssize_t Size)
 	{
 		Field *f = Alloc(Id, 8 + Size);
 		if (!f)
@@ -298,7 +298,7 @@ public:
 		
 		f->Type = LBinary;
 		f->Size = 1;
-		f->s.Length = Size;
+		f->s.Length = (uint32) Size;
 		if (Ptr && Size > 0)
 			memcpy(f->s.u, Ptr, Size);
 		
