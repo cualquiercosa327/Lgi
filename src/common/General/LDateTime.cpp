@@ -795,12 +795,12 @@ bool LDateTime::Get(uint64 &s)
 	SYSTEMTIME System;
 
 	System.wYear = _Year;
-	System.wMonth = max(_Month, 1);
-	System.wDay = max(_Day, 1);
-	System.wHour = _Hours;
-	System.wMinute = _Minutes;
-	System.wSecond = _Seconds;
-	System.wMilliseconds = _Thousands;
+	System.wMonth = limit(_Month, 1, 12);
+	System.wDay = limit(_Day, 1, 31);
+	System.wHour = limit(_Hours, 0, 23);
+	System.wMinute = limit(_Minutes, 0, 59);
+	System.wSecond = limit(_Seconds, 0, 59);
+	System.wMilliseconds = limit(_Thousands, 0, 999);
 	System.wDayOfWeek = DayOfWeek();
 
 	BOOL b1, b2;

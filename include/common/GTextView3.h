@@ -31,6 +31,7 @@ enum GTextViewStyleOwners
 {
 	STYLE_NONE,
 	STYLE_IDE,
+	STYLE_SPELLING,
 	STYLE_FIND_MATCHES,
 };
 

@@ -882,7 +882,7 @@ public:
 	const char *GetWebLoginUri();
 	void SetOAuthParams(OAuthParams &p);
 	void SetParentWindow(GViewI *wnd);
-	void SetLoopState(bool *LoopState);
+	void SetCancel(LCancel *Cancel);
 	ssize_t ParseImapResponse(char *Buffer, ssize_t BufferLen, GArray<StrRange> &Ranges, int Names);
 
 	// Connection

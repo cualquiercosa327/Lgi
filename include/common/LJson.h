@@ -118,6 +118,11 @@ class LJson
 		return true;
 	}
 
+	bool IsNumeric(char s)
+	{
+		return IsDigit(s) || strchr("-.e", s) != NULL;
+	}
+
 	bool Parse(GArray<Key> &Ks, const char *&c)
 	{
 		while (true)
@@ -143,9 +148,30 @@ class LJson
 				else if (*c == '\"')
 				{
 					if (!ParseString(k.Str, c))
+					{
 						return false;
+					}
+				}
+				else if (IsNumeric(*c))
+				{
+					const char *e = c;
+					while (*e && IsNumeric(*e))
+						e++;
+					k.Str.Set(c, e - c);
+					c = e;
 				}
 				else
+				{
+					return false;
+				}
+			}
+			else if (*c == '{')
+			{
+				// Objects
+				c++;
+				if (!Parse(Ks, c))
+					return false;
+				if (!ParseChar('}', c))
 					return false;
 			}
 			else return false;
@@ -175,7 +201,7 @@ public:
 
 	LJson(const char *c)
 	{
-		Parse(Root.Obj, c);
+		SetJson(c);
 	}
 
 	void Empty()
@@ -185,7 +211,7 @@ public:
 
 	bool SetJson(const char *c)
 	{
-		Parse(Root.Obj, c);
+		return Parse(Root.Obj, c);
 	}
 
 	GString GetJson()

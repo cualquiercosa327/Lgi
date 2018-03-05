@@ -669,6 +669,11 @@ void SslSocket::Log(const char *Str, ssize_t Bytes, SocketMsgType Type)
 		LgiTrace("%.*s", Bytes, Str);
 }
 
+const char *SslSocket::GetErrorString()
+{
+	return ErrMsg;
+}
+
 void SslSocket::SslError(const char *file, int line, const char *Msg)
 {
 	char *Part = strrchr((char*)file, DIR_CHAR);
@@ -676,9 +681,8 @@ void SslSocket::SslError(const char *file, int line, const char *Msg)
 	printf("%s:%i - %s\n", file, line, Msg);
 	#endif
 
-	GString s;
-	s.Printf("Error: %s:%i - %s\n", Part ? Part + 1 : file, line, Msg);
-	Log(s, s.Length(), SocketMsgError);
+	ErrMsg.Printf("Error: %s:%i - %s\n", Part ? Part + 1 : file, line, Msg);
+	Log(ErrMsg, ErrMsg.Length(), SocketMsgError);
 }
 
 OsSocket SslSocket::Handle(OsSocket Set)
@@ -811,7 +815,7 @@ DebugTrace("%s:%i - SSL_connect=%i (%i of %i ms)\n", _FL, r, (int)(LgiCurrentTim
 								if (TimeOut)
 								{
 DebugTrace("%s:%i - SSL connect timeout, to=%i\n", _FL, To);
-									OnError(0, "Connection timeout.");
+									SslError(_FL, "Connection timeout.");
 									break;
 								}
 							}
@@ -831,7 +835,9 @@ DebugTrace("%s:%i - open loop finished, r=%i, Cancelled=%i\n", _FL, r, IsCancell
 							else
 							{
 								GString Err = SslGetErrorAsString(Library).Strip();
-								SslError(_FL, Err.Length() > 0 ? Err.Get() : "BIO_do_connect failed.");
+								if (!Err)
+									Err.Printf("BIO_do_connect(%s:%i) failed.", HostAddr, Port);
+								SslError(_FL, Err);
 							}
 						}
 						else SslError(_FL, "BIO_get_ssl failed.");

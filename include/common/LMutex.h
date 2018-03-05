@@ -37,7 +37,9 @@ public:
 		/// The file name of the locker
 		const char *file,
 		/// The line number of the locker
-		int line
+		int line,
+		/// [Optional] No trace to prevent recursion in LgiTrace.
+		bool NoTrace = false
 	);
 	/// \returns true if the semephore was locked in the time
 	bool LockWithTimeout

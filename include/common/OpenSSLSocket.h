@@ -23,6 +23,7 @@ class SslSocket :
 	LMutex Lock;
 	BIO *Bio;
 	SSL *Ssl;
+	GString ErrMsg;
 
 	// Local stuff
 	virtual void Log(const char *Str, ssize_t Bytes, SocketMsgType Type);
@@ -64,6 +65,7 @@ public:
 	bool GetVariant(const char *Name, GVariant &Val, char *Arr = NULL);
 
 	GStreamI *Clone();
+	const char *GetErrorString();
 };
 
 extern bool StartSSL(GAutoString &ErrorMsg, SslSocket *Sock);
