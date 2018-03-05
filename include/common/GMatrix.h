@@ -125,7 +125,7 @@ struct GMatrix
 	
 	inline bool IsNumeric(char s)
 	{
-		return IsDigit(s) || strchr("-.e") != NULL;
+		return IsDigit(s) || strchr("-.e", s) != NULL;
 	}
 	
 	bool SetStr(const char *s)
