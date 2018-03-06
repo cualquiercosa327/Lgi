@@ -747,6 +747,7 @@ GFileSelectDlg::GFileSelectDlg(GFileSelectPrivate *select)
 	Sub = NULL;
 	Bookmarks = NULL;
 
+
 	d = select;
 	SetParent(d->Parent);
 	MinSize.ZOff(450, 300);
@@ -1479,7 +1480,7 @@ GFolderDrop::GFolderDrop(GFileSelectDlg *dlg, int Id, int x, int y, int cx, int 
 	GDropDown(Id, x, y, cx, cy, 0),
 	GFolderView(dlg)
 {
-	SetPopup(new GFileSystemPopup(this, dlg, cx+dlg->Ctrl2->X()));
+	SetPopup(new GFileSystemPopup(this, dlg, cx + (dlg->Ctrl2 ? dlg->Ctrl2->X() : 0) ));
 }
 
 void GFolderDrop::OnFolder()
@@ -1804,6 +1805,9 @@ void GFolderList::OnFolder()
 	}
 
 	// Get items
+	if (!Dlg->Ctrl2)
+		return;
+		
 	bool ShowHiddenFiles = Dlg->ShowHidden ? Dlg->ShowHidden->Value() : false;
 	for (bool Found = Dir.First(Dlg->Ctrl2->Name()); Found; Found = Dir.Next())
 	{
