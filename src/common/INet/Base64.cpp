@@ -11,6 +11,7 @@
 #include "GMem.h"
 #include "LgiInc.h"
 #include "Base64.h"
+#include "GRange.h"
 
 static bool HasBase64ToBinLut = false;
 static uchar Base64ToBinLut[128];
