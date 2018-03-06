@@ -148,7 +148,7 @@ public:
 	virtual bool CopyProps(GDataPropI &p) { return false; }
 
 	/// Gets a string property
-	virtual char *GetStr(int id) { EmptyVirtual(false); }
+	virtual char *GetStr(int id) { EmptyVirtual(NULL); }
 	/// Sets a string property, it will make a copy of the string, so you
 	/// still retain ownership of the string you're passing in.
 	virtual Store3Status SetStr(int id, const char *str) { EmptyVirtual(Store3Error); }

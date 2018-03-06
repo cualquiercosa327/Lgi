@@ -319,8 +319,8 @@ bool GColour::ToHLS()
 	int R = R32(c), G = G32(c), B = B32(c);
 	double fHue;
 
-	nMax = max(R, max(G, B));
-	nMin = min(R, min(G, B));
+	nMax = MAX(R, MAX(G, B));
+	nMin = MIN(R, MIN(G, B));
 
 	if (nMax == nMin)
 		return false;

@@ -126,11 +126,11 @@ bool LgiFindBounds(GSurface *pDC, GRect *rc)
 		System32BitPixel *px2 = p + rc->x2;
 		while (px1 < px2 && px1->a == 0)
 			px1++;
-		x1 = min(x1, (int) (px1 - p));
+		x1 = MIN(x1, (int) (px1 - p));
 
 		while (px2 >= px1 && px2->a == 0)
 			px2--;
-		x2 = max(x2, (int) (px2 - p));
+		x2 = MAX(x2, (int) (px2 - p));
 	}
 	rc->x1 = x1;
 	rc->x2 = x2;
@@ -612,9 +612,9 @@ COLOUR CBit(int DstBits, COLOUR c, int SrcBits, GPalette *Pal)
 							return Rgb24To16(c);
 						}
 
-						int r = max(R24(c) - 1, 0) >> 3;
-						int g = max(G24(c) - 1, 0) >> 2;
-						int b = max(B24(c) - 1, 0) >> 3;
+						int r = MAX(R24(c) - 1, 0) >> 3;
+						int g = MAX(G24(c) - 1, 0) >> 2;
+						int b = MAX(B24(c) - 1, 0) >> 3;
 
 						return (r << 11) | (g << 5) | (b);
 					}
@@ -1121,8 +1121,8 @@ bool LgiRopUniversal(GBmpMem *Dst, GBmpMem *Src, bool Composite)
 		return false;
 
 	// Work out conversion area...
-	int Cx = min(Dst->x, Src->x);
-	int Cy = min(Dst->y, Src->y);
+	int Cx = MIN(Dst->x, Src->x);
+	int Cy = MIN(Dst->y, Src->y);
 
 	// Size of src and dst pixels:
 	int SrcBits = GColourSpaceToBits(Src->Cs);

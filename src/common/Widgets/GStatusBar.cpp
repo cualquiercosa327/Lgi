@@ -23,7 +23,7 @@ bool GStatusBar::Pour(GRegion &r)
 		GRect Take = *Best;
 		if (Take.Y() > 21)
 		{
-			Take.y1 = max((Take.y2 - 21), Take.y1);
+			Take.y1 = MAX((Take.y2 - 21), Take.y1);
 			SetPos(Take);
 			RePour();
 			return true;

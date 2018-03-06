@@ -58,7 +58,7 @@ public:
 	void DrawIcon(GSurface *pDC, GRect &r, bool Add, COLOUR c)
 	{
 		pDC->Colour(c, 24);
-		int IconSize = max(r.X(), r.Y()) * 2 / 6;
+		int IconSize = MAX(r.X(), r.Y()) * 2 / 6;
 		int Cx = r.x1 + (r.X() >> 1);
 		int Cy = r.y1 + (r.Y() >> 1);
 		int Off = (IconSize >> 1) * (Add ? 1 : -1);
@@ -209,7 +209,7 @@ public:
 		if (IsValid())
 		{
 			int64 Range = GetRange();
-			int64 Size = Range ? min((int)Page, Range) * len / Range : len;
+			int64 Size = Range ? MIN((int)Page, Range) * len / Range : len;
 			if (Size < MinSize) Size = MinSize;
 			Start = Range > Page ? Value * (len - Size) / (Range - (int)Page) : 0;
 			End = Start + Size;
@@ -391,7 +391,7 @@ public:
 
 		if (IsValid() && i > Max - Page + 1)
 		{
-			i = max(Min, Max - Page + 1);
+			i = MAX(Min, Max - Page + 1);
 		}
 		
 		if (Value != i)
@@ -607,7 +607,7 @@ void GScrollBar::SetLimits(int64 Low, int64 High)
 	{
 		d->Min = Low;
 		d->Max = High;
-		d->Page = min(d->Page, d->GetRange());
+		d->Page = MIN(d->Page, d->GetRange());
 		d->CalcRegions();
 
 		Invalidate();
@@ -624,7 +624,7 @@ void GScrollBar::SetPage(int64 i)
 {
 	if (d->Page != i)
 	{
-		d->Page = max(i, 1);
+		d->Page = MAX(i, 1);
 		d->CalcRegions();
 		Invalidate();
 		OnConfigure();

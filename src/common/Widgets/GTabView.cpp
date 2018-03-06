@@ -250,7 +250,7 @@ void GTabView::Value(int64 i)
 			Old->Visible(false);
 		}
 
-		d->Current = (int)min(i, it.Length()-1);
+		d->Current = (int)MIN(i, it.Length()-1);
 		OnPosChange();
 
 		GTabPage *p = it[d->Current];
@@ -407,7 +407,7 @@ void GTabView::OnMouseClick(GMouse &m)
 	{
 		if (DownLeft)
 		{
-			d->Scroll = max(0, d->Scroll-1);
+			d->Scroll = MAX(0, d->Scroll-1);
 			Invalidate();
 		}
 	}

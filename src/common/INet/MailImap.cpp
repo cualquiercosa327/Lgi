@@ -1003,7 +1003,7 @@ public:
 		LThread("OAuthWebServerThread"),
 		LMutex("OAuthWebServerMutex")
 	{
-		Loop = true;
+		Loop = false;
 		if (Listen.Listen(DesiredPort))
 		{
 			Port = Listen.GetLocalPort();
@@ -1015,9 +1015,12 @@ public:
 	
 	~OAuthWebServer()
 	{
-		Loop = false;
-		while (!IsExited())
-			LgiSleep(10);
+		if (Loop)
+		{
+			Loop = false;
+			while (!IsExited())
+				LgiSleep(10);
+		}
 	}
 	
 	int GetPort()
@@ -1070,6 +1073,7 @@ public:
 	int Main()
 	{
 		GAutoPtr<GSocket> s;
+		Loop = true;
 		while (Loop)
 		{
 			if (Listen.CanAccept(100))
@@ -1781,7 +1785,7 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 								RedirEnc.Get(),
 								d->OAuth.Scope.Get());
 							#if DEBUG_OAUTH2
-							LgiTrace("%s:%i - Uri=%s\n", _FL, Uri.Get());
+							LgiTrace("%s:%i - Uri=%p-%p\n", _FL, Uri.Get(), Uri.Get() + Uri.Length());
 							#endif
 							bool ExResult = LgiExecute(Uri);
 							#if DEBUG_OAUTH2
@@ -1857,6 +1861,7 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 							}
 							else
 							{
+								#ifdef WINDOWS
 								// Allow the user to paste the Auth Token in.
 								GInput Dlg(d->ParentWnd, "", "Enter Authorization Token:", "IMAP OAuth2 Authentication");
 								if (Dlg.DoModal())
@@ -1866,6 +1871,10 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 									LgiTrace("%s:%i - AuthCode=%s\n", _FL, AuthCode.Get());
 									#endif
 								}
+								#else
+								LgiTrace("%s:%i - No fallback for UI token.\n", _FL);
+								break;
+								#endif
 							}
 
 							if (ValidStr(AuthCode) &&
@@ -2000,7 +2009,7 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 						// Issue the IMAP command
 						int AuthCmd = d->NextCmd++;
 						GString AuthStr;
-						AuthStr.Printf("A%4.4i AUTHENTICATE XOAUTH2 %s\r\n", AuthCmd, s.Get());
+						AuthStr.Printf("A%4.4i AUTHENTICATE XOAUTH2\r\n+\r\n%s\r\n", AuthCmd, s.Get());
 						if (WriteBuf(false, AuthStr))
 						{
 							Dialog.DeleteArrays();

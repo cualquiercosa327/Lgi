@@ -32,13 +32,13 @@ void YearView::Set(LDateTime *dt)
 		t.Year(Year);
 		Day[i] = t.DayOfWeek();
 		Len[i] = t.DaysInMonth();
-		Min = min(Day[i], Min);
+		Min = MIN(Day[i], Min);
 	}
 	Sx = 0;
 	for (int n=0; n<12; n++)
 	{
 		Start[n] = Day[n] - Min;
-		Sx = max(Sx, Start[n] + Len[n]);
+		Sx = MAX(Sx, Start[n] + Len[n]);
 	}
 }
 

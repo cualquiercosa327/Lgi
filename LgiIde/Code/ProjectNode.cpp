@@ -69,8 +69,8 @@ public:
 				if (u.X() < p.X() ||
 					u.Y() < p.Y())
 				{
-					p.Dimension(max(u.X(), p.X()),
-								max(u.Y(), p.Y()));
+					p.Dimension(MAX(u.X(), p.X()),
+								MAX(u.Y(), p.Y()));
 					SetPos(p);
 				}				
 			}
@@ -1285,7 +1285,7 @@ ProjectNode *ProjectNode::FindFile(const char *In, char **Full)
 			GString::Array MyArr = MyPath.Split(DIR_STR);
 			GString InPath(In);
 			GString::Array InArr = InPath.Split(DIR_STR);
-			int Common = min(MyArr.Length(), InArr.Length());
+			int Common = MIN(MyArr.Length(), InArr.Length());
 			Match = true;
 			for (int i = 0; i < Common; i++)
 			{

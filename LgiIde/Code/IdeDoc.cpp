@@ -395,7 +395,7 @@ void EditTray::OnFunctionList(GMouse &m)
 		float Ratio = ScreenHt ? (float)(SysFont->GetHeight() * Funcs.Length()) / ScreenHt : 0.0f;
 		bool UseSubMenus = Ratio > 0.9f;
 		int Buckets = UseSubMenus ? (int)(ScreenLines * 0.75) : 1;
-		int BucketSize = max(5, Funcs.Length() / Buckets);
+		int BucketSize = MAX(5, Funcs.Length() / Buckets);
 		GSubMenu *Cur = NULL;
 		
 		for (unsigned n=0; n<Funcs.Length(); n++)
@@ -733,7 +733,7 @@ public:
 				if (i == 1)
 					CommonPathLen = Common;
 				else
-					CommonPathLen = min(CommonPathLen, Common);
+					CommonPathLen = MIN(CommonPathLen, Common);
 			}
 			else s = All[i]->File;
 		}
@@ -1506,7 +1506,7 @@ public:
 				int CurLine = -1, DirtyStartLine = -1, DirtyEndLine = -1;
 				GetTextLine(Cursor, &CurLine);
 				GTextLine *Start = GetTextLine(Dirty.Start, &DirtyStartLine);
-				GTextLine *End = GetTextLine(min(Size, Dirty.End()), &DirtyEndLine);
+				GTextLine *End = GetTextLine(MIN(Size, Dirty.End()), &DirtyEndLine);
 				if (CurLine >= 0 &&
 					DirtyStartLine >= 0 &&
 					DirtyEndLine >= 0)

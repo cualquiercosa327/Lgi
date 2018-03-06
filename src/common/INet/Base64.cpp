@@ -143,7 +143,7 @@ ssize_t ConvertBinaryToBase64(char *Base64, ssize_t OutBuf, uchar *Binary, ssize
 	{
 		ssize_t i = InBuf / 3;
 		ssize_t o = OutBuf / 4;
-		ssize_t Segments = min(i, o);
+		ssize_t Segments = MIN(i, o);
 
 		for (int n=0; n<Segments; n++)
 		{

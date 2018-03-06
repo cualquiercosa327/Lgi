@@ -35,7 +35,7 @@ public:
 	{
 		LListItem::OnMeasure(Info);
 		if (pDC)
-			Info->y = max(Info->y, pDC->Y());
+			Info->y = MAX(Info->y, pDC->Y());
 	}
 };
 

@@ -394,7 +394,7 @@ void GProgressDlg::Resize()
 	int DecorX = LgiApp->GetMetric(LGI_MET_DECOR_X);
 	int DecorY = LgiApp->GetMetric(LGI_MET_DECOR_Y);
 
-	int Items = max(1, Panes.Length());
+	int Items = MAX(1, Panes.Length());
 	int Width = DecorX + PANE_X;
 	int Height = DecorY + (PANE_Y * Items);
 

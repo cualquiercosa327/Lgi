@@ -93,7 +93,7 @@ void GColourSelect::SetColourList(GArray<COLOUR> *col32)
 
 	if (GetPopup())
 	{
-		GRect r(0, 0, 100, (max((int)Presets.Length()+1, 1) * SysFont->GetHeight()) + 4);
+		GRect r(0, 0, 100, (MAX((int)Presets.Length()+1, 1) * SysFont->GetHeight()) + 4);
 		GetPopup()->SetPos(r);
 	}
 }

@@ -613,13 +613,12 @@ Alpha.o : ./src/common/Gdc2/Alpha.cpp ./include/common/Gdc2.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GFilter.o : ./src/common/Gdc2/Filters/GFilter.cpp ./include/common/Gdc2.h \
+GFilter.o : ./src/common/Gdc2/Filters/GFilter.cpp ./include/common/Lgi.h \
 	./include/common/GString.h \
 	./include/common/GVariant.h \
 	./include/common/GClipBoard.h \
 	./include/common/GToken.h \
-	./include/common/GPalette.h \
-	./include/common/Lgi.h
+	./include/common/GPalette.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 

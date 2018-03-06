@@ -366,7 +366,7 @@ public:
 		Cur = -1;
 		Case = is_case;
 		Pool = false;
-		SizeBackup = Size = size ? max(size, 16) : 512;
+		SizeBackup = Size = size ? MAX(size, 16) : 512;
 		MaxSize = GHASHTBL_MAX_SIZE;
 		LgiAssert(Size <= MaxSize);
 		
@@ -433,7 +433,7 @@ public:
 			return false;
 
 		int OldSize = Size;
-		int NewSize = max((int)s, Used * 10 / 7);
+		int NewSize = MAX((int)s, Used * 10 / 7);
 		if (NewSize != Size)
 		{
 			Entry *OldTable = Table;

@@ -148,8 +148,8 @@ public:
 			}
 			else
 			{
-				Start = min(Start, s.Start);
-				Len = max(End(), s.End()) - Start;
+				Start = MIN(Start, s.Start);
+				Len = MAX(End(), s.End()) - Start;
 			}
 		}
 	};

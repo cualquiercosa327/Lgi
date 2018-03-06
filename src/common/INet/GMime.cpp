@@ -431,7 +431,7 @@ public:
 			Size &= ~3;
 
 			char t[256];
-			ssize_t r = min(sizeof(t), Size);
+			ssize_t r = MIN(sizeof(t), Size);
 			if ((r = Buf.GMemQueue::Read((uchar*)t, r)) > 0)
 			{
 				uchar b[256];
@@ -1268,7 +1268,7 @@ int GMime::GMimeText::GMimeEncode::Push(GStreamI *Dest, GStreamEnd *End)
 				int x = 0;
 				for (int i=0; i<Mime->DataSize; )
 				{
-					ssize_t m = min(Mime->DataSize - i, sizeof(Buf));
+					ssize_t m = MIN(Mime->DataSize - i, sizeof(Buf));
 					ssize_t r = Mime->DataStore->Read(Buf, m);
 					if (r > 0)
 					{
@@ -1276,7 +1276,7 @@ int GMime::GMimeText::GMimeEncode::Push(GStreamI *Dest, GStreamEnd *End)
 						{
 							if (Buf[n] == '\n')
 							{
-								MaxLine = max(x, MaxLine);
+								MaxLine = MAX(x, MaxLine);
 								x = 0;
 							}
 							else
@@ -1355,7 +1355,7 @@ int GMime::GMimeText::GMimeEncode::Push(GStreamI *Dest, GStreamEnd *End)
 				Status = Mime->DataSize == 0; // Nothing is a valid segment??
 				for (int i=0; i<Mime->DataSize; )
 				{
-					ssize_t m = min(Mime->DataSize-i, sizeof(Buf));
+					ssize_t m = MIN(Mime->DataSize-i, sizeof(Buf));
 					ssize_t r = Mime->DataStore->Read(Buf, m);
 					if (r > 0)
 					{
@@ -1511,7 +1511,7 @@ int GMime::GMimeBinary::GMimeWrite::Push(GStreamI *Dest, GStreamEnd *End)
 				ssize_t Written = 0;
 				ssize_t Read = 0;
 				ssize_t r;
-				while ((r = Mime->DataStore->Read(Buf, min(sizeof(Buf), Header[2]-Read) )) > 0)
+				while ((r = Mime->DataStore->Read(Buf, MIN(sizeof(Buf), Header[2]-Read) )) > 0)
 				{
 					ssize_t w;
 					if ((w = Dest->Write(Buf, r)) <= 0)

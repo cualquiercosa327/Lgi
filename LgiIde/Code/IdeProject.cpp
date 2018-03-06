@@ -1694,7 +1694,7 @@ if (Debug) LgiTrace("XmlBase='%s'\n		In='%s'\n", Base.Get(), In);
 if (Debug) LgiTrace("Len %i-%i\n", b.Length(), i.Length());
 			
 			int ILen = i.Length() + (DirExists(In) ? 0 : 1);
-			int Max = min(b.Length(), ILen);
+			int Max = MIN(b.Length(), ILen);
 			int Common = 0;
 			for (; Common < Max; Common++)
 			{
@@ -1931,7 +1931,7 @@ public:
 		{
 			if (Proj->GetApp())
 			{
-				Size = min(Size, Len);
+				Size = MIN(Size, Len);
 				Proj->GetApp()->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr((char*)Buffer, Size), 1);
 				Len -= Size;
 			}
