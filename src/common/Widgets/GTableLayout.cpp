@@ -416,11 +416,6 @@ bool TableCell::Add(GView *v)
 	if (HasView(v))
 		return false;
 
-	GViewI *vi = v;
-	GViewI *dvi = dynamic_cast<GViewI*>(v);
-	GView *dv = dynamic_cast<GView*>(dvi);
-	printf("Add %p %p %p (%i)\n", v, vi, dvi, (int)v-(int)vi);
-
 	Table->AddView(v);
 	Children.New().View = v;
 	return true;

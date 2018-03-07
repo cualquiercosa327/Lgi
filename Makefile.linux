@@ -680,7 +680,8 @@ GMru.o : ./src/common/Lgi/GMru.cpp ./include/common/Lgi.h \
 
 Base64.o : ./src/common/INet/Base64.cpp ./include/common/GMem.h \
 	./include/common/LgiInc.h \
-	./include/common/Base64.h
+	./include/common/Base64.h \
+	./include/common/GRange.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -1205,6 +1206,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ./include/common/INetTools.h : ./include/common/GContainers.h \
 	./include/common/LgiNetInc.h
+
+./include/common/GRange.h : 
 
 ./include/common/GVariant.h : ./include/common/GDom.h \
 	./include/common/LDateTime.h \
