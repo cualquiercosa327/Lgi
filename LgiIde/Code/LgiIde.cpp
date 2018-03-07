@@ -3088,6 +3088,15 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 				LgiMsg(this, "No project loaded.", AppName);
 			break;
 		}
+		case IDM_FIND_DUPE_SYM:
+		{
+			IdeProject *p = RootProject();
+			if (p)
+				p->FindDuplicateSymbols();
+			else
+				LgiMsg(this, "No project loaded.", AppName);
+			break;
+		}
 		case IDM_START_DEBUG:
 		{
 			SaveAll();

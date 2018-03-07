@@ -368,7 +368,7 @@ public:
 		Pool = false;
 		SizeBackup = Size = size ? MAX(size, 16) : 512;
 		MaxSize = GHASHTBL_MAX_SIZE;
-		LgiAssert(Size <= MaxSize);
+		// LgiAssert(Size <= MaxSize);
 		
 		if ((Table = new Entry[Size]))
 		{
