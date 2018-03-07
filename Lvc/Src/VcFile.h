@@ -6,11 +6,12 @@
 class VcFile : public LListItem
 {
 	AppPriv *d;
+	VcFolder *Owner;
 	GString Diff;
 	LListItemCheckBox *Chk;
 
 public:
-	VcFile(AppPriv *priv, bool working = false);
+	VcFile(AppPriv *priv, VcFolder *owner, bool working = false);
 	~VcFile();
 
 	int Checked(int Set = -1);

@@ -86,6 +86,7 @@ public:
 	VcFolder(AppPriv *priv, GXmlTag *t);
 
 	VersionCtrl GetType();
+	const char *GetPath() { return Path; }
 	char *GetText(int Col);
 	bool Serialize(GXmlTag *t, bool Write);
 	GXmlTag *Save();
@@ -95,6 +96,7 @@ public:
 	void Commit(const char *Msg);
 	void Push();
 	void Pull();
+	void Revert(const char *Path);
 
 	void OnPulse();
 	void OnUpdate(const char *Rev);

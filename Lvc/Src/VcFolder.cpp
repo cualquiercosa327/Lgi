@@ -502,7 +502,7 @@ bool VcFolder::ParseDiffs(GString s, bool IsWorking)
 					Diff.Empty();
 
 					GString Fn = a[i].Split(" ").Last()(2, -1);
-					f = new VcFile(d, IsWorking);
+					f = new VcFile(d, this, IsWorking);
 					f->SetText(Fn, COL_FILENAME);
 					d->Files->Insert(f);
 				}
@@ -550,7 +550,7 @@ bool VcFolder::ParseDiffs(GString s, bool IsWorking)
 					InPreamble = false;
 
 					GString Fn = a[i].Split(":", 1).Last().Strip();
-					f = new VcFile(d, IsWorking);
+					f = new VcFile(d, this, IsWorking);
 					f->SetText(Fn, COL_FILENAME);
 					d->Files->Insert(f);
 				}
@@ -843,6 +843,10 @@ bool VcFolder::ParsePull(int Result, GString s)
 	GetTree()->SendNotify(LvcCommandEnd);
 	CommitListDirty = true;
 	return true; // Yes - reselect and update
+}
+
+void VcFolder::Revert(const char *Path)
+{
 }
 
 bool VcFolder::ParseCounts(int Result, GString s)
