@@ -444,7 +444,7 @@ bool VcFolder::ParseCommit(int Result, GString s, ParseParams *Params)
 {
 	Select(true);
 	
-	CommitListDirty = true;
+	CommitListDirty = Result == 0;
 	CurrentCommit.Empty();
 
 	if (Result == 0 && GetType() != VcSvn)
