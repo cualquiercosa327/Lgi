@@ -127,7 +127,13 @@ void VcCommit::Select(bool b)
 		if (d->Msg)
 		{
 			d->Msg->Name(Msg);
-			d->Msg->GetWindow()->SetCtrlEnabled(IDC_COMMIT, false);
+			
+			GWindow *w = d->Msg->GetWindow();
+			if (w)
+			{
+				w->SetCtrlEnabled(IDC_COMMIT, false);
+				w->SetCtrlEnabled(IDC_COMMIT_AND_PUSH, false);
+			}
 		}
 	}
 }

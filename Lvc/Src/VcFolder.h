@@ -102,7 +102,7 @@ public:
 	void Select(bool b);
 	void ListCommit(const char *Rev);
 	void ListWorkingFolder();
-	void Commit(const char *Msg);
+	void Commit(const char *Msg, bool AndPush);
 	void Push();
 	void Pull();
 	bool Revert(const char *Path, const char *Revision = NULL);

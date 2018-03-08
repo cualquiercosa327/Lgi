@@ -446,6 +446,7 @@ bool VcFolder::ParseCommit(int Result, GString s, ParseParams *Params)
 	
 	CommitListDirty = Result == 0;
 	CurrentCommit.Empty();
+	IsCommit = false;
 
 	if (Result == 0 && GetType() != VcSvn)
 	{
@@ -457,9 +458,10 @@ bool VcFolder::ParseCommit(int Result, GString s, ParseParams *Params)
 		GWindow *w = d->Diff ? d->Diff->GetWindow() : NULL;
 		if (w)
 			w->SetCtrlName(IDC_MSG, NULL);
-	}		
 
-	IsCommit = false;
+		if (Params->Str.Find("Push") >= 0)
+			Push();
+	}		
 
 	return true;
 }
@@ -731,7 +733,7 @@ void VcFolder::ListWorkingFolder()
 	}
 }
 
-void VcFolder::Commit(const char *Msg)
+void VcFolder::Commit(const char *Msg, bool AndPush)
 {
 	VcFile *f = NULL;
 	GArray<VcFile*> Add;
@@ -748,6 +750,8 @@ void VcFolder::Commit(const char *Msg)
 	if (!IsCommit)
 	{
 		GString Args;
+		GString Param = AndPush ? "Push" : NULL;
+
 		switch (GetType())
 		{
 			case VcGit:
@@ -756,8 +760,8 @@ void VcFolder::Commit(const char *Msg)
 					LgiMsg(GetTree(), "%s:%i - Not impl.", AppName, MB_OK, _FL);
 					break;
 				}
-				else Args.Printf("commit -am \"%s\"", Msg);
-				IsCommit = StartCmd(Args, &VcFolder::ParseCommit, NULL, true);
+				else Args.Printf("commit -am \"%s\"", GString(Msg).Replace("\"", "\\\""));
+				IsCommit = StartCmd(Args, &VcFolder::ParseCommit, Param, true);
 				break;
 			case VcSvn:
 			{
@@ -998,7 +1002,13 @@ void VcFolder::UncommitedItem::Select(bool b)
 		if (d->Msg)
 		{
 			d->Msg->Name(NULL);
-			d->Msg->GetWindow()->SetCtrlEnabled(IDC_COMMIT, true);
+
+			GWindow *w = d->Msg->GetWindow();
+			if (w)
+			{
+				w->SetCtrlEnabled(IDC_COMMIT, true);
+				w->SetCtrlEnabled(IDC_COMMIT_AND_PUSH, true);
+			}
 		}
 	}
 }

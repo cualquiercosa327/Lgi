@@ -3,6 +3,7 @@
 	<string-group Name="_Dialog Symbols_">
 		<String Ref="1" Cid="508" Define="IDD_TOOLBAR" en="Toolbar" />
 		<String Ref="2" Cid="500" Define="IDC_TABLE" />
+		<String Ref="3" Cid="3" Define="IDC_COMMIT_AND_PUSH" en="+ Push" />
 		<String Ref="4" Cid="502" Define="IDC_PULL" en="Pull" />
 		<String Ref="5" Cid="503" Define="IDC_PUSH" en="Push" />
 		<String Ref="6" Cid="-1" Define="IDC_STATIC" en="Filter:" />
@@ -13,14 +14,17 @@
 		<String Ref="11" Cid="501" Define="IDC_COMMIT" en="Commit" />
 		<String Ref="12" Cid="-1" Define="IDC_STATIC" en="Commit message:" />
 	</string-group>
-	<Dialog pos="7,7,373,74" ref="9">
-		<TableLayout pos="7,7,363,41" ref="10" cols="0.500,0.500" rows="1.000">
+	<Dialog pos="7,7,373,87" ref="9">
+		<TableLayout pos="7,7,363,48" ref="10" cols="0.333,0.333,0.333" rows="1.000">
 			<tr>
 				<td valign="Center" style="width: 90%;">
-					<StaticText pos="7,7,146,20" ref="12" />
+					<StaticText pos="0,7,113,20" ref="12" />
 				</td>
 				<td align="Max">
-					<Button pos="182,0,286,20" ref="11" />
+					<Button pos="173,0,228,20" ref="11" />
+				</td>
+				<td>
+					<Button pos="280,0,328,20" ref="3" />
 				</td>
 			</tr>
 		</TableLayout>

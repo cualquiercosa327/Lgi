@@ -372,6 +372,7 @@ public:
 					f->Select(true);
 				break;
 			}
+			case IDC_COMMIT_AND_PUSH:
 			case IDC_COMMIT:
 			{
 				const char *Msg = GetCtrlName(IDC_MSG);
@@ -379,9 +380,7 @@ public:
 				{
 					VcFolder *f = dynamic_cast<VcFolder*>(Tree->Selection());
 					if (f)
-					{
-						f->Commit(Msg);
-					}
+						f->Commit(Msg, c->GetId() == IDC_COMMIT_AND_PUSH);
 				}
 				else LgiMsg(this, "No message for commit.", AppName);
 				break;
