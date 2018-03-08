@@ -454,6 +454,14 @@ bool VcFolder::ParseCommit(int Result, GString s, ParseParams *Params)
 	}		
 
 	IsCommit = false;
+	d->ClearFiles();
+
+	GWindow *w = d->Diff ? d->Diff->GetWindow() : NULL;
+	if (w)
+	{
+		w->SetCtrlName(IDC_MSG, NULL);
+	}
+
 	return true;
 }
 
