@@ -99,6 +99,15 @@ struct AppPriv
 	}
 };
 
+class BlameUi : public GWindow
+{
+	struct BlameUiPriv *d;
+
+public:
+	BlameUi(AppPriv *priv, VersionCtrl Vc, GString Output);
+	~BlameUi();
+};
+
 extern VersionCtrl DetectVcs(const char *Path);
 
 #include "VcFile.h"

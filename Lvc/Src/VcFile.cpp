@@ -1,9 +1,10 @@
 #include "Lvc.h"
 
-VcFile::VcFile(AppPriv *priv, VcFolder *owner, bool working)
+VcFile::VcFile(AppPriv *priv, VcFolder *owner, GString revision, bool working)
 {
 	d = priv;
 	Owner = owner;
+	Revision = revision;
 	if (working)
 		Chk = new LListItemCheckBox(this, 0, false);
 	else
@@ -82,14 +83,17 @@ void VcFile::OnMouseClick(GMouse &m)
 			}
 			case IDM_REVERT_TO_REV:
 			{
+				Owner->Revert(p, Revision);
 				break;
 			}
 			case IDM_BLAME:
 			{
+				Owner->Blame(p);
 				break;
 			}
 			case IDM_SAVE_AS:
 			{
+				Owner->SaveFileAs(p, Revision);
 				break;
 			}
 		}

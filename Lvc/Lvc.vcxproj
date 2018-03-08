@@ -171,6 +171,7 @@
   <ItemGroup>
     <ClCompile Include="..\src\common\Lgi\GSubProcess.cpp" />
     <ClCompile Include="..\src\common\Lgi\LgiMain.cpp" />
+    <ClCompile Include="Src\BlameUi.cpp" />
     <ClCompile Include="Src\Main.cpp" />
     <ClCompile Include="Src\VcCommit.cpp" />
     <ClCompile Include="Src\VcFile.cpp" />
