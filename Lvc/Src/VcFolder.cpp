@@ -198,7 +198,7 @@ void VcFolder::Select(bool b)
 			switch (GetType())
 			{
 				case VcGit:
-					IsLogging = StartCmd("log origin", &VcFolder::ParseLog);
+					IsLogging = StartCmd("log", &VcFolder::ParseLog);
 					break;
 				case VcSvn:
 					IsLogging = StartCmd("log", &VcFolder::ParseLog);
