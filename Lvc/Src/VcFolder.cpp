@@ -760,7 +760,12 @@ void VcFolder::Commit(const char *Msg, bool AndPush)
 					LgiMsg(GetTree(), "%s:%i - Not impl.", AppName, MB_OK, _FL);
 					break;
 				}
-				else Args.Printf("commit -am \"%s\"", GString(Msg).Replace("\"", "\\\""));
+				else
+				{
+					GString m(Msg);
+					m = m.Replace("\"", "\\\"");
+					Args.Printf("commit -am \"%s\"", m.Get());
+				}
 				IsCommit = StartCmd(Args, &VcFolder::ParseCommit, Param, true);
 				break;
 			case VcSvn:
