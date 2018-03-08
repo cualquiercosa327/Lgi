@@ -262,15 +262,15 @@ public:
 		/// The control's ID
 		int id,
 		/// Left edge position
-		int x,
+		int x = 0,
 		/// Top edge position
-		int y,
+		int y = 0,
 		/// The width
-		int cx,
+		int cx = 100,
 		/// The height
-		int cy,
+		int cy = 100,
 		/// An unseen descriptor of the control
-		const char *name = "List"
+		const char *name = NULL
 	);
 	~LList();
 
