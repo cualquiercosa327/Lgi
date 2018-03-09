@@ -820,25 +820,22 @@ void VcFolder::Commit(const char *Msg, bool AndPush)
 
 void VcFolder::Push()
 {
-	if (!Cmds.Length())
+	GString Args;
+	bool Working = false;
+	switch (GetType())
 	{
-		GString Args;
-		bool Working = false;
-		switch (GetType())
-		{
-			case VcGit:
-				Working = StartCmd("push", &VcFolder::ParsePush, NULL, true);
-				break;
-			case VcSvn:
-				// Nothing to do here.. the commit pushed the data already
-				break;
-		}
+		case VcGit:
+			Working = StartCmd("push", &VcFolder::ParsePush, NULL, true);
+			break;
+		case VcSvn:
+			// Nothing to do here.. the commit pushed the data already
+			break;
+	}
 
-		if (d->Tabs && Working)
-		{
-			d->Tabs->Value(1);
-			GetTree()->SendNotify(LvcCommandStart);
-		}
+	if (d->Tabs && Working)
+	{
+		d->Tabs->Value(1);
+		GetTree()->SendNotify(LvcCommandStart);
 	}
 }
 
