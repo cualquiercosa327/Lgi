@@ -63,6 +63,7 @@ class VcFolder : public GTreeItem
 	VersionCtrl Type;
 	GString Path, CurrentCommit, RepoUrl;
 	GArray<VcCommit*> Log;
+	GString::Array Branches;
 	GAutoPtr<UncommitedItem> Uncommit;
 	GString Cache, NewRev;
 	bool CommitListDirty;
@@ -74,6 +75,7 @@ class VcFolder : public GTreeItem
 
 	void Init(AppPriv *priv);
 	const char *GetVcName();
+	void OnBranchesChange();
 	bool StartCmd(const char *Args, ParseFn Parser, GString Param = NULL, bool LogCmd = false);
 
 	bool ParseDiffs(GString s, GString Rev, bool IsWorking);
@@ -89,6 +91,7 @@ class VcFolder : public GTreeItem
 	bool ParseRevert(int Result, GString s, ParseParams *Params);
 	bool ParseBlame(int Result, GString s, ParseParams *Params);
 	bool ParseSaveAs(int Result, GString s, ParseParams *Params);
+	bool ParseBranches(int Result, GString s, ParseParams *Params);
 	
 public:
 	VcFolder(AppPriv *priv, const char *p);
