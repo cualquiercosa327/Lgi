@@ -11,6 +11,7 @@
 			<Node File="../src/common/Lgi/GSubProcess.cpp" Type="2" Platforms="15" />
 			<Node File="../src/common/Lgi/LgiMain.cpp" Type="2" Platforms="15" />
 		</Node>
+		<Node File="./Src/BlameUi.cpp" Type="2" Platforms="15" />
 		<Node File="/home/matthew/Code/Lgi/trunk/Lvc/Src/Main.cpp" Type="2" Platforms="15" />
 		<Node File="/home/matthew/Code/Lgi/trunk/Lvc/Src/VcCommit.cpp" Type="2" Platforms="15" />
 		<Node File="./Src/VcFile.cpp" Type="2" Platforms="15" />

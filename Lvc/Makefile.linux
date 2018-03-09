@@ -8,7 +8,7 @@
 
 CC = gcc
 CPP = g++
-Target = lvc
+Target = /home/matthew/Code/Lgi/trunk/Lvc/lvc
 ifndef Build
 	Build = Debug
 endif
@@ -53,6 +53,7 @@ endif
 Depends =	 \
 			GSubProcess.o \
 			LgiMain.o \
+			BlameUi.o \
 			Main.o \
 			VcCommit.o \
 			VcFile.o \
@@ -317,6 +318,12 @@ GSubProcess.o : ../src/common/Lgi/GSubProcess.cpp ../include/common/Lgi.h \
 
 LgiMain.o : ../src/common/Lgi/LgiMain.cpp ../include/common/Lgi.h \
 	../include/common/GToken.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+BlameUi.o : ./Src/BlameUi.cpp ../include/common/Lgi.h \
+	./Src/Lvc.h \
+	../include/common/GTextLog.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -1369,7 +1376,8 @@ VcFolder.o : ./Src/VcFolder.cpp ./Src/Lvc.h \
 
 ../src/common/INet/Base64.cpp : ../include/common/GMem.h \
 	../include/common/LgiInc.h \
-	../include/common/Base64.h
+	../include/common/Base64.h \
+	../include/common/GRange.h
 
 ../include/common/Base64.h : ../include/common/LgiDefs.h
 
@@ -1580,13 +1588,12 @@ VcFolder.o : ./Src/VcFolder.cpp ./Src/Lvc.h \
 	../include/common/GString.h \
 	../include/common/GHashTable.h
 
-../src/common/Gdc2/Filters/GFilter.cpp : ../include/common/Gdc2.h \
+../src/common/Gdc2/Filters/GFilter.cpp : ../include/common/Lgi.h \
 	../include/common/GString.h \
 	../include/common/GVariant.h \
 	../include/common/GClipBoard.h \
 	../include/common/GToken.h \
-	../include/common/GPalette.h \
-	../include/common/Lgi.h
+	../include/common/GPalette.h
 
 ../include/common/GCapabilities.h : ../include/common/GHashTable.h
 
