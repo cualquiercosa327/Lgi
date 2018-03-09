@@ -1799,7 +1799,7 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 								GString Req = WebServer.GetRequest(d->Cancel ? d->Cancel : &LocalCancel);
 								if (Req)
 								{
-									GHashTbl<char*,GString> Map;
+									GHashTbl<const char*,GString> Map;
 									GString::Array a = Req.Split("\r\n");
 									if (a.Length() > 0)
 									{
@@ -2029,7 +2029,7 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 										LJson t;
 										t.SetJson(s);
 										int StatusCode = t.Get("status").Int();
-										LgiTrace("%s:%i - HTTP status: %i\n%s\n", _FL, StatusCode, s);
+										LgiTrace("%s:%i - HTTP status: %i\n%s\n", _FL, StatusCode, s.Get());
 
 										sprintf_s(Buf, sizeof(Buf), "\r\n");
 										WriteBuf(false, NULL, true);
