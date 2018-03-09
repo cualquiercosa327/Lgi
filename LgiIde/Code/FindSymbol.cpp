@@ -395,7 +395,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 					MsgTs = Now;
 					DoingProgress = true;
 					uint32 Remaining = Tasks - GetQueueSize();
-					Log("FindSym: %i of %i (%.1f%%)\n", Remaining, Tasks, (double)Remaining * 100.0 / max(Tasks, 1));
+					Log("FindSym: %i of %i (%.1f%%)\n", Remaining, Tasks, (double)Remaining * 100.0 / MAX(Tasks, 1));
 				}
 				else if (GetQueueSize() == 0 && MsgTs)
 				{
@@ -519,7 +519,7 @@ GMessage::Result FindSymbolDlg::OnEvent(GMessage *m)
 							if (i == 1)
 								CommonPathLen = Common;
 							else
-								CommonPathLen = min(CommonPathLen, Common);
+								CommonPathLen = MIN(CommonPathLen, Common);
 						}
 						else s = r->File;
 					}

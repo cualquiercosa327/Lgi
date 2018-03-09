@@ -627,7 +627,7 @@ void GRichTextPriv::ScrollTo(GRect r)
 	{
 		if (r.y1 < Content.y1)
 		{
-			int OffsetPx = max(r.y1, 0);
+			int OffsetPx = MAX(r.y1, 0);
 			View->SetScrollPos(0, OffsetPx / ScrollLinePx);
 			InvalidateDoc(NULL);
 		}
@@ -914,7 +914,7 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 			GRect &Content = Areas[GRichTextEdit::ContentArea];
 			int LineHint = -1;
 			int TargetY = In->Pos.y1 - Content.Y();
-			ssize_t Idx = HitTest(In->Pos.x1, max(TargetY, 0), LineHint);
+			ssize_t Idx = HitTest(In->Pos.x1, MAX(TargetY, 0), LineHint);
 			if (Idx >= 0)
 			{
 				ssize_t Offset = -1;
@@ -934,7 +934,7 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 			GRect &Content = Areas[GRichTextEdit::ContentArea];
 			int LineHint = -1;
 			int TargetY = In->Pos.y1 + Content.Y();
-			ssize_t Idx = HitTest(In->Pos.x1, min(TargetY, DocumentExtent.y-1), LineHint);
+			ssize_t Idx = HitTest(In->Pos.x1, MIN(TargetY, DocumentExtent.y-1), LineHint);
 			if (Idx >= 0)
 			{
 				ssize_t Offset = -1;
@@ -2004,7 +2004,7 @@ void GRichTextPriv::DumpBlocks()
 bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentStyle, int Depth)
 {
 	char Sp[48];
-	int SpLen = min(Depth << 1, sizeof(Sp) - 1);
+	int SpLen = MIN(Depth << 1, sizeof(Sp) - 1);
 	memset(Sp, ' ', SpLen);
 	Sp[SpLen] = 0;
 		

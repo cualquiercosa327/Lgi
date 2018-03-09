@@ -596,7 +596,7 @@ public:
 			NativeInt i;
 			for (i = 0; i < nsz; )
 			{
-				int Len = min(Block, (int) (nsz - i));
+				int Len = MIN(Block, (int) (nsz - i));
 				ssize_t rd = Read(s.Get() + i, Len);
 				if (rd <= 0)
 					break;

@@ -298,7 +298,7 @@ char *GHtmlParser::ParsePropList(char *s, GHtmlElement *Obj, bool &Closed)
 			char16 *Value = 0;
 			s = ParsePropValue(s, Value);
 
-			if (Name && Value)
+			if (Name && Value && *Value)
 			{
 				#if defined(_DEBUG) && 0
 				if (!_stricmp(Name, "debug"))

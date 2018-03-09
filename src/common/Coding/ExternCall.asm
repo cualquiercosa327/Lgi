@@ -17,7 +17,7 @@ CallExtern64 PROC
 	mov r12, rcx		; save FuncAddr
 	mov R13, rdx		; save RetAddr
 	mov r14d, r8d		; save Args
-	mov r15, r9			; save ArgAddr
+	mov r15, r9		; save ArgAddr
 
 	; First arg
 	cmp r14d, 0

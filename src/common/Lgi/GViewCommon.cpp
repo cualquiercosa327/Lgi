@@ -758,19 +758,19 @@ GRect JoinAdjacent(GRect &a, GRect &b, int Adj)
 		case ADJ_LEFT:
 		case ADJ_RIGHT:
 		{
-			t.y1 = max(a.y1, b.y1);
-			t.y2 = min(a.y2, b.y2);
-			t.x1 = min(a.x1, b.x1);
-			t.x2 = max(a.x2, b.x2);
+			t.y1 = MAX(a.y1, b.y1);
+			t.y2 = MIN(a.y2, b.y2);
+			t.x1 = MIN(a.x1, b.x1);
+			t.x2 = MAX(a.x2, b.x2);
 			break;
 		}
 		case ADJ_UP:
 		case ADJ_DOWN:
 		{
-			t.y1 = min(a.y1, b.y1);
-			t.y2 = max(a.y2, b.y2);
-			t.x1 = max(a.x1, b.x1);
-			t.x2 = min(a.x2, b.x2);
+			t.y1 = MIN(a.y1, b.y1);
+			t.y2 = MAX(a.y2, b.y2);
+			t.x1 = MAX(a.x1, b.x1);
+			t.x2 = MIN(a.x2, b.x2);
 			break;
 		}
 	}

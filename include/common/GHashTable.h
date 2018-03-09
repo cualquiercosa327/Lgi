@@ -137,7 +137,7 @@ class GHashTbl
 		
 	    char16 *New(char16 *s)
 	    {
-		    int Len = (StrlenW(s) + 1) * sizeof(char16);
+		    size_t Len = (StrlenW(s) + 1) * sizeof(char16);
 		    if (Used < Size - Len)
 		    {
 			    char16 *p = (char16*) (Mem + Used);
@@ -150,7 +150,7 @@ class GHashTbl
 
 	    char16 *New(const char16 *s)
 	    {
-		    int Len = (StrlenW(s) + 1) * sizeof(char16);
+		    size_t Len = (StrlenW(s) + 1) * sizeof(char16);
 		    if (Used < Size - Len)
 		    {
 			    char16 *p = (char16*) (Mem + Used);
@@ -366,9 +366,9 @@ public:
 		Cur = -1;
 		Case = is_case;
 		Pool = false;
-		SizeBackup = Size = size ? max(size, 16) : 512;
+		SizeBackup = Size = size ? MAX(size, 16) : 512;
 		MaxSize = GHASHTBL_MAX_SIZE;
-		LgiAssert(Size <= MaxSize);
+		// LgiAssert(Size <= MaxSize);
 		
 		if ((Table = new Entry[Size]))
 		{
@@ -433,7 +433,7 @@ public:
 			return false;
 
 		int OldSize = Size;
-		int NewSize = max((int)s, Used * 10 / 7);
+		int NewSize = MAX((int)s, Used * 10 / 7);
 		if (NewSize != Size)
 		{
 			Entry *OldTable = Table;

@@ -698,8 +698,8 @@ lgi_widget_size_allocate(GtkWidget *widget, GtkAllocation *allocation)
 					child_allocation.y += widget->allocation.y;
 				}
 
-				child_allocation.width = max(child_requisition.width, 1);
-				child_allocation.height = max(child_requisition.height, 1);
+				child_allocation.width = MAX(child_requisition.width, 1);
+				child_allocation.height = MAX(child_requisition.height, 1);
 				gtk_widget_size_allocate(c.w, &child_allocation);
 			}
 		}
@@ -819,8 +819,8 @@ lgi_widget_setchildpos(GtkWidget *parent, GtkWidget *child, int x, int y)
 				    GtkAllocation a;
 				    a.x = c.x;
 				    a.y = c.y;
-				    a.width = max(1, child_wid->w);
-				    a.height = max(1, child_wid->h);
+				    a.width = MAX(1, child_wid->w);
+				    a.height = MAX(1, child_wid->h);
 				    
     				gtk_widget_size_allocate(c.w, &a);
 

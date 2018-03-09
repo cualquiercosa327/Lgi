@@ -128,7 +128,7 @@ public:
 		if (Pos >= sb.Start && Pos < sb.End)
 		{
 			int64 Remaining = sb.End - Pos;
-			ssize_t Common = min(Size, (int)Remaining);
+			ssize_t Common = MIN(Size, (int)Remaining);
 			if (Common > 0)
 			{
 				int64 StrOffset = Pos - sb.Start;

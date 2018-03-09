@@ -111,7 +111,7 @@ struct DbTablePriv
 	GArray<DbIndex*> Indexes;
 
 	// Methods
-	DbTablePriv() : Map(0, false, -1, {GV_NULL, -1})
+	DbTablePriv() : Map(0, false, -1, Info())
 	{
 		First = Last = NULL;
 		Rows = 0;
@@ -628,8 +628,11 @@ bool LDbRow::StartEdit()
 
 			// Initialize fixed fields to zero
 			memset(Base.c + 8, 0, d->FixedSz);
-			// And the variable offset table to -1
-			memset(Base.c + 8 + d->FixedSz, 0xff, InitialSize - d->FixedSz);
+			if (d->Variable > 0)
+			{
+				// And the variable offset table to -1
+				memset(Base.c + 8 + d->FixedSz, 0xff, InitialSize - d->FixedSz);
+			}
 		}
 
 		PostEdit();
@@ -662,7 +665,7 @@ Store3Status LDbRow::SetStr(int id, const char *str)
 	if (str)
 		Edit.Add((char*)str, len);
 	else
-		Edit.Add("", 1);
+		Edit.Add((char*)"", 1);
 
 	PostEdit();
 	d->SetDirty();

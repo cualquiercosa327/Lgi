@@ -138,8 +138,8 @@ class GFunctionInfo : public GRefCount
 	
 	static int _Infos;
 
-	int StartAddr;
-	int FrameSize;
+	uint32 StartAddr;
+	uint16 FrameSize;
 	GString Name;
 	GArray<GString> Params;
 

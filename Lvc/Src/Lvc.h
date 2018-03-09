@@ -40,7 +40,6 @@ enum AppIds
 	IDC_FILES_BOX,
 	IDC_TXT,
 	IDC_LOG,
-	IDC_MSG,
 	IDC_MSG_BOX,
 	IDC_TAB_VIEW,
 
@@ -48,6 +47,11 @@ enum AppIds
 	IDM_UPDATE,
 	IDM_COPY_REV,
 	IDM_REMOVE,
+	IDM_REVERT,
+	IDM_REVERT_TO_REV,
+	IDM_BLAME,
+	IDM_SAVE_AS,
+	IDM_BROWSE
 };
 
 enum VersionCtrl
@@ -92,6 +96,29 @@ struct AppPriv
 		if (Diff)
 			Diff->Name(NULL);		
 	}
+};
+
+class BlameUi : public GWindow
+{
+	struct BlameUiPriv *d;
+
+public:
+	BlameUi(AppPriv *priv, VersionCtrl Vc, GString Output);
+	~BlameUi();
+};
+
+class DropDownBtn : public GDropDown, public ResObject
+{
+	struct DropDownBtnPriv *d;
+	class DropLst *Pu;
+
+public:
+	DropDownBtn();
+	~DropDownBtn();
+
+	GString::Array GetList();
+	bool SetList(int EditCtrl, GString::Array a);
+	bool OnLayout(GViewLayoutInfo &Inf);
 };
 
 extern VersionCtrl DetectVcs(const char *Path);

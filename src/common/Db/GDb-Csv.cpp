@@ -166,7 +166,7 @@ public:
 			memset(b, 0, sizeof(char*)*i);
 			if (Data && Fields > 0)
 			{
-				int m = min(Fields, i);
+				int m = MIN(Fields, i);
 				memcpy(b, Data, sizeof(char*)*m);
 			}
 			DeleteArray(Data);

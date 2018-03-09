@@ -85,7 +85,7 @@ GStreamOp::GStreamOp(int BufSize)
 	StartTime = 0;
 	EndTime = 0;
 	Total = 0;
-	Size = max(BufSize, 256);
+	Size = MAX(BufSize, 256);
 	Buf = new char[Size];
 }
 
@@ -209,7 +209,7 @@ int64 GCopyStreamer::Copy(GStreamI *Source, GStreamI *Dest, GStreamEnd *End)
 				e = End->IsEnd(Buf, r);
 			}
 
-			if ((w = Dest->Write(Buf, e >= 0 ? min(e, r) : r)) > 0)
+			if ((w = Dest->Write(Buf, e >= 0 ? MIN(e, r) : r)) > 0)
 			{
 				Bytes += w;
 				Total += w;

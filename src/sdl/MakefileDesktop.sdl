@@ -66,6 +66,7 @@ Depends =	LDateTime.o \
 			GMem.o \
 			GContainers.o \
 			GMenu.o \
+			GMenuCommon.o \
 			GMenuImpl.o \
 			GProcess.o \
 			LgiRes.o \
@@ -100,6 +101,7 @@ Depends =	LDateTime.o \
 			GFont_W.o \
 			GFontCodePages.o \
 			GFontSystem.o \
+			LStringLayout.o \
 			15Bit.o \
 			16Bit.o \
 			24Bit.o \
@@ -180,6 +182,8 @@ clean :
 LDateTime.o : ../common/General/LDateTime.cpp /usr/include/time.h \
 	/usr/include/stdlib.h \
 	/usr/include/stdio.h \
+	/usr/include/sys/timeb.h \
+	/usr/include/sys/time.h \
 	../../include/common/Lgi.h \
 	../../include/common/LDateTime.h \
 	../../include/common/GToken.h \
@@ -193,7 +197,9 @@ GDragAndDrop.o : ./Lgi/GDragAndDrop.cpp /usr/include/stdio.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GFile.o : ../linux/General/GFile.cpp /usr/include/fcntl.h \
+GFile.o : ../linux/General/GFile.cpp /usr/include/sys/types.h \
+	/usr/include/sys/stat.h \
+	/usr/include/fcntl.h \
 	/usr/include/errno.h \
 	/usr/include/stdio.h \
 	/usr/include/ctype.h \
@@ -223,6 +229,8 @@ GFileCommon.o : ../common/General/GFileCommon.cpp ../../include/common/Lgi.h \
 GApp.o : ./Lgi/GApp.cpp /usr/include/stdio.h \
 	/usr/include/stdlib.h \
 	/usr/include/signal.h \
+	/usr/include/sys/types.h \
+	/usr/include/sys/wait.h \
 	/usr/include/unistd.h \
 	/usr/include/ctype.h \
 	../../include/common/Lgi.h \
@@ -337,6 +345,10 @@ GMenu.o : ./Lgi/GMenu.cpp /usr/include/stdio.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
+GMenuCommon.o : ../common/Lgi/GMenuCommon.cpp ../../include/common/Lgi.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
 GMenuImpl.o : ../common/Lgi/GMenuImpl.cpp /usr/include/math.h \
 	../../include/common/Lgi.h \
 	../../include/common/GMenu.h
@@ -350,7 +362,12 @@ GProcess.o : ../common/Lgi/GProcess.cpp /usr/include/stdio.h \
 	/usr/include/unistd.h \
 	../../include/common/Lgi.h \
 	../../include/common/GProcess.h \
-	../../include/common/GToken.h
+	../../include/common/GToken.h \
+	/usr/include/sys/wait.h \
+	/usr/include/sys/poll.h \
+	/usr/include/sys/types.h \
+	/usr/include/sys/time.h \
+	/usr/include/sys/resource.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -399,7 +416,8 @@ Gel.o : ../common/Skins/Gel/Gel.cpp /usr/include/math.h \
 	../../include/common/GCheckBox.h \
 	../../include/common/GRadioGroup.h \
 	../../include/common/GDisplayString.h \
-	../../include/common/GCssTools.h
+	../../include/common/GCssTools.h \
+	../../include/common/LStringLayout.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -419,7 +437,8 @@ GStream.o : ../common/Lgi/GStream.cpp /usr/include/ctype.h \
 
 LThread.o : ../linux/Lgi/LThread.cpp ../../include/common/Lgi.h \
 	/usr/include/errno.h \
-	/usr/include/unistd.h
+	/usr/include/unistd.h \
+	/usr/include/sys/syscall.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -436,7 +455,8 @@ LThreadCommon.o : ../common/Lgi/LThreadCommon.cpp ../../include/common/Lgi.h \
 
 LThreadEvent.o : ../common/Lgi/LThreadEvent.cpp ../../include/common/Lgi.h \
 	../../include/common/LThreadEvent.h \
-	/usr/include/errno.h
+	/usr/include/errno.h \
+	/usr/include/sys/time.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -444,7 +464,8 @@ GVariant.o : ../common/Lgi/GVariant.cpp /usr/include/stdlib.h \
 	/usr/include/stdio.h \
 	../../include/common/Lgi.h \
 	../../include/common/GVariant.h \
-	../../include/common/GToken.h
+	../../include/common/GToken.h \
+	../../include/common/LDomFields.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -475,11 +496,15 @@ Lgi.o : ../common/Lgi/Lgi.cpp /usr/include/time.h \
 	/usr/include/ctype.h \
 	/usr/include/fcntl.h \
 	../../include/common/GRegKey.h \
+	/usr/include/sys/types.h \
+	/usr/include/sys/stat.h \
 	/usr/include/unistd.h \
 	../../include/common/Lgi.h \
 	../../include/common/GToken.h \
 	../../include/common/GCapabilities.h \
+	/usr/include/sys/time.h \
 	/usr/include/pwd.h \
+	/usr/include/sys/utsname.h \
 	../../include/common/GProcess.h \
 	../../include/win32/GSymLookup.h \
 	../../include/linux/GSymLookup.h \
@@ -515,7 +540,8 @@ GFileSelect.o : ../common/Lgi/GFileSelect.cpp /usr/include/stdio.h \
 GAlert.o : ../common/Lgi/GAlert.cpp ../../include/common/Lgi.h \
 	../../include/common/GTextLabel.h \
 	../../include/common/GButton.h \
-	../../include/common/GDisplayString.h
+	../../include/common/GDisplayString.h \
+	../../include/common/GTableLayout.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -567,7 +593,9 @@ Gdc2.o : ./Gdc2/Gdc2.cpp /usr/include/stdio.h \
 	/usr/include/string.h \
 	/usr/include/math.h \
 	../../include/common/Lgi.h \
-	../../include/common/GPalette.h
+	../../include/common/GPalette.h \
+	/usr/include/sys/ioctl.h \
+	/usr/include/sys/kd.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -662,6 +690,11 @@ GFontSystem.o : ../common/Gdc2/Font/GFontSystem.cpp /usr/include/stdlib.h \
 	../../include/common/GLibrary.h \
 	../../include/common/GLibraryUtils.h \
 	/usr/include/iconv.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+LStringLayout.o : ../common/Gdc2/Font/LStringLayout.cpp ../../include/common/Lgi.h \
+	../../include/common/LStringLayout.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -886,7 +919,7 @@ GCheckBox.o : ../common/Widgets/GCheckBox.cpp /usr/include/stdlib.h \
 	../../include/common/GSkinEngine.h \
 	../../include/common/GCheckBox.h \
 	../../include/common/GDisplayString.h \
-	../../include/common/GDisplayStringLayout.h \
+	../../include/common/LStringLayout.h \
 	../../include/common/LgiRes.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -968,7 +1001,8 @@ GRadioGroup.o : ../common/Widgets/GRadioGroup.cpp /usr/include/stdlib.h \
 	../../include/common/GRadioGroup.h \
 	../../include/common/GCheckBox.h \
 	../../include/common/GDisplayString.h \
-	../../include/common/LgiRes.h
+	../../include/common/LgiRes.h \
+	../../include/common/LStringLayout.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -998,7 +1032,7 @@ GTextLabel.o : ../common/Widgets/GTextLabel.cpp /usr/include/stdlib.h \
 	/usr/include/stdio.h \
 	../../include/common/Lgi.h \
 	../../include/common/GTextLabel.h \
-	../../include/common/GDisplayStringLayout.h \
+	../../include/common/LStringLayout.h \
 	../../include/common/GVariant.h \
 	../../include/common/GNotifications.h \
 	../../include/common/LgiRes.h
@@ -1134,9 +1168,12 @@ INet.o : ../common/INet/INet.cpp /usr/include/netinet/tcp.h \
 	../../include/common/LgiCommon.h \
 	../../include/sdl/LgiOsClasses.h \
 	../../include/common/GRegKey.h \
+	/usr/include/sys/types.h \
+	/usr/include/sys/socket.h \
 	/usr/include/ifaddrs.h \
 	/usr/include/stdio.h \
 	/usr/include/stdlib.h \
+	/usr/include/sys/time.h \
 	/usr/include/errno.h \
 	/usr/include/netinet/in.h \
 	/usr/include/arpa/inet.h \
@@ -1163,7 +1200,29 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
+../../../../../../../usr/include/sys/types.h : /usr/include/features.h \
+	/usr/include/bits/types.h \
+	/usr/include/time.h
+
+../../include/common/LStringLayout.h : ../../include/common/GUtf8.h \
+	../../include/common/GDisplayString.h \
+	../../include/common/GCss.h \
+	../../include/common/GFontCache.h
+
+../../include/common/GCss.h : ../../include/common/LgiInc.h \
+	../../include/sdl/LgiOsDefs.h \
+	../../include/common/GMem.h \
+	../../include/common/Gdc2.h \
+	../../include/common/GAutoPtr.h \
+	../../include/common/GString.h \
+	../../include/common/GHashTable.h
+
+../../include/common/LDomFields.h : 
+
 ../../include/common/GRegionClipDC.h : 
+
+../../../../../../../usr/include/features.h : /usr/include/stdc-predef.h \
+	/usr/include/gnu/stubs.h
 
 ../../include/common/GToken.h : ../../include/common/GArray.h \
 	../../include/common/GString.h
@@ -1172,9 +1231,8 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	../../include/common/GUndo.h \
 	../../include/common/GDragAndDrop.h
 
-../../../../../../../usr/include/dlfcn.h : /usr/include/features.h
-
-../../../../../../../usr/include/features.h : /usr/include/stdc-predef.h
+../../../../../../../usr/include/dlfcn.h : /usr/include/features.h \
+	/usr/include/bits/dlfcn.h
 
 ../../include/common/GVariant.h : ../../include/common/GDom.h \
 	../../include/common/LDateTime.h \
@@ -1188,6 +1246,12 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	../../include/common/INet.h \
 	../../include/common/GVariant.h
 
+../../../../../../../usr/include/sys/time.h : /usr/include/features.h \
+	/usr/include/bits/types.h \
+	/usr/include/time.h \
+	/usr/include/bits/time.h \
+	/usr/include/sys/select.h
+
 ../../include/common/GLibraryUtils.h : 
 
 ../../include/common/INetTools.h : ../../include/common/GContainers.h \
@@ -1198,7 +1262,8 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 ../../include/common/GString.h : ../../include/common/LgiDefs.h \
 	../../include/sdl/LgiOsDefs.h
 
-../../../../../../../usr/include/pwd.h : /usr/include/features.h
+../../../../../../../usr/include/pwd.h : /usr/include/features.h \
+	/usr/include/bits/types.h
 
 ../../include/common/Base64.h : ../../include/common/LgiDefs.h
 
@@ -1209,21 +1274,30 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	../../include/common/GCss.h \
 	../../include/common/GItemContainer.h
 
-../../include/common/GCss.h : ../../include/common/LgiInc.h \
-	../../include/sdl/LgiOsDefs.h \
-	../../include/common/GMem.h \
-	../../include/common/Gdc2.h \
-	../../include/common/GAutoPtr.h \
-	../../include/common/GString.h \
-	../../include/common/GHashTable.h
+../../../../../../../usr/include/bits/dlfcn.h : 
 
-../../../../../../../usr/include/stdlib.h : /usr/include/features.h
+../../../../../../../usr/include/stdlib.h : /usr/include/features.h \
+	/usr/include/bits/stdlib-float.h
+
+../../../../../../../usr/include/bits/stdlib-float.h : 
 
 ../../../../../../../usr/include/netinet/in.h : /usr/include/features.h \
 	/usr/include/stdint.h \
-	/usr/include/endian.h
+	/usr/include/sys/socket.h \
+	/usr/include/bits/types.h \
+	/usr/include/bits/in.h \
+	/usr/include/endian.h \
+	/usr/include/bits/byteswap.h
 
-../../../../../../../usr/include/endian.h : /usr/include/features.h
+../../../../../../../usr/include/bits/byteswap.h : /usr/include/features.h \
+	/usr/include/bits/types.h \
+	/usr/include/bits/wordsize.h \
+	/usr/include/bits/byteswap-16.h
+
+../../../../../../../usr/include/bits/in.h : 
+
+../../../../../../../usr/include/endian.h : /usr/include/features.h \
+	/usr/include/bits/endian.h
 
 ../../include/common/GArray.h : /usr/include/stdlib.h \
 	/usr/include/assert.h \
@@ -1231,13 +1305,15 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 
 ../../include/common/GRange.h : 
 
-../../include/common/INet.h : ../../include/common/GMem.h \
-	../../include/common/GContainers.h \
-	../../include/common/LgiNetInc.h \
-	../../include/common/GStream.h \
+../../include/common/INet.h : ../../include/common/LgiNetInc.h \
 	../../include/common/LgiInterfaces.h \
+	../../include/common/GMem.h \
+	../../include/common/GContainers.h \
+	../../include/common/GStream.h \
 	../../include/common/GString.h \
+	../../include/common/LCancel.h \
 	/usr/include/netinet/in.h \
+	/usr/include/sys/socket.h \
 	/usr/include/netdb.h
 
 ../../include/common/LgiDefs.h : ../../include/common/LgiInc.h \
@@ -1252,6 +1328,10 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	../../include/sdl/LgiOsDefs.h \
 	/usr/include/stdlib.h \
 	/usr/include/string.h
+
+../../../../../../../usr/include/sys/kd.h : /usr/include/linux/kd.h
+
+../../../../../../../usr/include/linux/kd.h : /usr/include/linux/types.h
 
 ../../../../../../../usr/include/iconv.h : /usr/include/features.h
 
@@ -1270,6 +1350,10 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 
 ../../include/common/GEdit.h : ../../include/common/GTextView3.h
 
+../../../../../../../usr/include/sys/syscall.h : /usr/include/asm/unistd.h
+
+../../../../../../../usr/include/asm/unistd.h : 
+
 ../../include/common/GPixelRops.h : 
 
 ../../include/common/GDocView.h : ../../include/common/GVariant.h \
@@ -1278,7 +1362,13 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 ../../include/common/LgiInterfaces.h : ../../include/common/GMem.h \
 	../../include/common/GArray.h \
 	../../include/sdl/LgiOsDefs.h \
-	../../include/common/GColour.h
+	../../include/common/GColour.h \
+	../../include/common/LCancel.h \
+	../../include/common/GStringClass.h
+
+../../../../../../../usr/include/sys/socket.h : /usr/include/features.h \
+	/usr/include/sys/uio.h \
+	/usr/include/bits/socket.h
 
 ../../include/common/GMenu.h : ../../include/common/GMenuImpl.h \
 	../../include/common/GXmlTree.h \
@@ -1297,6 +1387,11 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 ../../include/common/GPalette.h : ../../include/common/GColourSpace.h \
 	../../include/common/GFile.h
 
+../../../../../../../usr/include/sys/poll.h : /usr/include/features.h \
+	/usr/include/bits/poll.h
+
+../../../../../../../usr/include/bits/poll.h : 
+
 ../../include/common/GdcTools.h : 
 
 ../../include/common/GContainers.h : ../../include/common/LgiInc.h \
@@ -1305,11 +1400,23 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 
 ../../include/common/Res.h : ../../include/common/GXmlTree.h
 
-../../../../../../../usr/include/math.h : /usr/include/features.h
+../../../../../../../usr/include/math.h : /usr/include/features.h \
+	/usr/include/bits/math-vector.h \
+	/usr/include/bits/huge_val.h \
+	/usr/include/bits/mathdef.h \
+	/usr/include/bits/mathcalls.h
+
+../../../../../../../usr/include/bits/math-vector.h : /usr/include/bits/libm-simd-decl-stubs.h
+
+../../../../../../../usr/include/bits/huge_val.h : 
 
 ../../include/common/LThreadEvent.h : /usr/include/semaphore.h
 
-../../../../../../../usr/include/semaphore.h : /usr/include/features.h
+../../../../../../../usr/include/semaphore.h : /usr/include/features.h \
+	/usr/include/sys/types.h \
+	/usr/include/bits/semaphore.h
+
+../../../../../../../usr/include/bits/semaphore.h : /usr/include/bits/wordsize.h
 
 ../../include/common/GHashTable.h : /usr/include/ctype.h \
 	../../include/common/GMem.h \
@@ -1317,13 +1424,25 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	../../include/common/GString.h \
 	../../include/common/LgiClass.h
 
+../../../../../../../usr/include/sys/uio.h : /usr/include/features.h \
+	/usr/include/sys/types.h \
+	/usr/include/bits/uio.h
+
+../../../../../../../usr/include/bits/uio.h : /usr/include/sys/types.h
+
 ../../../../../../../usr/include/netdb.h : /usr/include/features.h \
 	/usr/include/netinet/in.h \
-	/usr/include/stdint.h
+	/usr/include/stdint.h \
+	/usr/include/bits/netdb.h
+
+../../include/common/GUtf8.h : 
+
+../../../../../../../usr/include/gnu/stubs.h : 
 
 ../../include/common/GAutoPtr.h : 
 
-../../include/common/GProgressDlg.h : ../../include/common/GTableLayout.h
+../../../../../../../usr/include/sys/wait.h : /usr/include/features.h \
+	/usr/include/signal.h
 
 ../../include/common/Gdc2.h : /usr/include/stdio.h \
 	../../include/sdl/LgiOsDefs.h \
@@ -1352,7 +1471,8 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 
 ../../include/common/GRect.h : ../../include/common/GPoint.h
 
-../../include/common/GColour.h : ../../include/common/GColourSpace.h
+../../include/common/GProgressDlg.h : ../../include/common/GTextLabel.h \
+	../../include/common/GTableLayout.h
 
 ../../include/common/GEventTargetThread.h : ../../include/common/LThread.h \
 	../../include/common/LMutex.h \
@@ -1361,9 +1481,11 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 
 ../../include/common/LThread.h : ../../include/common/LMutex.h
 
-../../include/common/Core.h : 
+../../include/common/GColour.h : ../../include/common/GColourSpace.h
 
 ../../include/common/GCheckBox.h : 
+
+../../include/common/Core.h : 
 
 ../../include/sdl/LgiOsClasses.h : 
 
@@ -1375,11 +1497,18 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 
 ../../include/common/GFontSelect.h : 
 
-../../../../../../../usr/include/stdio.h : /usr/include/libio.h
+../../../../../../../usr/include/stdio.h : /usr/include/libio.h \
+	/usr/include/bits/stdio_lim.h \
+	/usr/include/bits/sys_errlist.h
+
+../../../../../../../usr/include/bits/stdio_lim.h : 
 
 ../../../../../../../usr/include/libio.h : /usr/include/_G_config.h
 
-../../../../../../../usr/include/_G_config.h : /usr/include/wchar.h
+../../../../../../../usr/include/_G_config.h : /usr/include/bits/types.h \
+	/usr/include/wchar.h
+
+../../../../../../../usr/include/bits/sys_errlist.h : 
 
 ../../include/common/GProgress.h : 
 
@@ -1392,6 +1521,8 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 ../../include/common/GMenuImpl.h : ../../include/common/GPopup.h
 
 ../../include/common/GBox.h : ../../include/common/GCss.h
+
+../../../../../../../usr/include/bits/netdb.h : 
 
 ../../include/common/GDragAndDrop.h : ../../include/common/GVariant.h
 
@@ -1406,9 +1537,26 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 ../../../../../../../usr/include/inttypes.h : /usr/include/features.h \
 	/usr/include/stdint.h
 
-../../../../../../../usr/include/errno.h : 
+../../../../../../../usr/include/bits/socket.h : /usr/include/sys/types.h \
+	/usr/include/bits/socket_type.h \
+	/usr/include/bits/sockaddr.h \
+	/usr/include/asm/socket.h
+
+../../../../../../../usr/include/asm/socket.h : /usr/include/asm-generic/socket.h
+
+../../../../../../../usr/include/bits/sockaddr.h : 
+
+../../../../../../../usr/include/asm-generic/socket.h : /usr/include/asm/sockios.h
+
+../../../../../../../usr/include/asm/sockios.h : /usr/include/asm-generic/sockios.h
+
+../../../../../../../usr/include/asm-generic/sockios.h : 
+
+../../../../../../../usr/include/errno.h : /usr/include/bits/errno.h
 
 ../../include/common/GDisplayString.h : 
+
+../../include/common/GFontCache.h : 
 
 ../../../../../../../usr/include/freetype2/freetype/ftsynth.h : /usr/include/freetype2/ft2build.h
 
@@ -1417,6 +1565,12 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	../../include/common/GStream.h
 
 ../../include/common/LCancel.h : 
+
+../../../../../../../usr/include/bits/types.h : /usr/include/features.h \
+	/usr/include/bits/wordsize.h \
+	/usr/include/bits/typesizes.h
+
+../../../../../../../usr/include/bits/typesizes.h : 
 
 ../../include/common/Res.h : ../../include/common/GXmlTree.h
 
@@ -1434,14 +1588,16 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 
 ../../include/common/GSlider.h : 
 
-../../../../../../../usr/include/dirent.h : /usr/include/features.h
+../../../../../../../usr/include/sys/utsname.h : /usr/include/features.h \
+	/usr/include/bits/utsname.h
+
+../../../../../../../usr/include/dirent.h : /usr/include/features.h \
+	/usr/include/bits/types.h \
+	/usr/include/bits/dirent.h
 
 ../../../../../../../usr/include/netinet/tcp.h : /usr/include/features.h
 
-../../include/common/GDisplayStringLayout.h : ../../include/common/GUtf8.h \
-	../../include/common/GDisplayString.h
-
-../../include/common/GUtf8.h : 
+../../../../../../../usr/include/bits/endian.h : 
 
 ../../../../../../../usr/include/assert.h : /usr/include/features.h
 
@@ -1466,7 +1622,12 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 
 ../../include/common/GNotifications.h : 
 
-../../../../../../../usr/include/locale.h : /usr/include/features.h
+../../../../../../../usr/include/locale.h : /usr/include/features.h \
+	/usr/include/bits/locale.h
+
+../../../../../../../usr/include/bits/locale.h : 
+
+../../../../../../../usr/include/bits/errno.h : 
 
 ../../include/common/Lgi.h : ../../include/common/LgiInc.h \
 	../../include/sdl/LgiOsDefs.h \
@@ -1500,7 +1661,8 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	../../include/common/LThread.h \
 	../../include/common/GInput.h
 
-../../include/common/LgiCommon.h : ../../include/common/GMem.h \
+../../include/common/LgiCommon.h : /usr/include/sys/time.h \
+	../../include/common/GMem.h \
 	../../include/common/GArray.h \
 	../../include/common/LgiClass.h \
 	../../include/common/GStringClass.h
@@ -1520,17 +1682,26 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 
 ../../include/common/GFindReplaceDlg.h : 
 
-../../../../../../../usr/include/ifaddrs.h : /usr/include/features.h
+../../../../../../../usr/include/ifaddrs.h : /usr/include/features.h \
+	/usr/include/sys/socket.h
 
-../../../../../../../usr/include/stdint.h : /usr/include/features.h
+../../../../../../../usr/include/stdint.h : /usr/include/features.h \
+	/usr/include/bits/wchar.h \
+	/usr/include/bits/wordsize.h
 
 ../../include/common/GNotifications.h : 
 
 ../../include/common/GMru.h : ../../include/common/GProperties.h
 
+../../../../../../../usr/include/bits/utsname.h : 
+
+../../include/common/GTextLabel.h : 
+
 ../../include/common/GClipBoard.h : 
 
 ../../include/common/LgiNetInc.h : 
+
+../../../../../../../usr/include/bits/mathcalls.h : 
 
 ../../include/common/Progress.h : ../../include/common/LMutex.h \
 	../../include/common/LCancel.h
@@ -1561,25 +1732,36 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	../../include/common/GArray.h \
 	../../include/common/GRefCount.h \
 	../../include/common/GStringClass.h \
+	/usr/include/sys/types.h \
+	/usr/include/sys/stat.h \
 	/usr/include/dirent.h \
 	/usr/include/unistd.h
 
 ../../include/common/GProgress.h : 
 
-../../../../../../../usr/include/ctype.h : /usr/include/features.h
+../../../../../../../usr/include/ctype.h : /usr/include/features.h \
+	/usr/include/bits/types.h
 
 ../../include/common/LgiInc.h : 
+
+../../../../../../../usr/include/linux/types.h : /usr/include/asm/types.h \
+	/usr/include/linux/posix_types.h
+
+../../../../../../../usr/include/linux/posix_types.h : /usr/include/linux/stddef.h \
+	/usr/include/asm/posix_types.h
 
 ../../../../../../../usr/include/arpa/inet.h : /usr/include/features.h \
 	/usr/include/netinet/in.h
 
-../../include/common/INet.h : ../../include/common/GMem.h \
-	../../include/common/GContainers.h \
-	../../include/common/LgiNetInc.h \
-	../../include/common/GStream.h \
+../../include/common/INet.h : ../../include/common/LgiNetInc.h \
 	../../include/common/LgiInterfaces.h \
+	../../include/common/GMem.h \
+	../../include/common/GContainers.h \
+	../../include/common/GStream.h \
 	../../include/common/GString.h \
+	../../include/common/LCancel.h \
 	/usr/include/netinet/in.h \
+	/usr/include/sys/socket.h \
 	/usr/include/netdb.h
 
 ../../include/common/GItemContainer.h : ../../include/common/GPopup.h \
@@ -1599,6 +1781,8 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 
 ../../include/common/GCssTools.h : ../../include/common/GCss.h
 
+../../../../../../../usr/include/bits/wordsize.h : 
+
 ../../include/common/GItemContainer.h : ../../include/common/GPopup.h \
 	../../include/common/GNotifications.h \
 	../../include/common/GCss.h
@@ -1607,13 +1791,16 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 
 ../../include/common/GDom.h : ../../include/common/LgiInterfaces.h \
 	../../include/common/GMem.h \
-	../../include/common/GArray.h
+	../../include/common/GArray.h \
+	../../include/common/LDomFields.h
+
+../../../../../../../usr/include/bits/mathdef.h : 
 
 ../../include/common/GInput.h : 
 
 ../../include/common/LThreadEvent.h : /usr/include/semaphore.h
 
-../../../../../../../usr/include/poll.h : 
+../../../../../../../usr/include/poll.h : /usr/include/sys/poll.h
 
 ../../include/common/GDocView.h : ../../include/common/GVariant.h \
 	../../include/common/GNotifications.h
@@ -1622,7 +1809,15 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 
 ../../../../../../../usr/include/wchar.h : 
 
+../../../../../../../usr/include/bits/byteswap-16.h : 
+
 ../../include/common/GInput.h : 
+
+../../../../../../../usr/include/sys/resource.h : /usr/include/features.h \
+	/usr/include/bits/resource.h
+
+../../../../../../../usr/include/bits/resource.h : /usr/include/bits/types.h \
+	/usr/include/bits/time.h
 
 ../../include/common/GRadioGroup.h : 
 
@@ -1631,8 +1826,6 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	../../include/common/GCss.h \
 	../../include/common/GAutoPtr.h \
 	../../include/common/GFontCache.h
-
-../../include/common/GFontCache.h : 
 
 ../../include/common/LgiClass.h : ../../include/common/LgiInc.h \
 	../../include/common/LgiDefs.h \
@@ -1659,9 +1852,20 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	../../include/common/GColour.h \
 	../../include/common/GFilter.h
 
+../../../../../../../usr/include/bits/libm-simd-decl-stubs.h : 
+
+../../../../../../../usr/include/asm/types.h : /usr/include/asm-generic/types.h
+
+../../../../../../../usr/include/asm-generic/types.h : /usr/include/asm-generic/int-ll64.h
+
+../../../../../../../usr/include/asm/posix_types.h : 
+
+../../../../../../../usr/include/asm-generic/int-ll64.h : /usr/include/asm/bitsperlong.h
+
 ../../include/common/GRefCount.h : 
 
-../../include/common/LgiCommon.h : ../../include/common/GMem.h \
+../../include/common/LgiCommon.h : /usr/include/sys/time.h \
+	../../include/common/GMem.h \
 	../../include/common/GArray.h \
 	../../include/common/LgiClass.h \
 	../../include/common/GStringClass.h
@@ -1679,9 +1883,40 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 
 ../../../../../../../usr/include/freetype2/freetype/config/ftheader.h : 
 
-../../../../../../../usr/include/unistd.h : /usr/include/features.h
+../../../../../../../usr/include/sys/timeb.h : /usr/include/features.h \
+	/usr/include/time.h
+
+../../../../../../../usr/include/sys/ioctl.h : /usr/include/features.h \
+	/usr/include/bits/ioctls.h \
+	/usr/include/bits/ioctl-types.h \
+	/usr/include/sys/ttydefaults.h
+
+../../../../../../../usr/include/bits/ioctl-types.h : /usr/include/asm/ioctls.h
+
+../../../../../../../usr/include/asm/ioctls.h : /usr/include/asm-generic/ioctls.h
+
+../../../../../../../usr/include/asm-generic/ioctls.h : /usr/include/linux/ioctl.h
+
+../../../../../../../usr/include/bits/ioctls.h : /usr/include/asm/ioctls.h
+
+../../../../../../../usr/include/sys/ttydefaults.h : 
+
+../../../../../../../usr/include/linux/ioctl.h : /usr/include/asm/ioctl.h
+
+../../../../../../../usr/include/asm/ioctl.h : /usr/include/asm-generic/ioctl.h
+
+../../../../../../../usr/include/asm-generic/ioctl.h : 
+
+../../../../../../../usr/include/unistd.h : /usr/include/features.h \
+	/usr/include/bits/posix_opt.h \
+	/usr/include/bits/types.h \
+	/usr/include/bits/confname.h
+
+../../../../../../../usr/include/bits/confname.h : 
 
 ../../include/common/GPassword.h : 
+
+../../../../../../../usr/include/bits/time.h : 
 
 ../../include/common/GSkinEngine.h : ../../include/common/LList.h
 
@@ -1692,6 +1927,8 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	../../include/common/GCss.h \
 	../../include/common/GItemContainer.h
 
+../../../../../../../usr/include/bits/socket_type.h : 
+
 ../../include/common/GPath.h : /usr/include/math.h \
 	../../include/common/GMatrix.h
 
@@ -1700,36 +1937,24 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 ../../include/common/GString.h : ../../include/common/LgiDefs.h \
 	../../include/sdl/LgiOsDefs.h
 
-../../include/common/GdiLeak.h : 
+../../../../../../../usr/include/sys/select.h : /usr/include/features.h \
+	/usr/include/bits/types.h \
+	/usr/include/bits/select.h \
+	/usr/include/bits/sigset.h \
+	/usr/include/time.h \
+	/usr/include/bits/time.h
 
-../../include/common/GPoint.h : 
+../../../../../../../usr/include/linux/stddef.h : 
+
+../../../../../../../usr/include/asm/bitsperlong.h : /usr/include/asm-generic/bitsperlong.h
 
 ../../include/common/GDragAndDrop.h : ../../include/common/GVariant.h
 
-../../../../../../../usr/include/fcntl.h : /usr/include/features.h
+../../../../../../../usr/include/bits/wchar.h : 
 
 ../../include/common/GBitmap.h : 
 
-../../include/common/GScrollBar.h : 
-
-../../include/common/GViewPriv.h : 
-
-../../../../../../../usr/include/stdc-predef.h : 
-
-../../include/common/LgiNetInc.h : 
-
-../../include/common/GStream.h : ../../include/common/GDom.h \
-	../../include/common/GStringClass.h
-
-../../include/common/GRops.h : ../../include/common/GPixelRops.h
-
-../../include/common/GPixelRops.h : 
-
-../../include/common/GXmlTree.h : ../../include/common/GHashTable.h \
-	../../include/common/GRefCount.h \
-	../../include/common/GDom.h
-
-../../include/common/GPopup.h : 
+../../../../../../../usr/include/bits/sigset.h : 
 
 ../../include/sdl/LgiOsDefs.h : /usr/include/string.h \
 	/usr/include/assert.h \
@@ -1748,7 +1973,57 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 ../../../../../../../usr/include/pthread.h : /usr/include/features.h \
 	/usr/include/endian.h \
 	/usr/include/sched.h \
-	/usr/include/time.h
+	/usr/include/time.h \
+	/usr/include/bits/pthreadtypes.h \
+	/usr/include/bits/setjmp.h \
+	/usr/include/bits/wordsize.h
+
+../../../../../../../usr/include/bits/pthreadtypes.h : /usr/include/bits/wordsize.h
+
+../../../../../../../usr/include/bits/setjmp.h : /usr/include/bits/wordsize.h
+
+../../../../../../../usr/include/sched.h : /usr/include/features.h \
+	/usr/include/bits/types.h \
+	/usr/include/time.h \
+	/usr/include/bits/sched.h
+
+../../../../../../../usr/include/bits/sched.h : 
+
+../../include/common/LgiDefs.h : ../../include/common/LgiInc.h \
+	/usr/include/wchar.h \
+	../../include/common/GAutoPtr.h
+
+../../../../../../../usr/include/bits/dirent.h : 
+
+../../../../../../../usr/include/signal.h : /usr/include/features.h \
+	/usr/include/bits/sigset.h \
+	/usr/include/bits/types.h \
+	/usr/include/bits/signum.h
+
+../../../../../../../usr/include/bits/signum.h : 
+
+../../include/common/GToken.h : ../../include/common/GArray.h \
+	../../include/common/GString.h
+
+../../../../../../../usr/include/bits/posix_opt.h : 
+
+../../include/common/GTextView3.h : ../../include/common/GDocView.h \
+	../../include/common/GUndo.h \
+	../../include/common/GDragAndDrop.h
+
+../../include/sdl/LgiOsDefs.h : /usr/include/string.h \
+	/usr/include/assert.h \
+	../../include/common/LgiDefs.h \
+	/usr/include/stdlib.h \
+	/usr/include/stdio.h \
+	/usr/include/wchar.h \
+	/usr/include/pthread.h \
+	/usr/include/SDL/SDL.h \
+	/usr/include/freetype2/ft2build.h \
+	../../include/common/LgiInc.h \
+	../../include/common/GMessage.h
+
+../../../../../../../usr/include/bits/select.h : /usr/include/bits/wordsize.h
 
 ../../../../../../../usr/include/SDL/SDL.h : /usr/include/SDL/SDL_main.h \
 	/usr/include/SDL/SDL_stdinc.h \
@@ -1778,14 +2053,6 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	/usr/include/SDL/begin_code.h \
 	/usr/include/SDL/close_code.h
 
-../../../../../../../usr/include/SDL/SDL_quit.h : /usr/include/SDL/SDL_stdinc.h \
-	/usr/include/SDL/SDL_error.h
-
-../../../../../../../usr/include/SDL/SDL_endian.h : /usr/include/SDL/SDL_stdinc.h \
-	/usr/include/endian.h \
-	/usr/include/SDL/begin_code.h \
-	/usr/include/SDL/close_code.h
-
 ../../../../../../../usr/include/SDL/SDL_rwops.h : /usr/include/SDL/SDL_stdinc.h \
 	/usr/include/SDL/SDL_error.h \
 	/usr/include/SDL/begin_code.h \
@@ -1795,16 +2062,7 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	/usr/include/SDL/begin_code.h \
 	/usr/include/SDL/close_code.h
 
-../../../../../../../usr/include/SDL/SDL_version.h : /usr/include/SDL/SDL_stdinc.h \
-	/usr/include/SDL/begin_code.h \
-	/usr/include/SDL/close_code.h
-
 ../../../../../../../usr/include/SDL/close_code.h : 
-
-../../../../../../../usr/include/SDL/SDL_loadso.h : /usr/include/SDL/SDL_stdinc.h \
-	/usr/include/SDL/SDL_error.h \
-	/usr/include/SDL/begin_code.h \
-	/usr/include/SDL/close_code.h
 
 ../../../../../../../usr/include/SDL/begin_code.h : 
 
@@ -1814,14 +2072,56 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	/usr/include/SDL/begin_code.h \
 	/usr/include/SDL/close_code.h
 
-../../../../../../../usr/include/SDL/SDL_active.h : /usr/include/SDL/SDL_stdinc.h \
+../../../../../../../usr/include/SDL/SDL_thread.h : /usr/include/SDL/SDL_stdinc.h \
+	/usr/include/SDL/SDL_error.h \
+	/usr/include/SDL/SDL_mutex.h \
+	/usr/include/SDL/begin_code.h \
+	/usr/include/SDL/close_code.h
+
+../../../../../../../usr/include/SDL/SDL_keyboard.h : /usr/include/SDL/SDL_stdinc.h \
+	/usr/include/SDL/SDL_error.h \
+	/usr/include/SDL/SDL_keysym.h \
+	/usr/include/SDL/begin_code.h \
+	/usr/include/SDL/close_code.h
+
+../../../../../../../usr/include/SDL/SDL_joystick.h : /usr/include/SDL/SDL_stdinc.h \
 	/usr/include/SDL/SDL_error.h \
 	/usr/include/SDL/begin_code.h \
 	/usr/include/SDL/close_code.h
 
-../../../../../../../usr/include/SDL/SDL_thread.h : /usr/include/SDL/SDL_stdinc.h \
+../../../../../../../usr/include/SDL/SDL_error.h : /usr/include/SDL/SDL_stdinc.h \
+	/usr/include/SDL/begin_code.h \
+	/usr/include/SDL/close_code.h
+
+../../../../../../../usr/include/SDL/SDL_stdinc.h : /usr/include/SDL/SDL_config.h \
+	/usr/include/sys/types.h \
+	/usr/include/stdio.h \
+	/usr/include/SDL/begin_code.h \
+	/usr/include/SDL/close_code.h
+
+../../../../../../../usr/include/SDL/SDL_config.h : /usr/include/SDL/SDL_platform.h
+
+../../../../../../../usr/include/SDL/SDL_quit.h : /usr/include/SDL/SDL_stdinc.h \
+	/usr/include/SDL/SDL_error.h
+
+../../../../../../../usr/include/SDL/SDL_endian.h : /usr/include/SDL/SDL_stdinc.h \
+	/usr/include/endian.h \
+	/usr/include/SDL/begin_code.h \
+	/usr/include/SDL/close_code.h
+
+../../../../../../../usr/include/SDL/SDL_version.h : /usr/include/SDL/SDL_stdinc.h \
+	/usr/include/SDL/begin_code.h \
+	/usr/include/SDL/close_code.h
+
+../../../../../../../usr/include/SDL/SDL_loadso.h : /usr/include/SDL/SDL_stdinc.h \
 	/usr/include/SDL/SDL_error.h \
-	/usr/include/SDL/SDL_mutex.h \
+	/usr/include/SDL/begin_code.h \
+	/usr/include/SDL/close_code.h
+
+../../../../../../../usr/include/SDL/SDL_platform.h : 
+
+../../../../../../../usr/include/SDL/SDL_active.h : /usr/include/SDL/SDL_stdinc.h \
+	/usr/include/SDL/SDL_error.h \
 	/usr/include/SDL/begin_code.h \
 	/usr/include/SDL/close_code.h
 
@@ -1840,16 +2140,7 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	/usr/include/SDL/begin_code.h \
 	/usr/include/SDL/close_code.h
 
-../../../../../../../usr/include/SDL/SDL_keyboard.h : /usr/include/SDL/SDL_stdinc.h \
-	/usr/include/SDL/SDL_error.h \
-	/usr/include/SDL/SDL_keysym.h \
-	/usr/include/SDL/begin_code.h \
-	/usr/include/SDL/close_code.h
-
-../../../../../../../usr/include/SDL/SDL_joystick.h : /usr/include/SDL/SDL_stdinc.h \
-	/usr/include/SDL/SDL_error.h \
-	/usr/include/SDL/begin_code.h \
-	/usr/include/SDL/close_code.h
+../../../../../../../usr/include/asm-generic/bitsperlong.h : 
 
 ../../../../../../../usr/include/SDL/SDL_keysym.h : 
 
@@ -1857,22 +2148,6 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	/usr/include/SDL/SDL_error.h \
 	/usr/include/SDL/begin_code.h \
 	/usr/include/SDL/close_code.h
-
-../../../../../../../usr/include/SDL/SDL_error.h : /usr/include/SDL/SDL_stdinc.h \
-	/usr/include/SDL/begin_code.h \
-	/usr/include/SDL/close_code.h
-
-../../../../../../../usr/include/sched.h : /usr/include/features.h \
-	/usr/include/time.h
-
-../../../../../../../usr/include/SDL/SDL_stdinc.h : /usr/include/SDL/SDL_config.h \
-	/usr/include/stdio.h \
-	/usr/include/SDL/begin_code.h \
-	/usr/include/SDL/close_code.h
-
-../../../../../../../usr/include/SDL/SDL_config.h : /usr/include/SDL/SDL_platform.h
-
-../../../../../../../usr/include/SDL/SDL_platform.h : 
 
 ../../../../../../../usr/include/SDL/SDL_cdrom.h : /usr/include/SDL/SDL_stdinc.h \
 	/usr/include/SDL/SDL_error.h \
@@ -1888,11 +2163,46 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	/usr/include/SDL/begin_code.h \
 	/usr/include/SDL/close_code.h
 
-../../include/common/LgiDefs.h : ../../include/common/LgiInc.h \
-	/usr/include/wchar.h \
-	../../include/common/GAutoPtr.h
+../../include/common/GdiLeak.h : 
 
-../../../../../../../usr/include/signal.h : /usr/include/features.h
+../../include/common/GPoint.h : 
+
+../../../../../../../usr/include/fcntl.h : /usr/include/features.h \
+	/usr/include/bits/types.h \
+	/usr/include/bits/fcntl.h
+
+../../../../../../../usr/include/bits/fcntl.h : /usr/include/bits/fcntl-linux.h
+
+../../../../../../../usr/include/bits/fcntl-linux.h : 
+
+../../include/common/GScrollBar.h : 
+
+../../include/common/GViewPriv.h : 
+
+../../../../../../../usr/include/stdc-predef.h : 
+
+../../include/common/LgiNetInc.h : 
+
+../../../../../../../usr/include/sys/stat.h : /usr/include/features.h \
+	/usr/include/bits/types.h \
+	/usr/include/bits/stat.h
+
+../../../../../../../usr/include/bits/stat.h : 
+
+../../include/common/GStream.h : ../../include/common/GDom.h \
+	../../include/common/GStringClass.h
+
+../../include/common/GRops.h : ../../include/common/GPixelRops.h
+
+../../include/common/GPixelRops.h : 
+
+../../include/common/GXmlTree.h : ../../include/common/GHashTable.h \
+	../../include/common/GRefCount.h \
+	../../include/common/GDom.h
+
+../../include/common/GPopup.h : 
+
+../../include/common/LDomFields.h : 
 
 ../../include/common/GFile.h : /usr/include/fcntl.h \
 	../../include/common/GMem.h \
@@ -1900,6 +2210,8 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	../../include/common/GArray.h \
 	../../include/common/GRefCount.h \
 	../../include/common/GStringClass.h \
+	/usr/include/sys/types.h \
+	/usr/include/sys/stat.h \
 	/usr/include/dirent.h \
 	/usr/include/unistd.h
 
@@ -2075,25 +2387,6 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 ../../../../../../../usr/include/gstreamer-1.0/gst/gstregistry.h : /usr/include/gstreamer-1.0/gst/gstplugin.h \
 	/usr/include/gstreamer-1.0/gst/gstpluginfeature.h
 
-../../include/common/GToken.h : ../../include/common/GArray.h \
-	../../include/common/GString.h
-
-../../include/common/GTextView3.h : ../../include/common/GDocView.h \
-	../../include/common/GUndo.h \
-	../../include/common/GDragAndDrop.h
-
-../../include/sdl/LgiOsDefs.h : /usr/include/string.h \
-	/usr/include/assert.h \
-	../../include/common/LgiDefs.h \
-	/usr/include/stdlib.h \
-	/usr/include/stdio.h \
-	/usr/include/wchar.h \
-	/usr/include/pthread.h \
-	/usr/include/SDL/SDL.h \
-	/usr/include/freetype2/ft2build.h \
-	../../include/common/LgiInc.h \
-	../../include/common/GMessage.h
-
 ../../../../../../../usr/include/gstreamer-1.0/gst/gstelementmetadata.h : 
 
 ../../../../../../../usr/include/gstreamer-1.0/gst/gstvalue.h : /usr/include/gstreamer-1.0/gst/gstcaps.h \
@@ -2167,8 +2460,6 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 
 ../../../../../../../usr/include/gstreamer-1.0/gst/gstbufferlist.h : /usr/include/gstreamer-1.0/gst/gstbuffer.h
 
-../../../../../../../usr/include/gstreamer-1.0/gst/gstghostpad.h : /usr/include/gstreamer-1.0/gst/gstpad.h
-
 ../../../../../../../usr/include/gstreamer-1.0/gst/gstelement.h : /usr/include/gstreamer-1.0/gst/gstobject.h \
 	/usr/include/gstreamer-1.0/gst/gstpad.h \
 	/usr/include/gstreamer-1.0/gst/gstbus.h \
@@ -2180,6 +2471,8 @@ MDStringToDigest.o : ../common/INet/MDStringToDigest.cpp ../../include/common/Lg
 	/usr/include/gstreamer-1.0/gst/gstmessage.h \
 	/usr/include/gstreamer-1.0/gst/gstquery.h \
 	/usr/include/gstreamer-1.0/gst/gsttaglist.h
+
+../../../../../../../usr/include/gstreamer-1.0/gst/gstghostpad.h : /usr/include/gstreamer-1.0/gst/gstpad.h
 
 ../../../../../../../usr/include/gstreamer-1.0/gst/gstinfo.h : 
 

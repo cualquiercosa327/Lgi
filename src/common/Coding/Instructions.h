@@ -204,7 +204,7 @@ case IPlusEquals:
 	#ifdef VM_EXECUTE
 	if (Dst->Str())
 	{
-		int dlen = strlen(Dst->Str());
+		size_t dlen = strlen(Dst->Str());
 		char *ss;
 		GVariant SrcTmp;
 		
@@ -224,7 +224,7 @@ case IPlusEquals:
 
 		if (ss)
 		{
-			int slen = strlen(ss);
+			size_t slen = strlen(ss);
 			char *s = new char[slen + dlen + 1];
 			if (s)
 			{
@@ -639,7 +639,7 @@ case ICallScript:
 	uint16 Args = *c.u16++;
 
 	// Increase the local stack size
-	int LocalsBase = Locals.Length();
+	size_t LocalsBase = Locals.Length();
 	Locals.SetFixedLength(false);
 	Locals.Length(LocalsBase + Frame);
 	Locals.SetFixedLength();
@@ -708,7 +708,7 @@ case IRet:
 		Locals.SetFixedLength(false);
 		if (Locals.Length() >= Sf.CurrentFrameSize)
 		{
-			int Base = Locals.Length() - Sf.CurrentFrameSize;
+			ssize_t Base = Locals.Length() - Sf.CurrentFrameSize;
 			if (ArgsOutput)
 			{
 				if (Frames.Length() == 0)
@@ -1025,12 +1025,12 @@ case IDomGet:
 						(*Dst) = (int)strlen(Dom->Str());
 						break;
 					}
-					case StrInt:
+					case TypeInt:
 					{
 						(*Dst) = Dom->CastInt32();
 						break;
 					}
-					case StrDouble:
+					case TypeDouble:
 					{
 						(*Dst) = Dom->CastDouble();
 						break;
@@ -1174,7 +1174,7 @@ case IDomSet:
 					int DLen = Value->CastInt32();
 					if (DLen && (s = new char[DLen+1]))
 					{
-						int SLen = Dom->Str() ? strlen(Dom->Str()) : 0;
+						size_t SLen = Dom->Str() ? strlen(Dom->Str()) : 0;
 						if (SLen)
 							memcpy(s, Dom->Str(), SLen);
 						memset(s+SLen, ' ', DLen-SLen);
@@ -1186,13 +1186,13 @@ case IDomSet:
 
 					break;
 				}
-				case StrInt:
+				case TypeInt:
 				{
 					*Dom = Value->CastInt32();
 					Dom->Str();
 					break;
 				}
-				case StrDouble:
+				case TypeDouble:
 				{
 					*Dom = Value->CastDouble();
 					Dom->Str();
@@ -1271,13 +1271,13 @@ case IDomCall:
 				sName, ArgCount, m->FrameSize, m->Address, LocalsBase);
 		#endif
 		
-		int i = LocalsBase;
+		size_t i = LocalsBase;
 		Locals[i++] = *Dom; // this pointer...
 		#if DEBUG_CUSTOM_METHOD_CALL
 		GString s = Locals[i-1].ToString();
 		LgiTrace("This=%s, ", s.Get());
 		#endif
-		int end = i + ArgCount;
+		size_t end = i + ArgCount;
 		while (i < end)
 		{
 			Locals[i++] = *Resolve();
@@ -1582,7 +1582,7 @@ case IDomCall:
 
 					Dst->SetList();
 					
-					int SepLen = strlen(Sep);
+					size_t SepLen = strlen(Sep);
 					int MaxSplit = Arg.Length() > 1 ? Arg[1]->CastInt32() : -1;
 					const char *c = Dom->CastString();
 					while (c && *c)
@@ -1618,7 +1618,7 @@ case IDomCall:
 						break;
 					}
 
-					int sLen = strlen(s);
+					ssize_t sLen = strlen(s);
 					const char *sub = Arg[0]->Str();
 					int start = Arg.Length() > 1 ? Arg[1]->CastInt32() : 0;
 					int end = Arg.Length() > 2 ? Arg[2]->CastInt32() : -1;								
@@ -1650,7 +1650,7 @@ case IDomCall:
 						break;
 					}
 
-					int sLen = strlen(s);
+					ssize_t sLen = strlen(s);
 					const char *sub = Arg[0]->Str();
 					int start_idx = Arg.Length() > 1 ? Arg[1]->CastInt32() : 0;
 					int end_idx = Arg.Length() > 2 ? Arg[2]->CastInt32() : -1;								
@@ -1660,7 +1660,7 @@ case IDomCall:
 						*Dst = -1;
 						break;
 					}
-					int sublen = strlen(sub);
+					size_t sublen = strlen(sub);
 					char *cur = (char*)s + start_idx;
 					char *end = end_idx >= 0 ? cur + end_idx : NULL;
 					char *pos = NULL;
@@ -1724,9 +1724,9 @@ case IDomCall:
 					char *s = Dom->Str();
 					if (s)
 					{
-						int Start = Arg.Length() > 0 ? Arg[0]->CastInt32() : 0;
-						int End = Arg.Length() > 1 ? Arg[1]->CastInt32() : -1;
-						int Len = strlen(s);
+						ssize_t Start = Arg.Length() > 0 ? Arg[0]->CastInt32() : 0;
+						ssize_t End = Arg.Length() > 1 ? Arg[1]->CastInt32() : -1;
+						ssize_t Len = strlen(s);
 						if (End < 0 || End > Len)
 							End = Len;
 						if (Start < 0)

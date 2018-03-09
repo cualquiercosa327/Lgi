@@ -228,7 +228,7 @@ int LgiMsg(GViewI *Parent, const char *Str, const char *Title, int Type, ...)
 		}
 
 		int BtnsX = (Btns.Length() * BtnX) + ((Btns.Length()-1) * 10);
-		int MaxX = max(BtnsX, Text->X());
+		int MaxX = MAX(BtnsX, Text->X());
 		GRect p(0, 0, MaxX + 30, Text->Y() + 30 + BtnY + LgiApp->GetMetric(LGI_MET_DECOR_Y) );
 		Dlg.SetPos(p);
 		Dlg.MoveToCenter();

@@ -193,7 +193,8 @@ int GWindow::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 				GVariant *Data = &dd.Data[n];
 				if (Data->IsBinary())
 				{
-					Uri.New().Set((char*)Data->Value.Binary.Data, Data->Value.Binary.Length);
+					GString::Array a = GString((char*)Data->Value.Binary.Data, Data->Value.Binary.Length).SplitDelimit("\r\n");
+					Uri.Add(a);
 				}
 				else if (Data->Str())
 				{

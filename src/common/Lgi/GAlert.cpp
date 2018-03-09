@@ -68,7 +68,7 @@ void GAlert::SetAppModal()
 {
     #if WINNATIVE
     SetExStyle(GetExStyle() | WS_EX_TOPMOST);
-	#elif defined(MAC)
+	#elif defined(MAC) && !defined(LGI_SDL)
 	if (Handle())
 	{
 		OSStatus e = HIWindowChangeClass(WindowHandle(), kMovableModalWindowClass);

@@ -395,7 +395,7 @@ public:
 		return BroadcastPacket(Data.Get(), Data.Length(), Ip, Port);
 	}
 
-	bool BroadcastPacket(void *Ptr, unsigned Size, uint32 Ip, uint16 Port)
+	bool BroadcastPacket(void *Ptr, size_t Size, uint32 Ip, uint16 Port)
 	{
 		if (Size > MAX_UDP_SIZE)
 			return false;
@@ -408,7 +408,7 @@ public:
 			(BroadcastIp >> 8) & 0xff,
 			(BroadcastIp) & 0xff);
 		#endif
-		int wr = WriteUdp(Ptr, Size, 0, BroadcastIp, Port);
+		int wr = WriteUdp(Ptr, (int)Size, 0, BroadcastIp, Port);
 		return wr == Size;
 	}
 };

@@ -344,7 +344,7 @@ bool TnefExtract(GStreamI *Tnef, GStream *Out, TnefFileInfo *File)
 			int64 i;
 			for (i=0; i<File->Size; )
 			{
-				int Block = min(sizeof(Buf), (int)(File->Size - i));
+				int Block = MIN(sizeof(Buf), (int)(File->Size - i));
 				ssize_t r = Tnef->Read(Buf, Block);
 				if (r > 0)
 				{

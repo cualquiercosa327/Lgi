@@ -5,30 +5,31 @@
 	\brief Graphics file filters
 */
 
+#if WINDOWS
+	#include <winsock2.h>
+	#include <Windows.h>
+	#include "Lgi.h"
+	#ifdef _MSC_VER
+		#include <IImgCtx.h>
+	#endif
+#else
+	#define BI_RGB			0L
+	#define BI_RLE8			1L
+	#define BI_RLE4			2L
+	#define BI_BITFIELDS	3L
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 
-#include "Gdc2.h"
+#include "Lgi.h"
 #include "GString.h"
 #include "GVariant.h"
 #include "GClipBoard.h"
 #include "GToken.h"
 #include "GPalette.h"
-
-#ifndef WIN32
-	#define BI_RGB			0L
-	#define BI_RLE8			1L
-	#define BI_RLE4			2L
-	#define BI_BITFIELDS	3L
-#else
-	#include "Lgi.h"
-	#include <objbase.h>
-	#ifdef _MSC_VER
-		#include <IImgCtx.h>
-	#endif
-#endif
 
 int FindHeader(int Offset, const char *Str, GStream *f)
 {

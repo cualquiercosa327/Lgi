@@ -137,7 +137,7 @@ int64 GMemStream::SetSize(int64 Size)
 {
 	if (Mem)
 	{
-		int64 Common = min(Len, Size);
+		int64 Common = MIN(Len, Size);
 		char *NewMem = new char[Alloc = Size];
 		if (NewMem)
 		{
@@ -174,7 +174,7 @@ ssize_t GMemStream::Read(void *Buffer, ssize_t Size, int Flags)
 	ssize_t Bytes = 0;
 	if (Buffer && Pos >= 0 && Pos < Len)
 	{
-		Bytes = min(Len - Pos, Size);
+		Bytes = MIN(Len - Pos, Size);
 		memcpy(Buffer, Mem + Pos, Bytes);
 		Pos += Bytes;			
 	}
@@ -214,13 +214,13 @@ ssize_t GMemStream::Write(const void *Buffer, ssize_t Size, int Flags)
 			{
 				// Fill available mem first...
 				ssize_t Remaining = Alloc - Pos;
-				ssize_t Copy = min(Size, Remaining);
+				ssize_t Copy = MIN(Size, Remaining);
 				memcpy(Mem + Pos, Ptr, Copy);
 				Size -= Copy;
 				Ptr += Copy;
 				Bytes += Copy;
 				Pos += Copy;
-				Len = max(Pos, Len);
+				Len = MAX(Pos, Len);
 			}
 			else break;
 		}
@@ -228,7 +228,7 @@ ssize_t GMemStream::Write(const void *Buffer, ssize_t Size, int Flags)
 	else if (Pos >= 0 && Pos < Len)
 	{
 		// Fill fixed space...
-		Bytes = min(Len - Pos, Size);
+		Bytes = MIN(Len - Pos, Size);
 		memcpy(Mem + Pos, Buffer, Bytes);
 		Pos += Bytes;
 	}
@@ -247,7 +247,7 @@ ssize_t GMemStream::Write(GStream *Out, ssize_t Size)
 
 	if (Out && Size > 0)
 	{
-		ssize_t Common = min(Size, ((int)(Len-Pos)));
+		ssize_t Common = MIN(Size, ((int)(Len-Pos)));
 		Wr = Out->Write(Mem, Common);
 	}
 

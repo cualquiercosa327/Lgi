@@ -38,8 +38,8 @@ Known bugs:
 
 #if 0
 // #define DEBUG_FILE		"\\ape-apcp.c"
-#define DEBUG_FILE		"dante\\dante_common.h"
-#define DEBUG_LINE		339
+#define DEBUG_FILE		"apcp\\apcp\\apcp.h"
+#define DEBUG_LINE		550
 #endif
 
 const char *TypeToStr(DefnType t)
@@ -569,13 +569,21 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 									}
 									
 									int ClsLen = StrlenW(CurClassDecl);
-									memmove(b + ClsLen + 2, b, sizeof(*b) * (StrlenW(b)+1));
-									memcpy(b, CurClassDecl, sizeof(*b) * ClsLen);
-									b += ClsLen;
-									*b++ = ':';
-									*b++ = ':';
-									DeleteArray(Buf);
-									Buf = NewStrW(Str);
+									int BLen = StrlenW(b);
+									if (ClsLen + BLen + 1 > CountOf(Str))
+									{
+										LgiTrace("%s:%i - Defn too long: %i\n", _FL, ClsLen + BLen + 1);
+									}
+									else
+									{
+										memmove(b + ClsLen + 2, b, sizeof(*b) * (BLen+1));
+										memcpy(b, CurClassDecl, sizeof(*b) * ClsLen);
+										b += ClsLen;
+										*b++ = ':';
+										*b++ = ':';
+										DeleteArray(Buf);
+										Buf = NewStrW(Str);
+									}
 								}
 							}
 
@@ -610,6 +618,8 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 			}
 			default:
 			{
+				bool InTypedef = false;
+
 				if (IsAlpha(*s) || IsDigit(*s) || *s == '_')
 				{
 					char16 *Start = s;
@@ -642,6 +652,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 						if (IsStruct || IsClass)
 						{
 							Start = s;
+							InTypedef = true;
 							goto DefineStructClass;
 						}
 
@@ -759,6 +770,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 							
 							if (*next == '{')
 							{
+								// Full definition
 								InClass = true;
 								CaptureLevel = 1;
 								#if 0 // def DEBUG_FILE
@@ -809,6 +821,28 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 									}
 								}
 								Tok.DeleteArrays();
+							}
+							else if (InTypedef)
+							{
+								// Typedef'ing some other structure...
+								char16 *Start = s;
+								LexCpp(s, LexNoReturn);
+								defnskipws(s);
+
+								GArray<char16*> a;
+								char16 *t;
+								while ((t = LexCpp(s, LexStrdup)))
+								{
+									if (!StrcmpW(t, StrSemiColon))
+										break;
+									a.Add(t);
+								}
+
+								if (a.Length())
+								{
+									Defns.New().Set(DefnTypedef, FileName, a.Last(), Line + 1);
+									a.DeleteArrays();
+								}
 							}
 						}
 					}

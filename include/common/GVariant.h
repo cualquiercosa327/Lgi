@@ -121,7 +121,7 @@ public:
 	{
 		GString Name;
 		GArray<GString> Params;
-		int Address;
+		size_t Address;
 		int FrameSize;
 		
 		Method()
@@ -160,7 +160,7 @@ public:
 	int IndexOf(const char *Field);
 	bool DefineField(const char *Name, GVariantType Type, int Bytes, int ArrayLen = 1);
 	bool DefineField(const char *Name, GCustomType *Type, int ArrayLen = 1);
-	Method *DefineMethod(const char *Name, GArray<GString> &Params, int Address);
+	Method *DefineMethod(const char *Name, GArray<GString> &Params, size_t Address);
 	Method *GetMethod(const char *Name);
 
 	// Field access. You can't use the GDom interface to get/set member variables because

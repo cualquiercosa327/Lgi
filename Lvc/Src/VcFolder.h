@@ -17,7 +17,12 @@ public:
 
 class VcFolder : public GTreeItem
 {
-	typedef bool (VcFolder::*ParseFn)(int, GString);
+	struct ParseParams
+	{
+		GString Str;
+	};
+
+	typedef bool (VcFolder::*ParseFn)(int, GString, ParseParams*);
 	
 	struct Cmd : public GStream
 	{
@@ -25,6 +30,7 @@ class VcFolder : public GTreeItem
 		GStream *Log;
 		GAutoPtr<LThread> Rd;
 		ParseFn PostOp;
+		GString Param;
 
 		Cmd(GStream *log)
 		{
@@ -57,6 +63,7 @@ class VcFolder : public GTreeItem
 	VersionCtrl Type;
 	GString Path, CurrentCommit, RepoUrl;
 	GArray<VcCommit*> Log;
+	GString::Array Branches;
 	GAutoPtr<UncommitedItem> Uncommit;
 	GString Cache, NewRev;
 	bool CommitListDirty;
@@ -68,33 +75,42 @@ class VcFolder : public GTreeItem
 
 	void Init(AppPriv *priv);
 	const char *GetVcName();
-	bool StartCmd(const char *Args, ParseFn Parser, bool LogCmd = false);
+	bool StartCmd(const char *Args, ParseFn Parser, GString Param = GString(), bool LogCmd = false);
+	void OnBranchesChange();
 
-	bool ParseDiffs(GString s, bool IsWorking);
-	bool ParseLog(int Result, GString s);
-	bool ParseInfo(int Result, GString s);
-	bool ParseFiles(int Result, GString s);
-	bool ParseWorking(int Result, GString s);
-	bool ParseUpdate(int Result, GString s);
-	bool ParseCommit(int Result, GString s);
-	bool ParsePush(int Result, GString s);
-	bool ParsePull(int Result, GString s);
-	bool ParseCounts(int Result, GString s);
+	bool ParseDiffs(GString s, GString Rev, bool IsWorking);
+	bool ParseLog(int Result, GString s, ParseParams *Params);
+	bool ParseInfo(int Result, GString s, ParseParams *Params);
+	bool ParseFiles(int Result, GString s, ParseParams *Params);
+	bool ParseWorking(int Result, GString s, ParseParams *Params);
+	bool ParseUpdate(int Result, GString s, ParseParams *Params);
+	bool ParseCommit(int Result, GString s, ParseParams *Params);
+	bool ParsePush(int Result, GString s, ParseParams *Params);
+	bool ParsePull(int Result, GString s, ParseParams *Params);
+	bool ParseCounts(int Result, GString s, ParseParams *Params);
+	bool ParseRevert(int Result, GString s, ParseParams *Params);
+	bool ParseBlame(int Result, GString s, ParseParams *Params);
+	bool ParseSaveAs(int Result, GString s, ParseParams *Params);
+	bool ParseBranches(int Result, GString s, ParseParams *Params);
 	
 public:
 	VcFolder(AppPriv *priv, const char *p);
 	VcFolder(AppPriv *priv, GXmlTag *t);
 
 	VersionCtrl GetType();
+	const char *GetPath() { return Path; }
 	char *GetText(int Col);
 	bool Serialize(GXmlTag *t, bool Write);
 	GXmlTag *Save();
 	void Select(bool b);
 	void ListCommit(const char *Rev);
 	void ListWorkingFolder();
-	void Commit(const char *Msg);
+	void Commit(const char *Msg, bool AndPush);
 	void Push();
 	void Pull();
+	bool Revert(const char *Path, const char *Revision = NULL);
+	bool Blame(const char *Path);
+	bool SaveFileAs(const char *Path, const char *Revision);
 
 	void OnPulse();
 	void OnUpdate(const char *Rev);

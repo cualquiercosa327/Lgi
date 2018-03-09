@@ -69,8 +69,8 @@ public:
 				if (u.X() < p.X() ||
 					u.Y() < p.Y())
 				{
-					p.Dimension(max(u.X(), p.X()),
-								max(u.Y(), p.Y()));
+					p.Dimension(MAX(u.X(), p.X()),
+								MAX(u.Y(), p.Y()));
 					SetPos(p);
 				}				
 			}
@@ -303,6 +303,24 @@ ProjectNode *ProjectNode::ChildNode()
 ProjectNode *ProjectNode::NextNode()
 {
 	return dynamic_cast<ProjectNode*>(GetNext());
+}
+
+bool ProjectNode::HasNode(ProjectNode *Node)
+{
+	printf("Has %s %s %p\n", File, Name, Dep);
+
+	if (this == Node)
+		return true;
+	if (Dep && Dep->HasNode(Node))
+		return true;
+
+	for (ProjectNode *c = ChildNode(); c; c = c->NextNode())
+	{
+		if (c->HasNode(Node))
+			return true;
+	}
+
+	return false;
 }
 
 void ProjectNode::AddNodes(GArray<ProjectNode*> &Nodes)
@@ -1267,7 +1285,7 @@ ProjectNode *ProjectNode::FindFile(const char *In, char **Full)
 			GString::Array MyArr = MyPath.Split(DIR_STR);
 			GString InPath(In);
 			GString::Array InArr = InPath.Split(DIR_STR);
-			int Common = min(MyArr.Length(), InArr.Length());
+			int Common = MIN(MyArr.Length(), InArr.Length());
 			Match = true;
 			for (int i = 0; i < Common; i++)
 			{

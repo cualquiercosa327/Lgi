@@ -132,12 +132,12 @@ bool GPanel::Pour(GRegion &r)
 			if (TestFlag(Align, GV_EDGE_RIGHT) ||
 				TestFlag(Align, GV_EDGE_LEFT))
 			{
-				Limit = min(Size, r.X()-1);
+				Limit = MIN(Size, r.X()-1);
 			}
 			else /* if (TestFlag(Align, GV_EDGE_BOTTOM) ||
 					 TextFlag(Align, GV_EDGE_TOP)) */
 			{
-				Limit = min(Size, r.Y()-1);
+				Limit = MIN(Size, r.Y()-1);
 			}
 			
 			if (Align & GV_EDGE_RIGHT)

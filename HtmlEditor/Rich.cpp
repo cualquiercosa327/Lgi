@@ -8,6 +8,7 @@
 #include "GDisplayString.h"
 #include "GButton.h"
 #include "IHttp.h"
+#include "GOptionsFile.h"
 
 #if 1
 #include "GRichTextEdit.h"
@@ -37,6 +38,7 @@ enum Messages
 	M_INSTALL = M_USER + 200,
 };
 
+const char *AppName = "HtmlEdit";
 #define LOAD_DOC 1
 #define SrcFileName	"Reply4.html"
 
@@ -263,9 +265,10 @@ class App : public GWindow, public GCapabilityInstallTarget
 	CapsBar *Bar;
 	GCapabilityTarget::CapsHash Caps;
 	GAutoPtr<GEventTargetThread> Installer;
+	GOptionsFile Options;
 
 public:
-	App()
+	App() : Options(GOptionsFile::PortableMode, AppName)
 	{
 		LastChange = 0;
 		Edit = 0;
@@ -274,9 +277,15 @@ public:
 		Tabs = NULL;
 		Tree = NULL;
 		Name("Rich Text Testbed");
-		GRect r(0, 0, 1200, 800);
-		SetPos(r);
-		MoveToCenter();
+
+		if (!Options.SerializeFile(false) ||
+			!SerializeState(&Options, "WndState", true))
+		{
+			GRect r(0, 0, 1200, 800);
+			SetPos(r);
+			MoveToCenter();
+		}
+
 		SetQuitOnClose(true);
 		#ifdef WIN32
 		SetIcon((const char*)IDI_APP);
@@ -369,6 +378,8 @@ public:
 
 	~App()
 	{
+		SerializeState(&Options, "WndState", false);
+		Options.SerializeFile(true);
 		Installer.Reset();
 	}
 

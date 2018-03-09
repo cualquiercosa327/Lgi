@@ -613,13 +613,12 @@ Alpha.o : ./src/common/Gdc2/Alpha.cpp ./include/common/Gdc2.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GFilter.o : ./src/common/Gdc2/Filters/GFilter.cpp ./include/common/Gdc2.h \
+GFilter.o : ./src/common/Gdc2/Filters/GFilter.cpp ./include/common/Lgi.h \
 	./include/common/GString.h \
 	./include/common/GVariant.h \
 	./include/common/GClipBoard.h \
 	./include/common/GToken.h \
-	./include/common/GPalette.h \
-	./include/common/Lgi.h
+	./include/common/GPalette.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -681,7 +680,8 @@ GMru.o : ./src/common/Lgi/GMru.cpp ./include/common/Lgi.h \
 
 Base64.o : ./src/common/INet/Base64.cpp ./include/common/GMem.h \
 	./include/common/LgiInc.h \
-	./include/common/Base64.h
+	./include/common/Base64.h \
+	./include/common/GRange.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -1207,6 +1207,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ./include/common/INetTools.h : ./include/common/GContainers.h \
 	./include/common/LgiNetInc.h
 
+./include/common/GRange.h : 
+
 ./include/common/GVariant.h : ./include/common/GDom.h \
 	./include/common/LDateTime.h \
 	./include/common/GContainers.h \
@@ -1362,7 +1364,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/GArray.h \
 	./include/linux/Gtk/LgiOsDefs.h \
 	./include/common/GColour.h \
-	./include/common/LCancel.h
+	./include/common/LCancel.h \
+	./include/common/GStringClass.h
 
 ./include/linux/Gtk/LgiOsClasses.h : 
 

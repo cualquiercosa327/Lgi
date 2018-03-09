@@ -10,6 +10,10 @@ def process(s, vars):
 	out = ""
 	while i < l:
 		pos1 = s.find("%", i)
+		while s[pos1+1] == '(':
+			# keep searching, just a Visual Studio parameter
+			pos1 = s.find("%", pos1 + 1)
+		
 		if pos1 < 0:
 			# no more instances
 			out = out + s[i:]

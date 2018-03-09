@@ -615,7 +615,7 @@ void GDebugContext::FormatMemoryDump(int WordSize, int Width, bool InHex)
 	for (NativeInt i = 0; i < d->MemDump.Length(); i += LineBytes)
 	{
 		// GPointer Start = ptr;
-		int DisplayBytes = min(d->MemDump.Length() - i, LineBytes);
+		int DisplayBytes = MIN(d->MemDump.Length() - i, LineBytes);
 		int DisplayWords = DisplayBytes / WordSize;			
 		NativeInt iAddr = d->MemDumpStart + i;
 		p.Print("%p  ", iAddr);

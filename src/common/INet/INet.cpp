@@ -724,7 +724,7 @@ int GSocket::Open(const char *HostAddr, int Port)
 								break;
 							}
 							
-							if (IsWritable((int)min(Remaining, 1000)))
+							if (IsWritable((int)MIN(Remaining, 1000)))
 							{
 								// Should be ready to connect now...
 								#if CONNECT_LOGGING

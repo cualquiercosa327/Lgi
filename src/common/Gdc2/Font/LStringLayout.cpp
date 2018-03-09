@@ -192,7 +192,7 @@ void LStringLayout::DoPreLayout(int32 &MinX, int32 &MaxX)
 				break;
 
 			GDisplayString d(f, s, (int) (e - s));
-			MinX = max(d.X(), MinX);
+			MinX = MAX(d.X(), MinX);
 
 			s = e;
 		}
@@ -209,7 +209,7 @@ void LStringLayout::DoPreLayout(int32 &MinX, int32 &MaxX)
 		}
 
 		int LineX = Fx >> GDisplayString::FShift;
-		MaxX = max(MaxX, LineX);
+		MaxX = MAX(MaxX, LineX);
 	}
 }	
 
@@ -250,7 +250,7 @@ bool LStringLayout::DoLayout(int Width, int MinYSize, bool Debug)
 	GFont *f = GetBaseFont();
 	if (!f || !Text.Length() || Width <= 0)
 	{
-		Min.y = Max.y = max((f ? f : SysFont)->GetHeight(), MinYSize);
+		Min.y = Max.y = MAX((f ? f : SysFont)->GetHeight(), MinYSize);
 		return false;
 	}
 
@@ -317,8 +317,8 @@ bool LStringLayout::DoLayout(int Width, int MinYSize, bool Debug)
 				LineFX += n->FX();
 				
 				// Do min / max size calculation
-				Min.x = Min.x ? min(Min.x, LineFX) : LineFX;
-				Max.x = max(Max.x, LineFX);
+				Min.x = Min.x ? MIN(Min.x, LineFX) : LineFX;
+				Max.x = MAX(Max.x, LineFX);
 			
 				if (Wrap && (LineFX >> Shift) > Width)
 				{
@@ -381,7 +381,7 @@ bool LStringLayout::DoLayout(int Width, int MinYSize, bool Debug)
 								if (Broken)
 								{
 									// Then change out from 'k' onwards for 'Broken'
-									LineHeight = max(LineHeight, Broken->Y());
+									LineHeight = MAX(LineHeight, Broken->Y());
 									Strs.Add(Broken.Release());
 								}
 
@@ -430,7 +430,7 @@ bool LStringLayout::DoLayout(int Width, int MinYSize, bool Debug)
 		
 					n = new LLayoutString(Fnt, (char*)s.GetPtr(), e - s);
 					n->Set(MinLines - 1, LineFX, y, *Run, (char*)s.GetPtr() - Start);
-					LineHeight = max(LineHeight, n->Y());
+					LineHeight = MAX(LineHeight, n->Y());
 
 					GotoNextLine();
 				}
@@ -443,7 +443,7 @@ bool LStringLayout::DoLayout(int Width, int MinYSize, bool Debug)
 				Sr.Offset(n->Fx >> Shift, n->y);
 				if (Strs.Length()) Bounds.Union(&Sr);
 				else Bounds = Sr;
-				LineHeight = max(LineHeight, Sr.Y());
+				LineHeight = MAX(LineHeight, Sr.Y());
 
 				Strs.Add(n);
 			}

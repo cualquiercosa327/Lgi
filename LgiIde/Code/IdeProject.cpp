@@ -341,7 +341,7 @@ public:
 		}
 		else
 		{
-			GAutoString Target = Proj->GetTargetName(Platform);
+			GString Target = Proj->GetTargetName(Platform);
 			if (Target)
 				m.Print("Target = %s\n", Target.Get());
 			else
@@ -457,7 +457,7 @@ public:
 
 			for (IdeProject *dep=Deps.First(); dep; dep=Deps.Next())
 			{
-				GAutoString Target = dep->GetTargetName(Platform);
+				GString Target = dep->GetTargetName(Platform);
 				if (Target)
 				{
 					char t[MAX_PATH];
@@ -1694,7 +1694,7 @@ if (Debug) LgiTrace("XmlBase='%s'\n		In='%s'\n", Base.Get(), In);
 if (Debug) LgiTrace("Len %i-%i\n", b.Length(), i.Length());
 			
 			int ILen = i.Length() + (DirExists(In) ? 0 : 1);
-			int Max = min(b.Length(), ILen);
+			int Max = MIN(b.Length(), ILen);
 			int Common = 0;
 			for (; Common < Max; Common++)
 			{
@@ -1875,8 +1875,9 @@ public:
 				#ifdef LINUX
 				if (Proj->GetExecutable(GetCurrentPlatform()))
 				{
-					char Path[256];
-					strcpy_s(Path, sizeof(Path), Exe);
+					char Path[MAX_PATH];
+					char *ExeLeaf = LgiGetLeaf(Exe);
+					strcpy_s(Path, sizeof(Path), ExeLeaf ? ExeLeaf : Exe);
 					LgiTrimDir(Path);
 									
 					char *Term = 0;
@@ -1931,7 +1932,7 @@ public:
 		{
 			if (Proj->GetApp())
 			{
-				Size = min(Size, Len);
+				Size = MIN(Size, Len);
 				Proj->GetApp()->PostEvent(M_APPEND_TEXT, (GMessage::Param)NewStr((char*)Buffer, Size), 1);
 				Len -= Size;
 			}
@@ -2006,7 +2007,7 @@ bool IdeProject::IsMakefileUpToDate()
 				dir.Close();
 			}
 
-			printf("Proj=%s - Timestamps " LGI_PrintfInt64 " - " LGI_PrintfInt64 "\n", Proj.Get(), ProjModTime, MakeModTime);
+			// printf("Proj=%s - Timestamps " LGI_PrintfInt64 " - " LGI_PrintfInt64 "\n", Proj.Get(), ProjModTime, MakeModTime);
 			if (ProjModTime != 0 &&
 				MakeModTime != 0 &&
 				ProjModTime > MakeModTime)
@@ -2018,6 +2019,83 @@ bool IdeProject::IsMakefileUpToDate()
 	}
 	
 	return true;
+}
+
+bool IdeProject::FindDuplicateSymbols()
+{
+	GStream *Log = d->App->GetBuildLog();	
+	Log->Print("FindDuplicateSymbols starting...\n");
+
+	List<IdeProject> Proj;
+	CollectAllSubProjects(Proj);
+	Proj.Insert(this);
+
+	int Lines = 0, LinesIn = 0;
+	
+	GHashTbl<char*,int64> Map(200000, false, NULL, -1);
+	int Found = 0;
+	for (IdeProject *p = Proj.First(); p; p = Proj.Next())
+	{
+		GString s = p->GetExecutable(GetCurrentPlatform());
+		if (s)
+		{
+			GString Args;
+			Args.Printf("--print-size --defined-only -C %s", s.Get());
+			GSubProcess Nm("nm", Args);
+			if (Nm.Start(true, false))
+			{
+				char Buf[256];
+				GStringPipe q;
+				for (int Rd = 0; Rd = Nm.Read(Buf, sizeof(Buf)); )
+					q.Write(Buf, Rd);
+				GString::Array a = q.NewGStr().SplitDelimit("\r\n");
+				GHashTbl<char*,bool> Local(200000, false);
+				for (GString *Ln = NULL; a.Iterate(Ln); Lines++)
+				{
+					GString::Array p = Ln->SplitDelimit(" \t", 3);
+					if (!Local.Find(p.Last()))
+					{
+						Local.Add(p.Last(), true);
+					
+						const char *Sz = p[1];
+						int64 Ours = p[1].Int(16);
+						int64 Theirs = Map.Find(p.Last());
+						if (Theirs >= 0)
+						{
+							if (Ours != Theirs)
+							{
+								if (Found++ < 100)
+									Log->Print("    %s (" LGI_PrintfInt64 " -> " LGI_PrintfInt64 ")\n",
+										p.Last().Get(),
+										Ours, Theirs);
+							}
+						}
+						else if (Ours >= 0)
+						{						
+							Map.Add(p.Last(), Ours);
+						}
+						else
+						{
+							printf("Bad line: %s\n", Ln->Get());
+						}
+					}
+				}
+			}
+		}
+		else printf("%s:%i - GetExecutable failed.\n", _FL);
+	}
+
+	/*
+	char *Sym;
+	for (int Count = Map.First(&Sym); Count; Count = Map.Next(&Sym))
+	{
+		if (Count > 1)
+			Log->Print("    %i: %s\n", Count, Sym);
+	}
+	*/
+
+	Log->Print("FindDuplicateSymbols finished (%i lines)\n", Lines);
+	return false;
 }
 
 bool IdeProject::FixMissingFiles()
@@ -2093,9 +2171,77 @@ const char *IdeProject::GetExeArgs()
 	return d->Settings.GetStr(ProjArgs);
 }
 
-const char *IdeProject::GetExecutable(IdePlatform Platform)
+GString IdeProject::GetExecutable(IdePlatform Platform)
 {
-	return d->Settings.GetStr(ProjExe, NULL, Platform);
+	GString Bin = d->Settings.GetStr(ProjExe, NULL, Platform);
+	GAutoString Base = GetBasePath();
+
+	if (Bin)
+	{
+		if (LgiIsRelativePath(Bin) && Base)
+		{
+			char p[MAX_PATH];
+			if (LgiMakePath(p, sizeof(p), Base, Bin))
+				Bin = p;
+		}
+		
+		return Bin;
+	}
+
+	// Create binary name from target:	
+	GString Target = GetTargetName(Platform);
+	if (Target)
+	{
+		int BuildMode = d->App->GetBuildMode();
+		const char *Name = BuildMode ? "Release" : "Debug";
+		const char *Postfix = BuildMode ? "" : "d";
+		
+		switch (Platform)
+		{			
+			case PlatformWin32:
+			{
+				Bin.Printf("%s%s.dll", Target.Get(), Postfix);
+				break;
+			}
+			case PlatformMac:
+			{
+				Bin.Printf("lib%s%s.dylib", Target.Get(), Postfix);
+				break;
+			}
+			case PlatformLinux:
+			case PlatformHaiku:
+			{
+				Bin.Printf("lib%s%s.so", Target.Get(), Postfix);
+				break;
+			}
+			default:
+			{
+				LgiAssert(0);
+				printf("%s:%i - Unknown platform.\n", _FL);
+				return GString();
+			}
+		}
+		
+		// Find the actual file...
+		if (!Base)
+		{
+			printf("%s:%i - GetBasePath failed.\n", _FL);
+			return GString();
+		}
+			
+		char Path[MAX_PATH];
+		LgiMakePath(Path, sizeof(Path), Base, Name);
+		LgiMakePath(Path, sizeof(Path), Path, Bin);
+		if (FileExists(Path))
+			Bin = Path;
+		else
+			printf("%s:%i - '%s' doesn't exist.\n", _FL, Path);
+		
+		
+		return Bin;
+	}
+	
+	return GString();
 }
 
 char *IdeProject::GetFileName()
@@ -2567,6 +2713,16 @@ char *IdeProject::FindFullPath(const char *File, ProjectNode **Node)
 	return Full;
 }
 
+bool IdeProject::HasNode(ProjectNode *Node)
+{
+	ForAllProjectNodes(c)
+	{
+		if (c->HasNode(Node))
+			return true;
+	}
+	return false;
+}
+
 bool IdeProject::GetAllNodes(GArray<ProjectNode*> &Nodes)
 {
 	ForAllProjectNodes(c)
@@ -2589,53 +2745,38 @@ bool IdeProject::InProject(bool FuzzyMatch, const char *Path, bool Open, IdeDoc 
 		const char *Leaf = LgiGetLeaf(Path);
 		int PathLen = strlen(Path);
 		int LeafLen = strlen(Leaf);
-		int MatchingCh = 0;
-		bool MatchingPlatform = false;
+		uint32 MatchingScore = 0;
 		const char *p;
 
 		// Traverse all nodes and try and find the best fit.
 		for (ProjectNode *Cur = d->Nodes.First(&p); Cur; Cur = d->Nodes.Next(&p))
 		{
 			int CurPlatform = Cur->GetPlatforms();
-			bool IsCur = (CurPlatform & PLATFORM_CURRENT) != 0;
+			uint32 Score = 0;
 
 			if (stristr(p, Path))
 			{
-				// Path is a fragment of a path and may contain a sub-folder names as well
-				if
-				(
-					PathLen > MatchingCh
-					||
-					(
-						!MatchingPlatform
-						&&
-						IsCur
-					)
-				)
-				{
-					n = Cur;
-					MatchingCh = PathLen;
-					MatchingPlatform = IsCur;
-				}
+				Score += PathLen;
 			}
 			else if (stristr(p, Leaf))
 			{
-				// The leaf part matches at least
-				if
-				(
-					LeafLen > MatchingCh
-					||
-					(
-						!MatchingPlatform
-						&&
-						IsCur
-					)
-				)
-				{
-					n = Cur;
-					MatchingCh = LeafLen;
-					MatchingPlatform = IsCur;
-				}
+				Score += LeafLen;
+			}
+
+			const char *pLeaf = LgiGetLeaf(p);
+			if (pLeaf && !stricmp(pLeaf, Leaf))
+			{
+				Score |= 0x80000000;
+			}
+			if (Score && (CurPlatform & PLATFORM_CURRENT) != 0)
+			{
+				Score |= 0x40000000;
+			}
+
+			if (Score > MatchingScore)
+			{
+				MatchingScore = Score;
+				n = Cur;
 			}
 		}
 	}
@@ -2937,14 +3078,14 @@ void IdeProjectPrivate::CollectAllFiles(GTreeNode *Base, GArray<ProjectNode*> &F
 	}
 }
 
-GAutoString IdeProject::GetTargetName(IdePlatform Platform)
+GString IdeProject::GetTargetName(IdePlatform Platform)
 {
-	GAutoString Status;
+	GString Status;
 	const char *t = d->Settings.GetStr(ProjTargetName, NULL, Platform);
 	if (ValidStr(t))
 	{
 		// Take target name from the settings
-		Status.Reset(NewStr(t));
+		Status = t;
 	}
 	else
 	{
@@ -2966,7 +3107,7 @@ GAutoString IdeProject::GetTargetName(IdePlatform Platform)
 				}
 			}
 			*s = 0;
-			Status.Reset(NewStr(Target));
+			Status = Target;
 		}
 	}
 	
@@ -2976,7 +3117,7 @@ GAutoString IdeProject::GetTargetName(IdePlatform Platform)
 bool IdeProject::GetTargetFile(char *Buf, int BufSize)
 {
 	bool Status = false;
-	GAutoString Target = GetTargetName(PlatformCurrent);
+	GString Target = GetTargetName(PlatformCurrent);
 	if (Target)
 	{
 		const char *TargetType = d->Settings.GetStr(ProjTargetType);

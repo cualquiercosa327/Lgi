@@ -177,8 +177,8 @@ void GRichTextPriv::TextLine::LayoutOffsets(int DefaultFontHt)
 	{
 		DisplayStr *ds = Strs[i];
 		double Ascent = ds->GetAscent();
-		BaseLine = max(BaseLine, Ascent);
-		HtPx = max(HtPx, ds->Y());
+		BaseLine = MAX(BaseLine, Ascent);
+		HtPx = MAX(HtPx, ds->Y());
 	}
 			
 	if (Strs.Length() == 0)
@@ -193,7 +193,7 @@ void GRichTextPriv::TextLine::LayoutOffsets(int DefaultFontHt)
 		if (Ascent > 0.0)
 			ds->OffsetY = (int)(BaseLine - Ascent);
 		LgiAssert(ds->OffsetY >= 0);
-		HtPx = max(HtPx, ds->OffsetY+ds->Y());
+		HtPx = MAX(HtPx, ds->OffsetY+ds->Y());
 	}
 			
 	PosOff.y2 = PosOff.y1 + HtPx - 1;
@@ -674,8 +674,8 @@ void GRichTextPriv::TextBlock::DrawDisplayString(GSurface *pDC, DisplayStr *Ds, 
 	while (Overlap(SpErr, Pos, Ds->Chars))
 	{
 		// Yes, work out the region of characters and paint the decor
-		ssize_t Start = max(SpErr->Start, Pos);
-		ssize_t Len = min(SpErr->End(), Pos + Ds->Chars) - Start;
+		ssize_t Start = MAX(SpErr->Start, Pos);
+		ssize_t Len = MIN(SpErr->End(), Pos + Ds->Chars) - Start;
 		
 		// Draw the decor for the error
 		DrawDecor(pDC, Ds, OldX, FixY, Start - Pos, Len);
@@ -1057,7 +1057,7 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 				CurLine->PosOff.x2 = CurLine->PosOff.x1 + FixedToInt(FixX) - 1;
 				FixX = 0;
 				CurLine->LayoutOffsets(f->GetHeight());
-				Pos.y2 = max(Pos.y2, Pos.y1 + CurLine->PosOff.y2);
+				Pos.y2 = MAX(Pos.y2, Pos.y1 + CurLine->PosOff.y2);
 				CurLine->NewLine = 1;
 				
 				LayoutSize += CurLine->Length();
@@ -1083,7 +1083,7 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 				e++;
 					
 			// Add 't' to current line
-			ssize_t Chars = min(1024, (int) (e - s));
+			ssize_t Chars = MIN(1024, (int) (e - s));
 			GAutoPtr<DisplayStr> Ds
 			(
 				t->Emoji
@@ -1160,7 +1160,7 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 					CurLine->Strs.Add(Ds.Release());
 
 					CurLine->LayoutOffsets(d->Font->GetHeight());
-					Pos.y2 = max(Pos.y2, Pos.y1 + CurLine->PosOff.y2);
+					Pos.y2 = MAX(Pos.y2, Pos.y1 + CurLine->PosOff.y2);
 					LayoutSize += CurLine->Length();
 					Layout.Add(CurLine.Release());
 
@@ -1192,7 +1192,7 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 	{
 		// Empty node case
 		int y = Pos.y1 + flow.d->View->GetFont()->GetHeight() - 1;
-		CurLine->PosOff.y2 = Pos.y2 = max(Pos.y2, y);
+		CurLine->PosOff.y2 = Pos.y2 = MAX(Pos.y2, y);
 		LayoutSize += CurLine->Length();
 
 		Layout.Add(CurLine.Release());
@@ -1202,7 +1202,7 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 	{
 		GFont *f = d->View ? d->View->GetFont() : SysFont;
 		CurLine->LayoutOffsets(f->GetHeight());
-		Pos.y2 = max(Pos.y2, Pos.y1 + CurLine->PosOff.y2);
+		Pos.y2 = MAX(Pos.y2, Pos.y1 + CurLine->PosOff.y2);
 		LayoutSize += CurLine->Length();
 
 		#if DEBUG_LAYOUT
@@ -1369,7 +1369,7 @@ ssize_t GRichTextPriv::TextBlock::DeleteAt(Transaction *Trans, ssize_t BlkOffset
 		if (TxtOffset >= 0 && TxtOffset < (int)t->Length())
 		{
 			ssize_t MaxChars = t->Length() - TxtOffset;
-			ssize_t Remove = min(Chars, MaxChars);
+			ssize_t Remove = MIN(Chars, MaxChars);
 			if (Remove <= 0)
 				return 0;
 			ssize_t Remaining = MaxChars - Remove;
@@ -1882,7 +1882,7 @@ ssize_t GRichTextPriv::TextBlock::CopyAt(ssize_t Offset, ssize_t Chars, GArray<u
 		{
 			ssize_t Skip = Offset - Pos;
 			ssize_t Remain = t->Length() - Skip;
-			ssize_t Cp = min(Chars, Remain);
+			ssize_t Cp = MIN(Chars, Remain);
 			Text->Add(&(*t)[Skip], Cp);
 			Chars -= Cp;
 			Offset += Cp;
@@ -2358,7 +2358,7 @@ void GRichTextPriv::TextBlock::DumpNodes(GTreeItem *Ti)
 				GStringPipe p(256);
 				uint32 *Str = St->At(0);
 				p.Write("\'", 1);
-				for (int k=0; k<min(Len, 30); k++)
+				for (int k=0; k<MIN(Len, 30); k++)
 				{
 					if (Str[k] == '\n')
 						p.Write("\\n", 2);

@@ -210,7 +210,7 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 							#endif
 							if (Data)
 							{
-								printf("PasteboardPutItemFlavor(%i, %s)\n", (int)Id, dd.Format.Get());
+								// printf("PasteboardPutItemFlavor(%i, %s)\n", (int)Id, dd.Format.Get());
 								status = PasteboardPutItemFlavor(Pb, Id, kUTTypeFileURL, Data, Flags);
 								if (status) printf("%s:%i - PasteboardPutItemFlavor=%li\n", _FL, status);
 							}
@@ -302,7 +302,7 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 					CFDataRef Data = CFDataCreate(NULL, (const UInt8 *)Ptr, Size);
 					if (Data)
 					{
-						printf("PasteboardPutItemFlavor(%i, %s)\n", (int)Id, dd.Format.Get());
+						// printf("PasteboardPutItemFlavor(%i, %s)\n", (int)Id, dd.Format.Get());
 						status = PasteboardPutItemFlavor(Pb, Id, FlavorType, Data, Flags);
 						if (status) printf("%s:%i - PasteboardPutItemFlavor=%li\n", _FL, status);
 						CFRelease(Data);
@@ -445,8 +445,10 @@ struct DragParams
 			ItemCount Items = 0;
 			PasteboardGetItemCount(Pb, &Items);
 			
+			/*
 			if (DropFormat)
 				printf("Items=%li\n", Items);
+			*/
 			
 			for (CFIndex i=1; i<=Items; i++)
 			{
@@ -485,7 +487,7 @@ struct DragParams
 								Map.Add(n, CurIdx);
 							}
 							
-							printf("[%li][%li]='%s' = %i\n", i, t, n.Get(), CurIdx);
+							// printf("[%li][%li]='%s' = %i\n", i, t, n.Get(), CurIdx);
 							DropItemFlavor &Fl = ItemFlavors.New();
 							Fl.Index = CurIdx;
 							Fl.ItemId = Item;

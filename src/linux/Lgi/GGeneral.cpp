@@ -459,7 +459,7 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir, GAutoString
 		{
 			bool FileAdded = false;
 			char EscFile[512], *o = EscFile;
-			for (char i=0; File[i]; i++)
+			for (int i=0; File[i]; i++)
 			{
 				if (File[i] == ' ' || File[i] == '&')
 				{

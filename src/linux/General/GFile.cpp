@@ -772,7 +772,7 @@ bool GFileSystem::Copy(char *From, char *To, int *Status, CopyFileCallback Callb
 		int64 Size = In.GetSize(), Done = 0;
 		for (int64 i=0; i<Size; i++)
 		{
-			int Copy = min(Size - i, Buf.Length());
+			int Copy = MIN(Size - i, Buf.Length());
 			int r = In.Read(&Buf[0], Copy);
 			if (r <= 0)
 				break;
@@ -1419,7 +1419,7 @@ ssize_t GFile::Read(void *Buffer, ssize_t Size, int Flags)
 	}
 	d->Status = Red == Size;
 
-	return max(Red, 0);
+	return MAX(Red, 0);
 }
 
 ssize_t GFile::Write(const void *Buffer, ssize_t Size, int Flags)
@@ -1432,7 +1432,7 @@ ssize_t GFile::Write(const void *Buffer, ssize_t Size, int Flags)
 	}
 	d->Status = Written == Size;
 
-	return max(Written, 0);
+	return MAX(Written, 0);
 }
 
 #define LINUX64 	1

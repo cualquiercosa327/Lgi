@@ -15,6 +15,12 @@
 #include "GCssTools.h"
 #include "LgiRes.h"
 
+#ifdef _DEBUG
+#define FEATURE_HILIGHT_ALL_MATCHES	1
+#else
+#define FEATURE_HILIGHT_ALL_MATCHES	0
+#endif
+
 #define DefaultCharset              "utf-8"
 #define SubtractPtr(a, b)			((a) - (b))
 
@@ -1066,7 +1072,7 @@ class GUrl : public GTextView3::GStyle
 public:
 	bool Email;
 
-	GUrl(int own) : GStyle(own)
+	GUrl(GTextViewStyleOwners own) : GStyle(own)
 	{
 		Email = false;
 	}
@@ -1244,7 +1250,7 @@ void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
 			{
 				GLinkInfo &Inf = Links[i];
 				GUrl *Url;
-                GAutoPtr<GTextView3::GStyle> a(Url = new GUrl(0));
+                GAutoPtr<GTextView3::GStyle> a(Url = new GUrl(STYLE_NONE));
 				if (Url)
 				{
 					Url->View = this;
@@ -1252,7 +1258,7 @@ void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
 					Url->Len = (int)Inf.Len;
 					Url->Email = Inf.Email;
 					Url->Font = Underline;
-					Url->c = d->UrlColour;
+					Url->Fore = d->UrlColour;
 
 					InsertStyle(a);
 				}
@@ -2409,17 +2415,18 @@ Text3_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User)
 
 bool GTextView3::DoFind()
 {
-	char *u = 0;
+	GString u;
+
 	if (HasSelection())
 	{
 		ssize_t Min = min(SelStart, SelEnd);
 		ssize_t Max = max(SelStart, SelEnd);
 
-		u = WideToUtf8(Text + Min, Max - Min);
+		u = GString(Text + Min, Max - Min);
 	}
 	else
 	{
-		u = WideToUtf8(d->FindReplaceParams->LastFind);
+		u = d->FindReplaceParams->LastFind.Get();
 	}
 
 	#ifdef BEOS
@@ -2435,8 +2442,6 @@ bool GTextView3::DoFind()
 		Focus(true);
 
 	#endif
-
-	DeleteArray(u);		
 
 	return false;
 }
@@ -2531,6 +2536,8 @@ void GTextView3::SelectWord(size_t From)
 	Invalidate();
 }
 
+typedef int (*StringCompareFn)(const char16 *a, const char16 *b, ssize_t n);
+
 ptrdiff_t GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly, bool SearchUpwards)
 {
 	if (!ValidStrW(Find))
@@ -2569,85 +2576,50 @@ ptrdiff_t GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bo
 		
 	if (i < Begin) i = Begin;
 	if (i > End) i = End;
-		
-	if (MatchCase)
+	
+	StringCompareFn CmpFn = MatchCase ? StrncmpW : StrnicmpW;
+	char16 FindCh = MatchCase ? Find[0] : toupper(Find[0]);
+
+	for (; SearchUpwards ? i >= Begin : i <= End - FindLen; i += SearchUpwards ? -1 : 1)
 	{
-		for (; SearchUpwards ? i >= Begin : i <= End - FindLen; i += SearchUpwards ? -1 : 1)
+		if
+		(
+			(MatchCase ? Text[i] : toupper(Text[i]))
+			==
+			FindCh
+		)
 		{
-			if (Text[i] == Find[0])
+			char16 *Possible = Text + i;
+
+			if (CmpFn(Possible, Find, FindLen) == 0)
 			{
-				char16 *Possible = Text + i;;
-				if (StrncmpW(Possible, Find, FindLen) == 0)
+				if (MatchWord)
 				{
-					if (MatchWord)
-					{
-						// Check boundaries
+					// Check boundaries
 							
-						if (Possible > Text) // Check off the start
-						{
-							if (!IsWordBoundry(Possible[-1]))
-								continue;
-						}
-						if (i + FindLen < Size) // Check off the end
-						{
-							if (!IsWordBoundry(Possible[FindLen]))
-								continue;
-						}
+					if (Possible > Text) // Check off the start
+					{
+						if (!IsWordBoundry(Possible[-1]))
+							continue;
 					}
-						
-					GRange r(Possible - Text, FindLen);
-					if (!r.Overlap(Cursor))
-						return r.Start;
+					if (i + FindLen < Size) // Check off the end
+					{
+						if (!IsWordBoundry(Possible[FindLen]))
+							continue;
+					}
 				}
-			}
-				
-			if (!Wrap && (i + 1 > End - FindLen))
-			{
-				Wrap = true;
-				i = Begin;
-				End = Cursor;
+						
+				GRange r(Possible - Text, FindLen);
+				if (!r.Overlap(Cursor))
+					return r.Start;
 			}
 		}
-	}
-	else
-	{
-		// printf("i=%i s=%i e=%i c=%i flen=%i sz=%i\n", i, Begin, End, Cursor, FindLen, Size);
-		for(; SearchUpwards ? i >= Begin : i <= End - FindLen; i += SearchUpwards ? -1 : 1)
+				
+		if (!Wrap && (i + 1 > End - FindLen))
 		{
-			if (toupper(Text[i]) == toupper(Find[0]))
-			{
-				char16 *Possible = Text + i;
-
-				if (StrnicmpW(Possible, Find, FindLen) == 0)
-				{
-					if (MatchWord)
-					{
-						// Check boundaries
-							
-						if (Possible > Text) // Check off the start
-						{
-							if (!IsWordBoundry(Possible[-1]))
-								continue;
-						}
-						if (i + FindLen < Size) // Check off the end
-						{
-							if (!IsWordBoundry(Possible[FindLen]))
-								continue;
-						}
-					}
-						
-					GRange r(Possible - Text, FindLen);
-					if (!r.Overlap(Cursor))
-						return r.Start;
-				}
-			}
-			
-			if (!Wrap && (i + 1 > End - FindLen))
-			{
-				Wrap = true;
-				i = Begin;
-				End = Cursor;
-			}
+			Wrap = true;
+			i = Begin;
+			End = Cursor;
 		}
 	}
 	
@@ -2665,6 +2637,52 @@ bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool Selec
 		Cursor = SelStart;
 	}
 
+	#if FEATURE_HILIGHT_ALL_MATCHES
+
+	// Clear existing styles for matches
+	for (GStyle *s = Style.First(); s; )
+	{
+		if (s->Owner == STYLE_FIND_MATCHES)
+		{
+			Style.Delete(s);
+			DeleteObj(s);
+			s = Style.Current();
+		}
+		else
+		{
+			s = Style.Next();
+		}
+	}
+
+	ssize_t FindLen = StrlenW(Find);
+	ssize_t FirstLoc = MatchText(Find, MatchWord, MatchCase, false, SearchUpwards), Loc;
+	if (FirstLoc >= 0)
+	{
+		SetCaret(FirstLoc, false);
+		SetCaret(FirstLoc + FindLen, true);
+	}
+
+	ssize_t Old = Cursor;
+	if (!SearchUpwards)
+		Cursor += FindLen;
+	
+	while ((Loc = MatchText(Find, MatchWord, MatchCase, false, false)) != FirstLoc)
+	{
+		GAutoPtr<GStyle> s(new GStyle(STYLE_FIND_MATCHES));
+		s->Start = Loc;
+		s->Len = FindLen;
+		s->Fore.Set(LC_FOCUS_SEL_FORE, 24);
+		s->Back = GColour(LC_FOCUS_SEL_BACK, 24).Mix(GColour(LC_WORKSPACE, 24));
+		InsertStyle(s);
+
+		Cursor = Loc + FindLen;
+	}
+
+	Cursor = Old;
+	Invalidate();
+
+	#else
+
 	ssize_t Loc = MatchText(Find, MatchWord, MatchCase, SelectionOnly, SearchUpwards);
 	if (Loc >= 0)
 	{
@@ -2672,6 +2690,8 @@ bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool Selec
 		SetCaret(Loc + StrlenW(Find), true);
 		return true;
 	}
+
+	#endif
 
 	return false;
 }
@@ -4506,10 +4526,15 @@ void GTextView3::OnPaint(GSurface *pDC)
 						if (Sf)
 						{
 							// draw styled text
-							if (NextStyle->c.IsValid())
-							{
-								Sf->Colour(NextStyle->c, l->Back.IsValid() ? l->Back : Back);
-							}
+							if (NextStyle->Fore.IsValid())
+								Sf->Fore(NextStyle->Fore);
+							if (NextStyle->Back.IsValid())
+								Sf->Back(NextStyle->Back);
+							else if (l->Back.IsValid())
+								Sf->Back(l->Back);
+							else
+								Sf->Back(Back);								
+
 							Sf->Transparent(false);
 
 							LgiAssert(l->Start + Done >= 0);

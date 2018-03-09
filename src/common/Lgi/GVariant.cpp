@@ -2054,7 +2054,7 @@ GCustomType::Method *GCustomType::GetMethod(const char *Name)
 	return MethodMap.Find(Name);
 }
 
-GCustomType::Method *GCustomType::DefineMethod(const char *Name, GArray<GString> &Params, int Address)
+GCustomType::Method *GCustomType::DefineMethod(const char *Name, GArray<GString> &Params, size_t Address)
 {
 	Method *m = MethodMap.Find(Name);
 	if (m)

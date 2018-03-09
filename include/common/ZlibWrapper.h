@@ -165,7 +165,7 @@ public:
 		if (!IsOpen())
 			return -1;
 
-		return z->gzread(f, Buffer, Size);
+		return z->gzread(f, Buffer, (unsigned)Size);
 	}
 	
 	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0)
@@ -173,7 +173,7 @@ public:
 		if (!IsOpen())
 			return -1;
 
-		return z->gzwrite(f, Buffer, Size);
+		return z->gzwrite(f, Buffer, (unsigned)Size);
 	}
 };
 

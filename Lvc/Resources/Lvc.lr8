@@ -3,24 +3,46 @@
 	<string-group Name="_Dialog Symbols_">
 		<String Ref="1" Cid="508" Define="IDD_TOOLBAR" en="Toolbar" />
 		<String Ref="2" Cid="500" Define="IDC_TABLE" />
+		<String Ref="3" Cid="501" Define="IDC_COMMIT" en="Commit" />
 		<String Ref="4" Cid="502" Define="IDC_PULL" en="Pull" />
 		<String Ref="5" Cid="503" Define="IDC_PUSH" en="Push" />
 		<String Ref="6" Cid="-1" Define="IDC_STATIC" en="Filter:" />
 		<String Ref="7" Cid="505" Define="IDC_FILTER" />
 		<String Ref="8" Cid="506" Define="IDC_CLEAR_FILTER" en="X" />
 		<String Ref="9" Cid="507" Define="IDD_COMMIT" en="Commit" />
-		<String Ref="10" Cid="500" Define="IDC_TABLE" />
-		<String Ref="11" Cid="501" Define="IDC_COMMIT" en="Commit" />
-		<String Ref="12" Cid="-1" Define="IDC_STATIC" en="Commit message:" />
+		<String Ref="10" Cid="504" Define="IDC_COMMIT_TABLE" />
+		<String Ref="11" Cid="11" Define="IDC_BRANCH" />
+		<String Ref="12" Cid="-1" Define="IDC_STATIC" en="Branch:" />
+		<String Ref="13" Cid="3" Define="IDC_COMMIT_AND_PUSH" en="+ Push" />
+		<String Ref="14" Cid="14" Define="IDC_BRANCH_DROPDOWN" />
+		<String Ref="15" Cid="-1" Define="IDC_STATIC" en="Commit message:" />
+		<String Ref="16" Cid="16" Define="IDC_MSG" />
 	</string-group>
-	<Dialog pos="7,7,373,74" ref="9">
-		<TableLayout pos="7,7,363,41" ref="10" cols="0.500,0.500" rows="1.000">
+	<Dialog pos="7,7,464,203" ref="9">
+		<TableLayout pos="7,7,447,167" ref="10" cols="0.200,0.200,0.200,0.200,0.200" rows="0.181,0.819">
 			<tr>
-				<td valign="Center" style="width: 90%;">
-					<StaticText pos="7,7,146,20" ref="12" />
+				<td align="Max" valign="Center">
+					<StaticText pos="7,7,69,20" ref="12" />
 				</td>
 				<td align="Max">
-					<Button pos="182,0,286,20" ref="11" />
+					<EditBox Pos="91,4,160,24" ref="11" />
+				</td>
+				<td>
+					<Custom pos="189,7,223,23" ref="14" Ctrl="DropDownBtn" />
+				</td>
+				<td>
+					<Button pos="266,4,321,24" ref="3" />
+				</td>
+				<td>
+					<Button pos="357,4,405,24" ref="13" />
+				</td>
+			</tr>
+			<tr>
+				<td align="Max">
+					<StaticText pos="7,35,73,48" ref="15" />
+				</td>
+				<td colspan="4">
+					<EditBox Pos="91,35,419,139" MultiLine="1" ref="16" />
 				</td>
 			</tr>
 		</TableLayout>

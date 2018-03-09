@@ -59,6 +59,7 @@ public:
 	void Delete();
 	void SetClean();
 	void AddNodes(GArray<ProjectNode*> &Nodes);
+	bool HasNode(ProjectNode *Node);
 	
 	// Props
 	int GetId();
