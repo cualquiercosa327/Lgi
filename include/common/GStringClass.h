@@ -117,6 +117,15 @@ public:
 	{
 		Str = NULL;
 	}
+
+	#ifndef _MSC_VER
+	// This odd looking constructor allows the object to be used as the value type
+	// in a GHashTable, where the initialiser is '0', an integer.
+	GString(long int i)
+	{
+		Str = NULL;
+	}
+	#endif
 	
 	/// String constructor
 	GString(const char *str, ptrdiff_t bytes)
