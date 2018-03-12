@@ -964,7 +964,10 @@ bool VcFolder::ParsePull(int Result, GString s, ParseParams *Params)
 	switch (GetType())
 	{
 		case VcGit:
+		{
+			CurrentCommit.Empty();
 			break;
+		}
 		case VcSvn:
 		{
 			GString::Array a = s.SplitDelimit("\r\n");
