@@ -379,7 +379,11 @@ public:
 				{
 					VcFolder *f = dynamic_cast<VcFolder*>(Tree->Selection());
 					if (f)
-						f->Commit(Msg, c->GetId() == IDC_COMMIT_AND_PUSH);
+					{
+						char *Branch = GetCtrlName(IDC_BRANCH);
+						bool AndPush = c->GetId() == IDC_COMMIT_AND_PUSH;
+						f->Commit(Msg, ValidStr(Branch) ? Branch : NULL, AndPush);
+					}
 				}
 				else LgiMsg(this, "No message for commit.", AppName);
 				break;

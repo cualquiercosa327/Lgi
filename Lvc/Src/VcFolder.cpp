@@ -828,7 +828,7 @@ void VcFolder::ListWorkingFolder()
 	}
 }
 
-void VcFolder::Commit(const char *Msg, bool AndPush)
+void VcFolder::Commit(const char *Msg, const char *Branch, bool AndPush)
 {
 	VcFile *f = NULL;
 	GArray<VcFile*> Add;
