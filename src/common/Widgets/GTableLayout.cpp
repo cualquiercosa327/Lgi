@@ -1098,10 +1098,6 @@ void TableCell::PostLayout()
 		
 		GTableLayout *Tbl = Izza(GTableLayout);
 		GRect r = v->GetPos();
-		if (Izza(GTextLabel))
-		{
-			int asd=0;
-		}
 
 		if (i > 0 && Cx + r.X() > Pos.X())
 		{

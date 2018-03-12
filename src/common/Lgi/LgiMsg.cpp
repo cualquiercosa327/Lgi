@@ -242,7 +242,7 @@ int LgiMsg(GViewI *Parent, const char *Str, const char *Title, int Type, ...)
 			Dlg.AddView(b);
 			x += r.X() + 10;
 		}
-
+		
 		return Dlg.DoModal();
 	}
 	
