@@ -194,7 +194,18 @@ bool VcFolder::ParseBranches(int Result, GString s, ParseParams *Params)
 		{
 			GString::Array a = s.SplitDelimit("\r\n");
 			for (GString *l = NULL; a.Iterate(l); )
-				Branches.New() = l->Strip(" *");
+			{
+				GString n = l->Strip();
+				if (n(0) == '*')
+				{
+					GString::Array c = n.SplitDelimit(" \t", 1);
+					if (c.Length() > 1)
+						Branches.New() = CurrentBranch = c[1];
+					else
+						Branches.New() = n;
+				}
+				else Branches.New() = n;
+			}
 			break;
 		}
 	}
@@ -840,6 +851,14 @@ void VcFolder::Commit(const char *Msg, const char *Branch, bool AndPush)
 			Add.Add(f);
 		else
 			Partial = true;
+	}
+
+	if (CurrentBranch && Branch &&
+		!CurrentBranch.Equals(Branch))
+	{
+		int Response = LgiMsg(GetTree(), "Do you want to start a new branch?", AppName, MB_YESNO);
+		if (Response != IDYES)
+			return;
 	}
 
 	if (!IsCommit)

@@ -63,6 +63,7 @@ class VcFolder : public GTreeItem
 	VersionCtrl Type;
 	GString Path, CurrentCommit, RepoUrl;
 	GArray<VcCommit*> Log;
+	GString CurrentBranch;
 	GString::Array Branches;
 	GAutoPtr<UncommitedItem> Uncommit;
 	GString Cache, NewRev;
