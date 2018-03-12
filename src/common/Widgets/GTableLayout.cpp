@@ -33,7 +33,7 @@ enum CellFlag
 #include "GCss.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
-// #define DEBUG_LAYOUT		8
+#define DEBUG_LAYOUT		504
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
@@ -1098,10 +1098,6 @@ void TableCell::PostLayout()
 		
 		GTableLayout *Tbl = Izza(GTableLayout);
 		GRect r = v->GetPos();
-		if (Izza(GTextLabel))
-		{
-			int asd=0;
-		}
 
 		if (i > 0 && Cx + r.X() > Pos.X())
 		{

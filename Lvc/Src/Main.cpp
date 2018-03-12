@@ -127,7 +127,7 @@ public:
 		if (LoadFromResource(IDD_COMMIT, this, &Pos, &Name))
 		{
 			GTableLayout *v;
-			if (GetViewById(IDC_TABLE, v))
+			if (GetViewById(IDC_COMMIT_TABLE, v))
 			{
 				GRect r = v->GetPos();
 				r.Offset(-r.x1, -r.y1);
@@ -148,7 +148,7 @@ public:
 	void OnPosChange()
 	{
 		GTableLayout *v;
-		if (GetViewById(IDC_TABLE, v))
+		if (GetViewById(IDC_COMMIT_TABLE, v))
 			v->SetPos(GetClient());
 	}
 
@@ -214,15 +214,14 @@ public:
 
 			GBox *MsgBox = new GBox(IDC_MSG_BOX, true);
 			MsgBox->Attach(FilesBox);
-
+			
 			CommitCtrls *Commit = new CommitCtrls;
 			Commit->Attach(MsgBox);
-
-			Msg = new GTextView3(IDC_MSG, 0, 0, 200, 200);
-			Msg->Sunken(true);
-			Msg->SetWrapType(TEXTED_WRAP_NONE);
-			Msg->Attach(MsgBox);
-			Msg->GetCss(true)->Height(GCss::Len("100px"));
+			if (Commit->GetViewById(IDC_MSG, Msg))
+			{
+				Msg->Sunken(true);
+				Msg->SetWrapType(TEXTED_WRAP_NONE);
+			}
 
 			Tabs = new GTabView(IDC_TAB_VIEW);
 			Tabs->Attach(MsgBox);

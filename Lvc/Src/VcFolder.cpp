@@ -186,6 +186,46 @@ int LogDateCmp(LListItem *a, LListItem *b, NativeInt Data)
 	return -A->GetTs().Compare(&B->GetTs());
 }
 
+bool VcFolder::ParseBranches(int Result, GString s, ParseParams *Params)
+{
+	switch (GetType())
+	{
+		case VcGit:
+		{
+			GString::Array a = s.SplitDelimit("\r\n");
+			for (GString *l = NULL; a.Iterate(l); )
+				Branches.New() = l->Strip(" *");
+			break;
+		}
+	}
+
+	OnBranchesChange();
+	return false;
+}
+
+void VcFolder::OnBranchesChange()
+{
+	GWindow *w = d->Tree->GetWindow();
+	if (!w)
+		return;
+
+	DropDownBtn *dd;
+	if (w->GetViewById(IDC_BRANCH_DROPDOWN, dd))
+	{
+		dd->SetList(IDC_BRANCH, Branches);
+	}
+
+	if (Branches.Length() > 0)
+	{
+		GViewI *b;
+		if (w->GetViewById(IDC_BRANCH, b))
+		{
+			if (!ValidStr(b->Name()))
+				b->Name(Branches.First());
+		}
+	}
+}
+
 void VcFolder::Select(bool b)
 {
 	GTreeItem::Select(b);
@@ -208,6 +248,25 @@ void VcFolder::Select(bool b)
 					break;
 			}				
 		}
+
+		if (Branches.Length() == 0)
+		{
+			switch (GetType())
+			{
+				case VcGit:
+					StartCmd("branch -a", &VcFolder::ParseBranches);
+					break;
+				case VcSvn:
+					Branches.New() = "trunk";
+					OnBranchesChange();
+					break;
+				default:
+					LgiAssert(!"Impl me.");
+					break;
+			}				
+		}
+
+		/*
 		if (!IsUpdatingCounts && Unpushed < 0)
 		{			
 			switch (GetType())
@@ -221,8 +280,9 @@ void VcFolder::Select(bool b)
 				default:
 					LgiAssert(!"Impl me.");
 					break;
-			}				
+			}
 		}
+		*/
 
 		char *Ctrl = d->Lst->GetWindow()->GetCtrlName(IDC_FILTER);
 		GString Filter = ValidStr(Ctrl) ? Ctrl : NULL;
