@@ -494,7 +494,7 @@ bool VcFolder::ParseLog(int Result, GString s, ParseParams *Params)
 			break;
 	}
 
-	LgiTrace("%s:%i - ParseLog: Skip=%i, Error=%i\n", _FL, Skipped, Errors);
+	// LgiTrace("%s:%i - ParseLog: Skip=%i, Error=%i\n", _FL, Skipped, Errors);
 	IsLogging = false;
 
 	return true;
