@@ -54,6 +54,7 @@ Depends =	 \
 			GSubProcess.o \
 			LgiMain.o \
 			BlameUi.o \
+			DropDownBtn.o \
 			Main.o \
 			VcCommit.o \
 			VcFile.o \
@@ -324,6 +325,11 @@ LgiMain.o : ../src/common/Lgi/LgiMain.cpp ../include/common/Lgi.h \
 BlameUi.o : ./Src/BlameUi.cpp ../include/common/Lgi.h \
 	./Src/Lvc.h \
 	../include/common/GTextLog.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+DropDownBtn.o : ./Src/DropDownBtn.cpp ../include/common/Lgi.h \
+	./Src/Lvc.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
