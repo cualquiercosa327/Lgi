@@ -12,7 +12,7 @@
 #include "GSkinEngine.h"
 #include "GArray.h"
 #include "GToken.h"
-#include "GThread.h"
+#include "LThread.h"
 #include "GXmlTree.h"
 #include "GSymLookup.h"
 #include "GFontCache.h"
@@ -260,7 +260,7 @@ public:
 	GdcDevice *GdcSystem;
 	OsAppArguments Args;
 	GLibrary *SkinLib;
-	GHashTable MimeToApp;
+	GHashTbl<char*,void*> MimeToApp;
 	OsThread GuiThread;
 	GSymLookup SymLookup;
 	GAutoString Mime;
@@ -729,7 +729,7 @@ GViewI *GApp::GetFocus()
 	return 0;
 }
 
-OsThreadId GApp::GetGuiThread()
+OsThread GApp::GetGuiThread()
 {
 	return d->GuiThread;
 }

@@ -42,7 +42,7 @@ public:
     #elif USE_POSIX_SEM
     sem_t *Handle() { return Sem; }
 	#elif defined(POSIX)
-	// ?
+	int Handle() { return -1; } // ?
 	#elif defined(WIN32)
     HANDLE Handle() { return Event; }
 	#endif

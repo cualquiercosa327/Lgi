@@ -290,7 +290,7 @@ public:
 	}
 };
 
-class AppWnd : public GWindow, public GDefaultDocumentEnv, public GNetwork
+class AppWnd : public GWindow, public GDefaultDocumentEnv
 {
 	LList *Lst;
     HtmlScriptContext *Html;

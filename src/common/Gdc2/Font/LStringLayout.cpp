@@ -19,7 +19,7 @@ void LLayoutString::Set(int LineIdx, int FixX, int YPx, LLayoutRun *Lr, ssize_t 
 		Fore.Set(Fill.Rgb32, 32);
 	else if (Fill.Type != GCss::ColorTransparent)
 		Fore.Set(LC_TEXT, 24);
-			
+	
 	Fill = Src->BackgroundColor();
 	if (Fill.Type == GCss::ColorRgb)
 		Back.Set(Fill.Rgb32, 32);
