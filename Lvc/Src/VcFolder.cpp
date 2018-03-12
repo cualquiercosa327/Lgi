@@ -965,11 +965,15 @@ bool VcFolder::ParsePull(int Result, GString s, ParseParams *Params)
 	{
 		case VcGit:
 		{
+			// Git does a merge by default, so the current commit changes...
 			CurrentCommit.Empty();
 			break;
 		}
 		case VcSvn:
 		{
+			// Svn also does a merge by default and can update our current position...
+			CurrentCommit.Empty();
+
 			GString::Array a = s.SplitDelimit("\r\n");
 			for (GString *Ln = NULL; a.Iterate(Ln); )
 			{
