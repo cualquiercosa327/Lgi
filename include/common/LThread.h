@@ -36,7 +36,7 @@ protected:
 	#if defined WIN32
 
 	friend uint WINAPI ThreadEntryPoint(void *i);
-    void Create(class LThread *Thread, OsThread &hThread, uint &ThreadId);
+    void Create(class LThread *Thread, OsThread &hThread, OsThreadId &ThreadId);
 
 	#elif defined BEOS
 
