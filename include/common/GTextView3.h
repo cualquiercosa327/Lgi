@@ -315,6 +315,7 @@ public:
 	// File IO
 	bool Open(const char *Name, const char *Cs = 0);
 	bool Save(const char *Name, const char *Cs = 0);
+	const char *GetLastError();
 
 	// Clipboard IO
 	bool Cut();

@@ -2447,6 +2447,12 @@ bool IdeDocPrivate::Save()
 	else if (FileName)
 	{
 		Status = Edit->Save(FileName);
+		if (!Status)
+		{
+			const char *Err = Edit->GetLastError();
+			LgiMsg(App, "%s", AppName, MB_OK, Err ? Err : "$unknown_error");
+		}
+		
 		OnSaveComplete(Status);
 	}
 
@@ -2458,7 +2464,8 @@ bool IdeDocPrivate::Save()
 
 void IdeDocPrivate::OnSaveComplete(bool Status)
 {
-	IsDirty = false;
+	if (Status)
+		IsDirty = false;
 	UpdateName();
 
 	ProjectNode *Node = dynamic_cast<ProjectNode*>(nSrc);
