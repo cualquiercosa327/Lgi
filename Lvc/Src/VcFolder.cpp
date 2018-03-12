@@ -926,7 +926,7 @@ void VcFolder::Pull()
 	switch (GetType())
 	{
 		case VcGit:
-			Status = StartCmd("fetch", &VcFolder::ParsePull, NULL, true);
+			Status = StartCmd("pull", &VcFolder::ParsePull, NULL, true);
 			break;
 		case VcSvn:
 			Status = StartCmd("up", &VcFolder::ParsePull, NULL, true);
