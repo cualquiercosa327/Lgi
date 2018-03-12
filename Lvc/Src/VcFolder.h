@@ -63,6 +63,7 @@ class VcFolder : public GTreeItem
 	VersionCtrl Type;
 	GString Path, CurrentCommit, RepoUrl;
 	GArray<VcCommit*> Log;
+	GString CurrentBranch;
 	GString::Array Branches;
 	GAutoPtr<UncommitedItem> Uncommit;
 	GString Cache, NewRev;
@@ -105,7 +106,7 @@ public:
 	void Select(bool b);
 	void ListCommit(const char *Rev);
 	void ListWorkingFolder();
-	void Commit(const char *Msg, bool AndPush);
+	void Commit(const char *Msg, const char *Branch, bool AndPush);
 	void Push();
 	void Pull();
 	bool Revert(const char *Path, const char *Revision = NULL);
