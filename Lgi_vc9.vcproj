@@ -679,11 +679,11 @@
 					Name="Mutex"
 					>
 					<File
-						RelativePath=".\src\common\Lgi\LMutex.cpp"
+						RelativePath=".\include\common\GMutex.h"
 						>
 					</File>
 					<File
-						RelativePath=".\include\common\GMutex.h"
+						RelativePath=".\src\common\Lgi\LMutex.cpp"
 						>
 					</File>
 				</Filter>
@@ -716,6 +716,10 @@
 					</File>
 					<File
 						RelativePath=".\include\common\GMenu.h"
+						>
+					</File>
+					<File
+						RelativePath=".\src\common\Lgi\GMenuCommon.cpp"
 						>
 					</File>
 				</Filter>
@@ -799,11 +803,11 @@
 					Name="DateTime"
 					>
 					<File
-						RelativePath=".\src\common\General\LDateTime.cpp"
+						RelativePath=".\include\common\GDateTime.h"
 						>
 					</File>
 					<File
-						RelativePath=".\include\common\GDateTime.h"
+						RelativePath=".\src\common\General\LDateTime.cpp"
 						>
 					</File>
 				</Filter>
@@ -908,14 +912,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\common\LListItemCheckBox.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\common\LListItemRadioBtn.h"
-					>
-				</File>
-				<File
 					RelativePath=".\src\common\Widgets\GPanel.cpp"
 					>
 				</File>
@@ -987,6 +983,14 @@
 					RelativePath=".\include\common\GToolBar.h"
 					>
 				</File>
+				<File
+					RelativePath=".\include\common\LListItemCheckBox.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\common\LListItemRadioBtn.h"
+					>
+				</File>
 				<Filter
 					Name="Css"
 					>
@@ -1043,19 +1047,19 @@
 						>
 					</File>
 					<File
-						RelativePath=".\src\common\Widgets\LList.cpp"
-						>
-					</File>
-					<File
-						RelativePath=".\include\common\LList.h"
-						>
-					</File>
-					<File
 						RelativePath=".\src\common\Widgets\GTree.cpp"
 						>
 					</File>
 					<File
 						RelativePath=".\include\common\GTree.h"
+						>
+					</File>
+					<File
+						RelativePath=".\src\common\Widgets\LList.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\include\common\LList.h"
 						>
 					</File>
 				</Filter>
@@ -1540,6 +1544,10 @@
 					</File>
 					<File
 						RelativePath=".\src\common\Gdc2\Font\GFontSystem.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\src\common\Gdc2\Font\LStringLayout.cpp"
 						>
 					</File>
 				</Filter>
