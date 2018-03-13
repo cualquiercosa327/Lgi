@@ -124,6 +124,8 @@
 		3477C4ED1CC27F1C0028B84B /* GTrayIcon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3477C4EC1CC27F1C0028B84B /* GTrayIcon.cpp */; };
 		3477C5171CC303B70028B84B /* LgiClass.h in Headers */ = {isa = PBXBuildFile; fileRef = 3477C5161CC303B70028B84B /* LgiClass.h */; };
 		348362421F233A77003B2A6D /* GStream.h in Headers */ = {isa = PBXBuildFile; fileRef = 348362411F233A77003B2A6D /* GStream.h */; };
+		34A3ACE820568D5800B1D62A /* LStringLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34A3ACE720568D5800B1D62A /* LStringLayout.cpp */; };
+		34A3ACEA20568D9700B1D62A /* GMenuCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34A3ACE920568D9700B1D62A /* GMenuCommon.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -246,6 +248,8 @@
 		3477C4EC1CC27F1C0028B84B /* GTrayIcon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GTrayIcon.cpp; path = ../../../common/Lgi/GTrayIcon.cpp; sourceTree = "<group>"; };
 		3477C5161CC303B70028B84B /* LgiClass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LgiClass.h; path = ../../../include/common/LgiClass.h; sourceTree = "<group>"; };
 		348362411F233A77003B2A6D /* GStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GStream.h; path = ../../../../include/common/GStream.h; sourceTree = "<group>"; };
+		34A3ACE720568D5800B1D62A /* LStringLayout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LStringLayout.cpp; path = ../../../common/Gdc2/Font/LStringLayout.cpp; sourceTree = "<group>"; };
+		34A3ACE920568D9700B1D62A /* GMenuCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GMenuCommon.cpp; path = ../../../common/Lgi/GMenuCommon.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -402,6 +406,7 @@
 		3477C2B51CBF972B0028B84B /* Interface_XP */ = {
 			isa = PBXGroup;
 			children = (
+				34A3ACE920568D9700B1D62A /* GMenuCommon.cpp */,
 				346FACE61D3C720B00FFEBCE /* GMessage.h */,
 				3477C4EC1CC27F1C0028B84B /* GTrayIcon.cpp */,
 				3477C34A1CC0AB0B0028B84B /* GToolTip.cpp */,
@@ -427,6 +432,7 @@
 		3477C2BD1CBF97DA0028B84B /* Fonts */ = {
 			isa = PBXGroup;
 			children = (
+				34A3ACE720568D5800B1D62A /* LStringLayout.cpp */,
 				345920FC1F25649000098DFD /* GFont.h */,
 				345920FD1F25649000098DFD /* GFontCache.h */,
 				345920FE1F25649000098DFD /* GFontSelect.h */,
@@ -661,6 +667,7 @@
 			files = (
 				3477C2CE1CC047BE0028B84B /* GFontCodePages.cpp in Sources */,
 				3477C3111CC04C790028B84B /* GCssTools.cpp in Sources */,
+				34A3ACE820568D5800B1D62A /* LStringLayout.cpp in Sources */,
 				3477C4071CC22FB20028B84B /* GProcess.cpp in Sources */,
 				3477C2DB1CC048F90028B84B /* GDisplayString.cpp in Sources */,
 				3477C33A1CC04ED90028B84B /* GDragAndDrop.mm in Sources */,
@@ -735,6 +742,7 @@
 				3477C3371CC04E120028B84B /* 64Bit.cpp in Sources */,
 				3477C3241CC04DD70028B84B /* GObject.cpp in Sources */,
 				3477C2E31CC04A5C0028B84B /* GStream.cpp in Sources */,
+				34A3ACEA20568D9700B1D62A /* GMenuCommon.cpp in Sources */,
 				3477C3341CC04E120028B84B /* 24Bit.cpp in Sources */,
 				3477C2791CBF08050028B84B /* GFileSelect.mm in Sources */,
 				3477C3351CC04E120028B84B /* 32Bit.cpp in Sources */,

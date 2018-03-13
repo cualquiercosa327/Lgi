@@ -120,6 +120,7 @@ public:
 	bool CenterCursor;
 	ssize_t WordSelectMode;
 	GString Eol;
+	GString LastError;
 
 	// Find/Replace Params
 	bool OwnFindReplaceParams;
@@ -2147,6 +2148,8 @@ bool GTextView3::Save(const char *Name, const char *CharSet)
 	GFile f;
 	GString TmpName;
 	bool Status = false;
+	
+	d->LastError.Empty();
 
 	if (f.Open(Name, O_WRITE))
 	{
@@ -2227,11 +2230,22 @@ bool GTextView3::Save(const char *Name, const char *CharSet)
 			Dirty = false;
 		}
 	}
+	else
+	{
+		int Err = f.GetError();
+		GAutoString sErr = LgiErrorCodeToString(Err);		
+		d->LastError.Printf("Failed to open '%s' for writing: %i - %s\n", Name, Err, sErr.Get());
+	}
 
 	if (TmpName)
 		FileDev->Delete(TmpName);
 
 	return Status;
+}
+
+const char *GTextView3::GetLastError()
+{
+	return d->LastError;
 }
 
 void GTextView3::UpdateScrollBars(bool Reset)

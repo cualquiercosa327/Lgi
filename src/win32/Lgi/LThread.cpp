@@ -108,7 +108,7 @@ LThread::~LThread()
 	}
 }
 
-void LThread::Create(LThread *Thread, OsThread &hThread, uint &ThreadId)
+void LThread::Create(LThread *Thread, OsThread &hThread, OsThreadId &ThreadId)
 {
 #if defined(_MT) || defined(__MINGW32__)
 
@@ -117,7 +117,7 @@ void LThread::Create(LThread *Thread, OsThread &hThread, uint &ThreadId)
 									(unsigned int (__stdcall *)(void *)) ThreadEntryPoint,
 									(LPVOID) Thread,
 									CREATE_SUSPENDED,
-									&ThreadId);
+									(unsigned*) &ThreadId);
 #elif defined(__CYGWIN__)
 
 	// Cygwin doesn't support stable threading

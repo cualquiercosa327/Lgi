@@ -2811,6 +2811,10 @@ EmojiMenu::EmojiMenu(GRichTextPriv *priv, GdcPt2 p) : GPopup(priv->View)
 
 void EmojiMenu::OnPaint(GSurface *pDC)
 {
+	GAutoPtr<GDoubleBuffer> DblBuf;
+	if (!pDC->SupportsAlphaCompositing())
+		DblBuf.Reset(new GDoubleBuffer(pDC));
+
 	pDC->Colour(LC_MED, 24);
 	pDC->Rectangle();
 

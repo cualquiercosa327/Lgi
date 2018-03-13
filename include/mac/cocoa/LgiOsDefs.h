@@ -51,7 +51,7 @@ typedef struct _OsView
 }	*OsView;
 
 typedef pthread_t           OsThread;
-typedef pthread_t			OsThreadId;
+typedef uint64_t			OsThreadId;
 typedef pthread_mutex_t		OsSemaphore;
 typedef uint16				OsChar;
 typedef int					OsProcessId;
@@ -85,8 +85,9 @@ public:
 // Text system
 #define USE_CORETEXT				1
 
-// Posix system
+// System defines
 #define POSIX						1
+#define LGI_COCOA					1
 
 // Process
 typedef int							OsProcess;
@@ -95,7 +96,7 @@ typedef int							OsProcessId;
 
 // Threads
 #define LgiGetCurrentThread()		pthread_self()
-#define GetCurrentThreadId
+LgiFunc OsThreadId					GetCurrentThreadId();
 
 // Sockets
 #define ValidSocket(s)				((s)>=0)

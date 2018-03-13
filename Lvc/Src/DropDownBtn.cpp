@@ -45,7 +45,8 @@ public:
 	{
 		GRect c = GetClient();
 		c.Size(1, 1);
-		Lst->SetPos(c);
+		if (Lst)
+			Lst->SetPos(c);
 	}
 
 	void OnPaint(GSurface *pDC)

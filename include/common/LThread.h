@@ -31,12 +31,12 @@ protected:
 	OsThread hThread;
 	GString Name;
 	ThreadPriority Priority;
+	OsThreadId ThreadId;
 
 	#if defined WIN32
 
 	friend uint WINAPI ThreadEntryPoint(void *i);
-	uint ThreadId;
-    void Create(class LThread *Thread, OsThread &hThread, uint &ThreadId);
+    void Create(class LThread *Thread, OsThread &hThread, OsThreadId &ThreadId);
 
 	#elif defined BEOS
 
@@ -44,7 +44,6 @@ protected:
 
 	#elif defined POSIX
 
-	pid_t ThreadId;
 	friend void *ThreadEntryPoint(void *i);
 
 	#else
@@ -63,11 +62,7 @@ public:
 	// Properties
 	OsThread Handle() { return hThread; }
 	const char *GetName() { return Name; }
-	#if defined(WIN32)
-	uint GetId() { return ThreadId; }
-	#elif defined(POSIX)
-	pid_t GetId() { return ThreadId; }
-	#endif
+	OsThreadId GetId() { return ThreadId; }
 	ThreadState GetState() { return State; } // Volitile at best... only use for 'debug'
 	virtual int ExitCode();
 	virtual bool IsExited();

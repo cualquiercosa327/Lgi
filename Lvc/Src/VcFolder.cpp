@@ -194,7 +194,18 @@ bool VcFolder::ParseBranches(int Result, GString s, ParseParams *Params)
 		{
 			GString::Array a = s.SplitDelimit("\r\n");
 			for (GString *l = NULL; a.Iterate(l); )
-				Branches.New() = l->Strip(" *");
+			{
+				GString n = l->Strip();
+				if (n(0) == '*')
+				{
+					GString::Array c = n.SplitDelimit(" \t", 1);
+					if (c.Length() > 1)
+						Branches.New() = CurrentBranch = c[1];
+					else
+						Branches.New() = n;
+				}
+				else Branches.New() = n;
+			}
 			break;
 		}
 	}
@@ -483,7 +494,7 @@ bool VcFolder::ParseLog(int Result, GString s, ParseParams *Params)
 			break;
 	}
 
-	LgiTrace("%s:%i - ParseLog: Skip=%i, Error=%i\n", _FL, Skipped, Errors);
+	// LgiTrace("%s:%i - ParseLog: Skip=%i, Error=%i\n", _FL, Skipped, Errors);
 	IsLogging = false;
 
 	return true;
@@ -828,7 +839,7 @@ void VcFolder::ListWorkingFolder()
 	}
 }
 
-void VcFolder::Commit(const char *Msg, bool AndPush)
+void VcFolder::Commit(const char *Msg, const char *Branch, bool AndPush)
 {
 	VcFile *f = NULL;
 	GArray<VcFile*> Add;
@@ -840,6 +851,14 @@ void VcFolder::Commit(const char *Msg, bool AndPush)
 			Add.Add(f);
 		else
 			Partial = true;
+	}
+
+	if (CurrentBranch && Branch &&
+		!CurrentBranch.Equals(Branch))
+	{
+		int Response = LgiMsg(GetTree(), "Do you want to start a new branch?", AppName, MB_YESNO);
+		if (Response != IDYES)
+			return;
 	}
 
 	if (!IsCommit)
@@ -926,7 +945,7 @@ void VcFolder::Pull()
 	switch (GetType())
 	{
 		case VcGit:
-			Status = StartCmd("fetch", &VcFolder::ParsePull, NULL, true);
+			Status = StartCmd("pull", &VcFolder::ParsePull, NULL, true);
 			break;
 		case VcSvn:
 			Status = StartCmd("up", &VcFolder::ParsePull, NULL, true);
@@ -945,9 +964,16 @@ bool VcFolder::ParsePull(int Result, GString s, ParseParams *Params)
 	switch (GetType())
 	{
 		case VcGit:
+		{
+			// Git does a merge by default, so the current commit changes...
+			CurrentCommit.Empty();
 			break;
+		}
 		case VcSvn:
 		{
+			// Svn also does a merge by default and can update our current position...
+			CurrentCommit.Empty();
+
 			GString::Array a = s.SplitDelimit("\r\n");
 			for (GString *Ln = NULL; a.Iterate(Ln); )
 			{
