@@ -86,7 +86,7 @@ public:
 
 	/// Sets up the Value function to yield every so often
 	/// to update the screen
-	void SetYieldTime(uint64 yt) { SetPulse(YieldTs = yt); }
+	void SetYieldTime(uint64 yt) { SetPulse((int) (YieldTs = yt)); }
 	/// Set ability to cancel
 	void SetCanCancel(bool cc);
 
