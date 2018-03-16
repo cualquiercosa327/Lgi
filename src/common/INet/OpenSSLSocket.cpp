@@ -446,8 +446,8 @@ public:
 
 static OpenSSL *Library = 0;
 
-#if defined(WIN32) && defined(_DEBUG)
-// #define SSL_DEBUG_LOCKING
+#if 0
+#define SSL_DEBUG_LOCKING
 #endif
 
 void
@@ -459,24 +459,21 @@ SSL_locking_function(int mode, int n, const char *file, int line)
 		if (!Library->Locks[n])
 		{
 			#ifdef SSL_DEBUG_LOCKING
-			sprintf_s(Buf, sizeof(Buf), "SSL[%i] create\n", n);
-			OutputDebugStr(Buf);
+			LgiTrace("SSL[%i] create\n", n);
 			#endif
 			Library->Locks[n] = new LMutex;
 		}
 
 		#ifdef SSL_DEBUG_LOCKING
-	    sprintf_s(Buf, sizeof(Buf),
-			"SSL[%i] lock=%i, unlock=%i, read=%i, write=%i (mode=0x%x, count=%i, thread=0x%x)\n", n,
+	    LgiTrace("SSL[%i] lock=%i, unlock=%i, re=%i, wr=%i (mode=0x%x, cnt=%i, thr=0x%x, %s:%i)\n", n,
 			TestFlag(mode, CRYPTO_LOCK),
 			TestFlag(mode, CRYPTO_UNLOCK),
 			TestFlag(mode, CRYPTO_READ),
 			TestFlag(mode, CRYPTO_WRITE),
 			mode,
 			Library->Locks[n]->GetCount(),
-			LgiGetCurrentThread()
-			);
-	    OutputDebugStr(Buf);
+			LgiGetCurrentThread(),
+			file, line);
 		#endif
 		
 		if (mode & CRYPTO_LOCK)

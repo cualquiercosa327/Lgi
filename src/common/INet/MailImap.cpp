@@ -15,7 +15,7 @@
 #include "OpenSSLSocket.h"
 #include "LJson.h"
 
-#define DEBUG_OAUTH2				1
+#define DEBUG_OAUTH2				0
 #define DEBUG_FETCH					0
 #define OPT_ImapOAuth2AccessToken	"OAuth2AccessTok"
 
@@ -1877,6 +1877,7 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 								#endif
 							}
 
+							GStringPipe OutputLog;
 							if (ValidStr(AuthCode) &&
 								ValidStr(RedirUri))
 							{
@@ -1915,7 +1916,6 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 								}
 								
 								SslSocket *ssl;
-								GStringPipe OutputLog;
 								GAutoPtr<GSocketI> Ssl(ssl = new SslSocket(&OutputLog));
 								if (Ssl)
 								{
@@ -1935,8 +1935,6 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 										bool Result = Http.Post(Uri, &In, &StatusCode, &Out, NULL, Hdrs);
 										GString sOut = Out.NewGStr();
 										LJson Json;
-
-										LgiTrace("Json=%s\n", sOut.Get());
 
 										if (Result && Json.SetJson(sOut))
 										{
@@ -2009,7 +2007,7 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 						// Issue the IMAP command
 						int AuthCmd = d->NextCmd++;
 						GString AuthStr;
-						AuthStr.Printf("A%4.4i AUTHENTICATE XOAUTH2\r\n+\r\n%s\r\n", AuthCmd, s.Get());
+						AuthStr.Printf("A%4.4i AUTHENTICATE XOAUTH2 %s\r\n", AuthCmd, s.Get());
 						if (WriteBuf(false, AuthStr))
 						{
 							Dialog.DeleteArrays();
