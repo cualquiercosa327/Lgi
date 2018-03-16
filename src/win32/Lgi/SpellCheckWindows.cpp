@@ -18,8 +18,48 @@ class WindowsSpellCheck : public GSpellCheck
 	ISpellCheckerFactory *Factory;
 	ISpellChecker *Sc;
 
-	GHashTbl<const char *, int> Languages;
-	GString::Array Dictionaries;
+	struct Lang
+	{
+		GString Id;
+		GString English;
+		GString Native;
+		GString::Array Dictionaries;
+	};
+
+	GHashTbl<const char *, Lang*> Languages;
+
+	bool ReadCsv()
+	{
+		GString File = __FILE__;
+		File = File.Replace(".cpp", ".csv");
+		if (!FileExists(File))
+		{
+			GAutoString f(LgiFindFile(LgiGetLeaf(File)));
+			File = f.Get();
+		}
+
+		GFile f;
+		if (!f.Open(File, O_READ))
+			return false;
+		GString::Array Lines = f.Read().SplitDelimit("\r\n");
+		for (GString *Ln = NULL; Lines.Iterate(Ln);)
+		{
+			GString::Array v = Ln->Split(",");
+			if (v.Length() > 1)
+			{
+				LgiTrace("Map %s -> %s\n", v[0].Get(), v[1].Get());
+				Lang *l = Languages.Find(v[0].Strip());
+				if (l)
+				{
+					l->English = v[1].Strip();
+					if (v.Length() > 2)
+						l->Native = v[2].Strip();
+				}
+			}
+		}
+
+		return true;
+	}
 
 public:
 	WindowsSpellCheck() :
@@ -74,20 +114,28 @@ public:
 				LPOLESTR Str;
 				while (SUCCEEDED((r = Value->Next(1, &Str, NULL))) && Str)
 				{
-					GString &s = Dictionaries.New();
-					s = Str;
-			
+					GString s = Str;			
 					GString::Array a = s.Split("-", 1);
 					if (a.Length() == 2)
 					{
-						int Cur = Languages.Find(a[0]);
-						Languages.Add(a[0], Cur + 1);
+						Lang *l = Languages.Find(a[0]);
+						if (!l)
+						{
+							Languages.Add(a[0], l = new Lang);
+							l->Id = a[0];
+						}
+						if (l)
+						{
+							l->Dictionaries.New() = s;
+						}
 					}
 
 					CoTaskMemFree(Str);
 				}
 
 				Value->Release();
+
+				ReadCsv();
 			}
 		}
 
@@ -128,11 +176,13 @@ public:
 				int ResponseHnd = (int)Msg->A();
 				GAutoPtr< GArray<LanguageId> > Langs(new GArray<LanguageId>);
 
-				const char *l;
-				for (int c = Languages.First(&l); c; c = Languages.Next(&l))
+				const char *Id;
+				for (Lang *l = Languages.First(&Id); l; l = Languages.Next(&Id))
 				{
 					LanguageId &i = Langs->New();
-					i.LangCode = l;
+					i.LangCode = l->Id;
+					i.EnglishName = l->English ? l->English : l->Id;
+					i.NativeName = l->Native;
 				}
 
 				if (Langs && Langs->Length() > 0)
@@ -142,7 +192,7 @@ public:
 			case M_ENUMERATE_DICTIONARIES:
 			{
 				int ResponseHnd = (int)Msg->A();
-				GAutoPtr<GString> Lang((GString*)Msg->B());
+				GAutoPtr<GString> Param((GString*)Msg->B());
 
 				if (!GetFactory())
 				{
@@ -151,15 +201,22 @@ public:
 				}
 
 				GAutoPtr< GArray<DictionaryId> > Out(new GArray<DictionaryId>);
-				for (unsigned i=0; i<Dictionaries.Length(); i++)
+				Lang *l = Languages.Find(*Param);
+				if (!l)
 				{
-					GString &d = Dictionaries[i];
+					LgiTrace("%s:%i - Language '%s' not found.\n", _FL, Param->Get());
+					break;
+				}
+				
+				for (unsigned i=0; i<l->Dictionaries.Length(); i++)
+				{
+					GString &d = l->Dictionaries[i];
 					GString::Array a = d.Split("-", 1);
-					if (a.Length() == 1 || a[0].Equals(*Lang))
+					if (a.Length() == 2)
 					{
 						DictionaryId &id = Out->New();
-						id.Lang = *Lang;
-						id.Dict = a[1];
+						id.Lang = l->Id.Get();
+						id.Dict = a[1].Get();
 					}
 				}
 

@@ -323,7 +323,12 @@ public:
 				if (Edit)
 				{
 					if (Speller)
+					{
+						GVariant v;
+						Edit->SetValue("SpellCheckLanguage", v = "English");
+						Edit->SetValue("SpellCheckDictionary", v = "AU");
 						Edit->SetSpellCheck(Speller);
+					}
 					Edit->Sunken(true);
 					Edit->SetId(IDC_EDITOR);
 					Edit->Register(this);
