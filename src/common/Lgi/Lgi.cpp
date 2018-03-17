@@ -569,7 +569,7 @@ void LgiTrace(const char *Msg, ...)
 
 	#ifdef WIN32
 	static LMutex Sem;
-	Sem.Lock(_FL);
+	Sem.Lock(_FL, true);
 	#endif
 
 	char Buffer[2049] = "";

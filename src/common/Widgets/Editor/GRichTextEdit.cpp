@@ -90,7 +90,13 @@ GRichTextEdit::~GRichTextEdit()
 bool GRichTextEdit::SetSpellCheck(GSpellCheck *sp)
 {
 	if ((d->SpellCheck = sp))
-		d->SpellCheck->EnumLanguages(AddDispatch());
+	{
+		if (IsAttached())
+			d->SpellCheck->EnumLanguages(AddDispatch());
+		// else call that OnCreate
+		
+	}
+
 	return d->SpellCheck != NULL;
 }
 
@@ -1156,6 +1162,9 @@ void GRichTextEdit::OnCreate()
 
 	if (Focus())
 		SetPulse(RTE_PULSE_RATE);
+
+	if (d->SpellCheck)
+		d->SpellCheck->EnumLanguages(AddDispatch());
 }
 
 void GRichTextEdit::OnEscape(GKey &K)
@@ -2423,17 +2432,28 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 		{
 			GAutoPtr< GArray<GSpellCheck::LanguageId> > Languages((GArray<GSpellCheck::LanguageId>*)Msg->A());
 			if (!Languages)
+			{
+				LgiTrace("%s:%i - M_ENUMERATE_LANGUAGES no param\n", _FL);
 				break;
-			
+			}
+
+			LgiTrace("%s:%i - Got M_ENUMERATE_LANGUAGES %s\n", _FL, d->SpellLang.Get());
+			bool Match = false;
 			for (unsigned i=0; i<Languages->Length(); i++)
 			{
 				GSpellCheck::LanguageId &s = (*Languages)[i];
 				if (s.LangCode.Equals(d->SpellLang) ||
 					s.EnglishName.Equals(d->SpellLang))
 				{
+					LgiTrace("%s:%i - EnumDict called %s\n", _FL, s.LangCode.Get());
 					d->SpellCheck->EnumDictionaries(AddDispatch(), s.LangCode);
+					Match = true;
 					break;
 				}
+			}
+			if (!Match)
+			{
+				LgiTrace("%s:%i - EnumDict not called %s\n", _FL, d->SpellLang.Get());
 			}
 			break;
 		}
@@ -2442,16 +2462,22 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 			GAutoPtr< GArray<GSpellCheck::DictionaryId> > Dictionaries((GArray<GSpellCheck::DictionaryId>*)Msg->A());
 			if (!Dictionaries)
 				break;
-			
+	
+			bool Match = false;		
 			for (unsigned i=0; i<Dictionaries->Length(); i++)
 			{
 				GSpellCheck::DictionaryId &s = (*Dictionaries)[i];
-				// printf("%s:%i - M_ENUMERATE_DICTIONARIES: %s, %s\n", _FL, s.Dict.Get(), d->SpellDict.Get());
 				if (s.Dict.Equals(d->SpellDict))
 				{
+					LgiTrace("%s:%i - M_ENUMERATE_DICTIONARIES: %s, %s\n", _FL, s.Dict.Get(), d->SpellDict.Get());
 					d->SpellCheck->SetDictionary(AddDispatch(), s.Lang, s.Dict);
+					Match = true;
 					break;
 				}
+			}
+			if (!Match)
+			{
+				LgiTrace("%s:%i - No match in M_ENUMERATE_DICTIONARIES: %s\n", _FL, d->SpellDict.Get());
 			}
 			break;
 		}
