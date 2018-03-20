@@ -2437,7 +2437,7 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 				break;
 			}
 
-			LgiTrace("%s:%i - Got M_ENUMERATE_LANGUAGES %s\n", _FL, d->SpellLang.Get());
+			// LgiTrace("%s:%i - Got M_ENUMERATE_LANGUAGES %s\n", _FL, d->SpellLang.Get());
 			bool Match = false;
 			for (unsigned i=0; i<Languages->Length(); i++)
 			{
@@ -2445,16 +2445,14 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 				if (s.LangCode.Equals(d->SpellLang) ||
 					s.EnglishName.Equals(d->SpellLang))
 				{
-					LgiTrace("%s:%i - EnumDict called %s\n", _FL, s.LangCode.Get());
+					// LgiTrace("%s:%i - EnumDict called %s\n", _FL, s.LangCode.Get());
 					d->SpellCheck->EnumDictionaries(AddDispatch(), s.LangCode);
 					Match = true;
 					break;
 				}
 			}
 			if (!Match)
-			{
 				LgiTrace("%s:%i - EnumDict not called %s\n", _FL, d->SpellLang.Get());
-			}
 			break;
 		}
 		case M_ENUMERATE_DICTIONARIES:
@@ -2469,24 +2467,20 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 				GSpellCheck::DictionaryId &s = (*Dictionaries)[i];
 				if (s.Dict.Equals(d->SpellDict))
 				{
-					LgiTrace("%s:%i - M_ENUMERATE_DICTIONARIES: %s, %s\n", _FL, s.Dict.Get(), d->SpellDict.Get());
+					// LgiTrace("%s:%i - M_ENUMERATE_DICTIONARIES: %s, %s\n", _FL, s.Dict.Get(), d->SpellDict.Get());
 					d->SpellCheck->SetDictionary(AddDispatch(), s.Lang, s.Dict);
 					Match = true;
 					break;
 				}
 			}
 			if (!Match)
-			{
 				LgiTrace("%s:%i - No match in M_ENUMERATE_DICTIONARIES: %s\n", _FL, d->SpellDict.Get());
-			}
 			break;
 		}
 		case M_SET_DICTIONARY:
 		{
 			d->SpellDictionaryLoaded = Msg->A() != 0;
-			#if _DEBUG
 			LgiTrace("%s:%i - M_SET_DICTIONARY=%i\n", _FL, d->SpellDictionaryLoaded);
-			#endif
 			if (d->SpellDictionaryLoaded)
 			{
 				AutoTrans Trans(new GRichTextPriv::Transaction);

@@ -245,6 +245,11 @@ struct GNamedStyle : public GCss
 {
 	int RefCount;
 	GString Name;
+
+	GNamedStyle()
+	{
+		RefCount = 0;
+	}
 };
 
 class GCssCache

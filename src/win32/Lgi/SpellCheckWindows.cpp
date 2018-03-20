@@ -12,6 +12,16 @@ DEFINE_GUID(IID_ISpellCheckerFactory,0x8E018A9D,0x2415,0x4677,0xBF,0x08,0x79,0x4
 
 #include "GHashTable.h"
 
+int LangCmp(GSpellCheck::LanguageId *a, GSpellCheck::LanguageId *b)
+{
+	return Stricmp(a->LangCode.Get(), b->LangCode.Get());
+}
+
+int DictionaryCmp(GSpellCheck::DictionaryId *a, GSpellCheck::DictionaryId *b)
+{
+	return Stricmp(a->Dict.Get(), b->Dict.Get());
+}
+
 class WindowsSpellCheck : public GSpellCheck
 {
 	bool Ok;
@@ -47,7 +57,6 @@ class WindowsSpellCheck : public GSpellCheck
 			GString::Array v = Ln->Split(",");
 			if (v.Length() > 1)
 			{
-				LgiTrace("Map %s -> %s\n", v[0].Get(), v[1].Get());
 				Lang *l = Languages.Find(v[0].Strip());
 				if (l)
 				{
@@ -186,7 +195,10 @@ public:
 				}
 
 				if (Langs && Langs->Length() > 0)
+				{
+					Langs->Sort(LangCmp);
 					PostObject(ResponseHnd, Msg->Msg(), Langs);
+				}
 				break;
 			}
 			case M_ENUMERATE_DICTIONARIES:
@@ -221,7 +233,10 @@ public:
 				}
 
 				if (Out && Out->Length() > 0)
+				{
+					Out->Sort(DictionaryCmp);
 					PostObject(ResponseHnd, Msg->Msg(), Out);
+				}
 				break;
 			}
 			case M_SET_DICTIONARY:
