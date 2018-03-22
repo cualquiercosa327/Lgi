@@ -590,7 +590,7 @@ public:
 			}
 
 			// Before selection end point
-			if (CurEndPoint < EndPoints.Length() &&
+			if (CurEndPoint < (ssize_t)EndPoints.Length() &&
 				EndPoints[CurEndPoint] == 0)
 			{
 				Type = Type == Selected ? Unselected : Selected;
@@ -605,7 +605,7 @@ public:
 		bool SelectAfterPaint(class GRichTextPriv::Block *b)
 		{
 			// After image selection end point
-			if (CurEndPoint < EndPoints.Length() &&
+			if (CurEndPoint < (ssize_t)EndPoints.Length() &&
 				EndPoints[CurEndPoint] == 1)
 			{
 				Type = Type == Selected ? Unselected : Selected;
