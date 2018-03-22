@@ -798,7 +798,7 @@ DebugTrace("%s:%i - BIO_get_ssl=%p\n", _FL, Ssl);
 DebugTrace("%s:%i - initial SSL_connect=%i\n", _FL, r);
 							while (r != 1 && !IsCancelled())
 							{
-								int err = Library->SSL_get_error(Ssl, r);
+								long err = Library->SSL_get_error(Ssl, r);
 								if (err != SSL_ERROR_WANT_CONNECT)
 								{
 DebugTrace("%s:%i - SSL_get_error=%i\n", _FL, err);
@@ -1173,7 +1173,7 @@ ssize_t SslSocket::Write(const void *Data, ssize_t Len, int Flags)
 		return -1;
 	}
 
-	int r = 0;
+	ssize_t r = 0;
 	if (d->UseSSLrw)
 	{
 		if (Ssl)

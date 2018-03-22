@@ -184,7 +184,7 @@ bool SystemFunctions::Sprintf(LScriptArguments &Args)
 	if (!Fmt)
 		return false;
 
-	#ifdef LINUX
+	#if defined(LINUX) || defined(MAC)
 	
 	// No support for sprintf with generated args... hack a string up
 	// Formatting widths etc not supported.

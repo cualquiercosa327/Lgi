@@ -1509,7 +1509,9 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, ssize_t AtOffset, con
 			if (AtOffset >= Pos && AtOffset <= Pos + TxtLen)
 			{
 				ssize_t StyleOffset = AtOffset - Pos;
-				if (!Style && IsEmoji == t->Emoji)
+				bool UrlEdge = t->Element == TAG_A && *Str == '\n';
+
+				if (!Style && IsEmoji == t->Emoji && !UrlEdge)
 				{
 					// Insert/append to existing text run
 					ssize_t After = t->Length() - StyleOffset;
@@ -1538,7 +1540,10 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, ssize_t AtOffset, con
 						return false;
 					Run->Emoji = IsEmoji;
 					Pos += StyleOffset; // We are skipping over the run at 'TxtIdx', update pos
-					Txt.AddAt(++TxtIdx, Run);
+					if (TxtIdx)
+						Txt.AddAt(++TxtIdx, Run);
+					else
+						Txt.AddAt(TxtIdx++, Run);
 
 					LOG_FN("TextBlock(%i)::Add(%i,%i,%s)::Insert StyleOffset=%i\n", GetUid(), AtOffset, InChars, Style?Style->Name.Get():NULL, StyleOffset);
 

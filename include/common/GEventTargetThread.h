@@ -201,7 +201,7 @@ class LgiClass GEventTargetThread :
 
 protected:
 	int PostTimeout;
-	int Processing;
+	size_t Processing;
 	uint32 TimerMs; // Milliseconds between timer ticks.
 	uint64 TimerTs; // Time for next tick
 
