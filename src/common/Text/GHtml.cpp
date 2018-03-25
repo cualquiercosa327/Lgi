@@ -7158,7 +7158,7 @@ char *GHtml::Name()
 	LgiTrace("%s:%i html(%p).src(%p)='%30.30s'\n", _FL, this, Source, Source);
 	#endif
 
-	if (!Source)
+	if (!Source && Tag)
 	{
 		GStringPipe s(1024);
 		Tag->CreateSource(s);

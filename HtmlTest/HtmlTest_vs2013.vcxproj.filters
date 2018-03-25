@@ -120,13 +120,7 @@
     </Manifest>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Files\menu.html">
-      <Filter>Test cases</Filter>
-    </None>
-    <None Include="Files\index.html">
-      <Filter>Test cases</Filter>
-    </None>
-    <None Include="Files\suncorp.html">
+    <None Include="Files\Test.html">
       <Filter>Test cases</Filter>
     </None>
   </ItemGroup>
