@@ -338,7 +338,8 @@ void GCheckBox::OnPaint(GSurface *pDC)
 
 		if (d->Lock(_FL))
 		{
-			GdcPt2 pt(t.x1, t.y1 + TextYOffset);
+			int Ty = MAX(0, r.Y() - d->GetBounds().Y()) >> 1;
+			GdcPt2 pt(t.x1, t.y1 + MIN(Ty, TextYOffset));
 					
 			d->Paint(pDC, pt, cBack, t, en);
 			d->Unlock();

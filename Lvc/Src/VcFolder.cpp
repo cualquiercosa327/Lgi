@@ -58,6 +58,9 @@ void VcFolder::Init(AppPriv *priv)
 	Unpushed = Unpulled = -1;
 	Type = VcNone;
 
+	Expanded(false);
+	Insert(Tmp = new GTreeItem);
+
 	LgiAssert(d != NULL);
 }
 
@@ -804,6 +807,86 @@ void VcFolder::OnUpdate(const char *Rev)
 				IsUpdate = StartCmd(Args, &VcFolder::ParseUpdate, NULL, true);
 				break;
 		}
+	}
+}
+
+class VcLeaf : public GTreeItem
+{
+	VcFolder *Parent;
+	bool Folder;
+	GString Path, Leaf;
+	GTreeItem *Tmp;
+
+public:
+	VcLeaf(VcFolder *parent, GTreeItem *Item, GString path, GString leaf, bool folder)
+	{
+		Parent = parent;
+		Path = path;
+		Leaf = leaf;
+		Folder = folder;
+		Tmp = NULL;
+		Item->Insert(this);
+
+		if (Folder)
+			Insert(Tmp = new GTreeItem);
+	}
+
+	void OnExpand(bool b)
+	{
+		if (Tmp && b)
+		{
+			Tmp->Remove();
+			DeleteObj(Tmp);
+			
+			GFile::Path p = Path;
+			p += Leaf;
+			Parent->ReadDir(this, p);
+		}
+	}
+
+	char *GetText(int Col)
+	{
+		if (Col == 0)
+			return Leaf;
+
+		return NULL;
+	}
+};
+
+void VcFolder::ReadDir(GTreeItem *Parent, const char *Path)
+{
+	// Read child items
+	GDirectory Dir;
+	for (int b = Dir.First(Path); b; b = Dir.Next())
+	{
+		if (Dir.IsDir())
+		{
+			if (Dir.GetName()[0] != '.')
+			{
+				new VcLeaf(this, Parent, Path, Dir.GetName(), true);
+			}
+		}
+		else if (!Dir.IsHidden())
+		{
+			char *Ext = LgiGetExtension(Dir.GetName());
+			if (!Ext) continue;
+			if (!stricmp(Ext, "c") ||
+				!stricmp(Ext, "cpp") ||
+				!stricmp(Ext, "h"))
+			{
+				new VcLeaf(this, Parent, Path, Dir.GetName(), false);
+			}
+		}
+	}
+}
+
+void VcFolder::OnExpand(bool b)
+{
+	if (Tmp && b)
+	{
+		Tmp->Remove();
+		DeleteObj(Tmp);
+		ReadDir(this, Path);
 	}
 }
 

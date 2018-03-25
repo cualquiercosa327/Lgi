@@ -70,6 +70,7 @@ class VcFolder : public GTreeItem
 	bool CommitListDirty;
 	int Unpushed, Unpulled;
 	GString CountCache;
+	GTreeItem *Tmp;
 	
 	GArray<Cmd*> Cmds;
 	bool IsLogging, IsGetCur, IsUpdate, IsFilesCmd, IsWorkingFld, IsCommit, IsUpdatingCounts;
@@ -112,11 +113,13 @@ public:
 	bool Revert(const char *Path, const char *Revision = NULL);
 	bool Blame(const char *Path);
 	bool SaveFileAs(const char *Path, const char *Revision);
+	void ReadDir(GTreeItem *Parent, const char *Path);
 
 	void OnPulse();
 	void OnUpdate(const char *Rev);
 	void OnMouseClick(GMouse &m);
 	void OnRemove();
+	void OnExpand(bool b);
 };
 
 #endif
