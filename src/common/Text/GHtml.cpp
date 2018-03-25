@@ -5223,11 +5223,6 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 	GRect rc(Flow->X(), Html->Y());
 	PadPx = Tools.GetPadding(rc);
 
-	if (Debug)
-	{
-		int asd=0;
-	}
-	
 	switch (TagId)
 	{
 		default:
