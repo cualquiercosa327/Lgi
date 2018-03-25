@@ -5222,6 +5222,11 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 	GCssTools Tools(this, f);
 	GRect rc(Flow->X(), Html->Y());
 	PadPx = Tools.GetPadding(rc);
+
+	if (Debug)
+	{
+		int asd=0;
+	}
 	
 	switch (TagId)
 	{
@@ -5632,6 +5637,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 		}
 	}
 
+	GCss::LengthType XAlign = LenInherit;
 	if (Disp == DispBlock || Disp == DispInlineBlock)
 	{		
 		GCss::Len Ht = Height();
@@ -5678,9 +5684,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			if (MarginLeft().Type == LenAuto &&
 				MarginRight().Type == LenAuto)
 			{
-				int OffX = (Flow->x2 - Flow->x1 - Size.x) >> 1;
-				if (OffX > 0)
-					Pos.x += OffX;
+				XAlign = GCss::AlignCenter;
 			}
 		}
 		else
@@ -5776,7 +5780,15 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 		Flow->y1 += Pos.y;
 		Flow->y2 += Pos.y;
 		Flow->max.y = max(Flow->max.y, Flow->y2);
-		// LgiTrace("%s: %i\n", Tag.Get(), Flow->max.y);
+	}
+
+	if (XAlign == GCss::AlignCenter)
+	{
+		int OffX = (Flow->x2 - Flow->x1 - Size.x) >> 1;
+		if (OffX > 0)
+		{
+			Pos.x += OffX;
+		}
 	}
 
 	if (TagId == TAG_BODY)
