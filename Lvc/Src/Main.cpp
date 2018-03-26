@@ -160,6 +160,8 @@ public:
 
 class App : public GWindow, public AppPriv
 {
+	GAutoPtr<GImageList> ImgLst;
+
 public:
     App()
     {
@@ -175,6 +177,8 @@ public:
 		#else
 		SetIcon("icon32.png");
 		#endif
+
+		ImgLst.Reset(LgiLoadImageList("image-list.png", 16, 16));
 
         if (Attach(0))
         {
@@ -193,6 +197,7 @@ public:
 			Tree->AddColumn("Folder", 250);
 			Tree->AddColumn("Counts", 50);
 			Tree->Attach(FoldersBox);
+			Tree->SetImageList(ImgLst, false);
 			CommitsBox->Attach(FoldersBox);
 
 			Lst = new LList(IDC_LIST, 0, 0, 200, 200);

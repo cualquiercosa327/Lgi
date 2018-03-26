@@ -60,6 +60,7 @@ void VcFolder::Init(AppPriv *priv)
 
 	Expanded(false);
 	Insert(Tmp = new GTreeItem);
+	Tmp->SetText("Loading...");
 
 	LgiAssert(d != NULL);
 }
@@ -211,6 +212,11 @@ bool VcFolder::ParseBranches(int Result, GString s, ParseParams *Params)
 			}
 			break;
 		}
+		case VcHg:
+		{
+			Branches = s.SplitDelimit("\r\n");
+			break;
+		}
 	}
 
 	OnBranchesChange();
@@ -249,18 +255,7 @@ void VcFolder::Select(bool b)
 		if ((Log.Length() == 0 || CommitListDirty) && !IsLogging)
 		{
 			CommitListDirty = false;
-			switch (GetType())
-			{
-				case VcGit:
-					IsLogging = StartCmd("log", &VcFolder::ParseLog);
-					break;
-				case VcSvn:
-					IsLogging = StartCmd("log", &VcFolder::ParseLog);
-					break;
-				default:
-					LgiAssert(!"Impl me.");
-					break;
-			}				
+			IsLogging = StartCmd("log", &VcFolder::ParseLog);
 		}
 
 		if (Branches.Length() == 0)
@@ -273,6 +268,9 @@ void VcFolder::Select(bool b)
 				case VcSvn:
 					Branches.New() = "trunk";
 					OnBranchesChange();
+					break;
+				case VcHg:
+					StartCmd("branch", &VcFolder::ParseBranches);
 					break;
 				default:
 					LgiAssert(!"Impl me.");
@@ -391,6 +389,9 @@ void VcFolder::Select(bool b)
 				case VcSvn:
 					IsGetCur = StartCmd("info", &VcFolder::ParseInfo);
 					break;
+				case VcHg:
+					IsGetCur = StartCmd("id -i", &VcFolder::ParseInfo);
+					break;
 				default:
 					LgiAssert(!"Impl me.");
 					break;
@@ -491,7 +492,21 @@ bool VcFolder::ParseLog(int Result, GString s, ParseParams *Params)
 			}
 			Log.Sort(CommitRevCmp);
 			break;
-		}			
+		}
+		case VcHg:
+		{
+			GString::Array c = s.Split("\n\n");
+			for (GString *Commit = NULL; c.Iterate(Commit); )
+			{
+				GAutoPtr<VcCommit> Rev(new VcCommit(d));
+				if (Rev->HgParse(*Commit))
+				{
+					if (!Map.Find(Rev->GetRev()))
+						Log.Add(Rev.Release());
+				}
+			}
+			break;
+		}
 		default:
 			LgiAssert(!"Impl me.");
 			break;
@@ -508,6 +523,7 @@ bool VcFolder::ParseInfo(int Result, GString s, ParseParams *Params)
 	switch (GetType())
 	{
 		case VcGit:
+		case VcHg:
 		{
 			CurrentCommit = s.Strip();
 			break;
@@ -568,6 +584,11 @@ bool VcFolder::ParseCommit(int Result, GString s, ParseParams *Params)
 		{
 			CurrentCommit.Empty();
 			Pull();
+			break;
+		}
+		default:
+		{
+			LgiAssert(!"Impl me.");
 			break;
 		}
 	}
@@ -649,6 +670,47 @@ bool VcFolder::ParseDiffs(GString s, GString Rev, bool IsWorking)
 			}
 			break;
 		}
+		case VcHg:
+		{
+			GString::Array a = s.Split("\n");
+			GString Diff;
+			VcFile *f = NULL;
+			for (unsigned i=0; i<a.Length(); i++)
+			{
+				const char *Ln = a[i];
+				if (!_strnicmp(Ln, "diff", 4))
+				{
+					if (f)
+						f->SetDiff(Diff);
+					Diff.Empty();
+
+					GString Fn = a[i].Split(" ").Last();
+					f = new VcFile(d, this, Rev, IsWorking);
+					f->SetText(Fn, COL_FILENAME);
+					d->Files->Insert(f);
+				}
+				else if (!_strnicmp(Ln, "index", 5) ||
+						 !_strnicmp(Ln, "commit", 6)   ||
+						 !_strnicmp(Ln, "Author:", 7)   ||
+						 !_strnicmp(Ln, "Date:", 5)   ||
+						 !_strnicmp(Ln, "+++", 3)   ||
+						 !_strnicmp(Ln, "---", 3))
+				{
+					// Ignore
+				}
+				else
+				{
+					if (Diff) Diff += "\n";
+					Diff += a[i];
+				}
+			}
+			if (f && Diff)
+			{
+				f->SetDiff(Diff);
+				Diff.Empty();
+			}
+			break;
+		}
 		case VcSvn:
 		{
 			GString::Array a = s.Replace("\r").Split("\n");
@@ -702,6 +764,11 @@ bool VcFolder::ParseDiffs(GString s, GString Rev, bool IsWorking)
 				f->SetDiff(Diff);
 				Diff.Empty();
 			}
+			break;
+		}
+		default:
+		{
+			LgiAssert(!"Impl me.");
 			break;
 		}
 	}
@@ -806,6 +873,11 @@ void VcFolder::OnUpdate(const char *Rev)
 				Args.Printf("up -r %s", Rev);
 				IsUpdate = StartCmd(Args, &VcFolder::ParseUpdate, NULL, true);
 				break;
+			default:
+			{
+				LgiAssert(!"Impl me.");
+				break;
+			}
 		}
 	}
 }
@@ -828,7 +900,17 @@ public:
 		Item->Insert(this);
 
 		if (Folder)
+		{
 			Insert(Tmp = new GTreeItem);
+			Tmp->SetText("Loading...");
+		}
+	}
+
+	GString Full()
+	{
+		GFile::Path p = Path;
+		p += Leaf;
+		return p.GetFull();
 	}
 
 	void OnExpand(bool b)
@@ -851,7 +933,54 @@ public:
 
 		return NULL;
 	}
+
+	int GetImage(int Flags)
+	{
+		return Folder ? IcoFolder : IcoFile;
+	}
+
+	int Compare(VcLeaf *b)
+	{
+		// Sort folders to the top...
+		if (Folder ^ b->Folder)
+			return (int)b->Folder - (int)Folder;
+	
+		// Then alphabetical
+		return Stricmp(Leaf.Get(), b->Leaf.Get());
+	}
+
+	void OnMouseClick(GMouse &m)
+	{
+		if (m.IsContextMenu())
+		{
+			GSubMenu s;
+			s.AppendItem("Log", IDM_LOG);
+			s.AppendItem("Blame", IDM_BLAME, !Folder);
+			int Cmd = s.Float(GetTree(), m);
+			switch (Cmd)
+			{
+				case IDM_LOG:
+				{
+					break;
+				}
+				case IDM_BLAME:
+				{
+					Parent->Blame(Full());
+					break;
+				}
+			}
+		}
+	}
 };
+
+int FolderCompare(GTreeItem *a, GTreeItem *b, NativeInt UserData)
+{
+	VcLeaf *A = dynamic_cast<VcLeaf*>(a);
+	VcLeaf *B = dynamic_cast<VcLeaf*>(b);
+	if (!A || !B)
+		return 0;
+	return A->Compare(B);
+}
 
 void VcFolder::ReadDir(GTreeItem *Parent, const char *Path)
 {
@@ -878,6 +1007,8 @@ void VcFolder::ReadDir(GTreeItem *Parent, const char *Path)
 			}
 		}
 	}
+
+	Parent->SortChildren(FolderCompare);
 }
 
 void VcFolder::OnExpand(bool b)
@@ -905,6 +1036,9 @@ void VcFolder::ListCommit(const char *Rev)
 			case VcSvn:
 				Args.Printf("log --verbose --diff -r %s", Rev);
 				IsFilesCmd = StartCmd(Args, &VcFolder::ParseFiles, Rev);
+				break;
+			default:
+				LgiAssert(!"Impl me.");
 				break;
 		}
 
@@ -952,6 +1086,7 @@ void VcFolder::Commit(const char *Msg, const char *Branch, bool AndPush)
 		switch (GetType())
 		{
 			case VcGit:
+			{
 				if (Partial)
 				{
 					LgiMsg(GetTree(), "%s:%i - Not impl.", AppName, MB_OK, _FL);
@@ -965,6 +1100,7 @@ void VcFolder::Commit(const char *Msg, const char *Branch, bool AndPush)
 				}
 				IsCommit = StartCmd(Args, &VcFolder::ParseCommit, Param, true);
 				break;
+			}
 			case VcSvn:
 			{
 				GString::Array a;
@@ -974,6 +1110,11 @@ void VcFolder::Commit(const char *Msg, const char *Branch, bool AndPush)
 
 				Args = GString(" ").Join(a);
 				IsCommit = StartCmd(Args, &VcFolder::ParseCommit, NULL, true);
+				break;
+			}
+			default:
+			{
+				LgiAssert(!"Impl me.");
 				break;
 			}
 		}
@@ -991,6 +1132,9 @@ void VcFolder::Push()
 			break;
 		case VcSvn:
 			// Nothing to do here.. the commit pushed the data already
+			break;
+		default:
+			LgiAssert(!"Impl me.");
 			break;
 	}
 
@@ -1032,6 +1176,9 @@ void VcFolder::Pull()
 			break;
 		case VcSvn:
 			Status = StartCmd("up", &VcFolder::ParsePull, NULL, true);
+			break;
+		default:
+			LgiAssert(!"Impl me.");
 			break;
 	}
 
@@ -1133,6 +1280,13 @@ bool VcFolder::Blame(const char *Path)
 			return StartCmd(a, &VcFolder::ParseBlame);
 			break;
 		}
+		case VcHg:
+		{
+			GString a;
+			a.Printf("annotate -un \"%s\"", Path);
+			return StartCmd(a, &VcFolder::ParseBlame);
+			break;
+		}
 		case VcSvn:
 		{
 			GString a;
@@ -1194,6 +1348,11 @@ bool VcFolder::ParseCounts(int Result, GString s, ParseParams *Params)
 			}
 			else Unpulled = 0;
 			Update();
+			break;
+		}
+		default:
+		{
+			LgiAssert(!"Impl me.");
 			break;
 		}
 	}

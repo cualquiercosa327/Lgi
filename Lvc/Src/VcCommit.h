@@ -25,6 +25,7 @@ public:
 	char *GetText(int Col);
 	bool GitParse(GString s);
 	bool SvnParse(GString s);
+	bool HgParse(GString s);
 	VcFolder *GetFolder();
 
 	// Events

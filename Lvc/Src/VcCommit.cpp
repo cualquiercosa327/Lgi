@@ -77,6 +77,31 @@ bool VcCommit::GitParse(GString s)
 	return Author && Rev;
 }
 
+bool VcCommit::HgParse(GString s)
+{
+	GString::Array Lines = s.SplitDelimit("\n");
+	if (Lines.Length() < 1)
+		return false;
+
+	for (GString *Ln = NULL; Lines.Iterate(Ln); )
+	{
+		GString::Array f = Ln->Split(":", 1);
+		if (f.Length() == 2)
+		{
+			if (f[0].Equals("changeset"))
+				Rev = f[1].Strip();
+			else if (f[0].Equals("user"))
+				Author = f[1].Strip();
+			else if (f[0].Equals("date"))
+				Ts.Parse(f[1].Strip());
+			else if (f[0].Equals("summary"))
+				Msg = f[1].Strip();
+		}
+	}
+
+	return Rev.Get() != NULL;
+}
+
 bool VcCommit::SvnParse(GString s)
 {
 	GString::Array lines = s.Split("\n");
