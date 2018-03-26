@@ -120,8 +120,10 @@ WINNATIVE</Release>
 			<IncludePaths>
 				<All>
 					<Debug>.\Code
+.\Resources
 ..\include\common</Debug>
 					<Release>.\Code
+.\Resources
 ..\include\common</Release>
 				</All>
 				<Windows>

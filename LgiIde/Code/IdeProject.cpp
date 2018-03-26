@@ -332,7 +332,24 @@ public:
 		{
 			const char *Exe = Proj->GetExecutable(Platform);
 			if (Exe)
-				m.Print("Target = %s\n", Exe);
+			{
+				if (LgiIsRelativePath(Exe))
+					m.Print("Target = %s\n", Exe);
+				else
+				{
+					GAutoString Base = Proj->GetBasePath();
+					GAutoString RelExe = LgiMakeRelativePath(Base, Exe);
+					if (Base && RelExe)
+					{
+						m.Print("Target = %s\n", RelExe.Get());
+					}
+					else
+					{
+						Log->Print("%s:%i - Error: Missing path (%s, %s).\n", _FL, Base.Get(), RelExe.Get());
+						return false;
+					}
+				}
+			}
 			else
 			{
 				Log->Print("%s:%i - Error: No executable name specified (%s, %s).\n", _FL, TargetType, d->FileName.Get());

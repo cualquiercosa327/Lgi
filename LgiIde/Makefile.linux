@@ -33,6 +33,7 @@ ifeq ($(Build),Debug)
 		-I../include/linux \
 		-I../include/linux/Gtk \
 		-I./Code \
+		-I./Resources \
 		`pkg-config --cflags gtk+-2.0`
 else
 	Flags += -s -Os
@@ -50,6 +51,7 @@ else
 		-I../include/linux \
 		-I../include/linux/Gtk \
 		-I./Code \
+		-I./Resources \
 		`pkg-config --cflags gtk+-2.0`
 endif
 
@@ -361,14 +363,14 @@ GSubProcess.o : ../src/common/Lgi/GSubProcess.cpp ../include/common/Lgi.h \
 
 AddFtpFile.o : ./Code/AddFtpFile.cpp ../include/common/Lgi.h \
 	./Code/AddFtpFile.h \
-	./Code/resdefs.h \
+	./Resources/resdefs.h \
 	./Code/FtpFile.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 WebFldDlg.o : ./Code/WebFldDlg.cpp ../include/common/Lgi.h \
 	./Code/WebFldDlg.h \
-	./Code/resdefs.h \
+	./Resources/resdefs.h \
 	../include/common/INet.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -409,7 +411,7 @@ IdeProject.o : ./Code/IdeProject.cpp ../include/common/Lgi.h \
 	./Code/LgiIde.h \
 	../include/common/GDragAndDrop.h \
 	../include/common/GToken.h \
-	./Code/resdefs.h \
+	./Resources/resdefs.h \
 	../include/common/GProcess.h \
 	../include/common/GCombo.h \
 	../include/common/INet.h \
@@ -431,7 +433,7 @@ IdeProjectSettings.o : ./Code/IdeProjectSettings.cpp ../include/common/Lgi.h \
 	./Code/LgiIde.h \
 	./Code/IdeProject.h \
 	../include/common/GTableLayout.h \
-	./Code/resdefs.h \
+	./Resources/resdefs.h \
 	../include/common/GTextLabel.h \
 	../include/common/GEdit.h \
 	../include/common/GCheckBox.h \
@@ -485,7 +487,7 @@ FindSymbol.o : ./Code/FindSymbol.cpp ../include/common/Lgi.h \
 	../include/common/GTextFile.h \
 	./Code/SimpleCppParser.h \
 	../include/common/GParseCpp.h \
-	./Code/resdefs.h
+	./Resources/resdefs.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -524,7 +526,7 @@ SysCharSupport.o : ./Code/SysCharSupport.cpp ../include/common/Lgi.h \
 
 IdeCommon.o : ./Code/IdeCommon.cpp ../include/common/Lgi.h \
 	./Code/LgiIde.h \
-	./Code/resdefs.h \
+	./Resources/resdefs.h \
 	./Code/ProjectNode.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -993,6 +995,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 ../src/common/Lgi/GToolTip.cpp : ../include/common/Lgi.h \
 	../include/common/GDisplayString.h
 
+./Resources/resdefs.h : 
+
 ../include/common/GRadioGroup.h : 
 
 ../src/linux/Gtk/GPrintDC.cpp : ../include/common/Lgi.h
@@ -1366,8 +1370,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 
 ../src/linux/Lgi/LThread.cpp : ../include/common/Lgi.h
 
-./Code/LgiIde.h : ./Code/resource.h \
-	./Code/resdefs.h \
+./Code/LgiIde.h : ./Resources/resource.h \
+	./Resources/resdefs.h \
 	../include/common/GDocView.h \
 	../include/common/GOptionsFile.h \
 	./Code/FindSymbol.h \
@@ -1383,11 +1387,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GTextView3.h \
 	./Code/SimpleCppParser.h
 
-./Code/resdefs.h : 
-
 ./Code/FindSymbol.h : ../include/common/GEventTargetThread.h
-
-./Code/resource.h : 
 
 ./Code/IdeProject.h : ../include/common/GXmlTree.h \
 	../include/common/GDragAndDrop.h \
@@ -1398,6 +1398,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/LList.h \
 	./Code/IdeProjectSettings.h \
 	./Code/GDebugContext.h
+
+./Resources/resdefs.h : 
 
 ./Code/FindInFiles.h : ./Code/GHistory.h
 
@@ -1592,8 +1594,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/LgiRes.h \
 	../include/common/GTableLayout.h
 
-./Code/resdefs.h : 
-
 ../include/linux/Gtk/LgiWidget.h : 
 
 ../include/common/GLibraryUtils.h : 
@@ -1683,7 +1683,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 
 ../src/common/INet/Base64.cpp : ../include/common/GMem.h \
 	../include/common/LgiInc.h \
-	../include/common/Base64.h
+	../include/common/Base64.h \
+	../include/common/GRange.h
 
 ../include/common/Base64.h : ../include/common/LgiDefs.h
 
@@ -1901,13 +1902,12 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 ./Code/FtpThread.h : ../include/common/LList.h \
 	../include/common/IFtp.h
 
-../src/common/Gdc2/Filters/GFilter.cpp : ../include/common/Gdc2.h \
+../src/common/Gdc2/Filters/GFilter.cpp : ../include/common/Lgi.h \
 	../include/common/GString.h \
 	../include/common/GVariant.h \
 	../include/common/GClipBoard.h \
 	../include/common/GToken.h \
-	../include/common/GPalette.h \
-	../include/common/Lgi.h
+	../include/common/GPalette.h
 
 ../include/common/GCapabilities.h : ../include/common/GHashTable.h
 
@@ -1921,6 +1921,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 
 ../include/common/GProgressDlg.h : ../include/common/GTextLabel.h \
 	../include/common/GTableLayout.h
+
+./Resources/resource.h : 
 
 ../include/common/GStream.h : ../include/common/GDom.h \
 	../include/common/GStringClass.h
@@ -2045,6 +2047,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 VPATH=%.cpp \
 	../include/linux/Gtk \
 	../include/linux \
+	./Resources \
 	./Code \
 	../include/common \
 	./ \
