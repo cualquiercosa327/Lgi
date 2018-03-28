@@ -51,7 +51,6 @@ public:
 				PMINIDUMP_EXCEPTION_INFORMATION, ExceptionParam,
 				PMINIDUMP_USER_STREAM_INFORMATION, UserStreamParam,
 				PMINIDUMP_CALLBACK_INFORMATION, CallbackParam);
-
 };
 
 LONG __stdcall GApp::_ExceptionFilter(LPEXCEPTION_POINTERS e, char *ProductId)
@@ -83,13 +82,16 @@ LONG __stdcall GApp::_ExceptionFilter(LPEXCEPTION_POINTERS e, char *ProductId)
 		if (Help.IsLoaded())
 		{
 			MINIDUMP_EXCEPTION_INFORMATION Info;
+
+			ZeroObj(Info);
+
 			Info.ThreadId = GetCurrentThreadId();
 			Info.ExceptionPointers = e;
 			Info.ClientPointers = false;
 
 			LgiTrace("Calling MiniDumpWriteDump...\n");
-			BOOL Ret = Help.MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), File.Handle(), MiniDumpNormal, &Info, 0, 0);
-			LgiTrace("MiniDumpWriteDump=%i\n", Ret);
+			BOOL Ret = Help.MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), File.Handle(), MiniDumpNormal, &Info, NULL, NULL);
+			// LgiTrace("MiniDumpWriteDump=%i\n", Ret);
 			if (Ret)
 			{
 				LgiMsg(0, "This application has crashed. A mini dump has been written to:\n%s\n", Title, MB_OK|MB_APPLMODAL, p);

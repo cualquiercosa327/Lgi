@@ -1471,7 +1471,7 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, ssize_t AtOffset, con
 
 	ssize_t InitialOffset = AtOffset >= 0 ? AtOffset : Len;
 	int Chars = 0; // Length of run to insert
-	int Pos = 0; // Current position in this block
+	int Pos = 0; // Current character position in this block
 	uint32 TxtIdx = 0; // Index into Txt array
 	
 	for (int i = 0; i < InChars; i += Chars)
@@ -1508,7 +1508,8 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, ssize_t AtOffset, con
 			ssize_t TxtLen = t->Length();
 			if (AtOffset >= Pos && AtOffset <= Pos + TxtLen)
 			{
-				ssize_t StyleOffset = AtOffset - Pos;
+				ssize_t StyleOffset = AtOffset - Pos;	// Offset into 't' in which we need to potentially break the style
+														// to insert the new content.
 				bool UrlEdge = t->Element == TAG_A && *Str == '\n';
 
 				if (!Style && IsEmoji == t->Emoji && !UrlEdge)
@@ -1539,11 +1540,25 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, ssize_t AtOffset, con
 					if (!Run)
 						return false;
 					Run->Emoji = IsEmoji;
-					Pos += StyleOffset; // We are skipping over the run at 'TxtIdx', update pos
-					if (TxtIdx)
+					
+					
+					/* This following code could be wrong. In terms of test cases I fixed this:
+					
+					A) Starting with basic empty email + signature.
+						Insert a URL at the very start.
+						Then hit enter.
+						Buf: \n inserted BEFORE the URL.
+						Changed the condition to 'StyleOffset != 0' rather than 'TxtIdx != 0'
+					
+					Potentially other test cases could exhibit bugs that need to be added here.
+					*/
+					if (StyleOffset)
 						Txt.AddAt(++TxtIdx, Run);
 					else
 						Txt.AddAt(TxtIdx++, Run);
+					////////////////////////////////////
+					
+					Pos += StyleOffset; // We are skipping over the run at 'TxtIdx', update pos
 
 					LOG_FN("TextBlock(%i)::Add(%i,%i,%s)::Insert StyleOffset=%i\n", GetUid(), AtOffset, InChars, Style?Style->Name.Get():NULL, StyleOffset);
 

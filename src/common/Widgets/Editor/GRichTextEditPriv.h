@@ -1051,14 +1051,25 @@ public:
 		void DrawDisplayString(GSurface *pDC, DisplayStr *Ds, int &FixX, int FixY, GColour &Bk, int &Pos);
 	
 	public:
+		// Runs of characters in the same style: pre-layout.
 		GArray<StyleText*> Txt;
+
+		// Runs of characters (display strings) of potentially different styles on the same line: post-layout.
 		GArray<TextLine*> Layout;
+		// True if the 'Layout' data is out of date.
+		bool LayoutDirty;
+
+		// Size of the edges
 		GRect Margin, Border, Padding;
+		
+		// Default font for the block
 		GFont *Fnt;
 		
-		bool LayoutDirty;
-		ssize_t Len; // chars in the whole block (sum of all Text lengths)
-		GRect Pos; // position in document co-ordinates
+		// Chars in the whole block (sum of all Text lengths)
+		ssize_t Len;
+		
+		// Position in document co-ordinates
+		GRect Pos;
 		
 		TextBlock(GRichTextPriv *priv);
 		TextBlock(const TextBlock *Copy);
