@@ -15,6 +15,16 @@
 
 extern const char *AppName;
 
+enum LvcIcon
+{
+	IcoFolder,
+	IcoCleanFolder,
+	IcoDirtyFolder,
+	IcoFile,
+	IcoCleanFile,
+	IcoDirtyFile,
+};
+
 enum LvcNotify
 {
 	 LvcBase = GNotifyUserApp,
@@ -51,7 +61,8 @@ enum AppIds
 	IDM_REVERT_TO_REV,
 	IDM_BLAME,
 	IDM_SAVE_AS,
-	IDM_BROWSE
+	IDM_BROWSE,
+	IDM_LOG,
 };
 
 enum VersionCtrl

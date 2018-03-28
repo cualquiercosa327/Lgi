@@ -100,6 +100,7 @@ public:
 	VcFolder(AppPriv *priv, GXmlTag *t);
 
 	VersionCtrl GetType();
+	AppPriv *GetPriv() { return d; }
 	const char *GetPath() { return Path; }
 	char *GetText(int Col);
 	bool Serialize(GXmlTag *t, bool Write);

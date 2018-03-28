@@ -534,7 +534,7 @@ public:
 	int my;						// How much of the area above y2 was just margin
 	GdcPt2 max;					// Max dimensions
 
-	bool InBody;
+	int InBody;
 
 	GFlowRegion(GHtml *html, bool inbody)
 	{
@@ -5229,7 +5229,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			break;
 		case TAG_BODY:
 		{
-			Flow->InBody = true;
+			Flow->InBody++;
 			break;
 		}
 		case TAG_IFRAME:
@@ -5500,7 +5500,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 	{
 		// Clear the previous text layout...
 		TextPos.DeleteObjects();
-		
+
 		switch (TagId)
 		{
 			default:
@@ -5786,9 +5786,9 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 		}
 	}
 
-	if (TagId == TAG_BODY)
+	if (TagId == TAG_BODY && Flow->InBody > 0)
 	{
-		Flow->InBody = false;
+		Flow->InBody--;
 	}
 }
 
