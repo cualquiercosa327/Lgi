@@ -2939,7 +2939,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			IdeDoc *Doc = FocusDoc();
 			if (Doc)
 			{
-				Doc->SearchSymbol();
+				Doc->SearchFile();
 			}
 			else
 			{
