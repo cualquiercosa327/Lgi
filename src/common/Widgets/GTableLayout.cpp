@@ -33,9 +33,9 @@ enum CellFlag
 #include "GCss.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
-#define DEBUG_LAYOUT		504
+#define DEBUG_LAYOUT		102
 #define DEBUG_PROFILE		0
-#define DEBUG_DRAW_CELLS	0
+#define DEBUG_DRAW_CELLS	1
 
 int GTableLayout::CellSpacing = 4;
 
@@ -337,6 +337,7 @@ public:
 	/// Called after the layout has been done to move the controls into place
 	void PostLayout();
 	void OnPaint(GSurface *pDC);
+	void OnChange(PropType Prop);
 };
 
 class GTableLayoutPrivate
@@ -392,6 +393,18 @@ TableCell::TableCell(GTableLayout *t, int Cx, int Cy)
 	Cell.Offset(Cx, Cy);
 	Padding.ZOff(0, 0);
 	Disp = GCss::DispBlock;
+}
+
+void TableCell::OnChange(PropType Prop)
+{
+	if (Prop == PropDisplay)
+	{
+		bool Vis = Display() != GCss::DispNone;
+		for (Child *c = NULL; Children.Iterate(c);)
+		{
+			c->View->Visible(Vis);
+		}
+	}
 }
 
 TableCell::Child *TableCell::HasView(GView *v)
