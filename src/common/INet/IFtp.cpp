@@ -673,28 +673,17 @@ bool IFtp::DeleteDir(const char *Dir)
 {
 	bool Status = false;
 
-	try
+	if (IsOpen() && Dir)
 	{
-		if (IsOpen() && Dir)
+		char *f = ToFtpCs(Dir);
+		if (f)
 		{
-			char *f = ToFtpCs(Dir);
-			if (f)
-			{
-				sprintf_s(d->OutBuf, sizeof(d->OutBuf), "RMD %s\r\n", f);
-				WriteLine();
-				VerifyRange(ReadLine(), 2);
+			sprintf_s(d->OutBuf, sizeof(d->OutBuf), "RMD %s\r\n", f);
+			WriteLine();
+			VerifyRange(ReadLine(), 2);
 
-				Status = true;
-				DeleteArray(f);
-			}
-		}
-	}
-	catch (int Error)
-	{
-		printf("%s:%i - error: %i\n", _FL, Error);
-		if (IsOpen())
-		{
-			LgiAssert(0);
+			Status = true;
+			DeleteArray(f);
 		}
 	}
 

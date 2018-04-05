@@ -177,7 +177,9 @@ GAutoWString TextToEmoji(uint32 *Txt, bool IsHtml)
 	if (!IsHtml)
 	{
 		LgiDetectLinks(Links, Txt);
-		p.Write(h1, StrlenW(h1) * sizeof(*h1));
+		Ch = my_snwprintf(Buf, BUF_SIZE, h1);
+		if (Ch > 0)
+			p.Write(Buf, (int) (Ch * sizeof(*Buf)));
 	}
 	
 	WChar *Start = (WChar*)Txt;
@@ -204,7 +206,9 @@ GAutoWString TextToEmoji(uint32 *Txt, bool IsHtml)
 			// Eol
 			if (s > Start)
 				p.Write(Start, (int) ((s - Start) * sizeof(*s)));
-			p.Write(newline, StrlenW(newline) * sizeof(*newline));
+			Ch = my_snwprintf(Buf, BUF_SIZE, newline);
+			if (Ch > 0)
+				p.Write(Buf, (int) (Ch * sizeof(*Buf)));
 			Start = s + 1;
 		}
 		else
@@ -239,7 +243,11 @@ GAutoWString TextToEmoji(uint32 *Txt, bool IsHtml)
 	if (s > Start) p.Write(Start, (int) ((s - Start) * sizeof(*s)));
 
 	if (!IsHtml)
-		p.Write(h2, StrlenW(h2)*sizeof(*h2));
+	{
+		Ch = my_snwprintf(Buf, BUF_SIZE, h2);
+		if (Ch > 0)
+			p.Write(Buf, (int) (Ch * sizeof(*Buf)));
+	}
 
 	GAutoPtr<WChar, true> WideVer( (WChar*)p.New(sizeof(*s)) );
 	GAutoWString Final( (char16*)LgiNewConvertCp(LGI_WideCharset, WideVer, "utf-32") );
