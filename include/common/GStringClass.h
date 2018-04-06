@@ -145,59 +145,7 @@ public:
 	GString(const wchar_t *str, ptrdiff_t wchars = -1)
 	{
 		Str = NULL;
-
-		size_t Sz = WcharToUtfLength(str, wchars);
-		if (Length(Sz))
-		{
-			#ifdef _MSC_VER
-
-			const uint16 *i = (const uint16*) str;
-			ssize_t InLen = wchars >= 0 ? wchars << 1 : 0x7fffffff;
-
-			uint8 *o = (uint8*)Str->Str;
-			ssize_t OutLen = Str->Len;
-
-			for (uint32 ch; ch = LgiUtf16To32(i, InLen); )
-			{
-				if (!LgiUtf32To8(ch, o, OutLen))
-				{
-					*o = 0;
-					break;
-				}
-			}
-
-			#else
-
-			uint8 *o = (uint8*)Str->Str;
-			ssize_t OutLen = Str->Len;
-			if (wchars >= 0)
-			{
-				const wchar_t *end = str + wchars;
-				for (const wchar_t *ch = str; ch < end; ch++)
-				{
-					if (!LgiUtf32To8(*ch, o, OutLen))
-					{
-						*o = 0;
-						break;
-					}
-				}
-			}
-			else
-			{
-				for (const wchar_t *ch = str; *ch; ch++)
-				{
-					if (!LgiUtf32To8(*ch, o, OutLen))
-					{
-						*o = 0;
-						break;
-					}
-				}
-			}
-
-			#endif
-
-			*o = 0;
-		}
+		SetW(str, wchars);
 	}
 
 	static size_t WcharToUtfLength(const wchar_t *s, ptrdiff_t wchars = -1)
@@ -335,6 +283,71 @@ public:
 			memcpy(Str->Str, str, bytes);
 		
 		Str->Str[bytes] = 0;
+		return true;
+	}
+
+	/// Sets the string to a new value
+	bool SetW
+	(
+		/// Can be a pointer to string data or NULL to create an empty buffer (requires valid length)
+		const char16 *str,
+		/// Number of 'char16' values in the input string or -1 to copy till the NULL terminator.
+		ptrdiff_t wchars = -1
+	)
+	{
+		size_t Sz = WcharToUtfLength(str, wchars);
+		if (Length(Sz))
+		{
+			#ifdef _MSC_VER
+
+			const uint16 *i = (const uint16*) str;
+			ssize_t InLen = wchars >= 0 ? wchars << 1 : 0x7fffffff;
+
+			uint8 *o = (uint8*)Str->Str;
+			ssize_t OutLen = Str->Len;
+
+			for (uint32 ch; ch = LgiUtf16To32(i, InLen); )
+			{
+				if (!LgiUtf32To8(ch, o, OutLen))
+				{
+					*o = 0;
+					break;
+				}
+			}
+
+			#else
+
+			uint8 *o = (uint8*)Str->Str;
+			ssize_t OutLen = Str->Len;
+			if (wchars >= 0)
+			{
+				const wchar_t *end = str + wchars;
+				for (const wchar_t *ch = str; ch < end; ch++)
+				{
+					if (!LgiUtf32To8(*ch, o, OutLen))
+					{
+						*o = 0;
+						break;
+					}
+				}
+			}
+			else
+			{
+				for (const wchar_t *ch = str; *ch; ch++)
+				{
+					if (!LgiUtf32To8(*ch, o, OutLen))
+					{
+						*o = 0;
+						break;
+					}
+				}
+			}
+
+			#endif
+
+			*o = 0;
+		}
+
 		return true;
 	}
 

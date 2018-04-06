@@ -272,8 +272,8 @@ public:
 	(
 		/// The option to look for.
 		const char *Option,
-		/// The buffer to receive the value.
-		GAutoString &Buf
+		/// String to receive the value (if any) of the option
+		GString &Value
 	) = 0;
 
 	/// \brief Parses the command line for a switch

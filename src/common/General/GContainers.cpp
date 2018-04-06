@@ -1342,61 +1342,82 @@ GString GStringPipe::NewGStr()
 	return s;
 }
 
-ssize_t GStringPipe::Pop(char *Str, ssize_t BufSize)
+ssize_t GStringPipe::LineChars()
 {
-	if (Str)
+	ssize_t Len = 0;
+	for (Block *m = Mem.First(); m; m = Mem.Next())
 	{
-		char *Start = Str;
-		char *End = Str + BufSize - 2;
-		Block *m;
-		bool HasLf = false;
+		uint8 *p = m->Ptr();
 
-		for (m = Mem.First(); m; m = Mem.Next())
+		for (int i = m->Next; i < m->Used; i++)
 		{
-			char *MPtr = (char*)m->Ptr();
-			if (strnchr(MPtr + m->Next, '\n', m->Used - m->Next))
-			{
-				HasLf = true;
-				break;
-			}
-		}
-
-		if (HasLf)
-		{
-			m = Mem.First();
-			while (m)
-			{
-				char *MPtr = (char*)m->Ptr();
-				while (Str < End && m->Next < m->Used)
-				{
-					*Str = MPtr[m->Next++];
-					if (*Str == '\n')
-					{
-						Str++;
-						goto EndPop;
-					}
-					Str++;
-				}
-
-				if (m->Next >= m->Used)
-				{
-					Mem.Delete(m);
-					free(m);
-					m = Mem.First();
-				}
-				else if (Str >= End)
-				{
-					break;
-				}
-			}
-
-			EndPop:
-			*Str = 0;
-			return Str - Start;
+			if (p[i] == '\n')
+				return Len;
+			Len++;
 		}
 	}
 
-	return 0;
+	return -1;
+}
+
+ssize_t GStringPipe::SaveToBuffer(char *Start, ssize_t BufSize, ssize_t Chars)
+{
+	char *Str = Start;
+	char *End = Str + Chars; // Not including NULL
+
+	Block *m = Mem.First();
+	while (m)
+	{
+		for (	char *MPtr = (char*)m->Ptr();
+				m->Next < m->Used;
+				m->Next++)
+		{
+			if (Str < End)
+				*Str++ = MPtr[m->Next];
+			if (MPtr[m->Next] == '\n')
+			{
+				m->Next++;
+				goto EndPop;
+			}
+		}
+
+		if (m->Next >= m->Used)
+		{
+			Mem.Delete(m);
+			free(m);
+			m = Mem.First();
+		}
+	}
+
+	EndPop:
+	*Str = 0;
+
+	return Str - Start;
+}
+
+GString GStringPipe::Pop()
+{
+	GString s;
+	ssize_t Chars = LineChars();
+	if (Chars > 0 &&
+		s.Length(Chars))
+	{
+		SaveToBuffer(s.Get(), Chars, Chars);
+	}
+
+	return s;
+}
+
+ssize_t GStringPipe::Pop(char *Str, ssize_t BufSize)
+{
+	if (!Str)
+		return 0;
+
+	ssize_t Chars = LineChars();
+	if (Chars <= 0)
+		return 0;
+
+	return SaveToBuffer(Str, BufSize-1 /* for the NULL */, Chars);
 }
 
 ssize_t GStringPipe::Push(const char *Str, ssize_t Chars)
