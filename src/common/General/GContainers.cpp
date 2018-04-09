@@ -1363,7 +1363,7 @@ ssize_t GStringPipe::LineChars()
 ssize_t GStringPipe::SaveToBuffer(char *Start, ssize_t BufSize, ssize_t Chars)
 {
 	char *Str = Start;
-	char *End = Str + Chars; // Not including NULL
+	char *End = Str + BufSize; // Not including NULL
 
 	Block *m = Mem.First();
 	while (m)
@@ -1441,6 +1441,37 @@ ssize_t GStringPipe::Push(const char16 *Str, ssize_t Chars)
 
 	return Write((void*)Str, Chars * sizeof(char16));
 }
+
+#ifdef _DEBUG
+bool GStringPipe::UnitTest()
+{
+	char Buf[16];
+	memset(Buf, 0x1, sizeof(Buf));
+	GStringPipe p(8);
+	const char s[] = "1234567890abc\n"
+					"abcdefghijklmn\n";
+	p.Write(s, sizeof(s)-1);
+	int rd = p.Pop(Buf, 10);
+	int cmp = memcmp(Buf, "123456789\x00\x01\x01\x01\x01\x01\x01", 16);
+	if (cmp)
+		return false;
+	rd = p.Pop(Buf, 10);
+	cmp = memcmp(Buf, "abcdefghi\x00\x01\x01\x01\x01\x01\x01", 16);
+	if (cmp)
+		return false;
+
+	p.Empty();
+	p.Write(s, sizeof(s)-1);
+	GString r;
+	r = p.Pop();
+	if (!r.Equals("1234567890abc"))
+		return false;
+	r = p.Pop();
+	if (!r.Equals("abcdefghijklmn"))
+		return false;
+	return true;
+}
+#endif
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 GMemFile::GMemFile(int BlkSize)
