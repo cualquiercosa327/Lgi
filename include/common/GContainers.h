@@ -334,6 +334,10 @@ public:
 	char *NewStr() { return (char*)New(sizeof(char)); }
 	GString NewGStr();
 	char16 *NewStrW() { return (char16*)New(sizeof(char16)); }
+
+	#ifdef _DEBUG
+	static bool UnitTest();
+	#endif
 };
 
 #define GMEMFILE_BLOCKS		8

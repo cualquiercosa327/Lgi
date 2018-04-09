@@ -216,14 +216,17 @@ char *GHtmlParser::ParsePropValue(char *s, char16 *&Value)
 		{
 			char Delim = *s++;
 			char *Start = s;
-			while (*s && *s != Delim) s++;
+			while (*s && *s != Delim)
+				s++;
 			Value = DecodeEntities(Start, s - Start);
-			s++;
+			if (*s)
+				s++;
 		}
 		else
 		{
 			char *Start = s;
-			while (*s && !IsWhiteSpace(*s) && *s != '>') s++;
+			while (*s && !IsWhiteSpace(*s) && *s != '>')
+				s++;
 			Value = DecodeEntities(Start, s - Start);
 		}
 	}
@@ -270,21 +273,19 @@ char *GHtmlParser::ParsePropList(char *s, GHtmlElement *Obj, bool &Closed)
 			Closed = true;
 			s++;
 		}
-		if (*s == '>')
+		if (*s == '>' || !*s)
 			break;
 
 		// get name
 		char *Name = 0;
-		char *n = ParseName(s, &Name);		
+		char *n = ParseName(s, &Name);
+		if (!n || !*n)
+			break;
 		if (n == s)
-		{
 			// Don't get stuck...
 			s = ++n;
-		}
 		else
-		{
 			s = n;
-		}
 
 		while (*s && IsWhiteSpace(*s))
 			s++;
@@ -293,7 +294,8 @@ char *GHtmlParser::ParsePropList(char *s, GHtmlElement *Obj, bool &Closed)
 		{
 			// get value
 			s++;
-			while (*s && IsWhiteSpace(*s)) s++;
+			while (*s && IsWhiteSpace(*s))
+				s++;
 
 			char16 *Value = 0;
 			s = ParsePropValue(s, Value);
@@ -314,11 +316,21 @@ char *GHtmlParser::ParsePropList(char *s, GHtmlElement *Obj, bool &Closed)
 
 		DeleteArray(Name);
 
-		if (*s != '>' && *s != '/' && !IsWhiteSpace(*s) && !IsAlpha(*s))
+		if
+		(
+			!*s ||
+			(
+				*s != '>' &&
+				*s != '/' &&
+				!IsWhiteSpace(*s) &&
+				!IsAlpha(*s)
+			)
+		)
 			break;
 	}
 
-	if (*s == '>') s++;
+	if (*s == '>')
+		s++;
 
 	return s;
 }

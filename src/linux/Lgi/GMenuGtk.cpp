@@ -215,7 +215,8 @@ void GSubMenuDeactivate(Gtk::GtkMenuShell *widget, GSubMenu *Sub)
 
 void GSubMenu::OnDeactivate()
 {
-	*_ContextMenuId = 0;
+	if (_ContextMenuId)
+		*_ContextMenuId = 0;
 	Gtk::gtk_main_quit();
 }
                                                          

@@ -2982,10 +2982,7 @@ void GTag::SetStyle()
 			}
 			
 			if (TagId == TAG_TH)
-			{
-				BackgroundColor(GCss::ColorDef(ColorRgb, Rgb32(222, 222, 222)));
 				FontWeight(GCss::FontWeightBold);
-			}
 			break;
 		}
 		case TAG_BODY:
@@ -4767,7 +4764,8 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f, uint16 Depth)
 	{
 		case GCss::AlignCenter:
 		{
-			int Ox = (f->X()-Table->Size.x) >> 1;
+			int fx = f->X();
+			int Ox = (fx-Table->Size.x) >> 1;
 			Table->Pos.x = f->x1 + max(Ox, 0);
 			break;
 		}
@@ -5770,7 +5768,9 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 					if (t->IsBlock())
 					{
 						if (t->Size.x < Px)
-							t->Pos.x = (Px - Size.x) >> 1;
+						{
+							t->Pos.x = (Px - t->Size.x) >> 1;
+						}
 					}
 				}
 				break;

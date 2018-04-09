@@ -1079,7 +1079,13 @@ bool GRichTextPriv::TextBlock::OnLayout(Flow &flow)
 			}
 
 			uint32 *e = s;
-			while (*e != '\n' && e < sEnd)
+			/*
+			printf("e=%i sEnd=%i len=%i\n",
+				(int)(e - sStart),
+				(int)(sEnd - sStart),
+				(int)t->Length());
+			*/
+			while (e < sEnd && *e != '\n')
 				e++;
 					
 			// Add 't' to current line
