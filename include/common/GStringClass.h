@@ -166,7 +166,16 @@ public:
 			Out += sizeof(Buf) - len;
 		}
 		#else
-		for (uint32 ch = 0; (ch = *s); s++)
+		const wchar_t *end = wchars < 0 ? NULL : s + wchars;
+		for (uint32 ch = 0;
+			(
+				wchars < 0
+				||
+				s < end
+			)
+			&&
+			(ch = *s);
+			s++)
 		{
 			uint8 *b = Buf;
 			ssize_t len = sizeof(Buf);
