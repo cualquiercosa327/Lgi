@@ -216,14 +216,17 @@ char *GHtmlParser::ParsePropValue(char *s, char16 *&Value)
 		{
 			char Delim = *s++;
 			char *Start = s;
-			while (*s && *s != Delim) s++;
+			while (*s && *s != Delim)
+				s++;
 			Value = DecodeEntities(Start, s - Start);
-			s++;
+			if (*s)
+				s++;
 		}
 		else
 		{
 			char *Start = s;
-			while (*s && !IsWhiteSpace(*s) && *s != '>') s++;
+			while (*s && !IsWhiteSpace(*s) && *s != '>')
+				s++;
 			Value = DecodeEntities(Start, s - Start);
 		}
 	}
