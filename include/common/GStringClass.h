@@ -290,7 +290,7 @@ public:
 	bool SetW
 	(
 		/// Can be a pointer to string data or NULL to create an empty buffer (requires valid length)
-		const char16 *str,
+		const wchar_t *str,
 		/// Number of 'char16' values in the input string or -1 to copy till the NULL terminator.
 		ptrdiff_t wchars = -1
 	)
@@ -302,6 +302,8 @@ public:
 
 			const uint16 *i = (const uint16*) str;
 			ssize_t InLen = wchars >= 0 ? wchars << 1 : 0x7fffffff;
+
+			assert(sizeof(*i) == sizeof(*str));
 
 			uint8 *o = (uint8*)Str->Str;
 			ssize_t OutLen = Str->Len;

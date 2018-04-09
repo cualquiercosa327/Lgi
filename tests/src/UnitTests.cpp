@@ -10,8 +10,10 @@ void UnitTests()
 	Tests.Add(new GCssTest);
 	Tests.Add(new GMatrixTest);
 	Tests.Add(new GContainers);
-	#endif
 	Tests.Add(new GStringClassTest);
+	Tests.Add(new LDateTimeTest);
+	#endif
+	Tests.Add(new GStringPipeTest);
 
 	for (int i=0; i<Tests.Length(); i++)
 	{

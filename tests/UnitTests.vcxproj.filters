@@ -38,6 +38,9 @@
     <ClCompile Include="..\src\common\General\GNew.cpp">
       <Filter>Lgi</Filter>
     </ClCompile>
+    <ClCompile Include="src\GStringPipeTests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\common\GStringClass.h">
