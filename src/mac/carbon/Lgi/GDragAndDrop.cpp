@@ -168,8 +168,8 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 	GetData(Data);
 	
 	// Setup a promise keeper...
-	OSStatus e = PasteboardSetPromiseKeeper(Pb, LgiDragSendDataFunction, this);
-	if (e) printf("%s:%i - PasteboardSetPromiseKeeper failed with %i\n", _FL, (int)e);
+	// OSStatus e = PasteboardSetPromiseKeeper(Pb, LgiDragSendDataFunction, this);
+	// if (e) printf("%s:%i - PasteboardSetPromiseKeeper failed with %i\n", _FL, (int)e);
 	
 	// Now push the data into the pasteboard
 	for (unsigned i=0; i<Data.Length(); i++)
@@ -530,7 +530,7 @@ struct DragParams
 									memcpy(Cp, Ptr, Len);
 									Cp[Len] = 0;
 									
-									GVariant *v = &dd.Data[i-1];
+									GVariant *v = &dd.Data.New();
 									if (!_stricmp(LGI_LgiDropFormat, DropFormat))
 									{
 										GDragDropSource *Src = NULL;
@@ -585,6 +585,14 @@ struct DragParams
 				}
 				ItemFlavors.Length(0);
 				CFRelease(FlavorTypes);
+			}
+		}
+		
+		for (unsigned i=0; i<Data.Length(); i++)
+		{
+			if (Data[i].Format.Get() == NULL)
+			{
+				Data.DeleteAt(i--);
 			}
 		}
 	}
