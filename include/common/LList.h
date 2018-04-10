@@ -175,6 +175,23 @@ public:
 	}
 
 	template<class T>
+	bool GetSelection(GArray<T*> &n)
+	{
+		n.Empty();
+		List<LListItem>::I It = Items.Start();
+		for (LListItem *i=*It; i; i=*++It)
+		{
+			if (i->Select())
+			{
+				T *ptr = dynamic_cast<T*>(i);
+				if (ptr)
+					n.Add(ptr);
+			}
+		}
+		return n.Length() > 0;
+	}
+
+	template<class T>
 	bool GetAll(List<T> &n)
 	{
 		n.Empty();
