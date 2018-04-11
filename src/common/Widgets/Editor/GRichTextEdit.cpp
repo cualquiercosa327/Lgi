@@ -424,7 +424,7 @@ bool GRichTextEdit::Name(const char *s)
 	if (Status)
 		SetCursor(0, false);
 	
-	// d->DumpBlocks();
+	Invalidate();
 	
 	return Status;
 }

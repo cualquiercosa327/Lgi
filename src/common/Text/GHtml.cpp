@@ -5284,6 +5284,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			
 			double AspectRatio = ImgY != 0 ? (double)ImgX / ImgY : 1.0;
 			bool XLimit = false, YLimit = false;
+			double Scale = 1.0;
 
 			if (w.IsValid() && w.Type != LenAuto)
 			{
@@ -5292,7 +5293,15 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			}
 			else
 			{
-				Size.x = ImgX;
+				if (ImgX >= Flow->X())
+				{
+					Size.x = Flow->X() * 0.8;
+					Scale = (double) Flow->X() / ImgX;
+				}
+				else
+				{
+					Size.x = ImgX;
+				}
 			}
 			XLimit |= Flow->LimitX(Size.x, MinWidth(), MaxWidth(), f);
 
@@ -5303,7 +5312,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			}
 			else
 			{
-				Size.y = ImgY;
+				Size.y = ImgY * Scale;
 			}
 			YLimit |= Flow->LimitY(Size.y, MinHeight(), MaxHeight(), f);
 
@@ -6480,6 +6489,8 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection, uint16 Depth)
 			
 			if (Image)
 			{
+				int asd=0;
+
 				#if ENABLE_IMAGE_RESIZING
 				if
 				(
