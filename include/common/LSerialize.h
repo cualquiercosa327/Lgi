@@ -370,7 +370,7 @@ public:
 		return true;
 	}
 
-	bool CanRead(void *ptr, unsigned size)
+	bool CanRead(void *ptr, size_t size)
 	{
 		if (!ptr || size < 8)
 			return false;

@@ -2902,11 +2902,21 @@ GMessage::Result IdeDoc::OnEvent(GMessage *Msg)
 					GString Input = SymEd->Name();
 					if (Input == Resp->Str) // Is the input string still the same?
 					{
-						d->SymPopup->All = Resp->Results;
-						Resp->Results.Length(0);
-						d->SymPopup->FindCommonPathLength();
-						d->SymPopup->SetItems(d->SymPopup->All);
-						d->SymPopup->Visible(true);
+						if (Resp->Results.Length() == 1)
+						{
+							FindSymResult *r = Resp->Results[0];
+							d->SymPopup->Visible(false);
+
+							d->App->GotoReference(r->File, r->Line, false);
+						}
+						else
+						{
+							d->SymPopup->All = Resp->Results;
+							Resp->Results.Length(0);
+							d->SymPopup->FindCommonPathLength();
+							d->SymPopup->SetItems(d->SymPopup->All);
+							d->SymPopup->Visible(true);
+						}
 					}
 				}
 			}
