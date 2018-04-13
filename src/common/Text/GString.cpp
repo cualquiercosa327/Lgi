@@ -994,8 +994,50 @@ GString LgiEscapeString(const char *Chars, const char *In, ssize_t Len)
 				Ch = 0;
 			}
 			if (strchr(Chars, *In))
+			{
 				Buf[Ch++] = '\\';
-			Buf[Ch++] = *In++;
+				switch (*In)
+				{
+					case '\n':
+						Buf[Ch++] = 'n';
+						break;
+					case '\r':
+						Buf[Ch++] = 'r';
+						break;
+					case '\\':
+						Buf[Ch++] = '\\';
+						break;
+					case '\b':
+						Buf[Ch++] = 'b';
+						break;
+					case '\a':
+						Buf[Ch++] = 'a';
+						break;
+					case '\t':
+						Buf[Ch++] = 't';
+						break;
+					case '\v':
+						Buf[Ch++] = 'v';
+						break;
+					case '\'':
+						Buf[Ch++] = '\'';
+						break;
+					case '\"':
+						Buf[Ch++] = '\"';
+						break;
+					case '\?':
+						Buf[Ch++] = '?';
+						break;
+					default:
+						Ch += sprintf_s(Buf+Ch, sizeof(Buf)-Ch, "x%02x", *In);
+						break;
+				}
+			}
+			else
+			{
+				Buf[Ch++] = *In;
+			}
+			In++;
 		}
 		if (Ch > 0)
 		{
