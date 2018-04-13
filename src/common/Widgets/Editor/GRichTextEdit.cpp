@@ -1463,6 +1463,8 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 	}
 	else if (IsCapturing())
 	{
+		Capture(false);
+
 		if (d->ClickedBtn != MaxArea)
 		{
 			d->BtnState[d->ClickedBtn].Pressed = false;
@@ -1470,7 +1472,6 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 			Processed |= d->ClickBtn(m, Clicked);
 		}
 
-		Capture(false);
 		d->ClickedBtn = MaxArea;
 	}
 
