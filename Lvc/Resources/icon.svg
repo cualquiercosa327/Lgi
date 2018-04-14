@@ -14,11 +14,11 @@
    viewBox="0 0 8.4666665 8.466667"
    version="1.1"
    id="svg8"
-   inkscape:version="0.91 r13725"
+   inkscape:version="0.92.2 5c3e80d, 2017-08-06"
    sodipodi:docname="icon.svg"
-   inkscape:export-filename="C:\Users\matthew\Code\ClipShare\icon64.png"
-   inkscape:export-xdpi="192"
-   inkscape:export-ydpi="192">
+   inkscape:export-filename="/Users/matthew/Code/Lgi/trunk/Lvc/Resources/icon128.png"
+   inkscape:export-xdpi="384.00003"
+   inkscape:export-ydpi="384.00003">
   <defs
      id="defs2">
     <clipPath
@@ -45,10 +45,10 @@
      inkscape:current-layer="svg8"
      showgrid="true"
      units="px"
-     inkscape:window-width="1452"
-     inkscape:window-height="958"
-     inkscape:window-x="235"
-     inkscape:window-y="46"
+     inkscape:window-width="1440"
+     inkscape:window-height="856"
+     inkscape:window-x="14"
+     inkscape:window-y="0"
      inkscape:window-maximized="0"
      inkscape:snap-grids="false">
     <inkscape:grid
@@ -68,7 +68,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		342D52A50F0CBA2F002A1C7C /* LgiMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 342D52A40F0CBA2F002A1C7C /* LgiMain.cpp */; };
+		3448F8C62081D2500038AE76 /* mac-icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 3448F8C52081D2500038AE76 /* mac-icon.icns */; };
 		3457FE3B2081C95E00014BE4 /* Lgi.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3457FE372081C86C00014BE4 /* Lgi.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3457FE3D2081CA6C00014BE4 /* Lgi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3457FE372081C86C00014BE4 /* Lgi.framework */; };
 		3457FE492081CB3D00014BE4 /* BlameUi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3457FE3E2081CB3D00014BE4 /* BlameUi.cpp */; };
@@ -59,6 +60,7 @@
 		20286C33FDCF999611CA2CEA /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		32DBCF6D0370B57F00C91783 /* Lvc_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Lvc_Prefix.pch; sourceTree = "<group>"; };
 		342D52A40F0CBA2F002A1C7C /* LgiMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiMain.cpp; path = ../../src/common/Lgi/LgiMain.cpp; sourceTree = SOURCE_ROOT; };
+		3448F8C52081D2500038AE76 /* mac-icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "mac-icon.icns"; path = "../Resources/mac-icon.icns"; sourceTree = "<group>"; };
 		3457FE3E2081CB3D00014BE4 /* BlameUi.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BlameUi.cpp; path = ../Src/BlameUi.cpp; sourceTree = "<group>"; };
 		3457FE3F2081CB3D00014BE4 /* DropDownBtn.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DropDownBtn.cpp; path = ../Src/DropDownBtn.cpp; sourceTree = "<group>"; };
 		3457FE402081CB3D00014BE4 /* Lvc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Lvc.h; path = ../Src/Lvc.h; sourceTree = "<group>"; };
@@ -133,6 +135,7 @@
 		20286C2CFDCF999611CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				3448F8C52081D2500038AE76 /* mac-icon.icns */,
 				3457FE512081CC4800014BE4 /* Lvc.lr8 */,
 				8D0C4E960486CD37000505A6 /* Info.plist */,
 				0867D6AAFE840B52C02AAC07 /* InfoPlist.strings */,
@@ -241,6 +244,7 @@
 				3457FE522081CC4800014BE4 /* Lvc.lr8 in Resources */,
 				8D0C4E8D0486CD37000505A6 /* InfoPlist.strings in Resources */,
 				8D0C4E8E0486CD37000505A6 /* main.nib in Resources */,
+				3448F8C62081D2500038AE76 /* mac-icon.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
