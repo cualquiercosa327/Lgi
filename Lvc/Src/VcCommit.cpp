@@ -33,7 +33,7 @@ char *VcCommit::GetText(int Col)
 	switch (Col)
 	{
 		case 0:
-			return Current ? "***" : NULL;
+			return Current ? (char*)"***" : NULL;
 		case 1:
 			return Rev;
 		case 2:

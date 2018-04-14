@@ -75,13 +75,13 @@
 		1870340FFE93FCAF11CA0CD7 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/main.nib; sourceTree = "<group>"; };
 		20286C33FDCF999611CA2CEA /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		32DBCF6D0370B57F00C91783 /* LgiIde_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LgiIde_Prefix.pch; sourceTree = "<group>"; };
-		3412BAC41A6256E60096412F /* icons.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = icons.png; path = ../Code/icons.png; sourceTree = "<group>"; };
+		3412BAC41A6256E60096412F /* icons.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = icons.png; path = ../Resources/icons.png; sourceTree = "<group>"; };
 		3413EBFF201891E700992012 /* IdeProjectSettings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IdeProjectSettings.h; path = ../Code/IdeProjectSettings.h; sourceTree = "<group>"; };
 		3413EC00201891E700992012 /* levenshtein.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = levenshtein.c; path = ../Code/levenshtein.c; sourceTree = "<group>"; };
 		3413EC01201891E700992012 /* levenshtein.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = levenshtein.h; path = ../Code/levenshtein.h; sourceTree = "<group>"; };
 		3413EC02201891E700992012 /* LgiIde.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LgiIde.h; path = ../Code/LgiIde.h; sourceTree = "<group>"; };
 		3413EC03201891E700992012 /* MissingFiles.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MissingFiles.cpp; path = ../Code/MissingFiles.cpp; sourceTree = "<group>"; };
-		341B9A4E1DEACA060011CE44 /* cmds-32px.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "cmds-32px.png"; path = "../Code/cmds-32px.png"; sourceTree = "<group>"; };
+		341B9A4E1DEACA060011CE44 /* cmds-32px.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "cmds-32px.png"; path = "../Resources/cmds-32px.png"; sourceTree = "<group>"; };
 		341B9A501DEACA310011CE44 /* SimpleCppParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SimpleCppParser.cpp; path = ../Code/SimpleCppParser.cpp; sourceTree = "<group>"; };
 		341B9A511DEACA310011CE44 /* SimpleCppParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SimpleCppParser.h; path = ../Code/SimpleCppParser.h; sourceTree = "<group>"; };
 		342D773911FA48B6005BADBD /* GControlTree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GControlTree.cpp; path = ../../src/common/Widgets/GControlTree.cpp; sourceTree = SOURCE_ROOT; };
@@ -104,7 +104,7 @@
 		349A25061A5E3D1D00F4263E /* IdeProject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IdeProject.h; path = ../Code/IdeProject.h; sourceTree = "<group>"; };
 		349A25071A5E3D1D00F4263E /* IdeProjectSettings.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IdeProjectSettings.cpp; path = ../Code/IdeProjectSettings.cpp; sourceTree = "<group>"; };
 		349A25081A5E3D1D00F4263E /* LgiIde.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiIde.cpp; path = ../Code/LgiIde.cpp; sourceTree = "<group>"; };
-		349A25091A5E3D1D00F4263E /* LgiIde.lr8 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = LgiIde.lr8; path = ../Code/LgiIde.lr8; sourceTree = "<group>"; };
+		349A25091A5E3D1D00F4263E /* LgiIde.lr8 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = LgiIde.lr8; path = ../Resources/LgiIde.lr8; sourceTree = "<group>"; };
 		349A250A1A5E3D1D00F4263E /* LgiUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiUtils.cpp; path = ../Code/LgiUtils.cpp; sourceTree = "<group>"; };
 		349A250B1A5E3D1D00F4263E /* MemDumpViewer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MemDumpViewer.cpp; path = ../Code/MemDumpViewer.cpp; sourceTree = "<group>"; };
 		349A250C1A5E3D1D00F4263E /* SpaceTabConv.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SpaceTabConv.cpp; path = ../Code/SpaceTabConv.cpp; sourceTree = "<group>"; };
@@ -116,7 +116,7 @@
 		349A252C1A5E433A00F4263E /* GSubProcess.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GSubProcess.cpp; path = ../../src/common/Lgi/GSubProcess.cpp; sourceTree = "<group>"; };
 		349A252E1A5E434A00F4263E /* IFtp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IFtp.cpp; path = ../../src/common/INet/IFtp.cpp; sourceTree = "<group>"; };
 		349A25301A5E43F600F4263E /* Png.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Png.cpp; path = ../../src/common/Gdc2/Filters/Png.cpp; sourceTree = "<group>"; };
-		349A25321A5E440100F4263E /* cmds-16px.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "cmds-16px.png"; path = "../Code/cmds-16px.png"; sourceTree = "<group>"; };
+		349A25321A5E440100F4263E /* cmds-16px.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "cmds-16px.png"; path = "../Resources/cmds-16px.png"; sourceTree = "<group>"; };
 		34D20B751CB2861600730172 /* ProjectNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ProjectNode.cpp; path = ../Code/ProjectNode.cpp; sourceTree = "<group>"; };
 		34D20B761CB2861600730172 /* ProjectNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ProjectNode.h; path = ../Code/ProjectNode.h; sourceTree = "<group>"; };
 		34D20B791CB2862E00730172 /* AddFtpFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AddFtpFile.cpp; path = ../Code/AddFtpFile.cpp; sourceTree = "<group>"; };
@@ -468,7 +468,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.memecode.lgiide;
 				PRODUCT_NAME = LgiIde;
 				SDKROOT = macosx;
-				USER_HEADER_SEARCH_PATHS = "../../include/mac/carbon ../../include/common ../Code ../../../../../CodeLib/libpng ../../../../../CodeLib/libpng/build";
+				USER_HEADER_SEARCH_PATHS = "../../include/mac/carbon ../../include/common ../Code ../../../../../CodeLib/libpng ../../../../../CodeLib/libpng/build ../Resources";
 				VALID_ARCHS = i386;
 				WRAPPER_EXTENSION = app;
 			};
@@ -496,7 +496,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.memecode.lgiide;
 				PRODUCT_NAME = LgiIde;
 				SDKROOT = macosx;
-				USER_HEADER_SEARCH_PATHS = "../../include/mac/carbon ../../include/common ../Code ../../../../../CodeLib/libpng ../../../../../CodeLib/libpng/build";
+				USER_HEADER_SEARCH_PATHS = "../../include/mac/carbon ../../include/common ../Code ../../../../../CodeLib/libpng ../../../../../CodeLib/libpng/build ../Resources";
 				VALID_ARCHS = i386;
 				WRAPPER_EXTENSION = app;
 			};
@@ -533,7 +533,7 @@
 					"-D_DEBUG",
 				);
 				SDKROOT = macosx;
-				USER_HEADER_SEARCH_PATHS = "../../include/mac/carbon ../../include/common ../Code ../../../../../CodeLib/libpng";
+				USER_HEADER_SEARCH_PATHS = "../../include/mac/carbon ../../include/common ../Code ../../../../../CodeLib/libpng ../Resources";
 				VALID_ARCHS = i386;
 			};
 			name = Development;
@@ -564,7 +564,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_CFLAGS = "-DMAC";
 				SDKROOT = macosx;
-				USER_HEADER_SEARCH_PATHS = "../../include/mac/carbon ../../include/common ../Code ../../../../../CodeLib/libpng";
+				USER_HEADER_SEARCH_PATHS = "../../include/mac/carbon ../../include/common ../Code ../../../../../CodeLib/libpng ../Resources";
 				VALID_ARCHS = i386;
 			};
 			name = Deployment;

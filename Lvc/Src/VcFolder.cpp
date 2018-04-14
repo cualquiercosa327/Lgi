@@ -1,7 +1,9 @@
 #include "Lvc.h"
 #include "../Resources/resdefs.h"
 
+#ifndef CALL_MEMBER_FN
 #define CALL_MEMBER_FN(object,ptrToMember)  ((object).*(ptrToMember))
+#endif
 
 ReaderThread::ReaderThread(GSubProcess *p, GStream *out) : LThread("ReaderThread")
 {
@@ -215,6 +217,10 @@ bool VcFolder::ParseBranches(int Result, GString s, ParseParams *Params)
 		case VcHg:
 		{
 			Branches = s.SplitDelimit("\r\n");
+			break;
+		}
+		default:
+		{
 			break;
 		}
 	}
@@ -908,7 +914,7 @@ public:
 
 	GString Full()
 	{
-		GFile::Path p = Path;
+		GFile::Path p(Path);
 		p += Leaf;
 		return p.GetFull();
 	}
@@ -920,7 +926,7 @@ public:
 			Tmp->Remove();
 			DeleteObj(Tmp);
 			
-			GFile::Path p = Path;
+			GFile::Path p(Path);
 			p += Leaf;
 			Parent->ReadDir(this, p);
 		}
@@ -1153,6 +1159,8 @@ bool VcFolder::ParsePush(int Result, GString s, ParseParams *Params)
 			break;
 		case VcSvn:
 			break;
+		default:
+			break;
 	}
 
 	if (Result == 0)
@@ -1216,6 +1224,8 @@ bool VcFolder::ParsePull(int Result, GString s, ParseParams *Params)
 			}
 			break;
 		}
+		default:
+			break;
 	}
 
 	GetTree()->SendNotify(LvcCommandEnd);
