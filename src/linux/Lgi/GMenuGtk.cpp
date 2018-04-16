@@ -500,6 +500,11 @@ Gtk::gint LgiKeyToGtkKey(int Key, const char *ShortCut)
 		#ifdef GDK_BackSpace
 		case VK_BACKSPACE: return GDK_BackSpace;
 		#endif
+		#ifdef GDK_Escape
+		case VK_ESCAPE: return GDK_Escape;
+		#else
+		#warning "GDK_Escape not defined."
+		#endif
 
 		case VK_UP:
 			return GDK_Up;
@@ -633,6 +638,10 @@ bool LgiMenuItem::ScanForAccel()
 				else if (stricmp(k, "Down") == 0)
 				{
 					Key = VK_DOWN;
+				}
+				else if (!stricmp(k, "Esc") || !stricmp(k, "Escape"))
+				{
+					Key = VK_ESCAPE;
 				}
 				else if (stricmp(k, "Space") == 0)
 				{
