@@ -28,6 +28,7 @@
 #include "Gdc2.h"
 #include "LgiCommon.h"
 #include "GString.h"
+#include "LDateTime.h"
 
 /****************************** Defines ***********************************/
 
@@ -1216,17 +1217,17 @@ char *GDirectory::GetName()
 
 const uint64 GDirectory::GetCreationTime()
 {
-	return d->Stat.st_ctime;
+	return (uint64) d->Stat.st_ctime * LDateTime::Second64Bit;
 }
 
 const uint64 GDirectory::GetLastAccessTime()
 {
-	return d->Stat.st_atime;
+	return (uint64) d->Stat.st_atime * LDateTime::Second64Bit;
 }
 
 const uint64 GDirectory::GetLastWriteTime()
 {
-	return d->Stat.st_mtime;
+	return (uint64) d->Stat.st_mtime * LDateTime::Second64Bit;
 }
 
 const uint64 GDirectory::GetSize()
