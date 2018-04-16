@@ -76,13 +76,11 @@ GImageList *LgiLoadImageList(const char *File, int x, int y)
 			ImgList = new GImageList(x, y, pDC);
 			DeleteObj(pDC);
 		}
+		else LgiTrace("%s:%i - Couldn't load '%s'\n", _FL, Path);
 
 		DeleteArray(Path);
 	}
-	else
-	{
-		printf("LgiLoadImageList: Couldn't find '%s'\n", File);
-	}
+	else LgiTrace("%s:%i - Couldn't find '%s'\n", _FL, File);
 
 	return ImgList;
 }
