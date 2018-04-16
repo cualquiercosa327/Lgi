@@ -106,7 +106,7 @@ public:
 	bool Serialize(GXmlTag *t, bool Write);
 	GXmlTag *Save();
 	void Select(bool b);
-	void ListCommit(const char *Rev);
+	void ListCommit(VcCommit *c);
 	void ListWorkingFolder();
 	void Commit(const char *Msg, const char *Branch, bool AndPush);
 	void Push();

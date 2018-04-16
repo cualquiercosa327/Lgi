@@ -40,6 +40,14 @@ int ReaderThread::Main()
 		}
 	}
 
+	if (Out)
+	{
+		char Buf[1024];
+		ssize_t r = Process->Read(Buf, sizeof(Buf));
+		if (r > 0)
+			Out->Write(Buf, r);
+	}
+
 	return (int) Process->GetExitValue();
 }
 
@@ -138,6 +146,8 @@ const char *VcFolder::GetVcName()
 			return "svn";
 		case VcHg:
 			return "hg";
+		case VcCvs:
+			return "cvs";
 		default:
 			LgiAssert(!"Impl me.");
 			break;
@@ -278,6 +288,8 @@ void VcFolder::Select(bool b)
 				case VcHg:
 					StartCmd("branch", &VcFolder::ParseBranches);
 					break;
+				case VcCvs:
+					break;
 				default:
 					LgiAssert(!"Impl me.");
 					break;
@@ -398,6 +410,8 @@ void VcFolder::Select(bool b)
 				case VcHg:
 					IsGetCur = StartCmd("id -i", &VcFolder::ParseInfo);
 					break;
+				case VcCvs:
+					break;
 				default:
 					LgiAssert(!"Impl me.");
 					break;
@@ -509,6 +523,83 @@ bool VcFolder::ParseLog(int Result, GString s, ParseParams *Params)
 				{
 					if (!Map.Find(Rev->GetRev()))
 						Log.Add(Rev.Release());
+				}
+			}
+			break;
+		}
+		case VcCvs:
+		{
+			GHashTbl<uint64, VcCommit*> Map;
+			GString::Array c = s.Split("=============================================================================");
+			for (GString *Commit = NULL; c.Iterate(Commit);)
+			{
+				if (Commit->Strip().Length())
+				{
+					GString Head, File;
+
+					GString::Array Versions = Commit->Split("----------------------------");
+
+					GString::Array Lines = Versions[0].SplitDelimit("\r\n");
+					for (GString *Line = NULL; Lines.Iterate(Line);)
+					{
+						GString::Array p = Line->Split(":", 1);
+						if (p.Length() == 2)
+						{
+							// LgiTrace("Line: %s\n", Line->Get());
+
+							GString Var = p[0].Strip().Lower();
+							GString Val = p[1].Strip();
+							if (Var.Equals("branch"))
+							{
+								if (Val.Length())
+									Branches.Add(Val);
+							}
+							else if (Var.Equals("head"))
+							{
+								Head = Val;
+							}
+							else if (Var.Equals("rcs file"))
+							{
+								GString::Array f = Val.SplitDelimit(",");
+								File = f.First();
+							}
+						}
+					}
+
+					// LgiTrace("%s\n", Commit->Get());
+
+					for (unsigned i=1; i<Versions.Length(); i++)
+					{
+						GString::Array Lines = Versions[i].SplitDelimit("\r\n");
+						if (Lines.Length() > 3)
+						{
+							GString Ver = Lines[0].Split(" ").Last();
+							GString::Array a = Lines[1].SplitDelimit(";");
+							GString Date = a[0].Split(":", 1).Last().Strip();
+							GString Author = a[1].Split(":", 1).Last().Strip();
+							GString Id = a[2].Split(":", 1).Last().Strip();
+							GString Msg = Lines[2];
+							LDateTime Dt;
+							int asd=0;
+							if (Dt.Parse(Date))
+							{
+								uint64 Ts;
+								if (Dt.Get(Ts))
+								{
+									VcCommit *Cc = Map.Find(Ts);
+									if (!Cc)
+									{
+										Map.Add(Ts, Cc = new VcCommit(d));
+										Log.Add(Cc);
+										Cc->CvsParse(Dt, Author, Msg);
+									}
+									Cc->Files.Add(File.Get());
+								}
+								else LgiAssert(!"NO ts for date.");
+							}
+							else LgiAssert(!"Date parsing failed.");
+						}
+					}
 				}
 			}
 			break;
@@ -772,6 +863,10 @@ bool VcFolder::ParseDiffs(GString s, GString Rev, bool IsWorking)
 			}
 			break;
 		}
+		case VcCvs:
+		{
+			break;
+		}
 		default:
 		{
 			LgiAssert(!"Impl me.");
@@ -1027,7 +1122,7 @@ void VcFolder::OnExpand(bool b)
 	}
 }
 
-void VcFolder::ListCommit(const char *Rev)
+void VcFolder::ListCommit(VcCommit *c)
 {
 	if (!IsFilesCmd)
 	{
@@ -1036,13 +1131,28 @@ void VcFolder::ListCommit(const char *Rev)
 		{
 			case VcGit:
 				// Args.Printf("show --oneline --name-only %s", Rev);
-				Args.Printf("show %s", Rev);
-				IsFilesCmd = StartCmd(Args, &VcFolder::ParseFiles, Rev);
+				Args.Printf("show %s", c->GetRev());
+				IsFilesCmd = StartCmd(Args, &VcFolder::ParseFiles, c->GetRev());
 				break;
 			case VcSvn:
-				Args.Printf("log --verbose --diff -r %s", Rev);
-				IsFilesCmd = StartCmd(Args, &VcFolder::ParseFiles, Rev);
+				Args.Printf("log --verbose --diff -r %s", c->GetRev());
+				IsFilesCmd = StartCmd(Args, &VcFolder::ParseFiles, c->GetRev());
 				break;
+			case VcCvs:
+			{
+				d->ClearFiles();
+				for (unsigned i=0; i<c->Files.Length(); i++)
+				{				
+					VcFile *f = new VcFile(d, this, c->GetRev(), false);
+					if (f)
+					{
+						f->SetText(c->Files[i], COL_FILENAME);
+						d->Files->Insert(f);
+					}
+				}
+				d->Files->ResizeColumnsToContent();
+				break;
+			}
 			default:
 				LgiAssert(!"Impl me.");
 				break;
@@ -1058,7 +1168,11 @@ void VcFolder::ListWorkingFolder()
 	if (!IsWorkingFld)
 	{
 		d->ClearFiles();
-		IsWorkingFld = StartCmd("diff", &VcFolder::ParseWorking);
+
+		if (GetType() == VcCvs)
+			IsWorkingFld = StartCmd("-q diff --brief", &VcFolder::ParseWorking);
+		else
+			IsWorkingFld = StartCmd("diff", &VcFolder::ParseWorking);
 	}
 }
 

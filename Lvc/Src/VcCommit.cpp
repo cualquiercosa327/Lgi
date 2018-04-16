@@ -77,6 +77,19 @@ bool VcCommit::GitParse(GString s)
 	return Author && Rev;
 }
 
+bool VcCommit::CvsParse(LDateTime &Dt, GString Auth, GString Message)
+{
+	Ts = Dt;
+	Ts.ToLocal();
+	
+	uint64 i;
+	if (Ts.Get(i))
+		Rev.Printf(LGI_PrintfInt64, i);
+	Author = Auth;
+	Msg = Message;
+	return true;
+}
+
 bool VcCommit::HgParse(GString s)
 {
 	GString::Array Lines = s.SplitDelimit("\n");
@@ -147,7 +160,7 @@ void VcCommit::Select(bool b)
 	{
 		VcFolder *f = GetFolder();
 		if (f)
-			f->ListCommit(Rev);
+			f->ListCommit(this);
 
 		if (d->Msg)
 		{

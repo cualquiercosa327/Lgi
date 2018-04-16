@@ -14,6 +14,8 @@ class VcCommit : public LListItem
 	GString Msg;
 
 public:
+	GString::Array Files;
+
 	VcCommit(AppPriv *priv);
 
 	char *GetRev();
@@ -26,6 +28,7 @@ public:
 	bool GitParse(GString s);
 	bool SvnParse(GString s);
 	bool HgParse(GString s);
+	bool CvsParse(LDateTime &Dt, GString Auth, GString Msg);
 	VcFolder *GetFolder();
 
 	// Events

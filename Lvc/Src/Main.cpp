@@ -260,7 +260,7 @@ public:
 			Opts.Unlock();
 		}
 
-		SetPulse(500);
+		SetPulse(200);
     }
 
 	~App()

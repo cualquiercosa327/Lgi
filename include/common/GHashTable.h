@@ -104,6 +104,11 @@ class GHashTbl
             return i;
         }
         
+        uint64 New(uint64 i)
+        {
+            return i;
+        }
+        
         void *New(void *i)
         {
             return i;
