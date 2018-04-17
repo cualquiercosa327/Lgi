@@ -483,7 +483,7 @@ public:
 	GString &operator =(int64 val)
 	{
 		char n[32];
-		sprintf_s(n, sizeof(n), "%" PRId64, val);
+		sprintf_s(n, sizeof(n), "%" PRId64, (int64_t)val);
 		Set(n);
 		return *this;
 	}
@@ -1034,6 +1034,97 @@ public:
 		return LgiPrintf(*this, Fmt, Arg);
 	}
 	
+	static GString Escape(const char *In, ssize_t Len, const char *Chars = "\r\n\b\\\'\"")
+	{
+		GString s;
+	
+		if (In && Chars)
+		{
+			char Buf[256];
+			int Ch = 0;
+			if (Len < 0)
+				Len = strlen(In);
+		
+			while (Len-- > 0)
+			{
+				if (Ch > sizeof(Buf)-4)
+				{
+					// Buffer full, add substring to 's'
+					Buf[Ch] = 0;
+					s += Buf;
+					Ch = 0;
+				}
+				if (strchr(Chars, *In))
+				{
+					Buf[Ch++] = '\\';
+					switch (*In)
+					{
+						#undef EscChar
+						#define EscChar(from, to) \
+							case from: Buf[Ch++] = to; break
+						EscChar('\n', 'n');
+						EscChar('\r', 'r');
+						EscChar('\\', '\\');
+						EscChar('\b', 'b');
+						EscChar('\a', 'a');
+						EscChar('\t', 't');
+						EscChar('\v', 'v');
+						EscChar('\'', '\'');
+						EscChar('\"', '\"');
+						EscChar('?', '?');
+						#undef EscChar
+						default: Ch += sprintf_s(Buf+Ch, sizeof(Buf)-Ch, "x%02x", *In); break;
+					}
+				}
+				else Buf[Ch++] = *In;
+				In++;
+			}
+			if (Ch > 0)
+			{
+				Buf[Ch] = 0;
+				s += Buf;
+			}
+		}
+	
+		return s;
+	}
+
+	static GString UnEscape(const char *In, ssize_t Len, const char *Chars = "\r\n\b\\\'\"")
+	{
+		GString s;
+		if (Chars && In)
+		{
+			char Buf[256];
+			int Ch = 0;
+			if (Len < 0)
+				Len = strlen(In);
+		
+			while (Len-- > 0)
+			{
+				if (Ch > sizeof(Buf)-4)
+				{
+					// Buffer full, add substring to 's'
+					Buf[Ch] = 0;
+					s += Buf;
+					Ch = 0;
+				}
+				if (*In == '\\')
+				{
+					if (strchr(Chars, In[1]))
+						In++;
+				}
+				Buf[Ch++] = *In++;
+			}
+			if (Ch > 0)
+			{
+				Buf[Ch] = 0;
+				s += Buf;
+			}
+		}
+	
+		return s;
+	}
+
 	#if defined(MAC) // && __COREFOUNDATION_CFBASE__
 
 	GString(const CFStringRef r)

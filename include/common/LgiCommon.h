@@ -35,12 +35,6 @@ LgiExtern GString LgiGetSystemPath(
 	int WordSize = 0
 );
 
-/// Removes escaping from the string
-LgiClass GString LgiUnEscapeString(const char *Chars, const char *In, ssize_t Len = -1);
-
-/// Escapes all characters in 'In' specified by the set 'Chars'
-LgiClass GString LgiEscapeString(const char *Chars, const char *In, ssize_t Len = -1);
-
 /// URL encode a string
 LgiClass GString LgiUrlEncode(const char *s, const char *delim);
 
