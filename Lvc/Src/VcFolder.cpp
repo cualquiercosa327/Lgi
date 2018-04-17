@@ -536,9 +536,7 @@ bool VcFolder::ParseLog(int Result, GString s, ParseParams *Params)
 				if (Commit->Strip().Length())
 				{
 					GString Head, File;
-
 					GString::Array Versions = Commit->Split("----------------------------");
-
 					GString::Array Lines = Versions[0].SplitDelimit("\r\n");
 					for (GString *Line = NULL; Lines.Iterate(Line);)
 					{
@@ -571,7 +569,7 @@ bool VcFolder::ParseLog(int Result, GString s, ParseParams *Params)
 					for (unsigned i=1; i<Versions.Length(); i++)
 					{
 						GString::Array Lines = Versions[i].SplitDelimit("\r\n");
-						if (Lines.Length() > 3)
+						if (Lines.Length() >= 3)
 						{
 							GString Ver = Lines[0].Split(" ").Last();
 							GString::Array a = Lines[1].SplitDelimit(";");
@@ -580,7 +578,7 @@ bool VcFolder::ParseLog(int Result, GString s, ParseParams *Params)
 							GString Id = a[2].Split(":", 1).Last().Strip();
 							GString Msg = Lines[2];
 							LDateTime Dt;
-							int asd=0;
+							
 							if (Dt.Parse(Date))
 							{
 								uint64 Ts;
