@@ -572,7 +572,8 @@ bool GDocApp<OptionsFmt>::SetDirty(bool Dirty)
 			{
 				if (!ValidStr(d->CurFile))
 				{
-					GMru::OnCommand(IDM_SAVEAS);
+					if (!GMru::OnCommand(IDM_SAVEAS))
+						return false;
 				}
 				else
 				{

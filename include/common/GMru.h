@@ -23,7 +23,7 @@ protected:
 	virtual char *_GetCurFile();
 	virtual void GetFileTypes(GFileSelect *Dlg, bool Write);
 	virtual GFileType *GetSelectedType();
-	void DoFileDlg(GFileSelect &Select, bool Open);
+	bool DoFileDlg(GFileSelect &Select, bool Open);
 
 	/// This method converts the storage reference (which can contain user/pass credentials) 
 	/// between the display, raw and stored forms. Display and Raw are used at runtime and
@@ -51,7 +51,7 @@ public:
 	char *AddFile(char *FileName, bool Update = true);
 	void RemoveFile(char *FileName, bool Update = true);
 	GMessage::Result OnEvent(GMessage *Msg);
-	void OnCommand(int Cmd);
+	bool OnCommand(int Cmd);
 
 	// Serialization
 	bool Serialize(GDom *Store, const char *Prefix, bool Write);

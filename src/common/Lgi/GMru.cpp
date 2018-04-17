@@ -268,7 +268,7 @@ void GMru::RemoveFile(char *FileName, bool Update)
 	}
 }
 
-void GMru::DoFileDlg(GFileSelect &Select, bool Open)
+bool GMru::DoFileDlg(GFileSelect &Select, bool Open)
 {
 	GetFileTypes(&Select, false);
 	Select.ShowReadOnly(Open);
@@ -280,10 +280,15 @@ void GMru::DoFileDlg(GFileSelect &Select, bool Open)
 		else
 			_SaveFile(Select.Name());
 	}
+	else return false;
+
+	return true;
 }
 
-void GMru::OnCommand(int Cmd)
+bool GMru::OnCommand(int Cmd)
 {
+	bool Status = false;
+
 	GViewI *Wnd = d->Parent->GetMenu() ? d->Parent->GetMenu()->WindowHandle() : 0;
 	if (Wnd)
 	{
@@ -306,11 +311,11 @@ void GMru::OnCommand(int Cmd)
 
 		if (Cmd == IDM_OPEN)
 		{
-			DoFileDlg(Select, true);
+			Status = DoFileDlg(Select, true);
 		}
 		else if (Cmd == IDM_SAVEAS)
 		{
-			DoFileDlg(Select, false);
+			Status = DoFileDlg(Select, false);
 		}
 	}
 
@@ -321,9 +326,11 @@ void GMru::OnCommand(int Cmd)
 		GMruEntry *c = d->Items[Index];
 		if (c)
 		{
-			_OpenFile(c->Raw, false);
+			Status &= _OpenFile(c->Raw, false);
 		}
 	}
+
+	return Status;
 }
 
 GMessage::Result GMru::OnEvent(GMessage *Msg)
