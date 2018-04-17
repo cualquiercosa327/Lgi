@@ -4,6 +4,7 @@
 #define _GTEXTLOG_H_
 
 #include "GTextView3.h"
+#include "INet.h"
 
 #define M_LOG			(M_USER + 0x3000)
 
@@ -108,6 +109,16 @@ public:
 		}
 
 		return GTextView3::OnEvent(m);
+	}
+
+	void OnUrl(char *Url)
+	{
+		GUri u(Url);
+		if (u.Protocol &&
+			(!stricmp(u.Protocol, "http") || !stricmp(u.Protocol, "https")))
+		{
+			LgiExecute(Url);
+		}
 	}
 };
 

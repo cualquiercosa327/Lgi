@@ -177,9 +177,12 @@ void GProgressPane::SetLimits(int64 l, int64 h)
 		#endif
 	}
 
-	GProgressDlg *Pd = dynamic_cast<GProgressDlg*>(GetParent());
-	if (Pd && But)
-		But->Enabled(Pd->CanCancel);
+	if (InThread())
+	{
+		GProgressDlg *Pd = dynamic_cast<GProgressDlg*>(GetParent());
+		if (Pd && But)
+			But->Enabled(Pd->CanCancel);
+	}
 }
 
 void GProgressPane::UpdateUI()
