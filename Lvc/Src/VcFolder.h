@@ -115,6 +115,7 @@ public:
 	bool Blame(const char *Path);
 	bool SaveFileAs(const char *Path, const char *Revision);
 	void ReadDir(GTreeItem *Parent, const char *Path);
+	void SetEol(const char *Path, int Type);
 
 	void OnPulse();
 	void OnUpdate(const char *Rev);

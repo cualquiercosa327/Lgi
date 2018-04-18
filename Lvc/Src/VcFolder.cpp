@@ -1484,6 +1484,34 @@ bool VcFolder::ParseCounts(int Result, GString s, ParseParams *Params)
 	return false; // No re-select
 }
 
+void VcFolder::SetEol(const char *Path, int Type)
+{
+	if (!Path) return;
+
+	switch (Type)
+	{
+		case IDM_EOL_LF:
+		{
+			ConvertEol(Path, false);
+			break;
+		}
+		case IDM_EOL_CRLF:
+		{
+			ConvertEol(Path, true);
+			break;
+		}
+		case IDM_EOL_AUTO:
+		{
+			#ifdef WINDOWS
+			ConvertEol(Path, true);
+			#else
+			ConvertEol(Path, false);
+			#endif
+			break;
+		}
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////////////////
 void VcFolder::UncommitedItem::Select(bool b)
 {

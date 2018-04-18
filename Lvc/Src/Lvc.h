@@ -63,6 +63,9 @@ enum AppIds
 	IDM_SAVE_AS,
 	IDM_BROWSE,
 	IDM_LOG,
+	IDM_EOL_LF,
+	IDM_EOL_CRLF,
+	IDM_EOL_AUTO,
 };
 
 enum VersionCtrl
@@ -133,6 +136,8 @@ public:
 };
 
 extern VersionCtrl DetectVcs(const char *Path);
+extern bool ConvertEol(const char *Path, bool Cr);
+extern int GetEol(const char *Path);
 
 #include "VcFile.h"
 #include "VcCommit.h"
