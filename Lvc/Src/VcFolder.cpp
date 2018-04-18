@@ -1167,10 +1167,18 @@ void VcFolder::ListWorkingFolder()
 	{
 		d->ClearFiles();
 
-		if (GetType() == VcCvs)
-			IsWorkingFld = StartCmd("-q diff --brief", &VcFolder::ParseWorking);
-		else
-			IsWorkingFld = StartCmd("diff", &VcFolder::ParseWorking);
+		switch (GetType())  
+		{
+			case VcCvs:
+				IsWorkingFld = StartCmd("-q diff --brief", &VcFolder::ParseWorking);
+				break;
+			case VcGit:
+				IsWorkingFld = StartCmd("diff --diff-filter=ACDMRTU", &VcFolder::ParseWorking);
+				break;
+			default:
+				IsWorkingFld = StartCmd("diff", &VcFolder::ParseWorking);
+				break;
+		}
 	}
 }
 
