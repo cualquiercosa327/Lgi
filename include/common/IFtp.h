@@ -97,7 +97,14 @@ public:
 	GString User;
 	GString Group;
 	LDateTime Date;
+
+	// App specific fields
 	void *UserData;
+	uint8 Updated : 1;
+	uint8 Added : 1;
+	uint8 Deleted: 1;
+	uint8 Selected : 1;
+	uint8 Unchanged : 1;
 
 	IFtpEntry();
 	IFtpEntry(ftpparse *Fp, const char *Cs);

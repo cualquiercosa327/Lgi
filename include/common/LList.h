@@ -205,6 +205,20 @@ public:
 		return n.Length() > 0;
 	}
 
+	template<class T>
+	bool GetAll(GArray<T*> &n)
+	{
+		n.Empty();
+		List<LListItem>::I It = Items.Start();
+		for (LListItem *i=*It; i; i=*++It)
+		{
+			T *ptr = dynamic_cast<T*>(i);
+			if (ptr)
+				n.Add(ptr);
+		}
+		return n.Length() == Items.Length();
+	}
+
 	List<LListItem>::I Start()
 	{
 		return Items.Start();
