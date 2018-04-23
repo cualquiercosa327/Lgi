@@ -268,6 +268,9 @@ void VcFolder::Select(bool b)
 	
 	if (b)
 	{
+		if (!DirExists(Path))
+			return;
+
 		if ((Log.Length() == 0 || CommitListDirty) && !IsLogging)
 		{
 			CommitListDirty = false;
