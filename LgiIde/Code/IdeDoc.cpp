@@ -36,6 +36,8 @@ const char *Untitled = "[untitled]";
 #define ColourLiteral		GColour(192, 0, 0)
 #define ColourKeyword		GColour::Black
 #define ColourType			GColour(0, 0, 222)
+#define ColourPhp			GColour(140, 140, 180)
+#define ColourHtml			GColour(80, 80, 255)
 
 enum SourceType
 {
@@ -44,6 +46,7 @@ enum SourceType
 	SrcCpp,
 	SrcPython,
 	SrcXml,
+	SrcHtml,
 };
 
 struct LanguageParams
@@ -78,7 +81,9 @@ LanguageParams LangParam[] =
 	// Python
 	{PythonKeywords, NULL},
 	// Xml
-	{NULL, XmlTypes}
+	{NULL, XmlTypes},
+	// Html/Php
+	{NULL, NULL}
 };
 
 GAutoPtr<GDocFindReplaceParams> GlobalFindReplace;
@@ -1212,6 +1217,28 @@ public:
 		return true;
 	}
 
+	void StyleString(char16 *&s, char16 *e)
+	{
+		GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
+		if (st)
+		{
+			st->View = this;
+			st->Start = s - Text;
+			st->Font = GetFont();
+
+			char16 Delim = *s++;
+			while (s < e && *s != Delim)
+			{
+				if (*s == '\\')
+					s++;
+				s++;
+			}
+			st->Len = (s - Text) - st->Start + 1;
+			st->Fore = ColourLiteral;
+			InsertStyle(st);
+		}
+	}
+
 	void StyleCpp(ssize_t Start, ssize_t EditSize)
 	{
 		if (!Text)
@@ -1235,27 +1262,8 @@ public:
 			{
 				case '\"':
 				case '\'':
-				{
-					GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
-					if (st)
-					{
-						st->View = this;
-						st->Start = s - Text;
-						st->Font = GetFont();
-
-						char16 Delim = *s++;
-						while (s < e && *s != Delim)
-						{
-							if (*s == '\\')
-								s++;
-							s++;
-						}
-						st->Len = (s - Text) - st->Start + 1;
-						st->Fore = ColourLiteral;
-						InsertStyle(st);
-					}
+					StyleString(s, e);
 					break;
-				}
 				case '#':
 				{
 					// Check that the '#' is the first non-whitespace on the line
@@ -1551,27 +1559,8 @@ public:
 			{
 				case '\"':
 				case '\'':
-				{
-					GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
-					if (st)
-					{
-						st->View = this;
-						st->Start = s - Text;
-						st->Font = GetFont();
-
-						char16 Delim = *s++;
-						while (s < e && *s != Delim)
-						{
-							if (*s == '\\')
-								s++;
-							s++;
-						}
-						st->Len = (s - Text) - st->Start + 1;
-						st->Fore = ColourLiteral;
-						InsertStyle(st);
-					}
+					StyleString(s, e);
 					break;
-				}
 				case '#':
 				{
 					// Single line comment
@@ -1877,27 +1866,8 @@ public:
 			{
 				case '\"':
 				case '\'':
-				{
-					GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
-					if (st)
-					{
-						st->View = this;
-						st->Start = s - Text;
-						st->Font = GetFont();
-
-						char16 Delim = *s++;
-						while (s < e && *s != Delim)
-						{
-							if (*s == '\\')
-								s++;
-							s++;
-						}
-						st->Len = (s - Text) - st->Start + 1;
-						st->Fore = ColourLiteral;
-						InsertStyle(st);
-					}
+					StyleString(s, e);
 					break;
-				}
 				case '0':
 				case '1':
 				case '2':
@@ -2036,6 +2006,147 @@ public:
 			}
 		}
 	}
+
+	enum HtmlType
+	{
+		CodeHtml,
+		CodePhp,
+		CodeCss,
+	};
+
+	void StyleHtml(ssize_t Start, ssize_t EditSize)
+	{
+		char16 *e = Text + Size;
+
+		Style.DeleteObjects();
+
+		HtmlType Type = CodeHtml;
+		GAutoPtr<GStyle> Php;
+
+		#define START_CODE() \
+			if (Type == CodePhp) \
+			{ \
+				if (Php.Reset(new GTextView3::GStyle(STYLE_IDE))) \
+				{ \
+					Php->View = this; \
+					Php->Start = s - Text; \
+					Php->Font = GetFont(); \
+					Php->Fore = ColourPhp; \
+				} \
+			}
+		#define END_CODE() \
+			if (Php) \
+			{ \
+				Php->Len = (s - Text) - Php->Start; \
+				InsertStyle(Php); \
+			}
+
+		for (char16 *s = Text; s < e; s++)
+		{
+			switch (*s)
+			{
+				case '\"':
+				case '\'':
+				{
+					END_CODE();
+					StyleString(s, e);
+					s++;
+					START_CODE();
+					s--;
+					break;
+				}
+				case '/':
+				{
+					if (Type != CodeHtml &&
+						s[1] == '/')
+					{
+						END_CODE();
+
+						char16 *nl = Strchr(s, '\n');
+						if (!nl) nl = s + Strlen(s);
+						
+						GAutoPtr<GStyle> st;
+						if (st.Reset(new GTextView3::GStyle(STYLE_IDE)))
+						{
+							st->View = this;
+							st->Start = s - Text;
+							st->Font = GetFont();
+							st->Fore = ColourComment;
+							st->Len = nl - s;
+							InsertStyle(st);
+						}
+
+						s = nl;
+						START_CODE();
+					}
+					break;
+				}
+				case '<':
+				{
+					if (Type == CodeHtml)
+					{
+						if (s[1] == '?' &&
+							s[2] == 'p' &&
+							s[3] == 'h' &&
+							s[4] == 'p')
+						{
+							Type = CodePhp;
+							START_CODE();
+							s += 4;
+						}
+						else
+						{
+							char16 *tag = s + 1;
+							while (tag < e && strchr(WhiteSpace, *tag)) tag++;
+							while (tag < e && (IsAlpha(*tag) || strchr("!_/0123456789", *tag))) tag++;
+
+							GAutoPtr<GStyle> st;
+							if (st.Reset(new GTextView3::GStyle(STYLE_IDE)))
+							{
+								st->View = this;
+								st->Start = s - Text;
+								st->Font = GetFont();
+								st->Fore = ColourHtml;
+								st->Len = tag - s;
+								InsertStyle(st);
+								s = tag - 1;
+							}
+						}
+					}
+					break;
+				}
+				case '>':
+				{
+					if (Type == CodeHtml)
+					{
+						GAutoPtr<GStyle> st;
+						if (st.Reset(new GTextView3::GStyle(STYLE_IDE)))
+						{
+							st->View = this;
+							st->Start = s - Text;
+							st->Font = GetFont();
+							st->Fore = ColourHtml;
+							st->Len = 1;
+							InsertStyle(st);
+						}
+					}
+					break;
+				}
+				case '?':
+				{
+					if (Type == CodePhp &&
+						s[1] == '>')
+					{
+						Type = CodeHtml;
+						s += 2;
+						END_CODE();
+						s--;
+					}
+					break;
+				}
+			}
+		}
+	}
 	
 	void AddKeywords(const char **keys, bool IsType)
 	{
@@ -2059,21 +2170,20 @@ public:
 			char *Ext = LgiGetExtension(Doc->GetFileName());
 			if (!Ext)
 				FileType = SrcPlainText;
-			else if (!stricmp(Ext, "c")
-					||
-					!stricmp(Ext, "cpp")
-					||
-					!stricmp(Ext, "cc")
-					||
-					!stricmp(Ext, "h")
-					||
-					!stricmp(Ext, "hpp")
-					)
+			else if (!stricmp(Ext, "c") ||
+					!stricmp(Ext, "cpp") ||
+					!stricmp(Ext, "cc") ||
+					!stricmp(Ext, "h") ||
+					!stricmp(Ext, "hpp") )
 				FileType = SrcCpp;
 			else if (!stricmp(Ext, "py"))
 				FileType = SrcPython;
 			else if (!stricmp(Ext, "xml"))
 				FileType = SrcXml;
+			else if (!stricmp(Ext, "html") ||
+					!stricmp(Ext, "htm") ||
+					!stricmp(Ext, "php"))
+				FileType = SrcHtml;
 			else
 				FileType = SrcPlainText;
 
@@ -2094,6 +2204,9 @@ public:
 				break;
 			case SrcXml:
 				StyleXml(Start, EditSize);
+				break;
+			case SrcHtml:
+				StyleHtml(Start, EditSize);
 				break;
 			default:
 				StyleDefault(Start, EditSize);

@@ -996,6 +996,8 @@ bool GTextView3::InsertStyle(GAutoPtr<GStyle> s)
 	size_t Last = 0;
 	int n = 0;
 
+	// LgiTrace("StartStyle=%i,%i(%i) %s\n", (int)s->Start, (int)s->Len, (int)(s->Start+s->Len), s->Fore.GetStr());
+
 	if (Style.Length() > 0)
 	{
 		// Optimize for last in the list
@@ -4501,6 +4503,9 @@ void GTextView3::OnPaint(GSurface *pDC)
 					ssize_t Block = l->Len - Done;
 					
 					// check for style change
+					if (NextStyle &&
+						NextStyle->End() <= l->Start)
+						NextStyle = GetNextStyle();
 					if (NextStyle)
 					{
 						// start
