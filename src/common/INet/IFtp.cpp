@@ -1028,6 +1028,7 @@ bool IFtp::TransferFile(const char *Local, const char *Remote, int64 Size, bool 
 												Error = true;
 											}
 										}
+										else break;
 
 										if (Meter && Meter->IsCancelled())
 										{

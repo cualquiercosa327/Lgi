@@ -21,6 +21,7 @@
 #include "GContainers.h"
 #include "GCapabilities.h"
 #include "GRefCount.h"
+#include "GPalette.h"
 
 // Alpha Blting
 #ifdef WIN32
