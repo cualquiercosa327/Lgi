@@ -3064,9 +3064,9 @@ int IdeDoc::OnNotify(GViewI *v, int f)
 			{
 				case GNotifyDocChanged:
 				{
-					if (!d->IsDirty)
+					if (d->IsDirty ^ d->Edit->IsDirty())
 					{
-						d->IsDirty = true;
+						d->IsDirty = d->Edit->IsDirty();
 						d->UpdateName();
 					}
 					break;

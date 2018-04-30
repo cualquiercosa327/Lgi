@@ -30,7 +30,7 @@ public:
 	GAutoPtr<GSocketI> Data;	// get data
 	GFile *F;
 	char *Charset;
-	GAutoString ErrBuf;
+	GString ErrBuf;
 	
 	GAutoString Host;
 	int Port;
@@ -390,7 +390,7 @@ int IFtp::ReadLine(char *Msg, int MsgSize)
 			}
 
 			d->In.Delete(s);
-			d->ErrBuf.Reset(s);
+			d->ErrBuf.Empty();
 			
 			if (i)
 			{
@@ -954,7 +954,10 @@ bool IFtp::TransferFile(const char *Local, const char *Remote, int64 Size, bool 
 				// Build data connection
 				if (ConnectData())
 				{
-					VerifyRange(ReadLine(), 1);
+					int Result = ReadLine();
+					int Range = Result / 100;
+					if (Range != 1 && Range != 2)
+						throw Result;
 
 					if (!d->F->Open(Local, (Upload)?O_READ:O_WRITE))
 					{
@@ -1128,11 +1131,15 @@ bool IFtp::TransferFile(const char *Local, const char *Remote, int64 Size, bool 
 	}
 	catch (int Error)
 	{
-		printf("%s:%i - error: %i\n", _FL, Error);
 		if (IsOpen())
 		{
-			LgiAssert(0);
+			d->ErrBuf.Printf("%s:%i - TransferFile(%s) error: %i\n",
+				_FL,
+				Local,
+				Error);			
 		}
+
+		Status = false;
 	}
 
 	DeleteObj(d->F);

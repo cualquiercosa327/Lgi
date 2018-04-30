@@ -3115,7 +3115,13 @@ ssize_t GTextView3::HitText(int x, int y, bool Nearest)
 
 void GTextView3::Undo()
 {
+	int Old = UndoQue.GetPos();
 	UndoQue.Undo();
+	if (Old && !UndoQue.GetPos())
+	{
+		Dirty = false;
+		SendNotify(GNotifyDocChanged);
+	}
 }
 
 void GTextView3::Redo()
