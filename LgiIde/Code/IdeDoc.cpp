@@ -38,6 +38,8 @@ const char *Untitled = "[untitled]";
 #define ColourType			GColour(0, 0, 222)
 #define ColourPhp			GColour(140, 140, 180)
 #define ColourHtml			GColour(80, 80, 255)
+#define ColourPre			GColour(150, 110, 110)
+#define ColourStyle			GColour(110, 110, 150)
 
 enum SourceType
 {
@@ -2012,7 +2014,26 @@ public:
 		CodeHtml,
 		CodePhp,
 		CodeCss,
+		CodeComment,
+		CodePre,
 	};
+
+	GColour ColourFromType(HtmlType t)
+	{
+		switch (t)
+		{
+			default:
+				return GColour::Black;
+			case CodePhp:
+				return ColourPhp;
+			case CodeCss:
+				return ColourStyle;
+			case CodePre:
+				return ColourPre;
+			case CodeComment:
+				return ColourComment;
+		}
+	}
 
 	void StyleHtml(ssize_t Start, ssize_t EditSize)
 	{
@@ -2021,32 +2042,38 @@ public:
 		Style.DeleteObjects();
 
 		HtmlType Type = CodeHtml;
-		GAutoPtr<GStyle> Php;
+		GAutoPtr<GStyle> Cur;
 
 		#define START_CODE() \
-			if (Type == CodePhp) \
+			if (Type != CodeHtml) \
 			{ \
-				if (Php.Reset(new GTextView3::GStyle(STYLE_IDE))) \
+				if (Cur.Reset(new GTextView3::GStyle(STYLE_IDE))) \
 				{ \
-					Php->View = this; \
-					Php->Start = s - Text; \
-					Php->Font = GetFont(); \
-					Php->Fore = ColourPhp; \
+					Cur->View = this; \
+					Cur->Start = s - Text; \
+					Cur->Font = GetFont(); \
+					Cur->Fore = ColourFromType(Type); \
 				} \
 			}
 		#define END_CODE() \
-			if (Php) \
+			if (Cur) \
 			{ \
-				Php->Len = (s - Text) - Php->Start; \
-				InsertStyle(Php); \
+				Cur->Len = (s - Text) - Cur->Start; \
+				InsertStyle(Cur); \
 			}
 
 		for (char16 *s = Text; s < e; s++)
 		{
 			switch (*s)
 			{
-				case '\"':
 				case '\'':
+				{
+					if (s > Text &&
+						IsAlpha(s[-1]))
+						break;
+					// else fall through
+				}
+				case '\"':
 				{
 					END_CODE();
 					StyleString(s, e);
@@ -2083,6 +2110,17 @@ public:
 				}
 				case '<':
 				{
+					#define IS_TAG(name) \
+						((tmp = strlen(#name)) && \
+							len == tmp && \
+							!Strnicmp(tag, L#name, tmp))
+					#define SCAN_TAG() \
+						char16 *tag = s + 1; \
+						char16 *c = tag; \
+						while (c < e && strchr(WhiteSpace, *c)) c++; \
+						while (c < e && (IsAlpha(*c) || strchr("!_/0123456789", *c))) c++; \
+						size_t len = c - tag, tmp;
+
 					if (Type == CodeHtml)
 					{
 						if (s[1] == '?' &&
@@ -2090,15 +2128,39 @@ public:
 							s[3] == 'h' &&
 							s[4] == 'p')
 						{
+							// Start PHP block
 							Type = CodePhp;
 							START_CODE();
 							s += 4;
 						}
+						else if (	s[1] == '!' &&
+									s[2] == '-' &&
+									s[3] == '-')
+						{
+							// Start comment
+							Type = CodeComment;
+							START_CODE();
+							s += 3;
+						}
 						else
 						{
-							char16 *tag = s + 1;
-							while (tag < e && strchr(WhiteSpace, *tag)) tag++;
-							while (tag < e && (IsAlpha(*tag) || strchr("!_/0123456789", *tag))) tag++;
+							// Html element
+							SCAN_TAG();
+							bool start = false;
+							if (IS_TAG(pre))
+							{
+								Type = CodePre;
+								while (*c && *c != '>') c++;
+								if (*c) c++;
+								start = true;
+							}
+							else if (IS_TAG(style))
+							{
+								Type = CodeCss;
+								while (*c && *c != '>') c++;
+								if (*c) c++;
+								start = true;
+							}
 
 							GAutoPtr<GStyle> st;
 							if (st.Reset(new GTextView3::GStyle(STYLE_IDE)))
@@ -2107,10 +2169,36 @@ public:
 								st->Start = s - Text;
 								st->Font = GetFont();
 								st->Fore = ColourHtml;
-								st->Len = tag - s;
+								st->Len = c - s;
 								InsertStyle(st);
-								s = tag - 1;
+								s = c - 1;
 							}
+
+							if (start)
+							{
+								s++;
+								START_CODE();
+							}
+						}
+					}
+					else if (Type == CodePre)
+					{
+						SCAN_TAG();
+						if (IS_TAG(/pre))
+						{
+							END_CODE();
+							Type = CodeHtml;
+							s--;
+						}
+					}
+					else if (Type == CodeCss)
+					{
+						SCAN_TAG();
+						if (IS_TAG(/style))
+						{
+							END_CODE();
+							Type = CodeHtml;
+							s--;
 						}
 					}
 					break;
@@ -2128,6 +2216,17 @@ public:
 							st->Fore = ColourHtml;
 							st->Len = 1;
 							InsertStyle(st);
+						}
+					}
+					else if (Type == CodeComment)
+					{
+						if (s - 2 >= Text &&
+							s[-1] == '-' &&
+							s[-2] == '-')
+						{
+							s++;
+							END_CODE();
+							Type = CodeHtml;
 						}
 					}
 					break;
