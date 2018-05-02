@@ -12,6 +12,7 @@
 #include "GCss.h"
 #include "LgiRes.h"
 #include "GEventTargetThread.h"
+#include "GPopup.h"
 
 #if WINNATIVE
 #define GViewFlags d->WndStyle
@@ -198,6 +199,18 @@ GView::~GView()
 	#ifdef LGI_SDL
 	LgiAssert(ViewMap.Find(this));
 	ViewMap.Delete(this);
+	#endif
+
+    #if !WINNATIVE
+	for (unsigned i=0; i<GPopup::CurrentPopups.Length(); i++)
+	{
+		GPopup *pu = GPopup::CurrentPopups[i];
+		if (pu->Owner == this)
+		{
+			printf("%s:%i - ~%s setting %s->Owner to NULL\n", _FL, GetClass(), pu->GetClass());
+			pu->Owner = NULL;
+		}
+	}
 	#endif
 
 	_Delete();

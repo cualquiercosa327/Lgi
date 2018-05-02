@@ -200,7 +200,8 @@ GFile.o : ./src/linux/General/GFile.cpp ./include/common/LgiDefs.h \
 	./include/common/GToken.h \
 	./include/common/Gdc2.h \
 	./include/common/LgiCommon.h \
-	./include/common/GString.h
+	./include/common/GString.h \
+	./include/common/LDateTime.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 

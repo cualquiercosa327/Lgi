@@ -382,7 +382,7 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir, GAutoString
 			bool Ok = stat(File, &f) == 0;
 			if (Ok)
 			{
-				strcpy(Path, File);
+				strcpy_s(Path, sizeof(Path), File);
 			}
 			else
 			{
@@ -425,7 +425,7 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir, GAutoString
 						{
 							TreatAsExe:
 							char f[512];
-							sprintf(f, "\"%s\" %s &", File, Args ? Args : (char*)"");
+							sprintf_s(f, sizeof(f), "\"%s\" %s &", File, Args ? Args : (char*)"");
 							return system(f) == 0;
 						}
 						else
@@ -458,67 +458,55 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir, GAutoString
 		if (App[0])
 		{
 			bool FileAdded = false;
-			char EscFile[512], *o = EscFile;
-			for (int i=0; File[i]; i++)
-			{
-				if (File[i] == ' ' || File[i] == '&')
-				{
-					*o++ = '\\';
-				}
-				
-				*o++ = File[i];
-			}
-			*o++ = 0;
+			GString AppPath;
+			GString EscFile = GString::Escape(File, -1, " &");
 
-			for (char *s=App; *s; )
+			GString a = App;
+			int Pos;
+			while ((Pos = a.Find("%")) >= 0)
 			{
-				if (*s == '%')
-				{
-					switch (s[1])
+				char *s = a.Get() + Pos;
+				printf("a='%s'\n", a.Get());
+				switch (s[1])
+				{			
+					case 'f':
+					case 'F':
 					{
-						case 'f':
-						case 'F':
-						{
-							int Len = strlen(EscFile);
-							memmove(s + 2, s + Len - 2, strlen(s + 2) + 1);
-							memcpy(s, EscFile, Len);
-							FileAdded = true;
-							break;
-						}
-						case 'u':
-						case 'U':
-						{
-							char Url[256];
-							sprintf(Url, IsUrl ? "%s" : "file:%s", EscFile);
-							int Len = strlen(Url);
-
-							memmove(s + 2, s + Len - 2, strlen(s + 2) + 1);
-							memcpy(s, Url, Len);
-							FileAdded = true;
-							break;
-						}
-						default:
-						{
-							// we don't understand this command
-							memmove(s, s + 2, strlen(s + 2) + 1);
-							break;
-						}
+						a = a(0,Pos) + EscFile + a(Pos+2,-1);
+						FileAdded = true;
+						break;
+					}
+					case 'u':
+					case 'U':
+					{
+						if (IsUrl)
+							a = a(0,Pos) + EscFile + a(Pos+2,-1);
+						else
+							a = a(0,Pos) + GString("file:") + EscFile + a(Pos+2,-1);
+						FileAdded = true;
+						break;
+					}
+					default:
+					{
+						// we don't understand this command
+						a = a(0,Pos) + a(Pos+2,-1);
+						break;
 					}
 				}
-				else s++;
+				printf("a='%s'\n", a.Get());
 			}
 
 			if (!FileAdded)
 			{
-				strcat(App, " ");
-				strcat(App, EscFile);
+				a += " ";
+				a += EscFile;
 			}
 
-			strcat(App, " > /dev/null 2> /dev/null &");
+			a += " > /dev/null 2> /dev/null &";
 
 			int e;
 			if (Dir) chdir(Dir);
-			if (e = system(App))
+			if (e = system(a))
 			{
 				if (Error)
 					*Error = LgiErrorCodeToString(errno);

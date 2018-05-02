@@ -142,6 +142,7 @@ GViewPrivate::~GViewPrivate()
 
 void GView::OnGtkRealize()
 {
+	// printf("%s::OnGtkRealize %i\n", GetClass(), d->GotOnCreate);
 	if (!d->GotOnCreate)
 	{
 		d->GotOnCreate = true;

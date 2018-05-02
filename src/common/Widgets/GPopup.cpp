@@ -684,84 +684,84 @@ bool GPopup::Attach(GViewI *p)
 	
 	if (p) SetParent(p);
 	else p = GetParent();
-	if (p)
+
+	#if WINNATIVE
+
+	SetStyle(WS_POPUP);
+	GView::Attach(p);
+	AttachChildren();
+
+	#elif defined __GTK_H__
+	
+	if (!Wnd)
 	{
-		#if WINNATIVE
+	    Wnd = gtk_window_new(GTK_WINDOW_POPUP);
+	    
+	    gtk_window_set_decorated(GTK_WINDOW(Wnd), FALSE);
+		gtk_widget_add_events(Wnd, GDK_ALL_EVENTS_MASK);
 
-		SetStyle(WS_POPUP);
-		GView::Attach(GetParent());
-		
-		AttachChildren();
-
-		#elif defined __GTK_H__
-		
-		if (!Wnd)
+		if (!p)
+			p = Owner;
+		GtkWidget *toplevel = p ? gtk_widget_get_toplevel(p->Handle()) : NULL;
+		if (GTK_IS_WINDOW(toplevel))
+			gtk_window_set_transient_for(GTK_WINDOW(Wnd), GTK_WINDOW(toplevel));
+		else
 		{
-		    Wnd = gtk_window_new(GTK_WINDOW_POPUP);
-		    
-		    gtk_window_set_decorated(GTK_WINDOW(Wnd), FALSE);
-    		gtk_widget_add_events(Wnd, GDK_ALL_EVENTS_MASK);
-
-			GViewI *p = GetParent();
-			GtkWidget *toplevel = gtk_widget_get_toplevel(p->Handle());
-			if (GTK_IS_WINDOW(toplevel))
-				gtk_window_set_transient_for(GTK_WINDOW(Wnd), GTK_WINDOW(toplevel));
-			else
-				LgiTrace("%s:%i - toplevel isn't window?\n", _FL);
-
-            g_signal_connect(	G_OBJECT(Wnd),
-								"button-press-event",
-								G_CALLBACK(PopupEvent),
-								this);
-            g_signal_connect(	G_OBJECT(Wnd),
-								"focus-in-event",
-								G_CALLBACK(PopupEvent),
-								this);
-            g_signal_connect(	G_OBJECT(Wnd),
-								"focus-out-event",
-								G_CALLBACK(PopupEvent),
-								this);
-			g_signal_connect(	G_OBJECT(Wnd),
-								"delete_event",
-								G_CALLBACK(PopupEvent),
-								this);
-			g_signal_connect(	G_OBJECT(Wnd),
-								"configure-event",
-								G_CALLBACK(PopupEvent),
-								this);
-			g_signal_connect(	G_OBJECT(Wnd),
-								"button-press-event",
-								G_CALLBACK(PopupEvent),
-								this);
-			g_signal_connect(	G_OBJECT(Wnd),
-								"client-event",
-								G_CALLBACK(PopupEvent),
-								this);
+			LgiTrace("%s:%i - toplevel isn't window?\n", _FL);
+			return false;
 		}
 
-		if (Wnd && Pos.Valid())
-		{
-			gtk_window_set_default_size(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
-			gtk_window_move(GTK_WINDOW(Wnd), Pos.x1, Pos.y1);
-		}
-
-        if (!_View)
-        {
-		    _View = lgi_widget_new(this, Pos.X(), Pos.Y(), true);
-		    gtk_container_add(GTK_CONTAINER(Wnd), _View);
-		}
-
-		#endif
-
-		if (!_Window)
-		{
-			if (Owner)
-				_Window = Owner->GetWindow();
-			else
-				_Window = p->GetWindow();
-		}
+        g_signal_connect(	G_OBJECT(Wnd),
+							"button-press-event",
+							G_CALLBACK(PopupEvent),
+							this);
+        g_signal_connect(	G_OBJECT(Wnd),
+							"focus-in-event",
+							G_CALLBACK(PopupEvent),
+							this);
+        g_signal_connect(	G_OBJECT(Wnd),
+							"focus-out-event",
+							G_CALLBACK(PopupEvent),
+							this);
+		g_signal_connect(	G_OBJECT(Wnd),
+							"delete_event",
+							G_CALLBACK(PopupEvent),
+							this);
+		g_signal_connect(	G_OBJECT(Wnd),
+							"configure-event",
+							G_CALLBACK(PopupEvent),
+							this);
+		g_signal_connect(	G_OBJECT(Wnd),
+							"button-press-event",
+							G_CALLBACK(PopupEvent),
+							this);
+		g_signal_connect(	G_OBJECT(Wnd),
+							"client-event",
+							G_CALLBACK(PopupEvent),
+							this);
 	}
-	else LgiTrace("%s:%i - Error, no parent.\n", _FL);
+
+	if (Wnd && Pos.Valid())
+	{
+		gtk_window_set_default_size(GTK_WINDOW(Wnd), Pos.X(), Pos.Y());
+		gtk_window_move(GTK_WINDOW(Wnd), Pos.x1, Pos.y1);
+	}
+
+    if (!_View)
+    {
+	    _View = lgi_widget_new(this, Pos.X(), Pos.Y(), true);
+	    gtk_container_add(GTK_CONTAINER(Wnd), _View);
+	}
+
+	#endif
+
+	if (!_Window)
+	{
+		if (Owner)
+			_Window = Owner->GetWindow();
+		else
+			_Window = p->GetWindow();
+	}
 
 	return Handle() != 0;
 
