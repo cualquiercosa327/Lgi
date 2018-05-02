@@ -44,7 +44,6 @@ public:
 	
 	void OnCreate()
 	{
-		printf("Tip OnCreate()\n");
 		if (All.Length() == 1 &&
 			All[0] == this)
 		{
@@ -73,7 +72,7 @@ public:
 						GdcPt2 pt(w.x1, w.y2);
 						t->Owner->PointToScreen(pt);
 
-						printf("Vis(%i): r=%s pt=%i,%i->%i,%i\n", in, r.GetStr(), w.x1, w.y2, pt.x, pt.y);
+						// printf("Vis(%i): r=%s pt=%i,%i->%i,%i\n", in, r.GetStr(), w.x1, w.y2, pt.x, pt.y);
 						
 						r.Offset(pt.x - r.x1, pt.y - r.y1);
 						t->SetPos(r);
@@ -149,6 +148,7 @@ public:
 	HMHelpContentRec Tag;
 	#elif LGI_NATIVE_TIPS
 	GView *Parent;
+	GHashTbl<int, NativeTip*> Tips;
 	#endif
 	
 	GToolTipPrivate()
@@ -162,6 +162,13 @@ public:
 
 	~GToolTipPrivate()
 	{
+		#if defined(MAC)
+		#elif LGI_NATIVE_TIPS
+		for (NativeTip *t = Tips.First(); t; t = Tips.Next())
+		{
+			delete t;
+		}
+		#endif
 	}
 };
 
@@ -231,8 +238,13 @@ int GToolTip::NewTip(char *Name, GRect &Pos)
 		{
 			t->Watch = Pos;
 			t->Name(Name);
+			
+			// This is a hack to get it to create a window...
 			t->Visible(true);
+			// But not show it yet... duh...
 			t->Visible(false);
+			
+			d->Tips.Add(t->Id, t);
 			
 			Status = true;
 		}
@@ -269,6 +281,7 @@ void GToolTip::DeleteTip(int Id)
 	{
 		if ((*t)->Id == Id)
 		{
+			d->Tips.Delete(Id);
 			DeleteObj( (*t) );
 			break;
 		}
