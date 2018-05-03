@@ -2113,7 +2113,7 @@ public:
 					#define IS_TAG(name) \
 						((tmp = strlen(#name)) && \
 							len == tmp && \
-							!Strnicmp(tag, L#name, tmp))
+							!Strnicmp(tag, L ## #name, tmp))
 					#define SCAN_TAG() \
 						char16 *tag = s + 1; \
 						char16 *c = tag; \
