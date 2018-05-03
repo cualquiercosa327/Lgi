@@ -1845,6 +1845,9 @@ int GTree::OnNotify(GViewI *Ctrl, int Flags)
 		case IDC_HSCROLL:
 		case IDC_VSCROLL:
 		{
+			if (Flags == GNotifyScrollBar_Create)
+				_UpdateScrollBars();
+
 			Invalidate();
 			break;
 		}

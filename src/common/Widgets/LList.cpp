@@ -757,6 +757,9 @@ int LList::OnNotify(GViewI *Ctrl, int Flags)
 		(Ctrl->GetId() == IDC_HSCROLL && HScroll)
 	)
 	{
+		if (Flags == GNotifyScrollBar_Create)
+			UpdateScrollBars();
+
 		Invalidate(&ItemsPos);
 	}
 

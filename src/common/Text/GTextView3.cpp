@@ -4868,6 +4868,9 @@ int GTextView3::OnNotify(GViewI *Ctrl, int Flags)
 {
 	if (Ctrl->GetId() == IDC_VSCROLL && VScroll)
 	{
+		if (Flags == GNotifyScrollBar_Create)
+			UpdateScrollBars();
+			
 		Invalidate();
 	}
 
