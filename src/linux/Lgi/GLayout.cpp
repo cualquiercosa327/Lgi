@@ -140,7 +140,7 @@ bool GLayout::SetScrollBars(bool x, bool y)
 		||
 		y ^ (VScroll != NULL))
 	{
-		PostEvent(M_SET_SCROLL, x, y);
+		return PostEvent(M_SET_SCROLL, x, y);
 	}
 	#else
 	_SetScrollBars(x, y);
@@ -157,6 +157,7 @@ bool GLayout::_SetScrollBars(bool x, bool y)
 		(((HScroll!=0) ^ x ) || ((VScroll!=0) ^ y )) )
 	{
 		Processing = true;
+
 		if (x)
 		{
 			if (!HScroll)

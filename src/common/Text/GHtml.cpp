@@ -7293,6 +7293,17 @@ int GHtml::OnNotify(GViewI *c, int f)
 	{
 		case IDC_VSCROLL:
 		{
+			int LineY = GetFont()->GetHeight();
+
+			if (f == GNotifyScrollBar_Create && VScroll && LineY > 0)
+			{
+				int y = Y();
+				int p = max(y / LineY, 1);
+				int fy = d->Content.y / LineY;
+				VScroll->SetPage(p);
+				VScroll->SetLimits(0, fy);
+			}
+			
 			Invalidate();
 			break;
 		}
@@ -7339,7 +7350,8 @@ GdcPt2 GHtml::Layout(bool ForceLayout)
 		{
 			d->SetScrollTime = Now;
 			SetScrollBars(false, Sy);
-			if (Sy && VScroll)
+			
+			if (Sy && VScroll && LineY > 0)
 			{
 				int y = Y();
 				int p = max(y / LineY, 1);

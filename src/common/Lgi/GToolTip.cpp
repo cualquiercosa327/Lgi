@@ -76,11 +76,11 @@ public:
 					m.Target = t->Owner;
 			
 					GRect w = t->Watch;
-					bool in = w.Overlap(m.x, m.y);					
-					// printf("Tip %s, in=%i, act=%i\n", t->GView::Name(), in, Active);					
-					in = in && Active;
+					bool Vis = w.Overlap(m.x, m.y);					
+					// printf("Tip %s, in=%i, act=%i\n", t->GView::Name(), Vis, Active);					
+					Vis = Vis && Active;
 					
-					if (in ^ t->Visible())
+					if (Vis ^ t->Visible())
 					{
 						GRect r = t->GetPos();
 						GdcPt2 pt(w.x1, w.y2);
@@ -93,7 +93,7 @@ public:
 						
 						r.Offset(pt.x - r.x1, pt.y - r.y1);
 						t->SetPos(r);
-						t->Visible(in);
+						t->Visible(Vis);
 					}
 				}
 			}

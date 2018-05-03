@@ -206,6 +206,8 @@ public:
 		int MinSize = 8;
 		#endif
 
+		// printf("Calc %i, " LGI_PrintfInt64 ", " LGI_PrintfInt64 "\n", IsValid(), Min, Max);
+
 		if (IsValid())
 		{
 			int64 Range = GetRange();
@@ -446,6 +448,7 @@ int GScrollBar::GetScrollSize()
 bool GScrollBar::Attach(GViewI *p)
 {
 	bool Status = GControl::Attach(p);
+	
 	#if 0
 	printf("%p::Attach scroll bar to %s, Status=%i, _View=%p, Vis=%i\n",
 		this, p->GetClass(),
@@ -608,10 +611,13 @@ void GScrollBar::SetLimits(int64 Low, int64 High)
 		d->Min = Low;
 		d->Max = High;
 		d->Page = MIN(d->Page, d->GetRange());
+
 		d->CalcRegions();
 
 		Invalidate();
 		OnConfigure();
+		
+		// printf("GScrollBar::SetLimits " LGI_PrintfInt64 ", " LGI_PrintfInt64 "\n", d->Min, d->Max);
 	}
 }
 

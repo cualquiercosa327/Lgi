@@ -523,10 +523,13 @@ void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 			Client.Offset(o.x, o.y);
 			// printf("Client=%s\n", Client.GetStr());
 			pDC->SetClient(&Client);
+			
+			/*
 			#ifdef _DEBUG
 			if (_Debug)
 				printf("%s:%i SetClient %s  %i,%i\n", _FL, Client.GetStr(), o.x, o.y);
 			#endif
+			*/
 		}
 	}
 
@@ -540,10 +543,13 @@ void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 		{
 			pDC->ClipRgn(rc);
 			OnPaint(pDC);
+			
+			/*
 			#ifdef _DEBUG
 			if (_Debug)
 				printf("%s:%i OnPaint %s\n", _FL, rc->GetStr());
 			#endif
+			*/
 		}
 		pDC->ClipRgn(OldClip.Valid() ? &OldClip : NULL);
 	}
