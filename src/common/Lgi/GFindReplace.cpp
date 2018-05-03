@@ -103,49 +103,11 @@ GFindDlg::GFindDlg(GView *Parent, char *Init, GFrCallback Callback, void *UserDa
     
 	if (d->Edit)
 		d->Edit->Focus(true);
-
-	RegisterHook(this, GKeyEvents);
 }
 
 GFindDlg::~GFindDlg()
 {
 	DeleteObj(d);
-}
-
-bool GFindReplaceCommon::OnViewKey(GView *v, GKey &k)
-{
-	if (k.Down() &&
-		k.Alt())
-	{
-		GViewI *Tbl;
-		if (GetViewById(IDC_FIND_TABLE, Tbl))
-		{
-			GAutoPtr<GViewIterator> Ch(Tbl->IterateViews());
-			for (GViewI *c = Ch->First(); c; c = Ch->Next())
-			{
-				char *n = c->Name(), *amp;
-				if (!n || !(amp = strchr(n, '&')))
-					continue;
-
-				if (ToLower(amp[1]) != ToLower(k.c16))
-					continue;
-
-				if (dynamic_cast<GCheckBox*>(c))
-					c->Value(!c->Value());
-				else if (dynamic_cast<GTextLabel*>(c))
-				{
-					GEdit *e = dynamic_cast<GEdit*>(Ch->Next());
-					if (e)
-						e->Focus(true);
-				}
-				else
-					c->Value(1);
-				return true;
-			}
-		}
-	}
-
-	return false;
 }
 
 void GFindDlg::OnPosChange()
@@ -269,7 +231,7 @@ GReplaceDlg::GReplaceDlg(GView *Parent, char *InitFind, char *InitReplace, GFrCa
     	c->Add(new GCheckBox(IDC_MATCH_WORD, 14, 70, -1, -1, LgiLoadString(L_FR_MATCH_WORD, "Match whole &word only")));
 
         c = t->GetCell(2, Row++);	
-    	c->Add(new GButton(IDOK, 0, 0, -1, -1, LgiLoadString(L_FR_REPLACE_ALL, "Replace All")));
+    	c->Add(new GButton(IDOK, 0, 0, -1, -1, LgiLoadString(L_FR_REPLACE_ALL, "Replace &All")));
 
         c = t->GetCell(0, Row, true, 2);
     	c->Add(new GCheckBox(IDC_MATCH_CASE, 14, 91, -1, -1, LgiLoadString(L_FR_MATCH_CASE, "Match &case")));
@@ -293,8 +255,6 @@ GReplaceDlg::GReplaceDlg(GView *Parent, char *InitFind, char *InitReplace, GFrCa
 	}
 	
 	if (f) f->Focus(true);
-
-	RegisterHook(this, GKeyEvents);
 }
 
 GReplaceDlg::~GReplaceDlg()
