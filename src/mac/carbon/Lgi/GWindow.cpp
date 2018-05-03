@@ -5,6 +5,7 @@
 #include "GToken.h"
 #include "GPopup.h"
 #include "GDisplayString.h"
+#include "GNotifications.h"
 
 extern void NextTabStop(GViewI *v, int dir);
 extern void SetDefaultFocus(GViewI *v);
@@ -1346,6 +1347,19 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 		{
 			d->CloseRequestDone = true;
 			delete this;
+			return true;
+		}
+	}
+
+	// Control shortcut?
+	if (k.Down() && k.Alt() && k.c16 > ' ')
+	{
+		GHashTbl<int,GViewI*> Map;
+		BuildShortcuts(Map);
+		GViewI *c = Map.Find(ToUpper(k.c16));
+		if (c)
+		{
+			c->OnNotify(c, GNotify_Activate);
 			return true;
 		}
 	}

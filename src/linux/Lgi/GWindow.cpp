@@ -5,6 +5,7 @@
 #include "GToken.h"
 #include "GPopup.h"
 #include "GPanel.h"
+#include "GNotifications.h"
 
 using namespace Gtk;
 #include <gdk/gdkx.h>
@@ -693,6 +694,19 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 		#endif
 		if (Wnd)
 			Wnd->Focus(true);
+	}
+
+	// Control shortcut?
+	if (k.Down() && k.Alt() && k.c16 > ' ')
+	{
+		GHashTbl<int,GViewI*> Map;
+		BuildShortcuts(Map);
+		GViewI *c = Map.Find(ToUpper(k.c16));
+		if (c)
+		{
+			c->OnNotify(c, GNotify_Activate);
+			return true;
+		}
 	}
 
 AllDone:
