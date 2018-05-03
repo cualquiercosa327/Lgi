@@ -16,10 +16,11 @@
 
 class NativeTip : public GPopup
 {
-	GDisplayString *s;
+	GAutoPtr<GDisplayString> s;
 	
 public:
 	static GArray<NativeTip*> All;
+	static NativeTip *PulseRunning;
 
 	int Id;
 	GRect Watch;
@@ -31,7 +32,6 @@ public:
 		All.Add(this);
 		Id = id;
 		Owner = p;
-		s = 0;
 		ClearFlag(WndFlags, GWF_VISIBLE);
 		Watch.ZOff(-1, -1);
 	}
@@ -39,14 +39,22 @@ public:
 	~NativeTip()
 	{
 		All.Delete(this);
-		DeleteObj(s);
+		if (PulseRunning == this)
+		{
+			PulseRunning = NULL;
+			if (All.Length() > 0)
+			{
+				PulseRunning = All[0];
+				PulseRunning->SetPulse(300);
+			}
+		}
 	}
 	
 	void OnCreate()
 	{
-		if (All.Length() == 1 &&
-			All[0] == this)
+		if (!PulseRunning)
 		{
+			PulseRunning = this;
 			SetPulse(300);
 		}
 	}
@@ -60,16 +68,25 @@ public:
 			GMouse m;
 			if (t->Owner)
 			{
+				GWindow *Wnd = t->Owner->GetWindow();
+				bool Active = Wnd ? Wnd->IsActive() : false;
+				
 				if (t->Owner->GetMouse(m))
 				{
 					m.Target = t->Owner;
 			
 					GRect w = t->Watch;
-					bool in = w.Overlap(m.x, m.y);
+					bool in = w.Overlap(m.x, m.y);					
+					// printf("Tip %s, in=%i, act=%i\n", t->GView::Name(), in, Active);					
+					in = in && Active;
+					
 					if (in ^ t->Visible())
 					{
 						GRect r = t->GetPos();
 						GdcPt2 pt(w.x1, w.y2);
+						#ifdef __GTK_H__
+						pt.y += 8;
+						#endif
 						t->Owner->PointToScreen(pt);
 
 						// printf("Vis(%i): r=%s pt=%i,%i->%i,%i\n", in, r.GetStr(), w.x1, w.y2, pt.x, pt.y);
@@ -90,9 +107,7 @@ public:
 	bool Name(char *n)
 	{
 		bool Status = GView::Name(n);
-		DeleteObj(s);
-		s = new GDisplayString(SysFont, GView::Name());
-		if (s)
+		if (s.Reset(new GDisplayString(SysFont, GView::Name())))
 		{
 			GRect r = GetPos();
 			r.Dimension(s->X() + 4, s->Y() + 2);
@@ -135,6 +150,7 @@ public:
 	}
 };
 
+NativeTip *NativeTip::PulseRunning = NULL;
 GArray<NativeTip*> NativeTip::All;
 
 #endif
@@ -277,12 +293,14 @@ void GToolTip::DeleteTip(int Id)
 	
 	#elif LGI_NATIVE_TIPS
 	
-	for (NativeTip **t = NULL; NativeTip::All.Iterate(t); )
+	for (unsigned i = 0; i < NativeTip::All.Length(); i++)
 	{
-		if ((*t)->Id == Id)
+		NativeTip *&t = NativeTip::All[i];
+		if (t->Id == Id)
 		{
 			d->Tips.Delete(Id);
-			DeleteObj( (*t) );
+			DeleteObj(t);
+			NativeTip::All.DeleteAt(i);
 			break;
 		}
 	}

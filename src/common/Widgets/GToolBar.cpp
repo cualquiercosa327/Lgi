@@ -919,7 +919,9 @@ void GToolButton::OnMouseEnter(GMouse &m)
 		if (Bar)
 		{
 			Bar->OnMouseEnter(m);
-			if (Bar->d->Tip && TipId < 0)
+			if (!Bar->TextLabels() &&
+				Bar->d->Tip &&
+				TipId < 0)
 			{
 				TipId = Bar->d->Tip->NewTip(Name(), GetPos());
 			}
