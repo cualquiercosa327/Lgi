@@ -270,7 +270,7 @@ public:
 	);
 	
 	/// Create a directory
-	bool CreateFolder(const char *PathName, bool CreateParentFoldersIfNeeded = false);
+	bool CreateFolder(const char *PathName, bool CreateParentFoldersIfNeeded = false, int *Err = NULL);
 	
 	/// Remove's a directory	
 	bool RemoveFolder
