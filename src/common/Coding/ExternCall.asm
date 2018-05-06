@@ -2,7 +2,7 @@
 ; ExternCall.asm file
 ; Custom build rule:
 ;	cd $(IntDir)
-;	"C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\bin\x86_amd64\ml64.exe" $(InputPath) /c
+;	"c:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\ml64.exe" $(InputPath) /c
 ; Output:
 ;	$(IntDir)\$(InputName).obj
 ;============================================
