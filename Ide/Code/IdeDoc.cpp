@@ -2085,6 +2085,7 @@ public:
 				case '/':
 				{
 					if (Type != CodeHtml &&
+						Type != CodePre &&
 						s[1] == '/')
 					{
 						END_CODE();
