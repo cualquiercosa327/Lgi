@@ -120,6 +120,9 @@
     <ClInclude Include="Code\levenshtein.h">
       <Filter>Source Files\levenshtein</Filter>
     </ClInclude>
+    <ClInclude Include="Code\IdeDocPrivate.h">
+      <Filter>Source Files\Docs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Code\IdeCommon.cpp">
@@ -215,6 +218,12 @@
     <ClCompile Include="Code\levenshtein.c">
       <Filter>Source Files\levenshtein</Filter>
     </ClCompile>
+    <ClCompile Include="Code\DocEditStyling.cpp">
+      <Filter>Source Files\Docs</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\DocEdit.cpp">
+      <Filter>Source Files\Docs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="..\src\win32\General\Lgi.manifest">
@@ -222,7 +231,7 @@
     </Manifest>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Code\Script1.rc">
+    <ResourceCompile Include="Resources\Script1.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
