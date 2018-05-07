@@ -860,11 +860,13 @@ bool GFileSystem::Delete(const char *FileName, bool ToTrash)
 	return false;
 }
 
-bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentTree)
+bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentTree, int *ErrorCode)
 {
 	int r = mkdir(PathName, S_IRWXU | S_IXGRP | S_IXOTH);
 	if (r)
 	{
+		if (ErrorCode)
+			*ErrorCode = errno;
 		printf("%s:%i - mkdir('%s') failed with %i, errno=%i\n", _FL, PathName, r, errno);
 	}
 	
