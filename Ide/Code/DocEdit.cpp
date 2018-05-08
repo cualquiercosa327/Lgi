@@ -14,6 +14,8 @@ GAutoPtr<GDocFindReplaceParams> GlobalFindReplace;
 
 DocEdit::DocEdit(IdeDoc *d, GFontType *f) : GTextView3(IDC_EDIT, 0, 0, 100, 100, f)
 {
+	RefreshSize = 0;
+	RefreshEdges = NULL;
 	FileType = SrcUnknown;
 	ZeroObj(HasKeyword);
 	Doc = d;
@@ -285,3 +287,60 @@ bool DocEdit::Pour(GRegion &r)
 		
 	return true;
 }
+
+int DocEdit::CountRefreshEdges(size_t At, ssize_t Len)
+{
+	if (!RefreshEdges)
+		return 0;
+
+	size_t s = MAX(0, At - (RefreshSize - 1));
+	bool t[256] = {0};
+	for (const char **Edge = RefreshEdges; *Edge; Edge++)
+	{
+		const char *e = *Edge;
+		t[e[0]] = true;
+	}
+
+	int Edges = 0;
+	for (size_t i = s; i <= At; i++)
+	{
+		if (Text[i] < 256 && t[Text[i]])
+		{
+			for (const char **Edge = RefreshEdges; *Edge; Edge++)
+			{
+				int n = i;
+				const char *e;
+				for (e = *Edge; *e; e++)
+					if (Text[n++] != *e)
+						break;
+				if (!*e)
+					Edges++;
+			}
+		}
+	}
+
+	return Edges;
+}
+
+bool DocEdit::Insert(size_t At, char16 *Data, ssize_t Len)
+{
+	int Old = CountRefreshEdges(At, 0);
+	bool Status = GTextView3::Insert(At, Data, Len);
+	int New = CountRefreshEdges(At, Len);
+	if (Old != New)
+		Invalidate();
+
+	return Status;
+}
+
+bool DocEdit::Delete(size_t At, ssize_t Len)
+{
+	int Old = CountRefreshEdges(At, Len);
+	bool Status = GTextView3::Delete(At, Len);
+	int New = CountRefreshEdges(At, 0);
+	if (Old != New)
+		Invalidate();
+
+	return Status;
+}
+

@@ -20,8 +20,11 @@ struct LanguageParams
 {
 	const char **Keywords;
 	const char **Types;
+	const char **Edges;
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// CPP
 const char *DefaultKeywords[] = {"if", "elseif", "endif", "else", "ifeq", "ifdef", "ifndef", "ifneq", "include", NULL};
 const char *CppKeywords[] = {"extern", "class", "struct", "static", "default", "case", "break",
 							"switch", "new", "delete", "sizeof", "return", "enum", "else",
@@ -34,23 +37,34 @@ const char *CppTypes[] = {	"int", "char", "unsigned", "double", "float", "bool",
 							"GArray", "GHashTbl", "List", "GString", "GAutoString", "GAutoWString",
 							"GAutoPtr",
 							NULL};
-const char *PythonKeywords[] = {"def", "try", "except", "import", "if", "for", "elif", "else", NULL};
-const char *XmlTypes[] = {	NULL};
+const char *CppEdges[] = {	"/*", "*/", NULL };
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Python
+const char *PythonKeywords[] = {"def", "try", "except", "import", "if", "for", "elif", "else", NULL};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// XML
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// HTML
+const char *HtmlEdges[] = {	"<?php", "?>", "/*", "*/", "<style", "</style>", "<pre", "</pre>", NULL };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 LanguageParams LangParam[] =
 {
 	// Unknown
-	{NULL, NULL},
+	{NULL, NULL, NULL},
 	// Plain text
-	{DefaultKeywords, NULL},
+	{DefaultKeywords, NULL, NULL},
 	// C/C++
-	{CppKeywords, CppTypes},
+	{CppKeywords, CppTypes, CppEdges},
 	// Python
-	{PythonKeywords, NULL},
+	{PythonKeywords, NULL, NULL},
 	// Xml
-	{NULL, XmlTypes},
+	{NULL, NULL, NULL},
 	// Html/Php
-	{NULL, NULL}
+	{NULL, NULL, HtmlEdges}
 };
 
 void DocEdit::StyleString(char16 *&s, char16 *e)
@@ -887,7 +901,8 @@ void DocEdit::StyleHtml(ssize_t Start, ssize_t EditSize)
 			InsertStyle(Cur); \
 		}
 
-	for (char16 *s = Text; s < e; s++)
+	char16 *s;
+	for (s = Text; s < e; s++)
 	{
 		switch (*s)
 		{
@@ -910,27 +925,50 @@ void DocEdit::StyleHtml(ssize_t Start, ssize_t EditSize)
 			case '/':
 			{
 				if (Type != CodeHtml &&
-					Type != CodePre &&
-					s[1] == '/')
+					Type != CodePre)
 				{
-					END_CODE();
-
-					char16 *nl = Strchr(s, '\n');
-					if (!nl) nl = s + Strlen(s);
-						
-					GAutoPtr<GStyle> st;
-					if (st.Reset(new GTextView3::GStyle(STYLE_IDE)))
+					if (s[1] == '/')
 					{
-						st->View = this;
-						st->Start = s - Text;
-						st->Font = GetFont();
-						st->Fore = ColourComment;
-						st->Len = nl - s;
-						InsertStyle(st);
-					}
+						END_CODE();
 
-					s = nl;
-					START_CODE();
+						char16 *nl = Strchr(s, '\n');
+						if (!nl) nl = s + Strlen(s);
+						
+						GAutoPtr<GStyle> st;
+						if (st.Reset(new GTextView3::GStyle(STYLE_IDE)))
+						{
+							st->View = this;
+							st->Start = s - Text;
+							st->Font = GetFont();
+							st->Fore = ColourComment;
+							st->Len = nl - s;
+							InsertStyle(st);
+						}
+
+						s = nl;
+						START_CODE();
+					}
+					else if (s[1] == '*')
+					{
+						END_CODE();
+
+						char16 *end_comment = Stristr(s, L"*/");
+						if (!end_comment) end_comment = s + Strlen(s);
+						
+						GAutoPtr<GStyle> st;
+						if (st.Reset(new GTextView3::GStyle(STYLE_IDE)))
+						{
+							st->View = this;
+							st->Start = s - Text;
+							st->Font = GetFont();
+							st->Fore = ColourComment;
+							st->Len = end_comment - s;
+							InsertStyle(st);
+						}
+
+						s = end_comment;
+						START_CODE();
+					}
 				}
 				break;
 			}
@@ -1071,6 +1109,8 @@ void DocEdit::StyleHtml(ssize_t Start, ssize_t EditSize)
 			}
 		}
 	}
+
+	END_CODE();
 }
 	
 void DocEdit::AddKeywords(const char **keys, bool IsType)
@@ -1117,6 +1157,13 @@ void DocEdit::PourStyle(size_t Start, ssize_t EditSize)
 			AddKeywords(LangParam[FileType].Keywords, false);
 		if (LangParam[FileType].Types)
 			AddKeywords(LangParam[FileType].Types, true);
+		if (LangParam[FileType].Edges)
+		{
+			RefreshEdges = LangParam[FileType].Edges;
+			RefreshSize = 0;
+			for (const char **e = RefreshEdges; *e; e++)
+				RefreshSize = max(strlen(*e), RefreshSize);
+		}
 	}
 
 	switch (FileType)

@@ -48,6 +48,12 @@ class DocEdit : public GTextView3, public GDocumentEnv
 
 	Keyword *HasKeyword[26];
 
+	// Full refresh triggers
+	int RefreshSize;
+	const char **RefreshEdges;
+
+	int CountRefreshEdges(size_t At, ssize_t Len);
+
 public:
 	static int LeftMarginPx;
 	enum HtmlType
@@ -62,15 +68,8 @@ public:
 	DocEdit(IdeDoc *d, GFontType *f);
 	~DocEdit();
 
-	bool AppendItems(GSubMenu *Menu, int Base) override;
-	bool DoGoto() override;
 	int GetTopPaddingPx();
 	void InvalidateLine(int Idx);
-	void OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour) override;
-	void OnMouseClick(GMouse &m) override;
-	void SetCaret(size_t i, bool Select, bool ForceFullUpdate = false) override;
-	bool OnMenu(GDocView *View, int Id, void *Context) override;
-	bool OnKey(GKey &k) override;	
 	char *TemplateMerge(const char *Template, char *Name, List<char> *Params);
 	bool GetVisible(GStyle &s);
 	void StyleString(char16 *&s, char16 *e);
@@ -81,8 +80,19 @@ public:
 	GColour ColourFromType(HtmlType t);
 	void StyleHtml(ssize_t Start, ssize_t EditSize);
 	void AddKeywords(const char **keys, bool IsType);
+
+	// Overrides
+	bool AppendItems(GSubMenu *Menu, int Base) override;
+	bool DoGoto() override;
+	void OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour) override;
+	void OnMouseClick(GMouse &m) override;
+	bool OnKey(GKey &k) override;	
+	bool OnMenu(GDocView *View, int Id, void *Context) override;
+	void SetCaret(size_t i, bool Select, bool ForceFullUpdate = false) override;
 	void PourStyle(size_t Start, ssize_t EditSize) override;
 	bool Pour(GRegion &r) override;
+	bool Insert(size_t At, char16 *Data, ssize_t Len) override;
+	bool Delete(size_t At, ssize_t Len) override;
 };
 
 #endif
