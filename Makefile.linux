@@ -256,6 +256,7 @@ GWindow.o : ./src/linux/Lgi/GWindow.cpp ./include/common/Lgi.h \
 	./include/common/GToken.h \
 	./include/common/GPopup.h \
 	./include/common/GPanel.h \
+	./include/common/GNotifications.h \
 	./include/linux/Gtk/LgiWidget.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -274,6 +275,7 @@ GViewCommon.o : ./src/common/Lgi/GViewCommon.cpp ./include/common/Lgi.h \
 	./include/common/GCss.h \
 	./include/common/LgiRes.h \
 	./include/common/GEventTargetThread.h \
+	./include/common/GPopup.h \
 	./include/linux/Gtk/LgiWidget.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -425,7 +427,8 @@ GObject.o : ./src/common/Lgi/GObject.cpp ./include/common/Gdc2.h \
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GToolTip.o : ./src/common/Lgi/GToolTip.cpp ./include/common/Lgi.h \
-	./include/common/GDisplayString.h
+	./include/common/GDisplayString.h \
+	./include/common/GPopup.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -1255,6 +1258,7 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/GContainers.h \
 	./include/common/GCapabilities.h \
 	./include/common/GRefCount.h \
+	./include/common/GPalette.h \
 	./include/common/GLibrary.h \
 	./include/common/GColourSpace.h \
 	./include/common/GRect.h \
@@ -1356,6 +1360,9 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ./include/common/GCapabilities.h : ./include/common/GHashTable.h
 
+./include/common/GPalette.h : ./include/common/GColourSpace.h \
+	./include/common/GFile.h
+
 ./include/common/GDom.h : ./include/common/LgiInterfaces.h \
 	./include/common/GMem.h \
 	./include/common/GArray.h \
@@ -1418,6 +1425,7 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/GContainers.h \
 	./include/common/GCapabilities.h \
 	./include/common/GRefCount.h \
+	./include/common/GPalette.h \
 	./include/common/GLibrary.h \
 	./include/common/GColourSpace.h \
 	./include/common/GRect.h \
