@@ -935,28 +935,33 @@ bool GFileSystem::Delete(const char *FileName, bool ToTrash)
 	return false;
 }
 
-bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentFolders)
+bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentFolders, int *ErrorCode)
 {
 	int r = mkdir(PathName, S_IRWXU | S_IXGRP | S_IXOTH);
-	if (r && CreateParentFolders)
+	if (r)
 	{
-		char Base[MAX_PATH];
-		strcpy_s(Base, sizeof(Base), PathName);
-		do
+		if (ErrorCode)
+			*ErrorCode = errno;
+		if (CreateParentFolders)
 		{
-			char *Leaf = strrchr(Base, DIR_CHAR);
-			if (!Leaf) return false;
-			*Leaf = 0;
-		}
-		while (!DirExists(Base));
-		
-		GToken Parts(PathName + strlen(Base), DIR_STR);
-		for (int i=0; i<Parts.Length(); i++)
-		{
-			LgiMakePath(Base, sizeof(Base), Base, Parts[i]);
-			r = mkdir(Base, S_IRWXU | S_IXGRP | S_IXOTH);
-			if (r)
-				break;
+			char Base[MAX_PATH];
+			strcpy_s(Base, sizeof(Base), PathName);
+			do
+			{
+				char *Leaf = strrchr(Base, DIR_CHAR);
+				if (!Leaf) return false;
+				*Leaf = 0;
+			}
+			while (!DirExists(Base));
+			
+			GToken Parts(PathName + strlen(Base), DIR_STR);
+			for (int i=0; i<Parts.Length(); i++)
+			{
+				LgiMakePath(Base, sizeof(Base), Base, Parts[i]);
+				r = mkdir(Base, S_IRWXU | S_IXGRP | S_IXOTH);
+				if (r)
+					break;
+			}
 		}
 	}
 	return r == 0;

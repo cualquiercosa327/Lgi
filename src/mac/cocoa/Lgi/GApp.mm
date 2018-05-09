@@ -940,7 +940,7 @@ bool GApp::GetOption(const char *Option, char *Dest, int DestLen)
 	return false;
 }
 
-bool GApp::GetOption(const char *Option, GAutoString &Buf)
+bool GApp::GetOption(const char *Option, GString &Buf)
 {
 	if (IsOk() && Option)
 	{
@@ -974,7 +974,7 @@ bool GApp::GetOption(const char *Option, GAutoString &Buf)
 								size_t Len = End-Arg;
 								if (Len > 0)
 								{
-									Buf.Reset(NewStr(Arg, Len));
+									Buf.Set(Arg, Len);
 								}
 								else return false;
 							}
@@ -982,7 +982,7 @@ bool GApp::GetOption(const char *Option, GAutoString &Buf)
 						}
 						else
 						{
-							Buf.Reset(NewStr(Arg));
+							Buf = Arg;
 						}
 					}
 					

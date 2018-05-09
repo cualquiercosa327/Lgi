@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -197,6 +197,7 @@
     <ClInclude Include="Code\GDebugger.h" />
     <ClInclude Include="Code\GHistory.h" />
     <ClInclude Include="Code\IdeDoc.h" />
+    <ClInclude Include="Code\IdeDocPrivate.h" />
     <ClInclude Include="Code\IdeProject.h" />
     <ClInclude Include="Code\levenshtein.h" />
     <ClInclude Include="Code\LgiIde.h" />
@@ -219,6 +220,8 @@
     <ClCompile Include="..\src\common\Lgi\GSubProcess.cpp" />
     <ClCompile Include="..\src\common\Lgi\LgiMain.cpp" />
     <ClCompile Include="Code\AddFtpFile.cpp" />
+    <ClCompile Include="Code\DocEdit.cpp" />
+    <ClCompile Include="Code\DocEditStyling.cpp" />
     <ClCompile Include="Code\FindInFiles.cpp" />
     <ClCompile Include="Code\FindSymbol.cpp" />
     <ClCompile Include="Code\FtpThread.cpp" />

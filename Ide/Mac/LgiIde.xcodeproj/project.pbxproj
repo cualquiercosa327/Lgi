@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3408BBC420A1C4C200E76EA0 /* DocEdit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3408BBC020A1C4C200E76EA0 /* DocEdit.cpp */; };
+		3408BBC520A1C4C200E76EA0 /* DocEditStyling.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3408BBC220A1C4C200E76EA0 /* DocEditStyling.cpp */; };
 		3412BAC51A6256E60096412F /* icons.png in Resources */ = {isa = PBXBuildFile; fileRef = 3412BAC41A6256E60096412F /* icons.png */; };
 		3413EC04201891E700992012 /* levenshtein.c in Sources */ = {isa = PBXBuildFile; fileRef = 3413EC00201891E700992012 /* levenshtein.c */; };
 		3413EC05201891E700992012 /* MissingFiles.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3413EC03201891E700992012 /* MissingFiles.cpp */; };
@@ -75,6 +77,10 @@
 		1870340FFE93FCAF11CA0CD7 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/main.nib; sourceTree = "<group>"; };
 		20286C33FDCF999611CA2CEA /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		32DBCF6D0370B57F00C91783 /* LgiIde_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LgiIde_Prefix.pch; sourceTree = "<group>"; };
+		3408BBC020A1C4C200E76EA0 /* DocEdit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DocEdit.cpp; path = ../Code/DocEdit.cpp; sourceTree = "<group>"; };
+		3408BBC120A1C4C200E76EA0 /* DocEdit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DocEdit.h; path = ../Code/DocEdit.h; sourceTree = "<group>"; };
+		3408BBC220A1C4C200E76EA0 /* DocEditStyling.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DocEditStyling.cpp; path = ../Code/DocEditStyling.cpp; sourceTree = "<group>"; };
+		3408BBC320A1C4C200E76EA0 /* IdeDocPrivate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IdeDocPrivate.h; path = ../Code/IdeDocPrivate.h; sourceTree = "<group>"; };
 		3412BAC41A6256E60096412F /* icons.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = icons.png; path = ../Resources/icons.png; sourceTree = "<group>"; };
 		3413EBFF201891E700992012 /* IdeProjectSettings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IdeProjectSettings.h; path = ../Code/IdeProjectSettings.h; sourceTree = "<group>"; };
 		3413EC00201891E700992012 /* levenshtein.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = levenshtein.c; path = ../Code/levenshtein.c; sourceTree = "<group>"; };
@@ -165,9 +171,9 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				3408BBBE20A1C4AE00E76EA0 /* Doc */,
 				3413EC02201891E700992012 /* LgiIde.h */,
 				34D20B7C1CB2864700730172 /* IdeCommon.cpp */,
-				349A25031A5E3D1D00F4263E /* IdeDoc.cpp */,
 				349A25081A5E3D1D00F4263E /* LgiIde.cpp */,
 				349A250A1A5E3D1D00F4263E /* LgiUtils.cpp */,
 				349A25041A5E3D1D00F4263E /* IdeDoc.h */,
@@ -207,6 +213,18 @@
 				4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */,
 			);
 			name = "External Frameworks and Libraries";
+			sourceTree = "<group>";
+		};
+		3408BBBE20A1C4AE00E76EA0 /* Doc */ = {
+			isa = PBXGroup;
+			children = (
+				3408BBC020A1C4C200E76EA0 /* DocEdit.cpp */,
+				3408BBC120A1C4C200E76EA0 /* DocEdit.h */,
+				3408BBC220A1C4C200E76EA0 /* DocEditStyling.cpp */,
+				3408BBC320A1C4C200E76EA0 /* IdeDocPrivate.h */,
+				349A25031A5E3D1D00F4263E /* IdeDoc.cpp */,
+			);
+			name = Doc;
 			sourceTree = "<group>";
 		};
 		349A24F21A5E3C5C00F4263E /* Products */ = {
@@ -391,6 +409,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3408BBC420A1C4C200E76EA0 /* DocEdit.cpp in Sources */,
 				342D773A11FA48B6005BADBD /* GControlTree.cpp in Sources */,
 				342D774A11FA4929005BADBD /* LgiMain.cpp in Sources */,
 				34D20B7B1CB2862E00730172 /* AddFtpFile.cpp in Sources */,
@@ -417,6 +436,7 @@
 				349A25241A5E401100F4263E /* GLexCpp.cpp in Sources */,
 				349A25281A5E408D00F4263E /* GParseCpp.cpp in Sources */,
 				349A252B1A5E431F00F4263E /* GMdi.cpp in Sources */,
+				3408BBC520A1C4C200E76EA0 /* DocEditStyling.cpp in Sources */,
 				349A252D1A5E433A00F4263E /* GSubProcess.cpp in Sources */,
 				349A252F1A5E434A00F4263E /* IFtp.cpp in Sources */,
 				349A25311A5E43F600F4263E /* Png.cpp in Sources */,
