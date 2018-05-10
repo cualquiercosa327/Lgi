@@ -15,6 +15,14 @@
 			<Node File="./Code/WebFldDlg.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/WebFldDlg.h" Type="3" Platforms="15" />
 		</Node>
+		<Node Name="Docs" Type="1" Platforms="15" Id="1">
+			<Node File="./Code/DocEdit.cpp" Type="2" Platforms="15" />
+			<Node File="./Code/DocEdit.h" Type="3" Platforms="15" />
+			<Node File="./Code/DocEditStyling.cpp" Type="2" Platforms="15" />
+			<Node File="./Code/IdeDoc.cpp" Type="2" Platforms="15" />
+			<Node File="./Code/IdeDoc.h" Type="3" Platforms="15" />
+			<Node File="./Code/IdeDocPrivate.h" Type="3" Platforms="15" />
+		</Node>
 		<Node Name="Ftp" Type="1" Platforms="15" Open="0" Id="4">
 			<Node File="./Code/FtpThread.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/FtpThread.h" Type="3" Platforms="15" />
@@ -22,8 +30,6 @@
 			<Node File="../include/common/IFtp.h" Type="3" Platforms="15" />
 		</Node>
 		<Node Name="Projects" Type="1" Platforms="15" Id="1">
-			<Node File="./Code/IdeDoc.cpp" Type="2" Platforms="15" />
-			<Node File="./Code/IdeDoc.h" Type="3" Platforms="15" />
 			<Node File="./Code/IdeProject.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/IdeProject.h" Type="3" Platforms="15" />
 			<Node File="./Code/IdeProjectSettings.cpp" Type="2" Platforms="15" />

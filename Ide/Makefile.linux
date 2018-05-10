@@ -61,9 +61,11 @@ Depends =	GDebugContext.o \
 			GSubProcess.o \
 			AddFtpFile.o \
 			WebFldDlg.o \
+			DocEdit.o \
+			DocEditStyling.o \
+			IdeDoc.o \
 			FtpThread.o \
 			IFtp.o \
-			IdeDoc.o \
 			IdeProject.o \
 			IdeProjectSettings.o \
 			levenshtein.o \
@@ -375,16 +377,18 @@ WebFldDlg.o : ./Code/WebFldDlg.cpp ../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-FtpThread.o : ./Code/FtpThread.cpp ../include/common/Lgi.h \
-	./Code/FtpThread.h
+DocEdit.o : ./Code/DocEdit.cpp ../include/common/Lgi.h \
+	./Code/LgiIde.h \
+	../include/common/LgiRes.h \
+	./Code/DocEdit.h \
+	./Code/IdeDocPrivate.h \
+	../include/common/GScrollBar.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-IFtp.o : ../src/common/INet/IFtp.cpp ../include/common/Gdc2.h \
-	../include/common/IFtp.h \
-	../include/common/GToken.h \
-	../include/common/GString.h \
-	../include/common/LgiCommon.h
+DocEditStyling.o : ./Code/DocEditStyling.cpp ../include/common/Lgi.h \
+	./Code/LgiIde.h \
+	./Code/DocEdit.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -403,7 +407,22 @@ IdeDoc.o : ./Code/IdeDoc.cpp ../include/common/Lgi.h \
 	./Code/ProjectNode.h \
 	../include/common/GEventTargetThread.h \
 	../include/common/GCheckBox.h \
-	./Code/SpaceTabConv.h
+	./Code/SpaceTabConv.h \
+	./Code/DocEdit.h \
+	./Code/IdeDocPrivate.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+FtpThread.o : ./Code/FtpThread.cpp ../include/common/Lgi.h \
+	./Code/FtpThread.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+IFtp.o : ../src/common/INet/IFtp.cpp ../include/common/Gdc2.h \
+	../include/common/IFtp.h \
+	../include/common/GToken.h \
+	../include/common/GString.h \
+	../include/common/LgiCommon.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -752,6 +771,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GCss.h \
 	../include/common/GFontCache.h
 
+./Code/GDebugContext.h : 
+
 ../include/common/Base64.h : ../include/common/LgiDefs.h
 
 ../src/common/Widgets/GStatusBar.cpp : ../include/common/Lgi.h \
@@ -788,6 +809,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 ../include/common/GButton.h : 
 
 ../include/common/GUtf8.h : 
+
+./Code/IdeProjectSettings.h : 
 
 ../src/common/Widgets/GRadioGroup.cpp : ../include/common/Lgi.h \
 	../include/common/GSkinEngine.h \
@@ -930,6 +953,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GCss.h \
 	../include/common/LgiRes.h \
 	../include/common/GEventTargetThread.h \
+	../include/common/GPopup.h \
 	../include/linux/Gtk/LgiWidget.h
 
 ../include/linux/Gtk/LgiWidget.h : 
@@ -993,7 +1017,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GDragAndDrop.h
 
 ../src/common/Lgi/GToolTip.cpp : ../include/common/Lgi.h \
-	../include/common/GDisplayString.h
+	../include/common/GDisplayString.h \
+	../include/common/GPopup.h
 
 ./Resources/resdefs.h : 
 
@@ -1039,6 +1064,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GContainers.h \
 	../include/common/GCapabilities.h \
 	../include/common/GRefCount.h \
+	../include/common/GPalette.h \
 	../include/common/GLibrary.h \
 	../include/common/GColourSpace.h \
 	../include/common/GRect.h \
@@ -1144,6 +1170,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GContainers.h \
 	../include/common/GCapabilities.h \
 	../include/common/GRefCount.h \
+	../include/common/GPalette.h \
 	../include/common/GLibrary.h \
 	../include/common/GColourSpace.h \
 	../include/common/GRect.h \
@@ -1205,8 +1232,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GMem.h \
 	../include/common/GArray.h \
 	../include/common/LgiClass.h
-
-./Code/GDebugContext.h : 
 
 ../include/common/GAutoPtr.h : 
 
@@ -1322,6 +1347,13 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 
 ./Code/AddFtpFile.h : ./Code/FtpThread.h
 
+./Code/FtpThread.h : ../include/common/LList.h \
+	../include/common/IFtp.h
+
+../include/common/IFtp.h : ../include/common/INet.h \
+	../include/common/LDateTime.h \
+	../include/common/GStringClass.h
+
 ../include/common/GOptionsFile.h : ../include/common/GVariant.h \
 	../include/common/GXmlTree.h \
 	../include/common/LMutex.h
@@ -1383,10 +1415,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	./Code/IdeProject.h \
 	./Code/FindInFiles.h
 
-./Code/IdeDoc.h : ../include/common/GMdi.h \
-	../include/common/GTextView3.h \
-	./Code/SimpleCppParser.h
-
 ./Code/FindSymbol.h : ../include/common/GEventTargetThread.h
 
 ./Code/IdeProject.h : ../include/common/GXmlTree.h \
@@ -1398,12 +1426,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/LList.h \
 	./Code/IdeProjectSettings.h \
 	./Code/GDebugContext.h
-
-./Resources/resdefs.h : 
-
-./Code/FindInFiles.h : ./Code/GHistory.h
-
-./Code/GHistory.h : ../include/common/GPopup.h
 
 ../include/common/GLexCpp.h : ../include/common/LgiInc.h \
 	../include/linux/Gtk/LgiOsDefs.h \
@@ -1420,13 +1442,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 
 ../src/common/Gdc2/8Bit.cpp : ../include/common/Gdc2.h \
 	../include/common/GPalette.h
-
-./Code/FtpThread.h : ../include/common/LList.h \
-	../include/common/IFtp.h
-
-../include/common/IFtp.h : ../include/common/INet.h \
-	../include/common/LDateTime.h \
-	../include/common/GStringClass.h
 
 ../src/common/General/GPassword.cpp : ../include/common/Lgi.h \
 	../include/common/GPassword.h \
@@ -1498,6 +1513,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 ../include/common/Core.h : 
 
 ./Code/GHistory.h : ../include/common/GPopup.h
+
+./Resources/resource.h : 
 
 ../include/common/LgiInterfaces.h : ../include/common/GMem.h \
 	../include/common/GArray.h \
@@ -1577,6 +1594,9 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GCss.h \
 	../include/common/GFontCache.h
 
+./Code/GDebugger.h : ../include/common/GVariant.h \
+	../include/common/GStringClass.h
+
 ../include/common/GSlider.h : 
 
 ../include/common/GPalette.h : ../include/common/GColourSpace.h \
@@ -1654,9 +1674,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 
 ../include/win32/GSymLookup.h : 
 
-./Code/GDebugger.h : ../include/common/GVariant.h \
-	../include/common/GStringClass.h
-
 ../include/common/GStringClass.h : ../include/common/GUnicode.h \
 	../include/common/GArray.h
 
@@ -1680,6 +1697,10 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/linux/Gtk/LgiOsClasses.h \
 	../include/common/GColour.h \
 	../include/common/GCapabilities.h
+
+./Code/IdeDoc.h : ../include/common/GMdi.h \
+	../include/common/GTextView3.h \
+	./Code/SimpleCppParser.h
 
 ../src/common/INet/Base64.cpp : ../include/common/GMem.h \
 	../include/common/LgiInc.h \
@@ -1718,8 +1739,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 ../src/common/Gdc2/GColour.cpp : ../include/common/Lgi.h \
 	../include/common/GPalette.h
 
-./Code/IdeProjectSettings.h : 
-
 ../include/common/LCancel.h : 
 
 ../src/common/Gdc2/Font/LStringLayout.cpp : ../include/common/Lgi.h \
@@ -1732,6 +1751,9 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GTableLayout.h
 
 ../src/common/Lgi/GMenuCommon.cpp : ../include/common/Lgi.h
+
+./Code/DocEdit.h : ../include/common/GTextView3.h \
+	./Code/IdeDoc.h
 
 ../src/linux/Lgi/GPrinter.cpp : ../include/common/Lgi.h \
 	../include/common/LList.h \
@@ -1750,7 +1772,13 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GDisplayString.h \
 	../include/common/GPixelRops.h
 
+./Code/FindInFiles.h : ./Code/GHistory.h
+
+./Code/GHistory.h : ../include/common/GPopup.h
+
 ../include/common/GFileSelect.h : 
+
+./Code/IdeDocPrivate.h : 
 
 ../include/common/GMem.h : ../include/common/LgiInc.h \
 	../include/linux/Gtk/LgiOsDefs.h
@@ -1774,6 +1802,7 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GToken.h \
 	../include/common/GPopup.h \
 	../include/common/GPanel.h \
+	../include/common/GNotifications.h \
 	../include/linux/Gtk/LgiWidget.h
 
 ../include/common/GPanel.h : ../include/common/GDisplayString.h
@@ -1851,8 +1880,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 
 ../include/common/LThreadEvent.h : 
 
-./Code/SimpleCppParser.h : ../include/common/GLexCpp.h
-
 ../include/common/GMdi.h : 
 
 ../include/common/GImageList.h : 
@@ -1922,8 +1949,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 ../include/common/GProgressDlg.h : ../include/common/GTextLabel.h \
 	../include/common/GTableLayout.h
 
-./Resources/resource.h : 
-
 ../include/common/GStream.h : ../include/common/GDom.h \
 	../include/common/GStringClass.h
 
@@ -1944,12 +1969,15 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GToken.h \
 	../include/common/Gdc2.h \
 	../include/common/LgiCommon.h \
-	../include/common/GString.h
+	../include/common/GString.h \
+	../include/common/LDateTime.h
 
 ../src/common/Text/GToken.cpp : ../include/common/GMem.h \
 	../include/common/GContainers.h \
 	../include/common/GToken.h \
 	../include/common/GString.h
+
+./Code/SimpleCppParser.h : ../include/common/GLexCpp.h
 
 ../src/common/General/LDateTime.cpp : ../include/common/Lgi.h \
 	../include/common/LDateTime.h \
@@ -1996,6 +2024,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 
 ../include/common/GParseCpp.h : 
 
+./Resources/resdefs.h : 
+
 ../include/common/GViewPriv.h : 
 
 ../include/common/GPopup.h : 
@@ -2019,7 +2049,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 ../src/common/Text/GUtf8.cpp : ../include/common/Lgi.h \
 	../include/common/GUtf8.h
 
-../include/common/GTextLog.h : ../include/common/GTextView3.h
+../include/common/GTextLog.h : ../include/common/GTextView3.h \
+	../include/common/INet.h
 
 ../src/common/INet/INet.cpp : ../include/common/GFile.h \
 	../include/common/INet.h \
@@ -2046,10 +2077,10 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 
 VPATH=%.cpp \
 	../include/linux/Gtk \
-	../include/linux \
 	./Resources \
-	./Code \
-	../include/common \
+	../include/linux \
 	./ \
+	../include/common \
+	./Code \
 	$(BuildDir)
 
