@@ -2258,6 +2258,7 @@ void GTextView3::UpdateScrollBars(bool Reset)
 
 		int DisplayLines = Y() / LineY;
 		int Lines = GetLines();
+		printf("SetLimits %i, %i\n", 0, (int)Lines);
 		VScroll->SetLimits(0, Lines);
 		if (VScroll)
 		{
@@ -2267,7 +2268,6 @@ void GTextView3::UpdateScrollBars(bool Reset)
 			bool Inval = false;
 			if (VScroll->Value() > Max)
 			{
-
 				VScroll->Value(Max);
 				Inval = true;
 			}
@@ -4869,7 +4869,9 @@ int GTextView3::OnNotify(GViewI *Ctrl, int Flags)
 	if (Ctrl->GetId() == IDC_VSCROLL && VScroll)
 	{
 		if (Flags == GNotifyScrollBar_Create)
+		{
 			UpdateScrollBars();
+		}
 			
 		Invalidate();
 	}
