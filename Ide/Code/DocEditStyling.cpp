@@ -37,7 +37,7 @@ const char *CppTypes[] = {	"int", "char", "unsigned", "double", "float", "bool",
 							"GArray", "GHashTbl", "List", "GString", "GAutoString", "GAutoWString",
 							"GAutoPtr",
 							NULL};
-const char *CppEdges[] = {	"/*", "*/", NULL };
+const char *CppEdges[] = {	"/*", "*/", "\"", NULL };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Python
@@ -48,7 +48,7 @@ const char *PythonKeywords[] = {"def", "try", "except", "import", "if", "for", "
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // HTML
-const char *HtmlEdges[] = {	"<?php", "?>", "/*", "*/", "<style", "</style>", "<pre", "</pre>", NULL };
+const char *HtmlEdges[] = {	"<?php", "?>", "/*", "*/", "<style", "</style>", "<pre", "</pre>", "\"", "\'", NULL };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 LanguageParams LangParam[] =
@@ -898,7 +898,10 @@ void DocEdit::StyleHtml(ssize_t Start, ssize_t EditSize)
 		if (Cur) \
 		{ \
 			Cur->Len = (s - Text) - Cur->Start; \
-			InsertStyle(Cur); \
+			if (Cur->Len > 0) \
+				InsertStyle(Cur); \
+			else \
+				Cur.Reset(); \
 		}
 
 	char16 *s;
