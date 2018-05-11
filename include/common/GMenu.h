@@ -291,7 +291,7 @@ private:
 	bool			Update();
 	#endif
 	#if defined(__GTK_H__) || defined(BEOS) || defined(LGI_SDL)
-	GAutoString		ShortCut;
+	GString			ShortCut;
 	#endif
 
 protected:

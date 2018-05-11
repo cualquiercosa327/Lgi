@@ -136,7 +136,7 @@ public:
 							(255 + G24(SlideCol)) >> 1,
 							(255 + B24(SlideCol)) >> 1);
 
-		printf("Paint %ix%i, %s\n", pDC->X(), pDC->Y(), Widget->GetPos().GetStr());
+		// printf("Paint %ix%i, %s\n", pDC->X(), pDC->Y(), Widget->GetPos().GetStr());
 		if (IsValid())
 		{
 			// slide space
@@ -207,7 +207,7 @@ public:
 		int MinSize = 8;
 		#endif
 
-		printf("Calc %i, " LGI_PrintfInt64 ", " LGI_PrintfInt64 "\n", IsValid(), Min, Max);
+		// printf("Calc %i, " LGI_PrintfInt64 ", " LGI_PrintfInt64 "\n", IsValid(), Min, Max);
 
 		if (IsValid())
 		{

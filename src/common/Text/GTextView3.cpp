@@ -2258,7 +2258,7 @@ void GTextView3::UpdateScrollBars(bool Reset)
 
 		int DisplayLines = Y() / LineY;
 		int Lines = GetLines();
-		printf("SetLimits %i, %i\n", 0, (int)Lines);
+		// printf("SetLimits %i, %i\n", 0, (int)Lines);
 		VScroll->SetLimits(0, Lines);
 		if (VScroll)
 		{

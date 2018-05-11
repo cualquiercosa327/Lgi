@@ -68,7 +68,6 @@ LgiMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Whe
 	{
 		i->Id(Id);
 		i->Enabled(Enabled);
-		i->ScanForAccel();
 
 		Items.Insert(i, Where);
 
@@ -410,7 +409,7 @@ LgiMenuItem::GMenuItem(::GMenu *m, GSubMenu *p, const char *txt, int Pos, const 
 	GAutoString Txt = MenuItemParse(txt);
 	GBase::Name(txt);
 	Info = GTK_MENU_ITEM(gtk_menu_item_new_with_mnemonic(Txt));
-
+	
 	Gtk::gulong ret = Gtk::g_signal_connect_data(Info,
 												"activate",
 												(Gtk::GCallback) MenuItemCallback,
@@ -429,7 +428,7 @@ LgiMenuItem::GMenuItem(::GMenu *m, GSubMenu *p, const char *txt, int Pos, const 
 	_Icon = -1;
 	_Id = 0;
 
-	ShortCut.Reset(NewStr(shortcut));
+	ShortCut = shortcut;
 	ScanForAccel();
 }
 
@@ -570,127 +569,165 @@ bool LgiMenuItem::ScanForAccel()
 		}
 	}
 
-	if (Sc)	
+	if (!Sc)
+		return false;
+
+	GToken Keys(Sc, "+-");
+	if (Keys.Length() > 0)
 	{
-		GToken Keys(Sc, "+-");
-		if (Keys.Length() > 0)
+		int Flags = 0;
+		char16 Key = 0;
+		
+		for (int i=0; i<Keys.Length(); i++)
 		{
-			int Flags = 0;
-			char16 Key = 0;
-			
-			for (int i=0; i<Keys.Length(); i++)
+			char *k = Keys[i];
+			if (stricmp(k, "Ctrl") == 0)
 			{
-				char *k = Keys[i];
-				if (stricmp(k, "Ctrl") == 0)
-				{
-					Flags |= LGI_EF_CTRL;
-				}
-				else if (stricmp(k, "Alt") == 0)
-				{
-					Flags |= LGI_EF_ALT;
-				}
-				else if (stricmp(k, "Shift") == 0)
-				{
-					Flags |= LGI_EF_SHIFT;
-				}
-				else if (stricmp(k, "Del") == 0 ||
-						 stricmp(k, "Delete") == 0)
-				{
-					Key = VK_DELETE;
-				}
-				else if (stricmp(k, "Ins") == 0 ||
-						 stricmp(k, "Insert") == 0)
-				{
-					Key = VK_INSERT;
-				}
-				else if (stricmp(k, "Home") == 0)
-				{
-					Key = VK_HOME;
-				}
-				else if (stricmp(k, "End") == 0)
-				{
-					Key = VK_END;
-				}
-				else if (stricmp(k, "PageUp") == 0)
-				{
-					Key = VK_PAGEUP;
-				}
-				else if (stricmp(k, "PageDown") == 0)
-				{
-					Key = VK_PAGEDOWN;
-				}
-				else if (stricmp(k, "Backspace") == 0)
-				{
-					Key = VK_BACKSPACE;
-				}
-				else if (stricmp(k, "Left") == 0)
-				{
-					Key = VK_LEFT;
-				}
-				else if (stricmp(k, "Up") == 0)
-				{
-					Key = VK_UP;
-				}
-				else if (stricmp(k, "Right") == 0)
-				{
-					Key = VK_RIGHT;
-				}
-				else if (stricmp(k, "Down") == 0)
-				{
-					Key = VK_DOWN;
-				}
-				else if (!stricmp(k, "Esc") || !stricmp(k, "Escape"))
-				{
-					Key = VK_ESCAPE;
-				}
-				else if (stricmp(k, "Space") == 0)
-				{
-					Key = ' ';
-				}
-				else if (k[0] == 'F' && isdigit(k[1]))
-				{
-					int Idx = atoi(k+1);
-					Key = VK_F1 + Idx - 1;
-				}
-				else if (isalpha(k[0]))
-				{
-					Key = toupper(k[0]);
-				}
-				else if (isdigit(k[0]))
-				{
-					Key = k[0];
-				}
+				Flags |= LGI_EF_CTRL;
 			}
-			
-			if (Key)
+			else if (stricmp(k, "Alt") == 0)
 			{
-				Gtk::gint GtkKey = LgiKeyToGtkKey(Key, Sc);
-				if (GtkKey)
-				{
-					gtk_widget_add_accelerator(	GtkCast(Info, gtk_widget, GtkWidget),
-												"activate",
-												Menu->AccelGrp,
-												GtkKey,
-												(Gtk::GdkModifierType)
-												(
-													(TestFlag(Flags, LGI_EF_CTRL)  ? Gtk::GDK_CONTROL_MASK : 0) |
-													(TestFlag(Flags, LGI_EF_SHIFT) ? Gtk::GDK_SHIFT_MASK : 0) |
-													(TestFlag(Flags, LGI_EF_ALT)   ? Gtk::GDK_MOD1_MASK : 0)
-												),
-												Gtk::GTK_ACCEL_VISIBLE
-											);
-				}
-				
-				Menu->Accel.Insert( new GAccelerator(Flags, Key, Id()) );
+				Flags |= LGI_EF_ALT;
+			}
+			else if (stricmp(k, "Shift") == 0)
+			{
+				Flags |= LGI_EF_SHIFT;
+			}
+			else if (stricmp(k, "Del") == 0 ||
+					 stricmp(k, "Delete") == 0)
+			{
+				Key = VK_DELETE;
+			}
+			else if (stricmp(k, "Ins") == 0 ||
+					 stricmp(k, "Insert") == 0)
+			{
+				Key = VK_INSERT;
+			}
+			else if (stricmp(k, "Home") == 0)
+			{
+				Key = VK_HOME;
+			}
+			else if (stricmp(k, "End") == 0)
+			{
+				Key = VK_END;
+			}
+			else if (stricmp(k, "PageUp") == 0)
+			{
+				Key = VK_PAGEUP;
+			}
+			else if (stricmp(k, "PageDown") == 0)
+			{
+				Key = VK_PAGEDOWN;
+			}
+			else if (stricmp(k, "Backspace") == 0)
+			{
+				Key = VK_BACKSPACE;
+			}
+			else if (stricmp(k, "Left") == 0)
+			{
+				Key = VK_LEFT;
+			}
+			else if (stricmp(k, "Up") == 0)
+			{
+				Key = VK_UP;
+			}
+			else if (stricmp(k, "Right") == 0)
+			{
+				Key = VK_RIGHT;
+			}
+			else if (stricmp(k, "Down") == 0)
+			{
+				Key = VK_DOWN;
+			}
+			else if (!stricmp(k, "Esc") || !stricmp(k, "Escape"))
+			{
+				Key = VK_ESCAPE;
+			}
+			else if (stricmp(k, "Space") == 0)
+			{
+				Key = ' ';
+			}
+			else if (k[0] == 'F' && isdigit(k[1]))
+			{
+				int Idx = atoi(k+1);
+				Key = VK_F1 + Idx - 1;
+			}
+			else if (isalpha(k[0]))
+			{
+				Key = toupper(k[0]);
+			}
+			else if (isdigit(k[0]))
+			{
+				Key = k[0];
 			}
 			else
 			{
-				printf("Accel scan failed, str='%s'\n", Sc);
+				printf("%s:%i - Unknown shortcut part '%s'\n", _FL, k);
 			}
+		}
+		
+		if (Key)
+		{
+			Gtk::gint GtkKey = LgiKeyToGtkKey(Key, Sc);
+			if (GtkKey)
+			{
+				GtkWidget *w = GtkCast(Info, gtk_widget, GtkWidget);
+				Gtk::GdkModifierType mod = (Gtk::GdkModifierType)
+					(
+						(TestFlag(Flags, LGI_EF_CTRL)  ? Gtk::GDK_CONTROL_MASK : 0) |
+						(TestFlag(Flags, LGI_EF_SHIFT) ? Gtk::GDK_SHIFT_MASK : 0) |
+						(TestFlag(Flags, LGI_EF_ALT)   ? Gtk::GDK_MOD1_MASK : 0)
+					);
+
+				const char *Signal = "activate";
+
+				/*
+				GSignalQuery query;
+				g_signal_query (g_signal_lookup (Signal, G_OBJECT_TYPE (w)), &query);
+
+				if (!stricmp(Sc, "Ctrl+C"))
+				{
+					int none = G_TYPE_NONE;
+					
+					if (!query.signal_id)
+						printf("Bad sig id\n");
+					else if (!(query.signal_flags & G_SIGNAL_ACTION))
+						printf("No sig act\n");
+					else if (query.return_type != G_TYPE_NONE)
+						printf("Ret type err\n");
+					else if (query.n_params)
+						printf("Param err.\n");
+					else
+						printf("Pre-cond ok.\n");
+				}
+				*/
+			
+				gtk_widget_add_accelerator(	w,
+											Signal,
+											Menu->AccelGrp,
+											GtkKey,
+											mod,
+											Gtk::GTK_ACCEL_VISIBLE
+										);
+				// printf("Installing short cut '%s', w=%p, key=%i(%c), mod=%x\n", Sc, w, GtkKey, GtkKey, mod);
+
+				gtk_widget_show_all(w);
+			}
+			else
+			{
+				printf("%s:%i - No gtk key for '%s'\n", _FL, Sc);
+			}
+			
+			Menu->Accel.Insert( new GAccelerator(Flags, Key, Id()) );
+		}
+		else
+		{
+			printf("%s:%i - Accel scan failed, str='%s'\n", _FL, Sc);
+			return false;
 		}
 	}
 
-	return false;
+	return true;
 }
 
 GSubMenu *LgiMenuItem::GetParent()
