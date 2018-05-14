@@ -918,11 +918,14 @@ void DocEdit::StyleHtml(ssize_t Start, ssize_t EditSize)
 			}
 			case '\"':
 			{
-				END_CODE();
-				StyleString(s, e);
-				s++;
-				START_CODE();
-				s--;
+				if (Type != CodeComment)
+				{
+					END_CODE();
+					StyleString(s, e);
+					s++;
+					START_CODE();
+					s--;
+				}
 				break;
 			}
 			case '/':
@@ -957,6 +960,7 @@ void DocEdit::StyleHtml(ssize_t Start, ssize_t EditSize)
 
 						char16 *end_comment = Stristr(s, L"*/");
 						if (!end_comment) end_comment = s + Strlen(s);
+						else end_comment += 2;
 						
 						GAutoPtr<GStyle> st;
 						if (st.Reset(new GTextView3::GStyle(STYLE_IDE)))
