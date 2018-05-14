@@ -1148,31 +1148,30 @@ bool VCal::Import(GDataPropI *c, GStreamI *In)
 
 		// Set the TZ
 		int EffectiveTz = 0;
-		LDateTime *Start = c->GetDate(FIELD_CAL_START_UTC);
-		if (Match && Start)
+		if (Match)
 		{
 			LDateTime Norm, Dst;
-			if (EvalRule(Norm, Match->Normal, Start->Year()) &&
-				EvalRule(Dst, Match->Daylight, Start->Year()))
+			if (EvalRule(Norm, Match->Normal, EventStart.Year()) &&
+				EvalRule(Dst, Match->Daylight, EventStart.Year()))
 			{
 				bool IsDst = false;
 				if (Norm > Dst)
 				{
 					// DST over summer
-					if (*Start >= Dst && *Start <= Norm)
+					if (EventStart >= Dst && EventStart <= Norm)
 						IsDst = true;
 				}
 				else
 				{
 					// DST over winter
-					if (*Start >= Norm && *Start <= Dst)
+					if (EventStart >= Norm && EventStart <= Dst)
 						IsDst = false;
 					else
 						IsDst = true;
 				}
 				
 				#ifdef _DEBUG
-				LgiTrace("Eval Start=%s, Norm=%s, Dst=%s, IsDst=%i\n", Start->Get().Get(), Norm.Get().Get(), Dst.Get().Get(), IsDst);
+				LgiTrace("Eval Start=%s, Norm=%s, Dst=%s, IsDst=%i\n", EventStart.Get().Get(), Norm.Get().Get(), Dst.Get().Get(), IsDst);
 				#endif
 				
 				EffectiveTz = IsDst ? Match->Daylight.To : Match->Normal.To;
@@ -1210,12 +1209,19 @@ bool VCal::Import(GDataPropI *c, GStreamI *In)
 			// Convert the event to UTC
 			int e = abs(EffectiveTz);
 			int Mins = (((e / 100) * 60) + (e % 100)) * (EffectiveTz < 0 ? -1 : 1);
+			#ifdef _DEBUG
 			LgiTrace("%s:%i - EffectiveTz=%i, Mins=%i\n", _FL, EffectiveTz, Mins);
+			#endif
 			if (EventStart.IsValid())
 			{
+				#ifdef _DEBUG
 				LgiTrace("EventStart=%s\n", EventStart.Get().Get());
+				#endif
+
 				EventStart.AddMinutes(-Mins);
+				#ifdef _DEBUG
 				LgiTrace("EventStart=%s\n", EventStart.Get().Get());
+				#endif
 			}
 			if (EventEnd.IsValid())
 				EventEnd.AddMinutes(-Mins);
