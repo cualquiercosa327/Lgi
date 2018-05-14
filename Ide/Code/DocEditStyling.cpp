@@ -880,7 +880,8 @@ void DocEdit::StyleHtml(ssize_t Start, ssize_t EditSize)
 
 	Style.DeleteObjects();
 
-	HtmlType Type = CodeHtml;
+	char *Ext = LgiGetExtension(Doc->GetFileName());
+	HtmlType Type = Ext && !stricmp(Ext, "js") ? CodePhp : CodeHtml;
 	GAutoPtr<GStyle> Cur;
 
 	#define START_CODE() \
@@ -1154,7 +1155,8 @@ void DocEdit::PourStyle(size_t Start, ssize_t EditSize)
 			FileType = SrcXml;
 		else if (!stricmp(Ext, "html") ||
 				!stricmp(Ext, "htm") ||
-				!stricmp(Ext, "php"))
+				!stricmp(Ext, "php") ||
+				!stricmp(Ext, "js"))
 			FileType = SrcHtml;
 		else
 			FileType = SrcPlainText;
