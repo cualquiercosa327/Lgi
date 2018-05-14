@@ -5264,7 +5264,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			GCss::Len MinY = MinHeight();
 			GCss::Len MaxY = MaxHeight();
 			GAutoPtr<GDisplayString> a;
-			int ImgX, ImgY;			
+			int ImgX, ImgY;		
 			if (Image)
 			{
 				ImgX = Image->X();
@@ -5282,6 +5282,11 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 				ImgY = DefaultImgSize;
 			}
 			
+			if (Debug)
+			{
+				int asd=0;
+			}
+
 			double AspectRatio = ImgY != 0 ? (double)ImgX / ImgY : 1.0;
 			bool XLimit = false, YLimit = false;
 			double Scale = 1.0;
@@ -5295,8 +5300,9 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			{
 				if (ImgX >= Flow->X())
 				{
-					Size.x = Flow->X() * 0.8;
-					Scale = (double) Flow->X() / ImgX;
+					Size.x = Flow->X(); //  * 0.8;
+					if (Image)
+						Scale = (double) Flow->X() / ImgX;
 				}
 				else
 				{
