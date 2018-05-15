@@ -1680,21 +1680,21 @@ bool DetectUrl(Char *t, ssize_t &len)
 	ScanChar(':');
 	ScanChar('/');
 	ScanChar('/');
-	ScanWord(); // Hostname or username..
+	ScanWord(); // Host name or username..
 	if (t < e && *t == ':')
 	{
 		t++;
 		_ScanWord(t, e); // Don't return if missing... password optional
 		ScanChar('@');
-		ScanWord(); // First part of hostname...
+		ScanWord(); // First part of host name...
 	}
 
-	// Rest of hostname
+	// Rest of host name
 	while (t < e && *t == '.')
 	{
 		t++;
 		if (t < e && IsUrlWordChar(*t))
-			ScanWord(); // Second part of hostname
+			ScanWord(); // Second part of host name
 	}
 	
 	if (t < e && *t == ':') // Port number
@@ -1703,10 +1703,10 @@ bool DetectUrl(Char *t, ssize_t &len)
 		ScanWord();
 	}
 	
-	while (t < e && (*t == '/' || *t == '.')) // Path
+	while (t < e && strchr("/.:", *t)) // Path
 	{
 		t++;
-		if (t < e && IsUrlWordChar(*t))
+		if (t < e && (IsUrlWordChar(*t) || *t == ':'))
 			ScanWord();
 	}
 	
