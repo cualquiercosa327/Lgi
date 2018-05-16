@@ -1771,6 +1771,23 @@ int GWindow::OnEvent(GMessage *m)
 			}
 			break;
 		}
+		case M_ASSERT_DLG:
+		{
+			int *Result = (int*) m->A();
+			if (Result)
+			{
+				GAutoPtr<GString> Msg( (GString*) m->B() );
+				GAlert Dlg(	this,
+							"Lgi Assert",
+							Msg.Get() ? (char*)Msg.Get() : "#error: No message",
+							"Abort",
+							"Debug",
+							"Ignore");
+				Dlg.SetAppModal();
+				*Result = Dlg.DoModal();
+			}
+			break;
+		}
 	}
 
 	return GView::OnEvent(m);

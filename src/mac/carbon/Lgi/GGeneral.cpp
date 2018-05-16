@@ -97,39 +97,6 @@ void c2p255(Str255 &d, char *s)
 	}
 }
 
-struct GLgiAssert
-{
-	GAutoString Msg;
-	int Result;
-	
-	GLgiAssert() { Result = 0; }
-};
-
-/*
-static void *_LgiAssert(void *Param)
-{
-	GLgiAssert *Assert = (GLgiAssert*) Param;
-
-	if (LgiApp)
-	{
-		GAlert a(0, "Assert Failed", Assert->Msg, "Abort", "Debug", "Ignore");
-		Assert->Result = a.DoModal();
-	}
-	else
-	{
-		printf("%s:%i - AssertBeforeRun: %s\n", _FL, Assert->Msg.Get());
-		Assert->Result = 1;
-	}
-	
-	return Assert;
-}
-
-(IBAction)DoAssertDlg:(id)sender
-{
-	
-}
-*/
-
 void _lgi_assert(bool b, const char *test, const char *file, int line)
 {
 	static bool Asserting = false;
@@ -141,19 +108,20 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 
 		#ifdef _DEBUG
 
-		GStringPipe p;
-		p.Print("Assert failed, file: %s, line: %i\n%s", file, line, test);
-		GLgiAssert Assert;
-		Assert.Msg.Reset(p.NewStr());
+		GString p;
+		p.Printf("Assert failed, file: %s, line: %i\n%s", file, line, test);
 
-		#if 0
-		// MPRemoteCall(_LgiAssert, &Assert, kMPOwningProcessRemoteContext);
-		#else
-		NSApplication *app = [NSApplication sharedApplication];
-		[app performSelectorOnMainThread:@selector(DoAssertDlg:) withObject:NULL waitUntilDone:true];
-		#endif
-		
-		switch (Assert.Result)
+		int Result = 0;
+		if (LgiApp->AppWnd)
+		{
+			LgiApp->AppWnd->PostEvent(	M_ASSERT_DLG,
+										(GMessage::Param)&Result,
+										(GMessage::Result)new GString(p));
+			while (Result == 0)
+				LgiSleep(10);
+		}
+
+		switch (Result)
 		{
 			default:
 			{

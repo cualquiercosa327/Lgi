@@ -209,8 +209,10 @@ bool SystemFunctions::Sprintf(LScriptArguments &Args)
 				{
 					// String...
 					char *v = Args[i]->CastString();
-					if (!v) v = "(null)";
-					s.Add(v, strlen(v));
+					if (v)
+						s.Add(v, strlen(v));
+					else
+						s.Add((char*)"(null)", 4);
 					break;
 				}
 				case 'c':
