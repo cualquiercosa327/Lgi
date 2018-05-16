@@ -1779,7 +1779,7 @@ int GWindow::OnEvent(GMessage *m)
 				GAutoPtr<GString> Msg( (GString*) m->B() );
 				GAlert Dlg(	this,
 							"Lgi Assert",
-							Msg.Get() ? (char*)Msg.Get() : "#error: No message",
+							Msg && Msg->Get() ? (char*)Msg->Get() : "#error: No message",
 							"Abort",
 							"Debug",
 							"Ignore");
