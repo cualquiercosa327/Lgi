@@ -2481,7 +2481,7 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 		case M_SET_DICTIONARY:
 		{
 			d->SpellDictionaryLoaded = Msg->A() != 0;
-			LgiTrace("%s:%i - M_SET_DICTIONARY=%i\n", _FL, d->SpellDictionaryLoaded);
+			// LgiTrace("%s:%i - M_SET_DICTIONARY=%i\n", _FL, d->SpellDictionaryLoaded);
 			if (d->SpellDictionaryLoaded)
 			{
 				AutoTrans Trans(new GRichTextPriv::Transaction);

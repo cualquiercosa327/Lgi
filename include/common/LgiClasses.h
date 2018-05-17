@@ -1347,7 +1347,11 @@ public:
 	(
 		/// The target view.
 		GView *Target,
-		/// Combination of #GMouseEvents and #GKeyEvents OR'd together.
+		/// Combination of:
+		///     #GMouseEvents - Where Target->OnViewMouse(...) is called for each click.
+		/// and
+		///     #GKeyEvents - Where Target->OnViewKey(...) is called for each key.
+		/// OR'd together.
 		GWindowHookType EventType,
 		/// Not implemented
 		int Priority = 0

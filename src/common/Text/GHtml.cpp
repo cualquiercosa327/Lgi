@@ -705,7 +705,8 @@ public:
 			case GCss::LenInherit:
 				return IsMargin ? 0 : X();
 			case GCss::LenPx:
-				return min((int)l.Value, X());
+				// return min((int)l.Value, X());
+				return (int)l.Value;
 			case GCss::LenPt:
 				return (int) (l.Value * LgiScreenDpi() / 72.0);
 			case GCss::LenCm:
@@ -5293,11 +5294,12 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			}
 			else
 			{
-				if (ImgX >= Flow->X())
+				int Fx = Flow->x2 - Flow->x1 + 1;
+				if (ImgX > Fx)
 				{
-					Size.x = Flow->X(); //  * 0.8;
+					Size.x = Fx; //  * 0.8;
 					if (Image)
-						Scale = (double) Flow->X() / ImgX;
+						Scale = (double) Fx / ImgX;
 				}
 				else
 				{
@@ -5350,6 +5352,12 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 				Disp == DispInlineBlock)
 			{
 				Restart = false;
+
+				if (Flow->cx > Flow->x1 &&
+					Size.x > Flow->X())
+				{
+					Flow->FinishLine();
+				}
 
 				Pos.y = Flow->y1;
 				Flow->y2 = max(Flow->y1, Pos.y + Size.y - 1);
