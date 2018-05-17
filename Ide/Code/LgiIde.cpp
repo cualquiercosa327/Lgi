@@ -1701,7 +1701,8 @@ void AppWnd::OnReceiveFiles(GArray<char*> &Files)
 		}
 		else if (ext && !stricmp(ext, "xml"))
 		{
-			OpenProject(f, NULL);
+			if (!OpenProject(f, NULL))
+				OpenFile(f);
 		}
 		else
 		{
@@ -2152,8 +2153,7 @@ IdeProject *AppWnd::RootProject()
 }
 
 IdeProject *AppWnd::OpenProject(char *FileName, IdeProject *ParentProj, bool Create, bool Dep)
-{
-	
+{	
 	if (!FileName)
 	{
 		LgiTrace("%s:%i - Error: No filename.\n", _FL);
