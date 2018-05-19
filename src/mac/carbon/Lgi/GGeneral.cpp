@@ -116,7 +116,7 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 		{
 			LgiApp->AppWnd->PostEvent(	M_ASSERT_DLG,
 										(GMessage::Param)&Result,
-										(GMessage::Result)new GString(p));
+										(GMessage::Param)new GString(p));
 			while (Result == 0)
 				LgiSleep(10);
 		}

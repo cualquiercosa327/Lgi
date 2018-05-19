@@ -6498,8 +6498,6 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection, uint16 Depth)
 			
 			if (Image)
 			{
-				int asd=0;
-
 				#if ENABLE_IMAGE_RESIZING
 				if
 				(

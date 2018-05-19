@@ -196,7 +196,7 @@ bool SystemFunctions::Sprintf(LScriptArguments &Args)
 		{
 			f++; // Skip '%'
 			
-			char *Fmt = f;
+			// char *Fmt = f;
 			while (*f && !IsAlpha(*f))
 				f++; // Skip formatting..
 			

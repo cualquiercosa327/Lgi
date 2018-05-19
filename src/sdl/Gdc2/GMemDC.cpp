@@ -135,10 +135,10 @@ GRect GMemDC::ClipRgn(GRect *Rgn)
 			Origin.y = OriginY;
 		}
 
-		Clip.x1 = max(Rgn->x1 - Origin.x, 0);
-		Clip.y1 = max(Rgn->y1 - Origin.y, 0);
-		Clip.x2 = min(Rgn->x2 - Origin.x, pMem->x-1);
-		Clip.y2 = min(Rgn->y2 - Origin.y, pMem->y-1);
+		Clip.x1 = MAX(Rgn->x1 - Origin.x, 0);
+		Clip.y1 = MAX(Rgn->y1 - Origin.y, 0);
+		Clip.x2 = MIN(Rgn->x2 - Origin.x, pMem->x-1);
+		Clip.y2 = MIN(Rgn->y2 - Origin.y, pMem->y-1);
 
 		/*
 		HRGN hRgn = CreateRectRgn(Clip.x1, Clip.y1, Clip.x2+1, Clip.y2+1);

@@ -637,7 +637,7 @@ GFilter::IoStatus GdcTiff::ProcessRead(GSurface *pDC)
 							break;
 						}
 						
-						int Limit = min(pDC->Y() - Cy, Rows);
+						int Limit = MIN(pDC->Y() - Cy, Rows);
 						s->SetPos(Offset);
 						
 						switch (Comp)

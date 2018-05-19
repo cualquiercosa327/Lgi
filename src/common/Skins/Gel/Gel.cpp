@@ -291,8 +291,8 @@ class GelSkin : public GSkinEngine
 					p.RoundRect(r, CHECK_RADIUS + CHECK_BORDER);
 				
 				// gradient from 169,169,169 at the top through to 225,225,225
-				int Dark = max(0, Grey - 40);
-				int Light = min(255, Grey + 40);				
+				int Dark = MAX(0, Grey - 40);
+				int Light = MIN(255, Grey + 40);				
 				
 				GPointF a(0, 0), b(0, 15);
 				GBlendStop s[] =
@@ -654,7 +654,7 @@ public:
 			{
 				for (unsigned i=0; i<Txt->Length(); i++)
 				{
-					MaxTxt = max(MaxTxt, (*Txt)[i]->X());
+					MaxTxt = MAX(MaxTxt, (*Txt)[i]->X());
 				}
 				ContentX += MaxTxt;
 			}

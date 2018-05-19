@@ -139,7 +139,7 @@ public:
 					}
 				}
 
-				printf("Posting '%s' with %i results.\n", Sr->Path.Get(), Sr->Matches.Length());
+				printf("Posting '%s' with %i results.\n", Sr->Path.Get(), (int)Sr->Matches.Length());
 				PostObject(Hnd, M_RESULTS, Sr);
 				break;
 			}
