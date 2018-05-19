@@ -195,8 +195,8 @@ typedef union
 
 // Basic macros
 // #define abs(a)						(((a) > 0) ? (a) : -(a))
-#define min(a,b)						(((a) < (b)) ? (a) : (b))
-#define max(a,b)						(((a) > (b)) ? (a) : (b))
+// #define min(a,b)						(((a) < (b)) ? (a) : (b))
+// #define max(a,b)						(((a) > (b)) ? (a) : (b))
 #define limit(i,l,u)					(((i)<(l)) ? (l) : (((i)>(u)) ? (u) : (i)))
 #define makelong(a, b)					((a)<<16 | (b&0xFFFF))
 #define loword(a)						(a&0xFFFF)

@@ -399,7 +399,7 @@ public:
 		}
 		else if (Size.Type == GCss::LenPt)
 		{
-			double Pt = max(MinimumPointSize, Size.Value);
+			double Pt = MAX(MinimumPointSize, Size.Value);
 			for (f=Fonts.First(); f; f=Fonts.Next())
 			{
 				if (!f->Face() || Face.Length() == 0)
@@ -532,7 +532,7 @@ public:
 	int y2;						// Maximum used y position
 	int cx;						// Current insertion point
 	int my;						// How much of the area above y2 was just margin
-	GdcPt2 max;					// Max dimensions
+	GdcPt2 MAX;					// Max dimensions
 
 	int InBody;
 
@@ -546,8 +546,8 @@ public:
 	GFlowRegion(GHtml *html, GRect r, bool inbody)
 	{
 		Html = html;
-		max.x = cx = x1 = r.x1;
-		max.y = y1 = y2 = r.y1;
+		MAX.x = cx = x1 = r.x1;
+		MAX.y = y1 = y2 = r.y1;
 		x2 = r.x2;
 		my = 0;
 		InBody = inbody;
@@ -559,8 +559,8 @@ public:
 		x1 = r.x1;
 		x2 = r.x2;
 		y1 = r.y1;
-		max.x = cx = r.cx;
-		max.y = y2 = r.y2;
+		MAX.x = cx = r.cx;
+		MAX.y = y2 = r.y2;
 		my = r.my;
 		InBody = r.InBody; 
 	}
@@ -705,7 +705,7 @@ public:
 			case GCss::LenInherit:
 				return IsMargin ? 0 : X();
 			case GCss::LenPx:
-				// return min((int)l.Value, X());
+				// return MIN((int)l.Value, X());
 				return (int)l.Value;
 			case GCss::LenPt:
 				return (int) (l.Value * LgiScreenDpi() / 72.0);
@@ -1052,7 +1052,7 @@ float GLength::Get(GFlowRegion *Flow, GFont *Font, bool Lock)
 	}
 
 	float FlowX = Flow ? Flow->X() : d;
-	return PrevAbs = min(FlowX, d);
+	return PrevAbs = MIN(FlowX, d);
 }
 
 GLine::GLine()
@@ -1250,7 +1250,7 @@ void GFlowRegion::FinishLine(bool Margin)
 			int Oy = Tr->Tag->AbsY();
 			n.Offset(0, Oy);
 			Tr->Offset(0, b->y2 - n.y2); // - Base
-			// y2 = max(y2, Tr->y2);
+			// y2 = MAX(y2, Tr->y2);
 		}
 	}
 	*/
@@ -1761,16 +1761,16 @@ void GTag::CopyClipboard(GMemQueue &p, bool &InSelection)
 
 	if (Cursor >= 0 && Selection >= 0)
 	{
-		Min = min(Cursor, Selection);
-		Max = max(Cursor, Selection);
+		Min = MIN(Cursor, Selection);
+		Max = MAX(Cursor, Selection);
 	}
 	else if (InSelection)
 	{
-		Max = max(Cursor, Selection);
+		Max = MAX(Cursor, Selection);
 	}
 	else
 	{
-		Min = max(Cursor, Selection);
+		Min = MAX(Cursor, Selection);
 	}
 
 	ssize_t Off = -1;
@@ -3167,8 +3167,8 @@ void GTag::SetStyle()
 			else
 				Cell->Span.y = 1;
 			
-			Cell->Span.x = max(Cell->Span.x, 1);
-			Cell->Span.y = max(Cell->Span.y, 1);
+			Cell->Span.x = MAX(Cell->Span.x, 1);
+			Cell->Span.y = MAX(Cell->Span.y, 1);
 			
 			if (Display() == DispInline ||
 				Display() == DispInlineBlock)
@@ -3880,7 +3880,7 @@ bool GTag::GetWidthMetrics(GTag *Table, uint16 &Min, uint16 &Max)
 				if (Len > 0)
 				{
 					GDisplayString ds(f, s, Len);
-					MinContent = max(MinContent, ds.X());
+					MinContent = MAX(MinContent, ds.X());
 				}
 				
 				// Move to the next word.
@@ -3898,8 +3898,8 @@ bool GTag::GetWidthMetrics(GTag *Table, uint16 &Min, uint16 &Max)
 		}
 		#endif
 		
-		Min = max(Min, MinContent);
-		Max = max(Max, MaxContent);
+		Min = MAX(Min, MinContent);
+		Max = MAX(Max, MaxContent);
 	}
 
 	// Specific tag handling?
@@ -3922,8 +3922,8 @@ bool GTag::GetWidthMetrics(GTag *Table, uint16 &Min, uint16 &Max)
 			if (w.IsValid())
 			{
 				int x = (int) w.Value;
-				Min = max(Min, x);
-				Max = max(Max, x);
+				Min = MAX(Min, x);
+				Max = MAX(Max, x);
 			}
 			else if (Image)
 			{
@@ -3932,8 +3932,8 @@ bool GTag::GetWidthMetrics(GTag *Table, uint16 &Min, uint16 &Max)
 			else
 			{
 				Size.x = Size.y = DefaultImgSize;
-				Min = max(Min, Size.x);
-				Max = max(Max, Size.x);
+				Min = MAX(Min, Size.x);
+				Max = MAX(Max, Size.x);
 			}
 			break;
 		}
@@ -3945,8 +3945,8 @@ bool GTag::GetWidthMetrics(GTag *Table, uint16 &Min, uint16 &Max)
 			{
 				if (w.IsDynamic())
 				{
-					Min = max(Min, (int)w.Value);
-					Max = max(Max, (int)w.Value);
+					Min = MAX(Min, (int)w.Value);
+					Max = MAX(Max, (int)w.Value);
 				}
 				else
 				{
@@ -3978,8 +3978,8 @@ bool GTag::GetWidthMetrics(GTag *Table, uint16 &Min, uint16 &Max)
 				int CellSpacing = BorderSpacing().ToPx(Min, GetFont());
 				
 				int Px = ((int)w.Value) + (CellSpacing << 1);
-				Min = max(Min, Px);
-				Max = max(Max, Px);
+				Min = MAX(Min, Px);
+				Max = MAX(Max, Px);
 				return true;
 			}
 			else
@@ -4000,8 +4000,8 @@ bool GTag::GetWidthMetrics(GTag *Table, uint16 &Min, uint16 &Max)
 							uint16 a = 0, b = 0;							
 							if (t->GetWidthMetrics(Table, a, b))
 							{
-								ColMin[x] = max(ColMin[x], a);
-								ColMax[x] = max(ColMax[x], b);
+								ColMin[x] = MAX(ColMin[x], a);
+								ColMax[x] = MAX(ColMax[x], b);
 							}
 							
 							x += t->Cell->Span.x;
@@ -4017,8 +4017,8 @@ bool GTag::GetWidthMetrics(GTag *Table, uint16 &Min, uint16 &Max)
 					MaxSum += ColMax[i];
 				}
 				
-				Min = max(Min, MinSum);
-				Max = max(Max, MaxSum);
+				Min = MAX(Min, MinSum);
+				Max = MAX(Max, MaxSum);
 				return true;
 			}
 			break;
@@ -4035,11 +4035,11 @@ bool GTag::GetWidthMetrics(GTag *Table, uint16 &Min, uint16 &Max)
 		if (c->TagId == TAG_BR ||
 			c->TagId == TAG_LI)
 		{
-			Max = max(Max, LineWidth);
+			Max = MAX(Max, LineWidth);
 			LineWidth = 0;
 		}
 	}
-	Max = max(Max, LineWidth);
+	Max = MAX(Max, LineWidth);
 
 	Min += MarginPx;
 	Max += MarginPx;
@@ -4399,7 +4399,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f, uint16 Depth)
 					
 					#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 					if (Table->Debug)
-						LgiTrace("Content[%i,%i] min=%i max=%i\n", x, y, t->Cell->MinContent, t->Cell->MaxContent);
+						LgiTrace("Content[%i,%i] MIN=%i MAX=%i\n", x, y, t->Cell->MinContent, t->Cell->MaxContent);
 					#endif
 
 					if (t->Cell->Span.x == 1)
@@ -4409,8 +4409,8 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f, uint16 Depth)
 									t->Cell->PaddingPx.x1 +
 									t->Cell->PaddingPx.x2;
 
-						MinCol[x] = max(MinCol[x], t->Cell->MinContent + BoxPx);
-						MaxCol[x] = max(MaxCol[x], t->Cell->MaxContent + BoxPx);
+						MinCol[x] = MAX(MinCol[x], t->Cell->MinContent + BoxPx);
+						MaxCol[x] = MAX(MaxCol[x], t->Cell->MaxContent + BoxPx);
 					}
 				}
 				
@@ -4478,13 +4478,13 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f, uint16 Depth)
 					if (Width.IsValid())
 					{
 						int Px = f->ResolveX(Width, Font, false);
-						t->Cell->MinContent = max(t->Cell->MinContent, Px);
-						t->Cell->MaxContent = max(t->Cell->MaxContent, Px);
+						t->Cell->MinContent = MAX(t->Cell->MinContent, Px);
+						t->Cell->MaxContent = MAX(t->Cell->MaxContent, Px);
 					}
 
 					#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 					if (Table->Debug)
-						LgiTrace("Content[%i,%i] min=%i max=%i\n", x, y, t->Cell->MinContent, t->Cell->MaxContent);
+						LgiTrace("Content[%i,%i] MIN=%i MAX=%i\n", x, y, t->Cell->MinContent, t->Cell->MaxContent);
 					#endif
 
 					if (t->Cell->MinContent > ColMin)
@@ -4538,7 +4538,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f, uint16 Depth)
 				{
 					int RemainingPx = AvailableX - TotalX;
 					int AddPx = Px - MinCol[x];
-					AddPx = min(RemainingPx, AddPx);
+					AddPx = MIN(RemainingPx, AddPx);
 					
 					TotalX += AddPx;
 					MinCol[x] += AddPx;
@@ -4597,8 +4597,8 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f, uint16 Depth)
 					t->Size.x = -CellSpacing;
 					XPos -= CellSpacing;
 					
-					RowPad[y].y1 = max(RowPad[y].y1, t->Cell->BorderPx.y1 + t->Cell->PaddingPx.y1);
-					RowPad[y].y2 = max(RowPad[y].y2, t->Cell->BorderPx.y2 + t->Cell->PaddingPx.y2);
+					RowPad[y].y1 = MAX(RowPad[y].y1, t->Cell->BorderPx.y1 + t->Cell->PaddingPx.y1);
+					RowPad[y].y2 = MAX(RowPad[y].y2, t->Cell->BorderPx.y2 + t->Cell->PaddingPx.y2);
 					
 					GRect Box(0, 0, -CellSpacing, 0);
 					for (int i=0; i<t->Cell->Span.x; i++)
@@ -4617,9 +4617,9 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f, uint16 Depth)
 
 					t->OnFlow(&r, Depth+1);
 
-					if (r.max.y > r.y2)
+					if (r.MAX.y > r.y2)
 					{
-						t->Size.y = max(r.max.y, t->Size.y);
+						t->Size.y = MAX(r.MAX.y, t->Size.y);
 					}
 
 					
@@ -4627,7 +4627,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f, uint16 Depth)
 						Ht.Type != GCss::LenPercent)
 					{
 						int h = f->ResolveY(Ht, Font, false);
-						t->Size.y = max(h, t->Size.y);
+						t->Size.y = MAX(h, t->Size.y);
 
 						DistributeSize(MaxRow, y, t->Cell->Span.y, t->Size.y, CellSpacing);
 					}
@@ -4734,7 +4734,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f, uint16 Depth)
 						t->Size.y += MaxRow[y+n] + CellSpacing;
 					}
 					
-					Table->Size.x = max(Cx + BorderX2, Table->Size.x);
+					Table->Size.x = MAX(Cx + BorderX2, Table->Size.x);
 
 					#if defined(_DEBUG) && DEBUG_TABLE_LAYOUT
 					if (Table->Debug)
@@ -4767,7 +4767,7 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f, uint16 Depth)
 		{
 			int fx = f->X();
 			int Ox = (fx-Table->Size.x) >> 1;
-			Table->Pos.x = f->x1 + max(Ox, 0);
+			Table->Pos.x = f->x1 + MAX(Ox, 0);
 			break;
 		}
 		case GCss::AlignRight:
@@ -4883,7 +4883,7 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, int LineHeight, 
 		Tr->y1 = Flow->y1;
 		Tr->y2 = Tr->y1 + Font->GetHeight();
 		LgiAssert(Tr->y2 >= Tr->y1);
-		Flow->y2 = max(Flow->y2, Tr->y2+1);
+		Flow->y2 = MAX(Flow->y2, Tr->y2+1);
 		Flow->cx = Tr->x2 + 1;
 
 		Add(Tr);
@@ -4919,7 +4919,7 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, int LineHeight, 
 		
 		Tr->Text = Text;
 
-		GDisplayString ds(Font, Text, min(1024, FullLen - (Text-Start)));
+		GDisplayString ds(Font, Text, MIN(1024, FullLen - (Text-Start)));
 		ssize_t Chars = ds.CharAt(Flow->X());
 		bool Wrap = false;
 		if (Text[Chars])
@@ -4983,7 +4983,7 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, int LineHeight, 
 			Flow->cx = Tr->x2 + 1;
 		}
 		Tr->y2 += Tr->y1;
-		Flow->y2 = max(Flow->y2, Tr->y2 + 1);
+		Flow->y2 = MAX(Flow->y2, Tr->y2 + 1);
 		
 		Add(Tr);
 		Flow->Insert(Tr);
@@ -4995,10 +4995,10 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, int LineHeight, 
 				Text++;
 		}
 
-		Tag->Size.x = max(Tag->Size.x, Tr->x2);
-		Tag->Size.y = max(Tag->Size.y, Tr->y2);
-		Flow->max.x = max(Flow->max.x, Tr->x2);
-		Flow->max.y = max(Flow->max.y, Tr->y2);
+		Tag->Size.x = MAX(Tag->Size.x, Tr->x2);
+		Tag->Size.y = MAX(Tag->Size.y, Tr->y2);
+		Flow->MAX.x = MAX(Flow->MAX.x, Tr->x2);
+		Flow->MAX.y = MAX(Flow->MAX.y, Tr->y2);
 
 		if (Tr->Len == 0)
 			break;
@@ -5245,7 +5245,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 
 				if (TagId == TAG_TR)
 				{
-					Temp.x2 -= min(t->Size.x, Temp.X());
+					Temp.x2 -= MIN(t->Size.x, Temp.X());
 				}
 			}
 
@@ -5360,7 +5360,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 				}
 
 				Pos.y = Flow->y1;
-				Flow->y2 = max(Flow->y1, Pos.y + Size.y - 1);
+				Flow->y2 = MAX(Flow->y1, Pos.y + Size.y - 1);
 
 				GCss::LengthType a = GetAlign(true);
 				switch (a)
@@ -5417,7 +5417,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			Flow->y2 = Flow->y1;
 			Flow->cx = Flow->x1;
 			Flow->my = 0;
-			Flow->max.y = max(Flow->max.y, Flow->y2);
+			Flow->MAX.y = MAX(Flow->MAX.y, Flow->y2);
 
 			Flow->Outdent(f, left, top, right, bottom, true);
 			BoundParents();
@@ -5631,8 +5631,8 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 				Flow->cx = old.cx;
 				Flow->y1 = old.y1;
 				Flow->y2 = old.y2;
-				Flow->max.x = max(Flow->max.x, old.max.x);
-				Flow->max.y = max(Flow->max.y, old.max.y);
+				Flow->MAX.x = MAX(Flow->MAX.x, old.MAX.x);
+				Flow->MAX.y = MAX(Flow->MAX.y, old.MAX.y);
 				break;
 			}
 			default:
@@ -5644,7 +5644,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 
 		if (TagId == TAG_TR)
 		{
-			Flow->x2 -= min(t->Size.x, Flow->X());
+			Flow->x2 -= MIN(t->Size.x, Flow->X());
 		}
 	}
 
@@ -5686,7 +5686,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			int NewFlowSize = Flow->x2 - Flow->x1 + 1;
 			int Diff = NewFlowSize - OldFlowSize;
 			if (Diff)
-				Flow->max.x += Diff;
+				Flow->MAX.x += Diff;
 			
 			Flow->y1 = Flow->y2;
 			Flow->x2 = Flow->x1 + BlockFlowWidth;
@@ -5705,7 +5705,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			
 			Flow->cx += Flow->ResolveX(PaddingRight(), GetFont(), true);
 			Flow->cx += Flow->ResolveX(BorderRight(), GetFont(), true);
-			Size.x = max(WidPx, Flow->cx);
+			Size.x = MAX(WidPx, Flow->cx);
 			Flow->cx += Flow->ResolveX(MarginRight(), GetFont(), true);
 			Flow->x1 = BlockInlineX[0] - Pos.x;
 			Flow->cx = BlockInlineX[1] + Flow->cx - Pos.x;
@@ -5715,7 +5715,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			{
 				Size.y = Flow->ResolveY(Height(), GetFont(), false);
 				int MarginY2 = Flow->ResolveX(MarginBottom(), GetFont(), true);
-				Flow->y2 = max(Flow->y1 + Size.y + MarginY2 - 1, Flow->y2);
+				Flow->y2 = MAX(Flow->y1 + Size.y + MarginY2 - 1, Flow->y2);
 			}
 			else
 			{
@@ -5755,13 +5755,13 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 				}
 
 				Flow->cx += Size.x;
-				Flow->y2 = max(Flow->y2, Flow->y1 + Size.y - 1);
+				Flow->y2 = MAX(Flow->y2, Flow->y1 + Size.y - 1);
 				break;
 			}
 			case TAG_IMG:
 			{
 				Flow->cx += Size.x;
-				Flow->y2 = max(Flow->y2, Flow->y1 + Size.y - 1);
+				Flow->y2 = MAX(Flow->y2, Flow->y1 + Size.y - 1);
 				break;
 			}
 			case TAG_TR:
@@ -5774,7 +5774,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 				int OldFlowY2 = Flow->y2;
 				Flow->FinishLine();
 				Size.y = Flow->y2 - OldFlowY2;
-				Flow->y2 = max(Flow->y2, Flow->y1 + Size.y - 1);
+				Flow->y2 = MAX(Flow->y2, Flow->y1 + Size.y - 1);
 				break;
 			}
 			case TAG_CENTER:
@@ -5806,7 +5806,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 
 		Flow->y1 += Pos.y;
 		Flow->y2 += Pos.y;
-		Flow->max.y = max(Flow->max.y, Flow->y2);
+		Flow->MAX.y = MAX(Flow->MAX.y, Flow->y2);
 	}
 
 	if (XAlign == GCss::AlignCenter)
@@ -5868,8 +5868,8 @@ void GTag::BoundParents()
 			n->Parent->TagId == TAG_IFRAME)
 			break;
 				
-		np->Size.x = max(np->Size.x, n->Pos.x + n->Size.x);
-		np->Size.y = max(np->Size.y, n->Pos.y + n->Size.y);
+		np->Size.x = MAX(np->Size.x, n->Pos.x + n->Size.x);
+		np->Size.y = MAX(np->Size.y, n->Pos.y + n->Size.y);
 	}
 }
 
@@ -6047,10 +6047,10 @@ public:
 					);
 					
 					// Setup the clip
-					GRect clip(	(int)min(pts[i]->x, pts[k]->x),
-								(int)min(pts[i]->y, pts[k]->y),
-								(int)max(pts[i]->x, pts[k]->x)-1,
-								(int)max(pts[i]->y, pts[k]->y)-1);
+					GRect clip(	(int)MIN(pts[i]->x, pts[k]->x),
+								(int)MIN(pts[i]->y, pts[k]->y),
+								(int)MAX(pts[i]->x, pts[k]->x)-1,
+								(int)MAX(pts[i]->y, pts[k]->y)-1);
 					ClipRgn(&clip);
 					
 					// Draw the arc...
@@ -6219,10 +6219,10 @@ void GTag::PaintBorderAndBackground(GSurface *pDC, GColour &Back, GRect *BorderP
 				);
 				
 				// Setup the clip
-				GRect clip(	(int)min(pts[i]->x, pts[k]->x),
-							(int)min(pts[i]->y, pts[k]->y),
-							(int)max(pts[i]->x, pts[k]->x)-1,
-							(int)max(pts[i]->y, pts[k]->y)-1);
+				GRect clip(	(int)MIN(pts[i]->x, pts[k]->x),
+							(int)MIN(pts[i]->y, pts[k]->y),
+							(int)MAX(pts[i]->x, pts[k]->x)-1,
+							(int)MAX(pts[i]->y, pts[k]->y)-1);
 				Corners->ClipRgn(&clip);
 				
 				// Draw the arc...
@@ -6611,7 +6611,7 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection, uint16 Depth)
 				int FontPx = f->GetHeight() - LeadingPx;
 				
 				// This is the pixel height we're aiming to fill
-				int EffectiveLineHt = LineHeightCache >= 0 ? max(FontPx, LineHeightCache) : FontPx;
+				int EffectiveLineHt = LineHeightCache >= 0 ? MAX(FontPx, LineHeightCache) : FontPx;
 				
 				// This gets added to the y coord of each peice of text
 				int LineHtOff = ((EffectiveLineHt - FontPx + 1) >> 1) - LeadingPx;
@@ -6639,16 +6639,16 @@ void GTag::OnPaint(GSurface *pDC, bool &InSelection, uint16 Depth)
 					ssize_t Base = GetTextStart();
 					if (Cursor >= 0 && Selection >= 0)
 					{
-						Min = min(Cursor, Selection) + Base;
-						Max = max(Cursor, Selection) + Base;
+						Min = MIN(Cursor, Selection) + Base;
+						Max = MAX(Cursor, Selection) + Base;
 					}
 					else if (InSelection)
 					{
-						Max = max(Cursor, Selection) + Base;
+						Max = MAX(Cursor, Selection) + Base;
 					}
 					else
 					{
-						Min = max(Cursor, Selection) + Base;
+						Min = MAX(Cursor, Selection) + Base;
 					}
 
 					GRect CursorPos;
@@ -7307,7 +7307,7 @@ int GHtml::OnNotify(GViewI *c, int f)
 			if (f == GNotifyScrollBar_Create && VScroll && LineY > 0)
 			{
 				int y = Y();
-				int p = max(y / LineY, 1);
+				int p = MAX(y / LineY, 1);
 				int fy = d->Content.y / LineY;
 				VScroll->SetPage(p);
 				VScroll->SetLimits(0, fy);
@@ -7347,8 +7347,8 @@ GdcPt2 GHtml::Layout(bool ForceLayout)
 		// Flow text, width is different
 		Tag->OnFlow(&f, 0);
 		ViewWidth = Client.X();
-		d->Content.x = f.max.x + 1;
-		d->Content.y = f.max.y + 1;
+		d->Content.x = f.MAX.x + 1;
+		d->Content.y = f.MAX.y + 1;
 
 		// Set up scroll box
 		bool Sy = f.y2 > Y();
@@ -7363,7 +7363,7 @@ GdcPt2 GHtml::Layout(bool ForceLayout)
 			if (Sy && VScroll && LineY > 0)
 			{
 				int y = Y();
-				int p = max(y / LineY, 1);
+				int p = MAX(y / LineY, 1);
 				int fy = f.y2 / LineY;
 				VScroll->SetPage(p);
 				VScroll->SetLimits(0, fy);
@@ -7620,7 +7620,7 @@ bool GHtml::CompareTagPos(GTag *a, ssize_t AIdx, GTag *b, ssize_t BIdx)
 		for (GTag *t = b; t; t = ToTag(t->Parent))
 			BTree.AddAt(0, t);
 
-		ssize_t Depth = min(ATree.Length(), BTree.Length());
+		ssize_t Depth = MIN(ATree.Length(), BTree.Length());
 		for (int i=0; i<Depth; i++)
 		{
 			GTag *at = ATree[i];
@@ -8985,7 +8985,7 @@ struct BuildContext
 		{
 			CurTd = NULL;
 			cx += t->Cell->Span.x;
-			Layout->s.x = max(cx, Layout->s.x);
+			Layout->s.x = MAX(cx, Layout->s.x);
 		}
 		
 		return RetReattach;
@@ -9217,7 +9217,7 @@ void GHtmlTableLayout::GetSize(int &x, int &y)
 
 	for (size_t i=0; i<c.Length(); i++)
 	{
-		x = max(x, (int) c[i].Length());
+		x = MAX(x, (int) c[i].Length());
 	}
 }
 

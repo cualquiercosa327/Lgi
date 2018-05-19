@@ -75,7 +75,7 @@ GCheckBox::GCheckBox(int id, int x, int y, int cx, int cy, const char *name, int
 	Name(name);
 	GdcPt2 Max = d->GetMax();
 	if (cx < 0) cx = Max.x + PadX1Px + PadX2Px;
-	if (cy < 0) cy = max(Max.y, MinYSize) + PadYPx;
+	if (cy < 0) cy = MAX(Max.y, MinYSize) + PadYPx;
 
 	d->Val = InitState;
 	GRect r(x, y, x+cx, y+cy);

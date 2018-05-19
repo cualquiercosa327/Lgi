@@ -36,7 +36,7 @@
 #define ForAllItems(Var)				List<LListItem>::I it = Items.Start(); for (LListItem *Var = *it; it.In(); it++, Var = *it)
 #define ForAllItemsReverse(Var)			Iterator<LListItem> ItemIter(&Items); for (LListItem *Var = ItemIter.Last(); Var; Var = ItemIter.Prev())
 #define VisibleItems()					CompletelyVisible // (LastVisible - FirstVisible + 1)
-#define MaxScroll()						max(Items.Length() - CompletelyVisible, 0)
+#define MaxScroll()						MAX(Items.Length() - CompletelyVisible, 0)
 
 class LListPrivate
 {
@@ -359,7 +359,7 @@ void LListItem::Update()
 					Pos.y2 = Pos.y1 + Info.y - 1;
 					Parent->PourAll();
 
-					r.y1 = min(r.y1, Pos.y1);
+					r.y1 = MIN(r.y1, Pos.y1);
 					r.y2 = Parent->ItemsPos.y2;
 				}
 
@@ -391,7 +391,7 @@ void LListItem::OnMeasure(GdcPt2 *Info)
 		}
 		
 		GFont *f = Parent ? Parent->GetFont() : SysFont;
-		Info->y = max(16, f->GetHeight() + 2); // the default height
+		Info->y = MAX(16, f->GetHeight() + 2); // the default height
 	}
 }
 
@@ -854,8 +854,8 @@ void LList::KeyScroll(int iTo, int iFrom, bool SelectItems)
 		if (SelectItems)
 		{
 			int OtherEnd = Keyboard == End ? Start : End;
-			int Min = min(OtherEnd, iTo);
-			int Max = max(OtherEnd, iTo);
+			int Min = MIN(OtherEnd, iTo);
+			int Max = MAX(OtherEnd, iTo);
 			i = 0;
 
 			d->NoSelectEvent = true;
@@ -1090,7 +1090,7 @@ bool LList::OnKey(GKey &k)
 				{
 					LList_PageUp:
 					int Vis = VisibleItems();
-					Vis = max(Vis, 0);
+					Vis = MAX(Vis, 0);
 
 					KeyScroll(Keyboard-Vis, Keyboard, k.Shift());
 					Status = true;
@@ -1100,7 +1100,7 @@ bool LList::OnKey(GKey &k)
 				{
 					LList_PageDown:
 					int Vis = VisibleItems();
-					Vis = max(Vis, 0);
+					Vis = MAX(Vis, 0);
 					KeyScroll(Keyboard+Vis, Keyboard, k.Shift());
 					Status = true;
 					break;
@@ -1281,7 +1281,7 @@ void LList::OnMouseClick(GMouse &m)
 							if (ExpandPx > 0)
 							{
 								int MaxPx = Resize->GetContentSize() + DEFAULT_COLUMN_SPACING;
-								int AddPx = min(ExpandPx, MaxPx - Resize->Width());
+								int AddPx = MIN(ExpandPx, MaxPx - Resize->Width());
 								if (AddPx > 0)
 								{
 									Resize->Width(Resize->Width() + AddPx);
@@ -1376,8 +1376,8 @@ void LList::OnMouseClick(GMouse &m)
 					if (m.Shift() && MultiSelect())
 					{
 						int n = 0;
-						int a = min(ItemIndex, Keyboard);
-						int b = max(ItemIndex, Keyboard);
+						int a = MIN(ItemIndex, Keyboard);
+						int b = MAX(ItemIndex, Keyboard);
 						GArray<LListItem*> Sel;
 
 						ForAllItems(i)
@@ -1667,8 +1667,8 @@ void LList::OnPulse()
 							}
 						}
 
-						int Min = min(d->DragData, OverIndex);
-						int Max = max(d->DragData, OverIndex);
+						int Min = MIN(d->DragData, OverIndex);
+						int Max = MAX(d->DragData, OverIndex);
 						int n = Min;
 						for (LListItem *i = Items[Min]; i && n <= Max; i=Items.Next(), n++)
 						{
@@ -1729,7 +1729,7 @@ void LList::OnMouseMove(GMouse &m)
 					// int OldWidth = c->Width();
 					int NewWidth = m.x - c->GetPos().x1;
 
-					c->Width(max(NewWidth, 4));
+					c->Width(MAX(NewWidth, 4));
 					ClearDs(d->DragData);
 					Invalidate();
 				}
@@ -1798,8 +1798,8 @@ void LList::OnMouseMove(GMouse &m)
 						{
 							n = 0;
 
-							int Start = min(Over, d->DragData);
-							int End = max(Over, d->DragData);
+							int Start = MIN(Over, d->DragData);
+							int End = MAX(Over, d->DragData);
 
 							ForAllItems(i)
 							{
@@ -2133,7 +2133,7 @@ void LList::ScrollToSelection()
 				if (n < FirstVisible || n > LastVisible)
 				{
 					int k = n - (Vis/2);
-					VScroll->Value(max(k, 0));
+					VScroll->Value(MAX(k, 0));
 					Invalidate(&ItemsPos);
 					break;
 				}
@@ -2243,7 +2243,7 @@ void LList::UpdateScrollBars()
 			int Vis = VisibleItems();
 			int Max = MaxScroll();
 
-			if (VScroll->Value() > max(Max, 0))
+			if (VScroll->Value() > MAX(Max, 0))
 			{
 				VScroll->Value(Max);
 			}
@@ -2410,7 +2410,7 @@ void LList::PourAll()
 				i->Pos.ZOff(Info.x-1, Info.y-1);
 				i->Pos.Offset(ItemsPos.x1 + CurX, ItemsPos.y1 + CurY);
 				Col[Col.Length()] = i;
-				MaxX = max(MaxX, Info.x);
+				MaxX = MAX(MaxX, Info.x);
 				
 				CompletelyVisible++;
 			}
@@ -2419,7 +2419,7 @@ void LList::PourAll()
 			n++;
 		}
 		
-		d->VisibleColumns = max(1, d->VisibleColumns);
+		d->VisibleColumns = MAX(1, d->VisibleColumns);
 
 		// pour remaining items...
 		for (n=0; n<Col.Length(); n++)
@@ -2628,7 +2628,7 @@ int LList::GetContentSize(int Index)
 		// Measure it
 		if (s)
 		{
-			Max = max(Max, s->X());
+			Max = MAX(Max, s->X());
 		}
 		
 		DeleteObj(Mem);
@@ -2642,7 +2642,7 @@ int LList::GetContentSize(int Index)
 	{
 		GDisplayString h(f, Col->Name());
 		int Hx = h.X() + (Col->Mark() ? 10 : 0);
-		Max = max(Max, Hx);
+		Max = MAX(Max, Hx);
 	}
 
 	return Max;

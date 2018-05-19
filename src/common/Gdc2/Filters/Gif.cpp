@@ -1025,7 +1025,7 @@ GFilter::IoStatus GdcGif::WriteImage(GStream *Out, GSurface *pDC)
 		// write data out
 		while ((Len = (int)Encode.GetSize()) > 0)
 		{
-			int l = min(Len, 255);
+			int l = MIN(Len, 255);
 			if (Encode.Read(Buf, l))
 			{
 				c = l;

@@ -1209,7 +1209,7 @@ int64 GMemQueue::Peek(uchar *Ptr, int Size)
 		Block *b = 0;
 		for (b = Mem.First(); b && Size > 0; b = Mem.Next())
 		{
-			int Copy = min(Size, b->Size - b->Next);
+			int Copy = MIN(Size, b->Size - b->Next);
 			if (Copy > 0)
 			{
 				memcpy(Ptr, b->Ptr() + b->Next, Copy);
@@ -1248,7 +1248,7 @@ ssize_t GMemQueue::Read(void *Ptr, ssize_t Size, int Flags)
 		Block *b = 0;
 		for (b = Mem.First(); b && Size > 0; b = Mem.Next())
 		{
-			ssize_t Copy = min(Size, b->Used - b->Next);
+			ssize_t Copy = MIN(Size, b->Used - b->Next);
 			if (Copy > 0)
 			{
 				memcpy(Ptr, b->Ptr() + b->Next, Copy);
@@ -1286,7 +1286,7 @@ ssize_t GMemQueue::Write(const void *Ptr, ssize_t Size, int Flags)
 			Block *Last = Mem.Last();
 			if (Last)
 			{
-				ssize_t Len = min(Size, Last->Size - Last->Used);
+				ssize_t Len = MIN(Size, Last->Size - Last->Used);
 				if (Len > 0)
 				{
 					memcpy(Last->Ptr() + Last->Used, Ptr, Len);
@@ -1300,7 +1300,7 @@ ssize_t GMemQueue::Write(const void *Ptr, ssize_t Size, int Flags)
 
 		if (Size > 0)
 		{
-			ssize_t Bytes = max(PreAlloc, Size);
+			ssize_t Bytes = MAX(PreAlloc, Size);
 			ssize_t Alloc = sizeof(Block) + Bytes;
 			Alloc = LGI_ALLOC_ALIGN(Alloc);
 			Block *b = (Block*) malloc(Alloc);
@@ -1601,14 +1601,14 @@ int64 GMemFile::SetSize(int64 Size)
 			{
 				// Add size to last incomplete block
 				ssize_t Remaining = BlockSize - b->Used;
-				ssize_t Add = min(Diff, Remaining);
+				ssize_t Add = MIN(Diff, Remaining);
 				b->Used += Add;
 				Diff -= Add;
 			}
 			while (Diff > 0)
 			{
 				// Add new blocks to cover the size...
-				ssize_t Add = min(BlockSize, Diff);
+				ssize_t Add = MIN(BlockSize, Diff);
 				b = Create();
 				b->Used = Add;
 				Diff -= Add;
@@ -1624,7 +1624,7 @@ int64 GMemFile::SetSize(int64 Size)
 				if (!b)
 					break;
 
-				ssize_t Sub = min(b->Used, Diff);
+				ssize_t Sub = MIN(b->Used, Diff);
 				b->Used -= Sub;
 				Diff -= Sub;
 				if (b->Used == 0)
@@ -1681,7 +1681,7 @@ ssize_t GMemFile::Read(void *Ptr, ssize_t Size, int Flags)
 		int Remaining = b->Used - BlkOffset;
 		if (Remaining > 0)
 		{
-			int Common = min(Remaining, end - p);
+			int Common = MIN(Remaining, end - p);
 			memcpy(p, b->Data + BlkOffset, Common);
 			CurPos += Common;
 			p += Common;
@@ -1709,7 +1709,7 @@ ssize_t GMemFile::Write(const void *Ptr, ssize_t Size, int Flags)
 	{
 		// Any more space in the last block?
 		int Remaining = BlockSize - b->Used;
-		int Common = min(Remaining, Size);
+		int Common = MIN(Remaining, Size);
 		if (Common > 0)
 		{
 			memcpy(b->Data + b->Used, p, Common);
@@ -1726,7 +1726,7 @@ ssize_t GMemFile::Write(const void *Ptr, ssize_t Size, int Flags)
 		if (!b)
 			break;
 		
-		int Common = min(BlockSize, len);
+		int Common = MIN(BlockSize, len);
 		memcpy(b->Data, p, Common);
 		b->Used = Common;
 		p += Common;

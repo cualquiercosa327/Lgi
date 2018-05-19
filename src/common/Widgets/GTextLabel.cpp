@@ -148,11 +148,6 @@ bool GTextLabel::Name(const char *n)
 
 bool GTextLabel::NameW(const char16 *n)
 {
-	if (GetId() == 544)
-	{
-		int asd=0;
-	}
-
 	if (!d->Lock(_FL))
 		return false;
 

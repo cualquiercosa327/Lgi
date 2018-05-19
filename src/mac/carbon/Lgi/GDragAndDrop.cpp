@@ -101,6 +101,7 @@ bool GDragDropSource::CreateFileDrop(GDragData *OutputData, GMouse &m, List<char
 	return false;
 }
 
+/*
 static
 OSStatus
 LgiDragSendDataFunction
@@ -117,6 +118,7 @@ LgiDragSendDataFunction
 	
 	return noErr;
 }
+*/
 
 int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 {

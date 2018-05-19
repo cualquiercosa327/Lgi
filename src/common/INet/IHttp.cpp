@@ -613,7 +613,7 @@ bool IHttp::Request
 						while (Socket && ChunkDone < ChunkSize)
 						{
 							ssize_t Remaining = ChunkSize - ChunkDone;
-							ssize_t Common = min(Used, Remaining);
+							ssize_t Common = MIN(Used, Remaining);
 							if (Common > 0)
 							{
 								ssize_t w = Out->Write(s, Common);

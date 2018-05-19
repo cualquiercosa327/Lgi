@@ -106,14 +106,14 @@ bool GRadioGroup::OnLayout(GViewLayoutInfo &Inf)
 			if (w->OnLayout(*c))
 			{
 				// Layout enabled control
-				Inf.Width.Min = max(Inf.Width.Min, c->Width.Min + MinPx);
+				Inf.Width.Min = MAX(Inf.Width.Min, c->Width.Min + MinPx);
 				Inf.Width.Max += c->Width.Max + RADIO_GRID;
 				d->Info.Add(w, c.Release());
 			}
 			else
 			{
 				// Non layout enabled control
-				Inf.Width.Min = max(Inf.Width.Min, w->X() + (RADIO_GRID << 1));
+				Inf.Width.Min = MAX(Inf.Width.Min, w->X() + (RADIO_GRID << 1));
 				Inf.Width.Max += w->X() + RADIO_GRID;
 			}
 		}
@@ -151,7 +151,7 @@ bool GRadioGroup::OnLayout(GViewLayoutInfo &Inf)
 						// Vertical layout
 						Cy += r.Y() + RADIO_GRID;
 
-					LastY = max(LastY, r.y2);
+					LastY = MAX(LastY, r.y2);
 				}
 				else LgiAssert(!"This shouldn't fail.");
 			}
@@ -169,7 +169,7 @@ bool GRadioGroup::OnLayout(GViewLayoutInfo &Inf)
 					// Vertical layout
 					Cy += r.Y() + RADIO_GRID;
 
-				LastY = max(LastY, r.y2);
+				LastY = MAX(LastY, r.y2);
 			}
 		}
 		
