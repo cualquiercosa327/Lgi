@@ -1252,7 +1252,9 @@ GString BuildThread::FindExe()
 
 	if (Compiler == PythonScript)
 	{
-		// uint32 BestVer = 0;
+		#if defined(WINDOWS)
+		uint32 BestVer = 0;
+		#endif
 		GString Best;
 
 		for (int i=0; i<p.Length(); i++)
