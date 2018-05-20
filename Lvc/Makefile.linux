@@ -8,9 +8,9 @@
 
 CC = gcc
 CPP = g++
-Target = /home/matthew/Code/Lgi/trunk/Lvc/lvc
+Target = ./lvc
 ifndef Build
-	Build = Debug
+	Build = Release
 endif
 BuildDir = $(Build)
 
@@ -376,7 +376,8 @@ VcFolder.o : ./Src/VcFolder.cpp ./Src/Lvc.h \
 	../include/common/LThread.h \
 	../include/common/GInput.h
 
-../include/common/GTextLog.h : ../include/common/GTextView3.h
+../include/common/GTextLog.h : ../include/common/GTextView3.h \
+	../include/common/INet.h
 
 ../include/common/GSubProcess.h : 
 
@@ -679,6 +680,7 @@ VcFolder.o : ./Src/VcFolder.cpp ./Src/Lvc.h \
 	../include/common/GCss.h \
 	../include/common/LgiRes.h \
 	../include/common/GEventTargetThread.h \
+	../include/common/GPopup.h \
 	../include/linux/Gtk/LgiWidget.h
 
 ../include/linux/Gtk/LgiWidget.h : 
@@ -743,7 +745,8 @@ VcFolder.o : ./Src/VcFolder.cpp ./Src/Lvc.h \
 	../include/common/GDragAndDrop.h
 
 ../src/common/Lgi/GToolTip.cpp : ../include/common/Lgi.h \
-	../include/common/GDisplayString.h
+	../include/common/GDisplayString.h \
+	../include/common/GPopup.h
 
 ./Resources/resdefs.h : 
 
@@ -789,6 +792,7 @@ VcFolder.o : ./Src/VcFolder.cpp ./Src/Lvc.h \
 	../include/common/GContainers.h \
 	../include/common/GCapabilities.h \
 	../include/common/GRefCount.h \
+	../include/common/GPalette.h \
 	../include/common/GLibrary.h \
 	../include/common/GColourSpace.h \
 	../include/common/GRect.h \
@@ -896,6 +900,7 @@ VcFolder.o : ./Src/VcFolder.cpp ./Src/Lvc.h \
 	../include/common/GContainers.h \
 	../include/common/GCapabilities.h \
 	../include/common/GRefCount.h \
+	../include/common/GPalette.h \
 	../include/common/GLibrary.h \
 	../include/common/GColourSpace.h \
 	../include/common/GRect.h \
@@ -1378,7 +1383,8 @@ VcFolder.o : ./Src/VcFolder.cpp ./Src/Lvc.h \
 
 ./Src/VcFolder.h : ../include/common/GSubProcess.h
 
-../include/common/GTextLog.h : ../include/common/GTextView3.h
+../include/common/GTextLog.h : ../include/common/GTextView3.h \
+	../include/common/INet.h
 
 ../src/common/INet/Base64.cpp : ../include/common/GMem.h \
 	../include/common/LgiInc.h \
@@ -1475,6 +1481,7 @@ VcFolder.o : ./Src/VcFolder.cpp ./Src/Lvc.h \
 	../include/common/GToken.h \
 	../include/common/GPopup.h \
 	../include/common/GPanel.h \
+	../include/common/GNotifications.h \
 	../include/linux/Gtk/LgiWidget.h
 
 ../include/common/GPanel.h : ../include/common/GDisplayString.h
@@ -1632,7 +1639,8 @@ VcFolder.o : ./Src/VcFolder.cpp ./Src/Lvc.h \
 	../include/common/GToken.h \
 	../include/common/Gdc2.h \
 	../include/common/LgiCommon.h \
-	../include/common/GString.h
+	../include/common/GString.h \
+	../include/common/LDateTime.h
 
 ../src/common/Text/GToken.cpp : ../include/common/GMem.h \
 	../include/common/GContainers.h \

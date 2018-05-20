@@ -395,7 +395,7 @@ GdcPt2 GControl::SizeOfStr(const char *Str)
 			int Len = e ? (int)e-(int)s : strlen(s);
 
 			GDisplayString ds(SysFont, s, Len);
-			Pt.x = max(Pt.x, ds.X());
+			Pt.x = MAX(Pt.x, ds.X());
 			Pt.y += y;
 		}
 	}

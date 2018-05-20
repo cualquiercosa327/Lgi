@@ -114,7 +114,7 @@ WINNATIVE</Release>
 			</Compiler>
 			<Arguments>
 				<All>
-					<Debug>/home/matthew/CodeGmn/XGate/UwImap/UwImapUnixProj.xml</Debug>
+					<Debug>/home/matthew/Code/Lgi/trunk/Ide/Code/IdeProjectSettings.cpp</Debug>
 				</All>
 			</Arguments>
 			<CrossCompiler />

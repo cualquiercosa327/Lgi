@@ -3,6 +3,7 @@ import os
 import sys
 import shutil
 import zipfile
+import subprocess
 
 ver = None
 lines = open(os.path.join("Src", "Lvc.h")).read().split("\n")
@@ -22,8 +23,9 @@ if ver:
 		z.write("..\\lib\\Lgi12x64.dll", "Lgi12x64.dll")
 		z.write("..\\lib\\libpng12x64.dll", "libpng12x64.dll")
 	elif sys.platform.find("linux") >= 0:
-		z.write("./lvc")
-		z.write("../Release/liblgi.so")
+		subprocess.call(["strip", "lvc", "../Release/liblgi.so"])
+		z.write("./lvc", "lvc")
+		z.write("../Release/liblgi.so", "liblgi.so")
 	else:
 		print("Unexpected platform:", sys.platform)
 	z.write("./Resources/Lvc.lr8");
