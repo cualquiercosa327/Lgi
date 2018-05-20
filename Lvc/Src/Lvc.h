@@ -10,9 +10,10 @@
 #include "GTextLog.h"
 #include "GTabView.h"
 
-#define OPT_Folders	"Folders"
-#define OPT_Folder	"Folder"
+#define OPT_Folders		"Folders"
+#define OPT_Folder		"Folder"
 
+#define APP_VERSION		"0.1"
 extern const char *AppName;
 
 enum LvcIcon

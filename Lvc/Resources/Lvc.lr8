@@ -4,11 +4,10 @@
 		<String Ref="1" Cid="508" Define="IDD_TOOLBAR" en="Toolbar" />
 		<String Ref="2" Cid="500" Define="IDC_TABLE" />
 		<String Ref="3" Cid="501" Define="IDC_COMMIT" en="Commit" />
-		<String Ref="4" Cid="502" Define="IDC_PULL" en="Pull" />
-		<String Ref="5" Cid="503" Define="IDC_PUSH" en="Push" />
-		<String Ref="6" Cid="-1" Define="IDC_STATIC" en="Filter:" />
-		<String Ref="7" Cid="505" Define="IDC_FILTER" />
-		<String Ref="8" Cid="506" Define="IDC_CLEAR_FILTER" en="X" />
+		<String Ref="5" Cid="502" Define="IDC_PULL" en="Pull" />
+		<String Ref="6" Cid="503" Define="IDC_PUSH" en="Push" />
+		<String Ref="7" Cid="-1" Define="IDC_STATIC" en="Filter:" />
+		<String Ref="8" Cid="505" Define="IDC_FILTER" />
 		<String Ref="9" Cid="507" Define="IDD_COMMIT" en="Commit" />
 		<String Ref="10" Cid="504" Define="IDC_COMMIT_TABLE" />
 		<String Ref="11" Cid="11" Define="IDC_BRANCH" />
@@ -17,6 +16,8 @@
 		<String Ref="14" Cid="14" Define="IDC_BRANCH_DROPDOWN" />
 		<String Ref="15" Cid="-1" Define="IDC_STATIC" en="Commit message:" />
 		<String Ref="16" Cid="16" Define="IDC_MSG" />
+		<String Ref="17" Cid="506" Define="IDC_CLEAR_FILTER" en="X" />
+		<String Ref="18" Cid="509" Define="IDC_OPEN" en="Open Folder" />
 	</string-group>
 	<Dialog pos="7,7,464,203" ref="9">
 		<TableLayout pos="7,7,447,167" ref="10" cols="0.200,0.200,0.200,0.200,0.200" rows="0.181,0.819">
@@ -47,23 +48,26 @@
 			</tr>
 		</TableLayout>
 	</Dialog>
-	<Dialog pos="7,7,705,143" ref="1">
-		<TableLayout pos="7,7,685,97" ref="2" Style="padding-top: 3px;" cols="0.200,0.200,0.200,0.200,0.200" rows="1.000">
+	<Dialog pos="7,7,702,129" ref="1">
+		<TableLayout pos="7,7,685,97" ref="2" Style="padding-top: 3px;" CellStyle="padding-left: 4px;&#10;padding-right: 2em;" cols="0.167,0.167,0.167,0.167,0.167,0.167" rows="1.000">
 			<tr>
-				<td>
-					<Button pos="28,14,90,55" ref="4" />
+				<td valign="Center" style="padding-left: 4px;&#10;padding-right: 2em;">
+					<Button pos="21,7,83,48" ref="18" />
 				</td>
-				<td>
-					<Button pos="168,14,230,55" ref="5" />
+				<td valign="Center">
+					<Button pos="133,7,195,48" ref="5" />
+				</td>
+				<td valign="Center">
+					<Button pos="238,14,300,55" ref="6" />
 				</td>
 				<td valign="Center" style="padding-left: 2em;">
-					<StaticText pos="294,21,356,41" ref="6" />
+					<StaticText pos="350,21,412,41" ref="7" />
 				</td>
 				<td>
-					<EditBox Pos="417,21,493,48" ref="7" />
+					<EditBox Pos="455,14,531,41" ref="8" />
 				</td>
 				<td>
-					<Button pos="565,21,592,48" ref="8" />
+					<Button pos="574,14,601,41" ref="17" />
 				</td>
 			</tr>
 		</TableLayout>

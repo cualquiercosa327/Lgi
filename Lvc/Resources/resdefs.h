@@ -13,3 +13,4 @@
 #define IDC_CLEAR_FILTER						506
 #define IDD_COMMIT								507
 #define IDD_TOOLBAR								508
+#define IDC_OPEN								509

@@ -163,14 +163,16 @@ class App : public GWindow, public AppPriv
 	GAutoPtr<GImageList> ImgLst;
 
 public:
-    App()
-    {
-        Name(AppName);
+	App()
+	{
+		GString AppRev;
+		AppRev.Printf("%s v%s", AppName, APP_VERSION);
+		Name(AppRev);
 
-        GRect r(0, 0, 1400, 800);
-        SetPos(r);
-        MoveToCenter();
-        SetQuitOnClose(true);
+		GRect r(0, 0, 1400, 800);
+		SetPos(r);
+		MoveToCenter();
+		SetQuitOnClose(true);
 
 		#ifdef WINDOWS
 		SetIcon(MAKEINTRESOURCEA(IDI_ICON1));
@@ -180,8 +182,8 @@ public:
 
 		ImgLst.Reset(LgiLoadImageList("image-list.png", 16, 16));
 
-        if (Attach(0))
-        {
+		if (Attach(0))
+		{
 			GBox *ToolsBox = new GBox(IDC_TOOLS_BOX, true);
 			GBox *FoldersBox = new GBox(IDC_FOLDERS_BOX, false);
 			GBox *CommitsBox = new GBox(IDC_COMMITS_BOX, true);
@@ -242,8 +244,8 @@ public:
 			Log->SetWrapType(TEXTED_WRAP_NONE);
 
 			AttachChildren();
-            Visible(true);
-        }
+			Visible(true);
+		}
 
 		Opts.SerializeFile(false);
 		GXmlTag *f = Opts.LockTag(OPT_Folders, _FL);
@@ -261,7 +263,7 @@ public:
 		}
 
 		SetPulse(200);
-    }
+	}
 
 	~App()
 	{
@@ -283,6 +285,19 @@ public:
 		VcFolder *vcf = NULL; bool b;
 		while (b = Tree->Iterate(vcf))
 			vcf->OnPulse();
+	}
+
+	void OpenFolder()
+	{
+		GFileSelect s;
+		s.Parent(this);
+		if (s.OpenFolder())
+		{
+			if (DetectVcs(s.Name()))
+				Tree->Insert(new VcFolder(this, s.Name()));
+			else
+				LgiMsg(this, "Folder not under version control.", AppName);
+		}
 	}
 
 	int OnNotify(GViewI *c, int flag)
@@ -318,6 +333,11 @@ public:
 				}
 				break;
 			}
+			case IDC_OPEN:
+			{
+				OpenFolder();
+				break;
+			}
 			case IDC_TREE:
 			{
 				switch (flag)
@@ -335,15 +355,8 @@ public:
 							{
 								case IDM_ADD:
 								{
-									GFileSelect s;
-									s.Parent(c);
-									if (s.OpenFolder())
-									{
-										if (DetectVcs(s.Name()))
-											Tree->Insert(new VcFolder(this, s.Name()));
-										else
-											LgiMsg(this, "Folder not under version control.", AppName);
-									}
+									OpenFolder();
+									break;
 								}
 							}
 						}
