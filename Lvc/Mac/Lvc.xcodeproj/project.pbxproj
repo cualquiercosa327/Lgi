@@ -66,7 +66,7 @@
 		3457FE3F2081CB3D00014BE4 /* DropDownBtn.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DropDownBtn.cpp; path = ../Src/DropDownBtn.cpp; sourceTree = "<group>"; };
 		3457FE402081CB3D00014BE4 /* Lvc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Lvc.h; path = ../Src/Lvc.h; sourceTree = "<group>"; };
 		3457FE412081CB3D00014BE4 /* Main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Main.cpp; path = ../Src/Main.cpp; sourceTree = "<group>"; };
-		3457FE422081CB3D00014BE4 /* resdefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = resdefs.h; path = ../Src/resdefs.h; sourceTree = "<group>"; };
+		3457FE422081CB3D00014BE4 /* resdefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = resdefs.h; path = ../Resources/resdefs.h; sourceTree = "<group>"; };
 		3457FE432081CB3D00014BE4 /* VcCommit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VcCommit.cpp; path = ../Src/VcCommit.cpp; sourceTree = "<group>"; };
 		3457FE442081CB3D00014BE4 /* VcCommit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VcCommit.h; path = ../Src/VcCommit.h; sourceTree = "<group>"; };
 		3457FE452081CB3D00014BE4 /* VcFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VcFile.cpp; path = ../Src/VcFile.cpp; sourceTree = "<group>"; };
@@ -336,10 +336,10 @@
 				);
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = i.Hex_Prefix.pch;
+				GCC_PREFIX_HEADER = Lvc_Prefix.pch;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
-				PRODUCT_NAME = i.Hex;
+				PRODUCT_NAME = Lvc;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
