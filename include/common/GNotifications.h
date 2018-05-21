@@ -45,6 +45,15 @@ enum GNotifyType
 	// Generic value changed
 	GNotifyValueChanged,
 
+	// Control notifications
+	GNotify_Activate,					// User has used say the keyboard to activate control:
+										//		Check box -> toggle value
+										//		Radio button -> select
+										//		Button -> push or toggle
+										//		Text label -> activate "next" control
+										//		Most others -> take focus
+										// etc
+
 	// GDocView
 	GNotifyDocChanged,
 	GNotifyDocLoaded,

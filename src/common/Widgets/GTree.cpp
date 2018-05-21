@@ -410,7 +410,7 @@ int GTreeItem::GetColumnSize(int Col)
 		ForAll(Items)
 		{
 			int ChildPx = c->GetColumnSize(Col);
-			Px = max(ChildPx, Px);
+			Px = MAX(ChildPx, Px);
 		}
 	}
 	return Px;
@@ -644,21 +644,21 @@ void GTreeItem::_Pour(GdcPt2 *Limit, int ColumnPx, int Depth, bool Visible)
 		GImageList *ImgLst = Tree->GetImageList();
 		// int IconX = (ImgLst && GetImage() >= 0) ? ImgLst->TileX() + Tree->d->IconTextGap : 0;
 		int IconY = (ImgLst && GetImage() >= 0) ? ImgLst->TileY() : 0;
-		int Height = max(TextSize.y, IconY);
+		int Height = MAX(TextSize.y, IconY);
 		if (!Height)
 		    Height = 16;
 
 		GDisplayString *Ds = d->GetDs(0, 0);
 
-		d->Pos.ZOff(ColumnPx - 1, (Ds ? max(Height, Ds->Y()) : Height) - 1);
+		d->Pos.ZOff(ColumnPx - 1, (Ds ? MAX(Height, Ds->Y()) : Height) - 1);
 		d->Pos.Offset(0, Limit->y);
 		if (!d->Pos.Valid())
 		{
 			printf("Invalid pos: %s, ColumnPx=%i\n", d->Pos.GetStr(), ColumnPx);
 		}
 
-		Limit->x = max(Limit->x, d->Pos.x2 + 1);
-		Limit->y = max(Limit->y, d->Pos.y2 + 1);
+		Limit->x = MAX(Limit->x, d->Pos.x2 + 1);
+		Limit->y = MAX(Limit->y, d->Pos.y2 + 1);
 	}
 	else
 	{
@@ -1013,7 +1013,7 @@ void GTreeItem::OnPaint(ItemPaintCtx &Ctx)
 	
 	// background after text
 	pDC->Colour(LC_WORKSPACE, 24);
-	pDC->Rectangle(x, Pos.y1, max(Tree->X(), Tree->d->Limit.x), Pos.y2);
+	pDC->Rectangle(x, Pos.y1, MAX(Tree->X(), Tree->d->Limit.x), Pos.y2);
 
 	// children
 	if (d->Open)
@@ -1695,7 +1695,7 @@ void GTree::OnMouseMove(GMouse &m)
 				// int OldWidth = c->Width();
 				int NewWidth = m.x - c->GetPos().x1;
 
-				c->Width(max(NewWidth, 4));
+				c->Width(MAX(NewWidth, 4));
 				_ClearDs(d->DragData);
 				Invalidate();
 			}
@@ -1752,7 +1752,7 @@ void GTree::OnPaint(GSurface *pDC)
 	if (GetImageList() &&
 		!d->IconCache)
 	{
-		int CacheHeight = max(SysFont->GetHeight(), GetImageList()->Y());
+		int CacheHeight = MAX(SysFont->GetHeight(), GetImageList()->Y());
 		
 		d->IconCache = new GMemDC;
 		if (d->IconCache &&
@@ -1845,6 +1845,9 @@ int GTree::OnNotify(GViewI *Ctrl, int Flags)
 		case IDC_HSCROLL:
 		case IDC_VSCROLL:
 		{
+			if (Flags == GNotifyScrollBar_Create)
+				_UpdateScrollBars();
+
 			Invalidate();
 			break;
 		}
@@ -1982,7 +1985,7 @@ int GTree::GetContentSize(int ColumnIdx)
 	for (GTreeItem *i = *it; i; i=*++it)
 	{
 		int ItemPx = i->GetColumnSize(ColumnIdx);
-		MaxPx = max(ItemPx, MaxPx);
+		MaxPx = MAX(ItemPx, MaxPx);
 	}
 	
 	return MaxPx;

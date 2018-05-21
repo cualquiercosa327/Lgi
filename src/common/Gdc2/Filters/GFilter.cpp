@@ -5,30 +5,31 @@
 	\brief Graphics file filters
 */
 
+#if WINDOWS
+	#include <winsock2.h>
+	#include <Windows.h>
+	#include "Lgi.h"
+	#ifdef _MSC_VER
+		#include <IImgCtx.h>
+	#endif
+#else
+	#define BI_RGB			0L
+	#define BI_RLE8			1L
+	#define BI_RLE4			2L
+	#define BI_BITFIELDS	3L
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 
-#include "Gdc2.h"
+#include "Lgi.h"
 #include "GString.h"
 #include "GVariant.h"
 #include "GClipBoard.h"
 #include "GToken.h"
 #include "GPalette.h"
-
-#ifndef WIN32
-	#define BI_RGB			0L
-	#define BI_RLE8			1L
-	#define BI_RLE4			2L
-	#define BI_BITFIELDS	3L
-#else
-	#include "Lgi.h"
-	#include <objbase.h>
-	#ifdef _MSC_VER
-		#include <IImgCtx.h>
-	#endif
-#endif
 
 int FindHeader(int Offset, const char *Str, GStream *f)
 {
@@ -309,10 +310,10 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 
 	ActualBits = Info.Bits;
 	ScanSize = BMPWIDTH(Info.Sx * Info.Bits);
-	int MemBits = max(Info.Bits, 8);
+	int MemBits = MAX(Info.Bits, 8);
 	if (!pDC->Create(Info.Sx, Info.Sy, GBitsToColourSpace(MemBits), ScanSize))
 	{
-		LgiTrace("%s:%i - MemDC(%i,%i,%i) failed.\n", _FL, Info.Sx, Info.Sy, max(Info.Bits, 8));
+		LgiTrace("%s:%i - MemDC(%i,%i,%i) failed.\n", _FL, Info.Sx, Info.Sy, MAX(Info.Bits, 8));
 		return GFilter::IoError;
 	}
 
@@ -384,7 +385,7 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 								uchar *Pixel = (*pDC)[y];
 								if (Pixel && y >= 0 && y < pDC->Y())
 								{
-									int Len = min(Colour, pDC->X() - x);
+									int Len = MIN(Colour, pDC->X() - x);
 									if (Len > 0)
 									{
 										memcpy(Pixel + x, p, Len);
@@ -407,7 +408,7 @@ GFilter::IoStatus GdcBmp::ReadImage(GSurface *pDC, GStream *In)
 						uchar *Pixel = (*pDC)[y];
 						if (Pixel && y >= 0 && y < pDC->Y())
 						{
-							int Len = min(Length, pDC->X() - x);
+							int Len = MIN(Length, pDC->X() - x);
 							if (Len > 0)
 							{
 								memset(Pixel + x, Colour, Len);
@@ -1006,7 +1007,7 @@ GFilter::IoStatus GdcIco::ReadImage(GSurface *pDC, GStream *In)
 		if (Colours &&
 			XorBytes &&
 			(Header.Bits > MyBits || Width > pDC->X() || Height > pDC->Y()) &&
-			pDC->Create(Width, Height, GBitsToColourSpace(max(8, Header.Bits)) ))
+			pDC->Create(Width, Height, GBitsToColourSpace(MAX(8, Header.Bits)) ))
 		{
 			MyBits = Header.Bits;
 			pDC->Colour(0, 24);
@@ -1683,8 +1684,8 @@ void GdcRleDC::Draw(GSurface *Dest, int Ox, int Oy)
 								int Pixels = *((ulong*)s); s+=4;
 
 								int Fx = Ox+x;
-								int PreClipPixels = max(0, Temp.x1 - Fx);
-								int PostClipPixels = max(0, (Pixels + Fx) - Temp.x2 - 1);
+								int PreClipPixels = MAX(0, Temp.x1 - Fx);
+								int PostClipPixels = MAX(0, (Pixels + Fx) - Temp.x2 - 1);
 								int PixelsLeft = Pixels - (PreClipPixels + PostClipPixels);
 								if (PixelsLeft > 0) // clip x
 								{

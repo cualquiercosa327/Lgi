@@ -142,6 +142,7 @@ GViewPrivate::~GViewPrivate()
 
 void GView::OnGtkRealize()
 {
+	// printf("%s::OnGtkRealize %i\n", GetClass(), d->GotOnCreate);
 	if (!d->GotOnCreate)
 	{
 		d->GotOnCreate = true;
@@ -821,6 +822,9 @@ bool GView::GetMouse(GMouse &m, bool ScreenCoords)
 			m.y = y;
 		}
 		m.SetModifer(mask);
+		m.Left((mask & GDK_BUTTON1_MASK) != 0);
+		m.Middle((mask & GDK_BUTTON2_MASK) != 0);
+		m.Right((mask & GDK_BUTTON3_MASK) != 0);
 		
 		return true;
 	}

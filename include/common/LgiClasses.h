@@ -230,8 +230,8 @@ public:
 	(
 		/// The option to look for.
 		const char *Option,
-		/// The buffer to receive the value.
-		GAutoString &Buf
+		/// String to receive the value (if any) of the option
+		GString &Value
 	);
 
 	/// \brief Parses the command line for a switch
@@ -834,6 +834,9 @@ public:
 	/// \returns the Class' name for debugging
 	const char *GetClass() { return "GView"; }
 
+	/// The array of CSS class names.
+	GString::Array *CssClasses();
+
 	/// \brief Captures all mouse events to this view
 	///
 	/// Once you have mouse capture all mouse events will be passed to this
@@ -1344,7 +1347,11 @@ public:
 	(
 		/// The target view.
 		GView *Target,
-		/// Combination of #GMouseEvents and #GKeyEvents OR'd together.
+		/// Combination of:
+		///     #GMouseEvents - Where Target->OnViewMouse(...) is called for each click.
+		/// and
+		///     #GKeyEvents - Where Target->OnViewKey(...) is called for each key.
+		/// OR'd together.
 		GWindowHookType EventType,
 		/// Not implemented
 		int Priority = 0
@@ -1368,6 +1375,9 @@ public:
 		/// TRUE if loading the settings into the window, FALSE if saving to the store.
 		bool Load
 	);
+
+	/// Builds a map of keyboard short cuts.
+	void BuildShortcuts(GHashTbl<int,GViewI*> &Map, GViewI *v = NULL);
 
 	////////////////////// Events ///////////////////////////////
 	
@@ -1872,15 +1882,27 @@ class LgiClass GProfile
 	};
 	
 	GArray<Sample> s;
+	char *Buf;
+	int Used;
 	int MinMs;
 	
 public:
-	GProfile(const char *Name);
+	GProfile(const char *Name, int HideMs = -1);
 	virtual ~GProfile();
 	
 	void HideResultsIfBelow(int Ms);
 	virtual void Add(const char *Name);
+	virtual void Add(const char *File, int Line);
 };
+
+// This code will assert if the cast fails.
+template<typename A, typename B>
+A &AssertCast(A &a, B b)
+{
+	a = (A) b;	 // If this breaks it'll assert.
+	LgiAssert((B)a == b);
+	return a;
+}
 
 #endif
 

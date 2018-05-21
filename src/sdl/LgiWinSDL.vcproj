@@ -280,6 +280,10 @@
 						RelativePath="..\common\Gdc2\Font\GFontSystem.cpp"
 						>
 					</File>
+					<File
+						RelativePath="..\common\Gdc2\Font\LStringLayout.cpp"
+						>
+					</File>
 				</Filter>
 				<Filter
 					Name="Applicators"
@@ -591,6 +595,10 @@
 				</File>
 				<File
 					RelativePath=".\Lgi\GMenu.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\common\Lgi\GMenuCommon.cpp"
 					>
 				</File>
 				<File

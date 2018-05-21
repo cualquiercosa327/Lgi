@@ -8,6 +8,31 @@
 #include "Lgi.h"
 #include "INet.h"
 
+void GWindow::BuildShortcuts(GHashTbl<int,GViewI*> &Map, GViewI *v)
+{
+	if (!v) v = this;
+
+	GAutoPtr<GViewIterator> Ch(v->IterateViews());
+	for (GViewI *c = Ch->First(); c; c = Ch->Next())
+	{
+		char *n = c->Name(), *amp;
+		if (n && (amp = strchr(n, '&')))		
+		{
+			amp++;
+			if (*amp && *amp != '&')
+			{
+				uint8 *i = (uint8*)amp;
+				ssize_t sz = Strlen(amp);
+				int32 ch = LgiUtf8To32(i, sz);
+				if (ch)
+					Map.Add(ToUpper(ch), c);
+			}
+		}
+		
+		BuildShortcuts(Map, c);
+	}
+}
+
 void GWindow::MoveOnScreen()
 {
 	GRect p = GetPos();
@@ -168,7 +193,8 @@ int GWindow::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 				GVariant *Data = &dd.Data[n];
 				if (Data->IsBinary())
 				{
-					Uri.New().Set((char*)Data->Value.Binary.Data, Data->Value.Binary.Length);
+					GString::Array a = GString((char*)Data->Value.Binary.Data, Data->Value.Binary.Length).SplitDelimit("\r\n");
+					Uri.Add(a);
 				}
 				else if (Data->Str())
 				{

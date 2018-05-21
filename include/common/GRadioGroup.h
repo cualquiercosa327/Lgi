@@ -74,16 +74,17 @@ public:
 	int64 Value();
 	void Value(int64 i);
 	bool OnLayout(GViewLayoutInfo &Inf);
+	int OnNotify(GViewI *Ctrl, int Flags);
 
 	// Events
 	void OnAttach();
+	void OnStyleChange();
 	bool OnKey(GKey &k);
 	
 	#if WINNATIVE
 	int SysOnNotify(int Msg, int Code);
 	#else
 	void OnMouseClick(GMouse &m);
-	GMessage::Result OnEvent(GMessage *m);
 	void OnMouseEnter(GMouse &m);
 	void OnMouseExit(GMouse &m);
 	void OnFocus(bool f);

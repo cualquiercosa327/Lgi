@@ -21,6 +21,7 @@ class IHttp
 	bool NoCache;
 	char *AuthUser;
 	char *AuthPassword;
+	GString ErrorMsg;
 
 public:
 	enum ContentEncoding
@@ -49,6 +50,7 @@ public:
 	bool Close();
 	bool IsOpen();
 	GSocketI *GetSocket() { return Socket; }
+	GString GetErrorString() { return ErrorMsg; }
 
 	// General
 	bool Request(	const char *Type,

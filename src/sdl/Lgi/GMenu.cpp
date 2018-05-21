@@ -179,7 +179,7 @@ bool IsOverMenu(XEvent *e)
 }
 #endif
 
-int GSubMenu::Float(GView *From, int x, int y, bool Left)
+int GSubMenu::Float(GView *From, int x, int y, int Btns)
 {
 	static int Depth = 0;
 
@@ -379,7 +379,7 @@ void GMenuItem::_Measure(GdcPt2 &Size)
 			Size.x += Child ? 8 : 0;
 		}
 
-		Size.y = max(IconX, Ht+2);
+		Size.y = MAX(IconX, Ht+2);
 	}
 }
 
@@ -450,7 +450,7 @@ void GMenuItem::_PaintText(GSurface *pDC, int x, int y, int Width)
 							int UnderX = ds.X();
 							int Ascent = (int)ceil(Font->Ascent());
 							pDC->Colour(Font->Fore());
-							pDC->Line(x, y+Ascent+1, x+max(UnderX-2, 1), y+Ascent+1);
+							pDC->Line(x, y+Ascent+1, x+MAX(UnderX-2, 1), y+Ascent+1);
 							Underline = false;
 						}
 

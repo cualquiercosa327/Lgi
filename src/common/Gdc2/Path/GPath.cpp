@@ -123,8 +123,8 @@ public:
 		for (int n=1; n<Points; n++)
 		{
 			double y = p[n].y;
-			Bounds.y1 = min(Bounds.y1, y);
-			Bounds.y2 = max(Bounds.y2, y);
+			Bounds.y1 = MIN(Bounds.y1, y);
+			Bounds.y2 = MAX(Bounds.y2, y);
 		}
 
 		if (aa)
@@ -164,8 +164,8 @@ public:
 
 								PathAssert(Yi < n);
 								aax[Yi].x[s&SUB_MASK] = Rx = a->x;
-								Bounds.x1 = min(Bounds.x1, Rx);
-								Bounds.x2 = max(Bounds.x2, Rx);
+								Bounds.x1 = MIN(Bounds.x1, Rx);
+								Bounds.x2 = MAX(Bounds.x2, Rx);
 								/*
 								PathAssert(	aax[Yi].x[s&SUB_MASK] >= Bounds.x1 - GPointF::Threshold &&
 											aax[Yi].x[s&SUB_MASK] <= Bounds.x2 + GPointF::Threshold);
@@ -187,8 +187,8 @@ public:
 
 								Ry = ToDbl(s);
 								aax[Yi].x[s&SUB_MASK] = Rx = (Ry - Lb) / Lm;
-								Bounds.x1 = min(Bounds.x1, Rx);
-								Bounds.x2 = max(Bounds.x2, Rx);
+								Bounds.x1 = MIN(Bounds.x1, Rx);
+								Bounds.x2 = MAX(Bounds.x2, Rx);
 								/*
 								PathAssert(	aax[Yi].x[s&SUB_MASK] >= Bounds.x1 - GPointF::Threshold &&
 											aax[Yi].x[s&SUB_MASK] <= Bounds.x2 + GPointF::Threshold);
@@ -200,8 +200,8 @@ public:
 					}
 					else
 					{
-						Bounds.x1 = min(Bounds.x1, b->x);
-						Bounds.x2 = max(Bounds.x2, b->x);
+						Bounds.x1 = MIN(Bounds.x1, b->x);
+						Bounds.x2 = MAX(Bounds.x2, b->x);
 					}
 
 					PathAssert(a >= p);
@@ -404,10 +404,10 @@ void GRectF::Intersect(GRectF &p)
 {
 	if (Defined)
 	{
-		x1 = max(x1, p.x1);
-		y1 = max(y1, p.y1);
-		x2 = min(x2, p.x2);
-		y2 = min(y2, p.y2);
+		x1 = MAX(x1, p.x1);
+		y1 = MAX(y1, p.y1);
+		x2 = MIN(x2, p.x2);
+		y2 = MIN(y2, p.y2);
 	}
 }
 
@@ -415,10 +415,10 @@ void GRectF::Union(GPointF &p)
 {
 	if (Defined)
 	{
-		x1 = min(x1, p.x);
-		y1 = min(y1, p.y);
-		x2 = max(x2, p.x);
-		y2 = max(y2, p.y);
+		x1 = MIN(x1, p.x);
+		y1 = MIN(y1, p.y);
+		x2 = MAX(x2, p.x);
+		y2 = MAX(y2, p.y);
 	}
 	else
 	{
@@ -433,10 +433,10 @@ void GRectF::Union(GRectF &p)
 	if (Defined)
 	{
 		p.Normalize();
-		x1 = min(x1, p.x1);
-		y1 = min(y1, p.y1);
-		x2 = max(x2, p.x2);
-		y2 = max(y2, p.y2);
+		x1 = MIN(x1, p.x1);
+		y1 = MIN(y1, p.y1);
+		x2 = MAX(x2, p.x2);
+		y2 = MAX(y2, p.y2);
 	}
 	else
 	{

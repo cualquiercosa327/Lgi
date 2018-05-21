@@ -23,7 +23,7 @@ enum GTokenType
 struct LinkFixup
 {
 	int Tok;
-	int Offset;
+	size_t Offset;
 	int Args;
 	GFunctionInfo *Func;
 };
@@ -155,7 +155,8 @@ GCompiledCode &GCompiledCode::operator =(GCompiledCode &c)
 	Types = c.Types;
 	Debug = c.Debug;
 	Methods = c.Methods;
-	FileName.Reset(NewStr(c.FileName));
+	FileName = c.FileName;
+	Source = c.Source;
 
 	return *this;
 }
@@ -305,7 +306,7 @@ public:
 		if (!r)
 			r = &Ranges.Last();
 		
-		if (r->File >= FileNames.Length())
+		if (r->File >= (ssize_t)FileNames.Length())
 		{
 			LgiAssert(!"Invalid file index.");
 			return "#err: invalid file index";
@@ -323,7 +324,7 @@ public:
 		if (Ranges.Length() > 0)
 		{
 			Range &r = Ranges.Last();
-			if (r.File < FileNames.Length())
+			if (r.File < (ssize_t)FileNames.Length())
 				sprintf_s(fl, sizeof(fl), "%s:%i", FileNames[r.File].Get(), Line);
 			else
 				return "#err: invalid file index.";
@@ -374,7 +375,7 @@ class GCompilerPriv :
 	public GScriptUtils
 {
 	GHashTbl<const char*, GVariantType> Types;
-	int JumpLoc;
+	size_t JumpLoc;
 
 public:
 	GScriptContext *SysCtx;
@@ -644,7 +645,7 @@ public:
 		{
 			if (*t == '#')
 			{
-				int Len;
+				ssize_t Len;
 				if (!StrnicmpW(t + 1, sInclude, Len = StrlenW(sInclude)))
 				{
 					GAutoWString Raw(LexCpp(s, LexStrdup));
@@ -874,7 +875,7 @@ public:
 	}
 
 	/// Allocate a constant string
-	void AllocConst(GVarRef &r, char *s, int len = -1)
+	void AllocConst(GVarRef &r, char *s, ssize_t len = -1)
 	{
 		LgiAssert(s != 0);
 		if (len < 0)
@@ -905,7 +906,7 @@ public:
 	}
 
 	/// Allocate a constant wide string
-	void AllocConst(GVarRef &r, char16 *s, int len)
+	void AllocConst(GVarRef &r, char16 *s, ssize_t len)
 	{
 		LgiAssert(s != 0);
 
@@ -944,7 +945,7 @@ public:
 		GVarRef r = {0, -1};
 
 		// Look for existing variable...
-		int i;
+		ssize_t i;
 		for (i=Scopes.Length()-1; i>=0; i--)
 		{
 			r.Index = Scopes[i]->Var(Name.Str(), false);
@@ -1122,7 +1123,7 @@ public:
 			GVarRef Idx;
 			Idx.Empty();
 
-			int Last = n.Variable.Length() - 1;
+			ssize_t Last = n.Variable.Length() - 1;
 			if (n.Variable[Last].Array.Length())
 			{
 				// Evaluate the array indexing expression
@@ -1200,7 +1201,7 @@ public:
 		if (*t == '\"' || *t == '\'')
 		{
 			// string
-			int Len = StrlenW(t);
+			ssize_t Len = StrlenW(t);
 			v->OwnStr(NewStrW(t + 1, Len - 2));
 		}
 		else if (StrchrW(t, '.'))
@@ -1459,7 +1460,7 @@ public:
 							if (*t == '\"' || *t == '\'')
 							{
 								// string
-								int Len = StrlenW(t);
+								ssize_t Len = StrlenW(t);
 								AllocConst(n.Reg, t + 1, Len - 2);
 							}
 							else if (StrchrW(t, '.'))
@@ -1510,8 +1511,8 @@ public:
 						return OnError(n.Tok, "Error creating bytecode for context function argument.");
 				}
 
-				int Len = Code->ByteCode.Length();
-				int Size = 1 + sizeof(GFunc*) + sizeof(GVarRef) + 2 + (a.Length() * sizeof(GVarRef));
+				ssize_t Len = Code->ByteCode.Length();
+				ssize_t Size = 1 + sizeof(GFunc*) + sizeof(GVarRef) + 2 + (a.Length() * sizeof(GVarRef));
 				Code->ByteCode.Length(Len + Size);
 				GPtr p;
 				uint8 *Start = &Code->ByteCode[Len];
@@ -1519,7 +1520,7 @@ public:
 				*p.u8++ = ICallMethod;
 				*p.fn++ = n.ContextFunc;
 				*p.r++ = *OutRef;
-				*p.u16++ = n.Args.Length();
+				*p.u16++ = (uint16) n.Args.Length();
 				for (unsigned i=0; i<n.Args.Length(); i++)
 				{
 					*p.r++ = a[i];
@@ -1580,13 +1581,13 @@ public:
 					}
 				}
 
-				int Len = Code->ByteCode.Length();
-				int Size =	1 + // instruction
-							sizeof(uint32) + // address of function
-							sizeof(uint16) + // size of frame
-							sizeof(GVarRef) + // return value
-							2 + // number of args
-							(a.Length() * sizeof(GVarRef)); // args
+				size_t Len = Code->ByteCode.Length();
+				size_t Size =	1 + // instruction
+								sizeof(uint32) + // address of function
+								sizeof(uint16) + // size of frame
+								sizeof(GVarRef) + // return value
+								2 + // number of args
+								(a.Length() * sizeof(GVarRef)); // args
 
 				Code->ByteCode.Length(Len + Size);
 				GPtr p;
@@ -1605,7 +1606,7 @@ public:
 					// Add link time fixup
 					LinkFixup &Fix = Fixups.New();
 					Fix.Tok = n.Tok;
-					Fix.Args = n.Args.Length();
+					Fix.Args = (int)n.Args.Length();
 					Fix.Offset = p.u8 - &Code->ByteCode[0];
 					Fix.Func = n.ScriptFunc;
 					*p.u32++ = 0;
@@ -1613,7 +1614,7 @@ public:
 				}
 
 				*p.r++ = *OutRef;
-				*p.u16++ = n.Args.Length();
+				*p.u16++ = (uint16) n.Args.Length();
 				for (unsigned i=0; i<n.Args.Length(); i++)
 				{
 					*p.r++ = a[i];
@@ -2073,7 +2074,7 @@ public:
 		{
 			// Find which operator to handle first
 			#ifdef _DEBUG
-			int StartLength = n.Length();
+			size_t StartLength = n.Length();
 			#endif
 			int OpIdx = -1;
 			int Prec = -1;
@@ -2404,6 +2405,11 @@ public:
 				{
 					if (!DoExpression(Cur, 0))
 						return false;
+
+					GTokenType Tok = ExpTok.Find(GetTok(Cur));
+					if (Tok == TSemiColon)
+						Cur++;
+
 					if (LastWasReturn)
 						*LastWasReturn = false;
 					break;
@@ -2442,7 +2448,7 @@ public:
 				// Output the jump instruction
 				Asm1(ExpressionTok, IJumpZero, Result);
 				DeallocReg(Result);
-				int JzOffset = Code->ByteCode.Length();
+				size_t JzOffset = Code->ByteCode.Length();
 				Code->ByteCode.Length(JzOffset + sizeof(int32));
 
 				if (!StricmpW(t, sStartCurlyBracket))
@@ -2480,7 +2486,7 @@ public:
 					// Add a jump for the "true" part of the expression to
 					// jump over the "else" part.
 					Asm0(Cur, IJump);
-					int JOffset = Code->ByteCode.Length();
+					size_t JOffset = Code->ByteCode.Length();
 					if (Code->ByteCode.Length(JOffset + 4))
 					{
 						// Initialize the ptr to zero
@@ -2492,7 +2498,7 @@ public:
 						{
 							// Adjust the "if" jump point
 							int32 *Ptr = (int32*)&Code->ByteCode[JzOffset];
-							*Ptr = Code->ByteCode.Length() - JzOffset - sizeof(int32);
+							*Ptr = (int32) (Code->ByteCode.Length() - JzOffset - sizeof(int32));
 							JzOffset = 0;
 						}
 
@@ -2529,7 +2535,7 @@ public:
 						// Resolve the "JOffset" jump that takes execution of
 						// the 'true' part over the 'else' part
 						Ptr = (int32*)&Code->ByteCode[JOffset];
-						*Ptr = Code->ByteCode.Length() - JOffset - sizeof(int32);
+						*Ptr = (int32) (Code->ByteCode.Length() - JOffset - sizeof(int32));
 						if (*Ptr == 0)
 						{
 							// Empty statement... so delete the Jump instruction
@@ -2542,8 +2548,8 @@ public:
 				{
 					// Adjust the jump point
 					int32 *Ptr = (int32*)&Code->ByteCode[JzOffset];
-					int CurLen = Code->ByteCode.Length();
-					*Ptr = CurLen - JzOffset - sizeof(int32);
+					size_t CurLen = Code->ByteCode.Length();
+					*Ptr = (int32) (CurLen - JzOffset - sizeof(int32));
 					LgiAssert(*Ptr != 0);
 				}
 				return true;
@@ -2571,7 +2577,7 @@ public:
 			Comp = d;
 			Comp->Asm1(Cur, IJumpZero, r);
 			Comp->DeallocReg(r);
-			JzOffset = Comp->GetByteCode().Length();
+			JzOffset = (int) Comp->GetByteCode().Length();
 			Comp->GetByteCode().Length(JzOffset + sizeof(int32));
 		}
 
@@ -2579,7 +2585,7 @@ public:
 		{
 			// Resolve jump
 			int32 *Ptr = (int32*) &Comp->GetByteCode()[JzOffset];
-			*Ptr = Comp->GetByteCode().Length() - (JzOffset + sizeof(int32));
+			*Ptr = (int32) (Comp->GetByteCode().Length() - (JzOffset + sizeof(int32)));
 		}
 	};
 
@@ -2593,7 +2599,7 @@ public:
 		Cur++;
 
 		// Store start of condition code
-		int ConditionStart = Code->ByteCode.Length();
+		size_t ConditionStart = Code->ByteCode.Length();
 
 		// Compile condition evalulation
 		GVarRef r;
@@ -2641,10 +2647,10 @@ public:
 
 			// Jump to condition evaluation at 'ConditionStart'
 			Asm0(Cur, IJump);
-			int JOffset = Code->ByteCode.Length();
+			size_t JOffset = Code->ByteCode.Length();
 			Code->ByteCode.Length(JOffset + sizeof(int32));
 			int32 *Ptr = (int32*) &Code->ByteCode[JOffset];
-			*Ptr = ConditionStart - Code->ByteCode.Length();
+			*Ptr = (int32) (ConditionStart - Code->ByteCode.Length());
 		}
 		
 		return true;
@@ -2700,7 +2706,7 @@ public:
 		Cur++;
 		
 		// Store start of condition code
-		int ConditionStart = Code->ByteCode.Length();
+		size_t ConditionStart = Code->ByteCode.Length();
 		
 		// Compile condition evalulation
 		if (!DoExpression(Cur, &r))
@@ -2716,14 +2722,14 @@ public:
 			Cur++;
 
 			// Compile the post expression code
-			int PostCodeStart = Code->ByteCode.Length();
+			size_t PostCodeStart = Code->ByteCode.Length();
 			t = GetTok(Cur);
 			if (StricmpW(t, sEndRdBracket) && !DoExpression(Cur, 0))
 				return false;
 
 			// Store post expression code in temp variable
 			GArray<uint8> PostCode;
-			int PostCodeLen = Code->ByteCode.Length() - PostCodeStart;
+			size_t PostCodeLen = Code->ByteCode.Length() - PostCodeStart;
 			if (PostCodeLen)
 			{
 				PostCode.Length(PostCodeLen);
@@ -2764,17 +2770,17 @@ public:
 			// Add post expression code
 			if (PostCodeLen)
 			{
-				int Len = Code->ByteCode.Length();
+				size_t Len = Code->ByteCode.Length();
 				Code->ByteCode.Length(Len + PostCodeLen);
 				memcpy(&Code->ByteCode[Len], &PostCode[0], PostCodeLen);
 			}
 			
 			// Jump to condition evaluation at 'ConditionStart'
 			Asm0(Cur, IJump);
-			int JOffset = Code->ByteCode.Length();
+			size_t JOffset = Code->ByteCode.Length();
 			Code->ByteCode.Length(JOffset + sizeof(int32));
 			int32 *Ptr = (int32*) &Code->ByteCode[JOffset];
-			*Ptr = ConditionStart - Code->ByteCode.Length();
+			*Ptr = (int32) (ConditionStart - Code->ByteCode.Length());
 		}
 		
 		return true;
@@ -2804,6 +2810,7 @@ public:
 		}
 
 		Asm1(StartTok, IRet, ReturnValue);
+		DeallocReg(ReturnValue);
 		Cur++;
 		return true;
 	}
@@ -2823,7 +2830,7 @@ public:
 
 		if (!JumpLoc)
 		{
-			int Len = Code->ByteCode.Length();
+			size_t Len = Code->ByteCode.Length();
 			if (Code->ByteCode.Length(Len + 5))
 			{
 				GPtr p;
@@ -2886,7 +2893,7 @@ public:
 					return OnError(Cur, "Can't define method '%s'.", FunctionName.Get());
 
 				ScriptMethod->Params = Params;
-				ScriptMethod->StartAddr = Code->ByteCode.Length();
+				ScriptMethod->StartAddr = (uint32)Code->ByteCode.Length();
 			}
 
 			// Parse start of body
@@ -2922,9 +2929,9 @@ public:
 				if (!StricmpW(t, sEndCurlyBracket))
 				{
 					if (StructMethod)
-						StructMethod->FrameSize = LocalScope.Length();
+						StructMethod->FrameSize = (uint16)LocalScope.Length();
 					else if (ScriptMethod)
-						ScriptMethod->FrameSize = LocalScope.Length();
+						ScriptMethod->FrameSize = (uint16)LocalScope.Length();
 					else
 						LgiAssert(!"What are you defining exactly?");
 					
@@ -3088,18 +3095,18 @@ public:
 		}
 	};
 
-	int Evaluate(GArray<char16*> &Exp, int Start, int End)
+	int Evaluate(GArray<char16*> &Exp, size_t Start, size_t End)
 	{
 		GArray<ExpPart> p;		
 
 		// Find outer brackets
-		int e;
+		size_t e;
 		for (e = End; e >= Start; e--)
 		{
 			if (Exp[e][0] == ')') break;
 		}
 		
-		for (int i = Start; i <= End; i++)
+		for (size_t i = Start; i <= End; i++)
 		{
 			char16 *t = Exp[i];
 			if (*t == '(')
@@ -3408,7 +3415,7 @@ public:
 				{
 					GPtr p;
 					p.u8 = &Code->ByteCode[JumpLoc];
-					*p.u32 = Code->ByteCode.Length() - (JumpLoc + 4);
+					*p.u32 = (uint32) (Code->ByteCode.Length() - (JumpLoc + 4));
 					JumpLoc = 0;
 				}
 
@@ -3423,7 +3430,7 @@ public:
 		{
 			GPtr p;
 			p.u8 = &Code->ByteCode[JumpLoc];
-			*p.u32 = Code->ByteCode.Length() - (JumpLoc + 4);
+			*p.u32 = (uint32) (Code->ByteCode.Length() - (JumpLoc + 4));
 			JumpLoc = 0;
 		}
 
@@ -3525,7 +3532,7 @@ bool GCompiler::Compile
 	{
 		d->Code->UserContext = UserContext;
 		d->Code->SysContext = SysContext;
-		d->Code->SetFileName(FileName);
+		d->Code->SetSource(FileName, Script);
 		
 		bool LexResult = d->Lex((char*)Script, FileName);
 		if (LexResult)
@@ -3627,7 +3634,7 @@ GExecutionStatus GScriptEngine::RunTemporary(GCompiledCode *Obj, char *Script, G
 	if (Script && Code)
 	{
 		GAutoPtr<GCompiledCode> Temp(new GCompiledCode(*Code));
-		uint32 TempLen = Temp->Length();
+		uint32 TempLen = (uint32) Temp->Length();
 		d->Code = Temp;
 		
 		GCompiler Comp;

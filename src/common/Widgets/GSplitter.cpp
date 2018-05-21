@@ -195,7 +195,7 @@ void GSplitter::Value(int64 s)
 {
 	d->SplitSet = (int)s;
 	int Limit = ((d->Vertical) ? X() : Y()) - 18;
-	int NewPos = (int) ((s > 0) ? max(s, 4) : max(4, Limit+s));
+	int NewPos = (int) ((s > 0) ? MAX(s, 4) : MAX(4, Limit+s));
 	if (NewPos != d->SplitPos)
 	{
 		d->SplitPos = NewPos;
@@ -231,15 +231,15 @@ void GSplitter::CalcRegions(bool Follow)
 
 	if (d->SplitFollow && Follow)
 	{
-		d->SplitPos = max(1, ((d->Vertical) ? X()-10 : Y()-10) + d->SplitSet);
+		d->SplitPos = MAX(1, ((d->Vertical) ? X()-10 : Y()-10) + d->SplitSet);
 	}
 	else if (Rect.Valid())
 	{
 		int Max = d->Vertical ? X()-10 : Y()-10;
 		if (Max > 0)
 		{
-			d->SplitPos = max(1, d->SplitPos);
-			d->SplitPos = min(Max, d->SplitPos);
+			d->SplitPos = MAX(1, d->SplitPos);
+			d->SplitPos = MIN(Max, d->SplitPos);
 		}
 	}
 

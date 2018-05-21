@@ -6,7 +6,7 @@
 #define _GTEXT_LABEL_H_
 
 /// A static text label widget
-class LgiClass GText :
+class LgiClass GTextLabel :
 	public GView,
 	public ResObject,
 	public GDom
@@ -15,7 +15,7 @@ class LgiClass GText :
 
 public:
 	/// Constructor
-	GText
+	GTextLabel
 	(
 		/// The control's ID
 		int id,
@@ -30,7 +30,7 @@ public:
 		/// Utf-8 text for the label
 		const char *name
 	);
-	~GText();
+	~GTextLabel();
 	
 	const char *GetClass() { return "GTextLabel"; }
 
@@ -56,10 +56,12 @@ public:
 	
 	// Events
 	GMessage::Result OnEvent(GMessage *Msg);
+	int OnNotify(GViewI *Ctrl, int Flags);
 	void OnPaint(GSurface *pDC);
 	void OnPosChange();
 	void OnAttach();
 	bool OnLayout(GViewLayoutInfo &Inf);
+	void OnStyleChange();
 	bool SetVariant(const char *Name, GVariant &Value, char *Array = NULL);
 };
 

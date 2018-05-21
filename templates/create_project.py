@@ -10,6 +10,10 @@ def process(s, vars):
 	out = ""
 	while i < l:
 		pos1 = s.find("%", i)
+		while s[pos1+1] == '(':
+			# keep searching, just a Visual Studio parameter
+			pos1 = s.find("%", pos1 + 1)
+		
 		if pos1 < 0:
 			# no more instances
 			out = out + s[i:]
@@ -79,7 +83,7 @@ if 1:
 	parts = template_path.split(os.sep)
 	for i in range(len(parts)):
 		r = (".." + os.sep) * i
-		t = os.path.abspath(os.path.join(template_path, r, "Lgi", "trunk", "lgi_vc9.sln"))
+		t = os.path.abspath(os.path.join(template_path, r, "Lgi", "trunk", "lgi_vs2013.sln"))
 		# print(i, t)
 		if os.path.exists(t):
 			lgi = os.path.abspath(os.path.join(template_path, r, "Lgi", "trunk"))
@@ -93,7 +97,7 @@ if 1:
 
 	if "lgi.folder" not in vars:
 		print("Error: The LGI path wasn't found.")
-		raw_input("Wait")
+		input("Wait")
 		sys.exit(-1)
 
 	if len(sys.argv) > 2:

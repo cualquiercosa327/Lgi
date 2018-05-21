@@ -661,7 +661,7 @@ const char *GApp::GetArgumentAt(int n)
 	return 0;
 }
 
-bool GApp::GetOption(const char *Option, GAutoString &Buf)
+bool GApp::GetOption(const char *Option, GString &Buf)
 {
 	if (!ValidStr(Option))
 	{
@@ -697,7 +697,7 @@ bool GApp::GetOption(const char *Option, GAutoString &Buf)
 					char16 End = (*c == '\'' || *c == '\"') ? *c++ : ' ';
 					char16 *e = StrchrW(c, End);
 					if (!e) e = c + StrlenW(c);
-					Buf.Reset(WideToUtf8(c, e-c));
+					Buf.SetW(c, e-c);
 				}
 
 				// yeah we got the option
@@ -716,7 +716,7 @@ bool GApp::GetOption(const char *Option, GAutoString &Buf)
 
 bool GApp::GetOption(const char *Option, char *Dest, int DestLen)
 {
-	GAutoString Buf;
+	GString Buf;
 	if (GetOption(Option, Buf))
 	{
 		if (Dest)

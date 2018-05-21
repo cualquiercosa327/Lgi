@@ -1064,8 +1064,8 @@ void GSurface::Blt(int x, int y, GSurface *Src, GRect *a)
 				Bits.Base =	Src->pMem->Base +
 						(SClip.y1 * Src->pMem->Line) +
 						(SClip.x1 * PixelBytes);
-				Bits.x = min(SClip.X(), DClip.X());
-				Bits.y = min(SClip.Y(), DClip.Y());
+				Bits.x = MIN(SClip.X(), DClip.X());
+				Bits.y = MIN(SClip.Y(), DClip.Y());
 				Bits.Line = Src->pMem->Line;
 				Bits.Cs = Src->GetColourSpace();
 				Bits.PreMul(Src->pMem->PreMul());
@@ -1116,7 +1116,7 @@ void GSurface::Bezier(int Threshold, GdcPt2 *Pt)
 		BPt *Old = BufA;
 		BPt *New = BufB;
 
-		Threshold = max(Threshold, 1);
+		Threshold = MAX(Threshold, 1);
 
 		if (!Old || !New) return;
 		for (int n=0; n<OldPts; n++)
@@ -1201,7 +1201,7 @@ class PointStack {
 		if (Next)
 		{
 			Size += s;
-			Used = min(Size, Used);
+			Used = MIN(Size, Used);
 			memcpy(Next, Stack, sizeof(GdcPt2)*Used);
 			DeleteArray(Stack);
 			Stack = Next;
@@ -1608,10 +1608,10 @@ GRect GSurface::ClipRgn(GRect *Rgn)
 	
 	if (Rgn)
 	{
-		Clip.x1 = max(0, Rgn->x1 - OriginX);
-		Clip.y1 = max(0, Rgn->y1 - OriginY);
-		Clip.x2 = min(X()-1, Rgn->x2 - OriginX);
-		Clip.y2 = min(Y()-1, Rgn->y2 - OriginY);
+		Clip.x1 = MAX(0, Rgn->x1 - OriginX);
+		Clip.y1 = MAX(0, Rgn->y1 - OriginY);
+		Clip.x2 = MIN(X()-1, Rgn->x2 - OriginX);
+		Clip.y2 = MIN(Y()-1, Rgn->y2 - OriginY);
 	}
 	else
 	{
@@ -1692,7 +1692,7 @@ GColour GSurface::Colour(GColour c)
 			break;
 	}
 
-	#if MAC
+	#if defined(MAC) && !defined(LGI_SDL)
 	{
 		// Update the current colour of the drawing context if present.
 		OsPainter Hnd = Handle();

@@ -861,7 +861,7 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 	}
 	else
 	{
-		printf("%s,%i - Not a valid exe.\n", __FILE__, __LINE__); 
+		LgiTrace("%s:%i - '%s' is not a valid exe.\n", _FL, (char*)NExe);
 	}
 	
 	return Status;

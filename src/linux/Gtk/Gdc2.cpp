@@ -116,7 +116,7 @@ bool GPalette::SetSize(int s)
 		memset(New, 0, s * sizeof(GdcRGB));
 		if (Data)
 		{
-			memcpy(New, Data, min(s, Size)*sizeof(GdcRGB));
+			memcpy(New, Data, MIN(s, Size)*sizeof(GdcRGB));
 		}
 
 		DeleteArray(Data);
@@ -480,7 +480,7 @@ public:
 			for (int i=0; i<Size; i++)
 			{
 				int n = (i + 128) / 255;
-				Div255[i] = min(n, 255);
+				Div255[i] = MIN(n, 255);
 			}
 		}
 

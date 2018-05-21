@@ -623,12 +623,12 @@ public:
 		}																						\
 		void Rectangle(int x, int y)															\
 		{																						\
-			REG uint8 r = this->p32.r, g = this->p32.g, b = this->p32.b, a = this->p32.a;	\
-			REG int lines = y;																\
-			REG int ystep = this->Dest->Line;												\
+			REG uint8 r = this->p32.r, g = this->p32.g, b = this->p32.b;						\
+			REG int lines = y;																	\
+			REG int ystep = this->Dest->Line;													\
 			while (lines-- > 0)																	\
 			{																					\
-				REG Pixel *i = this->p, *e = i + x;										\
+				REG Pixel *i = this->p, *e = i + x;												\
 				while (i < e)																	\
 				{																				\
 					i->r opcode r; i->g opcode g; i->b opcode b;								\

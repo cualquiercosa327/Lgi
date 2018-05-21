@@ -100,7 +100,7 @@ bool GRichTextPriv::HorzRuleBlock::HitTest(HitTestResult &htr)
 
 void GRichTextPriv::HorzRuleBlock::OnPaint(PaintContext &Ctx)
 {
-	bool HrSelected = Ctx.SelectBeforePaint(this);
+	Ctx.SelectBeforePaint(this);
 
 	GColour Fore, Back = Ctx.Back();
 	Fore = Ctx.Fore().Mix(Back, 0.75f);

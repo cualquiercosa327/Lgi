@@ -123,8 +123,8 @@ struct Box
 			LgiAssert(c != NULL);
 			for (int i=0; i<DIMENSIONS; i++)
 			{
-				r[i].Min = min(r[i].Min, c->c[i]);
-				r[i].Max = max(r[i].Max, c->c[i]);
+				r[i].Min = MIN(r[i].Min, c->c[i]);
+				r[i].Max = MAX(r[i].Max, c->c[i]);
 			}
 			Pixels += c->count;
 		}

@@ -684,7 +684,7 @@ ResObject *LgiResources::CreateObject(GXmlTag *t, ResObject *Parent)
 		
 		if (stricmp(t->GetTag(), Res_StaticText) == 0)
 		{
-			Wnd = new GText(0, 0, 0, -1, -1, "");
+			Wnd = new GTextLabel(0, 0, 0, -1, -1, NULL);
 		}
 		else if (stricmp(t->GetTag(), Res_EditBox) == 0)
 		{
@@ -874,10 +874,10 @@ struct ResObjectCallback : public GCss::ElementCallback<ResObject>
 		return v.Str();
 	}
 	
-	bool GetClasses(GArray<const char *> &Classes, ResObject *obj)
+	bool GetClasses(GString::Array &Classes, ResObject *obj)
 	{
 		if (Props->GetValue("class", v))
-			Classes.Add(v.Str());
+			Classes.New() = v.Str();
 		return Classes.Length() > 0;
 	}
 	
@@ -897,55 +897,59 @@ struct ResObjectCallback : public GCss::ElementCallback<ResObject>
 bool LgiResources::Res_SetProperties(ResObject *Obj, GDom *Props)
 {
 	GView *v = dynamic_cast<GView*>(Obj);
-	if (v && Props)
+	if (!v || !Props)
+		return false;
+
+	GVariant i;
+	if (Props->GetValue("enabled", i))
+		v->Enabled(i.CastInt32());
+
+	if (Props->GetValue("visible", i))
+		v->Visible(i.CastInt32());
+
+	if (Props->GetValue("style", i))
+		v->SetCssStyle(i.Str());
+
+	if (Props->GetValue("class", i))
 	{
-		GVariant i;
-		if (Props->GetValue("enabled", i))
+		GString::Array *a = v->CssClasses();
+		if (a)
+			(*a) = GString(i.Str()).SplitDelimit(" \t");
+		
+		/*	Lets resolve the CSS styles at runtime, when the object 
+			is in position.
+			
+		ResObjectCallback Cb(Props);
+		GCss::SelArray a;
+		if (CssStore.Match(a, &Cb, Obj))
 		{
-			v->Enabled(i.CastInt32());
-		}
-		if (Props->GetValue("visible", i))
-		{
-			v->Visible(i.CastInt32());
-		}
-		if (Props->GetValue("style", i))
-		{
-		    v->SetCssStyle(i.Str());
-		}
-		if (Props->GetValue("class", i))
-		{
-			ResObjectCallback Cb(Props);
-			GCss::SelArray a;
-			if (CssStore.Match(a, &Cb, Obj))
+			for (int i=0; i<a.Length(); i++)
 			{
-				for (int i=0; i<a.Length(); i++)
+				GCss::Selector *s = a[i];
+				if (s)
 				{
-					GCss::Selector *s = a[i];
-					if (s)
-					{
-						const char *style = s->Style;
-					    v->SetCssStyle(style);
-					}
+					const char *style = s->Style;
+					v->SetCssStyle(style);
 				}
 			}
 		}
-
-		GEdit *e = dynamic_cast<GEdit*>(v);
-		if (e)
-		{
-			if (Props->GetValue("pw", i))
-			{
-				e->Password(i.CastInt32());
-			}
-			if (Props->GetValue("multiline", i))
-			{
-				e->MultiLine(i.CastInt32());
-			}
-		}
-
-		return true;
+		*/
 	}
-	return false;
+
+	if (Props->GetValue("image", i))
+		v->GetCss(true)->BackgroundImage(GCss::ImageDef(i.Str()));
+
+	GEdit *e = dynamic_cast<GEdit*>(v);
+	if (e)
+	{
+		if (Props->GetValue("pw", i))
+			e->Password(i.CastInt32());
+
+		if (Props->GetValue("multiline", i))
+			e->MultiLine(i.CastInt32());
+	}
+
+	return true;
 }
 
 GRect LgiResources::Res_GetPos(ResObject *Obj)
@@ -976,9 +980,9 @@ bool LgiResources::Res_SetStrRef(ResObject *Obj, int Ref, ResReadCtx *Ctx)
 	GView *w = CastToGWnd(Obj);
 	if (w)
 	{
+		w->SetId(s->Id);
 		if (ValidStr(s->Str))
 			w->Name(s->Str);
-		w->SetId(s->Id);
 	}
 	else if (Obj)
 	{

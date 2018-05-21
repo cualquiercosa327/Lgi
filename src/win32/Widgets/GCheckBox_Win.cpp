@@ -113,6 +113,16 @@ int GCheckBox::SysOnNotify(int Msg, int Code)
 	return 0;
 }
 
+int GCheckBox::OnNotify(GViewI *Ctrl, int Flags)
+{
+	if (Ctrl == (GViewI*)this && Flags == GNotify_Activate)
+	{
+		Value(!Value());
+	}
+
+	return 0;
+}
+
 GMessage::Result GCheckBox::OnEvent(GMessage *Msg)
 {
 	switch (MsgCode(Msg))

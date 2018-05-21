@@ -7,36 +7,60 @@
 #include "GCheckBox.h"
 #include "GDisplayString.h"
 #include "LgiRes.h"
+#include "LStringLayout.h"
 
-#define RADIO_GRID  2
+#define RADIO_GRID	2
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Radio group
-class GRadioGroupPrivate
+static int MinYSize = 16;
+
+class GRadioGroupPrivate : public LMutex, public LStringLayout
 {
+	GRadioGroup *Ctrl;
+	GFontCache Cache;
+	
 public:
 	static int NextId;
 	int Val;
 	int MaxLayoutWidth;
-	GDisplayString *Txt;
-    GHashTbl<void*,GViewLayoutInfo*> Info;
+	GHashTbl<void*,GViewLayoutInfo*> Info;
 
-	GRadioGroupPrivate()
+	GRadioGroupPrivate(GRadioGroup *g) :
+		LMutex("GRadioGroupPrivate"),
+		LStringLayout(&Cache)
 	{
-		Txt = 0;
+		Ctrl = g;
+		Val = 0;
 		MaxLayoutWidth = 0;
+		AmpersandToUnderline = true;
 	}
 
 	~GRadioGroupPrivate()
 	{
-		DeleteObj(Txt);
-        Info.DeleteObjects();
+		Info.DeleteObjects();
 	}
 
-	void Layout(GFont *f, char *s)
+	bool PreLayout(int32 &Min, int32 &Max)
 	{
-		DeleteObj(Txt);
-		Txt = new GDisplayString(f, s);
+		if (Lock(_FL))
+		{
+			DoPreLayout(Min, Max);
+			Unlock();
+		}
+		else return false;
+		return true;
+	}
+
+	bool Layout(int Px)
+	{		
+		if (Lock(_FL))
+		{
+			DoLayout(Px, MinYSize);
+			Unlock();
+		}
+		else return false;
+		return true;
 	}
 };
 
@@ -44,7 +68,7 @@ int GRadioGroupPrivate::NextId = 10000;
 GRadioGroup::GRadioGroup(int id, int x, int y, int cx, int cy, const char *name, int Init)
 	: ResObject(Res_Group)
 {
-	d = new GRadioGroupPrivate;
+	d = new GRadioGroupPrivate(this);
 	Name(name);
 	GRect r(x, y, x+cx, y+cy);
 	SetPos(r);
@@ -60,92 +84,100 @@ GRadioGroup::~GRadioGroup()
 
 bool GRadioGroup::OnLayout(GViewLayoutInfo &Inf)
 {
-    GViewIterator *it = IterateViews();
-    const int BORDER_PX = 2;
+	GViewIterator *it = IterateViews();
+	const int BORDER_PX = 2;
+	int MinPx = (RADIO_GRID + BORDER_PX) * 2;
 
-    if (!Inf.Width.Max)
-    {
-        // Work out the width...
-		int TextPx = d->Txt ? d->Txt->X() : 16;
-		int MinPx = (RADIO_GRID + BORDER_PX) * 2;
+	if (!Inf.Width.Max)
+	{
+		// Work out the width...
+
+		d->PreLayout(Inf.Width.Min, Inf.Width.Max);
+		Inf.Width.Min += MinPx;
+		Inf.Width.Max += MinPx;
 		
-        d->Info.DeleteObjects();
-        Inf.Width.Min = 16 + TextPx;
-        Inf.Width.Max = RADIO_GRID + BORDER_PX * 2;
-	    for (GViewI *w = it->First(); w; w = it->Next())
-	    {
-	        GAutoPtr<GViewLayoutInfo> c(new GViewLayoutInfo);
-            if (w->OnLayout(*c))
-            {
-                // Layout enabled control
-                Inf.Width.Min = max(Inf.Width.Min, c->Width.Min + MinPx);
-                Inf.Width.Max += c->Width.Max + RADIO_GRID;
-                d->Info.Add(w, c.Release());
-            }
-            else
-            {
-                // Non layout enabled control
-                Inf.Width.Min = max(Inf.Width.Min, w->X() + (RADIO_GRID << 1));
-                Inf.Width.Max += w->X() + RADIO_GRID;
-            }
-	    }
-	    
+		d->Info.DeleteObjects();
+		// Inf.Width.Min = 16 + TextPx;
+		// Inf.Width.Max = RADIO_GRID + BORDER_PX * 2;
+		
+		for (GViewI *w = it->First(); w; w = it->Next())
+		{
+			GAutoPtr<GViewLayoutInfo> c(new GViewLayoutInfo);
+			if (w->OnLayout(*c))
+			{
+				// Layout enabled control
+				Inf.Width.Min = MAX(Inf.Width.Min, c->Width.Min + MinPx);
+				Inf.Width.Max += c->Width.Max + RADIO_GRID;
+				d->Info.Add(w, c.Release());
+			}
+			else
+			{
+				// Non layout enabled control
+				Inf.Width.Min = MAX(Inf.Width.Min, w->X() + (RADIO_GRID << 1));
+				Inf.Width.Max += w->X() + RADIO_GRID;
+			}
+		}
+		
 		if (Inf.Width.Max < Inf.Width.Min)
 			Inf.Width.Max = Inf.Width.Min;
 		d->MaxLayoutWidth = Inf.Width.Max;
-    }
-    else
-    {
-        // Working out the height, and positioning the controls
-        Inf.Height.Min = d->Txt ? d->Txt->Y() : 16;
-        
-        bool Horiz = d->MaxLayoutWidth <= Inf.Width.Max;
-        int Cx = BORDER_PX + RADIO_GRID, Cy = d->Txt ? d->Txt->Y() : 16;
-        int LastY = 0;
-	    for (GViewI *w = it->First(); w; w = it->Next())
-	    {
-	        GViewLayoutInfo *c = d->Info.Find(w);
-            if (c)
-            {
-                if (w->OnLayout(*c))
-                {
-                    GRect r(Cx, Cy, Cx + c->Width.Max - 1, Cy + c->Height.Max - 1);
-                    w->SetPos(r);
+	}
+	else
+	{
+		d->Layout(Inf.Width.Max);
+		Inf.Height.Min = d->GetMin().y + MinPx;
+		Inf.Height.Max = d->GetMax().y + MinPx;
+		
+		// Working out the height, and positioning the controls
+		// Inf.Height.Min = d->Txt ? d->Txt->Y() : 16;
+		
+		bool Horiz = d->MaxLayoutWidth <= Inf.Width.Max;
+		int Cx = BORDER_PX + RADIO_GRID, Cy = d->GetMin().y;
+		int LastY = 0;
+		for (GViewI *w = it->First(); w; w = it->Next())
+		{
+			GViewLayoutInfo *c = d->Info.Find(w);
+			if (c)
+			{
+				if (w->OnLayout(*c))
+				{
+					GRect r(Cx, Cy, Cx + c->Width.Max - 1, Cy + c->Height.Max - 1);
+					w->SetPos(r);
 
-                    if (Horiz)
-                        // Horizontal layout
-                        Cx += r.X() + RADIO_GRID;
-                    else
-                        // Vertical layout
-                        Cy += r.Y() + RADIO_GRID;
+					if (Horiz)
+						// Horizontal layout
+						Cx += r.X() + RADIO_GRID;
+					else
+						// Vertical layout
+						Cy += r.Y() + RADIO_GRID;
 
-                    LastY = max(LastY, r.y2);
-                }
-                else LgiAssert(!"This shouldn't fail.");
-            }
-            else
-            {
-                // Non layout control... just use existing size
-                GRect r = w->GetPos();
-                r.Offset(Cx - r.x1, Cy - r.y1);
-                w->SetPos(r);
+					LastY = MAX(LastY, r.y2);
+				}
+				else LgiAssert(!"This shouldn't fail.");
+			}
+			else
+			{
+				// Non layout control... just use existing size
+				GRect r = w->GetPos();
+				r.Offset(Cx - r.x1, Cy - r.y1);
+				w->SetPos(r);
 
-                if (Horiz)
-                    // Horizontal layout
-                    Cx += r.X() + RADIO_GRID;
-                else
-                    // Vertical layout
-                    Cy += r.Y() + RADIO_GRID;
+				if (Horiz)
+					// Horizontal layout
+					Cx += r.X() + RADIO_GRID;
+				else
+					// Vertical layout
+					Cy += r.Y() + RADIO_GRID;
 
-                LastY = max(LastY, r.y2);
-            }
-	    }
-	    
-	    Inf.Height.Min = Inf.Height.Max = LastY + RADIO_GRID * 2 + BORDER_PX;
-    }
-    
-    DeleteObj(it);
-    return true;
+				LastY = MAX(LastY, r.y2);
+			}
+		}
+		
+		Inf.Height.Min = Inf.Height.Max = LastY + RADIO_GRID * 2 + BORDER_PX;
+	}
+	
+	DeleteObj(it);
+	return true;
 }
 
 void GRadioGroup::OnAttach()
@@ -159,22 +191,50 @@ GMessage::Result GRadioGroup::OnEvent(GMessage *m)
 
 bool GRadioGroup::Name(const char *n)
 {
-	bool Status = GView::Name(n);
-	d->Layout(GetFont(), GBase::Name());
+	bool Status = false;
+	if (d->Lock(_FL))
+	{
+		Status = GView::Name(n);
+
+		d->Empty();
+		d->Add(n, GetCss());
+		d->SetBaseFont(GetFont());
+		d->DoLayout(X());
+		
+		d->Unlock();
+	}
+
 	return Status;
 }
 
 bool GRadioGroup::NameW(const char16 *n)
 {
-	bool Status = GView::NameW(n);
-	d->Layout(GetFont(), GBase::Name());
+	bool Status = false;
+	if (d->Lock(_FL))
+	{
+		Status = GView::NameW(n);
+
+		d->Empty();
+		d->Add(GBase::Name(), GetCss());
+		d->SetBaseFont(GetFont());
+		d->DoLayout(X());
+
+		d->Unlock();
+	}
+
 	return Status;
 }
 
 void GRadioGroup::SetFont(GFont *Fnt, bool OwnIt)
 {
-	GView::SetFont(Fnt);
-	d->Layout(GetFont(), GBase::Name());
+	LgiAssert(Fnt && Fnt->Handle());
+
+	if (d->Lock(_FL))
+	{
+		GView::SetFont(Fnt, OwnIt);
+		d->Unlock();
+	}
+	d->Layout(X());
 	Invalidate();
 }
 
@@ -253,7 +313,7 @@ void GRadioGroup::OnPaint(GSurface *pDC)
 		GSkinState State;
 		State.pScreen = pDC;
 		State.MouseOver = false;
-		State.ptrText = &d->Txt;
+		State.aText = d->GetStrs();
 		GApp::SkinEngine->OnPaint_GRadioGroup(this, &State);
 	}
 	else
@@ -283,19 +343,14 @@ void GRadioGroup::OnPaint(GSurface *pDC)
 			pDC->Rectangle();
 		}
 
-		int y = d->Txt ? d->Txt->Y() : 16;
+		int y = d->GetMin().y;
 		GRect b(0, y/2, X()-1, Y()-1);
 		LgiWideBorder(pDC, b, EdgeXpChisel);
 
-		if (d->Txt)
-		{
-			GRect t;
-			t.ZOff(d->Txt->X(), d->Txt->Y());
-			t.Offset(6, 0);
-			d->Txt->GetFont()->Colour(Fore, Back);
-			d->Txt->GetFont()->Transparent(!Back.IsValid());
-			d->Txt->Draw(pDC, t.x1, t.y1, &t);
-		}
+		GdcPt2 TxtPt(6, 0);
+		GRect TxtRc = d->GetBounds();
+		TxtRc.Offset(TxtPt.x, TxtPt.y);		
+		d->Paint(pDC, TxtPt, Back, TxtRc, Enabled());
 	}
 }
 
@@ -312,27 +367,54 @@ GRadioButton *GRadioGroup::Append(int x, int y, const char *name)
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // Radio button
-class GRadioButtonPrivate
+class GRadioButtonPrivate : public LMutex, public LStringLayout
 {
 public:
+	GRadioButton *Ctrl;
 	bool Val;
 	bool Over;
-	GDisplayString *Txt;
+	GFontCache Cache;
 
-	GRadioButtonPrivate()
+	GRadioButtonPrivate(GRadioButton *c) :
+		LMutex("GRadioButtonPrivate"),
+		LStringLayout(&Cache)
 	{
-		Txt = 0;
+		Ctrl = c;
+		Val = 0;
+		Over = 0;
+		AmpersandToUnderline = true;
 	}
 
 	~GRadioButtonPrivate()
 	{
-		DeleteObj(Txt);
 	}
 
-	void Layout(GFont *f, char *s)
+	bool PreLayout(int32 &Min, int32 &Max)
 	{
-		DeleteObj(Txt);
-		Txt = new GDisplayString(f, s);
+		if (Lock(_FL))
+		{
+			DoPreLayout(Min, Max);
+			Unlock();
+		}
+		else return false;
+		return true;
+	}
+
+	bool Layout(int Px)
+	{		
+		if (Lock(_FL))
+		{
+			DoLayout(Px);
+			Unlock();
+			/*
+			if (Min.y < MinYSize)
+				Min.y = MinYSize;
+			if (Max.y < MinYSize)
+				Max.y = MinYSize;
+				*/
+		}
+		else return false;
+		return true;
 	}
 };
 
@@ -346,10 +428,10 @@ static int PadYPx = 4;
 GRadioButton::GRadioButton(int id, int x, int y, int cx, int cy, const char *name)
 	: ResObject(Res_RadioBox)
 {
-	d = new GRadioButtonPrivate;
+	d = new GRadioButtonPrivate(this);
 	Name(name);
-	if (cx < 0 && d->Txt) cx = d->Txt->X() + PadXPx;
-	if (cy < 0 && d->Txt) cy = d->Txt->Y() + PadYPx;
+	if (cx < 0) cx = d->GetBounds().X() + PadXPx;
+	if (cy < 0) cy = d->GetBounds().Y() + PadYPx;
 
 	GRect r(x, y, x+cx, y+cy);
 	SetPos(r);
@@ -361,7 +443,6 @@ GRadioButton::GRadioButton(int id, int x, int y, int cx, int cy, const char *nam
 	#if WINNATIVE
 	SetDlgCode(GetDlgCode() | DLGC_WANTARROWS);
 	#endif
-	LgiResources::StyleElement(this);
 }
 
 GRadioButton::~GRadioButton()
@@ -371,50 +452,98 @@ GRadioButton::~GRadioButton()
 
 void GRadioButton::OnAttach()
 {
+	LgiResources::StyleElement(this);
+	OnStyleChange();
+	GView::OnAttach();
 }
 
-GMessage::Result GRadioButton::OnEvent(GMessage *m)
+void GRadioButton::OnStyleChange()
 {
-	return GView::OnEvent(m);
+	if (d->Lock(_FL))
+	{
+		d->Empty();
+		d->Add(GView::Name(), GetCss());
+		d->DoLayout(X());
+		d->Unlock();
+		Invalidate();
+	}
 }
 
 bool GRadioButton::Name(const char *n)
 {
-	bool Status = GView::Name(n);
-	d->Layout(GetFont(), GBase::Name());
+	bool Status = false;
+	if (d->Lock(_FL))
+	{
+		Status = GView::Name(n);
+
+		d->Empty();
+		d->Add(n, GetCss());
+		d->SetBaseFont(GetFont());
+		d->DoLayout(X());
+
+		d->Unlock();
+	}
+
 	return Status;
 }
 
 bool GRadioButton::NameW(const char16 *n)
 {
-	bool Status = GView::NameW(n);
-	d->Layout(GetFont(), GBase::Name());
+	bool Status = false;
+	if (d->Lock(_FL))
+	{
+		Status = GView::NameW(n);
+
+		d->Empty();
+		d->Add(GBase::Name(), GetCss());
+		d->SetBaseFont(GetFont());
+		d->DoLayout(X());
+
+		d->Unlock();
+	}
+
 	return Status;
 }
 
 void GRadioButton::SetFont(GFont *Fnt, bool OwnIt)
 {
-	GView::SetFont(Fnt, OwnIt);
-	d->Layout(GetFont(), GBase::Name());
+	LgiAssert(Fnt && Fnt->Handle());
+
+	if (d->Lock(_FL))
+	{
+		GView::SetFont(Fnt, OwnIt);
+		d->Unlock();
+	}
+	d->Layout(X());
 	Invalidate();
 }
 
 bool GRadioButton::OnLayout(GViewLayoutInfo &Inf)
 {
-    if (!Inf.Width.Max)
-    {
-        Inf.Width.Min =
-            Inf.Width.Max =
-            (d->Txt ? d->Txt->X() : 10) + PadXPx;
-    }
-    else
-    {
-		int y = (d->Txt ? d->Txt->Y() : SysFont->GetHeight()) + PadYPx;
-        Inf.Height.Min = max(Inf.Height.Min, y);
-        Inf.Height.Max = max(Inf.Height.Max, y);
-    }
+	if (!Inf.Width.Max)
+	{
+		d->PreLayout(Inf.Width.Min, Inf.Width.Max);
+		Inf.Width.Min += PadXPx;
+		Inf.Width.Max += PadXPx;
+	}
+	else
+	{
+		d->Layout(Inf.Width.Max);
+		Inf.Height.Min = d->GetMin().y + PadYPx;
+		Inf.Height.Max = d->GetMax().y + PadYPx;
+	}
 	
-    return true;    
+	return true;	
+}
+
+int GRadioButton::OnNotify(GViewI *Ctrl, int Flags)
+{
+	if (Ctrl == (GViewI*)this && Flags == GNotify_Activate)
+	{
+		Value(true);
+	}
+
+	return 0;
 }
 
 int64 GRadioButton::Value()
@@ -531,14 +660,14 @@ bool GRadioButton::OnKey(GKey &k)
 			Status = true;
 			break;
 		}
-        case ' ':
-        {
-            if (k.Down())
-            {
-                Value(1);
-            }
-            return true;
-        }
+		case ' ':
+		{
+			if (k.Down())
+			{
+				Value(1);
+			}
+			return true;
+		}
 	}
 
 	if (Move)
@@ -584,7 +713,7 @@ void GRadioButton::OnPaint(GSurface *pDC)
 		GSkinState State;
 		State.pScreen = pDC;
 		State.MouseOver = d->Over;
-		State.ptrText = &d->Txt;
+		State.aText = d->GetStrs();
 		GApp::SkinEngine->OnPaint_GRadioButton(this, &State);
 	}
 	else
@@ -610,55 +739,22 @@ void GRadioButton::OnPaint(GSurface *pDC)
 				Back.Empty();
 		}
 		
-		bool e = Enabled();
+		// bool e = Enabled();
 		GRect fill(c.x2 + 1, r.y1, r.x2, r.x2);
-		if (d->Txt)
+		GdcPt2 TxtPt(c.x2 + 11, (r.Y() - d->GetBounds().Y()) >> 1);
+		d->Paint(pDC, TxtPt, Back, fill, Enabled());
+		
+		#if defined MAC && !defined COCOA && !defined(LGI_SDL)
+
+		GRect cli = GetClient();
+		for (GViewI *v = this; v && !v->Handle(); v = v->GetParent())
 		{
-			int Off = e ? 0 : 1;
-			SysFont->Colour(e ? Fore : GColour(LC_LIGHT, 24), Back);
-            
-            GRect p;
-            p.ZOff(d->Txt->X()-1, d->Txt->Y()-1);
-            p.Offset(c.x2 + 11, (r.Y() - d->Txt->Y()) >> 1);
-			
-            SysFont->Transparent(false);
-			d->Txt->Draw(pDC, p.x1 + Off, p.y1 + Off, &fill);
-
-			if (!e)
-			{
-				SysFont->Transparent(true);
-				SysFont->Colour(GColour(LC_LOW, 24), Back);
-				d->Txt->Draw(pDC, p.x1, p.y1);
-			}
-
-            if (Focus())
-            {
-                pDC->Colour(LC_LOW, 24);
-                GRect f = p;
-                f.Size(-2, -2);
-                pDC->Box(&f);
-            }
-
-			if (Back.IsValid())
-			{
-				pDC->Colour(Back);
-				pDC->Rectangle(c.x1, r.y1, c.x2, r.y2);
-			}
+			GRect p = v->GetPos();
+			cli.Offset(p.x1, p.y1);
 		}
-		else if (Back.IsValid())
-		{
-			pDC->Colour(Back);
-			pDC->Rectangle();
-		}
-
-        #if defined MAC && !defined COCOA && !defined(LGI_SDL)
-
-        GRect cli = GetClient();
-        for (GViewI *v = this; v && !v->Handle(); v = v->GetParent())
-        {
-            GRect p = v->GetPos();
-            cli.Offset(p.x1, p.y1);
-        }
+		
+		pDC->Colour(LC_MED, 24);
+		pDC->Rectangle(cli.x1, cli.y1, c.x2, cli.y2);
 		
 		GRect rc(c.x1, c.y1 + 4, c.x2 - 1, c.y2 - 1);
 		HIRect Bounds = rc;
@@ -678,7 +774,7 @@ void GRadioButton::OnPaint(GSurface *pDC)
 										&LabelRect);
 		if (err) printf("%s:%i - HIThemeDrawButton failed %li\n", _FL, err);
 		
-        #else
+		#else
 
 		// Draw border
 		pDC->Colour(LC_LOW, 24);
@@ -706,6 +802,7 @@ void GRadioButton::OnPaint(GSurface *pDC)
 		pDC->Line(c.x1+2, c.y1+11, c.x1+3, c.y1+11);
 
 		/// Draw center
+		bool e = Enabled();
 		pDC->Colour(d->Over || !e ? LC_MED : LC_WORKSPACE, 24);
 		pDC->Rectangle(c.x1+2, c.y1+4, c.x1+10, c.y1+8);
 		pDC->Box(c.x1+3, c.y1+3, c.x1+9, c.y1+9);
@@ -718,8 +815,8 @@ void GRadioButton::OnPaint(GSurface *pDC)
 			pDC->Rectangle(c.x1+4, c.y1+5, c.x1+8, c.y1+7);
 			pDC->Rectangle(c.x1+5, c.y1+4, c.x1+7, c.y1+8);
 		}
-        
-        #endif
+		
+		#endif
 	}
 }
 

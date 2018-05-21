@@ -74,8 +74,9 @@ public:
 #define _stricmp					strcasecmp
 #define _strnicmp					strncasecmp
 
-// Posix system
+// System defines
 #define POSIX						1
+#define LGI_CARBON					1
 
 // Process
 typedef int							OsProcess;

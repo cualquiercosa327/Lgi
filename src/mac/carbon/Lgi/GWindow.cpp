@@ -5,6 +5,7 @@
 #include "GToken.h"
 #include "GPopup.h"
 #include "GDisplayString.h"
+#include "GNotifications.h"
 
 extern void NextTabStop(GViewI *v, int dir);
 extern void SetDefaultFocus(GViewI *v);
@@ -335,6 +336,7 @@ void GWindow::SetDragHandlers(bool On)
 		SetAutomaticControlDragTrackingEnabledForWindow(Wnd, On);
 }
 
+/*
 static void _ClearChildHandles(GViewI *v)
 {
 	GViewIterator *it = v->IterateViews();
@@ -348,6 +350,7 @@ static void _ClearChildHandles(GViewI *v)
 	}
 	DeleteObj(it);
 }
+*/
 
 void GWindow::Quit(bool DontDelete)
 {
@@ -919,6 +922,25 @@ pascal OSStatus LgiWindowProc(EventHandlerCallRef inHandlerCallRef, EventRef inE
 			}
 			break;
 		}
+		case kEventClassKeyboard:
+		{
+			switch (eventKind)
+			{
+				case kEventRawKeyDown:
+				{
+					break;
+				}
+				case kEventRawKeyRepeat:
+				{
+					break;
+				}
+				case kEventRawKeyUp:
+				{
+					break;
+				}
+			}
+			break;
+		}
 		case kEventClassControl:
 		{
 			switch (eventKind)
@@ -1030,6 +1052,26 @@ pascal OSStatus LgiRootCtrlProc(EventHandlerCallRef inHandlerCallRef, EventRef i
 					{
 						LgiTrace("%s:%i - No context.\n", __FILE__, __LINE__);
 					}
+					break;
+				}
+				case kEventClassKeyboard:
+				{
+					switch (eventKind)
+					{
+						case kEventRawKeyDown:
+						{
+							break;
+						}
+						case kEventRawKeyRepeat:
+						{
+							break;
+						}
+						case kEventRawKeyUp:
+						{
+							break;
+						}
+					}
+					
 					break;
 				}
 			}
@@ -1309,8 +1351,22 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 		}
 	}
 
+	// Control shortcut?
+	if (k.Down() && k.Alt() && k.c16 > ' ')
+	{
+		GHashTbl<int,GViewI*> Map;
+		BuildShortcuts(Map);
+		GViewI *c = Map.Find(ToUpper(k.c16));
+		if (c)
+		{
+			c->OnNotify(c, GNotify_Activate);
+			return true;
+		}
+	}
+
 AllDone:
-	d->LastKey = k;
+	if (d)
+		d->LastKey = k;
 
 	return Status;
 }
@@ -1675,7 +1731,7 @@ void GWindow::PourAll()
 
 			if (v->Pour(Client))
 			{
-				GRect p = v->GetPos();
+				// GRect p = v->GetPos();
 
 				if (!v->Visible())
 				{
@@ -1712,6 +1768,23 @@ int GWindow::OnEvent(GMessage *m)
 				d->CloseRequestDone = true;
 				Quit();
 				return 0;
+			}
+			break;
+		}
+		case M_ASSERT_DLG:
+		{
+			int *Result = (int*) m->A();
+			if (Result)
+			{
+				GAutoPtr<GString> Msg( (GString*) m->B() );
+				GAlert Dlg(	this,
+							"Lgi Assert",
+							Msg && Msg->Get() ? (char*)Msg->Get() : "#error: No message",
+							"Abort",
+							"Debug",
+							"Ignore");
+				Dlg.SetAppModal();
+				*Result = Dlg.DoModal();
 			}
 			break;
 		}

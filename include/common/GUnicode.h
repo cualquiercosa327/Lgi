@@ -287,7 +287,7 @@ protected:
 	uint8 *Ptr;
 
 public:
-	GUtf8Ptr(void *p = 0);
+	GUtf8Ptr(const void *p = 0);
 
 	/// Assign a new pointer to the string
 	GUtf8Ptr &operator =(char *s) { Ptr = (uint8*)s; return *this; }
@@ -660,10 +660,41 @@ T *Strnstr(const T *Data, const T *Value, ptrdiff_t DataLen)
 	
 	while (*Data && DataLen >= ValLen)
 	{
-		if (Tolower(*Data) == v)
+		if (*Data == v)
 		{
 			int i;
 			for (i=1; Data[i] && Data[i] == Value[i]; i++)
+				;
+
+			if (Value[i] == 0)
+				return (T*)Data;
+		}
+
+		Data++;
+		DataLen--;
+	}
+
+	return NULL;
+}
+
+/// Searches the string 'Data' for the 'Value' in a case insensitive manner
+template<typename T>
+T *Strnistr(const T *Data, const T *Value, ptrdiff_t DataLen)
+{
+	if (!Data || !Value)
+		return NULL;
+
+	const T v = Tolower(*Value);
+	ptrdiff_t ValLen = Strlen(Value);
+	if (ValLen > DataLen)
+		return NULL;
+	
+	while (*Data && DataLen >= ValLen)
+	{
+		if (Tolower(*Data) == v)
+		{
+			int i;
+			for (i=1; Data[i] && Tolower(Data[i]) == Tolower(Value[i]); i++)
 				;
 
 			if (Value[i] == 0)
@@ -690,6 +721,8 @@ int64 Atoi(const T *s, int Base = 10, int64 DefaultValue = -1)
 		Minus = true;
 		s++;
 	}
+	else if (*s == '+')
+		s++;
 
 	int64 v = 0;
 	const T *Start = s;

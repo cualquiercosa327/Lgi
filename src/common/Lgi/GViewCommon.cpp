@@ -12,6 +12,7 @@
 #include "GCss.h"
 #include "LgiRes.h"
 #include "GEventTargetThread.h"
+#include "GPopup.h"
 
 #if WINNATIVE
 #define GViewFlags d->WndStyle
@@ -200,6 +201,18 @@ GView::~GView()
 	ViewMap.Delete(this);
 	#endif
 
+    #if !WINNATIVE
+	for (unsigned i=0; i<GPopup::CurrentPopups.Length(); i++)
+	{
+		GPopup *pu = GPopup::CurrentPopups[i];
+		if (pu->Owner == this)
+		{
+			printf("%s:%i - ~%s setting %s->Owner to NULL\n", _FL, GetClass(), pu->GetClass());
+			pu->Owner = NULL;
+		}
+	}
+	#endif
+
 	_Delete();
 	DeleteObj(d);
 }
@@ -209,6 +222,11 @@ int GView::AddDispatch()
 	if (d->SinkHnd < 0)
 		d->SinkHnd = GEventSinkMap::Dispatch.AddSink(this);
 	return d->SinkHnd;
+}
+
+GString::Array *GView::CssClasses()
+{
+	return &d->Classes;
 }
 
 GViewIterator *GView::IterateViews()
@@ -408,7 +426,15 @@ void GView::OnPaint(GSurface *pDC)
 
 int GView::OnNotify(GViewI *Ctrl, int Flags)
 {
-	if (Ctrl && d && d->Parent)
+	if (!Ctrl)
+		return 0;
+
+	if (Ctrl == (GViewI*)this && Flags == GNotify_Activate)
+	{
+		// Default activation is to focus the current control.
+		Focus(true);
+	}
+	else if (d && d->Parent)
 	{
 		// default behaviour is just to pass the 
 		// notification up to the parent
@@ -497,10 +523,13 @@ void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 			Client.Offset(o.x, o.y);
 			// printf("Client=%s\n", Client.GetStr());
 			pDC->SetClient(&Client);
+			
+			/*
 			#ifdef _DEBUG
 			if (_Debug)
 				printf("%s:%i SetClient %s  %i,%i\n", _FL, Client.GetStr(), o.x, o.y);
 			#endif
+			*/
 		}
 	}
 
@@ -514,10 +543,13 @@ void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 		{
 			pDC->ClipRgn(rc);
 			OnPaint(pDC);
+			
+			/*
 			#ifdef _DEBUG
 			if (_Debug)
 				printf("%s:%i OnPaint %s\n", _FL, rc->GetStr());
 			#endif
+			*/
 		}
 		pDC->ClipRgn(OldClip.Valid() ? &OldClip : NULL);
 	}
@@ -745,19 +777,19 @@ GRect JoinAdjacent(GRect &a, GRect &b, int Adj)
 		case ADJ_LEFT:
 		case ADJ_RIGHT:
 		{
-			t.y1 = max(a.y1, b.y1);
-			t.y2 = min(a.y2, b.y2);
-			t.x1 = min(a.x1, b.x1);
-			t.x2 = max(a.x2, b.x2);
+			t.y1 = MAX(a.y1, b.y1);
+			t.y2 = MIN(a.y2, b.y2);
+			t.x1 = MIN(a.x1, b.x1);
+			t.x2 = MAX(a.x2, b.x2);
 			break;
 		}
 		case ADJ_UP:
 		case ADJ_DOWN:
 		{
-			t.y1 = min(a.y1, b.y1);
-			t.y2 = max(a.y2, b.y2);
-			t.x1 = max(a.x1, b.x1);
-			t.x2 = min(a.x2, b.x2);
+			t.y1 = MIN(a.y1, b.y1);
+			t.y2 = MAX(a.y2, b.y2);
+			t.x1 = MAX(a.x1, b.x1);
+			t.x2 = MIN(a.x2, b.x2);
 			break;
 		}
 	}

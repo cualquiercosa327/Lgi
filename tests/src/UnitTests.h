@@ -75,5 +75,32 @@ public:
 	bool Run();
 };
 
+class GStringPipeTest : public UnitTest
+{
+	class GStringPipeTestPriv *d;
+
+public:
+	GStringPipeTest();
+	~GStringPipeTest();
+
+	bool Run();
+};
+
+class LDateTimeTest : public UnitTest
+{
+public:
+	LDateTimeTest() : UnitTest("LDateTimeTest") {}
+	~LDateTimeTest() {}
+
+	bool Run()
+	{
+		#ifdef _DEBUG
+		return LDateTime_Test();
+		#else
+		#error "Requires _DEBUG"
+		#endif
+	}
+};
+
 
 #endif

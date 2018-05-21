@@ -279,9 +279,13 @@ public:
 		return NULL;
 	}
 	
-	bool GetClasses(GArray<const char *> &Classes, GViewI *obj)
+	bool GetClasses(GString::Array &Classes, GViewI *obj)
 	{
-		return false;
+		GString::Array *a = obj->CssClasses();
+		if (!a)
+			return false;
+		Classes = *a;
+		return true;
 	}
 	
 	GViewI *GetParent(GViewI *obj)

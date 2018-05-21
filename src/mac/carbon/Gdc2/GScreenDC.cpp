@@ -495,9 +495,15 @@ void GScreenDC::Box(int x1, int y1, int x2, int y2)
 
 void GScreenDC::Box(GRect *a)
 {
-	if (d->Ctx && a)
+	if (d->Ctx)
 	{
-		CGRect r = {{a->x1+0.5, a->y1+0.5}, {a->x2-a->x1, a->y2-a->y1}};
+		GRect in;
+		if (a)
+			in = *a;
+		else
+			in.ZOff(X()-2, Y()-2);
+	
+		CGRect r = {{in.x1+0.5, in.y1+0.5}, {in.x2-in.x1, in.y2-in.y1}};
 		CGContextSetLineWidth(d->Ctx, 1.0);
 		CGContextStrokeRect(d->Ctx, r);
 	}

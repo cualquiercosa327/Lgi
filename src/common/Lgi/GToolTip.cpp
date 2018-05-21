@@ -1,46 +1,113 @@
 
 #define _WIN32_WINNT 0x500
 #include "Lgi.h"
-#if defined WIN32
-#include <commctrl.h>
+
+#if defined(WIN32)
+	#include <commctrl.h>
+#elif defined(MAC)
+	#include <Carbon/Carbon.h>
+#elif !defined(BEOS)
+	#define LGI_NATIVE_TIPS 1
 #endif
 
-#ifdef MAC
-#include <Carbon/Carbon.h>
-#endif
-
-#if NATIVE_TIPS
+#if LGI_NATIVE_TIPS
 #include "GDisplayString.h"
+#include "GPopup.h"
 
-class NativeTip : public GView
+class NativeTip : public GPopup
 {
-	GDisplayString *s;
+	GAutoPtr<GDisplayString> s;
 	
 public:
+	static GArray<NativeTip*> All;
+	static NativeTip *PulseRunning;
+
 	int Id;
 	GRect Watch;
-	GViewI *Owner;
+	
+	const char *GetClass() { return "NativeTip"; }
 
-	NativeTip(int id, GViewI *p)
+	NativeTip(int id, GView *p) : GPopup(p)
 	{
+		All.Add(this);
 		Id = id;
 		Owner = p;
-		s = 0;
 		ClearFlag(WndFlags, GWF_VISIBLE);
 		Watch.ZOff(-1, -1);
 	}
 	
 	~NativeTip()
 	{
-		DeleteObj(s);
+		All.Delete(this);
+		if (PulseRunning == this)
+		{
+			PulseRunning = NULL;
+			if (All.Length() > 0)
+			{
+				PulseRunning = All[0];
+				PulseRunning->SetPulse(300);
+			}
+		}
+	}
+	
+	void OnCreate()
+	{
+		if (!PulseRunning)
+		{
+			PulseRunning = this;
+			SetPulse(300);
+		}
+	}
+	
+	void OnPulse()
+	{
+		// Check mouse position...
+		for (unsigned i=0; i<All.Length(); i++)
+		{
+			NativeTip *t = All[i];
+			GMouse m;
+			if (t->Owner)
+			{
+				GWindow *Wnd = t->Owner->GetWindow();
+				bool Active = Wnd ? Wnd->IsActive() : false;
+				
+				if (t->Owner->GetMouse(m))
+				{
+					m.Target = t->Owner;
+			
+					GRect w = t->Watch;
+					bool Vis = w.Overlap(m.x, m.y);					
+					// printf("Tip %s, in=%i, act=%i\n", t->GView::Name(), Vis, Active);					
+					Vis = Vis && Active;
+					
+					if (Vis ^ t->Visible())
+					{
+						GRect r = t->GetPos();
+						GdcPt2 pt(w.x1, w.y2);
+						#ifdef __GTK_H__
+						pt.y += 8;
+						#endif
+						t->Owner->PointToScreen(pt);
+
+						// printf("Vis(%i): r=%s pt=%i,%i->%i,%i\n", in, r.GetStr(), w.x1, w.y2, pt.x, pt.y);
+						
+						r.Offset(pt.x - r.x1, pt.y - r.y1);
+						t->SetPos(r);
+						t->Visible(Vis);
+					}
+				}
+			}
+			else
+			{
+				All.DeleteAt(i--);
+			}
+		}
 	}
 	
 	bool Name(char *n)
 	{
 		bool Status = GView::Name(n);
-		DeleteObj(s);
-		s = new GDisplayString(SysFont, GView::Name());
-		if (s)
+		if (s.Reset(new GDisplayString(SysFont, GView::Name())))
 		{
 			GRect r = GetPos();
 			r.Dimension(s->X() + 4, s->Y() + 2);
@@ -83,94 +150,8 @@ public:
 	}
 };
 
-class NativeTipThread : public LThread
-{
-	bool Loop;
-	List<NativeTip> *Tips;
-
-public:
-	NativeTipThread(List<NativeTip> *tips) : LThread("NativeTipThread")
-	{
-		Loop = true;
-		Tips = tips;
-		
-		#if defined(BEOS) || defined(__GTK_H__)
-		printf("Warning: No NativeTipThread support.\n");
-		#else
-		Run();
-		#endif
-	}
-	
-	~NativeTipThread()
-	{
-		Loop = false;
-		#if defined(BEOS) || defined(__GTK_H__)
-		#else
-		while (!IsExited())
-		{
-			LgiSleep(25);
-		}
-		#endif
-	}
-	
-	int Main()
-	{
-		GMouse Old;
-
-		// This thread sit and watches the mouse position waiting for changes.
-		// Once the mouse moves, it checks all the watch areas on the tool tips
-		// and if the mouse has moved in or out of any of them it updates the
-		// tool tips visibility state.
-		//
-		// Most OS's don't provide an easier way to get all mouse move events,
-		// but if your target OS's does, then you might want to use that instead
-		// of chewing cycles by polling.		
-		while (Loop)
-		{
-			NativeTip *t = Tips->First();
-			if (t)
-			{
-				GMouse m;
-				t->GetMouse(m, true);
-				
-				// Check if mouse moved
-				if (m.x != Old.x ||
-					m.y != Old.y)
-				{
-					// Go through all the tips and see if anything should change
-					for (t = Tips->First(); t; t = Tips->Next())
-					{
-						// Is the mouse over the watch region?
-						GRect w = t->Watch;
-						GdcPt2 p(0, 0);
-						t->Owner->PointToScreen(p);
-						w.Offset(p.x, p.y);
-						
-						bool Over = w.Overlap(m.x, m.y) && t->IsOverParent(m.x, m.y);
-						if (Over ^ t->Visible())
-						{
-							if (Over)
-							{
-								GRect r(0, 0, t->X()-1, t->Y()-1);
-								r.Offset(w.x1 + w.X()/2, w.y2 + 5);
-								t->SetPos(r);
-							}
-							
-							// Change it's state
-							t->Visible(Over);
-						}
-					}
-					
-					Old = m;
-				}
-			}
-		
-			LgiSleep(50);
-		}
-		
-		return 0;
-	}
-};
+NativeTip *NativeTip::PulseRunning = NULL;
+GArray<NativeTip*> NativeTip::All;
 
 #endif
 
@@ -181,27 +162,28 @@ public:
 
 	#if defined(MAC)
 	HMHelpContentRec Tag;
-	#elif NATIVE_TIPS
-	List<NativeTip> Tips;
-	GViewI *Parent;
-	LThread *Thread;
+	#elif LGI_NATIVE_TIPS
+	GView *Parent;
+	GHashTbl<int, NativeTip*> Tips;
 	#endif
 	
 	GToolTipPrivate()
 	{
 		NextUid = 1;
 		#if defined(MAC)
-		#elif NATIVE_TIPS
+		#elif LGI_NATIVE_TIPS
 		Parent = 0;
-		Thread = 0;
 		#endif
 	}
 
 	~GToolTipPrivate()
 	{
-		#if NATIVE_TIPS
-		DeleteObj(Thread);
-		Tips.DeleteObjects();
+		#if defined(MAC)
+		#elif LGI_NATIVE_TIPS
+		for (NativeTip *t = Tips.First(); t; t = Tips.Next())
+		{
+			delete t;
+		}
 		#endif
 	}
 };
@@ -261,25 +243,24 @@ int GToolTip::NewTip(char *Name, GRect &Pos)
 		DeleteArray(ti.lpszText);
 	}
 	
-	#elif NATIVE_TIPS
+	#elif LGI_NATIVE_TIPS
 	
 	if (ValidStr(Name) && d->Parent)
 	{
 		// printf("NewTip('%s',%s)\n", Name, Pos.Describe());
 		
-		NativeTip *t;
-		d->Tips.Insert(t = new NativeTip(d->NextUid++, d->Parent));
+		NativeTip *t = new NativeTip(d->NextUid++, d->Parent);
 		if (t)
 		{
 			t->Watch = Pos;
 			t->Name(Name);
-			if (t->Attach(0))
-			{
-				if (!d->Thread)
-				{
-					d->Thread = new NativeTipThread(&d->Tips);
-				}
-			}
+			
+			// This is a hack to get it to create a window...
+			t->Visible(true);
+			// But not show it yet... duh...
+			t->Visible(false);
+			
+			d->Tips.Add(t->Id, t);
 			
 			Status = true;
 		}
@@ -310,14 +291,16 @@ void GToolTip::DeleteTip(int Id)
 		SendMessage(_View, TTM_DELTOOL, 0, (LPARAM) &ti);
 	}
 	
-	#elif NATIVE_TIPS
+	#elif LGI_NATIVE_TIPS
 	
-	for (NativeTip *t = d->Tips.First(); t; t = d->Tips.Next())
+	for (unsigned i = 0; i < NativeTip::All.Length(); i++)
 	{
+		NativeTip *&t = NativeTip::All[i];
 		if (t->Id == Id)
 		{
-			d->Tips.Delete(t);
+			d->Tips.Delete(Id);
 			DeleteObj(t);
+			NativeTip::All.DeleteAt(i);
 			break;
 		}
 	}
@@ -387,9 +370,9 @@ bool GToolTip::Attach(GViewI *p)
 						0, 0, 0, 0,
 						SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 	
-	#elif NATIVE_TIPS
+	#elif LGI_NATIVE_TIPS
 	
-	d->Parent = p;
+	d->Parent = p->GetGView();
 	return false;
 
 	#endif

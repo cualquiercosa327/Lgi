@@ -1081,7 +1081,7 @@ int GMdiParent::GetNextOrder()
 	int m = 0;
 	for (int i=0; i<d->Children.Length(); i++)
 	{
-		m = max(m, d->Children[i]->GetOrder());
+		m = MAX(m, d->Children[i]->GetOrder());
 	}
 	return m + 1;
 }

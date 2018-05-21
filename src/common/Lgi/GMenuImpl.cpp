@@ -278,7 +278,7 @@ void SubMenuImpl::Layout(int Bx, int By)
 		{
 			GdcPt2 Size;
 			i->_Measure(Size);
-			x = max(x, Size.x+4);
+			x = MAX(x, Size.x+4);
 		}
 
 		n = 0;
@@ -303,8 +303,8 @@ void SubMenuImpl::Layout(int Bx, int By)
 			y += Ht;
 		}
 		
-		MaxX = max(ColX + x, MaxX);
-		MaxY = max(y, MaxY);
+		MaxX = MAX(ColX + x, MaxX);
+		MaxY = MAX(y, MaxY);
 		ColX += x;
 		
 	}

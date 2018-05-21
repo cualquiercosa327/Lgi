@@ -27,6 +27,14 @@ extern char Delimiters[];
 
 class GTextView3;
 
+enum GTextViewStyleOwners
+{
+	STYLE_NONE,
+	STYLE_IDE,
+	STYLE_SPELLING,
+	STYLE_FIND_MATCHES,
+};
+
 /// Unicode text editor control.
 class LgiClass
 	GTextView3 :
@@ -59,7 +67,7 @@ public:
 		/// different owner id's so that they can manage the lifespan of their
 		/// own styles. GTextView3::PourStyle is owner '0', anything else it
 		/// will leave alone.
-		int Owner;
+		GTextViewStyleOwners Owner;
 		/// The start index into the text buffer of the region to style.
 		ssize_t Start;
 		/// The length of the styled region
@@ -68,7 +76,7 @@ public:
 		GFont *Font;
 		/// The colour to draw with. If transparent, then the default 
 		/// line colour is used.
-		GColour c;
+		GColour Fore, Back;
 		
 		/// Optional extra decor not supported by the fonts
 		StyleDecor Decor;
@@ -78,7 +86,7 @@ public:
 		/// Application base data
 		char *Data;
 
-		GStyle(int owner)
+		GStyle(GTextViewStyleOwners owner)
 		{
 			Owner = owner;
 			View = 0;
@@ -110,7 +118,8 @@ public:
 			return	Owner == s.Owner &&
 					Start == s.Start &&
 					Len == s.Len &&
-					c == s.c &&
+					Fore == s.Fore &&
+					Back == s.Back &&
 					Decor == s.Decor;
 		}
 
@@ -139,8 +148,8 @@ public:
 			}
 			else
 			{
-				Start = min(Start, s.Start);
-				Len = max(End(), s.End()) - Start;
+				Start = MIN(Start, s.Start);
+				Len = MAX(End(), s.End()) - Start;
 			}
 		}
 	};
@@ -224,7 +233,7 @@ protected:
 	int ScrollYLine();
 	int ScrollYPixel();
 	GRect DocToScreen(GRect r);
-	ptrdiff_t MatchText(char16 *Text, bool MatchWord, bool MatchCase, bool SelectionOnly);
+	ptrdiff_t MatchText(char16 *Text, bool MatchWord, bool MatchCase, bool SelectionOnly, bool SearchUpwards);
 	
 	// styles
 	bool InsertStyle(GAutoPtr<GStyle> s);
@@ -282,6 +291,7 @@ public:
 	void SetTabSize(uint8 i);
 	void SetBorder(int b);
 	void SetReadOnly(bool i);
+	void SetCrLf(bool crlf);
 
 	/// Sets the wrapping on the control, use #TEXTED_WRAP_NONE or #TEXTED_WRAP_REFLOW
 	void SetWrapType(uint8 i);
@@ -305,6 +315,7 @@ public:
 	// File IO
 	bool Open(const char *Name, const char *Cs = 0);
 	bool Save(const char *Name, const char *Cs = 0);
+	const char *GetLastError();
 
 	// Clipboard IO
 	bool Cut();
@@ -333,8 +344,8 @@ public:
 	void SetFindReplaceParams(GDocFindReplaceParams *Params);
 
 	// Object Events
-	bool OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly);
-	bool OnReplace(char16 *Find, char16 *Replace, bool All, bool MatchWord, bool MatchCase, bool SelectionOnly);
+	bool OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly, bool SearchUpwards);
+	bool OnReplace(char16 *Find, char16 *Replace, bool All, bool MatchWord, bool MatchCase, bool SelectionOnly, bool SearchUpwards);
 	bool OnMultiLineTab(bool In);
 	void OnSetHidden(int Hidden);
 	void OnPosChange();

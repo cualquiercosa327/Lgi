@@ -93,6 +93,7 @@ bool DataDlgTools::ProcessField(DataDlgField *f, bool Write, char *OptionOverrid
 				// fall through
 			}
 			case DATA_STR:
+			case DATA_FILENAME:
 			{
 				if (Write) // Ctrl -> Opts
 				{

@@ -314,6 +314,9 @@ public:
 /// A version of GBytePipe for strings. Adds some special handling for strings.
 class LgiClass GStringPipe : public GMemQueue
 {
+	ssize_t LineChars();
+	ssize_t SaveToBuffer(char *Str, ssize_t BufSize, ssize_t Chars);
+
 public:
 	/// Constructs the object
 	GStringPipe
@@ -325,11 +328,16 @@ public:
 	~GStringPipe() {}
 
 	virtual ssize_t Pop(char *Str, ssize_t Chars);
+	virtual GString Pop();
 	virtual ssize_t Push(const char *Str, ssize_t Chars = -1);
 	virtual ssize_t Push(const char16 *Str, ssize_t Chars = -1);
 	char *NewStr() { return (char*)New(sizeof(char)); }
 	GString NewGStr();
 	char16 *NewStrW() { return (char16*)New(sizeof(char16)); }
+
+	#ifdef _DEBUG
+	static bool UnitTest();
+	#endif
 };
 
 #define GMEMFILE_BLOCKS		8

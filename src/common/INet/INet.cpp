@@ -45,6 +45,7 @@
 	typedef HOSTENT HostEnt;
 	typedef int socklen_t;
 	typedef unsigned long in_addr_t;
+	typedef BOOL option_t;
 
 	#define MSG_NOSIGNAL		0
 	#define EWOULDBLOCK			WSAEWOULDBLOCK
@@ -65,6 +66,7 @@
 	#define MSG_NOSIGNAL 0
 
 	typedef struct hostent HostEnt;
+	typedef int option_t;
 	// typedef int socklen_t;
 	#define OsAddr				s_addr
 
@@ -78,11 +80,13 @@
 	#include <ctype.h>
 	#include <netdb.h>
 	#include <errno.h>
+	#include <netinet/tcp.h>
     #include "LgiCommon.h"
 	#include <ifaddrs.h>
 	
 	#define SOCKET_ERROR -1
 	typedef hostent HostEnt;
+	typedef int option_t;
 	#define OsAddr				s_addr
 	
 #endif
@@ -109,36 +113,43 @@ uint32 inet_addr(char *HostAddr)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-GNetwork::GNetwork()
+#ifdef WIN32
+static bool SocketsOpen = false;
+#endif
+
+bool StartNetworkStack()
 {
 	#ifdef WIN32
-	SocketsOpen = false;
+		
+		#ifndef WINSOCK_VERSION
+		#define WINSOCK_VERSION MAKEWORD(2,2)
+		#endif
 
-	#ifndef WINSOCK_VERSION
-	#define WINSOCK_VERSION MAKEWORD(2,2)
+		if (!SocketsOpen)
+		{
+			// Start sockets
+			WSADATA WsaData;
+			int Result = WSAStartup(WINSOCK_VERSION, &WsaData);
+			if (!Result)
+			{
+				if (WsaData.wVersion == WINSOCK_VERSION)
+				{
+					SocketsOpen = Result == 0;
+				}
+				else
+				{
+					WSACleanup();
+					return false;
+				}
+			}
+		}
+
 	#endif
 
-	// Start sockets
-	WSADATA WsaData;
-	int Result = WSAStartup(WINSOCK_VERSION, &WsaData);
-	if (!Result)
-	{
-		if (WsaData.wVersion == WINSOCK_VERSION)
-		{
-			SocketsOpen = Result == 0;
-		}
-		else
-		{
-			WSACleanup();
-		}
-	}
-
-	#else
-	SocketsOpen = true;
-	#endif
+	return true;
 }
 
-GNetwork::~GNetwork()
+void StopNetworkStack()
 {
 	#ifdef WIN32
 	if (SocketsOpen)
@@ -153,9 +164,11 @@ GNetwork::~GNetwork()
 #include "..\..\Win32\INet\MibAccess.h"
 #endif
 
-bool GNetwork::EnumInterfaces(List<char> &Lst)
+bool GSocket::EnumInterfaces(List<char> &Lst)
 {
 	bool Status = false;
+
+	StartNetworkStack();
 
 	#ifdef WIN32
 	UINT IPArray[50];
@@ -212,42 +225,40 @@ class GSocketImplPrivate
 {
 public:
 	// Data
-	GNetwork	*Parent;
-	bool		Blocking;
+	int Blocking : 1;
+	int NoDelay : 1;
+	int Udp : 1;
+	int Broadcast : 1;
+
 	int			LogType;
 	char		*LogFile;
 	int			Timeout;
 	OsSocket	Socket;
-	int			Flags;
 	int			LastError;
-	bool		*ContinueToken;
 	GString		ErrStr;
 
 	GSocketImplPrivate()
 	{	
 		Blocking = true;
+		NoDelay = false;
+		Udp = false;
+
 		LogType = NET_LOG_NONE;
 		LogFile = 0;
 		Timeout = -1;
 		Socket = INVALID_SOCKET;
-		Flags = 0;
 		LastError = 0;
-		ContinueToken = NULL;
 	}
 
 	~GSocketImplPrivate()
 	{
 		DeleteArray(LogFile);
 	}
-
-	bool Loop()
-	{
-		return !ContinueToken || *ContinueToken;
-	}
 };
 
 GSocket::GSocket(GStreamI *logger, void *unused_param)
 {
+	StartNetworkStack();
 	BytesWritten = 0;
 	BytesRead = 0;
 	d = new GSocketImplPrivate;
@@ -265,8 +276,7 @@ bool GSocket::IsOK()
 			#ifndef __llvm__
 			this != 0 &&
 			#endif
-			d != 0 &&
-			(d->Parent ? d->Parent->IsValid() : false);
+			d != 0;
 }
 
 
@@ -302,11 +312,6 @@ int GSocket::GetTimeout()
 void GSocket::SetTimeout(int ms)
 {
 	d->Timeout = ms;
-}
-
-void GSocket::SetContinue(bool *Token)
-{
-	d->ContinueToken = Token;
 }
 
 bool GSocket::IsReadable(int TimeoutMs)
@@ -401,28 +406,39 @@ bool GSocket::IsBlocking()
 
 void GSocket::IsBlocking(bool block)
 {
-	d->Blocking = block;
+	if (d->Blocking ^ block)
+	{
+		d->Blocking = block;
 	
-	#if defined WIN32
-	ulong NonBlocking = !block;
-	ioctlsocket(d->Socket, FIONBIO, &NonBlocking);
-	#elif defined POSIX
-	fcntl(d->Socket, F_SETFL, d->Blocking ? 0 : O_NONBLOCK);
-	#elif defined BEOS
-	uint32 b = d->Blocking ? 0 : -1;
-	setsockopt(d->Socket, SOL_SOCKET, SO_NONBLOCK, &b, sizeof(b));
-	#else
-	#error Impl me.
-	#endif
+		#if defined WIN32
+		ulong NonBlocking = !block;
+		ioctlsocket(d->Socket, FIONBIO, &NonBlocking);
+		#elif defined POSIX
+		fcntl(d->Socket, F_SETFL, d->Blocking ? 0 : O_NONBLOCK);
+		#elif defined BEOS
+		uint32 b = d->Blocking ? 0 : -1;
+		setsockopt(d->Socket, SOL_SOCKET, SO_NONBLOCK, &b, sizeof(b));
+		#else
+		#error Impl me.
+		#endif
+	}
 }
 
 bool GSocket::IsDelayed()
 {
-	return true;
+	return !d->NoDelay;
 }
 
 void GSocket::IsDelayed(bool Delay)
 {
+	bool NoDelay = !Delay;
+	if (d->NoDelay ^ NoDelay)
+	{
+		d->NoDelay = NoDelay;
+	
+		option_t i = d->NoDelay != 0;
+		setsockopt(d->Socket, IPPROTO_TCP, TCP_NODELAY, (const char*)&i, sizeof(i));
+	}
 }
 
 int GSocket::GetLocalPort()
@@ -530,17 +546,13 @@ int GSocket::Open(const char *HostAddr, int Port)
 			GArray<char> Buf(512);
 
 			#if !defined(MAC) && !defined(BEOS)
-			if (d->Flags & TCP_NODELAY)
+			option_t i;
+			int sz = sizeof(i);
+			int r = getsockopt(d->Socket, IPPROTO_TCP, TCP_NODELAY, (char*)&i, &sz);
+			if (d->NoDelay ^ i)
 			{
-				int flag = 1;
-				setsockopt
-				(
-					d->Socket,
-					IPPROTO_TCP,
-					TCP_NODELAY,
-					(char *) &flag,
-					sizeof(int)
-				);
+				i = d->NoDelay != 0;
+				setsockopt(d->Socket, IPPROTO_TCP, TCP_NODELAY, (char *) &i, sizeof(i));
 			}
 			#endif
 
@@ -585,7 +597,7 @@ int GSocket::Open(const char *HostAddr, int Port)
 					int Ret;
 					while
 					(
-						d->Loop()
+						!IsCancelled()
 						&&
 						(
 							Ret
@@ -694,7 +706,7 @@ int GSocket::Open(const char *HostAddr, int Port)
 						#endif
 
 						int64 End = LgiCurrentTime() + (d->Timeout > 0 ? d->Timeout : 30000);
-						while (	d->Loop() &&
+						while (	!IsCancelled() &&
 								ValidSocket(d->Socket) &&
 								IsWouldBlock())
 						{
@@ -712,7 +724,7 @@ int GSocket::Open(const char *HostAddr, int Port)
 								break;
 							}
 							
-							if (IsWritable((int)min(Remaining, 1000)))
+							if (IsWritable((int)MIN(Remaining, 1000)))
 							{
 								// Should be ready to connect now...
 								#if CONNECT_LOGGING
@@ -850,7 +862,7 @@ bool GSocket::Accept(GSocketI *c)
 	// int Loop = 0;
 	socklen_t Length = sizeof(Address);
 	uint64 Start = LgiCurrentTime();
-	while (	d->Loop() &&
+	while (	!IsCancelled() &&
 			ValidSocket(d->Socket))
 	{
 		if (IsReadable(100))
@@ -1212,30 +1224,33 @@ void GSocket::SetLogFile(char *FileName, int Type)
 
 bool GSocket::GetUdp()
 {
-	return TestFlag(d->Flags, PROTO_UDP);
+	return d->Udp;
 }
 
 void GSocket::SetUdp(bool b)
 {
-	if (b)
+	if (d->Udp ^ b)
 	{
-		SetFlag(d->Flags, PROTO_UDP);
+		d->Udp = b;
 		if (!ValidSocket(d->Socket))
 		{
-			d->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-			if (d->Flags & PROTO_BROADCAST)
-			{
-				int enabled = 1;
-				setsockopt(Handle(), SOL_SOCKET, SO_BROADCAST, (char*)&enabled, sizeof(enabled));
-			}
+			if (d->Udp)
+				d->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+			else
+				d->Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+		}
+
+		if (d->Broadcast)
+		{
+			option_t enabled = d->Broadcast != 0;
+			setsockopt(Handle(), SOL_SOCKET, SO_BROADCAST, (char*)&enabled, sizeof(enabled));
 		}
 	}
-	else ClearFlag(d->Flags, PROTO_UDP);
 }
 
 void GSocket::SetBroadcast()
 {
-	SetFlag(d->Flags, PROTO_BROADCAST);
+	d->Broadcast = true;
 }
 
 int GSocket::ReadUdp(void *Buffer, int Size, int Flags, uint32 *Ip, uint16 *Port)
@@ -1286,9 +1301,9 @@ int GSocket::WriteUdp(void *Buffer, int Size, int Flags, uint32 Ip, uint16 Port)
 		if (!ValidSocket(d->Socket))
 			return -1;
 
-		if (d->Flags & PROTO_BROADCAST)
+		if (d->Broadcast)
 		{
-			int enabled = 1;
+			option_t enabled = d->Broadcast != 0;
 			setsockopt(Handle(), SOL_SOCKET, SO_BROADCAST, (char*)&enabled, sizeof(enabled));
 		}
 	}
@@ -1396,71 +1411,70 @@ bool WhatsMyIp(GAutoString &Ip)
 {
 	bool Status = false;
 
-	GNetwork Sockets;
-	if (Sockets.IsValid())
+	StartNetworkStack();
+
+	#if defined WIN32
+	char hostname[256];
+	HostEnt *e = NULL;
+	if (gethostname(hostname, sizeof(hostname)) != SOCKET_ERROR)
 	{
-		#if defined WIN32
-		char hostname[256];
-		HostEnt *e = NULL;
-		if (gethostname(hostname, sizeof(hostname)) != SOCKET_ERROR)
-		{
-			e = gethostbyname(hostname);
-		}
-
-		if (e)
-		{
-			int Which = 0;
-			for (; e->h_addr_list[Which]; Which++);
-			Which--;
-
-			char IpAddr[32];
-			sprintf_s(IpAddr,
-						"%i.%i.%i.%i",
-						(uchar)e->h_addr_list[Which][0],
-						(uchar)e->h_addr_list[Which][1],
-						(uchar)e->h_addr_list[Which][2],
-						(uchar)e->h_addr_list[Which][3]);
-			Status = Ip.Reset(NewStr(IpAddr));
-		}
-		#elif defined BEOS
-
-		struct sockaddr_in addr;
-		int sock, size;
-		
-		memset((char *)&addr, 0, sizeof(addr));
-		addr.sin_family = AF_INET;
-		addr.sin_addr.s_addr = INADDR_ANY;
-		addr.sin_port = 0;
-		
-		if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
-			return false;
-		
-		if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-			return false;
-		
-		size = sizeof(addr);
-		if ((getsockname(sock, (struct sockaddr *)&addr, &size)) < 0)
-			return false;
-		
-		close(sock);
-		
-		if (addr.sin_addr.s_addr == INADDR_ANY)
-			return false;
-		
-		uchar *a = (uchar*)&addr.sin_addr.s_addr;
-		char IpAddr[32];
-		sprintf_s(	IpAddr,
-					sizeof(IpAddr),
-					"%i.%i.%i.%i",
-					a[0],
-					a[1],
-					a[2],
-					a[3]);
-		Ip.Reset(NewStr(IpAddr));
-		Status = true;
-		
-		#endif
+		e = gethostbyname(hostname);
 	}
+
+	if (e)
+	{
+		int Which = 0;
+		for (; e->h_addr_list[Which]; Which++);
+		Which--;
+
+		char IpAddr[32];
+		sprintf_s(IpAddr,
+					"%i.%i.%i.%i",
+					(uchar)e->h_addr_list[Which][0],
+					(uchar)e->h_addr_list[Which][1],
+					(uchar)e->h_addr_list[Which][2],
+					(uchar)e->h_addr_list[Which][3]);
+		Status = Ip.Reset(NewStr(IpAddr));
+	}
+
+	#elif defined BEOS
+
+	struct sockaddr_in addr;
+	int sock, size;
+		
+	memset((char *)&addr, 0, sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = INADDR_ANY;
+	addr.sin_port = 0;
+		
+	if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+		return false;
+		
+	if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+		return false;
+		
+	size = sizeof(addr);
+	if ((getsockname(sock, (struct sockaddr *)&addr, &size)) < 0)
+		return false;
+		
+	close(sock);
+		
+	if (addr.sin_addr.s_addr == INADDR_ANY)
+		return false;
+		
+	uchar *a = (uchar*)&addr.sin_addr.s_addr;
+	char IpAddr[32];
+	sprintf_s(	IpAddr,
+				sizeof(IpAddr),
+				"%i.%i.%i.%i",
+				a[0],
+				a[1],
+				a[2],
+				a[3]);
+	Ip.Reset(NewStr(IpAddr));
+	Status = true;
+		
+	#endif
 
 	return Status;
 }

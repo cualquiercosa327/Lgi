@@ -11,6 +11,7 @@
 #include "GMem.h"
 #include "LgiInc.h"
 #include "Base64.h"
+#include "GRange.h"
 
 static bool HasBase64ToBinLut = false;
 static uchar Base64ToBinLut[128];
@@ -143,7 +144,7 @@ ssize_t ConvertBinaryToBase64(char *Base64, ssize_t OutBuf, uchar *Binary, ssize
 	{
 		ssize_t i = InBuf / 3;
 		ssize_t o = OutBuf / 4;
-		ssize_t Segments = min(i, o);
+		ssize_t Segments = MIN(i, o);
 
 		for (int n=0; n<Segments; n++)
 		{

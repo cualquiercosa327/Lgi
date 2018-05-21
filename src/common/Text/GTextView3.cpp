@@ -15,6 +15,12 @@
 #include "GCssTools.h"
 #include "LgiRes.h"
 
+#ifdef _DEBUG
+#define FEATURE_HILIGHT_ALL_MATCHES	1
+#else
+#define FEATURE_HILIGHT_ALL_MATCHES	0
+#endif
+
 #define DefaultCharset              "utf-8"
 #define SubtractPtr(a, b)			((a) - (b))
 
@@ -90,12 +96,14 @@ public:
 	bool MatchCase;
 	bool MatchWord;
 	bool SelectionOnly;
+	bool SearchUpwards;
 	
 	GDocFindReplaceParams3()
 	{
 		MatchCase = false;
 		MatchWord = false;
 		SelectionOnly = false;
+		SearchUpwards = false;
 	}
 };
 
@@ -111,6 +119,8 @@ public:
 	GColour UrlColour;
 	bool CenterCursor;
 	ssize_t WordSelectMode;
+	GString Eol;
+	GString LastError;
 
 	// Find/Replace Params
 	bool OwnFindReplaceParams;
@@ -526,6 +536,11 @@ void GTextView3::SetReadOnly(bool i)
 	#endif
 }
 
+void GTextView3::SetCrLf(bool crlf)
+{
+	CrLf = crlf;
+}
+
 void GTextView3::SetTabSize(uint8 i)
 {
 	TabSize = limit(i, 2, 32);
@@ -782,7 +797,7 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 
 					Line.Insert(l, SimplePour ? CurrentLine : -1);
 
-					MaxX = max(MaxX, l->r.X());
+					MaxX = MAX(MaxX, l->r.X());
 					LastX = Cx = 0;
 					Cy += LineY;
 				}
@@ -907,7 +922,7 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 
 					Line.Insert(l);
 					
-					MaxX = max(MaxX, l->r.X());
+					MaxX = MAX(MaxX, l->r.X());
 					Cy += LineY;
 					
 					if (e < Size)
@@ -932,7 +947,7 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 
 			Line.Insert(l);
 			
-			MaxX = max(MaxX, l->r.X());
+			MaxX = MAX(MaxX, l->r.X());
 			Cy += LineY;
 		}
 	}
@@ -980,6 +995,8 @@ bool GTextView3::InsertStyle(GAutoPtr<GStyle> s)
 	LgiAssert(s->Len > 0);
 	size_t Last = 0;
 	int n = 0;
+
+	// LgiTrace("StartStyle=%i,%i(%i) %s\n", (int)s->Start, (int)s->Len, (int)(s->Start+s->Len), s->Fore.GetStr());
 
 	if (Style.Length() > 0)
 	{
@@ -1030,8 +1047,8 @@ GTextView3::GStyle *GTextView3::GetNextStyle(ssize_t Where)
 	{
 		// determin whether style is relevent..
 		// styles in the selected region are ignored
-		ssize_t Min = min(SelStart, SelEnd);
-		ssize_t Max = max(SelStart, SelEnd);
+		ssize_t Min = MIN(SelStart, SelEnd);
+		ssize_t Max = MAX(SelStart, SelEnd);
 		if (SelStart >= 0 &&
 			s->Start >= Min &&
 			s->Start+s->Len < Max)
@@ -1058,7 +1075,7 @@ class GUrl : public GTextView3::GStyle
 public:
 	bool Email;
 
-	GUrl(int own) : GStyle(own)
+	GUrl(GTextViewStyleOwners own) : GStyle(own)
 	{
 		Email = false;
 	}
@@ -1171,7 +1188,7 @@ void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
 	if (!Text || Size < 1)
 		return;
 
-	ssize_t Length = max(EditSize, 0);
+	ssize_t Length = MAX(EditSize, 0);
 
 	// Expand re-style are to word boundaries before and after the area of change
 	while (Start > 0 && UrlChar(Text[Start-1]))
@@ -1236,7 +1253,7 @@ void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
 			{
 				GLinkInfo &Inf = Links[i];
 				GUrl *Url;
-                GAutoPtr<GTextView3::GStyle> a(Url = new GUrl(0));
+                GAutoPtr<GTextView3::GStyle> a(Url = new GUrl(STYLE_NONE));
 				if (Url)
 				{
 					Url->View = this;
@@ -1244,7 +1261,7 @@ void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
 					Url->Len = (int)Inf.Len;
 					Url->Email = Inf.Email;
 					Url->Font = Underline;
-					Url->c = d->UrlColour;
+					Url->Fore = d->UrlColour;
 
 					InsertStyle(a);
 				}
@@ -1264,7 +1281,7 @@ bool GTextView3::Insert(size_t At, char16 *Data, ssize_t Len)
 	if (!ReadOnly && Len > 0)
 	{
 		// limit input to valid data
-		At = min(Size, At);
+		At = MIN(Size, At);
 
 		// make sure we have enough memory
 		size_t NewAlloc = Size + Len + 1;
@@ -1338,9 +1355,9 @@ bool GTextView3::Delete(size_t At, ssize_t Len)
 	if (!ReadOnly)
 	{
 		// limit input
-		At = max(At, 0);
-		At = min(At, Size);
-		Len = min(Size-At, Len);
+		At = MAX(At, 0);
+		At = MIN(At, Size);
+		Len = MIN(Size-At, Len);
 
 		if (Len > 0)
 		{
@@ -1443,8 +1460,8 @@ void GTextView3::DeleteSelection(char16 **Cut)
 {
 	if (SelStart >= 0)
 	{
-		ssize_t Min = min(SelStart, SelEnd);
-		ssize_t Max = max(SelStart, SelEnd);
+		ssize_t Min = MIN(SelStart, SelEnd);
+		ssize_t Max = MAX(SelStart, SelEnd);
 
 		if (Cut)
 		{
@@ -1533,7 +1550,7 @@ bool GTextView3::Name(const char *s)
 
 		Size = Text ? StrlenW(Text) : 0;
 		Alloc = Size + 1;
-		Cursor = min(Cursor, Size);
+		Cursor = MIN(Cursor, Size);
 		if (Text)
 		{
 			// Remove '\r's
@@ -1581,7 +1598,7 @@ bool GTextView3::NameW(const char16 *s)
 	Size = s ? StrlenW(s) : 0;
 	Alloc = Size + 1;
 	Text = new char16[Alloc];
-	Cursor = min(Cursor, Size);
+	Cursor = MIN(Cursor, Size);
 	if (Text)
 	{
 		memcpy(Text, s, Size * sizeof(char16));
@@ -1620,8 +1637,8 @@ GRange GTextView3::GetSelectionRange()
 	GRange r;
 	if (HasSelection())
 	{
-		r.Start = min(SelStart, SelEnd);
-		ssize_t End = max(SelStart, SelEnd);
+		r.Start = MIN(SelStart, SelEnd);
+		ssize_t End = MAX(SelStart, SelEnd);
 		r.Len = End - r.Start;
 	}
 	return r;
@@ -1703,7 +1720,7 @@ ssize_t GTextView3::IndexAt(int x, int y)
 	GTextLine *l = Line.ItemAt(y);
 	if (l)
 	{
-		return l->Start + min(x, l->Len);
+		return l->Start + MIN(x, l->Len);
 	}
 
 	return 0;
@@ -1758,7 +1775,7 @@ void GTextView3::SetCaret(size_t i, bool Select, bool ForceFullUpdate)
 			if (d->CenterCursor)
 			{
 				int i = ToIndex - (DisplayLines >> 1);
-				VScroll->Value(max(0, i));
+				VScroll->Value(MAX(0, i));
 			}
 			else
 			{
@@ -1771,7 +1788,7 @@ void GTextView3::SetCaret(size_t i, bool Select, bool ForceFullUpdate)
 		{
 			int YOff = d->CenterCursor ? DisplayLines >> 1 : DisplayLines;
 			
-			int v = min(ToIndex - YOff + 1, Line.Length() - DisplayLines);
+			int v = MIN(ToIndex - YOff + 1, Line.Length() - DisplayLines);
 			if (v != VScroll->Value())
 			{
 				// Below the visible region
@@ -1804,20 +1821,20 @@ void GTextView3::SetCaret(size_t i, bool Select, bool ForceFullUpdate)
 		if (SelStart >= 0 && s >= 0)
 		{
 			// Selection has changed, union the before and after regions
-			Start = min(Cursor, c);
-			End = max(Cursor, c);
+			Start = MIN(Cursor, c);
+			End = MAX(Cursor, c);
 		}
 		else if (SelStart >= 0)
 		{
 			// Selection created...
-			Start = min(SelStart, SelEnd);
-			End = max(SelStart, SelEnd);
+			Start = MIN(SelStart, SelEnd);
+			End = MAX(SelStart, SelEnd);
 		}
 		else if (s >= 0)
 		{
 			// Selection removed...
-			Start = min(s, e);
-			End = max(s, e);
+			Start = MIN(s, e);
+			End = MAX(s, e);
 		}
 		else
 		{
@@ -1930,8 +1947,8 @@ bool GTextView3::Copy()
 
 	if (SelStart >= 0)
 	{
-		ssize_t Min = min(SelStart, SelEnd);
-		ssize_t Max = max(SelStart, SelEnd);
+		ssize_t Min = MIN(SelStart, SelEnd);
+		ssize_t Max = MAX(SelStart, SelEnd);
 
 		char16 *Txt16 = NewStrW(Text+Min, Max-Min);
 		#ifdef WIN32
@@ -2032,7 +2049,13 @@ bool GTextView3::Open(const char *Name, const char *CharSet)
 	if (f.Open(Name, O_READ|O_SHARE))
 	{
 		DeleteArray(Text);
-		size_t Bytes = (size_t)f.GetSize();
+		int64 Bytes = f.GetSize();
+		if (Bytes < 0 || Bytes & 0xffff000000000000LL)
+		{
+			LgiTrace("%s:%i - Invalid file size: " LGI_PrintfInt64 "\n", _FL, Bytes);
+			return false;
+		}
+			
 		SetCaret(0, false);
 		
 		char *c8 = new char[Bytes + 4];
@@ -2127,6 +2150,8 @@ bool GTextView3::Save(const char *Name, const char *CharSet)
 	GFile f;
 	GString TmpName;
 	bool Status = false;
+	
+	d->LastError.Empty();
 
 	if (f.Open(Name, O_WRITE))
 	{
@@ -2207,11 +2232,22 @@ bool GTextView3::Save(const char *Name, const char *CharSet)
 			Dirty = false;
 		}
 	}
+	else
+	{
+		int Err = f.GetError();
+		GAutoString sErr = LgiErrorCodeToString(Err);		
+		d->LastError.Printf("Failed to open '%s' for writing: %i - %s\n", Name, Err, sErr.Get());
+	}
 
 	if (TmpName)
 		FileDev->Delete(TmpName);
 
 	return Status;
+}
+
+const char *GTextView3::GetLastError()
+{
+	return d->LastError;
 }
 
 void GTextView3::UpdateScrollBars(bool Reset)
@@ -2222,6 +2258,7 @@ void GTextView3::UpdateScrollBars(bool Reset)
 
 		int DisplayLines = Y() / LineY;
 		int Lines = GetLines();
+		// printf("SetLimits %i, %i\n", 0, (int)Lines);
 		VScroll->SetLimits(0, Lines);
 		if (VScroll)
 		{
@@ -2231,7 +2268,6 @@ void GTextView3::UpdateScrollBars(bool Reset)
 			bool Inval = false;
 			if (VScroll->Value() > Max)
 			{
-
 				VScroll->Value(Max);
 				Inval = true;
 			}
@@ -2262,8 +2298,8 @@ bool GTextView3::DoCase(bool Upper)
 {
 	if (Text)
 	{
-		ssize_t Min = min(SelStart, SelEnd);
-		ssize_t Max = max(SelStart, SelEnd);
+		ssize_t Min = MIN(SelStart, SelEnd);
+		ssize_t Max = MAX(SelStart, SelEnd);
 
 		if (Min < Max)
 		{
@@ -2359,7 +2395,8 @@ bool GTextView3::DoFindNext()
 				Status = OnFind(d->FindReplaceParams->LastFind,
 								d->FindReplaceParams->MatchWord,
 								d->FindReplaceParams->MatchCase,
-								d->FindReplaceParams->SelectionOnly);
+								d->FindReplaceParams->SelectionOnly,
+								d->FindReplaceParams->SearchUpwards);
 							
 			d->FindReplaceParams->Unlock();
 		}
@@ -2383,6 +2420,7 @@ Text3_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User)
 		v->d->FindReplaceParams->MatchWord = Dlg->MatchWord;
 		v->d->FindReplaceParams->MatchCase = Dlg->MatchCase;
 		v->d->FindReplaceParams->SelectionOnly = Dlg->SelectionOnly;
+		v->d->FindReplaceParams->SearchUpwards = Dlg->SearchUpwards;
 		v->d->FindReplaceParams->LastFind.Reset(Utf8ToWide(Dlg->Find));
 		
 		v->d->FindReplaceParams->Unlock();
@@ -2393,17 +2431,18 @@ Text3_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User)
 
 bool GTextView3::DoFind()
 {
-	char *u = 0;
+	GString u;
+
 	if (HasSelection())
 	{
-		ssize_t Min = min(SelStart, SelEnd);
-		ssize_t Max = max(SelStart, SelEnd);
+		ssize_t Min = MIN(SelStart, SelEnd);
+		ssize_t Max = MAX(SelStart, SelEnd);
 
-		u = WideToUtf8(Text + Min, Max - Min);
+		u = GString(Text + Min, Max - Min);
 	}
 	else
 	{
-		u = WideToUtf8(d->FindReplaceParams->LastFind);
+		u = d->FindReplaceParams->LastFind.Get();
 	}
 
 	#ifdef BEOS
@@ -2419,8 +2458,6 @@ bool GTextView3::DoFind()
 		Focus(true);
 
 	#endif
-
-	DeleteArray(u);		
 
 	return false;
 }
@@ -2472,7 +2509,8 @@ bool GTextView3::DoReplace()
 			OnFind(	d->FindReplaceParams->LastFind,
 					d->FindReplaceParams->MatchWord,
 					d->FindReplaceParams->MatchCase,
-					d->FindReplaceParams->SelectionOnly);
+					d->FindReplaceParams->SelectionOnly,
+					d->FindReplaceParams->SearchUpwards);
 			break;
 		}
 		case IDOK:
@@ -2483,7 +2521,8 @@ bool GTextView3::DoReplace()
 						Action == IDOK,
 						d->FindReplaceParams->MatchWord,
 						d->FindReplaceParams->MatchCase,
-						d->FindReplaceParams->SelectionOnly);
+						d->FindReplaceParams->SelectionOnly,
+						d->FindReplaceParams->SearchUpwards);
 			break;
 		}
 	}
@@ -2513,132 +2552,97 @@ void GTextView3::SelectWord(size_t From)
 	Invalidate();
 }
 
-ptrdiff_t GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly)
-{
-	if (ValidStrW(Find))
-	{
-		int FindLen = StrlenW(Find);
-		
-		// Setup range to search
-		ssize_t Begin, End;
-		if (SelectionOnly && HasSelection())
-		{
-			Begin = min(SelStart, SelEnd);
-			End = max(SelStart, SelEnd);
-		}
-		else
-		{
-			Begin = 0;
-			End = Size;
-		}
+typedef int (*StringCompareFn)(const char16 *a, const char16 *b, ssize_t n);
 
-		// Look through text...
-		ssize_t i;
-		bool Wrap = false;
-		if (Cursor > End - FindLen)
+ptrdiff_t GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly, bool SearchUpwards)
+{
+	if (!ValidStrW(Find))
+		return -1;
+
+	int FindLen = StrlenW(Find);
+		
+	// Setup range to search
+	ssize_t Begin, End;
+	if (SelectionOnly && HasSelection())
+	{
+		Begin = MIN(SelStart, SelEnd);
+		End = MAX(SelStart, SelEnd);
+	}
+	else
+	{
+		Begin = 0;
+		End = Size;
+	}
+
+	// Look through text...
+	ssize_t i;
+	bool Wrap = false;
+	if (Cursor > End - FindLen)
+	{
+		Wrap = true;
+		if (SearchUpwards)
+			i = End - FindLen;
+		else
+			i = Begin;
+	}
+	else
+	{
+		i = Cursor;
+	}
+		
+	if (i < Begin) i = Begin;
+	if (i > End) i = End;
+	
+	StringCompareFn CmpFn = MatchCase ? StrncmpW : StrnicmpW;
+	char16 FindCh = MatchCase ? Find[0] : toupper(Find[0]);
+
+	for (; SearchUpwards ? i >= Begin : i <= End - FindLen; i += SearchUpwards ? -1 : 1)
+	{
+		if
+		(
+			(MatchCase ? Text[i] : toupper(Text[i]))
+			==
+			FindCh
+		)
+		{
+			char16 *Possible = Text + i;
+
+			if (CmpFn(Possible, Find, FindLen) == 0)
+			{
+				if (MatchWord)
+				{
+					// Check boundaries
+							
+					if (Possible > Text) // Check off the start
+					{
+						if (!IsWordBoundry(Possible[-1]))
+							continue;
+					}
+					if (i + FindLen < Size) // Check off the end
+					{
+						if (!IsWordBoundry(Possible[FindLen]))
+							continue;
+					}
+				}
+						
+				GRange r(Possible - Text, FindLen);
+				if (!r.Overlap(Cursor))
+					return r.Start;
+			}
+		}
+				
+		if (!Wrap && (i + 1 > End - FindLen))
 		{
 			Wrap = true;
 			i = Begin;
-		}
-		else
-		{
-			i = Cursor;
-		}
-		
-		if (i < Begin) i = Begin;
-		if (i > End) i = End;
-		
-		if (MatchCase)
-		{
-			for (; i<=End-FindLen; i++)
-			{
-				if (Text[i] == Find[0])
-				{
-					char16 *Possible = Text + i;;
-					if (StrncmpW(Possible, Find, FindLen) == 0)
-					{
-						if (MatchWord)
-						{
-							// Check boundaries
-							
-							if (Possible > Text) // Check off the start
-							{
-								if (!IsWordBoundry(Possible[-1]))
-								{
-									continue;
-								}
-							}
-							if (i + FindLen < Size) // Check off the end
-							{
-								if (!IsWordBoundry(Possible[FindLen]))
-								{
-									continue;
-								}
-							}
-						}
-						
-						return SubtractPtr(Possible, Text);
-						break;
-					}
-				}
-				
-				if (!Wrap && (i + 1 > End - FindLen))
-				{
-					Wrap = true;
-					i = Begin;
-					End = Cursor;
-				}
-			}
-		}
-		else
-		{
-			// printf("i=%i s=%i e=%i c=%i flen=%i sz=%i\n", i, Begin, End, Cursor, FindLen, Size);
-			for (; i<=End-FindLen; i++)
-			{
-				if (toupper(Text[i]) == toupper(Find[0]))
-				{
-					char16 *Possible = Text + i;
-					if (StrnicmpW(Possible, Find, FindLen) == 0)
-					{
-						if (MatchWord)
-						{
-							// Check boundaries
-							
-							if (Possible > Text) // Check off the start
-							{
-								if (!IsWordBoundry(Possible[-1]))
-								{
-									continue;
-								}
-							}
-							if (i + FindLen < Size) // Check off the end
-							{
-								if (!IsWordBoundry(Possible[FindLen]))
-								{
-									continue;
-								}
-							}
-						}
-						
-						return SubtractPtr(Possible, Text);
-						break;
-					}
-				}
-			
-				if (!Wrap && (i + 1 > End - FindLen))
-				{
-					Wrap = true;
-					i = Begin;
-					End = Cursor;
-				}
-			}
+			End = Cursor;
 		}
 	}
 	
 	return -1;
 }
 
-bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly)
+bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool SelectionOnly, bool SearchUpwards)
 {
 	THREAD_CHECK();
 
@@ -2649,7 +2653,53 @@ bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool Selec
 		Cursor = SelStart;
 	}
 
-	ssize_t Loc = MatchText(Find, MatchWord, MatchCase, SelectionOnly);
+	#if FEATURE_HILIGHT_ALL_MATCHES
+
+	// Clear existing styles for matches
+	for (GStyle *s = Style.First(); s; )
+	{
+		if (s->Owner == STYLE_FIND_MATCHES)
+		{
+			Style.Delete(s);
+			DeleteObj(s);
+			s = Style.Current();
+		}
+		else
+		{
+			s = Style.Next();
+		}
+	}
+
+	ssize_t FindLen = StrlenW(Find);
+	ssize_t FirstLoc = MatchText(Find, MatchWord, MatchCase, false, SearchUpwards), Loc;
+	if (FirstLoc >= 0)
+	{
+		SetCaret(FirstLoc, false);
+		SetCaret(FirstLoc + FindLen, true);
+	}
+
+	ssize_t Old = Cursor;
+	if (!SearchUpwards)
+		Cursor += FindLen;
+	
+	while ((Loc = MatchText(Find, MatchWord, MatchCase, false, false)) != FirstLoc)
+	{
+		GAutoPtr<GStyle> s(new GStyle(STYLE_FIND_MATCHES));
+		s->Start = Loc;
+		s->Len = FindLen;
+		s->Fore.Set(LC_FOCUS_SEL_FORE, 24);
+		s->Back = GColour(LC_FOCUS_SEL_BACK, 24).Mix(GColour(LC_WORKSPACE, 24));
+		InsertStyle(s);
+
+		Cursor = Loc + FindLen;
+	}
+
+	Cursor = Old;
+	Invalidate();
+
+	#else
+
+	ssize_t Loc = MatchText(Find, MatchWord, MatchCase, SelectionOnly, SearchUpwards);
 	if (Loc >= 0)
 	{
 		SetCaret(Loc, false);
@@ -2657,10 +2707,12 @@ bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool Selec
 		return true;
 	}
 
+	#endif
+
 	return false;
 }
 
-bool GTextView3::OnReplace(char16 *Find, char16 *Replace, bool All, bool MatchWord, bool MatchCase, bool SelectionOnly)
+bool GTextView3::OnReplace(char16 *Find, char16 *Replace, bool All, bool MatchWord, bool MatchCase, bool SelectionOnly, bool SearchUpwards)
 {
 	THREAD_CHECK();
 
@@ -2674,7 +2726,7 @@ bool GTextView3::OnReplace(char16 *Find, char16 *Replace, bool All, bool MatchWo
 
 		while (true)
 		{
-			ptrdiff_t Loc = MatchText(Find, MatchWord, MatchCase, SelectionOnly);
+			ptrdiff_t Loc = MatchText(Find, MatchWord, MatchCase, SelectionOnly, SearchUpwards);
 			if (First < 0)
 			{
 				First = Loc;
@@ -2764,8 +2816,8 @@ ssize_t GTextView3::SeekLine(ssize_t Offset, GTextViewSeek Where)
 bool GTextView3::OnMultiLineTab(bool In)
 {
 	bool Status = false;
-	ssize_t Min = min(SelStart, SelEnd);
-	ssize_t Max = max(SelStart, SelEnd), i;
+	ssize_t Min = MIN(SelStart, SelEnd);
+	ssize_t Max = MAX(SelStart, SelEnd), i;
 
 	Min = SeekLine(Min, StartLine);
 
@@ -3063,7 +3115,13 @@ ssize_t GTextView3::HitText(int x, int y, bool Nearest)
 
 void GTextView3::Undo()
 {
+	int Old = UndoQue.GetPos();
 	UndoQue.Undo();
+	if (Old && !UndoQue.GetPos())
+	{
+		Dirty = false;
+		SendNotify(GNotifyDocChanged);
+	}
 }
 
 void GTextView3::Redo()
@@ -3416,7 +3474,7 @@ bool GTextView3::OnKey(GKey &k)
 							bool MultiLine = false;
 							if (k.c16 == VK_TAB)
 							{
-								size_t Min = min(SelStart, SelEnd), Max = max(SelStart, SelEnd);
+								size_t Min = MIN(SelStart, SelEnd), Max = MAX(SelStart, SelEnd);
 								for (size_t i=Min; i<Max; i++)
 								{
 									if (Text[i] == '\n')
@@ -3684,7 +3742,7 @@ bool GTextView3::OnKey(GKey &k)
 					if (SelStart >= 0 &&
 						!k.Shift())
 					{
-						SetCaret(min(SelStart, SelEnd), false);
+						SetCaret(MIN(SelStart, SelEnd), false);
 					}
 					else if (Cursor > 0)
 					{
@@ -3760,7 +3818,7 @@ bool GTextView3::OnKey(GKey &k)
 					if (SelStart >= 0 &&
 						!k.Shift())
 					{
-						SetCaret(max(SelStart, SelEnd), false);
+						SetCaret(MAX(SelStart, SelEnd), false);
 					}
 					else if (Cursor < Size)
 					{
@@ -3847,7 +3905,7 @@ bool GTextView3::OnKey(GKey &k)
 							GDisplayString PrevLine(Font, Text + Prev->Start, Prev->Len);
 							ssize_t CharX = PrevLine.CharAt(ScreenX);
 
-							SetCaret(Prev->Start + min(CharX, Prev->Len), k.Shift());
+							SetCaret(Prev->Start + MIN(CharX, Prev->Len), k.Shift());
 						}
 					}
 				}
@@ -3878,7 +3936,7 @@ bool GTextView3::OnKey(GKey &k)
 							GDisplayString NextLine(Font, Text + Next->Start, Next->Len);
 							ssize_t CharX = NextLine.CharAt(ScreenX);
 
-							SetCaret(Next->Start + min(CharX, Next->Len), k.Shift());
+							SetCaret(Next->Start + MIN(CharX, Next->Len), k.Shift());
 						}
 					}
 				}
@@ -3957,10 +4015,10 @@ bool GTextView3::OnKey(GKey &k)
 						int DisplayLines = Y() / LineY;
 						int CurLine = Line.IndexOf(l);
 
-						GTextLine *New = Line.ItemAt(max(CurLine - DisplayLines, 0));
+						GTextLine *New = Line.ItemAt(MAX(CurLine - DisplayLines, 0));
 						if (New)
 						{
-							SetCaret(New->Start + min(Cursor - l->Start, New->Len), k.Shift());
+							SetCaret(New->Start + MIN(Cursor - l->Start, New->Len), k.Shift());
 						}
 					}
 				}
@@ -3980,10 +4038,10 @@ bool GTextView3::OnKey(GKey &k)
 						int DisplayLines = Y() / LineY;
 						int CurLine = Line.IndexOf(l);
 
-						GTextLine *New = Line.ItemAt(min(CurLine + DisplayLines, GetLines()-1));
+						GTextLine *New = Line.ItemAt(MIN(CurLine + DisplayLines, GetLines()-1));
 						if (New)
 						{
-							SetCaret(New->Start + min(Cursor - l->Start, New->Len), k.Shift());
+							SetCaret(New->Start + MIN(Cursor - l->Start, New->Len), k.Shift());
 						}
 					}
 				}
@@ -4363,8 +4421,8 @@ void GTextView3::OnPaint(GSurface *pDC)
 			#endif
 			)
 		{
-			size_t SelMin = min(SelStart, SelEnd);
-			size_t SelMax = max(SelStart, SelEnd);
+			size_t SelMin = MIN(SelStart, SelEnd);
+			size_t SelMax = MAX(SelStart, SelEnd);
 
 			// font properties
 			Font->Colour(Fore, Back);
@@ -4451,6 +4509,9 @@ void GTextView3::OnPaint(GSurface *pDC)
 					ssize_t Block = l->Len - Done;
 					
 					// check for style change
+					if (NextStyle &&
+						NextStyle->End() <= l->Start)
+						NextStyle = GetNextStyle();
 					if (NextStyle)
 					{
 						// start
@@ -4490,10 +4551,15 @@ void GTextView3::OnPaint(GSurface *pDC)
 						if (Sf)
 						{
 							// draw styled text
-							if (NextStyle->c.IsValid())
-							{
-								Sf->Colour(NextStyle->c, l->Back.IsValid() ? l->Back : Back);
-							}
+							if (NextStyle->Fore.IsValid())
+								Sf->Fore(NextStyle->Fore);
+							if (NextStyle->Back.IsValid())
+								Sf->Back(NextStyle->Back);
+							else if (l->Back.IsValid())
+								Sf->Back(l->Back);
+							else
+								Sf->Back(Back);								
+
 							Sf->Transparent(false);
 
 							LgiAssert(l->Start + Done >= 0);
@@ -4617,7 +4683,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 							}
 							else if (Cur.x1 < Scr.x1 && ScrollX > 0)
 							{
-								ScrollX = max(0, Cur.x1 - 40);
+								ScrollX = MAX(0, Cur.x1 - 40);
 								Invalidate();
 							}
 						}
@@ -4802,6 +4868,11 @@ int GTextView3::OnNotify(GViewI *Ctrl, int Flags)
 {
 	if (Ctrl->GetId() == IDC_VSCROLL && VScroll)
 	{
+		if (Flags == GNotifyScrollBar_Create)
+		{
+			UpdateScrollBars();
+		}
+			
 		Invalidate();
 	}
 

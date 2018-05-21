@@ -1,0 +1,107 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source Files\Scripting">
+      <UniqueIdentifier>{2560d89b-1bfb-4676-b2de-a8afd5231429}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Scripting\Hdrs">
+      <UniqueIdentifier>{2e2d13df-4e87-4b6b-82ae-f301b34bdd22}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Test Scripts">
+      <UniqueIdentifier>{43a1e628-add4-441b-8ca4-ffea4bf40ba5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Documentation">
+      <UniqueIdentifier>{9d89d250-b2ed-4a08-8963-629ca0d826cf}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\common\Lgi\LgiMain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Coding\GLexCpp.cpp">
+      <Filter>Source Files\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Coding\GScriptCompiler.cpp">
+      <Filter>Source Files\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Coding\GScriptLibrary.cpp">
+      <Filter>Source Files\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Coding\GScriptVM.cpp">
+      <Filter>Source Files\Scripting</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Scripts\CustomType.script">
+      <Filter>Source Files\Test Scripts</Filter>
+    </None>
+    <None Include="Scripts\DateTime.script">
+      <Filter>Source Files\Test Scripts</Filter>
+    </None>
+    <None Include="Scripts\ExpressionTest.script">
+      <Filter>Source Files\Test Scripts</Filter>
+    </None>
+    <None Include="Scripts\FileSystem.script">
+      <Filter>Source Files\Test Scripts</Filter>
+    </None>
+    <None Include="Scripts\LValue Test.script">
+      <Filter>Source Files\Test Scripts</Filter>
+    </None>
+    <None Include="Scripts\Object.script">
+      <Filter>Source Files\Test Scripts</Filter>
+    </None>
+    <None Include="Scripts\Strings.script">
+      <Filter>Source Files\Test Scripts</Filter>
+    </None>
+    <None Include="Scripts\System.script">
+      <Filter>Source Files\Test Scripts</Filter>
+    </None>
+    <None Include="..\docs\scripting\index.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\docs\scripting\library.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\docs\scripting\scripting.css">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\docs\scripting\syntax.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Scripts\NumericOps.script">
+      <Filter>Source Files\Test Scripts</Filter>
+    </None>
+    <None Include="Scripts\ExternTest.script">
+      <Filter>Source Files\Test Scripts</Filter>
+    </None>
+    <None Include="Scripts\FunctionScope.script">
+      <Filter>Source Files\Test Scripts</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\common\GScripting.h">
+      <Filter>Source Files\Scripting\Hdrs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\common\Coding\GScriptingPriv.h">
+      <Filter>Source Files\Scripting\Hdrs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\common\Coding\GTokenType.h">
+      <Filter>Source Files\Scripting\Hdrs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\common\Coding\Instructions.h">
+      <Filter>Source Files\Scripting\Hdrs</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\src\common\Coding\ExternCall.asm">
+      <Filter>Source Files\Scripting</Filter>
+    </CustomBuild>
+  </ItemGroup>
+</Project>

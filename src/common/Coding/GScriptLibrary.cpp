@@ -184,7 +184,7 @@ bool SystemFunctions::Sprintf(LScriptArguments &Args)
 	if (!Fmt)
 		return false;
 
-	#ifdef LINUX
+	#if defined(LINUX) || defined(MAC)
 	
 	// No support for sprintf with generated args... hack a string up
 	// Formatting widths etc not supported.
@@ -196,7 +196,7 @@ bool SystemFunctions::Sprintf(LScriptArguments &Args)
 		{
 			f++; // Skip '%'
 			
-			char *Fmt = f;
+			// char *Fmt = f;
 			while (*f && !IsAlpha(*f))
 				f++; // Skip formatting..
 			
@@ -209,8 +209,10 @@ bool SystemFunctions::Sprintf(LScriptArguments &Args)
 				{
 					// String...
 					char *v = Args[i]->CastString();
-					if (!v) v = "(null)";
-					s.Add(v, strlen(v));
+					if (v)
+						s.Add(v, strlen(v));
+					else
+						s.Add((char*)"(null)", 4);
 					break;
 				}
 				case 'c':

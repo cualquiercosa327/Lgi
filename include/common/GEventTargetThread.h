@@ -201,7 +201,9 @@ class LgiClass GEventTargetThread :
 
 protected:
 	int PostTimeout;
-	int Processing;
+	size_t Processing;
+	uint32 TimerMs; // Milliseconds between timer ticks.
+	uint64 TimerTs; // Time for next tick
 
 public:
 	GEventTargetThread(GString Name) :
@@ -212,6 +214,8 @@ public:
 		Loop = true;
 		PostTimeout = 1000;
 		Processing = 0;
+		TimerMs = 0;
+		TimerTs = 0;
 
 		Run();
 	}
@@ -220,6 +224,20 @@ public:
 	{
 		EndThread();
 	}
+	
+	/// Set or clear a timer. Every time the timer expires, the function
+	/// OnPulse is called. Until SetPulse() is called.
+	bool SetPulse(uint32 Ms = 0)
+	{
+		TimerMs = Ms;
+		TimerTs = Ms ? LgiCurrentTime() + Ms : 0;
+		return Event.Signal();
+	}
+	
+	/// Called roughly every 'TimerMs' milliseconds.
+	/// Be aware however that OnPulse is called from the worker thread, not your main
+	/// GUI thread. So best to send a message or something thread safe.
+	virtual void OnPulse() {}
 
 	void EndThread()
 	{
@@ -298,7 +316,27 @@ public:
 	{
 		while (Loop)
 		{
-			LThreadEvent::WaitStatus s = Event.Wait();
+			int WaitLength = -1;
+			if (TimerTs != 0)
+			{
+				uint64 Now = LgiCurrentTime();
+				if (TimerTs > Now)
+				{
+					WaitLength = (int) (TimerTs - Now);
+				}
+				else
+				{
+					OnPulse();
+					if (TimerMs)
+					{
+						TimerTs = Now + TimerMs;
+						WaitLength = (int) TimerTs;
+					}
+					else WaitLength = -1;
+				}
+			}
+			
+			LThreadEvent::WaitStatus s = Event.Wait(WaitLength);
 			if (s == LThreadEvent::WaitSignaled)
 			{
 				GArray<GMessage*> m;
@@ -320,7 +358,7 @@ public:
 				}
 				m.DeleteObjects();
 			}
-			else
+			else if (s == LThreadEvent::WaitError)
 			{
 				LgiTrace("%s:%i - Event.Wait failed.\n", _FL);
 				break;

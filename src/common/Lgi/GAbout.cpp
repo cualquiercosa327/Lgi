@@ -94,8 +94,8 @@ GAbout::GAbout(	GView *parent,
 			View->GetTextExtent(x, y);
 			x += 4;
 			y += 4;
-			x = max(x, 100);
-			if (Img) y = max(y, Img->Y() - 30);
+			x = MAX(x, 100);
+			if (Img) y = MAX(y, Img->Y() - 30);
 			
 			rc.Dimension(x-1, y-1);
 			Ctrl->SetPos(rc);
@@ -132,7 +132,7 @@ int GAbout::OnNotify(GViewI *Ctrl, int Flags)
 				
 				t.Offset(b.x2 + 10 - t.x1, 0);
 				GRect p = GetPos();
-				p.Dimension(t.x2 + 20, max(b.y2, t.y2+30) + 40);
+				p.Dimension(t.x2 + 20, MAX(b.y2, t.y2+30) + 40);
 				c.Offset(t.x2 - c.X() - c.x1, p.Y() - 60 - c.y1);
 
 				Text->SetPos(t, true);

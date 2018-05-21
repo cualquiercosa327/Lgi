@@ -10,6 +10,7 @@
 #include "GRadioGroup.h"
 #include "GDisplayString.h"
 #include "GCssTools.h"
+#include "LStringLayout.h"
 
 #ifdef WIN32
 #define BTN_TEXT_OFFSET_Y	-1
@@ -290,8 +291,8 @@ class GelSkin : public GSkinEngine
 					p.RoundRect(r, CHECK_RADIUS + CHECK_BORDER);
 				
 				// gradient from 169,169,169 at the top through to 225,225,225
-				int Dark = max(0, Grey - 40);
-				int Light = min(255, Grey + 40);				
+				int Dark = MAX(0, Grey - 40);
+				int Light = MIN(255, Grey + 40);				
 				
 				GPointF a(0, 0), b(0, 15);
 				GBlendStop s[] =
@@ -448,22 +449,20 @@ class GelSkin : public GSkinEngine
 		GSurface *pDC = State->pScreen;
 		if (Text && Text->Length() > 0 && rcFill.X() > 3)
 		{
-			GFont *f = Text->First()->GetFont();
-			
-			if (Enabled)
-				f->Colour(Fore, Back);
-			
-			int yOff = 0;
 			for (unsigned i=0; i<Text->Length(); i++)
 			{
-				GDisplayString *t = (*Text)[i];
+				LLayoutString *t = dynamic_cast<LLayoutString*>((*Text)[i]);
+				if (!t)
+					break;
 				GRect c;
 				c.ZOff(t->X() - 1, t->Y() - 1);
-				c.Offset(x, y + yOff);
+				c.Offset(x + (t->Fx >> GDisplayString::FShift), y + t->y);
 				Rgn.Subtract(&c);
 				
+				GFont *f = t->GetFont();
 				if (Enabled)
 				{
+					f->Colour(Fore, Back);
 					if (Ctrl->Focus())
 					{
 						pDC->Colour(LC_MIDGREY, 24);
@@ -486,14 +485,12 @@ class GelSkin : public GSkinEngine
 				{
 					f->Transparent(!Back.IsValid());
 					f->Colour(Light, Back);
-					t->Draw(pDC, x + 1, y + 1, &c);
+					t->Draw(pDC, c.x1 + 1, c.y1 + 1, &c);
 
 					f->Transparent(true);
 					f->Colour(Low, Back);
-					t->Draw(pDC, x, y, &c);
+					t->Draw(pDC, c.x1, c.y1, &c);
 				}
-				
-				yOff += t->Y();
 			}
 		}
 		
@@ -657,7 +654,7 @@ public:
 			{
 				for (unsigned i=0; i<Txt->Length(); i++)
 				{
-					MaxTxt = max(MaxTxt, (*Txt)[i]->X());
+					MaxTxt = MAX(MaxTxt, (*Txt)[i]->X());
 				}
 				ContentX += MaxTxt;
 			}

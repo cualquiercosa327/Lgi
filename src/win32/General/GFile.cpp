@@ -781,16 +781,18 @@ bool GFileSystem::Delete(const char *FileName, bool ToTrash)
 	return Delete(Files, 0, ToTrash);
 }
 
-bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentFoldersIfNeeded)
+bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentFoldersIfNeeded, int *Err)
 {
 	GAutoWString w(Utf8ToWide(PathName));
-	bool Status = ::CreateDirectoryW(w, NULL);
-	
-	if (!Status &&
-		CreateParentFoldersIfNeeded)
+	bool Status = ::CreateDirectoryW(w, NULL);	
+	if (!Status)
 	{
 		DWORD err = GetLastError();
-		if (err == ERROR_PATH_NOT_FOUND)
+		if (Err)
+			*Err = err;
+		
+		if (CreateParentFoldersIfNeeded &&
+			err == ERROR_PATH_NOT_FOUND)
 		{
 			char Base[DIR_PATH_SIZE];
 			strcpy_s(Base, sizeof(Base), PathName);

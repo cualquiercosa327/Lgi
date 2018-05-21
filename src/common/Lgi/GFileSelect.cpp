@@ -325,6 +325,8 @@ public:
 
 class GFolderList : public LList, public GFolderView
 {
+	GString FilterKey;
+
 public:
 	GFolderList(GFileSelectDlg *dlg, int Id, int x, int y, int cx, int cy);
 	~GFolderList()
@@ -333,6 +335,7 @@ public:
 
 	void OnFolder();
 	bool OnKey(GKey &k);
+	void SetFilterKey(GString s) { FilterKey = s; OnFolder(); }
 };
 
 #define IDC_STATIC					-1
@@ -348,6 +351,8 @@ public:
 #define IDC_SHOWHIDDEN				1012
 #define IDC_SUB_TBL					1013
 #define IDC_BOOKMARKS				1014
+#define IDC_FILTER					1015
+#define IDC_FILTER_CLEAR			1016
 
 #if 1
 #define USE_FOLDER_CTRL				1
@@ -646,6 +651,7 @@ class GFileSelectDlg :
 	GRect OldPos;
 	GRect MinSize;
 	GArray<GString> Links;
+	GArray<GFolderItem*> Hidden;
 	
 public:
 	GFileSelectPrivate *d;
@@ -654,7 +660,7 @@ public:
 	GBox *Sub;
 
 	GTree *Bookmarks;
-	GText *Ctrl1;
+	GTextLabel *Ctrl1;
 
 	#if USE_FOLDER_CTRL
 	FolderCtrl *Ctrl2;
@@ -667,13 +673,14 @@ public:
 	GIconButton *UpBtn;
 	GIconButton *NewDirBtn;
 	GFolderList *FileLst;
-	GText *Ctrl8;
-	GText *Ctrl9;
+	GTextLabel *Ctrl8;
+	GTextLabel *Ctrl9;
 	GEdit *FileNameEdit;
 	GCombo *FileTypeCbo;
 	GButton *SaveBtn;
 	GButton *CancelBtn;
 	GCheckBox *ShowHidden;
+	GEdit *FilterEdit;
 
 	GFileSelectDlg(GFileSelectPrivate *Select);
 	~GFileSelectDlg();
@@ -683,6 +690,7 @@ public:
 	void SetFolder(char *f);
 	void OnFolder();
 	void OnFile(char *f);
+	void OnFilter(const char *Key);
 
 	bool OnViewKey(GView *v, GKey &k)
 	{
@@ -746,6 +754,7 @@ GFileSelectDlg::GFileSelectDlg(GFileSelectPrivate *select)
 	Ctrl2 = 0;
 	Sub = NULL;
 	Bookmarks = NULL;
+	FilterEdit = NULL;
 
 	d = select;
 	SetParent(d->Parent);
@@ -758,7 +767,7 @@ GFileSelectDlg::GFileSelectDlg(GFileSelectPrivate *select)
 
 	// Top Row
 	GLayoutCell *c = Tbl->GetCell(x++, y);
-	c->Add(Ctrl1 = new GText(IDC_STATIC, 0, 0, -1, -1, "Look in:"));
+	c->Add(Ctrl1 = new GTextLabel(IDC_STATIC, 0, 0, -1, -1, "Look in:"));
 	c->VerticalAlign(GCss::Len(GCss::VerticalMiddle));
 	c = Tbl->GetCell(x++, y);
 	#if USE_FOLDER_CTRL
@@ -775,18 +784,29 @@ GFileSelectDlg::GFileSelectDlg(GFileSelectPrivate *select)
 	c = Tbl->GetCell(x++, y);
 	c->Add(NewDirBtn = new GIconButton(IDC_NEW, 434, 7, 27, 21, d->Icons, FSI_NEWDIR));
 
-	// 2nd row
+	// Folders/items row
 	x = 0; y++;
 	c = Tbl->GetCell(x, y, true, 6, 1);
 	c->Add(Sub = new GBox(IDC_SUB_TBL));
 	Sub->AddView(Bookmarks = new GTree(IDC_BOOKMARKS, 0, 0, -1, -1));
 	Bookmarks->GetCss(true)->Width(GCss::Len(GCss::LenPx, 150.0));
-	Sub->AddView(FileLst = new GFolderList(this, IDC_VIEW, 14, 35, 448, 226));
 	
-	// 3rd row
+	GTableLayout *t;
+	Sub->AddView(t = new GTableLayout(11));
+	
+	// Filter / search row
+	c = t->GetCell(0, 0);
+	c->Add(new GCheckBox(IDC_FILTER_CLEAR, 0, 0, -1, -1, "Filter items:"));
+	c->VerticalAlign(GCss::Len(GCss::VerticalMiddle));
+	c = t->GetCell(1, 0);
+	c->Add(FilterEdit = new GEdit(IDC_FILTER, 0, 0, 60, 20));
+	c = t->GetCell(0, 1, true, 2);
+	c->Add(FileLst = new GFolderList(this, IDC_VIEW, 14, 35, 448, 226));
+	
+	// File name row
 	x = 0; y++;
 	c = Tbl->GetCell(x++, y);
-	c->Add(Ctrl8 = new GText(IDC_STATIC, 14, 275, -1, -1, "File name:"));
+	c->Add(Ctrl8 = new GTextLabel(IDC_STATIC, 14, 275, -1, -1, "File name:"));
 	c = Tbl->GetCell(x, y, true, 2);
 	x += 2;
 	c->Add(FileNameEdit = new GEdit(IDC_FILE, 100, 268, 266, 21, ""));
@@ -796,7 +816,7 @@ GFileSelectDlg::GFileSelectDlg(GFileSelectPrivate *select)
 	// 4th row
 	x = 0; y++;
 	c = Tbl->GetCell(x++, y);
-	c->Add(Ctrl9 = new GText(IDC_STATIC, 14, 303, -1, -1, "Files of type:"));
+	c->Add(Ctrl9 = new GTextLabel(IDC_STATIC, 14, 303, -1, -1, "Files of type:"));
 	c = Tbl->GetCell(x, y, true, 2);
 	x += 2;
 	c->Add(FileTypeCbo = new GCombo(IDC_TYPE, 100, 296, 266, 21, ""));
@@ -962,6 +982,14 @@ void GFileSelectDlg::OnUpFolder()
 	}
 }
 
+
+
+void GFileSelectDlg::OnFilter(const char *Key)
+{
+	if (FileLst)
+		FileLst->SetFilterKey(Key);
+}
+
 int GFileSelectDlg::OnNotify(GViewI *Ctrl, int Flags)
 {
 	switch (Ctrl->GetId())
@@ -1081,6 +1109,22 @@ int GFileSelectDlg::OnNotify(GViewI *Ctrl, int Flags)
 					printf("%s:%i - eat close true\n", _FL);
 					break;
 				}
+				
+				if (DirExists(f))
+				{
+					// Switch to the folder...
+					SetCtrlName(IDC_PATH, f);
+					OnFolder();
+					Ctrl->Name(NULL);
+					d->EatClose = true;
+				}
+				else if (FileExists(f))
+				{
+					// Select the file...
+					d->Files.Insert(NewStr(f));
+					EndModal(IDOK);
+					break;
+				}
 			}
 			
 			bool HasFile = ValidStr(f);
@@ -1149,6 +1193,22 @@ int GFileSelectDlg::OnNotify(GViewI *Ctrl, int Flags)
 		case IDC_UP:
 		{
 			OnUpFolder();
+			break;
+		}
+		case IDC_FILTER:
+		{
+			const char *n = Ctrl->Name();
+			SetCtrlValue(IDC_FILTER_CLEAR, ValidStr(n));
+			OnFilter(n);
+			break;
+		}
+		case IDC_FILTER_CLEAR:
+		{
+			if (!Ctrl->Value())
+			{
+				SetCtrlName(IDC_FILTER, NULL);
+				OnFilter(NULL);
+			}
 			break;
 		}
 		case IDC_NEW:
@@ -1463,7 +1523,7 @@ GFolderDrop::GFolderDrop(GFileSelectDlg *dlg, int Id, int x, int y, int cx, int 
 	GDropDown(Id, x, y, cx, cy, 0),
 	GFolderView(dlg)
 {
-	SetPopup(new GFileSystemPopup(this, dlg, cx+dlg->Ctrl2->X()));
+	SetPopup(new GFileSystemPopup(this, dlg, cx + (dlg->Ctrl2 ? dlg->Ctrl2->X() : 0) ));
 }
 
 void GFolderDrop::OnFolder()
@@ -1788,10 +1848,13 @@ void GFolderList::OnFolder()
 	}
 
 	// Get items
+	if (!Dlg->Ctrl2)
+		return;
+		
 	bool ShowHiddenFiles = Dlg->ShowHidden ? Dlg->ShowHidden->Value() : false;
 	for (bool Found = Dir.First(Dlg->Ctrl2->Name()); Found; Found = Dir.Next())
 	{
-		char Name[256];
+		char Name[MAX_PATH];
 		Dir.Path(Name, sizeof(Name));
 
 		bool Match = true;
@@ -1809,25 +1872,22 @@ void GFolderList::OnFolder()
 				{
 					char *Ext = LgiGetExtension(Name);
 					if (Ext)
-					{
 						Match = stricmp(Ext, e + 2) == 0;
-					}
 				}
 				else
 				{
 					bool m = MatchStr(e, Name);
 					if (m)
-					{
 						Match = true;
-					}
 				}
 			}
 		}
+		
+		if (FilterKey && Match)
+			Match = stristr(Dir.GetName(), FilterKey) != NULL;
 
 		if (Match)
-		{
 			New.Insert(new GFolderItem(Dlg, Name, &Dir));
-		}
 	}
 
 	// Sort items...

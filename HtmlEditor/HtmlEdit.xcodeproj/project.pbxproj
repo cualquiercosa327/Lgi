@@ -25,6 +25,7 @@
 		349A13761A7F7D81000D4C67 /* GHtmlParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A13721A7F7D81000D4C67 /* GHtmlParser.cpp */; };
 		349A13781A7F7D9D000D4C67 /* GHtmlEdit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A13771A7F7D9D000D4C67 /* GHtmlEdit.cpp */; };
 		349A137A1A7F7DB7000D4C67 /* GdcTools.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A13791A7F7DB7000D4C67 /* GdcTools.cpp */; };
+		34AA35FF2012C8F500FF13C4 /* HorzRuleBlock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34AA35FE2012C8F500FF13C4 /* HorzRuleBlock.cpp */; };
 		34D470AA1E1468BC003AF375 /* EmojiMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D470A81E1468BC003AF375 /* EmojiMap.cpp */; };
 		34D470AB1E1468BC003AF375 /* EmojiTools.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D470A91E1468BC003AF375 /* EmojiTools.cpp */; };
 		34D470AD1E1468CE003AF375 /* GRichTextEditPriv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D470AC1E1468CE003AF375 /* GRichTextEditPriv.cpp */; };
@@ -76,6 +77,7 @@
 		349A13721A7F7D81000D4C67 /* GHtmlParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GHtmlParser.cpp; path = ../src/common/Text/GHtmlParser.cpp; sourceTree = "<group>"; };
 		349A13771A7F7D9D000D4C67 /* GHtmlEdit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GHtmlEdit.cpp; path = ../src/common/Widgets/GHtmlEdit.cpp; sourceTree = "<group>"; };
 		349A13791A7F7DB7000D4C67 /* GdcTools.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GdcTools.cpp; path = ../src/common/Gdc2/Tools/GdcTools.cpp; sourceTree = "<group>"; };
+		34AA35FE2012C8F500FF13C4 /* HorzRuleBlock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = HorzRuleBlock.cpp; path = ../src/common/Widgets/Editor/HorzRuleBlock.cpp; sourceTree = "<group>"; };
 		34D470A81E1468BC003AF375 /* EmojiMap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EmojiMap.cpp; path = ../src/common/Text/Emoji/EmojiMap.cpp; sourceTree = "<group>"; };
 		34D470A91E1468BC003AF375 /* EmojiTools.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EmojiTools.cpp; path = ../src/common/Text/Emoji/EmojiTools.cpp; sourceTree = "<group>"; };
 		34D470AC1E1468CE003AF375 /* GRichTextEditPriv.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GRichTextEditPriv.cpp; path = ../src/common/Widgets/Editor/GRichTextEditPriv.cpp; sourceTree = "<group>"; };
@@ -121,16 +123,11 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				347E43571F013096006EBF63 /* Spell Check */,
-				341B9A421DEAC4490011CE44 /* RichTextEdit */,
-				349A13771A7F7D9D000D4C67 /* GHtmlEdit.cpp */,
-				349A136F1A7F7D81000D4C67 /* GDocView.cpp */,
-				349A13701A7F7D81000D4C67 /* GHtml.cpp */,
-				349A13711A7F7D81000D4C67 /* GHtmlCommon.cpp */,
-				349A13721A7F7D81000D4C67 /* GHtmlParser.cpp */,
-				349A13621A7F7C2A000D4C67 /* Rich.cpp */,
-				32DBCF6D0370B57F00C91783 /* HtmlEdit_Prefix.pch */,
+				34AA3601201305B600FF13C4 /* Html */,
 				34BFBB7F0D56AD2500927B3B /* Lgi */,
+				349A13621A7F7C2A000D4C67 /* Rich.cpp */,
+				341B9A421DEAC4490011CE44 /* RichTextEdit */,
+				347E43571F013096006EBF63 /* Spell Check */,
 			);
 			name = Sources;
 			sourceTree = "<group>";
@@ -158,6 +155,7 @@
 		341B9A421DEAC4490011CE44 /* RichTextEdit */ = {
 			isa = PBXGroup;
 			children = (
+				34AA35FE2012C8F500FF13C4 /* HorzRuleBlock.cpp */,
 				347E435D1F013129006EBF63 /* ImageBlock.cpp */,
 				341B9A451DEAC4930011CE44 /* BlockCursor.cpp */,
 				341B9A461DEAC4930011CE44 /* GRichTextEdit.cpp */,
@@ -186,9 +184,22 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		34AA3601201305B600FF13C4 /* Html */ = {
+			isa = PBXGroup;
+			children = (
+				349A13771A7F7D9D000D4C67 /* GHtmlEdit.cpp */,
+				349A13701A7F7D81000D4C67 /* GHtml.cpp */,
+				349A13711A7F7D81000D4C67 /* GHtmlCommon.cpp */,
+				349A13721A7F7D81000D4C67 /* GHtmlParser.cpp */,
+			);
+			name = Html;
+			sourceTree = "<group>";
+		};
 		34BFBB7F0D56AD2500927B3B /* Lgi */ = {
 			isa = PBXGroup;
 			children = (
+				32DBCF6D0370B57F00C91783 /* HtmlEdit_Prefix.pch */,
+				349A136F1A7F7D81000D4C67 /* GDocView.cpp */,
 				347D1D1B1FB078CE00E7B04D /* OpenSSLSocket.cpp */,
 				347D1D191FB078B900E7B04D /* IHttp.cpp */,
 				349A13791A7F7DB7000D4C67 /* GdcTools.cpp */,
@@ -234,7 +245,7 @@
 		20286C28FDCF999611CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0460;
+				LastUpgradeCheck = 0720;
 			};
 			buildConfigurationList = C0E91AC908A95435008D54AB /* Build configuration list for PBXProject "HtmlEdit" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -297,6 +308,7 @@
 				349A13731A7F7D81000D4C67 /* GDocView.cpp in Sources */,
 				341B9A4B1DEAC4930011CE44 /* TextBlock.cpp in Sources */,
 				349A13741A7F7D81000D4C67 /* GHtml.cpp in Sources */,
+				34AA35FF2012C8F500FF13C4 /* HorzRuleBlock.cpp in Sources */,
 				34D470AA1E1468BC003AF375 /* EmojiMap.cpp in Sources */,
 				349A13751A7F7D81000D4C67 /* GHtmlCommon.cpp in Sources */,
 				349A13761A7F7D81000D4C67 /* GHtmlParser.cpp in Sources */,
@@ -323,6 +335,7 @@
 				GCC_PREFIX_HEADER = HtmlEdit_Prefix.pch;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
+				PRODUCT_BUNDLE_IDENTIFIER = com.memecode.htmledit;
 				PRODUCT_NAME = HtmlEdit;
 				USER_HEADER_SEARCH_PATHS = "../include/common ../include/mac/carbon /opt/local/include";
 				WRAPPER_EXTENSION = app;
@@ -340,6 +353,7 @@
 				GCC_PREFIX_HEADER = HtmlEdit_Prefix.pch;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
+				PRODUCT_BUNDLE_IDENTIFIER = com.memecode.htmledit;
 				PRODUCT_NAME = HtmlEdit;
 				USER_HEADER_SEARCH_PATHS = "../include/common ../include/mac/carbon /opt/local/include";
 				WRAPPER_EXTENSION = app;
@@ -350,6 +364,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ENABLE_TESTABILITY = YES;
 				FRAMEWORK_SEARCH_PATHS = ../src/mac/carbon/build/Debug;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;

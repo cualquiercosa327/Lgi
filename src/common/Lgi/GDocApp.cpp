@@ -519,6 +519,7 @@ void GDocApp<OptionsFmt>::SetCurFile(char *f)
 	if (!d->CurFile.Equals(f))
 	{
 		d->CurFile = f;
+		AddFile(f);
 	}
 
 	GString Display;
@@ -572,7 +573,8 @@ bool GDocApp<OptionsFmt>::SetDirty(bool Dirty)
 			{
 				if (!ValidStr(d->CurFile))
 				{
-					GMru::OnCommand(IDM_SAVEAS);
+					if (!GMru::OnCommand(IDM_SAVEAS))
+						return false;
 				}
 				else
 				{

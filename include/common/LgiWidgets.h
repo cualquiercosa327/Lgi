@@ -25,7 +25,7 @@ class GTreeItem;
 class GButton;
 class GEdit;
 class GCheckBox;
-class GText;
+class GTextLabel;
 class GRadioGroup;
 class GRadioButton;
 class GTabView;

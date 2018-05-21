@@ -98,7 +98,7 @@ GView(0)
 	WndFlags |= GWND_CREATE;
 	GView::Visible(false);
 	
-	_Lock = new GMutex;
+	_Lock = new LMutex;
 	
 	GRect pos(0, 50, 200, 100);
 	NSRect frame = pos;
@@ -388,7 +388,7 @@ void GWindow::Visible(bool i)
 		if (i)
 		{
 			d->InitVisible = true;
-			Pour();
+			PourAll();
 
 			[Wnd->w makeKeyAndOrderFront:NULL];
 			[NSApp activateIgnoringOtherApps:YES];
@@ -1487,7 +1487,7 @@ void GWindow::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 		printf("%s:%i - Ignoring GPopup in OnChildrenChanged handler.\n", _FL);
 		return;
 	}
-	Pour();
+	PourAll();
 }
 
 void GWindow::OnCreate()
@@ -1506,7 +1506,7 @@ void GWindow::OnPosChange()
 	
 	if (d->Sx != X() ||	d->Sy != Y())
 	{
-		Pour();
+		PourAll();
 		d->Sx = X();
 		d->Sy = Y();
 	}
@@ -1519,7 +1519,7 @@ dynamic_cast<GView*>(v) \
 dynamic_cast<GView*>(v)->_IsToolBar \
 )
 
-void GWindow::Pour()
+void GWindow::PourAll()
 {
 	GRect r = GetClient();
 	// printf("::Pour r=%s\n", r.GetStr());

@@ -8,6 +8,7 @@
 #include "GDisplayString.h"
 #include "GButton.h"
 #include "IHttp.h"
+#include "GOptionsFile.h"
 
 #if 1
 #include "GRichTextEdit.h"
@@ -37,6 +38,7 @@ enum Messages
 	M_INSTALL = M_USER + 200,
 };
 
+const char *AppName = "HtmlEdit";
 #define LOAD_DOC 1
 #define SrcFileName	"Reply4.html"
 
@@ -208,7 +210,7 @@ public:
 				{
 					if (c->IsTag("file"))
 					{
-						int Bytes = c->GetAsInt("size");
+						// int Bytes = c->GetAsInt("size");
 						const char *Link = c->GetContent();
 						GMemStream File(1024);
 						if (LgiGetUri(&File, &err, Link))
@@ -249,7 +251,7 @@ public:
 	}
 };
 
-class App : public GWindow, public GCapabilityInstallTarget, public GNetwork
+class App : public GWindow, public GCapabilityInstallTarget
 {
 	GBox *Split;
 	GTextView3 *Txt;
@@ -263,9 +265,10 @@ class App : public GWindow, public GCapabilityInstallTarget, public GNetwork
 	CapsBar *Bar;
 	GCapabilityTarget::CapsHash Caps;
 	GAutoPtr<GEventTargetThread> Installer;
+	GOptionsFile Options;
 
 public:
-	App()
+	App() : Options(GOptionsFile::PortableMode, AppName)
 	{
 		LastChange = 0;
 		Edit = 0;
@@ -274,9 +277,15 @@ public:
 		Tabs = NULL;
 		Tree = NULL;
 		Name("Rich Text Testbed");
-		GRect r(0, 0, 1200, 800);
-		SetPos(r);
-		MoveToCenter();
+
+		if (!Options.SerializeFile(false) ||
+			!SerializeState(&Options, "WndState", true))
+		{
+			GRect r(0, 0, 1200, 800);
+			SetPos(r);
+			MoveToCenter();
+		}
+
 		SetQuitOnClose(true);
 		#ifdef WIN32
 		SetIcon((const char*)IDI_APP);
@@ -314,7 +323,12 @@ public:
 				if (Edit)
 				{
 					if (Speller)
+					{
+						GVariant v;
+						Edit->SetValue("SpellCheckLanguage", v = "English");
+						Edit->SetValue("SpellCheckDictionary", v = "AU");
 						Edit->SetSpellCheck(Speller);
+					}
 					Edit->Sunken(true);
 					Edit->SetId(IDC_EDITOR);
 					Edit->Register(this);
@@ -369,6 +383,8 @@ public:
 
 	~App()
 	{
+		SerializeState(&Options, "WndState", false);
+		Options.SerializeFile(true);
 		Installer.Reset();
 	}
 
@@ -490,7 +506,7 @@ public:
 							{
 								GDocView::ContentMedia &Cm = Media[i];
 								
-								p.Parent();
+								p--;
 								p += Cm.FileName;
 								if (f.Open(p, O_WRITE))
 								{

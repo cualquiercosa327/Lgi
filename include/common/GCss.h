@@ -496,13 +496,19 @@ public:
 	struct LgiClass ImageDef
 	{
 		ImageType Type;
-		GAutoString Uri;
+		GString Uri;
 		GSurface *Img;
 
-		ImageDef()
+		ImageDef(const char *Init = NULL)
 		{
 			Img = NULL;
-			Type = ImageInherit;
+			if (Init)
+			{
+				Type = ImageUri;
+				Uri = Init;
+			}
+			else
+				Type = ImageInherit;
 		}
 
 		ImageDef(const ImageDef &o)
@@ -768,7 +774,7 @@ public:
 		/// Returns the document unque element ID
 		virtual const char *GetAttr(T *obj, const char *Attr) = 0;
 		/// Returns the class
-		virtual bool GetClasses(GArray<const char *> &Classes, T *obj) = 0;
+		virtual bool GetClasses(GString::Array &Classes, T *obj) = 0;
 		/// Returns the parent object
 		virtual T *GetParent(T *obj) = 0;
 		/// Returns an array of child objects
@@ -834,7 +840,7 @@ public:
 					case GCss::Selector::SelClass:
 					{
 						// Check the class matches
-						GArray<const char *> Class;
+						GString::Array Class;
 						if (!Context->GetClasses(Class, Obj))
 							return false;
 
@@ -1039,12 +1045,14 @@ public:
 				Maps.Add(s);
 			
 			// Check all the classes
-			GArray<const char *> Classes;
-			Context->GetClasses(Classes, Obj);
-			for (unsigned i=0; i<Classes.Length(); i++)
+			GString::Array Classes;
+			if (Context->GetClasses(Classes, Obj))
 			{
-				if ((s = ClassMap.Find(Classes[i])))
-					Maps.Add(s);
+				for (unsigned i=0; i<Classes.Length(); i++)
+				{
+					if ((s = ClassMap.Find(Classes[i])))
+						Maps.Add(s);
+				}
 			}
 			
 			// Add in any other ones

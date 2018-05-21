@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Project>
+	<Node Name="Headers" Type="1" Platforms="15" Id="2">
+		<Node File="/home/matthew/Code/Lgi/trunk/Lvc/Src/VcFolder.h" Type="3" Platforms="15" />
+		<Node File="/home/matthew/Code/Lgi/trunk/Lvc/Src/VcCommit.h" Type="3" Platforms="15" />
+		<Node File="/home/matthew/Code/Lgi/trunk/Lvc/Src/Lvc.h" Type="3" Platforms="15" />
+		<Node File="/home/matthew/Code/Lgi/trunk/Lvc/Src/resdefs.h" Type="3" Platforms="15" />
+	</Node>
+	<Node Name="Source" Type="1" Platforms="15" Id="1">
+		<Node Name="Lgi" Type="1" Platforms="15" Id="2">
+			<Node File="../src/common/Lgi/GSubProcess.cpp" Type="2" Platforms="15" />
+			<Node File="../src/common/Lgi/LgiMain.cpp" Type="2" Platforms="15" />
+		</Node>
+		<Node File="./Src/BlameUi.cpp" Type="2" Platforms="15" />
+		<Node File="./Src/DropDownBtn.cpp" Type="2" Platforms="15" />
+		<Node File="/home/matthew/Code/Lgi/trunk/Lvc/Src/Main.cpp" Type="2" Platforms="15" />
+		<Node File="/home/matthew/Code/Lgi/trunk/Lvc/Src/VcCommit.cpp" Type="2" Platforms="15" />
+		<Node File="./Src/VcFile.cpp" Type="2" Platforms="15" />
+		<Node File="/home/matthew/Code/Lgi/trunk/Lvc/Src/VcFolder.cpp" Type="2" Platforms="15" />
+	</Node>
+	<Node File="../Lgi.xml" Type="4" Platforms="15" />
+	<Node Name="Resources" Type="1" Platforms="15" Id="1">
+		<Node File="./Resources/icon32.png" Type="6" Platforms="15" />
+		<Node File="./installer-zip.py" Type="8" Platforms="15" />
+		<Node File="./Makefile.linux" Type="9" Platforms="15" />
+	</Node>
+	<Settings>
+		<General>
+			<Makefile>
+				<Linux>Makefile.linux</Linux>
+			</Makefile>
+			<Executable>
+				<Linux>
+					<Debug>lvc</Debug>
+					<Release>lvc</Release>
+				</Linux>
+			</Executable>
+			<Arguments>
+				<All />
+			</Arguments>
+			<Defines>
+				<All />
+				<Linux />
+			</Defines>
+			<DebugAdmin>
+				<All>0</All>
+			</DebugAdmin>
+			<Compiler>
+				<Linux>gcc</Linux>
+			</Compiler>
+			<CCrossCompiler />
+			<CppCrossCompiler />
+		</General>
+		<Build>
+			<IncludePaths>
+				<All>
+					<Debug>Src
+../include/common</Debug>
+					<Release>Src
+../include/common</Release>
+				</All>
+				<Linux>
+					<Debug>../include/linux
+../include/linux/Gtk
+/usr/include/gstreamer-1.0
+/usr/lib/x86_64-linux-gnu/gstreamer-1.0/include
+`pkg-config --cflags gtk+-2.0`</Debug>
+					<Release>../include/linux
+../include/linux/Gtk
+/usr/include/gstreamer-1.0
+/usr/lib/x86_64-linux-gnu/gstreamer-1.0/include
+`pkg-config --cflags gtk+-2.0`</Release>
+				</Linux>
+			</IncludePaths>
+			<SystemIncludes>
+				<Linux />
+			</SystemIncludes>
+			<Libraries>
+				<All />
+				<Linux />
+			</Libraries>
+			<LibraryPaths>
+				<All />
+				<Linux />
+			</LibraryPaths>
+			<TargetType>
+				<All>Executable</All>
+			</TargetType>
+			<TargetName>
+				<Linux />
+			</TargetName>
+			<ApplicationIcon />
+		</Build>
+		<Editor>
+			<TabSize>
+				<All>4</All>
+			</TabSize>
+			<IndentSize>
+				<All>4</All>
+			</IndentSize>
+			<UseHardTabs>
+				<All>1</All>
+			</UseHardTabs>
+			<ShowWhiteSpace />
+			<CommentFile />
+			<CommentFunction />
+		</Editor>
+		<Advanced>
+			<OtherMakefileRules />
+			<PostBuildCommands />
+		</Advanced>
+	</Settings>
+</Project>

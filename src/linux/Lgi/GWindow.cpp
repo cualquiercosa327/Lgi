@@ -5,6 +5,7 @@
 #include "GToken.h"
 #include "GPopup.h"
 #include "GPanel.h"
+#include "GNotifications.h"
 
 using namespace Gtk;
 #include <gdk/gdkx.h>
@@ -32,6 +33,7 @@ public:
 	bool SnapToEdge;
 	::GString Icon;
 	GRect Decor;
+	gulong DestroySig;
 	
 	// State
 	GdkWindowState State;
@@ -44,6 +46,7 @@ public:
 
 	GWindowPrivate()
 	{
+		DestroySig = 0;
 		Decor.ZOff(-1, -1);
 		FirstFocus = NULL;
 		Focus = NULL;
@@ -101,6 +104,13 @@ GWindow::GWindow(GtkWidget *w) : GView(0)
 
 GWindow::~GWindow()
 {
+	if (Wnd && d->DestroySig > 0)
+	{
+		// As we are already in the destructor, we don't want
+		// GtkWindowDestroy to try and delete the object again.
+		g_signal_handler_disconnect(Wnd, d->DestroySig);
+	}
+
 	if (LgiApp->AppWnd == this)
 		LgiApp->AppWnd = NULL;
 
@@ -362,7 +372,8 @@ bool GWindow::Attach(GViewI *p)
 		_View = GTK_WIDGET(Wnd);
 		GView *i = this;
 		
-		g_signal_connect(	G_OBJECT(Wnd),
+		d->DestroySig = g_signal_connect(
+							G_OBJECT(Wnd),
 							"destroy",
 							G_CALLBACK(GtkWindowDestroy),
 							this);
@@ -683,6 +694,19 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 		#endif
 		if (Wnd)
 			Wnd->Focus(true);
+	}
+
+	// Control shortcut?
+	if (k.Down() && k.Alt() && k.c16 > ' ')
+	{
+		GHashTbl<int,GViewI*> Map;
+		BuildShortcuts(Map);
+		GViewI *c = Map.Find(ToUpper(k.c16));
+		if (c)
+		{
+			c->OnNotify(c, GNotify_Activate);
+			return true;
+		}
 	}
 
 AllDone:

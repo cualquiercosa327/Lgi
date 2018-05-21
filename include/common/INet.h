@@ -9,12 +9,13 @@
 #ifndef __INET_H
 #define __INET_H
 
+#include "LgiNetInc.h"
+#include "LgiInterfaces.h"
 #include "GMem.h"
 #include "GContainers.h"
-#include "LgiNetInc.h"
 #include "GStream.h"
-#include "LgiInterfaces.h"
 #include "GString.h"
+#include "LCancel.h"
 
 #if defined WIN32
 	
@@ -75,30 +76,11 @@ LgiNetFunc void MDStringToDigest
 );
 
 
-// Classes
-class GNetwork;
-
-/// Singleton class to initialize access to the network.
-class LgiNetClass GNetwork
-{
-	bool SocketsOpen;
-
-public:
-	GNetwork();
-	virtual ~GNetwork();
-
-	/// Returns true if the network is ready for use
-	bool IsValid() { return SocketsOpen; }
-
-	/// Enumerates the current interfaces
-	bool EnumInterfaces(List<char> &Lst);
-};
-
 /// Implementation of a network socket
-class LgiNetClass GSocket : public GSocketI, public GStream
+class LgiNetClass GSocket :
+	public GSocketI,
+	public GStream
 {
-	friend class GNetwork;
-
 protected:
 	class GSocketImplPrivate *d;
 
@@ -139,9 +121,6 @@ public:
 	/// Sets the current timeout for operations in ms
 	void SetTimeout(int ms);
 
-	/// Sets a continue token
-	void SetContinue(bool *Token);
-	
 	/// Returns whether there is data available for reading.
 	bool IsReadable(int TimeoutMs = 0);
 
@@ -265,6 +244,11 @@ public:
 
 	// Impl
 	GStreamI *Clone() { return new GSocket; }
+
+	// Statics
+
+	/// Enumerates the current interfaces
+	static bool EnumInterfaces(List<char> &Lst);
 };
 
 class LgiNetClass GSocks5Socket : public GSocket
@@ -411,7 +395,7 @@ public:
 		return BroadcastPacket(Data.Get(), Data.Length(), Ip, Port);
 	}
 
-	bool BroadcastPacket(void *Ptr, unsigned Size, uint32 Ip, uint16 Port)
+	bool BroadcastPacket(void *Ptr, size_t Size, uint32 Ip, uint16 Port)
 	{
 		if (Size > MAX_UDP_SIZE)
 			return false;
@@ -424,7 +408,7 @@ public:
 			(BroadcastIp >> 8) & 0xff,
 			(BroadcastIp) & 0xff);
 		#endif
-		int wr = WriteUdp(Ptr, Size, 0, BroadcastIp, Port);
+		int wr = WriteUdp(Ptr, (int)Size, 0, BroadcastIp, Port);
 		return wr == Size;
 	}
 };

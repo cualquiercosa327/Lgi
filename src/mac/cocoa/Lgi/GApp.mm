@@ -12,7 +12,7 @@
 #include "GSkinEngine.h"
 #include "GArray.h"
 #include "GToken.h"
-#include "GThread.h"
+#include "LThread.h"
 #include "GXmlTree.h"
 #include "GSymLookup.h"
 #include "GFontCache.h"
@@ -260,7 +260,7 @@ public:
 	GdcDevice *GdcSystem;
 	OsAppArguments Args;
 	GLibrary *SkinLib;
-	GHashTable MimeToApp;
+	GHashTbl<char*,void*> MimeToApp;
 	OsThread GuiThread;
 	GSymLookup SymLookup;
 	GAutoString Mime;
@@ -729,7 +729,7 @@ GViewI *GApp::GetFocus()
 	return 0;
 }
 
-OsThreadId GApp::GetGuiThread()
+OsThread GApp::GetGuiThread()
 {
 	return d->GuiThread;
 }
@@ -940,7 +940,7 @@ bool GApp::GetOption(const char *Option, char *Dest, int DestLen)
 	return false;
 }
 
-bool GApp::GetOption(const char *Option, GAutoString &Buf)
+bool GApp::GetOption(const char *Option, GString &Buf)
 {
 	if (IsOk() && Option)
 	{
@@ -974,7 +974,7 @@ bool GApp::GetOption(const char *Option, GAutoString &Buf)
 								size_t Len = End-Arg;
 								if (Len > 0)
 								{
-									Buf.Reset(NewStr(Arg, Len));
+									Buf.Set(Arg, Len);
 								}
 								else return false;
 							}
@@ -982,7 +982,7 @@ bool GApp::GetOption(const char *Option, GAutoString &Buf)
 						}
 						else
 						{
-							Buf.Reset(NewStr(Arg));
+							Buf = Arg;
 						}
 					}
 					

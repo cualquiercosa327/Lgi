@@ -28,6 +28,7 @@
 #include "Gdc2.h"
 #include "LgiCommon.h"
 #include "GString.h"
+#include "LDateTime.h"
 
 /****************************** Defines ***********************************/
 
@@ -377,7 +378,7 @@ bool FileExists(const char *FileName, char *CorrectCase)
 		// Check for exact match...
 		if (stat(FileName, &s) == 0)
 		{
-			Status = true;
+			Status = !S_ISDIR(s.st_mode);
 		}
 		else if (CorrectCase)
 		{
@@ -395,7 +396,8 @@ bool FileExists(const char *FileName, char *CorrectCase)
 					dirent *De;
 					while (De = readdir(Dir))
 					{
-						if (stricmp(De->d_name, e) == 0)
+						if (De->d_type != DT_DIR &&
+							stricmp(De->d_name, e) == 0)
 						{
 							try
 							{
@@ -771,7 +773,7 @@ bool GFileSystem::Copy(char *From, char *To, int *Status, CopyFileCallback Callb
 		int64 Size = In.GetSize(), Done = 0;
 		for (int64 i=0; i<Size; i++)
 		{
-			int Copy = min(Size - i, Buf.Length());
+			int Copy = MIN(Size - i, Buf.Length());
 			int r = In.Read(&Buf[0], Copy);
 			if (r <= 0)
 				break;
@@ -858,11 +860,13 @@ bool GFileSystem::Delete(const char *FileName, bool ToTrash)
 	return false;
 }
 
-bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentTree)
+bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentTree, int *ErrorCode)
 {
 	int r = mkdir(PathName, S_IRWXU | S_IXGRP | S_IXOTH);
 	if (r)
 	{
+		if (ErrorCode)
+			*ErrorCode = errno;
 		printf("%s:%i - mkdir('%s') failed with %i, errno=%i\n", _FL, PathName, r, errno);
 	}
 	
@@ -1215,17 +1219,17 @@ char *GDirectory::GetName()
 
 const uint64 GDirectory::GetCreationTime()
 {
-	return d->Stat.st_ctime;
+	return (uint64) d->Stat.st_ctime * LDateTime::Second64Bit;
 }
 
 const uint64 GDirectory::GetLastAccessTime()
 {
-	return d->Stat.st_atime;
+	return (uint64) d->Stat.st_atime * LDateTime::Second64Bit;
 }
 
 const uint64 GDirectory::GetLastWriteTime()
 {
-	return d->Stat.st_mtime;
+	return (uint64) d->Stat.st_mtime * LDateTime::Second64Bit;
 }
 
 const uint64 GDirectory::GetSize()
@@ -1418,7 +1422,7 @@ ssize_t GFile::Read(void *Buffer, ssize_t Size, int Flags)
 	}
 	d->Status = Red == Size;
 
-	return max(Red, 0);
+	return MAX(Red, 0);
 }
 
 ssize_t GFile::Write(const void *Buffer, ssize_t Size, int Flags)
@@ -1431,7 +1435,7 @@ ssize_t GFile::Write(const void *Buffer, ssize_t Size, int Flags)
 	}
 	d->Status = Written == Size;
 
-	return max(Written, 0);
+	return MAX(Written, 0);
 }
 
 #define LINUX64 	1

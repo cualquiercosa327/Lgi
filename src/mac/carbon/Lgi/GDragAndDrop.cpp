@@ -101,6 +101,7 @@ bool GDragDropSource::CreateFileDrop(GDragData *OutputData, GMouse &m, List<char
 	return false;
 }
 
+/*
 static
 OSStatus
 LgiDragSendDataFunction
@@ -117,6 +118,7 @@ LgiDragSendDataFunction
 	
 	return noErr;
 }
+*/
 
 int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 {
@@ -168,8 +170,8 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 	GetData(Data);
 	
 	// Setup a promise keeper...
-	OSStatus e = PasteboardSetPromiseKeeper(Pb, LgiDragSendDataFunction, this);
-	if (e) printf("%s:%i - PasteboardSetPromiseKeeper failed with %i\n", _FL, (int)e);
+	// OSStatus e = PasteboardSetPromiseKeeper(Pb, LgiDragSendDataFunction, this);
+	// if (e) printf("%s:%i - PasteboardSetPromiseKeeper failed with %i\n", _FL, (int)e);
 	
 	// Now push the data into the pasteboard
 	for (unsigned i=0; i<Data.Length(); i++)
@@ -210,7 +212,7 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 							#endif
 							if (Data)
 							{
-								printf("PasteboardPutItemFlavor(%i, %s)\n", (int)Id, dd.Format.Get());
+								// printf("PasteboardPutItemFlavor(%i, %s)\n", (int)Id, dd.Format.Get());
 								status = PasteboardPutItemFlavor(Pb, Id, kUTTypeFileURL, Data, Flags);
 								if (status) printf("%s:%i - PasteboardPutItemFlavor=%li\n", _FL, status);
 							}
@@ -302,7 +304,7 @@ int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 					CFDataRef Data = CFDataCreate(NULL, (const UInt8 *)Ptr, Size);
 					if (Data)
 					{
-						printf("PasteboardPutItemFlavor(%i, %s)\n", (int)Id, dd.Format.Get());
+						// printf("PasteboardPutItemFlavor(%i, %s)\n", (int)Id, dd.Format.Get());
 						status = PasteboardPutItemFlavor(Pb, Id, FlavorType, Data, Flags);
 						if (status) printf("%s:%i - PasteboardPutItemFlavor=%li\n", _FL, status);
 						CFRelease(Data);
@@ -445,8 +447,10 @@ struct DragParams
 			ItemCount Items = 0;
 			PasteboardGetItemCount(Pb, &Items);
 			
+			/*
 			if (DropFormat)
 				printf("Items=%li\n", Items);
+			*/
 			
 			for (CFIndex i=1; i<=Items; i++)
 			{
@@ -485,7 +489,7 @@ struct DragParams
 								Map.Add(n, CurIdx);
 							}
 							
-							printf("[%li][%li]='%s' = %i\n", i, t, n.Get(), CurIdx);
+							// printf("[%li][%li]='%s' = %i\n", i, t, n.Get(), CurIdx);
 							DropItemFlavor &Fl = ItemFlavors.New();
 							Fl.Index = CurIdx;
 							Fl.ItemId = Item;
@@ -528,7 +532,7 @@ struct DragParams
 									memcpy(Cp, Ptr, Len);
 									Cp[Len] = 0;
 									
-									GVariant *v = &dd.Data[i-1];
+									GVariant *v = &dd.Data.New();
 									if (!_stricmp(LGI_LgiDropFormat, DropFormat))
 									{
 										GDragDropSource *Src = NULL;
@@ -583,6 +587,14 @@ struct DragParams
 				}
 				ItemFlavors.Length(0);
 				CFRelease(FlavorTypes);
+			}
+		}
+		
+		for (unsigned i=0; i<Data.Length(); i++)
+		{
+			if (Data[i].Format.Get() == NULL)
+			{
+				Data.DeleteAt(i--);
 			}
 		}
 	}

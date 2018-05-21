@@ -96,7 +96,7 @@ int MaxLineLen(char *Text)
 		else if (*c == '\n')
 		{
 			// eol
-			Max = max(i, Max);
+			Max = MAX(i, Max);
 			i = 0;
 		}
 		else

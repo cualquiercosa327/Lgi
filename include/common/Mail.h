@@ -378,13 +378,20 @@ public:
 
 struct ImapMailFlags
 {
-	uint8 ImapAnswered : 1;
-	uint8 ImapDeleted : 1;
-	uint8 ImapDraft : 1;
-	uint8 ImapFlagged : 1;
-	uint8 ImapRecent : 1;
-	uint8 ImapSeen : 1;
-	uint8 ImapExpunged :1;
+	union
+	{
+		struct
+		{
+			uint8 ImapAnswered : 1;
+			uint8 ImapDeleted : 1;
+			uint8 ImapDraft : 1;
+			uint8 ImapFlagged : 1;
+			uint8 ImapRecent : 1;
+			uint8 ImapSeen : 1;
+			uint8 ImapExpunged :1;
+		};
+		uint16 All;
+	};
 
 	ImapMailFlags(char *init = 0)
 	{
@@ -422,13 +429,7 @@ struct ImapMailFlags
 
 	void Set(const char *s)
 	{
-		ImapAnswered = false;
-		ImapDeleted = false;
-		ImapDraft = false;
-		ImapFlagged = false;
-		ImapRecent = false;
-		ImapSeen = false;
-		ImapExpunged = false;
+		All = 0;
 
 		if (!s) s = "";
 		while (*s)
@@ -881,7 +882,7 @@ public:
 	const char *GetWebLoginUri();
 	void SetOAuthParams(OAuthParams &p);
 	void SetParentWindow(GViewI *wnd);
-	void SetLoopState(bool *LoopState);
+	void SetCancel(LCancel *Cancel);
 	ssize_t ParseImapResponse(char *Buffer, ssize_t BufferLen, GArray<StrRange> &Ranges, int Names);
 
 	// Connection
@@ -937,7 +938,7 @@ public:
 	);
 
 	bool GetFolders(GArray<MailImapFolder*> &Folders);
-	bool SelectFolder(const char *Path, GHashTbl<const char*,int> *Values = 0);
+	bool SelectFolder(const char *Path, GHashTbl<const char*,GString> *Values = 0);
 	char *GetSelectedFolder();
 	int GetMessages(const char *Path);
 	bool CreateFolder(MailImapFolder *f);

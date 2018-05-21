@@ -112,7 +112,7 @@ public:
 					if (Pipe)
 					{
 						int Size = (int)Pipe->GetSize();
-						int Len = min(InBufSize, Size);
+						int Len = MIN(InBufSize, Size);
 						ssize_t r = Pipe->Read(InBuf, Len);
 						BitsLeft += r * 8;
 					}
@@ -133,7 +133,7 @@ public:
 				}
 			}
 
-			int ThisBits = min(8-BitPos, b);
+			int ThisBits = MIN(8-BitPos, b);
 			int Temp = Mask[ThisBits] & (*InPos >> (8 - (ThisBits + BitPos)));
 			Code |= Temp << (b - ThisBits);
 			

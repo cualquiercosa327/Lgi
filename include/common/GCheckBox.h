@@ -73,7 +73,9 @@ public:
 	void OnPosChange();
 	void OnPaint(GSurface *pDC);
 	void OnAttach();
+	void OnStyleChange();
 	GMessage::Result OnEvent(GMessage *Msg);
+	int OnNotify(GViewI *Ctrl, int Flags);
 
 	#ifdef WINNATIVE
 	int SysOnNotify(int Msg, int Code);

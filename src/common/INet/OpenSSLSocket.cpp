@@ -331,10 +331,23 @@ public:
 
 		if (Ver < MinimumVer)
 		{
-			Err.Print("%s:%i - SSL version '%s' is too old (minimum '%s')\n",
+			#if WINDOWS
+			char FileName[MAX_PATH] = "";
+			DWORD r = GetModuleFileNameA(LibEAY::Handle(), FileName, sizeof(FileName));
+			#endif
+
+			Err.Print("%s:%i - SSL version '%s' is too old (minimum '%s')\n"
+				#if WINDOWS
+				"%s\n"
+				#endif
+				,
 				_FL,
 				t[1],
-				MinimumVersion);
+				MinimumVersion
+				#if WINDOWS
+				,FileName
+				#endif
+				);
 			goto OnError;
 		}
 		
@@ -352,7 +365,8 @@ public:
 
 	OnError:
 		ErrorMsg.Reset(Err.NewStr());
-		sock->DebugTrace("%s", ErrorMsg.Get());
+		if (sock)
+			sock->DebugTrace("%s", ErrorMsg.Get());
 		return false;
     }
 
@@ -432,8 +446,8 @@ public:
 
 static OpenSSL *Library = 0;
 
-#if defined(WIN32) && defined(_DEBUG)
-// #define SSL_DEBUG_LOCKING
+#if 0
+#define SSL_DEBUG_LOCKING
 #endif
 
 void
@@ -445,24 +459,21 @@ SSL_locking_function(int mode, int n, const char *file, int line)
 		if (!Library->Locks[n])
 		{
 			#ifdef SSL_DEBUG_LOCKING
-			sprintf_s(Buf, sizeof(Buf), "SSL[%i] create\n", n);
-			OutputDebugStr(Buf);
+			LgiTrace("SSL[%i] create\n", n);
 			#endif
 			Library->Locks[n] = new LMutex;
 		}
 
 		#ifdef SSL_DEBUG_LOCKING
-	    sprintf_s(Buf, sizeof(Buf),
-			"SSL[%i] lock=%i, unlock=%i, read=%i, write=%i (mode=0x%x, count=%i, thread=0x%x)\n", n,
+	    LgiTrace("SSL[%i] lock=%i, unlock=%i, re=%i, wr=%i (mode=0x%x, cnt=%i, thr=0x%x, %s:%i)\n", n,
 			TestFlag(mode, CRYPTO_LOCK),
 			TestFlag(mode, CRYPTO_UNLOCK),
 			TestFlag(mode, CRYPTO_READ),
 			TestFlag(mode, CRYPTO_WRITE),
 			mode,
 			Library->Locks[n]->GetCount(),
-			LgiGetCurrentThread()
-			);
-	    OutputDebugStr(Buf);
+			LgiGetCurrentThread(),
+			file, line);
 		#endif
 		
 		if (mode & CRYPTO_LOCK)
@@ -511,7 +522,6 @@ struct SslSocketPriv
 	bool SslOnConnect;
 	bool IsSSL;
 	bool UseSSLrw;
-	bool Opening;
 	int Timeout;
 	bool RawLFCheck;
 	#ifdef _DEBUG
@@ -533,7 +543,6 @@ struct SslSocketPriv
 		LastWasCR = false;
 		#endif
 		Timeout = 20 * 1000;
-		Opening = false;
 		IsSSL = false;
 		UseSSLrw = false;
 		LogFormat = 0;
@@ -657,6 +666,11 @@ void SslSocket::Log(const char *Str, ssize_t Bytes, SocketMsgType Type)
 		LgiTrace("%.*s", Bytes, Str);
 }
 
+const char *SslSocket::GetErrorString()
+{
+	return ErrMsg;
+}
+
 void SslSocket::SslError(const char *file, int line, const char *Msg)
 {
 	char *Part = strrchr((char*)file, DIR_CHAR);
@@ -664,9 +678,8 @@ void SslSocket::SslError(const char *file, int line, const char *Msg)
 	printf("%s:%i - %s\n", file, line, Msg);
 	#endif
 
-	GString s;
-	s.Printf("Error: %s:%i - %s\n", Part ? Part + 1 : file, line, Msg);
-	Log(s, s.Length(), SocketMsgError);
+	ErrMsg.Printf("Error: %s:%i - %s\n", Part ? Part + 1 : file, line, Msg);
+	Log(ErrMsg, ErrMsg.Length(), SocketMsgError);
 }
 
 OsSocket SslSocket::Handle(OsSocket Set)
@@ -703,11 +716,9 @@ OsSocket SslSocket::Handle(OsSocket Set)
 	}
 	else if (Bio)
 	{
-		Library->BIO_get_fd(Bio, &h);
-		#ifdef _WIN64
-		#pragma message(__LOC__"Hack to get OpenSSL working on _WIN64")
-		h &= 0xffffffff;
-		#endif
+		uint32 hnd = INVALID_SOCKET;
+		Library->BIO_get_fd(Bio, &hnd);
+		h = hnd;
 	}
 	
 	return h;
@@ -780,15 +791,14 @@ DebugTrace("%s:%i - BIO_get_ssl=%p\n", _FL, Ssl);
 							// Do non-block connect
 							uint64 Start = LgiCurrentTime();
 							int To = GetTimeout();
-							d->Opening = true;
 							
 							IsBlocking(false);
 							
 							r = Library->SSL_connect(Ssl);
 DebugTrace("%s:%i - initial SSL_connect=%i\n", _FL, r);
-							while (r != 1 && d->Opening)
+							while (r != 1 && !IsCancelled())
 							{
-								int err = Library->SSL_get_error(Ssl, r);
+								long err = Library->SSL_get_error(Ssl, r);
 								if (err != SSL_ERROR_WANT_CONNECT)
 								{
 DebugTrace("%s:%i - SSL_get_error=%i\n", _FL, err);
@@ -798,15 +808,15 @@ DebugTrace("%s:%i - SSL_get_error=%i\n", _FL, err);
 								r = Library->SSL_connect(Ssl);
 DebugTrace("%s:%i - SSL_connect=%i (%i of %i ms)\n", _FL, r, (int)(LgiCurrentTime() - Start), (int)To);
 
-								if (r == -1 && !HasntTimedOut())
+								bool TimeOut = !HasntTimedOut();
+								if (TimeOut)
 								{
 DebugTrace("%s:%i - SSL connect timeout, to=%i\n", _FL, To);
-									OnError(0, "Connection timeout.");
+									SslError(_FL, "Connection timeout.");
 									break;
 								}
 							}
-DebugTrace("%s:%i - open loop finished, r=%i, Opening=%i\n", _FL, r, d->Opening);
-							d->Opening = false;
+DebugTrace("%s:%i - open loop finished, r=%i, Cancelled=%i\n", _FL, r, IsCancelled());
 
 							if (r == 1)
 							{
@@ -822,7 +832,9 @@ DebugTrace("%s:%i - open loop finished, r=%i, Opening=%i\n", _FL, r, d->Opening)
 							else
 							{
 								GString Err = SslGetErrorAsString(Library).Strip();
-								SslError(_FL, Err.Length() > 0 ? Err.Get() : "BIO_do_connect failed.");
+								if (!Err)
+									Err.Printf("BIO_do_connect(%s:%i) failed.", HostAddr, Port);
+								SslError(_FL, Err);
 							}
 						}
 						else SslError(_FL, "BIO_get_ssl failed.");
@@ -843,13 +855,12 @@ DebugTrace("%s:%i - BIO_new_connect=%p\n", _FL, Bio);
 				// can quit out of the connect loop.
 				IsBlocking(false);
 
-				d->Opening = true;
 				uint64 Start = LgiCurrentTime();
 				int To = GetTimeout();
 
 				long r = Library->BIO_do_connect(Bio);
 DebugTrace("%s:%i - BIO_do_connect=%i\n", _FL, r);
-				while (r != 1 && d->Opening)
+				while (r != 1 && !IsCancelled())
 				{
 					if (!Library->BIO_should_retry(Bio))
 					{
@@ -867,7 +878,6 @@ DebugTrace("%s:%i - open timeout, to=%i\n", _FL, To);
 						break;
 					}
 				}
-				d->Opening = false;
 
 DebugTrace("%s:%i - open loop finished=%i\n", _FL, r);
 
@@ -991,7 +1001,7 @@ DebugTrace("%s:%i - X509_NAME_oneline=%s\n", _FL, Txt);
 
 int SslSocket::Close()
 {
-	d->Opening = false;
+	Cancel(true);
 	LMutex::Auto Lck(&Lock, _FL);
 
 	if (Library)
@@ -1163,7 +1173,7 @@ ssize_t SslSocket::Write(const void *Data, ssize_t Len, int Flags)
 		return -1;
 	}
 
-	int r = 0;
+	ssize_t r = 0;
 	if (d->UseSSLrw)
 	{
 		if (Ssl)

@@ -18,6 +18,7 @@ public:
 	GUndo() { Pos = 0; }
 	~GUndo() { Empty(); }
 
+	int GetPos() { return Pos; }
 	bool CanUndo() { return (Pos > 0) && (Events.Length() > 0); }
 	bool CanRedo() { return (Pos < Events.Length()) && (Events.Length() > 0); }
 	void Empty() { Events.DeleteObjects(); Pos = 0; }

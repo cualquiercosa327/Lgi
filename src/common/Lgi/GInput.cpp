@@ -41,18 +41,18 @@ GInput::GInput(GViewI *parent, const char *InitStr, const char *Msg, const char 
 
 	GLayoutCell *c = Tbl->GetCell(0, 0, true);
 	GView *Txt;
-	c->Add(Txt = new GText(-1, 5, 5, -1, -1, Msg));
+	c->Add(Txt = new GTextLabel(-1, 5, 5, -1, -1, Msg));
 
 	GDisplayString MsgDs(SysFont, ValidStr(InitStr)?InitStr:"A");
 	int Dx = LgiApp->GetMetric(LGI_MET_DECOR_X) + 10;
 	int Dy = LgiApp->GetMetric(LGI_MET_DECOR_Y);
 	
 	int ContextX = 400;
-	ContextX = max(ContextX, MsgDs.X() + 40);
-	ContextX = min(ContextX, (int)(GdcD->X() * 0.8));
+	ContextX = MAX(ContextX, MsgDs.X() + 40);
+	ContextX = MIN(ContextX, (int)(GdcD->X() * 0.8));
 	int EditX = ContextX;
 	int CallbackX = callback ? GBUTTON_MIN_X + 20 : 0;
-	ContextX = max(ContextX, Txt->X() + CallbackX);
+	ContextX = MAX(ContextX, Txt->X() + CallbackX);
 
 	GRect r(0, 0, ContextX + CallbackX + Dx, 80 + Txt->Y() + Dy);
 

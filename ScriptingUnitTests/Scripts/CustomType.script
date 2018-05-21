@@ -1,0 +1,61 @@
+// This script will test custom types
+// fret@memecode.com
+
+// Define some types
+struct PxRgb24
+{
+	uint8 r;
+	uint8 g;
+	uint8 b;
+};
+
+struct Image
+{
+	int32 Width;
+	int32 Height;	
+	PxRgb24 Px[16 * 16];
+
+	function SetWidth(x)
+	{
+		Width = x;
+	}
+
+	function GetWidth()
+	{
+		return Width;
+	}
+	
+	function LocalAndParamTest(a)
+	{
+		b = 100;
+		return Width + a + b;
+	}
+};
+
+Obj = New("PxRgb24", "10");
+Obj[2].g = 255;
+Tmp = Obj[2].g;
+if (Tmp != 255)
+{
+	Print("Custom field read failed, Tmp="+Tmp+"\n");
+	return false;
+}
+	
+Obj = New("Image");
+Obj.Width = 10;
+Obj.Height = 12;
+
+Obj.SetWidth(10);
+Print("Width=", Obj.GetWidth(), "\n");
+
+if (Obj.LocalAndParamTest(1000) != 1110)
+{
+	Print("Error: LocalAndParamTest failed\n");
+	return false;
+}
+
+Type = typeid(Obj);
+Print("Type=", Type.Name, " sizeof=", Type.Length, "\n");
+
+Print("All tests passed.\n");
+return true;

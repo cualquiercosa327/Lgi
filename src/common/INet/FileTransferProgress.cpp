@@ -343,7 +343,7 @@ void GPaneHistory::Value(int64 i)
 				NewData -= Len;
 				Diff -= Ms;
 				
-				Max = max(Bytes[0], Max);
+				Max = MAX(Bytes[0], Max);
 				Push();
 			}
 
@@ -354,13 +354,13 @@ void GPaneHistory::Value(int64 i)
 				NewData -= Bytes[0];
 				Diff -= 1000;
 
-				Max = max(Bytes[0], Max);
+				Max = MAX(Bytes[0], Max);
 				Push();
 			}
 
 			// Any last partial second left to process.
 			Bytes[0] += NewData;
-			Max = max(Bytes[0], Max);
+			Max = MAX(Bytes[0], Max);
 			Last = Now;
 		}
 		else
@@ -379,7 +379,7 @@ void GPaneHistory::Value(int64 i)
 			int m=0;
 			for (int x=0; x<pMemDC->X() && x<MAX_SAMPLE; x++)
 			{
-				m = max(Bytes[x], m);
+				m = MAX(Bytes[x], m);
 				int Sample = (Bytes[x] * pMemDC->Y()) / Max;
 				pMemDC->Line(x, pMemDC->Y()-Sample, x, pMemDC->Y());
 			}

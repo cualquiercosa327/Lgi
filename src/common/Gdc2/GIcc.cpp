@@ -667,7 +667,7 @@ public:
 			ChildDom *v = new ChildDom;
 			if (v)
 			{
-				int End = min(i + Block - 1, n->Count - 1);
+				int End = MIN(i + Block - 1, n->Count - 1);
 
 				Dom.Add(v);
 				sprintf(s, "%i-%i", i, End);

@@ -390,7 +390,7 @@ void GDisplayString::Layout(bool Debug)
 				int PyF = AscentF - Fnt->glyph->metrics.horiBearingY;
 
 				Sz.x += Fnt->glyph->metrics.horiAdvance;
-				Sz.y = max(Sz.y, PyF + Fnt->glyph->metrics.height);
+				Sz.y = MAX(Sz.y, PyF + Fnt->glyph->metrics.height);
 			}
 		}
 		
@@ -641,7 +641,6 @@ void GDisplayString::Layout(bool Debug)
 		if (Sys && Str)
 		{
 			GFont *f = Font;
-			OsChar *s;
 			bool GlyphSub = Font->SubGlyphs();
 
 			Info[i].Str = Str;
@@ -660,13 +659,18 @@ void GDisplayString::Layout(bool Debug)
 
 			bool Debug = WasTab;
 			
-			for (s=Str; true; NextOsChar(s))
+			const uint16 *u16;
+			uint32 u32;
+			ssize_t Len = len << 1;
+			for (u16 = (const uint16*)Str; true;)
 			{
-				GFont *n = GlyphSub ? Sys->GetGlyph(*s, Font) : Font;
-				bool Change =	n != f ||					// The font changed
-								(IsTabChar(*s) ^ WasTab) ||	// Entering/leaving a run of tabs
-								!*s ||						// Hit a NULL character
-								(s - Info[i].Str) >= 1000;	// This is to stop very long segments not rendering
+				OsChar *s = (OsChar*)u16;
+				u32 = LgiUtf16To32(u16, Len);
+				GFont *n = GlyphSub ? Sys->GetGlyph(u32, Font) : Font;
+				bool Change =	n != f ||						// The font changed
+								(IsTabChar(u32) ^ WasTab) ||	// Entering/leaving a run of tabs
+								!u32 ||							// Hit a NULL character
+								(s - Info[i].Str) >= 1000;		// This is to stop very long segments not rendering
 				if (Change)
 				{
 					// End last segment
@@ -728,11 +732,11 @@ void GDisplayString::Layout(bool Debug)
 					f = n;
 
 					// Start next segment
-					WasTab = IsTabChar(*s);
+					WasTab = IsTabChar(u32);
 					Info[i].Str = s;
 				}
 
-				if (!*s) break;
+				if (!u32) break;
 			}
 
 			if (Info.Length() > 0 && Info.Last().Len == 0)
@@ -1241,7 +1245,7 @@ GdcPt2 GDisplayString::Size()
 #if defined LGI_SDL
 
 template<typename OutPx>
-bool CompositeText8Alpha(GSurface *Out, GSurface *In, GFont *Font, int px, int py)
+bool CompositeText8Alpha(GSurface *Out, GSurface *In, GFont *Font, int px, int py, GBlitRegions &Clip)
 {
 	OutPx map[256];
 
@@ -1288,12 +1292,12 @@ bool CompositeText8Alpha(GSurface *Out, GSurface *In, GFont *Font, int px, int p
 	uint8 *StartOfBuffer = (*Out)[0];
 	uint8 *EndOfBuffer = StartOfBuffer + (Out->GetRowStep() * Out->Y());
 
-	for (unsigned y=0; y<In->Y(); y++)
+	for (unsigned y=Clip.SrcClip.y1; y<=Clip.SrcClip.y2; y++)
 	{
-		register OutPx *d = ((OutPx*) (*Out)[py + y]) + px;
+		register OutPx *d = ((OutPx*) (*Out)[py + y]) + Clip.DstClip.x1;
 		register uint8 *i = (*In)[y];
 		if (!i) return false;
-		register uint8 *e = i + In->X();
+		register uint8 *e = i + Clip.DstClip.X();
 
 		LgiAssert((uint8*)d >= StartOfBuffer);
 		
@@ -1343,7 +1347,7 @@ bool CompositeText8Alpha(GSurface *Out, GSurface *In, GFont *Font, int px, int p
 }
 
 template<typename OutPx>
-bool CompositeText8NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int py)
+bool CompositeText8NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int py, GBlitRegions &Clip)
 {
 	GRgba32 map[256];
 
@@ -1390,18 +1394,18 @@ bool CompositeText8NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 	uint8 *StartOfBuffer = (*Out)[0];
 	uint8 *EndOfBuffer = StartOfBuffer + (Out->GetRowStep() * Out->Y());
 
-	for (unsigned y=0; y<In->Y(); y++)
+	for (int y=Clip.SrcClip.y1; y<=Clip.SrcClip.y2; y++)
 	{
 		register OutPx *dst = (OutPx*) (*Out)[py + y];
 		if (!dst)
 			continue;
-		dst += px;
+		dst += Clip.DstClip.x1;
 		if ((uint8*)dst < StartOfBuffer)
 			continue;
 		
 		register uint8 *i = (*In)[y];
 		if (!i) return false;
-		register uint8 *e = i + In->X();
+		register uint8 *e = i + Clip.DstClip.X();
 		register GRgba32 *src;
 
 		LgiAssert((uint8*)dst >= StartOfBuffer);
@@ -1453,7 +1457,7 @@ bool CompositeText8NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 }
 
 template<typename OutPx>
-bool CompositeText5NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int py)
+bool CompositeText5NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int py, GBlitRegions &Clip)
 {
 	OutPx map[256];
 
@@ -1500,15 +1504,15 @@ bool CompositeText5NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 	uint8 *StartOfBuffer = (*Out)[0];
 	uint8 *EndOfBuffer = StartOfBuffer + (Out->GetRowStep() * Out->Y());
 
-	for (unsigned y=0; y<In->Y(); y++)
+	for (unsigned y=Clip.SrcClip.y1; y<=Clip.SrcClip.y2; y++)
 	{
 		register OutPx *dst = ((OutPx*) (*Out)[py + y]);
 		if (!dst)
 			continue;
-		dst += px;		
+		dst += Clip.DstClip.x1;
 		register uint8 *i = (*In)[y];
 		if (!i) return false;
-		register uint8 *e = i + In->X();
+		register uint8 *e = i + Clip.DstClip.X();
 
 		LgiAssert((uint8*)dst >= StartOfBuffer);
 		
@@ -1607,28 +1611,13 @@ void GDisplayString::Draw(GSurface *pDC, int px, int py, GRect *r, bool Debug)
 	{
 		int Ox = 0, Oy = 0;
 		pDC->GetOrigin(Ox, Oy);
-
-		/*
-		if (!Font->Transparent())
-		{
-			GRect Fill;
-			if (r)
-				Fill = *r;
-			else
-			{
-				Fill.ZOff(x-1, y-1);
-				Fill.Offset(px, py);
-			}
-			Fill.Offset(-Ox, -Oy);		
-		}
-		*/
-
+		GBlitRegions Clip(pDC, px-Ox, py-Oy, Img, r);
 		GColourSpace DstCs = pDC->GetColourSpace();
 		switch (DstCs)
 		{
 			#define DspStrCase(px_fmt, comp)											\
 				case Cs##px_fmt:														\
-					CompositeText##comp<G##px_fmt>(pDC, Img, Font, px-Ox, py-Oy);	\
+					CompositeText##comp<G##px_fmt>(pDC, Img, Font, px-Ox, py-Oy, Clip);	\
 					break;
 			
 			DspStrCase(Rgb16, 5NoAlpha)

@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Project TabSize="4" IndentSize="4" UseTabs="1" Makefile="./Makefile.linux" Exe="./lgiide" ShowWhitespace="0" IncludePaths=".\Code&#10;..\include\common&#10;..\include\linux\X&#10;" BuildType="0" TargetType="0" TargetName="lgiide" Compiler="0">
+	<Node Name="Source Files" Type="1" Platforms="15" Open="1" Id="1">
+		<Node Name="Debugger" Type="1" Platforms="15" Open="0" Id="2">
+			<Node File="./Code/GDebugContext.cpp" Type="2" Platforms="15" />
+			<Node File="./Code/GDebugContext.h" Type="3" Platforms="15" />
+			<Node File="./Code/GDebugger.cpp" Type="2" Platforms="15" />
+			<Node File="./Code/GDebugger.h" Type="3" Platforms="15" />
+			<Node File="../src/common/Lgi/GSubProcess.cpp" Type="2" Platforms="15" />
+			<Node File="../include/common/GSubProcess.h" Type="3" Platforms="15" />
+		</Node>
+		<Node Name="Dialogs" Type="1" Platforms="15" Open="0" Id="3">
+			<Node File="./Code/AddFtpFile.cpp" Type="2" Platforms="15" />
+			<Node File="./Code/AddFtpFile.h" Type="3" Platforms="15" />
+			<Node File="./Code/WebFldDlg.cpp" Type="2" Platforms="15" />
+			<Node File="./Code/WebFldDlg.h" Type="3" Platforms="15" />
+		</Node>
+		<Node Name="Docs" Type="1" Platforms="15" Id="1">
+			<Node File="./Code/DocEdit.cpp" Type="2" Platforms="15" />
+			<Node File="./Code/DocEdit.h" Type="3" Platforms="15" />
+			<Node File="./Code/DocEditStyling.cpp" Type="2" Platforms="15" />
+			<Node File="./Code/IdeDoc.cpp" Type="2" Platforms="15" />
+			<Node File="./Code/IdeDoc.h" Type="3" Platforms="15" />
+			<Node File="./Code/IdeDocPrivate.h" Type="3" Platforms="15" />
+		</Node>
+		<Node Name="Ftp" Type="1" Platforms="15" Open="0" Id="4">
+			<Node File="./Code/FtpThread.cpp" Type="2" Platforms="15" />
+			<Node File="./Code/FtpThread.h" Type="3" Platforms="15" />
+			<Node File="../src/common/INet/IFtp.cpp" Type="2" Platforms="15" />
+			<Node File="../include/common/IFtp.h" Type="3" Platforms="15" />
+		</Node>
+		<Node Name="Projects" Type="1" Platforms="15" Id="1">
+			<Node File="./Code/IdeProject.cpp" Type="2" Platforms="15" />
+			<Node File="./Code/IdeProject.h" Type="3" Platforms="15" />
+			<Node File="./Code/IdeProjectSettings.cpp" Type="2" Platforms="15" />
+			<Node File="./Code/IdeProjectSettings.h" Type="3" Platforms="15" />
+			<Node File="./Code/levenshtein.c" Type="2" Platforms="15" />
+			<Node File="./Code/levenshtein.h" Type="3" Platforms="15" />
+			<Node File="./Code/MissingFiles.cpp" Type="2" Platforms="15" />
+			<Node File="./Code/ProjectNode.cpp" Type="2" Platforms="15" />
+			<Node File="./Code/ProjectNode.h" Type="3" Platforms="15" />
+		</Node>
+		<Node Name="Search" Type="1" Platforms="15" Open="1" Id="5">
+			<Node File="./Code/FindInFiles.cpp" Type="2" Platforms="15" />
+			<Node File="./Code/FindInFiles.h" Type="3" Platforms="15" />
+			<Node File="./Code/FindSymbol.cpp" Type="2" Platforms="15" />
+			<Node File="./Code/FindSymbol.h" Type="3" Platforms="15" />
+			<Node File="./Code/GHistory.cpp" Type="2" Platforms="15" />
+			<Node File="./Code/GHistory.h" Type="3" Platforms="15" />
+			<Node File="./Code/SimpleCppParser.cpp" Type="2" Platforms="15" />
+			<Node File="./Code/SimpleCppParser.h" Type="3" Platforms="15" />
+		</Node>
+		<Node Name="Source Code" Type="1" Platforms="15" Open="1" Id="6">
+			<Node File="../src/common/Coding/GLexCpp.cpp" Type="2" Platforms="15" />
+			<Node File="../src/common/Coding/GParseCpp.cpp" Type="2" Platforms="15" />
+			<Node File="./Code/SysCharSupport.cpp" Type="2" Platforms="15" />
+		</Node>
+		<Node File="./Code/IdeCommon.cpp" Type="2" Platforms="15" />
+		<Node File="./Code/LgiIde.cpp" Type="2" Platforms="15" />
+		<Node File="./Code/LgiIde.h" Type="3" Platforms="15" />
+		<Node File="./Code/LgiUtils.cpp" Type="2" Platforms="15" />
+		<Node File="./Code/MemDumpViewer.cpp" Type="2" Platforms="15" />
+		<Node File="./Code/SpaceTabConv.cpp" Type="2" Platforms="15" />
+		<Node File="./Code/SpaceTabConv.h" Type="3" Platforms="15" />
+	</Node>
+	<Node Name="Lgi" Type="1" Platforms="15" Open="1" Id="7">
+		<Node File="../src/common/Text/GDocView.cpp" Type="2" Platforms="15" />
+		<Node File="../src/common/Lgi/GMdi.cpp" Type="2" Platforms="15" />
+		<Node File="../include/common/GMdi.h" Type="3" Platforms="15" />
+		<Node File="../include/common/GPopupList.h" Type="3" Platforms="15" />
+		<Node File="../src/common/Lgi/LgiMain.cpp" Type="2" Platforms="15" />
+		<Node File="../src/common/Gdc2/Filters/Png.cpp" Type="2" Platforms="15" />
+	</Node>
+	<Node Name="Resources" Type="1" Platforms="15" Open="1" Id="8">
+		<Node File="./Makefile.linux" Type="3" Platforms="15" />
+		<Node File="./Code/resource.h" Type="3" Platforms="15" />
+		<Node File="./Code/Script1.rc" Type="5" Platforms="15" />
+	</Node>
+	<Node File="../Lgi.xml" Type="4" Platforms="15" />
+	<Settings>
+		<General>
+			<Makefile>
+				<Windows>.\Makefile.windows</Windows>
+				<Linux>Makefile.linux</Linux>
+				<Mac>Makefile.macosx</Mac>
+				<Haiku>Makefile.haiku</Haiku>
+			</Makefile>
+			<Executable>
+				<Linux>
+					<Debug>./lgiide</Debug>
+					<Release>./lgiide</Release>
+				</Linux>
+				<Windows>
+					<Debug>LgiIde.exe</Debug>
+					<Release>LgiIde.exe</Release>
+				</Windows>
+			</Executable>
+			<Defines>
+				<Windows>
+					<Debug>WINDOWS
+WINNATIVE</Debug>
+					<Release>WINDOWS
+WINNATIVE</Release>
+				</Windows>
+				<Haiku>
+					<Debug>POSIX</Debug>
+					<Release>POSIX</Release>
+				</Haiku>
+				<All />
+				<Linux />
+			</Defines>
+			<Compiler>
+				<Windows>MingW</Windows>
+			</Compiler>
+			<Arguments>
+				<All>
+					<Debug>/home/matthew/Code/Lgi/trunk/Ide/Code/IdeProjectSettings.cpp</Debug>
+				</All>
+			</Arguments>
+			<CrossCompiler />
+			<DebugAdmin />
+			<CCrossCompiler />
+			<CppCrossCompiler />
+		</General>
+		<Build>
+			<IncludePaths>
+				<All>
+					<Debug>.\Code
+.\Resources
+..\include\common</Debug>
+					<Release>.\Code
+.\Resources
+..\include\common</Release>
+				</All>
+				<Windows>
+					<Debug>..\include\win32
+/local/include</Debug>
+					<Release>..\include\win32
+/local/include</Release>
+				</Windows>
+				<Linux>
+					<Debug>../include/linux
+../include/linux/Gtk
+</Debug>
+					<Release>../include/linux
+../include/linux/Gtk</Release>
+				</Linux>
+				<Haiku>
+					<Debug>../include/beos</Debug>
+					<Release>../include/beos</Release>
+				</Haiku>
+			</IncludePaths>
+			<Libraries>
+				<Windows>
+					<Debug>imm32</Debug>
+					<Release>imm32</Release>
+				</Windows>
+				<Linux>
+					<Debug>magic
+pthread
+`pkg-config --libs gtk+-2.0`
+-static-libgcc</Debug>
+					<Release>magic
+pthread
+`pkg-config --libs gtk+-2.0`
+-static-libgcc</Release>
+				</Linux>
+				<Haiku>
+					<Debug>be</Debug>
+					<Release>be</Release>
+				</Haiku>
+				<All />
+			</Libraries>
+			<LibraryPaths>
+				<All>
+					<Debug>..\Debug</Debug>
+					<Release>..\Release</Release>
+				</All>
+				<Linux />
+				<Windows />
+			</LibraryPaths>
+			<TargetType>
+				<All>Executable</All>
+			</TargetType>
+			<TargetName>
+				<Haiku>
+					<Debug>lgiide</Debug>
+					<Release>lgiide</Release>
+				</Haiku>
+				<Windows>
+					<Debug>LgiIde.exe</Debug>
+					<Release>LgiIde.exe</Release>
+				</Windows>
+				<Linux>
+					<Debug>lgiide</Debug>
+					<Release>lgiide</Release>
+				</Linux>
+			</TargetName>
+			<SystemIncludes>
+				<Windows>
+					<Debug>C:\Data\CodeLib\Gtk\include\gtk-2.0\gtk
+C:\Data\CodeLib\Gtk\include\gtk-2.0\gdk</Debug>
+					<Release>C:\Data\CodeLib\Gtk\include\gtk-2.0\gtk
+C:\Data\CodeLib\Gtk\include\gtk-2.0\gdk</Release>
+				</Windows>
+				<Linux>
+					<Debug>`pkg-config --cflags gtk+-2.0`</Debug>
+					<Release>`pkg-config --cflags gtk+-2.0`</Release>
+				</Linux>
+			</SystemIncludes>
+			<ApplicationIcon>
+				<Haiku>./Code/icon-haiku</Haiku>
+			</ApplicationIcon>
+		</Build>
+		<Editor>
+			<TabSize>
+				<All>4</All>
+			</TabSize>
+			<IndentSize>
+				<All>4</All>
+			</IndentSize>
+			<ShowWhiteSpace>
+				<All>0</All>
+			</ShowWhiteSpace>
+			<UseHardTabs>
+				<All>1</All>
+			</UseHardTabs>
+			<CommentFile />
+			<CommentFunction />
+		</Editor>
+		<Advanced>
+			<OtherMakefileRules />
+			<PostBuildCommands />
+		</Advanced>
+	</Settings>
+</Project>

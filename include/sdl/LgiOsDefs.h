@@ -50,11 +50,17 @@
 	#endif
 
 #else
+
+	#ifdef MAC
+		#define USE_MACH_SEM 1
+	#endif
+
 	#define LGI_SDL_POSIX	1
 	#define _MULTI_THREADED
 	#include <pthread.h>
 	#define XP_CTRLS		1
 	#define POSIX			1
+
 #endif
 
 #ifdef __x86_64
@@ -92,6 +98,7 @@ public:
 	~OsAppArguments();
 
 	void Set(const char *CmdLine);
+	bool Get(const char *Arg, class GString *Value = NULL);
 	OsAppArguments &operator =(OsAppArguments &a);
 };
 
@@ -135,8 +142,12 @@ typedef CRITICAL_SECTION			OsSemaphore;
 
 #elif defined POSIX
 
-typedef pthread_t					OsThread;
-typedef pthread_t					OsThreadId;
+typedef pthread_t           OsThread;
+#ifdef MAC
+	typedef uint64_t					OsThreadId;
+#else
+	typedef pthread_t					OsThreadId;
+#endif
 typedef pthread_mutex_t				OsSemaphore;
 #define LgiGetCurrentThread()		pthread_self()
 LgiFunc OsThreadId					GetCurrentThreadId();
@@ -544,6 +555,7 @@ typedef int (__stdcall *p_vscprintf)(const char *format, va_list argptr);
 
 #if _MSC_VER >= 1400
 #define snprintf sprintf_s
+#define stricmp _stricmp
 #endif
 
 #endif

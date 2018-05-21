@@ -33,7 +33,7 @@ enum CellFlag
 #include "GCss.h"
 
 #define Izza(c)				dynamic_cast<c*>(v)
-// #define DEBUG_LAYOUT		24
+// #define DEBUG_LAYOUT		102
 #define DEBUG_PROFILE		0
 #define DEBUG_DRAW_CELLS	0
 
@@ -252,7 +252,7 @@ DistributeSize(	GArray<int> &a,
 			if (a[Cell] && ExistingGrowPx)
 			    Add = a[Cell] * AdditionalSize / ExistingGrowPx;
 			else
-			    Add = max(1, AdditionalSize / Grow.Length());
+			    Add = MAX(1, AdditionalSize / Grow.Length());
 			a[Cell] = a[Cell] + Add;
 		}
 	}
@@ -267,7 +267,7 @@ DistributeSize(	GArray<int> &a,
 			if (a[Cell] && UnknownPx)
 			    Add = a[Cell] * AdditionalSize / UnknownPx;
 			else
-			    Add = max(1, AdditionalSize / Unknown.Length());
+			    Add = MAX(1, AdditionalSize / Unknown.Length());
 			a[Cell] = a[Cell] + Add;
 		}
 	}
@@ -337,6 +337,7 @@ public:
 	/// Called after the layout has been done to move the controls into place
 	void PostLayout();
 	void OnPaint(GSurface *pDC);
+	void OnChange(PropType Prop);
 };
 
 class GTableLayoutPrivate
@@ -392,6 +393,18 @@ TableCell::TableCell(GTableLayout *t, int Cx, int Cy)
 	Cell.Offset(Cx, Cy);
 	Padding.ZOff(0, 0);
 	Disp = GCss::DispBlock;
+}
+
+void TableCell::OnChange(PropType Prop)
+{
+	if (Prop == PropDisplay)
+	{
+		bool Vis = Display() != GCss::DispNone;
+		for (Child *c = NULL; Children.Iterate(c);)
+		{
+			c->View->Visible(Vis);
+		}
+	}
 }
 
 TableCell::Child *TableCell::HasView(GView *v)
@@ -505,7 +518,7 @@ bool TableCell::GetVariant(const char *Name, GVariant &Value, char *Array)
 			Value.OwnStr(ToString());
 			break;
 		}
-		case ObjDebug:
+		case ObjDebug: // Type: Boolean
 		{
 			Value = Debug;
 			break;
@@ -544,7 +557,7 @@ bool TableCell::SetVariant(const char *Name, GVariant &Value, char *Array)
 							Table->AddView(gv);
 							gv->SetParent(Table);
 
-							GText *t = dynamic_cast<GText*>(gv);
+							GTextLabel *t = dynamic_cast<GTextLabel*>(gv);
 							if (t)
 							{
 								t->SetWrap(true);
@@ -720,8 +733,8 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 			{
 				int MaxPx = MaxCellWidth();
 				int Px = ChildWid.ToPx(MaxPx, v->GetFont());
-				Min = max(Min, Px);
-				Max = max(Max, Px);
+				Min = MAX(Min, Px);
+				Max = MAX(Max, Px);
 				
 				GRect r = v->GetPos();
 				r.x2 = r.x1 + Px - 1;
@@ -736,12 +749,12 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 				}
 				else	
 				{
-					Max = max(Max, c->Inf.Width.Max);
+					Max = MAX(Max, c->Inf.Width.Max);
 				}
 
 				if (c->Inf.Width.Min)
 				{
-					Min = max(Min, c->Inf.Width.Min);
+					Min = MAX(Min, c->Inf.Width.Min);
 					if (c->Inf.Width.Max > c->Inf.Width.Min &&
 						Flag == SizeUnknown)
 						Flag = SizeGrow;
@@ -750,7 +763,7 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 			else if (Izza(GButton))
 			{
 				GDisplayString ds(v->GetFont(), v->Name());
-				int x = max(v->X(), ds.X() + GButton::Overhead.x);
+				int x = MAX(v->X(), ds.X() + GButton::Overhead.x);
 				if (x > v->X())
 				{
 					// Resize the button to show all the text on it...
@@ -759,7 +772,7 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 					v->SetPos(r);
 				}
 
-				MaxBtnX = max(MaxBtnX, x);
+				MaxBtnX = MAX(MaxBtnX, x);
 				TotalBtnX = TotalBtnX ? TotalBtnX + GTableLayout::CellSpacing + x : x;
 				
 				if (Flag < SizeFixed)
@@ -768,7 +781,7 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 			else if (Izza(GEdit) ||
 					 Izza(GScrollBar))
 			{
-				Min = max(Min, 40);
+				Min = MAX(Min, 40);
 				Flag = SizeFill;
 			}
 			else if (Izza(GCombo))
@@ -782,12 +795,12 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 				for (int i=0; i < Cbo->Length() && (t = (*Cbo)[i]); i++)
 				{
 					GDisplayString ds(f, t);
-					min_x = min_x < 0 ? ds.X() : min(min_x, ds.X());
-					max_x = max(ds.X() + 4, max_x);
+					min_x = min_x < 0 ? ds.X() : MIN(min_x, ds.X());
+					max_x = MAX(ds.X() + 4, max_x);
 				}				
 				
-				Min = max(Min, min_x + PadX);
-				Max = max(Max, max_x + PadX);
+				Min = MAX(Min, min_x + PadX);
+				Max = MAX(Max, max_x + PadX);
 				if (Flag < SizeGrow)
 					Flag = SizeGrow;
 			}
@@ -797,13 +810,13 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 				GSurface *Dc = b->GetSurface();
 				if (Dc)
 				{
-					Min = max(Min, Dc->X() + 4);
-					Max = max(Max, Dc->X() + 4);
+					Min = MAX(Min, Dc->X() + 4);
+					Max = MAX(Max, Dc->X() + 4);
 				}
 				else
 				{
-					Min = max(Min, 16);
-					Max = max(Max, 16);
+					Min = MAX(Min, 16);
+					Max = MAX(Max, 16);
 					if (Flag < SizeFill)
 						Flag = SizeFill;
 				}
@@ -816,14 +829,14 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 				{
 					m += Lst->ColumnAt(i)->Width();
 				}
-				m = max(m, 40);
-				Min = max(Min, 40);
+				m = MAX(m, 40);
+				Min = MAX(Min, 40);
 				Flag = SizeFill;
 			}
 			else if (Izza(GTree) ||
 					 Izza(GTabView))
 			{
-				Min = max(Min, 40);
+				Min = MAX(Min, 40);
 				Flag = SizeFill;
 			}
 			else
@@ -842,8 +855,8 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 				}
 				else
 				{
-					Min = max(Min, v->X());
-					Max = max(Max, v->X());
+					Min = MAX(Min, v->X());
+					Max = MAX(Max, v->X());
 				}
 			}
 		}
@@ -851,8 +864,8 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 
 	if (MaxBtnX)
 	{
-		Min = max(Min, MaxBtnX);
-		Max = max(Max, TotalBtnX);
+		Min = MAX(Min, MaxBtnX);
+		Max = MAX(Max, TotalBtnX);
 	}
 
 	Len MaxWid = MaxWidth();
@@ -866,8 +879,8 @@ void TableCell::PreLayout(int &MinX, int &MaxX, CellFlag &Flag)
 			Max = Px;
 	}
 
-	MinX = max(MinX, Min + Padding.x1 + Padding.x2);
-	MaxX = max(MaxX, Max + Padding.x1 + Padding.x2);
+	MinX = MAX(MinX, Min + Padding.x1 + Padding.x2);
+	MaxX = MAX(MaxX, Max + Padding.x1 + Padding.x2);
 
 }
 
@@ -948,7 +961,7 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 			r.y2 = r.y1 + CtrlHeight - 1;
 			v->SetPos(r);
 			
-			Pos.y2 = max(Pos.y2, r.Y()-1);
+			Pos.y2 = MAX(Pos.y2, r.Y()-1);
 		}
 		else if (v->OnLayout(c->Inf))
 		{
@@ -963,7 +976,7 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 				r.y2 = r.y1 + c->Inf.Height.Max - 1;
 			}
 
-			int Px = min(Width, c->Inf.Width.Max);
+			int Px = MIN(Width, c->Inf.Width.Max);
 			r.x2 = r.x1 + Px - 1;
 			v->SetPos(r);
 
@@ -1015,7 +1028,7 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 			if (Izza(GEdit) &&
 				Izza(GEdit)->MultiLine())
 			{
-				MaxY = max(MaxY, 1000);
+				MaxY = MAX(MaxY, 1000);
 			}
 		}
 		else if (Izza(GRadioButton))
@@ -1033,7 +1046,7 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 				 Izza(GTabView))
 		{
 			Pos.y2 += v->GetFont()->GetHeight() + 8;
-			// MaxY = max(MaxY, 1000);
+			// MaxY = MAX(MaxY, 1000);
 			Flags = SizeFill;
 		}
 		else if (Izza(GBitmap))
@@ -1042,11 +1055,11 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 			GSurface *Dc = b->GetSurface();
 			if (Dc)
 			{
-				MaxY = max(MaxY, Dc->Y() + 4);
+				MaxY = MAX(MaxY, Dc->Y() + 4);
 			}
 			else
 			{
-				MaxY = max(MaxY, 1000);
+				MaxY = MAX(MaxY, 1000);
 			}
 		}
 		else if ((Tbl = Izza(GTableLayout)))
@@ -1068,8 +1081,8 @@ void TableCell::Layout(int Width, int &MinY, int &MaxY, CellFlag &Flags)
 		}
 	}
 	
-	MinY = max(MinY, Pos.Y() + Padding.y1 + Padding.y2);
-	MaxY = max(MaxY, Pos.Y() + Padding.y1 + Padding.y2);
+	MinY = MAX(MinY, Pos.Y() + Padding.y1 + Padding.y2);
+	MaxY = MAX(MaxY, Pos.Y() + Padding.y1 + Padding.y2);
 }
 
 /// Called after the layout has been done to move the controls into place
@@ -1131,7 +1144,9 @@ void TableCell::PostLayout()
 			c->Inf.Height.Max = HeightPx;
 
 		if (r.Y() > HeightPx)
+		{
 			r.y2 = r.y1 + HeightPx - 1;
+		}
 
 		if (Tbl)
 		{
@@ -1166,7 +1181,7 @@ void TableCell::PostLayout()
 		}
 
 		New[i] = r;
-		MaxY = max(MaxY, r.y2 - Pos.y1);
+		MaxY = MAX(MaxY, r.y2 - Pos.y1);
 		Cx += r.X() + Table->d->BorderSpacing;
 	}
 
@@ -1224,12 +1239,18 @@ void TableCell::PostLayout()
 		#if DEBUG_LAYOUT
 		if (Table->d->DebugLayout)
 		{
-			Table->d->Dbg.Print("\t\tView[%i]=%s Offy=%i\n", n, New[n].GetStr(), OffsetY);
+			Table->d->Dbg.Print("\t\t%s[%i]=%s, %ix%i, Offy=%i %s\n",
+				v->GetClass(), n,
+				New[n].GetStr(),
+				New[n].X(), New[n].Y(),
+				OffsetY,
+				v->Name());
 		}
 		#endif
 
-		v->SetPos(New[n]);		
-		v->Visible(true);
+		v->SetPos(New[n]);	
+		// What if you want the control to stay invisible?	
+		// v->Visible(true);
 	}
 }
 
@@ -1470,7 +1491,7 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 					if (Remaining > 0)
 					{
 						// Limit the max size of this cell to the existing + remaining px
-						Max = min(Max, MyPx + Remaining);
+						Max = MIN(Max, MyPx + Remaining);
 						
 						// Distribute the max px across the cell's columns.
 						DistributeSize(MaxCol, ColFlags, c->Cell.x1, c->Cell.X(), Max, BorderSpacing);
@@ -1525,18 +1546,18 @@ void GTableLayoutPrivate::LayoutHorizontal(GRect &Client, int *MinX, int *MaxX, 
 	if (MinX)
 	{
 		int x = CountRange<int>(MinCol, 0, MinCol.Length()-1) + Spacing;
-		*MinX = max(*MinX, x);
+		*MinX = MAX(*MinX, x);
 	}
 	if (MaxX)
 	{
 		int x = CountRange<int>(MaxCol, 0, MinCol.Length()-1) + Spacing;
-		*MaxX = max(*MaxX, x);
+		*MaxX = MAX(*MaxX, x);
 	}
 	if (Flag)
 	{	
 		for (i=0; i<ColFlags.Length(); i++)
 		{
-			*Flag = max(*Flag, ColFlags[i]);
+			*Flag = MAX(*Flag, ColFlags[i]);
 		}
 	}
 }
@@ -1664,7 +1685,7 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 					else
 					{
 						// Last chance... stuff extra px in last cell...
-						MaxRow[c->Cell.y2] = max(MaxY, MaxRow[c->Cell.y2]);
+						MaxRow[c->Cell.y2] = MAX(MaxY, MaxRow[c->Cell.y2]);
 					}
 				}
 
@@ -1696,10 +1717,8 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 		}
 		for (i=0; i<Cols.Length(); i++)
 		{
-			Dbg.Print("\tLayoutVertical.Final[%i]=%i\n", i, MinCol[i]);
+			Dbg.Print("\tLayoutHorizontal.Final[%i]=%i\n", i, MinCol[i]);
 		}
-		GAutoString DbgStr(Dbg.NewStr());
-		LgiTrace("%s", DbgStr.Get());
 	}
 	#endif
 
@@ -1707,18 +1726,18 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 	if (MinY)
 	{
 		int y = CountRange(MinRow, 0, MinRow.Length()-1) + (((int)MinRow.Length()-1) * BorderSpacing);
-		*MinY = max(*MinY, y);
+		*MinY = MAX(*MinY, y);
 	}
 	if (MaxY)
 	{
 		int y = CountRange(MaxRow, 0, MinRow.Length()-1) + (((int)MaxRow.Length()-1) * BorderSpacing);
-		*MaxY = max(*MaxY, y);
+		*MaxY = MAX(*MaxY, y);
 	}
 	if (Flag)
 	{	
 		for (i=0; i<RowFlags.Length(); i++)
 		{
-			*Flag = max(*Flag, RowFlags[i]);
+			*Flag = MAX(*Flag, RowFlags[i]);
 		}
 	}
 }
@@ -1765,14 +1784,24 @@ void GTableLayoutPrivate::LayoutPost(GRect &Client)
 					}
 					c->PostLayout();
 
-					MaxY = max(MaxY, c->Pos.y2);
+					MaxY = MAX(MaxY, c->Pos.y2);
+
+					/*
+					#if DEBUG_LAYOUT
+					if (DebugLayout)
+						LgiTrace("\tCell[%i][%i]: %ix%i, %s\n", Cx, Cy, c->Cell.X(), c->Cell.Y(), c->Pos.GetStr());
+					#endif
+					*/
 				}
 
 				Px = c->Pos.x2 + BorderSpacing - Client.x1 + 1;
 				Cx += c->Cell.X();
 			}
 			else
+			{
+				Px = MinCol[Cx] + BorderSpacing;
 				Cx++;
+			}
 		}
 
 		Py += MinRow[Cy] + BorderSpacing;
@@ -1824,6 +1853,14 @@ void GTableLayoutPrivate::Layout(GRect &Client)
 	Ctrl->SendNotify(GNotifyTableLayout_LayoutChanged);
 	#if DEBUG_PROFILE
 	LgiTrace("GTableLayout::Layout = %i ms\n", (int)(LgiCurrentTime()-Start));
+	#endif
+
+	#if DEBUG_LAYOUT
+	if (DebugLayout)
+	{
+		GAutoString DbgStr(Dbg.NewStr());
+		LgiTrace("%s", DbgStr.Get());
+	}
 	#endif
 	
 	InLayout = false;
@@ -2093,7 +2130,7 @@ int GTableLayout::OnNotify(GViewI *c, int f)
     if (f == GNotifyTableLayout_Refresh)
     {
 		d->PrevWidth = -1;
-        OnPosChange();
+        // OnPosChange();
         Invalidate();
         return 0;
     }

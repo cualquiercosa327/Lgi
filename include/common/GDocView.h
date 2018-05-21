@@ -472,7 +472,7 @@ bool LgiDetectLinks(GArray<GLinkInfo> &Links, T *Text, ssize_t TextCharLen = -1)
 			case '@':
 			{
 				// find start
-				T *s = Text + (max(i, 1) - 1);
+				T *s = Text + (MAX(i, 1) - 1);
 				
 				for ( ; s > Text && EmailChar(*s); s--)
 					;

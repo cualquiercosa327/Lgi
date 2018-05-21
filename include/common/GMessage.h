@@ -46,7 +46,7 @@ enum LgiMessages
 		M_PULSE,
 		M_SET_VISIBLE,
 		
-		/// Sent from a worker thread when calling GText::Name
+		/// Sent from a worker thread when calling GTextLabel::Name
 		M_TEXT_UPDATE_NAME,
 	
 	#elif defined(WINNATIVE)
@@ -96,7 +96,7 @@ enum LgiMessages
 		// Set the visibility of the window
 		M_SET_VISIBLE,
 
-		/// Sent from a worker thread when calling GText::Name
+		/// Sent from a worker thread when calling GTextLabel::Name
 		M_TEXT_UPDATE_NAME,
 
 		/// Send when a window is losing it's mouse capture. Usually
@@ -119,6 +119,7 @@ enum LgiMessages
 		M_MOUSE_CAPTURE_POLL,
 		M_TEXT_UPDATE_NAME,
 		M_INVALIDATE,
+		M_ASSERT_DLG,
 	
 	#elif defined(MAC)
 
@@ -158,6 +159,7 @@ enum LgiMessages
 		M_SET_VISIBLE,
 		M_SETPOS, // A=(GRect*)Rectangle
 		M_INVALIDATE, // A=(GRect*)Rectangle
+		M_ASSERT_DLG,
 
 		/// Minimum value for application defined message ID's
 		M_USER							= (M_SYSTEM+1000),

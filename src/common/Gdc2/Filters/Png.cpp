@@ -676,12 +676,12 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 	#if LIBPNG_SHARED
 	if (!Lib->IsLoaded() && !Lib->Load(sLibrary))
 	{
+		GString s;
+		s.Printf("libpng is missing (%s.%s)", sLibrary, LGI_LIBRARY_EXT);
 		if (Props)
-		{
-			GString s;
-			s.Printf("libpng is missing (%s.%s)", sLibrary, LGI_LIBRARY_EXT);
 			Props->SetValue(LGI_FILTER_ERROR, v = s);
-		}
+		else
+			LgiTrace("%s:%i - %s\n", _FL, s.Get());
 
 		static bool Warn = true;
 		if (Warn)
@@ -739,7 +739,7 @@ GFilter::IoStatus GdcPng::ReadImage(GSurface *pDeviceContext, GStream *In)
 				int RequestBits = FinalBits * Channels;
 				GColourSpace InCs = ColourType == PNG_COLOR_TYPE_GRAY_ALPHA ?
 										CsIndex8 :
-										GBitsToColourSpace(max(RequestBits, 8));
+										GBitsToColourSpace(MAX(RequestBits, 8));
 				
 				if (!pDC->Create(	LIBPNG png_get_image_width(png_ptr, info_ptr),
 									LIBPNG png_get_image_height(png_ptr, info_ptr),

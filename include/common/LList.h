@@ -175,6 +175,23 @@ public:
 	}
 
 	template<class T>
+	bool GetSelection(GArray<T*> &n)
+	{
+		n.Empty();
+		List<LListItem>::I It = Items.Start();
+		for (LListItem *i=*It; i; i=*++It)
+		{
+			if (i->Select())
+			{
+				T *ptr = dynamic_cast<T*>(i);
+				if (ptr)
+					n.Add(ptr);
+			}
+		}
+		return n.Length() > 0;
+	}
+
+	template<class T>
 	bool GetAll(List<T> &n)
 	{
 		n.Empty();
@@ -188,6 +205,20 @@ public:
 		return n.Length() > 0;
 	}
 
+	template<class T>
+	bool GetAll(GArray<T*> &n)
+	{
+		n.Empty();
+		List<LListItem>::I It = Items.Start();
+		for (LListItem *i=*It; i; i=*++It)
+		{
+			T *ptr = dynamic_cast<T*>(i);
+			if (ptr)
+				n.Add(ptr);
+		}
+		return n.Length() == Items.Length();
+	}
+
 	List<LListItem>::I Start()
 	{
 		return Items.Start();
@@ -196,6 +227,19 @@ public:
 	List<LListItem>::I End()
 	{
 		return Items.End();
+	}
+
+	template<typename T>
+	bool Iterate(T *&Ptr)
+	{
+		if (Ptr)
+			// Next
+			Ptr = dynamic_cast<T*>(Items.Next());
+		else
+			// First
+			Ptr = dynamic_cast<T*>(Items.First());
+
+		return Ptr != NULL;
 	}
 };
 
@@ -249,15 +293,15 @@ public:
 		/// The control's ID
 		int id,
 		/// Left edge position
-		int x,
+		int x = 0,
 		/// Top edge position
-		int y,
+		int y = 0,
 		/// The width
-		int cx,
+		int cx = 100,
 		/// The height
-		int cy,
+		int cy = 100,
 		/// An unseen descriptor of the control
-		const char *name = "List"
+		const char *name = NULL
 	);
 	~LList();
 

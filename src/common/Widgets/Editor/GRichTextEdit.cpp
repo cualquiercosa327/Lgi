@@ -90,7 +90,13 @@ GRichTextEdit::~GRichTextEdit()
 bool GRichTextEdit::SetSpellCheck(GSpellCheck *sp)
 {
 	if ((d->SpellCheck = sp))
-		d->SpellCheck->EnumLanguages(AddDispatch());
+	{
+		if (IsAttached())
+			d->SpellCheck->EnumLanguages(AddDispatch());
+		// else call that OnCreate
+		
+	}
+
 	return d->SpellCheck != NULL;
 }
 
@@ -418,7 +424,7 @@ bool GRichTextEdit::Name(const char *s)
 	if (Status)
 		SetCursor(0, false);
 	
-	// d->DumpBlocks();
+	Invalidate();
 	
 	return Status;
 }
@@ -1156,6 +1162,9 @@ void GRichTextEdit::OnCreate()
 
 	if (Focus())
 		SetPulse(RTE_PULSE_RATE);
+
+	if (d->SpellCheck)
+		d->SpellCheck->EnumLanguages(AddDispatch());
 }
 
 void GRichTextEdit::OnEscape(GKey &K)
@@ -1196,6 +1205,28 @@ void GRichTextEdit::Redo()
 	if (d->UndoPos < (int)d->UndoQue.Length())
 		d->SetUndoPos(d->UndoPos + 1);
 }
+
+#ifdef _DEBUG
+class NodeView : public GWindow
+{
+public:
+	GTree *Tree;
+	
+	NodeView(GViewI *w)
+	{
+		GRect r(0, 0, 500, 600);
+		SetPos(r);
+		MoveSameScreen(w);
+		Attach(0);
+
+		if ((Tree = new GTree(100, 0, 0, 100, 100)))
+		{
+			Tree->SetPourLargest(true);
+			Tree->Attach(this);
+		}
+	}
+};
+#endif
 
 void GRichTextEdit::DoContextMenu(GMouse &m)
 {
@@ -1245,7 +1276,17 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 	
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_INDENT_SIZE, "Indent Size"), IDM_INDENT_SIZE, true);
 	RClick.AppendItem(LgiLoadString(L_TEXTCTRL_TAB_SIZE, "Tab Size"), IDM_TAB_SIZE, true);
-	RClick.AppendItem("Copy Original", IDM_COPY_ORIGINAL, d->OriginalText.Get() != NULL);
+	
+	GSubMenu *Src = RClick.AppendSub("Source");
+	if (Src)
+	{
+		Src->AppendItem("Copy Original", IDM_COPY_ORIGINAL, d->OriginalText.Get() != NULL);
+		Src->AppendItem("Copy Current", IDM_COPY_CURRENT);
+		#ifdef _DEBUG
+		Src->AppendItem("Dump Nodes", IDM_DUMP_NODES);
+		// Edit->DumpNodes(Tree);
+		#endif
+	}
 
 	if (Over)
 	{
@@ -1336,6 +1377,21 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 			c.Text(d->OriginalText);
 			break;
 		}
+		case IDM_COPY_CURRENT:
+		{
+			GClipBoard c(this);
+			c.Text(Name());
+			break;
+		}
+		case IDM_DUMP_NODES:
+		{
+			#ifdef _DEBUG
+			NodeView *nv = new NodeView(GetWindow());
+			DumpNodes(nv->Tree);
+			nv->Visible(true);
+			#endif
+			break;
+		}
 		default:
 		{
 			if (Over)
@@ -1407,6 +1463,8 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 	}
 	else if (IsCapturing())
 	{
+		Capture(false);
+
 		if (d->ClickedBtn != MaxArea)
 		{
 			d->BtnState[d->ClickedBtn].Pressed = false;
@@ -1414,7 +1472,6 @@ void GRichTextEdit::OnMouseClick(GMouse &m)
 			Processed |= d->ClickBtn(m, Clicked);
 		}
 
-		Capture(false);
 		d->ClickedBtn = MaxArea;
 	}
 
@@ -2376,17 +2433,27 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 		{
 			GAutoPtr< GArray<GSpellCheck::LanguageId> > Languages((GArray<GSpellCheck::LanguageId>*)Msg->A());
 			if (!Languages)
+			{
+				LgiTrace("%s:%i - M_ENUMERATE_LANGUAGES no param\n", _FL);
 				break;
-			
+			}
+
+			// LgiTrace("%s:%i - Got M_ENUMERATE_LANGUAGES %s\n", _FL, d->SpellLang.Get());
+			bool Match = false;
 			for (unsigned i=0; i<Languages->Length(); i++)
 			{
 				GSpellCheck::LanguageId &s = (*Languages)[i];
-				if (s.EnglishName.Equals(d->SpellLang))
+				if (s.LangCode.Equals(d->SpellLang) ||
+					s.EnglishName.Equals(d->SpellLang))
 				{
+					// LgiTrace("%s:%i - EnumDict called %s\n", _FL, s.LangCode.Get());
 					d->SpellCheck->EnumDictionaries(AddDispatch(), s.LangCode);
+					Match = true;
 					break;
 				}
 			}
+			if (!Match)
+				LgiTrace("%s:%i - EnumDict not called %s\n", _FL, d->SpellLang.Get());
 			break;
 		}
 		case M_ENUMERATE_DICTIONARIES:
@@ -2394,25 +2461,41 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 			GAutoPtr< GArray<GSpellCheck::DictionaryId> > Dictionaries((GArray<GSpellCheck::DictionaryId>*)Msg->A());
 			if (!Dictionaries)
 				break;
-			
+	
+			bool Match = false;		
 			for (unsigned i=0; i<Dictionaries->Length(); i++)
 			{
 				GSpellCheck::DictionaryId &s = (*Dictionaries)[i];
-				// printf("%s:%i - M_ENUMERATE_DICTIONARIES: %s, %s\n", _FL, s.Dict.Get(), d->SpellDict.Get());
 				if (s.Dict.Equals(d->SpellDict))
 				{
+					// LgiTrace("%s:%i - M_ENUMERATE_DICTIONARIES: %s, %s\n", _FL, s.Dict.Get(), d->SpellDict.Get());
 					d->SpellCheck->SetDictionary(AddDispatch(), s.Lang, s.Dict);
+					Match = true;
 					break;
 				}
 			}
+			if (!Match)
+				LgiTrace("%s:%i - No match in M_ENUMERATE_DICTIONARIES: %s\n", _FL, d->SpellDict.Get());
 			break;
 		}
 		case M_SET_DICTIONARY:
 		{
 			d->SpellDictionaryLoaded = Msg->A() != 0;
-			#if _DEBUG
-			LgiTrace("%s:%i - M_SET_DICTIONARY=%i\n", _FL, d->SpellDictionaryLoaded);
-			#endif
+			// LgiTrace("%s:%i - M_SET_DICTIONARY=%i\n", _FL, d->SpellDictionaryLoaded);
+			if (d->SpellDictionaryLoaded)
+			{
+				AutoTrans Trans(new GRichTextPriv::Transaction);
+
+				// Get any loaded text blocks to check their spelling
+				bool Status = false;
+				for (unsigned i=0; i<d->Blocks.Length(); i++)
+				{
+					Status |= d->Blocks[i]->OnDictionary(Trans);
+				}
+
+				if (Status)
+					d->AddTrans(Trans);
+			}
 			break;
 		}
 		case M_CHECK_TEXT:
@@ -2750,6 +2833,10 @@ EmojiMenu::EmojiMenu(GRichTextPriv *priv, GdcPt2 p) : GPopup(priv->View)
 
 void EmojiMenu::OnPaint(GSurface *pDC)
 {
+	GAutoPtr<GDoubleBuffer> DblBuf;
+	if (!pDC->SupportsAlphaCompositing())
+		DblBuf.Reset(new GDoubleBuffer(pDC));
+
 	pDC->Colour(LC_MED, 24);
 	pDC->Rectangle();
 

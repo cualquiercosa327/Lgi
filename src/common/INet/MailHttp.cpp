@@ -510,7 +510,7 @@ bool MailPhp::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks)
 				if (t && t->Stream)
 				{
 					ssize_t Len = e-s;
-					if (!strnstr(s, "Error: ", min(Len, 256)))
+					if (!strnstr(s, "Error: ", MIN(Len, 256)))
 					{
 						t->Stream->Write(s, Len - 2);
 						t->Status = true;

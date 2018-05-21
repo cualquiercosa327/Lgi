@@ -8,6 +8,8 @@
 #include "GArray.h"
 #include "LgiOsDefs.h"
 #include "GColour.h"
+#include "LCancel.h"
+#include "GStringClass.h"
 
 // Fwd defs
 class GXmlTag;
@@ -112,7 +114,9 @@ enum GSocketLogTypes
 
 /// Virtual base class for a socket. See the documentation for GSocket for a more
 /// through treatment of this object's API.
-class GSocketI : virtual public GStreamI
+class GSocketI :
+	virtual public GStreamI,
+	public LCancel
 {
 public:
 	enum SocketMsgType
@@ -268,8 +272,8 @@ public:
 	(
 		/// The option to look for.
 		const char *Option,
-		/// The buffer to receive the value.
-		GAutoString &Buf
+		/// String to receive the value (if any) of the option
+		GString &Value
 	) = 0;
 
 	/// \brief Parses the command line for a switch
@@ -455,6 +459,7 @@ public:
 	virtual int64 Value() = 0;
 	virtual void Value(int64 i) = 0;
 	virtual const char *GetClass() { return "GViewI"; } // mainly for debugging
+	virtual GString::Array *CssClasses() { return NULL; }
 
 	// Size and position	
 	virtual GRect &GetPos() = 0;

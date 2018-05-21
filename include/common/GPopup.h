@@ -18,6 +18,7 @@ class LgiClass GPopup :
 	friend class GDropDown;
 	friend class GMouseHook;
 	friend class GMouseHookPrivate;
+    friend class GView;
 
     #ifdef __GTK_H__
     Gtk::GtkWidget *Wnd;

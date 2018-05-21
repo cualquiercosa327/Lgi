@@ -165,7 +165,7 @@ GFindInFiles::GFindInFiles(GViewI *Parent, GAutoString Search, GDom *Store)
 	Name("Find In Files");
 	
 	GLayoutCell *c = d->Tbl->GetCell(0, y, true, cols);
-	c->Add(new GText(IDC_STATIC, 0, 0, -1, -1, "Find what:"));
+	c->Add(new GTextLabel(IDC_STATIC, 0, 0, -1, -1, "Find what:"));
 
 	c = d->Tbl->GetCell(0, ++y, true, cols-1);
 	c->Add(v = new GEdit(IDC_SEARCH, 0, 0, 60, 20));
@@ -174,7 +174,7 @@ GFindInFiles::GFindInFiles(GViewI *Parent, GAutoString Search, GDom *Store)
 	c->Add(d->SearchHistory = new GHistory(IDC_SEARCH_HISTORY));
 
 	c = d->Tbl->GetCell(0, ++y, true, cols);
-	c->Add(new GText(IDC_STATIC, 0, 0, -1, -1, "Look in:"));
+	c->Add(new GTextLabel(IDC_STATIC, 0, 0, -1, -1, "Look in:"));
 
 	c = d->Tbl->GetCell(0, ++y);
 	c->Add(new GEdit(IDC_WHERE, 0, 0, 60, 20));
@@ -195,7 +195,7 @@ GFindInFiles::GFindInFiles(GViewI *Parent, GAutoString Search, GDom *Store)
 
 	c = d->Tbl->GetCell(0, ++y, true, cols);
 	c->PaddingTop(GCss::Len("1em"));
-	c->Add(new GText(IDC_STATIC, 0, 0, -1, -1, "Look in these file types:"));
+	c->Add(new GTextLabel(IDC_STATIC, 0, 0, -1, -1, "Look in these file types:"));
 
 	c = d->Tbl->GetCell(0, ++y, true, cols-1);
 	c->Add(new GEdit(IDC_FILE_TYPES, 0, 0, 60, 20));
@@ -229,7 +229,7 @@ int GFindInFiles::OnNotify(GViewI *Ctrl, int Flags)
 			{
 				GFile::Path p = s.Name();
 				if (p.IsFile())
-					p.Parent();
+					p--;
 				SetCtrlName(IDC_WHERE, p.GetFull());
 			}
 			break;

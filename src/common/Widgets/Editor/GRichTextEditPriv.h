@@ -88,6 +88,8 @@ enum RteCommands
 	IDM_DUMP,
 	IDM_RTL,
 	IDM_COPY_ORIGINAL,
+	IDM_COPY_CURRENT,
+	IDM_DUMP_NODES,
 	IDM_CLOCKWISE,
 	IDM_ANTI_CLOCKWISE,
 	IDM_X_FLIP,
@@ -206,7 +208,7 @@ struct GRichEditElemContext : public GCss::ElementCallback<GRichEditElem>
 	/// Returns the document unque element ID
 	const char *GetAttr(GRichEditElem *obj, const char *Attr);
 	/// Returns the class
-	bool GetClasses(GArray<const char *> &Classes, GRichEditElem *obj);
+	bool GetClasses(GString::Array &Classes, GRichEditElem *obj);
 	/// Returns the parent object
 	GRichEditElem *GetParent(GRichEditElem *obj);
 	/// Returns an array of child objects
@@ -243,6 +245,11 @@ struct GNamedStyle : public GCss
 {
 	int RefCount;
 	GString Name;
+
+	GNamedStyle()
+	{
+		RefCount = 0;
+	}
 };
 
 class GCssCache
@@ -588,7 +595,7 @@ public:
 			}
 
 			// Before selection end point
-			if (CurEndPoint < EndPoints.Length() &&
+			if (CurEndPoint < (ssize_t)EndPoints.Length() &&
 				EndPoints[CurEndPoint] == 0)
 			{
 				Type = Type == Selected ? Unselected : Selected;
@@ -603,7 +610,7 @@ public:
 		bool SelectAfterPaint(class GRichTextPriv::Block *b)
 		{
 			// After image selection end point
-			if (CurEndPoint < EndPoints.Length() &&
+			if (CurEndPoint < (ssize_t)EndPoints.Length() &&
 				EndPoints[CurEndPoint] == 1)
 			{
 				Type = Type == Selected ? Unselected : Selected;
@@ -849,6 +856,8 @@ public:
 				/// The index to add at (-1 = the end)
 				ssize_t AtOffset
 			)	{ return NULL; }
+			// Event called on dictionary load
+			virtual bool OnDictionary(Transaction *Trans) { return false; }
 	};
 
 	struct BlockCursor
@@ -1042,14 +1051,25 @@ public:
 		void DrawDisplayString(GSurface *pDC, DisplayStr *Ds, int &FixX, int FixY, GColour &Bk, int &Pos);
 	
 	public:
+		// Runs of characters in the same style: pre-layout.
 		GArray<StyleText*> Txt;
+
+		// Runs of characters (display strings) of potentially different styles on the same line: post-layout.
 		GArray<TextLine*> Layout;
+		// True if the 'Layout' data is out of date.
+		bool LayoutDirty;
+
+		// Size of the edges
 		GRect Margin, Border, Padding;
+		
+		// Default font for the block
 		GFont *Fnt;
 		
-		bool LayoutDirty;
-		ssize_t Len; // chars in the whole block (sum of all Text lengths)
-		GRect Pos; // position in document co-ordinates
+		// Chars in the whole block (sum of all Text lengths)
+		ssize_t Len;
+		
+		// Position in document co-ordinates
+		GRect Pos;
 		
 		TextBlock(GRichTextPriv *priv);
 		TextBlock(const TextBlock *Copy);
@@ -1095,6 +1115,7 @@ public:
 		bool DoCase(Transaction *Trans, ssize_t StartIdx, ssize_t Chars, bool Upper);
 		Block *Split(Transaction *Trans, ssize_t AtOffset);
 		bool StripLast(Transaction *Trans, const char *Set = " \t\r\n"); // Strip trailing new line if present..
+		bool OnDictionary(Transaction *Trans);
 	};
 
 	class HorzRuleBlock : public Block

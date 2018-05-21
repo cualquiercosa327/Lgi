@@ -153,17 +153,17 @@ void RLogView::OnPaint(GSurface *pDC)
 
 		int y = SysFont->GetHeight();
 		int Screen = GetScreenItems();
-		int Index = max((VScroll) ? (int)VScroll->Value() : 0, 0);
+		int Index = MAX((VScroll) ? (int)VScroll->Value() : 0, 0);
 		int n = GetTotalItems() - 1;
 		RLogEntry *e = 0;
 		
 		if (TopDown())
 		{
-			e = Log->Entries.ItemAt(max(Index, 0));
+			e = Log->Entries.ItemAt(MAX(Index, 0));
 		}
 		else
 		{
-			e = Log->Entries.ItemAt(min(Screen+Index-1, n));
+			e = Log->Entries.ItemAt(MIN(Screen+Index-1, n));
 		}
 
 		while (e)

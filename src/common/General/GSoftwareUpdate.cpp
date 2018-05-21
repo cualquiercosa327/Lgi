@@ -67,7 +67,17 @@ struct GSoftwareUpdatePriv
 			{
 				GUri Uri(d->UpdateUri);
 				char Dir[256];
-				sprintf_s(Dir, sizeof(Dir), "%s?name=%s&os=%s&betas=%i", Uri.Path, (char*)d->Name, LgiGetOsName(), IncBetas);
+				int WordSize = sizeof(size_t) << 3;
+				GString OsName = LgiGetOsName();
+				int Os = LgiGetOs();
+				if (Os == LGI_OS_WIN32 ||
+					Os == LGI_OS_WIN64 ||
+					Os == LGI_OS_WIN9X)
+				{
+					OsName.Printf("Win%i", WordSize);
+				}
+
+				sprintf_s(Dir, sizeof(Dir), "%s?name=%s&os=%s&betas=%i", Uri.Path, (char*)d->Name, OsName.Get(), IncBetas);
 				DeleteArray(Uri.Path);
 				Uri.Path = NewStr(Dir);
 
@@ -152,12 +162,11 @@ struct GSoftwareUpdatePriv
 			Name("Software Update");
 
 			GRect c = GetClient();
-			GText *t = new GText(-1,
-								10,
-								10,
-								c.X()-20,
-								-1,
-								LgiLoadString(L_SOFTUP_CHECKING, "Checking for software update..."));
+			GTextLabel *t = new GTextLabel(	-1,
+											10, 10,
+											c.X()-20,
+											-1,
+											LgiLoadString(L_SOFTUP_CHECKING, "Checking for software update..."));
 			if (t)
 			{
 				AddView(t);

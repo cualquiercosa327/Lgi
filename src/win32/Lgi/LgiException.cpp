@@ -5,40 +5,18 @@
 LPTOP_LEVEL_EXCEPTION_FILTER _PrevExceptionHandler = 0;
 
 #if _MSC_VER >= 1400
+
 // VS2005 or later, write a mini-dump
-
-typedef enum _MINIDUMP_TYPE {
-  MiniDumpNormal                           = 0x00000000,
-  MiniDumpWithDataSegs                     = 0x00000001,
-  MiniDumpWithFullMemory                   = 0x00000002,
-  MiniDumpWithHandleData                   = 0x00000004,
-  MiniDumpFilterMemory                     = 0x00000008,
-  MiniDumpScanMemory                       = 0x00000010,
-  MiniDumpWithUnloadedModules              = 0x00000020,
-  MiniDumpWithIndirectlyReferencedMemory   = 0x00000040,
-  MiniDumpFilterModulePaths                = 0x00000080,
-  MiniDumpWithProcessThreadData            = 0x00000100,
-  MiniDumpWithPrivateReadWriteMemory       = 0x00000200,
-  MiniDumpWithoutOptionalData              = 0x00000400,
-  MiniDumpWithFullMemoryInfo               = 0x00000800,
-  MiniDumpWithThreadInfo                   = 0x00001000,
-  MiniDumpWithCodeSegs                     = 0x00002000 
-} MINIDUMP_TYPE;
-
-typedef struct _MINIDUMP_EXCEPTION_INFORMATION {
-  DWORD               ThreadId;
-  PEXCEPTION_POINTERS ExceptionPointers;
-  BOOL                ClientPointers;
-} MINIDUMP_EXCEPTION_INFORMATION, *PMINIDUMP_EXCEPTION_INFORMATION;
-
-typedef void *PMINIDUMP_USER_STREAM_INFORMATION;
-typedef void *PMINIDUMP_CALLBACK_INFORMATION;
+#include <dbghelp.h>
 
 class DbgHelp : public GLibrary
 {
 public:
 	DbgHelp() : GLibrary("Dbghelp")
 	{
+		WCHAR   DllPath[MAX_PATH] = {0};
+		GetModuleFileNameW(Handle(), DllPath, _countof(DllPath));		
+		LgiTrace("Loaded '%S'\n", DllPath);
 	}
 
 	#undef GLibCallType
@@ -51,8 +29,72 @@ public:
 				PMINIDUMP_EXCEPTION_INFORMATION, ExceptionParam,
 				PMINIDUMP_USER_STREAM_INFORMATION, UserStreamParam,
 				PMINIDUMP_CALLBACK_INFORMATION, CallbackParam);
-
 };
+
+/*
+HRESULT GenerateCrashDump(MINIDUMP_TYPE flags, EXCEPTION_POINTERS *seh=NULL)
+{
+	HRESULT error = S_OK;
+	DbgHelp Dll;
+
+	// get the time
+	SYSTEMTIME sysTime = {0};
+	GetSystemTime(&sysTime);
+
+	// get the computer name
+	char compName[MAX_COMPUTERNAME_LENGTH + 1] = {0};
+	DWORD compNameLen = ARRAYSIZE(compName);
+	GetComputerNameA(compName, &compNameLen);
+
+	// build the filename: APPNAME_COMPUTERNAME_DATE_TIME.DMP
+	char path[MAX_PATH] = {0};
+	sprintf_s(path, ARRAYSIZE(path),
+			"c:\\myapp_%s_%04u-%02u-%02u_%02u-%02u-%02u.dmp",
+			compName, sysTime.wYear, sysTime.wMonth, sysTime.wDay,
+			sysTime.wHour, sysTime.wMinute, sysTime.wSecond);
+
+	// open the file
+	HANDLE hFile = CreateFileA(	path,
+								GENERIC_READ|GENERIC_WRITE,
+								FILE_SHARE_DELETE|FILE_SHARE_READ|FILE_SHARE_WRITE,
+								NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL); 
+	if (hFile == INVALID_HANDLE_VALUE)
+	{
+		error = GetLastError();
+		error = HRESULT_FROM_WIN32(error);
+		return error;
+	}
+
+	// get the process information
+	HANDLE hProc = GetCurrentProcess();
+	DWORD procID = GetProcessId(hProc);
+
+	// if we have SEH info, package it up
+	MINIDUMP_EXCEPTION_INFORMATION sehInfo = {0};
+	MINIDUMP_EXCEPTION_INFORMATION *sehPtr = NULL;
+	if (seh)
+	{
+		sehInfo.ThreadId = GetCurrentThreadId();
+		sehInfo.ExceptionPointers = seh;
+		sehInfo.ClientPointers = FALSE;
+		sehPtr = &sehInfo;
+	}
+
+	// generate the crash dump
+	BOOL result = Dll.MiniDumpWriteDump(hProc, procID, hFile,
+									flags, sehPtr, NULL, NULL);
+
+	if (!result)
+	{
+		error = (HRESULT)GetLastError(); // already an HRESULT
+	}
+
+	// close the file
+	CloseHandle(hFile);
+
+	return error;
+}
+*/
 
 LONG __stdcall GApp::_ExceptionFilter(LPEXCEPTION_POINTERS e, char *ProductId)
 {
@@ -83,10 +125,16 @@ LONG __stdcall GApp::_ExceptionFilter(LPEXCEPTION_POINTERS e, char *ProductId)
 		if (Help.IsLoaded())
 		{
 			MINIDUMP_EXCEPTION_INFORMATION Info;
+
+			ZeroObj(Info);
+
 			Info.ThreadId = GetCurrentThreadId();
 			Info.ExceptionPointers = e;
-			Info.ClientPointers = true;
-			BOOL Ret = Help.MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), File.Handle(), MiniDumpNormal, &Info, 0, 0);
+			Info.ClientPointers = false;
+
+			LgiTrace("Calling MiniDumpWriteDump...\n");
+			BOOL Ret = Help.MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), File.Handle(), MiniDumpNormal, &Info, NULL, NULL);
+			// LgiTrace("MiniDumpWriteDump=%i\n", Ret);
 			if (Ret)
 			{
 				LgiMsg(0, "This application has crashed. A mini dump has been written to:\n%s\n", Title, MB_OK|MB_APPLMODAL, p);

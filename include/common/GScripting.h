@@ -138,8 +138,8 @@ class GFunctionInfo : public GRefCount
 	
 	static int _Infos;
 
-	int StartAddr;
-	int FrameSize;
+	int32 StartAddr;
+	uint16 FrameSize;
 	GString Name;
 	GArray<GString> Params;
 
@@ -286,8 +286,9 @@ class GCompiledCode
 	/// All the user types defined
 	GHashTbl<char16*, class GCustomType*> Types;
 	
-	/// The original script filename
-	GAutoString FileName;
+	/// The original script details
+	GString FileName;
+	GString Source;
 	
 	/// The system context (all the system functions)
 	GScriptContext *SysContext;
@@ -313,14 +314,22 @@ public:
 	GVariant *Set(const char *Name, GVariant &v);
 	/// Gets the definition of a struct or custom type
 	GCustomType *GetType(char16 *Name) { return Types.Find(Name); }
-	/// Sets the file name this code was compiled from
-	void SetFileName(const char *f) { if (f != FileName) FileName.Reset(NewStr(f)); }
 	/// Gets the file name this code was compiled from
 	const char *GetFileName() { return FileName; }
+	/// Gets the source
+	const char *GetSource() { return Source; }
 	/// Gets the source line number associated with an address
 	int ObjectToSourceAddress(size_t ObjAddr);
 	/// Turns an object address into a FileName:LineNumber string.
 	const char *AddrToSourceRef(size_t ObjAddr);
+
+	/// Sets the file name this code was compiled from
+	void SetSource(const char *file, const char *src)
+	{
+		if (file != FileName.Get())
+			FileName = file;
+		Source = src;
+	}
 };
 
 /// New compiler/byte code/VM scripting engine
@@ -377,7 +386,7 @@ class GVmDebuggerCallback : public GDom
 {
 public:
 	/// Start a debugger instance to handle the execution in 'Vm'
-	virtual GVmDebugger *AttachVm(GVirtualMachine *Vm, const char *Script, const char *Assembly) = 0;
+	virtual GVmDebugger *AttachVm(GVirtualMachine *Vm, GCompiledCode *Code, const char *Assembly) = 0;
 	/// Compile a new script
 	virtual bool CompileScript(GAutoPtr<GCompiledCode> &Output, const char *FileName, const char *Source) = 0;
 };
@@ -390,7 +399,7 @@ class GVmDebuggerWnd : public GWindow, public GVmDebugger
 	void UpdateVariables(LList *Lst, GVariant *Arr, ssize_t Len, char Prefix);
 
 public:
-	GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVirtualMachine *Vm, const char *Script, const char *Assembly);
+	GVmDebuggerWnd(GView *Parent, GVmDebuggerCallback *Callback, GVirtualMachine *Vm, GCompiledCode *Code, const char *Assembly);
 	~GVmDebuggerWnd();
 
 	void OwnVm(bool Own);

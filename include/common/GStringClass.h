@@ -31,6 +31,9 @@
 #endif
 #include "GUnicode.h"
 #include "GArray.h"
+#ifndef IsDigit
+	#define IsDigit(ch) ((ch) >= '0' && (ch) <= '9')
+#endif
 
 LgiExtern int LgiPrintf(class GString &Str, const char *Format, va_list &Arg);
 
@@ -114,6 +117,15 @@ public:
 	{
 		Str = NULL;
 	}
+
+	#ifndef _MSC_VER
+	// This odd looking constructor allows the object to be used as the value type
+	// in a GHashTable, where the initialiser is '0', an integer.
+	GString(long int i)
+	{
+		Str = NULL;
+	}
+	#endif
 	
 	/// String constructor
 	GString(const char *str, ptrdiff_t bytes)
@@ -130,15 +142,50 @@ public:
 	}
 
 	/// const char16* constructor
-	GString(const wchar_t *str, ptrdiff_t chars = -1)
+	GString(const wchar_t *str, ptrdiff_t wchars = -1)
 	{
 		Str = NULL;
-		char *Utf = WideToUtf8(str, chars < 0 ? -1 : chars);
-		if (Utf)
+		SetW(str, wchars);
+	}
+
+	static size_t WcharToUtfLength(const wchar_t *s, ptrdiff_t wchars = -1)
+	{
+		if (!s) return 0;
+		size_t Out = 0;
+		uint8 Buf[6];
+
+		#ifdef _MSC_VER
+		const uint16 *i = (const uint16*) s;
+		ssize_t Len = wchars >= 0 ? wchars << 1 : 0x7fffffff;
+		for (uint32 ch; ch = LgiUtf16To32(i, Len); )
 		{
-			Set(Utf);
-			delete [] Utf;
+			uint8 *b = Buf;
+			ssize_t len = sizeof(Buf);
+			if (!LgiUtf32To8(ch, b, len))
+				break;
+			Out += sizeof(Buf) - len;
 		}
+		#else
+		const wchar_t *end = wchars < 0 ? NULL : s + wchars;
+		for (uint32 ch = 0;
+			(
+				wchars < 0
+				||
+				s < end
+			)
+			&&
+			(ch = *s);
+			s++)
+		{
+			uint8 *b = Buf;
+			ssize_t len = sizeof(Buf);
+			if (!LgiUtf32To8(ch, b, len))
+				break;
+			Out += sizeof(Buf) - len;
+		}
+		#endif
+
+		return Out;
 	}
 
 	#if defined(_WIN32) || defined(MAC)
@@ -245,6 +292,73 @@ public:
 			memcpy(Str->Str, str, bytes);
 		
 		Str->Str[bytes] = 0;
+		return true;
+	}
+
+	/// Sets the string to a new value
+	bool SetW
+	(
+		/// Can be a pointer to string data or NULL to create an empty buffer (requires valid length)
+		const wchar_t *str,
+		/// Number of 'char16' values in the input string or -1 to copy till the NULL terminator.
+		ptrdiff_t wchars = -1
+	)
+	{
+		size_t Sz = WcharToUtfLength(str, wchars);
+		if (Length(Sz))
+		{
+			#ifdef _MSC_VER
+
+			const uint16 *i = (const uint16*) str;
+			ssize_t InLen = wchars >= 0 ? wchars << 1 : 0x7fffffff;
+
+			assert(sizeof(*i) == sizeof(*str));
+
+			uint8 *o = (uint8*)Str->Str;
+			ssize_t OutLen = Str->Len;
+
+			for (uint32 ch; ch = LgiUtf16To32(i, InLen); )
+			{
+				if (!LgiUtf32To8(ch, o, OutLen))
+				{
+					*o = 0;
+					break;
+				}
+			}
+
+			#else
+
+			uint8 *o = (uint8*)Str->Str;
+			ssize_t OutLen = Str->Len;
+			if (wchars >= 0)
+			{
+				const wchar_t *end = str + wchars;
+				for (const wchar_t *ch = str; ch < end; ch++)
+				{
+					if (!LgiUtf32To8(*ch, o, OutLen))
+					{
+						*o = 0;
+						break;
+					}
+				}
+			}
+			else
+			{
+				for (const wchar_t *ch = str; *ch; ch++)
+				{
+					if (!LgiUtf32To8(*ch, o, OutLen))
+					{
+						*o = 0;
+						break;
+					}
+				}
+			}
+
+			#endif
+
+			*o = 0;
+		}
+
 		return true;
 	}
 
@@ -369,13 +483,18 @@ public:
 	GString &operator =(int64 val)
 	{
 		char n[32];
-		sprintf_s(n, sizeof(n), "%" PRId64, val);
+		sprintf_s(n, sizeof(n), "%" PRId64, (int64_t)val);
 		Set(n);
 		return *this;
 	}
 	
 	/// Cast to C string operator
 	operator char *()
+	{
+		return Str ? Str->Str : NULL;
+	}
+
+	operator const char *() const
 	{
 		return Str ? Str->Str : NULL;
 	}
@@ -733,6 +852,19 @@ public:
 			return Atoi(Str->Str, Base);
 		return -1;
 	}
+
+	/// Checks if the string is a number
+	bool IsNumeric()
+	{
+		if (!Str)
+			return false;
+		for (char *s = Str->Str; *s; s++)
+		{
+			if (!IsDigit(*s) || strchr("e-+.", *s))
+				return false;
+		}
+		return true;
+	}
 	
 	/// Reverses all the characters in the string
 	GString Reverse()
@@ -902,6 +1034,97 @@ public:
 		return LgiPrintf(*this, Fmt, Arg);
 	}
 	
+	static GString Escape(const char *In, ssize_t Len, const char *Chars = "\r\n\b\\\'\"")
+	{
+		GString s;
+	
+		if (In && Chars)
+		{
+			char Buf[256];
+			int Ch = 0;
+			if (Len < 0)
+				Len = strlen(In);
+		
+			while (Len-- > 0)
+			{
+				if (Ch > sizeof(Buf)-4)
+				{
+					// Buffer full, add substring to 's'
+					Buf[Ch] = 0;
+					s += Buf;
+					Ch = 0;
+				}
+				if (strchr(Chars, *In))
+				{
+					Buf[Ch++] = '\\';
+					switch (*In)
+					{
+						#undef EscChar
+						#define EscChar(from, to) \
+							case from: Buf[Ch++] = to; break
+						EscChar('\n', 'n');
+						EscChar('\r', 'r');
+						EscChar('\\', '\\');
+						EscChar('\b', 'b');
+						EscChar('\a', 'a');
+						EscChar('\t', 't');
+						EscChar('\v', 'v');
+						EscChar('\'', '\'');
+						EscChar('\"', '\"');
+						EscChar('?', '?');
+						#undef EscChar
+						default: Ch += sprintf_s(Buf+Ch, sizeof(Buf)-Ch, "x%02x", *In); break;
+					}
+				}
+				else Buf[Ch++] = *In;
+				In++;
+			}
+			if (Ch > 0)
+			{
+				Buf[Ch] = 0;
+				s += Buf;
+			}
+		}
+	
+		return s;
+	}
+
+	static GString UnEscape(const char *In, ssize_t Len, const char *Chars = "\r\n\b\\\'\"")
+	{
+		GString s;
+		if (Chars && In)
+		{
+			char Buf[256];
+			int Ch = 0;
+			if (Len < 0)
+				Len = strlen(In);
+		
+			while (Len-- > 0)
+			{
+				if (Ch > sizeof(Buf)-4)
+				{
+					// Buffer full, add substring to 's'
+					Buf[Ch] = 0;
+					s += Buf;
+					Ch = 0;
+				}
+				if (*In == '\\')
+				{
+					if (strchr(Chars, In[1]))
+						In++;
+				}
+				Buf[Ch++] = *In++;
+			}
+			if (Ch > 0)
+			{
+				Buf[Ch] = 0;
+				s += Buf;
+			}
+		}
+	
+		return s;
+	}
+
 	#if defined(MAC) // && __COREFOUNDATION_CFBASE__
 
 	GString(const CFStringRef r)
@@ -948,6 +1171,7 @@ public:
 	}
 	
 	#endif
+
 };
 
 #endif

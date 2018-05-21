@@ -50,7 +50,7 @@ GPrintDC::GPrintDC(void *Handle, const char *PrintJobName, const char *PrinterNa
 			{
 				for (unsigned i=1; i<1000; i++)
 				{
-					p.Parent();
+					p--;
 					FileName.Printf("%s%i.xps", PrintJobName, i);
 					p += FileName;
 					if (!FileExists(p.GetFull()))

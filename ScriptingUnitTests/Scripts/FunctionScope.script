@@ -1,0 +1,27 @@
+// This script will test the scope of variables in functions
+// fret@memecode.com
+
+arg1 = 1;
+global = 54;
+
+function Fn(arg1)
+{
+	if (arg1 != 2)
+	{
+		Print("Error: arg1 is: " + arg1 + "\n");
+		return false;
+	}
+
+	Print("arg1 is: " + arg1 + "\n");
+
+	if (global != 54)
+	{
+		Print("Error: global is: " + global + "\n");
+		return false;
+	}
+
+	Print("global is: " + global + "\n");
+	return true;
+}
+
+return Fn(2);

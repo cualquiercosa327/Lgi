@@ -52,17 +52,15 @@ const char *GRichEditElemContext::GetAttr(GRichEditElem *obj, const char *Attr)
 	return a;
 }
 
-bool GRichEditElemContext::GetClasses(GArray<const char *> &Classes, GRichEditElem *obj)
+bool GRichEditElemContext::GetClasses(GString::Array &Classes, GRichEditElem *obj)
 {
 	const char *c;
 	if (!obj->Get("class", c))
 		return false;
 		
 	GString cls = c;
-	GString::Array classes = cls.Split(" ");
-	for (unsigned i=0; i<classes.Length(); i++)
-		Classes.Add(NewStr(classes[i]));
-	return true;
+	Classes = cls.Split(" ");
+	return Classes.Length() > 0;
 }
 
 GRichEditElem *GRichEditElemContext::GetParent(GRichEditElem *obj)
@@ -629,7 +627,7 @@ void GRichTextPriv::ScrollTo(GRect r)
 	{
 		if (r.y1 < Content.y1)
 		{
-			int OffsetPx = max(r.y1, 0);
+			int OffsetPx = MAX(r.y1, 0);
 			View->SetScrollPos(0, OffsetPx / ScrollLinePx);
 			InvalidateDoc(NULL);
 		}
@@ -916,7 +914,7 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 			GRect &Content = Areas[GRichTextEdit::ContentArea];
 			int LineHint = -1;
 			int TargetY = In->Pos.y1 - Content.Y();
-			ssize_t Idx = HitTest(In->Pos.x1, max(TargetY, 0), LineHint);
+			ssize_t Idx = HitTest(In->Pos.x1, MAX(TargetY, 0), LineHint);
 			if (Idx >= 0)
 			{
 				ssize_t Offset = -1;
@@ -936,7 +934,7 @@ bool GRichTextPriv::Seek(BlockCursor *In, SeekType Dir, bool Select)
 			GRect &Content = Areas[GRichTextEdit::ContentArea];
 			int LineHint = -1;
 			int TargetY = In->Pos.y1 + Content.Y();
-			ssize_t Idx = HitTest(In->Pos.x1, min(TargetY, DocumentExtent.y-1), LineHint);
+			ssize_t Idx = HitTest(In->Pos.x1, MIN(TargetY, DocumentExtent.y-1), LineHint);
 			if (Idx >= 0)
 			{
 				ssize_t Offset = -1;
@@ -1753,15 +1751,23 @@ bool GRichTextPriv::InsertHorzRule()
 		return false;
 
 	GAutoPtr<Transaction> Trans(new Transaction);
+
+	DeleteSelection(Trans, NULL);
+
 	int InsertIdx = Blocks.IndexOf(tb) + 1;
 	GRichTextPriv::Block *After = NULL;
-	if (Cursor->Offset < tb->Length())
+	if (Cursor->Offset == 0)
+	{
+		InsertIdx--;
+	}
+	else if (Cursor->Offset < tb->Length())
 	{
 		After = tb->Split(Trans, Cursor->Offset);
 		if (!After)
 			return false;
 		tb->StripLast(Trans);
 	}
+
 	HorzRuleBlock *Hr = new HorzRuleBlock(this);
 	if (!Hr)
 		return false;
@@ -1998,7 +2004,7 @@ void GRichTextPriv::DumpBlocks()
 bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentStyle, int Depth)
 {
 	char Sp[48];
-	int SpLen = min(Depth << 1, sizeof(Sp) - 1);
+	int SpLen = MIN(Depth << 1, sizeof(Sp) - 1);
 	memset(Sp, ' ', SpLen);
 	Sp[SpLen] = 0;
 		
@@ -2101,14 +2107,14 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 			c->TagId == TAG_BR
 		)
 		{
-			/* This breaks IMG and HR layout
-			if (!ctx.Tb)
+			if (!ctx.Tb && c->TagId == TAG_BR)
 			{
+				// Don't do this for IMG and HR layout.
 				Blocks.Add(ctx.Tb = new TextBlock(this));
 				if (CachedStyle && ctx.Tb)
 					ctx.Tb->SetStyle(CachedStyle);
 			}
-			*/
+
 			if (ctx.Tb)
 			{
 				const uint32 Nl[] = {'\n', 0};
@@ -2337,7 +2343,7 @@ GTreeItem *PrintNode(GTreeItem *Parent, const char *Fmt, ...)
 
 	va_list Arg;
 	va_start(Arg, Fmt);
-	int Ch = s.Printf(Arg, Fmt);
+	s.Printf(Arg, Fmt);
 	va_end(Arg);
 	s = s.Replace("\n", "\\n");
 

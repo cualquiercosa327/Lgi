@@ -16,6 +16,8 @@
 #include <winsock2.h>
 #include <shlobj.h>
 #include "GRegKey.h"
+#include <sys/types.h>
+#include <sys/stat.h>
 #else
 #include <unistd.h>
 #endif
@@ -567,7 +569,7 @@ void LgiTrace(const char *Msg, ...)
 
 	#ifdef WIN32
 	static LMutex Sem;
-	Sem.Lock(_FL);
+	Sem.Lock(_FL, true);
 	#endif
 
 	char Buffer[2049] = "";
@@ -601,7 +603,7 @@ void LgiTrace(const char *Msg, ...)
 		f.Seek(0, SEEK_END);
 		Output = &f;
 	}
-	if (Output)
+	if (Output && Ch > 0)
 		Output->Write(Buffer, Ch);
 	if (!_LgiTraceStream)
 		f.Close();
@@ -849,14 +851,33 @@ GString LgiGetSystemPath(LgiSystemPath Which, int WordSize)
 	return p.GetSystem(Which, WordSize);
 }
 
-bool GFile::Path::IsFile()
+GFile::Path::State GFile::Path::Exists()
 {
-	return FileExists(GetFull());
-}
+	#ifdef WINDOWS
+	struct _stat64 s;
+	int r = _stat64(GetFull(), &s);
+	if (r)
+		return TypeNone;
+	
+	if (s.st_mode & _S_IFDIR)
+		return TypeFolder;
 
-bool GFile::Path::IsFolder()
-{
-	return DirExists(GetFull());
+	if (s.st_mode & _S_IFREG)
+		return TypeFile;
+	#else
+	struct stat s;
+	int r = stat(GetFull(), &s);
+	if (r)
+		return TypeNone;
+	
+	if (S_ISDIR(s.st_mode))
+		return TypeFolder;
+
+	if (S_ISREG(s.st_mode))
+		return TypeFile;
+	#endif
+		
+	return TypeNone;
 }
 
 GString GFile::Path::GetSystem(LgiSystemPath Which, int WordSize = 0)
@@ -2177,9 +2198,14 @@ GCapabilityTarget::~GCapabilityTarget()
 }
 
 /////////////////////////////////////////////////////////////////////
-GProfile::GProfile(const char *Name)
+#define BUF_SIZE (4 << 10)
+#define PROFILE_MICRO	1
+
+GProfile::GProfile(const char *Name, int HideMs)
 {
-	MinMs = -1;
+	MinMs = HideMs;
+	Used = 0;
+	Buf = NULL;
 	Add(Name);
 }
 
@@ -2190,7 +2216,11 @@ GProfile::~GProfile()
 	if (MinMs > 0)
 	{
 		uint64 TotalMs = s.Last().Time - s[0].Time;
-		if (TotalMs < MinMs)
+		if (TotalMs < MinMs
+			#if PROFILE_MICRO
+			* 1000
+			#endif
+			)
 		{
 			return;
 		}
@@ -2200,8 +2230,14 @@ GProfile::~GProfile()
 	{
 		Sample &a = s[i];
 		Sample &b = s[i+1];
+		#if PROFILE_MICRO
+		LgiTrace("%s%s = %.2f ms\n", i ? "    " : "", a.Name, (double)(b.Time - a.Time)/1000.0);
+		#else
 		LgiTrace("%s%s = %i ms\n", i ? "    " : "", a.Name, (int)(b.Time - a.Time));
+		#endif
 	}
+
+	DeleteArray(Buf);
 }
 
 void GProfile::HideResultsIfBelow(int Ms)
@@ -2211,5 +2247,32 @@ void GProfile::HideResultsIfBelow(int Ms)
 
 void GProfile::Add(const char *Name)
 {
-	s.Add(Sample(LgiCurrentTime(), Name));
+	s.Add(Sample(
+		#if PROFILE_MICRO
+		LgiMicroTime(),
+		#else
+		LgiCurrentTime(),
+		#endif
+		Name));
+}
+
+void GProfile::Add(const char *File, int Line)
+{
+	if (!Buf)
+		if (!(Buf = new char[BUF_SIZE]))
+			return;
+	if (Used > BUF_SIZE - 64)
+	{
+		LgiAssert(0);
+		return;
+	}
+	char *Name = Buf + Used;
+	Used += sprintf(Name, "%s:%i", File, Line) + 1;
+	s.Add(Sample(
+		#if PROFILE_MICRO
+		LgiMicroTime(),
+		#else
+		LgiCurrentTime(),
+		#endif
+		Name));
 }

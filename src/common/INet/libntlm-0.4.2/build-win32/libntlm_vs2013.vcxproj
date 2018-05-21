@@ -103,37 +103,37 @@
     <OutDir>..\..\..\..\..\lib\</OutDir>
     <IntDir>$(Platform)$(Configuration)12\</IntDir>
     <LinkIncremental>true</LinkIncremental>
-    <TargetName>$(ProjectName)32d</TargetName>
+    <TargetName>$(ProjectName)12x32d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>..\..\..\..\..\lib\</OutDir>
     <IntDir>$(Platform)$(Configuration)12\</IntDir>
     <LinkIncremental>true</LinkIncremental>
-    <TargetName>$(ProjectName)64d</TargetName>
+    <TargetName>$(ProjectName)12x64d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>..\..\..\..\..\lib\</OutDir>
     <IntDir>$(Platform)$(Configuration)12\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>$(ProjectName)32</TargetName>
+    <TargetName>$(ProjectName)12x32</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>..\..\..\..\..\lib\</OutDir>
     <IntDir>$(Platform)$(Configuration)12\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>$(ProjectName)64</TargetName>
+    <TargetName>$(ProjectName)12x64</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseNoOptimize|Win32'">
     <OutDir>..\..\..\..\..\lib\</OutDir>
     <IntDir>$(Platform)$(Configuration)12\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>$(ProjectName)32</TargetName>
+    <TargetName>$(ProjectName)12x32nop</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseNoOptimize|x64'">
     <OutDir>..\..\..\..\..\lib\</OutDir>
     <IntDir>$(Platform)$(Configuration)12\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>$(ProjectName)64</TargetName>
+    <TargetName>$(ProjectName)12x64nop</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
@@ -166,10 +166,10 @@
       <OutputFile>$(OutputPath)$(TargetName).dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>$(OutDir)libntlm9.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
-      <ImportLibrary>../../../../../lib/libntlm9d.lib</ImportLibrary>
+      <ImportLibrary>../../../../../lib/$(TargetName).lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <Bscmake>
@@ -208,10 +208,10 @@
       <OutputFile>$(OutputPath)$(TargetName).dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>$(IntDir)libntlm.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
-      <ImportLibrary>../../../../../lib/libntlm64d.lib</ImportLibrary>
+      <ImportLibrary>../../../../../lib/$(TargetName).lib</ImportLibrary>
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
     <Bscmake>
@@ -249,10 +249,10 @@
     <Link>
       <OutputFile>$(OutputPath)$(TargetName).dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <ProgramDatabaseFile>$(OutDir)libntlm9.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
-      <ImportLibrary>../../../../../lib/libntlm9.lib</ImportLibrary>
+      <ImportLibrary>../../../../../lib/$(TargetName).lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <Bscmake>
@@ -290,10 +290,10 @@
     <Link>
       <OutputFile>$(OutputPath)$(TargetName).dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <ProgramDatabaseFile>$(IntDir)libntlm.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
-      <ImportLibrary>../../../../../lib/libntlm64.lib</ImportLibrary>
+      <ImportLibrary>../../../../../lib/$(TargetName).lib</ImportLibrary>
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
     <Bscmake>
@@ -331,10 +331,10 @@
     <Link>
       <OutputFile>$(OutputPath)$(TargetName).dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <ProgramDatabaseFile>$(OutDir)libntlm9.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
-      <ImportLibrary>../../../../../lib/libntlm9.lib</ImportLibrary>
+      <ImportLibrary>../../../../../lib/$(TargetName).lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <Bscmake>
@@ -372,10 +372,10 @@
     <Link>
       <OutputFile>$(OutputPath)$(TargetName).dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <ProgramDatabaseFile>$(IntDir)libntlm.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
-      <ImportLibrary>../../../../../lib/libntlm64.lib</ImportLibrary>
+      <ImportLibrary>../../../../../lib/$(TargetName).lib</ImportLibrary>
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
     <Bscmake>
@@ -405,23 +405,6 @@
     <ClInclude Include="..\ntlm.h" />
     <ClInclude Include="stdbool.h" />
     <ClInclude Include="stdint.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="..\..\..\..\..\..\..\Scribe\trunk\Resources\Icons\app.ico" />
-    <Image Include="..\..\..\..\..\..\..\Scribe\trunk\Resources\Icons\Blank.ico" />
-    <Image Include="..\..\..\..\..\..\..\Scribe\trunk\Resources\Icons\calender.ico" />
-    <Image Include="..\..\..\..\..\..\..\Scribe\trunk\Resources\Icons\contact.ico" />
-    <Image Include="..\..\..\..\..\..\..\Scribe\trunk\Resources\Icons\error.ico" />
-    <Image Include="..\..\..\..\..\..\..\Scribe\trunk\Resources\Icons\event.ico" />
-    <Image Include="..\..\..\..\..\..\..\Scribe\trunk\Resources\Icons\filter.ico" />
-    <Image Include="..\..\..\..\..\..\..\Scribe\trunk\Resources\Icons\Mail.ico" />
-    <Image Include="..\..\..\..\..\..\..\Scribe\trunk\Resources\Icons\Small.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="..\..\..\..\..\..\..\Scribe\trunk\Code\Resource.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <Manifest Include="..\..\..\..\..\..\..\Scribe\trunk\Resources\ScribeWindows.manifest" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

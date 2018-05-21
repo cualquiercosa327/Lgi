@@ -290,8 +290,8 @@ class HtmlEdit : public Html1::GHtml, public GDefaultDocumentEnv
 
 	float OverlapY(GRect &a, GRect &b)
 	{
-		int y1 = max(a.y1, b.y1);
-		int y2 = min(a.y2, b.y2);
+		int y1 = MAX(a.y1, b.y1);
+		int y2 = MIN(a.y2, b.y2);
 		int Px = y2 >= y1 ? y2-y1+1 : 0;
 		return Px>0 && b.Y()>0 ? (float)Px/b.Y() : 0.0f;
 	}
@@ -1216,7 +1216,7 @@ public:
 				{
 					// Scroll up to keep cursor on screen
 					int Lines = abs(c.y1 / LineY) + 1;
-					VScroll->Value(max(0, Pos - Lines));
+					VScroll->Value(MAX(0, Pos - Lines));
 				}
 				else if (c.y2 > Client.y2)
 				{
@@ -1374,7 +1374,7 @@ public:
 
 							if (Ch)
 							{
-								Dx -= min(Dx, Ch);
+								Dx -= MIN(Dx, Ch);
 							}
 					
 							Txt = NewCur ? NewCur->Text() : 0;
@@ -1401,7 +1401,7 @@ public:
 							
 							if (Ch)
 							{
-								Dx += min(-Dx, Ch);
+								Dx += MIN(-Dx, Ch);
 							}
 
 							Txt = NewCur ? NewCur->Text() : 0;
@@ -1602,8 +1602,8 @@ public:
 			// Delete range within one tag
 			int Offset = Cursor->GetTextStart();
 			char16 *t  = Cursor->Text();
-			int Start  = min(Cursor->Cursor, Selection->Selection) + Offset;
-			int End    = max(Cursor->Cursor, Selection->Selection) + Offset;
+			int Start  = MIN(Cursor->Cursor, Selection->Selection) + Offset;
+			int End    = MAX(Cursor->Cursor, Selection->Selection) + Offset;
 			int Len    = StrlenW(t + End);
 			
 			// Move the characters down, including the terminating NULL

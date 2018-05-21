@@ -3,6 +3,7 @@
 #include "GTextLabel.h"
 #include "GButton.h"
 #include "GDisplayString.h"
+#include "GTableLayout.h"
 
 //////////////////////////////////////////////////////////////////////////////
 #define CMD_BASE		100
@@ -19,65 +20,55 @@ GAlert::GAlert(	GViewI *parent,
 				const char *Btn2,
 				const char *Btn3)
 {
-	GText *t = 0;
-	Children.Insert(t = new GText(-1, 8, 8, -1, -1, (char*)Text));
-	if (t)
+	GArray<const char*> Names;
+	if (Btn1) Names.Add(Btn1);
+	if (Btn2) Names.Add(Btn2);
+	if (Btn3) Names.Add(Btn3);
+
+	// Setup dialog
+	SetParent(parent);
+	Name((char*)Title);
+
+	GTableLayout *Tbl = new GTableLayout(100);
+	AddView(Tbl);
+
+	GLayoutCell *c = Tbl->GetCell(0, 0, true, Names.Length());
+	c->Add(new GTextLabel(-1, 8, 8, -1, -1, Text));
+	c->PaddingBottom(GCss::Len("6px"));
+
+	for (unsigned i=0; i<Names.Length(); i++)
 	{
-		// Setup dialog
-		SetParent(parent);
-		Name((char*)Title);
-
-		List<GButton> Btns;
-		List<const char> Names;
-		if (Btn1) Names.Insert(Btn1);
-		if (Btn2) Names.Insert(Btn2);
-		if (Btn3) Names.Insert(Btn3);
-		int i = 1, Tx = 0;
-		for (const char *n=Names.First(); n; n=Names.Next())
-		{
-			GDisplayString ds(SysFont, (char*)n);
-			int x = ds.X();
-			GButton *v;
-			Btns.Insert(v = new GButton(CMD_BASE + i++,
-										0, 0,
-										(int) ((30.0f + x) * BTN_SCALE),
-										(int) (20.0f * BTN_SCALE),
-										(char*)n));
-			Tx += v->X() + ((i>1) ? 10 : 0);
-		}
-		
-		int x = LgiApp->GetMetric(LGI_MET_DECOR_X) + 16;
-		int y = LgiApp->GetMetric(LGI_MET_DECOR_Y) + 20 + 8 + 16;
-		GRect r;
-		if (t)
-		{
-			x += max(Tx, t->X());
-			y += t->Y();
-			r.ZOff(x, y);
-		}
-		SetPos(r);
-		MoveToCenter();
-
-		// Setup controls
-		int Cx = X() / 2;
-		int Bx = Cx - (Tx / 2);
-		for (GButton *b=Btns.First(); b; b=Btns.Next())
-		{
-			GRect r;
-			r.ZOff(b->X()-1, b->Y()-1);
-			r.Offset(Bx, t->GetPos().y2 + 8);
-			b->SetPos(r);
-			Children.Insert(b);
-			Bx += b->X() + 10;
-		}
+		c = Tbl->GetCell(i, 1, true);
+		c->TextAlign(GCss::Len(GCss::AlignCenter));
+		c->Add(new GButton(CMD_BASE + i,
+							0, 0, -1, -1,
+							Names[i]));
 	}
+		
+	GRect r(0, 0, 1000, 1000);
+	Tbl->SetPos(r);
+	Tbl->GetCss(true)->Padding(GCss::Len("6px"));
+	r = Tbl->GetUsedArea();
+	int x = LgiApp->GetMetric(LGI_MET_DECOR_X) + 12;
+	int y = LgiApp->GetMetric(LGI_MET_DECOR_Y) +
+			LgiApp->GetMetric(LGI_MET_DECOR_CAPTION) +
+			12;
+
+	r.x2 += x;
+	r.y2 += y;
+
+	SetPos(r);
+	if (parent)
+		MoveSameScreen(parent);
+	else
+		MoveToCenter();
 }
 
 void GAlert::SetAppModal()
 {
     #if WINNATIVE
     SetExStyle(GetExStyle() | WS_EX_TOPMOST);
-	#elif defined(MAC)
+	#elif defined(LGI_CARBON)
 	if (Handle())
 	{
 		OSStatus e = HIWindowChangeClass(WindowHandle(), kMovableModalWindowClass);
@@ -93,11 +84,14 @@ int GAlert::OnNotify(GViewI *Ctrl, int Flags)
 {
 	switch (Ctrl->GetId())
 	{
+		case CMD_BASE+0:
 		case CMD_BASE+1:
 		case CMD_BASE+2:
-		case CMD_BASE+3:
 		{
-			EndModal(Ctrl->GetId() - CMD_BASE);
+			if (Flags != GNotifyTableLayout_LayoutChanged)
+			{
+				EndModal(Ctrl->GetId() - CMD_BASE + 1);
+			}
 			break;
 		}
 	}
