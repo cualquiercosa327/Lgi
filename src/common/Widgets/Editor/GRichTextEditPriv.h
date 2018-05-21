@@ -1094,7 +1094,7 @@ public:
 		ssize_t DeleteAt(Transaction *Trans, ssize_t BlkOffset, ssize_t Chars, GArray<uint32> *DeletedText = NULL);
 		bool DoCase(Transaction *Trans, ssize_t StartIdx, ssize_t Chars, bool Upper);
 		Block *Split(Transaction *Trans, ssize_t AtOffset);
-		bool StripLast(Transaction *Trans, char *Set = " \t\r\n"); // Strip trailing new line if present..
+		bool StripLast(Transaction *Trans, const char *Set = " \t\r\n"); // Strip trailing new line if present..
 	};
 
 	class HorzRuleBlock : public Block
