@@ -889,15 +889,23 @@ ImageCompareDlg::ImageCompareDlg(GView *p, const char *OutPath)
 		return;
 	}
 
-	GAutoString ResFile(LgiFindFile("ImageComparison.lr8"));
-	LgiAssert(ResFile);
-	if (ResFile)
+	GFile::Path ResFile(__FILE__);
+	ResFile--;
+	ResFile += "ImageComparison.lr8";
+	if (!ResFile.Exists())
+	{
+		GAutoString r(LgiFindFile("ImageComparison.lr8"));
+		if (r)
+			ResFile = r.Get();
+	}
+	LgiAssert(ResFile.GetFull());
+	if (ResFile.GetFull())
 	{
 		AddView(d->tabs = new GTabView(IDC_TAB_VIEW));
 		d->tabs->SetPourLargest(true);
 		GTabPage *First = d->tabs->Append("Select");
 		
-		LgiResources *Res = LgiGetResObj(false, ResFile);
+		LgiResources *Res = LgiGetResObj(false, ResFile.GetFull());
 		LgiAssert(Res);
 		if (Res && Res->LoadDialog(IDD_COMPARE, First))
 		{

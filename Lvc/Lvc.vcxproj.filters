@@ -68,4 +68,9 @@
       <Filter>Resources</Filter>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="installer-zip.py">
+      <Filter>Resources</Filter>
+    </None>
+  </ItemGroup>
 </Project>

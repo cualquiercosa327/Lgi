@@ -156,6 +156,7 @@
 		34B954850939DCC400477A2D /* INetTools.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34B954830939DCC400477A2D /* INetTools.cpp */; };
 		34B954880939DCDD00477A2D /* INet.h in Headers */ = {isa = PBXBuildFile; fileRef = 34B954860939DCDD00477A2D /* INet.h */; };
 		34B954890939DCDD00477A2D /* INetTools.h in Headers */ = {isa = PBXBuildFile; fileRef = 34B954870939DCDD00477A2D /* INetTools.h */; };
+		34BA44471FE3BF150018D6AE /* LCancel.h in Headers */ = {isa = PBXBuildFile; fileRef = 34BA44461FE3BF150018D6AE /* LCancel.h */; };
 		34BC1E1F134DC748005451EE /* Res.h in Headers */ = {isa = PBXBuildFile; fileRef = 34BC1E1E134DC748005451EE /* Res.h */; };
 		34C4A2001D2CF7B3003CEDC9 /* GUri.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34C4A1FE1D2CF7B3003CEDC9 /* GUri.cpp */; };
 		34C4A2011D2CF7B3003CEDC9 /* MDStringToDigest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34C4A1FF1D2CF7B3003CEDC9 /* MDStringToDigest.cpp */; };
@@ -342,6 +343,7 @@
 		34B954830939DCC400477A2D /* INetTools.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = INetTools.cpp; path = ../../common/INet/INetTools.cpp; sourceTree = SOURCE_ROOT; };
 		34B954860939DCDD00477A2D /* INet.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = INet.h; path = ../../../include/common/INet.h; sourceTree = SOURCE_ROOT; };
 		34B954870939DCDD00477A2D /* INetTools.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = INetTools.h; path = ../../../include/common/INetTools.h; sourceTree = SOURCE_ROOT; };
+		34BA44461FE3BF150018D6AE /* LCancel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LCancel.h; path = /Users/matthew/Code/Scribe/trunk/../../Lgi/trunk/include/common/LCancel.h; sourceTree = "<absolute>"; };
 		34BC1E1E134DC748005451EE /* Res.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Res.h; path = ../../../include/common/Res.h; sourceTree = "<group>"; };
 		34C4A1FE1D2CF7B3003CEDC9 /* GUri.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GUri.cpp; path = ../../common/INet/GUri.cpp; sourceTree = "<group>"; };
 		34C4A1FF1D2CF7B3003CEDC9 /* MDStringToDigest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MDStringToDigest.cpp; path = ../../common/INet/MDStringToDigest.cpp; sourceTree = "<group>"; };
@@ -595,6 +597,7 @@
 		344B736A08D83F0700D49457 /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				34BA44461FE3BF150018D6AE /* LCancel.h */,
 				34983C1808F548620054868C /* GClipBoard.cpp */,
 				344B736B08D83F1800D49457 /* GGeneral.cpp */,
 				344B738C08D8414400D49457 /* GGuiUtils.cpp */,
@@ -936,6 +939,7 @@
 				34A8A3BD1303408000CAA8DF /* GPopup.h in Headers */,
 				3413BBC21349EC6900AE15B0 /* GXmlTree.h in Headers */,
 				34BC1E1F134DC748005451EE /* Res.h in Headers */,
+				34BA44471FE3BF150018D6AE /* LCancel.h in Headers */,
 				34661C7913C7407000B4C2A7 /* GUtf8.h in Headers */,
 				34B28AF2143FA6AF0023662F /* GPath.h in Headers */,
 				34A11A7E167534A500FCC5D7 /* LMutex.h in Headers */,

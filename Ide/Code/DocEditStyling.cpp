@@ -261,14 +261,6 @@ void DocEdit::StyleCpp(ssize_t Start, ssize_t EditSize)
 				}
 				break;
 			}
-			case '-':
-			{
-				const wchar_t *t = L"-DVERSION=\\\"3.0_ColdFire_FlexCAN\\\"";
-				if (Strnicmp(s, t, Strlen(t)) == 0)
-				{
-					int asd=0;
-				}
-			}
 			default:
 			{
 				wchar_t Ch = ToLower(*s);
@@ -1171,7 +1163,7 @@ void DocEdit::PourStyle(size_t Start, ssize_t EditSize)
 			RefreshEdges = LangParam[FileType].Edges;
 			RefreshSize = 0;
 			for (const char **e = RefreshEdges; *e; e++)
-				RefreshSize = max(strlen(*e), RefreshSize);
+				RefreshSize = MAX(strlen(*e), RefreshSize);
 		}
 	}
 

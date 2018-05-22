@@ -1615,7 +1615,7 @@ AppWnd::AppWnd()
 			d->Mdi->HasButton(true);
 		}
 
-		d->HBox->Value(max(v.CastInt32(), 20));
+		d->HBox->Value(MAX(v.CastInt32(), 20));
 
 		GRect c = GetClient();
 		if (c.Y() > OutPx.CastInt32())
@@ -3575,9 +3575,6 @@ int LgiMain(OsAppArguments &AppArgs)
 	if (a.IsOk())
 	{
 		a.AppWnd = new AppWnd;
-
-		int *ptr = 0;
-		// *ptr = 0;
 
 		a.Run();
 	}

@@ -680,28 +680,7 @@ bool LgiMenuItem::ScanForAccel()
 					);
 
 				const char *Signal = "activate";
-
-				/*
-				GSignalQuery query;
-				g_signal_query (g_signal_lookup (Signal, G_OBJECT_TYPE (w)), &query);
-
-				if (!stricmp(Sc, "Ctrl+C"))
-				{
-					int none = G_TYPE_NONE;
-					
-					if (!query.signal_id)
-						printf("Bad sig id\n");
-					else if (!(query.signal_flags & G_SIGNAL_ACTION))
-						printf("No sig act\n");
-					else if (query.return_type != G_TYPE_NONE)
-						printf("Ret type err\n");
-					else if (query.n_params)
-						printf("Param err.\n");
-					else
-						printf("Pre-cond ok.\n");
-				}
-				*/
-			
+	
 				gtk_widget_add_accelerator(	w,
 											Signal,
 											Menu->AccelGrp,
@@ -709,8 +688,6 @@ bool LgiMenuItem::ScanForAccel()
 											mod,
 											Gtk::GTK_ACCEL_VISIBLE
 										);
-				// printf("Installing short cut '%s', w=%p, key=%i(%c), mod=%x\n", Sc, w, GtkKey, GtkKey, mod);
-
 				gtk_widget_show_all(w);
 			}
 			else
@@ -945,6 +922,8 @@ void LgiMenuItem::Icon(int i)
 				gtk_image_menu_item_set_image(imi, img_wid);
 				
 				// printf("Setting '%s' to img %p (%i)\n", Name(), img_wid, _Icon);
+				
+				ScanForAccel();
 			}
 		}
 	}

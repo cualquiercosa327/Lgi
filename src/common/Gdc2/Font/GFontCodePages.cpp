@@ -177,7 +177,7 @@ bool LgiIsUtf8(const char *s, ssize_t len)
 
 Utf8Error:
 	LgiTrace("%s:%i - Invalid utf, len=%i, bytes=", _FL, len);
-	for (int i=0; len < 0 ? s[i] : i<min(6, len); i++)
+	for (int i=0; len < 0 ? s[i] : i<MIN(6, len); i++)
 	{
 		LgiTrace("%02.2x,", (uint8)s[i]);
 	}

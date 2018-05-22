@@ -395,7 +395,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 					MsgTs = Now;
 					DoingProgress = true;
 					uint32 Remaining = Tasks - GetQueueSize();
-					if (Remaining >= 0)
+					if (Remaining > 0)
 						Log("FindSym: %i of %i (%.1f%%)\n", Remaining, Tasks, (double)Remaining * 100.0 / MAX(Tasks, 1));
 				}
 				else if (GetQueueSize() == 0 && MsgTs)

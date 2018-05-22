@@ -771,7 +771,7 @@ const char *GApp::GetArgumentAt(int n)
 
 bool GApp::GetOption(const char *Option, char *Dest, int DestLen)
 {
-	GAutoString Buf;
+	GString Buf;
 	if (GetOption(Option, Buf))
 	{
 		if (Dest)

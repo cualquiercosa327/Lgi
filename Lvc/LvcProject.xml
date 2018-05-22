@@ -21,6 +21,7 @@
 	<Node File="../Lgi.xml" Type="4" Platforms="15" />
 	<Node Name="Resources" Type="1" Platforms="15" Id="1">
 		<Node File="./Resources/icon32.png" Type="6" Platforms="15" />
+		<Node File="./installer-zip.py" Type="8" Platforms="15" />
 		<Node File="./Makefile.linux" Type="9" Platforms="15" />
 	</Node>
 	<Settings>

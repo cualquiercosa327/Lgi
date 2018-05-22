@@ -294,7 +294,7 @@ void j_skip_input_data(j_decompress_ptr cinfo, long num_bytes)
     
     while (num_bytes)
     {
-        int Remain = min(cinfo->src->bytes_in_buffer, (size_t)num_bytes);
+        int Remain = MIN(cinfo->src->bytes_in_buffer, (size_t)num_bytes);
 		if (!Remain)
 			break;
         cinfo->src->next_input_byte += Remain;

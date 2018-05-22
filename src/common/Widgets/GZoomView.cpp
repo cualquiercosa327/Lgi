@@ -285,7 +285,7 @@ public:
 				}
 			}
 			
-			SetZoom(min(z, 0));
+			SetZoom(MIN(z, 0));
 			ResetTiles();
 		}
 	}
@@ -1328,9 +1328,9 @@ void GZoomView::ScrollToPoint(GdcPt2 DocCoord)
 		int64 x1 = HScroll->Value();
 		int64 x2 = x1 + Page;
 		if (DocCoord.x < x1)
-			HScroll->Value(max(DocCoord.x, 0));
+			HScroll->Value(MAX(DocCoord.x, 0));
 		else if (DocCoord.x > x2)
-			HScroll->Value(min(DocCoord.x-Page+1, MaxVal));
+			HScroll->Value(MIN(DocCoord.x-Page+1, MaxVal));
 	}
 	if (VScroll)
 	{
@@ -1340,9 +1340,9 @@ void GZoomView::ScrollToPoint(GdcPt2 DocCoord)
 		int64 y1 = VScroll->Value();
 		int64 y2 = y1 + Page;
 		if (DocCoord.y < y1)
-			VScroll->Value(max(DocCoord.y, 0));
+			VScroll->Value(MAX(DocCoord.y, 0));
 		else if (DocCoord.y > y2)
-			VScroll->Value(min(DocCoord.y-Page+1, MaxVal));
+			VScroll->Value(MIN(DocCoord.y-Page+1, MaxVal));
 	}
 }
 

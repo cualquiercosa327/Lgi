@@ -983,7 +983,7 @@ GToolBar::GToolBar()
 		d->Font = SysFontType.Create();
 		if (d->Font)
 		{
-			d->Font->PointSize(min(d->Font->PointSize(), SysFont->PointSize()));
+			d->Font->PointSize(MIN(d->Font->PointSize(), SysFont->PointSize()));
 			d->Font->Colour(0);
 			d->Font->Bold(false);
 			d->Font->Transparent(true);
@@ -1212,7 +1212,7 @@ bool GToolBar::Pour(GRegion &r)
 					for (int i=0; i<Btn->d->Text.Length(); i++)
 					{
 						GDisplayString *Ds = Btn->d->Text[i];
-						Tx = max(Ds->X() + 4, Tx);
+						Tx = MAX(Ds->X() + 4, Tx);
 						Ty += Ds->Y();
 					}
 				}
@@ -1254,11 +1254,11 @@ bool GToolBar::Pour(GRegion &r)
 			
 			if (d->Vertical)
 			{
-				MaxDim = max(MaxDim, ButPos.X());
+				MaxDim = MAX(MaxDim, ButPos.X());
 			}
 			else
 			{
-				MaxDim = max(MaxDim, ButPos.Y());
+				MaxDim = MAX(MaxDim, ButPos.Y());
 			}
 
 			ButPos.Offset(PosX - ButPos.x1, PosY - ButPos.y1);
@@ -1321,8 +1321,8 @@ bool GToolBar::Pour(GRegion &r)
 			}
 		}
 
-		EndX = max(EndX, p.x2);
-		EndY = max(EndY, p.y2);
+		EndX = MAX(EndX, p.x2);
+		EndY = MAX(EndY, p.y2);
 	}
 
 	d->Sx = EndX + BorderSpacing;
@@ -1331,7 +1331,7 @@ bool GToolBar::Pour(GRegion &r)
 	int BorderPx = Raised() || Sunken() ? _BorderSize<<1 : 0;
 
 	GRect n;
-	n.ZOff(max(7, d->Sx)+BorderPx, max(7, d->Sy)+BorderPx);
+	n.ZOff(MAX(7, d->Sx)+BorderPx, MAX(7, d->Sy)+BorderPx);
 
 	GRect *Best = FindLargestEdge(r, GV_EDGE_TOP);
 	if (Best)

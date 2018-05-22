@@ -263,11 +263,6 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 				char16 *Eol = Strchr(s, '\n');
 				if (!Eol) Eol = s + Strlen(s);
 
-				if (Debug && Line >= 808)
-				{
-					int asd=0;
-				}
-
 				bool IsIf = false, IsElse = false, IsElseIf = false;
 				if
 				(
@@ -825,7 +820,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 							else if (InTypedef)
 							{
 								// Typedef'ing some other structure...
-								char16 *Start = s;
+								// char16 *Start = s;
 								LexCpp(s, LexNoReturn);
 								defnskipws(s);
 

@@ -390,7 +390,7 @@ void GDisplayString::Layout(bool Debug)
 				int PyF = AscentF - Fnt->glyph->metrics.horiBearingY;
 
 				Sz.x += Fnt->glyph->metrics.horiAdvance;
-				Sz.y = max(Sz.y, PyF + Fnt->glyph->metrics.height);
+				Sz.y = MAX(Sz.y, PyF + Fnt->glyph->metrics.height);
 			}
 		}
 		
@@ -1394,7 +1394,7 @@ bool CompositeText8NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 	uint8 *StartOfBuffer = (*Out)[0];
 	uint8 *EndOfBuffer = StartOfBuffer + (Out->GetRowStep() * Out->Y());
 
-	for (unsigned y=Clip.SrcClip.y1; y<=Clip.SrcClip.y2; y++)
+	for (int y=Clip.SrcClip.y1; y<=Clip.SrcClip.y2; y++)
 	{
 		register OutPx *dst = (OutPx*) (*Out)[py + y];
 		if (!dst)

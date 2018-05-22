@@ -533,7 +533,7 @@ void GButton::SetPreferredSize(int x, int y)
 	int Ix = d->Image ? d->Image->X() : 0;
 	int Iy = d->Image ? d->Image->Y() : 0;
 	int Cx = Tx + Ix + (d->Txt && d->Image ? GTableLayout::CellSpacing : 0);
-	int Cy = max(Ty, Iy);
+	int Cy = MAX(Ty, Iy);
 	
 	r.Dimension((x > 0 ? x : Cx + Overhead.x) - 1,
 				(y > 0 ? y : Cy + Overhead.y) - 1);

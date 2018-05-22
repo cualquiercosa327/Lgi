@@ -1264,7 +1264,9 @@ GString BuildThread::FindExe()
 
 	if (Compiler == PythonScript)
 	{
+		#if defined(WINDOWS)
 		uint32 BestVer = 0;
+		#endif
 		GString Best;
 
 		for (int i=0; i<p.Length(); i++)
@@ -2197,7 +2199,7 @@ bool IdeProject::FindDuplicateSymbols()
 			{
 				char Buf[256];
 				GStringPipe q;
-				for (int Rd = 0; Rd = Nm.Read(Buf, sizeof(Buf)); )
+				for (int Rd = 0; (Rd = Nm.Read(Buf, sizeof(Buf))); )
 					q.Write(Buf, Rd);
 				GString::Array a = q.NewGStr().SplitDelimit("\r\n");
 				GHashTbl<char*,bool> Local(200000, false);
@@ -2208,7 +2210,7 @@ bool IdeProject::FindDuplicateSymbols()
 					{
 						Local.Add(p.Last(), true);
 					
-						const char *Sz = p[1];
+						// const char *Sz = p[1];
 						int64 Ours = p[1].Int(16);
 						int64 Theirs = Map.Find(p.Last());
 						if (Theirs >= 0)

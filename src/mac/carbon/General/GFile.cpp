@@ -725,7 +725,7 @@ bool GFileSystem::Copy(char *From, char *To, int *ErrorCode, CopyFileCallback Ca
 		return true;
 	}
 
-	int64 Block = min((1 << 20), Size);
+	int64 Block = MIN((1 << 20), Size);
 	char *Buf = new char[Block];
 	if (!Buf)
 	{
@@ -1446,7 +1446,7 @@ ssize_t GFile::Read(void *Buffer, ssize_t Size, int Flags)
 	}
 	d->Status = Rd == Size;
 
-	return max(Rd, 0);
+	return MAX(Rd, 0);
 }
 
 ssize_t GFile::Write(const void *Buffer, ssize_t Size, int Flags)
@@ -1467,7 +1467,7 @@ ssize_t GFile::Write(const void *Buffer, ssize_t Size, int Flags)
 	}
 	d->Status = Written == Size;
 
-	return max(Written, 0);
+	return MAX(Written, 0);
 }
 
 int64 GFile::Seek(int64 To, int Whence)

@@ -119,6 +119,7 @@ enum LgiMessages
 		M_MOUSE_CAPTURE_POLL,
 		M_TEXT_UPDATE_NAME,
 		M_INVALIDATE,
+		M_ASSERT_DLG,
 	
 	#elif defined(MAC)
 

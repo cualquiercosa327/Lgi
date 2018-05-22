@@ -187,10 +187,10 @@ void GRect::Dimension(GRect *a)
 
 void GRect::Bound(GRect *b)
 {
-	x1 = max(x1,b->x1);		
-	y1 = max(y1,b->y1);
-	x2 = min(x2,b->x2);
-	y2 = min(y2,b->y2);
+	x1 = MAX(x1,b->x1);
+	y1 = MAX(y1,b->y1);
+	x2 = MIN(x2,b->x2);
+	y2 = MIN(y2,b->y2);
 }
 
 bool GRect::Overlap(int x, int y)
@@ -215,36 +215,36 @@ bool GRect::Overlap(GRect *b)
 
 void GRect::Union(int x, int y)
 {
-	x1 = min(x1, x);
-	y1 = min(y1, y);
-	x2 = max(x2, x);
-	y2 = max(y2, y);
+	x1 = MIN(x1, x);
+	y1 = MIN(y1, y);
+	x2 = MAX(x2, x);
+	y2 = MAX(y2, y);
 }
 
 void GRect::Union(GRect *a)
 {
-	x1 = min(a->x1, x1);
-	y1 = min(a->y1, y1);
-	x2 = max(a->x2, x2);
-	y2 = max(a->y2, y2);
+	x1 = MIN(a->x1, x1);
+	y1 = MIN(a->y1, y1);
+	x2 = MAX(a->x2, x2);
+	y2 = MAX(a->y2, y2);
 }
 
 void GRect::Union(GRect *a, GRect *b)
 {
-	x1 = min(a->x1,b->x1);
-	y1 = min(a->y1,b->y1);
-	x2 = max(a->x2,b->x2);
-	y2 = max(a->y2,b->y2);
+	x1 = MIN(a->x1,b->x1);
+	y1 = MIN(a->y1,b->y1);
+	x2 = MAX(a->x2,b->x2);
+	y2 = MAX(a->y2,b->y2);
 }
 
 void GRect::Intersection(GRect *a)
 {
 	if (Overlap(a))
 	{
-		x1 = max(a->x1, x1);
-		y1 = max(a->y1, y1);
-		x2 = min(a->x2, x2);
-		y2 = min(a->y2, y2);
+		x1 = MAX(a->x1, x1);
+		y1 = MAX(a->y1, y1);
+		x2 = MIN(a->x2, x2);
+		y2 = MIN(a->y2, y2);
 	}
 	else
 	{
@@ -257,10 +257,10 @@ void GRect::Intersection(GRect *a, GRect *b)
 {
 	if (a->Overlap(b))
 	{
-		x1 = max(a->x1,b->x1);
-		y1 = max(a->y1,b->y1);
-		x2 = min(a->x2,b->x2);
-		y2 = min(a->y2,b->y2);
+		x1 = MAX(a->x1,b->x1);
+		y1 = MAX(a->y1,b->y1);
+		x2 = MIN(a->x2,b->x2);
+		y2 = MIN(a->y2,b->y2);
 	}
 	else
 	{
@@ -439,7 +439,7 @@ bool GRegion::SetSize(int s)
 		GRect *Temp = new GRect[NewAlloc];
 		if (Temp)
 		{
-			int Common = min(Size, s);
+			int Common = MIN(Size, s);
 			memcpy(Temp, a, sizeof(GRect)*Common);
 			DeleteArray(a);
 			a = Temp;
@@ -652,18 +652,18 @@ void GRegion::Subtract(GRect *b)
 				{
 					GRect *n = NewOne();
 					n->x1 = c.x1;
-					n->y1 = max(Sub.y1, c.y1);
+					n->y1 = MAX(Sub.y1, c.y1);
 					n->x2 = Sub.x1 - 1;
-					n->y2 = min(Sub.y2, c.y2);
+					n->y2 = MIN(Sub.y2, c.y2);
 				}
 
 				if (Sub.x2 < c.x2)
 				{
 					GRect *n = NewOne();
 					n->x1 = Sub.x2 + 1;
-					n->y1 = max(Sub.y1, c.y1);
+					n->y1 = MAX(Sub.y1, c.y1);
 					n->x2 = c.x2;
-					n->y2 = min(Sub.y2, c.y2);
+					n->y2 = MIN(Sub.y2, c.y2);
 				}
 
 				Delete(i);

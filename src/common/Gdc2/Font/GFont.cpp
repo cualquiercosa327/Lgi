@@ -236,7 +236,7 @@ void GTypeFace::PointSize(int i)
 
 void GTypeFace::TabSize(int i)
 {
-	d->_TabSize = max(i, 8);
+	d->_TabSize = MAX(i, 8);
 	_OnPropChange(false);
 }
 
