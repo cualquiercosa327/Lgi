@@ -319,6 +319,8 @@ public:
 						break;
 					case IDM_INSERT_ROW:
 						Table->InsertRow(Cell.y1);
+					case IDM_INSERT_COL:
+						Table->InsertCol(Cell.x1);
 						break;
 				}
 
@@ -1159,6 +1161,41 @@ void CtrlTable::InsertRow(int y)
 	for (i=0; i<d->RowSize.Length(); i++)
 	{
 		d->RowSize[i] = d->RowSize[i] / (1.0 + Last);
+	}
+
+	// Refresh the screen
+	Invalidate();
+}
+
+void CtrlTable::InsertCol(int x)
+{
+	// Shift existing cells down
+	int i;
+	for (i=0; i<d->Cells.Length(); i++)
+	{
+		ResTableCell *c = d->Cells[i];
+		if (c)
+		{
+			if (c->Cell.x1 >= x)
+			{
+				c->Cell.Offset(1, 0);
+			}
+		}
+	}
+
+	// Add new row of 1x1 cells
+	for (i=0; i<d->CellY; i++)
+	{
+		d->Cells.Add(new ResTableCell(this, x, i));
+	}
+	d->CellX++;
+
+	// Update rows
+	double Last = d->ColSize.Last();
+	d->ColSize.Add(Last);
+	for (i=0; i<d->ColSize.Length(); i++)
+	{
+		d->ColSize[i] = d->ColSize[i] / (1.0 + Last);
 	}
 
 	// Refresh the screen

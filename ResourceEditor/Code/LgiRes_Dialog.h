@@ -289,6 +289,7 @@ public:
 	void Layout();
 	void UnMerge(class ResTableCell *Cell);
 	void Fix();
+	void InsertCol(int x);
 	void InsertRow(int y);
 	void EnumCtrls(List<ResDialogCtrl> &Ctrls);
 
