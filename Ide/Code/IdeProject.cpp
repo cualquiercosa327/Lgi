@@ -143,9 +143,20 @@ class BuildThread : public LThread, public GStream
 		Gcc,
 		CrossCompiler,
 		PythonScript,
-		IAR
+		IAR,
+		Nmake
 	}
 		Compiler;
+
+	enum ArchType
+	{
+		DefaultArch,
+		ArchX32,
+		ArchX64,
+		ArchArm6,
+		ArchArm7,
+	}
+		Arch;
 
 public:
 	BuildThread(IdeProject *proj, char *makefile, bool clean, bool Release, int wordsize);
@@ -1163,6 +1174,7 @@ BuildThread::BuildThread(IdeProject *proj, char *makefile, bool clean, bool rele
 	Clean = clean;
 	Release = release;
 	WordSize = wordsize;
+	Arch = DefaultArch;
 	Compiler = DefaultCompiler;
 
 	char *Ext = LgiGetExtension(Makefile);
@@ -1298,12 +1310,13 @@ GString BuildThread::FindExe()
 	{
 		// Find the version we need:
 		double fVer = 0.0;
-		GFile f;
-		if (f.Open(Makefile, O_READ))
+
+		GString ProjFile;
+		const char *Ext = LgiGetExtension(Makefile);
+		if (Ext && !_stricmp(Ext, "sln"))
 		{
-			GString ProjFile;
-			const char *Ext = LgiGetExtension(Makefile);
-			if (Ext && !_stricmp(Ext, "sln"))
+			GFile f;
+			if (f.Open(Makefile, O_READ))
 			{
 				GString VerKey = "Format Version ";
 				GString ProjKey = "Project(";
@@ -1339,19 +1352,56 @@ GString BuildThread::FindExe()
 					}
 				}
 			}
-			else if (Ext && !_stricmp(Ext, "vcxproj"))
+		}
+		else if (Ext && !_stricmp(Ext, "vcxproj"))
+		{
+			ProjFile = Makefile;
+		}
+		else
+		{
+			if (Arch == DefaultArch)
 			{
-				ProjFile = Makefile;
+				if (sizeof(size_t) == 4)
+					Arch = ArchX32;
+				else
+					Arch = ArchX64;
 			}
 
-			if (ProjFile && FileExists(ProjFile))
+			// Nmake file..
+			GString NmakePath;
+			switch (_MSC_VER)
 			{
-				f.Close();
-				GString sVer;
-				if (ReadVsProjFile(ProjFile, sVer, BuildConfigs))
+				case _MSC_VER_VS2013:
 				{
-					fVer = sVer.Float();
+					if (Arch == ArchX32)
+						NmakePath = "c:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\bin\\nmake.exe";
+					else
+						NmakePath = "c:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\bin\\amd64\\nmake.exe";
+					break;
 				}
+				case _MSC_VER_VS2015:
+				{
+					if (Arch == ArchX32)
+						NmakePath = "c:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\bin\\nmake.exe";
+					else
+						NmakePath = "c:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\bin\\amd64\\nmake.exe";
+					break;
+				}
+			}
+
+			if (FileExists(NmakePath))
+			{
+				Compiler = Nmake;
+				return NmakePath;
+			}
+		}
+
+		if (ProjFile && FileExists(ProjFile))
+		{
+			GString sVer;
+			if (ReadVsProjFile(ProjFile, sVer, BuildConfigs))
+			{
+				fVer = sVer.Float();
 			}
 		}
 
@@ -1470,7 +1520,8 @@ int BuildThread::Main()
 		if (Pos)
 			InitDir.Length(Pos);
 
-		GString TmpArgs;
+		GString TmpArgs, Include, Lib, LibPath, Path;
+		
 		if (Compiler == VisualStudio)
 		{
 			// TmpArgs.Printf("\"%s\" /make \"All - Win32 Debug\"", Makefile.Get());
@@ -1489,6 +1540,76 @@ int BuildThread::Main()
 				}
 			}
 			TmpArgs.Printf("\"%s\" %s \"%s\"", Makefile.Get(), Clean ? "/Clean" : "/Build", BuildConf.Get());
+		}
+		else if (Compiler == Nmake)
+		{
+			const char *DefInc[] = {
+				"C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\INCLUDE",
+				"C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\ATLMFC\\INCLUDE",
+				"C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\shared",
+				"C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\um",
+				"C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\winrt"
+			};
+			GString f;
+
+			#define ADD_PATHS(out, in) \
+				for (unsigned i=0; i<CountOf(in); i++) \
+				{ \
+					f.Printf("%s%s", i ? LGI_PATH_SEPARATOR : "", in[i]); \
+					out += f; \
+				}
+			if (Arch == ArchX32)
+			{
+				const char *DefLib[] = {
+					"C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\LIB",
+					"C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\ATLMFC\\LIB",
+					"C:\\Program Files (x86)\\Windows Kits\\8.1\\lib\\winv6.3\\um\\x32"
+				};
+				const char *DefLibPath[] = {
+					"C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319",
+					"C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\LIB",
+					"C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\ATLMFC\\LIB",
+					"C:\\Program Files (x86)\\Windows Kits\\8.1\\References\\CommonConfiguration\\Neutral",
+					"C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v8.1\\ExtensionSDKs\\Microsoft.VCLibs\\12.0\\References\\CommonConfiguration\\neutral"
+				};
+				const char *DefPath[] = {
+					"c:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x86"
+				};
+			
+				ADD_PATHS(Include, DefInc);
+				ADD_PATHS(Lib, DefLib);
+				ADD_PATHS(LibPath, DefLibPath);
+				ADD_PATHS(Path, DefPath);
+			}
+			else if (Arch == ArchX64)
+			{
+				const char *DefLib[] = {
+					"C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\LIB\\amd64",
+					"C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\ATLMFC\\LIB\\amd64",
+					"C:\\Program Files (x86)\\Windows Kits\\8.1\\lib\\winv6.3\\um\\x64"
+				};
+				const char *DefLibPath[] = {
+					"C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319",
+					"C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\LIB\\amd64",
+					"C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\ATLMFC\\LIB\\amd64",
+					"C:\\Program Files (x86)\\Windows Kits\\8.1\\References\\CommonConfiguration\\Neutral",
+					"C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v8.1\\ExtensionSDKs\\Microsoft.VCLibs\\12.0\\References\\CommonConfiguration\\neutral"
+				};
+				const char *DefPath[] = {
+					"c:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x64"
+				};
+							
+				ADD_PATHS(Include, DefInc);
+				ADD_PATHS(Lib, DefLib);
+				ADD_PATHS(LibPath, DefLibPath);
+				ADD_PATHS(Path, DefPath);
+			}
+			else LgiAssert(!"Invalid Arch");
+
+			TmpArgs.Printf(" -f \"%s\"", Makefile.Get());
+
+			if (Clean)
+				TmpArgs += " clean";
 		}
 		else if (Compiler == PythonScript)
 		{
@@ -1563,6 +1684,19 @@ int BuildThread::Main()
 		if (SubProc.Reset(new GSubProcess(Exe, TmpArgs)))
 		{
 			SubProc->SetInitFolder(InitDir);
+			if (Include)
+				SubProc->SetEnvironment("INCLUDE", Include);
+			if (Lib)
+				SubProc->SetEnvironment("LIB", Lib);
+			if (LibPath)
+				SubProc->SetEnvironment("LIBPATHS", LibPath);
+			if (Path)
+			{
+				GString Cur = getenv("PATH");
+				GString New = Cur + LGI_PATH_SEPARATOR + Path;
+				SubProc->SetEnvironment("PATH", New);
+			}
+			SubProc->SetEnvironment("DLL", "1");
 			if (Compiler == MingW)
 				SubProc->SetEnvironment("PATH", "c:\\MingW\\bin;C:\\MinGW\\msys\\1.0\\bin;%PATH%");
 				
@@ -1599,7 +1733,7 @@ int BuildThread::Main()
 	}
 	else
 	{
-		Err = "Couldn't find 'make'";
+		Err = "Couldn't find program to build makefile.";
 		LgiTrace("%s,%i - %s.\n", _FL, Err);
 	}
 

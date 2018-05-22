@@ -10,6 +10,20 @@
 #define DRAW_CELL_INDEX			0
 #define DRAW_TABLE_SIZE			0
 
+enum Cmds
+{
+	IDM_ALIGN_X_MIN				= 100,
+	IDM_ALIGN_X_CTR,
+	IDM_ALIGN_X_MAX,
+	IDM_ALIGN_Y_MIN,
+	IDM_ALIGN_Y_CTR,
+	IDM_ALIGN_Y_MAX,
+	IDM_UNMERGE,
+	IDM_FIX_TABLE,
+	IDM_INSERT_ROW,
+	IDM_INSERT_COL,
+};
+
 /////////////////////////////////////////////////////////////////////
 struct Pair { int Pos, Size; };
 void CalcCell(GArray<Pair> &p, GArray<double> &s, int Total)
@@ -252,16 +266,6 @@ public:
 	
 	void OnMouseClick(GMouse &m)
 	{
-		#define IDM_ALIGN_X_MIN				100
-		#define IDM_ALIGN_X_CTR				101
-		#define IDM_ALIGN_X_MAX				102
-		#define IDM_ALIGN_Y_MIN				103
-		#define IDM_ALIGN_Y_CTR				104
-		#define IDM_ALIGN_Y_MAX				105
-		#define IDM_UNMERGE					106
-		#define IDM_FIX_TABLE				107
-		#define IDM_INSERT_ROW				108
-
 		if (m.Down() && m.Right())
 		{
 			GSubMenu *RClick = new GSubMenu;
@@ -284,6 +288,7 @@ public:
 				RClick->AppendItem("Unmerge", IDM_UNMERGE, Cell.X() > 1 || Cell.Y() > 1);
 				RClick->AppendItem("Fix Missing Cells", IDM_FIX_TABLE, true);
 				RClick->AppendItem("Insert Row", IDM_INSERT_ROW, true);
+				RClick->AppendItem("Insert Column", IDM_INSERT_COL, true);
 
 				m.ToScreen();
 				switch (RClick->Float(Table, m.x, m.y))

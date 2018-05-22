@@ -2195,7 +2195,7 @@ void AppWnd::ImportLang()
 	GFileSelect Select;
 
 	Select.Parent(this);
-	Select.Type("Lgi Resources", "*.lr;*.lr8;*.xml");
+	Select.Type("Lgi Resources", "*.lr8;*.xml");
 
 	if (Select.Open())
 	{
@@ -2472,8 +2472,7 @@ void AppWnd::Empty()
 
 bool AppWnd::OpenFile(char *FileName, bool Ro)
 {
-	if (stristr(FileName, ".lr") ||
-		stristr(FileName, ".lr8") ||
+	if (stristr(FileName, ".lr8") ||
 		stristr(FileName, ".xml"))
 	{
 		return LoadLgi(FileName);
@@ -2488,8 +2487,7 @@ bool AppWnd::OpenFile(char *FileName, bool Ro)
 
 bool AppWnd::SaveFile(char *FileName)
 {
-	if (stristr(FileName, ".lr") ||
-		stristr(FileName, ".lr8") ||
+	if (stristr(FileName, ".lr8") ||
 		stristr(FileName, ".xml"))
 	{
 		return SaveLgi(FileName);
@@ -2503,7 +2501,7 @@ bool AppWnd::SaveFile(char *FileName)
 
 void AppWnd::GetFileTypes(GFileSelect *Dlg, bool Write)
 {
-	Dlg->Type("Lgi Resources", "*.lr;*.lr8;*.xml");
+	Dlg->Type("Lgi Resources", "*.lr8;*.xml");
 	if (!Write)
 	{
 		Dlg->Type("All Files", LGI_ALL_FILES);
