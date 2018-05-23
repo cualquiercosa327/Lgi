@@ -64,6 +64,8 @@ public:
 	int OnNotify(GViewI *v, int f);
 	void OnPulse();
 	bool SetPos(GRect &p, bool Repaint = false) { return GView::SetPos(p, Repaint); }
+	GString Read();
+	ssize_t Read(void *Ptr, ssize_t Size, int Flags = 0) override { return 0; }
 	ssize_t Write(const void *Ptr, ssize_t Size, int Flags = 0);
 };
 

@@ -1459,6 +1459,11 @@ void IdeDoc::OnPulse()
 	}
 }
 
+GString IdeDoc::Read()
+{
+	return d->Edit->Name();
+}
+
 ssize_t IdeDoc::Write(const void *Ptr, ssize_t Size, int Flags)
 {
 	if (d->Lock(_FL))

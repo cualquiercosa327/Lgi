@@ -1739,6 +1739,8 @@ void AppWnd::OnReceiveFiles(GArray<char*> &Files)
 		}
 		else if
 		(
+			LgiIsFileNameExecutable(Files[i])
+			/*
 			ext
 			&&
 			(
@@ -1746,6 +1748,7 @@ void AppWnd::OnReceiveFiles(GArray<char*> &Files)
 				||
 				!stricmp(ext, "node")
 			)
+			*/
 		)
 		{
 			// dumpbin /exports csp.dll
@@ -3268,6 +3271,15 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		//
 		// Other
 		//
+		case IDM_LOOKUP_SYMBOLS:
+		{
+			IdeDoc *Cur = GetCurrentDoc();
+			if (Cur)
+			{
+				LookupSymbols(Cur->Read());
+			}
+			break;
+		}
 		case IDM_DEPENDS:
 		{
 			IdeProject *p = RootProject();

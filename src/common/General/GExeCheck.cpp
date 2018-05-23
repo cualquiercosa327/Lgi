@@ -106,9 +106,26 @@ class GExecuteCheck
 					Header.Signature == IMAGE_NT_SIGNATURE)
 				{
 					// Check header members
-					if (Header.FileHeader.Machine == IMAGE_FILE_MACHINE_I386 &&
-						Header.OptionalHeader.Magic == 0x010B &&
-						Header.OptionalHeader.SizeOfCode > 0)
+					if
+					(
+						(
+							Header.FileHeader.Machine == IMAGE_FILE_MACHINE_I386
+							||
+							Header.FileHeader.Machine == IMAGE_FILE_MACHINE_AMD64
+							||
+							Header.FileHeader.Machine == IMAGE_FILE_MACHINE_IA64
+							||
+							Header.FileHeader.Machine == IMAGE_FILE_MACHINE_ARM
+						)
+						&&
+						(
+							Header.OptionalHeader.Magic == 0x010B
+							||
+							Header.OptionalHeader.Magic == 0x020B
+						)
+						&&
+						Header.OptionalHeader.SizeOfCode > 0
+					)
 					{
 						/// Looks pretty good..
 						return true;
