@@ -1142,9 +1142,10 @@ void CtrlTable::InsertRow(int y)
 		if (c)
 		{
 			if (c->Cell.y1 >= y)
-			{
 				c->Cell.Offset(0, 1);
-			}
+			else if (c->Cell.y2 >= y)
+				// Make spanned cells taller...
+				c->Cell.y2++;				
 		}
 	}
 
@@ -1177,9 +1178,10 @@ void CtrlTable::InsertCol(int x)
 		if (c)
 		{
 			if (c->Cell.x1 >= x)
-			{
 				c->Cell.Offset(1, 0);
-			}
+			else if (c->Cell.x2 >= x)
+				// Make spanned cells wider...
+				c->Cell.x2++;
 		}
 	}
 
