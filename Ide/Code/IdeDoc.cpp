@@ -1400,22 +1400,6 @@ GMessage::Result IdeDoc::OnEvent(GMessage *Msg)
 {
 	switch (Msg->Msg())
 	{
-		case M_APPEND_STR:
-		{
-			if (!d->Lock(_FL))
-				break;
-
-			for (GString *s = NULL; d->WriteBuf.Iterate(s); )
-			{
-				GAutoWString w(Utf8ToWide(*s, s->Length()));
-				d->Edit->Insert(d->Edit->GetSize(), w, Strlen(w.Get()));
-			}
-
-			d->WriteBuf.Empty();
-			d->Unlock();
-			d->Edit->Invalidate();
-			break;
-		}
 		case M_FIND_SYM_REQUEST:
 		{
 			GAutoPtr<FindSymRequest> Resp((FindSymRequest*)Msg->A());
@@ -1455,6 +1439,24 @@ GMessage::Result IdeDoc::OnEvent(GMessage *Msg)
 void IdeDoc::OnPulse()
 {
 	d->CheckModTime();
+
+	if (d->Lock(_FL))
+	{
+		if (d->WriteBuf.Length())
+		{
+			bool Pour = d->Edit->SetPourEnabled(false);
+			for (GString *s = NULL; d->WriteBuf.Iterate(s); )
+			{
+				GAutoWString w(Utf8ToWide(*s, s->Length()));
+				d->Edit->Insert(d->Edit->GetSize(), w, Strlen(w.Get()));
+			}
+			d->Edit->SetPourEnabled(Pour);
+
+			d->WriteBuf.Empty();
+			d->Edit->Invalidate();
+		}
+		d->Unlock();
+	}
 }
 
 ssize_t IdeDoc::Write(const void *Ptr, ssize_t Size, int Flags)
@@ -1464,10 +1466,6 @@ ssize_t IdeDoc::Write(const void *Ptr, ssize_t Size, int Flags)
 		d->WriteBuf.New().Set((char*)Ptr, Size);
 		d->Unlock();
 	}
-
-	if (IsAttached())
-		PostEvent(M_APPEND_STR, (GMessage::Param)new GString((char*)Ptr, Size));
-
 	return 0;
 }
 

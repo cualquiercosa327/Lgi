@@ -68,6 +68,7 @@ public:
 	DocEdit(IdeDoc *d, GFontType *f);
 	~DocEdit();
 
+	bool SetPourEnabled(bool b);
 	int GetTopPaddingPx();
 	void InvalidateLine(int Idx);
 	char *TemplateMerge(const char *Template, char *Name, List<char> *Params);

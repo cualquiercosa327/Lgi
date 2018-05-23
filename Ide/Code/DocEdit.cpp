@@ -99,6 +99,19 @@ bool DocEdit::DoGoto()
 	return true;
 }
 
+bool DocEdit::SetPourEnabled(bool b)
+{
+	bool e = PourEnabled;
+	PourEnabled = b;
+	if (PourEnabled)
+	{
+		PourText(0, Size);
+		PourStyle(0, Size);
+	}
+
+	return e;
+}
+
 int DocEdit::GetTopPaddingPx()
 {
 	return GetCss(true)->PaddingTop().ToPx(GetClient().Y(), GetFont());
@@ -324,9 +337,9 @@ int DocEdit::CountRefreshEdges(size_t At, ssize_t Len)
 
 bool DocEdit::Insert(size_t At, char16 *Data, ssize_t Len)
 {
-	int Old = CountRefreshEdges(At, 0);
+	int Old = PourEnabled ? CountRefreshEdges(At, 0) : 0;
 	bool Status = GTextView3::Insert(At, Data, Len);
-	int New = CountRefreshEdges(At, Len);
+	int New = PourEnabled ? CountRefreshEdges(At, Len) : 0;
 	if (Old != New)
 		Invalidate();
 
