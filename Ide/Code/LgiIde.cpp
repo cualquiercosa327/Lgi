@@ -25,6 +25,7 @@
 #include "LgiRes.h"
 #include "ProjectNode.h"
 #include "GBox.h"
+#include "GSubProcess.h"
 
 #define IDM_RECENT_FILE			1000
 #define IDM_RECENT_PROJECT		1100
@@ -1685,6 +1686,38 @@ GDebugContext *AppWnd::GetDebugContext()
 	return d->DbgContext;
 }
 
+struct DumpBinThread : public LThread
+{
+	GStream *Out;
+	GString InFile;
+
+public:
+	DumpBinThread(GStream *out, GString file) : LThread("DumpBin.Thread")
+	{
+		Out = out;
+		InFile = file;
+		DeleteOnExit = true;
+		Run();
+	}
+
+	int Main()
+	{
+		GString Args;
+		Args.Printf("/exports \"%s\"", InFile.Get());
+		GSubProcess s("c:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\bin\\amd64\\dumpbin.exe", Args);
+		if (!s.Start(true, false))
+			return -1;
+
+		char Buf[256];
+		int Rd;
+		while ((Rd = s.Read(Buf, sizeof(Buf))) > 0)
+		{
+			Out->Write(Buf, Rd);
+		}
+
+		return 0;
+	}
+};
 
 void AppWnd::OnReceiveFiles(GArray<char*> &Files)
 {
@@ -1703,6 +1736,29 @@ void AppWnd::OnReceiveFiles(GArray<char*> &Files)
 		{
 			if (!OpenProject(f, NULL))
 				OpenFile(f);
+		}
+		else if
+		(
+			ext
+			&&
+			(
+				!stricmp(ext, "dll")
+				||
+				!stricmp(ext, "node")
+			)
+		)
+		{
+			// dumpbin /exports csp.dll
+			GFile::Path Docs(LSP_USER_DOCUMENTS);
+			GString Name;
+			Name.Printf("%s.txt", Files[i]);
+			Docs += Name;
+			IdeDoc *Doc = NewDocWnd(NULL, NULL);
+			if (Doc)
+			{
+				Doc->SetFileName(Docs, false);
+				new DumpBinThread(Doc, Files[i]);
+			}
 		}
 		else
 		{

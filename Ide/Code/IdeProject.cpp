@@ -1698,7 +1698,8 @@ int BuildThread::Main()
 				GString New = Cur + LGI_PATH_SEPARATOR + Path;
 				SubProc->SetEnvironment("PATH", New);
 			}
-			SubProc->SetEnvironment("DLL", "1");
+			// SubProc->SetEnvironment("DLL", "1");
+
 			if (Compiler == MingW)
 				SubProc->SetEnvironment("PATH", "c:\\MingW\\bin;C:\\MinGW\\msys\\1.0\\bin;%PATH%");
 				

@@ -38,7 +38,7 @@ public:
 	void OnSymbolList(GMouse &m);
 };
 
-class IdeDocPrivate : public NodeView
+class IdeDocPrivate : public NodeView, public LMutex
 {
 	GString FileName;
 	GString Buffer;
@@ -55,6 +55,7 @@ public:
 	class ProjFilePopup *FilePopup;
 	class ProjMethodPopup *MethodPopup;
 	class ProjSymPopup *SymPopup;
+	GString::Array WriteBuf;
 	
 	IdeDocPrivate(IdeDoc *d, AppWnd *a, NodeSource *src, const char *file);
 	void OnDelete();

@@ -7,7 +7,7 @@
 
 extern void FilterFiles(GArray<ProjectNode*> &Perfect, GArray<ProjectNode*> &Nodes, GString InputStr);
 
-class IdeDoc : public GMdiChild
+class IdeDoc : public GMdiChild, public GStream
 {
 	friend class DocEdit;
 	class IdeDocPrivate *d;
@@ -20,7 +20,7 @@ public:
 	~IdeDoc();
 
 	AppWnd *GetApp();
-
+		
 	void SetProject(IdeProject *p);	
 	IdeProject *GetProject();
 	char *GetFileName();
@@ -63,6 +63,8 @@ public:
 	GMessage::Result OnEvent(GMessage *Msg);
 	int OnNotify(GViewI *v, int f);
 	void OnPulse();
+	bool SetPos(GRect &p, bool Repaint = false) { return GView::SetPos(p, Repaint); }
+	ssize_t Write(const void *Ptr, ssize_t Size, int Flags = 0);
 };
 
 #endif

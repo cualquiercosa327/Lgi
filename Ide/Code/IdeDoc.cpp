@@ -777,7 +777,7 @@ public:
 }	StyleThread;
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-IdeDocPrivate::IdeDocPrivate(IdeDoc *d, AppWnd *a, NodeSource *src, const char *file) : NodeView(src)
+IdeDocPrivate::IdeDocPrivate(IdeDoc *d, AppWnd *a, NodeSource *src, const char *file) : NodeView(src), LMutex("IdeDocPrivate.Lock")
 {
 	IsDirty = false;
 
@@ -1386,11 +1386,9 @@ char *IdeDoc::GetFileName()
 
 void IdeDoc::SetFileName(const char *f, bool Write)
 {
+	d->SetFileName(f);
 	if (Write)
-	{
-		d->SetFileName(f);
 		d->Edit->Save(d->GetLocalFile());
-	}
 }
 
 void IdeDoc::Focus(bool f)
@@ -1402,6 +1400,22 @@ GMessage::Result IdeDoc::OnEvent(GMessage *Msg)
 {
 	switch (Msg->Msg())
 	{
+		case M_APPEND_STR:
+		{
+			if (!d->Lock(_FL))
+				break;
+
+			for (GString *s = NULL; d->WriteBuf.Iterate(s); )
+			{
+				GAutoWString w(Utf8ToWide(*s, s->Length()));
+				d->Edit->Insert(d->Edit->GetSize(), w, Strlen(w.Get()));
+			}
+
+			d->WriteBuf.Empty();
+			d->Unlock();
+			d->Edit->Invalidate();
+			break;
+		}
 		case M_FIND_SYM_REQUEST:
 		{
 			GAutoPtr<FindSymRequest> Resp((FindSymRequest*)Msg->A());
@@ -1441,6 +1455,20 @@ GMessage::Result IdeDoc::OnEvent(GMessage *Msg)
 void IdeDoc::OnPulse()
 {
 	d->CheckModTime();
+}
+
+ssize_t IdeDoc::Write(const void *Ptr, ssize_t Size, int Flags)
+{
+	if (d->Lock(_FL))
+	{
+		d->WriteBuf.New().Set((char*)Ptr, Size);
+		d->Unlock();
+	}
+
+	if (IsAttached())
+		PostEvent(M_APPEND_STR, (GMessage::Param)new GString((char*)Ptr, Size));
+
+	return 0;
 }
 
 void IdeDoc::OnProjectChange()
