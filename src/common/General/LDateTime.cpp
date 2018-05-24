@@ -1481,7 +1481,7 @@ LDateTime LDateTime::operator -(LDateTime &dt)
     int64 Hr = 60 * Min;
     int64 Day = 24 * Hr;
     
-    uint64 d = a - b;
+    int64 d = (int64)a - (int64)b;
     LDateTime r;
     r._Day = d / Day;
     d -= r._Day * Day;
