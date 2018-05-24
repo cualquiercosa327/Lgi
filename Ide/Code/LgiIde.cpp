@@ -3276,7 +3276,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			IdeDoc *Cur = GetCurrentDoc();
 			if (Cur)
 			{
-				LookupSymbols(Cur->Read());
+				// LookupSymbols(Cur->Read());
 			}
 			break;
 		}

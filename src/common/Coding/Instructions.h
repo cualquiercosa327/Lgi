@@ -1307,7 +1307,12 @@ case IDomCall:
 		Arg[i] = Resolve();
 	}
 	
-	switch (Dom->Type)
+	GDomProperty p = LgiStringToDomProp(sName);
+	if (p == ObjType)
+	{
+		*Dst = GVariant::TypeToString(Dom->Type);
+	}
+	else switch (Dom->Type)
 	{
 		case GV_DOM:
 		case GV_STREAM:
@@ -1345,17 +1350,11 @@ case IDomCall:
 		case GV_LIST:
 		{
 			CheckParam(Dom->Value.Lst);
-			GDomProperty p = LgiStringToDomProp(sName);
 			switch (p)
 			{
 				case ObjLength:
 				{
 					*Dst = Dom->Value.Lst->Length();
-					break;
-				}
-				case ObjType:
-				{
-					*Dst = "List";
 					break;
 				}
 				case ContainerAdd:
@@ -1424,17 +1423,11 @@ case IDomCall:
 		case GV_HASHTABLE:
 		{
 			CheckParam(Dom->Value.Hash);
-			GDomProperty p = LgiStringToDomProp(sName);
 			switch (p)
 			{
 				case ObjLength:
 				{
 					*Dst = Dom->Value.Hash->Length();
-					break;
-				}
-				case ObjType:
-				{
-					*Dst = "HashTable";
 					break;
 				}
 				case ContainerAdd:
@@ -1499,7 +1492,6 @@ case IDomCall:
 		}
 		case GV_BINARY:
 		{
-			GDomProperty p = LgiStringToDomProp(sName);
 			switch (p)
 			{
 				default:
@@ -1518,18 +1510,12 @@ case IDomCall:
 				break;
 			}
 
-			GDomProperty p = LgiStringToDomProp(sName);
 			switch (p)
 			{
 				case ObjLength:
 				{
 					char *s = Dom->Str();
 					*Dst = (int) (s ? strlen(s) : 0);
-					break;
-				}
-				case ObjType:
-				{
-					*Dst = "String";
 					break;
 				}
 				case StrJoin:
@@ -1763,24 +1749,16 @@ case IDomCall:
 				Type = t;
 			}
 			
-			GDomProperty p = LgiStringToDomProp(sName);
-			if (p == ObjType)
+			Dst->Empty();
+			if (Log)
 			{
-				*Dst = Type;
+				Log->Print("%s IDomCall warning: Unexpected type %s (Src=%s:%i IP=0x%x).\n",
+							Code->AddrToSourceRef(CurrentScriptAddress),
+							Type,
+							_FL,
+							CurrentScriptAddress);
 			}
-			else
-			{
-				Dst->Empty();
-				if (Log)
-				{
-					Log->Print("%s IDomCall warning: Unexpected type %s (Src=%s:%i IP=0x%x).\n",
-								Code->AddrToSourceRef(CurrentScriptAddress),
-								Type,
-								_FL,
-								CurrentScriptAddress);
-				}
-				Status = ScriptWarning;
-			}
+			Status = ScriptWarning;
 			break;
 		}
 	}

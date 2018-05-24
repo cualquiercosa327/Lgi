@@ -57,6 +57,7 @@
 					<a href="#FormatSize">FormatSize</a><br>
 					<a href="#Sprintf">Sprintf</a><br>
 					<a href="#Print">Print</a><br>
+					<a href="#ToString">ToString</a><br>
 				<td>
 					<a href="#New">New</a><br>
 					<a href="#Delete">Delete</a><br>
@@ -222,6 +223,21 @@ Print(c);</pre>
 				</ul>
 			</div>
 
+		<h4>String <a name="ToString">ToString</a>([items, ...]);</h4>
+			<div>
+				Converts all the arguments to strings.
+				<br><br>
+				Arguments:
+				<ul>
+					<li> itemN - And object to print.
+				</ul>
+				<br>
+				Returns:
+				<ul>
+					<li> String.
+				</ul>
+			</div>
+			
 		<h4>int <a name="find">obj.Find</a>(sub_string[, start[, end]]);</h4>
 			<div>
 				Finds a the position of a sub-string.
@@ -1178,7 +1194,7 @@ Print(c.Type(), ": ", c.x, ", ", c.y, ", ", c.Bits, ", ", c.ColourSpace, "\n");<
 				<pre>Print(OsVersion(), "\n");</pre>
 				<pre class=output>{6, 1, 0}</pre>
 			</div>
-
+P
 		<h4>string <a name="type">obj.Type</a>;</h4>
 			<div>
 				Gets the type of the object as a string.

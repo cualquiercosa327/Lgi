@@ -438,6 +438,21 @@ bool SystemFunctions::Sleep(LScriptArguments &Args)
 	return true;
 }
 
+bool SystemFunctions::ToString(LScriptArguments &Args)
+{
+	GStringPipe p;
+	const char *Sep = ", ";
+
+	for (unsigned i=0; i<Args.Length(); i++)
+	{
+		GString s = Args[i]->ToString();
+		p.Print("%s%s", i?Sep:"", s.Get());
+	}
+
+	Args.GetReturn()->OwnStr(p.NewStr());
+	return true;
+}
+
 bool SystemFunctions::Print(LScriptArguments &Args)
 {
 	GStream *Out = Log ? Log : (Engine ? Engine->GetConsole() : NULL);
@@ -934,6 +949,7 @@ GHostFunc SystemLibrary[] =
 	DefFn(FormatSize),
 	DefFn(Sprintf),
 	DefFn(Print),
+	DefFn(ToString),
 	
 	// Containers/objects
 	DefFn(New),

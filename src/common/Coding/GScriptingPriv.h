@@ -470,6 +470,8 @@ public:
 		bool FormatSize(LScriptArguments &Args);
 		/// Prints items to the console
 		bool Print(LScriptArguments &Args);
+		/// Converts args to string
+		bool ToString(LScriptArguments &Args);
 
 	// Object creation/deletion
 		bool New(LScriptArguments &Args);
