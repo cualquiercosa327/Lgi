@@ -1369,6 +1369,7 @@ GString BuildThread::FindExe()
 					Arch = ArchX64;
 			}
 
+			#ifdef _MSC_VER
 			// Nmake file..
 			GString NmakePath;
 			switch (_MSC_VER)
@@ -1389,6 +1390,11 @@ GString BuildThread::FindExe()
 						NmakePath = "c:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\bin\\amd64\\nmake.exe";
 					break;
 				}
+				default:
+				{
+					LgiAssert(!"Impl me.");
+					break;
+				}
 			}
 
 			if (FileExists(NmakePath))
@@ -1396,6 +1402,7 @@ GString BuildThread::FindExe()
 				Compiler = Nmake;
 				return NmakePath;
 			}
+			#endif
 		}
 
 		if (ProjFile && FileExists(ProjFile))
