@@ -1406,67 +1406,11 @@ bool LDateTime::operator !=(LDateTime &dt)
 			_Thousands != dt._Thousands;
 }
 
-LDateTime LDateTime::DiffMonths(LDateTime &dt)
+int LDateTime::DiffMonths(LDateTime &dt)
 {
-	LDateTime s;
-
-	int Months = 0;
-	s._Year = _Year;
-	s._Month = _Month;
-	s._Day = _Day;
-
-	while (s._Year != dt._Year)
-	{
-		if (s._Year > dt._Year)
-		{
-			s._Year--;
-			Months += 12;
-		}
-		else
-		{
-			Months -= 12;
-			s._Year++;
-		}
-	}
-
-	while (s._Month != dt._Month)
-	{
-		if
-		(
-			s._Month > dt._Month + 1
-			||
-			(
-				s._Month > dt._Month
-				&&
-				s._Day >= dt._Day
-			)
-		)
-		{
-			s._Month--;
-			Months++;
-		}
-		else if
-		(
-			s._Month < dt._Month - 1
-			||
-			(
-				s._Month < dt._Month
-				&&
-				s._Day <= dt._Day
-			)
-		)
-		{
-			Months--;
-			s._Month++;
-		}
-		else break;
-	}
-
-	s._Month = Months;
-	s._Day = 0;
-	s._Year = 0;
-
-	return s;
+	int a = (Year() * 12) + Month();
+	int b = (dt.Year() * 12) + dt.Month();
+	return b - a;
 }
 
 LDateTime LDateTime::operator -(LDateTime &dt)
@@ -1534,6 +1478,17 @@ bool LDateTime::IsSameDay(LDateTime &d)
 	return	Day() == d.Day() &&
 			Month() == d.Month() &&
 			Year() == d.Year();
+}
+
+bool LDateTime::IsSameMonth(LDateTime &d)
+{
+	return	Day() == d.Day() &&
+			Month() == d.Month();
+}
+
+bool LDateTime::IsSameYear(LDateTime &d)
+{
+	return Year() == d.Year();
 }
 
 bool LDateTime::IsLeapYear(int Year)

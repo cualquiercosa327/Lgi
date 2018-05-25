@@ -1936,7 +1936,7 @@ void CtrlList::OnPaint(GSurface *pDC)
 		int Width = c->r().X();
 		c->r().Set(x, Title.y1, x + Width - 1, Title.y2);
 		GRect r = c->r();
-		r.x2 = min(r.x2, Title.x2);
+		r.x2 = MIN(r.x2, Title.x2);
 		x = r.x2 + 1;
 		if (r.Valid())
 		{

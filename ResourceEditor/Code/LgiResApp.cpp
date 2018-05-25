@@ -1510,7 +1510,7 @@ int AppWnd::GetUniqueCtrlId()
 							t.Add(s->GetId(), s->GetId());
 						}
 
-						Max = max(s->GetId(), Max);
+						Max = MAX(s->GetId(), Max);
 					}
 				}
 			}
@@ -2121,7 +2121,7 @@ public:
 				}
 			}
 
-			int Max = max(r1.Length(), r2.Length());
+			int Max = MAX(r1.Length(), r2.Length());
 			for (int i = 0; i<Max; i++)
 			{
 				if (r1[i] && r2[i])
