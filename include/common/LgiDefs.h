@@ -194,14 +194,23 @@ typedef union
 }	GPointer;
 
 // Basic macros
-// #define abs(a)						(((a) > 0) ? (a) : -(a))
-// #define min(a,b)						(((a) < (b)) ? (a) : (b))
-// #define max(a,b)						(((a) > (b)) ? (a) : (b))
 #define limit(i,l,u)					(((i)<(l)) ? (l) : (((i)>(u)) ? (u) : (i)))
 #define makelong(a, b)					((a)<<16 | (b&0xFFFF))
 #define loword(a)						(a&0xFFFF)
 #define hiword(a)						(a>>16)
 #define LgiSwap(a, b)					{ int n = a; a = b; b = n; }
+
+#undef ABS
+#ifdef __cplusplus
+template<typename T>
+inline T ABS(T v)
+{
+	if (v < 0) return -v;
+	return v;
+}
+#else
+#define ABS(v) ((v) < 0 ? -(v) : (v))
+#endif
 
 /// Returns true if 'c' is an ascii character
 #define IsAlpha(c)					    (((c) >= 'a' && (c) <= 'z') || ((c) >= 'A' && (c) <= 'Z'))

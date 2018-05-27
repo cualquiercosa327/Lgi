@@ -273,7 +273,7 @@ public:
 			f->EmptyChildren();
 
 			VcFolder *vcf = NULL; bool b;
-			while (b = Tree->Iterate(vcf))
+			while ((b = Tree->Iterate(vcf)))
 				f->InsertTag(vcf->Save());
 			Opts.Unlock();
 		}
@@ -283,7 +283,7 @@ public:
 	void OnPulse()
 	{
 		VcFolder *vcf = NULL; bool b;
-		while (b = Tree->Iterate(vcf))
+		while ((b = Tree->Iterate(vcf)))
 			vcf->OnPulse();
 	}
 
