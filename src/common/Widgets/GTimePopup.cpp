@@ -275,8 +275,7 @@ void GTimePopup::SetTime(LDateTime *t)
 {
 	if (t && Times)
 	{
-		List<LListItem>::I All = Times->Start();
-		for (LListItem *i=*All; i; i=*++All)
+		for (auto i : *Times)
 		{
 			char *s = i->GetText(0);
 			if (s)
