@@ -707,22 +707,30 @@ public:
 			each_dir = 0;
 		}
 
-		bool operator ==(const Iter<T> &it)
+		bool operator ==(const Iter<T> &it) const
 		{
-			int x = (int)In + (int)it.In();
+			int x = (int)In() + (int)it.In();
 			if (x == 2)
-				retturn a = it.a && i == a.i;
+				return (a == it.a) && (i == it.i);
 			return x == 0;
 		}
 
-		operator bool() { return In(); }
+		bool operator !=(const Iter<T> &it) const
+		{
+			return !(*this == it);
+		}
+
+		operator bool() const
+		{
+			return In();
+		}
 		
-		bool In()
+		bool In() const
 		{
 			return i >= 0 && i < (ssize_t)a->Length();
 		}
 		
-		bool End()
+		bool End() const
 		{
 			return i < 0 || i >= a->Length();
 		}
