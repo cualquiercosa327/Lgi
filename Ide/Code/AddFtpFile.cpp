@@ -40,8 +40,7 @@ void AddFtpFile::OnCmdComplete(FtpCmd *Cmd)
 {
 	if (Cmd && Base)
 	{
-		GArray<IFtpEntry*>::I it = Cmd->Dir.Start();
-		for (IFtpEntry *e=*it; e; e=*++it)
+		for (auto &e : Cmd->Dir)
 		{
 			if (e->Name && !e->IsDir())
 			{
