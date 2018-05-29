@@ -688,28 +688,45 @@ public:
 	template <class T>
 	class Iter
 	{
-		int i;
+		ssize_t i;
 		char each_dir;
 		GArray<T> *a;
 
 	public:
-		Iter(GArray<T> *arr, int pos)
+		Iter(GArray<T> *arr) // 'End' constructor
+		{
+			i = -1;
+			a = arr;
+			each_dir = 0;
+		}
+
+		Iter(GArray<T> *arr, size_t pos)
 		{
 			i = pos;
 			a = arr;
 			each_dir = 0;
 		}
 
-		bool Each()
+		bool operator ==(const Iter<T> &it)
 		{
-			if (each_dir) i += each_dir;
-			else each_dir = i == 0 ? 1 : -1;
-			return In();
+			int x = (int)In + (int)it.In();
+			if (x == 2)
+				retturn a = it.a && i == a.i;
+			return x == 0;
 		}
 
 		operator bool() { return In(); }
-		bool In() { return i >= 0 && i < a->Length(); }
-		bool End() { return i < 0 || i >= a->Length(); }
+		
+		bool In()
+		{
+			return i >= 0 && i < (ssize_t)a->Length();
+		}
+		
+		bool End()
+		{
+			return i < 0 || i >= a->Length();
+		}
+		
 		T &operator *() { return (*a)[i]; }
 		Iter<T> &operator ++() { i++; return *this; }
 		Iter<T> &operator --() { i--; return *this; }
@@ -718,8 +735,8 @@ public:
 	};
 
 	typedef Iter<Type> I;
-	I Start() { return I(this, 0); }
-	I End() { return I(this, Length()-1); }
+	I begin() { return I(this, 0); }
+	I end() { return I(this); }
 
 	/*
 	To use this iteration method in a for loop:
