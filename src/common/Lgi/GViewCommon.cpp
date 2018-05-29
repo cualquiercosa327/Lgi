@@ -129,7 +129,7 @@ GViewI *GViewIter::First()
 
 GViewI *GViewIter::Last()
 {
-	i = v->Children.end();
+	i = v->Children.rbegin();
 	return *i;
 }
 
@@ -1771,7 +1771,7 @@ GViewI *GView::WindowFromPoint(int x, int y, bool Debug)
 	// We iterate over the child in reverse order because if they overlap the
 	// end of the list is on "top". So they should get the click or whatever
 	// before the the lower windows.
-	List<GViewI>::I it = Children.end();
+	auto it = Children.rbegin();
 	for (GViewI *c = *it; c; c = *--it)
 	{
 		GRect CPos = c->GetPos();

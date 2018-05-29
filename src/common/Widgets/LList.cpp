@@ -1194,7 +1194,7 @@ bool LList::OnKey(GKey &k)
 								}
 								
 								bool Selected = false;
-								List<LListItem>::I It = Ascend ? Items.begin() : Items.end();
+								List<LListItem>::I It = Ascend ? Items.begin() : Items.rbegin();
 								for (LListItem *i = *It; It.In(); i = Ascend ? *++It : *--It)
 								{
 									if (!Selected)

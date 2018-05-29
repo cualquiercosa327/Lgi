@@ -227,6 +227,7 @@ public:
 
 	typedef Iter<Type> I;
 	I begin(int At = 0) { return I(this, At); }
+	I rbegin(int At = 0) { return I(this, Length()-1); }
 	I end() { return I(this, -1); }
 };
 

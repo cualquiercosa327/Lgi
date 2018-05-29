@@ -658,7 +658,7 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 		LgiTrace("%s:%i - Exe='%S'\n", _FL, WExe.Get());
 		#endif
 		
-		char16 WArg[512];
+		char16 WArg[1024];
 		int Ch = 0;
 		for (unsigned i=0; i<Args.Length(); i++)
 		{
