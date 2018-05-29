@@ -1859,7 +1859,7 @@ char *LgiFindFile(const char *Name)
 			#ifdef MAC
 			"./Contents/Resources",
 			#else
-			"Resources",
+			"./Resources",
 			#endif
 			"../Code",
 			"../Resources",

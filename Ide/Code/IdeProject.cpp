@@ -609,7 +609,7 @@ public:
 		// Debug specific
 		m.Print("\n"
 				"ifeq ($(Build),Debug)\n"
-				"	Flags += -g\n"
+				"	Flags += -g -std=c++11\n"
 				"	Tag = d\n"
 				"	Defs = -D_DEBUG %s\n"
 				"	Libs = %s\n"
@@ -620,7 +620,7 @@ public:
 		
 		// Release specific
 		m.Print("else\n"
-				"	Flags += -s -Os\n"
+				"	Flags += -s -Os -std=c++11\n"
 				"	Defs = %s\n"
 				"	Libs = %s\n"
 				"	Inc = %s\n"

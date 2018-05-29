@@ -987,7 +987,7 @@ GViewI *GView::FindControl(OsView hCtrl)
 		return this;
 	}
 
-	List<GViewI>::I it = Children.Start();
+	List<GViewI>::I it = Children.begin();
 	for (GViewI *c = *it; c; c = *++it)
 	{
 		GViewI *Ctrl = c->FindControl(hCtrl);
@@ -1008,7 +1008,7 @@ void GView::OnGtkDelete()
 {
 	_View = NULL;
 	
-	List<GViewI>::I it = Children.Start();
+	List<GViewI>::I it = Children.begin();
 	for (GViewI *c = *it; c; c = *++it)
 	{
 		GView *v = c->GetGView();

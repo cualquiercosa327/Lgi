@@ -222,7 +222,7 @@ public:
 		Iter<T> &operator --() { Prev(); return *this; }
 		Iter<T> &operator ++(int) { Next(); return *this; }
 		Iter<T> &operator --(int) { Prev(); return *this; }
-		T *operator *() { return (T*)Current(); }
+		T *operator *() const { return (T*)Current(); }
 	};
 
 	typedef Iter<Type> I;

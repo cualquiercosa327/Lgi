@@ -72,7 +72,7 @@ void GDialog::OnPosChange()
 {
     if (Children.Length() == 1)
     {
-        List<GViewI>::I it = Children.Start();
+        List<GViewI>::I it = Children.begin();
         GTableLayout *t = dynamic_cast<GTableLayout*>((GViewI*)it.First());
         if (t)
         {
