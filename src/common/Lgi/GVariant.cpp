@@ -923,8 +923,7 @@ int64 GVariant::Length()
 			int64 Sz = 0;
 			if (Value.Lst)
 			{
-				List<GVariant>::I it = Value.Lst->Start();
-				for (GVariant *v=*it; v; v=*++it)
+				for (auto v : *Value.Lst)
 					Sz += v->Length();
 			}
 			return Sz;
@@ -1365,7 +1364,7 @@ char *GVariant::CastString()
 		{
 			GStringPipe p(256);
 			
-			List<GVariant>::I it = Value.Lst->Start();
+			List<GVariant>::I it = Value.Lst->begin();
 			bool First = true;
 			
 			p.Print("{");

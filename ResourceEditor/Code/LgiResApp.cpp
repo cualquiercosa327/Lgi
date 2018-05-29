@@ -1550,7 +1550,7 @@ int AppWnd::GetUniqueStrRef(int	Start)
 		ResStringGroup *Grp = r->GetStringGroup();
 		if (Grp)
 		{
-			List<ResString>::I it = Grp->GetStrs()->Start();
+			List<ResString>::I it = Grp->GetStrs()->begin();
 			for (ResString *s = *it; s; s = *++it)
 			{
 			    if (s->GetRef())
@@ -2292,7 +2292,7 @@ void AppWnd::ImportLang()
 							
 							for (ResStringGroup *g=Groups.First(); g; g=Groups.Next())
 							{
-								List<ResString>::I Strings = g->GetStrs()->Start();
+								List<ResString>::I Strings = g->GetStrs()->begin();
 								for (ResString *s=*Strings; s; s=*++Strings)
 								{
 									ResString *d = GetStrFromRef(s->GetRef());
@@ -2881,7 +2881,7 @@ bool AppWnd::WriteDefines(GFile &Defs)
 			if (StrList)
 			{
 				Status = true;
-				List<ResString>::I sl = StrList->Start();
+				List<ResString>::I sl = StrList->begin();
 				for (ResString *s = *sl; s; s = *++sl)
 				{
 					if (ValidStr(s->GetDefine()))

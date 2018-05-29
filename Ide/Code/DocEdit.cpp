@@ -139,7 +139,7 @@ void DocEdit::OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour)
 	int TopPaddingPx = GetTopPaddingPx();
 
 	pDC->Colour(GColour(200, 0, 0));
-	List<GTextLine>::I it = GTextView3::Line.Start(Y);
+	List<GTextLine>::I it = GTextView3::Line.begin(Y);
 	int DocOffset = (*it)->r.y1;
 	for (GTextLine *l = *it; l; l = *++it, Y++)
 	{
@@ -153,7 +153,7 @@ void DocEdit::OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour)
 	bool DocMatch = Doc->IsCurrentIp();
 	{
 		// We have the current IP location
-		it = GTextView3::Line.Start();
+		it = GTextView3::Line.begin();
 		int Idx = 1;
 		for (GTextLine *ln = *it; ln; ln = *++it, Idx++)
 		{

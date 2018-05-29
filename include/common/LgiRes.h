@@ -192,7 +192,7 @@ public:
 	GArray<GLanguageId> *GetLanguages() { return &Languages; }
 	
 	/// \returns an iterator for all the dialogs in the resource collection.
-	List<LgiDialogRes>::I GetDialogs() { return Dialogs.Start(); }
+	List<LgiDialogRes>::I GetDialogs() { return Dialogs.begin(); }
 
 	/// Create a resource object
 	/// \private

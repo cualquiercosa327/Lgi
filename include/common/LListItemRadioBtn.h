@@ -79,11 +79,9 @@ public:
 			{
 				if (!GetList())
 					return;
-				List<LListItem>::I Items = GetAllItems()->Start();
-				for (LListItem *i=*Items; i; i=*++Items)
+				for (auto i : *GetAllItems())
 				{
-					List<LListItemColumn>::I Cols = i->GetItemCols()->Start();
-					for (LListItemColumn *c=*Cols; c; c=*++Cols)
+					for (auto c : *i->GetItemCols())
 					{
 						if (c->GetColumn() == GetColumn())
 						{
@@ -99,8 +97,7 @@ public:
 			}
 			else if (Type == ItemExclusive)
 			{
-				List<LListItemColumn>::I Cols = GetItem()->GetItemCols()->Start();
-				for (LListItemColumn *c=*Cols; c; c=*++Cols)
+				for (auto c : *GetItem()->GetItemCols())
 				{
 					LListItemRadioBtn *r = dynamic_cast<LListItemRadioBtn*>(c);
 					if (r && r != this)

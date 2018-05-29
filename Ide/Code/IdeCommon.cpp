@@ -23,7 +23,7 @@ bool IdeCommon::OnOpen(GProgressDlg *Prog, GXmlTag *Src)
 	if (!Serialize(Write = false))
 		return false;
 
-	List<GXmlTag>::I it = Src->Children.Start();
+	List<GXmlTag>::I it = Src->Children.begin();
 	for (GXmlTag *c = *it; c && (!Prog || !Prog->IsCancelled()); c = *++it)
 	{
 		bool Processed = false;

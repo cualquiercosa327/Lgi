@@ -49,7 +49,7 @@ public:
 	bool Delete(int Index);
 	bool Delete(void *p);
 	bool Insert(void *p, int Index = -1);
-	void *Current();
+	void *Current() const;
 	void *First();
 	void *Last();
 	void *Next();
@@ -74,7 +74,7 @@ public:
 
 	void *operator [](int Index);
 	DLinkIterator operator =(const DLinkIterator &it);
-	void *Current();
+	void *Current() const;
 	void *First();
 	void *Last();
 	void *Next();
@@ -118,7 +118,7 @@ public:
 	/// Return the pointer before the current one
 	Type *Prev()					{ return (Type*) DLinkList::Prev(); }
 	/// Return the current pointer
-	Type *Current()					{ return (Type*) DLinkList::Current(); }
+	Type *Current() const			{ return (Type*) DLinkList::Current(); }
 	/// Return the pointer at an index
 	Type *operator [](int Index)	{ return ((Type*) ((*((DLinkList*)this))[Index])); }
 	
@@ -177,43 +177,57 @@ public:
 	template <class T>
 	class Iter : public DLinkIterator
 	{
-		int8 each_dir;
-
 	public:
 		Iter(DLinkList *l, int At) : DLinkIterator(l)
 		{
-			if (At < 0) Last();
-			else if (At) (*this)[At];
-			else First();
-			each_dir = 0;
+			if (At > 0) (*this)[At];
+			else if (At == 0) First();
 		}
 
 		Iter(const Iter<T> &it) : DLinkIterator(it)
 		{
-			each_dir = it.each_dir;
 		}
 
-		operator bool() { return In(); }
-		bool In() { return Current() != 0; }
-		bool End() { return Current() == 0; }
+		operator bool() const
+		{
+			return In() != NULL;
+		}
+
+		bool In() const
+		{
+			return Current() != NULL;
+		}
+		
+		bool End() const
+		{
+			return Current() == NULL;
+		}
+
+		bool operator ==(const Iter<T> &it) const
+		{
+			void *a = Current();
+			void *b = it.Current();
+			int x = (int)(a != NULL) + (int)(a != NULL);
+			if (x == 2)
+				return a == b;
+			return x == 0;
+		}
+
+		bool operator !=(const Iter<T> &it) const
+		{
+			return !(*this == it);
+		}
+
 		Iter<T> &operator ++() { Next(); return *this; }
 		Iter<T> &operator --() { Prev(); return *this; }
 		Iter<T> &operator ++(int) { Next(); return *this; }
 		Iter<T> &operator --(int) { Prev(); return *this; }
 		T *operator *() { return (T*)Current(); }
-
-		bool Each()
-		{
-			if (each_dir > 0) return Next() != 0;
-			else if (each_dir < 0) return Prev() != 0;
-			else each_dir = IndexOf(Current()) == 0 ? 1 : -1;
-			return Current() != 0;
-		}
 	};
 
 	typedef Iter<Type> I;
-	I Start(int At = 0) { return I(this, At); }
-	I End() { return I(this, -1); }
+	I begin(int At = 0) { return I(this, At); }
+	I end() { return I(this, -1); }
 };
 
 /// \brief Data storage class.

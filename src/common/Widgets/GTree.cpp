@@ -23,7 +23,7 @@
 #endif
 */
 
-#define ForAll(Items)		List<GTreeItem>::I it = Items.Start(); for (GTreeItem *c = *it; c; c = *++it)
+#define ForAll(Items)		for (auto c : Items)
 
 //////////////////////////////////////////////////////////////////////////////
 // Private class definitions for binary compatibility
@@ -179,7 +179,7 @@ void GTreeNode::_Visible(bool v)
 
 void GTreeNode::_ClearDs(int Col)
 {
-	List<GTreeItem>::I it = Items.Start();
+	List<GTreeItem>::I it = Items.begin();
 	for (GTreeItem *c = *it; c; c = *++it)
 	{
 		c->_ClearDs(Col);
@@ -547,7 +547,7 @@ void GTreeItem::_SetTreePtr(GTree *t)
 	}
 	Tree = t;
 
-	List<GTreeItem>::I it = Items.Start();
+	List<GTreeItem>::I it = Items.begin();
 	for (GTreeItem *i=*it; i; i=*++it)
 	{
 		i->_SetTreePtr(t);
@@ -666,7 +666,7 @@ void GTreeItem::_Pour(GdcPt2 *Limit, int ColumnPx, int Depth, bool Visible)
 	}
 
 	GTreeItem *n;
-	List<GTreeItem>::I it = Items.Start();
+	List<GTreeItem>::I it = Items.begin();
 	for (GTreeItem *i=*it; i; i=n)
 	{
 		n = *++it;
@@ -787,7 +787,7 @@ GTreeItem *GTreeItem::_HitTest(int x, int y, bool Debug)
 
 	if (d->Open)
 	{
-		List<GTreeItem>::I it = Items.Start();
+		List<GTreeItem>::I it = Items.begin();
 		for (GTreeItem *i=*it; i && !Status; i=*++it)
 		{
 			Status = i->_HitTest(x, y, Debug);
@@ -1025,7 +1025,7 @@ void GTreeItem::OnPaint(ItemPaintCtx &Ctx)
 
 		COLOUR SelFore = Tree->Focus() ? LC_FOCUS_SEL_FORE : LC_NON_FOCUS_SEL_FORE;
 		COLOUR SelBack = Tree->Focus() ? LC_FOCUS_SEL_BACK : LC_NON_FOCUS_SEL_BACK;
-		List<GTreeItem>::I it = Items.Start();
+		List<GTreeItem>::I it = Items.begin();
 		for (GTreeItem *i=*it; i; i=*++it)
 		{
 			bool IsSelected = (Tree->d->DropTarget == i) || (Tree->d->DropTarget == 0 && i->Select());
@@ -1120,7 +1120,7 @@ void GTree::_UpdateBelow(int y, bool Now)
 void GTree::ClearDs(int Col)
 {
 	// GTreeItem *n;
-	List<GTreeItem>::I it = Items.Start();
+	List<GTreeItem>::I it = Items.begin();
 	for (GTreeItem *i=*it; i; i=*++it)
 	{
 		i->_ClearDs(Col);
@@ -1254,7 +1254,7 @@ void GTree::_Pour()
 	}
 
 	GTreeItem *n;
-	List<GTreeItem>::I it = Items.Start();
+	List<GTreeItem>::I it = Items.begin();
 	for (GTreeItem *i=*it; i; i=n)
 	{
 		n = *++it;
@@ -1543,7 +1543,7 @@ GTreeItem *GTree::ItemAtPoint(int x, int y, bool Debug)
 {
 	GdcPt2 s = _ScrollPos();
 
-	List<GTreeItem>::I it = Items.Start();
+	List<GTreeItem>::I it = Items.begin();
 	for (GTreeItem *i = *it; i; i=*++it)
 	{
 		GTreeItem *Hit = i->_HitTest(s.x + x, s.y + y, Debug);
@@ -1813,7 +1813,7 @@ void GTree::OnPaint(GSurface *pDC)
 
 	// paint items
 	ZeroObj(d->LineFlags);
-	List<GTreeItem>::I it = Items.Start();
+	List<GTreeItem>::I it = Items.begin();
 	for (GTreeItem *i = *it; i; i=*++it)
 	{
 		bool IsSelected = (d->DropTarget == i) || (d->DropTarget == 0 && i->Select());
@@ -1885,7 +1885,7 @@ bool GTree::Remove(GTreeItem *Obj)
 
 void GTree::RemoveAll()
 {
-	List<GTreeItem>::I it = Items.Start();
+	List<GTreeItem>::I it = Items.begin();
 	for (GTreeItem *i=*it; i; i=*++it)
 	{
 		i->_Remove();
@@ -1981,7 +1981,7 @@ int GTree::GetContentSize(int ColumnIdx)
 {
 	int MaxPx = 0;
 	
-	List<GTreeItem>::I it = Items.Start();
+	List<GTreeItem>::I it = Items.begin();
 	for (GTreeItem *i = *it; i; i=*++it)
 	{
 		int ItemPx = i->GetColumnSize(ColumnIdx);
@@ -2091,7 +2091,7 @@ void GTree::OnFocus(bool b)
 	// this to be called after the destructor
 	if (d)
 	{
-		List<GTreeItem>::I it = d->Selection.Start();
+		List<GTreeItem>::I it = d->Selection.begin();
 		for (GTreeItem *i=*it; i; i=*++it)
 		{
 			i->Update();

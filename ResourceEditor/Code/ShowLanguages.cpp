@@ -73,7 +73,7 @@ ShowLanguagesDlg::ShowLanguagesDlg(AppWnd *app)
 		}
 
 		d->Lst->Sort(Cmp, 0);
-		d->Lst->Select(*d->Lst->Start());
+		d->Lst->Select(*d->Lst->begin());
 	}
 	
 	DoModal();

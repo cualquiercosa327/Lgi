@@ -1823,7 +1823,7 @@ bool MailSmtp::SendToFrom(List<AddressDescriptor> &To, AddressDescriptor *From, 
 
 	// send RCPT message
 	AddrOk = true;
-	List<AddressDescriptor>::I Recip = To.Start();
+	List<AddressDescriptor>::I Recip = To.begin();
 	for (AddressDescriptor *a = *Recip; a; a = *++Recip)
 	{
 		char *Addr = ValidStr(a->Addr) ? a->Addr : a->Name;

@@ -494,7 +494,7 @@ void GDialog::OnPosChange()
 {
     if (Children.Length() == 1)
     {
-        List<GViewI>::I it = Children.Start();
+        List<GViewI>::I it = Children.begin();
         GLayout *t = dynamic_cast<GLayout*>((GViewI*)it.First());
         if (t)
         {

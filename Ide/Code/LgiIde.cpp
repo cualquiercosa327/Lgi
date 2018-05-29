@@ -473,7 +473,7 @@ public:
 
 	void PourStyle(size_t Start, ssize_t Length)
 	{
-		List<GTextLine>::I it = GTextView3::Line.Start();
+		List<GTextLine>::I it = GTextView3::Line.begin();
 		for (GTextLine *ln = *it; ln; ln = *++it)
 		{
 			if (!ln->c.IsValid())
@@ -1126,7 +1126,7 @@ public:
 
 		if (!Full)
 		{
-			List<IdeProject>::I Projs = Projects.Start();
+			List<IdeProject>::I Projs = Projects.begin();
 			for (IdeProject *p=*Projs; p; p=*++Projs)
 			{
 				GAutoString Base = p->GetBasePath();
@@ -1836,14 +1836,14 @@ void AppWnd::AppendOutput(char *Txt, AppWnd::Channels Channel)
 
 void AppWnd::SaveAll()
 {
-	List<IdeDoc>::I Docs = d->Docs.Start();
+	List<IdeDoc>::I Docs = d->Docs.begin();
 	for (IdeDoc *Doc = *Docs; Doc; Doc = *++Docs)
 	{
 		Doc->SetClean();
 		d->OnFile(Doc->GetFileName());
 	}
 	
-	List<IdeProject>::I Projs = d->Projects.Start();
+	List<IdeProject>::I Projs = d->Projects.begin();
 	for (IdeProject *Proj = *Projs; Proj; Proj = *++Projs)
 	{
 		Proj->SetClean();
@@ -1875,7 +1875,7 @@ bool AppWnd::OnRequestClose(bool IsClose)
 
 bool AppWnd::OnBreakPoint(GDebugger::BreakPoint &b, bool Add)
 {
-	List<IdeDoc>::I it = d->Docs.Start();
+	List<IdeDoc>::I it = d->Docs.begin();
 
 	for (IdeDoc *doc = *it; doc; doc = *++it)
 	{
@@ -2079,7 +2079,7 @@ IdeDoc *AppWnd::GotoReference(const char *File, int Line, bool CurIp, bool WithH
 
 IdeDoc *AppWnd::FindOpenFile(char *FileName)
 {
-	List<IdeDoc>::I it = d->Docs.Start();
+	List<IdeDoc>::I it = d->Docs.begin();
 	for (IdeDoc *i=*it; i; i=*++it)
 	{
 		char *f = i->GetFileName();
@@ -2151,7 +2151,7 @@ IdeDoc *AppWnd::OpenFile(const char *FileName, NodeSource *Src)
 		else if (!DoingProjectFind)
 		{
 			DoingProjectFind = true;
-			List<IdeProject>::I Proj = d->Projects.Start();
+			List<IdeProject>::I Proj = d->Projects.begin();
 			for (IdeProject *p=*Proj; p && !Doc; p=*++Proj)
 			{
 				p->InProject(LgiIsRelativePath(File), File, true, &Doc);				

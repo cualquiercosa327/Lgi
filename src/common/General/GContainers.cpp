@@ -655,7 +655,7 @@ void *DLinkList::ItemAt(int Index)
 	return 0;
 }
 
-void *DLinkList::Current()
+void *DLinkList::Current() const
 {
 	AssertValid();
 
@@ -912,7 +912,7 @@ void *DLinkIterator::operator [](int Index)
 	return 0;
 }
 
-void *DLinkIterator::Current()
+void *DLinkIterator::Current() const
 {
 	if (Cur)
 	{

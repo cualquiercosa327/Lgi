@@ -1372,7 +1372,7 @@ void CtrlTabs::ShowMe(ResDialogCtrl *Child)
 
 void CtrlTabs::EnumCtrls(List<ResDialogCtrl> &Ctrls)
 {
-	List<CtrlTab>::I it = Tabs.Start();
+	List<CtrlTab>::I it = Tabs.begin();
 	for (CtrlTab *t = *it; t; t = *++it)
 	{
 		t->EnumCtrls(Ctrls);

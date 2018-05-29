@@ -15,6 +15,8 @@ GContainers::~GContainers()
 
 bool GContainers::Run()
 {
+	int ref[] = {1, 4, 5, 8, -1, -1};
+
 	{
 		GArray<int> a;
 		a.Add(1);
@@ -23,18 +25,10 @@ bool GContainers::Run()
 		a.Add(8);
 
 		int n = 0;
-		for (GArray<int>::I i=a.Start(); i.In(); i++, n++)
+		for (auto &i : a)
 		{
-			if (a[n] != *i)
+			if (i != ref[n++])
 				return FAIL(_FL, "iterator error");
-		}
-		n = 0;
-		GArray<int>::I i2 = a.Start();
-		while (i2.Each())
-		{
-			if (a[n] != *i2)
-				return FAIL(_FL, "iterator error");
-			n++;
 		}
 	}
 
@@ -46,28 +40,24 @@ bool GContainers::Run()
 		a.Add(new int(8));
 
 		int n = 0;
-		for (List<int>::I i=a.Start(); i.In(); i++, n++)
+		for (auto i : a)
 		{
-			if (*a[n] != **i)
+			if (*i != ref[n++])
 				return FAIL(_FL, "iterator error");
 		}
-		n = 0;
-		List<int>::I i2 = a.Start();
-		while (i2.Each())
-		{
-			if (*a[n] != **i2)
-				return FAIL(_FL, "iterator error");
-			n++;
-		}
+		if (n != 4)
+			return FAIL(_FL, "count error");
 
 		n = 0;
-		List<int>::I i3 = a.Start();
+		List<int>::I i3 = a.begin();
 		for (int *v = *i3; i3; v = *++i3)
 		{
 			if (*a[n] != **i3)
 				return FAIL(_FL, "iterator error");
 			n++;
 		}
+		if (n != 4)
+			return FAIL(_FL, "count error");
 	}
 
 

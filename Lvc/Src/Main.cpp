@@ -47,8 +47,7 @@ public:
 
 	void PourStyle(size_t Start, ssize_t Length)
 	{
-		List<GTextLine>::I it = GTextView3::Line.Start();
-		for (GTextLine *ln = *it; ln; ln = *++it)
+		for (auto ln : GTextView3::Line)
 		{
 			if (!ln->c.IsValid())
 			{

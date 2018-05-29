@@ -161,8 +161,7 @@ public:
 	bool GetSelection(List<T> &n)
 	{
 		n.Empty();
-		List<LListItem>::I It = Items.Start();
-		for (LListItem *i=*It; i; i=*++It)
+		for (auto i : Items)
 		{
 			if (i->Select())
 			{
@@ -178,8 +177,7 @@ public:
 	bool GetSelection(GArray<T*> &n)
 	{
 		n.Empty();
-		List<LListItem>::I It = Items.Start();
-		for (LListItem *i=*It; i; i=*++It)
+		for (auto i : Items)
 		{
 			if (i->Select())
 			{
@@ -195,8 +193,7 @@ public:
 	bool GetAll(List<T> &n)
 	{
 		n.Empty();
-		List<LListItem>::I It = Items.Start();
-		for (LListItem *i=*It; i; i=*++It)
+		for (auto i : Items)
 		{
 			T *ptr = dynamic_cast<T*>(i);
 			if (ptr)
@@ -209,8 +206,7 @@ public:
 	bool GetAll(GArray<T*> &n)
 	{
 		n.Empty();
-		List<LListItem>::I It = Items.Start();
-		for (LListItem *i=*It; i; i=*++It)
+		for (auto i : Items)
 		{
 			T *ptr = dynamic_cast<T*>(i);
 			if (ptr)
@@ -219,14 +215,14 @@ public:
 		return n.Length() == Items.Length();
 	}
 
-	List<LListItem>::I Start()
+	List<LListItem>::I begin()
 	{
-		return Items.Start();
+		return Items.begin();
 	}
 
-	List<LListItem>::I End()
+	List<LListItem>::I end()
 	{
-		return Items.End();
+		return Items.end();
 	}
 
 	template<typename T>

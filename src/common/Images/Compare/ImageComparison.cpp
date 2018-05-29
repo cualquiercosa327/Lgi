@@ -793,7 +793,7 @@ struct CompareThread : public LThread
 	{
 		List<LListItem> items;
 		lst->GetAll(items);
-		List<LListItem>::I it = items.Start();
+		List<LListItem>::I it = items.begin();
 		
 		while (loop)
 		{

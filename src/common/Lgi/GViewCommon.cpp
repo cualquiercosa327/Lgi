@@ -116,20 +116,20 @@ GMouse &lgi_adjust_click(GMouse &Info, GViewI *Wnd, bool Capturing, bool Debug)
 
 //////////////////////////////////////////////////////////////////////////////////////
 // Iterator
-GViewIter::GViewIter(GView *view) : i(view->Children.Start())
+GViewIter::GViewIter(GView *view) : i(view->Children.begin())
 {
 	v = view;
 }
 
 GViewI *GViewIter::First()
 {
-	i = v->Children.Start();
+	i = v->Children.begin();
 	return *i;
 }
 
 GViewI *GViewIter::Last()
 {
-	i = v->Children.End();
+	i = v->Children.end();
 	return *i;
 }
 
@@ -152,7 +152,7 @@ int GViewIter::Length()
 
 int GViewIter::IndexOf(GViewI *view)
 {
-	i = v->Children.Start();
+	i = v->Children.begin();
 	return i.IndexOf(view);
 }
 
@@ -349,7 +349,7 @@ bool GView::OnKey(GKey &k)
 
 void GView::OnAttach()
 {
-	List<GViewI>::I it = Children.Start();
+	List<GViewI>::I it = Children.begin();
 	for (GViewI *v = *it; v; v = *++it)
 	{
 		if (!v->GetParent())
@@ -593,10 +593,8 @@ void GView::_Paint(GSurface *pDC, GdcPt2 *Offset, GRegion *Update)
 
 	#if PAINT_VIRTUAL_CHILDREN
 	// Paint any virtual children
-	List<GViewI>::I it = Children.Start(); // just in case the child access the child list
-	while (it.Each())
+	for (auto i : Children)
 	{
-		GViewI *i = *it;
 		GView *w = i->GetGView();
 		if (w && w->Visible())
 		{
@@ -1643,10 +1641,8 @@ void GView::SetCtrlVisible(int Id, bool v)
 
 bool GView::AttachChildren()
 {
-	List<GViewI>::I it = Children.Start();
-	while (it.Each())
+	for (auto c : Children)
 	{
-		GViewI *c = *it;		
 		if (!c->IsAttached())
 		{
 			if (!c->Attach(this))
@@ -1775,7 +1771,7 @@ GViewI *GView::WindowFromPoint(int x, int y, bool Debug)
 	// We iterate over the child in reverse order because if they overlap the
 	// end of the list is on "top". So they should get the click or whatever
 	// before the the lower windows.
-	List<GViewI>::I it = Children.End();
+	List<GViewI>::I it = Children.end();
 	for (GViewI *c = *it; c; c = *--it)
 	{
 		GRect CPos = c->GetPos();
@@ -2013,10 +2009,8 @@ GViewI *GView::FindControl(int Id)
 		return this;
 	}
 
-	List<GViewI>::I List = Children.Start();
-	while (List.Each())
+	for (auto c : Children)
 	{
-		GViewI *c = *List;
 		GViewI *Ctrl = c->FindControl(Id);
 		if (Ctrl)
 		{
