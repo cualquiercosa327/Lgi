@@ -272,7 +272,7 @@ bool GFile::CallMethod(const char *Name, GVariant *Dst, GArray<GVariant*> &Arg)
 						}
 						case GV_WSTRING:
 						{
-							int Max = (StrlenW(v->Value.WString) + 1) * sizeof(char16);
+							size_t Max = (StrlenW(v->Value.WString) + 1) * sizeof(char16);
 							*Dst = Write(&v->Value.WString, MIN(Max, WrLen));
 							break;
 						}

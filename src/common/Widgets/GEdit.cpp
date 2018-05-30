@@ -249,7 +249,7 @@ bool GEdit::Paste()
 	*out++ = 0;
 
 	// insert text
-	int Len = StrlenW(t);
+	size_t Len = StrlenW(t);
 	Insert(Cursor, t, Len);
 	GTextView3::SetCaret(Cursor+Len, false, true); // Multiline
 	

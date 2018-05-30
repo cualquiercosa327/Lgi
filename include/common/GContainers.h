@@ -51,7 +51,7 @@ public:
 	public:
 		List<T> *Lst;
 		LstBlk *i;
-		int Cur;
+		size_t Cur;
 
 		Iter(List<T> *lst)
 		{
@@ -60,7 +60,7 @@ public:
 			Cur = 0;
 		}
 
-		Iter(List<T> *lst, LstBlk *item, int c)
+		Iter(List<T> *lst, LstBlk *item, size_t c)
 		{
 			Lst = lst;
 			i = item;
@@ -312,7 +312,7 @@ protected:
 		if (!Pos.In())
 			return false;
 
-		int &Index = Pos.Cur;
+		size_t &Index = Pos.Cur;
 		LstBlk *&i = Pos.i;
 		if (Index < i->Count-1)
 			memmove(i->Ptr+Index, i->Ptr+Index+1, (i->Count-Index-1) * sizeof(T*));
@@ -393,14 +393,14 @@ protected:
 
 	class BTree
 	{
-		int Items;
-		int Used;
+		size_t Items;
+		size_t Used;
 		BTreeNode *Node;
 		BTreeNode *Min;
 		BTreeNode *Max;
 
 	public:
-		BTree(int i)
+		BTree(size_t i)
 		{
 			Used = 0;
 			Min = Max = 0;

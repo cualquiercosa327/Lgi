@@ -59,8 +59,8 @@ void GDialog::OnPosChange()
 {
 	if (Children.Length() == 1)
 	{
-		List<GViewI>::I it = Children.Start();
-		GTableLayout *t = dynamic_cast<GTableLayout*>((GViewI*)it.First());
+		auto it = Children.begin();
+		GTableLayout *t = dynamic_cast<GTableLayout*>((GViewI*)it);
 		if (t)
 		{
 			GRect r = GetClient();
@@ -209,7 +209,7 @@ GdcPt2 GControl::SizeOfStr(const char *Str)
 			size_t Len = e ? e-s : strlen(s);
 			
 			GDisplayString ds(SysFont, s, Len);
-			Pt.x = max(Pt.x, ds.X());
+			Pt.x = MAX(Pt.x, ds.X());
 			Pt.y += y;
 		}
 	}

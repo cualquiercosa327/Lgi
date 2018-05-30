@@ -39,6 +39,7 @@
 		349A252F1A5E434A00F4263E /* IFtp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A252E1A5E434A00F4263E /* IFtp.cpp */; };
 		349A25311A5E43F600F4263E /* Png.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A25301A5E43F600F4263E /* Png.cpp */; };
 		349A25331A5E440100F4263E /* cmds-16px.png in Resources */ = {isa = PBXBuildFile; fileRef = 349A25321A5E440100F4263E /* cmds-16px.png */; };
+		34BD359E20BE7F170001838A /* GExeCheck.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34BD359D20BE7F170001838A /* GExeCheck.cpp */; };
 		34D20B771CB2861600730172 /* ProjectNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D20B751CB2861600730172 /* ProjectNode.cpp */; };
 		34D20B7B1CB2862E00730172 /* AddFtpFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D20B791CB2862E00730172 /* AddFtpFile.cpp */; };
 		34D20B7D1CB2864700730172 /* IdeCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D20B7C1CB2864700730172 /* IdeCommon.cpp */; };
@@ -123,6 +124,7 @@
 		349A252E1A5E434A00F4263E /* IFtp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IFtp.cpp; path = ../../src/common/INet/IFtp.cpp; sourceTree = "<group>"; };
 		349A25301A5E43F600F4263E /* Png.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Png.cpp; path = ../../src/common/Gdc2/Filters/Png.cpp; sourceTree = "<group>"; };
 		349A25321A5E440100F4263E /* cmds-16px.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "cmds-16px.png"; path = "../Resources/cmds-16px.png"; sourceTree = "<group>"; };
+		34BD359D20BE7F170001838A /* GExeCheck.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GExeCheck.cpp; path = ../../../branches/Scribe_v2.1/src/common/General/GExeCheck.cpp; sourceTree = "<group>"; };
 		34D20B751CB2861600730172 /* ProjectNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ProjectNode.cpp; path = ../Code/ProjectNode.cpp; sourceTree = "<group>"; };
 		34D20B761CB2861600730172 /* ProjectNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ProjectNode.h; path = ../Code/ProjectNode.h; sourceTree = "<group>"; };
 		34D20B791CB2862E00730172 /* AddFtpFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AddFtpFile.cpp; path = ../Code/AddFtpFile.cpp; sourceTree = "<group>"; };
@@ -285,6 +287,7 @@
 		34B7EA6B0A64B4DE00657E69 /* Lgi */ = {
 			isa = PBXGroup;
 			children = (
+				34BD359D20BE7F170001838A /* GExeCheck.cpp */,
 				349A25301A5E43F600F4263E /* Png.cpp */,
 				349A252C1A5E433A00F4263E /* GSubProcess.cpp */,
 				349A252A1A5E431F00F4263E /* GMdi.cpp */,
@@ -414,6 +417,7 @@
 				342D774A11FA4929005BADBD /* LgiMain.cpp in Sources */,
 				34D20B7B1CB2862E00730172 /* AddFtpFile.cpp in Sources */,
 				341B9A521DEACA310011CE44 /* SimpleCppParser.cpp in Sources */,
+				34BD359E20BE7F170001838A /* GExeCheck.cpp in Sources */,
 				349A250F1A5E3D1D00F4263E /* FindInFiles.cpp in Sources */,
 				349A25101A5E3D1D00F4263E /* FindSymbol.cpp in Sources */,
 				34D20B801CB2866600730172 /* WebFldDlg.cpp in Sources */,

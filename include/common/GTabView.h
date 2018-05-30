@@ -58,7 +58,7 @@ public:
 	/// Gets a pointer to the current tab
 	GTabPage *GetCurrent();
 	/// Gets the number of tabs
-	int GetTabs();
+	size_t GetTabs();
 	
 	// Impl
 	bool Attach(GViewI *parent);

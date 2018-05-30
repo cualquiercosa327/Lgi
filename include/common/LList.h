@@ -402,7 +402,7 @@ public:
 	/// Clears the text cache for all the items and repaints the screen.
 	void UpdateAllItems();
 	/// Gets the number of items.
-	int Length() { return Items.Length(); }
+	size_t Length() { return Items.Length(); }
 
 	/// Returns true if the list is empty
 	bool IsEmpty() { return Items.Length() == 0; }

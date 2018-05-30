@@ -22,10 +22,10 @@
 #endif
 
 #if __LP64__
-#define _BACKTRACE_FORMAT "%-4d%-35s 0x%016x %s + %u"
+#define _BACKTRACE_FORMAT "%-4d%-35s 0x%016p %s + %u"
 #define _BACKTRACE_FORMAT_SIZE 82
 #else
-#define _BACKTRACE_FORMAT "%-4d%-35s 0x%08x %s + %u"
+#define _BACKTRACE_FORMAT "%-4d%-35s 0x%08p %s + %u"
 #define _BACKTRACE_FORMAT_SIZE 65
 #endif
 

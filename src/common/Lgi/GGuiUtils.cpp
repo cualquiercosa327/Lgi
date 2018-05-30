@@ -506,7 +506,7 @@ GViewI *GetNextTabStop(GViewI *v, bool Back)
 			if (MyIndex >= 0)
 			{
 				int Inc = Back ? -1 : 1;
-				int NewIndex = (MyIndex + All.Length() + Inc) % All.Length();
+				size_t NewIndex = (MyIndex + All.Length() + Inc) % All.Length();
 				return All.ItemAt(NewIndex);
 			}
 			else

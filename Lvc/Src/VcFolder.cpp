@@ -143,7 +143,7 @@ const char *VcFolder::GetVcName()
 		case VcGit:
 			return "git";
 		case VcSvn:
-			return "svn";
+			return "/opt/local/bin/svn";
 		case VcHg:
 			return "hg";
 		case VcCvs:

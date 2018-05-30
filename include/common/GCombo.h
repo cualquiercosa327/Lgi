@@ -101,7 +101,7 @@ public:
 		int Index = -1
 	);
 	/// Gets the items in the list
-	int Length();
+	size_t Length();
 	/// Returns the item at index 'i'
 	char *operator [](int i);
 	/// Returns the index of a given string

@@ -66,8 +66,8 @@ void GDialog::OnPosChange()
 {
     if (Children.Length() == 1)
     {
-        List<GViewI>::I it = Children.Start();
-        GTableLayout *t = dynamic_cast<GTableLayout*>((GViewI*)it.First());
+        auto it = Children.begin();
+        GTableLayout *t = dynamic_cast<GTableLayout*>((GViewI*)it);
         if (t)
         {
             GRect r = GetClient();

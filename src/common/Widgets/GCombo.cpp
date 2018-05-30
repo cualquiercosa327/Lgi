@@ -147,7 +147,7 @@ void GCombo::SetMenu(GSubMenu *m)
 	d->Menu = m;
 }
 
-int GCombo::Length()
+size_t GCombo::Length()
 {
 	return d->Items.Length();
 }

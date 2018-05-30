@@ -220,7 +220,7 @@ void GBox::OnPaint(GSurface *pDC)
 			Bk = c;
 	}
 
-	int ChildViews = Children.Length();
+	size_t ChildViews = Children.Length();
 	if (ChildViews == 0)
 	{
 		pDC->Colour(Bk);
