@@ -301,7 +301,7 @@ bool GCombo::Insert(const char *p, int Index)
 	return true;
 }
 
-int GCombo::Length()
+size_t GCombo::Length()
 {
 	if (_View && d->Init)
 		d->Len = SendMessage(_View, CB_GETCOUNT, 0, 0);

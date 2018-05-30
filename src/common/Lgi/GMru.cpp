@@ -127,25 +127,29 @@ bool GMru::_SaveFile(char *FileName)
 			(st = GetSelectedType()) &&
 			st->Extension())
 		{
-			// extract extension
-			GString::Array a = GString(st->Extension()).Split(LGI_PATH_SEPARATOR);
-			for (GString *e = NULL; a.Iterate(e); )
+			char *Cur = LgiGetExtension(File);
+			if (!Cur)
 			{
-				GString::Array p = e->RSplit(".", 1);
-				if (!p.Last().Equals("*"))
+				// extract extension
+				GString::Array a = GString(st->Extension()).Split(LGI_PATH_SEPARATOR);
+				for (GString *e = NULL; a.Iterate(e); )
 				{
-					// bung the extension from the file type if not there
-					char *Dot = strrchr(File, '.');
-					if (Dot)
-						Dot++;
-					else
+					GString::Array p = e->RSplit(".", 1);
+					if (!p.Last().Equals("*"))
 					{
-						Dot = File + strlen(File);
-						*Dot++ = '.';
-					}
+						// bung the extension from the file type if not there
+						char *Dot = strrchr(File, '.');
+						if (Dot)
+							Dot++;
+						else
+						{
+							Dot = File + strlen(File);
+							*Dot++ = '.';
+						}
 
-					strcpy(Dot, p.Last());
-					break;
+						strcpy(Dot, p.Last());
+						break;
+					}
 				}
 			}
 		}
