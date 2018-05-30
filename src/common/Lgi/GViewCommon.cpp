@@ -152,8 +152,7 @@ int GViewIter::Length()
 
 int GViewIter::IndexOf(GViewI *view)
 {
-	i = v->Children.begin();
-	return i.IndexOf(view);
+	return v->Children.IndexOf(view);
 }
 
 GViewI *GViewIter::operator [](int Idx)

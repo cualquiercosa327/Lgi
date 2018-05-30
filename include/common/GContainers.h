@@ -14,221 +14,713 @@
 #include "LgiOsDefs.h"
 #include "GStream.h"
 
-class DLinkList;
-class DLinkInterator;
-
-/// General linked list type class that stores void pointers.
-typedef int (*ListSortFunc)(void*, void*, NativeInt);
-
-class LgiClass DLinkList
-{
-	friend class DLinkIterator;
-	friend class Item;
-	friend class ItemIter;
-
-protected:
-	int Items;
-	class Item *FirstObj, *LastObj;
-	class ItemIter *Cur;
-
-	ItemIter GetIndex(int Index);
-	ItemIter GetPtr(void *Ptr, int &Base);
-
-public:
-	DLinkList();
-	virtual ~DLinkList();
-
-	bool IsValid();
-
-	int Length() { return Items; }
-	virtual void Empty();
-	void *operator [](int Index);
-	DLinkList &operator =(DLinkList &lst);
-
-	bool Delete();
-	bool Delete(int Index);
-	bool Delete(void *p);
-	bool Insert(void *p, int Index = -1);
-	void *Current() const;
-	void *First();
-	void *Last();
-	void *Next();
-	void *Prev();
-	int IndexOf(void *p);
-	bool HasItem(void *p);
-	void *ItemAt(int i);
-	void Sort(ListSortFunc Compare, NativeInt Data);
-};
-
-///	Linked list type interator for void pointers.
-class LgiClass DLinkIterator
-{
-protected:
-	DLinkList *List;
-	class ItemIter *Cur;
-
-public:
-	DLinkIterator(DLinkList *list);
-	DLinkIterator(const DLinkIterator &it);
-	~DLinkIterator();
-
-	void *operator [](int Index);
-	DLinkIterator operator =(const DLinkIterator &it);
-	void *Current() const;
-	void *First();
-	void *Last();
-	void *Next();
-	void *Prev();
-	bool HasItem(void *p);
-	int IndexOf(void *p);
-	int Length();
-};
-
 ///	Template for using DLinkList with a type safe API.
-template <class Type>
-class List : public DLinkList
+#define ITEM_PTRS	64
+LgiFunc bool UnitTest_ListClass();
+
+template<typename T>
+class List
 {
+	struct LstBlk
+	{
+		LstBlk *Next, *Prev;
+		char Count;
+		T *Ptr[ITEM_PTRS];
+
+		LstBlk()
+		{
+			Next = Prev = NULL;
+			Count = 0;
+			ZeroObj(Ptr);
+		}
+
+		bool Full()
+		{
+			return Count >= ITEM_PTRS;
+		}
+
+		int Remaining()
+		{
+			return ITEM_PTRS - Count;
+		}
+	};
+
 public:
-	typedef Type *ItemType;
-
-	/// Deletes the current item
-	virtual bool Delete()			{ return DLinkList::Delete(); }
-	/// Deletes the item at position 'i'
-	virtual bool Delete(int i)		{ return DLinkList::Delete(i); }
-	/// Deletes the pointer 'p'
-	virtual bool Delete(Type *p)	{ return DLinkList::Delete((void*)p); }
-	/// Inserts a pointer
-	virtual bool Insert
-	(
-		/// The pointer to insert
-		Type *p,
-		/// The index to insert at or -1 to insert at the end
-		int Index = -1
-	)
-	{ return DLinkList::Insert((void*)p, Index); }
-	/// Adds an item on the end of the list.
-	bool Add(Type *p) { return Insert(p); }
-	
-	/// Return the first pointer
-	Type *First()					{ return (Type*) DLinkList::First(); }
-	/// Return the last pointer
-	Type *Last()					{ return (Type*) DLinkList::Last(); }
-	/// Return the pointer after the current one
-	Type *Next()					{ return (Type*) DLinkList::Next(); }
-	/// Return the pointer before the current one
-	Type *Prev()					{ return (Type*) DLinkList::Prev(); }
-	/// Return the current pointer
-	Type *Current() const			{ return (Type*) DLinkList::Current(); }
-	/// Return the pointer at an index
-	Type *operator [](int Index)	{ return ((Type*) ((*((DLinkList*)this))[Index])); }
-	
-	/// Return the index of a pointer or -1 if it's not in the list
-	int IndexOf(Type *p)			{ return DLinkList::IndexOf((void*)p); }
-	/// Return the TRUE if the pointer is in the list
-	bool HasItem(Type *p)			{ return DLinkList::HasItem((void*)p); }
-	/// Return the pointer at index 'i'
-	Type *ItemAt(int i)				{ return (Type*) DLinkList::ItemAt(i); }
-	/// Sorts the list
-	void Sort
-	(
-		/// The callback function used to compare 2 pointers
-		int (*Compare)(Type *a, Type *b, NativeInt data),
-		/// User data that is passed into the callback
-		NativeInt Data
-	)
-	{ DLinkList::Sort( (int (*)(void *a, void *b, NativeInt data)) Compare, Data); }
-	
-	/// Delete all pointers in the list as dynamically allocated objects
-	void DeleteObjects()
-	{
-		for (Type *o=(Type*)DLinkList::First(); o; o=(Type*)DLinkList::Next())
-		{
-			DeleteObj(o);
-		}
-		DLinkList::Empty();
-	}
-	/// Delete all pointers in the list as dynamically allocated arrays
-	void DeleteArrays()
-	{
-		for (Type *o=(Type*)DLinkList::First(); o; o=(Type*)DLinkList::Next())
-		{
-			#if defined(_MSC_VER) && _MSC_VER <= _MSC_VER_VC6
-			delete [] (void*)o;
-			#else
-			delete [] o;
-			#endif
-		}
-		DLinkList::Empty();
-	}
-
-	/// Assign the contents of another list to this one
-	List &operator =
-	(
-		/// The source list.
-		List<Type> &lst
-	)
-	{
-		DLinkList *l = this;
-		*l = (DLinkList&)lst;
-		return *this;
-	}
-
-	// Built in iterators
-	template <class T>
-	class Iter : public DLinkIterator
+	class Iter
 	{
 	public:
-		Iter(DLinkList *l, int At) : DLinkIterator(l)
+		List<T> *Lst;
+		LstBlk *i;
+		int Cur;
+
+		Iter(List<T> *lst)
 		{
-			if (At > 0) (*this)[At];
-			else if (At == 0) First();
+			Lst = lst;
+			i = 0;
+			Cur = 0;
 		}
 
-		Iter(const Iter<T> &it) : DLinkIterator(it)
+		Iter(List<T> *lst, LstBlk *item, int c)
 		{
+			Lst = lst;
+			i = item;
+			Cur = c;
 		}
 
-		operator bool() const
+		bool operator ==(const Iter &it) const
 		{
-			return In() != NULL;
-		}
-
-		bool In() const
-		{
-			return Current() != NULL;
-		}
-		
-		bool End() const
-		{
-			return Current() == NULL;
-		}
-
-		bool operator ==(const Iter<T> &it) const
-		{
-			void *a = Current();
-			void *b = it.Current();
-			int x = (int)(a != NULL) + (int)(a != NULL);
+			int x = (int)In() + (int)it.In();
 			if (x == 2)
-				return a == b;
+				return (i == it.i) && (Cur == it.Cur);
 			return x == 0;
 		}
 
-		bool operator !=(const Iter<T> &it) const
+		bool operator !=(const Iter &it) const
 		{
 			return !(*this == it);
 		}
 
-		Iter<T> &operator ++() { Next(); return *this; }
-		Iter<T> &operator --() { Prev(); return *this; }
-		Iter<T> &operator ++(int) { Next(); return *this; }
-		Iter<T> &operator --(int) { Prev(); return *this; }
-		T *operator *() const { return (T*)Current(); }
+		bool In() const
+		{
+			return	i &&
+					Cur >= 0 &&
+					Cur < i->Count;
+		}
+
+		operator T*() const
+		{
+			return In() ? i->Ptr[Cur] : NULL;
+		}
+
+		T *operator *() const
+		{
+			return In() ? i->Ptr[Cur] : NULL;
+		}
+	
+		Iter &operator =(LstBlk *item)
+		{
+			i = item;
+			return *this;
+		}
+	
+		Iter &operator =(int c)
+		{
+			Cur = c;
+			return *this;
+		}
+
+		Iter &operator =(Iter *iter)
+		{
+			Lst = iter->Lst;
+			i = iter->i;
+			Cur = iter->Cur;
+			return *this;
+		}
+
+		int GetIndex(int Base)
+		{
+			if (i)
+				return Base + Cur;
+
+			return -1;
+		}
+
+		bool Next()
+		{
+			if (i)
+			{
+				Cur++;
+				if (Cur >= i->Count)
+				{
+					i = i->Next;
+					if (i)
+					{
+						Cur = 0;
+						return i->Count > 0;
+					}
+				}
+				else return true;
+			}
+
+			return false;
+		}
+
+		bool Prev()
+		{
+			if (i)
+			{
+				Cur--;
+				if (Cur < 0)
+				{
+					i = i->Prev;
+					if (i && i->Count > 0)
+					{
+						Cur = i->Count - 1;
+						return true;
+					}
+				}
+				else return true;
+			}
+
+			return false;
+		}
+
+		bool Delete()
+		{
+			if (i)
+			{
+				LgiAssert(Lst);
+				i->Delete(Cur, i);
+				return true;
+			}
+
+			return false;
+		}
+
+		Iter &operator ++() { Next(); return *this; }
+		Iter &operator --() { Prev(); return *this; }
+		Iter &operator ++(int) { Next(); return *this; }
+		Iter &operator --(int) { Prev(); return *this; }
 	};
 
-	typedef Iter<Type> I;
-	I begin(int At = 0) { return I(this, At); }
-	I rbegin(int At = 0) { return I(this, Length()-1); }
-	I end() { return I(this, -1); }
+	typedef Iter I;
+	typedef int (*CompareFn)(T *a, T *b, NativeInt data);
+
+protected:
+	size_t Items;
+	LstBlk *FirstObj, *LastObj;
+	Iter Local;
+
+	LstBlk *NewBlock(LstBlk *Where)
+	{
+		LstBlk *i = new LstBlk;
+		LgiAssert(i);
+		if (!i)
+			return NULL;
+
+		if (Where)
+		{
+			i->Prev = Where;
+			if (i->Prev->Next)
+			{
+				// Insert
+				i->Next = Where->Next;
+				i->Prev->Next = i->Next->Prev = i;
+			}
+			else
+			{
+				// Append
+				i->Prev->Next = i;
+				LgiAssert(LastObj == Where);
+				LastObj = i;
+			}
+		}
+		else
+		{
+			// First object
+			LgiAssert(FirstObj == 0);
+			LgiAssert(LastObj == 0);
+			FirstObj = LastObj = i;
+		}
+
+		return i;
+	}
+
+	bool DeleteBlock(LstBlk *i)
+	{
+		if (!i)
+		{
+			LgiAssert(!"No ptr.");
+			return false;
+		}
+
+		if (i->Prev != 0 && i->Next != 0)
+		{
+			LgiAssert(FirstObj != i);
+			LgiAssert(LastObj != i);
+		}
+
+		if (i->Prev)
+		{
+			i->Prev->Next = i->Next;
+		}
+		else
+		{
+			LgiAssert(FirstObj == i);
+			FirstObj = i->Next;
+		}
+
+		if (i->Next)
+		{
+			i->Next->Prev = i->Prev;
+		}
+		else
+		{
+			LgiAssert(LastObj == i);
+			LastObj = i->Prev;
+		}
+
+		delete i;
+
+		return true;
+	}
+
+	bool Insert(LstBlk *i, T *p, int Index = -1)
+	{
+		if (!i)
+			return false;
+
+		if (i->Full())
+		{
+			if (!i->Next)
+			{
+				// Append a new LstBlk and put one item in it
+				if (!(i = NewBlock(i)))
+					return false;
+				i->Ptr[i->Count++] = p;
+				Items++;
+				return true;
+			}
+
+			if (Index < 0)
+				return Insert(i->Next, p, Index);
+
+			// Push last pointer into Next
+			if (i->Next->Full())
+				NewBlock(i); // Create an empty Next
+			Insert(i->Next, i->Ptr[ITEM_PTRS-1], 0);
+			i->Count--;
+
+			// Fall through to the local "non-full" insert...
+		}
+
+		LgiAssert(!i->Full());
+		if (Index < 0)
+			Index = i->Count;
+		else if (Index < i->Count)
+			memmove(i->Ptr+Index+1, i->Ptr+Index, (i->Count-Index) * sizeof(p));
+		i->Ptr[Index] = p;
+		i->Count++;
+		Items++;
+
+		LgiAssert(i->Count <= ITEM_PTRS);
+		return true;
+	}
+
+	bool Delete(Iter &Pos)
+	{
+		if (!Pos.In())
+			return false;
+
+		int &Index = Pos.Cur;
+		LstBlk *&i = Pos.i;
+		if (Index < i->Count-1)
+			memmove(i->Ptr+Index, i->Ptr+Index+1, (i->Count-Index-1) * sizeof(T*));
+
+		Items--;
+		if (--i->Count == 0)
+		{
+			// This Item is now empty, remove and reset current
+			// into the next Item
+			LstBlk *n = i->Next;
+			bool Status = DeleteBlock(i);
+			Pos.Cur = 0;
+			Pos.i = n;
+			return Status;
+		}
+		else if (Index >= i->Count)
+		{
+			// Carry current item over to next Item
+			Pos.i = Pos.i->Next;
+			Pos.Cur = 0;
+		}
+		
+		return true;
+	}
+
+	Iter GetIndex(size_t Index)
+	{
+		size_t n = 0;
+		for (LstBlk *i = FirstObj; i; i = i->Next)
+		{
+			if (Index >= n && Index < n + i->Count)
+				return Iter(this, i, Index - n);
+			n += i->Count;
+		}
+
+		return Iter(this);
+	}
+
+	Iter GetPtr(T *Ptr, size_t &n)
+	{
+		n = 0;
+		for (LstBlk *i = FirstObj; i; i = i->Next)
+		{
+			for (unsigned k=0; k<i->Count; k++)
+				if (i->Ptr[k] == Ptr)
+					return Iter(this, i, k);
+			n += i->Count;
+		}
+
+		return Iter(this);
+	}
+
+	class BTreeNode
+	{
+	public:
+		T *Node;
+		BTreeNode *Left;
+		BTreeNode *Right;
+
+		T ***Index(T ***Items)
+		{
+			if (Left)
+			{
+				Items = Left->Index(Items);
+			}
+
+			**Items = Node;
+			Items++;
+
+			if (Right)
+			{
+				Items = Right->Index(Items);
+			}
+
+			return Items;
+		}	
+	};
+
+	class BTree
+	{
+		int Items;
+		int Used;
+		BTreeNode *Node;
+		BTreeNode *Min;
+		BTreeNode *Max;
+
+	public:
+		BTree(int i)
+		{
+			Used = 0;
+			Min = Max = 0;
+			Node = new BTreeNode[Items = i];
+			if (Node)
+			{
+				memset(Node, 0, Items * sizeof(BTreeNode));
+			}
+		}
+
+		~BTree()
+		{
+			DeleteArray(Node);
+		}
+
+		int GetItems() { return Used; }
+
+		bool Add(T *Obj, CompareFn Cmp, NativeInt Data)
+		{
+			if (Used)
+			{
+				BTreeNode *Cur = Node;
+			
+				if (Used < Items)
+				{
+					if (Cmp(Obj, Max->Node, Data) >= 0)
+					{
+						Max->Right = Node + Used++;
+						Max = Max->Right;
+						Max->Node = Obj;
+						return true;
+					}
+
+					if (Cmp(Obj, Min->Node, Data) < 0)
+					{
+						Min->Left = Node + Used++;
+						Min = Min->Left;
+						Min->Node = Obj;
+						return true;
+					}
+
+					while (true)
+					{
+						int c = Cmp(Obj, Cur->Node, Data);
+						BTreeNode **Ptr = (c < 0) ? &Cur->Left : &Cur->Right;
+						if (*Ptr)
+						{
+							Cur = *Ptr;
+						}
+						else if (Used < Items)
+						{
+							*Ptr = &Node[Used++];
+							(*Ptr)->Node = Obj;
+							return true;
+						}
+						else return false;
+					}
+				}
+				else
+				{
+					LgiAssert(0);
+				}
+
+				return false;
+			}
+			else
+			{
+				Min = Max = Node;
+				Node[Used++].Node = Obj;
+				return true;
+			}
+		}
+
+		void Index(T ***Items)
+		{
+			if (Node)
+			{
+				Node->Index(Items);
+			}
+		}
+	};
+
+
+public:
+	List<T>() : Local(this, NULL, 0)
+	{
+		FirstObj = LastObj = NULL;
+		Items = 0;
+	}
+
+	~List<T>()
+	{
+		Empty();
+	}
+
+	size_t Length() const
+	{
+		return Items;
+	}
+
+	bool Empty()
+	{
+		LstBlk *n;
+		for (LstBlk *i = FirstObj; i; i = n)
+		{
+			n = i->Next;
+			delete i;
+		}
+		FirstObj = LastObj = NULL;
+		Items = 0;
+		return true;
+	}
+
+	bool Delete()
+	{
+		return Delete(Local);
+	}
+
+	bool DeleteAt(size_t i)
+	{
+		Iter p = GetIndex(i);
+		if (!p.In())
+			return false;
+		return Delete(p);
+	}
+
+	bool Delete(T *Ptr)
+	{
+		size_t Base;
+		Iter p = GetPtr(Ptr, Base);
+		if (!p.In())
+			return false;
+		return Delete(p);
+	}
+
+	bool Insert(T *p, int Index = -1)
+	{
+		if (!LastObj)
+		{
+			LstBlk *b = NewBlock(NULL);
+			if (!b)
+				return false;
+
+			b->Ptr[b->Count++] = p;
+			Items++;
+			return true;
+		}
+
+		return Insert(LastObj, p, Index);
+	}
+
+	bool Add(T *p)
+	{
+		return Insert(p);
+	}
+	
+	T *First()
+	{
+		Local = FirstObj;
+		return Local;
+	}
+
+	T *Last()
+	{
+		Local = LastObj;
+		if (Local.i) Local.Cur = Local.i->Count - 1;
+		return Local;
+	}
+
+	T *Next()
+	{
+		return ++Local;
+	}
+
+	T *Prev()
+	{
+		return --Local;
+	}
+
+	T *Current() const
+	{
+		return Local;
+	}
+
+	T *operator [](int Index)
+	{
+		return Local = GetIndex(Index);
+	}
+	
+	ssize_t IndexOf(T *p)
+	{
+		size_t Base;
+		Local = GetPtr(p, Base);
+		if (Local.In())
+			return Base + Local.Cur;
+		return -1;
+	}
+
+	bool HasItem(T *p)
+	{
+		size_t Base;
+		Iter Pos = GetPtr(p, Base);
+		return Pos.In();
+	}
+
+	T *ItemAt(int i)
+	{
+		return Local = GetIndex(i);
+	}
+
+	/// Sorts the list
+	void Sort
+	(
+		/// The callback function used to compare 2 pointers
+		CompareFn Compare,
+		/// User data that is passed into the callback
+		NativeInt Data = 0
+	)
+	{
+		if (Items < 1)
+			return;
+
+		BTree Tree(Items);
+		T ***iLst = new T**[Items];
+		if (iLst)
+		{
+			int n=0;
+			LstBlk *i = FirstObj;
+			while (i)
+			{
+				for (int k=0; k<i->Count; k++)
+				{
+					iLst[n++] = i->Ptr + k;
+					Tree.Add(i->Ptr[k], Compare, Data);
+				}
+				i = i->Next;
+			}
+
+			Tree.Index(iLst);
+			delete [] iLst;
+		}
+	}
+	
+	/// Delete all pointers in the list as dynamically allocated objects
+	void DeleteObjects()
+	{
+		for (LstBlk *i = FirstObj; i; i = i->Next)
+		{
+			for (unsigned n=0; n<i->Count; n++)
+				DeleteObj(i->Ptr[n]);
+		}
+		Empty();
+	}
+
+	/// Delete all pointers in the list as dynamically allocated arrays
+	void DeleteArrays()
+	{
+		for (LstBlk *i = FirstObj; i; i = i->Next)
+		{
+			for (unsigned n=0; n<i->Count; n++)
+			{
+				delete [] i->Ptr[n];
+				i->Ptr[n] = NULL;
+			}
+		}
+		Empty();
+	}
+
+	/// Assign the contents of another list to this one
+	List<T> &operator =(const List<T> &lst)
+	{
+		// Make sure we have enough blocks allocated
+		size_t i = 0;
+		for (LstBlk *out = FirstObj; out; out = out->Next)
+		{
+			out->Count = 0;
+			i += ITEM_PTRS;
+		}
+		while (i < lst.Length())
+		{
+			LstBlk *out = NewBlock(LastObj);
+			if (out)
+				i += ITEM_PTRS;
+			else
+			{
+				LgiAssert(!"Can't allocate enough blocks?");
+				return *this;
+			}
+		}
+
+		// Now copy over the block's contents.
+		LstBlk *out = FirstObj;
+		for (LstBlk *in = lst.FirstObj; in; in = in->Next)
+		{
+			for (int pos = 0; pos < in->Count; )
+			{
+				if (!out->Remaining())
+				{
+					out = out->Next;
+					if (!out)
+					{
+						LgiAssert(!"We should have pre-allocated everything...");
+						return *this;
+					}
+				}
+
+				int Cp = MIN(out->Remaining(), in->Count - pos);
+				LgiAssert(Cp > 0);
+				memcpy(out->Ptr + out->Count, in->Ptr + pos, Cp * sizeof(T*));
+				out->Count += Cp;
+				pos += Cp;
+			}
+		}
+
+		return *this;
+	}
+
+	Iter begin(int At = 0) { return GetIndex(At); }
+	Iter rbegin(int At = 0) { return GetIndex(Length()-1); }
+	Iter end() { return Iter(this, NULL, -1); }
 };
 
 /// \brief Data storage class.

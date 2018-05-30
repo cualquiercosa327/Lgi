@@ -1088,7 +1088,7 @@ int GPath::Segments()
 
 void GPath::DeleteSeg(int i)
 {
-	Segs.Delete(i);
+	Segs.DeleteAt(i);
 }
 
 bool GPath::IsClosed()

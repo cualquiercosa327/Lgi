@@ -231,7 +231,7 @@ class LgiClass GDocView :
 
 protected:
 	GDocumentEnv *Environment;
-	GAutoString Charset;
+	GString Charset;
 
 public:
 	// Static
@@ -270,8 +270,8 @@ public:
 	_TvMenuProp(int, DocumentUid)
 	#undef _TvMenuProp
 
-	virtual const char *GetCharset() { return Charset ? Charset.Get() : "utf-8"; }
-	virtual void SetCharset(const char *s) { Charset.Reset(NewStr(s)); }
+	virtual const char *GetCharset() { return Charset ? Charset : "utf-8"; }
+	virtual void SetCharset(const char *s) { Charset = s; }
 	virtual const char *GetMimeType() = 0;
 
 	///////////////////////////////////////////////////////////////////////

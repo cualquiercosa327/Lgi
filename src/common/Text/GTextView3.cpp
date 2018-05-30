@@ -2356,9 +2356,9 @@ bool GTextView3::DoGoto()
 {
 	GInput Dlg(this, "", LgiLoadString(L_TEXTCTRL_GOTO_LINE, "Goto line:"), "Text");
 	if (Dlg.DoModal() == IDOK &&
-		Dlg.Str)
+		Dlg.GetStr())
 	{
-		SetLine(atoi(Dlg.Str));
+		SetLine(atoi(Dlg.GetStr()));
 	}
 
 	return true;
@@ -3255,7 +3255,7 @@ void GTextView3::DoContextMenu(GMouse &m)
 			GInput i(this, s, "Indent Size:", "Text");
 			if (i.DoModal())
 			{
-				IndentSize = atoi(i.Str);
+				IndentSize = atoi(i.GetStr());
 			}
 			break;
 		}
@@ -3266,7 +3266,7 @@ void GTextView3::DoContextMenu(GMouse &m)
 			GInput i(this, s, "Tab Size:", "Text");
 			if (i.DoModal())
 			{
-				SetTabSize(atoi(i.Str));
+				SetTabSize(atoi(i.GetStr()));
 			}
 			break;
 		}

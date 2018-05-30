@@ -7,6 +7,7 @@ class GContainersPriv
 
 GContainers::GContainers() : UnitTest("GContainers")
 {
+	UnitTest_ListClass();
 }
 
 GContainers::~GContainers()

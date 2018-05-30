@@ -502,7 +502,7 @@ GViewI *GetNextTabStop(GViewI *v, bool Back)
 			List<GViewI> All;
 			GetChildrenList(Wnd, All);
 
-			int MyIndex = All.IndexOf(v);
+			ssize_t MyIndex = All.IndexOf(v);
 			if (MyIndex >= 0)
 			{
 				int Inc = Back ? -1 : 1;

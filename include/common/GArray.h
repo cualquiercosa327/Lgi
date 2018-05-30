@@ -744,6 +744,7 @@ public:
 
 	typedef Iter<Type> I;
 	I begin() { return I(this, 0); }
+	I rbegin() { return I(this, len-1); }
 	I end() { return I(this); }
 
 	/*

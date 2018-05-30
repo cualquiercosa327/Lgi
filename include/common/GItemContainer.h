@@ -390,6 +390,13 @@ public:
 
 	/// Resizes all the columns to their content, allowing a little extra space for visual effect
 	virtual void ResizeColumnsToContent(int Border = DEFAULT_COLUMN_SPACING);
+
+
+	GItemContainer &operator =(const GItemContainer &i)
+	{
+		LgiAssert(!"Not impl..");
+		return *this;
+	}
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////
