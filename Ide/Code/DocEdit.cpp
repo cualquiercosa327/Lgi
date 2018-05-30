@@ -75,10 +75,10 @@ bool DocEdit::AppendItems(GSubMenu *Menu, int Base)
 bool DocEdit::DoGoto()
 {
 	GInput Dlg(this, "", LgiLoadString(L_TEXTCTRL_GOTO_LINE, "Goto [file:]line:"), "Text");
-	if (Dlg.DoModal() != IDOK || !ValidStr(Dlg.Str))
+	if (Dlg.DoModal() != IDOK || !ValidStr(Dlg.GetStr()))
 		return false;
 
-	GString s = Dlg.Str.Get();
+	GString s = Dlg.GetStr();
 	GString::Array p = s.SplitDelimit(":,");
 	if (p.Length() == 2)
 	{

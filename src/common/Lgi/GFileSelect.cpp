@@ -1219,7 +1219,7 @@ int GFileSelectDlg::OnNotify(GViewI *Ctrl, int Flags)
 				char New[256];
 				strcpy(New, GetCtrlName(IDC_PATH));
 				if (New[strlen(New)-1] != DIR_CHAR) strcat(New, DIR_STR);
-				strcat(New, Dlg.Str);
+				strcat(New, Dlg.GetStr());
 
 				FileDev->CreateFolder(New);
 				OnFolder();
@@ -1604,7 +1604,7 @@ void GFolderItem::OnRename()
 
 		char New[256];
 		File[0] = 0;
-		LgiMakePath(New, sizeof(New), Path, Inp.Str);
+		LgiMakePath(New, sizeof(New), Path, Inp.GetStr());
 		
 		if (FileDev->Move(Old, New))
 		{

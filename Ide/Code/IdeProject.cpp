@@ -2788,7 +2788,7 @@ void IdeProject::OnMouseClick(GMouse &m)
 				GInput Name(Tree, "", "Name:", AppName);
 				if (Name.DoModal())
 				{
-					GetSubFolder(this, Name.Str, true);
+					GetSubFolder(this, Name.GetStr(), true);
 				}
 				break;
 			}

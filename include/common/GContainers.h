@@ -560,6 +560,7 @@ public:
 	T *First()
 	{
 		Local = FirstObj;
+		Local.Cur = 0;
 		return Local;
 	}
 

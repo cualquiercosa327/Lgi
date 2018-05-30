@@ -1136,7 +1136,7 @@ void ProjectNode::OnMouseClick(GMouse &m)
 				GInput Name(Tree, "", "Name:", AppName);
 				if (Name.DoModal())
 				{
-					GetSubFolder(Project, Name.Str, true);
+					GetSubFolder(Project, Name.GetStr(), true);
 				}
 				break;
 			}
@@ -1145,7 +1145,7 @@ void ProjectNode::OnMouseClick(GMouse &m)
 				GInput Name(Tree, "", "Name:", AppName);
 				if (Name.DoModal())
 				{
-					SetName(Name.Str);
+					SetName(Name.GetStr());
 					Project->SetDirty();
 					Update();
 				}
