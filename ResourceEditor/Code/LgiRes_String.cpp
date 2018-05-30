@@ -1268,7 +1268,7 @@ int ResStringGroup::UniqueRef()
 	int n = 1;
 	for (ResString *i = dynamic_cast<ResString*>(Items.First()); i; i = dynamic_cast<ResString*>(Items.Next()))
 	{
-		n = max(n, i->Ref);
+		n = MAX(n, i->Ref);
 	}
 
 	return n + 1;
@@ -1289,7 +1289,7 @@ int ResStringGroup::UniqueId(char *Define)
 			return i->Id;
 		}
 
-		n = max(n, i->Id);
+		n = MAX(n, i->Id);
 	}
 
 	return n + 1;

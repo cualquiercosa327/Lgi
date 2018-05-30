@@ -3403,7 +3403,7 @@ char16 *GTag::CleanText(const char *s, ssize_t Len, const char *SourceCs,  bool 
 	}
 	else
 	{
-		t = (char16*) LgiNewConvertCp(LGI_WideCharset, s, Html->Charset ? Html->Charset : DefaultCs, Len);
+		t = (char16*) LgiNewConvertCp(LGI_WideCharset, s, Html->Charset.Get() ? Html->Charset.Get() : DefaultCs, Len);
 	}
 
 	if (t && ConversionAllowed)

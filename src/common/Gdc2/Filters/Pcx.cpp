@@ -128,7 +128,7 @@ GFilter::IoStatus GdcPcx::ReadImage(GSurface *pDC, GStream *In)
 
 			In->SetPos(128);
 
-			if (pDC->Create(Sx, Sy, max(8, Bits)))
+			if (pDC->Create(Sx, Sy, MAX(8, Bits)))
 			{
 				int Line = GetLineLength(pDC);
 				uchar *buf = new uchar[Line];
@@ -332,7 +332,7 @@ GFilter::IoStatus GdcPcx::WriteImage(GStream *Out, GSurface *pDC)
 		memset(Header.Palette, 0, sizeof(Header.Palette));
 		if (Pal)
 		{
-			for (int i=0; i<min(Pal->GetSize(), 16); i++)
+			for (int i=0; i<MIN(Pal->GetSize(), 16); i++)
 			{
 				uchar *p = Header.Palette + (i * 3);
 				
