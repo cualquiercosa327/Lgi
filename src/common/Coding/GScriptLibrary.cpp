@@ -857,7 +857,7 @@ bool SystemFunctions::GetInputDlg(LScriptArguments &Args)
 	GInput Dlg(Parent, InitVal, Msg, Title, Pass);
 	if (Dlg.DoModal())
 	{
-		*Args.GetReturn() = Dlg.Str;
+		*Args.GetReturn() = Dlg.GetStr();
 	}
 
 	return true;

@@ -1624,9 +1624,9 @@ void CtrlTabs::OnMouseClick(GMouse &m)
 
 								GInput Input(this, t->Str->Get(), "Enter tab name:", "Rename");
 								Input.SetParent(Dlg);
-								if (Input.DoModal() && Input.Str)
+								if (Input.DoModal() && Input.GetStr())
 								{
-									t->Str->Set(Input.Str);
+									t->Str->Set(Input.GetStr());
 								}
 							}
 							break;
@@ -1840,7 +1840,7 @@ void CtrlList::OnMouseClick(GMouse &m)
 									Input.SetParent(Dlg);
 									if (Input.DoModal())
 									{
-										c->Str->Set(Input.Str);
+										c->Str->Set(Input.GetStr());
 									}
 								}
 								break;

@@ -1646,7 +1646,7 @@ bool GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 				GInput i(View, a->Param, "Edit link:", "Link");
 				if (i.DoModal())
 				{
-					a->Param = i.Str;
+					a->Param = i.GetStr();
 				}
 			}
 			else if (Selection)
@@ -1667,7 +1667,7 @@ bool GRichTextPriv::ClickBtn(GMouse &m, GRichTextEdit::RectType t)
 					MakeLink(tb,
 							Start->Offset,
 							End->Offset - Start->Offset,
-							i.Str.Get());
+							i.GetStr());
 				}
 			}
 			break;

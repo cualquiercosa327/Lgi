@@ -1354,7 +1354,7 @@ case IDomCall:
 			{
 				case ObjLength:
 				{
-					*Dst = Dom->Value.Lst->Length();
+					*Dst = (int64)Dom->Value.Lst->Length();
 					break;
 				}
 				case ContainerAdd:

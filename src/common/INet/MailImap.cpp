@@ -1866,7 +1866,7 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 								GInput Dlg(d->ParentWnd, "", "Enter Authorization Token:", "IMAP OAuth2 Authentication");
 								if (Dlg.DoModal())
 								{
-									AuthCode = Dlg.Str.Get();
+									AuthCode = Dlg.GetStr();
 									#if DEBUG_OAUTH2
 									LgiTrace("%s:%i - AuthCode=%s\n", _FL, AuthCode.Get());
 									#endif

@@ -8359,7 +8359,7 @@ void GHtml::OnMouseClick(GMouse &m)
 							GCharset *c = LgiGetCsList() + (Id - IDM_CHARSET_BASE);
 							if (c->Charset)
 							{
-								Charset.Reset(NewStr(c->Charset));
+								Charset = c->Charset;
 								OverideDocCharset = true;
 
 								char *Src = Source.Release();

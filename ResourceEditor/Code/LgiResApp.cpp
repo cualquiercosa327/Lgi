@@ -405,7 +405,7 @@ void ObjTreeItem::OnMouseClick(GMouse &m)
 					GInput Dlg(Tree, GetText(), "Enter the name for the object", "Object Name");
 					if (Dlg.DoModal())
 					{
-						Obj->Wnd()->Name(Dlg.Str);
+						Obj->Wnd()->Name(Dlg.GetStr());
 						Update();
 						Obj->App()->SetDirty(true);
 					}
