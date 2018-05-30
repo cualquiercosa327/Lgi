@@ -194,7 +194,7 @@ protected:
 	LstBlk *NewBlock(LstBlk *Where)
 	{
 		LstBlk *i = new LstBlk;
-		LgiAssert(i);
+		LgiAssert(i != NULL);
 		if (!i)
 			return NULL;
 
@@ -356,7 +356,7 @@ protected:
 		n = 0;
 		for (LstBlk *i = FirstObj; i; i = i->Next)
 		{
-			for (unsigned k=0; k<i->Count; k++)
+			for (int k=0; k<i->Count; k++)
 				if (i->Ptr[k] == Ptr)
 					return Iter(this, i, k);
 			n += i->Count;
@@ -530,10 +530,10 @@ public:
 	bool Delete(T *Ptr)
 	{
 		size_t Base;
-		Iter p = GetPtr(Ptr, Base);
-		if (!p.In())
+		Local = GetPtr(Ptr, Base);
+		if (!Local.In())
 			return false;
-		return Delete(p);
+		return Delete(Local);
 	}
 
 	bool Insert(T *p, int Index = -1)
@@ -650,7 +650,7 @@ public:
 	{
 		for (LstBlk *i = FirstObj; i; i = i->Next)
 		{
-			for (unsigned n=0; n<i->Count; n++)
+			for (int n=0; n<i->Count; n++)
 				DeleteObj(i->Ptr[n]);
 		}
 		Empty();
