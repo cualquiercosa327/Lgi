@@ -857,8 +857,7 @@ public:
 
 		if (Local.i != NULL)
 		{
-			if (!SeenLocalBlk ||
-				!Local.In())
+			if (!SeenLocalBlk && Local.i != NULL)
 				goto OnError;
 		}
 		
