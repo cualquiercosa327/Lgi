@@ -56,7 +56,7 @@ public:
 	public:
 		List<T> *Lst;
 		LstBlk *i;
-		size_t Cur;
+		int Cur;
 
 		Iter(List<T> *lst)
 		{
@@ -319,7 +319,7 @@ protected:
 		if (!Pos.In())
 			return false;
 
-		size_t &Index = Pos.Cur;
+		int &Index = Pos.Cur;
 		LstBlk *&i = Pos.i;
 		if (Index < i->Count-1)
 			memmove(i->Ptr+Index, i->Ptr+Index+1, (i->Count-Index-1) * sizeof(T*));
