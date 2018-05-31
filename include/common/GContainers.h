@@ -17,6 +17,11 @@
 ///	Template for using DLinkList with a type safe API.
 #define ITEM_PTRS	64
 LgiFunc bool UnitTest_ListClass();
+#ifdef _DEBUG
+	#define VALIDATE() Validate()
+#else
+	#define VALIDATE()
+#endif
 
 template<typename T>
 class List
@@ -100,6 +105,8 @@ public:
 		Iter &operator =(LstBlk *item)
 		{
 			i = item;
+			if (!i)
+				Cur = 0;
 			return *this;
 		}
 	
@@ -322,6 +329,9 @@ protected:
 		{
 			// This Item is now empty, remove and reset current
 			// into the next Item
+			if (i == Local.i)
+				Local = NULL;
+
 			LstBlk *n = i->Next;
 			bool Status = DeleteBlock(i);
 			Pos.Cur = 0;
@@ -338,30 +348,44 @@ protected:
 		return true;
 	}
 
-	Iter GetIndex(size_t Index)
+	Iter GetIndex(size_t Index, size_t *Base = NULL)
 	{
 		size_t n = 0;
 		for (LstBlk *i = FirstObj; i; i = i->Next)
 		{
 			if (Index >= n && Index < n + i->Count)
+			{
+				if (Base)
+					*Base = n;
 				return Iter(this, i, Index - n);
+			}
 			n += i->Count;
 		}
 
+		if (Base)
+			*Base = 0;
 		return Iter(this);
 	}
 
-	Iter GetPtr(T *Ptr, size_t &n)
+	Iter GetPtr(T *Ptr, size_t *Base = NULL)
 	{
-		n = 0;
+		size_t n = 0;
 		for (LstBlk *i = FirstObj; i; i = i->Next)
 		{
 			for (int k=0; k<i->Count; k++)
+			{
 				if (i->Ptr[k] == Ptr)
+				{
+					if (Base)
+						*Base = n;
 					return Iter(this, i, k);
+				}
+			}
 			n += i->Count;
 		}
 
+		if (Base)
+			*Base = 0;
 		return Iter(this);
 	}
 
@@ -493,6 +517,7 @@ public:
 
 	~List<T>()
 	{
+		VALIDATE();
 		Empty();
 	}
 
@@ -503,6 +528,10 @@ public:
 
 	bool Empty()
 	{
+		VALIDATE();
+
+		Local = NULL;
+
 		LstBlk *n;
 		for (LstBlk *i = FirstObj; i; i = n)
 		{
@@ -511,33 +540,44 @@ public:
 		}
 		FirstObj = LastObj = NULL;
 		Items = 0;
+
+		VALIDATE();
 		return true;
 	}
 
 	bool Delete()
 	{
-		return Delete(Local);
+		VALIDATE();
+		bool Status = Delete(Local);
+		VALIDATE();
+		return Status;
 	}
 
 	bool DeleteAt(size_t i)
 	{
+		VALIDATE();
 		Iter p = GetIndex(i);
 		if (!p.In())
 			return false;
-		return Delete(p);
+		bool Status = Delete(p);
+		VALIDATE();
+		return Status;
 	}
 
 	bool Delete(T *Ptr)
 	{
-		size_t Base;
-		Local = GetPtr(Ptr, Base);
+		VALIDATE();
+		Local = GetPtr(Ptr);
 		if (!Local.In())
 			return false;
-		return Delete(Local);
+		bool Status = Delete(Local);
+		VALIDATE();
+		return Status;
 	}
 
 	bool Insert(T *p, int Index = -1)
 	{
+		VALIDATE();
 		if (!LastObj)
 		{
 			LstBlk *b = NewBlock(NULL);
@@ -546,10 +586,24 @@ public:
 
 			b->Ptr[b->Count++] = p;
 			Items++;
+			VALIDATE();
 			return true;
 		}
 
-		return Insert(LastObj, p, Index);
+		bool Status;
+		if (Index < 0)
+			Status = Insert(LastObj, p, Index);
+		else
+		{
+			size_t Base;
+			Iter Pos = GetIndex(Index, &Base);
+			if (Pos.i)
+				Status = Insert(Pos.i, p, Base - Index);
+			else
+				Status = Insert(LastObj, p, -1);				
+		}
+		VALIDATE();
+		return Status;
 	}
 
 	bool Add(T *p)
@@ -559,15 +613,19 @@ public:
 	
 	T *First()
 	{
+		VALIDATE();
 		Local = FirstObj;
 		Local.Cur = 0;
+		VALIDATE();
 		return Local;
 	}
 
 	T *Last()
 	{
+		VALIDATE();
 		Local = LastObj;
 		if (Local.i) Local.Cur = Local.i->Count - 1;
+		VALIDATE();
 		return Local;
 	}
 
@@ -583,33 +641,44 @@ public:
 
 	T *Current() const
 	{
+		VALIDATE();
 		return Local;
 	}
 
 	T *operator [](int Index)
 	{
-		return Local = GetIndex(Index);
+		VALIDATE();
+		Local = GetIndex(Index);
+		VALIDATE();
+		return Local;
 	}
 	
 	ssize_t IndexOf(T *p)
 	{
-		size_t Base;
-		Local = GetPtr(p, Base);
-		if (Local.In())
-			return Base + Local.Cur;
-		return -1;
+		VALIDATE();
+		size_t Base = -1;
+		Local = GetPtr(p, &Base);
+		LgiAssert(Base != -1);
+		ssize_t Idx = Local.In() ? Base + Local.Cur : -1;
+		VALIDATE();
+		return Idx;
 	}
 
 	bool HasItem(T *p)
 	{
-		size_t Base;
-		Iter Pos = GetPtr(p, Base);
-		return Pos.In();
+		VALIDATE();
+		Iter Pos = GetPtr(p);
+		bool Status = Pos.In();
+		VALIDATE();
+		return Status;
 	}
 
 	T *ItemAt(int i)
 	{
-		return Local = GetIndex(i);
+		VALIDATE();
+		Local = GetIndex(i);
+		VALIDATE();
+		return Local;
 	}
 
 	/// Sorts the list
@@ -624,6 +693,7 @@ public:
 		if (Items < 1)
 			return;
 
+		VALIDATE();
 		BTree Tree(Items);
 		T ***iLst = new T**[Items];
 		if (iLst)
@@ -643,36 +713,52 @@ public:
 			Tree.Index(iLst);
 			delete [] iLst;
 		}
+		VALIDATE();
 	}
 	
 	/// Delete all pointers in the list as dynamically allocated objects
 	void DeleteObjects()
 	{
-		for (LstBlk *i = FirstObj; i; i = i->Next)
+		VALIDATE();
+		LstBlk *n;
+		for (LstBlk *i = FirstObj; i; i = n)
 		{
+			n = i->Next;
 			for (int n=0; n<i->Count; n++)
 				DeleteObj(i->Ptr[n]);
+			delete i;
 		}
-		Empty();
+		FirstObj = LastObj = NULL;
+		Items = 0;
+		Local.i = NULL;
+		VALIDATE();
 	}
 
 	/// Delete all pointers in the list as dynamically allocated arrays
 	void DeleteArrays()
 	{
-		for (LstBlk *i = FirstObj; i; i = i->Next)
+		VALIDATE();
+		LstBlk *n;
+		for (LstBlk *i = FirstObj; i; i = n)
 		{
+			n = i->Next;
 			for (unsigned n=0; n<i->Count; n++)
 			{
 				delete [] i->Ptr[n];
 				i->Ptr[n] = NULL;
 			}
 		}
-		Empty();
+		FirstObj = LastObj = NULL;
+		Items = 0;
+		Local.i = NULL;
+		VALIDATE();
 	}
 
 	/// Assign the contents of another list to this one
 	List<T> &operator =(const List<T> &lst)
 	{
+		VALIDATE();
+
 		// Make sure we have enough blocks allocated
 		size_t i = 0;
 		for (LstBlk *out = FirstObj; out; out = out->Next)
@@ -716,12 +802,70 @@ public:
 			}
 		}
 
+		VALIDATE();
+
 		return *this;
 	}
 
 	Iter begin(int At = 0) { return GetIndex(At); }
 	Iter rbegin(int At = 0) { return GetIndex(Length()-1); }
 	Iter end() { return Iter(this, NULL, -1); }
+
+	bool Validate() const
+	{
+		if (FirstObj == NULL &&
+			LastObj == NULL &&
+			Items == 0)
+			return true;
+
+		size_t n = 0;
+		LstBlk *Prev = NULL;
+		bool SeenLocalBlk = false;
+		for (LstBlk *i = FirstObj; i; i = i->Next)
+		{
+			if (Local.i == i)
+				SeenLocalBlk = true;
+
+			for (int k=0; k<i->Count; k++)
+			{
+				if (!i->Ptr[k])
+					goto OnError;
+				else
+					n++;
+			}
+
+			if (i == FirstObj)
+			{
+				if (i->Prev)
+					goto OnError;
+			}
+			else if (i == LastObj)
+			{
+				if (i->Next)
+					goto OnError;
+			}
+			else
+			{
+				if (i->Prev != Prev)
+					goto OnError;
+			}
+
+			Prev = i;
+		}
+
+		if (Local.i != NULL)
+		{
+			if (!SeenLocalBlk ||
+				!Local.In())
+				goto OnError;
+		}
+		
+		return true;
+	
+	OnError:
+		LgiAssert(!"Lst err.");
+		return false;
+	}
 };
 
 /// \brief Data storage class.
