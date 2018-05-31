@@ -600,7 +600,7 @@ public:
 			size_t Base;
 			Iter Pos = GetIndex(Index, &Base);
 			if (Pos.i)
-				Status = Insert(Pos.i, p, Base - Index);
+				Status = Insert(Pos.i, p, Index - Base);
 			else
 				Status = Insert(LastObj, p, -1);				
 		}
