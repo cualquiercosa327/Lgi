@@ -1477,7 +1477,7 @@ GTextView3::GTextLine *GTextView3::GetTextLine(ssize_t Offset, int *Index)
 {
 	int i = 0;
 
-	for (GTextLine *l=Line.First(); l; l=Line.Next(), i++)
+	for (auto l : Line)
 	{
 		if (Offset >= l->Start && Offset <= l->Start+l->Len)
 		{
@@ -1488,6 +1488,8 @@ GTextView3::GTextLine *GTextView3::GetTextLine(ssize_t Offset, int *Index)
 
 			return l;
 		}
+		
+		i++;
 	}
 
 	return NULL;

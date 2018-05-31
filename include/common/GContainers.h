@@ -329,13 +329,15 @@ protected:
 		{
 			// This Item is now empty, remove and reset current
 			// into the next Item
-			if (i == Local.i)
-				Local = NULL;
+			bool ClearLocal = i == Local.i;
 
 			LstBlk *n = i->Next;
 			bool Status = DeleteBlock(i);
 			Pos.Cur = 0;
 			Pos.i = n;
+
+			if (ClearLocal)
+				Local.i = NULL;
 			return Status;
 		}
 		else if (Index >= i->Count)
@@ -530,7 +532,7 @@ public:
 	{
 		VALIDATE();
 
-		Local = NULL;
+		Local.i = NULL;
 
 		LstBlk *n;
 		for (LstBlk *i = FirstObj; i; i = n)
