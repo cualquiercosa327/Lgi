@@ -11,6 +11,7 @@ class GClipBoardPriv
 {
 public:
 	GtkClipboard *c;
+	::GVariant Bin;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -129,15 +130,58 @@ GSurface *GClipBoard::Bitmap()
 	return pDC;
 }
 
+void LgiClipboardGetFunc(GtkClipboard *clipboard,
+                        GtkSelectionData *data,
+                        guint info,
+                        gpointer user_data)
+{
+	auto *v = (::GVariant*)user_data;
+	switch (info)
+	{
+		case GV_BINARY:
+		{
+			if (v->Type == info)
+			{
+				data->data = v->Value.Binary.Data;
+				data->length = v->Value.Binary.Length;
+			}
+			else LgiTrace("%s:%i - Variant is the wrong type: %i\n", _FL, v->Type);
+			break;
+		}
+		default:
+		{
+			LgiTrace("%s:%i - Undefined data type: %i\n", _FL, info);
+			break;
+		}
+	}
+}
+
+void LgiClipboardClearFunc(GtkClipboard *clipboard,
+                          gpointer user_data)
+{
+	auto *v = (::GVariant*)user_data;
+	v->Empty();
+}
+
 bool GClipBoard::Binary(FormatType Format, uchar *Ptr, ssize_t Len, bool AutoEmpty)
 {
-	bool Status = false;
+	if (!Ptr || Len <= 0)
+		return false;
 
-	if (Ptr && Len > 0)
-	{
-	}
+	d->Bin.SetBinary(Ptr, Len);
+	
+	GtkTargetEntry te;
+	te.target = "lgi.binary";
+	te.flags = 0; // GTK_TARGET_SAME_APP?
+	te.info = GV_BINARY; // App defined data type ID
+	Gtk::gboolean r = gtk_clipboard_set_with_data(d->c,
+					                             &te,
+					                             1,
+					                             LgiClipboardGetFunc,
+					                             LgiClipboardClearFunc,
+					                             &d->Bin);
 
-	return Status;
+	return r;
 }
 
 bool GClipBoard::Binary(FormatType Format, GAutoPtr<uint8> &Ptr, ssize_t *Len)

@@ -27,6 +27,7 @@ ifeq ($(Build),Debug)
 		-I../include/common \
 		-I../include/linux \
 		-I../include/linux/Gtk \
+		-I./Resources \
 		-I./Src \
 		-I/usr/include/gstreamer-1.0 \
 		-I/usr/lib/x86_64-linux-gnu/gstreamer-1.0/include \
@@ -42,6 +43,7 @@ else
 		-I../include/common \
 		-I../include/linux \
 		-I../include/linux/Gtk \
+		-I./Resources \
 		-I./Src \
 		-I/usr/include/gstreamer-1.0 \
 		-I/usr/lib/x86_64-linux-gnu/gstreamer-1.0/include \
@@ -175,7 +177,6 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../include/common/LgiWidgets.h \
 	../include/common/LList.h \
 	../include/common/LListItemCheckBox.h \
-	../include/common/LListItemRadioBtn.h \
 	../include/common/LMutex.h \
 	../include/common/LStringLayout.h \
 	../include/common/LThread.h \
@@ -838,8 +839,6 @@ VcFolder.o : ./Src/VcFolder.cpp ./Src/Lvc.h \
 	../include/common/GArray.h
 
 ../include/common/GUnicode.h : ../include/common/LgiInc.h
-
-../include/common/LListItemRadioBtn.h : 
 
 ../include/common/GCssTools.h : ../include/common/GCss.h
 
@@ -2048,7 +2047,7 @@ VcFolder.o : ./Src/VcFolder.cpp ./Src/Lvc.h \
 VPATH=%.cpp \
 	../include/linux/Gtk \
 	../include/linux \
-	./home/matthew/Code/Lgi/trunk/Lvc/Src \
+	./Resources \
 	./Src \
 	../../../../../../usr/include/gstreamer-1.0 \
 	../include/common \
