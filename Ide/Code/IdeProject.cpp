@@ -2613,6 +2613,8 @@ bool IdeProject::SaveFile()
 		GFile f;
 		if (f.Open(Full, O_WRITE))
 		{
+			f.SetSize(0);
+
 			GXmlTree x;
 			GProgressDlg Prog(d->App, 1000);
 			Prog.SetAlwaysOnTop(true);
