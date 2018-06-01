@@ -65,7 +65,7 @@ public:
 			Cur = 0;
 		}
 
-		Iter(List<T> *lst, LstBlk *item, size_t c)
+		Iter(List<T> *lst, LstBlk *item, int c)
 		{
 			Lst = lst;
 			i = item;
@@ -359,7 +359,7 @@ protected:
 			{
 				if (Base)
 					*Base = n;
-				return Iter(this, i, Index - n);
+				return Iter(this, i, (int) (Index - n));
 			}
 			n += i->Count;
 		}
@@ -600,7 +600,7 @@ public:
 			size_t Base;
 			Iter Pos = GetIndex(Index, &Base);
 			if (Pos.i)
-				Status = Insert(Pos.i, p, Index - Base);
+				Status = Insert(Pos.i, p, (int) (Index - Base));
 			else
 				Status = Insert(LastObj, p, -1);				
 		}

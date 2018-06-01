@@ -6,7 +6,7 @@
 enum LvcError
 {
 	ErrNone,
-	ErrSubProcessFailed,
+	ErrSubProcessFailed = 1000,
 };
 
 class ReaderThread : public LThread
@@ -80,6 +80,7 @@ class VcFolder : public GTreeItem
 	int Unpushed, Unpulled;
 	GString CountCache;
 	GTreeItem *Tmp;
+	int CmdErrors;
 	
 	GArray<Cmd*> Cmds;
 	bool IsLogging, IsGetCur, IsUpdate, IsFilesCmd, IsWorkingFld, IsCommit, IsUpdatingCounts;

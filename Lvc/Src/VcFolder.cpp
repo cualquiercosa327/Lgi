@@ -26,7 +26,7 @@ int ReaderThread::Main()
 	{
 		GString s("Process->Start failed.\n");
 		Out->Write(s.Get(), s.Length(), ErrSubProcessFailed);
-		return -1;
+		return ErrSubProcessFailed;
 	}
 
 	while (Process->IsRunning())
@@ -64,7 +64,7 @@ int ReaderThread::Main()
 void VcFolder::Init(AppPriv *priv)
 {
 	d = priv;
-	
+
 	IsCommit = false;
 	IsLogging = false;
 	IsGetCur = false;
@@ -76,6 +76,7 @@ void VcFolder::Init(AppPriv *priv)
 
 	Unpushed = Unpulled = -1;
 	Type = VcNone;
+	CmdErrors = 0;
 
 	Expanded(false);
 	Insert(Tmp = new GTreeItem);
@@ -152,7 +153,7 @@ const char *VcFolder::GetVcName()
 		case VcGit:
 			return "git";
 		case VcSvn:
-			return "/opt/local/bin/svn";
+			return "svn";
 		case VcHg:
 			return "hg";
 		case VcCvs:
@@ -170,6 +171,11 @@ bool VcFolder::StartCmd(const char *Args, ParseFn Parser, GString Param, bool Lo
 	const char *Exe = GetVcName();
 	if (!Exe)
 		return false;
+	if (CmdErrors > 2)
+	{
+		d->Log->Print("Error: Can't run '%s'\n", Exe);
+		return false;
+	}
 
 	if (d->Log && LogCmd)
 		d->Log->Print("%s %s\n", Exe, Args);
@@ -908,6 +914,9 @@ void VcFolder::OnPulse()
 		{
 			GString s = c->Buf.NewGStr();
 			int Result = c->Rd->ExitCode();
+			if (Result == ErrSubProcessFailed)
+				CmdErrors++;
+
 			ParseParams Params;
 			Params.Str = c->Param;
 			Reselect |= CALL_MEMBER_FN(*this, c->PostOp)(Result, s, &Params);

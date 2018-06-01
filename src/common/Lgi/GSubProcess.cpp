@@ -434,9 +434,9 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 			Args.Add(NULL);
 			execvp(Exe, &Args[0]);
 
-			// We should never get here.
-			printf("child[pre-exec]: Failed to start child");
-			return false;
+			// Execution will pass to here if the 'Exe' can't run or doesn't exist
+			// So by exiting with an error the parent process can handle it.
+			exit(-1);
 		}
 		else
 		{

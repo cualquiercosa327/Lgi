@@ -103,6 +103,11 @@ GWindow::GWindow() : GView(0)
 
 GWindow::~GWindow()
 {
+	if (LgiApp && LgiApp->AppWnd == this)
+	{
+		LgiApp->AppWnd = 0;
+	}
+
 	if (Menu)
 	{
 		Menu->Detach();
