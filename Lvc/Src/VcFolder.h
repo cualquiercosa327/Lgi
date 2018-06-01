@@ -3,6 +3,12 @@
 
 #include "GSubProcess.h"
 
+enum LvcError
+{
+	ErrNone,
+	ErrSubProcessFailed,
+};
+
 class ReaderThread : public LThread
 {
 	GStream *Out;
@@ -31,16 +37,19 @@ class VcFolder : public GTreeItem
 		GAutoPtr<LThread> Rd;
 		ParseFn PostOp;
 		GString Param;
+		LvcError Err;
 
 		Cmd(GStream *log)
 		{
 			Log = log;
+			Err = ErrNone;
 		}
 
 		ssize_t Write(const void *Ptr, ssize_t Size, int Flags = 0)
 		{
 			ssize_t Wr = Buf.Write(Ptr, Size, Flags);
 			if (Log) Log->Write(Ptr, Size, Flags);
+			if (Flags) Err = (LvcError) Flags;
 			return Wr;
 		}
 	};

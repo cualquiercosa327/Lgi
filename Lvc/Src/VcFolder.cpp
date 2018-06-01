@@ -21,7 +21,13 @@ ReaderThread::~ReaderThread()
 
 int ReaderThread::Main()
 {
-	Process->Start(true, false);
+	bool b = Process->Start(true, false);
+	if (!b)
+	{
+		GString s("Process->Start failed.\n");
+		Out->Write(s.Get(), s.Length(), ErrSubProcessFailed);
+		return -1;
+	}
 
 	while (Process->IsRunning())
 	{
@@ -30,7 +36,10 @@ int ReaderThread::Main()
 			char Buf[1024];
 			ssize_t r = Process->Read(Buf, sizeof(Buf));
 			if (r > 0)
+			{
+				printf("r: %.*s\n", r, Buf);
 				Out->Write(Buf, r);
+			}
 		}
 		else
 		{
