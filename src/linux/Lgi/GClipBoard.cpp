@@ -3,15 +3,27 @@
 #include "GVariant.h"
 #include "GClipBoard.h"
 
-#define DEBUG_CLIPBOARD		0
+#define DEBUG_CLIPBOARD					0
+#define VAR_COUNT						16
+#define LGI_CLIP_BINARY					"lgi.binary"
+#define LGI_RECEIVE_CLIPBOARD_TIMEOUT	4000
 
 using namespace Gtk;
+
+struct ClipData : public LMutex
+{
+	::GVariant v[VAR_COUNT];
+	
+	ClipData() : LMutex("ClipData")
+	{
+	}
+	
+}	Data;
 
 class GClipBoardPriv
 {
 public:
 	GtkClipboard *c;
-	::GVariant Bin;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -22,6 +34,8 @@ GClipBoard::GClipBoard(GView *o)
 	Open = false;
 	pDC = 0;
 	d->c = gtk_clipboard_get(GDK_NONE); // gdk_atom_intern("CLIPBOARD", false)
+	if (d->c)
+		Open = true;
 	#if DEBUG_CLIPBOARD
 	printf("d->c = %i\n", d->c);
 	#endif
@@ -135,32 +149,48 @@ void LgiClipboardGetFunc(GtkClipboard *clipboard,
                         guint info,
                         gpointer user_data)
 {
-	auto *v = (::GVariant*)user_data;
-	switch (info)
+	if (Data.Lock(_FL))
 	{
-		case GV_BINARY:
+		::GVariant *p = (::GVariant*)user_data;
+		#if DEBUG_CLIPBOARD
+		printf("%s:%i - LgiClipboardGetFunc: %p, %i\n", _FL, p, info);
+		#endif
+
+		switch (info)
 		{
-			if (v->Type == info)
+			case GV_BINARY:
 			{
-				data->data = v->Value.Binary.Data;
-				data->length = v->Value.Binary.Length;
+				if (p->Type == info)
+				{
+					data->data = p->Value.Binary.Data;
+					data->length = p->Value.Binary.Length;
+				}
+				else LgiTrace("%s:%i - Variant is the wrong type: %i\n", _FL, p->Type);
+				break;
 			}
-			else LgiTrace("%s:%i - Variant is the wrong type: %i\n", _FL, v->Type);
-			break;
+			default:
+			{
+				LgiTrace("%s:%i - Undefined data type: %i\n", _FL, info);
+				break;
+			}
 		}
-		default:
-		{
-			LgiTrace("%s:%i - Undefined data type: %i\n", _FL, info);
-			break;
-		}
+		
+		Data.Unlock();
 	}
 }
 
 void LgiClipboardClearFunc(GtkClipboard *clipboard,
                           gpointer user_data)
 {
-	auto *v = (::GVariant*)user_data;
-	v->Empty();
+	if (Data.Lock(_FL))
+	{
+		::GVariant *p = (::GVariant*)user_data;
+		#if DEBUG_CLIPBOARD
+		printf("%s:%i - LgiClipboardClearFunc: %i\n", _FL, p->Type);
+		#endif
+		p->Empty();
+		Data.Unlock();
+	}
 }
 
 bool GClipBoard::Binary(FormatType Format, uchar *Ptr, ssize_t Len, bool AutoEmpty)
@@ -168,10 +198,23 @@ bool GClipBoard::Binary(FormatType Format, uchar *Ptr, ssize_t Len, bool AutoEmp
 	if (!Ptr || Len <= 0)
 		return false;
 
-	d->Bin.SetBinary(Ptr, Len);
+	::GVariant *p = NULL;
+	if (Data.Lock(_FL))
+	{
+		for (int i=0; i<VAR_COUNT; i++)
+		{
+			if (Data.v[i].Type == GV_NULL)
+			{
+				p = Data.v + i;
+				p->SetBinary(Len, Ptr);
+				break;
+			}
+		}
+		Data.Unlock();
+	}
 	
 	GtkTargetEntry te;
-	te.target = "lgi.binary";
+	te.target = LGI_CLIP_BINARY;
 	te.flags = 0; // GTK_TARGET_SAME_APP?
 	te.info = GV_BINARY; // App defined data type ID
 	Gtk::gboolean r = gtk_clipboard_set_with_data(d->c,
@@ -179,19 +222,70 @@ bool GClipBoard::Binary(FormatType Format, uchar *Ptr, ssize_t Len, bool AutoEmp
 					                             1,
 					                             LgiClipboardGetFunc,
 					                             LgiClipboardClearFunc,
-					                             &d->Bin);
+					                             p);
 
+
+	#if DEBUG_CLIPBOARD
+	printf("%s:%i - gtk_clipboard_set_with_data = %i\n", _FL, r);
+	#endif
+	
 	return r;
+}
+
+struct ReceiveData
+{
+	GAutoPtr<uint8> *Ptr;
+	ssize_t *Len;
+};
+
+void LgiClipboardReceivedFunc(GtkClipboard *clipboard,
+                             GtkSelectionData *data,
+                             gpointer user_data)
+{
+	ReceiveData *r = (ReceiveData*)	user_data;
+	if (data && r)
+	{
+		uint8 *d = new uint8[data->length];
+		if (d)
+		{
+			memcpy(d, data->data, data->length);
+			if (r->Len)
+				*r->Len = data->length;
+			r->Ptr->Reset(d);
+
+			#if DEBUG_CLIPBOARD
+			printf("%s:%i - LgiClipboardReceivedFunc\n", _FL);
+			#endif
+		}
+		else LgiTrace("%s:%i - Alloc failed %i\n", _FL, data->length);
+	}
+	else LgiTrace("%s:%i - Missing ptr: %p %p\n", _FL, data, r);
 }
 
 bool GClipBoard::Binary(FormatType Format, GAutoPtr<uint8> &Ptr, ssize_t *Len)
 {
-	bool Status = false;
+	ReceiveData r = {&Ptr, Len};
 
-	if (Ptr && Len)
+	gtk_clipboard_request_contents(	d->c,
+	                                gdk_atom_intern(LGI_CLIP_BINARY, false),
+	                                LgiClipboardReceivedFunc,
+	                                &r);
+                                
+
+	uint64 Start = LgiCurrentTime();
+	do
 	{
+		if (r.Ptr->Get())
+			break;
+		LgiYield();
+		LgiSleep(1);
 	}
+	while (LgiCurrentTime() - Start > LGI_RECEIVE_CLIPBOARD_TIMEOUT);
 
-	return Status;
+	#if DEBUG_CLIPBOARD
+	printf("%s:%i - GClipBoard::Binary %p, %i\n", _FL, r.Ptr->Get(), Len ? *Len : -1);
+	#endif
+
+	return r.Ptr->Get() != NULL;
 }
 
