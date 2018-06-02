@@ -727,7 +727,20 @@ public:
 		{
 			n = i->Next;
 			for (int n=0; n<i->Count; n++)
-				DeleteObj(i->Ptr[n]);
+			{
+				if (i->Ptr[n])
+				{
+					#ifdef _DEBUG
+					size_t Objs = Items;
+					#endif
+					delete i->Ptr[n];
+					#ifdef _DEBUG
+					if (Objs != Items)
+						LgiAssert(!"Do you have self deleting objects?");
+					#endif
+					i->Ptr[n] = NULL;
+				}
+			}
 			delete i;
 		}
 		FirstObj = LastObj = NULL;
