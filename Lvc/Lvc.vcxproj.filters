@@ -40,6 +40,12 @@
     <ClCompile Include="..\src\common\Gdc2\Filters\Png.cpp">
       <Filter>Source Files\Lgi</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\common\Text\GXmlTreeUi.cpp">
+      <Filter>Source Files\Lgi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\Widgets\GControlTree.cpp">
+      <Filter>Source Files\Lgi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="..\src\win32\General\Lgi.manifest">
