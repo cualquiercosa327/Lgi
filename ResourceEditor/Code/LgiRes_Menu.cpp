@@ -32,6 +32,8 @@ ResMenuItem::ResMenuItem(ResMenu *menu)
 
 ResMenuItem::~ResMenuItem()
 {
+	Menu->App()->OnObjDelete(this);
+
 	if (_Str)
 		Menu->GetStringGroup()->DeleteStr(_Str);
 }

@@ -37,6 +37,8 @@
 #elif defined(LINUX)
 	#include <errno.h>
 	#define GSUBPROCESS_ERROR	ECHILD
+#elif defined(WINDOWS)
+	#define GSUBPROCESS_ERROR	ERROR_PROCESS_ABORTED
 #endif
 
 class GSubProcess : public GStreamI

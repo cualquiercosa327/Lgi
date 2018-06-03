@@ -324,6 +324,7 @@ ResDialogCtrl::~ResDialogCtrl()
 
 	if (Dlg)
 	{
+		Dlg->App()->OnObjDelete(this);
 		Dlg->OnDeselect(this);
 	}
 }
