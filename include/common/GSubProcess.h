@@ -117,7 +117,7 @@ public:
 	ProcessId Handle() { return ChildPid; }
 	bool IsRunning();
 	uint32 GetErrorCode();
-	uint32 GetExitValue();
+	int32 GetExitValue();
 	void Connect(GSubProcess *child);
 	bool Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdout = true);
 	int Wait();

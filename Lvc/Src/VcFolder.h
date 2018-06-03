@@ -6,7 +6,7 @@
 enum LvcError
 {
 	ErrNone,
-	ErrSubProcessFailed = 1000,
+	ErrSubProcessFailed = EBADEXEC,
 };
 
 class ReaderThread : public LThread
@@ -132,6 +132,7 @@ public:
 	void OnMouseClick(GMouse &m);
 	void OnRemove();
 	void OnExpand(bool b);
+	void OnPaint(ItemPaintCtx &Ctx);
 };
 
 #endif

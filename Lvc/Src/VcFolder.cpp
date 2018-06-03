@@ -36,10 +36,7 @@ int ReaderThread::Main()
 			char Buf[1024];
 			ssize_t r = Process->Read(Buf, sizeof(Buf));
 			if (r > 0)
-			{
-				printf("r: %.*s\n", r, Buf);
 				Out->Write(Buf, r);
-			}
 		}
 		else
 		{
@@ -643,6 +640,15 @@ bool VcFolder::ParseInfo(int Result, GString s, ParseParams *Params)
 		}
 		case VcSvn:
 		{
+			if (s.Find("client is too old"))
+			{
+				d->Log->Write(s, s.Length());
+				d->Tabs->Value(1);
+				CmdErrors++;
+				Update();
+				break;
+			}
+			
 			GString::Array c = s.Split("\n");
 			for (unsigned i=0; i<c.Length(); i++)
 			{
@@ -1139,6 +1145,15 @@ void VcFolder::OnExpand(bool b)
 		DeleteObj(Tmp);
 		ReadDir(this, Path);
 	}
+}
+
+void VcFolder::OnPaint(ItemPaintCtx &Ctx)
+{
+	if (CmdErrors)
+	{
+		Ctx.Fore = GColour::Red;
+	}
+	GTreeItem::OnPaint(Ctx);
 }
 
 void VcFolder::ListCommit(VcCommit *c)

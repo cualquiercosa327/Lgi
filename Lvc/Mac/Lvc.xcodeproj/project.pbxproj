@@ -205,7 +205,7 @@
 		20286C28FDCF999611CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0620;
+				LastUpgradeCheck = 0720;
 			};
 			buildConfigurationList = C0E91AC908A95435008D54AB /* Build configuration list for PBXProject "Lvc" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -318,6 +318,7 @@
 				GCC_PREFIX_HEADER = Lvc_Prefix.pch;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
+				PRODUCT_BUNDLE_IDENTIFIER = com.memecode.Lvc;
 				PRODUCT_NAME = Lvc;
 				WRAPPER_EXTENSION = app;
 			};
@@ -339,6 +340,7 @@
 				GCC_PREFIX_HEADER = Lvc_Prefix.pch;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
+				PRODUCT_BUNDLE_IDENTIFIER = com.memecode.Lvc;
 				PRODUCT_NAME = Lvc;
 				WRAPPER_EXTENSION = app;
 			};
@@ -348,6 +350,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ENABLE_TESTABILITY = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					MAC,
 					_DEBUG,

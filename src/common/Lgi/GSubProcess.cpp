@@ -235,7 +235,7 @@ uint32 GSubProcess::GetErrorCode()
 	return ErrorCode;
 }
 
-uint32 GSubProcess::GetExitValue()
+int32 GSubProcess::GetExitValue()
 {
 	#if defined(POSIX)
 	if (ChildPid != INVALID_PID)
@@ -436,7 +436,7 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 
 			// Execution will pass to here if the 'Exe' can't run or doesn't exist
 			// So by exiting with an error the parent process can handle it.
-			exit(-1);
+			exit(EBADEXEC);
 		}
 		else
 		{

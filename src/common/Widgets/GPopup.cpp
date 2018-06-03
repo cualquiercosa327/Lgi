@@ -593,7 +593,7 @@ GPopup::~GPopup()
 	GMouseHook *Hook = LgiApp->GetMouseHook();
 	if (Hook) Hook->UnregisterPopup(this);
 
-	for (GViewI *c; c = Children.First(); )
+	for (GViewI *c; (c = Children.First()); )
 		delete c;
 	DeleteObj(d);
 }
