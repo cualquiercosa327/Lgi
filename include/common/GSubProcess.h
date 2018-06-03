@@ -31,6 +31,14 @@
 #include <stdio.h>
 #endif
 
+#if defined(MAC)
+	#include <errno.h>
+	#define GSUBPROCESS_ERROR	EBADEXEC
+#elif defined(LINUX)
+	#include <errno.h>
+	#define GSUBPROCESS_ERROR	ECHILD
+#endif
+
 class GSubProcess : public GStreamI
 {
 public:
