@@ -158,6 +158,26 @@ public:
 	}
 };
 
+GString::Array GetProgramsInPath(const char *Program)
+{
+	GString::Array Bin;
+	GString Prog = Program;
+	#ifdef WINDOWS
+	Prog += LGI_EXECUTABLE_EXT;
+	#endif
+
+	GString Path = getenv("PATH");
+	GString::Array a = Path.SplitDelimit(LGI_PATH_SEPARATOR);
+	for (auto p : a)
+	{
+		GFile::Path c(p, Prog);
+		if (c.Exists())
+			Bin.New() = c.GetFull();
+	}
+
+	return Bin;
+}
+
 class OptionsDlg : public GDialog, public GXmlTreeUi
 {
 	GOptionsFile &Opts;
@@ -174,6 +194,17 @@ public:
 		if (LoadFromResource(IDD_OPTIONS))
 		{
 			MoveSameScreen(Parent);
+			Convert(&Opts, this, true);
+		}
+	}
+
+	void Browse(int EditId)
+	{
+		GFileSelect s;
+		s.Parent(this);
+		if (s.Open())
+		{
+			SetCtrlName(EditId, s.Name());
 		}
 	}
 
@@ -181,13 +212,40 @@ public:
 	{
 		GRect Pos = Ctrl->GetPos();
 		GdcPt2 Pt(Pos.x1, Pos.y2 + 1);
-		Ctrl->PointToScreen(Pt);
+		PointToScreen(Pt);
 		
 		GSubMenu s;
-		s.Parent(this);
-		s.AppendSeparator();
-		s.AppendItem("...", 1);
-		int Cmd = s.Float(this, Pt.x, Pt.y, BtnLeft);
+
+		GString::Array Bins = GetProgramsInPath(Bin);
+		for (unsigned i=0; i<Bins.Length(); i++)
+		{
+			s.AppendItem(Bins[i], 1000+i);
+		}
+
+		if (Bins.Length() == 0)
+		{
+			Browse(EditId);
+		}
+		else
+		{
+			s.AppendSeparator();
+			s.AppendItem("Browse...", 1);
+			int Cmd = s.Float(this, Pt.x, Pt.y, GSubMenu::BtnLeft);
+			switch (Cmd)
+			{
+				case 1:
+					Browse(EditId);
+					break;
+				default:
+					if (Cmd >= 1000)
+					{
+						GString Bin = Bins[Cmd - 1000];
+						if (Bin)
+							SetCtrlName(EditId, Bin);
+					}
+					break;
+			}
+		}
 	}
 
 	int OnNotify(GViewI *Ctrl, int Flags)
@@ -207,6 +265,8 @@ public:
 				BrowseFiles(Ctrl, "cvs", IDC_CVS);
 				break;
 			case IDOK:
+				Convert(&Opts, this, false);
+				// fall
 			case IDCANCEL:
 			{
 				EndModal(Ctrl->GetId() == IDOK);

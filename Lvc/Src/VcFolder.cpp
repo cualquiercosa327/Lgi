@@ -627,15 +627,10 @@ bool VcFolder::ParseLog(int Result, GString s, ParseParams *Params)
 
 void VcFolder::OnCmdError()
 {
+	GString::Array a = GetProgramsInPath(GetVcName());
 	d->Log->Print("'%s' executables in the path:\n", GetVcName());
-	GString Path = getenv("PATH");
-	GString::Array a = Path.SplitDelimit(LGI_PATH_SEPARATOR);
-	for (auto p : a)
-	{
-		GFile::Path c(p, GetVcName());
-		if (c.Exists())
-			d->Log->Print("    %s\n", c.GetFull().Get());
-	}
+	for (auto Bin : a)
+		d->Log->Print("    %s\n", Bin.Get());
 	d->Log->Print("\n");
 }
 

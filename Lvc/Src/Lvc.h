@@ -139,6 +139,7 @@ public:
 extern VersionCtrl DetectVcs(const char *Path);
 extern bool ConvertEol(const char *Path, bool Cr);
 extern int GetEol(const char *Path);
+extern GString::Array GetProgramsInPath(const char *Program);
 
 #include "VcFile.h"
 #include "VcCommit.h"
