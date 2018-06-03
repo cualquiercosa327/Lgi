@@ -169,10 +169,7 @@ bool VcFolder::StartCmd(const char *Args, ParseFn Parser, GString Param, bool Lo
 	if (!Exe)
 		return false;
 	if (CmdErrors > 2)
-	{
-		d->Log->Print("Error: Can't run '%s'\n", Exe);
 		return false;
-	}
 
 	if (d->Log && LogCmd)
 		d->Log->Print("%s %s\n", Exe, Args);
@@ -628,6 +625,20 @@ bool VcFolder::ParseLog(int Result, GString s, ParseParams *Params)
 	return true;
 }
 
+void VcFolder::OnCmdError()
+{
+	d->Log->Print("'%s' executables in the path:\n", GetVcName());
+	GString Path = getenv("PATH");
+	GString::Array a = Path.SplitDelimit(LGI_PATH_SEPARATOR);
+	for (auto p : a)
+	{
+		GFile::Path c(p, GetVcName());
+		if (c.Exists())
+			d->Log->Print("    %s\n", c.GetFull().Get());
+	}
+	d->Log->Print("\n");
+}
+
 bool VcFolder::ParseInfo(int Result, GString s, ParseParams *Params)
 {
 	switch (GetType())
@@ -642,8 +653,14 @@ bool VcFolder::ParseInfo(int Result, GString s, ParseParams *Params)
 		{
 			if (s.Find("client is too old"))
 			{
-				d->Log->Write(s, s.Length());
-				d->Tabs->Value(1);
+				if (!CmdErrors)
+				{
+					d->Log->Write(s, s.Length());
+					d->Tabs->Value(1);
+
+					OnCmdError();
+				}
+				
 				CmdErrors++;
 				Update();
 				break;
@@ -921,7 +938,11 @@ void VcFolder::OnPulse()
 			GString s = c->Buf.NewGStr();
 			int Result = c->Rd->ExitCode();
 			if (Result == ErrSubProcessFailed)
+			{
+				if (!CmdErrors)
+					d->Log->Print("Error: Can't run '%s'\n", GetVcName());
 				CmdErrors++;
+			}
 
 			ParseParams Params;
 			Params.Str = c->Param;

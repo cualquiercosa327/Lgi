@@ -89,6 +89,7 @@ class VcFolder : public GTreeItem
 	const char *GetVcName();
 	bool StartCmd(const char *Args, ParseFn Parser, GString Param = GString(), bool LogCmd = false);
 	void OnBranchesChange();
+	void OnCmdError();
 
 	bool ParseDiffs(GString s, GString Rev, bool IsWorking);
 	bool ParseLog(int Result, GString s, ParseParams *Params);
