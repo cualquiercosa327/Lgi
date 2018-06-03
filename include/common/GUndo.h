@@ -11,7 +11,7 @@ public:
 
 class GUndo
 {
-	int Pos;
+	unsigned Pos;
 	List<GUndoEvent> Events;
 
 public:

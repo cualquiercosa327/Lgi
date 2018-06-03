@@ -393,7 +393,9 @@ GTreeItem::~GTreeItem()
 	}
 
 	_Remove();
-	Items.DeleteObjects();
+	GTreeItem *c;
+	while ((c = Items.First()))
+		delete c;
 	DeleteObj(d);
 
 	if (t)

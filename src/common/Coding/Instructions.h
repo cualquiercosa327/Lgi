@@ -1393,7 +1393,7 @@ case IDomCall:
 					if (Arg.Length() > 0 && Arg[0])
 					{
 						int Index = Arg[0]->CastInt32();
-						*Dst = (bool) (Index >= 0 && Index < Dom->Value.Lst->Length());
+						*Dst = (bool) (Index >= 0 && Index < (int)Dom->Value.Lst->Length());
 					}
 					else
 					{
@@ -1573,7 +1573,7 @@ case IDomCall:
 					const char *c = Dom->CastString();
 					while (c && *c)
 					{
-						if (MaxSplit > 0 && Dst->Value.Lst->Length() >= MaxSplit)
+						if (MaxSplit > 0 && (int)Dst->Value.Lst->Length() >= MaxSplit)
 							break;
 
 						const char *next = strstr(c, Sep);
