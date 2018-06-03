@@ -154,10 +154,10 @@ ResString::ResString(ResStringGroup *grp, int init_ref)
 
 ResString::~ResString()
 {
-	// LgiStackTrace("%p::~ResString\n", this);
-
 	if (Group)
 	{
+		Group->App()->OnObjDelete(this);
+
 		if (!Group->Strs.Delete(this))
 		{
 			LgiAssert(0);

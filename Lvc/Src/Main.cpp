@@ -7,6 +7,7 @@
 #endif
 #include "GTextLog.h"
 #include "GButton.h"
+#include "GXmlTreeUi.h"
 
 //////////////////////////////////////////////////////////////////
 const char *AppName = "Lvc";
@@ -157,6 +158,66 @@ public:
 	}
 };
 
+class OptionsDlg : public GDialog, public GXmlTreeUi
+{
+	GOptionsFile &Opts;
+
+public:
+	OptionsDlg(GViewI *Parent, GOptionsFile &opts) : Opts(opts)
+	{
+		SetParent(Parent);
+		Map("svn-path", IDC_SVN, GV_STRING);
+		Map("git-path", IDC_GIT, GV_STRING);
+		Map("hg-path", IDC_HG, GV_STRING);
+		Map("cvs-path", IDC_CVS, GV_STRING);
+
+		if (LoadFromResource(IDD_OPTIONS))
+		{
+			MoveSameScreen(Parent);
+		}
+	}
+
+	void BrowseFiles(GViewI *Ctrl, const char *Bin, int EditId)
+	{
+		GRect Pos = Ctrl->GetPos();
+		GdcPt2 Pt(Pos.x1, Pos.y2 + 1);
+		Ctrl->PointToScreen(Pt);
+		
+		GSubMenu s;
+		s.Parent(this);
+		s.AppendSeparator();
+		s.AppendItem("...", 1);
+		int Cmd = s.Float(this, Pt.x, Pt.y, BtnLeft);
+	}
+
+	int OnNotify(GViewI *Ctrl, int Flags)
+	{
+		switch (Ctrl->GetId())
+		{
+			case IDC_SVN_BROWSE:
+				BrowseFiles(Ctrl, "svn", IDC_SVN);
+				break;
+			case IDC_GIT_BROWSE:
+				BrowseFiles(Ctrl, "git", IDC_GIT);
+				break;
+			case IDC_HG_BROWSE:
+				BrowseFiles(Ctrl, "hg", IDC_HG);
+				break;
+			case IDC_CVS_BROWSE:
+				BrowseFiles(Ctrl, "cvs", IDC_CVS);
+				break;
+			case IDOK:
+			case IDCANCEL:
+			{
+				EndModal(Ctrl->GetId() == IDOK);
+				break;
+			}
+		}
+
+		return GDialog::OnNotify(Ctrl, Flags);
+	}
+};
+
 class App : public GWindow, public AppPriv
 {
 	GAutoPtr<GImageList> ImgLst;
@@ -183,6 +244,13 @@ public:
 
 		if (Attach(0))
 		{
+			if (Menu = new GMenu)
+			{
+				Menu->SetPrefAndAboutItems(IDM_OPTIONS, IDM_ABOUT);
+				Menu->Attach(this);
+				Menu->Load(this, "IDM_MENU");
+			}
+
 			GBox *ToolsBox = new GBox(IDC_TOOLS_BOX, true);
 			GBox *FoldersBox = new GBox(IDC_FOLDERS_BOX, false);
 			GBox *CommitsBox = new GBox(IDC_COMMITS_BOX, true);
@@ -277,6 +345,21 @@ public:
 			Opts.Unlock();
 		}
 		Opts.SerializeFile(true);
+	}
+
+	int OnCommand(int Cmd, int Event, OsView Wnd)
+	{
+		switch (Cmd)
+		{
+			case IDM_OPTIONS:
+			{
+				OptionsDlg Dlg(this, Opts);
+				Dlg.DoModal();
+				break;
+			}
+		}
+
+		return 0;
 	}
 
 	void OnPulse()

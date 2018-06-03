@@ -6,7 +6,7 @@
 enum LvcError
 {
 	ErrNone,
-	ErrSubProcessFailed = EBADEXEC,
+	ErrSubProcessFailed = GSUBPROCESS_ERROR,
 };
 
 class ReaderThread : public LThread

@@ -436,7 +436,7 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 
 			// Execution will pass to here if the 'Exe' can't run or doesn't exist
 			// So by exiting with an error the parent process can handle it.
-			exit(EBADEXEC);
+			exit(GSUBPROCESS_ERROR);
 		}
 		else
 		{

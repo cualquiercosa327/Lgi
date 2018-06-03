@@ -660,6 +660,7 @@ public:
 
 	void OnPosChange();
 	void OnSelect(FieldSource *s);
+	void OnDelete(FieldSource *s);
 	GMessage::Result OnEvent(GMessage *m);
 	void OnPaint(GSurface *pDC);
 	int OnNotify(GViewI *Ctrl, int Flags);
@@ -737,7 +738,9 @@ public:
 	void Empty();
 	void OnObjChange(FieldSource *r);
 	void OnObjSelect(FieldSource *r);
+	void OnObjDelete(FieldSource *r);
 	void OnResourceSelect(Resource *r);
+	void OnResourceDelete(Resource *r);
 	void GotoObject(class ResString *s,
 					ResStringGroup *g,
 					ResDialog *d,

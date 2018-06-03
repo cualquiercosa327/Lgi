@@ -255,6 +255,7 @@ Resource::Resource(AppWnd *w, int t, bool enabled)
 
 Resource::~Resource()
 {
+	AppWindow->OnResourceDelete(this);
 	if (Item)
 	{
 		Item->Obj = 0;
@@ -627,10 +628,31 @@ public:
 	}
 };
 
+void FieldView::OnDelete(FieldSource *s)
+{
+	if (Source != NULL && Source == s)
+	{
+		// Clear fields
+		Source->_FieldView = 0;
+		Fields.Empty();
+
+		// remove all children
+		for (GViewI *c = Children.First(); c; c = Children.First())
+		{
+			c->Detach();
+			DeleteObj(c);
+		}
+		
+		Source = NULL;
+	}
+}
+
 void FieldView::OnSelect(FieldSource *s)
 {
 	Ignore = true;
 
+	OnDelete(Source);
+	
 	if (Source)
 	{
 		// Clear fields
@@ -1901,9 +1923,19 @@ void AppWnd::OnObjChange(FieldSource *r)
 void AppWnd::OnObjSelect(FieldSource *r)
 {
 	if (Fields)
-	{
 		Fields->OnSelect(r);
+}
+
+void AppWnd::OnObjDelete(FieldSource *r)
+{
+	if (Fields)
+	{
+		Fields->OnDelete(r);
 	}
+}
+
+void AppWnd::OnResourceDelete(Resource *r)
+{
 }
 
 void AppWnd::OnResourceSelect(Resource *r)

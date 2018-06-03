@@ -18,6 +18,22 @@
 		<String Ref="16" Cid="16" Define="IDC_MSG" />
 		<String Ref="17" Cid="506" Define="IDC_CLEAR_FILTER" en="X" />
 		<String Ref="18" Cid="509" Define="IDC_OPEN" en="Open Folder" />
+		<String Ref="22" Cid="22" Define="IDD_OPTIONS" en="Options" />
+		<String Ref="23" Cid="23" Define="IDC_23" />
+		<String Ref="24" Cid="-1" Define="IDC_STATIC" en="Svn binary:" />
+		<String Ref="25" Cid="25" Define="IDC_SVN" />
+		<String Ref="26" Cid="26" Define="IDC_SVN_BROWSE" en="..." />
+		<String Ref="27" Cid="-1" Define="IDC_STATIC" en="Git binary:" />
+		<String Ref="28" Cid="28" Define="IDC_GIT" />
+		<String Ref="29" Cid="29" Define="IDC_GIT_BROWSE" en="..." />
+		<String Ref="30" Cid="-1" Define="IDC_STATIC" en="Hg binary:" />
+		<String Ref="31" Cid="-1" Define="IDC_STATIC" en="Cvs binary:" />
+		<String Ref="32" Cid="32" Define="IDC_HG" />
+		<String Ref="33" Cid="33" Define="IDC_CVS" />
+		<String Ref="34" Cid="1" Define="IDOK" en="Ok" />
+		<String Ref="35" Cid="2" Define="IDCANCEL" en="Cancel" />
+		<String Ref="36" Cid="36" Define="IDC_HG_BROWSE" en="..." />
+		<String Ref="37" Cid="37" Define="IDC_CVS_BROWSE" en="..." />
 	</string-group>
 	<Dialog pos="7,7,464,203" ref="9">
 		<TableLayout pos="7,7,447,167" ref="10" cols="0.200,0.200,0.200,0.200,0.200" rows="0.181,0.819">
@@ -49,7 +65,7 @@
 		</TableLayout>
 	</Dialog>
 	<Dialog pos="7,7,702,129" ref="1">
-		<TableLayout pos="7,7,685,97" ref="2" Style="padding-top: 3px;" CellStyle="padding-left: 4px;&#10;padding-right: 2em;" cols="0.167,0.167,0.167,0.167,0.167,0.167" rows="1.000">
+		<TableLayout pos="7,7,685,97" ref="2" Style="padding-top: 3px;" cols="0.167,0.167,0.167,0.167,0.167,0.167" rows="1.000">
 			<tr>
 				<td valign="Center" style="padding-left: 4px;&#10;padding-right: 2em;">
 					<Button pos="21,7,83,48" ref="18" />
@@ -72,4 +88,73 @@
 			</tr>
 		</TableLayout>
 	</Dialog>
+	<Dialog pos="7,7,477,235" ref="22">
+		<TableLayout pos="14,7,454,188" ref="23" cols="0.211,0.609,0.180" rows="0.200,0.200,0.200,0.200,0.200">
+			<tr>
+				<td>
+					<StaticText pos="14,7,76,27" ref="24" />
+				</td>
+				<td>
+					<EditBox Pos="105,7,335,27" ref="25" />
+				</td>
+				<td>
+					<Button pos="371,7,391,27" ref="26" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<StaticText pos="14,48,76,61" ref="27" />
+				</td>
+				<td>
+					<EditBox Pos="105,41,335,61" ref="28" />
+				</td>
+				<td>
+					<Button pos="371,42,391,62" ref="29" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<StaticText pos="14,82,76,95" ref="30" />
+				</td>
+				<td>
+					<EditBox Pos="105,75,321,95" ref="32" />
+				</td>
+				<td>
+					<Button pos="371,75,391,95" ref="36" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<StaticText pos="14,114,69,127" ref="31" />
+				</td>
+				<td>
+					<EditBox Pos="105,109,328,129" ref="33" />
+				</td>
+				<td>
+					<Button pos="371,109,391,129" ref="37" />
+				</td>
+			</tr>
+			<tr>
+				<td />
+				<td colspan="2" align="Max">
+					<Button pos="266,145,321,165" ref="34" />
+					<Button pos="343,145,405,165" ref="35" />
+				</td>
+			</tr>
+		</TableLayout>
+	</Dialog>
+	<menu Name="IDM_MENU">
+		<string-group Name="&lt;untitled&gt;">
+			<String Ref="4" Cid="510" Define="IDM_FILE" en="&File" />
+			<String Ref="19" Cid="511" Define="IDM_OPTIONS" en="Options" />
+			<String Ref="20" Cid="512" Define="IDM_HELP" en="&Help" />
+			<String Ref="21" Cid="513" Define="IDM_ABOUT" en="&About" />
+		</string-group>
+		<submenu Ref="4">
+			<menuitem Ref="19" />
+		</submenu>
+		<submenu Ref="20">
+			<menuitem Ref="21" />
+		</submenu>
+	</menu>
 </resources>
