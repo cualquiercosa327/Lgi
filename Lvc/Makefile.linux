@@ -53,7 +53,9 @@ endif
 
 # Dependencies
 Depends =	 \
+			GControlTree.o \
 			GSubProcess.o \
+			GXmlTreeUi.o \
 			LgiMain.o \
 			BlameUi.o \
 			DropDownBtn.o \
@@ -313,9 +315,35 @@ clean :
 	@echo Cleaned $(BuildDir)
 	+make -C "../" -f "Makefile.linux" clean
 
+GControlTree.o : ../src/common/Widgets/GControlTree.cpp ../include/common/Lgi.h \
+	../include/common/GControlTree.h \
+	../include/common/GToken.h \
+	../include/common/GEdit.h \
+	../include/common/GCheckBox.h \
+	../include/common/GCombo.h \
+	../include/common/GButton.h \
+	../include/common/GDisplayString.h \
+	../include/common/LgiRes.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
 GSubProcess.o : ../src/common/Lgi/GSubProcess.cpp ../include/common/Lgi.h \
 	../include/common/GSubProcess.h \
 	../include/common/GToken.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+GXmlTreeUi.o : ../src/common/Text/GXmlTreeUi.cpp ../include/common/Lgi.h \
+	../include/common/GXmlTreeUi.h \
+	../include/common/GCheckBox.h \
+	../include/common/GButton.h \
+	../include/common/GRadioGroup.h \
+	../include/common/GSlider.h \
+	../include/common/GCombo.h \
+	../include/common/GEdit.h \
+	../include/common/GTree.h \
+	../include/common/GControlTree.h \
+	../include/common/GUtf8.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -341,7 +369,8 @@ Main.o : ./Src/Main.cpp ../include/common/Lgi.h \
 	../include/common/GTableLayout.h \
 	./Resources/resource.h \
 	../include/common/GTextLog.h \
-	../include/common/GButton.h
+	../include/common/GButton.h \
+	../include/common/GXmlTreeUi.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -536,6 +565,9 @@ VcFolder.o : ./Src/VcFolder.cpp ./Src/Lvc.h \
 
 ../src/common/Lgi/GCssTools.cpp : ../include/common/Lgi.h \
 	../include/common/GCssTools.h
+
+../include/common/GXmlTreeUi.h : ../include/common/GVariant.h \
+	../include/common/LList.h
 
 ../include/common/GButton.h : 
 
@@ -1439,6 +1471,9 @@ VcFolder.o : ./Src/VcFolder.cpp ./Src/Lvc.h \
 	../include/common/GTableLayout.h
 
 ../src/common/Lgi/GMenuCommon.cpp : ../include/common/Lgi.h
+
+../include/common/GControlTree.h : ../include/common/GTree.h \
+	../include/common/GVariant.h
 
 ../src/linux/Lgi/GPrinter.cpp : ../include/common/Lgi.h \
 	../include/common/LList.h \

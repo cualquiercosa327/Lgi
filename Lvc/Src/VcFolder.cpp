@@ -646,7 +646,7 @@ bool VcFolder::ParseInfo(int Result, GString s, ParseParams *Params)
 		}
 		case VcSvn:
 		{
-			if (s.Find("client is too old"))
+			if (s.Find("client is too old") >= 0)
 			{
 				if (!CmdErrors)
 				{
