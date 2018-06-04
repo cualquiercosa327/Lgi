@@ -926,7 +926,10 @@ bool MailIMap::ReadResponse(int Cmd, bool Plus)
 						Done = true;
 					
 					if (d->Logging)
-						Log(Dlg, GSocketI::SocketMsgReceive);
+					{
+						bool Good = strchr("*+", *Dlg) != NULL || Status;
+						Log(Dlg, Good ? GSocketI::SocketMsgReceive : GSocketI::SocketMsgError);
+					}
 				}
 			}
 			else
@@ -1716,7 +1719,14 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 					}
 					else if (!_stricmp(AuthType, "XOAUTH2"))
 					{
-						if (!d->OAuth.IsValid())
+						if (stristr(RemoteHost, "office365.com"))
+						{
+							Log("office365.com doesn't support OAUTH2:", GSocketI::SocketMsgInfo);
+							Log("\thttps://stackoverflow.com/questions/29747477/imap-auth-in-office-365-using-oauth2", GSocketI::SocketMsgInfo);
+							Log("\tSo why does it report support in the CAPABILITY response? Don't ask me - fret", GSocketI::SocketMsgInfo);
+							continue;
+						}
+						else if (!d->OAuth.IsValid())
 						{
 							sprintf_s(Buf, sizeof(Buf), "Error: Unknown OAUTH2 server '%s' (ask fret@memecode.com to add)", RemoteHost);
 							Log(Buf, GSocketI::SocketMsgError);
