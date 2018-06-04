@@ -70,7 +70,7 @@ class VcFolder : public GTreeItem
 
 	AppPriv *d;
 	VersionCtrl Type;
-	GString Path, CurrentCommit, RepoUrl;
+	GString Path, CurrentCommit, RepoUrl, VcCmd;
 	GArray<VcCommit*> Log;
 	GString CurrentBranch;
 	GString::Array Branches;

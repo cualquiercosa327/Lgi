@@ -19,6 +19,8 @@
 		3457FE4E2081CB3D00014BE4 /* VcFolder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3457FE472081CB3D00014BE4 /* VcFolder.cpp */; };
 		3457FE502081CBE500014BE4 /* GSubProcess.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3457FE4F2081CBE500014BE4 /* GSubProcess.cpp */; };
 		3457FE522081CC4800014BE4 /* Lvc.lr8 in Resources */ = {isa = PBXBuildFile; fileRef = 3457FE512081CC4800014BE4 /* Lvc.lr8 */; };
+		34BD35B120C5484A0001838A /* GControlTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34BD35B020C5484A0001838A /* GControlTree.cpp */; };
+		34BD35B320C548710001838A /* GXmlTreeUi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34BD35B220C548710001838A /* GXmlTreeUi.cpp */; };
 		34E1910C20B1898E00005243 /* image-list.png in Resources */ = {isa = PBXBuildFile; fileRef = 34E1910B20B1898E00005243 /* image-list.png */; };
 		8D0C4E8D0486CD37000505A6 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0867D6AAFE840B52C02AAC07 /* InfoPlist.strings */; };
 		8D0C4E8E0486CD37000505A6 /* main.nib in Resources */ = {isa = PBXBuildFile; fileRef = 02345980000FD03B11CA0E72 /* main.nib */; };
@@ -76,6 +78,8 @@
 		3457FE4F2081CBE500014BE4 /* GSubProcess.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GSubProcess.cpp; path = ../../src/common/Lgi/GSubProcess.cpp; sourceTree = "<group>"; };
 		3457FE512081CC4800014BE4 /* Lvc.lr8 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = Lvc.lr8; path = ../Resources/Lvc.lr8; sourceTree = "<group>"; };
 		348335CE1AA190D1006BD4F9 /* LgiCarbon.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LgiCarbon.xcodeproj; path = ../../src/mac/carbon/LgiCarbon.xcodeproj; sourceTree = "<group>"; };
+		34BD35B020C5484A0001838A /* GControlTree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GControlTree.cpp; path = ../../src/common/Widgets/GControlTree.cpp; sourceTree = "<group>"; };
+		34BD35B220C548710001838A /* GXmlTreeUi.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GXmlTreeUi.cpp; path = ../../src/common/Text/GXmlTreeUi.cpp; sourceTree = "<group>"; };
 		34E1910B20B1898E00005243 /* image-list.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "image-list.png"; path = "../Resources/image-list.png"; sourceTree = "<group>"; };
 		4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
 		4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
@@ -161,6 +165,8 @@
 		342D52A30F0CBA07002A1C7C /* Lgi */ = {
 			isa = PBXGroup;
 			children = (
+				34BD35B220C548710001838A /* GXmlTreeUi.cpp */,
+				34BD35B020C5484A0001838A /* GControlTree.cpp */,
 				3457FE4F2081CBE500014BE4 /* GSubProcess.cpp */,
 				32DBCF6D0370B57F00C91783 /* Lvc_Prefix.pch */,
 				342D52A40F0CBA2F002A1C7C /* LgiMain.cpp */,
@@ -260,12 +266,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				3457FE502081CBE500014BE4 /* GSubProcess.cpp in Sources */,
+				34BD35B320C548710001838A /* GXmlTreeUi.cpp in Sources */,
 				3457FE4C2081CB3D00014BE4 /* VcCommit.cpp in Sources */,
 				3457FE4E2081CB3D00014BE4 /* VcFolder.cpp in Sources */,
 				3457FE4A2081CB3D00014BE4 /* DropDownBtn.cpp in Sources */,
 				3457FE4D2081CB3D00014BE4 /* VcFile.cpp in Sources */,
 				3457FE492081CB3D00014BE4 /* BlameUi.cpp in Sources */,
 				342D52A50F0CBA2F002A1C7C /* LgiMain.cpp in Sources */,
+				34BD35B120C5484A0001838A /* GControlTree.cpp in Sources */,
 				3457FE4B2081CB3D00014BE4 /* Main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

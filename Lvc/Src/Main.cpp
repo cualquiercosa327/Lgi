@@ -304,7 +304,7 @@ public:
 
 		if (Attach(0))
 		{
-			if (Menu = new GMenu)
+			if ((Menu = new GMenu))
 			{
 				Menu->SetPrefAndAboutItems(IDM_OPTIONS, IDM_ABOUT);
 				Menu->Attach(this);

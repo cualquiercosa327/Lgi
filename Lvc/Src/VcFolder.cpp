@@ -145,22 +145,39 @@ GXmlTag *VcFolder::Save()
 
 const char *VcFolder::GetVcName()
 {
+	const char *Def = NULL;
 	switch (GetType())
 	{
 		case VcGit:
-			return "git";
+			Def = "git";
+			break;
 		case VcSvn:
-			return "svn";
+			Def = "svn";
+			break;
 		case VcHg:
-			return "hg";
+			Def = "hg";
+			break;
 		case VcCvs:
-			return "cvs";
+			Def = "cvs";
+			break;
 		default:
 			LgiAssert(!"Impl me.");
 			break;
-	}				
-
-	return NULL;
+	}
+	
+	if (!VcCmd)
+	{
+		GString Opt;
+		Opt.Printf("%s-path", Def);
+		GVariant v;
+		if (d->Opts.GetValue(Opt, v))
+			VcCmd = v.Str();
+	}
+	
+	if (!VcCmd)
+		VcCmd = Def;
+	
+	return VcCmd;
 }
 
 bool VcFolder::StartCmd(const char *Args, ParseFn Parser, GString Param, bool LogCmd)
