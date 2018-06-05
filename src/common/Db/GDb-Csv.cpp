@@ -51,6 +51,7 @@ char *LgiTsvTok(char *&s)
 class SvRecordset : public GDbRecordset
 {
 	friend class SvField;
+	friend class SvDb;
 	
 	SvDb *Parent;
 
@@ -736,7 +737,12 @@ bool SvDb::Connect(const char *Init)
 
 bool SvDb::Disconnect()
 {
-	Tables.DeleteObjects();
+	SvRecordset *t;
+	while (t = Tables.First())
+	{
+		LgiAssert(t->Parent == this);
+		delete t;
+	}
 	return true;
 }
 
