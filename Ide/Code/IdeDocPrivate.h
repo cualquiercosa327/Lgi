@@ -56,6 +56,7 @@ public:
 	class ProjMethodPopup *MethodPopup;
 	class ProjSymPopup *SymPopup;
 	GString::Array WriteBuf;
+	GAutoPtr<LThread> Build;
 	
 	IdeDocPrivate(IdeDoc *d, AppWnd *a, NodeSource *src, const char *file);
 	void OnDelete();

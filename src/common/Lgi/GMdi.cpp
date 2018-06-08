@@ -719,12 +719,19 @@ void GMdiParent::HasButton(bool b)
 		Invalidate();
 }
 
+::GArray<GMdiChild*> &GMdiParent::PrivChildren()
+{
+	return d->Children;
+}
+
+/*
 #if MDI_TAB_STYLE
 int ViewCmp(GMdiChild **a, GMdiChild **b)
 {
 	return (*a)->GetOrder() - (*b)->GetOrder();
 }
 #endif
+*/
 
 void GMdiParent::OnPaint(GSurface *pDC)
 {
@@ -1059,15 +1066,6 @@ void GMdiParent::OnChildrenChanged(GViewI *Wnd, bool Attaching)
 		}
 	}
 	#endif
-}
-
-bool GMdiParent::GetChildren(::GArray<GMdiChild*> &Views)
-{
-	Views = d->Children;
-	#if MDI_TAB_STYLE
-	Views.Sort(ViewCmp);
-	#endif
-	return Views.Length() > 0;
 }
 
 GViewI *GMdiParent::GetTop()

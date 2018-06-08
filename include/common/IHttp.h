@@ -101,6 +101,8 @@ public:
 /// This method will download a URI.
 bool LgiGetUri
 (
+	/// Method for cancelling the call...
+	LCancel *Cancel,
 	/// The output stream to put the data
 	GStreamI *Out,
 	/// Any error message

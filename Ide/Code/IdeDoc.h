@@ -47,6 +47,7 @@ public:
 	void SearchSymbol();
 	void SearchFile();
 	void UpdateControl();
+	bool Build();
 
 	// Source tools
 	bool BuildIncludePaths(GArray<GString> &Paths, IdePlatform Platform, bool IncludeSysPaths);

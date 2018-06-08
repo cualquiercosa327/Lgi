@@ -868,7 +868,7 @@ void ZLibFree(voidpf opaque, voidpf address)
 	// Do nothing... the memory is owned by an autoptr
 }
 
-bool LgiGetUri(GStreamI *Out, GString *OutError, const char *InUri, const char *InHeaders, GUri *InProxy)
+bool LgiGetUri(LCancel *Cancel, GStreamI *Out, GString *OutError, const char *InUri, const char *InHeaders, GUri *InProxy)
 {
 	if (!InUri || !Out)
 	{
@@ -881,7 +881,10 @@ bool LgiGetUri(GStreamI *Out, GString *OutError, const char *InUri, const char *
 	int RedirectLimit = 10;
 	GAutoString Location;
 
-	for (int i=0; i<RedirectLimit; i++)
+	for (int i=0;
+		i<RedirectLimit &&
+		(!Cancel || !Cancel->IsCancelled());
+		i++)
 	{
 		GUri u(InUri);
 		bool IsHTTPS = u.Protocol && !_stricmp(u.Protocol, "https");
@@ -897,7 +900,7 @@ bool LgiGetUri(GStreamI *Out, GString *OutError, const char *InUri, const char *
 		if (IsHTTPS)
 		{
 			SslSocket *ssl;
-			s.Reset(ssl = new SslSocket);
+			s.Reset(ssl = new SslSocket());
 			ssl->SetSslOnConnect(true);
 		}
 		else
@@ -912,6 +915,8 @@ bool LgiGetUri(GStreamI *Out, GString *OutError, const char *InUri, const char *
 			return false;
 		}
 
+		if (Cancel)
+			s->SetCancel(Cancel);
 		s->SetTimeout(10 * 1000);
 
 		if (!Http.Open(s, InUri, DefaultPort))

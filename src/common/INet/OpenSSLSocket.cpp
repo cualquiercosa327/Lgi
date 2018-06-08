@@ -516,7 +516,7 @@ void EndSSL()
 	DeleteObj(Library);
 }
 
-struct SslSocketPriv
+struct SslSocketPriv : public LCancel
 {
 	GCapabilityClient *Caps;
 	bool SslOnConnect;
@@ -528,6 +528,7 @@ struct SslSocketPriv
 	bool LastWasCR;
 	#endif
 	bool IsBlocking;
+	LCancel *Cancel;
 
 	// This is just for the UI.
 	GStreamI *Logger;
@@ -542,6 +543,7 @@ struct SslSocketPriv
 		#ifdef _DEBUG
 		LastWasCR = false;
 		#endif
+		Cancel = this;
 		Timeout = 20 * 1000;
 		IsSSL = false;
 		UseSSLrw = false;
@@ -602,6 +604,16 @@ SslSocket::~SslSocket()
 GStreamI *SslSocket::Clone()
 {
 	return new SslSocket(d->Logger, d->Caps, true);
+}
+
+LCancel *SslSocket::GetCancel()
+{
+	return d->Cancel;
+}
+
+void SslSocket::SetCancel(LCancel *c)
+{
+	d->Cancel = c;
 }
 
 int SslSocket::GetTimeout()
@@ -716,7 +728,7 @@ OsSocket SslSocket::Handle(OsSocket Set)
 	}
 	else if (Bio)
 	{
-		uint32 hnd = INVALID_SOCKET;
+		size_t hnd = INVALID_SOCKET;
 		Library->BIO_get_fd(Bio, &hnd);
 		h = hnd;
 	}
@@ -796,7 +808,7 @@ DebugTrace("%s:%i - BIO_get_ssl=%p\n", _FL, Ssl);
 							
 							r = Library->SSL_connect(Ssl);
 DebugTrace("%s:%i - initial SSL_connect=%i\n", _FL, r);
-							while (r != 1 && !IsCancelled())
+							while (r != 1 && !d->Cancel->IsCancelled())
 							{
 								long err = Library->SSL_get_error(Ssl, r);
 								if (err != SSL_ERROR_WANT_CONNECT)
@@ -816,7 +828,7 @@ DebugTrace("%s:%i - SSL connect timeout, to=%i\n", _FL, To);
 									break;
 								}
 							}
-DebugTrace("%s:%i - open loop finished, r=%i, Cancelled=%i\n", _FL, r, IsCancelled());
+DebugTrace("%s:%i - open loop finished, r=%i, Cancelled=%i\n", _FL, r, d->Cancel->IsCancelled());
 
 							if (r == 1)
 							{
@@ -860,7 +872,7 @@ DebugTrace("%s:%i - BIO_new_connect=%p\n", _FL, Bio);
 
 				long r = Library->BIO_do_connect(Bio);
 DebugTrace("%s:%i - BIO_do_connect=%i\n", _FL, r);
-				while (r != 1 && !IsCancelled())
+				while (r != 1 && !d->Cancel->IsCancelled())
 				{
 					if (!Library->BIO_should_retry(Bio))
 					{
@@ -1001,7 +1013,7 @@ DebugTrace("%s:%i - X509_NAME_oneline=%s\n", _FL, Txt);
 
 int SslSocket::Close()
 {
-	Cancel(true);
+	d->Cancel->Cancel();
 	LMutex::Auto Lck(&Lock, _FL);
 
 	if (Library)

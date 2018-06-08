@@ -2697,17 +2697,25 @@ bool AppWnd::IsReleaseMode()
 bool AppWnd::Build()
 {
 	SaveAll();
+	
+	IdeDoc *Top;
 	IdeProject *p = RootProject();
-	if (!p)
-		return false;
+	if (p)
+	{		
+		UpdateState(-1, true);
 
-	UpdateState(-1, true);
+		GMenuItem *Release = GetMenu()->FindItem(IDM_RELEASE_MODE);
+		bool IsRelease = Release ? Release->Checked() : false;
+		p->Build(false, IsRelease);
 
-	GMenuItem *Release = GetMenu()->FindItem(IDM_RELEASE_MODE);
-	bool IsRelease = Release ? Release->Checked() : false;
-	p->Build(false, IsRelease);
+		return true;
+	}
+	else if (Top = TopDoc())
+	{
+		return Top->Build();
+	}
 
-	return true;
+	return false;
 }
 
 bool AppWnd::ShowInProject(const char *Fn)
