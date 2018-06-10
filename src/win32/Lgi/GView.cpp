@@ -511,7 +511,8 @@ void GView::_Delete()
 	// Delete all children
 	while (c = Children.First())
 	{
-		// If it has no parent, remove the pointer from the child list
+		// If it has no parent, remove the pointer from the child list,
+		// Because the child isn't going to do it...
 		if (c->GetParent() == 0)
 			Children.Delete(c);
 

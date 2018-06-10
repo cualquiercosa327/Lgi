@@ -594,7 +594,13 @@ GPopup::~GPopup()
 	if (Hook) Hook->UnregisterPopup(this);
 
 	for (GViewI *c; (c = Children.First()); )
+	{
+		if (!c)
+			break; // ?
+		if (!c->GetParent())
+			Children.Delete(c);
 		delete c;
+	}
 	DeleteObj(d);
 }
 
