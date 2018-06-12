@@ -156,7 +156,7 @@ public:
 	}
 };
 
-class InstallThread : public GEventTargetThread
+class InstallThread : public GEventTargetThread, public LCancel
 {
 	int AppHnd;
 
@@ -185,7 +185,7 @@ public:
 				GMemStream o(1024);
 				GString err;
 				int Installed = 0;
-				if (!LgiGetUri(&o, &err, s))
+				if (!LgiGetUri(this, &o, &err, s))
 				{
 					LgiTrace("%s:%i - Get URI failed.\n", _FL);
 					break;
@@ -213,7 +213,7 @@ public:
 						// int Bytes = c->GetAsInt("size");
 						const char *Link = c->GetContent();
 						GMemStream File(1024);
-						if (LgiGetUri(&File, &err, Link))
+						if (LgiGetUri(this, &File, &err, Link))
 						{
 							char p[MAX_PATH];
 							LgiGetExeFile(p, sizeof(p));
