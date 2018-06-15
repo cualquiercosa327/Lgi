@@ -608,7 +608,11 @@ int GSocket::Open(const char *HostAddr, int Port)
 					int Ret;
 					while
 					(
-						!IsCancelled()
+						(
+							!GetCancel()
+							||
+							!GetCancel()->IsCancelled()
+						)
 						&&
 						(
 							Ret
