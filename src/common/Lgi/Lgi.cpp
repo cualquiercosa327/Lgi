@@ -922,7 +922,7 @@ GString GFile::Path::GetSystem(LgiSystemPath Which, int WordSize = 0)
 		}
 	}
 	#endif
-	
+
 	switch (Which)
 	{
 		default:
@@ -1021,18 +1021,34 @@ GString GFile::Path::GetSystem(LgiSystemPath Which, int WordSize = 0)
 			#endif
 			break;
 		}
+		case LSP_USER_PICTURES:
+		{
+			#if defined(WIN32)
+			Path = WinGetSpecialFolderPath(CSIDL_MYPICTURES);
+			if (Path)
+				return Path;
+			#endif
+
+			// Default to ~/Pictures
+			char p[MAX_PATH];
+			GString Home = LgiGetSystemPath(LSP_HOME);
+			if (LgiMakePath(p, sizeof(p), Home, "Pictures"))
+				Path = p;
+			break;
+		}
 		case LSP_USER_DOCUMENTS:
 		{
 			#if defined(WIN32) && defined(_MSC_VER)
-
-			Path = WinGetSpecialFolderPath(CSIDL_PERSONAL);
-
-			#else
-
-			LgiAssert(!"Not implemented");
-
+			Path = WinGetSpecialFolderPath(CSIDL_MYDOCUMENTS);
+			if (Path)
+				return Path;
 			#endif
-			
+
+			// Default to ~/Documents
+			char p[MAX_PATH];
+			GString Home = LgiGetSystemPath(LSP_HOME);
+			if (LgiMakePath(p, sizeof(p), Home, "Documents"))
+				Path = p;
 			break;
 		}
 		case LSP_USER_MUSIC:
@@ -1053,12 +1069,16 @@ GString GFile::Path::GetSystem(LgiSystemPath Which, int WordSize = 0)
 					Path = a.Get();
 			}				
 
-			#else
-
-			LgiAssert(!"Not implemented");
-
 			#endif
 			
+			if (!Path)
+			{
+				// Default to ~/Music
+				char p[MAX_PATH];
+				GString Home = LgiGetSystemPath(LSP_HOME);
+				if (LgiMakePath(p, sizeof(p), Home, "Music"))
+					Path = p;
+			}
 			break;
 		}
 		case LSP_USER_VIDEO:
@@ -1079,12 +1099,16 @@ GString GFile::Path::GetSystem(LgiSystemPath Which, int WordSize = 0)
 					Path = a.Get();
 			}
 
-			#else
-
-			LgiAssert(!"Not implemented");
-
 			#endif
 			
+			if (!Path)
+			{
+				// Default to ~/Video
+				char p[MAX_PATH];
+				GString Home = LgiGetSystemPath(LSP_HOME);
+				if (LgiMakePath(p, sizeof(p), Home, "Video"))
+					Path = p;
+			}
 			break;
 		}
 		case LSP_USER_APPS:

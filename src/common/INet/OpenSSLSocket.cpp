@@ -741,7 +741,7 @@ OsSocket SslSocket::Handle(OsSocket Set)
 	}
 	else if (Bio)
 	{
-		int hnd = INVALID_SOCKET;
+		int hnd = (int)INVALID_SOCKET;
 		Library->BIO_get_fd(Bio, &hnd);
 		h = hnd;
 	}
