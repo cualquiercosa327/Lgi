@@ -809,7 +809,7 @@ public:
 		}
 		
 		// If we have too many, free some...
-		while (i > lst.Length() + ITEM_PTRS)
+		while (LastObj && i > lst.Length() + ITEM_PTRS)
 		{
 			DeleteBlock(LastObj);
 			i -= ITEM_PTRS;
