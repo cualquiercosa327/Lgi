@@ -1475,7 +1475,6 @@ int GFile::Close()
 	if (ValidHandle(d->hFile))
 	{
 		::CloseHandle(d->hFile);
-
 		d->hFile = INVALID_HANDLE;
 	}
 
