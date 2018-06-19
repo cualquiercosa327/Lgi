@@ -606,7 +606,7 @@ enum LgiSystemPath
 	LSP_USER_PICTURES,
 	///		[Win32] = C:\Users\%HOME%\Pictures
 	///		[Mac]   = ???
-	///		[Linux] = ???
+	///		[Linux] = ~\Pictures
 };
 
 // Deprecated method defines

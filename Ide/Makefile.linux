@@ -85,7 +85,9 @@ Depends =	GDebugContext.o \
 			SpaceTabConv.o \
 			GDocView.o \
 			GMdi.o \
+			IHttp.o \
 			LgiMain.o \
+			OpenSSLSocket.o \
 			Png.o
 
 # Target
@@ -409,7 +411,8 @@ IdeDoc.o : ./Code/IdeDoc.cpp ../include/common/Lgi.h \
 	../include/common/GCheckBox.h \
 	./Code/SpaceTabConv.h \
 	./Code/DocEdit.h \
-	./Code/IdeDocPrivate.h
+	./Code/IdeDocPrivate.h \
+	../include/common/IHttp.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -607,8 +610,30 @@ GMdi.o : ../src/common/Lgi/GMdi.cpp ../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
+IHttp.o : ../src/common/INet/IHttp.cpp ../include/common/Gdc2.h \
+	../include/common/IHttp.h \
+	../include/common/GToken.h \
+	../include/common/LgiCommon.h \
+	../include/common/INetTools.h \
+	../include/common/GString.h \
+	../include/common/Base64.h \
+	../include/common/GVariant.h \
+	../include/common/OpenSSLSocket.h \
+	../include/common/INet.h \
+	../include/common/ZlibWrapper.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
 LgiMain.o : ../src/common/Lgi/LgiMain.cpp ../include/common/Lgi.h \
 	../include/common/GToken.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
+OpenSSLSocket.o : ../src/common/INet/OpenSSLSocket.cpp ../include/common/Lgi.h \
+	../include/common/OpenSSLSocket.h \
+	../include/common/GToken.h \
+	../include/common/GVariant.h \
+	../include/common/INet.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -1092,6 +1117,9 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 
 ../include/common/GdiLeak.h : 
 
+../include/common/OpenSSLSocket.h : ../include/common/GLibraryUtils.h \
+	../include/common/LCancel.h
+
 ../include/common/GProgress.h : 
 
 ../include/common/GBox.h : ../include/common/GCss.h
@@ -1253,13 +1281,12 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GTableLayout.h \
 	../include/common/LgiRes.h
 
+../include/common/ZlibWrapper.h : ../include/common/GLibraryUtils.h
+
 ../src/common/Gdc2/GSurface.cpp : ../include/common/Gdc2.h \
 	../include/common/GdiLeak.h \
 	../include/common/GPalette.h \
 	../include/common/GVariant.h
-
-../include/common/GToken.h : ../include/common/GArray.h \
-	../include/common/GString.h
 
 ../include/common/GXmlTree.h : ../include/common/GHashTable.h \
 	../include/common/GRefCount.h \
@@ -1301,6 +1328,9 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GStringClass.h
 
 ../include/common/GEdit.h : ../include/common/GTextView3.h
+
+../include/common/GToken.h : ../include/common/GArray.h \
+	../include/common/GString.h
 
 ../include/common/GTextView3.h : ../include/common/GDocView.h \
 	../include/common/GUndo.h \
@@ -1855,6 +1885,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 ../include/common/GColourSpace.h : 
 
 ../include/common/GToolBar.h : ../include/common/GImageList.h
+
+../include/common/IHttp.h : ../include/common/INet.h
 
 ../include/common/GDom.h : ../include/common/LgiInterfaces.h \
 	../include/common/GMem.h \
