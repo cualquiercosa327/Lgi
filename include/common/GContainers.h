@@ -770,17 +770,32 @@ public:
 	}
 
 	/// Assign the contents of another list to this one
+	#if 0
+	List<T> &operator=(const List<T> &lst)
+	{
+		Empty();
+		
+		for (auto i : lst)
+			Add(i);
+			
+		return *this;
+	}
+	#else
 	List<T> &operator =(const List<T> &lst)
 	{
 		VALIDATE();
 
 		// Make sure we have enough blocks allocated
 		size_t i = 0;
+		
+		// Set the existing blocks to empty...
 		for (LstBlk *out = FirstObj; out; out = out->Next)
 		{
 			out->Count = 0;
 			i += ITEM_PTRS;
 		}
+		
+		// If we don't have enough, add more...
 		while (i < lst.Length())
 		{
 			LstBlk *out = NewBlock(LastObj);
@@ -792,9 +807,17 @@ public:
 				return *this;
 			}
 		}
+		
+		// If we have too many, free some...
+		while (i > lst.Length() + ITEM_PTRS)
+		{
+			DeleteBlock(LastObj);
+			i -= ITEM_PTRS;
+		}
 
 		// Now copy over the block's contents.
 		LstBlk *out = FirstObj;
+		Items = 0;
 		for (LstBlk *in = lst.FirstObj; in; in = in->Next)
 		{
 			for (int pos = 0; pos < in->Count; )
@@ -814,6 +837,7 @@ public:
 				memcpy(out->Ptr + out->Count, in->Ptr + pos, Cp * sizeof(T*));
 				out->Count += Cp;
 				pos += Cp;
+				Items += Cp;
 			}
 		}
 
@@ -821,6 +845,7 @@ public:
 
 		return *this;
 	}
+	#endif
 
 	Iter begin(int At = 0) { return GetIndex(At); }
 	Iter rbegin(int At = 0) { return GetIndex(Length()-1); }
@@ -844,25 +869,39 @@ public:
 			for (int k=0; k<i->Count; k++)
 			{
 				if (!i->Ptr[k])
-					goto OnError;
+				{
+					LgiAssert(!"NULL pointer in LstBlk.");
+					return false;
+				}
 				else
+				{
 					n++;
+				}
 			}
 
 			if (i == FirstObj)
 			{
 				if (i->Prev)
-					goto OnError;
+				{
+					LgiAssert(!"First object's 'Prev' should be NULL.");
+					return false;
+				}
 			}
 			else if (i == LastObj)
 			{
 				if (i->Next)
-					goto OnError;
+				{
+					LgiAssert(!"Last object's 'Next' should be NULL.");
+					return false;
+				}
 			}
 			else
 			{
 				if (i->Prev != Prev)
-					goto OnError;
+				{
+					LgiAssert(!"Middle LstBlk 'Prev' incorrect.");
+					return false;
+				}
 			}
 
 			Prev = i;
@@ -871,14 +910,19 @@ public:
 		if (Local.i != NULL)
 		{
 			if (!SeenLocalBlk && Local.i != NULL)
-				goto OnError;
+			{
+				LgiAssert(!"The local iterator is not present in the list.");
+				return false;
+			}
+		}
+		
+		if (Items != n)
+		{
+			LgiAssert(!"Item count cache incorrect.");
+			return false;
 		}
 		
 		return true;
-	
-	OnError:
-		LgiAssert(!"Lst err.");
-		return false;
 	}
 };
 
