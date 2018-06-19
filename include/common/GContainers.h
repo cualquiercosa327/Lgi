@@ -295,8 +295,10 @@ protected:
 			// Push last pointer into Next
 			if (i->Next->Full())
 				NewBlock(i); // Create an empty Next
-			Insert(i->Next, i->Ptr[ITEM_PTRS-1], 0);
+			if (!Insert(i->Next, i->Ptr[ITEM_PTRS-1], 0))
+				return false;
 			i->Count--;
+			Items--; // We moved the item... not inserted it.
 
 			// Fall through to the local "non-full" insert...
 		}
@@ -593,12 +595,14 @@ public:
 		}
 
 		bool Status;
+		size_t Base;
+		Iter Pos(this);
+
 		if (Index < 0)
 			Status = Insert(LastObj, p, Index);
 		else
 		{
-			size_t Base;
-			Iter Pos = GetIndex(Index, &Base);
+			Pos = GetIndex(Index, &Base);
 			if (Pos.i)
 				Status = Insert(Pos.i, p, (int) (Index - Base));
 			else
