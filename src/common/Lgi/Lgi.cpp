@@ -574,7 +574,7 @@ GProfile Prof("LgiTrace");
 
 	char Buffer[2049] = "";
 	#ifdef LGI_TRACE_TO_FILE
-	GFile f;
+	static GFile f;
 	static char LogPath[MAX_PATH] = "";
 	
 	if (!_LgiTraceStream && LogPath[0] == 0)
@@ -600,9 +600,11 @@ Prof.Add("open");
 	GStreamI *Output = NULL;
 	if (_LgiTraceStream)
 		Output = _LgiTraceStream;
-	else if (f.Open(LogPath, O_WRITE))
+	else
 	{
-		f.Seek(0, SEEK_END);
+		if (!f.IsOpen() &&
+			f.Open(LogPath, O_WRITE))
+			f.Seek(0, SEEK_END);
 		Output = &f;
 	}
 
@@ -615,7 +617,16 @@ Prof.Add("write");
 Prof.Add("close");
 #endif
 	if (!_LgiTraceStream)
+	{
+		#ifdef WINDOWS
+		// Windows can take AGES to close a file when there is anti-virus on, like 100ms.
+		// We can't afford to wait here so just keep the file open but flush the
+		// buffers if we can.
+		FlushFileBuffers(f.Handle());
+		#else
 		f.Close();
+		#endif
+	}
 	#endif
 
 

@@ -170,7 +170,7 @@ protected:
 	{
 	public:
 		ssize_t Start;	// Start offset
-		ssize_t Len;		// length of text
+		ssize_t Len;	// length of text
 		GRect r;		// Screen location
 		GColour c;		// Colour of line... transparent = default colour
 		GColour Back;	// Background colour or transparent
@@ -185,6 +185,14 @@ protected:
 		bool Overlap(ssize_t i)
 		{
 			return i>=Start && i<=Start+Len;
+		}
+
+		size_t CalcLen(char16 *Text)
+		{
+			char16 *c = Text + Start, *e = c;
+			while (*e && *e != '\n')
+				e++;
+			return Len = e - c;
 		}
 	};
 	
@@ -234,6 +242,7 @@ protected:
 	int ScrollYPixel();
 	GRect DocToScreen(GRect r);
 	ptrdiff_t MatchText(char16 *Text, bool MatchWord, bool MatchCase, bool SelectionOnly, bool SearchUpwards);
+	bool ValidateLines();
 	
 	// styles
 	bool InsertStyle(GAutoPtr<GStyle> s);
@@ -294,7 +303,7 @@ public:
 	void SetCrLf(bool crlf);
 
 	/// Sets the wrapping on the control, use #TEXTED_WRAP_NONE or #TEXTED_WRAP_REFLOW
-	void SetWrapType(uint8 i);
+	void SetWrapType(LDocWrapType i);
 	
 	// State / Selection
 	ssize_t GetCaret(bool Cursor = true);

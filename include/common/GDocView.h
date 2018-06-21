@@ -10,10 +10,13 @@
 
 // Word wrap
 
-/// No word wrapping
-#define TEXTED_WRAP_NONE			0
-/// Dynamically wrap line to editor width
-#define TEXTED_WRAP_REFLOW			1
+enum LDocWrapType
+{
+	/// No word wrapping
+	TEXTED_WRAP_NONE = 0,
+	/// Dynamically wrap line to editor width
+	TEXTED_WRAP_REFLOW = 1,
+};
 
 // Util macros
 
@@ -251,7 +254,7 @@ public:
 	_TvMenuProp(uint16, WrapAtCol)
 	_TvMenuProp(bool, UrlDetect)
 	_TvMenuProp(bool, ReadOnly)
-	_TvMenuProp(uint8, WrapType)
+	_TvMenuProp(LDocWrapType, WrapType)
 	_TvMenuProp(uint8, TabSize)
 	_TvMenuProp(uint8, IndentSize)
 	_TvMenuProp(bool, HardTabs)
