@@ -529,6 +529,46 @@ public:
 	{
 		return Items;
 	}
+	
+	bool Length(size_t Len)
+	{
+		if (Len == 0)
+			return Empty();
+		else if (Len == Items)
+			return true;
+			
+		VALIDATE();
+		
+		bool Status = false;
+		
+		if (Len < Items)
+		{
+			// Decrease list size...
+			size_t Base = 0;
+			Iter i = GetIndex(Len, &Base);
+			if (i.i)
+			{
+				size_t Offset = Len - Base;
+				LgiAssert(Offset <= i.i->Count);
+				i.i->Count = Len - Base;
+				LgiAssert(i.i->Count >= 0 && i.i->Count < ITEM_PTRS);
+				while (i.i->Next)
+				{
+					DeleteBlock(i.i->Next);
+				}
+				Items = Len;
+			}
+			else LgiAssert(!"Iterator invalid.");
+		}
+		else
+		{
+			// Increase list size...
+			LgiAssert(!"Impl me.");
+		}
+				
+		VALIDATE();
+		return Status;		
+	}
 
 	bool Empty()
 	{

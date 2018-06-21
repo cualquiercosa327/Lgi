@@ -27,7 +27,7 @@
 #define GDCF_UTF8					-1
 #define LUIS_DEBUG					0
 #define POUR_DEBUG					0
-#define PROFILE_POUR				0
+#define PROFILE_POUR				1
 
 #define ALLOC_BLOCK					64
 #define IDC_VS						1000
@@ -661,7 +661,7 @@ void GTextView3::OnFontChange()
 void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a delete */)
 {
 	#if PROFILE_POUR
-	int StartTime = LgiCurrentTime();
+	GProfile Prof("PourText");
 	#endif
 
 	LgiAssert(InThread());
@@ -676,6 +676,10 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 	int CurrentLine = -1;
 	if (d->SimpleDelete || Start)
 	{
+		#if PROFILE_POUR
+		Prof.Add("SimplePour 1");
+		#endif
+
 		d->SimpleDelete = false;
 		if (!SimplePour &&
 			WrapType == TEXTED_WRAP_NONE &&
@@ -693,6 +697,10 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 			}
 		}
 		
+		#if PROFILE_POUR
+		Prof.Add("SimplePour 2");
+		#endif
+
 		// Get the line of the change
 		GTextLine *Current = GetTextLine(Start, &CurrentLine);
 		
@@ -710,6 +718,9 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 			
 			if (SimplePour)
 			{
+				#if PROFILE_POUR
+				Prof.Add("SimplePour 2");
+				#endif
 				#if POUR_DEBUG
 				printf("SimplePour Start=%i Length=%i CurrentLine=%i\n", Start, Length, CurrentLine);
 				#endif
@@ -718,9 +729,14 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 			}
 			else
 			{
+				#if PROFILE_POUR
+				Prof.Add("SimplePour 3");
+				#endif
 				#if POUR_DEBUG
 				printf("PartialPour Start=%i Length=%i\n", Start, Length);
 				#endif
+				
+				#if 0 // This is too slow...
 				bool Done = false;
 				for (GTextLine *l=Line.Last(); l && !Done; l=Line.Last())
 				{
@@ -728,12 +744,24 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 					Line.Delete(l);
 					DeleteObj(l);
 				}
+				#else
+				size_t Idx = Line.IndexOf(Current);
+				for (auto i = Line.begin(Idx); *i; i++)
+				{
+					delete *i;
+				}
+				Line.Length(Idx);
+				Current = NULL;
+				#endif
 			}
 		}
 	}
 	else
 	{
 		// Whole doc is dirty
+		#if PROFILE_POUR
+		Prof.Add("ComplexPour 1");
+		#endif
 		#if POUR_DEBUG
 		printf("WholePour Start=%i Length=%i\n", Start, Length);
 		#endif
@@ -770,6 +798,9 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 		}
 
 		// alright... lets pour!
+		#if PROFILE_POUR
+		Prof.Add("ComplexPour 2");
+		#endif
 		for (size_t i=Start; i<Size; i = e)
 		{
 			// seek till next char of interest
@@ -932,6 +963,10 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 		}
 	}
 
+	#if PROFILE_POUR
+	Prof.Add("ComplexPour 3");
+	#endif
+
 	GTextLine *Last = Line.Length() ? Line.Last() : 0;
 	if (!Last ||
 		Last->Start + Last->Len < Size)
@@ -952,6 +987,10 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 		}
 	}
 
+	#if PROFILE_POUR
+	Prof.Add("ScrollBars");
+	#endif
+
 	bool ScrollYNeeded = Client.Y() < (Line.Length() * LineY);
 	bool ScrollChange = ScrollYNeeded ^ (VScroll != NULL);
 	d->LayoutDirty = ScrollChange;
@@ -962,11 +1001,7 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 	}
 	UpdateScrollBars();
 	
-	#if PROFILE_POUR
-	int _PourTime = LgiCurrentTime() - StartTime;
-	printf("TextPour: %i ms, %i lines\n", _PourTime, Line.Length());
-	#endif
-	#ifdef _DEBUG
+	#if 0 // def _DEBUG
 	if (GetWindow())
 	{
 		static char s[256];
@@ -974,7 +1009,6 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 		GetWindow()->PostEvent(M_TEXTVIEW_DEBUG_TEXT, (GMessage::Param)s);
 	}
 	#endif
-//	printf("PourTime=%ims\n", _PourTime);
 
 	#if POUR_DEBUG
 	printf("Lines=%i\n", Line.Length());

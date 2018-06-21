@@ -2273,7 +2273,7 @@ GProfile::~GProfile()
 		Sample &a = s[i];
 		Sample &b = s[i+1];
 		
-		#if 0
+		#if 1
 
 			#if PROFILE_MICRO
 			LgiTrace("%s%s = %.2f ms\n", i ? "    " : "", a.Name, (double)(b.Time - a.Time)/1000.0);
@@ -2292,7 +2292,7 @@ GProfile::~GProfile()
 		#endif
 	}
 
-	OutputDebugStringA(c);
+	// OutputDebugStringA(c);
 	DeleteArray(Buf);
 }
 
