@@ -1377,49 +1377,61 @@ bool GTextView3::Insert(size_t At, char16 *Data, ssize_t Len)
 			// Clear layout info for the new text
 			int Idx = -1;
 			GTextLine *Cur = GetTextLine(At, &Idx);
-			if (Cur)
+			if (WrapType == TEXTED_WRAP_NONE)
 			{
-				if (WrapType == TEXTED_WRAP_NONE)
+				if (Cur)
 				{
 					// Clear layout for current line...
 					Cur->r.ZOff(-1, -1);
+				}
+				else if (Line.Length() == 0)
+				{
+					// Empty doc... set up the first line
+					Line.Insert(Cur = new GTextLine);
+				}
+				else LgiAssert(!"Should this ever happen?");
 
-					// Add any new lines that we need...
-					char16 *e = Text + At + Len;
-					char16 *c;
-					for (c = Text + At; c < e; c++)
+				// Add any new lines that we need...
+				char16 *e = Text + At + Len;
+				char16 *c;
+				for (c = Text + At; c < e; c++)
+				{
+					if (*c == '\n')
 					{
-						if (*c == '\n')
-						{
-							// Set the size of the current line...
-							size_t Pos = c - Text;
-							Cur->Len = Pos - Cur->Start;
+						if (!Cur)
+							break;
 
-							// Create a new line...
-							Cur = new GTextLine();
-							if (!Cur)
-								return false;
-							Cur->Start = Pos + 1;
-							Line.Insert(Cur, ++Idx);
-						}
+						// Set the size of the current line...
+						size_t Pos = c - Text;
+						Cur->Len = Pos - Cur->Start;
+
+						// Create a new line...
+						Cur = new GTextLine();
+						if (!Cur)
+							return false;
+						Cur->Start = Pos + 1;
+						Line.Insert(Cur, ++Idx);
 					}
+				}
 
+				if (Cur)
+				{
 					// Make sure the last Line's length is set..
 					Cur->CalcLen(Text);
+				}
+				else LgiAssert(0);
 
-					// Now update all the positions of the following lines...
-					for (auto i = Line.begin(++Idx); *i; i++)
-						(*i)->Start += Len;
-				}
-				else
-				{
-					// Clear all lines to the end of the doc...
-					for (auto i = Line.begin(Idx); *i; i++)
-						delete *i;
-					Line.Length(Idx);
-				}
+				// Now update all the positions of the following lines...
+				for (auto i = Line.begin(++Idx); *i; i++)
+					(*i)->Start += Len;
 			}
-			else LgiAssert(0);
+			else
+			{
+				// Clear all lines to the end of the doc...
+				for (auto i = Line.begin(Idx); *i; i++)
+					delete *i;
+				Line.Length(Idx);
+			}
 
 			#ifdef _DEBUG
 			ValidateLines();
