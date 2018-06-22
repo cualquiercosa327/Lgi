@@ -801,7 +801,7 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 				MaxX = MAX(MaxX, l->r.X());
 			}
 
-			// Adjust the y position anyway...
+			// Adjust the y position anyway... it's free.
 			l->r.y1 = Cy;
 			l->r.y2 = l->r.y1 + LineY - 1;
 			Cy = l->r.y2 + 1;
@@ -1655,6 +1655,7 @@ bool GTextView3::Name(const char *s)
 		UndoQue.Empty();
 		DeleteArray(TextCache);
 		DeleteArray(Text);
+		Line.DeleteObjects();
 
 		LgiAssert(LgiIsUtf8(s));
 		Text = Utf8ToWide(s);
