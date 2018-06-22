@@ -1384,6 +1384,7 @@ bool GTextView3::Insert(size_t At, char16 *Data, ssize_t Len)
 				// Empty doc... set up the first line
 				Line.Insert(Cur = new GTextLine);
 				Idx = 0;
+				Cur->Start = 0;
 			}
 			else
 			{
