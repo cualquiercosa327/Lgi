@@ -5315,7 +5315,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			}
 			else
 			{
-				Size.y = ImgY * Scale;
+				Size.y = (int) (ImgY * Scale);
 			}
 			YLimit |= Flow->LimitY(Size.y, MinHeight(), MaxHeight(), f);
 

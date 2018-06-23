@@ -27,9 +27,11 @@
 #define GDCF_UTF8					-1
 #define LUIS_DEBUG					0
 #define POUR_DEBUG					0
-#define PROFILE_POUR				0
+#define PROFILE_POUR				1
 #define PROFILE_PAINT				0
 #define DRAW_LINE_BOXES				0
+#define WRAP_POUR_TIMEOUT			50 // ms
+#define CURSOR_BLINK				1000 // ms
 
 #define ALLOC_BLOCK					64
 #define IDC_VS						1000
@@ -319,6 +321,8 @@ GTextView3::GTextView3(	int Id,
 	GView::d->Css.Reset(d = new GTextView3Private(this));
 	
 	PourEnabled = true;
+	PartialPour = false;
+	BlinkTs = 0;
 	LineY = 1;
 	MaxX = 0;
 	TextCache = 0;
@@ -735,6 +739,7 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 
 	int Idx = -1;
 	GTextLine *Cur = GetTextLine(Start, &Idx);
+	LgiTrace("Pour %i:%i Cur=%p Idx=%i\n", (int)Start, (int)Length, (int)Cur, (int)Idx);
 	if (!Cur || !Cur->r.Valid())
 	{
 		// Find the last line that has a valid position...
@@ -754,6 +759,7 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 	{
 		Start = Cur->Start;
 		Length = Size - Start;
+		LgiTrace("Reset start to %i:%i because Cur!=NULL\n", (int)Start, (int)Length);
 	}
 	else
 	{
@@ -847,14 +853,34 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 			Pos = e - Text;
 		}
 
+		PartialPour = false;
+
 		#ifdef _DEBUG
 		ValidateLines();
 		#endif
 	}
-	else
+	else // Wrap text
 	{
+		int DisplayStart = ScrollYLine();
+		int DisplayLines = 	(Client.Y() + LineY - 1) / LineY;
+		int DisplayEnd = DisplayStart + DisplayLines;
+		
+		// Pouring is split into 2 parts... 
+		// 1) pouring to the end of the displayed text.
+		// 2) pouring from there to the end of the document.
+		//	potentially taking several goes to complete the full pour
+		// This allows the document to display and edit faster..
+		bool PourToDisplayEnd = Line.Length() < DisplayEnd;
+
+		if (Cur)
+		{
+			Line.Delete(Cur);
+			delete Cur;
+		}
+
 		int Cx = 0;
-		for (size_t i=Start; i<Size; i = e)
+		size_t i;
+		for (i=Start; i<Size; i = e)
 		{
 			// seek till next char of interest
 			e = i;
@@ -964,6 +990,30 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 				l->r.y2 = l->r.y1 + LineY - 1;
 
 				Line.Insert(l);
+				if (PourToDisplayEnd)
+				{
+					if (Line.Length() > DisplayEnd)
+					{
+						// We have reached the end of the displayed area... so
+						// exit out temporarily to display the layout to the user
+						PartialPour = true;
+						break;
+					}
+				}
+				else
+				{
+					// Otherwise check if we are taking too long...
+					if (Line.Length() % 20 == 0)
+					{
+						uint64 Now = LgiCurrentTime();
+						if (Now - StartTs > WRAP_POUR_TIMEOUT)
+						{
+							PartialPour = true;
+							// LgiTrace("Pour timeout...\n");
+							break;
+						}
+					}
+				}
 					
 				MaxX = MAX(MaxX, l->r.X());
 				Cy += LineY;
@@ -972,29 +1022,35 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 					e++;
 			}
 		}
+
+		if (i >= Size)
+			PartialPour = false;
 	}
 
 	#if PROFILE_POUR
 	Prof.Add("LastLine");
 	#endif
 
-	GTextLine *Last = Line.Length() ? Line.Last() : 0;
-	if (!Last ||
-		Last->Start + Last->Len < Size)
+	if (!PartialPour)
 	{
-		GTextLine *l = new GTextLine;
-		if (l)
+		GTextLine *Last = Line.Length() ? Line.Last() : 0;
+		if (!Last ||
+			Last->Start + Last->Len < Size)
 		{
-			l->Start = Size;
-			l->Len = 0;
-			l->r.x1 = l->r.x2 = d->rPadding.x1;
-			l->r.y1 = Cy;
-			l->r.y2 = l->r.y1 + LineY - 1;
+			GTextLine *l = new GTextLine;
+			if (l)
+			{
+				l->Start = Size;
+				l->Len = 0;
+				l->r.x1 = l->r.x2 = d->rPadding.x1;
+				l->r.y1 = Cy;
+				l->r.y2 = l->r.y1 + LineY - 1;
 
-			Line.Insert(l);
+				Line.Insert(l);
 			
-			MaxX = MAX(MaxX, l->r.X());
-			Cy += LineY;
+				MaxX = MAX(MaxX, l->r.X());
+				Cy += LineY;
+			}
 		}
 	}
 
@@ -1754,6 +1810,7 @@ bool GTextView3::NameW(const char16 *s)
 	}
 
 	// update everything else
+	Line.DeleteObjects();
 	d->SetDirty(0, Size);
 	PourText(0, Size);
 	PourStyle(0, Size);
@@ -3161,8 +3218,7 @@ void GTextView3::OnCreate()
 	SetWindow(this);
 	DropTarget(true);
 
-	if (Focus())
-		SetPulse(1500);
+	SetPulse(WRAP_POUR_TIMEOUT * 2);
 }
 
 void GTextView3::OnEscape(GKey &K)
@@ -3185,7 +3241,6 @@ bool GTextView3::OnMouseWheel(double l)
 void GTextView3::OnFocus(bool f)
 {
 	Invalidate();
-	SetPulse(f ? 500 : -1);
 }
 
 ssize_t GTextView3::HitText(int x, int y, bool Nearest)
@@ -5043,12 +5098,22 @@ void GTextView3::OnPulse()
 {
 	if (!ReadOnly)
 	{
-		Blink = !Blink;
+		uint64 Now = LgiCurrentTime();
+		if (!BlinkTs)
+			BlinkTs = Now;
+		else if (Now - BlinkTs > CURSOR_BLINK)
+		{
+			Blink = !Blink;
 
-		GRect p = CursorPos;
-		p.Offset(-ScrollX, 0);
-		Invalidate(&p);
+			GRect p = CursorPos;
+			p.Offset(-ScrollX, 0);
+			Invalidate(&p);
+			BlinkTs = Now;
+		}
 	}
+
+	if (PartialPour)
+		PourText(Size, 0);
 }
 
 void GTextView3::OnUrl(char *Url)

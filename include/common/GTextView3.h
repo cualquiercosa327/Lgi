@@ -21,6 +21,7 @@ enum GTextView3Messages
 	M_TEXTVIEW_DEBUG_TEXT = M_USER + 0x3421,
 	M_TEXTVIEW_FIND,
 	M_TEXTVIEW_REPLACE,
+	M_TEXT_POUR_CONTINUE,
 };
 
 extern char Delimiters[];
@@ -215,8 +216,12 @@ protected:
 	int DocOffset;
 	int MaxX;
 	bool Blink;
+	uint64 BlinkTs;
 	int ScrollX;
 	GRect CursorPos;
+
+	/// true if the text pour process is still ongoing
+	bool PartialPour;
 
 	List<GTextLine> Line;
 	List<GStyle> Style;		// sorted in 'Start' order
