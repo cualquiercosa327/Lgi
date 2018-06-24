@@ -771,9 +771,9 @@ public:
 		if (Func)
 		{
 			// Set up stack for function call
-			Sf.CurrentFrameSize = Func->FrameSize;
-
-			AddLocalSize(Func->FrameSize);
+			LgiAssert(Func->FrameSize.Get());
+			Sf.CurrentFrameSize = *Func->FrameSize.Get();
+			AddLocalSize(Sf.CurrentFrameSize);
 
 			if (Args)
 			{

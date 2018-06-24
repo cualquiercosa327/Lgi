@@ -640,9 +640,11 @@ case ICallScript:
 
 	// Increase the local stack size
 	size_t LocalsBase = Locals.Length();
+	size_t LocalsPos = Scope[SCOPE_LOCAL] - Locals.AddressOf();
 	Locals.SetFixedLength(false);
 	Locals.Length(LocalsBase + Frame);
 	Locals.SetFixedLength();
+	Scope[SCOPE_LOCAL] = Locals.AddressOf(LocalsPos);
 	
 	// Put the arguments of the function call into the local array
 	GArray<GVariant*> Arg;
@@ -669,11 +671,10 @@ case ICallScript:
 	}
 
 	#if VM_EXECUTE
-	Scope[SCOPE_LOCAL] = &Locals[LocalsBase];
-
 	// Set IP to start of function
 	Sf.ReturnIp = CurrentScriptAddress;
 	c.u8 = Base + FuncAddr;
+	Scope[SCOPE_LOCAL] = &Locals[LocalsBase];
 	#endif
 
 	#if VM_DECOMP

@@ -1545,6 +1545,10 @@ public:
 					Asm0(n.Tok, IDebug);
 					return true;
 				}
+				if (!_stricmp(FnName, "RecurseFolder"))
+				{
+					int asd=0;
+				}
 				
 				if (n.ScriptFunc->GetParams() != n.Args.Length())
 				{
@@ -1577,7 +1581,7 @@ public:
 				{
 					if (!AsmExpression(&a[i], n.Args[i]))
 					{
-						return OnError(n.Tok, "Error creating bytecode for script function argument.");
+						return OnError(n.Tok, "Error creating byte code for script function argument.");
 					}
 				}
 
@@ -1595,15 +1599,16 @@ public:
 				p.u8 = Start;
 				*p.u8++ = ICallScript;
 				
-				if (n.ScriptFunc->StartAddr)
+				if (n.ScriptFunc->StartAddr &&
+					n.ScriptFunc->FrameSize.Get())
 				{
 					// Compile func address straight into code...
 					*p.u32++ = n.ScriptFunc->StartAddr;
-					*p.u16++ = n.ScriptFunc->FrameSize;
+					*p.u16++ = *n.ScriptFunc->FrameSize.Get();
 				}
 				else
 				{
-					// Add link time fixup
+					// Add link time fix up
 					LinkFixup &Fix = Fixups.New();
 					Fix.Tok = n.Tok;
 					Fix.Args = (int)n.Args.Length();
@@ -2896,6 +2901,11 @@ public:
 				ScriptMethod->StartAddr = (uint32)Code->ByteCode.Length();
 			}
 
+			if (!_stricmp(FunctionName, "RecurseFolder"))
+			{
+				int asd=0;
+			}
+
 			// Parse start of body
 			if (!(t = GetTok(Cur)))
 				goto UnexpectedFuncEof;
@@ -2931,7 +2941,7 @@ public:
 					if (StructMethod)
 						StructMethod->FrameSize = (uint16)LocalScope.Length();
 					else if (ScriptMethod)
-						ScriptMethod->FrameSize = (uint16)LocalScope.Length();
+						ScriptMethod->FrameSize.Reset(new uint16(LocalScope.Length()));
 					else
 						LgiAssert(!"What are you defining exactly?");
 					
@@ -2942,7 +2952,7 @@ public:
 					break;
 				}
 				
-				// Parse statment in the body
+				// Parse statement in the body
 				if (!DoStatements(Cur, &LastInstIsReturn))
 					return OnError(Cur, "Can't compile function body.");
 			}
@@ -3440,18 +3450,26 @@ public:
 			LinkFixup &f = Fixups[i];
 			if (f.Func->StartAddr)
 			{
-				if (f.Args == f.Func->Params.Length())
+				if (f.Args != f.Func->Params.Length())
+				{
+					return OnError(f.Tok, "Function call '%s' has wrong arg count (caller=%i, method=%i).",
+											f.Func->Name.Get(),
+											f.Args,
+											f.Func->Params.Length());
+				}
+				else if (!f.Func->FrameSize.Get())
+				{
+					return OnError(f.Tok, "Function call '%s' has no frame size.",
+											f.Func->Name.Get());
+				}
+				else
 				{
 					GPtr p;
 					p.u8 = &Code->ByteCode[f.Offset];
 					LgiAssert(*p.u32 == 0);
 					*p.u32++ = f.Func->StartAddr;
-					*p.u16++ = f.Func->FrameSize;
+					*p.u16++ = *f.Func->FrameSize.Get();
 				}
-				else return OnError(f.Tok, "Function call '%s' has wrong arg count (caller=%i, method=%i).",
-											f.Func->Name.Get(),
-											f.Args,
-											f.Func->Params.Length());
 			}
 			else
 			{
