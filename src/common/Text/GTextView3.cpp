@@ -27,10 +27,11 @@
 #define GDCF_UTF8					-1
 #define LUIS_DEBUG					0
 #define POUR_DEBUG					0
-#define PROFILE_POUR				1
+#define PROFILE_POUR				0
 #define PROFILE_PAINT				0
 #define DRAW_LINE_BOXES				0
-#define WRAP_POUR_TIMEOUT			50 // ms
+#define WRAP_POUR_TIMEOUT			90 // ms
+#define PULSE_TIMEOUT				100 // ms
 #define CURSOR_BLINK				1000 // ms
 
 #define ALLOC_BLOCK					64
@@ -681,8 +682,18 @@ bool GTextView3::ValidateLines()
 		}
 
 		char16 *e = c;
-		while (*e && *e != '\n')
-			e++;
+		if (WrapType == TEXTED_WRAP_NONE)
+		{
+			while (*e && *e != '\n')
+				e++;
+		}
+		else
+		{
+			char16 *end = Text + l->Start + l->Len;
+			while (*e && *e != '\n' && e < end)
+				e++;
+		}
+			
 		ssize_t Len = e - c;
 		if (l->Len != Len)
 		{
@@ -690,14 +701,20 @@ bool GTextView3::ValidateLines()
 			return false;
 		}
 
-		if (*e == '\n')
-			e++;
+		if (*e)
+		{
+			if (*e == '\n')
+				e++;
+			else if (WrapType == TEXTED_WRAP_REFLOW)
+				e++;
+		}
 		Pos = e - Text;
 		c = e;
 		Idx++;
 	}
 
-	if (Pos != Size)
+	if (WrapType == TEXTED_WRAP_NONE &&
+		Pos != Size)
 	{
 		LgiAssert(!"Last line != end of doc");
 		return false;
@@ -739,7 +756,7 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 
 	int Idx = -1;
 	GTextLine *Cur = GetTextLine(Start, &Idx);
-	LgiTrace("Pour %i:%i Cur=%p Idx=%i\n", (int)Start, (int)Length, (int)Cur, (int)Idx);
+	// LgiTrace("Pour %i:%i Cur=%p Idx=%i\n", (int)Start, (int)Length, (int)Cur, (int)Idx);
 	if (!Cur || !Cur->r.Valid())
 	{
 		// Find the last line that has a valid position...
@@ -749,6 +766,8 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 			if (Cur->r.Valid())
 			{
 				Cy = Cur->r.y1;
+				if (Idx < 0)
+					Idx = Line.IndexOf(Cur);
 				break;
 			}
 		}
@@ -759,7 +778,7 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 	{
 		Start = Cur->Start;
 		Length = Size - Start;
-		LgiTrace("Reset start to %i:%i because Cur!=NULL\n", (int)Start, (int)Length);
+		// LgiTrace("Reset start to %i:%i because Cur!=NULL\n", (int)Start, (int)Length);
 	}
 	else
 	{
@@ -771,7 +790,7 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 	if (!Text || !Font || Mx <= 0)
 		return;
 
-	// tracking vars
+	// Tracking vars
 	size_t e;
 	int LastX = 0;
 	int WrapCol = GetWrapAtCol();
@@ -784,7 +803,7 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 		return;
 	}
 
-	// alright... lets pour!
+	// Alright... lets pour!
 	uint64 StartTs = LgiCurrentTime();
 	if (WrapType == TEXTED_WRAP_NONE)
 	{
@@ -854,10 +873,6 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 		}
 
 		PartialPour = false;
-
-		#ifdef _DEBUG
-		ValidateLines();
-		#endif
 	}
 	else // Wrap text
 	{
@@ -874,8 +889,10 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 
 		if (Cur)
 		{
-			Line.Delete(Cur);
-			delete Cur;
+			for (auto i = Line.begin(Idx); *i; i++)
+				delete *i;
+			Line.Length(Idx);
+			Cur = NULL;
 		}
 
 		int Cx = 0;
@@ -1025,8 +1042,12 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 
 		if (i >= Size)
 			PartialPour = false;
+		SendNotify(GNotifyCursorChanged);
 	}
 
+	#ifdef _DEBUG
+	ValidateLines();
+	#endif
 	#if PROFILE_POUR
 	Prof.Add("LastLine");
 	#endif
@@ -1543,8 +1564,6 @@ bool GTextView3::Delete(size_t At, ssize_t Len)
 			Size -= Len;
 			Text[Size] = 0;
 
-			ssize_t PrevLineStart = -1;
-			ssize_t NextLineStart = -1;
 			if (WrapType == TEXTED_WRAP_NONE)
 			{
 				int Idx = -1;
@@ -1575,10 +1594,9 @@ bool GTextView3::Delete(size_t At, ssize_t Len)
 				GTextLine *Cur = GetTextLine(At, &Index);
 				if (Cur)
 				{
-					GTextLine *Prev = Line[Index-1];
-					PrevLineStart = Prev ? Prev->Start : -1;
-					GTextLine *Next = Line[Index+1];
-					NextLineStart = Next ? Next->Start : -1;
+					for (auto i = Line.begin(Index); *i; i++)
+						delete *i;
+					Line.Length(Index);
 				}
 			}
 			
@@ -1607,30 +1625,10 @@ bool GTextView3::Delete(size_t At, ssize_t Len)
 				GTextLine *Cur = GetTextLine(At, &Index);
 				if (Cur)
 				{
-					GTextLine *Repaint = 0;
-					GTextLine *Prev = Line[Index-1];
-					if (Prev && PrevLineStart != Prev->Start)
-					{
-						// Paint previous line down
-						Repaint = Prev;
-					}
-					else
-					{
-						GTextLine *Next = Line[Index+1];
-						if (Next && NextLineStart != Next->Start)
-						{
-							// Paint next line down
-							Repaint = Next;
-						}
-					}
-					
-					if (Repaint)
-					{
-						GRect r = Repaint->r;
-						r.x2 = GetClient().x2;
-						r.y2 = GetClient().y2;
-						Invalidate(&r);
-					}
+					GRect r = Cur->r;
+					r.x2 = GetClient().x2;
+					r.y2 = GetClient().y2;
+					Invalidate(&r);
 				}
 			}
 
@@ -3218,7 +3216,7 @@ void GTextView3::OnCreate()
 	SetWindow(this);
 	DropTarget(true);
 
-	SetPulse(WRAP_POUR_TIMEOUT * 2);
+	SetPulse(PULSE_TIMEOUT);
 }
 
 void GTextView3::OnEscape(GKey &K)
