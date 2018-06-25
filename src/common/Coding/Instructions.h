@@ -635,7 +635,8 @@ case ICallScript:
 	Sf.CurrentFrameSize = Frame;
 	Sf.PrevFrameStart = Locals.Length() ? Scope[1] - &Locals[0] : 0;
 	Sf.ReturnValue = *c.r++;
-	Sf.ReturnValue.Index -= CurFrameSize;
+	if (Sf.ReturnValue.Scope == SCOPE_LOCAL)
+		Sf.ReturnValue.Index -= CurFrameSize;
 	uint16 Args = *c.u16++;
 
 	// Increase the local stack size

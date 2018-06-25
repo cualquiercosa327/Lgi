@@ -1510,7 +1510,20 @@ bool GTextView3::Insert(size_t At, char16 *Data, ssize_t Len)
 					Line.Length(Idx);
 				}
 			}
-			else LgiAssert(0);
+			else
+			{
+				// If wrap is on then this can happen when an Insert happens before the 
+				// OnPulse event has laid out the new text. Probably not a good thing in
+				// non-wrap mode			
+				if (WrapType == TEXTED_WRAP_NONE)
+				{
+					GTextLine *l = Line.Last();
+					printf("%s:%i - Insert error: no cur, At=%i, Size=%i, Lines=%i, WrapType=%i\n",
+						_FL, (int)At, (int)Size, (int)Line.Length(), (int)WrapType);
+					if (l)
+						printf("Last=%i, %i\n", (int)l->Start, (int)l->Len);
+				}
+			}
 
 			#ifdef _DEBUG
 			ValidateLines();
