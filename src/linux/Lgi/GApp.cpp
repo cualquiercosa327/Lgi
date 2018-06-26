@@ -535,7 +535,14 @@ Gtk::gboolean IdleWrapper(Gtk::gpointer data)
 	if (i->d->MsgQue.Length() &&
 		i->d->Lock(_FL))
 	{
-		for (auto m : i->d->MsgQue)
+		// Copy the messages out of the locked structure..
+		// This allows new messages to arrive independant
+		// of us processing them here...
+		::GArray<Msg> q = i->d->MsgQue;
+		i->d->MsgQue.Empty();
+		i->d->Unlock();
+		
+		for (auto m : q)
 		{
 			GtkWindow *w = NULL;
 			GdkEvent *e = gdk_event_new(GDK_CLIENT_EVENT);
@@ -573,9 +580,6 @@ Gtk::gboolean IdleWrapper(Gtk::gpointer data)
 			}
 			else printf("%s:%i - gdk_event_new failed.\n", _FL);
 		}
-
-		i->d->MsgQue.Empty();
-		i->d->Unlock();
 	}
 	
 	return TRUE;
