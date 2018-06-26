@@ -403,16 +403,7 @@ bool LgiExecute(const char *File, const char *Args, const char *Dir, GAutoString
 					// open the directory in the current browser
 					LgiGetAppForMimeType("inode/directory", App, sizeof(App));
 				}
-				/*
-				else if (f.st_mode & (S_IXUSR | S_IXGRP | 1) )
-				{
-					// execute the file...
-					char f[512];
-					sprintf(f, "\"%s\" %s &", File, Args ? Args : (char*)"");
-					return system(f) == 0;
-				}
-				*/
-				else // if (!InPath)
+				else
 				{
 					// look up the type...
 					char Mime[256] = "";

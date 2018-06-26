@@ -370,6 +370,7 @@ public:
 
 		DesktopInfo *GetDesktopInfo();
 		bool SetApplicationIcon(const char *FileName);
+		bool PostEvent(Gtk::GtkWidget *Wnd, int Msg, GMessage::Param a = 0, GMessage::Param b = 0);
 		
 	#endif
 };

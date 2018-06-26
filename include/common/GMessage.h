@@ -191,7 +191,7 @@ public:
 		typedef NativeInt Result;
 	#endif
 
-	#if !defined(__GTK_H__) && !defined(LGI_SDL)
+	#if !defined(LGI_SDL)
 		int m;
 	#endif
 	#if defined(LGI_SDL)
@@ -209,7 +209,7 @@ public:
 		HWND hWnd;
 		WPARAM a;
 		LPARAM b;
-	#elif !defined(__GTK_H__)
+	#else
 		Param a;
 		Param b;
 	#endif
@@ -222,6 +222,17 @@ public:
 		{
 			Event = e;
 			OwnEvent = false;
+
+			if (Event && Event->type == Gtk::GDK_CLIENT_EVENT)
+			{
+				m = Event->client.data.l[0];
+				a = Event->client.data.l[1];
+				b = Event->client.data.l[2];
+			}
+			else 
+			{
+				m = a = b = 0;
+			}
 		}
 	#endif
 
@@ -236,7 +247,9 @@ public:
 			#ifdef __GTK_H__
 				Event = NULL;
 				OwnEvent = false;
-			#elif !defined(LGI_SDL)
+			#endif
+		
+			#if !defined(LGI_SDL)
 				m = 0;
 				a = 0;
 				b = 0;
@@ -265,7 +278,7 @@ public:
 		Set(M, A, B);
 	}
 	
-	#if defined(__GTK_H__) || defined(LGI_SDL)
+	#if defined(LGI_SDL)
 		int Msg();
 		Param A();
 		Param B();
