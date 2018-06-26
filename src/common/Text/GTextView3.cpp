@@ -71,10 +71,10 @@
 #define IDM_RTL						18
 
 #define PAINT_BORDER				Back
-#if 1
-	#define PAINT_AFTER_LINE			Back
-#else
+#if DRAW_LINE_BOXES
 	#define PAINT_AFTER_LINE			GColour(240, 240, 240)
+#else
+	#define PAINT_AFTER_LINE			Back
 #endif
 
 #define CODEPAGE_BASE				100
@@ -667,11 +667,13 @@ void GTextView3::OnFontChange()
 	}
 }
 
-bool GTextView3::ValidateLines()
+bool GTextView3::ValidateLines(bool CheckBox)
 {
 	size_t Pos = 0;
 	char16 *c = Text;
 	size_t Idx = 0;
+	GTextLine *Prev = NULL;
+
 	for (auto i : Line)
 	{
 		GTextLine *l = i;
@@ -701,6 +703,12 @@ bool GTextView3::ValidateLines()
 			return false;
 		}
 
+
+		if (CheckBox && Prev)
+		{
+			LgiAssert(Prev->r.y2 == l->r.y1 - 1);
+		}
+
 		if (*e)
 		{
 			if (*e == '\n')
@@ -711,6 +719,7 @@ bool GTextView3::ValidateLines()
 		Pos = e - Text;
 		c = e;
 		Idx++;
+		Prev = l;
 	}
 
 	if (WrapType == TEXTED_WRAP_NONE &&
@@ -776,6 +785,7 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 		Cur = NULL;
 	if (Cur)
 	{
+		Cy = Cur->r.y1;
 		Start = Cur->Start;
 		Length = Size - Start;
 		// LgiTrace("Reset start to %i:%i because Cur!=NULL\n", (int)Start, (int)Length);
@@ -1046,7 +1056,7 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 	}
 
 	#ifdef _DEBUG
-	ValidateLines();
+	ValidateLines(true);
 	#endif
 	#if PROFILE_POUR
 	Prof.Add("LastLine");
@@ -3291,6 +3301,7 @@ ssize_t GTextView3::HitText(int x, int y, bool Nearest)
 		}
 			
 		l = (Down) ? Line.Next() : Line.Prev();
+		Y++;
 	}
 
 	// outside text area
@@ -4933,11 +4944,19 @@ void GTextView3::OnPaint(GSurface *pDC)
 				}
 
 				#if DRAW_LINE_BOXES
-				GColour Old = pDC->Colour(GColour::Red);
-				uint Style = pDC->LineStyle(GSurface::LineAlternate);
-				pDC->Box(&OldTr);
-				pDC->LineStyle(Style);
-				pDC->Colour(Old);
+				{
+					uint Style = pDC->LineStyle(GSurface::LineAlternate);
+					GColour Old = pDC->Colour(GColour::Red);
+					pDC->Box(&OldTr);
+					pDC->Colour(Old);
+					pDC->LineStyle(Style);
+
+					GString s;
+					s.Printf("%i, %i", Line.IndexOf(l), l->Start);
+					GDisplayString ds(SysFont, s);
+					SysFont->Transparent(true);
+					ds.Draw(pDC, OldTr.x2 + 2, OldTr.y1);
+				}
 				#endif
 
 				#ifdef DOUBLE_BUFFER_PAINT

@@ -247,7 +247,7 @@ protected:
 	int ScrollYPixel();
 	GRect DocToScreen(GRect r);
 	ptrdiff_t MatchText(char16 *Text, bool MatchWord, bool MatchCase, bool SelectionOnly, bool SearchUpwards);
-	bool ValidateLines();
+	bool ValidateLines(bool CheckBox = false);
 	
 	// styles
 	bool InsertStyle(GAutoPtr<GStyle> s);
