@@ -269,9 +269,9 @@ protected:
 	// Drawing locations
 	GRect ItemsPos;
 	GRect ScrollX, ScrollY;
-	int FirstVisible;
-	int LastVisible;
-	int CompletelyVisible;
+	size_t FirstVisible;
+	size_t LastVisible;
+	size_t CompletelyVisible;
 
 	// Misc
 	bool GetUpdateRegion(LListItem *i, GRegion &r);

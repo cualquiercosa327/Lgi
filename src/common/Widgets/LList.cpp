@@ -2287,11 +2287,10 @@ void LList::PourAll()
 			ColumnHeader.ZOff(-1, -1);
 		}
 		
-		int n = 0;
+		size_t n = 0;
 		int y = ItemsPos.y1;
 		size_t Max = MaxScroll();
 		FirstVisible = (VScroll) ? VScroll->Value() : 0;
-		if (FirstVisible < 0) FirstVisible = 0;
 		if (FirstVisible > Max) FirstVisible = Max;
 		LastVisible = 0x7FFFFFFF;
 		CompletelyVisible = 0;
