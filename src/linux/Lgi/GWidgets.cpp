@@ -305,8 +305,11 @@ int GDialog::DoModal(OsView OverrideParent)
 	d->IsModal = true;
 	SetupDialog(true);
 	
+	#if 0
 	gtk_main();
-	// LgiApp->Run();
+	#else
+	LgiApp->Run();
+	#endif
 	
 	return d->ModalStatus;
 }
@@ -332,9 +335,11 @@ void GDialog::EndModal(int Code)
 		d->IsModal = false;
 		d->ModalStatus = Code;
 
-		// gtk_dialog_response(GTK_DIALOG(Wnd), Code);
+		#if 0
 		gtk_main_quit();
-		// LgiApp->Exit();
+		#else
+		LgiApp->Exit();
+		#endif
 	}
 	else
 	{

@@ -186,15 +186,13 @@ void LgiCrashHandler(int Sig)
 
 struct Msg
 {
-	GdkWindow *wnd;
-	GtkWidget *w;
+	GViewI *v;
 	int m;
 	GMessage::Param a, b;
 	
-	void Set(GtkWidget *W, int M, GMessage::Param A, GMessage::Param B)
+	void Set(GViewI *V, int M, GMessage::Param A, GMessage::Param B)
 	{
-		wnd = W->window;
-		w = W;
+		v = V;
 		m = M;
 		a = A;
 		b = B;
@@ -515,18 +513,20 @@ struct GtkIdle
 
 Gtk::gboolean IdleWrapper(Gtk::gpointer data)
 {
-	/*
-	static int64 ts = LgiCurrentTime();
-	static int count = 0;
-	int64 now = LgiCurrentTime();
-	if (now - ts > 300)
-	{
-		printf("IdleWrapper = %i\n", count);
-		count = 0;
-		ts = now;
-	}
-	else count++;
-	*/
+	#if 0
+	
+		static int64 ts = LgiCurrentTime();
+		static int count = 0;
+		int64 now = LgiCurrentTime();
+		if (now - ts > 300)
+		{
+			printf("IdleWrapper = %i\n", count);
+			count = 0;
+			ts = now;
+		}
+		else count++;
+		
+	#endif
 
 	GtkIdle *i = (GtkIdle*) data;
 	if (i->cb)
@@ -544,41 +544,26 @@ Gtk::gboolean IdleWrapper(Gtk::gpointer data)
 		
 		for (auto m : q)
 		{
-			GtkWindow *w = NULL;
-			GdkEvent *e = gdk_event_new(GDK_CLIENT_EVENT);
-			if (e)
+			if (!GView::LockHandler(m.v, GView::OpLock))
 			{
-				e->client.data.l[0] = m.m;
-				e->client.data.l[1] = m.a;
-				e->client.data.l[2] = m.b;			
-				
-				if (m.wnd)
-					gdk_window_get_user_data(m.wnd, (gpointer*)&w);
-					
-				if (!w)
-				{
-					// Window must of been destroyed...
-					printf("%s:%i - Window destroyed.\n", _FL);			
-				}
-				else if (GlibWidgetSearch(GTK_WIDGET(w), m.w, false))
-				{
-					/*
-					printf("Processing event: %p %p %i %i %i\n",
-						m.wnd,
-						m.w,
-						m.m, m.a, m.b);
-					*/
-					
-				    gtk_propagate_event(m.w, e);
-				}
-				else
-				{
-					printf("%s:%i - Failed to find widget(%p) for PostMessage.\n", _FL, w);
-				}
-				
-				gdk_event_free(e);
+				printf("%s:%i - Invalid view to post event to.\n", _FL);
 			}
-			else printf("%s:%i - gdk_event_new failed.\n", _FL);
+			else
+			{
+				GdkEvent *e = gdk_event_new(GDK_CLIENT_EVENT);
+				if (e)
+				{
+					e->client.data.l[0] = m.m;
+					e->client.data.l[1] = m.a;
+					e->client.data.l[2] = m.b;			
+					
+					gtk_propagate_event(m.v->Handle(), e);
+					gdk_event_free(e);
+				}
+				else printf("%s:%i - gdk_event_new failed.\n", _FL);
+				
+				GView::LockHandler(m.v, GView::OpUnlock);
+			}
 		}
 	}
 	
@@ -595,10 +580,13 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 
 	if (Loop)
 	{
-		GtkIdle idle;
-		idle.d = d;
-		idle.cb = IdleCallback;
-		idle.param = IdleParam;
+		static GtkIdle idle = {0};
+		if (!idle.d)
+		{
+			idle.d = d;
+			idle.cb = IdleCallback;
+			idle.param = IdleParam;
+		}
 
 		{			
 			GtkLock _Lock;
@@ -1426,7 +1414,7 @@ GlibPostMessage(GlibEventParams *p)
     return FALSE;
 }
 
-bool GApp::PostEvent(Gtk::GtkWidget *Widget, int Msg, GMessage::Param a, GMessage::Param b)
+bool GApp::PostEvent(GViewI *View, int Msg, GMessage::Param a, GMessage::Param b)
 {
 	if (!d->Lock(_FL))
 	{
@@ -1434,49 +1422,21 @@ bool GApp::PostEvent(Gtk::GtkWidget *Widget, int Msg, GMessage::Param a, GMessag
 		return false;
 	}
 	
-	// printf("%s:%i - Posting event %p,%i,%i,%i.\n", _FL, Widget, Msg, a, b);
-	d->MsgQue.New().Set(Widget, Msg, a, b);
+	// printf("%s:%i - Posting event %p,%i,%i,%i.\n", _FL, View, Msg, a, b);
+	d->MsgQue.New().Set(View, Msg, a, b);
 	d->Unlock();
 	
 	return true;
 }
 
-bool GMessage::Send(GtkWidget *Wnd)
+bool GMessage::Send(GViewI *View)
 {
-	if (!Wnd)
+	if (!View)
 	{
-		LgiAssert(!"No Event or Wnd");
+		LgiAssert(!"No view");
 		return false;
 	}
 	
-	#if 0
-	// Can't access any GTK stuff here, might not be running in GUI
-	// Thread..	
-	if (LgiApp->InThread())
-	{
-	    GlibEventParams *p = new GlibEventParams;
-	    p->w = Wnd;
-	    p->e = gdk_event_new(GDK_CLIENT_EVENT);
-	    *p->e = *Event;
-	    
-    	p->e->client.window = gtk_widget_get_parent_window(Wnd);
-    	if (!p->e->client.window)
-	    	p->e->client.window = gtk_widget_get_window(Wnd);
-	    
-	    if (p->e->client.window)
-	    {
-	    	g_object_ref(p->e->client.window); // gdk_event_free will unref the window
-			// printf("Sending %p to %p / %s\n", p->e, p->w, G_OBJECT_TYPE_NAME(Wnd));			
-		    g_idle_add((GSourceFunc)GlibPostMessage, p);
-	    }
-		else return false;
-	}
-	else
-	#endif
-	{
-		return LgiApp->PostEvent(Wnd, m, a, b);
-	}
-
-	return true;
+	return LgiApp->PostEvent(View, m, a, b);
 }
 

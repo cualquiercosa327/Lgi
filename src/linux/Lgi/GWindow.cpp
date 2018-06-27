@@ -91,6 +91,9 @@ GWindow::GWindow(GtkWidget *w) : GView(0)
 	_QuitOnClose = false;
 	Menu = NULL;
 	Wnd = GTK_WINDOW(w);
+	if (Wnd)
+		g_object_set_data(G_OBJECT(Wnd), "GViewI", (GViewI*)this);
+	
 	_Root = NULL;
 	_MenuBar = NULL;
 	_VBox = NULL;
@@ -366,7 +369,12 @@ bool GWindow::Attach(GViewI *p)
 	ThreadCheck();
 	
 	if (!Wnd)
-		Wnd = GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL));
+	{
+		if (Wnd = GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL)))
+		{
+			g_object_set_data(G_OBJECT(Wnd), "GViewI", (GViewI*)this);
+		}
+	}
 	if (Wnd)
 	{
 		_View = GTK_WIDGET(Wnd);

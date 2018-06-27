@@ -293,7 +293,7 @@ public:
 		#endif
 	#endif
 	void Set(int m, Param a, Param b);
-	bool Send(OsView Wnd);
+	bool Send(class GViewI *View);
 };
 
 // These are deprecated.

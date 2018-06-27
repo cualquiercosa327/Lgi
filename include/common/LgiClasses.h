@@ -370,7 +370,7 @@ public:
 
 		DesktopInfo *GetDesktopInfo();
 		bool SetApplicationIcon(const char *FileName);
-		bool PostEvent(Gtk::GtkWidget *Wnd, int Msg, GMessage::Param a = 0, GMessage::Param b = 0);
+		bool PostEvent(GViewI *View, int Msg, GMessage::Param a = 0, GMessage::Param b = 0);
 		
 	#endif
 };
@@ -403,50 +403,57 @@ class LgiClass GView : virtual public GViewI, virtual public GBase
 
 	#if defined(__GTK_H__)
 
-	friend Gtk::gboolean lgi_widget_expose(Gtk::GtkWidget *widget, Gtk::GdkEventExpose *e);
-    friend Gtk::gboolean lgi_widget_click(Gtk::GtkWidget *widget, Gtk::GdkEventButton *ev);
-    friend Gtk::gboolean lgi_widget_motion(Gtk::GtkWidget *widget, Gtk::GdkEventMotion *ev);
-	friend Gtk::gboolean GViewCallback(Gtk::GtkWidget *widget, Gtk::GdkEvent  *event, GView *view);
-	friend Gtk::gboolean PopupEvent(Gtk::GtkWidget *widget, Gtk::GdkEvent *event, class GPopup *This);
-	friend Gtk::gboolean GtkViewCallback(Gtk::GtkWidget *widget, Gtk::GdkEvent *event, GView *This);
+		friend Gtk::gboolean lgi_widget_expose(Gtk::GtkWidget *widget, Gtk::GdkEventExpose *e);
+		friend Gtk::gboolean lgi_widget_click(Gtk::GtkWidget *widget, Gtk::GdkEventButton *ev);
+		friend Gtk::gboolean lgi_widget_motion(Gtk::GtkWidget *widget, Gtk::GdkEventMotion *ev);
+		friend Gtk::gboolean GViewCallback(Gtk::GtkWidget *widget, Gtk::GdkEvent  *event, GView *view);
+		friend Gtk::gboolean PopupEvent(Gtk::GtkWidget *widget, Gtk::GdkEvent *event, class GPopup *This);
+		friend Gtk::gboolean GtkViewCallback(Gtk::GtkWidget *widget, Gtk::GdkEvent *event, GView *This);
 	
-	virtual Gtk::gboolean OnGtkEvent(Gtk::GtkWidget *widget, Gtk::GdkEvent *event);
+		virtual Gtk::gboolean OnGtkEvent(Gtk::GtkWidget *widget, Gtk::GdkEvent *event);
 public:
-	void OnGtkRealize();
+		void OnGtkRealize();
+		virtual void OnGtkDelete();
+
 private:
+	#endif
+	
+	#if defined WIN32
 
-	#elif defined WIN32
-
-	friend		class GWin32Class;
-	friend		class GCombo;
-	friend		LRESULT CALLBACK DlgRedir(OsView hWnd, UINT m, WPARAM a, LPARAM b);
-	static		void CALLBACK TimerProc(OsView hwnd, UINT uMsg, UINT_PTR idEvent, uint32 dwTime);
+		friend		class GWin32Class;
+		friend		class GCombo;
+		friend		LRESULT CALLBACK DlgRedir(OsView hWnd, UINT m, WPARAM a, LPARAM b);
+		static		void CALLBACK TimerProc(OsView hwnd, UINT uMsg, UINT_PTR idEvent, uint32 dwTime);
 
 	#elif defined MAC
 	
-	#if defined(COCOA)
-	#else
-	friend OSStatus LgiWindowProc(EventHandlerCallRef, EventRef, void *);
-	friend OSStatus LgiRootCtrlProc(EventHandlerCallRef, EventRef, void *);
-	friend OSStatus CarbonControlProc(EventHandlerCallRef, EventRef, void *);
-	friend OSStatus GViewProc(EventHandlerCallRef, EventRef, void *);
-	friend OSStatus LgiViewDndHandler(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, void *inUserData);
-	#endif
+		#if defined(COCOA)
+
+		#else
+
+			friend OSStatus LgiWindowProc(EventHandlerCallRef, EventRef, void *);
+			friend OSStatus LgiRootCtrlProc(EventHandlerCallRef, EventRef, void *);
+			friend OSStatus CarbonControlProc(EventHandlerCallRef, EventRef, void *);
+			friend OSStatus GViewProc(EventHandlerCallRef, EventRef, void *);
+			friend OSStatus LgiViewDndHandler(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, void *inUserData);
+
+		#endif
 
 	#elif defined BEOS
 
-	friend		class GButtonRedir;
-	friend		class _OsEditFrame;
-	friend		class BViewRedir;
-	friend		long _lgi_pulse_thread(void *ptr);
-	friend 		GView *_lgi_search_children(GView *v, int &x, int &y);
+		friend		class GButtonRedir;
+		friend		class _OsEditFrame;
+		friend		class BViewRedir;
+		friend		long _lgi_pulse_thread(void *ptr);
+		friend 		GView *_lgi_search_children(GView *v, int &x, int &y);
 
 	#endif
 
 	#if defined(LGI_SDL)
-	static GHashTbl<void*,bool> ViewMap;
-	friend Uint32 SDL_PulseCallback(Uint32 interval, GView *v);
-	friend class GApp;
+
+		friend Uint32 SDL_PulseCallback(Uint32 interval, GView *v);
+		friend class GApp;
+
 	#endif
 
 
@@ -466,13 +473,24 @@ protected:
 	static GViewI		*_Capturing;
 	static GViewI		*_Over;
 	
-	#if defined(__GTK_H__)
+	#if defined(__GTK_H__) || defined(LGI_SDL)
 	
 public:
-	virtual void OnGtkDelete();
+		enum LockOp
+		{
+			OpCreate,
+			OpDelete,
+			OpLock,
+			OpUnlock,
+		};
+	
+		static bool LockHandler(GViewI *v, LockOp Op);
+
+	#endif
+
 protected:
 	
-	#elif defined WINNATIVE
+	#if defined WINNATIVE
 
 	uint32 GetStyle();
 	void SetStyle(uint32 i);

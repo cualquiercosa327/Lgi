@@ -13,13 +13,13 @@
 #include <fcntl.h>
 
 #ifdef WINDOWS
-#include <winsock2.h>
-#include <shlobj.h>
-#include "GRegKey.h"
-#include <sys/types.h>
-#include <sys/stat.h>
+	#include <winsock2.h>
+	#include <shlobj.h>
+	#include "GRegKey.h"
+	#include <sys/types.h>
+	#include <sys/stat.h>
 #else
-#include <unistd.h>
+	#include <unistd.h>
 #endif
 
 #include "Lgi.h"
@@ -35,23 +35,29 @@
 #endif
 
 #if defined POSIX
-#include <sys/time.h>
-#include <sys/types.h>
-#include <pwd.h>
-#include <sys/utsname.h>
-#include "GProcess.h"
+	#include <sys/time.h>
+	#include <sys/types.h>
+	#include <pwd.h>
+	#include <sys/utsname.h>
+	#include "GProcess.h"
 #elif defined BEOS
-#include <Path.h>
+	#include <Path.h>
 #endif
 
 #if defined(WIN32)
-#include "../win32/GSymLookup.h"
+	#include "../win32/GSymLookup.h"
 #elif defined(LINUX)
-#include "../linux/GSymLookup.h"
+	#include "../linux/GSymLookup.h"
 #else
-#include "GSymLookup.h"
+	#include "GSymLookup.h"
 #endif
 #include "GLibrary.h"
+
+#if defined(__GTK_H__)
+namespace Gtk {
+	#include "LgiWidget.h"
+}
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // Misc stuff
@@ -128,16 +134,14 @@ bool LgiPostEvent(OsView Wnd, int Event, GMessage::Param a, GMessage::Param b)
 
 	#elif defined(__GTK_H__)
 
-	if (Wnd)
+	GViewI *View = g_object_get_data(GtkCast(Wnd, g_object, GObject), "GViewI");
+	if (View)
 	{
 		GMessage m(0);
 		m.Set(Event, a, b);
-		return m.Send(Wnd);
+		return m.Send(View);
 	}
-	else
-	{
-		printf("%s:%i - Warning: LgiPostEvent failed because View=0\n", _FL);
-	}
+	else printf("%s:%i - Error: LgiPostEvent can't cast OsView to GViewI\n", _FL);
 
 	#elif defined(BEOS)
 	
