@@ -669,9 +669,12 @@ void GTextView3::OnFontChange()
 
 void GTextView3::LogLines()
 {
+	int Idx = 0;
+	LgiTrace("DocSize: %i\n", (int)Size);
 	for (auto i : Line)
 	{
-		
+		LgiTrace("  [%i]=%i+%i %s\n", Idx, (int)i->Start, (int)i->Len, i->r.GetStr());
+		Idx++;
 	}
 }
 
