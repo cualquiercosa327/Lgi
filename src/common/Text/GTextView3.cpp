@@ -667,6 +667,14 @@ void GTextView3::OnFontChange()
 	}
 }
 
+void GTextView3::LogLines()
+{
+	for (auto i : Line)
+	{
+		
+	}
+}
+
 bool GTextView3::ValidateLines(bool CheckBox)
 {
 	size_t Pos = 0;
@@ -679,6 +687,7 @@ bool GTextView3::ValidateLines(bool CheckBox)
 		GTextLine *l = i;
 		if (l->Start != Pos)
 		{
+			LogLines();
 			LgiAssert(!"Incorrect start.");
 			return false;
 		}
@@ -699,14 +708,18 @@ bool GTextView3::ValidateLines(bool CheckBox)
 		ssize_t Len = e - c;
 		if (l->Len != Len)
 		{
+			LogLines();
 			LgiAssert(!"Incorrect length.");
 			return false;
 		}
 
 
-		if (CheckBox && Prev)
+		if (CheckBox &&
+			Prev &&
+			Prev->r.y2 != l->r.y1 - 1)
 		{
-			LgiAssert(Prev->r.y2 == l->r.y1 - 1);
+			LogLines();
+			LgiAssert(!"Lines not joined vertically");
 		}
 
 		if (*e)
@@ -725,6 +738,7 @@ bool GTextView3::ValidateLines(bool CheckBox)
 	if (WrapType == TEXTED_WRAP_NONE &&
 		Pos != Size)
 	{
+		LogLines();
 		LgiAssert(!"Last line != end of doc");
 		return false;
 	}

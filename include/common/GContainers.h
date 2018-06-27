@@ -281,12 +281,9 @@ protected:
 		{
 			if (!i->Next)
 			{
-				// Append a new LstBlk and put one item in it
-				if (!(i = NewBlock(i)))
+				// Append a new LstBlk
+				if (!NewBlock(i))
 					return false;
-				i->Ptr[i->Count++] = p;
-				Items++;
-				return true;
 			}
 
 			if (Index < 0)
@@ -649,6 +646,7 @@ public:
 				Status = Insert(LastObj, p, -1);				
 		}
 		VALIDATE();
+		LgiAssert(Status);
 		return Status;
 	}
 
