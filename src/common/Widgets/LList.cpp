@@ -2289,7 +2289,7 @@ void LList::PourAll()
 		
 		int n = 0;
 		int y = ItemsPos.y1;
-		int Max = MaxScroll();
+		size_t Max = MaxScroll();
 		FirstVisible = (VScroll) ? VScroll->Value() : 0;
 		if (FirstVisible < 0) FirstVisible = 0;
 		if (FirstVisible > Max) FirstVisible = Max;
