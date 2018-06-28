@@ -2156,7 +2156,9 @@ void LList::Sort(LListCompareFunc Compare, NativeInt Data)
 {
 	if (Lock(_FL))
 	{
+		LListItem *Kb = Items[Keyboard];
 		Items.Sort(Compare ? Compare : ListStringCompare, Data);
+		Keyboard = Kb ? Items.IndexOf(Kb) : -1;
 		Invalidate(&ItemsPos);
 
 		Unlock();
