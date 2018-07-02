@@ -1152,9 +1152,9 @@ bool LDateTime::Parse(GString s)
 					Seconds((int)t[2].Int());
 				}
 			}
-			else if (strchr(c, '-'))
+			else if (strchr(c, '-') || strchr(c, '/'))
 			{
-				GString::Array t = a[i].Split("-");
+				GString::Array t = a[i].SplitDelimit("-/");
 				if (t.Length() == 3)
 				{
 					Year((int)t[0].Int());
