@@ -1157,9 +1157,24 @@ bool LDateTime::Parse(GString s)
 				GString::Array t = a[i].SplitDelimit("-/");
 				if (t.Length() == 3)
 				{
-					Year((int)t[0].Int());
-					Month((int)t[1].Int());
-					Day((int)t[2].Int());
+					// What order are they in?
+					if (t[0].Length() >= 4)
+					{
+						Year((int)t[0].Int());
+						Month((int)t[1].Int());
+						Day((int)t[2].Int());
+					}
+					else if (t[2].Length() >= 4)
+					{
+						Day((int)t[0].Int());
+						Month((int)t[1].Int());
+						Year((int)t[2].Int());
+					}
+					else
+					{
+						LgiAssert(!"Unknown date format?");
+						return false;
+					}
 				}
 			}
 			else if (a[i].Length() == 4)
@@ -1288,7 +1303,7 @@ bool LDateTime::Serialize(ObjProperties *Props, char *Name, bool Write)
 }
 */
 
-int LDateTime::Compare(const LDateTime *d)
+int LDateTime::Compare(const LDateTime *d) const
 {
 	int c = 0;
 	if (d)
@@ -1322,7 +1337,7 @@ int LDateTime::Compare(const LDateTime *d)
 	return c;
 }
 
-bool LDateTime::operator <(LDateTime &dt)
+bool LDateTime::operator <(LDateTime &dt) const
 {
 	if (_Year < dt._Year) return true;
 	else if (_Year > dt._Year) return false;
@@ -1348,12 +1363,12 @@ bool LDateTime::operator <(LDateTime &dt)
 	return false;
 }
 
-bool LDateTime::operator <=(LDateTime &dt)
+bool LDateTime::operator <=(LDateTime &dt) const
 {
 	return !(*this > dt);
 }
 
-bool LDateTime::operator >(LDateTime &dt)
+bool LDateTime::operator >(LDateTime &dt) const
 {
 	if (_Year > dt._Year) return true;
 	else if (_Year < dt._Year) return false;
@@ -1379,12 +1394,12 @@ bool LDateTime::operator >(LDateTime &dt)
 	return false;
 }
 
-bool LDateTime::operator >=(LDateTime &dt)
+bool LDateTime::operator >=(LDateTime &dt) const
 {
 	return !(*this < dt);
 }
 
-bool LDateTime::operator ==(LDateTime &dt)
+bool LDateTime::operator ==(const LDateTime &dt) const
 {
 	return	_Year == dt._Year &&
 			_Month == dt._Month &&
@@ -1395,7 +1410,7 @@ bool LDateTime::operator ==(LDateTime &dt)
 			_Thousands == dt._Thousands;
 }
 
-bool LDateTime::operator !=(LDateTime &dt)
+bool LDateTime::operator !=(LDateTime &dt) const
 {
 	return	_Year != dt._Year ||
 			_Month != dt._Month ||
