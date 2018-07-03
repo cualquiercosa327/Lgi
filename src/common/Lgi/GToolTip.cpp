@@ -119,7 +119,7 @@ public:
 	void OnPaint(GSurface *pDC)
 	{
 		GRect c = GetClient();
-		COLOUR b = Rgb24(255, 255, 231);
+		COLOUR b = LC_TOOL_TIP;
 		
 		// Draw border
 		pDC->Colour(LC_BLACK, 24);

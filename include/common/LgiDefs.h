@@ -378,6 +378,8 @@ enum LgiOs
 
 #define LC_MAXIMUM						24
 
+#define LC_TOOL_TIP						Rgb24(255, 255, 231)
+
 // Edge types
 enum LgiEdge
 {
