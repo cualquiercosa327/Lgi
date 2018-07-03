@@ -22,7 +22,7 @@ GOptionsFile::GOptionsFile(const char *FileName) : LMutex("GOptionsFile")
 	if (FileExists(FileName))
 		File.Reset(NewStr(FileName));
 	else
-		SetMode(PortableMode);
+		SetMode(PortableMode, FileName);
 }
 
 GOptionsFile::GOptionsFile(PortableType Mode, const char *BaseName) : LMutex("GOptionsFile")
