@@ -2180,10 +2180,11 @@ bool MailIMap::Close()
 
 bool MailIMap::GetCapabilities(GArray<char*> &s)
 {
-	char *k = 0;
-	for (bool p=d->Capability.First(&k); p; p=d->Capability.Next(&k))
+	// char *k = 0;
+	// for (bool p=d->Capability.First(&k); p; p=d->Capability.Next(&k))
+	for (auto i : d->Capability)
 	{
-		s.Add(k);
+		s.Add(i.key);
 	}
 
 	return s.Length() > 0;

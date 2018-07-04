@@ -185,13 +185,14 @@ public:
 				int ResponseHnd = (int)Msg->A();
 				GAutoPtr< GArray<LanguageId> > Langs(new GArray<LanguageId>);
 
-				const char *Id;
-				for (Lang *l = Languages.First(&Id); l; l = Languages.Next(&Id))
+				// const char *Id;
+				// for (Lang *l = Languages.First(&Id); l; l = Languages.Next(&Id))
+				for (auto l : Languages)
 				{
 					LanguageId &i = Langs->New();
-					i.LangCode = l->Id;
-					i.EnglishName = l->English ? l->English : l->Id;
-					i.NativeName = l->Native;
+					i.LangCode = l.value->Id;
+					i.EnglishName = l.value->English ? l.value->English : l.value->Id;
+					i.NativeName = l.value->Native;
 				}
 
 				if (Langs && Langs->Length() > 0)

@@ -1569,11 +1569,12 @@ bool GTag::CreateSource(GStringPipe &p, int Depth, bool LastWasBlock)
 
 		if (Attr.Length())
 		{
-			const char *a;
-			for (char *v = Attr.First(&a); v; v = Attr.Next(&a))
+			// const char *a;
+			// for (char *v = Attr.First(&a); v; v = Attr.Next(&a))
+			for (auto v : Attr)
 			{
-				if (_stricmp(a, "style"))
-					p.Print(" %s=\"%s\"", a, v);
+				if (_stricmp(v.key, "style"))
+					p.Print(" %s=\"%s\"", v.key, v.value);
 			}
 		}
 		if (Props.Length())
@@ -7774,18 +7775,20 @@ bool GHtml::OnSubmitForm(GTag *Form)
 	if (!_stricmp(Method, "post"))
 	{
 		GStringPipe p(256);
-		const char *Field;
 		bool First = true;
-		for (char *Val = f.First(&Field); Val; Val = f.Next(&Field))
+
+		// const char *Field;
+		// for (char *Val = f.First(&Field); Val; Val = f.Next(&Field))
+		for (auto v : f)
 		{
 			if (First)
 				First = false;
 			else
 				p.Write("&", 1);
 			
-			FormEncode(p, Field);
+			FormEncode(p, v.key);
 			p.Write("=", 1);
-			FormEncode(p, Val);
+			FormEncode(p, v.value);
 		}
 		
 		GAutoPtr<const char, true> Data(p.NewStr());

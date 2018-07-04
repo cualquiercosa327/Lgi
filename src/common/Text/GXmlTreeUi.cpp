@@ -89,10 +89,11 @@ void GXmlTreeUi::EmptyAll(GViewI *Ui)
 {
 	if (Ui)
 	{
-		for (Mapping *m=d->Maps.First(); m; m=d->Maps.Next())
+		// for (Mapping *m=d->Maps.First(); m; m=d->Maps.Next())
+		for (auto m : d->Maps)
 		{
-			if (m->Hint == GV_STRING)
-				Ui->SetCtrlName(m->Id, 0);
+			if (m.value->Hint == GV_STRING)
+				Ui->SetCtrlName(m.value->Id, 0);
 		}
 	}
 }
@@ -101,9 +102,10 @@ void GXmlTreeUi::EnableAll(GViewI *Ui, bool Enable)
 {
 	if (Ui)
 	{
-		for (Mapping *m=d->Maps.First(); m; m=d->Maps.Next())
+		// for (Mapping *m=d->Maps.First(); m; m=d->Maps.Next())
+		for (auto m : d->Maps)
 		{
-			Ui->SetCtrlEnabled(m->Id, Enable);
+			Ui->SetCtrlEnabled(m.value->Id, Enable);
 		}
 	}
 }
@@ -258,21 +260,22 @@ bool GXmlTreeUi::Convert(GDom *Tag, GViewI *Ui, bool ToUI)
 		if (ToUI)
 		{
 			// Xml -> UI
-			const char *Attr;
-			for (Mapping *Map = d->Maps.First(&Attr); Map; Map = d->Maps.Next(&Attr))
+			// const char *Attr;
+			// for (Mapping *Map = d->Maps.First(&Attr); Map; Map = d->Maps.Next(&Attr))
+			for (auto Map : d->Maps)
 			{
-				if (Map->Hint == GV_LIST)
+				if (Map.value->Hint == GV_LIST)
 				{
 					if (Xml)
 					{
-						GXmlTag *t = Xml->GetChildTag(Attr);
+						GXmlTag *t = Xml->GetChildTag(Map.key);
 						if (!t) continue;
 						LList *Lst;
-						if (!Ui->GetViewById(Map->Id, Lst)) continue;
+						if (!Ui->GetViewById(Map.value->Id, Lst)) continue;
 						Lst->Empty();
 						for (GXmlTag *c=t->Children.First(); c; c=t->Children.Next())
 						{
-							LListItem *i = Map->ListItemFactory(Map->User);
+							LListItem *i = Map.value->ListItemFactory(Map.value->User);
 							if (i)
 							{
 								i->XmlIo(c, false);
@@ -281,48 +284,48 @@ bool GXmlTreeUi::Convert(GDom *Tag, GViewI *Ui, bool ToUI)
 						}
 					}
 				}
-				else if (Map->Hint == GV_CUSTOM)
+				else if (Map.value->Hint == GV_CUSTOM)
 				{
 					if (Xml)
 					{
-						GXmlTag *t = Xml->GetChildTag(Attr);
+						GXmlTag *t = Xml->GetChildTag(Map.key);
 						if (!t) continue;
 
 						GTree *Tree;
-						if (!Ui->GetViewById(Map->Id, Tree)) continue;
+						if (!Ui->GetViewById(Map.value->Id, Tree)) continue;
 						Tree->Empty();
 
-						Map->LoadTree(Tree, t);
+						Map.value->LoadTree(Tree, t);
 					}
 				}
-				else if (Map->Hint == GV_DOM)
+				else if (Map.value->Hint == GV_DOM)
 				{
 					GControlTree *ct;
-					if (Ui->GetViewById(Map->Id, ct))
+					if (Ui->GetViewById(Map.value->Id, ct))
 					{
 						ct->Serialize(Xml, false);
 					}
 				}
-				else if (Tag->GetValue(Attr, v))
+				else if (Tag->GetValue(Map.key, v))
 				{
-					int Type = Map->Hint ? Map->Hint : GetDataType(v.Str());
+					int Type = Map.value->Hint ? Map.value->Hint : GetDataType(v.Str());
 
 					if (Type == GV_BOOL ||
 							Type == GV_INT32 ||
 							Type == GV_INT64)
 					{
-						Ui->SetCtrlValue(Map->Id, v.CastInt32());
+						Ui->SetCtrlValue(Map.value->Id, v.CastInt32());
 					}
 					else
 					{
-						Ui->SetCtrlName(Map->Id, v.Str());
+						Ui->SetCtrlName(Map.value->Id, v.Str());
 					}
 					Status = true;
 				}
 				else
 				{
 					GEdit *c;
-					if (Ui->GetViewById(Map->Id, c))
+					if (Ui->GetViewById(Map.value->Id, c))
 						c->Name("");
 				}
 			}
@@ -330,31 +333,32 @@ bool GXmlTreeUi::Convert(GDom *Tag, GViewI *Ui, bool ToUI)
 		else
 		{
 			// UI -> Xml
-			const char *Attr;
-			for (Mapping *Map = d->Maps.First(&Attr); Map; Map = d->Maps.Next(&Attr))
+			// const char *Attr;
+			// for (Mapping *Map = d->Maps.First(&Attr); Map; Map = d->Maps.Next(&Attr))
+			for (auto Map : d->Maps)
 			{
-				GViewI *c = Ui->FindControl(Map->Id);
+				GViewI *c = Ui->FindControl(Map.value->Id);
 				if (c)
 				{
-					int Type = Map->Hint ? Map->Hint : GetCtrlType(c);
+					int Type = Map.value->Hint ? Map.value->Hint : GetCtrlType(c);
 
 					switch (Type)
 					{
 						case GV_LIST:
 						{
 							if (!Xml) break;
-							GXmlTag *Child = Xml->GetChildTag(Attr, true);
+							GXmlTag *Child = Xml->GetChildTag(Map.key, true);
 							if (!Child) break;
 							LList *Lst = dynamic_cast<LList*>(c);
 							if (!Lst) break;
 							Child->Empty(true);
-							Child->SetTag(Attr);
+							Child->SetTag(Map.key);
 
 							List<LListItem> All;
 							Lst->GetAll(All);
 							for (LListItem *i = All.First(); i; i = All.Next())
 							{
-								GXmlTag *n = new GXmlTag(Map->ChildElements.Str());
+								GXmlTag *n = new GXmlTag(Map.value->ChildElements.Str());
 								if (n)
 								{
 									i->XmlIo(n, true);
@@ -366,29 +370,29 @@ bool GXmlTreeUi::Convert(GDom *Tag, GViewI *Ui, bool ToUI)
 						case GV_CUSTOM: // GTree
 						{
 							if (!Xml) break;
-							GXmlTag *Child = Xml->GetChildTag(Attr, true);
+							GXmlTag *Child = Xml->GetChildTag(Map.key, true);
 							
 							if (!Child) break;
 							GTree *Tree = dynamic_cast<GTree*>(c);
 							
 							if (!Tree) break;
 							Child->Empty(true);
-							Child->SetTag(Attr);
+							Child->SetTag(Map.key);
 							
-							Map->SaveTree(Tree, Child);
+							Map.value->SaveTree(Tree, Child);
 							break;
 						}
 						case GV_INT32:
 						case GV_BOOL:
 						{
-							Tag->SetValue(Attr, v = c->Value());
+							Tag->SetValue(Map.key, v = c->Value());
 							Status = true;
 							break;
 						}
 						case GV_DOM:
 						{
 							GControlTree *ct;
-							if (Ui->GetViewById(Map->Id, ct))
+							if (Ui->GetViewById(Map.value->Id, ct))
 							{
 								ct->Serialize(Xml, true);
 							}
@@ -403,7 +407,7 @@ bool GXmlTreeUi::Convert(GDom *Tag, GViewI *Ui, bool ToUI)
 							else
 								v.Empty();
 
-							Tag->SetValue(Attr, v);
+							Tag->SetValue(Map.key, v);
 							Status = true;
 							break;
 						}
@@ -412,7 +416,7 @@ bool GXmlTreeUi::Convert(GDom *Tag, GViewI *Ui, bool ToUI)
 				else
 				{
 					v.Empty();
-					Tag->SetValue(Attr, v);
+					Tag->SetValue(Map.key, v);
 				}
 			}
 		}

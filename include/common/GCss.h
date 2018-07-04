@@ -748,10 +748,11 @@ public:
 	
 		void Empty()
 		{
-			for (SelArray *s = First(); s; s = Next())
+			// for (SelArray *s = First(); s; s = Next())
+			for (auto s : *this)
 			{
-				s->DeleteObjects();
-				delete s;
+				s.value->DeleteObjects();
+				delete s.value;
 			}	
 			GHashTbl<const char*,SelArray*>::Empty();
 		}

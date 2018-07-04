@@ -561,12 +561,13 @@ GVariant &GVariant::operator =(GVariant const &i)
 		{
 			if ((Value.Hash = new GVariantHash))
 			{
-				const char *k;
 				if (i.Value.Hash)
 				{
-					for (GVariant *var = i.Value.Hash->First(&k); var; var = i.Value.Hash->Next(&k))
+					// const char *k;
+					// for (GVariant *var = i.Value.Hash->First(&k); var; var = i.Value.Hash->Next(&k))
+					for (auto i : *i.Value.Hash)
 					{
-						Value.Hash->Add(k, new GVariant(*var));
+						Value.Hash->Add(i.key, new GVariant(*i.value));
 					}
 				}
 			}
@@ -685,10 +686,11 @@ bool GVariant::SetHashTable(GVariantHash *Table, bool Copy)
 	{
 		if ((Value.Hash = new GVariantHash))
 		{
-			const char *k;
-			for (GVariant *p = Table->First(&k); p; p = Table->Next(&k))
+			// const char *k;
+			// for (GVariant *p = Table->First(&k); p; p = Table->Next(&k))
+			for (auto i : *Table)
 			{
-				Value.Hash->Add(k, p);
+				Value.Hash->Add(i.key, i.value);
 			}
 		}
 	}
@@ -856,9 +858,10 @@ void GVariant::Empty()
 		{
 			if (Value.Hash)
 			{
-				for (GVariant *v = (GVariant*) Value.Hash->First(); v; v = (GVariant*) Value.Hash->Next())
+				// for (GVariant *v = (GVariant*) Value.Hash->First(); v; v = (GVariant*) Value.Hash->Next())
+				for (auto i : *Value.Hash)
 				{
-					DeleteObj(v);
+					DeleteObj(i.value);
 				}
 				DeleteObj(Value.Hash);
 			}
@@ -946,10 +949,9 @@ int64 GVariant::Length()
 			int64 Sz = 0;
 			if (Value.Hash)
 			{
-				for (GVariant *v=(GVariant*)Value.Hash->First();
-					v;
-					v=(GVariant*)Value.Hash->Next())
-					Sz += v->Length();
+				// for (GVariant *v=Value.Hash->First(); v; v=Value.Hash->Next())
+				for (auto i : *Value.Hash)
+					Sz += i.value->Length();
 			}
 			return Sz;
 		}
@@ -1388,13 +1390,12 @@ char *GVariant::CastString()
 
 			p.Print("{");
 			
-			const char *k;
 			bool First = true;
-			for (GVariant *v = Value.Hash->First(&k);
-				v;
-				v = Value.Hash->Next(&k))
+			// const char *k;
+			// for (GVariant *v = Value.Hash->First(&k); v; v = Value.Hash->Next(&k))
+			for (auto i : *Value.Hash)
 			{
-				p.Print("%s%s = %s", First ? "" : ", ", k, v->CastString());
+				p.Print("%s%s = %s", First ? "" : ", ", i.key, i.value->CastString());
 				First = false;
 			}
 			p.Print("}");

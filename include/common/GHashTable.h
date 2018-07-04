@@ -710,7 +710,8 @@ public:
 
 		return NullKey;
 	}
-	
+
+	/*	
 	/// Returns the first value
 	Value First(Key *k = 0)
 	{
@@ -772,6 +773,7 @@ public:
 
 		return NullValue;
 	}
+	*/
 
 	/// Removes all key/value pairs from memory
 	void Empty()

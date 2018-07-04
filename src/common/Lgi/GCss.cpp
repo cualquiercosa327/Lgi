@@ -44,11 +44,12 @@ GHashTbl<int, GCss::PropType> GCss::ParentProp;
 
 const char *GCss::PropName(PropType p)
 {
-	const char *s;
-	for (PropType t = Lut.First(&s); t; t = Lut.Next(&s))
+	// const char *s;
+	// for (PropType t = Lut.First(&s); t; t = Lut.Next(&s))
+	for (auto i : Lut)
 	{
-		if (p == t)
-			return s;
+		if (p == i.value)
+			return i.key;
 	}
 
 	LgiAssert(!"Add this field to the LUT");
@@ -436,20 +437,22 @@ GAutoString GCss::ToString()
 {
 	GStringPipe p;
 
-	PropType Prop;
-	for (void *v = Props.First((int*)&Prop); v; v = Props.Next((int*)&Prop))
+	// PropType Prop;
+	// for (void *v = Props.First((int*)&Prop); v; v = Props.Next((int*)&Prop))
+	for (auto v : Props)
 	{
-		switch (Prop >> 8)
+		PropType Prop = (PropType) v.key;
+		switch (v.key >> 8)
 		{
 			case TypeEnum:
 			{
 				const char *s = 0;
 				const char *Name = PropName(Prop);
-				switch (Prop)
+				switch (v.key)
 				{
 					case PropFontWeight:
 					{
-						FontWeightType *b = (FontWeightType*)v;
+						FontWeightType *b = (FontWeightType*)v.value;
 						switch (*b)
 						{
 							case FontWeightInherit: s = "inherit"; break;
@@ -471,7 +474,7 @@ GAutoString GCss::ToString()
 					}
 					case PropFontStyle:
 					{
-						FontStyleType *t = (FontStyleType*)v;
+						FontStyleType *t = (FontStyleType*)v.value;
 						switch (*t)
 						{
 							case FontStyleInherit: s = "inherit"; break;
@@ -483,7 +486,7 @@ GAutoString GCss::ToString()
 					}
 					case PropTextDecoration:
 					{
-						TextDecorType *d = (TextDecorType*)v;
+						TextDecorType *d = (TextDecorType*)v.value;
 						switch (*d)
 						{
 							case TextDecorInherit: s= "inherit"; break;
@@ -497,13 +500,13 @@ GAutoString GCss::ToString()
 					}
 					case PropDisplay:
 					{
-						DisplayType *d = (DisplayType*)v;
+						DisplayType *d = (DisplayType*)v.value;
 						s = ToString(*d);
 						break;
 					}
 					case PropFloat:
 					{
-						FloatType *d = (FloatType*)v;
+						FloatType *d = (FloatType*)v.value;
 						switch (*d)
 						{
 							case FloatInherit: s = "inherit"; break;
@@ -515,7 +518,7 @@ GAutoString GCss::ToString()
 					}
 					case PropPosition:
 					{
-						PositionType *d = (PositionType*)v;
+						PositionType *d = (PositionType*)v.value;
 						switch (*d)
 						{
 							case PosInherit: s = "inherit"; break;
@@ -528,7 +531,7 @@ GAutoString GCss::ToString()
 					}
 					case PropOverflow:
 					{
-						OverflowType *d = (OverflowType*)v;
+						OverflowType *d = (OverflowType*)v.value;
 						switch (*d)
 						{
 							case OverflowInherit: s = "inherit"; break;
@@ -541,7 +544,7 @@ GAutoString GCss::ToString()
 					}
 					case PropVisibility:
 					{
-						VisibilityType *d = (VisibilityType*)v;
+						VisibilityType *d = (VisibilityType*)v.value;
 						switch (*d)
 						{
 							case VisibilityInherit: s = "inherit"; break;
@@ -553,7 +556,7 @@ GAutoString GCss::ToString()
 					}
 					case PropFontVariant:
 					{
-						FontVariantType *d = (FontVariantType*)v;
+						FontVariantType *d = (FontVariantType*)v.value;
 						switch (*d)
 						{
 							case FontVariantInherit: s = "inherit"; break;
@@ -564,7 +567,7 @@ GAutoString GCss::ToString()
 					}
 					case PropBackgroundRepeat:
 					{
-						RepeatType *d = (RepeatType*)v;
+						RepeatType *d = (RepeatType*)v.value;
 						switch (*d)
 						{
 							default: s = "inherit"; break;
@@ -577,7 +580,7 @@ GAutoString GCss::ToString()
 					}
 					case PropBackgroundAttachment:
 					{
-						AttachmentType *d = (AttachmentType*)v;
+						AttachmentType *d = (AttachmentType*)v.value;
 						switch (*d)
 						{
 							default: s = "inherit"; break;
@@ -588,7 +591,7 @@ GAutoString GCss::ToString()
 					}
 					case PropListStyleType:
 					{
-						ListStyleTypes *w = (ListStyleTypes*)v;
+						ListStyleTypes *w = (ListStyleTypes*)v.value;
 						switch (*w)
 						{
 							default: s = "inherit"; break;
@@ -611,7 +614,7 @@ GAutoString GCss::ToString()
 					}
 					case PropBorderCollapse:
 					{
-						BorderCollapseType *w = (BorderCollapseType*)v;
+						BorderCollapseType *w = (BorderCollapseType*)v.value;
 						switch (*w)
 						{
 							default: s = "inherit"; break;
@@ -632,7 +635,7 @@ GAutoString GCss::ToString()
 			}
 			case TypeLen:
 			{
-				Len *l = (Len*)v;
+				Len *l = (Len*)v.value;
 				const char *Name = PropName(Prop);
 				p.Print("%s: ", Name);
 				l->ToString(p);
@@ -641,14 +644,14 @@ GAutoString GCss::ToString()
 			}
 			case TypeGRect:
 			{
-				GRect *r = (GRect*)v;
+				GRect *r = (GRect*)v.value;
 				const char *Name = PropName(Prop);
 				p.Print("%s: rect(%s);\n", Name, r->GetStr());
 				break;
 			}
 			case TypeColor:
 			{
-				ColorDef *c = (ColorDef*)v;
+				ColorDef *c = (ColorDef*)v.value;
 				const char *Name = PropName(Prop);
 				p.Print("%s: ", Name);
 				c->ToString(p);
@@ -657,7 +660,7 @@ GAutoString GCss::ToString()
 			}
 			case TypeImage:
 			{
-				ImageDef *i = (ImageDef*)v;
+				ImageDef *i = (ImageDef*)v.value;
 				const char *Name = PropName(Prop);
 				switch (i->Type)
 				{
@@ -680,7 +683,7 @@ GAutoString GCss::ToString()
 			}
 			case TypeBorder:
 			{
-				BorderDef *b = (BorderDef*)v;
+				BorderDef *b = (BorderDef*)v.value;
 				const char *Name = PropName(Prop);
 
 				p.Print("%s:", Name);
@@ -712,7 +715,7 @@ GAutoString GCss::ToString()
 			}
 			case TypeStrings:
 			{
-				StringsDef *s = (StringsDef*)v;
+				StringsDef *s = (StringsDef*)v.value;
 				const char *Name = PropName(Prop);
 				p.Print("%s: ", Name);
 				for (int i=0; i<s->Length(); i++)
@@ -737,21 +740,22 @@ bool GCss::InheritCollect(GCss &c, PropMap &Contrib)
 {
 	int StillInherit = 0;
 
-    int p;
-	for (PropArray *a = Contrib.First(&p); a; a = Contrib.Next(&p))
+    // int p;
+	// for (PropArray *a = Contrib.First(&p); a; a = Contrib.Next(&p))
+	for (auto a : Contrib)
 	{
-		switch (p >> 8)
+		switch (a.key >> 8)
 		{
 			#define InheritEnum(prop, type, inherit)	\
 				case prop:								\
 				{										\
-					type *Mine = (type*)Props.Find(p); \
+					type *Mine = (type*)Props.Find(a.key); \
 					if (!Mine || *Mine == inherit) \
 					{									\
-						type *Theirs = (type*)c.Props.Find(p); \
+						type *Theirs = (type*)c.Props.Find(a.key); \
 						if (Theirs) \
 						{ \
-							if (!Mine) Props.Add(p, Mine = new type); \
+							if (!Mine) Props.Add(a.key, Mine = new type); \
 							*Mine = *Theirs; \
 						}									\
 						else StillInherit++;				\
@@ -762,13 +766,13 @@ bool GCss::InheritCollect(GCss &c, PropMap &Contrib)
 			#define InheritClass(prop, type, inherit)	\
 				case prop:								\
 				{										\
-					type *Mine = (type*)Props.Find(p); \
+					type *Mine = (type*)Props.Find(a.key); \
 					if (!Mine || Mine->Type == inherit) \
 					{									\
-						type *Theirs = (type*)c.Props.Find(p); \
+						type *Theirs = (type*)c.Props.Find(a.key); \
 						if (Theirs) \
 						{ \
-							if (!Mine) Props.Add(p, Mine = new type); \
+							if (!Mine) Props.Add(a.key, Mine = new type); \
 							*Mine = *Theirs; \
 						}									\
 						else StillInherit++;				\
@@ -780,7 +784,7 @@ bool GCss::InheritCollect(GCss &c, PropMap &Contrib)
 
 			case TypeEnum:
 			{
-				switch (p)
+				switch (a.key)
 				{
 					InheritEnum(PropFontStyle, FontStyleType, FontStyleInherit);
 					InheritEnum(PropFontVariant, FontVariantType, FontVariantInherit);
@@ -796,15 +800,15 @@ bool GCss::InheritCollect(GCss &c, PropMap &Contrib)
 			}
 			case TypeLen:
 			{
-				Len *Mine = (Len*)Props.Find(p);
+				Len *Mine = (Len*)Props.Find(a.key);
 				if (!Mine || Mine->IsDynamic())
 				{
-					Len *Cur = (Len*)c.Props.Find(p);
+					Len *Cur = (Len*)c.Props.Find(a.key);
 					if (Cur && Cur->Type != LenInherit)
 					{
-						if (!Mine) Props.Add(p, Mine = new Len);
+						if (!Mine) Props.Add(a.key, Mine = new Len);
 						*Mine = *Cur;						
-						a->Add(Cur);
+						a.value->Add(Cur);
 					}
 					else StillInherit++;
 				}
@@ -812,13 +816,13 @@ bool GCss::InheritCollect(GCss &c, PropMap &Contrib)
 			}
 			case TypeGRect:
 			{
-				GRect *Mine = (GRect*)Props.Find(p);
+				GRect *Mine = (GRect*)Props.Find(a.key);
 				if (!Mine || !Mine->Valid())
 				{
-					GRect *Theirs = (GRect*)c.Props.Find(p);
+					GRect *Theirs = (GRect*)c.Props.Find(a.key);
 					if (Theirs)
 					{
-						if (!Mine) Props.Add(p, Mine = new GRect);
+						if (!Mine) Props.Add(a.key, Mine = new GRect);
 						*Mine = *Theirs;
 					}
 					else StillInherit++;
@@ -827,13 +831,13 @@ bool GCss::InheritCollect(GCss &c, PropMap &Contrib)
 			}
 			case TypeStrings:
 			{
-				StringsDef *Mine = (StringsDef*)Props.Find(p);
+				StringsDef *Mine = (StringsDef*)Props.Find(a.key);
 				if (!Mine || Mine->Length() == 0)
 				{
-					StringsDef *Theirs = (StringsDef*)c.Props.Find(p);
+					StringsDef *Theirs = (StringsDef*)c.Props.Find(a.key);
 					if (Theirs)
 					{
-						if (!Mine) Props.Add(p, Mine = new StringsDef);
+						if (!Mine) Props.Add(a.key, Mine = new StringsDef);
 						*Mine = *Theirs;
 					}
 					else StillInherit++;
@@ -856,20 +860,21 @@ bool GCss::InheritCollect(GCss &c, PropMap &Contrib)
 
 bool GCss::InheritResolve(PropMap &Contrib)
 {
-    int p;
-	for (PropArray *a = Contrib.First(&p); a; a = Contrib.Next(&p))
+    // int p;
+	// for (PropArray *a = Contrib.First(&p); a; a = Contrib.Next(&p))
+	for (auto a : Contrib)
 	{
-	    switch (p >> 8)
+	    switch (a.key >> 8)
 	    {
             case TypeLen:
             {
 				Len *Mine = 0;
-			    for (int i=a->Length()-1; i>=0; i--)
+			    for (int i=a.value->Length()-1; i>=0; i--)
 			    {
-			        Len *Cur = (Len*)(*a)[i];
+			        Len *Cur = (Len*)(*a.value)[i];
 			        if (!Mine)
 			        {
-						Props.Add(p, Mine = new Len(*Cur));
+						Props.Add(a.key, Mine = new Len(*Cur));
 						continue;
 			        }
 			        
@@ -1065,11 +1070,12 @@ bool GCss::InheritResolve(PropMap &Contrib)
 GCss &GCss::operator -=(const GCss &c)
 {
 	// Removes all props in 'cc' from this Css store...
-	int Prop;
 	GCss &cc = (GCss&)c;
-	for (void *p=cc.Props.First(&Prop); p; p=cc.Props.Next(&Prop))
+	// int Prop;
+	// for (void *p=cc.Props.First(&Prop); p; p=cc.Props.Next(&Prop))
+	for (auto p : cc.Props)
 	{
-		DeleteProp((PropType)Prop);
+		DeleteProp((PropType)p.key);
 	}
 
 	return *this;
@@ -1077,27 +1083,28 @@ GCss &GCss::operator -=(const GCss &c)
 
 bool GCss::CopyStyle(const GCss &c)
 {
-	int Prop;
 	GCss &cc = (GCss&)c;
-	for (void *p=cc.Props.First(&Prop); p; p=cc.Props.Next(&Prop))
+	// int Prop;
+	// for (void *p=cc.Props.First(&Prop); p; p=cc.Props.Next(&Prop))
+	for (auto p : cc.Props)
 	{
-		switch (Prop >> 8)
+		switch (p.key >> 8)
 		{
 			#define CopyProp(TypeId, Type) \
 				case TypeId: \
 				{ \
-					Type *n = (Type*)Props.Find(Prop); \
+					Type *n = (Type*)Props.Find(p.key); \
 					if (!n) n = new Type; \
-					*n = *(Type*)p; \
-					Props.Add(Prop, n); \
+					*n = *(Type*)p.value; \
+					Props.Add(p.key, n); \
 					break; \
 				}
 
 			case TypeEnum:
 			{
 				void *n = new DisplayType;
-				*(uint32*)n = *(uint32*)p;
-				Props.Add(Prop, n);
+				*(uint32*)n = *(uint32*)p.value;
+				Props.Add(p.key, n);
 				break;
 			}
 			CopyProp(TypeLen, Len);
@@ -1124,19 +1131,20 @@ bool GCss::operator ==(GCss &c)
 
 	// Check individual types
 	bool Eq = true;
-	PropType Prop;
-	for (void *Local=Props.First((int*)&Prop); Local && Eq; Local=Props.Next((int*)&Prop))
+	// PropType Prop;
+	// for (void *Local=Props.First((int*)&Prop); Local && Eq; Local=Props.Next((int*)&Prop))
+	for (auto p : Props)
 	{
-		void *Other = c.Props.Find(Prop);
+		void *Other = c.Props.Find(p.key);
 		if (!Other)
 			return false;
 
-		switch (Prop >> 8)
+		switch (p.key >> 8)
 		{
 			#define CmpType(id, type) \
 				case id: \
 				{ \
-					if ( *((type*)Local) != *((type*)Other)) \
+					if ( *((type*)p.value) != *((type*)Other)) \
 						Eq = false; \
 					break; \
 				}
@@ -1204,10 +1212,11 @@ void GCss::DeleteProp(PropType Prop, void *Data)
 
 void GCss::Empty()
 {
-	int Prop;
-	for (void *Data=Props.First(&Prop); Data; Data=Props.Next(&Prop))
+	// int Prop;
+	// for (void *Data=Props.First(&Prop); Data; Data=Props.Next(&Prop))
+	for (auto p : Props)
 	{
-		DeleteProp((PropType)Prop, Data);
+		DeleteProp((PropType)p.key, p.value);
 	}
 	Props.Empty();
 }
@@ -2697,15 +2706,17 @@ bool GCss::Store::Dump(GStream &out)
 	{
 		SelectorMap *m = Maps[i];
 		out.Print("%s = {\n", MapNames[i]);
-		const char *Key;
-		for (SelArray *a = m->First(&Key); a; a = m->Next(&Key))
+		
+		// const char *Key;
+		// for (SelArray *a = m->First(&Key); a; a = m->Next(&Key))
+		for (auto a : *m)
 		{
-			out.Print("\t'%s' -> ", Key);
-			for (int n=0; n<a->Length(); n++)
+			out.Print("\t'%s' -> ", a.key);
+			for (int n=0; n<a.value->Length(); n++)
 			{
-				GCss::Selector *sel = (*a)[n];
+				GCss::Selector *sel = (*a.value)[n];
 				if (n) out.Print("\t\t");
-				out.Print("%i of %i: %s\n", n, a->Length(), sel->Raw.Get());
+				out.Print("%i of %i: %s\n", n, a.value->Length(), sel->Raw.Get());
 				// out.Print("\t\t{ %s }\n", sel->Style);
 			}
 		}
@@ -2737,11 +2748,12 @@ bool GCss::Store::ToString(GStream &p)
 	for (int i=0; Maps[i]; i++)
 	{
 		SelectorMap *m = Maps[i];
-		for (SelArray *a = m->First(); a; a = m->Next())
+		// for (SelArray *a = m->First(); a; a = m->Next())
+		for (auto a : *m)
 		{
-			for (unsigned n=0; n<a->Length(); n++)
+			for (unsigned n=0; n<a.value->Length(); n++)
 			{
-				GCss::Selector *sel = (*a)[n];
+				GCss::Selector *sel = (*a.value)[n];
 				if (!sel->ToString(p))
 					return false;
 			}
