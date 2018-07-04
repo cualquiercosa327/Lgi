@@ -873,6 +873,83 @@ public:
 
 		Used = 0;
 	}
+
+	struct Pair
+	{
+		Key &key;
+		Value &value;
+	};
+
+	struct PairIterator
+	{
+		GHashTbl<Key,Value> *t;
+		int Idx;
+
+	public:
+		PairIterator(GHashTbl<Key,Value> *tbl, int i)
+		{
+			t = tbl;
+			Idx = i;
+			if (Idx < 0)
+				Next();
+		}
+
+		bool operator !=(const PairIterator &it) const
+		{
+			bool Eq = t == it.t &&
+					Idx == it.Idx;
+			return !Eq;
+		}
+
+		PairIterator &Next()
+		{
+			if (t->IsOk())
+			{
+				while (++Idx < t->Size)
+				{
+					if (t->Table[Idx].k != t->NullKey)
+						break;
+				}
+			}
+
+			return *this;
+		}
+
+		PairIterator &Prev()
+		{
+			if (t->IsOk())
+			{
+				while (--Idx > 0)
+				{
+					if (t->Table[Idx].k != t->NullKey)
+						break;
+				}
+			}
+
+			return *this;
+		}
+
+		PairIterator &operator ++() { return Next(); }
+		PairIterator &operator --() { return Prev(); }
+		PairIterator &operator ++(int) { return Next(); }
+		PairIterator &operator --(int) { return Prev(); }
+
+		Pair operator *()
+		{
+			Pair p = { t->Table[Idx].k, t->Table[Idx].v };
+			return p;
+		}
+	};
+
+	PairIterator begin()
+	{
+		return PairIterator(this, -1);
+	}
+
+	PairIterator end()
+	{
+		return PairIterator(this, Size);
+	}
 };
 
 /* Deprecated...
