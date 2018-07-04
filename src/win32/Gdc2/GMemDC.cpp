@@ -84,12 +84,7 @@ GMemDC::GMemDC(GSurface *pDC)
 
 GMemDC::~GMemDC()
 {
-	if (hBmp)
-	{
-		DeleteObject(hBmp);
-		hBmp = 0;
-	}
-	DeleteObj(pMem);
+	Empty();
 	DeleteObj(d);
 }
 
@@ -517,6 +512,15 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int Flags)
 	return Status;
 }
 
+void GMemDC::Empty()
+{
+	if (hBmp)
+	{
+		DeleteObject(hBmp);
+		hBmp = 0;
+	}
+	DeleteObj(pMem);
+}
 
 void GMemDC::Blt(int x, int y, GSurface *Src, GRect *a)
 {
@@ -783,3 +787,5 @@ void GMemDC::SetOrigin(int x, int y)
 		SetWindowOrgEx(hDC, OriginX, OriginY, NULL);
 	}
 }
+
+	
