@@ -1695,8 +1695,10 @@ void GFolderItem::OnMouseClick(GMouse &m)
 	}
 }
 
-int GFolderItemCompare(GFolderItem *a, GFolderItem *b, NativeInt Data)
+int GFolderItemCompare(LListItem *A, LListItem *B, NativeInt Data)
 {
+	GFolderItem *a = dynamic_cast<GFolderItem*>(A);
+	GFolderItem *b = dynamic_cast<GFolderItem*>(B);
 	if (a && b)
 	{
 		if (a->IsDir ^ b->IsDir)
@@ -1870,18 +1872,9 @@ void GFolderList::OnFolder()
 			Match = false;
 			for (char *e=Ext.First(); e && !Match; e=Ext.Next())
 			{
-				if (e[0] == '*' && e[1] == '.')
-				{
-					char *Ext = LgiGetExtension(Name);
-					if (Ext)
-						Match = stricmp(Ext, e + 2) == 0;
-				}
-				else
-				{
-					bool m = MatchStr(e, Name);
-					if (m)
-						Match = true;
-				}
+				bool m = MatchStr(e, Name);
+				if (m)
+					Match = true;
 			}
 		}
 		
