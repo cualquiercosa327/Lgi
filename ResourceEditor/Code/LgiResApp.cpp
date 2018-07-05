@@ -2758,7 +2758,7 @@ void AppWnd::SortDialogs()
 			}
 		}
 
-		Dlgs.Sort(DialogNameCompare, 0);
+		Dlgs.Sort(DialogNameCompare);
 
 		for (ResDialog *d = Dlgs.First(); d; d = Dlgs.Next())
 		{
@@ -4550,7 +4550,7 @@ void ShortCutView::OnDialogChange(ResDialog *Dlg)
 	if (!Dlg)
 		return;
 	FindShortCuts(Lst, Dlg);
-	Lst->Sort(NULL, 0);
+	Lst->Sort<int>(NULL);
 }
 
 ShortCutView *AppWnd::GetShortCutView()

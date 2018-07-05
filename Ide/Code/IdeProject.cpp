@@ -593,7 +593,7 @@ public:
 			{
 				Incs.Insert(NewStr(i.key));
 			}
-			Incs.Sort(StrCmp, 0);
+			Incs.Sort(StrCmp);
 			
 			for (auto i = Incs.First(); i; i = Incs.Next())
 			{

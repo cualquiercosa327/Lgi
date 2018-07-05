@@ -189,7 +189,7 @@ public:
 						GMouse m;
 						if (Lst->GetColumnClickInfo(Col, m))
 						{
-							Lst->Sort(Cmp, Col);
+							Lst->Sort<NativeInt>(Cmp, Col);
 						}
 						break;
 					}
@@ -372,7 +372,7 @@ public:
 				Items.Insert((DumpItem*)p.value);
 			}
 			Lst->Insert(Items);
-			Lst->Sort(Cmp, 0);
+			Lst->Sort(Cmp);
 		}
 	}
 };

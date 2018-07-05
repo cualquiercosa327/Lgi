@@ -1372,7 +1372,7 @@ public:
 		if (WindowsMenu)
 		{
 			WindowsMenu->Empty();
-			Docs.Sort(DocSorter, 0);
+			Docs.Sort(DocSorter);
 			int n=0;
 			for (IdeDoc *d=Docs.First(); d; d=Docs.Next())
 			{

@@ -998,7 +998,7 @@ void ResStringGroup::OnColumnClick(int Col, GMouse &m)
 		SortAscend = true;
 	}
 
-	LList::Sort(ResStringCompareFunc, (SortCol + 1) * ((SortAscend) ? 1 : -1));
+	LList::Sort<NativeInt>(ResStringCompareFunc, (SortCol + 1) * ((SortAscend) ? 1 : -1));
 
 	LListItem *Sel = GetSelected();
 	if (Sel)
@@ -1100,7 +1100,7 @@ int RefCmp(ResString *a, ResString *b, NativeInt d)
 
 void ResStringGroup::Sort()
 {
-	Strs.Sort(RefCmp, 0);
+	Strs.Sort(RefCmp);
 }
 
 void ResStringGroup::RemoveUnReferenced()

@@ -2143,6 +2143,7 @@ void LList::ScrollToSelection()
 	}
 }
 
+/*
 int ListStringCompare(LListItem *a, LListItem *b, NativeInt data)
 {
 	char *ATxt = (a)->GetText(data);
@@ -2164,6 +2165,7 @@ void LList::Sort(LListCompareFunc Compare, NativeInt Data)
 		Unlock();
 	}
 }
+*/
 
 void LList::Empty()
 {

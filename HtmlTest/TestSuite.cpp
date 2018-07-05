@@ -439,7 +439,7 @@ public:
 							}
 						}
 						DeleteObj(d);
-						Files.Sort(InfCmp, 0);
+						Files.Sort(InfCmp);
 
 						for (FileInf *f = Files.First(); f; f = Files.Next())
 						{

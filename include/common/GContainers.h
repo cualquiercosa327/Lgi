@@ -191,7 +191,7 @@ public:
 	};
 
 	typedef Iter I;
-	typedef int (*CompareFn)(T *a, T *b, NativeInt data);
+	// typedef int (*CompareFn)(T *a, T *b, NativeInt data);
 
 protected:
 	size_t Items;
@@ -443,7 +443,8 @@ protected:
 
 		int GetItems() { return Used; }
 
-		bool Add(T *Obj, CompareFn Cmp, NativeInt Data)
+		template<typename User>
+		bool Add(T *Obj, int (*Cmp)(T *a, T *b, User data), User Data)
 		{
 			if (Used)
 			{
@@ -726,12 +727,13 @@ public:
 	}
 
 	/// Sorts the list
+	template<typename User>
 	void Sort
 	(
 		/// The callback function used to compare 2 pointers
-		CompareFn Compare,
+		int (*Compare)(T *a, T *b, User data),
 		/// User data that is passed into the callback
-		NativeInt Data = 0
+		User Data = 0
 	)
 	{
 		if (Items < 1)
@@ -759,7 +761,7 @@ public:
 		}
 		VALIDATE();
 	}
-	
+
 	/// Delete all pointers in the list as dynamically allocated objects
 	void DeleteObjects()
 	{

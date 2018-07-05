@@ -106,8 +106,8 @@ void IdeCommon::CollectAllSource(GArray<GString> &c, IdePlatform Platform)
 
 void IdeCommon::SortChildren()
 {
-	Items.Sort(NodeSort, 0);
-	Children.Sort(XmlSort, 0);
+	Items.Sort(NodeSort);
+	Children.Sort(XmlSort);
 	
 	if (Tree)
 	{
