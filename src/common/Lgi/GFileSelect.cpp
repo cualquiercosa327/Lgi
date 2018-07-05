@@ -1859,8 +1859,6 @@ void GFolderList::OnFolder()
 		char Name[MAX_PATH];
 		Dir.Path(Name, sizeof(Name));
 		
-		printf("Name=%s\n", Name);
-
 		bool Match = true;
 		if (!ShowHiddenFiles && Dir.IsHidden())
 		{
@@ -1889,7 +1887,6 @@ void GFolderList::OnFolder()
 	New.Sort(GFolderItemCompare, 0);
 
 	// Display items...
-	printf("Insert %i items.\n", (int)New.Length());
 	Insert(New);
 }
 
