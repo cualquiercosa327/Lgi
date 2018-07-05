@@ -1884,7 +1884,7 @@ void GFolderList::OnFolder()
 	}
 
 	// Sort items...
-	New.Sort(GFolderItemCompare, 0);
+	New.Sort(GFolderItemCompare);
 
 	// Display items...
 	Insert(New);
