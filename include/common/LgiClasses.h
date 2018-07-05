@@ -22,7 +22,6 @@
 #include "LgiCommon.h"
 #include "GXmlTree.h"
 #include "GDragAndDrop.h"
-#include "GHashTable.h"
 
 /////////////////////////////////////////////////////////////////////////////////////
 // Externs

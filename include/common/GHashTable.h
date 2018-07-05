@@ -917,27 +917,14 @@ public:
 			return *this;
 		}
 
-		PairIterator &Prev()
-		{
-			if (t->IsOk())
-			{
-				while (--Idx > 0)
-				{
-					if (t->Table[Idx].k != t->NullKey)
-						break;
-				}
-			}
-
-			return *this;
-		}
-
 		PairIterator &operator ++() { return Next(); }
-		PairIterator &operator --() { return Prev(); }
 		PairIterator &operator ++(int) { return Next(); }
-		PairIterator &operator --(int) { return Prev(); }
 
 		Pair operator *()
 		{
+			LgiAssert(	Idx >= 0 &&
+						Idx < t->Size &&
+						t->Table[Idx].k != t->NullKey);
 			Pair p = { t->Table[Idx].k, t->Table[Idx].v };
 			return p;
 		}
