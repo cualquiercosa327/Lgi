@@ -565,9 +565,9 @@ GVariant &GVariant::operator =(GVariant const &i)
 				{
 					// const char *k;
 					// for (GVariant *var = i.Value.Hash->First(&k); var; var = i.Value.Hash->Next(&k))
-					for (auto i : *i.Value.Hash)
+					for (auto it : *i.Value.Hash)
 					{
-						Value.Hash->Add(i.key, new GVariant(*i.value));
+						Value.Hash->Add(it.key, new GVariant(*it.value));
 					}
 				}
 			}

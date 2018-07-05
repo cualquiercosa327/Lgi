@@ -286,9 +286,11 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 
 					// For each file...
 					#if USE_HASH
-					const char *Path;
-					for (FileSyms *fs = Files.First(&Path); fs; fs = Files.Next(&Path))
+					// for (FileSyms *fs = Files.First(&Path); fs; fs = Files.Next(&Path))
+					for (auto it : Files)
 					{
+						FileSyms *fs = it.value;
+						const char *Path = it.key;
 					#else
 					for (unsigned f=0; f<Files.Length(); f++)
 					{

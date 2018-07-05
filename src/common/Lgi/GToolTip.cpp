@@ -180,9 +180,10 @@ public:
 	{
 		#if defined(MAC)
 		#elif LGI_NATIVE_TIPS
-		for (NativeTip *t = Tips.First(); t; t = Tips.Next())
+		// for (NativeTip *t = Tips.First(); t; t = Tips.Next())
+		for (auto t : Tips)
 		{
-			delete t;
+			delete t.value;
 		}
 		#endif
 	}

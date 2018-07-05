@@ -307,11 +307,10 @@ public:
 		DeleteObj(Sm);
 		#endif
 		
-		for (void *p = MimeToApp.First(); p; p = MimeToApp.Next())
+		for (auto p : MimeToApp)
 		{
-			AppArray *a = (AppArray*)p;
-			a->DeleteObjects();
-			DeleteObj(a);
+			p.value->DeleteObjects();
+			DeleteObj(p.value);
 		}
 	}
 };

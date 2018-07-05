@@ -587,13 +587,15 @@ public:
 			}
 
 			List<char> Incs;
-			char *i;
-			for (bool b=Inc.First(&i); b; b=Inc.Next(&i))
+			// char *i;
+			// for (bool b=Inc.First(&i); b; b=Inc.Next(&i))
+			for (auto i : Inc)
 			{
-				Incs.Insert(NewStr(i));
+				Incs.Insert(NewStr(i.key));
 			}
 			Incs.Sort(StrCmp, 0);
-			for (i = Incs.First(); i; i = Incs.Next())
+			
+			for (auto i = Incs.First(); i; i = Incs.Next())
 			{
 				GString s;
 				if (*i == '`')
@@ -960,25 +962,26 @@ public:
 				while (!Done)
 				{
 					Done = true;
-					char *Src;
-					for (bool b=DepFiles.First(&Src); b; b=DepFiles.Next(&Src))
+					// char *Src;
+					// for (bool b=DepFiles.First(&Src); b; b=DepFiles.Next(&Src))
+					for (auto it : DepFiles)
 					{
-						if (Processed.Find(Src))
+						if (Processed.Find(it.key))
 							continue;
 
 						Done = false;
-						Processed.Add(Src, true);
+						Processed.Add(it.key, true);
 						
 						char Full[MAX_PATH], Rel[MAX_PATH];
-						if (LgiIsRelativePath(Src))
+						if (LgiIsRelativePath(it.key))
 						{
-							LgiMakePath(Full, sizeof(Full), Base, Src);
-							strcpy_s(Rel, sizeof(Rel), Src);
+							LgiMakePath(Full, sizeof(Full), Base, it.key);
+							strcpy_s(Rel, sizeof(Rel), it.key);
 						}
 						else
 						{
-							strcpy_s(Full, sizeof(Full), Src);
-							GAutoString a = LgiMakeRelativePath(Base, Src);
+							strcpy_s(Full, sizeof(Full), it.key);
+							GAutoString a = LgiMakeRelativePath(Base, it.key);
 							if (a)
 							{
 								strcpy_s(Rel, sizeof(Rel), a);
@@ -988,7 +991,7 @@ public:
 								strcpy_s(Rel, sizeof(Rel), a);
 								LgiTrace("%s:%i - Failed to make relative path '%s' '%s'\n",
 									_FL,
-									Base.Get(), Src);
+									Base.Get(), it.key);
 							}
 						}
 						
@@ -2647,10 +2650,11 @@ bool IdeProject::SaveFile()
 			f.SetSize(0);
 
 			// Save user file details..
-			int Id;
-			for (int Flags = d->UserNodeFlags.First(&Id); Flags >= 0; Flags = d->UserNodeFlags.Next(&Id))
+			// int Id;
+			// for (int Flags = d->UserNodeFlags.First(&Id); Flags >= 0; Flags = d->UserNodeFlags.Next(&Id))
+			for (auto i : d->UserNodeFlags)
 			{
-				f.Print("%i,%x\n", Id, Flags);
+				f.Print("%i,%x\n", i.key, i.value);
 			}
 
 			d->UserFileDirty = false;
@@ -2909,24 +2913,25 @@ bool IdeProject::InProject(bool FuzzyMatch, const char *Path, bool Open, IdeDoc 
 		int PathLen = strlen(Path);
 		int LeafLen = strlen(Leaf);
 		uint32 MatchingScore = 0;
-		const char *p;
 
 		// Traverse all nodes and try and find the best fit.
-		for (ProjectNode *Cur = d->Nodes.First(&p); Cur; Cur = d->Nodes.Next(&p))
+		// const char *p;
+		// for (ProjectNode *Cur = d->Nodes.First(&p); Cur; Cur = d->Nodes.Next(&p))
+		for (auto Cur : d->Nodes)
 		{
-			int CurPlatform = Cur->GetPlatforms();
+			int CurPlatform = Cur.value->GetPlatforms();
 			uint32 Score = 0;
 
-			if (stristr(p, Path))
+			if (stristr(Cur.key, Path))
 			{
 				Score += PathLen;
 			}
-			else if (stristr(p, Leaf))
+			else if (stristr(Cur.key, Leaf))
 			{
 				Score += LeafLen;
 			}
 
-			const char *pLeaf = LgiGetLeaf(p);
+			const char *pLeaf = LgiGetLeaf(Cur.key);
 			if (pLeaf && !stricmp(pLeaf, Leaf))
 			{
 				Score |= 0x80000000;
@@ -2939,7 +2944,7 @@ bool IdeProject::InProject(bool FuzzyMatch, const char *Path, bool Open, IdeDoc 
 			if (Score > MatchingScore)
 			{
 				MatchingScore = Score;
-				n = Cur;
+				n = Cur.value;
 			}
 		}
 	}
@@ -3202,9 +3207,10 @@ bool IdeProject::BuildIncludePaths(GArray<GString> &Paths, bool Recurse, bool In
 		}
 	}
 
-	char *p;
-	for (bool b = Map.First(&p); b; b = Map.Next(&p))
-		Paths.Add(p);
+	// char *p;
+	// for (bool b = Map.First(&p); b; b = Map.Next(&p))
+	for (auto p : Map)
+		Paths.Add(p.key);
 
 	return true;
 }
@@ -3354,10 +3360,11 @@ bool IdeProject::GetAllDependencies(GArray<char*> &Files, IdePlatform Platform)
 	{
 		// Find all the unscanned dependencies
 		Unscanned.Length(0);
-		for (Dependency *d = Deps.First(); d; d = Deps.Next())
+		// for (Dependency *d = Deps.First(); d; d = Deps.Next())
+		for (auto d : Deps)
 		{
-			if (!d->Scanned)
-				Unscanned.Add(d);
+			if (!d.value->Scanned)
+				Unscanned.Add(d.value);
 		}		
 
 		for (int i=0; i<Unscanned.Length(); i++)
@@ -3399,9 +3406,10 @@ bool IdeProject::GetAllDependencies(GArray<char*> &Files, IdePlatform Platform)
 	}
 	while (Unscanned.Length() > 0);
 	
-	for (Dependency *d = Deps.First(); d; d = Deps.Next())
+	// for (Dependency *d = Deps.First(); d; d = Deps.Next())
+	for (auto d : Deps)
 	{
-		Files.Add(d->File.Release());
+		Files.Add(d.value->File.Release());
 	}
 	
 	Deps.DeleteObjects();

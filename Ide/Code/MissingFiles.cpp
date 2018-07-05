@@ -212,9 +212,10 @@ public:
 					Flds.Add(s, true);
 			}
 
-			char *Path;
-			for (bool b = Flds.First(&Path); b; b = Flds.Next(&Path))
-				PostThreadEvent(SearchHnd, M_ADD_SEARCH_PATH, (GMessage::Param) new GString(Path));
+			// char *Path;
+			// for (bool b = Flds.First(&Path); b; b = Flds.Next(&Path))
+			for (auto i : Flds)
+				PostThreadEvent(SearchHnd, M_ADD_SEARCH_PATH, (GMessage::Param) new GString(i.key));
 
 			PostThreadEvent(SearchHnd, M_RECURSE);
 		}
