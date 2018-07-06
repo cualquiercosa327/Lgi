@@ -320,15 +320,11 @@ protected:
 		{
 			// This Item is now empty, remove and reset current
 			// into the next Item
-			bool ClearLocal = i == Local.i;
-
 			LstBlk *n = i->Next;
 			bool Status = DeleteBlock(i);
 			Pos.Cur = 0;
 			Pos.i = n;
 
-			if (ClearLocal)
-				Local.i = NULL;
 			return Status;
 		}
 		else if (Index >= i->Count)
@@ -483,14 +479,6 @@ public:
 		return true;
 	}
 
-	bool Delete()
-	{
-		VALIDATE_UL();
-		bool Status = Delete(Local);
-		VALIDATE_UL();
-		return Status;
-	}
-
 	bool DeleteAt(size_t i)
 	{
 		VALIDATE_UL();
@@ -505,10 +493,10 @@ public:
 	bool Delete(T Obj)
 	{
 		VALIDATE_UL();
-		Local = GetPtr(Obj);
-		if (!Local.In())
+		auto It = GetPtr(Obj);
+		if (!It.In())
 			return false;
-		bool Status = Delete(Local);
+		bool Status = Delete(It);
 		VALIDATE_UL();
 		return Status;
 	}
@@ -560,18 +548,18 @@ public:
 		return i;
 	}
 	
-	ssize_t IndexOf(T *p)
+	ssize_t IndexOf(T p)
 	{
 		VALIDATE_UL();
 		size_t Base = -1;
-		Local = GetPtr(p, &Base);
+		auto Local = GetPtr(p, &Base);
 		LgiAssert(Base != -1);
 		ssize_t Idx = Local.In() ? Base + Local.Cur : -1;
 		VALIDATE_UL();
 		return Idx;
 	}
 
-	bool HasItem(T *p)
+	bool HasItem(T p)
 	{
 		VALIDATE_UL();
 		Iter Pos = GetPtr(p);
@@ -583,7 +571,7 @@ public:
 	T *ItemAt(int i)
 	{
 		VALIDATE_UL();
-		Local = GetIndex(i);
+		auto Local = GetIndex(i);
 		VALIDATE_UL();
 		return Local;
 	}

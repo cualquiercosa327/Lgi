@@ -182,7 +182,7 @@ bool GContainers::Run()
 			1
 		);
 
-		int asd=0;
+		StrLst.Delete("Tyertw");
 	}
 
 	return true;
