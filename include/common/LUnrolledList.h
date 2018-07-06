@@ -1,6 +1,8 @@
 #ifndef _LUNROLLED_LIST_H_
 #define _LUNROLLED_LIST_H_
 
+#include <algorithm>
+
 #ifdef _DEBUG
 	#define VALIDATE_UL() Validate()
 #else
@@ -586,57 +588,181 @@ public:
 		return Local;
 	}
 
-	/// Sorts the list
-	template<typename User>
-	void Sort
-	(
-		/// The callback function used to compare 2 pointers
-		int (*Compare)(T &a, T &b, User data),
-		/// User data that is passed into the callback
-		User Data
-	)
+	void Compact()
 	{
-		if (Items < 1)
-			return;
+	}
 
-		struct SortParams
+	class RandomAccessIter
+	{
+	public:
+		typedef LUnrolledList<T,BlockSize> Unrolled;
+		typedef RandomAccessIter It;
+		typedef std::random_access_iterator_tag iterator_category;
+		typedef T value_type;
+		typedef ssize_t difference_type;
+		typedef T *pointer;
+		typedef T &reference;
+	
+	private:
+		Unrolled *u;
+		ssize_t Idx;
+		int Shift;
+		int Mask;
+		struct BlkMap
 		{
-			int (*Compare)(T &a, T &b, User data);
-			User &Data;
-		} Params = {Compare, Data};
+			int Count, Refs;
+			LstBlk **Blocks;
 
-		VALIDATE_UL();
-
-		T *a = new T[Items];
-		int i=0;
-		for (LstBlk *b = FirstObj; b; b = b->Next)
-		{
-			for (int n=0; n<b->Count; n++)
-				a[i++] = b->Obj[n];
-		}
-		
-		qsort_s
-		(
-			a,
-			Items,
-			sizeof(*a),
-			[](void *userdata, const void *a, const void *b)
+			BlkMap(Unrolled *u)
 			{
-				SortParams *p = (SortParams*)userdata;
-				return p->Compare( *(T*)a, *(T*)b, p->Data);
-			},
-			&Params
-		);
+				Refs = 1;
+				Count = (u->Items + (BlockSize-1)) / BlockSize;
+				Blocks = new LstBlk*[Count];
+				int Idx = 0;
+				for (LstBlk *b=u->FirstObj; b; b = b->Next)
+					Blocks[Idx++] = b;
+			}
 
-		i = 0;
-		for (LstBlk *b = FirstObj; b; b = b->Next)
+			~BlkMap()
+			{
+				delete [] Blocks;
+			}
+
+		}	*Map;		
+
+		bool Init()
 		{
-			for (int n=0; n<b->Count; n++)
-				b->Obj[n] = a[i++];
-		}
-		delete [] a;
+			Mask = 0;
+			for (Shift=0; Shift<32 && (1<<Shift) != BlockSize; Shift++);
+			if (Shift >= 32)
+			{
+				LgiAssert(!"Not a power of 2 size");
+				return false;
+			}
+			Mask = (1 << Shift) - 1;
 
-		VALIDATE_UL();
+			// Create array of block pointers
+			if (u)
+			{
+				// Make sure there are no gaps in the arrays
+				u->Compact();
+
+				// Get a count of blocks and alloc index
+				LgiAssert(Map == NULL);
+				Map = new BlkMap(u);
+			}
+
+			return true;
+		}
+
+	public:
+		RandomAccessIter(Unrolled *lst = NULL, ssize_t idx = 0)
+		{
+			u = lst;
+			Idx = idx;
+			Map = NULL;
+			Init();
+		}
+
+		RandomAccessIter(const It &rhs)
+		{
+			u = rhs.u;
+			Idx = rhs.Idx;
+			Shift = rhs.Shift;
+			Mask = rhs.Mask;
+			Map = rhs.Map;
+			if (Map)
+				Map->Refs++;
+		}
+
+		~RandomAccessIter()
+		{
+			if (Map)
+			{
+				Map->Refs--;
+				if (Map->Refs == 0)
+				{
+					delete Map;
+					Map = 0;
+				}
+			}
+		}
+
+		bool IsValid() const
+		{
+			return	u != NULL &&
+					Idx >= 0 && Idx < u->Items &&
+					Shift != 0 &&
+					Mask != 0 &&
+					Map != NULL;
+		}
+
+		inline T& operator*() const
+		{
+			LgiAssert(IsValid());
+			T &Obj = Map->Blocks[Idx>>Shift]->Obj[Idx&Mask];
+			return Obj;
+		}
+		inline T* operator->() const
+		{
+			LgiAssert(IsValid());
+			return &Map->Blocks[Idx>>Shift]->Obj[Idx&Mask];
+		}
+		inline T& operator[](difference_type rhs) const
+		{
+			LgiAssert(IsValid() && rhs >= 0 && rhs < u->Items);
+			return Map->Blocks[rhs>>Shift]->Obj[rhs&Mask];
+		}
+
+		inline It& operator+=(difference_type rhs) {Idx += rhs; return *this;}
+		inline It& operator-=(difference_type rhs) {Idx -= rhs; return *this;}
+		inline It& operator++() {++Idx; return *this;}
+		inline It& operator--() {--Idx; return *this;}
+		inline It operator++(int) {It tmp(*this); ++Idx; return tmp;}
+		inline It operator--(int) {It tmp(*this); --Idx; return tmp;}
+		inline difference_type operator-(const It& rhs) const {return Idx-rhs.Idx;}
+		inline It operator+(difference_type amt) {return It(u, Idx+amt);}
+		inline It operator-(difference_type amt) {return It(u, Idx-amt);}
+		friend inline It operator+(difference_type lhs, const It& rhs) {return It(lhs+rhs.Idx);}
+		friend inline It operator-(difference_type lhs, const It& rhs) {return It(lhs-rhs.Idx);}
+		inline bool operator==(const It& rhs) const {return Idx == rhs.Idx;}
+		inline bool operator!=(const It& rhs) const {return Idx != rhs.Idx;}
+		inline bool operator>(const It& rhs) const {return Idx > rhs.Idx;}
+		inline bool operator<(const It& rhs) const {return Idx < rhs.Idx;}
+		inline bool operator>=(const It& rhs) const {return Idx >= rhs.Idx;}
+		inline bool operator<=(const It& rhs) const {return Idx <= rhs.Idx;}
+	};
+
+	// Sort with no extra user data
+	template<typename Fn>
+	void Sort(Fn Compare)
+	{
+		RandomAccessIter Start(this, 0);
+		RandomAccessIter End(this, Items);
+		std::sort
+		(
+			Start, End,
+			[Compare](T &a, T &b)->bool
+			{
+				return Compare(a, b) < 0;
+			}
+		);
+	}
+	
+	// Sort with extra user data
+	template<typename Fn, typename User>
+	void Sort(Fn Compare, User Data)
+	{
+		RandomAccessIter Start(this, 0);
+		RandomAccessIter End(this, Items);
+		std::sort
+		(
+			Start, End,
+			[Compare, Data](T &a, T &b)->bool
+			{
+				return Compare(a, b, Data) < 0;
+			}
+		);
 	}
 
 	/// Assign the contents of another list to this one

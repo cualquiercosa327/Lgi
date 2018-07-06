@@ -173,13 +173,13 @@ bool GContainers::Run()
 		StrLst.Add("Tyertw");
 		StrLst.Add("Bbbsd");
 
-		StrLst.Sort<int>
+		StrLst.Sort
 		(
 			[](GString &a, GString &b, int Dir)
 			{
-				return _stricmp(a, b);
+				return _stricmp(a, b) * Dir;
 			},
-			0
+			1
 		);
 
 		int asd=0;
