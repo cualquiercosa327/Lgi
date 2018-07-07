@@ -237,8 +237,13 @@ GMemDC::GMemDC(GSurface *pDC)
 
 GMemDC::~GMemDC()
 {
-	DeleteObj(pMem);
+	Empty();
 	DeleteObj(d);
+}
+
+void GMemDC::Empty()
+{
+	DeleteObj(pMem);
 }
 
 bool GMemDC::SupportsAlphaCompositing()

@@ -16,6 +16,8 @@
 		341B9A521DEACA310011CE44 /* SimpleCppParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 341B9A501DEACA310011CE44 /* SimpleCppParser.cpp */; };
 		342D773A11FA48B6005BADBD /* GControlTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 342D773911FA48B6005BADBD /* GControlTree.cpp */; };
 		342D774A11FA4929005BADBD /* LgiMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 342D774911FA4929005BADBD /* LgiMain.cpp */; };
+		3451844420F044AD00640325 /* IHttp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3451844320F044AD00640325 /* IHttp.cpp */; };
+		3451845520F0472600640325 /* OpenSSLSocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3451845420F0472600640325 /* OpenSSLSocket.cpp */; };
 		349A250F1A5E3D1D00F4263E /* FindInFiles.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A24F81A5E3D1D00F4263E /* FindInFiles.cpp */; };
 		349A25101A5E3D1D00F4263E /* FindSymbol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A24FA1A5E3D1D00F4263E /* FindSymbol.cpp */; };
 		349A25111A5E3D1D00F4263E /* FtpThread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 349A24FC1A5E3D1D00F4263E /* FtpThread.cpp */; };
@@ -93,6 +95,8 @@
 		341B9A511DEACA310011CE44 /* SimpleCppParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SimpleCppParser.h; path = ../Code/SimpleCppParser.h; sourceTree = "<group>"; };
 		342D773911FA48B6005BADBD /* GControlTree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GControlTree.cpp; path = ../../src/common/Widgets/GControlTree.cpp; sourceTree = SOURCE_ROOT; };
 		342D774911FA4929005BADBD /* LgiMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiMain.cpp; path = ../../src/common/Lgi/LgiMain.cpp; sourceTree = SOURCE_ROOT; };
+		3451844320F044AD00640325 /* IHttp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IHttp.cpp; path = ../../src/common/INet/IHttp.cpp; sourceTree = "<group>"; };
+		3451845420F0472600640325 /* OpenSSLSocket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OpenSSLSocket.cpp; path = ../../src/common/INet/OpenSSLSocket.cpp; sourceTree = "<group>"; };
 		349A24F11A5E3C5C00F4263E /* LgiCarbon.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LgiCarbon.xcodeproj; path = ../../src/mac/carbon/LgiCarbon.xcodeproj; sourceTree = "<group>"; };
 		349A24F81A5E3D1D00F4263E /* FindInFiles.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FindInFiles.cpp; path = ../Code/FindInFiles.cpp; sourceTree = "<group>"; };
 		349A24F91A5E3D1D00F4263E /* FindInFiles.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FindInFiles.h; path = ../Code/FindInFiles.h; sourceTree = "<group>"; };
@@ -287,6 +291,8 @@
 		34B7EA6B0A64B4DE00657E69 /* Lgi */ = {
 			isa = PBXGroup;
 			children = (
+				3451845420F0472600640325 /* OpenSSLSocket.cpp */,
+				3451844320F044AD00640325 /* IHttp.cpp */,
 				34BD359D20BE7F170001838A /* GExeCheck.cpp */,
 				349A25301A5E43F600F4263E /* Png.cpp */,
 				349A252C1A5E433A00F4263E /* GSubProcess.cpp */,
@@ -440,6 +446,8 @@
 				349A25241A5E401100F4263E /* GLexCpp.cpp in Sources */,
 				349A25281A5E408D00F4263E /* GParseCpp.cpp in Sources */,
 				349A252B1A5E431F00F4263E /* GMdi.cpp in Sources */,
+				3451844420F044AD00640325 /* IHttp.cpp in Sources */,
+				3451845520F0472600640325 /* OpenSSLSocket.cpp in Sources */,
 				3408BBC520A1C4C200E76EA0 /* DocEditStyling.cpp in Sources */,
 				349A252D1A5E433A00F4263E /* GSubProcess.cpp in Sources */,
 				349A252F1A5E434A00F4263E /* IFtp.cpp in Sources */,
@@ -492,7 +500,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.memecode.lgiide;
 				PRODUCT_NAME = LgiIde;
 				SDKROOT = macosx;
-				USER_HEADER_SEARCH_PATHS = "../../include/mac/carbon ../../include/common ../Code ../../../../../CodeLib/libpng ../../../../../CodeLib/libpng/build ../Resources";
+				USER_HEADER_SEARCH_PATHS = "../../include/mac/carbon ../../include/common ../Code ../../../../../CodeLib/libpng ../../../../../CodeLib/libpng/build ../Resources /opt/local/include";
 				VALID_ARCHS = i386;
 				WRAPPER_EXTENSION = app;
 			};
@@ -520,7 +528,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.memecode.lgiide;
 				PRODUCT_NAME = LgiIde;
 				SDKROOT = macosx;
-				USER_HEADER_SEARCH_PATHS = "../../include/mac/carbon ../../include/common ../Code ../../../../../CodeLib/libpng ../../../../../CodeLib/libpng/build ../Resources";
+				USER_HEADER_SEARCH_PATHS = "../../include/mac/carbon ../../include/common ../Code ../../../../../CodeLib/libpng ../../../../../CodeLib/libpng/build ../Resources /opt/local/include";
 				VALID_ARCHS = i386;
 				WRAPPER_EXTENSION = app;
 			};

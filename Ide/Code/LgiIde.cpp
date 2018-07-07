@@ -921,7 +921,7 @@ public:
 				
 				if (!LgiIsUtf8(Utf, (ssize_t)Size))
 				{
-					LgiTrace("Ch %i not utf len="LGI_PrintfInt64"\n", Channel, Size);
+					LgiTrace("Ch %i not utf len=" LGI_PrintfInt64 "\n", Channel, Size);
 					continue;
 				}
 				#endif

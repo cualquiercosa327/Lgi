@@ -260,7 +260,7 @@ public:
 	GdcDevice *GdcSystem;
 	OsAppArguments Args;
 	GLibrary *SkinLib;
-	GHashTbl<char*,void*> MimeToApp;
+	GHashTbl<char*,AppArray*> MimeToApp;
 	OsThread GuiThread;
 	GSymLookup SymLookup;
 	GAutoString Mime;
@@ -284,11 +284,10 @@ public:
 	{
 		DeleteObj(SkinLib);
 		
-		for (void *p = MimeToApp.First(); p; p = MimeToApp.Next())
+		for (auto p : MimeToApp)
 		{
-			AppArray *a = (AppArray*)p;
-			a->DeleteObjects();
-			DeleteObj(a);
+			p.value->DeleteObjects();
+			DeleteObj(p.value);
 		}
 	}
 };

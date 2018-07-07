@@ -1275,7 +1275,7 @@ GString BuildThread::FindExe()
 		for (int i=0; i<p.Length(); i++)
 		{
 			char Path[MAX_PATH];
-			LgiMakePath(Path, sizeof(Path), p[i], "python"LGI_EXECUTABLE_EXT);
+			LgiMakePath(Path, sizeof(Path), p[i], "python" LGI_EXECUTABLE_EXT);
 			if (FileExists(Path))
 			{
 				// Check version
