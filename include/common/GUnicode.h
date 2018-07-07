@@ -9,7 +9,7 @@
 
 #include "LgiInc.h"
 
-#ifdef COCOA
+#ifdef MAC
 #define REG
 #else
 #define REG register

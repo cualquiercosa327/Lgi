@@ -25,12 +25,12 @@ public:
 	IdeProject *GetProject();
 	char *GetFileName();
 	void SetFileName(const char *f, bool Write);
-	void Focus(bool f);
+	void Focus(bool f) override;
 	bool SetClean();
 	void SetDirty();
-	bool OnRequestClose(bool OsShuttingDown);
-	void OnPosChange();
-	void OnPaint(GSurface *pDC);
+	bool OnRequestClose(bool OsShuttingDown) override;
+	void OnPosChange() override;
+	void OnPaint(GSurface *pDC) override;
 	bool IsFile(const char *File);
 	bool AddBreakPoint(int Line, bool Add);
 	
@@ -60,14 +60,14 @@ public:
 	void OnProjectChange();
 	
 	// Impl
-	void OnTitleClick(GMouse &m);
-	GMessage::Result OnEvent(GMessage *Msg);
-	int OnNotify(GViewI *v, int f);
-	void OnPulse();
-	bool SetPos(GRect &p, bool Repaint = false) { return GView::SetPos(p, Repaint); }
+	void OnTitleClick(GMouse &m) override;
+	GMessage::Result OnEvent(GMessage *Msg) override;
+	int OnNotify(GViewI *v, int f) override;
+	void OnPulse() override;
+	bool SetPos(GRect &p, bool Repaint = false) override { return GView::SetPos(p, Repaint); }
 	GString Read();
 	ssize_t Read(void *Ptr, ssize_t Size, int Flags = 0) override { return 0; }
-	ssize_t Write(const void *Ptr, ssize_t Size, int Flags = 0);
+	ssize_t Write(const void *Ptr, ssize_t Size, int Flags = 0) override;
 };
 
 #endif

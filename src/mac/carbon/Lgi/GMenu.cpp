@@ -376,7 +376,7 @@ int GSubMenu::Float(GView *From, int x, int y, int Btns)
 		UInt32 UserSelectionType;
 		SInt16 MenuID;
 		MenuItemIndex MenuItem;
-		Point Pt = { y, x };
+		Point Pt = { (short)y, (short)x };
 		
 		From->Capture(false);
 		OnAttach(true);

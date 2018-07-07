@@ -738,7 +738,7 @@ bool SvDb::Connect(const char *Init)
 bool SvDb::Disconnect()
 {
 	SvRecordset *t;
-	while (t = Tables.First())
+	while ((t = Tables.First()))
 	{
 		LgiAssert(t->Parent == this);
 		delete t;

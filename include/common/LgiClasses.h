@@ -1158,10 +1158,10 @@ public:
 	
 	#if defined(MAC) && !XPLATFORM_GLAYOUT
 
-	bool Invalidate(GRect *r = NULL, bool Repaint = false, bool NonClient = false);
-	bool Focus();
-	void Focus(bool f);
-	bool SetPos(GRect &p, bool Repaint = false);
+	bool Invalidate(GRect *r = NULL, bool Repaint = false, bool NonClient = false) override;
+	bool Focus() override;
+	void Focus(bool f) override;
+	bool SetPos(GRect &p, bool Repaint = false) override;
 
 	#else
 	

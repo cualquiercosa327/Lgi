@@ -262,7 +262,7 @@ GRect GScreenDC::ClipRgn(GRect *Rgn)
 		c.Bound(&Client);
 		
 		CGContextSaveGState(d->Ctx);
-		CGRect rect = {{c.x1, c.y1}, {c.X(), c.Y()}};
+		CGRect rect = {{(float)c.x1, (float)c.y1}, {(float)c.X(), (float)c.Y()}};
 		CGContextClipToRect(d->Ctx, rect);
 		d->Clipped++;
 	}
@@ -355,7 +355,7 @@ void GScreenDC::Set(int x, int y)
 {
 	if (d->Ctx)
 	{
-		CGRect r = {{x, y}, {1.0, 1.0}};
+		CGRect r = {{(float)x, (float)y}, {1.0, 1.0}};
 		CGContextFillRect(d->Ctx, r);
 	}
 }
@@ -379,7 +379,7 @@ void GScreenDC::HLine(int x1, int x2, int y)
 {
 	if (d->Ctx)
 	{
-		CGRect r = {{x1, y}, {x2-x1+1.0, 1.0}};
+		CGRect r = {{(float)x1, (float)y}, {x2-x1+1.0f, 1.0f}};
 		CGContextFillRect(d->Ctx, r);
 	}
 }
@@ -388,7 +388,7 @@ void GScreenDC::VLine(int x, int y1, int y2)
 {
 	if (d->Ctx)
 	{
-		CGRect r = {{x, y1}, {1.0, y2-y1+1.0}};
+		CGRect r = {{(float)x, (float)y1}, {1.0f, y2-y1+1.0f}};
 		CGContextFillRect(d->Ctx, r);
 	}
 }
@@ -406,7 +406,7 @@ void GScreenDC::Line(int x1, int y1, int x2, int y2)
 				x1 = x2;
 				x2 = i;
 			}
-			CGRect r = {{x1, y1}, {x2-x1+1.0, 1.0}};
+			CGRect r = {{(float)x1, (float)y1}, {x2-x1+1.0f, 1.0f}};
 			CGContextFillRect(d->Ctx, r);
 		}
 		else if (x1 == x2)
@@ -418,12 +418,12 @@ void GScreenDC::Line(int x1, int y1, int x2, int y2)
 				y1 = y2;
 				y2 = i;
 			}
-			CGRect r = {{x1, y1}, {1.0, y2-y1+1.0}};
+			CGRect r = {{(float)x1, (float)y1}, {1.0f, y2-y1+1.0f}};
 			CGContextFillRect(d->Ctx, r);
 		}
 		else
 		{
-			CGPoint p[] = {{x1+0.5, y1+0.5}, {x2+0.5, y2+0.5}};
+			CGPoint p[] = {{x1+0.5f, y1+0.5f}, {x2+0.5f, y2+0.5f}};
 			CGContextBeginPath(d->Ctx);
 			CGContextAddLines(d->Ctx, p, 2);
 			CGContextStrokePath(d->Ctx);
@@ -435,7 +435,7 @@ void GScreenDC::Circle(double cx, double cy, double radius)
 {
 	if (d->Ctx)
 	{
-		CGRect r = {{cx-radius, cy-radius}, {radius*2.0, radius*2.0}};
+		CGRect r = {{(float)(cx-radius), (float)(cy-radius)}, {(float)radius*2.0f, (float)radius*2.0f}};
 		CGContextBeginPath(d->Ctx);
 		CGContextAddEllipseInRect(d->Ctx, r);
 		CGContextStrokePath(d->Ctx);
@@ -446,7 +446,7 @@ void GScreenDC::FilledCircle(double cx, double cy, double radius)
 {
 	if (d->Ctx)
 	{
-		CGRect r = {{cx-radius, cy-radius}, {radius*2.0, radius*2.0}};
+		CGRect r = {{(float)(cx-radius), (float)(cy-radius)}, {(float)radius*2.0f, (float)radius*2.0f}};
 		CGContextBeginPath(d->Ctx);
 		CGContextAddEllipseInRect(d->Ctx, r);
 		CGContextFillPath(d->Ctx);
@@ -465,7 +465,7 @@ void GScreenDC::Ellipse(double cx, double cy, double x, double y)
 {
 	if (d->Ctx)
 	{
-		CGRect r = {{cx-x, cy-y}, {x*2.0, y*2.0}};
+		CGRect r = {{(float)(cx-x), (float)(cy-y)}, {(float)x*2.0f, (float)y*2.0f}};
 		CGContextBeginPath(d->Ctx);
 		CGContextAddEllipseInRect(d->Ctx, r);
 		CGContextStrokePath(d->Ctx);
@@ -476,7 +476,7 @@ void GScreenDC::FilledEllipse(double cx, double cy, double x, double y)
 {
 	if (d->Ctx)
 	{
-		CGRect r = {{cx-x, cy-y}, {x*2.0, y*2.0}};
+		CGRect r = {{(float)(cx-x), (float)(cy-y)}, {(float)(x*2.0), (float)(y*2.0)}};
 		CGContextBeginPath(d->Ctx);
 		CGContextAddEllipseInRect(d->Ctx, r);
 		CGContextFillPath(d->Ctx);
@@ -487,7 +487,7 @@ void GScreenDC::Box(int x1, int y1, int x2, int y2)
 {
 	if (d->Ctx)
 	{
-		CGRect r = {{x1+0.5, y1+0.5}, {x2-x1, y2-y1}};
+		CGRect r = {{(float)(x1+0.5), (float)(y1+0.5)}, {(float)(x2-x1), (float)(y2-y1)}};
 		CGContextSetLineWidth(d->Ctx, 1.0);
 		CGContextStrokeRect(d->Ctx, r);
 	}
@@ -503,7 +503,7 @@ void GScreenDC::Box(GRect *a)
 		else
 			in.ZOff(X()-2, Y()-2);
 	
-		CGRect r = {{in.x1+0.5, in.y1+0.5}, {in.x2-in.x1, in.y2-in.y1}};
+		CGRect r = {{(float)(in.x1+0.5), (float)(in.y1+0.5)}, {(float)(in.x2-in.x1), (float)(in.y2-in.y1)}};
 		CGContextSetLineWidth(d->Ctx, 1.0);
 		CGContextStrokeRect(d->Ctx, r);
 	}
@@ -513,7 +513,7 @@ void GScreenDC::Rectangle(int x1, int y1, int x2, int y2)
 {
 	if (d->Ctx)
 	{
-		CGRect r = {{x1, y1}, {x2-x1+1.0, y2-y1+1.0}};
+		CGRect r = {{(float)x1, (float)y1}, {(float)(x2-x1+1.0), (float)(y2-y1+1.0)}};
 		CGContextFillRect(d->Ctx, r);
 	}
 }
@@ -529,7 +529,7 @@ void GScreenDC::Rectangle(GRect *a)
 			a = &c;
 		}
 
-		CGRect r = {{a->x1, a->y1}, {a->x2-a->x1+1.0, a->y2-a->y1+1.0}};
+		CGRect r = {{(float)(a->x1), (float)(a->y1)}, {(float)(a->x2-a->x1+1.0), (float)(a->y2-a->y1+1.0)}};
 		CGContextFillRect(d->Ctx, r);
 	}
 }

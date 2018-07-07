@@ -315,7 +315,7 @@ public:
 		Info.trackInfo.scrollbar.viewsize = Page;
 		Info.trackInfo.scrollbar.pressState = false;
 
-		HIPoint pt = {x, y};
+		HIPoint pt = {(CGFloat)x, (CGFloat)y};
 
 		ControlPartCode part;
 
