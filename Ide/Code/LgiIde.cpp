@@ -81,7 +81,10 @@ public:
 			{
 				LListItem *i = Lst->GetSelected();
 				if (i)
-					App->GotoReference(i->GetText(0), 1, false);
+				{
+					char *Ref = i->GetText(0);
+					App->GotoReference(Ref, 1, false);
+				}
 				EndModal(1);
 				break;
 			}
@@ -1369,7 +1372,7 @@ public:
 		if (WindowsMenu)
 		{
 			WindowsMenu->Empty();
-			Docs.Sort(DocSorter, 0);
+			Docs.Sort(DocSorter);
 			int n=0;
 			for (IdeDoc *d=Docs.First(); d; d=Docs.Next())
 			{
@@ -2139,13 +2142,21 @@ IdeDoc *AppWnd::OpenFile(const char *FileName, NodeSource *Src)
 		IdeProject *Proj = Src && Src->GetProject() ? Src->GetProject() : RootProject();
 		if (Proj)
 		{
-			GAutoString ProjPath = Proj->GetBasePath();
-			char p[MAX_PATH];
-			LgiMakePath(p, sizeof(p), ProjPath, File);
-			if (FileExists(p))
+			List<IdeProject> Projs;
+			Projs.Insert(Proj);
+			Proj->CollectAllSubProjects(Projs);
+
+			for (auto Project : Projs)
 			{
-				FullPath = p;
-				File = FullPath;
+				GAutoString ProjPath = Project->GetBasePath();
+				char p[MAX_PATH];
+				LgiMakePath(p, sizeof(p), ProjPath, File);
+				if (FileExists(p))
+				{
+					FullPath = p;
+					File = FullPath;
+					break;
+				}
 			}
 		}
 	}

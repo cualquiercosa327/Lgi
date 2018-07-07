@@ -2143,6 +2143,7 @@ void LList::ScrollToSelection()
 	}
 }
 
+/*
 int ListStringCompare(LListItem *a, LListItem *b, NativeInt data)
 {
 	char *ATxt = (a)->GetText(data);
@@ -2156,12 +2157,15 @@ void LList::Sort(LListCompareFunc Compare, NativeInt Data)
 {
 	if (Lock(_FL))
 	{
+		LListItem *Kb = Items[Keyboard];
 		Items.Sort(Compare ? Compare : ListStringCompare, Data);
+		Keyboard = Kb ? Items.IndexOf(Kb) : -1;
 		Invalidate(&ItemsPos);
 
 		Unlock();
 	}
 }
+*/
 
 void LList::Empty()
 {
@@ -2287,11 +2291,10 @@ void LList::PourAll()
 			ColumnHeader.ZOff(-1, -1);
 		}
 		
-		int n = 0;
+		size_t n = 0;
 		int y = ItemsPos.y1;
-		int Max = MaxScroll();
+		size_t Max = MaxScroll();
 		FirstVisible = (VScroll) ? VScroll->Value() : 0;
-		if (FirstVisible < 0) FirstVisible = 0;
 		if (FirstVisible > Max) FirstVisible = Max;
 		LastVisible = 0x7FFFFFFF;
 		CompletelyVisible = 0;

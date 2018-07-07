@@ -13,13 +13,13 @@
 #include <fcntl.h>
 
 #ifdef WINDOWS
-#include <winsock2.h>
-#include <shlobj.h>
-#include "GRegKey.h"
-#include <sys/types.h>
-#include <sys/stat.h>
+	#include <winsock2.h>
+	#include <shlobj.h>
+	#include "GRegKey.h"
+	#include <sys/types.h>
+	#include <sys/stat.h>
 #else
-#include <unistd.h>
+	#include <unistd.h>
 #endif
 
 #include "Lgi.h"
@@ -35,23 +35,29 @@
 #endif
 
 #if defined POSIX
-#include <sys/time.h>
-#include <sys/types.h>
-#include <pwd.h>
-#include <sys/utsname.h>
-#include "GProcess.h"
+	#include <sys/time.h>
+	#include <sys/types.h>
+	#include <pwd.h>
+	#include <sys/utsname.h>
+	#include "GProcess.h"
 #elif defined BEOS
-#include <Path.h>
+	#include <Path.h>
 #endif
 
 #if defined(WIN32)
-#include "../win32/GSymLookup.h"
+	#include "../win32/GSymLookup.h"
 #elif defined(LINUX)
-#include "../linux/GSymLookup.h"
+	#include "../linux/GSymLookup.h"
 #else
-#include "GSymLookup.h"
+	#include "GSymLookup.h"
 #endif
 #include "GLibrary.h"
+
+#if defined(__GTK_H__)
+namespace Gtk {
+	#include "LgiWidget.h"
+}
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // Misc stuff
@@ -128,16 +134,14 @@ bool LgiPostEvent(OsView Wnd, int Event, GMessage::Param a, GMessage::Param b)
 
 	#elif defined(__GTK_H__)
 
-	if (Wnd)
+	GViewI *View = g_object_get_data(GtkCast(Wnd, g_object, GObject), "GViewI");
+	if (View)
 	{
 		GMessage m(0);
 		m.Set(Event, a, b);
-		return m.Send(Wnd);
+		return m.Send(View);
 	}
-	else
-	{
-		printf("%s:%i - Warning: LgiPostEvent failed because View=0\n", _FL);
-	}
+	else printf("%s:%i - Error: LgiPostEvent can't cast OsView to GViewI\n", _FL);
 
 	#elif defined(BEOS)
 	
@@ -550,8 +554,13 @@ bool LgiTraceGetFilePath(char *LogPath, int BufLen)
 
 #define LGI_TRACE_TS	0
 
+
 void LgiTrace(const char *Msg, ...)
 {
+#if LGI_TRACE_TS
+GProfile Prof("LgiTrace");
+#endif
+
 	#if defined _INC_MALLOC && WINNATIVE
 	if (_heapchk() != _HEAPOK)
 	{
@@ -562,11 +571,6 @@ void LgiTrace(const char *Msg, ...)
 	if (!Msg)
 		return;
 
-	#if LGI_TRACE_TS
-	static uint64 LastTs = 0;
-	uint64 ThisTs = LgiCurrentTime();
-	#endif
-
 	#ifdef WIN32
 	static LMutex Sem;
 	Sem.Lock(_FL, true);
@@ -574,7 +578,7 @@ void LgiTrace(const char *Msg, ...)
 
 	char Buffer[2049] = "";
 	#ifdef LGI_TRACE_TO_FILE
-	GFile f;
+	static GFile f;
 	static char LogPath[MAX_PATH] = "";
 	
 	if (!_LgiTraceStream && LogPath[0] == 0)
@@ -583,35 +587,61 @@ void LgiTrace(const char *Msg, ...)
 	}
 	#endif
 
+#if LGI_TRACE_TS
+Prof.Add("vprint");
+#endif
+
 	va_list Arg;
 	va_start(Arg, Msg);
-	#if LGI_TRACE_TS
-	int Ch = sprintf_s(Buffer, sizeof(Buffer), LGI_PrintfInt64": ", LastTs?ThisTs-LastTs:0);
-	LastTs = ThisTs;
-	Ch += _vsnprintf(Buffer+Ch, sizeof(Buffer)-Ch-1, Msg, Arg);
-	#else
 	int Ch = _vsnprintf(Buffer, sizeof(Buffer)-1, Msg, Arg);
-	#endif
 	va_end(Arg);
+
+#if LGI_TRACE_TS
+Prof.Add("open");
+#endif
 
 	#ifdef LGI_TRACE_TO_FILE
 	GStreamI *Output = NULL;
 	if (_LgiTraceStream)
 		Output = _LgiTraceStream;
-	else if (f.Open(LogPath, O_WRITE))
+	else
 	{
-		f.Seek(0, SEEK_END);
+		if (!f.IsOpen() &&
+			f.Open(LogPath, O_WRITE))
+			f.Seek(0, SEEK_END);
 		Output = &f;
 	}
+
+#if LGI_TRACE_TS
+Prof.Add("write");
+#endif
 	if (Output && Ch > 0)
 		Output->Write(Buffer, Ch);
+#if LGI_TRACE_TS
+Prof.Add("close");
+#endif
 	if (!_LgiTraceStream)
+	{
+		#ifdef WINDOWS
+		// Windows can take AGES to close a file when there is anti-virus on, like 100ms.
+		// We can't afford to wait here so just keep the file open but flush the
+		// buffers if we can.
+		FlushFileBuffers(f.Handle());
+		#else
 		f.Close();
+		#endif
+	}
 	#endif
 
 
+#if LGI_TRACE_TS
+Prof.Add("OutputDebugStringA");
+#endif
 	#if defined WIN32
 	OutputDebugStringA(Buffer);
+#if LGI_TRACE_TS
+Prof.Add("unlock");
+#endif
 	Sem.Unlock();
 	#else
 	printf("%s", Buffer);
@@ -2250,17 +2280,34 @@ GProfile::~GProfile()
 		}
 	}
 	
+	char c[1024];
+	int ch = 0;
+
 	for (int i=0; i<s.Length()-1; i++)
 	{
 		Sample &a = s[i];
 		Sample &b = s[i+1];
-		#if PROFILE_MICRO
-		LgiTrace("%s%s = %.2f ms\n", i ? "    " : "", a.Name, (double)(b.Time - a.Time)/1000.0);
+		
+		#if 1
+
+			#if PROFILE_MICRO
+			LgiTrace("%s%s = %.2f ms\n", i ? "    " : "", a.Name, (double)(b.Time - a.Time)/1000.0);
+			#else
+			LgiTrace("%s%s = %i ms\n", i ? "    " : "", a.Name, (int)(b.Time - a.Time));
+			#endif
+		
 		#else
-		LgiTrace("%s%s = %i ms\n", i ? "    " : "", a.Name, (int)(b.Time - a.Time));
+
+			#if PROFILE_MICRO
+			ch += sprintf_s(c+ch, sizeof(c)-ch, "%s%s = %.2f ms\n", i ? "    " : "", a.Name, (double)(b.Time - a.Time)/1000.0);
+			#else
+			ch += sprintf_s(c+ch, sizeof(c)-ch, "%s%s = %i ms\n", i ? "    " : "", a.Name, (int)(b.Time - a.Time));
+			#endif
+
 		#endif
 	}
 
+	// OutputDebugStringA(c);
 	DeleteArray(Buf);
 }
 

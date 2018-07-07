@@ -311,13 +311,13 @@ public:
 	bool Serialize(class GDom *Props, char *Name, bool Write);
 
 	// operators
-	bool operator <(LDateTime &dt);
-	bool operator <=(LDateTime &dt);
-	bool operator >(LDateTime &dt);
-	bool operator >=(LDateTime &dt);
-	bool operator ==(LDateTime &dt);
-	bool operator !=(LDateTime &dt);
-	int Compare(const LDateTime *d);
+	bool operator <(LDateTime &dt) const;
+	bool operator <=(LDateTime &dt) const;
+	bool operator >(LDateTime &dt) const;
+	bool operator >=(LDateTime &dt) const;
+	bool operator ==(const LDateTime &dt) const;
+	bool operator !=(LDateTime &dt) const;
+	int Compare(const LDateTime *d) const;
 
 	LDateTime operator -(LDateTime &dt);
 	LDateTime operator +(LDateTime &dt);

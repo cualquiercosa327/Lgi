@@ -139,15 +139,21 @@ class GFunctionInfo : public GRefCount
 	static int _Infos;
 
 	int32 StartAddr;
-	uint16 FrameSize;
 	GString Name;
+
+	// The reason why this is a pointer is because during the function compilation the frame
+	// size is actually unknown. If the function calls itself then it won't know what
+	// frame size to insert in the assembly (this is NULL).
+	// In which case it has to insert a post compilation fix-up for the frame size.
+	GAutoPtr<uint16> FrameSize;
+
+	// The number and names of the parameters to the function.
 	GArray<GString> Params;
 
 public:
 	GFunctionInfo(const char *name)
 	{
 		StartAddr = 0;
-		FrameSize = 0;
 		if (name)
 			Name = name;
 	}

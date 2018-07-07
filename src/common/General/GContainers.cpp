@@ -60,7 +60,7 @@ bool UnitTest_Check(GArray<GString> &a, List<char> &l)
 	{
 		GString t = s;
 		if (t.Equals(a[n]))
-			printf("%i: %s\n", n, s);
+			;//printf("%i: %s\n", n, s);
 		else
 			return UnitTest_Err("Wrong value.");
 		n++;

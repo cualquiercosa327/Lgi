@@ -122,14 +122,15 @@ public:
 		pDC->Colour(GColour::Red);
 		pDC->Rectangle();
 
-		const char *k;
 		SysFont->Colour(GColour::White, GColour::Red);
 		SysFont->Transparent(true);
 
 		GString s = "Missing components: ";
-		for (bool b = Caps->First(&k); b; b = Caps->Next(&k))
+		// const char *k;
+		// for (bool b = Caps->First(&k); b; b = Caps->Next(&k))
+		for (auto k : *Caps)
 		{
-			s += k;
+			s += k.key;
 			s += " ";
 		}
 
@@ -416,10 +417,11 @@ public:
 			Installer.Reset(new InstallThread(AddDispatch()));
 		if (Installer)
 		{
-			const char *c;
-			for (bool b = Caps->First(&c); b; b = Caps->Next(&c))
+			// const char *c;
+			// for (bool b = Caps->First(&c); b; b = Caps->Next(&c))
+			for (auto c : *Caps)
 			{
-				GAutoPtr<GString> s(new GString(c));
+				GAutoPtr<GString> s(new GString(c.key));
 				Installer->PostObject(Installer->GetHandle(), M_INSTALL, s);
 			}
 		}
@@ -430,9 +432,10 @@ public:
 		DeleteObj(Bar);
 		if (Edit && Caps && Status)
 		{
-			const char *k;
-			for (bool b = Caps->First(&k); b; b = Caps->Next(&k))
-				Edit->PostEvent(M_COMPONENT_INSTALLED, new GString(k));
+			// const char *k;
+			// for (bool b = Caps->First(&k); b; b = Caps->Next(&k))
+			for (auto k : *Caps)
+				Edit->PostEvent(M_COMPONENT_INSTALLED, new GString(k.key));
 		}
 		PourAll();
 	}

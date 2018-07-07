@@ -1695,8 +1695,10 @@ void GFolderItem::OnMouseClick(GMouse &m)
 	}
 }
 
-int GFolderItemCompare(GFolderItem *a, GFolderItem *b, NativeInt Data)
+int GFolderItemCompare(LListItem *A, LListItem *B, NativeInt Data)
 {
+	GFolderItem *a = dynamic_cast<GFolderItem*>(A);
+	GFolderItem *b = dynamic_cast<GFolderItem*>(B);
 	if (a && b)
 	{
 		if (a->IsDir ^ b->IsDir)
@@ -1833,7 +1835,7 @@ void GFolderList::OnFolder()
 	Empty();
 
 	GDirectory Dir;
-	List<GFolderItem> New;
+	List<LListItem> New;
 
 	// Get current type
 	GFileType *Type = Dlg->d->Types.ItemAt(Dlg->d->CurrentType);
@@ -1856,7 +1858,7 @@ void GFolderList::OnFolder()
 	{
 		char Name[MAX_PATH];
 		Dir.Path(Name, sizeof(Name));
-
+		
 		bool Match = true;
 		if (!ShowHiddenFiles && Dir.IsHidden())
 		{
@@ -1868,18 +1870,9 @@ void GFolderList::OnFolder()
 			Match = false;
 			for (char *e=Ext.First(); e && !Match; e=Ext.Next())
 			{
-				if (e[0] == '*' && e[1] == '.')
-				{
-					char *Ext = LgiGetExtension(Name);
-					if (Ext)
-						Match = stricmp(Ext, e + 2) == 0;
-				}
-				else
-				{
-					bool m = MatchStr(e, Name);
-					if (m)
-						Match = true;
-				}
+				bool m = MatchStr(e, Name);
+				if (m)
+					Match = true;
 			}
 		}
 		
@@ -1891,10 +1884,10 @@ void GFolderList::OnFolder()
 	}
 
 	// Sort items...
-	New.Sort(GFolderItemCompare, 0);
+	New.Sort(GFolderItemCompare);
 
 	// Display items...
-	Insert((List<LListItem>&) New);
+	Insert(New);
 }
 
 //////////////////////////////////////////////////////////////////////////

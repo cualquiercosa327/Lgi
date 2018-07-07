@@ -1034,11 +1034,12 @@ void AppWnd::ShowLang(GLanguageId Lang, bool Show)
 
 	// Store the setting for next time
 	GStringPipe p;
-	const char *L;
-	for (bool i = ShowLanguages.First(&L); i; i = ShowLanguages.Next(&L))
+	// const char *L;
+	// for (bool i = ShowLanguages.First(&L); i; i = ShowLanguages.Next(&L))
+	for (auto i : ShowLanguages)
 	{
 		if (p.GetSize()) p.Push(",");
-		p.Push(L);
+		p.Push(i.key);
 	}
 	char *Langs = p.NewStr();
 	if (Langs)
@@ -2110,10 +2111,11 @@ public:
 			}
 		}
 
-		char *Key;
-		for (void *v = a.First(&Key); v; v = a.Next(&Key))
+		// char *Key;
+		// for (void *v = a.First(&Key); v; v = a.Next(&Key))
+		for (auto v : a)
 		{
-			GXmlAttr *a1 = (GXmlAttr *)v;
+			GXmlAttr *a1 = v.value;
 			sprintf(s, "[Left] Missing Attr: '%s' = '%s'", a1->GetName(), a1->GetValue());
 			LListItem *i = new LListItem;
 			if (i)
@@ -2682,11 +2684,12 @@ bool AppWnd::LoadLgi(char *FileName)
 
 						// Update languages array
 						int n = 0;
-						for (GLanguage *i = Langs.First(); i; i = Langs.Next(), n++)
+						// for (GLanguage *i = Langs.First(); i; i = Langs.Next(), n++)
+						for (auto i : Langs)
 						{
-							Languages.Add(i);
-							GMenuItem *Item = ViewMenu->AppendItem(i->Name, IDM_LANG_BASE + n, true);
-							if (Item && i->IsEnglish())
+							Languages.Add(i.value);
+							GMenuItem *Item = ViewMenu->AppendItem(i.value->Name, IDM_LANG_BASE + n, true);
+							if (Item && i.value->IsEnglish())
 							{
 								Item->Checked(true);
 								CurLang = n;
@@ -2755,7 +2758,7 @@ void AppWnd::SortDialogs()
 			}
 		}
 
-		Dlgs.Sort(DialogNameCompare, 0);
+		Dlgs.Sort(DialogNameCompare);
 
 		for (ResDialog *d = Dlgs.First(); d; d = Dlgs.Next())
 		{
@@ -2980,18 +2983,19 @@ bool AppWnd::WriteDefines(GFile &Defs)
 
 		// write the list out
 		GArray<DefinePair> Pairs;
-		char *s = 0;
-		for (int i = Def.First(&s); i; i = Def.Next(&s))
+		// char *s = 0;
+		// for (int i = Def.First(&s); i; i = Def.Next(&s))
+		for (auto i : Def)
 		{
-			if (ValidStr(s) &&
-				stricmp(s, "IDOK") != 0 &&
-				stricmp(s, "IDCANCEL") != 0 &&
-				stricmp(s, "IDC_STATIC") != 0 &&
-				stricmp(s, "-1") != 0)
+			if (ValidStr(i.key) &&
+				stricmp(i.key, "IDOK") != 0 &&
+				stricmp(i.key, "IDCANCEL") != 0 &&
+				stricmp(i.key, "IDC_STATIC") != 0 &&
+				stricmp(i.key, "-1") != 0)
 			{
 				DefinePair &p = Pairs.New();
-				p.Name = s;
-				p.Value = i;
+				p.Name = i.key;
+				p.Value = i.value;
 			}
 		}
 
@@ -4546,7 +4550,7 @@ void ShortCutView::OnDialogChange(ResDialog *Dlg)
 	if (!Dlg)
 		return;
 	FindShortCuts(Lst, Dlg);
-	Lst->Sort(NULL, 0);
+	Lst->Sort<int>(NULL);
 }
 
 ShortCutView *AppWnd::GetShortCutView()

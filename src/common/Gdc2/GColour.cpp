@@ -484,3 +484,49 @@ char *GColour::GetStr()
 
 	return Buf[b];
 }
+
+bool GColour::SetStr(const char *str)
+{
+	if (!str)
+		return false;
+
+	GString Str = str;
+	char *s = strchr(Str, '(');
+	if (!s)
+		return false;
+	char *e = strchr(s + 1, ')');
+	if (!s)
+		return false;
+
+	*s = 0;
+	*e = 0;
+	GString::Array Comp = GString(s+1).Split(",");
+	if (!Stricmp(Str.Get(), "rgb"))
+	{
+		if (Comp.Length() == 3)
+			Rgb(Comp[0].Int(), Comp[1].Int(), Comp[2].Int());
+		else if (Comp.Length() == 4)
+			Rgb(Comp[0].Int(), Comp[1].Int(), Comp[2].Int(), Comp[3].Int());
+		else
+			return false;
+	}
+	else if (!Stricmp(Str.Get(), "hls"))
+	{
+		if (Comp.Length() == 3)
+			SetHLS(Comp[0].Int(), Comp[1].Int(), Comp[2].Int());
+		else
+			return false;
+	}
+	else if (!Stricmp(Str.Get(), "index"))
+	{
+		if (Comp.Length() == 1)
+		{
+			index = Comp[0].Int();
+			space = CsIndex8;
+		}
+		else return false;
+	}
+	else return false;
+
+	return true;
+}

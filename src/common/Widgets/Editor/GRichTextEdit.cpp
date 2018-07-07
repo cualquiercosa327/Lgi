@@ -198,7 +198,7 @@ void GRichTextEdit::SetTabSize(uint8 i)
 	Invalidate();
 }
 
-void GRichTextEdit::SetWrapType(uint8 i)
+void GRichTextEdit::SetWrapType(LDocWrapType i)
 {
 	GDocView::SetWrapType(i);
 

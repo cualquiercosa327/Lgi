@@ -1,8 +1,63 @@
 #include "Lgi.h"
 #include "UnitTests.h"
+#include "LUnrolledList.h"
 
 class GContainersPriv
 {
+public:
+	bool ListDeleteOne(int pos, int sz)
+	{
+		GArray<int> a;
+		List<int> l;
+		for (int i=0; i<sz; i++)
+		{
+			l.Insert(new int(i));
+			a.Add(i);
+		}
+
+		l.DeleteAt(pos);
+		a.DeleteAt(pos, true);
+		
+		if (l.Length() != a.Length())
+			return false;
+
+		int idx = 0;
+		for (auto i : l)
+		{
+			if (*i != a[idx])
+				return false;
+			idx++;
+		}
+
+		return true;
+	}
+
+	bool ListInsert(int pos, int sz)
+	{
+		GArray<int> a;
+		List<int> l;
+		for (int i=0; i<sz; i++)
+		{
+			l.Insert(new int(i));
+			a.Add(i);
+		}
+
+		l.Insert(new int(pos), pos);
+		a.AddAt(pos, pos);
+		
+		if (l.Length() != a.Length())
+			return false;
+
+		int idx = 0;
+		for (auto i : l)
+		{
+			if (*i != a[idx])
+				return false;
+			idx++;
+		}
+
+		return true;
+	}
 };
 
 GContainers::GContainers() : UnitTest("GContainers")
@@ -50,7 +105,7 @@ bool GContainers::Run()
 			return FAIL(_FL, "count error");
 
 		n = 0;
-		List<int>::I i3 = a.begin();
+		auto i3 = a.begin();
 		for (int *v = *i3; i3; v = *++i3)
 		{
 			if (*a[n] != **i3)
@@ -59,8 +114,76 @@ bool GContainers::Run()
 		}
 		if (n != 4)
 			return FAIL(_FL, "count error");
+
+		if (!d->ListInsert(45, 80))
+			return FAIL(_FL, "list insert");
+		if (!d->ListInsert(63, 80))
+			return FAIL(_FL, "list insert");
+		if (!d->ListInsert(64, 80))
+			return FAIL(_FL, "list insert");
+
+		if (!d->ListDeleteOne(45, 80))
+			return FAIL(_FL, "list delete one");
+		if (!d->ListDeleteOne(63, 80))
+			return FAIL(_FL, "list delete one");
+		if (!d->ListDeleteOne(64, 80))
+			return FAIL(_FL, "list delete one");
 	}
 
+	{
+		GHashTbl<int, int> h;
+		for (int i=1; i<=100; i++)
+		{
+			h.Add(i, i << 1);
+		}
+		int count = 0;
+		for (auto i : h)
+		{
+			if (i.key << 1 != i.value)
+				return FAIL(_FL, "hash iterate");
+			count++;
+		}
+		if (count != h.Length())
+			return FAIL(_FL, "hash iterate");
+		count = 0;
+		for (auto i : h)
+		{
+			if (i.key == 50)
+				h.Delete(i.key);
+			else
+				count++;
+		}
+		if (count != h.Length())
+			return FAIL(_FL, "hash delete during iterate");
+	}
+
+	{
+		LUnrolledList<int> IntLst;
+		IntLst.Add(123);
+
+		LUnrolledList<GString> StrLst;
+		StrLst.Add("Hello");
+		for (auto i : StrLst)
+		{
+			if (_stricmp(i, "Hello") != 0)
+				return FAIL(_FL, "str lst iteration");
+		}
+
+		StrLst.Add("Aacc");
+		StrLst.Add("Tyertw");
+		StrLst.Add("Bbbsd");
+
+		StrLst.Sort
+		(
+			[](GString &a, GString &b, int Dir)
+			{
+				return _stricmp(a, b) * Dir;
+			},
+			1
+		);
+
+		StrLst.Delete("Tyertw");
+	}
 
 	return true;
 }

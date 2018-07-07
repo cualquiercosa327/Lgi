@@ -60,6 +60,8 @@ GtkWidget *lgi_widget_new(GViewI *target, int w, int h, bool pour_largest)
 		p->w = w;
 		p->h = h;
 		p->pour_largest = pour_largest;
+		
+		g_object_set_data(G_OBJECT(p), "GViewI", target);
 
         if (target->GetTabStop())
         {

@@ -31,6 +31,8 @@ class LgiClass GTableLayout :
 	friend class TableCell;
 	class GTableLayoutPrivate *d;
 
+	bool SizeChanged();
+
 public:
 	/// The system default cell spacing for all tables. Individual tables can have their own
 	/// cell spacing by setting the CSS property 'border-spacing'.

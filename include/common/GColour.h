@@ -104,7 +104,10 @@ public:
 	void ToRGB();
 	int GetGray(int BitDepth = 8);
 	uint32 GetNative();
+	
+	// String IO
 	char *GetStr();
+	bool SetStr(const char *Str);
 	
 	#ifdef BEOS
 	operator rgb_color()

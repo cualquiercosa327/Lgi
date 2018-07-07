@@ -295,20 +295,20 @@ void GCombo::DoMenu()
 		{
 			if (d->Sub == GV_INT32)
 			{
-				d->Items.Sort(IntCompare, 0);
+				d->Items.Sort(IntCompare);
 			}
 			else if (d->Sub == GV_DOUBLE)
 			{
-				d->Items.Sort(DblCompare, 0);
+				d->Items.Sort(DblCompare);
 			}
 			else
 			{
-				d->Items.Sort(StringCompare, 0);
+				d->Items.Sort(StringCompare);
 			}
 		}
 		else if (d->SortItems)
 		{
-			d->Items.Sort(StringCompare, 0);
+			d->Items.Sort(StringCompare);
 		}
 
 		char *c = d->Items.First();

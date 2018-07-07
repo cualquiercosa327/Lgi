@@ -140,7 +140,7 @@ public:
 	GRect GetArea(RectType Type);
 
 	/// Sets the wrapping on the control, use #TEXTED_WRAP_NONE or #TEXTED_WRAP_REFLOW
-	void SetWrapType(uint8 i);
+	void SetWrapType(LDocWrapType i);
 	
 	// State / Selection
 	void SetCursor(int i, bool Select, bool ForceFullUpdate = false);

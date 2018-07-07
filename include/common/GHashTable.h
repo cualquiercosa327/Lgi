@@ -710,7 +710,8 @@ public:
 
 		return NullKey;
 	}
-	
+
+	/*	
 	/// Returns the first value
 	Value First(Key *k = 0)
 	{
@@ -772,6 +773,7 @@ public:
 
 		return NullValue;
 	}
+	*/
 
 	/// Removes all key/value pairs from memory
 	void Empty()
@@ -872,6 +874,70 @@ public:
 		}
 
 		Used = 0;
+	}
+
+	struct Pair
+	{
+		Key &key;
+		Value &value;
+	};
+
+	struct PairIterator
+	{
+		GHashTbl<Key,Value> *t;
+		int Idx;
+
+	public:
+		PairIterator(GHashTbl<Key,Value> *tbl, int i)
+		{
+			t = tbl;
+			Idx = i;
+			if (Idx < 0)
+				Next();
+		}
+
+		bool operator !=(const PairIterator &it) const
+		{
+			bool Eq = t == it.t &&
+					Idx == it.Idx;
+			return !Eq;
+		}
+
+		PairIterator &Next()
+		{
+			if (t->IsOk())
+			{
+				while (++Idx < t->Size)
+				{
+					if (t->Table[Idx].k != t->NullKey)
+						break;
+				}
+			}
+
+			return *this;
+		}
+
+		PairIterator &operator ++() { return Next(); }
+		PairIterator &operator ++(int) { return Next(); }
+
+		Pair operator *()
+		{
+			LgiAssert(	Idx >= 0 &&
+						Idx < t->Size &&
+						t->Table[Idx].k != t->NullKey);
+			Pair p = { t->Table[Idx].k, t->Table[Idx].v };
+			return p;
+		}
+	};
+
+	PairIterator begin()
+	{
+		return PairIterator(this, -1);
+	}
+
+	PairIterator end()
+	{
+		return PairIterator(this, Size);
 	}
 };
 

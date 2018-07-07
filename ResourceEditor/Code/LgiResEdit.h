@@ -393,9 +393,10 @@ public:
 
 	void Empty()
 	{
-		for (FieldArr *a = f.First(); a; a = f.Next())
+		// for (FieldArr *a = f.First(); a; a = f.Next())
+		for (auto a : f)
 		{
-			a->DeleteObjects();
+			a.value->DeleteObjects();
 		}
 		f.DeleteObjects();
 		View = 0;
@@ -609,9 +610,10 @@ public:
 
 	void GetAll(GArray<FieldArr*> &Fields)
 	{
-		for (FieldArr *a = f.First(0); a; a = f.Next(0))
+		// for (FieldArr *a = f.First(0); a; a = f.Next(0))
+		for (auto a : f)
 		{
-			Fields.Add(a);
+			Fields.Add(a.value);
 		}
 		Fields.Sort(FieldArrCmp);
 	}

@@ -209,9 +209,10 @@ public:
 	{
 		size_t Sz = 0;
 		
-		for (ssize_t o = Fields.First(); o >= 0; o = Fields.Next())
+		// for (ssize_t o = Fields.First(); o >= 0; o = Fields.Next())
+		for (auto o : Fields)
 		{
-			Field *i = (Field*)FieldMem.AddressOf(o);
+			Field *i = (Field*)FieldMem.AddressOf(o.value);
 			Sz += i->Sizeof();
 		}
 
@@ -390,9 +391,10 @@ public:
 		if ((ToStream = write))
 		{
 			uint32 Size = 0;
-			for (ssize_t o = Fields.First(); o >= 0; o = Fields.Next())
+			// for (ssize_t o = Fields.First(); o >= 0; o = Fields.Next())
+			for (auto o : Fields)
 			{
-				Field *i = (Field*)FieldMem.AddressOf(o);
+				Field *i = (Field*)FieldMem.AddressOf(o.value);
 				Size += i->Sizeof();
 			}
 
@@ -405,9 +407,10 @@ public:
 			if (stream->Write(&f, 8) != 8)
 				return false;
 
-			for (ssize_t o = Fields.First(); o >= 0; o = Fields.Next())
+			// for (ssize_t o = Fields.First(); o >= 0; o = Fields.Next())
+			for (auto o : Fields)
 			{
-				Field *i = (Field*)FieldMem.AddressOf(o);
+				Field *i = (Field*)FieldMem.AddressOf(o.value);
 				int bytes = i->Sizeof();
 				if (stream->Write(i, bytes) != bytes)
 					return false;

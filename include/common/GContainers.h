@@ -191,7 +191,7 @@ public:
 	};
 
 	typedef Iter I;
-	typedef int (*CompareFn)(T *a, T *b, NativeInt data);
+	// typedef int (*CompareFn)(T *a, T *b, NativeInt data);
 
 protected:
 	size_t Items;
@@ -281,12 +281,9 @@ protected:
 		{
 			if (!i->Next)
 			{
-				// Append a new LstBlk and put one item in it
-				if (!(i = NewBlock(i)))
+				// Append a new LstBlk
+				if (!NewBlock(i))
 					return false;
-				i->Ptr[i->Count++] = p;
-				Items++;
-				return true;
 			}
 
 			if (Index < 0)
@@ -295,8 +292,10 @@ protected:
 			// Push last pointer into Next
 			if (i->Next->Full())
 				NewBlock(i); // Create an empty Next
-			Insert(i->Next, i->Ptr[ITEM_PTRS-1], 0);
+			if (!Insert(i->Next, i->Ptr[ITEM_PTRS-1], 0))
+				return false;
 			i->Count--;
+			Items--; // We moved the item... not inserted it.
 
 			// Fall through to the local "non-full" insert...
 		}
@@ -444,7 +443,8 @@ protected:
 
 		int GetItems() { return Used; }
 
-		bool Add(T *Obj, CompareFn Cmp, NativeInt Data)
+		template<typename User>
+		bool Add(T *Obj, int (*Cmp)(T *a, T *b, User data), User Data)
 		{
 			if (Used)
 			{
@@ -527,6 +527,46 @@ public:
 	{
 		return Items;
 	}
+	
+	bool Length(size_t Len)
+	{
+		if (Len == 0)
+			return Empty();
+		else if (Len == Items)
+			return true;
+			
+		VALIDATE();
+		
+		bool Status = false;
+		
+		if (Len < Items)
+		{
+			// Decrease list size...
+			size_t Base = 0;
+			Iter i = GetIndex(Len, &Base);
+			if (i.i)
+			{
+				size_t Offset = Len - Base;
+				LgiAssert(Offset <= i.i->Count);
+				i.i->Count = Len - Base;
+				LgiAssert(i.i->Count >= 0 && i.i->Count < ITEM_PTRS);
+				while (i.i->Next)
+				{
+					DeleteBlock(i.i->Next);
+				}
+				Items = Len;
+			}
+			else LgiAssert(!"Iterator invalid.");
+		}
+		else
+		{
+			// Increase list size...
+			LgiAssert(!"Impl me.");
+		}
+				
+		VALIDATE();
+		return Status;		
+	}
 
 	bool Empty()
 	{
@@ -593,18 +633,21 @@ public:
 		}
 
 		bool Status;
+		size_t Base;
+		Iter Pos(this);
+
 		if (Index < 0)
 			Status = Insert(LastObj, p, Index);
 		else
 		{
-			size_t Base;
-			Iter Pos = GetIndex(Index, &Base);
+			Pos = GetIndex(Index, &Base);
 			if (Pos.i)
 				Status = Insert(Pos.i, p, (int) (Index - Base));
 			else
 				Status = Insert(LastObj, p, -1);				
 		}
 		VALIDATE();
+		LgiAssert(Status);
 		return Status;
 	}
 
@@ -684,12 +727,13 @@ public:
 	}
 
 	/// Sorts the list
+	template<typename User>
 	void Sort
 	(
 		/// The callback function used to compare 2 pointers
-		CompareFn Compare,
+		int (*Compare)(T *a, T *b, User data),
 		/// User data that is passed into the callback
-		NativeInt Data = 0
+		User Data = 0
 	)
 	{
 		if (Items < 1)
@@ -717,7 +761,7 @@ public:
 		}
 		VALIDATE();
 	}
-	
+
 	/// Delete all pointers in the list as dynamically allocated objects
 	void DeleteObjects()
 	{
@@ -770,17 +814,32 @@ public:
 	}
 
 	/// Assign the contents of another list to this one
+	#if 0
+	List<T> &operator=(const List<T> &lst)
+	{
+		Empty();
+		
+		for (auto i : lst)
+			Add(i);
+			
+		return *this;
+	}
+	#else
 	List<T> &operator =(const List<T> &lst)
 	{
 		VALIDATE();
 
 		// Make sure we have enough blocks allocated
 		size_t i = 0;
+		
+		// Set the existing blocks to empty...
 		for (LstBlk *out = FirstObj; out; out = out->Next)
 		{
 			out->Count = 0;
 			i += ITEM_PTRS;
 		}
+		
+		// If we don't have enough, add more...
 		while (i < lst.Length())
 		{
 			LstBlk *out = NewBlock(LastObj);
@@ -792,9 +851,17 @@ public:
 				return *this;
 			}
 		}
+		
+		// If we have too many, free some...
+		while (LastObj && i > lst.Length() + ITEM_PTRS)
+		{
+			DeleteBlock(LastObj);
+			i -= ITEM_PTRS;
+		}
 
 		// Now copy over the block's contents.
 		LstBlk *out = FirstObj;
+		Items = 0;
 		for (LstBlk *in = lst.FirstObj; in; in = in->Next)
 		{
 			for (int pos = 0; pos < in->Count; )
@@ -814,6 +881,7 @@ public:
 				memcpy(out->Ptr + out->Count, in->Ptr + pos, Cp * sizeof(T*));
 				out->Count += Cp;
 				pos += Cp;
+				Items += Cp;
 			}
 		}
 
@@ -821,6 +889,7 @@ public:
 
 		return *this;
 	}
+	#endif
 
 	Iter begin(int At = 0) { return GetIndex(At); }
 	Iter rbegin(int At = 0) { return GetIndex(Length()-1); }
@@ -844,25 +913,39 @@ public:
 			for (int k=0; k<i->Count; k++)
 			{
 				if (!i->Ptr[k])
-					goto OnError;
+				{
+					LgiAssert(!"NULL pointer in LstBlk.");
+					return false;
+				}
 				else
+				{
 					n++;
+				}
 			}
 
 			if (i == FirstObj)
 			{
 				if (i->Prev)
-					goto OnError;
+				{
+					LgiAssert(!"First object's 'Prev' should be NULL.");
+					return false;
+				}
 			}
 			else if (i == LastObj)
 			{
 				if (i->Next)
-					goto OnError;
+				{
+					LgiAssert(!"Last object's 'Next' should be NULL.");
+					return false;
+				}
 			}
 			else
 			{
 				if (i->Prev != Prev)
-					goto OnError;
+				{
+					LgiAssert(!"Middle LstBlk 'Prev' incorrect.");
+					return false;
+				}
 			}
 
 			Prev = i;
@@ -871,14 +954,19 @@ public:
 		if (Local.i != NULL)
 		{
 			if (!SeenLocalBlk && Local.i != NULL)
-				goto OnError;
+			{
+				LgiAssert(!"The local iterator is not present in the list.");
+				return false;
+			}
+		}
+		
+		if (Items != n)
+		{
+			LgiAssert(!"Item count cache incorrect.");
+			return false;
 		}
 		
 		return true;
-	
-	OnError:
-		LgiAssert(!"Lst err.");
-		return false;
 	}
 };
 

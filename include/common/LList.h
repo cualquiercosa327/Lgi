@@ -149,7 +149,7 @@ public:
 	virtual void OnColumnNotify(int Col, int Data) { Update(); }
 };
 
-typedef int (*LListCompareFunc)(LListItem *a, LListItem *b, NativeInt Data);
+// typedef int (*LListCompareFunc)(LListItem *a, LListItem *b, NativeInt Data);
 
 class LListItems
 {
@@ -257,7 +257,7 @@ protected:
 	class LListPrivate *d;
 
 	// Contents
-	int Keyboard; // index of the item with keyboard focus
+	ssize_t Keyboard; // index of the item with keyboard focus
 
 	// Flags
 	bool EditLabels;
@@ -269,9 +269,9 @@ protected:
 	// Drawing locations
 	GRect ItemsPos;
 	GRect ScrollX, ScrollY;
-	int FirstVisible;
-	int LastVisible;
-	int CompletelyVisible;
+	ssize_t FirstVisible;
+	ssize_t LastVisible;
+	ssize_t CompletelyVisible;
 
 	// Misc
 	bool GetUpdateRegion(LListItem *i, GRegion &r);
@@ -442,14 +442,58 @@ public:
 	int IndexOf(LListItem *Obj);
 	/// Returns the item at index 'Index'
 	LListItem *ItemAt(int Index);
+
+	/*
 	/// Sort the list
 	void Sort
 	(
-		/// The comparision function. Should return a integer greater then > 0 if the first item item is greater in value.
+		/// The comparison function. Should return a integer greater then > 0 if the first item item is greater in value.
 		LListCompareFunc Compare,
 		/// User defined 32-bit value passed through to the 'Compare' function
 		NativeInt Data = 0
 	);
+	*/
+
+	/// Sort the list
+	template<typename User>
+	void Sort
+	(
+		/// The comparison function. Should return a integer greater then > 0 if the first item item is greater in value.
+		int (*Compare)(LListItem *a, LListItem *b, User data),
+		/// User defined value passed through to the 'Compare' function
+		User Data = 0
+	)
+	{
+		if (!Compare || !Lock(_FL))
+			return;
+
+		LListItem *Kb = Items[Keyboard];
+		Items.Sort(Compare, Data);
+		Keyboard = Kb ? Items.IndexOf(Kb) : -1;
+		Unlock();
+		Invalidate(&ItemsPos);
+	}
+
+	void Sort(int Column)
+	{
+		if (!Lock(_FL))
+			return;
+
+		LListItem *Kb = Items[Keyboard];
+		Items.Sort<int>
+		(
+			[](LListItem *a, LListItem *b, int Column) -> int
+			{
+				char *ATxt = a->GetText(Column);
+				char *BTxt = b->GetText(Column);
+				return (ATxt && BTxt) ? stricmp(ATxt, BTxt) : 0;
+			},
+			Column
+		);
+		Keyboard = Kb ? Items.IndexOf(Kb) : -1;
+		Unlock();
+		Invalidate(&ItemsPos);
+	}
 
 	/// Removes all items from list and delete the objects.
 	virtual void Empty();

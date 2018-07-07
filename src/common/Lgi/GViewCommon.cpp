@@ -165,6 +165,70 @@ GViewI *GViewIter::operator [](int Idx)
 GViewI *GView::_Capturing = 0;
 GViewI *GView::_Over = 0;
 
+#if defined(__GTK_H__) || defined(LGI_SDL)
+struct ViewTbl : public LMutex
+{
+	typedef GHashTbl<void*, int> T;
+	
+private:
+	T Map;
+
+public:
+	ViewTbl() : Map(2000, false, NULL, 0)
+	{
+	}
+
+	T *Lock()
+	{
+		if (!LMutex::Lock(_FL))
+			return NULL;
+		return &Map;
+	}
+}	ViewTblInst;
+
+bool GView::LockHandler(GViewI *v, GView::LockOp Op)
+{
+	ViewTbl::T *m = ViewTblInst.Lock();
+	int Ref = m->Find(v);
+	bool Status = false;
+	switch (Op)
+	{
+		case OpCreate:
+		{
+			if (Ref == 0)
+				Status = m->Add(v, 1);
+			else
+				LgiAssert(!"Already exists?");
+			break;
+		}
+		case OpDelete:
+		{
+			if (Ref == 1)
+				Status = m->Delete(v);
+			else
+				LgiAssert(!"Either locked or missing.");
+			break;
+		}
+		case OpLock:
+		{
+			if (Ref >= 1)
+				Status = m->Add(v, Ref + 1);
+			break;
+		}
+		case OpUnlock:
+		{
+			if (Ref > 1)
+				Status = m->Add(v, Ref - 1);
+			else
+				LgiAssert(!"Not locked?");
+			break;
+		}
+	}	
+	ViewTblInst.Unlock();
+	return Status;
+}
+#endif
+
 GView::GView(OsView view)
 {
 	#ifdef _DEBUG
@@ -185,8 +249,8 @@ GView::GView(OsView view)
 	Pos.ZOff(-1, -1);
 	WndFlags = GWF_VISIBLE;
 
-	#ifdef LGI_SDL
-	ViewMap.Add(this, true);
+	#if defined(__GTK_H__) || defined(LGI_SDL)
+	LockHandler(this, OpCreate);
 	#endif
 }
 
@@ -195,9 +259,8 @@ GView::~GView()
 	if (d->SinkHnd >= 0)
 		GEventSinkMap::Dispatch.RemoveSink(this);
 	
-	#ifdef LGI_SDL
-	LgiAssert(ViewMap.Find(this));
-	ViewMap.Delete(this);
+	#if defined(__GTK_H__) || defined(LGI_SDL)
+	LockHandler(this, OpDelete);
 	#endif
 
     #if !WINNATIVE

@@ -762,7 +762,7 @@ GDbRecordset *SvDb::TableAt(int i)
 }
 
 ///////////////////////////////////////////////////////////////////
-GDb *OpenCsvDatabase(char *Path, bool HasHeader)
+GDb *OpenCsvDatabase(const char *Path, bool HasHeader)
 {
 	SvDb *Db = new SvDb(',', HasHeader);
 	if (Db && Db->Connect(Path))
@@ -773,7 +773,7 @@ GDb *OpenCsvDatabase(char *Path, bool HasHeader)
 	return 0;
 }
 
-GDb *OpenTsvDatabase(char *Path, bool HasHeader)
+GDb *OpenTsvDatabase(const char *Path, bool HasHeader)
 {
 	SvDb *Db = new SvDb('\t', HasHeader);
 	if (Db && Db->Connect(Path))

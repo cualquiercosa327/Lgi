@@ -486,12 +486,13 @@ public:
 			{
 				Log->Print("(GHashTable*) %p {", v.Value.Hash);
 
-				const char *k;
 				int n = 0;
-				for (GVariant *p = v.Value.Hash->First(&k); p; p = v.Value.Hash->Next(&k), n++)
+				// const char *k;
+				// for (GVariant *p = v.Value.Hash->First(&k); p; p = v.Value.Hash->Next(&k), n++)
+				for (auto it : *v.Value.Hash)
 				{
-					Log->Print("%s\"%s\"=", n?",":"", k);
-					DumpVariant(Log, *p);
+					Log->Print("%s\"%s\"=", n?",":"", it.key);
+					DumpVariant(Log, *it.value);
 				}
 
 				Log->Print("}");
@@ -771,9 +772,9 @@ public:
 		if (Func)
 		{
 			// Set up stack for function call
-			Sf.CurrentFrameSize = Func->FrameSize;
-
-			AddLocalSize(Func->FrameSize);
+			LgiAssert(Func->FrameSize.Get());
+			Sf.CurrentFrameSize = *Func->FrameSize.Get();
+			AddLocalSize(Sf.CurrentFrameSize);
 
 			if (Args)
 			{

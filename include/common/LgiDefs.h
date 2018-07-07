@@ -378,6 +378,8 @@ enum LgiOs
 
 #define LC_MAXIMUM						24
 
+#define LC_TOOL_TIP						Rgb24(255, 255, 231)
+
 // Edge types
 enum LgiEdge
 {
@@ -602,11 +604,11 @@ enum LgiSystemPath
 	///		[Linux] = ???
 	LSP_USER_LINKS,
 
-	/// This is the user's picture/photos folder
-	///		[Win32] = ~\Links
-	///		[Mac]   = ???
-	///		[Linux] = ???
+	/// User's pictures/photos folder
 	LSP_USER_PICTURES,
+	///		[Win32] = C:\Users\%HOME%\Pictures
+	///		[Mac]   = ???
+	///		[Linux] = ~\Pictures
 };
 
 // Deprecated method defines

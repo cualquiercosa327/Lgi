@@ -99,13 +99,13 @@ public:
 };
 
 // Actual implementations
-extern GDb *OpenDbfDatabase(char *s);		// add 'GDb-Dbf.cpp' to your project
-extern GDb *OpenAdoDatabase(char *s);		// add 'GDb-Ado.cpp' to your project
-extern GDb *OpenCsvDatabase(char *s, bool HasHeader = true);		// add 'GDb-Csv.cpp' to your project
-extern GDb *OpenTsvDatabase(char *s, bool HasHeader = true);		// add 'GDb-Csv.cpp' to your project
-extern GDb *OpenMetakitDatabase(char *s);	// add 'GDb-Metakit.cpp' to your project
-extern GDb *OpenBfsDatabase(char *s);		// add 'GDb-Bfs.cpp' and 'Bfs.cpp' to your project
-extern GDb *OpenLibmysqlDatabase(char *s);	// add 'GDb-Libmysql.cpp'
+extern GDb *OpenDbfDatabase(const char *s);		// add 'GDb-Dbf.cpp' to your project
+extern GDb *OpenAdoDatabase(const char *s);		// add 'GDb-Ado.cpp' to your project
+extern GDb *OpenCsvDatabase(const char *s, bool HasHeader = true);		// add 'GDb-Csv.cpp' to your project
+extern GDb *OpenTsvDatabase(const char *s, bool HasHeader = true);		// add 'GDb-Csv.cpp' to your project
+extern GDb *OpenMetakitDatabase(const char *s);	// add 'GDb-Metakit.cpp' to your project
+extern GDb *OpenBfsDatabase(const char *s);		// add 'GDb-Bfs.cpp' and 'Bfs.cpp' to your project
+extern GDb *OpenLibmysqlDatabase(const char *s);	// add 'GDb-Libmysql.cpp'
 											// pass 'mysql://username:password@host/database'
 											// (will cause your app to become GPL)
 extern GDb *OpenMysqlDirectDatabase(char *s); // add 'GDb-Mysql-direct.cpp'

@@ -1369,7 +1369,7 @@ bool GPath::Flatten()
 	}
 
 	// Sort the vectors on their top edge
-	Vecs.Sort(VectCompareY, 0);
+	Vecs.Sort(VectCompareY);
 
 	#ifdef DEBUG_LOG
 	DEBUG_LOG("\n");
@@ -2010,7 +2010,7 @@ bool GBlendBrush::Start(GRopArgs &Args)
 	{
 		s.Insert(Stop+n);
 	}
-	s.Sort(StopCompare, 0);
+	s.Sort(StopCompare);
 
 	GBlendStop *Prev = s.First();
 	GBlendStop *Next = s.Next();

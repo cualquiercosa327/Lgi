@@ -523,7 +523,9 @@ COLOUR GScreenDC::Get(int x, int y)
 
 uint GScreenDC::LineStyle(uint32 Bits, uint32 Reset)
 {
-	return LineBits = Bits;
+	uint Old = LineBits;
+	LineBits = Bits;
+	return Old;
 }
 
 uint GScreenDC::LineStyle()
