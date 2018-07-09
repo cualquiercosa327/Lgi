@@ -914,7 +914,12 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 		// This allows the document to display and edit faster..
 		bool PourToDisplayEnd = Line.Length() < DisplayEnd;
 
-		if (Cur)
+		#if 0
+		LgiTrace("Idx=%i, DisplayStart=%i, DisplayLines=%i, DisplayEnd=%i, PourToDisplayEnd=%i\n",
+			Idx, DisplayStart, DisplayLines, DisplayEnd, PourToDisplayEnd);
+		#endif
+
+		if (Line.Length() > Idx)
 		{
 			for (auto i = Line.begin(Idx); *i; i++)
 				delete *i;
