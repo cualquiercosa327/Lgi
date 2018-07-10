@@ -408,7 +408,17 @@ void GButton::OnPaint(GSurface *pDC)
 									  &LabelRect);
 
 	if (e) printf("%s:%i - HIThemeDrawButton failed %li\n", _FL, e);
-	else if (d->Txt)
+	else
+	{
+		GdcPt2 pt;
+		GRect r = GetClient();
+		pt.x = r.x1 + ((r.X()-d->TxtSz.X())/2) + (d->Pressed != 0);
+		pt.y = r.y1 + ((r.Y()-d->TxtSz.Y())/2) + (d->Pressed != 0);
+		d->Paint(pDC, pt, GColour(), r, Enabled());
+	}
+	
+	/*
+	if (d->Txt)
 	{
 		GFont *f = d->Txt->GetFont();
 		if (f)
@@ -421,6 +431,7 @@ void GButton::OnPaint(GSurface *pDC)
 			d->Txt->Draw(pDC, LabelRect.origin.x+Ox, Oy);
 		}
 	}
+	*/
 	
 	#else
 

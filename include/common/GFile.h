@@ -134,54 +134,54 @@ public:
 	);
 
 	/// Gets the current entries attributes (platform specific)
-	virtual long GetAttributes();
+	virtual long GetAttributes() const;
 	
 	/// Gets the name of the current entry. (Doesn't include the path).
-	virtual char *GetName();
+	virtual char *GetName() const;
 	
 	/// Gets the user id of the current entry. (Doesn't have any meaning on Win32).
 	virtual int GetUser
 	(
 		/// If true gets the group id instead of the user id.
 		bool Group
-	);
+	) const;
 	
 	/// Gets the entries creation time. You can convert this to an easy to read for using LDateTime.
-	virtual const uint64 GetCreationTime();
+	virtual const uint64 GetCreationTime() const;
 
 	/// Gets the entries last access time. You can convert this to an easy to read for using LDateTime.
-	virtual const uint64 GetLastAccessTime();
+	virtual const uint64 GetLastAccessTime() const;
 
 	/// Gets the entries last modified time.  You can convert this to an easy to read for using LDateTime.
-	virtual const uint64 GetLastWriteTime();
+	virtual const uint64 GetLastWriteTime() const;
 
 	/// Returns the size of the entry.
-	virtual const uint64 GetSize();
+	virtual const uint64 GetSize() const;
 
 	/// Returns true if the entry is a sub-directory.
-	virtual bool IsDir();
+	virtual bool IsDir() const;
 	
 	/// Returns true if the entry is a symbolic link.
-	virtual bool IsSymLink();
+	virtual bool IsSymLink() const;
 	
 	/// Returns true if the entry is read only.
-	virtual bool IsReadOnly();
+	virtual bool IsReadOnly() const;
 
 	/// \brief Returns true if the entry is hidden.
 	/// This is equivilant to a attribute flag on win32 and a leading '.' on unix.
-	virtual bool IsHidden();
+	virtual bool IsHidden() const;
 
 	/// Creates an copy of this type of GDirectory class.
 	virtual GDirectory *Clone();
 	
 	/// Gets the type code of the current entry. See the VT_?? defines for possible values.
-	virtual int GetType();
+	virtual int GetType() const;
 
 	/// Converts a string to the 64-bit value returned from the date functions.
-	bool ConvertToTime(char *Str, int SLen, uint64 Time);
+	bool ConvertToTime(char *Str, int SLen, uint64 Time) const;
 
 	/// Converts the 64-bit value returned from the date functions to a string.
-	bool ConvertToDate(char *Str, int SLen, uint64 Time);
+	bool ConvertToDate(char *Str, int SLen, uint64 Time) const;
 };
 
 /// Describes a volume connected to the system
