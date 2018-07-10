@@ -147,16 +147,16 @@ public:
 	) const;
 	
 	/// Gets the entries creation time. You can convert this to an easy to read for using LDateTime.
-	virtual const uint64 GetCreationTime() const;
+	virtual uint64 GetCreationTime() const;
 
 	/// Gets the entries last access time. You can convert this to an easy to read for using LDateTime.
-	virtual const uint64 GetLastAccessTime() const;
+	virtual uint64 GetLastAccessTime() const;
 
 	/// Gets the entries last modified time.  You can convert this to an easy to read for using LDateTime.
-	virtual const uint64 GetLastWriteTime() const;
+	virtual uint64 GetLastWriteTime() const;
 
 	/// Returns the size of the entry.
-	virtual const uint64 GetSize() const;
+	virtual uint64 GetSize() const;
 
 	/// Returns true if the entry is a sub-directory.
 	virtual bool IsDir() const;

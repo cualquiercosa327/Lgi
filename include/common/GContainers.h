@@ -690,7 +690,7 @@ public:
 		return Local;
 	}
 
-	T *operator [](int Index)
+	T *operator [](size_t Index)
 	{
 		VALIDATE();
 		Local = GetIndex(Index);

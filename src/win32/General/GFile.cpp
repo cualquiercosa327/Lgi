@@ -1278,22 +1278,22 @@ char *GDirectory::GetName() const
 	return d->Utf;
 }
 
-const uint64 GDirectory::GetCreationTime() const
+uint64 GDirectory::GetCreationTime() const
 {
 	return ((uint64) d->Data.ftCreationTime.dwHighDateTime) << 32 | d->Data.ftCreationTime.dwLowDateTime;
 }
 
-const uint64 GDirectory::GetLastAccessTime() const
+uint64 GDirectory::GetLastAccessTime() const
 {
 	return ((uint64) d->Data.ftLastAccessTime.dwHighDateTime) << 32 | d->Data.ftLastAccessTime.dwLowDateTime;
 }
 
-const uint64 GDirectory::GetLastWriteTime() const
+uint64 GDirectory::GetLastWriteTime() const
 {
 	return ((uint64) d->Data.ftLastWriteTime.dwHighDateTime) << 32 | d->Data.ftLastWriteTime.dwLowDateTime;
 }
 
-const uint64 GDirectory::GetSize() const
+uint64 GDirectory::GetSize() const
 {
 	return ((uint64) d->Data.nFileSizeHigh) << 32 | d->Data.nFileSizeLow;
 }
