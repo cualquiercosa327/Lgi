@@ -203,9 +203,11 @@
 				<Node File="./src/common/Gdc2/Font/GFont.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GFont.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Gdc2/Font/GFont_W.cpp" Type="2" Platforms="1" />
+				<Node File="./include/common/GFontCache.h" Type="3" Platforms="15" />
 				<Node File="./src/common/Gdc2/Font/GFontCodePages.cpp" Type="2" Platforms="15" />
 				<Node File="./src/common/Gdc2/Font/GFontSystem.cpp" Type="2" Platforms="15" />
 				<Node File="./src/common/Gdc2/Font/LStringLayout.cpp" Type="2" Platforms="15" />
+				<Node File="./include/common/LStringLayout.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Applicators" Type="1" Platforms="15" Open="0" Id="45">
 				<Node File="./src/common/Gdc2/15Bit.cpp" Type="2" Platforms="15" />

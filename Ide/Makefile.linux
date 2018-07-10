@@ -651,7 +651,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/LgiCommon.h \
 	../include/common/GXmlTree.h \
 	../include/common/GDragAndDrop.h \
-	../include/common/GHashTable.h \
 	../include/common/GMenu.h \
 	../include/common/LgiWidgets.h \
 	../include/common/Progress.h \
@@ -686,14 +685,18 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GProcess.h \
 	../include/win32/GSymLookup.h \
 	../include/linux/GSymLookup.h \
-	../include/common/GLibrary.h
+	../include/common/GLibrary.h \
+	../include/linux/Gtk/LgiWidget.h
+
+../include/linux/Gtk/LgiWidget.h : 
 
 ../src/common/Widgets/GButton.cpp : ../include/common/Lgi.h \
 	../include/common/GSkinEngine.h \
 	../include/common/GButton.h \
 	../include/common/GDisplayString.h \
 	../include/common/GTableLayout.h \
-	../include/common/LgiRes.h
+	../include/common/LgiRes.h \
+	../include/common/LStringLayout.h
 
 ../include/common/GProperties.h : ../include/common/GContainers.h \
 	../include/common/LgiClass.h \
@@ -804,11 +807,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GDisplayString.h \
 	../include/common/LgiRes.h
 
-../include/common/GHashTable.h : ../include/common/GMem.h \
-	../include/common/GArray.h \
-	../include/common/GString.h \
-	../include/common/LgiClass.h
-
 ../include/common/GdcTools.h : 
 
 ../src/common/Widgets/GTextLabel.cpp : ../include/common/Lgi.h \
@@ -881,6 +879,11 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 ../include/common/GXmlTree.h : ../include/common/GHashTable.h \
 	../include/common/GRefCount.h \
 	../include/common/GDom.h
+
+../include/common/GHashTable.h : ../include/common/GMem.h \
+	../include/common/GArray.h \
+	../include/common/GString.h \
+	../include/common/LgiClass.h
 
 ../include/common/LgiClass.h : ../include/common/LgiInc.h \
 	../include/common/LgiDefs.h \
@@ -980,8 +983,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GEventTargetThread.h \
 	../include/common/GPopup.h \
 	../include/linux/Gtk/LgiWidget.h
-
-../include/linux/Gtk/LgiWidget.h : 
 
 ../include/common/GViewPriv.h : 
 
@@ -1585,7 +1586,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/LgiCommon.h \
 	../include/common/GXmlTree.h \
 	../include/common/GDragAndDrop.h \
-	../include/common/GHashTable.h \
 	../include/common/GMenu.h \
 	../include/common/LgiWidgets.h \
 	../include/common/Progress.h \

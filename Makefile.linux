@@ -444,7 +444,8 @@ Lgi.o : ./src/common/Lgi/Lgi.cpp ./include/common/GRegKey.h \
 	./include/common/GProcess.h \
 	./include/win32/GSymLookup.h \
 	./include/linux/GSymLookup.h \
-	./include/common/GLibrary.h
+	./include/common/GLibrary.h \
+	./include/linux/Gtk/LgiWidget.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -745,7 +746,8 @@ GButton.o : ./src/common/Widgets/GButton.cpp ./include/common/Lgi.h \
 	./include/common/GButton.h \
 	./include/common/GDisplayString.h \
 	./include/common/GTableLayout.h \
-	./include/common/LgiRes.h
+	./include/common/LgiRes.h \
+	./include/common/LStringLayout.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -1126,7 +1128,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/LgiCommon.h \
 	./include/common/GXmlTree.h \
 	./include/common/GDragAndDrop.h \
-	./include/common/GHashTable.h \
 	./include/common/GMenu.h \
 	./include/common/LgiWidgets.h \
 	./include/common/Progress.h \
@@ -1150,14 +1151,14 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ./include/common/GFileSelect.h : 
 
+./include/common/GXmlTree.h : ./include/common/GHashTable.h \
+	./include/common/GRefCount.h \
+	./include/common/GDom.h
+
 ./include/common/GHashTable.h : ./include/common/GMem.h \
 	./include/common/GArray.h \
 	./include/common/GString.h \
 	./include/common/LgiClass.h
-
-./include/common/GXmlTree.h : ./include/common/GHashTable.h \
-	./include/common/GRefCount.h \
-	./include/common/GDom.h
 
 ./include/common/LList.h : ./include/common/GMem.h \
 	./include/common/GArray.h \
