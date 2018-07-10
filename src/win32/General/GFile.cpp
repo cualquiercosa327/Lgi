@@ -1044,7 +1044,7 @@ typedef struct
 } DISKIO;
 
 /////////////////////////////////////////////////////////////////////////////////
-bool GDirectory::ConvertToTime(char *Str, int SLen, uint64 Time)
+bool GDirectory::ConvertToTime(char *Str, int SLen, uint64 Time) const
 {
 	if (Str)
 	{
@@ -1064,7 +1064,7 @@ bool GDirectory::ConvertToTime(char *Str, int SLen, uint64 Time)
 	return false;
 }
 
-bool GDirectory::ConvertToDate(char *Str, int SLen, uint64 Time)
+bool GDirectory::ConvertToDate(char *Str, int SLen, uint64 Time) const
 {
 	if (Str)
 	{
@@ -1233,42 +1233,42 @@ int GDirectory::Close()
 	return true;
 }
 
-int GDirectory::GetUser(bool Group)
+int GDirectory::GetUser(bool Group) const
 {
 	return 0;
 }
 
-bool GDirectory::IsReadOnly()
+bool GDirectory::IsReadOnly() const
 {
 	return (d->Data.dwFileAttributes & FA_READONLY) != 0;
 }
 
-bool GDirectory::IsDir()
+bool GDirectory::IsDir() const
 {
 	return (d->Data.dwFileAttributes & FA_DIRECTORY) != 0;
 }
 
-bool GDirectory::IsSymLink()
+bool GDirectory::IsSymLink() const
 {
 	return (d->Data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0;
 }
 
-bool GDirectory::IsHidden()
+bool GDirectory::IsHidden() const
 {
 	return (d->Data.dwFileAttributes & FA_HIDDEN) != 0;
 }
 
-long GDirectory::GetAttributes()
+long GDirectory::GetAttributes() const
 {
 	return d->Data.dwFileAttributes;
 }
 
-int GDirectory::GetType()
+int GDirectory::GetType() const
 {
 	return IsDir() ? VT_FOLDER : VT_FILE;
 }
 
-char *GDirectory::GetName()
+char *GDirectory::GetName() const
 {
 	if (!d->Utf)
 	{
@@ -1278,22 +1278,22 @@ char *GDirectory::GetName()
 	return d->Utf;
 }
 
-const uint64 GDirectory::GetCreationTime()
+const uint64 GDirectory::GetCreationTime() const
 {
 	return ((uint64) d->Data.ftCreationTime.dwHighDateTime) << 32 | d->Data.ftCreationTime.dwLowDateTime;
 }
 
-const uint64 GDirectory::GetLastAccessTime()
+const uint64 GDirectory::GetLastAccessTime() const
 {
 	return ((uint64) d->Data.ftLastAccessTime.dwHighDateTime) << 32 | d->Data.ftLastAccessTime.dwLowDateTime;
 }
 
-const uint64 GDirectory::GetLastWriteTime()
+const uint64 GDirectory::GetLastWriteTime() const
 {
 	return ((uint64) d->Data.ftLastWriteTime.dwHighDateTime) << 32 | d->Data.ftLastWriteTime.dwLowDateTime;
 }
 
-const uint64 GDirectory::GetSize()
+const uint64 GDirectory::GetSize() const
 {
 	return ((uint64) d->Data.nFileSizeHigh) << 32 | d->Data.nFileSizeLow;
 }
