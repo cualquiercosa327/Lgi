@@ -332,8 +332,9 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 				if (Name)
 				{
 					GRegKey Edit(false, "HKEY_CLASSES_ROOT\\%s\\shell\\edit\\command", Name);
-					char *App = Edit.GetStr();
-					if (App)
+					char *App;
+					if (Edit.IsOk() &&
+						(App = Edit.GetStr()))
 					{
 						Status = _GetApps_Add(Apps, App);
 					}
@@ -436,20 +437,14 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 	return Status;
 }
 
-bool LgiGetAppForMimeType(const char *Mime, char *AppPath, int BufSize)
+GString LgiGetAppForMimeType(const char *Mime)
 {
-	bool Status = false;
-	if (AppPath)
-	{
-		GArray<GAppInfo*> Apps;
-		Status = LgiGetAppsForMimeType(Mime, Apps, 1);
-		if (Status)
-		{
-			strcpy_s(AppPath, BufSize, Apps[0]->Path);
-			Apps.DeleteObjects();
-		}
-	}
-	return Status;
+	GString App;
+	GArray<GAppInfo*> Apps;
+	if (LgiGetAppsForMimeType(Mime, Apps, 1))
+		App = Apps[0]->Path.Get();
+	Apps.DeleteObjects();
+	return App;
 }
 
 int LgiRand(int i)

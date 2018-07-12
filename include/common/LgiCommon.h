@@ -35,6 +35,14 @@ LgiExtern GString LgiGetSystemPath(
 	int WordSize = 0
 );
 
+/// Returns the application associated with the mime type
+/// \ingroup Mime
+LgiExtern GString LgiGetAppForMimeType
+(
+	/// Type of the file to find and app for
+	const char *Mime
+);
+
 /// URL encode a string
 LgiClass GString LgiUrlEncode(const char *s, const char *delim);
 
@@ -297,17 +305,14 @@ LgiFunc bool LgiGetFileMimeType
 	int BufLen
 );
 
-/// Returns the application associated with the mime type
-/// \ingroup Mime
-LgiFunc bool LgiGetAppForMimeType
-(
-	/// Type of the file to find and app for
-	const char *Mime,
-	/// Path to the executable of the app that can handle the file type.
-	char *AppPath,
-	/// Size of the 'AppPath' buffer
-	int BufSize
-);
+DEPRECATED_PRE
+inline bool LgiGetAppForMimeType(const char *Mime, char *AppPath, int BufSize)
+DEPRECATED_POST
+{
+	GString p = LgiGetAppForMimeType(Mime);
+	if (AppPath && p) strcpy_s(AppPath, BufSize, p);
+	return p.Length() > 0;
+}
 
 /// Returns the all applications that can open a given mime type.
 /// \ingroup Mime
