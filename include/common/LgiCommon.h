@@ -35,6 +35,14 @@ LgiExtern GString LgiGetSystemPath(
 	int WordSize = 0
 );
 
+/// Returns the mime type of the file
+/// \ingroup Mime
+LgiExtern GString LgiGetFileMimeType
+(
+	/// File to find mime type for
+	const char *File
+);
+
 /// Returns the application associated with the mime type
 /// \ingroup Mime
 LgiExtern GString LgiGetAppForMimeType
@@ -285,29 +293,22 @@ LgiFunc bool LgiPlaySound
 
 /// Returns the file extensions associated with the mimetype
 /// \ingroup Mime
-LgiFunc bool LgiGetMimeTypeExtensions
+LgiExtern bool LgiGetMimeTypeExtensions
 (
 	/// The returned mime type
 	const char *Mime,
 	/// The extensions
-	GArray<char*> &Ext
+	GArray<GString> &Ext
 );
 
-/// Returns the mime type of the file
-/// \ingroup Mime
-LgiFunc bool LgiGetFileMimeType
-(
-	/// File to file type of
-	const char *File,
-	/// Pointer to buffer to receive mime-type
-	char *MimeType,
-	/// Buffer length
-	int BufLen
-);
+inline bool LgiGetFileMimeType(const char *File, char *MimeType, int BufSize)
+{
+	GString p = LgiGetFileMimeType(File);
+	if (MimeType && p) strcpy_s(MimeType, BufSize, p);
+	return p.Length() > 0;
+}
 
-DEPRECATED_PRE
 inline bool LgiGetAppForMimeType(const char *Mime, char *AppPath, int BufSize)
-DEPRECATED_POST
 {
 	GString p = LgiGetAppForMimeType(Mime);
 	if (AppPath && p) strcpy_s(AppPath, BufSize, p);
