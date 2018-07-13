@@ -30,11 +30,13 @@ class VcFolder : public GTreeItem
 		GString Str;
 		GString AltInitPath;
 		VcLeaf *Leaf;
+		bool IsWorking;
 
 		ParseParams(const char *str = NULL)
 		{
 			Str = str;
 			Leaf = NULL;
+			IsWorking = false;
 		}
 	};
 

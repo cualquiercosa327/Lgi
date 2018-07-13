@@ -34,6 +34,7 @@
 		<String Ref="35" Cid="2" Define="IDCANCEL" en="Cancel" />
 		<String Ref="36" Cid="36" Define="IDC_HG_BROWSE" en="..." />
 		<String Ref="37" Cid="37" Define="IDC_CVS_BROWSE" en="..." />
+		<String Ref="38" Cid="38" Define="IDC_UNTRACKED" en="Show untracked files" />
 	</string-group>
 	<Dialog pos="7,7,464,203" ref="9">
 		<TableLayout pos="7,7,447,167" ref="10" cols="0.200,0.200,0.200,0.200,0.200" rows="0.181,0.819">
@@ -60,30 +61,6 @@
 				</td>
 				<td colspan="4">
 					<EditBox Pos="91,35,419,139" MultiLine="1" ref="16" />
-				</td>
-			</tr>
-		</TableLayout>
-	</Dialog>
-	<Dialog pos="7,7,702,129" ref="1">
-		<TableLayout pos="7,7,685,97" ref="2" Style="padding-top: 3px;" cols="0.167,0.167,0.167,0.167,0.167,0.167" rows="1.000">
-			<tr>
-				<td valign="Center" style="padding-left: 4px;&#10;padding-right: 2em;">
-					<Button pos="21,7,83,48" ref="18" />
-				</td>
-				<td valign="Center">
-					<Button pos="133,7,195,48" ref="5" />
-				</td>
-				<td valign="Center">
-					<Button pos="238,14,300,55" ref="6" />
-				</td>
-				<td valign="Center" style="padding-left: 2em;">
-					<StaticText pos="350,21,412,41" ref="7" />
-				</td>
-				<td>
-					<EditBox Pos="455,14,531,41" ref="8" />
-				</td>
-				<td>
-					<Button pos="574,14,601,41" ref="17" />
 				</td>
 			</tr>
 		</TableLayout>
@@ -139,6 +116,33 @@
 				<td colspan="2" align="Max">
 					<Button pos="266,145,321,165" ref="34" />
 					<Button pos="343,145,405,165" ref="35" />
+				</td>
+			</tr>
+		</TableLayout>
+	</Dialog>
+	<Dialog pos="7,7,702,129" ref="1">
+		<TableLayout pos="7,7,685,97" ref="2" Style="padding-top: 3px;" cols="0.143,0.143,0.143,0.143,0.143,0.143,0.143" rows="1.000">
+			<tr>
+				<td valign="Center" style="padding-left: 4px;&#10;padding-right: 2em;">
+					<Button pos="21,7,83,48" ref="18" />
+				</td>
+				<td valign="Center">
+					<Button pos="117,7,179,48" ref="5" />
+				</td>
+				<td valign="Center">
+					<Button pos="206,14,268,55" ref="6" />
+				</td>
+				<td valign="Center" style="padding-left: 2em;">
+					<StaticText pos="302,21,364,41" ref="7" />
+				</td>
+				<td>
+					<EditBox Pos="391,14,467,41" ref="8" />
+				</td>
+				<td>
+					<Button pos="494,14,521,41" ref="17" />
+				</td>
+				<td>
+					<CheckBox pos="581,21,643,41" ref="38" />
 				</td>
 			</tr>
 		</TableLayout>
