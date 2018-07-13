@@ -180,6 +180,7 @@ class LgiClass GTree :
 	void _Update(GRect *r = 0, bool Now = false);
 	void _UpdateBelow(int y, bool Now = false);
 	void _UpdateScrollBars();
+	List<GTreeItem>	*GetSelLst();
 
 protected:
 	// Options
@@ -238,6 +239,22 @@ public:
 	bool Select(GTreeItem *Obj);
 	/// Returns the first selected item
 	GTreeItem *Selection();
+
+	/// Gets the whole selection and puts it in 'n'
+	template<class T>
+	bool GetSelection(GArray<T*> &n)
+	{
+		n.Empty();
+		auto s = GetSelLst();
+		for (auto i : *s)
+		{
+			T *ptr = dynamic_cast<T*>(i);
+			if (ptr)
+				n.Add(ptr);
+		}
+		return n.Length() > 0;
+	}
+
 	/// Returns the item at an x,y location
 	GTreeItem *ItemAtPoint(int x, int y, bool Debug = false);
 	/// Temporarily selects one of the items as the drop target during a
