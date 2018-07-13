@@ -2297,8 +2297,8 @@ GProfile::~GProfile()
 		}
 	}
 	
-	char c[1024];
-	int ch = 0;
+	// char c[1024];
+	// int ch = 0;
 
 	for (int i=0; i<s.Length()-1; i++)
 	{

@@ -21,6 +21,12 @@
 
 #define LINE_SOLID				0xFFFFFFFF
 
+#ifdef MAC
+#define REGISTER
+#else
+#define REGISTER register
+#endif
+
 void GSurface::Init()
 {
 	OriginX = OriginY = 0;
@@ -1888,9 +1894,9 @@ bool GSurface::IsPreMultipliedAlpha()
 template<typename Px>
 void ConvertToPreMul(Px *src, int x)
 {
-	register uchar *DivLut = Div255Lut;
-	register Px *s = src;
-	register Px *e = s + x;
+	REGISTER uchar *DivLut = Div255Lut;
+	REGISTER Px *s = src;
+	REGISTER Px *e = s + x;
 	while (s < e)
 	{
 		s->r = DivLut[s->r * s->a];
@@ -1903,9 +1909,9 @@ void ConvertToPreMul(Px *src, int x)
 template<typename Px>
 void ConvertFromPreMul(Px *src, int x)
 {
-	// register uchar *DivLut = Div255Lut;
-	register Px *s = src;
-	register Px *e = s + x;
+	// REGISTER uchar *DivLut = Div255Lut;
+	REGISTER Px *s = src;
+	REGISTER Px *e = s + x;
 	while (s < e)
 	{
 		if (s->a > 0 && s->a < 255)
@@ -1965,8 +1971,8 @@ bool GSurface::ConvertPreMulAlpha(bool ToPreMul)
 template<typename Px>
 void MakeOpaqueRop32(Px *in, int len)
 {
-	register Px *s = in;
-	register Px *e = s + len;
+	REGISTER Px *s = in;
+	REGISTER Px *e = s + len;
 	while (s < e)
 	{
 		s->a = 0xff;
@@ -1977,8 +1983,8 @@ void MakeOpaqueRop32(Px *in, int len)
 template<typename Px>
 void MakeOpaqueRop64(Px *in, int len)
 {
-	register Px *s = in;
-	register Px *e = s + len;
+	REGISTER Px *s = in;
+	REGISTER Px *e = s + len;
 	while (s < e)
 	{
 		s->a = 0xffff;

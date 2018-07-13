@@ -248,19 +248,12 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 	return Status;
 }
 
-bool LgiGetAppForMimeType(const char *Mime, char *AppPath, int BufSize)
+GString LgiGetAppForMimeType(const char *Mime)
 {
-	bool Status = false;
-	if (AppPath)
-	{
-		GArray<GAppInfo*> Apps;
-		Status = LgiGetAppsForMimeType(Mime, Apps, 1);
-		if (Status)
-		{
-			strcpy_s(AppPath, BufSize, Apps[0]->Path);
-		}
-	}
-	return Status;
+	GArray<GAppInfo*> Apps;
+	if (LgiGetAppsForMimeType(Mime, Apps, 1))
+		return Apps[0]->Path.Get();
+	return GString();
 }
 
 int LgiRand(int Limit)

@@ -25,6 +25,7 @@
 #include "GMem.h"
 #include "GArray.h"
 #include "LgiClass.h"
+#include "GString.h"
 #include "GStringClass.h"
 
 /// Returns the system path specified
@@ -308,9 +309,7 @@ LgiFunc bool LgiGetFileMimeType
 	int BufLen
 );
 
-DEPRECATED_PRE
 inline bool LgiGetAppForMimeType(const char *Mime, char *AppPath, int BufSize)
-DEPRECATED_POST
 {
 	GString p = LgiGetAppForMimeType(Mime);
 	if (AppPath && p) strcpy_s(AppPath, BufSize, p);

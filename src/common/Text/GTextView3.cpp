@@ -819,7 +819,7 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 
 	// Tracking vars
 	size_t e;
-	int LastX = 0;
+	//int LastX = 0;
 	int WrapCol = GetWrapAtCol();
 
 	GDisplayString Sp(Font, " ", 1);
@@ -4720,7 +4720,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 				#else
 				Tr.Offset(0, y - Tr.y1);
 				#endif
-				GRect OldTr = Tr;
+				//GRect OldTr = Tr;
 
 				// deal with selection change on beginning of line
 				if (NextSelection == l->Start)
