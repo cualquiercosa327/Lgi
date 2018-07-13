@@ -149,8 +149,14 @@ bool VcCommit::SvnParse(GString s)
 
 VcFolder *VcCommit::GetFolder()
 {
-	GTreeItem *i = d->Tree->Selection();
-	return dynamic_cast<VcFolder*>(i);
+	for (GTreeItem *i = d->Tree->Selection(); i;
+		i = i->GetParent())
+	{
+		auto f = dynamic_cast<VcFolder*>(i);
+		if (f)
+			return f;
+	}
+	return NULL;
 }
 
 void VcCommit::Select(bool b)

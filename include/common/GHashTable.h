@@ -11,6 +11,8 @@
 #define GHASHTBL_MAX_SIZE	(64 << 10)
 #endif
 
+#define HASH_TRAITS			0
+
 template<typename RESULT, typename CHAR>
 RESULT LgiHash(CHAR *v, int l, bool Case)
 {
@@ -89,30 +91,11 @@ class GHashTbl
 		    DeleteArray(Mem);
 	    }
 
-        int New(int i)
-        {
-            return i;
-        }
-        
-        int New(unsigned i)
-        {
-            return i;
-        }
-        
-        int64 New(int64 i)
-        {
-            return i;
-        }
-        
-        uint64 New(uint64 i)
-        {
-            return i;
-        }
-        
-        void *New(void *i)
-        {
-            return i;
-        }
+        int New(int i) { return i; }        
+        int New(unsigned i) { return i; }        
+        int64 New(int64 i) { return i; }
+		uint64 New(uint64 i) { return i; }
+		void *New(void *i) { return i; }
         
 	    char *New(char *s)
 	    {
@@ -185,6 +168,13 @@ class GHashTbl
 	
 	typedef GArray<KeyPool<Key>*> KeyPoolArr;
 	KeyPoolArr Pools;
+	KeyPool<Key> *GetPool(bool CreateNew = false)
+	{
+		if (!Pool) return NULL;
+		if (!Pools.Length() || CreateNew)
+			Pools.Add(new KeyPool<Key>);
+		return Pools.Last();
+	}
 
 	int Percent()
 	{
@@ -225,6 +215,59 @@ class GHashTbl
 			return Val <= Max || Val >= Min;
 		}
 	}
+
+	#if HASH_TRAITS
+
+public:
+		class LTrait
+		{
+		public:
+			virtual uint32 Hash(Key s) = 0;
+			virtual Key CopyKey(Key a) = 0;
+			virtual size_t SizeKey(Key a) = 0;
+			virtual void FreeKey(Key &a) = 0;
+			virtual bool CmpKey(Key a, Key b) = 0;
+		protected:
+			GHashTbl<T,Value> *h;	
+		};
+
+		struct IntKey : public LTrait
+		{
+			IntKey(GHashTbl<Key,Value> *t) : h(t) {}
+			uint32 Hash(Key s) { return (uint32)s; }
+			Key CopyKey(Key a) { return a; }
+			size_t SizeKey(Key a) { return sizeof(a); }
+			void FreeKey(Key &a) { memcpy(&a, &t->NullKey, sizeof(a)); }
+			bool CmpKey(Key a, Key b) { return a == b; }
+		private:
+			GHashTbl<T,Value> *h;	
+		};
+
+		class CharKey : public LTrait
+		{
+			CharKey(GHashTbl<Key,Value> *t) : h(t) {}
+			uint32 Hash(Key s) { return LgiHash<uint32, Key>(s, 0, h->Case); }
+			size_t SizeKey(Key a) { return Strlen(a) + 1; }
+			bool CmpKey(Key a, Key b) { return (h->Case ? Strcmp(a, b) : Stricmp(a, b)) == 0; }
+			Key CopyKey(Key a)
+			{
+				KeyPool<Key> *p = h->GetPool();
+				if (p)
+				{
+					Key cp = p->New(a);
+					if (cp) return cp;
+					return h->GetPool(true)->New(a);
+				}
+				else return Strdup(a);
+			}
+			void FreeKey(Key &a) { if (h->Pool) { a = NULL; } else { DeleteArray(a); } }
+		private:
+			GHashTbl<Key,Value> *h;	
+		};
+
+private:
+
+	#else
 
 	// Type specific implementations
 
@@ -339,6 +382,8 @@ class GHashTbl
 			{
 				return a == b;
 			}
+
+	#endif
 
 	void InitializeTable(Entry *e, int len)
 	{

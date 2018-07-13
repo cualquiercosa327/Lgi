@@ -180,7 +180,7 @@ const char *VcFolder::GetVcName()
 	return VcCmd;
 }
 
-bool VcFolder::StartCmd(const char *Args, ParseFn Parser, GString Param, bool LogCmd)
+bool VcFolder::StartCmd(const char *Args, ParseFn Parser, ParseParams *Params, bool LogCmd)
 {
 	const char *Exe = GetVcName();
 	if (!Exe)
@@ -195,14 +195,14 @@ bool VcFolder::StartCmd(const char *Args, ParseFn Parser, GString Param, bool Lo
 	if (!Process)
 		return false;
 
-	Process->SetInitFolder(Path);
+	Process->SetInitFolder(Params && Params->AltInitPath ? Params->AltInitPath : Path);
 
 	GAutoPtr<Cmd> c(new Cmd(LogCmd ? d->Log : NULL));
 	if (!c)
 		return false;
 
 	c->PostOp = Parser;
-	c->Param = Param;
+	c->Params.Reset(Params);
 	c->Rd.Reset(new ReaderThread(Process.Release(), c));
 	Cmds.Add(c.Release());
 
@@ -793,8 +793,14 @@ bool VcFolder::ParseDiffs(GString s, GString Rev, bool IsWorking)
 
 					GString Fn = a[i].Split(" ").Last()(2, -1);
 					f = new VcFile(d, this, Rev, IsWorking);
+					f->SetText("M", COL_STATE);
 					f->SetText(Fn, COL_FILENAME);
 					d->Files->Insert(f);
+				}
+				else if (!_strnicmp(Ln, "new file", 8))
+				{
+					if (f)
+						f->SetText("A", COL_STATE);
 				}
 				else if (!_strnicmp(Ln, "index", 5) ||
 						 !_strnicmp(Ln, "commit", 6)   ||
@@ -956,9 +962,7 @@ void VcFolder::OnPulse()
 				CmdErrors++;
 			}
 
-			ParseParams Params;
-			Params.Str = c->Param;
-			Reselect |= CALL_MEMBER_FN(*this, c->PostOp)(Result, s, &Params);
+			Reselect |= CALL_MEMBER_FN(*this, c->PostOp)(Result, s, c->Params);
 			Cmds.DeleteAt(i--, true);
 			delete c;
 			CmdsChanged = true;
@@ -1041,97 +1045,7 @@ void VcFolder::OnUpdate(const char *Rev)
 	}
 }
 
-class VcLeaf : public GTreeItem
-{
-	VcFolder *Parent;
-	bool Folder;
-	GString Path, Leaf;
-	GTreeItem *Tmp;
-
-public:
-	VcLeaf(VcFolder *parent, GTreeItem *Item, GString path, GString leaf, bool folder)
-	{
-		Parent = parent;
-		Path = path;
-		Leaf = leaf;
-		Folder = folder;
-		Tmp = NULL;
-		Item->Insert(this);
-
-		if (Folder)
-		{
-			Insert(Tmp = new GTreeItem);
-			Tmp->SetText("Loading...");
-		}
-	}
-
-	GString Full()
-	{
-		GFile::Path p(Path);
-		p += Leaf;
-		return p.GetFull();
-	}
-
-	void OnExpand(bool b)
-	{
-		if (Tmp && b)
-		{
-			Tmp->Remove();
-			DeleteObj(Tmp);
-			
-			GFile::Path p(Path);
-			p += Leaf;
-			Parent->ReadDir(this, p);
-		}
-	}
-
-	char *GetText(int Col)
-	{
-		if (Col == 0)
-			return Leaf;
-
-		return NULL;
-	}
-
-	int GetImage(int Flags)
-	{
-		return Folder ? IcoFolder : IcoFile;
-	}
-
-	int Compare(VcLeaf *b)
-	{
-		// Sort folders to the top...
-		if (Folder ^ b->Folder)
-			return (int)b->Folder - (int)Folder;
-	
-		// Then alphabetical
-		return Stricmp(Leaf.Get(), b->Leaf.Get());
-	}
-
-	void OnMouseClick(GMouse &m)
-	{
-		if (m.IsContextMenu())
-		{
-			GSubMenu s;
-			s.AppendItem("Log", IDM_LOG);
-			s.AppendItem("Blame", IDM_BLAME, !Folder);
-			int Cmd = s.Float(GetTree(), m);
-			switch (Cmd)
-			{
-				case IDM_LOG:
-				{
-					break;
-				}
-				case IDM_BLAME:
-				{
-					Parent->Blame(Full());
-					break;
-				}
-			}
-		}
-	}
-};
-
+///////////////////////////////////////////////////////////////////////////////////////
 int FolderCompare(GTreeItem *a, GTreeItem *b, NativeInt UserData)
 {
 	VcLeaf *A = dynamic_cast<VcLeaf*>(a);
@@ -1199,11 +1113,11 @@ void VcFolder::ListCommit(VcCommit *c)
 			case VcGit:
 				// Args.Printf("show --oneline --name-only %s", Rev);
 				Args.Printf("show %s", c->GetRev());
-				IsFilesCmd = StartCmd(Args, &VcFolder::ParseFiles, c->GetRev());
+				IsFilesCmd = StartCmd(Args, &VcFolder::ParseFiles, new ParseParams(c->GetRev()));
 				break;
 			case VcSvn:
 				Args.Printf("log --verbose --diff -r %s", c->GetRev());
-				IsFilesCmd = StartCmd(Args, &VcFolder::ParseFiles, c->GetRev());
+				IsFilesCmd = StartCmd(Args, &VcFolder::ParseFiles, new ParseParams(c->GetRev()));
 				break;
 			case VcCvs:
 			{
@@ -1230,24 +1144,143 @@ void VcFolder::ListCommit(VcCommit *c)
 	}
 }
 
+bool VcFolder::ParseStatus(int Result, GString s, ParseParams *Params)
+{
+	bool ShowUntracked = d->Files->GetWindow()->GetCtrlValue(IDC_UNTRACKED) != 0;
+	bool IsWorking = Params ? Params->IsWorking : false;
+
+	switch (GetType())
+	{
+		case VcCvs:
+		{
+			GString::Array a = s.Split("===================================================================");
+			for (auto i : a)
+			{
+				GString::Array Lines = i.SplitDelimit("\r\n");
+				GString f = Lines[0].Strip();
+				if (f.Find("File:") == 0)
+				{
+					GString::Array Parts = f.SplitDelimit("\t");
+					GString File = Parts[0].Split(": ").Last();
+					GString Status = Parts[1].Split(": ").Last();
+					GString WorkingRev;
+
+					for (auto l : Lines)
+					{
+						GString::Array p = l.Strip().Split(":", 1);
+						if (p.Length() > 1 &&
+							p[0].Strip().Equals("Working revision"))
+						{
+							WorkingRev = p[1].Strip();
+						}
+					}
+
+					VcFile *f = new VcFile(d, this, WorkingRev, IsWorking);
+					f->SetText(Status, COL_STATE);
+					f->SetText(File, COL_FILENAME);
+					d->Files->Insert(f);
+				}
+				else if (f(0) == '?' &&
+						ShowUntracked)
+				{
+					GString File = f(2, -1);
+					VcFile *f = new VcFile(d, this, NULL, IsWorking);
+					f->SetText("?", COL_STATE);
+					f->SetText(File, COL_FILENAME);
+					d->Files->Insert(f);
+				}
+			}
+			break;
+		}
+		case VcGit:
+		{
+			GString::Array Lines = s.SplitDelimit("\r\n");
+			for (auto Ln : Lines)
+			{
+				char Type = Ln(0);
+				if (Type != '?')
+				{
+					GString::Array p = Ln.SplitDelimit(" ", 8);
+
+					VcFile *f = new VcFile(d, this, p[6], IsWorking);
+					f->SetText(p[1].Strip("."), COL_STATE);
+					f->SetText(p.Last(), COL_FILENAME);
+					d->Files->Insert(f);
+				}
+				else if (ShowUntracked)
+				{
+					VcFile *f = new VcFile(d, this, NULL, IsWorking);
+					f->SetText("?", COL_STATE);
+					f->SetText(Ln(2,-1), COL_FILENAME);
+					d->Files->Insert(f);
+				}
+			}
+			break;
+		}
+		default:
+		{
+			LgiAssert(!"Impl me.");
+			break;
+		}
+	}
+
+	d->Files->ResizeColumnsToContent();
+	return false; // Don't refresh list
+}
+
+void VcFolder::FolderStatus(const char *Path, VcLeaf *Notify)
+{
+	d->ClearFiles();
+
+	GString Arg;
+	switch (GetType())
+	{
+		case VcCvs:
+			Arg = "status -l";
+			break;
+		case VcGit:
+			Arg = "status --porcelain=2";
+			break;
+		default:
+			Arg ="status";
+			break;
+	}
+
+	ParseParams *p = new ParseParams;
+	if (Path && Notify)
+	{
+		p->AltInitPath = Path;
+		p->Leaf = Notify;
+	}
+	else
+	{
+		p->IsWorking = true;
+	}
+	StartCmd(Arg, &VcFolder::ParseStatus, p);
+}
+
 void VcFolder::ListWorkingFolder()
 {
 	if (!IsWorkingFld)
 	{
 		d->ClearFiles();
 
-		switch (GetType())  
+		GString Arg;
+		switch (GetType())
 		{
 			case VcCvs:
-				IsWorkingFld = StartCmd("-q diff --brief", &VcFolder::ParseWorking);
+				Arg = "-q diff --brief";
 				break;
 			case VcGit:
-				IsWorkingFld = StartCmd("diff --diff-filter=ACDMRTU", &VcFolder::ParseWorking);
+				// Arg = "diff --diff-filter=ACDMRTU";
+				return FolderStatus();
 				break;
 			default:
-				IsWorkingFld = StartCmd("diff", &VcFolder::ParseWorking);
+				Arg ="diff";
 				break;
 		}
+
+		IsWorkingFld = StartCmd(Arg, &VcFolder::ParseWorking);
 	}
 }
 
@@ -1276,7 +1309,7 @@ void VcFolder::Commit(const char *Msg, const char *Branch, bool AndPush)
 	if (!IsCommit)
 	{
 		GString Args;
-		GString Param = AndPush ? "Push" : NULL;
+		ParseParams *Param = AndPush ? new ParseParams("Push") : NULL;
 
 		switch (GetType())
 		{
@@ -1420,6 +1453,43 @@ bool VcFolder::ParsePull(int Result, GString s, ParseParams *Params)
 	GetTree()->SendNotify(LvcCommandEnd);
 	CommitListDirty = true;
 	return true; // Yes - reselect and update
+}
+
+bool VcFolder::ParseAddFile(int Result, GString s, ParseParams *Params)
+{
+	switch (GetType())
+	{
+		case VcCvs:
+		{
+			break;
+		}
+	}
+
+	return false;
+}
+
+bool VcFolder::AddFile(const char *Path, bool AsBinary)
+{
+	if (!Path)
+		return false;
+
+	switch (GetType())
+	{
+		case VcCvs:
+		{
+			GString a;
+			a.Printf("add%s \"%s\"", AsBinary ? " -kb" : "", Path);
+			return StartCmd(a, &VcFolder::ParseAddFile);
+			break;
+		}
+		default:
+		{
+			LgiAssert(!"Impl me.");
+			break;
+		}
+	}
+
+	return false;
 }
 
 bool VcFolder::ParseRevert(int Result, GString s, ParseParams *Params)
@@ -1589,7 +1659,6 @@ void VcFolder::SetEol(const char *Path, int Type)
 	}
 }
 
-///////////////////////////////////////////////////////////////////////////////////
 void VcFolder::UncommitedItem::Select(bool b)
 {
 	LListItem::Select(b);
@@ -1623,3 +1692,125 @@ void VcFolder::UncommitedItem::OnPaint(GItem::ItemPaintCtx &Ctx)
 	GDisplayString ds(f, "(working folder)");
 	ds.Draw(Ctx.pDC, Ctx.x1 + ((Ctx.X() - ds.X()) / 2), Ctx.y1 + ((Ctx.Y() - ds.Y()) / 2), &Ctx);
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////
+VcLeaf::VcLeaf(VcFolder *parent, GTreeItem *Item, GString path, GString leaf, bool folder)
+{
+	Parent = parent;
+	d = Parent->GetPriv();
+	Path = path;
+	Leaf = leaf;
+	Folder = folder;
+	Tmp = NULL;
+	Item->Insert(this);
+
+	if (Folder)
+	{
+		Insert(Tmp = new GTreeItem);
+		Tmp->SetText("Loading...");
+	}
+}
+
+GString VcLeaf::Full()
+{
+	GFile::Path p(Path);
+	p += Leaf;
+	return p.GetFull();
+}
+
+void VcLeaf::OnBrowse()
+{
+	Parent->FolderStatus(Full(), this);
+}
+
+void VcLeaf::AfterBrowse()
+{
+	LList *Files = d->Files;
+	Files->Empty();
+	GDirectory Dir;
+	for (int b = Dir.First(Full()); b; b = Dir.Next())
+	{
+		if (Dir.IsDir())
+			continue;
+
+		VcFile *f = new VcFile(d, Parent, NULL);
+		if (f)
+		{
+			// f->SetText(COL_STATE, 
+			f->SetText(Dir.GetName(), COL_FILENAME);
+			Files->Insert(f);
+		}
+	}
+	Files->ResizeColumnsToContent();
+}
+
+void VcLeaf::OnExpand(bool b)
+{
+	if (Tmp && b)
+	{
+		Tmp->Remove();
+		DeleteObj(Tmp);
+			
+		GFile::Path p(Path);
+		p += Leaf;
+		Parent->ReadDir(this, p);
+	}
+}
+
+char *VcLeaf::GetText(int Col)
+{
+	if (Col == 0)
+		return Leaf;
+
+	return NULL;
+}
+
+int VcLeaf::GetImage(int Flags)
+{
+	return Folder ? IcoFolder : IcoFile;
+}
+
+int VcLeaf::Compare(VcLeaf *b)
+{
+	// Sort folders to the top...
+	if (Folder ^ b->Folder)
+		return (int)b->Folder - (int)Folder;
+	
+	// Then alphabetical
+	return Stricmp(Leaf.Get(), b->Leaf.Get());
+}
+
+bool VcLeaf::Select()
+{
+	return GTreeItem::Select();
+}
+
+void VcLeaf::Select(bool b)
+{
+	GTreeItem::Select(b);
+	if (b) OnBrowse();
+}
+
+void VcLeaf::OnMouseClick(GMouse &m)
+{
+	if (m.IsContextMenu())
+	{
+		GSubMenu s;
+		s.AppendItem("Log", IDM_LOG);
+		s.AppendItem("Blame", IDM_BLAME, !Folder);
+		int Cmd = s.Float(GetTree(), m);
+		switch (Cmd)
+		{
+			case IDM_LOG:
+			{
+				break;
+			}
+			case IDM_BLAME:
+			{
+				Parent->Blame(Full());
+				break;
+			}
+		}
+	}
+}
+

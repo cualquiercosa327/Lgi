@@ -67,6 +67,8 @@ enum AppIds
 	IDM_EOL_LF,
 	IDM_EOL_CRLF,
 	IDM_EOL_AUTO,
+	IDM_ADD_FILE,
+	IDM_ADD_BINARY_FILE,
 };
 
 enum VersionCtrl

@@ -29,7 +29,7 @@
 
 /// Returns the system path specified
 /// \ingroup Base
-LgiExtern GString LgiGetSystemPath(
+LgiClass GString LgiGetSystemPath(
 	/// Which path to retreive
 	LgiSystemPath Which,
 	int WordSize = 0
@@ -45,7 +45,7 @@ LgiExtern GString LgiGetFileMimeType
 
 /// Returns the application associated with the mime type
 /// \ingroup Mime
-LgiExtern GString LgiGetAppForMimeType
+LgiClass GString LgiGetAppForMimeType
 (
 	/// Type of the file to find and app for
 	const char *Mime
@@ -59,6 +59,9 @@ LgiClass GString LgiUrlDecode(const char *s);
 
 /// Gets the current user
 LgiClass GString LgiCurrentUserName();
+
+/// Returns an environment variable.
+LgiClass GString LgiGetEnv(const char *Var);
 
 #ifdef __cplusplus
 extern "C"

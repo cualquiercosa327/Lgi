@@ -432,6 +432,20 @@ ssize_t Strlen(const T *str)
 	return s - str;
 }
 
+// Templated version of NewStr/NewStrW
+// Duplicates a string in heap memory.
+template<typename T>
+T *Strdup(T *s, ssize_t len = -1)
+{
+	if (!s) return NULL;
+	if (len < 0) len = Strlen(s);
+	T *n = new T[len+1];
+	if (!n) return NULL;
+	memcpy(n, s, sizeof(T) * len);
+	n[len] = 0;
+	return n;
+}
+
 // Compares two strings, case sensitive
 template<typename T>
 int Strcmp(const T *str_a, const T *str_b)

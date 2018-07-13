@@ -2196,6 +2196,23 @@ char *LgiTokStr(const char *&s)
 	return Status;
 }
 
+GString LgiGetEnv(const char *Var)
+{
+#ifdef _MSC_VER
+	char *s = NULL;
+	size_t sz;
+	errno_t err = _dupenv_s(&s, &sz, Var);
+	if (err)
+		return GString();
+
+	GString ret(s);
+	free(s);
+	return ret;
+#else
+	return getenv("PATH");
+#endif
+}
+
 //////////////////////////////////////////////////////////////////////////////
 DoEvery::DoEvery(int p) // p = timeout in ms
 {

@@ -3,6 +3,8 @@
 
 #include "GSubProcess.h"
 
+class VcLeaf;
+
 enum LvcError
 {
 	ErrNone,
@@ -26,6 +28,16 @@ class VcFolder : public GTreeItem
 	struct ParseParams
 	{
 		GString Str;
+		GString AltInitPath;
+		VcLeaf *Leaf;
+		bool IsWorking;
+
+		ParseParams(const char *str = NULL)
+		{
+			Str = str;
+			Leaf = NULL;
+			IsWorking = false;
+		}
 	};
 
 	typedef bool (VcFolder::*ParseFn)(int, GString, ParseParams*);
@@ -36,7 +48,7 @@ class VcFolder : public GTreeItem
 		GStream *Log;
 		GAutoPtr<LThread> Rd;
 		ParseFn PostOp;
-		GString Param;
+		GAutoPtr<ParseParams> Params;
 		LvcError Err;
 
 		Cmd(GStream *log)
@@ -87,7 +99,7 @@ class VcFolder : public GTreeItem
 
 	void Init(AppPriv *priv);
 	const char *GetVcName();
-	bool StartCmd(const char *Args, ParseFn Parser, GString Param = GString(), bool LogCmd = false);
+	bool StartCmd(const char *Args, ParseFn Parser, ParseParams *Params = NULL, bool LogCmd = false);
 	void OnBranchesChange();
 	void OnCmdError();
 
@@ -105,6 +117,8 @@ class VcFolder : public GTreeItem
 	bool ParseBlame(int Result, GString s, ParseParams *Params);
 	bool ParseSaveAs(int Result, GString s, ParseParams *Params);
 	bool ParseBranches(int Result, GString s, ParseParams *Params);
+	bool ParseStatus(int Result, GString s, ParseParams *Params);
+	bool ParseAddFile(int Result, GString s, ParseParams *Params);
 	
 public:
 	VcFolder(AppPriv *priv, const char *p);
@@ -119,10 +133,12 @@ public:
 	void Select(bool b);
 	void ListCommit(VcCommit *c);
 	void ListWorkingFolder();
+	void FolderStatus(const char *Path = NULL, VcLeaf *Notify = NULL);
 	void Commit(const char *Msg, const char *Branch, bool AndPush);
 	void Push();
 	void Pull();
 	bool Revert(const char *Path, const char *Revision = NULL);
+	bool AddFile(const char *Path, bool AsBinary = true);
 	bool Blame(const char *Path);
 	bool SaveFileAs(const char *Path, const char *Revision);
 	void ReadDir(GTreeItem *Parent, const char *Path);
@@ -134,6 +150,29 @@ public:
 	void OnRemove();
 	void OnExpand(bool b);
 	void OnPaint(ItemPaintCtx &Ctx);
+};
+
+class VcLeaf : public GTreeItem
+{
+	AppPriv *d;
+	VcFolder *Parent;
+	bool Folder;
+	GString Path, Leaf;
+	GTreeItem *Tmp;
+
+public:
+	VcLeaf(VcFolder *parent, GTreeItem *Item, GString path, GString leaf, bool folder);
+
+	GString Full();
+	void OnBrowse();
+	void AfterBrowse();
+	void OnExpand(bool b);
+	char *GetText(int Col);
+	int GetImage(int Flags);
+	int Compare(VcLeaf *b);
+	bool Select();
+	void Select(bool b);
+	void OnMouseClick(GMouse &m);
 };
 
 #endif

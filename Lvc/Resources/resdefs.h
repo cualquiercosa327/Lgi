@@ -14,6 +14,7 @@
 #define IDC_CVS									33
 #define IDC_HG_BROWSE							36
 #define IDC_CVS_BROWSE							37
+#define IDC_UNTRACKED							38
 #define IDC_TABLE								500
 #define IDC_COMMIT								501
 #define IDC_PULL								502

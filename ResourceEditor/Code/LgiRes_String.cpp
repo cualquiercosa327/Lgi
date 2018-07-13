@@ -725,13 +725,21 @@ void ResString::OnMouseClick(GMouse &m)
 					}
 					case IDM_NEW_ID:
 					{
-						List<ResString> sl;
-						Group->AppWindow->FindStrings(sl, Define);
-						int NewId = Group->AppWindow->GetUniqueCtrlId();
-						for (ResString *s = sl.First(); s; s = sl.Next())
+						List<ResString> Sel;
+						if (!GetList()->GetSelection(Sel))
+							break;
+
+						auto App = Group->AppWindow;
+						for (auto s : Sel)
 						{
-							s->SetId(NewId);
-							s->Update();
+							List<ResString> sl;
+							App->FindStrings(sl, s->Define);
+								
+							int NewId = App->GetUniqueCtrlId();
+							for (auto i : sl)
+							{
+								i->SetId(NewId);
+							}
 						}
 						break;
 					}

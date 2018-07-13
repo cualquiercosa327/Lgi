@@ -5,6 +5,7 @@ VcFile::VcFile(AppPriv *priv, VcFolder *owner, GString revision, bool working)
 	d = priv;
 	Owner = owner;
 	Revision = revision;
+	Status = SUnknown;
 	if (working)
 		Chk = new LListItemCheckBox(this, 0, false);
 	else
@@ -13,6 +14,30 @@ VcFile::VcFile(AppPriv *priv, VcFolder *owner, GString revision, bool working)
 
 VcFile::~VcFile()
 {
+}
+
+VcFile::FileStatus VcFile::GetStatus()
+{
+	if (Status == SUnknown)
+	{
+		const char *s = GetText(COL_STATE);
+		if (!s)
+			return Status;
+
+		#define STATE(str, sym) \
+			if (stristr(s, str)) Status = sym
+		STATE("?", SUntracked);
+		else STATE("Up-To-Date", SClean);
+		else STATE("Modified", SModified);
+		else STATE("A", SAdded);
+		else STATE("M", SModified);
+		else
+		{
+			LgiAssert(!"Impl state");
+		}
+	}
+
+	return Status;
 }
 
 int VcFile::Checked(int Set)
@@ -35,6 +60,7 @@ void VcFile::SetDiff(GString diff)
 
 void VcFile::Select(bool b)
 {
+	GetStatus();
 	LListItem::Select(b);
 	if (b)
 		d->Diff->Name(Diff);
@@ -51,10 +77,34 @@ void VcFile::OnMouseClick(GMouse &m)
 		GFile::Path p = Owner->GetPath();
 		p += File;
 
-		if (Chk)
+		GetStatus();
+		if (Revision)
+		{
+			// Committed changes
+			s.AppendItem("Revert To This Revision", IDM_REVERT_TO_REV, Status != SClean);
+			s.AppendItem("Blame", IDM_BLAME);
+			s.AppendItem("Save As", IDM_SAVE_AS);
+		}
+		else
 		{
 			// Uncommitted changes
-			s.AppendItem("Revert Changes", IDM_REVERT);
+			switch (Status)
+			{
+				case SModified:
+					s.AppendItem("Revert Changes", IDM_REVERT);
+					break;
+				case SUntracked:
+					if (Owner->GetType() == VcCvs)
+					{
+						s.AppendItem("Add Text File", IDM_ADD_FILE);
+						s.AppendItem("Add Binary File", IDM_ADD_BINARY_FILE);
+					}
+					else
+					{
+						s.AppendItem("Add File", IDM_ADD_FILE);
+					}
+					break;
+			}					
 			s.AppendItem("Browse To", IDM_BROWSE);
 
 			int Cur = GetEol(p);
@@ -65,13 +115,6 @@ void VcFile::OnMouseClick(GMouse &m)
 			if (Item && Cur == IDM_EOL_CRLF) Item->Checked(true);
 			Ln->AppendItem("Auto", IDM_EOL_AUTO);
 		}
-		else
-		{
-			// Committed changes
-			s.AppendItem("Revert To This Revision", IDM_REVERT_TO_REV);
-			s.AppendItem("Blame", IDM_BLAME);
-			s.AppendItem("Save As", IDM_SAVE_AS);
-		}
 
 		int Cmd = s.Float(GetList(), m);
 		switch (Cmd)
@@ -79,6 +122,16 @@ void VcFile::OnMouseClick(GMouse &m)
 			case IDM_REVERT:
 			{
 				Owner->Revert(p);
+				break;
+			}
+			case IDM_ADD_FILE:
+			{
+				Owner->AddFile(p, false);
+				break;
+			}
+			case IDM_ADD_BINARY_FILE:
+			{
+				Owner->AddFile(p, true);
 				break;
 			}
 			case IDM_BROWSE:

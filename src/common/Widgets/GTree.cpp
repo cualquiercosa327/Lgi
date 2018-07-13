@@ -1095,6 +1095,11 @@ GTree::~GTree()
 }
 
 // Internal tree methods
+List<GTreeItem>	*GTree::GetSelLst()
+{
+	return &d->Selection;
+}
+
 void GTree::_Update(GRect *r, bool Now)
 {
 	if (r)
