@@ -187,7 +187,48 @@ bool GContainers::Run()
 	}
 
 	{
-		LHashTbl<int,int> h;
+		LHashTbl<IntKey<int>,int> IntMap;
+		IntMap.Add(45, 67);
+		for (auto i : IntMap)
+		{
+			printf("Int: %i -> %i\n", i.key, i.value);
+		}
+		IntMap.Delete(45);
+
+		LHashTbl<StrKey<char,true>,int> CaseSenMap;
+		CaseSenMap.Add("Abc", 34);
+		CaseSenMap.Add("abc", 23);
+		if (CaseSenMap.Length() != 2)
+			return FAIL(_FL, "Wrong len.");
+		for (auto i : CaseSenMap)
+		{
+			printf("Case: %s -> %i\n", i.key, i.value);
+		}
+
+		LHashTbl<StrKey<char,false>,int> CaseInsenMap;
+		CaseInsenMap.Add("Abc", 34);
+		CaseInsenMap.Add("abc", 23);
+		if (CaseInsenMap.Length() != 1)
+			return FAIL(_FL, "Wrong len.");
+		for (auto i : CaseInsenMap)
+		{
+			printf("Insensitive: %s -> %i\n", i.key, i.value);
+		}
+
+		LHashTbl<ConstStrKey<char16,false>,int> ConstWideMap;
+		ConstWideMap.Add(L"Asd", 456);
+		for (auto i : ConstWideMap)
+		{
+			printf("ConstWide: %S -> %i\n", i.key, i.value);
+		}
+
+		LHashTbl<StrKeyPool<char,false>,int> PoolMap;
+		PoolMap.Add("Asd", 123);
+		PoolMap.Add("Def", 124);
+		for (auto i : PoolMap)
+		{
+			printf("PoolMap: %s -> %i\n", i.key, i.value);
+		}
 	}
 
 	return true;

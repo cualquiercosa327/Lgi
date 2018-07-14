@@ -1,3 +1,8 @@
+/*
+	More modern take on the GHashTbl I had been using for a while.
+	Moved the key management into a parameter class. All the key pooling
+	is also now managed by the param class rather than the hash table itself.
+*/
 #ifndef _LHashTbl_H_
 #define _LHashTbl_H_
 
@@ -12,7 +17,7 @@
 #endif
 
 template<typename RESULT, typename CHAR>
-RESULT LHash(CHAR *v, int l, bool Case)
+RESULT LHash(const CHAR *v, int l, bool Case)
 {
 	RESULT h = 0;
 
@@ -22,16 +27,12 @@ RESULT LHash(CHAR *v, int l, bool Case)
 		if (l > 0)
 		{
 			while (l--)
-			{
 				h = (h << 5) - h + *v++;
-			}
 		}
 		else
 		{
 			for (; *v; v ++)
-			{
 				h = (h << 5) - h + *v;
-			}
 		}
 	}
 	else
@@ -63,25 +64,137 @@ RESULT LHash(CHAR *v, int l, bool Case)
 #define HASH_TABLE_SHRINK_THRESHOLD			15
 #define HASH_TABLE_GROW_THRESHOLD			50
 
-template<typename T>
+template<typename T, T DefaultNull = -1>
 class IntKey
 {
 public:
+	typedef T Type;
+
+	T NullKey;
+
+	IntKey<T,DefaultNull>()
+	{
+		NullKey = DefaultNull;
+	}
+
+	void EmptyKeys() {}
 	uint32 Hash(T k) { return (uint32)k; }
 	T CopyKey(T a) { return a; }
 	size_t SizeKey(T a) { return sizeof(a); }
-	void FreeKey(T &a) { a =  }
-	bool CmpKey(char *a, char *b)
+	void FreeKey(T &a) { a = NullKey; }
+	bool CmpKey(T a, T b)
 	{
-		return strcompare(a, b, Case) == 0;
+		return a == b;
 	}
 };
 
-/// General hash table container for O(1) access to table data.
-template<typename Key, typename Value>
-class LHashTbl
+template<typename T, bool CaseSen, T *DefaultNull = NULL>
+class StrKey
 {
 public:
+	typedef T *Type;
+
+	T *NullKey;
+
+	StrKey<T,CaseSen,DefaultNull>()
+	{
+		NullKey = DefaultNull;
+	}
+
+	void EmptyKeys() {}
+	uint32 Hash(T *k) { return LHash<uint32,T>(k, Strlen(k), CaseSen); }
+	T *CopyKey(T *a) { return Strdup(a); }
+	size_t SizeKey(T *a) { return (Strlen(a)+1)*sizeof(*a); }
+	void FreeKey(T *&a) { if (a) delete [] a; a = NullKey; }
+	bool CmpKey(T *a, T *b) { return !(CaseSen ? Strcmp(a, b) : Stricmp(a, b)); }
+};
+
+template<typename T, bool CaseSen, int BlockSize = 0, T *DefaultNull = NULL>
+class StrKeyPool
+{
+	struct Buf : public GArray<T>
+	{
+		int Used;
+		Buf(int Sz = 0) { Length(Sz); }
+		size_t Free() { return Length() - Used; }
+	};
+
+	GArray<Buf> Mem;
+	Buf *GetMem(size_t Sz)
+	{
+		if (!Mem.Length() || Mem.Last().Free() < Sz)
+			Mem.New().Length(PoolSize);
+		return Mem.Last().Free() >= Sz ? &Mem.Last() : NULL;
+	}
+
+public:
+	typedef T *Type;
+
+	const int DefaultPoolSize = (64 << 10) / sizeof(T);
+	T *NullKey;
+	int PoolSize;
+
+	StrKeyPool<T,CaseSen,BlockSize,DefaultNull>()
+	{
+		NullKey = DefaultNull;
+		PoolSize = BlockSize ? BlockSize : DefaultPoolSize;
+	}
+
+	void EmptyKeys()
+	{
+		Mem.Length(0);
+	}
+
+	uint32 Hash(T *k) { return LHash<uint32,T>(k, Strlen(k), CaseSen); }
+	size_t SizeKey(T *a) { return (Strlen(a)+1)*sizeof(*a); }
+	bool CmpKey(T *a, T *b) { return !(CaseSen ? Strcmp(a, b) : Stricmp(a, b)); }
+
+	T *CopyKey(T *a)
+	{
+		size_t Sz = Strlen(a) + 1;
+		Buf *m = GetMem(Sz);
+		if (!m) return NullKey;
+		T *r = m->AddressOf(m->Used);
+		memcpy(r, a, Sz*sizeof(*a));
+		m->Used += Sz;
+		return r;
+	}
+	
+	void FreeKey(T *&a)
+	{
+		// Do nothing...
+	}
+};
+
+template<typename T, bool CaseSen, T *DefaultNull = NULL>
+class ConstStrKey
+{
+public:
+	typedef const T *Type;
+
+	const T *NullKey;
+
+	ConstStrKey<T,CaseSen,DefaultNull>()
+	{
+		NullKey = DefaultNull;
+	}
+
+	void EmptyKeys() {}
+	uint32 Hash(const T *k) { return LHash<uint32,T>(k, Strlen(k), CaseSen); }
+	T *CopyKey(const T *a) { return Strdup(a); }
+	size_t SizeKey(const T *a) { return (Strlen(a)+1)*sizeof(*a); }
+	void FreeKey(const T *&a) { if (a) delete [] a; a = NullKey; }
+	bool CmpKey(const T *a, const T *b) { return !(CaseSen ? Strcmp(a, b) : Stricmp(a, b)); }
+};
+
+/// General hash table container for O(1) access to table data.
+template<typename KeyTrait, typename Value>
+class LHashTbl : public KeyTrait
+{
+public:
+	typedef typename KeyTrait::Type Key;
+	const int DefaultSize = 256;
+
 	struct Pair
 	{
 		Key key;
@@ -89,7 +202,6 @@ public:
 	};
 
 protected:
-	Key NullKey;
 	Value NullValue;
 
 	size_t Used;
@@ -112,10 +224,10 @@ protected:
 			{
 				Index = (h + i) % Size;
 
-				if (Table[Index].k == NullKey)
+				if (Table[Index].key == NullKey)
 					return false;
 					
-				if (CmpKey(Table[Index].k, k))
+				if (CmpKey(Table[Index].key, k))
 					return true;
 			}
 		}
@@ -154,16 +266,14 @@ public:
 	LHashTbl
 	(
 		/// Sets the initial table size. Should be 2x your data set.
-		int size = 0,
+		size_t size = 0,
 		/// Sets the case sensitivity of the keys.
 		bool is_case = true,
-		/// The default empty value
-		Key nullkey = 0,
 		/// The default empty value
 		Value nullvalue = (Value)0
 	)
 	{
-		NullKey = nullkey;
+		Size = size;
 		NullValue = nullvalue;
 		Used = 0;
 		MaxSize = LHASHTBL_MAX_SIZE;
@@ -239,37 +349,32 @@ public:
 
 			Used = 0;
 			LgiAssert(NewSize <= MaxSize);
-			SizeBackup = Size = NewSize;
+			Size = NewSize;
 
 			Table = new Pair[Size];
 			if (Table)
 			{
-				KeyPoolArr OldPools;
-				OldPools = Pools;
-				Pools.Length(0);
-
 				int i;
 				InitializeTable(Table, Size);
 				for (i=0; i<OldSize; i++)
 				{
-					if (OldTable[i].k != NullKey)
+					if (OldTable[i].key != NullKey)
 					{
-						if (!Add(OldTable[i].k, OldTable[i].v))
+						if (!Add(OldTable[i].key, OldTable[i].value))
 						{
 							LgiAssert(0);
 						}
-						FreeKey(OldTable[i].k);
+						FreeKey(OldTable[i].key);
 					}
 				}
 
-				OldPools.DeleteObjects();
 				Status = true;
 			}
 			else
 			{
 				LgiAssert(Table != 0);
 				Table = OldTable;
-				SizeBackup = Size = OldSize;
+				Size = OldSize;
 				return false;
 			}
 
@@ -342,67 +447,52 @@ public:
 		Value v
 	)
 	{
+		if (!Size)
+			SetSize(DefaultSize);
+
 		if (IsOk() &&
-			k != NullKey &&
-			v != NullValue)
+			k == NullKey &&
+			v == NullValue)
 		{
-			uint32 h = Hash(k);
+			LgiAssert(!"Adding NULL key or value.");
+			return false;
+		}
 
-			int Index = -1;
-			for (int i=0; i<Size; i++)
+		uint32 h = Hash(k);
+
+		int Index = -1;
+		for (int i=0; i<Size; i++)
+		{
+			int idx = (h + i) % Size;
+			if
+			(
+				Table[idx].key == NullKey
+				||
+				CmpKey(Table[idx].key, k)
+			)
 			{
-				int idx = (h + i) % Size;
-				if
-				(
-					Table[idx].k == NullKey
-					||
-					CmpKey(Table[idx].k, k)
-				)
-				{
-					Index = idx;
-					break;
-				}
-			}
-
-			if (Index >= 0)
-			{
-				if (Table[Index].k == NullKey)
-				{
-					if (Pool)
-					{
-						KeyPool<Key> *p = 0;
-						if (Pools.Length() == 0)
-						{
-							Pools[0] = p = new KeyPool<Key>;
-						}
-						else
-						{
-							p = Pools[Pools.Length()-1];
-						}
-						
-						if (!(Table[Index].k = p->New(k)))
-						{
-							Pools.Add(p = new KeyPool<Key>);
-							Table[Index].k = p->New(k);
-						}
-					}
-					else
-					{
-						Table[Index].k = CopyKey(k);
-					}
-					Used++;
-				}
-				Table[Index].v = v;
-
-				if (Percent() > HASH_TABLE_GROW_THRESHOLD)
-				{
-					SetSize(Size << 1);
-				}
-				return true;
+				Index = idx;
+				break;
 			}
 		}
-		else LgiAssert(!"Adding NULL key or value.");
 
+		if (Index >= 0)
+		{
+			if (Table[Index].key == NullKey)
+			{
+				Table[Index].key = CopyKey(k);
+				Used++;
+			}
+			Table[Index].value = v;
+
+			if (Percent() > HASH_TABLE_GROW_THRESHOLD)
+			{
+				SetSize(Size << 1);
+			}
+			return true;
+		}
+
+		LgiAssert(!"Couldn't alloc space.");
 		return false;
 	}
 	
@@ -417,31 +507,23 @@ public:
 		if (GetEntry(k, Index))
 		{
 			// Delete the entry
-			if (Pool)
-			{
-				// Memory is owned by the string pool, not us.
-				Table[Index].k = NullKey;
-			}
-			else
-			{
-				FreeKey(Table[Index].k);
-			}
-			Table[Index].v = NullValue;
+			FreeKey(Table[Index].key);
+			Table[Index].value = NullValue;
 			Used--;
 			
 			// Bubble down any entries above the hole
 			int Hole = Index;
 			for (int i = (Index + 1) % Size; i != Index; i = (i + 1) % Size)
 			{
-				if (Table[i].k != NullKey)
+				if (Table[i].key != NullKey)
 				{
-					uint32 Hsh = Hash(Table[i].k);
+					uint32 Hsh = Hash(Table[i].key);
 					uint32 HashIndex = Hsh % Size;
 					
 					if (HashIndex != i && Between(Hole, HashIndex, i))
 					{
 						// Do bubble
-						if (Table[Hole].k != NullKey)
+						if (Table[Hole].key != NullKey)
 						{
 							LgiAssert(0);
 						}
@@ -522,7 +604,7 @@ public:
 		}
 
 		Used = 0;
-		SetSize(512);
+		EmptyKeys();
 	}
 
 	/// Returns the amount of memory in use by the hash table.
@@ -595,11 +677,11 @@ public:
 
 	struct PairIterator
 	{
-		LHashTbl<Key,Value> *t;
+		LHashTbl<KeyTrait,Value> *t;
 		int Idx;
 
 	public:
-		PairIterator(LHashTbl<Key,Value> *tbl, int i)
+		PairIterator(LHashTbl<KeyTrait,Value> *tbl, int i)
 		{
 			t = tbl;
 			Idx = i;
@@ -620,7 +702,7 @@ public:
 			{
 				while (++Idx < t->Size)
 				{
-					if (t->Table[Idx].k != t->NullKey)
+					if (t->Table[Idx].key != t->NullKey)
 						break;
 				}
 			}
@@ -635,7 +717,7 @@ public:
 		{
 			LgiAssert(	Idx >= 0 &&
 						Idx < t->Size &&
-						t->Table[Idx].k != t->NullKey);
+						t->Table[Idx].key != t->NullKey);
 			return t->Table[Idx];
 		}
 	};

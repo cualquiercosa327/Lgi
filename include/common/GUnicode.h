@@ -435,7 +435,7 @@ ssize_t Strlen(const T *str)
 // Templated version of NewStr/NewStrW
 // Duplicates a string in heap memory.
 template<typename T>
-T *Strdup(T *s, ssize_t len = -1)
+T *Strdup(const T *s, ssize_t len = -1)
 {
 	if (!s) return NULL;
 	if (len < 0) len = Strlen(s);
