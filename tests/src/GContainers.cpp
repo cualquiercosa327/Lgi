@@ -1,6 +1,7 @@
 #include "Lgi.h"
 #include "UnitTests.h"
 #include "LUnrolledList.h"
+#include "LHashTable.h"
 
 class GContainersPriv
 {
@@ -183,6 +184,10 @@ bool GContainers::Run()
 		);
 
 		StrLst.Delete("Tyertw");
+	}
+
+	{
+		LHashTbl<int,int> h;
 	}
 
 	return true;

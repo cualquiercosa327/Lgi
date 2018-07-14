@@ -52,5 +52,8 @@
     <ClInclude Include="..\include\common\LUnrolledList.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\common\LHashTable.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
