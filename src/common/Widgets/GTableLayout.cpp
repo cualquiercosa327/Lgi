@@ -1991,7 +1991,7 @@ GMessage::Result GTableLayout::OnEvent(GMessage *m)
 
 void GTableLayout::OnPaint(GSurface *pDC)
 {
-	GRect Client = GetClient();
+	//GRect Client = GetClient();
 	if (SizeChanged())
 	{
 		#ifdef LGI_SDL

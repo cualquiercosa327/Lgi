@@ -1274,22 +1274,22 @@ char *GDirectory::GetName() const
 	return (d->De) ? d->De->d_name : 0;
 }
 
-const uint64 GDirectory::GetCreationTime() const
+uint64 GDirectory::GetCreationTime() const
 {
 	return (uint64)d->Stat.st_ctime * 1000;
 }
 
-const uint64 GDirectory::GetLastAccessTime() const
+uint64 GDirectory::GetLastAccessTime() const
 {
 	return (uint64)d->Stat.st_atime * 1000;
 }
 
-const uint64 GDirectory::GetLastWriteTime() const
+uint64 GDirectory::GetLastWriteTime() const
 {
 	return (uint64)d->Stat.st_mtime * 1000;
 }
 
-const uint64 GDirectory::GetSize() const
+uint64 GDirectory::GetSize() const
 {
 	return d->Stat.st_size;
 }

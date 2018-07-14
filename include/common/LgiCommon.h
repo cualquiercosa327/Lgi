@@ -25,6 +25,7 @@
 #include "GMem.h"
 #include "GArray.h"
 #include "LgiClass.h"
+#include "GString.h"
 #include "GStringClass.h"
 
 /// Returns the system path specified
