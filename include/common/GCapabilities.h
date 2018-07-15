@@ -4,7 +4,7 @@
 #define _GCAPABILITIES_H
 #ifdef __cplusplus
 
-#include "GHashTable.h"
+#include "LHashTable.h"
 
 #define DEBUG_CAPABILITIES		0
 
@@ -33,7 +33,7 @@ class LgiClass GCapabilityTarget
 	GArray<GCapabilityClient*> Clients;
 
 public:
-	typedef GHashTbl<const char*, bool> CapsHash;
+	typedef LHashTbl<ConstStrKey<char,false>, bool> CapsHash;
 
 	virtual ~GCapabilityTarget();
 	

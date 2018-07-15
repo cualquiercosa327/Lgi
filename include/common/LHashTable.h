@@ -88,7 +88,7 @@ public:
 	}
 };
 
-template<typename T, bool CaseSen, T *DefaultNull = NULL>
+template<typename T, bool CaseSen = true, T *DefaultNull = NULL>
 class StrKey
 {
 public:
@@ -109,7 +109,7 @@ public:
 	bool CmpKey(T *a, T *b) { return !(CaseSen ? Strcmp(a, b) : Stricmp(a, b)); }
 };
 
-template<typename T, bool CaseSen, int BlockSize = 0, T *DefaultNull = NULL>
+template<typename T, bool CaseSen = true, int BlockSize = 0, T *DefaultNull = NULL>
 class StrKeyPool
 {
 	struct Buf : public GArray<T>
@@ -166,7 +166,7 @@ public:
 	}
 };
 
-template<typename T, bool CaseSen, T *DefaultNull = NULL>
+template<typename T, bool CaseSen = true, T *DefaultNull = NULL>
 class ConstStrKey
 {
 public:
@@ -561,7 +561,7 @@ public:
 		int Index = -1;
 		if (IsOk() && GetEntry(k, Index))
 		{
-			return Table[Index].v;
+			return Table[Index].value;
 		}
 
 		return NullValue;
