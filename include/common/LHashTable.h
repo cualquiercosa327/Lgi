@@ -172,6 +172,7 @@ class StrKeyPool : public KeyPool<T,BlockSize>
 {
 public:
 	typedef T *Type;
+	using Buf = typename KeyPool<T,BlockSize>::Buf;
 
 	T *NullKey;
 
@@ -187,7 +188,7 @@ public:
 	T *CopyKey(T *a)
 	{
 		size_t Sz = Strlen(a) + 1;
-		Buf *m = GetMem(Sz);
+		Buf *m = this->GetMem(Sz);
 		if (!m) return NullKey;
 		T *r = m->AddressOf(m->Used);
 		memcpy(r, a, Sz*sizeof(*a));
@@ -227,6 +228,7 @@ class ConstStrKeyPool : public KeyPool<T,BlockSize>
 {
 public:
 	typedef const T *Type;
+	using Buf = typename KeyPool<T,BlockSize>::Buf;
 
 	const T *NullKey;
 
@@ -259,7 +261,7 @@ class LHashTbl : public KeyTrait
 {
 public:
 	typedef typename KeyTrait::Type Key;
-	typedef typename LHashTbl<KeyTrait,Value> HashTable;
+	typedef LHashTbl<KeyTrait,Value> HashTable;
 	const int DefaultSize = 256;
 
 	struct Pair
@@ -283,7 +285,7 @@ protected:
 
 	bool GetEntry(const Key k, int &Index, bool Debug = false)
 	{
-		if (k != NullKey && Table)
+		if (k != this->NullKey && Table)
 		{
 			uint32 h = Hash(k);
 
@@ -291,7 +293,7 @@ protected:
 			{
 				Index = (h + i) % Size;
 
-				if (Table[Index].key == NullKey)
+				if (Table[Index].key == this->NullKey)
 					return false;
 					
 				if (CmpKey(Table[Index].key, k))
@@ -322,7 +324,7 @@ protected:
 		if (!e || len < 1) return;
 		while (len--)
 		{
-			e->key = NullKey;
+			e->key = this->NullKey;
 			e->value = NullValue;
 			e++;
 		}
@@ -359,7 +361,7 @@ public:
 
 	Key GetNullKey()
 	{
-		return NullKey;
+		return this->NullKey;
 	}
 
 	/// Copy operator
@@ -369,7 +371,7 @@ public:
 		{
 			Empty();
 
-			NullKey = c.NullKey;
+			this->NullKey = c.NullKey;
 			NullValue = c.NullValue;
 
 			int Added = 0;
@@ -421,7 +423,7 @@ public:
 				InitializeTable(Table, Size);
 				for (i=0; i<OldSize; i++)
 				{
-					if (OldTable[i].key != NullKey)
+					if (OldTable[i].key != this->NullKey)
 					{
 						if (!Add(OldTable[i].key, OldTable[i].value))
 						{
@@ -445,19 +447,6 @@ public:
 		}
 
 		return Status;
-	}
-	
-	/// Returns whether the keys are case sensitive
-	bool IsCase()
-	{
-		return IsOk() ? Case : false;
-	}
-
-	/// Sets whether the keys are case sensitive
-	void IsCase(bool c)
-	{
-		if (IsOk())
-			Case = c;
 	}
 	
 	/// Returns true if the object appears to be valid
@@ -497,7 +486,7 @@ public:
 			SetSize(DefaultSize);
 
 		if (IsOk() &&
-			k == NullKey &&
+			k == this->NullKey &&
 			v == NullValue)
 		{
 			LgiAssert(!"Adding NULL key or value.");
@@ -512,7 +501,7 @@ public:
 			int idx = (h + i) % Size;
 			if
 			(
-				Table[idx].key == NullKey
+				Table[idx].key == this->NullKey
 				||
 				CmpKey(Table[idx].key, k)
 			)
@@ -524,7 +513,7 @@ public:
 
 		if (Index >= 0)
 		{
-			if (Table[Index].key == NullKey)
+			if (Table[Index].key == this->NullKey)
 			{
 				Table[Index].key = CopyKey(k);
 				Used++;
@@ -561,7 +550,7 @@ public:
 			int Hole = Index;
 			for (int i = (Index + 1) % Size; i != Index; i = (i + 1) % Size)
 			{
-				if (Table[i].key != NullKey)
+				if (Table[i].key != this->NullKey)
 				{
 					uint32 Hsh = Hash(Table[i].key);
 					uint32 HashIndex = Hsh % Size;
@@ -569,7 +558,7 @@ public:
 					if (HashIndex != i && Between(Hole, HashIndex, i))
 					{
 						// Do bubble
-						if (Table[Hole].key != NullKey)
+						if (Table[Hole].key != this->NullKey)
 						{
 							LgiAssert(0);
 						}
@@ -630,7 +619,7 @@ public:
 			}
 		}
 
-		return NullKey;
+		return this->NullKey;
 	}
 
 	/// Removes all key/value pairs from memory
@@ -641,10 +630,10 @@ public:
 
 		for (int i=0; i<Size; i++)
 		{
-			if (Table[i].key != NullKey)
+			if (Table[i].key != this->NullKey)
 			{
 				FreeKey(Table[i].key);
-				LgiAssert(Table[i].key == NullKey);
+				LgiAssert(Table[i].key == this->NullKey);
 			}
 			Table[i].value = NullValue;
 		}
@@ -665,23 +654,12 @@ public:
 
 		int Keys = 0;
 		int64 KeySize = 0;
-		if (Pool)
+		for (int i=0; i<Size; i++)
 		{
-			for (unsigned i=0; i<Pools.Length(); i++)
+			if (Table[i].key != this->NullKey)
 			{
-				KeyPool<Key> *p = Pools[i];
-				KeySize += sizeof(*p) + p->Size;
-			}
-		}
-		else
-		{
-			for (int i=0; i<Size; i++)
-			{
-				if (Table[i].key != NullKey)
-				{
-					Keys++;
-					KeySize += SizeKey(Table[i].key);
-				}
+				Keys++;
+				KeySize += SizeKey(Table[i].key);
 			}
 		}
 
@@ -696,7 +674,7 @@ public:
 	{
 		for (int i=0; i<Size; i++)
 		{
-			if (Table[i].key != NullKey)
+			if (Table[i].key != this->NullKey)
 				FreeKey(Table[i].key);
 
 			if (Table[i].value != NullValue)
@@ -711,7 +689,7 @@ public:
 	{
 		for (int i=0; i<Size; i++)
 		{
-			if (Table[i].key != NullKey)
+			if (Table[i].key != this->NullKey)
 				FreeKey(Table[i].key);
 
 			if (Table[i].value != NullValue)
