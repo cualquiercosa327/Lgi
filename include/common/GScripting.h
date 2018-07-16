@@ -219,7 +219,7 @@ class GVariables : public GArray<GVariant>
 {
 	friend class GVirtualMachinePriv;
 
-	GHashTbl<const char*,int> Lut;
+	LHashTbl<ConstStrKey<char>,int> Lut;
 	
 public:
 	int Scope;
@@ -290,7 +290,7 @@ class GCompiledCode
 	GArray<GExternFunc*> Externs;
 	
 	/// All the user types defined
-	GHashTbl<char16*, class GCustomType*> Types;
+	LHashTbl<StrKey<char16>, class GCustomType*> Types;
 	
 	/// The original script details
 	GString FileName;
@@ -303,7 +303,7 @@ class GCompiledCode
 	GScriptContext *UserContext;
 
 	/// Debug info to map instruction address back to source line numbers
-	GHashTbl<NativeInt, int> Debug;
+	LHashTbl<IntKey<NativeInt>, int> Debug;
 
 public:
 	GCompiledCode();
@@ -313,7 +313,7 @@ public:
 	/// Size of the byte code
 	size_t Length() { return ByteCode.Length(); }
 	/// Assignment operator
-	GCompiledCode &operator =(GCompiledCode &c);
+	GCompiledCode &operator =(const GCompiledCode &c);
 	/// Gets a method defined in the code
 	GFunctionInfo *GetMethod(const char *Name, bool Create = false);
 	/// Sets a global variable

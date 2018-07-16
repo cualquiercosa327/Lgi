@@ -545,15 +545,15 @@ int Strnicmp(const T *str_a, const T *str_b, ssize_t len)
 }
 
 /// Copies a string
-template<typename T>
-T *Strcpy(T *dst, ssize_t dst_len, const T *src)
+template<typename T, typename I>
+T *Strcpy(T *dst, ssize_t dst_len, const I *src)
 {
 	if (!dst || !src || dst_len == 0)
 		return NULL;
 	
 	REG T *d = dst;
 	REG T *end = d + dst_len - 1; // leave 1 char for NULL terminator
-	REG const T *s = src;
+	REG const I *s = src;
 	while (d < end && *s)
 	{
 		*d++ = *s++;

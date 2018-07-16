@@ -133,13 +133,13 @@ struct Node
 	bool IsConst() { return Constant; }
 };
 
-GCompiledCode::GCompiledCode() : Globals(SCOPE_GLOBAL), Debug(0, true, -1, -1)
+GCompiledCode::GCompiledCode() : Globals(SCOPE_GLOBAL), Debug(0, -1)
 {
 	SysContext = NULL;
 	UserContext = NULL;
 }
 
-GCompiledCode::GCompiledCode(GCompiledCode &copy) : Globals(SCOPE_GLOBAL), Debug(0, true, -1, -1)
+GCompiledCode::GCompiledCode(GCompiledCode &copy) : Globals(SCOPE_GLOBAL), Debug(0, -1)
 {
 	*this = copy;
 }
@@ -148,7 +148,7 @@ GCompiledCode::~GCompiledCode()
 {
 }
 
-GCompiledCode &GCompiledCode::operator =(GCompiledCode &c)
+GCompiledCode &GCompiledCode::operator =(const GCompiledCode &c)
 {
 	Globals = c.Globals;
 	ByteCode = c.ByteCode;
@@ -374,7 +374,7 @@ class GCompilerPriv :
 	public GCompileTools,
 	public GScriptUtils
 {
-	GHashTbl<const char*, GVariantType> Types;
+	LHashTbl<ConstStrKey<char>, GVariantType> Types;
 	size_t JumpLoc;
 
 public:
@@ -385,12 +385,12 @@ public:
 	GArray<char16*> Tokens;	
 	TokenRanges Lines;
 	char16 *Script;
-	GHashTbl<char*, GFunc*> Methods;
+	LHashTbl<StrKey<char>, GFunc*> Methods;
 	int Regs;
 	GArray<GVariables*> Scopes;
 	GArray<LinkFixup> Fixups;
-	GHashTbl<char16*, char16*> Defines;
-	GHashTbl<const char16*, GTokenType> ExpTok;
+	LHashTbl<StrKey<char16>, char16*> Defines;
+	LHashTbl<StrKey<char16>, GTokenType> ExpTok;
 	GDom *ScriptArgs;
 	GVarRef ScriptArgsRef;
 	bool ErrShowFirstOnly;
@@ -400,7 +400,7 @@ public:
 	GArray<GVariant> RegAllocators;
 	#endif
 
-	GCompilerPriv() : ExpTok(0, false)
+	GCompilerPriv()
 	{
 		ErrShowFirstOnly = true;
 		SysCtx = NULL;

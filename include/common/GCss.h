@@ -12,7 +12,7 @@
 #include "Gdc2.h"
 #include "GAutoPtr.h"
 #include "GString.h"
-#include "GHashTable.h"
+#include "LHashTable.h"
 
 #ifndef LINUX
 #pragma pack(push, 1)
@@ -740,10 +740,11 @@ public:
 
 	/// This hash table stores arrays of selectors by name.
 	typedef GArray<GCss::Selector*> SelArray;
-	class SelectorMap : public GHashTbl<const char*,SelArray*>
+	typedef LHashTbl<ConstStrKey<char,false>,SelArray*> SelMap;
+	class SelectorMap : public SelMap
 	{
+		
 	public:
-		SelectorMap() : GHashTbl<const char*,SelArray*>(0, false) {}		
 		~SelectorMap() { Empty(); }
 	
 		void Empty()
@@ -754,7 +755,7 @@ public:
 				s.value->DeleteObjects();
 				delete s.value;
 			}	
-			GHashTbl<const char*,SelArray*>::Empty();
+			SelMap::Empty();
 		}
 		
 		SelArray *Get(const char *s)
@@ -998,7 +999,7 @@ public:
 	public:
 		SelectorMap TypeMap, ClassMap, IdMap;
 		SelArray Other;
-		GAutoString Error;
+		GString Error;
 
 		~Store()
 		{
@@ -1012,7 +1013,7 @@ public:
 			ClassMap.Empty();
 			IdMap.Empty();
 			Other.DeleteObjects();
-			Error.Reset();
+			Error.Empty();
 
 			Styles.DeleteArrays();
 		}
@@ -1195,7 +1196,7 @@ public:
 
 
 	template<typename T>
-	T *GetOrCreate(T *&ptr, int PropId)
+	T *GetOrCreate(T *&ptr, PropType PropId)
 	{
 		ptr = (T*)Props.Find(PropId);
 		if (!ptr)
@@ -1205,7 +1206,7 @@ public:
 
     // Inheritance calculation
     typedef GArray<void*> PropArray;
-    typedef GHashTbl<int, PropArray*> PropMap;
+    typedef LHashTbl<IntKey<PropType,PropNull>, PropArray*> PropMap;
 	
 	/// Copies valid properties from the node 'c' into the property collection 'Contrib'.
 	/// Usually called for each node up the parent chain until the function returns false;
@@ -1230,10 +1231,10 @@ public:
 
 protected:
 	inline void DeleteProp(PropType p, void *Ptr);
-	GHashTbl<int, void*> Props;
+	LHashTbl<IntKey<PropType,PropNull>, void*> Props;
 
-	static GHashTbl<const char*, PropType> Lut;
-	static GHashTbl<int, PropType> ParentProp;
+	static LHashTbl<ConstStrKey<char,false>, PropType> Lut;
+	static LHashTbl<IntKey<int>, PropType> ParentProp;
 
 	static const char *PropName(PropType p);
 

@@ -559,7 +559,7 @@ GVariant &GVariant::operator =(GVariant const &i)
 		}
 		case GV_HASHTABLE:
 		{
-			if ((Value.Hash = new GVariantHash))
+			if ((Value.Hash = new LHash))
 			{
 				if (i.Value.Hash)
 				{
@@ -677,14 +677,14 @@ bool GVariant::SetList(List<GVariant> *Lst)
 	return Value.Lst != 0;
 }
 
-bool GVariant::SetHashTable(GVariantHash *Table, bool Copy)
+bool GVariant::SetHashTable(LHash *Table, bool Copy)
 {
 	Empty();
 	Type = GV_HASHTABLE;
 
 	if (Copy && Table)
 	{
-		if ((Value.Hash = new GVariantHash))
+		if ((Value.Hash = new LHash))
 		{
 			// const char *k;
 			// for (GVariant *p = Table->First(&k); p; p = Table->Next(&k))
@@ -696,7 +696,7 @@ bool GVariant::SetHashTable(GVariantHash *Table, bool Copy)
 	}
 	else
 	{
-		Value.Hash = Table ? Table : new GVariantHash;
+		Value.Hash = Table ? Table : new LHash;
 	}
 
 	return Value.Hash != 0;
@@ -1620,12 +1620,10 @@ ResolveDone:
 
 struct GDomPropMap
 {
-	GHashTbl<const char *, GDomProperty> ToProp;
-	GHashTbl<int, const char *> ToString;
+	LHashTbl<ConstStrKey<char,false>, GDomProperty> ToProp;
+	LHashTbl<IntKey<GDomProperty,ObjNone>, const char *> ToString;
 
-	GDomPropMap() :
-		ToProp(0, false, NULL, ObjNone),
-		ToString(0, true, ObjNone, NULL)
+	GDomPropMap()
 	{
 		#undef _
 		#define _(symbol) Define(#symbol, symbol);
@@ -1923,14 +1921,14 @@ GString GVariant::ToString()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-GCustomType::GCustomType(const char *name, int pack) : FldMap(0, true, NULL, -1)
+GCustomType::GCustomType(const char *name, int pack)
 {
 	Name = name;
 	Pack = 1;
 	Size = 0;
 }
 
-GCustomType::GCustomType(const char16 *name, int pack) : FldMap(0, true, NULL, -1)
+GCustomType::GCustomType(const char16 *name, int pack)
 {
 	Name = name;
 	Pack = 1;
@@ -2108,7 +2106,7 @@ ssize_t GCustomType::CustomField::Sizeof()
 		case GV_DATETIME:
 			return sizeof(LDateTime);
 		case GV_HASHTABLE:
-			return sizeof(GVariantHash);
+			return sizeof(GVariant::LHash);
 		case GV_OPERATOR:
 			return sizeof(GOperator);
 		case GV_GMOUSE:

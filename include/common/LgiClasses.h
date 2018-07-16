@@ -99,7 +99,7 @@ class LgiClass GApp : virtual public GAppI,
 	friend class GView;
 
 public:
-	typedef GHashTbl<const char*, GWin32Class*> ClassContainer;
+	typedef LHashTbl<ConstStrKey<char>, GWin32Class*> ClassContainer;
 
 protected:
 	// private member vars
@@ -1395,7 +1395,8 @@ public:
 	);
 
 	/// Builds a map of keyboard short cuts.
-	void BuildShortcuts(GHashTbl<int,GViewI*> &Map, GViewI *v = NULL);
+	typedef LHashTbl<IntKey<int>,GViewI*> ShortcutMap;
+	void BuildShortcuts(ShortcutMap &Map, GViewI *v = NULL);
 
 	////////////////////// Events ///////////////////////////////
 	

@@ -203,7 +203,7 @@ public:
 
 	void Load(char *File)
 	{
-		GHashTbl<const char*, bool> Except(0, false);
+		LHashTbl<ConstStrKey<char,false>, bool> Except(0, false);
 		Except.Add("GString.cpp", true);
 		Except.Add("GVariant.cpp", true);
 		Except.Add("GContainers.cpp", true);
@@ -224,8 +224,7 @@ public:
 			bool First = true;
 			char s[512];
 
-			GHashTbl<char*,DumpItem*> h(0, false);
-			h.SetStringPool(true);
+			LHashTbl<StrKeyPool<char,false>,DumpItem*> h;
 
 			Prog.SetDescription("Reading memory dump...");
 			Prog.SetLimits(0, f.GetSize());

@@ -217,6 +217,7 @@ class LHashTbl : public KeyTrait
 {
 public:
 	typedef typename KeyTrait::Type Key;
+	typedef typename LHashTbl<KeyTrait,Value> HashTable;
 	const int DefaultSize = 256;
 
 	struct Pair
@@ -291,8 +292,6 @@ public:
 	(
 		/// Sets the initial table size. Should be 2x your data set.
 		size_t size = 0,
-		/// Sets the case sensitivity of the keys.
-		bool is_case = true,
 		/// The default empty value
 		Value nullvalue = (Value)0
 	)
@@ -322,7 +321,7 @@ public:
 	}
 
 	/// Copy operator
-	LHashTbl<Key, Value> &operator =(LHashTbl<Key, Value> &c)
+	HashTable &operator =(const HashTable &c)
 	{
 		if (IsOk() && c.IsOk())
 		{
@@ -330,15 +329,13 @@ public:
 
 			NullKey = c.NullKey;
 			NullValue = c.NullValue;
-			Case = c.Case;
-			Pool = c.Pool;
 
 			int Added = 0;
 			for (int i=0; i<c.Size; i++)
 			{
-				if (c.Table[i].k != c.NullKey)
+				if (c.Table[i].key != c.NullKey)
 				{
-					Added += Add(c.Table[i].k, c.Table[i].v) ? 1 : 0;
+					Added += Add(c.Table[i].key, c.Table[i].value) ? 1 : 0;
 					LgiAssert(Added <= c.Used);
 				}
 			}
@@ -422,7 +419,7 @@ public:
 	}
 	
 	/// Returns true if the object appears to be valid
-	bool IsOk()
+	bool IsOk() const
 	{
 		bool Status =
 						#ifndef __llvm__
@@ -638,10 +635,10 @@ public:
 		{
 			for (int i=0; i<Size; i++)
 			{
-				if (Table[i].k != NullKey)
+				if (Table[i].key != NullKey)
 				{
 					Keys++;
-					KeySize += SizeKey(Table[i].k);
+					KeySize += SizeKey(Table[i].key);
 				}
 			}
 		}

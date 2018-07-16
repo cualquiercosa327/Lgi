@@ -329,9 +329,9 @@ LDateTime LDateTime::GDstInfo::GetLocal()
 	return d;
 }
 
-struct MonthHash : public GHashTbl<const char*,int>
+struct MonthHash : public LHashTbl<ConstStrKey<char,false>,int>
 {
-	MonthHash() : GHashTbl<const char*,int>(0, false)
+	MonthHash()
 	{
 		Add("Jan", 1);
 		Add("Feb", 2);

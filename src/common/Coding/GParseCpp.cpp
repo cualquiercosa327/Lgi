@@ -526,13 +526,11 @@ enum MsgType
 	MsgInfo,
 };
 
-template<typename T>
-void AddHash(GHashTbl<char16*, T> &tbl, const char *name, T type)
+template<typename T, typename V>
+void AddHash(T tbl, const char *name, V type)
 {
-	char16 s[256], *o = s;
-	while (*name)
-		*o++ = *name++;
-	*o++ = 0;
+	char16 s[256];
+	Strcpy(s, CountOf(s), name);
 	tbl.Add(s, type);
 }
 
@@ -545,10 +543,10 @@ struct GCppParserWorker : public GCompileTools
 	GArray<GSourceFile*> Srcs;
 	GArray<GSourceScope*> Scopes; // from global to local
 	
-	GHashTbl<char16*, KeywordType> Keywords;
-	GHashTbl<char16*, PreprocessSymbol> PreprocessSyms;
+	LHashTbl<StrKey<char16>, KeywordType> Keywords;
+	LHashTbl<StrKey<char16>, PreprocessSymbol> PreprocessSyms;
 	
-	GHashTbl<char*, char*> IncludePathFiles;
+	LHashTbl<StrKey<char,false>, char*> IncludePathFiles;
 	char *FindInclude(char *file);
 	bool Preprocess(GSourceFile *sf);
 	
@@ -580,9 +578,7 @@ struct GCppParserPriv
 };
 
 GCppParserWorker::GCppParserWorker(GCppParserPriv *priv) :
-	GeneralPool(4 << 10),
-	IncludePathFiles(0, false),
-	PreprocessSyms(0, false)
+	GeneralPool(4 << 10)
 {
 	d = priv;
 	
