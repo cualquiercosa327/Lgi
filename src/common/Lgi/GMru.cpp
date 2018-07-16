@@ -374,7 +374,7 @@ bool GMru::Serialize(GDom *Store, const char *Prefix, bool Write)
 			// add our keys
 			int Idx = 0;
 			char Key[64];
-			GHashTbl<char*, bool> Saved(0, false);
+			LHashTbl<StrKey<char>, bool> Saved;
 
 			for (int i=0; i<d->Items.Length(); i++)
 			{

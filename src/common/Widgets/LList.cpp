@@ -676,7 +676,7 @@ void LList::OnItemSelect(GArray<LListItem*> &It)
 		Keyboard = Items.IndexOf(It[0]);
 		LgiAssert(Keyboard >= 0);
 		
-		GHashTbl<void*, bool> Sel;
+		LHashTbl<PtrKey<LListItem*>, bool> Sel;
 		for (int n=0; n<It.Length(); n++)
 		{
 			It[n]->OnSelect();

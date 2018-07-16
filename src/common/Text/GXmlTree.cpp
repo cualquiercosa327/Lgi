@@ -123,8 +123,8 @@ public:
 	GStreamI *File;
 	GString Error;
 	int Flags;
-	GHashTbl<const char*,char16> Entities;
-	GHashTbl<const char*,bool> NoChildTags;
+	LHashTbl<ConstStrKey<char,false>,char16> Entities;
+	LHashTbl<ConstStrKey<char,false>,bool> NoChildTags;
 	GArray<char> Buf;
 	Progress *Prog;
 	
@@ -1556,12 +1556,12 @@ char *GXmlTree::GetErrorMsg()
 	return d->Error;
 }
 
-GHashTbl<const char*,bool> *GXmlTree::NoChildTags()
+LHashTbl<ConstStrKey<char,false>,bool> *GXmlTree::NoChildTags()
 {
 	return &d->NoChildTags;
 }
 
-GHashTbl<const char*,char16> *GXmlTree::GetEntityTable()
+LHashTbl<ConstStrKey<char,false>,char16> *GXmlTree::GetEntityTable()
 {
 	return &d->Entities;
 }

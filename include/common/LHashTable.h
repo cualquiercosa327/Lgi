@@ -102,7 +102,7 @@ public:
 	}
 
 	void EmptyKeys() {}
-	uint32 Hash(T k) { return ((uint32)k)/31; }
+	uint32 Hash(T k) { return (uint32)(((size_t)k)/31); }
 	T CopyKey(T a) { return a; }
 	size_t SizeKey(T a) { return sizeof(a); }
 	void FreeKey(T &a) { a = NullKey; }
@@ -133,9 +133,10 @@ public:
 	bool CmpKey(T *a, T *b) { return !(CaseSen ? Strcmp(a, b) : Stricmp(a, b)); }
 };
 
-template<typename T, bool CaseSen = true, int BlockSize = 0, T *DefaultNull = NULL>
-class StrKeyPool
+template<typename T, int BlockSize = 0>
+class KeyPool
 {
+protected:
 	struct Buf : public GArray<T>
 	{
 		int Used;
@@ -152,21 +153,31 @@ class StrKeyPool
 	}
 
 public:
-	typedef T *Type;
-
 	const int DefaultPoolSize = (64 << 10) / sizeof(T);
-	T *NullKey;
 	int PoolSize;
 
-	StrKeyPool<T,CaseSen,BlockSize,DefaultNull>()
+	KeyPool<T,BlockSize>()
 	{
-		NullKey = DefaultNull;
 		PoolSize = BlockSize ? BlockSize : DefaultPoolSize;
 	}
 
 	void EmptyKeys()
 	{
 		Mem.Length(0);
+	}
+};
+
+template<typename T, bool CaseSen = true, T *DefaultNull = NULL, int BlockSize = 0>
+class StrKeyPool : public KeyPool<T,BlockSize>
+{
+public:
+	typedef T *Type;
+
+	T *NullKey;
+
+	StrKeyPool<T,CaseSen,DefaultNull,BlockSize>()
+	{
+		NullKey = DefaultNull;
 	}
 
 	uint32 Hash(T *k) { return LHash<uint32,T>(k, Strlen(k), CaseSen); }
@@ -209,6 +220,37 @@ public:
 	size_t SizeKey(const T *a) { return (Strlen(a)+1)*sizeof(*a); }
 	void FreeKey(const T *&a) { if (a) delete [] a; a = NullKey; }
 	bool CmpKey(const T *a, const T *b) { return !(CaseSen ? Strcmp(a, b) : Stricmp(a, b)); }
+};
+
+template<typename T, bool CaseSen = true, T *DefaultNull = NULL, int BlockSize = 0>
+class ConstStrKeyPool : public KeyPool<T,BlockSize>
+{
+public:
+	typedef const T *Type;
+
+	const T *NullKey;
+
+	ConstStrKeyPool<T,CaseSen,DefaultNull,BlockSize>()
+	{
+		NullKey = DefaultNull;
+	}
+
+	void EmptyKeys() {}
+	uint32 Hash(const T *k) { return LHash<uint32,T>(k, Strlen(k), CaseSen); }
+	size_t SizeKey(const T *a) { return (Strlen(a)+1)*sizeof(*a); }
+	void FreeKey(const T *&a) { if (a) delete [] a; a = NullKey; }
+	bool CmpKey(const T *a, const T *b) { return !(CaseSen ? Strcmp(a, b) : Stricmp(a, b)); }
+
+	const T *CopyKey(const T *a)
+	{
+		size_t Sz = Strlen(a) + 1;
+		Buf *m = GetMem(Sz);
+		if (!m) return NullKey;
+		T *r = m->AddressOf(m->Used);
+		memcpy(r, a, Sz*sizeof(*a));
+		m->Used += Sz;
+		return r;
+	}
 };
 
 /// General hash table container for O(1) access to table data.
