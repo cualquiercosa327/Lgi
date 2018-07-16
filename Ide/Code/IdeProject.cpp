@@ -178,7 +178,7 @@ public:
 	IdeProject *ParentProject;
 	IdeProjectSettings Settings;
 	GAutoPtr<BuildThread> Thread;
-	GHashTbl<const char*, ProjectNode*> Nodes;
+	LHashTbl<ConstStrKey<char,false>, ProjectNode*> Nodes;
 	int NextNodeId;
 
 	// Threads
@@ -186,13 +186,11 @@ public:
 
 	// User info file
 	GString UserFile;
-	GHashTbl<int,int> UserNodeFlags;
+	LHashTbl<IntKey<int>,int> UserNodeFlags;
 
 	IdeProjectPrivate(AppWnd *a, IdeProject *project) :
 		Project(project),
-		Settings(project),
-		Nodes(0, false, NULL, NULL),
-		UserNodeFlags(0, false, 0, -1)
+		Settings(project)
 	{
 		App = a;
 		Dirty = false;
@@ -512,7 +510,7 @@ public:
 			// Includes
 
 			// Do include paths
-			GHashTbl<char*,bool> Inc;
+			LHashTbl<StrKey<char>,bool> Inc;
 			const char *ProjIncludes = d->Settings.GetStr(ProjIncludePaths, NULL, Platform);
 			if (ValidStr(ProjIncludes))
 			{
@@ -662,7 +660,7 @@ public:
 				// Write out the target stuff
 				m.Print("# Target\n");
 
-				GHashTbl<char*,bool> DepFiles;
+				LHashTbl<StrKey<char,false>,bool> DepFiles;
 
 				if (TargetType)
 				{
@@ -957,7 +955,7 @@ public:
 				
 				// Do remaining include file dependencies
 				bool Done = false;
-				GHashTbl<char*,bool> Processed;
+				LHashTbl<StrKey<char,false>,bool> Processed;
 				GAutoString Base = Proj->GetBasePath();
 				while (!Done)
 				{
@@ -2196,7 +2194,7 @@ bool IdeProject::FindDuplicateSymbols()
 
 	int Lines = 0, LinesIn = 0;
 	
-	GHashTbl<char*,int64> Map(200000, false, NULL, -1);
+	LHashTbl<StrKey<char,false>,int64> Map(200000);
 	int Found = 0;
 	for (IdeProject *p = Proj.First(); p; p = Proj.Next())
 	{
@@ -2213,7 +2211,7 @@ bool IdeProject::FindDuplicateSymbols()
 				for (int Rd = 0; (Rd = Nm.Read(Buf, sizeof(Buf))); )
 					q.Write(Buf, Rd);
 				GString::Array a = q.NewGStr().SplitDelimit("\r\n");
-				GHashTbl<char*,bool> Local(200000, false);
+				LHashTbl<StrKey<char,false>,bool> Local(200000);
 				for (GString *Ln = NULL; a.Iterate(Ln); Lines++)
 				{
 					GString::Array p = Ln->SplitDelimit(" \t", 3);
@@ -3069,7 +3067,7 @@ bool IdeProject::BuildIncludePaths(GArray<GString> &Paths, bool Recurse, bool In
 	}
 	Projects.Insert(this, 0);
 
-	GHashTbl<char*, bool> Map;
+	LHashTbl<StrKey<char>, bool> Map;
 	
 	for (IdeProject *p=Projects.First(); p; p=Projects.Next())
 	{
@@ -3334,7 +3332,7 @@ struct Dependency
 
 bool IdeProject::GetAllDependencies(GArray<char*> &Files, IdePlatform Platform)
 {
-	GHashTbl<char*, Dependency*> Deps;
+	LHashTbl<StrKey<char>, Dependency*> Deps;
 	GAutoString Base = GetBasePath();
 	
 	// Build list of all the source files...
@@ -3634,7 +3632,7 @@ int IdeTree::OnDrop(GArray<GDragData> &Data, GdcPt2 p, int KeyState)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
-AddFilesProgress::AddFilesProgress(GViewI *par) : Exts(0, false)
+AddFilesProgress::AddFilesProgress(GViewI *par)
 {
 	v = 0;
 	Cancel = false;

@@ -88,6 +88,30 @@ public:
 	}
 };
 
+template<typename T, T DefaultNull = NULL>
+class PtrKey
+{
+public:
+	typedef T Type;
+
+	T NullKey;
+
+	PtrKey<T,DefaultNull>()
+	{
+		NullKey = DefaultNull;
+	}
+
+	void EmptyKeys() {}
+	uint32 Hash(T k) { return ((uint32)k)/31; }
+	T CopyKey(T a) { return a; }
+	size_t SizeKey(T a) { return sizeof(a); }
+	void FreeKey(T &a) { a = NullKey; }
+	bool CmpKey(T a, T b)
+	{
+		return a == b;
+	}
+};
+
 template<typename T, bool CaseSen = true, T *DefaultNull = NULL>
 class StrKey
 {
@@ -384,23 +408,6 @@ public:
 		return Status;
 	}
 	
-	/// Gets the string pooling setting
-	bool GetStringPool()
-	{
-		return IsOk() ? Pool : false;
-	}
-	
-	/// Sets the string pooling setting. String pooling lowers the number of memory
-	/// allocs/frees but will waste memory if you delete keys. Good for fairly large
-	/// static tables.
-	///
-	/// (only works with using Key='char*')
-	void SetStringPool(bool b)
-	{
-		if (IsOk())
-			Pool = b;
-	}
-	
 	/// Returns whether the keys are case sensitive
 	bool IsCase()
 	{
@@ -650,11 +657,11 @@ public:
 	{
 		for (int i=0; i<Size; i++)
 		{
-			if (Table[i].k != NullKey)
-				FreeKey(Table[i].k);
+			if (Table[i].key != NullKey)
+				FreeKey(Table[i].key);
 
-			if (Table[i].v != NullValue)
-				DeleteObj(Table[i].v);
+			if (Table[i].value != NullValue)
+				DeleteObj(Table[i].value);
 		}
 
 		Used = 0;
@@ -665,11 +672,11 @@ public:
 	{
 		for (int i=0; i<Size; i++)
 		{
-			if (Table[i].k != NullKey)
-				FreeKey(Table[i].k);
+			if (Table[i].key != NullKey)
+				FreeKey(Table[i].key);
 
-			if (Table[i].v != NullValue)
-				DeleteArray(Table[i].v);
+			if (Table[i].value != NullValue)
+				DeleteArray(Table[i].value);
 		}
 
 		Used = 0;

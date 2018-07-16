@@ -178,7 +178,7 @@ public:
 			ExistsHnd = (new FileExistsThread(AddDispatch()))->GetHandle();
 			SearchHnd = (new SearchThread(AddDispatch()))->GetHandle();
 
-			GHashTbl<char*,bool> Flds;
+			LHashTbl<StrKey<char>,bool> Flds;
 
 			List<IdeProject> Child;
 			Proj->GetChildProjects(Child);

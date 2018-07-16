@@ -474,11 +474,11 @@ struct GSourceFile
 	*/
 };
 
-struct GSourceScope : public GHashTbl<char16*, GSymbol*>
+typedef LHashTbl<StrKeyPool<char16>, GSymbol*> SourceScopeMap;
+struct GSourceScope : public SourceScopeMap
 {
-	GSourceScope() : GHashTbl<char16*, GSymbol*>(5000, true)
+	GSourceScope() : SourceScopeMap(5000)
 	{
-		SetStringPool(true);
 	}
 
 	~GSourceScope()
@@ -493,7 +493,7 @@ struct GSourceScope : public GHashTbl<char16*, GSymbol*>
 			return false;
 		}
 		
-		return GHashTbl<char16*, GSymbol*>::Add(k, v);
+		return SourceScopeMap::Add(k, v);
 	}
 
 	GSymbol *Define(char16 *name, GSymbolType Type, const char *def_file, int def_line)
