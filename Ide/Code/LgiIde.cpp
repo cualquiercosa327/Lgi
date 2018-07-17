@@ -910,14 +910,14 @@ public:
 			{
 				char *Utf = &Buf[Channel][0];
 				#ifdef _DEBUG
-				/*
+				
 				printf("Utf: %p %i\n", Utf, (int)Size);
 				for (int i=0; i<Size; i++)
 				{
 					printf("%02x ", (uint8)Utf[i]);
 				}
 				printf("\n");
-				*/
+				
 				
 				if (!LgiIsUtf8(Utf, (ssize_t)Size))
 				{
