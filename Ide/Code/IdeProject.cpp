@@ -339,7 +339,7 @@ public:
 		
 		if (IsExecutableTarget)
 		{
-			const char *Exe = Proj->GetExecutable(Platform);
+			GString Exe = Proj->GetExecutable(Platform);
 			if (Exe)
 			{
 				if (LgiIsRelativePath(Exe))
@@ -2035,7 +2035,8 @@ public:
 			else if (Act == ExeValgrind)
 			{
 				#ifdef LINUX
-				if (Proj->GetExecutable(GetCurrentPlatform()))
+				GString ExePath = Proj->GetExecutable(GetCurrentPlatform());
+				if (ExePath)
 				{
 					char Path[MAX_PATH];
 					char *ExeLeaf = LgiGetLeaf(Exe);
@@ -2061,7 +2062,7 @@ public:
 					
 					if (Term && WorkDir && Execute)
 					{					
-						char *e = QuoteStr(Proj->GetExecutable(GetCurrentPlatform()));
+						char *e = QuoteStr(ExePath);
 						char *p = QuoteStr(Path);
 						char *a = Proj->GetExeArgs() ? Proj->GetExeArgs() : (char*)"";
 						char Args[512];

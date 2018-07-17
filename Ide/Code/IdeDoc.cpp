@@ -1232,8 +1232,8 @@ void IdeDoc::OnTitleClick(GMouse &m)
 				sprintf(Args, "/e,/select,\"%s\"", Full);
 				LgiExecute("explorer", Args);
 				#elif defined(LINUX)
-				char Args[MAX_PATH];
-				if (LgiGetAppForMimeType("inode/directory", Args, sizeof(Args)))
+				GString Args = LgiGetAppForMimeType("inode/directory");
+				if (Args)
 				{
 					LgiExecute(Args, Full);
 				}

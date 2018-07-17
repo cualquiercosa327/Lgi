@@ -33,6 +33,7 @@ class LgiClass GCapabilityTarget
 	GArray<GCapabilityClient*> Clients;
 
 public:
+	LHashTbl<ConstStrKey<char,false>, bool> Map;
 	typedef LHashTbl<ConstStrKey<char,false>, bool> CapsHash;
 
 	virtual ~GCapabilityTarget();

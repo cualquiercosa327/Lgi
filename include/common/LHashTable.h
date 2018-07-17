@@ -88,7 +88,7 @@ public:
 	}
 };
 
-template<typename T, T DefaultNull = NULL>
+template<typename T, T DefaultNull = (T)NULL>
 class PtrKey
 {
 public:
@@ -112,7 +112,7 @@ public:
 	}
 };
 
-template<typename T, bool CaseSen = true, T *DefaultNull = NULL>
+template<typename T, bool CaseSen = true, T *DefaultNull = (T*)NULL>
 class StrKey
 {
 public:
@@ -167,7 +167,7 @@ public:
 	}
 };
 
-template<typename T, bool CaseSen = true, T *DefaultNull = NULL, int BlockSize = 0>
+template<typename T, bool CaseSen = true, T *DefaultNull = (T*)NULL, int BlockSize = 0>
 class StrKeyPool : public KeyPool<T,BlockSize>
 {
 public:
@@ -202,7 +202,7 @@ public:
 	}
 };
 
-template<typename T, bool CaseSen = true, T *DefaultNull = NULL>
+template<typename T, bool CaseSen = true, const T *DefaultNull = (const T*)NULL>
 class ConstStrKey
 {
 public:
@@ -223,7 +223,7 @@ public:
 	bool CmpKey(const T *a, const T *b) { return !(CaseSen ? Strcmp(a, b) : Stricmp(a, b)); }
 };
 
-template<typename T, bool CaseSen = true, T *DefaultNull = NULL, int BlockSize = 0>
+template<typename T, bool CaseSen = true, const T *DefaultNull = (const T*)NULL, int BlockSize = 0>
 class ConstStrKeyPool : public KeyPool<T,BlockSize>
 {
 public:
@@ -240,7 +240,6 @@ public:
 	void EmptyKeys() {}
 	uint32 Hash(const T *k) { return LHash<uint32,T>(k, Strlen(k), CaseSen); }
 	size_t SizeKey(const T *a) { return (Strlen(a)+1)*sizeof(*a); }
-	void FreeKey(const T *&a) { if (a) delete [] a; a = NullKey; }
 	bool CmpKey(const T *a, const T *b) { return !(CaseSen ? Strcmp(a, b) : Stricmp(a, b)); }
 
 	const T *CopyKey(const T *a)
@@ -252,6 +251,11 @@ public:
 		memcpy(r, a, Sz*sizeof(*a));
 		m->Used += Sz;
 		return r;
+	}
+
+	void FreeKey(const T *&a)
+	{
+		// Do nothing...
 	}
 };
 

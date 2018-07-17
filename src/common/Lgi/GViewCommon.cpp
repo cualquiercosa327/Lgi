@@ -168,13 +168,13 @@ GViewI *GView::_Over = 0;
 #if defined(__GTK_H__) || defined(LGI_SDL)
 struct ViewTbl : public LMutex
 {
-	typedef LHashTbl<PtrKey<void*>, int> T;
+	typedef LHashTbl<PtrKey<GViewI*>, int> T;
 	
 private:
 	T Map;
 
 public:
-	ViewTbl() : Map(2000, false, NULL, 0)
+	ViewTbl() : Map(2000)
 	{
 	}
 

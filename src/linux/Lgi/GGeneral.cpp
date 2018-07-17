@@ -166,14 +166,10 @@ bool LgiGetMimeTypeExtensions(const char *Mime, GArray<char*> &Ext)
 	return Ext.Length() > Start;
 }
 
-bool LgiGetFileMimeType(const char *File, char *Mime, int BufLen)
+GString LgiGetFileMimeType(const char *File)
 {
 	GAutoString s = LgiApp->GetFileMimeType(File);
-	if (!s || !Mime)
-		return false;
-
-	strcpy_s(Mime, BufLen, s);
-	return true;
+	return GString(s.Get());
 }
 
 bool _GetSystemFont(char *FontType, char *Font, int FontBufSize, int &PointSize)
@@ -321,19 +317,14 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 	return Status;
 }
 
-bool LgiGetAppForMimeType(const char *Mime, char *AppPath, int BufSize)
+GString LgiGetAppForMimeType(const char *Mime)
 {
-	bool Status = false;
-	if (AppPath)
-	{
-		GArray<GAppInfo*> Apps;
-		Status = LgiGetAppsForMimeType(Mime, Apps, 1);
-		if (Status)
-		{
-			strcpy_s(AppPath, BufSize, Apps[0]->Path);
-		}
-	}
-	return Status;
+	GString App;
+	GArray<GAppInfo*> Apps;
+	if (LgiGetAppsForMimeType(Mime, Apps, 1))
+		App = Apps[0]->Path.Get();
+	Apps.DeleteObjects();
+	return App;
 }
 
 int LgiRand(int Limit)
