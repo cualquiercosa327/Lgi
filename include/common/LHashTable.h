@@ -198,7 +198,8 @@ public:
 	
 	void FreeKey(T *&a)
 	{
-		// Do nothing...
+		// Do nothing... memory is own by KeyPool
+		a = NullKey;
 	}
 };
 
@@ -237,7 +238,6 @@ public:
 		NullKey = DefaultNull;
 	}
 
-	void EmptyKeys() {}
 	uint32 Hash(const T *k) { return LHash<uint32,T>(k, Strlen(k), CaseSen); }
 	size_t SizeKey(const T *a) { return (Strlen(a)+1)*sizeof(*a); }
 	bool CmpKey(const T *a, const T *b) { return !(CaseSen ? Strcmp(a, b) : Stricmp(a, b)); }
@@ -255,7 +255,8 @@ public:
 
 	void FreeKey(const T *&a)
 	{
-		// Do nothing...
+		// Do nothing... memory is own by KeyPool
+		a = NullKey;
 	}
 };
 

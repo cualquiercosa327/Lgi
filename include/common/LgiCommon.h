@@ -30,7 +30,7 @@
 
 /// Returns the system path specified
 /// \ingroup Base
-LgiClass GString LgiGetSystemPath(
+LgiExtern GString LgiGetSystemPath(
 	/// Which path to retreive
 	LgiSystemPath Which,
 	int WordSize = 0
@@ -46,23 +46,23 @@ LgiExtern GString LgiGetFileMimeType
 
 /// Returns the application associated with the mime type
 /// \ingroup Mime
-LgiClass GString LgiGetAppForMimeType
+LgiExtern GString LgiGetAppForMimeType
 (
 	/// Type of the file to find and app for
 	const char *Mime
 );
 
 /// URL encode a string
-LgiClass GString LgiUrlEncode(const char *s, const char *delim);
+LgiExtern GString LgiUrlEncode(const char *s, const char *delim);
 
 /// URL decode a string
-LgiClass GString LgiUrlDecode(const char *s);
+LgiExtern GString LgiUrlDecode(const char *s);
 
 /// Gets the current user
-LgiClass GString LgiCurrentUserName();
+LgiExtern GString LgiCurrentUserName();
 
 /// Returns an environment variable.
-LgiClass GString LgiGetEnv(const char *Var);
+LgiExtern GString LgiGetEnv(const char *Var);
 
 #ifdef __cplusplus
 extern "C"

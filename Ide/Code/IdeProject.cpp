@@ -202,7 +202,7 @@ public:
 	void CollectAllFiles(GTreeNode *Base, GArray<ProjectNode*> &Files, bool SubProjects, int Platform);
 };
 
-class MakefileThread : public LThread
+class MakefileThread : public LThread, public LCancel
 {
 	IdeProjectPrivate *d;
 	IdeProject *Proj;
@@ -218,6 +218,13 @@ public:
 		BuildAfterwards = Build;
 		
 		Run();
+	}
+
+	~MakefileThread()
+	{
+		Cancel();
+		while (!IsExited())
+			LgiSleep(1);
 	}
 
 	int Main()
@@ -639,7 +646,7 @@ public:
 				m.Print("# Dependencies\n"
 						"Depends =\t");
 					
-				for (int c = 0; c < Files.Length(); c++)
+				for (int c = 0; c < Files.Length() && !IsCancelled(); c++)
 				{
 					ProjectNode *n = Files[c];
 					if (n->GetType() == NodeSrc)
@@ -674,7 +681,7 @@ public:
 						
 						uint64 Last = LgiCurrentTime();
 						int Count = 0;
-						for (Dep=Deps.First(); Dep; Dep=Deps.Next(), Count++)
+						for (Dep=Deps.First(); Dep && !IsCancelled(); Dep=Deps.Next(), Count++)
 						{
 							// Get dependency to create it's own makefile...
 							Dep->CreateMakefile(Platform, false);
@@ -886,7 +893,7 @@ public:
 				}
 
 				// Create dependency tree, starting with all the source files.
-				for (int idx=0; idx<Files.Length(); idx++)
+				for (int idx=0; idx<Files.Length() && !IsCancelled(); idx++)
 				{
 					ProjectNode *n = Files[idx];
 					if (n->GetType() == NodeSrc)
@@ -923,7 +930,7 @@ public:
 							GArray<char*> SrcDeps;
 							if (Proj->GetDependencies(Src, IncPaths, SrcDeps, Platform))
 							{
-								for (int i=0; i<SrcDeps.Length(); i++)
+								for (int i=0; i<SrcDeps.Length() && !IsCancelled(); i++)
 								{
 									char *SDep = SrcDeps[i];
 									
@@ -964,6 +971,8 @@ public:
 					// for (bool b=DepFiles.First(&Src); b; b=DepFiles.Next(&Src))
 					for (auto it : DepFiles)
 					{
+						if (IsCancelled())
+							break;
 						if (Processed.Find(it.key))
 							continue;
 
@@ -1001,7 +1010,7 @@ public:
 							{
 								m.Print("%s : ", Rel);
 
-								for (int n=0; n<Headers.Length(); n++)
+								for (int n=0; n<Headers.Length() && !IsCancelled(); n++)
 								{
 									char *i = Headers[n];
 									
@@ -1037,7 +1046,7 @@ public:
 
 				// Output VPATH
 				m.Print("VPATH=%%.cpp \\\n");
-				for (int i=0; i<IncPaths.Length(); i++)
+				for (int i=0; i<IncPaths.Length() && !IsCancelled(); i++)
 				{
 					char *p = IncPaths[i];
 					if (p && !strchr(p, '`'))
