@@ -372,11 +372,23 @@ bool GFileSelect::OpenFolder()
 	Info.Flags &= ~OFN_FILEMUSTEXIST;
 	Info.Flags &= ~OFN_ALLOWMULTISELECT;
 	Info.Flags |= OFN_NOVALIDATE;
-	Info.Flags |= OFN_PATHMUSTEXIST;
+	Info.Flags |= OFN_NOTESTFILECREATE;
+	// Info.Flags |= OFN_PATHMUSTEXIST;
 	Status = GetSaveFileNameW(&Info);
 	d->AfterDlg(Info, Status);
 	
-	LgiTrimDir(Name());
+	char *f = Name();
+	if (f)
+	{
+		char *d = strrchr(f, DIR_CHAR);
+		if (d && d > f)
+		{
+			if (d[-1] == ':')
+				d[1] = 0;
+			else
+				*d = 0;
+		}
+	}
 
 	return Status && Length() > 0;
 	
