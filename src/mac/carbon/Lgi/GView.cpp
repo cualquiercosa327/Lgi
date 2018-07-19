@@ -1953,7 +1953,7 @@ GViewI *GView::FindControl(OsView hCtrl)
 		return this;
 	}
 
-	List<GViewI>::I it = Children.Start();
+	auto it = Children.begin();
 	for (GViewI *c = *it; c; c = *++it)
 	{
 		GViewI *Ctrl = c->FindControl(hCtrl);

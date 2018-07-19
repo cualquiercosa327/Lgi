@@ -28,6 +28,7 @@
 enum IdeMessages
 {
 	M_APPEND_TEXT = M_USER+200,
+	M_APPEND_STR,
 	M_START_BUILD,
 	M_BUILD_ERR,
 	M_BUILD_DONE,
@@ -43,7 +44,7 @@ enum IdeMessages
 
 	/// Send a file to the worker thread...
 	/// GAutoPtr<GString::Array> Paths((GString::Array*)Msg->A());
-	M_FIND_SYM_INC_PATHS,	
+	M_FIND_SYM_INC_PATHS,
 };
 
 #define ICON_PROJECT			0

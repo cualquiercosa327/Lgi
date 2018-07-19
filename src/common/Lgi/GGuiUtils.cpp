@@ -203,7 +203,7 @@ void LgiInitColours()
 	Gtk::gchararray Value = 0;
 	Gtk::g_object_get(set, PropName, &Value, 0);	
 	GToken Lines(Value, "\n");
-	GHashTbl<char*, int> Colours(0, false, NULL, -1);
+	LHashTbl<StrKey<char,false>, int> Colours(0, -1);
 	for (int i=0; i<Lines.Length(); i++)
 	{
 		char *var = Lines[i];
@@ -502,11 +502,11 @@ GViewI *GetNextTabStop(GViewI *v, bool Back)
 			List<GViewI> All;
 			GetChildrenList(Wnd, All);
 
-			int MyIndex = All.IndexOf(v);
+			ssize_t MyIndex = All.IndexOf(v);
 			if (MyIndex >= 0)
 			{
 				int Inc = Back ? -1 : 1;
-				int NewIndex = (MyIndex + All.Length() + Inc) % All.Length();
+				size_t NewIndex = (MyIndex + All.Length() + Inc) % All.Length();
 				return All.ItemAt(NewIndex);
 			}
 			else

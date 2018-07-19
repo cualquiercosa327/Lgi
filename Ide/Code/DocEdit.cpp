@@ -75,10 +75,10 @@ bool DocEdit::AppendItems(GSubMenu *Menu, int Base)
 bool DocEdit::DoGoto()
 {
 	GInput Dlg(this, "", LgiLoadString(L_TEXTCTRL_GOTO_LINE, "Goto [file:]line:"), "Text");
-	if (Dlg.DoModal() != IDOK || !ValidStr(Dlg.Str))
+	if (Dlg.DoModal() != IDOK || !ValidStr(Dlg.GetStr()))
 		return false;
 
-	GString s = Dlg.Str.Get();
+	GString s = Dlg.GetStr();
 	GString::Array p = s.SplitDelimit(":,");
 	if (p.Length() == 2)
 	{
@@ -97,6 +97,19 @@ bool DocEdit::DoGoto()
 	}
 		
 	return true;
+}
+
+bool DocEdit::SetPourEnabled(bool b)
+{
+	bool e = PourEnabled;
+	PourEnabled = b;
+	if (PourEnabled)
+	{
+		PourText(0, Size);
+		PourStyle(0, Size);
+	}
+
+	return e;
 }
 
 int DocEdit::GetTopPaddingPx()
@@ -126,7 +139,7 @@ void DocEdit::OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour)
 	int TopPaddingPx = GetTopPaddingPx();
 
 	pDC->Colour(GColour(200, 0, 0));
-	List<GTextLine>::I it = GTextView3::Line.Start(Y);
+	List<GTextLine>::I it = GTextView3::Line.begin(Y);
 	int DocOffset = (*it)->r.y1;
 	for (GTextLine *l = *it; l; l = *++it, Y++)
 	{
@@ -140,7 +153,7 @@ void DocEdit::OnPaintLeftMargin(GSurface *pDC, GRect &r, GColour &colour)
 	bool DocMatch = Doc->IsCurrentIp();
 	{
 		// We have the current IP location
-		it = GTextView3::Line.Start();
+		it = GTextView3::Line.begin();
 		int Idx = 1;
 		for (GTextLine *ln = *it; ln; ln = *++it, Idx++)
 		{
@@ -324,9 +337,9 @@ int DocEdit::CountRefreshEdges(size_t At, ssize_t Len)
 
 bool DocEdit::Insert(size_t At, char16 *Data, ssize_t Len)
 {
-	int Old = CountRefreshEdges(At, 0);
+	int Old = PourEnabled ? CountRefreshEdges(At, 0) : 0;
 	bool Status = GTextView3::Insert(At, Data, Len);
-	int New = CountRefreshEdges(At, Len);
+	int New = PourEnabled ? CountRefreshEdges(At, Len) : 0;
 	if (Old != New)
 		Invalidate();
 

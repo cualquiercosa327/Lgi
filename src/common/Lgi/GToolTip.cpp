@@ -119,7 +119,7 @@ public:
 	void OnPaint(GSurface *pDC)
 	{
 		GRect c = GetClient();
-		COLOUR b = Rgb24(255, 255, 231);
+		COLOUR b = LC_TOOL_TIP;
 		
 		// Draw border
 		pDC->Colour(LC_BLACK, 24);
@@ -164,7 +164,7 @@ public:
 	HMHelpContentRec Tag;
 	#elif LGI_NATIVE_TIPS
 	GView *Parent;
-	GHashTbl<int, NativeTip*> Tips;
+	LHashTbl<IntKey<int>, NativeTip*> Tips;
 	#endif
 	
 	GToolTipPrivate()
@@ -180,9 +180,10 @@ public:
 	{
 		#if defined(MAC)
 		#elif LGI_NATIVE_TIPS
-		for (NativeTip *t = Tips.First(); t; t = Tips.Next())
+		// for (NativeTip *t = Tips.First(); t; t = Tips.Next())
+		for (auto t : Tips)
 		{
-			delete t;
+			delete t.value;
 		}
 		#endif
 	}

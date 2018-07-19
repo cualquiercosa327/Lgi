@@ -10,6 +10,20 @@
 #define DRAW_CELL_INDEX			0
 #define DRAW_TABLE_SIZE			0
 
+enum Cmds
+{
+	IDM_ALIGN_X_MIN				= 100,
+	IDM_ALIGN_X_CTR,
+	IDM_ALIGN_X_MAX,
+	IDM_ALIGN_Y_MIN,
+	IDM_ALIGN_Y_CTR,
+	IDM_ALIGN_Y_MAX,
+	IDM_UNMERGE,
+	IDM_FIX_TABLE,
+	IDM_INSERT_ROW,
+	IDM_INSERT_COL,
+};
+
 /////////////////////////////////////////////////////////////////////
 struct Pair { int Pos, Size; };
 void CalcCell(GArray<Pair> &p, GArray<double> &s, int Total)
@@ -252,16 +266,6 @@ public:
 	
 	void OnMouseClick(GMouse &m)
 	{
-		#define IDM_ALIGN_X_MIN				100
-		#define IDM_ALIGN_X_CTR				101
-		#define IDM_ALIGN_X_MAX				102
-		#define IDM_ALIGN_Y_MIN				103
-		#define IDM_ALIGN_Y_CTR				104
-		#define IDM_ALIGN_Y_MAX				105
-		#define IDM_UNMERGE					106
-		#define IDM_FIX_TABLE				107
-		#define IDM_INSERT_ROW				108
-
 		if (m.Down() && m.Right())
 		{
 			GSubMenu *RClick = new GSubMenu;
@@ -284,6 +288,7 @@ public:
 				RClick->AppendItem("Unmerge", IDM_UNMERGE, Cell.X() > 1 || Cell.Y() > 1);
 				RClick->AppendItem("Fix Missing Cells", IDM_FIX_TABLE, true);
 				RClick->AppendItem("Insert Row", IDM_INSERT_ROW, true);
+				RClick->AppendItem("Insert Column", IDM_INSERT_COL, true);
 
 				m.ToScreen();
 				switch (RClick->Float(Table, m.x, m.y))
@@ -314,6 +319,8 @@ public:
 						break;
 					case IDM_INSERT_ROW:
 						Table->InsertRow(Cell.y1);
+					case IDM_INSERT_COL:
+						Table->InsertCol(Cell.x1);
 						break;
 				}
 
@@ -1135,9 +1142,10 @@ void CtrlTable::InsertRow(int y)
 		if (c)
 		{
 			if (c->Cell.y1 >= y)
-			{
 				c->Cell.Offset(0, 1);
-			}
+			else if (c->Cell.y2 >= y)
+				// Make spanned cells taller...
+				c->Cell.y2++;				
 		}
 	}
 
@@ -1154,6 +1162,42 @@ void CtrlTable::InsertRow(int y)
 	for (i=0; i<d->RowSize.Length(); i++)
 	{
 		d->RowSize[i] = d->RowSize[i] / (1.0 + Last);
+	}
+
+	// Refresh the screen
+	Invalidate();
+}
+
+void CtrlTable::InsertCol(int x)
+{
+	// Shift existing cells down
+	int i;
+	for (i=0; i<d->Cells.Length(); i++)
+	{
+		ResTableCell *c = d->Cells[i];
+		if (c)
+		{
+			if (c->Cell.x1 >= x)
+				c->Cell.Offset(1, 0);
+			else if (c->Cell.x2 >= x)
+				// Make spanned cells wider...
+				c->Cell.x2++;
+		}
+	}
+
+	// Add new row of 1x1 cells
+	for (i=0; i<d->CellY; i++)
+	{
+		d->Cells.Add(new ResTableCell(this, x, i));
+	}
+	d->CellX++;
+
+	// Update rows
+	double Last = d->ColSize.Last();
+	d->ColSize.Add(Last);
+	for (i=0; i<d->ColSize.Length(); i++)
+	{
+		d->ColSize[i] = d->ColSize[i] / (1.0 + Last);
 	}
 
 	// Refresh the screen

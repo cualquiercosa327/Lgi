@@ -10,10 +10,13 @@
 
 // Word wrap
 
-/// No word wrapping
-#define TEXTED_WRAP_NONE			0
-/// Dynamically wrap line to editor width
-#define TEXTED_WRAP_REFLOW			1
+enum LDocWrapType
+{
+	/// No word wrapping
+	TEXTED_WRAP_NONE = 0,
+	/// Dynamically wrap line to editor width
+	TEXTED_WRAP_REFLOW = 1,
+};
 
 // Util macros
 
@@ -231,7 +234,7 @@ class LgiClass GDocView :
 
 protected:
 	GDocumentEnv *Environment;
-	GAutoString Charset;
+	GString Charset;
 
 public:
 	// Static
@@ -251,7 +254,7 @@ public:
 	_TvMenuProp(uint16, WrapAtCol)
 	_TvMenuProp(bool, UrlDetect)
 	_TvMenuProp(bool, ReadOnly)
-	_TvMenuProp(uint8, WrapType)
+	_TvMenuProp(LDocWrapType, WrapType)
 	_TvMenuProp(uint8, TabSize)
 	_TvMenuProp(uint8, IndentSize)
 	_TvMenuProp(bool, HardTabs)
@@ -270,8 +273,16 @@ public:
 	_TvMenuProp(int, DocumentUid)
 	#undef _TvMenuProp
 
-	virtual const char *GetCharset() { return Charset ? Charset.Get() : "utf-8"; }
-	virtual void SetCharset(const char *s) { Charset.Reset(NewStr(s)); }
+	virtual const char *GetCharset()
+	{
+		return Charset.Get() ? Charset.Get() : "utf-8";
+	}
+	
+	virtual void SetCharset(const char *s)
+	{
+		Charset = s;
+	}
+	
 	virtual const char *GetMimeType() = 0;
 
 	///////////////////////////////////////////////////////////////////////

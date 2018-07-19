@@ -329,9 +329,9 @@ LDateTime LDateTime::GDstInfo::GetLocal()
 	return d;
 }
 
-struct MonthHash : public GHashTbl<const char*,int>
+struct MonthHash : public LHashTbl<ConstStrKey<char,false>,int>
 {
-	MonthHash() : GHashTbl<const char*,int>(0, false)
+	MonthHash()
 	{
 		Add("Jan", 1);
 		Add("Feb", 2);
@@ -1152,14 +1152,29 @@ bool LDateTime::Parse(GString s)
 					Seconds((int)t[2].Int());
 				}
 			}
-			else if (strchr(c, '-'))
+			else if (strchr(c, '-') || strchr(c, '/'))
 			{
-				GString::Array t = a[i].Split("-");
+				GString::Array t = a[i].SplitDelimit("-/");
 				if (t.Length() == 3)
 				{
-					Year((int)t[0].Int());
-					Month((int)t[1].Int());
-					Day((int)t[2].Int());
+					// What order are they in?
+					if (t[0].Length() >= 4)
+					{
+						Year((int)t[0].Int());
+						Month((int)t[1].Int());
+						Day((int)t[2].Int());
+					}
+					else if (t[2].Length() >= 4)
+					{
+						Day((int)t[0].Int());
+						Month((int)t[1].Int());
+						Year((int)t[2].Int());
+					}
+					else
+					{
+						LgiAssert(!"Unknown date format?");
+						return false;
+					}
 				}
 			}
 			else if (a[i].Length() == 4)
@@ -1288,7 +1303,7 @@ bool LDateTime::Serialize(ObjProperties *Props, char *Name, bool Write)
 }
 */
 
-int LDateTime::Compare(const LDateTime *d)
+int LDateTime::Compare(const LDateTime *d) const
 {
 	int c = 0;
 	if (d)
@@ -1322,7 +1337,7 @@ int LDateTime::Compare(const LDateTime *d)
 	return c;
 }
 
-bool LDateTime::operator <(LDateTime &dt)
+bool LDateTime::operator <(LDateTime &dt) const
 {
 	if (_Year < dt._Year) return true;
 	else if (_Year > dt._Year) return false;
@@ -1348,12 +1363,12 @@ bool LDateTime::operator <(LDateTime &dt)
 	return false;
 }
 
-bool LDateTime::operator <=(LDateTime &dt)
+bool LDateTime::operator <=(LDateTime &dt) const
 {
 	return !(*this > dt);
 }
 
-bool LDateTime::operator >(LDateTime &dt)
+bool LDateTime::operator >(LDateTime &dt) const
 {
 	if (_Year > dt._Year) return true;
 	else if (_Year < dt._Year) return false;
@@ -1379,12 +1394,12 @@ bool LDateTime::operator >(LDateTime &dt)
 	return false;
 }
 
-bool LDateTime::operator >=(LDateTime &dt)
+bool LDateTime::operator >=(LDateTime &dt) const
 {
 	return !(*this < dt);
 }
 
-bool LDateTime::operator ==(LDateTime &dt)
+bool LDateTime::operator ==(const LDateTime &dt) const
 {
 	return	_Year == dt._Year &&
 			_Month == dt._Month &&
@@ -1395,7 +1410,7 @@ bool LDateTime::operator ==(LDateTime &dt)
 			_Thousands == dt._Thousands;
 }
 
-bool LDateTime::operator !=(LDateTime &dt)
+bool LDateTime::operator !=(LDateTime &dt) const
 {
 	return	_Year != dt._Year ||
 			_Month != dt._Month ||
@@ -1406,67 +1421,11 @@ bool LDateTime::operator !=(LDateTime &dt)
 			_Thousands != dt._Thousands;
 }
 
-LDateTime LDateTime::DiffMonths(LDateTime &dt)
+int LDateTime::DiffMonths(LDateTime &dt)
 {
-	LDateTime s;
-
-	int Months = 0;
-	s._Year = _Year;
-	s._Month = _Month;
-	s._Day = _Day;
-
-	while (s._Year != dt._Year)
-	{
-		if (s._Year > dt._Year)
-		{
-			s._Year--;
-			Months += 12;
-		}
-		else
-		{
-			Months -= 12;
-			s._Year++;
-		}
-	}
-
-	while (s._Month != dt._Month)
-	{
-		if
-		(
-			s._Month > dt._Month + 1
-			||
-			(
-				s._Month > dt._Month
-				&&
-				s._Day >= dt._Day
-			)
-		)
-		{
-			s._Month--;
-			Months++;
-		}
-		else if
-		(
-			s._Month < dt._Month - 1
-			||
-			(
-				s._Month < dt._Month
-				&&
-				s._Day <= dt._Day
-			)
-		)
-		{
-			Months--;
-			s._Month++;
-		}
-		else break;
-	}
-
-	s._Month = Months;
-	s._Day = 0;
-	s._Year = 0;
-
-	return s;
+	int a = (Year() * 12) + Month();
+	int b = (dt.Year() * 12) + dt.Month();
+	return b - a;
 }
 
 LDateTime LDateTime::operator -(LDateTime &dt)
@@ -1481,7 +1440,7 @@ LDateTime LDateTime::operator -(LDateTime &dt)
     int64 Hr = 60 * Min;
     int64 Day = 24 * Hr;
     
-    uint64 d = a - b;
+    int64 d = (int64)a - (int64)b;
     LDateTime r;
     r._Day = d / Day;
     d -= r._Day * Day;
@@ -1534,6 +1493,17 @@ bool LDateTime::IsSameDay(LDateTime &d)
 	return	Day() == d.Day() &&
 			Month() == d.Month() &&
 			Year() == d.Year();
+}
+
+bool LDateTime::IsSameMonth(LDateTime &d)
+{
+	return	Day() == d.Day() &&
+			Month() == d.Month();
+}
+
+bool LDateTime::IsSameYear(LDateTime &d)
+{
+	return Year() == d.Year();
 }
 
 bool LDateTime::IsLeapYear(int Year)

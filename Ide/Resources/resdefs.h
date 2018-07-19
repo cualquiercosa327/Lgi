@@ -112,6 +112,7 @@
 #define IDM_FIX_MISSING_FILES					546
 #define IDC_LOOK_FOR							547
 #define IDM_FIND_DUPE_SYM						548
+#define IDM_LOOKUP_SYMBOLS						549
 #define IDD_FILE_PROPS							551
 #define IDM_LOAD_MEMDUMP						552
 #define IDM_SYS_CHAR_SUPPORT					553

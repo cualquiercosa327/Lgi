@@ -82,7 +82,7 @@ public:
 				{
 					const char *Cs = GetTypeString();
 					if (Cs)
-						Ret.Reset((char*)LgiNewConvertCp("utf-8", Buf, Cs, Sz));
+						Ret.Reset((char*)LgiNewConvertCp("utf-8", Buf, Cs, Rd));
 				}
 			}
 		}

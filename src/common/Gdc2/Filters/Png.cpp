@@ -1262,8 +1262,8 @@ GFilter::IoStatus GdcPng::WriteImage(GStream *Out, GSurface *pDC)
 								info_ptr,
 								(png_charp)"ColourProfile",
 								NULL,
-								(png_const_bytep)ColProfile.Value.Binary.Data,
-								ColProfile.Value.Binary.Length);
+								(png_const_bytep) ColProfile.Value.Binary.Data,
+								(png_uint_32) ColProfile.Value.Binary.Length);
 				}
 
 				int TempLine = pDC->X() * ((pDC->GetBits() <= 8 ? 1 : 3) + (ExtraAlphaChannel ? 1 : 0));

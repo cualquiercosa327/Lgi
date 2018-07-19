@@ -198,7 +198,7 @@ void GRichTextEdit::SetTabSize(uint8 i)
 	Invalidate();
 }
 
-void GRichTextEdit::SetWrapType(uint8 i)
+void GRichTextEdit::SetWrapType(LDocWrapType i)
 {
 	GDocView::SetWrapType(i);
 
@@ -906,10 +906,12 @@ bool GRichTextEdit::DoCase(bool Upper)
 bool GRichTextEdit::DoGoto()
 {
 	GInput Dlg(this, "", LgiLoadString(L_TEXTCTRL_GOTO_LINE, "Goto line:"), "Text");
-	if (Dlg.DoModal() == IDOK &&
-		Dlg.Str)
+	if (Dlg.DoModal() == IDOK)
 	{
-		SetLine(atoi(Dlg.Str));
+		GString s = Dlg.GetStr();
+		int64 i = s.Int();
+		if (i >= 0)
+			SetLine(i);
 	}
 
 	return true;
@@ -1356,7 +1358,7 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 			GInput i(this, s, "Indent Size:", "Text");
 			if (i.DoModal())
 			{
-				IndentSize = atoi(i.Str);
+				IndentSize = i.GetStr().Int();
 			}
 			break;
 		}
@@ -1367,7 +1369,7 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 			GInput i(this, s, "Tab Size:", "Text");
 			if (i.DoModal())
 			{
-				SetTabSize(atoi(i.Str));
+				SetTabSize(i.GetStr().Int());
 			}
 			break;
 		}

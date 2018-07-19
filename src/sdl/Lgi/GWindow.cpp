@@ -666,7 +666,7 @@ void GWindow::PourAll()
 	GRegion Update(Client);
 	bool HasTools = false;
 	GViewI *v;
-	List<GViewI>::I Lst = Children.Start();
+	auto Lst = Children.begin();
 
 	{
 		GRegion Tools;
@@ -729,7 +729,7 @@ void GWindow::PourAll()
 		}
 	}
 
-	Lst = Children.Start();
+	Lst = Children.begin();
 	for (GViewI *v = *Lst; v; v = *++Lst)
 	{
 		bool IsMenu = MenuView == v;

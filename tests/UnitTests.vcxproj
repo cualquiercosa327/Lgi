@@ -251,6 +251,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\common\GStringClass.h" />
+    <ClInclude Include="..\include\common\LHashTable.h" />
+    <ClInclude Include="..\include\common\LUnrolledList.h" />
     <ClInclude Include="src\UnitTests.h" />
   </ItemGroup>
   <ItemGroup>

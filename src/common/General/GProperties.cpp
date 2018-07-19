@@ -404,12 +404,9 @@ ObjProperties::~ObjProperties()
 
 ObjProperties &ObjProperties::operator =(ObjProperties &props)
 {
-	List<Prop>::I n = props.Properties.Start();
-
 	Empty();
-	while (n.Each())	
+	for (auto p : props.Properties)
 	{
-		Prop *p = *n;
 		switch (p->Type)
 		{
 			case OBJ_INT:
@@ -442,12 +439,11 @@ Prop *ObjProperties::FindProp(const char *Name)
 {
 	if (Name)
 	{
-		List<Prop>::I n = Properties.Start();		
-		while (n.Each())
+		for (auto n : Properties)
 		{
-			if (**n == Name)
+			if (*n == Name)
 			{
-				return *n;
+				return n;
 			}
 		}
 	}

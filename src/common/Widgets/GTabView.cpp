@@ -132,7 +132,7 @@ GTabPage *GTabView::TabAt(int Idx)
 	return i[Idx];
 }
 
-int GTabView::GetTabs()
+size_t GTabView::GetTabs()
 {
 	return Children.Length();
 }

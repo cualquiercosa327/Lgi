@@ -172,7 +172,7 @@ void GFontSelect::EnumerateFonts()
 			DeleteArray((char*&)n);
 		}
 
-		d->Lst->Sort(SortFunc, 0);
+		d->Lst->Sort(SortFunc);
 		d->Lst->ResizeColumnsToContent();
 	}
 }

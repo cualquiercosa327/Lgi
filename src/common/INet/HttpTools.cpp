@@ -278,7 +278,7 @@ char *WebPage::GetCharSet()
 		GXmlTag *t = GetRoot();
 		if (t)
 		{
-			List<GXmlTag>::I it = t->Children.Start();
+			List<GXmlTag>::I it = t->Children.begin();
 			for (GXmlTag *c = *it; !Charset && c; c = *++it)
 			{
 				if (c->IsTag("meta"))
@@ -469,10 +469,11 @@ char *FormPost::EncodeFields(GStream *Debug, char *RealFields, bool EncodePlus)
 
 	if (Debug && RealFields)
 	{
-		char *k;
-		for (char *p = Real.First(&k); p; p = Real.Next(&k))
+		// char *k;
+		// for (char *p = Real.First(&k); p; p = Real.Next(&k))
+		for (auto k : Real)
 		{
-			Debug->Print("\tMissing field: %s = %s\n", k, p);
+			Debug->Print("\tMissing field: %s = %s\n", k.key, k.value);
 		}
 	}
 
@@ -903,9 +904,10 @@ char *HttpTools::Post(char *uri, char *headers, char *body, GStream *Log, GViewI
 //////////////////////////////////////////////////////////////////////
 void CookieJar::Empty()
 {
-	for (char *p = (char*)First(); p; p = (char*)Next())
+	// for (char *p = (char*)First(); p; p = (char*)Next())
+	for (auto p : *this)
 	{
-		DeleteArray(p);
+		DeleteArray(p.value);
 	}
 }
 
@@ -1000,11 +1002,12 @@ char *CookieJar::Get()
 {
 	GStringPipe p;
 
-	char *k;
-	for (char *s = (char*)First(&k); s; s = (char*)Next(&k))
+	// char *k;
+	// for (char *s = (char*)First(&k); s; s = (char*)Next(&k))
+	for (auto k : *this)
 	{
 		if (p.GetSize()) p.Print("; ");
-		p.Print("%s=%s", k, s);
+		p.Print("%s=%s", k.key, k.value);
 	}
 
 	return p.NewStr();

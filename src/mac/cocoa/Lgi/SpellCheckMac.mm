@@ -212,16 +212,15 @@ public:
 					}
 				}
 				
-				char *k;
 				GAutoPtr< GArray<LanguageId> > a(new GArray<LanguageId>);
 				if (!a)
 					break;
 				
-				for (bool b = Map.First(&k); b; b = Map.Next(&k))
+				for (auto it : Map)
 				{
 					LanguageId &i = Langs->New();
-					i.LangCode = k;
-					i.EnglishName = k;
+					i.LangCode = it.key;
+					i.EnglishName = it.key;
 				}
 
 				a->Sort(LangCmp);

@@ -938,8 +938,7 @@ GViewI *GView::FindControl(OsView hCtrl)
 		return this;
 	}
 
-	List<GViewI>::I it = Children.Start();
-	for (GViewI *c = *it; c; c = *++it)
+	for (auto c : Children)
 	{
 		GViewI *Ctrl = c->FindControl(hCtrl);
 		if (Ctrl)

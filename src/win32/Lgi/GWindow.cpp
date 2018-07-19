@@ -103,6 +103,11 @@ GWindow::GWindow() : GView(0)
 
 GWindow::~GWindow()
 {
+	if (LgiApp && LgiApp->AppWnd == this)
+	{
+		LgiApp->AppWnd = 0;
+	}
+
 	if (Menu)
 	{
 		Menu->Detach();
@@ -544,7 +549,7 @@ bool GWindow::HandleViewKey(GView *v, GKey &k)
 	// Control shortcut?
 	if (k.Down() && k.Alt() && k.c16 > ' ')
 	{
-		GHashTbl<int,GViewI*> Map;
+		ShortcutMap Map;
 		BuildShortcuts(Map);
 		GViewI *c = Map.Find(ToUpper(k.c16));
 		if (c)

@@ -83,7 +83,7 @@ public:
 								GMemDC *pDC = new GMemDC;
 								if (pDC)
 								{
-									char16 Str[] = { c, 0 };
+									char16 Str[] = { (char16)c, 0 };
 									GDisplayString d(Fnt, Str);
 									if (pDC->Create(d.X(), d.Y(), System32BitColourSpace))
 									{

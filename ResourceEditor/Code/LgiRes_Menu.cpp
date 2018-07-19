@@ -32,6 +32,8 @@ ResMenuItem::ResMenuItem(ResMenu *menu)
 
 ResMenuItem::~ResMenuItem()
 {
+	Menu->App()->OnObjDelete(this);
+
 	if (_Str)
 		Menu->GetStringGroup()->DeleteStr(_Str);
 }
@@ -105,7 +107,13 @@ void ResMenuItem::OnMouseClick(GMouse &m)
 					}
 					case IDM_NEW_ID:
 					{
-						Str->NewId();
+						GArray<ResMenuItem*> Sel;
+						if (GetTree() &&
+							GetTree()->GetSelection(Sel))
+						{
+							for (auto i : Sel)
+								i->GetStr()->NewId();
+						}
 						break;
 					}
 				}

@@ -33,7 +33,7 @@
 #define DOUBLE_BUFFER_PAINT				0
 #define DOUBLE_BUFFER_COLUMN_DRAWING	0
 
-#define ForAllItems(Var)				List<LListItem>::I it = Items.Start(); for (LListItem *Var = *it; it.In(); it++, Var = *it)
+#define ForAllItems(Var)				for (auto Var : Items)
 #define ForAllItemsReverse(Var)			Iterator<LListItem> ItemIter(&Items); for (LListItem *Var = ItemIter.Last(); Var; Var = ItemIter.Prev())
 #define VisibleItems()					CompletelyVisible // (LastVisible - FirstVisible + 1)
 #define MaxScroll()						MAX(Items.Length() - CompletelyVisible, 0)
@@ -676,7 +676,7 @@ void LList::OnItemSelect(GArray<LListItem*> &It)
 		Keyboard = Items.IndexOf(It[0]);
 		LgiAssert(Keyboard >= 0);
 		
-		GHashTbl<void*, bool> Sel;
+		LHashTbl<PtrKey<LListItem*>, bool> Sel;
 		for (int n=0; n<It.Length(); n++)
 		{
 			It[n]->OnSelect();
@@ -1025,7 +1025,7 @@ bool LList::OnKey(GKey &k)
 								{
 									// Seek back to the start of the column before the 
 									// first visible column
-									for (List<LListItem>::I it = Items.Start(FirstVisible); it.In(); it--)
+									for (List<LListItem>::I it = Items.begin(FirstVisible); it.In(); it--)
 									{
 										LListItem *i = *it;
 										if (i->d->LayoutColumn < HScroll->Value())
@@ -1194,7 +1194,7 @@ bool LList::OnKey(GKey &k)
 								}
 								
 								bool Selected = false;
-								List<LListItem>::I It = Ascend ? Items.Start() : Items.End();
+								List<LListItem>::I It = Ascend ? Items.begin() : Items.rbegin();
 								for (LListItem *i = *It; It.In(); i = Ascend ? *++It : *--It)
 								{
 									if (!Selected)
@@ -2143,6 +2143,7 @@ void LList::ScrollToSelection()
 	}
 }
 
+/*
 int ListStringCompare(LListItem *a, LListItem *b, NativeInt data)
 {
 	char *ATxt = (a)->GetText(data);
@@ -2156,12 +2157,15 @@ void LList::Sort(LListCompareFunc Compare, NativeInt Data)
 {
 	if (Lock(_FL))
 	{
+		LListItem *Kb = Items[Keyboard];
 		Items.Sort(Compare ? Compare : ListStringCompare, Data);
+		Keyboard = Kb ? Items.IndexOf(Kb) : -1;
 		Invalidate(&ItemsPos);
 
 		Unlock();
 	}
 }
+*/
 
 void LList::Empty()
 {
@@ -2287,11 +2291,10 @@ void LList::PourAll()
 			ColumnHeader.ZOff(-1, -1);
 		}
 		
-		int n = 0;
+		size_t n = 0;
 		int y = ItemsPos.y1;
-		int Max = MaxScroll();
+		size_t Max = MaxScroll();
 		FirstVisible = (VScroll) ? VScroll->Value() : 0;
-		if (FirstVisible < 0) FirstVisible = 0;
 		if (FirstVisible > Max) FirstVisible = Max;
 		LastVisible = 0x7FFFFFFF;
 		CompletelyVisible = 0;
@@ -2601,7 +2604,7 @@ int LList::GetContentSize(int Index)
 {
 	int Max = 0;
 
-	for (List<LListItem>::I It = Items.Start(); It.In(); It++)
+	for (List<LListItem>::I It = Items.begin(); It.In(); It++)
 	{
 		LListItem *i = *It;
 		GDisplayString *s = i->d->Display[Index];

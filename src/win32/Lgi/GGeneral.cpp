@@ -57,7 +57,7 @@ GString LgiCurrentUserName()
 	return username;
 }
 
-bool LgiGetMimeTypeExtensions(const char *Mime, GArray<char*> &Ext)
+bool LgiGetMimeTypeExtensions(const char *Mime, GArray<GString> &Ext)
 {
 	int Start = Ext.Length();
 	char *e;
@@ -66,14 +66,14 @@ bool LgiGetMimeTypeExtensions(const char *Mime, GArray<char*> &Ext)
 	if (t.IsOk() && (e = t.GetStr("Extension")))
 	{
 		if (*e == '.') e++;
-		Ext.Add(NewStr(e));
+		Ext.Add(e);
 	}
 	else
 	{
 		#define HardCodeExtention(mime, Ext1, Ext2) \
 			else if (!stricmp(Mime, mime)) \
-			{	if (Ext1) Ext.Add(NewStr(Ext1)); \
-				if (Ext2) Ext.Add(NewStr(Ext2)); }
+			{	if (Ext1) Ext.Add(Ext1); \
+				if (Ext2) Ext.Add(Ext2); }
 
 		if (!Mime);
 		HardCodeExtention("text/calendar", "ics", 0)
@@ -90,11 +90,9 @@ bool LgiGetMimeTypeExtensions(const char *Mime, GArray<char*> &Ext)
 	return Ext.Length() > Start;
 }
 
-bool LgiGetFileMimeType(const char *File, char *Mime, int BufLen)
+GString LgiGetFileMimeType(const char *File)
 {
-	bool Status = false;
-
-	if (File && Mime)
+	if (File)
 	{
 		char *Dot = strrchr((char*)File, '.');
 		if (Dot)
@@ -110,8 +108,7 @@ bool LgiGetFileMimeType(const char *File, char *Mime, int BufLen)
 					!stricmp(Dot, ".dsw") == 0 &&
 					!stricmp(Dot, ".dsp") == 0)
 				{
-					strcpy_s(Mime, BufLen, Ct);
-					Status = true;
+					return Ct;
 				}
 				else
 				{
@@ -125,37 +122,29 @@ bool LgiGetFileMimeType(const char *File, char *Mime, int BufLen)
 						char *Ext = Type.GetStr("Extension");
 						if (Ext && stricmp(Ext, Dot) == 0)
 						{
-							strcpy_s(Mime, BufLen, k);
-							Status = true;
-							break;
+							return k;
 						}
 					}
 
 					Sub.DeleteArrays();
 
-					if (!Status)
-					{
-						// This is a hack to get around file types without a MIME database entry
-						// but do have a .ext entry. LgiGetAppsForMimeType knows about the hack too.
-						snprintf(Mime, BufLen, "application/%s", Dot);
-						Status = true;
-					}
+					// This is a hack to get around file types without a MIME database entry
+					// but do have a .ext entry. LgiGetAppsForMimeType knows about the hack too.
+					GString MimeType;	
+					MimeType.Printf("application/%s", Dot);
+					return MimeType;
 				}
 			}
 
 			GRegKey::AssertOnError = AssertOnError;
 		}
 
-		if (!Status)
-		{
-			// no extension?
-			// no registry entry for file type?
-			strcpy_s(Mime, BufLen, "application/octet-stream");
-			Status = true;
-		}
+		// no extension?
+		// no registry entry for file type?
+		return "application/octet-stream";
 	}
 
-	return Status;
+	return GString();
 }
 
 bool _GetApps_Add(GArray<GAppInfo*> &Apps, char *In)
@@ -332,8 +321,9 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 				if (Name)
 				{
 					GRegKey Edit(false, "HKEY_CLASSES_ROOT\\%s\\shell\\edit\\command", Name);
-					char *App = Edit.GetStr();
-					if (App)
+					char *App;
+					if (Edit.IsOk() &&
+						(App = Edit.GetStr()))
 					{
 						Status = _GetApps_Add(Apps, App);
 					}
@@ -436,20 +426,14 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 	return Status;
 }
 
-bool LgiGetAppForMimeType(const char *Mime, char *AppPath, int BufSize)
+GString LgiGetAppForMimeType(const char *Mime)
 {
-	bool Status = false;
-	if (AppPath)
-	{
-		GArray<GAppInfo*> Apps;
-		Status = LgiGetAppsForMimeType(Mime, Apps, 1);
-		if (Status)
-		{
-			strcpy_s(AppPath, BufSize, Apps[0]->Path);
-			Apps.DeleteObjects();
-		}
-	}
-	return Status;
+	GString App;
+	GArray<GAppInfo*> Apps;
+	if (LgiGetAppsForMimeType(Mime, Apps, 1))
+		App = Apps[0]->Path.Get();
+	Apps.DeleteObjects();
+	return App;
 }
 
 int LgiRand(int i)

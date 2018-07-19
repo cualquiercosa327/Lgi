@@ -593,7 +593,14 @@ GPopup::~GPopup()
 	GMouseHook *Hook = LgiApp->GetMouseHook();
 	if (Hook) Hook->UnregisterPopup(this);
 
-	Children.DeleteObjects();
+	for (GViewI *c; (c = Children.First()); )
+	{
+		if (!c)
+			break; // ?
+		if (!c->GetParent())
+			Children.Delete(c);
+		delete c;
+	}
 	DeleteObj(d);
 }
 
@@ -962,7 +969,6 @@ void GDropDown::OnFocus(bool f)
 }
 
 GPopup *GDropDown::GetPopup()
-
 {
 	return Popup;
 }

@@ -408,7 +408,7 @@ Results::Results(AppWnd *app, Search *params)
 			{
 				if (r->IsStringGroup())
 				{
-					List<ResString>::I it = r->IsStringGroup()->GetStrs()->Start();
+					List<ResString>::I it = r->IsStringGroup()->GetStrs()->begin();
 					for (ResString *s = *it; s && d && d->Searching; s = *++it)
 					{
 						Result *Res = d->Test(s);

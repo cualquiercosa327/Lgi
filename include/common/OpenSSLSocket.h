@@ -39,6 +39,8 @@ public:
 
 	void SetLogger(GStreamI *logger);
 	void SetSslOnConnect(bool b);
+	LCancel *GetCancel();
+	void SetCancel(LCancel *c);
 	
 	// Socket
 	OsSocket Handle(OsSocket Set = INVALID_SOCKET);

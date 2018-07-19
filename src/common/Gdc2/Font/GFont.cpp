@@ -447,7 +447,7 @@ public:
 	#ifdef BEOS
 	// Beos glyph sizes
 	uint16			CharX[128]; // Widths of ascii
-	GHashTbl<int,int> UnicodeX; // Widths of any other characters
+	LHashTbl<IntKey<int>,int> UnicodeX; // Widths of any other characters
 	#endif
 
 	#ifdef MAC

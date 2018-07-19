@@ -120,7 +120,7 @@ void CompareRgba(GSurface *A, GSurface *B, uint8 *c, GdcPt2 size, int threshold)
 GAutoPtr<GMemDC> CreateDiff(GViewI *Parent, GSurface *A, GSurface *B)
 {
 	GAutoPtr<GMemDC> C;
-	int Cx = min(A->X(), B->X()), Cy = min(A->Y(), B->Y());
+	int Cx = MIN(A->X(), B->X()), Cy = MIN(A->Y(), B->Y());
 	if (A->GetColourSpace() != B->GetColourSpace())
 	{
 		GStringPipe p;
@@ -793,7 +793,7 @@ struct CompareThread : public LThread
 	{
 		List<LListItem> items;
 		lst->GetAll(items);
-		List<LListItem>::I it = items.Start();
+		List<LListItem>::I it = items.begin();
 		
 		while (loop)
 		{

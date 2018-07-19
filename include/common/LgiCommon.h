@@ -25,6 +25,7 @@
 #include "GMem.h"
 #include "GArray.h"
 #include "LgiClass.h"
+#include "GString.h"
 #include "GStringClass.h"
 
 /// Returns the system path specified
@@ -35,14 +36,33 @@ LgiExtern GString LgiGetSystemPath(
 	int WordSize = 0
 );
 
+/// Returns the mime type of the file
+/// \ingroup Mime
+LgiExtern GString LgiGetFileMimeType
+(
+	/// File to find mime type for
+	const char *File
+);
+
+/// Returns the application associated with the mime type
+/// \ingroup Mime
+LgiExtern GString LgiGetAppForMimeType
+(
+	/// Type of the file to find and app for
+	const char *Mime
+);
+
 /// URL encode a string
-LgiClass GString LgiUrlEncode(const char *s, const char *delim);
+LgiExtern GString LgiUrlEncode(const char *s, const char *delim);
 
 /// URL decode a string
-LgiClass GString LgiUrlDecode(const char *s);
+LgiExtern GString LgiUrlDecode(const char *s);
 
 /// Gets the current user
-LgiClass GString LgiCurrentUserName();
+LgiExtern GString LgiCurrentUserName();
+
+/// Returns an environment variable.
+LgiExtern GString LgiGetEnv(const char *Var);
 
 #ifdef __cplusplus
 extern "C"
@@ -277,37 +297,27 @@ LgiFunc bool LgiPlaySound
 
 /// Returns the file extensions associated with the mimetype
 /// \ingroup Mime
-LgiFunc bool LgiGetMimeTypeExtensions
+LgiExtern bool LgiGetMimeTypeExtensions
 (
 	/// The returned mime type
 	const char *Mime,
 	/// The extensions
-	GArray<char*> &Ext
+	GArray<GString> &Ext
 );
 
-/// Returns the mime type of the file
-/// \ingroup Mime
-LgiFunc bool LgiGetFileMimeType
-(
-	/// File to file type of
-	const char *File,
-	/// Pointer to buffer to receive mime-type
-	char *MimeType,
-	/// Buffer length
-	int BufLen
-);
+inline bool LgiGetFileMimeType(const char *File, char *MimeType, int BufSize)
+{
+	GString p = LgiGetFileMimeType(File);
+	if (MimeType && p) strcpy_s(MimeType, BufSize, p);
+	return p.Length() > 0;
+}
 
-/// Returns the application associated with the mime type
-/// \ingroup Mime
-LgiFunc bool LgiGetAppForMimeType
-(
-	/// Type of the file to find and app for
-	const char *Mime,
-	/// Path to the executable of the app that can handle the file type.
-	char *AppPath,
-	/// Size of the 'AppPath' buffer
-	int BufSize
-);
+inline bool LgiGetAppForMimeType(const char *Mime, char *AppPath, int BufSize)
+{
+	GString p = LgiGetAppForMimeType(Mime);
+	if (AppPath && p) strcpy_s(AppPath, BufSize, p);
+	return p.Length() > 0;
+}
 
 /// Returns the all applications that can open a given mime type.
 /// \ingroup Mime

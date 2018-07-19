@@ -991,7 +991,7 @@ ssize_t GDisplayString::CharAt(int Px, LgiPxToIndexType Type)
 
 					#if 1
 				
-					CGPoint pos = { Px, 1.0 };
+					CGPoint pos = { (CGFloat)Px, 1.0f };
 					CFIndex idx = CTLineGetStringIndexForPosition(Hnd, pos);
 					return idx;
 				

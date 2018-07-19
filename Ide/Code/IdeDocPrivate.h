@@ -38,7 +38,7 @@ public:
 	void OnSymbolList(GMouse &m);
 };
 
-class IdeDocPrivate : public NodeView
+class IdeDocPrivate : public NodeView, public LMutex
 {
 	GString FileName;
 	GString Buffer;
@@ -51,10 +51,12 @@ public:
 	LDateTime ModTs;
 	class DocEdit *Edit;
 	EditTray *Tray;
-	GHashTbl<int, bool> BreakPoints;
+	LHashTbl<IntKey<int>, bool> BreakPoints;
 	class ProjFilePopup *FilePopup;
 	class ProjMethodPopup *MethodPopup;
 	class ProjSymPopup *SymPopup;
+	GString::Array WriteBuf;
+	GAutoPtr<LThread> Build;
 	
 	IdeDocPrivate(IdeDoc *d, AppWnd *a, NodeSource *src, const char *file);
 	void OnDelete();

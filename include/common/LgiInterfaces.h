@@ -115,8 +115,7 @@ enum GSocketLogTypes
 /// Virtual base class for a socket. See the documentation for GSocket for a more
 /// through treatment of this object's API.
 class GSocketI :
-	virtual public GStreamI,
-	public LCancel
+	virtual public GStreamI
 {
 public:
 	enum SocketMsgType
@@ -133,6 +132,10 @@ public:
 
 	/// Returns the actual socket (as defined by the OS)
 	virtual OsSocket Handle(OsSocket Set = INVALID_SOCKET) { return INVALID_SOCKET; }
+
+	// Cancel
+	virtual LCancel *GetCancel() { return NULL; }
+	virtual void SetCancel(LCancel *c) { }
 
 	// Host/Port meta data
 		/// Returns the IP at this end of the socket

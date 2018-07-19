@@ -200,7 +200,7 @@ public:
 	void Empty();
 
 	/// Gets the number of buttons
-	int Length() { return Children.Length(); }
+	size_t Length() { return Children.Length(); }
 
 	// Events
 	GMessage::Result OnEvent(GMessage *Msg);

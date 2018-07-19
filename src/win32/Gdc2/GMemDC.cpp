@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "Gdc2.h"
+#include "Lgi.h"
 #include "GdiLeak.h"
 #include "GPalette.h"
 
@@ -84,12 +84,7 @@ GMemDC::GMemDC(GSurface *pDC)
 
 GMemDC::~GMemDC()
 {
-	if (hBmp)
-	{
-		DeleteObject(hBmp);
-		hBmp = 0;
-	}
-	DeleteObj(pMem);
+	Empty();
 	DeleteObj(d);
 }
 
@@ -517,6 +512,15 @@ bool GMemDC::Create(int x, int y, GColourSpace Cs, int Flags)
 	return Status;
 }
 
+void GMemDC::Empty()
+{
+	if (hBmp)
+	{
+		DeleteObject(hBmp);
+		hBmp = 0;
+	}
+	DeleteObj(pMem);
+}
 
 void GMemDC::Blt(int x, int y, GSurface *Src, GRect *a)
 {
@@ -527,15 +531,14 @@ void GMemDC::Blt(int x, int y, GSurface *Src, GRect *a)
 	if (Src->IsScreen())
 	{
 		GRect b;
-		GRect Bounds(0, 0, GdcD->X()-1, GdcD->Y()-1);
 		if (a)
 		{
 			b = *a;
-			b.Bound(&Bounds);
 		}
 		else
 		{
-			b = Bounds;
+			GArray<GDisplayInfo*> Displays;
+			LgiGetDisplays(Displays, &b);
 		}
 
 		int RowOp;
@@ -783,3 +786,5 @@ void GMemDC::SetOrigin(int x, int y)
 		SetWindowOrgEx(hDC, OriginX, OriginY, NULL);
 	}
 }
+
+	

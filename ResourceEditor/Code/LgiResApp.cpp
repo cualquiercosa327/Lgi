@@ -255,6 +255,7 @@ Resource::Resource(AppWnd *w, int t, bool enabled)
 
 Resource::~Resource()
 {
+	AppWindow->OnResourceDelete(this);
 	if (Item)
 	{
 		Item->Obj = 0;
@@ -405,7 +406,7 @@ void ObjTreeItem::OnMouseClick(GMouse &m)
 					GInput Dlg(Tree, GetText(), "Enter the name for the object", "Object Name");
 					if (Dlg.DoModal())
 					{
-						Obj->Wnd()->Name(Dlg.Str);
+						Obj->Wnd()->Name(Dlg.GetStr());
 						Update();
 						Obj->App()->SetDirty(true);
 					}
@@ -627,10 +628,31 @@ public:
 	}
 };
 
+void FieldView::OnDelete(FieldSource *s)
+{
+	if (Source != NULL && Source == s)
+	{
+		// Clear fields
+		Source->_FieldView = 0;
+		Fields.Empty();
+
+		// remove all children
+		for (GViewI *c = Children.First(); c; c = Children.First())
+		{
+			c->Detach();
+			DeleteObj(c);
+		}
+		
+		Source = NULL;
+	}
+}
+
 void FieldView::OnSelect(FieldSource *s)
 {
 	Ignore = true;
 
+	OnDelete(Source);
+	
 	if (Source)
 	{
 		// Clear fields
@@ -1012,11 +1034,12 @@ void AppWnd::ShowLang(GLanguageId Lang, bool Show)
 
 	// Store the setting for next time
 	GStringPipe p;
-	const char *L;
-	for (bool i = ShowLanguages.First(&L); i; i = ShowLanguages.Next(&L))
+	// const char *L;
+	// for (bool i = ShowLanguages.First(&L); i; i = ShowLanguages.Next(&L))
+	for (auto i : ShowLanguages)
 	{
 		if (p.GetSize()) p.Push(",");
-		p.Push(L);
+		p.Push(i.key);
 	}
 	char *Langs = p.NewStr();
 	if (Langs)
@@ -1510,7 +1533,7 @@ int AppWnd::GetUniqueCtrlId()
 							t.Add(s->GetId(), s->GetId());
 						}
 
-						Max = max(s->GetId(), Max);
+						Max = MAX(s->GetId(), Max);
 					}
 				}
 			}
@@ -1550,7 +1573,7 @@ int AppWnd::GetUniqueStrRef(int	Start)
 		ResStringGroup *Grp = r->GetStringGroup();
 		if (Grp)
 		{
-			List<ResString>::I it = Grp->GetStrs()->Start();
+			List<ResString>::I it = Grp->GetStrs()->begin();
 			for (ResString *s = *it; s; s = *++it)
 			{
 			    if (s->GetRef())
@@ -1901,9 +1924,19 @@ void AppWnd::OnObjChange(FieldSource *r)
 void AppWnd::OnObjSelect(FieldSource *r)
 {
 	if (Fields)
-	{
 		Fields->OnSelect(r);
+}
+
+void AppWnd::OnObjDelete(FieldSource *r)
+{
+	if (Fields)
+	{
+		Fields->OnDelete(r);
 	}
+}
+
+void AppWnd::OnResourceDelete(Resource *r)
+{
 }
 
 void AppWnd::OnResourceSelect(Resource *r)
@@ -2078,10 +2111,11 @@ public:
 			}
 		}
 
-		char *Key;
-		for (void *v = a.First(&Key); v; v = a.Next(&Key))
+		// char *Key;
+		// for (void *v = a.First(&Key); v; v = a.Next(&Key))
+		for (auto v : a)
 		{
-			GXmlAttr *a1 = (GXmlAttr *)v;
+			GXmlAttr *a1 = v.value;
 			sprintf(s, "[Left] Missing Attr: '%s' = '%s'", a1->GetName(), a1->GetValue());
 			LListItem *i = new LListItem;
 			if (i)
@@ -2121,7 +2155,7 @@ public:
 				}
 			}
 
-			int Max = max(r1.Length(), r2.Length());
+			int Max = MAX(r1.Length(), r2.Length());
 			for (int i = 0; i<Max; i++)
 			{
 				if (r1[i] && r2[i])
@@ -2195,7 +2229,7 @@ void AppWnd::ImportLang()
 	GFileSelect Select;
 
 	Select.Parent(this);
-	Select.Type("Lgi Resources", "*.lr;*.lr8;*.xml");
+	Select.Type("Lgi Resources", "*.lr8;*.xml");
 
 	if (Select.Open())
 	{
@@ -2292,7 +2326,7 @@ void AppWnd::ImportLang()
 							
 							for (ResStringGroup *g=Groups.First(); g; g=Groups.Next())
 							{
-								List<ResString>::I Strings = g->GetStrs()->Start();
+								List<ResString>::I Strings = g->GetStrs()->begin();
 								for (ResString *s=*Strings; s; s=*++Strings)
 								{
 									ResString *d = GetStrFromRef(s->GetRef());
@@ -2472,8 +2506,7 @@ void AppWnd::Empty()
 
 bool AppWnd::OpenFile(char *FileName, bool Ro)
 {
-	if (stristr(FileName, ".lr") ||
-		stristr(FileName, ".lr8") ||
+	if (stristr(FileName, ".lr8") ||
 		stristr(FileName, ".xml"))
 	{
 		return LoadLgi(FileName);
@@ -2488,8 +2521,7 @@ bool AppWnd::OpenFile(char *FileName, bool Ro)
 
 bool AppWnd::SaveFile(char *FileName)
 {
-	if (stristr(FileName, ".lr") ||
-		stristr(FileName, ".lr8") ||
+	if (stristr(FileName, ".lr8") ||
 		stristr(FileName, ".xml"))
 	{
 		return SaveLgi(FileName);
@@ -2503,7 +2535,7 @@ bool AppWnd::SaveFile(char *FileName)
 
 void AppWnd::GetFileTypes(GFileSelect *Dlg, bool Write)
 {
-	Dlg->Type("Lgi Resources", "*.lr;*.lr8;*.xml");
+	Dlg->Type("Lgi Resources", "*.lr8;*.xml");
 	if (!Write)
 	{
 		Dlg->Type("All Files", LGI_ALL_FILES);
@@ -2652,11 +2684,12 @@ bool AppWnd::LoadLgi(char *FileName)
 
 						// Update languages array
 						int n = 0;
-						for (GLanguage *i = Langs.First(); i; i = Langs.Next(), n++)
+						// for (GLanguage *i = Langs.First(); i; i = Langs.Next(), n++)
+						for (auto i : Langs)
 						{
-							Languages.Add(i);
-							GMenuItem *Item = ViewMenu->AppendItem(i->Name, IDM_LANG_BASE + n, true);
-							if (Item && i->IsEnglish())
+							Languages.Add(i.value);
+							GMenuItem *Item = ViewMenu->AppendItem(i.value->Name, IDM_LANG_BASE + n, true);
+							if (Item && i.value->IsEnglish())
 							{
 								Item->Checked(true);
 								CurLang = n;
@@ -2725,7 +2758,7 @@ void AppWnd::SortDialogs()
 			}
 		}
 
-		Dlgs.Sort(DialogNameCompare, 0);
+		Dlgs.Sort(DialogNameCompare);
 
 		for (ResDialog *d = Dlgs.First(); d; d = Dlgs.Next())
 		{
@@ -2883,7 +2916,7 @@ bool AppWnd::WriteDefines(GFile &Defs)
 			if (StrList)
 			{
 				Status = true;
-				List<ResString>::I sl = StrList->Start();
+				List<ResString>::I sl = StrList->begin();
 				for (ResString *s = *sl; s; s = *++sl)
 				{
 					if (ValidStr(s->GetDefine()))
@@ -2950,18 +2983,19 @@ bool AppWnd::WriteDefines(GFile &Defs)
 
 		// write the list out
 		GArray<DefinePair> Pairs;
-		char *s = 0;
-		for (int i = Def.First(&s); i; i = Def.Next(&s))
+		// char *s = 0;
+		// for (int i = Def.First(&s); i; i = Def.Next(&s))
+		for (auto i : Def)
 		{
-			if (ValidStr(s) &&
-				stricmp(s, "IDOK") != 0 &&
-				stricmp(s, "IDCANCEL") != 0 &&
-				stricmp(s, "IDC_STATIC") != 0 &&
-				stricmp(s, "-1") != 0)
+			if (ValidStr(i.key) &&
+				stricmp(i.key, "IDOK") != 0 &&
+				stricmp(i.key, "IDCANCEL") != 0 &&
+				stricmp(i.key, "IDC_STATIC") != 0 &&
+				stricmp(i.key, "-1") != 0)
 			{
 				DefinePair &p = Pairs.New();
-				p.Name = s;
-				p.Value = i;
+				p.Name = i.key;
+				p.Value = i.value;
 			}
 		}
 
@@ -4516,7 +4550,7 @@ void ShortCutView::OnDialogChange(ResDialog *Dlg)
 	if (!Dlg)
 		return;
 	FindShortCuts(Lst, Dlg);
-	Lst->Sort(NULL, 0);
+	Lst->Sort<int>(NULL);
 }
 
 ShortCutView *AppWnd::GetShortCutView()

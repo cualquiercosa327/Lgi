@@ -559,14 +559,15 @@ GVariant &GVariant::operator =(GVariant const &i)
 		}
 		case GV_HASHTABLE:
 		{
-			if ((Value.Hash = new GVariantHash))
+			if ((Value.Hash = new LHash))
 			{
-				const char *k;
 				if (i.Value.Hash)
 				{
-					for (GVariant *var = i.Value.Hash->First(&k); var; var = i.Value.Hash->Next(&k))
+					// const char *k;
+					// for (GVariant *var = i.Value.Hash->First(&k); var; var = i.Value.Hash->Next(&k))
+					for (auto it : *i.Value.Hash)
 					{
-						Value.Hash->Add(k, new GVariant(*var));
+						Value.Hash->Add(it.key, new GVariant(*it.value));
 					}
 				}
 			}
@@ -676,25 +677,26 @@ bool GVariant::SetList(List<GVariant> *Lst)
 	return Value.Lst != 0;
 }
 
-bool GVariant::SetHashTable(GVariantHash *Table, bool Copy)
+bool GVariant::SetHashTable(LHash *Table, bool Copy)
 {
 	Empty();
 	Type = GV_HASHTABLE;
 
 	if (Copy && Table)
 	{
-		if ((Value.Hash = new GVariantHash))
+		if ((Value.Hash = new LHash))
 		{
-			const char *k;
-			for (GVariant *p = Table->First(&k); p; p = Table->Next(&k))
+			// const char *k;
+			// for (GVariant *p = Table->First(&k); p; p = Table->Next(&k))
+			for (auto i : *Table)
 			{
-				Value.Hash->Add(k, p);
+				Value.Hash->Add(i.key, i.value);
 			}
 		}
 	}
 	else
 	{
-		Value.Hash = Table ? Table : new GVariantHash;
+		Value.Hash = Table ? Table : new LHash;
 	}
 
 	return Value.Hash != 0;
@@ -856,9 +858,10 @@ void GVariant::Empty()
 		{
 			if (Value.Hash)
 			{
-				for (GVariant *v = (GVariant*) Value.Hash->First(); v; v = (GVariant*) Value.Hash->Next())
+				// for (GVariant *v = (GVariant*) Value.Hash->First(); v; v = (GVariant*) Value.Hash->Next())
+				for (auto i : *Value.Hash)
 				{
-					DeleteObj(v);
+					DeleteObj(i.value);
 				}
 				DeleteObj(Value.Hash);
 			}
@@ -923,8 +926,7 @@ int64 GVariant::Length()
 			int64 Sz = 0;
 			if (Value.Lst)
 			{
-				List<GVariant>::I it = Value.Lst->Start();
-				for (GVariant *v=*it; v; v=*++it)
+				for (auto v : *Value.Lst)
 					Sz += v->Length();
 			}
 			return Sz;
@@ -947,10 +949,9 @@ int64 GVariant::Length()
 			int64 Sz = 0;
 			if (Value.Hash)
 			{
-				for (GVariant *v=(GVariant*)Value.Hash->First();
-					v;
-					v=(GVariant*)Value.Hash->Next())
-					Sz += v->Length();
+				// for (GVariant *v=Value.Hash->First(); v; v=Value.Hash->Next())
+				for (auto i : *Value.Hash)
+					Sz += i.value->Length();
 			}
 			return Sz;
 		}
@@ -1365,7 +1366,7 @@ char *GVariant::CastString()
 		{
 			GStringPipe p(256);
 			
-			List<GVariant>::I it = Value.Lst->Start();
+			List<GVariant>::I it = Value.Lst->begin();
 			bool First = true;
 			
 			p.Print("{");
@@ -1389,13 +1390,12 @@ char *GVariant::CastString()
 
 			p.Print("{");
 			
-			const char *k;
 			bool First = true;
-			for (GVariant *v = Value.Hash->First(&k);
-				v;
-				v = Value.Hash->Next(&k))
+			// const char *k;
+			// for (GVariant *v = Value.Hash->First(&k); v; v = Value.Hash->Next(&k))
+			for (auto i : *Value.Hash)
 			{
-				p.Print("%s%s = %s", First ? "" : ", ", k, v->CastString());
+				p.Print("%s%s = %s", First ? "" : ", ", i.key, i.value->CastString());
 				First = false;
 			}
 			p.Print("}");
@@ -1620,12 +1620,10 @@ ResolveDone:
 
 struct GDomPropMap
 {
-	GHashTbl<const char *, GDomProperty> ToProp;
-	GHashTbl<int, const char *> ToString;
+	LHashTbl<ConstStrKey<char,false>, GDomProperty> ToProp;
+	LHashTbl<IntKey<GDomProperty,ObjNone>, const char *> ToString;
 
-	GDomPropMap() :
-		ToProp(0, false, NULL, ObjNone),
-		ToString(0, true, ObjNone, NULL)
+	GDomPropMap()
 	{
 		#undef _
 		#define _(symbol) Define(#symbol, symbol);
@@ -1923,14 +1921,14 @@ GString GVariant::ToString()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-GCustomType::GCustomType(const char *name, int pack) : FldMap(0, true, NULL, -1)
+GCustomType::GCustomType(const char *name, int pack)
 {
 	Name = name;
 	Pack = 1;
 	Size = 0;
 }
 
-GCustomType::GCustomType(const char16 *name, int pack) : FldMap(0, true, NULL, -1)
+GCustomType::GCustomType(const char16 *name, int pack)
 {
 	Name = name;
 	Pack = 1;
@@ -2108,7 +2106,7 @@ ssize_t GCustomType::CustomField::Sizeof()
 		case GV_DATETIME:
 			return sizeof(LDateTime);
 		case GV_HASHTABLE:
-			return sizeof(GVariantHash);
+			return sizeof(GVariant::LHash);
 		case GV_OPERATOR:
 			return sizeof(GOperator);
 		case GV_GMOUSE:

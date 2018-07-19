@@ -21,6 +21,7 @@ enum GTextView3Messages
 	M_TEXTVIEW_DEBUG_TEXT = M_USER + 0x3421,
 	M_TEXTVIEW_FIND,
 	M_TEXTVIEW_REPLACE,
+	M_TEXT_POUR_CONTINUE,
 };
 
 extern char Delimiters[];
@@ -170,7 +171,7 @@ protected:
 	{
 	public:
 		ssize_t Start;	// Start offset
-		ssize_t Len;		// length of text
+		ssize_t Len;	// length of text
 		GRect r;		// Screen location
 		GColour c;		// Colour of line... transparent = default colour
 		GColour Back;	// Background colour or transparent
@@ -185,6 +186,14 @@ protected:
 		bool Overlap(ssize_t i)
 		{
 			return i>=Start && i<=Start+Len;
+		}
+
+		size_t CalcLen(char16 *Text)
+		{
+			char16 *c = Text + Start, *e = c;
+			while (*e && *e != '\n')
+				e++;
+			return Len = e - c;
 		}
 	};
 	
@@ -207,8 +216,12 @@ protected:
 	int DocOffset;
 	int MaxX;
 	bool Blink;
+	uint64 BlinkTs;
 	int ScrollX;
 	GRect CursorPos;
+
+	/// true if the text pour process is still ongoing
+	bool PartialPour;
 
 	List<GTextLine> Line;
 	List<GStyle> Style;		// sorted in 'Start' order
@@ -256,6 +269,9 @@ protected:
 	uint64 _PaintTime;
 	#endif
 
+	void LogLines();
+	bool ValidateLines(bool CheckBox = false);
+
 public:
 	// Construction
 	GTextView3(	int Id,
@@ -294,7 +310,7 @@ public:
 	void SetCrLf(bool crlf);
 
 	/// Sets the wrapping on the control, use #TEXTED_WRAP_NONE or #TEXTED_WRAP_REFLOW
-	void SetWrapType(uint8 i);
+	void SetWrapType(LDocWrapType i);
 	
 	// State / Selection
 	ssize_t GetCaret(bool Cursor = true);

@@ -183,13 +183,15 @@ public:
 		/// a bit mask of (#GDTF_DAY_MONTH_YEAR or #GDTF_MONTH_DAY_YEAR or #GDTF_YEAR_MONTH_DAY) and (#GDTF_12HOUR or #GDTF_24HOUR)
 		uint16 f
 	) { _Format = f; }
+
+	/// \returns zero based index of weekday, or -1 if not found.
+	static int IsWeekDay(const char *s);
+	/// \returns zero based index of month, or -1 if not found.
+	static int IsMonth(const char *s);
 	/// The default format for the date when formatted as a string
 	static uint16 GetDefaultFormat();
 	/// Sets the default format for the date when formatted as a string
 	static void SetDefaultFormat(uint16 f) { DefaultFormat = f; }
-
-	/// Returns the day of the week as an index, 0=sun, 1=mon, 2=teus etc
-	int DayOfWeek();
 
 	/// Gets the data and time as a GString
 	GString Get();
@@ -234,18 +236,22 @@ public:
 	/// Parses the date time from a free form string
 	bool Parse(GString s);
 
+	/// \returns true if 'd' is on the same day as this object
+	bool IsSameDay(LDateTime &d);
+	/// \returns true if 'd' is on the same month as this object
+	bool IsSameMonth(LDateTime &d);
+	/// \returns true if 'd' is on the same year as this object
+	bool IsSameYear(LDateTime &d);
+
 	/// \returns whether a year is a leap year or not
 	bool IsLeapYear
 	(
 		/// Pass a specific year here, or ignore to return if the current Date/Time is in a leap year.
 		int Year = -1
 	);
-	/// \returns true if 'd' is on the same day as this object
-	bool IsSameDay(LDateTime &d);
-	/// \returns zero based index of weekday, or -1 if not found.
-	static int IsWeekDay(const char *s);
-	/// \returns zero based index of month, or -1 if not found.
-	static int IsMonth(const char *s);
+
+	/// Returns the day of the week as an index, 0=sun, 1=mon, 2=teus etc
+	int DayOfWeek();
 	/// \returns the number of days in the current month
 	int DaysInMonth();
 	
@@ -305,17 +311,17 @@ public:
 	bool Serialize(class GDom *Props, char *Name, bool Write);
 
 	// operators
-	bool operator <(LDateTime &dt);
-	bool operator <=(LDateTime &dt);
-	bool operator >(LDateTime &dt);
-	bool operator >=(LDateTime &dt);
-	bool operator ==(LDateTime &dt);
-	bool operator !=(LDateTime &dt);
-	int Compare(const LDateTime *d);
+	bool operator <(LDateTime &dt) const;
+	bool operator <=(LDateTime &dt) const;
+	bool operator >(LDateTime &dt) const;
+	bool operator >=(LDateTime &dt) const;
+	bool operator ==(const LDateTime &dt) const;
+	bool operator !=(LDateTime &dt) const;
+	int Compare(const LDateTime *d) const;
 
 	LDateTime operator -(LDateTime &dt);
 	LDateTime operator +(LDateTime &dt);
-	LDateTime DiffMonths(LDateTime &dt);
+	int DiffMonths(LDateTime &dt);
 
 	operator uint64()
 	{
@@ -331,7 +337,7 @@ public:
 	}
 
 	LDateTime &operator =(struct tm *t);
-	
+
 	/// GDom interface.
 	///
 	/// Even though we don't inherit from a GDom class this class supports the same

@@ -55,9 +55,11 @@ void SerializeHistory(GHistory *h, const char *opt, GOptionsFile *p, bool Write)
 	{
 		GString last;
 		last.Printf("%sSelect", opt);
+		GViewI *Edit = NULL;
+		h->GetWindow()->GetViewById(h->GetTargetId(), Edit);
 		
 		#if DEBUG_HIST
-		LgiTrace("%s:%i - SerializeHistory '%s'\n", _FL, last.Get());
+		LgiTrace("%s:%i - SerializeHistory '%s', Write=%i\n", _FL, last.Get(), Write);
 		#endif
 
 		GVariant v;
@@ -65,9 +67,19 @@ void SerializeHistory(GHistory *h, const char *opt, GOptionsFile *p, bool Write)
 		{
 			GString::Array a;
 			a.SetFixedLength(false);
-			int i=0;
+			int64 i = 0;
+			int64 Selected = h->Value();
+			GString EdTxt;
+			if (Edit)
+				EdTxt = Edit->Name();
+
 			for (char *s=h->First(); s; s=h->Next(), i++)
 			{
+				if (EdTxt && EdTxt.Equals(s))
+				{
+					Selected = i;
+				}
+
 				a.Add(s);
 				#if DEBUG_HIST
 				LgiTrace("\t[%i]='%s'\n", i, s);
@@ -80,7 +92,7 @@ void SerializeHistory(GHistory *h, const char *opt, GOptionsFile *p, bool Write)
 			LgiTrace("\tstrs='%s'\n", strs.Get());
 			#endif
 			
-			p->SetValue(last, v = h->Value());
+			p->SetValue(last, v = Selected);
 			#if DEBUG_HIST
 			LgiTrace("\tv=%i\n", v.CastInt32());
 			#endif

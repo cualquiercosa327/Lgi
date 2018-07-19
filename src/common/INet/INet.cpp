@@ -221,7 +221,7 @@ bool GSocket::EnumInterfaces(List<char> &Lst)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-class GSocketImplPrivate
+class GSocketImplPrivate : public LCancel
 {
 public:
 	// Data
@@ -236,12 +236,14 @@ public:
 	OsSocket	Socket;
 	int			LastError;
 	GString		ErrStr;
+	LCancel		*Cancel;
 
 	GSocketImplPrivate()
 	{	
 		Blocking = true;
 		NoDelay = false;
 		Udp = false;
+		Cancel = this;
 
 		LogType = NET_LOG_NONE;
 		LogFile = 0;
@@ -279,6 +281,15 @@ bool GSocket::IsOK()
 			d != 0;
 }
 
+LCancel *GSocket::GetCancel()
+{
+	return d->Cancel;
+}
+
+void GSocket::SetCancel(LCancel *c)
+{
+	d->Cancel = c;
+}
 
 void GSocket::OnDisconnect()
 {
@@ -597,7 +608,11 @@ int GSocket::Open(const char *HostAddr, int Port)
 					int Ret;
 					while
 					(
-						!IsCancelled()
+						(
+							!GetCancel()
+							||
+							!GetCancel()->IsCancelled()
+						)
 						&&
 						(
 							Ret
@@ -706,7 +721,7 @@ int GSocket::Open(const char *HostAddr, int Port)
 						#endif
 
 						int64 End = LgiCurrentTime() + (d->Timeout > 0 ? d->Timeout : 30000);
-						while (	!IsCancelled() &&
+						while (	!d->Cancel->IsCancelled() &&
 								ValidSocket(d->Socket) &&
 								IsWouldBlock())
 						{
@@ -862,7 +877,7 @@ bool GSocket::Accept(GSocketI *c)
 	// int Loop = 0;
 	socklen_t Length = sizeof(Address);
 	uint64 Start = LgiCurrentTime();
-	while (	!IsCancelled() &&
+	while (	!d->Cancel->IsCancelled() &&
 			ValidSocket(d->Socket))
 	{
 		if (IsReadable(100))

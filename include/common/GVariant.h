@@ -12,7 +12,7 @@
 #undef Bool
 #include "LDateTime.h"
 #include "GContainers.h"
-#include "GHashTable.h"
+#include "LHashTable.h"
 #include "GString.h"
 
 class GCompiledCode;
@@ -139,11 +139,11 @@ protected:
 
 	// Fields
 	GArray<CustomField*> Flds;
-	GHashTbl<const char*, int> FldMap;
+	LHashTbl<ConstStrKey<char,false>, int> FldMap;
 	
 	// Methods
 	GArray<Method*> Methods;
-	GHashTbl<const char*, Method*> MethodMap;
+	LHashTbl<ConstStrKey<char,false>, Method*> MethodMap;
 	
 	// Private methods
 	ssize_t PadSize();
@@ -175,12 +175,11 @@ public:
 	bool CallMethod(const char *MethodName, GVariant *ReturnValue, GArray<GVariant*> &Args);
 };
 
-typedef GHashTbl<const char*,GVariant*> GVariantHash;
-
 /// A class that can be different types
 class LgiClass GVariant
 {
 public:
+	typedef LHashTbl<ConstStrKey<char>,GVariant*> LHash;
 
 	/// The type of the variant
     GVariantType Type;
@@ -213,7 +212,7 @@ public:
 		/// Valid when Type == #GV_LIST
 	    List<GVariant> *Lst;
 		/// Valid when Type == #GV_HASHTABLE
-	    GVariantHash *Hash;
+	    LHash *Hash;
 		/// Valid when Type == #GV_DATETIME
 		LDateTime *Date;
 		/// Valid when Type == #GV_CUSTOM
@@ -339,7 +338,7 @@ public:
 	/// Sets the value to a copy of the list
 	bool SetList(List<GVariant> *Lst = 0);
 	/// Sets the value to a hashtable
-	bool SetHashTable(GVariantHash *Table = 0, bool Copy = true);
+	bool SetHashTable(LHash *Table = 0, bool Copy = true);
     /// Set the value to a surface
     bool SetSurface(class GSurface *Ptr, bool Own);
     /// Set the value to a stream

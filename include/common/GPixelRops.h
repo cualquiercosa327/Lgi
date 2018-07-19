@@ -9,7 +9,7 @@
 #ifndef _GPixelRops_h
 #define _GPixelRops_h
 
-#ifdef COCOA
+#ifdef MAC
 #define REG
 #else
 #define REG register

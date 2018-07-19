@@ -7,6 +7,7 @@
 #endif
 #include "GTextLog.h"
 #include "GButton.h"
+#include "GXmlTreeUi.h"
 
 //////////////////////////////////////////////////////////////////
 const char *AppName = "Lvc";
@@ -47,8 +48,7 @@ public:
 
 	void PourStyle(size_t Start, ssize_t Length)
 	{
-		List<GTextLine>::I it = GTextView3::Line.Start();
-		for (GTextLine *ln = *it; ln; ln = *++it)
+		for (auto ln : GTextView3::Line)
 		{
 			if (!ln->c.IsValid())
 			{
@@ -158,6 +158,126 @@ public:
 	}
 };
 
+GString::Array GetProgramsInPath(const char *Program)
+{
+	GString::Array Bin;
+	GString Prog = Program;
+	#ifdef WINDOWS
+	Prog += LGI_EXECUTABLE_EXT;
+	#endif
+
+	GString Path = LgiGetEnv("PATH");
+	GString::Array a = Path.SplitDelimit(LGI_PATH_SEPARATOR);
+	for (auto p : a)
+	{
+		GFile::Path c(p, Prog);
+		if (c.Exists())
+			Bin.New() = c.GetFull();
+	}
+
+	return Bin;
+}
+
+class OptionsDlg : public GDialog, public GXmlTreeUi
+{
+	GOptionsFile &Opts;
+
+public:
+	OptionsDlg(GViewI *Parent, GOptionsFile &opts) : Opts(opts)
+	{
+		SetParent(Parent);
+		Map("svn-path", IDC_SVN, GV_STRING);
+		Map("git-path", IDC_GIT, GV_STRING);
+		Map("hg-path", IDC_HG, GV_STRING);
+		Map("cvs-path", IDC_CVS, GV_STRING);
+
+		if (LoadFromResource(IDD_OPTIONS))
+		{
+			MoveSameScreen(Parent);
+			Convert(&Opts, this, true);
+		}
+	}
+
+	void Browse(int EditId)
+	{
+		GFileSelect s;
+		s.Parent(this);
+		if (s.Open())
+		{
+			SetCtrlName(EditId, s.Name());
+		}
+	}
+
+	void BrowseFiles(GViewI *Ctrl, const char *Bin, int EditId)
+	{
+		GRect Pos = Ctrl->GetPos();
+		GdcPt2 Pt(Pos.x1, Pos.y2 + 1);
+		PointToScreen(Pt);
+		
+		GSubMenu s;
+
+		GString::Array Bins = GetProgramsInPath(Bin);
+		for (unsigned i=0; i<Bins.Length(); i++)
+		{
+			s.AppendItem(Bins[i], 1000+i);
+		}
+
+		if (Bins.Length() == 0)
+		{
+			Browse(EditId);
+		}
+		else
+		{
+			s.AppendSeparator();
+			s.AppendItem("Browse...", 1);
+			int Cmd = s.Float(this, Pt.x, Pt.y, GSubMenu::BtnLeft);
+			switch (Cmd)
+			{
+				case 1:
+					Browse(EditId);
+					break;
+				default:
+					if (Cmd >= 1000)
+					{
+						GString Bin = Bins[Cmd - 1000];
+						if (Bin)
+							SetCtrlName(EditId, Bin);
+					}
+					break;
+			}
+		}
+	}
+
+	int OnNotify(GViewI *Ctrl, int Flags)
+	{
+		switch (Ctrl->GetId())
+		{
+			case IDC_SVN_BROWSE:
+				BrowseFiles(Ctrl, "svn", IDC_SVN);
+				break;
+			case IDC_GIT_BROWSE:
+				BrowseFiles(Ctrl, "git", IDC_GIT);
+				break;
+			case IDC_HG_BROWSE:
+				BrowseFiles(Ctrl, "hg", IDC_HG);
+				break;
+			case IDC_CVS_BROWSE:
+				BrowseFiles(Ctrl, "cvs", IDC_CVS);
+				break;
+			case IDOK:
+				Convert(&Opts, this, false);
+				// fall
+			case IDCANCEL:
+			{
+				EndModal(Ctrl->GetId() == IDOK);
+				break;
+			}
+		}
+
+		return GDialog::OnNotify(Ctrl, Flags);
+	}
+};
+
 class App : public GWindow, public AppPriv
 {
 	GAutoPtr<GImageList> ImgLst;
@@ -184,6 +304,13 @@ public:
 
 		if (Attach(0))
 		{
+			if ((Menu = new GMenu))
+			{
+				Menu->SetPrefAndAboutItems(IDM_OPTIONS, IDM_ABOUT);
+				Menu->Attach(this);
+				Menu->Load(this, "IDM_MENU");
+			}
+
 			GBox *ToolsBox = new GBox(IDC_TOOLS_BOX, true);
 			GBox *FoldersBox = new GBox(IDC_FOLDERS_BOX, false);
 			GBox *CommitsBox = new GBox(IDC_COMMITS_BOX, true);
@@ -273,17 +400,32 @@ public:
 			f->EmptyChildren();
 
 			VcFolder *vcf = NULL; bool b;
-			while (b = Tree->Iterate(vcf))
+			while ((b = Tree->Iterate(vcf)))
 				f->InsertTag(vcf->Save());
 			Opts.Unlock();
 		}
 		Opts.SerializeFile(true);
 	}
 
+	int OnCommand(int Cmd, int Event, OsView Wnd)
+	{
+		switch (Cmd)
+		{
+			case IDM_OPTIONS:
+			{
+				OptionsDlg Dlg(this, Opts);
+				Dlg.DoModal();
+				break;
+			}
+		}
+
+		return 0;
+	}
+
 	void OnPulse()
 	{
 		VcFolder *vcf = NULL; bool b;
-		while (b = Tree->Iterate(vcf))
+		while ((b = Tree->Iterate(vcf)))
 			vcf->OnPulse();
 	}
 

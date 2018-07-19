@@ -368,6 +368,7 @@ static void MenuItemCallback(LgiMenuItem *Item)
 	if (!Item->Sub() && !Item->InSetCheck)
 	{
 		GSubMenu *Parent = Item->GetParent();
+		
 		if (!Parent || !Parent->IsContext(Item))
 		{
 			::GMenu *m = Item->GetMenu();
@@ -376,10 +377,9 @@ static void MenuItemCallback(LgiMenuItem *Item)
 				// Attached to a mean, so send an event to the window
 				GViewI *w = m->WindowHandle();
 				if (w)
-				{
 					w->PostEvent(M_COMMAND, Item->Id());
-				}
-				else LgiAssert(!"No window for menu to send to");
+				else
+					LgiAssert(!"No window for menu to send to");
 			}
 			else
 			{

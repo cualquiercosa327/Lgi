@@ -189,7 +189,7 @@ public:
 						GMouse m;
 						if (Lst->GetColumnClickInfo(Col, m))
 						{
-							Lst->Sort(Cmp, Col);
+							Lst->Sort<NativeInt>(Cmp, Col);
 						}
 						break;
 					}
@@ -203,7 +203,7 @@ public:
 
 	void Load(char *File)
 	{
-		GHashTbl<const char*, bool> Except(0, false);
+		LHashTbl<ConstStrKey<char,false>, bool> Except(0, false);
 		Except.Add("GString.cpp", true);
 		Except.Add("GVariant.cpp", true);
 		Except.Add("GContainers.cpp", true);
@@ -224,8 +224,7 @@ public:
 			bool First = true;
 			char s[512];
 
-			GHashTbl<char*,DumpItem*> h(0, false);
-			h.SetStringPool(true);
+			LHashTbl<StrKeyPool<char,false>,DumpItem*> h;
 
 			Prog.SetDescription("Reading memory dump...");
 			Prog.SetLimits(0, f.GetSize());
@@ -366,12 +365,13 @@ public:
 			}
 
 			List<LListItem> Items;
-			for (void *p = h.First(); p; p = h.Next())
+			// for (void *p = h.First(); p; p = h.Next())
+			for (auto p : h)
 			{
-				Items.Insert((DumpItem*)p);
+				Items.Insert((DumpItem*)p.value);
 			}
 			Lst->Insert(Items);
-			Lst->Sort(Cmp, 0);
+			Lst->Sort(Cmp);
 		}
 	}
 };

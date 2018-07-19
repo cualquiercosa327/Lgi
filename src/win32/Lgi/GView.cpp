@@ -511,7 +511,8 @@ void GView::_Delete()
 	// Delete all children
 	while (c = Children.First())
 	{
-		// If it has no parent, remove the pointer from the child list
+		// If it has no parent, remove the pointer from the child list,
+		// Because the child isn't going to do it...
 		if (c->GetParent() == 0)
 			Children.Delete(c);
 
@@ -542,20 +543,9 @@ void GView::_Delete()
 		_Capturing = 0;
 	}
 
-	if (LgiApp && LgiApp->AppWnd == this)
-	{
-		LgiApp->AppWnd = 0;
-	}
-
 	GWindow *Wnd = GetWindow();
 	if (Wnd)
-	{
-		if (WndFlags & GWF_FOCUS)
-		{
-			int asd=0;
-		}
 		Wnd->SetFocus(this, GWindow::ViewDelete);
-	}
 
 	// this should only exist in an ex-GWindow, due to the way
 	// C++ deletes objects it needs to be here.
@@ -2111,7 +2101,7 @@ GViewI *GView::FindControl(OsView hCtrl)
 		return this;
 	}
 
-	for (List<GViewI>::I i = Children.Start(); i.In(); i++)
+	for (List<GViewI>::I i = Children.begin(); i.In(); i++)
 	{
 		GViewI *Ctrl = (*i)->FindControl(hCtrl);
 		if (Ctrl)

@@ -1,22 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project>
 	<Node Name="Headers" Type="1" Platforms="15" Id="2">
-		<Node File="/home/matthew/Code/Lgi/trunk/Lvc/Src/VcFolder.h" Type="3" Platforms="15" />
-		<Node File="/home/matthew/Code/Lgi/trunk/Lvc/Src/VcCommit.h" Type="3" Platforms="15" />
-		<Node File="/home/matthew/Code/Lgi/trunk/Lvc/Src/Lvc.h" Type="3" Platforms="15" />
-		<Node File="/home/matthew/Code/Lgi/trunk/Lvc/Src/resdefs.h" Type="3" Platforms="15" />
+		<Node File=".\Src\VcFolder.h" Type="3" Platforms="15" />
+		<Node File=".\Src\VcCommit.h" Type="3" Platforms="15" />
+		<Node File=".\Src\Lvc.h" Type="3" Platforms="15" />
+		<Node File=".\Resources\resdefs.h" Type="3" Platforms="15" />
 	</Node>
 	<Node Name="Source" Type="1" Platforms="15" Id="1">
 		<Node Name="Lgi" Type="1" Platforms="15" Id="2">
+			<Node File="../src/common/Widgets/GControlTree.cpp" Type="2" Platforms="15" />
 			<Node File="../src/common/Lgi/GSubProcess.cpp" Type="2" Platforms="15" />
+			<Node File="../src/common/Text/GXmlTreeUi.cpp" Type="2" Platforms="15" />
 			<Node File="../src/common/Lgi/LgiMain.cpp" Type="2" Platforms="15" />
 		</Node>
 		<Node File="./Src/BlameUi.cpp" Type="2" Platforms="15" />
 		<Node File="./Src/DropDownBtn.cpp" Type="2" Platforms="15" />
-		<Node File="/home/matthew/Code/Lgi/trunk/Lvc/Src/Main.cpp" Type="2" Platforms="15" />
-		<Node File="/home/matthew/Code/Lgi/trunk/Lvc/Src/VcCommit.cpp" Type="2" Platforms="15" />
+		<Node File="./Src/Main.cpp" Type="2" Platforms="15" />
+		<Node File="./Src/VcCommit.cpp" Type="2" Platforms="15" />
 		<Node File="./Src/VcFile.cpp" Type="2" Platforms="15" />
-		<Node File="/home/matthew/Code/Lgi/trunk/Lvc/Src/VcFolder.cpp" Type="2" Platforms="15" />
+		<Node File="./Src/VcFolder.cpp" Type="2" Platforms="15" />
 	</Node>
 	<Node File="../Lgi.xml" Type="4" Platforms="15" />
 	<Node Name="Resources" Type="1" Platforms="15" Id="1">
@@ -28,12 +30,14 @@
 		<General>
 			<Makefile>
 				<Linux>Makefile.linux</Linux>
+				<Windows>Makefile.win32</Windows>
 			</Makefile>
 			<Executable>
 				<Linux>
 					<Debug>lvc</Debug>
 					<Release>lvc</Release>
 				</Linux>
+				<Windows />
 			</Executable>
 			<Arguments>
 				<All />
@@ -41,6 +45,7 @@
 			<Defines>
 				<All />
 				<Linux />
+				<Windows />
 			</Defines>
 			<DebugAdmin>
 				<All>0</All>
@@ -71,23 +76,28 @@
 /usr/lib/x86_64-linux-gnu/gstreamer-1.0/include
 `pkg-config --cflags gtk+-2.0`</Release>
 				</Linux>
+				<Windows />
 			</IncludePaths>
 			<SystemIncludes>
 				<Linux />
+				<Windows />
 			</SystemIncludes>
 			<Libraries>
 				<All />
 				<Linux />
+				<Windows />
 			</Libraries>
 			<LibraryPaths>
 				<All />
 				<Linux />
+				<Windows />
 			</LibraryPaths>
 			<TargetType>
 				<All>Executable</All>
 			</TargetType>
 			<TargetName>
 				<Linux />
+				<Windows />
 			</TargetName>
 			<ApplicationIcon />
 		</Build>

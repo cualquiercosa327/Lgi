@@ -143,9 +143,20 @@ class BuildThread : public LThread, public GStream
 		Gcc,
 		CrossCompiler,
 		PythonScript,
-		IAR
+		IAR,
+		Nmake
 	}
 		Compiler;
+
+	enum ArchType
+	{
+		DefaultArch,
+		ArchX32,
+		ArchX64,
+		ArchArm6,
+		ArchArm7,
+	}
+		Arch;
 
 public:
 	BuildThread(IdeProject *proj, char *makefile, bool clean, bool Release, int wordsize);
@@ -167,7 +178,7 @@ public:
 	IdeProject *ParentProject;
 	IdeProjectSettings Settings;
 	GAutoPtr<BuildThread> Thread;
-	GHashTbl<const char*, ProjectNode*> Nodes;
+	LHashTbl<ConstStrKey<char,false>, ProjectNode*> Nodes;
 	int NextNodeId;
 
 	// Threads
@@ -175,13 +186,11 @@ public:
 
 	// User info file
 	GString UserFile;
-	GHashTbl<int,int> UserNodeFlags;
+	LHashTbl<IntKey<int>,int> UserNodeFlags;
 
 	IdeProjectPrivate(AppWnd *a, IdeProject *project) :
 		Project(project),
-		Settings(project),
-		Nodes(0, false, NULL, NULL),
-		UserNodeFlags(0, false, 0, -1)
+		Settings(project)
 	{
 		App = a;
 		Dirty = false;
@@ -193,7 +202,7 @@ public:
 	void CollectAllFiles(GTreeNode *Base, GArray<ProjectNode*> &Files, bool SubProjects, int Platform);
 };
 
-class MakefileThread : public LThread
+class MakefileThread : public LThread, public LCancel
 {
 	IdeProjectPrivate *d;
 	IdeProject *Proj;
@@ -209,6 +218,13 @@ public:
 		BuildAfterwards = Build;
 		
 		Run();
+	}
+
+	~MakefileThread()
+	{
+		Cancel();
+		while (!IsExited())
+			LgiSleep(1);
 	}
 
 	int Main()
@@ -330,7 +346,7 @@ public:
 		
 		if (IsExecutableTarget)
 		{
-			const char *Exe = Proj->GetExecutable(Platform);
+			GString Exe = Proj->GetExecutable(Platform);
 			if (Exe)
 			{
 				if (LgiIsRelativePath(Exe))
@@ -501,7 +517,7 @@ public:
 			// Includes
 
 			// Do include paths
-			GHashTbl<char*,bool> Inc;
+			LHashTbl<StrKey<char>,bool> Inc;
 			const char *ProjIncludes = d->Settings.GetStr(ProjIncludePaths, NULL, Platform);
 			if (ValidStr(ProjIncludes))
 			{
@@ -576,13 +592,15 @@ public:
 			}
 
 			List<char> Incs;
-			char *i;
-			for (bool b=Inc.First(&i); b; b=Inc.Next(&i))
+			// char *i;
+			// for (bool b=Inc.First(&i); b; b=Inc.Next(&i))
+			for (auto i : Inc)
 			{
-				Incs.Insert(NewStr(i));
+				Incs.Insert(NewStr(i.key));
 			}
-			Incs.Sort(StrCmp, 0);
-			for (i = Incs.First(); i; i = Incs.Next())
+			Incs.Sort(StrCmp);
+			
+			for (auto i = Incs.First(); i; i = Incs.Next())
 			{
 				GString s;
 				if (*i == '`')
@@ -598,7 +616,7 @@ public:
 		// Debug specific
 		m.Print("\n"
 				"ifeq ($(Build),Debug)\n"
-				"	Flags += -g\n"
+				"	Flags += -g -std=c++11\n"
 				"	Tag = d\n"
 				"	Defs = -D_DEBUG %s\n"
 				"	Libs = %s\n"
@@ -609,7 +627,7 @@ public:
 		
 		// Release specific
 		m.Print("else\n"
-				"	Flags += -s -Os\n"
+				"	Flags += -s -Os -std=c++11\n"
 				"	Defs = %s\n"
 				"	Libs = %s\n"
 				"	Inc = %s\n"
@@ -628,7 +646,7 @@ public:
 				m.Print("# Dependencies\n"
 						"Depends =\t");
 					
-				for (int c = 0; c < Files.Length(); c++)
+				for (int c = 0; c < Files.Length() && !IsCancelled(); c++)
 				{
 					ProjectNode *n = Files[c];
 					if (n->GetType() == NodeSrc)
@@ -649,7 +667,7 @@ public:
 				// Write out the target stuff
 				m.Print("# Target\n");
 
-				GHashTbl<char*,bool> DepFiles;
+				LHashTbl<StrKey<char,false>,bool> DepFiles;
 
 				if (TargetType)
 				{
@@ -663,7 +681,7 @@ public:
 						
 						uint64 Last = LgiCurrentTime();
 						int Count = 0;
-						for (Dep=Deps.First(); Dep; Dep=Deps.Next(), Count++)
+						for (Dep=Deps.First(); Dep && !IsCancelled(); Dep=Deps.Next(), Count++)
 						{
 							// Get dependency to create it's own makefile...
 							Dep->CreateMakefile(Platform, false);
@@ -875,7 +893,7 @@ public:
 				}
 
 				// Create dependency tree, starting with all the source files.
-				for (int idx=0; idx<Files.Length(); idx++)
+				for (int idx=0; idx<Files.Length() && !IsCancelled(); idx++)
 				{
 					ProjectNode *n = Files[idx];
 					if (n->GetType() == NodeSrc)
@@ -912,7 +930,7 @@ public:
 							GArray<char*> SrcDeps;
 							if (Proj->GetDependencies(Src, IncPaths, SrcDeps, Platform))
 							{
-								for (int i=0; i<SrcDeps.Length(); i++)
+								for (int i=0; i<SrcDeps.Length() && !IsCancelled(); i++)
 								{
 									char *SDep = SrcDeps[i];
 									
@@ -944,30 +962,33 @@ public:
 				
 				// Do remaining include file dependencies
 				bool Done = false;
-				GHashTbl<char*,bool> Processed;
+				LHashTbl<StrKey<char,false>,bool> Processed;
 				GAutoString Base = Proj->GetBasePath();
 				while (!Done)
 				{
 					Done = true;
-					char *Src;
-					for (bool b=DepFiles.First(&Src); b; b=DepFiles.Next(&Src))
+					// char *Src;
+					// for (bool b=DepFiles.First(&Src); b; b=DepFiles.Next(&Src))
+					for (auto it : DepFiles)
 					{
-						if (Processed.Find(Src))
+						if (IsCancelled())
+							break;
+						if (Processed.Find(it.key))
 							continue;
 
 						Done = false;
-						Processed.Add(Src, true);
+						Processed.Add(it.key, true);
 						
 						char Full[MAX_PATH], Rel[MAX_PATH];
-						if (LgiIsRelativePath(Src))
+						if (LgiIsRelativePath(it.key))
 						{
-							LgiMakePath(Full, sizeof(Full), Base, Src);
-							strcpy_s(Rel, sizeof(Rel), Src);
+							LgiMakePath(Full, sizeof(Full), Base, it.key);
+							strcpy_s(Rel, sizeof(Rel), it.key);
 						}
 						else
 						{
-							strcpy_s(Full, sizeof(Full), Src);
-							GAutoString a = LgiMakeRelativePath(Base, Src);
+							strcpy_s(Full, sizeof(Full), it.key);
+							GAutoString a = LgiMakeRelativePath(Base, it.key);
 							if (a)
 							{
 								strcpy_s(Rel, sizeof(Rel), a);
@@ -977,7 +998,7 @@ public:
 								strcpy_s(Rel, sizeof(Rel), a);
 								LgiTrace("%s:%i - Failed to make relative path '%s' '%s'\n",
 									_FL,
-									Base.Get(), Src);
+									Base.Get(), it.key);
 							}
 						}
 						
@@ -989,7 +1010,7 @@ public:
 							{
 								m.Print("%s : ", Rel);
 
-								for (int n=0; n<Headers.Length(); n++)
+								for (int n=0; n<Headers.Length() && !IsCancelled(); n++)
 								{
 									char *i = Headers[n];
 									
@@ -1025,7 +1046,7 @@ public:
 
 				// Output VPATH
 				m.Print("VPATH=%%.cpp \\\n");
-				for (int i=0; i<IncPaths.Length(); i++)
+				for (int i=0; i<IncPaths.Length() && !IsCancelled(); i++)
 				{
 					char *p = IncPaths[i];
 					if (p && !strchr(p, '`'))
@@ -1163,6 +1184,7 @@ BuildThread::BuildThread(IdeProject *proj, char *makefile, bool clean, bool rele
 	Clean = clean;
 	Release = release;
 	WordSize = wordsize;
+	Arch = DefaultArch;
 	Compiler = DefaultCompiler;
 
 	char *Ext = LgiGetExtension(Makefile);
@@ -1260,7 +1282,7 @@ GString BuildThread::FindExe()
 		for (int i=0; i<p.Length(); i++)
 		{
 			char Path[MAX_PATH];
-			LgiMakePath(Path, sizeof(Path), p[i], "python"LGI_EXECUTABLE_EXT);
+			LgiMakePath(Path, sizeof(Path), p[i], "python" LGI_EXECUTABLE_EXT);
 			if (FileExists(Path))
 			{
 				// Check version
@@ -1300,12 +1322,13 @@ GString BuildThread::FindExe()
 	{
 		// Find the version we need:
 		double fVer = 0.0;
-		GFile f;
-		if (f.Open(Makefile, O_READ))
+
+		GString ProjFile;
+		const char *Ext = LgiGetExtension(Makefile);
+		if (Ext && !_stricmp(Ext, "sln"))
 		{
-			GString ProjFile;
-			const char *Ext = LgiGetExtension(Makefile);
-			if (Ext && !_stricmp(Ext, "sln"))
+			GFile f;
+			if (f.Open(Makefile, O_READ))
 			{
 				GString VerKey = "Format Version ";
 				GString ProjKey = "Project(";
@@ -1341,19 +1364,63 @@ GString BuildThread::FindExe()
 					}
 				}
 			}
-			else if (Ext && !_stricmp(Ext, "vcxproj"))
+		}
+		else if (Ext && !_stricmp(Ext, "vcxproj"))
+		{
+			ProjFile = Makefile;
+		}
+		else
+		{
+			if (Arch == DefaultArch)
 			{
-				ProjFile = Makefile;
+				if (sizeof(size_t) == 4)
+					Arch = ArchX32;
+				else
+					Arch = ArchX64;
 			}
 
-			if (ProjFile && FileExists(ProjFile))
+			#ifdef _MSC_VER
+			// Nmake file..
+			GString NmakePath;
+			switch (_MSC_VER)
 			{
-				f.Close();
-				GString sVer;
-				if (ReadVsProjFile(ProjFile, sVer, BuildConfigs))
+				case _MSC_VER_VS2013:
 				{
-					fVer = sVer.Float();
+					if (Arch == ArchX32)
+						NmakePath = "c:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\bin\\nmake.exe";
+					else
+						NmakePath = "c:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\bin\\amd64\\nmake.exe";
+					break;
 				}
+				case _MSC_VER_VS2015:
+				{
+					if (Arch == ArchX32)
+						NmakePath = "c:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\bin\\nmake.exe";
+					else
+						NmakePath = "c:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\bin\\amd64\\nmake.exe";
+					break;
+				}
+				default:
+				{
+					LgiAssert(!"Impl me.");
+					break;
+				}
+			}
+
+			if (FileExists(NmakePath))
+			{
+				Compiler = Nmake;
+				return NmakePath;
+			}
+			#endif
+		}
+
+		if (ProjFile && FileExists(ProjFile))
+		{
+			GString sVer;
+			if (ReadVsProjFile(ProjFile, sVer, BuildConfigs))
+			{
+				fVer = sVer.Float();
 			}
 		}
 
@@ -1472,7 +1539,8 @@ int BuildThread::Main()
 		if (Pos)
 			InitDir.Length(Pos);
 
-		GString TmpArgs;
+		GString TmpArgs, Include, Lib, LibPath, Path;
+		
 		if (Compiler == VisualStudio)
 		{
 			// TmpArgs.Printf("\"%s\" /make \"All - Win32 Debug\"", Makefile.Get());
@@ -1491,6 +1559,76 @@ int BuildThread::Main()
 				}
 			}
 			TmpArgs.Printf("\"%s\" %s \"%s\"", Makefile.Get(), Clean ? "/Clean" : "/Build", BuildConf.Get());
+		}
+		else if (Compiler == Nmake)
+		{
+			const char *DefInc[] = {
+				"C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\INCLUDE",
+				"C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\ATLMFC\\INCLUDE",
+				"C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\shared",
+				"C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\um",
+				"C:\\Program Files (x86)\\Windows Kits\\8.1\\include\\winrt"
+			};
+			GString f;
+
+			#define ADD_PATHS(out, in) \
+				for (unsigned i=0; i<CountOf(in); i++) \
+				{ \
+					f.Printf("%s%s", i ? LGI_PATH_SEPARATOR : "", in[i]); \
+					out += f; \
+				}
+			if (Arch == ArchX32)
+			{
+				const char *DefLib[] = {
+					"C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\LIB",
+					"C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\ATLMFC\\LIB",
+					"C:\\Program Files (x86)\\Windows Kits\\8.1\\lib\\winv6.3\\um\\x32"
+				};
+				const char *DefLibPath[] = {
+					"C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319",
+					"C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\LIB",
+					"C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\ATLMFC\\LIB",
+					"C:\\Program Files (x86)\\Windows Kits\\8.1\\References\\CommonConfiguration\\Neutral",
+					"C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v8.1\\ExtensionSDKs\\Microsoft.VCLibs\\12.0\\References\\CommonConfiguration\\neutral"
+				};
+				const char *DefPath[] = {
+					"c:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x86"
+				};
+			
+				ADD_PATHS(Include, DefInc);
+				ADD_PATHS(Lib, DefLib);
+				ADD_PATHS(LibPath, DefLibPath);
+				ADD_PATHS(Path, DefPath);
+			}
+			else if (Arch == ArchX64)
+			{
+				const char *DefLib[] = {
+					"C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\LIB\\amd64",
+					"C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\ATLMFC\\LIB\\amd64",
+					"C:\\Program Files (x86)\\Windows Kits\\8.1\\lib\\winv6.3\\um\\x64"
+				};
+				const char *DefLibPath[] = {
+					"C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319",
+					"C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\LIB\\amd64",
+					"C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\ATLMFC\\LIB\\amd64",
+					"C:\\Program Files (x86)\\Windows Kits\\8.1\\References\\CommonConfiguration\\Neutral",
+					"C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v8.1\\ExtensionSDKs\\Microsoft.VCLibs\\12.0\\References\\CommonConfiguration\\neutral"
+				};
+				const char *DefPath[] = {
+					"c:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x64"
+				};
+							
+				ADD_PATHS(Include, DefInc);
+				ADD_PATHS(Lib, DefLib);
+				ADD_PATHS(LibPath, DefLibPath);
+				ADD_PATHS(Path, DefPath);
+			}
+			else LgiAssert(!"Invalid Arch");
+
+			TmpArgs.Printf(" -f \"%s\"", Makefile.Get());
+
+			if (Clean)
+				TmpArgs += " clean";
 		}
 		else if (Compiler == PythonScript)
 		{
@@ -1565,6 +1703,20 @@ int BuildThread::Main()
 		if (SubProc.Reset(new GSubProcess(Exe, TmpArgs)))
 		{
 			SubProc->SetInitFolder(InitDir);
+			if (Include)
+				SubProc->SetEnvironment("INCLUDE", Include);
+			if (Lib)
+				SubProc->SetEnvironment("LIB", Lib);
+			if (LibPath)
+				SubProc->SetEnvironment("LIBPATHS", LibPath);
+			if (Path)
+			{
+				GString Cur = getenv("PATH");
+				GString New = Cur + LGI_PATH_SEPARATOR + Path;
+				SubProc->SetEnvironment("PATH", New);
+			}
+			// SubProc->SetEnvironment("DLL", "1");
+
 			if (Compiler == MingW)
 				SubProc->SetEnvironment("PATH", "c:\\MingW\\bin;C:\\MinGW\\msys\\1.0\\bin;%PATH%");
 				
@@ -1601,7 +1753,7 @@ int BuildThread::Main()
 	}
 	else
 	{
-		Err = "Couldn't find 'make'";
+		Err = "Couldn't find program to build makefile.";
 		LgiTrace("%s,%i - %s.\n", _FL, Err);
 	}
 
@@ -1892,7 +2044,8 @@ public:
 			else if (Act == ExeValgrind)
 			{
 				#ifdef LINUX
-				if (Proj->GetExecutable(GetCurrentPlatform()))
+				GString ExePath = Proj->GetExecutable(GetCurrentPlatform());
+				if (ExePath)
 				{
 					char Path[MAX_PATH];
 					char *ExeLeaf = LgiGetLeaf(Exe);
@@ -1918,7 +2071,7 @@ public:
 					
 					if (Term && WorkDir && Execute)
 					{					
-						char *e = QuoteStr(Proj->GetExecutable(GetCurrentPlatform()));
+						char *e = QuoteStr(ExePath);
 						char *p = QuoteStr(Path);
 						char *a = Proj->GetExeArgs() ? Proj->GetExeArgs() : (char*)"";
 						char Args[512];
@@ -2051,7 +2204,7 @@ bool IdeProject::FindDuplicateSymbols()
 
 	int Lines = 0, LinesIn = 0;
 	
-	GHashTbl<char*,int64> Map(200000, false, NULL, -1);
+	LHashTbl<StrKey<char,false>,int64> Map(200000);
 	int Found = 0;
 	for (IdeProject *p = Proj.First(); p; p = Proj.Next())
 	{
@@ -2068,7 +2221,7 @@ bool IdeProject::FindDuplicateSymbols()
 				for (int Rd = 0; (Rd = Nm.Read(Buf, sizeof(Buf))); )
 					q.Write(Buf, Rd);
 				GString::Array a = q.NewGStr().SplitDelimit("\r\n");
-				GHashTbl<char*,bool> Local(200000, false);
+				LHashTbl<StrKey<char,false>,bool> Local(200000);
 				for (GString *Ln = NULL; a.Iterate(Ln); Lines++)
 				{
 					GString::Array p = Ln->SplitDelimit(" \t", 3);
@@ -2471,6 +2624,8 @@ bool IdeProject::SaveFile()
 		GFile f;
 		if (f.Open(Full, O_WRITE))
 		{
+			f.SetSize(0);
+
 			GXmlTree x;
 			GProgressDlg Prog(d->App, 1000);
 			Prog.SetAlwaysOnTop(true);
@@ -2503,10 +2658,11 @@ bool IdeProject::SaveFile()
 			f.SetSize(0);
 
 			// Save user file details..
-			int Id;
-			for (int Flags = d->UserNodeFlags.First(&Id); Flags >= 0; Flags = d->UserNodeFlags.Next(&Id))
+			// int Id;
+			// for (int Flags = d->UserNodeFlags.First(&Id); Flags >= 0; Flags = d->UserNodeFlags.Next(&Id))
+			for (auto i : d->UserNodeFlags)
 			{
-				f.Print("%i,%x\n", Id, Flags);
+				f.Print("%i,%x\n", i.key, i.value);
 			}
 
 			d->UserFileDirty = false;
@@ -2646,7 +2802,7 @@ void IdeProject::OnMouseClick(GMouse &m)
 				GInput Name(Tree, "", "Name:", AppName);
 				if (Name.DoModal())
 				{
-					GetSubFolder(this, Name.Str, true);
+					GetSubFolder(this, Name.GetStr(), true);
 				}
 				break;
 			}
@@ -2765,24 +2921,25 @@ bool IdeProject::InProject(bool FuzzyMatch, const char *Path, bool Open, IdeDoc 
 		int PathLen = strlen(Path);
 		int LeafLen = strlen(Leaf);
 		uint32 MatchingScore = 0;
-		const char *p;
 
 		// Traverse all nodes and try and find the best fit.
-		for (ProjectNode *Cur = d->Nodes.First(&p); Cur; Cur = d->Nodes.Next(&p))
+		// const char *p;
+		// for (ProjectNode *Cur = d->Nodes.First(&p); Cur; Cur = d->Nodes.Next(&p))
+		for (auto Cur : d->Nodes)
 		{
-			int CurPlatform = Cur->GetPlatforms();
+			int CurPlatform = Cur.value->GetPlatforms();
 			uint32 Score = 0;
 
-			if (stristr(p, Path))
+			if (stristr(Cur.key, Path))
 			{
 				Score += PathLen;
 			}
-			else if (stristr(p, Leaf))
+			else if (stristr(Cur.key, Leaf))
 			{
 				Score += LeafLen;
 			}
 
-			const char *pLeaf = LgiGetLeaf(p);
+			const char *pLeaf = LgiGetLeaf(Cur.key);
 			if (pLeaf && !stricmp(pLeaf, Leaf))
 			{
 				Score |= 0x80000000;
@@ -2795,7 +2952,7 @@ bool IdeProject::InProject(bool FuzzyMatch, const char *Path, bool Open, IdeDoc 
 			if (Score > MatchingScore)
 			{
 				MatchingScore = Score;
-				n = Cur;
+				n = Cur.value;
 			}
 		}
 	}
@@ -2920,7 +3077,7 @@ bool IdeProject::BuildIncludePaths(GArray<GString> &Paths, bool Recurse, bool In
 	}
 	Projects.Insert(this, 0);
 
-	GHashTbl<char*, bool> Map;
+	LHashTbl<StrKey<char>, bool> Map;
 	
 	for (IdeProject *p=Projects.First(); p; p=Projects.Next())
 	{
@@ -3058,9 +3215,10 @@ bool IdeProject::BuildIncludePaths(GArray<GString> &Paths, bool Recurse, bool In
 		}
 	}
 
-	char *p;
-	for (bool b = Map.First(&p); b; b = Map.Next(&p))
-		Paths.Add(p);
+	// char *p;
+	// for (bool b = Map.First(&p); b; b = Map.Next(&p))
+	for (auto p : Map)
+		Paths.Add(p.key);
 
 	return true;
 }
@@ -3184,7 +3342,7 @@ struct Dependency
 
 bool IdeProject::GetAllDependencies(GArray<char*> &Files, IdePlatform Platform)
 {
-	GHashTbl<char*, Dependency*> Deps;
+	LHashTbl<StrKey<char>, Dependency*> Deps;
 	GAutoString Base = GetBasePath();
 	
 	// Build list of all the source files...
@@ -3210,10 +3368,11 @@ bool IdeProject::GetAllDependencies(GArray<char*> &Files, IdePlatform Platform)
 	{
 		// Find all the unscanned dependencies
 		Unscanned.Length(0);
-		for (Dependency *d = Deps.First(); d; d = Deps.Next())
+		// for (Dependency *d = Deps.First(); d; d = Deps.Next())
+		for (auto d : Deps)
 		{
-			if (!d->Scanned)
-				Unscanned.Add(d);
+			if (!d.value->Scanned)
+				Unscanned.Add(d.value);
 		}		
 
 		for (int i=0; i<Unscanned.Length(); i++)
@@ -3255,9 +3414,10 @@ bool IdeProject::GetAllDependencies(GArray<char*> &Files, IdePlatform Platform)
 	}
 	while (Unscanned.Length() > 0);
 	
-	for (Dependency *d = Deps.First(); d; d = Deps.Next())
+	// for (Dependency *d = Deps.First(); d; d = Deps.Next())
+	for (auto d : Deps)
 	{
-		Files.Add(d->File.Release());
+		Files.Add(d.value->File.Release());
 	}
 	
 	Deps.DeleteObjects();
@@ -3482,7 +3642,7 @@ int IdeTree::OnDrop(GArray<GDragData> &Data, GdcPt2 p, int KeyState)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
-AddFilesProgress::AddFilesProgress(GViewI *par) : Exts(0, false)
+AddFilesProgress::AddFilesProgress(GViewI *par)
 {
 	v = 0;
 	Cancel = false;

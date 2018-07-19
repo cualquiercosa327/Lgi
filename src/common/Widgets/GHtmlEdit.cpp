@@ -2675,7 +2675,7 @@ int GHtmlEdit::OnNotify(GViewI *c, int f)
 			{
 				GInput i(this, 0, "Specify the URL:", "Link");
 				if (i.DoModal())
-					d->e->MakeLink(i.Str);
+					d->e->MakeLink(i.GetStr());
 			}
 			break;
 		}

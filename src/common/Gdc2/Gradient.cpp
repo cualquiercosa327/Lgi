@@ -190,10 +190,10 @@ public:
 			p[i].x = Rx(p[i].x, p[i].y);
 			p[i].y = Ry(p[i].x, p[i].y);
 
-			MinX = min(MinX, p[i].x);
-			MaxX = max(MaxX, p[i].x);
-			MinY = min(MinY, p[i].y);
-			MaxY = max(MaxY, p[i].y);
+			MinX = MIN(MinX, p[i].x);
+			MaxX = MAX(MaxX, p[i].x);
+			MinY = MIN(MinY, p[i].y);
+			MaxY = MAX(MaxY, p[i].y);
 		}
 
 		int Scale = MaxX - MinX;

@@ -28,7 +28,7 @@ public:
 	DropDownBtnPriv *d;
 	LList *Lst;
 
-	DropLst(DropDownBtnPriv *priv, GView *owner) : GPopup(owner)
+	DropLst(DropDownBtnPriv *priv, GView *owner) : Lst(NULL), GPopup(owner)
 	{
 		d = priv;
 

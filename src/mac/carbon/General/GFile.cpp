@@ -1034,7 +1034,7 @@ int LeapYear(int year)
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-bool GDirectory::ConvertToTime(char *Str, int SLen, uint64 Time)
+bool GDirectory::ConvertToTime(char *Str, int SLen, uint64 Time) const
 {
 	time_t k = Time;
 	struct tm *t = localtime(&k);
@@ -1046,7 +1046,7 @@ bool GDirectory::ConvertToTime(char *Str, int SLen, uint64 Time)
 	return false;
 }
 
-bool GDirectory::ConvertToDate(char *Str, int SLen, uint64 Time)
+bool GDirectory::ConvertToDate(char *Str, int SLen, uint64 Time) const
 {
 	time_t k = Time;
 	struct tm *t = localtime(&k);
@@ -1213,12 +1213,12 @@ bool GDirectory::Path(char *s, int BufLen)
 	return LgiMakePath(s, BufLen, d->BasePath, GetName());
 }
 
-int GDirectory::GetType()
+int GDirectory::GetType() const
 {
 	return IsDir() ? VT_FOLDER : VT_FILE;
 }
 
-int GDirectory::GetUser(bool Group)
+int GDirectory::GetUser(bool Group) const
 {
 	if (Group)
 	{
@@ -1230,7 +1230,7 @@ int GDirectory::GetUser(bool Group)
 	}
 }
 
-bool GDirectory::IsReadOnly()
+bool GDirectory::IsReadOnly() const
 {
 	if (getuid() == d->Stat.st_uid)
 	{
@@ -1247,49 +1247,49 @@ bool GDirectory::IsReadOnly()
 	return !TestFlag(GetAttributes(), S_IWOTH);
 }
 
-bool GDirectory::IsSymLink()
+bool GDirectory::IsSymLink() const
 {
 	int a = GetAttributes();
 	return S_ISLNK(a);
 }
 
-bool GDirectory::IsHidden()
+bool GDirectory::IsHidden() const
 {
 	return GetName() && GetName()[0] == '.';
 }
 
-bool GDirectory::IsDir()
+bool GDirectory::IsDir() const
 {
 	int a = GetAttributes();
 	return !S_ISLNK(a) && S_ISDIR(a);
 }
 
-long GDirectory::GetAttributes()
+long GDirectory::GetAttributes() const
 {
 	return d->Stat.st_mode;
 }
 
-char *GDirectory::GetName()
+char *GDirectory::GetName() const
 {
 	return (d->De) ? d->De->d_name : 0;
 }
 
-const uint64 GDirectory::GetCreationTime()
+uint64 GDirectory::GetCreationTime() const
 {
 	return (uint64)d->Stat.st_ctime * 1000;
 }
 
-const uint64 GDirectory::GetLastAccessTime()
+uint64 GDirectory::GetLastAccessTime() const
 {
 	return (uint64)d->Stat.st_atime * 1000;
 }
 
-const uint64 GDirectory::GetLastWriteTime()
+uint64 GDirectory::GetLastWriteTime() const
 {
 	return (uint64)d->Stat.st_mtime * 1000;
 }
 
-const uint64 GDirectory::GetSize()
+uint64 GDirectory::GetSize() const
 {
 	return d->Stat.st_size;
 }
@@ -1439,7 +1439,7 @@ ssize_t GFile::Read(void *Buffer, ssize_t Size, int Flags)
 			d->LastError = errno;
 			const char *Err = GetErrorName(errno);
 			int64 Pos = GetPos();
-			printf("%s:%i - GFile::Read(%p,%zi) err=%s, pos="LGI_PrintfInt64"\n",
+			printf("%s:%i - GFile::Read(%p,%zi) err=%s, pos=" LGI_PrintfInt64 "\n",
 				_FL, Buffer, Size, Err, Pos);
 		}
 		#endif
@@ -1461,7 +1461,7 @@ ssize_t GFile::Write(const void *Buffer, ssize_t Size, int Flags)
 		{
 			int Err = errno;
 			int64 Pos = GetPos();
-			printf("Write error: %i, "LGI_PrintfInt64"\n", Err, Pos);
+			printf("Write error: %i, " LGI_PrintfInt64 "\n", Err, Pos);
 		}
 		#endif
 	}

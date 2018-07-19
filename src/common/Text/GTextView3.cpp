@@ -28,6 +28,11 @@
 #define LUIS_DEBUG					0
 #define POUR_DEBUG					0
 #define PROFILE_POUR				0
+#define PROFILE_PAINT				0
+#define DRAW_LINE_BOXES				0
+#define WRAP_POUR_TIMEOUT			90 // ms
+#define PULSE_TIMEOUT				100 // ms
+#define CURSOR_BLINK				1000 // ms
 
 #define ALLOC_BLOCK					64
 #define IDC_VS						1000
@@ -66,7 +71,11 @@
 #define IDM_RTL						18
 
 #define PAINT_BORDER				Back
-#define PAINT_AFTER_LINE			Back
+#if DRAW_LINE_BOXES
+	#define PAINT_AFTER_LINE			GColour(240, 240, 240)
+#else
+	#define PAINT_AFTER_LINE			Back
+#endif
 
 #define CODEPAGE_BASE				100
 #define CONVERT_CODEPAGE_BASE		200
@@ -115,7 +124,6 @@ public:
 	int PourX;
 	bool LayoutDirty;
 	ssize_t DirtyStart, DirtyLen;
-	bool SimpleDelete;
 	GColour UrlColour;
 	bool CenterCursor;
 	ssize_t WordSelectMode;
@@ -138,7 +146,6 @@ public:
 	GTextView3Private(GTextView3 *view) : LMutex("GTextView3Private")
 	{
 		View = view;
-		SimpleDelete = false;
 		WordSelectMode = -1;
 		PourX = -1;
 		DirtyStart = DirtyLen = 0;
@@ -315,6 +322,8 @@ GTextView3::GTextView3(	int Id,
 	GView::d->Css.Reset(d = new GTextView3Private(this));
 	
 	PourEnabled = true;
+	PartialPour = false;
+	BlinkTs = 0;
 	LineY = 1;
 	MaxX = 0;
 	TextCache = 0;
@@ -549,7 +558,7 @@ void GTextView3::SetTabSize(uint8 i)
 	Invalidate();
 }
 
-void GTextView3::SetWrapType(uint8 i)
+void GTextView3::SetWrapType(LDocWrapType i)
 {
 	GDocView::SetWrapType(i);
 	CanScrollX = i != TEXTED_WRAP_REFLOW;
@@ -658,303 +667,455 @@ void GTextView3::OnFontChange()
 	}
 }
 
+void GTextView3::LogLines()
+{
+	int Idx = 0;
+	LgiTrace("DocSize: %i\n", (int)Size);
+	for (auto i : Line)
+	{
+		LgiTrace("  [%i]=%i+%i %s\n", Idx, (int)i->Start, (int)i->Len, i->r.GetStr());
+		Idx++;
+	}
+}
+
+bool GTextView3::ValidateLines(bool CheckBox)
+{
+	size_t Pos = 0;
+	char16 *c = Text;
+	size_t Idx = 0;
+	GTextLine *Prev = NULL;
+
+	for (auto i : Line)
+	{
+		GTextLine *l = i;
+		if (l->Start != Pos)
+		{
+			LogLines();
+			LgiAssert(!"Incorrect start.");
+			return false;
+		}
+
+		char16 *e = c;
+		if (WrapType == TEXTED_WRAP_NONE)
+		{
+			while (*e && *e != '\n')
+				e++;
+		}
+		else
+		{
+			char16 *end = Text + l->Start + l->Len;
+			while (*e && *e != '\n' && e < end)
+				e++;
+		}
+			
+		ssize_t Len = e - c;
+		if (l->Len != Len)
+		{
+			LogLines();
+			LgiAssert(!"Incorrect length.");
+			return false;
+		}
+
+
+		if (CheckBox &&
+			Prev &&
+			Prev->r.y2 != l->r.y1 - 1)
+		{
+			LogLines();
+			LgiAssert(!"Lines not joined vertically");
+		}
+
+		if (*e)
+		{
+			if (*e == '\n')
+				e++;
+			else if (WrapType == TEXTED_WRAP_REFLOW)
+				e++;
+		}
+		Pos = e - Text;
+		c = e;
+		Idx++;
+		Prev = l;
+	}
+
+	if (WrapType == TEXTED_WRAP_NONE &&
+		Pos != Size)
+	{
+		LogLines();
+		LgiAssert(!"Last line != end of doc");
+		return false;
+	}
+
+	return true;
+}
+
+// break array, break out of loop when we hit these chars
+#define ExitLoop(c)	(	(c) == 0 ||								\
+						(c) == '\n' ||							\
+						(c) == ' ' ||							\
+						(c) == '\t'								\
+					)
+
+// extra breaking opportunities
+#define ExtraBreak(c) (	( (c) >= 0x3040 && (c) <= 0x30FF ) ||	\
+						( (c) >= 0x3300 && (c) <= 0x9FAF )		\
+					)
+
+/*
+Prerequisite:
+The Line list must have either the objects with the correct Start/Len or be missing the lines altogether...
+*/
 void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a delete */)
 {
 	#if PROFILE_POUR
-	int StartTime = LgiCurrentTime();
+	char _txt[256];
+	sprintf_s(_txt, sizeof(_txt), "%p::PourText Lines=%i Sz=%i", this, (int)Line.Length(), (int)Size);
+	GProfile Prof(_txt);
 	#endif
 
 	LgiAssert(InThread());
 
 	GRect Client = GetClient();
 	int Mx = Client.X() - d->rPadding.x1 - d->rPadding.x2;
-
+	int Cy = 0;
 	MaxX = 0;
 
-	int Cx = 0, Cy = 0;
-	bool SimplePour = d->SimpleDelete; // One line change
-	int CurrentLine = -1;
-	if (d->SimpleDelete || Start)
+	int Idx = -1;
+	GTextLine *Cur = GetTextLine(Start, &Idx);
+	// LgiTrace("Pour %i:%i Cur=%p Idx=%i\n", (int)Start, (int)Length, (int)Cur, (int)Idx);
+	if (!Cur || !Cur->r.Valid())
 	{
-		d->SimpleDelete = false;
-		if (!SimplePour &&
-			WrapType == TEXTED_WRAP_NONE &&
-			Length > 0 &&
-			Length < 100)
+		// Find the last line that has a valid position...
+		for (auto i = Idx >= 0 ? Line.begin(Idx) : Line.rbegin(); *i; i--, Idx--)
 		{
-			SimplePour = true;
-			for (int i=0; i<Length; i++)
+			Cur = *i;
+			if (Cur->r.Valid())
 			{
-				if (Text[Start + i] == '\n')
-				{
-					SimplePour = false;
-					break;
-				}
+				Cy = Cur->r.y1;
+				if (Idx < 0)
+					Idx = Line.IndexOf(Cur);
+				break;
 			}
 		}
-		
-		// Get the line of the change
-		GTextLine *Current = GetTextLine(Start, &CurrentLine);
-		
-		LgiAssert(Current != 0);
-		LgiAssert(CurrentLine >= 0);
-		
-		if (!Current)
-		{
-			SimplePour = false;
-		}
-		else
-		{		
-			Start = Current->Start;
-			Cy = Current->r.y1;
-			
-			if (SimplePour)
-			{
-				#if POUR_DEBUG
-				printf("SimplePour Start=%i Length=%i CurrentLine=%i\n", Start, Length, CurrentLine);
-				#endif
-				Line.Delete(Current);
-				DeleteObj(Current);
-			}
-			else
-			{
-				#if POUR_DEBUG
-				printf("PartialPour Start=%i Length=%i\n", Start, Length);
-				#endif
-				bool Done = false;
-				for (GTextLine *l=Line.Last(); l && !Done; l=Line.Last())
-				{
-					Done = l == Current;
-					Line.Delete(l);
-					DeleteObj(l);
-				}
-			}
-		}
+	}
+	if (Cur && !Cur->r.Valid())
+		Cur = NULL;
+	if (Cur)
+	{
+		Cy = Cur->r.y1;
+		Start = Cur->Start;
+		Length = Size - Start;
+		// LgiTrace("Reset start to %i:%i because Cur!=NULL\n", (int)Start, (int)Length);
 	}
 	else
 	{
-		// Whole doc is dirty
-		#if POUR_DEBUG
-		printf("WholePour Start=%i Length=%i\n", Start, Length);
-		#endif
+		Idx = 0;
 		Start = 0;
-		Line.DeleteObjects();
+		Length = Size;
+	}
+			
+	if (!Text || !Font || Mx <= 0)
+		return;
+
+	// Tracking vars
+	size_t e;
+	//int LastX = 0;
+	int WrapCol = GetWrapAtCol();
+
+	GDisplayString Sp(Font, " ", 1);
+	int WidthOfSpace = Sp.X();
+	if (WidthOfSpace < 1)
+	{
+		printf("%s:%i - WidthOfSpace test failed.\n", _FL);
+		return;
 	}
 
-	if (Text && Font && Mx > 0)
+	// Alright... lets pour!
+	uint64 StartTs = LgiCurrentTime();
+	if (WrapType == TEXTED_WRAP_NONE)
 	{
-		// break array, break out of loop when we hit these chars
-		#define ExitLoop(c)	(	(c) == 0 ||								\
-								(c) == '\n' ||							\
-								(c) == ' ' ||							\
-								(c) == '\t'								\
-							)
-
-		// extra breaking oportunities
-		#define ExtraBreak(c) (	( (c) >= 0x3040 && (c) <= 0x30FF ) ||	\
-								( (c) >= 0x3300 && (c) <= 0x9FAF )		\
-							)
-
-		// tracking vars
-		size_t e;
-		int LastX = 0;
-		size_t LastChar = Start;
-		int WrapCol = GetWrapAtCol();
-
-		GDisplayString Sp(Font, " ", 1);
-		int WidthOfSpace = Sp.X();
-		if (WidthOfSpace < 1)
+		// Find the dimensions of each line that is missing a rect
+		#if PROFILE_POUR
+		Prof.Add("NoWrap: ExistingLines");
+		#endif
+		size_t Pos = 0;
+		for (auto i = Line.begin(Idx); *i; i++)
 		{
-			printf("%s:%i - WidthOfSpace test failed.\n", _FL);
-			return;
+			GTextLine *l = *i;
+
+			if (!l->r.Valid()) // If the layout is not valid...
+			{
+				GDisplayString ds(Font, Text + l->Start, l->Len);
+
+				l->r.x1 = d->rPadding.x1;
+				l->r.x2 = l->r.x1 + ds.X();
+
+				MaxX = MAX(MaxX, l->r.X());
+			}
+
+			// Adjust the y position anyway... it's free.
+			l->r.y1 = Cy;
+			l->r.y2 = l->r.y1 + LineY - 1;
+			Cy = l->r.y2 + 1;
+			Pos = l->Start + l->Len;
+			if (Text[Pos] == '\n')
+				Pos++;
 		}
 
-		// alright... lets pour!
-		for (size_t i=Start; i<Size; i = e)
+		// Now if we are missing lines as well, create them and lay them out
+		#if PROFILE_POUR
+		Prof.Add("NoWrap: NewLines");
+		#endif
+		while (Pos < Size)
 		{
-			// seek till next char of interest
-			if (WrapType == TEXTED_WRAP_NONE)
+			GTextLine *l = new GTextLine;
+			l->Start = Pos;
+			char16 *c = Text + Pos;
+			char16 *e = c;
+			while (*e && *e != '\n')
+				e++;
+			l->Len = e - c;
+
+			l->r.x1 = d->rPadding.x1;
+			l->r.y1 = Cy;
+			l->r.y2 = l->r.y1 + LineY - 1;
+			if (l->Len)
 			{
-				// Seek line/doc end
-				char16 *End;
-				for (End = Text + i; *End && *End != '\n'; End++);
-				e = (int)SubtractPtr(End, Text);
-				GDisplayString ds(Font, Text + i, e - i);
-				Cx = ds.X();
-
-				// Alloc line
-				GTextLine *l = new GTextLine;
-				if (l)
-				{
-					l->Start = LastChar;
-					l->r.x1 = d->rPadding.x1;
-					l->Len = e - LastChar;
-					l->r.x2 = l->r.x1 + Cx;
-					LastChar = ++e;
-
-					l->r.y1 = Cy;
-					l->r.y2 = l->r.y1 + LineY - 1;
-
-					Line.Insert(l, SimplePour ? CurrentLine : -1);
-
-					MaxX = MAX(MaxX, l->r.X());
-					LastX = Cx = 0;
-					Cy += LineY;
-				}
-				else break;
-				
-				if (SimplePour)
-				{
-					for (l=Line[++CurrentLine]; l; l=Line.Next())
-					{
-						l->Start += Length;
-					}
-					break;
-				}
+				GDisplayString ds(Font, Text + l->Start, l->Len);
+				l->r.x2 = l->r.x1 + ds.X();
 			}
 			else
 			{
-				e = i;
-				int	Width = 0;
+				l->r.x2 = l->r.x1;
+			}
 
-				// Find break point
-				if (WrapCol)
-				{
-					// Wrap at column
+			Line.Insert(l);
+
+			if (*e == '\n')
+				e++;
+
+			MaxX = MAX(MaxX, l->r.X());
+			Cy = l->r.y2 + 1;
+			Pos = e - Text;
+		}
+
+		PartialPour = false;
+	}
+	else // Wrap text
+	{
+		int DisplayStart = ScrollYLine();
+		int DisplayLines = 	(Client.Y() + LineY - 1) / LineY;
+		int DisplayEnd = DisplayStart + DisplayLines;
+		
+		// Pouring is split into 2 parts... 
+		// 1) pouring to the end of the displayed text.
+		// 2) pouring from there to the end of the document.
+		//	potentially taking several goes to complete the full pour
+		// This allows the document to display and edit faster..
+		bool PourToDisplayEnd = Line.Length() < DisplayEnd;
+
+		#if 0
+		LgiTrace("Idx=%i, DisplayStart=%i, DisplayLines=%i, DisplayEnd=%i, PourToDisplayEnd=%i\n",
+			Idx, DisplayStart, DisplayLines, DisplayEnd, PourToDisplayEnd);
+		#endif
+
+		if (Line.Length() > Idx)
+		{
+			for (auto i = Line.begin(Idx); *i; i++)
+				delete *i;
+			Line.Length(Idx);
+			Cur = NULL;
+		}
+
+		int Cx = 0;
+		size_t i;
+		for (i=Start; i<Size; i = e)
+		{
+			// seek till next char of interest
+			e = i;
+			int	Width = 0;
+
+			// Find break point
+			if (WrapCol)
+			{
+				// Wrap at column
 					
-					// Find the end of line
-					while (true)
+				// Find the end of line
+				while (true)
+				{
+					if (e >= Size ||
+						Text[e] == '\n' ||
+						(e-i) >= WrapCol)
 					{
-						if (e >= Size ||
-							Text[e] == '\n' ||
-							(e-i) >= WrapCol)
+						break;
+					}
+
+					e++;
+				}
+
+				// Seek back some characters if we are mid word
+				size_t OldE = e;
+				if (e < Size &&
+					Text[e] != '\n')
+				{
+					while (e > i)
+					{
+						if (ExitLoop(Text[e]) ||
+							ExtraBreak(Text[e]))
 						{
 							break;
 						}
 
-						e++;
+						e--;
 					}
+				}
 
-					// Seek back some characters if we are mid word
-					size_t OldE = e;
-					if (e < Size &&
-						Text[e] != '\n')
+				if (e == i)
+				{
+					// No line break at all, so seek forward instead
+					for (e=OldE; e < Size && Text[e] != '\n'; e++)
 					{
-						while (e > i)
+						if (ExitLoop(Text[e]) ||
+							ExtraBreak(Text[e]))
+							break;
+					}
+				}
+
+				// Calc the width
+				GDisplayString ds(Font, Text + i, e - i);
+				Width = ds.X();
+			}
+			else
+			{
+				// Wrap to edge of screen
+				ssize_t PrevExitChar = -1;
+				int PrevX = -1;
+
+				while (true)
+				{
+					if (e >= Size ||
+						ExitLoop(Text[e]) ||
+						ExtraBreak(Text[e]))
+					{
+						GDisplayString ds(Font, Text + i, e - i);
+						if (ds.X() + Cx > Mx)
 						{
-							if (ExitLoop(Text[e]) ||
-								ExtraBreak(Text[e]))
+							if (PrevExitChar > 0)
 							{
-								break;
+								e = PrevExitChar;
+								Width = PrevX;
 							}
-
-							e--;
+							else
+							{
+								Width = ds.X();
+							}
+							break;
 						}
-					}
-
-					if (e == i)
-					{
-						// No line break at all, so seek forward instead
-						for (e=OldE; e < Size && Text[e] != '\n'; e++)
+						else if (e >= Size ||
+								Text[e] == '\n')							
 						{
-							if (ExitLoop(Text[e]) ||
-								ExtraBreak(Text[e]))
-								break;
+							Width = ds.X();
+							break;
 						}
+							
+						PrevExitChar = e;
+						PrevX = ds.X();
 					}
+						
+					e++;
+				}
+			}
 
-					// Calc the width
-					GDisplayString ds(Font, Text + i, e - i);
-					Width = ds.X();
+			// Create layout line
+			GTextLine *l = new GTextLine;
+			if (l)
+			{
+				l->Start = i;
+				l->Len = e - i;
+				l->r.x1 = d->rPadding.x1;
+				l->r.x2 = l->r.x1 + Width - 1;
+
+				l->r.y1 = Cy;
+				l->r.y2 = l->r.y1 + LineY - 1;
+
+				Line.Insert(l);
+				if (PourToDisplayEnd)
+				{
+					if (Line.Length() > DisplayEnd)
+					{
+						// We have reached the end of the displayed area... so
+						// exit out temporarily to display the layout to the user
+						PartialPour = true;
+						break;
+					}
 				}
 				else
 				{
-					// Wrap to edge of screen
-					ssize_t PrevExitChar = -1;
-					int PrevX = -1;
-
-					while (true)
+					// Otherwise check if we are taking too long...
+					if (Line.Length() % 20 == 0)
 					{
-						if (e >= Size ||
-							ExitLoop(Text[e]) ||
-							ExtraBreak(Text[e]))
+						uint64 Now = LgiCurrentTime();
+						if (Now - StartTs > WRAP_POUR_TIMEOUT)
 						{
-							GDisplayString ds(Font, Text + i, e - i);
-							if (ds.X() + Cx > Mx)
-							{
-								if (PrevExitChar > 0)
-								{
-									e = PrevExitChar;
-									Width = PrevX;
-								}
-								else
-								{
-									Width = ds.X();
-								}
-								break;
-							}
-							else if (e >= Size ||
-									Text[e] == '\n')							
-							{
-								Width = ds.X();
-								break;
-							}
-							
-							PrevExitChar = e;
-							PrevX = ds.X();
+							PartialPour = true;
+							// LgiTrace("Pour timeout...\n");
+							break;
 						}
-						
-						e++;
 					}
 				}
-
-				// Create layout line
-				GTextLine *l = new GTextLine;
-				if (l)
-				{
-					l->Start = i;
-					l->Len = e - i;
-					l->r.x1 = d->rPadding.x1;
-					l->r.x2 = l->r.x1 + Width - 1;
-
-					l->r.y1 = Cy;
-					l->r.y2 = l->r.y1 + LineY - 1;
-
-					Line.Insert(l);
 					
-					MaxX = MAX(MaxX, l->r.X());
-					Cy += LineY;
+				MaxX = MAX(MaxX, l->r.X());
+				Cy += LineY;
 					
-					if (e < Size)
-						e++;
-				}
+				if (e < Size)
+					e++;
 			}
 		}
+
+		if (i >= Size)
+			PartialPour = false;
+		SendNotify(GNotifyCursorChanged);
 	}
 
-	GTextLine *Last = Line.Length() ? Line.Last() : 0;
-	if (!Last ||
-		Last->Start + Last->Len < Size)
-	{
-		GTextLine *l = new GTextLine;
-		if (l)
-		{
-			l->Start = Size;
-			l->Len = 0;
-			l->r.x1 = l->r.x2 = d->rPadding.x1;
-			l->r.y1 = Cy;
-			l->r.y2 = l->r.y1 + LineY - 1;
+	#ifdef _DEBUG
+	ValidateLines(true);
+	#endif
+	#if PROFILE_POUR
+	Prof.Add("LastLine");
+	#endif
 
-			Line.Insert(l);
+	if (!PartialPour)
+	{
+		GTextLine *Last = Line.Length() ? Line.Last() : 0;
+		if (!Last ||
+			Last->Start + Last->Len < Size)
+		{
+			GTextLine *l = new GTextLine;
+			if (l)
+			{
+				l->Start = Size;
+				l->Len = 0;
+				l->r.x1 = l->r.x2 = d->rPadding.x1;
+				l->r.y1 = Cy;
+				l->r.y2 = l->r.y1 + LineY - 1;
+
+				Line.Insert(l);
 			
-			MaxX = MAX(MaxX, l->r.X());
-			Cy += LineY;
+				MaxX = MAX(MaxX, l->r.X());
+				Cy += LineY;
+			}
 		}
 	}
 
 	bool ScrollYNeeded = Client.Y() < (Line.Length() * LineY);
 	bool ScrollChange = ScrollYNeeded ^ (VScroll != NULL);
-	d->LayoutDirty = ScrollChange;
+	d->LayoutDirty = WrapType != TEXTED_WRAP_NONE && ScrollChange;
+	#if PROFILE_POUR
+	static GString _s;
+	_s.Printf("ScrollBars dirty=%i", d->LayoutDirty);
+	Prof.Add(_s);
+	#endif
+
 	if (ScrollChange)
 	{
 		// printf("%s:%i - SetScrollBars(%i)\n", _FL, ScrollYNeeded);
@@ -962,11 +1123,7 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 	}
 	UpdateScrollBars();
 	
-	#if PROFILE_POUR
-	int _PourTime = LgiCurrentTime() - StartTime;
-	printf("TextPour: %i ms, %i lines\n", _PourTime, Line.Length());
-	#endif
-	#ifdef _DEBUG
+	#if 0 // def _DEBUG
 	if (GetWindow())
 	{
 		static char s[256];
@@ -974,7 +1131,6 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 		GetWindow()->PostEvent(M_TEXTVIEW_DEBUG_TEXT, (GMessage::Param)s);
 	}
 	#endif
-//	printf("PourTime=%ims\n", _PourTime);
 
 	#if POUR_DEBUG
 	printf("Lines=%i\n", Line.Length());
@@ -1280,6 +1436,9 @@ bool GTextView3::Insert(size_t At, char16 *Data, ssize_t Len)
 	
 	if (!ReadOnly && Len > 0)
 	{
+		if (!Data)
+			return false;
+
 		// limit input to valid data
 		At = MIN(Size, At);
 
@@ -1310,27 +1469,98 @@ bool GTextView3::Insert(size_t At, char16 *Data, ssize_t Len)
 
 		if (Text)
 		{
-			// insert the data
-			// move the section after the insert
+			// Insert the data
+
+			// Move the section after the insert to make space...
 			memmove(Text+(At+Len), Text+At, (Size-At) * sizeof(char16));
 
-			if (Data)
-			{
-				// copy new data in
-				if (UndoOn)
-				{
-					UndoQue += new GTextView3Undo(this, Data, Len, At, UndoInsert);
-				}
+			// Add the undo object...
+			if (UndoOn)
+				UndoQue += new GTextView3Undo(this, Data, Len, At, UndoInsert);
 
-				memcpy(Text+At, Data, Len * sizeof(char16));
-				Size += Len;
+			// Copy new data in...
+			memcpy(Text+At, Data, Len * sizeof(char16));
+			Size += Len;
+			Text[Size] = 0; // NULL terminate
+
+
+			// Clear layout info for the new text
+			int Idx = -1;
+			GTextLine *Cur = NULL;
+			
+			if (Line.Length() == 0)
+			{
+				// Empty doc... set up the first line
+				Line.Insert(Cur = new GTextLine);
+				Idx = 0;
+				Cur->Start = 0;
 			}
 			else
 			{
-				return false;
+				Cur = GetTextLine(At, &Idx);
 			}
 
-			Text[Size] = 0;
+			if (Cur)
+			{
+				if (WrapType == TEXTED_WRAP_NONE)
+				{
+					// Clear layout for current line...
+					Cur->r.ZOff(-1, -1);
+
+					// Add any new lines that we need...
+					char16 *e = Text + At + Len;
+					char16 *c;
+					for (c = Text + At; c < e; c++)
+					{
+						if (*c == '\n')
+						{
+							// Set the size of the current line...
+							size_t Pos = c - Text;
+							Cur->Len = Pos - Cur->Start;
+
+							// Create a new line...
+							Cur = new GTextLine();
+							if (!Cur)
+								return false;
+							Cur->Start = Pos + 1;
+							Line.Insert(Cur, ++Idx);
+						}
+					}
+
+					// Make sure the last Line's length is set..
+					Cur->CalcLen(Text);
+	
+					// Now update all the positions of the following lines...
+					for (auto i = Line.begin(++Idx); *i; i++)
+						(*i)->Start += Len;
+				}
+				else
+				{
+					// Clear all lines to the end of the doc...
+					for (auto i = Line.begin(Idx); *i; i++)
+						delete *i;
+					Line.Length(Idx);
+				}
+			}
+			else
+			{
+				// If wrap is on then this can happen when an Insert happens before the 
+				// OnPulse event has laid out the new text. Probably not a good thing in
+				// non-wrap mode			
+				if (WrapType == TEXTED_WRAP_NONE)
+				{
+					GTextLine *l = Line.Last();
+					printf("%s:%i - Insert error: no cur, At=%i, Size=%i, Lines=%i, WrapType=%i\n",
+						_FL, (int)At, (int)Size, (int)Line.Length(), (int)WrapType);
+					if (l)
+						printf("Last=%i, %i\n", (int)l->Start, (int)l->Len);
+				}
+			}
+
+			#ifdef _DEBUG
+			ValidateLines();
+			#endif
+
 			Dirty = true;
 			if (PourEnabled)
 			{
@@ -1361,36 +1591,14 @@ bool GTextView3::Delete(size_t At, ssize_t Len)
 
 		if (Len > 0)
 		{
-			bool HasNewLine = false;
+			int HasNewLine = 0;
 
 			for (int i=0; i<Len; i++)
 			{
 				if (Text[At + i] == '\n')
-				{
-					HasNewLine = true;
-					break;
-				}
+					HasNewLine++;
 			}
 
-			ssize_t PrevLineStart = -1;
-			ssize_t NextLineStart = -1;
-			if (WrapType == TEXTED_WRAP_NONE)
-			{
-				d->SimpleDelete = !HasNewLine;
-			}
-			else
-			{
-				int Index;
-				GTextLine *Cur = GetTextLine(At, &Index);
-				if (Cur)
-				{
-					GTextLine *Prev = Line[Index-1];
-					PrevLineStart = Prev ? Prev->Start : -1;
-					GTextLine *Next = Line[Index+1];
-					NextLineStart = Next ? Next->Start : -1;
-				}
-			}
-			
 			// do delete
 			if (UndoOn)
 			{
@@ -1401,8 +1609,49 @@ bool GTextView3::Delete(size_t At, ssize_t Len)
 			Size -= Len;
 			Text[Size] = 0;
 
+			if (WrapType == TEXTED_WRAP_NONE)
+			{
+				int Idx = -1;
+				GTextLine *Cur = GetTextLine(At, &Idx);
+				if (Cur)
+				{
+					Cur->r.ZOff(-1, -1);
+
+					// Delete some lines...
+					for (int i=0; i<HasNewLine; i++)
+					{
+						GTextLine *l = Line[Idx + 1];
+						delete l;
+						Line.DeleteAt(Idx + 1);
+					}
+
+					// Correct the current line's length
+					Cur->CalcLen(Text);
+
+					// Shift all further lines down...
+					for (auto i = Line.begin(Idx + 1); *i; i++)
+						(*i)->Start -= Len;
+				}
+			}
+			else
+			{
+				int Index;
+				GTextLine *Cur = GetTextLine(At, &Index);
+				if (Cur)
+				{
+					for (auto i = Line.begin(Index); *i; i++)
+						delete *i;
+					Line.Length(Index);
+				}
+			}
+			
+
 			Dirty = true;
 			Status = true;
+
+			#ifdef _DEBUG
+			ValidateLines();
+			#endif
 			if (PourEnabled)
 			{
 				PourText(At, -Len);
@@ -1421,30 +1670,10 @@ bool GTextView3::Delete(size_t At, ssize_t Len)
 				GTextLine *Cur = GetTextLine(At, &Index);
 				if (Cur)
 				{
-					GTextLine *Repaint = 0;
-					GTextLine *Prev = Line[Index-1];
-					if (Prev && PrevLineStart != Prev->Start)
-					{
-						// Paint previous line down
-						Repaint = Prev;
-					}
-					else
-					{
-						GTextLine *Next = Line[Index+1];
-						if (Next && NextLineStart != Next->Start)
-						{
-							// Paint next line down
-							Repaint = Next;
-						}
-					}
-					
-					if (Repaint)
-					{
-						GRect r = Repaint->r;
-						r.x2 = GetClient().x2;
-						r.y2 = GetClient().y2;
-						Invalidate(&r);
-					}
+					GRect r = Cur->r;
+					r.x2 = GetClient().x2;
+					r.y2 = GetClient().y2;
+					Invalidate(&r);
 				}
 			}
 
@@ -1477,7 +1706,7 @@ GTextView3::GTextLine *GTextView3::GetTextLine(ssize_t Offset, int *Index)
 {
 	int i = 0;
 
-	for (GTextLine *l=Line.First(); l; l=Line.Next(), i++)
+	for (GTextLine *l = Line.First(); l; l = Line.Next(), i++)
 	{
 		if (Offset >= l->Start && Offset <= l->Start+l->Len)
 		{
@@ -1539,6 +1768,7 @@ bool GTextView3::Name(const char *s)
 		UndoQue.Empty();
 		DeleteArray(TextCache);
 		DeleteArray(Text);
+		Line.DeleteObjects();
 
 		LgiAssert(LgiIsUtf8(s));
 		Text = Utf8ToWide(s);
@@ -1623,6 +1853,7 @@ bool GTextView3::NameW(const char16 *s)
 	}
 
 	// update everything else
+	Line.DeleteObjects();
 	d->SetDirty(0, Size);
 	PourText(0, Size);
 	PourStyle(0, Size);
@@ -2356,9 +2587,9 @@ bool GTextView3::DoGoto()
 {
 	GInput Dlg(this, "", LgiLoadString(L_TEXTCTRL_GOTO_LINE, "Goto line:"), "Text");
 	if (Dlg.DoModal() == IDOK &&
-		Dlg.Str)
+		Dlg.GetStr())
 	{
-		SetLine(atoi(Dlg.Str));
+		SetLine(atoi(Dlg.GetStr()));
 	}
 
 	return true;
@@ -3030,8 +3261,7 @@ void GTextView3::OnCreate()
 	SetWindow(this);
 	DropTarget(true);
 
-	if (Focus())
-		SetPulse(1500);
+	SetPulse(PULSE_TIMEOUT);
 }
 
 void GTextView3::OnEscape(GKey &K)
@@ -3054,7 +3284,6 @@ bool GTextView3::OnMouseWheel(double l)
 void GTextView3::OnFocus(bool f)
 {
 	Invalidate();
-	SetPulse(f ? 500 : -1);
 }
 
 ssize_t GTextView3::HitText(int x, int y, bool Nearest)
@@ -3094,6 +3323,7 @@ ssize_t GTextView3::HitText(int x, int y, bool Nearest)
 		}
 			
 		l = (Down) ? Line.Next() : Line.Prev();
+		Y++;
 	}
 
 	// outside text area
@@ -3255,7 +3485,7 @@ void GTextView3::DoContextMenu(GMouse &m)
 			GInput i(this, s, "Indent Size:", "Text");
 			if (i.DoModal())
 			{
-				IndentSize = atoi(i.Str);
+				IndentSize = atoi(i.GetStr());
 			}
 			break;
 		}
@@ -3266,7 +3496,7 @@ void GTextView3::DoContextMenu(GMouse &m)
 			GInput i(this, s, "Tab Size:", "Text");
 			if (i.DoModal())
 			{
-				SetTabSize(atoi(i.Str));
+				SetTabSize(atoi(i.GetStr()));
 			}
 			break;
 		}
@@ -4357,11 +4587,28 @@ void GTextView3::OnPaint(GSurface *pDC)
 	try
 	{
 	#endif
+
+	#if PROFILE_PAINT
+	char s[256];
+	sprintf_s(s, sizeof(s), "%p::OnPaint Lines=%i Sz=%i", this, (int)Line.Length(), (int)Size);
+	GProfile Prof(s);
+	#endif
+
 		if (d->LayoutDirty)
 		{
+	#if PROFILE_PAINT
+	Prof.Add("PourText");
+	#endif
 			PourText(d->DirtyStart, d->DirtyLen);
+	#if PROFILE_PAINT
+	Prof.Add("PourStyle");
+	#endif
 			PourStyle(d->DirtyStart, d->DirtyLen);
 		}
+
+	#if PROFILE_PAINT
+	Prof.Add("Setup");
+	#endif
 		
 		GRect r = GetClient();
 		r.x2 += ScrollX;
@@ -4460,6 +4707,9 @@ void GTextView3::OnPaint(GSurface *pDC)
 
 			DocOffset = (l) ? l->r.y1 : 0;
 
+	#if PROFILE_PAINT
+	Prof.Add("foreach Line loop");
+	#endif
 			// loop through all visible lines
 			int y = d->rPadding.y1;
 			for (; l && l->r.y1+Dy < r.Y(); l=Line.Next())
@@ -4470,6 +4720,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 				#else
 				Tr.Offset(0, y - Tr.y1);
 				#endif
+				//GRect OldTr = Tr;
 
 				// deal with selection change on beginning of line
 				if (NextSelection == l->Start)
@@ -4714,6 +4965,22 @@ void GTextView3::OnPaint(GSurface *pDC)
 					}
 				}
 
+				#if DRAW_LINE_BOXES
+				{
+					uint Style = pDC->LineStyle(GSurface::LineAlternate);
+					GColour Old = pDC->Colour(GColour::Red);
+					pDC->Box(&OldTr);
+					pDC->Colour(Old);
+					pDC->LineStyle(Style);
+
+					GString s;
+					s.Printf("%i, %i", Line.IndexOf(l), l->Start);
+					GDisplayString ds(SysFont, s);
+					SysFont->Transparent(true);
+					ds.Draw(pDC, OldTr.x2 + 2, OldTr.y1);
+				}
+				#endif
+
 				#ifdef DOUBLE_BUFFER_PAINT
 				// dump to screen
 				pDC->Blt(d->rPadding.x1, y, pOut);
@@ -4883,12 +5150,22 @@ void GTextView3::OnPulse()
 {
 	if (!ReadOnly)
 	{
-		Blink = !Blink;
+		uint64 Now = LgiCurrentTime();
+		if (!BlinkTs)
+			BlinkTs = Now;
+		else if (Now - BlinkTs > CURSOR_BLINK)
+		{
+			Blink = !Blink;
 
-		GRect p = CursorPos;
-		p.Offset(-ScrollX, 0);
-		Invalidate(&p);
+			GRect p = CursorPos;
+			p.Offset(-ScrollX, 0);
+			Invalidate(&p);
+			BlinkTs = Now;
+		}
 	}
+
+	if (PartialPour)
+		PourText(Size, 0);
 }
 
 void GTextView3::OnUrl(char *Url)

@@ -380,7 +380,7 @@ public:
 	}
 	
 	// Equality function (default: case insensitive, as the operator== is case sensitive)
-	bool Equals(const char *b, bool CaseInsensitive = true)
+	bool Equals(const char *b, bool CaseInsensitive = true) const
 	{
 		const char *a = Get();
 		if (!a && !b)
@@ -391,7 +391,7 @@ public:
 	}
 	
 	// Equality function (default: case insensitive, as the operator== is case sensitive)
-	bool Equals(const GString &s, bool CaseInsensitive = true)
+	bool Equals(const GString &s, bool CaseInsensitive = true) const
 	{
 		const char *a = Get();
 		const char *b = s.Get();

@@ -27,8 +27,18 @@
 
 #define PATH_OFFSET				"../"
 #ifdef WIN32
-#define SSL_LIBRARY				"ssleay32"
-#define EAY_LIBRARY             "libeay32"
+	#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+		#ifdef _WIN64
+			#define SSL_LIBRARY				"libssl-1_1-x64"
+			#define EAY_LIBRARY				"libcrypto-1_1-x64"
+		#else // 32bit
+			#define SSL_LIBRARY				"libssl-1_1"
+			#define EAY_LIBRARY				"libcrypto-1_1"
+		#endif
+	#else
+		#define SSL_LIBRARY				"ssleay32"
+		#define EAY_LIBRARY             "libeay32"
+	#endif
 #else
 #define SSL_LIBRARY				"libssl"
 #endif
@@ -96,11 +106,15 @@ public:
 	#if OPENSSL_VERSION_NUMBER >= 0x10100000L
 	DynFunc0(int, OPENSSL_library_init);
 	DynFunc0(int, OPENSSL_load_error_strings);
-	DynFunc2(int, OPENSSL_init_crypto, uint64_t, opts, const OPENSSL_INIT_SETTINGS *, settings);
 	DynFunc2(int, OPENSSL_init_ssl, uint64_t, opts, const OPENSSL_INIT_SETTINGS *, settings);
+	DynFunc0(const SSL_METHOD *, TLS_method);
+	DynFunc0(const SSL_METHOD *, TLS_server_method);
+	DynFunc0(const SSL_METHOD *, TLS_client_method);
 	#else
 	DynFunc0(int, SSL_library_init);
 	DynFunc0(int, SSL_load_error_strings);
+	DynFunc0(SSL_METHOD*, SSLv23_client_method);
+	DynFunc0(SSL_METHOD*, SSLv23_server_method);
 	#endif
 	DynFunc1(int, SSL_open, SSL*, s);
 	DynFunc1(int, SSL_connect, SSL*, s);
@@ -122,10 +136,7 @@ public:
 	DynFunc1(BIO *,	SSL_get_rbio, const SSL *, s);
 	DynFunc1(int, SSL_accept, SSL *, ssl);
 	
-	DynFunc0(SSL_METHOD*, SSLv23_client_method);
-	DynFunc0(SSL_METHOD*, SSLv23_server_method);
-
-  	DynFunc1(SSL_CTX*, SSL_CTX_new, SSL_METHOD*, meth);	
+  	DynFunc1(SSL_CTX*, SSL_CTX_new, const SSL_METHOD*, meth);	
 	DynFunc3(int, SSL_CTX_load_verify_locations, SSL_CTX*, ctx, const char*, CAfile, const char*, CApath);
 	DynFunc3(int, SSL_CTX_use_certificate_file, SSL_CTX*, ctx, const char*, file, int, type);
 	DynFunc3(int, SSL_CTX_use_PrivateKey_file, SSL_CTX*, ctx, const char*, file, int, type);
@@ -164,8 +175,6 @@ public:
 	typedef void (*locking_callback)(int mode,int type, const char *file,int line);
 	typedef unsigned long (*id_callback)();
 
-	DynFunc1(const char *, SSLeay_version, int, type);
-
 	DynFunc1(BIO*, BIO_new, BIO_METHOD*, type);
 	DynFunc0(BIO_METHOD*, BIO_s_socket);
 	DynFunc0(BIO_METHOD*, BIO_s_mem);
@@ -187,6 +196,10 @@ public:
 	DynFunc1(int, CRYPTO_set_locking_callback, locking_callback, func);
 	DynFunc1(int, CRYPTO_set_id_callback, id_callback, func);
 	DynFunc0(int, CRYPTO_num_locks);
+	DynFunc1(const char *, SSLeay_version, int, type);
+	#else
+	DynFunc2(int, OPENSSL_init_crypto, uint64_t, opts, const OPENSSL_INIT_SETTINGS *, settings);
+	DynFunc1(const char *, OpenSSL_version, int, type);
 	#endif
 	DynFunc1(const char *, ERR_lib_error_string, unsigned long, e);
 	DynFunc1(const char *, ERR_func_error_string, unsigned long, e);
@@ -516,7 +529,7 @@ void EndSSL()
 	DeleteObj(Library);
 }
 
-struct SslSocketPriv
+struct SslSocketPriv : public LCancel
 {
 	GCapabilityClient *Caps;
 	bool SslOnConnect;
@@ -528,6 +541,7 @@ struct SslSocketPriv
 	bool LastWasCR;
 	#endif
 	bool IsBlocking;
+	LCancel *Cancel;
 
 	// This is just for the UI.
 	GStreamI *Logger;
@@ -542,6 +556,7 @@ struct SslSocketPriv
 		#ifdef _DEBUG
 		LastWasCR = false;
 		#endif
+		Cancel = this;
 		Timeout = 20 * 1000;
 		IsSSL = false;
 		UseSSLrw = false;
@@ -602,6 +617,16 @@ SslSocket::~SslSocket()
 GStreamI *SslSocket::Clone()
 {
 	return new SslSocket(d->Logger, d->Caps, true);
+}
+
+LCancel *SslSocket::GetCancel()
+{
+	return d->Cancel;
+}
+
+void SslSocket::SetCancel(LCancel *c)
+{
+	d->Cancel = c;
 }
 
 int SslSocket::GetTimeout()
@@ -716,7 +741,7 @@ OsSocket SslSocket::Handle(OsSocket Set)
 	}
 	else if (Bio)
 	{
-		uint32 hnd = INVALID_SOCKET;
+		int hnd = (int)INVALID_SOCKET;
 		Library->BIO_get_fd(Bio, &hnd);
 		h = hnd;
 	}
@@ -784,7 +809,7 @@ DebugTrace("%s:%i - BIO_get_ssl=%p\n", _FL, Ssl);
 							Library->BIO_set_conn_int_port(Bio, &Port);
 							#else
 							GString sPort;
-							sPort.Printf("%i");
+							sPort.Printf("%i", Port);
 							Library->BIO_set_conn_port(Bio, sPort.Get());
 							#endif
 
@@ -796,7 +821,7 @@ DebugTrace("%s:%i - BIO_get_ssl=%p\n", _FL, Ssl);
 							
 							r = Library->SSL_connect(Ssl);
 DebugTrace("%s:%i - initial SSL_connect=%i\n", _FL, r);
-							while (r != 1 && !IsCancelled())
+							while (r != 1 && !d->Cancel->IsCancelled())
 							{
 								long err = Library->SSL_get_error(Ssl, r);
 								if (err != SSL_ERROR_WANT_CONNECT)
@@ -816,7 +841,7 @@ DebugTrace("%s:%i - SSL connect timeout, to=%i\n", _FL, To);
 									break;
 								}
 							}
-DebugTrace("%s:%i - open loop finished, r=%i, Cancelled=%i\n", _FL, r, IsCancelled());
+DebugTrace("%s:%i - open loop finished, r=%i, Cancelled=%i\n", _FL, r, d->Cancel->IsCancelled());
 
 							if (r == 1)
 							{
@@ -860,7 +885,7 @@ DebugTrace("%s:%i - BIO_new_connect=%p\n", _FL, Bio);
 
 				long r = Library->BIO_do_connect(Bio);
 DebugTrace("%s:%i - BIO_do_connect=%i\n", _FL, r);
-				while (r != 1 && !IsCancelled())
+				while (r != 1 && !d->Cancel->IsCancelled())
 				{
 					if (!Library->BIO_should_retry(Bio))
 					{
@@ -1001,7 +1026,7 @@ DebugTrace("%s:%i - X509_NAME_oneline=%s\n", _FL, Txt);
 
 int SslSocket::Close()
 {
-	Cancel(true);
+	d->Cancel->Cancel();
 	LMutex::Auto Lck(&Lock, _FL);
 
 	if (Library)

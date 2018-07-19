@@ -154,10 +154,10 @@ ResString::ResString(ResStringGroup *grp, int init_ref)
 
 ResString::~ResString()
 {
-	// LgiStackTrace("%p::~ResString\n", this);
-
 	if (Group)
 	{
+		Group->App()->OnObjDelete(this);
+
 		if (!Group->Strs.Delete(this))
 		{
 			LgiAssert(0);
@@ -725,13 +725,21 @@ void ResString::OnMouseClick(GMouse &m)
 					}
 					case IDM_NEW_ID:
 					{
-						List<ResString> sl;
-						Group->AppWindow->FindStrings(sl, Define);
-						int NewId = Group->AppWindow->GetUniqueCtrlId();
-						for (ResString *s = sl.First(); s; s = sl.Next())
+						List<ResString> Sel;
+						if (!GetList()->GetSelection(Sel))
+							break;
+
+						auto App = Group->AppWindow;
+						for (auto s : Sel)
 						{
-							s->SetId(NewId);
-							s->Update();
+							List<ResString> sl;
+							App->FindStrings(sl, s->Define);
+								
+							int NewId = App->GetUniqueCtrlId();
+							for (auto i : sl)
+							{
+								i->SetId(NewId);
+							}
 						}
 						break;
 					}
@@ -998,7 +1006,7 @@ void ResStringGroup::OnColumnClick(int Col, GMouse &m)
 		SortAscend = true;
 	}
 
-	LList::Sort(ResStringCompareFunc, (SortCol + 1) * ((SortAscend) ? 1 : -1));
+	LList::Sort<NativeInt>(ResStringCompareFunc, (SortCol + 1) * ((SortAscend) ? 1 : -1));
 
 	LListItem *Sel = GetSelected();
 	if (Sel)
@@ -1100,7 +1108,7 @@ int RefCmp(ResString *a, ResString *b, NativeInt d)
 
 void ResStringGroup::Sort()
 {
-	Strs.Sort(RefCmp, 0);
+	Strs.Sort(RefCmp);
 }
 
 void ResStringGroup::RemoveUnReferenced()
@@ -1268,7 +1276,7 @@ int ResStringGroup::UniqueRef()
 	int n = 1;
 	for (ResString *i = dynamic_cast<ResString*>(Items.First()); i; i = dynamic_cast<ResString*>(Items.Next()))
 	{
-		n = max(n, i->Ref);
+		n = MAX(n, i->Ref);
 	}
 
 	return n + 1;
@@ -1289,7 +1297,7 @@ int ResStringGroup::UniqueId(char *Define)
 			return i->Id;
 		}
 
-		n = max(n, i->Id);
+		n = MAX(n, i->Id);
 	}
 
 	return n + 1;

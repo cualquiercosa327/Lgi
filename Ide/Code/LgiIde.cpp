@@ -25,6 +25,7 @@
 #include "LgiRes.h"
 #include "ProjectNode.h"
 #include "GBox.h"
+#include "GSubProcess.h"
 
 #define IDM_RECENT_FILE			1000
 #define IDM_RECENT_PROJECT		1100
@@ -80,7 +81,10 @@ public:
 			{
 				LListItem *i = Lst->GetSelected();
 				if (i)
-					App->GotoReference(i->GetText(0), 1, false);
+				{
+					char *Ref = i->GetText(0);
+					App->GotoReference(Ref, 1, false);
+				}
 				EndModal(1);
 				break;
 			}
@@ -472,7 +476,7 @@ public:
 
 	void PourStyle(size_t Start, ssize_t Length)
 	{
-		List<GTextLine>::I it = GTextView3::Line.Start();
+		List<GTextLine>::I it = GTextView3::Line.begin();
 		for (GTextLine *ln = *it; ln; ln = *++it)
 		{
 			if (!ln->c.IsValid())
@@ -906,9 +910,18 @@ public:
 			{
 				char *Utf = &Buf[Channel][0];
 				#ifdef _DEBUG
+				
+				printf("Utf: %p %i\n", Utf, (int)Size);
+				for (int i=0; i<Size; i++)
+				{
+					printf("%02x ", (uint8)Utf[i]);
+				}
+				printf("\n");
+				
+				
 				if (!LgiIsUtf8(Utf, (ssize_t)Size))
 				{
-					LgiTrace("Ch %i not utf len="LGI_PrintfInt64"\n", Channel, Size);
+					LgiTrace("Ch %i not utf len=" LGI_PrintfInt64 "\n", Channel, Size);
 					continue;
 				}
 				#endif
@@ -1125,7 +1138,7 @@ public:
 
 		if (!Full)
 		{
-			List<IdeProject>::I Projs = Projects.Start();
+			List<IdeProject>::I Projs = Projects.begin();
 			for (IdeProject *p=*Projs; p; p=*++Projs)
 			{
 				GAutoString Base = p->GetBasePath();
@@ -1359,7 +1372,7 @@ public:
 		if (WindowsMenu)
 		{
 			WindowsMenu->Empty();
-			Docs.Sort(DocSorter, 0);
+			Docs.Sort(DocSorter);
 			int n=0;
 			for (IdeDoc *d=Docs.First(); d; d=Docs.Next())
 			{
@@ -1685,6 +1698,38 @@ GDebugContext *AppWnd::GetDebugContext()
 	return d->DbgContext;
 }
 
+struct DumpBinThread : public LThread
+{
+	GStream *Out;
+	GString InFile;
+
+public:
+	DumpBinThread(GStream *out, GString file) : LThread("DumpBin.Thread")
+	{
+		Out = out;
+		InFile = file;
+		DeleteOnExit = true;
+		Run();
+	}
+
+	int Main()
+	{
+		GString Args;
+		Args.Printf("/exports \"%s\"", InFile.Get());
+		GSubProcess s("c:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\bin\\amd64\\dumpbin.exe", Args);
+		if (!s.Start(true, false))
+			return -1;
+
+		char Buf[256];
+		int Rd;
+		while ((Rd = s.Read(Buf, sizeof(Buf))) > 0)
+		{
+			Out->Write(Buf, Rd);
+		}
+
+		return 0;
+	}
+};
 
 void AppWnd::OnReceiveFiles(GArray<char*> &Files)
 {
@@ -1703,6 +1748,32 @@ void AppWnd::OnReceiveFiles(GArray<char*> &Files)
 		{
 			if (!OpenProject(f, NULL))
 				OpenFile(f);
+		}
+		else if
+		(
+			LgiIsFileNameExecutable(Files[i])
+			/*
+			ext
+			&&
+			(
+				!stricmp(ext, "dll")
+				||
+				!stricmp(ext, "node")
+			)
+			*/
+		)
+		{
+			// dumpbin /exports csp.dll
+			GFile::Path Docs(LSP_USER_DOCUMENTS);
+			GString Name;
+			Name.Printf("%s.txt", Files[i]);
+			Docs += Name;
+			IdeDoc *Doc = NewDocWnd(NULL, NULL);
+			if (Doc)
+			{
+				Doc->SetFileName(Docs, false);
+				new DumpBinThread(Doc, Files[i]);
+			}
 		}
 		else
 		{
@@ -1777,14 +1848,14 @@ void AppWnd::AppendOutput(char *Txt, AppWnd::Channels Channel)
 
 void AppWnd::SaveAll()
 {
-	List<IdeDoc>::I Docs = d->Docs.Start();
+	List<IdeDoc>::I Docs = d->Docs.begin();
 	for (IdeDoc *Doc = *Docs; Doc; Doc = *++Docs)
 	{
 		Doc->SetClean();
 		d->OnFile(Doc->GetFileName());
 	}
 	
-	List<IdeProject>::I Projs = d->Projects.Start();
+	List<IdeProject>::I Projs = d->Projects.begin();
 	for (IdeProject *Proj = *Projs; Proj; Proj = *++Projs)
 	{
 		Proj->SetClean();
@@ -1816,7 +1887,7 @@ bool AppWnd::OnRequestClose(bool IsClose)
 
 bool AppWnd::OnBreakPoint(GDebugger::BreakPoint &b, bool Add)
 {
-	List<IdeDoc>::I it = d->Docs.Start();
+	List<IdeDoc>::I it = d->Docs.begin();
 
 	for (IdeDoc *doc = *it; doc; doc = *++it)
 	{
@@ -2020,7 +2091,7 @@ IdeDoc *AppWnd::GotoReference(const char *File, int Line, bool CurIp, bool WithH
 
 IdeDoc *AppWnd::FindOpenFile(char *FileName)
 {
-	List<IdeDoc>::I it = d->Docs.Start();
+	List<IdeDoc>::I it = d->Docs.begin();
 	for (IdeDoc *i=*it; i; i=*++it)
 	{
 		char *f = i->GetFileName();
@@ -2071,13 +2142,21 @@ IdeDoc *AppWnd::OpenFile(const char *FileName, NodeSource *Src)
 		IdeProject *Proj = Src && Src->GetProject() ? Src->GetProject() : RootProject();
 		if (Proj)
 		{
-			GAutoString ProjPath = Proj->GetBasePath();
-			char p[MAX_PATH];
-			LgiMakePath(p, sizeof(p), ProjPath, File);
-			if (FileExists(p))
+			List<IdeProject> Projs;
+			Projs.Insert(Proj);
+			Proj->CollectAllSubProjects(Projs);
+
+			for (auto Project : Projs)
 			{
-				FullPath = p;
-				File = FullPath;
+				GAutoString ProjPath = Project->GetBasePath();
+				char p[MAX_PATH];
+				LgiMakePath(p, sizeof(p), ProjPath, File);
+				if (FileExists(p))
+				{
+					FullPath = p;
+					File = FullPath;
+					break;
+				}
 			}
 		}
 	}
@@ -2092,7 +2171,7 @@ IdeDoc *AppWnd::OpenFile(const char *FileName, NodeSource *Src)
 		else if (!DoingProjectFind)
 		{
 			DoingProjectFind = true;
-			List<IdeProject>::I Proj = d->Projects.Start();
+			List<IdeProject>::I Proj = d->Projects.begin();
 			for (IdeProject *p=*Proj; p && !Doc; p=*++Proj)
 			{
 				p->InProject(LgiIsRelativePath(File), File, true, &Doc);				
@@ -2629,17 +2708,25 @@ bool AppWnd::IsReleaseMode()
 bool AppWnd::Build()
 {
 	SaveAll();
+	
+	IdeDoc *Top;
 	IdeProject *p = RootProject();
-	if (!p)
-		return false;
+	if (p)
+	{		
+		UpdateState(-1, true);
 
-	UpdateState(-1, true);
+		GMenuItem *Release = GetMenu()->FindItem(IDM_RELEASE_MODE);
+		bool IsRelease = Release ? Release->Checked() : false;
+		p->Build(false, IsRelease);
 
-	GMenuItem *Release = GetMenu()->FindItem(IDM_RELEASE_MODE);
-	bool IsRelease = Release ? Release->Checked() : false;
-	p->Build(false, IsRelease);
+		return true;
+	}
+	else if (Top = TopDoc())
+	{
+		return Top->Build();
+	}
 
-	return true;
+	return false;
 }
 
 bool AppWnd::ShowInProject(const char *Fn)
@@ -3212,12 +3299,21 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		//
 		// Other
 		//
+		case IDM_LOOKUP_SYMBOLS:
+		{
+			IdeDoc *Cur = GetCurrentDoc();
+			if (Cur)
+			{
+				// LookupSymbols(Cur->Read());
+			}
+			break;
+		}
 		case IDM_DEPENDS:
 		{
 			IdeProject *p = RootProject();
 			if (p)
 			{
-				const char *Exe = p->GetExecutable(GetCurrentPlatform());
+				GString Exe = p->GetExecutable(GetCurrentPlatform());
 				if (FileExists(Exe))
 				{
 					Depends Dlg(this, Exe);

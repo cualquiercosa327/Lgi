@@ -297,7 +297,7 @@ bool GFontSystem::EnumerateFonts(List<const char> &Fonts)
 		
 		#endif
 
-		AllFonts.Sort(StringSort, 0);
+		AllFonts.Sort(StringSort);
 	}
 
 	if (AllFonts.First() && &AllFonts != &Fonts)

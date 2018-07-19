@@ -224,6 +224,12 @@
     <ClCompile Include="Code\DocEdit.cpp">
       <Filter>Source Files\Docs</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\common\INet\IHttp.cpp">
+      <Filter>Lgi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\INet\OpenSSLSocket.cpp">
+      <Filter>Lgi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="..\src\win32\General\Lgi.manifest">

@@ -7,6 +7,7 @@
 #include "GDisplayString.h"
 #include "GTableLayout.h"
 #include "LgiRes.h"
+#include "LStringLayout.h"
 
 #define DOWN_MOUSE		0x1
 #define DOWN_KEY		0x2
@@ -24,8 +25,10 @@ GdcPt2 GButton::Overhead =
         6
     );
 
-class GButtonPrivate
+class GButtonPrivate : public LStringLayout
 {
+	GFontCache Cache;
+	
 public:
 	int Pressed;
 	bool KeyDown;
@@ -33,34 +36,41 @@ public:
 	bool WantsDefault;
 	bool Toggle;
 	
-	GDisplayString *Txt;
+	GRect TxtSz;
 	GSurface *Image;
 	bool OwnImage;
 	
-	GButtonPrivate()
+	GButtonPrivate() : Cache(SysFont), LStringLayout(&Cache)
 	{
+		AmpersandToUnderline = true;
 		Pressed = 0;
 		KeyDown = false;
 		Toggle = false;
 		Over = 0;
-		Txt = 0;
+		// Txt = 0;
 		WantsDefault = false;
 		Image = NULL;
 		OwnImage = false;
+		SetWrap(false);
 	}
 
 	~GButtonPrivate()
 	{
-		DeleteObj(Txt);
+		// DeleteObj(Txt);
 		if (OwnImage)
 			DeleteObj(Image);
 	}
 
 	void Layout(GFont *f, char *s)
 	{
-		DeleteObj(Txt);
-		if (ValidStr(s))
-			Txt = new GDisplayString(f, s);
+		GCss c;
+		c.FontWeight(GCss::FontWeightBold);
+		Add(s, &c);
+
+		int32 MinX, MaxX;
+		DoPreLayout(MinX, MaxX);
+		DoLayout(MaxX);
+		TxtSz = GetBounds();
 	}
 };
 
@@ -70,12 +80,10 @@ GButton::GButton(int id, int x, int y, int cx, int cy, const char *name) :
 	d = new GButtonPrivate;
 	Name(name);
 	
-	int Tx = d->Txt ? d->Txt->X() : 0;
-	int Ty = d->Txt ? d->Txt->Y() : 0;
 	GRect r(x,
 			y,
-			x + (cx <= 0 ? Tx + Overhead.x : cx) - 1,
-			y + (cy <= 0 ? Ty + Overhead.y : cy) - 1);
+			x + (cx <= 0 ? d->TxtSz.X() + Overhead.x : cx) - 1,
+			y + (cy <= 0 ? d->TxtSz.Y() + Overhead.y : cy) - 1);
 	LgiAssert(r.Valid());
 	SetPos(r);
 	SetId(id);
@@ -400,7 +408,17 @@ void GButton::OnPaint(GSurface *pDC)
 									  &LabelRect);
 
 	if (e) printf("%s:%i - HIThemeDrawButton failed %li\n", _FL, e);
-	else if (d->Txt)
+	else
+	{
+		GdcPt2 pt;
+		GRect r = GetClient();
+		pt.x = r.x1 + ((r.X()-d->TxtSz.X())/2) + (d->Pressed != 0);
+		pt.y = r.y1 + ((r.Y()-d->TxtSz.Y())/2) + (d->Pressed != 0);
+		d->Paint(pDC, pt, GColour(), r, Enabled());
+	}
+	
+	/*
+	if (d->Txt)
 	{
 		GFont *f = d->Txt->GetFont();
 		if (f)
@@ -413,6 +431,7 @@ void GButton::OnPaint(GSurface *pDC)
 			d->Txt->Draw(pDC, LabelRect.origin.x+Ox, Oy);
 		}
 	}
+	*/
 	
 	#else
 
@@ -423,6 +442,7 @@ void GButton::OnPaint(GSurface *pDC)
 		State.pScreen = pDC;
 		State.MouseOver = d->Over;
 
+		/*
 		char *Nl = strchr(Name(), '\n');
 		if (Nl)
 		{
@@ -441,9 +461,16 @@ void GButton::OnPaint(GSurface *pDC)
 		{
 			State.ptrText = &d->Txt;
 		}
+		*/
 		
 		State.Image = d->Image;
 		GApp::SkinEngine->OnPaint_GButton(this, &State);
+		
+		GdcPt2 pt;
+		GRect r = GetClient();
+		pt.x = r.x1 + ((r.X()-d->TxtSz.X())/2) + (d->Pressed != 0);
+		pt.y = r.y1 + ((r.Y()-d->TxtSz.Y())/2) + (d->Pressed != 0);
+		d->Paint(pDC, pt, GColour(), r, Enabled());
 	}
 	else
 	{
@@ -457,6 +484,12 @@ void GButton::OnPaint(GSurface *pDC)
 		}
 		LgiWideBorder(pDC, r, d->Pressed ? DefaultSunkenEdge : DefaultRaisedEdge);
 
+		GdcPt2 pt;
+		pt.x = r.x1 + ((r.X()-d->TxtSz.X())/2) + (d->Pressed != 0);
+		pt.y = r.y1 + ((r.Y()-d->TxtSz.Y())/2) + (d->Pressed != 0);
+		d->Paint(pDC, pt, GColour(Back,24), r, Enabled());
+
+		/*
 		if (d->Txt)
 		{
 			int x = d->Txt->X(), y = d->Txt->Y();
@@ -491,6 +524,7 @@ void GButton::OnPaint(GSurface *pDC)
 			pDC->Colour(Back, 24);
 			pDC->Rectangle(&r);
 		}
+		*/
 	}
 	
 	#endif
@@ -528,12 +562,10 @@ void GButton::SetPreferredSize(int x, int y)
 {
 	GRect r = GetPos();
 
-	int Tx = d->Txt ? d->Txt->X() : 0;
-	int Ty = d->Txt ? d->Txt->Y() : 0;
 	int Ix = d->Image ? d->Image->X() : 0;
 	int Iy = d->Image ? d->Image->Y() : 0;
-	int Cx = Tx + Ix + (d->Txt && d->Image ? GTableLayout::CellSpacing : 0);
-	int Cy = MAX(Ty, Iy);
+	int Cx = d->TxtSz.X() + Ix + (d->TxtSz.X() && d->Image ? GTableLayout::CellSpacing : 0);
+	int Cy = MAX(d->TxtSz.Y(), Iy);
 	
 	r.Dimension((x > 0 ? x : Cx + Overhead.x) - 1,
 				(y > 0 ? y : Cy + Overhead.y) - 1);

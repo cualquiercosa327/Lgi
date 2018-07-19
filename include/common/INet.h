@@ -97,6 +97,12 @@ public:
 	/// Destroys the class
 	~GSocket();
 
+	/// Gets the active cancellation object
+	LCancel *GetCancel();
+
+	/// Sets the active cancellation object
+	void SetCancel(LCancel *c);
+
 	/// Returns the operating system handle to the socket.
 	OsSocket Handle(OsSocket Set = INVALID_SOCKET);
 

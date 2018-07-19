@@ -19,6 +19,7 @@
 #include "SpaceTabConv.h"
 #include "DocEdit.h"
 #include "IdeDocPrivate.h"
+#include "IHttp.h"
 
 const char *Untitled = "[untitled]";
 // static const char *White = " \r\t\n";
@@ -26,6 +27,13 @@ const char *Untitled = "[untitled]";
 #define USE_OLD_FIND_DEFN	1
 #define POPUP_WIDTH			700 // px
 #define POPUP_HEIGHT		350 // px
+
+enum
+{
+	IDM_COPY_FILE = 1100,
+	IDM_COPY_PATH,
+	IDM_BROWSE
+};
 
 int FileNameSorter(char **a, char **b)
 {
@@ -179,7 +187,7 @@ void EditTray::OnHeaderList(GMouse &m)
 			if (s)
 			{
 				// Construct the menu
-				GHashTbl<char*, int> Map;
+				LHashTbl<StrKey<char>, int> Map;
 				int DisplayLines = GdcD->Y() / SysFont->GetHeight();
 				if (Headers.Length() > (0.7 * DisplayLines))
 				{
@@ -777,7 +785,7 @@ public:
 }	StyleThread;
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-IdeDocPrivate::IdeDocPrivate(IdeDoc *d, AppWnd *a, NodeSource *src, const char *file) : NodeView(src)
+IdeDocPrivate::IdeDocPrivate(IdeDoc *d, AppWnd *a, NodeSource *src, const char *file) : NodeView(src), LMutex("IdeDocPrivate.Lock")
 {
 	IsDirty = false;
 
@@ -1032,12 +1040,105 @@ IdeDoc::~IdeDoc()
 	DeleteObj(d);
 }
 
-enum
+class WebBuild : public LThread
 {
-	IDM_COPY_FILE = 1100,
-	IDM_COPY_PATH,
-	IDM_BROWSE
+	IdeDocPrivate *d;
+	GString Uri;
+	int64 SleepMs;
+	GStream *Log;
+	LCancel Cancel;
+
+public:
+	WebBuild(IdeDocPrivate *priv, GString uri, int64 sleepMs) :
+		LThread("WebBuild"), d(priv), Uri(uri), SleepMs(sleepMs)
+	{
+		Log = d->App->GetBuildLog();
+		Run();
+	}
+
+	~WebBuild()
+	{
+		Cancel.Cancel();
+		while (!IsExited())
+		{
+			LgiSleep(1);
+		}
+	}
+
+	int Main()
+	{
+		if (SleepMs > 0)
+		{
+			// Sleep for a number of milliseconds to allow the file to upload/save to the website
+			uint64 Ts = LgiCurrentTime();
+			while (!Cancel.IsCancelled() && (LgiCurrentTime()-Ts) < SleepMs)
+				LgiSleep(1);
+		}
+
+		// Download the file...
+		GStringPipe Out;
+		GString Error;
+		bool r = LgiGetUri(&Cancel, &Out, &Error, Uri, NULL/*InHdrs*/, NULL/*Proxy*/);
+		if (r)
+		{
+			// Parse through it and extract any errors...
+		}
+		else
+		{
+			// Show the download error in the build log...
+			Log->Print("%s:%i - Web build download failed: %s\n", _FL, Error.Get());
+		}
+
+		return 0;
+	}
 };
+
+bool IdeDoc::Build()
+{
+	if (!d->Edit)
+		return false;
+
+	int64 SleepMs = -1;
+	GString s = d->Edit->Name(), Uri;
+	GString::Array Lines = s.Split("\n");
+	for (auto Ln : Lines)
+	{
+		s = Ln.Strip();
+		if (s.Find("//") == 0)
+		{
+			GString::Array p = s(2,-1).Strip().Split(":", 1);
+			if (p.Length() == 2)
+			{
+				if (p[0].Equals("build-sleep"))
+				{
+					SleepMs = p[1].Strip().Int();
+				}
+				else if (p[0].Equals("build-uri"))
+				{
+					Uri = p[1].Strip();
+					break;
+				}
+			}
+		}
+	}
+
+	if (Uri)
+	{
+		if (d->Build &&
+			!d->Build->IsExited())
+		{
+			// Already building...
+			GStream *Log = d->App->GetBuildLog();
+			if (Log)
+				Log->Print("%s:%i - Already building...\n");
+			return false;
+		}
+		
+		return d->Build.Reset(new WebBuild(d, Uri, SleepMs));
+	}
+
+	return false;
+}
 
 void IdeDoc::OnLineChange(int Line)
 {
@@ -1131,8 +1232,8 @@ void IdeDoc::OnTitleClick(GMouse &m)
 				sprintf(Args, "/e,/select,\"%s\"", Full);
 				LgiExecute("explorer", Args);
 				#elif defined(LINUX)
-				char Args[MAX_PATH];
-				if (LgiGetAppForMimeType("inode/directory", Args, sizeof(Args)))
+				GString Args = LgiGetAppForMimeType("inode/directory");
+				if (Args)
 				{
 					LgiExecute(Args, Full);
 				}
@@ -1386,11 +1487,9 @@ char *IdeDoc::GetFileName()
 
 void IdeDoc::SetFileName(const char *f, bool Write)
 {
+	d->SetFileName(f);
 	if (Write)
-	{
-		d->SetFileName(f);
 		d->Edit->Save(d->GetLocalFile());
-	}
 }
 
 void IdeDoc::Focus(bool f)
@@ -1441,6 +1540,39 @@ GMessage::Result IdeDoc::OnEvent(GMessage *Msg)
 void IdeDoc::OnPulse()
 {
 	d->CheckModTime();
+
+	if (d->Lock(_FL))
+	{
+		if (d->WriteBuf.Length())
+		{
+			bool Pour = d->Edit->SetPourEnabled(false);
+			for (GString *s = NULL; d->WriteBuf.Iterate(s); )
+			{
+				GAutoWString w(Utf8ToWide(*s, s->Length()));
+				d->Edit->Insert(d->Edit->GetSize(), w, Strlen(w.Get()));
+			}
+			d->Edit->SetPourEnabled(Pour);
+
+			d->WriteBuf.Empty();
+			d->Edit->Invalidate();
+		}
+		d->Unlock();
+	}
+}
+
+GString IdeDoc::Read()
+{
+	return d->Edit->Name();
+}
+
+ssize_t IdeDoc::Write(const void *Ptr, ssize_t Size, int Flags)
+{
+	if (d->Lock(_FL))
+	{
+		d->WriteBuf.New().Set((char*)Ptr, Size);
+		d->Unlock();
+	}
+	return 0;
 }
 
 void IdeDoc::OnProjectChange()

@@ -31,6 +31,16 @@
 #include <stdio.h>
 #endif
 
+#if defined(MAC)
+	#include <errno.h>
+	#define GSUBPROCESS_ERROR	EBADEXEC
+#elif defined(LINUX)
+	#include <errno.h>
+	#define GSUBPROCESS_ERROR	ECHILD
+#elif defined(WINDOWS)
+	#define GSUBPROCESS_ERROR	ERROR_PROCESS_ABORTED
+#endif
+
 class GSubProcess : public GStreamI
 {
 public:
@@ -117,7 +127,7 @@ public:
 	ProcessId Handle() { return ChildPid; }
 	bool IsRunning();
 	uint32 GetErrorCode();
-	uint32 GetExitValue();
+	int32 GetExitValue();
 	void Connect(GSubProcess *child);
 	bool Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdout = true);
 	int Wait();

@@ -233,14 +233,14 @@ public:
 	/// Gets the last error message.
 	char *GetErrorMsg();
 	/// A hash of tags that can't have children.
-	GHashTbl<const char*,bool> *NoChildTags();
+	LHashTbl<ConstStrKey<char,false>,bool> *NoChildTags();
 	/// Gets the associated style file
 	char *GetStyleFile(char **StyleType = 0);
 	/// Sets the associated css file
 	void SetStyleFile(char *stylefile, const char *styletype = "text/css");
 
 	/// Add entities
-	GHashTbl<const char*,char16> *GetEntityTable();
+	LHashTbl<ConstStrKey<char,false>,char16> *GetEntityTable();
 	/// Decode a string with entities
 	char *DecodeEntities(GXmlAlloc *Alloc, char *s, ssize_t len = -1);
 	/// Encode a string to use entities

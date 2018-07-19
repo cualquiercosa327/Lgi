@@ -1155,15 +1155,17 @@ bool VCal::Import(GDataPropI *c, GStreamI *In)
 				EvalRule(Dst, Match->Daylight, EventStart.Year()))
 			{
 				bool IsDst = false;
-				if (Norm > Dst)
+				if (Dst < Norm)
 				{
-					// DST over summer
+					// DST in the middle of the year
+					// |Jan----DST------Norm----Dec|
 					if (EventStart >= Dst && EventStart <= Norm)
 						IsDst = true;
 				}
 				else
 				{
-					// DST over winter
+					// DST over the start and end of the year
+					// |Jan----Norm------DST----Dec|
 					if (EventStart >= Norm && EventStart <= Dst)
 						IsDst = false;
 					else

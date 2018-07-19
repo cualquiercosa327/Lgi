@@ -151,7 +151,7 @@ GMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where
 			if (Where >= 0)
 			{
 				// We have to reindex everything (do the indexes change anyway?)
-				List<GMenuItem>::I it = Items.Start();
+				auto it = Items.begin();
 				int n = 1;
 				for (GMenuItem *mi = *it; mi; mi = *++it)
 				{
@@ -376,7 +376,7 @@ int GSubMenu::Float(GView *From, int x, int y, int Btns)
 		UInt32 UserSelectionType;
 		SInt16 MenuID;
 		MenuItemIndex MenuItem;
-		Point Pt = { y, x };
+		Point Pt = { (short)y, (short)x };
 		
 		From->Capture(false);
 		OnAttach(true);

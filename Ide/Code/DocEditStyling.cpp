@@ -35,7 +35,7 @@ const char *CppTypes[] = {	"int", "char", "unsigned", "double", "float", "bool",
 							"int8", "int16", "int32", "int64",
 							"uint8", "uint16", "uint32", "uint64",
 							"GArray", "GHashTbl", "List", "GString", "GAutoString", "GAutoWString",
-							"GAutoPtr",
+							"GAutoPtr", "LHashTbl",
 							NULL};
 const char *CppEdges[] = {	"/*", "*/", "\"", NULL };
 

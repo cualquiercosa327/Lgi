@@ -278,10 +278,10 @@ public:
 	{
 		DeleteObj(SkinLib);
 		
-		for (AppArray *a = MimeToApp.First(); a; a = MimeToApp.Next())
+		for (auto a : MimeToApp)
 		{
-			a->DeleteObjects();
-			DeleteObj(a);
+			a.value->DeleteObjects();
+			DeleteObj(a.value);
 		}
 	}
 };

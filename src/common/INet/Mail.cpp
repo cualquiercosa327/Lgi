@@ -1514,10 +1514,11 @@ bool MailSmtp::Open(GSocketI *S,
 							else
 							{
 								// Oh well, we'll just try all types
-								const char *a;
-								for (bool b=MyAuthTypes.First(&a); b; b=MyAuthTypes.Next(&a))
+								// const char *a;
+								// for (bool b=MyAuthTypes.First(&a); b; b=MyAuthTypes.Next(&a))
+								for (auto i : MyAuthTypes)
 								{
-									TheirAuthTypes.Add(a, true);
+									TheirAuthTypes.Add(i.key, true);
 								}
 							}
 						}
@@ -1577,12 +1578,13 @@ bool MailSmtp::Open(GSocketI *S,
 						else
 						{
 							GString p;
-							const char *a;
-							for (bool b = TheirAuthTypes.First(&a); b; b = TheirAuthTypes.Next(&a))
+							// const char *a;
+							// for (bool b = TheirAuthTypes.First(&a); b; b = TheirAuthTypes.Next(&a))
+							for (auto i : TheirAuthTypes)
 							{
 								if (p.Get())
 									p += ", ";
-								p += a;
+								p += i.key;
 							}
 
 							SetError(L_ERROR_UNSUPPORTED_AUTH, "Authentication failed, types available:\n\t%s", p);
@@ -1823,7 +1825,7 @@ bool MailSmtp::SendToFrom(List<AddressDescriptor> &To, AddressDescriptor *From, 
 
 	// send RCPT message
 	AddrOk = true;
-	List<AddressDescriptor>::I Recip = To.Start();
+	List<AddressDescriptor>::I Recip = To.begin();
 	for (AddressDescriptor *a = *Recip; a; a = *++Recip)
 	{
 		char *Addr = ValidStr(a->Addr) ? a->Addr : a->Name;

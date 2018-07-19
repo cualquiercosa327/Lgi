@@ -1510,7 +1510,7 @@ struct GCharsetSystemPriv
 {
 	GCharset *Utf8;
 	GCharset *Utf16; 
-	GHashTbl<const char*, GCharset*> Charsets;
+	LHashTbl<ConstStrKeyPool<char,false>, GCharset*> Charsets;
 
 	GCharsetSystemPriv() : Charsets(512)
 	{
@@ -1526,7 +1526,6 @@ GCharsetSystem::GCharsetSystem()
 	// Charset setup, store all the charset pointers
 	// in a hash table for O(1) lookup.
 	d = new GCharsetSystemPriv;
-	d->Charsets.SetStringPool(true);
 	LgiAssert(LgiCharsets->Charset != NULL);
 
 	for (GCharset *Cs = LgiCharsets; Cs->Charset; Cs++)

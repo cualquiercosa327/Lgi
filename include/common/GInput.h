@@ -13,10 +13,9 @@ class LgiClass GInput : public GDialog
 	GEdit *Edit;
 	GInputCallback Callback;
 	void *CallbackParam;
+	GString Str;
 
 public:
-	GAutoString Str;
-
 	/// Constructs the dialog.
 	GInput
 	(
@@ -38,6 +37,7 @@ public:
 	);
 	
 	int OnNotify(GViewI *Ctrl, int Flags);
+	GString GetStr() { return Str; }
 };
 
 #endif

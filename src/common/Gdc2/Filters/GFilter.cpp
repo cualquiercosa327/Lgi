@@ -2022,7 +2022,7 @@ GSurface *GdcDevice::Load(GStream *In, const char *Name, bool UseOSLoader)
 				pDC->Colour(0);
 				pDC->Rectangle();
 				
-				CGRect r = {{0, 0}, {x, y}};
+				CGRect r = {{0, 0}, {(CGFloat)x, (CGFloat)y}};
 				CGContextDrawImage(pDC->Handle(), r, Img);
 			}
 			else

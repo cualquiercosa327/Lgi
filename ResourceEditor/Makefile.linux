@@ -17,7 +17,7 @@ BuildDir = $(Build)
 Flags = -fPIC -w -fno-inline -fpermissive
 
 ifeq ($(Build),Debug)
-	Flags += -g
+	Flags += -g -std=c++11
 	Tag = d
 	Defs = -D_DEBUG -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64 -DPOSIX
 	Libs =  \
@@ -31,7 +31,7 @@ ifeq ($(Build),Debug)
 		`pkg-config --cflags gtk+-2.0` \
 		-IResources
 else
-	Flags += -s -Os
+	Flags += -s -Os -std=c++11
 	Defs = -DLINUX -D_REENTRANT -D_FILE_OFFSET_BITS=64 -DPOSIX
 	Libs =  \
 		-llgi$(Tag) \

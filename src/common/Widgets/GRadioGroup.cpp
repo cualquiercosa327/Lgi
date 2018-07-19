@@ -24,7 +24,7 @@ public:
 	static int NextId;
 	int Val;
 	int MaxLayoutWidth;
-	GHashTbl<void*,GViewLayoutInfo*> Info;
+	LHashTbl<PtrKey<GViewI*>,GViewLayoutInfo*> Info;
 
 	GRadioGroupPrivate(GRadioGroup *g) :
 		LMutex("GRadioGroupPrivate"),
@@ -683,7 +683,7 @@ bool GRadioButton::OnKey(GKey &k)
 			}
 			if (Btns.Length() > 1)
 			{
-				int Index = Btns.IndexOf(this);
+				ssize_t Index = Btns.IndexOf(this);
 				if (Index >= 0)
 				{
 					GRadioButton *n = Btns[(Index + Move + Btns.Length()) % Btns.Length()];

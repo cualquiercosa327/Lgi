@@ -49,5 +49,11 @@
     <ClInclude Include="src\UnitTests.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\common\LUnrolledList.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\common\LHashTable.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

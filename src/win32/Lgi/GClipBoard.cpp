@@ -125,8 +125,9 @@ bool GClipBoard::Bitmap(GSurface *pDC, bool AutoEmpty)
 		int HeaderSize = sizeof(BITMAPINFOHEADER);
 		int PaletteSize = Colours * sizeof(RGBQUAD);
 		int MapSize = Bytes * pDC->Y();
+		int TotalSize = HeaderSize + PaletteSize + MapSize;
 
-		HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, HeaderSize + PaletteSize + MapSize);
+		HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, TotalSize);
 		if (hMem)
 		{
 			BITMAPINFO *Info = (BITMAPINFO*) GlobalLock(hMem);
@@ -149,9 +150,9 @@ bool GClipBoard::Bitmap(GSurface *pDC, bool AutoEmpty)
 					Info->bmiHeader.biCompression = BI_RGB;
 				}
 
-				Info->bmiHeader.biSizeImage = 0;
-				Info->bmiHeader.biXPelsPerMeter = 3000;
-				Info->bmiHeader.biYPelsPerMeter = 3000;
+				Info->bmiHeader.biSizeImage = MapSize;
+				Info->bmiHeader.biXPelsPerMeter = 0;
+				Info->bmiHeader.biYPelsPerMeter = 0;
 				Info->bmiHeader.biClrUsed = 0;
 				Info->bmiHeader.biClrImportant = 0;
 
@@ -213,6 +214,16 @@ bool GClipBoard::Bitmap(GSurface *pDC, bool AutoEmpty)
 					}
 					Dest += Bytes;
 				}
+
+				#if 0
+				GFile f;
+				if (f.Open("c:\\tmp\\out.bmp", O_WRITE))
+				{
+					f.SetSize(0);
+					f.Write(Info, TotalSize);
+					f.Close();
+				}
+				#endif
 
 				Status = SetClipboardData(CF_DIB, hMem) != 0;
 			}
@@ -307,6 +318,17 @@ GSurface *GClipBoard::Bitmap()
 	GSurface *pDC = 0;
 	if (Ptr)
 	{
+		#if 0
+		SIZE_T TotalSize = GlobalSize(hMem);
+		GFile f;
+		if (f.Open("c:\\tmp\\in.bmp", O_WRITE))
+		{
+			f.SetSize(0);
+			f.Write(Ptr, TotalSize);
+			f.Close();
+		}
+		#endif
+
 		pDC = ConvertFromPtr(Ptr);
 		GlobalUnlock(hMem);
 	}

@@ -393,9 +393,10 @@ public:
 
 	void Empty()
 	{
-		for (FieldArr *a = f.First(); a; a = f.Next())
+		// for (FieldArr *a = f.First(); a; a = f.Next())
+		for (auto a : f)
 		{
-			a->DeleteObjects();
+			a.value->DeleteObjects();
 		}
 		f.DeleteObjects();
 		View = 0;
@@ -609,9 +610,10 @@ public:
 
 	void GetAll(GArray<FieldArr*> &Fields)
 	{
-		for (FieldArr *a = f.First(0); a; a = f.Next(0))
+		// for (FieldArr *a = f.First(0); a; a = f.Next(0))
+		for (auto a : f)
 		{
-			Fields.Add(a);
+			Fields.Add(a.value);
 		}
 		Fields.Sort(FieldArrCmp);
 	}
@@ -660,6 +662,7 @@ public:
 
 	void OnPosChange();
 	void OnSelect(FieldSource *s);
+	void OnDelete(FieldSource *s);
 	GMessage::Result OnEvent(GMessage *m);
 	void OnPaint(GSurface *pDC);
 	int OnNotify(GViewI *Ctrl, int Flags);
@@ -737,7 +740,9 @@ public:
 	void Empty();
 	void OnObjChange(FieldSource *r);
 	void OnObjSelect(FieldSource *r);
+	void OnObjDelete(FieldSource *r);
 	void OnResourceSelect(Resource *r);
+	void OnResourceDelete(Resource *r);
 	void GotoObject(class ResString *s,
 					ResStringGroup *g,
 					ResDialog *d,

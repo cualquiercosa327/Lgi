@@ -48,6 +48,7 @@ class GMdiParent : public GLayout
 	int GetNextOrder();
 	#endif
 	GMdiChild *IsChild(GViewI *v);
+	::GArray<GMdiChild*> &PrivChildren();
 
 public:
 	GMdiParent();
@@ -64,8 +65,30 @@ public:
 	bool OnViewKey(GView *View, GKey &Key);
 	void OnChildrenChanged(GViewI *Wnd, bool Attaching);
 	GRect NewPos();
-	bool GetChildren(GArray<GMdiChild*> &Views);
 	GViewI *GetTop();
+
+	template<typename T>
+	bool GetChildren(::GArray<T*> &Views)
+	{
+		for (auto c : PrivChildren())
+		{
+			T *t = dynamic_cast<T*>(c);
+			if (t)
+				Views.Add(t);
+		}
+		#if MDI_TAB_STYLE
+		Views.Sort
+		(
+			[]
+			(T **a, T **b)
+			{
+				return (*a)->GetOrder() - (*b)->GetOrder();
+			}
+		);
+		#endif
+		return Views.Length() > 0;
+	}
+
 	
 	#if MDI_TAB_STYLE
 	void OnPosChange();

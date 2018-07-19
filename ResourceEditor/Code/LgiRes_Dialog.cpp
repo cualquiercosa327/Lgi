@@ -324,6 +324,7 @@ ResDialogCtrl::~ResDialogCtrl()
 
 	if (Dlg)
 	{
+		Dlg->App()->OnObjDelete(this);
 		Dlg->OnDeselect(this);
 	}
 }
@@ -1372,7 +1373,7 @@ void CtrlTabs::ShowMe(ResDialogCtrl *Child)
 
 void CtrlTabs::EnumCtrls(List<ResDialogCtrl> &Ctrls)
 {
-	List<CtrlTab>::I it = Tabs.Start();
+	List<CtrlTab>::I it = Tabs.begin();
 	for (CtrlTab *t = *it; t; t = *++it)
 	{
 		t->EnumCtrls(Ctrls);
@@ -1624,9 +1625,9 @@ void CtrlTabs::OnMouseClick(GMouse &m)
 
 								GInput Input(this, t->Str->Get(), "Enter tab name:", "Rename");
 								Input.SetParent(Dlg);
-								if (Input.DoModal() && Input.Str)
+								if (Input.DoModal() && Input.GetStr())
 								{
-									t->Str->Set(Input.Str);
+									t->Str->Set(Input.GetStr());
 								}
 							}
 							break;
@@ -1840,7 +1841,7 @@ void CtrlList::OnMouseClick(GMouse &m)
 									Input.SetParent(Dlg);
 									if (Input.DoModal())
 									{
-										c->Str->Set(Input.Str);
+										c->Str->Set(Input.GetStr());
 									}
 								}
 								break;
@@ -1936,7 +1937,7 @@ void CtrlList::OnPaint(GSurface *pDC)
 		int Width = c->r().X();
 		c->r().Set(x, Title.y1, x + Width - 1, Title.y2);
 		GRect r = c->r();
-		r.x2 = min(r.x2, Title.x2);
+		r.x2 = MIN(r.x2, Title.x2);
 		x = r.x2 + 1;
 		if (r.Valid())
 		{

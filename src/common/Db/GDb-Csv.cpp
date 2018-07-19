@@ -51,6 +51,7 @@ char *LgiTsvTok(char *&s)
 class SvRecordset : public GDbRecordset
 {
 	friend class SvField;
+	friend class SvDb;
 	
 	SvDb *Parent;
 
@@ -736,7 +737,12 @@ bool SvDb::Connect(const char *Init)
 
 bool SvDb::Disconnect()
 {
-	Tables.DeleteObjects();
+	SvRecordset *t;
+	while ((t = Tables.First()))
+	{
+		LgiAssert(t->Parent == this);
+		delete t;
+	}
 	return true;
 }
 
@@ -756,7 +762,7 @@ GDbRecordset *SvDb::TableAt(int i)
 }
 
 ///////////////////////////////////////////////////////////////////
-GDb *OpenCsvDatabase(char *Path, bool HasHeader)
+GDb *OpenCsvDatabase(const char *Path, bool HasHeader)
 {
 	SvDb *Db = new SvDb(',', HasHeader);
 	if (Db && Db->Connect(Path))
@@ -767,7 +773,7 @@ GDb *OpenCsvDatabase(char *Path, bool HasHeader)
 	return 0;
 }
 
-GDb *OpenTsvDatabase(char *Path, bool HasHeader)
+GDb *OpenTsvDatabase(const char *Path, bool HasHeader)
 {
 	SvDb *Db = new SvDb('\t', HasHeader);
 	if (Db && Db->Connect(Path))

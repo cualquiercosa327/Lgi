@@ -139,15 +139,21 @@ class GFunctionInfo : public GRefCount
 	static int _Infos;
 
 	int32 StartAddr;
-	uint16 FrameSize;
 	GString Name;
+
+	// The reason why this is a pointer is because during the function compilation the frame
+	// size is actually unknown. If the function calls itself then it won't know what
+	// frame size to insert in the assembly (this is NULL).
+	// In which case it has to insert a post compilation fix-up for the frame size.
+	GAutoPtr<uint16> FrameSize;
+
+	// The number and names of the parameters to the function.
 	GArray<GString> Params;
 
 public:
 	GFunctionInfo(const char *name)
 	{
 		StartAddr = 0;
-		FrameSize = 0;
 		if (name)
 			Name = name;
 	}
@@ -213,7 +219,7 @@ class GVariables : public GArray<GVariant>
 {
 	friend class GVirtualMachinePriv;
 
-	GHashTbl<const char*,int> Lut;
+	LHashTbl<ConstStrKey<char>,int> Lut;
 	
 public:
 	int Scope;
@@ -284,7 +290,7 @@ class GCompiledCode
 	GArray<GExternFunc*> Externs;
 	
 	/// All the user types defined
-	GHashTbl<char16*, class GCustomType*> Types;
+	LHashTbl<StrKey<char16>, class GCustomType*> Types;
 	
 	/// The original script details
 	GString FileName;
@@ -297,7 +303,7 @@ class GCompiledCode
 	GScriptContext *UserContext;
 
 	/// Debug info to map instruction address back to source line numbers
-	GHashTbl<NativeInt, int> Debug;
+	LHashTbl<IntKey<NativeInt>, int> Debug;
 
 public:
 	GCompiledCode();
@@ -307,7 +313,7 @@ public:
 	/// Size of the byte code
 	size_t Length() { return ByteCode.Length(); }
 	/// Assignment operator
-	GCompiledCode &operator =(GCompiledCode &c);
+	GCompiledCode &operator =(const GCompiledCode &c);
 	/// Gets a method defined in the code
 	GFunctionInfo *GetMethod(const char *Name, bool Create = false);
 	/// Sets a global variable

@@ -9,7 +9,7 @@
 
 #include "LgiInc.h"
 
-#ifdef COCOA
+#ifdef MAC
 #define REG
 #else
 #define REG register
@@ -432,6 +432,20 @@ ssize_t Strlen(const T *str)
 	return s - str;
 }
 
+// Templated version of NewStr/NewStrW
+// Duplicates a string in heap memory.
+template<typename T>
+T *Strdup(const T *s, ssize_t len = -1)
+{
+	if (!s) return NULL;
+	if (len < 0) len = Strlen(s);
+	T *n = new T[len+1];
+	if (!n) return NULL;
+	memcpy(n, s, sizeof(T) * len);
+	n[len] = 0;
+	return n;
+}
+
 // Compares two strings, case sensitive
 template<typename T>
 int Strcmp(const T *str_a, const T *str_b)
@@ -531,15 +545,15 @@ int Strnicmp(const T *str_a, const T *str_b, ssize_t len)
 }
 
 /// Copies a string
-template<typename T>
-T *Strcpy(T *dst, ssize_t dst_len, const T *src)
+template<typename T, typename I>
+T *Strcpy(T *dst, ssize_t dst_len, const I *src)
 {
 	if (!dst || !src || dst_len == 0)
 		return NULL;
 	
 	REG T *d = dst;
 	REG T *end = d + dst_len - 1; // leave 1 char for NULL terminator
-	REG const T *s = src;
+	REG const I *s = src;
 	while (d < end && *s)
 	{
 		*d++ = *s++;

@@ -92,7 +92,7 @@ int GInput::OnNotify(GViewI *Ctrl, int Flags)
 		}
 		case IDOK:
 		{
-			Str.Reset(NewStr(Edit->Name()));
+			Str = Edit->Name();
 			// fall thru
 		}
 		case IDCANCEL:

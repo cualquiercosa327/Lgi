@@ -123,8 +123,8 @@ public:
 	GStreamI *File;
 	GString Error;
 	int Flags;
-	GHashTbl<const char*,char16> Entities;
-	GHashTbl<const char*,bool> NoChildTags;
+	LHashTbl<ConstStrKey<char,false>,char16> Entities;
+	LHashTbl<ConstStrKey<char,false>,bool> NoChildTags;
 	GArray<char> Buf;
 	Progress *Prog;
 	
@@ -417,7 +417,7 @@ bool GXmlTag::Copy(GXmlTag &t, bool Deep)
 	
 	if (Deep)
 	{
-		List<GXmlTag>::I it = t.Children.Start();
+		List<GXmlTag>::I it = t.Children.begin();
 		for (GXmlTag *c = *it; it.In(); c = *++it)
 		{
 			GXmlTag *n = new GXmlTag;
@@ -473,7 +473,7 @@ GXmlTag *GXmlTag::GetChildTag(const char *Name, bool Create, const char *TagSepa
 		GXmlTag *Child = 0;
 		char *Part = p[i];
 		
-		List<GXmlTag>::I n = t->Children.Start();
+		List<GXmlTag>::I n = t->Children.begin();
 		for (GXmlTag *c = *n; n; c = *++n)
 		{
 			if (c->Tag && stricmp(c->Tag, Part) == 0)
@@ -507,7 +507,7 @@ bool GXmlTag::GetVariant(const char *Name, GVariant &Value, char *Array)
 
 	if (Name)
 	{
-		List<GXmlTag>::I n = Children.Start();
+		List<GXmlTag>::I n = Children.begin();
 		for (GXmlTag *c = *n; c; c = *++n)
 		{
 			if (c->Tag && stricmp(c->Tag, Name) == 0)
@@ -665,7 +665,7 @@ void GXmlTag::RemoveTag()
 int64 GXmlTag::CountTags()
 {
 	uint64 c = 1;
-	List<GXmlTag>::I it = Children.Start();
+	List<GXmlTag>::I it = Children.begin();
 	for (GXmlTag *t = *it; t; t = *++it)
 	{
 		c += t->CountTags();
@@ -1556,12 +1556,12 @@ char *GXmlTree::GetErrorMsg()
 	return d->Error;
 }
 
-GHashTbl<const char*,bool> *GXmlTree::NoChildTags()
+LHashTbl<ConstStrKey<char,false>,bool> *GXmlTree::NoChildTags()
 {
 	return &d->NoChildTags;
 }
 
-GHashTbl<const char*,char16> *GXmlTree::GetEntityTable()
+LHashTbl<ConstStrKey<char,false>,char16> *GXmlTree::GetEntityTable()
 {
 	return &d->Entities;
 }

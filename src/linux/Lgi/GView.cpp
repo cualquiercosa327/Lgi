@@ -693,15 +693,12 @@ GMessage::Param GView::OnEvent(GMessage *Msg)
 		{
 			GViewI *Ctrl;
 			if (GetViewById(MsgA(Msg), Ctrl))
-			{
 				return OnNotify(Ctrl, MsgB(Msg));
-			}
 			break;
 		}
 		case M_COMMAND:
 		{
-			int32 a=MsgA(Msg);
-			return OnCommand(a&0xFFFF, a>>16, (OsView) MsgB(Msg));
+			return OnCommand(MsgA(Msg), 0, (OsView) MsgB(Msg));
 		}
 	}
 
@@ -987,7 +984,7 @@ GViewI *GView::FindControl(OsView hCtrl)
 		return this;
 	}
 
-	List<GViewI>::I it = Children.Start();
+	List<GViewI>::I it = Children.begin();
 	for (GViewI *c = *it; c; c = *++it)
 	{
 		GViewI *Ctrl = c->FindControl(hCtrl);
@@ -1008,7 +1005,7 @@ void GView::OnGtkDelete()
 {
 	_View = NULL;
 	
-	List<GViewI>::I it = Children.Start();
+	List<GViewI>::I it = Children.begin();
 	for (GViewI *c = *it; c; c = *++it)
 	{
 		GView *v = c->GetGView();

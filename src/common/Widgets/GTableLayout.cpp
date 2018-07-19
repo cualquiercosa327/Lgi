@@ -348,7 +348,7 @@ class GTableLayoutPrivate
 	bool DebugLayout;
 
 public:
-	int PrevWidth;
+	GdcPt2 PrevSize;
 	GArray<double> Rows, Cols;
 	GArray<TableCell*> Cells;
 	int BorderSpacing;
@@ -1264,7 +1264,7 @@ void TableCell::OnPaint(GSurface *pDC)
 ////////////////////////////////////////////////////////////////////////////
 GTableLayoutPrivate::GTableLayoutPrivate(GTableLayout *ctrl)
 {
-	PrevWidth = -1;
+	PrevSize.Set(-1, -1);
 	InLayout = false;
 	DebugLayout = false;
 	Ctrl = ctrl;
@@ -1320,7 +1320,7 @@ void GTableLayoutPrivate::Empty(GRect *Range)
 		Cols.Length(0);
 	}
 
-	PrevWidth = -1;
+	PrevSize.Set(-1, -1);
 	LayoutBounds.ZOff(-1, -1);
 	LayoutMinX = LayoutMaxX = 0;
 }
@@ -1910,13 +1910,22 @@ GLayoutCell *GTableLayout::CellAt(int x, int y)
 	return d->GetCellAt(x, y);
 }
 
+bool GTableLayout::SizeChanged()
+{
+	GRect r = GetClient();
+	return	r.X() != d->PrevSize.x ||
+			r.Y() != d->PrevSize.y;
+}
+
 void GTableLayout::OnPosChange()
 {
 	GRect r = GetClient();
-	if (r.X() != d->PrevWidth)
+	if (SizeChanged())
 	{
-		d->PrevWidth = r.X();
-		if (d->PrevWidth > 0)
+		d->PrevSize.x = r.X();
+		d->PrevSize.y = r.Y();
+
+		if (d->PrevSize.x > 0)
 		{		
 			if (GetCss())
 			{
@@ -1931,7 +1940,7 @@ void GTableLayout::OnPosChange()
 
 GRect GTableLayout::GetUsedArea()
 {
-	if (d->PrevWidth != GetClient().X())
+	if (SizeChanged())
 	{
 		OnPosChange();
 	}
@@ -1951,7 +1960,7 @@ GRect GTableLayout::GetUsedArea()
 
 void GTableLayout::InvalidateLayout()
 {
-	d->PrevWidth = -1;
+	d->PrevSize.Set(-1, -1);
 	if (d->IsInLayout())
 	{
 		PostEvent(	M_CHANGE,
@@ -1982,8 +1991,8 @@ GMessage::Result GTableLayout::OnEvent(GMessage *m)
 
 void GTableLayout::OnPaint(GSurface *pDC)
 {
-	GRect Client = GetClient();
-	if (d->PrevWidth != Client.X())
+	//GRect Client = GetClient();
+	if (SizeChanged())
 	{
 		#ifdef LGI_SDL
 		OnPosChange();
@@ -2129,7 +2138,7 @@ int GTableLayout::OnNotify(GViewI *c, int f)
 {
     if (f == GNotifyTableLayout_Refresh)
     {
-		d->PrevWidth = -1;
+		d->PrevSize.Set(-1, -1);
         // OnPosChange();
         Invalidate();
         return 0;

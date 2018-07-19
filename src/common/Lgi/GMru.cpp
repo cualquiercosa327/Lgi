@@ -122,27 +122,34 @@ bool GMru::_SaveFile(char *FileName)
 		char File[MAX_PATH];
 		strcpy_s(File, sizeof(File), FileName);
 		
+		GFileType *st;
 		if (!FileExists(File) &&
-			GetSelectedType() &&
-			GetSelectedType()->Extension())
+			(st = GetSelectedType()) &&
+			st->Extension())
 		{
-			// extract extension
-			char Ext[64];
-			char *s = strchr(GetSelectedType()->Extension(), '.'), *d = Ext;
-			if (ValidStr(s) && stricmp(s, ".*"))
+			char *Cur = LgiGetExtension(File);
+			if (!Cur)
 			{
-				while (*s && *s != ';')
+				// extract extension
+				GString::Array a = GString(st->Extension()).Split(LGI_PATH_SEPARATOR);
+				for (GString *e = NULL; a.Iterate(e); )
 				{
-					*d++ = *s++;
-				}
-				*d++ = 0;
-				strlwr(Ext);
+					GString::Array p = e->RSplit(".", 1);
+					if (!p.Last().Equals("*"))
+					{
+						// bung the extension from the file type if not there
+						char *Dot = strrchr(File, '.');
+						if (Dot)
+							Dot++;
+						else
+						{
+							Dot = File + strlen(File);
+							*Dot++ = '.';
+						}
 
-				// bung the extension from the file type if not there
-				char *Dot = strrchr(File, '.');
-				if (!Dot || strchr(Dot, DIR_CHAR))
-				{
-					strcat(File, Ext);
+						strcpy(Dot, p.Last());
+						break;
+					}
 				}
 			}
 		}
@@ -367,7 +374,7 @@ bool GMru::Serialize(GDom *Store, const char *Prefix, bool Write)
 			// add our keys
 			int Idx = 0;
 			char Key[64];
-			GHashTbl<char*, bool> Saved(0, false);
+			LHashTbl<StrKey<char>, bool> Saved;
 
 			for (int i=0; i<d->Items.Length(); i++)
 			{

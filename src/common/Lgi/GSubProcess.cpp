@@ -235,7 +235,7 @@ uint32 GSubProcess::GetErrorCode()
 	return ErrorCode;
 }
 
-uint32 GSubProcess::GetExitValue()
+int32 GSubProcess::GetExitValue()
 {
 	#if defined(POSIX)
 	if (ChildPid != INVALID_PID)
@@ -434,9 +434,9 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 			Args.Add(NULL);
 			execvp(Exe, &Args[0]);
 
-			// We should never get here.
-			printf("child[pre-exec]: Failed to start child");
-			return false;
+			// Execution will pass to here if the 'Exe' can't run or doesn't exist
+			// So by exiting with an error the parent process can handle it.
+			exit(GSUBPROCESS_ERROR);
 		}
 		else
 		{
@@ -658,7 +658,7 @@ bool GSubProcess::Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdou
 		LgiTrace("%s:%i - Exe='%S'\n", _FL, WExe.Get());
 		#endif
 		
-		char16 WArg[512];
+		char16 WArg[1024];
 		int Ch = 0;
 		for (unsigned i=0; i<Args.Length(); i++)
 		{

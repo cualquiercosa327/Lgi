@@ -635,14 +635,17 @@ case ICallScript:
 	Sf.CurrentFrameSize = Frame;
 	Sf.PrevFrameStart = Locals.Length() ? Scope[1] - &Locals[0] : 0;
 	Sf.ReturnValue = *c.r++;
-	Sf.ReturnValue.Index -= CurFrameSize;
+	if (Sf.ReturnValue.Scope == SCOPE_LOCAL)
+		Sf.ReturnValue.Index -= CurFrameSize;
 	uint16 Args = *c.u16++;
 
 	// Increase the local stack size
 	size_t LocalsBase = Locals.Length();
+	size_t LocalsPos = Scope[SCOPE_LOCAL] - Locals.AddressOf();
 	Locals.SetFixedLength(false);
 	Locals.Length(LocalsBase + Frame);
 	Locals.SetFixedLength();
+	Scope[SCOPE_LOCAL] = Locals.AddressOf(LocalsPos);
 	
 	// Put the arguments of the function call into the local array
 	GArray<GVariant*> Arg;
@@ -669,11 +672,10 @@ case ICallScript:
 	}
 
 	#if VM_EXECUTE
-	Scope[SCOPE_LOCAL] = &Locals[LocalsBase];
-
 	// Set IP to start of function
 	Sf.ReturnIp = CurrentScriptAddress;
 	c.u8 = Base + FuncAddr;
+	Scope[SCOPE_LOCAL] = &Locals[LocalsBase];
 	#endif
 
 	#if VM_DECOMP
@@ -1307,7 +1309,12 @@ case IDomCall:
 		Arg[i] = Resolve();
 	}
 	
-	switch (Dom->Type)
+	GDomProperty p = LgiStringToDomProp(sName);
+	if (p == ObjType)
+	{
+		*Dst = GVariant::TypeToString(Dom->Type);
+	}
+	else switch (Dom->Type)
 	{
 		case GV_DOM:
 		case GV_STREAM:
@@ -1345,17 +1352,11 @@ case IDomCall:
 		case GV_LIST:
 		{
 			CheckParam(Dom->Value.Lst);
-			GDomProperty p = LgiStringToDomProp(sName);
 			switch (p)
 			{
 				case ObjLength:
 				{
-					*Dst = Dom->Value.Lst->Length();
-					break;
-				}
-				case ObjType:
-				{
-					*Dst = "List";
+					*Dst = (int64)Dom->Value.Lst->Length();
 					break;
 				}
 				case ContainerAdd:
@@ -1394,7 +1395,7 @@ case IDomCall:
 					if (Arg.Length() > 0 && Arg[0])
 					{
 						int Index = Arg[0]->CastInt32();
-						*Dst = (bool) (Index >= 0 && Index < Dom->Value.Lst->Length());
+						*Dst = (bool) (Index >= 0 && Index < (int)Dom->Value.Lst->Length());
 					}
 					else
 					{
@@ -1424,17 +1425,11 @@ case IDomCall:
 		case GV_HASHTABLE:
 		{
 			CheckParam(Dom->Value.Hash);
-			GDomProperty p = LgiStringToDomProp(sName);
 			switch (p)
 			{
 				case ObjLength:
 				{
 					*Dst = Dom->Value.Hash->Length();
-					break;
-				}
-				case ObjType:
-				{
-					*Dst = "HashTable";
 					break;
 				}
 				case ContainerAdd:
@@ -1499,7 +1494,6 @@ case IDomCall:
 		}
 		case GV_BINARY:
 		{
-			GDomProperty p = LgiStringToDomProp(sName);
 			switch (p)
 			{
 				default:
@@ -1518,18 +1512,12 @@ case IDomCall:
 				break;
 			}
 
-			GDomProperty p = LgiStringToDomProp(sName);
 			switch (p)
 			{
 				case ObjLength:
 				{
 					char *s = Dom->Str();
 					*Dst = (int) (s ? strlen(s) : 0);
-					break;
-				}
-				case ObjType:
-				{
-					*Dst = "String";
 					break;
 				}
 				case StrJoin:
@@ -1587,7 +1575,7 @@ case IDomCall:
 					const char *c = Dom->CastString();
 					while (c && *c)
 					{
-						if (MaxSplit > 0 && Dst->Value.Lst->Length() >= MaxSplit)
+						if (MaxSplit > 0 && (int)Dst->Value.Lst->Length() >= MaxSplit)
 							break;
 
 						const char *next = strstr(c, Sep);
@@ -1763,24 +1751,16 @@ case IDomCall:
 				Type = t;
 			}
 			
-			GDomProperty p = LgiStringToDomProp(sName);
-			if (p == ObjType)
+			Dst->Empty();
+			if (Log)
 			{
-				*Dst = Type;
+				Log->Print("%s IDomCall warning: Unexpected type %s (Src=%s:%i IP=0x%x).\n",
+							Code->AddrToSourceRef(CurrentScriptAddress),
+							Type,
+							_FL,
+							CurrentScriptAddress);
 			}
-			else
-			{
-				Dst->Empty();
-				if (Log)
-				{
-					Log->Print("%s IDomCall warning: Unexpected type %s (Src=%s:%i IP=0x%x).\n",
-								Code->AddrToSourceRef(CurrentScriptAddress),
-								Type,
-								_FL,
-								CurrentScriptAddress);
-				}
-				Status = ScriptWarning;
-			}
+			Status = ScriptWarning;
 			break;
 		}
 	}

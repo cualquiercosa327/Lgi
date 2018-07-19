@@ -494,8 +494,8 @@ void GDialog::OnPosChange()
 {
     if (Children.Length() == 1)
     {
-        List<GViewI>::I it = Children.Start();
-        GLayout *t = dynamic_cast<GLayout*>((GViewI*)it.First());
+        List<GViewI>::I it = Children.begin();
+        GLayout *t = dynamic_cast<GLayout*>((GViewI*)it);
         if (t)
         {
             GRect r = GetClient();
