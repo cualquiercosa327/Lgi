@@ -869,7 +869,7 @@ bool GCss::InheritResolve(PropMap &Contrib)
             case TypeLen:
             {
 				Len *Mine = 0;
-			    for (int i=a.value->Length()-1; i>=0; i--)
+			    for (ssize_t i=a.value->Length()-1; i>=0; i--)
 			    {
 			        Len *Cur = (Len*)(*a.value)[i];
 			        if (!Mine)
@@ -2874,7 +2874,7 @@ bool GCss::Store::Parse(const char *&c, int Depth)
 					GCss::Selector *s = Selectors[i];
 					s->Style = Style;
 					
-					int n = s->GetSimpleIndex();
+					ssize_t n = s->GetSimpleIndex();
 					if (n >= s->Parts.Length())
 					{
 						Error.Printf("ErrSimpleIndex %i>=%zi @ '%.80s'", n, s->Parts.Length(), c);

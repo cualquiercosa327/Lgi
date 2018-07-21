@@ -840,8 +840,15 @@ void GSurface::FilledEllipse(double Cx, double Cy, double Width, double Height)
 			error += two_xBsq - bSq;
 			if (error >= 0)
 			{
-				Line(cx+x-1, cy+y, cx-x+1, cy+y);
-				if (y != 0) Line(cx+x-1, cy-y, cx-x+1, cy-y);
+				Line((int) (cx+x-1),
+					(int) (cy+y),
+					(int) (cx-x+1),
+					(int) (cy+y));
+				if (y != 0)
+					Line((int) (cx+x-1),
+						 (int) (cy-y),
+						 (int) (cx-x+1),
+						 (int) (cy-y));
 	
 				y--;
 				two_yAsq -= two_aSq;
@@ -857,8 +864,15 @@ void GSurface::FilledEllipse(double Cx, double Cy, double Width, double Height)
 	
 		while (two_xBsq > two_yAsq)
 		{
-			Line(cx+x, cy+y, cx-x, cy+y);
-			if (y != 0) Line(cx+x, cy-y, cx-x, cy-y);
+			Line( (int) (cx+x),
+				(int) (cy+y),
+				(int) (cx-x),
+				(int) (cy+y));
+			if (y != 0)
+				Line((int) (cx+x),
+					(int) (cy-y),
+					(int) (cx-x),
+					(int) (cy-y));
 			y++;
 	
 			two_yAsq += two_aSq;

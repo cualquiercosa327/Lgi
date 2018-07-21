@@ -145,17 +145,17 @@ GViewI *GViewIter::Prev()
 	return *i;
 }
 
-int GViewIter::Length()
+size_t GViewIter::Length()
 {
 	return v->Children.Length();
 }
 
-int GViewIter::IndexOf(GViewI *view)
+ssize_t GViewIter::IndexOf(GViewI *view)
 {
 	return v->Children.IndexOf(view);
 }
 
-GViewI *GViewIter::operator [](int Idx)
+GViewI *GViewIter::operator [](ssize_t Idx)
 {
 	return v->Children[Idx];
 }

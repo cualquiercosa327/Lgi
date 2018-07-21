@@ -272,7 +272,7 @@ protected:
 		return true;
 	}
 
-	bool Insert(LstBlk *i, T *p, int Index = -1)
+	bool Insert(LstBlk *i, T *p, ssize_t Index = -1)
 	{
 		if (!i)
 			return false;
@@ -547,7 +547,10 @@ public:
 			if (i.i)
 			{
 				size_t Offset = Len - Base;
-				LgiAssert(Offset <= i.i->Count);
+				if (!(Offset <= i.i->Count))
+				{
+					LgiAssert(!"Offset error");
+				}
 				i.i->Count = Len - Base;
 				LgiAssert(i.i->Count >= 0 && i.i->Count < ITEM_PTRS);
 				while (i.i->Next)
@@ -617,7 +620,7 @@ public:
 		return Status;
 	}
 
-	bool Insert(T *p, int Index = -1)
+	bool Insert(T *p, ssize_t Index = -1)
 	{
 		VALIDATE();
 		if (!LastObj)
@@ -718,7 +721,7 @@ public:
 		return Status;
 	}
 
-	T *ItemAt(int i)
+	T *ItemAt(ssize_t i)
 	{
 		VALIDATE();
 		Local = GetIndex(i);
@@ -891,8 +894,8 @@ public:
 	}
 	#endif
 
-	Iter begin(int At = 0) { return GetIndex(At); }
-	Iter rbegin(int At = 0) { return GetIndex(Length()-1); }
+	Iter begin(ssize_t At = 0) { return GetIndex(At); }
+	Iter rbegin(ssize_t At = 0) { return GetIndex(Length()-1); }
 	Iter end() { return Iter(this, NULL, -1); }
 
 	bool Validate() const

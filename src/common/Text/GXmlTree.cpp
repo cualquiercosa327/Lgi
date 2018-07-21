@@ -771,7 +771,7 @@ bool GXmlTag::DelAttr(const char *Name)
 	return false;
 }
 
-bool GXmlTag::SetContent(const char *s, int len)
+bool GXmlTag::SetContent(const char *s, ssize_t len)
 {
 	char *n = s ? Allocator->Alloc(s, len > 0 ? len : strlen(s)) : NULL;
 	if (Content)

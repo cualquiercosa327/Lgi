@@ -788,7 +788,7 @@ DebugTrace("%s:%i - SslSocket::Open(%s,%i)\n", _FL, HostAddr, Port);
 			if (Library->Client)
 			{
 				const char *CertDir = "/u/matthew/cert";
-				long r = Library->SSL_CTX_load_verify_locations(Library->Client, 0, CertDir);
+				int r = Library->SSL_CTX_load_verify_locations(Library->Client, 0, CertDir);
 DebugTrace("%s:%i - SSL_CTX_load_verify_locations=%i\n", _FL, r);
 				if (r > 0)
 				{
@@ -823,7 +823,7 @@ DebugTrace("%s:%i - BIO_get_ssl=%p\n", _FL, Ssl);
 DebugTrace("%s:%i - initial SSL_connect=%i\n", _FL, r);
 							while (r != 1 && !d->Cancel->IsCancelled())
 							{
-								long err = Library->SSL_get_error(Ssl, r);
+								int err = Library->SSL_get_error(Ssl, r);
 								if (err != SSL_ERROR_WANT_CONNECT)
 								{
 DebugTrace("%s:%i - SSL_get_error=%i\n", _FL, err);
@@ -1198,7 +1198,7 @@ ssize_t SslSocket::Write(const void *Data, ssize_t Len, int Flags)
 		return -1;
 	}
 
-	ssize_t r = 0;
+	int r = 0;
 	if (d->UseSSLrw)
 	{
 		if (Ssl)
@@ -1208,7 +1208,7 @@ ssize_t SslSocket::Write(const void *Data, ssize_t Len, int Flags)
 
 			while (HasntTimedOut())
 			{
-				r = Library->SSL_write(Ssl, Data, Len);
+				r = Library->SSL_write(Ssl, Data, (int)Len);
 				if (r < 0)
 				{
 					LgiSleep(10);
@@ -1243,7 +1243,7 @@ ssize_t SslSocket::Write(const void *Data, ssize_t Len, int Flags)
 		{
 			if (!Library)
 				break;
-			r = Library->BIO_write(Bio, Data, Len);
+			r = Library->BIO_write(Bio, Data, (int)Len);
 			DebugTrace("%s:%i - BIO_write(%p,%i)=%i\n", _FL, Data, Len, r);
 			if (r < 0)
 			{
@@ -1321,7 +1321,7 @@ ssize_t SslSocket::Read(void *Data, ssize_t Len, int Flags)
 				int To = GetTimeout();
 				while (HasntTimedOut())
 				{
-					r = Library->SSL_read(Ssl, Data, Len);
+					r = Library->SSL_read(Ssl, Data, (int)Len);
 DebugTrace("%s:%i - SSL_read(%p,%i)=%i\n", _FL, Data, Len, r);
 					if (r < 0)
 						LgiSleep(10);
@@ -1343,7 +1343,7 @@ DebugTrace("%s:%i - SSL_read(%p,%i)=%i\n", _FL, Data, Len, r);
 			int To = GetTimeout();
 			while (HasntTimedOut())
 			{
-				r = Library->BIO_read(Bio, Data, Len);
+				r = Library->BIO_read(Bio, Data, (int)Len);
 				if (r < 0)
 				{
 					if (d->IsBlocking)

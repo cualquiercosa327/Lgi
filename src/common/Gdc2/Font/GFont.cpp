@@ -1446,7 +1446,7 @@ bool GFont::Create(const char *face, int height, GSurface *pSurface)
 	return false;
 }
 
-char16 *GFont::_ToUnicode(char *In, int &Len)
+char16 *GFont::_ToUnicode(char *In, ssize_t &Len)
 {
 	char16 *WStr = 0;
 	
@@ -1456,7 +1456,7 @@ char16 *GFont::_ToUnicode(char *In, int &Len)
 		WStr = (char16*)LgiNewConvertCp(LGI_WideCharset, In, GTypeFace::d->_CodePage, Len);
 		if (WStr)
 		{
-			int l = StrlenW(WStr);
+			ssize_t l = StrlenW(WStr);
 			if (l < Len)
 			{
 				Len = l;
@@ -2414,7 +2414,7 @@ char16 WinSymbolToUnicode[256] =
     /* 240 to 255 */ 8680, 8679, 8681, 8660, 8661, 8662, 8663, 8665, 8664, 0, 0, 10007, 10003, 9746, 9745, 0,
 };
 
-GAutoString GFont::ConvertToUnicode(char16 *Input, int Len)
+GAutoString GFont::ConvertToUnicode(char16 *Input, ssize_t Len)
 {
 	GAutoString a;
 	

@@ -1340,7 +1340,7 @@ int IsAddr(char16 *Ln)
 
 int GDebugView::GetAddr()
 {
-	int Index;
+	ssize_t Index;
 	GTextLine *t = GetTextLine(Cursor, &Index);
 	if (!t)
 		return -1;

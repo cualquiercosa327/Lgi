@@ -49,7 +49,7 @@ void OsAppArguments::Set(char *CmdLine)
 	d->Ptr.Length(0);
 	
 	GArray<char> Raw;
-	GArray<int> Offsets;
+	GArray<size_t> Offsets;
 	
 	char Exe[256];
 	Offsets.Add(0);
@@ -100,17 +100,17 @@ void OsAppArguments::Set(char *CmdLine)
 		d->Ptr[n] = d->Str + Offsets[n];
 	}
 	
-	Args = d->Ptr.Length();
+	Args = (int)d->Ptr.Length();
 	Arg = (const char**) &d->Ptr[0];
 }
 
 OsAppArguments &OsAppArguments::operator =(OsAppArguments &a)
 {
 	GArray<char> Raw;
-	GArray<int> Offsets;
+	GArray<size_t> Offsets;
 	for (int i=0; i<a.Args; i++)
 	{
-		int Len = strlen(a.Arg[i]) + 1;
+		size_t Len = strlen(a.Arg[i]) + 1;
 		Offsets[i] = Raw.Length();
 		Raw.Length(Offsets[i] + Len);
 		memcpy(&Raw[Offsets[i]], a.Arg[i], Len);
@@ -123,7 +123,7 @@ OsAppArguments &OsAppArguments::operator =(OsAppArguments &a)
 		d->Ptr[n] = d->Str + Offsets[n];
 	}
 	
-	Args = d->Ptr.Length();
+	Args = (int)d->Ptr.Length();
 	Arg = (const char**) &d->Ptr[0];
 	
 	return *this;
@@ -649,8 +649,11 @@ GApp *GApp::ObjInstance()
 
 bool GApp::IsOk()
 {
-	bool Status = 	(this != 0) &&
-	(d != 0)
+	bool Status =
+					#if !defined(__clang__)
+					(this != 0) &&
+					#endif
+					(d != 0)
 	/*
 	 #ifdef XWIN
 	 && (XDisplay() != 0)
@@ -769,7 +772,7 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 {
 	if (Loop)
 	{
-		int Status = NSApplicationMain(GetArgs(), GetArg());
+		NSApplicationMain(GetArgs(), GetArg());
 		return true;
 	}
 	else
@@ -929,7 +932,7 @@ const char *GApp::GetArgumentAt(int n)
 
 bool GApp::GetOption(const char *Option, char *Dest, int DestLen)
 {
-	GAutoString Buf;
+	GString Buf;
 	if (GetOption(Option, Buf))
 	{
 		if (Dest)
@@ -1073,7 +1076,7 @@ bool GApp::GetAppsForMimeType(char *Mime, GArray<GAppInfo*> &Apps)
 	{
 		s++;
 		
-		int Len = strlen(s) + 1;
+		size_t Len = strlen(s) + 1;
 		if (strnicmp(s, "x-", 2) == 0)
 		{
 			memmove(s, s+2, Len - 2);

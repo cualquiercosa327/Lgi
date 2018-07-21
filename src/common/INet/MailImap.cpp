@@ -136,7 +136,7 @@ ssize_t MailIMap::ParseImapResponse(char *Buffer, ssize_t BufferLen, GArray<StrR
 	s++;
 
 	// Parse fields
-	int MsgSize = 0;
+	ssize_t MsgSize = 0;
 	while (*s)
 	{
 		LgiAssert(s < End);
@@ -172,7 +172,7 @@ ssize_t MailIMap::ParseImapResponse(char *Buffer, ssize_t BufferLen, GArray<StrR
 			ExpectChar('\r');
 			ExpectChar('\n');
 			Start = s;
-			int CurPos = s - Buffer;
+			ssize_t CurPos = s - Buffer;
 			if (CurPos + Size <= BufferLen)
 			{
 				s += Size;
@@ -284,23 +284,23 @@ bool MailIMap::Http(GSocketI *S,
 			InBody?InBody:"");
 
 	GAutoString Req(p.NewStr());
-	int ReqLen = strlen(Req);
+	size_t ReqLen = strlen(Req);
 
 	if (!S->Open(u.Host, u.Port?u.Port:443))
 		return false;
 
-	int w = S->Write(Req, ReqLen);
+	ssize_t w = S->Write(Req, ReqLen);
 	if (w != ReqLen)
 		return false;
 
 	char Buf[256];
 	GArray<char> Res;
-	int r;
-	int ContentLen = 0;
-	uint32 HdrLen = 0;
+	ssize_t r;
+	ssize_t ContentLen = 0;
+	ssize_t HdrLen = 0;
 	while ((r = S->Read(Buf, sizeof(Buf))) > 0)
 	{
-		int Old = Res.Length();
+		ssize_t Old = Res.Length();
 		Res.Length(Old + r);
 		memcpy(&Res[Old], Buf, r);
 
@@ -449,7 +449,7 @@ char *DecodeImapString(const char *s)
 				e++;
 			}
 
-			int Len = e - s;
+			ssize_t Len = e - s;
 			if (Len)
 			{
 				char *Base64 = new char[Len + 4];
@@ -457,19 +457,19 @@ char *DecodeImapString(const char *s)
 				{
 					memcpy(Base64, s, Len);
 					char *n = Base64 + Len;
-					for (int i=Len; i%4; i++)
+					for (ssize_t i=Len; i%4; i++)
 						*n++ = '=';
 					*n++ = 0;
 
 					Len = strlen(Base64);
-					int BinLen = BufferLen_64ToBin(Len);
+					ssize_t BinLen = BufferLen_64ToBin(Len);
 					uint16 *Bin = new uint16[(BinLen/2)+1];
 					if (Bin)
 					{
 						BinLen = ConvertBase64ToBinary((uchar*)Bin, BinLen, Base64, Len);
 						if (BinLen)
 						{
-							int Chars = BinLen / 2;
+							ssize_t Chars = BinLen / 2;
 							Bin[Chars] = 0;
 							for (int i=0; i<Chars; i++)
 							{
@@ -548,12 +548,12 @@ char *EncodeImapString(const char *s)
 			{
 				Str[i] = (Str[i]>>8) | ((Str[i]&0xff)<<8);
 			}
-			int BinLen = Str.Length() << 1;
-			int BaseLen = BufferLen_BinTo64(BinLen);
+			ssize_t BinLen = Str.Length() << 1;
+			ssize_t BaseLen = BufferLen_BinTo64(BinLen);
 			char *Base64 = new char[BaseLen+1];
 			if (Base64)
 			{
-				int Bytes = ConvertBinaryToBase64(Base64, BaseLen, (uchar*)&Str[0], BinLen);
+				ssize_t Bytes = ConvertBinaryToBase64(Base64, BaseLen, (uchar*)&Str[0], BinLen);
 				while (Bytes > 0 && Base64[Bytes-1] == '=')
 				{
 					Base64[Bytes-1] = 0;
@@ -807,7 +807,7 @@ bool MailIMap::WriteBuf(bool ObsurePass, const char *Buffer, bool Continuation)
 		if (!Buffer)
 			Buffer = Buf;
 
-		int Len = strlen(Buffer);
+		ssize_t Len = strlen(Buffer);
 		d->LastWrite = Buffer;
 		if (!Continuation && d->InCommand)
 		{
@@ -859,7 +859,7 @@ bool MailIMap::Read(GStreamI *Out)
 
 	while (!Lines && Socket)
 	{
-		int r = Socket->Read(Buffer, sizeof(Buffer));
+		ssize_t r = Socket->Read(Buffer, sizeof(Buffer));
 		if (r > 0)
 		{
 			ReadBuf.Push(Buffer, r);
@@ -909,7 +909,7 @@ bool MailIMap::ReadResponse(int Cmd, bool Plus)
 	bool Status = false;
 	if (Socket)
 	{
-		int Pos = Dialog.Length();
+		ssize_t Pos = Dialog.Length();
 		while (!Done)
 		{
 			if (Read(NULL))
@@ -943,7 +943,7 @@ bool MailIMap::ReadResponse(int Cmd, bool Plus)
 	return Status;
 }
 
-void Hex(char *Out, int OutLen, uchar *In, int InLen = -1)
+void Hex(char *Out, int OutLen, uchar *In, ssize_t InLen = -1)
 {
 	if (Out && In)
 	{
@@ -965,7 +965,7 @@ void Hex(char *Out, int OutLen, uchar *In, int InLen = -1)
 
 void _unpack(void *ptr, int ptrsize, char *b64)
 {
-	int c = ConvertBase64ToBinary((uchar*) ptr, ptrsize, b64, strlen(b64));
+	ConvertBase64ToBinary((uchar*) ptr, ptrsize, b64, strlen(b64));
 }
 
 bool MailIMap::ReadLine()
@@ -974,7 +974,7 @@ bool MailIMap::ReadLine()
 	Buf[0] = 0;
 	do
 	{
-		int r = Socket->Read(Buf+Len, sizeof(Buf)-Len);
+		ssize_t r = Socket->Read(Buf+Len, sizeof(Buf)-Len);
 		if (r < 1)
 			return false;
 		Len += r;
@@ -1088,7 +1088,7 @@ public:
 				else
 				{
 					GArray<char> Mem;
-					int r;
+					ssize_t r;
 					char buf[512];
 					do 
 					{
@@ -1395,7 +1395,7 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 						e += strlen(e);
 						*e++ = '\r';
 						*e++ = '\n';
-						int Len = e - s - 2;					
+						ssize_t Len = e - s - 2;
 
 						int AuthCmd = d->NextCmd++;
 						sprintf_s(Buf, sizeof(Buf), "A%4.4i AUTHENTICATE PLAIN\r\n", AuthCmd);
@@ -1403,7 +1403,7 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 						{
 							if (ReadResponse(AuthCmd, true))
 							{
-								int b = ConvertBinaryToBase64(Buf, sizeof(Buf), (uchar*)s, Len);
+								ssize_t b = ConvertBinaryToBase64(Buf, sizeof(Buf), (uchar*)s, Len);
 								strcpy_s(Buf+b, sizeof(Buf)-b, "\r\n");
 								if (WriteBuf(false, NULL, true))
 								{
@@ -1589,7 +1589,7 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 									In += 2;
 
 									uchar Out[2048];
-									int b = ConvertBase64ToBinary(Out, sizeof(Out), In, strlen(In));
+									ssize_t b = ConvertBase64ToBinary(Out, sizeof(Out), In, strlen(In));
 									Out[b] = 0;
 									
 									GHashTbl<const char*, char*> Map;
@@ -1684,7 +1684,7 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 									p.Print(",response=%s", Buf);
 									if ((s = p.NewStr()))
 									{
-										int Chars = ConvertBinaryToBase64(Buf, sizeof(Buf) - 4, (uchar*)s, strlen(s));
+										ssize_t Chars = ConvertBinaryToBase64(Buf, sizeof(Buf) - 4, (uchar*)s, strlen(s));
 										LgiAssert(Chars < sizeof(Buf));
 										strcpy_s(Buf+Chars, sizeof(Buf)-Chars, "\r\n");
 										
@@ -1795,9 +1795,11 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 								RedirEnc.Get(),
 								d->OAuth.Scope.Get());
 							#if DEBUG_OAUTH2
+							bool ExResult;
 							LgiTrace("%s:%i - Uri=%p-%p\n", _FL, Uri.Get(), Uri.Get() + Uri.Length());
+							ExResult =
 							#endif
-							bool ExResult = LgiExecute(Uri);
+							LgiExecute(Uri);
 							#if DEBUG_OAUTH2
 							LgiTrace("%s:%i - LgiExecute(%s)=%i\n", _FL, Uri.Get(), ExResult);
 							#endif
@@ -1816,7 +1818,7 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 										GString::Array p = a[0].Split(" ");
 										if (p.Length() > 1)
 										{
-											int Q = p[1].Find("?");
+											ssize_t Q = p[1].Find("?");
 											if (Q >= 0)
 											{
 												GString Params = p[1](Q+1, -1);
@@ -1952,7 +1954,7 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 											if (d->OAuth.AccessToken)
 											{
 												d->OAuth.RefreshToken = Json.Get("refresh_token");
-												d->OAuth.ExpiresIn = Json.Get("expires_in").Int();
+												d->OAuth.ExpiresIn = (int)Json.Get("expires_in").Int();
 												#if DEBUG_OAUTH2
 												LgiTrace("%s:%i - OAuth:\n\tAccessToken=%s\n\tRefreshToken=%s\n\tExpires=%i\n",
 													_FL,
@@ -2036,7 +2038,7 @@ bool MailIMap::Open(GSocketI *s, const char *RemoteHost, int Port, const char *U
 										
 										LJson t;
 										t.SetJson(s);
-										int StatusCode = t.Get("status").Int();
+										int StatusCode = (int)t.Get("status").Int();
 										LgiTrace("%s:%i - HTTP status: %i\n%s\n", _FL, StatusCode, s.Get());
 
 										sprintf_s(Buf, sizeof(Buf), "\r\n");
@@ -2229,18 +2231,18 @@ bool MailIMap::SelectFolder(const char *Path, GHashTbl<const char*,GString> *Val
 						{
 							for (unsigned i=1; i<t.Length(); i++)
 							{
-								char *var = t[i];
+								//char *var = t[i];
 
 								if (t[i].Equals("exists") ||
 									t[i].Equals("recent"))
 								{
-									char *val = t[i-1];
+									//char *val = t[i-1];
 									if (t[i-1].IsNumeric())
 										Values->Add(t[i], t[i-1]);
 								}
 								else if (t[i].Equals("unseen"))
 								{
-									char *val = t[i+1];
+									//char *val = t[i+1];
 									if (t[i+1].IsNumeric())
 										Values->Add(t[i], t[i+1]);
 								}
@@ -2305,7 +2307,7 @@ char *MailIMap::SequenceToString(GArray<int> *Seq)
 		return NewStr("1:*");
 
 	GStringPipe p;			
-	int Last = 0;
+	// int Last = 0;
 	for (unsigned s=0; s<Seq->Length(); )
 	{
 		unsigned e = s;
@@ -2324,11 +2326,11 @@ char *MailIMap::SequenceToString(GArray<int> *Seq)
 	return p.NewStr();
 }
 
-static void RemoveBytes(GArray<char> &a, unsigned &Used, unsigned Bytes)
+static void RemoveBytes(GArray<char> &a, ssize_t &Used, ssize_t Bytes)
 {
 	if (Used >= Bytes)
 	{
-		unsigned Remain = Used - Bytes;
+		ssize_t Remain = Used - Bytes;
 		if (Remain > 0)
 			memmove(&a[0], &a[Bytes], Remain);
 		Used -= Bytes;
@@ -2336,9 +2338,9 @@ static void RemoveBytes(GArray<char> &a, unsigned &Used, unsigned Bytes)
 	else LgiAssert(0);
 }
 
-static bool PopLine(GArray<char> &a, unsigned &Used, GAutoString &Line)
+static bool PopLine(GArray<char> &a, ssize_t &Used, GAutoString &Line)
 {
-	for (unsigned i=0; i<Used; i++)
+	for (ssize_t i=0; i<Used; i++)
 	{
 		if (a[i] == '\n')
 		{
@@ -2397,13 +2399,13 @@ int MailIMap::Fetch(bool ByUid,
 
 		GArray<char> Buf;
 		Buf.Length(1024 + (SizeHint>0?(uint32)SizeHint:0));
-		unsigned Used = 0;
-		unsigned MsgSize;
-		int64 Start = LgiCurrentTime();
+		ssize_t Used = 0;
+		ssize_t MsgSize;
+		// int64 Start = LgiCurrentTime();
 		int64 Bytes = 0;
 		bool Done = false;
 		
-		uint64 TotalTs = 0;
+		// uint64 TotalTs = 0;
 
 		bool Blocking = Socket->IsBlocking();
 		Socket->IsBlocking(false);
@@ -2416,7 +2418,7 @@ int MailIMap::Fetch(bool ByUid,
 		bool Debug = false;
 		while (!Done && Socket->IsOpen())
 		{
-			int r;
+			ssize_t r;
 			do				
 			{
 				// Extend the buffer if getting used up
@@ -2648,14 +2650,14 @@ static bool IMapReceiveCallback(MailIMap *Imap, char *Msg, GHashTbl<const char*,
 	char *Hdrs = Parts.Find(sRfc822Header);
 	if (Hdrs)
 	{
-		int Len = strlen(Hdrs);
+		ssize_t Len = strlen(Hdrs);
 		State->Trans->Stream->Write(Hdrs, Len);
 	}
 
 	char *Body = Parts.Find("BODY[TEXT]");
 	if (Body)
 	{
-		int Len = strlen(Body);
+		ssize_t Len = strlen(Body);
 		State->Trans->Stream->Write(Body, Len);
 	}
 	
@@ -3087,7 +3089,7 @@ bool MailIMap::GetFolders(GArray<MailImapFolder*> &Folders)
 bool MailIMap::CreateFolder(MailImapFolder *f)
 {
 	bool Status = false;
-	char Dir[2] = { d->FolderSep, 0 };
+	// char Dir[2] = { d->FolderSep, 0 };
 
 	if (f && f->GetPath() && Lock(_FL))
 	{

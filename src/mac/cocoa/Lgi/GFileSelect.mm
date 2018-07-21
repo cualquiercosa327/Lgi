@@ -101,17 +101,17 @@ bool GFileSelect::Name(const char *n)
 	return true;
 }
 
-char *GFileSelect::operator [](int i)
+char *GFileSelect::operator [](size_t i)
 {
 	return d->Files.ItemAt(i);
 }
 
-int GFileSelect::Length()
+size_t GFileSelect::Length()
 {
 	return d->Files.Length();
 }
 
-int GFileSelect::Types()
+size_t GFileSelect::Types()
 {
 	return d->Types.Length();
 }
@@ -139,7 +139,7 @@ bool GFileSelect::Type(const char *Description, const char *Extension, int Data)
 	return Type != 0;
 }
 
-int GFileSelect::SelectedType()
+ssize_t GFileSelect::SelectedType()
 {
 	return d->CurrentType;
 }

@@ -17,7 +17,7 @@
 #endif
 
 template<typename RESULT, typename CHAR>
-RESULT LHash(const CHAR *v, int l, bool Case)
+RESULT LHash(const CHAR *v, ssize_t l, bool Case)
 {
 	RESULT h = 0;
 
@@ -140,8 +140,8 @@ protected:
 	struct Buf : public GArray<T>
 	{
 		int Used;
-		Buf(int Sz = 0) { Length(Sz); }
-		size_t Free() { return Length() - Used; }
+		Buf(int Sz = 0) { this->Length(Sz); }
+		size_t Free() { return this->Length() - Used; }
 	};
 
 	GArray<Buf> Mem;
@@ -245,7 +245,7 @@ public:
 	const T *CopyKey(const T *a)
 	{
 		size_t Sz = Strlen(a) + 1;
-		Buf *m = GetMem(Sz);
+		Buf *m = this->GetMem(Sz);
 		if (!m) return NullKey;
 		T *r = m->AddressOf(m->Used);
 		memcpy(r, a, Sz*sizeof(*a));
@@ -288,20 +288,20 @@ protected:
 		return (int) (Used * 100 / Size);
 	}
 
-	bool GetEntry(const Key k, int &Index, bool Debug = false)
+	bool GetEntry(const Key k, ssize_t &Index, bool Debug = false)
 	{
 		if (k != this->NullKey && Table)
 		{
-			uint32 h = Hash(k);
+			uint32 h = this->Hash(k);
 
-			for (int i=0; i<Size; i++)
+			for (ssize_t i=0; i<Size; i++)
 			{
 				Index = (h + i) % Size;
 
 				if (Table[Index].key == this->NullKey)
 					return false;
 					
-				if (CmpKey(Table[Index].key, k))
+				if (this->CmpKey(Table[Index].key, k))
 					return true;
 			}
 		}
@@ -309,7 +309,7 @@ protected:
 		return false;
 	}
 
-	bool Between(int Val, int Min, int Max)
+	bool Between(ssize_t Val, ssize_t Min, ssize_t Max)
 	{
 		if (Min <= Max)
 		{
@@ -324,7 +324,7 @@ protected:
 	}
 
 
-	void InitializeTable(Pair *e, int len)
+	void InitializeTable(Pair *e, ssize_t len)
 	{
 		if (!e || len < 1) return;
 		while (len--)
@@ -411,8 +411,8 @@ public:
 		if (!IsOk())
 			return false;
 
-		int OldSize = Size;
-		int NewSize = MAX((int)s, Used * 10 / 7);
+		size_t OldSize = Size;
+		size_t NewSize = MAX((int)s, Used * 10 / 7);
 		if (NewSize != Size)
 		{
 			Pair *OldTable = Table;
@@ -434,7 +434,7 @@ public:
 						{
 							LgiAssert(0);
 						}
-						FreeKey(OldTable[i].key);
+						this->FreeKey(OldTable[i].key);
 					}
 				}
 
@@ -473,7 +473,7 @@ public:
 	}
 
 	/// Gets the number of entries used
-	int Length()
+	size_t Length()
 	{
 		return IsOk() ? Used : 0;
 	}
@@ -498,7 +498,7 @@ public:
 			return false;
 		}
 
-		uint32 h = Hash(k);
+		uint32 h = this->Hash(k);
 
 		int Index = -1;
 		for (int i=0; i<Size; i++)
@@ -508,7 +508,7 @@ public:
 			(
 				Table[idx].key == this->NullKey
 				||
-				CmpKey(Table[idx].key, k)
+				this->CmpKey(Table[idx].key, k)
 			)
 			{
 				Index = idx;
@@ -520,7 +520,7 @@ public:
 		{
 			if (Table[Index].key == this->NullKey)
 			{
-				Table[Index].key = CopyKey(k);
+				Table[Index].key = this->CopyKey(k);
 				Used++;
 			}
 			Table[Index].value = v;
@@ -543,21 +543,21 @@ public:
 		Key k
 	)
 	{
-		int Index = -1;
+		ssize_t Index = -1;
 		if (GetEntry(k, Index))
 		{
 			// Delete the entry
-			FreeKey(Table[Index].key);
+			this->FreeKey(Table[Index].key);
 			Table[Index].value = NullValue;
 			Used--;
 			
 			// Bubble down any entries above the hole
-			int Hole = Index;
-			for (int i = (Index + 1) % Size; i != Index; i = (i + 1) % Size)
+			ssize_t Hole = Index;
+			for (ssize_t i = (Index + 1) % Size; i != Index; i = (i + 1) % Size)
 			{
 				if (Table[i].key != this->NullKey)
 				{
-					uint32 Hsh = Hash(Table[i].key);
+					uint32 Hsh = this->Hash(Table[i].key);
 					uint32 HashIndex = Hsh % Size;
 					
 					if (HashIndex != i && Between(Hole, HashIndex, i))
@@ -598,7 +598,7 @@ public:
 	/// Returns the value at 'key'
 	Value Find(const Key k)
 	{
-		int Index = -1;
+		ssize_t Index = -1;
 		if (IsOk() && GetEntry(k, Index))
 		{
 			return Table[Index].value;
@@ -637,14 +637,14 @@ public:
 		{
 			if (Table[i].key != this->NullKey)
 			{
-				FreeKey(Table[i].key);
+				this->FreeKey(Table[i].key);
 				LgiAssert(Table[i].key == this->NullKey);
 			}
 			Table[i].value = NullValue;
 		}
 
 		Used = 0;
-		EmptyKeys();
+		this->EmptyKeys();
 	}
 
 	/// Returns the amount of memory in use by the hash table.
@@ -680,7 +680,7 @@ public:
 		for (int i=0; i<Size; i++)
 		{
 			if (Table[i].key != this->NullKey)
-				FreeKey(Table[i].key);
+				this->FreeKey(Table[i].key);
 
 			if (Table[i].value != NullValue)
 				DeleteObj(Table[i].value);
@@ -695,7 +695,7 @@ public:
 		for (int i=0; i<Size; i++)
 		{
 			if (Table[i].key != this->NullKey)
-				FreeKey(Table[i].key);
+				this->FreeKey(Table[i].key);
 
 			if (Table[i].value != NullValue)
 				DeleteArray(Table[i].value);
@@ -707,10 +707,10 @@ public:
 	struct PairIterator
 	{
 		LHashTbl<KeyTrait,Value> *t;
-		int Idx;
+		ssize_t Idx;
 
 	public:
-		PairIterator(LHashTbl<KeyTrait,Value> *tbl, int i)
+		PairIterator(LHashTbl<KeyTrait,Value> *tbl, ssize_t i)
 		{
 			t = tbl;
 			Idx = i;

@@ -390,7 +390,7 @@ public:
 	GArray<GVariables*> Scopes;
 	GArray<LinkFixup> Fixups;
 	LHashTbl<StrKey<char16>, char16*> Defines;
-	LHashTbl<StrKey<char16>, GTokenType> ExpTok;
+	LHashTbl<ConstStrKey<char16>, GTokenType> ExpTok;
 	GDom *ScriptArgs;
 	GVarRef ScriptArgsRef;
 	bool ErrShowFirstOnly;
@@ -824,7 +824,7 @@ public:
 			}
 		}
 
-		r.Index = Code->Globals.Length();
+		r.Index = (int)Code->Globals.Length();
 		Code->Globals[r.Index] = b;
 	}
 
@@ -847,13 +847,13 @@ public:
 					if (Type == GV_INT32 &&
 						p->Value.Int == i)
 					{
-						r.Index = p - &Code->Globals[0];
+						r.Index = (int) (p - &Code->Globals[0]);
 						return;
 					}
 					else if (Type == GV_INT64 &&
 						p->Value.Int64 == i)
 					{
-						r.Index = p - &Code->Globals[0];
+						r.Index = (int) (p - &Code->Globals[0]);
 						return;
 					}
 				}
@@ -862,7 +862,7 @@ public:
 		}
 
 		// Allocate new global
-		r.Index = Code->Globals.Length();
+		r.Index = (int)Code->Globals.Length();
 		if (Type == GV_INT32)
 			Code->Globals[r.Index] = (int32)i;
 		else
@@ -882,7 +882,7 @@ public:
 			len = strlen(s);
 		
 		r.Scope = SCOPE_GLOBAL;
-		r.Index = Code->Globals.Length();
+		r.Index = (int)Code->Globals.Length();
 
 		for (unsigned i=0; i<Code->Globals.Length(); i++)
 		{
@@ -915,7 +915,7 @@ public:
 			utf = NewStr("");
 
 		r.Scope = SCOPE_GLOBAL;
-		r.Index = Code->Globals.Length();
+		r.Index = (int)Code->Globals.Length();
 
 		for (unsigned i=0; i<Code->Globals.Length(); i++)
 		{
@@ -1259,7 +1259,7 @@ public:
 							{
 								// Setup the global variable to address the script argument variable
 								ScriptArgsRef.Scope = SCOPE_GLOBAL;
-								ScriptArgsRef.Index = Code->Globals.Length();
+								ScriptArgsRef.Index = (int)Code->Globals.Length();
 								
 								GVariant &v = Code->Globals[ScriptArgsRef.Index];
 								v.Type = GV_DOM;
@@ -1544,10 +1544,6 @@ public:
 				{
 					Asm0(n.Tok, IDebug);
 					return true;
-				}
-				if (!_stricmp(FnName, "RecurseFolder"))
-				{
-					int asd=0;
 				}
 				
 				if (n.ScriptFunc->GetParams() != n.Args.Length())
@@ -2899,11 +2895,6 @@ public:
 
 				ScriptMethod->Params = Params;
 				ScriptMethod->StartAddr = (uint32)Code->ByteCode.Length();
-			}
-
-			if (!_stricmp(FunctionName, "RecurseFolder"))
-			{
-				int asd=0;
 			}
 
 			// Parse start of body

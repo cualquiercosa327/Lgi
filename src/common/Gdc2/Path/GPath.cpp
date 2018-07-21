@@ -1083,7 +1083,7 @@ bool GPath::Text(	GFont *Font,
 
 int GPath::Segments()
 {
-	return Segs.Length();
+	return (int)Segs.Length();
 }
 
 void GPath::DeleteSeg(int i)
@@ -1427,7 +1427,7 @@ void GPath::Fill(GSurface *pDC, GBrush &c)
 		}
 
 		List<GVector> Active;
-		int VectorCount = In.Length();
+		size_t VectorCount = In.Length();
 		double *x = new double[VectorCount];
 		GVector **xv = new GVector*[VectorCount];
 		int x1 = (int)floor(Bounds.x1);

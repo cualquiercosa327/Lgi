@@ -201,7 +201,7 @@ public:
 	);
 	
 	/// Returns numbers of items in menu
-	int Length();
+	size_t Length();
 
 	/// Return a pointer to an item
 	GMenuItem *ItemAt

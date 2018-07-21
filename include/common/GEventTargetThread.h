@@ -285,7 +285,7 @@ public:
 							_FL, LThread::GetName(),
 							(int)GetCurrentThreadId(),
 							(int)GetId(),
-							(void*)Event.Handle());
+							(void*)(ssize_t)Event.Handle());
 						#endif
 						
 						Start = Now;

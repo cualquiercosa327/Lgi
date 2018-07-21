@@ -51,8 +51,11 @@
   1999-05-03 lpd Original version.
  */
 
-#include "md5.h"
 #include <string.h>
+#include <stdint.h>
+#include <memory.h>
+
+#include "md5.h"
 
 #undef BYTE_ORDER	/* 1 = big-endian, -1 = little-endian, 0 = unknown */
 #ifdef ARCH_IS_BIG_ENDIAN
@@ -320,10 +323,10 @@ md5_init(md5_state_t *pms)
 }
 
 void
-md5_append(md5_state_t *pms, md5_byte_t *data, ssize_t nbytes)
+md5_append(md5_state_t *pms, md5_byte_t *data, size_t nbytes)
 {
     const md5_byte_t *p = data;
-    ssize_t left = nbytes;
+    size_t left = nbytes;
     int offset = (pms->count[0] >> 3) & 63;
     md5_word_t nbits = (md5_word_t)(nbytes << 3);
 

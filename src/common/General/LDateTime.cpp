@@ -164,7 +164,7 @@ int LDateTime::SystemTimeZone(bool ForceUpdate)
 
 		#ifdef MAC
 
-			#ifdef COCOA
+			#if 0 //def COCOA
 
 				LgiAssert(!"Fixme");
 
@@ -1591,7 +1591,7 @@ bool LDateTime::AddDays(int64 Days)
 
 void LDateTime::AddMonths(int64 Months)
 {
-	int m = _Month + Months;
+	int64 m = _Month + Months;
 
 	do
 	{

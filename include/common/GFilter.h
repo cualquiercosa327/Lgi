@@ -157,12 +157,12 @@ protected:
 	COLOUR	Key;
 
 	int	Flags;
-	int	Length;
-	int	Alloc;
+	ssize_t	Length;
+	ssize_t	Alloc;
 	uchar	*Data;
 	uchar	**ScanLine;
 
-	bool SetLength(int Len);
+	bool SetLength(ssize_t Len);
 	bool FindScanLines();
 	void Empty();
 
@@ -182,7 +182,7 @@ public:
 	void Update(int Flags);
 	void Draw(GSurface *Dest, int x, int y);
 
-	int SizeOf();
+	ssize_t SizeOf();
 	bool Read(GFile &F);
 	bool Write(GFile &F);
 };

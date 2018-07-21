@@ -16,9 +16,9 @@
 #include "GStringClass.h"
 
 /// Stream printf
-LgiExtern int LgiPrintf(GAutoString &Str, const char *Format, va_list &Arg);
-LgiFunc int GStreamPrintf(GStreamI *s, int flags, const char *Format, va_list &Arg);
-LgiFunc int GStreamPrint(GStreamI *s, const char *fmt, ...);
+LgiExtern ssize_t LgiPrintf(GAutoString &Str, const char *Format, va_list &Arg);
+LgiFunc ssize_t GStreamPrintf(GStreamI *s, int flags, const char *Format, va_list &Arg);
+LgiFunc ssize_t GStreamPrint(GStreamI *s, const char *fmt, ...);
 
 /// \brief Virtual base class for a data source or sink.
 class LgiClass GStream : virtual public GStreamI, virtual public GDom
@@ -30,7 +30,7 @@ public:
 	ssize_t Write(const void *Ptr, ssize_t Size, int Flags = 0) override { return 0; }
 	
 	/// \brief Formats a string and then writes it.
-	virtual int Print(const char *Format, ...);
+	virtual ssize_t Print(const char *Format, ...);
 };
 
 /// Defines an API for terminating a stream. 
@@ -96,7 +96,7 @@ protected:
 	uint64 StartTime;
 	uint64 EndTime;
 	uint64 Total;
-	int Size;
+	ssize_t Size;
 	char *Buf;
 
 public:
@@ -104,36 +104,36 @@ public:
 	GStreamOp
 	(
 		// Buffer size in bytes, 4 KB by default
-		int BufSize = 4 << 10
+		ssize_t BufSize = 4 << 10
 	);
 	virtual ~GStreamOp();
 
 	// Properties
-	int64 GetRate();
-	int64 GetTotal();
-	int64 GetElapsedTime();
+	ssize_t GetRate();
+	ssize_t GetTotal();
+	ssize_t GetElapsedTime();
 };
 
 /// API to reads from source
 class LgiClass GPullStreamer : public GStreamOp
 {
 public:
-	virtual int Pull(GStreamI *Source, GStreamEnd *End = 0) = 0;
+	virtual ssize_t Pull(GStreamI *Source, GStreamEnd *End = 0) = 0;
 };
 
 /// API to writes to a destination
 class LgiClass GPushStreamer : public GStreamOp
 {
 public:
-	virtual int Push(GStreamI *Dest, GStreamEnd *End = 0) = 0;
+	virtual ssize_t Push(GStreamI *Dest, GStreamEnd *End = 0) = 0;
 };
 
 /// API to read from source and then write to a destination
 class LgiClass GCopyStreamer : public GStreamOp
 {
 public:
-	GCopyStreamer(int BufSize = 4 << 10) : GStreamOp(BufSize) {}
-	virtual int64 Copy(GStreamI *Source, GStreamI *Dest, GStreamEnd *End = 0);
+	GCopyStreamer(ssize_t BufSize = 4 << 10) : GStreamOp(BufSize) {}
+	virtual ssize_t Copy(GStreamI *Source, GStreamI *Dest, GStreamEnd *End = 0);
 };
 
 /// In memory stream for storing sub-streams or memory blocks

@@ -490,10 +490,10 @@ void GRichTextEdit::SetStylePrefix(GString s)
 	d->SetPrefix(s);
 }
 
-int GRichTextEdit::GetLines()
+size_t GRichTextEdit::GetLines()
 {
 	uint32 Count = 0;
-	for (unsigned i=0; i<d->Blocks.Length(); i++)
+	for (size_t i=0; i<d->Blocks.Length(); i++)
 	{
 		GRichTextPriv::Block *b = d->Blocks[i];
 		Count += b->GetLines();
@@ -911,7 +911,7 @@ bool GRichTextEdit::DoGoto()
 		GString s = Dlg.GetStr();
 		int64 i = s.Int();
 		if (i >= 0)
-			SetLine(i);
+			SetLine((int)i);
 	}
 
 	return true;

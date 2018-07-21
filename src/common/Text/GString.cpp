@@ -521,7 +521,7 @@ char16 *StrstrW(char16 *a, const char16 *b)
 {
 	if (a && b)
 	{
-		int Len = StrlenW(b);
+		size_t Len = StrlenW(b);
 		for (char16 *s=a; *s; s++)
 		{
 			if (*s == *b)
@@ -540,7 +540,7 @@ char16 *StristrW(char16 *a, const char16 *b)
 {
 	if (a && b)
 	{
-		int Len = StrlenW(b);
+		size_t Len = StrlenW(b);
 		for (char16 *s=a; *s; s++)
 		{
 			if (tolower(*s) == tolower(*b))
@@ -559,7 +559,7 @@ char16 *StrnstrW(char16 *a, const char16 *b, ssize_t n)
 {
 	if (a && b)
 	{
-		int Len = StrlenW(b);
+		size_t Len = StrlenW(b);
 		for (char16 *s=a; n >= Len && *s; s++, n--)
 		{
 			if (*s == *b)
@@ -578,7 +578,7 @@ char16 *StrnistrW(char16 *a, const char16 *b, ssize_t n)
 {
 	if (a && b)
 	{
-		int Len = StrlenW(b);
+		size_t Len = StrlenW(b);
 		for (char16 *s=a; n >= Len && *s; s++, n--)
 		{
 			if (*s == *b)
@@ -805,7 +805,7 @@ char16 *TrimStrW(const char16 *s, const char16 *Delim)
 		}
 
 		// Trailing delim
-		int i = StrlenW(s);
+		size_t i = StrlenW(s);
 		while (i > 0 && StrchrW(Delim, s[i-1]))
 		{
 			i--;

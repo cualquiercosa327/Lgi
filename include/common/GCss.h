@@ -715,7 +715,7 @@ public:
 		};
 		
 		GArray<Part> Parts;
-		GArray<int> Combs;
+		GArray<ssize_t> Combs;
 		char *Style;
 		int SourceIndex;
 		GAutoString Raw;
@@ -730,7 +730,7 @@ public:
 		const char *PartTypeToString(PartType p);
 		GAutoString Print();
 		bool Parse(const char *&s);
-		int GetSimpleIndex() { return Combs.Length() ? Combs[Combs.Length()-1] + 1 : 0; }
+		size_t GetSimpleIndex() { return Combs.Length() ? Combs[Combs.Length()-1] + 1 : 0; }
 		bool IsAtMedia();
 		bool ToString(GStream &p);
 		uint32 GetSpecificity();
@@ -794,7 +794,7 @@ public:
 			/// The full selector.
 			GCss::Selector *Sel,
 			/// The start index of the simple selector parts. Stop at the first comb operator or the end of the parts.
-			int PartIdx,
+			ssize_t PartIdx,
 			/// Our context callback to get properties of the object
 			ElementCallback<T> *Context,
 			/// The object to match
@@ -803,7 +803,7 @@ public:
 		{
 			const char *Element = Context->GetElement(Obj);
 			
-			for (unsigned n = PartIdx; n<Sel->Parts.Length(); n++)
+			for (ssize_t n = PartIdx; n<Sel->Parts.Length(); n++)
 			{
 				GCss::Selector::Part &p = Sel->Parts[n];
 				switch (p.Type)
@@ -923,7 +923,7 @@ public:
 		{
 			bool Complex = Sel->Combs.Length() > 0;
 			ssize_t CombIdx = Complex ? (ssize_t)Sel->Combs.Length() - 1 : 0;
-			uint32 StartIdx = (Complex) ? Sel->Combs[CombIdx] + 1 : 0;
+			ssize_t StartIdx = (Complex) ? Sel->Combs[CombIdx] + 1 : 0;
 			
 			bool Match = MatchSimpleSelector(Sel, StartIdx, Context, Obj);
 			if (!Match)
@@ -962,7 +962,7 @@ public:
 						case GCss::Selector::CombDesc:
 						{
 							// Does the parent match the previous simple selector
-							int PrevIdx = StartIdx - 1;
+							ssize_t PrevIdx = StartIdx - 1;
 							while (PrevIdx > 0 && Sel->Parts[PrevIdx-1].IsSel())
 							{
 								PrevIdx--;
@@ -1173,7 +1173,7 @@ public:
 	
 	void Empty();
 	void DeleteProp(PropType p);
-	uint32 Length() { return Props.Length(); }
+	size_t Length() { return Props.Length(); }
 	virtual void OnChange(PropType Prop);
 	bool CopyStyle(const GCss &c);
 	bool operator ==(GCss &c);

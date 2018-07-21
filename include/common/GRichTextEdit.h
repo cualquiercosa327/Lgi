@@ -153,7 +153,7 @@ public:
 	void SelectAll();
 	ssize_t GetCaret(bool Cursor = true);
 	bool GetLineColumnAtIndex(GdcPt2 &Pt, int Index = -1);
-	int GetLines();
+	size_t GetLines();
 	void GetTextExtent(int &x, int &y);
 	char *GetSelection();
 	void SetStylePrefix(GString s);

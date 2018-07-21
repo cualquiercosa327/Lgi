@@ -1124,9 +1124,9 @@ bool VCal::Import(GDataPropI *c, GStreamI *In)
 				if (IsVar(Field, "DTSTART"))
 					ParseDate(Sect.Start, Data);
 				else if (IsVar(Field, "TZOFFSETFROM"))
-					Sect.From = Data.Int();
+					Sect.From = (int)Data.Int();
 				else if (IsVar(Field, "TZOFFSETTO"))
-					Sect.To = Data.Int();
+					Sect.To = (int)Data.Int();
 				else if (IsVar(Field, "RRULE"))
 					Sect.Rule = Data;				
 			}			

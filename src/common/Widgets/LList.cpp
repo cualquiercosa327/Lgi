@@ -36,7 +36,7 @@
 #define ForAllItems(Var)				for (auto Var : Items)
 #define ForAllItemsReverse(Var)			Iterator<LListItem> ItemIter(&Items); for (LListItem *Var = ItemIter.Last(); Var; Var = ItemIter.Prev())
 #define VisibleItems()					CompletelyVisible // (LastVisible - FirstVisible + 1)
-#define MaxScroll()						MAX(Items.Length() - CompletelyVisible, 0)
+#define MaxScroll()						MAX((int)Items.Length() - CompletelyVisible, 0)
 
 class LListPrivate
 {
@@ -62,7 +62,7 @@ public:
 	int DragData;
 	
 	// Kayboard search
-	int KeyLast;
+	uint64 KeyLast;
 	char16 *KeyBuf;
 	
 	// Class
@@ -309,7 +309,7 @@ void LListItem::ScrollTo()
 	{
 		if (Parent->GetMode() == LListDetails && Parent->VScroll)
 		{
-			int n = Parent->Items.IndexOf(this);
+			ssize_t n = Parent->Items.IndexOf(this);
 			if (n < Parent->FirstVisible)
 			{
 				Parent->VScroll->Value(n);
@@ -323,7 +323,7 @@ void LListItem::ScrollTo()
 		}
 		else if (Parent->GetMode() == LListColumns && Parent->HScroll)
 		{
-			int n = Parent->Items.IndexOf(this);
+			ssize_t n = Parent->Items.IndexOf(this);
 			if (n < Parent->FirstVisible)
 			{
 				Parent->HScroll->Value(d->LayoutColumn);
@@ -331,7 +331,7 @@ void LListItem::ScrollTo()
 			}
 			else if (n >= Parent->LastVisible)
 			{
-				int Range = Parent->HScroll->Page();
+				ssize_t Range = Parent->HScroll->Page();
 				
 				Parent->HScroll->Value(d->LayoutColumn - Range);
 				Parent->Invalidate(&Parent->ItemsPos);
@@ -673,7 +673,7 @@ void LList::OnItemSelect(GArray<LListItem*> &It)
 {
 	if (It.Length())
 	{
-		Keyboard = Items.IndexOf(It[0]);
+		Keyboard = (int)Items.IndexOf(It[0]);
 		LgiAssert(Keyboard >= 0);
 		
 		LHashTbl<PtrKey<LListItem*>, bool> Sel;
@@ -842,8 +842,8 @@ void LList::KeyScroll(int iTo, int iFrom, bool SelectItems)
 		if (End < 0) End = i - 1;
 	}
 
-	iTo = limit(iTo, 0, Items.Length()-1);
-	iFrom = limit(iFrom, 0, Items.Length()-1);
+	iTo = limit(iTo, 0, (int)Items.Length()-1);
+	iFrom = limit(iFrom, 0, (int)Items.Length()-1);
 	LListItem *To = Items.ItemAt(iTo);
 	LListItem *From = Items.ItemAt(iFrom);
 	// int Inc = (iTo < iFrom) ? -1 : 1;
@@ -886,7 +886,7 @@ bool LList::OnMouseWheel(double Lines)
 {
 	if (VScroll)
 	{
-		int Old = VScroll->Value();
+		int64 Old = VScroll->Value();
 		VScroll->Value(Old + (int)Lines);
 		if (Old != VScroll->Value())
 		{
@@ -896,7 +896,7 @@ bool LList::OnMouseWheel(double Lines)
 	
 	if (HScroll)
 	{
-		int Old = HScroll->Value();
+		int64 Old = HScroll->Value();
 		HScroll->Value(Old + (int)(Lines / 3));
 		if (Old != HScroll->Value())
 		{
@@ -1109,7 +1109,7 @@ bool LList::OnKey(GKey &k)
 				{
 					LList_End:
 					printf("End handler\n");
-					KeyScroll(Items.Length()-1, Keyboard, k.Shift());
+					KeyScroll((int)Items.Length()-1, Keyboard, k.Shift());
 					Status = true;
 					break;
 				}
@@ -1130,7 +1130,7 @@ bool LList::OnKey(GKey &k)
 						if (r)
 						{
 							GMouse m;
-							LListItem *FirstVisible = ItemAt((VScroll) ? VScroll->Value() : 0);
+							LListItem *FirstVisible = ItemAt((VScroll) ? (int)VScroll->Value() : 0);
 
 							m.x = 32 + ItemsPos.x1;
 							m.y = r->y1 + (r->Y() >> 1) - (FirstVisible ? FirstVisible->Pos.y1 : 0) + ItemsPos.y1;
@@ -1163,7 +1163,7 @@ bool LList::OnKey(GKey &k)
 						)
 					)
 					{
-						int Now = LgiCurrentTime();
+						uint64 Now = LgiCurrentTime();
 						GStringPipe p;
 						if (d->KeyBuf && Now < d->KeyLast + 1500)
 						{
@@ -1294,14 +1294,14 @@ void LList::OnMouseClick(GMouse &m)
 					else
 					{
 						DragMode = RESIZE_COLUMN;
-						d->DragData = Columns.IndexOf(Resize);
+						d->DragData = (int)Columns.IndexOf(Resize);
 						Capture(true);
 					}
 				}
 				else
 				{
 					DragMode = CLICK_COLUMN;
-					d->DragData = Columns.IndexOf(Over);
+					d->DragData = (int)Columns.IndexOf(Over);
 					if (Over)
 					{
 						Over->Value(true);
@@ -1408,7 +1408,7 @@ void LList::OnMouseClick(GMouse &m)
 									// Toggle selected state
 									if (!i->Select())
 									{
-										Keyboard = Items.IndexOf(i);
+										Keyboard = (int)Items.IndexOf(i);
 									}
 
 									i->Select(!i->Select());
@@ -1432,7 +1432,7 @@ void LList::OnMouseClick(GMouse &m)
 						if (PostSelect)
 						{
 							Item->Select(true);
-							Keyboard = Items.IndexOf(Item);
+							Keyboard = (int)Items.IndexOf(Item);
 						}
 
 						if (!m.Modifier() && Items.First() && !m.IsContextMenu())
@@ -1483,7 +1483,7 @@ void LList::OnMouseClick(GMouse &m)
 
 						if (cpos.Overlap(m.x, m.y))
 						{
-							OnColumnClick(Columns.IndexOf(c), m);
+							OnColumnClick((int)Columns.IndexOf(c), m);
 						}
 					}
 					else
@@ -1663,7 +1663,7 @@ void LList::OnPulse()
 							if (!Over)
 							{
 								Over = Items.Last();
-								OverIndex = Items.Length()-1;
+								OverIndex = (int)Items.Length()-1;
 							}
 						}
 
@@ -2062,7 +2062,7 @@ bool LList::Remove(LListItem *i)
 			GRegion Up;
 			bool Visible = GetUpdateRegion(i, Up);
 			bool Selected = i->Select();
-			int Index = Items.IndexOf(i);
+			int Index = (int)Items.IndexOf(i);
 			int64 Pos = (VScroll) ? VScroll->Value() : 0;
 
 			// Remove from list
@@ -2112,7 +2112,7 @@ bool LList::HasItem(LListItem *Obj)
 
 int LList::IndexOf(LListItem *Obj)
 {
-	return Items.IndexOf(Obj);
+	return (int)Items.IndexOf(Obj);
 }
 
 LListItem *LList::ItemAt(int Index)
@@ -2291,10 +2291,10 @@ void LList::PourAll()
 			ColumnHeader.ZOff(-1, -1);
 		}
 		
-		size_t n = 0;
+		int n = 0;
 		int y = ItemsPos.y1;
-		size_t Max = MaxScroll();
-		FirstVisible = (VScroll) ? VScroll->Value() : 0;
+		int Max = MaxScroll();
+		FirstVisible = (VScroll) ? (int)VScroll->Value() : 0;
 		if (FirstVisible > Max) FirstVisible = Max;
 		LastVisible = 0x7FFFFFFF;
 		CompletelyVisible = 0;
@@ -2338,7 +2338,7 @@ void LList::PourAll()
 
 		if (LastVisible >= Items.Length())
 		{
-			LastVisible = Items.Length() - 1;
+			LastVisible = (int)Items.Length() - 1;
 		}
 
 		SetScrollBars(false, SomeHidden);

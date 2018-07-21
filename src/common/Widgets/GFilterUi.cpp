@@ -1057,8 +1057,8 @@ void GFilterItem::OnMouseClick(GMouse &m)
 				if (p)
 				{
 					GTreeItem *m = this;
-					int Count = p->Items.Length();
-					int Idx = p->Items.IndexOf(m);
+					size_t Count = p->Items.Length();
+					ssize_t Idx = p->Items.IndexOf(m);
 					if (Idx + Delta >= 0 && Idx + Delta < Count - 1)
 					{
 						// GTreeItem *i = p->Items[Idx + Delta];

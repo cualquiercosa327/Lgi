@@ -95,7 +95,7 @@ void GSubMenu::OnAttach(bool Attach)
 	}
 }
 
-int GSubMenu::Length()
+size_t GSubMenu::Length()
 {
 	return Items.Length();
 }

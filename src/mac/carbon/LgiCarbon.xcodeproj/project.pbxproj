@@ -1173,7 +1173,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.memecode.${PRODUCT_NAME:identifier}";
 				PRODUCT_NAME = Lgi;
-				SDKROOT = macosx;
+				SDKROOT = macosx10.11;
 				SYMROOT = build;
 				WRAPPER_EXTENSION = framework;
 			};
@@ -1205,7 +1205,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.memecode.${PRODUCT_NAME:identifier}";
 				PRODUCT_NAME = Lgi;
-				SDKROOT = macosx;
+				SDKROOT = macosx10.11;
 				SYMROOT = build;
 				WRAPPER_EXTENSION = framework;
 			};
@@ -1253,7 +1253,7 @@
 					"-DMAC",
 					"-DLGI_LIBRARY",
 				);
-				SDKROOT = macosx;
+				SDKROOT = macosx10.11;
 				STRIP_INSTALLED_PRODUCT = NO;
 				SYMROOT = ./build;
 				USER_HEADER_SEARCH_PATHS = "../../../include/common ../../../include/mac/carbon ../../../include/posix";
@@ -1301,7 +1301,7 @@
 					"-DMAC",
 					"-DLGI_LIBRARY",
 				);
-				SDKROOT = macosx;
+				SDKROOT = macosx10.11;
 				SYMROOT = ./build;
 				USER_HEADER_SEARCH_PATHS = "../../../include/common ../../../include/mac/carbon ../../../include/posix";
 				VALID_ARCHS = i386;

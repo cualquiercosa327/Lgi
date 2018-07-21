@@ -968,7 +968,7 @@ void GTabPage::Select()
 	if (GetParent())
 	{
 		GAutoPtr<GViewIterator> i(GetParent()->IterateViews());
-		int Idx = i->IndexOf(this);
+		ssize_t Idx = i->IndexOf(this);
 		if (Idx >= 0)
 		{
 			GetParent()->Value(Idx);

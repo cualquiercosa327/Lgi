@@ -71,7 +71,6 @@ typedef		unsigned short				uint16;
 
 #ifndef __cplusplus
 
-	#include <wchar.h>
 	#include <stddef.h>
 	#if defined(_MSC_VER) && _MSC_VER<1800
 		typedef unsigned char bool;
@@ -117,6 +116,7 @@ typedef		unsigned short				uint16;
 ///		<li> ValidStrW()
 ///		<li> MatchStrW()
 /// </ul>
+#include <wchar.h>
 typedef		wchar_t						char16;
 
 #if !WINNATIVE

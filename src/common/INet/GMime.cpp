@@ -1055,7 +1055,7 @@ bool GMime::SetSub(const char *Field, const char *Sub, const char *Value, const 
 // Mime Text Conversion
 
 // Rfc822 Text -> Object
-int GMime::GMimeText::GMimeDecode::Pull(GStreamI *Source, GStreamEnd *End)
+ssize_t GMime::GMimeText::GMimeDecode::Pull(GStreamI *Source, GStreamEnd *End)
 {
 	GMimeBuf Buf(Source, End); // Stream -> Lines
 	return Parse(&Buf);
@@ -1223,7 +1223,7 @@ void GMime::GMimeText::GMimeDecode::Empty()
 }
 
 // Object -> Rfc822 Text
-int GMime::GMimeText::GMimeEncode::Push(GStreamI *Dest, GStreamEnd *End)
+ssize_t GMime::GMimeText::GMimeEncode::Push(GStreamI *Dest, GStreamEnd *End)
 {
 	int Status = 0;
 
@@ -1417,7 +1417,7 @@ void GMime::GMimeText::GMimeEncode::Empty()
 // Mime Binary Serialization
 
 // Source -> Object
-int GMime::GMimeBinary::GMimeRead::Pull(GStreamI *Source, GStreamEnd *End)
+ssize_t GMime::GMimeBinary::GMimeRead::Pull(GStreamI *Source, GStreamEnd *End)
 {
 	if (Source)
 	{
@@ -1486,7 +1486,7 @@ int64 GMime::GMimeBinary::GMimeWrite::GetSize()
 	return Size;
 }
 
-int GMime::GMimeBinary::GMimeWrite::Push(GStreamI *Dest, GStreamEnd *End)
+ssize_t GMime::GMimeBinary::GMimeWrite::Push(GStreamI *Dest, GStreamEnd *End)
 {
 	if (Dest && Mime)
 	{

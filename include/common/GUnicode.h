@@ -299,12 +299,12 @@ public:
 	/// Seeks forward
 	GUtf8Ptr &operator ++();
 	GUtf8Ptr &operator ++(const int i);
-	GUtf8Ptr &operator +=(const int n);
+	GUtf8Ptr &operator +=(const ssize_t n);
 
 	/// Seeks 1 character backward
 	GUtf8Ptr &operator --();
 	GUtf8Ptr &operator --(const int i);
-	GUtf8Ptr &operator -=(const int n);
+	GUtf8Ptr &operator -=(const ssize_t n);
 
 	// Comparison
 	bool operator <(const GUtf8Ptr &p) { return Ptr < p.Ptr; }

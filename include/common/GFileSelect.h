@@ -63,9 +63,9 @@ public:
 	/// Sets the file name
 	bool Name(const char *n);
 	/// Returns the n'th file name selected
-	char *operator [](int i);
+	char *operator [](size_t i);
 	/// Returns the number of file names selected
-	int Length();
+	size_t Length();
 	/// Returns the parent window
 	GViewI *Parent();
 	/// Sets the parent window
@@ -94,9 +94,9 @@ public:
 	// File types
 	
 	/// Returns the number of types in the type list
-	int Types();
+	size_t Types();
 	/// Returns the 0 based index of the type selected in the type list
-	int SelectedType();
+	ssize_t SelectedType();
 	/// Returns the type into at a given index
 	GFileType *TypeAt(int n);
 	/// Adds a file type to the type filters list.

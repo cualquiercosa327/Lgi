@@ -95,7 +95,7 @@ public:
 		LgiAssert(o == 128);
 	}
 
-	bool CanEncode(char16 *s, int l)
+	bool CanEncode(char16 *s, ssize_t l)
 	{
 		if (s)
 		{

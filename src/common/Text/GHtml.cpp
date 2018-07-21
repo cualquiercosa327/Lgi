@@ -2334,7 +2334,7 @@ ssize_t GTag::NearestChar(GFlowRect *Tr, int x, int y)
 		else
 		{
 			char16 *t = Tr->Text + c;
-			int Len = StrlenW(Text());
+			size_t Len = StrlenW(Text());
 			if (t >= Text() &&
 				t <= Text() + Len)
 			{
@@ -4869,7 +4869,7 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, int LineHeight, 
 		return;
 
 	char16 *Start = Text;
-	int FullLen = StrlenW(Text);
+	size_t FullLen = StrlenW(Text);
 
 	#if 1
 	if (!Tag->Html->GetReadOnly() && !*Text)
@@ -7669,7 +7669,7 @@ char *GHtml::GetSelection()
 			char16 *t = (char16*)p.New(sizeof(char16));
 			if (t)
 			{
-				int Len = StrlenW(t);
+				size_t Len = StrlenW(t);
 				for (int i=0; i<Len; i++)
 				{
 					if (t[i] == 0xa0) t[i] = ' ';

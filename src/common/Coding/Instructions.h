@@ -9,11 +9,12 @@
 */
 
 #ifdef VM_EXECUTE
-#define Resolve()		&Scope[c.r->Scope][c.r->Index]; c.r++
-#define GResolveRef		GVariant *
+#define Resolve()			&Scope[c.r->Scope][c.r->Index]; c.r++
+#define GResolveRef(nm)		GVariant *nm =
 #else
-#define Resolve()		c.r++
-#define GResolveRef		GVarRef *
+#define Resolve()			c.r++
+#define GResolveRef(nm)		
+// GVarRef *
 #endif
 
 default:
@@ -44,7 +45,7 @@ case ICast:
 					CurrentScriptAddress - 1,
 					c.r[0].GetStr());
 	#endif
-	GResolveRef Var = Resolve();
+	GResolveRef(Var) Resolve();
 	uint8 Type = *c.u8++;
 	#if VM_DECOMP
 	if (Log)
@@ -115,8 +116,9 @@ case IAssign:
 				c.r[1].GetStr());
 	#endif
 
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
+	GResolveRef(Dst) Resolve();
+	GResolveRef(Src) Resolve();
+	
 	#ifdef VM_EXECUTE
 	CheckParam(Dst != Src);
 	*Dst = *Src;
@@ -132,8 +134,10 @@ case IJump:
 			c.i32[0],
 			CurrentScriptAddress + 4 + c.i32[0]);
 	#endif
-
-	int32 Jmp = *c.i32++;
+	#ifdef VM_EXECUTE
+	int32 Jmp = *
+	#endif
+	c.i32++;
 	#ifdef VM_EXECUTE
 	CheckParam(Jmp != 0);
 	c.u8 += Jmp;
@@ -149,15 +153,15 @@ case IJumpZero:
 			c.r[0].GetStr(),
 			c.i32[1]);
 	#endif
-
-	GResolveRef Exp = Resolve();
-	int32 Jmp = *c.i32++;
+	GResolveRef(Exp) Resolve();
+	#ifdef VM_EXECUTE
+	int32 Jmp = *
+	#endif
+	c.i32++;
 	#ifdef VM_EXECUTE
 	CheckParam(Jmp != 0);
 	if (!Exp->CastInt32())
-	{
 		c.u8 += Jmp;
-	}
 	#endif
 	break;
 }
@@ -170,8 +174,9 @@ case IUnaryMinus:
 			CurrentScriptAddress - 1,
 			c.r[0].GetStr());
 	#endif
-
-	GResolveRef Var = Resolve();
+	
+	GResolveRef(Var) Resolve();
+	
 	#ifdef VM_EXECUTE
 	switch (Var->Type)
 	{
@@ -198,9 +203,10 @@ case IPlusEquals:
 			c.r[0].GetStr(),
 			c.r[1].GetStr());
 	#endif
-
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
+	
+	GResolveRef(Dst) Resolve();
+	GResolveRef(Src) Resolve();
+	
 	#ifdef VM_EXECUTE
 	if (Dst->Str())
 	{
@@ -262,8 +268,9 @@ case IMinusEquals:
 			c.r[1].GetStr());
 	#endif
 
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
+	GResolveRef(Dst) Resolve();
+	GResolveRef(Src) Resolve();
+	
 	#ifdef VM_EXECUTE
 	switch (DecidePrecision(Dst->Type, Src->Type))
 	{
@@ -291,8 +298,9 @@ case IMulEquals:
 			c.r[1].GetStr());
 	#endif
 
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
+	GResolveRef(Dst) Resolve();
+	GResolveRef(Src) Resolve();
+
 	#ifdef VM_EXECUTE
 	switch (DecidePrecision(Dst->Type, Src->Type))
 	{
@@ -320,8 +328,9 @@ case IDivEquals:
 			c.r[1].GetStr());
 	#endif
 
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
+	GResolveRef(Dst) Resolve();
+	GResolveRef(Src) Resolve();
+	
 	#ifdef VM_EXECUTE
 	switch (DecidePrecision(Dst->Type, Src->Type))
 	{
@@ -348,8 +357,8 @@ case IMod:
 			c.r[1].GetStr());
 	#endif
 
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
+	GResolveRef(Dst) Resolve();
+	GResolveRef(Src) Resolve();
 	#ifdef VM_EXECUTE
 	switch (DecidePrecision(Dst->Type, Src->Type))
 	{
@@ -376,7 +385,7 @@ case IPreInc:
 			c.r[0].GetStr());
 	#endif
 
-	GResolveRef v = Resolve();
+	GResolveRef(v) Resolve();
 	#ifdef VM_EXECUTE
 	switch (v->Type)
 	{
@@ -403,7 +412,7 @@ case IPreDec:
 			c.r[0].GetStr());
 	#endif
 
-	GResolveRef v = Resolve();
+	GResolveRef(v) Resolve();
 	#ifdef VM_EXECUTE
 	switch (v->Type)
 	{
@@ -430,8 +439,8 @@ case IEquals:
 					c.r[1].GetStr());
 	#endif
 
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
+	GResolveRef(Dst) Resolve();
+	GResolveRef(Src) Resolve();
 
 	#ifdef VM_EXECUTE
 	*Dst = CompareVariants(Dst, Src) == 0;
@@ -448,8 +457,8 @@ case INotEquals:
 					c.r[1].GetStr());
 	#endif
 
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
+	GResolveRef(Dst) Resolve();
+	GResolveRef(Src) Resolve();
 
 	#ifdef VM_EXECUTE
 	*Dst = CompareVariants(Dst, Src) != 0;
@@ -466,8 +475,8 @@ case ILessThan:
 					c.r[1].GetStr());
 	#endif
 
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
+	GResolveRef(Dst) Resolve();
+	GResolveRef(Src) Resolve();
 	
 	#ifdef VM_EXECUTE
 	*Dst = CompareVariants(Dst, Src) < 0;
@@ -484,8 +493,8 @@ case ILessThanEqual:
 					c.r[1].GetStr());
 	#endif
 
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
+	GResolveRef(Dst) Resolve();
+	GResolveRef(Src) Resolve();
 	
 	#ifdef VM_EXECUTE
 	*Dst = CompareVariants(Dst, Src) <= 0;
@@ -502,8 +511,8 @@ case IGreaterThan:
 					c.r[1].GetStr());
 	#endif
 
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
+	GResolveRef(Dst) Resolve();
+	GResolveRef(Src) Resolve();
 	
 	#ifdef VM_EXECUTE
 	*Dst = CompareVariants(Dst, Src) > 0;
@@ -520,8 +529,8 @@ case IGreaterThanEqual:
 					c.r[1].GetStr());
 	#endif
 
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
+	GResolveRef(Dst) Resolve();
+	GResolveRef(Src) Resolve();
 	
 	#ifdef VM_EXECUTE
 	*Dst = CompareVariants(Dst, Src) >= 0;
@@ -549,7 +558,7 @@ case ICallMethod:
 	}
 	#endif
 	
-	GResolveRef Ret = Resolve();
+	GResolveRef(Ret) Resolve();
 	uint16 Args = *c.u16++;
 
 	#ifdef VM_EXECUTE			
@@ -652,7 +661,7 @@ case ICallScript:
 	
 	#else
 	
-	GResolveRef Ret = Resolve();
+	GResolveRef(Ret) Resolve();
 	int Args = *c.u16++;
 	
 	#endif
@@ -691,7 +700,7 @@ case IRet:
 		Log->Print("%p Ret %s\n", CurrentScriptAddress - 1, c.r[0].GetStr());
 	#endif
 
-	GResolveRef ReturnValue = Resolve();
+	GResolveRef(ReturnValue) Resolve();
 
 	#ifdef VM_EXECUTE
 	if (Frames.Length() > 0)
@@ -753,9 +762,9 @@ case IArrayGet:
 					c.r[2].GetStr());
 	#endif
 
-	GResolveRef Dst = Resolve();
-	GResolveRef Var = Resolve();
-	GResolveRef Idx = Resolve();
+	GResolveRef(Dst) Resolve();
+	GResolveRef(Var) Resolve();
+	GResolveRef(Idx) Resolve();
 
 	#ifdef VM_EXECUTE
 	switch (Var->Type)
@@ -823,9 +832,9 @@ case IArraySet:
 					c.r[2].GetStr());
 	#endif
 
-	GResolveRef Var = Resolve();
-	GResolveRef Idx = Resolve();
-	GResolveRef Val = Resolve();
+	GResolveRef(Var) Resolve();
+	GResolveRef(Idx) Resolve();
+	GResolveRef(Val) Resolve();
 	#ifdef VM_EXECUTE
 	switch (Var->Type)
 	{
@@ -866,8 +875,8 @@ case IAnd:
 					c.r[1].GetStr());
 	#endif
 
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
+	GResolveRef(Dst) Resolve();
+	GResolveRef(Src) Resolve();
 	#ifdef VM_EXECUTE
 	*Dst = (Dst->CastInt32() != 0) && (Src->CastInt32() != 0);
 	#endif
@@ -883,8 +892,8 @@ case IOr:
 					c.r[1].GetStr());
 	#endif
 
-	GResolveRef Dst = Resolve();
-	GResolveRef Src = Resolve();
+	GResolveRef(Dst) Resolve();
+	GResolveRef(Src) Resolve();
 	#ifdef VM_EXECUTE
 	*Dst = (Dst->CastInt32() != 0) || (Src->CastInt32() != 0);
 	#endif
@@ -900,7 +909,7 @@ case INot:
 					c.r[0].GetStr());
 	#endif
 
-	GResolveRef Dst = Resolve();
+	GResolveRef(Dst) Resolve();
 	#ifdef VM_EXECUTE
 	*Dst = !Dst->CastBool();
 	#endif
@@ -918,10 +927,10 @@ case IDomGet:
 					c.r[3].GetStr());
 	#endif
 
-	GResolveRef Dst = Resolve();
-	GResolveRef Dom = Resolve();
-	GResolveRef Name = Resolve();
-	GResolveRef Arr = Resolve();
+	GResolveRef(Dst) Resolve();
+	GResolveRef(Dom) Resolve();
+	GResolveRef(Name) Resolve();
+	GResolveRef(Arr) Resolve();
 
 	#ifdef VM_EXECUTE
 
@@ -1090,10 +1099,10 @@ case IDomSet:
 					c.r[3].GetStr());
 	#endif
 
-	GResolveRef Dom = Resolve();
-	GResolveRef Name = Resolve();
-	GResolveRef Arr = Resolve();
-	GResolveRef Value = Resolve();
+	GResolveRef(Dom) Resolve();
+	GResolveRef(Name) Resolve();
+	GResolveRef(Arr) Resolve();
+	GResolveRef(Value) Resolve();
 	
 	#ifdef VM_EXECUTE
 
@@ -1235,16 +1244,17 @@ case IDomCall:
 					c.r[0].GetStr(),
 					c.r[1].GetStr(),
 					c.r[2].GetStr());
+	#else
+	GVarRef DstRef = *c.r;
 	#endif
 
-	GVarRef DstRef = *c.r;
-	GResolveRef Dst = Resolve();
-	GResolveRef Dom = Resolve();
-	GResolveRef Name = Resolve();
+	GResolveRef(Dst) Resolve();
+	GResolveRef(Dom) Resolve();
+	GResolveRef(Name) Resolve();
 
 	#ifdef VM_EXECUTE
 
-	GResolveRef Args = Resolve();
+	GResolveRef(Args) Resolve();
 	int ArgCount = Args->CastInt32();
 	char *sName = Name->Str();
 	CheckParam(sName)

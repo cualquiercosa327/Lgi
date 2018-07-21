@@ -1384,7 +1384,7 @@ bool GRichTextPriv::ChangeSelectionStyle(GCss *Style, bool Add)
 	if (Start->Blk == End->Blk)
 	{
 		// Change style in the same block...
-		int Len = End->Offset - Start->Offset;
+		ssize_t Len = End->Offset - Start->Offset;
 		if (!Start->Blk->ChangeStyle(Trans, Start->Offset, Len, Style, Add))
 			return false;
 	}
@@ -1396,7 +1396,7 @@ bool GRichTextPriv::ChangeSelectionStyle(GCss *Style, bool Add)
 		Start->Blk->ChangeStyle(Trans, Start->Offset, -1, Style, Add);
 
 		// 2) Change style on blocks between 'Start' and 'End'
-		int i = Blocks.IndexOf(Start->Blk);
+		ssize_t i = Blocks.IndexOf(Start->Blk);
 		if (i >= 0)
 		{
 			for (++i; Blocks[i] != End->Blk && i < (int)Blocks.Length(); i++)
@@ -1754,7 +1754,7 @@ bool GRichTextPriv::InsertHorzRule()
 
 	DeleteSelection(Trans, NULL);
 
-	int InsertIdx = Blocks.IndexOf(tb) + 1;
+	ssize_t InsertIdx = Blocks.IndexOf(tb) + 1;
 	GRichTextPriv::Block *After = NULL;
 	if (Cursor->Offset == 0)
 	{
@@ -2234,7 +2234,7 @@ bool GRichTextPriv::GetSelection(GArray<char16> &Text)
 	if (Start->Blk == End->Blk)
 	{
 		// In the same block... just copy
-		int Len = End->Offset - Start->Offset;
+		ssize_t Len = End->Offset - Start->Offset;
 		Start->Blk->CopyAt(Start->Offset, Len, &Utf32);
 	}
 	else
@@ -2245,8 +2245,8 @@ bool GRichTextPriv::GetSelection(GArray<char16> &Text)
 		Start->Blk->CopyAt(Start->Offset, -1, &Utf32);
 
 		// 2) Copy any blocks between 'Start' and 'End'
-		int i = Blocks.IndexOf(Start->Blk);
-		int EndIdx = Blocks.IndexOf(End->Blk);
+		ssize_t i = Blocks.IndexOf(Start->Blk);
+		ssize_t EndIdx = Blocks.IndexOf(End->Blk);
 		if (i >= 0 && EndIdx >= i)
 		{
 			for (++i; Blocks[i] != End->Blk && i < (int)Blocks.Length(); i++)

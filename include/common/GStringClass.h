@@ -886,7 +886,7 @@ public:
 	}
 
 	/// Find a sub-string	
-	ptrdiff_t Find(const char *needle, ptrdiff_t start = 0, ptrdiff_t end = -1)
+	ssize_t Find(const char *needle, ssize_t start = 0, ssize_t end = -1)
 	{
 		if (!needle) return -1;
 		char *c = Get();
@@ -905,7 +905,7 @@ public:
 	}
 
 	/// Reverse find a string (starting from the end)
-	ptrdiff_t RFind(const char *needle, int start = 0, ptrdiff_t end = -1)
+	ssize_t RFind(const char *needle, int start = 0, ssize_t end = -1)
 	{
 		if (!needle) return -1;
 		char *c = Get();

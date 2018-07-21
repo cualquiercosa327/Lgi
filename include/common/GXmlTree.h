@@ -125,7 +125,7 @@ public:
 	/// Convert the content to an integer
 	int GetContentAsInt(int Default = 0);
 	/// Set the content
-	bool SetContent(const char *s, int len = -1);
+	bool SetContent(const char *s, ssize_t len = -1);
 
 	/// Get the string value of a named attribute
 	char *GetAttr(const char *Name);

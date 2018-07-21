@@ -35,7 +35,7 @@ class GComboPrivate
 	GDisplayString *Text;
 
 public:
-	int Current;
+	ssize_t Current;
 	bool SortItems;
 	int Sub;
 	GRect Arrow;
@@ -204,7 +204,7 @@ void GCombo::Value(int64 i)
 		d->SetText(NULL, _FL);
 		Invalidate();
 
-		SendNotify(d->Current);
+		SendNotify((int)d->Current);
 	}
 }
 
@@ -224,7 +224,8 @@ GMessage::Result GCombo::OnEvent(GMessage *Msg)
 
 void GCombo::Empty()
 {
-	while (Delete(0));
+	while (Delete((size_t)0))
+		;
 	Name(0);
 }
 
@@ -233,7 +234,7 @@ bool GCombo::Delete()
 	return Delete(d->Current);
 }
 
-bool GCombo::Delete(int i)
+bool GCombo::Delete(size_t i)
 {
 	char *c = d->Items.ItemAt(i);
 	if (c)
@@ -408,7 +409,7 @@ void GCombo::DoMenu()
 			d->SetText(NULL, _FL);
 			Invalidate();
 
-			SendNotify(d->Current);
+			SendNotify((int)d->Current);
 		}
 	}
 }

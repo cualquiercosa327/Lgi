@@ -36,9 +36,9 @@ public:
 	GViewI *Last();
 	GViewI *Next();
 	GViewI *Prev();
-	int Length();
-	int IndexOf(GViewI *view);
-	GViewI *operator [](int Idx);
+	size_t Length();
+	ssize_t IndexOf(GViewI *view);
+	GViewI *operator [](ssize_t Idx);
 };
 
 #if !WINNATIVE

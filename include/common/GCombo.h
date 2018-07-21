@@ -87,7 +87,7 @@ public:
 	/// Deletes the currently select item in the list
 	bool Delete();
 	/// Deletes the item at index 'i'
-	bool Delete(int i);
+	bool Delete(size_t i);
 	/// Deletes the item matching 'p'
 	bool Delete(char *p);
 	/// Clears all items in the list

@@ -669,7 +669,7 @@ protected:
 	bool ReadReply();
 	bool ReadMultiLineReply(char *&Str);
 	int GetInt();
-	bool MailIsEnd(char *Ptr, int Len);
+	bool MailIsEnd(char *Ptr, ssize_t Len);
 	bool ListCmd(const char *Cmd, GHashTbl<const char *, bool> &Results);
 
 	const char *End;
