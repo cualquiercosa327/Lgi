@@ -187,7 +187,7 @@ class GHashTbl
 		{
 			uint32 h = Hash(k);
 
-			for (size_t i=0; i<Size; i++)
+			for (int i=0; i<Size; i++)
 			{
 				Index = (h + i) % Size;
 

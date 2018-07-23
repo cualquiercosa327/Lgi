@@ -294,7 +294,7 @@ protected:
 		{
 			uint32 h = this->Hash(k);
 
-			for (ssize_t i=0; i<Size; i++)
+			for (size_t i=0; i<Size; i++)
 			{
 				Index = (h + i) % Size;
 
@@ -379,8 +379,8 @@ public:
 			this->NullKey = c.NullKey;
 			NullValue = c.NullValue;
 
-			int Added = 0;
-			for (int i=0; i<c.Size; i++)
+			size_t Added = 0;
+			for (size_t i=0; i<c.Size; i++)
 			{
 				if (c.Table[i].key != c.NullKey)
 				{
@@ -412,7 +412,7 @@ public:
 			return false;
 
 		size_t OldSize = Size;
-		size_t NewSize = MAX((int)s, Used * 10 / 7);
+		size_t NewSize = MAX((size_t)s, Used * 10 / 7);
 		if (NewSize != Size)
 		{
 			Pair *OldTable = Table;
@@ -424,7 +424,7 @@ public:
 			Table = new Pair[Size];
 			if (Table)
 			{
-				int i;
+				size_t i;
 				InitializeTable(Table, Size);
 				for (i=0; i<OldSize; i++)
 				{
@@ -501,7 +501,7 @@ public:
 		uint32 h = this->Hash(k);
 
 		int Index = -1;
-		for (int i=0; i<Size; i++)
+		for (size_t i=0; i<Size; i++)
 		{
 			int idx = (h + i) % Size;
 			if
@@ -633,7 +633,7 @@ public:
 		if (!IsOk())
 			return;
 
-		for (int i=0; i<Size; i++)
+		for (size_t i=0; i<Size; i++)
 		{
 			if (Table[i].key != this->NullKey)
 			{
@@ -659,7 +659,7 @@ public:
 
 		int Keys = 0;
 		int64 KeySize = 0;
-		for (int i=0; i<Size; i++)
+		for (size_t i=0; i<Size; i++)
 		{
 			if (Table[i].key != this->NullKey)
 			{
@@ -677,7 +677,7 @@ public:
 	/// Deletes values as objects
 	void DeleteObjects()
 	{
-		for (int i=0; i<Size; i++)
+		for (size_t i=0; i<Size; i++)
 		{
 			if (Table[i].key != this->NullKey)
 				this->FreeKey(Table[i].key);
@@ -692,7 +692,7 @@ public:
 	/// Deletes values as arrays
 	void DeleteArrays()
 	{
-		for (int i=0; i<Size; i++)
+		for (size_t i=0; i<Size; i++)
 		{
 			if (Table[i].key != this->NullKey)
 				this->FreeKey(Table[i].key);
@@ -729,7 +729,7 @@ public:
 		{
 			if (t->IsOk())
 			{
-				while (++Idx < t->Size)
+				while (++Idx < (ssize_t)t->Size)
 				{
 					if (t->Table[Idx].key != t->NullKey)
 						break;
@@ -745,7 +745,7 @@ public:
 		Pair &operator *()
 		{
 			LgiAssert(	Idx >= 0 &&
-						Idx < t->Size &&
+						Idx < (ssize_t)t->Size &&
 						t->Table[Idx].key != t->NullKey);
 			return t->Table[Idx];
 		}

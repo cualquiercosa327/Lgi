@@ -365,7 +365,15 @@ GVariant &GVariant::operator =(int64 i)
 	Empty();
 	Type = GV_INT64;
 	Value.Int64 = i;
-	// if (Dirty) *Dirty = true;
+
+	return *this;
+}
+
+GVariant &GVariant::operator =(uint64 i)
+{
+	Empty();
+	Type = GV_INT64;
+	Value.Int64 = i;
 
 	return *this;
 }

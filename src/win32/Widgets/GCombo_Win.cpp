@@ -231,7 +231,7 @@ bool GCombo::Delete()
 	return Delete(Idx);
 }
 
-bool GCombo::Delete(int i)
+bool GCombo::Delete(size_t i)
 {
 	#if defined(DEBUG_COMBOBOX)
 	if (DEBUG_COMBOBOX==GetId())

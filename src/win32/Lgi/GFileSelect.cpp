@@ -225,22 +225,22 @@ bool GFileSelect::Name(const char *n)
 	return Status;
 }
 
-char *GFileSelect::operator [](int i)
+char *GFileSelect::operator [](size_t i)
 {
 	return d->Files[i];
 }
 
-int GFileSelect::Length()
+size_t GFileSelect::Length()
 {
 	return d->Files.Length();
 }
 
-int GFileSelect::Types()
+size_t GFileSelect::Types()
 {
 	return d->TypeList.Length();
 }
 
-int GFileSelect::SelectedType()
+ssize_t GFileSelect::SelectedType()
 {
 	return d->SelectedType;
 }

@@ -292,22 +292,14 @@ public:
 	/// Destructor
 	~GVariant();
 
-	/// Assign int value
-	GVariant &operator =(int i);
-	#ifdef BEOS
-	/// Assign 32bit int value
-	GVariant &operator =(int32 i);
-	#endif
 	/// Assign bool value
 	GVariant &operator =(bool i);
-	#ifndef _MSC_VER
-	GVariant &operator =(size_t i);
-	#if LGI_64BIT || defined(MAC)
-	GVariant &operator =(ssize_t i);
-	#endif
-	#endif
+	/// Assign 32bit int value
+	GVariant &operator =(int32 i);
+	GVariant &operator =(uint32 i);
 	/// Assign 64bit int value
 	GVariant &operator =(int64 i);
+	GVariant &operator =(uint64 i);
 	/// Assign double value
 	GVariant &operator =(double i);
 	/// Assign string value (makes a copy)

@@ -3272,7 +3272,7 @@ bool GTextView3::OnMouseWheel(double l)
 {
 	if (VScroll)
 	{
-		ssize_t NewPos = VScroll->Value() + l;
+		int64 NewPos = VScroll->Value() + (int)l;
 		NewPos = limit(NewPos, 0, GetLines());
 		VScroll->Value(NewPos);
 		Invalidate();
