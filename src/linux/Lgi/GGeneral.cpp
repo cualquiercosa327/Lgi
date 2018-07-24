@@ -148,15 +148,15 @@ GMessage CreateMsg(int m, int a, int b)
 	return Msg;
 }
 
-bool LgiGetMimeTypeExtensions(const char *Mime, GArray<char*> &Ext)
+bool LgiGetMimeTypeExtensions(const char *Mime, GArray<GString> &Ext)
 {
 	int Start = Ext.Length();
 	char *e;
 
 	#define HardCodeExtention(Mime, Ext1, Ext2) \
 		else if (!stricmp(Mime, Mime)) \
-		{	if (Ext1) Ext.Add(NewStr(Ext1)); \
-			if (Ext2) Ext.Add(NewStr(Ext2)); }
+		{	if (Ext1) Ext.Add(Ext1); \
+			if (Ext2) Ext.Add(Ext2); }
 
 	if (!Mime);
 	HardCodeExtention("text/calendar", "ics", 0)

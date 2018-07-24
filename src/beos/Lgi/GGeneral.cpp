@@ -258,7 +258,7 @@ bool LgiGetAppsForMimeType(const char *Mime,
 	return false;
 }
 
-bool LgiGetMimeTypeExtensions(const char *Mime, GArray<char*> &Ext)
+bool LgiGetMimeTypeExtensions(const char *Mime, GArray<GString> &Ext)
 {
 	LgiAssert(!"Impl me.");
 	return false;
