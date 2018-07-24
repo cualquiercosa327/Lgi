@@ -577,8 +577,10 @@ Gtk::gboolean IdleWrapper(Gtk::gpointer data)
 					e->client.data.l[1] = m.a;
 					e->client.data.l[2] = m.b;			
 					
-					gtk_propagate_event(m.v->Handle(), e);
+					auto Widget = m.v->Handle();
+					gtk_propagate_event(Widget, e);
 					gdk_event_free(e);
+					g_object_unref(Widget);
 				}
 				else printf("%s:%i - gdk_event_new failed.\n", _FL);
 				
@@ -1444,6 +1446,9 @@ bool GApp::PostEvent(GViewI *View, int Msg, GMessage::Param a, GMessage::Param b
 	}
 	
 	// printf("%s:%i - Posting event %p,%i,%i,%i.\n", _FL, View, Msg, a, b);
+	auto Widget = View->Handle();
+	g_object_ref(Widget); // ref widget till we try and propagate the message to it...
+	
 	q->New().Set(View, Msg, a, b);
 	MsgQue.Unlock();
 	

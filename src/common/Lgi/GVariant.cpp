@@ -76,12 +76,6 @@ GVariant::GVariant()
 	ZeroObj(Value);
 }
 
-GVariant::GVariant(int i)
-{
-	Type = GV_INT32;
-	Value.Int = i;
-}
-
 GVariant::GVariant(GVariant const &v)
 {
 	Type = GV_NULL;
@@ -104,6 +98,18 @@ GVariant::GVariant(ssize_t i)
 }
 #endif
 #endif
+
+GVariant::GVariant(int32 i)
+{
+	Type = GV_INT32;
+	Value.Int = i;
+}
+
+GVariant::GVariant(uint32 i)
+{
+	Type = GV_INT32;
+	Value.Int = i;
+}
 
 GVariant::GVariant(int64 i)
 {
@@ -301,6 +307,40 @@ GVariant &GVariant::operator =(bool i)
 
 	return *this;
 }
+
+#ifndef _MSC_VER
+GVariant &GVariant::operator =(size_t i)
+{
+	Empty();
+	
+	#if LGI_64BIT
+	Type = GV_INT64;
+	Value.Int64 = i;
+	#else
+	Type = GV_INT32;
+	Value.Int = i;
+	#endif
+	
+	return *this;
+}
+
+#if LGI_64BIT || defined(MAC)
+GVariant &GVariant::operator =(ssize_t i)
+{
+	Empty();
+	
+	#if LGI_64BIT
+	Type = GV_INT64;
+	Value.Int64 = i;
+	#else
+	Type = GV_INT32;
+	Value.Int = i;
+	#endif
+	
+	return *this;
+}
+#endif
+#endif
 
 GVariant &GVariant::operator =(int32 i)
 {

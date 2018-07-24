@@ -1198,7 +1198,10 @@ bool VcFolder::ParseStatus(int Result, GString s, ParseParams *Params)
 			for (auto Ln : Lines)
 			{
 				char Type = Ln(0);
-				if (Type != '?')
+				if (Ln.Lower().Find("error:") >= 0)
+				{
+				}
+				else if (Type != '?')
 				{
 					GString::Array p = Ln.SplitDelimit(" ", 8);
 

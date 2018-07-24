@@ -259,18 +259,17 @@ public:
 
 	/// Constructor to null
 	GVariant();
-	/// Constructor for int
-	GVariant(int i);
+	/// Constructor for integers
+	GVariant(int32 i);
+	GVariant(uint32 i);
+	GVariant(int64 i);
+	GVariant(uint64 i);
 	#ifndef _MSC_VER
 	GVariant(size_t i);
 	#if LGI_64BIT || defined(MAC)
 	GVariant(ssize_t i);
 	#endif
 	#endif
-	/// Constructor for int64
-	GVariant(int64 i);
-	/// Constructor for uint64
-	GVariant(uint64 i);
 	/// Constructor for double
 	GVariant(double i);
 	/// Constructor for string
@@ -294,12 +293,17 @@ public:
 
 	/// Assign bool value
 	GVariant &operator =(bool i);
-	/// Assign 32bit int value
+	/// Assign an integer value
 	GVariant &operator =(int32 i);
 	GVariant &operator =(uint32 i);
-	/// Assign 64bit int value
 	GVariant &operator =(int64 i);
 	GVariant &operator =(uint64 i);
+	#ifndef _MSC_VER
+	GVariant &operator =(size_t i);
+	#if LGI_64BIT || defined(MAC)
+	GVariant &operator =(ssize_t i);
+	#endif
+	#endif
 	/// Assign double value
 	GVariant &operator =(double i);
 	/// Assign string value (makes a copy)
