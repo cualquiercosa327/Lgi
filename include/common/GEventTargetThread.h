@@ -5,21 +5,22 @@
 #include "LMutex.h"
 #include "LThreadEvent.h"
 #include "LCancel.h"
+#include "LHashTable.h"
 
 #define PostThreadEvent GEventSinkMap::Dispatch.PostEvent
 
 class LgiClass GEventSinkMap : public LMutex
 {
 protected:
-	GHashTbl<int,GEventSinkI*> ToPtr;
-	GHashTbl<void*,int> ToHnd;
+	LHashTbl<IntKey<int>,GEventSinkI*> ToPtr;
+	LHashTbl<PtrKey<void*>,int> ToHnd;
 
 public:
 	static GEventSinkMap Dispatch;
 
 	GEventSinkMap(int SizeHint = 0) :
-		ToPtr(SizeHint, false, 0, NULL),
-		ToHnd(SizeHint, false, NULL, 0)
+		ToPtr(SizeHint),
+		ToHnd(SizeHint)
 	{
 	}
 
@@ -284,7 +285,7 @@ public:
 							_FL, LThread::GetName(),
 							(int)GetCurrentThreadId(),
 							(int)GetId(),
-							(void*)Event.Handle());
+							(void*)(ssize_t)Event.Handle());
 						#endif
 						
 						Start = Now;

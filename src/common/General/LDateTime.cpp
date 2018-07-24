@@ -164,7 +164,7 @@ int LDateTime::SystemTimeZone(bool ForceUpdate)
 
 		#ifdef MAC
 
-			#ifdef COCOA
+			#if 0 //def COCOA
 
 				LgiAssert(!"Fixme");
 
@@ -329,9 +329,9 @@ LDateTime LDateTime::GDstInfo::GetLocal()
 	return d;
 }
 
-struct MonthHash : public GHashTbl<const char*,int>
+struct MonthHash : public LHashTbl<ConstStrKey<char,false>,int>
 {
-	MonthHash() : GHashTbl<const char*,int>(0, false)
+	MonthHash()
 	{
 		Add("Jan", 1);
 		Add("Feb", 2);
@@ -1591,7 +1591,7 @@ bool LDateTime::AddDays(int64 Days)
 
 void LDateTime::AddMonths(int64 Months)
 {
-	int m = _Month + Months;
+	int64 m = _Month + Months;
 
 	do
 	{

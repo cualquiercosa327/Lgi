@@ -86,7 +86,7 @@ public:
 class LgiClass LgiMenuRes : public GBase
 {
 	LgiResources *Res;
-	GHashTbl<int, LgiStringRes*> Strings;
+	LHashTbl<IntKey<int>, LgiStringRes*> Strings;
 
 public:
 	GXmlTag *Tag;
@@ -124,7 +124,7 @@ class LgiClass LgiResources : public ResFactory
 	static bool LoadStyles;
 
 public:
-	GHashTbl<const char*, char*> LanguageNames;
+	LHashTbl<ConstStrKey<char>, char*> LanguageNames;
 	
 	/// This is all the CSS loaded from the lr8 file (and possibly other sources as well)
 	GCss::Store CssStore;

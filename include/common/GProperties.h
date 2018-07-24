@@ -137,7 +137,7 @@ public:
 	int KeyType();
 	void *KeyValue();
 	Prop *GetProp();
-	int GetPropertyCount() { return Properties.Length(); }
+	int GetPropertyCount() { return (int)Properties.Length(); }
 
 	bool Find(char *Name);
 	bool FirstKey();

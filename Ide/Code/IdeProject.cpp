@@ -178,7 +178,7 @@ public:
 	IdeProject *ParentProject;
 	IdeProjectSettings Settings;
 	GAutoPtr<BuildThread> Thread;
-	GHashTbl<const char*, ProjectNode*> Nodes;
+	LHashTbl<ConstStrKey<char,false>, ProjectNode*> Nodes;
 	int NextNodeId;
 
 	// Threads
@@ -186,13 +186,11 @@ public:
 
 	// User info file
 	GString UserFile;
-	GHashTbl<int,int> UserNodeFlags;
+	LHashTbl<IntKey<int>,int> UserNodeFlags;
 
 	IdeProjectPrivate(AppWnd *a, IdeProject *project) :
 		Project(project),
-		Settings(project),
-		Nodes(0, false, NULL, NULL),
-		UserNodeFlags(0, false, 0, -1)
+		Settings(project)
 	{
 		App = a;
 		Dirty = false;
@@ -204,7 +202,7 @@ public:
 	void CollectAllFiles(GTreeNode *Base, GArray<ProjectNode*> &Files, bool SubProjects, int Platform);
 };
 
-class MakefileThread : public LThread
+class MakefileThread : public LThread, public LCancel
 {
 	IdeProjectPrivate *d;
 	IdeProject *Proj;
@@ -220,6 +218,13 @@ public:
 		BuildAfterwards = Build;
 		
 		Run();
+	}
+
+	~MakefileThread()
+	{
+		Cancel();
+		while (!IsExited())
+			LgiSleep(1);
 	}
 
 	int Main()
@@ -341,7 +346,7 @@ public:
 		
 		if (IsExecutableTarget)
 		{
-			const char *Exe = Proj->GetExecutable(Platform);
+			GString Exe = Proj->GetExecutable(Platform);
 			if (Exe)
 			{
 				if (LgiIsRelativePath(Exe))
@@ -512,7 +517,7 @@ public:
 			// Includes
 
 			// Do include paths
-			GHashTbl<char*,bool> Inc;
+			LHashTbl<StrKey<char>,bool> Inc;
 			const char *ProjIncludes = d->Settings.GetStr(ProjIncludePaths, NULL, Platform);
 			if (ValidStr(ProjIncludes))
 			{
@@ -641,7 +646,7 @@ public:
 				m.Print("# Dependencies\n"
 						"Depends =\t");
 					
-				for (int c = 0; c < Files.Length(); c++)
+				for (int c = 0; c < Files.Length() && !IsCancelled(); c++)
 				{
 					ProjectNode *n = Files[c];
 					if (n->GetType() == NodeSrc)
@@ -662,7 +667,7 @@ public:
 				// Write out the target stuff
 				m.Print("# Target\n");
 
-				GHashTbl<char*,bool> DepFiles;
+				LHashTbl<StrKey<char,false>,bool> DepFiles;
 
 				if (TargetType)
 				{
@@ -676,7 +681,7 @@ public:
 						
 						uint64 Last = LgiCurrentTime();
 						int Count = 0;
-						for (Dep=Deps.First(); Dep; Dep=Deps.Next(), Count++)
+						for (Dep=Deps.First(); Dep && !IsCancelled(); Dep=Deps.Next(), Count++)
 						{
 							// Get dependency to create it's own makefile...
 							Dep->CreateMakefile(Platform, false);
@@ -888,7 +893,7 @@ public:
 				}
 
 				// Create dependency tree, starting with all the source files.
-				for (int idx=0; idx<Files.Length(); idx++)
+				for (int idx=0; idx<Files.Length() && !IsCancelled(); idx++)
 				{
 					ProjectNode *n = Files[idx];
 					if (n->GetType() == NodeSrc)
@@ -925,7 +930,7 @@ public:
 							GArray<char*> SrcDeps;
 							if (Proj->GetDependencies(Src, IncPaths, SrcDeps, Platform))
 							{
-								for (int i=0; i<SrcDeps.Length(); i++)
+								for (int i=0; i<SrcDeps.Length() && !IsCancelled(); i++)
 								{
 									char *SDep = SrcDeps[i];
 									
@@ -957,7 +962,7 @@ public:
 				
 				// Do remaining include file dependencies
 				bool Done = false;
-				GHashTbl<char*,bool> Processed;
+				LHashTbl<StrKey<char,false>,bool> Processed;
 				GAutoString Base = Proj->GetBasePath();
 				while (!Done)
 				{
@@ -966,6 +971,8 @@ public:
 					// for (bool b=DepFiles.First(&Src); b; b=DepFiles.Next(&Src))
 					for (auto it : DepFiles)
 					{
+						if (IsCancelled())
+							break;
 						if (Processed.Find(it.key))
 							continue;
 
@@ -1003,7 +1010,7 @@ public:
 							{
 								m.Print("%s : ", Rel);
 
-								for (int n=0; n<Headers.Length(); n++)
+								for (int n=0; n<Headers.Length() && !IsCancelled(); n++)
 								{
 									char *i = Headers[n];
 									
@@ -1039,7 +1046,7 @@ public:
 
 				// Output VPATH
 				m.Print("VPATH=%%.cpp \\\n");
-				for (int i=0; i<IncPaths.Length(); i++)
+				for (int i=0; i<IncPaths.Length() && !IsCancelled(); i++)
 				{
 					char *p = IncPaths[i];
 					if (p && !strchr(p, '`'))
@@ -2037,7 +2044,8 @@ public:
 			else if (Act == ExeValgrind)
 			{
 				#ifdef LINUX
-				if (Proj->GetExecutable(GetCurrentPlatform()))
+				GString ExePath = Proj->GetExecutable(GetCurrentPlatform());
+				if (ExePath)
 				{
 					char Path[MAX_PATH];
 					char *ExeLeaf = LgiGetLeaf(Exe);
@@ -2063,7 +2071,7 @@ public:
 					
 					if (Term && WorkDir && Execute)
 					{					
-						char *e = QuoteStr(Proj->GetExecutable(GetCurrentPlatform()));
+						char *e = QuoteStr(ExePath);
 						char *p = QuoteStr(Path);
 						char *a = Proj->GetExeArgs() ? Proj->GetExeArgs() : (char*)"";
 						char Args[512];
@@ -2196,7 +2204,7 @@ bool IdeProject::FindDuplicateSymbols()
 
 	int Lines = 0, LinesIn = 0;
 	
-	GHashTbl<char*,int64> Map(200000, false, NULL, -1);
+	LHashTbl<StrKey<char,false>,int64> Map(200000);
 	int Found = 0;
 	for (IdeProject *p = Proj.First(); p; p = Proj.Next())
 	{
@@ -2213,7 +2221,7 @@ bool IdeProject::FindDuplicateSymbols()
 				for (int Rd = 0; (Rd = Nm.Read(Buf, sizeof(Buf))); )
 					q.Write(Buf, Rd);
 				GString::Array a = q.NewGStr().SplitDelimit("\r\n");
-				GHashTbl<char*,bool> Local(200000, false);
+				LHashTbl<StrKey<char,false>,bool> Local(200000);
 				for (GString *Ln = NULL; a.Iterate(Ln); Lines++)
 				{
 					GString::Array p = Ln->SplitDelimit(" \t", 3);
@@ -3069,7 +3077,7 @@ bool IdeProject::BuildIncludePaths(GArray<GString> &Paths, bool Recurse, bool In
 	}
 	Projects.Insert(this, 0);
 
-	GHashTbl<char*, bool> Map;
+	LHashTbl<StrKey<char>, bool> Map;
 	
 	for (IdeProject *p=Projects.First(); p; p=Projects.Next())
 	{
@@ -3334,7 +3342,7 @@ struct Dependency
 
 bool IdeProject::GetAllDependencies(GArray<char*> &Files, IdePlatform Platform)
 {
-	GHashTbl<char*, Dependency*> Deps;
+	LHashTbl<StrKey<char>, Dependency*> Deps;
 	GAutoString Base = GetBasePath();
 	
 	// Build list of all the source files...
@@ -3634,7 +3642,7 @@ int IdeTree::OnDrop(GArray<GDragData> &Data, GdcPt2 p, int KeyState)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
-AddFilesProgress::AddFilesProgress(GViewI *par) : Exts(0, false)
+AddFilesProgress::AddFilesProgress(GViewI *par)
 {
 	v = 0;
 	Cancel = false;

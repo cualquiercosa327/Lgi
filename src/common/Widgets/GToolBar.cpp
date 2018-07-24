@@ -776,10 +776,10 @@ void GToolButton::Value(int64 b)
 				GAutoPtr<GViewIterator> it(GetParent()->IterateViews());
 				if (it)
 				{
-					int CurIdx = it->IndexOf(this);
+					ssize_t CurIdx = it->IndexOf(this);
 					if (CurIdx >= 0)
 					{						
-						for (int i=CurIdx-1; i>=0; i--)
+						for (ssize_t i=CurIdx-1; i>=0; i--)
 						{
 							GToolButton *But = dynamic_cast<GToolButton*>((*it)[i]);
 							if (But->Separator())
@@ -788,7 +788,7 @@ void GToolButton::Value(int64 b)
 								But->Value(false);
 						}
 
-						for (int i=CurIdx+1; i<it->Length(); i++)
+						for (ssize_t i=CurIdx+1; i<it->Length(); i++)
 						{
 							GToolButton *But = dynamic_cast<GToolButton*>((*it)[i]);
 							if (But->Separator())

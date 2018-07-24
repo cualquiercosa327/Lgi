@@ -55,7 +55,7 @@ _(SurfaceBits)
 _(SurfaceColourSpace)
 _(SurfaceIncludeCursor)
 	
-// List GHashTbl
+// List GHashTbl/LHashTbl
 _(ContainerAdd)
 _(ContainerDelete)
 _(ContainerHasKey)

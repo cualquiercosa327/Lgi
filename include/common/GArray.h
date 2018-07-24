@@ -647,7 +647,7 @@ public:
 		{
 			// Grow range to fit 'b'
 			ssize_t Items = bRange.Len - aRange.Len;
-			for (int i=0; i<Items; i++)
+			for (ssize_t i=0; i<Items; i++)
 				if (!AddAt(aIdx++, b[bIdx++]))
 					return false;
 		}
@@ -655,7 +655,7 @@ public:
 		{
 			// Shrink the range in this to fit 'b'
 			ssize_t Del = aRange.Len - bRange.Len;
-			for (int i=0; i<Del; i++)
+			for (ssize_t i=0; i<Del; i++)
 				if (!DeleteAt(aIdx, true))
 					return false;
 		}
@@ -668,16 +668,16 @@ public:
 		if (aRange.Len > bRange.Len)
 		{
 			// Grow range to fit this
-			int Add = aRange.Len - bRange.Len;
-			for (int i=0; i<Add; i++)
+			ssize_t Add = aRange.Len - bRange.Len;
+			for (ssize_t i=0; i<Add; i++)
 				if (!b.AddAt(bIdx++, Tmp[TmpIdx++]))
 					return false;
 		}
 		else if (aRange.Len < bRange.Len)
 		{
 			// Shrink the range in this to fit 'b'
-			int Del = bRange.Len - aRange.Len;
-			for (int i=0; i<Del; i++)
+			ssize_t Del = bRange.Len - aRange.Len;
+			for (ssize_t i=0; i<Del; i++)
 				if (!b.DeleteAt(bIdx, true))
 					return false;
 		}

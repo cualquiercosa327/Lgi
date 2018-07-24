@@ -8,7 +8,7 @@
 #include "Lgi.h"
 #include "INet.h"
 
-void GWindow::BuildShortcuts(GHashTbl<int,GViewI*> &Map, GViewI *v)
+void GWindow::BuildShortcuts(ShortcutMap &Map, GViewI *v)
 {
 	if (!v) v = this;
 

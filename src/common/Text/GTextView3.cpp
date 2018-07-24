@@ -231,11 +231,11 @@ public:
 
 	void OnChange()
 	{
-		int Len = StrlenW(Text);
+		size_t Len = StrlenW(Text);
 		if (View->Text)
 		{
 			char16 *t = View->Text + At;
-			for (int i=0; i<Len; i++)
+			for (size_t i=0; i<Len; i++)
 			{
 				char16 n = Text[i];
 				Text[i] = t[i];
@@ -255,7 +255,7 @@ public:
 		{
 			case UndoInsert:
 			{
-				int Len = StrlenW(Text);
+				size_t Len = StrlenW(Text);
 				View->Insert(At, Text, Len);
 				View->Cursor = At + Len;
 				break;
@@ -780,7 +780,7 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 	int Cy = 0;
 	MaxX = 0;
 
-	int Idx = -1;
+	ssize_t Idx = -1;
 	GTextLine *Cur = GetTextLine(Start, &Idx);
 	// LgiTrace("Pour %i:%i Cur=%p Idx=%i\n", (int)Start, (int)Length, (int)Cur, (int)Idx);
 	if (!Cur || !Cur->r.Valid())
@@ -1485,7 +1485,7 @@ bool GTextView3::Insert(size_t At, char16 *Data, ssize_t Len)
 
 
 			// Clear layout info for the new text
-			int Idx = -1;
+			ssize_t Idx = -1;
 			GTextLine *Cur = NULL;
 			
 			if (Line.Length() == 0)
@@ -1611,7 +1611,7 @@ bool GTextView3::Delete(size_t At, ssize_t Len)
 
 			if (WrapType == TEXTED_WRAP_NONE)
 			{
-				int Idx = -1;
+				ssize_t Idx = -1;
 				GTextLine *Cur = GetTextLine(At, &Idx);
 				if (Cur)
 				{
@@ -1635,7 +1635,7 @@ bool GTextView3::Delete(size_t At, ssize_t Len)
 			}
 			else
 			{
-				int Index;
+				ssize_t Index;
 				GTextLine *Cur = GetTextLine(At, &Index);
 				if (Cur)
 				{
@@ -1666,7 +1666,7 @@ bool GTextView3::Delete(size_t At, ssize_t Len)
 			// Handle repainting in flowed mode, when the line starts change
 			if (WrapType == TEXTED_WRAP_REFLOW)
 			{
-				int Index;
+				ssize_t Index;
 				GTextLine *Cur = GetTextLine(At, &Index);
 				if (Cur)
 				{
@@ -1702,7 +1702,7 @@ void GTextView3::DeleteSelection(char16 **Cut)
 	}
 }
 
-GTextView3::GTextLine *GTextView3::GetTextLine(ssize_t Offset, int *Index)
+GTextView3::GTextLine *GTextView3::GetTextLine(ssize_t Offset, ssize_t *Index)
 {
 	int i = 0;
 
@@ -1911,7 +1911,7 @@ void GTextView3::UnSelectAll()
 	}
 }
 
-int GTextView3::GetLines()
+size_t GTextView3::GetLines()
 {
 	return Line.Length();
 }
@@ -1921,12 +1921,12 @@ void GTextView3::GetTextExtent(int &x, int &y)
 	PourText(0, Size);
 
 	x = MaxX + d->rPadding.x1;
-	y = Line.Length() * LineY;
+	y = (int)(Line.Length() * LineY);
 }
 
 bool GTextView3::GetLineColumnAtIndex(GdcPt2 &Pt, int Index)
 {
-	int FromIndex = 0;
+	ssize_t FromIndex = 0;
 	GTextLine *From = GetTextLine(Index < 0 ? Cursor : Index, &FromIndex);
 	if (!From)
 		return false;
@@ -1987,13 +1987,13 @@ void GTextView3::SetCaret(size_t i, bool Select, bool ForceFullUpdate)
 		SelStart = SelEnd = -1;
 	}
 
-	int FromIndex = 0;
+	ssize_t FromIndex = 0;
 	GTextLine *From = GetTextLine(Cursor, &FromIndex);
 
 	Cursor = i;
 
 	// check the cursor is on the screen
-	int ToIndex = 0;
+	ssize_t ToIndex = 0;
 	GTextLine *To = GetTextLine(Cursor, &ToIndex);
 	if (VScroll && To)
 	{
@@ -2005,7 +2005,7 @@ void GTextView3::SetCaret(size_t i, bool Select, bool ForceFullUpdate)
 			// Above the visible region...
 			if (d->CenterCursor)
 			{
-				int i = ToIndex - (DisplayLines >> 1);
+				ssize_t i = ToIndex - (DisplayLines >> 1);
 				VScroll->Value(MAX(0, i));
 			}
 			else
@@ -2019,7 +2019,7 @@ void GTextView3::SetCaret(size_t i, bool Select, bool ForceFullUpdate)
 		{
 			int YOff = d->CenterCursor ? DisplayLines >> 1 : DisplayLines;
 			
-			int v = MIN(ToIndex - YOff + 1, Line.Length() - DisplayLines);
+			ssize_t v = MIN(ToIndex - YOff + 1, Line.Length() - DisplayLines);
 			if (v != VScroll->Value())
 			{
 				// Below the visible region
@@ -2236,7 +2236,7 @@ bool GTextView3::Paste()
 	*d++ = 0;
 
 	// insert text
-	int Len = StrlenW(t);
+	ssize_t Len = StrlenW(t);
 	Insert(Cursor, t, Len);
 	SetCaret(Cursor+Len, false, true); // Multiline
 	
@@ -2488,14 +2488,14 @@ void GTextView3::UpdateScrollBars(bool Reset)
 		GRect Before = GetClient();
 
 		int DisplayLines = Y() / LineY;
-		int Lines = GetLines();
+		ssize_t Lines = GetLines();
 		// printf("SetLimits %i, %i\n", 0, (int)Lines);
 		VScroll->SetLimits(0, Lines);
 		if (VScroll)
 		{
 			VScroll->SetPage(DisplayLines);
 			
-			int Max = Lines - DisplayLines + 1;
+			ssize_t Max = Lines - DisplayLines + 1;
 			bool Inval = false;
 			if (VScroll->Value() > Max)
 			{
@@ -2565,9 +2565,9 @@ bool GTextView3::DoCase(bool Upper)
 	return true;
 }
 
-int GTextView3::GetLine()
+ssize_t GTextView3::GetLine()
 {
-	int Idx = 0;
+	ssize_t Idx = 0;
 	GetTextLine(Cursor, &Idx);
 	return Idx + 1;
 }
@@ -2790,7 +2790,7 @@ ptrdiff_t GTextView3::MatchText(char16 *Find, bool MatchWord, bool MatchCase, bo
 	if (!ValidStrW(Find))
 		return -1;
 
-	int FindLen = StrlenW(Find);
+	ssize_t FindLen = StrlenW(Find);
 		
 	// Setup range to search
 	ssize_t Begin, End;
@@ -2950,8 +2950,8 @@ bool GTextView3::OnReplace(char16 *Find, char16 *Replace, bool All, bool MatchWo
 	if (ValidStrW(Find))
 	{
 		// int Max = -1;
-		int FindLen = StrlenW(Find);
-		int ReplaceLen = StrlenW(Replace);
+		ssize_t FindLen = StrlenW(Find);
+		ssize_t ReplaceLen = StrlenW(Replace);
 		// size_t OldCursor = Cursor;
 		ptrdiff_t First = -1;
 
@@ -3075,7 +3075,7 @@ bool GTextView3::OnMultiLineTab(bool In)
 		if (In)
 		{
 			// <-
-			int n = Indexes[i], Space = 0;
+			ssize_t n = Indexes[i], Space = 0;
 			for (; Space<IndentSize && n<Size; n++)
 			{
 				if (Text[n] == 9)
@@ -3092,14 +3092,14 @@ bool GTextView3::OnMultiLineTab(bool In)
 				}
 			}
 
-			int Chs = n-Indexes[i];
+			ssize_t Chs = n-Indexes[i];
 			Delete(Indexes[i], Chs);
 			Max -= Chs;
 		}
 		else
 		{
 			// ->
-			int Len = Indexes[i];
+			ssize_t Len = Indexes[i];
 			for (; Text[Len] != '\n' && Len<Size; Len++);
 			if (Len > Indexes[i])
 			{
@@ -3272,7 +3272,7 @@ bool GTextView3::OnMouseWheel(double l)
 {
 	if (VScroll)
 	{
-		int NewPos = (int)VScroll->Value() + (int) l;
+		int64 NewPos = VScroll->Value() + (int)l;
 		NewPos = limit(NewPos, 0, GetLines());
 		VScroll->Value(NewPos);
 		Invalidate();
@@ -4243,7 +4243,7 @@ bool GTextView3::OnKey(GKey &k)
 					if (l)
 					{
 						int DisplayLines = Y() / LineY;
-						int CurLine = Line.IndexOf(l);
+						ssize_t CurLine = Line.IndexOf(l);
 
 						GTextLine *New = Line.ItemAt(MAX(CurLine - DisplayLines, 0));
 						if (New)
@@ -4266,7 +4266,7 @@ bool GTextView3::OnKey(GKey &k)
 					if (l)
 					{
 						int DisplayLines = Y() / LineY;
-						int CurLine = Line.IndexOf(l);
+						ssize_t CurLine = Line.IndexOf(l);
 
 						GTextLine *New = Line.ItemAt(MIN(CurLine + DisplayLines, GetLines()-1));
 						if (New)

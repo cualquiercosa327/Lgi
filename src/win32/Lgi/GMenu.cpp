@@ -246,7 +246,7 @@ int GSubMenu::Float(GView *From, int x, int y, int Button)
 	return Cmd;
 }
 
-int GSubMenu::Length()
+size_t GSubMenu::Length()
 {
 	return Items.Length();
 }

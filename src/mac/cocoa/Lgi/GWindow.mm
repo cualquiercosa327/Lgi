@@ -61,7 +61,7 @@ public:
 		DeleteObj(EmptyMenu);
 	}
 	
-	int GetHookIndex(GView *Target, bool Create = false)
+	ssize_t GetHookIndex(GView *Target, bool Create = false)
 	{
 		for (int i=0; i<Hooks.Length(); i++)
 		{
@@ -1651,7 +1651,7 @@ bool GWindow::RegisterHook(GView *Target, GWindowHookType EventType, int Priorit
 	
 	if (Target && EventType)
 	{
-		int i = d->GetHookIndex(Target, true);
+		ssize_t i = d->GetHookIndex(Target, true);
 		if (i >= 0)
 		{
 			d->Hooks[i].Flags = EventType;
@@ -1664,7 +1664,7 @@ bool GWindow::RegisterHook(GView *Target, GWindowHookType EventType, int Priorit
 
 bool GWindow::UnregisterHook(GView *Target)
 {
-	int i = d->GetHookIndex(Target);
+	ssize_t i = d->GetHookIndex(Target);
 	if (i >= 0)
 	{
 		d->Hooks.DeleteAt(i);

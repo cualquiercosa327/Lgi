@@ -173,8 +173,8 @@ protected:
 	/// The command connection
 	GAutoPtr<GSocketI> Socket;	// commands
 
-	int WriteLine(char *Msg = 0);
-	int ReadLine(char *Msg = 0, int MsgSize = 0);
+	ssize_t WriteLine(char *Msg = 0);
+	ssize_t ReadLine(char *Msg = 0, ssize_t MsgSize = 0);
 	bool TransferFile(const char *Local, const char *Remote, int64 RemoteSize, bool Upload, bool Binary);
 
 	// Data connections

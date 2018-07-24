@@ -68,28 +68,28 @@ bool StringConvert(Out *&out, ssize_t *OutLen, const In *in, ssize_t InLen)
 // static OsChar GDisplayStringDots[] = {'.', '.', '.', 0};
 
 #if COCOA
-#warning FIXME
+	#warning FIXME
 #elif USE_CORETEXT
-#include <CoreFoundation/CFString.h>
+	#include <CoreFoundation/CFString.h>
 
-void GDisplayString::CreateAttrStr()
-{
-	if (!StrCache.Get())
-		return;
-
-	wchar_t *w = StrCache.Get();
-	CFStringRef string = CFStringCreateWithBytes(kCFAllocatorDefault, (const uint8*)w, StrlenW(w) * sizeof(*w), kCFStringEncodingUTF32LE, false);
-	if (string)
+	void GDisplayString::CreateAttrStr()
 	{
-		CFDictionaryRef attributes = Font->GetAttributes();
-		if (attributes)
-			AttrStr = CFAttributedStringCreate(kCFAllocatorDefault, string, attributes);
-		else
-			LgiAssert(0);
-		
-		CFRelease(string);
+		if (!StrCache.Get())
+			return;
+
+		wchar_t *w = StrCache.Get();
+		CFStringRef string = CFStringCreateWithBytes(kCFAllocatorDefault, (const uint8*)w, StrlenW(w) * sizeof(*w), kCFStringEncodingUTF32LE, false);
+		if (string)
+		{
+			CFDictionaryRef attributes = Font->GetAttributes();
+			if (attributes)
+				AttrStr = CFAttributedStringCreate(kCFAllocatorDefault, string, attributes);
+			else
+				LgiAssert(0);
+			
+			CFRelease(string);
+		}
 	}
-}
 #endif
 
 GDisplayString::GDisplayString(GFont *f, const char *s, ssize_t l, GSurface *pdc)
@@ -929,27 +929,29 @@ void GDisplayString::TruncateWithDots(int Width)
 	#elif defined(MAC)
 	
 		#if COCOA
-		#warning FIXME
+	
+			#warning FIXME
+	
 		#elif USE_CORETEXT
 
-		if (Hnd)
-		{
-			CFAttributedStringRef truncationString = CFAttributedStringCreate(NULL, CFSTR("\u2026"), Font->GetAttributes());
-			if (truncationString)
+			if (Hnd)
 			{
-				CTLineRef truncationToken = CTLineCreateWithAttributedString(truncationString);
-				CFRelease(truncationString);
-				if (truncationToken)
+				CFAttributedStringRef truncationString = CFAttributedStringCreate(NULL, CFSTR("\u2026"), Font->GetAttributes());
+				if (truncationString)
 				{
-					CTLineRef TruncatedLine = CTLineCreateTruncatedLine(Hnd, Width, kCTLineTruncationEnd, truncationToken);
-					if (TruncatedLine)
+					CTLineRef truncationToken = CTLineCreateWithAttributedString(truncationString);
+					CFRelease(truncationString);
+					if (truncationToken)
 					{
-						CFRelease(Hnd);
-						Hnd = TruncatedLine;
+						CTLineRef TruncatedLine = CTLineCreateTruncatedLine(Hnd, Width, kCTLineTruncationEnd, truncationToken);
+						if (TruncatedLine)
+						{
+							CFRelease(Hnd);
+							Hnd = TruncatedLine;
+						}
 					}
 				}
 			}
-		}
 	
 		#endif
 	

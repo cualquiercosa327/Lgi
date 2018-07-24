@@ -1408,7 +1408,7 @@ bool GdcRleDC::Mono()
 	return (Flags & GDC_RLE_MONO) != 0;
 }
 
-bool GdcRleDC::SetLength(int Len)
+bool GdcRleDC::SetLength(ssize_t Len)
 {
 	bool Status = true;
 
@@ -1483,15 +1483,15 @@ void GdcRleDC::Update(int UpdateFlags)
 				if (Flags & GDC_RLE_COLOUR)
 				{
 					if (SetLength(	Length +
-							(2 * sizeof(ulong)) +
-							(Pixels * PixelSize)))
+									(2 * sizeof(ulong)) +
+									(Pixels * PixelSize)))
 					{
 						*((ulong*)(Data+Pos)) = Skip;
 						Pos += sizeof(Skip);
 						*((ulong*)(Data+Pos)) = Pixels;
 						Pos += sizeof(Pixels);
 						
-						int l = Pixels * PixelSize;
+						ssize_t l = Pixels * PixelSize;
 						memcpy(Data+Pos, Bits, l);
 						Pos += l;
 					}
@@ -1635,8 +1635,8 @@ void GdcRleDC::Draw(GSurface *Dest, int Ox, int Oy)
 						for (int x=0; x<X(); )
 						{
 							x += *((ulong*)s); s+=4;
-							int Pixels = *((ulong*)s); s+=4;
-							int Len = Pixels*PixLen;
+							ssize_t Pixels = *((ulong*)s); s+=4;
+							ssize_t Len = Pixels*PixLen;
 							memcpy(d + ((Ox+x)*PixLen), s, Len);
 							x += Pixels;
 							s += Len;
@@ -1654,9 +1654,9 @@ void GdcRleDC::Draw(GSurface *Dest, int Ox, int Oy)
 					for (int x=0; x<X(); )
 					{
 						x += *((ulong*)s); s+=4;
-						int Pixels = *((ulong*)s); s+=4;
+						ssize_t Pixels = *((ulong*)s); s+=4;
 						pDApp->SetPtr(Ox+x, Oy+y);
-						pDApp->Rectangle(Pixels, 1);
+						pDApp->Rectangle((int)Pixels, 1);
 						x += Pixels;
 					}
 				}
@@ -1681,17 +1681,17 @@ void GdcRleDC::Draw(GSurface *Dest, int Ox, int Oy)
 							for (int x=0; x<X(); )
 							{
 								x += *((ulong*)s); s+=4;
-								int Pixels = *((ulong*)s); s+=4;
+								ssize_t Pixels = *((ulong*)s); s+=4;
 
 								int Fx = Ox+x;
 								int PreClipPixels = MAX(0, Temp.x1 - Fx);
-								int PostClipPixels = MAX(0, (Pixels + Fx) - Temp.x2 - 1);
-								int PixelsLeft = Pixels - (PreClipPixels + PostClipPixels);
+								ssize_t PostClipPixels = MAX(0, (Pixels + Fx) - Temp.x2 - 1);
+								ssize_t PixelsLeft = Pixels - (PreClipPixels + PostClipPixels);
 								if (PixelsLeft > 0) // clip x
 								{
 									memcpy(	d + ((Fx - PreClipPixels) * PixLen),
-										s + (PreClipPixels * PixLen),
-										PixelsLeft * PixLen);
+											s + (PreClipPixels * PixLen),
+											PixelsLeft * PixLen);
 								}
 
 								x += Pixels;
@@ -1724,7 +1724,7 @@ void GdcRleDC::Draw(GSurface *Dest, int Ox, int Oy)
 	}
 }
 
-int GdcRleDC::SizeOf()
+ssize_t GdcRleDC::SizeOf()
 {
 	return (sizeof(int) * 5) + Length;
 }

@@ -299,12 +299,12 @@ public:
 	/// Seeks forward
 	GUtf8Ptr &operator ++();
 	GUtf8Ptr &operator ++(const int i);
-	GUtf8Ptr &operator +=(const int n);
+	GUtf8Ptr &operator +=(const ssize_t n);
 
 	/// Seeks 1 character backward
 	GUtf8Ptr &operator --();
 	GUtf8Ptr &operator --(const int i);
-	GUtf8Ptr &operator -=(const int n);
+	GUtf8Ptr &operator -=(const ssize_t n);
 
 	// Comparison
 	bool operator <(const GUtf8Ptr &p) { return Ptr < p.Ptr; }
@@ -435,7 +435,7 @@ ssize_t Strlen(const T *str)
 // Templated version of NewStr/NewStrW
 // Duplicates a string in heap memory.
 template<typename T>
-T *Strdup(T *s, ssize_t len = -1)
+T *Strdup(const T *s, ssize_t len = -1)
 {
 	if (!s) return NULL;
 	if (len < 0) len = Strlen(s);
@@ -545,15 +545,15 @@ int Strnicmp(const T *str_a, const T *str_b, ssize_t len)
 }
 
 /// Copies a string
-template<typename T>
-T *Strcpy(T *dst, ssize_t dst_len, const T *src)
+template<typename T, typename I>
+T *Strcpy(T *dst, ssize_t dst_len, const I *src)
 {
 	if (!dst || !src || dst_len == 0)
 		return NULL;
 	
 	REG T *d = dst;
 	REG T *end = d + dst_len - 1; // leave 1 char for NULL terminator
-	REG const T *s = src;
+	REG const I *s = src;
 	while (d < end && *s)
 	{
 		*d++ = *s++;

@@ -27,9 +27,9 @@ int LgiPrintf(GString &Str, const char *Format, va_list &Arg)
 	return Bytes;
 }
 
-int LgiPrintf(GAutoString &Str, const char *Format, va_list &Arg)
+ssize_t LgiPrintf(GAutoString &Str, const char *Format, va_list &Arg)
 {
-	int Bytes = 0;
+	ssize_t Bytes = 0;
 	
 	if (Format)
 	{
@@ -48,39 +48,39 @@ int LgiPrintf(GAutoString &Str, const char *Format, va_list &Arg)
 	return Bytes;
 }
 
-int GStreamPrintf(GStreamI *Stream, int Flags, const char *Format, va_list &Arg)
+ssize_t GStreamPrintf(GStreamI *Stream, int Flags, const char *Format, va_list &Arg)
 {
 	if (!Stream || !Format)
 		return 0;
 
 	GAutoString a;
-	int Bytes = LgiPrintf(a, Format, Arg);
+	ssize_t Bytes = LgiPrintf(a, Format, Arg);
 	if (!a || Bytes == 0)
 		return 0;
 	
 	return Stream->Write(a, Bytes, Flags);
 }
 
-int GStreamPrint(GStreamI *s, const char *fmt, ...)
+ssize_t GStreamPrint(GStreamI *s, const char *fmt, ...)
 {
 	va_list Arg;
 	va_start(Arg, fmt);
-    int Ch = GStreamPrintf(s, 0, fmt, Arg);
+    ssize_t Ch = GStreamPrintf(s, 0, fmt, Arg);
 	va_end(Arg);
 	return Ch;
 }
 
-int GStream::Print(const char *Format, ...)
+ssize_t GStream::Print(const char *Format, ...)
 {
 	va_list Arg;
 	va_start(Arg, Format);
-    int Ch = GStreamPrintf(this, 0, Format, Arg);
+    ssize_t Ch = GStreamPrintf(this, 0, Format, Arg);
 	va_end(Arg);
 	return Ch;
 }
 
 /////////////////////////////////////////////////////////////////
-GStreamOp::GStreamOp(int BufSize)
+GStreamOp::GStreamOp(ssize_t BufSize)
 {
 	StartTime = 0;
 	EndTime = 0;
@@ -94,17 +94,17 @@ GStreamOp::~GStreamOp()
 	DeleteArray(Buf);
 }
 
-int64 GStreamOp::GetRate()
+ssize_t GStreamOp::GetRate()
 {
 	return (Total * GetElapsedTime()) / 1000;
 }
 
-int64 GStreamOp::GetTotal()
+ssize_t GStreamOp::GetTotal()
 {
 	return Total;
 }
 
-int64 GStreamOp::GetElapsedTime()
+ssize_t GStreamOp::GetElapsedTime()
 {
 	if (EndTime)
 	{
@@ -191,13 +191,13 @@ ssize_t GEndOfLine::IsEnd(void *s, ssize_t Len)
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-int64 GCopyStreamer::Copy(GStreamI *Source, GStreamI *Dest, GStreamEnd *End)
+ssize_t GCopyStreamer::Copy(GStreamI *Source, GStreamI *Dest, GStreamEnd *End)
 {
 	if (!Source || !Dest || !Buf)
 		return -1;
 
 	int64 Bytes = 0;
-	int r, w, e = -1;
+	ssize_t r, w, e = -1;
 	StartTime = LgiCurrentTime();
 
 	while (e < 0)

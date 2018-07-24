@@ -80,7 +80,7 @@ const char *SeekNextLine(const char *s, const char *End)
 char *InetGetHeaderField(	// Returns an allocated string or NULL on failure
 	const char *Headers,	// Pointer to all the headers
 	const char *Field,		// The field your after
-	int Len)				// Maximum len to run, or -1 for NULL terminated
+	ssize_t Len)			// Maximum len to run, or -1 for NULL terminated
 {
 	if (Headers && Field)
 	{

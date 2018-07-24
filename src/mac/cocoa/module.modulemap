@@ -1,0 +1,6 @@
+framework module Lgi {
+  umbrella header "Lgi.h"
+
+  export *
+  module * { export * }
+}

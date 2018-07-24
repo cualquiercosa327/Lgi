@@ -372,9 +372,9 @@ public:
 	virtual GViewI *Last() = 0;
 	virtual GViewI *Next() = 0;
 	virtual GViewI *Prev() = 0;
-	virtual int Length() = 0;
-	virtual int IndexOf(GViewI *view) = 0;
-	virtual GViewI *operator [](int Idx) = 0;
+	virtual size_t Length() = 0;
+	virtual ssize_t IndexOf(GViewI *view) = 0;
+	virtual GViewI *operator [](ssize_t Idx) = 0;
 };
 
 class GViewLayoutInfo

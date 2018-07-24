@@ -187,7 +187,7 @@ void EditTray::OnHeaderList(GMouse &m)
 			if (s)
 			{
 				// Construct the menu
-				GHashTbl<char*, int> Map;
+				LHashTbl<StrKey<char>, int> Map;
 				int DisplayLines = GdcD->Y() / SysFont->GetHeight();
 				if (Headers.Length() > (0.7 * DisplayLines))
 				{
@@ -1232,8 +1232,8 @@ void IdeDoc::OnTitleClick(GMouse &m)
 				sprintf(Args, "/e,/select,\"%s\"", Full);
 				LgiExecute("explorer", Args);
 				#elif defined(LINUX)
-				char Args[MAX_PATH];
-				if (LgiGetAppForMimeType("inode/directory", Args, sizeof(Args)))
+				GString Args = LgiGetAppForMimeType("inode/directory");
+				if (Args)
 				{
 					LgiExecute(Args, Full);
 				}

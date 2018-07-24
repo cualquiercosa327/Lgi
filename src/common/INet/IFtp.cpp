@@ -123,7 +123,7 @@ IFtpEntry::IFtpEntry(struct ftpparse *Fp, const char *Cs)
 				Attributes |= IFTP_SYM_LINK;
 				if (Name)
 				{
-					int Arrow = Name.Find("->");
+					ssize_t Arrow = Name.Find("->");
 					if (Arrow > 0)
 						Name.Length(Arrow-1);
 				}
@@ -164,7 +164,7 @@ IFtpEntry::IFtpEntry(char *Entry, const char *Cs)
 				// Unix format
 				int SizeElement = T.Length() > 4 && isdigit(*T[4]) ? 4 : 3;
 				_Size = T.Length() > SizeElement ? T[SizeElement] : NULL;
-				_Name = T.Length() - 1;
+				_Name = (int)T.Length() - 1;
 				_Perm = T[0];
 				if (T.Length() > SizeElement-2)
 					User = T[SizeElement-2];
@@ -292,8 +292,8 @@ IFtpEntry &IFtpEntry::operator =(const IFtpEntry &e)
 // #define VERIFY(i, ret) if (i != ret) { Close(); return 0; }
 // #define VERIFY_RANGE(i, range) if (((i)/100) != range) { Close(); return 0; }
 
-#define Verify(i, ret) { int Code = i; if (Code != (ret)) throw Code; }
-#define VerifyRange(i, range) { int Code = i; if ((Code/100) != range) throw Code; }
+#define Verify(i, ret) { ssize_t Code = i; if (Code != (ret)) throw Code; }
+#define VerifyRange(i, range) { ssize_t Code = i; if ((Code/100) != range) throw Code; }
 
 IFtp::IFtp(/* FtpSocketFactory sockFactory, void *factoryParam */)
 {
@@ -345,23 +345,23 @@ void IFtp::SetCharset(const char *cs)
 	d->Charset = NewStr(cs ? cs : (char*)DefaultFtpCharset);
 }
 
-int IFtp::WriteLine(char *Msg)
+ssize_t IFtp::WriteLine(char *Msg)
 {
-	int Status = 0;
+	ssize_t Status = 0;
 
 	if (IsOpen())
 	{
 		char *b = Msg ? Msg : d->OutBuf;
-		int l = strlen(b);
+		size_t l = strlen(b);
 		Status = Socket->Write(b, l, 0);
 	}
 
 	return Status;	
 }
 
-int IFtp::ReadLine(char *Msg, int MsgSize)
+ssize_t IFtp::ReadLine(char *Msg, ssize_t MsgSize)
 {
-	int Status = 0;
+	ssize_t Status = 0;
 	while (Socket)
 	{
 		// look through the input list for result codes
@@ -400,8 +400,8 @@ int IFtp::ReadLine(char *Msg, int MsgSize)
 
 		// Ok, no result code in the input list so
 		// Read data off socket
-		int Len = strlen(d->InBuf);
-		int Read = 0;
+		ssize_t Len = strlen(d->InBuf);
+		ssize_t Read = 0;
 
 		if (IsOpen())
 		{
@@ -424,7 +424,7 @@ int IFtp::ReadLine(char *Msg, int MsgSize)
 					Eol += 2;
 
 					// move data after line up to the start of the buffer
-					int EolLen = strlen(Eol);
+					ssize_t EolLen = strlen(Eol);
 					if (EolLen > 0)
 					{
 						memmove(d->InBuf, Eol, EolLen+1);
@@ -499,7 +499,7 @@ FtpOpenStatus IFtp::Open(GSocketI *S, char *RemoteHost, int Port, char *User, ch
 				sprintf_s(d->OutBuf, sizeof(d->OutBuf), "USER anonymous\r\n");
 				if (WriteLine())
 				{
-					int Code = ReadLine();
+					ssize_t Code = ReadLine();
 					if (Code / 100 > 3)
 						throw Code;
 
@@ -757,7 +757,7 @@ bool IFtp::ListDir(GArray<IFtpEntry*> &Dir)
 
 				// Read the data
 				uchar Buffer[1024];
-				int Len;
+				ssize_t Len;
 				
 				while ((Len = d->Data->Read((char*) Buffer, sizeof(Buffer), 0)) > 0)
 				{
@@ -802,7 +802,7 @@ bool IFtp::ListDir(GArray<IFtpEntry*> &Dir)
 
 					#if 1					
 					struct ftpparse fp;					
-					int r = ftpparse(&fp, Line, Line.Length());
+					int r = ftpparse(&fp, Line, (int)Line.Length());
 					if (!r)
 						LgiTrace("Error: %s\n", Line.Get());
 					IFtpEntry *e = r ? new IFtpEntry(&fp, GetCharset()) : NULL;
@@ -923,7 +923,7 @@ bool IFtp::ResumeAt(int64 Pos)
 	sprintf_s(d->OutBuf, sizeof(d->OutBuf), "REST " LGI_PrintfInt64 "\r\n", Pos);
 
 	WriteLine();
-	int FtpStatus = ReadLine();
+	ssize_t FtpStatus = ReadLine();
 	bool Status = (FtpStatus/100) < 4;
 	RestorePos = (Status) ? Pos : 0;
 	return Status;
@@ -954,8 +954,8 @@ bool IFtp::TransferFile(const char *Local, const char *Remote, int64 Size, bool 
 				// Build data connection
 				if (ConnectData())
 				{
-					int Result = ReadLine();
-					int Range = Result / 100;
+					ssize_t Result = ReadLine();
+					ssize_t Range = Result / 100;
 					if (Range != 1 && Range != 2)
 						throw Result;
 
@@ -974,7 +974,7 @@ bool IFtp::TransferFile(const char *Local, const char *Remote, int64 Size, bool 
 						if (Temp)
 						{
 							int64 Processed = 0;
-							int Len = 0;
+							ssize_t Len = 0;
 
 							if (Meter)
 							{
@@ -1008,7 +1008,7 @@ bool IFtp::TransferFile(const char *Local, const char *Remote, int64 Size, bool 
 										Len = d->F->Read(Temp, TempLen);
 										if (Len > 0)
 										{
-											int WriteLen = 0;
+											ssize_t WriteLen = 0;
 											
 											if (d->Data)
 											{
@@ -1027,7 +1027,7 @@ bool IFtp::TransferFile(const char *Local, const char *Remote, int64 Size, bool 
 											else
 											{
 												printf("%s:%i - Data->Write failed, %i of %i bytes written.\n",
-													_FL, WriteLen, Len);
+													_FL, (int)WriteLen, (int)Len);
 												Error = true;
 											}
 										}

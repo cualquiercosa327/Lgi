@@ -190,7 +190,7 @@ class LgiClass GFont :
 	// Methods
 	bool IsValid();
 	void _OnPropChange(bool Change);
-	char16 *_ToUnicode(char *In, int &Len);
+	char16 *_ToUnicode(char *In, ssize_t &Len);
 	bool GetOwnerUnderline();
 
 	#if defined(WINNATIVE)
@@ -257,7 +257,7 @@ public:
 	uchar *GetGlyphMap();
 
 	/// Converts printable characters to unicode.
-	GAutoString ConvertToUnicode(char16 *Input, int Len = -1);
+	GAutoString ConvertToUnicode(char16 *Input, ssize_t Len = -1);
 	
 	#if defined(BEOS)
 	GdcPt2 StringBounds(const char *s, int len = -1);

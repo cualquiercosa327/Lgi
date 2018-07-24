@@ -35,7 +35,7 @@ const char *CppTypes[] = {	"int", "char", "unsigned", "double", "float", "bool",
 							"int8", "int16", "int32", "int64",
 							"uint8", "uint16", "uint32", "uint64",
 							"GArray", "GHashTbl", "List", "GString", "GAutoString", "GAutoWString",
-							"GAutoPtr",
+							"GAutoPtr", "LHashTbl",
 							NULL};
 const char *CppEdges[] = {	"/*", "*/", "\"", NULL };
 
@@ -353,7 +353,7 @@ void DocEdit::StyleCpp(ssize_t Start, ssize_t EditSize)
 			// LgiTrace("Visible rgn: %i + %i = %i\n", Vis.Start, Vis.Len, Vis.End());
 			// LgiTrace("Dirty rgn: %i + %i = %i\n", Dirty.Start, Dirty.Len, Dirty.End());
 
-			int CurLine = -1, DirtyStartLine = -1, DirtyEndLine = -1;
+			ssize_t CurLine = -1, DirtyStartLine = -1, DirtyEndLine = -1;
 			GetTextLine(Cursor, &CurLine);
 			GTextLine *Start = GetTextLine(Dirty.Start, &DirtyStartLine);
 			GTextLine *End = GetTextLine(MIN(Size, Dirty.End()), &DirtyEndLine);

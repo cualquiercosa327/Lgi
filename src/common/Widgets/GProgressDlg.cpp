@@ -399,7 +399,7 @@ void GProgressDlg::Resize()
 
 	size_t Items = MAX(1, Panes.Length());
 	int Width = DecorX + PANE_X;
-	int Height = DecorY + (PANE_Y * Items);
+	int Height = (int) (DecorY + (PANE_Y * Items));
 
 	r.ZOff(Width - 1, Height - 1);
 	r.Offset(c.x1, c.y1);

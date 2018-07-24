@@ -170,14 +170,13 @@ OsView DefaultOsView(GView *v)
 	return 0;
 }
 
-bool LgiGetFileMimeType(const char *File, char *Mime, int BufLen)
+GString LgiGetFileMimeType(const char *File)
 {
 	GAutoString m = LgiApp->GetFileMimeType(File);
 	if (!m)
-		return false;
+		return GString();
 	
-	strcpy_s(Mime, BufLen, m);
-	return true;
+	return m.Get();
 }
 
 #include "GToken.h"
@@ -550,14 +549,14 @@ char *CFStringToUtf8(CFStringRef r)
 	return Buffer;
 }
 
-bool LgiGetMimeTypeExtensions(const char *Mime, GArray<char*> &Ext)
+bool LgiGetMimeTypeExtensions(const char *Mime, GArray<GString> &Ext)
 {
 	size_t Start = Ext.Length();
 	
 #define HardCodeExtention(Mime, Ext1, Ext2) \
 else if (!stricmp(Mime, Mime)) \
-{	if (Ext1) Ext.Add(NewStr(Ext1)); \
-if (Ext2) Ext.Add(NewStr(Ext2)); }
+{	if (Ext1) Ext.Add(Ext1); \
+if (Ext2) Ext.Add(Ext2); }
 	
 	if (!Mime);
 	HardCodeExtention("text/calendar", "ics", 0)

@@ -145,17 +145,17 @@ GViewI *GViewIter::Prev()
 	return *i;
 }
 
-int GViewIter::Length()
+size_t GViewIter::Length()
 {
 	return v->Children.Length();
 }
 
-int GViewIter::IndexOf(GViewI *view)
+ssize_t GViewIter::IndexOf(GViewI *view)
 {
 	return v->Children.IndexOf(view);
 }
 
-GViewI *GViewIter::operator [](int Idx)
+GViewI *GViewIter::operator [](ssize_t Idx)
 {
 	return v->Children[Idx];
 }
@@ -168,13 +168,13 @@ GViewI *GView::_Over = 0;
 #if defined(__GTK_H__) || defined(LGI_SDL)
 struct ViewTbl : public LMutex
 {
-	typedef GHashTbl<void*, int> T;
+	typedef LHashTbl<PtrKey<GViewI*>, int> T;
 	
 private:
 	T Map;
 
 public:
-	ViewTbl() : Map(2000, false, NULL, 0)
+	ViewTbl() : Map(2000)
 	{
 	}
 

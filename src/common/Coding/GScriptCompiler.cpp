@@ -133,13 +133,13 @@ struct Node
 	bool IsConst() { return Constant; }
 };
 
-GCompiledCode::GCompiledCode() : Globals(SCOPE_GLOBAL), Debug(0, true, -1, -1)
+GCompiledCode::GCompiledCode() : Globals(SCOPE_GLOBAL), Debug(0, -1)
 {
 	SysContext = NULL;
 	UserContext = NULL;
 }
 
-GCompiledCode::GCompiledCode(GCompiledCode &copy) : Globals(SCOPE_GLOBAL), Debug(0, true, -1, -1)
+GCompiledCode::GCompiledCode(GCompiledCode &copy) : Globals(SCOPE_GLOBAL), Debug(0, -1)
 {
 	*this = copy;
 }
@@ -148,7 +148,7 @@ GCompiledCode::~GCompiledCode()
 {
 }
 
-GCompiledCode &GCompiledCode::operator =(GCompiledCode &c)
+GCompiledCode &GCompiledCode::operator =(const GCompiledCode &c)
 {
 	Globals = c.Globals;
 	ByteCode = c.ByteCode;
@@ -374,7 +374,7 @@ class GCompilerPriv :
 	public GCompileTools,
 	public GScriptUtils
 {
-	GHashTbl<const char*, GVariantType> Types;
+	LHashTbl<ConstStrKey<char>, GVariantType> Types;
 	size_t JumpLoc;
 
 public:
@@ -385,12 +385,12 @@ public:
 	GArray<char16*> Tokens;	
 	TokenRanges Lines;
 	char16 *Script;
-	GHashTbl<char*, GFunc*> Methods;
+	LHashTbl<StrKey<char>, GFunc*> Methods;
 	int Regs;
 	GArray<GVariables*> Scopes;
 	GArray<LinkFixup> Fixups;
-	GHashTbl<char16*, char16*> Defines;
-	GHashTbl<const char16*, GTokenType> ExpTok;
+	LHashTbl<StrKey<char16>, char16*> Defines;
+	LHashTbl<ConstStrKey<char16>, GTokenType> ExpTok;
 	GDom *ScriptArgs;
 	GVarRef ScriptArgsRef;
 	bool ErrShowFirstOnly;
@@ -400,7 +400,7 @@ public:
 	GArray<GVariant> RegAllocators;
 	#endif
 
-	GCompilerPriv() : ExpTok(0, false)
+	GCompilerPriv()
 	{
 		ErrShowFirstOnly = true;
 		SysCtx = NULL;
@@ -824,7 +824,7 @@ public:
 			}
 		}
 
-		r.Index = Code->Globals.Length();
+		r.Index = (int)Code->Globals.Length();
 		Code->Globals[r.Index] = b;
 	}
 
@@ -847,13 +847,13 @@ public:
 					if (Type == GV_INT32 &&
 						p->Value.Int == i)
 					{
-						r.Index = p - &Code->Globals[0];
+						r.Index = (int) (p - &Code->Globals[0]);
 						return;
 					}
 					else if (Type == GV_INT64 &&
 						p->Value.Int64 == i)
 					{
-						r.Index = p - &Code->Globals[0];
+						r.Index = (int) (p - &Code->Globals[0]);
 						return;
 					}
 				}
@@ -862,7 +862,7 @@ public:
 		}
 
 		// Allocate new global
-		r.Index = Code->Globals.Length();
+		r.Index = (int)Code->Globals.Length();
 		if (Type == GV_INT32)
 			Code->Globals[r.Index] = (int32)i;
 		else
@@ -882,7 +882,7 @@ public:
 			len = strlen(s);
 		
 		r.Scope = SCOPE_GLOBAL;
-		r.Index = Code->Globals.Length();
+		r.Index = (int)Code->Globals.Length();
 
 		for (unsigned i=0; i<Code->Globals.Length(); i++)
 		{
@@ -915,7 +915,7 @@ public:
 			utf = NewStr("");
 
 		r.Scope = SCOPE_GLOBAL;
-		r.Index = Code->Globals.Length();
+		r.Index = (int)Code->Globals.Length();
 
 		for (unsigned i=0; i<Code->Globals.Length(); i++)
 		{
@@ -1259,7 +1259,7 @@ public:
 							{
 								// Setup the global variable to address the script argument variable
 								ScriptArgsRef.Scope = SCOPE_GLOBAL;
-								ScriptArgsRef.Index = Code->Globals.Length();
+								ScriptArgsRef.Index = (int)Code->Globals.Length();
 								
 								GVariant &v = Code->Globals[ScriptArgsRef.Index];
 								v.Type = GV_DOM;
@@ -1544,10 +1544,6 @@ public:
 				{
 					Asm0(n.Tok, IDebug);
 					return true;
-				}
-				if (!_stricmp(FnName, "RecurseFolder"))
-				{
-					int asd=0;
 				}
 				
 				if (n.ScriptFunc->GetParams() != n.Args.Length())
@@ -2899,11 +2895,6 @@ public:
 
 				ScriptMethod->Params = Params;
 				ScriptMethod->StartAddr = (uint32)Code->ByteCode.Length();
-			}
-
-			if (!_stricmp(FunctionName, "RecurseFolder"))
-			{
-				int asd=0;
 			}
 
 			// Parse start of body

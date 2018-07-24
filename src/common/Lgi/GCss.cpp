@@ -39,8 +39,8 @@
 	}
 
 
-GHashTbl<const char*, GCss::PropType> GCss::Lut(0, false);
-GHashTbl<int, GCss::PropType> GCss::ParentProp;
+LHashTbl<ConstStrKey<char,false>, GCss::PropType> GCss::Lut;
+LHashTbl<IntKey<int>, GCss::PropType> GCss::ParentProp;
 
 const char *GCss::PropName(PropType p)
 {
@@ -173,7 +173,7 @@ static char *ParseString(const char *&s)
 }
 
 /////////////////////////////////////////////////////////////////////////////
-GCss::GCss() : Props(32, false, PropNull)
+GCss::GCss() : Props(32)
 {
 	if (Lut.Length() == 0)
 	{
@@ -293,7 +293,7 @@ GCss::GCss() : Props(32, false, PropNull)
 	}
 }
 
-GCss::GCss(const GCss &c) : Props(0, false, PropNull)
+GCss::GCss(const GCss &c)
 {
 	*this = c;
 }
@@ -869,7 +869,7 @@ bool GCss::InheritResolve(PropMap &Contrib)
             case TypeLen:
             {
 				Len *Mine = 0;
-			    for (int i=a.value->Length()-1; i>=0; i--)
+			    for (ssize_t i=a.value->Length()-1; i>=0; i--)
 			    {
 			        Len *Cur = (Len*)(*a.value)[i];
 			        if (!Mine)
@@ -2874,12 +2874,10 @@ bool GCss::Store::Parse(const char *&c, int Depth)
 					GCss::Selector *s = Selectors[i];
 					s->Style = Style;
 					
-					int n = s->GetSimpleIndex();
+					ssize_t n = s->GetSimpleIndex();
 					if (n >= s->Parts.Length())
 					{
-						char err[256];
-						sprintf_s(err, sizeof(err), "ErrSimpleIndex %i>=%zi @ '%.80s'", n, s->Parts.Length(), c);
-						Error.Reset(NewStr(err));
+						Error.Printf("ErrSimpleIndex %i>=%zi @ '%.80s'", n, s->Parts.Length(), c);
 						LgiAssert(!"Part index too high.");
 						return false;
 					}

@@ -575,7 +575,7 @@ char *EncodeRfc2047(char *Str, const char *CodePage, List<char> *CharsetPrefs, s
 }
 
 //////////////////////////////////////////////////////////////////////////////
-void DeNullText(char *in, int &len)
+void DeNullText(char *in, ssize_t &len)
 {
 	char *out = in;
 	char *end = in + len;
@@ -1208,7 +1208,7 @@ bool FileDescriptor::Decode(char *ContentType,
 				Data = new uchar[(size_t)Size];
 				if (Data)
 				{
-					int Converted = ConvertBase64ToBinary(Data, (int)Size, Base64, OutCount);
+					ssize_t Converted = ConvertBase64ToBinary(Data, Size, Base64, OutCount);
 					Status = Converted <= Size && Converted >= Size - 3;
 					if (Status)
 					{
@@ -1437,7 +1437,7 @@ bool MailSmtp::Open(GSocketI *S,
 				SmtpHello:
 				sprintf_s(Buffer, sizeof(Buffer), "EHLO %s\r\n", (ValidNonWSStr(LocalDomain)) ? LocalDomain : "default");
 				VERIFY_RET_VAL(Write(0, true));
-				bool HasSmtpExtensions = ReadReply("250", &Str);
+				/*bool HasSmtpExtensions =*/ ReadReply("250", &Str);
 
 				bool Authed = false;
 				bool NoAuthTypes = false;
@@ -1618,7 +1618,7 @@ bool MailSmtp::WriteText(const char *Str)
 			if (*Str == '\n')
 			{
 				// send a string
-				int Size = Str-Start;
+				ssize_t Size = Str-Start;
 				if (Str[-1] == '\r') Size--;
 				Temp.Write((uchar*) Start, Size);
 				Temp.Write((uchar*) "\r\n", 2);
@@ -1629,7 +1629,7 @@ bool MailSmtp::WriteText(const char *Str)
 		}
 
 		// send the final string
-		int Size = Str-Start;
+		ssize_t Size = Str-Start;
 		if (Str[-1] == '\r') Size--;
 		Temp.Write((uchar*) Start, (int)Size);
 
@@ -1780,7 +1780,7 @@ public:
 		
 		while (Ptr < e)
 		{
-			int w = s->Write(Ptr, e - Ptr, 0);
+			ssize_t w = s->Write(Ptr, e - Ptr, 0);
 			if (w > 0)
 			{
 				Ptr += w;
@@ -1948,7 +1948,7 @@ bool MailSmtp::ReadReply(const char *Str, GStringPipe *Pipe, MailProtocolError *
 
 		while (Pos < sizeof(Buffer))
 		{
-			int Len = Socket->Read(Buffer+Pos, sizeof(Buffer)-Pos, 0);
+			ssize_t Len = Socket->Read(Buffer+Pos, sizeof(Buffer)-Pos, 0);
 			if (Len > 0)
 			{
 				char *Eol = strstr(Start, "\r\n");
@@ -2210,7 +2210,7 @@ bool MailReceiveFolder::Close()
 
 int MailReceiveFolder::GetMessages()
 {
-	return d->Mail.Length();
+	return (int)d->Mail.Length();
 }
 
 bool MailReceiveFolder::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks)
@@ -2282,7 +2282,7 @@ bool MailReceiveFolder::GetUid(int Message, char *Id, int IdLen)
 			{
 				char *e = strchr(s, '.');
 				if (!e) e = s + strlen(s);
-				int Len = e - s;
+				ssize_t Len = e - s;
 				memcpy(Id, s, Len);
 				Id[Len] = 0;
 
@@ -2366,11 +2366,6 @@ int MailPop3::GetMessages()
 	}
 
 CleanUp:
-	if (Messages == 0)
-	{
-		int asd=0;
-	}
-
 	return Messages;
 }
 
@@ -2402,7 +2397,7 @@ bool MailPop3::ReadReply()
 		ZeroObj(Buffer);
 		do
 		{
-			int Result = Socket->Read(Buffer+Pos, sizeof(Buffer)-Pos, 0);
+			ssize_t Result = Socket->Read(Buffer+Pos, sizeof(Buffer)-Pos, 0);
 			if (Result <= 0) // an error?
 			{
 				// Leave the loop...
@@ -2438,7 +2433,7 @@ bool MailPop3::ListCmd(const char *Cmd, GHashTbl<const char*, bool> &Results)
 		return false;
 
 	char *b = Buffer;
-	int r;
+	ssize_t r;
 	while ((r = Socket->Read(b, sizeof(Buffer)-(b-Buffer))) > 0)
 	{
 		b += r;
@@ -2463,7 +2458,7 @@ bool MailPop3::ListCmd(const char *Cmd, GHashTbl<const char*, bool> &Results)
 bool MailPop3::Open(GSocketI *S, const char *RemoteHost, int Port, const char *User, const char *Password, GDom *SettingStore, int Flags)
 {
 	bool Status = false;
-	bool RemoveMail = false;
+	// bool RemoveMail = false;
 	char Str[256] = "";
 	char *Apop = 0;
 	char *Server = 0;
@@ -2644,7 +2639,7 @@ CleanUp:
 	return Status;
 }
 
-bool MailPop3::MailIsEnd(char *Ptr, int Len)
+bool MailPop3::MailIsEnd(char *Ptr, ssize_t Len)
 {
 	for (char *c = Ptr; Len-- > 0; c++)
 	{
@@ -2744,7 +2739,7 @@ bool MailPop3::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks
 					int64 DataPos = 0;
 					while (Socket->IsOpen())
 					{
-						int r = Socket->Read(Buffer+Used, sizeof(Buffer)-Used-1, 0);
+						ssize_t r = Socket->Read(Buffer+Used, sizeof(Buffer)-Used-1, 0);
 						if (r > 0)
 						{
 							DeNullText(Buffer + Used, r);
@@ -2765,8 +2760,8 @@ bool MailPop3::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks
 
 									// The Buffer was zero'd at the beginning garrenteeing
 									// NULL termination
-									int Len = strlen(Eol);
-									int EndPos = End.IsEnd(Eol, Len);
+									size_t Len = strlen(Eol);
+									ssize_t EndPos = End.IsEnd(Eol, Len);
 									if (EndPos >= 0)
 									{
 										Msg->Write(Eol, EndPos - 3);
@@ -2799,7 +2794,7 @@ bool MailPop3::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks
 							// Read rest of message
 							while (Socket->IsOpen())
 							{
-								int r = Socket->Read(Buffer, sizeof(Buffer), 0);
+								ssize_t r = Socket->Read(Buffer, sizeof(Buffer), 0);
 								if (r > 0)
 								{
 									DeNullText(Buffer, r);
@@ -2809,13 +2804,13 @@ bool MailPop3::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks
 										Transfer->Value += r;
 									}
 
-									int EndPos = End.IsEnd(Buffer, r);
+									ssize_t EndPos = End.IsEnd(Buffer, r);
 									if (EndPos >= 0)
 									{
-										int Actual = EndPos - (int)DataPos - 3;
+										ssize_t Actual = EndPos - DataPos - 3;
 										if (Actual > 0)
 										{
-											int w = Msg->Write(Buffer, Actual);
+											ssize_t w = Msg->Write(Buffer, Actual);
 											LgiAssert(w == Actual);
 										}
 										// else the end point was in the last buffer
@@ -2825,7 +2820,7 @@ bool MailPop3::Receive(GArray<MailTransaction*> &Trans, MailCallbacks *Callbacks
 									}
 									else
 									{
-										int w = Msg->Write(Buffer, r);
+										ssize_t w = Msg->Write(Buffer, r);
 										LgiAssert(w == r);
 										DataPos += r;
 									}
@@ -3032,7 +3027,7 @@ bool MailPop3::ReadMultiLineReply(char *&Str)
 	if (Socket)
 	{
 		GMemQueue Temp;
-		int ReadLen = Socket->Read(Buffer, sizeof(Buffer), 0);
+		ssize_t ReadLen = Socket->Read(Buffer, sizeof(Buffer), 0);
 		if (ReadLen > 0 && Buffer[0] == '+')
 		{
 			// positive response

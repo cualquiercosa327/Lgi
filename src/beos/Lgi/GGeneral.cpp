@@ -105,38 +105,6 @@ bool LgiGetsAppForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 	return Status;
 }
 
-bool LgiGetAppForMimeType(const char *Mime, char *AppPath, int BufSize)
-{
-	GArray<GAppInfo*> Apps;
-	if (AppPath && LgiGetsAppForMimeType(Mime, Apps, 1))
-	{
-		strcpy_s(AppPath, BufSize, Apps[0]->Path);
-		Apps.DeleteObjects();
-		return true;
-	}
-	
-	return false;
-}
-
-bool LgiGetFileMimeType(const char *File, char *Mime, int MimeBufSize)
-{
-	bool Status = false;
-	
-	if (File && Mime)
-	{
-		BNode e(File);
-		BNodeInfo i(&e);
-		char Buf[256];
-		if (i.GetType(Buf) == B_OK)
-		{
-			strcpy_s(Mime, MimeBufSize, Buf);
-			Status = true;
-		}
-	}
-	
-	return Status;
-}
-
 int LgiRand(int Limit)
 {
 	return rand() % Limit;
@@ -290,7 +258,7 @@ bool LgiGetAppsForMimeType(const char *Mime,
 	return false;
 }
 
-bool LgiGetMimeTypeExtensions(const char *Mime, GArray<char*> &Ext)
+bool LgiGetMimeTypeExtensions(const char *Mime, GArray<GString> &Ext)
 {
 	LgiAssert(!"Impl me.");
 	return false;

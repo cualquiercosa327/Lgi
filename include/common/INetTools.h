@@ -35,7 +35,7 @@ LgiNetFunc void InetTokeniseHeaders(List<GInetHeader> &Out, const char *In);
 LgiNetFunc char *InetGetField(const char *s);
 
 /// Get a specific value from a list of headers (as a dynamic string)
-LgiNetFunc char *InetGetHeaderField(const char *Headers, const char *Field, int Len = -1);
+LgiNetFunc char *InetGetHeaderField(const char *Headers, const char *Field, ssize_t Len = -1);
 
 /// Gets a sub field of a header value
 LgiNetFunc char *InetGetSubField(const char *s, const char *Field);

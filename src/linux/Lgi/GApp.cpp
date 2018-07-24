@@ -199,7 +199,34 @@ struct Msg
 	}
 };
 
-class GAppPrivate : public GSymLookup, public LMutex
+// Out of thread messages... must lock before access.
+class LMessageQue : public LMutex
+{
+public:
+	typedef ::GArray<Msg> MsgArray;
+
+	LMessageQue() : LMutex("LMessageQue")
+	{
+	}
+
+	MsgArray *Lock(const char *file, int line)
+	{
+		if (!LMutex::Lock(file, line))
+			return false;
+		return &q;
+	}
+	
+	operator bool()
+	{
+		return q.Length() > 0;
+	}
+
+private:
+	MsgArray q;
+
+}	MsgQue;
+
+class GAppPrivate : public GSymLookup
 {
 public:
 	// Common
@@ -224,15 +251,8 @@ public:
 	GMouse LastMove;
 	GAutoString Name;
 	
-	#if defined(LINUX)
-
 	/// Desktop info
 	GAutoPtr<GApp::DesktopInfo> DesktopInfo;
-
-	// Out of thread messages... must lock before access.
-	::GArray<Msg> MsgQue;
-
-	#endif
 
 	#if HAS_LIB_MAGIC
 	magic_t hMagic;
@@ -252,7 +272,7 @@ public:
 	int LastClickX;
 	int LastClickY;
 
-	GAppPrivate() : LMutex("GAppPriv"), Args(0, 0)
+	GAppPrivate() : Args(0, 0)
 	{
 		CurEvent = 0;
 		GuiThread = LgiGetCurrentThread();
@@ -531,15 +551,16 @@ Gtk::gboolean IdleWrapper(Gtk::gpointer data)
 	if (i->cb)
 		i->cb(i->param);
 	
-	if (i->d->MsgQue.Length() &&
-		i->d->Lock(_FL))
+	LMessageQue::MsgArray *Msgs;
+	if (MsgQue &&
+		(Msgs = MsgQue.Lock(_FL)))
 	{
 		// Copy the messages out of the locked structure..
 		// This allows new messages to arrive independant
 		// of us processing them here...
-		::GArray<Msg> q = i->d->MsgQue;
-		i->d->MsgQue.Empty();
-		i->d->Unlock();
+		LMessageQue::MsgArray q = *Msgs;
+		Msgs->Empty();
+		MsgQue.Unlock();
 		
 		for (auto m : q)
 		{
@@ -556,8 +577,10 @@ Gtk::gboolean IdleWrapper(Gtk::gpointer data)
 					e->client.data.l[1] = m.a;
 					e->client.data.l[2] = m.b;			
 					
-					gtk_propagate_event(m.v->Handle(), e);
+					auto Widget = m.v->Handle();
+					gtk_propagate_event(Widget, e);
 					gdk_event_free(e);
+					g_object_unref(Widget);
 				}
 				else printf("%s:%i - gdk_event_new failed.\n", _FL);
 				
@@ -1415,15 +1438,19 @@ GlibPostMessage(GlibEventParams *p)
 
 bool GApp::PostEvent(GViewI *View, int Msg, GMessage::Param a, GMessage::Param b)
 {
-	if (!d->Lock(_FL))
+	LMessageQue::MsgArray *q = MsgQue.Lock(_FL);
+	if (!q)
 	{
 		printf("%s:%i - Couldn't lock app.\n", _FL);
 		return false;
 	}
 	
 	// printf("%s:%i - Posting event %p,%i,%i,%i.\n", _FL, View, Msg, a, b);
-	d->MsgQue.New().Set(View, Msg, a, b);
-	d->Unlock();
+	auto Widget = View->Handle();
+	g_object_ref(Widget); // ref widget till we try and propagate the message to it...
+	
+	q->New().Set(View, Msg, a, b);
+	MsgQue.Unlock();
 	
 	return true;
 }

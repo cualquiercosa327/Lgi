@@ -52,9 +52,9 @@ public:
 	/// Returns true if this is the root node.
 	bool IsRoot();
 	/// Returns the index of this node in the list of item owned by it's parent.
-	int IndexOf();
+	ssize_t IndexOf();
 	/// \returns number of child.
-	int GetItems();
+	size_t GetItems();
 
 	/// Iterate all children
 	template<typename T>
@@ -233,7 +233,7 @@ public:
 	/// Remove but don't delete an item
 	bool Remove(GTreeItem *Obj);
 	/// Gets the item at an index
-	GTreeItem *ItemAt(int Pos) { return Items.ItemAt(Pos); }
+	GTreeItem *ItemAt(size_t Pos) { return Items.ItemAt(Pos); }
 
 	/// Select the item 'Obj'
 	bool Select(GTreeItem *Obj);

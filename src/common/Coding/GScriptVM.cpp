@@ -609,7 +609,7 @@ public:
 		}
 		Log->Print("\n");
 
-		GHashTbl<NativeInt, char*> Fn(0, false, -1, NULL);
+		LHashTbl<IntKey<NativeInt>, char*> Fn;
 		for (unsigned m=0; m<Code->Methods.Length(); m++)
 		{
 			GFunctionInfo *Info = Code->Methods[m];
@@ -758,8 +758,8 @@ public:
 		#if TIME_INSTRUCTIONS
 		LARGE_INTEGER freq = {0}, start, end;
 		QueryPerformanceFrequency(&freq);
-		GHashTbl<int, int64> Timings;
-		GHashTbl<int, int> TimingFreq;
+		LHashTbl<IntKey<int>, int64> Timings;
+		LHashTbl<IntKey<int>, int> TimingFreq;
 		#endif
 
 		// Calling a function only, not the whole script
@@ -899,7 +899,7 @@ public:
 		else
 		{
 			// Stepping through code
-			// GHashTbl<int, int> &Debug = Code->Debug;
+			// LHashTbl<IntKey<int>, int> &Debug = Code->Debug;
 			int Param = 0;
 			switch (Type)
 			{
@@ -1340,7 +1340,7 @@ int IsAddr(char16 *Ln)
 
 int GDebugView::GetAddr()
 {
-	int Index;
+	ssize_t Index;
 	GTextLine *t = GetTextLine(Cursor, &Index);
 	if (!t)
 		return -1;

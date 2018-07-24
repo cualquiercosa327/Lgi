@@ -112,12 +112,12 @@ protected:
 				int64 ToWrite = f.Size;
 				for (int i=0; i<Blocks; i++)
 				{
-					int r = s->Read(Buf, sizeof(Buf));
+					ssize_t r = s->Read(Buf, sizeof(Buf));
 					if (r <= 0)
 						return false;
 
 					int64 Len = ToWrite < r ? ToWrite : r;
-					int w = Out.Write(Buf, (int)Len);
+					ssize_t w = Out.Write(Buf, (int)Len);
 					if (w != Len)
 						return false;
 					
@@ -143,9 +143,9 @@ protected:
 			return false;
 
 		GTarHdr Hdr;
-		int Size = sizeof(Hdr);
+		// int Size = sizeof(Hdr);
 		
-		int r;
+		ssize_t r;
 		while ((r = File->Read(&Hdr, sizeof(Hdr))) > 0)
 		{
 			int64 FileSize = Octal(Hdr.Size);

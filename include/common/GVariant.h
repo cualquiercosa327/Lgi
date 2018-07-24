@@ -12,7 +12,7 @@
 #undef Bool
 #include "LDateTime.h"
 #include "GContainers.h"
-#include "GHashTable.h"
+#include "LHashTable.h"
 #include "GString.h"
 
 class GCompiledCode;
@@ -139,11 +139,11 @@ protected:
 
 	// Fields
 	GArray<CustomField*> Flds;
-	GHashTbl<const char*, int> FldMap;
+	LHashTbl<ConstStrKey<char,false>, int> FldMap;
 	
 	// Methods
 	GArray<Method*> Methods;
-	GHashTbl<const char*, Method*> MethodMap;
+	LHashTbl<ConstStrKey<char,false>, Method*> MethodMap;
 	
 	// Private methods
 	ssize_t PadSize();
@@ -175,12 +175,11 @@ public:
 	bool CallMethod(const char *MethodName, GVariant *ReturnValue, GArray<GVariant*> &Args);
 };
 
-typedef GHashTbl<const char*,GVariant*> GVariantHash;
-
 /// A class that can be different types
 class LgiClass GVariant
 {
 public:
+	typedef LHashTbl<ConstStrKey<char>,GVariant*> LHash;
 
 	/// The type of the variant
     GVariantType Type;
@@ -213,7 +212,7 @@ public:
 		/// Valid when Type == #GV_LIST
 	    List<GVariant> *Lst;
 		/// Valid when Type == #GV_HASHTABLE
-	    GVariantHash *Hash;
+	    LHash *Hash;
 		/// Valid when Type == #GV_DATETIME
 		LDateTime *Date;
 		/// Valid when Type == #GV_CUSTOM
@@ -260,18 +259,17 @@ public:
 
 	/// Constructor to null
 	GVariant();
-	/// Constructor for int
-	GVariant(int i);
+	/// Constructor for integers
+	GVariant(int32 i);
+	GVariant(uint32 i);
+	GVariant(int64 i);
+	GVariant(uint64 i);
 	#ifndef _MSC_VER
 	GVariant(size_t i);
 	#if LGI_64BIT || defined(MAC)
 	GVariant(ssize_t i);
 	#endif
 	#endif
-	/// Constructor for int64
-	GVariant(int64 i);
-	/// Constructor for uint64
-	GVariant(uint64 i);
 	/// Constructor for double
 	GVariant(double i);
 	/// Constructor for string
@@ -293,22 +291,19 @@ public:
 	/// Destructor
 	~GVariant();
 
-	/// Assign int value
-	GVariant &operator =(int i);
-	#ifdef BEOS
-	/// Assign 32bit int value
-	GVariant &operator =(int32 i);
-	#endif
 	/// Assign bool value
 	GVariant &operator =(bool i);
+	/// Assign an integer value
+	GVariant &operator =(int32 i);
+	GVariant &operator =(uint32 i);
+	GVariant &operator =(int64 i);
+	GVariant &operator =(uint64 i);
 	#ifndef _MSC_VER
 	GVariant &operator =(size_t i);
 	#if LGI_64BIT || defined(MAC)
 	GVariant &operator =(ssize_t i);
 	#endif
 	#endif
-	/// Assign 64bit int value
-	GVariant &operator =(int64 i);
 	/// Assign double value
 	GVariant &operator =(double i);
 	/// Assign string value (makes a copy)
@@ -339,7 +334,7 @@ public:
 	/// Sets the value to a copy of the list
 	bool SetList(List<GVariant> *Lst = 0);
 	/// Sets the value to a hashtable
-	bool SetHashTable(GVariantHash *Table = 0, bool Copy = true);
+	bool SetHashTable(LHash *Table = 0, bool Copy = true);
     /// Set the value to a surface
     bool SetSurface(class GSurface *Ptr, bool Own);
     /// Set the value to a stream

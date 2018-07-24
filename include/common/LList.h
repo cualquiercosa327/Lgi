@@ -146,7 +146,7 @@ public:
 
 	// Overridable
 	virtual int Compare(LListItem *To, int Field = 0) { return 0; }
-	virtual void OnColumnNotify(int Col, int Data) { Update(); }
+	virtual void OnColumnNotify(int Col, int64 Data) { Update(); }
 };
 
 // typedef int (*LListCompareFunc)(LListItem *a, LListItem *b, NativeInt Data);
@@ -257,7 +257,7 @@ protected:
 	class LListPrivate *d;
 
 	// Contents
-	ssize_t Keyboard; // index of the item with keyboard focus
+	int Keyboard; // index of the item with keyboard focus
 
 	// Flags
 	bool EditLabels;
@@ -269,9 +269,9 @@ protected:
 	// Drawing locations
 	GRect ItemsPos;
 	GRect ScrollX, ScrollY;
-	ssize_t FirstVisible;
-	ssize_t LastVisible;
-	ssize_t CompletelyVisible;
+	int FirstVisible;
+	int LastVisible;
+	int CompletelyVisible;
 
 	// Misc
 	bool GetUpdateRegion(LListItem *i, GRegion &r);
@@ -469,7 +469,7 @@ public:
 
 		LListItem *Kb = Items[Keyboard];
 		Items.Sort(Compare, Data);
-		Keyboard = Kb ? Items.IndexOf(Kb) : -1;
+		Keyboard = Kb ? (int)Items.IndexOf(Kb) : -1;
 		Unlock();
 		Invalidate(&ItemsPos);
 	}
@@ -490,7 +490,7 @@ public:
 			},
 			Column
 		);
-		Keyboard = Kb ? Items.IndexOf(Kb) : -1;
+		Keyboard = Kb ? (int)Items.IndexOf(Kb) : -1;
 		Unlock();
 		Invalidate(&ItemsPos);
 	}

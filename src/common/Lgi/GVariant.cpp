@@ -76,12 +76,6 @@ GVariant::GVariant()
 	ZeroObj(Value);
 }
 
-GVariant::GVariant(int i)
-{
-	Type = GV_INT32;
-	Value.Int = i;
-}
-
 GVariant::GVariant(GVariant const &v)
 {
 	Type = GV_NULL;
@@ -104,6 +98,18 @@ GVariant::GVariant(ssize_t i)
 }
 #endif
 #endif
+
+GVariant::GVariant(int32 i)
+{
+	Type = GV_INT32;
+	Value.Int = i;
+}
+
+GVariant::GVariant(uint32 i)
+{
+	Type = GV_INT32;
+	Value.Int = i;
+}
 
 GVariant::GVariant(int64 i)
 {
@@ -302,30 +308,19 @@ GVariant &GVariant::operator =(bool i)
 	return *this;
 }
 
-GVariant &GVariant::operator =(int i)
-{
-	Empty();
-	Type = GV_INT32;
-	Value.Int = i;
-	// if (Dirty) *Dirty = true;
-
-	return *this;
-}
-
 #ifndef _MSC_VER
 GVariant &GVariant::operator =(size_t i)
 {
 	Empty();
-	if (sizeof(i) > 4)
-	{
-		Type = GV_INT64;
-		Value.Int64 = i;
-	}
-	else
-	{
-		Type = GV_INT32;
-		Value.Int = (int)i;
-	}
+	
+	#if LGI_64BIT
+	Type = GV_INT64;
+	Value.Int64 = i;
+	#else
+	Type = GV_INT32;
+	Value.Int = i;
+	#endif
+	
 	return *this;
 }
 
@@ -333,20 +328,51 @@ GVariant &GVariant::operator =(size_t i)
 GVariant &GVariant::operator =(ssize_t i)
 {
 	Empty();
-	if (sizeof(i) > 4)
-	{
-		Type = GV_INT64;
-		Value.Int64 = i;
-	}
-	else
-	{
-		Type = GV_INT32;
-		Value.Int = (int)i;
-	}
+	
+	#if LGI_64BIT
+	Type = GV_INT64;
+	Value.Int64 = i;
+	#else
+	Type = GV_INT32;
+	Value.Int = i;
+	#endif
+	
 	return *this;
 }
 #endif
 #endif
+
+GVariant &GVariant::operator =(int32 i)
+{
+	Empty();
+	Type = GV_INT32;
+	Value.Int = i;
+	return *this;
+}
+
+GVariant &GVariant::operator =(uint32 i)
+{
+	Empty();
+	Type = GV_INT32;
+	Value.Int = i;
+	return *this;
+}
+
+GVariant &GVariant::operator =(int64 i)
+{
+	Empty();
+	Type = GV_INT64;
+	Value.Int64 = i;
+	return *this;
+}
+
+GVariant &GVariant::operator =(uint64 i)
+{
+	Empty();
+	Type = GV_INT64;
+	Value.Int64 = i;
+	return *this;
+}
 
 #ifdef BEOS
 GVariant &GVariant::operator =(int32 i)
@@ -359,16 +385,6 @@ GVariant &GVariant::operator =(int32 i)
 	return *this;
 }
 #endif
-
-GVariant &GVariant::operator =(int64 i)
-{
-	Empty();
-	Type = GV_INT64;
-	Value.Int64 = i;
-	// if (Dirty) *Dirty = true;
-
-	return *this;
-}
 
 GVariant &GVariant::operator =(double i)
 {
@@ -559,7 +575,7 @@ GVariant &GVariant::operator =(GVariant const &i)
 		}
 		case GV_HASHTABLE:
 		{
-			if ((Value.Hash = new GVariantHash))
+			if ((Value.Hash = new LHash))
 			{
 				if (i.Value.Hash)
 				{
@@ -677,14 +693,14 @@ bool GVariant::SetList(List<GVariant> *Lst)
 	return Value.Lst != 0;
 }
 
-bool GVariant::SetHashTable(GVariantHash *Table, bool Copy)
+bool GVariant::SetHashTable(LHash *Table, bool Copy)
 {
 	Empty();
 	Type = GV_HASHTABLE;
 
 	if (Copy && Table)
 	{
-		if ((Value.Hash = new GVariantHash))
+		if ((Value.Hash = new LHash))
 		{
 			// const char *k;
 			// for (GVariant *p = Table->First(&k); p; p = Table->Next(&k))
@@ -696,7 +712,7 @@ bool GVariant::SetHashTable(GVariantHash *Table, bool Copy)
 	}
 	else
 	{
-		Value.Hash = Table ? Table : new GVariantHash;
+		Value.Hash = Table ? Table : new LHash;
 	}
 
 	return Value.Hash != 0;
@@ -1620,12 +1636,10 @@ ResolveDone:
 
 struct GDomPropMap
 {
-	GHashTbl<const char *, GDomProperty> ToProp;
-	GHashTbl<int, const char *> ToString;
+	LHashTbl<ConstStrKey<char,false>, GDomProperty> ToProp;
+	LHashTbl<IntKey<GDomProperty,ObjNone>, const char *> ToString;
 
-	GDomPropMap() :
-		ToProp(0, false, NULL, ObjNone),
-		ToString(0, true, ObjNone, NULL)
+	GDomPropMap()
 	{
 		#undef _
 		#define _(symbol) Define(#symbol, symbol);
@@ -1923,14 +1937,14 @@ GString GVariant::ToString()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-GCustomType::GCustomType(const char *name, int pack) : FldMap(0, true, NULL, -1)
+GCustomType::GCustomType(const char *name, int pack)
 {
 	Name = name;
 	Pack = 1;
 	Size = 0;
 }
 
-GCustomType::GCustomType(const char16 *name, int pack) : FldMap(0, true, NULL, -1)
+GCustomType::GCustomType(const char16 *name, int pack)
 {
 	Name = name;
 	Pack = 1;
@@ -2108,7 +2122,7 @@ ssize_t GCustomType::CustomField::Sizeof()
 		case GV_DATETIME:
 			return sizeof(LDateTime);
 		case GV_HASHTABLE:
-			return sizeof(GVariantHash);
+			return sizeof(GVariant::LHash);
 		case GV_OPERATOR:
 			return sizeof(GOperator);
 		case GV_GMOUSE:

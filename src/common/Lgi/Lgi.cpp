@@ -322,33 +322,10 @@ int LgiGetOs
 
 	if (Ver)
 	{
-		SInt32 i;
-
-		if (Gestalt(gestaltSystemVersionMajor, &i) == noErr)
-		{
-			Ver->Add(i);
-			if (Gestalt(gestaltSystemVersionMinor, &i) == noErr)
-			{
-				Ver->Add(i);
-				if (Gestalt(gestaltSystemVersionBugFix, &i) == noErr)
-				{
-					Ver->Add(i);
-				}
-			}
-		}
-		else if (Gestalt(gestaltSystemVersion, &i) == noErr)
-		{
-			char s[10];
-			sprintf_s(s, sizeof(s), "%x", (int)i);
-			char *e = s + strlen(s) - 1;
-			char a[3] = { e[-1], 0 };
-			char b[3] = { e[0], 0 };
-			e[-1] = 0;
-			
-			Ver->Add(atoi(s));
-			Ver->Add(htoi(a));
-			Ver->Add(htoi(b));
-		}
+		NSOperatingSystemVersion v = [[NSProcessInfo processInfo] operatingSystemVersion];
+		Ver->Add((int)v.majorVersion);
+		Ver->Add((int)v.minorVersion);
+		Ver->Add((int)v.patchVersion);
 	}
 	
 	return LGI_OS_MAC_OS_X;

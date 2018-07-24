@@ -164,7 +164,7 @@ public:
 	HMHelpContentRec Tag;
 	#elif LGI_NATIVE_TIPS
 	GView *Parent;
-	GHashTbl<int, NativeTip*> Tips;
+	LHashTbl<IntKey<int>, NativeTip*> Tips;
 	#endif
 	
 	GToolTipPrivate()

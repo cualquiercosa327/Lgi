@@ -377,7 +377,7 @@ public:
 	/// True if the document has changed
 	virtual bool IsDirty() { return false; }
 	/// Gets the number of lines of text
-	virtual int GetLines() { return 0; }
+	virtual size_t GetLines() { return 0; }
 	/// Gets the pixels required to display all the text
 	virtual void GetTextExtent(int &x, int &y) {}
 

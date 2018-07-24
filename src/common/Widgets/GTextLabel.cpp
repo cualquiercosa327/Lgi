@@ -263,7 +263,7 @@ int GTextLabel::OnNotify(GViewI *Ctrl, int Flags)
 		GAutoPtr<GViewIterator> c(GetParent()->IterateViews());
 		if (c)
 		{
-			int Idx = c->IndexOf(this);
+			ssize_t Idx = c->IndexOf(this);
 			GViewI *n = (*c)[++Idx];
 			if (n)
 				n->OnNotify(n, Flags);

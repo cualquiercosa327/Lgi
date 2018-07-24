@@ -349,8 +349,6 @@ static CFStringEncoding CharsetToEncoding(const char *cs)
 
 ssize_t GFontSystem::IconvConvert(const char *OutCs, GStreamI *Out, const char *InCs, const char *&In, ssize_t InLen)
 {
-	char Buf[2 << 10];
-	
 	LgiAssert(InLen > 0);
 
 	if (!Out || !In)
@@ -359,6 +357,7 @@ ssize_t GFontSystem::IconvConvert(const char *OutCs, GStreamI *Out, const char *
 #if defined(MAC)
 
 	#if !defined COCOA
+	char Buf[2 << 10];
 	CFStringEncoding InEnc = CharsetToEncoding(InCs);
 	CFStringEncoding OutEnc = CharsetToEncoding(OutCs);
 	if (InEnc != kCFStringEncodingInvalidId &&
@@ -392,6 +391,7 @@ ssize_t GFontSystem::IconvConvert(const char *OutCs, GStreamI *Out, const char *
 		return 0;
 	}
 
+	char Buf[2 << 10];
 	iconv_t Conv;
 	if ((NativeInt)(Conv = d->libiconv_open(OutCs, InCs)) >= 0)
 	{

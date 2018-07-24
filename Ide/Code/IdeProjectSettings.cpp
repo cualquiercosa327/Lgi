@@ -160,7 +160,7 @@ struct IdeProjectSettingsPriv
 
 public:
 	IdeProject *Project;
-	GHashTbl<int, SettingInfo*> Map;
+	LHashTbl<IntKey<int>, SettingInfo*> Map;
 	IdeProjectSettings *Parent;
 	GXmlTag Active;
 	GXmlTag Editing;

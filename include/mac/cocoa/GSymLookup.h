@@ -22,7 +22,7 @@
 #endif
 
 #if __LP64__
-#define _BACKTRACE_FORMAT "%-4d%-35s 0x%016p %s + %u"
+#define _BACKTRACE_FORMAT "%-4d%-35s 0x%16p %s + %u"
 #define _BACKTRACE_FORMAT_SIZE 82
 #else
 #define _BACKTRACE_FORMAT "%-4d%-35s 0x%08p %s + %u"
@@ -129,7 +129,7 @@ private:
 				image,
 				addr,
 				symbol,
-				(char*)addr - (char*)info->dli_saddr) + 1;
+				(int) ((char*)addr - (char*)info->dli_saddr)) + 1;
 	}
 
 	char**
@@ -301,7 +301,7 @@ public:
 						case 3:
 						{
 							char Args[256];
-							sprintf(Args, "-n %.*s", c-Start, Start);
+							sprintf(Args, "-n %.*s", (int) (c-Start), Start);
 							GProcess p;
 							GStringPipe Out;
 							if (p.Run("c++filt", Args, 0, true, 0, &Out) &&

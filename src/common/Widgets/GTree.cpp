@@ -291,12 +291,12 @@ bool GTreeNode::IsRoot()
 	return Parent == 0 || (GTreeNode*)Parent == (GTreeNode*)Tree;
 }
 
-int GTreeNode::GetItems()
+size_t GTreeNode::GetItems()
 {
 	return Items.Length();
 }
 
-int GTreeNode::IndexOf()
+ssize_t GTreeNode::IndexOf()
 {
 	if (Parent)
 	{
@@ -320,7 +320,7 @@ GTreeItem *GTreeNode::GetPrev()
 	List<GTreeItem> *l = (Parent) ? &Parent->Items : (Tree) ? &Tree->Items : 0;
 	if (l)
 	{
-		int Index = l->IndexOf(Item());
+		ssize_t Index = l->IndexOf(Item());
 		if (Index >= 0)
 		{
 			return l->ItemAt(Index-1);
@@ -335,7 +335,7 @@ GTreeItem *GTreeNode::GetNext()
 	List<GTreeItem> *l = (Parent) ? &Parent->Items : (Tree) ? &Tree->Items : 0;
 	if (l)
 	{
-		int Index = l->IndexOf(Item());
+		ssize_t Index = l->IndexOf(Item());
 		if (Index >= 0)
 		{
 			return l->ItemAt(Index+1);
@@ -1308,7 +1308,7 @@ GTreeItem *GTree::GetAdjacent(GTreeItem *i, bool Down)
 					GTreeItem *p = n->GetParent();
 					if (p)
 					{
-						int Index = n->IndexOf();
+						ssize_t Index = n->IndexOf();
 						if (Index < p->Items.Length()-1)
 						{
 							n = n->GetNext();
@@ -1332,7 +1332,7 @@ GTreeItem *GTree::GetAdjacent(GTreeItem *i, bool Down)
 		else
 		{
 			GTreeItem *p = i->GetParent() ? i->GetParent() : 0;
-			int Index = i->IndexOf();
+			ssize_t Index = i->IndexOf();
 			if (p)
 			{
 				GTreeItem *n = p;

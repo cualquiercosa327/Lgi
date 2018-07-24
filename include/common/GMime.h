@@ -110,7 +110,7 @@ public:
 		class GMimeDecode : public GPullStreamer, public GMimeAction
 		{
 		public:
-			int Pull(GStreamI *Source, GStreamEnd *End = 0);
+			ssize_t Pull(GStreamI *Source, GStreamEnd *End = 0);
 			int Parse(GStringPipe *Source, class ParentState *State = 0);
 			void Empty();
 		} Decode;
@@ -118,7 +118,7 @@ public:
 		class GMimeEncode : public GPushStreamer, public GMimeAction
 		{
 		public:
-			int Push(GStreamI *Dest, GStreamEnd *End = 0);
+			ssize_t Push(GStreamI *Dest, GStreamEnd *End = 0);
 			void Empty();
 		} Encode;
 
@@ -133,7 +133,7 @@ public:
 		class GMimeRead : public GPullStreamer, public GMimeAction
 		{
 		public:
-			int Pull(GStreamI *Source, GStreamEnd *End = 0);
+			ssize_t Pull(GStreamI *Source, GStreamEnd *End = 0);
 			void Empty();
 		} Read;
 
@@ -141,7 +141,7 @@ public:
 		{
 		public:
 			int64 GetSize();
-			int Push(GStreamI *Dest, GStreamEnd *End = 0);
+			ssize_t Push(GStreamI *Dest, GStreamEnd *End = 0);
 			void Empty();
 		} Write;
 

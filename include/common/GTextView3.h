@@ -240,7 +240,7 @@ protected:
 	GUndo UndoQue;
 
 	// private methods
-	GTextLine *GetTextLine(ssize_t Offset, int *Index = 0);
+	GTextLine *GetTextLine(ssize_t Offset, ssize_t *Index = 0);
 	ssize_t SeekLine(ssize_t Offset, GTextViewSeek Where);
 	int TextWidth(GFont *f, char16 *s, int Len, int x, int Origin);
 	int ScrollYLine();
@@ -323,7 +323,7 @@ public:
 	void SelectWord(size_t From);
 	void SelectAll();
 	bool GetLineColumnAtIndex(GdcPt2 &Pt, int Index = -1);
-	int GetLines();
+	size_t GetLines();
 	void GetTextExtent(int &x, int &y);
 	char *GetSelection();
 	GRange GetSelectionRange();
@@ -354,7 +354,7 @@ public:
 	// Action Processing	
 	bool ClearDirty(bool Ask, char *FileName = 0);
 	void UpdateScrollBars(bool Reset = false);
-	int GetLine();
+	ssize_t GetLine();
 	void SetLine(int Line);
 	GDocFindReplaceParams *CreateFindReplaceParams();
 	void SetFindReplaceParams(GDocFindReplaceParams *Params);

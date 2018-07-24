@@ -122,7 +122,7 @@ GUtf8Ptr &GUtf8Ptr::operator--(const int i)
 	return *this;
 }
 
-GUtf8Ptr &GUtf8Ptr::operator += (int n)
+GUtf8Ptr &GUtf8Ptr::operator += (ssize_t n)
 {
 	while (*Ptr && n-- > 0)
 	{
@@ -132,7 +132,7 @@ GUtf8Ptr &GUtf8Ptr::operator += (int n)
 	return *this;
 }
 
-GUtf8Ptr &GUtf8Ptr::operator-=(int n)
+GUtf8Ptr &GUtf8Ptr::operator-=(ssize_t n)
 {
 	while (*Ptr && n-- > 0)
 	{

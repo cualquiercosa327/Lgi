@@ -32,7 +32,7 @@
 #define DEBUG_RES_FILE						0
 #define CastToGWnd(RObj)					((RObj != 0) ? dynamic_cast<GView*>(RObj) : 0)
 
-class TagHash : public GHashTbl<char*,bool>, public ResReadCtx
+class TagHash : public LHashTbl<StrKey<char>,bool>, public ResReadCtx
 {
 	GToken Toks;
 
@@ -247,15 +247,12 @@ public:
 	bool Ok;
 	ResFileFormat Format;
 	GAutoString File;
-	GHashTbl<int, LgiStringRes*> StrRef;
-	GHashTbl<int, LgiStringRes*> Strings;
-	GHashTbl<int, LgiStringRes*> DlgStrings;
+	LHashTbl<IntKey<int>, LgiStringRes*> StrRef;
+	LHashTbl<IntKey<int>, LgiStringRes*> Strings;
+	LHashTbl<IntKey<int>, LgiStringRes*> DlgStrings;
 
 
-	LgiResourcesPrivate() :
-	    StrRef(0, true, -1, NULL),
-	    Strings(0, true, -1, NULL),
-	    DlgStrings(0, true, -1, NULL)
+	LgiResourcesPrivate()
 	{
 		Ok = false;
 		Format = Lr8File;
@@ -1149,7 +1146,7 @@ bool LgiDialogRes::Read(GXmlTag *t, ResFileFormat Format)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-LgiMenuRes::LgiMenuRes(LgiResources *res) : Strings(0, true, -1, NULL)
+LgiMenuRes::LgiMenuRes(LgiResources *res)
 {
 	Res = res;
 	Tag = 0;

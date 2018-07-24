@@ -265,7 +265,7 @@ bool LStringLayout::DoLayout(int Width, int MinYSize, bool Debug)
 	GArray<Break> Breaks;
 	
 	/// Index of the display string starting the line
-	int StartLine = 0;
+	ssize_t StartLine = 0;
 
 	/// There is alway one line of text... even if it's empty
 	MinLines = 1;
@@ -335,7 +335,7 @@ bool LStringLayout::DoLayout(int Width, int MinYSize, bool Debug)
 						Strs.Add(n);
 							
 						// Roll back till we get a break point that fits
-						for (int i = Breaks.Length() - 1; i >= 0; i--)
+						for (ssize_t i = Breaks.Length() - 1; i >= 0; i--)
 						{
 							Break &b = Breaks[i];
 
@@ -344,7 +344,7 @@ bool LStringLayout::DoLayout(int Width, int MinYSize, bool Debug)
 							// Calc line width from 'StartLine' to 'Break[i]'
 							int FixX = 0;
 							GAutoPtr<LLayoutString> Broken;
-							unsigned k;
+							size_t k;
 							for (k=StartLine; k<Strs.Length(); k++)
 							{
 								LLayoutString *Ls = dynamic_cast<LLayoutString*>(Strs[k]);
@@ -388,7 +388,7 @@ bool LStringLayout::DoLayout(int Width, int MinYSize, bool Debug)
 								LineFX = FixX;
 								s = b.Run->Text.Get() + b.Bytes;
 
-								int Idx = Text.IndexOf(b.Run);
+								ssize_t Idx = Text.IndexOf(b.Run);
 								if (Idx < 0)
 								{
 									LgiAssert(0);

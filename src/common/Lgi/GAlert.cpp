@@ -32,7 +32,7 @@ GAlert::GAlert(	GViewI *parent,
 	GTableLayout *Tbl = new GTableLayout(100);
 	AddView(Tbl);
 
-	GLayoutCell *c = Tbl->GetCell(0, 0, true, Names.Length());
+	GLayoutCell *c = Tbl->GetCell(0, 0, true, (int)Names.Length());
 	c->Add(new GTextLabel(-1, 8, 8, -1, -1, Text));
 	c->PaddingBottom(GCss::Len("6px"));
 

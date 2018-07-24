@@ -554,7 +554,7 @@ bool GStringPipe::UnitTest()
 	const char s[] = "1234567890abc\n"
 					"abcdefghijklmn\n";
 	p.Write(s, sizeof(s)-1);
-	int rd = p.Pop(Buf, 10);
+	ssize_t rd = p.Pop(Buf, 10);
 	int cmp = memcmp(Buf, "123456789\x00\x01\x01\x01\x01\x01\x01", 16);
 	if (cmp)
 		return false;
@@ -673,7 +673,7 @@ bool GMemFile::FreeBlock(Block *b)
 	}
 
 	// Extra block
-	int Off = Idx - GMEMFILE_BLOCKS;
+	ssize_t Off = Idx - GMEMFILE_BLOCKS;
 	if (Off != Extra.Length() - 1)
 	{
 		LgiAssert(!"Block index error.");
@@ -779,12 +779,12 @@ ssize_t GMemFile::Read(void *Ptr, ssize_t Size, int Flags)
 		Block *b = Get(Cur);
 		
 		// Where are we in the current block?
-		int BlkOffset = CurPos - b->Offset;
+		ssize_t BlkOffset = CurPos - b->Offset;
 		LgiAssert(b && BlkOffset >= 0 && BlkOffset <= b->Used);
-		int Remaining = b->Used - BlkOffset;
+		ssize_t Remaining = b->Used - BlkOffset;
 		if (Remaining > 0)
 		{
-			int Common = MIN(Remaining, end - p);
+			ssize_t Common = MIN(Remaining, end - p);
 			memcpy(p, b->Data + BlkOffset, Common);
 			CurPos += Common;
 			p += Common;
@@ -805,14 +805,14 @@ ssize_t GMemFile::Write(const void *Ptr, ssize_t Size, int Flags)
 		return 0;
 
 	uint8 *p = (uint8*) Ptr;
-	int len = Size;
+	ssize_t len = Size;
 	
 	Block *b = GetLast();
 	if (b && b->Used < BlockSize)
 	{
 		// Any more space in the last block?
-		int Remaining = BlockSize - b->Used;
-		int Common = MIN(Remaining, Size);
+		ssize_t Remaining = BlockSize - b->Used;
+		ssize_t Common = MIN(Remaining, Size);
 		if (Common > 0)
 		{
 			memcpy(b->Data + b->Used, p, Common);
@@ -829,7 +829,7 @@ ssize_t GMemFile::Write(const void *Ptr, ssize_t Size, int Flags)
 		if (!b)
 			break;
 		
-		int Common = MIN(BlockSize, len);
+		ssize_t Common = MIN(BlockSize, len);
 		memcpy(b->Data, p, Common);
 		b->Used = Common;
 		p += Common;

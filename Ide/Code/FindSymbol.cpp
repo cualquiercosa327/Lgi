@@ -98,7 +98,7 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 	GArray<GString::Array*> IncPaths;
 	
 	#if USE_HASH
-	GHashTbl<const char*, FileSyms*> Files;
+	LHashTbl<ConstStrKey<char,false>, FileSyms*> Files;
 	#else
 	GArray<FileSyms*> Files;
 	#endif	

@@ -225,22 +225,22 @@ bool GFileSelect::Name(const char *n)
 	return Status;
 }
 
-char *GFileSelect::operator [](int i)
+char *GFileSelect::operator [](size_t i)
 {
 	return d->Files[i];
 }
 
-int GFileSelect::Length()
+size_t GFileSelect::Length()
 {
 	return d->Files.Length();
 }
 
-int GFileSelect::Types()
+size_t GFileSelect::Types()
 {
 	return d->TypeList.Length();
 }
 
-int GFileSelect::SelectedType()
+ssize_t GFileSelect::SelectedType()
 {
 	return d->SelectedType;
 }
@@ -372,11 +372,23 @@ bool GFileSelect::OpenFolder()
 	Info.Flags &= ~OFN_FILEMUSTEXIST;
 	Info.Flags &= ~OFN_ALLOWMULTISELECT;
 	Info.Flags |= OFN_NOVALIDATE;
-	Info.Flags |= OFN_PATHMUSTEXIST;
+	Info.Flags |= OFN_NOTESTFILECREATE;
+	// Info.Flags |= OFN_PATHMUSTEXIST;
 	Status = GetSaveFileNameW(&Info);
 	d->AfterDlg(Info, Status);
 	
-	LgiTrimDir(Name());
+	char *f = Name();
+	if (f)
+	{
+		char *d = strrchr(f, DIR_CHAR);
+		if (d && d > f)
+		{
+			if (d[-1] == ':')
+				d[1] = 0;
+			else
+				*d = 0;
+		}
+	}
 
 	return Status && Length() > 0;
 	

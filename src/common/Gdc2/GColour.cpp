@@ -504,9 +504,9 @@ bool GColour::SetStr(const char *str)
 	if (!Stricmp(Str.Get(), "rgb"))
 	{
 		if (Comp.Length() == 3)
-			Rgb(Comp[0].Int(), Comp[1].Int(), Comp[2].Int());
+			Rgb((int)Comp[0].Int(), (int)Comp[1].Int(), (int)Comp[2].Int());
 		else if (Comp.Length() == 4)
-			Rgb(Comp[0].Int(), Comp[1].Int(), Comp[2].Int(), Comp[3].Int());
+			Rgb((int)Comp[0].Int(), (int)Comp[1].Int(), (int)Comp[2].Int(), (int)Comp[3].Int());
 		else
 			return false;
 	}
