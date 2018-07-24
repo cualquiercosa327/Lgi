@@ -1458,9 +1458,9 @@ void GdcRleDC::Update(int UpdateFlags)
 		ulong Pos = 0;
 		ulong PixelSize = GetBits() / 8;
 		
-		for (long y=0; !Error && y<Y(); y++)
+		for (int y=0; !Error && y<Y(); y++)
 		{
-			for (long x=0; x<X(); )
+			for (int x=0; x<X(); )
 			{
 				ulong Skip = 0;
 				ulong Pixels = 0;
