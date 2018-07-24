@@ -500,10 +500,10 @@ public:
 
 		uint32 h = this->Hash(k);
 
-		int Index = -1;
+		ssize_t Index = -1;
 		for (size_t i=0; i<Size; i++)
 		{
-			int idx = (h + i) % Size;
+			size_t idx = (h + i) % Size;
 			if
 			(
 				Table[idx].key == this->NullKey

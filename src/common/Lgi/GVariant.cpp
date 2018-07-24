@@ -302,51 +302,37 @@ GVariant &GVariant::operator =(bool i)
 	return *this;
 }
 
-GVariant &GVariant::operator =(int i)
+GVariant &GVariant::operator =(int32 i)
 {
 	Empty();
 	Type = GV_INT32;
 	Value.Int = i;
-	// if (Dirty) *Dirty = true;
-
 	return *this;
 }
 
-#ifndef _MSC_VER
-GVariant &GVariant::operator =(size_t i)
+GVariant &GVariant::operator =(uint32 i)
 {
 	Empty();
-	if (sizeof(i) > 4)
-	{
-		Type = GV_INT64;
-		Value.Int64 = i;
-	}
-	else
-	{
-		Type = GV_INT32;
-		Value.Int = (int)i;
-	}
+	Type = GV_INT32;
+	Value.Int = i;
 	return *this;
 }
 
-#if LGI_64BIT || defined(MAC)
-GVariant &GVariant::operator =(ssize_t i)
+GVariant &GVariant::operator =(int64 i)
 {
 	Empty();
-	if (sizeof(i) > 4)
-	{
-		Type = GV_INT64;
-		Value.Int64 = i;
-	}
-	else
-	{
-		Type = GV_INT32;
-		Value.Int = (int)i;
-	}
+	Type = GV_INT64;
+	Value.Int64 = i;
 	return *this;
 }
-#endif
-#endif
+
+GVariant &GVariant::operator =(uint64 i)
+{
+	Empty();
+	Type = GV_INT64;
+	Value.Int64 = i;
+	return *this;
+}
 
 #ifdef BEOS
 GVariant &GVariant::operator =(int32 i)
@@ -359,24 +345,6 @@ GVariant &GVariant::operator =(int32 i)
 	return *this;
 }
 #endif
-
-GVariant &GVariant::operator =(int64 i)
-{
-	Empty();
-	Type = GV_INT64;
-	Value.Int64 = i;
-
-	return *this;
-}
-
-GVariant &GVariant::operator =(uint64 i)
-{
-	Empty();
-	Type = GV_INT64;
-	Value.Int64 = i;
-
-	return *this;
-}
 
 GVariant &GVariant::operator =(double i)
 {
