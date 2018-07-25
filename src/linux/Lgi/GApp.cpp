@@ -578,9 +578,12 @@ Gtk::gboolean IdleWrapper(Gtk::gpointer data)
 					e->client.data.l[2] = m.b;			
 					
 					auto Widget = m.v->Handle();
-					gtk_propagate_event(Widget, e);
-					gdk_event_free(e);
-					g_object_unref(Widget);
+					if (Widget)
+					{
+						gtk_propagate_event(Widget, e);
+						gdk_event_free(e);
+						g_object_unref(Widget);
+					}
 				}
 				else printf("%s:%i - gdk_event_new failed.\n", _FL);
 				
