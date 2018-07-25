@@ -83,7 +83,7 @@ public:
 					const char *Cs = GetTypeString();
 					if (Cs)
 					{
-						printf("Text file read: %s\n", GetName());
+						// printf("Text file read: %s\n", GetName());
 						Ret.Reset((char*)LgiNewConvertCp("utf-8", Buf, Cs, Rd));
 					}
 				}

@@ -384,12 +384,16 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 				GAutoPtr<FindSymbolSystem::SymFileParams> Params((FindSymbolSystem::SymFileParams*)Msg->A());
 				if (Params)
 				{
-					if (Params->Action == FindSymbolSystem::FileAdd)
-						AddFile(Params->File, Params->Platforms);
-					else if (Params->Action == FindSymbolSystem::FileRemove)
-						RemoveFile(Params->File);
-					else if (Params->Action == FindSymbolSystem::FileReparse)
-						ReparseFile(Params->File);
+					GString::Array Mime = LgiGetFileMimeType(Params->File).Split("/");
+					if (!Mime[0].Equals("image"))
+					{
+						if (Params->Action == FindSymbolSystem::FileAdd)
+							AddFile(Params->File, Params->Platforms);
+						else if (Params->Action == FindSymbolSystem::FileRemove)
+							RemoveFile(Params->File);
+						else if (Params->Action == FindSymbolSystem::FileReparse)
+							ReparseFile(Params->File);
+					}
 				}
 
 				if (Now - MsgTs > MSG_TIME_MS)
