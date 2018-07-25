@@ -143,8 +143,28 @@ bool LgiIsUtf8(const char *s, ssize_t len)
 	if (!s || *s == 0)
 		return true;
 
+	/*
+	{
+		ssize_t Len = len >= 0 ?  len : Strlen(s);
+		printf("Utf: %p %i\n", s, (int)Len);
+		for (int i=0; i<Len; i++)
+		{
+			printf("%02x ", (uint8)s[i]);
+		}
+		printf("\n");
+	}
+	*/	
+
 	const char *Start = s;
-	while (*s && (len < 0 || ((s - Start) < len) ) )
+	while
+	(
+		(
+			len < 0 ||
+			((s - Start) < len)
+		)
+		&&
+		*s
+	)
 	{
 		if (IsUtf8_1Byte(*s))
 		{

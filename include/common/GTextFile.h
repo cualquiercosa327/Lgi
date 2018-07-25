@@ -71,7 +71,7 @@ public:
 	GAutoString Read()
 	{
 		GAutoString Ret;
-		int Sz = (int)GetSize();
+		auto Sz = GetSize();
 		if (Sz > 0)
 		{
 			GAutoPtr<uint8, true> Buf(new uint8[Sz]);
@@ -82,7 +82,10 @@ public:
 				{
 					const char *Cs = GetTypeString();
 					if (Cs)
+					{
+						printf("Text file read: %s\n", GetName());
 						Ret.Reset((char*)LgiNewConvertCp("utf-8", Buf, Cs, Rd));
+					}
 				}
 			}
 		}
@@ -175,12 +178,15 @@ public:
 						Type = Utf32LE;
 				}
 				
-				ptrdiff_t bytes = start - buf;
-				if (bytes > 0 && bytes <= Rd)
+				if (start > buf)
 				{
-					// Remove byte order mark from the buffer
-					memmove(buf, start, Rd - bytes);
-					Rd -= bytes;
+					ssize_t bytes = start - buf;
+					if (bytes <= Rd)
+					{
+						// Remove byte order mark from the buffer
+						memmove(buf, start, Rd - bytes);
+						Rd -= bytes;
+					}
 				}
 			}
 		}
