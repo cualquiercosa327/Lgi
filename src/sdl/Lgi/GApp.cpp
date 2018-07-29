@@ -30,6 +30,8 @@
 #define DEBUG_HND_WARNINGS			0
 #define MOUSE_CAPTURE_POLL			100
 
+extern LHashTbl<PtrKey<GView*>,bool> ViewMap;
+
 ////////////////////////////////////////////////////////////////
 struct OsAppArgumentsPriv
 {
@@ -234,10 +236,9 @@ public:
 		DeleteObj(Sm);
 		#endif
 		
-		for (AppArray *a = MimeToApp.First(); a; a = MimeToApp.Next())
+		for (auto a : MimeToApp)
 		{
-			a->DeleteObjects();
-			DeleteObj(a);
+			a.value->DeleteObjects();
 		}
 	}
 };
@@ -560,7 +561,7 @@ void GApp::OnSDLEvent(GMessage *m)
 				case M_PULSE:
 				{
 					GView *v = (GView*)m->Event.user.data1;
-					if (v && GView::ViewMap.Find(v))
+					if (v && ViewMap.Find(v))
 					{
 						v->OnPulse();
 					}
@@ -601,7 +602,7 @@ void GApp::OnSDLEvent(GMessage *m)
 					GView *v = (GView*)m->Event.user.data1;
 					GAutoPtr<GMessage::EventParams> p((GMessage::EventParams*)m->Event.user.data2);
 					
-					if (!GView::ViewMap.Find(v))
+					if (!ViewMap.Find(v))
 						break;
 					
 					if (p && AppWnd && v)
@@ -620,7 +621,7 @@ void GApp::OnSDLEvent(GMessage *m)
 					GView *v = (GView*)m->Event.user.data1;
 					GAutoPtr<GMessage::EventParams> p((GMessage::EventParams*)m->Event.user.data2);
 
-					if (!GView::ViewMap.Find(v))
+					if (!ViewMap.Find(v))
 						break;
 					
 					#if 0
@@ -1159,10 +1160,10 @@ void GMessage::Set(int m, Param pa, Param pb)
 		Event.user.data2 = NULL;
 }
 
-bool GMessage::Send(OsView Wnd)
+bool GMessage::Send(GViewI *Wnd)
 {
 	bool Status = false;
-
+	LgiAssert(!"Not impl.");
 	return Status;
 }
 

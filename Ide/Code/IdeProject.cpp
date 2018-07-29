@@ -350,7 +350,7 @@ public:
 			if (Exe)
 			{
 				if (LgiIsRelativePath(Exe))
-					m.Print("Target = %s\n", Exe);
+					m.Print("Target = %s\n", Exe.Get());
 				else
 				{
 					GAutoString Base = Proj->GetBasePath();
@@ -2202,7 +2202,7 @@ bool IdeProject::FindDuplicateSymbols()
 	CollectAllSubProjects(Proj);
 	Proj.Insert(this);
 
-	int Lines = 0, LinesIn = 0;
+	int Lines = 0;
 	
 	LHashTbl<StrKey<char,false>,int64> Map(200000);
 	int Found = 0;
@@ -2554,11 +2554,10 @@ ProjectStatus IdeProject::OpenFile(char *FileName)
 		return OpenError;
 	}
 
-	int64 Nodes = r.CountTags();
-
 	Prof.Add("Progress Setup");
 
 	#if DEBUG_OPEN_PROGRESS
+	int64 Nodes = r.CountTags();
 	GProgressDlg Prog(d->App, 1000);
 	Prog.SetDescription("Loading project...");
 	Prog.SetLimits(0, Nodes);
@@ -3100,10 +3099,11 @@ bool IdeProject::BuildIncludePaths(GArray<GString> &Paths, bool Recurse, bool In
 		for (unsigned i=0; i<In.Length(); i++)
 		{
 			GString p;
-			if (DIR_CHAR == '\\')
-				p = In[i].Replace("/", "\\").Strip();
-			else
-				p = In[i].Replace("\\", "/").Strip();
+			#if DIR_CHAR == '\\'
+			p = In[i].Replace("/", "\\").Strip();
+			#else
+			p = In[i].Replace("\\", "/").Strip();
+			#endif
 
 			char *Path = p;
 			if (*Path == '`')

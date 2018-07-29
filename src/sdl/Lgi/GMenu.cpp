@@ -34,7 +34,7 @@ GSubMenu::~GSubMenu()
 	DeleteObj(Info);
 }
 
-int GSubMenu::Length()
+size_t GSubMenu::Length()
 {
 	return Items.Length();
 }

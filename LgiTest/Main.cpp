@@ -21,7 +21,7 @@ enum Ctrls
 void GStringTest()
 {
 	GString a("This<TD>is<TD>a<TD>test");
-	int idx = a.RFind("<TD>");
+	a.RFind("<TD>");
 	GString f = a(8,10);
 	GString end = a(-5, -1);
 	

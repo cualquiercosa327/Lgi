@@ -263,7 +263,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 				char16 *Eol = Strchr(s, '\n');
 				if (!Eol) Eol = s + Strlen(s);
 
-				bool IsIf = false, IsElse = false, IsElseIf = false;
+				// bool IsIf = false, IsElse = false, IsElseIf = false;
 				if
 				(
 					((End - s) == 2 && !Strncmp(L"if", s, End - s))
@@ -320,8 +320,6 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 						LgiTrace("%s:%i - ConditionalDepth--=%i Line=%i\n%.*S\n", _FL, ConditionalDepth, Line+1, Eol - s + 1, s - 1);
 				}
 
-				int asd=0;
-				
 				while (*s)
 				{
 					if (*s == '\n')

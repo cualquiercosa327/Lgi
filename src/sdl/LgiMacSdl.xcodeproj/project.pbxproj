@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		34058E451B8069D10097BF40 /* libfreetype.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 34058E441B8069D10097BF40 /* libfreetype.a */; };
 		34058E701B8084A70097BF40 /* libSDL-1.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 34058E6F1B8084A70097BF40 /* libSDL-1.2.0.dylib */; };
+		340AF942210DB40100DD3A3C /* GViewPriv.h in Headers */ = {isa = PBXBuildFile; fileRef = 340AF941210DB40100DD3A3C /* GViewPriv.h */; };
 		340BFC4A096A9D4600A11AE6 /* GArray.h in Headers */ = {isa = PBXBuildFile; fileRef = 340BFC49096A9D4600A11AE6 /* GArray.h */; };
 		341385001B38129500A4732A /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 341384FF1B38129500A4732A /* Cocoa.framework */; };
 		341BE442123ED1F1009BF203 /* sha1.c in Sources */ = {isa = PBXBuildFile; fileRef = 341BE440123ED1F1009BF203 /* sha1.c */; };
@@ -146,6 +147,7 @@
 		089C1667FE841158C02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		34058E441B8069D10097BF40 /* libfreetype.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfreetype.a; path = ../../../../../../../opt/local/lib/libfreetype.a; sourceTree = "<group>"; };
 		34058E6F1B8084A70097BF40 /* libSDL-1.2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSDL-1.2.0.dylib"; path = "../../../../../../../opt/local/lib/libSDL-1.2.0.dylib"; sourceTree = "<group>"; };
+		340AF941210DB40100DD3A3C /* GViewPriv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GViewPriv.h; path = ../../include/common/GViewPriv.h; sourceTree = "<group>"; };
 		340BFC49096A9D4600A11AE6 /* GArray.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GArray.h; path = ../../include/common/GArray.h; sourceTree = "<group>"; };
 		341384FF1B38129500A4732A /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		341BE440123ED1F1009BF203 /* sha1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sha1.c; path = ../common/Hash/sha1/sha1.c; sourceTree = "<group>"; };
@@ -171,7 +173,7 @@
 		344AF3D608E04BE0004ED88C /* GLibrary.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GLibrary.h; path = ../../include/common/GLibrary.h; sourceTree = "<group>"; };
 		344AF3DC08E04C75004ED88C /* GObject.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GObject.cpp; path = ../common/Lgi/GObject.cpp; sourceTree = "<group>"; };
 		344B736B08D83F1800D49457 /* GGeneral.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 30; name = GGeneral.cpp; path = ../mac/carbon/Lgi/GGeneral.cpp; sourceTree = "<group>"; };
-		344B737A08D8401600D49457 /* Lgi.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Lgi.cpp; path = ../common/Lgi/Lgi.cpp; sourceTree = "<group>"; };
+		344B737A08D8401600D49457 /* Lgi.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 30; name = Lgi.cpp; path = ../common/Lgi/Lgi.cpp; sourceTree = "<group>"; };
 		344B738008D8406900D49457 /* GdcCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GdcCommon.cpp; path = ../common/Gdc2/GdcCommon.cpp; sourceTree = "<group>"; };
 		344B738608D840CF00D49457 /* GFile.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GFile.cpp; path = ../mac/carbon/General/GFile.cpp; sourceTree = "<group>"; };
 		344B738908D8410B00D49457 /* LgiMsg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = LgiMsg.cpp; path = ../common/Lgi/LgiMsg.cpp; sourceTree = "<group>"; };
@@ -601,6 +603,7 @@
 		346FACED1D3C774A00FFEBCE /* Interface */ = {
 			isa = PBXGroup;
 			children = (
+				340AF941210DB40100DD3A3C /* GViewPriv.h */,
 				346FACEE1D3C776A00FFEBCE /* GMessage.h */,
 				344AF39508E0476A004ED88C /* GApp.cpp */,
 				345F9C2208F0F622007DAFE2 /* GView.cpp */,
@@ -732,6 +735,7 @@
 				34FC20331B7C6A5D0080FB61 /* LgiOsClasses.h in Headers */,
 				341BE443123ED1F1009BF203 /* sha1.h in Headers */,
 				346FACEF1D3C776A00FFEBCE /* GMessage.h in Headers */,
+				340AF942210DB40100DD3A3C /* GViewPriv.h in Headers */,
 				34D4D55B1250AF98000DA1FD /* GHashTable.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -931,6 +935,8 @@
 		34BA94D80B33ADB400493CD3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -940,6 +946,7 @@
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_1)",
 				);
 				FRAMEWORK_VERSION = A;
+				GCC_C_LANGUAGE_STANDARD = c11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -958,6 +965,7 @@
 					/opt/local/lib,
 				);
 				MACH_O_TYPE = mh_dylib;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.memecode.LgiMacSDL;
 				PRODUCT_NAME = LgiMacSDL;
@@ -971,6 +979,8 @@
 		34BA94D90B33ADB400493CD3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -980,6 +990,7 @@
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_1)",
 				);
 				FRAMEWORK_VERSION = A;
+				GCC_C_LANGUAGE_STANDARD = c11;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Lgi_Prefix.pch;
@@ -996,6 +1007,7 @@
 					/opt/local/lib,
 				);
 				MACH_O_TYPE = mh_dylib;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.memecode.LgiMacSDL;
 				PRODUCT_NAME = LgiMacSDL;

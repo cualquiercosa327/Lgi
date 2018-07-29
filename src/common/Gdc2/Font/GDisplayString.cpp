@@ -1257,7 +1257,7 @@ bool CompositeText8Alpha(GSurface *Out, GSurface *In, GFont *Font, int px, int p
 	// FIXME, do blt clipping here...
 
 	// Create colour map of the foreground/background colours		
-	register uint8 *Div255 = Div255Lut;
+	uint8 *Div255 = Div255Lut;
 	GColour fore = Font->Fore();
 	GRgb24 fore_px;
 	fore_px.r = fore.r();
@@ -1296,17 +1296,17 @@ bool CompositeText8Alpha(GSurface *Out, GSurface *In, GFont *Font, int px, int p
 
 	for (unsigned y=Clip.SrcClip.y1; y<=Clip.SrcClip.y2; y++)
 	{
-		register OutPx *d = ((OutPx*) (*Out)[py + y]) + Clip.DstClip.x1;
-		register uint8 *i = (*In)[y];
+		OutPx *d = ((OutPx*) (*Out)[py + y]) + Clip.DstClip.x1;
+		uint8 *i = (*In)[y];
 		if (!i) return false;
-		register uint8 *e = i + Clip.DstClip.X();
+		uint8 *e = i + Clip.DstClip.X();
 
 		LgiAssert((uint8*)d >= StartOfBuffer);
 		
 		if (Font->Transparent())
 		{
-			register uint8 a, o;
-			register OutPx *s;
+			uint8 a, o;
+			OutPx *s;
 			
 			while (i < e)
 			{
@@ -1359,7 +1359,7 @@ bool CompositeText8NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 	// FIXME, do blt clipping here...
 
 	// Create colour map of the foreground/background colours		
-	register uint8 *DivLut = Div255Lut;
+	uint8 *DivLut = Div255Lut;
 	GColour fore = Font->Fore();
 	GRgb24 fore_px;
 	fore_px.r = fore.r();
@@ -1398,23 +1398,23 @@ bool CompositeText8NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 
 	for (int y=Clip.SrcClip.y1; y<=Clip.SrcClip.y2; y++)
 	{
-		register OutPx *dst = (OutPx*) (*Out)[py + y];
+		OutPx *dst = (OutPx*) (*Out)[py + y];
 		if (!dst)
 			continue;
 		dst += Clip.DstClip.x1;
 		if ((uint8*)dst < StartOfBuffer)
 			continue;
 		
-		register uint8 *i = (*In)[y];
+		uint8 *i = (*In)[y];
 		if (!i) return false;
-		register uint8 *e = i + Clip.DstClip.X();
-		register GRgba32 *src;
+		uint8 *e = i + Clip.DstClip.X();
+		GRgba32 *src;
 
 		LgiAssert((uint8*)dst >= StartOfBuffer);
 		
 		if (Font->Transparent())
 		{
-			register uint8 a, oma;
+			uint8 a, oma;
 			
 			while (i < e)
 			{
@@ -1471,7 +1471,7 @@ bool CompositeText5NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 	#define MASK_6BIT 0x3f
 
 	// Create colour map of the foreground/background colours		
-	register uint8 *Div255 = Div255Lut;
+	uint8 *Div255 = Div255Lut;
 	GColour fore = Font->Fore();
 	GRgb24 fore_px;
 	fore_px.r = fore.r();
@@ -1508,20 +1508,20 @@ bool CompositeText5NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 
 	for (unsigned y=Clip.SrcClip.y1; y<=Clip.SrcClip.y2; y++)
 	{
-		register OutPx *dst = ((OutPx*) (*Out)[py + y]);
+		OutPx *dst = ((OutPx*) (*Out)[py + y]);
 		if (!dst)
 			continue;
 		dst += Clip.DstClip.x1;
-		register uint8 *i = (*In)[y];
+		uint8 *i = (*In)[y];
 		if (!i) return false;
-		register uint8 *e = i + Clip.DstClip.X();
+		uint8 *e = i + Clip.DstClip.X();
 
 		LgiAssert((uint8*)dst >= StartOfBuffer);
 		
 		if (Font->Transparent())
 		{
-			register uint8 a;
-			register OutPx *src;
+			uint8 a;
+			OutPx *src;
 			
 			while (i < e)
 			{
@@ -1551,10 +1551,10 @@ bool CompositeText5NoAlpha(GSurface *Out, GSurface *In, GFont *Font, int px, int
 						dst->g = Div255[(oma * d.g) + (a * s.g)] >> 2;
 						dst->b = Div255[(oma * d.b) + (a * s.b)] >> 3;
 						#else
-						register uint8 a5 = a >> 3;
-						register uint8 a6 = a >> 2;
-						register uint8 oma5 = MASK_5BIT - a5;
-						register uint8 oma6 = MASK_6BIT - a6;
+						uint8 a5 = a >> 3;
+						uint8 a6 = a >> 2;
+						uint8 oma5 = MASK_5BIT - a5;
+						uint8 oma6 = MASK_6BIT - a6;
 						src = map + a;
 						dst->r = ((oma5 * (uint8)dst->r) + (a5 * (uint8)src->r)) / MASK_5BIT;
 						dst->g = ((oma6 * (uint8)dst->g) + (a6 * (uint8)src->g)) / MASK_6BIT;

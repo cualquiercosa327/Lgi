@@ -3312,7 +3312,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 				}
 				else
 				{
-					LgiMsg(this, "Couldn't find '%s'\n", AppName, MB_OK, Exe ? Exe : "<project_executable_undefined>");
+					LgiMsg(this, "Couldn't find '%s'\n", AppName, MB_OK, Exe ? Exe.Get() : "<project_executable_undefined>");
 				}
 			}			
 			break;
