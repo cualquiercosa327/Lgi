@@ -250,7 +250,7 @@
 		344B736308D83E8300D49457 /* Lgi.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Lgi.h; path = ../../../include/common/Lgi.h; sourceTree = "<group>"; };
 		344B736B08D83F1800D49457 /* GGeneral.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 30; name = GGeneral.cpp; path = Lgi/GGeneral.cpp; sourceTree = "<group>"; };
 		344B737708D83F6C00D49457 /* LgiClasses.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiClasses.h; path = ../../../include/common/LgiClasses.h; sourceTree = "<group>"; };
-		344B737A08D8401600D49457 /* Lgi.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Lgi.cpp; path = ../../common/Lgi/Lgi.cpp; sourceTree = "<group>"; };
+		344B737A08D8401600D49457 /* Lgi.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 30; name = Lgi.cpp; path = ../../common/Lgi/Lgi.cpp; sourceTree = "<group>"; };
 		344B738008D8406900D49457 /* GdcCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GdcCommon.cpp; path = ../../common/Gdc2/GdcCommon.cpp; sourceTree = "<group>"; };
 		344B738608D840CF00D49457 /* GFile.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GFile.cpp; path = General/GFile.cpp; sourceTree = "<group>"; };
 		344B738908D8410B00D49457 /* LgiMsg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = LgiMsg.cpp; path = ../../common/Lgi/LgiMsg.cpp; sourceTree = "<group>"; };
@@ -1253,7 +1253,7 @@
 					"-DMAC",
 					"-DLGI_LIBRARY",
 				);
-				SDKROOT = macosx10.11;
+				SDKROOT = macosx;
 				STRIP_INSTALLED_PRODUCT = NO;
 				SYMROOT = ./build;
 				USER_HEADER_SEARCH_PATHS = "../../../include/common ../../../include/mac/carbon ../../../include/posix";
@@ -1301,7 +1301,7 @@
 					"-DMAC",
 					"-DLGI_LIBRARY",
 				);
-				SDKROOT = macosx10.11;
+				SDKROOT = macosx;
 				SYMROOT = ./build;
 				USER_HEADER_SEARCH_PATHS = "../../../include/common ../../../include/mac/carbon ../../../include/posix";
 				VALID_ARCHS = i386;

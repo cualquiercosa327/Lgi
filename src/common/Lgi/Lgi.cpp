@@ -62,6 +62,7 @@ namespace Gtk {
 //////////////////////////////////////////////////////////////////////////
 // Misc stuff
 #if defined MAC
+	#import <foundation/foundation.h>
 	#if COCOA
 		GString LgiArgsAppPath;
 	#else
