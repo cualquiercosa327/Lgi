@@ -302,7 +302,7 @@ char *GHtmlParser::ParsePropList(char *s, GHtmlElement *Obj, bool &Closed)
 
 			if (Name && Value && *Value)
 			{
-				#if defined(_DEBUG) && 0
+				#if defined(_DEBUG) && 1
 				if (!_stricmp(Name, "debug"))
 				{
 					int asd=0;
@@ -316,19 +316,17 @@ char *GHtmlParser::ParsePropList(char *s, GHtmlElement *Obj, bool &Closed)
 
 		DeleteArray(Name);
 
-		if
-		(
-			!*s ||
-			(
-				*s != '>' &&
-				*s != '/' &&
-				!IsWhiteSpace(*s) &&
-				!IsAlpha(*s)
-			)
-		)
+		while (*s && IsWhiteSpace(*s))
+			s++;
+		if (!*s || *s == '<')
+			return s;
+		if (*s == '>' || *s == '/')
 			break;
+
 	}
 
+	if (*s == '/')
+		s++;
 	if (*s == '>')
 		s++;
 
