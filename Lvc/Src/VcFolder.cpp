@@ -1245,7 +1245,7 @@ void VcFolder::FolderStatus(const char *Path, VcLeaf *Notify)
 			Arg = "status --porcelain=2";
 			break;
 		default:
-			Arg ="status";
+			Arg = "status";
 			break;
 	}
 
@@ -1275,8 +1275,8 @@ void VcFolder::ListWorkingFolder()
 				Arg = "-q diff --brief";
 				break;
 			case VcGit:
-				// Arg = "diff --diff-filter=ACDMRTU";
-				return FolderStatus();
+				Arg = "diff --diff-filter=ACDMRTU";
+				// return FolderStatus();
 				break;
 			default:
 				Arg ="diff";
