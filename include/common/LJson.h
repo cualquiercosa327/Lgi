@@ -233,6 +233,16 @@ public:
 		k->Str = Val;
 		return true;
 	}
+
+	GArray<GString> GetKeys(const char *Addr = NULL)
+	{
+		Key *k = Deref(Addr, true);
+		GArray<GString> a;
+		if (k)
+			for (auto &i : k->Obj)
+				a.Add(i.Name);
+		return a;
+	}
 };
 
 #endif

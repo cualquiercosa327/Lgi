@@ -850,6 +850,17 @@ int GSubProcess::Kill()
 	return true;
 }
 
+GString GSubProcess::Read()
+{
+	GStringPipe p(512);
+	char Buf[512];
+	ssize_t Rd;
+	while ((Rd = Read(Buf, sizeof(Buf))) > 0)
+		p.Write(Buf, Rd);
+
+	return p.NewGStr();
+}
+
 ssize_t GSubProcess::Read(void *Buf, ssize_t Size, int TimeoutMs)
 {
 	#if defined(POSIX)
