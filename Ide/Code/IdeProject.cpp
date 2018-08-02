@@ -1086,7 +1086,10 @@ public:
 		Log->Print("...Done: '%s'\n", MakeFile.Get());
 
 		if (BuildAfterwards)
-			Proj->GetApp()->PostEvent(M_START_BUILD);
+		{
+			if (!Proj->GetApp()->PostEvent(M_START_BUILD))
+				printf("%s:%i - PostEvent(M_START_BUILD) failed.\n", _FL);
+		}
 
 		return true;
 	}

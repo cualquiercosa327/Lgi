@@ -189,7 +189,7 @@ void EditTray::OnHeaderList(GMouse &m)
 				// Construct the menu
 				LHashTbl<StrKey<char>, int> Map;
 				int DisplayLines = GdcD->Y() / SysFont->GetHeight();
-				if (Headers.Length() > (0.7 * DisplayLines))
+				if (Headers.Length() > (0.9 * DisplayLines))
 				{
 					GArray<char*> Letters[26];
 					GArray<char*> Other;
@@ -318,8 +318,8 @@ void EditTray::OnFunctionList(GMouse &m)
 		int ScreenLines = ScreenHt / SysFont->GetHeight();
 		float Ratio = ScreenHt ? (float)(SysFont->GetHeight() * Funcs.Length()) / ScreenHt : 0.0f;
 		bool UseSubMenus = Ratio > 0.9f;
-		int Buckets = UseSubMenus ? (int)(ScreenLines * 0.75) : 1;
-		int BucketSize = MAX(5, Funcs.Length() / Buckets);
+		int Buckets = UseSubMenus ? (int)(ScreenLines * 0.9) : 1;
+		int BucketSize = MAX(2, Funcs.Length() / Buckets);
 		GSubMenu *Cur = NULL;
 		
 		for (unsigned n=0; n<Funcs.Length(); n++)

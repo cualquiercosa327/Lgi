@@ -2293,6 +2293,11 @@ GMessage::Result AppWnd::OnEvent(GMessage *m)
 	{
 		case M_START_BUILD:
 		{
+			IdeProject *p = RootProject();
+			if (p)
+				p->Build(true, IsReleaseMode());
+			else
+				printf("%s:%i - No root project.\n", _FL);
 			break;
 		}
 		case M_BUILD_DONE:
