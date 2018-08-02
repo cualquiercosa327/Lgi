@@ -81,7 +81,7 @@ public:
 			{
 				if (!View->PostEvent(M_PULSE))
 				{
-					printf("%s:%i - Pulse PostEvent failed. Exiting loop.\n", _FL);
+					// printf("%s:%i - Pulse PostEvent failed. Exiting loop.\n", _FL);
 					Loop = false;
 				}
 			}

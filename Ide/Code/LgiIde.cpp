@@ -2896,10 +2896,23 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		{
 			GTextView3 *Doc = FocusEdit();
 			if (Doc)
-			{
 				Doc->DoGoto();
+			else
+			{
+				GInput Inp(this, NULL, LgiLoadString(L_TEXTCTRL_GOTO_LINE, "Goto [file:]line:"), "Goto");
+				if (Inp.DoModal())
+				{
+					GString s = Inp.GetStr();
+					GString::Array p = s.SplitDelimit(":,");
+					if (p.Length() == 2)
+					{
+						GString file = p[0];
+						int line = (int)p[1].Int();
+						GotoReference(file, line, false, true);
+					}
+					else LgiMsg(this, "Error: Needs a file name as well.", AppName);
+				}
 			}
-			else LgiTrace("%s:%i - No focus doc.\n", _FL);
 			break;
 		}
 		case IDM_CUT:
