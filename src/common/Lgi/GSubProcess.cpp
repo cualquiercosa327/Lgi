@@ -42,9 +42,6 @@
 #define ClosePipe close
 #define INVALID_PID -1
 #endif
-#ifdef __GTK_H__
-using namespace Gtk;
-#endif
 
 GSubProcess::Pipe::Pipe()
 {

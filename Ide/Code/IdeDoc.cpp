@@ -1512,6 +1512,11 @@ GMessage::Result IdeDoc::OnEvent(GMessage *Msg)
 					GString Input = SymEd->Name();
 					if (Input == Resp->Str) // Is the input string still the same?
 					{
+						/*
+						The problem with this is that the user it still typing something
+						and the cursor / focus jumps to the document now they are typing
+						a search string into the document, which is not what they intended.
+						
 						if (Resp->Results.Length() == 1)
 						{
 							FindSymResult *r = Resp->Results[0];
@@ -1520,6 +1525,7 @@ GMessage::Result IdeDoc::OnEvent(GMessage *Msg)
 							d->App->GotoReference(r->File, r->Line, false);
 						}
 						else
+						*/
 						{
 							d->SymPopup->All = Resp->Results;
 							Resp->Results.Length(0);

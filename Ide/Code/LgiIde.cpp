@@ -3252,7 +3252,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			SaveAll();
 			IdeProject *p = RootProject();
 			if (p)
-				p->Clean(IsReleaseMode());
+				p->Clean(true, IsReleaseMode());
 			break;
 		}
 		case IDM_NEXT_MSG:

@@ -130,7 +130,7 @@ class BuildThread : public LThread, public GStream
 {
 	IdeProject *Proj;
 	GString Makefile;
-	bool Clean, Release;
+	bool Clean, Release, All;
 	int WordSize;
 	GAutoPtr<GSubProcess> SubProc;
 	GString::Array BuildConfigs;
@@ -159,7 +159,7 @@ class BuildThread : public LThread, public GStream
 		Arch;
 
 public:
-	BuildThread(IdeProject *proj, char *makefile, bool clean, bool Release, int wordsize);
+	BuildThread(IdeProject *proj, char *makefile, bool clean, bool release, bool all, int wordsize);
 	~BuildThread();
 	
 	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0) override;
@@ -798,8 +798,15 @@ public:
 								"	-mkdir -p $(BuildDir) 2> /dev/null\n"
 								"\n");
 							
-						m.Print("# Clean out targets\n"
+						m.Print("# Clean just this target\n"
 								"clean :\n"
+								"	rm -f $(BuildDir)/*.o $(Target)%s\n"
+								"	@echo Cleaned $(BuildDir)\n"
+								"\n",
+								LGI_EXECUTABLE_EXT);
+						
+						m.Print("# Clean all targets\n"
+								"cleanall :\n"
 								"	rm -f $(BuildDir)/*.o $(Target)%s\n"
 								"	@echo Cleaned $(BuildDir)\n",
 								LGI_EXECUTABLE_EXT);
@@ -1177,12 +1184,13 @@ bool ReadVsProjFile(GString File, GString &Ver, GString::Array &Configs)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-BuildThread::BuildThread(IdeProject *proj, char *makefile, bool clean, bool release, int wordsize) : LThread("BuildThread")
+BuildThread::BuildThread(IdeProject *proj, char *makefile, bool clean, bool release, bool all, int wordsize) : LThread("BuildThread")
 {
 	Proj = proj;
 	Makefile = makefile;
 	Clean = clean;
 	Release = release;
+	All = all;
 	WordSize = wordsize;
 	Arch = DefaultArch;
 	Compiler = DefaultCompiler;
@@ -1691,7 +1699,10 @@ int BuildThread::Main()
 			}
 
 			if (Clean)
-				TmpArgs += " clean";
+				if (All)
+					TmpArgs += " cleanall";
+				else
+					TmpArgs += " clean";
 			if (Release)
 				TmpArgs += " Build=Release";
 		}
@@ -1967,14 +1978,14 @@ GAutoString IdeProject::GetMakefile()
 	return Path;
 }
 
-void IdeProject::Clean(bool Release)
+void IdeProject::Clean(bool All, bool Release)
 {
 	if (!d->Thread &&
 		d->Settings.GetStr(ProjMakefile))
 	{
 		GAutoString m = GetMakefile();
 		if (m)
-			d->Thread.Reset(new BuildThread(this, m, true, Release, sizeof(ssize_t)*8));
+			d->Thread.Reset(new BuildThread(this, m, true, Release, All, sizeof(ssize_t)*8));
 	}
 }
 
@@ -2308,6 +2319,7 @@ void IdeProject::Build(bool All, bool Release)
 				m,
 				false,
 				Release,
+				All,
 				sizeof(size_t)*8
 			)
 		);
@@ -2779,16 +2791,19 @@ void IdeProject::OnMouseClick(GMouse &m)
 	if (m.IsContextMenu())
 	{
 		GSubMenu Sub;
-		Sub.AppendItem("New Folder", IDM_NEW_FOLDER, true);
-		Sub.AppendItem("New Web Folder", IDM_WEB_FOLDER, true);
+		Sub.AppendItem("New Folder", IDM_NEW_FOLDER);
+		Sub.AppendItem("New Web Folder", IDM_WEB_FOLDER);
 		Sub.AppendSeparator();
-		Sub.AppendItem("Build", IDM_BUILD_PROJECT, true);
-		Sub.AppendItem("Clean", IDM_CLEAN_PROJECT, true);
+		Sub.AppendItem("Build", IDM_BUILD);
+		Sub.AppendItem("Clean Project", IDM_CLEAN_PROJECT);
+		Sub.AppendItem("Clean All", IDM_CLEAN_ALL);
+		Sub.AppendItem("Rebuild Project", IDM_REBUILD_PROJECT);
+		Sub.AppendItem("Rebuild All", IDM_REBUILD_ALL);
 		Sub.AppendSeparator();
-		Sub.AppendItem("Sort Children", IDM_SORT_CHILDREN, true);
+		Sub.AppendItem("Sort Children", IDM_SORT_CHILDREN);
 		Sub.AppendSeparator();
 		Sub.AppendItem("Settings", IDM_SETTINGS, true);
-		Sub.AppendItem("Insert Dependency", IDM_INSERT_DEP, true);
+		Sub.AppendItem("Insert Dependency", IDM_INSERT_DEP);
 
 		m.ToScreen();
 		GdcPt2 c = _ScrollPos();
@@ -2822,7 +2837,7 @@ void IdeProject::OnMouseClick(GMouse &m)
 				}
 				break;
 			}
-			case IDM_BUILD_PROJECT:
+			case IDM_BUILD:
 			{
 				StopBuild();
 				Build(true, d->App->IsReleaseMode());
@@ -2830,7 +2845,26 @@ void IdeProject::OnMouseClick(GMouse &m)
 			}
 			case IDM_CLEAN_PROJECT:
 			{
-				Clean(d->App->IsReleaseMode());
+				Clean(false, d->App->IsReleaseMode());
+				break;
+			}
+			case IDM_CLEAN_ALL:
+			{
+				Clean(true, d->App->IsReleaseMode());
+				break;
+			}
+			case IDM_REBUILD_PROJECT:
+			{
+				StopBuild();
+				Clean(false, d->App->IsReleaseMode());
+				Build(false, d->App->IsReleaseMode());
+				break;
+			}
+			case IDM_REBUILD_ALL:
+			{
+				StopBuild();
+				Clean(true, d->App->IsReleaseMode());
+				Build(true, d->App->IsReleaseMode());
 				break;
 			}
 			case IDM_SORT_CHILDREN:

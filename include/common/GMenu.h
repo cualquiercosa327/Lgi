@@ -73,7 +73,7 @@ public:
 				ResFileFormat Format,
 				class TagHash *TagList);
 
-	virtual GMenuItem *AppendItem(const char *Str, int Id, bool Enabled, int Where = -1, const char *Shortcut = 0) = 0;
+	virtual GMenuItem *AppendItem(const char *Str, int Id, bool Enabled = true, int Where = -1, const char *Shortcut = 0) = 0;
 	virtual GSubMenu *AppendSub(const char *Str, int Where = -1) = 0;
 	virtual GMenuItem *AppendSeparator(int Where = -1) = 0;
 };

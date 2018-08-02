@@ -36,9 +36,13 @@ enum AppCommands
 	IDM_IMPORT_FOLDER,
 	IDM_WEB_FOLDER,
 	IDM_INSERT_FTP,
-	IDM_BUILD_PROJECT,
+	IDM_SHOW_IN_PROJECT,
+
+	// IDM_BUILD,
 	IDM_CLEAN_PROJECT,
-	IDM_SHOW_IN_PROJECT
+	IDM_CLEAN_ALL,
+	IDM_REBUILD_PROJECT,
+	IDM_REBUILD_ALL
 };
 
 enum ProjectStatus
@@ -144,7 +148,7 @@ public:
 	bool RelativePath(char *Out, const char *In, bool Debug = false);
 	void Build(bool All, bool Release);
 	void StopBuild();
-	void Clean(bool Release);
+	void Clean(bool All, bool Release);
 	GDebugContext *Execute(ExeAction Act = ExeRun);
 	bool FixMissingFiles();
 	bool FindDuplicateSymbols();
