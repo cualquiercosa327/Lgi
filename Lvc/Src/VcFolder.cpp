@@ -724,7 +724,7 @@ bool VcFolder::ParseCommit(int Result, GString s, ParseParams *Params)
 				w->SetCtrlName(IDC_MSG, NULL);
 
 			
-			if (Params->Str.Find("Push") >= 0)
+			if (Params && Params->Str.Find("Push") >= 0)
 				Push();
 			break;
 		}
