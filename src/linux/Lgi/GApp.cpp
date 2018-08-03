@@ -571,7 +571,7 @@ Gtk::gboolean IdleWrapper(Gtk::gpointer data)
 		{
 			if (!GView::LockHandler(m.v, GView::OpLock))
 			{
-				printf("%s:%i - Invalid view to post event to.\n", _FL);
+				// printf("%s:%i - Invalid view to post event to.\n", _FL);
 			}
 			else
 			{
