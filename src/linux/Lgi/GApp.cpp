@@ -255,6 +255,7 @@ public:
 	GAutoPtr<GApp::DesktopInfo> DesktopInfo;
 
 	#if HAS_LIB_MAGIC
+	LMutex MagicLock;
 	magic_t hMagic;
 	#endif
 
@@ -272,7 +273,7 @@ public:
 	int LastClickX;
 	int LastClickY;
 
-	GAppPrivate() : Args(0, 0)
+	GAppPrivate() : Args(0, 0), MagicLock("MagicLock")
 	{
 		CurEvent = 0;
 		GuiThread = LgiGetCurrentThread();
@@ -298,10 +299,14 @@ public:
 	~GAppPrivate()
 	{
 		#if HAS_LIB_MAGIC
-		if (hMagic != NULL)
+		if (MagicLock.Lock(_FL))
 		{
-			magic_close(hMagic);
-			hMagic = NULL;
+			if (hMagic != NULL)
+			{
+				magic_close(hMagic);
+				hMagic = NULL;
+			}
+			MagicLock.Unlock();
 		}
 		#endif
 
@@ -861,34 +866,39 @@ GAutoString GApp::GetFileMimeType(const char *File)
 	#if HAS_LIB_MAGIC
 	
 	static bool MagicError = false;
-	if (!d->hMagic && !MagicError)
+	if (d->MagicLock.Lock(_FL))
 	{
-		d->hMagic = magic_open(MAGIC_MIME_TYPE);
-		if (d->hMagic)
+		if (!d->hMagic && !MagicError)
 		{
-			if (magic_load(d->hMagic, NULL) != 0)
+			d->hMagic = magic_open(MAGIC_MIME_TYPE);
+			if (d->hMagic)
 			{
-	        	printf("%s:%i - magic_load failed - %s\n", _FL, magic_error(d->hMagic));
-	        	magic_close(d->hMagic);
-	        	d->hMagic = NULL;
-	        	MagicError = true;
+				if (magic_load(d->hMagic, NULL) != 0)
+				{
+		        	printf("%s:%i - magic_load failed - %s\n", _FL, magic_error(d->hMagic));
+		        	magic_close(d->hMagic);
+		        	d->hMagic = NULL;
+		        	MagicError = true;
+				}
+			}
+			else
+			{
+				printf("%s:%i - magic_open failed.\n", _FL);
+				MagicError = true;
 			}
 		}
-		else
+		
+		if (d->hMagic && !MagicError)
 		{
-			printf("%s:%i - magic_open failed.\n", _FL);
-			MagicError = true;
+			const char *mt = magic_file(d->hMagic, File);
+			if (mt)
+			{
+				Status.Reset(NewStr(mt));
+				return Status;
+			}
 		}
-	}
-	
-	if (d->hMagic)
-	{
-		const char *mt = magic_file(d->hMagic, File);
-		if (mt)
-		{
-			Status.Reset(NewStr(mt));
-			return Status;
-		}
+		
+		d->MagicLock.Unlock();
 	}
 
 	#endif
