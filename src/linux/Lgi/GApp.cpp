@@ -894,11 +894,13 @@ GAutoString GApp::GetFileMimeType(const char *File)
 			if (mt)
 			{
 				Status.Reset(NewStr(mt));
-				return Status;
 			}
 		}
 		
 		d->MagicLock.Unlock();
+
+		if (Status)
+			return Status;
 	}
 
 	#endif

@@ -1432,6 +1432,9 @@ void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
 
 bool GTextView3::Insert(size_t At, char16 *Data, ssize_t Len)
 {
+	GProfile Prof("GTextView3::Insert");
+	Prof.HideResultsIfBelow(10);
+
 	LgiAssert(InThread());
 	
 	if (!ReadOnly && Len > 0)
@@ -1466,6 +1469,8 @@ bool GTextView3::Insert(size_t At, char16 *Data, ssize_t Len)
 				return false;
 			}
 		}
+		
+		Prof.Add("MemChk");
 
 		if (Text)
 		{
@@ -1474,9 +1479,13 @@ bool GTextView3::Insert(size_t At, char16 *Data, ssize_t Len)
 			// Move the section after the insert to make space...
 			memmove(Text+(At+Len), Text+At, (Size-At) * sizeof(char16));
 
+			Prof.Add("Undo");
+			
 			// Add the undo object...
 			if (UndoOn)
 				UndoQue += new GTextView3Undo(this, Data, Len, At, UndoInsert);
+
+			Prof.Add("Cpy");
 
 			// Copy new data in...
 			memcpy(Text+At, Data, Len * sizeof(char16));
@@ -1507,6 +1516,8 @@ bool GTextView3::Insert(size_t At, char16 *Data, ssize_t Len)
 					// Clear layout for current line...
 					Cur->r.ZOff(-1, -1);
 
+					Prof.Add("NoWrap add lines");
+					
 					// Add any new lines that we need...
 					char16 *e = Text + At + Len;
 					char16 *c;
@@ -1527,8 +1538,12 @@ bool GTextView3::Insert(size_t At, char16 *Data, ssize_t Len)
 						}
 					}
 
+					Prof.Add("CalcLen");
+
 					// Make sure the last Line's length is set..
 					Cur->CalcLen(Text);
+
+					Prof.Add("UpdatePos");
 	
 					// Now update all the positions of the following lines...
 					for (auto i = Line.begin(++Idx); *i; i++)
@@ -1558,13 +1573,16 @@ bool GTextView3::Insert(size_t At, char16 *Data, ssize_t Len)
 			}
 
 			#ifdef _DEBUG
+			Prof.Add("Validate");
 			ValidateLines();
 			#endif
 
 			Dirty = true;
 			if (PourEnabled)
 			{
+				Prof.Add("PourText");
 				PourText(At, Len);
+				Prof.Add("PourStyle");
 				PourStyle(At, Len);
 			}
 			SendNotify(GNotifyDocChanged);
