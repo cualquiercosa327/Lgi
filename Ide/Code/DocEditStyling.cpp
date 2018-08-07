@@ -16,6 +16,20 @@
 
 #define IsSymbolChar(ch)	(IsAlpha(ch) || (ch) == '_')
 
+#define DetectKeyword()			\
+	Node *n = &Root;			\
+	char16 *e = s;				\
+	do							\
+	{							\
+		int idx = n->Map(*e);	\
+		if (idx < 0)			\
+			break;				\
+		n = n->Next[idx];		\
+		e++;					\
+	}							\
+	while (n);
+					
+
 struct LanguageParams
 {
 	const char **Keywords;
@@ -96,7 +110,6 @@ void DocEdit::StyleCpp(ssize_t Start, ssize_t EditSize)
 
 	char16 *e = Text + Size;
 		
-	// uint64 StartTs = LgiMicroTime();
 	#if COMP_STYLE
 	List<GStyle> OldStyle;
 	OldStyle = Style;
@@ -104,10 +117,21 @@ void DocEdit::StyleCpp(ssize_t Start, ssize_t EditSize)
 	#else
 	Style.DeleteObjects();
 	#endif
-	// uint64 SetupTs = LgiMicroTime();
+
+	// LgiTrace("DocEdit::StyleCpp\n");
+	// uint64 Times[256] = {0};
 		
 	for (char16 *s = Text; s < e; s++)
 	{
+		uint64 Start = LgiMicroTime();
+		char16 ch;
+		if (IsDigit(*s))
+			ch = '0';
+		else if (IsAlpha(*s))
+			ch = 'a';
+		else
+			ch = *s;
+
 		switch (*s)
 		{
 			case '\"':
@@ -266,44 +290,38 @@ void DocEdit::StyleCpp(ssize_t Start, ssize_t EditSize)
 				wchar_t Ch = ToLower(*s);
 				if (Ch >= 'a' && Ch <= 'z')
 				{
-					Keyword *k;
-					if ((k = HasKeyword[Ch - 'a']))
-					{
-						do
-						{
-							if (!StrnicmpW(k->Word, s, k->Len))
-								break;
-						}
-						while ((k = k->Next));
+					DetectKeyword();
 
-						if
-						(
-							k
-							&&
-							(s == Text || !IsSymbolChar(s[-1]))
-							&&
-							!IsSymbolChar(s[k->Len])
-						)
+					if (n && n->Type)
+					{
+						GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
+						if (st)
 						{
-							GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
-							if (st)
-							{
-								st->View = this;
-								st->Start = s - Text;
-								st->Font = k->IsType ? Font : Bold;
-								st->Len = k->Len;
-								st->Fore = k->IsType ? ColourType : ColourKeyword;
-								InsertStyle(st);
-								s += k->Len - 1;
-							}
+							st->View = this;
+							st->Start = s - Text;
+							st->Font = n->Type == KType ? Font : Bold;
+							st->Len = e - s;
+							st->Fore = n->Type == KType ? ColourType : ColourKeyword;
+							InsertStyle(st);
 						}
 					}
+
+					s = e - 1;
 				}
 			}
 		}
+
+		// uint64 End = LgiMicroTime();
+		// Times[ch&0xff] += End - Start;
 	}
 
-	// uint64 PourTs = LgiMicroTime();
+	/*
+	for (int i=0; i<CountOf(Times); i++)
+	{
+		if (Times[i])
+			LgiTrace("\t'%c' = %.1f\n", (char)i, (double)Times[i]/1000.0);
+	}
+	*/
 
 	#if COMP_STYLE
 	GStyle Vis(STYLE_NONE);
@@ -385,9 +403,6 @@ void DocEdit::StyleCpp(ssize_t Start, ssize_t EditSize)
 	}
 	OldStyle.DeleteObjects();
 	#endif
-
-	// uint64 DirtyTs = LgiMicroTime();		
-	// LgiTrace("PourCpp = %g, %g\n", (double)(PourTs - SetupTs) / 1000.0, (double)(DirtyTs - PourTs) / 1000.0);
 }
 
 void DocEdit::StylePython(ssize_t Start, ssize_t EditSize)
@@ -486,24 +501,17 @@ void DocEdit::StylePython(ssize_t Start, ssize_t EditSize)
 			{
 				if (*s >= 'a' && *s <= 'z')
 				{
-					Keyword *k;
-					if ((k = HasKeyword[*s - 'a']))
+					/*
+					if (HasKeyword[*s - 'a'])
 					{
-						do
-						{
-							if (!Strncmp(k->Word, s, k->Len))
-								break;
-						}
-						while ((k = k->Next));
-
-						if
-						(
-							k
-							&&
-							(s == Text || !IsSymbolChar(s[-1]))
-							&&
-							!IsSymbolChar(s[k->Len])
-						)
+						static char16 buf[64], *o = buf;
+						char16 *e = s;
+						while (IsSymbolChar(*e))
+							*o++ = *e++;
+						*o = 0;
+						KeyworkType type = Keywords.Find(buf);
+						
+						if (type != KNone)
 						{
 							GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
 							if (st)
@@ -511,13 +519,14 @@ void DocEdit::StylePython(ssize_t Start, ssize_t EditSize)
 								st->View = this;
 								st->Start = s - Text;
 								st->Font = Bold;
-								st->Len = k->Len;
+								st->Len = e - s;
 								st->Fore = ColourKeyword;
 								InsertStyle(st);
-								s += k->Len - 1;
+								s = e - 1;
 							}
 						}
 					}
+					*/
 				}
 				break;
 			}
@@ -657,25 +666,17 @@ void DocEdit::StyleDefault(ssize_t Start, ssize_t EditSize)
 			{
 				if (*s >= 'a' && *s <= 'z')
 				{
-					Keyword *k;
-					if ((k = HasKeyword[*s - 'a']))
+					/*
+					if (HasKeyword[*s - 'a'])
 					{
-						do
-						{
-							if (!Strncmp(k->Word, s, k->Len) &&
-								!IsSymbolChar(s[k->Len]))
-								break;
-						}
-						while ((k = k->Next));
-
-						if
-						(
-							k
-							&&
-							(s == Text || !IsSymbolChar(s[-1]))
-							&&
-							!IsSymbolChar(s[k->Len])
-						)
+						static char16 buf[64], *o = buf;
+						char16 *e = s;
+						while (IsSymbolChar(*e))
+							*o++ = *e++;
+						*o = 0;
+						KeyworkType type = Keywords.Find(buf);
+						
+						if (type != KNone)
 						{
 							GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
 							if (st)
@@ -683,13 +684,14 @@ void DocEdit::StyleDefault(ssize_t Start, ssize_t EditSize)
 								st->View = this;
 								st->Start = s - Text;
 								st->Font = Bold;
-								st->Len = k->Len;
+								st->Len = e - s;
 								st->Fore = ColourKeyword;
 								InsertStyle(st);
-								s += k->Len - 1;
+								s = e - 1;
 							}
 						}
 					}
+					*/
 				}
 				break;
 			}
@@ -810,24 +812,17 @@ void DocEdit::StyleXml(ssize_t Start, ssize_t EditSize)
 			{
 				if (*s >= 'a' && *s <= 'z')
 				{
-					Keyword *k;
-					if ((k = HasKeyword[*s - 'a']))
+					/*
+					if (HasKeyword[*s - 'a'])
 					{
-						do
-						{
-							if (!Strncmp(k->Word, s, k->Len))
-								break;
-						}
-						while ((k = k->Next));
-
-						if
-						(
-							k
-							&&
-							(s == Text || !IsSymbolChar(s[-1]))
-							&&
-							!IsSymbolChar(s[k->Len])
-						)
+						static char16 buf[64], *o = buf;
+						char16 *e = s;
+						while (IsSymbolChar(*e))
+							*o++ = *e++;
+						*o = 0;
+						KeyworkType type = Keywords.Find(buf);
+						
+						if (type != KNone)
 						{
 							GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
 							if (st)
@@ -835,13 +830,14 @@ void DocEdit::StyleXml(ssize_t Start, ssize_t EditSize)
 								st->View = this;
 								st->Start = s - Text;
 								st->Font = Bold;
-								st->Len = k->Len;
+								st->Len = e - s;
 								st->Fore = ColourKeyword;
 								InsertStyle(st);
-								s += k->Len - 1;
+								s = e - 1;
 							}
 						}
 					}
+					*/
 				}
 				break;
 			}
@@ -1117,14 +1113,17 @@ void DocEdit::AddKeywords(const char **keys, bool IsType)
 {
 	for (const char **k = keys; *k; k++)
 	{
-		const char *Word = *k;
-		int idx = ToLower(*Word)-'a';
-		LgiAssert(idx >= 0 && idx < CountOf(HasKeyword));
-			
-		Keyword **Ptr = &HasKeyword[idx];
-		while (*Ptr != NULL)
-			Ptr = &(*Ptr)->Next;
-		*Ptr = new Keyword(Word, IsType);
+		Node *n = &Root;
+		for (const char *c = *k; *c && n; c++)
+		{
+			int idx = n->Map(*c);
+			LgiAssert(idx >= 0);
+			if (!n->Next[idx])
+				n->Next[idx] = new Node;
+			n = n->Next[idx];
+		}
+		if (n)
+			n->Type = IsType ? KType : KLang;
 	}
 }
 
@@ -1153,7 +1152,6 @@ void DocEdit::PourStyle(size_t Start, ssize_t EditSize)
 		else
 			FileType = SrcPlainText;
 
-		ZeroObj(HasKeyword);
 		if (LangParam[FileType].Keywords)
 			AddKeywords(LangParam[FileType].Keywords, false);
 		if (LangParam[FileType].Types)

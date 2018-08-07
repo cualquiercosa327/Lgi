@@ -24,29 +24,44 @@ class DocEdit : public GTextView3, public GDocumentEnv
 	GdcPt2 MsClick;
 	SourceType FileType;
 
-	struct Keyword
+	enum WordType
 	{
-		char16 *Word;
-		int Len;
-		bool IsType;
-		Keyword *Next;
+		KNone,
+		KLang,
+		KType
+	};
 
-		Keyword(const char *w, bool istype = false)
+	struct Node
+	{
+		Node *Next[26 + 10 + 1];
+		WordType Type;
+
+		int Map(char16 c)
 		{
-			Word = Utf8ToWide(w);
-			Len = Strlen(Word);
-			IsType = istype;
-			Next = NULL;
+			if (IsAlpha(c))
+				return ToLower(c) - 'a';
+			if (IsDigit(c))
+				return c - '0' + 26;
+			if (c == '_')
+				return 26+10;
+			// LgiAssert(0);
+			return -1;
 		}
 
-		~Keyword()
+		Node()
 		{
-			delete Next;
-			delete [] Word;
+			ZeroObj(Next);
+			Type = KNone;
+		}
+
+		~Node()
+		{
+			for (int i=0; i<CountOf(Next); i++)
+				DeleteObj(Next[i]);
 		}
 	};
 
-	Keyword *HasKeyword[26];
+	Node Root;
 
 	// Full refresh triggers
 	int RefreshSize;

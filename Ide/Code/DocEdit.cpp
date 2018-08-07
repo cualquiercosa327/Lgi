@@ -17,7 +17,6 @@ DocEdit::DocEdit(IdeDoc *d, GFontType *f) : GTextView3(IDC_EDIT, 0, 0, 100, 100,
 	RefreshSize = 0;
 	RefreshEdges = NULL;
 	FileType = SrcUnknown;
-	ZeroObj(HasKeyword);
 	Doc = d;
 	CurLine = -1;
 	if (!GlobalFindReplace)
@@ -54,10 +53,6 @@ DocEdit::DocEdit(IdeDoc *d, GFontType *f) : GTextView3(IDC_EDIT, 0, 0, 100, 100,
 DocEdit::~DocEdit()
 {
 	SetEnv(0);
-	for (int i=0; i<CountOf(HasKeyword); i++)
-	{
-		DeleteObj(HasKeyword[i]);
-	}
 }
 
 bool DocEdit::AppendItems(GSubMenu *Menu, int Base)

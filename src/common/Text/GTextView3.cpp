@@ -1433,7 +1433,7 @@ void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
 bool GTextView3::Insert(size_t At, char16 *Data, ssize_t Len)
 {
 	GProfile Prof("GTextView3::Insert");
-	Prof.HideResultsIfBelow(10);
+	Prof.HideResultsIfBelow(1000);
 
 	LgiAssert(InThread());
 	
