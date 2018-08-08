@@ -284,7 +284,7 @@ public:
 		TextDecorUnderline,
 		TextDecorOverline,
 		TextDecorLineThrough,
-		TextDecorBlink,
+		TextDecorSquiggle, // for spelling errors
 	};
 
 	enum ColorType {

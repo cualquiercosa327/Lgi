@@ -494,7 +494,7 @@ GAutoString GCss::ToString()
 							case TextDecorUnderline: s= "underline"; break;
 							case TextDecorOverline: s= "overline"; break;
 							case TextDecorLineThrough: s= "line-Through"; break;
-							case TextDecorBlink: s= "blink"; break;
+							case TextDecorSquiggle: s= "squiggle"; break;
 						}
 						break;
 					}
@@ -1413,7 +1413,7 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 						else if (ParseWord(s, "underline")) *w = TextDecorUnderline;
 						else if (ParseWord(s, "overline")) *w = TextDecorOverline;
 						else if (ParseWord(s, "line-through")) *w = TextDecorLineThrough;
-						else if (ParseWord(s, "blink")) *w = TextDecorBlink;
+						else if (ParseWord(s, "squiggle")) *w = TextDecorSquiggle;
 						break;
 					}
 					case PropWordWrap:

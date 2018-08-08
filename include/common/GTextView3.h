@@ -8,6 +8,7 @@
 #include "GDocView.h"
 #include "GUndo.h"
 #include "GDragAndDrop.h"
+#include "GCss.h"
 
 // use CRLF as opposed to just LF
 // internally it uses LF only... this is just to remember what to
@@ -56,12 +57,6 @@ public:
 		void RefreshLayout(size_t Start, ssize_t Len);
 
 	public:
-		enum StyleDecor
-		{
-			DecorNone,
-			DecorSquiggle,
-		};
-
 		/// The view the style is for
 		GTextView3 *View;
 		/// When you write several bits of code to do styling assign them
@@ -80,7 +75,7 @@ public:
 		GColour Fore, Back;
 		
 		/// Optional extra decor not supported by the fonts
-		StyleDecor Decor;
+		GCss::TextDecorType Decor;
 		/// Colour for the optional decor.
 		GColour DecorColour;
 
@@ -94,7 +89,7 @@ public:
 			Font = 0;
 			Start = -1;
 			Len = 0;
-			Decor = DecorNone;
+			Decor = GCss::TextDecorNone;
 			Data = 0;
 		}
 		

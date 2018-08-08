@@ -4842,7 +4842,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 							Ds.ShowVisibleTab(ShowWhiteSpace);
 							Ds.FDraw(pOut, FX, FY, 0, LineHasSelection);
 
-							if (NextStyle->Decor == GStyle::DecorSquiggle)
+							if (NextStyle->Decor == GCss::TextDecorSquiggle)
 							{
 								pOut->Colour(NextStyle->DecorColour.c24(), 24);
 								int x = FX >> GDisplayString::FShift;
