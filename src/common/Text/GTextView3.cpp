@@ -3394,7 +3394,7 @@ void GTextView3::DoContextMenu(GMouse &m)
 	GStyle *s = HitStyle(HitText(m.x, m.y, true));
 	if (s)
 	{
-		if (s->OnMenu(&RClick))
+		if (OnStyleMenu(s, &RClick))
 		{
 			RClick.AppendSeparator();
 		}
@@ -3522,7 +3522,7 @@ void GTextView3::DoContextMenu(GMouse &m)
 		{
 			if (s)
 			{
-				s->OnMenuClick(Id);
+				OnStyleMenuClick(s, Id);
 			}
 
 			if (Environment)
@@ -3554,7 +3554,7 @@ void GTextView3::OnMouseClick(GMouse &m)
 				GStyle *s = HitStyle(Hit);
 				if (s)
 				{
-					Processed = s->OnMouseClick(&m);
+					Processed = OnStyleClick(s, &m);
 				}
 			}
 

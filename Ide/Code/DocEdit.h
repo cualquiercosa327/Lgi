@@ -17,7 +17,10 @@ enum SourceType
 	SrcHtml,
 };
 
-class DocEdit : public GTextView3, public GDocumentEnv
+class DocEdit :
+	public GTextView3,
+	public GDocumentEnv,
+	public LThread
 {
 	IdeDoc *Doc;
 	int CurLine;
@@ -29,6 +32,14 @@ class DocEdit : public GTextView3, public GDocumentEnv
 		KNone,
 		KLang,
 		KType
+	};
+
+	enum ThreadState
+	{
+		KWaiting,
+		KStyling,
+		KCancel,
+		KExiting,
 	};
 
 	struct Node
@@ -62,6 +73,15 @@ class DocEdit : public GTextView3, public GDocumentEnv
 	};
 
 	Node Root;
+	LThreadEvent Event;
+	// Lock before access:
+		ThreadState ParentState, WorkerState;
+		size_t PourStart;
+		ssize_t PourSize;
+		GAutoPtr<GArray<char16>> StyleIn;
+		GArray<GStyle> StylesOut;
+	// EndLock
+	int Main();
 
 	// Full refresh triggers
 	int RefreshSize;
@@ -83,6 +103,8 @@ public:
 	DocEdit(IdeDoc *d, GFontType *f);
 	~DocEdit();
 
+	char *Name() { return GTextView3::Name(); }
+	bool Name(const char *s) { return GTextView3::Name(s); }
 	bool SetPourEnabled(bool b);
 	int GetTopPaddingPx();
 	void InvalidateLine(int Idx);

@@ -82,22 +82,36 @@ public:
 		/// Application base data
 		char *Data;
 
-		GStyle(GTextViewStyleOwners owner)
+		GStyle(GTextViewStyleOwners owner = STYLE_NONE)
 		{
 			Owner = owner;
-			View = 0;
-			Font = 0;
+			View = NULL;
+			Font = NULL;
 			Start = -1;
 			Len = 0;
 			Decor = GCss::TextDecorNone;
-			Data = 0;
+			Data = NULL;
 		}
 		
+		GStyle &Construct(GTextView3 *view, GTextViewStyleOwners owner)
+		{
+			View = view;
+			Owner = owner;
+			Font = NULL;
+			Start = -1;
+			Len = 0;
+			Decor = GCss::TextDecorNone;
+			Data = NULL;
+			return *this;
+		}
+
+		/*
 		virtual ~GStyle() {}
 
 		virtual bool OnMouseClick(GMouse *m) { return false; }
 		virtual bool OnMenu(GSubMenu *m) { return false; }
 		virtual void OnMenuClick(int i) {}
+		*/
 
 		#ifdef UNICODE
 		typedef char16 *CURSOR_CHAR;
@@ -385,6 +399,9 @@ public:
 	virtual void OnEnter(GKey &k);
 	virtual void OnUrl(char *Url);
 	virtual void DoContextMenu(GMouse &m);
+	virtual bool OnStyleClick(GStyle *style, GMouse *m) { return false; }
+	virtual bool OnStyleMenu(GStyle *style, GSubMenu *m) { return false; }
+	virtual void OnStyleMenuClick(GStyle *style, int i) {}
 };
 
 #endif

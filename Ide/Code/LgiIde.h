@@ -45,6 +45,9 @@ enum IdeMessages
 	/// Send a file to the worker thread...
 	/// GAutoPtr<GString::Array> Paths((GString::Array*)Msg->A());
 	M_FIND_SYM_INC_PATHS,
+
+	/// Styling is finished
+	M_STYLING_DONE,
 };
 
 #define ICON_PROJECT			0

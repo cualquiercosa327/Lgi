@@ -12,7 +12,11 @@ int DocEdit::LeftMarginPx = EDIT_LEFT_MARGIN;
 
 GAutoPtr<GDocFindReplaceParams> GlobalFindReplace;
 
-DocEdit::DocEdit(IdeDoc *d, GFontType *f) : GTextView3(IDC_EDIT, 0, 0, 100, 100, f)
+DocEdit::DocEdit(IdeDoc *d, GFontType *f) :
+	ParentState(KWaiting), WorkerState(KWaiting),
+	GTextView3(IDC_EDIT, 0, 0, 100, 100, f),
+	LThread("DocEdit.Style.Thread"),
+	Event("DocEdit.Style.Event")
 {
 	RefreshSize = 0;
 	RefreshEdges = NULL;
@@ -48,10 +52,15 @@ DocEdit::DocEdit(IdeDoc *d, GFontType *f) : GTextView3(IDC_EDIT, 0, 0, 100, 100,
 		
 	SetWrapType(TEXTED_WRAP_NONE);
 	SetEnv(this);
+	Run();
 }
 	
 DocEdit::~DocEdit()
 {
+	ParentState = KExiting;
+	Event.Signal();
+	while (!IsExited())
+		LgiSleep(1);
 	SetEnv(0);
 }
 

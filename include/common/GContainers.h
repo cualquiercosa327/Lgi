@@ -816,6 +816,24 @@ public:
 		VALIDATE();
 	}
 
+	template<typename T>
+	void _Swap(T &a, T &b)
+	{
+		T tmp = a;
+		a = b;
+		b = tmp;
+	}
+
+	void Swap(List<T> &other)
+	{
+		_Swap(FirstObj, other.FirstObj);
+		_Swap(LastObj, other.LastObj);
+		_Swap(Items, other.Items);
+		_Swap(Local.Lst, other.Local.Lst);
+		_Swap(Local.i, other.Local.i);
+		_Swap(Local.Cur, other.Local.Cur);
+	}
+
 	/// Assign the contents of another list to this one
 	#if 0
 	List<T> &operator=(const List<T> &lst)
