@@ -92,10 +92,7 @@ void DocEdit::OnApplyStyles()
 	if (LMutex::Lock(_FL))
 	{
 		p.Add("Insert");
-		for (auto s : Params.Styles)
-		{
-			Style.Insert(new GStyle(s));
-		}
+		Style.Swap(Params.Styles);
 
 		p.Add("Inval");
 		if (Params.Dirty.Valid())
@@ -167,6 +164,8 @@ int DocEdit::Main()
 
 void DocEdit::StyleCpp(StylingParams &p)
 {
+	GProfile Prof("DocEdit::StyleCpp");
+
 	if (!p.Text.Length())
 		return;
 
@@ -174,7 +173,9 @@ void DocEdit::StyleCpp(StylingParams &p)
 	char16 *s = Text;
 	char16 *e = s + p.Text.Length();
 		
-	GArray<GStyle> Out;
+	Prof.Add("Scan");
+
+	LUnrolledList<GStyle> Out;
 	for (; ParentState != KCancel && s < e; s++)
 	{
 		// uint64 Start = LgiMicroTime();
@@ -354,20 +355,22 @@ void DocEdit::StyleCpp(StylingParams &p)
 	*/
 
 	#if COMP_STYLE
+	Prof.Add("Compare");
+
 	GStyle Vis(STYLE_NONE);
 	if (GetVisible(Vis) && ParentState != KCancel)
 	{
 		GArray<GStyle*> Old, Cur;
 		for (auto s : PrevStyle)
 		{
-			if (s.Overlap(&Vis))
+			if (s.Overlap(Vis))
 				Old.Add(&s);
 			else if (Old.Length())
 				break;
 		}
 		for (auto s : Out)
 		{
-			if (s.Overlap(&Vis))
+			if (s.Overlap(Vis))
 				Cur.Add(&s);
 			else if (Cur.Length())
 				break;
@@ -442,7 +445,7 @@ void DocEdit::StylePython(StylingParams &p)
 {
 	char16 *e = Text + Size;
 		
-	Style.DeleteObjects();
+	Style.Empty();
 	for (char16 *s = Text; s < e; s++)
 	{
 		switch (*s)
@@ -571,7 +574,7 @@ void DocEdit::StyleDefault(StylingParams &p)
 {
 	char16 *e = Text + Size;
 		
-	Style.DeleteObjects();
+	Style.Empty();
 	for (char16 *s = Text; s < e; s++)
 	{
 		switch (*s)
@@ -736,7 +739,7 @@ void DocEdit::StyleXml(StylingParams &p)
 {
 	char16 *e = Text + Size;
 		
-	Style.DeleteObjects();
+	Style.Empty();
 	for (char16 *s = Text; s < e; s++)
 	{
 		switch (*s)
@@ -899,7 +902,7 @@ void DocEdit::StyleHtml(StylingParams &p)
 {
 	char16 *e = Text + Size;
 
-	Style.DeleteObjects();
+	Style.Empty();
 
 	char *Ext = LgiGetExtension(Doc->GetFileName());
 	HtmlType Type = Ext && !stricmp(Ext, "js") ? CodePhp : CodeHtml;

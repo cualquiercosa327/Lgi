@@ -78,7 +78,7 @@ class DocEdit :
 		size_t PourStart;
 		ssize_t PourSize;
 		GArray<char16> Text;
-		GArray<GStyle> Styles;
+		LUnrolledList<GStyle> Styles;
 		GRect Dirty;
 
 		StylingParams(GTextView3 *view)
@@ -113,7 +113,7 @@ class DocEdit :
 	// EndLock
 	// Thread only
 		Node Root;
-		GArray<GStyle> PrevStyle;
+		LUnrolledList<GStyle> PrevStyle;
 	// End Thread only
 
 	// Styling functions..

@@ -428,7 +428,7 @@ GTextView3::GTextView3(	int Id,
 GTextView3::~GTextView3()
 {
 	Line.DeleteObjects();
-	Style.DeleteObjects();
+	Style.Empty();
 
 	DeleteArray(TextCache);
 	DeleteArray(Text);
@@ -1157,17 +1157,17 @@ bool GTextView3::InsertStyle(GAutoPtr<GStyle> s)
 	if (Style.Length() > 0)
 	{
 		// Optimize for last in the list
-		GStyle *Last = Style.Last();
-		if (s->Start >= Last->Start + Last->Len)
+		auto Last = Style.rbegin();
+		if (s->Start >= Last->End())
 		{
-			Style.Insert(s.Release());
+			Style.Insert(*s);
 			return true;
 		}
 	}
 
-	for (GStyle *i=Style.First(); i; i=Style.Next(), n++)
+	for (auto i = Style.begin(); i != Style.end(); i++)
 	{
-		if (s->Overlap(i))
+		if (s->Overlap(*i))
 		{
 			if (s->Owner > i->Owner)
 			{
@@ -1177,31 +1177,32 @@ bool GTextView3::InsertStyle(GAutoPtr<GStyle> s)
 			else
 			{
 				// Replace mode...
-				Style.Delete(i);
-				Style.Insert(s.Release(), n);
+				*i = *s;
 				return true;
 			}
 		}
 
 		if (s->Start >= Last && s->Start < i->Start)
 		{
-			Style.Insert(s.Release(), n);
+			Style.Insert(*s, i);
 			return true;
 		}
-
-		Last = i->Start;
 	}
 
-	Style.Insert(s.Release());
+	Style.Insert(*s);
 	return true;
 }
 
-GTextView3::GStyle *GTextView3::GetNextStyle(ssize_t Where)
+GTextView3::GStyle *GTextView3::GetNextStyle(StyleIter &s, ssize_t Where)
 {
-	GStyle *s = (Where >= 0) ? Style.First() : Style.Next();
-	while (s)
+	if (Where >= 0)
+		s = Style.begin();
+	else
+		s++;
+
+	while (s != Style.end())
 	{
-		// determin whether style is relevent..
+		// determine whether style is relevant..
 		// styles in the selected region are ignored
 		ssize_t Min = MIN(SelStart, SelEnd);
 		ssize_t Max = MAX(SelStart, SelEnd);
@@ -1210,20 +1211,20 @@ GTextView3::GStyle *GTextView3::GetNextStyle(ssize_t Where)
 			s->Start+s->Len < Max)
 		{
 			// style is completely inside selection: ignore
-			s = Style.Next();
+			s++;
 		}
 		else if (Where >= 0 &&
 			s->Start+s->Len < Where)
 		{
-			s = Style.Next();
+			s++;
 		}
 		else
 		{
-			return s;
+			return &(*s);
 		}
 	}
 
-	return 0;
+	return NULL;
 }
 
 class GUrl : public GTextView3::GStyle
@@ -1322,15 +1323,15 @@ public:
 
 GTextView3::GStyle *GTextView3::HitStyle(ssize_t i)
 {
-	for (GStyle *s=Style.First(); s; s=Style.Next())
+	for (auto &s : Style)
 	{
-		if (i >= s->Start && i < s->Start+s->Len)
+		if (i >= s.Start && i < s.End())
 		{
-			return s;
+			return &s;
 		}
 	}
 
-	return 0;	
+	return NULL;
 }
 
 void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
@@ -1360,7 +1361,7 @@ void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
 	}
 
 	// Delete all the styles that we own inside the changed area
-	for (GStyle *s = Style.First(); s; )
+	for (StyleIter s = Style.begin(); s != Style.end();)
 	{
 		if (s->Owner == 0)
 		{
@@ -1373,9 +1374,7 @@ void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
 
 				if (s->Overlap(Start, EditSize < 0 ? -EditSize : EditSize))
 				{
-					Style.Delete();
-					DeleteObj(s);
-					s = Style.Current();
+					Style.Delete(s);
 					continue;
 				}
 			}
@@ -1383,9 +1382,7 @@ void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
 			{
 				if (s->Overlap(Start, -EditSize))
 				{
-					Style.Delete();
-					DeleteObj(s);
-					s = Style.Current();
+					Style.Delete(s);
 					continue;
 				}
 				
@@ -1395,8 +1392,8 @@ void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
 				}
 			}
 		}
-		
-		s = Style.Next();
+
+		s++;
 	}
 
 	if (UrlDetect)
@@ -2905,18 +2902,12 @@ bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool Selec
 	#if FEATURE_HILIGHT_ALL_MATCHES
 
 	// Clear existing styles for matches
-	for (GStyle *s = Style.First(); s; )
+	for (StyleIter s = Style.begin(); s != Style.end(); )
 	{
 		if (s->Owner == STYLE_FIND_MATCHES)
-		{
 			Style.Delete(s);
-			DeleteObj(s);
-			s = Style.Current();
-		}
 		else
-		{
-			s = Style.Next();
-		}
+			s++;
 	}
 
 	ssize_t FindLen = StrlenW(Find);
@@ -4719,7 +4710,8 @@ void GTextView3::OnPaint(GSurface *pDC)
 				NextSelection = SelMax;
 			}
 
-			GStyle *NextStyle = GetNextStyle((l) ? l->Start : 0);
+			StyleIter Si = Style.begin();
+			GStyle *NextStyle = GetNextStyle(Si, (l) ? l->Start : 0);
 
 			DocOffset = (l) ? l->r.y1 : 0;
 
@@ -4778,7 +4770,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 					// check for style change
 					if (NextStyle &&
 						NextStyle->End() <= l->Start)
-						NextStyle = GetNextStyle();
+						NextStyle = GetNextStyle(Si);
 					if (NextStyle)
 					{
 						// start
@@ -4880,7 +4872,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 						Cur+Block >= NextStyle->Start+NextStyle->Len)
 					{
 						// end of this styled block
-						NextStyle = GetNextStyle();
+						NextStyle = GetNextStyle(Si);
 					}
 
 					if (NextSelection == Cur+Block)

@@ -9,6 +9,7 @@
 #include "GUndo.h"
 #include "GDragAndDrop.h"
 #include "GCss.h"
+#include "LUnrolledList.h"
 
 // use CRLF as opposed to just LF
 // internally it uses LF only... this is just to remember what to
@@ -148,9 +149,9 @@ public:
 		}
 
 		/// Returns true if this style overlaps the position of 's'
-		bool Overlap(GStyle *s)
+		bool Overlap(GStyle &s)
 		{
-			return Overlap(s->Start, s->Len);
+			return Overlap(s.Start, s.Len);
 		}
 
 		/// Returns true if this style overlaps the position of 's'
@@ -247,7 +248,8 @@ protected:
 	bool PartialPour;
 
 	List<GTextLine> Line;
-	List<GStyle> Style;		// sorted in 'Start' order
+	LUnrolledList<GStyle> Style;		// sorted in 'Start' order
+	typedef LUnrolledList<GStyle>::Iter StyleIter;
 
 	// For ::Name(...)
 	char *TextCache;
@@ -273,7 +275,7 @@ protected:
 	
 	// styles
 	bool InsertStyle(GAutoPtr<GStyle> s);
-	GStyle *GetNextStyle(ssize_t Where = -1);
+	GStyle *GetNextStyle(StyleIter &it, ssize_t Where = -1);
 	GStyle *HitStyle(ssize_t i);
 	int GetColumn();
 	int SpaceDepth(char16 *Start, char16 *End);
