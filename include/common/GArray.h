@@ -621,19 +621,11 @@ public:
 		return Ptr;
 	}
 
-	template<typename T>
-	void _Swap(T &a, T &b)
-	{
-		T tmp = a;
-		a = b;
-		b = tmp;
-	}
-
 	void Swap(GArray<Type> &other)
 	{
-		_Swap(p, other.p);
-		_Swap(len, other.len);
-		_Swap(alloc, other.alloc);
+		LSwap(p, other.p);
+		LSwap(len, other.len);
+		LSwap(alloc, other.alloc);
 	}
 
 	/// Swaps a range of elements between this array and 'b'

@@ -72,16 +72,59 @@ class DocEdit :
 		}
 	};
 
-	Node Root;
-	LThreadEvent Event;
-	// Lock before access:
-		ThreadState ParentState, WorkerState;
+	struct StylingParams
+	{
+		GTextView3 *View;
 		size_t PourStart;
 		ssize_t PourSize;
-		GAutoPtr<GArray<char16>> StyleIn;
-		GArray<GStyle> StylesOut;
+		GArray<char16> Text;
+		GArray<GStyle> Styles;
+		GRect Dirty;
+
+		StylingParams(GTextView3 *view)
+		{
+			View = view;
+		}
+
+		void StyleString(char16 *&s, char16 *e, GColour c)
+		{
+			auto st = Styles.New().Construct(View, STYLE_IDE);
+			st.Start = s - Text.AddressOf();
+			st.Font = View->GetFont();
+
+			char16 Delim = *s++;
+			while (s < e && *s != Delim)
+			{
+				if (*s == '\\')
+					s++;
+				s++;
+			}
+
+			st.Len = (s - Text.AddressOf()) - st.Start + 1;
+			st.Fore = c;
+		}
+	};
+
+	// Styling data...
+	LThreadEvent Event;
+	ThreadState ParentState, WorkerState;
+	// Lock before access:
+		StylingParams Params;
 	// EndLock
+	// Thread only
+		Node Root;
+		GArray<GStyle> PrevStyle;
+	// End Thread only
+
+	// Styling functions..
 	int Main();
+	void OnApplyStyles();
+	void StyleCpp(StylingParams &p);
+	void StylePython(StylingParams &p);
+	void StyleDefault(StylingParams &p);
+	void StyleXml(StylingParams &p);
+	void StyleHtml(StylingParams &p);
+	void AddKeywords(const char **keys, bool IsType);
 
 	// Full refresh triggers
 	int RefreshSize;
@@ -109,15 +152,8 @@ public:
 	int GetTopPaddingPx();
 	void InvalidateLine(int Idx);
 	char *TemplateMerge(const char *Template, char *Name, List<char> *Params);
-	bool GetVisible(GStyle &s);
-	void StyleString(char16 *&s, char16 *e);
-	void StyleCpp(ssize_t Start, ssize_t EditSize);
-	void StylePython(ssize_t Start, ssize_t EditSize);
-	void StyleDefault(ssize_t Start, ssize_t EditSize);
-	void StyleXml(ssize_t Start, ssize_t EditSize);
 	GColour ColourFromType(HtmlType t);
-	void StyleHtml(ssize_t Start, ssize_t EditSize);
-	void AddKeywords(const char **keys, bool IsType);
+	bool GetVisible(GStyle &s);
 
 	// Overrides
 	bool AppendItems(GSubMenu *Menu, int Base) override;
@@ -126,6 +162,7 @@ public:
 	void OnMouseClick(GMouse &m) override;
 	bool OnKey(GKey &k) override;	
 	bool OnMenu(GDocView *View, int Id, void *Context) override;
+	GMessage::Result OnEvent(GMessage *m) override;
 	void SetCaret(size_t i, bool Select, bool ForceFullUpdate = false) override;
 	void PourStyle(size_t Start, ssize_t EditSize) override;
 	bool Pour(GRegion &r) override;

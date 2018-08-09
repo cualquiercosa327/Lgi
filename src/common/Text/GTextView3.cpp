@@ -3553,9 +3553,7 @@ void GTextView3::OnMouseClick(GMouse &m)
 
 				GStyle *s = HitStyle(Hit);
 				if (s)
-				{
 					Processed = OnStyleClick(s, &m);
-				}
 			}
 
 			if (!Processed && m.Double())

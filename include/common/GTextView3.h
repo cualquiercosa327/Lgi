@@ -92,6 +92,20 @@ public:
 			Decor = GCss::TextDecorNone;
 			Data = NULL;
 		}
+
+		GStyle(const GStyle &s)
+		{
+			Owner = s.Owner;
+			View = s.View;
+			Font = s.Font;
+			Start = s.Start;
+			Len = s.Len;
+			Decor = s.Decor;
+			Data = s.Data;
+			DecorColour = s.DecorColour;
+			Fore = s.Fore;
+			Back = s.Back;
+		}
 		
 		GStyle &Construct(GTextView3 *view, GTextViewStyleOwners owner)
 		{

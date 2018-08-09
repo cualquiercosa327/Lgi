@@ -16,7 +16,8 @@ DocEdit::DocEdit(IdeDoc *d, GFontType *f) :
 	ParentState(KWaiting), WorkerState(KWaiting),
 	GTextView3(IDC_EDIT, 0, 0, 100, 100, f),
 	LThread("DocEdit.Style.Thread"),
-	Event("DocEdit.Style.Event")
+	Event("DocEdit.Style.Event"),
+	Params(this)
 {
 	RefreshSize = 0;
 	RefreshEdges = NULL;
@@ -381,6 +382,18 @@ bool DocEdit::OnKey(GKey &k)
 	}
 
 	return GTextView3::OnKey(k); 
+}
+
+GMessage::Result DocEdit::OnEvent(GMessage *m)
+{
+	switch (m->Msg())
+	{
+		case M_STYLING_DONE:
+			OnApplyStyles();
+			break;
+	}
+
+	return GTextView3::OnEvent(m);
 }
 
 bool DocEdit::OnMenu(GDocView *View, int Id, void *Context)

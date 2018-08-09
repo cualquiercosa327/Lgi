@@ -816,22 +816,14 @@ public:
 		VALIDATE();
 	}
 
-	template<typename T>
-	void _Swap(T &a, T &b)
-	{
-		T tmp = a;
-		a = b;
-		b = tmp;
-	}
-
 	void Swap(List<T> &other)
 	{
-		_Swap(FirstObj, other.FirstObj);
-		_Swap(LastObj, other.LastObj);
-		_Swap(Items, other.Items);
-		_Swap(Local.Lst, other.Local.Lst);
-		_Swap(Local.i, other.Local.i);
-		_Swap(Local.Cur, other.Local.Cur);
+		LSwap(FirstObj, other.FirstObj);
+		LSwap(LastObj, other.LastObj);
+		LSwap(Items, other.Items);
+		LSwap(Local.Lst, other.Local.Lst);
+		LSwap(Local.i, other.Local.i);
+		LSwap(Local.Cur, other.Local.Cur);
 	}
 
 	/// Assign the contents of another list to this one

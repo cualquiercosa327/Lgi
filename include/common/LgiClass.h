@@ -296,4 +296,12 @@ public:
 	GAutoString Params;
 };
 
+template<typename T>
+void LSwap(T &a, T &b)
+{
+	T tmp = a;
+	a = b;
+	b = tmp;
+}
+
 #endif
