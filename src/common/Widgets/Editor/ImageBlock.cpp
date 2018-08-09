@@ -498,18 +498,12 @@ bool GRichTextPriv::ImageBlock::Load(const char *Src)
 	if (!FileName && !Stream)
 		return false;
 
-	ImageLoader *il = new ImageLoader(this);
-	if (!il)
-		return false;
-	ThreadHnd = il->GetHandle();
-	LgiAssert(ThreadHnd > 0);
-
 	if (Stream)
 	{
 		#if LOADER_THREAD_LOGGING
 		LgiTrace("%s:%i - Posting M_IMAGE_LOAD_STREAM\n", _FL);
 		#endif
-		if (PostThreadEvent(ThreadHnd, M_IMAGE_LOAD_STREAM, (GMessage::Param)Stream.Release(), (GMessage::Param) (FileName ? new GString(FileName) : NULL)))
+		if (PostThreadEvent(GetThreadHandle(), M_IMAGE_LOAD_STREAM, (GMessage::Param)Stream.Release(), (GMessage::Param) (FileName ? new GString(FileName) : NULL)))
 		{
 			UpdateThreadBusy(_FL, 1);
 			return true;
@@ -521,7 +515,7 @@ bool GRichTextPriv::ImageBlock::Load(const char *Src)
 		#if LOADER_THREAD_LOGGING
 		LgiTrace("%s:%i - Posting M_IMAGE_LOAD_FILE\n", _FL);
 		#endif
-		if (PostThreadEvent(ThreadHnd, M_IMAGE_LOAD_FILE, (GMessage::Param)new GString(FileName)))
+		if (PostThreadEvent(GetThreadHandle(), M_IMAGE_LOAD_FILE, (GMessage::Param)new GString(FileName)))
 		{
 			UpdateThreadBusy(_FL, 1);
 			return true;
@@ -657,23 +651,22 @@ bool GRichTextPriv::ImageBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia
 			DisplayImg->X() != SourceImg->X())
 		{
 			int Dx = DisplayImg->X();
-			int Sx = SourceImg->X();
-			Style.Printf(" style=\"width:%.0f%%\"", (double)Dx * 100 / Sx);
+			Style.Printf(" style=\"width:%ipx\"", Dx);
 		}
 		
 		if (Cm.Stream)
 		{
-			s.Print("<img%s src='", Style ? Style.Get() : "");
+			s.Print("<img%s src=\"", Style ? Style.Get() : "");
 			if (d->HtmlLinkAsCid)
 				s.Print("cid:%s", Cm.Id.Get());
 			else
 				s.Print("%s", Cm.FileName.Get());
-			s.Print("'>\n");
+			s.Print("\">\n");
 			return true;
 		}
 	}
 
-	s.Print("<img src='%s'>\n", Source.Get());
+	s.Print("<img src=\"%s\">\n", Source.Get());
 	return true;
 }
 
@@ -1298,9 +1291,11 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 			SetImage(Img);
 			break;
 		}
+		default:
+			return false;
 	}
 
-	return 0;
+	return true;
 }
 
 bool GRichTextPriv::ImageBlock::AddText(Transaction *Trans, ssize_t AtOffset, const uint32 *Str, ssize_t Chars, GNamedStyle *Style)

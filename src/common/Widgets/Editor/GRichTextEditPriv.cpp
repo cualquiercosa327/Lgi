@@ -1961,7 +1961,7 @@ bool GRichTextPriv::ToHtml(GArray<GDocView::ContentMedia> *Media)
 			"\t<meta name=\"charset\" content=\"utf-8\">\n");
 	
 	ZeroRefCounts();
-	for (unsigned i=0; i<Blocks.Length(); i++)
+	for (size_t i=0; i<Blocks.Length(); i++)
 	{
 		Blocks[i]->IncAllStyleRefs();
 	}
@@ -1975,7 +1975,7 @@ bool GRichTextPriv::ToHtml(GArray<GDocView::ContentMedia> *Media)
 	p.Print("</head>\n"
 			"<body>\n");
 		
-	for (unsigned i=0; i<Blocks.Length(); i++)
+	for (size_t i=0; i<Blocks.Length(); i++)
 	{
 		Block *b = Blocks[i];
 		b->ToHtml(p, Media);

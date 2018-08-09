@@ -218,7 +218,7 @@ GRichTextPriv::Block *GRichTextPriv::HorzRuleBlock::Clone()
 
 GMessage::Result GRichTextPriv::HorzRuleBlock::OnEvent(GMessage *Msg)
 {
-	return 0;
+	return false;
 }
 
 bool GRichTextPriv::HorzRuleBlock::AddText(Transaction *Trans, ssize_t AtOffset, const uint32 *Str, ssize_t Chars, GNamedStyle *Style)

@@ -1452,13 +1452,14 @@ GMessage::Result GRichTextPriv::TextBlock::OnEvent(GMessage *Msg)
 					AddText(t, e->Start, u.Get(), Strlen(u.Get()));
 					
 					d->AddTrans(t);
+					return true;
 				}
 			}
 			break;
 		}
 	}
 
-	return 0;
+	return false;
 }
 
 bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, ssize_t AtOffset, const uint32 *InStr, ssize_t InChars, GNamedStyle *Style)

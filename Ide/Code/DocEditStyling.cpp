@@ -81,6 +81,16 @@ LanguageParams LangParam[] =
 	{NULL, NULL, HtmlEdges}
 };
 
+DocEditStyling::DocEditStyling(DocEdit *view) : 
+	View(view),
+	ParentState(KWaiting), WorkerState(KWaiting),
+	LThread("DocEditStyling.Thread"),
+	LMutex("DocEditStyling.Lock"),
+	Event("DocEditStyling.Event"),
+	Params(view)
+{
+}
+
 void DocEdit::OnApplyStyles()
 {
 	GProfile p("OnApplyStyles");
@@ -89,34 +99,72 @@ void DocEdit::OnApplyStyles()
 
 	p.Add("Lock");
 
-	if (LMutex::Lock(_FL))
+	GTextView3::GStyle Vis(STYLE_NONE);
+	GetVisible(Vis);
+
+	if (DocEditStyling::Lock(_FL))
 	{
 		p.Add("Insert");
 		Style.Swap(Params.Styles);
 
 		p.Add("Inval");
-		if (Params.Dirty.Valid())
-			Invalidate(&Params.Dirty);
+
+		if (Params.Dirty.Start >= 0)
+		{
+			// LgiTrace("Visible rgn: %i + %i = %i\n", Vis.Start, Vis.Len, Vis.End());
+			// LgiTrace("Dirty rgn: %i + %i = %i\n", Dirty.Start, Dirty.Len, Dirty.End());
+
+			ssize_t CurLine = -1, DirtyStartLine = -1, DirtyEndLine = -1;
+			GetTextLine(Cursor, &CurLine);
+			GTextLine *Start = GetTextLine(Params.Dirty.Start, &DirtyStartLine);
+			GTextLine *End = GetTextLine(MIN(Size, Params.Dirty.End()), &DirtyEndLine);
+			if (CurLine >= 0 &&
+				DirtyStartLine >= 0 &&
+				DirtyEndLine >= 0)
+			{
+				// LgiTrace("Dirty lines %i, %i, %i\n", CurLine, DirtyStartLine, DirtyEndLine);
+					
+				if (DirtyStartLine != CurLine ||
+					DirtyEndLine != CurLine)
+				{
+					GRect c = GetClient();
+					GRect r(c.x1,
+							Start->r.Valid() ? DocToScreen(Start->r).y1 : c.y1,
+							c.x2,
+							Params.Dirty.End() >= Vis.End() ? c.y2 : DocToScreen(End->r).y2);
+						
+					// LgiTrace("Cli: %s, CursorLine: %s, Start rgn: %s, End rgn: %s, Update: %s\n", c.GetStr(), CursorLine->r.GetStr(), Start->r.GetStr(), End->r.GetStr(), r.GetStr());
+					Invalidate(&r);
+				}						
+			}
+			else
+			{
+				// LgiTrace("No Change: %i, %i, %i\n", CurLine, DirtyStartLine, DirtyEndLine);
+			}
+
+		}
 		else
+		{
 			Invalidate();
+		}
 
 		p.Add("Unlock");
-		LMutex::Unlock();
+		DocEditStyling::Unlock();
 	}
 }
 
-int DocEdit::Main()
+int DocEditStyling::Main()
 {
 	LThreadEvent::WaitStatus s;
 	while (ParentState != KExiting && (s = Event.Wait()) == LThreadEvent::WaitSignaled)
 	{
-		StylingParams p(this);
-		if (LMutex::Lock(_FL))
+		StylingParams p(View);
+		if (Lock(_FL))
 		{
-			Params.Dirty.ZOff(-1, -1);
+			Params.Dirty.Empty();
 			Params.Styles.Empty();
 			p = Params;
-			LMutex::Unlock();
+			Unlock();
 		}
 
 		WorkerState = KStyling;
@@ -142,7 +190,7 @@ int DocEdit::Main()
 		if (ParentState != KCancel)
 		{
 			LgiTrace("DocEdit.Worker finished style...\n");
-			PostEvent(M_STYLING_DONE);
+			View->PostEvent(M_STYLING_DONE);
 		}
 		else
 		{
@@ -162,7 +210,7 @@ int DocEdit::Main()
 	return 0;
 }
 
-void DocEdit::StyleCpp(StylingParams &p)
+void DocEditStyling::StyleCpp(StylingParams &p)
 {
 	GProfile Prof("DocEdit::StyleCpp");
 
@@ -175,7 +223,7 @@ void DocEdit::StyleCpp(StylingParams &p)
 		
 	Prof.Add("Scan");
 
-	LUnrolledList<GStyle> Out;
+	LUnrolledList<GTextView3::GStyle> Out;
 	for (; ParentState != KCancel && s < e; s++)
 	{
 		// uint64 Start = LgiMicroTime();
@@ -208,9 +256,9 @@ void DocEdit::StyleCpp(StylingParams &p)
 
 				if (IsWhite)
 				{
-					auto &st = Out.New().Construct(this, STYLE_IDE);
+					auto &st = Out.New().Construct(View, STYLE_IDE);
 					st.Start = s - Text;
-					st.Font = GetFont();
+					st.Font = View->GetFont();
 							
 					char LastNonWhite = 0;
 					while (s < e)
@@ -250,10 +298,10 @@ void DocEdit::StyleCpp(StylingParams &p)
 			{
 				if (s == Text || !IsSymbolChar(s[-1]))
 				{
-					auto &st = Out.New().Construct(this, STYLE_IDE);
+					auto &st = Out.New().Construct(View, STYLE_IDE);
 
 					st.Start = s - Text;
-					st.Font = GetFont();
+					st.Font = View->GetFont();
 
 					bool IsHex = false;
 					if (s[0] == '0' &&
@@ -298,9 +346,9 @@ void DocEdit::StyleCpp(StylingParams &p)
 			{
 				if (s[1] == '/')
 				{
-					auto &st = Out.New().Construct(this, STYLE_IDE);
+					auto &st = Out.New().Construct(View, STYLE_IDE);
 					st.Start = s - Text;
-					st.Font = GetFont();
+					st.Font = View->GetFont();
 					while (s < e && *s != '\n')
 						s++;
 					st.Len = (s - Text) - st.Start;
@@ -309,9 +357,9 @@ void DocEdit::StyleCpp(StylingParams &p)
 				}
 				else if (s[1] == '*')
 				{
-					auto &st = Out.New().Construct(this, STYLE_IDE);
+					auto &st = Out.New().Construct(View, STYLE_IDE);
 					st.Start = s - Text;
-					st.Font = GetFont();
+					st.Font = View->GetFont();
 					s += 2;
 					while (s < e && !(s[-2] == '*' && s[-1] == '/'))
 						s++;
@@ -330,9 +378,9 @@ void DocEdit::StyleCpp(StylingParams &p)
 
 					if (n && n->Type)
 					{
-						auto &st = Out.New().Construct(this, STYLE_IDE);
+						auto &st = Out.New().Construct(View, STYLE_IDE);
 						st.Start = s - Text;
-						st.Font = n->Type == KType ? Font : Bold;
+						st.Font = n->Type == KType ? View->GetFont() : View->GetBold();
 						st.Len = e - s;
 						st.Fore = n->Type == KType ? ColourType : ColourKeyword;
 					}
@@ -357,10 +405,10 @@ void DocEdit::StyleCpp(StylingParams &p)
 	#if COMP_STYLE
 	Prof.Add("Compare");
 
-	GStyle Vis(STYLE_NONE);
-	if (GetVisible(Vis) && ParentState != KCancel)
+	GTextView3::GStyle Vis(STYLE_NONE);
+	if (View->GetVisible(Vis) && ParentState != KCancel)
 	{
-		GArray<GStyle*> Old, Cur;
+		GArray<GTextView3::GStyle*> Old, Cur;
 		for (auto s : PrevStyle)
 		{
 			if (s.Overlap(Vis))
@@ -376,11 +424,10 @@ void DocEdit::StyleCpp(StylingParams &p)
 				break;
 		}
 
-		GStyle Dirty(STYLE_NONE);
 		for (int o=0; o<Old.Length(); o++)
 		{
 			bool Match = false;
-			GStyle *OldStyle = Old[o];
+			GTextView3::GStyle *OldStyle = Old[o];
 			for (int n=0; n<Cur.Length(); n++)
 			{
 				if (*OldStyle == *Cur[n])
@@ -392,60 +439,26 @@ void DocEdit::StyleCpp(StylingParams &p)
 				}
 			}
 			if (!Match)
-				Dirty.Union(*OldStyle);
+				p.Dirty.Union(*OldStyle);
 		}
 		for (int n=0; n<Cur.Length(); n++)
 		{
-			Dirty.Union(*Cur[n]);
+			p.Dirty.Union(*Cur[n]);
 		}
 
 		PrevStyle = Out;
-
-		if (Dirty.Start >= 0)
-		{
-			// LgiTrace("Visible rgn: %i + %i = %i\n", Vis.Start, Vis.Len, Vis.End());
-			// LgiTrace("Dirty rgn: %i + %i = %i\n", Dirty.Start, Dirty.Len, Dirty.End());
-
-			ssize_t CurLine = -1, DirtyStartLine = -1, DirtyEndLine = -1;
-			GetTextLine(Cursor, &CurLine);
-			GTextLine *Start = GetTextLine(Dirty.Start, &DirtyStartLine);
-			GTextLine *End = GetTextLine(MIN(Size, Dirty.End()), &DirtyEndLine);
-			if (CurLine >= 0 &&
-				DirtyStartLine >= 0 &&
-				DirtyEndLine >= 0)
-			{
-				// LgiTrace("Dirty lines %i, %i, %i\n", CurLine, DirtyStartLine, DirtyEndLine);
-					
-				if (DirtyStartLine != CurLine ||
-					DirtyEndLine != CurLine)
-				{
-					GRect c = GetClient();
-					GRect r(c.x1,
-							Start->r.Valid() ? DocToScreen(Start->r).y1 : c.y1,
-							c.x2,
-							Dirty.End() >= Vis.End() ? c.y2 : DocToScreen(End->r).y2);
-						
-					// LgiTrace("Cli: %s, CursorLine: %s, Start rgn: %s, End rgn: %s, Update: %s\n", c.GetStr(), CursorLine->r.GetStr(), Start->r.GetStr(), End->r.GetStr(), r.GetStr());
-					p.Dirty = r;
-				}						
-			}
-			else
-			{
-				// LgiTrace("No Change: %i, %i, %i\n", CurLine, DirtyStartLine, DirtyEndLine);
-			}
-
-		}
 	}	
 	#endif
 
 	p.Styles.Swap(Out);
 }
 
-void DocEdit::StylePython(StylingParams &p)
+void DocEditStyling::StylePython(StylingParams &p)
 {
-	char16 *e = Text + Size;
+	char16 *Text = p.Text.AddressOf();
+	char16 *e = Text + p.Text.Length();
 		
-	Style.Empty();
+	auto &Style = p.Styles;
 	for (char16 *s = Text; s < e; s++)
 	{
 		switch (*s)
@@ -457,19 +470,14 @@ void DocEdit::StylePython(StylingParams &p)
 			case '#':
 			{
 				// Single line comment
-				GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
-				if (st)
-				{
-					st->View = this;
-					st->Start = s - Text;
-					st->Font = GetFont();
-					while (s < e && *s != '\n')
-						s++;
-					st->Len = (s - Text) - st->Start;
-					st->Fore = ColourComment;
-					InsertStyle(st);
-					s--;
-				}
+				auto &st = Style.New().Construct(View, STYLE_IDE);
+				st.Start = s - Text;
+				st.Font = View->GetFont();
+				while (s < e && *s != '\n')
+					s++;
+				st.Len = (s - Text) - st.Start;
+				st.Fore = ColourComment;
+				s--;
 				break;
 			}
 			case '0':
@@ -485,49 +493,44 @@ void DocEdit::StylePython(StylingParams &p)
 			{
 				if (s == Text || !IsSymbolChar(s[-1]))
 				{
-					GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
-					if (st)
-					{
-						st->View = this;
-						st->Start = s - Text;
-						st->Font = GetFont();
+					auto &st = Style.New().Construct(View, STYLE_IDE);
+					st.Start = s - Text;
+					st.Font = View->GetFont();
 
-						bool IsHex = false;
-						if (s[0] == '0' &&
-							ToLower(s[1]) == 'x')
-						{
-							s += 2;
-							IsHex = true;
-						}
+					bool IsHex = false;
+					if (s[0] == '0' &&
+						ToLower(s[1]) == 'x')
+					{
+						s += 2;
+						IsHex = true;
+					}
 							
-						while (s < e)
-						{
-							if
+					while (s < e)
+					{
+						if
+						(
+							IsDigit(*s)
+							||
+							*s == '.'
+							||
 							(
-								IsDigit(*s)
-								||
-								*s == '.'
-								||
+								IsHex
+								&&
 								(
-									IsHex
-									&&
-									(
-										(*s >= 'a' && *s <= 'f')
-										||
-										(*s >= 'A' && *s <= 'F')
-									)
+									(*s >= 'a' && *s <= 'f')
+									||
+									(*s >= 'A' && *s <= 'F')
 								)
 							)
-								s++;
-							else
-								break;
-						}
-							
-						st->Len = (s - Text) - st->Start;
-						st->Fore = ColourLiteral;
-						InsertStyle(st);
-						s--;
+						)
+							s++;
+						else
+							break;
 					}
+							
+					st.Len = (s - Text) - st.Start;
+					st.Fore = ColourLiteral;
+					s--;
 				}
 				while (s < e - 1 && IsDigit(s[1]))
 					s++;
@@ -570,11 +573,12 @@ void DocEdit::StylePython(StylingParams &p)
 	}
 }
 
-void DocEdit::StyleDefault(StylingParams &p)
+void DocEditStyling::StyleDefault(StylingParams &p)
 {
-	char16 *e = Text + Size;
+	char16 *Text = p.Text.AddressOf();
+	char16 *e = Text + p.Text.Length();
 		
-	Style.Empty();
+	auto &Style = p.Styles;
 	for (char16 *s = Text; s < e; s++)
 	{
 		switch (*s)
@@ -583,56 +587,46 @@ void DocEdit::StyleDefault(StylingParams &p)
 			case '\'':
 			case '`':
 			{
-				GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
-				if (st)
+				auto &st = Style.New().Construct(View, STYLE_IDE);
+				bool Quoted = s > Text && s[-1] == '\\';
+
+				st.Start = s - Text - Quoted;
+				st.Font = View->GetFont();
+
+				char16 Delim = *s++;
+				while
+				(
+					s < e
+					&&
+					*s != Delim
+					&&
+					!(Delim == '`' && *s == '\'')
+				)
 				{
-					bool Quoted = s > Text && s[-1] == '\\';
-
-					st->View = this;
-					st->Start = s - Text - Quoted;
-					st->Font = GetFont();
-
-					char16 Delim = *s++;
-					while
-					(
-						s < e
-						&&
-						*s != Delim
-						&&
-						!(Delim == '`' && *s == '\'')
-					)
+					if (*s == '\\')
 					{
-						if (*s == '\\')
-						{
-							if (!Quoted || s[1] != Delim)
-								s++;
-						}
-						else if (*s == '\n')
-							break;
-						s++;
+						if (!Quoted || s[1] != Delim)
+							s++;
 					}
-					st->Len = (s - Text) - st->Start + 1;
-					st->Fore = ColourLiteral;
-					InsertStyle(st);
+					else if (*s == '\n')
+						break;
+					s++;
 				}
+				st.Len = (s - Text) - st.Start + 1;
+				st.Fore = ColourLiteral;
 				break;
 			}
 			case '#':
 			{
 				// Single line comment
-				GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
-				if (st)
-				{
-					st->View = this;
-					st->Start = s - Text;
-					st->Font = GetFont();
-					while (s < e && *s != '\n')
-						s++;
-					st->Len = (s - Text) - st->Start;
-					st->Fore = ColourComment;
-					InsertStyle(st);
-					s--;
-				}
+				auto &st = Style.New().Construct(View, STYLE_IDE);
+				st.Start = s - Text;
+				st.Font = View->GetFont();
+				while (s < e && *s != '\n')
+					s++;
+				st.Len = (s - Text) - st.Start;
+				st.Fore = ColourComment;
+				s--;
 				break;
 			}
 			case '0':
@@ -648,51 +642,46 @@ void DocEdit::StyleDefault(StylingParams &p)
 			{
 				if (s == Text || !IsSymbolChar(s[-1]))
 				{
-					GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
-					if (st)
-					{
-						st->View = this;
-						st->Start = s - Text - ((s > Text && strchr("-+", s[-1])) ? 1 : 0);
-						st->Font = GetFont();
+					auto &st = Style.New().Construct(View, STYLE_IDE);
+					st.Start = s - Text - ((s > Text && strchr("-+", s[-1])) ? 1 : 0);
+					st.Font = View->GetFont();
 
-						bool IsHex = false;
-						if (s[0] == '0' &&
-							ToLower(s[1]) == 'x')
-						{
-							s += 2;
-							IsHex = true;
-						}
+					bool IsHex = false;
+					if (s[0] == '0' &&
+						ToLower(s[1]) == 'x')
+					{
+						s += 2;
+						IsHex = true;
+					}
 							
-						while (s < e)
-						{
-							if
+					while (s < e)
+					{
+						if
+						(
+							IsDigit(*s)
+							||
+							*s == '.'
+							||
 							(
-								IsDigit(*s)
-								||
-								*s == '.'
-								||
+								IsHex
+								&&
 								(
-									IsHex
-									&&
-									(
-										(*s >= 'a' && *s <= 'f')
-										||
-										(*s >= 'A' && *s <= 'F')
-									)
+									(*s >= 'a' && *s <= 'f')
+									||
+									(*s >= 'A' && *s <= 'F')
 								)
 							)
-								s++;
-							else
-								break;
-						}
-						if (*s == '%')
+						)
 							s++;
-							
-						st->Len = (s - Text) - st->Start;
-						st->Fore = ColourLiteral;
-						InsertStyle(st);
-						s--;
+						else
+							break;
 					}
+					if (*s == '%')
+						s++;
+							
+					st.Len = (s - Text) - st.Start;
+					st.Fore = ColourLiteral;
+					s--;
 				}
 				while (s < e - 1 && IsDigit(s[1]))
 					s++;
@@ -735,11 +724,12 @@ void DocEdit::StyleDefault(StylingParams &p)
 	}
 }
 
-void DocEdit::StyleXml(StylingParams &p)
+void DocEditStyling::StyleXml(StylingParams &p)
 {
-	char16 *e = Text + Size;
+	char16 *Text = p.Text.AddressOf();
+	char16 *e = Text + p.Text.Length();
 		
-	Style.Empty();
+	auto &Style = p.Styles;
 	for (char16 *s = Text; s < e; s++)
 	{
 		switch (*s)
@@ -761,49 +751,44 @@ void DocEdit::StyleXml(StylingParams &p)
 			{
 				if (s == Text || !IsSymbolChar(s[-1]))
 				{
-					GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
-					if (st)
-					{
-						st->View = this;
-						st->Start = s - Text;
-						st->Font = GetFont();
+					auto &st = Style.New().Construct(View, STYLE_IDE);
+					st.Start = s - Text;
+					st.Font = View->GetFont();
 
-						bool IsHex = false;
-						if (s[0] == '0' &&
-							ToLower(s[1]) == 'x')
-						{
-							s += 2;
-							IsHex = true;
-						}
+					bool IsHex = false;
+					if (s[0] == '0' &&
+						ToLower(s[1]) == 'x')
+					{
+						s += 2;
+						IsHex = true;
+					}
 							
-						while (s < e)
-						{
-							if
+					while (s < e)
+					{
+						if
+						(
+							IsDigit(*s)
+							||
+							*s == '.'
+							||
 							(
-								IsDigit(*s)
-								||
-								*s == '.'
-								||
+								IsHex
+								&&
 								(
-									IsHex
-									&&
-									(
-										(*s >= 'a' && *s <= 'f')
-										||
-										(*s >= 'A' && *s <= 'F')
-									)
+									(*s >= 'a' && *s <= 'f')
+									||
+									(*s >= 'A' && *s <= 'F')
 								)
 							)
-								s++;
-							else
-								break;
-						}
-							
-						st->Len = (s - Text) - st->Start;
-						st->Fore = ColourLiteral;
-						InsertStyle(st);
-						s--;
+						)
+							s++;
+						else
+							break;
 					}
+							
+					st.Len = (s - Text) - st.Start;
+					st.Fore = ColourLiteral;
+					s--;
 				}
 				while (s < e - 1 && IsDigit(s[1]))
 					s++;
@@ -815,32 +800,27 @@ void DocEdit::StyleXml(StylingParams &p)
 					s[2] == '-' &&
 					s[3] == '-')
 				{
-					GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
-					if (st)
-					{
-						st->View = this;
-						st->Start = s - Text;
-						st->Font = GetFont();
-						s += 2;
-						while
+					auto &st = Style.New().Construct(View, STYLE_IDE);
+					st.Start = s - Text;
+					st.Font = View->GetFont();
+					s += 2;
+					while
+					(
+						s < e
+						&&
+						!
 						(
-							s < e
+							s[-3] == '-'
 							&&
-							!
-							(
-								s[-3] == '-'
-								&&
-								s[-2] == '-'
-								&&
-								s[-1] == '>'
-							)
+							s[-2] == '-'
+							&&
+							s[-1] == '>'
 						)
-							s++;
-						st->Len = (s - Text) - st->Start;
-						st->Fore = ColourComment;
-						InsertStyle(st);
-						s--;
-					}
+					)
+						s++;
+					st.Len = (s - Text) - st.Start;
+					st.Fore = ColourComment;
+					s--;
 				}
 				break;
 			}
@@ -881,7 +861,7 @@ void DocEdit::StyleXml(StylingParams &p)
 	}
 }
 
-GColour DocEdit::ColourFromType(HtmlType t)
+GColour DocEditStyling::ColourFromType(DocType t)
 {
 	switch (t)
 	{
@@ -898,35 +878,34 @@ GColour DocEdit::ColourFromType(HtmlType t)
 	}
 }
 
-void DocEdit::StyleHtml(StylingParams &p)
+void DocEditStyling::StyleHtml(StylingParams &p)
 {
-	char16 *e = Text + Size;
+	char16 *Text = p.Text.AddressOf();
+	char16 *e = Text + p.Text.Length();
 
-	Style.Empty();
+	auto &Style = p.Styles;
 
-	char *Ext = LgiGetExtension(Doc->GetFileName());
-	HtmlType Type = Ext && !stricmp(Ext, "js") ? CodePhp : CodeHtml;
-	GAutoPtr<GStyle> Cur;
+	char *Ext = LgiGetExtension(p.FileName);
+	DocType Type = Ext && !stricmp(Ext, "js") ? CodePhp : CodeHtml;
+	GTextView3::GStyle *Cur;
 
 	#define START_CODE() \
 		if (Type != CodeHtml) \
 		{ \
-			if (Cur.Reset(new GTextView3::GStyle(STYLE_IDE))) \
-			{ \
-				Cur->View = this; \
-				Cur->Start = s - Text; \
-				Cur->Font = GetFont(); \
-				Cur->Fore = ColourFromType(Type); \
-			} \
+			Cur = &Style.New().Construct(View, STYLE_IDE); \
+			Cur->Start = s - Text; \
+			Cur->Font = View->GetFont(); \
+			Cur->Fore = ColourFromType(Type); \
 		}
 	#define END_CODE() \
 		if (Cur) \
 		{ \
 			Cur->Len = (s - Text) - Cur->Start; \
-			if (Cur->Len > 0) \
-				InsertStyle(Cur); \
-			else \
-				Cur.Reset(); \
+			if (Cur->Len <= 0) \
+			{ \
+				Style.Delete(Style.rbegin()); \
+				Cur = NULL; \
+			} \
 		}
 
 	char16 *s;
@@ -965,16 +944,11 @@ void DocEdit::StyleHtml(StylingParams &p)
 						char16 *nl = Strchr(s, '\n');
 						if (!nl) nl = s + Strlen(s);
 						
-						GAutoPtr<GStyle> st;
-						if (st.Reset(new GTextView3::GStyle(STYLE_IDE)))
-						{
-							st->View = this;
-							st->Start = s - Text;
-							st->Font = GetFont();
-							st->Fore = ColourComment;
-							st->Len = nl - s;
-							InsertStyle(st);
-						}
+						auto &st = Style.New().Construct(View, STYLE_IDE);
+						st.Start = s - Text;
+						st.Font = View->GetFont();
+						st.Fore = ColourComment;
+						st.Len = nl - s;
 
 						s = nl;
 						START_CODE();
@@ -987,16 +961,11 @@ void DocEdit::StyleHtml(StylingParams &p)
 						if (!end_comment) end_comment = s + Strlen(s);
 						else end_comment += 2;
 						
-						GAutoPtr<GStyle> st;
-						if (st.Reset(new GTextView3::GStyle(STYLE_IDE)))
-						{
-							st->View = this;
-							st->Start = s - Text;
-							st->Font = GetFont();
-							st->Fore = ColourComment;
-							st->Len = end_comment - s;
-							InsertStyle(st);
-						}
+						auto &st = Style.New().Construct(View, STYLE_IDE);
+						st.Start = s - Text;
+						st.Font = View->GetFont();
+						st.Fore = ColourComment;
+						st.Len = end_comment - s;
 
 						s = end_comment;
 						START_CODE();
@@ -1058,17 +1027,12 @@ void DocEdit::StyleHtml(StylingParams &p)
 							start = true;
 						}
 
-						GAutoPtr<GStyle> st;
-						if (st.Reset(new GTextView3::GStyle(STYLE_IDE)))
-						{
-							st->View = this;
-							st->Start = s - Text;
-							st->Font = GetFont();
-							st->Fore = ColourHtml;
-							st->Len = c - s;
-							InsertStyle(st);
-							s = c - 1;
-						}
+						auto &st = Style.New().Construct(View, STYLE_IDE);
+						st.Start = s - Text;
+						st.Font = View->GetFont();
+						st.Fore = ColourHtml;
+						st.Len = c - s;
+						s = c - 1;
 
 						if (start)
 						{
@@ -1103,16 +1067,11 @@ void DocEdit::StyleHtml(StylingParams &p)
 			{
 				if (Type == CodeHtml)
 				{
-					GAutoPtr<GStyle> st;
-					if (st.Reset(new GTextView3::GStyle(STYLE_IDE)))
-					{
-						st->View = this;
-						st->Start = s - Text;
-						st->Font = GetFont();
-						st->Fore = ColourHtml;
-						st->Len = 1;
-						InsertStyle(st);
-					}
+					auto &st = Style.New().Construct(View, STYLE_IDE);
+					st.Start = s - Text;
+					st.Font = View->GetFont();
+					st.Fore = ColourHtml;
+					st.Len = 1;
 				}
 				else if (Type == CodeComment)
 				{
@@ -1145,7 +1104,7 @@ void DocEdit::StyleHtml(StylingParams &p)
 	END_CODE();
 }
 	
-void DocEdit::AddKeywords(const char **keys, bool IsType)
+void DocEditStyling::AddKeywords(const char **keys, bool IsType)
 {
 	for (const char **k = keys; *k; k++)
 	{
@@ -1228,9 +1187,45 @@ void DocEdit::PourStyle(size_t Start, ssize_t EditSize)
 		Params.PourStart = Start;
 		Params.PourSize = EditSize;
 		Params.Text.Length(Size);
+		Params.FileName = Doc->GetFileName();
 		memcpy(Params.Text.AddressOf(), Text, sizeof(*Text) * Size);
 
 		LMutex::Unlock();
 		Event.Signal();
 	}
 }
+
+int DocEdit::CountRefreshEdges(size_t At, ssize_t Len)
+{
+	if (!RefreshEdges)
+		return 0;
+
+	size_t s = MAX(0, At - (RefreshSize - 1));
+	bool t[256] = {0};
+	for (const char **Edge = RefreshEdges; *Edge; Edge++)
+	{
+		const char *e = *Edge;
+		t[e[0]] = true;
+	}
+
+	int Edges = 0;
+	for (size_t i = s; i <= At; i++)
+	{
+		if (Text[i] < 256 && t[Text[i]])
+		{
+			for (const char **Edge = RefreshEdges; *Edge; Edge++)
+			{
+				int n = i;
+				const char *e;
+				for (e = *Edge; *e; e++)
+					if (Text[n++] != *e)
+						break;
+				if (!*e)
+					Edges++;
+			}
+		}
+	}
+
+	return Edges;
+}
+

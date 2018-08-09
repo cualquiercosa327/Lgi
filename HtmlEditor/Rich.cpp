@@ -454,9 +454,17 @@ public:
 				LgiCloseApp();
 				break;
 			case IDC_TO_HTML:
+			{
 				Tabs->Value(0);
-				Txt->Name(Edit->Name());
+
+				GString Out;
+				GArray<GDocView::ContentMedia> Media;
+				if (Edit->GetFormattedContent("text/html", Out, &Media))
+				{
+					Txt->Name(Out);
+				}
 				break;
+			}
 			case IDC_TO_NODES:
 				Tabs->Value(1);
 				#ifdef _DEBUG

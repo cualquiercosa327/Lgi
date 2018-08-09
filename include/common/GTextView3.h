@@ -88,8 +88,7 @@ public:
 			Owner = owner;
 			View = NULL;
 			Font = NULL;
-			Start = -1;
-			Len = 0;
+			Empty();
 			Decor = GCss::TextDecorNone;
 			Data = NULL;
 		}
@@ -113,11 +112,16 @@ public:
 			View = view;
 			Owner = owner;
 			Font = NULL;
-			Start = -1;
-			Len = 0;
+			Empty();
 			Decor = GCss::TextDecorNone;
 			Data = NULL;
 			return *this;
+		}
+
+		void Empty()
+		{
+			Start = -1;
+			Len = 0;
 		}
 
 		/*
@@ -325,6 +329,7 @@ public:
 
 	// Font
 	GFont *GetFont();
+	GFont *GetBold();
 	void SetFont(GFont *f, bool OwnIt = false);
 	void SetFixedWidthFont(bool i);
 

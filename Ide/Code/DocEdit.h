@@ -17,15 +17,22 @@ enum SourceType
 	SrcHtml,
 };
 
-class DocEdit :
-	public GTextView3,
-	public GDocumentEnv,
-	public LThread
+class DocEdit;
+class DocEditStyling : public LThread, public LMutex
 {
-	IdeDoc *Doc;
-	int CurLine;
-	GdcPt2 MsClick;
+public:
+	enum DocType
+	{
+		CodeHtml,
+		CodePhp,
+		CodeCss,
+		CodeComment,
+		CodePre,
+	};
+
+protected:
 	SourceType FileType;
+	DocEdit *View;
 
 	enum WordType
 	{
@@ -78,10 +85,12 @@ class DocEdit :
 		size_t PourStart;
 		ssize_t PourSize;
 		GArray<char16> Text;
-		LUnrolledList<GStyle> Styles;
-		GRect Dirty;
+		GString FileName;
+		LUnrolledList<GTextView3::GStyle> Styles;
+		GTextView3::GStyle Dirty;
 
-		StylingParams(GTextView3 *view)
+		StylingParams(GTextView3 *view) :
+			Dirty(STYLE_NONE)
 		{
 			View = view;
 		}
@@ -113,12 +122,11 @@ class DocEdit :
 	// EndLock
 	// Thread only
 		Node Root;
-		LUnrolledList<GStyle> PrevStyle;
+		LUnrolledList<GTextView3::GStyle> PrevStyle;
 	// End Thread only
 
 	// Styling functions..
 	int Main();
-	void OnApplyStyles();
 	void StyleCpp(StylingParams &p);
 	void StylePython(StylingParams &p);
 	void StyleDefault(StylingParams &p);
@@ -130,19 +138,25 @@ class DocEdit :
 	int RefreshSize;
 	const char **RefreshEdges;
 
+public:
+	DocEditStyling(DocEdit *view);
+	GColour ColourFromType(DocType t);
+};
+
+class DocEdit :
+	public GTextView3,
+	public GDocumentEnv,
+	public DocEditStyling
+{
+	IdeDoc *Doc;
+	int CurLine;
+	GdcPt2 MsClick;
+
+	void OnApplyStyles();
 	int CountRefreshEdges(size_t At, ssize_t Len);
 
 public:
 	static int LeftMarginPx;
-	enum HtmlType
-	{
-		CodeHtml,
-		CodePhp,
-		CodeCss,
-		CodeComment,
-		CodePre,
-	};
-
 	DocEdit(IdeDoc *d, GFontType *f);
 	~DocEdit();
 
@@ -152,7 +166,6 @@ public:
 	int GetTopPaddingPx();
 	void InvalidateLine(int Idx);
 	char *TemplateMerge(const char *Template, char *Name, List<char> *Params);
-	GColour ColourFromType(HtmlType t);
 	bool GetVisible(GStyle &s);
 
 	// Overrides

@@ -1399,7 +1399,8 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 			if (Over)
 			{
 				GMessage Cmd(M_COMMAND, Id);
-				Over->OnEvent(&Cmd);
+				if (Over->OnEvent(&Cmd))
+					break;
 			}
 			
 			if (Environment)

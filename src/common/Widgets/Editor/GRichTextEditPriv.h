@@ -2,7 +2,7 @@
 
 - The document is an array of Blocks (Blocks have no hierarchy)
 - Blocks have a length in characters. New lines are considered as one '\n' char.
-- Currently the main type of block is the TextBlock
+- The main type of block is the TextBlock
 	- TextBlock contains:
 		- array of StyleText:
 			This is the source text. Each run of text has a style associated with it.
@@ -15,7 +15,8 @@
 			same style as each other.
 			It will regularly be deleted and re-flowed from the StyleText objects.
 	- For a plaint text document the entire thing is contained by the one TextBlock.
-- There will be an Image block down the track, where the image is treated as one character object.
+- There is an Image block, where the image is treated as one character object.
+- Also a horizontal rule block.
 
 */
 #ifndef _RICH_TEXT_EDIT_PRIV_H_
@@ -109,59 +110,6 @@ enum RteCommands
 
 #define CursorColour					GColour::Black
 #define TextColour						GColour::Black
-
-/*
-int Utf16Strlen(const uint16 *s, int &len)
-{
-	int c = 0;
-
-	if (!s)
-	{
-		len = 0;
-		return 0;
-	}
-
-	if (len < 0)
-	{
-		const uint16 *start = s;
-		while (*s)
-		{
-			if ((*s & 0xfc00) == 0xD800)
-			{
-				s++;
-				if (!*s)
-					break;
-				if ((*s & 0xfc00) == 0xDC00)
-					s++;
-
-				c++;
-			}
-			else c++;
-		}
-		len = s - start;
-	}
-	else
-	{
-		const uint16 *e = s + len;
-		while (s < e)
-		{
-			if ((*s & 0xfc00) == 0xD800)
-			{
-				s++;
-				if (s >= e)
-					break;
-				if ((*s & 0xfc00) == 0xDC00)
-					s++;
-
-				c++;
-			}
-			else c++;
-		}
-	}
-
-	return c;
-}
-*/
 
 //////////////////////////////////////////////////////////////////////
 #include "GRange.h"
@@ -751,9 +699,10 @@ public:
 			return r;
 		}
 
+		// If this returns non-zero further command processing is aborted.
 		GMessage::Result OnEvent(GMessage *Msg)
 		{
-			return 0;
+			return false;
 		}
 
 		/************************************************

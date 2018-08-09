@@ -572,6 +572,11 @@ GFont *GTextView3::GetFont()
 	return Font;
 }
 
+GFont *GTextView3::GetBold()
+{
+	return Bold;
+}
+
 void GTextView3::SetFont(GFont *f, bool OwnIt)
 {
 	if (!f)
