@@ -211,6 +211,7 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 	../include/common/LStringLayout.h \
 	../include/common/LThread.h \
 	../include/common/LThreadEvent.h \
+	../include/common/LUnrolledList.h \
 	../include/common/Progress.h \
 	../include/common/Res.h \
 	../include/linux/GSymLookup.h \
@@ -1377,9 +1378,13 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 
 ../include/common/GTextView3.h : ../include/common/GDocView.h \
 	../include/common/GUndo.h \
-	../include/common/GDragAndDrop.h
+	../include/common/GDragAndDrop.h \
+	../include/common/GCss.h \
+	../include/common/LUnrolledList.h
 
 ../include/common/GUndo.h : 
+
+../include/common/LUnrolledList.h : 
 
 ../include/common/GFont.h : ../include/common/GRect.h \
 	../include/linux/Gtk/LgiOsClasses.h \
@@ -1426,7 +1431,9 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 
 ../include/common/GTextView3.h : ../include/common/GDocView.h \
 	../include/common/GUndo.h \
-	../include/common/GDragAndDrop.h
+	../include/common/GDragAndDrop.h \
+	../include/common/GCss.h \
+	../include/common/LUnrolledList.h
 
 ../src/common/Gdc2/16Bit.cpp : ../include/common/Gdc2.h \
 	../include/common/GPalette.h
@@ -2026,6 +2033,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/LgiRes.h
 
 ../include/common/GViewPriv.h : 
+
+../include/common/LUnrolledList.h : 
 
 ../src/common/General/LDateTime.cpp : ../include/common/Lgi.h \
 	../include/common/LDateTime.h \

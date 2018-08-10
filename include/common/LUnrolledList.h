@@ -463,7 +463,7 @@ public:
 		return Status;
 	}
 
-	bool Delete(Iter &Pos)
+	bool Delete(Iter Pos)
 	{
 		if (!Pos.In())
 			return false;
