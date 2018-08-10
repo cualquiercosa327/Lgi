@@ -4,7 +4,7 @@
 #include "GCombo.h"
 #include "GClipBoard.h"
 
-enum Controls
+enum GDataGridControls
 {
 	IDC_DELETE = 2000,
 	IDC_COPY,

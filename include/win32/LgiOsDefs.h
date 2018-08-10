@@ -196,9 +196,6 @@ typedef SOCKET							OsSocket;
 #define CTRL_X							1.50
 #define CTRL_Y							1.64
 
-// Messages
-
-
 // Directories
 #define DIR_CHAR						'\\'
 #define DIR_STR							"\\"

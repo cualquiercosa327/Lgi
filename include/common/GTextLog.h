@@ -6,8 +6,6 @@
 #include "GTextView3.h"
 #include "INet.h"
 
-#define M_LOG			(M_USER + 0x3000)
-
 class GTextLog : public GTextView3, public GStream
 {
 protected:
@@ -96,14 +94,14 @@ public:
 			    Sem.Unlock();
 			}
 			if (Handle())
-				PostEvent(M_LOG);
+				PostEvent(M_LOG_TEXT);
 		}
 		return Size;
 	}
 
 	GMessage::Result OnEvent(GMessage *m)
 	{
-		if (MsgCode(m) == M_LOG)
+		if (MsgCode(m) == M_LOG_TEXT)
 		{
 			ProcessTxt();
 		}
