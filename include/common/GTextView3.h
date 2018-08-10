@@ -124,6 +124,11 @@ public:
 			Len = 0;
 		}
 
+		bool Valid()
+		{
+			return Start >= 0 && Len > 0;
+		}
+
 		/*
 		virtual ~GStyle() {}
 

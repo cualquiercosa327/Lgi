@@ -87,6 +87,7 @@ protected:
 		GArray<char16> Text;
 		GString FileName;
 		LUnrolledList<GTextView3::GStyle> Styles;
+		GTextView3::GStyle Visible;
 		GTextView3::GStyle Dirty;
 
 		StylingParams(GTextView3 *view) :

@@ -405,8 +405,8 @@ void DocEditStyling::StyleCpp(StylingParams &p)
 	#if COMP_STYLE
 	Prof.Add("Compare");
 
-	GTextView3::GStyle Vis(STYLE_NONE);
-	if (View->GetVisible(Vis) && ParentState != KCancel)
+	auto &Vis = p.Visible;
+	if (Vis.Valid() && ParentState != KCancel)
 	{
 		GArray<GTextView3::GStyle*> Old, Cur;
 		for (auto s : PrevStyle)
@@ -1188,6 +1188,7 @@ void DocEdit::PourStyle(size_t Start, ssize_t EditSize)
 		Params.PourSize = EditSize;
 		Params.Text.Length(Size);
 		Params.FileName = Doc->GetFileName();
+		GetVisible(Params.Visible);
 		memcpy(Params.Text.AddressOf(), Text, sizeof(*Text) * Size);
 
 		LMutex::Unlock();
