@@ -1182,7 +1182,7 @@ void DocEdit::PourStyle(size_t Start, ssize_t EditSize)
 	// Lock the object and give the text to the worker
 	LgiTrace("DocEdit starting style...\n");
 	ParentState = KStyling;
-	if (LMutex::Lock(_FL))
+	if (DocEditStyling::Lock(_FL))
 	{
 		Params.PourStart = Start;
 		Params.PourSize = EditSize;
@@ -1191,7 +1191,7 @@ void DocEdit::PourStyle(size_t Start, ssize_t EditSize)
 		GetVisible(Params.Visible);
 		memcpy(Params.Text.AddressOf(), Text, sizeof(*Text) * Size);
 
-		LMutex::Unlock();
+		DocEditStyling::Unlock();
 		Event.Signal();
 	}
 }
