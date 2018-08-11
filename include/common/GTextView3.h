@@ -36,6 +36,7 @@ enum GTextViewStyleOwners
 	STYLE_IDE,
 	STYLE_SPELLING,
 	STYLE_FIND_MATCHES,
+	STYLE_ADDRESS,
 };
 
 /// Unicode text editor control.
@@ -50,7 +51,7 @@ class LgiClass
 	friend bool Text3_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User);
 
 public:
-	class LgiClass GStyle
+	class GStyle
 	{
 		friend class GUrl;
 
@@ -81,7 +82,7 @@ public:
 		GColour DecorColour;
 
 		/// Application base data
-		char *Data;
+		GVariant Data;
 
 		GStyle(GTextViewStyleOwners owner = STYLE_NONE)
 		{
@@ -90,7 +91,6 @@ public:
 			Font = NULL;
 			Empty();
 			Decor = GCss::TextDecorNone;
-			Data = NULL;
 		}
 
 		GStyle(const GStyle &s)
@@ -101,10 +101,10 @@ public:
 			Start = s.Start;
 			Len = s.Len;
 			Decor = s.Decor;
-			Data = s.Data;
 			DecorColour = s.DecorColour;
 			Fore = s.Fore;
 			Back = s.Back;
+			Data = s.Data;
 		}
 		
 		GStyle &Construct(GTextView3 *view, GTextViewStyleOwners owner)
@@ -114,7 +114,6 @@ public:
 			Font = NULL;
 			Empty();
 			Decor = GCss::TextDecorNone;
-			Data = NULL;
 			return *this;
 		}
 
