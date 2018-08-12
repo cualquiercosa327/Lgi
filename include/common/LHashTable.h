@@ -540,7 +540,10 @@ public:
 	bool Delete
 	(
 		/// The key of the value to delete
-		Key k
+		Key k,
+		/// Turns off resizing, in case your iterating over the hash table,
+		/// where resizing would invalidate the iterators.
+		bool NoResize = false
 	)
 	{
 		ssize_t Index = -1;
@@ -580,7 +583,8 @@ public:
 			}
 
 			// Check for auto-shrink limit
-			if (Percent() < HASH_TABLE_SHRINK_THRESHOLD)
+			if (!NoResize &&
+				Percent() < HASH_TABLE_SHRINK_THRESHOLD)
 			{
 				SetSize(Size >> 1);
 			}
