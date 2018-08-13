@@ -409,6 +409,8 @@ public:
 					Edit->Sunken(true);
 					Edit->SetId(IDC_EDITOR);
 					Edit->Register(this);
+					GVariant v;
+					Edit->SetValue("HtmlImagesLinkCid", v = true);
 					// Edit->Name("<span style='color:#800;'>The rich editor control is not functional in this build.</span><b>This is some bold</b>");
 
 					#if LOAD_DOC

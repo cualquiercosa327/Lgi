@@ -1118,6 +1118,8 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 					#endif
 					if (PostThreadEvent(GetThreadHandle(), M_IMAGE_COMPRESS, (GMessage::Param)SourceImg.Get(), (GMessage::Param)&si))
 						UpdateThreadBusy(_FL, 1);
+					else
+						LgiAssert(!"PostThreadEvent failed.");
 				}
 			}
 			else switch (Msg->A())
@@ -1180,8 +1182,6 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 			#if LOADER_THREAD_LOGGING
 			LgiTrace("%s:%i - Received M_IMAGE_ERROR, posting M_CLOSE\n", _FL);
 			#endif
-			PostThreadEvent(ThreadHnd, M_CLOSE);
-			ThreadHnd = 0;
 			UpdateThreadBusy(_FL, -1);
 			break;
 		}
@@ -1191,8 +1191,6 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 			#if LOADER_THREAD_LOGGING
 			LgiTrace("%s:%i - Received M_IMAGE_COMPONENT_MISSING, posting M_CLOSE\n", _FL);
 			#endif
-			PostThreadEvent(ThreadHnd, M_CLOSE);
-			ThreadHnd = 0;
 			UpdateThreadBusy(_FL, -1);
 
 			if (Component)
@@ -1274,8 +1272,6 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 			LayoutDirty = true;
 			UpdateThreadBusy(_FL, -1);
 			d->InvalidateDoc(NULL);
-			PostThreadEvent(ThreadHnd, M_CLOSE);
-			ThreadHnd = 0;
 			SourceValid.ZOff(-1, -1);
 			break;
 		}
