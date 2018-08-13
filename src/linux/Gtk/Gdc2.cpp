@@ -971,12 +971,15 @@ GColourSpace GdkVisualToColourSpace(Gtk::GdkVisual *v, int output_bits)
 	}
 	
 	GColourSpace Cs;
+	
+	#if 0 // This breaks on 16 bit ubuntu under hyper-v.
 	if (v->byte_order == Gtk::GDK_LSB_FIRST)
 	{
 		c = LgiSwap32(c);
 		while (!(c & 0xff))
 			c >>= 8;
 	}
+	#endif
 	
 	Cs = (GColourSpace)c;
 	#if VisualToColourSpaceDebug

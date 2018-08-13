@@ -139,7 +139,7 @@ public:
 
 	GArray<CacheDC*> Cache;
 	GArray<GRect> Bounds;
-	
+
 	CacheDC *GetCache(GColour Back, bool Disabled)
 	{
 		for (int i=0; i<Cache.Length(); i++)
@@ -246,6 +246,8 @@ GImageList::GImageList(int x, int y, GSurface *pDC)
 				
 		if (pDC->GetBits() < 32 || HasPad(pDC->GetColourSpace()))
 		{
+			auto InCs = pDC->GetColourSpace();
+			
 			if (!pDC->HasAlpha())
 			{
 				// No source alpha, do colour keying to create the alpha channel

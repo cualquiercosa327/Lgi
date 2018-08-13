@@ -1882,8 +1882,6 @@ GSurface *LoadDC(const char *Name, bool UseOSLoader)
     return GdcD->Load(Name, UseOSLoader);
 }
 
-
-
 GSurface *GdcDevice::Load(const char *Name, bool UseOSLoader)
 {
 	if (!FileExists(Name))
@@ -2121,6 +2119,7 @@ GSurface *GdcDevice::Load(GStream *In, const char *Name, bool UseOSLoader)
 	#ifndef WIN32
 	if (pDC)
 	{
+		/*
 		int PromoteTo = GdcD->GetOption(GDC_PROMOTE_ON_LOAD);
 		
 		if (PromoteTo > 0 &&
@@ -2139,6 +2138,8 @@ GSurface *GdcDevice::Load(GStream *In, const char *Name, bool UseOSLoader)
 				pOld.Reset();
 			}
 		}
+		*/
+		
 		#ifdef BEOS
 		else if (pDC->GetBits() == 8)
 		{
