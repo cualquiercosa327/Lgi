@@ -9,6 +9,7 @@
 #include "GButton.h"
 #include "IHttp.h"
 #include "GOptionsFile.h"
+#include "LList.h"
 
 #if 1
 #include "GRichTextEdit.h"
@@ -22,6 +23,8 @@ enum Ctrls
 {
 	IDC_EDITOR = 100,
 	IDC_HTML,
+	IDC_HTML_BOX,
+	IDC_IMAGES,
 	IDC_TABS,
 	IDC_TREE,
 	IDC_TO_HTML,
@@ -252,10 +255,81 @@ public:
 	}
 };
 
+class MediaItem : public LListItem
+{
+	GDocView::ContentMedia *Cm;
+	GString sSize;
+
+public:
+	MediaItem(GDocView::ContentMedia *cm)
+	{
+		Cm = cm;
+	}
+
+	void OnMouseClick(GMouse &m)
+	{
+		if (m.Left() && m.Double())
+		{
+			GFile::Path p(LSP_TEMP);
+			p += Cm->FileName;
+			GFile f;
+			if (f.Open(p, O_WRITE))
+			{
+				if (Cm->Stream)
+				{
+					GCopyStreamer Cp;
+					Cp.Copy(Cm->Stream, &f);
+				}
+				else if (Cm->Data.Type == GV_BINARY)
+					f.Write(Cm->Data.Value.Binary.Data, Cm->Data.Value.Binary.Length);
+				f.Close();
+			}
+
+			LgiExecute(p);
+		}
+	}
+
+	char *GetText(int i)
+	{
+		switch (i)
+		{
+			case 0: // Filename
+			{
+				return Cm->FileName;
+			}
+			case 1: // Size
+			{
+				int64 Sz = 0;
+
+				if (Cm->Stream.Get())
+					Sz = Cm->Stream->GetSize();
+				else if (Cm->Data.Type == GV_BINARY)
+					Sz = Cm->Data.Value.Binary.Length;
+
+				char s[64];
+				LgiFormatSize(s, sizeof(s), Sz);
+				sSize = s;
+				return sSize;
+			}
+			case 2:
+			{
+				return Cm->MimeType;
+			}
+			case 3:
+			{
+				return Cm->Id;
+			}
+		}
+
+		return NULL;
+	}
+};
+
 class App : public GWindow, public GCapabilityInstallTarget
 {
 	GBox *Split;
 	GTextView3 *Txt;
+	LList *Imgs;
 	GTabView *Tabs;
 	GTree *Tree;
 	uint64 LastChange;
@@ -267,6 +341,7 @@ class App : public GWindow, public GCapabilityInstallTarget
 	GCapabilityTarget::CapsHash Caps;
 	GAutoPtr<GEventTargetThread> Installer;
 	GOptionsFile Options;
+	GArray<GDocView::ContentMedia> Media;
 
 public:
 	App() : Options(GOptionsFile::PortableMode, AppName)
@@ -277,6 +352,7 @@ public:
 		Bar = NULL;
 		Tabs = NULL;
 		Tree = NULL;
+		Imgs = NULL;
 		Name("Rich Text Testbed");
 
 		if (!Options.SerializeFile(false) ||
@@ -358,8 +434,19 @@ public:
 					GTabPage *p = Tabs->Append("Html Output");
 					if (p)
 					{
-						p->AddView(Txt = new GTextView3(IDC_HTML, 0, 0, 100, 100));
+						GBox *b = new GBox(IDC_HTML_BOX);
+						b->SetVertical(true);
+						
+						b->AddView(Txt = new GTextView3(IDC_HTML, 0, 0, 100, 100));
 						Txt->SetPourLargest(true);
+						b->AddView(Imgs = new LList(IDC_IMAGES));
+						Imgs->GetCss(true)->Height(GCss::Len("150px"));
+						Imgs->AddColumn("Filename", 200);
+						Imgs->AddColumn("Size", 100);
+						Imgs->AddColumn("MimeType", 100);
+						Imgs->AddColumn("Cid", 100);
+
+						p->Append(b);
 					}
 					
 					p = Tabs->Append("Node View");
@@ -458,10 +545,17 @@ public:
 				Tabs->Value(0);
 
 				GString Out;
-				GArray<GDocView::ContentMedia> Media;
+				Imgs->Empty();
+				Media.Empty();
 				if (Edit->GetFormattedContent("text/html", Out, &Media))
 				{
 					Txt->Name(Out);
+
+					for (auto &m : Media)
+					{
+						Imgs->Insert(new MediaItem(&m));
+					}
+					Imgs->ResizeColumnsToContent();
 				}
 				break;
 			}
