@@ -597,7 +597,7 @@ bool GRichTextPriv::ImageBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia
 		ScaleInf *Si = ResizeIdx >= 0 && ResizeIdx < (int)Scales.Length() ? &Scales[ResizeIdx] : NULL;
 		if (Si && Si->Compressed)
 		{
-			// Attach a copy of the resized jpeg...
+			// Attach a copy of the resized JPEG...
 			Si->Compressed->SetPos(0);
 			Cm.Stream.Reset(new GMemStream(Si->Compressed, 0, -1));
 			Cm.MimeType = Si->MimeType;
@@ -641,6 +641,7 @@ bool GRichTextPriv::ImageBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia
 		else
 		{
 			LgiTrace("%s:%i - No source or JPEG for saving image to HTML.\n", _FL);
+			LgiAssert(!"No source file or compressed image.");
 			return false;
 		}
 
@@ -662,6 +663,8 @@ bool GRichTextPriv::ImageBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia
 			else
 				s.Print("%s", Cm.FileName.Get());
 			s.Print("\">\n");
+
+			LgiAssert(Cm.Valid());
 			return true;
 		}
 	}
