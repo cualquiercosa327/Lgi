@@ -58,7 +58,7 @@ typedef GRgba64 Png64;
 #define LIBPNG Lib->
 const char sLibrary[] =
 	#if defined(LINUX)
-		"libpng12"
+		"libpng16"
 	#elif defined(MAC) || defined(BEOS)
 		"libpng"
 	#else
