@@ -1208,7 +1208,10 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/GStream.h \
 	./include/common/GArray.h \
 	./include/common/GRefCount.h \
-	./include/common/GStringClass.h
+	./include/common/GStringClass.h \
+	./include/common/LError.h
+
+./include/common/LError.h : 
 
 ./include/common/GEventTargetThread.h : ./include/common/LThread.h \
 	./include/common/LMutex.h \
@@ -1508,7 +1511,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/GStream.h \
 	./include/common/GArray.h \
 	./include/common/GRefCount.h \
-	./include/common/GStringClass.h
+	./include/common/GStringClass.h \
+	./include/common/LError.h
 
 ./src/common/Gdc2/GRopsCases.cpp : 
 
