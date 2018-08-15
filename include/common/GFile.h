@@ -16,6 +16,7 @@
 #include "GArray.h"
 #include "GRefCount.h"
 #include "GStringClass.h"
+#include "LError.h"
 
 #ifdef WIN32
 
@@ -264,13 +265,13 @@ public:
 		/// The list of files to delete
 		GArray<const char*> &Files,
 		/// A list of status codes where 0 means success and non-zero is an error code, usually an OS error code. NULL if not required.
-		GArray<int> *Status = 0,
+		GArray<LError> *Status = NULL,
 		/// true if you want the files moved to the trash folder, false if you want them deleted directly
 		bool ToTrash = true
 	);
 	
 	/// Create a directory
-	bool CreateFolder(const char *PathName, bool CreateParentFoldersIfNeeded = false, int *Err = NULL);
+	bool CreateFolder(const char *PathName, bool CreateParentFoldersIfNeeded = false, LError *Err = NULL);
 	
 	/// Remove's a directory	
 	bool RemoveFolder
@@ -285,7 +286,7 @@ public:
 	bool GetCurrentFolder(char *PathName, int Length);
 
 	/// Moves a file to a new location. Only works on the same device.
-	bool Move(const char *OldName, const char *NewName);
+	bool Move(const char *OldName, const char *NewName, LError *Err = NULL);
 };
 
 #ifdef BEOS
@@ -632,7 +633,6 @@ LgiFunc bool LgiMakePath(char *Str, int StrBufLen, const char *Dir, const char *
 LgiFunc char *LgiGetExtension(const char *File);
 LgiFunc bool LgiIsFileNameExecutable(const char *FileName);
 LgiFunc bool LgiIsFileExecutable(const char *FileName, GStreamI *f, int64 Start, int64 Len);
-LgiFunc const char *GetErrorName(int e);
 
 /// Get information about the disk that a file resides on.
 LgiFunc bool LgiGetDriveInfo(char *Path, uint64 *Free, uint64 *Size = 0, uint64 *Available = 0);
