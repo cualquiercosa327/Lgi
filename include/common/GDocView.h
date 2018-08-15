@@ -102,6 +102,7 @@ public:
 			JobErr_GetUri,
 			JobErr_NoCachedFile,
 			JobErr_ImageFilter,
+			JobErr_NoMem,
 		};
 		
 		// View data
