@@ -229,6 +229,19 @@ bool GContainers::Run()
 		{
 			printf("PoolMap: %s -> %i\n", i.key, i.value);
 		}
+
+		// Check iterator invalidation
+		LHashTbl<IntKey<int>,int> ItMap(4);
+		ItMap.Add(23, 34);
+		ItMap.Add(24, 56);
+		int n = 0;
+		for (auto it = ItMap.begin(); it != ItMap.end(); it++)
+		{
+			ItMap.Add(35, 567);
+			n++;
+		}
+		if (n != 1)
+			return FAIL(_FL, "Iterator didn't get invalidated");
 	}
 
 	return true;

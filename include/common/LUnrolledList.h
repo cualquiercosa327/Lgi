@@ -622,7 +622,37 @@ public:
 
 	void Compact()
 	{
-		LgiAssert(!"Impl me.");
+		auto in = begin();
+		auto out = begin();
+		auto e = end();
+
+		while (in != e)
+		{
+			if (in != out)
+			{
+				out.i->Obj[out.Cur] = in.i->Obj[in.Cur];
+				if (out.i != in.i)
+				{
+					out.i->Count--;
+					in.i->Count++;
+				}
+			}
+
+			if (out.Cur < BlockSize)
+				out.Cur++;
+			else
+			{
+				out.i = out.i->Next;
+				out.Cur = 0;
+			}
+
+			in++;
+		}
+
+		while (LastObj->Count <= 0)
+		{
+			DeleteBlock(LastObj);
+		}
 	}
 
 	void Swap(LUnrolledList<T> &other)
