@@ -712,6 +712,18 @@ public:
 		Used = 0;
 	}
 
+	/// Swaps the objects
+	void Swap(LHashTbl<KeyTrait,Value> &h)
+	{
+		LSwap(NullKey, h.NullKey);
+		LSwap(NullValue, h.NullValue);
+		LSwap(Used, h.Used);
+		LSwap(Size, h.Size);
+		LSwap(MaxSize, h.MaxSize);
+		LSwap(Version, h.Version);
+		LSwap(Table, h.Table);
+	}
+
 	struct PairIterator
 	{
 		LHashTbl<KeyTrait,Value> *t;

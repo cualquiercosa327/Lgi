@@ -242,7 +242,7 @@
   <ItemGroup>
     <ClCompile Include="..\src\common\General\GNew.cpp" />
     <ClCompile Include="src\GAutoPtrTest.cpp" />
-    <ClCompile Include="src\GContainers.cpp" />
+    <ClCompile Include="src\GContainerTests.cpp" />
     <ClCompile Include="src\GCssTest.cpp" />
     <ClCompile Include="src\GMatrixTest.cpp" />
     <ClCompile Include="src\GStringClassTests.cpp" />

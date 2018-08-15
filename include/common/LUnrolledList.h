@@ -47,18 +47,18 @@ public:
 	class Iter
 	{
 	public:
-		LUnrolledList<T> *Lst;
+		LUnrolledList<T,BlockSize> *Lst;
 		LstBlk *i;
 		int Cur;
 
-		Iter(LUnrolledList<T> *lst)
+		Iter(LUnrolledList<T,BlockSize> *lst)
 		{
 			Lst = lst;
 			i = 0;
 			Cur = 0;
 		}
 
-		Iter(LUnrolledList<T> *lst, LstBlk *item, int c)
+		Iter(LUnrolledList<T,BlockSize> *lst, LstBlk *item, int c)
 		{
 			Lst = lst;
 			i = item;
@@ -626,17 +626,11 @@ public:
 		auto out = begin();
 		auto e = end();
 
+		// Copy any items to fill gaps...
 		while (in != e)
 		{
 			if (in != out)
-			{
 				out.i->Obj[out.Cur] = in.i->Obj[in.Cur];
-				if (out.i != in.i)
-				{
-					out.i->Count--;
-					in.i->Count++;
-				}
-			}
 
 			if (out.Cur < BlockSize)
 				out.Cur++;
@@ -649,6 +643,19 @@ public:
 			in++;
 		}
 
+		// Adjust all the block counts...
+		size_t c = Items;
+		for (auto i = FirstObj; i; i = i->Next)
+		{
+			if (c > BlockSize)
+				i->Count = BlockSize;
+			else
+				i->Count = c;
+			c -= i->Count;
+		}
+		LgiAssert(c == 0);
+
+		// Free any empty blocks...
 		while (LastObj->Count <= 0)
 		{
 			DeleteBlock(LastObj);

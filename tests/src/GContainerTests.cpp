@@ -184,6 +184,14 @@ bool GContainers::Run()
 		);
 
 		StrLst.Delete("Tyertw");
+
+		// Compact test
+		LUnrolledList<int,16> Comp;
+		for (int i=0; i<20; i++)
+			Comp.Add(i+1);
+		for (int i=0; i<8; i++)
+			Comp.DeleteAt(8);
+		Comp.Compact();
 	}
 
 	{
@@ -242,6 +250,12 @@ bool GContainers::Run()
 		}
 		if (n != 1)
 			return FAIL(_FL, "Iterator didn't get invalidated");
+		
+		// Check swapping works
+		LHashTbl<IntKey<int>,int> SwapTest;
+		SwapTest.Swap(ItMap);
+		if (SwapTest.GetSize() != 8)
+			return FAIL(_FL, "Swap failed.");
 	}
 
 	return true;
