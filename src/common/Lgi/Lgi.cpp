@@ -571,7 +571,7 @@ Prof.Add("vprint");
 
 	va_list Arg;
 	va_start(Arg, Msg);
-	int Ch = _vsnprintf_s(Buffer, sizeof(Buffer)-1, Msg, Arg);
+	int Ch = vsnprintf(Buffer, sizeof(Buffer)-1, Msg, Arg);
 	va_end(Arg);
 
 #if LGI_TRACE_TS
@@ -663,7 +663,7 @@ void LgiStackTrace(const char *Msg, ...)
 
 		va_list Arg;
 		va_start(Arg, Msg);
-		int Len = _vsnprintf_s(Buffer, sizeof(Buffer)-1, Msg, Arg);
+		int Len = vsnprintf(Buffer, sizeof(Buffer)-1, Msg, Arg);
 		va_end(Arg);
 
 		Lu->Lookup(Buffer+Len, sizeof(Buffer)-Len-1, Stack, Frames);
@@ -1882,7 +1882,7 @@ char *LgiFindFile(const char *Name)
 		#endif
 
 		char CurWorking[MAX_PATH];
-		_getcwd(CurWorking, sizeof(CurWorking));
+		getcwd(CurWorking, sizeof(CurWorking));
 		const char *PrefPath[] =
 		{
 			".",

@@ -499,7 +499,7 @@ public:
 		int &Index = Pos.Cur;
 		LstBlk *&i = Pos.i;
 		if (Index < i->Count-1)
-			memmove(i->Obj+Index, i->Obj+Index+1, (i->Count-Index-1) * sizeof(T*));
+			memmove(i->Obj+Index, i->Obj+Index+1, (i->Count-Index-1) * sizeof(T));
 
 		Items--;
 		if (--i->Count == 0)
