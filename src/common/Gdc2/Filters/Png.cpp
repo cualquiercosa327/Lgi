@@ -58,7 +58,7 @@ typedef GRgba64 Png64;
 #define LIBPNG Lib->
 const char sLibrary[] =
 	#if defined(LINUX)
-		"libpng16"
+		"libpng12"
 	#elif defined(MAC) || defined(BEOS)
 		"libpng"
 	#else
@@ -86,6 +86,8 @@ public:
 		{
 			#if defined(MAC)
 			if (!Load("/opt/local/lib/libpng.dylib"))
+			#elif defined(LINUX)
+			if (!Load("libpng16"))
 			#endif
 			{
 				static bool First = true;
