@@ -46,6 +46,8 @@ class LUnrolledList
 public:
 	class Iter
 	{
+		int Version;
+
 	public:
 		LUnrolledList<T,BlockSize> *Lst;
 		LstBlk *i;
@@ -54,6 +56,7 @@ public:
 		Iter(LUnrolledList<T,BlockSize> *lst)
 		{
 			Lst = lst;
+			Version = Lst->Version;
 			i = 0;
 			Cur = 0;
 		}
@@ -61,6 +64,7 @@ public:
 		Iter(LUnrolledList<T,BlockSize> *lst, LstBlk *item, int c)
 		{
 			Lst = lst;
+			Version = Lst->Version;
 			i = item;
 			Cur = c;
 		}
@@ -80,6 +84,19 @@ public:
 
 		bool In() const
 		{
+			if (Lst->Version != Version)
+			{
+				// We need to check that 'i' is still part of the list:
+				bool Found = false;
+				for (auto p = Lst->FirstObj; p; p = p->Next)
+				{
+					if (i == p && (Found = true))
+						break;
+				}
+				if (!Found)
+					return false;
+			}
+
 			return	i &&
 					Cur >= 0 &&
 					Cur < i->Count;
@@ -194,6 +211,14 @@ public:
 protected:
 	size_t Items;
 	LstBlk *FirstObj, *LastObj;
+
+	// This is used to warn iterators that the block list has changed and they
+	// need to re-validate if their block pointer is still part of the list.
+	// Otherwise they could try and access a block that doesn't exist anymore.
+	//
+	// New blocks don't bump this because they don't invalidate iterator's 
+	// block pointer.
+	int Version;
 	
 	LstBlk *NewBlock(LstBlk *Where)
 	{
@@ -264,6 +289,7 @@ protected:
 			LastObj = i->Prev;
 		}
 
+		Version++;
 		delete i;
 
 		return true;
@@ -382,6 +408,7 @@ public:
 	{
 		FirstObj = LastObj = NULL;
 		Items = 0;
+		Version = 0;
 	}
 
 	~LUnrolledList<T,BlockSize>()
@@ -439,6 +466,7 @@ public:
 	{
 		VALIDATE_UL();
 
+		Version++;
 		LstBlk *n;
 		for (LstBlk *i = FirstObj; i; i = n)
 		{
@@ -452,10 +480,10 @@ public:
 		return true;
 	}
 
-	bool DeleteAt(size_t i)
+	bool DeleteAt(size_t Index)
 	{
 		VALIDATE_UL();
-		Iter p = GetIndex(i);
+		Iter p = GetIndex(Index);
 		if (!p.In())
 			return false;
 		bool Status = Delete(p);
@@ -685,6 +713,8 @@ public:
 		ssize_t Idx;
 		int Shift;
 		int Mask;
+		int Version;
+
 		struct BlkMap
 		{
 			int Count, Refs;
@@ -738,6 +768,8 @@ public:
 			u = lst;
 			Idx = idx;
 			Map = NULL;
+			Version = lst->Version;
+
 			Init();
 		}
 
@@ -748,6 +780,8 @@ public:
 			Shift = rhs.Shift;
 			Mask = rhs.Mask;
 			Map = rhs.Map;
+			Version = rhs.Version;
+
 			if (Map)
 				Map->Refs++;
 		}
