@@ -88,8 +88,7 @@ protected:
 	void Log(const char *Msg, ssize_t Ret, const char *Buf, ssize_t Len);
 
 public:
-	int			BytesWritten;
-	int			BytesRead;
+	ssize_t	BytesRead, BytesWritten;
 
 	/// Creates the class
 	GSocket(GStreamI *logger = 0, void *unused_param = 0);

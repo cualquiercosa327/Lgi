@@ -2,19 +2,25 @@
 #include "LgiIde.h"
 #include "DocEdit.h"
 
-#define COMP_STYLE	1
+#define COMP_STYLE				1
+#define PROFILE_STYLE			0
+#if PROFILE_STYLE
+	#define PROF(str)			Prof.Add(str)
+#else
+	#define PROF(str)
+#endif
 
-#define ColourComment		GColour(0, 140, 0)
-#define ColourHashDef		GColour(0, 0, 222)
-#define ColourLiteral		GColour(192, 0, 0)
-#define ColourKeyword		GColour::Black
-#define ColourType			GColour(0, 0, 222)
-#define ColourPhp			GColour(140, 140, 180)
-#define ColourHtml			GColour(80, 80, 255)
-#define ColourPre			GColour(150, 110, 110)
-#define ColourStyle			GColour(110, 110, 150)
+#define ColourComment			GColour(0, 140, 0)
+#define ColourHashDef			GColour(0, 0, 222)
+#define ColourLiteral			GColour(192, 0, 0)
+#define ColourKeyword			GColour::Black
+#define ColourType				GColour(0, 0, 222)
+#define ColourPhp				GColour(140, 140, 180)
+#define ColourHtml				GColour(80, 80, 255)
+#define ColourPre				GColour(150, 110, 110)
+#define ColourStyle				GColour(110, 110, 150)
 
-#define IsSymbolChar(ch)	(IsAlpha(ch) || (ch) == '_')
+#define IsSymbolChar(ch)		(IsAlpha(ch) || (ch) == '_')
 
 #define DetectKeyword()			\
 	Node *n = &Root;			\
@@ -93,26 +99,30 @@ DocEditStyling::DocEditStyling(DocEdit *view) :
 
 void DocEdit::OnApplyStyles()
 {
-	GProfile p("OnApplyStyles");
+	#if PROFILE_STYLE
+	GProfile Prof("OnApplyStyles");
+	#endif
 
 	Style.Empty();
 
-	p.Add("Lock");
+	PROF("Lock");
 
 	GTextView3::GStyle Vis(STYLE_NONE);
 	GetVisible(Vis);
 
 	if (DocEditStyling::Lock(_FL))
 	{
-		p.Add("Insert");
+		PROF("Insert");
+		
 		Style.Swap(Params.Styles);
+		LgiTrace("Swapped in %i styles.\n", (int)Style.Length());
 
-		p.Add("Inval");
+		PROF("Inval");
 
 		if (Params.Dirty.Start >= 0)
 		{
-			// LgiTrace("Visible rgn: %i + %i = %i\n", Vis.Start, Vis.Len, Vis.End());
-			// LgiTrace("Dirty rgn: %i + %i = %i\n", Dirty.Start, Dirty.Len, Dirty.End());
+			LgiTrace("Visible rgn: %i + %i = %i\n", Vis.Start, Vis.Len, Vis.End());
+			LgiTrace("Dirty rgn: %i + %i = %i\n", Params.Dirty.Start, Params.Dirty.Len, Params.Dirty.End());
 
 			ssize_t CurLine = -1, DirtyStartLine = -1, DirtyEndLine = -1;
 			GetTextLine(Cursor, &CurLine);
@@ -122,7 +132,7 @@ void DocEdit::OnApplyStyles()
 				DirtyStartLine >= 0 &&
 				DirtyEndLine >= 0)
 			{
-				// LgiTrace("Dirty lines %i, %i, %i\n", CurLine, DirtyStartLine, DirtyEndLine);
+				LgiTrace("Dirty lines %i, %i, %i\n", CurLine, DirtyStartLine, DirtyEndLine);
 					
 				if (DirtyStartLine != CurLine ||
 					DirtyEndLine != CurLine)
@@ -133,22 +143,25 @@ void DocEdit::OnApplyStyles()
 							c.x2,
 							Params.Dirty.End() >= Vis.End() ? c.y2 : DocToScreen(End->r).y2);
 						
-					// LgiTrace("Cli: %s, CursorLine: %s, Start rgn: %s, End rgn: %s, Update: %s\n", c.GetStr(), CursorLine->r.GetStr(), Start->r.GetStr(), End->r.GetStr(), r.GetStr());
+					LgiTrace("Cli: %s, Start rgn: %s, End rgn: %s, Update: %s\n",
+							c.GetStr(), Start->r.GetStr(), End->r.GetStr(), r.GetStr());
 					Invalidate(&r);
 				}						
 			}
 			else
 			{
-				// LgiTrace("No Change: %i, %i, %i\n", CurLine, DirtyStartLine, DirtyEndLine);
+				LgiTrace("No Change: %i, %i, %i\n", CurLine, DirtyStartLine, DirtyEndLine);
 			}
 
 		}
 		else
 		{
+			LgiTrace("Invalidate everything\n");
 			Invalidate();
 		}
 
-		p.Add("Unlock");
+		PROF("Unlock");
+		
 		DocEditStyling::Unlock();
 	}
 }
@@ -212,7 +225,9 @@ int DocEditStyling::Main()
 
 void DocEditStyling::StyleCpp(StylingParams &p)
 {
+	#if PROFILE_STYLE
 	GProfile Prof("DocEdit::StyleCpp");
+	#endif
 
 	if (!p.Text.Length())
 		return;
@@ -221,7 +236,7 @@ void DocEditStyling::StyleCpp(StylingParams &p)
 	char16 *s = Text;
 	char16 *e = s + p.Text.Length();
 		
-	Prof.Add("Scan");
+	PROF("Scan");
 
 	LUnrolledList<GTextView3::GStyle> Out;
 	for (; ParentState != KCancel && s < e; s++)
@@ -403,10 +418,12 @@ void DocEditStyling::StyleCpp(StylingParams &p)
 	*/
 
 	#if COMP_STYLE
-	Prof.Add("Compare");
+	PROF("Compare");
 
 	auto &Vis = p.Visible;
-	if (Vis.Valid() && ParentState != KCancel)
+	if (Vis.Valid() &&
+		ParentState != KCancel &&
+		PrevStyle.Length())
 	{
 		GArray<GTextView3::GStyle*> Old, Cur;
 		for (auto s : PrevStyle)
@@ -1186,6 +1203,7 @@ void DocEdit::PourStyle(size_t Start, ssize_t EditSize)
 	{
 		Params.PourStart = Start;
 		Params.PourSize = EditSize;
+		Params.Dirty.Empty();
 		Params.Text.Length(Size);
 		Params.FileName = Doc->GetFileName();
 		GetVisible(Params.Visible);

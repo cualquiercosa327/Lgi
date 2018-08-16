@@ -780,7 +780,7 @@ ssize_t GMemFile::Read(void *Ptr, ssize_t Size, int Flags)
 		
 		// Where are we in the current block?
 		ssize_t BlkOffset = CurPos - b->Offset;
-		LgiAssert(b && BlkOffset >= 0 && BlkOffset <= b->Used);
+		LgiAssert(b && BlkOffset >= 0 && BlkOffset <= (ssize_t)b->Used);
 		ssize_t Remaining = b->Used - BlkOffset;
 		if (Remaining > 0)
 		{

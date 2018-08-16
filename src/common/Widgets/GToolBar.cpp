@@ -763,7 +763,7 @@ void GToolButton::Value(int64 b)
 		{
 			if (Value() != b)
 			{
-				Down = b;
+				Down = b != 0;
 				Invalidate();
 				SendNotify(GNotifyValueChanged);
 			}
@@ -790,7 +790,7 @@ void GToolButton::Value(int64 b)
 								But->Value(false);
 						}
 
-						for (ssize_t i=CurIdx+1; i<it->Length(); i++)
+						for (size_t i=CurIdx+1; i<it->Length(); i++)
 						{
 							GToolButton *But = dynamic_cast<GToolButton*>((*it)[i]);
 							if (But->Separator())
@@ -802,7 +802,7 @@ void GToolButton::Value(int64 b)
 				}
 			}
 
-			Down = b;
+			Down = b != 0;
 			GetParent()->Invalidate();
 			SendNotify(GNotifyValueChanged);
 			break;
@@ -1477,7 +1477,7 @@ GToolButton *GToolBar::AppendButton(const char *Tip, int Id, int Type, int Enabl
 		But->SetId(Id);
 		But->Type = Type;
 		But->SetParent(this);
-		But->Enabled(Enabled);
+		But->Enabled(Enabled != 0);
 
 		if (IconId >= 0)
 		{
@@ -1622,7 +1622,7 @@ bool BltBmpToBmp(HBITMAP hDest,
 				SrcDC,
 				xSrc,
 				ySrc,
-				dwRop);
+				dwRop) != 0;
 
 		hDest = (HBITMAP) SelectObject(DestDC, hDest);
 		hSrc = (HBITMAP) SelectObject(SrcDC, hSrc);
@@ -1665,7 +1665,7 @@ bool BltBmpToDc(HDC DestDC,
 				SrcDC,
 				xSrc,
 				ySrc,
-				dwRop);
+				dwRop) != 0;
 
 		hSrc = (HBITMAP) SelectObject(SrcDC, hSrc);
 	}
@@ -1703,7 +1703,7 @@ bool BltDcToBmp(HBITMAP hDest,
 				SrcDC,
 				xSrc,
 				ySrc,
-				dwRop);
+				dwRop) != 0;
 
 		hDest = (HBITMAP) SelectObject(DestDC, hDest);
 	}

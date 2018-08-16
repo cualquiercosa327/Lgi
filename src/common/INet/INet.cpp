@@ -41,6 +41,7 @@
  	#include <stdio.h>
 	#include <stdlib.h>
 	#include <ras.h>
+	#include <Ws2tcpip.h>
 
 	typedef HOSTENT HostEnt;
 	typedef int socklen_t;
@@ -412,7 +413,7 @@ bool GSocket::CanAccept(int TimeoutMs)
 
 bool GSocket::IsBlocking()
 {
-	return d->Blocking;
+	return d->Blocking != 0;
 }
 
 void GSocket::IsBlocking(bool block)
@@ -570,7 +571,12 @@ int GSocket::Open(const char *HostAddr, int Port)
 			if (IsDigit(*HostAddr) && strchr(HostAddr, '.'))
 			{
 				// Ip address
-				IpAddress = inet_addr(HostAddr);
+				// IpAddress = inet_addr(HostAddr);
+				if (!inet_pton(AF_INET, HostAddr, &IpAddress))
+				{
+					Error();
+					return 0;
+				}
 				
 				#if defined(WIN32) || defined(BEOS)
 
@@ -982,7 +988,7 @@ ssize_t GSocket::Write(const void *Data, ssize_t Len, int Flags)
 		(
 			d->Socket,
 			(char*)Data,
-			Len,
+			(int) Len,
 			Flags
 			#ifndef MAC
 			| MSG_NOSIGNAL
@@ -1018,7 +1024,7 @@ ssize_t GSocket::Read(void *Data, ssize_t Len, int Flags)
 
 	if (d->Timeout < 0 || IsReadable(d->Timeout))
 	{
-		Status = recv(d->Socket, (char*)Data, Len, Flags
+		Status = recv(d->Socket, (char*)Data, (int) Len, Flags
 			#ifdef MSG_NOSIGNAL
 			| MSG_NOSIGNAL
 			#endif
@@ -1239,7 +1245,7 @@ void GSocket::SetLogFile(char *FileName, int Type)
 
 bool GSocket::GetUdp()
 {
-	return d->Udp;
+	return d->Udp != 0;
 }
 
 void GSocket::SetUdp(bool b)
