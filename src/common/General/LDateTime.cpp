@@ -64,7 +64,7 @@ uint16 LDateTime::GetDefaultFormat()
 		}
 
 		if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_SDATE, s, sizeof(s)))
-			DefaultSeparator = s[0];
+			DefaultSeparator = (char)s[0];
 
 		if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_SSHORTDATE, s, sizeof(s)))
 		{
@@ -803,7 +803,7 @@ bool LDateTime::Get(uint64 &s)
 	System.wMilliseconds = limit(_Thousands, 0, 999);
 	System.wDayOfWeek = DayOfWeek();
 
-	BOOL b1, b2;
+	BOOL b1;
 	if (b1 = SystemTimeToFileTime(&System, &Utc))
 	{
 		// Convert to 64bit
@@ -1442,16 +1442,16 @@ LDateTime LDateTime::operator -(LDateTime &dt)
     
     int64 d = (int64)a - (int64)b;
     LDateTime r;
-    r._Day = d / Day;
+    r._Day = (int16) (d / Day);
     d -= r._Day * Day;
-    r._Hours = d / Hr;
+    r._Hours = (int16) (d / Hr);
     d -= r._Hours * Hr;
-    r._Minutes = d / Min;
+    r._Minutes = (int16) (d / Min);
     d -= r._Minutes * Min;
-    r._Seconds = d / Sec;
+    r._Seconds = (int16) (d / Sec);
 	#ifdef WIN32
     d -= r._Seconds * Sec;
-    r._Thousands = d / 10000;
+    r._Thousands = (int16) (d / 10000);
 	#else
 	r._Thousands = 0;
 	#endif
@@ -1612,7 +1612,7 @@ void LDateTime::AddMonths(int64 Months)
 	}
 	while (1);
 
-	_Month = m;
+	_Month = (int16) m;
 	if (_Day > DaysInMonth())
 		_Day = DaysInMonth();
 }

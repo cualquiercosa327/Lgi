@@ -1343,7 +1343,7 @@ LgiFunc bool GReduceBitDepth(GSurface *pDC, int Bits, GPalette *Pal = 0, GReduce
 struct GColourStop
 {
 	COLOUR Colour;
-	double Pos;
+	float Pos;
 };
 
 /// Draws a horizontal or vertical gradient

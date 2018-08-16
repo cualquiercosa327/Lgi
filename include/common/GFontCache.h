@@ -5,7 +5,7 @@ class GFontCache
 {
 	GFont *DefaultFont;
 	GArray<GFont*> Fonts;
-	GHashTbl<const char*, GString> FontName;
+	LHashTbl<ConstStrKey<char>, GString> FontName;
 	
 public:
 	/// Constructor for font cache

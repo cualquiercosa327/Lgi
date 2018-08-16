@@ -131,7 +131,7 @@ bool LgiPostEvent(OsView Wnd, int Event, GMessage::Param a, GMessage::Param b)
 
 	#elif WINNATIVE
 
-	return PostMessage(Wnd, Event, a, b);
+	return PostMessage(Wnd, Event, a, b) != 0;
 
 	#elif defined(__GTK_H__)
 
@@ -378,7 +378,7 @@ bool LgiRecursiveFileSearch(const char *Root,
 	Status = true;
 
 	// enumerate the directory contents
-	for (bool Found = Dir.First(Root); Found; Found = Dir.Next())
+	for (auto Found = Dir.First(Root); Found; Found = Dir.Next())
 	{
 		char Name[300];
 		if (!Dir.Path(Name, sizeof(Name)))
@@ -485,7 +485,7 @@ bool LgiTraceGetFilePath(char *LogPath, int BufLen)
 		{
 			char *Dot = strrchr(LogPath, '.');
 			if (Dot && !strchr(Dot, DIR_CHAR))
-				strcpy(Dot+1, "txt");
+				strcpy_s(Dot+1, BufLen - (Dot - LogPath) - 1, "txt");
 			else
 				strcat(LogPath, ".txt");
 		}
@@ -571,7 +571,7 @@ Prof.Add("vprint");
 
 	va_list Arg;
 	va_start(Arg, Msg);
-	int Ch = _vsnprintf(Buffer, sizeof(Buffer)-1, Msg, Arg);
+	int Ch = _vsnprintf_s(Buffer, sizeof(Buffer)-1, Msg, Arg);
 	va_end(Arg);
 
 #if LGI_TRACE_TS
@@ -651,7 +651,7 @@ void LgiStackTrace(const char *Msg, ...)
 			char *Dot = strrchr(Buffer, '.');
 			if (Dot && !strchr(Dot, DIR_CHAR))
 			{
-				strcpy(Dot+1, "txt");
+				strcpy_s(Dot+1, sizeof(Buffer) - (Dot - Buffer) - 1, "txt");
 			}
 			else
 			{
@@ -663,7 +663,7 @@ void LgiStackTrace(const char *Msg, ...)
 
 		va_list Arg;
 		va_start(Arg, Msg);
-		int Len = _vsnprintf(Buffer, sizeof(Buffer)-1, Msg, Arg);
+		int Len = _vsnprintf_s(Buffer, sizeof(Buffer)-1, Msg, Arg);
 		va_end(Arg);
 
 		Lu->Lookup(Buffer+Len, sizeof(Buffer)-Len-1, Stack, Frames);
@@ -826,7 +826,7 @@ bool LgiMakePath(char *Str, int StrSize, const char *Path, const char *File)
 				{
 					return false;
 				}				
-				strcpy(Str + Len, T[i]);
+				strcpy_s(Str + Len, StrSize - Len, T[i]);
 			}
 		}
 	}
@@ -1882,7 +1882,7 @@ char *LgiFindFile(const char *Name)
 		#endif
 
 		char CurWorking[MAX_PATH];
-		getcwd(CurWorking, sizeof(CurWorking));
+		_getcwd(CurWorking, sizeof(CurWorking));
 		const char *PrefPath[] =
 		{
 			".",
@@ -2098,10 +2098,10 @@ bool LgiIsVolumeRoot(const char *Path)
 
 void LgiFormatSize(char *Str, int SLen, uint64 Size)
 {
-	int64 K = 1024;
-	int64 M = K * K;
-	int64 G = K * M;
-	int64 T = K * G;
+	uint64 K = 1024;
+	uint64 M = K * K;
+	uint64 G = K * M;
+	uint64 T = K * G;
 
 	if (Size == 1)
 	{
@@ -2333,7 +2333,7 @@ void GProfile::Add(const char *File, int Line)
 		return;
 	}
 	char *Name = Buf + Used;
-	Used += sprintf(Name, "%s:%i", File, Line) + 1;
+	Used += sprintf_s(Name, BUF_SIZE - Used, "%s:%i", File, Line) + 1;
 	s.Add(Sample(
 		#if PROFILE_MICRO
 		LgiMicroTime(),

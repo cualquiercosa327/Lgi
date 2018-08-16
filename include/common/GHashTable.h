@@ -8,62 +8,11 @@
 #include "LgiClass.h"
 
 #ifndef GHASHTBL_MAX_SIZE
-#define GHASHTBL_MAX_SIZE	(64 << 10)
+#define GHASHTBL_MAX_SIZE				(64 << 10)
 #endif
-
-#define HASH_TRAITS			0
-
-template<typename RESULT, typename CHAR>
-RESULT LgiHash(CHAR *v, int l, bool Case)
-{
-	RESULT h = 0;
-
-	if (Case)
-	{
-		// case sensitive
-		if (l > 0)
-		{
-			while (l--)
-			{
-				h = (h << 5) - h + *v++;
-			}
-		}
-		else
-		{
-			for (; *v; v ++)
-			{
-				h = (h << 5) - h + *v;
-			}
-		}
-	}
-	else
-	{
-		// case insensitive
-		CHAR c;
-		if (l > 0)
-		{
-			while (l--)
-			{
-				c = tolower(*v);
-				v++;
-				h = (h << 5) - h + c;
-			}
-		}
-		else
-		{
-			for (; *v; v++)
-			{
-				c = tolower(*v);
-				h = (h << 5) - h + c;
-			}
-		}
-	}
-
-	return h;
-}
-
-#define HASH_TABLE_SHRINK_THRESHOLD			15
-#define HASH_TABLE_GROW_THRESHOLD			50
+#define HASH_TRAITS						0
+#define HASH_TABLE_SHRINK_THRESHOLD		15
+#define HASH_TABLE_GROW_THRESHOLD		50
 
 /// General hash table container for O(1) access to table data.
 template<typename Key, typename Value>
@@ -246,7 +195,7 @@ public:
 		class CharKey : public LTrait
 		{
 			CharKey(GHashTbl<Key,Value> *t) : h(t) {}
-			uint32 Hash(Key s) { return LgiHash<uint32, Key>(s, 0, h->Case); }
+			uint32 Hash(Key s) { return LHash<uint32, Key>(s, 0, h->Case); }
 			size_t SizeKey(Key a) { return Strlen(a) + 1; }
 			bool CmpKey(Key a, Key b) { return (h->Case ? Strcmp(a, b) : Stricmp(a, b)) == 0; }
 			Key CopyKey(Key a)
@@ -272,7 +221,7 @@ private:
 	// Type specific implementations
 
 		// char
-			uint32 Hash(char *s) { return LgiHash<uint, uchar>((uchar*)s, 0, Case); }
+			uint32 Hash(char *s) { return LHash<uint, uchar>((uchar*)s, 0, Case); }
 			char *CopyKey(char *a) { return NewStr(a); }
 			size_t SizeKey(char *a) { return strlen(a) + 1; }
 			void FreeKey(char *&a)
@@ -286,7 +235,7 @@ private:
 			}
 
 		// const char
-			uint32 Hash(const char *s) { return LgiHash<uint, uchar>((uchar*)s, 0, Case); }
+			uint32 Hash(const char *s) { return LHash<uint, uchar>((uchar*)s, 0, Case); }
 			char *CopyKey(const char *a) { return NewStr(a); }
 			size_t SizeKey(const char *a) { return strlen(a) + 1; }
 			void FreeKey(const char *&a)
@@ -300,7 +249,7 @@ private:
 			}
 	
 		// char16
-			uint32 Hash(char16 *s) { return LgiHash<uint, char16>(s, 0, Case); }
+			uint32 Hash(char16 *s) { return LHash<uint, char16>(s, 0, Case); }
 			char16 *CopyKey(char16 *a) { return NewStrW(a); }
 			size_t SizeKey(char16 *a) { return StrlenW(a) + 1; }
 			void FreeKey(char16 *&a)
@@ -317,7 +266,7 @@ private:
 			}
 
 		// const char16
-			uint32 Hash(const char16 *s) { return LgiHash<uint, char16>((char16*)s, 0, Case); }
+			uint32 Hash(const char16 *s) { return LHash<uint, char16>((char16*)s, 0, Case); }
 			const char16 *CopyKey(const char16 *a) { return NewStrW(a); }
 			size_t SizeKey(const char16 *a) { return StrlenW(a) + 1; }
 			void FreeKey(const char16 *&a)
@@ -986,21 +935,8 @@ public:
 	}
 };
 
-/* Deprecated...
-class LgiClass GHashTable : public GHashTbl<char*, void*>
-{
-public:
-	GHashTable(int Size = 0, bool Case = true)
-		: GHashTbl<char*, void*>(Size, Case)
-	{
-	}
-	
-	bool Add(char *k, void *v = (void*)1)
-	{
-		return GHashTbl<char*, void*>::Add(k, v);
-	}
-	
-};
-*/
+#ifdef _MSC_VER
+#pragma deprecated(GHashTbl) 
+#endif
 
 #endif

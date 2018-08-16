@@ -27,6 +27,6 @@ void LgiShowFileProperties(OsView Parent, const char *Filename)
 bool LgiBrowseToFile(const char *Filename)
 {
 	char Args[MAX_PATH];
-	sprintf(Args, "/e,/select,\"%s\"", Filename);
+	sprintf_s(Args, sizeof(Args), "/e,/select,\"%s\"", Filename);
 	return LgiExecute("explorer", Args);
 }

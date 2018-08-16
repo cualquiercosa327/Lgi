@@ -678,7 +678,7 @@ public:
 			if (c > BlockSize)
 				i->Count = BlockSize;
 			else
-				i->Count = c;
+				i->Count = (int)c;
 			c -= i->Count;
 		}
 		LgiAssert(c == 0);
@@ -723,7 +723,7 @@ public:
 			BlkMap(Unrolled *u)
 			{
 				Refs = 1;
-				Count = (u->Items + (BlockSize-1)) / BlockSize;
+				Count = (int) (u->Items + (BlockSize-1)) / BlockSize;
 				Blocks = new LstBlk*[Count];
 				int Idx = 0;
 				for (LstBlk *b=u->FirstObj; b; b = b->Next)
@@ -802,7 +802,7 @@ public:
 		bool IsValid() const
 		{
 			return	u != NULL &&
-					Idx >= 0 && Idx < u->Items &&
+					Idx >= 0 && Idx < (ssize_t)u->Items &&
 					Shift != 0 &&
 					Mask != 0 &&
 					Map != NULL;

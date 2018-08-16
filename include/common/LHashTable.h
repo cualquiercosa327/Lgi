@@ -16,51 +16,6 @@
 #define LHASHTBL_MAX_SIZE	(64 << 10)
 #endif
 
-template<typename RESULT, typename CHAR>
-RESULT LHash(const CHAR *v, ssize_t l, bool Case)
-{
-	RESULT h = 0;
-
-	if (Case)
-	{
-		// case sensitive
-		if (l > 0)
-		{
-			while (l--)
-				h = (h << 5) - h + *v++;
-		}
-		else
-		{
-			for (; *v; v ++)
-				h = (h << 5) - h + *v;
-		}
-	}
-	else
-	{
-		// case insensitive
-		CHAR c;
-		if (l > 0)
-		{
-			while (l--)
-			{
-				c = tolower(*v);
-				v++;
-				h = (h << 5) - h + c;
-			}
-		}
-		else
-		{
-			for (; *v; v++)
-			{
-				c = tolower(*v);
-				h = (h << 5) - h + c;
-			}
-		}
-	}
-
-	return h;
-}
-
 #define HASH_TABLE_SHRINK_THRESHOLD			15
 #define HASH_TABLE_GROW_THRESHOLD			50
 
@@ -139,8 +94,8 @@ class KeyPool
 protected:
 	struct Buf : public GArray<T>
 	{
-		int Used;
-		Buf(int Sz = 0) { this->Length(Sz); }
+		size_t Used;
+		Buf(size_t Sz = 0) { this->Length(Sz); }
 		size_t Free() { return this->Length() - Used; }
 	};
 

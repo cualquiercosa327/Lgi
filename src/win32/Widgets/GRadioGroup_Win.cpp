@@ -25,7 +25,7 @@ public:
 	static int NextId;
 	int InitVal;
 	int MaxLayoutWidth;
-    GHashTbl<void*,GViewLayoutInfo*> Info;
+    LHashTbl<PtrKey<void*>,GViewLayoutInfo*> Info;
 
 	GRadioGroupPrivate()
 	{

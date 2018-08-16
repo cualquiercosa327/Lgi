@@ -29,7 +29,7 @@ class XmlPoolAlloc : public GXmlAlloc
 {
 	struct Block
 	{
-		int Used, Len;
+		size_t Used, Len;
 		char *Ptr;
 
 		Block()
@@ -353,7 +353,7 @@ GXmlTag::GXmlTag(const char *tag, GXmlAlloc *alloc)
 GXmlTag::GXmlTag(const GXmlTag &t)
 {
 	Allocator = t.Allocator;
-	LgiAssert(Allocator);
+	LgiAssert(Allocator != NULL);
 
 	Tag = NULL;
 	Write = false;

@@ -214,7 +214,7 @@ public:
 				else mod = module;
 
 				bool found_addr = false;
-				if (SymGetSymFromAddr(hProcess, (DWORD_PTR)Ip[i], &symDisplacement, pSymbol))
+				if (SymGetSymFromAddr(hProcess, (DWORD)Ip[i], &symDisplacement, pSymbol))
 				{
 					if (SymGetLineFromAddr(hProcess, (DWORD_PTR)Ip[i], &symDisplacement, &Line))
 					{

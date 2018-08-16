@@ -450,7 +450,7 @@ GSurface *ConvertDC(GSurface *pDC, int Bits)
 
 GColour GdcMixColour(GColour c1, GColour c2, float HowMuchC1)
 {
-	float HowMuchC2 = 1.0 - HowMuchC1;
+	float HowMuchC2 = 1.0f - HowMuchC1;
 
 	uint8 r = (uint8) ((c1.r()*HowMuchC1) + (c2.r()*HowMuchC2));
 	uint8 g = (uint8) ((c1.g()*HowMuchC1) + (c2.g()*HowMuchC2));

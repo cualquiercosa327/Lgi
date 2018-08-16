@@ -1191,7 +1191,7 @@ bool ResFactory::Res_Read(ResObject *Obj, GXmlTag *Tag, ResReadCtx &Ctx)
 		return false;
 	}
 
-	return Impl->Res_Read(Tag, Ctx);
+	return Impl->Res_Read(Tag, Ctx) >= ResObjectImpl::SOk;
 }
 
 bool ResFactory::Res_Write(ResObject *Obj, GXmlTag *Tag)
@@ -1201,7 +1201,7 @@ bool ResFactory::Res_Write(ResObject *Obj, GXmlTag *Tag)
 		ResObjectImpl *Impl = Obj->GetObjectImpl(this);
 		if (Impl)
 		{
-			return Impl->Res_Write(Tag);
+			return Impl->Res_Write(Tag) >= ResObjectImpl::SOk;
 		}
 		else LgiAssert(0);
 	}
