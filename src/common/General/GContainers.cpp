@@ -36,11 +36,11 @@ int LCmp(char *a, char *b, NativeInt d)
 void UnitTest_CreateList(GArray<GString> &a, List<char> &l, int sz = 100)
 {
 	a.Empty();
-	for (unsigned i=0; i<sz; i++)
+	for (int i=0; i<sz; i++)
 		a[i].Printf("obj.%i", i);
 
 	l.Empty();
-	for (unsigned i=0; i<sz; i++)
+	for (int i=0; i<sz; i++)
 		l.Add(a[i]);
 }
 
@@ -351,7 +351,7 @@ ssize_t GMemQueue::Read(void *Ptr, ssize_t Size, int Flags)
 		Block *b = 0;
 		for (b = Mem.First(); b && Size > 0; b = Mem.Next())
 		{
-			ssize_t Copy = MIN(Size, b->Used - b->Next);
+			int Copy = (int) MIN(Size, b->Used - b->Next);
 			if (Copy > 0)
 			{
 				memcpy(Ptr, b->Ptr() + b->Next, Copy);
@@ -374,7 +374,7 @@ ssize_t GMemQueue::Read(void *Ptr, ssize_t Size, int Flags)
 
 ssize_t GMemQueue::Write(const void *Ptr, ssize_t Size, int Flags)
 {
-	int Status = 0;
+	ssize_t Status = 0;
 
 	/*
 	char m[256];
@@ -389,7 +389,7 @@ ssize_t GMemQueue::Write(const void *Ptr, ssize_t Size, int Flags)
 			Block *Last = Mem.Last();
 			if (Last)
 			{
-				ssize_t Len = MIN(Size, Last->Size - Last->Used);
+				int Len = (int) MIN(Size, Last->Size - Last->Used);
 				if (Len > 0)
 				{
 					memcpy(Last->Ptr() + Last->Used, Ptr, Len);

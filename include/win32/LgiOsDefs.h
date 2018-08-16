@@ -31,6 +31,7 @@
 #endif
 
 #include <string.h>
+#include <stdio.h>
 #include "LgiInc.h"
 #include "LgiDefs.h"
 #include "LgiClass.h"
