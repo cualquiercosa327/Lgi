@@ -185,6 +185,7 @@
 		34ED97491BBF9D1900E2445B /* 64Bit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34ED97471BBF9D1900E2445B /* 64Bit.cpp */; };
 		34F2E65A0E1849D300E8DA6A /* GTree.h in Headers */ = {isa = PBXBuildFile; fileRef = 34F2E6590E1849D300E8DA6A /* GTree.h */; };
 		34F45B9E18C161E40040FD99 /* GPixelRops.h in Headers */ = {isa = PBXBuildFile; fileRef = 34F45B9D18C161E40040FD99 /* GPixelRops.h */; };
+		34F829722115DA0E003B73AE /* LHashTable.h in Headers */ = {isa = PBXBuildFile; fileRef = 34F829712115DA0E003B73AE /* LHashTable.h */; };
 		34F96DAA0DB9B82B009C64B8 /* GDragAndDrop.h in Headers */ = {isa = PBXBuildFile; fileRef = 34F96DA90DB9B82B009C64B8 /* GDragAndDrop.h */; };
 		34FB3A761B6C37FD00B32A56 /* GStringClass.h in Headers */ = {isa = PBXBuildFile; fileRef = 34FB3A751B6C37FD00B32A56 /* GStringClass.h */; };
 		34FB3A791B6C3A8800B32A56 /* GUnicode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34FB3A781B6C3A8800B32A56 /* GUnicode.cpp */; };
@@ -372,6 +373,7 @@
 		34ED97471BBF9D1900E2445B /* 64Bit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = 64Bit.cpp; path = ../../common/Gdc2/64Bit.cpp; sourceTree = "<group>"; };
 		34F2E6590E1849D300E8DA6A /* GTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GTree.h; path = ../../../include/common/GTree.h; sourceTree = "<group>"; };
 		34F45B9D18C161E40040FD99 /* GPixelRops.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GPixelRops.h; path = ../../../include/common/GPixelRops.h; sourceTree = "<group>"; };
+		34F829712115DA0E003B73AE /* LHashTable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LHashTable.h; path = ../../../include/common/LHashTable.h; sourceTree = "<group>"; };
 		34F96DA90DB9B82B009C64B8 /* GDragAndDrop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GDragAndDrop.h; path = ../../../include/common/GDragAndDrop.h; sourceTree = "<group>"; };
 		34FB3A751B6C37FD00B32A56 /* GStringClass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GStringClass.h; path = ../../../include/common/GStringClass.h; sourceTree = "<group>"; };
 		34FB3A771B6C389100B32A56 /* GUnicode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = GUnicode.h; path = ../../../include/common/GUnicode.h; sourceTree = "<group>"; };
@@ -658,6 +660,7 @@
 		344B738408D840A800D49457 /* Memory */ = {
 			isa = PBXGroup;
 			children = (
+				34F829712115DA0E003B73AE /* LHashTable.h */,
 				34D4D55A1250AF98000DA1FD /* GHashTable.h */,
 				34ADC9E00F4CC395009C6B75 /* GAutoPtr.h */,
 				340BFC49096A9D4600A11AE6 /* GArray.h */,
@@ -946,6 +949,7 @@
 				347CB600172A97D600AC3EA6 /* GTableLayout.h in Headers */,
 				34F45B9E18C161E40040FD99 /* GPixelRops.h in Headers */,
 				3433784B19178B09007A4DC5 /* GColourSpace.h in Headers */,
+				34F829722115DA0E003B73AE /* LHashTable.h in Headers */,
 				348BFBE1202C0F0E00B87DD7 /* LListItemCheckBox.h in Headers */,
 				341B7C491956D3AA00AAA225 /* GCheckBox.h in Headers */,
 				34101C041D3B64CE00818D24 /* GMessage.h in Headers */,
