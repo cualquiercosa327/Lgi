@@ -86,8 +86,8 @@ bool GFile::CallMethod(const char *Name, GVariant *Dst, GArray<GVariant*> &Arg)
 					char *m = Arg[1]->CastString();
 					if (m)
 					{
-						bool Rd = strchr(m, 'r');
-						bool Wr = strchr(m, 'w');
+						bool Rd = strchr(m, 'r') != NULL;
+						bool Wr = strchr(m, 'w') != NULL;
 						if (Rd && Wr)
 							Mode = O_READWRITE;
 						else if (Wr)
@@ -245,12 +245,12 @@ bool GFile::CallMethod(const char *Name, GVariant *Dst, GArray<GVariant*> &Arg)
 						{
 							if (WrLen == 1)
 							{
-								uint8 i = v->Value.Int64;
+								uint8 i = (uint8) v->Value.Int64;
 								*Dst = Write(&i, sizeof(i));
 							}
 							else if (WrLen == 2)
 							{
-								uint16 i = v->Value.Int64;
+								uint16 i = (uint16) v->Value.Int64;
 								*Dst = Write(&i, sizeof(i));
 							}
 							else if (WrLen == 4)
@@ -267,13 +267,13 @@ bool GFile::CallMethod(const char *Name, GVariant *Dst, GArray<GVariant*> &Arg)
 						case GV_STRING:
 						{
 							size_t Max = strlen(v->Value.String) + 1;
-							*Dst = Write(&v->Value.String, MIN(Max, WrLen));
+							*Dst = Write(&v->Value.String, MIN(Max, (size_t)WrLen));
 							break;
 						}
 						case GV_WSTRING:
 						{
 							size_t Max = (StrlenW(v->Value.WString) + 1) * sizeof(char16);
-							*Dst = Write(&v->Value.WString, MIN(Max, WrLen));
+							*Dst = Write(&v->Value.WString, MIN(Max, (size_t)WrLen));
 							break;
 						}
 						default:

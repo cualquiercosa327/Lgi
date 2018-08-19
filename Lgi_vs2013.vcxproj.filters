@@ -733,5 +733,11 @@
     <ClInclude Include="include\common\GTextView3.h">
       <Filter>Source Files\Widgets</Filter>
     </ClInclude>
+    <ClInclude Include="include\common\LCancel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\common\LError.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

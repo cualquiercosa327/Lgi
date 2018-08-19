@@ -144,10 +144,10 @@ int GFindDlg::OnNotify(GViewI *Ctrl, int Flags)
 		{
 			// Save controls
 			Find = GetCtrlName(IDC_TEXT);
-			MatchWord = GetCtrlValue(IDC_MATCH_WORD);
-			MatchCase = GetCtrlValue(IDC_MATCH_CASE);
-			SelectionOnly = GetCtrlValue(IDC_SELECTION_ONLY);
-			SearchUpwards = GetCtrlValue(IDC_SEARCH_UP);
+			MatchWord = GetCtrlValue(IDC_MATCH_WORD) != 0;
+			MatchCase = GetCtrlValue(IDC_MATCH_CASE) != 0;
+			SelectionOnly = GetCtrlValue(IDC_SELECTION_ONLY) != 0;
+			SearchUpwards = GetCtrlValue(IDC_SEARCH_UP) != 0;
 			
 			// printf("%s:%i Find OnNot %s, %i, %i\n", _FL, Find, MatchWord, MatchCase);
 
@@ -284,10 +284,10 @@ int GReplaceDlg::OnNotify(GViewI *Ctrl, int Flags)
 		{
 			Find = GetCtrlName(IDC_TEXT);
 			Replace = GetCtrlName(IDC_REPLACE_WITH);
-			MatchWord = GetCtrlValue(IDC_MATCH_WORD);
-			MatchCase = GetCtrlValue(IDC_MATCH_CASE);
-			SelectionOnly = GetCtrlValue(IDC_SELECTION_ONLY);
-			SearchUpwards = GetCtrlValue(IDC_SEARCH_UP);
+			MatchWord = GetCtrlValue(IDC_MATCH_WORD) != 0;
+			MatchCase = GetCtrlValue(IDC_MATCH_CASE) != 0;
+			SelectionOnly = GetCtrlValue(IDC_SELECTION_ONLY) != 0;
+			SearchUpwards = GetCtrlValue(IDC_SEARCH_UP) != 0;
 
 			if (d->Callback)
 			{

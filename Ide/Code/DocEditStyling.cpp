@@ -2,19 +2,27 @@
 #include "LgiIde.h"
 #include "DocEdit.h"
 
-#define COMP_STYLE	1
+#define COMP_STYLE				1
+#define LOG_STYLE				0
+#define PROFILE_STYLE			0
 
-#define ColourComment		GColour(0, 140, 0)
-#define ColourHashDef		GColour(0, 0, 222)
-#define ColourLiteral		GColour(192, 0, 0)
-#define ColourKeyword		GColour::Black
-#define ColourType			GColour(0, 0, 222)
-#define ColourPhp			GColour(140, 140, 180)
-#define ColourHtml			GColour(80, 80, 255)
-#define ColourPre			GColour(150, 110, 110)
-#define ColourStyle			GColour(110, 110, 150)
+#if PROFILE_STYLE
+	#define PROF(str)			Prof.Add(str)
+#else
+	#define PROF(str)
+#endif
 
-#define IsSymbolChar(ch)	(IsAlpha(ch) || (ch) == '_')
+#define ColourComment			GColour(0, 140, 0)
+#define ColourHashDef			GColour(0, 0, 222)
+#define ColourLiteral			GColour(192, 0, 0)
+#define ColourKeyword			GColour::Black
+#define ColourType				GColour(0, 0, 222)
+#define ColourPhp				GColour(140, 140, 180)
+#define ColourHtml				GColour(80, 80, 255)
+#define ColourPre				GColour(150, 110, 110)
+#define ColourStyle				GColour(110, 110, 150)
+
+#define IsSymbolChar(ch)		(IsAlpha(ch) || (ch) == '_')
 
 #define DetectKeyword()			\
 	Node *n = &Root;			\
@@ -93,62 +101,82 @@ DocEditStyling::DocEditStyling(DocEdit *view) :
 
 void DocEdit::OnApplyStyles()
 {
-	GProfile p("OnApplyStyles");
+	#if PROFILE_STYLE
+	GProfile Prof("OnApplyStyles");
+	#endif
 
-	Style.Empty();
-
-	p.Add("Lock");
+	PROF("Lock");
 
 	GTextView3::GStyle Vis(STYLE_NONE);
 	GetVisible(Vis);
 
 	if (DocEditStyling::Lock(_FL))
 	{
-		p.Add("Insert");
-		Style.Swap(Params.Styles);
-
-		p.Add("Inval");
-
-		if (Params.Dirty.Start >= 0)
+		PROF("Insert");
+		
+		if (Params.Styles.Length())
 		{
-			// LgiTrace("Visible rgn: %i + %i = %i\n", Vis.Start, Vis.Len, Vis.End());
-			// LgiTrace("Dirty rgn: %i + %i = %i\n", Dirty.Start, Dirty.Len, Dirty.End());
+			Style.Swap(Params.Styles);
+			#if LOG_STYLE
+			LgiTrace("Swapped in %i styles.\n", (int)Style.Length());
+			#endif
 
-			ssize_t CurLine = -1, DirtyStartLine = -1, DirtyEndLine = -1;
-			GetTextLine(Cursor, &CurLine);
-			GTextLine *Start = GetTextLine(Params.Dirty.Start, &DirtyStartLine);
-			GTextLine *End = GetTextLine(MIN(Size, Params.Dirty.End()), &DirtyEndLine);
-			if (CurLine >= 0 &&
-				DirtyStartLine >= 0 &&
-				DirtyEndLine >= 0)
+			PROF("Inval");
+
+			if (Params.Dirty.Start >= 0)
 			{
-				// LgiTrace("Dirty lines %i, %i, %i\n", CurLine, DirtyStartLine, DirtyEndLine);
-					
-				if (DirtyStartLine != CurLine ||
-					DirtyEndLine != CurLine)
+				#if LOG_STYLE
+				LgiTrace("Visible rgn: %i + %i = %i\n", Vis.Start, Vis.Len, Vis.End());
+				LgiTrace("Dirty rgn: %i + %i = %i\n", Params.Dirty.Start, Params.Dirty.Len, Params.Dirty.End());
+				#endif
+
+				ssize_t CurLine = -1, DirtyStartLine = -1, DirtyEndLine = -1;
+				GetTextLine(Cursor, &CurLine);
+				GTextLine *Start = GetTextLine(Params.Dirty.Start, &DirtyStartLine);
+				GTextLine *End = GetTextLine(MIN(Size, Params.Dirty.End()), &DirtyEndLine);
+				if (CurLine >= 0 &&
+					DirtyStartLine >= 0 &&
+					DirtyEndLine >= 0)
 				{
-					GRect c = GetClient();
-					GRect r(c.x1,
-							Start->r.Valid() ? DocToScreen(Start->r).y1 : c.y1,
-							c.x2,
-							Params.Dirty.End() >= Vis.End() ? c.y2 : DocToScreen(End->r).y2);
+					#if LOG_STYLE
+					LgiTrace("Dirty lines %i, %i, %i\n", CurLine, DirtyStartLine, DirtyEndLine);
+					#endif
 						
-					// LgiTrace("Cli: %s, CursorLine: %s, Start rgn: %s, End rgn: %s, Update: %s\n", c.GetStr(), CursorLine->r.GetStr(), Start->r.GetStr(), End->r.GetStr(), r.GetStr());
-					Invalidate(&r);
-				}						
+					if (DirtyStartLine != CurLine ||
+						DirtyEndLine != CurLine)
+					{
+						GRect c = GetClient();
+						GRect r(c.x1,
+								Start->r.Valid() ? DocToScreen(Start->r).y1 : c.y1,
+								c.x2,
+								Params.Dirty.End() >= Vis.End() ? c.y2 : DocToScreen(End->r).y2);
+							
+						#if LOG_STYLE
+						LgiTrace("Cli: %s, Start rgn: %s, End rgn: %s, Update: %s\n",
+								c.GetStr(), Start->r.GetStr(), End->r.GetStr(), r.GetStr());
+						#endif
+						Invalidate(&r);
+					}						
+				}
+				else
+				{
+					#if LOG_STYLE
+					LgiTrace("No Change: %i, %i, %i\n", CurLine, DirtyStartLine, DirtyEndLine);
+					#endif
+				}
+
 			}
 			else
 			{
-				// LgiTrace("No Change: %i, %i, %i\n", CurLine, DirtyStartLine, DirtyEndLine);
+				#if LOG_STYLE
+				LgiTrace("Invalidate everything\n");
+				#endif
+				Invalidate();
 			}
-
-		}
-		else
-		{
-			Invalidate();
 		}
 
-		p.Add("Unlock");
+		PROF("Unlock");
+		
 		DocEditStyling::Unlock();
 	}
 }
@@ -168,7 +196,9 @@ int DocEditStyling::Main()
 		}
 
 		WorkerState = KStyling;
+		#if LOG_STYLE
 		LgiTrace("DocEdit.Worker starting style...\n");
+		#endif
 		switch (FileType)
 		{
 			case SrcCpp:
@@ -189,12 +219,16 @@ int DocEditStyling::Main()
 		}
 		if (ParentState != KCancel)
 		{
-			LgiTrace("DocEdit.Worker finished style...\n");
+			#if LOG_STYLE
+			LgiTrace("DocEdit.Worker finished style... Items=%i ParentState=%i\n", (int)p.Styles.Length(), ParentState);
+			#endif
 			View->PostEvent(M_STYLING_DONE);
 		}
 		else
 		{
+			#if LOG_STYLE
 			LgiTrace("DocEdit.Worker canceled style...\n");
+			#endif
 		}
 
 		if (LMutex::Lock(_FL))
@@ -212,7 +246,9 @@ int DocEditStyling::Main()
 
 void DocEditStyling::StyleCpp(StylingParams &p)
 {
+	#if PROFILE_STYLE
 	GProfile Prof("DocEdit::StyleCpp");
+	#endif
 
 	if (!p.Text.Length())
 		return;
@@ -221,7 +257,7 @@ void DocEditStyling::StyleCpp(StylingParams &p)
 	char16 *s = Text;
 	char16 *e = s + p.Text.Length();
 		
-	Prof.Add("Scan");
+	PROF("Scan");
 
 	LUnrolledList<GTextView3::GStyle> Out;
 	for (; ParentState != KCancel && s < e; s++)
@@ -403,10 +439,12 @@ void DocEditStyling::StyleCpp(StylingParams &p)
 	*/
 
 	#if COMP_STYLE
-	Prof.Add("Compare");
+	PROF("Compare");
 
 	auto &Vis = p.Visible;
-	if (Vis.Valid() && ParentState != KCancel)
+	if (Vis.Valid() &&
+		ParentState != KCancel &&
+		PrevStyle.Length())
 	{
 		GArray<GTextView3::GStyle*> Old, Cur;
 		for (auto s : PrevStyle)
@@ -1180,12 +1218,15 @@ void DocEdit::PourStyle(size_t Start, ssize_t EditSize)
 	// Create the StyleIn array from the current document
 
 	// Lock the object and give the text to the worker
+	#if LOG_STYLE
 	LgiTrace("DocEdit starting style...\n");
+	#endif
 	ParentState = KStyling;
 	if (DocEditStyling::Lock(_FL))
 	{
 		Params.PourStart = Start;
 		Params.PourSize = EditSize;
+		Params.Dirty.Empty();
 		Params.Text.Length(Size);
 		Params.FileName = Doc->GetFileName();
 		GetVisible(Params.Visible);

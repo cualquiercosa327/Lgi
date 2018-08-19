@@ -1116,7 +1116,7 @@ bool GView::Enabled()
 
 	#if WINNATIVE
 	if (_View)
-		return IsWindowEnabled(_View);
+		return IsWindowEnabled(_View) != 0;
 	#else
 	#endif
 	return !TestFlag(GViewFlags, GWF_DISABLED);
@@ -1924,7 +1924,7 @@ bool GView::PostEvent(int Cmd, GMessage::Param a, GMessage::Param b)
 	if (_View)
 	{
 		#if WINNATIVE
-		return PostMessage(_View, Cmd, a, b);
+		return PostMessage(_View, Cmd, a, b) != 0;
 		#else
 		return LgiPostEvent(_View, Cmd, a, b);
 		#endif
@@ -2275,7 +2275,7 @@ GViewFactory::GViewFactory()
 	}
 	else
 	{
-		LgiAssert(AllFactories);
+		LgiAssert(AllFactories != NULL);
 	}
 	#else
 	pthread_once(&FactoryOnce, GFactoryInitFactories);

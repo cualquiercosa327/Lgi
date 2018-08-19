@@ -22,6 +22,7 @@
 #include "GToken.h"
 #include "GUtf8.h"
 #include "GFontCache.h"
+
 #if HAS_LIB_MAGIC
 // sudo apt-get install libmagic-dev
 #include <magic.h>
@@ -212,7 +213,7 @@ public:
 	MsgArray *Lock(const char *file, int line)
 	{
 		if (!LMutex::Lock(file, line))
-			return false;
+			return NULL;
 		return &q;
 	}
 	

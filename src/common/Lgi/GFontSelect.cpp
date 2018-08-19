@@ -250,9 +250,9 @@ void GFontSelect::UiToThis()
 {
 	Face = GetSelectedFace();
 	Size = (int)GetCtrlValue(IDC_PT_SIZE);
-	Underline = GetCtrlValue(IDC_UNDERLINE);
-	Bold = GetCtrlValue(IDC_BOLD);
-	Italic = GetCtrlValue(IDC_ITALIC);
+	Underline = GetCtrlValue(IDC_UNDERLINE) != 0;
+	Bold = GetCtrlValue(IDC_BOLD) != 0;
+	Italic = GetCtrlValue(IDC_ITALIC) != 0;
 }
 
 bool GFontSelect::Serialize(void *Data, int DataLen, bool Write)
@@ -310,8 +310,8 @@ bool GFontSelect::Serialize(void *Data, int DataLen, bool Write)
 			Face = Fnt->lfFaceName;
 			Size = WinHeightToPoint(Fnt->lfHeight);
 			Bold = Fnt->lfWeight >= FW_BOLD;
-			Underline = Fnt->lfUnderline;
-			Italic = Fnt->lfItalic;
+			Underline = Fnt->lfUnderline != 0;
+			Italic = Fnt->lfItalic != 0;
 		}
 		else if (DataLen == sizeof(LOGFONTW))
 		{
@@ -319,8 +319,8 @@ bool GFontSelect::Serialize(void *Data, int DataLen, bool Write)
 			Face = Fnt->lfFaceName;
 			Size = WinHeightToPoint(Fnt->lfHeight);
 			Bold = Fnt->lfWeight >= FW_BOLD;
-			Underline = Fnt->lfUnderline;
-			Italic = Fnt->lfItalic;
+			Underline = Fnt->lfUnderline != 0;
+			Italic = Fnt->lfItalic != 0;
 		}
 
 		#else

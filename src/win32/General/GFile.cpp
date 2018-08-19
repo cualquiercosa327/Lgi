@@ -39,7 +39,6 @@
 #include "GString.h"
 #include "GLibrary.h"
 
-
 /****************************** Defines *************************************************************************************/
 #define FILEDEBUG
 #define CHUNK					0xFFF0
@@ -710,7 +709,7 @@ bool GFileSystem::Copy(char *From, char *To, int *ErrorCode, CopyFileCallback Ca
 	return i == Size;
 }
 
-bool GFileSystem::Delete(GArray<const char*> &Files, GArray<int> *Status, bool ToTrash)
+bool GFileSystem::Delete(GArray<const char*> &Files, GArray<LError> *Status, bool ToTrash)
 {
 	bool Ret = true;
 
@@ -740,7 +739,7 @@ bool GFileSystem::Delete(GArray<const char*> &Files, GArray<int> *Status, bool T
 		{
 			for (int i=0; i<Files.Length(); i++)
 			{
-				(*Status)[i] = e;
+				(*Status)[i].Set(e);
 			}
 		}
 	}
@@ -762,7 +761,7 @@ bool GFileSystem::Delete(GArray<const char*> &Files, GArray<int> *Status, bool T
 
 			if (e && Status)
 			{
-				(*Status)[i] = e;
+				(*Status)[i].Set(e);
 				Ret = false;
 			}
 		}
@@ -781,18 +780,18 @@ bool GFileSystem::Delete(const char *FileName, bool ToTrash)
 	return Delete(Files, 0, ToTrash);
 }
 
-bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentFoldersIfNeeded, int *Err)
+bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentFoldersIfNeeded, LError *Err)
 {
 	GAutoWString w(Utf8ToWide(PathName));
 	bool Status = ::CreateDirectoryW(w, NULL);	
 	if (!Status)
 	{
-		DWORD err = GetLastError();
+		int Code = GetLastError();
 		if (Err)
-			*Err = err;
+			Err->Set(Code);
 		
 		if (CreateParentFoldersIfNeeded &&
-			err == ERROR_PATH_NOT_FOUND)
+			Code == ERROR_PATH_NOT_FOUND)
 		{
 			char Base[DIR_PATH_SIZE];
 			strcpy_s(Base, sizeof(Base), PathName);
@@ -811,7 +810,11 @@ bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentFoldersIfN
 				GAutoWString w(Utf8ToWide(Base));
 				Status = ::CreateDirectoryW(w, NULL);
 				if (!Status)
+				{
+					if (Err)
+						Err->Set(GetLastError());
 					break;
+				}
 			}
 		}
 	}	
@@ -891,19 +894,29 @@ bool GFileSystem::GetCurrentFolder(char *PathName, int Length)
 	return Status;
 }
 
-bool GFileSystem::Move(const char *OldName, const char *NewName)
+bool GFileSystem::Move(const char *OldName, const char *NewName, LError *Err)
 {
-	bool Status = false;
-
-	if (OldName && NewName)
+	if (!OldName || !NewName)
 	{
-		GAutoWString New(Utf8ToWide(NewName));
-		GAutoWString Old(Utf8ToWide(OldName));
-		if (New && Old)
-			Status = ::MoveFileW(Old, New);
+		if (Err) Err->Set(LErrorInvalidParam);
+		return false;
+	}
+		
+	GAutoWString New(Utf8ToWide(NewName));
+	GAutoWString Old(Utf8ToWide(OldName));
+	if (!New || !Old)
+	{
+		if (Err) Err->Set(LErrorNoMem);
+		return false;
 	}
 
-	return Status;
+	if (!::MoveFileW(Old, New))
+	{
+		if (Err) Err->Set(GetLastError());
+		return false;
+	}
+
+	return true;
 }
 
 /*

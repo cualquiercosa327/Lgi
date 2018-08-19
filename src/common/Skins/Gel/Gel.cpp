@@ -277,7 +277,7 @@ class GelSkin : public GSkinEngine
 			GPointF Center(Box.X()/2, Box.Y()/2);
 
 			int Grey = R24(LC_MED);
-			bool Enabled = Flags & Btn_Enabled;
+			bool Enabled = (Flags & Btn_Enabled) != 0;
 			int BorderCol = Enabled ? 80 : 160;
 
 			if (Enabled)
@@ -637,7 +637,7 @@ public:
 			DrawBtn(&Mem,
 					Ctrl->GetClient(),
 					Back.IsValid() ? &Back : NULL,
-					Ctrl->Value(),
+					Ctrl->Value() != 0,
 					Ctrl->Enabled(),
 					Ctrl->Default());
 			
@@ -674,7 +674,7 @@ public:
 			if (Txt && Txt->Length() > 0)
 			{
 				GDisplayString *First = (*Txt)[0];
-				int sx = MaxTxt, sy = Txt->Length() * First->Y();
+				int sx = MaxTxt, sy = (int) Txt->Length() * First->Y();
 				int ty = (Ctrl->Y()-sy) >> 1;
 
 				GFont *f = First->GetFont();
@@ -731,7 +731,7 @@ public:
 			GPath e;
 			e.Rectangle(r.x1, r.y1, r.x2, r.y2);
 			static bool LastEnabled = true;			
-			FillPath(&e, &Mem, State ? State->Value : false, State ? LastEnabled = State->Enabled : LastEnabled);
+			FillPath(&e, &Mem, State ? State->Value != 0 : false, State ? LastEnabled = State->Enabled : LastEnabled);
 			if (State && State->Value)
 			{
 				Mem.Colour(Rgb24(0xc0, 0xc0, 0xc0), 24);
@@ -898,7 +898,7 @@ public:
 				DrawText(State,
 						Mem->X() + 4, 0,
 						t,
-						Flags & Btn_Enabled,
+						(Flags & Btn_Enabled) != 0,
 						Ctrl);
 			}
 		}
@@ -961,7 +961,7 @@ public:
 				DrawText(State,
 						Mem->X() + 4, y,
 						t,
-						Flags & Btn_Enabled,
+						(Flags & Btn_Enabled) != 0,
 						Ctrl);
 			}
 		}

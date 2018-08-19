@@ -1596,6 +1596,7 @@ AppWnd::AppWnd()
 			
 			Tools->Attach(this);
 		}
+		else LgiTrace("%s:%i - No tools obj?", _FL);
 		
 		GVariant v = 270, OutPx = 250;
 		d->Options.GetValue(OPT_SPLIT_PX, v);
@@ -1629,13 +1630,13 @@ AppWnd::AppWnd()
 		}
 
 		AttachChildren();
+		OnPosChange();
 	
 		#ifdef LINUX
-		char *f = LgiFindFile("lgiide.png");
+		GString f = LgiFindFile("lgiide.png");
 		if (f)
 		{
 			// Handle()->setIcon(f);
-			DeleteArray(f);
 		}
 		#endif
 		

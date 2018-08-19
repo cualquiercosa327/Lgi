@@ -102,6 +102,7 @@ public:
 			JobErr_GetUri,
 			JobErr_NoCachedFile,
 			JobErr_ImageFilter,
+			JobErr_NoMem,
 		};
 		
 		// View data
@@ -410,6 +411,17 @@ public:
 		GString MimeType;
 		GVariant Data;
 		GAutoPtr<GStreamI> Stream;
+
+		bool Valid()
+		{
+			return MimeType.Get() != NULL &&
+				FileName.Get() != NULL &&
+				(
+					(Data.Type == GV_BINARY && Data.Value.Binary.Data != NULL)
+					||
+					(Stream.Get() != NULL)
+				);
+		}
 	};
 
 	/// Gets the document in format of a desired MIME type

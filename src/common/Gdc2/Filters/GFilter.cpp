@@ -1198,7 +1198,7 @@ GFilter::IoStatus GdcIco::WriteImage(GStream *Out, GSurface *pDC)
 	if (Pal)
 	{
 		Pal->SwapRAndB();
-		Out->Write((*Pal)[0], sizeof(GdcRGB) * (1 << ActualBits));
+		Out->Write((*Pal)[0], sizeof(GdcRGB) * (int)(1 << ActualBits));
 		Pal->SwapRAndB();
 	}
 
@@ -1455,7 +1455,7 @@ void GdcRleDC::Update(int UpdateFlags)
 		Empty();
 
 		COLOUR Key = Get(0, 0);
-		ulong Pos = 0;
+		ssize_t Pos = 0;
 		ulong PixelSize = GetBits() / 8;
 		
 		for (int y=0; !Error && y<Y(); y++)
@@ -1635,8 +1635,8 @@ void GdcRleDC::Draw(GSurface *Dest, int Ox, int Oy)
 						for (int x=0; x<X(); )
 						{
 							x += *((ulong*)s); s+=4;
-							ssize_t Pixels = *((ulong*)s); s+=4;
-							ssize_t Len = Pixels*PixLen;
+							ulong Pixels = *((ulong*)s); s+=4;
+							ulong Len = Pixels*PixLen;
 							memcpy(d + ((Ox+x)*PixLen), s, Len);
 							x += Pixels;
 							s += Len;
@@ -1654,7 +1654,7 @@ void GdcRleDC::Draw(GSurface *Dest, int Ox, int Oy)
 					for (int x=0; x<X(); )
 					{
 						x += *((ulong*)s); s+=4;
-						ssize_t Pixels = *((ulong*)s); s+=4;
+						ulong Pixels = *((ulong*)s); s+=4;
 						pDApp->SetPtr(Ox+x, Oy+y);
 						pDApp->Rectangle((int)Pixels, 1);
 						x += Pixels;
@@ -1681,7 +1681,7 @@ void GdcRleDC::Draw(GSurface *Dest, int Ox, int Oy)
 							for (int x=0; x<X(); )
 							{
 								x += *((ulong*)s); s+=4;
-								ssize_t Pixels = *((ulong*)s); s+=4;
+								ulong Pixels = *((ulong*)s); s+=4;
 
 								int Fx = Ox+x;
 								int PreClipPixels = MAX(0, Temp.x1 - Fx);
@@ -1881,8 +1881,6 @@ GSurface *LoadDC(const char *Name, bool UseOSLoader)
 {
     return GdcD->Load(Name, UseOSLoader);
 }
-
-
 
 GSurface *GdcDevice::Load(const char *Name, bool UseOSLoader)
 {
@@ -2121,6 +2119,7 @@ GSurface *GdcDevice::Load(GStream *In, const char *Name, bool UseOSLoader)
 	#ifndef WIN32
 	if (pDC)
 	{
+		/*
 		int PromoteTo = GdcD->GetOption(GDC_PROMOTE_ON_LOAD);
 		
 		if (PromoteTo > 0 &&
@@ -2139,6 +2138,8 @@ GSurface *GdcDevice::Load(GStream *In, const char *Name, bool UseOSLoader)
 				pOld.Reset();
 			}
 		}
+		*/
+		
 		#ifdef BEOS
 		else if (pDC->GetBits() == 8)
 		{
