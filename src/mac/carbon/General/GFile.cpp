@@ -838,7 +838,7 @@ bool GFileSystem::Copy(char *From, char *To, int *ErrorCode, CopyFileCallback Ca
 	*/
 }
 
-bool GFileSystem::Delete(GArray<const char*> &Files, GArray<int> *Status, bool ToTrash)
+bool GFileSystem::Delete(GArray<const char*> &Files, GArray<LError> *Status, bool ToTrash)
 {
 	bool Error = false;
 
@@ -935,7 +935,7 @@ bool GFileSystem::Delete(const char *FileName, bool ToTrash)
 	return false;
 }
 
-bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentFolders, int *ErrorCode)
+bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentFolders, LError *ErrorCode)
 {
 	int r = mkdir(PathName, S_IRWXU | S_IXGRP | S_IXOTH);
 	if (r)
@@ -1005,10 +1005,12 @@ bool GFileSystem::GetCurrentFolder(char *PathName, int Length)
 	return getcwd(PathName, Length) != 0;
 }
 
-bool GFileSystem::Move(const char *OldName, const char *NewName)
+bool GFileSystem::Move(const char *OldName, const char *NewName, LError *Err)
 {
 	if (rename(OldName, NewName))
 	{
+		if (Err)
+			Err->Set(errno);
 		printf("%s:%i - rename failed, error: %s(%i)\n",
 			_FL,
 			GetErrorName(errno), errno);

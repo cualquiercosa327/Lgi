@@ -134,6 +134,7 @@ public:
 		virtual bool OnMouseClick(GMouse *m) { return false; }
 		virtual bool OnMenu(GSubMenu *m) { return false; }
 		virtual void OnMenuClick(int i) {}
+		virtual CURSOR_CHAR GetCursor()  { return 0; }
 		*/
 
 		#ifdef UNICODE
@@ -141,7 +142,6 @@ public:
 		#else
 		typedef char *CURSOR_CHAR;
 		#endif
-		virtual CURSOR_CHAR GetCursor()  { return 0; }
 
 		size_t End() const { return Start + Len; }
 

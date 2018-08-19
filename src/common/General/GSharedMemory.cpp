@@ -47,7 +47,7 @@ public:
 			Ptr = MapViewOfFile(hMem, FILE_MAP_WRITE, 0, 0, Size);
 		}
 		#else
-		int Hash = LgiHash<uchar>((uchar*)Name, 0, true);
+		int Hash = LHash<uchar>((uchar*)Name, 0, true);
 		Id = shmget(Hash, Size, 0644);
 		// printf("Shared mem '%s', Hash=%x, Id=%i\n", Name, Hash, Id);
 		bool New = false;
