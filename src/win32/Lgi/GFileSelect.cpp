@@ -245,7 +245,7 @@ ssize_t GFileSelect::SelectedType()
 	return d->SelectedType;
 }
 
-GFileType *GFileSelect::TypeAt(int n)
+GFileType *GFileSelect::TypeAt(ssize_t n)
 {
 	return d->TypeList.ItemAt(n);
 }
@@ -338,9 +338,9 @@ bool GFileSelect::Open()
 
 	OPENFILENAMEW	Info;
 	d->BeforeDlg(Info);
-	Status = GetOpenFileNameW(&Info);
+	Status = GetOpenFileNameW(&Info) != 0;
 	if (!Status && d->DoFallback(Info))
-		Status = GetOpenFileNameW(&Info);
+		Status = GetOpenFileNameW(&Info) != 0;
 	d->AfterDlg(Info, Status);
 
 	return Status && Length() > 0;
@@ -374,7 +374,7 @@ bool GFileSelect::OpenFolder()
 	Info.Flags |= OFN_NOVALIDATE;
 	Info.Flags |= OFN_NOTESTFILECREATE;
 	// Info.Flags |= OFN_PATHMUSTEXIST;
-	Status = GetSaveFileNameW(&Info);
+	Status = GetSaveFileNameW(&Info) != 0;
 	d->AfterDlg(Info, Status);
 	
 	char *f = Name();
@@ -442,9 +442,9 @@ bool GFileSelect::Save()
 
 	OPENFILENAMEW	Info;
 	d->BeforeDlg(Info);
-	Status = GetSaveFileNameW(&Info);
+	Status = GetSaveFileNameW(&Info) != 0;
 	if (!Status && d->DoFallback(Info))
-		Status = GetSaveFileNameW(&Info);		
+		Status = GetSaveFileNameW(&Info) != 0;		
 	d->AfterDlg(Info, Status);
 
 	return Status && Length() > 0;

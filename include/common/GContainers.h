@@ -29,7 +29,7 @@ class List
 	struct LstBlk
 	{
 		LstBlk *Next, *Prev;
-		char Count;
+		uint8 Count;
 		T *Ptr[ITEM_PTRS];
 
 		LstBlk()
@@ -551,7 +551,7 @@ public:
 				{
 					LgiAssert(!"Offset error");
 				}
-				i.i->Count = (char) (Len - Base);
+				i.i->Count = (uint8) (Len - Base);
 				LgiAssert(i.i->Count >= 0 && i.i->Count < ITEM_PTRS);
 				while (i.i->Next)
 				{

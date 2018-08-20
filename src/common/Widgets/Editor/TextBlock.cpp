@@ -1718,6 +1718,8 @@ bool DetectUrl(Char *t, ssize_t &len)
 	return true;
 }
 
+#define IsWordChar(ch) ( IsAlpha(ch) )
+
 void GRichTextPriv::TextBlock::UpdateSpellingAndLinks(Transaction *Trans, GRange r)
 {
 	GArray<uint32> Text;
@@ -1728,8 +1730,25 @@ void GRichTextPriv::TextBlock::UpdateSpellingAndLinks(Transaction *Trans, GRange
 	if (d->SpellCheck &&
 		d->SpellDictionaryLoaded)
 	{
-		GString s(&Text[0], Text.Length());
-		d->SpellCheck->Check(d->View->AddDispatch(), s, r.Start, (GRichTextPriv::Block*)this);
+		GRange Rgn = r;
+		while (Rgn.Start > 0 &&
+				IsWordChar(Text[Rgn.Start]))
+		{
+			Rgn.Start--;
+			Rgn.Len++;
+		}
+		while (Rgn.End() < Len &&
+				IsWordChar(Text[Rgn.End()]))
+		{
+			Rgn.Len++;
+		}
+
+		GString s(Text.AddressOf(Rgn.Start), Rgn.Len);
+		GArray<GVariant> Params;
+		Params[SpellBlockPtr] = (Block*)this;
+		Params[SpellStart] = Rgn.Start;
+		Params[SpellLength] = Rgn.Len;
+		d->SpellCheck->Check(d->View->AddDispatch(), s, &Params);
 	}
 
 	// Link detection...
@@ -1888,9 +1907,17 @@ GRichTextPriv::Block *GRichTextPriv::TextBlock::Clone()
 	return new TextBlock(this);
 }
 
-void GRichTextPriv::TextBlock::SetSpellingErrors(GArray<GSpellCheck::SpellingError> &Errors)
+void GRichTextPriv::TextBlock::SetSpellingErrors(GArray<GSpellCheck::SpellingError> &Errors, GRange r)
 {
-	SpellingErrors = Errors;	
+	// Delete any errors overlapping 'r'
+	for (unsigned i=0; i<SpellingErrors.Length(); i++)
+	{
+		if (SpellingErrors[i].Overlap(r).Valid())
+			SpellingErrors.DeleteAt(i--, true);
+	}
+
+	// Insert the new errors and sort into place..
+	SpellingErrors.Add(Errors);
 	SpellingErrors.Sort(ErrSort);
 }
 

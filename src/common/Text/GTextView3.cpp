@@ -1163,7 +1163,7 @@ bool GTextView3::InsertStyle(GAutoPtr<GStyle> s)
 	{
 		// Optimize for last in the list
 		auto Last = Style.rbegin();
-		if (s->Start >= Last->End())
+		if (s->Start >= (ssize_t)Last->End())
 		{
 			Style.Insert(*s);
 			return true;
@@ -1307,7 +1307,8 @@ public:
 		}
 	}
 
-	GTextView3::CURSOR_CHAR GetCursor()
+	/*
+	CURSOR_CHAR GetCursor()
 	{
 		#ifdef WIN32
 		GArray<int> Ver;
@@ -1324,13 +1325,14 @@ public:
 		#endif
 		return 0;
 	}
+	*/
 };
 
 GTextView3::GStyle *GTextView3::HitStyle(ssize_t i)
 {
 	for (auto &s : Style)
 	{
-		if (i >= s.Start && i < s.End())
+		if (i >= s.Start && i < (ssize_t)s.End())
 		{
 			return &s;
 		}
@@ -3287,7 +3289,7 @@ bool GTextView3::OnMouseWheel(double l)
 	if (VScroll)
 	{
 		int64 NewPos = VScroll->Value() + (int)l;
-		NewPos = limit(NewPos, 0, (int64)GetLines());
+		NewPos = limit(NewPos, 0, (ssize_t)GetLines());
 		VScroll->Value(NewPos);
 		Invalidate();
 	}
@@ -3623,18 +3625,21 @@ void GTextView3::OnMouseMove(GMouse &m)
 			Invalidate();
 		}
 	}
+}
 
-	#ifdef WIN32
+LgiCursor GTextView3::GetCursor(int x, int y)
+{
 	GRect c = GetClient();
 	c.Offset(-c.x1, -c.y1);
-	if (c.Overlap(m.x, m.y))
+	GStyle *s = NULL;
+	if (c.Overlap(x, y))
 	{
+		ssize_t Hit = HitText(x, y, true);
 		GStyle *s = HitStyle(Hit);
-		TCHAR *c = (s) ? GetStyleCursor(s) : 0;
-		if (!c) c = IDC_IBEAM;
-		::SetCursor(LoadCursor(0, MAKEINTRESOURCE(c)));
+		// ::SetCursor(LoadCursor(0, MAKEINTRESOURCE(c)));
 	}
-	#endif
+
+	return s ? s->Cursor : LCUR_Ibeam;
 }
 
 int GTextView3::GetColumn()
@@ -4774,7 +4779,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 					
 					// check for style change
 					if (NextStyle &&
-						NextStyle->End() <= l->Start)
+						(ssize_t)NextStyle->End() <= l->Start)
 						NextStyle = GetNextStyle(Si);
 					if (NextStyle)
 					{

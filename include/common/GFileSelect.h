@@ -98,7 +98,7 @@ public:
 	/// Returns the 0 based index of the type selected in the type list
 	ssize_t SelectedType();
 	/// Returns the type into at a given index
-	GFileType *TypeAt(int n);
+	GFileType *TypeAt(ssize_t n);
 	/// Adds a file type to the type filters list.
 	bool Type
 	(

@@ -311,7 +311,7 @@ public:
 				if (s)
 				{
 					if (n)
-						strcpy(s, n);
+						strcpy_s(s, Len+1, n);
 					else
 						s[0] = 0;
 					strcat(s, (char*)add);
@@ -365,7 +365,7 @@ public:
 bool GProcess::Terminate()
 {
 	#if defined(WIN32)
-	return TerminateProcess(d->Pid, -1);
+	return TerminateProcess(d->Pid, -1) != 0;
 	#else
 	LgiAssert(0);
 	return false;
@@ -553,7 +553,7 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 										NULL,			// use parent's environment 
 										StartingPath,	// use parent's current directory 
 										&SiA,			// STARTUPINFO pointer 
-										&piProcInfo);	// receives PROCESS_INFORMATION 
+										&piProcInfo) != 0;	// receives PROCESS_INFORMATION 
 				}
 				else
 				{
@@ -566,7 +566,7 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 										NULL,			// use parent's environment 
 										StartingPath,	// use parent's current directory 
 										&SiW,			// STARTUPINFO pointer 
-										&piProcInfo);	// receives PROCESS_INFORMATION 
+										&piProcInfo) != 0;	// receives PROCESS_INFORMATION 
 				}
 
 				d->ProcessId = piProcInfo.dwProcessId;
