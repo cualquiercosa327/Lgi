@@ -51,6 +51,12 @@ class LgiClass
 	friend bool Text3_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User);
 
 public:
+	#ifdef UNICODE
+	typedef char16 *CURSOR_CHAR;
+	#else
+	typedef char *CURSOR_CHAR;
+	#endif
+
 	class GStyle
 	{
 		friend class GUrl;
@@ -137,13 +143,7 @@ public:
 		virtual CURSOR_CHAR GetCursor()  { return 0; }
 		*/
 
-		#ifdef UNICODE
-		typedef char16 *CURSOR_CHAR;
-		#else
-		typedef char *CURSOR_CHAR;
-		#endif
-
-		size_t End() const { return Start + Len; }
+		ssize_t End() const { return Start + Len; }
 
 		/// \returns true if style is the same
 		bool operator ==(const GStyle &s)
@@ -424,9 +424,11 @@ public:
 	virtual void OnEnter(GKey &k);
 	virtual void OnUrl(char *Url);
 	virtual void DoContextMenu(GMouse &m);
+
 	virtual bool OnStyleClick(GStyle *style, GMouse *m) { return false; }
 	virtual bool OnStyleMenu(GStyle *style, GSubMenu *m) { return false; }
 	virtual void OnStyleMenuClick(GStyle *style, int i) {}
+	virtual CURSOR_CHAR GetStyleCursor(GStyle *style) { return 0; }
 };
 
 #endif

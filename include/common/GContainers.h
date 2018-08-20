@@ -551,7 +551,7 @@ public:
 				{
 					LgiAssert(!"Offset error");
 				}
-				i.i->Count = Len - Base;
+				i.i->Count = (char) (Len - Base);
 				LgiAssert(i.i->Count >= 0 && i.i->Count < ITEM_PTRS);
 				while (i.i->Next)
 				{

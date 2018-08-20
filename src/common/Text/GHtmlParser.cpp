@@ -906,7 +906,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 										}
 										default:
 										{
-											LgiTrace("%s:%i - Warning: '%s' is missing it's parent.\n", _FL, Elem->Tag.Get());
+											// LgiTrace("%s:%i - Warning: '%s' is missing it's parent.\n", _FL, Elem->Tag.Get());
 											break;
 										}
 									}

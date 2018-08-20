@@ -823,7 +823,7 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 		return;
 
 	// Tracking vars
-	size_t e;
+	ssize_t e;
 	//int LastX = 0;
 	int WrapCol = GetWrapAtCol();
 
@@ -843,7 +843,7 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 		#if PROFILE_POUR
 		Prof.Add("NoWrap: ExistingLines");
 		#endif
-		size_t Pos = 0;
+		ssize_t Pos = 0;
 		for (auto i = Line.begin(Idx); *i; i++)
 		{
 			GTextLine *l = *i;
@@ -924,7 +924,7 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 			Idx, DisplayStart, DisplayLines, DisplayEnd, PourToDisplayEnd);
 		#endif
 
-		if (Line.Length() > Idx)
+		if ((ssize_t)Line.Length() > Idx)
 		{
 			for (auto i = Line.begin(Idx); *i; i++)
 				delete *i;
@@ -933,7 +933,7 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 		}
 
 		int Cx = 0;
-		size_t i;
+		ssize_t i;
 		for (i=Start; i<Size; i = e)
 		{
 			// seek till next char of interest
@@ -1154,7 +1154,7 @@ bool GTextView3::InsertStyle(GAutoPtr<GStyle> s)
 
 	LgiAssert(s->Start >= 0);
 	LgiAssert(s->Len > 0);
-	size_t Last = 0;
+	ssize_t Last = 0;
 	int n = 0;
 
 	// LgiTrace("StartStyle=%i,%i(%i) %s\n", (int)s->Start, (int)s->Len, (int)(s->Start+s->Len), s->Fore.GetStr());
@@ -1307,7 +1307,7 @@ public:
 		}
 	}
 
-	CURSOR_CHAR GetCursor()
+	GTextView3::CURSOR_CHAR GetCursor()
 	{
 		#ifdef WIN32
 		GArray<int> Ver;
@@ -1359,7 +1359,7 @@ void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
 		Start--;
 		Length++;
 	}
-	while (Start + Length < Size && UrlChar(Text[Start+Length]))
+	while ((ssize_t)Start + Length < Size && UrlChar(Text[Start+Length]))
 	{
 		// Move the end back
 		Length++;
@@ -1372,7 +1372,7 @@ void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
 		{
 			if (EditSize > 0)
 			{
-				if (s->Start > Start)
+				if (s->Start > (ssize_t)Start)
 				{
 					s->Start += EditSize;
 				}
@@ -1391,7 +1391,7 @@ void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
 					continue;
 				}
 				
-				if (s->Start > Start)
+				if (s->Start > (ssize_t)Start)
 				{
 					s->Start += EditSize;
 				}
@@ -1404,7 +1404,7 @@ void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
 	if (UrlDetect)
 	{		
 		GArray<GLinkInfo> Links;		
-		LgiAssert(Start + Length <= Size);		
+		LgiAssert((ssize_t)Start + Length <= Size);		
 		if (LgiDetectLinks(Links, Text + Start, Length))
 		{
 			for (uint32 i=0; i<Links.Length(); i++)
@@ -1445,7 +1445,7 @@ bool GTextView3::Insert(size_t At, char16 *Data, ssize_t Len)
 			return false;
 
 		// limit input to valid data
-		At = MIN(Size, At);
+		At = MIN(Size, (ssize_t)At);
 
 		// make sure we have enough memory
 		size_t NewAlloc = Size + Len + 1;
@@ -1606,8 +1606,8 @@ bool GTextView3::Delete(size_t At, ssize_t Len)
 	{
 		// limit input
 		At = MAX(At, 0);
-		At = MIN(At, Size);
-		Len = MIN(Size-At, Len);
+		At = MIN((ssize_t)At, Size);
+		Len = MIN(Size-(ssize_t)At, Len);
 
 		if (Len > 0)
 		{
@@ -1678,9 +1678,9 @@ bool GTextView3::Delete(size_t At, ssize_t Len)
 				PourStyle(At, -Len);
 			}
 			
-			if (Cursor >= At && Cursor <= At + Len)
+			if (Cursor >= (ssize_t)At && Cursor <= (ssize_t)At + Len)
 			{
-				SetCaret(At, false, HasNewLine);
+				SetCaret(At, false, HasNewLine != 0);
 			}
 
 			// Handle repainting in flowed mode, when the line starts change
@@ -1983,7 +1983,7 @@ void GTextView3::SetCaret(size_t i, bool Select, bool ForceFullUpdate)
 	Blink = true;
 
 	// Bound the new cursor position to the document
-	if (i > Size) i = Size;
+	if ((ssize_t)i > Size) i = Size;
 
 	// Store the old selection and cursor
 	ssize_t s = SelStart, e = SelEnd, c = Cursor;
@@ -2039,7 +2039,7 @@ void GTextView3::SetCaret(size_t i, bool Select, bool ForceFullUpdate)
 		{
 			int YOff = d->CenterCursor ? DisplayLines >> 1 : DisplayLines;
 			
-			ssize_t v = MIN(ToIndex - YOff + 1, Line.Length() - DisplayLines);
+			ssize_t v = MIN(ToIndex - YOff + 1, (ssize_t)Line.Length() - DisplayLines);
 			if (v != VScroll->Value())
 			{
 				// Below the visible region
@@ -3287,7 +3287,7 @@ bool GTextView3::OnMouseWheel(double l)
 	if (VScroll)
 	{
 		int64 NewPos = VScroll->Value() + (int)l;
-		NewPos = limit(NewPos, 0, GetLines());
+		NewPos = limit(NewPos, 0, (int64)GetLines());
 		VScroll->Value(NewPos);
 		Invalidate();
 	}
@@ -3630,7 +3630,7 @@ void GTextView3::OnMouseMove(GMouse &m)
 	if (c.Overlap(m.x, m.y))
 	{
 		GStyle *s = HitStyle(Hit);
-		TCHAR *c = (s) ? s->GetCursor() : 0;
+		TCHAR *c = (s) ? GetStyleCursor(s) : 0;
 		if (!c) c = IDC_IBEAM;
 		::SetCursor(LoadCursor(0, MAKEINTRESOURCE(c)));
 	}
@@ -3643,7 +3643,7 @@ int GTextView3::GetColumn()
 	GTextLine *l = GetTextLine(Cursor);
 	if (l)
 	{
-		for (size_t i=l->Start; i<Cursor; i++)
+		for (ssize_t i=l->Start; i<Cursor; i++)
 		{
 			if (Text[i] == '\t')
 			{
@@ -4280,7 +4280,7 @@ bool GTextView3::OnKey(GKey &k)
 						int DisplayLines = Y() / LineY;
 						ssize_t CurLine = Line.IndexOf(l);
 
-						GTextLine *New = Line.ItemAt(MIN(CurLine + DisplayLines, GetLines()-1));
+						GTextLine *New = Line.ItemAt(MIN(CurLine + DisplayLines, (ssize_t)GetLines()-1));
 						if (New)
 						{
 							SetCaret(New->Start + MIN(Cursor - l->Start, New->Len), k.Shift());
@@ -4680,8 +4680,8 @@ void GTextView3::OnPaint(GSurface *pDC)
 			#endif
 			)
 		{
-			size_t SelMin = MIN(SelStart, SelEnd);
-			size_t SelMax = MAX(SelStart, SelEnd);
+			ssize_t SelMin = MIN(SelStart, SelEnd);
+			ssize_t SelMax = MAX(SelStart, SelEnd);
 
 			// font properties
 			Font->Colour(Fore, Back);
@@ -4702,7 +4702,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 			int k = ScrollYLine();
 			GTextLine *l=Line.ItemAt(k);
 			int Dy = (l) ? -l->r.y1 : 0;
-			size_t NextSelection = (SelStart != SelEnd) ? SelMin : -1; // offset where selection next changes
+			ssize_t NextSelection = (SelStart != SelEnd) ? SelMin : -1; // offset where selection next changes
 			if (l &&
 				SelStart >= 0 &&
 				SelStart < l->Start &&
@@ -4755,7 +4755,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 
 				// How many chars on this line have we
 				// processed so far:
-				int Done = 0;
+				ssize_t Done = 0;
 				bool LineHasSelection =	NextSelection >= l->Start &&
 										NextSelection < l->Start + l->Len;
 

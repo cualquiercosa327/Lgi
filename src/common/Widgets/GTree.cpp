@@ -573,7 +573,7 @@ void GTreeItem::_Remove()
 
 		if (Tree)
 		{
-			LgiAssert(Tree->d);
+			LgiAssert(Tree->d != NULL);
 			Tree->d->LayoutDirty = true;
 			
 			if (Tree->IsCapturing())
@@ -829,7 +829,7 @@ void GTreeItem::_MouseClick(GMouse &m)
 
 void GTreeItem::OnPaint(ItemPaintCtx &Ctx)
 {
-	LgiAssert(Tree);
+	LgiAssert(Tree != NULL);
 
 	// background up to text
 	GSurface *&pDC = Ctx.pDC;
@@ -1309,7 +1309,7 @@ GTreeItem *GTree::GetAdjacent(GTreeItem *i, bool Down)
 					if (p)
 					{
 						ssize_t Index = n->IndexOf();
-						if (Index < p->Items.Length()-1)
+						if (Index < (ssize_t)p->Items.Length()-1)
 						{
 							n = n->GetNext();
 							break;
