@@ -2504,16 +2504,17 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 		case M_CHECK_TEXT:
 		{
 			GAutoPtr<GSpellCheck::CheckText> Ct((GSpellCheck::CheckText*)Msg->A());
-			if (!Ct || Ct->User.Length() > 2)
+			if (!Ct || Ct->User.Length() > 1)
+			{
+				LgiAssert(0);
 				break;
+			}
 
 			GRichTextPriv::Block *b = (GRichTextPriv::Block*)Ct->User[SpellBlockPtr].CastVoidPtr();
 			if (!d->Blocks.HasItem(b))
 				break;
 
-			b->SetSpellingErrors(Ct->Errors,
-								GRange(Ct->User[SpellStart].CastInt64(), Ct->User[SpellLength].CastInt64())
-								);
+			b->SetSpellingErrors(Ct->Errors, *Ct);
 			Invalidate();
 			break;
 		}

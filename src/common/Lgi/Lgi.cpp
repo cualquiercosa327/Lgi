@@ -245,6 +245,10 @@ bool RegisterActiveXControl(char *Dll)
 #endif
 
 //////////////////////////////////////////////////////////////////////////
+#ifdef WINDOWS
+#include <lm.h>
+#pragma comment(lib, "netapi32.lib")
+#endif
 
 /// \brief Returns the operating system that Lgi is running on.
 /// \sa Returns one of the defines starting with LGI_OS_UNKNOWN in LgiDefs.h
@@ -261,18 +265,47 @@ int LgiGetOs
 
 	if (Os == LGI_OS_UNKNOWN)
 	{
-		OSVERSIONINFO v;
-		v.dwOSVersionInfoSize=sizeof(v);
-		GetVersionEx(&v);
-
-		Version = v.dwMajorVersion;
-		Revision = v.dwMinorVersion;
-		
-		#ifdef WIN32
+		#if defined(WIN64)
+		BOOL IsWow64 = TRUE;
+		#elif defined(WIN32)
 		BOOL IsWow64 = FALSE;
 		IsWow64Process(GetCurrentProcess(), &IsWow64);
 		#endif
 
+		#if 1
+		SERVER_INFO_101 *v = NULL;
+		auto r = NetServerGetInfo(NULL, 101, (LPBYTE*)&v);
+		if (r == NERR_Success)
+		{
+			Version = v->sv101_version_major;
+			Revision = v->sv101_version_minor;
+			Os = (v->sv101_version_major >= 6)
+				?
+				#ifdef WIN32
+				(IsWow64 ? LGI_OS_WIN64 : LGI_OS_WIN32)
+				#else
+				LGI_OS_WIN64
+				#endif
+				:
+				LGI_OS_WIN9X;
+
+			NetApiBufferFree(v);
+		}
+		else
+		{
+			LgiAssert(0);
+		}
+		#else
+		OSVERSIONINFO v;
+		v.dwOSVersionInfoSize = sizeof(v);
+		GetVersionEx(&v);
+
+		Version = v.dwMajorVersion;
+		Revision = v.dwMinorVersion;
+		#ifdef WIN32
+		BOOL IsWow64 = FALSE;
+		IsWow64Process(GetCurrentProcess(), &IsWow64);
+		#endif
 		Os = (v.dwPlatformId == VER_PLATFORM_WIN32_NT)
 			?
 			#ifdef WIN32
@@ -282,6 +315,7 @@ int LgiGetOs
 			#endif
 			:
 			LGI_OS_WIN9X;
+		#endif
 	}
 
 	if (Ver)
@@ -1882,7 +1916,7 @@ char *LgiFindFile(const char *Name)
 		#endif
 
 		char CurWorking[MAX_PATH];
-		getcwd(CurWorking, sizeof(CurWorking));
+		_getcwd(CurWorking, sizeof(CurWorking));
 		const char *PrefPath[] =
 		{
 			".",

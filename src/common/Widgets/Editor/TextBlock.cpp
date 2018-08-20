@@ -1746,9 +1746,7 @@ void GRichTextPriv::TextBlock::UpdateSpellingAndLinks(Transaction *Trans, GRange
 		GString s(Text.AddressOf(Rgn.Start), Rgn.Len);
 		GArray<GVariant> Params;
 		Params[SpellBlockPtr] = (Block*)this;
-		Params[SpellStart] = Rgn.Start;
-		Params[SpellLength] = Rgn.Len;
-		d->SpellCheck->Check(d->View->AddDispatch(), s, &Params);
+		d->SpellCheck->Check(d->View->AddDispatch(), s, Rgn.Start, Rgn.Len, &Params);
 	}
 
 	// Link detection...

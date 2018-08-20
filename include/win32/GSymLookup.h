@@ -100,11 +100,7 @@ public:
 			DWORD Set = SymSetOptions(dwOpts | SYMOPT_LOAD_LINES | SYMOPT_OMAP_FIND_NEAREST);
 
 			char s[256];
-			#ifdef _MSC_VER
-			getcwd(s, sizeof(s));
-			#else
-			getcwd(s, sizeof(s));
-			#endif
+			_getcwd(s, sizeof(s));
 
 			#ifdef _MSC_VER
 			char path[MAX_PATH] = "";

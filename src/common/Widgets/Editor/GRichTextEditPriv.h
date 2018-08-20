@@ -101,13 +101,6 @@ enum RteCommands
 	SPELLING_BASE = 300
 };
 
-enum RteSpellerParams
-{
-	SpellBlockPtr,
-	SpellStart,
-	SpellLength,
-};
-
 //////////////////////////////////////////////////////////////////////
 #define PtrCheckBreak(ptr)				if (!ptr) { LgiAssert(!"Invalid ptr"); break; }
 #undef FixedToInt

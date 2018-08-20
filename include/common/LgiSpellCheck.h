@@ -15,6 +15,11 @@ enum SPELL_MSGS
 	M_INSTALL_DICTIONARY,
 };
 
+enum SpellCheckParams
+{
+	SpellBlockPtr,
+};
+
 #define SPELL_CHK_VALID_HND(hnd) \
 	if (hnd < 0)				\
 	{							\
@@ -59,10 +64,9 @@ public:
 		GString::Array Suggestions;
 	};
 	
-	struct CheckText
+	struct CheckText : public GRange
 	{
 		GString Text;
-		int Len;
 		GArray<SpellingError> Errors;
 
 		// Application specific data
@@ -70,7 +74,6 @@ public:
 		
 		CheckText()
 		{
-			Len = 0;
 		}
 	};
 
@@ -121,7 +124,10 @@ public:
 							i);
 	}
 
-	bool Check(int ResponseHnd, GString s, GArray<GVariant> *User)
+	bool Check(	int ResponseHnd,
+				GString s,
+				ssize_t Start, ssize_t Len,
+				GArray<GVariant> *User = NULL /* see 'SpellCheckParams' */)
 	{
 		SPELL_CHK_VALID_HND(ResponseHnd);
 		
@@ -129,9 +135,9 @@ public:
 			return false;
 
 		GAutoPtr<CheckText> c(new CheckText);
-		GUtf8Str Utf(s);
 		c->Text = s;
-		c->Len = Utf.GetChars();
+		c->Start = Start;
+		c->Len = Len;
 		if (User)
 			c->User = *User;
 		
