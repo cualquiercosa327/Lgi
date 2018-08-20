@@ -147,7 +147,7 @@ bool GMru::_SaveFile(char *FileName)
 							*Dot++ = '.';
 						}
 
-						strcpy(Dot, p.Last());
+						strcpy_s(Dot, File+sizeof(File)-Dot, p.Last());
 						break;
 					}
 				}

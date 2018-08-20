@@ -1033,7 +1033,7 @@ bool GCss::InheritResolve(PropMap &Contrib)
 										{
 											double Sz = FontSizeTable[Idx];
 											double NewSz = Sz * Cur->Value / 100;
-											Mine->Value = NewSz;
+											Mine->Value = (float) NewSz;
 											Mine->Type = LenEm;
 										}
 										else LgiAssert(0);										
@@ -1966,7 +1966,7 @@ bool GCss::Len::Parse(const char *&s, PropType Prop, ParsingStyle ParseType)
 
 	else if (IsNumeric(s))
 	{
-		Value = atof(s);
+		Value = (float) atof(s);
 		while (IsNumeric(s)) s++;
 		SkipWhite(s);
 		if (*s == '%')
@@ -2875,7 +2875,7 @@ bool GCss::Store::Parse(const char *&c, int Depth)
 					s->Style = Style;
 					
 					ssize_t n = s->GetSimpleIndex();
-					if (n >= s->Parts.Length())
+					if (n >= (ssize_t) s->Parts.Length())
 					{
 						Error.Printf("ErrSimpleIndex %i>=%zi @ '%.80s'", n, s->Parts.Length(), c);
 						LgiAssert(!"Part index too high.");

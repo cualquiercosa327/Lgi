@@ -559,7 +559,7 @@ char16 *StrnstrW(char16 *a, const char16 *b, ssize_t n)
 {
 	if (a && b)
 	{
-		size_t Len = StrlenW(b);
+		ssize_t Len = StrlenW(b);
 		for (char16 *s=a; n >= Len && *s; s++, n--)
 		{
 			if (*s == *b)
@@ -578,7 +578,7 @@ char16 *StrnistrW(char16 *a, const char16 *b, ssize_t n)
 {
 	if (a && b)
 	{
-		size_t Len = StrlenW(b);
+		ssize_t Len = StrlenW(b);
 		for (char16 *s=a; n >= Len && *s; s++, n--)
 		{
 			if (*s == *b)

@@ -101,6 +101,13 @@ enum RteCommands
 	SPELLING_BASE = 300
 };
 
+enum RteSpellerParams
+{
+	SpellBlockPtr,
+	SpellStart,
+	SpellLength,
+};
+
 //////////////////////////////////////////////////////////////////////
 #define PtrCheckBreak(ptr)				if (!ptr) { LgiAssert(!"Invalid ptr"); break; }
 #undef FixedToInt
@@ -720,7 +727,7 @@ public:
 			virtual int LineToOffset(int Line) = 0;
 			virtual int GetLines() = 0;
 			virtual ssize_t FindAt(ssize_t StartIdx, const uint32 *Str, GFindReplaceCommon *Params) = 0;
-			virtual void SetSpellingErrors(GArray<GSpellCheck::SpellingError> &Errors) {}
+			virtual void SetSpellingErrors(GArray<GSpellCheck::SpellingError> &Errors, GRange r) {}
 			virtual void IncAllStyleRefs() {}
 			virtual void Dump() {}
 			virtual GNamedStyle *GetStyle(ssize_t At = -1) = 0;
@@ -1046,7 +1053,7 @@ public:
 		bool Seek(SeekType To, BlockCursor &Cursor);
 		ssize_t FindAt(ssize_t StartIdx, const uint32 *Str, GFindReplaceCommon *Params);
 		void IncAllStyleRefs();
-		void SetSpellingErrors(GArray<GSpellCheck::SpellingError> &Errors);
+		void SetSpellingErrors(GArray<GSpellCheck::SpellingError> &Errors, GRange r);
 		bool DoContext(GSubMenu &s, GdcPt2 Doc, ssize_t Offset, bool Spelling);
 		#ifdef _DEBUG
 		void DumpNodes(GTreeItem *Ti);
@@ -1099,7 +1106,6 @@ public:
 		bool Seek(SeekType To, BlockCursor &Cursor);
 		ssize_t FindAt(ssize_t StartIdx, const uint32 *Str, GFindReplaceCommon *Params);
 		void IncAllStyleRefs();
-		void SetSpellingErrors(GArray<GSpellCheck::SpellingError> &Errors);
 		bool DoContext(GSubMenu &s, GdcPt2 Doc, ssize_t Offset, bool Spelling);
 		#ifdef _DEBUG
 		void DumpNodes(GTreeItem *Ti);

@@ -54,12 +54,9 @@ public:
 		}
 	};
 	
-	struct SpellingError
+	struct SpellingError : public GRange
 	{
-		ssize_t Start, Len;
 		GString::Array Suggestions;
-		
-		ssize_t End() { return Start + Len; }
 	};
 	
 	struct CheckText
@@ -69,14 +66,11 @@ public:
 		GArray<SpellingError> Errors;
 
 		// Application specific data
-		void *UserPtr;
-		int64 UserInt;
+		GArray<GVariant> User;
 		
 		CheckText()
 		{
 			Len = 0;
-			UserPtr = NULL;
-			UserInt = 0;
 		}
 	};
 
@@ -127,7 +121,7 @@ public:
 							i);
 	}
 
-	bool Check(int ResponseHnd, GString s, int64 UserInt = 0, void *UserPtr = NULL)
+	bool Check(int ResponseHnd, GString s, GArray<GVariant> *User)
 	{
 		SPELL_CHK_VALID_HND(ResponseHnd);
 		
@@ -138,8 +132,8 @@ public:
 		GUtf8Str Utf(s);
 		c->Text = s;
 		c->Len = Utf.GetChars();
-		c->UserInt = UserInt;
-		c->UserPtr = UserPtr;
+		if (User)
+			c->User = *User;
 		
 		return PostObject(GetHandle(), M_CHECK_TEXT, (GMessage::Param)ResponseHnd, c);
 	}

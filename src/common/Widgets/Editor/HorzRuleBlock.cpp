@@ -195,10 +195,6 @@ void GRichTextPriv::HorzRuleBlock::IncAllStyleRefs()
 {
 }
 
-void GRichTextPriv::HorzRuleBlock::SetSpellingErrors(GArray<GSpellCheck::SpellingError> &Errors)
-{
-}
-
 bool GRichTextPriv::HorzRuleBlock::DoContext(GSubMenu &s, GdcPt2 Doc, ssize_t Offset, bool Spelling)
 {
 	return false;

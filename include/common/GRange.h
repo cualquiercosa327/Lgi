@@ -43,6 +43,11 @@ struct GRange
 	{
 		return Start + Len;
 	}
+
+	bool Valid() const
+	{
+		return Start >= 0 && Len > 0;
+	}
 };
 
 #endif

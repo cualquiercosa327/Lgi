@@ -37,6 +37,7 @@ enum GTextViewStyleOwners
 	STYLE_SPELLING,
 	STYLE_FIND_MATCHES,
 	STYLE_ADDRESS,
+	STYLE_URL,
 };
 
 /// Unicode text editor control.
@@ -75,7 +76,8 @@ public:
 		/// The colour to draw with. If transparent, then the default 
 		/// line colour is used.
 		GColour Fore, Back;
-		
+		/// Cursor
+		LgiCursor Cursor;		
 		/// Optional extra decor not supported by the fonts
 		GCss::TextDecorType Decor;
 		/// Colour for the optional decor.
@@ -90,6 +92,7 @@ public:
 			View = NULL;
 			Font = NULL;
 			Empty();
+			Cursor = LCUR_Normal;
 			Decor = GCss::TextDecorNone;
 		}
 
@@ -113,12 +116,13 @@ public:
 			Owner = owner;
 			Font = NULL;
 			Empty();
+			Cursor = LCUR_Normal;
 			Decor = GCss::TextDecorNone;
 			return *this;
 		}
 
 		void Empty()
-		{
+		{			
 			Start = -1;
 			Len = 0;
 		}
@@ -136,12 +140,6 @@ public:
 		virtual void OnMenuClick(int i) {}
 		virtual CURSOR_CHAR GetCursor()  { return 0; }
 		*/
-
-		#ifdef UNICODE
-		typedef char16 *CURSOR_CHAR;
-		#else
-		typedef char *CURSOR_CHAR;
-		#endif
 
 		size_t End() const { return Start + Len; }
 
@@ -416,7 +414,7 @@ public:
 	bool OnLayout(GViewLayoutInfo &Inf);
 	int WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState);
 	int OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState);
-	LgiCursor GetCursor(int x, int y) { return LCUR_Ibeam; }
+	LgiCursor GetCursor(int x, int y);
 
 	// Virtuals
 	virtual bool Insert(size_t At, char16 *Data, ssize_t Len);
