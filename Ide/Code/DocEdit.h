@@ -64,7 +64,7 @@ protected:
 			if (c >= 'A' && c <= 'Z')
 				return c - 'A' + Captials;
 			if (IsDigit(c))
-				return c - '0' + 26 + Numbers;
+				return c - '0' + Numbers;
 			if (c == '_')
 				return Symbols;
 			// LgiAssert(0);
@@ -101,10 +101,13 @@ protected:
 			View = view;
 		}
 
-		void StyleString(char16 *&s, char16 *e, GColour c)
+		void StyleString(char16 *&s, char16 *e, GColour c, LUnrolledList<GTextView3::GStyle> *Out = NULL)
 		{
-			auto st = Styles.New().Construct(View, STYLE_IDE);
-			st.Start = s - Text.AddressOf();
+			if (!Out)
+				Out = &Styles;
+			auto &st = Out->New().Construct(View, STYLE_IDE);
+			auto pText = Text.AddressOf();
+			st.Start = s - pText;
 			st.Font = View->GetFont();
 
 			char16 Delim = *s++;
@@ -115,7 +118,7 @@ protected:
 				s++;
 			}
 
-			st.Len = (s - Text.AddressOf()) - st.Start + 1;
+			st.Len = (s - pText) - st.Start + 1;
 			st.Fore = c;
 		}
 	};

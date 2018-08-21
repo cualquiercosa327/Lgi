@@ -267,7 +267,7 @@ void DocEditStyling::StyleCpp(StylingParams &p)
 		{
 			case '\"':
 			case '\'':
-				p.StyleString(s, e, ColourLiteral);
+				p.StyleString(s, e, ColourLiteral, &Out);
 				break;
 			case '#':
 			{
