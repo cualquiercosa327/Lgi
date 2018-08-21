@@ -57,11 +57,11 @@ char *ReadTextFile(const char *File)
 	GFile f;
 	if (File && f.Open(File, O_READ))
 	{
-		int Len = f.GetSize();
+		auto Len = f.GetSize();
 		s = new char[Len+1];
 		if (s)
 		{
-			int Read = f.Read(s, Len);
+			auto Read = f.Read(s, Len);
 			s[Read] = 0;
 		}
 	}
@@ -187,7 +187,7 @@ int _GetLongPathName
 				if (!e) e = In + Strlen(In);
 
 				// process segment
-				char Old = *e;
+				TCHAR Old = *e;
 				*e = 0;
 				if (Strchr(In, ':'))
 				{
@@ -296,7 +296,7 @@ bool ResolveShortcut(const char *LinkFile, char *Path, ssize_t Len)
 
 void WriteStr(GFile &f, const char *s)
 {
-	uint32 Len = (s) ? strlen(s) : 0;
+	auto Len = (s) ? strlen(s) : 0;
 	f << Len;
 	if (Len > 0)
 	{
@@ -427,22 +427,14 @@ public:
 			}
 		}
 		
-		char p[DIR_PATH_SIZE];
 		if (Id)
-		{
 			_Path = WinGetSpecialFolderPath(Id);
-		}
 		else
-		{
 			_Path = LgiGetSystemPath(Type);
-		}
 	}
 
 	GWin32Volume(const char *Drive)
 	{
-		char VolName[DIR_PATH_SIZE], System[DIR_PATH_SIZE];
-		DWORD MaxPath;
-
 		IsRoot = false;
 		int type = GetDriveTypeA(Drive);
 		if (type != DRIVE_UNKNOWN &&
@@ -664,13 +656,13 @@ bool GFileSystem::Copy(char *From, char *To, int *ErrorCode, CopyFileCallback Ca
 	int64 i = 0;
 	while (i < Size)
 	{
-		int r = In.Read(Buf, Block);
+		auto r = In.Read(Buf, Block);
 		if (r > 0)
 		{
-			int Written = 0;
+			ssize_t Written = 0;
 			while (Written < r)
 			{
-				int w = Out.Write(Buf + Written, r - Written);
+				auto w = Out.Write(Buf + Written, r - Written);
 				if (w > 0)
 				{
 					Written += w;
@@ -719,8 +711,8 @@ bool GFileSystem::Delete(GArray<const char*> &Files, GArray<LError> *Status, boo
 		for (int i=0; i<Files.Length(); i++)
 		{
 			GAutoPtr<wchar_t> w(Utf8ToWide(Files[i]));
-			int Chars = StrlenW(w);
-			int Len = Name.Length();
+			auto Chars = StrlenW(w);
+			auto Len = Name.Length();
 			Name.Length(Len + Chars + 1);
 			StrcpyW(Name.AddressOf(Len), w.Get());
 		}
@@ -783,7 +775,7 @@ bool GFileSystem::Delete(const char *FileName, bool ToTrash)
 bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentFoldersIfNeeded, LError *Err)
 {
 	GAutoWString w(Utf8ToWide(PathName));
-	bool Status = ::CreateDirectoryW(w, NULL);	
+	bool Status = ::CreateDirectoryW(w, NULL) != 0;
 	if (!Status)
 	{
 		int Code = GetLastError();
@@ -808,7 +800,7 @@ bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentFoldersIfN
 			{
 				LgiMakePath(Base, sizeof(Base), Base, Parts[i]);
 				GAutoWString w(Utf8ToWide(Base));
-				Status = ::CreateDirectoryW(w, NULL);
+				Status = ::CreateDirectoryW(w, NULL) != 0;
 				if (!Status)
 				{
 					if (Err)
@@ -871,7 +863,7 @@ bool GFileSystem::SetCurrentFolder(char *PathName)
 	
 	GAutoWString w(Utf8ToWide(PathName));
 	if (w)
-		Status = ::SetCurrentDirectoryW(w);
+		Status = ::SetCurrentDirectoryW(w) != 0;
 
 	return Status;
 }
@@ -1133,7 +1125,7 @@ GDirectory *GDirectory::Clone()
 bool GDirectory::Path(char *s, int BufLen)
 {
 	char *Name = GetName();
-	int Len = strlen(d->BasePath) + 2;
+	auto Len = strlen(d->BasePath) + 2;
 	if (Name) Len += strlen(Name);
 	bool Status = false;
 
@@ -1416,7 +1408,7 @@ int GFile::Open(const char *File, int Mode)
 
 	if (File)
 	{
-		bool SharedAccess = Mode & O_SHARE;
+		bool SharedAccess = (Mode & O_SHARE) != 0;
 		Mode &= ~O_SHARE;
 
 		if (File[0] == '/' && File[1] == '/')
@@ -1513,7 +1505,7 @@ int64 GFile::SetSize(int64 Size)
 	DWORD OldPosLow = SetFilePointer(d->hFile, 0, &OldPosHigh, SEEK_CUR);
 	
 	LONG SizeHigh = Size >> 32;
-	DWORD r = SetFilePointer(d->hFile, Size, &SizeHigh, FILE_BEGIN);
+	DWORD r = SetFilePointer(d->hFile, (LONG)Size, &SizeHigh, FILE_BEGIN);
 	
 	BOOL b = SetEndOfFile(d->hFile);
 	if (!b)
@@ -1541,38 +1533,60 @@ int64 GFile::SetPos(int64 Pos)
 	LgiAssert(IsOpen());
 
 	LONG PosHigh = Pos >> 32;
-	DWORD PosLow = SetFilePointer(d->hFile, Pos, &PosHigh, FILE_BEGIN);
+	DWORD PosLow = SetFilePointer(d->hFile, (LONG)Pos, &PosHigh, FILE_BEGIN);
 	return PosLow | ((int64)PosHigh<<32);
 }
 
 ssize_t GFile::Read(void *Buffer, ssize_t Size, int Flags)
 {
-	DWORD Bytes = 0;
-	if (ReadFile(d->hFile, Buffer, Size, &Bytes, NULL))
+	ssize_t Rd = 0;
+
+	// This loop allows ReadFile (32bit) to read more than 4GB in one go. If need be.
+	for (ssize_t Pos = 0; Pos < Size; )
 	{
-		d->Status &= Bytes > 0;
-	}
-	else
-	{
-		d->LastError = GetLastError();
+		DWORD Bytes = 0;
+		int BlockSz = (int) MIN( Size - Pos, 1 << 30 ); // 1 GiB blocks
+
+		if (ReadFile(d->hFile, (char*)Buffer + Pos, BlockSz, &Bytes, NULL))
+		{
+			Rd += Bytes;
+			Pos += Bytes;
+			d->Status &= Bytes > 0;
+		}
+		else
+		{
+			d->LastError = GetLastError();
+			break;
+		}
 	}
 
-	return Bytes;
+	return Rd;
 }
 
 ssize_t GFile::Write(const void *Buffer, ssize_t Size, int Flags)
 {
-	DWORD Bytes = 0;
-	if (WriteFile(d->hFile, Buffer, Size, &Bytes, NULL))
+	ssize_t Wr = 0;
+
+	// This loop allows WriteFile (32bit) to read more than 4GB in one go. If need be.
+	for (ssize_t Pos = 0; Pos < Size; )
 	{
-		d->Status &= Bytes > 0;
-	}
-	else
-	{
-		d->LastError = GetLastError();
+		DWORD Bytes = 0;
+		int BlockSz = (int) MIN( Size - Pos, 1 << 30 ); // 1 GiB blocks
+
+		if (WriteFile(d->hFile, (const char*)Buffer + Pos, BlockSz, &Bytes, NULL))
+		{
+			Wr += Bytes;
+			Pos += Bytes;
+			d->Status &= Bytes > 0;
+		}
+		else
+		{
+			d->LastError = GetLastError();
+			break;
+		}
 	}
 
-	return Bytes;
+	return Wr;
 }
 
 int64 GFile::Seek(int64 To, int Whence)
@@ -1595,7 +1609,7 @@ int64 GFile::Seek(int64 To, int Whence)
 	}
 
 	LONG ToHigh = To >> 32;
-	DWORD ToLow = SetFilePointer(d->hFile, To, &ToHigh, Mode);
+	DWORD ToLow = SetFilePointer(d->hFile, (LONG)To, &ToHigh, Mode);
 	return ToLow | ((int64)ToHigh<<32);
 }
 
@@ -1608,7 +1622,7 @@ bool GFile::Eof()
 ssize_t GFile::SwapRead(uchar *Buf, ssize_t Size)
 {
 	DWORD r = 0;
-	if (!ReadFile(d->hFile, Buf, Size, &r, NULL) || r != Size)
+	if (!ReadFile(d->hFile, Buf, (DWORD)Size, &r, NULL) || r != Size)
 	{
 		d->LastError = GetLastError();
 		return 0;

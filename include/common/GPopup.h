@@ -32,7 +32,7 @@ protected:
 	class GPopupPrivate *d;
 	bool Cancelled;
 	GView *Owner;
-	int64 Start;
+	uint64 Start;
 	GRect ScreenPos;
 
 public:

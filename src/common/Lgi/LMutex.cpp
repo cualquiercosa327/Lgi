@@ -133,7 +133,7 @@ void LMutex::_Unlock()
 
 bool LMutex::Lock(const char *file, int line, bool NoTrace)
 {
-	int64 Start = LgiCurrentTime();
+	auto Start = LgiCurrentTime();
 	bool Status = false;
 	OsThreadId CurrentThread = GetCurrentThreadId();
 	bool Warn = true;
@@ -170,7 +170,7 @@ bool LMutex::Lock(const char *file, int line, bool NoTrace)
 		}
 
 		#if 1 // _DEBUG
-		int64 Now = LgiCurrentTime();
+		auto Now = LgiCurrentTime();
 		if (Warn && Now > Start + 5000 && !NoTrace)
 		{
 			LgiTrace("LMutex=%p(%s): Can't lock after %ims... LockingThread=%i ThisThread=%x Count=%x Locker=%s:%i.\n",
@@ -207,7 +207,7 @@ bool LMutex::Lock(const char *file, int line, bool NoTrace)
 
 bool LMutex::LockWithTimeout(int Timeout, const char *file, int line)
 {
-	int64 Start = LgiCurrentTime();
+	auto Start = LgiCurrentTime();
 	bool Status = false;
 
 	while (!Status &&

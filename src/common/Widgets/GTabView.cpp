@@ -250,7 +250,7 @@ void GTabView::Value(int64 i)
 			Old->Visible(false);
 		}
 
-		d->Current = (int)MIN(i, it.Length()-1);
+		d->Current = (int)MIN(i, (ssize_t)it.Length()-1);
 		OnPosChange();
 
 		GTabPage *p = it[d->Current];
@@ -877,12 +877,6 @@ bool GTabPage::Attach(GViewI *parent)
 
 GMessage::Result GTabPage::OnEvent(GMessage *Msg)
 {
-	switch (MsgCode(Msg))
-	{
-		#ifdef WIN32
-		#endif
-	}
-
 	return GView::OnEvent(Msg);
 }
 

@@ -524,7 +524,7 @@ void GMemDC::Empty()
 
 void GMemDC::Blt(int x, int y, GSurface *Src, GRect *a)
 {
-    LgiAssert(Src);
+    LgiAssert(Src != 0);
     if (!Src)
         return;
 

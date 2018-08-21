@@ -732,7 +732,7 @@ ResObject *LgiResources::CreateObject(GXmlTag *t, ResObject *Parent)
 			{
 				LList *Lst = dynamic_cast<LList*>(Parent);
 
-				LgiAssert(Lst);
+				LgiAssert(Lst != NULL);
 
 				if (Lst)
 				{
@@ -809,7 +809,7 @@ ResObject *LgiResources::CreateObject(GXmlTag *t, ResObject *Parent)
 		}
 	}
 	
-	LgiAssert(Wnd);
+	LgiAssert(Wnd != NULL);
 	return Wnd;
 }
 
@@ -899,10 +899,10 @@ bool LgiResources::Res_SetProperties(ResObject *Obj, GDom *Props)
 
 	GVariant i;
 	if (Props->GetValue("enabled", i))
-		v->Enabled(i.CastInt32());
+		v->Enabled(i.CastInt32() != 0);
 
 	if (Props->GetValue("visible", i))
-		v->Visible(i.CastInt32());
+		v->Visible(i.CastInt32() != 0);
 
 	if (Props->GetValue("style", i))
 		v->SetCssStyle(i.Str());
@@ -940,10 +940,10 @@ bool LgiResources::Res_SetProperties(ResObject *Obj, GDom *Props)
 	if (e)
 	{
 		if (Props->GetValue("pw", i))
-			e->Password(i.CastInt32());
+			e->Password(i.CastInt32() != 0);
 
 		if (Props->GetValue("multiline", i))
-			e->MultiLine(i.CastInt32());
+			e->MultiLine(i.CastInt32() != 0);
 	}
 
 	return true;
@@ -1030,7 +1030,7 @@ void LgiResources::Res_Attach(ResObject *Obj, ResObject *Parent)
 		}
 		else
 		{
-			LgiAssert(p);
+			LgiAssert(p != NULL);
 		}
 	}
 }
@@ -1509,7 +1509,7 @@ bool GMenuLoader::Load(LgiMenuRes *MenuRes, GXmlTag *Tag, ResFileFormat Format, 
 							{
 								int Enabled = t->GetAsInt("enabled");
 								char *Shortcut = t->GetAttr("shortcut");
-								Status = AppendItem(Str->Str, Str->Id, Enabled >= 0?Enabled:true, -1, Shortcut) != 0;
+								Status = AppendItem(Str->Str, Str->Id, Enabled != 0, -1, Shortcut) != 0;
 							}
 							else Status = true;
 						}

@@ -117,9 +117,9 @@ public:
 		}
 	}
 	
-	void PostEvent(OsView h, int c, int a, int b)
+	void PostEvent(OsView h, int c, GMessage::Param a, GMessage::Param b)
 	{
-		LgiPostEvent(h, c, (GMessage::Param) a, (GMessage::Param) b);
+		LgiPostEvent(h, c, a, b);
 	}
 
 	int Main()
@@ -617,7 +617,7 @@ GMessage::Result GPopup::OnEvent(GMessage *Msg)
 		#endif
 		case M_SET_VISIBLE:
 		{
-			Visible(Msg->A());
+			Visible(Msg->A() != 0);
 			break;
 		}
 	}

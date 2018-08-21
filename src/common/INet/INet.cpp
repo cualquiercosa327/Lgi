@@ -1632,7 +1632,7 @@ int GSocks5Socket::Open(const char *HostAddr, int port)
 							size_t Len = strlen(HostAddr);
 							LgiAssert(Len < 0x80);
 							*b++ = (char)Len;
-							strcpy(b, HostAddr);
+							strcpy_s(b, Buf+sizeof(Buf)-b, HostAddr);
 							b += Len;
 						}
 
