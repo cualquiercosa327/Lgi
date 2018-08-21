@@ -152,7 +152,7 @@ bool GPrinter::Browse(GView *Parent)
 	}
 	*/
 
-	return PrintDlg(&d->Info);
+	return PrintDlg(&d->Info) != 0;
 }
 
 /*
@@ -198,7 +198,7 @@ bool GPrinter::Serialize(char *&Str, bool Write)
 		{
 			m = MAGIC_DEVMODE;
 			Temp.Write(&m, sizeof(m));
-			m = DevMode.GetSize();
+			m = (int32) DevMode.GetSize();
 			Temp.Write(&m, sizeof(m));
 			Temp.Write((uchar*) Mode, m);
 		}
@@ -208,7 +208,7 @@ bool GPrinter::Serialize(char *&Str, bool Write)
 		{
 			m = MAGIC_DEVNAMES;
 			Temp.Write(&m, sizeof(m));
-			m = DevNames.GetSize();
+			m = (int32) DevNames.GetSize();
 			Temp.Write(&m, sizeof(m));
 			Temp.Write((uchar*) Names, m);
 		}
@@ -217,11 +217,11 @@ bool GPrinter::Serialize(char *&Str, bool Write)
 		DevNames.Detach();
 
 		// Convert to base64
-		int BinLen = Temp.GetSize();
+		auto BinLen = Temp.GetSize();
 		uchar *Bin = new uchar[BinLen];
 		if (Bin && Temp.Read(Bin, BinLen))
 		{
-			int Base64Len = BufferLen_BinTo64(BinLen);
+			auto Base64Len = BufferLen_BinTo64(BinLen);
 			char *Base64 = new char[Base64Len+1];
 			if (Base64)
 			{
@@ -245,12 +245,12 @@ bool GPrinter::Serialize(char *&Str, bool Write)
 			// Convert to binary
 			GMemQueue Temp;
 
-			int Base64Len = strlen(Str);
-			int BinaryLen = BufferLen_64ToBin(Base64Len);
+			auto Base64Len = strlen(Str);
+			auto BinaryLen = BufferLen_64ToBin(Base64Len);
 			uchar *Binary = new uchar[BinaryLen];
 			if (Binary)
 			{
-				int Len = ConvertBase64ToBinary(Binary, BinaryLen, Str, Base64Len);
+				auto Len = ConvertBase64ToBinary(Binary, BinaryLen, Str, Base64Len);
 				Temp.Write(Binary, Len);
 
 				bool Done = false;

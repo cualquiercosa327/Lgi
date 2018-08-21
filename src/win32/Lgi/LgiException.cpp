@@ -110,7 +110,7 @@ LONG __stdcall GApp::_ExceptionFilter(LPEXCEPTION_POINTERS e, char *ProductId)
 	if (!DirExists(p))
 		FileDev->CreateFolder(p);
 
-	int len = strlen(p);
+	auto len = strlen(p);
 	if (ProductId)
 		sprintf_s(p+len, sizeof(p)-len, "%s%s-crash.dmp", DIR_STR, ProductId);
 	else

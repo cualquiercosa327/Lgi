@@ -121,7 +121,7 @@ GSubMenu::~GSubMenu()
 
 GMenuItem *GSubMenu::AppendItem(const char *Str, int Id, bool Enabled, int Where, const char *Shortcut)
 {
-	int Pos = Where < 0 ? Items.Length() : min(Where, Items.Length());
+	int Pos = (int) (Where < 0 ? Items.Length() : min(Where, Items.Length()));
 	GMenuItem *Item = new GMenuItem(Menu, this, Str, Pos, Shortcut);
 	if (Item)
 	{
@@ -146,7 +146,7 @@ GMenuItem *GSubMenu::AppendSeparator(int Where)
 	{
 		Item->Menu = Menu;
 		Items.Insert(Item, Where);
-		Item->Position = Items.IndexOf(Item);
+		Item->Position = (int) Items.IndexOf(Item);
 		Item->Separator(true);
 		Item->Parent = this;
 		Item->Insert(Item->Position);
@@ -162,7 +162,7 @@ GMenuItem *GSubMenu::AppendSeparator(int Where)
 
 GSubMenu *GSubMenu::AppendSub(const char *Str, int Where)
 {
-	int Pos = Where < 0 ? Items.Length() : min(Where, Items.Length());
+	int Pos = (int) (Where < 0 ? Items.Length() : min(Where, Items.Length()));
 	GMenuItem *Item = new GMenuItem(Menu, this, Str, Pos);
 	GSubMenu *Sub = new GSubMenu;
 
@@ -388,7 +388,7 @@ GMenuItem::~GMenuItem()
 	{
 		if (Parent->Handle())
 		{
-			int Index = Parent->Items.IndexOf(this);
+			int Index = (int)Parent->Items.IndexOf(this);
 			RemoveMenu(Parent->Handle(), Index, MF_BYPOSITION);
 		}
 		Parent->Items.Delete(this);
@@ -755,9 +755,9 @@ bool GMenuItem::Remove()
 	bool Status = false;
 	if (Parent)
 	{
-		int Index = Parent->Items.IndexOf(this);
+		int Index = (int) Parent->Items.IndexOf(this);
 		Parent->Items.Delete(this);
-		Status = RemoveMenu(Parent->Handle(), Index, MF_BYPOSITION);
+		Status = RemoveMenu(Parent->Handle(), Index, MF_BYPOSITION) != 0;
 
 		int n=0;
 		for (GMenuItem *i=Parent->Items.First(); i; i=Parent->Items.Next())
@@ -775,7 +775,7 @@ bool GMenuItem::Update()
 
 	if (Parent && Parent->Handle())
 	{
-		Status = SetMenuItemInfo(Parent->Handle(), Position, true, &Info);
+		Status = SetMenuItemInfo(Parent->Handle(), Position, true, &Info) != 0;
 		LgiAssert(Status);
 	}
 
@@ -839,7 +839,7 @@ bool GMenuItem::Name(const char *Txt)
 		{
 			// Set OS menu structure
 			Info.dwTypeData = GBase::NameW();
-			Info.cch = StrlenW(GBase::NameW());
+			Info.cch = (UINT) StrlenW(GBase::NameW());
 			Info.fType |= MFT_STRING;
 			Info.fMask |= MIIM_TYPE | MIIM_DATA;
 
@@ -963,7 +963,7 @@ bool GMenuItem::Insert(int Pos)
 		Status = InsertMenuItem(Parent->Handle(),
 								Position,
 								true,
-								&Info);
+								&Info) != 0;
 		LgiAssert(Status);
 	}
 
@@ -1049,7 +1049,7 @@ bool GMenu::Detach()
 		HMENU hWndMenu = ::GetMenu(Window->Handle());
 		if (hWndMenu == Info)
 		{
-			Status = SetMenu(Window->Handle(), NULL);
+			Status = SetMenu(Window->Handle(), NULL) != 0;
 			if (Status)
 			{
 				Window = NULL;
@@ -1191,9 +1191,9 @@ bool GAccelerator::Match(GKey &k)
 	{
 		if
 		(
-			(Ctrl() ^ k.Ctrl() == 0) &&
-			(Alt() ^ k.Alt() == 0) &&
-			(Shift() ^ k.Shift() == 0) &&
+			(Ctrl() ^ k.Ctrl()) == 0 &&
+			(Alt() ^ k.Alt()) == 0 &&
+			(Shift() ^ k.Shift()) == 0 &&
 			(!TestFlag(Flags, LGI_EF_IS_CHAR) || k.IsChar) &&
 			(!TestFlag(Flags, LGI_EF_IS_NOT_CHAR) || !k.IsChar)
 		)

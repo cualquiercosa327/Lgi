@@ -17,7 +17,7 @@ GClipBoard::GClipBoard(GView *o)
 	Open = false;
 	Owner = o;
 	if (Owner)
-		Open = OpenClipboard(Owner->Handle());
+		Open = OpenClipboard(Owner->Handle()) != 0;
 }
 
 GClipBoard::~GClipBoard()
@@ -53,7 +53,7 @@ bool GClipBoard::Empty()
 	d->Utf8.Reset();
 	d->Wide.Reset();
 
-	return EmptyClipboard();
+	return EmptyClipboard() != 0;
 }
 
 // Text
@@ -92,7 +92,7 @@ bool GClipBoard::TextW(char16 *Str, bool AutoEmpty)
 {
 	if (Str)
 	{
-		int Len = StrlenW(Str);
+		auto Len = StrlenW(Str);
 		return Binary(CF_UNICODETEXT, (uchar*) Str, (Len+1) * sizeof(ushort), AutoEmpty);
 	}
 
@@ -377,7 +377,7 @@ bool GClipBoard::Binary(FormatType Format, GAutoPtr<uint8> &Ptr, ssize_t *Length
 	HGLOBAL hMem = GetClipboardData(Format);
 	if (hMem)
 	{
-		int Len = GlobalSize(hMem);
+		auto Len = GlobalSize(hMem);
 		if (Length)
 			*Length = Len;
 			

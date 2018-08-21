@@ -140,7 +140,7 @@ public:
 		int				WndExStyle;				// Win32 hWnd ExStyle
 		int				WndDlgCode;				// Win32 Dialog Code (WM_GETDLGCODE)
 		GString			WndClass;
-		UINT			TimerId;
+		UINT_PTR		TimerId;
 		HTHEME			hTheme;
 
 	#else

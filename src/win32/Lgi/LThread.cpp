@@ -32,7 +32,7 @@ uint WINAPI ThreadEntryPoint(void *i)
 	{
 		// Wait for it...
 		int Status = 0;
-		int Start = LgiCurrentTime();
+		auto Start = LgiCurrentTime();
 
         while (Thread->State == LThread::THREAD_INIT)
 		{
@@ -73,7 +73,6 @@ uint WINAPI ThreadEntryPoint(void *i)
 		}
 
 		// Shutdown...
-		ThreadError:
 		Thread->State = LThread::THREAD_EXITED;
 		if (Thread->DeleteOnExit)
 		{
@@ -203,10 +202,10 @@ void LThread::Terminate()
 	{
 		TerminateThread(hThread, 1);
 
-		uint64 Start = LgiCurrentTime();
+		auto Start = LgiCurrentTime();
 		while (!IsExited())
 		{
-			uint32 Now = LgiCurrentTime();
+			auto Now = LgiCurrentTime();
 			if (Now - Start > 2000)
 			{
 				LgiTrace("%s:%i - TerminateThread didn't work for '%s'\n", _FL, Name.Get());

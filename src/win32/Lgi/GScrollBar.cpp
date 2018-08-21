@@ -232,7 +232,7 @@ void GScrollBar::Value(int64 p)
 	if (d->Value != Val)
 	{
 		d->Value = Val;
-		d->Info.nPos = Val >> d->Shift;
+		d->Info.nPos = (int) (Val >> d->Shift);
 		Update();
 		
 		if (GetParent())
@@ -261,8 +261,8 @@ void GScrollBar::SetLimits(int64 Low, int64 High)
  
 	d->Min = Low;
 	d->Max = High;
-	d->Info.nMin = Low >> d->Shift;
-	d->Info.nMax = High >> d->Shift;
+	d->Info.nMin = (int) (Low >> d->Shift);
+	d->Info.nMax = (int) (High >> d->Shift);
 
 	Update();
 }
@@ -275,7 +275,7 @@ int64 GScrollBar::Page()
 void GScrollBar::SetPage(int64 p)
 {
 	d->Page = p;
-	d->Info.nPage = p >> d->Shift;
+	d->Info.nPage = (int) (p >> d->Shift);
 	Update();
 }
 
@@ -291,7 +291,7 @@ bool GScrollBar::Invalidate(GRect *r, bool Repaint, bool NonClient)
 
 GMessage::Result GScrollBar::OnEvent(GMessage *Msg)
 {
-	int Status = SubClass ? SubClass->CallParent(Handle(), Msg->m, Msg->a, Msg->b) : 0;
+	auto Status = SubClass ? SubClass->CallParent(Handle(), Msg->m, Msg->a, Msg->b) : 0;
 
 	if ((Msg->m == WM_HSCROLL && !Vertical())
 		||
@@ -347,9 +347,9 @@ GMessage::Result GScrollBar::OnEvent(GMessage *Msg)
 			if (NewVal != Val)
 			{
 				d->Value = NewVal;
-				d->Info.nPos = d->Value >> d->Shift;
+				d->Info.nPos = (int) (d->Value >> d->Shift);
 				Update();
-				OnChange(d->Value);
+				OnChange((int) d->Value);
 
 				if (GetParent())
 				{

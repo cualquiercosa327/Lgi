@@ -85,7 +85,7 @@ int _lgi_mouse_wheel_lines()
 	{
        HWND hdlMSHWheel=NULL;
        UINT msgMSHWheelGetScrollLines=NULL;
-       UINT uiMsh_WheelScrollLines;
+       // UINT uiMsh_WheelScrollLines;
 
        msgMSHWheelGetScrollLines = 
                RegisterWindowMessage(MSH_SCROLL_LINES);
@@ -93,7 +93,7 @@ int _lgi_mouse_wheel_lines()
                                 MSH_WHEELMODULE_TITLE);
        if (hdlMSHWheel && msgMSHWheelGetScrollLines)
        {
-			return SendMessage(hdlMSHWheel, msgMSHWheelGetScrollLines, 0, 0);
+			return (int)SendMessage(hdlMSHWheel, msgMSHWheelGetScrollLines, 0, 0);
        }
 	}
 	else
@@ -376,7 +376,7 @@ bool GWin32Class::Register()
 	{
 		ZeroObj(Class);
 		Class.cbSize = sizeof(Class);
-		Status = GetClassInfoExW(LgiProcessInst(), NameW(), &Class);
+		Status = GetClassInfoExW(LgiProcessInst(), NameW(), &Class) != 0;
 		LgiAssert(Status);
 	}
 	else if (!Class.lpszClassName)
@@ -525,7 +525,7 @@ void GView::_Delete()
 	{
 		WndFlags |= GWF_DESTRUCTOR;
 		BOOL Status = DestroyWindow(_View);
-		LgiAssert(Status);
+		LgiAssert(Status != 0);
 	}
 	
 	// NULL my handles and flags
@@ -767,7 +767,7 @@ bool GView::Detach()
 			WndFlags &= ~GWF_QUIT_WND;
 			BOOL Status = DestroyWindow(_View);
 			DWORD Err = GetLastError();
-			LgiAssert(Status);
+			LgiAssert(Status != 0);
 		}
 	}
 	return Status;
@@ -967,7 +967,7 @@ bool GView::SetPos(GRect &p, bool Repaint)
 		if (_View)
 		{
 			HWND hOld = GetFocus();
-			bool WasVis = IsWindowVisible(_View);
+			bool WasVis = IsWindowVisible(_View) != 0;
 
 			In_SetWindowPos = true;
 			Status = SetWindowPos(	_View,
@@ -977,7 +977,7 @@ bool GView::SetPos(GRect &p, bool Repaint)
 									Pos.X(),
 									Pos.Y(),
 									// ((Repaint) ? 0 : SWP_NOREDRAW) |
-									SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOOWNERZORDER);
+									SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOOWNERZORDER) != 0;
 			In_SetWindowPos = false;
 		}
 		else if (GetParent())
@@ -1014,12 +1014,12 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 		{
 			if (r)
 			{
-				Status = InvalidateRect(_View, &((RECT)*r), false);
+				Status = InvalidateRect(_View, &((RECT)*r), false) != 0;
 			}
 			else
 			{
 				RECT c = GetClient();
-				Status = InvalidateRect(_View, &c, false);
+				Status = InvalidateRect(_View, &c, false) != 0;
 			}
 		}
 
@@ -1430,10 +1430,10 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			case M_CHANGE:
 			{
 				GWindow *w = GetWindow();
-				GViewI *Ctrl = w ? w->FindControl(Msg->a) : 0;
+				GViewI *Ctrl = w ? w->FindControl((int)Msg->a) : 0;
 				if (Ctrl)
 				{
-					return OnNotify(Ctrl, Msg->b);
+					return OnNotify(Ctrl, (int)Msg->b);
 				}
 				else
 				{
@@ -1903,16 +1903,16 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				else
 				{
 					// Key
-					GKey Key(Msg->a, Msg->b);
+					GKey Key((int)Msg->a, (int)Msg->b);
 
 					Key.Flags = KeyFlags;
-					Key.Data = Msg->b;
+					Key.Data = (uint32)Msg->b;
 					Key.Down(IsDown);
 					Key.IsChar = false;
 
 					if (Key.Ctrl())
 					{
-						Key.c16 = Msg->a;
+						Key.c16 = (char16)Msg->a;
 					}
 
 					if (Key.c16 == VK_TAB && ConsumeTabKey)
@@ -1962,9 +1962,9 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			#if OLD_WM_CHAR_MODE
 			case WM_CHAR:
 			{
-				GKey Key(Msg->a, Msg->b);
+				GKey Key((int)Msg->a, (int)Msg->b);
 				Key.Flags = _lgi_get_key_flags();
-				Key.Data = Msg->b;
+				Key.Data = (uint32)Msg->b;
 				Key.Down(true);
 				Key.IsChar = true;
 
@@ -2000,7 +2000,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			#endif
 			case M_SET_WND_STYLE:
 			{
-				SetWindowLong(Handle(), GWL_STYLE, Msg->b);
+				SetWindowLong(Handle(), GWL_STYLE, (LONG)Msg->b);
 				SetWindowPos(	Handle(),
 								0, 0, 0, 0, 0,
 								SWP_NOMOVE | SWP_NOZORDER | SWP_NOSIZE | SWP_FRAMECHANGED);

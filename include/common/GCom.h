@@ -239,14 +239,14 @@ public:
 	ssize_t Read(void *Ptr, ssize_t Size, int Flags = 0) override
 	{
 		ULONG Rd = 0;
-		HRESULT res = s->Read(Ptr, Size, &Rd);
+		HRESULT res = s->Read(Ptr, (ULONG)Size, &Rd);
 		return SUCCEEDED(res) ? Rd : 0;
 	}
 	
 	ssize_t Write(const void *Ptr, ssize_t Size, int Flags = 0) override
 	{
 		ULONG Wr = 0;
-		HRESULT res = s->Write(Ptr, Size, &Wr);
+		HRESULT res = s->Write(Ptr, (ULONG)Size, &Wr);
 		return SUCCEEDED(res) ? Wr : 0;
 	}
 
@@ -283,11 +283,11 @@ public:
 
 		ULONG TotalRd = 0;
 		uint8 *Ptr = (uint8*)pv;
-		ULONG i = 0;
+		size_t i = 0;
 		while (i < cb)
 		{
-			int Remaining = cb - i;
-			int Rd = s->Read(Ptr + i, Remaining);
+			size_t Remaining = cb - i;
+			auto Rd = s->Read(Ptr + i, Remaining);
 			
 			// LgiTrace("Read(%i)=%i\n", cb, Rd);
 			
@@ -298,15 +298,15 @@ public:
 		}
 
 		if (pcbRead)
-			*pcbRead = i;
+			*pcbRead = (ULONG)i;
 		return S_OK;
 	}
 	
 	HRESULT STDMETHODCALLTYPE Write(const void *pv, ULONG cb, ULONG *pcbWritten)
 	{
 		if (!s || !pv) return E_INVALIDARG;
-		int Wr = s->Write(pv, cb);
-		if (pcbWritten) *pcbWritten = Wr;
+		auto Wr = s->Write(pv, cb);
+		if (pcbWritten) *pcbWritten = (ULONG)Wr;
 		return S_OK;
 	}    
 
