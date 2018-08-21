@@ -56,6 +56,7 @@ const char *CppKeywords[] = {"extern", "class", "struct", "static", "default", "
 const char *CppTypes[] = {	"int", "char", "unsigned", "double", "float", "bool", "const", "void",
 							"int8", "int16", "int32", "int64",
 							"uint8", "uint16", "uint32", "uint64",
+							"char16", "wchar_t",
 							"GArray", "GHashTbl", "List", "GString", "GAutoString", "GAutoWString",
 							"GAutoPtr", "LHashTbl",
 							NULL};
@@ -262,15 +263,6 @@ void DocEditStyling::StyleCpp(StylingParams &p)
 	LUnrolledList<GTextView3::GStyle> Out;
 	for (; ParentState != KCancel && s < e; s++)
 	{
-		// uint64 Start = LgiMicroTime();
-		char16 ch;
-		if (IsDigit(*s))
-			ch = '0';
-		else if (IsAlpha(*s))
-			ch = 'a';
-		else
-			ch = *s;
-
 		switch (*s)
 		{
 			case '\"':
@@ -425,18 +417,7 @@ void DocEditStyling::StyleCpp(StylingParams &p)
 				}
 			}
 		}
-
-		// uint64 End = LgiMicroTime();
-		// Times[ch&0xff] += End - Start;
 	}
-
-	/*
-	for (int i=0; i<CountOf(Times); i++)
-	{
-		if (Times[i])
-			LgiTrace("\t'%c' = %.1f\n", (char)i, (double)Times[i]/1000.0);
-	}
-	*/
 
 	#if COMP_STYLE
 	PROF("Compare");

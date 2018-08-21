@@ -51,17 +51,22 @@ protected:
 
 	struct Node
 	{
-		Node *Next[26 + 10 + 1];
+		const int Captials = 26;
+		const int Numbers = Captials + 26;
+		const int Symbols = Numbers + 10;
+		Node *Next[26 + 26 + 10 + 1];
 		WordType Type;
 
 		int Map(char16 c)
 		{
-			if (IsAlpha(c))
-				return ToLower(c) - 'a';
+			if (c >= 'a' && c <= 'z')
+				return c - 'a';
+			if (c >= 'A' && c <= 'Z')
+				return c - 'A' + Captials;
 			if (IsDigit(c))
-				return c - '0' + 26;
+				return c - '0' + 26 + Numbers;
 			if (c == '_')
-				return 26+10;
+				return Symbols;
 			// LgiAssert(0);
 			return -1;
 		}

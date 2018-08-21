@@ -1568,7 +1568,11 @@ GCharsetSystem::GCharsetSystem()
 		for (int n=0; n<a.Length(); n++)
 		{
 			strcpy_s(l, sizeof(l), a[n]);
+			#ifdef _MSC_VER
 			_strlwr_s(l, sizeof(l));
+			#else
+			strlwr(l);
+			#endif
 
 			d->Charsets.Add(l, Cs);
 		}

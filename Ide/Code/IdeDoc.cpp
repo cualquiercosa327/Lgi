@@ -102,7 +102,7 @@ void EditTray::OnPosChange()
 		c.Left(FileSearch, EDIT_CTRL_WIDTH);
 	c.x1 += 8;
 
-	c.Left(FuncBtn, 20);
+	c.Left(FuncBtn, 32);
 	if (FuncSearch)
 		c.Left(FuncSearch, EDIT_CTRL_WIDTH);
 	c.x1 += 8;

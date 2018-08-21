@@ -20,6 +20,7 @@
 	#include <sys/stat.h>
 #else
 	#include <unistd.h>
+	#define _getcwd getcwd
 #endif
 
 #include "Lgi.h"
