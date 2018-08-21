@@ -28,7 +28,8 @@ class GUnknownImpl : public T
 			pvObject = p;
 		}
 	};
-List<Interface> Interfaces;
+
+	List<Interface> Interfaces;
 
 protected:
 	bool TraceRefs;

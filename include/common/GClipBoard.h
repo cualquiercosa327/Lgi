@@ -16,6 +16,8 @@ class LgiClass GClipBoard
 public:
 	/// On windows, this equates to a CF_TEXT, CF_BITMAP, CF_DIB type #define
 	typedef uint32 FormatType;
+	static GString FmtToStr(FormatType Fmt);
+	static FormatType StrToFmt(GString Fmt);
 
 	/// Creates the clipboard access object.
 	GClipBoard(GView *o);
@@ -41,6 +43,10 @@ public:
 	#if WINNATIVE
 	GSurface *ConvertFromPtr(void *Ptr);
 	#endif
+
+	// Files
+	GString::Array Files();
+	bool Files(GString::Array &Paths, bool AutoEmpty = true);
 
 	// Binary
 	bool Binary(FormatType Format, uint8 *Ptr, ssize_t Len, bool AutoEmpty);	// Set
