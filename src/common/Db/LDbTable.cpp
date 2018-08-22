@@ -34,7 +34,7 @@
 
 #define OBJ_TAIL() \
 	if (Write) \
-		*Sz = p.c - Start; \
+		*Sz = (uint32) (p.c - Start); \
 	else \
 		p.c = Start + *Sz; \
 	LgiAssert(Sizeof() == *Sz); \
@@ -88,6 +88,11 @@ struct Info
 		return Type != i.Type &&
 				Index != i.Index;
 	}
+
+	bool operator ==(const Info &i)
+	{
+		return !(*this != i);
+	}
 };
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -99,7 +104,7 @@ struct DbTablePriv
 	unsigned Variable; // Count of variable sized fields.
 	GArray<LDbField> Fields;
 	GArray<int32> FixedOffsets;
-	GHashTbl<int, Info> Map;
+	LHashTbl<IntKey<int>, Info> Map;
 
 	// Rows
 	int Rows;
@@ -111,7 +116,7 @@ struct DbTablePriv
 	GArray<DbIndex*> Indexes;
 
 	// Methods
-	DbTablePriv() : Map(0, false, -1, Info())
+	DbTablePriv() : Map(0, Info())
 	{
 		First = Last = NULL;
 		Rows = 0;
@@ -452,7 +457,7 @@ LDbRow::~LDbRow()
 {
 }
 
-int LDbRow::GetFields()
+size_t LDbRow::GetFields()
 {
 	return d->Fields.Length();
 }
@@ -462,20 +467,17 @@ LDbField &LDbRow::GetField(int Idx)
 	return d->Fields[Idx];
 }
 
-struct VarBlock
+struct VarBlock : public GRange
 {
 	int Index;
-	size_t Start;
-	size_t Len;
-	int End() { return Start + Len; }
 };
 
 int VarCmp(VarBlock *a, VarBlock *b)
 {
-	return a->Start - b->Start;
+	return (int) (a->Start - b->Start);
 }
 
-size_t LDbRow::GetInitialSize()
+uint32 LDbRow::GetInitialSize()
 {
 	return HeaderSz + d->FixedSz + (d->Variable * sizeof(uint32));
 }
@@ -497,7 +499,7 @@ bool LDbRow::Compact()
 			}
 		}
 		v.Sort(VarCmp);
-		size_t Pos = GetInitialSize();
+		uint32 Pos = GetInitialSize();
 		for (unsigned i=0; i<v.Length(); i++)
 		{
 			VarBlock &b = v[i];
@@ -508,7 +510,7 @@ bool LDbRow::Compact()
 				Offsets[VariableOff][b.Index] = Pos;
 				b.Start = Pos;
 			}
-			Pos = b.Start + b.Len;
+			Pos = (int32) (b.Start + b.Len);
 		}
 		if (Base.u32[1] > Pos)
 			Base.u32[1] = Pos;
@@ -528,7 +530,7 @@ GString LDbRow::ToString()
 		{
 			case GV_INT32:
 			case GV_INT64:
-				a.New().Printf(LGI_PrintfInt64, GetInt(f.Id));
+				a.New().Printf(LPrintfInt64, GetInt(f.Id));
 				break;
 			case GV_STRING:
 			{
@@ -646,7 +648,7 @@ void LDbRow::PostEdit()
 	Base.c = Edit.AddressOf();
 	if (Base.c)
 	{
-		Size(Edit.Length());
+		Size((uint32)Edit.Length());
 		Offsets[VariableOff] = (int32*) Edit.AddressOf(8 + d->FixedSz);
 	}
 }
@@ -661,7 +663,7 @@ Store3Status LDbRow::SetStr(int id, const char *str)
 		return Store3Error;
 
 	size_t len = str ? strlen(str) + 1 : 1;
-	Offsets[VariableOff][i.Index] = Edit.Length();
+	Offsets[VariableOff][i.Index] = (int32)Edit.Length();
 	if (str)
 		Edit.Add((char*)str, len);
 	else
@@ -803,7 +805,7 @@ bool LDbTable::DeleteField(int Id)
 
 int LDbTable::GetFields()
 {
-	return d->Fields.Length();
+	return (int)d->Fields.Length();
 }
 
 LDbField &LDbTable::GetField(int Idx)
@@ -970,7 +972,7 @@ bool LDbTable::Serialize(const char *Path, bool Write)
 		// Read all the data into memory
 		if (!d->Data.Length((size_t)f.GetSize()))
 			return false;
-		int Rd = f.Read(d->Data.AddressOf(0), (ssize_t)f.GetSize());
+		auto Rd = f.Read(d->Data.AddressOf(0), (ssize_t)f.GetSize());
 		if (Rd != f.GetSize())
 			return false;
 		GPointer p = {(int8*)d->Data.AddressOf()};

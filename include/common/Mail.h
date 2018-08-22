@@ -670,7 +670,7 @@ protected:
 	bool ReadMultiLineReply(char *&Str);
 	int GetInt();
 	bool MailIsEnd(char *Ptr, ssize_t Len);
-	bool ListCmd(const char *Cmd, GHashTbl<const char *, bool> &Results);
+	bool ListCmd(const char *Cmd, LHashTbl<ConstStrKey<char>, bool> &Results);
 
 	const char *End;
 	const char *Marker;
@@ -770,7 +770,7 @@ public:
 	char *GetName();
 	void SetName(const char *s);
 	char GetSep() { return Sep; }
-	void operator =(GHashTbl<const char*,int> &v);
+	void operator =(LHashTbl<ConstStrKey<char>,int> &v);
 };
 
 class MailIMap : public MailSource
@@ -857,7 +857,7 @@ public:
 		/// The message sequence number
 		char *Msg,
 		/// The fetch parts (which the callee needs to own if returning true)
-		GHashTbl<const char*, char*> &Parts,
+		LHashTbl<ConstStrKey<char>, char*> &Parts,
 		/// The user data passed to the Fetch function
 		void *UserData
 	);
@@ -938,7 +938,7 @@ public:
 	);
 
 	bool GetFolders(GArray<MailImapFolder*> &Folders);
-	bool SelectFolder(const char *Path, GHashTbl<const char*,GString> *Values = 0);
+	bool SelectFolder(const char *Path, LHashTbl<ConstStrKey<char>,GString> *Values = 0);
 	char *GetSelectedFolder();
 	int GetMessages(const char *Path);
 	bool CreateFolder(MailImapFolder *f);

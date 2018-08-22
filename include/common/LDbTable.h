@@ -64,7 +64,7 @@ class LDbRow : public GDataPropI
 	bool StartEdit();
 	void PostEdit();
 	bool Compact();
-	size_t GetInitialSize();
+	uint32 GetInitialSize();
 
 public:
 	static int HeaderSz;
@@ -72,7 +72,7 @@ public:
 	~LDbRow();
 
 	// Fields
-	int GetFields();
+	size_t GetFields();
 	LDbField &GetField(int Idx);
 
 	// Row level op

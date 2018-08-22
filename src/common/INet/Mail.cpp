@@ -2426,7 +2426,7 @@ bool MailPop3::ReadReply()
 	return Status;
 }
 
-bool MailPop3::ListCmd(const char *Cmd, GHashTbl<const char*, bool> &Results)
+bool MailPop3::ListCmd(const char *Cmd, LHashTbl<ConstStrKey<char>, bool> &Results)
 {
 	sprintf_s(Buffer, sizeof(Buffer), "%s\r\n", Cmd);
 	if (!Write(0, true))
