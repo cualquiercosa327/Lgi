@@ -117,7 +117,7 @@ void GCombo::Value(int64 i)
 {
 	#if defined(DEBUG_COMBOBOX)
 	if (DEBUG_COMBOBOX==GetId())
-		LgiTrace("GCombo::Value("LGI_PrintfInt64") this=%p, hnd=%p strs=%i\n",
+		LgiTrace("GCombo::Value(" LPrintfInt64 ") this=%p, hnd=%p strs=%i\n",
 			i, this, _View, d->Strs.Length());
 	#endif
 
@@ -151,7 +151,7 @@ int64 GCombo::Value()
 
 	#if defined(DEBUG_COMBOBOX)
 	if (DEBUG_COMBOBOX==GetId())
-		LgiTrace("GCombo::Value()="LGI_PrintfInt64" this=%p, hnd=%p strs=%i\n",
+		LgiTrace("GCombo::Value()=" LPrintfInt64 " this=%p, hnd=%p strs=%i\n",
 			d->Value, this, _View, d->Strs.Length());
 	#endif
 	
@@ -187,7 +187,7 @@ char *GCombo::Name()
 
 		#if defined(DEBUG_COMBOBOX)
 		if (DEBUG_COMBOBOX==GetId())
-			LgiTrace("GCombo::Name()="LGI_PrintfInt64"=%s this=%p, hnd=%p strs=%i\n",
+			LgiTrace("GCombo::Name()=" LPrintfInt64 "=%s this=%p, hnd=%p strs=%i\n",
 				d->Value, s, this, _View, d->Strs.Length());
 		#endif
 
@@ -196,7 +196,7 @@ char *GCombo::Name()
 
 	#if defined(DEBUG_COMBOBOX)
 	if (DEBUG_COMBOBOX==GetId())
-		LgiTrace("GCombo::Name() "LGI_PrintfInt64"=out of range this=%p, hnd=%p strs=%i\n",
+		LgiTrace("GCombo::Name() " LPrintfInt64 "=out of range this=%p, hnd=%p strs=%i\n",
 			d->Value, this, _View, d->Strs.Length());
 	#endif
 	
@@ -225,7 +225,7 @@ bool GCombo::Delete()
 	
 	#if defined(DEBUG_COMBOBOX)
 	if (DEBUG_COMBOBOX==GetId())
-		LgiTrace("%s:%i %p.%p Delete() Idx="LGI_PrintfInt64"\n", _FL, this, _View, Idx);
+		LgiTrace("%s:%i %p.%p Delete() Idx=" LPrintfInt64 "\n", _FL, this, _View, Idx);
 	#endif
 
 	return Delete(Idx);
@@ -392,7 +392,7 @@ GMessage::Result GCombo::OnEvent(GMessage *Msg)
 			Value();
 			#if defined(DEBUG_COMBOBOX)
 			if (DEBUG_COMBOBOX==GetId())
-				LgiTrace("%s:%i %p.%p WM_DESTROY v="LGI_PrintfInt64")\n", _FL, this, _View, d->Value);
+				LgiTrace("%s:%i %p.%p WM_DESTROY v=" LPrintfInt64 ")\n", _FL, this, _View, d->Value);
 			#endif
 			break;
 		}

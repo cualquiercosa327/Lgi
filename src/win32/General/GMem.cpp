@@ -501,12 +501,12 @@ bool LgiDumpMemoryStats(char *filename)
 										if (pSymbol->Name[0] == '$')
 											break;
 
-										sprintf_s(s, sizeof(s), "\t%s %s+0x" LGI_PrintfHex64 "\n", mod, pSymbol->Name, symDisplacement);
+										sprintf_s(s, sizeof(s), "\t%s %s+0x" LPrintfHex64 "\n", mod, pSymbol->Name, symDisplacement);
 										// dumpBuffer.Printf("%p: %s Offset: 0x%X (%hs)\n", caller, module, symDisplacement, pSymbol->Name);
 									}
 								}
 								else
-									sprintf_s(s, sizeof(s), "\t%s 0x" LGI_PrintfHex64 "\n", mod, b->Stack[i].Ip);
+									sprintf_s(s, sizeof(s), "\t%s 0x" LPrintfHex64 "\n", mod, b->Stack[i].Ip);
 								#else
 								DWORD symDisplacement = 0;
 								if (SymGetSymFromAddr(hProcess, b->Stack[i].Ip, &symDisplacement, pSymbol))

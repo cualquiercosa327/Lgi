@@ -171,7 +171,7 @@ int GEdit::SysOnNotify(int Msg, int Code)
 void GEdit::Value(int64 i)
 {
 	char Str[32];
-	sprintf_s(Str, sizeof(Str), LGI_PrintfInt64, i);
+	sprintf_s(Str, sizeof(Str), LPrintfInt64, i);
 	Name(Str);
 }
 

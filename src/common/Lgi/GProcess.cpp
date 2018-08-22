@@ -590,12 +590,12 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 					{
 						if (In)
 						{
-							int r;
+							ssize_t r;
 							char Buf[256];
 							while ((r = In->Read(Buf, sizeof(Buf))) > 0)
 							{
 								DWORD w = 0;
-								WriteFile(hChildStdinWrDup, Buf, r, &w, 0);								
+								WriteFile(hChildStdinWrDup, Buf, (DWORD)r, &w, 0);								
 							}
 						}
 

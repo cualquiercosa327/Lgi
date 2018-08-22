@@ -538,7 +538,7 @@ void FileTransferProgress::Value(int64 v)
 			if (StatusInfo[_STATUS_POSITION])
 			{
 				char Str[256];
-				sprintf(Str, LGI_PrintfInt64" K", Val>>10);
+				sprintf(Str, LPrintfInt64" K", Val>>10);
 				StatusInfo[_STATUS_POSITION]->Name(Str);
 			}
 		}

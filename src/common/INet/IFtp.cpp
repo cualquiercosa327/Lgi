@@ -920,7 +920,7 @@ bool IFtp::UploadFile(const char *Local, const char *Remote, bool Binary)
 
 bool IFtp::ResumeAt(int64 Pos)
 {
-	sprintf_s(d->OutBuf, sizeof(d->OutBuf), "REST " LGI_PrintfInt64 "\r\n", Pos);
+	sprintf_s(d->OutBuf, sizeof(d->OutBuf), "REST " LPrintfInt64 "\r\n", Pos);
 
 	WriteLine();
 	ssize_t FtpStatus = ReadLine();

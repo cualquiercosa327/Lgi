@@ -49,8 +49,12 @@
 	typedef BOOL option_t;
 
 	#define MSG_NOSIGNAL		0
-	#define EWOULDBLOCK			WSAEWOULDBLOCK
-	#define EISCONN				WSAEISCONN
+	#ifndef EWOULDBLOCK
+		#define EWOULDBLOCK		WSAEWOULDBLOCK
+	#endif
+	#ifndef EISCONN
+		#define EISCONN			WSAEISCONN
+	#endif
 
 	#define OsAddr				S_un.S_addr
 
@@ -734,7 +738,7 @@ int GSocket::Open(const char *HostAddr, int Port)
 							int64 Remaining = End - LgiCurrentTime();
 
 							#if CONNECT_LOGGING
-							printf("%p - Remaining "LGI_PrintfInt64"\n", d->Socket, Remaining);
+							printf("%p - Remaining "LPrintfInt64"\n", d->Socket, Remaining);
 							#endif
 
 							if (Remaining < 0)

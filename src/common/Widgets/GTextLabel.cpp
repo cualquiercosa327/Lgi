@@ -194,7 +194,7 @@ int64 GTextLabel::Value()
 void GTextLabel::Value(int64 i)
 {
 	char Str[32];
-	sprintf_s(Str, sizeof(Str), LGI_PrintfInt64, i);
+	sprintf_s(Str, sizeof(Str), LPrintfInt64, i);
 	Name(Str);
 }
 

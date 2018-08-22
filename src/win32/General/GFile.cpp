@@ -1511,7 +1511,7 @@ int64 GFile::SetSize(int64 Size)
 	if (!b)
 	{
 		DWORD err = GetLastError();
-		LgiTrace("%s:%i - SetSize("LGI_PrintfInt64") failed: 0x%x\n", _FL, Size, err);
+		LgiTrace("%s:%i - SetSize(" LPrintfInt64 ") failed: 0x%x\n", _FL, Size, err);
 	}
 	
 	SetFilePointer(d->hFile, OldPosLow, &OldPosHigh, FILE_BEGIN);

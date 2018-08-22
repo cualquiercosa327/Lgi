@@ -26,7 +26,7 @@ class LUnrolledList
 
 		~LstBlk()
 		{
-			for (size_t n=0; n<Count; n++)
+			for (int n=0; n<Count; n++)
 			{
 				Obj[n].~T();
 			}

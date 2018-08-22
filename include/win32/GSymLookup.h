@@ -218,7 +218,7 @@ public:
 				{
 					if (SymGetLineFromAddr(hProcess, (DWORD_PTR)Ip[i], &symDisplacement, &Line))
 					{
-						int Ch = Sprintf(buf, buf_end-buf, "    %08.8x: "TCHAR_FORMAT", %s:%i", Ip[i], mod, Line.FileName, Line.LineNumber);
+						int Ch = Sprintf(buf, buf_end-buf, "    %p: " TCHAR_FORMAT ", %s:%i", (void*)Ip[i], mod, Line.FileName, Line.LineNumber);
 						if (Ch > 0)
 							buf += Ch;
 						else
@@ -227,7 +227,7 @@ public:
 					}
 					else if (pSymbol->Name[0] != '$')
 					{
-						int Ch = Sprintf(buf, buf_end-buf, "    %08.8x: "TCHAR_FORMAT ", %s+0x%x", Ip[i], mod, pSymbol->Name, symDisplacement);
+						int Ch = Sprintf(buf, buf_end-buf, "    %p: " TCHAR_FORMAT ", %s+0x%x", (void*)Ip[i], mod, pSymbol->Name, symDisplacement);
 						if (Ch > 0)
 							buf += Ch;
 						else
@@ -238,7 +238,7 @@ public:
 
 				if (!found_addr)
 				{
-					int Ch = Sprintf(buf, buf_end-buf, "    %08.8x: "TCHAR_FORMAT, Ip[i], mod);
+					int Ch = Sprintf(buf, buf_end-buf, "    %p: " TCHAR_FORMAT, (void*)Ip[i], mod);
 					if (Ch > 0)
 						buf += Ch;
 					else
@@ -247,7 +247,7 @@ public:
 			}
 			else
 			{
-				int Ch = Sprintf(buf, buf_end-buf, "    %08.8x: unknown module", Ip[i]);
+				int Ch = Sprintf(buf, buf_end-buf, "    %p: unknown module", (void*)Ip[i]);
 				if (Ch > 0)
 					buf += Ch;
 				else

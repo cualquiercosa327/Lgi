@@ -1220,7 +1220,7 @@ void GDisplayString::Length(int New)
 	}
 	else
 	{
-		printf("%s:%i - New>=Len (%i>=%i)\n", _FL, New, len);
+		printf("%s:%i - New>=Len (%i>=" LPrintfSSizeT" )\n", _FL, New, len);
 	}
 
 	#endif

@@ -183,7 +183,7 @@ void GDataGridPriv::Save()
 				return;
 
 			char t[64];
-			sprintf(t, LGI_PrintfInt64, OldVal);
+			sprintf(t, LPrintfInt64, OldVal);
 			Cur->SetText(t, Col);
 		}
 		else

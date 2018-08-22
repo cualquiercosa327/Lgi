@@ -122,7 +122,7 @@ void GEdit::SetCaret(size_t Pos, bool Select, bool ForceFullUpdate)
 void GEdit::Value(int64 i)
 {
 	char Str[32];
-	sprintf(Str, LGI_PrintfInt64, i);
+	sprintf(Str, LPrintfInt64, i);
 	Name(Str);
 }
 

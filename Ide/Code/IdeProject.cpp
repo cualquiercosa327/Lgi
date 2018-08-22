@@ -2251,7 +2251,7 @@ bool IdeProject::FindDuplicateSymbols()
 							if (Ours != Theirs)
 							{
 								if (Found++ < 100)
-									Log->Print("    %s (" LGI_PrintfInt64 " -> " LGI_PrintfInt64 ")\n",
+									Log->Print("    %s (" LPrintfInt64 " -> " LPrintfInt64 ")\n",
 										p.Last().Get(),
 										Ours, Theirs);
 							}

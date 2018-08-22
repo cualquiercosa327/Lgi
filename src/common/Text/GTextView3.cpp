@@ -1757,7 +1757,7 @@ int64 GTextView3::Value()
 void GTextView3::Value(int64 i)
 {
 	char Str[32];
-	sprintf_s(Str, sizeof(Str), LGI_PrintfInt64, i);
+	sprintf_s(Str, sizeof(Str), LPrintfInt64, i);
 	Name(Str);
 }
 
@@ -2305,7 +2305,7 @@ bool GTextView3::Open(const char *Name, const char *CharSet)
 		int64 Bytes = f.GetSize();
 		if (Bytes < 0 || Bytes & 0xffff000000000000LL)
 		{
-			LgiTrace("%s:%i - Invalid file size: " LGI_PrintfInt64 "\n", _FL, Bytes);
+			LgiTrace("%s:%i - Invalid file size: " LPrintfInt64 "\n", _FL, Bytes);
 			return false;
 		}
 			
