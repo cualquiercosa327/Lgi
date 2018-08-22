@@ -670,7 +670,7 @@ protected:
 	bool ReadMultiLineReply(char *&Str);
 	int GetInt();
 	bool MailIsEnd(char *Ptr, ssize_t Len);
-	bool ListCmd(const char *Cmd, LHashTbl<ConstStrKey<char>, bool> &Results);
+	bool ListCmd(const char *Cmd, LHashTbl<ConstStrKey<char,false>, bool> &Results);
 
 	const char *End;
 	const char *Marker;
@@ -794,6 +794,8 @@ protected:
 	void CommandFinished();
 
 public:
+	typedef LHashTbl<ConstStrKey<char,false>,GString> StrMap;
+
 	struct StrRange
 	{
 		ssize_t Start, End;
@@ -857,7 +859,7 @@ public:
 		/// The message sequence number
 		char *Msg,
 		/// The fetch parts (which the callee needs to own if returning true)
-		LHashTbl<ConstStrKey<char>, char*> &Parts,
+		StrMap &Parts,
 		/// The user data passed to the Fetch function
 		void *UserData
 	);
@@ -938,7 +940,7 @@ public:
 	);
 
 	bool GetFolders(GArray<MailImapFolder*> &Folders);
-	bool SelectFolder(const char *Path, LHashTbl<ConstStrKey<char>,GString> *Values = 0);
+	bool SelectFolder(const char *Path, StrMap *Values = 0);
 	char *GetSelectedFolder();
 	int GetMessages(const char *Path);
 	bool CreateFolder(MailImapFolder *f);

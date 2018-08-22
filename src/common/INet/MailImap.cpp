@@ -603,7 +603,7 @@ MailImapFolder::~MailImapFolder()
 	DeleteArray(Path);
 }
 
-void MailImapFolder::operator =(GHashTbl<const char*,int> &v)
+void MailImapFolder::operator =(LHashTbl<ConstStrKey<char>,int> &v)
 {
 	int o = v.Find("exists");
 	if (o >= 0) Exists = o;
@@ -2202,7 +2202,7 @@ char *MailIMap::GetSelectedFolder()
 	return d->Current;
 }
 
-bool MailIMap::SelectFolder(const char *Path, GHashTbl<const char*,GString> *Values)
+bool MailIMap::SelectFolder(const char *Path, StrMap *Values)
 {
 	bool Status = false;
 
@@ -2222,7 +2222,6 @@ bool MailIMap::SelectFolder(const char *Path, GHashTbl<const char*,GString> *Val
 
 				if (Values)
 				{
-					Values->IsCase(false);
 					for (GString Dlg = Dialog.First(); Dlg; Dlg = Dialog.Next())
 					{
 						GString::Array t = Dlg.SplitDelimit(" []");
@@ -2280,7 +2279,7 @@ int MailIMap::GetMessages(const char *Path)
 
 	if (Socket && Lock(_FL))
 	{
-		GHashTbl<const char*,GString> f(0, false);
+		StrMap f;
 		if (SelectFolder(Path, &f))
 		{
 			GString Exists = f.Find("exists");
@@ -2514,12 +2513,12 @@ int MailIMap::Fetch(bool ByUid,
 				else
 				{
 					// Process ranges into a hash table
-					GHashTbl<const char*, char*> Parts;
+					StrMap Parts;
 					for (unsigned i=2; i<Ranges.Length()-1; i += 2)
 					{
 						char *Name = b + Ranges[i].Start;
 						Name[Ranges[i].Len()] = 0;							
-						char *Value = NewStr(b + Ranges[i+1].Start, Ranges[i+1].Len());
+						GString Value(b + Ranges[i+1].Start, Ranges[i+1].Len());
 						Parts.Add(Name, Value);
 					}
 					
@@ -2537,9 +2536,6 @@ int MailIMap::Fetch(bool ByUid,
 						LgiTrace("%s:%i - Fetch: Callback return FALSE?\n", _FL);
 						#endif
 					}
-
-					// Clean up mem
-					Parts.DeleteArrays();
 				}
 
 				// Remove this msg from buffer
@@ -2595,7 +2591,7 @@ int MailIMap::Fetch(bool ByUid,
 	return Status;
 }
 
-bool IMapHeadersCallback(MailIMap *Imap, char *Msg, GHashTbl<const char*, char*> &Parts, void *UserData)
+bool IMapHeadersCallback(MailIMap *Imap, char *Msg, MailIMap::StrMap &Parts, void *UserData)
 {
 	char *s = Parts.Find(sRfc822Header);
 	if (s)
@@ -2606,7 +2602,6 @@ bool IMapHeadersCallback(MailIMap *Imap, char *Msg, GHashTbl<const char*, char*>
 		Hdrs->Reset(s);
 	}
 	
-	Parts.DeleteArrays();
 	return true;
 }
 
@@ -2638,7 +2633,7 @@ struct ReceiveCallbackState
 	MailCallbacks *Callbacks;
 };
 
-static bool IMapReceiveCallback(MailIMap *Imap, char *Msg, GHashTbl<const char*, char*> &Parts, void *UserData)
+static bool IMapReceiveCallback(MailIMap *Imap, char *Msg, MailIMap::StrMap &Parts, void *UserData)
 {
 	ReceiveCallbackState *State = (ReceiveCallbackState*) UserData;
 	char *Flags = Parts.Find("FLAGS");
@@ -2908,7 +2903,7 @@ int MailIMap::Sizeof(int Message)
 	return Status;
 }
 
-bool ImapSizeCallback(MailIMap *Imap, char *Msg, GHashTbl<const char*, char*> &Parts, void *UserData)
+bool ImapSizeCallback(MailIMap *Imap, char *Msg, MailIMap::StrMap &Parts, void *UserData)
 {
 	GArray<int> *Sizes = (GArray<int>*) UserData;
 	int Index = atoi(Msg);

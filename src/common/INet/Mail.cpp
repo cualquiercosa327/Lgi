@@ -2426,7 +2426,7 @@ bool MailPop3::ReadReply()
 	return Status;
 }
 
-bool MailPop3::ListCmd(const char *Cmd, LHashTbl<ConstStrKey<char>, bool> &Results)
+bool MailPop3::ListCmd(const char *Cmd, LHashTbl<ConstStrKey<char,false>, bool> &Results)
 {
 	sprintf_s(Buffer, sizeof(Buffer), "%s\r\n", Cmd);
 	if (!Write(0, true))
@@ -2581,7 +2581,7 @@ bool MailPop3::Open(GSocketI *S, const char *RemoteHost, int Port, const char *U
 
 					if (!SecurityError && SecureAuth)
 					{
-						GHashTbl<const char*, bool> AuthTypes, Capabilities;
+						LHashTbl<ConstStrKey<char,false>, bool> AuthTypes, Capabilities;
 						if (ListCmd("AUTH", AuthTypes) &&
 							ListCmd("CAPA", Capabilities))
 						{

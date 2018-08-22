@@ -1559,7 +1559,7 @@ void LDateTime::AddMinutes(int64 Minutes)
 	{
 		int64 delta = Minutes * 60 * Second64Bit;
 		uint64 n = i + delta;
-		// printf("AddMin " LGI_PrintfInt64 " + " LGI_PrintfInt64 " = " LGI_PrintfInt64 "\n", i, delta, n);
+		// printf("AddMin " LPrintfInt64 " + " LPrintfInt64 " = " LPrintfInt64 "\n", i, delta, n);
 		Set(n);
 	}
 }

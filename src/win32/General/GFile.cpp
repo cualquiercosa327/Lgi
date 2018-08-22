@@ -1547,7 +1547,8 @@ ssize_t GFile::Read(void *Buffer, ssize_t Size, int Flags)
 		DWORD Bytes = 0;
 		int BlockSz = (int) MIN( Size - Pos, 1 << 30 ); // 1 GiB blocks
 
-		if (ReadFile(d->hFile, (char*)Buffer + Pos, BlockSz, &Bytes, NULL))
+		if (ReadFile(d->hFile, (char*)Buffer + Pos, BlockSz, &Bytes, NULL) &&
+			Bytes == BlockSz)
 		{
 			Rd += Bytes;
 			Pos += Bytes;
@@ -1573,7 +1574,8 @@ ssize_t GFile::Write(const void *Buffer, ssize_t Size, int Flags)
 		DWORD Bytes = 0;
 		int BlockSz = (int) MIN( Size - Pos, 1 << 30 ); // 1 GiB blocks
 
-		if (WriteFile(d->hFile, (const char*)Buffer + Pos, BlockSz, &Bytes, NULL))
+		if (WriteFile(d->hFile, (const char*)Buffer + Pos, BlockSz, &Bytes, NULL) &&
+			Bytes == BlockSz)
 		{
 			Wr += Bytes;
 			Pos += Bytes;
