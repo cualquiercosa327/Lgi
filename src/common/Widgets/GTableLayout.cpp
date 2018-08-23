@@ -28,7 +28,6 @@ enum CellFlag
 #include "GRadioGroup.h"
 #include "GBitmap.h"
 #include "GTabView.h"
-#include "GUtf8.h"
 #include "GScrollBar.h"
 #include "GCss.h"
 

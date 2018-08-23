@@ -1,7 +1,6 @@
 #ifndef _GDISPLAY_STRING_LAYOUT_H_
 #define _GDISPLAY_STRING_LAYOUT_H_
 
-#include "GUtf8.h"
 #include "GDisplayString.h"
 #include "GCss.h"
 #include "GFontCache.h"

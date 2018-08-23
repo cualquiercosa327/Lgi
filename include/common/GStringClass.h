@@ -148,46 +148,6 @@ public:
 		SetW(str, wchars);
 	}
 
-	static size_t WcharToUtfLength(const wchar_t *s, ptrdiff_t wchars = -1)
-	{
-		if (!s) return 0;
-		size_t Out = 0;
-		uint8 Buf[6];
-
-		#ifdef _MSC_VER
-		const uint16 *i = (const uint16*) s;
-		ssize_t Len = wchars >= 0 ? wchars << 1 : 0x7fffffff;
-		for (uint32 ch; ch = LgiUtf16To32(i, Len); )
-		{
-			uint8 *b = Buf;
-			ssize_t len = sizeof(Buf);
-			if (!LgiUtf32To8(ch, b, len))
-				break;
-			Out += sizeof(Buf) - len;
-		}
-		#else
-		const wchar_t *end = wchars < 0 ? NULL : s + wchars;
-		for (uint32 ch = 0;
-			(
-				wchars < 0
-				||
-				s < end
-			)
-			&&
-			(ch = *s);
-			s++)
-		{
-			uint8 *b = Buf;
-			ssize_t len = sizeof(Buf);
-			if (!LgiUtf32To8(ch, b, len))
-				break;
-			Out += sizeof(Buf) - len;
-		}
-		#endif
-
-		return Out;
-	}
-
 	#if defined(_WIN32) || defined(MAC)
 	/// const uint32* constructor
 	GString(const uint32 *str, ptrdiff_t chars = -1)
@@ -304,7 +264,7 @@ public:
 		ptrdiff_t wchars = -1
 	)
 	{
-		size_t Sz = WcharToUtfLength(str, wchars);
+		size_t Sz = WideToUtf8Len(str, wchars);
 		if (Length(Sz))
 		{
 			#ifdef _MSC_VER
@@ -455,20 +415,7 @@ public:
 	
 	GString &operator =(const wchar_t *s)
 	{
-		Empty();
-		
-		if (s)
-		{
-			// FIXME, this needs to work without allocating 2 blocks of 
-			// heap memory
-			char *u = WideToUtf8(s);
-			if (u)
-			{
-				*this = u;
-				delete [] u;
-			}			
-		}
-		
+		SetW(s);
 		return *this;
 	}
 

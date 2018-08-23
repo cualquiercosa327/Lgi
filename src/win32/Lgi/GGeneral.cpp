@@ -532,7 +532,8 @@ GAutoString LgiErrorCodeToString(uint32 ErrorCode)
 
 bool LgiExecute(const char *File, const char *Arguments, const char *Dir, GAutoString *ErrorMsg)
 {
-	int Status = 0, Error = 0;
+	int Error = 0;
+	HINSTANCE Status = NULL;
 	
 	if (!File)
 		return false;
@@ -545,8 +546,8 @@ bool LgiExecute(const char *File, const char *Arguments, const char *Dir, GAutoS
 		GAutoString d(LgiToNativeCp(Dir));
 		if (f)
 		{
-			Status = (int) ShellExecuteA(NULL, "open", f, a, d, 5);
-			if (Status <= 32)
+			Status = ShellExecuteA(NULL, "open", f, a, d, 5);
+			if ((size_t)Status <= 32)
 				Error = GetLastError();
 		}
 	}
@@ -557,15 +558,15 @@ bool LgiExecute(const char *File, const char *Arguments, const char *Dir, GAutoS
 		GAutoWString d(Utf8ToWide(Dir));
 		if (f)
 		{
-			Status = (int) ShellExecuteW(NULL, L"open", f, a, d, 5);
-			if (Status <= 32)
+			Status = ShellExecuteW(NULL, L"open", f, a, d, 5);
+			if ((size_t)Status <= 32)
 				Error = GetLastError();
 		}
 	}
 
 	#ifdef _DEBUG
-	if (Status <= 32)
-		LgiTrace("ShellExecuteW failed with %i (LastErr=0x%x)\n", Status, Error);
+	if ((size_t)Status <= 32)
+		LgiTrace("ShellExecuteW failed with %p (LastErr=0x%x)\n", Status, Error);
 	if (LgiCurrentTime() - Now > 1000)
 		LgiTrace("ShellExecuteW took %I64i\n", LgiCurrentTime() - Now);
 	#endif
@@ -573,7 +574,7 @@ bool LgiExecute(const char *File, const char *Arguments, const char *Dir, GAutoS
 	if (ErrorMsg)
 		*ErrorMsg = LgiErrorCodeToString(Error);
 	
-	return Status > 32;
+	return (size_t)Status > 32;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

@@ -75,39 +75,9 @@ int MouseRollMsg = 0;
 
 int _lgi_mouse_wheel_lines()
 {
-	OSVERSIONINFO Info;
-	ZeroObj(Info);
-	Info.dwOSVersionInfoSize = sizeof(Info);
-	if (GetVersionEx(&Info) &&
-		Info.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS &&
-		Info.dwMajorVersion == 4 &&
-		Info.dwMinorVersion == 0)
-	{
-       HWND hdlMSHWheel=NULL;
-       UINT msgMSHWheelGetScrollLines=NULL;
-       // UINT uiMsh_WheelScrollLines;
-
-       msgMSHWheelGetScrollLines = 
-               RegisterWindowMessage(MSH_SCROLL_LINES);
-       hdlMSHWheel = FindWindow(MSH_WHEELMODULE_CLASS, 
-                                MSH_WHEELMODULE_TITLE);
-       if (hdlMSHWheel && msgMSHWheelGetScrollLines)
-       {
-			return (int)SendMessage(hdlMSHWheel, msgMSHWheelGetScrollLines, 0, 0);
-       }
-	}
-	else
-	{
-		UINT nScrollLines;
-		if (SystemParametersInfo(	SPI_GETWHEELSCROLLLINES, 
-									0, 
-									(PVOID) &nScrollLines, 
-									0))
-		{
-			return nScrollLines;
-		}
-	}
-
+	UINT nScrollLines;
+	if (SystemParametersInfo(SPI_GETWHEELSCROLLLINES, 0, (PVOID) &nScrollLines, 0))
+		return nScrollLines;
 	return 3;
 }
 
@@ -884,11 +854,10 @@ bool LgiToWindowsCursor(OsView Hnd, LgiCursor Cursor)
 			break;
 	}
 
-	HCURSOR cur = LoadCursor(0, MAKEINTRESOURCE(Set ? Set : IDC_ARROW));
-	// LgiTrace("Cur=%i\n", Cursor);
+	HCURSOR cur = LoadCursor(0, Set ? Set : IDC_ARROW);
 	SetCursor(cur);
 	if (Hnd)
-		SetClassLong(Hnd, GCL_HCURSOR, (DWORD)cur);
+		SetWindowLongPtr(Hnd, GCL_HCURSOR, (LONG_PTR)cur);
 
 	return true;
 }

@@ -4,7 +4,6 @@
 
 #include "Lgi.h"
 #include "GToken.h"
-#include "GUtf8.h"
 
 struct UnicodeMappings
 {

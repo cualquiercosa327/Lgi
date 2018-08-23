@@ -612,7 +612,7 @@ GVolume *GFileSystem::GetRootVolume()
 	return Root;
 }
 
-bool GFileSystem::Copy(char *From, char *To, int *ErrorCode, CopyFileCallback Callback, void *Token)
+bool GFileSystem::Copy(char *From, char *To, LError *ErrorCode, CopyFileCallback Callback, void *Token)
 {
 	if (!From || !To)
 	{
@@ -1556,6 +1556,8 @@ ssize_t GFile::Read(void *Buffer, ssize_t Size, int Flags)
 		}
 		else
 		{
+			Rd += Bytes;
+			d->Status &= Bytes > 0;
 			d->LastError = GetLastError();
 			break;
 		}
@@ -1583,6 +1585,8 @@ ssize_t GFile::Write(const void *Buffer, ssize_t Size, int Flags)
 		}
 		else
 		{
+			Wr += Bytes;
+			d->Status &= Bytes > 0;
 			d->LastError = GetLastError();
 			break;
 		}

@@ -250,7 +250,7 @@ public:
 		/// The file to copy to. Any existing file there will be overwritten without warning.
 		char *To,
 		/// The error code or zero on success
-		int *Status = 0,
+		LError *Status = 0,
 		/// Optional callback when some data is copied.
 		CopyFileCallback Callback = 0,
 		/// A user defined token passed to the callback function

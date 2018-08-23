@@ -3,7 +3,6 @@
 
 #include "Lgi.h"
 #include "Emoji.h"
-#include "GUtf8.h"
 #include "GVariant.h"
 #include "GDocView.h"
 

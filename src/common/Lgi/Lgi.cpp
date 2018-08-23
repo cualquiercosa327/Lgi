@@ -896,6 +896,9 @@ GString LgiGetSystemPath(LgiSystemPath Which, int WordSize)
 
 GFile::Path::State GFile::Path::Exists()
 {
+	if (Length() == 0)
+		return TypeNone;
+
 	#ifdef WINDOWS
 	struct _stat64 s;
 	int r = _stat64(GetFull(), &s);

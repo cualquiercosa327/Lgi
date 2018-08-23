@@ -1,8 +1,6 @@
 #ifndef _TEXT_FILE_H_
 #define _TEXT_FILE_H_
 
-#include "GUtf8.h"
-
 class GTextFile : public GFile
 {
 public:

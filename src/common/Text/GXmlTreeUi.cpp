@@ -11,7 +11,6 @@
 #include "GEdit.h"
 #include "GTree.h"
 #include "GControlTree.h"
-#include "GUtf8.h"
 
 #include <ctype.h>
 
@@ -67,7 +66,7 @@ struct Mapping
 class GXmlTreeUiPriv
 {
 public:
-	GHashTbl<const char*,Mapping*> Maps;
+	LHashTbl<ConstStrKey<char,false>,Mapping*> Maps;
 	
 	~GXmlTreeUiPriv()
 	{

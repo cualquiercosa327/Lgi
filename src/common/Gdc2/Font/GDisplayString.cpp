@@ -9,7 +9,6 @@
 #include "GVariant.h"
 #include "GFontSelect.h"
 #include "GdiLeak.h"
-#include "GUtf8.h"
 #include "GDisplayString.h"
 #include "GPixelRops.h"
 

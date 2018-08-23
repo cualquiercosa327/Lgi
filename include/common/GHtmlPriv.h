@@ -3,7 +3,6 @@
 
 #include "GCss.h"
 #include "GToken.h"
-#include "GUtf8.h"
 #include "GHtmlParser.h"
 
 class HtmlEdit;
