@@ -133,7 +133,7 @@ namespace Html1
 class GHtmlPrivate
 {
 public:
-	GHashTbl<const char*, GTag*> Loading;
+	LHashTbl<ConstStrKey<char>, GTag*> Loading;
 	GHtmlStaticInst Inst;
 	bool CursorVis;
 	GRect CursorPos;
