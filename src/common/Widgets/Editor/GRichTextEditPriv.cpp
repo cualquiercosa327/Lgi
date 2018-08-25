@@ -225,6 +225,7 @@ bool CompleteTextBlockState::Apply(GRichTextPriv *Ctx, bool Forward)
 		return false;
 
 	// Swap the local state with the block in the ctx
+	Blk->UpdateSpellingAndLinks(NULL, GRange(0, Blk->Length()));
 	Ctx->Blocks[Index] = Blk.Release();
 	Blk.Reset(b);
 

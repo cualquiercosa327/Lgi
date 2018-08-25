@@ -996,7 +996,6 @@ public:
 		GSpellCheck::SpellingError *SpErr;
 
 		bool PreEdit(Transaction *Trans);
-		void UpdateSpellingAndLinks(Transaction *Trans, GRange r);
 		void DrawDisplayString(GSurface *pDC, DisplayStr *Ds, int &FixX, int FixY, GColour &Bk, int &Pos);
 	
 	public:
@@ -1053,6 +1052,7 @@ public:
 		#endif
 		Block *Clone();
 		bool IsEmptyLine(BlockCursor *Cursor);
+		void UpdateSpellingAndLinks(Transaction *Trans, GRange r);
 
 		// Events
 		GMessage::Result OnEvent(GMessage *Msg);

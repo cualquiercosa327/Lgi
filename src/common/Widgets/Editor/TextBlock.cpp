@@ -1455,15 +1455,16 @@ GMessage::Result GRichTextPriv::TextBlock::OnEvent(GMessage *Msg)
 				int i = (int)Msg->A() - SPELLING_BASE;
 				if (i >= 0 && i < (int)e->Suggestions.Length())
 				{
+					int Start = e->Start;
 					GString s = e->Suggestions[i];
 					AutoTrans t(new GRichTextPriv::Transaction);
 					
 					// Delete the old text...
-					DeleteAt(t, e->Start, e->Len);
+					DeleteAt(t, Start, e->Len); // 'e' might disappear here
 
 					// Insert the new text....
 					GAutoPtr<uint32,true> u((uint32*)LgiNewConvertCp("utf-32", s, "utf-8"));
-					AddText(t, e->Start, u.Get(), Strlen(u.Get()));
+					AddText(t, Start, u.Get(), Strlen(u.Get()));
 					
 					d->AddTrans(t);
 					return true;
