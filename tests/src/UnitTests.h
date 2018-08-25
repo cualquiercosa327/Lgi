@@ -102,5 +102,13 @@ public:
 	}
 };
 
+class LRangeTest : public UnitTest
+{
+public:
+	LRangeTest() : UnitTest("LRangeTest") {}
+	~LRangeTest() {}
+
+	bool Run();
+};
 
 #endif

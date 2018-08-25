@@ -5,8 +5,9 @@ void UnitTests()
 {
 	GArray<UnitTest*> Tests;
 
+	Tests.Add(new LRangeTest);
+	#if 1
 	Tests.Add(new GContainers);
-	#if 0
 	Tests.Add(new GAutoPtrTest);
 	Tests.Add(new GCssTest);
 	Tests.Add(new GMatrixTest);
