@@ -692,7 +692,7 @@ OSStatus MoveFileToTrash(CFURLRef fileURL)
 	return err;
 }
 
-bool GFileSystem::Copy(char *From, char *To, int *ErrorCode, CopyFileCallback Callback, void *Token)
+bool GFileSystem::Copy(char *From, char *To, LError *ErrorCode, CopyFileCallback Callback, void *Token)
 {
 	if (!From || !To)
 	{
@@ -1441,7 +1441,7 @@ ssize_t GFile::Read(void *Buffer, ssize_t Size, int Flags)
 			d->LastError = errno;
 			const char *Err = GetErrorName(errno);
 			int64 Pos = GetPos();
-			printf("%s:%i - GFile::Read(%p,%zi) err=%s, pos=" LGI_PrintfInt64 "\n",
+			printf("%s:%i - GFile::Read(%p,%zi) err=%s, pos=" LPrintfInt64 "\n",
 				_FL, Buffer, Size, Err, Pos);
 		}
 		#endif
@@ -1463,7 +1463,7 @@ ssize_t GFile::Write(const void *Buffer, ssize_t Size, int Flags)
 		{
 			int Err = errno;
 			int64 Pos = GetPos();
-			printf("Write error: %i, " LGI_PrintfInt64 "\n", Err, Pos);
+			printf("Write error: %i, " LPrintfInt64 "\n", Err, Pos);
 		}
 		#endif
 	}

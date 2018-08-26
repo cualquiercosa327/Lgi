@@ -1155,7 +1155,7 @@ bool GTextView3::InsertStyle(GAutoPtr<GStyle> s)
 	LgiAssert(s->Start >= 0);
 	LgiAssert(s->Len > 0);
 	ssize_t Last = 0;
-	int n = 0;
+	// int n = 0;
 
 	// LgiTrace("StartStyle=%i,%i(%i) %s\n", (int)s->Start, (int)s->Len, (int)(s->Start+s->Len), s->Fore.GetStr());
 
@@ -3635,8 +3635,7 @@ LgiCursor GTextView3::GetCursor(int x, int y)
 	if (c.Overlap(x, y))
 	{
 		ssize_t Hit = HitText(x, y, true);
-		GStyle *s = HitStyle(Hit);
-		// ::SetCursor(LoadCursor(0, MAKEINTRESOURCE(c)));
+		s = HitStyle(Hit);
 	}
 
 	return s ? s->Cursor : LCUR_Ibeam;

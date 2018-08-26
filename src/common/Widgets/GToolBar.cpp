@@ -243,7 +243,7 @@ GImageList::GImageList(int x, int y, GSurface *pDC)
 				
 		if (pDC->GetBits() < 32 || HasPad(pDC->GetColourSpace()))
 		{
-			auto InCs = pDC->GetColourSpace();
+			// auto InCs = pDC->GetColourSpace();
 			
 			if (!pDC->HasAlpha())
 			{

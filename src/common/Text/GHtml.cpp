@@ -155,7 +155,7 @@ public:
 	GAutoWString FindText;
 	bool MatchCase;
 	
-	GHtmlPrivate() : Loading(0, false)
+	GHtmlPrivate()
 	{
 		IsLoaded = false;
 		StyleDirty = false;

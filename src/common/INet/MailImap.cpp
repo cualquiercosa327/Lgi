@@ -2659,7 +2659,7 @@ static bool IMapReceiveCallback(MailIMap *Imap, char *Msg, MailIMap::StrMap &Par
 	if (Imap->Items)
 		Imap->Items->Value++;
 	
-	Parts.DeleteArrays();
+	Parts.Empty();
 
 	if (State->Callbacks)
 	{

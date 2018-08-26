@@ -21,7 +21,6 @@
 #include "GSymLookup.h"
 #endif
 #include "GToken.h"
-#include "GUtf8.h"
 #include "GViewPriv.h"
 #include "GRegionClipDC.h"
 #include "GFontCache.h"

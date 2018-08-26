@@ -683,7 +683,7 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 				{
 					if (JPEGLIB jpeg_read_scanlines(&cinfo, &Ptr, 1))
 					{
-						switch (cinfo.jpeg_color_space)
+						switch ((int) cinfo.jpeg_color_space)
 						{
 							default:
 								break;

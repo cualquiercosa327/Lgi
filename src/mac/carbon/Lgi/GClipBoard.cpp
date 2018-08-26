@@ -230,6 +230,17 @@ char16 *GClipBoard::TextW()
 	return wTxt;
 }
 
+GString::Array GClipBoard::Files()
+{
+	GString::Array a;
+	return a;
+}
+
+bool GClipBoard::Files(GString::Array &Paths, bool AutoEmpty)
+{
+	return false;
+}
+
 bool GClipBoard::Bitmap(GSurface *pDC, bool AutoEmpty)
 {
 	if (AutoEmpty)

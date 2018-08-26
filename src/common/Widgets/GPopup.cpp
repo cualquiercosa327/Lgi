@@ -344,7 +344,7 @@ public:
 						hWndProcess = LgiGetViewPid(hMouseOver);
 						if (hWndProcess == hProcess)
 						{
-							PostEvent(hMouseOver, M_MOUSEEXIT, 0, MAKELONG((short) p.x, (short) p.y));
+							PostEvent(hMouseOver, M_MOUSEEXIT, 0, (GMessage::Param)MAKELONG((short) p.x, (short) p.y));
 						}
 					}
 
@@ -358,7 +358,7 @@ public:
 						hWndProcess = LgiGetViewPid(hMouseOver);
 						if (hWndProcess == hProcess)
 						{
-							PostEvent(hMouseOver, M_MOUSEENTER, Inside, MAKELONG((short) p.x, (short) p.y));
+							PostEvent(hMouseOver, M_MOUSEENTER, (GMessage::Param)Inside, (GMessage::Param)MAKELONG((short) p.x, (short) p.y));
 						}
 					}
 				}

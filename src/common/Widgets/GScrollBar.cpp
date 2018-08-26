@@ -207,7 +207,7 @@ public:
 		int MinSize = 8;
 		#endif
 
-		// printf("Calc %i, " LGI_PrintfInt64 ", " LGI_PrintfInt64 "\n", IsValid(), Min, Max);
+		// printf("Calc %i, " LPrintfInt64 ", " LPrintfInt64 "\n", IsValid(), Min, Max);
 
 		if (IsValid())
 		{
@@ -618,7 +618,7 @@ void GScrollBar::SetLimits(int64 Low, int64 High)
 		Invalidate();
 		OnConfigure();
 		
-		// printf("GScrollBar::SetLimits " LGI_PrintfInt64 ", " LGI_PrintfInt64 "\n", d->Min, d->Max);
+		// printf("GScrollBar::SetLimits " LPrintfInt64 ", " LPrintfInt64 "\n", d->Min, d->Max);
 	}
 }
 
