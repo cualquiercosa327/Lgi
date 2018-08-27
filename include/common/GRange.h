@@ -1,6 +1,8 @@
 #ifndef _GRANGE_H_
 #define _GRANGE_H_
 
+#include <assert.h>
+
 #ifndef MAX
 #define MAX(a,b) ((a) > (b) ? a : b)
 #endif
@@ -68,7 +70,7 @@ struct GRange
 		GRange o = Overlap(del);
 		if (o.Valid())
 		{
-			LgiAssert(o.Len <= Len);
+			assert(o.Len <= Len);
 			Len -= o.Len;
 			if (del.Start < o.Start)
 				Start = del.Start;
