@@ -396,11 +396,11 @@ bool GProcess::Run(const char *Exe, const char *Arguments, const char *Dir, bool
 		}
 		else
 		{
-			GToken p(getenv("PATH"), LGI_PATH_SEPARATOR);
-			for (int i=0; i<p.Length(); i++)
+			GString::Array p = LgiGetEnv("PATH").Split(LGI_PATH_SEPARATOR);
+			for (auto Path : p)
 			{
-				char s[256];
-				LgiMakePath(s, sizeof(s), p[i], Exe);
+				char s[MAX_PATH];
+				LgiMakePath(s, sizeof(s), Path, Exe);
 				if (FileExists(s))
 				{
 					NExe = s;
