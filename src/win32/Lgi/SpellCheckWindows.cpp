@@ -20,6 +20,7 @@ class WindowsSpellCheck : public GSpellCheck
 
 	GHashTbl<const char *, int> Languages;
 	GString::Array Dictionaries;
+	GAutoPtr<GSpellCheck::Params> SpellParams;
 
 public:
 	WindowsSpellCheck() :
@@ -78,6 +79,7 @@ public:
 					s = Str;
 			
 					GString::Array a = s.Split("-", 1);
+					// LgiTrace("Lang='%S', '%s', %i\n", Str, s.Get(), (int)a.Length());
 					if (a.Length() == 2)
 					{
 						int Cur = Languages.Find(a[0]);
@@ -106,7 +108,7 @@ public:
 		HRESULT r = Factory->CreateSpellChecker(WLang, &Sc);
 		if (FAILED(r))
 		{
-			LgiTrace("%s:%i - CreateSpellChecker failed: %i.\n", _FL, r);
+			LgiTrace("%s:%i - CreateSpellChecker(%s) failed: %i.\n", _FL, Lang, r);
 			return NULL;
 		}
 
@@ -117,8 +119,14 @@ public:
 	{
 		switch (Msg->Msg())
 		{
+			case M_SET_PARAMS:
+			{
+				SpellParams.Reset((GSpellCheck::Params*)Msg->A());
+				break;
+			}
 			case M_ENUMERATE_LANGUAGES:
 			{
+				LgiTrace("%s:%i - M_ENUMERATE_LANGUAGES received.\n", _FL);
 				if (!GetFactory())
 				{
 					LgiTrace("%s:%i - No factory.\n", _FL);
@@ -136,7 +144,12 @@ public:
 				}
 
 				if (Langs && Langs->Length() > 0)
+				{
+					LgiTrace("%s:%i - M_ENUMERATE_LANGUAGES Langs.Len=%i.\n", _FL, (int)(Langs?Langs->Length():0));
 					PostObject(ResponseHnd, Msg->Msg(), Langs);
+				}
+				else
+					LgiTrace("%s:%i - Error: No languages.\n", _FL);
 				break;
 			}
 			case M_ENUMERATE_DICTIONARIES:
@@ -177,7 +190,9 @@ public:
 					GString Lang;
 					Lang.Printf("%s-%s", Dict->Lang.Get(), Dict->Dict.Get());
 					Success = GetSpellCheck(Lang) != NULL;
+					LgiTrace("%s:%i - GetSpellCheck(%s,%s)=%i\n", _FL, Dict->Lang.Get(), Dict->Lang.Get(), Success);
 				}
+				else LgiTrace("%s:%i - No dict specified.\n", _FL);
 
 				PostThreadEvent(ResponseHnd, M_SET_DICTIONARY, (GMessage::Param)Success);
 				break;
@@ -190,6 +205,10 @@ public:
 				{
 					LgiTrace("%s:%i - No text specified.\n", _FL);
 					break;
+				}
+				if (!Sc && SpellParams.Get())
+				{
+					GetSpellCheck(SpellParams->Lang);
 				}
 				if (!Sc)
 				{
