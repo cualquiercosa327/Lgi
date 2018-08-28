@@ -90,7 +90,7 @@ public:
 	class Array : public GArray<GString>
 	{
 	public:
-		Array() {}
+		Array(size_t PreAlloc = 0) : GArray<GString>(PreAlloc) {}
 		Array(const Array &a)
 		{
 			*this = (Array&)a;
