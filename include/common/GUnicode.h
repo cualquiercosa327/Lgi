@@ -821,7 +821,6 @@ inline size_t WideToUtf8Len(const wchar_t *s, ssize_t wchars = -1)
 	return Out;
 }
 
-
 /// Converts a utf-8 string into a wide character string
 /// \ingroup Text
 LgiFunc wchar_t *Utf8ToWide

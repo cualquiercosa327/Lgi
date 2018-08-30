@@ -95,7 +95,12 @@ IFtpEntry::IFtpEntry(struct ftpparse *Fp, const char *Cs)
 		
 		if (Fp->mtimetype != FTPPARSE_MTIME_UNKNOWN)
 		{
+			#ifdef _MSC_VER
+			struct tm local_val, *local = &local_val;
+			auto err = localtime_s(local, &Fp->mtime);
+			#else
 			struct tm *local = localtime(&Fp->mtime);
+			#endif
 			if (local)
 				Date = local;
 		}

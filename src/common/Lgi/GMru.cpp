@@ -212,6 +212,9 @@ bool GMru::Set(GSubMenu *parent, int size)
 
 char *GMru::AddFile(char *FileName, bool Update)
 {
+	if (!FileName)
+		return NULL;
+
 	char *Status = FileName;
 	GMruEntry *c = NULL;
 	for (int i=0; i<d->Items.Length(); i++)

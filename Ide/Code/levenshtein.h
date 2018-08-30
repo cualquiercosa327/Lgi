@@ -14,7 +14,7 @@
 extern "C" {
 #endif
   
-unsigned int
+size_t
 levenshtein(const char *a, const char *b);
 
 #ifdef __cplusplus

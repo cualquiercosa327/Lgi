@@ -519,7 +519,8 @@ void GDocApp<OptionsFmt>::SetCurFile(char *f)
 	if (!d->CurFile.Equals(f))
 	{
 		d->CurFile = f;
-		AddFile(f);
+		if (f)
+			AddFile(f);
 	}
 
 	GString Display;

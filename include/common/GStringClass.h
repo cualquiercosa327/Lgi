@@ -903,7 +903,7 @@ public:
 	}
 
 	/// Gets the character at 'index'
-	int operator() (int index) const
+	int operator() (size_t index) const
 	{
 		if (!Str)
 			return 0;

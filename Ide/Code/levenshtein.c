@@ -10,10 +10,10 @@
  * See http://en.wikipedia.org/wiki/Levenshtein_distance
  * for more information. */
 
-unsigned int
+size_t
 levenshtein(const char *a, const char *b) {
-  unsigned int length = strlen(a);
-  unsigned int bLength = strlen(b);
+  size_t length = strlen(a);
+  size_t bLength = strlen(b);
   unsigned int *cache = calloc(length, sizeof(unsigned int));
   unsigned int index = 0;
   unsigned int bIndex = 0;

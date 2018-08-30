@@ -101,7 +101,7 @@ public:
 
 						char16 *Txt = NameW();
 						r.Len = Txt ? StrlenW(Txt) : 0;
-						int Cursor = GetCaret();
+						auto Cursor = GetCaret();
 						if (Cursor >= r.Len)
 						{
 							d->MoveCell(1);
@@ -183,7 +183,7 @@ void GDataGridPriv::Save()
 				return;
 
 			char t[64];
-			sprintf(t, LPrintfInt64, OldVal);
+			sprintf_s(t, sizeof(t), LPrintfInt64, OldVal);
 			Cur->SetText(t, Col);
 		}
 		else
@@ -559,7 +559,7 @@ bool GDataGrid::OnLayout(GViewLayoutInfo &Inf)
 
 bool GDataGrid::CanAddRecord()
 {
-	return d->NewRecord;
+	return d->NewRecord != 0;
 }
 
 void GDataGrid::CanAddRecord(bool b)
@@ -629,7 +629,7 @@ int GDataGrid::OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState)
 			if (Data->Type == GV_BINARY)
 			{
 				LListItem **Item = (LListItem**)Data->Value.Binary.Data;
-				int Items = Data->Value.Binary.Length / sizeof(LListItem*);
+				auto Items = Data->Value.Binary.Length / sizeof(LListItem*);
 				d->Dropped.Length(0);
 				for (int i=0; i<Items; i++)
 				{
