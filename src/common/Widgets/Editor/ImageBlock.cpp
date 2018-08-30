@@ -498,18 +498,12 @@ bool GRichTextPriv::ImageBlock::Load(const char *Src)
 	if (!FileName && !Stream)
 		return false;
 
-	ImageLoader *il = new ImageLoader(this);
-	if (!il)
-		return false;
-	ThreadHnd = il->GetHandle();
-	LgiAssert(ThreadHnd > 0);
-
 	if (Stream)
 	{
 		#if LOADER_THREAD_LOGGING
 		LgiTrace("%s:%i - Posting M_IMAGE_LOAD_STREAM\n", _FL);
 		#endif
-		if (PostThreadEvent(ThreadHnd, M_IMAGE_LOAD_STREAM, (GMessage::Param)Stream.Release(), (GMessage::Param) (FileName ? new GString(FileName) : NULL)))
+		if (PostThreadEvent(GetThreadHandle(), M_IMAGE_LOAD_STREAM, (GMessage::Param)Stream.Release(), (GMessage::Param) (FileName ? new GString(FileName) : NULL)))
 		{
 			UpdateThreadBusy(_FL, 1);
 			return true;
@@ -521,7 +515,7 @@ bool GRichTextPriv::ImageBlock::Load(const char *Src)
 		#if LOADER_THREAD_LOGGING
 		LgiTrace("%s:%i - Posting M_IMAGE_LOAD_FILE\n", _FL);
 		#endif
-		if (PostThreadEvent(ThreadHnd, M_IMAGE_LOAD_FILE, (GMessage::Param)new GString(FileName)))
+		if (PostThreadEvent(GetThreadHandle(), M_IMAGE_LOAD_FILE, (GMessage::Param)new GString(FileName)))
 		{
 			UpdateThreadBusy(_FL, 1);
 			return true;
@@ -603,7 +597,7 @@ bool GRichTextPriv::ImageBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia
 		ScaleInf *Si = ResizeIdx >= 0 && ResizeIdx < (int)Scales.Length() ? &Scales[ResizeIdx] : NULL;
 		if (Si && Si->Compressed)
 		{
-			// Attach a copy of the resized jpeg...
+			// Attach a copy of the resized JPEG...
 			Si->Compressed->SetPos(0);
 			Cm.Stream.Reset(new GMemStream(Si->Compressed, 0, -1));
 			Cm.MimeType = Si->MimeType;
@@ -647,6 +641,7 @@ bool GRichTextPriv::ImageBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia
 		else
 		{
 			LgiTrace("%s:%i - No source or JPEG for saving image to HTML.\n", _FL);
+			LgiAssert(!"No source file or compressed image.");
 			return false;
 		}
 
@@ -657,23 +652,24 @@ bool GRichTextPriv::ImageBlock::ToHtml(GStream &s, GArray<GDocView::ContentMedia
 			DisplayImg->X() != SourceImg->X())
 		{
 			int Dx = DisplayImg->X();
-			int Sx = SourceImg->X();
-			Style.Printf(" style=\"width:%.0f%%\"", (double)Dx * 100 / Sx);
+			Style.Printf(" style=\"width:%ipx\"", Dx);
 		}
 		
 		if (Cm.Stream)
 		{
-			s.Print("<img%s src='", Style ? Style.Get() : "");
+			s.Print("<img%s src=\"", Style ? Style.Get() : "");
 			if (d->HtmlLinkAsCid)
 				s.Print("cid:%s", Cm.Id.Get());
 			else
 				s.Print("%s", Cm.FileName.Get());
-			s.Print("'>\n");
+			s.Print("\">\n");
+
+			LgiAssert(Cm.Valid());
 			return true;
 		}
 	}
 
-	s.Print("<img src='%s'>\n", Source.Get());
+	s.Print("<img src=\"%s\">\n", Source.Get());
 	return true;
 }
 
@@ -1125,6 +1121,8 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 					#endif
 					if (PostThreadEvent(GetThreadHandle(), M_IMAGE_COMPRESS, (GMessage::Param)SourceImg.Get(), (GMessage::Param)&si))
 						UpdateThreadBusy(_FL, 1);
+					else
+						LgiAssert(!"PostThreadEvent failed.");
 				}
 			}
 			else switch (Msg->A())
@@ -1187,8 +1185,6 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 			#if LOADER_THREAD_LOGGING
 			LgiTrace("%s:%i - Received M_IMAGE_ERROR, posting M_CLOSE\n", _FL);
 			#endif
-			PostThreadEvent(ThreadHnd, M_CLOSE);
-			ThreadHnd = 0;
 			UpdateThreadBusy(_FL, -1);
 			break;
 		}
@@ -1198,8 +1194,6 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 			#if LOADER_THREAD_LOGGING
 			LgiTrace("%s:%i - Received M_IMAGE_COMPONENT_MISSING, posting M_CLOSE\n", _FL);
 			#endif
-			PostThreadEvent(ThreadHnd, M_CLOSE);
-			ThreadHnd = 0;
 			UpdateThreadBusy(_FL, -1);
 
 			if (Component)
@@ -1281,8 +1275,6 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 			LayoutDirty = true;
 			UpdateThreadBusy(_FL, -1);
 			d->InvalidateDoc(NULL);
-			PostThreadEvent(ThreadHnd, M_CLOSE);
-			ThreadHnd = 0;
 			SourceValid.ZOff(-1, -1);
 			break;
 		}
@@ -1298,9 +1290,11 @@ GMessage::Result GRichTextPriv::ImageBlock::OnEvent(GMessage *Msg)
 			SetImage(Img);
 			break;
 		}
+		default:
+			return false;
 	}
 
-	return 0;
+	return true;
 }
 
 bool GRichTextPriv::ImageBlock::AddText(Transaction *Trans, ssize_t AtOffset, const uint32 *Str, ssize_t Chars, GNamedStyle *Style)

@@ -103,42 +103,42 @@
     <IntDir>$(Platform)$(Configuration)12\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\..\CodeLib\libiconv-1.14\include</IncludePath>
-    <TargetName>Lgi12x32</TargetName>
+    <TargetName>Lgi12x32_s22</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>.\Lib\</OutDir>
     <IntDir>$(Platform)$(Configuration)12\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\..\CodeLib\libiconv-1.14\include</IncludePath>
-    <TargetName>Lgi12x64</TargetName>
+    <TargetName>Lgi12x64_s22</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>.\Lib\</OutDir>
     <IntDir>$(Platform)$(Configuration)12\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\..\CodeLib\libiconv-1.14\include</IncludePath>
-    <TargetName>Lgi12x32d</TargetName>
+    <TargetName>Lgi12x32d_s22</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>.\Lib\</OutDir>
     <IntDir>$(Platform)$(Configuration)12\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\..\CodeLib\libiconv-1.14\include</IncludePath>
-    <TargetName>Lgi12x64d</TargetName>
+    <TargetName>Lgi12x64d_s22</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseNoOptimize|Win32'">
     <OutDir>.\Lib\</OutDir>
     <IntDir>$(Platform)$(Configuration)12\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\..\CodeLib\libiconv-1.14\include</IncludePath>
-    <TargetName>Lgi12x32nop</TargetName>
+    <TargetName>Lgi12x32nop_s22</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseNoOptimize|x64'">
     <OutDir>.\Lib\</OutDir>
     <IntDir>$(Platform)$(Configuration)12\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\..\CodeLib\libiconv-1.14\include</IncludePath>
-    <TargetName>Lgi12x64nop</TargetName>
+    <TargetName>Lgi12x64nop_s22</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Midl>

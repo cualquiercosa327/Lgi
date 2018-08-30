@@ -1397,7 +1397,8 @@ void GRichTextEdit::DoContextMenu(GMouse &m)
 			if (Over)
 			{
 				GMessage Cmd(M_COMMAND, Id);
-				Over->OnEvent(&Cmd);
+				if (Over->OnEvent(&Cmd))
+					break;
 			}
 			
 			if (Environment)
@@ -2501,14 +2502,17 @@ GMessage::Result GRichTextEdit::OnEvent(GMessage *Msg)
 		case M_CHECK_TEXT:
 		{
 			GAutoPtr<GSpellCheck::CheckText> Ct((GSpellCheck::CheckText*)Msg->A());
-			if (!Ct)
+			if (!Ct || Ct->User.Length() > 1)
+			{
+				LgiAssert(0);
 				break;
+			}
 
-			GRichTextPriv::Block *b = (GRichTextPriv::Block*)Ct->UserPtr;
+			GRichTextPriv::Block *b = (GRichTextPriv::Block*)Ct->User[SpellBlockPtr].CastVoidPtr();
 			if (!d->Blocks.HasItem(b))
 				break;
 
-			b->SetSpellingErrors(Ct->Errors);
+			b->SetSpellingErrors(Ct->Errors, *Ct);
 			Invalidate();
 			break;
 		}

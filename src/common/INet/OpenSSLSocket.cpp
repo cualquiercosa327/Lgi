@@ -25,6 +25,10 @@
 #include "GVariant.h"
 #include "INet.h"
 
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+#error "SSL library too new."
+#endif
+
 #define PATH_OFFSET				"../"
 #ifdef WIN32
 #define SSL_LIBRARY				"ssleay32"
