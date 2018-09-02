@@ -644,16 +644,47 @@ public:
 
 	int OnNotify(GViewI *c, int f)
 	{
-		if (c->GetId() == IDC_EDITOR &&
-			#if 1
-			(f == GNotifyDocChanged || f == GNotifyCursorChanged) &&
-			#else
-			(f == GNotifyDocChanged) &&
-			#endif
-			Edit)
+		switch (c->GetId())
 		{
-			LastChange = LgiCurrentTime();
-			Tree->Empty();
+			case IDC_EDITOR:
+			{
+				if ((f == GNotifyDocChanged || f == GNotifyCursorChanged) &&
+					Edit)
+				{
+					LastChange = LgiCurrentTime();
+					Tree->Empty();
+				}
+				break;
+			}
+			case IDC_TREE:
+			{
+				GNotifyType ft = (GNotifyType)f;
+				GTreeItem *i = Tree->Selection();
+				
+				LHashTbl<StrKey<char>,GString> vars;
+				if (i)
+				{
+					auto p = GString(i->GetText()).Split(",");
+					for (auto i : p)
+					{
+						GString::Array a = i.Strip().Split("=");
+						if (a.Length() == 2)
+							vars.Add(a[0], a[1]);
+					}
+				}
+
+				switch (ft)
+				{
+					case GNotifyItem_Select:
+					{
+						GString Ptr = vars.Find("ptr");
+						if (Ptr)
+							Edit->SelectNode(Ptr);
+						break;
+					}
+				}
+				break;
+			}
 		}
 
 		return 0;

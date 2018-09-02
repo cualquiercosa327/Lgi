@@ -2001,7 +2001,41 @@ void GRichTextPriv::DumpBlocks()
 		LgiTrace("}\n");
 	}
 }
-	
+
+struct HtmlElementCb : public GCss::ElementCallback<GHtmlElement>
+{
+	const char *GetElement(GHtmlElement *obj)
+	{
+		return obj->Tag;
+	}
+
+	const char *GetAttr(GHtmlElement *obj, const char *Attr)
+	{
+		const char *Val = NULL;
+		return obj->Get(Attr, Val) ? Val : NULL;
+	}
+
+	bool GetClasses(GString::Array &Classes, GHtmlElement *obj)
+	{
+		const char *Cls = NULL;
+		if (!obj->Get("class", Cls))
+			return false;
+
+		Classes = GString(Cls).SplitDelimit();
+		return true;
+	}
+
+	GHtmlElement *GetParent(GHtmlElement *obj)
+	{
+		return obj->Parent;
+	}
+
+	GArray<GHtmlElement*> GetChildren(GHtmlElement *obj)
+	{
+		return obj->Children;
+	}
+};
+
 bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentStyle, int Depth)
 {
 	char Sp[48];
@@ -2015,12 +2049,25 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 		GAutoPtr<GCss> Style;
 		if (ParentStyle)
 			Style.Reset(new GCss(*ParentStyle));
+
+		GCss::SelArray Matches;
+		HtmlElementCb Cb;
+		if (ctx.StyleStore.Match(Matches, &Cb, c) &&
+			Matches.Length() > 0 &&
+			(Style.Get() || Style.Reset(new GCss)))
+		{
+			for (auto s : Matches)
+			{
+				const char *p = s->Style;
+				Style->Parse(p);
+			}
+		}
 			
 		// Check to see if the element is block level and end the previous
 		// paragraph if so.
 		c->Info = c->Tag ? GHtmlStatic::Inst->GetTagInfo(c->Tag) : NULL;
 		bool IsBlock =	c->Info != NULL && c->Info->Block();
-		switch (c->TagId)
+		switch (c->TagId) 
 		{
 			case TAG_STYLE:
 			{
@@ -2036,6 +2083,20 @@ bool GRichTextPriv::FromHtml(GHtmlElement *e, CreateContext &ctx, GCss *ParentSt
 					Style.Reset(new GCss);
 				if (Style)
 					Style->FontWeight(GCss::FontWeightBold);
+				break;
+			}
+			case TAG_BLOCKQUOTE:
+			{
+				if (!Style)
+					Style.Reset(new GCss);
+				if (Style)
+				{
+					Style->MarginTop(GCss::Len("0.5em"));
+					Style->MarginBottom(GCss::Len("0.5em"));
+					Style->MarginLeft(GCss::Len("1em"));
+					if (ctx.Tb)
+						ctx.Tb->StripLast(NoTransaction);
+				}
 				break;
 			}
 			case TAG_A:

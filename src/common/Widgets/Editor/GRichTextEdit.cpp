@@ -394,7 +394,7 @@ bool GRichTextEdit::Name(const char *s)
 
 	if (!d->GHtmlParser::Parse(&Root, s))
 		return d->Error(_FL, "Failed to parse HTML.");
-
+	
 	GHtmlElement *Body = FindElement(&Root, TAG_BODY);
 	if (!Body)
 		Body = &Root;
@@ -2654,6 +2654,23 @@ bool GRichTextEdit::OnLayout(GViewLayoutInfo &Inf)
 }
 
 #if _DEBUG
+void GRichTextEdit::SelectNode(GString Param)
+{
+	GRichTextPriv::Block *b = (GRichTextPriv::Block*) Param.Int(16);
+	bool Valid = false;
+	for (auto i : d->Blocks)
+	{
+		if (i == b)
+			Valid = true;
+		i->DrawDebug = false;
+	}
+	if (Valid)
+	{
+		b->DrawDebug = true;
+		Invalidate();
+	}
+}
+
 void GRichTextEdit::DumpNodes(GTree *Root)
 {
 	d->DumpNodes(Root);

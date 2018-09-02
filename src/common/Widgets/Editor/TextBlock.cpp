@@ -2427,7 +2427,7 @@ bool GRichTextPriv::TextBlock::Seek(SeekType To, BlockCursor &Cur)
 void GRichTextPriv::TextBlock::DumpNodes(GTreeItem *Ti)
 {
 	GString s;
-	s.Printf("TextBlock style=%s", Style?Style->Name.Get():NULL);
+	s.Printf("TextBlock, style=%s, pos=%s, ptr=%p", Style?Style->Name.Get():NULL, Pos.GetStr(), this);
 	Ti->SetText(s);
 
 	GTreeItem *TxtRoot = PrintNode(Ti, "Txt(%i)", Txt.Length());

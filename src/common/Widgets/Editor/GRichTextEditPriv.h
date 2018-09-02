@@ -663,10 +663,13 @@ public:
 	public:
 		/// This is the number of cursors current referencing this Block.
 		int8 Cursors;
+		/// Draw debug selection
+		bool DrawDebug;
 		
 		Block(GRichTextPriv *priv)
 		{
 			d = priv;
+			DrawDebug = false;
 			BlockUid = d->NextUid++;
 			Cursors = 0;
 		}
@@ -674,6 +677,7 @@ public:
 		Block(const Block *blk)
 		{
 			d = blk->d;
+			DrawDebug = false;
 			BlockUid = blk->GetUid();
 			Cursors = 0;
 		}

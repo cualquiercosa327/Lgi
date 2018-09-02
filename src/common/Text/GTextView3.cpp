@@ -1232,6 +1232,7 @@ GTextView3::GStyle *GTextView3::GetNextStyle(StyleIter &s, ssize_t Where)
 	return NULL;
 }
 
+/*
 class GUrl : public GTextView3::GStyle
 {
 public:
@@ -1307,7 +1308,7 @@ public:
 		}
 	}
 
-	/*
+	#if 0
 	CURSOR_CHAR GetCursor()
 	{
 		#ifdef WIN32
@@ -1325,8 +1326,9 @@ public:
 		#endif
 		return 0;
 	}
-	*/
+	#endif
 };
+*/
 
 GTextView3::GStyle *GTextView3::HitStyle(ssize_t i)
 {
@@ -1370,7 +1372,7 @@ void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
 	// Delete all the styles that we own inside the changed area
 	for (StyleIter s = Style.begin(); s != Style.end();)
 	{
-		if (s->Owner == 0)
+		if (s->Owner == STYLE_NONE)
 		{
 			if (EditSize > 0)
 			{
@@ -1412,18 +1414,17 @@ void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
 			for (uint32 i=0; i<Links.Length(); i++)
 			{
 				GLinkInfo &Inf = Links[i];
-				GUrl *Url;
-                GAutoPtr<GTextView3::GStyle> a(Url = new GUrl(STYLE_NONE));
+                GAutoPtr<GTextView3::GStyle> Url(new GStyle(STYLE_URL));
 				if (Url)
 				{
 					Url->View = this;
-					Url->Start = (int) (Inf.Start + Start);
-					Url->Len = (int)Inf.Len;
-					Url->Email = Inf.Email;
+					Url->Start = Inf.Start + Start;
+					Url->Len = Inf.Len;
+					// Url->Email = Inf.Email;
 					Url->Font = Underline;
 					Url->Fore = d->UrlColour;
 
-					InsertStyle(a);
+					InsertStyle(Url);
 				}
 			}
 		}
