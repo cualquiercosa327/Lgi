@@ -64,6 +64,9 @@ LgiExtern GString LgiCurrentUserName();
 /// Returns an environment variable.
 LgiExtern GString LgiGetEnv(const char *Var);
 
+/// Check for a valid email string
+LgiExtern bool IsValidEmail(GString Email);
+
 #ifdef __cplusplus
 extern "C"
 {

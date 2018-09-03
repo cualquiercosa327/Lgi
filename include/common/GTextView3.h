@@ -47,15 +47,12 @@ class LgiClass
 	public ResObject,
 	public GDragDropTarget
 {
-	friend class GUrl;
 	friend class GTextView3Undo;
 	friend bool Text3_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User);
 
 public:
 	class GStyle
 	{
-		friend class GUrl;
-
 	protected:
 		void RefreshLayout(size_t Start, ssize_t Len);
 
@@ -422,9 +419,9 @@ public:
 	virtual void OnEnter(GKey &k);
 	virtual void OnUrl(char *Url);
 	virtual void DoContextMenu(GMouse &m);
-	virtual bool OnStyleClick(GStyle *style, GMouse *m) { return false; }
-	virtual bool OnStyleMenu(GStyle *style, GSubMenu *m) { return false; }
-	virtual void OnStyleMenuClick(GStyle *style, int i) {}
+	virtual bool OnStyleClick(GStyle *style, GMouse *m);
+	virtual bool OnStyleMenu(GStyle *style, GSubMenu *m);
+	virtual void OnStyleMenuClick(GStyle *style, int i);
 };
 
 #endif
