@@ -35,6 +35,7 @@ const char sMultipartRelated[] = "multipart/related";
 const char sAppOctetStream[] = "application/octet-stream";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////
 LogEntry::LogEntry(GColour col)
 {
 	c = col;
@@ -594,133 +595,6 @@ void DeNullText(char *in, ssize_t &len)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-bool IsValidEmail(GString &Email)
-{
-	// Local part
-	char buf[321];
-	char *o = buf;
-	char *e = Email;
-
-	if (!Email || *e == '.')
-		return false;
-
-	#define OutputChar()	\
-		if (o - buf >= sizeof(buf) - 1)	\
-			return false;	\
-		*o++ = *e++
-
-	// Local part
-	while (*e)
-	{
-		if (strchr("!#$%&\'*+-/=?^_`.{|}~", *e) ||
-			IsAlpha((uchar)*e) ||
-			IsDigit((uchar)*e))
-		{
-			OutputChar();
-		}
-		else if (*e == '\"')
-		{
-			// Quoted string
-			OutputChar();
-
-			bool quote = false;
-			while (*e && !quote)
-			{
-				quote = *e == '\"';
-				OutputChar();
-			}
-		}
-		else if (*e == '\\')
-		{
-			// Quoted character
-			e++;
-			if (*e < ' ' || *e >= 0x7f)
-				return false;
-			OutputChar();
-		}
-		else if (*e == '@')
-		{
-			break;
-		}
-		else
-		{
-			// Illegal character
-			return false;
-		}
-	}
-
-	// Process the '@'
-	if (*e != '@' || o - buf > 64)
-		return false;
-	OutputChar();
-	
-	// Domain part...
-	if (*e == '[')
-	{
-		// IP addr
-		OutputChar();
-
-		// Initial char must by a number
-		if (!IsDigit(*e))
-			return false;
-		
-		// Check the rest...
-		char *Start = e;
-		while (*e)
-		{
-			if (IsDigit(*e) ||
-				*e == '.')
-			{
-				OutputChar();
-			}
-			else
-			{
-				return false;
-			}
-		}
-
-		// Not a valid IP
-		if (e - Start > 15)
-			return false;
-
-		if (*e != ']')
-			return false;
-
-		OutputChar();
-	}
-	else
-	{
-		// Hostname, check initial char
-		if (!IsAlpha(*e) && !IsDigit(*e))
-			return false;
-		
-		// Check the rest.
-		while (*e)
-		{
-			if (IsAlpha(*e) ||
-				IsDigit(*e) ||
-				strchr(".-", *e))
-			{
-				OutputChar();
-			}
-			else
-			{
-				return false;
-			}
-		}
-	}
-
-	// Remove any trailing dot/dash
-	while (strchr(".-", o[-1]))
-		o--;
-
-	// Output
-	*o = 0;
-	LgiAssert(o - buf <= sizeof(buf));
-	if (strcmp(Email, buf))
-		Email.Set(buf, o - buf);
-	return true;
-}
 
 typedef char CharPair[2];
 static CharPair Pairs[] =

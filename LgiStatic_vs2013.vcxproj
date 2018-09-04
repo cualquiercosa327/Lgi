@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -215,11 +215,11 @@
     <ClCompile Include="src\common\General\LDateTime.cpp" />
     <ClCompile Include="src\common\General\GFileCommon.cpp" />
     <ClCompile Include="src\common\Lgi\GLibrary.cpp" />
+    <ClCompile Include="src\common\Lgi\LgiCommon.cpp" />
     <ClCompile Include="src\common\Lgi\LMutex.cpp" />
     <ClCompile Include="src\common\Lgi\GProcess.cpp" />
     <ClCompile Include="src\common\Lgi\GStream.cpp" />
     <ClCompile Include="src\common\Lgi\GVariant.cpp" />
-    <ClCompile Include="src\common\Lgi\Lgi.cpp" />
     <ClCompile Include="src\common\Lgi\LgiMsg.cpp" />
     <ClCompile Include="src\common\Lgi\LgiRand.cpp" />
     <ClCompile Include="src\common\Text\GString.cpp" />

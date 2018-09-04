@@ -143,9 +143,6 @@
     <ClCompile Include="src\common\Lgi\GTrayIcon.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\common\Lgi\Lgi.cpp">
-      <Filter>Source Files\Core</Filter>
-    </ClCompile>
     <ClCompile Include="src\win32\Lgi\LgiException.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
@@ -481,6 +478,9 @@
     </ClCompile>
     <ClCompile Include="src\common\Lgi\GMenuCommon.cpp">
       <Filter>Source Files\Core\Menus</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\Lgi\LgiCommon.cpp">
+      <Filter>Source Files\Core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -14,6 +14,7 @@
 #include "GViewPriv.h"
 #include "GCssTools.h"
 #include "LgiRes.h"
+#include "Mail.h"
 
 #ifdef _DEBUG
 #define FEATURE_HILIGHT_ALL_MATCHES	1
@@ -1232,103 +1233,25 @@ GTextView3::GStyle *GTextView3::GetNextStyle(StyleIter &s, ssize_t Where)
 	return NULL;
 }
 
-/*
-class GUrl : public GTextView3::GStyle
+#if 0
+CURSOR_CHAR GetCursor()
 {
-public:
-	bool Email;
-
-	GUrl(GTextViewStyleOwners own) : GStyle(own)
+	#ifdef WIN32
+	GArray<int> Ver;
+	int Os = LgiGetOs(&Ver);
+	if ((Os == LGI_OS_WIN32 || Os == LGI_OS_WIN64) &&
+		Ver[0] >= 5)
 	{
-		Email = false;
+		return MAKEINTRESOURCE(32649); // hand
 	}
-
-	bool OnMouseClick(GMouse *m)
+	else
 	{
-		if (View)
-		{
-			if ( (m && m->Left() && m->Double()) || (!m) )
-			{
-				char *Utf8 = WideToUtf8(View->NameW() + Start, Len);
-				if (Utf8)
-				{
-					View->OnUrl(Utf8);
-					DeleteArray(Utf8);
-				}
-				
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	bool OnMenu(GSubMenu *m)
-	{
-		if (m)
-		{
-			if (Email)
-			{
-				m->AppendItem(LgiLoadString(L_TEXTCTRL_EMAIL_TO, "New Email to..."), IDM_NEW, true);
-			}
-			else
-			{
-				m->AppendItem(LgiLoadString(L_TEXTCTRL_OPENURL, "Open URL"), IDM_OPEN, true);
-			}
-
-			m->AppendItem(LgiLoadString(L_TEXTCTRL_COPYLINK, "Copy link location"), IDM_COPY_URL, true);
-
-			return true;
-		}
-
-		return false;
-	}
-
-	void OnMenuClick(int i)
-	{
-		switch (i)
-		{
-			case IDM_NEW:
-			case IDM_OPEN:
-			{
-				OnMouseClick(0);
-				break;
-			}
-			case IDM_COPY_URL:
-			{
-				char *Url = WideToUtf8(View->NameW() + Start, Len);
-				if (Url)
-				{
-					GClipBoard Clip(View);
-					Clip.Text(Url);
-					DeleteArray(Url);
-				}
-				break;
-			}
-		}
-	}
-
-	#if 0
-	CURSOR_CHAR GetCursor()
-	{
-		#ifdef WIN32
-		GArray<int> Ver;
-		int Os = LgiGetOs(&Ver);
-		if ((Os == LGI_OS_WIN32 || Os == LGI_OS_WIN64) &&
-			Ver[0] >= 5)
-		{
-			return MAKEINTRESOURCE(32649); // hand
-		}
-		else
-		{
-			return IDC_ARROW;
-		}
-		#endif
-		return 0;
+		return IDC_ARROW;
 	}
 	#endif
-};
-*/
+	return 0;
+}
+#endif
 
 GTextView3::GStyle *GTextView3::HitStyle(ssize_t i)
 {
@@ -3533,6 +3456,84 @@ void GTextView3::DoContextMenu(GMouse &m)
 	}
 }
 
+bool GTextView3::OnStyleClick(GStyle *style, GMouse *m)
+{
+	switch (style->Owner)
+	{
+		case STYLE_URL:
+		{
+			if
+			(
+				(!m)
+				||
+				(m->Left() && m->Down() && m->Double())
+			)
+			{
+				GString s(Text + style->Start, style->Len);
+				if (s)
+					OnUrl(s);
+				return true;
+			}
+			break;
+		}
+
+	}
+
+	return false;
+}
+
+bool GTextView3::OnStyleMenu(GStyle *style, GSubMenu *m)
+{
+	switch (style->Owner)
+	{
+		case STYLE_URL:
+		{
+			GString s(Text + style->Start, style->Len);
+			if (IsValidEmail(s))
+				m->AppendItem(LgiLoadString(L_TEXTCTRL_EMAIL_TO, "New Email to..."), IDM_NEW, true);
+			else
+				m->AppendItem(LgiLoadString(L_TEXTCTRL_OPENURL, "Open URL"), IDM_OPEN, true);
+
+			m->AppendItem(LgiLoadString(L_TEXTCTRL_COPYLINK, "Copy link location"), IDM_COPY_URL, true);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void GTextView3::OnStyleMenuClick(GStyle *style, int i)
+{
+	switch (style->Owner)
+	{
+		case STYLE_URL:
+		{
+			GString s(Text + style->Start, style->Len);
+
+			switch (i)
+			{
+				case IDM_NEW:
+				case IDM_OPEN:
+				{
+					if (s)
+						OnUrl(s);
+					break;
+				}
+				case IDM_COPY_URL:
+				{
+					if (s)
+					{
+						GClipBoard Clip(this);
+						Clip.Text(s);
+					}
+					break;
+				}
+			}
+			break;
+		}
+	}
+}
+
 void GTextView3::OnMouseClick(GMouse &m)
 {
 	bool Processed = false;
@@ -5189,8 +5190,16 @@ void GTextView3::OnPulse()
 void GTextView3::OnUrl(char *Url)
 {
 	if (Environment)
-	{
 		Environment->OnNavigate(this, Url);
+	else
+	{
+		bool Email = IsValidEmail(Url);
+		const char *Mime = Email ? "message/rfc822" : "text/html";
+		GString App = LgiGetAppForMimeType(Mime);
+		if (App)
+			LgiExecute(App, Url);
+		else
+			LgiMsg(this, "Failed to find application for mime type '%s'", "Error", MB_OK, Mime);
 	}
 }
 
