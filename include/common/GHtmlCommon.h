@@ -89,7 +89,7 @@ class GHtmlStatic
 {
 	friend class GHtmlStaticInst;
 	GHtmlElemInfo *UnknownElement;
-	LHashTbl<ConstStrKey<char,true>,GHtmlElemInfo*> TagMap;
+	LHashTbl<ConstStrKey<char,false>,GHtmlElemInfo*> TagMap;
 	LHashTbl<IntKey<int>,GHtmlElemInfo*> TagIdMap;
 
 public:

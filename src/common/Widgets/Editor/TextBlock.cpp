@@ -1768,7 +1768,7 @@ void GRichTextPriv::TextBlock::SetSpellingErrors(GArray<GSpellCheck::SpellingErr
 	SpellingErrors.Sort(ErrSort);
 }
 
-#define IsWordChar(ch) ( IsAlpha(ch) )
+#define IsWordChar(ch) ( IsAlpha(ch) || (ch) == '\'' )
 
 void GRichTextPriv::TextBlock::UpdateSpellingAndLinks(Transaction *Trans, GRange r)
 {
