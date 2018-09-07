@@ -15,7 +15,7 @@ class IHttp
 	char *Buffer;
 	
 	GAutoPtr<GSocketI> Socket;	// commands
-	int ResumeFrom;
+	size_t ResumeFrom;
 	GAutoString FileLocation;
 	char *Headers;
 	bool NoCache;
@@ -35,7 +35,7 @@ public:
 	IHttp();
 	virtual ~IHttp();
 
-	void SetResume(int i) { ResumeFrom = i; }
+	void SetResume(size_t i) { ResumeFrom = i; }
 	void SetProxy(char *p, int Port);
 	void SetNoCache(bool i) { NoCache = i; }
 	void SetAuth(char *User = 0, char *Pass = 0);

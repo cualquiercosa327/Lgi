@@ -151,11 +151,11 @@ void GPaneThrottle::OnPaint(GSurface *pDC)
 		{
 			if (PipeSize[Pipe] < (1 << 20))
 			{
-				sprintf(Str, "%i%% of %i Kbps", (int)v, PipeSize[Pipe]>>10);
+				sprintf_s(Str, sizeof(Str), "%i%% of %i Kbps", (int)v, PipeSize[Pipe]>>10);
 			}
 			else
 			{
-				sprintf(Str, "%i%% of %.1f Mbps", (int)v, (double)(PipeSize[Pipe]>>20));
+				sprintf_s(Str, sizeof(Str), "%i%% of %.1f Mbps", (int)v, (double)(PipeSize[Pipe]>>20));
 			}
 		}
 		else
@@ -186,11 +186,11 @@ void GPaneThrottle::OnMouseClick(GMouse &m)
 				char Str[256];
 				if (PipeSize[i] < (1 << 20))
 				{
-					sprintf(Str, "%i Kbps", PipeSize[i]>>10);
+					sprintf_s(Str, sizeof(Str), "%i Kbps", PipeSize[i]>>10);
 				}
 				else
 				{
-					sprintf(Str, "%.1f Mbps", (double)PipeSize[i] / 1024.0 / 1024.0);
+					sprintf_s(Str, sizeof(Str), "%.1f Mbps", (double)PipeSize[i] / 1024.0 / 1024.0);
 				}
 				GMenuItem *Item = RClick->AppendItem(Str, 100+i, true);
 				if (Item && i == Pipe)
@@ -224,7 +224,7 @@ class GPaneHistory : public GStatusPane
 	int64 Max;
 	int64 Last;
 	int64 PartialTime;
-	int Bytes[MAX_SAMPLE];
+	int64 Bytes[MAX_SAMPLE];
 
 	GSurface *pMemDC;
 
@@ -278,7 +278,7 @@ void GPaneHistory::OnPaint(GSurface *pDC)
 	pDC->Rectangle(r.x1, r.y1, r.x1+HISTORY_TEXT_WIDTH, r.y2);
 
 	char Str[256];
-	sprintf(Str, "%.1f K/s", Max / 1024.0);
+	sprintf_s(Str, sizeof(Str), "%.1f K/s", Max / 1024.0);
 	SysFont->Colour(0, LC_MED);
 	GDisplayString ds(SysFont, Str);
 	ds.Draw(pDC, r.x1+2, r.y1);
@@ -376,12 +376,12 @@ void GPaneHistory::Value(int64 i)
 			pMemDC->Rectangle();
 			pMemDC->Colour(Rgb24(0, 255, 0), 24);
 
-			int m=0;
+			int64 m=0;
 			for (int x=0; x<pMemDC->X() && x<MAX_SAMPLE; x++)
 			{
 				m = MAX(Bytes[x], m);
-				int Sample = (Bytes[x] * pMemDC->Y()) / Max;
-				pMemDC->Line(x, pMemDC->Y()-Sample, x, pMemDC->Y());
+				int64 Sample = (Bytes[x] * pMemDC->Y()) / Max;
+				pMemDC->Line(x, pMemDC->Y()-(int)Sample, x, pMemDC->Y());
 			}
 
 			if (m < Max)
@@ -510,7 +510,7 @@ void FileTransferProgress::Value(int64 v)
 				char a[64], b[64], Str[128];
 				LgiFormatSize(a, sizeof(a), Val);
 				LgiFormatSize(b, sizeof(b), High);
-				sprintf(Str, "%s of %s", a, b);
+				sprintf_s(Str, sizeof(Str), "%s of %s", a, b);
 				StatusInfo[_STATUS_POSITION]->Name(Str);
 			}
 
@@ -521,7 +521,7 @@ void FileTransferProgress::Value(int64 v)
 				char Str[256];
 				Rate = ((double)(Val-StartPos))/Seconds;
 
-				sprintf(Str, "%.2f K/s", Rate/1024.0);
+				sprintf_s(Str, sizeof(Str), "%.2f K/s", Rate/1024.0);
 				StatusInfo[_STATUS_RATE]->Name(Str);
 			}
 
@@ -529,7 +529,7 @@ void FileTransferProgress::Value(int64 v)
 			{
 				char Str[256];
 				double Time = ((double) (High-StartPos) / Rate) - Seconds + 0.5;
-				sprintf(Str, "%i:%2.2i:%2.2i", (int)(Time/3600), ((int)(Time/60))%60, ((int)Time)%60);
+				sprintf_s(Str, sizeof(Str), "%i:%2.2i:%2.2i", (int)(Time/3600), ((int)(Time/60))%60, ((int)Time)%60);
 				StatusInfo[_STATUS_TIME_LEFT]->Name(Str);
 			}
 		}
@@ -538,7 +538,7 @@ void FileTransferProgress::Value(int64 v)
 			if (StatusInfo[_STATUS_POSITION])
 			{
 				char Str[256];
-				sprintf(Str, LPrintfInt64" K", Val>>10);
+				sprintf_s(Str, sizeof(Str), LPrintfInt64 " K", Val>>10);
 				StatusInfo[_STATUS_POSITION]->Name(Str);
 			}
 		}

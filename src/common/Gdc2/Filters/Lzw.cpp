@@ -24,7 +24,7 @@ public:
 	// Buffering
 	int Datum;
 	int BitPos;
-	int BitsLeft;
+	size_t BitsLeft;
 	GStream *Pipe;
 
 	// Read buffer

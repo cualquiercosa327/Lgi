@@ -25,7 +25,7 @@ GAbout::GAbout(	GView *parent,
 	if (!AppName) AppName = "Application";
 
 	char n[256];
-	sprintf(n, "About %s", AppName);
+	sprintf_s(n, sizeof(n), "About %s", AppName);
 	Name(n);
 
 	#ifdef _DEBUG

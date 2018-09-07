@@ -98,7 +98,7 @@ LgiFunc char *strnistr
 	/// The string to find
 	const char *b,
 	/// The maximum number of bytes of 'a' to search.
-	int n
+	size_t n
 );
 /// \brief Case insensitive sub-string search.
 ///

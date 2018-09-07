@@ -134,7 +134,7 @@ char *strnstr(const char *a, const char *b, size_t n)
 	return NULL;
 }
 
-char *strnistr(char *a, const char *b, int n)
+char *strnistr(char *a, const char *b, size_t n)
 {
 	if (a && b)
 	{

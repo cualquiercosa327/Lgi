@@ -28,7 +28,14 @@ RLogEntry::RLogEntry(const char *t, const char *desc, int Len, COLOUR Col)
 	{
 		char TimeStr[40];
 		time_t Time = time(NULL);
+
+		#ifdef _MSC_VER
+		struct tm local, *ptm = &local;
+		auto res = localtime_s(ptm, &Time);
+		#else
 		tm *ptm = localtime(&Time);
+		#endif
+
 		strftime(TimeStr, sizeof(TimeStr)-1, "%d/%m/%Y %H:%M:%S", ptm);
 
 		Desc = NewStr(TimeStr);
@@ -74,7 +81,7 @@ int RLogView::GetScreenItems()
 
 int RLogView::GetTotalItems()
 {
-	return (Log) ? Log->Entries.Length() : 0;
+	return (Log) ? (int)Log->Entries.Length() : 0;
 }
 
 void RLogView::OnPosChange()
@@ -128,7 +135,7 @@ void RLogView::UpdateScrollBar()
 		VScroll->SetLimits(0, Total-1);
 		VScroll->SetPage(Screen);
 		
-		int Pos = VScroll->Value();
+		auto Pos = VScroll->Value();
 		if (TopDown())
 		{
 			if (Pos > (Total - Screen))
@@ -256,36 +263,6 @@ void RLogView::OnNcCalcClient(long &x1, long &y1, long &x2, long &y2)
 
 GMessage::Result RLogView::OnEvent(GMessage *Msg)
 {
-	switch (MsgCode(Msg))
-	{
-		/*
-		#ifdef WIN32
-		case WM_NCPAINT:
-		{
-			HDC hDC = GetWindowDC(Handle());
-			if (hDC)
-			{
-				GScreenDC DeviceContext(hDC, Handle());
-				OnNcPaint(&DeviceContext);
-			}
-
-			return DefWindowProc(Handle(), Msg->m, Msg->a, Msg->b);
-		}
-		case WM_NCCALCSIZE:
-		{
-			RECT *rc = ((NCCALCSIZE_PARAMS*) Msg->b)->rgrc;
-			OnNcCalcClient(	rc->left,
-							rc->top, 
-							rc->right,
-							rc->bottom);
-
-			// this is required to draw the scroll bar
-			return DefWindowProc(Handle(), Msg->m, Msg->a, Msg->b);
-		}
-		#endif
-		*/
-	}
-
 	return GLayout::OnEvent(Msg);
 }
 
@@ -355,7 +332,7 @@ void GLog::Print(COLOUR c, const char *Str, ...)
 
 		va_list Arg;
 		va_start(Arg, Str);
-		vsprintf(Buffer, Str, Arg);
+		vsprintf_s(Buffer, sizeof(Buffer), Str, Arg);
 		va_end(Arg);
 		
 		Write(c, Buffer);
