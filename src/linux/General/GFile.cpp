@@ -746,7 +746,7 @@ int FloppyType(int Letter)
 	return 0;
 }
 
-bool GFileSystem::Copy(char *From, char *To, int *Status, CopyFileCallback Callback, void *Token)
+bool GFileSystem::Copy(char *From, char *To, LError *Status, CopyFileCallback Callback, void *Token)
 {
 	GArray<char> Buf;
 

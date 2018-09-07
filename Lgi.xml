@@ -161,7 +161,7 @@
 			<Node File="./src/common/Lgi/GObject.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Lgi/GToolTip.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Lgi/GTrayIcon.cpp" Type="2" Platforms="15" />
-			<Node File="./src/common/Lgi/Lgi.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/LgiCommon.cpp" Type="2" Platforms="15" />
 			<Node File="./src/common/Lgi/LgiMsg.cpp" Type="2" Platforms="15" />
 		</Node>
 		<Node Name="Dialogs" Type="1" Platforms="15" Open="0" Id="36">

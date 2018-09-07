@@ -20,7 +20,6 @@
 #include "GSymLookup.h"
 #endif
 #include "GToken.h"
-#include "GUtf8.h"
 #include "GFontCache.h"
 
 #if HAS_LIB_MAGIC
