@@ -62,6 +62,9 @@ public:
 		{
 			*ppvObject = this;
 			AddRef();
+			if (TraceRefs)
+				LgiTrace("%s:%i - QueryInterface got IID_IUnknown\n", _FL);
+				
 			return S_OK;
 		}
 
@@ -71,6 +74,9 @@ public:
 			{
 				*ppvObject = i->pvObject;
 				AddRef();
+				if (TraceRefs)
+					LgiTrace("%s:%i - QueryInterface got custom IID\n", _FL);
+
 				return S_OK;
 			}
 		}
@@ -88,6 +94,7 @@ public:
 	ULONG STDMETHODCALLTYPE Release()
 	{
 		int i = --Count;
+		LgiAssert(i >= 0);
 		if (TraceRefs)
 			LgiTrace("%s:%i - %p::Release %i\n", _FL, this, Count);
 		if (i <= 0)

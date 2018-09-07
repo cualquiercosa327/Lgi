@@ -677,9 +677,11 @@ public:
 				{
 					case GNotifyItem_Select:
 					{
+						#ifdef _DEBUG
 						GString Ptr = vars.Find("ptr");
 						if (Ptr)
 							Edit->SelectNode(Ptr);
+						#endif
 						break;
 					}
 				}

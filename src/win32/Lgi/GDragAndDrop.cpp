@@ -282,7 +282,7 @@ GDragDropSource::~GDragDropSource()
 	DeleteObj(d);
 }
 
-bool GDragDropSource::CreateFileDrop(GDragData *OutputData, GMouse &m, List<char> &Files)
+bool GDragDropSource::CreateFileDrop(GDragData *OutputData, GMouse &m, GString::Array &Files)
 {
 	if (!OutputData || !Files.First())
 		return false;
@@ -291,14 +291,14 @@ bool GDragDropSource::CreateFileDrop(GDragData *OutputData, GMouse &m, List<char
 
 	List<char> Native;
 	List<char16> NativeW;
-	for (char *File=Files.First(); File; File=Files.Next())
+	for (auto File : Files)
 	{
-		char16 *f = Utf8ToWide(File);
+		GAutoWString f(Utf8ToWide(File));
 		if (f)
 		{
 			auto Len = StrlenW(f) + 1;
 			Size += Len * sizeof(char16);
-			NativeW.Insert(f);
+			NativeW.Insert(f.Release());
 		}
 	}
 
@@ -808,7 +808,7 @@ HRESULT STDMETHODCALLTYPE GDragDropTarget::Drop(IDataObject *pDataObject, DWORD 
 	return Result;
 }
 
-bool GDragDropTarget::OnDropFileGroupDescriptor(FILEGROUPDESCRIPTOR *Data, GArray<char*> &Files)
+bool GDragDropTarget::OnDropFileGroupDescriptor(FILEGROUPDESCRIPTOR *Data, GString::Array &Files)
 {
 	bool Status = false;
 
@@ -868,11 +868,9 @@ bool GDragDropTarget::OnDropFileGroupDescriptor(FILEGROUPDESCRIPTOR *Data, GArra
 					GFile f;
 					if (f.Open(Path, O_WRITE))
 					{
-						if (f.Write(Ptr, Size) == Size)
-						{
-							Files.Add(NewStr(Path));
-							Status = true;
-						}
+						f.Write(Ptr, Size);
+						Files.Add(Path);
+						Status = true;
 					}
 				}
 
