@@ -40,7 +40,7 @@ bool GSubFilePtr::SaveState()
 	}
 	else
 	{
-		printf("%s:%i SaveState failed Pos="LGI_PrintfInt64" OurPos="LGI_PrintfInt64"\n", _FL, Pos, Pos);
+		printf("%s:%i SaveState failed Pos=" LPrintfInt64 " OurPos=" LPrintfInt64 "\n", _FL, Pos, Pos);
 	}
 	return false;
 }
@@ -226,7 +226,7 @@ ssize_t GSubFilePtr::Write(const void *Buffer, ssize_t Size, int Flags)
 	}
 	else
 	{
-		LgiTrace("GSubFilePtr error, Pos="LGI_PrintfInt64" Start="LGI_PrintfInt64" End="LGI_PrintfInt64" Len="LGI_PrintfInt64"\n",
+		LgiTrace("GSubFilePtr error, Pos=" LPrintfInt64 " Start=" LPrintfInt64 " End=" LPrintfInt64 " Len=" LPrintfInt64 "\n",
 			Pos, Start, End, Len);
 	}
 	
