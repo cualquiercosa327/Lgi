@@ -205,46 +205,49 @@ enum UndoType
 	UndoDelete, UndoInsert, UndoChange
 };
 
-class GTextView3Undo : public GUndoEvent
+struct Change : public GRange
+{
+	UndoType Type;
+	GArray<char16> Txt;
+};
+
+struct GTextView3Undo : public GUndoEvent
 {
 	GTextView3 *View;
-	UndoType Type;
-	ssize_t At;
-	char16 *Text;
+	GArray<Change> Changes;
 
-public:
-	GTextView3Undo(	GTextView3 *view,
-					char16 *t,
-					ssize_t len,
-					ssize_t at,
-					UndoType type)
+	GTextView3Undo(GTextView3 *view)
 	{
 		View = view;
-		Type = type;
-		At = at;
-		Text = NewStrW(t, len);
 	}
 
-	~GTextView3Undo()
+	void AddChange(ssize_t At, ssize_t Len, UndoType Type)
 	{
-		DeleteArray(Text);
+		Change &c = Changes.New();
+		c.Start = At;
+		c.Len = Len;
+		c.Txt.Add(View->Text + At, Len);
+		c.Type = Type;
 	}
 
 	void OnChange()
 	{
-		size_t Len = StrlenW(Text);
-		if (View->Text)
+		for (auto &c : Changes)
 		{
-			char16 *t = View->Text + At;
-			for (size_t i=0; i<Len; i++)
+			size_t Len = c.Len;
+			if (View->Text)
 			{
-				char16 n = Text[i];
-				Text[i] = t[i];
-				t[i] = n;
+				char16 *t = View->Text + c.Start;
+				for (size_t i=0; i<Len; i++)
+				{
+					char16 n = c.Txt[i];
+					c.Txt[i] = t[i];
+					t[i] = n;
+				}
 			}
-		}
 
-		View->d->SetDirty(At, Len);
+			View->d->SetDirty(c.Start, c.Len);
+		}
 	}
 
 	// GUndoEvent
@@ -252,25 +255,27 @@ public:
 	{
 		View->UndoOn = false;
 
-		switch (Type)
+		for (auto &c : Changes)
 		{
-			case UndoInsert:
+			switch (c.Type)
 			{
-				size_t Len = StrlenW(Text);
-				View->Insert(At, Text, Len);
-				View->Cursor = At + Len;
-				break;
-			}
-			case UndoDelete:
-			{
-				View->Delete(At, StrlenW(Text));
-				View->Cursor = At;
-				break;
-			}
-			case UndoChange:
-			{
-				OnChange();
-				break;
+				case UndoInsert:
+				{
+					View->Insert(c.Start, c.Txt.AddressOf(), c.Len);
+					View->Cursor = c.Start + c.Len;
+					break;
+				}
+				case UndoDelete:
+				{
+					View->Delete(c.Start, c.Len);
+					View->Cursor = c.Start;
+					break;
+				}
+				case UndoChange:
+				{
+					OnChange();
+					break;
+				}
 			}
 		}
 
@@ -282,26 +287,30 @@ public:
 	{
 		View->UndoOn = false;
 
-		switch (Type)
+		for (auto &c : Changes)
 		{
-			case UndoInsert:
+			switch (c.Type)
 			{
-				View->Delete(At, StrlenW(Text));
-				break;
+				case UndoInsert:
+				{
+					View->Delete(c.Start, c.Len);
+					break;
+				}
+				case UndoDelete:
+				{
+					View->Insert(c.Start, c.Txt.AddressOf(), c.Len);
+					break;
+				}
+				case UndoChange:
+				{
+					OnChange();				
+					break;
+				}
 			}
-			case UndoDelete:
-			{
-				View->Insert(At, Text, StrlenW(Text));
-				break;
-			}
-			case UndoChange:
-			{
-				OnChange();				
-				break;
-			}
+
+			View->Cursor = c.Start;
 		}
 
-		View->Cursor = At;
 		View->UndoOn = true;
 		View->Invalidate();
 	}
@@ -324,11 +333,13 @@ GTextView3::GTextView3(	int Id,
 	
 	PourEnabled = true;
 	PartialPour = false;
+	AdjustStylePos = true;
 	BlinkTs = 0;
 	LineY = 1;
 	MaxX = 0;
 	TextCache = 0;
 	UndoOn = true;
+	UndoCur = NULL;
 	Font = 0;
 	FixedWidthFont = false;
 	FixedFont = 0;
@@ -753,6 +764,29 @@ bool GTextView3::ValidateLines(bool CheckBox)
 	}
 
 	return true;
+}
+
+int GTextView3::AdjustStyles(ssize_t Start, ssize_t Diff, bool ExtendStyle)
+{
+	int Changes = 0;
+	for (auto &s : Style)
+	{
+		if (s.Start == Start)
+		{
+			if (Diff < 0 || ExtendStyle)
+				s.Len += Diff;
+			else
+				s.Start += Diff;
+			Changes++;
+		}
+		else if (s.Start > Start)
+		{
+			s.Start += Diff;
+			Changes++;
+		}
+	}
+
+	return Changes;
 }
 
 // break array, break out of loop when we hit these chars
@@ -1299,11 +1333,6 @@ void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
 		{
 			if (EditSize > 0)
 			{
-				if (s->Start > (ssize_t)Start)
-				{
-					s->Start += EditSize;
-				}
-
 				if (s->Overlap(Start, EditSize < 0 ? -EditSize : EditSize))
 				{
 					Style.Delete(s);
@@ -1316,11 +1345,6 @@ void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
 				{
 					Style.Delete(s);
 					continue;
-				}
-				
-				if (s->Start > (ssize_t)Start)
-				{
-					s->Start += EditSize;
 				}
 			}
 		}
@@ -1407,12 +1431,6 @@ bool GTextView3::Insert(size_t At, char16 *Data, ssize_t Len)
 			// Move the section after the insert to make space...
 			memmove(Text+(At+Len), Text+At, (Size-At) * sizeof(char16));
 
-			Prof.Add("Undo");
-			
-			// Add the undo object...
-			if (UndoOn)
-				UndoQue += new GTextView3Undo(this, Data, Len, At, UndoInsert);
-
 			Prof.Add("Cpy");
 
 			// Copy new data in...
@@ -1420,6 +1438,18 @@ bool GTextView3::Insert(size_t At, char16 *Data, ssize_t Len)
 			Size += Len;
 			Text[Size] = 0; // NULL terminate
 
+			Prof.Add("Undo");
+			
+			// Add the undo object...
+			if (UndoOn)
+			{
+				GAutoPtr<GTextView3Undo> Obj(new GTextView3Undo(this));
+				GTextView3Undo *u = UndoCur ? UndoCur : Obj;
+				if (u)
+					u->AddChange(At, Len, UndoInsert);
+				if (Obj)
+					UndoQue += Obj.Release();
+			}
 
 			// Clear layout info for the new text
 			ssize_t Idx = -1;
@@ -1505,6 +1535,9 @@ bool GTextView3::Insert(size_t At, char16 *Data, ssize_t Len)
 			ValidateLines();
 			#endif
 
+			if (AdjustStylePos)
+				AdjustStyles(At, Len);
+
 			Dirty = true;
 			if (PourEnabled)
 			{
@@ -1548,7 +1581,12 @@ bool GTextView3::Delete(size_t At, ssize_t Len)
 			// do delete
 			if (UndoOn)
 			{
-				UndoQue += new GTextView3Undo(this, Text+At, Len, At, UndoDelete);
+				GAutoPtr<GTextView3Undo> Obj(new GTextView3Undo(this));
+				GTextView3Undo *u = UndoCur ? UndoCur : Obj;
+				if (u)
+					u->AddChange(At, Len, UndoDelete);
+				if (Obj)
+					UndoQue += Obj.Release();
 			}
 
 			memmove(Text+At, Text+(At+Len), (Size-At-Len) * sizeof(char16));
@@ -1598,6 +1636,10 @@ bool GTextView3::Delete(size_t At, ssize_t Len)
 			#ifdef _DEBUG
 			ValidateLines();
 			#endif
+
+			if (AdjustStylePos)
+				AdjustStyles(At, -Len);
+
 			if (PourEnabled)
 			{
 				PourText(At, -Len);
@@ -2480,23 +2522,27 @@ bool GTextView3::DoCase(bool Upper)
 
 		if (Min < Max)
 		{
-			UndoQue += new GTextView3Undo(this, Text + Min, Max-Min, Min, UndoChange);
+			if (UndoOn)
+			{
+				GAutoPtr<GTextView3Undo> Obj(new GTextView3Undo(this));
+				GTextView3Undo *u = UndoCur ? UndoCur : Obj;
+				if (u)
+					u->AddChange(Min, Max - Min, UndoChange);
+				if (Obj)
+					UndoQue += Obj.Release();
+			}
 
 			for (ssize_t i=Min; i<Max; i++)
 			{
 				if (Upper)
 				{
 					if (Text[i] >= 'a' && Text[i] <= 'z')
-					{
 						Text[i] = Text[i] - 'a' + 'A';
-					}
 				}
 				else
 				{
 					if (Text[i] >= 'A' && Text[i] <= 'Z')
-					{
 						Text[i] = Text[i] - 'A' + 'a';
-					}
 				}
 			}
 
@@ -3010,6 +3056,8 @@ bool GTextView3::OnMultiLineTab(bool In)
 	if (!Indexes)
 		return false;
 
+	UndoCur = new GTextView3Undo(this);
+
 	for (i=Ls-1; i>=0; i--)
 	{
 		if (In)
@@ -3062,6 +3110,16 @@ bool GTextView3::OnMultiLineTab(bool In)
 				}
 			}
 		}
+	}
+
+	if (UndoCur->Changes.Length())
+	{
+		UndoQue += UndoCur;
+		UndoCur = NULL;
+	}
+	else
+	{
+		DeleteObj(UndoCur);
 	}
 
 	SelStart = Min;

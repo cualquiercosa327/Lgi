@@ -47,7 +47,7 @@ class LgiClass
 	public ResObject,
 	public GDragDropTarget
 {
-	friend class GTextView3Undo;
+	friend struct GTextView3Undo;
 	friend bool Text3_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User);
 
 public:
@@ -230,7 +230,6 @@ protected:
 	// Options
 	bool Dirty;
 	bool CanScrollX;
-	bool PourEnabled;
 
 	// Display
 	GFont *Font;
@@ -248,7 +247,12 @@ protected:
 	GRect CursorPos;
 
 	/// true if the text pour process is still ongoing
-	bool PartialPour;
+	bool PourEnabled;		// True if pouring the text happens on edit. Turn off if doing lots
+							// of related edits at the same time. And then manually pour once 
+							// finished.
+	bool PartialPour;		// True if the pour is happening in the background. It's not threaded
+							// but taking place in the GUI thread via timer.
+	bool AdjustStylePos;	// Insert/Delete moved styles automatically to match (default: true)
 
 	List<GTextLine> Line;
 	LUnrolledList<GStyle> Style;		// sorted in 'Start' order
@@ -266,6 +270,7 @@ protected:
 	// Undo stuff
 	bool UndoOn;
 	GUndo UndoQue;
+	GTextView3Undo *UndoCur;
 
 	// private methods
 	GTextLine *GetTextLine(ssize_t Offset, ssize_t *Index = 0);
@@ -282,6 +287,7 @@ protected:
 	GStyle *HitStyle(ssize_t i);
 	int GetColumn();
 	int SpaceDepth(char16 *Start, char16 *End);
+	int AdjustStyles(ssize_t Start, ssize_t Diff, bool ExtendStyle = false);
 
 	// Overridables
 	virtual void PourText(size_t Start, ssize_t Length);
