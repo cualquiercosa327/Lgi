@@ -63,8 +63,11 @@ public:
 
 	void Layout(GFont *f, char *s)
 	{
+		Empty();
+
 		GCss c;
 		c.FontWeight(GCss::FontWeightBold);
+		
 		Add(s, &c);
 
 		int32 MinX, MaxX;
