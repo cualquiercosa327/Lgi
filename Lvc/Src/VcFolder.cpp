@@ -290,6 +290,12 @@ void VcFolder::OnBranchesChange()
 
 void VcFolder::Select(bool b)
 {
+	if (!b)
+	{
+		GWindow *w = d->Tree->GetWindow();
+		w->SetCtrlName(IDC_BRANCH, NULL);
+	}
+
 	GTreeItem::Select(b);
 	
 	if (b)
@@ -312,7 +318,6 @@ void VcFolder::Select(bool b)
 					break;
 				case VcSvn:
 					Branches.New() = "trunk";
-					OnBranchesChange();
 					break;
 				case VcHg:
 					StartCmd("branch", &VcFolder::ParseBranches);
@@ -324,6 +329,7 @@ void VcFolder::Select(bool b)
 					break;
 			}				
 		}
+		OnBranchesChange();
 
 		/*
 		if (!IsUpdatingCounts && Unpushed < 0)
