@@ -270,7 +270,7 @@ protected:
 	// Undo stuff
 	bool UndoOn;
 	GUndo UndoQue;
-	GTextView3Undo *UndoCur;
+	struct GTextView3Undo *UndoCur;
 
 	// private methods
 	GTextLine *GetTextLine(ssize_t Offset, ssize_t *Index = 0);
