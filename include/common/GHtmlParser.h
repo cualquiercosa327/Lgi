@@ -30,7 +30,7 @@ protected:
 	char16 *DecodeEntities(const char *s, ssize_t len);
 
 public:
-	GHtmlParser(GDocView *view)
+	GHtmlParser(GDocView *view = NULL)
 	{
 		View = view;
 	}

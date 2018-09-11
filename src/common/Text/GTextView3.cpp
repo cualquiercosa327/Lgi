@@ -1945,6 +1945,48 @@ ssize_t GTextView3::IndexAt(int x, int y)
 	return 0;
 }
 
+bool GTextView3::ScrollToOffset(size_t Off)
+{
+	bool ForceFullUpdate = false;
+	ssize_t ToIndex = 0;
+	GTextLine *To = GetTextLine(Off, &ToIndex);
+	if (VScroll && To)
+	{
+		GRect Client = GetClient();
+		int DisplayLines = Client.Y() / LineY;
+
+		if (ToIndex < VScroll->Value())
+		{
+			// Above the visible region...
+			if (d->CenterCursor)
+			{
+				ssize_t i = ToIndex - (DisplayLines >> 1);
+				VScroll->Value(MAX(0, i));
+			}
+			else
+			{
+				VScroll->Value(ToIndex);
+			}
+			ForceFullUpdate = true;
+		}
+
+		if (ToIndex >= VScroll->Value() + DisplayLines)
+		{
+			int YOff = d->CenterCursor ? DisplayLines >> 1 : DisplayLines;
+			
+			ssize_t v = MIN(ToIndex - YOff + 1, (ssize_t)Line.Length() - DisplayLines);
+			if (v != VScroll->Value())
+			{
+				// Below the visible region
+				VScroll->Value(v);
+				ForceFullUpdate = true;
+			}
+		}
+	}
+
+	return ForceFullUpdate;
+}
+
 void GTextView3::SetCaret(size_t i, bool Select, bool ForceFullUpdate)
 {
     // int _Start = LgiCurrentTime();
@@ -1981,43 +2023,11 @@ void GTextView3::SetCaret(size_t i, bool Select, bool ForceFullUpdate)
 	Cursor = i;
 
 	// check the cursor is on the screen
-	ssize_t ToIndex = 0;
-	GTextLine *To = GetTextLine(Cursor, &ToIndex);
-	if (VScroll && To)
-	{
-		GRect Client = GetClient();
-		int DisplayLines = Client.Y() / LineY;
-
-		if (ToIndex < VScroll->Value())
-		{
-			// Above the visible region...
-			if (d->CenterCursor)
-			{
-				ssize_t i = ToIndex - (DisplayLines >> 1);
-				VScroll->Value(MAX(0, i));
-			}
-			else
-			{
-				VScroll->Value(ToIndex);
-			}
-			ForceFullUpdate = true;
-		}
-
-		if (ToIndex >= VScroll->Value() + DisplayLines)
-		{
-			int YOff = d->CenterCursor ? DisplayLines >> 1 : DisplayLines;
-			
-			ssize_t v = MIN(ToIndex - YOff + 1, (ssize_t)Line.Length() - DisplayLines);
-			if (v != VScroll->Value())
-			{
-				// Below the visible region
-				VScroll->Value(v);
-				ForceFullUpdate = true;
-			}
-		}
-	}
+	ForceFullUpdate |= ScrollToOffset(Cursor);
 
 	// check whether we need to update the screen
+	ssize_t ToIndex = 0;
+	GTextLine *To = GetTextLine(Cursor, &ToIndex);
 	if (ForceFullUpdate ||
 		!To ||
 		!From)
@@ -2912,6 +2922,7 @@ bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool Selec
 	}
 
 	Cursor = Old;
+	ScrollToOffset(Cursor);
 	Invalidate();
 
 	#else

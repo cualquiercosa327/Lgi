@@ -260,8 +260,21 @@ public:
 	struct Interface
 	{
 		GString Name;
-		uint32 Ip4;
+		uint32 Ip4; // Host order...
 		uint32 Netmask4;
+
+		GString ToString(uint32 ip = 0)
+		{
+			GString s;
+			if (!ip)
+				ip = Ip4;
+			s.Printf("%i.%i.%i.%i",
+					(ip>>24)&0xff,
+					(ip>>16)&0xff,
+					(ip>>8)&0xff,
+					(ip)&0xff);
+			return s;
+		}
 	};
 
 	static bool EnumInterfaces(GArray<Interface> &Out);

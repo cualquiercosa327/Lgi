@@ -198,7 +198,7 @@ protected:
 	void ClearDs(int Col);
 	
 public:
-	GTree(int id, int x, int y, int cx, int cy, const char *name = 0);
+	GTree(int id, int x = 0, int y = 0, int cx = 100, int cy = 100, const char *name = NULL);
 	~GTree();
 
 	const char *GetClass() { return "GTree"; }

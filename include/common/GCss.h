@@ -395,6 +395,12 @@ public:
 			Rgb32 = col.c32();
 		}
 
+		ColorDef(const char *init)
+		{
+			Type = ColorInherit;
+			Parse(init);
+		}
+
 		ColorDef(COLOUR col)
 		{
 			Type = ColorRgb;

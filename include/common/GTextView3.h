@@ -276,6 +276,7 @@ protected:
 	GTextLine *GetTextLine(ssize_t Offset, ssize_t *Index = 0);
 	ssize_t SeekLine(ssize_t Offset, GTextViewSeek Where);
 	int TextWidth(GFont *f, char16 *s, int Len, int x, int Origin);
+	bool ScrollToOffset(size_t Off);
 	int ScrollYLine();
 	int ScrollYPixel();
 	GRect DocToScreen(GRect r);
@@ -309,11 +310,9 @@ protected:
 public:
 	// Construction
 	GTextView3(	int Id,
-				int x,
-				int y,
-				int cx,
-				int cy,
-				GFontType *FontInfo = 0);
+				int x = 0, int y = 0,
+				int cx = 100, int cy = 100,
+				GFontType *FontInfo = NULL);
 	~GTextView3();
 
 	const char *GetClass() { return "GTextView3"; }

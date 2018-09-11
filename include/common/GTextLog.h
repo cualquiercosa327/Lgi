@@ -45,6 +45,7 @@ public:
 	
 	void OnCreate()
 	{
+		GTextView3::OnCreate();
 		ProcessTxt();
 	}
 

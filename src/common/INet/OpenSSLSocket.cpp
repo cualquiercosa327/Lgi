@@ -307,7 +307,7 @@ public:
 
 		if (!IsLoaded())
 		{
-			Err.Print("%s:%i - SSL libraries missing.\n", _FL);
+			Err.Print("%s:%i - SSL libraries missing (%s, %s)\n", _FL, SSL_LIBRARY, EAY_LIBRARY);
 			goto OnError;
 		}
 		

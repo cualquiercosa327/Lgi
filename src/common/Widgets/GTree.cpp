@@ -1507,6 +1507,13 @@ bool GTree::OnKey(GKey &k)
 				}
 				break;
 			}
+			case 'F':
+			case 'f':
+			{
+				if (k.Ctrl())
+					SendNotify(GNotifyContainer_Find);
+				break;
+			}
 			#ifdef VK_APPS
 			case VK_APPS:
 			{

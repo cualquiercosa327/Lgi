@@ -582,6 +582,11 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 						return s;
 					}
 
+					if (Stristr(Elem->Tag.Get(), "two-column"))
+					{
+						int asd=0;
+					}
+
 					bool TagClosed = false;
 					s = ParsePropList(s, Elem, TagClosed);
 					
