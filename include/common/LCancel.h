@@ -20,8 +20,17 @@ public:
 	}
 	
 	virtual ~LCancel() {}
-	virtual bool IsCancelled() { return Cancelled; }
-	virtual bool Cancel(bool b = true) { Cancelled = b; return true; }
+	
+	virtual bool IsCancelled()
+	{
+		return Cancelled;
+	}
+	
+	virtual bool Cancel(bool b = true)
+	{
+		Cancelled = b;
+		return true;
+	}
 };
 
 
