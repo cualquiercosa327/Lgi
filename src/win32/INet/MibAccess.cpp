@@ -120,6 +120,49 @@ BOOL MibII::Init()
 }
 
 
+int MibII::GetInterfaces(MibInterface *In, int Max)
+{
+	UINT IpAddr[]  = { 1, 3, 6, 1, 2, 1, 4, 20, 1, 1 };
+	UINT NetMask[] = { 1, 3, 6, 1, 2, 1, 4, 20, 1, 3 };
+	
+	AsnObjectIdentifier IpAddrId = { sizeof(IpAddr)/sizeof(UINT), IpAddr };
+	AsnObjectIdentifier NetMaskId = { sizeof(NetMask)/sizeof(UINT), NetMask };
+	
+	RFC1157VarBindList  varBindList = {0};
+	RFC1157VarBind      varBind[3] = {0};
+	AsnInteger          errorStatus;
+	AsnInteger          errorIndex;
+	AsnObjectIdentifier MIB_NULL = {0,0};
+	
+	varBindList.list = varBind;
+	varBindList.len  = 2;
+	// varBind[0].name  = MIB_NULL;
+	m_SnmpUtilOidCpy(&varBind[0].name, &IpAddrId);
+	m_SnmpUtilOidCpy(&varBind[1].name, &NetMaskId);
+	
+	int Idx;
+	for (Idx = 0; Idx < Max; Idx++)
+	{
+		BOOL ret = Query(ASN_RFC1157_GETNEXTREQUEST, &varBindList, &errorStatus, &errorIndex);
+		if (!ret)
+			break;
+
+		ret = m_SnmpUtilOidNCmp(&varBind[0].name, &IpAddrId, IpAddrId.idLength);
+		In[Idx].Ip = ret ? 0 : *((DWORD *)varBind[0].value.asnValue.address.stream);
+
+		ret = m_SnmpUtilOidNCmp(&varBind[1].name, &NetMaskId, NetMaskId.idLength);
+		In[Idx].Netmask = ret ? 0 : *((DWORD *)varBind[1].value.asnValue.address.stream);
+
+		if (!In[Idx].Ip && !In[Idx].Netmask)
+			break;
+	}
+	
+	m_SnmpUtilVarBindFree(&varBind[0]);
+	m_SnmpUtilVarBindFree(&varBind[1]);
+
+	return Idx;
+}
+
 BOOL MibII::GetIPAddress(UINT IpArray[], UINT &IpArraySize)
 {
 	UINT OID_ipAdEntAddr[] = { 1, 3, 6, 1, 2, 1, 4 , 20, 1 ,1 };

@@ -86,6 +86,7 @@ protected:
 
 	// Methods
 	void Log(const char *Msg, ssize_t Ret, const char *Buf, ssize_t Len);
+	bool CreateUdpSocket();
 
 public:
 	ssize_t	BytesRead, BytesWritten;
@@ -246,6 +247,9 @@ public:
 	int ReadUdp(void *Buffer, int Size, int Flags, uint32 *Ip = 0, uint16 *Port = 0);
 	/// Write UPD packet
 	int WriteUdp(void *Buffer, int Size, int Flags, uint32 Ip, uint16 Port);
+	
+	bool AddMulticastMember(uint32 MulticastIp, uint32 LocalInterface);
+	bool SetMulticastInterface(uint32 Interface);
 
 	// Impl
 	GStreamI *Clone() { return new GSocket; }
@@ -253,7 +257,14 @@ public:
 	// Statics
 
 	/// Enumerates the current interfaces
-	static bool EnumInterfaces(List<char> &Lst);
+	struct Interface
+	{
+		GString Name;
+		uint32 Ip4;
+		uint32 Netmask4;
+	};
+
+	static bool EnumInterfaces(GArray<Interface> &Out);
 };
 
 class LgiNetClass GSocks5Socket : public GSocket
@@ -343,11 +354,16 @@ public:
 
 class LUdpListener : public GSocket
 {
+	GArray<Interface> Intf;
+	GStream *Log;
+	GString Context;
+
 public:
-	LUdpListener(int port)
+	LUdpListener(uint32 mc_ip, uint16 port, GStream *log = NULL) : Log(log)
 	{
 		SetBroadcast();
 		SetUdp(true);
+		EnumInterfaces(Intf);
 
 		struct sockaddr_in addr;
 		ZeroObj(addr);
@@ -355,12 +371,23 @@ public:
 		addr.sin_port = htons(port);
 		#ifdef WINDOWS
 		addr.sin_addr.S_un.S_addr = INADDR_ANY;
-
-		// DWORD b = true;
-		// setsockopt(Handle(), IPPROTO_IP, IP_RECEIVE_BROADCAST, (char *) &b, sizeof b);
 		#else
 		addr.sin_addr.s_addr = INADDR_ANY;
 		#endif
+
+		#if 1
+
+		if (mc_ip)
+		{
+			for (auto &i : Intf)
+			{
+				Context.Printf("AddMulticastMember(%x,%x)", mc_ip, i.Ip4);
+				AddMulticastMember(mc_ip, i.Ip4);
+			}
+		}
+
+		#endif
+
 		int r = bind(Handle(), (struct sockaddr*)&addr, sizeof(addr));
 		if (r)
 		{
@@ -384,15 +411,24 @@ public:
 		d.Set(Data, Rd);
 		return true;
 	}
+
+	void OnError(int ErrorCode, const char *ErrorDescription)
+	{
+		if (Log)
+			Log->Print("Error: %s - %i, %s\n", Context.Get(), ErrorCode, ErrorDescription);
+	}
 };
 
 class LUdpBroadcast : public GSocket
 {
+	GArray<Interface> Intf;
+
 public:
 	LUdpBroadcast()
 	{
         SetBroadcast();
 		SetUdp(true);
+		EnumInterfaces(Intf);
 	}
 
 	bool BroadcastPacket(GString Data, uint32 Ip, uint16 Port)
@@ -405,7 +441,17 @@ public:
 		if (Size > MAX_UDP_SIZE)
 			return false;
 		
-		uint32 BroadcastIp = Ip | 0xff;
+		uint32 Netmask = 0xffffff00;
+		for (auto &i : Intf)
+		{
+			if (i.Ip4 == Ip)
+			{
+				Netmask = i.Netmask4;
+				break;
+			}
+		}
+
+		uint32 BroadcastIp = Ip | ~Netmask;
 		#if 0
 		printf("Broadcast %i.%i.%i.%i\n", 
 			(BroadcastIp >> 24) & 0xff,

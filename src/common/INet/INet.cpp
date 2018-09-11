@@ -8,6 +8,7 @@
 **              fret@memecode.com
 */
 
+#define _WINSOCK_DEPRECATED_NO_WARNINGS 1
 #ifdef LINUX
 #include <netinet/tcp.h>
 #include <unistd.h>
@@ -169,31 +170,26 @@ void StopNetworkStack()
 #include "..\..\Win32\INet\MibAccess.h"
 #endif
 
-bool GSocket::EnumInterfaces(List<char> &Lst)
+bool GSocket::EnumInterfaces(GArray<Interface> &Out)
 {
 	bool Status = false;
 
 	StartNetworkStack();
 
 	#ifdef WIN32
-	UINT IPArray[50];
-	UINT Size = 50;
 	MibII m;
-
 	m.Init();
-	if (m.GetIPAddress(IPArray, Size))
-	{
-		for (UINT i=0; i<Size; i++)
-		{
-			if (IPArray[i])
-			{
-				char Str[256];
-				uchar *Ip = (uchar*) &IPArray[i];
-				sprintf_s(Str, sizeof(Str), "%i.%i.%i.%i", Ip[0], Ip[1], Ip[2], Ip[3]);
-				Lst.Insert(NewStr(Str));
 
-				Status = true;
-			}
+	MibInterface Intf[16];
+	int Count = m.GetInterfaces(Intf, CountOf(Intf));
+	if (Count)
+	{
+		for (int i=0; i<Count; i++)
+		{
+			auto &OutIntf = Out.New();
+			OutIntf.Ip4 = htonl(Intf[i].Ip);
+			OutIntf.Netmask4 = htonl(Intf[i].Netmask);
+			Status = true;
 		}
 	}
 	#elif !defined(BEOS)
@@ -1278,17 +1274,63 @@ void GSocket::SetBroadcast()
 	d->Broadcast = true;
 }
 
+bool GSocket::AddMulticastMember(uint32 MulticastIp, uint32 LocalInterface)
+{
+	if (!MulticastIp)
+		return false;
+
+	struct ip_mreq mreq;
+	mreq.imr_multiaddr.s_addr = htonl(MulticastIp);		// your multicast address
+	mreq.imr_interface.s_addr = htonl(LocalInterface);	// your incoming interface IP
+	int r = setsockopt(Handle(), IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char*) &mreq, sizeof(mreq));
+	if (!r)
+		return true;
+
+	Error();
+	return false;
+}
+
+bool GSocket::SetMulticastInterface(uint32 Interface)
+{
+	if (!Interface)
+		return false;
+
+	struct sockaddr_in addr;
+	addr.sin_addr.s_addr = Interface;
+	auto r = setsockopt(Handle(), IPPROTO_IP, IP_MULTICAST_IF, (const char*) &addr, sizeof(addr));
+	if (!r)
+		return true;
+
+	Error();
+	return false;
+}
+
+bool GSocket::CreateUdpSocket()
+{
+	if (!ValidSocket(d->Socket))
+	{
+		d->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+		if (ValidSocket(d->Socket))
+		{
+			if (d->Broadcast)
+			{
+				option_t enabled = d->Broadcast != 0;
+				auto r = setsockopt(Handle(), SOL_SOCKET, SO_BROADCAST, (char*)&enabled, sizeof(enabled));
+				if (r)
+					Error();
+			}
+		}
+	}
+
+	return ValidSocket(d->Socket);
+}
+
 int GSocket::ReadUdp(void *Buffer, int Size, int Flags, uint32 *Ip, uint16 *Port)
 {
 	if (!Buffer || Size < 0)
 		return -1;
 
-	if (!ValidSocket(d->Socket))
-	{
-		d->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-		if (!ValidSocket(d->Socket))
-			return -1;
-	}
+	CreateUdpSocket();
 
 	sockaddr_in a;
 	socklen_t AddrSize = sizeof(a);
@@ -1320,18 +1362,7 @@ int GSocket::WriteUdp(void *Buffer, int Size, int Flags, uint32 Ip, uint16 Port)
 	if (!Buffer || Size < 0)
 		return -1;
 
-	if (!ValidSocket(d->Socket))
-	{
-		d->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-		if (!ValidSocket(d->Socket))
-			return -1;
-
-		if (d->Broadcast)
-		{
-			option_t enabled = d->Broadcast != 0;
-			setsockopt(Handle(), SOL_SOCKET, SO_BROADCAST, (char*)&enabled, sizeof(enabled));
-		}
-	}
+	CreateUdpSocket();
 
 	sockaddr_in a;
 	ZeroObj(a);
