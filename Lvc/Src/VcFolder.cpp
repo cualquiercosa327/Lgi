@@ -470,7 +470,7 @@ int CommitDateCmp(VcCommit **a, VcCommit **b)
 
 bool VcFolder::ParseLog(int Result, GString s, ParseParams *Params)
 {
-	GHashTbl<char*, VcCommit*> Map;
+	LHashTbl<StrKey<char>, VcCommit*> Map;
 	for (VcCommit **pc = NULL; Log.Iterate(pc); )
 		Map.Add((*pc)->GetRev(), *pc);
 
@@ -558,7 +558,7 @@ bool VcFolder::ParseLog(int Result, GString s, ParseParams *Params)
 		}
 		case VcCvs:
 		{
-			GHashTbl<uint64, VcCommit*> Map;
+			LHashTbl<IntKey<uint64>, VcCommit*> Map;
 			GString::Array c = s.Split("=============================================================================");
 			for (GString *Commit = NULL; c.Iterate(Commit);)
 			{
@@ -710,6 +710,15 @@ bool VcFolder::ParseCommit(int Result, GString s, ParseParams *Params)
 	if (Result)
 		return false;
 
+	if (Result == 0)
+	{
+		d->ClearFiles();
+
+		GWindow *w = d->Diff ? d->Diff->GetWindow() : NULL;
+		if (w)
+			w->SetCtrlName(IDC_MSG, NULL);
+	}
+
 	switch (GetType())
 	{
 		case VcGit:
@@ -717,13 +726,6 @@ bool VcFolder::ParseCommit(int Result, GString s, ParseParams *Params)
 			Unpushed++;
 			Update();
 
-			d->ClearFiles();
-
-			GWindow *w = d->Diff ? d->Diff->GetWindow() : NULL;
-			if (w)
-				w->SetCtrlName(IDC_MSG, NULL);
-
-			
 			if (Params && Params->Str.Find("Push") >= 0)
 				Push();
 			break;
@@ -731,7 +733,7 @@ bool VcFolder::ParseCommit(int Result, GString s, ParseParams *Params)
 		case VcSvn:
 		{
 			CurrentCommit.Empty();
-			Pull();
+			CommitListDirty = true;
 			break;
 		}
 		default:
