@@ -110,6 +110,7 @@ public:
 		return GTextView3::OnEvent(m);
 	}
 
+	/* GTextView3 now handles this well enough
 	void OnUrl(char *Url)
 	{
 		GUri u(Url);
@@ -119,6 +120,7 @@ public:
 			LgiExecute(Url);
 		}
 	}
+	*/
 };
 
 #endif

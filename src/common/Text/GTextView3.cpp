@@ -3558,7 +3558,7 @@ bool GTextView3::OnStyleMenu(GStyle *style, GSubMenu *m)
 		case STYLE_URL:
 		{
 			GString s(Text + style->Start, style->Len);
-			if (IsValidEmail(s))
+			if (LIsValidEmail(s))
 				m->AppendItem(LgiLoadString(L_TEXTCTRL_EMAIL_TO, "New Email to..."), IDM_NEW, true);
 			else
 				m->AppendItem(LgiLoadString(L_TEXTCTRL_OPENURL, "Open URL"), IDM_OPEN, true);
@@ -5262,13 +5262,14 @@ void GTextView3::OnUrl(char *Url)
 		Environment->OnNavigate(this, Url);
 	else
 	{
-		bool Email = IsValidEmail(Url);
-		const char *Mime = Email ? "message/rfc822" : "text/html";
-		GString App = LgiGetAppForMimeType(Mime);
+		GUri u(Url);
+		bool Email = LIsValidEmail(Url);
+		const char *Proto = Email ? "mailto" : u.Protocol;
+		GString App = LGetAppForProtocol(Proto);
 		if (App)
 			LgiExecute(App, Url);
 		else
-			LgiMsg(this, "Failed to find application for mime type '%s'", "Error", MB_OK, Mime);
+			LgiMsg(this, "Failed to find application for protocol '%s'", "Error", MB_OK, Proto);
 	}
 }
 

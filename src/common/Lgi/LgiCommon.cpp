@@ -2382,7 +2382,7 @@ void GProfile::Add(const char *File, int Line)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool IsValidEmail(GString Email)
+bool LIsValidEmail(GString Email)
 {
 	// Local part
 	char buf[321];
@@ -2508,5 +2508,28 @@ bool IsValidEmail(GString Email)
 	if (strcmp(Email, buf))
 		Email.Set(buf, o - buf);
 	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+GString LGetAppForProtocol(const char *Protocol)
+{
+	GString App;
+
+	#ifdef WINDOWS
+	GRegKey k(false, "HKEY_CLASSES_ROOT\\%s\\shell\\open\\command", Protocol);
+	if (k.IsOk())
+	{
+		const char *p = k.GetStr();
+		if (p)
+		{
+			GAutoString a(LgiTokStr(p));
+			App = a.Get();
+		}
+	}
+	#else
+	#error "Impl me."
+	#endif
+
+	return App;
 }
 

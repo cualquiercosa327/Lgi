@@ -65,7 +65,11 @@ LgiExtern GString LgiCurrentUserName();
 LgiExtern GString LgiGetEnv(const char *Var);
 
 /// Check for a valid email string
-LgiExtern bool IsValidEmail(GString Email);
+LgiExtern bool LIsValidEmail(GString Email);
+
+/// Finds an application to handle a protocol request (e.g. 'mailto', 'http' etc)
+LgiExtern GString LGetAppForProtocol(const char *Protocol);
+
 
 #ifdef __cplusplus
 extern "C"
@@ -291,7 +295,6 @@ LgiFunc bool LgiPlaySound
 	/// 0 or SND_ASYNC. If 0 the function blocks till the sound finishes.
 	int Flags
 );
-
 
 /**
  * \defgroup Mime Mime handling support.
