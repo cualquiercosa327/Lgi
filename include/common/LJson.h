@@ -111,8 +111,17 @@ class LJson
 			return false;
 
 		c++;
-		const char *e = strchr(c, '\"');
-		if (!e)
+		const char *e = c;
+		while (*e)
+		{
+			if (*e == '\\')
+				e += 2;
+			else if (*e == '\"')
+				break;
+			else
+				e++;
+		}
+		if (*e != '\"')
 			return false;
 		s.Set(c, e - c);
 		c = e + 1;
@@ -207,6 +216,15 @@ class LJson
 					k.Str.Set(c, e - c);
 					c = e;
 				}
+				else if (IsAlpha(*c))
+				{
+					// Boolean?
+					const char *e = c;
+					while (*e && IsAlpha(*e))
+						e++;
+					k.Str.Set(c, e - c);
+					c = e;
+				}
 				else
 				{
 					return false;
@@ -221,7 +239,8 @@ class LJson
 				if (!ParseChar('}', c))
 					return false;
 			}
-			else return false;
+			else 
+				return false;
 
 			SkipWs(c);
 			if (*c != ',')

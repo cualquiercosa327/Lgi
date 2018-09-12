@@ -731,6 +731,10 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 									View->GetEnv()->OnCompileScript(View, s, Lang.Str(), Type.Str());
 									*End = '<';
 								}
+								else
+								{
+									Elem->Txt.Reset(Utf8ToWide(s, End - s));
+								}
 
 								s = End;
 							}
