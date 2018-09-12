@@ -738,7 +738,7 @@ void DecodeAddrName(const char *Str, GAutoString &Name, GAutoString &Addr, const
 	GString::Array a = s.SplitDelimit("<>");
 	for (unsigned i=0; i<a.Length(); i++)
 	{
-		if (IsValidEmail(a[i]))
+		if (LIsValidEmail(a[i]))
 		{
 			email = a[i];
 		}
@@ -753,7 +753,7 @@ void DecodeAddrName(const char *Str, GAutoString &Name, GAutoString &Addr, const
 		non.Empty();
 		for (unsigned i=0; i<a.Length(); i++)
 		{
-			if (IsValidEmail(a[i]))
+			if (LIsValidEmail(a[i]))
 			{
 				email = a[i];
 			}
@@ -768,7 +768,7 @@ void DecodeAddrName(const char *Str, GAutoString &Name, GAutoString &Addr, const
 			non.Empty();
 			for (unsigned i=0; i<a.Length(); i++)
 			{
-				if (IsValidEmail(a[i]))
+				if (LIsValidEmail(a[i]))
 				{
 					email = a[i];
 				}

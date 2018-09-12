@@ -1757,6 +1757,7 @@ bool GTextView3::Name(const char *s)
 		DeleteArray(TextCache);
 		DeleteArray(Text);
 		Line.DeleteObjects();
+		Style.Empty();
 
 		LgiAssert(LgiIsUtf8(s));
 		Text = Utf8ToWide(s);
@@ -1842,6 +1843,7 @@ bool GTextView3::NameW(const char16 *s)
 
 	// update everything else
 	Line.DeleteObjects();
+	Style.Empty();
 	d->SetDirty(0, Size);
 	PourText(0, Size);
 	PourStyle(0, Size);
