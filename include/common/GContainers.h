@@ -1101,6 +1101,7 @@ public:
 	char *NewStr() { return (char*)New(sizeof(char)); }
 	GString NewGStr();
 	char16 *NewStrW() { return (char16*)New(sizeof(char16)); }
+	GStringPipe &operator +=(const GString &s) { Write(s.Get(), s.Length()); return *this; }
 
 	#ifdef _DEBUG
 	static bool UnitTest();

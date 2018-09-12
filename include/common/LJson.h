@@ -14,7 +14,7 @@ class LJson
 		
 		GString Str;
 		GArray<Key> Obj;
-		GArray<GString> Array;
+		GArray<Key> Array;
 
 		Key *Get(const char *name, bool create = false)
 		{
@@ -27,6 +27,27 @@ class LJson
 			}
 			if (create)
 			{
+				char *ArrStart = strchr(name, '[');
+				char *ArrEnd = ArrStart ? strchr(ArrStart+1, ']') : NULL;
+				if (ArrStart && ArrEnd)
+				{
+					int Idx = atoi(ArrStart + 1);
+					if (Idx < 0)
+						return NULL;
+
+					GString n;
+					n.Set(name, ArrStart - name);
+					for (unsigned i=0; i<Obj.Length(); i++)
+					{
+						if (Obj[i].Get(n))
+							return &(Obj[i].Array[Idx]);
+					}
+
+					Key &k = Obj.New();
+					k.Name = n;
+					return &k.Array[Idx];
+				}
+
 				Key &k = Obj.New();
 				k.Name = name;
 				return &k;
@@ -43,7 +64,8 @@ class LJson
 
 		GString Print(int Depth = 0)
 		{
-			GString r, s;
+			GStringPipe r(512);
+			GString s;
 			GString d("");
 			if (Depth)
 			{
@@ -57,11 +79,12 @@ class LJson
 			{
 				s.Printf("%s\"%s\" : ", d.Get(), Name.Get());
 				r += s;
-				if (Str)
-				{
-					s.Printf("\"%s\"", Str.Get());
-					r += s;
-				}
+			}
+			if (Str)
+			{
+				GString q = Str.Replace("\"", "\\\"");
+				s.Printf("\"%s\"", q.Get());
+				r += s;
 			}
 
 			if (Obj.Length())
@@ -91,13 +114,19 @@ class LJson
 				r += "[ ";
 				for (unsigned i=0; i<Array.Length(); i++)
 				{
-					s.Printf("%s\"%s\"", i?", ":"", Array[i].Get());
+					Key &k = Array[i];
+					if (k.Obj.Length())
+						s = GString("{") + k.Print() + "}";
+					else
+						s = k.Print();
+					if (i)
+						s += ", ";
 					r += s;
 				}
 				r += " ]";
 			}
 
-			return r;
+			return r.NewGStr();
 		}
 	};
 
@@ -143,6 +172,79 @@ class LJson
 		return IsDigit(s) || strchr("-.e", s) != NULL;
 	}
 
+	bool ParseValue(Key &k, const char *&c)
+	{
+		SkipWs(c);
+
+		if (*c == '{')
+		{
+			// Objects
+			c++;
+			if (!Parse(k.Obj, c))
+				return false;
+			if (!ParseChar('}', c))
+				return false;
+		}
+		else if (*c == '[')
+		{
+			// Array
+			c++;
+			SkipWs(c);
+			while (*c != ']')
+			{
+				Key &a = k.Array.New();
+				if (!ParseValue(a, c))
+				{
+					return false;
+				}
+
+				SkipWs(c);
+				if (*c == ',')
+				{
+					c++;
+					SkipWs(c);
+				}
+			}
+			if (*c == ']')
+				c++;
+			else
+			{
+				LgiAssert(!"Unexpected token.");
+				return false;
+			}
+		}
+		else if (*c == '\"')
+		{
+			if (!ParseString(k.Str, c))
+			{
+				return false;
+			}
+		}
+		else if (IsNumeric(*c))
+		{
+			const char *e = c;
+			while (*e && IsNumeric(*e))
+				e++;
+			k.Str.Set(c, e - c);
+			c = e;
+		}
+		else if (IsAlpha(*c))
+		{
+			// Boolean?
+			const char *e = c;
+			while (*e && IsAlpha(*e))
+				e++;
+			k.Str.Set(c, e - c);
+			c = e;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+
 	bool Parse(GArray<Key> &Ks, const char *&c)
 	{
 		while (true)
@@ -156,79 +258,8 @@ class LJson
 					return false;
 				if (!ParseChar(':', c))
 					return false;
-				if (*c == '{')
-				{
-					// Objects
-					c++;
-					if (!Parse(k.Obj, c))
-						return false;
-					if (!ParseChar('}', c))
-						return false;
-				}
-				else if (*c == '[')
-				{
-					// Array
-					c++;
-					SkipWs(c);
-					while (*c != ']')
-					{
-						if (*c == '\"')
-						{
-							// Strings
-							if (!ParseString(k.Array.New(), c))
-								return false;
-						}
-						else if (*c == '{')
-						{
-							// Objects
-							LgiAssert(!"Not impl.");
-							break;
-						}
-						else break;
-
-						SkipWs(c);
-						if (*c == ',')
-						{
-							c++;
-							SkipWs(c);
-						}
-					}
-					if (*c == ']')
-						c++;
-					else
-					{
-						LgiAssert(!"Unexpected token.");
-						return false;
-					}
-				}
-				else if (*c == '\"')
-				{
-					if (!ParseString(k.Str, c))
-					{
-						return false;
-					}
-				}
-				else if (IsNumeric(*c))
-				{
-					const char *e = c;
-					while (*e && IsNumeric(*e))
-						e++;
-					k.Str.Set(c, e - c);
-					c = e;
-				}
-				else if (IsAlpha(*c))
-				{
-					// Boolean?
-					const char *e = c;
-					while (*e && IsAlpha(*e))
-						e++;
-					k.Str.Set(c, e - c);
-					c = e;
-				}
-				else
-				{
+				if (!ParseValue(k, c))
 					return false;
-				}
 			}
 			else if (*c == '{')
 			{
@@ -291,10 +322,20 @@ public:
 		return k ? k->Str : GString();
 	}
 
-	GArray<GString> *GetArray(GString Addr)
+	GArray<GString> GetStringArray(GString Addr)
 	{
+		GArray<GString> a;
 		Key *k = Deref(Addr, false);
-		return k && k->Array.Length() ? &k->Array : NULL;
+		if (k)
+		{
+			for (auto &c : k->Array)
+			{
+				if (c.Str)
+					a.Add(c.Str);
+			}
+		}
+
+		return a;
 	}
 
 	bool Set(GString Addr, const char *Val)
@@ -311,7 +352,10 @@ public:
 		Key *k = Deref(Addr, true);
 		if (!k)
 			return false;
-		k->Array = Array;
+		for (auto &a : Array)
+		{
+			k->Array.New().Str = a;
+		}
 		return true;
 	}
 
