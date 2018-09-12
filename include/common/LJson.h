@@ -322,18 +322,92 @@ public:
 		return k ? k->Str : GString();
 	}
 
-	GArray<GString> GetStringArray(GString Addr)
+	class Iter
 	{
-		GArray<GString> a;
+		LJson *j;
+		GArray<Key> *a;
+
+	public:
+		struct IterPos
+		{
+			Iter *It;
+			size_t Pos;
+
+			IterPos(Iter *i, size_t p)
+			{
+				It = i;
+				Pos = p;
+			}
+
+			bool operator !=(const IterPos &i) const
+			{
+				bool Eq = It == i.It && Pos == i.Pos;
+				return !Eq;
+			}
+
+			IterPos &operator *()
+			{
+				return *this;
+			}
+
+			operator GString()
+			{
+				return (*It->a)[Pos].Str;
+			}
+
+			IterPos &operator++()
+			{
+				Pos++;
+				return *this;
+			}
+
+			GString Get(GString Addr)
+			{
+				auto Arr = *It->a;
+				if (Pos < 0 || Pos >= Arr.Length())
+					return GString();
+				Key &k = Arr[Pos];
+				Key *v = k.Get(Addr);
+				if (!v)
+					return GString();
+
+				return v->Str;
+			}
+		};
+
+
+		Iter(LJson *J = NULL) : j(J)
+		{
+			a = NULL;
+		}
+
+		void Set(LJson *J)
+		{
+			j = J;
+		}
+
+		void Set(GArray<Key> *arr)
+		{
+			a = arr;
+		}
+
+		IterPos begin()
+		{
+			return IterPos(this, 0);
+		}
+
+		IterPos end()
+		{
+			return IterPos(this, a ? a->Length() : 0);
+		}
+	};
+
+	Iter GetArray(GString Addr)
+	{
+		Iter a(this);
 		Key *k = Deref(Addr, false);
 		if (k)
-		{
-			for (auto &c : k->Array)
-			{
-				if (c.Str)
-					a.Add(c.Str);
-			}
-		}
+			a.Set(&k->Array);
 
 		return a;
 	}
