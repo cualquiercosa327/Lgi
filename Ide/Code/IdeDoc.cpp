@@ -102,7 +102,11 @@ void EditTray::OnPosChange()
 		c.Left(FileSearch, EDIT_CTRL_WIDTH);
 	c.x1 += 8;
 
-	c.Left(FuncBtn, 32);
+	#ifdef LINUX
+	c.Left(FuncBtn, 28);
+	#else
+	c.Left(FuncBtn, 20);
+	#endif
 	if (FuncSearch)
 		c.Left(FuncSearch, EDIT_CTRL_WIDTH);
 	c.x1 += 8;
@@ -147,7 +151,13 @@ void EditTray::OnPaint(GSurface *pDC)
 	f = FuncBtn;
 	LgiThinBorder(pDC, f, DefaultRaisedEdge);
 	{
-		GDisplayString ds(SysFont, "{ }");
+		GDisplayString ds(SysFont,
+			#ifdef LINUX
+			"{}"
+			#else
+			"{ }"
+			#endif
+			);
 		ds.Draw(pDC, f.x1 + 3, f.y1);
 	}
 
@@ -309,6 +319,7 @@ void EditTray::OnHeaderList(GMouse &m)
 void EditTray::OnFunctionList(GMouse &m)
 {
 	GArray<DefnInfo> Funcs;
+
 	if (BuildDefnList(Doc->GetFileName(), Ctrl->NameW(), Funcs, DefnNone /*DefnFunc | DefnClass*/))
 	{
 		GSubMenu s;

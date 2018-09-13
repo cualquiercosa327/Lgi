@@ -34,7 +34,7 @@ Known bugs:
 
 */
 #include "Lgi.h"
-#include "SimpleCppParser.h"
+#include "ParserCommon.h"
 
 #if 0
 // #define DEBUG_FILE		"\\ape-apcp.c"
@@ -156,7 +156,7 @@ bool SeekPtr(char16 *&s, char16 *end, int &Line)
 	return true;
 }
 
-bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int LimitTo, bool Debug)
+bool BuildCppDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int LimitTo, bool Debug)
 {
 	if (!Cpp)
 		return false;

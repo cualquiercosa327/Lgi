@@ -9,7 +9,7 @@
 #include "GToken.h"
 #include "GEventTargetThread.h"
 #include "GTextFile.h"
-#include "SimpleCppParser.h"
+#include "ParserCommon.h"
 
 #if 1
 #include "GParseCpp.h"
@@ -62,11 +62,13 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 		GArray<DefnInfo> Defs;
 		bool IsSource;
 		bool IsHeader;
+		bool IsPython;
 		
 		bool Parse()
 		{
 			IsSource = false;
 			IsHeader = false;
+			IsPython = false;
 			Defs.Length(0);
 			
 			bool Status = false;
@@ -84,10 +86,12 @@ struct FindSymbolSystemPriv : public GEventTargetThread
 							!_stricmp(Ext, "hpp")
 							||
 							!_stricmp(Ext, "hxx");
+				IsPython =	!_stricmp(Ext, "py");
+
 				if (IsSource || IsHeader)
-				{
-					Status = BuildDefnList(Path, Source, Defs, DefnNone);
-				}
+					Status = BuildCppDefnList(Path, Source, Defs, DefnNone);
+				else if (IsPython)
+					Status = BuildPyDefnList(Path, Source, Defs, DefnNone);
 			}
 
 			return Status;

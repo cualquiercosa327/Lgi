@@ -3,7 +3,7 @@
 
 #include "GMdi.h"
 #include "GTextView3.h"
-#include "SimpleCppParser.h"
+#include "ParserCommon.h"
 
 extern void FilterFiles(GArray<ProjectNode*> &Perfect, GArray<ProjectNode*> &Nodes, GString InputStr);
 

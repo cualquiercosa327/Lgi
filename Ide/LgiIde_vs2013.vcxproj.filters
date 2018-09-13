@@ -49,6 +49,9 @@
     <Filter Include="Source Files\levenshtein">
       <UniqueIdentifier>{f793da4b-cf25-40f4-a90c-4a549d33d87e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Search\Python Parser">
+      <UniqueIdentifier>{a789d0ae-552d-4e98-902b-7ffb0d018bbc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Code\LgiIde.h">
@@ -122,6 +125,9 @@
     </ClInclude>
     <ClInclude Include="Code\IdeDocPrivate.h">
       <Filter>Source Files\Docs</Filter>
+    </ClInclude>
+    <ClInclude Include="Code\PythonParser.h">
+      <Filter>Source Files\Search\Python Parser</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -229,6 +235,9 @@
     </ClCompile>
     <ClCompile Include="..\src\common\INet\OpenSSLSocket.cpp">
       <Filter>Lgi</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\PythonParser.cpp">
+      <Filter>Source Files\Search\Python Parser</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
