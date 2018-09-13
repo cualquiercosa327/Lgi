@@ -416,7 +416,7 @@ void GItemContainer::ResizeColumnsToContent(int Border)
 					double Ratio = Cx ? (double)Inf.ContentPx / Cx : 1.0;
 					if (Ratio < 0.25)
 					{
-						Inf.Col->Width(Inf.ContentPx + 2);
+						Inf.Col->Width(Inf.ContentPx + Border);
 					}
 					else
 					{					
