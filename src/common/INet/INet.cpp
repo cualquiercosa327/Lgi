@@ -203,12 +203,12 @@ bool GSocket::EnumInterfaces(GArray<Interface> &Out)
 			if (a->ifa_addr->sa_family == AF_INET)
 			{
 				sockaddr_in *in = (sockaddr_in*)a->ifa_addr;
-				char str[32];
-				uint8 *ip = (uint8*)&in->sin_addr.s_addr;
-				sprintf_s(	str, sizeof(str),
-							"%i.%i.%i.%i",
-							ip[0], ip[1], ip[2], ip[3]);
-				Lst.Insert(NewStr(str));
+				sockaddr_in *mask = (sockaddr_in*)a->ifa_netmask;
+				
+				auto &Intf = Out.New();
+				Intf.Ip4 = ntohl(in->sin_addr.s_addr);
+				Intf.Netmask4 = ntohl(mask->sin_addr.s_addr);
+				Intf.Name = a->ifa_name;
 
 				Status = true;
 			}
