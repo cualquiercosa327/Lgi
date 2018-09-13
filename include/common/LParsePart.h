@@ -69,7 +69,8 @@ struct LParsePart
 					while (*c && *c != End)
 						c++;
 					v.Str.Set(prev, c - prev);
-					prev = *c ? c + 1 : c;
+					if (*c) c++;
+					prev = c;
 				}
 			}
 			else c++;
