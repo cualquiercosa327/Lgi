@@ -608,6 +608,15 @@ public:
 		}
 		return s;
 	}
+
+	/// Sets the file to zero size.
+	/// Useful for this sort of thing:
+	/// GFile(MyPath, O_WRITE).Empty().Write(MyData);
+	GFile &Empty()
+	{
+		SetSize(0);
+		return *this;
+	}
 };
 
 // Functions
