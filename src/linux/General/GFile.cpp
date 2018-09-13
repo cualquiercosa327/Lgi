@@ -1266,9 +1266,11 @@ public:
 	}
 };
 
-GFile::GFile()
+GFile::GFile(const char *Path, int Mode)
 {
 	d = new GFilePrivate;
+	if (Path)
+		Open(Path, Mode);
 }
 
 GFile::~GFile()

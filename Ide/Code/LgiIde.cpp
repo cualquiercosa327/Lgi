@@ -3681,6 +3681,21 @@ int LgiMain(OsAppArguments &AppArgs)
 	GApp a(AppArgs, "LgiIde");
 	if (a.IsOk())
 	{
+		/*
+		GString mt = LGetAppForProtocol("mailto");
+		GString https = LGetAppForProtocol("https");
+		printf("%s\n%s\n", mt.Get(), https.Get());
+
+		GArray<GSocket::Interface> Out;
+		if (GSocket::EnumInterfaces(Out))
+		{
+			for (auto &i : Out)
+			{
+				printf("%s %s %s\n", i.Name.Get(), i.ToString().Get(), i.ToString(i.Netmask4).Get());
+			}
+		}
+		*/
+
 		a.AppWnd = new AppWnd;
 		a.Run();
 	}

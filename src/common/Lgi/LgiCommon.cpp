@@ -2515,17 +2515,38 @@ GString LGetAppForProtocol(const char *Protocol)
 {
 	GString App;
 
+	if (!Protocol)
+		return App;
+
 	#ifdef WINDOWS
-	GRegKey k(false, "HKEY_CLASSES_ROOT\\%s\\shell\\open\\command", Protocol);
-	if (k.IsOk())
-	{
-		const char *p = k.GetStr();
-		if (p)
+		GRegKey k(false, "HKEY_CLASSES_ROOT\\%s\\shell\\open\\command", Protocol);
+		if (k.IsOk())
 		{
-			GAutoString a(LgiTokStr(p));
-			App = a.Get();
+			const char *p = k.GetStr();
+			if (p)
+			{
+				GAutoString a(LgiTokStr(p));
+				App = a.Get();
+			}
 		}
-	}
+	#elif defined(LINUX)
+		const char *p = NULL;
+		if (stricmp(Protocol, "mailto"))
+			p = "xdg-email";
+		else
+			p = "xdg-open";
+		GString Path = LgiGetEnv("PATH");
+		GString::Array a = Path.SplitDelimit(LGI_PATH_SEPARATOR);
+		for (auto i : a)
+		{
+			GFile::Path t(i);
+			t += p;
+			if (t.Exists())
+			{
+				App = t.GetFull();
+				break;
+			}
+		}
 	#else
 	#error "Impl me."
 	#endif

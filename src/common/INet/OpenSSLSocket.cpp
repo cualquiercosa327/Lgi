@@ -307,7 +307,11 @@ public:
 
 		if (!IsLoaded())
 		{
+			#ifdef EAY_LIBRARY
 			Err.Print("%s:%i - SSL libraries missing (%s, %s)\n", _FL, SSL_LIBRARY, EAY_LIBRARY);
+			#else
+			Err.Print("%s:%i - SSL library missing (%s)\n", _FL, SSL_LIBRARY);
+			#endif
 			goto OnError;
 		}
 		
