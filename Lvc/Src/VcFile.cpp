@@ -105,6 +105,8 @@ void VcFile::OnMouseClick(GMouse &m)
 						s.AppendItem("Add File", IDM_ADD_FILE);
 					}
 					break;
+				default:
+					break;
 			}					
 			s.AppendItem("Browse To", IDM_BROWSE);
 

@@ -2547,8 +2547,31 @@ GString LGetAppForProtocol(const char *Protocol)
 				break;
 			}
 		}
+	#elif defined(MAC)
+		// Get the handler type
+		CFStringRef Type = GString(Protocol).CreateStringRef();
+		CFStringRef Handler = LSCopyDefaultHandlerForURLScheme(Type);
+		CFRelease(Type);
+		if (Handler)
+		{
+			// Convert to app path
+			CFErrorRef Err;
+			auto a = LSCopyApplicationURLsForBundleIdentifier(Handler, &Err);
+			if (a)
+			{
+				if (CFArrayGetCount(a) > 0)
+				{
+					CFURLRef nsurl = (CFURLRef)CFArrayGetValueAtIndex(a, 0);
+					App = CFURLGetString(nsurl);
+					if (App.Find("file:///") == 0)
+						App = App(7,-2);
+				}
+				CFRelease(a);
+			}
+		}
+		CFRelease(Handler);
 	#else
-	#error "Impl me."
+		#error "Impl me."
 	#endif
 
 	return App;

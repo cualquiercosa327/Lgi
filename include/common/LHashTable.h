@@ -19,7 +19,7 @@
 #define HASH_TABLE_SHRINK_THRESHOLD			15
 #define HASH_TABLE_GROW_THRESHOLD			50
 
-template<typename T, T DefaultNull = -1>
+template<typename T, T DefaultNull = (T)-1>
 class IntKey
 {
 public:

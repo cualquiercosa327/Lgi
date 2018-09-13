@@ -364,7 +364,7 @@ public:
 			GString Get(GString Addr)
 			{
 				auto Arr = *It->a;
-				if (Pos < 0 || Pos >= Arr.Length())
+				if (Pos >= Arr.Length())
 					return GString();
 				Key &k = Arr[Pos];
 				Key *v = k.Get(Addr);

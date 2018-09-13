@@ -3547,7 +3547,8 @@ bool GTextView3::OnStyleClick(GStyle *style, GMouse *m)
 			}
 			break;
 		}
-
+		default:
+			break;
 	}
 
 	return false;
@@ -3568,6 +3569,8 @@ bool GTextView3::OnStyleMenu(GStyle *style, GSubMenu *m)
 			m->AppendItem(LgiLoadString(L_TEXTCTRL_COPYLINK, "Copy link location"), IDM_COPY_URL, true);
 			return true;
 		}
+		default:
+			break;
 	}
 
 	return false;
@@ -3602,6 +3605,8 @@ void GTextView3::OnStyleMenuClick(GStyle *style, int i)
 			}
 			break;
 		}
+		default:
+			break;
 	}
 }
 
