@@ -118,8 +118,15 @@ public:
 		SymLookup = 0;
 		QuitReceived = false;
 		SkinLib = 0;
+		GuiThread = NULL;
+		auto b = DuplicateHandle(GetCurrentProcess(),
+									GetCurrentThread(),
+									GetCurrentProcess(),
+									&GuiThread,
+									0,
+									false,
+									DUPLICATE_SAME_ACCESS);
 		ThemeAware = true;
-		GuiThread = LgiGetCurrentThread();
 	}
 
 	~GAppPrivate()

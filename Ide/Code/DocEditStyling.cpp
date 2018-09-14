@@ -223,7 +223,11 @@ int DocEditStyling::Main()
 			#if LOG_STYLE
 			LgiTrace("DocEdit.Worker finished style... Items=%i ParentState=%i\n", (int)p.Styles.Length(), ParentState);
 			#endif
-			View->PostEvent(M_STYLING_DONE);
+			auto r = View->PostEvent(M_STYLING_DONE);
+			if (ParentState != KExiting)
+			{
+				LgiAssert(r);
+			}
 		}
 		else
 		{
@@ -923,8 +927,8 @@ void DocEditStyling::StyleHtml(StylingParams &p)
 			if (Cur->Len <= 0) \
 			{ \
 				Style.Delete(Style.rbegin()); \
-				Cur = NULL; \
 			} \
+			Cur = NULL; \
 		}
 
 	char16 *s;
@@ -1121,6 +1125,7 @@ void DocEditStyling::StyleHtml(StylingParams &p)
 	}
 
 	END_CODE();
+	int asd=0;
 }
 	
 void DocEditStyling::AddKeywords(const char **keys, bool IsType)

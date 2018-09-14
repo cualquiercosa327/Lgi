@@ -176,6 +176,7 @@ public:
 	void InvalidateLine(int Idx);
 	char *TemplateMerge(const char *Template, char *Name, List<char> *Params);
 	bool GetVisible(GStyle &s);
+	void OnCreate();
 
 	// Overrides
 	bool AppendItems(GSubMenu *Menu, int Base) override;

@@ -50,7 +50,6 @@ DocEdit::DocEdit(IdeDoc *d, GFontType *f) :
 		
 	SetWrapType(TEXTED_WRAP_NONE);
 	SetEnv(this);
-	Run();
 }
 	
 DocEdit::~DocEdit()
@@ -60,6 +59,11 @@ DocEdit::~DocEdit()
 	while (!IsExited())
 		LgiSleep(1);
 	SetEnv(0);
+}
+
+void DocEdit::OnCreate()
+{
+	Run();
 }
 
 bool DocEdit::AppendItems(GSubMenu *Menu, int Base)

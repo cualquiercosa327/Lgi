@@ -1888,8 +1888,10 @@ bool GView::InThread()
 			Hnd = p->Handle();
 		}
 		
-		DWORD CurThread = GetCurrentThreadId();
-		DWORD ViewThread = Hnd ? GetWindowThreadProcessId(Hnd, NULL) : GetThreadId(LgiApp->GetGuiThread());
+		auto CurThread = GetCurrentThreadId();
+		auto GuiThread = LgiApp->GetGuiThread();
+		auto GuiThreadId = GetThreadId(GuiThread);
+		DWORD ViewThread = Hnd ? GetWindowThreadProcessId(Hnd, NULL) : GuiThreadId;
 		return CurThread == ViewThread;
 	
 	#elif defined BEOS
