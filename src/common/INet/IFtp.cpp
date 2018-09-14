@@ -541,9 +541,9 @@ FtpOpenStatus IFtp::Open(GSocketI *S, char *RemoteHost, int Port, char *User, ch
 			#endif
 		}
 	}
-	catch (int Error)
+	catch (ssize_t Error)
 	{
-		LgiTrace("%s:%i - Error: %i\n", _FL, Error);
+		LgiTrace("%s:%i - Error: " LPrintfSSizeT "\n", _FL, Error);
 		Status = FO_Error;
 	}
 
@@ -602,9 +602,9 @@ GString IFtp::GetDir()
 			}			
 		}
 	}
-	catch (int Error)
+	catch (ssize_t Error)
 	{
-		LgiTrace("%s:%i - error: %i\n", _FL, Error);
+		LgiTrace("%s:%i - error: " LPrintfSSizeT "\n", _FL, Error);
 		if (IsOpen())
 		{
 			LgiAssert(0);
@@ -634,9 +634,9 @@ bool IFtp::SetDir(const char *Dir)
 			}
 		}
 	}
-	catch (int Error)
+	catch (ssize_t Error)
 	{
-		printf("%s:%i - error: %i\n", _FL, Error);
+		printf("%s:%i - error: " LPrintfSSizeT "\n", _FL, Error);
 	}
 
 	return Status;
