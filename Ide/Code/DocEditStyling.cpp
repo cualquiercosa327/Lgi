@@ -64,7 +64,7 @@ const char *CppEdges[] = {	"/*", "*/", "\"", NULL };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Python
-const char *PythonKeywords[] = {"def", "try", "except", "import", "if", "for", "elif", "else", NULL};
+const char *PythonKeywords[] = {"def", "try", "except", "import", "if", "for", "elif", "else", "class", NULL};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // XML
@@ -561,34 +561,21 @@ void DocEditStyling::StylePython(StylingParams &p)
 			}
 			default:
 			{
-				if (*s >= 'a' && *s <= 'z')
+				wchar_t Ch = ToLower(*s);
+				if (Ch >= 'a' && Ch <= 'z')
 				{
-					/*
-					if (HasKeyword[*s - 'a'])
+					DetectKeyword();
+
+					if (n && n->Type)
 					{
-						static char16 buf[64], *o = buf;
-						char16 *e = s;
-						while (IsSymbolChar(*e))
-							*o++ = *e++;
-						*o = 0;
-						KeyworkType type = Keywords.Find(buf);
-						
-						if (type != KNone)
-						{
-							GAutoPtr<GStyle> st(new GTextView3::GStyle(STYLE_IDE));
-							if (st)
-							{
-								st->View = this;
-								st->Start = s - Text;
-								st->Font = Bold;
-								st->Len = e - s;
-								st->Fore = ColourKeyword;
-								InsertStyle(st);
-								s = e - 1;
-							}
-						}
+						auto &st = Style.New().Construct(View, STYLE_IDE);
+						st.Start = s - Text;
+						st.Font = n->Type == KType ? View->GetFont() : View->GetBold();
+						st.Len = e - s;
+						st.Fore = n->Type == KType ? ColourType : ColourKeyword;
 					}
-					*/
+
+					s = e - 1;
 				}
 				break;
 			}
