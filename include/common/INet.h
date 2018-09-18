@@ -16,6 +16,7 @@
 #include "GStream.h"
 #include "GString.h"
 #include "LCancel.h"
+#include "LHashTable.h"
 
 #if defined WIN32
 	
@@ -351,6 +352,10 @@ public:
 
 	/// URL decode
 	GAutoString Decode(char *s);
+
+	/// Separate args into map
+	typedef LHashTbl<StrKey<char,false>,GString> StrMap;
+	StrMap Params();
 
 	GUri &operator =(const GUri &u);
 	GUri &operator =(char *s) { Set(s); return *this; }
