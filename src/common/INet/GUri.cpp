@@ -228,6 +228,28 @@ GAutoString GUri::Encode(const char *s, const char *ExtraCharsToEncode)
 	return GAutoString(p.NewStr());
 }
 
+GUri::StrMap GUri::Params()
+{
+	StrMap m;
+
+	if (Path)
+	{
+		const char *q = strchr(Path, '?');
+		if (q++)
+		{
+			auto Parts = GString(q).SplitDelimit("&");
+			for (auto p : Parts)
+			{
+				auto Var = p.Split("=", 1);
+				if (Var.Length() == 2)
+					m.Add(Var[0], Var[1]);
+			}
+		}
+	}
+
+	return m;
+}
+
 GAutoString GUri::Decode(char *s)
 {
 	GStringPipe p(256);

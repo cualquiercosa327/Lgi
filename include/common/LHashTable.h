@@ -314,6 +314,23 @@ public:
 			InitializeTable(Table, Size);
 		}
 	}
+
+	LHashTbl(const HashTable &init)
+	{
+		Size = init.Size;
+		NullValue = init.NullValue;
+		Used = 0;
+		Version = 0;
+		MaxSize = LHASHTBL_MAX_SIZE;
+		if ((Table = new Pair[Size]))
+		{
+			for (size_t i=0; i<Size; i++)
+			{
+				Table[i].key = this->NullKey;
+			}
+			*this = init;
+		}
+	}
 	
 	/// Deletes the hash table removing all contents from memory
 	virtual ~LHashTbl()
@@ -424,7 +441,7 @@ public:
 		if (!Status)
 		{
 			#ifndef LGI_STATIC
-			LgiStackTrace("%s:%i - this=%p Table=%p Used=%i Size=%i\n", _FL, this, Table, Used, Size);
+			LgiTrace("%s:%i - this=%p Table=%p Used=%i Size=%i\n", _FL, this, Table, Used, Size);
 			#endif
 			LgiAssert(0);
 		}		

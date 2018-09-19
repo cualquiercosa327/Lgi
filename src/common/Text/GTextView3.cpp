@@ -144,6 +144,10 @@ public:
 		GString SetName;
 	// </RequiresLocking>
 
+	#ifdef _DEBUG
+	GString PourLog;
+	#endif
+
 	GTextView3Private(GTextView3 *view) : LMutex("GTextView3Private")
 	{
 		View = view;
@@ -690,9 +694,13 @@ void GTextView3::LogLines()
 	LgiTrace("DocSize: %i\n", (int)Size);
 	for (auto i : Line)
 	{
-		LgiTrace("  [%i]=%i+%i %s\n", Idx, (int)i->Start, (int)i->Len, i->r.GetStr());
+		LgiTrace("  [%i]=%p, %i+%i, %s\n", Idx, i, (int)i->Start, (int)i->Len, i->r.GetStr());
 		Idx++;
 	}
+
+	if (d->PourLog)
+		LgiTrace("%s", d->PourLog.Get());
+	int asd=0;
 }
 
 bool GTextView3::ValidateLines(bool CheckBox)
@@ -878,10 +886,19 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 		#if PROFILE_POUR
 		Prof.Add("NoWrap: ExistingLines");
 		#endif
+		#ifdef _DEGBUG
+		GStringPipe Log(1024);
+		Log.Printf("Pour: " LPrintfSizeT ", " LPrintfSSizeT ", partial=%i\n", Start, Length, PartialPour);
+		#endif
+
 		ssize_t Pos = 0;
-		for (auto i = Line.begin(Idx); *i; i++)
+		for (auto i = Line.begin(Idx); *i; i++, Idx++)
 		{
 			GTextLine *l = *i;
+
+			#ifdef _DEGBUG
+			Log.Printf("	[%i] exist: r.val=%i\n", Idx, l->r.Valid());
+			#endif
 
 			if (!l->r.Valid()) // If the layout is not valid...
 			{
@@ -916,6 +933,10 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 				e++;
 			l->Len = e - c;
 
+			#ifdef _DEGBUG
+			Log.Printf("	[%i] new: start=" LPrintfSSizeT ", len=" LPrintfSSizeT "\n", Idx, l->Start, l->Len);
+			#endif
+
 			l->r.x1 = d->rPadding.x1;
 			l->r.y1 = Cy;
 			l->r.y2 = l->r.y1 + LineY - 1;
@@ -937,8 +958,12 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 			MaxX = MAX(MaxX, l->r.X());
 			Cy = l->r.y2 + 1;
 			Pos = e - Text;
+			Idx++;
 		}
 
+		#ifdef _DEGBUG
+		d->PourLog = Log.NewGStr();
+		#endif
 		PartialPour = false;
 	}
 	else // Wrap text

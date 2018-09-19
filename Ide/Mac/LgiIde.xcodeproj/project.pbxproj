@@ -48,6 +48,7 @@
 		34D20B7B1CB2862E00730172 /* AddFtpFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D20B791CB2862E00730172 /* AddFtpFile.cpp */; };
 		34D20B7D1CB2864700730172 /* IdeCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D20B7C1CB2864700730172 /* IdeCommon.cpp */; };
 		34D20B801CB2866600730172 /* WebFldDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D20B7E1CB2866600730172 /* WebFldDlg.cpp */; };
+		34FF46C0215251E800CDE817 /* PythonParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34FF46BF215251E800CDE817 /* PythonParser.cpp */; };
 		8D0C4E8D0486CD37000505A6 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0867D6AAFE840B52C02AAC07 /* InfoPlist.strings */; };
 		8D0C4E8E0486CD37000505A6 /* main.nib in Resources */ = {isa = PBXBuildFile; fileRef = 02345980000FD03B11CA0E72 /* main.nib */; };
 		8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20286C33FDCF999611CA2CEA /* Carbon.framework */; };
@@ -139,6 +140,8 @@
 		34D20B7C1CB2864700730172 /* IdeCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IdeCommon.cpp; path = ../Code/IdeCommon.cpp; sourceTree = "<group>"; };
 		34D20B7E1CB2866600730172 /* WebFldDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = WebFldDlg.cpp; path = ../Code/WebFldDlg.cpp; sourceTree = "<group>"; };
 		34D20B7F1CB2866600730172 /* WebFldDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WebFldDlg.h; path = ../Code/WebFldDlg.h; sourceTree = "<group>"; };
+		34FF46BE215251E800CDE817 /* ParserCommon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ParserCommon.h; path = ../Code/ParserCommon.h; sourceTree = "<group>"; };
+		34FF46BF215251E800CDE817 /* PythonParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PythonParser.cpp; path = ../Code/PythonParser.cpp; sourceTree = "<group>"; };
 		4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
 		4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
 		8D0C4E960486CD37000505A6 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -281,6 +284,7 @@
 			isa = PBXGroup;
 			children = (
 				34186D7B214DC45000A44EB8 /* PythonParser.cpp */,
+				34FF46BF215251E800CDE817 /* PythonParser.cpp */,
 				341B9A501DEACA310011CE44 /* SimpleCppParser.cpp */,
 				341B9A511DEACA310011CE44 /* ParserCommon.h */,
 				349A25011A5E3D1D00F4263E /* GHistory.cpp */,
