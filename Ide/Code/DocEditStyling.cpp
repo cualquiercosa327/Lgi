@@ -897,7 +897,7 @@ void DocEditStyling::StyleHtml(StylingParams &p)
 
 	char *Ext = LgiGetExtension(p.FileName);
 	DocType Type = Ext && !stricmp(Ext, "js") ? CodePhp : CodeHtml;
-	GTextView3::GStyle *Cur;
+	GTextView3::GStyle *Cur = NULL;
 
 	#define START_CODE() \
 		if (Type != CodeHtml) \
