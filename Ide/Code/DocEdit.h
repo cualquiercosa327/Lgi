@@ -169,14 +169,14 @@ public:
 	DocEdit(IdeDoc *d, GFontType *f);
 	~DocEdit();
 
-	char *Name() { return GTextView3::Name(); }
-	bool Name(const char *s) { return GTextView3::Name(s); }
+	char *Name() override { return GTextView3::Name(); }
+	bool Name(const char *s) override { return GTextView3::Name(s); }
 	bool SetPourEnabled(bool b);
 	int GetTopPaddingPx();
 	void InvalidateLine(int Idx);
 	char *TemplateMerge(const char *Template, char *Name, List<char> *Params);
 	bool GetVisible(GStyle &s);
-	void OnCreate();
+	void OnCreate() override;
 
 	// Overrides
 	bool AppendItems(GSubMenu *Menu, int Base) override;

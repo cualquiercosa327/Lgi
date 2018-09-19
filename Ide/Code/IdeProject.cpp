@@ -1702,10 +1702,16 @@ int BuildThread::Main()
 			}
 
 			if (Clean)
+            {
 				if (All)
+                {
 					TmpArgs += " cleanall";
+                }
 				else
+                {
 					TmpArgs += " clean";
+                }
+            }
 			if (Release)
 				TmpArgs += " Build=Release";
 		}

@@ -1112,7 +1112,6 @@ void DocEditStyling::StyleHtml(StylingParams &p)
 	}
 
 	END_CODE();
-	int asd=0;
 }
 	
 void DocEditStyling::AddKeywords(const char **keys, bool IsType)

@@ -2719,7 +2719,7 @@ bool AppWnd::Build()
 
 		return true;
 	}
-	else if (Top = TopDoc())
+	else if ((Top = TopDoc()))
 	{
 		return Top->Build();
 	}
