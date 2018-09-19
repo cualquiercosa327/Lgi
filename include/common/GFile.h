@@ -156,8 +156,11 @@ public:
 	/// Gets the entries last modified time.  You can convert this to an easy to read for using LDateTime.
 	virtual uint64 GetLastWriteTime() const;
 
-	/// Returns the size of the entry.
+	/// Returns the uncompressed size of the entry.
 	virtual uint64 GetSize() const;
+	
+	/// Returns the size of file on disk. This can be both larger and smaller than the logical size.
+	virtual uint64 GetSizeOnDisk() const;
 
 	/// Returns true if the entry is a sub-directory.
 	virtual bool IsDir() const;

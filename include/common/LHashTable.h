@@ -326,7 +326,7 @@ public:
 		{
 			for (size_t i=0; i<Size; i++)
 			{
-				Table[i].key = NullKey;
+				Table[i].key = this->NullKey;
 			}
 			*this = init;
 		}
