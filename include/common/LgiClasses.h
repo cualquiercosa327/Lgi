@@ -165,6 +165,7 @@ public:
 	
 	/// Returns the thread currently running the active message loop
 	OsThread GetGuiThread();
+	OsThreadId GetGuiThreadId();
 	
 	/// Returns the number of CPU cores the machine has
 	int GetCpuCount();

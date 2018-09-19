@@ -566,6 +566,11 @@ OsThread GApp::GetGuiThread()
 	return d->GuiThread;
 }
 
+OsThreadId GApp::GetGuiThreadId()
+{
+	return GetThreadId(d->GuiThread);
+}
+
 GApp::ClassContainer *GApp::GetClasses()
 {
 	return IsOk() ? &d->Classes : 0;
