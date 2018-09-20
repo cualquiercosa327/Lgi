@@ -164,8 +164,9 @@ public:
 	OsProcessId GetProcessId();
 	
 	/// Returns the thread currently running the active message loop
-	OsThread GetGuiThread();
+	OsThread _GetGuiThread();
 	OsThreadId GetGuiThreadId();
+	bool InThread();
 	
 	/// Returns the number of CPU cores the machine has
 	int GetCpuCount();
@@ -284,9 +285,6 @@ public:
 
 	/// Gets the font cache
 	class GFontCache *GetFontCache();
-
-	/// \returns TRUE if the current thread is the GUI thread...
-	bool InThread();
 
 	// OS Specific
 	#if defined(LGI_SDL)

@@ -561,9 +561,16 @@ int GApp::GetCpuCount()
 	return si.dwNumberOfProcessors ? si.dwNumberOfProcessors : -1;
 }
 
-OsThread GApp::GetGuiThread()
+OsThread GApp::_GetGuiThread()
 {
 	return d->GuiThread;
+}
+
+bool GApp::InThread()
+{
+	auto GuiId = GetGuiThreadId();
+	auto MyId = GetCurrentThreadId();
+	return GuiId == MyId;
 }
 
 OsThreadId GApp::GetGuiThreadId()
