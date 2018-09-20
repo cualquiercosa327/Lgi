@@ -698,8 +698,10 @@ void GTextView3::LogLines()
 		Idx++;
 	}
 
+	#ifdef _DEBUG
 	if (d->PourLog)
 		LgiTrace("%s", d->PourLog.Get());
+	#endif
 	int asd=0;
 }
 

@@ -230,7 +230,8 @@ public:
 	virtual OsProcessId GetProcessId() = 0;
 	
 	/// Returns the thread currently running the active message loop
-	virtual OsThread GetGuiThread() = 0;
+	virtual OsThreadId GetGuiThreadId() = 0;
+	virtual bool InThread() = 0;
 
 	/// Resets the arguments
 	virtual void SetAppArgs(OsAppArguments &AppArgs) = 0;
