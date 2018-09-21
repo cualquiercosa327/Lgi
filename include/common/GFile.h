@@ -132,13 +132,16 @@ public:
 		char *s,
 		// The size of the output buffer in bytes
 		int BufSize
-	);
+	)	const;
+
+	virtual const char *FullPath();
 
 	/// Gets the current entries attributes (platform specific)
 	virtual long GetAttributes() const;
 	
 	/// Gets the name of the current entry. (Doesn't include the path).
 	virtual char *GetName() const;
+	virtual GString FileName() const;
 	
 	/// Gets the user id of the current entry. (Doesn't have any meaning on Win32).
 	virtual int GetUser
@@ -160,7 +163,7 @@ public:
 	virtual uint64 GetSize() const;
 	
 	/// Returns the size of file on disk. This can be both larger and smaller than the logical size.
-	virtual uint64 GetSizeOnDisk() const;
+	virtual int64 GetSizeOnDisk();
 
 	/// Returns true if the entry is a sub-directory.
 	virtual bool IsDir() const;

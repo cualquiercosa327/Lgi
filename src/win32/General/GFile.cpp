@@ -1091,7 +1091,9 @@ bool GDirectory::ConvertToDate(char *Str, int SLen, uint64 Time) const
 struct GDirectoryPriv
 {
 	char			BasePath[DIR_PATH_SIZE];
-	GAutoString     Utf;
+	char			*BaseEnd;
+	int				BaseRemaining;
+	GString			Utf;
 	HANDLE			Handle;
 	WIN32_FIND_DATAW Data;
 
@@ -1099,6 +1101,7 @@ struct GDirectoryPriv
 	{
 		Handle = INVALID_HANDLE_VALUE;
 		BasePath[0] = 0;
+		BaseRemaining = 0;
 	}
 
 	~GDirectoryPriv()
@@ -1122,7 +1125,16 @@ GDirectory *GDirectory::Clone()
 	return new GDirectory;
 }
 
-bool GDirectory::Path(char *s, int BufLen)
+const char *GDirectory::FullPath()
+{
+	auto n = GetName();
+	if (!n)
+		return NULL;
+	strcpy_s(d->BaseEnd, d->BaseRemaining, n);
+	return d->BasePath;
+}
+
+bool GDirectory::Path(char *s, int BufLen) const
 {
 	char *Name = GetName();
 	auto Len = strlen(d->BasePath) + 2;
@@ -1139,66 +1151,114 @@ bool GDirectory::Path(char *s, int BufLen)
 	return Status;
 }
 
-int GDirectory::First(const char *InName, const char *Pattern)
+
+size_t Utf8To16Cpy(uint16 *out, ssize_t outChar, uint8 *in, ssize_t inChar = -1)
 {
-	Close();
-
-    d->Utf.Reset();
-
-	if (!InName)
-		return false;
-
-	char Name[DIR_PATH_SIZE];
-	strcpy_s(Name, sizeof(Name), InName);
-
-	if (IsAlpha(Name[0]) &&
-		Name[1] == ':' &&
-		strlen(Name) <= 3)
+	auto start = out;
+	int32 u32;
+	outChar <<= 1; // words to bytes
+	if (inChar < 0)
 	{
-		// raw drive
-		if (!strchr(Name, DIR_CHAR))
+		while (*in && outChar >= 4)
 		{
-			strcat((char*)Name, DIR_STR);
-		}
-	}
-
-	// dir
-	GAutoWString p(Utf8ToWide(Name));
-	if (p)
-	{
-		char16 w[DIR_PATH_SIZE];
-		w[0] = 0;
-		DWORD Chars = GetFullPathNameW(p, CountOf(w), w, NULL);
-		if (Chars == 0)
-		{
-			DWORD e = GetLastError();
-			StrcpyW(w, p);
-		}
-
-		GAutoString utf(WideToUtf8(w));
-		if (utf)
-			strcpy_s(d->BasePath, sizeof(d->BasePath), utf);
-		else
-			d->BasePath[0] = 0;
-	}
-
-	char Str[DIR_PATH_SIZE];
-	if (Pattern)
-	{
-		if (!LgiMakePath(Str, sizeof(Str), d->BasePath, Pattern))
-		{
-			return false;
+			ssize_t len = 6;
+			u32 = LgiUtf8To32(in, len);
+			LgiUtf32To16(u32, out, outChar);
 		}
 	}
 	else
 	{
-		strcpy_s(Str, sizeof(Str), d->BasePath);
+		while (outChar >= 4 && (u32 = LgiUtf8To32(in, inChar)))
+		{
+			LgiUtf32To16(u32, out, outChar);
+		}
+	}
+	outChar >>= 1; // bytes to words
+	if (outChar > 0)
+		*out = 0;
+
+	return out - start;
+}
+
+size_t Utf16To8Cpy(uint8 *out, ssize_t outChar, const uint16 *in, ssize_t inChar = -1)
+{
+	auto start = out;
+	int32 u32;
+	if (inChar < 0)
+	{
+		while (*in && outChar > 0)
+		{
+			ssize_t len = 4;
+			u32 = LgiUtf16To32(in, len);
+			LgiUtf32To8(u32, out, outChar);
+		}
+	}
+	else
+	{
+		inChar <<= 1; // words to bytes
+		while (outChar > 0 && (u32 = LgiUtf16To32(in, inChar)))
+		{
+			LgiUtf32To8(u32, out, outChar);
+		}
+		inChar >>= 1; // bytes to words
+	}
+	if (outChar > 0)
+		*out = 0;
+
+	return out - start;
+}
+
+template<typename O, typename I>
+size_t UnicodeCpy(O *out, ssize_t outChar, I *in, ssize_t inChar = -1)
+{
+	if (out == NULL || in == NULL)
+		return 0;
+	if (sizeof(O) == 2 && sizeof(I) == 1)
+		return Utf8To16Cpy((uint16*)out, outChar, (uint8*)in, inChar);
+	else if (sizeof(O) == 1 && sizeof(I) == 2)
+		return Utf16To8Cpy((uint8*)out, outChar, (uint16*)in, inChar);
+	else
+		LgiAssert(0);
+	return 0;
+}
+
+int GDirectory::First(const char *InName, const char *Pattern)
+{
+	Close();
+
+    d->Utf.Empty();
+
+	if (!InName)
+		return false;
+
+	wchar_t wTmp[DIR_PATH_SIZE], wIn[DIR_PATH_SIZE];
+	UnicodeCpy(wTmp, CountOf(wTmp), InName);
+	auto Chars = GetFullPathNameW(wTmp, CountOf(wTmp), wIn, NULL);
+	UnicodeCpy(d->BasePath, sizeof(d->BasePath), wIn, Chars);
+
+	d->BaseEnd = d->BasePath + strlen(d->BasePath);
+	if (d->BaseEnd > d->BasePath && d->BaseEnd[-1] != DIR_CHAR)
+	{
+		*d->BaseEnd++ = DIR_CHAR;
+		*d->BaseEnd = 0;
+	}
+	ssize_t Used = d->BaseEnd - d->BasePath;
+	d->BaseRemaining = (int) (sizeof(d->BasePath) - Used);
+
+	char Str[DIR_PATH_SIZE];
+	wchar_t *FindArg;
+	if (Pattern)
+	{
+		if (!LgiMakePath(Str, sizeof(Str), d->BasePath, Pattern))
+			return false;
+		UnicodeCpy(FindArg = wTmp, CountOf(wTmp), Str);
+	}
+	else
+	{
+		FindArg = wIn;
 	}
 
-	GAutoWString s(Utf8ToWide(Str));
-	if (s)
-		d->Handle = FindFirstFileW(s, &d->Data);
-
+	d->Handle = FindFirstFileW(FindArg, &d->Data);
 	if (d->Handle != INVALID_HANDLE_VALUE)
 	{
 		while (	stricmp(GetName(), ".") == 0 ||
@@ -1215,7 +1275,7 @@ int GDirectory::Next()
 {
 	int Status = false;
 	
-    d->Utf.Reset();
+    d->Utf.Empty();
 
 	if (d->Handle != INVALID_HANDLE_VALUE)
 	{
@@ -1233,7 +1293,7 @@ int GDirectory::Close()
 		d->Handle = INVALID_HANDLE_VALUE;
 	}
 
-    d->Utf.Reset();
+    d->Utf.Empty();
 
 	return true;
 }
@@ -1276,10 +1336,14 @@ int GDirectory::GetType() const
 char *GDirectory::GetName() const
 {
 	if (!d->Utf)
-	{
-	    d->Utf.Reset(WideToUtf8(d->Data.cFileName));
-	}
-	
+	    d->Utf = d->Data.cFileName;
+	return d->Utf;
+}
+
+GString GDirectory::FileName() const
+{
+	if (!d->Utf)
+	    d->Utf = d->Data.cFileName;
 	return d->Utf;
 }
 
@@ -1303,10 +1367,49 @@ uint64 GDirectory::GetSize() const
 	return ((uint64) d->Data.nFileSizeHigh) << 32 | d->Data.nFileSizeLow;
 }
 
-uint64 GDirectory::GetSizeOnDisk() const
+struct ClusterSizeMap : public LMutex
 {
-	// FIXME: What is the correct value here?
-	return GetSize();
+	typedef LHashTbl<IntKey<char>,uint64> Map;
+
+	uint64 GetDriveCluserSize(char Letter)
+	{
+		uint64 Cs = 4096;
+
+		LMutex::Auto a(this, _FL);
+		if (a)
+		{
+			Cs = Sizes.Find(Letter);
+			if (!Cs)
+			{
+				DWORD SectorsPerCluster, BytesPerSector;
+				const char Drive[] = { Letter , ':', '\\', 0 };
+				BOOL b = GetDiskFreeSpaceA(Drive, &SectorsPerCluster, &BytesPerSector, NULL, NULL);
+				if (b)
+					Sizes.Add(Letter, Cs = SectorsPerCluster * BytesPerSector);
+				else
+					LgiAssert(0);
+			}
+		}
+
+		return Cs;
+	}
+
+private:
+	Map Sizes;
+}	ClusterSizes;
+
+int64 GDirectory::GetSizeOnDisk()
+{
+	auto Fp = FullPath();
+	if (!Fp || !IsAlpha(Fp[0]))
+		return -1;
+
+	auto ClusterSize = ClusterSizes.GetDriveCluserSize(Fp[0]);
+	DWORD HighSize = 0;
+	DWORD LoSize = GetCompressedFileSizeA(FullPath(), &HighSize);
+	auto Size = ((int64)HighSize << 32) | LoSize;
+	
+	return ((Size + ClusterSize - 1) / ClusterSize) * ClusterSize;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
