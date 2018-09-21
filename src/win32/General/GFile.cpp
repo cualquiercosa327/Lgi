@@ -1367,35 +1367,35 @@ uint64 GDirectory::GetSize() const
 	return ((uint64) d->Data.nFileSizeHigh) << 32 | d->Data.nFileSizeLow;
 }
 
-struct ClusterSizeMap : public LMutex
+struct ClusterSizeMap
 {
-	typedef LHashTbl<IntKey<char>,uint64> Map;
+	ClusterSizeMap()
+	{
+		ZeroObj(Sizes);
+	}
 
 	uint64 GetDriveCluserSize(char Letter)
 	{
 		uint64 Cs = 4096;
+		auto letter = ToLower(Letter) - 'a';
 
-		LMutex::Auto a(this, _FL);
-		if (a)
+		Cs = Sizes[letter];
+		if (!Cs)
 		{
-			Cs = Sizes.Find(Letter);
-			if (!Cs)
-			{
-				DWORD SectorsPerCluster, BytesPerSector;
-				const char Drive[] = { Letter , ':', '\\', 0 };
-				BOOL b = GetDiskFreeSpaceA(Drive, &SectorsPerCluster, &BytesPerSector, NULL, NULL);
-				if (b)
-					Sizes.Add(Letter, Cs = SectorsPerCluster * BytesPerSector);
-				else
-					LgiAssert(0);
-			}
+			DWORD SectorsPerCluster, BytesPerSector;
+			const char Drive[] = { Letter , ':', '\\', 0 };
+			BOOL b = GetDiskFreeSpaceA(Drive, &SectorsPerCluster, &BytesPerSector, NULL, NULL);
+			if (b)
+				Sizes[letter] = Cs = SectorsPerCluster * BytesPerSector;
+			else
+				LgiAssert(0);
 		}
 
 		return Cs;
 	}
 
 private:
-	Map Sizes;
+	uint64 Sizes[26];
 }	ClusterSizes;
 
 int64 GDirectory::GetSizeOnDisk()
@@ -1407,7 +1407,8 @@ int64 GDirectory::GetSizeOnDisk()
 	auto ClusterSize = ClusterSizes.GetDriveCluserSize(Fp[0]);
 	DWORD HighSize = 0;
 	DWORD LoSize = GetCompressedFileSizeA(FullPath(), &HighSize);
-	auto Size = ((int64)HighSize << 32) | LoSize;
+	*d->BaseEnd = 0;
+	auto Size = ((uint64)HighSize << 32) | LoSize;
 	
 	return ((Size + ClusterSize - 1) / ClusterSize) * ClusterSize;
 }
