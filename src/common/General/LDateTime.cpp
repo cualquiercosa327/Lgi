@@ -1654,7 +1654,7 @@ bool LDateTime::Decode(const char *In)
 	bool Status = false;
 
 	// Tokenize delimited by whitespace
-	GString::Array T = GString(In).SplitDelimit();
+	GString::Array T = GString(In).SplitDelimit(", \t\r\n");
 	if (T.Length() >= 2)
 	{
 		bool GotDate = false;
@@ -1721,26 +1721,46 @@ bool LDateTime::Decode(const char *In)
 			else if (s.Find(":") >= 0)
 			{
 				// whole time
-				GString::Array Time = s.Split(":");
-				if (Time.Length() == 2 ||
-					Time.Length() == 3)
+
+				// Do some validation
+				bool Valid = true;
+				for (char *c = s; *c && Valid; c++)
 				{
-					// Hour
-					Hours((int)Time[0].Int());
-					if (s.Lower().Find("p") >= 0)
+					if (!(IsDigit(*c) || *c == ':'))
+						Valid = false;
+				}
+
+				if (Valid)
+				{
+					GString::Array Time = s.Split(":");
+					if (Time.Length() == 2 ||
+						Time.Length() == 3)
 					{
-						if (Hours() < 12)
-							Hours(Hours() + 12);
-					}
+						// Hour
+						int i = (int) Time[0].Int();
+						if (i >= 0)
+							Hours(i);
+						if (s.Lower().Find("p") >= 0)
+						{
+							if (Hours() < 12)
+								Hours(Hours() + 12);
+						}
 
-					// Minute
-					Minutes((int)Time[1].Int());
+						// Minute
+						i = (int) Time[1].Int();
+						if (i >= 0)
+							Minutes(i);
 
-					if (Time.Length() == 3)
-						// Second
-						Seconds((int)Time[2].Int());
+						if (Time.Length() == 3)
+						{
+							// Second
+							i = (int) Time[2].Int();
+							if (i >= 0)
+								Seconds(i);
+						}
 						
-					Status = true;
+						Status = true;
+					}
 				}
 			}
 			else if (IsAlpha(s(0)))
