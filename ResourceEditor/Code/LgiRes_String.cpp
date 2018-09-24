@@ -441,7 +441,7 @@ bool ResString::Read(GXmlTag *t, SerialiseContext &Ctx)
 				}
 				else if (Ctx.Format == CodepageFile)
 				{
-					char *Utf8 = (char*)LgiNewConvertCp("utf-8", v->GetValue(), Lang->CodePage);
+					char *Utf8 = (char*)LgiNewConvertCp("utf-8", v->GetValue(), Lang->Charset);
 					Set(Utf8 ? Utf8 : v->GetValue(), Lang->Id);
 					if (Utf8)
 					{
@@ -513,7 +513,7 @@ bool ResString::Write(GXmlTag *t, SerialiseContext &Ctx)
 				GLanguage *Li = GFindLang(s->GetLang());
 				if (Li)
 				{
-					Mem = String = (char*)LgiNewConvertCp(Li->CodePage, s->GetStr(), "utf-8");
+					Mem = String = (char*)LgiNewConvertCp(Li->Charset, s->GetStr(), "utf-8");
 				}
 
 				if (!String) String = s->GetStr();
