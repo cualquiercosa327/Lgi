@@ -160,7 +160,7 @@ bool LgiStringRes::Read(GXmlTag *t, ResFileFormat Format)
 			GLanguage *Lang = GFindLang("en");
 			if (Lang)
 			{
-				Cp = Lang->CodePage;
+				Cp = Lang->Charset;
 			}
 		}
 
@@ -506,7 +506,7 @@ bool LgiResources::Load(char *FileName)
 	}
 	else if (LgiStringRes::CurLang)
 	{
-		LgiStringRes::CodePage = LgiStringRes::CurLang->CodePage;
+		LgiStringRes::CodePage = LgiStringRes::CurLang->Charset;
 	}
 
 	GXmlTree x(0);
