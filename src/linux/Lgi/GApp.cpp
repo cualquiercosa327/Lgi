@@ -242,6 +242,7 @@ public:
 	GLibrary *WmLib;
 	GHashTbl<int, GView*> Handles;
 	OsThread GuiThread;
+	OsThreadId GuiThreadId;
 	int MessageLoopDepth;
 	int CurEvent;
 	#if DEBUG_MSG_TYPES
@@ -277,6 +278,7 @@ public:
 	{
 		CurEvent = 0;
 		GuiThread = LgiGetCurrentThread();
+		GuiThreadId = GetCurrentThreadId();
 		WmLib = 0;
 		FileSystem = 0;
 		GdcSystem = 0;
@@ -487,9 +489,14 @@ GViewI *GApp::GetFocus()
 	return NULL;
 }
 
-OsThread GApp::GetGuiThread()
+OsThread GApp::_GetGuiThread()
 {
 	return d->GuiThread;
+}
+
+OsThreadId GApp::GetGuiThreadId()
+{
+	return d->GuiThreadId;
 }
 
 OsProcessId GApp::GetProcessId()
@@ -516,8 +523,8 @@ void GApp::SetAppArgs(OsAppArguments &AppArgs)
 
 bool GApp::InThread()
 {
-	OsThreadId Me = LgiGetCurrentThread();
-	OsThreadId Gui = GetGuiThread();
+	OsThreadId Me = GetCurrentThreadId();
+	OsThreadId Gui = GetGuiThreadId();
 	// printf("Me=%i Gui=%i\n", Me, Gui);
 	return Gui == Me;
 }

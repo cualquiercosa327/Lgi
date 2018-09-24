@@ -1146,7 +1146,20 @@ int GDirectory::Close()
 	return true;
 }
 
-bool GDirectory::Path(char *s, int BufLen)
+const char *GDirectory::FullPath()
+{
+	static char s[MAX_PATH];
+	#warning this should really be optimized, and thread safe...
+	Path(s, sizeof(s));
+	return s;
+}
+
+GString GDirectory::FileName() const
+{
+	return GetName();
+}
+
+bool GDirectory::Path(char *s, int BufLen) const
 {
 	if (!s)
 	{
@@ -1233,6 +1246,11 @@ uint64 GDirectory::GetLastWriteTime() const
 }
 
 uint64 GDirectory::GetSize() const
+{
+	return (uint32)d->Stat.st_size;
+}
+
+int64 GDirectory::GetSizeOnDisk()
 {
 	return (uint32)d->Stat.st_size;
 }

@@ -1120,7 +1120,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/GContainers.h \
 	./include/common/GStream.h \
 	./include/common/GString.h \
-	./include/common/LCancel.h
+	./include/common/LCancel.h \
+	./include/common/LHashTable.h
 
 ./include/common/GInput.h : 
 
@@ -1505,7 +1506,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/GContainers.h \
 	./include/common/GStream.h \
 	./include/common/GString.h \
-	./include/common/LCancel.h
+	./include/common/LCancel.h \
+	./include/common/LHashTable.h
 
 ./include/common/LgiDefs.h : ./include/common/LgiInc.h \
 	./include/common/GAutoPtr.h

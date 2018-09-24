@@ -74,6 +74,7 @@ Depends =	GDebugContext.o \
 			FindInFiles.o \
 			FindSymbol.o \
 			GHistory.o \
+			PythonParser.o \
 			SimpleCppParser.o \
 			GLexCpp.o \
 			GParseCpp.o \
@@ -515,7 +516,7 @@ FindSymbol.o : ./Code/FindSymbol.cpp ../include/common/Lgi.h \
 	../include/common/GToken.h \
 	../include/common/GEventTargetThread.h \
 	../include/common/GTextFile.h \
-	./Code/SimpleCppParser.h \
+	./Code/ParserCommon.h \
 	../include/common/GParseCpp.h \
 	./Resources/resdefs.h
 	@echo $(<F) [$(Build)]
@@ -527,8 +528,13 @@ GHistory.o : ./Code/GHistory.cpp ../include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
+PythonParser.o : ./Code/PythonParser.cpp ../include/common/Lgi.h \
+	./Code/ParserCommon.h
+	@echo $(<F) [$(Build)]
+	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
+
 SimpleCppParser.o : ./Code/SimpleCppParser.cpp ../include/common/Lgi.h \
-	./Code/SimpleCppParser.h
+	./Code/ParserCommon.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -1347,7 +1353,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GContainers.h \
 	../include/common/GStream.h \
 	../include/common/GString.h \
-	../include/common/LCancel.h
+	../include/common/LCancel.h \
+	../include/common/LHashTable.h
 
 ../include/common/LgiInterfaces.h : ../include/common/GMem.h \
 	../include/common/GArray.h \
@@ -1525,7 +1532,8 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GContainers.h \
 	../include/common/GStream.h \
 	../include/common/GString.h \
-	../include/common/LCancel.h
+	../include/common/LCancel.h \
+	../include/common/LHashTable.h
 
 ./Code/GDebugger.h : ../include/common/GVariant.h \
 	../include/common/GStringClass.h
@@ -1846,6 +1854,12 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/linux/Gtk/LgiOsDefs.h \
 	../include/common/GStream.h
 
+./Code/ParserCommon.h : ../include/common/GLexCpp.h
+
+../include/common/GLexCpp.h : ../include/common/LgiInc.h \
+	../include/linux/Gtk/LgiOsDefs.h \
+	../include/common/GString.h
+
 ./Code/IdeDocPrivate.h : 
 
 ../include/common/GRefCount.h : 
@@ -1855,7 +1869,9 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 
 ./Code/IdeDoc.h : ../include/common/GMdi.h \
 	../include/common/GTextView3.h \
-	./Code/SimpleCppParser.h
+	./Code/ParserCommon.h
+
+./Code/ParserCommon.h : ../include/common/GLexCpp.h
 
 ../src/common/Lgi/LMutex.cpp : ../include/common/Lgi.h
 
@@ -1885,12 +1901,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 	../include/common/GPalette.h
 
 ../include/common/GBitmap.h : 
-
-./Code/SimpleCppParser.h : ../include/common/GLexCpp.h
-
-../include/common/GLexCpp.h : ../include/common/LgiInc.h \
-	../include/linux/Gtk/LgiOsDefs.h \
-	../include/common/GString.h
 
 ./Code/FindInFiles.h : ./Code/GHistory.h
 
@@ -1982,8 +1992,6 @@ Png.o : ../src/common/Gdc2/Filters/Png.cpp ../include/common/Lgi.h \
 ../include/common/GdiLeak.h : 
 
 ../include/common/GToolBar.h : ../include/common/GImageList.h
-
-./Code/SimpleCppParser.h : ../include/common/GLexCpp.h
 
 ../include/common/GCom.h : ../include/common/GContainers.h \
 	../include/common/GVariant.h

@@ -47,6 +47,7 @@
 			<Node File="./Code/FindSymbol.h" Type="3" Platforms="15" />
 			<Node File="./Code/GHistory.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/GHistory.h" Type="3" Platforms="15" />
+			<Node File="./Code/PythonParser.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/SimpleCppParser.cpp" Type="2" Platforms="15" />
 			<Node File="./Code/SimpleCppParser.h" Type="3" Platforms="15" />
 		</Node>
