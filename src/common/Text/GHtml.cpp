@@ -4365,6 +4365,8 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f, uint16 Depth)
 			GTag *t = Get(x, y);
 			if (t)
 			{
+				// This is needed for the metrics...
+				t->GetFont();
 				t->Cell->BorderPx = f->ResolveBorder(t, Font);
 				t->Cell->PaddingPx = f->ResolvePadding(t, Font);
 
