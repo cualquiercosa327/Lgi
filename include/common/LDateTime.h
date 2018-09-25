@@ -337,6 +337,13 @@ public:
 	}
 
 	LDateTime &operator =(struct tm *t);
+	LDateTime &operator =(const LDateTime &t);
+	LDateTime &operator =(LDateTime const *t)
+	{
+		if (t)
+			*this = *t;
+		return *this;
+	}
 
 	/// GDom interface.
 	///

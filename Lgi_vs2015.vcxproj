@@ -468,7 +468,7 @@
     <ClCompile Include="src\common\Lgi\GVariant.cpp" />
     <ClCompile Include="src\common\Lgi\GViewCommon.cpp" />
     <ClCompile Include="src\common\Lgi\GWindowCommon.cpp" />
-    <ClCompile Include="src\common\Lgi\Lgi.cpp" />
+    <ClCompile Include="src\common\Lgi\LgiCommon.cpp" />
     <ClCompile Include="src\common\Lgi\LgiMsg.cpp" />
     <ClCompile Include="src\common\Lgi\LgiRand.cpp" />
     <ClCompile Include="src\common\Lgi\LMutex.cpp" />

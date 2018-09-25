@@ -1472,6 +1472,21 @@ LDateTime LDateTime::operator +(LDateTime &dt)
 	return s;
 }
 
+LDateTime &LDateTime::operator =(const LDateTime &t)
+{
+	_Day = t._Day;
+	_Year = t._Year;
+	_Thousands = t._Thousands;
+	_Month = t._Month;
+	_Seconds = t._Seconds;
+	_Minutes = t._Minutes;
+	_Hours = t._Hours;
+	_Tz = t._Tz;
+	_Format = t._Format;
+
+	return *this;
+}
+
 LDateTime &LDateTime::operator =(struct tm *time)
 {
 	if (time)
