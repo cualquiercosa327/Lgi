@@ -109,7 +109,7 @@ class LJson
 					Depth--;
 				}
 			}
-			else if (Array.Length())
+			else if (!Str)
 			{
 				r += "[ ";
 				for (unsigned i=0; i<Array.Length(); i++)

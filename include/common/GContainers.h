@@ -1076,6 +1076,8 @@ public:
 	
 	/// Writes bytes to the end of the container
 	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0) override;
+
+	bool Write(const GString &s) { return Write(s.Get(), s.Length()) == s.Length(); }
 };
 
 /// A version of GBytePipe for strings. Adds some special handling for strings.
