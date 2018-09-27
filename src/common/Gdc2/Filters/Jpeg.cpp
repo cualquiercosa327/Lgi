@@ -77,6 +77,7 @@ public:
 
 };
 
+LMutex JpegLibraryLock("JpegLibraryLock");
 GAutoPtr<LibJpeg> JpegLibrary;
 #endif
 
@@ -122,8 +123,12 @@ class GdcJpegFactory : public GFilterFactory
 	GFilter *NewObject()
 	{
 		#if LIBJPEG_SHARED
-		if (!JpegLibrary)
-			JpegLibrary.Reset(new LibJpeg);
+		if (JpegLibraryLock.Lock(_FL))
+		{
+			if (!JpegLibrary)
+				JpegLibrary.Reset(new LibJpeg);
+			JpegLibraryLock.Unlock();
+		}
 		#endif
 		return new GdcJpeg;
 	}
