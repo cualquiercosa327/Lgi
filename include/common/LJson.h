@@ -115,12 +115,12 @@ class LJson
 				for (unsigned i=0; i<Array.Length(); i++)
 				{
 					Key &k = Array[i];
+					if (i)
+						r += ", ";
 					if (k.Obj.Length())
 						s = GString("{") + k.Print() + "}";
 					else
 						s = k.Print();
-					if (i)
-						s += ", ";
 					r += s;
 				}
 				r += " ]";
