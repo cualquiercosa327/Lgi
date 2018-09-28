@@ -36,6 +36,9 @@ const char sLibrary[] =
 		#else
 		"x32"
 		#endif
+		#ifdef _DEBUG
+		"d"
+		#endif
 	#endif
 	;
 #else

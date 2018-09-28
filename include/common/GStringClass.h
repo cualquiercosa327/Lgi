@@ -902,6 +902,11 @@ public:
 		return s;
 	}
 
+	void Swap(GString &s)
+	{
+		LSwap(Str, s.Str);
+	}
+
 	/// Gets the character at 'index'
 	int operator() (ssize_t index) const
 	{
