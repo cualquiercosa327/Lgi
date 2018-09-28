@@ -986,7 +986,7 @@ public:
 		return LgiPrintf(*this, Fmt, Arg);
 	}
 	
-	static GString Escape(const char *In, ssize_t Len, const char *Chars = "\r\n\b\\\'\"")
+	static GString Escape(const char *In, ssize_t Len = -1, const char *Chars = "\r\n\b\\\'\"")
 	{
 		GString s;
 	
@@ -1041,17 +1041,21 @@ public:
 		return s;
 	}
 
-	static GString UnEscape(const char *In, ssize_t Len, const char *Chars = "\r\n\b\\\'\"")
+	static GString UnEscape(const char *In, ssize_t Len = -1)
 	{
 		GString s;
-		if (Chars && In)
+		if (In)
 		{
 			char Buf[256];
 			int Ch = 0;
-			if (Len < 0)
-				Len = strlen(In);
+			const char *End = Len >= 0 ? In + Len : NULL;
 		
-			while (Len-- > 0)
+			while
+			(
+				(!End || In < End)
+				&&
+				*In
+			)
 			{
 				if (Ch > sizeof(Buf)-4)
 				{
@@ -1062,10 +1066,37 @@ public:
 				}
 				if (*In == '\\')
 				{
-					if (strchr(Chars, In[1]))
+					In++;
+					switch (*In)
+					{
+						case 'n':
+						case 'N':
+							Buf[Ch++] = '\n';
+							break;
+						case 'r':
+						case 'R':
+							Buf[Ch++] = '\r';
+							break;
+						case 'b':
+						case 'B':
+							Buf[Ch++] = '\b';
+							break;
+						case 't':
+						case 'T':
+							Buf[Ch++] = '\t';
+							break;
+						default:
+							Buf[Ch++] = *In;
+							break;
+						case 0:
+							break;
+					}
+					if (*In)
 						In++;
+					else
+						break;
 				}
-				Buf[Ch++] = *In++;
+				else Buf[Ch++] = *In++;
 			}
 			if (Ch > 0)
 			{

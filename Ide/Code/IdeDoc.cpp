@@ -1422,6 +1422,40 @@ bool IdeDoc::HasFocus(int Set)
 	return d->Edit->Focus();
 }
 
+void IdeDoc::EscapeSelection(bool ToEscaped)
+{
+	if (!d->Edit)
+		return;
+
+	GString s = d->Edit->GetSelection();
+	if (!s)
+		return;
+
+	if (ToEscaped)
+	{
+		GMouse m;
+		GetMouse(m);
+		GString Delim = "\r\n";
+		if (m.Ctrl())
+		{
+			GInput Inp(this, GString::Escape(Delim, -1, "\\"), "Delimiter chars:", "Escape");
+			if (Inp.DoModal())
+				Delim = GString::UnEscape(Inp.GetStr(), -1);
+		}
+		s = GString::Escape(s, -1, Delim);
+	}
+	else
+	{
+		s = GString::UnEscape(s, -1);
+	}
+
+	auto r = d->Edit->GetSelectionRange();
+
+	GAutoWString w(Utf8ToWide(s));
+	d->Edit->DeleteSelection();
+	d->Edit->Insert(r.Start, w, StrlenW(w));
+}
+
 void IdeDoc::ConvertWhiteSpace(bool ToTabs)
 {
 	if (!d->Edit)

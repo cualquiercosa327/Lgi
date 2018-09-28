@@ -3350,6 +3350,20 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 				Doc->ConvertWhiteSpace(false);
 			break;
 		}
+		case IDM_ESCAPE:
+		{
+			IdeDoc *Doc = FocusDoc();
+			if (Doc)
+				Doc->EscapeSelection(true);
+			break;
+		}
+		case IDM_DESCAPE:
+		{
+			IdeDoc *Doc = FocusDoc();
+			if (Doc)
+				Doc->EscapeSelection(false);
+			break;
+		}
 		case IDM_EOL_LF:
 		{
 			IdeDoc *Doc = FocusDoc();
