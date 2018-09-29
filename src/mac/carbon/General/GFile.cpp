@@ -1067,6 +1067,7 @@ class GDirectoryPriv
 {
 public:
 	char			BasePath[512];
+	char			*BaseEnd;
 	DIR				*Dir;
 	struct dirent	*De;
 	struct stat		Stat;
@@ -1078,6 +1079,7 @@ public:
 		De = NULL;
 		BasePath[0] = 0;
 		Pattern = NULL;
+		BaseEnd = NULL;
 	}
 	
 	~GDirectoryPriv()
@@ -1126,6 +1128,8 @@ int GDirectory::First(const char *Name, const char *Pattern)
 	if (Name)
 	{
 		strcpy_s(d->BasePath, sizeof(d->BasePath), Name);
+		d->BaseEnd = d->BasePath + strlen(d->BasePath);
+		
 		if (!Pattern || stricmp(Pattern, LGI_ALL_FILES) == 0)
 		{
 			struct stat S;
@@ -1205,7 +1209,16 @@ int GDirectory::Close()
 	return true;
 }
 
-bool GDirectory::Path(char *s, int BufLen)
+const char *GDirectory::FullPath()
+{
+	auto n = GetName();
+	if (!n)
+		return NULL;
+	strncpy(d->BaseEnd, n, sizeof(d->BasePath) - (d->BaseEnd - d->BasePath));
+	return d->BasePath;
+}
+
+bool GDirectory::Path(char *s, int BufLen) const
 {
 	if (!s)
 	{
@@ -1271,6 +1284,11 @@ long GDirectory::GetAttributes() const
 	return d->Stat.st_mode;
 }
 
+GString GDirectory::FileName() const
+{
+	return (d->De) ? d->De->d_name : 0;
+}
+
 char *GDirectory::GetName() const
 {
 	return (d->De) ? d->De->d_name : 0;
@@ -1296,7 +1314,7 @@ uint64 GDirectory::GetSize() const
 	return d->Stat.st_size;
 }
 
-uint64 GDirectory::GetSizeOnDisk() const
+int64 GDirectory::GetSizeOnDisk()
 {
 	return d->Stat.st_blocks * d->Stat.st_blksize;
 }

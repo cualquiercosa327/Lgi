@@ -702,7 +702,6 @@ void GTextView3::LogLines()
 	if (d->PourLog)
 		LgiTrace("%s", d->PourLog.Get());
 	#endif
-	int asd=0;
 }
 
 bool GTextView3::ValidateLines(bool CheckBox)
