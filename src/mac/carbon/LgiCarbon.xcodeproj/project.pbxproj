@@ -99,7 +99,6 @@
 		345FF6C2201FF88A005E46DD /* GMenuCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 345FF6C1201FF88A005E46DD /* GMenuCommon.cpp */; };
 		34637EBA0F876EB1005A9B80 /* LDateTime.h in Headers */ = {isa = PBXBuildFile; fileRef = 34637EB90F876EB1005A9B80 /* LDateTime.h */; };
 		3465BDD908C5DEC100B4C217 /* GContainers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3465BDD808C5DEC100B4C217 /* GContainers.cpp */; };
-		34661C7913C7407000B4C2A7 /* GUtf8.h in Headers */ = {isa = PBXBuildFile; fileRef = 34661C7813C7407000B4C2A7 /* GUtf8.h */; };
 		346BF43B193AAD02000C2030 /* GBox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 346BF43A193AAD02000C2030 /* GBox.cpp */; };
 		347323B71F3ED6D3003CD554 /* LThreadEvent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 347323B61F3ED6D3003CD554 /* LThreadEvent.cpp */; };
 		3476333318E2D12300766FC4 /* GColour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3476333218E2D12300766FC4 /* GColour.cpp */; };
@@ -287,7 +286,6 @@
 		345FF6C1201FF88A005E46DD /* GMenuCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GMenuCommon.cpp; path = ../../common/Lgi/GMenuCommon.cpp; sourceTree = "<group>"; };
 		34637EB90F876EB1005A9B80 /* LDateTime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LDateTime.h; path = ../../../include/common/LDateTime.h; sourceTree = "<group>"; };
 		3465BDD808C5DEC100B4C217 /* GContainers.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GContainers.cpp; path = ../../common/General/GContainers.cpp; sourceTree = "<group>"; };
-		34661C7813C7407000B4C2A7 /* GUtf8.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GUtf8.h; path = ../../../include/common/GUtf8.h; sourceTree = "<group>"; };
 		346BF43A193AAD02000C2030 /* GBox.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GBox.cpp; path = ../../common/Widgets/GBox.cpp; sourceTree = "<group>"; };
 		347323B61F3ED6D3003CD554 /* LThreadEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LThreadEvent.cpp; path = ../../common/Lgi/LThreadEvent.cpp; sourceTree = "<group>"; };
 		3476333218E2D12300766FC4 /* GColour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GColour.cpp; path = ../../common/Gdc2/GColour.cpp; sourceTree = "<group>"; };
@@ -646,7 +644,6 @@
 				34FB3A771B6C389100B32A56 /* GUnicode.h */,
 				34FB3A751B6C37FD00B32A56 /* GStringClass.h */,
 				34FB3A781B6C3A8800B32A56 /* GUnicode.cpp */,
-				34661C7813C7407000B4C2A7 /* GUtf8.h */,
 				3413BBC11349EC6900AE15B0 /* GXmlTree.h */,
 				34B4A52F0C059A2100CDD0D1 /* GUtf8.cpp */,
 				34B9545C0939DB5A00477A2D /* GString.h */,
@@ -943,7 +940,6 @@
 				3413BBC21349EC6900AE15B0 /* GXmlTree.h in Headers */,
 				34BC1E1F134DC748005451EE /* Res.h in Headers */,
 				34BA44471FE3BF150018D6AE /* LCancel.h in Headers */,
-				34661C7913C7407000B4C2A7 /* GUtf8.h in Headers */,
 				34B28AF2143FA6AF0023662F /* GPath.h in Headers */,
 				34A11A7E167534A500FCC5D7 /* LMutex.h in Headers */,
 				347CB600172A97D600AC3EA6 /* GTableLayout.h in Headers */,

@@ -420,22 +420,6 @@ void GButton::OnPaint(GSurface *pDC)
 		d->Paint(pDC, pt, GColour(), r, Enabled());
 	}
 	
-	/*
-	if (d->Txt)
-	{
-		GFont *f = d->Txt->GetFont();
-		if (f)
-		{
-			f->Transparent(true);
-			f->Fore(LC_TEXT);
-			
-			int Ox = (LabelRect.size.width - d->Txt->X()) / 2;
-			int Oy = (Y() - d->Txt->Y() + 1) / 2;
-			d->Txt->Draw(pDC, LabelRect.origin.x+Ox, Oy);
-		}
-	}
-	*/
-	
 	#else
 
 	if (GApp::SkinEngine &&

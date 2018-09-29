@@ -16,6 +16,12 @@
 #include "GTableLayout.h"
 #include "LgiRes.h"
 
+#if defined(MAC) && !defined(COCOA) && !defined(LGI_SDL)
+#define MAC_PAINT	1
+#else
+#define MAC_PAINT	0
+#endif
+
 #ifdef WIN32
 
 #ifdef TOOL_VLOW
@@ -53,6 +59,7 @@ public:
 	int Current;
 	GRect TabClient;
 	bool PourChildren;
+	GRect Inset;
 	
 	// Scrolling
 	int Scroll;			// number of buttons scrolled off the left of the control
@@ -359,7 +366,13 @@ GRect &GTabView::GetTabClient()
 {
 	d->TabClient = GView::GetClient();
 	d->TabClient.Offset(-d->TabClient.x1, -d->TabClient.y1);
+
+	#if MAC_PAINT
+	d->TabClient.Size(8, 8);
+	#else
 	d->TabClient.Size(2, 2);
+	#endif
+	
 	d->TabClient.y1 += TabY();
 
 	return d->TabClient;
@@ -505,112 +518,193 @@ void GTabView::OnPaint(GSurface *pDC)
 	if (d->Current >= it.Length())
 		Value(it.Length() - 1);
 
-	if (GApp::SkinEngine &&
-		TestFlag(GApp::SkinEngine->GetFeatures(), GSKIN_TABVIEW))
-	{
-		GSkinState State;
-		State.pScreen = pDC;
-		State.MouseOver = false;
-		GApp::SkinEngine->OnPaint_GTabView(this, &State);
-	}
-	else
-	{
-		GRect r = GetTabClient();
+	#if MAC_PAINT
+	
+		GRect Margin(6, 6, 6, 6);
 
-		r.Size(-2, -2);
-		LgiWideBorder(pDC, r, DefaultRaisedEdge);
-
-		pDC->Colour(LC_MED, 24);
-		pDC->Rectangle(0, 0, X()-1, d->TabClient.y1-3);
-
-		GTabPage *Sel = 0;
-		int x = r.x1;
-		
-		if (d->Scroll)
+		GColour NoPaintColour(LC_MED, 24);
+		if (GetCss())
 		{
-			d->RightBtn.ZOff(12, TabY() - 2);
-			x = d->RightBtn.x2 + 4;
+			GCss::ColorDef NoPaint = GetCss()->NoPaintColor();
+			if (NoPaint.Type == GCss::ColorRgb)
+				NoPaintColour.Set(NoPaint.Rgb32, 32);
+			else if (NoPaint.Type == GCss::ColorTransparent)
+				NoPaintColour.Empty();
+		}
+		if (!NoPaintColour.IsTransparent())
+		{
+			pDC->Colour(NoPaintColour);
+			pDC->Rectangle();
+		}
+		
+		auto f = GetFont();
+		d->Inset = GetClient();
+		int FnHalf = (f->GetHeight() + 3) / 2;
+		d->Inset.x1 += Margin.x1;
+		d->Inset.x2 -= Margin.x2;
+		d->Inset.y1 += Margin.y1 + FnHalf;
+		d->Inset.y2 -= Margin.y2;
+		HIRect Bounds = d->Inset;
+
+		HIThemeTabPaneDrawInfo Info;
+		Info.version = 1;
+		Info.state = Enabled() ? kThemeStateActive : kThemeStateInactive;
+		Info.direction = kThemeTabNorth;
+		Info.size = kHIThemeTabSizeNormal;
+		Info.kind = kHIThemeTabKindNormal;
+		Info.adornment = kHIThemeTabPaneAdornmentNormal;
+
+		OSStatus e = HIThemeDrawTabPane(&Bounds, &Info, pDC->Handle(), kHIThemeOrientationNormal);
+
+		int x = 32, y = d->Inset.y1 - FnHalf;
+		for (unsigned i = 0; i < it.Length(); i++)
+		{
+			GDisplayString ds(f, it[i]->Name());
+
+			GRect r(0, 0, ds.X() + 23, ds.Y() + 3);
+			r.Offset(x, y);
+			HIRect TabRc = r;
+			HIThemeTabDrawInfo TabInfo;
+			HIRect Label;
+			
+			TabInfo.version = 1;
+			TabInfo.style = d->Current == i ? kThemeTabNonFrontPressed : kThemeTabNonFront;
+			TabInfo.direction = Info.direction;
+			TabInfo.size = Info.size;
+			TabInfo.adornment = Info.adornment;
+			TabInfo.kind = Info.kind;
+			if (it.Length() == 1)
+				TabInfo.position = kHIThemeTabPositionOnly;
+			else if (i == 0)
+				TabInfo.position = kHIThemeTabPositionFirst;
+			else if (i == it.Length() - 1)
+				TabInfo.position = kHIThemeTabPositionLast;
+			else
+				TabInfo.position = kHIThemeTabPositionMiddle;
+			
+			e = HIThemeDrawTab(&TabRc, &TabInfo, pDC->Handle(), kHIThemeOrientationNormal, &Label);
+			
+			r = Label;
+			
+			f->Transparent(true);
+			f->Fore(GColour(LC_TEXT, 24));
+			ds.Draw(pDC, r.x1 + (r.X() - ds.X()) / 2, r.y1 + (r.Y() - ds.Y()) / 2, &r);
+			
+			it[i]->TabPos = r;
+			x += r.X() +
+				(i ? -1 : 2); // Fudge factor to make it look nice, wtf apple?
+		}
+	
+	#else
+
+		if (GApp::SkinEngine &&
+			TestFlag(GApp::SkinEngine->GetFeatures(), GSKIN_TABVIEW))
+		{
+			GSkinState State;
+			State.pScreen = pDC;
+			State.MouseOver = false;
+			GApp::SkinEngine->OnPaint_GTabView(this, &State);
 		}
 		else
 		{
-			d->RightBtn.ZOff(-1, -1);
-		}
-		d->LeftBtn.ZOff(-1, -1);
-		
-		for (int n=0; n<it.Length(); n++)
-		{
-			GTabPage *p = it[n];
-			if (n < d->Scroll)
+			GRect r = GetTabClient();
+
+			r.Size(-2, -2);
+			LgiWideBorder(pDC, r, DefaultRaisedEdge);
+
+			pDC->Colour(LC_MED, 24);
+			pDC->Rectangle(0, 0, X()-1, d->TabClient.y1-3);
+
+			GTabPage *Sel = 0;
+			int x = r.x1;
+			
+			if (d->Scroll)
 			{
-				p->TabPos.ZOff(-1, -1);
+				d->RightBtn.ZOff(12, TabY() - 2);
+				x = d->RightBtn.x2 + 4;
 			}
 			else
 			{
-				int Wid = p->GetTabPx();
-				p->TabPos.ZOff(Wid, TabY()-3);
-				p->TabPos.Offset(x, 2);
-				
-				if (p->TabPos.x2 > r.x2 - 16)
+				d->RightBtn.ZOff(-1, -1);
+			}
+			d->LeftBtn.ZOff(-1, -1);
+			
+			for (int n=0; n<it.Length(); n++)
+			{
+				GTabPage *p = it[n];
+				if (n < d->Scroll)
 				{
-					d->LeftBtn.x2 = X()-1;
-					d->LeftBtn.x1 = d->LeftBtn.x2 - 12;
-					d->LeftBtn.y1 = 0;
-					d->LeftBtn.y2 = TabY() - 2;
-					
 					p->TabPos.ZOff(-1, -1);
-					break;
-				}
-				
-				if (d->Current != n)
-				{
-					p->PaintTab(pDC, false);
 				}
 				else
 				{
-					Sel = p;
+					int Wid = p->GetTabPx();
+					p->TabPos.ZOff(Wid, TabY()-3);
+					p->TabPos.Offset(x, 2);
+					
+					if (p->TabPos.x2 > r.x2 - 16)
+					{
+						d->LeftBtn.x2 = X()-1;
+						d->LeftBtn.x1 = d->LeftBtn.x2 - 12;
+						d->LeftBtn.y1 = 0;
+						d->LeftBtn.y2 = TabY() - 2;
+						
+						p->TabPos.ZOff(-1, -1);
+						break;
+					}
+					
+					if (d->Current != n)
+					{
+						p->PaintTab(pDC, false);
+					}
+					else
+					{
+						Sel = p;
+					}
+					x += Wid+1;
 				}
-				x += Wid+1;
 			}
-		}
-		
-		if (!it.Length())
-		{
-			pDC->Colour(LC_MED, 24);
-			pDC->Rectangle(&r);
-		}
-		
-		if (Sel)
-		{
-			Sel->PaintTab(pDC, true);
-		}
-		
-		if (d->LeftBtn.Valid())
-		{
-			r = d->LeftBtn;
-			LgiWideBorder(pDC, r, DefaultRaisedEdge);
-
-			int x = r.x1 + (r.X() >> 1) + 1;
-			int y = r.y1 + (r.Y() >> 1) - 1;
-			pDC->Colour(LC_TEXT, 24);
-			for (int i=0; i<4; i++)
+			
+			if (!it.Length())
 			{
-				pDC->Line(x-i, y-i, x-i, y+i);
+				pDC->Colour(LC_MED, 24);
+				pDC->Rectangle(&r);
 			}
-		}
-		if (d->RightBtn.Valid())
-		{
-			r = d->RightBtn;
-			LgiWideBorder(pDC, r, DefaultRaisedEdge);
-
-			int x = r.x1 + (r.X() >> 1) - 2;
-			int y = r.y1 + (r.Y() >> 1) - 1;
-			pDC->Colour(LC_TEXT, 24);
-			for (int i=0; i<4; i++)
+			
+			if (Sel)
 			{
-				pDC->Line(x+i, y-i, x+i, y+i);
+				Sel->PaintTab(pDC, true);
+			}
+			
+			if (d->LeftBtn.Valid())
+			{
+				r = d->LeftBtn;
+				LgiWideBorder(pDC, r, DefaultRaisedEdge);
+
+				int x = r.x1 + (r.X() >> 1) + 1;
+				int y = r.y1 + (r.Y() >> 1) - 1;
+				pDC->Colour(LC_TEXT, 24);
+				for (int i=0; i<4; i++)
+				{
+					pDC->Line(x-i, y-i, x-i, y+i);
+				}
+			}
+			if (d->RightBtn.Valid())
+			{
+				r = d->RightBtn;
+				LgiWideBorder(pDC, r, DefaultRaisedEdge);
+
+				int x = r.x1 + (r.X() >> 1) - 2;
+				int y = r.y1 + (r.Y() >> 1) - 1;
+				pDC->Colour(LC_TEXT, 24);
+				for (int i=0; i<4; i++)
+				{
+					pDC->Line(x+i, y-i, x+i, y+i);
+				}
 			}
 		}
-	}
+	
+	#endif
 }
 
 void GTabView::OnPosChange()
@@ -739,6 +833,10 @@ void GTabPage::OnTabClick(GMouse &m)
 
 void GTabPage::OnButtonPaint(GSurface *pDC)
 {
+	#if MAC_PAINT
+	
+	#else
+	
 	// The default is a close button
 	GColour Low(LC_LOW, 24);
 	GColour Mid(LC_MED, 24);
@@ -753,6 +851,8 @@ void GTabPage::OnButtonPaint(GSurface *pDC)
 	pDC->Colour(Low);
 	pDC->Line(BtnPos.x1+1, BtnPos.y1+1, BtnPos.x2-1, BtnPos.y2-1);
 	pDC->Line(BtnPos.x2-1, BtnPos.y1+1, BtnPos.x1+1, BtnPos.y2-1);
+	
+	#endif
 }
 
 char *GTabPage::Name()
@@ -770,6 +870,10 @@ bool GTabPage::Name(const char *name)
 
 void GTabPage::PaintTab(GSurface *pDC, bool Selected)
 {
+	#if MAC_PAINT
+
+	#else
+	
 	GRect r = TabPos;
 	if (Selected)
 	{
@@ -845,6 +949,8 @@ void GTabPage::PaintTab(GSurface *pDC, bool Selected)
 		OnButtonPaint(pDC);
 	}
 	else BtnPos.ZOff(-1, -1);
+	
+	#endif
 }
 
 bool GTabPage::Attach(GViewI *parent)
@@ -915,10 +1021,19 @@ bool GTabPage::Remove(GViewI *Wnd)
 	return false;
 }
 
+GColour GTabPage::GetBackground()
+{
+	#if MAC_PAINT
+	return GColour(207, 207, 207);
+	#else
+	return GColour(LC_MED, 24);
+	#endif
+}
+
 void GTabPage::OnPaint(GSurface *pDC)
-{	
+{
 	GRect r(0, 0, X()-1, Y()-1);
-	pDC->Colour(LC_MED, 24);
+	pDC->Colour(GetBackground());
 	pDC->Rectangle(&r);
 }
 
@@ -950,6 +1065,12 @@ bool GTabPage::LoadFromResource(int Res)
 	bool Status = GLgiRes::LoadFromResource(Res, this, 0, &n);
 	if (ValidStr(n))
 		Name(n);
+
+	#if MAC_PAINT
+	// Sigh
+	for (auto c : Children)
+		c->GetCss(true)->BackgroundColor(GCss::ColorDef(GetBackground()));
+	#endif
 
 	if (IsAttached())
 		AttachChildren();
