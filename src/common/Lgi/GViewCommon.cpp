@@ -1878,6 +1878,39 @@ GViewI *GView::WindowFromPoint(int x, int y, bool Debug)
 	return NULL;
 }
 
+GColour GView::StyleColour(int CssPropType, uint32 Default, int Depth)
+{
+	GColour c(Default, 24);
+
+	if ((CssPropType >> 8) == GCss::TypeColor)
+	{
+		GViewI *v = this;
+		for (int i=0; v && i<Depth; i++, v = v->GetParent())
+		{
+			auto Style = v->GetCss();
+			if (Style)
+			{
+				auto Colour = (GCss::ColorDef*) Style->PropAddress((GCss::PropType)CssPropType);
+				if (Colour)
+				{
+					if (Colour->Type == GCss::ColorRgb)
+					{
+						c.Set(Colour->Rgb32, 32);
+						break;
+					}
+					else if (Colour->Type == GCss::ColorTransparent)
+					{
+						c.Empty();
+						break;
+					}
+				}
+			}
+		}
+	}
+	
+	return c;
+}
+
 bool GView::InThread()
 {
 	#if WINNATIVE

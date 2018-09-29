@@ -838,6 +838,11 @@ public:
     bool SetCssStyle(const char *CssStyle);
     /// Gets the style of the control
     class GCss *GetCss(bool Create = false);
+
+	/// Resolve a CSS colour, e.g.:
+	/// auto Back = StyleColour(GCss::PropBackgroundColor, LC_MED);
+	GColour StyleColour(int CssPropType, uint32 Default, int Depth = 3);
+
     /// Sets the style of the control (will take ownership of 'css')
     void SetCss(GCss *css);
     /// Sets the CSS foreground or background colour

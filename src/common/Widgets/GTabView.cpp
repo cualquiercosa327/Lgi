@@ -522,18 +522,10 @@ void GTabView::OnPaint(GSurface *pDC)
 	
 		GRect Margin(6, 6, 6, 6);
 
-		GColour NoPaintColour(LC_MED, 24);
-		if (GetCss())
+		GColour NoPaint = StyleColour(GCss::PropBackgroundColor, LC_MED);
+		if (!NoPaint.IsTransparent())
 		{
-			GCss::ColorDef NoPaint = GetCss()->NoPaintColor();
-			if (NoPaint.Type == GCss::ColorRgb)
-				NoPaintColour.Set(NoPaint.Rgb32, 32);
-			else if (NoPaint.Type == GCss::ColorTransparent)
-				NoPaintColour.Empty();
-		}
-		if (!NoPaintColour.IsTransparent())
-		{
-			pDC->Colour(NoPaintColour);
+			pDC->Colour(NoPaint);
 			pDC->Rectangle();
 		}
 		
@@ -556,7 +548,7 @@ void GTabView::OnPaint(GSurface *pDC)
 
 		OSStatus e = HIThemeDrawTabPane(&Bounds, &Info, pDC->Handle(), kHIThemeOrientationNormal);
 
-		int x = 32, y = d->Inset.y1 - FnHalf;
+		int x = 20, y = d->Inset.y1 - FnHalf;
 		for (unsigned i = 0; i < it.Length(); i++)
 		{
 			GDisplayString ds(f, it[i]->Name());
@@ -790,6 +782,11 @@ GTabPage::GTabPage(const char *name) : ResObject(Res_Tab)
 	SetStyle(GetStyle() | WS_CLIPCHILDREN);
 	CreateClassW32(GetClass(), 0, CS_HREDRAW | CS_VREDRAW);
 	#endif
+
+	#if MAC_PAINT
+	GetCss(true)->BackgroundColor(GCss::ColorDef(GetBackground()));
+	#endif
+
 	LgiResources::StyleElement(this);
 }
 
@@ -1033,7 +1030,8 @@ GColour GTabPage::GetBackground()
 void GTabPage::OnPaint(GSurface *pDC)
 {
 	GRect r(0, 0, X()-1, Y()-1);
-	pDC->Colour(GetBackground());
+	GColour Bk = StyleColour(GCss::PropBackgroundColor, LC_MED);
+	pDC->Colour(Bk);
 	pDC->Rectangle(&r);
 }
 

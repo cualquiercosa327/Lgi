@@ -2001,16 +2001,7 @@ void GTableLayout::OnPaint(GSurface *pDC)
 		return;
 	}
 
-	GColour Back;
-	Back.Set(LC_MED, 24);
-	if (GetCss())
-	{		
-		GCss::ColorDef fill = GetCss()->BackgroundColor();
-		if (fill.Type == GCss::ColorRgb)
-			Back.Set(fill.Rgb32, 32);
-		else if (fill.Type == GCss::ColorTransparent)
-			Back.Empty();
-	}
+	GColour Back = StyleColour(GCss::PropBackgroundColor, LC_MED);
 	if (!Back.IsTransparent())
 	{
 		pDC->Colour(Back);

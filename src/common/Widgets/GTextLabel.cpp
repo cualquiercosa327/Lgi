@@ -275,29 +275,7 @@ int GTextLabel::OnNotify(GViewI *Ctrl, int Flags)
 
 void GTextLabel::OnPaint(GSurface *pDC)
 {
-	GColour Back;
-	Back.Set(LC_MED, 24);
-
-	GViewI *v = this;
-	for (int i=0; v && i<2; i++, v = v->GetParent())
-	{
-		auto Style = v->GetCss();
-		if (Style)
-		{
-			GCss::ColorDef Fill = Style->BackgroundColor();
-			if (Fill.Type == GCss::ColorRgb)
-			{
-				Back.Set(Fill.Rgb32, 32);
-				break;
-			}
-			else if (Fill.Type == GCss::ColorTransparent)
-			{
-				Back.Empty();
-				break;
-			}
-		}
-	}
-
+	GColour Back = StyleColour(GCss::PropBackgroundColor, LC_MED);
 	if (d->Lock(_FL))
 	{
 		GRect c = GetClient();
