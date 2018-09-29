@@ -120,6 +120,9 @@
       <UniqueIdentifier>{5fe450b8-5fa9-440e-9fb0-03860b3548d0}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl</Extensions>
     </Filter>
+    <Filter Include="Debug">
+      <UniqueIdentifier>{86e47a46-e6d7-46ab-8f2f-21235602d21f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\win32\Lgi\GGeneral.cpp">
@@ -739,5 +742,10 @@
     <ClInclude Include="include\common\LError.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\win32\Lgi.natvis">
+      <Filter>Debug</Filter>
+    </None>
   </ItemGroup>
 </Project>
