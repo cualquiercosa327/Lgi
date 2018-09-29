@@ -59,12 +59,12 @@ bool GDragDropSource::SetIcon(GSurface *Img, GRect *SubRgn)
 	return true;
 }
 
-bool GDragDropSource::CreateFileDrop(GDragData *OutputData, GMouse &m, List<char> &Files)
+bool GDragDropSource::CreateFileDrop(GDragData *OutputData, GMouse &m, GString::Array &Files)
 {
 	if (OutputData && Files.First())
 	{
 		#if 1
-		for (char *f = Files.First(); f; f = Files.Next())
+		for (auto f : Files)
 		{
 			// GString ef = LgiEscapeString(" ", f, -1);
 			OutputData->Data.New().OwnStr(NewStr(f));

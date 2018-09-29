@@ -116,6 +116,8 @@ LgiFunc void LgiSleep(uint32 i);
 #define LGI_WideCharset				"utf-32"
 #define LPrintfInt64				"%lli"
 #define LPrintfHex64				"%llx"
+#define LPrintfSizeT				"%zu"
+#define LPrintfSSizeT				"%zi"
 #define atoi64						atoll
 #define sprintf_s					snprintf
 #define vsprintf_s					vsnprintf

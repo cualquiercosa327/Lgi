@@ -4,6 +4,7 @@
 
 #include "GMem.h"
 #include "LgiOsDefs.h"
+#include "LgiClass.h"
 #include "GString.h"
 #include "GContainers.h"
 #include "LgiCommon.h"

@@ -89,5 +89,6 @@ LgiFunc bool LgiDumpMemoryStats(char *filename);
 #endif
 
 #include <string.h>
+#include "LgiClass.h"
 
 #endif

@@ -45,7 +45,7 @@
 		3477C2B11CBF96C40028B84B /* Res.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3477C2B01CBF96C40028B84B /* Res.cpp */; };
 		3477C2B41CBF96F20028B84B /* LgiMsg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3477C2B31CBF96F20028B84B /* LgiMsg.cpp */; };
 		3477C2B71CBF973F0028B84B /* GGuiUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3477C2B61CBF973F0028B84B /* GGuiUtils.cpp */; };
-		3477C2B91CBF977F0028B84B /* Lgi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3477C2B81CBF977F0028B84B /* Lgi.cpp */; };
+		3477C2B91CBF977F0028B84B /* LgiCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3477C2B81CBF977F0028B84B /* LgiCommon.cpp */; };
 		3477C2BB1CBF97C80028B84B /* GdcCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3477C2BA1CBF97C80028B84B /* GdcCommon.cpp */; };
 		3477C2C11CBF9A040028B84B /* GString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3477C2C01CBF9A040028B84B /* GString.cpp */; };
 		3477C2C31CC045840028B84B /* GMem.h in Headers */ = {isa = PBXBuildFile; fileRef = 3477C2C21CC045840028B84B /* GMem.h */; };
@@ -169,7 +169,7 @@
 		3477C2B01CBF96C40028B84B /* Res.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Res.cpp; path = ../../../common/Resource/Res.cpp; sourceTree = "<group>"; };
 		3477C2B31CBF96F20028B84B /* LgiMsg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiMsg.cpp; path = ../../../common/Lgi/LgiMsg.cpp; sourceTree = "<group>"; };
 		3477C2B61CBF973F0028B84B /* GGuiUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GGuiUtils.cpp; path = ../../../common/Lgi/GGuiUtils.cpp; sourceTree = "<group>"; };
-		3477C2B81CBF977F0028B84B /* Lgi.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = Lgi.cpp; path = ../../../common/Lgi/Lgi.cpp; sourceTree = "<group>"; };
+		3477C2B81CBF977F0028B84B /* LgiCommon.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = LgiCommon.cpp; path = ../../../common/Lgi/LgiCommon.cpp; sourceTree = "<group>"; };
 		3477C2BA1CBF97C80028B84B /* GdcCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GdcCommon.cpp; path = ../../../common/Gdc2/GdcCommon.cpp; sourceTree = "<group>"; };
 		3477C2C01CBF9A040028B84B /* GString.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GString.cpp; path = ../../../common/Text/GString.cpp; sourceTree = "<group>"; };
 		3477C2C21CC045840028B84B /* GMem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GMem.h; path = ../../../include/common/GMem.h; sourceTree = "<group>"; };
@@ -412,7 +412,7 @@
 				3477C34A1CC0AB0B0028B84B /* GToolTip.cpp */,
 				3477C3461CC0AA220028B84B /* GWindowCommon.cpp */,
 				3477C2E41CC04A7F0028B84B /* GViewCommon.cpp */,
-				3477C2B81CBF977F0028B84B /* Lgi.cpp */,
+				3477C2B81CBF977F0028B84B /* LgiCommon.cpp */,
 				3477C2B61CBF973F0028B84B /* GGuiUtils.cpp */,
 			);
 			name = Interface_XP;
@@ -708,7 +708,7 @@
 				3477C30B1CC04BF00028B84B /* GTextLabel.cpp in Sources */,
 				3477C2B71CBF973F0028B84B /* GGuiUtils.cpp in Sources */,
 				3477C2911CBF08C10028B84B /* GPrintDC.mm in Sources */,
-				3477C2B91CBF977F0028B84B /* Lgi.cpp in Sources */,
+				3477C2B91CBF977F0028B84B /* LgiCommon.cpp in Sources */,
 				3477C2CA1CC046310028B84B /* GUtf8.cpp in Sources */,
 				3477C2971CBF09320028B84B /* GFile.mm in Sources */,
 				3477C43A1CC234750028B84B /* GMemStream.cpp in Sources */,

@@ -12,6 +12,7 @@
 #include <fcntl.h>
 
 #include "GMem.h"
+#include "LgiClass.h"
 #include "GStream.h"
 #include "GArray.h"
 #include "GRefCount.h"

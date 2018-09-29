@@ -177,6 +177,7 @@ public:
 	#endif
 	GHashTbl<int, GView*> Handles;
 	OsThread GuiThread;
+	OsThreadId GuiThreadId;
 	int MessageLoopDepth;
 	int CurEvent;
 	#if DEBUG_MSG_TYPES
@@ -212,6 +213,7 @@ public:
 		CaptureId = 0;
 		CurEvent = 0;
 		GuiThread = LgiGetCurrentThread();
+		GuiThreadId = GetCurrentThreadId();
 		FileSystem = 0;
 		GdcSystem = 0;
 		Config = 0;
@@ -390,9 +392,19 @@ GViewI *GApp::GetFocus()
 	return 0;
 }
 
-OsThread GApp::GetGuiThread()
+OsThread GApp::_GetGuiThread()
 {
 	return d->GuiThread;
+}
+
+OsThreadId GApp::GetGuiThreadId()
+{
+	return d->GuiThreadId;
+}
+
+bool GApp::InThread()
+{
+	return GetCurrentThreadId() == d->GuiThreadId;
 }
 
 OsProcessId GApp::GetProcessId()

@@ -302,7 +302,7 @@ char *GHtmlParser::ParsePropList(char *s, GHtmlElement *Obj, bool &Closed)
 
 			if (Name && Value && *Value)
 			{
-				#if defined(_DEBUG) && 1
+				#if defined(_DEBUG)
 				if (!_stricmp(Name, "debug"))
 				{
 					int asd=0;
@@ -580,11 +580,6 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 					    if (BackOut)
 						    *BackOut = true;
 						return s;
-					}
-
-					if (Stristr(Elem->Tag.Get(), "two-column"))
-					{
-						int asd=0;
 					}
 
 					bool TagClosed = false;
