@@ -365,13 +365,14 @@ class GdcPngFactory : public GFilterFactory
 	{
 		if (Hint)
 		{
-			if (Hint[1] == 'P' &&
-				Hint[2] == 'N' &&
-				Hint[3] == 'G')
-				return true;
+			return Hint[1] == 'P' &&
+					Hint[2] == 'N' &&
+					Hint[3] == 'G';
 		}
-
-		return (File) ? stristr(File, ".png") != 0 : false;
+		else
+		{
+			return (File) ? stristr(File, ".png") != 0 : false;
+		}
 	}
 
 	GFilter *NewObject()

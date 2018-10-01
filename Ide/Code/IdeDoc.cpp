@@ -1435,7 +1435,7 @@ void IdeDoc::EscapeSelection(bool ToEscaped)
 	{
 		GMouse m;
 		GetMouse(m);
-		GString Delim = "\r\n";
+		GString Delim = "\r\n\\";
 		if (m.Ctrl())
 		{
 			GInput Inp(this, GString::Escape(Delim, -1, "\\"), "Delimiter chars:", "Escape");

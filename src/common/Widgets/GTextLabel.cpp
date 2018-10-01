@@ -138,7 +138,10 @@ bool GTextLabel::Name(const char *n)
 		// Prof.Add("PostEv");
 		PostEvent(M_TEXT_UPDATE_NAME);
 	}
-	else LgiAssert(!"Can't update name.");
+	else
+	{
+		GView::Name(n);
+	}
 
 	// Prof.Add("unlock");
 	d->Unlock();
