@@ -551,7 +551,9 @@ void GTabView::OnPaint(GSurface *pDC)
 		int x = 20, y = d->Inset.y1 - FnHalf;
 		for (unsigned i = 0; i < it.Length(); i++)
 		{
-			GDisplayString ds(f, it[i]->Name());
+			GFont *tf = it[i]->GetFont();
+			if (!tf) tf = f;
+			GDisplayString ds(tf, it[i]->Name());
 
 			GRect r(0, 0, ds.X() + 23, ds.Y() + 3);
 			r.Offset(x, y);
@@ -578,8 +580,8 @@ void GTabView::OnPaint(GSurface *pDC)
 			
 			r = Label;
 			
-			f->Transparent(true);
-			f->Fore(GColour(LC_TEXT, 24));
+			tf->Transparent(true);
+			tf->Fore(GColour(LC_TEXT, 24));
 			ds.Draw(pDC, r.x1 + (r.X() - ds.X()) / 2, r.y1 + (r.Y() - ds.Y()) / 2, &r);
 			
 			it[i]->TabPos = r;

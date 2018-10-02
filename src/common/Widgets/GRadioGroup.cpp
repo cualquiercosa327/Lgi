@@ -318,7 +318,7 @@ void GRadioGroup::OnPaint(GSurface *pDC)
 	}
 	else
 	{
-		GColour Fore = StyleColour(GCss::PropColor, LC_TEXT);
+		// GColour Fore = StyleColour(GCss::PropColor, LC_TEXT);
 		GColour Back = StyleColour(GCss::PropBackgroundColor, LC_MED);
 		if (!Back.IsTransparent())
 		{
@@ -703,7 +703,7 @@ void GRadioButton::OnPaint(GSurface *pDC)
 	{
 		GRect r(0, 0, X()-1, Y()-1);
 		GRect c(0, 0, 12, 12);
-		GColour Fore = StyleColour(GCss::PropColor, LC_TEXT, 4);
+		// GColour Fore = StyleColour(GCss::PropColor, LC_TEXT, 4);
 		GColour Back = StyleColour(GCss::PropBackgroundColor, LC_MED, 4);
 		
 		// bool e = Enabled();

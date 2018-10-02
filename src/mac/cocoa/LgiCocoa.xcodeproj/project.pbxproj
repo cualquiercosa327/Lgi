@@ -889,7 +889,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.memecode.Lgi;
 				PRODUCT_NAME = LgiCocoa;
-				SDKROOT = macosx10.11;
+				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
 			};
 			name = Debug;
@@ -923,7 +923,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.memecode.Lgi;
 				PRODUCT_NAME = LgiCocoa;
-				SDKROOT = macosx10.11;
+				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
 			};
 			name = Release;
