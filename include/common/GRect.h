@@ -113,6 +113,13 @@ public:
 	
 	/// Moves the edges by an offset
 	void Offset(GRect *a);
+
+	GRect Move(int x, int y)
+	{
+		GRect r = *this;
+		r.Offset(x, y);
+		return r;
+	}
 	
 	/// Zooms the rectangle
 	void Size(int x, int y);

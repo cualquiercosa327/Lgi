@@ -1878,9 +1878,9 @@ GViewI *GView::WindowFromPoint(int x, int y, bool Debug)
 	return NULL;
 }
 
-GColour GView::StyleColour(int CssPropType, uint32 Default, int Depth)
+GColour GView::StyleColour(int CssPropType, GColour Default, int Depth)
 {
-	GColour c(Default, 24);
+	GColour c = Default;
 
 	if ((CssPropType >> 8) == GCss::TypeColor)
 	{

@@ -31,6 +31,7 @@
 #endif
 #include "GUnicode.h"
 #include "GArray.h"
+#include "LgiClass.h"
 #ifndef IsDigit
 	#define IsDigit(ch) ((ch) >= '0' && (ch) <= '9')
 #endif

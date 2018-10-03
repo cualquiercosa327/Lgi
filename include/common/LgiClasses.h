@@ -841,7 +841,7 @@ public:
 
 	/// Resolve a CSS colour, e.g.:
 	/// auto Back = StyleColour(GCss::PropBackgroundColor, LC_MED);
-	GColour StyleColour(int CssPropType, uint32 Default, int Depth = 3);
+	GColour StyleColour(int CssPropType, GColour Default, int Depth = 5);
 
     /// Sets the style of the control (will take ownership of 'css')
     void SetCss(GCss *css);

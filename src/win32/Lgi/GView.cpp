@@ -20,6 +20,7 @@
 #include "GdiLeak.h"
 #include "GViewPriv.h"
 #include "GCss.h"
+#include "GEdit.h"
 
 #define DEBUG_MOUSE_CLICKS		0
 #define DEBUG_OVER				0
@@ -1240,28 +1241,27 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				HWND hwnd = (HWND)MsgB(Msg);
 
 				GViewI *v = FindControl(hwnd);
-				if (v)
+				GView *gv = v ? v->GetGView() : NULL;
+				if (gv)
 				{
-					if (v->GetCss())
+					int Depth = dynamic_cast<GEdit*>(gv) ? 1 : 5;
+					GColour Fore = gv->StyleColour(GCss::PropColor, GColour(), Depth);
+					GColour Back = gv->StyleColour(GCss::PropBackgroundColor, GColour(), Depth);
+						
+					if (Fore.IsValid())
 					{
-						GCss::ColorDef f, b;
-						
-						f = v->GetCss()->Color();
-						b = v->GetCss()->BackgroundColor();
-						
-						if (f.Type == GCss::ColorRgb)
-						{
-							COLORREF c = RGB(R32(f.Rgb32), G32(f.Rgb32), B32(f.Rgb32));
-							SetTextColor(hdc, c);
-							// SetDCBrushColor(hdc, c);
-						}
-							
-						if (b.Type == GCss::ColorRgb)
-						{
-							COLORREF c = RGB(R32(b.Rgb32), G32(b.Rgb32), B32(b.Rgb32));
-							SetBkColor(hdc, c);
-						}
+						COLORREF c = RGB(Fore.r(), Fore.g(), Fore.b());
+						SetTextColor(hdc, c);
+					}							
+					if (Back.IsValid())
+					{
+						COLORREF c = RGB(Back.r(), Back.g(), Back.b());
+						SetBkColor(hdc, c);
+						SetDCBrushColor(hdc, c);
+					}
 
+					if (Fore.IsValid() || Back.IsValid())
+					{
 						#if !defined(DC_BRUSH)
 						#define DC_BRUSH            18
 						#endif

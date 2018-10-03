@@ -375,7 +375,7 @@ void GButton::OnPaint(GSurface *pDC)
 {
 	#if defined(MAC) && !defined(COCOA) && !defined(LGI_SDL)
 
-	GColour NoPaintColour = StyleColour(GCss::PropBackgroundColor, LC_MED);
+	GColour NoPaintColour = StyleColour(GCss::PropBackgroundColor, GColour(LC_MED, 24));
 	if (!NoPaintColour.IsTransparent())
 	{
 		pDC->Colour(NoPaintColour);

@@ -7,6 +7,7 @@
 #include "GTableLayout.h"
 #include "LDbTable.h"
 #include "GXmlTree.h"
+#include "GTabView.h"
 
 const char *AppName = "Lgi Test App";
 
@@ -181,6 +182,14 @@ public:
 		if (Attach(0))
 		{
 			#if 1
+
+			GTabView *t = new GTabView(100);
+			t->Attach(this);
+			t->Append("First");
+			t->Append("Second");
+			t->Append("Third");
+
+			#elif 0
 
 			AddView(Tbl = new GTableLayout(100));
 			GLayoutCell *c = Tbl->GetCell(0, 0);

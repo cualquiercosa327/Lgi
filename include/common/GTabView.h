@@ -121,7 +121,7 @@ public:
 	~GTabPage();
 
 	const char *GetClass() { return "GTabPage"; }
-	static GColour GetBackground();
+	GColour GetBackground();
 
 	char *Name();
 	bool Name(const char *n);
