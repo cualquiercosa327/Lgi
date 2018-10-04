@@ -639,6 +639,7 @@ public:
 		/// The optional area of the source to use, if not specified the whole source is used
 		GRect *a = NULL
 	);
+	void Blt(int x, int y, GSurface *Src, GRect a) { Blt(x, y, Src, &a); }
 	/// Not implemented
 	virtual void StretchBlt(GRect *d, GSurface *Src, GRect *s);
 

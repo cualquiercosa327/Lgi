@@ -88,6 +88,7 @@ public:
 // System defines
 #define POSIX						1
 #define LGI_COCOA					1
+#define LGI_64BIT					1
 
 // Process
 typedef int							OsProcess;

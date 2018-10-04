@@ -7,6 +7,11 @@
 #if defined(LINUX) || COCOA
 	#include <errno.h>
 #endif
+#if USE_MACH_SEM
+	#include <mach/task.h>
+	#include <mach/sync_policy.h>
+	#include <mach/semaphore.h>
+#endif
 
 #if POSIX
 	

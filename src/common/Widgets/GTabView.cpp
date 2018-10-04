@@ -565,7 +565,7 @@ void GTabView::OnPaint(GSurface *pDC)
 		d->Inset.y1 += Margin.y1 + FnHalf;
 		d->Inset.y2 -= Margin.y2;
 
-		#ifdef MAC
+		#ifdef LGI_CARBON
 
 			HIRect Bounds = d->Inset;
 
@@ -609,7 +609,7 @@ void GTabView::OnPaint(GSurface *pDC)
 			GRect r(0, 0, ds.X() + 23, ds.Y() + 5);
 			r.Offset(x, y);
 
-			#ifdef MAC
+			#ifdef LGI_CARBON
 
 				HIRect TabRc = r;
 				HIThemeTabDrawInfo TabInfo;
@@ -699,8 +699,8 @@ void GTabView::OnPaint(GSurface *pDC)
 					
 					// Draw in the rounded corners
 					pDC->Op(GDC_ALPHA);
-					pDC->Blt(Clip00.x1, Clip00.y1, d->Corners[d->Current == i], &Clip00);
-					pDC->Blt(Clip01.x1, Clip01.y1, d->Corners[d->Current == i], &Clip00.Move(0, MAC_STYLE_RADIUS));
+					pDC->Blt(Clip00.x1, Clip00.y1, d->Corners[d->Current == i], Clip00);
+					pDC->Blt(Clip01.x1, Clip01.y1, d->Corners[d->Current == i], Clip00.Move(0, MAC_STYLE_RADIUS));
 				}
 
 				if (Last)
@@ -716,8 +716,8 @@ void GTabView::OnPaint(GSurface *pDC)
 					
 					// Draw in the rounded corners
 					pDC->Op(GDC_ALPHA);
-					pDC->Blt(Clip10.x1, Clip10.y1, d->Corners[d->Current == i], &Clip00.Move(MAC_STYLE_RADIUS, 0));
-					pDC->Blt(Clip11.x1, Clip11.y1, d->Corners[d->Current == i], &Clip00.Move(MAC_STYLE_RADIUS, MAC_STYLE_RADIUS));
+					pDC->Blt(Clip10.x1, Clip10.y1, d->Corners[d->Current == i], Clip00.Move(MAC_STYLE_RADIUS, 0));
+					pDC->Blt(Clip11.x1, Clip11.y1, d->Corners[d->Current == i], Clip00.Move(MAC_STYLE_RADIUS, MAC_STYLE_RADIUS));
 				}
 
 				if (First || Last)

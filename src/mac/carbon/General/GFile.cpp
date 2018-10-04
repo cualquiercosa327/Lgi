@@ -655,7 +655,7 @@ int FloppyType(int Letter)
 
 OSType gFinderSignature = 'MACS';
 
-OSStatus MoveFileToTrash(CFURLRef fileURL)
+OSStatus MoveFileToTrash(CFURLRef fileURL, LError *Status)
 {
 	AppleEvent event, reply;
 	OSStatus err;
@@ -663,7 +663,10 @@ OSStatus MoveFileToTrash(CFURLRef fileURL)
 	AliasHandle fileAlias;
 
 	if (CFURLGetFSRef(fileURL, &fileRef) == false)
+	{
+		if (Status) Status->Set(coreFoundationUnknownErr, "CFURLGetFSRef failed");
 		return coreFoundationUnknownErr;
+	}
 
 	err = FSNewAliasMinimal(&fileRef, &fileAlias);
 	if (err == noErr)
@@ -684,11 +687,18 @@ OSStatus MoveFileToTrash(CFURLRef fileURL)
 			err = AESendMessage(&event, &reply, kAEWaitReply, kAEDefaultTimeout);
 			if (err == noErr)
 				AEDisposeDesc(&reply);
+			else if (Status)
+				Status->Set(err, "AESendMessage failed");
 			AEDisposeDesc(&event);
 		}
+		else if (Status)
+			Status->Set(err, "AEBuildAppleEvent failed");
 
 		DisposeHandle((Handle)fileAlias);
 	}
+	else if (Status)
+		Status->Set(err, "FSNewAliasMinimal failed");
+	
 	return err;
 }
 
@@ -841,68 +851,68 @@ bool GFileSystem::Copy(char *From, char *To, LError *ErrorCode, CopyFileCallback
 bool GFileSystem::Delete(GArray<const char*> &Files, GArray<LError> *Status, bool ToTrash)
 {
 	bool Error = false;
-
+	
 	if (ToTrash)
 	{
-		#if 1
+		#if 0
+		
 		// Apple events method
+		//
+		// This is broken at the moment, throws -43 errors and blocks the UI.
+		// Which is never cool.
 		
 		for (int i=0; i<Files.Length(); i++)
 		{
-			UInt8 *Tmp = (UInt8*) Files[i];
-			CFStringRef s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)Tmp, strlen(Files[i]), kCFStringEncodingUTF8, false);
+			GString File = Files[i];
+			CFStringRef s = File.CreateStringRef();
 			if (!s)
 			{
-				printf("%s:%i - CFStringCreateWithBytes failed\n", __FILE__, __LINE__);
+				if (Status)
+					(*Status)[i] = LErrorNoMem;
 				Error = true;
-				break;
+				continue;
 			}
 			
 			CFURLRef f = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, s, kCFURLPOSIXPathStyle, DirExists(Files[i]));
 			CFRelease(s);
 			if (!f)
 			{
-				printf("%s:%i - CFURLCreateWithFileSystemPath failed\n", __FILE__, __LINE__);
+				if (Status)
+					(*Status)[i] = LErrorNoMem;
 				Error = true;
-				break;
+				continue;
 			}
 			
-			if (MoveFileToTrash(f))
+			if (MoveFileToTrash(f, Status ? Status->AddressOf(i) : NULL))
 			{
-				printf("%s:%i - MoveFileToTrash failed\n", __FILE__, __LINE__);
 				Error = true;
-				break;
 			}
-			
 			CFRelease(f);
 		}
 		
 		#else
+		
 		// Posix
 
-		char p[300];
+		char p[MAX_PATH];
 		if (LgiGetSystemPath(LSP_TRASH, p, sizeof(p)))
 		{
 			for (int i=0; i<Files.Length(); i++)
 			{
 				char *f = strrchr(Files[i], DIR_CHAR);
 				LgiMakePath(p, sizeof(p), p, f?f+1:Files[i]);
-				if (!MoveFile(Files[i], p))
+				if (!Move(Files[i], p, Status ? Status->AddressOf(i) : NULL))
 				{
-					if (Status)
-					{
-						(*Status)[i] = errno;
-					}
-					
-					printf("%s:%i - MoveFile(%s,%s) failed.\n", __FILE__, __LINE__, Files[i], p);
+					LgiTrace("%s:%i - MoveFile(%s,%s) failed.\n", __FILE__, __LINE__, Files[i], p);
 					Error = true;
 				}
 			}
 		}
 		else
 		{
-			printf("%s:%i - LgiGetSystemPath(LSP_TRASH) failed.\n", __FILE__, __LINE__);
+			LgiTrace("%s:%i - LgiGetSystemPath(LSP_TRASH) failed.\n", __FILE__, __LINE__);
 		}
+		
 		#endif
 	}
 	else

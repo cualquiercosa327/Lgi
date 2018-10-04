@@ -678,7 +678,7 @@ void GToolButton::OnPaint(GSurface *pDC)
 			}
 			else
 			{
-				pDC->Colour(LC_MED, 24);
+				pDC->Colour(Background);
 				pDC->Rectangle(&p);
 			}
 
