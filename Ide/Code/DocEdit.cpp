@@ -12,12 +12,13 @@ int DocEdit::LeftMarginPx = EDIT_LEFT_MARGIN;
 
 GAutoPtr<GDocFindReplaceParams> GlobalFindReplace;
 
-DocEdit::DocEdit(IdeDoc *d, GFontType *f) : GTextView3(IDC_EDIT, 0, 0, 100, 100, f)
+DocEdit::DocEdit(IdeDoc *d, GFontType *f) :
+	GTextView3(IDC_EDIT, 0, 0, 100, 100, f),
+	DocEditStyling(this)
 {
 	RefreshSize = 0;
 	RefreshEdges = NULL;
 	FileType = SrcUnknown;
-	ZeroObj(HasKeyword);
 	Doc = d;
 	CurLine = -1;
 	if (!GlobalFindReplace)
@@ -53,11 +54,16 @@ DocEdit::DocEdit(IdeDoc *d, GFontType *f) : GTextView3(IDC_EDIT, 0, 0, 100, 100,
 	
 DocEdit::~DocEdit()
 {
+	ParentState = KExiting;
+	Event.Signal();
+	while (!IsExited())
+		LgiSleep(1);
 	SetEnv(0);
-	for (int i=0; i<CountOf(HasKeyword); i++)
-	{
-		DeleteObj(HasKeyword[i]);
-	}
+}
+
+void DocEdit::OnCreate()
+{
+	Run();
 }
 
 bool DocEdit::AppendItems(GSubMenu *Menu, int Base)
@@ -74,7 +80,7 @@ bool DocEdit::AppendItems(GSubMenu *Menu, int Base)
 	
 bool DocEdit::DoGoto()
 {
-	GInput Dlg(this, "", LgiLoadString(L_TEXTCTRL_GOTO_LINE, "Goto [file:]line:"), "Text");
+	GInput Dlg(this, "", LgiLoadString(L_TEXTCTRL_GOTO_LINE, "Goto [file:]line:"), "Goto");
 	if (Dlg.DoModal() != IDOK || !ValidStr(Dlg.GetStr()))
 		return false;
 
@@ -301,40 +307,6 @@ bool DocEdit::Pour(GRegion &r)
 	return true;
 }
 
-int DocEdit::CountRefreshEdges(size_t At, ssize_t Len)
-{
-	if (!RefreshEdges)
-		return 0;
-
-	size_t s = MAX(0, At - (RefreshSize - 1));
-	bool t[256] = {0};
-	for (const char **Edge = RefreshEdges; *Edge; Edge++)
-	{
-		const char *e = *Edge;
-		t[e[0]] = true;
-	}
-
-	int Edges = 0;
-	for (size_t i = s; i <= At; i++)
-	{
-		if (Text[i] < 256 && t[Text[i]])
-		{
-			for (const char **Edge = RefreshEdges; *Edge; Edge++)
-			{
-				int n = i;
-				const char *e;
-				for (e = *Edge; *e; e++)
-					if (Text[n++] != *e)
-						break;
-				if (!*e)
-					Edges++;
-			}
-		}
-	}
-
-	return Edges;
-}
-
 bool DocEdit::Insert(size_t At, char16 *Data, ssize_t Len)
 {
 	int Old = PourEnabled ? CountRefreshEdges(At, 0) : 0;
@@ -377,6 +349,18 @@ bool DocEdit::OnKey(GKey &k)
 	}
 
 	return GTextView3::OnKey(k); 
+}
+
+GMessage::Result DocEdit::OnEvent(GMessage *m)
+{
+	switch (m->Msg())
+	{
+		case M_STYLING_DONE:
+			OnApplyStyles();
+			break;
+	}
+
+	return GTextView3::OnEvent(m);
 }
 
 bool DocEdit::OnMenu(GDocView *View, int Id, void *Context)

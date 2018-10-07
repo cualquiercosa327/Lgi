@@ -29,7 +29,7 @@ class XmlPoolAlloc : public GXmlAlloc
 {
 	struct Block
 	{
-		int Used, Len;
+		size_t Used, Len;
 		char *Ptr;
 
 		Block()
@@ -353,7 +353,7 @@ GXmlTag::GXmlTag(const char *tag, GXmlAlloc *alloc)
 GXmlTag::GXmlTag(const GXmlTag &t)
 {
 	Allocator = t.Allocator;
-	LgiAssert(Allocator);
+	LgiAssert(Allocator != NULL);
 
 	Tag = NULL;
 	Write = false;
@@ -600,7 +600,7 @@ bool GXmlTag::SetVariant(const char *Name, GVariant &Value, char *Array)
 			case GV_INT64:
 			{
 				char i[32];
-				sprintf_s(i, sizeof(i), LGI_PrintfInt64, Value.Value.Int64);
+				sprintf_s(i, sizeof(i), LPrintfInt64, Value.Value.Int64);
 				SetAttr(Name, i);
 				break;
 			}
@@ -825,7 +825,7 @@ bool GXmlTag::SetAttr(const char *n, int64 Value)
 	if (a)
 	{
 		char s[32];
-		sprintf_s(s, sizeof(s), LGI_PrintfInt64, Value);
+		sprintf_s(s, sizeof(s), LPrintfInt64, Value);
 		a->Value = Allocator->Alloc(s);
 		return true;
 	}

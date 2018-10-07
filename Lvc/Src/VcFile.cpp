@@ -53,7 +53,8 @@ int VcFile::Checked(int Set)
 
 void VcFile::SetDiff(GString diff)
 {
-	Diff = diff;
+	GAutoString n(LgiFromNativeCp(diff));
+	Diff = n;
 	if (LListItem::Select())
 		d->Diff->Name(Diff);
 }
@@ -103,6 +104,8 @@ void VcFile::OnMouseClick(GMouse &m)
 					{
 						s.AppendItem("Add File", IDM_ADD_FILE);
 					}
+					break;
+				default:
 					break;
 			}					
 			s.AppendItem("Browse To", IDM_BROWSE);

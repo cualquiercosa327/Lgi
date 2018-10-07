@@ -46,7 +46,7 @@ void GLayout::GetScrollPos(int &x, int &y)
 {
 	if (HScroll)
 	{
-		x = HScroll->Value();
+		x = (int)HScroll->Value();
 	}
 	else
 	{
@@ -55,7 +55,7 @@ void GLayout::GetScrollPos(int &x, int &y)
 
 	if (VScroll)
 	{
-		y = VScroll->Value();
+		y = (int)VScroll->Value();
 	}
 	else
 	{

@@ -50,7 +50,7 @@ bool GDragDropSource::GetData(GArray<GDragData> &DragData)
 	return GetData(v, fmt);
 }
 
-bool GDragDropSource::CreateFileDrop(GDragData *OutputData, GMouse &m, List<char> &Files)
+bool GDragDropSource::CreateFileDrop(GDragData *OutputData, GMouse &m, GString::Array &Files)
 {
 	if (OutputData && Files.First())
 	{

@@ -25,13 +25,15 @@ bool GSubMenu::GetVariant(const char *Name, GVariant &Value, char *Array)
 
 bool GSubMenu::SetVariant(const char *Name, GVariant &Value, char *Array)
 {
+	/*
 	GDomProperty p = LgiStringToDomProp(Name);
 	switch (p)
 	{
 		default:
 			return false;
 	}
-	return true;
+	*/
+	return false;
 }
 
 bool GSubMenu::CallMethod(const char *MethodName, GVariant *ReturnValue, GArray<GVariant*> &Args)

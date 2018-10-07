@@ -202,6 +202,7 @@
     <ClInclude Include="Code\levenshtein.h" />
     <ClInclude Include="Code\LgiIde.h" />
     <ClInclude Include="Code\ProjectNode.h" />
+    <ClInclude Include="Code\PythonParser.h" />
     <ClInclude Include="Code\resdefs.h" />
     <ClInclude Include="Code\resource.h" />
     <ClInclude Include="Code\SimpleCppParser.h" />
@@ -240,6 +241,7 @@
     <ClCompile Include="Code\MemDumpViewer.cpp" />
     <ClCompile Include="Code\MissingFiles.cpp" />
     <ClCompile Include="Code\ProjectNode.cpp" />
+    <ClCompile Include="Code\PythonParser.cpp" />
     <ClCompile Include="Code\SimpleCppParser.cpp" />
     <ClCompile Include="Code\SpaceTabConv.cpp" />
     <ClCompile Include="Code\SysCharSupport.cpp" />

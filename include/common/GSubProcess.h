@@ -129,13 +129,14 @@ public:
 	uint32 GetErrorCode();
 	int32 GetExitValue();
 	void Connect(GSubProcess *child);
-	bool Start(bool ReadAccess, bool WriteAccess, bool MapStderrToStdout = true);
+	bool Start(bool ReadAccess = true, bool WriteAccess = false, bool MapStderrToStdout = true);
 	int Wait();
 	void Interrupt();
 	int Kill();
 	
 	// IO
 	int Peek();
+	GString Read();
 	ssize_t Read(void *Buf, ssize_t Size, int Flags = 0) override;
 	ssize_t Write(const void *Buf, ssize_t Size, int Flags = 0) override;
 };

@@ -81,7 +81,7 @@ public:
 			{
 				if (!View->PostEvent(M_PULSE))
 				{
-					printf("%s:%i - Pulse PostEvent failed. Exiting loop.\n", _FL);
+					// printf("%s:%i - Pulse PostEvent failed. Exiting loop.\n", _FL);
 					Loop = false;
 				}
 			}
@@ -140,7 +140,7 @@ public:
 		int				WndExStyle;				// Win32 hWnd ExStyle
 		int				WndDlgCode;				// Win32 Dialog Code (WM_GETDLGCODE)
 		GString			WndClass;
-		UINT			TimerId;
+		UINT_PTR		TimerId;
 		HTHEME			hTheme;
 
 	#else

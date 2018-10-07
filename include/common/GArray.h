@@ -621,6 +621,13 @@ public:
 		return Ptr;
 	}
 
+	void Swap(GArray<Type> &other)
+	{
+		LSwap(p, other.p);
+		LSwap(len, other.len);
+		LSwap(alloc, other.alloc);
+	}
+
 	/// Swaps a range of elements between this array and 'b'
 	bool SwapRange
 	(

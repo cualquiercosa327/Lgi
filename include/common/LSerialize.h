@@ -102,7 +102,7 @@ class LSerialize
 	bool ToStream;
 	GStreamI *Stream;
 	GArray<char> FieldMem;
-	GHashTbl<int, ssize_t> Fields;
+	LHashTbl<IntKey<int>, ssize_t> Fields;
 	uint32 Bytes;
 
 protected:
@@ -189,7 +189,7 @@ protected:
 	}
 
 public:
-	LSerialize(uint16 ObjId = 0) : Fields(64, false, -1, -1)
+	LSerialize(uint16 ObjId = 0) : Fields(64,-1)
 	{
 		ObjectId = ObjId;
 		ToStream = true;

@@ -102,7 +102,11 @@ void EditTray::OnPosChange()
 		c.Left(FileSearch, EDIT_CTRL_WIDTH);
 	c.x1 += 8;
 
+	#ifdef LINUX
+	c.Left(FuncBtn, 28);
+	#else
 	c.Left(FuncBtn, 20);
+	#endif
 	if (FuncSearch)
 		c.Left(FuncSearch, EDIT_CTRL_WIDTH);
 	c.x1 += 8;
@@ -147,7 +151,13 @@ void EditTray::OnPaint(GSurface *pDC)
 	f = FuncBtn;
 	LgiThinBorder(pDC, f, DefaultRaisedEdge);
 	{
-		GDisplayString ds(SysFont, "{ }");
+		GDisplayString ds(SysFont,
+			#ifdef LINUX
+			"{}"
+			#else
+			"{ }"
+			#endif
+			);
 		ds.Draw(pDC, f.x1 + 3, f.y1);
 	}
 
@@ -189,7 +199,7 @@ void EditTray::OnHeaderList(GMouse &m)
 				// Construct the menu
 				LHashTbl<StrKey<char>, int> Map;
 				int DisplayLines = GdcD->Y() / SysFont->GetHeight();
-				if (Headers.Length() > (0.7 * DisplayLines))
+				if (Headers.Length() > (0.9 * DisplayLines))
 				{
 					GArray<char*> Letters[26];
 					GArray<char*> Other;
@@ -309,6 +319,7 @@ void EditTray::OnHeaderList(GMouse &m)
 void EditTray::OnFunctionList(GMouse &m)
 {
 	GArray<DefnInfo> Funcs;
+
 	if (BuildDefnList(Doc->GetFileName(), Ctrl->NameW(), Funcs, DefnNone /*DefnFunc | DefnClass*/))
 	{
 		GSubMenu s;
@@ -318,8 +329,8 @@ void EditTray::OnFunctionList(GMouse &m)
 		int ScreenLines = ScreenHt / SysFont->GetHeight();
 		float Ratio = ScreenHt ? (float)(SysFont->GetHeight() * Funcs.Length()) / ScreenHt : 0.0f;
 		bool UseSubMenus = Ratio > 0.9f;
-		int Buckets = UseSubMenus ? (int)(ScreenLines * 0.75) : 1;
-		int BucketSize = MAX(5, Funcs.Length() / Buckets);
+		int Buckets = UseSubMenus ? (int)(ScreenLines * 0.9) : 1;
+		int BucketSize = MAX(2, Funcs.Length() / Buckets);
 		GSubMenu *Cur = NULL;
 		
 		for (unsigned n=0; n<Funcs.Length(); n++)
@@ -1411,6 +1422,40 @@ bool IdeDoc::HasFocus(int Set)
 	return d->Edit->Focus();
 }
 
+void IdeDoc::EscapeSelection(bool ToEscaped)
+{
+	if (!d->Edit)
+		return;
+
+	GString s = d->Edit->GetSelection();
+	if (!s)
+		return;
+
+	if (ToEscaped)
+	{
+		GMouse m;
+		GetMouse(m);
+		GString Delim = "\r\n\\";
+		if (m.Ctrl())
+		{
+			GInput Inp(this, GString::Escape(Delim, -1, "\\"), "Delimiter chars:", "Escape");
+			if (Inp.DoModal())
+				Delim = GString::UnEscape(Inp.GetStr(), -1);
+		}
+		s = GString::Escape(s, -1, Delim);
+	}
+	else
+	{
+		s = GString::UnEscape(s, -1);
+	}
+
+	auto r = d->Edit->GetSelectionRange();
+
+	GAutoWString w(Utf8ToWide(s));
+	d->Edit->DeleteSelection();
+	d->Edit->Insert(r.Start, w, StrlenW(w));
+}
+
 void IdeDoc::ConvertWhiteSpace(bool ToTabs)
 {
 	if (!d->Edit)
@@ -1512,6 +1557,11 @@ GMessage::Result IdeDoc::OnEvent(GMessage *Msg)
 					GString Input = SymEd->Name();
 					if (Input == Resp->Str) // Is the input string still the same?
 					{
+						/*
+						The problem with this is that the user it still typing something
+						and the cursor / focus jumps to the document now they are typing
+						a search string into the document, which is not what they intended.
+						
 						if (Resp->Results.Length() == 1)
 						{
 							FindSymResult *r = Resp->Results[0];
@@ -1520,6 +1570,7 @@ GMessage::Result IdeDoc::OnEvent(GMessage *Msg)
 							d->App->GotoReference(r->File, r->Line, false);
 						}
 						else
+						*/
 						{
 							d->SymPopup->All = Resp->Results;
 							Resp->Results.Length(0);

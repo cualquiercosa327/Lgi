@@ -164,7 +164,9 @@ public:
 	OsProcessId GetProcessId();
 	
 	/// Returns the thread currently running the active message loop
-	OsThread GetGuiThread();
+	OsThread _GetGuiThread();
+	OsThreadId GetGuiThreadId();
+	bool InThread();
 	
 	/// Returns the number of CPU cores the machine has
 	int GetCpuCount();
@@ -283,9 +285,6 @@ public:
 
 	/// Gets the font cache
 	class GFontCache *GetFontCache();
-
-	/// \returns TRUE if the current thread is the GUI thread...
-	bool InThread();
 
 	// OS Specific
 	#if defined(LGI_SDL)
@@ -839,6 +838,11 @@ public:
     bool SetCssStyle(const char *CssStyle);
     /// Gets the style of the control
     class GCss *GetCss(bool Create = false);
+
+	/// Resolve a CSS colour, e.g.:
+	/// auto Back = StyleColour(GCss::PropBackgroundColor, LC_MED);
+	GColour StyleColour(int CssPropType, GColour Default, int Depth = 5);
+
     /// Sets the style of the control (will take ownership of 'css')
     void SetCss(GCss *css);
     /// Sets the CSS foreground or background colour

@@ -780,6 +780,47 @@ int64 Atoi(const T *s, int Base = 10, int64 DefaultValue = -1)
 	return Minus ? -v : v;
 }
 
+/// Works out the UTF8 length of a wide char string
+inline size_t WideToUtf8Len(const wchar_t *s, ssize_t wchars = -1)
+{
+	if (!s) return 0;
+	size_t Out = 0;
+	uint8 Buf[6];
+
+	#ifdef _MSC_VER
+	const uint16 *i = (const uint16*) s;
+	ssize_t Len = wchars >= 0 ? wchars << 1 : 0x7fffffff;
+	for (uint32 ch; ch = LgiUtf16To32(i, Len); )
+	{
+		uint8 *b = Buf;
+		ssize_t len = sizeof(Buf);
+		if (!LgiUtf32To8(ch, b, len))
+			break;
+		Out += sizeof(Buf) - len;
+	}
+	#else
+	const wchar_t *end = wchars < 0 ? NULL : s + wchars;
+	for (uint32 ch = 0;
+		(
+			wchars < 0
+			||
+			s < end
+		)
+		&&
+		(ch = *s);
+		s++)
+	{
+		uint8 *b = Buf;
+		ssize_t len = sizeof(Buf);
+		if (!LgiUtf32To8(ch, b, len))
+			break;
+		Out += sizeof(Buf) - len;
+	}
+	#endif
+
+	return Out;
+}
+
 /// Converts a utf-8 string into a wide character string
 /// \ingroup Text
 LgiFunc wchar_t *Utf8ToWide
@@ -799,5 +840,6 @@ LgiFunc char *WideToUtf8
 	/// [Optional] Number of wchar_t's in the input or -1 for NULL terminated
 	ptrdiff_t InLen = -1
 );
+
 
 #endif

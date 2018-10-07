@@ -8,6 +8,7 @@
 **              fret@memecode.com
 */
 
+#define _WINSOCK_DEPRECATED_NO_WARNINGS 1
 #ifdef LINUX
 #include <netinet/tcp.h>
 #include <unistd.h>
@@ -41,6 +42,7 @@
  	#include <stdio.h>
 	#include <stdlib.h>
 	#include <ras.h>
+	#include <Ws2tcpip.h>
 
 	typedef HOSTENT HostEnt;
 	typedef int socklen_t;
@@ -48,8 +50,12 @@
 	typedef BOOL option_t;
 
 	#define MSG_NOSIGNAL		0
-	#define EWOULDBLOCK			WSAEWOULDBLOCK
-	#define EISCONN				WSAEISCONN
+	#ifndef EWOULDBLOCK
+		#define EWOULDBLOCK		WSAEWOULDBLOCK
+	#endif
+	#ifndef EISCONN
+		#define EISCONN			WSAEISCONN
+	#endif
 
 	#define OsAddr				S_un.S_addr
 
@@ -164,31 +170,26 @@ void StopNetworkStack()
 #include "..\..\Win32\INet\MibAccess.h"
 #endif
 
-bool GSocket::EnumInterfaces(List<char> &Lst)
+bool GSocket::EnumInterfaces(GArray<Interface> &Out)
 {
 	bool Status = false;
 
 	StartNetworkStack();
 
 	#ifdef WIN32
-	UINT IPArray[50];
-	UINT Size = 50;
 	MibII m;
-
 	m.Init();
-	if (m.GetIPAddress(IPArray, Size))
-	{
-		for (UINT i=0; i<Size; i++)
-		{
-			if (IPArray[i])
-			{
-				char Str[256];
-				uchar *Ip = (uchar*) &IPArray[i];
-				sprintf_s(Str, sizeof(Str), "%i.%i.%i.%i", Ip[0], Ip[1], Ip[2], Ip[3]);
-				Lst.Insert(NewStr(Str));
 
-				Status = true;
-			}
+	MibInterface Intf[16];
+	int Count = m.GetInterfaces(Intf, CountOf(Intf));
+	if (Count)
+	{
+		for (int i=0; i<Count; i++)
+		{
+			auto &OutIntf = Out.New();
+			OutIntf.Ip4 = htonl(Intf[i].Ip);
+			OutIntf.Netmask4 = htonl(Intf[i].Netmask);
+			Status = true;
 		}
 	}
 	#elif !defined(BEOS)
@@ -202,12 +203,12 @@ bool GSocket::EnumInterfaces(List<char> &Lst)
 			if (a->ifa_addr->sa_family == AF_INET)
 			{
 				sockaddr_in *in = (sockaddr_in*)a->ifa_addr;
-				char str[32];
-				uint8 *ip = (uint8*)&in->sin_addr.s_addr;
-				sprintf_s(	str, sizeof(str),
-							"%i.%i.%i.%i",
-							ip[0], ip[1], ip[2], ip[3]);
-				Lst.Insert(NewStr(str));
+				sockaddr_in *mask = (sockaddr_in*)a->ifa_netmask;
+				
+				auto &Intf = Out.New();
+				Intf.Ip4 = ntohl(in->sin_addr.s_addr);
+				Intf.Netmask4 = ntohl(mask->sin_addr.s_addr);
+				Intf.Name = a->ifa_name;
 
 				Status = true;
 			}
@@ -412,7 +413,7 @@ bool GSocket::CanAccept(int TimeoutMs)
 
 bool GSocket::IsBlocking()
 {
-	return d->Blocking;
+	return d->Blocking != 0;
 }
 
 void GSocket::IsBlocking(bool block)
@@ -570,7 +571,12 @@ int GSocket::Open(const char *HostAddr, int Port)
 			if (IsDigit(*HostAddr) && strchr(HostAddr, '.'))
 			{
 				// Ip address
-				IpAddress = inet_addr(HostAddr);
+				// IpAddress = inet_addr(HostAddr);
+				if (!inet_pton(AF_INET, HostAddr, &IpAddress))
+				{
+					Error();
+					return 0;
+				}
 				
 				#if defined(WIN32) || defined(BEOS)
 
@@ -728,7 +734,7 @@ int GSocket::Open(const char *HostAddr, int Port)
 							int64 Remaining = End - LgiCurrentTime();
 
 							#if CONNECT_LOGGING
-							printf("%p - Remaining "LGI_PrintfInt64"\n", d->Socket, Remaining);
+							printf("%p - Remaining "LPrintfInt64"\n", d->Socket, Remaining);
 							#endif
 
 							if (Remaining < 0)
@@ -982,7 +988,7 @@ ssize_t GSocket::Write(const void *Data, ssize_t Len, int Flags)
 		(
 			d->Socket,
 			(char*)Data,
-			Len,
+			(int) Len,
 			Flags
 			#ifndef MAC
 			| MSG_NOSIGNAL
@@ -1018,7 +1024,7 @@ ssize_t GSocket::Read(void *Data, ssize_t Len, int Flags)
 
 	if (d->Timeout < 0 || IsReadable(d->Timeout))
 	{
-		Status = recv(d->Socket, (char*)Data, Len, Flags
+		Status = recv(d->Socket, (char*)Data, (int) Len, Flags
 			#ifdef MSG_NOSIGNAL
 			| MSG_NOSIGNAL
 			#endif
@@ -1239,7 +1245,7 @@ void GSocket::SetLogFile(char *FileName, int Type)
 
 bool GSocket::GetUdp()
 {
-	return d->Udp;
+	return d->Udp != 0;
 }
 
 void GSocket::SetUdp(bool b)
@@ -1268,17 +1274,63 @@ void GSocket::SetBroadcast()
 	d->Broadcast = true;
 }
 
+bool GSocket::AddMulticastMember(uint32 MulticastIp, uint32 LocalInterface)
+{
+	if (!MulticastIp)
+		return false;
+
+	struct ip_mreq mreq;
+	mreq.imr_multiaddr.s_addr = htonl(MulticastIp);		// your multicast address
+	mreq.imr_interface.s_addr = htonl(LocalInterface);	// your incoming interface IP
+	int r = setsockopt(Handle(), IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char*) &mreq, sizeof(mreq));
+	if (!r)
+		return true;
+
+	Error();
+	return false;
+}
+
+bool GSocket::SetMulticastInterface(uint32 Interface)
+{
+	if (!Interface)
+		return false;
+
+	struct sockaddr_in addr;
+	addr.sin_addr.s_addr = Interface;
+	auto r = setsockopt(Handle(), IPPROTO_IP, IP_MULTICAST_IF, (const char*) &addr, sizeof(addr));
+	if (!r)
+		return true;
+
+	Error();
+	return false;
+}
+
+bool GSocket::CreateUdpSocket()
+{
+	if (!ValidSocket(d->Socket))
+	{
+		d->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+		if (ValidSocket(d->Socket))
+		{
+			if (d->Broadcast)
+			{
+				option_t enabled = d->Broadcast != 0;
+				auto r = setsockopt(Handle(), SOL_SOCKET, SO_BROADCAST, (char*)&enabled, sizeof(enabled));
+				if (r)
+					Error();
+			}
+		}
+	}
+
+	return ValidSocket(d->Socket);
+}
+
 int GSocket::ReadUdp(void *Buffer, int Size, int Flags, uint32 *Ip, uint16 *Port)
 {
 	if (!Buffer || Size < 0)
 		return -1;
 
-	if (!ValidSocket(d->Socket))
-	{
-		d->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-		if (!ValidSocket(d->Socket))
-			return -1;
-	}
+	CreateUdpSocket();
 
 	sockaddr_in a;
 	socklen_t AddrSize = sizeof(a);
@@ -1310,18 +1362,7 @@ int GSocket::WriteUdp(void *Buffer, int Size, int Flags, uint32 Ip, uint16 Port)
 	if (!Buffer || Size < 0)
 		return -1;
 
-	if (!ValidSocket(d->Socket))
-	{
-		d->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-		if (!ValidSocket(d->Socket))
-			return -1;
-
-		if (d->Broadcast)
-		{
-			option_t enabled = d->Broadcast != 0;
-			setsockopt(Handle(), SOL_SOCKET, SO_BROADCAST, (char*)&enabled, sizeof(enabled));
-		}
-	}
+	CreateUdpSocket();
 
 	sockaddr_in a;
 	ZeroObj(a);
@@ -1626,7 +1667,7 @@ int GSocks5Socket::Open(const char *HostAddr, int port)
 							size_t Len = strlen(HostAddr);
 							LgiAssert(Len < 0x80);
 							*b++ = (char)Len;
-							strcpy(b, HostAddr);
+							strcpy_s(b, Buf+sizeof(Buf)-b, HostAddr);
 							b += Len;
 						}
 

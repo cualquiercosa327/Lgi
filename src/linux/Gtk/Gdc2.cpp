@@ -971,11 +971,15 @@ GColourSpace GdkVisualToColourSpace(Gtk::GdkVisual *v, int output_bits)
 	}
 	
 	GColourSpace Cs;
-	if (v->byte_order == Gtk::GDK_LSB_FIRST)
+	
+	if (v->depth != 16)
 	{
-		c = LgiSwap32(c);
-		while (!(c & 0xff))
-			c >>= 8;
+		if (v->byte_order == Gtk::GDK_LSB_FIRST)
+		{
+			c = LgiSwap32(c);
+			while (!(c & 0xff))
+				c >>= 8;
+		}
 	}
 	
 	Cs = (GColourSpace)c;

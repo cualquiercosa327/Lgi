@@ -14,6 +14,7 @@
 #include "GViewPriv.h"
 #include "GCssTools.h"
 #include "LgiRes.h"
+#include "Mail.h"
 
 #ifdef _DEBUG
 #define FEATURE_HILIGHT_ALL_MATCHES	1
@@ -143,6 +144,10 @@ public:
 		GString SetName;
 	// </RequiresLocking>
 
+	#ifdef _DEBUG
+	GString PourLog;
+	#endif
+
 	GTextView3Private(GTextView3 *view) : LMutex("GTextView3Private")
 	{
 		View = view;
@@ -204,46 +209,49 @@ enum UndoType
 	UndoDelete, UndoInsert, UndoChange
 };
 
-class GTextView3Undo : public GUndoEvent
+struct Change : public GRange
+{
+	UndoType Type;
+	GArray<char16> Txt;
+};
+
+struct GTextView3Undo : public GUndoEvent
 {
 	GTextView3 *View;
-	UndoType Type;
-	ssize_t At;
-	char16 *Text;
+	GArray<Change> Changes;
 
-public:
-	GTextView3Undo(	GTextView3 *view,
-					char16 *t,
-					ssize_t len,
-					ssize_t at,
-					UndoType type)
+	GTextView3Undo(GTextView3 *view)
 	{
 		View = view;
-		Type = type;
-		At = at;
-		Text = NewStrW(t, len);
 	}
 
-	~GTextView3Undo()
+	void AddChange(ssize_t At, ssize_t Len, UndoType Type)
 	{
-		DeleteArray(Text);
+		Change &c = Changes.New();
+		c.Start = At;
+		c.Len = Len;
+		c.Txt.Add(View->Text + At, Len);
+		c.Type = Type;
 	}
 
 	void OnChange()
 	{
-		size_t Len = StrlenW(Text);
-		if (View->Text)
+		for (auto &c : Changes)
 		{
-			char16 *t = View->Text + At;
-			for (size_t i=0; i<Len; i++)
+			size_t Len = c.Len;
+			if (View->Text)
 			{
-				char16 n = Text[i];
-				Text[i] = t[i];
-				t[i] = n;
+				char16 *t = View->Text + c.Start;
+				for (size_t i=0; i<Len; i++)
+				{
+					char16 n = c.Txt[i];
+					c.Txt[i] = t[i];
+					t[i] = n;
+				}
 			}
-		}
 
-		View->d->SetDirty(At, Len);
+			View->d->SetDirty(c.Start, c.Len);
+		}
 	}
 
 	// GUndoEvent
@@ -251,25 +259,27 @@ public:
 	{
 		View->UndoOn = false;
 
-		switch (Type)
+		for (auto &c : Changes)
 		{
-			case UndoInsert:
+			switch (c.Type)
 			{
-				size_t Len = StrlenW(Text);
-				View->Insert(At, Text, Len);
-				View->Cursor = At + Len;
-				break;
-			}
-			case UndoDelete:
-			{
-				View->Delete(At, StrlenW(Text));
-				View->Cursor = At;
-				break;
-			}
-			case UndoChange:
-			{
-				OnChange();
-				break;
+				case UndoInsert:
+				{
+					View->Insert(c.Start, c.Txt.AddressOf(), c.Len);
+					View->Cursor = c.Start + c.Len;
+					break;
+				}
+				case UndoDelete:
+				{
+					View->Delete(c.Start, c.Len);
+					View->Cursor = c.Start;
+					break;
+				}
+				case UndoChange:
+				{
+					OnChange();
+					break;
+				}
 			}
 		}
 
@@ -281,26 +291,30 @@ public:
 	{
 		View->UndoOn = false;
 
-		switch (Type)
+		for (auto &c : Changes)
 		{
-			case UndoInsert:
+			switch (c.Type)
 			{
-				View->Delete(At, StrlenW(Text));
-				break;
+				case UndoInsert:
+				{
+					View->Delete(c.Start, c.Len);
+					break;
+				}
+				case UndoDelete:
+				{
+					View->Insert(c.Start, c.Txt.AddressOf(), c.Len);
+					break;
+				}
+				case UndoChange:
+				{
+					OnChange();				
+					break;
+				}
 			}
-			case UndoDelete:
-			{
-				View->Insert(At, Text, StrlenW(Text));
-				break;
-			}
-			case UndoChange:
-			{
-				OnChange();				
-				break;
-			}
+
+			View->Cursor = c.Start;
 		}
 
-		View->Cursor = At;
 		View->UndoOn = true;
 		View->Invalidate();
 	}
@@ -323,11 +337,13 @@ GTextView3::GTextView3(	int Id,
 	
 	PourEnabled = true;
 	PartialPour = false;
+	AdjustStylePos = true;
 	BlinkTs = 0;
 	LineY = 1;
 	MaxX = 0;
 	TextCache = 0;
 	UndoOn = true;
+	UndoCur = NULL;
 	Font = 0;
 	FixedWidthFont = false;
 	FixedFont = 0;
@@ -428,7 +444,7 @@ GTextView3::GTextView3(	int Id,
 GTextView3::~GTextView3()
 {
 	Line.DeleteObjects();
-	Style.DeleteObjects();
+	Style.Empty();
 
 	DeleteArray(TextCache);
 	DeleteArray(Text);
@@ -572,6 +588,11 @@ GFont *GTextView3::GetFont()
 	return Font;
 }
 
+GFont *GTextView3::GetBold()
+{
+	return Bold;
+}
+
 void GTextView3::SetFont(GFont *f, bool OwnIt)
 {
 	if (!f)
@@ -673,9 +694,14 @@ void GTextView3::LogLines()
 	LgiTrace("DocSize: %i\n", (int)Size);
 	for (auto i : Line)
 	{
-		LgiTrace("  [%i]=%i+%i %s\n", Idx, (int)i->Start, (int)i->Len, i->r.GetStr());
+		LgiTrace("  [%i]=%p, %i+%i, %s\n", Idx, i, (int)i->Start, (int)i->Len, i->r.GetStr());
 		Idx++;
 	}
+
+	#ifdef _DEBUG
+	if (d->PourLog)
+		LgiTrace("%s", d->PourLog.Get());
+	#endif
 }
 
 bool GTextView3::ValidateLines(bool CheckBox)
@@ -749,6 +775,29 @@ bool GTextView3::ValidateLines(bool CheckBox)
 	return true;
 }
 
+int GTextView3::AdjustStyles(ssize_t Start, ssize_t Diff, bool ExtendStyle)
+{
+	int Changes = 0;
+	for (auto &s : Style)
+	{
+		if (s.Start == Start)
+		{
+			if (Diff < 0 || ExtendStyle)
+				s.Len += Diff;
+			else
+				s.Start += Diff;
+			Changes++;
+		}
+		else if (s.Start > Start)
+		{
+			s.Start += Diff;
+			Changes++;
+		}
+	}
+
+	return Changes;
+}
+
 // break array, break out of loop when we hit these chars
 #define ExitLoop(c)	(	(c) == 0 ||								\
 						(c) == '\n' ||							\
@@ -818,7 +867,7 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 		return;
 
 	// Tracking vars
-	size_t e;
+	ssize_t e;
 	//int LastX = 0;
 	int WrapCol = GetWrapAtCol();
 
@@ -838,10 +887,19 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 		#if PROFILE_POUR
 		Prof.Add("NoWrap: ExistingLines");
 		#endif
-		size_t Pos = 0;
-		for (auto i = Line.begin(Idx); *i; i++)
+		#ifdef _DEGBUG
+		GStringPipe Log(1024);
+		Log.Printf("Pour: " LPrintfSizeT ", " LPrintfSSizeT ", partial=%i\n", Start, Length, PartialPour);
+		#endif
+
+		ssize_t Pos = 0;
+		for (auto i = Line.begin(Idx); *i; i++, Idx++)
 		{
 			GTextLine *l = *i;
+
+			#ifdef _DEGBUG
+			Log.Printf("	[%i] exist: r.val=%i\n", Idx, l->r.Valid());
+			#endif
 
 			if (!l->r.Valid()) // If the layout is not valid...
 			{
@@ -876,6 +934,10 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 				e++;
 			l->Len = e - c;
 
+			#ifdef _DEGBUG
+			Log.Printf("	[%i] new: start=" LPrintfSSizeT ", len=" LPrintfSSizeT "\n", Idx, l->Start, l->Len);
+			#endif
+
 			l->r.x1 = d->rPadding.x1;
 			l->r.y1 = Cy;
 			l->r.y2 = l->r.y1 + LineY - 1;
@@ -897,8 +959,12 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 			MaxX = MAX(MaxX, l->r.X());
 			Cy = l->r.y2 + 1;
 			Pos = e - Text;
+			Idx++;
 		}
 
+		#ifdef _DEGBUG
+		d->PourLog = Log.NewGStr();
+		#endif
 		PartialPour = false;
 	}
 	else // Wrap text
@@ -919,7 +985,7 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 			Idx, DisplayStart, DisplayLines, DisplayEnd, PourToDisplayEnd);
 		#endif
 
-		if (Line.Length() > Idx)
+		if ((ssize_t)Line.Length() > Idx)
 		{
 			for (auto i = Line.begin(Idx); *i; i++)
 				delete *i;
@@ -928,7 +994,7 @@ void GTextView3::PourText(size_t Start, ssize_t Length /* == 0 means it's a dele
 		}
 
 		int Cx = 0;
-		size_t i;
+		ssize_t i;
 		for (i=Start; i<Size; i = e)
 		{
 			// seek till next char of interest
@@ -1149,25 +1215,25 @@ bool GTextView3::InsertStyle(GAutoPtr<GStyle> s)
 
 	LgiAssert(s->Start >= 0);
 	LgiAssert(s->Len > 0);
-	size_t Last = 0;
-	int n = 0;
+	ssize_t Last = 0;
+	// int n = 0;
 
 	// LgiTrace("StartStyle=%i,%i(%i) %s\n", (int)s->Start, (int)s->Len, (int)(s->Start+s->Len), s->Fore.GetStr());
 
 	if (Style.Length() > 0)
 	{
 		// Optimize for last in the list
-		GStyle *Last = Style.Last();
-		if (s->Start >= Last->Start + Last->Len)
+		auto Last = Style.rbegin();
+		if (s->Start >= (ssize_t)Last->End())
 		{
-			Style.Insert(s.Release());
+			Style.Insert(*s);
 			return true;
 		}
 	}
 
-	for (GStyle *i=Style.First(); i; i=Style.Next(), n++)
+	for (auto i = Style.begin(); i != Style.end(); i++)
 	{
-		if (s->Overlap(i))
+		if (s->Overlap(*i))
 		{
 			if (s->Owner > i->Owner)
 			{
@@ -1177,31 +1243,32 @@ bool GTextView3::InsertStyle(GAutoPtr<GStyle> s)
 			else
 			{
 				// Replace mode...
-				Style.Delete(i);
-				Style.Insert(s.Release(), n);
+				*i = *s;
 				return true;
 			}
 		}
 
 		if (s->Start >= Last && s->Start < i->Start)
 		{
-			Style.Insert(s.Release(), n);
+			Style.Insert(*s, i);
 			return true;
 		}
-
-		Last = i->Start;
 	}
 
-	Style.Insert(s.Release());
+	Style.Insert(*s);
 	return true;
 }
 
-GTextView3::GStyle *GTextView3::GetNextStyle(ssize_t Where)
+GTextView3::GStyle *GTextView3::GetNextStyle(StyleIter &s, ssize_t Where)
 {
-	GStyle *s = (Where >= 0) ? Style.First() : Style.Next();
-	while (s)
+	if (Where >= 0)
+		s = Style.begin();
+	else
+		s++;
+
+	while (s != Style.end())
 	{
-		// determin whether style is relevent..
+		// determine whether style is relevant..
 		// styles in the selected region are ignored
 		ssize_t Min = MIN(SelStart, SelEnd);
 		ssize_t Max = MAX(SelStart, SelEnd);
@@ -1210,127 +1277,53 @@ GTextView3::GStyle *GTextView3::GetNextStyle(ssize_t Where)
 			s->Start+s->Len < Max)
 		{
 			// style is completely inside selection: ignore
-			s = Style.Next();
+			s++;
 		}
 		else if (Where >= 0 &&
 			s->Start+s->Len < Where)
 		{
-			s = Style.Next();
+			s++;
 		}
 		else
 		{
-			return s;
+			return &(*s);
 		}
 	}
 
-	return 0;
+	return NULL;
 }
 
-class GUrl : public GTextView3::GStyle
+#if 0
+CURSOR_CHAR GetCursor()
 {
-public:
-	bool Email;
-
-	GUrl(GTextViewStyleOwners own) : GStyle(own)
+	#ifdef WIN32
+	GArray<int> Ver;
+	int Os = LgiGetOs(&Ver);
+	if ((Os == LGI_OS_WIN32 || Os == LGI_OS_WIN64) &&
+		Ver[0] >= 5)
 	{
-		Email = false;
+		return MAKEINTRESOURCE(32649); // hand
 	}
-
-	bool OnMouseClick(GMouse *m)
+	else
 	{
-		if (View)
-		{
-			if ( (m && m->Left() && m->Double()) || (!m) )
-			{
-				char *Utf8 = WideToUtf8(View->NameW() + Start, Len);
-				if (Utf8)
-				{
-					View->OnUrl(Utf8);
-					DeleteArray(Utf8);
-				}
-				
-				return true;
-			}
-		}
-
-		return false;
+		return IDC_ARROW;
 	}
-
-	bool OnMenu(GSubMenu *m)
-	{
-		if (m)
-		{
-			if (Email)
-			{
-				m->AppendItem(LgiLoadString(L_TEXTCTRL_EMAIL_TO, "New Email to..."), IDM_NEW, true);
-			}
-			else
-			{
-				m->AppendItem(LgiLoadString(L_TEXTCTRL_OPENURL, "Open URL"), IDM_OPEN, true);
-			}
-
-			m->AppendItem(LgiLoadString(L_TEXTCTRL_COPYLINK, "Copy link location"), IDM_COPY_URL, true);
-
-			return true;
-		}
-
-		return false;
-	}
-
-	void OnMenuClick(int i)
-	{
-		switch (i)
-		{
-			case IDM_NEW:
-			case IDM_OPEN:
-			{
-				OnMouseClick(0);
-				break;
-			}
-			case IDM_COPY_URL:
-			{
-				char *Url = WideToUtf8(View->NameW() + Start, Len);
-				if (Url)
-				{
-					GClipBoard Clip(View);
-					Clip.Text(Url);
-					DeleteArray(Url);
-				}
-				break;
-			}
-		}
-	}
-
-	CURSOR_CHAR GetCursor()
-	{
-		#ifdef WIN32
-		GArray<int> Ver;
-		int Os = LgiGetOs(&Ver);
-		if ((Os == LGI_OS_WIN32 || Os == LGI_OS_WIN64) &&
-			Ver[0] >= 5)
-		{
-			return MAKEINTRESOURCE(32649); // hand
-		}
-		else
-		{
-			return IDC_ARROW;
-		}
-		#endif
-		return 0;
-	}
-};
+	#endif
+	return 0;
+}
+#endif
 
 GTextView3::GStyle *GTextView3::HitStyle(ssize_t i)
 {
-	for (GStyle *s=Style.First(); s; s=Style.Next())
+	for (auto &s : Style)
 	{
-		if (i >= s->Start && i < s->Start+s->Len)
+		if (i >= s.Start && i < (ssize_t)s.End())
 		{
-			return s;
+			return &s;
 		}
 	}
 
-	return 0;	
+	return NULL;
 }
 
 void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
@@ -1353,29 +1346,22 @@ void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
 		Start--;
 		Length++;
 	}
-	while (Start + Length < Size && UrlChar(Text[Start+Length]))
+	while ((ssize_t)Start + Length < Size && UrlChar(Text[Start+Length]))
 	{
 		// Move the end back
 		Length++;
 	}
 
 	// Delete all the styles that we own inside the changed area
-	for (GStyle *s = Style.First(); s; )
+	for (StyleIter s = Style.begin(); s != Style.end();)
 	{
-		if (s->Owner == 0)
+		if (s->Owner == STYLE_NONE)
 		{
 			if (EditSize > 0)
 			{
-				if (s->Start > Start)
-				{
-					s->Start += EditSize;
-				}
-
 				if (s->Overlap(Start, EditSize < 0 ? -EditSize : EditSize))
 				{
-					Style.Delete();
-					DeleteObj(s);
-					s = Style.Current();
+					Style.Delete(s);
 					continue;
 				}
 			}
@@ -1383,43 +1369,35 @@ void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
 			{
 				if (s->Overlap(Start, -EditSize))
 				{
-					Style.Delete();
-					DeleteObj(s);
-					s = Style.Current();
+					Style.Delete(s);
 					continue;
-				}
-				
-				if (s->Start > Start)
-				{
-					s->Start += EditSize;
 				}
 			}
 		}
-		
-		s = Style.Next();
+
+		s++;
 	}
 
 	if (UrlDetect)
 	{		
 		GArray<GLinkInfo> Links;		
-		LgiAssert(Start + Length <= Size);		
+		LgiAssert((ssize_t)Start + Length <= Size);		
 		if (LgiDetectLinks(Links, Text + Start, Length))
 		{
 			for (uint32 i=0; i<Links.Length(); i++)
 			{
 				GLinkInfo &Inf = Links[i];
-				GUrl *Url;
-                GAutoPtr<GTextView3::GStyle> a(Url = new GUrl(STYLE_NONE));
+                GAutoPtr<GTextView3::GStyle> Url(new GStyle(STYLE_URL));
 				if (Url)
 				{
 					Url->View = this;
-					Url->Start = (int) (Inf.Start + Start);
-					Url->Len = (int)Inf.Len;
-					Url->Email = Inf.Email;
+					Url->Start = Inf.Start + Start;
+					Url->Len = Inf.Len;
+					// Url->Email = Inf.Email;
 					Url->Font = Underline;
 					Url->Fore = d->UrlColour;
 
-					InsertStyle(a);
+					InsertStyle(Url);
 				}
 			}
 		}
@@ -1432,6 +1410,9 @@ void GTextView3::PourStyle(size_t Start, ssize_t EditSize)
 
 bool GTextView3::Insert(size_t At, char16 *Data, ssize_t Len)
 {
+	GProfile Prof("GTextView3::Insert");
+	Prof.HideResultsIfBelow(1000);
+
 	LgiAssert(InThread());
 	
 	if (!ReadOnly && Len > 0)
@@ -1440,7 +1421,7 @@ bool GTextView3::Insert(size_t At, char16 *Data, ssize_t Len)
 			return false;
 
 		// limit input to valid data
-		At = MIN(Size, At);
+		At = MIN(Size, (ssize_t)At);
 
 		// make sure we have enough memory
 		size_t NewAlloc = Size + Len + 1;
@@ -1466,6 +1447,8 @@ bool GTextView3::Insert(size_t At, char16 *Data, ssize_t Len)
 				return false;
 			}
 		}
+		
+		Prof.Add("MemChk");
 
 		if (Text)
 		{
@@ -1474,15 +1457,25 @@ bool GTextView3::Insert(size_t At, char16 *Data, ssize_t Len)
 			// Move the section after the insert to make space...
 			memmove(Text+(At+Len), Text+At, (Size-At) * sizeof(char16));
 
-			// Add the undo object...
-			if (UndoOn)
-				UndoQue += new GTextView3Undo(this, Data, Len, At, UndoInsert);
+			Prof.Add("Cpy");
 
 			// Copy new data in...
 			memcpy(Text+At, Data, Len * sizeof(char16));
 			Size += Len;
 			Text[Size] = 0; // NULL terminate
 
+			Prof.Add("Undo");
+			
+			// Add the undo object...
+			if (UndoOn)
+			{
+				GAutoPtr<GTextView3Undo> Obj(new GTextView3Undo(this));
+				GTextView3Undo *u = UndoCur ? UndoCur : Obj;
+				if (u)
+					u->AddChange(At, Len, UndoInsert);
+				if (Obj)
+					UndoQue += Obj.Release();
+			}
 
 			// Clear layout info for the new text
 			ssize_t Idx = -1;
@@ -1507,6 +1500,8 @@ bool GTextView3::Insert(size_t At, char16 *Data, ssize_t Len)
 					// Clear layout for current line...
 					Cur->r.ZOff(-1, -1);
 
+					Prof.Add("NoWrap add lines");
+					
 					// Add any new lines that we need...
 					char16 *e = Text + At + Len;
 					char16 *c;
@@ -1527,8 +1522,12 @@ bool GTextView3::Insert(size_t At, char16 *Data, ssize_t Len)
 						}
 					}
 
+					Prof.Add("CalcLen");
+
 					// Make sure the last Line's length is set..
 					Cur->CalcLen(Text);
+
+					Prof.Add("UpdatePos");
 	
 					// Now update all the positions of the following lines...
 					for (auto i = Line.begin(++Idx); *i; i++)
@@ -1558,13 +1557,19 @@ bool GTextView3::Insert(size_t At, char16 *Data, ssize_t Len)
 			}
 
 			#ifdef _DEBUG
+			Prof.Add("Validate");
 			ValidateLines();
 			#endif
+
+			if (AdjustStylePos)
+				AdjustStyles(At, Len);
 
 			Dirty = true;
 			if (PourEnabled)
 			{
+				Prof.Add("PourText");
 				PourText(At, Len);
+				Prof.Add("PourStyle");
 				PourStyle(At, Len);
 			}
 			SendNotify(GNotifyDocChanged);
@@ -1586,8 +1591,8 @@ bool GTextView3::Delete(size_t At, ssize_t Len)
 	{
 		// limit input
 		At = MAX(At, 0);
-		At = MIN(At, Size);
-		Len = MIN(Size-At, Len);
+		At = MIN((ssize_t)At, Size);
+		Len = MIN(Size-(ssize_t)At, Len);
 
 		if (Len > 0)
 		{
@@ -1602,7 +1607,12 @@ bool GTextView3::Delete(size_t At, ssize_t Len)
 			// do delete
 			if (UndoOn)
 			{
-				UndoQue += new GTextView3Undo(this, Text+At, Len, At, UndoDelete);
+				GAutoPtr<GTextView3Undo> Obj(new GTextView3Undo(this));
+				GTextView3Undo *u = UndoCur ? UndoCur : Obj;
+				if (u)
+					u->AddChange(At, Len, UndoDelete);
+				if (Obj)
+					UndoQue += Obj.Release();
 			}
 
 			memmove(Text+At, Text+(At+Len), (Size-At-Len) * sizeof(char16));
@@ -1652,15 +1662,19 @@ bool GTextView3::Delete(size_t At, ssize_t Len)
 			#ifdef _DEBUG
 			ValidateLines();
 			#endif
+
+			if (AdjustStylePos)
+				AdjustStyles(At, -Len);
+
 			if (PourEnabled)
 			{
 				PourText(At, -Len);
 				PourStyle(At, -Len);
 			}
 			
-			if (Cursor >= At && Cursor <= At + Len)
+			if (Cursor >= (ssize_t)At && Cursor <= (ssize_t)At + Len)
 			{
-				SetCaret(At, false, HasNewLine);
+				SetCaret(At, false, HasNewLine != 0);
 			}
 
 			// Handle repainting in flowed mode, when the line starts change
@@ -1735,7 +1749,7 @@ int64 GTextView3::Value()
 void GTextView3::Value(int64 i)
 {
 	char Str[32];
-	sprintf_s(Str, sizeof(Str), LGI_PrintfInt64, i);
+	sprintf_s(Str, sizeof(Str), LPrintfInt64, i);
 	Name(Str);
 }
 
@@ -1769,6 +1783,7 @@ bool GTextView3::Name(const char *s)
 		DeleteArray(TextCache);
 		DeleteArray(Text);
 		Line.DeleteObjects();
+		Style.Empty();
 
 		LgiAssert(LgiIsUtf8(s));
 		Text = Utf8ToWide(s);
@@ -1854,6 +1869,7 @@ bool GTextView3::NameW(const char16 *s)
 
 	// update everything else
 	Line.DeleteObjects();
+	Style.Empty();
 	d->SetDirty(0, Size);
 	PourText(0, Size);
 	PourStyle(0, Size);
@@ -1957,13 +1973,55 @@ ssize_t GTextView3::IndexAt(int x, int y)
 	return 0;
 }
 
+bool GTextView3::ScrollToOffset(size_t Off)
+{
+	bool ForceFullUpdate = false;
+	ssize_t ToIndex = 0;
+	GTextLine *To = GetTextLine(Off, &ToIndex);
+	if (VScroll && To)
+	{
+		GRect Client = GetClient();
+		int DisplayLines = Client.Y() / LineY;
+
+		if (ToIndex < VScroll->Value())
+		{
+			// Above the visible region...
+			if (d->CenterCursor)
+			{
+				ssize_t i = ToIndex - (DisplayLines >> 1);
+				VScroll->Value(MAX(0, i));
+			}
+			else
+			{
+				VScroll->Value(ToIndex);
+			}
+			ForceFullUpdate = true;
+		}
+
+		if (ToIndex >= VScroll->Value() + DisplayLines)
+		{
+			int YOff = d->CenterCursor ? DisplayLines >> 1 : DisplayLines;
+			
+			ssize_t v = MIN(ToIndex - YOff + 1, (ssize_t)Line.Length() - DisplayLines);
+			if (v != VScroll->Value())
+			{
+				// Below the visible region
+				VScroll->Value(v);
+				ForceFullUpdate = true;
+			}
+		}
+	}
+
+	return ForceFullUpdate;
+}
+
 void GTextView3::SetCaret(size_t i, bool Select, bool ForceFullUpdate)
 {
     // int _Start = LgiCurrentTime();
 	Blink = true;
 
 	// Bound the new cursor position to the document
-	if (i > Size) i = Size;
+	if ((ssize_t)i > Size) i = Size;
 
 	// Store the old selection and cursor
 	ssize_t s = SelStart, e = SelEnd, c = Cursor;
@@ -1993,43 +2051,11 @@ void GTextView3::SetCaret(size_t i, bool Select, bool ForceFullUpdate)
 	Cursor = i;
 
 	// check the cursor is on the screen
-	ssize_t ToIndex = 0;
-	GTextLine *To = GetTextLine(Cursor, &ToIndex);
-	if (VScroll && To)
-	{
-		GRect Client = GetClient();
-		int DisplayLines = Client.Y() / LineY;
-
-		if (ToIndex < VScroll->Value())
-		{
-			// Above the visible region...
-			if (d->CenterCursor)
-			{
-				ssize_t i = ToIndex - (DisplayLines >> 1);
-				VScroll->Value(MAX(0, i));
-			}
-			else
-			{
-				VScroll->Value(ToIndex);
-			}
-			ForceFullUpdate = true;
-		}
-
-		if (ToIndex >= VScroll->Value() + DisplayLines)
-		{
-			int YOff = d->CenterCursor ? DisplayLines >> 1 : DisplayLines;
-			
-			ssize_t v = MIN(ToIndex - YOff + 1, Line.Length() - DisplayLines);
-			if (v != VScroll->Value())
-			{
-				// Below the visible region
-				VScroll->Value(v);
-				ForceFullUpdate = true;
-			}
-		}
-	}
+	ForceFullUpdate |= ScrollToOffset(Cursor);
 
 	// check whether we need to update the screen
+	ssize_t ToIndex = 0;
+	GTextLine *To = GetTextLine(Cursor, &ToIndex);
 	if (ForceFullUpdate ||
 		!To ||
 		!From)
@@ -2283,7 +2309,7 @@ bool GTextView3::Open(const char *Name, const char *CharSet)
 		int64 Bytes = f.GetSize();
 		if (Bytes < 0 || Bytes & 0xffff000000000000LL)
 		{
-			LgiTrace("%s:%i - Invalid file size: " LGI_PrintfInt64 "\n", _FL, Bytes);
+			LgiTrace("%s:%i - Invalid file size: " LPrintfInt64 "\n", _FL, Bytes);
 			return false;
 		}
 			
@@ -2534,23 +2560,27 @@ bool GTextView3::DoCase(bool Upper)
 
 		if (Min < Max)
 		{
-			UndoQue += new GTextView3Undo(this, Text + Min, Max-Min, Min, UndoChange);
+			if (UndoOn)
+			{
+				GAutoPtr<GTextView3Undo> Obj(new GTextView3Undo(this));
+				GTextView3Undo *u = UndoCur ? UndoCur : Obj;
+				if (u)
+					u->AddChange(Min, Max - Min, UndoChange);
+				if (Obj)
+					UndoQue += Obj.Release();
+			}
 
 			for (ssize_t i=Min; i<Max; i++)
 			{
 				if (Upper)
 				{
 					if (Text[i] >= 'a' && Text[i] <= 'z')
-					{
 						Text[i] = Text[i] - 'a' + 'A';
-					}
 				}
 				else
 				{
 					if (Text[i] >= 'A' && Text[i] <= 'Z')
-					{
 						Text[i] = Text[i] - 'A' + 'a';
-					}
 				}
 			}
 
@@ -2887,18 +2917,12 @@ bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool Selec
 	#if FEATURE_HILIGHT_ALL_MATCHES
 
 	// Clear existing styles for matches
-	for (GStyle *s = Style.First(); s; )
+	for (StyleIter s = Style.begin(); s != Style.end(); )
 	{
 		if (s->Owner == STYLE_FIND_MATCHES)
-		{
 			Style.Delete(s);
-			DeleteObj(s);
-			s = Style.Current();
-		}
 		else
-		{
-			s = Style.Next();
-		}
+			s++;
 	}
 
 	ssize_t FindLen = StrlenW(Find);
@@ -2926,6 +2950,7 @@ bool GTextView3::OnFind(char16 *Find, bool MatchWord, bool MatchCase, bool Selec
 	}
 
 	Cursor = Old;
+	ScrollToOffset(Cursor);
 	Invalidate();
 
 	#else
@@ -3070,6 +3095,8 @@ bool GTextView3::OnMultiLineTab(bool In)
 	if (!Indexes)
 		return false;
 
+	UndoCur = new GTextView3Undo(this);
+
 	for (i=Ls-1; i>=0; i--)
 	{
 		if (In)
@@ -3122,6 +3149,16 @@ bool GTextView3::OnMultiLineTab(bool In)
 				}
 			}
 		}
+	}
+
+	if (UndoCur->Changes.Length())
+	{
+		UndoQue += UndoCur;
+		UndoCur = NULL;
+	}
+	else
+	{
+		DeleteObj(UndoCur);
 	}
 
 	SelStart = Min;
@@ -3273,7 +3310,7 @@ bool GTextView3::OnMouseWheel(double l)
 	if (VScroll)
 	{
 		int64 NewPos = VScroll->Value() + (int)l;
-		NewPos = limit(NewPos, 0, GetLines());
+		NewPos = limit(NewPos, 0, (ssize_t)GetLines());
 		VScroll->Value(NewPos);
 		Invalidate();
 	}
@@ -3376,7 +3413,7 @@ void GTextView3::DoContextMenu(GMouse &m)
 	GStyle *s = HitStyle(HitText(m.x, m.y, true));
 	if (s)
 	{
-		if (s->OnMenu(&RClick))
+		if (OnStyleMenu(s, &RClick))
 		{
 			RClick.AppendSeparator();
 		}
@@ -3504,7 +3541,7 @@ void GTextView3::DoContextMenu(GMouse &m)
 		{
 			if (s)
 			{
-				s->OnMenuClick(Id);
+				OnStyleMenuClick(s, Id);
 			}
 
 			if (Environment)
@@ -3513,6 +3550,89 @@ void GTextView3::DoContextMenu(GMouse &m)
 			}
 			break;
 		}
+	}
+}
+
+bool GTextView3::OnStyleClick(GStyle *style, GMouse *m)
+{
+	switch (style->Owner)
+	{
+		case STYLE_URL:
+		{
+			if
+			(
+				(!m)
+				||
+				(m->Left() && m->Down() && m->Double())
+			)
+			{
+				GString s(Text + style->Start, style->Len);
+				if (s)
+					OnUrl(s);
+				return true;
+			}
+			break;
+		}
+		default:
+			break;
+	}
+
+	return false;
+}
+
+bool GTextView3::OnStyleMenu(GStyle *style, GSubMenu *m)
+{
+	switch (style->Owner)
+	{
+		case STYLE_URL:
+		{
+			GString s(Text + style->Start, style->Len);
+			if (LIsValidEmail(s))
+				m->AppendItem(LgiLoadString(L_TEXTCTRL_EMAIL_TO, "New Email to..."), IDM_NEW, true);
+			else
+				m->AppendItem(LgiLoadString(L_TEXTCTRL_OPENURL, "Open URL"), IDM_OPEN, true);
+
+			m->AppendItem(LgiLoadString(L_TEXTCTRL_COPYLINK, "Copy link location"), IDM_COPY_URL, true);
+			return true;
+		}
+		default:
+			break;
+	}
+
+	return false;
+}
+
+void GTextView3::OnStyleMenuClick(GStyle *style, int i)
+{
+	switch (style->Owner)
+	{
+		case STYLE_URL:
+		{
+			GString s(Text + style->Start, style->Len);
+
+			switch (i)
+			{
+				case IDM_NEW:
+				case IDM_OPEN:
+				{
+					if (s)
+						OnUrl(s);
+					break;
+				}
+				case IDM_COPY_URL:
+				{
+					if (s)
+					{
+						GClipBoard Clip(this);
+						Clip.Text(s);
+					}
+					break;
+				}
+			}
+			break;
+		}
+		default:
+			break;
 	}
 }
 
@@ -3535,9 +3655,7 @@ void GTextView3::OnMouseClick(GMouse &m)
 
 				GStyle *s = HitStyle(Hit);
 				if (s)
-				{
-					Processed = s->OnMouseClick(&m);
-				}
+					Processed = OnStyleClick(s, &m);
 			}
 
 			if (!Processed && m.Double())
@@ -3611,18 +3729,20 @@ void GTextView3::OnMouseMove(GMouse &m)
 			Invalidate();
 		}
 	}
+}
 
-	#ifdef WIN32
+LgiCursor GTextView3::GetCursor(int x, int y)
+{
 	GRect c = GetClient();
 	c.Offset(-c.x1, -c.y1);
-	if (c.Overlap(m.x, m.y))
+	GStyle *s = NULL;
+	if (c.Overlap(x, y))
 	{
-		GStyle *s = HitStyle(Hit);
-		TCHAR *c = (s) ? s->GetCursor() : 0;
-		if (!c) c = IDC_IBEAM;
-		::SetCursor(LoadCursor(0, MAKEINTRESOURCE(c)));
+		ssize_t Hit = HitText(x, y, true);
+		s = HitStyle(Hit);
 	}
-	#endif
+
+	return s ? s->Cursor : LCUR_Ibeam;
 }
 
 int GTextView3::GetColumn()
@@ -3631,7 +3751,7 @@ int GTextView3::GetColumn()
 	GTextLine *l = GetTextLine(Cursor);
 	if (l)
 	{
-		for (size_t i=l->Start; i<Cursor; i++)
+		for (ssize_t i=l->Start; i<Cursor; i++)
 		{
 			if (Text[i] == '\t')
 			{
@@ -4268,7 +4388,7 @@ bool GTextView3::OnKey(GKey &k)
 						int DisplayLines = Y() / LineY;
 						ssize_t CurLine = Line.IndexOf(l);
 
-						GTextLine *New = Line.ItemAt(MIN(CurLine + DisplayLines, GetLines()-1));
+						GTextLine *New = Line.ItemAt(MIN(CurLine + DisplayLines, (ssize_t)GetLines()-1));
 						if (New)
 						{
 							SetCaret(New->Start + MIN(Cursor - l->Start, New->Len), k.Shift());
@@ -4668,8 +4788,8 @@ void GTextView3::OnPaint(GSurface *pDC)
 			#endif
 			)
 		{
-			size_t SelMin = MIN(SelStart, SelEnd);
-			size_t SelMax = MAX(SelStart, SelEnd);
+			ssize_t SelMin = MIN(SelStart, SelEnd);
+			ssize_t SelMax = MAX(SelStart, SelEnd);
 
 			// font properties
 			Font->Colour(Fore, Back);
@@ -4690,7 +4810,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 			int k = ScrollYLine();
 			GTextLine *l=Line.ItemAt(k);
 			int Dy = (l) ? -l->r.y1 : 0;
-			size_t NextSelection = (SelStart != SelEnd) ? SelMin : -1; // offset where selection next changes
+			ssize_t NextSelection = (SelStart != SelEnd) ? SelMin : -1; // offset where selection next changes
 			if (l &&
 				SelStart >= 0 &&
 				SelStart < l->Start &&
@@ -4703,7 +4823,8 @@ void GTextView3::OnPaint(GSurface *pDC)
 				NextSelection = SelMax;
 			}
 
-			GStyle *NextStyle = GetNextStyle((l) ? l->Start : 0);
+			StyleIter Si = Style.begin();
+			GStyle *NextStyle = GetNextStyle(Si, (l) ? l->Start : 0);
 
 			DocOffset = (l) ? l->r.y1 : 0;
 
@@ -4742,7 +4863,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 
 				// How many chars on this line have we
 				// processed so far:
-				int Done = 0;
+				ssize_t Done = 0;
 				bool LineHasSelection =	NextSelection >= l->Start &&
 										NextSelection < l->Start + l->Len;
 
@@ -4761,8 +4882,8 @@ void GTextView3::OnPaint(GSurface *pDC)
 					
 					// check for style change
 					if (NextStyle &&
-						NextStyle->End() <= l->Start)
-						NextStyle = GetNextStyle();
+						(ssize_t)NextStyle->End() <= l->Start)
+						NextStyle = GetNextStyle(Si);
 					if (NextStyle)
 					{
 						// start
@@ -4824,7 +4945,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 							Ds.ShowVisibleTab(ShowWhiteSpace);
 							Ds.FDraw(pOut, FX, FY, 0, LineHasSelection);
 
-							if (NextStyle->Decor == GStyle::DecorSquiggle)
+							if (NextStyle->Decor == GCss::TextDecorSquiggle)
 							{
 								pOut->Colour(NextStyle->DecorColour.c24(), 24);
 								int x = FX >> GDisplayString::FShift;
@@ -4864,7 +4985,7 @@ void GTextView3::OnPaint(GSurface *pDC)
 						Cur+Block >= NextStyle->Start+NextStyle->Len)
 					{
 						// end of this styled block
-						NextStyle = GetNextStyle();
+						NextStyle = GetNextStyle(Si);
 					}
 
 					if (NextSelection == Cur+Block)
@@ -5171,8 +5292,17 @@ void GTextView3::OnPulse()
 void GTextView3::OnUrl(char *Url)
 {
 	if (Environment)
-	{
 		Environment->OnNavigate(this, Url);
+	else
+	{
+		GUri u(Url);
+		bool Email = LIsValidEmail(Url);
+		const char *Proto = Email ? "mailto" : u.Protocol;
+		GString App = LGetAppForProtocol(Proto);
+		if (App)
+			LgiExecute(App, Url);
+		else
+			LgiMsg(this, "Failed to find application for protocol '%s'", "Error", MB_OK, Proto);
 	}
 }
 

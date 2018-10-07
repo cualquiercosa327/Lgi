@@ -90,7 +90,7 @@ GToolBar *LgiLoadToolbar(GViewI *Parent, const char *File, int x, int y)
 	GToolBar *Toolbar = new GToolBar;
 	if (Toolbar)
 	{
-		char *FileName = LgiFindFile(File);
+		GString FileName = LgiFindFile(File);
 		if (FileName)
 		{
 			bool Success = FileName && Toolbar->SetBitmap(FileName, x, y);
@@ -98,21 +98,18 @@ GToolBar *LgiLoadToolbar(GViewI *Parent, const char *File, int x, int y)
 			{
 				LgiMsg(Parent,
 						"Can't load '%s' for the toolbar.\n"
-						"You can find it in this program's archive.",
-						"Lgi::LgiLoadToolbar",
+						"This is probably because libpng/libjpeg is missing.",
+						"LgiLoadToolbar",
 						MB_OK,
 						File);
-				DeleteObj(Toolbar);
 			}
-
-			DeleteArray(FileName);
 		}
 		else
 		{
 			LgiMsg(Parent,
 					"Can't find the graphic '%s' for the toolbar.\n"
 					"You can find it in this program's archive.",
-					"Lgi::LgiLoadToolbar",
+					"LgiLoadToolbar",
 					MB_OK,
 					File);
 		}
@@ -139,7 +136,7 @@ public:
 
 	GArray<CacheDC*> Cache;
 	GArray<GRect> Bounds;
-	
+
 	CacheDC *GetCache(GColour Back, bool Disabled)
 	{
 		for (int i=0; i<Cache.Length(); i++)
@@ -246,6 +243,8 @@ GImageList::GImageList(int x, int y, GSurface *pDC)
 				
 		if (pDC->GetBits() < 32 || HasPad(pDC->GetColourSpace()))
 		{
+			// auto InCs = pDC->GetColourSpace();
+			
 			if (!pDC->HasAlpha())
 			{
 				// No source alpha, do colour keying to create the alpha channel
@@ -416,6 +415,11 @@ public:
 		CustomDom = 0;
 	}
 
+	bool ShowTextLabels()
+	{
+		return (Text || !ImgList) && Font;
+	}
+
 	void FixSeparators(GToolBar *Tb)
 	{
 		// Fix up separators so that no 2 separators are next to each other. I.e.
@@ -548,8 +552,7 @@ void GToolButton::Layout()
 
 	// Text
 	char *s = Name();
-	if (Par->d->Text &&
-		Par->d->Font &&
+	if (Par->d->ShowTextLabels() &&
 		s)
 	{
 		// Write each word centered on a different line
@@ -630,7 +633,7 @@ void GToolButton::OnPaint(GSurface *pDC)
 			if (Par->d->ImgList)
 				IconPos.Set(0, 0, Par->d->ImgList->TileX()-1, Par->d->ImgList->TileY()-1);
 			else
-				IconPos.ZOff(-1, -1);
+				IconPos.ZOff(Par->d->Bx-1, Par->d->By-1);
 			GRegion Unpainted(p);
 			
 			// Center the icon
@@ -666,22 +669,21 @@ void GToolButton::OnPaint(GSurface *pDC)
 				else
 				{
 					// Draw a red cross indicating no icons.
-					pDC->Colour(LC_MED, 24);
+					pDC->Colour(Background);
 					pDC->Rectangle(&p);
 					pDC->Colour(Rgb24(255, 0, 0), 24);
-					pDC->Line(p.x1, p.y1, p.x2, p.y2);
-					pDC->Line(p.x2, p.y1, p.x1, p.y2);
+					pDC->Line(IconPos.x1, IconPos.y1, IconPos.x2, IconPos.y2);
+					pDC->Line(IconPos.x2, IconPos.y1, IconPos.x1, IconPos.y2);
 				}
 			}
 			else
 			{
-				pDC->Colour(LC_MED, 24);
+				pDC->Colour(Background);
 				pDC->Rectangle(&p);
 			}
 
 			// Text
-			if (Par->d->Text &&
-				Par->d->Font)
+			if (Par->d->ShowTextLabels())
 			{
 				if (Name() && !d->Text.Length())
 				{
@@ -761,7 +763,7 @@ void GToolButton::Value(int64 b)
 		{
 			if (Value() != b)
 			{
-				Down = b;
+				Down = b != 0;
 				Invalidate();
 				SendNotify(GNotifyValueChanged);
 			}
@@ -788,7 +790,7 @@ void GToolButton::Value(int64 b)
 								But->Value(false);
 						}
 
-						for (ssize_t i=CurIdx+1; i<it->Length(); i++)
+						for (size_t i=CurIdx+1; i<it->Length(); i++)
 						{
 							GToolButton *But = dynamic_cast<GToolButton*>((*it)[i]);
 							if (But->Separator())
@@ -800,7 +802,7 @@ void GToolButton::Value(int64 b)
 				}
 			}
 
-			Down = b;
+			Down = b != 0;
 			GetParent()->Invalidate();
 			SendNotify(GNotifyValueChanged);
 			break;
@@ -1198,10 +1200,10 @@ bool GToolBar::Pour(GRegion &r)
 		if (But->Visible())
 		{
 			int Tx = 0, Ty = 0;
+			GToolButton *Btn = dynamic_cast<GToolButton*>(But);
 
-			if (d->Text)
+			if (d->ShowTextLabels())
 			{
-				GToolButton *Btn = dynamic_cast<GToolButton*>(But);
 				if (Btn)
 				{
 					if (Btn->d->Text.Length() == 0)
@@ -1219,10 +1221,9 @@ bool GToolBar::Pour(GRegion &r)
 			}
 
 			ButPos = But->GetPos();
-			GToolButton *Button = dynamic_cast<GToolButton*>(But);
-			if (Button)
+			if (Btn)
 			{
-				if (Button->Separator())
+				if (Btn->Separator())
 				{
 					// This will be stretched out later by the code that makes
 					// everything the same height.
@@ -1230,7 +1231,7 @@ bool GToolBar::Pour(GRegion &r)
 				}
 				else
 				{
-					if (Button->Image() >= 0)
+					if (Btn->Image() >= 0)
 					{
 						// Set initial size to the icon size
 						ButPos.ZOff(d->Bx + 2, d->By + 2);
@@ -1476,7 +1477,7 @@ GToolButton *GToolBar::AppendButton(const char *Tip, int Id, int Type, int Enabl
 		But->SetId(Id);
 		But->Type = Type;
 		But->SetParent(this);
-		But->Enabled(Enabled);
+		But->Enabled(Enabled != 0);
 
 		if (IconId >= 0)
 		{
@@ -1621,7 +1622,7 @@ bool BltBmpToBmp(HBITMAP hDest,
 				SrcDC,
 				xSrc,
 				ySrc,
-				dwRop);
+				dwRop) != 0;
 
 		hDest = (HBITMAP) SelectObject(DestDC, hDest);
 		hSrc = (HBITMAP) SelectObject(SrcDC, hSrc);
@@ -1664,7 +1665,7 @@ bool BltBmpToDc(HDC DestDC,
 				SrcDC,
 				xSrc,
 				ySrc,
-				dwRop);
+				dwRop) != 0;
 
 		hSrc = (HBITMAP) SelectObject(SrcDC, hSrc);
 	}
@@ -1702,7 +1703,7 @@ bool BltDcToBmp(HBITMAP hDest,
 				SrcDC,
 				xSrc,
 				ySrc,
-				dwRop);
+				dwRop) != 0;
 
 		hDest = (HBITMAP) SelectObject(DestDC, hDest);
 	}

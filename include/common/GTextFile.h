@@ -1,8 +1,6 @@
 #ifndef _TEXT_FILE_H_
 #define _TEXT_FILE_H_
 
-#include "GUtf8.h"
-
 class GTextFile : public GFile
 {
 public:
@@ -71,13 +69,13 @@ public:
 	GAutoString Read()
 	{
 		GAutoString Ret;
-		auto Sz = GetSize();
+		int64 Sz = GetSize();
 		if (Sz > 0)
 		{
 			GAutoPtr<uint8, true> Buf(new uint8[Sz]);
 			if (Buf)
 			{
-				ssize_t Rd = Read(Buf, Sz);
+				ssize_t Rd = Read(Buf, (ssize_t)Sz);
 				if (Rd > 0)
 				{
 					const char *Cs = GetTypeString();

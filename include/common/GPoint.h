@@ -65,6 +65,11 @@ public:
 		return *this;
 	}
 
+	bool operator ==(const GdcPt2 &p)
+	{
+		return x == p.x && y == p.y;
+	}
+
 	void Set(int X, int Y)
 	{
 		x = X;

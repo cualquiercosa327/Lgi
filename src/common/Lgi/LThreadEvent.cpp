@@ -7,6 +7,11 @@
 #if defined(LINUX) || COCOA
 	#include <errno.h>
 #endif
+#if USE_MACH_SEM
+	#include <mach/task.h>
+	#include <mach/sync_policy.h>
+	#include <mach/semaphore.h>
+#endif
 
 #if POSIX
 	
@@ -95,7 +100,10 @@ LThreadEvent::LThreadEvent(const char *name)
 	
 	#elif defined(WIN32)
 	
-		Event = CreateEventA(NULL, false, false, name);
+		GString nm;
+		nm.Printf("%s.%p", name, this);
+
+		Event = CreateEventA(NULL, false, false, nm);
 		if (Event)
 			LastError = GetLastError();
 		else

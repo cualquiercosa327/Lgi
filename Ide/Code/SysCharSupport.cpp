@@ -3,7 +3,6 @@
 #include "Lgi.h"
 #include "LgiIde.h"
 #include "LList.h"
-#include "GUtf8.h"
 #include "GDisplayString.h"
 
 class CharItem : public LListItem

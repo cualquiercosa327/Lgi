@@ -116,16 +116,16 @@ bool GDragDropSource::SetIcon(GSurface *Img, GRect *SubRgn)
 	return false;
 }
 
-bool GDragDropSource::CreateFileDrop(GDragData *OutputData, GMouse &m, List<char> &Files)
+bool GDragDropSource::CreateFileDrop(GDragData *OutputData, GMouse &m, ::GString::Array &Files)
 {
 	if (!OutputData || !Files.First())
 		return false;
 
 	GStringPipe p;
-	for (char *f=Files.First(); f; f=Files.Next())
+	for (auto f : Files)
 	{
 		char s[256];
-		sprintf_s(s, sizeof(s), "file:%s", f);
+		sprintf_s(s, sizeof(s), "file:%s", f.Get());
 		if (p.GetSize()) p.Push("\n");
 		p.Push(s);
 	}

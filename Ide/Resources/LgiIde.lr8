@@ -576,6 +576,9 @@
 			<String Ref="6" Cid="546" Define="IDM_FIX_MISSING_FILES" en="Fix Missing Files" />
 			<String Ref="16" Cid="548" Define="IDM_FIND_DUPE_SYM" en="Find Duplicate Symbols" />
 			<String Ref="32" Cid="549" Define="IDM_LOOKUP_SYMBOLS" en="Lookup Symbols" />
+			<String Ref="39" Cid="550" Define="IDM_MENU_550" />
+			<String Ref="40" Cid="556" Define="IDM_ESCAPE" en="Escape Selection" />
+			<String Ref="41" Cid="557" Define="IDM_DESCAPE" en="De-escape Selection" />
 		</string-group>
 		<submenu Ref="175">
 			<menuitem Ref="174" Shortcut="Ctrl+N" />
@@ -667,6 +670,9 @@
 			<menuitem Sep="1" />
 			<menuitem Ref="131" />
 			<menuitem Ref="130" />
+			<menuitem Sep="1" />
+			<menuitem Ref="40" />
+			<menuitem Ref="41" />
 			<menuitem Sep="1" />
 			<menuitem Ref="1" />
 			<menuitem Ref="5" />

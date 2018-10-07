@@ -22,7 +22,7 @@ public:
 	GRect Pos;
 	
 	// Initialization data
-	int Len;
+	size_t Len;
 	bool Init;
 	int64 Value;
 	GString Name;
@@ -117,7 +117,7 @@ void GCombo::Value(int64 i)
 {
 	#if defined(DEBUG_COMBOBOX)
 	if (DEBUG_COMBOBOX==GetId())
-		LgiTrace("GCombo::Value("LGI_PrintfInt64") this=%p, hnd=%p strs=%i\n",
+		LgiTrace("GCombo::Value(" LPrintfInt64 ") this=%p, hnd=%p strs=%i\n",
 			i, this, _View, d->Strs.Length());
 	#endif
 
@@ -127,7 +127,7 @@ void GCombo::Value(int64 i)
 	{
 		if (d->Strs.Length() == 0 || i < 0)
 			i = 0;
-		if (i >= d->Strs.Length())
+		if (i >= (ssize_t)d->Strs.Length())
 			i = d->Strs.Length() - 1;
 
 		SendMessage(Handle(), CB_SETCURSEL, i, 0);
@@ -144,14 +144,14 @@ int64 GCombo::Value()
 			d->Value = r;
 			if (d->Strs.Length() == 0 || d->Value < 0)
 				d->Value = 0;
-			else if (d->Value >= d->Strs.Length())
+			else if (d->Value >= (ssize_t)d->Strs.Length())
 				d->Value = d->Strs.Length() - 1;
 		}
 	}
 
 	#if defined(DEBUG_COMBOBOX)
 	if (DEBUG_COMBOBOX==GetId())
-		LgiTrace("GCombo::Value()="LGI_PrintfInt64" this=%p, hnd=%p strs=%i\n",
+		LgiTrace("GCombo::Value()=" LPrintfInt64 " this=%p, hnd=%p strs=%i\n",
 			d->Value, this, _View, d->Strs.Length());
 	#endif
 	
@@ -181,13 +181,13 @@ bool GCombo::Name(const char *n)
 char *GCombo::Name()
 {
 	if (d->Value >= 0 &&
-		d->Value < d->Strs.Length())
+		d->Value < (ssize_t)d->Strs.Length())
 	{
 		char *s = d->Strs[d->Value];
 
 		#if defined(DEBUG_COMBOBOX)
 		if (DEBUG_COMBOBOX==GetId())
-			LgiTrace("GCombo::Name()="LGI_PrintfInt64"=%s this=%p, hnd=%p strs=%i\n",
+			LgiTrace("GCombo::Name()=" LPrintfInt64 "=%s this=%p, hnd=%p strs=%i\n",
 				d->Value, s, this, _View, d->Strs.Length());
 		#endif
 
@@ -196,7 +196,7 @@ char *GCombo::Name()
 
 	#if defined(DEBUG_COMBOBOX)
 	if (DEBUG_COMBOBOX==GetId())
-		LgiTrace("GCombo::Name() "LGI_PrintfInt64"=out of range this=%p, hnd=%p strs=%i\n",
+		LgiTrace("GCombo::Name() " LPrintfInt64 "=out of range this=%p, hnd=%p strs=%i\n",
 			d->Value, this, _View, d->Strs.Length());
 	#endif
 	
@@ -225,7 +225,7 @@ bool GCombo::Delete()
 	
 	#if defined(DEBUG_COMBOBOX)
 	if (DEBUG_COMBOBOX==GetId())
-		LgiTrace("%s:%i %p.%p Delete() Idx="LGI_PrintfInt64"\n", _FL, this, _View, Idx);
+		LgiTrace("%s:%i %p.%p Delete() Idx=" LPrintfInt64 "\n", _FL, this, _View, Idx);
 	#endif
 
 	return Delete(Idx);
@@ -282,7 +282,7 @@ bool GCombo::Insert(const char *p, int Index)
 			return false;
 
 		if (Index < 0)
-			Index = d->Len;
+			Index = (int)d->Len;
 
 		LRESULT r = SendMessage(Handle(), CB_INSERTSTRING, Index, (LPARAM)n.Get());
 		if (r == CB_ERR)
@@ -358,7 +358,7 @@ int GCombo::SysOnNotify(int Msg, int Code)
 			{
 				uint64 Old = d->Value;
 				if (Value() != Old)
-					SendNotify(d->Value);
+					SendNotify((int)d->Value);
 				break;
 			}
 			case CBN_DROPDOWN:
@@ -392,7 +392,7 @@ GMessage::Result GCombo::OnEvent(GMessage *Msg)
 			Value();
 			#if defined(DEBUG_COMBOBOX)
 			if (DEBUG_COMBOBOX==GetId())
-				LgiTrace("%s:%i %p.%p WM_DESTROY v="LGI_PrintfInt64")\n", _FL, this, _View, d->Value);
+				LgiTrace("%s:%i %p.%p WM_DESTROY v=" LPrintfInt64 ")\n", _FL, this, _View, d->Value);
 			#endif
 			break;
 		}
@@ -402,8 +402,8 @@ GMessage::Result GCombo::OnEvent(GMessage *Msg)
 			// Force the mouse wheel to do something useful
 			LRESULT c = SendMessage(_View, CB_GETCURSEL, 0, 0);
 			LRESULT items = SendMessage(_View, CB_GETCOUNT, 0, 0);
-			int16 delta = (Msg->A() >> 16);
-			int new_cur = c - (delta / WHEEL_DELTA);
+			int16 delta = (int16) (Msg->A() >> 16);
+			int new_cur = (int) (c - (delta / WHEEL_DELTA));
 			SendMessage(_View, CB_SETCURSEL, limit(new_cur, 0, items-1), 0); 
 			break;
 		}

@@ -91,6 +91,7 @@ public:
 		bool GetLocked() { return Locked; }
 		const char *GetFile() { return File; }
 		int GetLine() { return Line; }
+		operator bool() { return Locked; }
 	};
 };
 

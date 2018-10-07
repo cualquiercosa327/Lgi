@@ -14,7 +14,6 @@
 
 #include "Lgi.h"
 #include "GToken.h"
-#include "GUtf8.h"
 #include "GDisplayString.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -34,7 +33,7 @@ GSubMenu::~GSubMenu()
 	DeleteObj(Info);
 }
 
-int GSubMenu::Length()
+size_t GSubMenu::Length()
 {
 	return Items.Length();
 }

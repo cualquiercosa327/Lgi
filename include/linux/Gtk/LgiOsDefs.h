@@ -189,8 +189,10 @@ LgiFunc void LgiSleep(uint32 i);
 #else
 #define LGI_WideCharset				"utf-32"
 #endif
-#define LGI_PrintfInt64				"%Li"
-#define LGI_PrintfHex64				"%Lx"
+#define LPrintfInt64				"%Li"
+#define LPrintfHex64				"%Lx"
+#define LPrintfSizeT				"%zu"
+#define LPrintfSSizeT				"%zi"
 
 #ifndef SND_ASYNC
 #define SND_ASYNC					0x0001

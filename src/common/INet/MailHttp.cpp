@@ -321,7 +321,7 @@ bool MailPhp::Open(GSocketI *S, const char *RemoteHost, int Port, const char *Us
 		strcpy_s(d->Uri, sizeof(d->Uri), RemoteHost);
 
 		char *e = d->Uri + strlen(d->Uri);
-		sprintf_s(e, sizeof(d->Uri)-(e-d->Uri), "?token=" LGI_PrintfInt64, Token);
+		sprintf_s(e, sizeof(d->Uri)-(e-d->Uri), "?token=" LPrintfInt64, Token);
 		
 		char *m = 0;
 		GStringPipe Text;

@@ -118,8 +118,15 @@ public:
 		SymLookup = 0;
 		QuitReceived = false;
 		SkinLib = 0;
+		GuiThread = NULL;
+		auto b = DuplicateHandle(GetCurrentProcess(),
+									GetCurrentThread(),
+									GetCurrentProcess(),
+									&GuiThread,
+									0,
+									false,
+									DUPLICATE_SAME_ACCESS);
 		ThemeAware = true;
-		GuiThread = LgiGetCurrentThread();
 	}
 
 	~GAppPrivate()
@@ -266,7 +273,7 @@ GApp::GApp(OsAppArguments &AppArgs, const char *AppName, GAppArguments *ObjArgs)
 	SystemBold = 0;
 	LgiAssert(TheApp == 0);
 	TheApp = this;
-	LgiAssert(AppName);
+	LgiAssert(AppName != NULL);
 	Name(AppName);
 
 int64 Time = LgiCurrentTime();
@@ -423,7 +430,7 @@ DumpTime("fonts");
 
 	// Other vars and init
 	hNormalCursor = LoadCursor(NULL, IDC_ARROW);
-	LgiRandomize(LgiCurrentTime()*GetCurrentThreadId());
+	LgiRandomize((uint) (LgiCurrentTime()*GetCurrentThreadId()));
 	MouseRollMsg = RegisterWindowMessage(L"MSWHEEL_ROLLMSG");
 
 DumpTime("cursor/rand/msg");
@@ -554,9 +561,21 @@ int GApp::GetCpuCount()
 	return si.dwNumberOfProcessors ? si.dwNumberOfProcessors : -1;
 }
 
-OsThread GApp::GetGuiThread()
+OsThread GApp::_GetGuiThread()
 {
 	return d->GuiThread;
+}
+
+bool GApp::InThread()
+{
+	auto GuiId = GetGuiThreadId();
+	auto MyId = GetCurrentThreadId();
+	return GuiId == MyId;
+}
+
+OsThreadId GApp::GetGuiThreadId()
+{
+	return GetThreadId(d->GuiThread);
 }
 
 GApp::ClassContainer *GApp::GetClasses()
@@ -670,7 +689,7 @@ bool GApp::GetOption(const char *Option, GString &Buf)
 
 	char16 *c = d->Args.lpCmdLine;
 	char16 *Opt = Utf8ToWide(Option);
-	int OptLen = StrlenW(Opt);
+	auto OptLen = StrlenW(Opt);
 
 	while (c && *c)
 	{
@@ -910,7 +929,7 @@ bool GApp::Run(bool Loop, OnIdleProc IdleCallback, void *IdleParam)
 					bool Status;
 					if (DontWait)
 					{
-						Status = PeekMessage(&Msg, NULL, 0, 0, PM_REMOVE);
+						Status = PeekMessage(&Msg, NULL, 0, 0, PM_REMOVE) != 0;
 					}
 					else
 					{
@@ -1059,7 +1078,7 @@ bool GApp::IsElevated()
         TOKEN_ELEVATION Elevation;
         DWORD cbSize = sizeof(Elevation);
         if (GetTokenInformation(hToken, TokenElevation, &Elevation, sizeof(Elevation), &cbSize))
-            fRet = Elevation.TokenIsElevated;
+            fRet = Elevation.TokenIsElevated != 0;
     }
     if (hToken)
         CloseHandle(hToken);

@@ -290,6 +290,12 @@ void VcFolder::OnBranchesChange()
 
 void VcFolder::Select(bool b)
 {
+	if (!b)
+	{
+		GWindow *w = d->Tree->GetWindow();
+		w->SetCtrlName(IDC_BRANCH, NULL);
+	}
+
 	GTreeItem::Select(b);
 	
 	if (b)
@@ -312,7 +318,6 @@ void VcFolder::Select(bool b)
 					break;
 				case VcSvn:
 					Branches.New() = "trunk";
-					OnBranchesChange();
 					break;
 				case VcHg:
 					StartCmd("branch", &VcFolder::ParseBranches);
@@ -324,6 +329,7 @@ void VcFolder::Select(bool b)
 					break;
 			}				
 		}
+		OnBranchesChange();
 
 		/*
 		if (!IsUpdatingCounts && Unpushed < 0)
@@ -470,7 +476,7 @@ int CommitDateCmp(VcCommit **a, VcCommit **b)
 
 bool VcFolder::ParseLog(int Result, GString s, ParseParams *Params)
 {
-	GHashTbl<char*, VcCommit*> Map;
+	LHashTbl<StrKey<char>, VcCommit*> Map;
 	for (VcCommit **pc = NULL; Log.Iterate(pc); )
 		Map.Add((*pc)->GetRev(), *pc);
 
@@ -558,7 +564,7 @@ bool VcFolder::ParseLog(int Result, GString s, ParseParams *Params)
 		}
 		case VcCvs:
 		{
-			GHashTbl<uint64, VcCommit*> Map;
+			LHashTbl<IntKey<uint64>, VcCommit*> Map;
 			GString::Array c = s.Split("=============================================================================");
 			for (GString *Commit = NULL; c.Iterate(Commit);)
 			{
@@ -710,6 +716,15 @@ bool VcFolder::ParseCommit(int Result, GString s, ParseParams *Params)
 	if (Result)
 		return false;
 
+	if (Result == 0)
+	{
+		d->ClearFiles();
+
+		GWindow *w = d->Diff ? d->Diff->GetWindow() : NULL;
+		if (w)
+			w->SetCtrlName(IDC_MSG, NULL);
+	}
+
 	switch (GetType())
 	{
 		case VcGit:
@@ -717,21 +732,14 @@ bool VcFolder::ParseCommit(int Result, GString s, ParseParams *Params)
 			Unpushed++;
 			Update();
 
-			d->ClearFiles();
-
-			GWindow *w = d->Diff ? d->Diff->GetWindow() : NULL;
-			if (w)
-				w->SetCtrlName(IDC_MSG, NULL);
-
-			
-			if (Params->Str.Find("Push") >= 0)
+			if (Params && Params->Str.Find("Push") >= 0)
 				Push();
 			break;
 		}
 		case VcSvn:
 		{
 			CurrentCommit.Empty();
-			Pull();
+			CommitListDirty = true;
 			break;
 		}
 		default:
@@ -1245,7 +1253,7 @@ void VcFolder::FolderStatus(const char *Path, VcLeaf *Notify)
 			Arg = "status --porcelain=2";
 			break;
 		default:
-			Arg ="status";
+			Arg = "status";
 			break;
 	}
 
@@ -1275,8 +1283,8 @@ void VcFolder::ListWorkingFolder()
 				Arg = "-q diff --brief";
 				break;
 			case VcGit:
-				// Arg = "diff --diff-filter=ACDMRTU";
-				return FolderStatus();
+				Arg = "diff --diff-filter=ACDMRTU";
+				// return FolderStatus();
 				break;
 			default:
 				Arg ="diff";
@@ -1466,6 +1474,8 @@ bool VcFolder::ParseAddFile(int Result, GString s, ParseParams *Params)
 		{
 			break;
 		}
+		default:
+			break;
 	}
 
 	return false;

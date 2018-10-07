@@ -113,11 +113,14 @@
 #define IDC_LOOK_FOR							547
 #define IDM_FIND_DUPE_SYM						548
 #define IDM_LOOKUP_SYMBOLS						549
+#define IDM_MENU_550							550
 #define IDD_FILE_PROPS							551
 #define IDM_LOAD_MEMDUMP						552
 #define IDM_SYS_CHAR_SUPPORT					553
 #define IDC_NOT_MATCH							554
 #define IDC_MATCH								555
+#define IDM_ESCAPE								556
+#define IDM_DESCAPE								557
 #define IDC_75									558
 #define IDM_FIND_SYMBOL							559
 #define IDM_FIND_REFERENCES						560

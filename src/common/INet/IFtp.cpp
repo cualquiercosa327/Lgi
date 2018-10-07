@@ -95,7 +95,12 @@ IFtpEntry::IFtpEntry(struct ftpparse *Fp, const char *Cs)
 		
 		if (Fp->mtimetype != FTPPARSE_MTIME_UNKNOWN)
 		{
+			#ifdef _MSC_VER
+			struct tm local_val, *local = &local_val;
+			auto err = localtime_s(local, &Fp->mtime);
+			#else
 			struct tm *local = localtime(&Fp->mtime);
+			#endif
 			if (local)
 				Date = local;
 		}
@@ -536,9 +541,9 @@ FtpOpenStatus IFtp::Open(GSocketI *S, char *RemoteHost, int Port, char *User, ch
 			#endif
 		}
 	}
-	catch (int Error)
+	catch (ssize_t Error)
 	{
-		LgiTrace("%s:%i - Error: %i\n", _FL, Error);
+		LgiTrace("%s:%i - Error: " LPrintfSSizeT "\n", _FL, Error);
 		Status = FO_Error;
 	}
 
@@ -597,9 +602,9 @@ GString IFtp::GetDir()
 			}			
 		}
 	}
-	catch (int Error)
+	catch (ssize_t Error)
 	{
-		LgiTrace("%s:%i - error: %i\n", _FL, Error);
+		LgiTrace("%s:%i - error: " LPrintfSSizeT "\n", _FL, Error);
 		if (IsOpen())
 		{
 			LgiAssert(0);
@@ -629,9 +634,9 @@ bool IFtp::SetDir(const char *Dir)
 			}
 		}
 	}
-	catch (int Error)
+	catch (ssize_t Error)
 	{
-		printf("%s:%i - error: %i\n", _FL, Error);
+		printf("%s:%i - error: " LPrintfSSizeT "\n", _FL, Error);
 	}
 
 	return Status;
@@ -920,7 +925,7 @@ bool IFtp::UploadFile(const char *Local, const char *Remote, bool Binary)
 
 bool IFtp::ResumeAt(int64 Pos)
 {
-	sprintf_s(d->OutBuf, sizeof(d->OutBuf), "REST " LGI_PrintfInt64 "\r\n", Pos);
+	sprintf_s(d->OutBuf, sizeof(d->OutBuf), "REST " LPrintfInt64 "\r\n", Pos);
 
 	WriteLine();
 	ssize_t FtpStatus = ReadLine();

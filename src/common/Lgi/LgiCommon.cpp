@@ -20,6 +20,7 @@
 	#include <sys/stat.h>
 #else
 	#include <unistd.h>
+	#define _getcwd getcwd
 #endif
 
 #include "Lgi.h"
@@ -62,6 +63,7 @@ namespace Gtk {
 //////////////////////////////////////////////////////////////////////////
 // Misc stuff
 #if defined MAC
+	#import <foundation/foundation.h>
 	#if COCOA
 		GString LgiArgsAppPath;
 	#else
@@ -130,7 +132,7 @@ bool LgiPostEvent(OsView Wnd, int Event, GMessage::Param a, GMessage::Param b)
 
 	#elif WINNATIVE
 
-	return PostMessage(Wnd, Event, a, b);
+	return PostMessage(Wnd, Event, a, b) != 0;
 
 	#elif defined(__GTK_H__)
 
@@ -244,6 +246,10 @@ bool RegisterActiveXControl(char *Dll)
 #endif
 
 //////////////////////////////////////////////////////////////////////////
+#ifdef WINDOWS
+#include <lm.h>
+#pragma comment(lib, "netapi32.lib")
+#endif
 
 /// \brief Returns the operating system that Lgi is running on.
 /// \sa Returns one of the defines starting with LGI_OS_UNKNOWN in LgiDefs.h
@@ -260,18 +266,47 @@ int LgiGetOs
 
 	if (Os == LGI_OS_UNKNOWN)
 	{
-		OSVERSIONINFO v;
-		v.dwOSVersionInfoSize=sizeof(v);
-		GetVersionEx(&v);
-
-		Version = v.dwMajorVersion;
-		Revision = v.dwMinorVersion;
-		
-		#ifdef WIN32
+		#if defined(WIN64)
+		BOOL IsWow64 = TRUE;
+		#elif defined(WIN32)
 		BOOL IsWow64 = FALSE;
 		IsWow64Process(GetCurrentProcess(), &IsWow64);
 		#endif
 
+		#if 1
+		SERVER_INFO_101 *v = NULL;
+		auto r = NetServerGetInfo(NULL, 101, (LPBYTE*)&v);
+		if (r == NERR_Success)
+		{
+			Version = v->sv101_version_major;
+			Revision = v->sv101_version_minor;
+			Os = (v->sv101_version_major >= 6)
+				?
+				#ifdef WIN32
+				(IsWow64 ? LGI_OS_WIN64 : LGI_OS_WIN32)
+				#else
+				LGI_OS_WIN64
+				#endif
+				:
+				LGI_OS_WIN9X;
+
+			NetApiBufferFree(v);
+		}
+		else
+		{
+			LgiAssert(0);
+		}
+		#else
+		OSVERSIONINFO v;
+		v.dwOSVersionInfoSize = sizeof(v);
+		GetVersionEx(&v);
+
+		Version = v.dwMajorVersion;
+		Revision = v.dwMinorVersion;
+		#ifdef WIN32
+		BOOL IsWow64 = FALSE;
+		IsWow64Process(GetCurrentProcess(), &IsWow64);
+		#endif
 		Os = (v.dwPlatformId == VER_PLATFORM_WIN32_NT)
 			?
 			#ifdef WIN32
@@ -281,6 +316,7 @@ int LgiGetOs
 			#endif
 			:
 			LGI_OS_WIN9X;
+		#endif
 	}
 
 	if (Ver)
@@ -377,7 +413,7 @@ bool LgiRecursiveFileSearch(const char *Root,
 	Status = true;
 
 	// enumerate the directory contents
-	for (bool Found = Dir.First(Root); Found; Found = Dir.Next())
+	for (auto Found = Dir.First(Root); Found; Found = Dir.Next())
 	{
 		char Name[300];
 		if (!Dir.Path(Name, sizeof(Name)))
@@ -484,7 +520,7 @@ bool LgiTraceGetFilePath(char *LogPath, int BufLen)
 		{
 			char *Dot = strrchr(LogPath, '.');
 			if (Dot && !strchr(Dot, DIR_CHAR))
-				strcpy(Dot+1, "txt");
+				strcpy_s(Dot+1, BufLen - (Dot - LogPath) - 1, "txt");
 			else
 				strcat(LogPath, ".txt");
 		}
@@ -570,7 +606,7 @@ Prof.Add("vprint");
 
 	va_list Arg;
 	va_start(Arg, Msg);
-	int Ch = _vsnprintf(Buffer, sizeof(Buffer)-1, Msg, Arg);
+	int Ch = vsnprintf(Buffer, sizeof(Buffer)-1, Msg, Arg);
 	va_end(Arg);
 
 #if LGI_TRACE_TS
@@ -650,7 +686,7 @@ void LgiStackTrace(const char *Msg, ...)
 			char *Dot = strrchr(Buffer, '.');
 			if (Dot && !strchr(Dot, DIR_CHAR))
 			{
-				strcpy(Dot+1, "txt");
+				strcpy_s(Dot+1, sizeof(Buffer) - (Dot - Buffer) - 1, "txt");
 			}
 			else
 			{
@@ -662,7 +698,7 @@ void LgiStackTrace(const char *Msg, ...)
 
 		va_list Arg;
 		va_start(Arg, Msg);
-		int Len = _vsnprintf(Buffer, sizeof(Buffer)-1, Msg, Arg);
+		int Len = vsnprintf(Buffer, sizeof(Buffer)-1, Msg, Arg);
 		va_end(Arg);
 
 		Lu->Lookup(Buffer+Len, sizeof(Buffer)-Len-1, Stack, Frames);
@@ -825,7 +861,7 @@ bool LgiMakePath(char *Str, int StrSize, const char *Path, const char *File)
 				{
 					return false;
 				}				
-				strcpy(Str + Len, T[i]);
+				strcpy_s(Str + Len, StrSize - Len, T[i]);
 			}
 		}
 	}
@@ -860,6 +896,9 @@ GString LgiGetSystemPath(LgiSystemPath Which, int WordSize)
 
 GFile::Path::State GFile::Path::Exists()
 {
+	if (Length() == 0)
+		return TypeNone;
+
 	#ifdef WINDOWS
 	struct _stat64 s;
 	int r = _stat64(GetFull(), &s);
@@ -1881,7 +1920,7 @@ char *LgiFindFile(const char *Name)
 		#endif
 
 		char CurWorking[MAX_PATH];
-		getcwd(CurWorking, sizeof(CurWorking));
+		_getcwd(CurWorking, sizeof(CurWorking));
 		const char *PrefPath[] =
 		{
 			".",
@@ -2097,10 +2136,10 @@ bool LgiIsVolumeRoot(const char *Path)
 
 void LgiFormatSize(char *Str, int SLen, uint64 Size)
 {
-	int64 K = 1024;
-	int64 M = K * K;
-	int64 G = K * M;
-	int64 T = K * G;
+	uint64 K = 1024;
+	uint64 M = K * K;
+	uint64 G = K * M;
+	uint64 T = K * G;
 
 	if (Size == 1)
 	{
@@ -2332,7 +2371,7 @@ void GProfile::Add(const char *File, int Line)
 		return;
 	}
 	char *Name = Buf + Used;
-	Used += sprintf(Name, "%s:%i", File, Line) + 1;
+	Used += sprintf_s(Name, BUF_SIZE - Used, "%s:%i", File, Line) + 1;
 	s.Add(Sample(
 		#if PROFILE_MICRO
 		LgiMicroTime(),
@@ -2341,3 +2380,200 @@ void GProfile::Add(const char *File, int Line)
 		#endif
 		Name));
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool LIsValidEmail(GString Email)
+{
+	// Local part
+	char buf[321];
+	char *o = buf;
+	char *e = Email;
+
+	if (!Email || *e == '.')
+		return false;
+
+	#define OutputChar()	\
+		if (o - buf >= sizeof(buf) - 1)	\
+			return false;	\
+		*o++ = *e++
+
+	// Local part
+	while (*e)
+	{
+		if (strchr("!#$%&\'*+-/=?^_`.{|}~", *e) ||
+			IsAlpha((uchar)*e) ||
+			IsDigit((uchar)*e))
+		{
+			OutputChar();
+		}
+		else if (*e == '\"')
+		{
+			// Quoted string
+			OutputChar();
+
+			bool quote = false;
+			while (*e && !quote)
+			{
+				quote = *e == '\"';
+				OutputChar();
+			}
+		}
+		else if (*e == '\\')
+		{
+			// Quoted character
+			e++;
+			if (*e < ' ' || *e >= 0x7f)
+				return false;
+			OutputChar();
+		}
+		else if (*e == '@')
+		{
+			break;
+		}
+		else
+		{
+			// Illegal character
+			return false;
+		}
+	}
+
+	// Process the '@'
+	if (*e != '@' || o - buf > 64)
+		return false;
+	OutputChar();
+	
+	// Domain part...
+	if (*e == '[')
+	{
+		// IP addr
+		OutputChar();
+
+		// Initial char must by a number
+		if (!IsDigit(*e))
+			return false;
+		
+		// Check the rest...
+		char *Start = e;
+		while (*e)
+		{
+			if (IsDigit(*e) ||
+				*e == '.')
+			{
+				OutputChar();
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		// Not a valid IP
+		if (e - Start > 15)
+			return false;
+
+		if (*e != ']')
+			return false;
+
+		OutputChar();
+	}
+	else
+	{
+		// Hostname, check initial char
+		if (!IsAlpha(*e) && !IsDigit(*e))
+			return false;
+		
+		// Check the rest.
+		while (*e)
+		{
+			if (IsAlpha(*e) ||
+				IsDigit(*e) ||
+				strchr(".-", *e))
+			{
+				OutputChar();
+			}
+			else
+			{
+				return false;
+			}
+		}
+	}
+
+	// Remove any trailing dot/dash
+	while (strchr(".-", o[-1]))
+		o--;
+
+	// Output
+	*o = 0;
+	LgiAssert(o - buf <= sizeof(buf));
+	if (strcmp(Email, buf))
+		Email.Set(buf, o - buf);
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+GString LGetAppForProtocol(const char *Protocol)
+{
+	GString App;
+
+	if (!Protocol)
+		return App;
+
+	#ifdef WINDOWS
+		GRegKey k(false, "HKEY_CLASSES_ROOT\\%s\\shell\\open\\command", Protocol);
+		if (k.IsOk())
+		{
+			const char *p = k.GetStr();
+			if (p)
+			{
+				GAutoString a(LgiTokStr(p));
+				App = a.Get();
+			}
+		}
+	#elif defined(LINUX)
+		const char *p = NULL;
+		if (stricmp(Protocol, "mailto"))
+			p = "xdg-email";
+		else
+			p = "xdg-open";
+		GString Path = LgiGetEnv("PATH");
+		GString::Array a = Path.SplitDelimit(LGI_PATH_SEPARATOR);
+		for (auto i : a)
+		{
+			GFile::Path t(i);
+			t += p;
+			if (t.Exists())
+			{
+				App = t.GetFull();
+				break;
+			}
+		}
+	#elif defined(MAC)
+		// Get the handler type
+		CFStringRef Type = GString(Protocol).CreateStringRef();
+		CFStringRef Handler = LSCopyDefaultHandlerForURLScheme(Type);
+		CFRelease(Type);
+		if (Handler)
+		{
+			// Convert to app path
+			CFErrorRef Err;
+			auto a = LSCopyApplicationURLsForBundleIdentifier(Handler, &Err);
+			if (a)
+			{
+				if (CFArrayGetCount(a) > 0)
+				{
+					CFURLRef nsurl = (CFURLRef)CFArrayGetValueAtIndex(a, 0);
+					App = CFURLGetString(nsurl);
+					if (App.Find("file:///") == 0)
+						App = App(7,-2);
+				}
+				CFRelease(a);
+			}
+		}
+		CFRelease(Handler);
+	#else
+		#error "Impl me."
+	#endif
+
+	return App;
+}
+

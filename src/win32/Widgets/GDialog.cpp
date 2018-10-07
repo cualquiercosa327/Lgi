@@ -516,7 +516,7 @@ void GDialog::EndModal(int Code)
 
 void GDialog::EndModeless(int Code)
 {
-	Quit(Code);
+	Quit(Code != 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

@@ -13,7 +13,6 @@
 #include <ctype.h>
 #include "Lgi.h"
 #include "GToken.h"
-#include "GUtf8.h"
 #include "GDisplayString.h"
 
 static int NextId = 0;

@@ -1088,7 +1088,9 @@ bool LList::OnKey(GKey &k)
 				}
 				case VK_PAGEUP:
 				{
+					#ifdef MAC
 					LList_PageUp:
+					#endif
 					int Vis = VisibleItems();
 					Vis = MAX(Vis, 0);
 
@@ -1098,7 +1100,9 @@ bool LList::OnKey(GKey &k)
 				}
 				case VK_PAGEDOWN:
 				{
+					#ifdef MAC
 					LList_PageDown:
+					#endif
 					int Vis = VisibleItems();
 					Vis = MAX(Vis, 0);
 					KeyScroll(Keyboard+Vis, Keyboard, k.Shift());
@@ -1107,7 +1111,9 @@ bool LList::OnKey(GKey &k)
 				}
 				case VK_END:
 				{
+					#ifdef MAC
 					LList_End:
+					#endif
 					printf("End handler\n");
 					KeyScroll((int)Items.Length()-1, Keyboard, k.Shift());
 					Status = true;
@@ -1115,7 +1121,9 @@ bool LList::OnKey(GKey &k)
 				}
 				case VK_HOME:
 				{
+					#ifdef MAC
 					LList_Home:
+					#endif
 					KeyScroll(0, Keyboard, k.Shift());
 					Status = true;
 					break;
@@ -2640,7 +2648,7 @@ int LList::GetContentSize(int Index)
 	// Measure the heading too
 	GItemColumn *Col = Columns[Index];
 	GFont *f = GetFont();
-	LgiAssert(f);
+	LgiAssert(f != 0);
 	if (f)
 	{
 		GDisplayString h(f, Col->Name());

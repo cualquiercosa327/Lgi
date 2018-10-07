@@ -84,7 +84,7 @@ bool VcCommit::CvsParse(LDateTime &Dt, GString Auth, GString Message)
 	
 	uint64 i;
 	if (Ts.Get(i))
-		Rev.Printf(LGI_PrintfInt64, i);
+		Rev.Printf(LPrintfInt64, i);
 	Author = Auth;
 	Msg = Message;
 	return true;

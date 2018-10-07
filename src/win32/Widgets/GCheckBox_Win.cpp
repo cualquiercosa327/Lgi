@@ -107,7 +107,7 @@ int GCheckBox::SysOnNotify(int Msg, int Code)
 	if (Msg == WM_COMMAND &&
 		Code == BN_CLICKED)
 	{
-		SendNotify(Value());
+		SendNotify((int)Value());
 	}
 	
 	return 0;

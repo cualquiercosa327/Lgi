@@ -72,6 +72,13 @@ protected:
 };
 
 
+struct MibInterface
+{
+	UINT Ip, Netmask;
+	char Name[256];
+};
+
+
 class MibII : public MibExtLoad
 {
 public:
@@ -80,6 +87,7 @@ public:
 	BOOL Init();
 	BOOL GetIPAddress(UINT IpArray[],UINT &IpArraySize);
 	BOOL GetIPMask(UINT IpArray[],UINT &IpArraySize);
+	int GetInterfaces(MibInterface *In, int Max);
 };
 
 

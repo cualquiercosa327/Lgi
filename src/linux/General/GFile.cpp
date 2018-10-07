@@ -746,7 +746,7 @@ int FloppyType(int Letter)
 	return 0;
 }
 
-bool GFileSystem::Copy(char *From, char *To, int *Status, CopyFileCallback Callback, void *Token)
+bool GFileSystem::Copy(char *From, char *To, LError *Status, CopyFileCallback Callback, void *Token)
 {
 	GArray<char> Buf;
 
@@ -800,7 +800,7 @@ bool GFileSystem::Copy(char *From, char *To, int *Status, CopyFileCallback Callb
 	return false;
 }
 
-bool GFileSystem::Delete(GArray<const char*> &Files, GArray<int> *Status, bool ToTrash)
+bool GFileSystem::Delete(GArray<const char*> &Files, GArray<LError> *Status, bool ToTrash)
 {
 	bool Error = false;
 
@@ -860,7 +860,7 @@ bool GFileSystem::Delete(const char *FileName, bool ToTrash)
 	return false;
 }
 
-bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentTree, int *ErrorCode)
+bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentTree, LError *ErrorCode)
 {
 	int r = mkdir(PathName, S_IRWXU | S_IXGRP | S_IXOTH);
 	if (r)
@@ -912,7 +912,7 @@ bool GFileSystem::GetCurrentFolder(char *PathName, int Length)
 	return getcwd(PathName, Length) != 0;
 }
 
-bool GFileSystem::Move(const char *OldName, const char *NewName)
+bool GFileSystem::Move(const char *OldName, const char *NewName, LError *Err)
 {
 	if (rename(OldName, NewName))
 	{
@@ -1146,7 +1146,20 @@ int GDirectory::Close()
 	return true;
 }
 
-bool GDirectory::Path(char *s, int BufLen)
+const char *GDirectory::FullPath()
+{
+	static char s[MAX_PATH];
+	#warning this should really be optimized, and thread safe...
+	Path(s, sizeof(s));
+	return s;
+}
+
+GString GDirectory::FileName() const
+{
+	return GetName();
+}
+
+bool GDirectory::Path(char *s, int BufLen) const
 {
 	if (!s)
 	{
@@ -1237,6 +1250,11 @@ uint64 GDirectory::GetSize() const
 	return (uint32)d->Stat.st_size;
 }
 
+int64 GDirectory::GetSizeOnDisk()
+{
+	return (uint32)d->Stat.st_size;
+}
+
 /////////////////////////////////////////////////////////////////////////////////
 //////////////////////////// File ///////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
@@ -1266,9 +1284,11 @@ public:
 	}
 };
 
-GFile::GFile()
+GFile::GFile(const char *Path, int Mode)
 {
 	d = new GFilePrivate;
+	if (Path)
+		Open(Path, Mode);
 }
 
 GFile::~GFile()

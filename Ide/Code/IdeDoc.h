@@ -3,7 +3,7 @@
 
 #include "GMdi.h"
 #include "GTextView3.h"
-#include "SimpleCppParser.h"
+#include "ParserCommon.h"
 
 extern void FilterFiles(GArray<ProjectNode*> &Perfect, GArray<ProjectNode*> &Nodes, GString InputStr);
 
@@ -38,6 +38,7 @@ public:
 	void SetEditorParams(int IndentSize, int TabSize, bool HardTabs, bool ShowWhiteSpace);
 	bool HasFocus(int Set = -1);
 	void ConvertWhiteSpace(bool ToTabs);
+	void EscapeSelection(bool ToEscaped);
 	void SetCrLf(bool CrLf);
 	int GetLine();
 	void SetLine(int Line, bool CurIp);

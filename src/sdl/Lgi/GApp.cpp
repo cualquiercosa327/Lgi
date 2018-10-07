@@ -21,7 +21,6 @@
 #include "GSymLookup.h"
 #endif
 #include "GToken.h"
-#include "GUtf8.h"
 #include "GViewPriv.h"
 #include "GRegionClipDC.h"
 #include "GFontCache.h"
@@ -29,6 +28,8 @@
 #define DEBUG_MSG_TYPES				0
 #define DEBUG_HND_WARNINGS			0
 #define MOUSE_CAPTURE_POLL			100
+
+extern LHashTbl<PtrKey<GView*>,bool> ViewMap;
 
 ////////////////////////////////////////////////////////////////
 struct OsAppArgumentsPriv
@@ -176,6 +177,7 @@ public:
 	#endif
 	GHashTbl<int, GView*> Handles;
 	OsThread GuiThread;
+	OsThreadId GuiThreadId;
 	int MessageLoopDepth;
 	int CurEvent;
 	#if DEBUG_MSG_TYPES
@@ -211,6 +213,7 @@ public:
 		CaptureId = 0;
 		CurEvent = 0;
 		GuiThread = LgiGetCurrentThread();
+		GuiThreadId = GetCurrentThreadId();
 		FileSystem = 0;
 		GdcSystem = 0;
 		Config = 0;
@@ -234,10 +237,9 @@ public:
 		DeleteObj(Sm);
 		#endif
 		
-		for (AppArray *a = MimeToApp.First(); a; a = MimeToApp.Next())
+		for (auto a : MimeToApp)
 		{
-			a->DeleteObjects();
-			DeleteObj(a);
+			a.value->DeleteObjects();
 		}
 	}
 };
@@ -390,9 +392,19 @@ GViewI *GApp::GetFocus()
 	return 0;
 }
 
-OsThread GApp::GetGuiThread()
+OsThread GApp::_GetGuiThread()
 {
 	return d->GuiThread;
+}
+
+OsThreadId GApp::GetGuiThreadId()
+{
+	return d->GuiThreadId;
+}
+
+bool GApp::InThread()
+{
+	return GetCurrentThreadId() == d->GuiThreadId;
 }
 
 OsProcessId GApp::GetProcessId()
@@ -560,7 +572,7 @@ void GApp::OnSDLEvent(GMessage *m)
 				case M_PULSE:
 				{
 					GView *v = (GView*)m->Event.user.data1;
-					if (v && GView::ViewMap.Find(v))
+					if (v && ViewMap.Find(v))
 					{
 						v->OnPulse();
 					}
@@ -601,7 +613,7 @@ void GApp::OnSDLEvent(GMessage *m)
 					GView *v = (GView*)m->Event.user.data1;
 					GAutoPtr<GMessage::EventParams> p((GMessage::EventParams*)m->Event.user.data2);
 					
-					if (!GView::ViewMap.Find(v))
+					if (!ViewMap.Find(v))
 						break;
 					
 					if (p && AppWnd && v)
@@ -620,7 +632,7 @@ void GApp::OnSDLEvent(GMessage *m)
 					GView *v = (GView*)m->Event.user.data1;
 					GAutoPtr<GMessage::EventParams> p((GMessage::EventParams*)m->Event.user.data2);
 
-					if (!GView::ViewMap.Find(v))
+					if (!ViewMap.Find(v))
 						break;
 					
 					#if 0
@@ -1159,10 +1171,10 @@ void GMessage::Set(int m, Param pa, Param pb)
 		Event.user.data2 = NULL;
 }
 
-bool GMessage::Send(OsView Wnd)
+bool GMessage::Send(GViewI *Wnd)
 {
 	bool Status = false;
-
+	LgiAssert(!"Not impl.");
 	return Status;
 }
 

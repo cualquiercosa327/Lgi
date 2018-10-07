@@ -143,7 +143,7 @@ int LgiMsg(GViewI *Parent, const char *Str, const char *Title, int Type, ...)
 
 		va_list Arg;
 		va_start(Arg, Type);
-		_vsnprintf(Buffer, sizeof(Buffer)-1, Str, Arg);
+		vsnprintf_s(Buffer, sizeof(Buffer)-1, Str, Arg);
 		va_end(Arg);
 
 		if (LgiGetOs() == LGI_OS_WIN9X)

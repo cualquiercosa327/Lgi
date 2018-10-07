@@ -913,7 +913,7 @@ public:
 				
 				if (!LgiIsUtf8(Utf, (ssize_t)Size))
 				{
-					LgiTrace("Ch %i not utf len=" LGI_PrintfInt64 "\n", Channel, Size);
+					LgiTrace("Ch %i not utf len=" LPrintfInt64 "\n", Channel, Size);
 					continue;
 				}
 				#endif
@@ -1596,6 +1596,7 @@ AppWnd::AppWnd()
 			
 			Tools->Attach(this);
 		}
+		else LgiTrace("%s:%i - No tools obj?", _FL);
 		
 		GVariant v = 270, OutPx = 250;
 		d->Options.GetValue(OPT_SPLIT_PX, v);
@@ -1629,13 +1630,13 @@ AppWnd::AppWnd()
 		}
 
 		AttachChildren();
+		OnPosChange();
 	
 		#ifdef LINUX
-		char *f = LgiFindFile("lgiide.png");
+		GString f = LgiFindFile("lgiide.png");
 		if (f)
 		{
 			// Handle()->setIcon(f);
-			DeleteArray(f);
 		}
 		#endif
 		
@@ -2293,6 +2294,11 @@ GMessage::Result AppWnd::OnEvent(GMessage *m)
 	{
 		case M_START_BUILD:
 		{
+			IdeProject *p = RootProject();
+			if (p)
+				p->Build(true, IsReleaseMode());
+			else
+				printf("%s:%i - No root project.\n", _FL);
 			break;
 		}
 		case M_BUILD_DONE:
@@ -2713,7 +2719,7 @@ bool AppWnd::Build()
 
 		return true;
 	}
-	else if (Top = TopDoc())
+	else if ((Top = TopDoc()))
 	{
 		return Top->Build();
 	}
@@ -2891,10 +2897,23 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 		{
 			GTextView3 *Doc = FocusEdit();
 			if (Doc)
-			{
 				Doc->DoGoto();
+			else
+			{
+				GInput Inp(this, NULL, LgiLoadString(L_TEXTCTRL_GOTO_LINE, "Goto [file:]line:"), "Goto");
+				if (Inp.DoModal())
+				{
+					GString s = Inp.GetStr();
+					GString::Array p = s.SplitDelimit(":,");
+					if (p.Length() == 2)
+					{
+						GString file = p[0];
+						int line = (int)p[1].Int();
+						GotoReference(file, line, false, true);
+					}
+					else LgiMsg(this, "Error: Needs a file name as well.", AppName);
+				}
 			}
-			else LgiTrace("%s:%i - No focus doc.\n", _FL);
 			break;
 		}
 		case IDM_CUT:
@@ -3252,7 +3271,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			SaveAll();
 			IdeProject *p = RootProject();
 			if (p)
-				p->Clean(IsReleaseMode());
+				p->Clean(true, IsReleaseMode());
 			break;
 		}
 		case IDM_NEXT_MSG:
@@ -3312,7 +3331,7 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 				}
 				else
 				{
-					LgiMsg(this, "Couldn't find '%s'\n", AppName, MB_OK, Exe ? Exe : "<project_executable_undefined>");
+					LgiMsg(this, "Couldn't find '%s'\n", AppName, MB_OK, Exe ? Exe.Get() : "<project_executable_undefined>");
 				}
 			}			
 			break;
@@ -3329,6 +3348,20 @@ int AppWnd::OnCommand(int Cmd, int Event, OsView Wnd)
 			IdeDoc *Doc = FocusDoc();
 			if (Doc)
 				Doc->ConvertWhiteSpace(false);
+			break;
+		}
+		case IDM_ESCAPE:
+		{
+			IdeDoc *Doc = FocusDoc();
+			if (Doc)
+				Doc->EscapeSelection(true);
+			break;
+		}
+		case IDM_DESCAPE:
+		{
+			IdeDoc *Doc = FocusDoc();
+			if (Doc)
+				Doc->EscapeSelection(false);
 			break;
 		}
 		case IDM_EOL_LF:
@@ -3662,6 +3695,21 @@ int LgiMain(OsAppArguments &AppArgs)
 	GApp a(AppArgs, "LgiIde");
 	if (a.IsOk())
 	{
+		/*
+		GString mt = LGetAppForProtocol("mailto");
+		GString https = LGetAppForProtocol("https");
+		printf("%s\n%s\n", mt.Get(), https.Get());
+
+		GArray<GSocket::Interface> Out;
+		if (GSocket::EnumInterfaces(Out))
+		{
+			for (auto &i : Out)
+			{
+				printf("%s %s %s\n", i.Name.Get(), i.ToString().Get(), i.ToString(i.Netmask4).Get());
+			}
+		}
+		*/
+
 		a.AppWnd = new AppWnd;
 		a.Run();
 	}

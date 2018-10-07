@@ -87,7 +87,7 @@ Depends =	LDateTime.o \
 			GObject.o \
 			GToolTip.o \
 			GTrayIcon.o \
-			Lgi.o \
+			LgiCommon.o \
 			LgiMsg.o \
 			GFileSelect.o \
 			GAlert.o \
@@ -227,7 +227,6 @@ GApp.o : ./src/linux/Lgi/GApp.cpp ./include/common/Lgi.h \
 	./include/win32/GSymLookup.h \
 	./include/linux/GSymLookup.h \
 	./include/common/GToken.h \
-	./include/common/GUtf8.h \
 	./include/common/GFontCache.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -313,7 +312,6 @@ GContainers.o : ./src/common/General/GContainers.cpp ./include/common/GMem.h \
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GMenuGtk.o : ./src/linux/Lgi/GMenuGtk.cpp ./include/common/Lgi.h \
-	./include/common/GUtf8.h \
 	./include/common/GToken.h \
 	./include/common/GDisplayString.h
 	@echo $(<F) [$(Build)]
@@ -436,7 +434,7 @@ GTrayIcon.o : ./src/common/Lgi/GTrayIcon.cpp ./include/common/Lgi.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-Lgi.o : ./src/common/Lgi/Lgi.cpp ./include/common/GRegKey.h \
+LgiCommon.o : ./src/common/Lgi/LgiCommon.cpp ./include/common/GRegKey.h \
 	./include/common/Lgi.h \
 	./include/common/GToken.h \
 	./include/common/GCapabilities.h \
@@ -550,7 +548,6 @@ GDisplayString.o : ./src/common/Gdc2/Font/GDisplayString.cpp ./include/common/Lg
 	./include/common/GVariant.h \
 	./include/common/GFontSelect.h \
 	./include/common/GdiLeak.h \
-	./include/common/GUtf8.h \
 	./include/common/GDisplayString.h \
 	./include/common/GPixelRops.h
 	@echo $(<F) [$(Build)]
@@ -562,14 +559,12 @@ GFont.o : ./src/common/Gdc2/Font/GFont.cpp ./include/common/Lgi.h \
 	./include/common/GDisplayString.h \
 	./include/common/GdiLeak.h \
 	./include/common/GStringClass.h \
-	./include/common/GCss.h \
-	./include/common/GUtf8.h
+	./include/common/GCss.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
 GFontCodePages.o : ./src/common/Gdc2/Font/GFontCodePages.cpp ./include/common/Lgi.h \
-	./include/common/GToken.h \
-	./include/common/GUtf8.h
+	./include/common/GToken.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -722,8 +717,7 @@ GUnicode.o : ./src/common/Text/GUnicode.cpp ./include/common/Lgi.h \
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
-GUtf8.o : ./src/common/Text/GUtf8.cpp ./include/common/Lgi.h \
-	./include/common/GUtf8.h
+GUtf8.o : ./src/common/Text/GUtf8.cpp ./include/common/Lgi.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -765,7 +759,6 @@ GCombo.o : ./src/common/Widgets/GCombo.cpp ./include/common/Lgi.h \
 	./include/common/GSkinEngine.h \
 	./include/common/GCombo.h \
 	./include/common/GDisplayString.h \
-	./include/common/GUtf8.h \
 	./include/common/LgiRes.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
@@ -872,7 +865,8 @@ GTextView3.o : ./src/common/Text/GTextView3.cpp ./include/common/Lgi.h \
 	./include/common/GDisplayString.h \
 	./include/common/GViewPriv.h \
 	./include/common/GCssTools.h \
-	./include/common/LgiRes.h
+	./include/common/LgiRes.h \
+	./include/common/Mail.h
 	@echo $(<F) [$(Build)]
 	$(CPP) $(Inc) $(Flags) $(Defs) -c $< -o $(BuildDir)/$(@F)
 
@@ -959,7 +953,6 @@ GTableLayout.o : ./src/common/Widgets/GTableLayout.cpp ./include/common/Lgi.h \
 	./include/common/GRadioGroup.h \
 	./include/common/GBitmap.h \
 	./include/common/GTabView.h \
-	./include/common/GUtf8.h \
 	./include/common/GScrollBar.h \
 	./include/common/GCss.h
 	@echo $(<F) [$(Build)]
@@ -1076,8 +1069,7 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ./include/common/LDateTime.h : ./include/common/GStringClass.h
 
-./include/common/LStringLayout.h : ./include/common/GUtf8.h \
-	./include/common/GDisplayString.h \
+./include/common/LStringLayout.h : ./include/common/GDisplayString.h \
 	./include/common/GCss.h \
 	./include/common/GFontCache.h
 
@@ -1086,6 +1078,19 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ./include/common/GRops.h : ./include/common/GPixelRops.h
 
 ./include/common/GPixelRops.h : 
+
+./include/common/Mail.h : ./include/common/INet.h \
+	./include/common/Base64.h \
+	./include/common/Progress.h \
+	./include/common/GVariant.h
+
+./include/common/GVariant.h : ./include/common/GDom.h \
+	./include/common/LDateTime.h \
+	./include/common/GContainers.h \
+	./include/common/LHashTable.h \
+	./include/common/GString.h
+
+./include/common/Base64.h : ./include/common/LgiDefs.h
 
 ./include/common/LgiNetInc.h : 
 
@@ -1109,6 +1114,15 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ./include/common/LMutex.h : 
 
+./include/common/INet.h : ./include/common/LgiNetInc.h \
+	./include/common/LgiInterfaces.h \
+	./include/common/GMem.h \
+	./include/common/GContainers.h \
+	./include/common/GStream.h \
+	./include/common/GString.h \
+	./include/common/LCancel.h \
+	./include/common/LHashTable.h
+
 ./include/common/GInput.h : 
 
 ./include/common/GBox.h : ./include/common/GCss.h
@@ -1121,15 +1135,7 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/GNotifications.h \
 	./include/common/GCss.h
 
-./include/common/GNotifications.h : 
-
 ./include/common/GDragAndDrop.h : ./include/common/GVariant.h
-
-./include/common/GVariant.h : ./include/common/GDom.h \
-	./include/common/LDateTime.h \
-	./include/common/GContainers.h \
-	./include/common/LHashTable.h \
-	./include/common/GString.h
 
 ./include/common/GFontCache.h : 
 
@@ -1157,6 +1163,13 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/LgiClass.h \
 	./include/common/GString.h
 
+./include/common/LgiInterfaces.h : ./include/common/GMem.h \
+	./include/common/GArray.h \
+	./include/linux/Gtk/LgiOsDefs.h \
+	./include/common/GColour.h \
+	./include/common/LCancel.h \
+	./include/common/GStringClass.h
+
 ./include/common/GCssTools.h : ./include/common/GCss.h
 
 ./include/common/GProcess.h : ./include/common/GStream.h
@@ -1183,8 +1196,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ./include/common/GClipBoard.h : 
 
-./include/common/GUtf8.h : 
-
 ./include/common/Res.h : ./include/common/GXmlTree.h
 
 ./include/common/GXmlTree.h : ./include/common/GHashTable.h \
@@ -1208,7 +1219,10 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/GStream.h \
 	./include/common/GArray.h \
 	./include/common/GRefCount.h \
-	./include/common/GStringClass.h
+	./include/common/GStringClass.h \
+	./include/common/LError.h
+
+./include/common/LError.h : 
 
 ./include/common/GEventTargetThread.h : ./include/common/LThread.h \
 	./include/common/LMutex.h \
@@ -1315,6 +1329,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ./include/common/GFindReplaceDlg.h : 
 
+./include/common/GNotifications.h : 
+
 ./include/common/GTableLayout.h : ./include/common/GCss.h \
 	./include/common/GNotifications.h
 
@@ -1328,7 +1344,9 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ./include/common/GTextView3.h : ./include/common/GDocView.h \
 	./include/common/GUndo.h \
-	./include/common/GDragAndDrop.h
+	./include/common/GDragAndDrop.h \
+	./include/common/GCss.h \
+	./include/common/LUnrolledList.h
 
 ./include/common/GDocView.h : ./include/common/GVariant.h \
 	./include/common/GNotifications.h
@@ -1338,8 +1356,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 ./include/common/GFilter.h : ./include/common/GContainers.h
 
 ./include/common/GImageList.h : 
-
-./include/common/GUtf8.h : 
 
 ./include/common/GPalette.h : ./include/common/GColourSpace.h \
 	./include/common/GFile.h
@@ -1358,13 +1374,6 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/GMem.h \
 	./include/common/GArray.h \
 	./include/common/LDomFields.h
-
-./include/common/LgiInterfaces.h : ./include/common/GMem.h \
-	./include/common/GArray.h \
-	./include/linux/Gtk/LgiOsDefs.h \
-	./include/common/GColour.h \
-	./include/common/LCancel.h \
-	./include/common/GStringClass.h
 
 ./include/linux/Gtk/LgiOsClasses.h : 
 
@@ -1469,7 +1478,11 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 
 ./include/common/GTextView3.h : ./include/common/GDocView.h \
 	./include/common/GUndo.h \
-	./include/common/GDragAndDrop.h
+	./include/common/GDragAndDrop.h \
+	./include/common/GCss.h \
+	./include/common/LUnrolledList.h
+
+./include/common/LUnrolledList.h : 
 
 ./include/common/LDomFields.h : 
 
@@ -1493,7 +1506,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/GContainers.h \
 	./include/common/GStream.h \
 	./include/common/GString.h \
-	./include/common/LCancel.h
+	./include/common/LCancel.h \
+	./include/common/LHashTable.h
 
 ./include/common/LgiDefs.h : ./include/common/LgiInc.h \
 	./include/common/GAutoPtr.h
@@ -1502,7 +1516,8 @@ MDStringToDigest.o : ./src/common/INet/MDStringToDigest.cpp ./include/common/Lgi
 	./include/common/GStream.h \
 	./include/common/GArray.h \
 	./include/common/GRefCount.h \
-	./include/common/GStringClass.h
+	./include/common/GStringClass.h \
+	./include/common/LError.h
 
 ./src/common/Gdc2/GRopsCases.cpp : 
 

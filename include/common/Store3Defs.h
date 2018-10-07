@@ -374,6 +374,7 @@ enum Store3Fields
 	FIELD_CAL_REMINDERS,				// Individual reminders as CSV, fields are:
 										// Number, CalendarReminderUnits, CalendarReminderType
 	FIELD_CAL_LAST_CHECK,				// (LDateTime) Ts the calendar event was last checked for reminders
+	FIELD_DATE_MODIFIED,				// (LDateTime) Ts of modification
 
 	FIELD_MAX,
 };

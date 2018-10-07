@@ -63,8 +63,11 @@ public:
 
 	void Layout(GFont *f, char *s)
 	{
+		Empty();
+
 		GCss c;
 		c.FontWeight(GCss::FontWeightBold);
+		
 		Add(s, &c);
 
 		int32 MinX, MaxX;
@@ -372,15 +375,7 @@ void GButton::OnPaint(GSurface *pDC)
 {
 	#if defined(MAC) && !defined(COCOA) && !defined(LGI_SDL)
 
-	GColour NoPaintColour(LC_MED, 24);
-	if (GetCss())
-	{
-		GCss::ColorDef NoPaint = GetCss()->NoPaintColor();
-		if (NoPaint.Type == GCss::ColorRgb)
-			NoPaintColour.Set(NoPaint.Rgb32, 32);
-		else if (NoPaint.Type == GCss::ColorTransparent)
-			NoPaintColour.Empty();
-	}
+	GColour NoPaintColour = StyleColour(GCss::PropBackgroundColor, GColour(LC_MED, 24));
 	if (!NoPaintColour.IsTransparent())
 	{
 		pDC->Colour(NoPaintColour);
@@ -416,22 +411,6 @@ void GButton::OnPaint(GSurface *pDC)
 		pt.y = r.y1 + ((r.Y()-d->TxtSz.Y())/2) + (d->Pressed != 0);
 		d->Paint(pDC, pt, GColour(), r, Enabled());
 	}
-	
-	/*
-	if (d->Txt)
-	{
-		GFont *f = d->Txt->GetFont();
-		if (f)
-		{
-			f->Transparent(true);
-			f->Fore(LC_TEXT);
-			
-			int Ox = (LabelRect.size.width - d->Txt->X()) / 2;
-			int Oy = (Y() - d->Txt->Y() + 1) / 2;
-			d->Txt->Draw(pDC, LabelRect.origin.x+Ox, Oy);
-		}
-	}
-	*/
 	
 	#else
 

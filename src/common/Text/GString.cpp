@@ -4,6 +4,7 @@
 
 #include "GMem.h"
 #include "LgiOsDefs.h"
+#include "LgiClass.h"
 #include "GString.h"
 #include "GContainers.h"
 #include "LgiCommon.h"
@@ -134,7 +135,7 @@ char *strnstr(const char *a, const char *b, size_t n)
 	return NULL;
 }
 
-char *strnistr(char *a, const char *b, int n)
+char *strnistr(char *a, const char *b, size_t n)
 {
 	if (a && b)
 	{
@@ -559,7 +560,7 @@ char16 *StrnstrW(char16 *a, const char16 *b, ssize_t n)
 {
 	if (a && b)
 	{
-		size_t Len = StrlenW(b);
+		ssize_t Len = StrlenW(b);
 		for (char16 *s=a; n >= Len && *s; s++, n--)
 		{
 			if (*s == *b)
@@ -578,7 +579,7 @@ char16 *StrnistrW(char16 *a, const char16 *b, ssize_t n)
 {
 	if (a && b)
 	{
-		size_t Len = StrlenW(b);
+		ssize_t Len = StrlenW(b);
 		for (char16 *s=a; n >= Len && *s; s++, n--)
 		{
 			if (*s == *b)

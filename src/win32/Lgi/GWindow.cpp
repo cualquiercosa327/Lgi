@@ -55,7 +55,7 @@ public:
 		DeleteObj(Wp);
 	}
 	
-	int GetHookIndex(GView *Target, bool Create = false)
+	ssize_t GetHookIndex(GView *Target, bool Create = false)
 	{
 		for (int i=0; i<Hooks.Length(); i++)
 		{
@@ -69,7 +69,7 @@ public:
 			{
 				n->Target = Target;
 				n->Flags = 0;
-				return Hooks.Length() - 1;
+				return (ssize_t)Hooks.Length() - 1;
 			}
 		}
 		
@@ -120,7 +120,7 @@ GWindow::~GWindow()
 
 bool GWindow::SetIcon(const char *Icon)
 {
-	return CreateClassW32(LgiApp->Name(), LoadIcon(LgiProcessInst(), (LPCWSTR)Icon));
+	return CreateClassW32(LgiApp->Name(), LoadIcon(LgiProcessInst(), (LPCWSTR)Icon)) != 0;
 }
 
 GViewI *GWindow::GetFocus()
@@ -140,7 +140,7 @@ static GAutoString DescribeView(GViewI *v)
 	{
 		p.Add(i);
 	}
-	for (int n=min(3, p.Length()-1); n>=0; n--)
+	for (auto n=MIN(3, (ssize_t)p.Length()-1); n>=0; n--)
 	{
 		v = p[n];
 		ch += sprintf_s(s + ch, sizeof(s) - ch, ">%s", v->GetClass());
@@ -837,8 +837,8 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 		}
 		case WM_WINDOWPOSCHANGING:
 		{
-			bool Icon = IsIconic(Handle());
-			bool Zoom = IsZoomed(Handle());
+			bool Icon = IsIconic(Handle()) != 0;
+			bool Zoom = IsZoomed(Handle()) != 0;
 
 			if (!Icon && (_Dialog || !Zoom))
 			{
@@ -933,7 +933,7 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 				}
 			}
 
-			Status = GView::OnEvent(Msg);
+			Status = GView::OnEvent(Msg) != 0;
 			break;
 		}		
 		case WM_CREATE:
@@ -960,7 +960,7 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 		case WM_WINDOWPOSCHANGED:
 		{
 			DeleteObj(d->Wp);
-			Status = GView::OnEvent(Msg);
+			Status = GView::OnEvent(Msg) != 0;
 			break;
 		}
 		case WM_QUERYENDSESSION:
@@ -995,7 +995,7 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 		    }
 		    else
 		    {
-			    Status = GView::OnEvent(Msg);
+			    Status = GView::OnEvent(Msg) != 0;
 			}
 		    break;
 		}
@@ -1041,7 +1041,7 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 									// OnCommand handler which would delete
 									// the memory containing the handle.
 
-			Status = OnCommand(Msg->a, 0, (HWND) Msg->b);
+			Status = OnCommand((int) Msg->a, 0, (OsView) Msg->b);
 			if (!IsWindow(OurWnd))
 			{
 				// The window was deleted so break out now
@@ -1051,7 +1051,7 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 		}
 		default:
 		{
-			Status = GView::OnEvent(Msg);
+			Status = (int) GView::OnEvent(Msg);
 			break;
 		}
 	}
@@ -1084,7 +1084,7 @@ bool GWindow::RegisterHook(GView *Target, GWindowHookType EventType, int Priorit
 	
 	if (Target && EventType)
 	{
-		int i = d->GetHookIndex(Target, true);
+		auto i = d->GetHookIndex(Target, true);
 		if (i >= 0)
 		{
 			d->Hooks[i].Flags = EventType;
@@ -1116,7 +1116,7 @@ void GWindow::SetDefault(GViewI *v)
 
 bool GWindow::UnregisterHook(GView *Target)
 {
-	int i = d->GetHookIndex(Target);
+	auto i = d->GetHookIndex(Target);
 	if (i >= 0)
 	{
 		d->Hooks.DeleteAt(i);

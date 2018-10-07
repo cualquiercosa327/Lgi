@@ -152,7 +152,7 @@ public:
 	{ return false; }
 
 	/// Creates a file drop
-	bool CreateFileDrop(GDragData *OutputData, GMouse &m, List<char> &Files);
+	static bool CreateFileDrop(GDragData *OutputData, GMouse &m, GString::Array &Files);
 };
 
 /// A drag target class
@@ -189,7 +189,7 @@ protected:
 	IDataObject *DataObject;
 
 	// Tools
-	bool OnDropFileGroupDescriptor(FILEGROUPDESCRIPTOR *Data, GArray<char*> &Files);
+	bool OnDropFileGroupDescriptor(FILEGROUPDESCRIPTOR *Data, GString::Array &Files);
 	#endif
 
 public:

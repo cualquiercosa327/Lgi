@@ -20,6 +20,7 @@
 #include "GdiLeak.h"
 #include "GViewPriv.h"
 #include "GCss.h"
+#include "GEdit.h"
 
 #define DEBUG_MOUSE_CLICKS		0
 #define DEBUG_OVER				0
@@ -75,39 +76,9 @@ int MouseRollMsg = 0;
 
 int _lgi_mouse_wheel_lines()
 {
-	OSVERSIONINFO Info;
-	ZeroObj(Info);
-	Info.dwOSVersionInfoSize = sizeof(Info);
-	if (GetVersionEx(&Info) &&
-		Info.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS &&
-		Info.dwMajorVersion == 4 &&
-		Info.dwMinorVersion == 0)
-	{
-       HWND hdlMSHWheel=NULL;
-       UINT msgMSHWheelGetScrollLines=NULL;
-       UINT uiMsh_WheelScrollLines;
-
-       msgMSHWheelGetScrollLines = 
-               RegisterWindowMessage(MSH_SCROLL_LINES);
-       hdlMSHWheel = FindWindow(MSH_WHEELMODULE_CLASS, 
-                                MSH_WHEELMODULE_TITLE);
-       if (hdlMSHWheel && msgMSHWheelGetScrollLines)
-       {
-			return SendMessage(hdlMSHWheel, msgMSHWheelGetScrollLines, 0, 0);
-       }
-	}
-	else
-	{
-		UINT nScrollLines;
-		if (SystemParametersInfo(	SPI_GETWHEELSCROLLLINES, 
-									0, 
-									(PVOID) &nScrollLines, 
-									0))
-		{
-			return nScrollLines;
-		}
-	}
-
+	UINT nScrollLines;
+	if (SystemParametersInfo(SPI_GETWHEELSCROLLLINES, 0, (PVOID) &nScrollLines, 0))
+		return nScrollLines;
 	return 3;
 }
 
@@ -376,7 +347,7 @@ bool GWin32Class::Register()
 	{
 		ZeroObj(Class);
 		Class.cbSize = sizeof(Class);
-		Status = GetClassInfoExW(LgiProcessInst(), NameW(), &Class);
+		Status = GetClassInfoExW(LgiProcessInst(), NameW(), &Class) != 0;
 		LgiAssert(Status);
 	}
 	else if (!Class.lpszClassName)
@@ -525,7 +496,7 @@ void GView::_Delete()
 	{
 		WndFlags |= GWF_DESTRUCTOR;
 		BOOL Status = DestroyWindow(_View);
-		LgiAssert(Status);
+		LgiAssert(Status != 0);
 	}
 	
 	// NULL my handles and flags
@@ -767,7 +738,7 @@ bool GView::Detach()
 			WndFlags &= ~GWF_QUIT_WND;
 			BOOL Status = DestroyWindow(_View);
 			DWORD Err = GetLastError();
-			LgiAssert(Status);
+			LgiAssert(Status != 0);
 		}
 	}
 	return Status;
@@ -884,11 +855,10 @@ bool LgiToWindowsCursor(OsView Hnd, LgiCursor Cursor)
 			break;
 	}
 
-	HCURSOR cur = LoadCursor(0, MAKEINTRESOURCE(Set ? Set : IDC_ARROW));
-	// LgiTrace("Cur=%i\n", Cursor);
+	HCURSOR cur = LoadCursor(0, Set ? Set : IDC_ARROW);
 	SetCursor(cur);
 	if (Hnd)
-		SetClassLong(Hnd, GCL_HCURSOR, (DWORD)cur);
+		SetWindowLongPtr(Hnd, GCL_HCURSOR, (LONG_PTR)cur);
 
 	return true;
 }
@@ -967,7 +937,7 @@ bool GView::SetPos(GRect &p, bool Repaint)
 		if (_View)
 		{
 			HWND hOld = GetFocus();
-			bool WasVis = IsWindowVisible(_View);
+			bool WasVis = IsWindowVisible(_View) != 0;
 
 			In_SetWindowPos = true;
 			Status = SetWindowPos(	_View,
@@ -977,7 +947,7 @@ bool GView::SetPos(GRect &p, bool Repaint)
 									Pos.X(),
 									Pos.Y(),
 									// ((Repaint) ? 0 : SWP_NOREDRAW) |
-									SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOOWNERZORDER);
+									SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOOWNERZORDER) != 0;
 			In_SetWindowPos = false;
 		}
 		else if (GetParent())
@@ -1014,12 +984,12 @@ bool GView::Invalidate(GRect *r, bool Repaint, bool Frame)
 		{
 			if (r)
 			{
-				Status = InvalidateRect(_View, &((RECT)*r), false);
+				Status = InvalidateRect(_View, &((RECT)*r), false) != 0;
 			}
 			else
 			{
 				RECT c = GetClient();
-				Status = InvalidateRect(_View, &c, false);
+				Status = InvalidateRect(_View, &c, false) != 0;
 			}
 		}
 
@@ -1271,28 +1241,27 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				HWND hwnd = (HWND)MsgB(Msg);
 
 				GViewI *v = FindControl(hwnd);
-				if (v)
+				GView *gv = v ? v->GetGView() : NULL;
+				if (gv)
 				{
-					if (v->GetCss())
+					int Depth = dynamic_cast<GEdit*>(gv) ? 1 : 5;
+					GColour Fore = gv->StyleColour(GCss::PropColor, GColour(), Depth);
+					GColour Back = gv->StyleColour(GCss::PropBackgroundColor, GColour(), Depth);
+						
+					if (Fore.IsValid())
 					{
-						GCss::ColorDef f, b;
-						
-						f = v->GetCss()->Color();
-						b = v->GetCss()->BackgroundColor();
-						
-						if (f.Type == GCss::ColorRgb)
-						{
-							COLORREF c = RGB(R32(f.Rgb32), G32(f.Rgb32), B32(f.Rgb32));
-							SetTextColor(hdc, c);
-							// SetDCBrushColor(hdc, c);
-						}
-							
-						if (b.Type == GCss::ColorRgb)
-						{
-							COLORREF c = RGB(R32(b.Rgb32), G32(b.Rgb32), B32(b.Rgb32));
-							SetBkColor(hdc, c);
-						}
+						COLORREF c = RGB(Fore.r(), Fore.g(), Fore.b());
+						SetTextColor(hdc, c);
+					}							
+					if (Back.IsValid())
+					{
+						COLORREF c = RGB(Back.r(), Back.g(), Back.b());
+						SetBkColor(hdc, c);
+						SetDCBrushColor(hdc, c);
+					}
 
+					if (Fore.IsValid() || Back.IsValid())
+					{
 						#if !defined(DC_BRUSH)
 						#define DC_BRUSH            18
 						#endif
@@ -1430,10 +1399,10 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			case M_CHANGE:
 			{
 				GWindow *w = GetWindow();
-				GViewI *Ctrl = w ? w->FindControl(Msg->a) : 0;
+				GViewI *Ctrl = w ? w->FindControl((int)Msg->a) : 0;
 				if (Ctrl)
 				{
-					return OnNotify(Ctrl, Msg->b);
+					return OnNotify(Ctrl, (int)Msg->b);
 				}
 				else
 				{
@@ -1903,16 +1872,16 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 				else
 				{
 					// Key
-					GKey Key(Msg->a, Msg->b);
+					GKey Key((int)Msg->a, (int)Msg->b);
 
 					Key.Flags = KeyFlags;
-					Key.Data = Msg->b;
+					Key.Data = (uint32)Msg->b;
 					Key.Down(IsDown);
 					Key.IsChar = false;
 
 					if (Key.Ctrl())
 					{
-						Key.c16 = Msg->a;
+						Key.c16 = (char16)Msg->a;
 					}
 
 					if (Key.c16 == VK_TAB && ConsumeTabKey)
@@ -1962,9 +1931,9 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			#if OLD_WM_CHAR_MODE
 			case WM_CHAR:
 			{
-				GKey Key(Msg->a, Msg->b);
+				GKey Key((int)Msg->a, (int)Msg->b);
 				Key.Flags = _lgi_get_key_flags();
-				Key.Data = Msg->b;
+				Key.Data = (uint32)Msg->b;
 				Key.Down(true);
 				Key.IsChar = true;
 
@@ -2000,7 +1969,7 @@ GMessage::Result GView::OnEvent(GMessage *Msg)
 			#endif
 			case M_SET_WND_STYLE:
 			{
-				SetWindowLong(Handle(), GWL_STYLE, Msg->b);
+				SetWindowLong(Handle(), GWL_STYLE, (LONG)Msg->b);
 				SetWindowPos(	Handle(),
 								0, 0, 0, 0, 0,
 								SWP_NOMOVE | SWP_NOZORDER | SWP_NOSIZE | SWP_FRAMECHANGED);

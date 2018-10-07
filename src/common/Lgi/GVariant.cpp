@@ -1451,7 +1451,7 @@ char *GVariant::CastString()
 		}
 		case GV_INT64:
 		{
-			sprintf_s(i, sizeof(i), LGI_PrintfInt64, Value.Int64);
+			sprintf_s(i, sizeof(i), LPrintfInt64, Value.Int64);
 			*this = i;
 			return Str();
 		}
@@ -1869,7 +1869,7 @@ GString GVariant::ToString()
 			s.Printf("(int)%i", Value.Int);
 			break;
 		case GV_INT64:
-			s.Printf("(int64)" LGI_PrintfInt64, Value.Int64);
+			s.Printf("(int64)" LPrintfInt64, Value.Int64);
 			break;
 		case GV_BOOL:
 			s.Printf("(bool)%s", Value.Bool ? "true" : "false");

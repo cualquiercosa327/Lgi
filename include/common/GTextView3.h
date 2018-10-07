@@ -8,6 +8,8 @@
 #include "GDocView.h"
 #include "GUndo.h"
 #include "GDragAndDrop.h"
+#include "GCss.h"
+#include "LUnrolledList.h"
 
 // use CRLF as opposed to just LF
 // internally it uses LF only... this is just to remember what to
@@ -34,6 +36,8 @@ enum GTextViewStyleOwners
 	STYLE_IDE,
 	STYLE_SPELLING,
 	STYLE_FIND_MATCHES,
+	STYLE_ADDRESS,
+	STYLE_URL,
 };
 
 /// Unicode text editor control.
@@ -43,25 +47,16 @@ class LgiClass
 	public ResObject,
 	public GDragDropTarget
 {
-	friend class GUrl;
-	friend class GTextView3Undo;
+	friend struct GTextView3Undo;
 	friend bool Text3_FindCallback(GFindReplaceCommon *Dlg, bool Replace, void *User);
 
 public:
-	class LgiClass GStyle
+	class GStyle
 	{
-		friend class GUrl;
-
 	protected:
 		void RefreshLayout(size_t Start, ssize_t Len);
 
 	public:
-		enum StyleDecor
-		{
-			DecorNone,
-			DecorSquiggle,
-		};
-
 		/// The view the style is for
 		GTextView3 *View;
 		/// When you write several bits of code to do styling assign them
@@ -78,38 +73,70 @@ public:
 		/// The colour to draw with. If transparent, then the default 
 		/// line colour is used.
 		GColour Fore, Back;
-		
+		/// Cursor
+		LgiCursor Cursor;		
 		/// Optional extra decor not supported by the fonts
-		StyleDecor Decor;
+		GCss::TextDecorType Decor;
 		/// Colour for the optional decor.
 		GColour DecorColour;
 
 		/// Application base data
-		char *Data;
+		GVariant Data;
 
-		GStyle(GTextViewStyleOwners owner)
+		GStyle(GTextViewStyleOwners owner = STYLE_NONE)
 		{
 			Owner = owner;
-			View = 0;
-			Font = 0;
-			Start = -1;
-			Len = 0;
-			Decor = DecorNone;
-			Data = 0;
+			View = NULL;
+			Font = NULL;
+			Empty();
+			Cursor = LCUR_Normal;
+			Decor = GCss::TextDecorNone;
+		}
+
+		GStyle(const GStyle &s)
+		{
+			Owner = s.Owner;
+			View = s.View;
+			Font = s.Font;
+			Start = s.Start;
+			Len = s.Len;
+			Decor = s.Decor;
+			DecorColour = s.DecorColour;
+			Fore = s.Fore;
+			Back = s.Back;
+			Data = s.Data;
 		}
 		
+		GStyle &Construct(GTextView3 *view, GTextViewStyleOwners owner)
+		{
+			View = view;
+			Owner = owner;
+			Font = NULL;
+			Empty();
+			Cursor = LCUR_Normal;
+			Decor = GCss::TextDecorNone;
+			return *this;
+		}
+
+		void Empty()
+		{			
+			Start = -1;
+			Len = 0;
+		}
+
+		bool Valid()
+		{
+			return Start >= 0 && Len > 0;
+		}
+
+		/*
 		virtual ~GStyle() {}
 
 		virtual bool OnMouseClick(GMouse *m) { return false; }
 		virtual bool OnMenu(GSubMenu *m) { return false; }
 		virtual void OnMenuClick(int i) {}
-
-		#ifdef UNICODE
-		typedef char16 *CURSOR_CHAR;
-		#else
-		typedef char *CURSOR_CHAR;
-		#endif
 		virtual CURSOR_CHAR GetCursor()  { return 0; }
+		*/
 
 		size_t End() const { return Start + Len; }
 
@@ -125,9 +152,9 @@ public:
 		}
 
 		/// Returns true if this style overlaps the position of 's'
-		bool Overlap(GStyle *s)
+		bool Overlap(GStyle &s)
 		{
-			return Overlap(s->Start, s->Len);
+			return Overlap(s.Start, s.Len);
 		}
 
 		/// Returns true if this style overlaps the position of 's'
@@ -167,11 +194,13 @@ protected:
  		EndLine
 	};
 
-	class GTextLine
+	class GTextLine : public GRange
 	{
 	public:
+		/*
 		ssize_t Start;	// Start offset
 		ssize_t Len;	// length of text
+		*/
 		GRect r;		// Screen location
 		GColour c;		// Colour of line... transparent = default colour
 		GColour Back;	// Background colour or transparent
@@ -203,7 +232,6 @@ protected:
 	// Options
 	bool Dirty;
 	bool CanScrollX;
-	bool PourEnabled;
 
 	// Display
 	GFont *Font;
@@ -221,10 +249,16 @@ protected:
 	GRect CursorPos;
 
 	/// true if the text pour process is still ongoing
-	bool PartialPour;
+	bool PourEnabled;		// True if pouring the text happens on edit. Turn off if doing lots
+							// of related edits at the same time. And then manually pour once 
+							// finished.
+	bool PartialPour;		// True if the pour is happening in the background. It's not threaded
+							// but taking place in the GUI thread via timer.
+	bool AdjustStylePos;	// Insert/Delete moved styles automatically to match (default: true)
 
 	List<GTextLine> Line;
-	List<GStyle> Style;		// sorted in 'Start' order
+	LUnrolledList<GStyle> Style;		// sorted in 'Start' order
+	typedef LUnrolledList<GStyle>::Iter StyleIter;
 
 	// For ::Name(...)
 	char *TextCache;
@@ -238,11 +272,13 @@ protected:
 	// Undo stuff
 	bool UndoOn;
 	GUndo UndoQue;
+	struct GTextView3Undo *UndoCur;
 
 	// private methods
 	GTextLine *GetTextLine(ssize_t Offset, ssize_t *Index = 0);
 	ssize_t SeekLine(ssize_t Offset, GTextViewSeek Where);
 	int TextWidth(GFont *f, char16 *s, int Len, int x, int Origin);
+	bool ScrollToOffset(size_t Off);
 	int ScrollYLine();
 	int ScrollYPixel();
 	GRect DocToScreen(GRect r);
@@ -250,10 +286,11 @@ protected:
 	
 	// styles
 	bool InsertStyle(GAutoPtr<GStyle> s);
-	GStyle *GetNextStyle(ssize_t Where = -1);
+	GStyle *GetNextStyle(StyleIter &it, ssize_t Where = -1);
 	GStyle *HitStyle(ssize_t i);
 	int GetColumn();
 	int SpaceDepth(char16 *Start, char16 *End);
+	int AdjustStyles(ssize_t Start, ssize_t Diff, bool ExtendStyle = false);
 
 	// Overridables
 	virtual void PourText(size_t Start, ssize_t Length);
@@ -275,11 +312,9 @@ protected:
 public:
 	// Construction
 	GTextView3(	int Id,
-				int x,
-				int y,
-				int cx,
-				int cy,
-				GFontType *FontInfo = 0);
+				int x = 0, int y = 0,
+				int cx = 100, int cy = 100,
+				GFontType *FontInfo = NULL);
 	~GTextView3();
 
 	const char *GetClass() { return "GTextView3"; }
@@ -300,6 +335,7 @@ public:
 
 	// Font
 	GFont *GetFont();
+	GFont *GetBold();
 	void SetFont(GFont *f, bool OwnIt = false);
 	void SetFixedWidthFont(bool i);
 
@@ -382,7 +418,7 @@ public:
 	bool OnLayout(GViewLayoutInfo &Inf);
 	int WillAccept(List<char> &Formats, GdcPt2 Pt, int KeyState);
 	int OnDrop(GArray<GDragData> &Data, GdcPt2 Pt, int KeyState);
-	LgiCursor GetCursor(int x, int y) { return LCUR_Ibeam; }
+	LgiCursor GetCursor(int x, int y);
 
 	// Virtuals
 	virtual bool Insert(size_t At, char16 *Data, ssize_t Len);
@@ -390,6 +426,9 @@ public:
 	virtual void OnEnter(GKey &k);
 	virtual void OnUrl(char *Url);
 	virtual void DoContextMenu(GMouse &m);
+	virtual bool OnStyleClick(GStyle *style, GMouse *m);
+	virtual bool OnStyleMenu(GStyle *style, GSubMenu *m);
+	virtual void OnStyleMenuClick(GStyle *style, int i);
 };
 
 #endif

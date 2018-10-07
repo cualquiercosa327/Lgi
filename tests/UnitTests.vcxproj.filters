@@ -20,9 +20,6 @@
     <ClCompile Include="src\GAutoPtrTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\GContainers.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\GCssTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -39,6 +36,12 @@
       <Filter>Lgi</Filter>
     </ClCompile>
     <ClCompile Include="src\GStringPipeTests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GContainerTests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\LRangeTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

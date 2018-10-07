@@ -39,7 +39,6 @@ extern void TokeniseStrList(char *Str, List<char> &Output, const char *Delim);
 extern char ConvHexToBin(char c);
 #define ConvBinToHex(i) (((i)<10)?'0'+(i):'A'+(i)-10)
 extern void DecodeAddrName(const char *Start, GAutoString &Name, GAutoString &Addr, const char *DefaultDomain);
-extern bool IsValidEmail(GString &Email);
 extern char *DecodeRfc2047(char *Str);
 extern char *EncodeRfc2047(char *Str, const char *CodePage, List<char> *CharsetPrefs, ssize_t LineLength = 0);
 extern char *DecodeBase64Str(char *Str, int Len = -1);
@@ -670,7 +669,7 @@ protected:
 	bool ReadMultiLineReply(char *&Str);
 	int GetInt();
 	bool MailIsEnd(char *Ptr, ssize_t Len);
-	bool ListCmd(const char *Cmd, GHashTbl<const char *, bool> &Results);
+	bool ListCmd(const char *Cmd, LHashTbl<ConstStrKey<char,false>, bool> &Results);
 
 	const char *End;
 	const char *Marker;
@@ -770,7 +769,7 @@ public:
 	char *GetName();
 	void SetName(const char *s);
 	char GetSep() { return Sep; }
-	void operator =(GHashTbl<const char*,int> &v);
+	void operator =(LHashTbl<ConstStrKey<char>,int> &v);
 };
 
 class MailIMap : public MailSource
@@ -794,6 +793,8 @@ protected:
 	void CommandFinished();
 
 public:
+	typedef LHashTbl<ConstStrKey<char,false>,GString> StrMap;
+
 	struct StrRange
 	{
 		ssize_t Start, End;
@@ -857,7 +858,7 @@ public:
 		/// The message sequence number
 		char *Msg,
 		/// The fetch parts (which the callee needs to own if returning true)
-		GHashTbl<const char*, char*> &Parts,
+		StrMap &Parts,
 		/// The user data passed to the Fetch function
 		void *UserData
 	);
@@ -938,7 +939,7 @@ public:
 	);
 
 	bool GetFolders(GArray<MailImapFolder*> &Folders);
-	bool SelectFolder(const char *Path, GHashTbl<const char*,GString> *Values = 0);
+	bool SelectFolder(const char *Path, StrMap *Values = 0);
 	char *GetSelectedFolder();
 	int GetMessages(const char *Path);
 	bool CreateFolder(MailImapFolder *f);

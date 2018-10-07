@@ -284,7 +284,7 @@ public:
 		TextDecorUnderline,
 		TextDecorOverline,
 		TextDecorLineThrough,
-		TextDecorBlink,
+		TextDecorSquiggle, // for spelling errors
 	};
 
 	enum ColorType {
@@ -393,6 +393,12 @@ public:
 		{
 			Type = ColorRgb;
 			Rgb32 = col.c32();
+		}
+
+		ColorDef(const char *init)
+		{
+			Type = ColorInherit;
+			Parse(init);
 		}
 
 		ColorDef(COLOUR col)
@@ -803,7 +809,7 @@ public:
 		{
 			const char *Element = Context->GetElement(Obj);
 			
-			for (ssize_t n = PartIdx; n<Sel->Parts.Length(); n++)
+			for (size_t n = PartIdx; n<Sel->Parts.Length(); n++)
 			{
 				GCss::Selector::Part &p = Sel->Parts[n];
 				switch (p.Type)
@@ -941,7 +947,7 @@ public:
 					StartIdx = Sel->Combs[CombIdx];
 					LgiAssert(StartIdx > 0);
 
-					if (StartIdx >= Sel->Parts.Length())
+					if (StartIdx >= (ssize_t)Sel->Parts.Length())
 						break;
 					
 					GCss::Selector::Part &p = Sel->Parts[StartIdx];

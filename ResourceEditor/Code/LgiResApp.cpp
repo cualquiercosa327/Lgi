@@ -2684,7 +2684,6 @@ bool AppWnd::LoadLgi(char *FileName)
 
 						// Update languages array
 						int n = 0;
-						// for (GLanguage *i = Langs.First(); i; i = Langs.Next(), n++)
 						for (auto i : Langs)
 						{
 							Languages.Add(i.value);
@@ -2694,6 +2693,7 @@ bool AppWnd::LoadLgi(char *FileName)
 								Item->Checked(true);
 								CurLang = n;
 							}
+							n++;
 						}
 
 						if (Languages.Length() == 0)

@@ -36,6 +36,9 @@ const char sLibrary[] =
 		#else
 		"x32"
 		#endif
+		#ifdef _DEBUG
+		"d"
+		#endif
 	#endif
 	;
 #else
@@ -77,6 +80,7 @@ public:
 
 };
 
+LMutex JpegLibraryLock("JpegLibraryLock");
 GAutoPtr<LibJpeg> JpegLibrary;
 #endif
 
@@ -122,8 +126,12 @@ class GdcJpegFactory : public GFilterFactory
 	GFilter *NewObject()
 	{
 		#if LIBJPEG_SHARED
-		if (!JpegLibrary)
-			JpegLibrary.Reset(new LibJpeg);
+		if (JpegLibraryLock.Lock(_FL))
+		{
+			if (!JpegLibrary)
+				JpegLibrary.Reset(new LibJpeg);
+			JpegLibraryLock.Unlock();
+		}
 		#endif
 		return new GdcJpeg;
 	}
@@ -683,7 +691,7 @@ GFilter::IoStatus GdcJpeg::ReadImage(GSurface *pDC, GStream *In)
 				{
 					if (JPEGLIB jpeg_read_scanlines(&cinfo, &Ptr, 1))
 					{
-						switch (cinfo.jpeg_color_space)
+						switch ((int) cinfo.jpeg_color_space)
 						{
 							default:
 								break;

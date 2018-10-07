@@ -28,7 +28,7 @@ static int IsWin10 = -1;
 class GButtonPrivate
 {
 public:
-	DWORD ButtonClassProc;
+	WNDPROC ButtonClassProc;
 	bool Toggle;
 	bool WantsDefault;
 	int64 Value;
@@ -37,7 +37,7 @@ public:
 	{
 		Toggle = false;
 		WantsDefault = false;
-		ButtonClassProc = 0;
+		ButtonClassProc = NULL;
 		Value = 0;
 	}
 
@@ -199,7 +199,7 @@ GMessage::Result GButton::OnEvent(GMessage *Msg)
 		}
 		case WM_GETDLGCODE:
 		{
-			return CallWindowProc((WNDPROC)d->ButtonClassProc, Handle(), MsgCode(Msg), MsgA(Msg), MsgB(Msg)) |
+			return CallWindowProc(d->ButtonClassProc, Handle(), MsgCode(Msg), MsgA(Msg), MsgB(Msg)) |
 				DLGC_WANTTAB;
 		}
 		case WM_SYSKEYUP:

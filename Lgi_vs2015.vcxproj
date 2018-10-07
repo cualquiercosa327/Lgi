@@ -1,0 +1,662 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="ReleaseNoOptimize|Win32">
+      <Configuration>ReleaseNoOptimize</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="ReleaseNoOptimize|x64">
+      <Configuration>ReleaseNoOptimize</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectName>Lgi</ProjectName>
+    <ProjectGuid>{95DF9CA4-6D37-4A85-A648-80C2712E0DA1}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseNoOptimize|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseNoOptimize|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseNoOptimize|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseNoOptimize|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>12.0.30501.0</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>.\Lib\</OutDir>
+    <IntDir>$(Platform)$(Configuration)14\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\..\CodeLib\libiconv-1.14\include</IncludePath>
+    <TargetName>Lgi14x32</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>.\Lib\</OutDir>
+    <IntDir>$(Platform)$(Configuration)14\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\..\CodeLib\libiconv-1.14\include</IncludePath>
+    <TargetName>Lgi14x64</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>.\Lib\</OutDir>
+    <IntDir>$(Platform)$(Configuration)14\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\..\CodeLib\libiconv-1.14\include</IncludePath>
+    <TargetName>Lgi14x32d</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>.\Lib\</OutDir>
+    <IntDir>$(Platform)$(Configuration)14\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\..\CodeLib\libiconv-1.14\include</IncludePath>
+    <TargetName>Lgi14x64d</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseNoOptimize|Win32'">
+    <OutDir>.\Lib\</OutDir>
+    <IntDir>$(Platform)$(Configuration)14\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\..\CodeLib\libiconv-1.14\include</IncludePath>
+    <TargetName>Lgi14x32nop</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseNoOptimize|x64'">
+    <OutDir>.\Lib\</OutDir>
+    <IntDir>$(Platform)$(Configuration)14\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\..\CodeLib\libiconv-1.14\include</IncludePath>
+    <TargetName>Lgi14x64nop</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Midl>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TargetEnvironment>Win32</TargetEnvironment>
+      <TypeLibraryName>.\Release/Lgi.tlb</TypeLibraryName>
+    </Midl>
+    <ClCompile>
+      <Optimization>MinSpace</Optimization>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <AdditionalIncludeDirectories>include\common;include\win32;..\..\..\CodeLib\libiconv\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;WIN32;WINDOWS;LGI_RES;LGI_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader />
+      <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
+      <BrowseInformation />
+      <WarningLevel>Level2</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAs>Default</CompileAs>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0c09</Culture>
+    </ResourceCompile>
+    <Link>
+      <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>ComCtl32.lib;Ws2_32.lib;UxTheme.lib;imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <ImportLibrary>$(OutDir)$(TargetName).lib</ImportLibrary>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TargetEnvironment>X64</TargetEnvironment>
+      <TypeLibraryName>.\Release/Lgi.tlb</TypeLibraryName>
+    </Midl>
+    <ClCompile>
+      <Optimization>MinSpace</Optimization>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <AdditionalIncludeDirectories>include\common;include\win32;..\..\..\CodeLib\libiconv\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN64;NDEBUG;WINDOWS;LGI_RES;LGI_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader />
+      <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
+      <BrowseInformation />
+      <WarningLevel>Level2</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAs>Default</CompileAs>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0c09</Culture>
+    </ResourceCompile>
+    <Link>
+      <AdditionalDependencies>ComCtl32.lib;Ws2_32.lib;UxTheme.lib;imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <ImportLibrary>$(OutDir)$(TargetName).lib</ImportLibrary>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Midl>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TargetEnvironment>Win32</TargetEnvironment>
+      <TypeLibraryName>.\Debug/Lgi.tlb</TypeLibraryName>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>include\common;include\win32;..\..\..\CodeLib\libiconv\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>LGI_LIBRARY;_DEBUG;WIN32;WINDOWS;LGI_RES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader />
+      <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
+      <BrowseInformation />
+      <WarningLevel>Level2</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAs>Default</CompileAs>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0c09</Culture>
+    </ResourceCompile>
+    <Link>
+      <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>ComCtl32.lib;Ws2_32.lib;UxTheme.lib;imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
+      <SubSystem>Windows</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <ImportLibrary>$(OutDir)$(TargetName).lib</ImportLibrary>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TargetEnvironment>X64</TargetEnvironment>
+      <TypeLibraryName>.\Debug/Lgi.tlb</TypeLibraryName>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>include\common;include\win32;..\..\..\CodeLib\libiconv\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN64;LGI_LIBRARY;_DEBUG;WINDOWS;LGI_RES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader />
+      <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
+      <BrowseInformation />
+      <WarningLevel>Level3</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAs>Default</CompileAs>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0c09</Culture>
+    </ResourceCompile>
+    <Link>
+      <AdditionalDependencies>ComCtl32.lib;Ws2_32.lib;UxTheme.lib;imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ShowProgress>NotSet</ShowProgress>
+      <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
+      <SubSystem>Windows</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <ImportLibrary>$(OutDir)$(TargetName).lib</ImportLibrary>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseNoOptimize|Win32'">
+    <Midl>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TargetEnvironment>Win32</TargetEnvironment>
+      <TypeLibraryName>.\Release/Lgi.tlb</TypeLibraryName>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <AdditionalIncludeDirectories>include\common;include\win32;..\..\..\CodeLib\libiconv\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;WIN32;WINDOWS;LGI_RES;LGI_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader />
+      <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
+      <BrowseInformation />
+      <WarningLevel>Level2</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAs>Default</CompileAs>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0c09</Culture>
+    </ResourceCompile>
+    <Link>
+      <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>ComCtl32.lib;Ws2_32.lib;UxTheme.lib;imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <ImportLibrary>$(OutDir)$(TargetName).lib</ImportLibrary>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseNoOptimize|x64'">
+    <Midl>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TargetEnvironment>X64</TargetEnvironment>
+      <TypeLibraryName>.\Release/Lgi.tlb</TypeLibraryName>
+    </Midl>
+    <ClCompile>
+      <Optimization>MinSpace</Optimization>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <AdditionalIncludeDirectories>include\common;include\win32;..\..\..\CodeLib\libiconv\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN64;NDEBUG;WINDOWS;LGI_RES;LGI_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader />
+      <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
+      <BrowseInformation />
+      <WarningLevel>Level2</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAs>Default</CompileAs>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0c09</Culture>
+    </ResourceCompile>
+    <Link>
+      <AdditionalDependencies>ComCtl32.lib;Ws2_32.lib;UxTheme.lib;imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <ImportLibrary>$(OutDir)$(TargetName).lib</ImportLibrary>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="src\common\Gdc2\15Bit.cpp" />
+    <ClCompile Include="src\common\Gdc2\16Bit.cpp" />
+    <ClCompile Include="src\common\Gdc2\24Bit.cpp" />
+    <ClCompile Include="src\common\Gdc2\32Bit.cpp" />
+    <ClCompile Include="src\common\Gdc2\48Bit.cpp" />
+    <ClCompile Include="src\common\Gdc2\64Bit.cpp" />
+    <ClCompile Include="src\common\Gdc2\8Bit.cpp" />
+    <ClCompile Include="src\common\Gdc2\Alpha.cpp" />
+    <ClCompile Include="src\common\Gdc2\Filters\GFilter.cpp" />
+    <ClCompile Include="src\common\Gdc2\Font\GDisplayString.cpp" />
+    <ClCompile Include="src\common\Gdc2\Font\GFont.cpp" />
+    <ClCompile Include="src\common\Gdc2\Font\GFontCodePages.cpp" />
+    <ClCompile Include="src\common\Gdc2\Font\GFontSystem.cpp" />
+    <ClCompile Include="src\common\Gdc2\Font\GFont_A.cpp" />
+    <ClCompile Include="src\common\Gdc2\Font\GFont_W.cpp" />
+    <ClCompile Include="src\common\Gdc2\Font\LStringLayout.cpp" />
+    <ClCompile Include="src\common\Gdc2\GColour.cpp" />
+    <ClCompile Include="src\common\Gdc2\GdcCommon.cpp" />
+    <ClCompile Include="src\common\Gdc2\GRect.cpp" />
+    <ClCompile Include="src\common\Gdc2\GSurface.cpp" />
+    <ClCompile Include="src\common\Gdc2\Path\GPath.cpp" />
+    <ClCompile Include="src\common\Gdc2\Tools\GColourReduce.cpp" />
+    <ClCompile Include="src\common\General\GContainers.cpp" />
+    <ClCompile Include="src\common\General\GExeCheck.cpp" />
+    <ClCompile Include="src\common\General\GFileCommon.cpp" />
+    <ClCompile Include="src\common\General\GGrowl.cpp" />
+    <ClCompile Include="src\common\General\GPassword.cpp" />
+    <ClCompile Include="src\common\General\LDateTime.cpp" />
+    <ClCompile Include="src\common\Hash\md5\md5.c" />
+    <ClCompile Include="src\common\Hash\sha1\sha1.c" />
+    <ClCompile Include="src\common\INet\Base64.cpp" />
+    <ClCompile Include="src\common\INet\GUri.cpp" />
+    <ClCompile Include="src\common\INet\INet.cpp" />
+    <ClCompile Include="src\common\INet\INetTools.cpp" />
+    <ClCompile Include="src\common\INet\MDStringToDigest.cpp" />
+    <ClCompile Include="src\common\Lgi\GAlert.cpp" />
+    <ClCompile Include="src\common\Lgi\GCss.cpp" />
+    <ClCompile Include="src\common\Lgi\GCssTools.cpp" />
+    <ClCompile Include="src\common\Lgi\GFindReplace.cpp" />
+    <ClCompile Include="src\common\Lgi\GFontSelect.cpp" />
+    <ClCompile Include="src\common\Lgi\GGuiUtils.cpp" />
+    <ClCompile Include="src\common\Lgi\GInput.cpp" />
+    <ClCompile Include="src\common\Lgi\GLibrary.cpp" />
+    <ClCompile Include="src\common\Lgi\GMemStream.cpp" />
+    <ClCompile Include="src\common\Lgi\GMenuCommon.cpp" />
+    <ClCompile Include="src\common\Lgi\GMru.cpp" />
+    <ClCompile Include="src\common\Lgi\GObject.cpp" />
+    <ClCompile Include="src\common\Lgi\GOptionsFile.cpp" />
+    <ClCompile Include="src\common\Lgi\GProcess.cpp" />
+    <ClCompile Include="src\common\Lgi\GStream.cpp" />
+    <ClCompile Include="src\common\Lgi\GToolTip.cpp" />
+    <ClCompile Include="src\common\Lgi\GTrayIcon.cpp" />
+    <ClCompile Include="src\common\Lgi\GVariant.cpp" />
+    <ClCompile Include="src\common\Lgi\GViewCommon.cpp" />
+    <ClCompile Include="src\common\Lgi\GWindowCommon.cpp" />
+    <ClCompile Include="src\common\Lgi\LgiCommon.cpp" />
+    <ClCompile Include="src\common\Lgi\LgiMsg.cpp" />
+    <ClCompile Include="src\common\Lgi\LgiRand.cpp" />
+    <ClCompile Include="src\common\Lgi\LMutex.cpp" />
+    <ClCompile Include="src\common\Lgi\LThreadCommon.cpp" />
+    <ClCompile Include="src\common\Lgi\LThreadEvent.cpp" />
+    <ClCompile Include="src\common\Resource\LgiRes.cpp" />
+    <ClCompile Include="src\common\Resource\Res.cpp" />
+    <ClCompile Include="src\common\Skins\Gel\Gel.cpp" />
+    <ClCompile Include="src\common\Text\GDocView.cpp" />
+    <ClCompile Include="src\common\Text\GString.cpp" />
+    <ClCompile Include="src\common\Text\GTextView3.cpp" />
+    <ClCompile Include="src\common\Text\GToken.cpp" />
+    <ClCompile Include="src\common\Text\GUnicode.cpp" />
+    <ClCompile Include="src\common\Text\GUtf8.cpp" />
+    <ClCompile Include="src\common\Text\GXmlTree.cpp" />
+    <ClCompile Include="src\common\Widgets\GBitmap.cpp" />
+    <ClCompile Include="src\common\Widgets\GBox.cpp" />
+    <ClCompile Include="src\common\Widgets\GButton.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseNoOptimize|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseNoOptimize|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\common\Widgets\GCheckBox.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseNoOptimize|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseNoOptimize|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\common\Widgets\GCombo.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseNoOptimize|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseNoOptimize|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\common\Widgets\GEdit.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseNoOptimize|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseNoOptimize|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\common\Widgets\GItemContainer.cpp" />
+    <ClCompile Include="src\common\Widgets\GPanel.cpp" />
+    <ClCompile Include="src\common\Widgets\GPopup.cpp" />
+    <ClCompile Include="src\common\Widgets\GProgressDlg.cpp" />
+    <ClCompile Include="src\common\Widgets\GRadioGroup.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseNoOptimize|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseNoOptimize|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\common\Widgets\GSplitter.cpp" />
+    <ClCompile Include="src\common\Widgets\GStatusBar.cpp" />
+    <ClCompile Include="src\common\Widgets\GTableLayout.cpp" />
+    <ClCompile Include="src\common\Widgets\GTabView.cpp" />
+    <ClCompile Include="src\common\Widgets\GTextLabel.cpp" />
+    <ClCompile Include="src\common\Widgets\GToolBar.cpp" />
+    <ClCompile Include="src\common\Widgets\GTree.cpp" />
+    <ClCompile Include="src\common\Widgets\LList.cpp" />
+    <ClCompile Include="src\win32\Gdc2\Gdc2.cpp" />
+    <ClCompile Include="src\win32\Gdc2\GdiLeak.cpp" />
+    <ClCompile Include="src\win32\Gdc2\GMemDC.cpp" />
+    <ClCompile Include="src\win32\Gdc2\GPrintDC.cpp" />
+    <ClCompile Include="src\win32\Gdc2\GScreenDC.cpp" />
+    <ClCompile Include="src\win32\General\GFile.cpp" />
+    <ClCompile Include="src\win32\General\GMem.cpp" />
+    <ClCompile Include="src\win32\General\ShowFileProp_Win.cpp" />
+    <ClCompile Include="src\win32\INet\MibAccess.cpp" />
+    <ClCompile Include="src\win32\Lgi\GApp.cpp" />
+    <ClCompile Include="src\win32\Lgi\GClipBoard.cpp" />
+    <ClCompile Include="src\win32\Lgi\GDragAndDrop.cpp" />
+    <ClCompile Include="src\win32\Lgi\GFileSelect.cpp" />
+    <ClCompile Include="src\win32\Lgi\GGeneral.cpp" />
+    <ClCompile Include="src\win32\Lgi\GLayout.cpp" />
+    <ClCompile Include="src\win32\Lgi\GMenu.cpp" />
+    <ClCompile Include="src\win32\Lgi\GPrinter.cpp" />
+    <ClCompile Include="src\win32\Lgi\GScrollBar.cpp" />
+    <ClCompile Include="src\win32\Lgi\GView.cpp" />
+    <ClCompile Include="src\win32\Lgi\GWindow.cpp" />
+    <ClCompile Include="src\win32\Lgi\LgiException.cpp" />
+    <ClCompile Include="src\win32\Lgi\LThread.cpp" />
+    <ClCompile Include="src\win32\Widgets\GButton_Win.cpp" />
+    <ClCompile Include="src\win32\Widgets\GCheckBox_Win.cpp" />
+    <ClCompile Include="src\win32\Widgets\GCombo_Win.cpp" />
+    <ClCompile Include="src\win32\Widgets\GDialog.cpp" />
+    <ClCompile Include="src\win32\Widgets\GEdit_Win.cpp" />
+    <ClCompile Include="src\win32\Widgets\GProgress.cpp" />
+    <ClCompile Include="src\win32\Widgets\GRadioGroup_Win.cpp" />
+    <ClCompile Include="src\win32\Widgets\GSlider.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\common\GArray.h" />
+    <ClInclude Include="include\common\GAutoPtr.h" />
+    <ClInclude Include="include\common\GBox.h" />
+    <ClInclude Include="include\common\GButton.h" />
+    <ClInclude Include="include\common\GCapabilities.h" />
+    <ClInclude Include="include\common\GCheckBox.h" />
+    <ClInclude Include="include\common\GColour.h" />
+    <ClInclude Include="include\common\GColourSpace.h" />
+    <ClInclude Include="include\common\GCom.h" />
+    <ClInclude Include="include\common\GCombo.h" />
+    <ClInclude Include="include\common\GContainers.h" />
+    <ClInclude Include="include\common\GCss.h" />
+    <ClInclude Include="include\common\GCssTools.h" />
+    <ClInclude Include="include\common\Gdc2.h" />
+    <ClInclude Include="include\common\GdiLeak.h" />
+    <ClInclude Include="include\common\GDisplayStringLayout.h" />
+    <ClInclude Include="include\common\GDom.h" />
+    <ClInclude Include="include\common\GDragAndDrop.h" />
+    <ClInclude Include="include\common\GDropFiles.h" />
+    <ClInclude Include="include\common\GEdit.h" />
+    <ClInclude Include="include\common\GEventTargetThread.h" />
+    <ClInclude Include="include\common\GFile.h" />
+    <ClInclude Include="include\common\GFileSelect.h" />
+    <ClInclude Include="include\common\GFilter.h" />
+    <ClInclude Include="include\common\GFont.h" />
+    <ClInclude Include="include\common\GGrowl.h" />
+    <ClInclude Include="include\common\GHashTable.h" />
+    <ClInclude Include="include\common\GImageList.h" />
+    <ClInclude Include="include\common\GItemContainer.h" />
+    <ClInclude Include="include\common\GLibrary.h" />
+    <ClInclude Include="include\common\GMatrix.h" />
+    <ClInclude Include="include\common\GMem.h" />
+    <ClInclude Include="include\common\GMenu.h" />
+    <ClInclude Include="include\common\GMessage.h" />
+    <ClInclude Include="include\common\GMru.h" />
+    <ClInclude Include="include\common\GNotifications.h" />
+    <ClInclude Include="include\common\GPalette.h" />
+    <ClInclude Include="include\common\GPixelRops.h" />
+    <ClInclude Include="include\common\GPoint.h" />
+    <ClInclude Include="include\common\GPopup.h" />
+    <ClInclude Include="include\common\GProcess.h" />
+    <ClInclude Include="include\common\GProgress.h" />
+    <ClInclude Include="include\common\GRadioGroup.h" />
+    <ClInclude Include="include\common\GRect.h" />
+    <ClInclude Include="include\common\GRops.h" />
+    <ClInclude Include="include\common\GScrollBar.h" />
+    <ClInclude Include="include\common\GStream.h" />
+    <ClInclude Include="include\common\GString.h" />
+    <ClInclude Include="include\common\GTableLayout.h" />
+    <ClInclude Include="include\common\GTabView.h" />
+    <ClInclude Include="include\common\GTextLabel.h" />
+    <ClInclude Include="include\common\GTextView3.h" />
+    <ClInclude Include="include\common\GToolBar.h" />
+    <ClInclude Include="include\common\GTree.h" />
+    <ClInclude Include="include\common\GUnicode.h" />
+    <ClInclude Include="include\common\GVariant.h" />
+    <ClInclude Include="include\common\GViewPriv.h" />
+    <ClInclude Include="include\common\INet.h" />
+    <ClInclude Include="include\common\INetTools.h" />
+    <ClInclude Include="include\common\LCancel.h" />
+    <ClInclude Include="include\common\LDateTime.h" />
+    <ClInclude Include="include\common\LDomFields.h" />
+    <ClInclude Include="include\common\LError.h" />
+    <ClInclude Include="include\common\Lgi.h" />
+    <ClInclude Include="include\common\LgiClass.h" />
+    <ClInclude Include="include\common\LgiClasses.h" />
+    <ClInclude Include="include\common\LgiCommon.h" />
+    <ClInclude Include="include\common\LgiDefs.h" />
+    <ClInclude Include="include\common\LgiInc.h" />
+    <ClInclude Include="include\common\LgiInterfaces.h" />
+    <ClInclude Include="include\common\LgiRes.h" />
+    <ClInclude Include="include\common\LList.h" />
+    <ClInclude Include="include\common\LListItemCheckBox.h" />
+    <ClInclude Include="include\common\LListItemRadioBtn.h" />
+    <ClInclude Include="include\common\LMutex.h" />
+    <ClInclude Include="include\common\LStringLayout.h" />
+    <ClInclude Include="include\common\LThread.h" />
+    <ClInclude Include="include\common\LThreadEvent.h" />
+    <ClInclude Include="include\common\Res.h" />
+    <ClInclude Include="include\win32\GCom.h" />
+    <ClInclude Include="include\win32\LgiOsClasses.h" />
+    <ClInclude Include="include\win32\LgiOsDefs.h" />
+    <ClInclude Include="src\common\Hash\md5\md5.h" />
+    <ClInclude Include="src\common\Hash\sha1\sha1.h" />
+    <ClInclude Include="src\win32\INet\MibAccess.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

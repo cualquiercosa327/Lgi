@@ -138,7 +138,10 @@ bool GTextLabel::Name(const char *n)
 		// Prof.Add("PostEv");
 		PostEvent(M_TEXT_UPDATE_NAME);
 	}
-	else LgiAssert(!"Can't update name.");
+	else
+	{
+		GView::Name(n);
+	}
 
 	// Prof.Add("unlock");
 	d->Unlock();
@@ -194,7 +197,7 @@ int64 GTextLabel::Value()
 void GTextLabel::Value(int64 i)
 {
 	char Str[32];
-	sprintf_s(Str, sizeof(Str), LGI_PrintfInt64, i);
+	sprintf_s(Str, sizeof(Str), LPrintfInt64, i);
 	Name(Str);
 }
 
@@ -275,17 +278,7 @@ int GTextLabel::OnNotify(GViewI *Ctrl, int Flags)
 
 void GTextLabel::OnPaint(GSurface *pDC)
 {
-	GColour Back;
-	Back.Set(LC_MED, 24);
-	if (GetCss())
-	{
-		GCss::ColorDef Fill = GetCss()->BackgroundColor();
-		if (Fill.Type == GCss::ColorRgb)
-			Back.Set(Fill.Rgb32, 32);
-		else if (Fill.Type == GCss::ColorTransparent)
-			Back.Empty();
-	}
-
+	GColour Back = StyleColour(GCss::PropBackgroundColor, GColour(LC_MED, 24));
 	if (d->Lock(_FL))
 	{
 		GRect c = GetClient();

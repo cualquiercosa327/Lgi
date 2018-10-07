@@ -402,7 +402,8 @@ bool GSoftwareUpdate::ApplyUpdate(UpdateInfo &Info, bool DownloadOnly, GViewI *W
 				if (!_stricmp(Ext, "dll"))
 				{
 					// Copy to local folder...
-					if (!FileDev->Copy(Tmp, Path))
+					LError Err;
+					if (!FileDev->Copy(Tmp, Path, &Err))
 					{
 						d->SetError(L_ERROR_COPY_FAILED, "Failed to copy file from temp folder to local folder.");
 					}

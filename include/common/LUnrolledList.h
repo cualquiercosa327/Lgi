@@ -26,7 +26,7 @@ class LUnrolledList
 
 		~LstBlk()
 		{
-			for (size_t n=0; n<Count; n++)
+			for (int n=0; n<Count; n++)
 			{
 				Obj[n].~T();
 			}
@@ -46,21 +46,25 @@ class LUnrolledList
 public:
 	class Iter
 	{
+		int Version;
+
 	public:
-		LUnrolledList<T> *Lst;
+		LUnrolledList<T,BlockSize> *Lst;
 		LstBlk *i;
 		int Cur;
 
-		Iter(LUnrolledList<T> *lst)
+		Iter(LUnrolledList<T,BlockSize> *lst)
 		{
 			Lst = lst;
+			Version = Lst->Version;
 			i = 0;
 			Cur = 0;
 		}
 
-		Iter(LUnrolledList<T> *lst, LstBlk *item, int c)
+		Iter(LUnrolledList<T,BlockSize> *lst, LstBlk *item, int c)
 		{
 			Lst = lst;
+			Version = Lst->Version;
 			i = item;
 			Cur = c;
 		}
@@ -80,19 +84,37 @@ public:
 
 		bool In() const
 		{
+			if (Lst->Version != Version)
+			{
+				// We need to check that 'i' is still part of the list:
+				bool Found = false;
+				for (auto p = Lst->FirstObj; p; p = p->Next)
+				{
+					if (i == p && (Found = true))
+						break;
+				}
+				if (!Found)
+					return false;
+			}
+
 			return	i &&
 					Cur >= 0 &&
 					Cur < i->Count;
 		}
 
-		operator T() const
+		T &operator *()
 		{
-			return In() ? i->Obj[Cur] : NULL;
+			if (In())
+				return i->Obj[Cur];
+
+			LgiAssert(!"Invalid iterator.");			
+			static T empty;
+			return empty;
 		}
 
-		T operator *() const
+		T *operator ->()
 		{
-			return In() ? i->Obj[Cur] : NULL;
+			return In() ? &i->Obj[Cur] : NULL;
 		}
 	
 		Iter &operator =(LstBlk *item)
@@ -189,6 +211,14 @@ public:
 protected:
 	size_t Items;
 	LstBlk *FirstObj, *LastObj;
+
+	// This is used to warn iterators that the block list has changed and they
+	// need to re-validate if their block pointer is still part of the list.
+	// Otherwise they could try and access a block that doesn't exist anymore.
+	//
+	// New blocks don't bump this because they don't invalidate iterator's 
+	// block pointer.
+	int Version;
 	
 	LstBlk *NewBlock(LstBlk *Where)
 	{
@@ -259,6 +289,7 @@ protected:
 			LastObj = i->Prev;
 		}
 
+		Version++;
 		delete i;
 
 		return true;
@@ -302,38 +333,6 @@ protected:
 		Items++;
 
 		LgiAssert(i->Count <= BlockSize);
-		return true;
-	}
-
-	bool Delete(Iter &Pos)
-	{
-		if (!Pos.In())
-			return false;
-
-		int &Index = Pos.Cur;
-		LstBlk *&i = Pos.i;
-		if (Index < i->Count-1)
-			memmove(i->Obj+Index, i->Obj+Index+1, (i->Count-Index-1) * sizeof(T*));
-
-		Items--;
-		if (--i->Count == 0)
-		{
-			// This Item is now empty, remove and reset current
-			// into the next Item
-			LstBlk *n = i->Next;
-			bool Status = DeleteBlock(i);
-			Pos.Cur = 0;
-			Pos.i = n;
-
-			return Status;
-		}
-		else if (Index >= i->Count)
-		{
-			// Carry current item over to next Item
-			Pos.i = Pos.i->Next;
-			Pos.Cur = 0;
-		}
-		
 		return true;
 	}
 
@@ -409,6 +408,7 @@ public:
 	{
 		FirstObj = LastObj = NULL;
 		Items = 0;
+		Version = 0;
 	}
 
 	~LUnrolledList<T,BlockSize>()
@@ -466,6 +466,7 @@ public:
 	{
 		VALIDATE_UL();
 
+		Version++;
 		LstBlk *n;
 		for (LstBlk *i = FirstObj; i; i = n)
 		{
@@ -479,15 +480,47 @@ public:
 		return true;
 	}
 
-	bool DeleteAt(size_t i)
+	bool DeleteAt(size_t Index)
 	{
 		VALIDATE_UL();
-		Iter p = GetIndex(i);
+		Iter p = GetIndex(Index);
 		if (!p.In())
 			return false;
 		bool Status = Delete(p);
 		VALIDATE_UL();
 		return Status;
+	}
+
+	bool Delete(Iter Pos)
+	{
+		if (!Pos.In())
+			return false;
+
+		int &Index = Pos.Cur;
+		LstBlk *&i = Pos.i;
+		if (Index < i->Count-1)
+			memmove(i->Obj+Index, i->Obj+Index+1, (i->Count-Index-1) * sizeof(T));
+
+		Items--;
+		if (--i->Count == 0)
+		{
+			// This Item is now empty, remove and reset current
+			// into the next Item
+			LstBlk *n = i->Next;
+			bool Status = DeleteBlock(i);
+			Pos.Cur = 0;
+			Pos.i = n;
+
+			return Status;
+		}
+		else if (Index >= i->Count)
+		{
+			// Carry current item over to next Item
+			Pos.i = Pos.i->Next;
+			Pos.Cur = 0;
+		}
+		
+		return true;
 	}
 
 	bool Delete(T Obj)
@@ -497,6 +530,45 @@ public:
 		if (!It.In())
 			return false;
 		bool Status = Delete(It);
+		VALIDATE_UL();
+		return Status;
+	}
+
+	T &New()
+	{
+		VALIDATE_UL();
+
+		if (!FirstObj || LastObj->Count >= BlockSize)
+			NewBlock(LastObj);
+
+		if (LastObj->Count >= BlockSize)
+		{
+			LgiAssert(!"No block for new object.");
+			static T empty;
+			return empty;
+		}
+
+		T &Ref = LastObj->Obj[LastObj->Count++];
+		Items++;
+		
+		VALIDATE_UL();
+	
+		return Ref;
+	}
+
+	bool Insert(T p, Iter &it)
+	{
+		if (it.Lst != this)
+		{
+			LgiAssert(!"Wrong list.");
+			return false;
+		}
+
+		if (!LastObj)
+			return Insert(p, -1);
+
+		VALIDATE_UL();
+		bool Status = Insert(it.i, p, it.Cur);
 		VALIDATE_UL();
 		return Status;
 	}
@@ -578,6 +650,51 @@ public:
 
 	void Compact()
 	{
+		auto in = begin();
+		auto out = begin();
+		auto e = end();
+
+		// Copy any items to fill gaps...
+		while (in != e)
+		{
+			if (in != out)
+				out.i->Obj[out.Cur] = in.i->Obj[in.Cur];
+
+			if (out.Cur < BlockSize)
+				out.Cur++;
+			else
+			{
+				out.i = out.i->Next;
+				out.Cur = 0;
+			}
+
+			in++;
+		}
+
+		// Adjust all the block counts...
+		size_t c = Items;
+		for (auto i = FirstObj; i; i = i->Next)
+		{
+			if (c > BlockSize)
+				i->Count = BlockSize;
+			else
+				i->Count = (int)c;
+			c -= i->Count;
+		}
+		LgiAssert(c == 0);
+
+		// Free any empty blocks...
+		while (LastObj->Count <= 0)
+		{
+			DeleteBlock(LastObj);
+		}
+	}
+
+	void Swap(LUnrolledList<T> &other)
+	{
+		LSwap(Items, other.Items);
+		LSwap(FirstObj, other.FirstObj);
+		LSwap(LastObj, other.LastObj);		
 	}
 
 	class RandomAccessIter
@@ -596,6 +713,8 @@ public:
 		ssize_t Idx;
 		int Shift;
 		int Mask;
+		int Version;
+
 		struct BlkMap
 		{
 			int Count, Refs;
@@ -604,7 +723,7 @@ public:
 			BlkMap(Unrolled *u)
 			{
 				Refs = 1;
-				Count = (u->Items + (BlockSize-1)) / BlockSize;
+				Count = (int) (u->Items + (BlockSize-1)) / BlockSize;
 				Blocks = new LstBlk*[Count];
 				int Idx = 0;
 				for (LstBlk *b=u->FirstObj; b; b = b->Next)
@@ -649,6 +768,8 @@ public:
 			u = lst;
 			Idx = idx;
 			Map = NULL;
+			Version = lst->Version;
+
 			Init();
 		}
 
@@ -659,6 +780,8 @@ public:
 			Shift = rhs.Shift;
 			Mask = rhs.Mask;
 			Map = rhs.Map;
+			Version = rhs.Version;
+
 			if (Map)
 				Map->Refs++;
 		}
@@ -679,7 +802,7 @@ public:
 		bool IsValid() const
 		{
 			return	u != NULL &&
-					Idx >= 0 && Idx < u->Items &&
+					Idx >= 0 && Idx < (ssize_t)u->Items &&
 					Shift != 0 &&
 					Mask != 0 &&
 					Map != NULL;

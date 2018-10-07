@@ -117,9 +117,9 @@ public:
 		}
 	}
 	
-	void PostEvent(OsView h, int c, int a, int b)
+	void PostEvent(OsView h, int c, GMessage::Param a, GMessage::Param b)
 	{
-		LgiPostEvent(h, c, (GMessage::Param) a, (GMessage::Param) b);
+		LgiPostEvent(h, c, a, b);
 	}
 
 	int Main()
@@ -344,7 +344,7 @@ public:
 						hWndProcess = LgiGetViewPid(hMouseOver);
 						if (hWndProcess == hProcess)
 						{
-							PostEvent(hMouseOver, M_MOUSEEXIT, 0, MAKELONG((short) p.x, (short) p.y));
+							PostEvent(hMouseOver, M_MOUSEEXIT, 0, (GMessage::Param)MAKELONG((short) p.x, (short) p.y));
 						}
 					}
 
@@ -358,7 +358,7 @@ public:
 						hWndProcess = LgiGetViewPid(hMouseOver);
 						if (hWndProcess == hProcess)
 						{
-							PostEvent(hMouseOver, M_MOUSEENTER, Inside, MAKELONG((short) p.x, (short) p.y));
+							PostEvent(hMouseOver, M_MOUSEENTER, (GMessage::Param)Inside, (GMessage::Param)MAKELONG((short) p.x, (short) p.y));
 						}
 					}
 				}
@@ -617,7 +617,7 @@ GMessage::Result GPopup::OnEvent(GMessage *Msg)
 		#endif
 		case M_SET_VISIBLE:
 		{
-			Visible(Msg->A());
+			Visible(Msg->A() != 0);
 			break;
 		}
 	}

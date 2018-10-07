@@ -24,7 +24,7 @@
 /// It's used by GApp::OnSDLEvent to
 /// check the validity of a GView pointer passed via
 /// an asynchronous message.
-GHashTbl<void*,bool> GView::ViewMap(256);
+LHashTbl<PtrKey<GView*>,bool> ViewMap(256);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 GViewPrivate::GViewPrivate()

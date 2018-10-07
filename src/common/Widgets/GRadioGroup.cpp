@@ -318,26 +318,9 @@ void GRadioGroup::OnPaint(GSurface *pDC)
 	}
 	else
 	{
-		GColour Fore, Back;
-		Fore.Set(LC_TEXT, 24);
-		Back.Set(LC_MED, 24);
-
-		if (GetCss())
-		{
-			GCss::ColorDef Fill = GetCss()->Color();
-			if (Fill.Type == GCss::ColorRgb)
-				Fore.Set(Fill.Rgb32, 32);
-			else if (Fill.Type == GCss::ColorTransparent)
-				Fore.Empty();
-				
-			Fill = GetCss()->BackgroundColor();
-			if (Fill.Type == GCss::ColorRgb)
-				Back.Set(Fill.Rgb32, 32);
-			else if (Fill.Type == GCss::ColorTransparent)
-				Back.Empty();
-		}
-
-		if (Back.IsValid())
+		// GColour Fore = StyleColour(GCss::PropColor, LC_TEXT);
+		GColour Back = StyleColour(GCss::PropBackgroundColor, GColour(LC_MED, 24));
+		if (!Back.IsTransparent())
 		{
 			pDC->Colour(Back);
 			pDC->Rectangle();
@@ -720,24 +703,8 @@ void GRadioButton::OnPaint(GSurface *pDC)
 	{
 		GRect r(0, 0, X()-1, Y()-1);
 		GRect c(0, 0, 12, 12);
-		GColour Fore, Back;
-		Fore.Set(LC_TEXT, 24);
-		Back.Set(LC_MED, 24);
-
-		if (GetCss())
-		{
-			GCss::ColorDef Fill = GetCss()->Color();
-			if (Fill.Type == GCss::ColorRgb)
-				Fore.Set(Fill.Rgb32, 32);
-			else if (Fill.Type == GCss::ColorTransparent)
-				Fore.Empty();
-				
-			Fill = GetCss()->BackgroundColor();
-			if (Fill.Type == GCss::ColorRgb)
-				Back.Set(Fill.Rgb32, 32);
-			else if (Fill.Type == GCss::ColorTransparent)
-				Back.Empty();
-		}
+		// GColour Fore = StyleColour(GCss::PropColor, LC_TEXT, 4);
+		GColour Back = StyleColour(GCss::PropBackgroundColor, GColour(LC_MED, 24));
 		
 		// bool e = Enabled();
 		GRect fill(c.x2 + 1, r.y1, r.x2, r.x2);
@@ -753,7 +720,7 @@ void GRadioButton::OnPaint(GSurface *pDC)
 			cli.Offset(p.x1, p.y1);
 		}
 		
-		pDC->Colour(LC_MED, 24);
+		pDC->Colour(Back);
 		pDC->Rectangle(cli.x1, cli.y1, c.x2, cli.y2);
 		
 		GRect rc(c.x1, c.y1 + 4, c.x2 - 1, c.y2 - 1);

@@ -4,7 +4,6 @@
 
 #include "Lgi.h"
 #include "GToken.h"
-#include "GUtf8.h"
 
 struct UnicodeMappings
 {
@@ -1434,18 +1433,17 @@ char *LgiToNativeCp(const char *In, ssize_t InLen)
 			setlocale(LC_ALL, ".ACP");
 
 			if (InLen < 0)
-			{
 				InLen = strlen(In);
-			}
 
 			char16 *Wide = Utf8ToWide(In, InLen);
 			if (Wide)
 			{
-				size_t Len = wcstombs(0, Wide, StrlenW(Wide));
+				size_t Converted;
+				size_t Len = wcstombs_s(&Converted, NULL, 0, Wide, 0);
 				char *Buf = Len > 0 ? new char[Len+1] : 0;
 				if (Buf)
 				{
-					wcstombs(Buf, Wide, InLen);
+					wcstombs_s(&Converted, Buf, Len+1, Wide, Len+1);
 					Buf[Len] = 0;
 				}
 				DeleteArray(Wide);
@@ -1503,13 +1501,14 @@ char *LgiFromNativeCp(const char *In, ssize_t InLen)
 
 			}
 
-			size_t Len = mbstowcs(0, In, InLen);
+			size_t Converted;
+			size_t Len = mbstowcs_s(&Converted, NULL, 0, In, 0);
 			if (Len)
 			{
 				char16 *Buf = new char16[Len+1];
 				if (Buf)
 				{
-					mbstowcs(Buf, In, InLen);
+					mbstowcs_s(&Converted, Buf, Len, In, Len);
 					Buf[Len] = 0;
 					char *Utf8 = WideToUtf8(Buf);
 					DeleteArray(Buf);
@@ -1567,8 +1566,12 @@ GCharsetSystem::GCharsetSystem()
 		GToken a(Cs->AlternateNames, ",");
 		for (int n=0; n<a.Length(); n++)
 		{
-			strcpy(l, a[n]);
+			strcpy_s(l, sizeof(l), a[n]);
+			#ifdef _MSC_VER
+			_strlwr_s(l, sizeof(l));
+			#else
 			strlwr(l);
+			#endif
 
 			d->Charsets.Add(l, Cs);
 		}
@@ -1587,7 +1590,11 @@ GCharset *GCharsetSystem::GetCsInfo(const char *Cp)
 		// Lookup the charset in the hash table
 		char l[256];
 		strcpy_s(l, sizeof(l), Cp);
+		#ifdef _MSC_VER
+		_strlwr_s(l, sizeof(l));
+		#else
 		strlwr(l);
+		#endif
 
 		if (!stricmp(l, "utf-8"))
 			return d->Utf8;

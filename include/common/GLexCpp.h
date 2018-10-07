@@ -1,4 +1,5 @@
 #ifndef _GLEXCPP_H_
+#define _GLEXCPP_H_
 
 #include "LgiInc.h"
 #include "LgiOsDefs.h"

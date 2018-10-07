@@ -89,16 +89,16 @@ class GHtmlStatic
 {
 	friend class GHtmlStaticInst;
 	GHtmlElemInfo *UnknownElement;
-	GHashTbl<const char*,GHtmlElemInfo*> TagMap;
-	GHashTbl<int,GHtmlElemInfo*> TagIdMap;
+	LHashTbl<ConstStrKey<char,false>,GHtmlElemInfo*> TagMap;
+	LHashTbl<IntKey<int>,GHtmlElemInfo*> TagIdMap;
 
 public:
 	static GHtmlStatic *Inst;
 
 	int Refs;
-	GHashTbl<char16*,uint32>			 VarMap;
-	GHashTbl<const char*,GCss::PropType> StyleMap;
-	GHashTbl<const char*,int>			 ColourMap;
+	LHashTbl<StrKey<char16,true>,uint32>				VarMap;
+	LHashTbl<ConstStrKey<char,false>,GCss::PropType>	StyleMap;
+	LHashTbl<ConstStrKey<char,false>,int>				ColourMap;
 
 	GHtmlStatic();
 	~GHtmlStatic();

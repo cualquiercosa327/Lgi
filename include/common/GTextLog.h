@@ -6,8 +6,6 @@
 #include "GTextView3.h"
 #include "INet.h"
 
-#define M_LOG			(M_USER + 0x3000)
-
 class GTextLog : public GTextView3, public GStream
 {
 protected:
@@ -47,6 +45,7 @@ public:
 	
 	void OnCreate()
 	{
+		GTextView3::OnCreate();
 		ProcessTxt();
 	}
 
@@ -96,14 +95,14 @@ public:
 			    Sem.Unlock();
 			}
 			if (Handle())
-				PostEvent(M_LOG);
+				PostEvent(M_LOG_TEXT);
 		}
 		return Size;
 	}
 
 	GMessage::Result OnEvent(GMessage *m)
 	{
-		if (MsgCode(m) == M_LOG)
+		if (MsgCode(m) == M_LOG_TEXT)
 		{
 			ProcessTxt();
 		}
@@ -111,6 +110,7 @@ public:
 		return GTextView3::OnEvent(m);
 	}
 
+	/* GTextView3 now handles this well enough
 	void OnUrl(char *Url)
 	{
 		GUri u(Url);
@@ -120,6 +120,7 @@ public:
 			LgiExecute(Url);
 		}
 	}
+	*/
 };
 
 #endif

@@ -2093,7 +2093,7 @@ bool GLinearBlendBrush::Start(GRopArgs &Args)
 
 void GLinearBlendBrush::Rop(GRopArgs &Args)
 {
-	PathAssert(GdcD);
+	PathAssert(GdcD != NULL);
 
 	switch (Args.Cs)
 	{

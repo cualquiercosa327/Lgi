@@ -91,6 +91,8 @@ class LgiClass GTabPage :
 
 	// Vars
 	GTabView *TabCtrl;
+	
+	// Position of the clickable UI element for selecting the tab.
 	GRect TabPos;
 
 	/// Draws the tab part of the control (in the parent's context)
@@ -102,7 +104,7 @@ class LgiClass GTabPage :
 	/// True if the tab has a button
 	bool Button;
 
-	/// The location of the button (set during OnPaint)
+	/// The location of the optional button after the tab's text (set during OnPaint)
 	GRect BtnPos;
 
 	/// This is called when the user clicks the button
@@ -119,6 +121,7 @@ public:
 	~GTabPage();
 
 	const char *GetClass() { return "GTabPage"; }
+	GColour GetBackground();
 
 	char *Name();
 	bool Name(const char *n);

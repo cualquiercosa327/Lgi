@@ -141,7 +141,7 @@ GScreenDC::GScreenDC(HDC hdc, HWND hwnd, bool Release)
 	d = new GScreenPrivate;
 	ColourSpace = GdcD->GetColourSpace();
 
-	LgiAssert(hdc);
+	LgiAssert(hdc != 0);
 	d->hWnd = hwnd;
 	CreateFromHandle(hdc);
 	d->Release = Release;
@@ -729,10 +729,11 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 					BLENDFUNCTION Blend;
 					Blend.BlendOp = AC_SRC_OVER;
 					Blend.BlendFlags = 0;
-					Blend.SourceConstantAlpha = d->ConstAlpha >= 0 &&
+					Blend.SourceConstantAlpha = (BYTE)
+												(d->ConstAlpha >= 0 &&
 												d->ConstAlpha <= 255 ?
 												d->ConstAlpha :
-												255;
+												255);
 					Blend.AlphaFormat = AC_SRC_ALPHA;
 
 					if (!GdcD->AlphaBlend(	hDestDC,
@@ -775,7 +776,7 @@ void GScreenDC::Blt(int x, int y, GSurface *Src, GRect *a)
 			}
 			
 			Tmp.Blt(0, 0, Src, &b);
-			LgiAssert(Tmp.GetBitmap());
+			LgiAssert(Tmp.GetBitmap() != 0);
 			Src = &Tmp;
 			hSrcDC = Src->StartDC();
 		}

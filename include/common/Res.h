@@ -44,8 +44,8 @@ struct GLanguage
 	/// The old ID in previous versions
 	int OldId;
 	
-	/// The default codepage to use with this language
-	const char *CodePage;
+	/// The default charset to use with this language
+	const char *Charset;
 
 	/// \return true if this language is 'en'
 	bool IsEnglish()

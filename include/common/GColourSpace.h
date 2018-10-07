@@ -554,7 +554,7 @@ typedef uint8						ALPHA;
 
 #define RgbPreMul(c, a)				( Div255Lut[(c)*a] )
 #define Rgb32(r, g, b)				( ((((uint32)r)&0xFF)<<(C32R<<3)) | (((g)&0xFF)<<(C32G<<3)) | (((b)&0xFF)<<(C32B<<3)) | (0xFF<<(C32A<<3)) )
-#define Rgba32(r, g, b, a)			( (((r)&0xFF)<<(C32R<<3)) | (((g)&0xFF)<<(C32G<<3)) | (((b)&0xFF)<<(C32B<<3)) | (((a)&0xFF)<<(C32A<<3)) )
+#define Rgba32(r, g, b, a)			( ((((unsigned)r)&0xFF)<<(C32R<<3)) | (((g)&0xFF)<<(C32G<<3)) | (((b)&0xFF)<<(C32B<<3)) | (((a)&0xFF)<<(C32A<<3)) )
 #define Rgbpa32(r, g, b, a)			( (RgbPreMul(r, a)<<(C32R<<3)) | (RgbPreMul(g, a)<<(C32G<<3)) | (RgbPreMul(b, a)<<(C32B<<3)) | ((a&0xFF)<<(C32A<<3)) )
 #define Rgb24To32(c24)				Rgba32( R24(c24), G24(c24), B24(c24), 255 )
 #define Rgb15To32(c15)				( ((c15&0x7C00)<<9) | ((c15&0x3E0)<<6) | ((c15&0x1F)<<3) | (0xFF<<(C32A*8)) )

@@ -296,7 +296,7 @@
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
       <BrowseInformation />
-      <WarningLevel>Level2</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAs>Default</CompileAs>
@@ -467,7 +467,7 @@
     <ClCompile Include="src\common\Lgi\GVariant.cpp" />
     <ClCompile Include="src\common\Lgi\GViewCommon.cpp" />
     <ClCompile Include="src\common\Lgi\GWindowCommon.cpp" />
-    <ClCompile Include="src\common\Lgi\Lgi.cpp" />
+    <ClCompile Include="src\common\Lgi\LgiCommon.cpp" />
     <ClCompile Include="src\common\Lgi\LgiMsg.cpp" />
     <ClCompile Include="src\common\Lgi\LgiRand.cpp" />
     <ClCompile Include="src\common\Lgi\LMutex.cpp" />
@@ -628,8 +628,10 @@
     <ClInclude Include="include\common\GViewPriv.h" />
     <ClInclude Include="include\common\INet.h" />
     <ClInclude Include="include\common\INetTools.h" />
+    <ClInclude Include="include\common\LCancel.h" />
     <ClInclude Include="include\common\LDateTime.h" />
     <ClInclude Include="include\common\LDomFields.h" />
+    <ClInclude Include="include\common\LError.h" />
     <ClInclude Include="include\common\Lgi.h" />
     <ClInclude Include="include\common\LgiClass.h" />
     <ClInclude Include="include\common\LgiClasses.h" />
@@ -652,6 +654,9 @@
     <ClInclude Include="src\common\Hash\md5\md5.h" />
     <ClInclude Include="src\common\Hash\sha1\sha1.h" />
     <ClInclude Include="src\win32\INet\MibAccess.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\win32\Lgi.natvis" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

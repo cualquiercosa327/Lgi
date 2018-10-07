@@ -332,7 +332,7 @@ bool GDebugContext::UpdateLocals()
 				case GV_INT64:
 				{
 					it->SetText(v.Type ? v.Type.Get() : "int64", 1);
-					sprintf_s(s, sizeof(s), LGI_PrintfInt64, v.Value.Value.Int64);
+					sprintf_s(s, sizeof(s), LPrintfInt64, v.Value.Value.Int64);
 					break;
 				}
 				case GV_DOUBLE:

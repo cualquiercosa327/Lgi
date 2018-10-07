@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
   <Type Name="GString">
-	<DisplayString Condition="Str == 0">(empty)</DisplayString>
-	<DisplayString>{Str->Str,s} ({Str->Len})</DisplayString>
+	  <DisplayString Condition="Str == 0">(empty)</DisplayString>
+	  <DisplayString>{Str->Str,s} ({Str->Len})</DisplayString>
   </Type>
   <Type Name="GAutoPtr&lt;char,1&gt;">
-	<DisplayString Condition="Ptr == 0">(empty)</DisplayString>
-	<DisplayString>{Ptr,s}</DisplayString>
+	  <DisplayString Condition="Ptr == 0">(empty)</DisplayString>
+	  <DisplayString>{Ptr,s}</DisplayString>
   </Type>
   <Type Name="GAutoPtr&lt;wchar_t,1&gt;">
-	<DisplayString Condition="Ptr == 0">(empty)</DisplayString>
-	<DisplayString>{Ptr,su}</DisplayString>
+	  <DisplayString Condition="Ptr == 0">(empty)</DisplayString>
+	  <DisplayString>{Ptr,su}</DisplayString>
   </Type>
 </AutoVisualizer>

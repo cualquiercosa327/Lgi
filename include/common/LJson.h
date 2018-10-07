@@ -14,6 +14,7 @@ class LJson
 		
 		GString Str;
 		GArray<Key> Obj;
+		GArray<Key> Array;
 
 		Key *Get(const char *name, bool create = false)
 		{
@@ -26,6 +27,27 @@ class LJson
 			}
 			if (create)
 			{
+				char *ArrStart = strchr(name, '[');
+				char *ArrEnd = ArrStart ? strchr(ArrStart+1, ']') : NULL;
+				if (ArrStart && ArrEnd)
+				{
+					int Idx = atoi(ArrStart + 1);
+					if (Idx < 0)
+						return NULL;
+
+					GString n;
+					n.Set(name, ArrStart - name);
+					for (unsigned i=0; i<Obj.Length(); i++)
+					{
+						if (Obj[i].Get(n))
+							return &(Obj[i].Array[Idx]);
+					}
+
+					Key &k = Obj.New();
+					k.Name = n;
+					return &k.Array[Idx];
+				}
+
 				Key &k = Obj.New();
 				k.Name = name;
 				return &k;
@@ -42,7 +64,8 @@ class LJson
 
 		GString Print(int Depth = 0)
 		{
-			GString r, s;
+			GStringPipe r(512);
+			GString s;
 			GString d("");
 			if (Depth)
 			{
@@ -56,11 +79,12 @@ class LJson
 			{
 				s.Printf("%s\"%s\" : ", d.Get(), Name.Get());
 				r += s;
-				if (Str)
-				{
-					s.Printf("\"%s\"", Str.Get());
-					r += s;
-				}
+			}
+			if (Str)
+			{
+				GString q = Str.Replace("\"", "\\\"");
+				s.Printf("\"%s\"", q.Get());
+				r += s;
 			}
 
 			if (Obj.Length())
@@ -85,8 +109,24 @@ class LJson
 					Depth--;
 				}
 			}
+			else if (!Str)
+			{
+				r += "[ ";
+				for (unsigned i=0; i<Array.Length(); i++)
+				{
+					Key &k = Array[i];
+					if (i)
+						r += ", ";
+					if (k.Obj.Length())
+						s = GString("{") + k.Print() + "}";
+					else
+						s = k.Print();
+					r += s;
+				}
+				r += " ]";
+			}
 
-			return r;
+			return r.NewGStr();
 		}
 	};
 
@@ -100,8 +140,17 @@ class LJson
 			return false;
 
 		c++;
-		const char *e = strchr(c, '\"');
-		if (!e)
+		const char *e = c;
+		while (*e)
+		{
+			if (*e == '\\')
+				e += 2;
+			else if (*e == '\"')
+				break;
+			else
+				e++;
+		}
+		if (*e != '\"')
 			return false;
 		s.Set(c, e - c);
 		c = e + 1;
@@ -123,6 +172,79 @@ class LJson
 		return IsDigit(s) || strchr("-.e", s) != NULL;
 	}
 
+	bool ParseValue(Key &k, const char *&c)
+	{
+		SkipWs(c);
+
+		if (*c == '{')
+		{
+			// Objects
+			c++;
+			if (!Parse(k.Obj, c))
+				return false;
+			if (!ParseChar('}', c))
+				return false;
+		}
+		else if (*c == '[')
+		{
+			// Array
+			c++;
+			SkipWs(c);
+			while (*c != ']')
+			{
+				Key &a = k.Array.New();
+				if (!ParseValue(a, c))
+				{
+					return false;
+				}
+
+				SkipWs(c);
+				if (*c == ',')
+				{
+					c++;
+					SkipWs(c);
+				}
+			}
+			if (*c == ']')
+				c++;
+			else
+			{
+				LgiAssert(!"Unexpected token.");
+				return false;
+			}
+		}
+		else if (*c == '\"')
+		{
+			if (!ParseString(k.Str, c))
+			{
+				return false;
+			}
+		}
+		else if (IsNumeric(*c))
+		{
+			const char *e = c;
+			while (*e && IsNumeric(*e))
+				e++;
+			k.Str.Set(c, e - c);
+			c = e;
+		}
+		else if (IsAlpha(*c))
+		{
+			// Boolean?
+			const char *e = c;
+			while (*e && IsAlpha(*e))
+				e++;
+			k.Str.Set(c, e - c);
+			c = e;
+		}
+		else
+		{
+			return false;
+		}
+
+		return true;
+	}
+
 	bool Parse(GArray<Key> &Ks, const char *&c)
 	{
 		while (true)
@@ -136,34 +258,8 @@ class LJson
 					return false;
 				if (!ParseChar(':', c))
 					return false;
-				if (*c == '{')
-				{
-					// Objects
-					c++;
-					if (!Parse(k.Obj, c))
-						return false;
-					if (!ParseChar('}', c))
-						return false;
-				}
-				else if (*c == '\"')
-				{
-					if (!ParseString(k.Str, c))
-					{
-						return false;
-					}
-				}
-				else if (IsNumeric(*c))
-				{
-					const char *e = c;
-					while (*e && IsNumeric(*e))
-						e++;
-					k.Str.Set(c, e - c);
-					c = e;
-				}
-				else
-				{
+				if (!ParseValue(k, c))
 					return false;
-				}
 			}
 			else if (*c == '{')
 			{
@@ -174,7 +270,8 @@ class LJson
 				if (!ParseChar('}', c))
 					return false;
 			}
-			else return false;
+			else 
+				return false;
 
 			SkipWs(c);
 			if (*c != ',')
@@ -211,7 +308,7 @@ public:
 
 	bool SetJson(const char *c)
 	{
-		return Parse(Root.Obj, c);
+		return c ? Parse(Root.Obj, c) : false;
 	}
 
 	GString GetJson()
@@ -225,6 +322,96 @@ public:
 		return k ? k->Str : GString();
 	}
 
+	class Iter
+	{
+		LJson *j;
+		GArray<Key> *a;
+
+	public:
+		struct IterPos
+		{
+			Iter *It;
+			size_t Pos;
+
+			IterPos(Iter *i, size_t p)
+			{
+				It = i;
+				Pos = p;
+			}
+
+			bool operator !=(const IterPos &i) const
+			{
+				bool Eq = It == i.It && Pos == i.Pos;
+				return !Eq;
+			}
+
+			IterPos &operator *()
+			{
+				return *this;
+			}
+
+			operator GString()
+			{
+				return (*It->a)[Pos].Str;
+			}
+
+			IterPos &operator++()
+			{
+				Pos++;
+				return *this;
+			}
+
+			GString Get(GString Addr)
+			{
+				auto Arr = *It->a;
+				if (Pos >= Arr.Length())
+					return GString();
+				Key &k = Arr[Pos];
+				Key *v = k.Get(Addr);
+				if (!v)
+					return GString();
+
+				return v->Str;
+			}
+		};
+
+
+		Iter(LJson *J = NULL) : j(J)
+		{
+			a = NULL;
+		}
+
+		void Set(LJson *J)
+		{
+			j = J;
+		}
+
+		void Set(GArray<Key> *arr)
+		{
+			a = arr;
+		}
+
+		IterPos begin()
+		{
+			return IterPos(this, 0);
+		}
+
+		IterPos end()
+		{
+			return IterPos(this, a ? a->Length() : 0);
+		}
+	};
+
+	Iter GetArray(GString Addr)
+	{
+		Iter a(this);
+		Key *k = Deref(Addr, false);
+		if (k)
+			a.Set(&k->Array);
+
+		return a;
+	}
+
 	bool Set(GString Addr, const char *Val)
 	{
 		Key *k = Deref(Addr, true);
@@ -232,6 +419,28 @@ public:
 			return false;
 		k->Str = Val;
 		return true;
+	}
+
+	bool Set(GString Addr, GArray<GString> &Array)
+	{
+		Key *k = Deref(Addr, true);
+		if (!k)
+			return false;
+		for (auto &a : Array)
+		{
+			k->Array.New().Str = a;
+		}
+		return true;
+	}
+
+	GArray<GString> GetKeys(const char *Addr = NULL)
+	{
+		Key *k = Deref(Addr, true);
+		GArray<GString> a;
+		if (k)
+			for (auto &i : k->Obj)
+				a.Add(i.Name);
+		return a;
 	}
 };
 

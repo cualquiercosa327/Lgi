@@ -35,6 +35,8 @@
 		<String Ref="36" Cid="36" Define="IDC_HG_BROWSE" en="..." />
 		<String Ref="37" Cid="37" Define="IDC_CVS_BROWSE" en="..." />
 		<String Ref="38" Cid="38" Define="IDC_UNTRACKED" en="Show untracked files" />
+		<String Ref="39" Cid="39" Define="IDC_PULL_ALL" en="*" />
+		<String Ref="41" Cid="514" Define="IDC_PUSH_ALL" en="*" />
 	</string-group>
 	<Dialog pos="7,7,464,203" ref="9">
 		<TableLayout pos="7,7,447,167" ref="10" cols="0.200,0.200,0.200,0.200,0.200" rows="0.181,0.819">
@@ -123,25 +125,27 @@
 	<Dialog pos="7,7,702,129" ref="1">
 		<TableLayout pos="7,7,685,97" ref="2" Style="padding-top: 3px;" cols="0.143,0.143,0.143,0.143,0.143,0.143,0.143" rows="1.000">
 			<tr>
-				<td valign="Center" style="padding-left: 4px;&#10;padding-right: 2em;">
+				<td valign="Center" style="padding-left: 4px;&#10;padding-right: 1em;">
 					<Button pos="21,7,83,48" ref="18" />
 				</td>
-				<td valign="Center">
-					<Button pos="117,7,179,48" ref="5" />
+				<td valign="Center" style="padding-right: 1em;">
+					<Button pos="105,14,139,41" ref="5" />
+					<Button pos="154,14,181,41" ref="39" />
+				</td>
+				<td valign="Center" style="padding-right: 1em;">
+					<Button pos="203,14,244,41" ref="6" />
+					<Button pos="252,14,279,41" ref="41" />
 				</td>
 				<td valign="Center">
-					<Button pos="206,14,268,55" ref="6" />
-				</td>
-				<td valign="Center" style="padding-left: 2em;">
 					<StaticText pos="302,21,364,41" ref="7" />
 				</td>
 				<td>
 					<EditBox Pos="391,14,467,41" ref="8" />
 				</td>
-				<td>
+				<td style="padding-right: 1em;">
 					<Button pos="494,14,521,41" ref="17" />
 				</td>
-				<td>
+				<td valign="Center">
 					<CheckBox pos="581,21,643,41" ref="38" />
 				</td>
 			</tr>

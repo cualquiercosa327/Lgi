@@ -102,7 +102,7 @@ struct Box
 		
 		for (int d=0; d<DIMENSIONS; d++)
 		{
-			avg[d] = f[d] / Pixels;
+			avg[d] = (int) (f[d] / Pixels);
 		}
 	}
 	
@@ -198,7 +198,7 @@ class GPaletteReduce
 {
 	int TableSize;
 	ImgColour *Col;
-	int ColUsed;
+	unsigned ColUsed;
 	unsigned DestSize;
 	
 public:
@@ -410,12 +410,12 @@ public:
 				if (b->Sort(Index, MaxEdge.Dimension))
 				{
 					// Find the median by picking an arbitrary mid-point
-					unsigned Pos = Index.Length() >> 1;
+					unsigned Pos = (unsigned) Index.Length() >> 1;
 					if (Index.Length() > 2)
 					{
 						int LowerSum = 0;
 						int UpperSum = 0;
-						for (unsigned i=0; i<Index.Length(); i++)
+						for (size_t i=0; i<Index.Length(); i++)
 						{
 							if (i < Pos)
 								LowerSum += Index[i]->count;
@@ -461,7 +461,7 @@ public:
 					// Create new boxes out of the 2 parts
 					LgiAssert(Pos > 0);
 					Boxes.Add(new Box(Index, 0, Pos - 1));
-					Boxes.Add(new Box(Index, Pos, Index.Length() - 1));
+					Boxes.Add(new Box(Index, Pos, (unsigned) Index.Length() - 1));
 					
 					// Delete the old 'big' box
 					Boxes.Delete(b);

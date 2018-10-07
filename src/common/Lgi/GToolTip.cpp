@@ -239,7 +239,7 @@ int GToolTip::NewTip(char *Name, GRect &Pos)
 		ti.lpszText = Utf8ToWide(Name);
 		ti.uId = Status = d->NextUid++;
 
-		int Result = SendMessage(_View, TTM_ADDTOOLW, 0, (LPARAM) &ti);
+		auto Result = SendMessage(_View, TTM_ADDTOOLW, 0, (LPARAM) &ti);
 
 		DeleteArray(ti.lpszText);
 	}

@@ -121,7 +121,7 @@ void GFileSelect::ClearTypes()
 	d->Types.DeleteObjects();
 }
 
-GFileType *GFileSelect::TypeAt(int n)
+GFileType *GFileSelect::TypeAt(ssize_t n)
 {
 	return d->Types.ItemAt(n);
 }

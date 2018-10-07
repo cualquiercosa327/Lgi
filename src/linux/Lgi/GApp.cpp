@@ -20,8 +20,8 @@
 #include "GSymLookup.h"
 #endif
 #include "GToken.h"
-#include "GUtf8.h"
 #include "GFontCache.h"
+
 #if HAS_LIB_MAGIC
 // sudo apt-get install libmagic-dev
 #include <magic.h>
@@ -212,7 +212,7 @@ public:
 	MsgArray *Lock(const char *file, int line)
 	{
 		if (!LMutex::Lock(file, line))
-			return false;
+			return NULL;
 		return &q;
 	}
 	
@@ -242,6 +242,7 @@ public:
 	GLibrary *WmLib;
 	GHashTbl<int, GView*> Handles;
 	OsThread GuiThread;
+	OsThreadId GuiThreadId;
 	int MessageLoopDepth;
 	int CurEvent;
 	#if DEBUG_MSG_TYPES
@@ -255,6 +256,7 @@ public:
 	GAutoPtr<GApp::DesktopInfo> DesktopInfo;
 
 	#if HAS_LIB_MAGIC
+	LMutex MagicLock;
 	magic_t hMagic;
 	#endif
 
@@ -272,10 +274,11 @@ public:
 	int LastClickX;
 	int LastClickY;
 
-	GAppPrivate() : Args(0, 0)
+	GAppPrivate() : Args(0, 0), MagicLock("MagicLock")
 	{
 		CurEvent = 0;
 		GuiThread = LgiGetCurrentThread();
+		GuiThreadId = GetCurrentThreadId();
 		WmLib = 0;
 		FileSystem = 0;
 		GdcSystem = 0;
@@ -298,10 +301,14 @@ public:
 	~GAppPrivate()
 	{
 		#if HAS_LIB_MAGIC
-		if (hMagic != NULL)
+		if (MagicLock.Lock(_FL))
 		{
-			magic_close(hMagic);
-			hMagic = NULL;
+			if (hMagic != NULL)
+			{
+				magic_close(hMagic);
+				hMagic = NULL;
+			}
+			MagicLock.Unlock();
 		}
 		#endif
 
@@ -482,9 +489,14 @@ GViewI *GApp::GetFocus()
 	return NULL;
 }
 
-OsThread GApp::GetGuiThread()
+OsThread GApp::_GetGuiThread()
 {
 	return d->GuiThread;
+}
+
+OsThreadId GApp::GetGuiThreadId()
+{
+	return d->GuiThreadId;
 }
 
 OsProcessId GApp::GetProcessId()
@@ -511,8 +523,8 @@ void GApp::SetAppArgs(OsAppArguments &AppArgs)
 
 bool GApp::InThread()
 {
-	OsThreadId Me = LgiGetCurrentThread();
-	OsThreadId Gui = GetGuiThread();
+	OsThreadId Me = GetCurrentThreadId();
+	OsThreadId Gui = GetGuiThreadId();
 	// printf("Me=%i Gui=%i\n", Me, Gui);
 	return Gui == Me;
 }
@@ -566,7 +578,7 @@ Gtk::gboolean IdleWrapper(Gtk::gpointer data)
 		{
 			if (!GView::LockHandler(m.v, GView::OpLock))
 			{
-				printf("%s:%i - Invalid view to post event to.\n", _FL);
+				// printf("%s:%i - Invalid view to post event to.\n", _FL);
 			}
 			else
 			{
@@ -861,34 +873,41 @@ GAutoString GApp::GetFileMimeType(const char *File)
 	#if HAS_LIB_MAGIC
 	
 	static bool MagicError = false;
-	if (!d->hMagic && !MagicError)
+	if (d->MagicLock.Lock(_FL))
 	{
-		d->hMagic = magic_open(MAGIC_MIME_TYPE);
-		if (d->hMagic)
+		if (!d->hMagic && !MagicError)
 		{
-			if (magic_load(d->hMagic, NULL) != 0)
+			d->hMagic = magic_open(MAGIC_MIME_TYPE);
+			if (d->hMagic)
 			{
-	        	printf("%s:%i - magic_load failed - %s\n", _FL, magic_error(d->hMagic));
-	        	magic_close(d->hMagic);
-	        	d->hMagic = NULL;
-	        	MagicError = true;
+				if (magic_load(d->hMagic, NULL) != 0)
+				{
+		        	printf("%s:%i - magic_load failed - %s\n", _FL, magic_error(d->hMagic));
+		        	magic_close(d->hMagic);
+		        	d->hMagic = NULL;
+		        	MagicError = true;
+				}
+			}
+			else
+			{
+				printf("%s:%i - magic_open failed.\n", _FL);
+				MagicError = true;
 			}
 		}
-		else
+		
+		if (d->hMagic && !MagicError)
 		{
-			printf("%s:%i - magic_open failed.\n", _FL);
-			MagicError = true;
+			const char *mt = magic_file(d->hMagic, File);
+			if (mt)
+			{
+				Status.Reset(NewStr(mt));
+			}
 		}
-	}
-	
-	if (d->hMagic)
-	{
-		const char *mt = magic_file(d->hMagic, File);
-		if (mt)
-		{
-			Status.Reset(NewStr(mt));
+		
+		d->MagicLock.Unlock();
+
+		if (Status)
 			return Status;
-		}
 	}
 
 	#endif

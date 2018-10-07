@@ -151,7 +151,7 @@ HRESULT GDataObject::GetData(FORMATETC *pFormatEtc, STGMEDIUM *PMedium)
 		ZeroObj(*PMedium);
 
 		uchar *Ptr = 0;
-		int Size = 0;
+		ssize_t Size = 0;
 		GDragData &CurData = Source->d->CurData[0];
 		if (CurData.Data.Length() > 0)
 		{
@@ -282,23 +282,23 @@ GDragDropSource::~GDragDropSource()
 	DeleteObj(d);
 }
 
-bool GDragDropSource::CreateFileDrop(GDragData *OutputData, GMouse &m, List<char> &Files)
+bool GDragDropSource::CreateFileDrop(GDragData *OutputData, GMouse &m, GString::Array &Files)
 {
 	if (!OutputData || !Files.First())
 		return false;
 
-	int Size = sizeof(DROPFILES) + sizeof(char16);
+	size_t Size = sizeof(DROPFILES) + sizeof(char16);
 
 	List<char> Native;
 	List<char16> NativeW;
-	for (char *File=Files.First(); File; File=Files.Next())
+	for (auto File : Files)
 	{
-		char16 *f = Utf8ToWide(File);
+		GAutoWString f(Utf8ToWide(File));
 		if (f)
 		{
-			int Len = StrlenW(f) + 1;
+			auto Len = StrlenW(f) + 1;
 			Size += Len * sizeof(char16);
-			NativeW.Insert(f);
+			NativeW.Insert(f.Release());
 		}
 	}
 
@@ -315,7 +315,7 @@ bool GDragDropSource::CreateFileDrop(GDragData *OutputData, GMouse &m, List<char
 		char16 *f = (char16*) (((char*)Dp) + Dp->pFiles);
 		for (char16 *File=NativeW.First(); File; File=NativeW.Next())
 		{
-			int Len = StrlenW(File) + 1;
+			auto Len = StrlenW(File) + 1;
 			StrcpyW(f, File);
 			f += Len;
 		}
@@ -340,7 +340,7 @@ bool GDragDropSource::SetIcon(GSurface *Img, GRect *SubRgn)
 
 int GDragDropSource::Drag(GView *SourceWnd, int Effect)
 {
-	LgiAssert(SourceWnd);
+	LgiAssert(SourceWnd != 0);
 	if (!SourceWnd)
 		return -1;
 
@@ -687,7 +687,7 @@ HRESULT STDMETHODCALLTYPE GDragDropTarget::Drop(IDataObject *pDataObject, DWORD 
 {
 	HRESULT Result = E_UNEXPECTED;
 
-	LgiAssert(To);
+	LgiAssert(To != NULL);
 
 	DataObject = pDataObject;
 
@@ -724,7 +724,7 @@ HRESULT STDMETHODCALLTYPE GDragDropTarget::Drop(IDataObject *pDataObject, DWORD 
 			{
 				case TYMED_HGLOBAL:
 				{
-					int Size = GlobalSize(Medium.hGlobal);
+					auto Size = GlobalSize(Medium.hGlobal);
 					void *Ptr = GlobalLock(Medium.hGlobal);
 					if (Ptr)
 					{
@@ -808,13 +808,13 @@ HRESULT STDMETHODCALLTYPE GDragDropTarget::Drop(IDataObject *pDataObject, DWORD 
 	return Result;
 }
 
-bool GDragDropTarget::OnDropFileGroupDescriptor(FILEGROUPDESCRIPTOR *Data, GArray<char*> &Files)
+bool GDragDropTarget::OnDropFileGroupDescriptor(FILEGROUPDESCRIPTOR *Data, GString::Array &Files)
 {
 	bool Status = false;
 
 	if (Data && Data->cItems > 0 && DataObject)
 	{
-		for (int i=0; i<Data->cItems; i++)
+		for (UINT i=0; i<Data->cItems; i++)
 		{
 			FORMATETC Format;
 			Format.cfFormat = RegisterClipboardFormat(CFSTR_FILECONTENTS);
@@ -828,7 +828,7 @@ bool GDragDropTarget::OnDropFileGroupDescriptor(FILEGROUPDESCRIPTOR *Data, GArra
 
 			if (DataObject->GetData(&Format, &Medium) == S_OK)
 			{
-				int Size = 0;
+				size_t Size = 0;
 				void *Ptr = 0;
 
 				// Get data
@@ -849,7 +849,7 @@ bool GDragDropTarget::OnDropFileGroupDescriptor(FILEGROUPDESCRIPTOR *Data, GArra
 						if (Ptr)
 						{
 							ulong Read;
-							if (Medium.pstm->Read(Ptr, Size, &Read) == S_OK)
+							if (Medium.pstm->Read(Ptr, (ULONG)Size, &Read) == S_OK)
 							{
 								Size = Read;
 							}
@@ -868,11 +868,9 @@ bool GDragDropTarget::OnDropFileGroupDescriptor(FILEGROUPDESCRIPTOR *Data, GArra
 					GFile f;
 					if (f.Open(Path, O_WRITE))
 					{
-						if (f.Write(Ptr, Size) == Size)
-						{
-							Files.Add(NewStr(Path));
-							Status = true;
-						}
+						f.Write(Ptr, Size);
+						Files.Add(Path);
+						Status = true;
 					}
 				}
 

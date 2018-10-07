@@ -31,10 +31,13 @@
 #endif
 
 #include <string.h>
+#include <stdio.h>
 #include "LgiInc.h"
 #include "LgiDefs.h"
 #include "LgiClass.h"
 
+#define _MSC_VER_VS2019	2000 // MSVC++ 16.0 (speculative)
+#define _MSC_VER_VS2017	1910 // MSVC++ 15.0
 #define _MSC_VER_VS2015	1900 // MSVC++ 14.0
 #define _MSC_VER_VS2013	1800 // MSVC++ 12.0
 #define _MSC_VER_VS2012	1700 // MSVC++ 11.0
@@ -153,8 +156,15 @@ typedef SOCKET							OsSocket;
 #define LGI_FileDropFormat				"CF_HDROP"
 #define LGI_StreamDropFormat			CFSTR_FILEDESCRIPTORW
 #define LGI_WideCharset					"ucs-2"
-#define LGI_PrintfInt64					"%I64i"
-#define LGI_PrintfHex64					"%I64x"
+#define LPrintfInt64					"%I64i"
+#define LPrintfHex64					"%I64x"
+#if LGI_64BIT
+	#define LPrintfSizeT				"%I64u"
+	#define LPrintfSSizeT				"%I64d"
+#else
+	#define LPrintfSizeT				"%u"
+	#define LPrintfSSizeT				"%d"
+#endif
 #define LGI_IllegalFileNameChars		"\t\r\n/\\:*?\"<>|"
 
 #define MK_LEFT							MK_LBUTTON
@@ -196,9 +206,6 @@ typedef SOCKET							OsSocket;
 #define CTRL_X							1.50
 #define CTRL_Y							1.64
 
-// Messages
-
-
 // Directories
 #define DIR_CHAR						'\\'
 #define DIR_STR							"\\"
@@ -234,6 +241,8 @@ extern bool LgiToWindowsCursor(OsView Hnd, LgiCursor Cursor);
 #define stricmp						_stricmp
 #define strlwr						_strlwr
 #define strnicmp					_strnicmp
+#define vsnprintf					_vsnprintf_s
+// #define getcwd						_getcwd
 #endif
 #define atoi64						_atoi64
 

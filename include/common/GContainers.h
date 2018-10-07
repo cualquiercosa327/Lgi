@@ -29,7 +29,7 @@ class List
 	struct LstBlk
 	{
 		LstBlk *Next, *Prev;
-		char Count;
+		uint8 Count;
 		T *Ptr[ITEM_PTRS];
 
 		LstBlk()
@@ -551,7 +551,7 @@ public:
 				{
 					LgiAssert(!"Offset error");
 				}
-				i.i->Count = Len - Base;
+				i.i->Count = (uint8) (Len - Base);
 				LgiAssert(i.i->Count >= 0 && i.i->Count < ITEM_PTRS);
 				while (i.i->Next)
 				{
@@ -816,6 +816,16 @@ public:
 		VALIDATE();
 	}
 
+	void Swap(List<T> &other)
+	{
+		LSwap(FirstObj, other.FirstObj);
+		LSwap(LastObj, other.LastObj);
+		LSwap(Items, other.Items);
+		LSwap(Local.Lst, other.Local.Lst);
+		LSwap(Local.i, other.Local.i);
+		LSwap(Local.Cur, other.Local.Cur);
+	}
+
 	/// Assign the contents of another list to this one
 	#if 0
 	List<T> &operator=(const List<T> &lst)
@@ -1066,6 +1076,8 @@ public:
 	
 	/// Writes bytes to the end of the container
 	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0) override;
+
+	bool Write(const GString &s) { return Write(s.Get(), s.Length()) == s.Length(); }
 };
 
 /// A version of GBytePipe for strings. Adds some special handling for strings.
@@ -1091,6 +1103,7 @@ public:
 	char *NewStr() { return (char*)New(sizeof(char)); }
 	GString NewGStr();
 	char16 *NewStrW() { return (char16*)New(sizeof(char16)); }
+	GStringPipe &operator +=(const GString &s) { Write(s.Get(), s.Length()); return *this; }
 
 	#ifdef _DEBUG
 	static bool UnitTest();

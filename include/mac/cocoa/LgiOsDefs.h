@@ -88,6 +88,7 @@ public:
 // System defines
 #define POSIX						1
 #define LGI_COCOA					1
+#define LGI_64BIT					1
 
 // Process
 typedef int							OsProcess;
@@ -114,8 +115,10 @@ LgiFunc void LgiSleep(uint32 i);
 #define LGI_StreamDropFormat		"" // kPasteboardTypeFileURLPromise
 #define LGI_LgiDropFormat			"lgi "
 #define LGI_WideCharset				"utf-32"
-#define LGI_PrintfInt64				"%lli"
-#define LGI_PrintfHex64				"%llx"
+#define LPrintfInt64				"%lli"
+#define LPrintfHex64				"%llx"
+#define LPrintfSizeT				"%zu"
+#define LPrintfSSizeT				"%zi"
 #define atoi64						atoll
 #define sprintf_s					snprintf
 #define vsprintf_s					vsnprintf

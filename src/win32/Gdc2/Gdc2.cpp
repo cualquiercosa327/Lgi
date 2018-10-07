@@ -36,8 +36,8 @@ void LgiDrawIcon(GSurface *pDC, int Dx, int Dy, HICON ico)
 	int msk_bpp = msk.bmPlanes * msk.bmBitsPixel;
 	bits.Length(bm.bmWidthBytes * bm.bmHeight);
 	mask.Length(msk.bmWidthBytes * msk.bmHeight);
-	GetBitmapBits(iconinfo.hbmColor, bits.Length(), &bits[0]);
-	GetBitmapBits(iconinfo.hbmMask, mask.Length(), &mask[0]);
+	GetBitmapBits(iconinfo.hbmColor, (LONG)bits.Length(), &bits[0]);
+	GetBitmapBits(iconinfo.hbmMask, (LONG)mask.Length(), &mask[0]);
 
 	bool HasAlpha = false;
 	int y;
@@ -171,7 +171,7 @@ bool GPalette::Update()
 {
 	if (Data && hPal)
 	{
-		return SetPaletteEntries(hPal, 0, GetSize(), Data->palPalEntry);
+		return SetPaletteEntries(hPal, 0, GetSize(), Data->palPalEntry) != 0;
 	}
 
 	return FALSE;
@@ -357,12 +357,11 @@ void TrimWhite(char *s)
 	char *White = " \r\n\t";
 	char *c = s;
 	while (*c && strchr(White, *c)) c++;
+	auto Len = strlen(c);
 	if (c != s)
-	{
-		strcpy(s, c);
-	}
+		memmove(s, c, Len+1);
 
-	c = s + strlen(s) - 1;
+	c = s + Len - 1;
 	while (c > s && strchr(White, *c))
 	{
 		*c = 0;
@@ -372,6 +371,55 @@ void TrimWhite(char *s)
 
 bool GPalette::Load(GFile &F)
 {
+	#if 1
+
+	GString::Array Lines = F.Read().SplitDelimit("\r\n");
+	if (Lines.Length() < 2)
+	{
+		LgiAssert(0);
+		return false;
+	}
+
+	if (!Lines[0].Equals("JASC-PAL"))
+	{
+		LgiAssert(0);
+		return false;
+	}
+
+	auto Sz = Lines[1].Int();
+	if (Sz < 0 || Sz > 256)
+	{
+		LgiAssert(0);
+		return false;
+	}
+
+	if (!SetSize((int)Sz))
+	{
+		LgiAssert(0);
+		return false;
+	}
+
+	for (int i=2; i<Lines.Length(); i++)
+	{
+		GString::Array p = Lines[i].SplitDelimit(" \t");
+		if (p.Length() == 3)
+		{
+			auto e = (*this)[i-2];
+			e->r = (uint8) p[0].Int();
+			e->g = (uint8) p[1].Int();
+			e->b = (uint8) p[2].Int();
+		}
+		else
+		{
+			LgiAssert(0);
+			return false;
+		}
+	}
+
+	return true;
+
+	#else
+
 	bool Status = FALSE;
 	char Buf[256];
 	
@@ -407,6 +455,7 @@ bool GPalette::Load(GFile &F)
 	}
 
 	return Status;
+	#endif
 }
 
 bool GPalette::Save(GFile &F, int Format)

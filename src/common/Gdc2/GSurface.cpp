@@ -1287,9 +1287,9 @@ bool FillMatch_Near(COLOUR Seed, COLOUR Pixel, COLOUR Border, int Bits)
 	int Dg = G24(s24) - G24(p24);
 	int Db = B24(s24) - B24(p24);
 
-	return	(abs(Dr) < Border) &&
-			(abs(Dg) < Border) &&
-			(abs(Db) < Border);
+	return	((unsigned)abs(Dr) < Border) &&
+			((unsigned)abs(Dg) < Border) &&
+			((unsigned)abs(Db) < Border);
 }
 
 void GSurface::FloodFill(int StartX, int StartY, int Mode, COLOUR Border, GRect *FillBounds)
@@ -1651,7 +1651,7 @@ GRect GSurface::ClipRgn()
 
 GColour GSurface::Colour(GColour c)
 {
-	LgiAssert(pApp);
+	LgiAssert(pApp != NULL);
 	GColour cPrev(pApp->c, GetBits());
 	
 	uint32 c32 = c.c32();

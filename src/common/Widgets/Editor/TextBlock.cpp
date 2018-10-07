@@ -1419,6 +1419,20 @@ ssize_t GRichTextPriv::TextBlock::DeleteAt(Transaction *Trans, ssize_t BlkOffset
 
 	if (Deleted > 0)
 	{
+		// Adjust start of existing spelling styles
+		GRange r(BlkOffset, Deleted);
+		for (auto &Err : SpellingErrors)
+		{
+			if (Err.Overlap(r).Valid())
+			{
+				Err -= r;
+			}
+			else if (Err > r)
+			{
+				Err.Start -= Deleted;
+			}
+		}
+
 		LayoutDirty = true;
 		UpdateSpellingAndLinks(Trans, GRange(BlkOffset, 0));
 	}
@@ -1441,24 +1455,26 @@ GMessage::Result GRichTextPriv::TextBlock::OnEvent(GMessage *Msg)
 				int i = (int)Msg->A() - SPELLING_BASE;
 				if (i >= 0 && i < (int)e->Suggestions.Length())
 				{
+					int Start = e->Start;
 					GString s = e->Suggestions[i];
 					AutoTrans t(new GRichTextPriv::Transaction);
 					
 					// Delete the old text...
-					DeleteAt(t, e->Start, e->Len);
+					DeleteAt(t, Start, e->Len); // 'e' might disappear here
 
 					// Insert the new text....
 					GAutoPtr<uint32,true> u((uint32*)LgiNewConvertCp("utf-32", s, "utf-8"));
-					AddText(t, e->Start, u.Get(), Strlen(u.Get()));
+					AddText(t, Start, u.Get(), Strlen(u.Get()));
 					
 					d->AddTrans(t);
+					return true;
 				}
 			}
 			break;
 		}
 	}
 
-	return 0;
+	return false;
 }
 
 bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, ssize_t AtOffset, const uint32 *InStr, ssize_t InChars, GNamedStyle *Style)
@@ -1617,6 +1633,14 @@ bool GRichTextPriv::TextBlock::AddText(Transaction *Trans, ssize_t AtOffset, con
 		}
 	}
 
+	// Push existing spelling styles along
+	for (auto &Err : SpellingErrors)
+	{
+		if (Err.Start >= InitialOffset)
+			Err.Start += InChars;
+	}
+
+	// Update layout and styling
 	LayoutDirty = true;	
 	IsValid();
 	UpdateSpellingAndLinks(Trans, GRange(InitialOffset, InChars));
@@ -1717,6 +1741,35 @@ bool DetectUrl(Char *t, ssize_t &len)
 	return true;
 }
 
+int ErrSort(GSpellCheck::SpellingError *a, GSpellCheck::SpellingError *b)
+{
+	return (int) (a->Start - b->Start);
+}
+
+void GRichTextPriv::TextBlock::SetSpellingErrors(GArray<GSpellCheck::SpellingError> &Errors, GRange r)
+{
+	// LgiTrace("%s:%i - SetSpellingErrors " LPrintfSSizeT ", " LPrintfSSizeT ":" LPrintfSSizeT "\n", _FL, Errors.Length(), r.Start, r.End());
+
+	// Delete any errors overlapping 'r'
+	for (unsigned i=0; i<SpellingErrors.Length(); i++)
+	{
+		if (SpellingErrors[i].Overlap(r).Valid())
+			SpellingErrors.DeleteAt(i--, true);
+	}
+
+	// Insert the new errors and sort into place..
+	for (auto &e : Errors)
+	{
+		auto &n = SpellingErrors.New();
+		n.Start = r.Start + e.Start;
+		n.Len = e.Len;
+		n.Suggestions = e.Suggestions;
+	}
+	SpellingErrors.Sort(ErrSort);
+}
+
+#define IsWordChar(ch) ( IsAlpha(ch) || (ch) == '\'' )
+
 void GRichTextPriv::TextBlock::UpdateSpellingAndLinks(Transaction *Trans, GRange r)
 {
 	GArray<uint32> Text;
@@ -1727,8 +1780,26 @@ void GRichTextPriv::TextBlock::UpdateSpellingAndLinks(Transaction *Trans, GRange
 	if (d->SpellCheck &&
 		d->SpellDictionaryLoaded)
 	{
-		GString s(&Text[0], Text.Length());
-		d->SpellCheck->Check(d->View->AddDispatch(), s, r.Start, (GRichTextPriv::Block*)this);
+		GRange Rgn = r;
+		while (Rgn.Start > 0 &&
+				IsWordChar(Text[Rgn.Start-1]))
+		{
+			Rgn.Start--;
+			Rgn.Len++;
+		}
+		while (Rgn.End() < Len &&
+				IsWordChar(Text[Rgn.End()]))
+		{
+			Rgn.Len++;
+		}
+
+		GString s(Text.AddressOf(Rgn.Start), Rgn.Len);
+		GArray<GVariant> Params;
+		Params[SpellBlockPtr] = (Block*)this;
+
+		// LgiTrace("%s:%i - Check(%s) " LPrintfSSizeT ":" LPrintfSSizeT "\n", _FL, s.Get(), Rgn.Start, Rgn.End());
+
+		d->SpellCheck->Check(d->View->AddDispatch(), s, Rgn.Start, Rgn.Len, &Params);
 	}
 
 	// Link detection...
@@ -1810,11 +1881,6 @@ void GRichTextPriv::TextBlock::UpdateSpellingAndLinks(Transaction *Trans, GRange
 	}
 }
 
-int ErrSort(GSpellCheck::SpellingError *a, GSpellCheck::SpellingError *b)
-{
-	return (int) (a->Start - b->Start);
-}
-
 bool GRichTextPriv::TextBlock::StripLast(Transaction *Trans, const char *Set)
 {
 	if (Txt.Length() == 0)
@@ -1885,12 +1951,6 @@ bool GRichTextPriv::TextBlock::IsEmptyLine(BlockCursor *Cursor)
 GRichTextPriv::Block *GRichTextPriv::TextBlock::Clone()
 {
 	return new TextBlock(this);
-}
-
-void GRichTextPriv::TextBlock::SetSpellingErrors(GArray<GSpellCheck::SpellingError> &Errors)
-{
-	SpellingErrors = Errors;	
-	SpellingErrors.Sort(ErrSort);
 }
 
 ssize_t GRichTextPriv::TextBlock::CopyAt(ssize_t Offset, ssize_t Chars, GArray<uint32> *Text)
@@ -2367,7 +2427,7 @@ bool GRichTextPriv::TextBlock::Seek(SeekType To, BlockCursor &Cur)
 void GRichTextPriv::TextBlock::DumpNodes(GTreeItem *Ti)
 {
 	GString s;
-	s.Printf("TextBlock style=%s", Style?Style->Name.Get():NULL);
+	s.Printf("TextBlock, style=%s, pos=%s, ptr=%p", Style?Style->Name.Get():NULL, Pos.GetStr(), this);
 	Ti->SetText(s);
 
 	GTreeItem *TxtRoot = PrintNode(Ti, "Txt(%i)", Txt.Length());

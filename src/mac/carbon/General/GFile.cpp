@@ -655,7 +655,7 @@ int FloppyType(int Letter)
 
 OSType gFinderSignature = 'MACS';
 
-OSStatus MoveFileToTrash(CFURLRef fileURL)
+OSStatus MoveFileToTrash(CFURLRef fileURL, LError *Status)
 {
 	AppleEvent event, reply;
 	OSStatus err;
@@ -663,7 +663,10 @@ OSStatus MoveFileToTrash(CFURLRef fileURL)
 	AliasHandle fileAlias;
 
 	if (CFURLGetFSRef(fileURL, &fileRef) == false)
+	{
+		if (Status) Status->Set(coreFoundationUnknownErr, "CFURLGetFSRef failed");
 		return coreFoundationUnknownErr;
+	}
 
 	err = FSNewAliasMinimal(&fileRef, &fileAlias);
 	if (err == noErr)
@@ -684,15 +687,22 @@ OSStatus MoveFileToTrash(CFURLRef fileURL)
 			err = AESendMessage(&event, &reply, kAEWaitReply, kAEDefaultTimeout);
 			if (err == noErr)
 				AEDisposeDesc(&reply);
+			else if (Status)
+				Status->Set(err, "AESendMessage failed");
 			AEDisposeDesc(&event);
 		}
+		else if (Status)
+			Status->Set(err, "AEBuildAppleEvent failed");
 
 		DisposeHandle((Handle)fileAlias);
 	}
+	else if (Status)
+		Status->Set(err, "FSNewAliasMinimal failed");
+	
 	return err;
 }
 
-bool GFileSystem::Copy(char *From, char *To, int *ErrorCode, CopyFileCallback Callback, void *Token)
+bool GFileSystem::Copy(char *From, char *To, LError *ErrorCode, CopyFileCallback Callback, void *Token)
 {
 	if (!From || !To)
 	{
@@ -838,71 +848,71 @@ bool GFileSystem::Copy(char *From, char *To, int *ErrorCode, CopyFileCallback Ca
 	*/
 }
 
-bool GFileSystem::Delete(GArray<const char*> &Files, GArray<int> *Status, bool ToTrash)
+bool GFileSystem::Delete(GArray<const char*> &Files, GArray<LError> *Status, bool ToTrash)
 {
 	bool Error = false;
-
+	
 	if (ToTrash)
 	{
-		#if 1
+		#if 0
+		
 		// Apple events method
+		//
+		// This is broken at the moment, throws -43 errors and blocks the UI.
+		// Which is never cool.
 		
 		for (int i=0; i<Files.Length(); i++)
 		{
-			UInt8 *Tmp = (UInt8*) Files[i];
-			CFStringRef s = CFStringCreateWithBytes(kCFAllocatorDefault, (UInt8*)Tmp, strlen(Files[i]), kCFStringEncodingUTF8, false);
+			GString File = Files[i];
+			CFStringRef s = File.CreateStringRef();
 			if (!s)
 			{
-				printf("%s:%i - CFStringCreateWithBytes failed\n", __FILE__, __LINE__);
+				if (Status)
+					(*Status)[i] = LErrorNoMem;
 				Error = true;
-				break;
+				continue;
 			}
 			
 			CFURLRef f = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, s, kCFURLPOSIXPathStyle, DirExists(Files[i]));
 			CFRelease(s);
 			if (!f)
 			{
-				printf("%s:%i - CFURLCreateWithFileSystemPath failed\n", __FILE__, __LINE__);
+				if (Status)
+					(*Status)[i] = LErrorNoMem;
 				Error = true;
-				break;
+				continue;
 			}
 			
-			if (MoveFileToTrash(f))
+			if (MoveFileToTrash(f, Status ? Status->AddressOf(i) : NULL))
 			{
-				printf("%s:%i - MoveFileToTrash failed\n", __FILE__, __LINE__);
 				Error = true;
-				break;
 			}
-			
 			CFRelease(f);
 		}
 		
 		#else
+		
 		// Posix
 
-		char p[300];
+		char p[MAX_PATH];
 		if (LgiGetSystemPath(LSP_TRASH, p, sizeof(p)))
 		{
 			for (int i=0; i<Files.Length(); i++)
 			{
 				char *f = strrchr(Files[i], DIR_CHAR);
 				LgiMakePath(p, sizeof(p), p, f?f+1:Files[i]);
-				if (!MoveFile(Files[i], p))
+				if (!Move(Files[i], p, Status ? Status->AddressOf(i) : NULL))
 				{
-					if (Status)
-					{
-						(*Status)[i] = errno;
-					}
-					
-					printf("%s:%i - MoveFile(%s,%s) failed.\n", __FILE__, __LINE__, Files[i], p);
+					LgiTrace("%s:%i - MoveFile(%s,%s) failed.\n", __FILE__, __LINE__, Files[i], p);
 					Error = true;
 				}
 			}
 		}
 		else
 		{
-			printf("%s:%i - LgiGetSystemPath(LSP_TRASH) failed.\n", __FILE__, __LINE__);
+			LgiTrace("%s:%i - LgiGetSystemPath(LSP_TRASH) failed.\n", __FILE__, __LINE__);
 		}
+		
 		#endif
 	}
 	else
@@ -935,7 +945,7 @@ bool GFileSystem::Delete(const char *FileName, bool ToTrash)
 	return false;
 }
 
-bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentFolders, int *ErrorCode)
+bool GFileSystem::CreateFolder(const char *PathName, bool CreateParentFolders, LError *ErrorCode)
 {
 	int r = mkdir(PathName, S_IRWXU | S_IXGRP | S_IXOTH);
 	if (r)
@@ -1005,10 +1015,12 @@ bool GFileSystem::GetCurrentFolder(char *PathName, int Length)
 	return getcwd(PathName, Length) != 0;
 }
 
-bool GFileSystem::Move(const char *OldName, const char *NewName)
+bool GFileSystem::Move(const char *OldName, const char *NewName, LError *Err)
 {
 	if (rename(OldName, NewName))
 	{
+		if (Err)
+			Err->Set(errno);
 		printf("%s:%i - rename failed, error: %s(%i)\n",
 			_FL,
 			GetErrorName(errno), errno);
@@ -1065,6 +1077,7 @@ class GDirectoryPriv
 {
 public:
 	char			BasePath[512];
+	char			*BaseEnd;
 	DIR				*Dir;
 	struct dirent	*De;
 	struct stat		Stat;
@@ -1076,6 +1089,7 @@ public:
 		De = NULL;
 		BasePath[0] = 0;
 		Pattern = NULL;
+		BaseEnd = NULL;
 	}
 	
 	~GDirectoryPriv()
@@ -1124,6 +1138,8 @@ int GDirectory::First(const char *Name, const char *Pattern)
 	if (Name)
 	{
 		strcpy_s(d->BasePath, sizeof(d->BasePath), Name);
+		d->BaseEnd = d->BasePath + strlen(d->BasePath);
+		
 		if (!Pattern || stricmp(Pattern, LGI_ALL_FILES) == 0)
 		{
 			struct stat S;
@@ -1203,7 +1219,16 @@ int GDirectory::Close()
 	return true;
 }
 
-bool GDirectory::Path(char *s, int BufLen)
+const char *GDirectory::FullPath()
+{
+	auto n = GetName();
+	if (!n)
+		return NULL;
+	strncpy(d->BaseEnd, n, sizeof(d->BasePath) - (d->BaseEnd - d->BasePath));
+	return d->BasePath;
+}
+
+bool GDirectory::Path(char *s, int BufLen) const
 {
 	if (!s)
 	{
@@ -1269,6 +1294,11 @@ long GDirectory::GetAttributes() const
 	return d->Stat.st_mode;
 }
 
+GString GDirectory::FileName() const
+{
+	return (d->De) ? d->De->d_name : 0;
+}
+
 char *GDirectory::GetName() const
 {
 	return (d->De) ? d->De->d_name : 0;
@@ -1294,6 +1324,11 @@ uint64 GDirectory::GetSize() const
 	return d->Stat.st_size;
 }
 
+int64 GDirectory::GetSizeOnDisk()
+{
+	return d->Stat.st_blocks * d->Stat.st_blksize;
+}
+
 /////////////////////////////////////////////////////////////////////////////////
 //////////////////////////// File ///////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
@@ -1317,9 +1352,11 @@ public:
 	}
 };
 
-GFile::GFile()
+GFile::GFile(const char *Path, int Mode)
 {
 	d = new GFilePrivate;
+	if (Path)
+		Open(Path, Mode);
 }
 
 GFile::~GFile()
@@ -1439,7 +1476,7 @@ ssize_t GFile::Read(void *Buffer, ssize_t Size, int Flags)
 			d->LastError = errno;
 			const char *Err = GetErrorName(errno);
 			int64 Pos = GetPos();
-			printf("%s:%i - GFile::Read(%p,%zi) err=%s, pos=" LGI_PrintfInt64 "\n",
+			printf("%s:%i - GFile::Read(%p,%zi) err=%s, pos=" LPrintfInt64 "\n",
 				_FL, Buffer, Size, Err, Pos);
 		}
 		#endif
@@ -1461,7 +1498,7 @@ ssize_t GFile::Write(const void *Buffer, ssize_t Size, int Flags)
 		{
 			int Err = errno;
 			int64 Pos = GetPos();
-			printf("Write error: %i, " LGI_PrintfInt64 "\n", Err, Pos);
+			printf("Write error: %i, " LPrintfInt64 "\n", Err, Pos);
 		}
 		#endif
 	}

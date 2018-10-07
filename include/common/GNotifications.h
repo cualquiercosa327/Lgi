@@ -41,6 +41,8 @@ enum GNotifyType
 	GNotifyItem_ContextMenu,
 	/// Blank space clicked
 	GNotifyContainer_Click,
+	/// Ctrl+F - find
+	GNotifyContainer_Find,
 
 	// Generic value changed
 	GNotifyValueChanged,

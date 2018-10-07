@@ -257,6 +257,7 @@ public:
 	GLibrary *SkinLib;
 	GHashTbl<char*,AppArray*> MimeToApp;
 	OsThread GuiThread;
+	OsThreadId GuiThreadId;
 	GSymLookup SymLookup;
 	GAutoString Mime;
 	GAutoString Name;
@@ -272,6 +273,7 @@ public:
 		Config = 0;
 		SkinLib = 0;
 		GuiThread = LgiGetCurrentThread();
+		GuiThreadId = GetCurrentThreadId();
 	}
 
 	~GAppPrivate()
@@ -691,9 +693,19 @@ GViewI *GApp::GetFocus()
 	return 0;
 }
 
-OsThread GApp::GetGuiThread()
+OsThread GApp::_GetGuiThread()
 {
 	return d->GuiThread;
+}
+
+OsThreadId GApp::GetGuiThreadId()
+{
+	return d->GuiThreadId;
+}
+
+bool GApp::InThread()
+{
+	return d->GuiThreadId == GetCurrentThreadId();
 }
 
 OsProcessId GApp::GetProcessId()

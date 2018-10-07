@@ -416,6 +416,18 @@ public:
 		}
 		return Status;
 	}
+
+	template<typename T>
+	bool ReceiveA(GAutoPtr<T> &Obj, GMessage *m)
+	{
+		return Obj.Reset((T*)m->A());
+	}
+
+	template<typename T>
+	bool ReceiveB(GAutoPtr<T> &Obj, GMessage *m)
+	{
+		return Obj.Reset((T*)m->B());
+	}
 };
 
 

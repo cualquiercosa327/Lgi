@@ -38,18 +38,18 @@ GLanguage LgiLanguageTable[] =
 {
 	{"Abkhazian",				"ab"},
 	{"Afar",					"aa"},
-	{"Afrikaans",				"af", DL(LANG_AFRIKAANS), 1},
+	{"Afrikaans",				"af", DL(LANG_AFRIKAANS), 1, "ISO-8859-1"},
 	{"Albanian",				"sq", DL(LANG_ALBANIAN), 2},
 	{"Amharic",					"am"},
-	{"Arabic",					"ar", DL(LANG_ARABIC), 3},
+	{"Arabic",					"ar", DL(LANG_ARABIC), 3, "ISO-8859-6"},
 	{"Armenian",				"hy"},
 	{"Assamese",				"as"},
 	{"Aymara",					"ay"},
 	{"Azerbaijani",				"az"},
 	
-	{"Belarusian",				"be", DL(LANG_BELARUSIAN), 5},
+	{"Belarusian",				"be", DL(LANG_BELARUSIAN), 5, "ISO-8859-5"},
 	{"Bashkir",					"ba"},
-	{"Basque",					"eu", DL(LANG_BASQUE), 4},
+	{"Basque",					"eu", DL(LANG_BASQUE), 4, "ISO-8859-1"},
 	{"Bengali",					"bn"},
 	{"Bhutani",					"dz"},
 	{"Bihari",					"bh"},
@@ -57,55 +57,55 @@ GLanguage LgiLanguageTable[] =
 	{"Breton",					"br"},
 	{"Bosnian",					"bs"},
 	{"Brazilian Portuguese",	"pt_br", 0, 66},
-	{"Bulgarian",				"bg", DL(LANG_BULGARIAN), 6},
+	{"Bulgarian",				"bg", DL(LANG_BULGARIAN), 6, "ISO-8859-5"},
 	{"Burmese",					"my"},
 	
 	{"Cambodian",				"km"},
-	{"Catalan",					"ca", DL(LANG_CATALAN), 7},
+	{"Catalan",					"ca", DL(LANG_CATALAN), 7, "ISO-8859-1"},
 	{"Chinese",					"zh", DL(LANG_CHINESE), 8},
 	{"Chinese Simplified",		"zh_cn"},
 	{"Chinese Traditional",		"zh_tw"},
 	{"Corsican",				"co"},
-	{"Croatian",				"hr", DL(LANG_CROATIAN), 9},
-	{"Czech",					"cs", DL(LANG_CZECH), 10},
+	{"Croatian",				"hr", DL(LANG_CROATIAN), 9, "ISO-8859-2"},
+	{"Czech",					"cs", DL(LANG_CZECH), 10, "ISO-8859-2"},
 	
-	{"Danish",					"da", DL(LANG_DANISH), 11},
-	{"Dutch",					"nl", DL(LANG_DUTCH), 12},
+	{"Danish",					"da", DL(LANG_DANISH), 11, "ISO-8859-1"},
+	{"Dutch",					"nl", DL(LANG_DUTCH), 12, "ISO-8859-1"},
 	
-	{"English",					"en", DL(LANG_ENGLISH), 13},
+	{"English",					"en", DL(LANG_ENGLISH), 13, "ISO-8859-1"},
 	{"Esperanto",				"eo"},
-	{"Estonian",				"et", DL(LANG_ESTONIAN), 14},
+	{"Estonian",				"et", DL(LANG_ESTONIAN), 14, "ISO-8859-4"},
 	
-	{"Faeroese",				"fo", DL(LANG_FAEROESE), 15},
+	{"Faeroese",				"fo", DL(LANG_FAEROESE), 15, "ISO-8859-1"},
 	{"Farsi",					"fa", DL(LANG_FARSI), 16},
 	{"Fiji",					"fj"},
-	{"Finnish",					"fi", DL(LANG_FINNISH), 17},
-	{"French",					"fr", DL(LANG_FRENCH), 18},
+	{"Finnish",					"fi", DL(LANG_FINNISH), 17, "ISO-8859-1"},
+	{"French",					"fr", DL(LANG_FRENCH), 18, "ISO-8859-1"},
 	{"Frisian",					"fy"},
 	
-	{"Galician",				"gl"},
+	{"Galician",				"gl", 0, 0, "ISO-8859-3"},
 	{"Gaelic",					"gd"},
 	{"Gaelic",					"gv"},
 	{"Georgian",				"ka"},
-	{"German",					"de", DL(LANG_GERMAN), 38},
-	{"Greek",					"el", DL(LANG_GREEK), 40},
+	{"German",					"de", DL(LANG_GERMAN), 38, "ISO-8859-1"},
+	{"Greek",					"el", DL(LANG_GREEK), 40, "ISO-8859-7"},
 	{"Greenlandic",				"kl"},
 	{"Guarani",					"gn"},
 	{"Gujarati",				"gu"},
 	
 	{"Hausa",					"ha"},
-	{"Hebrew",					"he", DL(LANG_HEBREW), 42},
+	{"Hebrew",					"he", DL(LANG_HEBREW), 42, "ISO-8859-8"},
 	{"Hindi",					"hi"},
-	{"Hungarian",				"hu", DL(LANG_HUNGARIAN), 44},
+	{"Hungarian",				"hu", DL(LANG_HUNGARIAN), 44, "ISO-8859-2"},
 	
-	{"Icelandic",				"is", DL(LANG_ICELANDIC), 45},
+	{"Icelandic",				"is", DL(LANG_ICELANDIC), 45, "ISO-8859-1"},
 	{"Indonesian",				"id", DL(LANG_INDONESIAN), 46},
 	{"Interlingua",				"ia"},
 	{"Interlingue",				"ie"},
 	{"Inuktitut",				"iu"},
 	{"Inupiak",					"ik"},
-	{"Irish",					"ga"},
-	{"Italian",					"it", DL(LANG_ITALIAN), 47},
+	{"Irish",					"ga", 0, 0, "ISO-8859-1"},
+	{"Italian",					"it", DL(LANG_ITALIAN), 47, "ISO-8859-1"},
 	
 	{"Japanese",				"ja", DL(LANG_JAPANESE), 48},
 	{"Javanese",				"jv"},
@@ -121,46 +121,47 @@ GLanguage LgiLanguageTable[] =
 	
 	{"Laothian",				"lo"},
 	{"Latin",					"la"},
-	{"Latvian",					"lv", DL(LANG_LATVIAN), 50},
+	{"Latvian",					"lv", DL(LANG_LATVIAN), 50, "ISO-8859-4"},
 	{"Limburgish",				"li"},
 	{"Lingala",					"ln"},
-	{"Lithuanian",				"lt", DL(LANG_LITHUANIAN), 51},
+	{"Lithuanian",				"lt", DL(LANG_LITHUANIAN), 51, "ISO-8859-4"},
 	{"Luganda",					"lg"},
 
-	{"Macedonian",				"mk"},
+	{"Macedonian",				"mk", 0, 0, "ISO-8859-5"},
 	{"Malagasy",				"mg"},
 	{"Malay",					"ms"},
 	{"Malayalam",				"ml"},
-	{"Maltese",					"mt"},
+	{"Maltese",					"mt", 0, 0, "ISO-8859-3"},
 	{"Maori",					"mi"},
 	{"Marathi",					"mr"},
 	{"Moldavian",				"mo"},
 	{"Mongolian",				"mn"},
+
 	{"Nauru",					"na"},
 	{"Nepali",					"ne"},
-	{"Norwegian",				"no", DL(LANG_NORWEGIAN), 53},
+	{"Norwegian",				"no", DL(LANG_NORWEGIAN), 53, "ISO-8859-1"},
 
 	{"Occitan",					"oc"},
 	{"Oriya",					"or"},
 	{"Oromo",					"om"},
 
 	{"Pashto",					"ps"},
-	{"Polish",					"pl", DL(LANG_POLISH), 54},
-	{"Portuguese",				"pt", DL(LANG_PORTUGUESE), 55},
+	{"Polish",					"pl", DL(LANG_POLISH), 54, "ISO-8859-2"},
+	{"Portuguese",				"pt", DL(LANG_PORTUGUESE), 55, "ISO-8859-1"},
 	{"Punjabi",					"pa"},
 
 	{"Quechua",					"qu"},
 
 	{"Rhaeto-Romance",			"rm"},
-	{"Romanian",				"ro", DL(LANG_ROMANIAN), 56},
+	{"Romanian",				"ro", DL(LANG_ROMANIAN), 56, "ISO-8859-2"},
 	// Rundi: same as Kirundi
 	{"Runyakitara",				"ry"},
-	{"Russian",					"ru", DL(LANG_RUSSIAN), 57},
+	{"Russian",					"ru", DL(LANG_RUSSIAN), 57, "ISO-8859-5"},
 
 	{"Samoan",					"sm"},
 	{"Sangro",					"sg"},
 	{"Sanskrit",				"sa"},
-	{"Serbian",					"sr", DL(LANG_SERBIAN), 58},
+	{"Serbian",					"sr", DL(LANG_SERBIAN), 58, "ISO-8859-5"},
 	{"Serbo-Croatian",			"sh"},
 	{"Sesotho",					"st"},
 	{"Setswana",				"tn"},
@@ -168,13 +169,13 @@ GLanguage LgiLanguageTable[] =
 	{"Sindhi",					"sd"},
 	{"Sinhalese",				"si"},
 	{"Siswati",					"ss"},
-	{"Slovak",					"sk", DL(LANG_SLOVAK), 59},
-	{"Slovenian",				"sl", DL(LANG_SLOVENIAN), 60},
+	{"Slovak",					"sk", DL(LANG_SLOVAK), 59, "ISO-8859-2"},
+	{"Slovenian",				"sl", DL(LANG_SLOVENIAN), 60, "ISO-8859-2"},
 	{"Somali",					"so"},
-	{"Spanish",					"es", DL(LANG_SPANISH), 61},
+	{"Spanish",					"es", DL(LANG_SPANISH), 61, "ISO-8859-1"},
 	{"Sundanese",				"su"},
 	{"Swahili",					"sw"},
-	{"Swedish",					"sv", DL(LANG_SWEDISH), 62},
+	{"Swedish",					"sv", DL(LANG_SWEDISH), 62, "ISO-8859-1"},
 
 	{"Tagalog",					"tl"},
 	{"Tajik",					"tg"},
@@ -186,12 +187,12 @@ GLanguage LgiLanguageTable[] =
 	{"Tigrinya",				"ti"},
 	{"Tonga",					"to"},
 	{"Tsonga",					"ts"},
-	{"Turkish",					"tr", DL(LANG_TURKISH), 64},
+	{"Turkish",					"tr", DL(LANG_TURKISH), 64, "ISO-8859-3"},
 	{"Turkmen",					"tk"},
 	{"Twi",						"tw"},
 
 	{"Uighur",					"ug"},
-	{"Ukrainian",				"uk"},
+	{"Ukrainian",				"uk", 0, 0, "ISO-8859-5"},
 	{"Urdu",					"ur"},
 	{"Uzbek",					"uz"},
 
@@ -1191,7 +1192,7 @@ bool ResFactory::Res_Read(ResObject *Obj, GXmlTag *Tag, ResReadCtx &Ctx)
 		return false;
 	}
 
-	return Impl->Res_Read(Tag, Ctx);
+	return Impl->Res_Read(Tag, Ctx) >= ResObjectImpl::SOk;
 }
 
 bool ResFactory::Res_Write(ResObject *Obj, GXmlTag *Tag)
@@ -1201,7 +1202,7 @@ bool ResFactory::Res_Write(ResObject *Obj, GXmlTag *Tag)
 		ResObjectImpl *Impl = Obj->GetObjectImpl(this);
 		if (Impl)
 		{
-			return Impl->Res_Write(Tag);
+			return Impl->Res_Write(Tag) >= ResObjectImpl::SOk;
 		}
 		else LgiAssert(0);
 	}

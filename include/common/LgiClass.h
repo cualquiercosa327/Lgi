@@ -296,4 +296,57 @@ public:
 	GAutoString Params;
 };
 
+template<typename T>
+void LSwap(T &a, T &b)
+{
+	T tmp = a;
+	a = b;
+	b = tmp;
+}
+
+template<typename RESULT, typename CHAR>
+RESULT LHash(const CHAR *v, ssize_t l, bool Case)
+{
+	RESULT h = 0;
+
+	if (Case)
+	{
+		// case sensitive
+		if (l > 0)
+		{
+			while (l--)
+				h = (h << 5) - h + *v++;
+		}
+		else
+		{
+			for (; *v; v ++)
+				h = (h << 5) - h + *v;
+		}
+	}
+	else
+	{
+		// case insensitive
+		CHAR c;
+		if (l > 0)
+		{
+			while (l--)
+			{
+				c = tolower(*v);
+				v++;
+				h = (h << 5) - h + c;
+			}
+		}
+		else
+		{
+			for (; *v; v++)
+			{
+				c = tolower(*v);
+				h = (h << 5) - h + c;
+			}
+		}
+	}
+
+	return h;
+}
+
 #endif

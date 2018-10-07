@@ -10,7 +10,6 @@
 #include <math.h>
 
 #include "Lgi.h"
-#include "GUtf8.h"
 #include "GToken.h"
 #include "GDisplayString.h"
 

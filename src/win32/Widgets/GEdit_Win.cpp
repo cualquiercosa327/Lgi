@@ -171,7 +171,7 @@ int GEdit::SysOnNotify(int Msg, int Code)
 void GEdit::Value(int64 i)
 {
 	char Str[32];
-	sprintf_s(Str, sizeof(Str), LGI_PrintfInt64, i);
+	sprintf_s(Str, sizeof(Str), LPrintfInt64, i);
 	Name(Str);
 }
 
@@ -251,7 +251,7 @@ GMessage::Result GEdit::OnEvent(GMessage *Msg)
 			if (Msg->a == VK_ESCAPE)
 				SendNotify(GNotify_EscapeKey);
 
-			if (tolower(Msg->a) == 'u')
+			if (tolower((int)Msg->a) == 'u')
 			{
 				if (GetKeyState(VK_CONTROL) & 0xFF00)
 				{
@@ -265,7 +265,7 @@ GMessage::Result GEdit::OnEvent(GMessage *Msg)
 						if (GetKeyState(VK_SHIFT) & 0xFF00)
 						{
 							// upper case selection
-							for (int i=Start; i<Start+End; i++)
+							for (DWORD i=Start; i<Start+End; i++)
 							{
 								n[i] = toupper(n[i]);
 							}
@@ -273,7 +273,7 @@ GMessage::Result GEdit::OnEvent(GMessage *Msg)
 						else
 						{
 							// lower case selection
-							for (int i=Start; i<Start+End; i++)
+							for (DWORD i=Start; i<Start+End; i++)
 							{
 								n[i] = tolower(n[i]);
 							}
@@ -306,7 +306,7 @@ GMessage::Result GEdit::OnEvent(GMessage *Msg)
 	}
 	#endif
 
-	int Status = GControl::OnEvent(Msg);
+	auto Status = GControl::OnEvent(Msg);
 
 	#if EDIT_PROCESSING
 	switch (MsgCode(Msg))
@@ -541,7 +541,7 @@ bool GEdit::SysEmptyText()
 		if (_View)
 		{
 			uint32 Style = GetStyle();
-			bool HasPass = Style & ES_PASSWORD;
+			bool HasPass = (Style & ES_PASSWORD) != 0;
 			if (HasPass)
 			{
 				SetWindowLong(_View, GWL_STYLE, Style);

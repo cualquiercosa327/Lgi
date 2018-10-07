@@ -232,6 +232,17 @@ bool GClipBoard::Binary(FormatType Format, uchar *Ptr, ssize_t Len, bool AutoEmp
 	return r;
 }
 
+::GString::Array GClipBoard::Files()
+{
+	::GString::Array a;
+	return a;
+}
+
+bool GClipBoard::Files(::GString::Array &a, bool AutoEmpty)
+{
+	return false;
+}
+
 struct ReceiveData
 {
 	GAutoPtr<uint8> *Ptr;

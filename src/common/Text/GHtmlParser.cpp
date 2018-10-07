@@ -302,7 +302,7 @@ char *GHtmlParser::ParsePropList(char *s, GHtmlElement *Obj, bool &Closed)
 
 			if (Name && Value && *Value)
 			{
-				#if defined(_DEBUG) && 0
+				#if defined(_DEBUG)
 				if (!_stricmp(Name, "debug"))
 				{
 					int asd=0;
@@ -316,19 +316,17 @@ char *GHtmlParser::ParsePropList(char *s, GHtmlElement *Obj, bool &Closed)
 
 		DeleteArray(Name);
 
-		if
-		(
-			!*s ||
-			(
-				*s != '>' &&
-				*s != '/' &&
-				!IsWhiteSpace(*s) &&
-				!IsAlpha(*s)
-			)
-		)
+		while (*s && IsWhiteSpace(*s))
+			s++;
+		if (!*s || *s == '<')
+			return s;
+		if (*s == '>' || *s == '/')
 			break;
+
 	}
 
+	if (*s == '/')
+		s++;
 	if (*s == '>')
 		s++;
 
@@ -728,6 +726,10 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 									View->GetEnv()->OnCompileScript(View, s, Lang.Str(), Type.Str());
 									*End = '<';
 								}
+								else
+								{
+									Elem->Txt.Reset(Utf8ToWide(s, End - s));
+								}
 
 								s = End;
 							}
@@ -908,7 +910,7 @@ char *GHtmlParser::ParseHtml(GHtmlElement *Elem, char *Doc, int Depth, bool InPr
 										}
 										default:
 										{
-											LgiTrace("%s:%i - Warning: '%s' is missing it's parent.\n", _FL, Elem->Tag.Get());
+											// LgiTrace("%s:%i - Warning: '%s' is missing it's parent.\n", _FL, Elem->Tag.Get());
 											break;
 										}
 									}

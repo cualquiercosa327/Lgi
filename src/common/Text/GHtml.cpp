@@ -133,7 +133,7 @@ namespace Html1
 class GHtmlPrivate
 {
 public:
-	GHashTbl<const char*, GTag*> Loading;
+	LHashTbl<ConstStrKey<char>, GTag*> Loading;
 	GHtmlStaticInst Inst;
 	bool CursorVis;
 	GRect CursorPos;
@@ -155,7 +155,7 @@ public:
 	GAutoWString FindText;
 	bool MatchCase;
 	
-	GHtmlPrivate() : Loading(0, false)
+	GHtmlPrivate()
 	{
 		IsLoaded = false;
 		StyleDirty = false;
@@ -597,8 +597,8 @@ public:
 		return *this;
 	}
 	
-	void FinishLine(bool Margin = false);
-	void EndBlock();
+	void FinishLine(GCss::LengthType Align, bool Margin = false);
+	void EndBlock(GCss::LengthType Align);
 	void Insert(GFlowRect *Tr);
 	GRect *LineBounds();
 
@@ -1209,11 +1209,11 @@ GCss::LengthType GTag::GetAlign(bool x)
 			if (IsTableCell(TagId) && Cell && Cell->XAlign)
 				l.Type = Cell->XAlign;
 			else
-				l = TextAlign();
+				l = t->TextAlign();
 		}
 		else
 		{
-			l = VerticalAlign();
+			l = t->VerticalAlign();
 		}
 		
 		if (l.Type != LenInherit)
@@ -1229,31 +1229,34 @@ GCss::LengthType GTag::GetAlign(bool x)
 }
 
 //////////////////////////////////////////////////////////////////////
-void GFlowRegion::EndBlock()
+void GFlowRegion::EndBlock(GCss::LengthType Align)
 {
 	if (cx > x1)
 	{
-		FinishLine();
+		FinishLine(Align);
 	}
 }
 
-void GFlowRegion::FinishLine(bool Margin)
+void GFlowRegion::FinishLine(GCss::LengthType Align, bool Margin)
 {
-	/*
-	GRect *b = LineBounds();
-	if (b)
+	if (Align != GCss::AlignLeft)
 	{
-		for (GFlowRect *Tr=Line.First(); Tr; Tr=Line.Next())
+		int Used = 0;
+		for (auto l : Line)
+			Used += l->X();
+		int Total = x2 - x1 + 1;
+		if (Used < Total)
 		{
-			GRect n = *Tr;
-			// int Base = b->y1 - n.y1;
-			int Oy = Tr->Tag->AbsY();
-			n.Offset(0, Oy);
-			Tr->Offset(0, b->y2 - n.y2); // - Base
-			// y2 = MAX(y2, Tr->y2);
+			int Offset = 0;
+			if (Align == GCss::AlignCenter)
+				Offset = (Total - Used) / 2;
+			else if (Align == GCss::AlignRight)
+				Offset = Total - Used;
+			if (Offset)
+				for (auto l : Line)
+					l->Offset(Offset, 0);
 		}
 	}
-	*/
 
 	if (y2 > y1)
 	{
@@ -2763,7 +2766,7 @@ void GTag::Restyle()
 	const char *s;
 	if (Get("style", s))
 		SetCssStyle(s);
-	
+
 	#if DEBUG_RESTYLE && defined(_DEBUG)
 	if (Debug)
 	{
@@ -4365,6 +4368,8 @@ void GHtmlTableLayout::LayoutTable(GFlowRegion *f, uint16 Depth)
 			GTag *t = Get(x, y);
 			if (t)
 			{
+				// This is needed for the metrics...
+				t->GetFont();
 				t->Cell->BorderPx = f->ResolveBorder(t, Font);
 				t->Cell->PaddingPx = f->ResolvePadding(t, Font);
 
@@ -4949,7 +4954,7 @@ void GArea::FlowText(GTag *Tag, GFlowRegion *Flow, GFont *Font, int LineHeight, 
 				else
 				{
 					// Not at the start of the margin
-					Flow->FinishLine();							
+					Flow->FinishLine(Align);
 					goto Restart;
 				}
 			}
@@ -5235,7 +5240,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 		case TAG_IFRAME:
 		{
 			GFlowRegion Temp = *Flow;
-			Flow->EndBlock();
+			Flow->EndBlock(GetAlign(true));
 			Flow->Indent(f, MarginLeft(), MarginTop(), MarginRight(), MarginBottom(), true);
 
 			// Flow children
@@ -5357,7 +5362,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 				if (Flow->cx > Flow->x1 &&
 					Size.x > Flow->X())
 				{
-					Flow->FinishLine();
+					Flow->FinishLine(GetAlign(true));
 				}
 
 				Pos.y = Flow->y1;
@@ -5388,7 +5393,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 		}
 		case TAG_HR:
 		{
-			Flow->FinishLine();
+			Flow->FinishLine(GetAlign(true));
 			
 			Pos.x = Flow->x1;
 			Pos.y = Flow->y1 + 7;
@@ -5398,13 +5403,13 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			Flow->cx ++;
 			Flow->y2 += 16;
 
-			Flow->FinishLine();
+			Flow->FinishLine(GetAlign(true));
 			return;
 			break;
 		}
 		case TAG_TABLE:
 		{
-			Flow->EndBlock();
+			Flow->EndBlock(GetAlign(true));
 			
 			GCss::Len left = GetCssLen(MarginLeft, Margin);
 			GCss::Len top = GetCssLen(MarginTop, Margin);
@@ -5432,7 +5437,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 		// This is a block level element, so end the previous non-block elements
 		if (Disp == DispBlock)
 		{		
-			Flow->EndBlock();
+			Flow->EndBlock(GetAlign(true));
 		}
 		
 		BlockFlowWidth = Flow->X();
@@ -5674,7 +5679,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 
 		if (Disp == DispBlock)
 		{
-			Flow->EndBlock();
+			Flow->EndBlock(GetAlign(true));
 
 			int OldFlowSize = Flow->x2 - Flow->x1 + 1;
 			Flow->Outdent(f, PaddingLeft(), PaddingTop(), PaddingRight(), PaddingBottom(), false);
@@ -5773,7 +5778,7 @@ void GTag::OnFlow(GFlowRegion *Flow, uint16 Depth)
 			case TAG_BR:
 			{
 				int OldFlowY2 = Flow->y2;
-				Flow->FinishLine();
+				Flow->FinishLine(GetAlign(true));
 				Size.y = Flow->y2 - OldFlowY2;
 				Flow->y2 = MAX(Flow->y2, Flow->y1 + Size.y - 1);
 				break;

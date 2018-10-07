@@ -12,10 +12,12 @@
 #include <fcntl.h>
 
 #include "GMem.h"
+#include "LgiClass.h"
 #include "GStream.h"
 #include "GArray.h"
 #include "GRefCount.h"
 #include "GStringClass.h"
+#include "LError.h"
 
 #ifdef WIN32
 
@@ -131,13 +133,16 @@ public:
 		char *s,
 		// The size of the output buffer in bytes
 		int BufSize
-	);
+	)	const;
+
+	virtual const char *FullPath();
 
 	/// Gets the current entries attributes (platform specific)
 	virtual long GetAttributes() const;
 	
 	/// Gets the name of the current entry. (Doesn't include the path).
 	virtual char *GetName() const;
+	virtual GString FileName() const;
 	
 	/// Gets the user id of the current entry. (Doesn't have any meaning on Win32).
 	virtual int GetUser
@@ -155,8 +160,11 @@ public:
 	/// Gets the entries last modified time.  You can convert this to an easy to read for using LDateTime.
 	virtual uint64 GetLastWriteTime() const;
 
-	/// Returns the size of the entry.
+	/// Returns the uncompressed size of the entry.
 	virtual uint64 GetSize() const;
+	
+	/// Returns the size of file on disk. This can be both larger and smaller than the logical size.
+	virtual int64 GetSizeOnDisk();
 
 	/// Returns true if the entry is a sub-directory.
 	virtual bool IsDir() const;
@@ -249,7 +257,7 @@ public:
 		/// The file to copy to. Any existing file there will be overwritten without warning.
 		char *To,
 		/// The error code or zero on success
-		int *Status = 0,
+		LError *Status = 0,
 		/// Optional callback when some data is copied.
 		CopyFileCallback Callback = 0,
 		/// A user defined token passed to the callback function
@@ -264,13 +272,13 @@ public:
 		/// The list of files to delete
 		GArray<const char*> &Files,
 		/// A list of status codes where 0 means success and non-zero is an error code, usually an OS error code. NULL if not required.
-		GArray<int> *Status = 0,
+		GArray<LError> *Status = NULL,
 		/// true if you want the files moved to the trash folder, false if you want them deleted directly
 		bool ToTrash = true
 	);
 	
 	/// Create a directory
-	bool CreateFolder(const char *PathName, bool CreateParentFoldersIfNeeded = false, int *Err = NULL);
+	bool CreateFolder(const char *PathName, bool CreateParentFoldersIfNeeded = false, LError *Err = NULL);
 	
 	/// Remove's a directory	
 	bool RemoveFolder
@@ -285,7 +293,7 @@ public:
 	bool GetCurrentFolder(char *PathName, int Length);
 
 	/// Moves a file to a new location. Only works on the same device.
-	bool Move(const char *OldName, const char *NewName);
+	bool Move(const char *OldName, const char *NewName, LError *Err = NULL);
 };
 
 #ifdef BEOS
@@ -333,7 +341,7 @@ protected:
 	ssize_t SwapWrite(uchar *Buf, ssize_t Size);
 
 public:
-	GFile();
+	GFile(const char *Path = NULL, int Mode = 0);
 	virtual ~GFile();
 
 	OsFile Handle();
@@ -607,6 +615,15 @@ public:
 		}
 		return s;
 	}
+
+	/// Sets the file to zero size.
+	/// Useful for this sort of thing:
+	/// GFile(MyPath, O_WRITE).Empty().Write(MyData);
+	GFile &Empty()
+	{
+		SetSize(0);
+		return *this;
+	}
 };
 
 // Functions
@@ -632,7 +649,6 @@ LgiFunc bool LgiMakePath(char *Str, int StrBufLen, const char *Dir, const char *
 LgiFunc char *LgiGetExtension(const char *File);
 LgiFunc bool LgiIsFileNameExecutable(const char *FileName);
 LgiFunc bool LgiIsFileExecutable(const char *FileName, GStreamI *f, int64 Start, int64 Len);
-LgiFunc const char *GetErrorName(int e);
 
 /// Get information about the disk that a file resides on.
 LgiFunc bool LgiGetDriveInfo(char *Path, uint64 *Free, uint64 *Size = 0, uint64 *Available = 0);

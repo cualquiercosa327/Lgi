@@ -4,7 +4,6 @@
 #include "Lgi.h"
 #include "GScripting.h"
 #include "GScriptingPriv.h"
-#include "GUtf8.h"
 #include "GToken.h"
 #include "GProcess.h"
 #include "LgiRes.h"

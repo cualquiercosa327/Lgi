@@ -12,6 +12,8 @@
 		3412BAC51A6256E60096412F /* icons.png in Resources */ = {isa = PBXBuildFile; fileRef = 3412BAC41A6256E60096412F /* icons.png */; };
 		3413EC04201891E700992012 /* levenshtein.c in Sources */ = {isa = PBXBuildFile; fileRef = 3413EC00201891E700992012 /* levenshtein.c */; };
 		3413EC05201891E700992012 /* MissingFiles.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3413EC03201891E700992012 /* MissingFiles.cpp */; };
+		34186D7A214DC41B00A44EB8 /* Lgi.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 349A24F61A5E3C5D00F4263E /* Lgi.framework */; };
+		34186D7C214DC45000A44EB8 /* PythonParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34186D7B214DC45000A44EB8 /* PythonParser.cpp */; };
 		341B9A4F1DEACA060011CE44 /* cmds-32px.png in Resources */ = {isa = PBXBuildFile; fileRef = 341B9A4E1DEACA060011CE44 /* cmds-32px.png */; };
 		341B9A521DEACA310011CE44 /* SimpleCppParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 341B9A501DEACA310011CE44 /* SimpleCppParser.cpp */; };
 		342D773A11FA48B6005BADBD /* GControlTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 342D773911FA48B6005BADBD /* GControlTree.cpp */; };
@@ -46,6 +48,7 @@
 		34D20B7B1CB2862E00730172 /* AddFtpFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D20B791CB2862E00730172 /* AddFtpFile.cpp */; };
 		34D20B7D1CB2864700730172 /* IdeCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D20B7C1CB2864700730172 /* IdeCommon.cpp */; };
 		34D20B801CB2866600730172 /* WebFldDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D20B7E1CB2866600730172 /* WebFldDlg.cpp */; };
+		34FF46C0215251E800CDE817 /* PythonParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34FF46BF215251E800CDE817 /* PythonParser.cpp */; };
 		8D0C4E8D0486CD37000505A6 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0867D6AAFE840B52C02AAC07 /* InfoPlist.strings */; };
 		8D0C4E8E0486CD37000505A6 /* main.nib in Resources */ = {isa = PBXBuildFile; fileRef = 02345980000FD03B11CA0E72 /* main.nib */; };
 		8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20286C33FDCF999611CA2CEA /* Carbon.framework */; };
@@ -90,9 +93,10 @@
 		3413EC01201891E700992012 /* levenshtein.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = levenshtein.h; path = ../Code/levenshtein.h; sourceTree = "<group>"; };
 		3413EC02201891E700992012 /* LgiIde.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LgiIde.h; path = ../Code/LgiIde.h; sourceTree = "<group>"; };
 		3413EC03201891E700992012 /* MissingFiles.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MissingFiles.cpp; path = ../Code/MissingFiles.cpp; sourceTree = "<group>"; };
+		34186D7B214DC45000A44EB8 /* PythonParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PythonParser.cpp; path = ../Code/PythonParser.cpp; sourceTree = "<group>"; };
 		341B9A4E1DEACA060011CE44 /* cmds-32px.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "cmds-32px.png"; path = "../Resources/cmds-32px.png"; sourceTree = "<group>"; };
 		341B9A501DEACA310011CE44 /* SimpleCppParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SimpleCppParser.cpp; path = ../Code/SimpleCppParser.cpp; sourceTree = "<group>"; };
-		341B9A511DEACA310011CE44 /* SimpleCppParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SimpleCppParser.h; path = ../Code/SimpleCppParser.h; sourceTree = "<group>"; };
+		341B9A511DEACA310011CE44 /* ParserCommon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ParserCommon.h; path = ../Code/ParserCommon.h; sourceTree = "<group>"; };
 		342D773911FA48B6005BADBD /* GControlTree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GControlTree.cpp; path = ../../src/common/Widgets/GControlTree.cpp; sourceTree = SOURCE_ROOT; };
 		342D774911FA4929005BADBD /* LgiMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LgiMain.cpp; path = ../../src/common/Lgi/LgiMain.cpp; sourceTree = SOURCE_ROOT; };
 		3451844320F044AD00640325 /* IHttp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IHttp.cpp; path = ../../src/common/INet/IHttp.cpp; sourceTree = "<group>"; };
@@ -128,7 +132,7 @@
 		349A252E1A5E434A00F4263E /* IFtp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IFtp.cpp; path = ../../src/common/INet/IFtp.cpp; sourceTree = "<group>"; };
 		349A25301A5E43F600F4263E /* Png.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Png.cpp; path = ../../src/common/Gdc2/Filters/Png.cpp; sourceTree = "<group>"; };
 		349A25321A5E440100F4263E /* cmds-16px.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "cmds-16px.png"; path = "../Resources/cmds-16px.png"; sourceTree = "<group>"; };
-		34BD359D20BE7F170001838A /* GExeCheck.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GExeCheck.cpp; path = ../../../branches/Scribe_v2.1/src/common/General/GExeCheck.cpp; sourceTree = "<group>"; };
+		34BD359D20BE7F170001838A /* GExeCheck.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GExeCheck.cpp; path = ../../src/common/General/GExeCheck.cpp; sourceTree = "<group>"; };
 		34D20B751CB2861600730172 /* ProjectNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ProjectNode.cpp; path = ../Code/ProjectNode.cpp; sourceTree = "<group>"; };
 		34D20B761CB2861600730172 /* ProjectNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ProjectNode.h; path = ../Code/ProjectNode.h; sourceTree = "<group>"; };
 		34D20B791CB2862E00730172 /* AddFtpFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AddFtpFile.cpp; path = ../Code/AddFtpFile.cpp; sourceTree = "<group>"; };
@@ -136,6 +140,8 @@
 		34D20B7C1CB2864700730172 /* IdeCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IdeCommon.cpp; path = ../Code/IdeCommon.cpp; sourceTree = "<group>"; };
 		34D20B7E1CB2866600730172 /* WebFldDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = WebFldDlg.cpp; path = ../Code/WebFldDlg.cpp; sourceTree = "<group>"; };
 		34D20B7F1CB2866600730172 /* WebFldDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WebFldDlg.h; path = ../Code/WebFldDlg.h; sourceTree = "<group>"; };
+		34FF46BE215251E800CDE817 /* ParserCommon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ParserCommon.h; path = ../Code/ParserCommon.h; sourceTree = "<group>"; };
+		34FF46BF215251E800CDE817 /* PythonParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PythonParser.cpp; path = ../Code/PythonParser.cpp; sourceTree = "<group>"; };
 		4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
 		4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
 		8D0C4E960486CD37000505A6 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -149,6 +155,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */,
+				34186D7A214DC41B00A44EB8 /* Lgi.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -177,13 +184,13 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				3408BBBE20A1C4AE00E76EA0 /* Doc */,
-				3413EC02201891E700992012 /* LgiIde.h */,
 				34D20B7C1CB2864700730172 /* IdeCommon.cpp */,
 				349A25081A5E3D1D00F4263E /* LgiIde.cpp */,
 				349A250A1A5E3D1D00F4263E /* LgiUtils.cpp */,
 				349A25041A5E3D1D00F4263E /* IdeDoc.h */,
+				3413EC02201891E700992012 /* LgiIde.h */,
 				349A25351A5E483B00F4263E /* Debugger */,
+				3408BBBE20A1C4AE00E76EA0 /* Doc */,
 				349A25361A5E485800F4263E /* Find */,
 				349A25341A5E482500F4263E /* Ftp */,
 				34B7EA6B0A64B4DE00657E69 /* Lgi */,
@@ -276,8 +283,10 @@
 		349A25361A5E485800F4263E /* Find */ = {
 			isa = PBXGroup;
 			children = (
+				34186D7B214DC45000A44EB8 /* PythonParser.cpp */,
+				34FF46BF215251E800CDE817 /* PythonParser.cpp */,
 				341B9A501DEACA310011CE44 /* SimpleCppParser.cpp */,
-				341B9A511DEACA310011CE44 /* SimpleCppParser.h */,
+				341B9A511DEACA310011CE44 /* ParserCommon.h */,
 				349A25011A5E3D1D00F4263E /* GHistory.cpp */,
 				349A25021A5E3D1D00F4263E /* GHistory.h */,
 				349A24F81A5E3D1D00F4263E /* FindInFiles.cpp */,
@@ -449,6 +458,7 @@
 				3451844420F044AD00640325 /* IHttp.cpp in Sources */,
 				3451845520F0472600640325 /* OpenSSLSocket.cpp in Sources */,
 				3408BBC520A1C4C200E76EA0 /* DocEditStyling.cpp in Sources */,
+				34186D7C214DC45000A44EB8 /* PythonParser.cpp in Sources */,
 				349A252D1A5E433A00F4263E /* GSubProcess.cpp in Sources */,
 				349A252F1A5E434A00F4263E /* IFtp.cpp in Sources */,
 				349A25311A5E43F600F4263E /* Png.cpp in Sources */,
@@ -483,7 +493,6 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = ../../src/mac/carbon/build/Debug;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -493,10 +502,6 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_LDFLAGS = (
-					"-framework",
-					Lgi,
-				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.memecode.lgiide;
 				PRODUCT_NAME = LgiIde;
 				SDKROOT = macosx;
@@ -512,7 +517,6 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = ../../src/mac/carbon/build/Release;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = LgiIde_Prefix.pch;
@@ -521,10 +525,6 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_LDFLAGS = (
-					"-framework",
-					Lgi,
-				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.memecode.lgiide;
 				PRODUCT_NAME = LgiIde;
 				SDKROOT = macosx;

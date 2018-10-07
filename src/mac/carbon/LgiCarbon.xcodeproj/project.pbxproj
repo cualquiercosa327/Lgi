@@ -63,7 +63,7 @@
 		344B736408D83E8300D49457 /* Lgi.h in Headers */ = {isa = PBXBuildFile; fileRef = 344B736308D83E8300D49457 /* Lgi.h */; };
 		344B736C08D83F1800D49457 /* GGeneral.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344B736B08D83F1800D49457 /* GGeneral.cpp */; };
 		344B737808D83F6C00D49457 /* LgiClasses.h in Headers */ = {isa = PBXBuildFile; fileRef = 344B737708D83F6C00D49457 /* LgiClasses.h */; };
-		344B737B08D8401600D49457 /* Lgi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344B737A08D8401600D49457 /* Lgi.cpp */; };
+		344B737B08D8401600D49457 /* LgiCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344B737A08D8401600D49457 /* LgiCommon.cpp */; };
 		344B738108D8406900D49457 /* GdcCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344B738008D8406900D49457 /* GdcCommon.cpp */; };
 		344B738708D840CF00D49457 /* GFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344B738608D840CF00D49457 /* GFile.cpp */; };
 		344B738A08D8410B00D49457 /* LgiMsg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 344B738908D8410B00D49457 /* LgiMsg.cpp */; };
@@ -99,7 +99,6 @@
 		345FF6C2201FF88A005E46DD /* GMenuCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 345FF6C1201FF88A005E46DD /* GMenuCommon.cpp */; };
 		34637EBA0F876EB1005A9B80 /* LDateTime.h in Headers */ = {isa = PBXBuildFile; fileRef = 34637EB90F876EB1005A9B80 /* LDateTime.h */; };
 		3465BDD908C5DEC100B4C217 /* GContainers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3465BDD808C5DEC100B4C217 /* GContainers.cpp */; };
-		34661C7913C7407000B4C2A7 /* GUtf8.h in Headers */ = {isa = PBXBuildFile; fileRef = 34661C7813C7407000B4C2A7 /* GUtf8.h */; };
 		346BF43B193AAD02000C2030 /* GBox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 346BF43A193AAD02000C2030 /* GBox.cpp */; };
 		347323B71F3ED6D3003CD554 /* LThreadEvent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 347323B61F3ED6D3003CD554 /* LThreadEvent.cpp */; };
 		3476333318E2D12300766FC4 /* GColour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3476333218E2D12300766FC4 /* GColour.cpp */; };
@@ -185,6 +184,7 @@
 		34ED97491BBF9D1900E2445B /* 64Bit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34ED97471BBF9D1900E2445B /* 64Bit.cpp */; };
 		34F2E65A0E1849D300E8DA6A /* GTree.h in Headers */ = {isa = PBXBuildFile; fileRef = 34F2E6590E1849D300E8DA6A /* GTree.h */; };
 		34F45B9E18C161E40040FD99 /* GPixelRops.h in Headers */ = {isa = PBXBuildFile; fileRef = 34F45B9D18C161E40040FD99 /* GPixelRops.h */; };
+		34F829722115DA0E003B73AE /* LHashTable.h in Headers */ = {isa = PBXBuildFile; fileRef = 34F829712115DA0E003B73AE /* LHashTable.h */; };
 		34F96DAA0DB9B82B009C64B8 /* GDragAndDrop.h in Headers */ = {isa = PBXBuildFile; fileRef = 34F96DA90DB9B82B009C64B8 /* GDragAndDrop.h */; };
 		34FB3A761B6C37FD00B32A56 /* GStringClass.h in Headers */ = {isa = PBXBuildFile; fileRef = 34FB3A751B6C37FD00B32A56 /* GStringClass.h */; };
 		34FB3A791B6C3A8800B32A56 /* GUnicode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34FB3A781B6C3A8800B32A56 /* GUnicode.cpp */; };
@@ -250,7 +250,7 @@
 		344B736308D83E8300D49457 /* Lgi.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Lgi.h; path = ../../../include/common/Lgi.h; sourceTree = "<group>"; };
 		344B736B08D83F1800D49457 /* GGeneral.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 30; name = GGeneral.cpp; path = Lgi/GGeneral.cpp; sourceTree = "<group>"; };
 		344B737708D83F6C00D49457 /* LgiClasses.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LgiClasses.h; path = ../../../include/common/LgiClasses.h; sourceTree = "<group>"; };
-		344B737A08D8401600D49457 /* Lgi.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Lgi.cpp; path = ../../common/Lgi/Lgi.cpp; sourceTree = "<group>"; };
+		344B737A08D8401600D49457 /* LgiCommon.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 30; name = LgiCommon.cpp; path = ../../common/Lgi/LgiCommon.cpp; sourceTree = "<group>"; };
 		344B738008D8406900D49457 /* GdcCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GdcCommon.cpp; path = ../../common/Gdc2/GdcCommon.cpp; sourceTree = "<group>"; };
 		344B738608D840CF00D49457 /* GFile.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GFile.cpp; path = General/GFile.cpp; sourceTree = "<group>"; };
 		344B738908D8410B00D49457 /* LgiMsg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = LgiMsg.cpp; path = ../../common/Lgi/LgiMsg.cpp; sourceTree = "<group>"; };
@@ -286,7 +286,6 @@
 		345FF6C1201FF88A005E46DD /* GMenuCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GMenuCommon.cpp; path = ../../common/Lgi/GMenuCommon.cpp; sourceTree = "<group>"; };
 		34637EB90F876EB1005A9B80 /* LDateTime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LDateTime.h; path = ../../../include/common/LDateTime.h; sourceTree = "<group>"; };
 		3465BDD808C5DEC100B4C217 /* GContainers.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GContainers.cpp; path = ../../common/General/GContainers.cpp; sourceTree = "<group>"; };
-		34661C7813C7407000B4C2A7 /* GUtf8.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GUtf8.h; path = ../../../include/common/GUtf8.h; sourceTree = "<group>"; };
 		346BF43A193AAD02000C2030 /* GBox.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GBox.cpp; path = ../../common/Widgets/GBox.cpp; sourceTree = "<group>"; };
 		347323B61F3ED6D3003CD554 /* LThreadEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LThreadEvent.cpp; path = ../../common/Lgi/LThreadEvent.cpp; sourceTree = "<group>"; };
 		3476333218E2D12300766FC4 /* GColour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GColour.cpp; path = ../../common/Gdc2/GColour.cpp; sourceTree = "<group>"; };
@@ -372,6 +371,7 @@
 		34ED97471BBF9D1900E2445B /* 64Bit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = 64Bit.cpp; path = ../../common/Gdc2/64Bit.cpp; sourceTree = "<group>"; };
 		34F2E6590E1849D300E8DA6A /* GTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GTree.h; path = ../../../include/common/GTree.h; sourceTree = "<group>"; };
 		34F45B9D18C161E40040FD99 /* GPixelRops.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GPixelRops.h; path = ../../../include/common/GPixelRops.h; sourceTree = "<group>"; };
+		34F829712115DA0E003B73AE /* LHashTable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LHashTable.h; path = ../../../include/common/LHashTable.h; sourceTree = "<group>"; };
 		34F96DA90DB9B82B009C64B8 /* GDragAndDrop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GDragAndDrop.h; path = ../../../include/common/GDragAndDrop.h; sourceTree = "<group>"; };
 		34FB3A751B6C37FD00B32A56 /* GStringClass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GStringClass.h; path = ../../../include/common/GStringClass.h; sourceTree = "<group>"; };
 		34FB3A771B6C389100B32A56 /* GUnicode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = GUnicode.h; path = ../../../include/common/GUnicode.h; sourceTree = "<group>"; };
@@ -604,7 +604,7 @@
 				344AF3DC08E04C75004ED88C /* GObject.cpp */,
 				3443CBFD0C16BA64008F7B02 /* GOptionsFile.cpp */,
 				34983C2208F548DF0054868C /* GTrayIcon.cpp */,
-				344B737A08D8401600D49457 /* Lgi.cpp */,
+				344B737A08D8401600D49457 /* LgiCommon.cpp */,
 				34983C2308F548DF0054868C /* LgiRand.cpp */,
 				3493304B0F60CE690092EAE8 /* GViewPriv.h */,
 				344D1B5208F4A52200228075 /* D'n'd */,
@@ -644,7 +644,6 @@
 				34FB3A771B6C389100B32A56 /* GUnicode.h */,
 				34FB3A751B6C37FD00B32A56 /* GStringClass.h */,
 				34FB3A781B6C3A8800B32A56 /* GUnicode.cpp */,
-				34661C7813C7407000B4C2A7 /* GUtf8.h */,
 				3413BBC11349EC6900AE15B0 /* GXmlTree.h */,
 				34B4A52F0C059A2100CDD0D1 /* GUtf8.cpp */,
 				34B9545C0939DB5A00477A2D /* GString.h */,
@@ -658,6 +657,7 @@
 		344B738408D840A800D49457 /* Memory */ = {
 			isa = PBXGroup;
 			children = (
+				34F829712115DA0E003B73AE /* LHashTable.h */,
 				34D4D55A1250AF98000DA1FD /* GHashTable.h */,
 				34ADC9E00F4CC395009C6B75 /* GAutoPtr.h */,
 				340BFC49096A9D4600A11AE6 /* GArray.h */,
@@ -940,12 +940,12 @@
 				3413BBC21349EC6900AE15B0 /* GXmlTree.h in Headers */,
 				34BC1E1F134DC748005451EE /* Res.h in Headers */,
 				34BA44471FE3BF150018D6AE /* LCancel.h in Headers */,
-				34661C7913C7407000B4C2A7 /* GUtf8.h in Headers */,
 				34B28AF2143FA6AF0023662F /* GPath.h in Headers */,
 				34A11A7E167534A500FCC5D7 /* LMutex.h in Headers */,
 				347CB600172A97D600AC3EA6 /* GTableLayout.h in Headers */,
 				34F45B9E18C161E40040FD99 /* GPixelRops.h in Headers */,
 				3433784B19178B09007A4DC5 /* GColourSpace.h in Headers */,
+				34F829722115DA0E003B73AE /* LHashTable.h in Headers */,
 				348BFBE1202C0F0E00B87DD7 /* LListItemCheckBox.h in Headers */,
 				341B7C491956D3AA00AAA225 /* GCheckBox.h in Headers */,
 				34101C041D3B64CE00818D24 /* GMessage.h in Headers */,
@@ -1034,7 +1034,7 @@
 				3446E32908D0E9D6005024EB /* 32Bit.cpp in Sources */,
 				3446E32B08D0E9E4005024EB /* Alpha.cpp in Sources */,
 				344B736C08D83F1800D49457 /* GGeneral.cpp in Sources */,
-				344B737B08D8401600D49457 /* Lgi.cpp in Sources */,
+				344B737B08D8401600D49457 /* LgiCommon.cpp in Sources */,
 				344B738108D8406900D49457 /* GdcCommon.cpp in Sources */,
 				344B738708D840CF00D49457 /* GFile.cpp in Sources */,
 				344B738A08D8410B00D49457 /* LgiMsg.cpp in Sources */,
@@ -1173,7 +1173,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.memecode.${PRODUCT_NAME:identifier}";
 				PRODUCT_NAME = Lgi;
-				SDKROOT = macosx10.11;
+				SDKROOT = macosx;
 				SYMROOT = build;
 				WRAPPER_EXTENSION = framework;
 			};
@@ -1205,7 +1205,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.memecode.${PRODUCT_NAME:identifier}";
 				PRODUCT_NAME = Lgi;
-				SDKROOT = macosx10.11;
+				SDKROOT = macosx;
 				SYMROOT = build;
 				WRAPPER_EXTENSION = framework;
 			};
@@ -1253,7 +1253,7 @@
 					"-DMAC",
 					"-DLGI_LIBRARY",
 				);
-				SDKROOT = macosx10.11;
+				SDKROOT = macosx;
 				STRIP_INSTALLED_PRODUCT = NO;
 				SYMROOT = ./build;
 				USER_HEADER_SEARCH_PATHS = "../../../include/common ../../../include/mac/carbon ../../../include/posix";
@@ -1301,7 +1301,7 @@
 					"-DMAC",
 					"-DLGI_LIBRARY",
 				);
-				SDKROOT = macosx10.11;
+				SDKROOT = macosx;
 				SYMROOT = ./build;
 				USER_HEADER_SEARCH_PATHS = "../../../include/common ../../../include/mac/carbon ../../../include/posix";
 				VALID_ARCHS = i386;

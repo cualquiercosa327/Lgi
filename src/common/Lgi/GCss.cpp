@@ -494,7 +494,7 @@ GAutoString GCss::ToString()
 							case TextDecorUnderline: s= "underline"; break;
 							case TextDecorOverline: s= "overline"; break;
 							case TextDecorLineThrough: s= "line-Through"; break;
-							case TextDecorBlink: s= "blink"; break;
+							case TextDecorSquiggle: s= "squiggle"; break;
 						}
 						break;
 					}
@@ -1033,7 +1033,7 @@ bool GCss::InheritResolve(PropMap &Contrib)
 										{
 											double Sz = FontSizeTable[Idx];
 											double NewSz = Sz * Cur->Value / 100;
-											Mine->Value = NewSz;
+											Mine->Value = (float) NewSz;
 											Mine->Type = LenEm;
 										}
 										else LgiAssert(0);										
@@ -1413,7 +1413,7 @@ bool GCss::Parse(const char *&s, ParsingStyle Type)
 						else if (ParseWord(s, "underline")) *w = TextDecorUnderline;
 						else if (ParseWord(s, "overline")) *w = TextDecorOverline;
 						else if (ParseWord(s, "line-through")) *w = TextDecorLineThrough;
-						else if (ParseWord(s, "blink")) *w = TextDecorBlink;
+						else if (ParseWord(s, "squiggle")) *w = TextDecorSquiggle;
 						break;
 					}
 					case PropWordWrap:
@@ -1966,7 +1966,7 @@ bool GCss::Len::Parse(const char *&s, PropType Prop, ParsingStyle ParseType)
 
 	else if (IsNumeric(s))
 	{
-		Value = atof(s);
+		Value = (float) atof(s);
 		while (IsNumeric(s)) s++;
 		SkipWhite(s);
 		if (*s == '%')
@@ -2875,7 +2875,7 @@ bool GCss::Store::Parse(const char *&c, int Depth)
 					s->Style = Style;
 					
 					ssize_t n = s->GetSimpleIndex();
-					if (n >= s->Parts.Length())
+					if (n >= (ssize_t) s->Parts.Length())
 					{
 						Error.Printf("ErrSimpleIndex %i>=%zi @ '%.80s'", n, s->Parts.Length(), c);
 						LgiAssert(!"Part index too high.");

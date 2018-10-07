@@ -16,7 +16,6 @@
 #include "GScrollBar.h"
 #include "GEdit.h"
 #include "GViewPriv.h"
-#include "GUtf8.h"
 #include "GCss.h"
 #include "GPopup.h"
 

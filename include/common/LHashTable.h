@@ -16,55 +16,10 @@
 #define LHASHTBL_MAX_SIZE	(64 << 10)
 #endif
 
-template<typename RESULT, typename CHAR>
-RESULT LHash(const CHAR *v, ssize_t l, bool Case)
-{
-	RESULT h = 0;
-
-	if (Case)
-	{
-		// case sensitive
-		if (l > 0)
-		{
-			while (l--)
-				h = (h << 5) - h + *v++;
-		}
-		else
-		{
-			for (; *v; v ++)
-				h = (h << 5) - h + *v;
-		}
-	}
-	else
-	{
-		// case insensitive
-		CHAR c;
-		if (l > 0)
-		{
-			while (l--)
-			{
-				c = tolower(*v);
-				v++;
-				h = (h << 5) - h + c;
-			}
-		}
-		else
-		{
-			for (; *v; v++)
-			{
-				c = tolower(*v);
-				h = (h << 5) - h + c;
-			}
-		}
-	}
-
-	return h;
-}
-
 #define HASH_TABLE_SHRINK_THRESHOLD			15
 #define HASH_TABLE_GROW_THRESHOLD			50
 
-template<typename T, T DefaultNull = -1>
+template<typename T, T DefaultNull = (T)-1>
 class IntKey
 {
 public:
@@ -139,8 +94,8 @@ class KeyPool
 protected:
 	struct Buf : public GArray<T>
 	{
-		int Used;
-		Buf(int Sz = 0) { this->Length(Sz); }
+		size_t Used;
+		Buf(size_t Sz = 0) { this->Length(Sz); }
 		size_t Free() { return this->Length() - Used; }
 	};
 
@@ -281,6 +236,8 @@ protected:
 	size_t Used;
 	size_t Size;
 	size_t MaxSize;
+	int Version;	// This changes every time 'Table' is resized.
+					// It's used to invalidate iterators.
 	Pair *Table;
 
 	int Percent()
@@ -348,12 +305,30 @@ public:
 		Size = size;
 		NullValue = nullvalue;
 		Used = 0;
+		Version = 0;
 		MaxSize = LHASHTBL_MAX_SIZE;
 		// LgiAssert(Size <= MaxSize);
 		
 		if ((Table = new Pair[Size]))
 		{
 			InitializeTable(Table, Size);
+		}
+	}
+
+	LHashTbl(const HashTable &init)
+	{
+		Size = init.Size;
+		NullValue = init.NullValue;
+		Used = 0;
+		Version = 0;
+		MaxSize = LHASHTBL_MAX_SIZE;
+		if ((Table = new Pair[Size]))
+		{
+			for (size_t i=0; i<Size; i++)
+			{
+				Table[i].key = this->NullKey;
+			}
+			*this = init;
 		}
 	}
 	
@@ -438,6 +413,7 @@ public:
 					}
 				}
 
+				Version++;
 				Status = true;
 			}
 			else
@@ -465,7 +441,7 @@ public:
 		if (!Status)
 		{
 			#ifndef LGI_STATIC
-			LgiStackTrace("%s:%i - this=%p Table=%p Used=%i Size=%i\n", _FL, this, Table, Used, Size);
+			LgiTrace("%s:%i - this=%p Table=%p Used=%i Size=%i\n", _FL, this, Table, Used, Size);
 			#endif
 			LgiAssert(0);
 		}		
@@ -540,7 +516,10 @@ public:
 	bool Delete
 	(
 		/// The key of the value to delete
-		Key k
+		Key k,
+		/// Turns off resizing, in case your iterating over the hash table,
+		/// where resizing would invalidate the iterators.
+		bool NoResize = false
 	)
 	{
 		ssize_t Index = -1;
@@ -580,7 +559,8 @@ public:
 			}
 
 			// Check for auto-shrink limit
-			if (Percent() < HASH_TABLE_SHRINK_THRESHOLD)
+			if (!NoResize &&
+				Percent() < HASH_TABLE_SHRINK_THRESHOLD)
 			{
 				SetSize(Size >> 1);
 			}
@@ -704,15 +684,29 @@ public:
 		Used = 0;
 	}
 
+	/// Swaps the objects
+	void Swap(LHashTbl<KeyTrait,Value> &h)
+	{
+		LSwap(this->NullKey, h.NullKey);
+		LSwap(NullValue, h.NullValue);
+		LSwap(Used, h.Used);
+		LSwap(Size, h.Size);
+		LSwap(MaxSize, h.MaxSize);
+		LSwap(Version, h.Version);
+		LSwap(Table, h.Table);
+	}
+
 	struct PairIterator
 	{
 		LHashTbl<KeyTrait,Value> *t;
 		ssize_t Idx;
+		int Version;
 
 	public:
 		PairIterator(LHashTbl<KeyTrait,Value> *tbl, ssize_t i)
 		{
 			t = tbl;
+			Version = t->Version;
 			Idx = i;
 			if (Idx < 0)
 				Next();
@@ -721,7 +715,7 @@ public:
 		bool operator !=(const PairIterator &it) const
 		{
 			bool Eq = t == it.t &&
-					Idx == it.Idx;
+				Idx == it.Idx;
 			return !Eq;
 		}
 
@@ -729,10 +723,20 @@ public:
 		{
 			if (t->IsOk())
 			{
-				while (++Idx < (ssize_t)t->Size)
+				if (Version != t->Version)
 				{
-					if (t->Table[Idx].key != t->NullKey)
-						break;
+					#ifndef LGI_UNIT_TESTS
+					LgiAssert(!"Iterator invalidated");
+					#endif
+					*this = t->end();
+				}
+				else
+				{
+					while (++Idx < (ssize_t)t->Size)
+					{
+						if (t->Table[Idx].key != t->NullKey)
+							break;
+					}
 				}
 			}
 
@@ -761,204 +765,6 @@ public:
 		return PairIterator(this, Size);
 	}
 };
-
-
-/*
-// Type specific implementations
-
-// char
-uint32 Hash(char *s) { return LHash<uint, uchar>((uchar*)s, 0, Case); }
-char *CopyKey(char *a) { return NewStr(a); }
-size_t SizeKey(char *a) { return strlen(a) + 1; }
-void FreeKey(char *&a)
-{
-	if (!Pool) { DeleteArray(a); }
-	else { a = NULL; }
-}
-bool CmpKey(char *a, char *b)
-{
-	return strcompare(a, b, Case) == 0;
-}
-
-// const char
-uint32 Hash(const char *s) { return LHash<uint, uchar>((uchar*)s, 0, Case); }
-char *CopyKey(const char *a) { return NewStr(a); }
-size_t SizeKey(const char *a) { return strlen(a) + 1; }
-void FreeKey(const char *&a)
-{
-	if (Pool) a = NULL;
-	else DeleteArray((char*&)a);
-}
-bool CmpKey(const char *a, const char *b)
-{
-	return strcompare(a, b, Case) == 0;
-}
-	
-// char16
-uint32 Hash(char16 *s) { return LHash<uint, char16>(s, 0, Case); }
-char16 *CopyKey(char16 *a) { return NewStrW(a); }
-size_t SizeKey(char16 *a) { return StrlenW(a) + 1; }
-void FreeKey(char16 *&a)
-{
-	if (Pool) a = NULL;
-	else DeleteArray(a);
-}
-bool CmpKey(char16 *a, char16 *b)
-{
-	if (Case)
-		return StrcmpW(a, b) == 0;
-	else
-		return StricmpW(a, b) == 0;
-}
-
-// const char16
-uint32 Hash(const char16 *s) { return LHash<uint, char16>((char16*)s, 0, Case); }
-const char16 *CopyKey(const char16 *a) { return NewStrW(a); }
-size_t SizeKey(const char16 *a) { return StrlenW(a) + 1; }
-void FreeKey(const char16 *&a)
-{
-	if (Pool) a = NULL;
-	else DeleteArray(a);
-}
-bool CmpKey(const char16 *a, const char16 *b)
-{
-	if (Case)
-		return StrcmpW(a, b) == 0;
-	else
-		return StricmpW(a, b) == 0;
-}
-
-// int
-uint32 Hash(int s) { return s; }
-int CopyKey(int a) { return a; }
-size_t SizeKey(int a) { return sizeof(a); }
-void FreeKey(int &a) { memcpy(&a, &NullKey, sizeof(a)); }
-bool CmpKey(int a, int b)
-{
-	return a == b;
-}
-
-// unsigned
-uint32 Hash(unsigned s) { return s; }
-int CopyKey(unsigned a) { return a; }
-size_t SizeKey(unsigned a) { return sizeof(a); }
-void FreeKey(unsigned &a) { memcpy(&a, &NullKey, sizeof(a)); }
-bool CmpKey(unsigned a, unsigned b)
-{
-	return a == b;
-}
-
-// int64
-uint32 Hash(int64 s) { return (uint32)s; }
-int64 CopyKey(int64 a) { return a; }
-size_t SizeKey(int64 a) { return sizeof(a); }
-void FreeKey(int64 &a) { memcpy(&a, &NullKey, sizeof(a)); }
-bool CmpKey(int64 a, int64 b)
-{
-	return a == b;
-}
-
-// uint64
-uint32 Hash(uint64 s) { return (uint32)s; }
-uint64 CopyKey(uint64 a) { return a; }
-size_t SizeKey(uint64 a) { return sizeof(a); }
-void FreeKey(uint64 &a) { memcpy(&a, &NullKey, sizeof(a)); }
-bool CmpKey(uint64 a, uint64 b)
-{
-	return a == b;
-}
-
-// void*
-uint32 Hash(void *s) { return (uint32)(((NativeInt)s)/31); }
-void *CopyKey(void *a) { return a; }
-size_t SizeKey(void *a) { return sizeof(a); }
-void FreeKey(void *&a) { memcpy(&a, &NullKey, sizeof(a)); }
-bool CmpKey(void *a, void *b)
-{
-	return a == b;
-}
-
-    template<typename T>
-    struct KeyPool
-    {
-	    uint32 Size;
-	    size_t Used;
-	    char *Mem;
-
-	    KeyPool()
-	    {
-		    Size = 64 << 10;
-		    Used = 0;
-		    Mem = new char[Size];
-	    }
-
-	    ~KeyPool() { DeleteArray(Mem); }
-        int New(int i) { return i; }        
-        int New(unsigned i) { return i; }        
-        int64 New(int64 i) { return i; }
-		uint64 New(uint64 i) { return i; }
-		void *New(void *i) { return i; }
-        
-	    char *New(char *s)
-	    {
-		    size_t Len = strlen(s) + 1;
-		    if (Used < Size - Len)
-		    {
-			    char *p = Mem + Used;
-			    strcpy_s(p, Len, s);
-			    Used += Len;
-			    return p;
-		    }
-		    return 0;
-	    }
-
-		char *New(const char *s)
-	    {
-		    size_t Len = strlen(s) + 1;
-		    if (Used < Size - Len)
-		    {
-			    char *p = Mem + Used;
-			    strcpy_s(p, Len, s);
-			    Used += Len;
-			    return p;
-		    }
-		    return 0;
-	    }
-		
-	    char16 *New(char16 *s)
-	    {
-		    size_t Len = (StrlenW(s) + 1) * sizeof(char16);
-		    if (Used < Size - Len)
-		    {
-			    char16 *p = (char16*) (Mem + Used);
-			    StrcpyW(p, s);
-			    Used += Len;
-			    return p;
-		    }
-		    return 0;
-	    }
-
-	    char16 *New(const char16 *s)
-	    {
-		    size_t Len = (StrlenW(s) + 1) * sizeof(char16);
-		    if (Used < Size - Len)
-		    {
-			    char16 *p = (char16*) (Mem + Used);
-			    StrcpyW(p, s);
-			    Used += Len;
-			    return p;
-		    }
-		    return 0;
-	    }
-    };
-
-	bool Pool;
-	
-	typedef GArray<KeyPool<Key>*> KeyPoolArr;
-	KeyPoolArr Pools;
-
-*/
-
 
 #endif
 

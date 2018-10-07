@@ -90,9 +90,6 @@ enum LgiMessages
 		M_SET_WINDOW_PLACEMENT,
 
 
-		// Log message back to GUI thread
-		M_LOG_TEXT,
-
 		// Set the visibility of the window
 		M_SET_VISIBLE,
 
@@ -174,7 +171,8 @@ enum LgiMessages
 	M_CHANGE,
 	M_DELETE,
 	M_TABLE_LAYOUT,
-	M_URL
+	M_URL,
+	M_LOG_TEXT,
 };
 
 class LgiClass GMessage

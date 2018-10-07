@@ -513,7 +513,7 @@ bool GColour::SetStr(const char *str)
 	else if (!Stricmp(Str.Get(), "hls"))
 	{
 		if (Comp.Length() == 3)
-			SetHLS(Comp[0].Int(), Comp[1].Int(), Comp[2].Int());
+			SetHLS((uint16) Comp[0].Int(), (uint8) Comp[1].Int(), (uint8) Comp[2].Int());
 		else
 			return false;
 	}
@@ -521,7 +521,7 @@ bool GColour::SetStr(const char *str)
 	{
 		if (Comp.Length() == 1)
 		{
-			index = Comp[0].Int();
+			index = (uint8) Comp[0].Int();
 			space = CsIndex8;
 		}
 		else return false;

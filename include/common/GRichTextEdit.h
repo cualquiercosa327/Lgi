@@ -229,6 +229,7 @@ public:
 
 	#if _DEBUG
 	void DumpNodes(GTree *Root);
+	void SelectNode(GString Param);
 	#endif
 };
 

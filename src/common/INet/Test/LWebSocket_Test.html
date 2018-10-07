@@ -1,0 +1,96 @@
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8"> 
+	<style>
+		td {
+			vertical-align: top;
+		}
+		red {
+			color: red;
+		}
+		orange {
+			color: orange;
+		}
+		green {
+			color: #0e0;
+		}
+	</style>
+	<script type="text/javascript">
+		var conn;
+
+		function disableBtns(e)
+		{
+			var btns = document.body.querySelectorAll('input[type="button"]');
+			btns.forEach(function(b)
+				{
+					b.disabled = e;
+				});
+		}
+		
+		function connect_ws()
+		{
+			disableBtns(true);
+			document.getElementById("msg").innerHTML = "Connecting...";
+			conn = new WebSocket("ws://localhost:8080");
+			conn.onopen = function()
+			{
+				document.getElementById("msg").innerHTML = "Connected.";
+				disableBtns(false);
+			}
+			
+			conn.onerror = function()
+			{
+				document.getElementById("msg").innerHTML = "Error connecting.";
+			}
+			
+			conn.onmessage = function(event)
+			{
+				var last = document.getElementById("last_msg");
+
+				last.innerHTML = event.data + "<br>\n" + last.innerHTML;
+
+				var log = document.getElementById("msg");
+				log.innerHTML += "\n" + event.data;
+				// var m = JSON.parse(event.data);
+			}
+		}
+		
+		function send_test(conn)
+		{
+			var log = document.getElementById('msg');
+			log.innerHTML = log.innerHTML + "\nSending test";
+			var m = {msg: "test_msg", param: "test_param" };
+			conn.send(JSON.stringify(m));
+		}
+
+	
+	</script>
+</head>
+<body onload="connect_ws()" style="font-family: sans-serif; font-size: 11pt;">
+	<h2>LWebSocket Test</h2>
+	
+	<table>
+		<tr>
+			<td>
+				<table>
+					<tr>
+						<td>Send test:
+						<td><input type="button" value="test" onclick="send_test(conn)"></input><br>
+					</tr>
+					<tr>
+						<td colspan=2>
+							<hr>
+						</td>
+					</tr>
+					<tr>
+						<td>Log:
+						<td><pre style='margin-bottom: 1em;' id="msg">No message</pre>
+					</tr>
+				</table>
+			</td>
+			<td style="padding-left: 2em;">
+				<pre id="last_msg"></pre>
+			</td>	
+	</table>
+</body>
+</html>

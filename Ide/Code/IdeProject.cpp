@@ -27,7 +27,7 @@
 
 extern const char *Untitled;
 const char SourcePatterns[] = "*.c;*.h;*.cpp;*.cc;*.java;*.d;*.php;*.html;*.css";
-const char *AddFilesProgress::DefaultExt = "c,cpp,cc,cxx,h,hpp,hxx,html,css,json,js,jsx,txt,png,jpg,jpeg,rc,xml,mk,paths,makefile";
+const char *AddFilesProgress::DefaultExt = "c,cpp,cc,cxx,h,hpp,hxx,html,css,json,js,jsx,txt,png,jpg,jpeg,rc,xml,mk,paths,makefile,py";
 
 #define USE_OPEN_PROGRESS			1
 
@@ -130,7 +130,7 @@ class BuildThread : public LThread, public GStream
 {
 	IdeProject *Proj;
 	GString Makefile;
-	bool Clean, Release;
+	bool Clean, Release, All;
 	int WordSize;
 	GAutoPtr<GSubProcess> SubProc;
 	GString::Array BuildConfigs;
@@ -159,7 +159,7 @@ class BuildThread : public LThread, public GStream
 		Arch;
 
 public:
-	BuildThread(IdeProject *proj, char *makefile, bool clean, bool Release, int wordsize);
+	BuildThread(IdeProject *proj, char *makefile, bool clean, bool release, bool all, int wordsize);
 	~BuildThread();
 	
 	ssize_t Write(const void *Buffer, ssize_t Size, int Flags = 0) override;
@@ -350,7 +350,7 @@ public:
 			if (Exe)
 			{
 				if (LgiIsRelativePath(Exe))
-					m.Print("Target = %s\n", Exe);
+					m.Print("Target = %s\n", Exe.Get());
 				else
 				{
 					GAutoString Base = Proj->GetBasePath();
@@ -798,8 +798,15 @@ public:
 								"	-mkdir -p $(BuildDir) 2> /dev/null\n"
 								"\n");
 							
-						m.Print("# Clean out targets\n"
+						m.Print("# Clean just this target\n"
 								"clean :\n"
+								"	rm -f $(BuildDir)/*.o $(Target)%s\n"
+								"	@echo Cleaned $(BuildDir)\n"
+								"\n",
+								LGI_EXECUTABLE_EXT);
+						
+						m.Print("# Clean all targets\n"
+								"cleanall :\n"
 								"	rm -f $(BuildDir)/*.o $(Target)%s\n"
 								"	@echo Cleaned $(BuildDir)\n",
 								LGI_EXECUTABLE_EXT);
@@ -1079,7 +1086,10 @@ public:
 		Log->Print("...Done: '%s'\n", MakeFile.Get());
 
 		if (BuildAfterwards)
-			Proj->GetApp()->PostEvent(M_START_BUILD);
+		{
+			if (!Proj->GetApp()->PostEvent(M_START_BUILD))
+				printf("%s:%i - PostEvent(M_START_BUILD) failed.\n", _FL);
+		}
 
 		return true;
 	}
@@ -1177,12 +1187,13 @@ bool ReadVsProjFile(GString File, GString &Ver, GString::Array &Configs)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-BuildThread::BuildThread(IdeProject *proj, char *makefile, bool clean, bool release, int wordsize) : LThread("BuildThread")
+BuildThread::BuildThread(IdeProject *proj, char *makefile, bool clean, bool release, bool all, int wordsize) : LThread("BuildThread")
 {
 	Proj = proj;
 	Makefile = makefile;
 	Clean = clean;
 	Release = release;
+	All = all;
 	WordSize = wordsize;
 	Arch = DefaultArch;
 	Compiler = DefaultCompiler;
@@ -1691,7 +1702,16 @@ int BuildThread::Main()
 			}
 
 			if (Clean)
-				TmpArgs += " clean";
+            {
+				if (All)
+                {
+					TmpArgs += " cleanall";
+                }
+				else
+                {
+					TmpArgs += " clean";
+                }
+            }
 			if (Release)
 				TmpArgs += " Build=Release";
 		}
@@ -1967,14 +1987,14 @@ GAutoString IdeProject::GetMakefile()
 	return Path;
 }
 
-void IdeProject::Clean(bool Release)
+void IdeProject::Clean(bool All, bool Release)
 {
 	if (!d->Thread &&
 		d->Settings.GetStr(ProjMakefile))
 	{
 		GAutoString m = GetMakefile();
 		if (m)
-			d->Thread.Reset(new BuildThread(this, m, true, Release, sizeof(ssize_t)*8));
+			d->Thread.Reset(new BuildThread(this, m, true, Release, All, sizeof(ssize_t)*8));
 	}
 }
 
@@ -2202,7 +2222,7 @@ bool IdeProject::FindDuplicateSymbols()
 	CollectAllSubProjects(Proj);
 	Proj.Insert(this);
 
-	int Lines = 0, LinesIn = 0;
+	int Lines = 0;
 	
 	LHashTbl<StrKey<char,false>,int64> Map(200000);
 	int Found = 0;
@@ -2237,7 +2257,7 @@ bool IdeProject::FindDuplicateSymbols()
 							if (Ours != Theirs)
 							{
 								if (Found++ < 100)
-									Log->Print("    %s (" LGI_PrintfInt64 " -> " LGI_PrintfInt64 ")\n",
+									Log->Print("    %s (" LPrintfInt64 " -> " LPrintfInt64 ")\n",
 										p.Last().Get(),
 										Ours, Theirs);
 							}
@@ -2308,6 +2328,7 @@ void IdeProject::Build(bool All, bool Release)
 				m,
 				false,
 				Release,
+				All,
 				sizeof(size_t)*8
 			)
 		);
@@ -2554,11 +2575,10 @@ ProjectStatus IdeProject::OpenFile(char *FileName)
 		return OpenError;
 	}
 
-	int64 Nodes = r.CountTags();
-
 	Prof.Add("Progress Setup");
 
 	#if DEBUG_OPEN_PROGRESS
+	int64 Nodes = r.CountTags();
 	GProgressDlg Prog(d->App, 1000);
 	Prog.SetDescription("Loading project...");
 	Prog.SetLimits(0, Nodes);
@@ -2780,16 +2800,19 @@ void IdeProject::OnMouseClick(GMouse &m)
 	if (m.IsContextMenu())
 	{
 		GSubMenu Sub;
-		Sub.AppendItem("New Folder", IDM_NEW_FOLDER, true);
-		Sub.AppendItem("New Web Folder", IDM_WEB_FOLDER, true);
+		Sub.AppendItem("New Folder", IDM_NEW_FOLDER);
+		Sub.AppendItem("New Web Folder", IDM_WEB_FOLDER);
 		Sub.AppendSeparator();
-		Sub.AppendItem("Build", IDM_BUILD_PROJECT, true);
-		Sub.AppendItem("Clean", IDM_CLEAN_PROJECT, true);
+		Sub.AppendItem("Build", IDM_BUILD);
+		Sub.AppendItem("Clean Project", IDM_CLEAN_PROJECT);
+		Sub.AppendItem("Clean All", IDM_CLEAN_ALL);
+		Sub.AppendItem("Rebuild Project", IDM_REBUILD_PROJECT);
+		Sub.AppendItem("Rebuild All", IDM_REBUILD_ALL);
 		Sub.AppendSeparator();
-		Sub.AppendItem("Sort Children", IDM_SORT_CHILDREN, true);
+		Sub.AppendItem("Sort Children", IDM_SORT_CHILDREN);
 		Sub.AppendSeparator();
 		Sub.AppendItem("Settings", IDM_SETTINGS, true);
-		Sub.AppendItem("Insert Dependency", IDM_INSERT_DEP, true);
+		Sub.AppendItem("Insert Dependency", IDM_INSERT_DEP);
 
 		m.ToScreen();
 		GdcPt2 c = _ScrollPos();
@@ -2823,7 +2846,7 @@ void IdeProject::OnMouseClick(GMouse &m)
 				}
 				break;
 			}
-			case IDM_BUILD_PROJECT:
+			case IDM_BUILD:
 			{
 				StopBuild();
 				Build(true, d->App->IsReleaseMode());
@@ -2831,7 +2854,26 @@ void IdeProject::OnMouseClick(GMouse &m)
 			}
 			case IDM_CLEAN_PROJECT:
 			{
-				Clean(d->App->IsReleaseMode());
+				Clean(false, d->App->IsReleaseMode());
+				break;
+			}
+			case IDM_CLEAN_ALL:
+			{
+				Clean(true, d->App->IsReleaseMode());
+				break;
+			}
+			case IDM_REBUILD_PROJECT:
+			{
+				StopBuild();
+				Clean(false, d->App->IsReleaseMode());
+				Build(false, d->App->IsReleaseMode());
+				break;
+			}
+			case IDM_REBUILD_ALL:
+			{
+				StopBuild();
+				Clean(true, d->App->IsReleaseMode());
+				Build(true, d->App->IsReleaseMode());
 				break;
 			}
 			case IDM_SORT_CHILDREN:
@@ -3100,10 +3142,11 @@ bool IdeProject::BuildIncludePaths(GArray<GString> &Paths, bool Recurse, bool In
 		for (unsigned i=0; i<In.Length(); i++)
 		{
 			GString p;
-			if (DIR_CHAR == '\\')
-				p = In[i].Replace("/", "\\").Strip();
-			else
-				p = In[i].Replace("\\", "/").Strip();
+			#if DIR_CHAR == '\\'
+			p = In[i].Replace("/", "\\").Strip();
+			#else
+			p = In[i].Replace("\\", "/").Strip();
+			#endif
 
 			char *Path = p;
 			if (*Path == '`')

@@ -48,7 +48,7 @@ bool GLibrary::Load(const char *File, bool Quiet)
 		if (FileName)
 		{
 			memset(FileName, 0, Len);
-			strcpy(FileName, f); // FileName is always longer then 'f'
+			strcpy_s(FileName, Len, f); // FileName is always longer then 'f'
 			
 			#if defined WIN32
 

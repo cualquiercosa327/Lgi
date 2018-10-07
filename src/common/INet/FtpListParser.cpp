@@ -1,9 +1,9 @@
 // From https://cr.yp.to/ftpparse/ftpparse.c
 #include <time.h>
 
-static long totai(long year,long month,long mday)
+static time_t totai(time_t year,time_t month,time_t mday)
 {
-	long result;
+	time_t result;
 	if (month >= 2) month -= 2;
 	else { month += 10; --year; }
 	result = (mday - 1) * 10 + 5 + 306 * month;
@@ -23,9 +23,9 @@ static long totai(long year,long month,long mday)
 
 static int flagneedbase = 1;
 static time_t base; /* time() value on this OS at the beginning of 1970 TAI */
-static long now; /* current time */
+static time_t now; /* current time */
 static int flagneedcurrentyear = 1;
-static long currentyear; /* approximation to current year */
+static time_t currentyear; /* approximation to current year */
 
 static void initbase(void)
 {
@@ -33,7 +33,12 @@ static void initbase(void)
 	if (!flagneedbase) return;
 
 	base = 0;
+	#ifdef _MSC_VER
+	struct tm t_val;
+	auto err = gmtime_s(t = &t_val, &base);
+	#else
 	t = gmtime(&base);
+	#endif
 	base = -(totai(t->tm_year + 1900,t->tm_mon,t->tm_mday) + t->tm_hour * 3600 + t->tm_min * 60 + t->tm_sec);
 	/* assumes the right time_t, counting seconds. */
 	/* base may be slightly off if time_t counts non-leap seconds. */
@@ -42,11 +47,11 @@ static void initbase(void)
 
 static void initnow(void)
 {
-	long day;
-	long year;
+	time_t day;
+	time_t year;
 
 	initbase();
-	now = time((time_t *) 0) - base;
+	now = time(NULL) - base;
 
 	if (flagneedcurrentyear) {
 		day = now / 86400;
@@ -75,10 +80,10 @@ static void initnow(void)
 /* So we have to guess the year. */
 /* Apparently NetWare uses ``twelve months'' instead of ``six months''; ugh. */
 /* Some versions of ls also fail to show the year for future dates. */
-static long guesstai(long month,long mday)
+static time_t guesstai(long month,long mday)
 {
-	long year;
-	long t;
+	time_t year;
+	time_t t;
 
 	initnow();
 

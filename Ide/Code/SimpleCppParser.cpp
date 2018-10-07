@@ -34,7 +34,7 @@ Known bugs:
 
 */
 #include "Lgi.h"
-#include "SimpleCppParser.h"
+#include "ParserCommon.h"
 
 #if 0
 // #define DEBUG_FILE		"\\ape-apcp.c"
@@ -156,7 +156,7 @@ bool SeekPtr(char16 *&s, char16 *end, int &Line)
 	return true;
 }
 
-bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int LimitTo, bool Debug)
+bool BuildCppDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int LimitTo, bool Debug)
 {
 	if (!Cpp)
 		return false;
@@ -263,7 +263,7 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 				char16 *Eol = Strchr(s, '\n');
 				if (!Eol) Eol = s + Strlen(s);
 
-				bool IsIf = false, IsElse = false, IsElseIf = false;
+				// bool IsIf = false, IsElse = false, IsElseIf = false;
 				if
 				(
 					((End - s) == 2 && !Strncmp(L"if", s, End - s))
@@ -320,8 +320,6 @@ bool BuildDefnList(char *FileName, char16 *Cpp, GArray<DefnInfo> &Defns, int Lim
 						LgiTrace("%s:%i - ConditionalDepth--=%i Line=%i\n%.*S\n", _FL, ConditionalDepth, Line+1, Eol - s + 1, s - 1);
 				}
 
-				int asd=0;
-				
 				while (*s)
 				{
 					if (*s == '\n')

@@ -184,6 +184,14 @@ bool GContainers::Run()
 		);
 
 		StrLst.Delete("Tyertw");
+
+		// Compact test
+		LUnrolledList<int,16> Comp;
+		for (int i=0; i<20; i++)
+			Comp.Add(i+1);
+		for (int i=0; i<8; i++)
+			Comp.DeleteAt(8);
+		Comp.Compact();
 	}
 
 	{
@@ -229,6 +237,25 @@ bool GContainers::Run()
 		{
 			printf("PoolMap: %s -> %i\n", i.key, i.value);
 		}
+
+		// Check iterator invalidation
+		LHashTbl<IntKey<int>,int> ItMap(4);
+		ItMap.Add(23, 34);
+		ItMap.Add(24, 56);
+		int n = 0;
+		for (auto it = ItMap.begin(); it != ItMap.end(); it++)
+		{
+			ItMap.Add(35, 567);
+			n++;
+		}
+		if (n != 1)
+			return FAIL(_FL, "Iterator didn't get invalidated");
+		
+		// Check swapping works
+		LHashTbl<IntKey<int>,int> SwapTest;
+		SwapTest.Swap(ItMap);
+		if (SwapTest.GetSize() != 8)
+			return FAIL(_FL, "Swap failed.");
 	}
 
 	return true;

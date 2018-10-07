@@ -345,7 +345,7 @@ struct GGraphPriv
 				}
 				case GV_INT64:
 				{
-					sprintf(s, LGI_PrintfInt64, v.CastInt64());
+					sprintf(s, LPrintfInt64, v.CastInt64());
 					break;
 				}
 				case GV_DOUBLE:
@@ -558,7 +558,7 @@ void GGraph::OnMouseClick(GMouse &m)
                             GraphAv &g = d->Ave[b];
                             int64 x = d->MinX.CastInt64() + (((b * d->BucketSize) + (d->BucketSize >> 1)) / XRange);
                             int64 y = (g.Count) ? g.Sum / g.Count : 0;
-                            o.Print(LGI_PrintfInt64 "," LGI_PrintfInt64 "\n", x, y);
+                            o.Print(LPrintfInt64 "," LPrintfInt64 "\n", x, y);
                         }
                         break;
                     }
@@ -570,7 +570,7 @@ void GGraph::OnMouseClick(GMouse &m)
                             GraphAv &g = d->Ave[b];
                             double x = d->MinX.CastDouble() + ( ((double)b+0.5) * XRange / d->BucketSize);
                             int64 y = (g.Count) ? g.Sum / g.Count : 0;
-                            o.Print("%f," LGI_PrintfInt64 "\n", x, y);
+                            o.Print("%f," LPrintfInt64 "\n", x, y);
                         }
                         break;
                     }

@@ -333,8 +333,8 @@ void GCheckBox::OnPaint(GSurface *pDC)
 
 		GRect t = r;
 		t.x1 = d->ValuePos.x2 + 1;
-		GColour cFore(LC_TEXT, 24);
-		GColour cBack(LC_MED, 24);
+		// GColour cFore = StyleColour(GCss::PropColor, LC_TEXT);
+		GColour cBack = StyleColour(GCss::PropBackgroundColor, GColour(LC_MED, 24));
 
 		if (d->Lock(_FL))
 		{
@@ -347,15 +347,11 @@ void GCheckBox::OnPaint(GSurface *pDC)
 
 		#if defined MAC && !defined COCOA && !defined(LGI_SDL)
 
-			GColour Background(LC_MED, 24);
-			if (GetCss())
+			if (!cBack.IsTransparent())
 			{
-				GCss::ColorDef Bk = GetCss()->BackgroundColor();
-				if (Bk.Type == GCss::ColorRgb)
-					Background.Set(Bk.Rgb32, 32);
+				pDC->Colour(cBack);
+				pDC->Rectangle(d->ValuePos.x1, d->ValuePos.y1, d->ValuePos.x2, Y()-1);
 			}
-			pDC->Colour(Background);
-			pDC->Rectangle(&d->ValuePos);
 		
 			GRect c = GetClient();
 			#if 0

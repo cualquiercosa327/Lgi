@@ -310,8 +310,13 @@ $(Target) : ../$(BuildDir)/liblgi$(Tag).so outputfolder $(Depends)
 outputfolder :
 	-mkdir -p $(BuildDir) 2> /dev/null
 
-# Clean out targets
+# Clean just this target
 clean :
+	rm -f $(BuildDir)/*.o $(Target)
+	@echo Cleaned $(BuildDir)
+
+# Clean all targets
+cleanall :
 	rm -f $(BuildDir)/*.o $(Target)
 	@echo Cleaned $(BuildDir)
 	+make -C "../" -f "Makefile.linux" clean

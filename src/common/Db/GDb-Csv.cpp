@@ -497,7 +497,7 @@ void SvRecordset::Write()
 	if (FileName && f.Open(FileName, O_WRITE))
 	{
 		char s[256];
-		int NewLine = strlen(EOL_SEQUENCE);
+		auto NewLine = strlen(EOL_SEQUENCE);
 		f.SetSize(0);
 
 		// Headers

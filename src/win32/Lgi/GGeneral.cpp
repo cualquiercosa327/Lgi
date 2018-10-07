@@ -59,7 +59,7 @@ GString LgiCurrentUserName()
 
 bool LgiGetMimeTypeExtensions(const char *Mime, GArray<GString> &Ext)
 {
-	int Start = Ext.Length();
+	auto Start = Ext.Length();
 	char *e;
 
 	GRegKey t(false, "HKEY_LOCAL_MACHINE\\SOFTWARE\\Classes\\MIME\\Database\\Content Type\\%s", Mime);
@@ -243,7 +243,7 @@ bool _GetApps_Add(GArray<GAppInfo*> &Apps, char *In)
 					}
 					if (AllCaps)
 					{
-						strlwr(a->Name + 1);
+						Strlwr(a->Name + 1);
 					}
 				}
 			}
@@ -407,7 +407,7 @@ bool LgiGetAppsForMimeType(const char *Mime, GArray<GAppInfo*> &Apps, int Limit)
 							if (Part)
 							{
 								char AppPath[256];
-								snprintf(AppPath, sizeof(AppPath), "\"%s\"", Part);
+								_snprintf_s(AppPath, sizeof(AppPath), "\"%s\"", Part);
 								Status = _GetApps_Add(Apps, AppPath);
 
 								DeleteArray(Part);
@@ -459,7 +459,7 @@ bool LgiPlaySound(const char *FileName, int Flags)
 				Flags = 0;
 			}
 
-			Status = psndPlaySound(FileName, Flags);
+			Status = psndPlaySound(FileName, Flags) != 0;
 		}
 
 		FreeLibrary(hDll);
@@ -519,7 +519,7 @@ GAutoString LgiErrorCodeToString(uint32 ErrorCode)
 										0,
 										NULL))
     {
-        DWORD dwBytesWritten;
+        // DWORD dwBytesWritten;
 		Str.Reset(TrimStr(NewStr(MessageBuffer, dwBufferLength)));
         LocalFree(MessageBuffer);
     }
@@ -532,7 +532,8 @@ GAutoString LgiErrorCodeToString(uint32 ErrorCode)
 
 bool LgiExecute(const char *File, const char *Arguments, const char *Dir, GAutoString *ErrorMsg)
 {
-	int Status = 0, Error = 0;
+	int Error = 0;
+	HINSTANCE Status = NULL;
 	
 	if (!File)
 		return false;
@@ -545,8 +546,8 @@ bool LgiExecute(const char *File, const char *Arguments, const char *Dir, GAutoS
 		GAutoString d(LgiToNativeCp(Dir));
 		if (f)
 		{
-			Status = (NativeInt) ShellExecuteA(NULL, "open", f, a, d, 5);
-			if (Status <= 32)
+			Status = ShellExecuteA(NULL, "open", f, a, d, 5);
+			if ((size_t)Status <= 32)
 				Error = GetLastError();
 		}
 	}
@@ -557,15 +558,15 @@ bool LgiExecute(const char *File, const char *Arguments, const char *Dir, GAutoS
 		GAutoWString d(Utf8ToWide(Dir));
 		if (f)
 		{
-			Status = (NativeInt) ShellExecuteW(NULL, L"open", f, a, d, 5);
-			if (Status <= 32)
+			Status = ShellExecuteW(NULL, L"open", f, a, d, 5);
+			if ((size_t)Status <= 32)
 				Error = GetLastError();
 		}
 	}
 
 	#ifdef _DEBUG
-	if (Status <= 32)
-		LgiTrace("ShellExecuteW failed with %i (LastErr=0x%x)\n", Status, Error);
+	if ((size_t)Status <= 32)
+		LgiTrace("ShellExecuteW failed with %p (LastErr=0x%x)\n", Status, Error);
 	if (LgiCurrentTime() - Now > 1000)
 		LgiTrace("ShellExecuteW took %I64i\n", LgiCurrentTime() - Now);
 	#endif
@@ -573,7 +574,7 @@ bool LgiExecute(const char *File, const char *Arguments, const char *Dir, GAutoS
 	if (ErrorMsg)
 		*ErrorMsg = LgiErrorCodeToString(Error);
 	
-	return Status > 32;
+	return (size_t)Status > 32;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -610,12 +611,12 @@ GRegKey::GRegKey(bool WriteAccess, char *Key, ...)
 
 	va_list Arg;
 	va_start(Arg, Key);
-	vsprintf(Buffer, Key, Arg);
+	vsprintf_s(Buffer, Key, Arg);
 	va_end(Arg);
 	KeyName = Buffer;
 	if (KeyName)
 	{
-		int Len = 0;
+		size_t Len = 0;
 		char *SubKey = 0;
 
 		#define TestKey(Long, Short) \
@@ -786,7 +787,7 @@ bool GRegKey::SetStr(const char *Name, const char *Value)
 		return false;
 	}
 
-	LONG Ret = RegSetValueExA(k, Name, 0, REG_SZ, (uchar*)Value, Value ? strlen(Value) : 0);
+	LONG Ret = RegSetValueExA(k, Name, 0, REG_SZ, (uchar*)Value, Value ? (DWORD)strlen(Value) : 0);
 	if (Ret != ERROR_SUCCESS)
 	{
 		if (AssertOnError)

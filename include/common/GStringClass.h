@@ -31,6 +31,7 @@
 #endif
 #include "GUnicode.h"
 #include "GArray.h"
+#include "LgiClass.h"
 #ifndef IsDigit
 	#define IsDigit(ch) ((ch) >= '0' && (ch) <= '9')
 #endif
@@ -90,7 +91,7 @@ public:
 	class Array : public GArray<GString>
 	{
 	public:
-		Array() {}
+		Array(size_t PreAlloc = 0) : GArray<GString>(PreAlloc) {}
 		Array(const Array &a)
 		{
 			*this = (Array&)a;
@@ -146,46 +147,6 @@ public:
 	{
 		Str = NULL;
 		SetW(str, wchars);
-	}
-
-	static size_t WcharToUtfLength(const wchar_t *s, ptrdiff_t wchars = -1)
-	{
-		if (!s) return 0;
-		size_t Out = 0;
-		uint8 Buf[6];
-
-		#ifdef _MSC_VER
-		const uint16 *i = (const uint16*) s;
-		ssize_t Len = wchars >= 0 ? wchars << 1 : 0x7fffffff;
-		for (uint32 ch; ch = LgiUtf16To32(i, Len); )
-		{
-			uint8 *b = Buf;
-			ssize_t len = sizeof(Buf);
-			if (!LgiUtf32To8(ch, b, len))
-				break;
-			Out += sizeof(Buf) - len;
-		}
-		#else
-		const wchar_t *end = wchars < 0 ? NULL : s + wchars;
-		for (uint32 ch = 0;
-			(
-				wchars < 0
-				||
-				s < end
-			)
-			&&
-			(ch = *s);
-			s++)
-		{
-			uint8 *b = Buf;
-			ssize_t len = sizeof(Buf);
-			if (!LgiUtf32To8(ch, b, len))
-				break;
-			Out += sizeof(Buf) - len;
-		}
-		#endif
-
-		return Out;
 	}
 
 	#if defined(_WIN32) || defined(MAC)
@@ -304,7 +265,7 @@ public:
 		ptrdiff_t wchars = -1
 	)
 	{
-		size_t Sz = WcharToUtfLength(str, wchars);
+		size_t Sz = WideToUtf8Len(str, wchars);
 		if (Length(Sz))
 		{
 			#ifdef _MSC_VER
@@ -455,20 +416,7 @@ public:
 	
 	GString &operator =(const wchar_t *s)
 	{
-		Empty();
-		
-		if (s)
-		{
-			// FIXME, this needs to work without allocating 2 blocks of 
-			// heap memory
-			char *u = WideToUtf8(s);
-			if (u)
-			{
-				*this = u;
-				delete [] u;
-			}			
-		}
-		
+		SetW(s);
 		return *this;
 	}
 
@@ -955,8 +903,13 @@ public:
 		return s;
 	}
 
+	void Swap(GString &s)
+	{
+		LSwap(Str, s.Str);
+	}
+
 	/// Gets the character at 'index'
-	int operator() (int index) const
+	int operator() (ssize_t index) const
 	{
 		if (!Str)
 			return 0;
@@ -1034,7 +987,7 @@ public:
 		return LgiPrintf(*this, Fmt, Arg);
 	}
 	
-	static GString Escape(const char *In, ssize_t Len, const char *Chars = "\r\n\b\\\'\"")
+	static GString Escape(const char *In, ssize_t Len = -1, const char *Chars = "\r\n\b\\\'\"")
 	{
 		GString s;
 	
@@ -1089,17 +1042,21 @@ public:
 		return s;
 	}
 
-	static GString UnEscape(const char *In, ssize_t Len, const char *Chars = "\r\n\b\\\'\"")
+	static GString UnEscape(const char *In, ssize_t Len = -1)
 	{
 		GString s;
-		if (Chars && In)
+		if (In)
 		{
 			char Buf[256];
 			int Ch = 0;
-			if (Len < 0)
-				Len = strlen(In);
+			const char *End = Len >= 0 ? In + Len : NULL;
 		
-			while (Len-- > 0)
+			while
+			(
+				(!End || In < End)
+				&&
+				*In
+			)
 			{
 				if (Ch > sizeof(Buf)-4)
 				{
@@ -1110,10 +1067,37 @@ public:
 				}
 				if (*In == '\\')
 				{
-					if (strchr(Chars, In[1]))
+					In++;
+					switch (*In)
+					{
+						case 'n':
+						case 'N':
+							Buf[Ch++] = '\n';
+							break;
+						case 'r':
+						case 'R':
+							Buf[Ch++] = '\r';
+							break;
+						case 'b':
+						case 'B':
+							Buf[Ch++] = '\b';
+							break;
+						case 't':
+						case 'T':
+							Buf[Ch++] = '\t';
+							break;
+						default:
+							Buf[Ch++] = *In;
+							break;
+						case 0:
+							break;
+					}
+					if (*In)
 						In++;
+					else
+						break;
 				}
-				Buf[Ch++] = *In++;
+				else Buf[Ch++] = *In++;
 			}
 			if (Ch > 0)
 			{

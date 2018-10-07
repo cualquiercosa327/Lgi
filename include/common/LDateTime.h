@@ -93,6 +93,7 @@ class LgiClass LDateTime // This class can't have a virtual table, because it's 
 
 public:
 	LDateTime(const char *Init = NULL);
+	LDateTime(const LDateTime &dt) { *this = dt; }
 	~LDateTime();
 
     enum 
@@ -159,18 +160,36 @@ public:
 	);
 	/// Set this object to UTC timezone, changing the other members as
 	/// needed
-	void ToUtc(bool AssumeLocal = false)
+	LDateTime &ToUtc(bool AssumeLocal = false)
 	{
 		if (AssumeLocal) _Tz = SystemTimeZone();
 		SetTimeZone(0, true);
+		return *this;
 	}
+
+	/// \returns the UTC version of this object.
+	LDateTime Utc() const
+	{
+		LDateTime dt = *this;
+		return dt.ToUtc();
+	}
+
 	/// Changes the timezone to the local zone, changing other members
 	/// as needed.
-	void ToLocal(bool AssumeUtc = false)
+	LDateTime &ToLocal(bool AssumeUtc = false)
 	{
 		if (AssumeUtc) _Tz = 0;
 		SetTimeZone(SystemTimeZone(), true);
+		return *this;
 	}
+
+	/// \returns the local time version of this object.
+	LDateTime Local()
+	{
+		LDateTime dt = *this;
+		return dt.ToLocal();
+	}
+
 
 	/// Gets the current formatting of the date, the format only effects
 	/// the representation of the date when converted to/from a string.
@@ -337,6 +356,13 @@ public:
 	}
 
 	LDateTime &operator =(struct tm *t);
+	LDateTime &operator =(const LDateTime &t);
+	LDateTime &operator =(LDateTime const *t)
+	{
+		if (t)
+			*this = *t;
+		return *this;
+	}
 
 	/// GDom interface.
 	///

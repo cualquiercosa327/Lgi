@@ -21,7 +21,7 @@ int LgiPrintf(GString &Str, const char *Format, va_list &Arg)
 		#endif
 
 		if (Bytes > 0 && Str.Set(NULL, Bytes))
-			vsprintf(Str.Get(), Format, Arg);
+			vsprintf_s(Str.Get(), Bytes+1, Format, Arg);
 	}
 
 	return Bytes;
@@ -42,7 +42,7 @@ ssize_t LgiPrintf(GAutoString &Str, const char *Format, va_list &Arg)
 		#endif
 
 		if (Bytes > 0 && Str.Reset(new char[Bytes+1]))
-			vsprintf(Str, Format, Arg);
+			vsprintf_s(Str, Bytes+1, Format, Arg);
 	}
 
 	return Bytes;

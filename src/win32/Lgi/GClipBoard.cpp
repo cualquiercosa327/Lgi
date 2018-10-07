@@ -2,6 +2,7 @@
 #include "Lgi.h"
 #include "GClipBoard.h"
 #include "GPalette.h"
+#include "GCom.h"
 
 class GClipBoardPriv
 {
@@ -10,6 +11,402 @@ public:
 	GAutoWString Wide;
 };
 
+class LFileEnum : public GUnknownImpl<IEnumFORMATETC>
+{
+	int Idx;
+	GArray<GClipBoard::FormatType> Types;
+
+public:
+	LFileEnum(GClipBoard::FormatType type)
+	{
+		Idx = 0;
+		// Types.Add(type);
+		Types.Add(CF_HDROP);
+
+		AddInterface(IID_IEnumFORMATETC, (IEnumFORMATETC*)this);
+	}
+
+	~LFileEnum()
+	{
+		LgiTrace("%s:%i - ~LFileEnum()\n", _FL);
+	}
+
+    HRESULT STDMETHODCALLTYPE Next(ULONG celt, FORMATETC *fmt, ULONG *pceltFetched)
+	{
+		if (!fmt || Idx >= Types.Length())
+			return S_FALSE;
+
+		fmt->cfFormat = Types[Idx];
+		fmt->dwAspect = DVASPECT_CONTENT;
+		fmt->lindex = -1;
+		fmt->ptd = NULL;
+		fmt->tymed = TYMED_HGLOBAL;
+
+		if (pceltFetched) *pceltFetched = 1;
+		Idx += celt;
+
+		LgiTrace("%s:%i - Next(%i) returned '%s'\n", _FL, celt, GClipBoard::FmtToStr(fmt->cfFormat).Get());
+		return S_OK;
+	}
+        
+    HRESULT STDMETHODCALLTYPE Skip(ULONG celt)
+	{
+		return S_OK;
+	}
+        
+    HRESULT STDMETHODCALLTYPE Reset()
+	{
+		return S_OK;
+	}
+
+    HRESULT STDMETHODCALLTYPE Clone(IEnumFORMATETC **ppenum)
+	{
+		return E_NOTIMPL;
+	}
+};
+
+struct LFileName : public GUnknownImpl<IUnknown>
+{
+	char16 *w;
+
+	LFileName(STGMEDIUM *Med, const char *u)
+	{
+		Med->tymed = TYMED_FILE;
+		Med->lpszFileName = w = Utf8ToWide(u);
+		Med->pUnkForRelease = this;
+	}
+
+	~LFileName()
+	{
+		DeleteArray(w);
+	}
+};
+
+class LFileData : public GUnknownImpl<IDataObject>
+{
+	int Cur;
+	GClipBoard::FormatType Type, PrefDrop, ShellIdList;
+
+public:
+	GString::Array Files;
+
+	LFileData(GString::Array &files) : Files(files)
+	{
+		TraceRefs = true;
+		Type = GClipBoard::StrToFmt(CFSTR_FILENAMEA);
+		PrefDrop = GClipBoard::StrToFmt(CFSTR_PREFERREDDROPEFFECT);
+		ShellIdList = GClipBoard::StrToFmt(CFSTR_SHELLIDLIST);
+		Cur = 0;
+		AddInterface(IID_IDataObject, (IDataObject*)this);
+
+		LgiTrace("%s:%i - LFileData() = %p\n", _FL, this);
+	}
+
+	~LFileData()
+	{
+		LgiTrace("%s:%i - ~LFileData()\n", _FL);
+	}
+
+	HRESULT STDMETHODCALLTYPE GetData(FORMATETC *Fmt, STGMEDIUM *Med)
+	{
+		GString sFmt = GClipBoard::FmtToStr(Fmt->cfFormat);
+		LgiTrace("%s:%i - GetData(%s) starting...\n", _FL, sFmt.Get());
+		
+		if (!Med)
+			return E_INVALIDARG;
+		if (Fmt->cfFormat == PrefDrop)
+		{
+			Med->tymed = TYMED_HGLOBAL;
+			Med->hGlobal = GlobalAlloc(GHND, sizeof(DWORD));
+			DWORD* data = (DWORD*)GlobalLock(Med->hGlobal);
+			*data = DROPEFFECT_COPY;
+			GlobalUnlock(Med->hGlobal);
+			Med->pUnkForRelease = NULL;
+		}
+		else if (Fmt->cfFormat == Type)
+		{
+			if (!Med)
+				return E_INVALIDARG;
+
+			new LFileName(Med, Files[Cur++]);
+		}
+		else if (Fmt->cfFormat == CF_HDROP)
+		{
+			GDragDropSource Src;
+			GDragData Data;
+			GMouse m;
+			if (!Src.CreateFileDrop(&Data, m, Files))
+				return E_FAIL;
+
+			GVariant &d = Data.Data[0];
+			Med->tymed = TYMED_HGLOBAL;
+			Med->hGlobal = GlobalAlloc(GHND, d.Value.Binary.Length);
+			if (Med->hGlobal == NULL)
+				return E_FAIL;
+
+			char* data = (char*)GlobalLock(Med->hGlobal);
+			memcpy(data, d.Value.Binary.Data, d.Value.Binary.Length);
+			GlobalUnlock(Med->hGlobal);
+			Med->pUnkForRelease = NULL;
+		}
+		else if (Fmt->cfFormat == ShellIdList)
+		{
+			return E_NOTIMPL;
+
+			/*
+			LPIDA Data = NULL;
+			ITEMIDLIST *IdList = NULL;
+			size_t Size = sizeof(CIDA) + (Files.Length() * sizeof(UINT)) + (Files.Length() * sizeof(ITEMIDLIST));
+			
+			Med->hGlobal = GlobalAlloc(GHND, Size);
+			if (Med->hGlobal == NULL)
+				return E_FAIL;
+			Data = (LPIDA) GlobalLock(Med->hGlobal);
+
+			Data->cidl = Files.Length();
+			LPITEMIDLIST *Parent = (LPITEMIDLIST) (Data + 1);
+			Data->aoffset[0] = (char*)Parent - (char*)Data;
+
+			GPointer p;
+			p.vp = Parent + 1;
+			for (unsigned i=0; i<Files.Length(); i++)
+			{
+				Data->aoffset[i+1]
+			}
+
+			GlobalUnlock(Med->hGlobal);
+			Med->pUnkForRelease = NULL;
+			*/
+		}
+		else
+		{
+			LgiTrace("%s:%i - GetData(%s) not supported.\n", _FL, sFmt.Get());
+			return DV_E_FORMATETC;
+		}
+
+		LgiTrace("%s:%i - GetData(%s) OK.\n", _FL, sFmt.Get());
+		return S_OK;
+	}
+
+	HRESULT STDMETHODCALLTYPE GetDataHere(FORMATETC *pformatetc, STGMEDIUM *pmedium)
+	{
+		LgiTrace("%s:%i - GetDataHere not impl\n", _FL);
+		return E_NOTIMPL;
+	}
+
+	HRESULT STDMETHODCALLTYPE QueryGetData(FORMATETC *Fmt)
+	{
+		if (Fmt->cfFormat == Type ||
+			Fmt->cfFormat == CF_HDROP)
+			return S_OK;
+		
+		GString sFmt = GClipBoard::FmtToStr(Fmt->cfFormat);
+		LgiTrace("%s:%i - QueryGetData(%s) not supported.\n", _FL, sFmt.Get());
+		return DV_E_FORMATETC;
+	}
+
+	HRESULT STDMETHODCALLTYPE GetCanonicalFormatEtc(FORMATETC *Fmt, FORMATETC *pformatetcOut)
+	{
+		LgiTrace("%s:%i - GetCanonicalFormatEtc not impl\n", _FL);
+		return E_NOTIMPL;
+	}
+
+	HRESULT STDMETHODCALLTYPE SetData(FORMATETC *Fmt, STGMEDIUM *pmedium, BOOL fRelease)
+	{
+		GString sFmt = GClipBoard::FmtToStr(Fmt->cfFormat);
+		LgiTrace("%s:%i - SetData(%s)\n", _FL, sFmt.Get());		
+		return S_OK;
+	}
+
+	HRESULT STDMETHODCALLTYPE EnumFormatEtc(DWORD dir, IEnumFORMATETC **enumFmt)
+	{
+		if (dir == DATADIR_GET)
+		{
+			if (*enumFmt = new LFileEnum(Type))
+				(*enumFmt)->AddRef();
+			LgiTrace("%s:%i - Returning LFileEnum obj.\n", _FL);
+			return S_OK;
+		}
+		else if (dir == DATADIR_SET)
+		{
+		}
+
+		LgiTrace("%s:%i - EnumFormatEtc error\n", _FL);
+		return E_NOTIMPL;
+	}
+
+	HRESULT STDMETHODCALLTYPE DAdvise(FORMATETC *pformatetc, DWORD advf, IAdviseSink *pAdvSink, DWORD *pdwConnection)
+	{
+		LgiTrace("%s:%i - DAdvise not impl\n", _FL);
+		return E_NOTIMPL;
+	}
+
+	HRESULT STDMETHODCALLTYPE DUnadvise(DWORD dwConnection)
+	{
+		LgiTrace("%s:%i - DUnadvise not impl\n", _FL);
+		return E_NOTIMPL;
+	}
+
+	HRESULT STDMETHODCALLTYPE EnumDAdvise(IEnumSTATDATA **ppenumAdvise)
+	{
+		LgiTrace("%s:%i - EnumDAdvise not impl\n", _FL);
+		return E_NOTIMPL;
+	}
+};
+
+GString::Array GClipBoard::Files()
+{
+	GString::Array f;
+
+	if (Open)
+	{
+		CloseClipboard();
+		Open = FALSE;
+	}
+
+	LPDATAOBJECT pObj = NULL;
+	auto r = OleGetClipboard(&pObj);
+	if (SUCCEEDED(r))
+	{
+		GArray<CLIPFORMAT> Fmts;
+		IEnumFORMATETC *pEnum = NULL;
+		r = pObj->EnumFormatEtc(DATADIR_GET, &pEnum);
+		if (SUCCEEDED(r))
+		{
+			FORMATETC Fmt;
+			r = pEnum->Next(1, &Fmt, NULL);
+			while (r == S_OK)
+			{
+				Fmts.Add(Fmt.cfFormat);
+				LgiTrace("Got format: 0x%x = %s\n", Fmt.cfFormat, FmtToStr(Fmt.cfFormat).Get());
+
+				if (Fmt.cfFormat == CF_HDROP)
+				{
+					STGMEDIUM Med;
+					auto Res = pObj->GetData(&Fmt, &Med);
+					if (Res == S_OK)
+					{
+						switch (Med.tymed)
+						{
+							case TYMED_HGLOBAL:
+							{
+								auto Sz = GlobalSize(Med.hGlobal);
+								DROPFILES *p = (DROPFILES*)GlobalLock(Med.hGlobal);
+								if (p)
+								{
+									GPointer End;
+									End.c = (char*)p + Sz;
+									if (p->fWide)
+									{
+										wchar_t *w = (wchar_t*) ((char*)p + p->pFiles);
+										while (w < End.w && *w)
+										{
+											f.Add(w);
+											w += Strlen(w) + 1;
+										}
+									}
+									else
+									{
+										char *n = (char*)p + p->pFiles;
+										while (n < End.c && *n)
+										{
+											GAutoString u(LgiFromNativeCp(n));
+											f.Add(u.Get());
+											n += Strlen(n) + 1;
+										}
+									}
+								}
+
+								/*
+								int Count = DragQueryFileW(hDrop, -1, NULL, 0);
+
+								for (int i=0; i<Count; i++)
+								{
+									char16 FileName[256];
+									if (DragQueryFileW(hDrop, i, FileName, sizeof(FileName)-1) > 0)
+									{
+										FileNames.Add(WideToUtf8(FileName));
+									}
+								}
+								*/
+
+								GlobalUnlock(Med.hGlobal);
+								break;
+							}
+						}
+					}
+				}
+
+				r = pEnum->Next(1, &Fmt, NULL);
+			}
+
+			pEnum->Release();
+		}
+
+
+
+		pObj->Release();
+	}
+	else
+	{
+		GArray<FormatType> Fmts;
+		if (EnumFormats(Fmts))
+		{
+			for (auto f : Fmts)
+			{
+				auto s = FmtToStr(f);
+				LgiTrace("ClipFmt: %s\n", s.Get());
+			}
+		}
+	}
+
+	return f;
+}
+
+bool GClipBoard::Files(GString::Array &Paths, bool AutoEmpty)
+{
+	if (Open)
+	{
+		CloseClipboard();
+		Open = FALSE;
+	}
+
+	// CFSTR_FILEDESCRIPTOR
+	HRESULT r = OleSetClipboard(new LFileData(Paths));
+	return SUCCEEDED(r);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+GString GClipBoard::FmtToStr(FormatType Fmt)
+{
+	TCHAR n[256] = {0};
+	int r = GetClipboardFormatName(Fmt, n, CountOf(n));
+	if (!r)
+	{
+		switch (Fmt)
+		{
+			case CF_TEXT:
+				return "CF_TEXT";
+			case CF_BITMAP:
+				return "CF_BITMAP";
+			case CF_HDROP:
+				return "CF_HDROP";
+			case CF_UNICODETEXT:
+				return "CF_UNICODETEXT";
+			default:
+				LgiAssert(!"Not impl.");
+				break;
+		}
+	}
+
+	return n;
+}
+
+GClipBoard::FormatType GClipBoard::StrToFmt(GString Fmt)
+{
+	return RegisterClipboardFormatA(Fmt);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////
 GClipBoard::GClipBoard(GView *o)
 {
@@ -17,7 +414,7 @@ GClipBoard::GClipBoard(GView *o)
 	Open = false;
 	Owner = o;
 	if (Owner)
-		Open = OpenClipboard(Owner->Handle());
+		Open = OpenClipboard(Owner->Handle()) != 0;
 }
 
 GClipBoard::~GClipBoard()
@@ -53,7 +450,7 @@ bool GClipBoard::Empty()
 	d->Utf8.Reset();
 	d->Wide.Reset();
 
-	return EmptyClipboard();
+	return EmptyClipboard() != 0;
 }
 
 // Text
@@ -92,7 +489,7 @@ bool GClipBoard::TextW(char16 *Str, bool AutoEmpty)
 {
 	if (Str)
 	{
-		int Len = StrlenW(Str);
+		auto Len = StrlenW(Str);
 		return Binary(CF_UNICODETEXT, (uchar*) Str, (Len+1) * sizeof(ushort), AutoEmpty);
 	}
 
@@ -377,7 +774,7 @@ bool GClipBoard::Binary(FormatType Format, GAutoPtr<uint8> &Ptr, ssize_t *Length
 	HGLOBAL hMem = GetClipboardData(Format);
 	if (hMem)
 	{
-		int Len = GlobalSize(hMem);
+		auto Len = GlobalSize(hMem);
 		if (Length)
 			*Length = Len;
 			

@@ -41,7 +41,7 @@ void GStatusBar::OnPaint(GSurface *pDC)
 void GStatusBar::RePour()
 {
 	int x = X() - 5;
-	int i = Children.Length()-1;
+	auto i = Children.Length()-1;
 
 	for (	GViewI *w = Children.Last();
 			w;

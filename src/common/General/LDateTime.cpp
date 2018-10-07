@@ -64,7 +64,7 @@ uint16 LDateTime::GetDefaultFormat()
 		}
 
 		if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_SDATE, s, sizeof(s)))
-			DefaultSeparator = s[0];
+			DefaultSeparator = (char)s[0];
 
 		if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_SSHORTDATE, s, sizeof(s)))
 		{
@@ -803,7 +803,7 @@ bool LDateTime::Get(uint64 &s)
 	System.wMilliseconds = limit(_Thousands, 0, 999);
 	System.wDayOfWeek = DayOfWeek();
 
-	BOOL b1, b2;
+	BOOL b1;
 	if (b1 = SystemTimeToFileTime(&System, &Utc))
 	{
 		// Convert to 64bit
@@ -1442,16 +1442,16 @@ LDateTime LDateTime::operator -(LDateTime &dt)
     
     int64 d = (int64)a - (int64)b;
     LDateTime r;
-    r._Day = d / Day;
+    r._Day = (int16) (d / Day);
     d -= r._Day * Day;
-    r._Hours = d / Hr;
+    r._Hours = (int16) (d / Hr);
     d -= r._Hours * Hr;
-    r._Minutes = d / Min;
+    r._Minutes = (int16) (d / Min);
     d -= r._Minutes * Min;
-    r._Seconds = d / Sec;
+    r._Seconds = (int16) (d / Sec);
 	#ifdef WIN32
     d -= r._Seconds * Sec;
-    r._Thousands = d / 10000;
+    r._Thousands = (int16) (d / 10000);
 	#else
 	r._Thousands = 0;
 	#endif
@@ -1470,6 +1470,21 @@ LDateTime LDateTime::operator +(LDateTime &dt)
 	// s.AddSeconds(dt.Seconds());
 
 	return s;
+}
+
+LDateTime &LDateTime::operator =(const LDateTime &t)
+{
+	_Day = t._Day;
+	_Year = t._Year;
+	_Thousands = t._Thousands;
+	_Month = t._Month;
+	_Seconds = t._Seconds;
+	_Minutes = t._Minutes;
+	_Hours = t._Hours;
+	_Tz = t._Tz;
+	_Format = t._Format;
+
+	return *this;
 }
 
 LDateTime &LDateTime::operator =(struct tm *time)
@@ -1559,7 +1574,7 @@ void LDateTime::AddMinutes(int64 Minutes)
 	{
 		int64 delta = Minutes * 60 * Second64Bit;
 		uint64 n = i + delta;
-		// printf("AddMin " LGI_PrintfInt64 " + " LGI_PrintfInt64 " = " LGI_PrintfInt64 "\n", i, delta, n);
+		// printf("AddMin " LPrintfInt64 " + " LPrintfInt64 " = " LPrintfInt64 "\n", i, delta, n);
 		Set(n);
 	}
 }
@@ -1612,7 +1627,7 @@ void LDateTime::AddMonths(int64 Months)
 	}
 	while (1);
 
-	_Month = m;
+	_Month = (int16) m;
 	if (_Day > DaysInMonth())
 		_Day = DaysInMonth();
 }
@@ -1654,7 +1669,7 @@ bool LDateTime::Decode(const char *In)
 	bool Status = false;
 
 	// Tokenize delimited by whitespace
-	GString::Array T = GString(In).SplitDelimit();
+	GString::Array T = GString(In).SplitDelimit(", \t\r\n");
 	if (T.Length() >= 2)
 	{
 		bool GotDate = false;
@@ -1721,26 +1736,46 @@ bool LDateTime::Decode(const char *In)
 			else if (s.Find(":") >= 0)
 			{
 				// whole time
-				GString::Array Time = s.Split(":");
-				if (Time.Length() == 2 ||
-					Time.Length() == 3)
+
+				// Do some validation
+				bool Valid = true;
+				for (char *c = s; *c && Valid; c++)
 				{
-					// Hour
-					Hours((int)Time[0].Int());
-					if (s.Lower().Find("p") >= 0)
+					if (!(IsDigit(*c) || *c == ':'))
+						Valid = false;
+				}
+
+				if (Valid)
+				{
+					GString::Array Time = s.Split(":");
+					if (Time.Length() == 2 ||
+						Time.Length() == 3)
 					{
-						if (Hours() < 12)
-							Hours(Hours() + 12);
-					}
+						// Hour
+						int i = (int) Time[0].Int();
+						if (i >= 0)
+							Hours(i);
+						if (s.Lower().Find("p") >= 0)
+						{
+							if (Hours() < 12)
+								Hours(Hours() + 12);
+						}
 
-					// Minute
-					Minutes((int)Time[1].Int());
+						// Minute
+						i = (int) Time[1].Int();
+						if (i >= 0)
+							Minutes(i);
 
-					if (Time.Length() == 3)
-						// Second
-						Seconds((int)Time[2].Int());
+						if (Time.Length() == 3)
+						{
+							// Second
+							i = (int) Time[2].Int();
+							if (i >= 0)
+								Seconds(i);
+						}
 						
-					Status = true;
+						Status = true;
+					}
 				}
 			}
 			else if (IsAlpha(s(0)))

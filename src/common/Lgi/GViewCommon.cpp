@@ -1116,7 +1116,7 @@ bool GView::Enabled()
 
 	#if WINNATIVE
 	if (_View)
-		return IsWindowEnabled(_View);
+		return IsWindowEnabled(_View) != 0;
 	#else
 	#endif
 	return !TestFlag(GViewFlags, GWF_DISABLED);
@@ -1878,6 +1878,39 @@ GViewI *GView::WindowFromPoint(int x, int y, bool Debug)
 	return NULL;
 }
 
+GColour GView::StyleColour(int CssPropType, GColour Default, int Depth)
+{
+	GColour c = Default;
+
+	if ((CssPropType >> 8) == GCss::TypeColor)
+	{
+		GViewI *v = this;
+		for (int i=0; v && i<Depth; i++, v = v->GetParent())
+		{
+			auto Style = v->GetCss();
+			if (Style)
+			{
+				auto Colour = (GCss::ColorDef*) Style->PropAddress((GCss::PropType)CssPropType);
+				if (Colour)
+				{
+					if (Colour->Type == GCss::ColorRgb)
+					{
+						c.Set(Colour->Rgb32, 32);
+						break;
+					}
+					else if (Colour->Type == GCss::ColorTransparent)
+					{
+						c.Empty();
+						break;
+					}
+				}
+			}
+		}
+	}
+	
+	return c;
+}
+
 bool GView::InThread()
 {
 	#if WINNATIVE
@@ -1888,9 +1921,10 @@ bool GView::InThread()
 			Hnd = p->Handle();
 		}
 		
-		DWORD CurThread = GetCurrentThreadId();
-		DWORD ViewThread = Hnd ? GetWindowThreadProcessId(Hnd, NULL) : GetThreadId(LgiApp->GetGuiThread());
-		return CurThread == ViewThread;
+		auto CurThreadId = GetCurrentThreadId();
+		auto GuiThreadId = LgiApp->GetGuiThreadId();
+		DWORD ViewThread = Hnd ? GetWindowThreadProcessId(Hnd, NULL) : GuiThreadId;
+		return CurThreadId == ViewThread;
 	
 	#elif defined BEOS
 
@@ -1906,8 +1940,8 @@ bool GView::InThread()
 
 	#else
 
-		OsThread Me = LgiGetCurrentThread();
-		OsThread Gui = LgiApp ? LgiApp->GetGuiThread() : 0;
+		OsThreadId Me = GetCurrentThreadId();
+		OsThreadId Gui = LgiApp ? LgiApp->GetGuiThreadId() : 0;
 		return Gui == Me;
 
 	#endif
@@ -1924,7 +1958,7 @@ bool GView::PostEvent(int Cmd, GMessage::Param a, GMessage::Param b)
 	if (_View)
 	{
 		#if WINNATIVE
-		return PostMessage(_View, Cmd, a, b);
+		return PostMessage(_View, Cmd, a, b) != 0;
 		#else
 		return LgiPostEvent(_View, Cmd, a, b);
 		#endif
@@ -2275,7 +2309,7 @@ GViewFactory::GViewFactory()
 	}
 	else
 	{
-		LgiAssert(AllFactories);
+		LgiAssert(AllFactories != NULL);
 	}
 	#else
 	pthread_once(&FactoryOnce, GFactoryInitFactories);

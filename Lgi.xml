@@ -96,12 +96,13 @@
 					<Node File="./src/win32/General/GMem.cpp" Type="2" Platforms="1" />
 					<Node File="./src/common/General/qsort.cpp" Type="2" Platforms="1" />
 				</Node>
-				<Node File=".\include\common\GArray.h" Type="3" Platforms="15" />
-				<Node File=".\src\common\General\GContainers.cpp" Type="2" Platforms="15" />
-				<Node File=".\include\common\GContainers.h" Type="3" Platforms="15" />
-				<Node File=".\include\common\GHashTable.h" Type="3" Platforms="15" />
-				<Node File=".\include\common\GMem.h" Type="3" Platforms="15" />
-				<Node File=".\include\common\LHashTable.h" Type="3" Platforms="15" />
+				<Node File="./include/common/GArray.h" Type="3" Platforms="15" />
+				<Node File="./src/common/General/GContainers.cpp" Type="2" Platforms="15" />
+				<Node File="./include/common/GContainers.h" Type="3" Platforms="15" />
+				<Node File="./include/common/GHashTable.h" Type="3" Platforms="15" />
+				<Node File="./include/common/GMem.h" Type="3" Platforms="15" />
+				<Node File="./include/common/LHashTable.h" Type="3" Platforms="15" />
+				<Node File="./include/common/LUnrolledList.h" Type="3" Platforms="15" />
 			</Node>
 			<Node Name="Menus" Type="1" Platforms="15" Open="0" Id="23">
 				<Node Name="Haiku" Type="1" Platforms="15" Open="0" Id="24">
@@ -156,12 +157,12 @@
 				<Node File=".\src\common\Lgi\GVariant.cpp" Type="2" Platforms="15" />
 				<Node File="./include/common/GVariant.h" Type="3" Platforms="15" />
 			</Node>
-			<Node File=".\src\common\Lgi\GGuiUtils.cpp" Type="2" Platforms="15" />
-			<Node File=".\src\common\Lgi\GObject.cpp" Type="2" Platforms="15" />
-			<Node File=".\src\common\Lgi\GToolTip.cpp" Type="2" Platforms="15" />
-			<Node File=".\src\common\Lgi\GTrayIcon.cpp" Type="2" Platforms="15" />
-			<Node File=".\src\common\Lgi\Lgi.cpp" Type="2" Platforms="15" />
-			<Node File=".\src\common\Lgi\LgiMsg.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/GGuiUtils.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/GObject.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/GToolTip.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/GTrayIcon.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/LgiCommon.cpp" Type="2" Platforms="15" />
+			<Node File="./src/common/Lgi/LgiMsg.cpp" Type="2" Platforms="15" />
 		</Node>
 		<Node Name="Dialogs" Type="1" Platforms="15" Open="0" Id="36">
 			<Node Name="File Select Win" Type="1" Platforms="15" Open="0" Id="38">
@@ -176,6 +177,7 @@
 			<Node File="./src/common/Lgi/GFontSelect.cpp" Type="2" Platforms="15" />
 			<Node File="./include/common/GFontSelect.h" Type="3" Platforms="15" />
 			<Node File="./src/common/Lgi/GInput.cpp" Type="2" Platforms="15" />
+			<Node File="./include/common/GInput.h" Type="3" Platforms="15" />
 		</Node>
 		<Node Name="Graphics" Type="1" Platforms="15" Open="0" Id="39">
 			<Node Name="_Core" Type="1" Platforms="15" Open="0" Id="40">

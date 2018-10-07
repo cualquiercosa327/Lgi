@@ -28,7 +28,6 @@ enum CellFlag
 #include "GRadioGroup.h"
 #include "GBitmap.h"
 #include "GTabView.h"
-#include "GUtf8.h"
 #include "GScrollBar.h"
 #include "GCss.h"
 
@@ -229,7 +228,7 @@ DistributeSize(	GArray<int> &a,
 	if (Fill.Length())
 	{
 		// Distribute size amongst the growable cells
-		int PerFillSize = AdditionalSize / Fill.Length();
+		int PerFillSize = AdditionalSize / (int)Fill.Length();
 		if (PerFillSize <= 0)
 		    PerFillSize = 1;
 		    
@@ -252,7 +251,7 @@ DistributeSize(	GArray<int> &a,
 			if (a[Cell] && ExistingGrowPx)
 			    Add = a[Cell] * AdditionalSize / ExistingGrowPx;
 			else
-			    Add = MAX(1, AdditionalSize / Grow.Length());
+			    Add = (int)MAX(1, AdditionalSize / Grow.Length());
 			a[Cell] = a[Cell] + Add;
 		}
 	}
@@ -267,7 +266,7 @@ DistributeSize(	GArray<int> &a,
 			if (a[Cell] && UnknownPx)
 			    Add = a[Cell] * AdditionalSize / UnknownPx;
 			else
-			    Add = MAX(1, AdditionalSize / Unknown.Length());
+			    Add = (int)MAX(1, AdditionalSize / Unknown.Length());
 			a[Cell] = a[Cell] + Add;
 		}
 	}
@@ -1650,7 +1649,7 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 						if (MinY > InitMinY)
 						{
 							// Allocate any extra min px somewhere..
-							int Amt = (MinY - InitMinY) / AddTo.Length();
+							int Amt = (MinY - InitMinY) / (int)AddTo.Length();
 							for (int i=0; i<AddTo.Length(); i++)
 							{
 								int Idx = AddTo[i];
@@ -1661,7 +1660,7 @@ void GTableLayoutPrivate::LayoutVertical(GRect &Client, int *MinY, int *MaxY, Ce
 						if (MaxY > InitMaxY)
 						{
 							// Allocate any extra max px somewhere..
-							int Amt = (MaxY - InitMaxY) / AddTo.Length();
+							int Amt = (MaxY - InitMaxY) / (int)AddTo.Length();
 							for (int i=0; i<AddTo.Length(); i++)
 							{
 								int Idx = AddTo[i];
@@ -2002,16 +2001,7 @@ void GTableLayout::OnPaint(GSurface *pDC)
 		return;
 	}
 
-	GColour Back;
-	Back.Set(LC_MED, 24);
-	if (GetCss())
-	{		
-		GCss::ColorDef fill = GetCss()->BackgroundColor();
-		if (fill.Type == GCss::ColorRgb)
-			Back.Set(fill.Rgb32, 32);
-		else if (fill.Type == GCss::ColorTransparent)
-			Back.Empty();
-	}
+	GColour Back = StyleColour(GCss::PropBackgroundColor, GColour(LC_MED, 24));
 	if (!Back.IsTransparent())
 	{
 		pDC->Colour(Back);
@@ -2166,7 +2156,7 @@ void GTableLayout::Value(int64 v)
     GArray<GRadioButton*> Btns;
     if (d->CollectRadioButtons(Btns))
     {
-        if (v >= 0 && v < Btns.Length())
+        if (v >= 0 && v < (ssize_t)Btns.Length())
             Btns[(int)v]->Value(true);
     }
 }
