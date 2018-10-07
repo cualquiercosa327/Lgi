@@ -672,10 +672,12 @@ OSStatus GDragDropTarget::OnDragWithin(GView *v, DragRef Drag)
 	for (GViewI *p = v->GetParent(); param && !Accept && p; p = p->GetParent())
 	{
 		GDragDropTarget *pt = p->DropTarget();
+		const char *Cls = p->GetClass();
 		if (pt)
 		{
 			param.Reset(new DragParams(p, Drag, NULL));
 			Accept = pt->WillAccept(param->Formats, param->Pt, param->KeyState);
+			printf("Cls=%s Accept=%i\n", Cls, Accept);
 			if (Accept)
 			{
 				v = p->GetGView();
@@ -710,6 +712,8 @@ OSStatus GDragDropTarget::OnDragReceive(GView *v, DragRef Drag)
 	GView *DropView = NULL;
 	for (GView *p = v; p; p = p->GetParent() ? p->GetParent()->GetGView() : NULL)
 	{
+		// const char *Cls = p->GetClass();
+		// printf("Cls=%s\n", Cls);
 		if (p->d->AcceptedDropFormat)
 		{
 			DropView = p;
