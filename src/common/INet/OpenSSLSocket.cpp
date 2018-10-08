@@ -725,7 +725,7 @@ OsSocket SslSocket::Handle(OsSocket Set)
 		}
 		if (Ssl)
 		{
-			r = Library->SSL_set_fd(Ssl, Set);
+			r = Library->SSL_set_fd(Ssl, (int) Set);
 			Bio = Library->SSL_get_rbio(Ssl);
 			r = Library->SSL_accept(Ssl);
 			if (r <= 0)
@@ -1105,7 +1105,7 @@ bool SslSocket::IsReadable(int TimeoutMs)
 		FD_ZERO(&r);
 		FD_SET(s, &r);
 		
-		int v = select(s+1, &r, 0, 0, &t);
+		int v = select((int)s+1, &r, 0, 0, &t);
 		if (v > 0 && FD_ISSET(s, &r))
 		{
 			return true;
@@ -1135,7 +1135,7 @@ bool SslSocket::IsWritable(int TimeoutMs)
 		FD_ZERO(&w);
 		FD_SET(s, &w);
 		
-		int v = select(s+1, &w, 0, 0, &t);
+		int v = select((int)s+1, &w, 0, 0, &t);
 		if (v > 0 && FD_ISSET(s, &w))
 		{
 			return true;
