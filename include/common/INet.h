@@ -106,6 +106,7 @@ public:
 
 	/// Returns the operating system handle to the socket.
 	OsSocket Handle(OsSocket Set = INVALID_SOCKET);
+	OsSocket ReleaseHandle();
 
 	/// Returns true if the internal state of the class is ok
 	bool IsOK();

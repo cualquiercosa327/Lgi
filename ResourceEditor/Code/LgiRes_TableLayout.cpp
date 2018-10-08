@@ -319,6 +319,7 @@ public:
 						break;
 					case IDM_INSERT_ROW:
 						Table->InsertRow(Cell.y1);
+						break;
 					case IDM_INSERT_COL:
 						Table->InsertCol(Cell.x1);
 						break;

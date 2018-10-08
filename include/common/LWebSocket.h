@@ -25,9 +25,10 @@ class LWebSocket : public GSocket
 
 public:
 	typedef std::function<bool(char *Data, uint64 Len)> OnMsg;
-	LWebSocket(OnMsg onMsg = nullptr);
+	LWebSocket(bool Server = true, OnMsg onMsg = nullptr);
 	~LWebSocket();
 
+	bool InitFromHeaders(GString Data, OsSocket Sock);
 	void ReceiveHandler(OnMsg onMsg);
 	bool SendMessage(char *Data, uint64 Len);
 	bool SendMessage(GString s) { return SendMessage(s.Get(), s.Length()); }

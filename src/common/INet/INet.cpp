@@ -296,6 +296,13 @@ void GSocket::OnDisconnect()
 {
 }
 
+OsSocket GSocket::ReleaseHandle()
+{
+	auto h = d->Socket;
+	d->Socket = INVALID_SOCKET;
+	return h;
+}
+
 OsSocket GSocket::Handle(OsSocket Set)
 {
 	if (Set != INVALID_SOCKET)

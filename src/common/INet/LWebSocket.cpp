@@ -113,6 +113,8 @@ enum WsOpCode
 struct LWebSocketPriv
 {
 	LWebSocket *Ws;
+	bool Server;
+
 	WebSocketState State;
 	GString InHdr, OutHdr;
 	GArray<char> Data;
@@ -121,7 +123,7 @@ struct LWebSocketPriv
 	GArray<GRange> Msg;
 	LWebSocket::OnMsg onMsg;
 
-	LWebSocketPriv(LWebSocket *ws) : Ws(ws)
+	LWebSocketPriv(LWebSocket *ws, bool server) : Ws(ws), Server(server)
 	{
 		State = WsReceiveHdr;
 		Used = 0;
@@ -298,9 +300,9 @@ struct LWebSocketPriv
 	}
 };
 
-LWebSocket::LWebSocket(OnMsg onMsg)
+LWebSocket::LWebSocket(bool Server, OnMsg onMsg)
 {
-	d = new LWebSocketPriv(this);
+	d = new LWebSocketPriv(this, Server);
 	if (onMsg)
 		ReceiveHandler(onMsg);
 }
@@ -320,48 +322,78 @@ bool LWebSocket::SendMessage(char *Data, uint64 Len)
 	if (d->State != WsMessages)
 		return false;
 
-	uchar p[10];
-	size_t Sz = 0;
-
-	p[Sz++] = 0x80 | // Fin
-			WsText;
+	uint8 Masked = d->Server ? 0 : 0x80;
+	int8 Hdr[2 + 8 + 4];
+	GPointer p = {Hdr};
+	*p.u8++ =	0x80 | // Fin
+				WsText;
 	if (Len < 126) // 1 byte
 	{
 		// Direct len
-		p[Sz++] = (uint8) Len;
+		*p.u8++ = Masked | (uint8)Len;
 	}
 	else if (Len <= 0xffff) // 2 byte
 	{
 		// 126 + 2 bytes
-		p[Sz++] = 126;
-		p[Sz++] = (uint8) (Len >> 8);
-		p[Sz++] = (uint8) (Len & 0xff);
+		*p.u8++ = Masked | 126;
+		*p.u16++ = htons(Len);
 	}
 	else
 	{
 		// 127 + 8 bytes
-		p[Sz++] = 127;
-		p[Sz++] = (uint8) (Len >> 54);
-		p[Sz++] = (uint8) (Len >> 48);
-		p[Sz++] = (uint8) (Len >> 40);
-		p[Sz++] = (uint8) (Len >> 32);
-		p[Sz++] = (uint8) (Len >> 24);
-		p[Sz++] = (uint8) (Len >> 16);
-		p[Sz++] = (uint8) (Len >> 8);
-		p[Sz++] = (uint8) (Len & 0xff);
+		*p.u8++ = Masked | 127;
+		*p.u64++ = htonll(Len);
 	}
 
-	// no mask
+	GAutoPtr<uint8> MaskData;
+	if (Masked)
+	{
+		uint8 *Mask = p.u8;
+		*p.u32++ = LgiRand();
+		if (!MaskData.Reset(new uint8[Len]))
+			return d->Error("Alloc failed.");
+		
+		uint8 *Out = MaskData.Get();
+		for (uint64 i=0; i<Len; i++)	
+			Out[i] = Data[i] ^ Mask[i&3];
+	}
 
-	auto Wr = d->Write(p, Sz);
+	auto Sz = p.s8 - Hdr;
+	auto Wr = d->Write(Hdr, Sz);
 	if (Wr != Sz)
 		return d->Error("SendMessage.Hdr failed to write to socket");
 
-	Wr = d->Write(Data, Len);
+	Wr = d->Write(MaskData ? MaskData.Get() : (uint8*)Data, Len);
 	if (Wr != Len)
 		return d->Error("SendMessage.Body failed to write to socket");
 
 	return true;
+}
+
+bool LWebSocket::InitFromHeaders(GString Data, OsSocket Sock)
+{
+	bool HasMsg = false;
+
+	if (d->State == WsReceiveHdr)
+	{
+		d->InHdr = Data;
+
+		auto End = d->InHdr.Find("\r\n\r\n");
+		if (End >= 0)
+		{
+			if (d->InHdr.Length() > (size_t)End + 4)
+			{
+				d->AddData(d->InHdr.Get() + End + 4, d->InHdr.Length() - End - 4);
+				d->InHdr.Length(End);
+			}
+
+			HasMsg = d->SendResponse();
+		}
+
+		Handle(Sock);
+	}
+
+	return HasMsg;
 }
 
 bool LWebSocket::OnData()
