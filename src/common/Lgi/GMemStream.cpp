@@ -259,7 +259,13 @@ GTempStream::GTempStream(char *tmp, int maxMemSize) : GProxyStream(0)
 {
 	s = &Null;
 	MaxMemSize = maxMemSize;
-	TmpFolder.Reset(NewStr(tmp));
+	if (tmp)
+		TmpFolder.Reset(NewStr(tmp));
+	else
+	{
+		GFile::Path p(LSP_TEMP);
+		TmpFolder.Reset(NewStr(p));
+	}
 	Tmp = 0;
 	Mem = 0;
 }
