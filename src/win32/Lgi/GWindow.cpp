@@ -802,6 +802,18 @@ GMessage::Result GWindow::OnEvent(GMessage *Msg)
 
 	switch (MsgCode(Msg))
 	{
+		case M_ASSERT_UI:
+		{
+			int *Result = (int*)Msg->A();
+			GString *Str = (GString*)Msg->B();
+			if (Result)
+			{
+				extern int LgiAssertDlg(GString Msg);
+				*Result = LgiAssertDlg(Str ? *Str : "Error: no msg.");
+			}
+			else assert(!"Invalid param");
+			break;
+		}
 		case M_SET_WINDOW_PLACEMENT:
 		{
 			/*	

@@ -882,6 +882,13 @@ GString WinGetSpecialFolderPath(int Id)
 }
 
 //////////////////////////////////////////////////////////////////////
+int LgiAssertDlg(GString Msg)
+{
+	GAlert a(0, "Assert Failed", Msg, "Abort", "Debug", "Ignore");
+	a.SetAppModal();
+	return a.DoModal();
+}
+
 void _lgi_assert(bool b, const char *test, const char *file, int line)
 {
 	static bool Asserting = false;
@@ -904,12 +911,32 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 
 			#ifdef _DEBUG
 
-			GStringPipe p;
-			p.Print("Assert failed, file: %s, line: %i\n%s", file, line, test);
-			GAutoPtr<char,true> Msg(p.NewStr());
-			GAlert a(0, "Assert Failed", Msg, "Abort", "Debug", "Ignore");
-			a.SetAppModal();
-			switch (a.DoModal())
+			GString Msg;
+			Msg.Printf("Assert failed, file: %s, line: %i\n%s", file, line, test);
+
+			int Result = 0;
+			if (LgiApp->InThread())
+			{
+				// We are in the GUI thread, show the dialog inline
+				Result = LgiAssertDlg(Msg);
+			}
+			else if (LgiApp->AppWnd)
+			{
+				// Ask the GUI thread to show the dialog
+				LgiApp->AppWnd->PostEvent(M_ASSERT_UI, (GMessage::Param)&Result, (GMessage::Param)&Msg);
+				while (!Result)
+					LgiSleep(10);
+			}
+			else
+			{
+				// Fall back to windows UI
+				int r = MessageBoxA(NULL, Msg, "Lgi.Assert", MB_ABORTRETRYIGNORE);
+				if (r == IDABORT) Result = 1;
+				else if (r == IDRETRY) Result = 2;
+				else Result = 3;
+			}
+
+			switch (Result)
 			{
 				case 1:
 				{
@@ -926,6 +953,7 @@ void _lgi_assert(bool b, const char *test, const char *file, int line)
 					#endif
 					break;
 				}
+				default:
 				case 3:
 				{
 					break;

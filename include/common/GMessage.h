@@ -173,6 +173,7 @@ enum LgiMessages
 	M_TABLE_LAYOUT,
 	M_URL,
 	M_LOG_TEXT,
+	M_ASSERT_UI,
 };
 
 class LgiClass GMessage
